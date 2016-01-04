@@ -1,0 +1,165 @@
+#include <vector>
+#include "OpenGL/world.c"
+#include "graph.cpp"
+using namespace std;
+
+#define w 3
+#define h 3
+Graph graphs[w*h];
+vector <unsigned int> sortedIndices[9];
+vector <float> interiorAngles[9];
+
+void buildGeometry(Graph *g){
+	g->clear();
+	// this is the center point
+	Vertex origin;
+	origin.x = origin.y = 0.0;
+	origin.z = 0.0;
+	g->addVertex(origin);
+	// these are 4 outer points which connect to the center
+	int numEdgeVertices = arc4random()%3*2 + 4;
+	for(int i = 0; i < numEdgeVertices; i++){
+		Vertex v;
+		v.x = arc4random() % 1000 / 1000.0 - .5;
+		v.y = arc4random() % 1000 / 1000.0 - .5;
+		v.z = 0.0;
+		g->addVertex(v);
+	}
+	// segment lines that connect outer points to the center point
+	for(int i = 1; i < g->numV; i++){
+		Edge e;
+		e.v1 = 0;
+		e.v2 = i;
+		g->addEdge(e);
+	}
+}
+
+float oddEvenSumRatio(vector<float> angles){
+	float odd = 0.0;
+	float even = 0.0;
+	for(int i = 0; i < angles.size(); i++){
+		if(i%2)
+			odd += angles[i];
+		else
+			even += angles[i];
+	}
+	return odd - even;	
+}
+
+void setup(){
+	glPointSize(10);
+	POV = POLAR;
+	ZOOM = 2;
+	GRID = 0;
+	GROUND = 0;
+
+	for(int i = 0; i < 9; i++){
+		buildGeometry(&graphs[i]);
+		sortedIndices[i].clear();
+		interiorAngles[i].clear();
+		sortedIndices[i] = graphs[i].connectingVertexIndicesSortedRadially(0);
+		interiorAngles[i] = graphs[i].connectingVertexInteriorAngles(0, sortedIndices[i] );
+	}
+	// printf("SOLVED!\n--- vertices:\n");
+	// for(int i = 0; i < graph.numV; i++) 
+	// 	printf("(%d):(%.2f,%.2f) ",i, graph.v[i].x, graph.v[i].y);
+	// printf("\n--- sorted indices:\n");
+	// for(int i = 0; i < sortedIndices.size(); i++) 
+	// 	printf("(%d):%d ",i, sortedIndices[i]);
+	// printf("\n--- interior angle measurements\n");
+	// for(int i = 0; i < interiorAngles.size(); i++)
+	// 	printf("(%d):%f ",i, interiorAngles[i] / 3.1415 * 180);
+	// printf("\n");
+	// interiorAngles
+	// float balance = oddEvenSumRatio(interiorAngles);
+	// printf("odd and even\n(%f)\n", balance);
+}
+
+void update(){
+	for(int i = 0; i < 9; i++){
+		float equilibrium = oddEvenSumRatio(interiorAngles[i]);
+		if(fabs(equilibrium) < 0.1)
+			return;
+
+		// purturb a random index
+		unsigned int randomIndex = arc4random()%(interiorAngles[i].size()-1)+1;
+		float randomAngle = (arc4random()%2-.5)*.05;
+		graphs[i].rotateEdge(randomIndex, 0, randomAngle);
+
+		// recalculate changes to angles
+		// sortedIndices = graph.connectingVertexIndicesSortedRadially(0);
+		interiorAngles[i] = graphs[i].connectingVertexInteriorAngles(0, sortedIndices[i] );
+
+		float newEquilibrium = oddEvenSumRatio(interiorAngles[i]);
+		if(fabs(newEquilibrium) > fabs(equilibrium)){
+			graphs[i].rotateEdge(randomIndex, 0, -randomAngle);		
+			interiorAngles[i] = graphs[i].connectingVertexInteriorAngles(0, sortedIndices[i] );
+		}
+	}
+}
+
+void draw(){
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0.001);
+	
+	for(int k = 0; k < 9; k++){
+		// for(int i = 0; i < sortedIndices[k].size(); i++){
+		// 	glColor3f(1.0, ((float)i)/sortedIndices[k].size(), 0.0);
+		// 	drawPoint(graphs[k].v[sortedIndices[k][i]].x, graphs[k].v[sortedIndices[k][i]].y, 0.0);
+		// }
+		glPushMatrix();
+
+		glTranslatef(-1 + (k%3), -1 + floor(k/3.0), 0.0);
+
+		for(int i = 0; i < sortedIndices[k].size(); i++){
+			float vertices[9];
+			vertices[0] = graphs[k].v[sortedIndices[k][i]].x;
+			vertices[1] = graphs[k].v[sortedIndices[k][i]].y;
+			vertices[2] = graphs[k].v[sortedIndices[k][i]].z;
+			vertices[3] = graphs[k].v[0].x;
+			vertices[4] = graphs[k].v[0].y;
+			vertices[5] = graphs[k].v[0].z;
+			vertices[6] = graphs[k].v[sortedIndices[k][(i+1)%sortedIndices[k].size()]].x;
+			vertices[7] = graphs[k].v[sortedIndices[k][(i+1)%sortedIndices[k].size()]].y;
+			vertices[8] = graphs[k].v[sortedIndices[k][(i+1)%sortedIndices[k].size()]].z;
+
+			glColor3f((i%2)*.5+.5, (i%2)*.5+.5, (i%2)*.5+.5 );
+			// glEnableClientState(GL_VERTEX_ARRAY);
+			// glVertexPointer(3, GL_FLOAT, 0, graphs[k].v);
+			// glDrawElements(GL_TRIANGLE_FAN, 9, GL_UNSIGNED_SHORT, vertices);
+			// glDisableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 0, vertices);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
+			glDisableClientState(GL_VERTEX_ARRAY);
+		}
+		// glColor3f(0.2, 0.2, 1.0);
+		// glEnableClientState(GL_VERTEX_ARRAY);
+		// glVertexPointer(3, GL_FLOAT, 0, graphs[k].v);
+		// glDrawElements(GL_LINES, graphs[k].numE*2, GL_UNSIGNED_SHORT, graphs[k].e);
+		// glDisableClientState(GL_VERTEX_ARRAY);
+	
+
+		glPopMatrix();
+	}
+	glPopMatrix();
+}
+
+void keyDown(unsigned int key){
+	if(key == SPACE_BAR){
+		for(int i = 0; i < 9; i++){
+			buildGeometry(&graphs[i]);
+			sortedIndices[i].clear();
+			interiorAngles[i].clear();
+			sortedIndices[i] = graphs[i].connectingVertexIndicesSortedRadially(0);
+			interiorAngles[i] = graphs[i].connectingVertexInteriorAngles(0, sortedIndices[i] );
+		}
+	}
+}
+
+void keyUp(unsigned int key){}
+void mouseDown(unsigned int button){}
+void mouseUp(unsigned int button){}
+void mouseMoved(int x, int y){}
+
+
