@@ -6,6 +6,10 @@
 // vertices are points in 3D space {x,y,z}
 // all the geometry is made to easily incorporate into OpenGL calls
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
 using namespace std;
 
 typedef struct Vertex{
@@ -31,23 +35,37 @@ public:
 	void addVertex(Vertex a);
 	void addEdge(Edge a);
 
-	// specify vertex index, get back all vertices that are directly joined to it by an edge
+	// get back all the vertices that are connected to the input vertex by edges
 	vector<unsigned int> connectedVertexIndices(unsigned int vIndex);
 
-	// specify vertex index, get back all edges which include this vertex
+	// get back all the edges which join to the input vertex
 	vector<unsigned int> connectingEdgeIndices(unsigned int vIndex);
 
 	// same as above, sorted radially by neighbor
 	vector<unsigned int> connectingVertexIndicesSortedRadially(unsigned int vIndex);
+
 	// the angles in radians corresponding to the above list
 	vector<float> connectingVertexInteriorAngles(unsigned int vIndex, vector<unsigned int> connectedVertexIndicesSorted);
 
 	// rotate a vertex (index) around another vertex (indexOrigin)
 	void rotateEdge(int index, int indexOrigin, float angle);
+
+	void log();
 };
 
 Graph::Graph(){
 	numV = numE = 0;
+}
+
+void Graph::log(){
+	printf("\nVertices:\n");
+	for(int i = 0; i < numV; i++){
+		printf(" %d: (%f, %f, %f)\n", i, v[i].x, v[i].y, v[i].z);
+	}
+	printf("\nEdges:\n");
+	for(int i = 0; i < numE; i++){
+		printf(" %d: (%d -- %d)\n", i, e[i].v1, e[i].v2);
+	}
 }
 
 void Graph::clear(){

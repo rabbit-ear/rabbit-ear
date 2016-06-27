@@ -90,7 +90,7 @@ void specialDown(int key, int x, int y);
 void specialUp(int key, int x, int y);
 void keyboardSetIdleFunc();
 // WORLD SHAPES
-void drawSquare(float x, float y, float width, float height);
+void drawRect(float x, float y, float width, float height);
 void drawUnitSquare(float x, float y);
 void drawUnitAxis(float x, float y, float z, float scale);
 void drawCheckerboard(float walkX, float walkY, int numSquares);
@@ -413,10 +413,21 @@ float modulusContext(float complete, int modulus){
 	double fracPart = modf(complete, &wholePart);
 	return ( ((int)wholePart) % modulus ) + fracPart;
 }
-void drawSquare(float x, float y, float width, float height){
+void drawRect(float x, float y, float width, float height){
+	static const GLfloat _unit_square_vertex[] = { 
+		0.0f, 1.0f, 0.0f,     1.0f, 1.0f, 0.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f };
+	static const GLfloat _unit_square_normals[] = { 
+		0.0f, 0.0f, 1.0f,     0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f };
 	glPushMatrix();
+	glTranslatef(x, y, 0.0);
 	glScalef(width, height, 1.0);
-	drawUnitSquare(x, y);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, _unit_square_vertex);
+	glNormalPointer(GL_FLOAT, 0, _unit_square_normals);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 	glPopMatrix();
 }
 void drawPoint(float x, float y, float z){
