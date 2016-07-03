@@ -35,34 +35,63 @@ int orientation(Vertex a, Vertex b, Vertex r){
 
 // The main function that returns true if line segment 'a1a2'
 // and 'b1b2' intersect.
-bool doIntersect(Vertex a1, Vertex a2, Vertex b1, Vertex b2){
-    // Find the four orientations needed for general and
-    // special cases
-    int o1 = orientation(a1, a2, b1);
-    int o2 = orientation(a1, a2, b2);
-    int o3 = orientation(b1, b2, a1);
-    int o4 = orientation(b1, b2, a2);
-    
-    // General case
-    if (o1 != o2 && o3 != o4)
-        return true;
-    
-    // Special Cases
-    // a1, a2 and b1 are colinear and b1 lies on segment a1a2
-    if (o1 == 0 && onSegment(a1, b1, a2)) return true;
-    
-    // a1, a2 and b1 are colinear and b2 lies on segment a1a2
-    if (o2 == 0 && onSegment(a1, b2, a2)) return true;
-    
-    // b1, b2 and a1 are colinear and a1 lies on segment b1b2
-    if (o3 == 0 && onSegment(b1, a1, b2)) return true;
-    
-    // b1, b2 and a2 are colinear and a2 lies on segment b1b2
-    if (o4 == 0 && onSegment(b1, a2, b2)) return true;
-    
-    return false; // Doesn't fall in any of the above cases
-}
+//bool doIntersect(Vertex a1, Vertex a2, Vertex b1, Vertex b2){
+//    // Find the four orientations needed for general and
+//    // special cases
+//    int o1 = orientation(a1, a2, b1);
+//    int o2 = orientation(a1, a2, b2);
+//    int o3 = orientation(b1, b2, a1);
+//    int o4 = orientation(b1, b2, a2);
+//    
+//    // General case
+//    if (o1 != o2 && o3 != o4)
+//        return true;
+//    
+//    // Special Cases
+//    // a1, a2 and b1 are colinear and b1 lies on segment a1a2
+//    if (o1 == 0 && onSegment(a1, b1, a2)) return true;
+//    
+//    // a1, a2 and b1 are colinear and b2 lies on segment a1a2
+//    if (o2 == 0 && onSegment(a1, b2, a2)) return true;
+//    
+//    // b1, b2 and a1 are colinear and a1 lies on segment b1b2
+//    if (o3 == 0 && onSegment(b1, a1, b2)) return true;
+//    
+//    // b1, b2 and a2 are colinear and a2 lies on segment b1b2
+//    if (o4 == 0 && onSegment(b1, a2, b2)) return true;
+//    
+//    return false; // Doesn't fall in any of the above cases
+//}
 
+bool doIntersect(Vertex a1, Vertex a2, Vertex a3, Vertex a4) {
+    float x = ((a1.x*a2.y-a1.y*a2.x)*(a3.x-a4.x)-(a1.x-a2.x)*(a3.x*a4.y-a3.y*a4.x))/((a1.x-a2.x)*(a3.y-a4.y)-(a1.y-a2.y)*(a3.x-a4.x));
+    float y = ((a1.x*a2.y-a1.y*a2.x)*(a3.y-a4.y)-(a1.y-a2.y)*(a3.x*a4.y-a3.y*a4.x))/((a1.x-a2.x)*(a3.y-a4.y)-(a1.y-a2.y)*(a3.x-a4.x));
+    if (0){//isNaN(x)||isNaN(y)) {
+        return false;
+    } else {
+        if (a1.x>=a2.x) {
+            if (!(a2.x<=x&&x<=a1.x)) {return false;}
+        } else {
+            if (!(a1.x<=x&&x<=a2.x)) {return false;}
+        }
+        if (a1.y>=a2.y) {
+            if (!(a2.y<=y&&y<=a1.y)) {return false;}
+        } else {
+            if (!(a1.y<=y&&y<=a2.y)) {return false;}
+        }
+        if (a3.x>=a4.x) {
+            if (!(a4.x<=x&&x<=a3.x)) {return false;}
+        } else {
+            if (!(a3.x<=x&&x<=a4.x)) {return false;}
+        }
+        if (a3.y>=a4.y) {
+            if (!(a4.y<=y&&y<=a3.y)) {return false;}
+        } else {
+            if (!(a3.y<=y&&y<=a4.y)) {return false;}
+        }
+    }
+    return true;
+}
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -84,10 +113,6 @@ Graph::Graph(int initial){
 }
 
 // crease start and finish, on a scale of 0 to 1
-void Graph::crease(float x1, float y1, float x2, float y2){
-    addVerticesWithEdge(x1, y1, x2, y2);
-}
-
 void Graph::addVerticesWithEdge(float x1, float y1, float x2, float y2){
     unsigned short v1 = v.size();
     unsigned short v2 = v.size()+1;
