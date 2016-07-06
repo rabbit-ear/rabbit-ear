@@ -101,6 +101,7 @@ bool doIntersect(Vertex a1, Vertex a2, Vertex a3, Vertex a4) {
 
 
 
+
 Graph::Graph(int initial){
     switch (initial) {
         case 0:
@@ -120,6 +121,111 @@ void Graph::addVerticesWithEdge(float x1, float y1, float x2, float y2){
     addVerticesWithoutEdge(x1, y1, x2, y2);
     e.push_back(e1);
 }
+
+
+
+void Graph::findAndReplaceInstancesEdge(int *newVertexIndexMapping){
+    
+    for(int i = 0; i < e.size(); i++){
+        if(newVertexIndexMapping[ e[i].v1 ] != -1){
+            e[i].v1 = newVertexIndexMapping[ e[i].v1 ];
+        }
+        if(newVertexIndexMapping[ e[i].v2 ] != -1){
+            e[i].v2 = newVertexIndexMapping[ e[i].v2 ];
+        }
+    }
+    
+}
+
+void Graph::mergeVertices(unsigned int vertexIndex1, unsigned int vertexIndex2){
+    // replaces all mention of one vertex with the other in both vertex and edge arrays
+    // shrinks the total number of vertices
+    
+    // retains the smaller index of the two
+    unsigned int one, two;
+    if(vertexIndex1 == vertexIndex2) {printf("GRAPH: mergeVertices(): indices are identical\n"); return;}
+    if(vertexIndex1 < vertexIndex2) {one = vertexIndex1; two = vertexIndex2;}
+    if(vertexIndex1 > vertexIndex2) {one = vertexIndex2; two = vertexIndex1;}
+
+    // replace all instances in EDGE array
+    // and decrement all indices greater than vertexIndex2 (vertex array is about to lose vertexIndex2)
+    for(int i = 0; i < e.size(); i++){
+        if     (e[i].v1 == two) e[i].v1 = one;
+        else if(e[i].v1 > two)  e[i].v1--;
+        if     (e[i].v2 == two) e[i].v2 = one;
+        else if(e[i].v2 > two)  e[i].v2--;
+    }
+    v.erase(v.begin()+two);
+}
+
+
+void Graph::cleanup(){
+    float ELBOW = 0.001;
+    int duplicatedIndex[v.size()];
+    for(int i = 0; i < v.size(); i++)
+        duplicatedIndex[i] = -1;
+    
+    bool found = false;
+    for(int i = 0; i < v.size()-1; i++){
+        for(int j = i+1; j < v.size(); j++){
+            if (i != j && duplicatedIndex[j] == -1 &&
+                v[i].x - ELBOW < v[j].x && v[i].x + ELBOW > v[j].x &&
+                v[i].y - ELBOW < v[j].y && v[i].y + ELBOW > v[j].y  ){
+                duplicatedIndex[j] = i;
+                found = true;
+            }
+        }
+    }
+    if(!found)
+        return;
+    
+    for(int i = 0; i < v.size(); i++)
+        printf("DUP (%d) %d\n", i, duplicatedIndex[ i ]);
+    printf("\n\n\n");
+
+    int countUp = 0;
+    int newIndexMapping[ v.size() ];
+    for(int i = 0; i < v.size(); i++){
+        if(duplicatedIndex[i] == -1){
+            newIndexMapping[i] = countUp;
+            countUp++;
+        }
+        else{
+            newIndexMapping[i] = -1;  // ignore these, they're getting deleted anyway
+        }
+    }
+
+//    for(int i = 0; i < v.size(); i++)
+//        printf("MAP (%d) %d\n", i, newIndexMapping[ i ]);
+
+
+    for(int i = 0; i < e.size(); i++)
+        printf("BEFORE (%d) %d : %d\n", i, e[i].v1, e[i].v2);
+    printf("\n\n\n");
+
+    findAndReplaceInstancesEdge(duplicatedIndex);
+    
+    for(int i = 0; i < e.size(); i++)
+        printf("------ (%d) %d : %d\n", i, e[i].v1, e[i].v2);
+    printf("\n\n\n");
+    
+    for(int i = 0; i < e.size(); i++){
+        e[i].v1 = newIndexMapping[ e[i].v1 ];
+        e[i].v2 = newIndexMapping[ e[i].v2 ];
+    }
+
+    for(int i = 0; i < e.size(); i++)
+        printf("++++++ (%d) %d : %d\n", i, e[i].v1, e[i].v2);
+    printf("\n\n\n");
+
+    int size = v.size()-1;
+    for(int i = size; i >= 0; i--){
+        if(duplicatedIndex[i] != -1){
+            v.erase(v.begin() + i);
+        }
+    }
+}
+
 
 void Graph::addVerticesWithoutEdge(float x1, float y1, float x2, float y2){
     Vertex v1 = {x1, y1};

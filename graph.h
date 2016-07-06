@@ -24,6 +24,9 @@ public:
     Graph( int initial );
     
     
+    // joins points lying on top of each other
+    void cleanup();
+    
     void addVerticesWithEdge(float x1, float y1, float x2, float y2);
     void addVerticesWithoutEdge(float x1, float y1, float x2, float y2);
     
@@ -51,5 +54,9 @@ public:
     
     bool invalidEdgeCrossings();
     bool edgeIsValid(unsigned int edgeIndex);
+    
+private:
+    void mergeVertices(unsigned int vIndex1, unsigned int vIndex2);
+    void findAndReplaceInstancesEdge(int *newVertexIndexMapping);
 };
 
