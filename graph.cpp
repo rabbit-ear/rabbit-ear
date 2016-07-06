@@ -2,8 +2,8 @@
 //
 // for purposes of modeling origami crease patterns
 //
-// this is a graph data structure containing edges and vertices
-// vertices are points in 3D space {x,y,z}
+// this is a planar graph data structure containing edges and vertices
+// vertices are points in 3D space {x,y,z}  (z is 0 for now)
 // all the geometry is made to easily incorporate into OpenGL calls
 
 #include "graph.h"
@@ -122,28 +122,16 @@ void Graph::addVerticesWithEdge(float x1, float y1, float x2, float y2){
     e.push_back(e1);
 }
 
-
-
-void Graph::findAndReplaceInstancesEdge(int *newVertexIndexMapping){
-    
-    for(int i = 0; i < e.size(); i++){
-        if(newVertexIndexMapping[ e[i].v1 ] != -1){
-            e[i].v1 = newVertexIndexMapping[ e[i].v1 ];
-        }
-        if(newVertexIndexMapping[ e[i].v2 ] != -1){
-            e[i].v2 = newVertexIndexMapping[ e[i].v2 ];
-        }
-    }
-    
-}
-
-void Graph::mergeVertices(unsigned int vertexIndex1, unsigned int vertexIndex2){
+bool Graph::mergeVertices(unsigned int vertexIndex1, unsigned int vertexIndex2){
     // replaces all mention of one vertex with the other in both vertex and edge arrays
     // shrinks the total number of vertices
     
     // retains the smaller index of the two
     unsigned int one, two;
-    if(vertexIndex1 == vertexIndex2) {printf("GRAPH: mergeVertices(): indices are identical\n"); return;}
+    if(vertexIndex1 == vertexIndex2) {
+//        printf("GRAPH: mergeVertices(): indices are identical\n");
+        return false;
+    }
     if(vertexIndex1 < vertexIndex2) {one = vertexIndex1; two = vertexIndex2;}
     if(vertexIndex1 > vertexIndex2) {one = vertexIndex2; two = vertexIndex1;}
 
@@ -156,73 +144,29 @@ void Graph::mergeVertices(unsigned int vertexIndex1, unsigned int vertexIndex2){
         else if(e[i].v2 > two)  e[i].v2--;
     }
     v.erase(v.begin()+two);
+    return true;
 }
-
 
 void Graph::cleanup(){
     float ELBOW = 0.001;
-    int duplicatedIndex[v.size()];
-    for(int i = 0; i < v.size(); i++)
-        duplicatedIndex[i] = -1;
     
-    bool found = false;
-    for(int i = 0; i < v.size()-1; i++){
-        for(int j = i+1; j < v.size(); j++){
-            if (i != j && duplicatedIndex[j] == -1 &&
-                v[i].x - ELBOW < v[j].x && v[i].x + ELBOW > v[j].x &&
-                v[i].y - ELBOW < v[j].y && v[i].y + ELBOW > v[j].y  ){
-                duplicatedIndex[j] = i;
-                found = true;
+    int j, i = 0;
+    while(i < v.size()-1){
+        j = 0;
+        while(j < v.size()){
+            bool didRemove = false;
+            // quick and easy, use a square bounding box, do the points overlap?
+            if (v[i].x - ELBOW < v[j].x && v[i].x + ELBOW > v[j].x &&
+                v[i].y - ELBOW < v[j].y && v[i].y + ELBOW > v[j].y ){
+                didRemove = mergeVertices(i, j);
             }
+            // only iterate forward if we didn't remove an element
+            //   if we did, it basically iterated forward for us, repeat the same 'j'
+            // this is also possible because we know that j is always greater than i
+            if(!didRemove)
+                j++;
         }
-    }
-    if(!found)
-        return;
-    
-    for(int i = 0; i < v.size(); i++)
-        printf("DUP (%d) %d\n", i, duplicatedIndex[ i ]);
-    printf("\n\n\n");
-
-    int countUp = 0;
-    int newIndexMapping[ v.size() ];
-    for(int i = 0; i < v.size(); i++){
-        if(duplicatedIndex[i] == -1){
-            newIndexMapping[i] = countUp;
-            countUp++;
-        }
-        else{
-            newIndexMapping[i] = -1;  // ignore these, they're getting deleted anyway
-        }
-    }
-
-//    for(int i = 0; i < v.size(); i++)
-//        printf("MAP (%d) %d\n", i, newIndexMapping[ i ]);
-
-
-    for(int i = 0; i < e.size(); i++)
-        printf("BEFORE (%d) %d : %d\n", i, e[i].v1, e[i].v2);
-    printf("\n\n\n");
-
-    findAndReplaceInstancesEdge(duplicatedIndex);
-    
-    for(int i = 0; i < e.size(); i++)
-        printf("------ (%d) %d : %d\n", i, e[i].v1, e[i].v2);
-    printf("\n\n\n");
-    
-    for(int i = 0; i < e.size(); i++){
-        e[i].v1 = newIndexMapping[ e[i].v1 ];
-        e[i].v2 = newIndexMapping[ e[i].v2 ];
-    }
-
-    for(int i = 0; i < e.size(); i++)
-        printf("++++++ (%d) %d : %d\n", i, e[i].v1, e[i].v2);
-    printf("\n\n\n");
-
-    int size = v.size()-1;
-    for(int i = size; i >= 0; i--){
-        if(duplicatedIndex[i] != -1){
-            v.erase(v.begin() + i);
-        }
+        i++;
     }
 }
 
@@ -282,6 +226,20 @@ bool Graph::edgeIsValid(unsigned int edgeIndex){
     }
     return true;
 }
+
+
+
+void Graph::findAndReplaceInstancesEdge(int *newVertexIndexMapping){
+    for(int i = 0; i < e.size(); i++){
+        if(newVertexIndexMapping[ e[i].v1 ] != -1){
+            e[i].v1 = newVertexIndexMapping[ e[i].v1 ];
+        }
+        if(newVertexIndexMapping[ e[i].v2 ] != -1){
+            e[i].v2 = newVertexIndexMapping[ e[i].v2 ];
+        }
+    }
+}
+
 void Graph::log(){
     printf("\nVertices:\n");
     for(int i = 0; i < v.size(); i++)

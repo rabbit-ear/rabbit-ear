@@ -56,7 +56,7 @@ public:
     bool edgeIsValid(unsigned int edgeIndex);
     
 private:
-    void mergeVertices(unsigned int vIndex1, unsigned int vIndex2);
+    bool mergeVertices(unsigned int vIndex1, unsigned int vIndex2);
     void findAndReplaceInstancesEdge(int *newVertexIndexMapping);
 };
 
