@@ -17,19 +17,19 @@ bool doIntersect(Vertex p1, Vertex q1, Vertex p2, Vertex q2);
 
 
 PlanarGraph::PlanarGraph(){
-	
+	vertices = &nodes;
 }
 
 
 void PlanarGraph::cleanup(){
 	int i = 0;
-	while(i < vertices.size()-1){
+	while(i < nodes.size()-1){
 		int j = i+1;
-		while(j < vertices.size()){
+		while(j < nodes.size()){
 			bool didRemove = false;
 			// do the points overlap?
-			if ( hVerticesEqual(vertices[i], vertices[j], EPSILON) ){
-				didRemove = mergeVertices(i, j);
+			if ( hVerticesEqual(nodes[i], nodes[j], EPSILON) ){
+				didRemove = mergeNodes(i, j);
 			}
 			// only iterate forward if we didn't remove an element
 			//   if we did, it basically iterated forward for us, repeat the same 'j'
@@ -39,6 +39,22 @@ void PlanarGraph::cleanup(){
 		}
 		i++;
 	}
+}
+
+// crease start and finish, on a scale of 0 to 1
+void PlanarGraph::addEdgeWithVertices(float x1, float y1, float x2, float y2){
+	unsigned short vI1 = nodes.size();
+	unsigned short vI2 = nodes.size()+1;
+	Edge e1 = {vI1, vI2};
+	
+	// add vertices
+	Vertex v1 = {x1, y1};
+	Vertex v2 = {x2, y2};
+	nodes.push_back(v1);
+	nodes.push_back(v2);
+	
+	// add edge
+	edges.push_back(e1);
 }
 
 
@@ -64,16 +80,16 @@ vector<unsigned int> PlanarGraph::edgesIntersectingEdges(){
 	for(int i = 0; i < edges.size() - 1; i++){
 		for(int j = i+1; j < edges.size(); j++){
 			bool one = !edgeAdjacent(i, j);
-			bool two = doIntersect(vertices[ edges[i].v1 ],
-								   vertices[ edges[i].v2 ],
-								   vertices[ edges[j].v1 ],
-								   vertices[ edges[j].v2 ]);
+			bool two = doIntersect(nodes[ edges[i].v1 ],
+								   nodes[ edges[i].v2 ],
+								   nodes[ edges[j].v1 ],
+								   nodes[ edges[j].v2 ]);
 			if(one && two){
 				//                printf("LISTEN TO LAST ONE (%d:%d):\n   +(%f, %f) (%f, %f)\n   +(%f, %f) (%f, %f)\n", one, two,
-				//                       vertices[ edges[i].v1 ].x, vertices[ edges[i].v1 ].y,
-				//                       vertices[ edges[i].v2 ].x, vertices[ edges[i].v2 ].y,
-				//                       vertices[ edges[j].v1 ].x, vertices[ edges[j].v1 ].y,
-				//                       vertices[ edges[j].v2 ].x, vertices[ edges[j].v2 ].y);
+				//                       nodes[ edges[i].v1 ].x, nodes[ edges[i].v1 ].y,
+				//                       nodes[ edges[i].v2 ].x, nodes[ edges[i].v2 ].y,
+				//                       nodes[ edges[j].v1 ].x, nodes[ edges[j].v1 ].y,
+				//                       nodes[ edges[j].v2 ].x, nodes[ edges[j].v2 ].y);
 				// true: edges i and j overlap
 				invalidEdges.push_back(i);
 				invalidEdges.push_back(j);
@@ -89,10 +105,10 @@ bool PlanarGraph::invalidEdgeCrossings(){
 		for(int j = 0; j < edges.size(); j++){
 			if(i != j){
 				Vertex vertex[4];
-				vertex[0] = vertices[ edges[i].v1 ];
-				vertex[1] = vertices[ edges[i].v2 ];
-				vertex[2] = vertices[ edges[j].v1 ];
-				vertex[3] = vertices[ edges[j].v2 ];
+				vertex[0] = nodes[ edges[i].v1 ];
+				vertex[1] = nodes[ edges[i].v2 ];
+				vertex[2] = nodes[ edges[j].v1 ];
+				vertex[3] = nodes[ edges[j].v2 ];
 				for(int k = 0; k < 4; k++){
 					vertex[k].x *= SCALE;
 					vertex[k].y *= SCALE;
@@ -111,10 +127,10 @@ bool PlanarGraph::edgeIsValid(unsigned int edgeIndex){
 	for(int i = 0; i < edges.size(); i++){
 		if(edgeIndex != i){
 			Vertex vertex[4];
-			vertex[0] = vertices[ edges[edgeIndex].v1 ];
-			vertex[1] = vertices[ edges[edgeIndex].v2 ];
-			vertex[2] = vertices[ edges[i].v1 ];
-			vertex[3] = vertices[ edges[i].v2 ];
+			vertex[0] = nodes[ edges[edgeIndex].v1 ];
+			vertex[1] = nodes[ edges[edgeIndex].v2 ];
+			vertex[2] = nodes[ edges[i].v1 ];
+			vertex[3] = nodes[ edges[i].v2 ];
 			for(int j = 0; j < 4; j++){
 				vertex[j].x *= SCALE;
 				vertex[j].y *= SCALE;
@@ -141,8 +157,8 @@ void PlanarGraph::findAndReplaceInstancesEdge(int *newVertexIndexMapping){
 }
 
 bool PlanarGraph::getVertexIndexAt(float x, float y, unsigned int *index){
-	for(int i = 0; i < vertices.size(); i++){
-		if(hVerticesEqual(vertices[i].x, vertices[i].y, x, y, USER_SETTING_GET_VERTEX_RANGE)){
+	for(int i = 0; i < nodes.size(); i++){
+		if(hVerticesEqual(nodes[i].x, nodes[i].y, x, y, USER_SETTING_GET_VERTEX_RANGE)){
 			*index = i;
 			return true;
 		}
@@ -153,7 +169,7 @@ bool PlanarGraph::getVertexIndexAt(float x, float y, unsigned int *index){
 
 
 bool PlanarGraph::vertexLiesOnEdge(unsigned int vIndex, Vertex *intersect){
-	Vertex v = vertices[vIndex];
+	Vertex v = nodes[vIndex];
 	return vertexLiesOnEdge(v, intersect);
 }
 
@@ -161,18 +177,18 @@ bool PlanarGraph::vertexLiesOnEdge(Vertex v, Vertex *intersect){
 	// including a margin of error, bounding area around vertex
 	
 	// first check if point lies on end points
-	for(int i = 0; i < vertices.size(); i++){
-		if( hVerticesEqual(vertices[i], v, EPSILON) ){
-			intersect->x = vertices[i].x;
-			intersect->y = vertices[i].y;
-			intersect->z = vertices[i].z;
+	for(int i = 0; i < nodes.size(); i++){
+		if( hVerticesEqual(nodes[i], v, EPSILON) ){
+			intersect->x = nodes[i].x;
+			intersect->y = nodes[i].y;
+			intersect->z = nodes[i].z;
 			return true;
 		}
 	}
 	
 	for(int i = 0; i < edges.size(); i++){
-		Vertex a = vertices[ edges[i].v1 ];
-		Vertex b = vertices[ edges[i].v2 ];
+		Vertex a = nodes[ edges[i].v1 ];
+		Vertex b = nodes[ edges[i].v2 ];
 		float crossproduct = (v.y - a.y) * (b.x - a.x) - (v.x - a.x) * (b.y - a.y);
 		if(fabs(crossproduct) < EPSILON){
 			// cross product is essentially zero, point lies along the (infinite) line
@@ -223,8 +239,8 @@ vector<unsigned int> PlanarGraph::connectingVertexIndicesSortedRadially(unsigned
 	// so we can locally sort each clockwise or counter clockwise
 	vector<float> sortedGlobalAngleValues;
 	for(int i = 0; i < connectedVertices.size(); i++){
-		float angle = atan2(this->vertices[connectedVertices[i]].y - this->vertices[vIndex].y,
-							this->vertices[connectedVertices[i]].x - this->vertices[vIndex].x);
+		float angle = atan2(this->nodes[connectedVertices[i]].y - this->nodes[vIndex].y,
+							this->nodes[connectedVertices[i]].x - this->nodes[vIndex].x);
 		globalAngleValues.push_back( angle );
 		sortedGlobalAngleValues.push_back( angle );
 	}
@@ -242,8 +258,8 @@ vector<float> PlanarGraph::connectingVertexInteriorAngles(unsigned int vIndex, v
 	vector<float> anglesBetweenVertices;
 	vector<float> anglesOfVertices;
 	for(int i = 0; i < connectedVertexIndicesSorted.size(); i++){
-		float angle = atan2(this->vertices[connectedVertexIndicesSorted[i]].y - this->vertices[vIndex].y,
-							this->vertices[connectedVertexIndicesSorted[i]].x - this->vertices[vIndex].x);
+		float angle = atan2(this->nodes[connectedVertexIndicesSorted[i]].y - this->nodes[vIndex].y,
+							this->nodes[connectedVertexIndicesSorted[i]].x - this->nodes[vIndex].x);
 		anglesOfVertices.push_back(angle);
 	}
 	for(int i = 0; i < anglesOfVertices.size(); i++){
@@ -257,13 +273,24 @@ vector<float> PlanarGraph::connectingVertexInteriorAngles(unsigned int vIndex, v
 }
 
 void PlanarGraph::rotateEdge(int index, int indexOrigin, float angle){
-	float distance = sqrt(powf( this->vertices[indexOrigin].y - this->vertices[index].y ,2)
-						  +powf( this->vertices[indexOrigin].x - this->vertices[index].x ,2));
-	float currentAngle = atan2(this->vertices[index].y, this->vertices[index].x);
-	this->vertices[index].x = distance*cosf(currentAngle + angle);
-	this->vertices[index].y = distance*sinf(currentAngle + angle);
+	float distance = sqrt(powf( this->nodes[indexOrigin].y - this->nodes[index].y ,2)
+						  +powf( this->nodes[indexOrigin].x - this->nodes[index].x ,2));
+	float currentAngle = atan2(this->nodes[index].y, this->nodes[index].x);
+	this->nodes[index].x = distance*cosf(currentAngle + angle);
+	this->nodes[index].y = distance*sinf(currentAngle + angle);
 }
 
+
+
+
+void PlanarGraph::log(){
+	printf("\nVertices:\n");
+	for(int i = 0; i < nodes.size(); i++)
+		printf(" %d: (%f, %f, %f)\n", i, nodes[i].x, nodes[i].y, nodes[i].z);
+	printf("\nEdges:\n");
+	for(int i = 0; i < edges.size(); i++)
+		printf(" %d: (%d -- %d)\n", i, edges[i].v1, edges[i].v2);
+}
 
 
 

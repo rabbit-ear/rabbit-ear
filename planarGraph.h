@@ -11,12 +11,22 @@
 
 #include "graph.h"
 
-class PlanarGraph : public Graph {
+// this graph represents an origami crease pattern
+//    with creases (edges) defined by their endpoints (vertices)
+//    for now, coordinate space is a square (0,0) (0,1) (1,1) (1,0)
+
+class PlanarGraph : public Graph<Vertex>{
 public:
+	
+	vector<Vertex> *vertices;
 	PlanarGraph();
 	
 	// remove all duplicate vertices
 	void cleanup();
+	
+	// add a crease line start (x,y) to finish (x,y). scale from 0 to 1
+	void addEdgeWithVertices(float x1, float y1, float x2, float y2);
+
 	
 	// needs to be a set, has duplicates
 	vector<unsigned int> edgesIntersectingEdges();
@@ -53,6 +63,9 @@ public:
 	
 	bool edgeCrossesEdge(unsigned int index1, unsigned int index2);
 	bool edgeCrossesEdge(Vertex a1, Vertex a2, Vertex b1, Vertex b2);
+	
+	
+	void log();
 	
 protected:
 	
