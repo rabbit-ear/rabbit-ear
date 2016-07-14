@@ -13,7 +13,6 @@
 #define USER_TAP_EPSILON 0.01
 #define VERTEX_DUPLICATE_EPSILON 0.003
 
-
 // this graph represents an origami crease pattern
 //    with creases (edges) defined by their endpoints (vertices)
 //    for now, coordinate space is a square (0,0) (0,1) (1,1) (1,0)

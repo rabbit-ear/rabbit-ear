@@ -89,18 +89,18 @@ vector<unsigned int> PlanarGraph::edgesIntersectingEdges(){
 	vector<unsigned int> invalidEdges;
 	for(int i = 0; i < edges.size() - 1; i++){
 		for(int j = i+1; j < edges.size(); j++){
-			bool one = !edgeAdjacent(i, j);
+			bool one = !edgesAdjacent(i, j);
 			bool two = doIntersect(nodes[ edges[i].a ],
 								   nodes[ edges[i].b ],
 								   nodes[ edges[j].a ],
 								   nodes[ edges[j].b ]);
 			if(one && two){
-				//                printf("LISTEN TO LAST ONE (%d:%d):\n   +(%f, %f) (%f, %f)\n   +(%f, %f) (%f, %f)\n", one, two,
-				//                       nodes[ edges[i].a ].x, nodes[ edges[i].a ].y,
-				//                       nodes[ edges[i].b ].x, nodes[ edges[i].b ].y,
-				//                       nodes[ edges[j].a ].x, nodes[ edges[j].a ].y,
-				//                       nodes[ edges[j].b ].x, nodes[ edges[j].b ].y);
-				// true: edges i and j overlap
+//				printf("LISTEN TO LAST ONE (%d:%d):\n   +(%f, %f) (%f, %f)\n   +(%f, %f) (%f, %f)\n", one, two,
+//					   nodes[ edges[i].a ].x, nodes[ edges[i].a ].y,
+//					   nodes[ edges[i].b ].x, nodes[ edges[i].b ].y,
+//					   nodes[ edges[j].a ].x, nodes[ edges[j].a ].y,
+//					   nodes[ edges[j].b ].x, nodes[ edges[j].b ].y);
+// true: edges i and j overlap
 				invalidEdges.push_back(i);
 				invalidEdges.push_back(j);
 			}
@@ -349,31 +349,31 @@ bool doIntersect(Vertex p1, Vertex q1, Vertex p2, Vertex q2){
 	if (o1 != o2 && o3 != o4){
 		// 0 1 0 2
 		// 0 2 0 1
-		//        printf("general %d %d %d %d\n", o1, o2, o3, o4);
+//		printf("general %d %d %d %d\n", o1, o2, o3, o4);
 		return true;
 	}
 	// Special Cases
 	// p1, q1 and p2 are colinear and p2 lies on segment p1q1
 	if (o1 == 0 && onSegment(p1, p2, q1)) {
-		//        printf("one\n");
+//		printf("one\n");
 		return true;
 	}
 	
 	// p1, q1 and p2 are colinear and q2 lies on segment p1q1
 	if (o2 == 0 && onSegment(p1, q2, q1)){
-		//        printf("two\n");
+//		printf("two\n");
 		return true;
 	}
 	
 	// p2, q2 and p1 are colinear and p1 lies on segment p2q2
 	if (o3 == 0 && onSegment(p2, p1, q2)){
-		//        printf("three\n");
+//		printf("three\n");
 		return true;
 	}
 	
 	// p2, q2 and q1 are colinear and q1 lies on segment p2q2
 	if (o4 == 0 && onSegment(p2, q1, q2)){
-		//        printf("four\n");
+//		printf("four\n");
 		return true;
 	}
 	
