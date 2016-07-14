@@ -1,62 +1,42 @@
 #ifndef origami_graph_h
 #define origami_graph_h
 
-#include "ofMain.h"
+#include <math.h>
+#include <vector>
+using namespace std;
 
+// this graph data structure has
+// array of edges of {index1, index2}, which are indices in the
+// array of nodes, which are templated - can be any type.
 
-typedef struct Vertex{
-    double x, y, z;
-} Vertex;
-typedef struct Edge {
-    unsigned short v1, v2;
-} Edge;
+typedef struct Pair {
+	unsigned short a, b;
+} Pair;
 
-
-bool onSegment(Vertex p, Vertex q, Vertex r);
-int orientation(Vertex p, Vertex q, Vertex r);
-bool doIntersect(Vertex a1, Vertex a2, Vertex b1, Vertex b2);
-
-
-#define USER_SETTING_GET_VERTEX_RANGE 0.01
-#define EPSILON 0.003
-
-template <class T> class Graph : public ofBaseApp{
-    
+template <class T> class Graph {
+public:
 //private:
+	// the graph
+	vector <T> nodes;
+	vector <Pair> edges;
+
 public:
-    // creases are lines (edges) with endpoints (v1, v2) which are
-    //   indices pointing to vertices in the vertices array
-    vector <Edge> edges;
-    vector <T> nodes;
-    
-public:
-  
-    // constructors
+	// constructor
 	Graph();
-//    Graph( int initial );
-	
-    // removes all content (edges and vertices)
-    void clear();
-    
-    // tidies up the inside of the arrays
-    // organizes the vertices by position in space, edges by vertices
-//    void defragment();
-	
-	void log();
-	
+	// removes all content (edges and nodes)
+	void clear();
 	// getters
 	unsigned int numNodes();
 	unsigned int numEdges();
-	    
-    bool edgeAdjacent(unsigned int edgeIndex1, unsigned int edgeIndex2);
-	
-protected:
-	
-	bool mergeNodes(unsigned int vIndex1, unsigned int vIndex2);
+	// inspect the graph
+	bool edgeAdjacent(unsigned int edgeIndex1, unsigned int edgeIndex2);
+	void log();
 
+protected:
+	// operate on the graph
+	bool mergeNodes(unsigned int vIndex1, unsigned int vIndex2);
 };
 
 #include "graph.tpp"
-
 
 #endif
