@@ -1,21 +1,21 @@
 #include <vector>
-#include "OpenGL/world.c"
-#include "graph.cpp"
+#include "world.c"
+#include "../planarGraph.cpp"
 using namespace std;
 
 #define w 1
 #define h 1
-Graph graphs[w*h];
+PlanarGraph graphs[w*h];
 vector <unsigned int> sortedIndices[9];
 vector <float> interiorAngles[9];
 
-void buildGeometry(Graph *g){
+void buildGeometry(PlanarGraph *g){
 	g->clear();
 	// this is the center point
 	Vertex origin;
 	origin.x = origin.y = 0.0;
 	origin.z = 0.0;
-	g->addVertex(origin);
+	g->addNode(origin);
 	// these are 4 outer points which connect to the center
 	int numEdgeVertices = arc4random()%3*2 + 4;
 	for(int i = 0; i < numEdgeVertices; i++){
@@ -23,13 +23,13 @@ void buildGeometry(Graph *g){
 		v.x = arc4random() % 1000 / 1000.0 - .5;
 		v.y = arc4random() % 1000 / 1000.0 - .5;
 		v.z = 0.0;
-		g->addVertex(v);
+		g->addNode(v);
 	}
 	// segment lines that connect outer points to the center point
 	for(int i = 1; i < g->numV; i++){
-		Edge e;
-		e.v1 = 0;
-		e.v2 = i;
+		Pair e;
+		e.a = 0;
+		e.b = i;
 		g->addEdge(e);
 	}
 }
@@ -43,7 +43,7 @@ float oddEvenSumRatio(vector<float> angles){
 		else
 			even += angles[i];
 	}
-	return odd - even;	
+	return odd - even;
 }
 
 void setup(){
@@ -68,10 +68,10 @@ void setup(){
 		printf("odd and even\n(%f)(%f:%f)\n", equilibrium, w1, w2);
 	}
 	// printf("SOLVED!\n--- vertices:\n");
-	// for(int i = 0; i < graph.numV; i++) 
-	// 	printf("(%d):(%.2f,%.2f) ",i, graph.v[i].x, graph.v[i].y);
+	// for(int i = 0; i < graph.numV; i++)
+	// 	printf("(%d):(%.2f,%.2f) ",i, graph.nodes[i].x, graph.nodes[i].y);
 	// printf("\n--- sorted indices:\n");
-	// for(int i = 0; i < sortedIndices.size(); i++) 
+	// for(int i = 0; i < sortedIndices.size(); i++)
 	// 	printf("(%d):%d ",i, sortedIndices[i]);
 	// printf("\n--- interior angle measurements\n");
 	// for(int i = 0; i < interiorAngles.size(); i++)
@@ -97,7 +97,7 @@ void update(){
 
 			float newEquilibrium = oddEvenSumRatio(interiorAngles[i]);
 			if(fabs(newEquilibrium) > fabs(equilibrium)){
-				graphs[i].rotateEdge(randomIndex, 0, -randomAngle);		
+				graphs[i].rotateEdge(randomIndex, 0, -randomAngle);
 				interiorAngles[i] = graphs[i].connectingVertexInteriorAngles(0, sortedIndices[i] );
 			}
 		}
@@ -107,11 +107,11 @@ void update(){
 void draw(){
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0.001);
-	
+
 	for(int k = 0; k < w*h; k++){
 		// for(int i = 0; i < sortedIndices[k].size(); i++){
 		// 	glColor3f(1.0, ((float)i)/sortedIndices[k].size(), 0.0);
-		// 	drawPoint(graphs[k].v[sortedIndices[k][i]].x, graphs[k].v[sortedIndices[k][i]].y, 0.0);
+		// 	drawPoint(graphs[k].nodes[sortedIndices[k][i]].x, graphs[k].nodes[sortedIndices[k][i]].y, 0.0);
 		// }
 		glPushMatrix();
 
@@ -119,19 +119,19 @@ void draw(){
 
 		for(int i = 0; i < sortedIndices[k].size(); i++){
 			float vertices[9];
-			vertices[0] = graphs[k].v[sortedIndices[k][i]].x;
-			vertices[1] = graphs[k].v[sortedIndices[k][i]].y;
-			vertices[2] = graphs[k].v[sortedIndices[k][i]].z;
-			vertices[3] = graphs[k].v[0].x;
-			vertices[4] = graphs[k].v[0].y;
-			vertices[5] = graphs[k].v[0].z;
-			vertices[6] = graphs[k].v[sortedIndices[k][(i+1)%sortedIndices[k].size()]].x;
-			vertices[7] = graphs[k].v[sortedIndices[k][(i+1)%sortedIndices[k].size()]].y;
-			vertices[8] = graphs[k].v[sortedIndices[k][(i+1)%sortedIndices[k].size()]].z;
+			vertices[0] = graphs[k].nodes[sortedIndices[k][i]].x;
+			vertices[1] = graphs[k].nodes[sortedIndices[k][i]].y;
+			vertices[2] = graphs[k].nodes[sortedIndices[k][i]].z;
+			vertices[3] = graphs[k].nodes[0].x;
+			vertices[4] = graphs[k].nodes[0].y;
+			vertices[5] = graphs[k].nodes[0].z;
+			vertices[6] = graphs[k].nodes[sortedIndices[k][(i+1)%sortedIndices[k].size()]].x;
+			vertices[7] = graphs[k].nodes[sortedIndices[k][(i+1)%sortedIndices[k].size()]].y;
+			vertices[8] = graphs[k].nodes[sortedIndices[k][(i+1)%sortedIndices[k].size()]].z;
 
 			glColor3f((i%2)*.5+.5, (i%2)*.5+.5, (i%2)*.5+.5 );
 			// glEnableClientState(GL_VERTEX_ARRAY);
-			// glVertexPointer(3, GL_FLOAT, 0, graphs[k].v);
+			// glVertexPointer(3, GL_FLOAT, 0, graphs[k].nodes);
 			// glDrawElements(GL_TRIANGLE_FAN, 9, GL_UNSIGNED_SHORT, vertices);
 			// glDisableClientState(GL_VERTEX_ARRAY);
 			glEnableClientState(GL_VERTEX_ARRAY);
@@ -141,7 +141,7 @@ void draw(){
 		}
 		// glColor3f(0.2, 0.2, 1.0);
 		// glEnableClientState(GL_VERTEX_ARRAY);
-		// glVertexPointer(3, GL_FLOAT, 0, graphs[k].v);
+		// glVertexPointer(3, GL_FLOAT, 0, graphs[k].nodes);
 		// glDrawElements(GL_LINES, graphs[k].numE*2, GL_UNSIGNED_SHORT, graphs[k].e);
 		// glDisableClientState(GL_VERTEX_ARRAY);
 

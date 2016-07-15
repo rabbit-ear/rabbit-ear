@@ -26,6 +26,9 @@ public:
 	// removes all edges and nodes
 	void clear();
 
+	void addNode(T node);
+	void addEdge(Pair edge);
+
 	// getters
 	unsigned int numNodes();
 	unsigned int numEdges();
@@ -54,6 +57,17 @@ void Graph<T>::clear(){
 	nodes.clear();
 	edges.clear();
 }
+
+template <class T>
+void addNode(T node){
+	nodes.push_back(node);
+}
+
+template <class T>
+void addEdge(Pair edge){
+	edges.push_back(edge);
+}
+
 
 template <class T>
 unsigned int Graph<T>::numEdges(){
