@@ -3,8 +3,8 @@
 #include "../planarGraph.cpp"
 using namespace std;
 
-#define w 1
-#define h 1
+#define w 3
+#define h 3
 PlanarGraph graphs[w*h];
 vector <unsigned int> sortedIndices[9];
 vector <float> interiorAngles[9];
@@ -26,7 +26,7 @@ void buildGeometry(PlanarGraph *g){
 		g->addNode(v);
 	}
 	// segment lines that connect outer points to the center point
-	for(int i = 1; i < g->numV; i++){
+	for(int i = 1; i < g->numNodes(); i++){
 		Pair e;
 		e.a = 0;
 		e.b = i;

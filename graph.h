@@ -59,12 +59,12 @@ void Graph<T>::clear(){
 }
 
 template <class T>
-void addNode(T node){
+void Graph<T>::addNode(T node){
 	nodes.push_back(node);
 }
 
 template <class T>
-void addEdge(Pair edge){
+void Graph<T>::addEdge(Pair edge){
 	edges.push_back(edge);
 }
 
@@ -100,8 +100,8 @@ bool Graph<T>::edgesAdjacent(unsigned int edgeIndex1, unsigned int edgeIndex2){
 
 template <class T>
 void Graph<T>::log(){
-	printf("\n#Nodes: %d\n", nodes.size());
-	printf("\n#Edges: %d\n", edges.size());
+	printf("\n#Nodes: %lu\n", nodes.size());
+	printf("\n#Edges: %lu\n", edges.size());
 	for(int i = 0; i < edges.size(); i++)
 		printf(" %d: (%d-%d)\n", i, edges[i].a, edges[i].b);
 }
