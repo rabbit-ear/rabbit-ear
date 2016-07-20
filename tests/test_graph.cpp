@@ -1,23 +1,27 @@
 #include <stdlib.h>
 #include "../graph.h"
 
-#define NODE_COUNT 50
-#define EDGE_COUNT 500
-
 Graph <int> graph;
+
+void fillWithRandom(unsigned int numNodes, unsigned int numEdges){
+	for(int i = 0; i < numNodes; i++){
+		graph.addNode(i);
+	}
+	for(int i = 0; i < numEdges; i++){
+		Pair e;
+		e.a = arc4random()%numNodes;
+		e.b = arc4random()%numNodes;
+		graph.addEdge(e);
+	}
+}
 
 int main(int argc, char **argv){
 
+	unsigned int NODE_COUNT = 50;
+	unsigned int EDGE_COUNT = 500;
+
 // CREATE A GRAPH, RANDOM COMPONENTS
-	for(int i = 0; i < NODE_COUNT; i++){
-		graph.addNode(i);
-	}
-	for(int i = 0; i < EDGE_COUNT; i++){
-		Pair e;
-		e.a = arc4random()%NODE_COUNT;
-		e.b = arc4random()%NODE_COUNT;
-		graph.addEdge(e);
-	}
+	fillWithRandom(NODE_COUNT, EDGE_COUNT);
 	printf("created %u nodes and %u edges\n", graph.numNodes(), graph.numEdges());
 	graph.log();
 

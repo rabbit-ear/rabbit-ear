@@ -28,8 +28,10 @@ public:
 	PlanarGraph();
 
 	// add to graph
-	void addEdgeWithVertices(float x1, float y1, float x2, float y2);
 	void addEdgeWithVertices(Vertex a, Vertex b);
+	void addEdgeWithVertices(float x1, float y1, float x2, float y2);
+	void addEdgeFromVertex(unsigned short existingIndex, Vertex newVertex);
+	void addEdgeFromVertex(unsigned short existingIndex, float newX, float newY);
 
 	// graph validity
 	void cleanup();  // remove all duplicate vertices

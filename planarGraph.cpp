@@ -11,23 +11,39 @@ PlanarGraph::PlanarGraph(){
 	vertices = &nodes;
 }
 
-void PlanarGraph::addEdgeWithVertices(float x1, float y1, float x2, float y2){
+void PlanarGraph::addEdgeWithVertices(Vertex a, Vertex b){
 	unsigned short vIndex1 = nodes.size();
 	unsigned short vIndex2 = nodes.size()+1;
 	Pair e1 = {vIndex1, vIndex2};
 
 	// add vertices
-	Vertex v1 = {x1, y1};
-	Vertex v2 = {x2, y2};
-	nodes.push_back(v1);
-	nodes.push_back(v2);
+	nodes.push_back(a);
+	nodes.push_back(b);
 
 	// add edge
 	edges.push_back(e1);
 }
 
-void PlanarGraph::addEdgeWithVertices(Vertex a, Vertex b){
-	addEdgeWithVertices(a.x, a.y, b.x, b.y);
+void PlanarGraph::addEdgeWithVertices(float x1, float y1, float x2, float y2){
+	Vertex a = {x1, y1};
+	Vertex b = {x2, y2};
+	addEdgeWithVertices(a, b);
+}
+
+void PlanarGraph::addEdgeFromVertex(unsigned short existingIndex, Vertex newVertex){
+	unsigned short newVertexIndex = nodes.size();
+	Pair e1 = {existingIndex, newVertexIndex};
+
+	// add vertices
+	nodes.push_back(newVertex);
+
+	// add edge
+	edges.push_back(e1);	
+}
+
+void PlanarGraph::addEdgeFromVertex(unsigned short existingIndex, float newX, float newY){
+	Vertex newVertex = {newX, newY};
+	addEdgeFromVertex(existingIndex, newVertex);
 }
 
 void PlanarGraph::cleanup(){
