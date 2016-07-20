@@ -16,17 +16,17 @@
 #include <string.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////
-// WORLD.C is a hyper minimalist (1 file) framework for graphics (OpenGL) and user
+//     WORLD is a hyper minimalist (1 file) framework for graphics (OpenGL) and user
 //   input (keyboard, mouse) following the OpenFrameworks / Processing design paradigm
 ////////////////////////////////////////////////////////////////////////////////////////
 //
-//   SETUP INSTRUCTIONS
+//   HOW TO USE
 //
 //   1) make an empty .c file
-//   2) #include "world.c"
-//   3) initialize the following functions:
-//        YOU'RE DONE!-- type 'make', then 'make run'
-
+//   2) #include "world.h"
+//   3) implement the following functions:
+//      done! type 'make', then 'make run'
+//
 void setup();
 void update();
 void draw();
@@ -35,48 +35,54 @@ void keyUp(unsigned int key);
 void mouseDown(unsigned int button);
 void mouseUp(unsigned int button);
 void mouseMoved(int x, int y);
+////////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
-// FURTHER CUSTOMIZATION
-
-#define ANIMATIONS 1  // set to false (0) for maximum efficiency, screen will only redraw upon receiving input
-#define STEP .10f  // WALKING SPEED. @ 60 updates/second, walk speed = 6 units/second
+// CUSTOMIZE
+#define CONTINUOUS_REFRESH 0  // (0) = maximum efficiency, screen will only redraw upon receiving input
+#define WALK_INTERVAL .10f  // WALKING SPEED. @ 60 updates/second, walk speed = 6 units/second
 #define MOUSE_SENSITIVITY 0.333f
 // WINDOW size upon boot
-static int WIDTH = 700;  // (readonly) updates on GUI window re-sizing
-static int HEIGHT = 700; // (readonly) 
+static int WIDTH = 800;  // (readonly) set these values here
+static int HEIGHT = 600; // (readonly) setting during runtime will not re-size window
 static unsigned char FULLSCREEN = 0;  // fullscreen:1   window:0
 // INPUT
 static int mouseX = 0;  // get mouse location at any point, units in pixels
 static int mouseY = 0;
 static int mouseDragX = 0;  // dragging during one session (between click and release)
 static int mouseDragY = 0;
-static int mouseDragSumX = 0;  // since program began  // (FPP head orientation is tied to these)
-static int mouseDragSumY = 0;
 static unsigned char keyboard[256];  // query this at any point for the state of a key (0:up, 1:pressed)
 // GRAPHICS
-static unsigned char GROUND = 1;  // a 2D grid
-static unsigned char GRID = 1;    // a 3D grid
 static float originX = 0.0f;
-static float originY = 0.0f;  // "location of the eye"
+static float originY = 0.0f;  // location of the eye
 static float originZ = 0.0f;
 static float ZOOM = 15.0f;  // POLAR PERSPECTIVE    // zoom scale, converted to logarithmic
 static float ZOOM_RADIX = 3;
+static unsigned char GROUND = 1;  // a 2D grid
+static unsigned char GRID = 1;    // a 3D grid
 // PERSPECTIVE
 enum{  FPP,  POLAR,  ORTHO  } ; // first persion, polar, orthographic
-static unsigned char POV = FPP;
-
-// DEFS
+static unsigned char PERSPECTIVE = FPP;  // initialize point of view in this state
+// details of each perspective
+float lookOrientation[3] = {0.0f, 0.0f, 0.0f}; // azimuth, altitude, zoom/FOV
+float orthoFrame[4] = {0.0f, 0.0f, 4.0f, 3.0f}; // x, y, width, height
+// TYPES
 enum{ FALSE, TRUE };
 typedef struct Point {
   float x;
   float y;
   float z;
 } Point;
+// TABLE OF CONTENTS:
 int main(int argc, char **argv);  // initialize Open GL context
-void setupOpenGL();  // colors, line width, glEnable
-void reshape(int w, int h);  // contains viewport and frustum calls
+void typicalOpenGLSettings();  // colors, line width, glEnable
+void reshapeWindow(int windowWidth, int windowHeight);  // contains viewport and frustum calls
+void rebuildProjection();  // calls one of the three functions below
+// CHANGE PERSPECTIVE
+void firstPersonPerspective();//float azimuth, float altitude, float zoom);
+void polarPerspective();//float azimuth, float altitude, float zoom);
+void orthoPerspective(float x, float y, float width, float height);
 // DRAW, ALIGNMENT, INPUT HANDLING
 void display();
 void updateWorld();  // process input devices
@@ -97,6 +103,7 @@ void drawCheckerboard(float walkX, float walkY, int numSquares);
 void drawAxesGrid(float walkX, float walkY, float walkZ, int span, int repeats);
 void drawZoomboard(float zoom);
 float modulusContext(float complete, int modulus);
+
 #define ESCAPE_KEY 27
 #define SPACE_BAR 32
 #define RETURN_KEY 13
@@ -114,6 +121,7 @@ float modulusContext(float complete, int modulus);
 #define B_KEY 66
 #define C_KEY 67
 #define D_KEY 68
+#define E_KEY 69
 #define F_KEY 70
 #define G_KEY 71
 #define P_KEY 80
@@ -127,6 +135,7 @@ float modulusContext(float complete, int modulus);
 #define b_KEY 98
 #define c_KEY 99
 #define d_KEY 100
+#define e_KEY 101
 #define f_KEY 102
 #define g_KEY 103
 #define p_KEY 112
@@ -142,30 +151,35 @@ float modulusContext(float complete, int modulus);
 #define RIGHT_KEY GLUT_KEY_RIGHT+128//230
 #define LEFT_KEY GLUT_KEY_LEFT+128//228
 int main(int argc, char **argv){
+	// initialize glut
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowPosition(10,10);
 	glutInitWindowSize(WIDTH,HEIGHT);
 	glutCreateWindow(argv[0]);
-	setupOpenGL();
+	// tie this program's functions to glut
 	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
+	glutReshapeFunc(reshapeWindow);
 	glutMouseFunc(mouseButtons);
 	glutMotionFunc(mouseMotion);
 	glutPassiveMotionFunc(mousePassiveMotion);
-	glutKeyboardUpFunc(keyboardUp); 
+	glutKeyboardUpFunc(keyboardUp);
 	glutKeyboardFunc(keyboardDown);
 	glutSpecialFunc(specialDown);
 	glutSpecialUpFunc(specialUp);
-	memset(keyboard,0,256);
-	setup();
-	if(ANIMATIONS)
+	if(CONTINUOUS_REFRESH)
 		glutIdleFunc(updateWorld);
+	// setup this program
+	memset(keyboard,0,256);
+	typicalOpenGLSettings();
 	glutPostRedisplay();
+	setup();  // user defined function
+	// begin main loop
 	glutMainLoop();
 	return 0;
 }
-void setupOpenGL(){
+void typicalOpenGLSettings(){
+	firstPersonPerspective();
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glShadeModel(GL_FLAT);
 	glEnable(GL_DEPTH_TEST);
@@ -173,45 +187,61 @@ void setupOpenGL(){
 	glDepthFunc(GL_LESS);
 	glLineWidth(1);
 }
-void reshape(int w, int h){
-	WIDTH = w;
-	HEIGHT = h;
+void reshapeWindow(int windowWidth, int windowHeight){
+	WIDTH = windowWidth;
+	HEIGHT = windowHeight;
+	glViewport(0, 0, (GLsizei) WIDTH, (GLsizei) HEIGHT);
+	rebuildProjection();
+}
+void rebuildProjection(){
+	switch(PERSPECTIVE){
+		case FPP:
+			firstPersonPerspective(); break;
+		case POLAR:
+			polarPerspective(); break;
+		case ORTHO:
+			orthoPerspective(orthoFrame[0], orthoFrame[1], orthoFrame[2], orthoFrame[3]); break;
+	}
+}
+void firstPersonPerspective(){
+	PERSPECTIVE = FPP;
 	float a = (float)WIDTH / HEIGHT;
-	glViewport(0,0,(GLsizei) w, (GLsizei) h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	if(POV == FPP || POV == POLAR)
-		glFrustum (-.1, .1, -.1/a, .1/a, .1, 100.0);
-	else if (POV == ORTHO)
-		glOrtho(-ZOOM, ZOOM, 
-				-ZOOM/a, ZOOM/a, 
-				-100.0, 100.0);
+	glFrustum (-.1, .1, -.1/a, .1/a, .1, 100.0);
+	// change POV
+	glRotatef(-lookOrientation[1], 1, 0, 0);
+	glRotatef(-lookOrientation[0], 0, 0, 1);
+	// raise POV 1.0 above the floor, 1.0 is an arbitrary value
+	glTranslatef(0.0f, 0.0f, -1.0f);
 	glMatrixMode(GL_MODELVIEW);
+}
+void polarPerspective(){
+	PERSPECTIVE = POLAR;
+	float a = (float)WIDTH / HEIGHT;
+	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+	glFrustum (-.1, .1, -.1/a, .1/a, .1, 100.0);
+	// change POV
+	glTranslatef(0, 0, -ZOOM);
+	glRotatef(-lookOrientation[1], 1, 0, 0);
+	glRotatef(-lookOrientation[0], 0, 0, 1);
+	glMatrixMode(GL_MODELVIEW);
+}
+void orthoPerspective(float x, float y, float width, float height){
+	PERSPECTIVE = ORTHO;
+	orthoFrame[0] = x;
+	orthoFrame[1] = y;
+	orthoFrame[2] = width;
+	orthoFrame[3] = height;
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(x, width + x, height + y, y, -100.0, 100.0);
+	glMatrixMode(GL_MODELVIEW);
 }
 void display(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPushMatrix();
-		// SETUP PERSPECTIVE
-		switch(POV){
-			case FPP:
-				glRotatef(-mouseDragSumY * MOUSE_SENSITIVITY, 1, 0, 0);
-				glRotatef(-mouseDragSumX * MOUSE_SENSITIVITY, 0, 0, 1);
-				// raise POV 1.0 above the floor, 1.0 is an arbitrary value
-				glTranslatef(0.0f, 0.0f, -1.0f);
-				break;
-		
-			case POLAR:
-				glTranslatef(0, 0, -ZOOM);
-				glRotatef(-mouseDragSumY * MOUSE_SENSITIVITY, 1, 0, 0);
-				glRotatef(-mouseDragSumX * MOUSE_SENSITIVITY, 0, 0, 1);
-				break;
-
-			case ORTHO:
-				glTranslatef(-mouseDragSumX * (ZOOM/400.0f), mouseDragSumY * (ZOOM/400.0f), 0.0f);
-				break;
-		}
-		// perspective has been established, draw stuff below
 		// 3D REPEATED STRUCTURE
 		if(GRID){
 			glPushMatrix();
@@ -237,7 +267,6 @@ void display(){
 		// 	drawZoomboard(zoom);
 		// }
 		glPushMatrix();
-			glTranslatef(originX, originY, originZ);
 			draw();
 		glPopMatrix();
 	glPopMatrix();
@@ -247,39 +276,37 @@ void display(){
 }
 // process input devices if in first person perspective mode
 void updateWorld(){
-	float lookAzimuth = 0;
 	// map movement direction to the direction the person is facing
-	if(POV == FPP)
-		lookAzimuth = (mouseDragSumX * MOUSE_SENSITIVITY)/180.*M_PI;
+	float lookAzimuth = lookOrientation[0]/180.0*M_PI;
 	if(keyboard[UP_KEY] || keyboard[W_KEY] || keyboard[w_KEY]){
-		originX += STEP * sinf(lookAzimuth);
-		originY += STEP * -cosf(lookAzimuth);
+		originX += WALK_INTERVAL * sinf(lookAzimuth);
+		originY += WALK_INTERVAL * -cosf(lookAzimuth);
 	}
 	if(keyboard[DOWN_KEY] || keyboard[S_KEY] || keyboard[s_KEY]){
-		originX -= STEP * sinf(lookAzimuth);
-		originY -= STEP * -cosf(lookAzimuth);
+		originX -= WALK_INTERVAL * sinf(lookAzimuth);
+		originY -= WALK_INTERVAL * -cosf(lookAzimuth);
 	}
 	if(keyboard[LEFT_KEY] || keyboard[A_KEY] || keyboard[a_KEY]){
-		originX += STEP * sinf(lookAzimuth+M_PI_2);
-		originY += STEP * -cosf(lookAzimuth+M_PI_2);
+		originX += WALK_INTERVAL * sinf(lookAzimuth+M_PI_2);
+		originY += WALK_INTERVAL * -cosf(lookAzimuth+M_PI_2);
 	}
 	if(keyboard[RIGHT_KEY] || keyboard[D_KEY] || keyboard[d_KEY]){
-		originX -= STEP * sinf(lookAzimuth+M_PI_2);
-		originY -= STEP * -cosf(lookAzimuth+M_PI_2);
+		originX -= WALK_INTERVAL * sinf(lookAzimuth+M_PI_2);
+		originY -= WALK_INTERVAL * -cosf(lookAzimuth+M_PI_2);
 	}
 	if(keyboard[Q_KEY] || keyboard[q_KEY])
-		originZ -= STEP;
+		originZ -= WALK_INTERVAL;
 	if(keyboard[Z_KEY] || keyboard[z_KEY])
-		originZ += STEP;
+		originZ += WALK_INTERVAL;
 	if(keyboard[MINUS_KEY]){
-		ZOOM += STEP * 4;
-		reshape(WIDTH, HEIGHT);
+		ZOOM += WALK_INTERVAL * 4;
+		rebuildProjection();
 	}
 	if(keyboard[PLUS_KEY]){
-		ZOOM -= STEP * 4;
-		if(ZOOM < 0) 
+		ZOOM -= WALK_INTERVAL * 4;
+		if(ZOOM < 0)
 			ZOOM = 0;
-		reshape(WIDTH, HEIGHT);
+		rebuildProjection();
 	}
 	update();
 	glutPostRedisplay();
@@ -287,15 +314,36 @@ void updateWorld(){
 ///////////////////////////////////////
 //////////       INPUT       //////////
 ///////////////////////////////////////
-static int mouseDragStartX, mouseDragStartY, mouseTotalOffsetStartX, mouseTotalOffsetStartY;
+static int mouseDragStartX, mouseDragStartY;
+void mouseUpdatePerspective(int dx, int dy){
+	switch(PERSPECTIVE){
+		case FPP:
+			lookOrientation[0] += (dx * MOUSE_SENSITIVITY);
+			lookOrientation[1] += (dy * MOUSE_SENSITIVITY);
+			// lookOrientation[2] = 0.0;
+			firstPersonPerspective();
+		break;
+		case POLAR:
+			lookOrientation[0] += (dx * MOUSE_SENSITIVITY);
+			lookOrientation[1] += (dy * MOUSE_SENSITIVITY);
+			// lookOrientation[2] = 0.0;
+			polarPerspective();
+			break;
+		case ORTHO:
+			orthoFrame[0] += dx;
+			orthoFrame[1] += dy;
+			orthoPerspective(orthoFrame[0], orthoFrame[1], orthoFrame[2], orthoFrame[3]);
+			break;
+	}
+}
 // when mouse button state changes
 void mouseButtons(int button, int state, int x, int y){
 	if(button == GLUT_LEFT_BUTTON){
 		if(!state){  // button down
+			mouseX = x;
+			mouseY = y;
 			mouseDragStartX = x;
 			mouseDragStartY = y;
-			mouseTotalOffsetStartX = mouseDragSumX;
-			mouseTotalOffsetStartY = mouseDragSumY;
 			mouseDown(button);
 		}
 		else {  // button up
@@ -313,12 +361,13 @@ void mouseButtons(int button, int state, int x, int y){
 }
 // when mouse is dragging screen
 void mouseMotion(int x, int y){
+	// change since last mouse event
+	mouseUpdatePerspective(mouseX - x, mouseY - y);
+	// update new state
 	mouseX = x;
 	mouseY = y;
 	mouseDragX = mouseDragStartX - x;
 	mouseDragY = mouseDragStartY - y;
-	mouseDragSumX = mouseTotalOffsetStartX + mouseDragX;
-	mouseDragSumY = mouseTotalOffsetStartY + mouseDragY;
 	mouseMoved(x, y);
 	glutPostRedisplay();
 }
@@ -339,30 +388,26 @@ void keyboardDown(unsigned char key, int x, int y){
 		if(!FULLSCREEN)
 			glutFullScreen();
 		else{
-			reshape(WIDTH, HEIGHT);
+			reshapeWindow(WIDTH, HEIGHT);
 			glutPositionWindow(0,0);
 		}
 		FULLSCREEN = !FULLSCREEN;
 	}
 	else if(key == P_KEY || key == p_KEY){
-		POV = (POV+1)%3;
-		if(POV == ORTHO)
-			mouseDragSumX = mouseDragSumY = 0;
-		reshape(WIDTH, HEIGHT);
+		PERSPECTIVE = (PERSPECTIVE+1)%3;
+		rebuildProjection();
 		glutPostRedisplay();
 	}
 	else if(key == G_KEY || key == g_KEY){
 		GROUND = !GROUND;
-		reshape(WIDTH, HEIGHT);
 		glutPostRedisplay();
 	}
 	else if (key == X_KEY || key == x_KEY){
 		GRID = !GRID;
-		reshape(WIDTH, HEIGHT);
 		glutPostRedisplay();
 	}
 	keyDown(key);
-	if(!ANIMATIONS)
+	if(!CONTINUOUS_REFRESH)
 		keyboardSetIdleFunc(); // for efficient screen draw, trigger redraw if needed
 }
 void keyboardUp(unsigned char key, int x, int y){
@@ -370,7 +415,7 @@ void keyboardUp(unsigned char key, int x, int y){
 		return;   // prevent repeated keyboard calls
 	keyboard[key] = 0;
 	keyUp(key);
-	if(!ANIMATIONS)
+	if(!CONTINUOUS_REFRESH)
 		keyboardSetIdleFunc();  // for efficient screen draw, turn off redraw if needed
 }
 void specialDown(int key, int x, int y){
@@ -379,7 +424,7 @@ void specialDown(int key, int x, int y){
 		return;   // prevent repeated keyboard calls
 	keyboard[key] = 1;
 	keyDown(key);
-	if(!ANIMATIONS)
+	if(!CONTINUOUS_REFRESH)
 		keyboardSetIdleFunc();
 }
 void specialUp(int key, int x, int y){
@@ -388,12 +433,12 @@ void specialUp(int key, int x, int y){
 		return;   // prevent repeated keyboard calls
 	keyboard[key] = 0;
 	keyUp(key);
-	if(!ANIMATIONS)
+	if(!CONTINUOUS_REFRESH)
 		keyboardSetIdleFunc();
 }
 void keyboardSetIdleFunc(){
 	// if any key is pressed, idle function is set to re-draw screen
-	unsigned int keyDown = 0;
+	unsigned char keyDown = 0;
 	for(int i = 0; i < 256; i++){
 		if(keyboard[i] == 1){
 			keyDown = 1;
@@ -405,29 +450,22 @@ void keyboardSetIdleFunc(){
 	else
 		glutIdleFunc(NULL);
 }
-////////////////////////////////////////
-///////   TINY OPENGL TOOLBOX    ///////
-////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////        TINY OPENGL TOOLBOX         //////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////        PRIMITIVES         //////////////////////////
+
 float modulusContext(float complete, int modulus){
 	double wholePart;
 	double fracPart = modf(complete, &wholePart);
 	return ( ((int)wholePart) % modulus ) + fracPart;
 }
 void drawRect(float x, float y, float width, float height){
-	static const GLfloat _unit_square_vertex[] = { 
-		0.0f, 1.0f, 0.0f,     1.0f, 1.0f, 0.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f };
-	static const GLfloat _unit_square_normals[] = { 
-		0.0f, 0.0f, 1.0f,     0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f };
 	glPushMatrix();
-	glTranslatef(x, y, 0.0);
 	glScalef(width, height, 1.0);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, _unit_square_vertex);
-	glNormalPointer(GL_FLOAT, 0, _unit_square_normals);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
+	drawUnitSquare(x, y);
 	glPopMatrix();
 }
 void drawPoint(float x, float y, float z){
@@ -442,9 +480,9 @@ void drawPoint(float x, float y, float z){
 }
 // draws a XY 1x1 square in the Z = 0 plane
 void drawUnitSquare(float x, float y){
-	static const GLfloat _unit_square_vertex[] = { 
+	static const GLfloat _unit_square_vertex[] = {
 		0.0f, 1.0f, 0.0f,     1.0f, 1.0f, 0.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f };
-	static const GLfloat _unit_square_normals[] = { 
+	static const GLfloat _unit_square_normals[] = {
 		0.0f, 0.0f, 1.0f,     0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f };
 	glPushMatrix();
 	glTranslatef(x, y, 0.0);
@@ -458,12 +496,12 @@ void drawUnitSquare(float x, float y){
 	glPopMatrix();
 }
 void drawUnitAxis(float x, float y, float z, float scale){
-	static const GLfloat _unit_axis_vertices[] = { 
+	static const GLfloat _unit_axis_vertices[] = {
 		1.0f, 0.0f, 0.0f,    -1.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f,     0.0f, -1.0f, 0.0f,
 		0.0f, 0.0f, 1.0f,     0.0f, 0.0f, -1.0f};
-	static const GLfloat _unit_axis_normals[] = { 
-		0.0f, 1.0f, 1.0f,     0.0f, 1.0f, 1.0f, 
+	static const GLfloat _unit_axis_normals[] = {
+		0.0f, 1.0f, 1.0f,     0.0f, 1.0f, 1.0f,
 		0.0f, 0.0f, 1.0f,     0.0f, 0.0f, 1.0f,
 		1.0f, 0.0f, 0.0f,     1.0f, 0.0f, 0.0f};
 	glPushMatrix();
@@ -478,6 +516,9 @@ void drawUnitAxis(float x, float y, float z, float scale){
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glPopMatrix();
 }
+
+/////////////////////////        SCENES         //////////////////////////
+
 void drawCheckerboard(float walkX, float walkY, int numSquares){
 	int XOffset = ceil(walkX);
 	int YOffset = ceil(walkY);
@@ -506,7 +547,7 @@ void drawCheckerboard(float walkX, float walkY, int numSquares){
 	}
 }
 // span: how many units to skip inbetween each axis
-// repeats: how many rows/cols/stacks on either side of center 
+// repeats: how many rows/cols/stacks on either side of center
 void drawAxesGrid(float walkX, float walkY, float walkZ, int span, int repeats){
 	float XSpanMod = walkX - floor(walkX/span)*span;
 	float YSpanMod = walkY - floor(walkY/span)*span;
@@ -519,9 +560,9 @@ void drawAxesGrid(float walkX, float walkY, float walkZ, int span, int repeats){
 				float brightness = 1.0 - distance/(repeats*span);
 				glColor3f(brightness, brightness, brightness);
 				// glLineWidth(100.0/distance/distance);
-				drawUnitAxis(i + XSpanMod - walkX, 
-					     j + YSpanMod - walkY, 
-					     k + ZSpanMod - walkZ, 1.0);
+				drawUnitAxis(i + XSpanMod - walkX,
+				             j + YSpanMod - walkY,
+				             k + ZSpanMod - walkZ, 1.0);
 			}
 		}
 	}

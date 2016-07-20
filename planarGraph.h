@@ -18,33 +18,33 @@
 //    for now, coordinate space is a square (0,0) (0,1) (1,1) (1,0)
 
 typedef struct Vertex{
-	double x, y, z;
+	float x, y, z;
 } Vertex;
-
-
-bool onSegment(Vertex p, Vertex q, Vertex r);
-int orientation(Vertex p, Vertex q, Vertex r);
-bool doIntersect(Vertex a1, Vertex a2, Vertex b1, Vertex b2);
 
 
 class PlanarGraph : public Graph<Vertex>{
 public:
 
-	// creases are lines (edges) with endpoints (v1, v2) which are
-	//   indices pointing to vertices in the vertices array
-	vector<Vertex> *vertices;
+	// creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
+	vector<Vertex> *vertices;  // another name for (and a pointer to) "nodes"
 
 	PlanarGraph();
 
-	// remove all duplicate vertices
-	void cleanup();
-
-	// add a crease line start (x,y) to finish (x,y). scale from 0 to 1
+	// add to graph
 	void addEdgeWithVertices(float x1, float y1, float x2, float y2);
+	void addEdgeWithVertices(Vertex a, Vertex b);
+
+	// graph validity
+	void cleanup();  // remove all duplicate vertices
+
+	bool isValid();  // 1) no edge crossings, 2) more later...
+
+	bool edgeCrossesEdge(unsigned short index1, unsigned short index2);
+	bool edgeCrossesEdge(Vertex a1, Vertex a2, Vertex b1, Vertex b2);
 
 
 	// needs to be a set, has duplicates
-	vector<unsigned int> edgesIntersectingEdges();
+	vector<unsigned short> edgesIntersectingEdges();
 
 
 	// rotate a vertex (index) around another vertex (indexOrigin)
@@ -53,22 +53,17 @@ public:
 
 	// input based on the X Y plane
 	//   returns true if one exists
-	bool getVertexIndexAt(float x, float y, unsigned int *index);
+	bool getVertexIndexAt(float x, float y, unsigned short *index);
 
-
-	bool isValid();
 
 	bool invalidEdgeCrossings();
-	bool edgeIsValid(unsigned int edgeIndex);
+	bool edgeIsValid(unsigned short edgeIndex);
 
 
 	// technically includes "vertex lies on a vertex"
 	//   returns the point of intersection (as an argument)
-	bool vertexLiesOnEdge(unsigned int vIndex, Vertex *intersect);
+	bool vertexLiesOnEdge(unsigned short vIndex, Vertex *intersect);
 	bool vertexLiesOnEdge(Vertex v, Vertex *intersect);
-
-	bool edgeCrossesEdge(unsigned int index1, unsigned int index2);
-	bool edgeCrossesEdge(Vertex a1, Vertex a2, Vertex b1, Vertex b2);
 
 
 	void log();
@@ -76,6 +71,10 @@ public:
 	// tidies up the inside of the arrays
 	// organizes the vertices by position in space, edges by vertices
 //	void defragment();
+
+
+	// origami stuff
+	void loadPreliminaryBase();
 
 
 	// find all the vertices that are connected argument vertex by edges

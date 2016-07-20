@@ -1,11 +1,3 @@
-//
-//  planarGraph.cpp
-//
-//
-//  Created by Robby on 7/13/16.
-//
-//
-
 #include "planarGraph.h"
 
 //////////////////////////////////////////////////////////////////
@@ -15,21 +7,28 @@ int orientation(Vertex p, Vertex q, Vertex r);
 bool doIntersect(Vertex p1, Vertex q1, Vertex p2, Vertex q2);
 //////////////////////////////////////////////////////////////////
 
-
 PlanarGraph::PlanarGraph(){
 	vertices = &nodes;
 }
 
-//Graph::Graph(){//int initial){
-//    switch (initial) {
-//        case 0:
-//            break;
-//        case 1:
-//            break;
-//        default:
-//            break;
-//    }
-//}
+void PlanarGraph::addEdgeWithVertices(float x1, float y1, float x2, float y2){
+	unsigned short vIndex1 = nodes.size();
+	unsigned short vIndex2 = nodes.size()+1;
+	Pair e1 = {vIndex1, vIndex2};
+
+	// add vertices
+	Vertex v1 = {x1, y1};
+	Vertex v2 = {x2, y2};
+	nodes.push_back(v1);
+	nodes.push_back(v2);
+
+	// add edge
+	edges.push_back(e1);
+}
+
+void PlanarGraph::addEdgeWithVertices(Vertex a, Vertex b){
+	addEdgeWithVertices(a.x, a.y, b.x, b.y);
+}
 
 void PlanarGraph::cleanup(){
 	int i = 0;
@@ -44,34 +43,41 @@ void PlanarGraph::cleanup(){
 			// only iterate forward if we didn't remove an element
 			//   if we did, it basically iterated forward for us, repeat the same 'j'
 			// this is also possible because we know that j is always greater than i
-			if(!didRemove)
+			if(!didRemove){
 				j++;
+			}
 		}
 		i++;
 	}
 }
 
-// crease start and finish, on a scale of 0 to 1
-void PlanarGraph::addEdgeWithVertices(float x1, float y1, float x2, float y2){
-	unsigned short vI1 = nodes.size();
-	unsigned short vI2 = nodes.size()+1;
-	Pair e1 = {vI1, vI2};
-	
-	// add vertices
-	Vertex v1 = {x1, y1};
-	Vertex v2 = {x2, y2};
-	nodes.push_back(v1);
-	nodes.push_back(v2);
-	
-	// add edge
-	edges.push_back(e1);
-}
-
-
 bool PlanarGraph::isValid(){
-	invalidEdgeCrossings();
+	bool invalid = false;
+	invalid |= invalidEdgeCrossings();
+	// TODO: more here
+	return !invalid;
 }
 
+bool PlanarGraph::edgeCrossesEdge(unsigned short index1, unsigned short index2){
+	// shares vertices
+	if(edgesAdjacent(index1, index2)){
+		return false;
+	}
+	// edges overlap
+	return doIntersect(nodes[ edges[index1].a ], nodes[ edges[index1].b ],
+	                   nodes[ edges[index2].a ], nodes[ edges[index2].b ] );
+}
+bool PlanarGraph::edgeCrossesEdge(Vertex a1, Vertex a2, Vertex b1, Vertex b2){
+	// shares vertices
+	if(hVerticesEqual(a1, b1, VERTEX_DUPLICATE_EPSILON) ||
+	   hVerticesEqual(a1, b2, VERTEX_DUPLICATE_EPSILON) ||
+	   hVerticesEqual(a2, b1, VERTEX_DUPLICATE_EPSILON) ||
+	   hVerticesEqual(a2, b2, VERTEX_DUPLICATE_EPSILON) ){
+		return false;
+	}
+	// edges overlap
+	return doIntersect(a1, a2, b1, b2);
+}
 
 // quick and easy, use a square bounding box
 bool PlanarGraph::hVerticesEqual(Vertex v1, Vertex v2, float epsilon){
@@ -84,11 +90,10 @@ bool PlanarGraph::hVerticesEqual(float x1, float y1, float x2, float y2, float e
 }
 
 
-
-vector<unsigned int> PlanarGraph::edgesIntersectingEdges(){
-	vector<unsigned int> invalidEdges;
-	for(int i = 0; i < edges.size() - 1; i++){
-		for(int j = i+1; j < edges.size(); j++){
+vector<unsigned short> PlanarGraph::edgesIntersectingEdges(){
+	vector<unsigned short> invalidEdges;
+	for(unsigned short i = 0; i < edges.size() - 1; i++){
+		for(unsigned short j = i+1; j < edges.size(); j++){
 			bool one = !edgesAdjacent(i, j);
 			bool two = doIntersect(nodes[ edges[i].a ],
 								   nodes[ edges[i].b ],
@@ -110,7 +115,6 @@ vector<unsigned int> PlanarGraph::edgesIntersectingEdges(){
 }
 
 bool PlanarGraph::invalidEdgeCrossings(){
-	float SCALE = 100.0;
 	for(int i = 0; i < edges.size(); i++){
 		for(int j = 0; j < edges.size(); j++){
 			if(i != j){
@@ -119,11 +123,6 @@ bool PlanarGraph::invalidEdgeCrossings(){
 				vertex[1] = nodes[ edges[i].b ];
 				vertex[2] = nodes[ edges[j].a ];
 				vertex[3] = nodes[ edges[j].b ];
-				for(int k = 0; k < 4; k++){
-					vertex[k].x *= SCALE;
-					vertex[k].y *= SCALE;
-					vertex[k].z *= SCALE;
-				}
 				if(doIntersect(vertex[0], vertex[1], vertex[2], vertex[3]))
 					return true;
 			}
@@ -132,8 +131,7 @@ bool PlanarGraph::invalidEdgeCrossings(){
 	return false;
 }
 
-bool PlanarGraph::edgeIsValid(unsigned int edgeIndex){
-	float SCALE = 100.0;
+bool PlanarGraph::edgeIsValid(unsigned short edgeIndex){
 	for(int i = 0; i < edges.size(); i++){
 		if(edgeIndex != i){
 			Vertex vertex[4];
@@ -141,11 +139,6 @@ bool PlanarGraph::edgeIsValid(unsigned int edgeIndex){
 			vertex[1] = nodes[ edges[edgeIndex].b ];
 			vertex[2] = nodes[ edges[i].a ];
 			vertex[3] = nodes[ edges[i].b ];
-			for(int j = 0; j < 4; j++){
-				vertex[j].x *= SCALE;
-				vertex[j].y *= SCALE;
-				vertex[j].z *= SCALE;
-			}
 			if(doIntersect(vertex[0], vertex[1], vertex[2], vertex[3]))
 				return false;
 		}
@@ -166,7 +159,7 @@ void PlanarGraph::findAndReplaceInstancesEdge(int *newVertexIndexMapping){
 	}
 }
 
-bool PlanarGraph::getVertexIndexAt(float x, float y, unsigned int *index){
+bool PlanarGraph::getVertexIndexAt(float x, float y, unsigned short *index){
 	for(int i = 0; i < nodes.size(); i++){
 		if(hVerticesEqual(nodes[i].x, nodes[i].y, x, y, USER_TAP_EPSILON)){
 			*index = i;
@@ -178,14 +171,14 @@ bool PlanarGraph::getVertexIndexAt(float x, float y, unsigned int *index){
 
 
 
-bool PlanarGraph::vertexLiesOnEdge(unsigned int vIndex, Vertex *intersect){
+bool PlanarGraph::vertexLiesOnEdge(unsigned short vIndex, Vertex *intersect){
 	Vertex v = nodes[vIndex];
 	return vertexLiesOnEdge(v, intersect);
 }
 
 bool PlanarGraph::vertexLiesOnEdge(Vertex v, Vertex *intersect){
 	// including a margin of error, bounding area around vertex
-	
+
 	// first check if point lies on end points
 	for(int i = 0; i < nodes.size(); i++){
 		if( hVerticesEqual(nodes[i], v, VERTEX_DUPLICATE_EPSILON) ){
@@ -195,7 +188,7 @@ bool PlanarGraph::vertexLiesOnEdge(Vertex v, Vertex *intersect){
 			return true;
 		}
 	}
-	
+
 	for(int i = 0; i < edges.size(); i++){
 		Vertex a = nodes[ edges[i].a ];
 		Vertex b = nodes[ edges[i].b ];
@@ -303,6 +296,55 @@ void PlanarGraph::log(){
 }
 
 
+void PlanarGraph::loadPreliminaryBase(){
+	Vertex center;
+	center.x = 0.5;
+	center.y = 0.5;
+
+	Vertex topLeft;
+	topLeft.x = 0.0;
+	topLeft.y = 0.0;
+
+	Vertex topRight;
+	topRight.x = 1.0;
+	topRight.y = 0.0;
+
+	Vertex bottomRight;
+	bottomRight.x = 1.0;
+	bottomRight.y = 1.0;
+
+	Vertex bottomLeft;
+	bottomLeft.x = 0.0;
+	bottomLeft.y = 1.0;
+
+	nodes.push_back(center);
+	nodes.push_back(topLeft);
+	nodes.push_back(topRight);
+	nodes.push_back(bottomLeft);
+	nodes.push_back(bottomRight);
+
+	Pair e1;
+	e1.a = 0;
+	e1.b = 1;
+
+	Pair e2;
+	e2.a = 0;
+	e2.b = 2;
+
+	Pair e3;
+	e3.a = 0;
+	e3.b = 3;
+
+	Pair e4;
+	e4.a = 0;
+	e4.b = 4;
+
+	edges.push_back(e1);
+	edges.push_back(e2);
+	edges.push_back(e3);
+	edges.push_back(e4);
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
@@ -344,7 +386,7 @@ bool doIntersect(Vertex p1, Vertex q1, Vertex p2, Vertex q2){
 	int o2 = orientation(p1, q1, q2);
 	int o3 = orientation(p2, q2, p1);
 	int o4 = orientation(p2, q2, q1);
-	
+
 	// General case
 	if (o1 != o2 && o3 != o4){
 		// 0 1 0 2
@@ -358,24 +400,24 @@ bool doIntersect(Vertex p1, Vertex q1, Vertex p2, Vertex q2){
 //		printf("one\n");
 		return true;
 	}
-	
+
 	// p1, q1 and p2 are colinear and q2 lies on segment p1q1
 	if (o2 == 0 && onSegment(p1, q2, q1)){
 //		printf("two\n");
 		return true;
 	}
-	
+
 	// p2, q2 and p1 are colinear and p1 lies on segment p2q2
 	if (o3 == 0 && onSegment(p2, p1, q2)){
 //		printf("three\n");
 		return true;
 	}
-	
+
 	// p2, q2 and q1 are colinear and q1 lies on segment p2q2
 	if (o4 == 0 && onSegment(p2, q1, q2)){
 //		printf("four\n");
 		return true;
 	}
-	
+
 	return false; // Doesn't fall in any of the above cases
 }

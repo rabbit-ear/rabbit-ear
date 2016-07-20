@@ -10,24 +10,28 @@ using namespace std;
 // array of nodes, which are templated - can be any type.
 
 typedef struct Pair {
-	unsigned int a, b;
+	unsigned short a, b;
 } Pair;
 
 template <class T> class Graph {
 public:
 //private:
-	// the graph
+	// nodes are templated type, and edges are indices in vector<T>nodes
 	vector <T> nodes;
 	vector <Pair> edges;
 
 public:
 	// constructor
 	Graph();
-	// removes all edges and nodes
-	void clear();
 
 	void addNode(T node);
 	void addEdge(Pair edge);
+
+	// removes any duplicate edges (edges containing the same nodes)
+	void cleanup();
+
+	// removes all edges and nodes
+	void clear();
 
 	// getters
 	unsigned int numNodes();
@@ -38,11 +42,19 @@ public:
 	bool nodesAdjacent(unsigned int nodeIndex1, unsigned int nodeIndex2);
 	//   2 edges share a node?
 	bool edgesAdjacent(unsigned int edgeIndex1, unsigned int edgeIndex2);
+
 	void log();
+	void logMore();
 
 protected:
-	// operate on the graph
+	// operations on the graph
+
+	// replaces all mention of one vertex with the other in both vertex and edge arrays
+	// shrinks the total number of vertices
 	bool mergeNodes(unsigned int vIndex1, unsigned int vIndex2);
+
+	// 2 edges contain the same nodes
+	bool edgesAreSimilar(unsigned int eIndex1, unsigned int eIndex2);
 };
 
 
@@ -51,12 +63,6 @@ protected:
 //
 template <class T>
 Graph<T>::Graph(){ }
-
-template <class T>
-void Graph<T>::clear(){
-	nodes.clear();
-	edges.clear();
-}
 
 template <class T>
 void Graph<T>::addNode(T node){
@@ -68,6 +74,32 @@ void Graph<T>::addEdge(Pair edge){
 	edges.push_back(edge);
 }
 
+template <class T>
+void Graph<T>::cleanup(){
+	int i = 0;
+	while(i < edges.size()-1){
+		int j = i+1;
+		while(j < edges.size()){
+			bool didRemove = false;
+			if ( edgesAreSimilar(i, j) ){
+				edges.erase(edges.begin()+j);
+				didRemove = true;
+			}
+			// only iterate forward if we didn't remove an element
+			//   if we did, it basically iterated forward for us, repeat the same 'j'
+			// this is also possible because we know that j is always greater than i
+			if(!didRemove)
+				j++;
+		}
+		i++;
+	}
+}
+
+template <class T>
+void Graph<T>::clear(){
+	nodes.clear();
+	edges.clear();
+}
 
 template <class T>
 unsigned int Graph<T>::numEdges(){
@@ -100,8 +132,13 @@ bool Graph<T>::edgesAdjacent(unsigned int edgeIndex1, unsigned int edgeIndex2){
 
 template <class T>
 void Graph<T>::log(){
-	printf("\n#Nodes: %lu\n", nodes.size());
-	printf("\n#Edges: %lu\n", edges.size());
+	printf("#Nodes: %lu\n", nodes.size());
+	printf("#Edges: %lu\n", edges.size());
+}
+
+template <class T>
+void Graph<T>::logMore(){
+	log();
 	for(int i = 0; i < edges.size(); i++)
 		printf(" %d: (%d-%d)\n", i, edges[i].a, edges[i].b);
 }
@@ -130,5 +167,14 @@ bool Graph<T>::mergeNodes(unsigned int nodeIndex1, unsigned int nodeIndex2){
 	nodes.erase(nodes.begin()+two);
 	return true;
 }
+
+template <class T>
+bool Graph<T>::edgesAreSimilar(unsigned int eIndex1, unsigned int eIndex2){
+	return( (edges[eIndex1].a == edges[eIndex2].a &&
+	         edges[eIndex1].b == edges[eIndex2].b ) ||
+	        (edges[eIndex1].a == edges[eIndex2].b &&
+   	         edges[eIndex1].b == edges[eIndex2].a ) );
+}
+
 
 #endif
