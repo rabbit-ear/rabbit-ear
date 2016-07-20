@@ -2,8 +2,6 @@
 //
 // this is a planar graph data structure containing edges and vertices
 // vertices are points in 3D space {x,y,z}  (z is 0 for now)
-//
-// at one point, the geometry was made to easily incorporate into OpenGL calls
 
 #ifndef planarGraph_h
 #define planarGraph_h
@@ -15,7 +13,6 @@
 
 // this graph represents an origami crease pattern
 //    with creases (edges) defined by their endpoints (vertices)
-//    for now, coordinate space is a square (0,0) (0,1) (1,1) (1,0)
 
 typedef struct Vertex{
 	float x, y, z;
@@ -71,11 +68,6 @@ public:
 	// tidies up the inside of the arrays
 	// organizes the vertices by position in space, edges by vertices
 //	void defragment();
-
-
-	// origami stuff
-	void loadPreliminaryBase();
-
 
 	// find all the vertices that are connected argument vertex by edges
 	vector<unsigned int> connectedVertexIndices(unsigned int vIndex);

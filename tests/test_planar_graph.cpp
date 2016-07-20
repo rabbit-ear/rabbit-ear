@@ -4,7 +4,18 @@
 
 PlanarGraph g;
 
+void fillWithRandom(){
+	for(int i = 0; i < 10; i++){
+		g.addEdgeWithVertices(arc4random()%1000/1000.0, 
+		                      arc4random()%1000/1000.0, 
+		                      arc4random()%1000/1000.0, 
+		                      arc4random()%1000/1000.0 );
+	}
+}
+
 void setup() { 
+
+	// SETUP WORLD
 	float a = WIDTH/(float)HEIGHT;
 	// fit a square in a rectangle that is wider than it is taller
 	float PADDING = .1f;
@@ -13,15 +24,12 @@ void setup() {
 	                  -PADDING, 
 	                  (SIDE+PADDING*2)*a, 
 	                  (SIDE+PADDING*2) );
-
-
-	g.loadPreliminaryBase();
+	polarPerspective(-0.5, -0.5, 0.0);
 	GROUND = 0;
 	GRID = 0;
-	g.log();
-	for(int i = 0; i < g.numNodes(); i++){
-		printf("%f %f\n", ((Vertex)g.nodes[i]).x, ((Vertex)g.nodes[i]).y);
-	}
+	ZOOM = 1.0;
+	ZOOM_SPEED = 0.02;
+	fillWithRandom();
 }
 void update() { }
 void draw() { 
@@ -29,6 +37,7 @@ void draw() {
 	glColor3f(1.0, 1.0, 1.0);
 	glPointSize(5);
 	drawGraphPoints(g);
+	drawGraphLines(g);
 }
 void keyDown(unsigned int key) { }
 void keyUp(unsigned int key) { }

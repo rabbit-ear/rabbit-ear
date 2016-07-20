@@ -39,14 +39,19 @@ void mouseMoved(int x, int y);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
-// CUSTOMIZE
+// CUSTOMIZE SETTINGS
 #define CONTINUOUS_REFRESH 0  // (0) = maximum efficiency, screen will only redraw upon receiving input
-#define WALK_INTERVAL .10f  // WALKING SPEED. @ 60 updates/second, walk speed = 6 units/second
-#define MOUSE_SENSITIVITY 0.333f
+static float MOUSE_SENSITIVITY = 0.333f;
+static float WALK_INTERVAL = 0.1f;  // WALKING SPEED. @ 60 updates/second, walk speed = 6 units/second
+static float ZOOM_SPEED = 0.4f;
 // WINDOW size upon boot
 static int WIDTH = 800;  // (readonly) set these values here
 static int HEIGHT = 600; // (readonly) setting during runtime will not re-size window
 static unsigned char FULLSCREEN = 0;  // fullscreen:1   window:0
+// TYPES
+typedef struct Point3D { 
+	float x, y, z;
+} Point3D;
 // INPUT
 static int mouseX = 0;  // get mouse location at any point, units in pixels
 static int mouseY = 0;
@@ -55,7 +60,7 @@ static int mouseDragY = 0;
 static unsigned char keyboard[256];  // query this at any point for the state of a key (0:up, 1:pressed)
 // GRAPHICS
 static float originX = 0.0f;
-static float originY = 0.0f;  // location of the eye
+static float originY = 0.0f;  
 static float originZ = 0.0f;
 static float ZOOM = 15.0f;  // POLAR PERSPECTIVE    // zoom scale, converted to logarithmic
 static float ZOOM_RADIX = 3;
@@ -65,15 +70,10 @@ static unsigned char GRID = 1;    // a 3D grid
 enum{  FPP,  POLAR,  ORTHO  } ; // first persion, polar, orthographic
 static unsigned char PERSPECTIVE = FPP;  // initialize point of view in this state
 // details of each perspective
+Point3D polarLookAt = {0.0f, 0.0f, 0.0f}; // x, y, z  // location of the eye
 float lookOrientation[3] = {0.0f, 0.0f, 0.0f}; // azimuth, altitude, zoom/FOV
 float orthoFrame[4] = {0.0f, 0.0f, 4.0f, 3.0f}; // x, y, width, height
-// TYPES
-enum{ FALSE, TRUE };
-typedef struct Point {
-  float x;
-  float y;
-  float z;
-} Point;
+
 // TABLE OF CONTENTS:
 int main(int argc, char **argv);  // initialize Open GL context
 void typicalOpenGLSettings();  // colors, line width, glEnable
@@ -81,7 +81,7 @@ void reshapeWindow(int windowWidth, int windowHeight);  // contains viewport and
 void rebuildProjection();  // calls one of the three functions below
 // CHANGE PERSPECTIVE
 void firstPersonPerspective();//float azimuth, float altitude, float zoom);
-void polarPerspective();//float azimuth, float altitude, float zoom);
+void polarPerspective(float x, float y, float z);  //float azimuth, float altitude, float zoom);
 void orthoPerspective(float x, float y, float width, float height);
 // DRAW, ALIGNMENT, INPUT HANDLING
 void display();
@@ -198,7 +198,7 @@ void rebuildProjection(){
 		case FPP:
 			firstPersonPerspective(); break;
 		case POLAR:
-			polarPerspective(); break;
+			polarPerspective(polarLookAt.x, polarLookAt.y, polarLookAt.z); break;
 		case ORTHO:
 			orthoPerspective(orthoFrame[0], orthoFrame[1], orthoFrame[2], orthoFrame[3]); break;
 	}
@@ -216,8 +216,11 @@ void firstPersonPerspective(){
 	glTranslatef(0.0f, 0.0f, -1.0f);
 	glMatrixMode(GL_MODELVIEW);
 }
-void polarPerspective(){
+void polarPerspective(float x, float y, float z){
 	PERSPECTIVE = POLAR;
+	polarLookAt.x = x;
+	polarLookAt.y = y;
+	polarLookAt.z = z;
 	float a = (float)WIDTH / HEIGHT;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -226,6 +229,7 @@ void polarPerspective(){
 	glTranslatef(0, 0, -ZOOM);
 	glRotatef(-lookOrientation[1], 1, 0, 0);
 	glRotatef(-lookOrientation[0], 0, 0, 1);
+	glTranslatef(x, y, z);
 	glMatrixMode(GL_MODELVIEW);
 }
 void orthoPerspective(float x, float y, float width, float height){
@@ -299,11 +303,11 @@ void updateWorld(){
 	if(keyboard[Z_KEY] || keyboard[z_KEY])
 		originZ += WALK_INTERVAL;
 	if(keyboard[MINUS_KEY]){
-		ZOOM += WALK_INTERVAL * 4;
+		ZOOM += ZOOM_SPEED;
 		rebuildProjection();
 	}
 	if(keyboard[PLUS_KEY]){
-		ZOOM -= WALK_INTERVAL * 4;
+		ZOOM -= ZOOM_SPEED;
 		if(ZOOM < 0)
 			ZOOM = 0;
 		rebuildProjection();
@@ -327,7 +331,7 @@ void mouseUpdatePerspective(int dx, int dy){
 			lookOrientation[0] += (dx * MOUSE_SENSITIVITY);
 			lookOrientation[1] += (dy * MOUSE_SENSITIVITY);
 			// lookOrientation[2] = 0.0;
-			polarPerspective();
+			polarPerspective(polarLookAt.x, polarLookAt.y, polarLookAt.z);
 			break;
 		case ORTHO:
 			orthoFrame[0] += dx;

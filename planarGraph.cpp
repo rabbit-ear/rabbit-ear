@@ -283,9 +283,6 @@ void PlanarGraph::rotateEdge(int index, int indexOrigin, float angle){
 	this->nodes[index].y = distance*sinf(currentAngle + angle);
 }
 
-
-
-
 void PlanarGraph::log(){
 	printf("\nVertices:\n");
 	for(int i = 0; i < nodes.size(); i++)
@@ -294,57 +291,6 @@ void PlanarGraph::log(){
 	for(int i = 0; i < edges.size(); i++)
 		printf(" %d: (%d -- %d)\n", i, edges[i].a, edges[i].b);
 }
-
-
-void PlanarGraph::loadPreliminaryBase(){
-	Vertex center;
-	center.x = 0.5;
-	center.y = 0.5;
-
-	Vertex topLeft;
-	topLeft.x = 0.0;
-	topLeft.y = 0.0;
-
-	Vertex topRight;
-	topRight.x = 1.0;
-	topRight.y = 0.0;
-
-	Vertex bottomRight;
-	bottomRight.x = 1.0;
-	bottomRight.y = 1.0;
-
-	Vertex bottomLeft;
-	bottomLeft.x = 0.0;
-	bottomLeft.y = 1.0;
-
-	nodes.push_back(center);
-	nodes.push_back(topLeft);
-	nodes.push_back(topRight);
-	nodes.push_back(bottomLeft);
-	nodes.push_back(bottomRight);
-
-	Pair e1;
-	e1.a = 0;
-	e1.b = 1;
-
-	Pair e2;
-	e2.a = 0;
-	e2.b = 2;
-
-	Pair e3;
-	e3.a = 0;
-	e3.b = 3;
-
-	Pair e4;
-	e4.a = 0;
-	e4.b = 4;
-
-	edges.push_back(e1);
-	edges.push_back(e2);
-	edges.push_back(e3);
-	edges.push_back(e4);
-}
-
 
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
