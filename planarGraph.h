@@ -32,6 +32,8 @@ public:
 	void addEdgeWithVertices(float x1, float y1, float x2, float y2);
 	void addEdgeFromVertex(unsigned short existingIndex, Vertex newVertex);
 	void addEdgeFromVertex(unsigned short existingIndex, float newX, float newY);
+	// radial coordinates
+	void addEdgeRadiallyFromVertex(unsigned short existingIndex, float angle, float distance);
 
 	// graph validity
 	void cleanup();  // remove all duplicate vertices

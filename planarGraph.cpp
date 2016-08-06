@@ -46,6 +46,14 @@ void PlanarGraph::addEdgeFromVertex(unsigned short existingIndex, float newX, fl
 	addEdgeFromVertex(existingIndex, newVertex);
 }
 
+void PlanarGraph::addEdgeRadiallyFromVertex(unsigned short existingIndex, float angle, float distance){
+	Vertex newVertex;
+	newVertex.x = nodes[existingIndex].x + cosf(angle) * distance;
+	newVertex.y = nodes[existingIndex].y + sinf(angle) * distance;
+	addEdgeFromVertex(existingIndex, newVertex);
+}
+
+
 void PlanarGraph::cleanup(){
 	int i = 0;
 	while(i < nodes.size()-1){
