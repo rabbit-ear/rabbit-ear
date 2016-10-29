@@ -80,8 +80,10 @@ void Graph<T>::cleanup(){
 	while(i < edges.size()-1){
 		int j = i+1;
 		while(j < edges.size()){
+			// nested loop, compare every edge with every edge
 			bool didRemove = false;
 			if ( edgesAreSimilar(i, j) ){
+				// if edges are comprised of the same vertices (in any order)
 				edges.erase(edges.begin()+j);
 				didRemove = true;
 			}

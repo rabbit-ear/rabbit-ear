@@ -36,7 +36,8 @@ public:
 	void addEdgeRadiallyFromVertex(unsigned short existingIndex, float angle, float distance);
 
 	// graph validity
-	void cleanup();  // remove all duplicate vertices
+	void cleanup();  // executes the following:
+		void removeDuplicateVertices();
 
 	bool isValid();  // 1) no edge crossings, 2) more later...
 
@@ -48,8 +49,8 @@ public:
 	vector<unsigned short> edgesIntersectingEdges();
 
 
-	// rotate a vertex (index) around another vertex (indexOrigin)
-	void rotateEdge(int index, int indexOrigin, float angle);
+	// rotate a vertex (index) around another vertex (originVertexIndex)
+	void rotateVertex(int vertexIndex, int originVertexIndex, float angleRadians);
 
 
 	// input based on the X Y plane

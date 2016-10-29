@@ -55,6 +55,10 @@ void PlanarGraph::addEdgeRadiallyFromVertex(unsigned short existingIndex, float 
 
 
 void PlanarGraph::cleanup(){
+	removeDuplicateVertices();
+}
+
+void PlanarGraph::removeDuplicateVertices(){
 	int i = 0;
 	while(i < nodes.size()-1){
 		int j = i+1;
@@ -299,12 +303,12 @@ vector<float> PlanarGraph::connectingVertexInteriorAngles(unsigned int vIndex, v
 	return anglesBetweenVertices;
 }
 
-void PlanarGraph::rotateEdge(int index, int indexOrigin, float angle){
-	float distance = sqrt(powf( this->nodes[indexOrigin].y - this->nodes[index].y ,2)
-						  +powf( this->nodes[indexOrigin].x - this->nodes[index].x ,2));
-	float currentAngle = atan2(this->nodes[index].y, this->nodes[index].x);
-	this->nodes[index].x = distance*cosf(currentAngle + angle);
-	this->nodes[index].y = distance*sinf(currentAngle + angle);
+void PlanarGraph::rotateVertex(int vertexIndex, int originVertexIndex, float angleRadians){
+	float distance = sqrt(powf( this->nodes[originVertexIndex].y - this->nodes[vertexIndex].y ,2)
+						  +powf( this->nodes[originVertexIndex].x - this->nodes[vertexIndex].x ,2));
+	float currentAngle = atan2(this->nodes[vertexIndex].y, this->nodes[vertexIndex].x);
+	this->nodes[vertexIndex].x = distance*cosf(currentAngle + angleRadians);
+	this->nodes[vertexIndex].y = distance*sinf(currentAngle + angleRadians);
 }
 
 void PlanarGraph::log(){

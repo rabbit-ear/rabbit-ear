@@ -59,6 +59,7 @@ static int mouseDragX = 0;  // dragging during one session (between click and re
 static int mouseDragY = 0;
 static unsigned char keyboard[256];  // query this at any point for the state of a key (0:up, 1:pressed)
 // GRAPHICS
+static float FOV = 0.1;
 static float originX = 0.0f;
 static float originY = 0.0f;  
 static float originZ = 0.0f;
@@ -116,35 +117,6 @@ float modulusContext(float complete, int modulus);
 #define GREATER_THAN_KEY 62
 #define COMMA_KEY 44
 #define LESS_THAN_KEY 60
-// an abbreviated list. more can be defined for quick access
-#define A_KEY 65
-#define B_KEY 66
-#define C_KEY 67
-#define D_KEY 68
-#define E_KEY 69
-#define F_KEY 70
-#define G_KEY 71
-#define P_KEY 80
-#define Q_KEY 81
-#define S_KEY 83
-#define W_KEY 87
-#define X_KEY 88
-#define Y_KEY 89
-#define Z_KEY 90
-#define a_KEY 97
-#define b_KEY 98
-#define c_KEY 99
-#define d_KEY 100
-#define e_KEY 101
-#define f_KEY 102
-#define g_KEY 103
-#define p_KEY 112
-#define q_KEY 113
-#define s_KEY 115
-#define w_KEY 119
-#define x_KEY 120
-#define y_KEY 121
-#define z_KEY 122
 // special key codes conflict with 0-127 ASCII codes, augmented them to 128-255 index range
 #define UP_KEY GLUT_KEY_UP+128//229
 #define DOWN_KEY GLUT_KEY_DOWN+128//231
@@ -208,7 +180,7 @@ void firstPersonPerspective(){
 	float a = (float)WIDTH / HEIGHT;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glFrustum (-.1, .1, -.1/a, .1/a, .1, 100.0);
+	glFrustum (-FOV, FOV, -FOV/a, FOV/a, .1, 100.0);
 	// change POV
 	glRotatef(-lookOrientation[1], 1, 0, 0);
 	glRotatef(-lookOrientation[0], 0, 0, 1);
@@ -224,7 +196,7 @@ void polarPerspective(float x, float y, float z){
 	float a = (float)WIDTH / HEIGHT;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glFrustum (-.1, .1, -.1/a, .1/a, .1, 100.0);
+	glFrustum (-FOV, FOV, -FOV/a, FOV/a, .1, 100.0);
 	// change POV
 	glTranslatef(0, 0, -ZOOM);
 	glRotatef(-lookOrientation[1], 1, 0, 0);
@@ -282,25 +254,25 @@ void display(){
 void updateWorld(){
 	// map movement direction to the direction the person is facing
 	float lookAzimuth = lookOrientation[0]/180.0*M_PI;
-	if(keyboard[UP_KEY] || keyboard[W_KEY] || keyboard[w_KEY]){
+	if(keyboard[UP_KEY] || keyboard['W'] || keyboard['w']){
 		originX += WALK_INTERVAL * sinf(lookAzimuth);
 		originY += WALK_INTERVAL * -cosf(lookAzimuth);
 	}
-	if(keyboard[DOWN_KEY] || keyboard[S_KEY] || keyboard[s_KEY]){
+	if(keyboard[DOWN_KEY] || keyboard['S'] || keyboard['s']){
 		originX -= WALK_INTERVAL * sinf(lookAzimuth);
 		originY -= WALK_INTERVAL * -cosf(lookAzimuth);
 	}
-	if(keyboard[LEFT_KEY] || keyboard[A_KEY] || keyboard[a_KEY]){
+	if(keyboard[LEFT_KEY] || keyboard['A'] || keyboard['a']){
 		originX += WALK_INTERVAL * sinf(lookAzimuth+M_PI_2);
 		originY += WALK_INTERVAL * -cosf(lookAzimuth+M_PI_2);
 	}
-	if(keyboard[RIGHT_KEY] || keyboard[D_KEY] || keyboard[d_KEY]){
+	if(keyboard[RIGHT_KEY] || keyboard['D'] || keyboard['d']){
 		originX -= WALK_INTERVAL * sinf(lookAzimuth+M_PI_2);
 		originY -= WALK_INTERVAL * -cosf(lookAzimuth+M_PI_2);
 	}
-	if(keyboard[Q_KEY] || keyboard[q_KEY])
+	if(keyboard['Q'] || keyboard['q'])
 		originZ -= WALK_INTERVAL;
-	if(keyboard[Z_KEY] || keyboard[z_KEY])
+	if(keyboard['Z'] || keyboard['z'])
 		originZ += WALK_INTERVAL;
 	if(keyboard[MINUS_KEY]){
 		ZOOM += ZOOM_SPEED;
@@ -334,8 +306,8 @@ void mouseUpdatePerspective(int dx, int dy){
 			polarPerspective(polarLookAt.x, polarLookAt.y, polarLookAt.z);
 			break;
 		case ORTHO:
-			orthoFrame[0] += dx;
-			orthoFrame[1] += dy;
+			orthoFrame[0] += dx / (WIDTH / orthoFrame[2]);
+			orthoFrame[1] += dy / (HEIGHT / orthoFrame[3]);
 			orthoPerspective(orthoFrame[0], orthoFrame[1], orthoFrame[2], orthoFrame[3]);
 			break;
 	}
@@ -388,7 +360,7 @@ void keyboardDown(unsigned char key, int x, int y){
 
 	if(key == ESCAPE_KEY)  // ESCAPE key
 		exit (0);
-	else if(key == f_KEY || key == F_KEY){
+	else if(key == 'F' || key == 'f'){
 		if(!FULLSCREEN)
 			glutFullScreen();
 		else{
@@ -397,16 +369,23 @@ void keyboardDown(unsigned char key, int x, int y){
 		}
 		FULLSCREEN = !FULLSCREEN;
 	}
-	else if(key == P_KEY || key == p_KEY){
+	else if(key == 'P' || key == 'p'){
 		PERSPECTIVE = (PERSPECTIVE+1)%3;
 		rebuildProjection();
-		glutPostRedisplay();
 	}
-	else if(key == G_KEY || key == g_KEY){
+	else if(key == '.'){
+		FOV += 0.01;
+		rebuildProjection();
+	}
+	else if(key == ','){
+		FOV -= 0.01;
+		rebuildProjection();
+	}
+	else if(key == 'G' || key == 'g'){
 		GROUND = !GROUND;
 		glutPostRedisplay();
 	}
-	else if (key == X_KEY || key == x_KEY){
+	else if (key == 'X' || key == 'x'){
 		GRID = !GRID;
 		glutPostRedisplay();
 	}
