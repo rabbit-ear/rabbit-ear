@@ -1,10 +1,6 @@
-// this graph data structure has
-// array of edges of {index1, index2}, which are indices in the
-// array of nodes, which are templated - can be any type.
-
 var Graph = function() {
-	this.nodes = [];
-	this.edges = [];
+	this.nodes = []; // can be of any type
+	this.edges = []; // must be {a:__, b:__} where __ is index in this.nodes
 };
 
 Graph.prototype.addNode = function(node) {
@@ -24,14 +20,15 @@ Graph.prototype.cleanup = function(){
 			var didRemove = false;
 			if ( this.edgesAreSimilar(i, j) ){
 				// if edges are comprised of the same vertices (in any order)
-				edges.erase(edges.begin()+j);
+				edges.splice(edges.begin()+j, 1);
 				didRemove = true;
 			}
 			// only iterate forward if we didn't remove an element
 			//   if we did, it basically iterated forward for us, repeat the same 'j'
 			// this is also possible because we know that j is always greater than i
-			if(!didRemove)
+			if(!didRemove){
 				j+=1;
+			}
 		}
 		i+=1;
 	}
@@ -39,8 +36,8 @@ Graph.prototype.cleanup = function(){
 
 // removes all edges and nodes
 Graph.prototype.clear = function(){
-	this.nodes.clear();
-	this.edges.clear();
+	this.nodes = [];
+	this.edges = [];
 }
 
 // inspect the graph

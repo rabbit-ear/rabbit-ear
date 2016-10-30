@@ -1,9 +1,9 @@
 # origami math
 
-## graph.h
+## graph
 
-this is an undirected graph data structure; the foundation of a representation of an origami crease pattern.
+this is an undirected graph data structure. contains nodes & edges conecting nodes, no relation to 2D space.
 
-## planarGraph.h / .cpp
+## planar graph
 
-this is a subclass of the undirected graph structure, it adds the concept of 2D space. Nodes and Edges exist on a 2D plane, and many origami related functions can be implemented.
+inherits the undirected graph structure, adding the concept of 2D space. nodes and edges exist on a 2D plane, ie: edges crossing edges is now a thing.
