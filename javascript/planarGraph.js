@@ -10,80 +10,11 @@ var VERTEX_DUPLICATE_EPSILON = 0.003;
 // this graph represents an origami crease pattern
 //    with creases (edges) defined by their endpoints (vertices)
 
+
+// creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
 var PlanarGraph = function(){
-	// creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
-
-	// add to graph
-	function addEdgeWithVertices(a, b);
-	function addEdgeWithVertices(x1, y1, x2, y2);
-	function addEdgeFromVertex(existingIndex, newVertex);
-	function addEdgeFromVertex(existingIndex, newX, newY);
-	// radial coordinates
-	function addEdgeRadiallyFromVertex(existingIndex, angle, distance);
-
-	// graph validity
-	function cleanup();  // executes the following:
-		function removeDuplicateVertices();
-
-	function isValid();  // 1) no edge crossings, 2) more later...
-
-	function edgeCrossesEdge(index1, index2);
-	function edgeCrossesEdge(a1, a2, b1, b2);
-
-
-	// needs to be a set, has duplicates
-	function edgesIntersectingEdges();
-
-
-	// rotate a vertex (index) around another vertex (originVertexIndex)
-	function rotateVertex(int vertexIndex, int originVertexIndex, angleRadians);
-
-
-	// input based on the X Y plane
-	//   returns true if one exists
-	function getVertexIndexAt(x, y, *index);
-
-
-	function invalidEdgeCrossings();
-	function edgeIsValid(edgeIndex);
-
-
-	// technically includes "vertex lies on a vertex"
-	//   returns the point of intersection (as an argument)
-	function vertexLiesOnEdge(vIndex, *intersect);
-	function vertexLiesOnEdge(v, *intersect);
-
-
-	function log();
-
-	// tidies up the inside of the arrays
-	// organizes the vertices by position in space, edges by vertices
-//	void defragment();
-
-	// find all the vertices that are connected argument vertex by edges
-	function connectedVertexIndices(vIndex);
-
-	// find all the edges which join to the input vertex
-	function connectingEdgeIndices(vIndex);
-
-	// same as above, sorted radially by neighbor
-	function connectingVertexIndicesSortedRadially(vIndex);
-
-	// the angles in radians corresponding to the above list
-	function connectingVertexInteriorAngles(vIndex, connectedVertexIndicesSorted);
-
-// protected:
-
-	function hVerticesEqual(x1, y1, x2, y2, epsilon);
-	function hVerticesEqual(v1, v2, epsilon);
-
-	function findAndReplaceInstancesEdge(*newVertexIndexMapping);
-
+	Graph.call(this);
 };
-
-bool onSegment(Vertex a, Vertex point, Vertex b);
-int orientation(Vertex p, Vertex q, Vertex r);
-bool doIntersect(Vertex p1, Vertex q1, Vertex p2, Vertex q2);
 
 PlanarGraph.prototype.addEdgeWithVertices = function(x1, y1, x2, y2){  // floats
 	var a = {'x':x1, 'y':y1};
@@ -172,7 +103,7 @@ PlanarGraph.prototype.edgeCrossesEdge = function(index1, index2){  // edge indic
 // }
 
 // quick and easy, use a square bounding box
-PlanarGraph.prototype.hVerticesEqual = function(v1, v2, float epsilon){  // Vertex type
+PlanarGraph.prototype.hVerticesEqual = function(v1, v2, epsilon){  // Vertex type
 	return (v1.x - epsilon < v2.x && v1.x + epsilon > v2.x &&
 			v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
 }
@@ -210,12 +141,11 @@ PlanarGraph.prototype.invalidEdgeCrossings = function(){
 	for(var i = 0; i < this.edges.length; i++){
 		for(var j = 0; j < this.edges.length; j++){
 			if(i != j){
-				var vertex[4];
-				vertex[0] = this.nodes[ this.edges[i].a ];
-				vertex[1] = this.nodes[ this.edges[i].b ];
-				vertex[2] = this.nodes[ this.edges[j].a ];
-				vertex[3] = this.nodes[ this.edges[j].b ];
-				if(this.doIntersect(vertex[0], vertex[1], vertex[2], vertex[3])){
+				vertex0 = this.nodes[ this.edges[i].a ];
+				vertex1 = this.nodes[ this.edges[i].b ];
+				vertex2 = this.nodes[ this.edges[j].a ];
+				vertex3 = this.nodes[ this.edges[j].b ];
+				if(this.doIntersect(vertex0, vertex1, vertex2, vertex3)){
 					return true;
 				}
 			}
@@ -227,12 +157,11 @@ PlanarGraph.prototype.invalidEdgeCrossings = function(){
 PlanarGraph.prototype.edgeIsValid = function(edgeIndex){  // uint
 	for(var i = 0; i < this.edges.length; i++){
 		if(edgeIndex != i){
-			var vertex[4];
-			vertex[0] = this.nodes[ this.edges[edgeIndex].a ];
-			vertex[1] = this.nodes[ this.edges[edgeIndex].b ];
-			vertex[2] = this.nodes[ this.edges[i].a ];
-			vertex[3] = this.nodes[ this.edges[i].b ];
-			if(this.doIntersect(vertex[0], vertex[1], vertex[2], vertex[3])){
+			vertex0 = this.nodes[ this.edges[edgeIndex].a ];
+			vertex1 = this.nodes[ this.edges[edgeIndex].b ];
+			vertex2 = this.nodes[ this.edges[i].a ];
+			vertex3 = this.nodes[ this.edges[i].b ];
+			if(this.doIntersect(vertex0, vertex1, vertex2, vertex3)){
 				return false;
 			}
 		}
@@ -241,7 +170,7 @@ PlanarGraph.prototype.edgeIsValid = function(edgeIndex){  // uint
 }
 
 PlanarGraph.prototype.findAndReplaceInstancesEdge = function(newVertexIndexMapping){  // int array
-	for(int i = 0; i < this.edges.length; i++){
+	for(var i = 0; i < this.edges.length; i++){
 		if(newVertexIndexMapping[ this.edges[i].a ] != -1){
 			this.edges[i].a = newVertexIndexMapping[ this.edges[i].a ];
 		}
@@ -251,10 +180,11 @@ PlanarGraph.prototype.findAndReplaceInstancesEdge = function(newVertexIndexMappi
 	}
 }
 
+// supposed to be returning through *index
 PlanarGraph.prototype.getVertexIndexAt = function(x, y, index){  // float float uint*
 	for(var i = 0; i < this.nodes.length; i++){
 		if(this.hVerticesEqual(this.nodes[i].x, this.nodes[i].y, x, y, USER_TAP_EPSILON)){
-			*index = i;
+			index = i;
 			return true;
 		}
 	}
@@ -274,9 +204,9 @@ PlanarGraph.prototype.vertexLiesOnEdge = function(v, intersect){  // Vertex, Ver
 	// first check if point lies on end points
 	for(var i = 0; i < this.nodes.length; i++){
 		if( this.hVerticesEqual(this.nodes[i], v, VERTEX_DUPLICATE_EPSILON) ){
-			intersect->x = this.nodes[i].x;
-			intersect->y = this.nodes[i].y;
-			intersect->z = this.nodes[i].z;
+			intersect.x = this.nodes[i].x;
+			intersect.y = this.nodes[i].y;
+			intersect.z = this.nodes[i].z;
 			return true;
 		}
 	}
@@ -284,14 +214,14 @@ PlanarGraph.prototype.vertexLiesOnEdge = function(v, intersect){  // Vertex, Ver
 	for(var i = 0; i < this.edges.length; i++){
 		var a = this.nodes[ this.edges[i].a ];
 		var b = this.nodes[ this.edges[i].b ];
-		float crossproduct = (v.y - a.y) * (b.x - a.x) - (v.x - a.x) * (b.y - a.y);
+		var crossproduct = (v.y - a.y) * (b.x - a.x) - (v.x - a.x) * (b.y - a.y);
 		if(Math.abs(crossproduct) < VERTEX_DUPLICATE_EPSILON){
 			// cross product is essentially zero, point lies along the (infinite) line
 			// now check if it is between the two points
-			float dotproduct = (v.x - a.x) * (b.x - a.x) + (v.y - a.y) * (b.y - a.y);
+			var dotproduct = (v.x - a.x) * (b.x - a.x) + (v.y - a.y) * (b.y - a.y);
 			// dot product must be between 0 and the squared length of the line segment
 			if(dotproduct > 0){
-				float lengthSquared = Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2);
+				var lengthSquared = Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2);
 				if(dotproduct < lengthSquared){
 					//TODO: intersection
 					//                    intersect =
@@ -381,12 +311,12 @@ void PlanarGraph::rotateVertex(int vertexIndex, int originVertexIndex, float ang
 
 PlanarGraph.prototype.log = function(){
 	console.log("Vertices:");
-	for(var i = 0; i < nodes.length; i++){
-		console.log(' ' + i + ': (' + nodes[i].x + ', ' + nodes[i].y + ', ' + nodes[i].z + ')');
+	for(var i = 0; i < this.nodes.length; i++){
+		console.log(' ' + i + ': (' + this.nodes[i].x + ', ' + this.nodes[i].y + ', ' + this.nodes[i].z + ')');
 	}
 	console.log("\nEdges:\n");
-	for(var i = 0; i < edges.length; i++){
-		console.log(' ' + i + ': (' + edges[i].a + ' -- ' + edges[i].b + ')');
+	for(var i = 0; i < this.edges.length; i++){
+		console.log(' ' + i + ': (' + this.edges[i].a + ' -- ' + this.edges[i].b + ')');
 	}
 }
 

@@ -20,7 +20,7 @@ Graph.prototype.cleanup = function(){
 			var didRemove = false;
 			if ( this.edgesAreSimilar(i, j) ){
 				// if edges are comprised of the same vertices (in any order)
-				edges.splice(edges.begin()+j, 1);
+				this.edges.splice(j, 1);
 				didRemove = true;
 			}
 			// only iterate forward if we didn't remove an element
@@ -80,7 +80,7 @@ Graph.prototype.mergeNodes = function(vIndex1, vIndex2){
 		if     (this.edges[i].b == two) this.edges[i].b = one;
 		else if(this.edges[i].b > two)  this.edges[i].b -= 1;
 	}
-	nodes.erase(nodes.begin()+two);
+	this.nodes.splice(two,1);
 	return true;
 }
 

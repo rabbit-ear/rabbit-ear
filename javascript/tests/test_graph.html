@@ -1,0 +1,68 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<!-- // <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script> -->
+	<script language="javascript" type="text/javascript" src="../graph.js"></script>
+	<style> body {padding: 0; margin: 0;} </style>
+</head>
+<body>
+	<script>
+
+function fillWithRandom(numNodes, numEdges){
+	for(var i = 0; i < numNodes; i++){
+		graph.addNode(i);
+	}
+	for(var i = 0; i < numEdges; i++){
+		var one = Math.floor(Math.random()*numNodes);
+		var two = Math.floor(Math.random()*numNodes);
+		var e = {'a':one, 'b':two};
+		graph.addEdge(e);
+	}
+}
+
+var graph = new Graph();
+
+var NODE_COUNT = 50;
+var EDGE_COUNT = 500;
+
+// CREATE A GRAPH, RANDOM COMPONENTS
+fillWithRandom(NODE_COUNT, EDGE_COUNT);
+console.log("created " + graph.nodes.length + " nodes and " + graph.edges.length + " edges");
+graph.log();
+
+// REMOVE DUPLICATE EDGES
+graph.cleanup();
+console.log("removing " + (EDGE_COUNT - graph.edges.length) + " duplicate edge");
+graph.log();
+
+// ADJACENT NODES
+var count = 0;
+var adjacentList = [];
+for(var i = 1; i < graph.nodes.length; i++){
+	if(graph.nodesAdjacent(0, i)){
+		adjacentList.push(i);
+		count++;
+	}
+}
+console.log(" " + count + " nodes are adjacent to the first node (connected by an edge)");
+for(var i = 0; i < adjacentList.length; i++){
+	console.log(adjacentList[i]);
+}
+
+// ADJACENT EDGES
+count = 0;
+adjacentList = [];
+for(var i = 1; i < graph.edges.length; i++){
+	if(graph.edgesAdjacent(0, i)){
+		adjacentList.push(i);
+		count++;
+	}
+}
+console.log(" " + count + " edges are adjacent to the first edge (edges share a node)");
+for(var i = 0; i < adjacentList.length; i++){
+	console.log(adjacentList[i]);
+}
+
+</script>
+</body>
+</html>

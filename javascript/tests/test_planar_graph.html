@@ -1,0 +1,54 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<!-- // <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script> -->
+	<script language="javascript" type="text/javascript" src="../graph.js"></script>
+	<script language="javascript" type="text/javascript" src="../planarGraph.js"></script>
+	<style> body {padding: 0; margin: 0;} </style>
+</head>
+<body>
+	<script>
+
+function fillWithRandom(count){
+	for(var i = 0; i < count; i++){
+		g.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
+	}
+}
+
+function fillWithSunburst(count){
+	var center = {x:0.5, y:0.5, z:0.0};
+	g.nodes.push(center);
+	for(var i = 0; i < count; i++){
+		g.addEdgeFromVertex(0, Math.random(), Math.random());
+	}
+}
+
+var g = new PlanarGraph();
+
+// fillWithRandom(10);
+fillWithSunburst(10);
+
+g.log();
+
+// function draw() { 
+// 	drawCoordinateFrame();
+// 	setColor(1.0, 1.0, 1.0);
+// 	glPointSize(5);
+// 	drawGraphPoints(g);
+// 	drawGraphLines(g);
+// }
+
+// function keyDown(unsigned int key) { 
+// 	if(key == ' '){
+// 		g.clear();
+// 		if(arc4random() % 2)
+// 			fillWithSunburst(10);
+// 		else
+// 			fillWithRandom(10);
+// 	}
+// }
+
+
+</script>
+</body>
+</html>
