@@ -13,6 +13,13 @@ function fillWithRandom(count){
 	for(var i = 0; i < count; i++){
 		g.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
 	}
+	g.log();
+	console.log('removeDuplicateVertices');
+	g.removeDuplicateVertices();
+	console.log('testing intersections');
+	var list = g.edgesIntersectingEdges();
+	console.log(list);
+	console.log('');
 }
 
 function fillWithSunburst(count){
@@ -25,29 +32,15 @@ function fillWithSunburst(count){
 
 var g = new PlanarGraph();
 
-// fillWithRandom(10);
-fillWithSunburst(10);
+fillWithRandom(10);
+// fillWithSunburst(10);
 
-g.log();
 
 // function draw() { 
 // 	drawCoordinateFrame();
-// 	setColor(1.0, 1.0, 1.0);
-// 	glPointSize(5);
 // 	drawGraphPoints(g);
 // 	drawGraphLines(g);
 // }
-
-// function keyDown(unsigned int key) { 
-// 	if(key == ' '){
-// 		g.clear();
-// 		if(arc4random() % 2)
-// 			fillWithSunburst(10);
-// 		else
-// 			fillWithRandom(10);
-// 	}
-// }
-
 
 </script>
 </body>
