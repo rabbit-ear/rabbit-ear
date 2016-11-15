@@ -31,7 +31,7 @@ function fillWithRope(count){
 	g.nodes.push(first);
 	for(var i = 0; i < count; i++){
 		g.addEdgeFromVertex(i, Math.random(), Math.random());
-		intersections = g.invalidEdgeCrossings();
+		intersections = g.getAllEdgeIntersections();
 	}
 }
 

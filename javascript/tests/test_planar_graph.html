@@ -14,8 +14,8 @@ function fillWithRandom(count){
 		g.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
 	}
 	g.log();
-	console.log('removeDuplicateVertices');
-	g.removeDuplicateVertices();
+	console.log('cleanup');
+	g.cleanup();
 	console.log('testing intersections');
 	var list = g.edgesIntersectingEdges();
 	console.log(list);
@@ -32,7 +32,7 @@ function fillWithSunburst(count){
 
 var g = new PlanarGraph();
 
-fillWithRandom(10);
+fillWithRandom(1000);
 // fillWithSunburst(10);
 
 

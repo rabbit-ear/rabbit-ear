@@ -66,7 +66,8 @@ class Graph{
 
 	// replaces all mention of one vertex with the other in both vertex and edge arrays
 	// shrinks the total number of vertices
-	mergeNodes(vIndex1, vIndex2){
+	mergeNodes(nodeIndex1, nodeIndex2){
+		console.log('mergeNodes from graph.js');
 		// retains the smaller index of the two
 		var one;
 		var two;
@@ -96,6 +97,34 @@ class Graph{
 		         this.edges[eIndex1].b == this.edges[eIndex2].a ) );
 	}
 
+	getConnectedNodes(nodeIndex){
+		var connectedIndices = []; // uint
+		// iterate over all edges
+		for(var i = 0; i < this.edges.length; i++){
+			// if we find our index, add the vertex on the other end of the edge
+			if(this.edges[i].a == vIndex) {
+				connectedIndices.push(this.edges[i].b);
+			} if(this.edges[i].b == vIndex) {
+				connectedIndices.push(this.edges[i].a);
+			}
+		}
+		return connectedIndices;
+	}
+
+	getConnectedEdgesToNode(nodeIndex){  // uint
+		var connectedIndices = []; // uint
+		// iterate over all edges
+		for(var i = 0; i < edges.length; i++){
+			// if we find our vertex, add the edge
+			if(this.edges[i].a == nodeIndex || this.edges[i].b == nodeIndex){
+				connectedIndices.push(i);
+			}
+		}
+		return connectedIndices;
+	}
+
+	// getConnectedEdgesToEdge(edgeIndex){  // uint
+	// }
 
 	log(){
 		console.log('#Nodes: ' + this.nodes.length);
