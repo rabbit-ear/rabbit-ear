@@ -1,0 +1,58 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
+	<script language="javascript" type="text/javascript" src="../graph.js"></script>
+	<script language="javascript" type="text/javascript" src="../planarGraph.js"></script>
+	<script language="javascript" type="text/javascript" src="../render.js"></script>
+	<style> body {padding: 0; margin: 0;} </style>
+</head>
+<body>
+	<script>
+
+function fillWithRandom(count){
+	for(var i = 0; i < count; i++){
+		g.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
+	}
+	g.log();
+	// console.log('removeDuplicateVertices');
+	// g.removeDuplicateVertices();
+	// console.log('testing intersections');
+	// var list = g.edgesIntersectingEdges();
+	// console.log(list);
+}
+
+function fillWithSunburst(count){
+	var center = {x:0.5, y:0.5, z:0.0};
+	g.clear();
+	g.nodes.push(center);
+	for(var i = 0; i < count; i++){
+		g.addEdgeFromVertex(0, Math.random(), Math.random());
+	}
+}
+
+var g = new PlanarGraph();
+
+var paperSize = 250;
+
+function setup(){
+	canvas = createCanvas(window.innerWidth, window.innerHeight);
+	fillWithSunburst(10);
+}
+
+function draw() {
+	clear();
+	applyMatrix(paperSize, 0, 0, paperSize, window.innerWidth*0.5-paperSize*0.5, window.innerHeight*0.5-paperSize*0.5);
+
+	drawCoordinateFrame();
+	drawGraphPoints(g);
+	drawGraphLines(g);
+}
+
+function mousePressed(){
+	fillWithSunburst(10);
+}
+
+</script>
+</body>
+</html>

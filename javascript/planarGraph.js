@@ -139,6 +139,7 @@ class PlanarGraph extends Graph{
 	}
 
 	invalidEdgeCrossings(){
+		var intersections = [];
 		for(var i = 0; i < this.edges.length; i++){
 			for(var j = 0; j < this.edges.length; j++){
 				if(i != j){
@@ -146,37 +147,18 @@ class PlanarGraph extends Graph{
 					var vertex1 = this.nodes[ this.edges[i].b ];
 					var vertex2 = this.nodes[ this.edges[j].a ];
 					var vertex3 = this.nodes[ this.edges[j].b ];
-					if(this.doIntersect(vertex0, vertex1, vertex2, vertex3)){
-						return true;
+					var intersect = this.doIntersect(vertex0, vertex1, vertex2, vertex3);
+					if(intersect != undefined){
+						intersections.push(intersect);
 					}
 				}
 			}
 		}
-		return false;
+		return intersections;
 	}
 
 	invalidThings(){
 
-	}
-
-	lineCrossyThing(p0_x, p0_y, p1_x, p1_y, p2_x, p2_y, p3_x, p3_y) {
-
-		var s1_x, s1_y, s2_x, s2_y;
-		s1_x = p1_x - p0_x;
-		s1_y = p1_y - p0_y;
-		s2_x = p3_x - p2_x;
-		s2_y = p3_y - p2_y;
-
-		var s, t;
-		s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
-		t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
-
-		if (s >= 0 && s <= 1 && t >= 0 && t <= 1){
-			// Collision detected
-			return 1;
-		}
-
-		return 0; // No collision
 	}
 
 	edgeIsValid(edgeIndex){  // uint
@@ -379,48 +361,110 @@ class PlanarGraph extends Graph{
 		return (val > 0)? 1: 2; // clock or counterclock wise
 	}
 
+	doIntersect(p0, p1, p2, p3) {
+		if(p2.x == p0.x && p2.y == p0.y || 
+		   p3.x == p1.x && p3.y == p1.y ||
+		   p2.x == p1.x && p2.y == p1.y || 
+		   p3.x == p0.x && p3.y == p0.y ){
+			return undefined;
+		}
+
+		var s02 = {'x':0, 'y':0};
+		var s10 = {'x':0, 'y':0};
+		var s32 = {'x':0, 'y':0};
+		s10.x = p1.x - p0.x;
+		s10.y = p1.y - p0.y;
+		s32.x = p3.x - p2.x;
+		s32.y = p3.y - p2.y;
+
+		var denom = s10.x * s32.y - s32.x * s10.y;
+		if (denom == 0)
+			return undefined; // Collinear
+		var denomPositive = false;
+		if(denom > 0) 
+			denomPositive = true;
+
+		s02.x = p0.x - p2.x;
+		s02.y = p0.y - p2.y;
+		var s_numer = s10.x * s02.y - s10.y * s02.x;
+		if ((s_numer < 0) == denomPositive)
+			return undefined; // No collision
+
+		var t_numer = s32.x * s02.y - s32.y * s02.x;
+		if ((t_numer < 0) == denomPositive)
+			return undefined; // No collision
+
+		if (((s_numer > denom) == denomPositive) || ((t_numer > denom) == denomPositive))
+			return undefined; // No collision
+		// Collision detected
+		var t = t_numer / denom;
+		var i = {'x':(p0.x + (t * s10.x)), 'y':(p0.y + (t * s10.y))};
+		return i;
+	}
+
+	// doIntersect(p0, p1, p2, p3) {
+	// 	var s1 = {'x':0, 'y':0};
+	// 	var s2 = {'x':0, 'y':0};
+	// 	s1.x = p1.x - p0.x;
+	// 	s1.y = p1.y - p0.y;
+	// 	s2.x = p3.x - p2.x;
+	// 	s2.y = p3.y - p2.y;
+	// 	var s = (-s1.y * (p0.x - p2.x) + s1.x * (p0.y - p2.y)) / (-s2.x * s1.y + s1.x * s2.y);
+	// 	var t = ( s2.x * (p0.y - p2.y) - s2.y * (p0.x - p2.x)) / (-s2.x * s1.y + s1.x * s2.y);
+	// 	console.log('x1:' + s1.x + ' y1:' + s1.y);
+	// 	console.log('x2:' + s2.x + ' y2:' + s2.y);
+	// 	console.log('s:' + s + ' t:' + t);
+	// 	if (s >= 0 && s <= 1 && t >= 0 && t <= 1){
+	// 		// Collision detected
+	// 		var i = {'x': p0.x + (t * s1.x), 'y': p0.y + (t * s1.y)};
+	// 		return true;
+	// 	}
+	// 	return false; // No collision
+	// }
+
+
 	// The main function that returns true if line segment 'p1q1'
 	// and 'p2q2' intersect.
-	doIntersect(p1, q1, p2, q2){ // Vertices
-		// Find the four orientations needed for general and
-		// special cases
-		var o1 = this.orientation(p1, q1, p2);
-		var o2 = this.orientation(p1, q1, q2);
-		var o3 = this.orientation(p2, q2, p1);
-		var o4 = this.orientation(p2, q2, q1);
+	// doIntersect(p1, q1, p2, q2){ // Vertices
+	// 	// Find the four orientations needed for general and
+	// 	// special cases
+	// 	var o1 = this.orientation(p1, q1, p2);
+	// 	var o2 = this.orientation(p1, q1, q2);
+	// 	var o3 = this.orientation(p2, q2, p1);
+	// 	var o4 = this.orientation(p2, q2, q1);
 
-		// General case
-		if (o1 != o2 && o3 != o4){
-			// 0 1 0 2
-			// 0 2 0 1
-	//		printf("general %d %d %d %d\n", o1, o2, o3, o4);
-			return true;
-		}
-		// Special Cases
-		// p1, q1 and p2 are colinear and p2 lies on segment p1q1
-		if (o1 == 0 && this.onSegment(p1, p2, q1)) {
-	//		printf("one\n");
-			return true;
-		}
+	// 	// General case
+	// 	if (o1 != o2 && o3 != o4){
+	// 		// 0 1 0 2
+	// 		// 0 2 0 1
+	// //		printf("general %d %d %d %d\n", o1, o2, o3, o4);
+	// 		return true;
+	// 	}
+	// 	// Special Cases
+	// 	// p1, q1 and p2 are colinear and p2 lies on segment p1q1
+	// 	if (o1 == 0 && this.onSegment(p1, p2, q1)) {
+	// //		printf("one\n");
+	// 		return true;
+	// 	}
 
-		// p1, q1 and p2 are colinear and q2 lies on segment p1q1
-		if (o2 == 0 && this.onSegment(p1, q2, q1)){
-	//		printf("two\n");
-			return true;
-		}
+	// 	// p1, q1 and p2 are colinear and q2 lies on segment p1q1
+	// 	if (o2 == 0 && this.onSegment(p1, q2, q1)){
+	// //		printf("two\n");
+	// 		return true;
+	// 	}
 
-		// p2, q2 and p1 are colinear and p1 lies on segment p2q2
-		if (o3 == 0 && this.onSegment(p2, p1, q2)){
-	//		printf("three\n");
-			return true;
-		}
+	// 	// p2, q2 and p1 are colinear and p1 lies on segment p2q2
+	// 	if (o3 == 0 && this.onSegment(p2, p1, q2)){
+	// //		printf("three\n");
+	// 		return true;
+	// 	}
 
-		// p2, q2 and q1 are colinear and q1 lies on segment p2q2
-		if (o4 == 0 && this.onSegment(p2, q1, q2)){
-	//		printf("four\n");
-			return true;
-		}
+	// 	// p2, q2 and q1 are colinear and q1 lies on segment p2q2
+	// 	if (o4 == 0 && this.onSegment(p2, q1, q2)){
+	// //		printf("four\n");
+	// 		return true;
+	// 	}
 
-		return false; // Doesn't fall in any of the above cases
-	}
+	// 	return false; // Doesn't fall in any of the above cases
+	// }
 }
