@@ -10,19 +10,9 @@
 <body>
 	<script>
 
+var g = new PlanarGraph();
+var paperSize = 250;
 var intersections = [];
-
-function fillWithRandom(count){
-	for(var i = 0; i < count; i++){
-		g.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
-	}
-	g.log();
-	// console.log('removeDuplicateVertices');
-	// g.removeDuplicateVertices();
-	// console.log('testing intersections');
-	// var list = g.edgesIntersectingEdges();
-	// console.log(list);
-}
 
 function fillWithRope(count){
 	console.log('starting over');
@@ -31,26 +21,13 @@ function fillWithRope(count){
 	g.nodes.push(first);
 	for(var i = 0; i < count; i++){
 		g.addEdgeFromVertex(i, Math.random(), Math.random());
-		intersections = g.getAllEdgeIntersections();
 	}
 }
 
-var g = new PlanarGraph();
 
-var paperSize = 250;
-
-function setup(){
-	canvas = createCanvas(window.innerWidth, window.innerHeight);
-	fillWithRope(5);
-}
-
-function draw() {
-	clear();
+function drawTest03(){
 	fill(0, 0, 0);
 	stroke(0, 0, 0);
-
-	applyMatrix(paperSize, 0, 0, paperSize, window.innerWidth*0.5-paperSize*0.5, window.innerHeight*0.5-paperSize*0.5);
-
 	drawCoordinateFrame();
 	drawGraphPoints(g);
 	drawGraphLines(g);
@@ -61,8 +38,24 @@ function draw() {
 	}
 }
 
-function mousePressed(){
+function resetTest03(){
 	fillWithRope(5);
+	intersections = g.getAllEdgeIntersections();
+}
+
+function setup(){
+	canvas = createCanvas(window.innerWidth, window.innerHeight);
+	resetTest03();
+}
+
+function draw() {
+	clear();
+	applyMatrix(paperSize, 0, 0, paperSize, window.innerWidth*0.5-paperSize*0.5, window.innerHeight*0.5-paperSize*0.5);
+	drawTest03();
+}
+
+function mousePressed(){
+	resetTest03();
 }
 
 </script>
