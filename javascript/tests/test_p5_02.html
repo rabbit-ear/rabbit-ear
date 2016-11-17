@@ -14,12 +14,12 @@ var g = new PlanarGraph();
 var paperSize = 250;
 var intersections = [];
 
-function fillWithRope(count){
-	g.clear();
+function fillWithRope(graph, count){
+	graph.clear();
 	var first = {x:Math.random(), y:Math.random(), z:0.0};
-	g.nodes.push(first);
+	graph.nodes.push(first);
 	for(var i = 0; i < count; i++){
-		g.addEdgeFromVertex(i, Math.random(), Math.random());
+		graph.addEdgeFromVertex(i, Math.random(), Math.random());
 	}
 }
 
@@ -36,12 +36,13 @@ function drawTest02(){
 	}
 }
 function resetTest02(){
-	fillWithRope(7);
+	fillWithRope(g, 7);
 	intersections = g.getAllEdgeIntersections();
 }
 
 function setup(){
 	canvas = createCanvas(window.innerWidth, window.innerHeight);
+	strokeWeight(.01);
 	resetTest02();
 }
 

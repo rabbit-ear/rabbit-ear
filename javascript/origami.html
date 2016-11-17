@@ -1,0 +1,188 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script language="javascript" type="text/javascript" src="lib/p5.min.js"></script>
+	<script language="javascript" type="text/javascript" src="graph.js"></script>
+	<script language="javascript" type="text/javascript" src="planarGraph.js"></script>
+	<script language="javascript" type="text/javascript" src="renderNS.js"></script>
+	<style> 
+
+body {padding: 0; margin: 0;} 
+.third{
+	width: 33%;
+	display:inline-block;
+}
+.page{
+	padding:2em;
+}
+	</style>
+</head>
+<body>
+<div class="page">
+	<h1>Origami Crease Patterns</h1>
+	<p>are <a href="https://en.wikipedia.org/wiki/Planar_graph">planar graphs</a>, which is a type of <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">mathematical graph</a>: a collection of edges, defined by nodes (their endpoints).</p>
+	<div id="containerIntro"></div>
+	<h1>planar</h1>
+	<p>The Planar Graph adds upon the Graph the idea of 2D space.</p>
+	<p>An infinite surface is possible, but ours is constrained to a unit square: with the origin (0,0) at one corner.</p>
+	<h1>title 2</h1>
+	<p>to keep things clean: if a bunch of lines cross at a point, those lines share the same point, there is nothing like "layers" of points at the same location on top of one another.</p>
+	<div class="third" id="container0"></div><div class="third" id="container1"></div><div class="third" id="container2"></div>
+	<h1>Intersections</h1>
+	<div class="third" id="container3"></div><div class="third" id="container4"></div><div class="third" id="container5"></div>
+</div>
+<script>
+
+function fillWithRandom(graph, count){
+	for(var i = 0; i < count; i++){
+		graph.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
+	}
+}
+function fillWithSunburst(graph, count){
+	var center = {x:0.5, y:0.5, z:0.0};
+	graph.nodes.push(center);
+	for(var i = 0; i < count; i++){
+		graph.addEdgeFromVertex(0, Math.random(), Math.random());
+	}
+}
+function fillWithRope(graph, count){
+	var first = {x:Math.random(), y:Math.random(), z:0.0};
+	graph.nodes.push(first);
+	for(var i = 0; i < count; i++){
+		graph.addEdgeFromVertex(i, Math.random(), Math.random());
+	}
+}
+
+var s0 = function( p ) {
+	var g = new PlanarGraph();
+	var paperSize = 250;
+	p.numLines = 3;
+	p.reset = function(){
+		g.clear();
+		fillWithRope(g, 2);
+		g.edges.push( {a:0, b:2});
+		fillWithRandom(g, 2);
+	}
+	p.setup = function(){
+		canvas = p.createCanvas(paperSize, paperSize);
+		p.reset();
+		// noLoop();
+		// frameRate(10);
+	}
+	p.draw = function() {
+		p.clear();
+		p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
+		p.strokeWeight(.01);
+		drawCoordinateFrame(p);
+		drawGraphPoints(p, g);
+		drawGraphLines(p, g);
+	}
+	p.mousePressed = function(){
+		p.reset();
+	}
+};
+
+var s1 = function( p ) {
+	var g = new PlanarGraph();
+	var paperSize = 250;
+	p.numLines = 20;
+	p.pattern = 0;
+	var intersections = [];
+	p.reset = function(){
+		g.clear();
+		if(p.pattern == 2)
+			fillWithRope(g, p.numLines);
+		else if(p.pattern == 1)
+			fillWithSunburst(g, p.numLines);
+		else 
+			fillWithRandom(g, p.numLines);
+		if(p.showIntersections)
+			intersections = g.getAllEdgeIntersections();
+	}
+	p.setup = function(){
+		canvas = p.createCanvas(paperSize, paperSize);
+		p.reset();
+		// noLoop();
+		// frameRate(10);
+	}
+	p.draw = function() {
+		p.clear();
+		p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
+		p.fill(0, 0, 0);
+		p.stroke(0, 0, 0);
+		p.strokeWeight(.01);
+		drawCoordinateFrame(p);
+		drawGraphPoints(p, g);
+		drawGraphLines(p, g);
+		// intersections
+		p.fill(255, 0, 0);
+		p.noStroke();
+		for(var i = 0; i < intersections.length; i++){
+			p.ellipse(intersections[i].x, intersections[i].y, .03, .03);
+		}
+	}
+	p.mousePressed = function(){
+		p.reset();
+	}
+};
+
+var s3 = function( p ) {
+	var g = new PlanarGraph();
+	var paperSize = 250;
+	p.numLines = 6;
+	var intersections = [];
+	p.reset = function(){
+		g.clear();
+		fillWithRope(g, p.numLines);
+	}
+	p.setup = function(){
+		canvas = p.createCanvas(paperSize, paperSize);
+		p.reset();
+		// noLoop();
+		// frameRate(10);
+	}
+	p.draw = function() {
+		// update
+		for(var i = 0; i < g.nodes.length; i++){
+			g.nodes[i].x = p.noise(i*31.111+p.millis()*0.0002);
+			g.nodes[i].y = p.noise(i*44.22+10+p.millis()*0.0002);
+		}
+		intersections = g.getAllEdgeIntersections();
+
+		// draw
+		p.clear();
+		p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
+		p.fill(0, 0, 0);
+		p.stroke(0, 0, 0);
+		p.strokeWeight(.01);
+		drawCoordinateFrame(p);
+		drawGraphPoints(p, g);
+		drawGraphLines(p, g);
+		// intersections
+		p.fill(255, 0, 0);
+		p.noStroke();
+		for(var i = 0; i < intersections.length; i++){
+			p.ellipse(intersections[i].x, intersections[i].y, .03, .03);
+		}
+	}
+	p.mousePressed = function(){
+		p.reset();
+	}
+};
+
+
+
+var myp5 = new p5(s0, 'containerIntro');
+var myp5 = new p5(s1, 'container0');
+myp5.pattern = 0;
+var myp5 = new p5(s1, 'container1');
+myp5.pattern = 1;
+var myp5 = new p5(s1, 'container2');
+myp5.pattern = 2;
+
+var myp5 = new p5(s3, 'container3');
+
+</script>
+
+</body>
+</html>
