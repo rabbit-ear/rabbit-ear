@@ -67,7 +67,6 @@ class Graph{
 	// replaces all mention of one vertex with the other in both vertex and edge arrays
 	// shrinks the total number of vertices
 	mergeNodes(nodeIndex1, nodeIndex2){
-		console.log('mergeNodes from graph.js');
 		// retains the smaller index of the two
 		var one;
 		var two;

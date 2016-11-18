@@ -15,21 +15,77 @@ body {padding: 0; margin: 0;}
 .page{
 	padding:2em;
 }
+.quote, .quoteauthor{
+	text-align:center;
+	font-style: italic;
+}
+.quoteauthor{
+	font-weight: bold;
+}
+.centered{
+	width: 100%;
+	text-align: center;
+}
+	h1{ font-size: 400%; }
+	h2{ font-size: 320%; }
+	h3{ font-size: 260%; }
+	h4{ font-size: 200%; }
+	h5{ font-size: 150%; }
+	p{ font-size: 180%; }
+    pre {
+        font-family: "Courier 10 Pitch", Courier, monospace;
+        font-size: 95%;
+        line-height: 140%;
+        white-space: pre;
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -o-pre-wrap;
+    }       
+    
+    code {
+        font-family: Monaco, Consolas, "Andale Mono", "DejaVu Sans Mono", monospace;
+        font-size: 95%;
+        line-height: 140%;
+        white-space: pre;
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -o-pre-wrap;
+        background: #faf8f0;
+    }
+    
+    #content code {
+        display: block;
+        padding: 0.5em 1em;
+        border: 1px solid #bebab0;
+    }
 	</style>
 </head>
 <body>
 <div class="page">
 	<h1>Origami Crease Patterns</h1>
-	<p>are <a href="https://en.wikipedia.org/wiki/Planar_graph">planar graphs</a>, which is a type of <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">mathematical graph</a>: a collection of edges, defined by nodes (their endpoints).</p>
-	<div id="containerIntro"></div>
-	<h1>planar</h1>
-	<p>The Planar Graph adds upon the Graph the idea of 2D space.</p>
+	<p>are <a href="https://en.wikipedia.org/wiki/Planar_graph">planar graphs</a>, which is a type of <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">mathematical graph</a>: a collection of edges defined by nodes (creases defined by endpoints).</p>
+	<div id="containerIntro" class="centered"></div>
+	<pre class="centered"><code>var graph = new Graph()
+graph.fishBase()</code></pre>
+	<h1>Planar Graph</h1>
+	<p>The Planar Graph adds to the Graph the idea of 2D space. Now, it's possible to ask:</p>
+	<p class="quote">"Do 2 lines cross over each other?"</p>
 	<p>An infinite surface is possible, but ours is constrained to a unit square: with the origin (0,0) at one corner.</p>
 	<h1>title 2</h1>
 	<p>to keep things clean: if a bunch of lines cross at a point, those lines share the same point, there is nothing like "layers" of points at the same location on top of one another.</p>
 	<div class="third" id="container0"></div><div class="third" id="container1"></div><div class="third" id="container2"></div>
+	<pre class="centered"><code>
+graph.addEdgeWithVertices(x1, y1, x2, y2)    //(float, float, float, float)
+graph.addEdgeFromVertex(existingIndex, newX, newY)    //(uint, float, float)
+graph.addEdgeRadiallyFromVertex(existingIndex, angle, distance)    //(uint, float, float)
+	</pre></code>
 	<h1>Intersections</h1>
-	<div class="third" id="container3"></div><div class="third" id="container4"></div><div class="third" id="container5"></div>
+	<div class="centered" id="container3"></div>
+	<pre class="centered"><code>graph.getAllEdgeIntersections()</code></pre>
+	<h1>sections</h1>
+	<div class="centered" id="container3"></div>
+	<p class="quote">press and hold</p>
+	<pre class="centered"><code>graph.getAllEdgeIntersections()</code></pre>
 </div>
 <script>
 
@@ -59,9 +115,13 @@ var s0 = function( p ) {
 	p.numLines = 3;
 	p.reset = function(){
 		g.clear();
-		fillWithRope(g, 2);
-		g.edges.push( {a:0, b:2});
-		fillWithRandom(g, 2);
+		g.fishBase();
+		console.log("boundary _____");
+		for(var i = 0; i < g.nodes.length; i++){
+			console.log(g.nodes[i].isBoundary);
+		}
+		console.log("_____ boundary");
+
 	}
 	p.setup = function(){
 		canvas = p.createCanvas(paperSize, paperSize);
@@ -70,11 +130,34 @@ var s0 = function( p ) {
 		// frameRate(10);
 	}
 	p.draw = function() {
+		var mag = 0.005;
+		var speed = 0.001;
+		// update
+		for(var i = 0; i < g.nodes.length; i++){
+			var boundary = g.nodes[i].isBoundary;
+			// console.log(boundary);
+			if(boundary == undefined){
+				// g.nodes[i].x += -0.0005 + 0.001 * p.noise(i*31.111+p.millis()*0.0002);
+				// g.nodes[i].y += -0.0005 + 0.001 * p.noise(i*44.22+10+p.millis()*0.0002);
+			} else if(boundary == 1 || boundary == 3){
+				g.nodes[i].x += -mag*0.5 + mag * p.noise(i*31.111+p.millis()*speed);
+			} else if(boundary == 2 || boundary == 4){
+				g.nodes[i].y += -mag*0.5 + mag * p.noise(i*44.22+10+p.millis()*speed);
+			}
+			// g.nodes[i].x += -0.0005 + 0.001 * p.noise(i*31.111+p.millis()*0.0002);
+			// g.nodes[i].y += -0.0005 + 0.001 * p.noise(i*44.22+10+p.millis()*0.0002);
+			if(g.nodes[i].x < 0.0) g.nodes[i].x = 0.0;
+			if(g.nodes[i].x > 1.0) g.nodes[i].x = 1.0;
+			if(g.nodes[i].y < 0.0) g.nodes[i].y = 0.0;
+			if(g.nodes[i].y > 1.0) g.nodes[i].y = 1.0;
+		}
+
+		// draw
 		p.clear();
 		p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
 		p.strokeWeight(.01);
 		drawCoordinateFrame(p);
-		drawGraphPoints(p, g);
+		// drawGraphPoints(p, g);
 		drawGraphLines(p, g);
 	}
 	p.mousePressed = function(){
@@ -138,6 +221,10 @@ var s3 = function( p ) {
 	p.setup = function(){
 		canvas = p.createCanvas(paperSize, paperSize);
 		p.reset();
+		for(var i = 0; i < g.nodes.length; i++){
+			var boundary = g.nodes[i].isBoundary;
+			console.log(boundary);
+		}
 		// noLoop();
 		// frameRate(10);
 	}
@@ -166,7 +253,7 @@ var s3 = function( p ) {
 		}
 	}
 	p.mousePressed = function(){
-		p.reset();
+		// p.reset();
 	}
 };
 

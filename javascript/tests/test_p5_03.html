@@ -14,16 +14,59 @@ var g = new PlanarGraph();
 var paperSize = 250;
 var intersections = [];
 
-function fillWithRope(graph, count){
+function fillWithX(graph){
 	graph.clear();
-	var first = {x:Math.random(), y:Math.random(), z:0.0};
+	var w = 0.25;
+	var first = {x:Math.random()*w, y:Math.random()*w, z:0.0};
 	graph.nodes.push(first);
-	for(var i = 0; i < count; i++){
-		graph.addEdgeFromVertex(i, Math.random(), Math.random());
-	}
+	graph.addEdgeFromVertex(0, Math.random()*w+(1-w), Math.random()*w+(1-w));
+	var second = {x:Math.random()*w, y:Math.random()*w+(1-w), z:0.0};
+	graph.nodes.push(second);
+	graph.addEdgeFromVertex(2, Math.random()*w+(1-w), Math.random()*w);
 }
 
-function drawTest03(){
+function reset(){
+	fillWithX(g);
+	intersections = g.getAllEdgeIntersections();
+}
+
+function setup(){
+	canvas = createCanvas(window.innerWidth, window.innerHeight);
+	strokeWeight(.01);
+	reset();
+	loop();
+	frameRate(60);
+}
+
+function chop(){
+
+	var edges = g.edgesIntersectingEdges();
+	for(var i = 0; i < edges.length; i++){
+		var nodeA = g.edges[ edges[i] ].a;
+		var nodeB = g.edges[ edges[i] ].b;
+		console.log(nodeA);
+		console.log(nodeB);
+		var intersection = g.edgesIntersect(edges[i], edges[])
+
+	}
+	// console.log(edges);
+}
+
+function draw() {
+	// update
+	for(var i = 0; i < g.nodes.length; i++){
+		g.nodes[i].x += Math.random()*0.02 - 0.01;
+		g.nodes[i].y += Math.random()*0.02 - 0.01;
+		if(g.nodes[i].x < 0.0) g.nodes[i].x = 0.0;
+		if(g.nodes[i].x > 1.0) g.nodes[i].x = 1.0;
+		if(g.nodes[i].y < 0.0) g.nodes[i].y = 0.0;
+		if(g.nodes[i].y > 1.0) g.nodes[i].y = 1.0;
+	}
+	intersections = g.getAllEdgeIntersections();
+	// draw
+	clear();
+	applyMatrix(paperSize, 0, 0, paperSize, window.innerWidth*0.5-paperSize*0.5, window.innerHeight*0.5-paperSize*0.5);
+	
 	fill(0, 0, 0);
 	stroke(0, 0, 0);
 	drawCoordinateFrame();
@@ -36,25 +79,12 @@ function drawTest03(){
 	}
 }
 
-function resetTest03(){
-	fillWithRope(g, 5);
-	intersections = g.getAllEdgeIntersections();
-}
-
-function setup(){
-	canvas = createCanvas(window.innerWidth, window.innerHeight);
-	strokeWeight(.01);
-	resetTest03();
-}
-
-function draw() {
-	clear();
-	applyMatrix(paperSize, 0, 0, paperSize, window.innerWidth*0.5-paperSize*0.5, window.innerHeight*0.5-paperSize*0.5);
-	drawTest03();
+function mouseReleased(){
+	reset();	
 }
 
 function mousePressed(){
-	resetTest03();
+	chop();
 }
 
 </script>

@@ -18,14 +18,14 @@ class PlanarGraph extends Graph{
 
 	addEdgeWithVertices(x1, y1, x2, y2){  // floats
 		var nodeArrayLength = this.nodes.length;
-		this.nodes.push( {'x':x1, 'y':y1} );
-		this.nodes.push( {'x':x2, 'y':y2} );
+		this.nodes.push( {'x':x1, 'y':y1, 'isBoundary':this.isBoundaryNode(x1, y1)} );
+		this.nodes.push( {'x':x2, 'y':y2, 'isBoundary':this.isBoundaryNode(x2, y2)} );
 		this.edges.push( {'a':nodeArrayLength, 'b':nodeArrayLength+1} );
 	}
 
 	addEdgeFromVertex(existingIndex, newX, newY){ // uint, floats
 		var nodeArrayLength = this.nodes.length;
-		this.nodes.push( {'x':newX, 'y':newY} );
+		this.nodes.push( {'x':newX, 'y':newY, 'isBoundary':this.isBoundaryNode(newX, newY)} );
 		this.edges.push( {'a':existingIndex, 'b':nodeArrayLength} );
 	}
 
@@ -38,6 +38,7 @@ class PlanarGraph extends Graph{
 	cleanup(){
 		super.cleanup();
 		this.mergeDuplicateVertices();
+
 	}
 
 	mergeDuplicateVertices(){
@@ -125,6 +126,11 @@ class PlanarGraph extends Graph{
 		return edgesIntersecting;
 	}
 
+	splitAtIntersections(){
+		var edgesIntersecting = edgesIntersectingEdges();
+
+	}
+
 
 	getVertexIndexAt(x, y){  // float float
 		for(var i = 0; i < this.nodes.length; i++){
@@ -136,6 +142,23 @@ class PlanarGraph extends Graph{
 	}
 
 
+	isCornerNode(x, y){
+		// var E = VERTEX_DUPLICATE_EPSILON;
+		// if( y < E ) return 1;
+		// if( x > 1.0 - E ) return 2;
+		// if( y > 1.0 - E ) return 3;
+		// if( x < E ) return 4;
+		// return undefined;
+	}
+
+	isBoundaryNode(x, y){
+		var E = .1;//VERTEX_DUPLICATE_EPSILON;
+		if( y < E ) return 1;
+		if( x > 1.0 - E ) return 2;
+		if( y > 1.0 - E ) return 3;
+		if( x < E ) return 4;
+		return undefined;
+	}
 
 	// vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
 	// 	var v = this.nodes[vIndex];
@@ -315,6 +338,23 @@ class PlanarGraph extends Graph{
 	// 	}
 	// 	return false; // No collision
 	// }
+
+
+	frogBase(){
+
+	}
+	fishBase(){
+		this.addEdgeWithVertices(100*0.01, 0*0.01, 0*0.01, 100*0.01);
+		this.addEdgeWithVertices(0*0.01, 100*0.01, 70.711*0.01, 70.711*0.01);
+		this.addEdgeWithVertices(0*0.01, 100*0.01, 29.288*0.01, 29.29*0.01);
+		this.addEdgeWithVertices(100*0.01, 0*0.01, 29.289*0.01, 29.29*0.01);
+		this.addEdgeWithVertices(100*0.01, 0*0.01, 70.71*0.01, 70.71*0.01);
+		this.addEdgeWithVertices(29.289*0.01, 29.29*0.01, 0*0.01, 0*0.01);
+		this.addEdgeWithVertices(70.711*0.01, 70.71*0.01, 100*0.01, 100*0.01);
+		this.addEdgeWithVertices(70.711*0.01, 70.711*0.01, 100*0.01, 70.711*0.01);
+		this.addEdgeWithVertices(29.288*0.01, 29.29*0.01, 29.288*0.01, 0*0.01);
+		this.cleanup();
+	}
 
 
 }
