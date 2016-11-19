@@ -82,10 +82,10 @@ graph.addEdgeRadiallyFromVertex(existingIndex, angle, distance)    //(uint, floa
 	<h1>Intersections</h1>
 	<div class="centered" id="container3"></div>
 	<pre class="centered"><code>graph.getAllEdgeIntersections()</code></pre>
-	<h1>sections</h1>
+	<h1>Chopping</h1>
 	<div class="centered" id="container4"></div>
 	<p class="quote">press and hold</p>
-	<pre class="centered"><code>graph.getAllEdgeIntersections()</code></pre>
+	<pre class="centered"><code>graph.chopAtIntersections()</code></pre>
 </div>
 <script>
 
@@ -115,7 +115,17 @@ var s0 = function( p ) {
 	p.numLines = 3;
 	p.reset = function(){
 		g.clear();
-		g.fishBase();
+		var select = Math.random();
+		if(select < 0.25){
+			g.kiteBase();
+		}else if(select < 0.5){
+			g.fishBase();
+		}else if(select < 0.75){
+			g.birdBase();
+		}else {
+			g.frogBase();
+		}
+		g.cleanup();
 	}
 	p.setup = function(){
 		canvas = p.createCanvas(paperSize, paperSize);
