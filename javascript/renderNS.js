@@ -29,7 +29,7 @@ var drawCoordinateFrame = function(p){
 	for(var a = 0; a < 4; a++){
 		var b = (a+1)%4;
 		p.line(corners[a*3+0], corners[a*3+1],
-		     corners[b*3+0], corners[b*3+1]);
+		       corners[b*3+0], corners[b*3+1]);
 	}
 	// setColor(0.2, 0.2, 0.2);
 	// DRAW LINES

@@ -30,6 +30,16 @@ function fillWithSunburst(count){
 	}
 }
 
+function fillWithRope(count){
+	g.clear();
+	var first = {x:Math.random(), y:Math.random(), z:0.0};
+	g.nodes.push(first);
+	for(var i = 0; i < count; i++){
+		g.addEdgeFromVertex(i, Math.random(), Math.random());
+	}
+}
+
+
 var g = new PlanarGraph();
 
 fillWithRandom(1000);

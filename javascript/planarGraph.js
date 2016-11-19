@@ -29,6 +29,11 @@ class PlanarGraph extends Graph{
 		this.edges.push( {'a':existingIndex, 'b':nodeArrayLength} );
 	}
 
+	addEdgeFromExistingVertices(existingIndex1, existingIndex2){ // uint, uint
+		this.edges.push( {'a':existingIndex1, 'b':existingIndex2} );
+	}
+
+
 	addEdgeRadiallyFromVertex(existingIndex, angle, distance){ // uint, floats
 		var newX = this.nodes[existingIndex].x + Math.cos(angle) * distance;
 		var newY = this.nodes[existingIndex].y + Math.sin(angle) * distance;
@@ -50,7 +55,7 @@ class PlanarGraph extends Graph{
 				// do the points overlap?
 				if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], VERTEX_DUPLICATE_EPSILON) ){
 					didRemove = super.mergeNodes(i, j);
-					console.log('merged 2 nodes: ' + i + ' ' + j);
+					// console.log('merged 2 nodes: ' + i + ' ' + j);
 				}
 				// only iterate forward if we didn't remove an element
 				//   if we did, it basically iterated forward for us, repeat the same 'j'
@@ -99,36 +104,43 @@ class PlanarGraph extends Graph{
 
 	getAllEdgeIntersections(){
 		var intersections = [];
-		for(var i = 0; i < this.edges.length; i++){
-			for(var j = 0; j < this.edges.length; j++){
-				if(i != j){
+		// for(var i = 0; i < this.edges.length; i++){
+		// 	for(var j = 0; j < this.edges.length; j++){
+		for(var i = 0; i < this.edges.length - 1; i++){
+			for(var j = i+1; j < this.edges.length; j++){
+				// if(i != j){
 					var intersect = this.edgesIntersect(i, j);
 					if(intersect != undefined){
 						intersections.push(intersect);
 					}
-				}
+				// }
 			}
 		}
 		return intersections;
 	}
 
-	edgesIntersectingEdges(){
+	getAllEdgeIntersectionsDetailed(){
 		var edgesIntersecting = [];  // type uint
 		for(var i = 0; i < this.edges.length - 1; i++){
 			for(var j = i+1; j < this.edges.length; j++){
 				var intersection = this.edgesIntersect(i, j);
 				if(intersection != undefined){
-					edgesIntersecting.push(i);
-					edgesIntersecting.push(j);
+					edgesIntersecting.push( {'a':i,
+					                         'b':j,
+					                'edge1NodeA':this.edges[i].a,
+					                'edge1NodeB':this.edges[i].b,
+					                'edge2NodeA':this.edges[j].a,
+					                'edge2NodeB':this.edges[j].b,
+					                  'location':intersection} );
 				}
 			}
 		}
 		return edgesIntersecting;
 	}
 
+
 	splitAtIntersections(){
 		var edgesIntersecting = edgesIntersectingEdges();
-
 	}
 
 
