@@ -71,8 +71,8 @@ graph.fishBase()</code></pre>
 	<p>The Planar Graph adds to the Graph the idea of 2D space. Now, it's possible to ask:</p>
 	<p class="quote">"Do 2 lines cross over each other?"</p>
 	<p>An infinite surface is possible, but ours is constrained to a unit square: with the origin (0,0) at one corner.</p>
-	<h1>title 2</h1>
-	<p>to keep things clean: if a bunch of lines cross at a point, those lines share the same point, there is nothing like "layers" of points at the same location on top of one another.</p>
+	<h1>Generate Creases</h1>
+	<p>add creases by adding their endpoints or add a crease using an existing crease for positioning.
 	<div class="third" id="container0"></div><div class="third" id="container1"></div><div class="third" id="container2"></div>
 	<pre class="centered"><code>
 graph.addEdgeWithVertices(x1, y1, x2, y2)    //(float, float, float, float)
@@ -86,6 +86,8 @@ graph.addEdgeRadiallyFromVertex(existingIndex, angle, distance)    //(uint, floa
 	<div class="centered" id="container4"></div>
 	<p class="quote">press and hold</p>
 	<pre class="centered"><code>graph.chopAtIntersections()</code></pre>
+	<div class="third" id="container5"></div><div class="third" id="container6"></div><div class="third" id="container7"></div>
+	<pre class="centered"><code>graph.getNearestNode(x, y)</code></pre>
 </div>
 <script>
 
@@ -115,17 +117,16 @@ var s0 = function( p ) {
 	p.numLines = 3;
 	p.reset = function(){
 		g.clear();
-		var select = Math.random();
-		if(select < 0.25){
-			g.kiteBase();
-		}else if(select < 0.5){
+		// var select = Math.random();
+		// if(select < 0.25){
+		// 	g.kiteBase();
+		// }else if(select < 0.5){
 			g.fishBase();
-		}else if(select < 0.75){
-			g.birdBase();
-		}else {
-			g.frogBase();
-		}
-		g.cleanup();
+		// }else if(select < 0.75){
+		// 	g.birdBase();
+		// }else {
+		// 	g.frogBase();
+		// }
 	}
 	p.setup = function(){
 		canvas = p.createCanvas(paperSize, paperSize);
@@ -361,6 +362,13 @@ var s4 = function( p ){
 	}	
 }
 
+</script>
+
+<script language="javascript" type="text/javascript" src="tests/06_nearest_node.js"></script>
+<script language="javascript" type="text/javascript" src="tests/07_nearest_edge.js"></script>
+
+<script>
+
 
 var myp5 = new p5(s0, 'containerIntro');
 var myp5 = new p5(s1, 'container0');
@@ -371,6 +379,10 @@ var myp5 = new p5(s1, 'container2');
 myp5.pattern = 2;
 var myp5 = new p5(s3, 'container3');
 var myp5 = new p5(s4, 'container4');
+
+var myp5 = new p5(test06, 'container5');
+var myp5 = new p5(test07, 'container6');
+var myp5 = new p5(test06, 'container7');
 
 </script>
 

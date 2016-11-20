@@ -57,7 +57,7 @@ class Graph{
 
 	// inspect the graph
 	//   2 nodes connected by an edge?
-	nodesAdjacent(nodeIndex1, nodeIndex2){
+	areNodesAdjacent(nodeIndex1, nodeIndex2){
 		for(var i = 0; i < this.edges.length; i++){
 			if( (this.edges[i].a == nodeIndex1 && this.edges[i].b == nodeIndex2 ) ||
 				(this.edges[i].a == nodeIndex2 && this.edges[i].b == nodeIndex1 ) ){
@@ -66,13 +66,33 @@ class Graph{
 		}
 		return false;
 	}
+	getEdgeIndexForAdjacentNodes(nodeIndex1, nodeIndex2){
+		for(var i = 0; i < this.edges.length; i++){
+			if( (this.edges[i].a == nodeIndex1 && this.edges[i].b == nodeIndex2 ) ||
+				(this.edges[i].a == nodeIndex2 && this.edges[i].b == nodeIndex1 ) ){
+				return i;
+			}
+		}
+		return undefined;
+	}
+	getAdjacentNodes(nodeIndex){
+		var adjacent = [];
+		for(var i = 0; i < this.edges.length; i++){
+			if(this.edges[i].a == nodeIndex) adjacent.push(this.edges[i].b);
+			if(this.edges[i].b == nodeIndex) adjacent.push(this.edges[i].a);
+		}
+		return adjacent;
+	}
 
 	//   2 edges share a node?
-	edgesAdjacent(edgeIndex1, edgeIndex2){
+	areEdgesAdjacent(edgeIndex1, edgeIndex2){
 		return ( (this.edges[edgeIndex1].a == this.edges[edgeIndex2].a) ||
 		         (this.edges[edgeIndex1].b == this.edges[edgeIndex2].b) ||
 		         (this.edges[edgeIndex1].a == this.edges[edgeIndex2].b) ||
 		         (this.edges[edgeIndex1].b == this.edges[edgeIndex2].a) );
+	}
+	getAdjacentEdges(edgeIndex){
+		
 	}
 
 	// replaces all mention of one vertex with the other in both vertex and edge arrays

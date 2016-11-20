@@ -12,8 +12,10 @@ var VERTEX_DUPLICATE_EPSILON = 0.003;
 
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
 class PlanarGraph extends Graph{
+
 	constructor(){
 		super();
+		this.faces = [];
 	}
 
 	addEdgeWithVertices(x1, y1, x2, y2){  // floats
@@ -38,6 +40,61 @@ class PlanarGraph extends Graph{
 		var newX = this.nodes[existingIndex].x + Math.cos(angle) * distance;
 		var newY = this.nodes[existingIndex].y + Math.sin(angle) * distance;
 		this.addEdgeFromVertex(existingIndex, newX, newY);
+	}
+
+	generateClockwiseEdgesAroundVertices(){
+		for(var i = 0; i < this.nodes.length; i++){
+			var connected = this.getAdjacentNodes(i);
+			for(var c = 0; c < connected.length; c++){
+
+			}
+		}
+	}
+
+	getClosestNode(x, y){
+		// can be optimized with a k-d tree
+		var index = undefined;
+		var distance = Math.sqrt(2);
+		for(var i = 0; i < this.nodes.length; i++){
+			var dist = Math.sqrt(Math.pow(this.nodes[i].x - x,2) + Math.pow(this.nodes[i].y - y,2));
+			if(dist < distance){
+				distance = dist;
+				index = i;
+			}
+		}
+		return index;
+	}
+
+	getClosestEdge(x, y){
+		// can be optimized with a k-d tree
+
+		var index = this.getClosestNode(x, y);
+		if(index == undefined)
+			return undefined;
+
+		var subArray = this.getAdjacentNodes(index);
+		if(subArray == undefined)
+			return undefined;
+
+		var subIndex = undefined;
+		var subDistance = Math.sqrt(2);
+		for(var i = 0; i < subArray.length; i++){
+			var dist = Math.sqrt(Math.pow(this.nodes[ subArray[i] ].x - x,2) + Math.pow(this.nodes[ subArray[i] ].y - y,2));
+			if(dist < subDistance){
+				subDistance = dist;
+				subIndex = i;
+			}
+		}
+		if(subIndex == undefined)
+			return undefined;
+
+		var edge = this.getEdgeIndexForAdjacentNodes(index, subArray[subIndex] );
+		console.log(index + ' ' + subIndex + ' ' + edge);
+		return edge;
+	}
+	
+	generateFaces(){
+
 	}
 
 	cleanup(){
@@ -70,7 +127,7 @@ class PlanarGraph extends Graph{
 
 	edgesIntersect(e1, e2){
 		// if true - returns {x,y} location of intersection
-		if(this.edgesAdjacent(e1, e2)){
+		if(this.areEdgesAdjacent(e1, e2)){
 			return undefined;
 		}
 		var v0 = this.nodes[ this.edges[e1].a ];
@@ -355,6 +412,7 @@ class PlanarGraph extends Graph{
 		this.addEdgeWithVertices(1, 0, 0, 1);
 		this.addEdgeWithVertices(0, 1, 1, .58578);
 		this.addEdgeWithVertices(0, 1, .41421, 0);
+		this.cleanup();
 	}
 	fishBase(){
 		this.addEdgeWithVertices(1, 0, 0, 1);
@@ -401,6 +459,7 @@ class PlanarGraph extends Graph{
 		this.addEdgeWithVertices(.79289, 0.5, 1, 0.5);
 		this.addEdgeWithVertices(0.5, .79289, 0.5, 1);
 		this.addEdgeWithVertices(.2071, 0.5, 0, 0.5);
+		this.cleanup();
 	}
 	frogBase(){
 		this.addEdgeWithVertices(0, 0, .14646, .35353);
@@ -467,6 +526,7 @@ class PlanarGraph extends Graph{
 		this.addEdgeWithVertices(.25, .25, 0, 0);
 		this.addEdgeWithVertices(.75, .25, 1, 0);
 		this.addEdgeWithVertices(.75, .75, 1, 1);
+		this.cleanup();
 	}
 
 
