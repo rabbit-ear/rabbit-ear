@@ -1,7 +1,10 @@
-var test07 = function( p ) {
-	var WIDTH = window.innerWidth;
-	var HEIGHT = window.innerHeight;
+var test07 = function(p) {
+	// var WIDTH = this.canvas.parentElement.offsetWidth;
+	// var HEIGHT = this.canvas.parentElement.offsetHeight;
 	var paperSize = 250;
+	var WIDTH = paperSize;
+	var HEIGHT = paperSize;
+	// myp5.canvas.parentElement.offsetWidth
 
 	var g = new PlanarGraph();
 	this.numLines = 30;

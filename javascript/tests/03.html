@@ -4,75 +4,13 @@
 	<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
 	<script language="javascript" type="text/javascript" src="../graph.js"></script>
 	<script language="javascript" type="text/javascript" src="../planarGraph.js"></script>
-	<script language="javascript" type="text/javascript" src="../render.js"></script>
+	<script language="javascript" type="text/javascript" src="../renderNS.js"></script>
 	<style> body {padding: 0; margin: 0;} </style>
 </head>
 <body>
-	<script>
-
-var g = new PlanarGraph();
-var paperSize = 250;
-
-function fillWithRandom(graph, count){
-	for(var i = 0; i < count; i++){
-		graph.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
-	}
-}
-
-function fillWithSunburst(graph, count){
-	var center = {x:0.5, y:0.5, z:0.0};
-	graph.nodes.push(center);
-	for(var i = 0; i < count; i++){
-		graph.addEdgeFromVertex(0, Math.random(), Math.random());
-	}
-}
-
-function fillWithRope(graph, count){
-	var first = {x:Math.random(), y:Math.random(), z:0.0};
-	graph.nodes.push(first);
-	for(var i = 0; i < count; i++){
-		graph.addEdgeFromVertex(i, Math.random(), Math.random());
-	}
-}
-function drawTest01(){
-	drawCoordinateFrame();
-	drawGraphPoints(g);
-	drawGraphLines(g);	
-}
-
-function resetTest01(){
-	g.clear();
-	if(Math.random()<0.333)
-		fillWithSunburst(g, 10);
-	else if (Math.random() < 0.5)
-		fillWithRandom(g, 10);
-	else
-		fillWithRope(g, 10);
-	// console.log('removeDuplicateVertices');
-	// g.removeDuplicateVertices();
-	// console.log('testing intersections');
-	// var list = g.edgesIntersectingEdges();
-	// console.log(list);
-}
-
-function setup(){
-	canvas = createCanvas(window.innerWidth, window.innerHeight);
-	resetTest01();
-	strokeWeight(.01);
-	// noLoop();
-	// frameRate(10);
-}
-
-function draw() {
-	clear();
-	applyMatrix(paperSize, 0, 0, paperSize, window.innerWidth*0.5-paperSize*0.5, window.innerHeight*0.5-paperSize*0.5);
-	drawTest01();
-}
-
-function mousePressed(){
-	resetTest01();
-}
-
+<script language="javascript" type="text/javascript" src="03.js"></script>
+<script>
+var myp5 = new p5(test03);
 </script>
 </body>
 </html>

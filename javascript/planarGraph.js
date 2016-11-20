@@ -42,15 +42,6 @@ class PlanarGraph extends Graph{
 		this.addEdgeFromVertex(existingIndex, newX, newY);
 	}
 
-	generateClockwiseEdgesAroundVertices(){
-		for(var i = 0; i < this.nodes.length; i++){
-			var connected = this.getAdjacentNodes(i);
-			for(var c = 0; c < connected.length; c++){
-
-			}
-		}
-	}
-
 	getClosestNode(x, y){
 		// can be optimized with a k-d tree
 		var index = undefined;
@@ -89,10 +80,18 @@ class PlanarGraph extends Graph{
 			return undefined;
 
 		var edge = this.getEdgeIndexForAdjacentNodes(index, subArray[subIndex] );
-		console.log(index + ' ' + subIndex + ' ' + edge);
 		return edge;
 	}
-	
+
+	generateClockwiseEdgesAroundVertices(){
+		for(var i = 0; i < this.nodes.length; i++){
+			var connected = this.getAdjacentNodes(i);
+			for(var c = 0; c < connected.length; c++){
+
+			}
+		}
+	}
+
 	generateFaces(){
 
 	}

@@ -4,112 +4,13 @@
 	<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
 	<script language="javascript" type="text/javascript" src="../graph.js"></script>
 	<script language="javascript" type="text/javascript" src="../planarGraph.js"></script>
-	<script language="javascript" type="text/javascript" src="../render.js"></script>
+	<script language="javascript" type="text/javascript" src="../renderNS.js"></script>
 	<style> body {padding: 0; margin: 0;} </style>
 </head>
 <body>
-	<script>
-
-var g = new PlanarGraph();
-var paperSize = 250;
-var intersections = [];
-var bounds = [
-	{xmin:0.0, xmax:0.33, ymin:0.0, ymax:0.33},
-	{xmin:0.66, xmax:1.0, ymin:0.66, ymax:1.0},
-	{xmin:0.66, xmax:1.0, ymin:0.0, ymax:0.33},
-	{xmin:0.0, xmax:0.33, ymin:0.66, ymax:1.0},
-	{xmin:0.0, xmax:1.0, ymin:0.0, ymax:1.0}
-];
-
-function drawAnX(graph){
-	graph.clear();
-	var w = 0.33;
-	var first = {x:Math.random()*w, y:Math.random()*w, z:0.0};
-	graph.nodes.push(first);
-	graph.addEdgeFromVertex(0, Math.random()*w+(1-w), Math.random()*w+(1-w));
-	var second = {x:Math.random()*w, y:Math.random()*w+(1-w), z:0.0};
-	graph.nodes.push(second);
-	graph.addEdgeFromVertex(2, Math.random()*w+(1-w), Math.random()*w);
-}
-
-function reset(){
-	drawAnX(g);
-	intersections = g.getAllEdgeIntersections();
-}
-
-function setup(){
-	canvas = createCanvas(window.innerWidth, window.innerHeight);
-	strokeWeight(.01);
-	reset();
-	loop();
-	frameRate(60);
-}
-
-function chop(){
-
-	var intersections = g.getAllEdgeIntersectionsDetailed();
-	for(var i = 0; i < intersections.length; i++){
-		var edge1 = intersections[i].a;
-		var edge2 = intersections[i].b;
-		var intersection = intersections[i].location;
-
-		var node1a = g.edges[ edge1 ].a;
-		var node1b = g.edges[ edge1 ].b;
-		var node2a = g.edges[ edge2 ].a;
-		var node2b = g.edges[ edge2 ].b;
-
-		g.removeEdgeBetween(node1a, node1b);
-		g.removeEdgeBetween(node2a, node2b);
-		var newIntersectionVertexIndex = g.nodes.length;
-		g.addEdgeFromVertex(node1a, intersection.x, intersection.y);
-		g.addEdgeFromExistingVertices(node1b, newIntersectionVertexIndex);
-		g.addEdgeFromExistingVertices(node2a, newIntersectionVertexIndex);
-		g.addEdgeFromExistingVertices(node2b, newIntersectionVertexIndex);
-	}
-	// console.log(edges);
-}
-
-function draw() {
-
-	// update
-	for(var i = 0; i < g.nodes.length; i++){
-		var speed = 0.002;
-		var mag = 0.02;
-		var mult1 = Math.pow(i*2, 1.5);
-		var mult2 = Math.pow(i*2.3, 1.333);
-		g.nodes[i].x += -mag*0.5 + mag * noise(i*mult1+millis()*speed);
-		g.nodes[i].y += -mag*0.5 + mag * noise(i*mult2+5*i+millis()*speed);
-		if(g.nodes[i].x < bounds[i].xmin) g.nodes[i].x = bounds[i].xmin;
-		if(g.nodes[i].x > bounds[i].xmax) g.nodes[i].x = bounds[i].xmax;
-		if(g.nodes[i].y < bounds[i].ymin) g.nodes[i].y = bounds[i].ymin;
-		if(g.nodes[i].y > bounds[i].ymax) g.nodes[i].y = bounds[i].ymax;
-	}
-	intersections = g.getAllEdgeIntersections();
-	
-	// draw
-	clear();
-	applyMatrix(paperSize, 0, 0, paperSize, window.innerWidth*0.5-paperSize*0.5, window.innerHeight*0.5-paperSize*0.5);
-	
-	fill(0, 0, 0);
-	stroke(0, 0, 0);
-	drawCoordinateFrame();
-	drawGraphPoints(g);
-	drawGraphLines(g);
-	for(var i = 0; i < intersections.length; i++){
-		fill(255, 0, 0);
-		noStroke();
-		ellipse(intersections[i].x, intersections[i].y, .03, .03);
-	}
-}
-
-function mouseReleased(){
-	reset();	
-}
-
-function mousePressed(){
-	chop();
-}
-
+<script language="javascript" type="text/javascript" src="05.js"></script>
+<script>
+var myp5 = new p5(test05);
 </script>
 </body>
 </html>

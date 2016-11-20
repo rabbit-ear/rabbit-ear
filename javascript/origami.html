@@ -90,57 +90,23 @@ graph.addEdgeRadiallyFromVertex(existingIndex, angle, distance)    //(uint, floa
 	<pre class="centered"><code>graph.getNearestNode(x, y)</code></pre>
 </div>
 <script>
-
-function fillWithRandom(graph, count){
-	for(var i = 0; i < count; i++){
-		graph.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
-	}
-}
-function fillWithSunburst(graph, count){
-	var center = {x:0.5, y:0.5, z:0.0};
-	graph.nodes.push(center);
-	for(var i = 0; i < count; i++){
-		graph.addEdgeFromVertex(0, Math.random(), Math.random());
-	}
-}
-function fillWithRope(graph, count){
-	var first = {x:Math.random(), y:Math.random(), z:0.0};
-	graph.nodes.push(first);
-	for(var i = 0; i < count; i++){
-		graph.addEdgeFromVertex(i, Math.random(), Math.random());
-	}
-}
-
-var s0 = function( p ) {
-	var g = new PlanarGraph();
+var introSketch = function(p) {
 	var paperSize = 250;
-	p.numLines = 3;
+	var g = new PlanarGraph();
 	p.reset = function(){
 		g.clear();
-		// var select = Math.random();
-		// if(select < 0.25){
-		// 	g.kiteBase();
-		// }else if(select < 0.5){
-			g.fishBase();
-		// }else if(select < 0.75){
-		// 	g.birdBase();
-		// }else {
-		// 	g.frogBase();
-		// }
+		g.fishBase();
 	}
 	p.setup = function(){
 		canvas = p.createCanvas(paperSize, paperSize);
 		p.reset();
-		// noLoop();
-		// frameRate(10);
 	}
 	p.draw = function() {
+		// update
 		var mag = 0.005;
 		var speed = 0.001;
-		// update
 		for(var i = 0; i < g.nodes.length; i++){
 			var boundary = g.nodes[i].isBoundary;
-			// console.log(boundary);
 			if(boundary == undefined){
 				// g.nodes[i].x += -0.0005 + 0.001 * p.noise(i*31.111+p.millis()*0.0002);
 				// g.nodes[i].y += -0.0005 + 0.001 * p.noise(i*44.22+10+p.millis()*0.0002);
@@ -149,14 +115,11 @@ var s0 = function( p ) {
 			} else if(boundary == 2 || boundary == 4){
 				g.nodes[i].y += -mag*0.5 + mag * p.noise(i*44.22+10+p.millis()*speed);
 			}
-			// g.nodes[i].x += -0.0005 + 0.001 * p.noise(i*31.111+p.millis()*0.0002);
-			// g.nodes[i].y += -0.0005 + 0.001 * p.noise(i*44.22+10+p.millis()*0.0002);
 			if(g.nodes[i].x < 0.0) g.nodes[i].x = 0.0;
 			if(g.nodes[i].x > 1.0) g.nodes[i].x = 1.0;
 			if(g.nodes[i].y < 0.0) g.nodes[i].y = 0.0;
 			if(g.nodes[i].y > 1.0) g.nodes[i].y = 1.0;
 		}
-
 		// draw
 		p.clear();
 		p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
@@ -169,221 +132,25 @@ var s0 = function( p ) {
 		p.reset();
 	}
 };
-
-var s1 = function( p ) {
-	var g = new PlanarGraph();
-	var paperSize = 250;
-	p.numLines = 20;
-	p.pattern = 0;
-	var intersections = [];
-	p.reset = function(){
-		g.clear();
-		if(p.pattern == 2)
-			fillWithRope(g, p.numLines);
-		else if(p.pattern == 1)
-			fillWithSunburst(g, p.numLines);
-		else 
-			fillWithRandom(g, p.numLines);
-		if(p.showIntersections)
-			intersections = g.getAllEdgeIntersections();
-	}
-	p.setup = function(){
-		canvas = p.createCanvas(paperSize, paperSize);
-		p.reset();
-		// noLoop();
-		// frameRate(10);
-	}
-	p.draw = function() {
-		p.clear();
-		p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
-		p.fill(0, 0, 0);
-		p.stroke(0, 0, 0);
-		p.strokeWeight(.01);
-		drawCoordinateFrame(p);
-		drawGraphPoints(p, g);
-		drawGraphLines(p, g);
-		// intersections
-		p.fill(255, 0, 0);
-		p.noStroke();
-		for(var i = 0; i < intersections.length; i++){
-			p.ellipse(intersections[i].x, intersections[i].y, .03, .03);
-		}
-	}
-	p.mousePressed = function(){
-		p.reset();
-	}
-};
-
-var s3 = function( p ) {
-	var g = new PlanarGraph();
-	var paperSize = 250;
-	p.numLines = 6;
-	var intersections = [];
-	p.reset = function(){
-		g.clear();
-		fillWithRope(g, p.numLines);
-	}
-	p.setup = function(){
-		canvas = p.createCanvas(paperSize, paperSize);
-		p.reset();
-		// for(var i = 0; i < g.nodes.length; i++){
-		// 	var boundary = g.nodes[i].isBoundary;
-		// }
-		// noLoop();
-		// frameRate(10);
-	}
-	p.draw = function() {
-		// update
-		for(var i = 0; i < g.nodes.length; i++){
-			g.nodes[i].x = p.noise(i*31.111+p.millis()*0.0002);
-			g.nodes[i].y = p.noise(i*44.22+10+p.millis()*0.0002);
-		}
-		intersections = g.getAllEdgeIntersections();
-
-		// draw
-		p.clear();
-		p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
-		p.fill(0, 0, 0);
-		p.stroke(0, 0, 0);
-		p.strokeWeight(.01);
-		drawCoordinateFrame(p);
-		drawGraphPoints(p, g);
-		drawGraphLines(p, g);
-		// intersections
-		p.fill(255, 0, 0);
-		p.noStroke();
-		for(var i = 0; i < intersections.length; i++){
-			p.ellipse(intersections[i].x, intersections[i].y, .03, .03);
-		}
-	}
-	p.mousePressed = function(){
-		// p.reset();
-	}
-};
-
-var s4 = function( p ){
-
-	var g = new PlanarGraph();
-	var paperSize = 250;
-	var intersections = [];
-	var bounds = [
-		{xmin:0.0, xmax:0.33, ymin:0.0, ymax:0.33},
-		{xmin:0.66, xmax:1.0, ymin:0.66, ymax:1.0},
-		{xmin:0.66, xmax:1.0, ymin:0.0, ymax:0.33},
-		{xmin:0.0, xmax:0.33, ymin:0.66, ymax:1.0},
-		{xmin:0.0, xmax:1.0, ymin:0.0, ymax:1.0}
-	];
-
-	function drawAnX(graph){
-		graph.clear();
-		var w = 0.33;
-		var first = {x:Math.random()*w, y:Math.random()*w, z:0.0};
-		graph.nodes.push(first);
-		graph.addEdgeFromVertex(0, Math.random()*w+(1-w), Math.random()*w+(1-w));
-		var second = {x:Math.random()*w, y:Math.random()*w+(1-w), z:0.0};
-		graph.nodes.push(second);
-		graph.addEdgeFromVertex(2, Math.random()*w+(1-w), Math.random()*w);
-	}
-
-	function reset(){
-		g.edges = [];
-		g.nodes.pop();
-		g.addEdgeFromExistingVertices(0, 1);
-		g.addEdgeFromExistingVertices(2, 3);
-		intersections = g.getAllEdgeIntersections();
-	}
-
-	p.setup = function(){
-		canvas = p.createCanvas(paperSize, paperSize);
-		p.strokeWeight(.01);
-		drawAnX(g);
-	}
-
-	function chop(){
-		// we're going to be iterating and removing elements at the same time (!)
-		// we will remove edges. we only add to nodes array. nodes indices are preserved.
-		var intersections = g.getAllEdgeIntersectionsDetailed();
-		for(var i = 0; i < intersections.length; i++){
-			var node1a = intersections[i]['edge1NodeA'];
-			var node1b = intersections[i]['edge1NodeB'];
-			var node2a = intersections[i]['edge2NodeA'];
-			var node2b = intersections[i]['edge2NodeB'];
-			var intersection = intersections[i].location;
-
-			g.removeEdgeBetween(node1a, node1b);
-			g.removeEdgeBetween(node2a, node2b);
-			var newIntersectionVertexIndex = g.nodes.length;
-			g.addEdgeFromVertex(node1a, intersection.x, intersection.y);
-			g.addEdgeFromExistingVertices(node1b, newIntersectionVertexIndex);
-			g.addEdgeFromExistingVertices(node2a, newIntersectionVertexIndex);
-			g.addEdgeFromExistingVertices(node2b, newIntersectionVertexIndex);
-		}
-	}
-
-	p.draw = function() {
-
-		// update
-		for(var i = 0; i < g.nodes.length; i++){
-			var speed = 0.002;
-			var mag = 0.02;
-			var mult1 = Math.pow(i*2, 1.5);
-			var mult2 = Math.pow(i*2.3, 1.333);
-			g.nodes[i].x += -mag*0.5 + mag * p.noise(i*mult1+1.3*(i+1)+p.millis()*speed);
-			g.nodes[i].y += -mag*0.5 + mag * p.noise(i*mult2+5*(i+1)+p.millis()*speed);
-			if(g.nodes[i].x < bounds[i].xmin) g.nodes[i].x = bounds[i].xmin;
-			if(g.nodes[i].x > bounds[i].xmax) g.nodes[i].x = bounds[i].xmax;
-			if(g.nodes[i].y < bounds[i].ymin) g.nodes[i].y = bounds[i].ymin;
-			if(g.nodes[i].y > bounds[i].ymax) g.nodes[i].y = bounds[i].ymax;
-		}
-		intersections = g.getAllEdgeIntersections();
-		
-		// draw
-		p.clear();
-		p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
-		
-		p.fill(0, 0, 0);
-		p.stroke(0, 0, 0);
-		drawCoordinateFrame(p);
-		drawGraphPoints(p, g);
-		drawGraphLines(p, g);
-		for(var i = 0; i < intersections.length; i++){
-			p.fill(255, 0, 0);
-			p.noStroke();
-			p.ellipse(intersections[i].x, intersections[i].y, .03, .03);
-		}
-	}
-
-	p.mouseReleased = function(){
-		reset();	
-	}
-
-	p.mousePressed = function(){
-		chop();
-	}	
-}
-
 </script>
-
+<script language="javascript" type="text/javascript" src="tests/03.js"></script>
+<script language="javascript" type="text/javascript" src="tests/04.js"></script>
+<script language="javascript" type="text/javascript" src="tests/05.js"></script>
 <script language="javascript" type="text/javascript" src="tests/06_nearest_node.js"></script>
 <script language="javascript" type="text/javascript" src="tests/07_nearest_edge.js"></script>
-
 <script>
-
-
-var myp5 = new p5(s0, 'containerIntro');
-var myp5 = new p5(s1, 'container0');
-myp5.pattern = 0;
-var myp5 = new p5(s1, 'container1');
-myp5.pattern = 1;
-var myp5 = new p5(s1, 'container2');
-myp5.pattern = 2;
-var myp5 = new p5(s3, 'container3');
-var myp5 = new p5(s4, 'container4');
-
-var myp5 = new p5(test06, 'container5');
-var myp5 = new p5(test07, 'container6');
-var myp5 = new p5(test06, 'container7');
-
+var p500 = new p5(introSketch, 'containerIntro');
+var p501 = new p5(test03, 'container0');
+p501.pattern = 0;
+var p502 = new p5(test03, 'container1');
+p502.pattern = 1;
+var p503 = new p5(test03, 'container2');
+p503.pattern = 2;
+var p504 = new p5(test04, 'container3');
+var p505 = new p5(test05, 'container4');
+var p506 = new p5(test06, 'container5');
+var p507 = new p5(test07, 'container6');
+var p508 = new p5(test06, 'container7');
 </script>
 
 </body>

@@ -1,7 +1,9 @@
-var test06 = function( p ) {
-	var WIDTH = window.innerWidth;
-	var HEIGHT = window.innerHeight;
+var test06 = function(p) {
+	// var WIDTH = window.innerWidth;
+	// var HEIGHT = window.innerHeight;
 	var paperSize = 250;
+	var WIDTH = paperSize;
+	var HEIGHT = paperSize;
 
 	var g = new PlanarGraph();
 	this.numPoints = 30;
