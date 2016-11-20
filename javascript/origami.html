@@ -4,7 +4,7 @@
 	<script language="javascript" type="text/javascript" src="lib/p5.min.js"></script>
 	<script language="javascript" type="text/javascript" src="graph.js"></script>
 	<script language="javascript" type="text/javascript" src="planarGraph.js"></script>
-	<script language="javascript" type="text/javascript" src="renderNS.js"></script>
+	<script language="javascript" type="text/javascript" src="render.js"></script>
 	<style> 
 
 	body {padding: 0; margin: 0;} 
@@ -86,52 +86,53 @@ graph.addEdgeRadiallyFromVertex(existingIndex, angle, distance)    //(uint, floa
 	<div class="centered" id="container4"></div>
 	<p class="quote">press and hold</p>
 	<pre class="centered"><code>graph.chopAtIntersections()</code></pre>
+	<h1>Select</h1>
 	<div class="third" id="container5"></div><div class="third" id="container6"></div><div class="third" id="container7"></div>
 	<pre class="centered"><code>graph.getNearestNode(x, y)</code></pre>
 </div>
 <script>
-var introSketch = function(p) {
-	var paperSize = 250;
-	var g = new PlanarGraph();
-	p.reset = function(){
-		g.clear();
-		g.fishBase();
-	}
-	p.setup = function(){
-		canvas = p.createCanvas(paperSize, paperSize);
-		p.reset();
-	}
-	p.draw = function() {
-		// update
-		var mag = 0.005;
-		var speed = 0.001;
-		for(var i = 0; i < g.nodes.length; i++){
-			var boundary = g.nodes[i].isBoundary;
-			if(boundary == undefined){
-				// g.nodes[i].x += -0.0005 + 0.001 * p.noise(i*31.111+p.millis()*0.0002);
-				// g.nodes[i].y += -0.0005 + 0.001 * p.noise(i*44.22+10+p.millis()*0.0002);
-			} else if(boundary == 1 || boundary == 3){
-				g.nodes[i].x += -mag*0.5 + mag * p.noise(i*31.111+p.millis()*speed);
-			} else if(boundary == 2 || boundary == 4){
-				g.nodes[i].y += -mag*0.5 + mag * p.noise(i*44.22+10+p.millis()*speed);
-			}
-			if(g.nodes[i].x < 0.0) g.nodes[i].x = 0.0;
-			if(g.nodes[i].x > 1.0) g.nodes[i].x = 1.0;
-			if(g.nodes[i].y < 0.0) g.nodes[i].y = 0.0;
-			if(g.nodes[i].y > 1.0) g.nodes[i].y = 1.0;
+	var introSketch = function(p) {
+		var paperSize = 250;
+		var g = new PlanarGraph();
+		p.reset = function(){
+			g.clear();
+			g.fishBase();
 		}
-		// draw
-		p.clear();
-		p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
-		p.strokeWeight(.01);
-		drawCoordinateFrame(p);
-		// drawGraphPoints(p, g);
-		drawGraphLines(p, g);
-	}
-	p.mousePressed = function(){
-		p.reset();
-	}
-};
+		p.setup = function(){
+			canvas = p.createCanvas(paperSize, paperSize);
+			p.reset();
+		}
+		p.draw = function() {
+			// update
+			var mag = 0.005;
+			var speed = 0.001;
+			for(var i = 0; i < g.nodes.length; i++){
+				var boundary = g.nodes[i].isBoundary;
+				if(boundary == undefined){
+					// g.nodes[i].x += -0.0005 + 0.001 * p.noise(i*31.111+p.millis()*0.0002);
+					// g.nodes[i].y += -0.0005 + 0.001 * p.noise(i*44.22+10+p.millis()*0.0002);
+				} else if(boundary == 1 || boundary == 3){
+					g.nodes[i].x += -mag*0.5 + mag * p.noise(i*31.111+p.millis()*speed);
+				} else if(boundary == 2 || boundary == 4){
+					g.nodes[i].y += -mag*0.5 + mag * p.noise(i*44.22+10+p.millis()*speed);
+				}
+				if(g.nodes[i].x < 0.0) g.nodes[i].x = 0.0;
+				if(g.nodes[i].x > 1.0) g.nodes[i].x = 1.0;
+				if(g.nodes[i].y < 0.0) g.nodes[i].y = 0.0;
+				if(g.nodes[i].y > 1.0) g.nodes[i].y = 1.0;
+			}
+			// draw
+			p.clear();
+			p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
+			p.strokeWeight(.01);
+			drawCoordinateFrame(p);
+			// drawGraphPoints(p, g);
+			drawGraphLines(p, g);
+		}
+		p.mousePressed = function(){
+			p.reset();
+		}
+	};
 </script>
 <script language="javascript" type="text/javascript" src="tests/03.js"></script>
 <script language="javascript" type="text/javascript" src="tests/04.js"></script>
@@ -139,18 +140,18 @@ var introSketch = function(p) {
 <script language="javascript" type="text/javascript" src="tests/06_nearest_node.js"></script>
 <script language="javascript" type="text/javascript" src="tests/07_nearest_edge.js"></script>
 <script>
-var p500 = new p5(introSketch, 'containerIntro');
-var p501 = new p5(test03, 'container0');
-p501.pattern = 0;
-var p502 = new p5(test03, 'container1');
-p502.pattern = 1;
-var p503 = new p5(test03, 'container2');
-p503.pattern = 2;
-var p504 = new p5(test04, 'container3');
-var p505 = new p5(test05, 'container4');
-var p506 = new p5(test06, 'container5');
-var p507 = new p5(test07, 'container6');
-var p508 = new p5(test06, 'container7');
+	var p500 = new p5(introSketch, 'containerIntro');
+	var p501 = new p5(test03, 'container0');
+	p501.pattern = 0;
+	var p502 = new p5(test03, 'container1');
+	p502.pattern = 1;
+	var p503 = new p5(test03, 'container2');
+	p503.pattern = 2;
+	var p504 = new p5(test04, 'container3');
+	var p505 = new p5(test05, 'container4');
+	var p506 = new p5(test06, 'container5');
+	var p507 = new p5(test07, 'container6');
+	// var p508 = new p5(test06, 'container7');
 </script>
 
 </body>

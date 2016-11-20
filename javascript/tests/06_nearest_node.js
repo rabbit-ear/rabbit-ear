@@ -39,9 +39,9 @@ var test06 = function(p) {
 
 	p.mouseMoved = function(event){
 		// var mouseX = event.screenX;
-		var mouseX = (event.clientX - WIDTH*0.5 + paperSize*0.5) / paperSize;
-		var mouseY = (event.clientY - HEIGHT*0.5 + paperSize*0.5) / paperSize;
-		closestNode = g.getClosestNode(mouseX, mouseY);
+		// var mouseX = (event.clientX - WIDTH*0.5 + paperSize*0.5) / paperSize;
+		// var mouseY = (event.clientY - HEIGHT*0.5 + paperSize*0.5) / paperSize;
+		closestNode = g.getClosestNode(p.mouseX / paperSize, p.mouseY / paperSize);
 	}
 
 	p.mouseReleased = function(){
