@@ -4,9 +4,12 @@ var test03 = function( p ) {
 	var HEIGHT = paperSize;
 
 	var g = new PlanarGraph();
-	p.numLines = 20;
+	p.numLines = 17;
 	p.pattern = Math.floor(Math.random()*2.999);
 	var intersections = [];
+
+	var highlight = false;
+	p.setHighlight = function(on){ highlight = on; }
 
 	function fillWithRandom(graph, count){
 		for(var i = 0; i < count; i++)
@@ -45,12 +48,21 @@ var test03 = function( p ) {
 	p.draw = function() {
 		p.clear();
 		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);
-		p.fill(0, 0, 0);
-		p.stroke(0, 0, 0);
+		// p.stroke(0, 0, 0);
+		if (highlight){
+			p.background(0);
+			p.fill(255);
+			p.stroke(255);
+		} else {
+			p.background(255);
+			p.fill(0);
+			p.stroke(0);
+		}
 		p.strokeWeight(.01);
-		drawCoordinateFrame(p);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
+		p.stroke(0);
+		drawCoordinateFrame(p);
 		// intersections
 		p.fill(255, 0, 0);
 		p.noStroke();

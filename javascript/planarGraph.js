@@ -121,9 +121,12 @@ class PlanarGraph extends Graph{
 	getNextElementToItemInArray(array, item){
 		for(var i = 0; i < array.length; i++){
 			if(array[i] == item){
-				return (i+1)%(array.length);
+				var index = i+1;
+				if(index >= array.length) index -= array.length;
+				return array[index];
 			}
 		}
+		return undefined;
 	}
 
 	generateFaces(){
@@ -133,35 +136,69 @@ class PlanarGraph extends Graph{
 			if(sortedNodes == undefined) sortedNodes = [];
 			allNodesClockwise.push(sortedNodes);
 		}
+		console.log('allNodesClockwise');
 		console.log(allNodesClockwise);
 		// walk around a face
 		this.faces = [];
+		var i = 0;
 		for(var i = 0; i < this.nodes.length; i++){
 			for(var n = 0; n < allNodesClockwise[i].length; n++){
-				var secondToLast = i;
-				var aFace = [ secondToLast ];
+				var aFace = [ i ];
 				var iterate = 0;
-				var last = i;
-				var next = allNodesClockwise[i][n];
-				console.log('+++ INIT ' + i + ' ' + next);
-				aFace.push( next );
-				while(iterate < 100 && i != next){
-					console.log('stepping');
-					console.log(aFace);
-					secondToLast = last;
-					last = next;
-					next = this.getNextElementToItemInArray(allNodesClockwise[last], secondToLast);
-					if(next == undefined) iterate = 100;
-					if(next != i){
-						aFace.push(next);
-					}
+				var current = allNodesClockwise[i][n];
+				var previous = i;
+				console.log('=== INIT ' + i + ' ' + current);
+				while(iterate < 100 && i != current){
+					console.log('+++ ADDING: ' + current + ' prev: ' + previous + ' from CW ARRAY ' + current);
+					console.log(allNodesClockwise[current]);
+
+					aFace.push(current);
+					var previousBackup = previous;
+					previous = current;
+					// console.log('   algorithm ' + allNodesClockwise[ current ] + ' prev: ' + previousBackup);
+					current = this.getNextElementToItemInArray( allNodesClockwise[ current ], previousBackup );
+					console.log('NEXT: ' + current + ' prev: ' + previous );
+					if(current == undefined) iterate = 100;
+					if(aFace.length > 4) iterate = 100;
+
 					iterate++;
 				}
 				if(iterate < 99){
+					console.log('!! adding face');
+					console.log(aFace);
 					this.faces.push( aFace );
+				} else{
+					console.log('!! SKIPPING FACE');
 				}
 			}
 		}
+		console.log('FACES: not cleaned up');
+		console.log(this.faces);
+		// var i = 0;
+		// while(i < this.faces.length-1){
+		// 	var j = 0;
+		// 	while(j < this.faces.length){
+		// 		if(this.areFacesEquivalent(i, j)){
+		// 			this.faces.splice(j, 1);
+		// 		}
+		// 		j++;
+		// 	}
+		// 	i++;
+		// }
+		console.log('FACES: clean');
+		console.log(this.faces);
+	}
+
+	areFacesEquivalent(faceIndex1, faceIndex2){
+		if(this.faces[faceIndex1].length != this.faces[faceIndex2].length) return false;
+		for(var i = 0; i < this.faces[faceIndex1].length; i++){
+			var found = false;
+			for(var j = 0; j < this.faces[faceIndex2].length; j++){
+				if(this.faces[faceIndex1][i] == this.faces[faceIndex2][j]) found = true;
+			}
+			if(found == false) return false;
+		}
+		return true;
 	}
 
 	cleanup(){

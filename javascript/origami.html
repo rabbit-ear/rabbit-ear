@@ -2,12 +2,17 @@
 <head>
 	<meta charset="UTF-8">
 	<script language="javascript" type="text/javascript" src="lib/p5.min.js"></script>
+	<script language="javascript" type="text/javascript" src="lib/jquery-3.1.1.min.js"></script>
 	<script language="javascript" type="text/javascript" src="graph.js"></script>
 	<script language="javascript" type="text/javascript" src="planarGraph.js"></script>
 	<script language="javascript" type="text/javascript" src="render.js"></script>
 	<style> 
 
 	body {padding: 0; margin: 0;} 
+	a:link { color: black;}
+	a:visited { color: black;}
+	a:hover { color: black;}
+	a:active { color: black;}
 	.third{
 		width: 33%;
 		display:inline-block;
@@ -32,68 +37,69 @@
 	h4{ font-size: 200%; }
 	h5{ font-size: 150%; }
 	p{ font-size: 180%; }
-    pre {
-        font-family: "Courier 10 Pitch", Courier, monospace;
-        font-size: 95%;
-        line-height: 140%;
-        white-space: pre;
-        white-space: pre-wrap;
-        white-space: -moz-pre-wrap;
-        white-space: -o-pre-wrap;
-    }       
-    
-    code {
-        font-family: Monaco, Consolas, "Andale Mono", "DejaVu Sans Mono", monospace;
-        font-size: 95%;
-        line-height: 140%;
-        white-space: pre;
-        white-space: pre-wrap;
-        white-space: -moz-pre-wrap;
-        white-space: -o-pre-wrap;
-        background: #faf8f0;
-    }
-    
-    #content code {
-        display: block;
-        padding: 0.5em 1em;
-        border: 1px solid #bebab0;
-    }
+	pre {
+	}
+	code {
+		font-family: Monaco, Consolas, "Andale Mono", "DejaVu Sans Mono", monospace;
+		background: #f0f0f0;
+	}
+	pre, code{
+		font-size: 100%;
+		line-height: 140%;
+		white-space: pre;
+		white-space: pre-wrap;
+		white-space: -moz-pre-wrap;
+		white-space: -o-pre-wrap;
+	}
+
+	#content code {
+		display: block;
+		padding: 0.5em 1em;
+		border: 1px solid #bebab0;
+	}
 	</style>
+
 </head>
 <body>
 <div class="page">
 	<h1>Origami Crease Patterns</h1>
-	<p>are <a href="https://en.wikipedia.org/wiki/Planar_graph">planar graphs</a>, which is a type of <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">mathematical graph</a>: a collection of edges defined by nodes (creases defined by endpoints).</p>
+	<p>are <a href="https://en.wikipedia.org/wiki/Planar_graph">planar graphs</a>, a type of <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">mathematical graph</a>: a collection of creases defined by endpoints.</p>
 	<div id="containerIntro" class="centered"></div>
 	<pre class="centered"><code>var graph = new Graph()
 graph.fishBase()</code></pre>
 	<h1>Planar Graph</h1>
-	<p>The Planar Graph adds to the Graph the idea of 2D space. Now, it's possible to ask:</p>
-	<p class="quote">"Do 2 lines cross over each other?"</p>
-	<p>An infinite surface is possible, but ours is constrained to a unit square: with the origin (0,0) at one corner.</p>
+	<p>A square of paper is a unit square. length 0.0 to 1.0. origin at the corner.</p>
 	<h1>Generate Creases</h1>
 	<p>add creases by adding their endpoints or add a crease using an existing crease for positioning.
-	<div class="third" id="container0"></div><div class="third" id="container1"></div><div class="third" id="container2"></div>
+	<div class="third" id="divTest01"></div><div class="third" id="divTest02"></div><div class="third" id="divTest03"></div>
 	<pre class="centered"><code>
-graph.addEdgeWithVertices( x1, y1, x2, y2 )    //(float, float, float, float)
-graph.addEdgeFromVertex( existingIndex, newX, newY )    //(uint, float, float)
-graph.addEdgeRadiallyFromVertex( existingIndex, angle, distance )    //(uint, float, float)</pre></code>
+<span id="spanAddEdge1">graph.addEdgeWithVertices( x1, y1, x2, y2 )</span>    //(float, float, float, float)
+<span id="spanAddEdge2">graph.addEdgeFromVertex( firstNodeIndex, x, y )</span>    //(uint, float, float)
+<span id="spanAddEdge3">graph.addEdgeFromVertex( lastNodeIndex, x, y )</span>    //(uint, float, float)</code></pre>
 	<h1>Intersections</h1>
-	<div class="centered" id="container3"></div>
+	<div class="centered" id="divTest04"></div>
 	<pre class="centered"><code>graph.getAllEdgeIntersections()</code></pre>
 	<h1>Chopping</h1>
-	<div class="centered" id="container4"></div>
+	<div class="centered" id="divTest05"></div>
 	<p class="quote">press and hold</p>
 	<pre class="centered"><code>graph.chopAtIntersections()</code></pre>
-	<p>It's considered <i>invalid</i> for a line to cross over another. The following gives us the X &amp; Y of the intersection location:</p>
-	<pre class="centered"><code>graph.edgesIntersect( edge1, edge2 )</code></pre>
+	<p>Avoid crossing lines. Get the the X &amp; Y of the intersection:</p>
+	<pre class="centered"><code>graph.edgesIntersect(<span id="spanEdgeIntersect1"> edge1</span>,<span id="spanEdgeIntersect2"> edge2 </span>)</code></pre>
 	<h1>Select</h1>
-	<div class="third" id="container5"></div><div class="third" id="container6"></div><div class="third" id="container7"></div>
-	<pre class="centered"><code>graph.getNearestNode( x, y )</code></pre>
+	<div class="third" id="divTest06"></div><div class="third" id="divTest07"></div><div class="third" id="divTest08"></div>
+	<pre class="centered"><code>
+graph.getNearestNode( <span id="spanNearest1MouseX">x</span>, <span id="spanNearest1MouseY">y</span> )
+graph.getNearestEdge( <span id="spanNearest2MouseX">x</span>, <span id="spanNearest2MouseY">y</span> )
+graph.getNearestFace( <span id="spanNearest3MouseX">x</span>, <span id="spanNearest3MouseY">y</span> )
+</code></pre>
 	<h1>Clockwise</h1>
-	<div class="centered" id="container8"></div>
+	<div class="centered" id="divTest09"></div>
 	<pre class="centered"><code>graph.getClockwiseConnectedNodesSorted( nodeIndex )</code></pre>
+	<h1>Find Faces</h1>
+	<div class="centered" id="divTest10"></div>
+	<pre class="centered"><code>graph.generateFaces()</code></pre>
 </div>
+
 <script>
 	var introSketch = function(p) {
 		var paperSize = 250;
@@ -145,21 +151,67 @@ graph.addEdgeRadiallyFromVertex( existingIndex, angle, distance )    //(uint, fl
 <script language="javascript" type="text/javascript" src="tests/07_nearest_edge.js"></script>
 <script language="javascript" type="text/javascript" src="tests/08_nearest_face.js"></script>
 <script language="javascript" type="text/javascript" src="tests/09_clockwise_nodes.js"></script>
+<script language="javascript" type="text/javascript" src="tests/10_find_faces.js"></script>
 <script>
 	var p500 = new p5(introSketch, 'containerIntro');
-	var p501 = new p5(test03, 'container0');
+	var p501 = new p5(test03, 'divTest01');
 	p501.pattern = 0;
-	var p502 = new p5(test03, 'container1');
+	var p502 = new p5(test03, 'divTest02');
 	p502.pattern = 1;
-	var p503 = new p5(test03, 'container2');
+	var p503 = new p5(test03, 'divTest03');
 	p503.pattern = 2;
-	var p504 = new p5(test04, 'container3');
-	var p505 = new p5(test05, 'container4');
-	var p506 = new p5(test06, 'container5');
-	var p507 = new p5(test07, 'container6');
-	var p508 = new p5(test08, 'container7');
-	var p508 = new p5(test09, 'container8');
+	var p504 = new p5(test04, 'divTest04');
+	var p505 = new p5(test05, 'divTest05');
+	var p506 = new p5(test06, 'divTest06');
+	var p507 = new p5(test07, 'divTest07');
+	var p508 = new p5(test08, 'divTest08');
+	var p509 = new p5(test09, 'divTest09');
+	var p510 = new p5(test10, 'divTest10');
 </script>
+
+
+	<script>
+		$("#spanAddEdge1").mouseenter(function(){ p501.setHighlight(true); })
+		                  .mouseleave(function(){ p501.setHighlight(false); });
+		$("#spanAddEdge2").mouseenter(function(){ p502.setHighlight(true); })
+		                  .mouseleave(function(){ p502.setHighlight(false); });
+		$("#spanAddEdge3").mouseenter(function(){ p503.setHighlight(true); })
+		                  .mouseleave(function(){ p503.setHighlight(false); });
+		$("#spanEdgeIntersect1").mouseenter(function(){ p505.setHighlight1(true); })
+		                        .mouseleave(function(){ p505.setHighlight1(false); });
+		$("#spanEdgeIntersect2").mouseenter(function(){ p505.setHighlight2(true); })
+		                        .mouseleave(function(){ p505.setHighlight2(false); });
+
+	p506.mouseMovedCallback = function(x,y){
+		if(x == undefined || y == undefined){
+			$("#spanNearest1MouseX").html('x');
+			$("#spanNearest1MouseY").html('y');
+		}else{
+			$("#spanNearest1MouseX").html(x.toFixed(2));
+			$("#spanNearest1MouseY").html(y.toFixed(2));
+		}
+	};
+	p507.mouseMovedCallback = function(x,y){
+		if(x == undefined || y == undefined){
+			$("#spanNearest2MouseX").html('x');
+			$("#spanNearest2MouseY").html('y');
+		}else{
+			$("#spanNearest2MouseX").html(x.toFixed(2));
+			$("#spanNearest2MouseY").html(y.toFixed(2));
+		}
+	};
+	p508.mouseMovedCallback = function(x,y){
+		if(x == undefined || y == undefined){
+			$("#spanNearest3MouseX").html('x');
+			$("#spanNearest3MouseY").html('y');
+		}else{
+			$("#spanNearest3MouseX").html(x.toFixed(2));
+			$("#spanNearest3MouseY").html(y.toFixed(2));
+		}
+	};
+
+	</script>
+	
 
 </body>
 </html>

@@ -1,4 +1,6 @@
 var test06 = function(p) {
+	p.mouseMovedCallback = undefined;
+	p.numPoints = 30;
 	// var WIDTH = window.innerWidth;
 	// var HEIGHT = window.innerHeight;
 	var paperSize = 250;
@@ -6,12 +8,12 @@ var test06 = function(p) {
 	var HEIGHT = paperSize;
 
 	var g = new PlanarGraph();
-	this.numPoints = 30;
 	var closestNode = undefined;
+
 
 	function reset(){
 		g.clear();
-		for(var i = 0 ;i  < numPoints; i++){
+		for(var i = 0 ;i  < p.numPoints; i++){
 			g.nodes.push( {x:Math.random(), y:Math.random(), z:0.0} );
 		}
 	}
@@ -41,7 +43,12 @@ var test06 = function(p) {
 		// var mouseX = event.screenX;
 		// var mouseX = (event.clientX - WIDTH*0.5 + paperSize*0.5) / paperSize;
 		// var mouseY = (event.clientY - HEIGHT*0.5 + paperSize*0.5) / paperSize;
-		closestNode = g.getClosestNode(p.mouseX / paperSize, p.mouseY / paperSize);
+		var mouseXScaled = p.mouseX / paperSize;
+		var mouseYScaled = p.mouseY / paperSize;
+		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+		closestNode = g.getClosestNode(mouseXScaled, mouseYScaled);
+		p.mouseMovedCallback(mouseXScaled, mouseYScaled);
 	}
 
 	p.mouseReleased = function(){

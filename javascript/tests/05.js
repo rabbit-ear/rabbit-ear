@@ -2,6 +2,10 @@ var test05 = function(p){
 	var paperSize = 250;
 	var WIDTH = paperSize;
 	var HEIGHT = paperSize;
+	var highlighted1 = false;
+	var highlighted2 = false;
+	p.setHighlight1 = function(on){ highlighted1 = on; }
+	p.setHighlight2 = function(on){ highlighted2 = on; }
 
 	var g = new PlanarGraph();	
 	var intersections = [];
@@ -83,13 +87,59 @@ var test05 = function(p){
 		p.fill(0, 0, 0);
 		p.stroke(0, 0, 0);
 		drawCoordinateFrame(p);
-		drawGraphPoints(p, g);
-		drawGraphLines(p, g);
+		// drawGraphPoints(p, g);
+
+		if(g.edges.length == 2)
+			p.draw1();
+		else
+			p.draw2();
+	
+		// for(var i = 0; i < g.edges.length; i++){
+		// 	line(g.nodes[g.edges[i].a].x, g.nodes[g.edges[i].a].y,
+		// 	     g.nodes[g.edges[i].b].x, g.nodes[g.edges[i].b].y);
+		// }
+
+		// drawGraphLines(p, g);
 		for(var i = 0; i < intersections.length; i++){
 			p.fill(255, 0, 0);
 			p.noStroke();
 			p.ellipse(intersections[i].x, intersections[i].y, .03, .03);
 		}
+	}
+
+	p.draw1 = function(){
+		if(highlighted1) p.stroke(255, 0, 0);
+		else p.stroke(0, 0, 0);
+		p.ellipse(g.nodes[g.edges[0].a].x, g.nodes[g.edges[0].a].y, 0.01, 0.01);
+		p.ellipse(g.nodes[g.edges[0].b].x, g.nodes[g.edges[0].b].y, 0.01, 0.01);
+		p.line(g.nodes[g.edges[0].a].x, g.nodes[g.edges[0].a].y,
+			 g.nodes[g.edges[0].b].x, g.nodes[g.edges[0].b].y);
+	
+		if(highlighted2) p.stroke(255, 0, 0);
+		else p.stroke(0, 0, 0);
+		p.ellipse(g.nodes[g.edges[1].a].x, g.nodes[g.edges[1].a].y, 0.01, 0.01);
+		p.ellipse(g.nodes[g.edges[1].b].x, g.nodes[g.edges[1].b].y, 0.01, 0.01);
+		p.line(g.nodes[g.edges[1].a].x, g.nodes[g.edges[1].a].y,
+			 g.nodes[g.edges[1].b].x, g.nodes[g.edges[1].b].y);
+
+	}
+	p.draw2 = function(){
+		drawGraphPoints(p, g);
+		drawGraphLines(p, g);
+		// if(highlighted1) p.stroke(200, 200, 0);
+		// else p.stroke(0, 0, 0);
+		// p.ellipse(g.nodes[g.edges[0].a].x, g.nodes[g.edges[0].a].y, 0.01, 0.01);
+		// p.ellipse(g.nodes[g.edges[0].b].x, g.nodes[g.edges[0].b].y, 0.01, 0.01);
+		// p.line(g.nodes[g.edges[0].a].x, g.nodes[g.edges[0].a].y,
+		// 	 g.nodes[g.edges[0].b].x, g.nodes[g.edges[0].b].y);
+	
+		// if(highlighted2) p.stroke(200, 200, 0);
+		// else p.stroke(0, 0, 0);
+		// p.ellipse(g.nodes[g.edges[1].a].x, g.nodes[g.edges[1].a].y, 0.01, 0.01);
+		// p.ellipse(g.nodes[g.edges[1].b].x, g.nodes[g.edges[1].b].y, 0.01, 0.01);
+		// p.line(g.nodes[g.edges[1].a].x, g.nodes[g.edges[1].a].y,
+		// 	 g.nodes[g.edges[1].b].x, g.nodes[g.edges[1].b].y);
+
 	}
 
 	p.mouseReleased = function(){

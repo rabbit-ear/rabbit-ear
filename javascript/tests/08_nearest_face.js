@@ -1,4 +1,5 @@
 var test08 = function(p) {
+	p.mouseMovedCallback = undefined;
 	// var WIDTH = this.canvas.parentElement.offsetWidth;
 	// var HEIGHT = this.canvas.parentElement.offsetHeight;
 	var paperSize = 250;
@@ -7,14 +8,15 @@ var test08 = function(p) {
 	// myp5.canvas.parentElement.offsetWidth
 
 	var g = new PlanarGraph();
-	this.numLines = 30;
 	var closestEdge = undefined;
+
+	var closestFace = undefined;
 
 	function reset(){
 		g.clear();
 		g.birdBase();
-		g.generateFaces();
-		console.log( g.faces );
+		// g.generateFaces();
+		// console.log( g.faces );
 	}
 
 	p.setup = function(){
@@ -31,14 +33,16 @@ var test08 = function(p) {
 		drawCoordinateFrame(p);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
-		if(closestEdge != undefined){
+		if(closestFace != undefined){
+			var face = g.faces[closestFace];
 			p.stroke(255, 0, 0);
 			p.fill(255, 0, 0);
-			p.line(g.nodes[ g.edges[closestEdge].a ].x, g.nodes[ g.edges[closestEdge].a ].y, 
-			       g.nodes[ g.edges[closestEdge].b ].x, g.nodes[ g.edges[closestEdge].b ].y );
-			p.ellipse(g.nodes[ g.edges[closestEdge].a ].x, g.nodes[ g.edges[closestEdge].a ].y, .01, .01);
-			p.ellipse(g.nodes[ g.edges[closestEdge].b ].x, g.nodes[ g.edges[closestEdge].b ].y, .01, .01);
-		}
+			p.beginShape();
+			for(f = 0; f < face.length; f++){
+				p.vertex(g.nodes[ face[f] ].x, g.nodes[ face[f] ].y);
+			}
+			p.endShape();
+		}		
 	}
 
 	p.mouseMoved = function(event){
@@ -46,10 +50,16 @@ var test08 = function(p) {
 		// var mouseX = (event.clientX - WIDTH*0.5 + paperSize*0.5) / paperSize;
 		// var mouseY = (event.clientY - HEIGHT*0.5 + paperSize*0.5) / paperSize;
 
-		// closestFace = g.getClosestFace(p.mouseX / paperSize, p.mouseY / paperSize);
+		var mouseXScaled = p.mouseX / paperSize;
+		var mouseYScaled = p.mouseY / paperSize;
+		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+		// closestFace = g.getClosestFace(mouseXScaled, mouseYScaled);
+		if(p.mouseMovedCallback != undefined)
+			p.mouseMovedCallback(mouseXScaled, mouseYScaled);
 	}
 
 	p.mouseReleased = function(){
-		reset();
+		// reset();
 	}
 };
