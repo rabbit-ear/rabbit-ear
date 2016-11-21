@@ -75,10 +75,9 @@ graph.fishBase()</code></pre>
 	<p>add creases by adding their endpoints or add a crease using an existing crease for positioning.
 	<div class="third" id="container0"></div><div class="third" id="container1"></div><div class="third" id="container2"></div>
 	<pre class="centered"><code>
-graph.addEdgeWithVertices(x1, y1, x2, y2)    //(float, float, float, float)
-graph.addEdgeFromVertex(existingIndex, newX, newY)    //(uint, float, float)
-graph.addEdgeRadiallyFromVertex(existingIndex, angle, distance)    //(uint, float, float)
-	</pre></code>
+graph.addEdgeWithVertices( x1, y1, x2, y2 )    //(float, float, float, float)
+graph.addEdgeFromVertex( existingIndex, newX, newY )    //(uint, float, float)
+graph.addEdgeRadiallyFromVertex( existingIndex, angle, distance )    //(uint, float, float)</pre></code>
 	<h1>Intersections</h1>
 	<div class="centered" id="container3"></div>
 	<pre class="centered"><code>graph.getAllEdgeIntersections()</code></pre>
@@ -86,9 +85,14 @@ graph.addEdgeRadiallyFromVertex(existingIndex, angle, distance)    //(uint, floa
 	<div class="centered" id="container4"></div>
 	<p class="quote">press and hold</p>
 	<pre class="centered"><code>graph.chopAtIntersections()</code></pre>
+	<p>It's considered <i>invalid</i> for a line to cross over another. The following gives us the X &amp; Y of the intersection location:</p>
+	<pre class="centered"><code>graph.edgesIntersect( edge1, edge2 )</code></pre>
 	<h1>Select</h1>
 	<div class="third" id="container5"></div><div class="third" id="container6"></div><div class="third" id="container7"></div>
-	<pre class="centered"><code>graph.getNearestNode(x, y)</code></pre>
+	<pre class="centered"><code>graph.getNearestNode( x, y )</code></pre>
+	<h1>Clockwise</h1>
+	<div class="centered" id="container8"></div>
+	<pre class="centered"><code>graph.getClockwiseConnectedNodesSorted( nodeIndex )</code></pre>
 </div>
 <script>
 	var introSketch = function(p) {
@@ -139,6 +143,8 @@ graph.addEdgeRadiallyFromVertex(existingIndex, angle, distance)    //(uint, floa
 <script language="javascript" type="text/javascript" src="tests/05.js"></script>
 <script language="javascript" type="text/javascript" src="tests/06_nearest_node.js"></script>
 <script language="javascript" type="text/javascript" src="tests/07_nearest_edge.js"></script>
+<script language="javascript" type="text/javascript" src="tests/08_nearest_face.js"></script>
+<script language="javascript" type="text/javascript" src="tests/09_clockwise_nodes.js"></script>
 <script>
 	var p500 = new p5(introSketch, 'containerIntro');
 	var p501 = new p5(test03, 'container0');
@@ -151,7 +157,8 @@ graph.addEdgeRadiallyFromVertex(existingIndex, angle, distance)    //(uint, floa
 	var p505 = new p5(test05, 'container4');
 	var p506 = new p5(test06, 'container5');
 	var p507 = new p5(test07, 'container6');
-	// var p508 = new p5(test06, 'container7');
+	var p508 = new p5(test08, 'container7');
+	var p508 = new p5(test09, 'container8');
 </script>
 
 </body>

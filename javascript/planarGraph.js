@@ -16,6 +16,7 @@ class PlanarGraph extends Graph{
 	constructor(){
 		super();
 		this.faces = [];
+		this.clockwiseNodeEdges = [];
 	}
 
 	addEdgeWithVertices(x1, y1, x2, y2){  // floats
@@ -83,17 +84,84 @@ class PlanarGraph extends Graph{
 		return edge;
 	}
 
-	generateClockwiseEdgesAroundVertices(){
-		for(var i = 0; i < this.nodes.length; i++){
-			var connected = this.getAdjacentNodes(i);
-			for(var c = 0; c < connected.length; c++){
+	getClockwiseConnectedNodesSorted(nodeIndex){
+		var connected = this.getAdjacentNodes(nodeIndex);
+		var nodeAngles = {};
+		for(var i = 0; i < connected.length; i++){
+			nodeAngles[ connected[i] ] = Math.atan2(-(this.nodes[nodeIndex].x - this.nodes[ connected[i] ].x),
+			                                         (this.nodes[nodeIndex].y - this.nodes[ connected[i] ].y) );
+			if(nodeAngles[ connected[i] ] < 0) nodeAngles[ connected[i] ] += 2*Math.PI;
+		}
+		var sortedNodes = [];
+		while(Object.keys(nodeAngles).length > 0){
+			var smallestAngle = undefined;
+			var smallestNode = undefined;
+			for (var key in nodeAngles) {
+				if(smallestAngle == undefined || nodeAngles[key] < smallestAngle){
+					smallestAngle = nodeAngles[key];
+					smallestNode = key;
+				}
+			}
+			sortedNodes.push( parseInt(smallestNode) );
+			delete nodeAngles[smallestNode];
+		}
+		return sortedNodes;
+	}
+	getClockwiseConnectedNodesAndAngles(nodeIndex){
+		var connected = this.getAdjacentNodes(nodeIndex);
+		var nodeAngles = {};
+		for(var i = 0; i < connected.length; i++){
+			nodeAngles[ connected[i] ] = Math.atan2(-(this.nodes[nodeIndex].x - this.nodes[ connected[i] ].x),
+			                                         (this.nodes[nodeIndex].y - this.nodes[ connected[i] ].y) );
+			if(nodeAngles[ connected[i] ] < 0) nodeAngles[ connected[i] ] += 2*Math.PI;
+		}
+		return nodeAngles;
+	}
 
+	getNextElementToItemInArray(array, item){
+		for(var i = 0; i < array.length; i++){
+			if(array[i] == item){
+				return (i+1)%(array.length);
 			}
 		}
 	}
 
 	generateFaces(){
-
+		var allNodesClockwise = [];
+		for(var i = 0; i < this.nodes.length; i++){
+			var sortedNodes = this.getClockwiseConnectedNodesSorted(i);
+			if(sortedNodes == undefined) sortedNodes = [];
+			allNodesClockwise.push(sortedNodes);
+		}
+		console.log(allNodesClockwise);
+		// walk around a face
+		this.faces = [];
+		for(var i = 0; i < this.nodes.length; i++){
+			for(var n = 0; n < allNodesClockwise[i].length; n++){
+				var secondToLast = i;
+				var aFace = [ secondToLast ];
+				var iterate = 0;
+				var last = i;
+				var next = allNodesClockwise[i][n];
+				console.log('+++ INIT ' + i + ' ' + next);
+				aFace.push( next );
+				while(iterate < 100 && i != next){
+					console.log('stepping');
+					console.log(aFace);
+					secondToLast = last;
+					last = next;
+					next = this.getNextElementToItemInArray(allNodesClockwise[last], secondToLast);
+					if(next == undefined) iterate = 100;
+					if(next != i){
+						aFace.push(next);
+					}
+					iterate++;
+				}
+				if(iterate < 99){
+					this.faces.push( aFace );
+				}
+			}
+		}
 	}
 
 	cleanup(){
