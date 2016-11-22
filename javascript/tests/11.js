@@ -10,11 +10,37 @@ var test11 = function(p) {
 	var g = new PlanarGraph();
 	var closestEdge = undefined;
 
+	function fullPageCreases(){
+		for(var i = 0; i < 4; i++){
+			var edge1 = Math.floor(Math.random()*4);
+			var edge2 = edge1;
+			while(edge2 == edge1){
+				edge2 = Math.floor(Math.random()*4);
+			}
+			var x1, y2, x2, y2;
+			if(edge1 == 0 || edge1 == 2) x1 = Math.random()
+			else if(edge1 == 1)          x1 = 1;
+			else if(edge1 == 3)          x1 = 0;
+			if(edge1 == 1 || edge1 == 3) y1 = Math.random();
+			else if(edge1 == 0)          y1 = 1;
+			else if(edge1 == 2)          y1 = 0;
+			if(edge2 == 0 || edge2 == 2) x2 = Math.random()
+			else if(edge2 == 1)          x2 = 1;
+			else if(edge2 == 3)          x2 = 0;
+			if(edge2 == 1 || edge2 == 3) y2 = Math.random();
+			else if(edge2 == 0)          y2 = 1;
+			else if(edge2 == 2)          y2 = 0;
+			g.addEdgeWithVertices(x1, y1, x2, y2);
+		}
+		g.cleanup();
+	}
+
 	function reset(){
 		g.clear();
-		g.birdBase();
+		// g.birdBase();
+		fullPageCreases();
 		g.generateFaces();
-		console.log( g.faces );
+		// console.log( g.faces );
 	}
 
 	p.setup = function(){
@@ -24,8 +50,8 @@ var test11 = function(p) {
 	}
 
 	p.draw = function() {
-		p.scalar = 0.5+0.5*Math.sin(p.millis() / 1000.0) - .01;
-		if(p.scalar < 0) p.scalar = 0.0;
+		// p.scalar = 0.5+0.5*Math.sin(p.millis() / 1000.0) - .01;
+		// if(p.scalar < 0) p.scalar = 0.0;
 		p.clear();
 		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);		
 		p.fill(0, 0, 0);
@@ -65,7 +91,7 @@ var test11 = function(p) {
 		// closestFace = g.getClosestFace(mouseXScaled, mouseYScaled);
 		if(p.mouseMovedCallback != undefined)
 			p.mouseMovedCallback(mouseXScaled, mouseYScaled);
-		if(mouseXScaled != undefined) p.scalar = mouseXScaled;
+		if(mouseXScaled != undefined) p.scalar = mouseXScaled*.9+0.1;
 	}
 
 	p.mouseReleased = function(){

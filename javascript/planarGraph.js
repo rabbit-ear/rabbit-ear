@@ -174,17 +174,17 @@ class PlanarGraph extends Graph{
 		}
 		console.log('FACES: not cleaned up');
 		console.log(this.faces);
-		// var i = 0;
-		// while(i < this.faces.length-1){
-		// 	var j = 0;
-		// 	while(j < this.faces.length){
-		// 		if(this.areFacesEquivalent(i, j)){
-		// 			this.faces.splice(j, 1);
-		// 		}
-		// 		j++;
-		// 	}
-		// 	i++;
-		// }
+		var i = 0;
+		while(i < this.faces.length-1){
+			var j = 0;
+			while(j < this.faces.length){
+				if(this.areFacesEquivalent(i, j)){
+					this.faces.splice(j, 1);
+				}
+				j++;
+			}
+			i++;
+		}
 		console.log('FACES: clean');
 		console.log(this.faces);
 	}
@@ -204,7 +204,6 @@ class PlanarGraph extends Graph{
 	cleanup(){
 		super.cleanup();
 		this.mergeDuplicateVertices();
-
 	}
 
 	mergeDuplicateVertices(){
