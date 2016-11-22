@@ -15,14 +15,17 @@ class Graph{
 	}
 
 	removeEdgeBetween(nodeIndex1, nodeIndex2){
+		var found = false;
 		var i = 0;
 		while(i < this.edges.length){
 			if( (this.edges[i].a == nodeIndex1 && this.edges[i].b == nodeIndex2) || 
 				(this.edges[i].a == nodeIndex2 && this.edges[i].b == nodeIndex1) ){
 				this.edges.splice(i, 1);
+				found = true;
 			}
 			i++;
 		}
+		return found;
 	}
 
 	// removes any duplicate edges (edges containing the same nodes)

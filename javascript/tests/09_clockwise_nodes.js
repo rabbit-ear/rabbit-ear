@@ -32,7 +32,13 @@ var test09 = function(p) {
 
 	p.draw = function() {
 		p.clear();
-		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);		
+		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);
+		p.fill(0, 0, 0);
+		p.stroke(0, 0, 0);
+		p.strokeWeight(.0033);
+		p.line(0.5, 0.5, 0.5, 0.0);
+		p.strokeWeight(.01);
+
 		p.fill(0, 0, 0);
 		p.stroke(0, 0, 0);
 		drawCoordinateFrame(p);

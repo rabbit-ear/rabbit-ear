@@ -13,6 +13,14 @@
 	a:visited { color: black;}
 	a:hover { color: black;}
 	a:active { color: black;}
+	.centered{
+		width: 100%;
+		text-align: center;
+	}
+	.half{
+		width: 50%;
+		display:inline-block;
+	}
 	.third{
 		width: 33%;
 		display:inline-block;
@@ -26,10 +34,6 @@
 	}
 	.quoteauthor{
 		font-weight: bold;
-	}
-	.centered{
-		width: 100%;
-		text-align: center;
 	}
 	h1{ font-size: 400%; }
 	h2{ font-size: 320%; }
@@ -80,7 +84,7 @@ graph.fishBase()</code></pre>
 	<div class="centered" id="divTest04"></div>
 	<pre class="centered"><code>graph.getAllEdgeIntersections()</code></pre>
 	<h1>Chopping</h1>
-	<div class="centered" id="divTest05"></div>
+	<div class="half" id="divTest05"></div><div class="half" id="divTest05b"></div>
 	<p class="quote">press and hold</p>
 	<pre class="centered"><code>graph.chopAtIntersections()</code></pre>
 	<p>Avoid crossing lines. Get the the X &amp; Y of the intersection:</p>
@@ -92,12 +96,13 @@ graph.getNearestNode( <span id="spanNearest1MouseX">x</span>, <span id="spanNear
 graph.getNearestEdge( <span id="spanNearest2MouseX">x</span>, <span id="spanNearest2MouseY">y</span> )
 graph.getNearestFace( <span id="spanNearest3MouseX">x</span>, <span id="spanNearest3MouseY">y</span> )
 </code></pre>
-	<h1>Clockwise</h1>
-	<div class="centered" id="divTest09"></div>
-	<pre class="centered"><code>graph.getClockwiseConnectedNodesSorted( nodeIndex )</code></pre>
 	<h1>Find Faces</h1>
 	<div class="centered" id="divTest10"></div>
 	<pre class="centered"><code>graph.generateFaces()  // from early code, finds duplicates</code></pre>
+	<h1>Clockwise</h1>
+	<div class="centered" id="divTest09"></div>
+	<pre class="centered"><code>graph.getClockwiseNeighbor( nodeIndex, nodePrime )</code></pre>
+	<pre class="centered"><code>graph.getClockwiseConnectedNodesSorted( nodeIndex )</code></pre>
 </div>
 
 <script>
@@ -147,6 +152,7 @@ graph.getNearestFace( <span id="spanNearest3MouseX">x</span>, <span id="spanNear
 <script language="javascript" type="text/javascript" src="tests/03_add_nodes.js"></script>
 <script language="javascript" type="text/javascript" src="tests/04_intersections.js"></script>
 <script language="javascript" type="text/javascript" src="tests/05_chop.js"></script>
+<script language="javascript" type="text/javascript" src="tests/05b_chop.js"></script>
 <script language="javascript" type="text/javascript" src="tests/06_nearest_node.js"></script>
 <script language="javascript" type="text/javascript" src="tests/07_nearest_edge.js"></script>
 <script language="javascript" type="text/javascript" src="tests/08_nearest_face.js"></script>
@@ -162,6 +168,7 @@ graph.getNearestFace( <span id="spanNearest3MouseX">x</span>, <span id="spanNear
 	p503.pattern = 2;
 	var p504 = new p5(test04, 'divTest04');
 	var p505 = new p5(test05, 'divTest05');
+	var p505b = new p5(test05b, 'divTest05b');
 	var p506 = new p5(test06, 'divTest06');
 	var p507 = new p5(test07, 'divTest07');
 	var p508 = new p5(test08, 'divTest08');

@@ -84,6 +84,12 @@ class PlanarGraph extends Graph{
 		return edge;
 	}
 
+	getClockwiseNeighbor(node, nodePrime){
+		var sortedNodes = getClockwiseConnectedNodesSorted(node);
+		var node = this.getNextElementToItemInArray( sortedNodes, nodePrime );
+		return node;
+	}
+
 	getClockwiseConnectedNodesSorted(nodeIndex){
 		var connected = this.getAdjacentNodes(nodeIndex);
 		var nodeAngles = {};
