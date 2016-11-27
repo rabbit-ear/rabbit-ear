@@ -1,7 +1,6 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<!-- // <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script> -->
 	<script language="javascript" type="text/javascript" src="../graph.js"></script>
 	<style> body {padding: 0; margin: 0;} </style>
 </head>
@@ -36,32 +35,14 @@ console.log("removing " + (EDGE_COUNT - graph.edges.length) + " duplicate edge")
 graph.log();
 
 // ADJACENT NODES
-var count = 0;
-var adjacentList = [];
-for(var i = 1; i < graph.nodes.length; i++){
-	if(graph.nodesAdjacent(0, i)){
-		adjacentList.push(i);
-		count++;
-	}
-}
-console.log(" " + count + " nodes are adjacent to the first node (connected by an edge)");
-for(var i = 0; i < adjacentList.length; i++){
-	console.log(adjacentList[i]);
-}
+var adjacentNodes = graph.getNodesAdjacentToNode(0);;
+console.log(" " + adjacentNodes.length + " nodes are adjacent to the first node (connected by an edge)");
+console.log(adjacentNodes);
 
 // ADJACENT EDGES
-count = 0;
-adjacentList = [];
-for(var i = 1; i < graph.edges.length; i++){
-	if(graph.edgesAdjacent(0, i)){
-		adjacentList.push(i);
-		count++;
-	}
-}
-console.log(" " + count + " edges are adjacent to the first edge (edges share a node)");
-for(var i = 0; i < adjacentList.length; i++){
-	console.log(adjacentList[i]);
-}
+var adjacentEdges = graph.getEdgesAdjacentToEdge(0);
+console.log(" " + adjacentEdges.length + " edges are adjacent to the first edge (edges share a node)");
+console.log(adjacentEdges);
 
 </script>
 </body>

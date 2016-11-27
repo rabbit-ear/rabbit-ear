@@ -41,36 +41,42 @@ var test05b = function(p){
 	}
 
 	function chop(){
+		g.cleanup();
 		console.log('chopping, Edge count: ' + g.edges.length);
 		// we're going to be iterating and removing elements at the same time (!)
 		// we will remove edges. we only add to nodes array. nodes indices are preserved.
 		intersections = g.getAllEdgeIntersectionsDetailed();
 		var iterations = 0;
 		while(intersections != undefined && intersections.length > 0){
-			for(var i = 0; i < intersections.length; i++){
-				var node1a = intersections[i]['edge1NodeA'];
-				var node1b = intersections[i]['edge1NodeB'];
-				var node2a = intersections[i]['edge2NodeA'];
-				var node2b = intersections[i]['edge2NodeB'];
-				var intersection = intersections[i].location;
+			var i = 0
+			var node1a = intersections[i]['edge1NodeA'];
+			var node1b = intersections[i]['edge1NodeB'];
+			var node2a = intersections[i]['edge2NodeA'];
+			var node2b = intersections[i]['edge2NodeB'];
+			var intersection = intersections[i].location;
 
-				if(g.areNodesAdjacent(node1a, node1b) && g.areNodesAdjacent(node2a, node2b)){
-					g.removeEdgeBetween(node1a, node1b);
-					g.removeEdgeBetween(node2a, node2b);
-					var newIntersectionVertexIndex = g.nodes.length;
-					// g.nodes.push({x:intersection.x, y:intersection.y});
-					g.addEdgeFromVertex(node1a, intersection.x, intersection.y);
-					g.addEdgeFromExistingVertices(node1b, newIntersectionVertexIndex);
-					g.addEdgeFromExistingVertices(node2a, newIntersectionVertexIndex);
-					g.addEdgeFromExistingVertices(node2b, newIntersectionVertexIndex);
-				}
+			if(g.areNodesAdjacent(node1a, node1b) && g.areNodesAdjacent(node2a, node2b)){
+				g.removeEdgeBetween(node1a, node1b);
+				g.removeEdgeBetween(node2a, node2b);
+				var newIntersectionVertexIndex = g.nodes.length;
+				// g.nodes.push({x:intersection.x, y:intersection.y});
+				g.addEdgeFromVertex(node1a, intersection.x, intersection.y);
+				g.addEdgeFromExistingVertices(node1b, newIntersectionVertexIndex);
+				g.addEdgeFromExistingVertices(node2a, newIntersectionVertexIndex);
+				g.addEdgeFromExistingVertices(node2b, newIntersectionVertexIndex);
 			}
+			
 			iterations += 1;
 			g.cleanup();
 			intersections = g.getAllEdgeIntersectionsDetailed();
-			if(intersections.length > 300 || iterations > 100) {
+			if(intersections.length > 300) {
 				console.log(intersections);
-				console.log('BREAK');
+				console.log('BREAK LENGTH');
+				return;
+			}
+			if(iterations > 200){
+				console.log(intersections);
+				console.log('BREAK ITERATIONS');
 				return;
 			}
 		}
@@ -79,6 +85,58 @@ var test05b = function(p){
 		intersections = [];
 		console.log('done, new Edge count: ' + g.edges.length);
 	}
+
+	// function chop(){
+	// 	g.cleanup();
+	// 	console.log('chopping, Edge count: ' + g.edges.length);
+	// 	// we're going to be iterating and removing elements at the same time (!)
+	// 	// we will remove edges. we only add to nodes array. nodes indices are preserved.
+	// 	intersections = g.getAllEdgeIntersectionsDetailed();
+	// 	var iterations = 0;
+	// 	while(intersections != undefined && intersections.length > 0){
+	// 			if(iterations > 100){
+	// 				console.log('--- NEW ROUND ---');
+	// 			}
+	// 		for(var i = intersections.length-1; i >= 0; i--){
+	// 			var node1a = intersections[i]['edge1NodeA'];
+	// 			var node1b = intersections[i]['edge1NodeB'];
+	// 			var node2a = intersections[i]['edge2NodeA'];
+	// 			var node2b = intersections[i]['edge2NodeB'];
+	// 			var intersection = intersections[i].location;
+	// 			if(iterations > 100){
+	// 				console.log(node1a + ' ' + node1b + ' ' + node2a + ' ' + node2b + ' x:' + intersection.x + ' y:' + intersection.y);
+	// 			}
+
+	// 			if(g.areNodesAdjacent(node1a, node1b) && g.areNodesAdjacent(node2a, node2b)){
+	// 				g.removeEdgeBetween(node1a, node1b);
+	// 				g.removeEdgeBetween(node2a, node2b);
+	// 				var newIntersectionVertexIndex = g.nodes.length;
+	// 				// g.nodes.push({x:intersection.x, y:intersection.y});
+	// 				g.addEdgeFromVertex(node1a, intersection.x, intersection.y);
+	// 				g.addEdgeFromExistingVertices(node1b, newIntersectionVertexIndex);
+	// 				g.addEdgeFromExistingVertices(node2a, newIntersectionVertexIndex);
+	// 				g.addEdgeFromExistingVertices(node2b, newIntersectionVertexIndex);
+	// 			}
+	// 		}
+	// 		iterations += 1;
+	// 		g.cleanup();
+	// 		intersections = g.getAllEdgeIntersectionsDetailed();
+	// 		if(intersections.length > 300) {
+	// 			console.log(intersections);
+	// 			console.log('BREAK LENGTH');
+	// 			return;
+	// 		}
+	// 		if(iterations > 200){
+	// 			console.log(intersections);
+	// 			console.log('BREAK ITERATIONS');
+	// 			return;
+	// 		}
+	// 	}
+
+	// 	g.cleanup();
+	// 	intersections = [];
+	// 	console.log('done, new Edge count: ' + g.edges.length);		
+	// }
 
 	p.draw = function() {
 		// draw

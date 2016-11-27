@@ -48,7 +48,8 @@ var test06 = function(p) {
 		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		closestNode = g.getClosestNode(mouseXScaled, mouseYScaled);
-		p.mouseMovedCallback(mouseXScaled, mouseYScaled);
+		if(p.mouseMovedCallback != undefined)
+			p.mouseMovedCallback(mouseXScaled, mouseYScaled);
 	}
 
 	p.mouseReleased = function(){

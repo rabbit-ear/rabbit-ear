@@ -80,7 +80,7 @@ class PlanarGraph extends Graph{
 		if(subIndex == undefined)
 			return undefined;
 
-		var edge = this.getEdgeIndexForAdjacentNodes(index, subArray[subIndex] );
+		var edge = this.getEdgeConnectingNodes(index, subArray[subIndex] );
 		return edge;
 	}
 

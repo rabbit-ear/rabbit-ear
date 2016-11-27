@@ -6,23 +6,27 @@
 	<script language="javascript" type="text/javascript" src="graph.js"></script>
 	<script language="javascript" type="text/javascript" src="planarGraph.js"></script>
 	<script language="javascript" type="text/javascript" src="render.js"></script>
+	<link href="lib/prism.css" rel="stylesheet" />
 	<style> 
 
 	body {padding: 0; margin: 0;} 
-	a:link { color: black;}
-	a:visited { color: black;}
-	a:hover { color: black;}
-	a:active { color: black;}
+	a:link { color: black; text-decoration: none; font-weight: bold;}
+	a:visited { color: black; text-decoration: none; font-weight: bold;}
+	a:hover { color: black; text-decoration: underline; font-weight: bold;}
+	a:active { color: black; text-decoration: none; font-weight: bold;}
 	.centered{
 		width: 100%;
 		text-align: center;
+		display:inline-block;
 	}
 	.half{
 		width: 50%;
+		text-align: center;
 		display:inline-block;
 	}
 	.third{
 		width: 33%;
+		text-align: center;
 		display:inline-block;
 	}
 	.page{
@@ -35,74 +39,67 @@
 	.quoteauthor{
 		font-weight: bold;
 	}
-	h1{ font-size: 400%; }
+	.p5sketch{
+		margin-top:2em;
+		margin-bottom:2em;
+	}
+	h1{ font-size: 400%; -webkit-margin-after: .2em; }
 	h2{ font-size: 320%; }
 	h3{ font-size: 260%; }
 	h4{ font-size: 200%; }
 	h5{ font-size: 150%; }
 	p{ font-size: 180%; }
-	pre {
-	}
-	code {
-		font-family: Monaco, Consolas, "Andale Mono", "DejaVu Sans Mono", monospace;
-		background: #f0f0f0;
-	}
-	pre, code{
-		font-size: 100%;
-		line-height: 140%;
-		white-space: pre;
-		white-space: pre-wrap;
-		white-space: -moz-pre-wrap;
-		white-space: -o-pre-wrap;
-	}
 
-	#content code {
-		display: block;
-		padding: 0.5em 1em;
-		border: 1px solid #bebab0;
-	}
 	</style>
 
 </head>
 <body>
+<!-- <script src="lib/prism.js"></script> -->
+
 <div class="page">
-	<h1>Origami Crease Patterns</h1>
+	<h1><a href="#">Origami Crease Patterns</a></h1>
 	<p>are <a href="https://en.wikipedia.org/wiki/Planar_graph">planar graphs</a>, a type of <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">mathematical graph</a>: a collection of creases defined by endpoints.</p>
-	<div id="containerIntro" class="centered"></div>
-	<pre class="centered"><code>var graph = new Graph()
-graph.fishBase()</code></pre>
-	<h1>Planar Graph</h1>
-	<p>A square of paper is a unit square. length 0.0 to 1.0. origin at the corner.</p>
+	<div id="containerIntro" class="centered p5sketch"></div>
+	<pre class="centered language-javascript"><code class="language-javascript"><span class="token keyword">var</span> graph = <span class="token keyword">new</span> PlanarGraph()
+graph.<span class="token function">fishBase</span>()</code></pre>
+<section id="planar-graph">
+	<h1><a href="#planar-graph">Planar Graph</a></h1>
+	<p>A square of paper is a unit square. length 0.0 to 1.0. origin at the corner. in computer graphics the top left corner is 0,0. in math often it's the bottom left. choose what you like. i'm not here to establish any arbitrary standards.</p>
 	<h1>Generate Creases</h1>
 	<p>add creases by adding their endpoints or add a crease using an existing crease for positioning.
-	<div class="third" id="divTest01"></div><div class="third" id="divTest02"></div><div class="third" id="divTest03"></div>
-	<pre class="centered"><code>
-<span id="spanAddEdge1">graph.addEdgeWithVertices( x1, y1, x2, y2 )</span>    //(float, float, float, float)
-<span id="spanAddEdge2">graph.addEdgeFromVertex( firstNodeIndex, x, y )</span>    //(uint, float, float)
-<span id="spanAddEdge3">graph.addEdgeFromVertex( lastNodeIndex, x, y )</span>    //(uint, float, float)</code></pre>
-	<h1>Intersections</h1>
-	<div class="centered" id="divTest04"></div>
-	<pre class="centered"><code>graph.getAllEdgeIntersections()</code></pre>
+	<div class="third p5sketch" id="divTest01"></div><div class="third p5sketch" id="divTest02"></div><div class="third p5sketch" id="divTest03"></div>
+	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanAddEdge1">graph.<span class="token function">addEdgeWithVertices</span>( x1, y1, x2, y2 )</span>    <span class="token comment">//(float, float, float, float)</span>
+<span id="spanAddEdge2">graph.<span class="token function">addEdgeFromVertex</span>( firstNodeIndex, x, y )</span>    <span class="token comment">//(uint, float, float)</span>
+<span id="spanAddEdge3">graph.<span class="token function">addEdgeFromVertex</span>( lastNodeIndex, x, y )</span>    <span class="token comment">//(uint, float, float)</span></code></pre>
+</section>
+<section id="intersections">
+	<h1><a href="#intersections">Intersections</a></h1>
+	<div class="centered p5sketch" id="divTest04"></div>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getAllEdgeIntersections</span>()</code></pre>
 	<h1>Chopping</h1>
-	<div class="half" id="divTest05"></div><div class="half" id="divTest05b"></div>
+	<div class="half p5sketch" id="divTest05"></div><div class="half p5sketch" id="divTest05b"></div>
 	<p class="quote">press and hold</p>
-	<pre class="centered"><code>graph.chopAtIntersections()</code></pre>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">chopAtIntersections</span>()</code></pre>
 	<p>Avoid crossing lines. Get the the X &amp; Y of the intersection:</p>
-	<pre class="centered"><code>graph.edgesIntersect(<span id="spanEdgeIntersect1"> edge1</span>,<span id="spanEdgeIntersect2"> edge2 </span>)</code></pre>
-	<h1>Select</h1>
-	<div class="third" id="divTest06"></div><div class="third" id="divTest07"></div><div class="third" id="divTest08"></div>
-	<pre class="centered"><code>
-graph.getNearestNode( <span id="spanNearest1MouseX">x</span>, <span id="spanNearest1MouseY">y</span> )
-graph.getNearestEdge( <span id="spanNearest2MouseX">x</span>, <span id="spanNearest2MouseY">y</span> )
-graph.getNearestFace( <span id="spanNearest3MouseX">x</span>, <span id="spanNearest3MouseY">y</span> )
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">edgesIntersect</span>(<span class="token argument" id="spanEdgeIntersect1"> edge1</span>,<span class="token argument" id="spanEdgeIntersect2"> edge2 </span>)</code></pre>
+</section>
+<section id="interaction">
+	<h1><a href="#interaction">Select</a></h1>
+	<div class="third p5sketch" id="divTest06"></div><div class="third p5sketch" id="divTest07"></div><div class="third p5sketch" id="divTest08"></div>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getNearestNode</span>( <span class="token argument" id="spanNearest1MouseX">x</span>, <span class="token argument" id="spanNearest1MouseY">y</span> )
+graph.<span class="token function">getNearestEdge</span>( <span class="token argument" id="spanNearest2MouseX">x</span>, <span class="token argument" id="spanNearest2MouseY">y</span> )
+graph.<span class="token function">getNearestFace</span>( <span class="token argument" id="spanNearest3MouseX">x</span>, <span class="token argument" id="spanNearest3MouseY">y</span> )
 </code></pre>
-	<h1>Find Faces</h1>
-	<div class="centered" id="divTest10"></div>
-	<pre class="centered"><code>graph.generateFaces()  // from early code, finds duplicates</code></pre>
+</section>
+<section id="faces">
+	<h1><a href="#faces">Find Faces</a></h1>
+	<div class="centered p5sketch" id="divTest10"></div>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">generateFaces</span>()  <span class="token comment">// from early code, finds duplicates<span></code></pre>
 	<h1>Clockwise</h1>
-	<div class="centered" id="divTest09"></div>
-	<pre class="centered"><code>graph.getClockwiseNeighbor( nodeIndex, nodePrime )</code></pre>
-	<pre class="centered"><code>graph.getClockwiseConnectedNodesSorted( nodeIndex )</code></pre>
+	<div class="centered p5sketch" id="divTest09"></div>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getClockwiseNeighbor</span>( <span class="token argument">nodeIndex</span>, <span class="token argument">nodePrime</span> )</code></pre>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getClockwiseConnectedNodesSorted</span>( <span class="token argument">nodeIndex</span> )</code></pre>
+</section>
 </div>
 
 <script>

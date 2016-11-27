@@ -1,7 +1,6 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<!-- // <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script> -->
 	<script language="javascript" type="text/javascript" src="../graph.js"></script>
 	<script language="javascript" type="text/javascript" src="../planarGraph.js"></script>
 	<style> body {padding: 0; margin: 0;} </style>
@@ -17,9 +16,8 @@ function fillWithRandom(count){
 	console.log('cleanup');
 	g.cleanup();
 	console.log('testing intersections');
-	var list = g.edgesIntersectingEdges();
+	var list = g.getAllEdgeIntersections();
 	console.log(list);
-	console.log('');
 }
 
 function fillWithSunburst(count){
@@ -39,18 +37,8 @@ function fillWithRope(count){
 	}
 }
 
-
 var g = new PlanarGraph();
-
 fillWithRandom(1000);
-// fillWithSunburst(10);
-
-
-// function draw() { 
-// 	drawCoordinateFrame();
-// 	drawGraphPoints(g);
-// 	drawGraphLines(g);
-// }
 
 </script>
 </body>
