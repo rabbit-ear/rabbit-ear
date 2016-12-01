@@ -43,7 +43,7 @@
 		margin-top:2em;
 		margin-bottom:2em;
 	}
-	h1{ font-size: 400%; -webkit-margin-after: .2em; }
+	h1{ font-size: 400%; -webkit-margin-after: .2em; -webkit-margin-before: .2em; }
 	h2{ font-size: 320%; }
 	h3{ font-size: 260%; }
 	h4{ font-size: 200%; }
@@ -57,8 +57,9 @@
 <!-- <script src="lib/prism.js"></script> -->
 
 <div class="page">
-	<h1><a href="#">Origami Crease Patterns</a></h1>
-	<p>are <a href="https://en.wikipedia.org/wiki/Planar_graph">planar graphs</a>, a type of <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">mathematical graph</a>: a collection of creases defined by endpoints.</p>
+	<p><b>Origami crease patterns</b> are</p>
+	<h1><a href="https://en.wikipedia.org/wiki/Planar_graph">Planar Graphs</a></h1>
+	<p>a type of <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">mathematical graph</a>: a collection of creases defined by endpoints.</p>
 	<div id="containerIntro" class="centered p5sketch"></div>
 	<pre class="centered language-javascript"><code class="language-javascript"><span class="token keyword">var</span> graph = <span class="token keyword">new</span> PlanarGraph()
 graph.<span class="token function">fishBase</span>()</code></pre>
@@ -106,6 +107,7 @@ graph.<span class="token function">getNearestFace</span>( <span class="token arg
 	var introSketch = function(p) {
 		var paperSize = 250;
 		var g = new PlanarGraph();
+		p.wiggle = true;
 		p.reset = function(){
 			g.clear();
 			g.fishBase();
@@ -116,6 +118,7 @@ graph.<span class="token function">getNearestFace</span>( <span class="token arg
 		}
 		p.draw = function() {
 			// update
+		if(p.wiggle){
 			var mag = 0.005;
 			var speed = 0.001;
 			for(var i = 0; i < g.nodes.length; i++){
@@ -133,6 +136,7 @@ graph.<span class="token function">getNearestFace</span>( <span class="token arg
 				if(g.nodes[i].y < 0.0) g.nodes[i].y = 0.0;
 				if(g.nodes[i].y > 1.0) g.nodes[i].y = 1.0;
 			}
+		}
 			// draw
 			p.clear();
 			p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
@@ -157,6 +161,7 @@ graph.<span class="token function">getNearestFace</span>( <span class="token arg
 <script language="javascript" type="text/javascript" src="tests/10_find_faces.js"></script>
 <script>
 	var p500 = new p5(introSketch, 'containerIntro');
+	p500.wiggle = false;
 	var p501 = new p5(test03, 'divTest01');
 	p501.pattern = 0;
 	var p502 = new p5(test03, 'divTest02');

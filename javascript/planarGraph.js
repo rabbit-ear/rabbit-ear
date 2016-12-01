@@ -64,7 +64,7 @@ class PlanarGraph extends Graph{
 		if(index == undefined)
 			return undefined;
 
-		var subArray = this.getAdjacentNodes(index);
+		var subArray = this.getNodesAdjacentToNode(index);
 		if(subArray == undefined)
 			return undefined;
 
@@ -91,7 +91,7 @@ class PlanarGraph extends Graph{
 	}
 
 	getClockwiseConnectedNodesSorted(nodeIndex){
-		var connected = this.getAdjacentNodes(nodeIndex);
+		var connected = this.getNodesAdjacentToNode(nodeIndex);
 		var nodeAngles = {};
 		for(var i = 0; i < connected.length; i++){
 			nodeAngles[ connected[i] ] = Math.atan2(-(this.nodes[nodeIndex].x - this.nodes[ connected[i] ].x),
@@ -114,7 +114,7 @@ class PlanarGraph extends Graph{
 		return sortedNodes;
 	}
 	getClockwiseConnectedNodesAndAngles(nodeIndex){
-		var connected = this.getAdjacentNodes(nodeIndex);
+		var connected = this.getNodesAdjacentToNode(nodeIndex);
 		var nodeAngles = {};
 		for(var i = 0; i < connected.length; i++){
 			nodeAngles[ connected[i] ] = Math.atan2(-(this.nodes[nodeIndex].x - this.nodes[ connected[i] ].x),

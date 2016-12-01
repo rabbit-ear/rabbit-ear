@@ -45,7 +45,7 @@ var test09 = function(p) {
 		// drawGraphPoints(p, g);
 		// drawGraphLines(p, g);
 		for(var i = 0; i < sortedConnectedNodes.length; i++){
-			var edge = g.getEdgeIndexForAdjacentNodes(0, sortedConnectedNodes[i]);
+			var edge = g.getEdgeConnectingNodes(0, sortedConnectedNodes[i]);
 			var color = HSVtoRGB(i/sortedConnectedNodes.length, 1.0, 1.0);
 			p.stroke(color.r, color.g, color.b);
 			p.line(g.nodes[ g.edges[edge].a ].x, g.nodes[ g.edges[edge].a ].y, 
