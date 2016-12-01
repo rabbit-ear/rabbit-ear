@@ -21,6 +21,11 @@ function graphToD3(graph){
 }
 
 function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCallback){
+	// for selection
+	var circles = [];
+	var lines = [];
+	var selected_id = undefined;
+
 	var width = +svg.attr("width");
 	var height = +svg.attr("height");
 	var simulation = d3.forceSimulation()
@@ -36,6 +41,7 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 				  .selectAll("line")
 				  .data(graph.links)
 				  .enter().append("line")
+						  .attr("id", function(d){return d.id;})
 						  .call(d3.drag()
 								  .on("start", edgeMouseDown));
 
@@ -45,6 +51,7 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 				  .data(graph.nodes)
 				  .enter().append("circle")
 						  .attr("r", 20)
+						  .attr("id", function(d){return d.id;})
 						  .call(d3.drag()
 								  .on("start", dragstarted)
 								  .on("drag", dragged)
@@ -57,6 +64,9 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 	simulation.force("link")
 			.links(graph.links)
 
+	circles = svg.selectAll("circle")['_groups'][0];
+	lines = svg.selectAll("line")['_groups'][0];
+
 	function ticked() {
 		link
 			.attr("x1", function(d) { return d.source.x; })
@@ -68,14 +78,31 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 			.attr("cx", function(d) { return d.x; })
 			.attr("cy", function(d) { return d.y; });
 	}
+	function newSelection(id){
+		if(id === selected_id) selected_id = null;
+		else selected_id = id;
+		// color selection
+		// var thisCircle = d3.select(this)['_groups'][0][0];
+		for(var i = 0; i < circles.length; i++){
+			if(selected_id == circles[i].id) circles[i].style.stroke = '#F00';
+			else                             circles[i].style.stroke = '#000';
+		}
+		for(var i = 0; i < lines.length; i++){
+			if(selected_id == lines[i].id) lines[i].style.stroke = '#F00';
+			else                           lines[i].style.stroke = '#000';
+		}
+	}
 	function dragstarted(d) {
+		if(!d3.event.active) simulation.alphaTarget(0.3).restart();
+		d.fx = d.x;
+		d.fy = d.y;
+		// color selection
+		newSelection(d.id);
+		// callback function
 		if(d != undefined){
 			var index = d.id.slice(4);
 			didTouchNodeCallback(parseInt(index));
 		}
-		if(!d3.event.active) simulation.alphaTarget(0.3).restart();
-		d.fx = d.x;
-		d.fy = d.y;
 	}
 	function dragged(d) {
 		d.fx = d3.event.x;
@@ -87,6 +114,8 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 		d.fy = null;
 	}
 	function edgeMouseDown(d){
+		// selection
+		newSelection(d.id);
 		if(d != undefined){
 			var index = d.id.slice(4);
 			didTouchEdgeCallback(parseInt(index));
