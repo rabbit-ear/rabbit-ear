@@ -89,8 +89,6 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 			var index = d.id.slice(4);
 			didTouchNodeCallback(parseInt(index));
 		}
-		// color selection
-		updateSelection(d.id);
 	}
 	function dragged(d) {
 		d.fx = d3.event.x;
@@ -106,31 +104,5 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 			var index = d.id.slice(4);
 			didTouchEdgeCallback(parseInt(index));
 		}
-		// selection
-		updateSelection(d.id);
 	}
-	function updateSelection(id){
-		if(id === selected_id) {selected_id = null; highlighted_id = [];}
-		else selected_id = id;
-		// color selection
-		// var thisCircle = d3.select(this)['_groups'][0][0];
-		for(var i = 0; i < circles.length; i++){
-			if(selected_id == circles[i].id)                 circles[i].style.stroke = '#F00';
-			else if(contains(circles[i].id, highlighted_id)) circles[i].style.stroke = '#00F';
-			else                                             circles[i].style.stroke = '#000';
-		}
-		for(var i = 0; i < lines.length; i++){
-			if(selected_id == lines[i].id)                 lines[i].style.stroke = '#F00';
-			else if(contains(lines[i].id, highlighted_id)) lines[i].style.stroke = '#00F';
-			else                                           lines[i].style.stroke = '#000';
-		}
-	}
-}
-
-function contains(obj, list) {
-	for (var i = 0; i < list.length; i++) {
-		if (list[i] === obj)
-			return true;
-	}
-	return false;
 }

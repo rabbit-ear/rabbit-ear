@@ -122,10 +122,10 @@ class Graph{
 		// if nodes are not connected
 		return undefined;
 	}
-	getEdgesConnectedToNode(nodeIndex){  // uint
+	getEdgesAdjacentToNode(nodeIndex){  // uint
 		var connectedIndices = []; // uint
 		// iterate over all edges, if we find our vertex, add the edge
-		for(var i = 0; i < edges.length; i++){
+		for(var i = 0; i < this.edges.length; i++){
 			if(this.edges[i].a == nodeIndex || this.edges[i].b == nodeIndex)
 				connectedIndices.push(i);
 		}
@@ -133,8 +133,8 @@ class Graph{
 	}
 
 	getEdgesConnectedToEdge(edgeIndex){
-		var connected1 = getEdgesConnectedToNode(this.edges[edgeIndex].a);
-		var connected2 = getEdgesConnectedToNode(this.edges[edgeIndex].b);
+		var connected1 = getEdgesAdjacentToNode(this.edges[edgeIndex].a);
+		var connected2 = getEdgesAdjacentToNode(this.edges[edgeIndex].b);
 		// remove self (edgeIndex) from answer
 		var found = connected1.indexOf(edgeIndex);
 		while(found != -1){
