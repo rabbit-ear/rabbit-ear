@@ -97,11 +97,14 @@ class Graph{
 		}
 		return adjacent;
 	}
+	getNodesAdjacentToEdge(edgeIndex){
+		return [this.edges[edgeIndex].a, this.edges[edgeIndex].b];
+	}
 	getEdgesAdjacentToEdge(edgeIndex){
 		var adjacent = [];
-		for(var i = 0; i < graph.edges.length; i++){
+		for(var i = 0; i < this.edges.length; i++){
 			if(edgeIndex != i){
-				if(graph.areEdgesAdjacent(edgeIndex, i)){
+				if(this.areEdgesAdjacent(edgeIndex, i)){
 					adjacent.push(i);
 				}
 			}
