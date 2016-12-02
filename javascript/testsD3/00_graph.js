@@ -2,8 +2,8 @@ var g = new Graph();
 fillGraph(g, 11);
 
 var d3Graph = graphToD3(g);
-var svgCanvas = d3.select("#svgCanvas");
-makeForceDirectedGraph(d3Graph, svgCanvas, didTouchNode, didTouchEdge);
+var svgCanvas = d3.select("#svgTest00");
+makeForceDirectedGraph(d3Graph, svgCanvas);
 
 function fillGraph(graph, numNodes){
 	var numEdges = numNodes*1.2;
@@ -21,12 +21,4 @@ function fillGraph(graph, numNodes){
 		for(var i = 0; i < numEdges - numNodes; i++)
 			graph.addEdge( {'a':Math.floor(Math.random()*numNodes), 'b':Math.floor(Math.random()*numNodes)} );
 	}
-}
-
-function didTouchNode(index){
-	console.log(index);
-}
-
-function didTouchEdge(index){
-	console.log(index);
 }

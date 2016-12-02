@@ -20,14 +20,14 @@ function graphToD3(graph){
 	return forceGraph;
 }
 
-var circles = [];
-var lines = [];
-var selected_id = undefined;
-var highlighted_id = [];
 
 
 function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCallback){
 	// for selection
+	var circles = [];
+	var lines = [];
+	var selected_id = undefined;
+	var highlighted_id = [];
 
 	var width = +svg.attr("width");
 	var height = +svg.attr("height");
@@ -86,8 +86,13 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 		d.fx = d.x;
 		d.fy = d.y;
 		if(d != undefined){
-			var index = d.id.slice(4);
-			didTouchNodeCallback(parseInt(index));
+			if(d.id === selected_id) {selected_id = undefined; highlighted_id = [];}
+			else selected_id = d.id;
+			var index = undefined;
+			if(selected_id != undefined) 
+				index = parseInt(d.id.slice(4));
+			if(didTouchNodeCallback != undefined)
+				highlighted_id = didTouchNodeCallback(index, circles, lines);
 		}
 	}
 	function dragged(d) {
@@ -101,8 +106,13 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 	}
 	function edgeMouseDown(d){
 		if(d != undefined){
-			var index = d.id.slice(4);
-			didTouchEdgeCallback(parseInt(index));
+			if(d.id === selected_id) {selected_id = undefined; highlighted_id = [];}
+			else selected_id = d.id;
+			var index = undefined;
+			if(selected_id != undefined) 
+				index = parseInt(d.id.slice(4));
+			if(didTouchEdgeCallback != undefined)
+				highlighted_id = didTouchEdgeCallback(index, circles, lines);
 		}
 	}
 }
