@@ -21,31 +21,41 @@ function fillGraph(graph, numNodes){
 		for(var i = 0; i < numEdges - numNodes; i++)
 			graph.addEdge( {'a':Math.floor(Math.random()*numNodes), 'b':Math.floor(Math.random()*numNodes)} );
 	}
+	graph.cleanup();
+	graph.cleanup();
 }
 
 function didTouchNode01(index, circles, links){
 	var highlighted_id = [];
+	var highlighted_indices = [];
 	if(index != undefined){
 		var adjacent = g01.getNodesAdjacentToNode(index);
 		for(var i = 0; i < adjacent.length; i++){
 			var nameString = 'node' + adjacent[i];
 			highlighted_id.push(nameString);
+			highlighted_indices.push(adjacent[i]);
 		}
 	}
 	updateSelection('node' + index, circles, links, highlighted_id);
+	updateNodesAdjacentToNode(index, highlighted_indices);
+	updateNodesAdjacentToEdge(undefined);
 	return highlighted_id;
 }
 
 function didTouchEdge01(index, circles, links){
 	var highlighted_id = [];
+	var highlighted_indices = [];
 	if(index != undefined){
 		var adjacent = g01.getNodesAdjacentToEdge(index);
 		for(var i = 0; i < adjacent.length; i++){
 			var nameString = 'node' + adjacent[i];
 			highlighted_id.push(nameString);
+			highlighted_indices.push(adjacent[i]);
 		}
 	}
 	updateSelection('link' + index, circles, links, highlighted_id);
+	updateNodesAdjacentToEdge(index, highlighted_indices);
+	updateNodesAdjacentToNode(undefined);
 	return highlighted_id;
 }
 

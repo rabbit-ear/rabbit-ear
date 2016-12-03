@@ -41,7 +41,8 @@ class Graph{
 	}
 
 	// removes any duplicate edges (edges containing the same nodes)
-	cleanup(){
+	cleanup(){   // should it be called "clean()" ?
+	// BUG: calling cleanup twice cleans it more ... ?
 		var i = 0;
 		while(i < this.edges.length-1){
 			var j = i+1;

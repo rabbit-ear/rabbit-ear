@@ -1,0 +1,241 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script language="javascript" type="text/javascript" src="lib/jquery-3.1.1.min.js"></script>
+	<script language="javascript" type="text/javascript" src="lib/jquery-ui.min.js"></script>
+<script>
+	$( function() {
+		$( ".accordion" ).accordion({
+			active: false,
+			collapsible: true
+		});
+	} );
+  </script>
+	<script src="lib/d3.min.js"></script>
+	<script language="javascript" type="text/javascript" src="graph.js"></script>
+	<script language="javascript" type="text/javascript" src="testsD3/d3.graph.js"></script>
+	<link href="lib/prism.css" rel="stylesheet" />
+	<style> 
+
+	body {padding: 0; margin: 0;} 
+	a:link { color: black; text-decoration: none; font-weight: bold;}
+	a:visited { color: black; text-decoration: none; font-weight: bold;}
+	a:hover { color: black; text-decoration: underline; font-weight: bold;}
+	a:active { color: black; text-decoration: none; font-weight: bold;}
+	.centered{
+		width: 100%;
+		text-align: center;
+		display:inline-block;
+	}
+	.half{
+		width: 50%;
+		text-align: center;
+		display:inline-block;
+	}
+	.third{
+		width: 33%;
+		text-align: center;
+		display:inline-block;
+	}
+	.page{
+		margin:2em;
+	}
+	.quote, .quoteauthor{
+		text-align:center;
+		font-style: italic;
+	}
+	.quoteauthor{
+		font-weight: bold;
+	}
+	h1{ font-size: 400%; -webkit-margin-after: .2em; -webkit-margin-before: .2em; }
+	h2{ font-size: 320%; }
+	h3{ font-size: 260%; }
+	h4{ font-size: 200%; }
+	h5{ font-size: 150%; }
+	p{ font-size: 180%; }
+
+pre[class*="language-"] {
+	margin: auto;
+    margin-top: 1em;
+    margin-bottom:1em;
+    max-width:500px;
+    /*min-width:300px;*/
+}
+
+button:focus {outline:0;}
+
+		.links line {
+			stroke: #000;
+			stroke-width: 4px;
+			cursor: pointer;
+		}
+		.nodes circle {
+			stroke: #000;
+			fill: #FFF;
+			stroke-width: 4px;
+			cursor: pointer;
+		}
+
+	</style>
+
+ <style>
+  .ui-accordion .ui-accordion-header {
+    display: block;
+    cursor: pointer;
+    position: relative;
+    margin: 2px 0 0 0;
+    padding: .5em .5em .5em .7em;
+    font-size: 150%;
+    font-style: italic;
+    color:#888;
+    font-weight: bold;
+    outline: 0;
+}
+.ui-accordion .ui-accordion-content {
+    padding: 1em;
+    background: #f6f6f6;
+    border-top: 0;
+    overflow: auto;
+    font-size: 80%;
+}
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
+    /*border: 1px solid #c5c5c5;*/
+    background: #f6f6f6;
+}
+</style>
+
+</head>
+<body>
+
+<div class="page">
+
+<section id="graph">
+	<h1>Graphs</h1>
+<div class="accordion">
+	<h3>INSTRUCTIONS</h3>
+	<div>
+		<p>Graphs are a collection of <em>nodes</em> connected by <em>edges</em> (circles connected by lines).</p>
+		<p>Nodes and edges are able to represent anything, but edges must also store the 2 nodes that they connect.</p>
+		<p>Nodes and edges are both stored in arrays. The array that holds the nodes doesn't shuffle around often, because the edges store the indices of the nodes in the node array.</p>
+	</div>
+</div>	
+<div class="centered">
+	<pre class="centered language-javascript"><code class="language-javascript"><span class="token keyword">var</span> graph = <span class="token keyword">new</span> Graph()</code></pre>
+</div>
+<svg id="svgTest00" width="960" height="400"></svg>
+</section>
+
+<section id="adjacent-nodes">
+	<h1><a href="#adjacent-nodes">Get Nodes</a></h1>
+<div class="accordion">
+	<h3>INSTRUCTIONS</h3>
+	<div>
+		<p>To get all the nodes, access the <i>.nodes</i> property of the graph. To get certain nodes based on adjacency, use either <i>getNodesAdjacentToNode</i> or <i>getNodesAdjacentToEdge</i>.</p>
+		<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Nodes are adjacent when they are connected by an edge.</p>
+	</div>
+</div>
+<div class="centered">
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">nodes</span>;  <span class="token comment">// array</span></code></pre>
+</div>
+<div class="centered">
+	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNodesAdjacentToNodeResult"></span>graph.<span class="token function">getNodesAdjacentToNode</span>(<span id="spanNodesAdjacentToNodeInput"></span>)
+<span id="spanNodesAdjacentToEdgeResult"></span>graph.<span class="token function">getNodesAdjacentToEdge</span>(<span id="spanNodesAdjacentToEdgeInput"></span>)</code></pre>
+</div>
+	<svg id="svgTest01" width="960" height="400"></svg>
+</section>
+
+<section id="adjacent-edges">
+	<h1><a href="#adjacent-nodes">Get Edges</a></h1>
+<div class="accordion">
+	<h3>INSTRUCTIONS</h3>
+	<div>
+		<p>To get all the edges, access the <i>.edges</i> property of the graph. To get certain edges based on adjacency, use either <i>getEdgesAdjacentToNode</i> or <i>getEdgesAdjacentToEdge</i>.</p>
+		<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Two edges are adjacent when they are both connected to the same node.</p>
+	</div>
+</div>
+<div class="centered">
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">edges</span>;  <span class="token comment">// array</span></code></pre>
+</div>
+<div class="centered">
+	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">getEdgesAdjacentToNode</span>(<span id="spanEdgesAdjacentToNodeInput"></span>)
+<span id="spanEdgesAdjacentToEdgeResult"></span>graph.<span class="token function">getEdgesAdjacentToEdge</span>(<span id="spanEdgesAdjacentToEdgeInput"></span>)</code></pre>
+</div>
+	<svg id="svgTest02" width="960" height="400"></svg>
+</section>
+</div>
+
+<script language="javascript" type="text/javascript" src="testsD3/00_graph.js"></script>
+<script language="javascript" type="text/javascript" src="testsD3/01_adjacentNode.js"></script>
+<script language="javascript" type="text/javascript" src="testsD3/02_adjacentEdge.js"></script>
+
+	<script>
+
+	function updateNodesAdjacentToNode(input, output){
+		var outString = '[' + output + '] ← ';
+		if(input == undefined) { input = ''; outString = ''; }
+		$("#spanNodesAdjacentToNodeInput").html(input);
+		$("#spanNodesAdjacentToNodeResult").html(outString);
+	}
+	function updateNodesAdjacentToEdge(input, output){
+		var outString = '[' + output + '] ← ';
+		if(input == undefined) { input = ''; outString = ''; }
+		$("#spanNodesAdjacentToEdgeInput").html(input);
+		$("#spanNodesAdjacentToEdgeResult").html(outString);
+	}
+	function updateEdgesAdjacentToNode(input, output){
+		var outString = '[' + output + '] ← ';
+		if(input == undefined) { input = ''; outString = ''; }
+		$("#spanEdgesAdjacentToNodeInput").html(input);
+		$("#spanEdgesAdjacentToNodeResult").html(outString);
+	}
+	function updateEdgesAdjacentToEdge(input, output){
+		var outString = '[' + output + '] ← ';
+		if(input == undefined) { input = ''; outString = ''; }
+		$("#spanEdgesAdjacentToEdgeInput").html(input);
+		$("#spanEdgesAdjacentToEdgeResult").html(outString);
+	}
+
+	// 	$("#spanAddEdge1").mouseenter(function(){ p501.setHighlight(true); })
+	// 	                  .mouseleave(function(){ p501.setHighlight(false); });
+	// 	$("#spanAddEdge2").mouseenter(function(){ p502.setHighlight(true); })
+	// 	                  .mouseleave(function(){ p502.setHighlight(false); });
+	// 	$("#spanAddEdge3").mouseenter(function(){ p503.setHighlight(true); })
+	// 	                  .mouseleave(function(){ p503.setHighlight(false); });
+	// 	$("#spanEdgeIntersect1").mouseenter(function(){ p505.setHighlight1(true); })
+	// 	                        .mouseleave(function(){ p505.setHighlight1(false); });
+	// 	$("#spanEdgeIntersect2").mouseenter(function(){ p505.setHighlight2(true); })
+	// 	                        .mouseleave(function(){ p505.setHighlight2(false); });
+
+	// p506.mouseMovedCallback = function(x,y){
+	// 	if(x == undefined || y == undefined){
+	// 		$("#spanNearest1MouseX").html('x');
+	// 		$("#spanNearest1MouseY").html('y');
+	// 	}else{
+	// 		$("#spanNearest1MouseX").html(x.toFixed(2));
+	// 		$("#spanNearest1MouseY").html(y.toFixed(2));
+	// 	}
+	// };
+	// p507.mouseMovedCallback = function(x,y){
+	// 	if(x == undefined || y == undefined){
+	// 		$("#spanNearest2MouseX").html('x');
+	// 		$("#spanNearest2MouseY").html('y');
+	// 	}else{
+	// 		$("#spanNearest2MouseX").html(x.toFixed(2));
+	// 		$("#spanNearest2MouseY").html(y.toFixed(2));
+	// 	}
+	// };
+	// p508.mouseMovedCallback = function(x,y){
+	// 	if(x == undefined || y == undefined){
+	// 		$("#spanNearest3MouseX").html('x');
+	// 		$("#spanNearest3MouseY").html('y');
+	// 	}else{
+	// 		$("#spanNearest3MouseX").html(x.toFixed(2));
+	// 		$("#spanNearest3MouseY").html(y.toFixed(2));
+	// 	}
+	// };
+
+	</script>
+	
+
+</body>
+</html>
