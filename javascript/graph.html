@@ -123,6 +123,10 @@ button:focus {outline:0;}
 	<pre class="centered language-javascript"><code class="language-javascript"><span class="token keyword">var</span> graph = <span class="token keyword">new</span> Graph()</code></pre>
 </div>
 <svg id="svgTest00" width="960" height="400"></svg>
+<div class="centered">
+	<pre class="centered language-javascript"><code class="language-javascript">console.</span><span class="token function">log</span>(<span class="token argument">graph</span>)
+<span id="spanGraphContents" class="token comment"></span></code></pre>
+</div>
 </section>
 
 <section id="adjacent-nodes">
@@ -138,8 +142,8 @@ button:focus {outline:0;}
 	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">nodes</span>;  <span class="token comment">// array</span></code></pre>
 </div>
 <div class="centered">
-	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNodesAdjacentToNodeResult"></span>graph.<span class="token function">getNodesAdjacentToNode</span>(<span id="spanNodesAdjacentToNodeInput"></span>)
-<span id="spanNodesAdjacentToEdgeResult"></span>graph.<span class="token function">getNodesAdjacentToEdge</span>(<span id="spanNodesAdjacentToEdgeInput"></span>)</code></pre>
+	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNodesAdjacentToNodeResult"></span>graph.<span class="token function">getNodesAdjacentToNode</span>(<span id="spanNodesAdjacentToNodeInput" class="token argument"></span>)
+<span id="spanNodesAdjacentToEdgeResult"></span>graph.<span class="token function">getNodesAdjacentToEdge</span>(<span id="spanNodesAdjacentToEdgeInput" class="token argument"></span>)</code></pre>
 </div>
 	<svg id="svgTest01" width="960" height="400"></svg>
 </section>
@@ -157,8 +161,8 @@ button:focus {outline:0;}
 	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">edges</span>;  <span class="token comment">// array</span></code></pre>
 </div>
 <div class="centered">
-	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">getEdgesAdjacentToNode</span>(<span id="spanEdgesAdjacentToNodeInput"></span>)
-<span id="spanEdgesAdjacentToEdgeResult"></span>graph.<span class="token function">getEdgesAdjacentToEdge</span>(<span id="spanEdgesAdjacentToEdgeInput"></span>)</code></pre>
+	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">getEdgesAdjacentToNode</span>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)
+<span id="spanEdgesAdjacentToEdgeResult"></span>graph.<span class="token function">getEdgesAdjacentToEdge</span>(<span id="spanEdgesAdjacentToEdgeInput" class="token argument"></span>)</code></pre>
 </div>
 	<svg id="svgTest02" width="960" height="400"></svg>
 </section>
@@ -171,25 +175,25 @@ button:focus {outline:0;}
 	<script>
 
 	function updateNodesAdjacentToNode(input, output){
-		var outString = '[' + output + '] ← ';
+		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }
 		$("#spanNodesAdjacentToNodeInput").html(input);
 		$("#spanNodesAdjacentToNodeResult").html(outString);
 	}
 	function updateNodesAdjacentToEdge(input, output){
-		var outString = '[' + output + '] ← ';
+		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }
 		$("#spanNodesAdjacentToEdgeInput").html(input);
 		$("#spanNodesAdjacentToEdgeResult").html(outString);
 	}
 	function updateEdgesAdjacentToNode(input, output){
-		var outString = '[' + output + '] ← ';
+		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }
 		$("#spanEdgesAdjacentToNodeInput").html(input);
 		$("#spanEdgesAdjacentToNodeResult").html(outString);
 	}
 	function updateEdgesAdjacentToEdge(input, output){
-		var outString = '[' + output + '] ← ';
+		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }
 		$("#spanEdgesAdjacentToEdgeInput").html(input);
 		$("#spanEdgesAdjacentToEdgeResult").html(outString);

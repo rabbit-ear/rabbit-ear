@@ -11,7 +11,7 @@ function fillGraph(graph, numNodes){
 	for(var i = 0; i < numNodes; i++) graph.addNode(i);
 	for(var i = 0; i < graph.nodes.length; i++){
 		// inverse relationship to scramble edges# with node#
-		var first = parseInt(i);//parseInt(graph.nodes.length-1-i);
+		var first = parseInt(graph.nodes.length-1-i);
 		var match;
 		do{ match = Math.floor(Math.random()*graph.nodes.length);
 		} while(match == first);
