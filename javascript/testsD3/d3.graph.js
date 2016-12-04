@@ -20,9 +20,7 @@ function graphToD3(graph){
 	return forceGraph;
 }
 
-
-
-function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCallback, didTouchNodeEditNodesCallback, didTouchLinksEditLinksCallback){
+function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCallback, touchNodeToRemoveNode, touchLinkToRemoveLink){
 	// for selection
 	var circles = [];
 	var lines = [];
@@ -93,8 +91,20 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 				index = parseInt(d.id.slice(4));
 			if(didTouchNodeCallback != undefined)
 				highlighted_id = didTouchNodeCallback(index, circles, lines);
-			if(didTouchNodeEditNodesCallback != undefined)
-				graph.nodes = didTouchNodeEditNodesCallback(index, graph.nodes, circles);
+			if(touchNodeToRemoveNode){
+				// remove edges that touch node
+				for(var i = graph.links.length-1; i >= 0; i--){
+					if(graph.links[i].source.id == d.id || graph.links[i].target.id == d.id)
+						graph.links.splice(i, 1);
+				}
+				// remove node upon touching
+				var foundIndex = undefined;
+				for(var i = 0; i < graph.nodes.length; i++){
+					if(graph.nodes[i].id == d.id) foundIndex = i;
+				}
+				if(foundIndex != undefined) graph.nodes.splice(foundIndex, 1);
+				restart();
+			}
 		}
 	}
 	function dragged(d) {
@@ -115,26 +125,15 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 				index = parseInt(d.id.slice(4));
 			if(didTouchEdgeCallback != undefined)
 				highlighted_id = didTouchEdgeCallback(index, circles, lines);
-			if(didTouchLinksEditLinksCallback != undefined){
-				console.log(d.id);
-				console.log(graph.links);
+			if(touchLinkToRemoveLink){
+				// remove link upon touching
 				var foundIndex = undefined;
 				for(var i = 0; i < graph.links.length; i++){
-					if(graph.links[i].id == d.id){
-						foundIndex = i;
-					}
+					if(graph.links[i].id == d.id) foundIndex = i;
 				}
-				if(foundIndex != undefined){
-					graph.links.splice(foundIndex, 1);
-				}
-
-				// var index = graph.links.indexOf(d.id);
-				// console.log(index);
-				// graph.links.splice(index,1);
-				// graph.links = didTouchLinksEditLinksCallback(index, graph.links, lines);
+				if(foundIndex != undefined) graph.links.splice(foundIndex, 1);
+				restart();
 			}
-			restart();
-			console.log(graph);
 		}
 	}
 

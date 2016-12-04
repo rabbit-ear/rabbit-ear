@@ -166,11 +166,49 @@ button:focus {outline:0;}
 </div>
 	<svg id="svgTest02" width="960" height="400"></svg>
 </section>
+
+
+
+
+<section id="remove-nodes">
+	<h1><a href="#remove-nodes">Remove Nodes</a></h1>
+<div class="accordion">
+	<h3>INSTRUCTIONS</h3>
+	<div>
+		<p>When removing a node, any edges which share the node get removed along with it.</p>
+	</div>
 </div>
+<div class="centered">
+	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">removeNode</span>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)</code></pre>
+</div>
+	<svg id="svgTest03" width="960" height="400"></svg>
+</section>
+
+
+
+<section id="remove-edges">
+	<h1><a href="#remove-edges">Remove Edges</a></h1>
+<div class="accordion">
+	<h3>INSTRUCTIONS</h3>
+	<div>
+		<p>Removing an edge simply removes that edge, any attached nodes will remain untouched.</p>
+	</div>
+</div>
+<div class="centered">
+	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">removeEdge</span>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)</code></pre>
+</div>
+	<svg id="svgTest04" width="960" height="400"></svg>
+</section>
+
+
+</div>
+
 
 <script language="javascript" type="text/javascript" src="testsD3/00_graph.js"></script>
 <script language="javascript" type="text/javascript" src="testsD3/01_adjacentNode.js"></script>
 <script language="javascript" type="text/javascript" src="testsD3/02_adjacentEdge.js"></script>
+<script language="javascript" type="text/javascript" src="testsD3/03_removeNode.js"></script>
+<script language="javascript" type="text/javascript" src="testsD3/04_removeEdge.js"></script>
 
 	<script>
 
