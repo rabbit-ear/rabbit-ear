@@ -22,7 +22,7 @@ function graphToD3(graph){
 
 
 
-function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCallback){
+function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCallback, didTouchNodeEditNodesCallback, didTouchLinksEditLinksCallback){
 	// for selection
 	var circles = [];
 	var lines = [];
@@ -93,6 +93,8 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 				index = parseInt(d.id.slice(4));
 			if(didTouchNodeCallback != undefined)
 				highlighted_id = didTouchNodeCallback(index, circles, lines);
+			if(didTouchNodeEditNodesCallback != undefined)
+				graph.nodes = didTouchNodeEditNodesCallback(index, graph.nodes, circles);
 		}
 	}
 	function dragged(d) {
@@ -113,6 +115,44 @@ function makeForceDirectedGraph(graph, svg, didTouchNodeCallback, didTouchEdgeCa
 				index = parseInt(d.id.slice(4));
 			if(didTouchEdgeCallback != undefined)
 				highlighted_id = didTouchEdgeCallback(index, circles, lines);
+			if(didTouchLinksEditLinksCallback != undefined){
+				console.log(d.id);
+				console.log(graph.links);
+				var foundIndex = undefined;
+				for(var i = 0; i < graph.links.length; i++){
+					if(graph.links[i].id == d.id){
+						foundIndex = i;
+					}
+				}
+				if(foundIndex != undefined){
+					graph.links.splice(foundIndex, 1);
+				}
+
+				// var index = graph.links.indexOf(d.id);
+				// console.log(index);
+				// graph.links.splice(index,1);
+				// graph.links = didTouchLinksEditLinksCallback(index, graph.links, lines);
+			}
+			restart();
+			console.log(graph);
 		}
 	}
+
+	function restart() {
+		// Apply the general update pattern to the nodes.
+		node = node.data(graph.nodes, function(d) { return d.id;});
+		node.exit().remove();
+		node = node.enter().append("circle").attr("fill", function(d) { return color(d.id); }).attr("r", 8).merge(node);
+
+		// Apply the general update pattern to the links.
+		link = link.data(graph.links, function(d) { return d.source.id + "-" + d.target.id; });
+		link.exit().remove();
+		link = link.enter().append("line").merge(link);
+
+		// Update and restart the simulation.
+		simulation.nodes(graph.nodes);
+		simulation.force("link").links(graph.links);
+		simulation.alpha(1).restart();
+	}
+
 }

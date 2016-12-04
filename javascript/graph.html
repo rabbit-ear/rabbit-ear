@@ -115,8 +115,8 @@ button:focus {outline:0;}
 	<h3>INSTRUCTIONS</h3>
 	<div>
 		<p>Graphs are a collection of <em>nodes</em> connected by <em>edges</em> (circles connected by lines).</p>
-		<p>Nodes and edges are able to represent anything, but edges must also store the 2 nodes that they connect.</p>
-		<p>Nodes and edges are both stored in arrays. The array that holds the nodes doesn't shuffle around often, because the edges store the indices of the nodes in the node array.</p>
+		<p>On their own, nodes and edges store properties of the particular thing they represent, but edges must also always store the 2 nodes that they connect.</p>
+		<p>Nodes and edges are both stored in arrays, and each edge is an array of 2 numbers: the indices of the 2 nodes (in the node array) it connects.</p>
 	</div>
 </div>	
 <div class="centered">

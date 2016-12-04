@@ -30,26 +30,44 @@ class Graph{
 		var found = false;
 		var i = 0;
 		while(i < this.edges.length){
+			var didRemove = false;
 			if( (this.edges[i].a == nodeIndex1 && this.edges[i].b == nodeIndex2) || 
 				(this.edges[i].a == nodeIndex2 && this.edges[i].b == nodeIndex1) ){
 				this.edges.splice(i, 1);
+				didRemove = true;
 				found = true;
 			}
-			i++;
+			if(!didRemove) i++;
 		}
 		return found;
 	}
 
+	removeNode(nodeIndex){
+		this.nodes.splice(nodeIndex, 1);
+		var i = 0;
+		while(i < this.edges.length){
+			var didRemove = false;
+			if( this.edges[i].a == nodeIndex || this.edges[i].b == nodeIndex ){
+				this.edges.splice(i, 1);
+				didRemove = true;
+			}
+			if(!didRemove) i++;
+		}		
+	}
+
+	removeEdge(edgeIndex){
+		this.edges.splice(edgeIndex, 1);
+	}
+
 	// removes any duplicate edges (edges containing the same nodes)
 	cleanup(){   // should it be called "clean()" ?
-	// BUG: calling cleanup twice cleans it more ... ?
 		var i = 0;
 		while(i < this.edges.length-1){
-			var j = i+1;
+			var j = 0;//i+1;
 			while(j < this.edges.length){
 				// nested loop, compare every edge with every edge
 				var didRemove = false;
-				if ( this.areEdgesSimilar(i, j) ){
+				if ( i!=j && this.areEdgesSimilar(i, j) ){
 					// if edges are comprised of the same vertices (in any order)
 					this.edges.splice(j, 1);
 					didRemove = true;
@@ -57,9 +75,7 @@ class Graph{
 				// only iterate forward if we didn't remove an element
 				//   if we did, it basically iterated forward for us, repeat the same 'j'
 				// this is also possible because we know that j is always greater than i
-				if(!didRemove){
-					j+=1;
-				}
+				if(!didRemove) j++;
 			}
 			i+=1;
 		}
