@@ -59,15 +59,22 @@ class Graph{
 		this.edges.splice(edgeIndex, 1);
 	}
 
-	// removes any duplicate edges (edges containing the same nodes)
 	cleanup(){   // should it be called "clean()" ?
+		// remove circular edges (a node connecting to itself)
+		for(var i = this.edges.length-1; i >= 0; i--){
+			if(this.edges[i].a == this.edges[i].b)
+				this.edges.splice(i,1);
+		}
+
+		// remove any duplicate edges (edges containing the same nodes)
 		var i = 0;
-		while(i < this.edges.length-1){
-			var j = 0;//i+1;
+		while(i < this.edges.length){
+			var j = i+1;
 			while(j < this.edges.length){
 				// nested loop, compare every edge with every edge
 				var didRemove = false;
-				if ( i!=j && this.areEdgesSimilar(i, j) ){
+				if ( this.areEdgesSimilar(i, j) ){
+					console.log("cleanup(): found similar edges, removing last " + i + '(' + this.edges[i].a + ' ' + this.edges[i].b + ') ' + j + '(' + this.edges[j].a + ' ' + this.edges[j].b + ') ' );
 					// if edges are comprised of the same vertices (in any order)
 					this.edges.splice(j, 1);
 					didRemove = true;

@@ -41,13 +41,38 @@ var test05b = function(p){
 	}
 
 	function chop(){
+		console.log('chopping, Edge count: ' + g.edges.length);
+		g.cleanup();
+		intersections = g.getAllEdgeIntersectionsDetailed();
+		console.log(intersections);
+		for(var i = 0 ; i < intersections.length; i++){
+			var node1a = intersections[i]['edge1NodeA'];
+			var node1b = intersections[i]['edge1NodeB'];
+			var node2a = intersections[i]['edge2NodeA'];
+			var node2b = intersections[i]['edge2NodeB'];
+			g.removeEdgeBetween(node1a, node1b);
+			g.removeEdgeBetween(node2a, node2b);
+			g.addNode(intersections[i].location);
+			g.addEdgeFromExistingVertices(g.nodes.length-1, node1a);
+			g.addEdgeFromExistingVertices(g.nodes.length-1, node1b);
+			g.addEdgeFromExistingVertices(g.nodes.length-1, node2a);
+			g.addEdgeFromExistingVertices(g.nodes.length-1, node2b);
+		}
+		g.cleanup();
+		intersections = [];
+		console.log('done, new Edge count: ' + g.edges.length);
+	}
+
+	function chopOld(){
 		g.cleanup();
 		console.log('chopping, Edge count: ' + g.edges.length);
 		// we're going to be iterating and removing elements at the same time (!)
 		// we will remove edges. we only add to nodes array. nodes indices are preserved.
 		intersections = g.getAllEdgeIntersectionsDetailed();
+		console.log(intersections);
 		var iterations = 0;
 		while(intersections != undefined && intersections.length > 0){
+			console.log('++++');
 			var i = 0
 			var node1a = intersections[i]['edge1NodeA'];
 			var node1b = intersections[i]['edge1NodeB'];
@@ -67,7 +92,9 @@ var test05b = function(p){
 			}
 			
 			iterations += 1;
+			console.log(g);
 			g.cleanup();
+			console.log(g);
 			intersections = g.getAllEdgeIntersectionsDetailed();
 			if(intersections.length > 300) {
 				console.log(intersections);
@@ -157,7 +184,7 @@ var test05b = function(p){
 	}
 
 	p.mouseReleased = function(){
-		reset();
+		// reset();
 	}
 
 	p.mousePressed = function(){

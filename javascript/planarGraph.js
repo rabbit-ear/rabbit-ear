@@ -1,3 +1,4 @@
+"use strict";
 // for purposes of modeling origami crease patterns
 //
 // this is a planar graph data structure containing edges and vertices
@@ -6,6 +7,9 @@
 
 var USER_TAP_EPSILON = 0.01;
 var VERTEX_DUPLICATE_EPSILON = 0.003;
+var SLOPE_ANGLE_PLACES = 2;
+var SLOPE_ANGLE_EPSILON = 1 * Math.pow(10,-SLOPE_ANGLE_PLACES);
+var SLOPE_ANGLE_INF_EPSILON = 1 * Math.pow(10,SLOPE_ANGLE_PLACES);
 
 // this graph represents an origami crease pattern
 //    with creases (edges) defined by their endpoints (vertices)
@@ -462,8 +466,15 @@ class PlanarGraph extends Graph{
 	}
 
 	lineSegmentIntersectionAlgorithm(p0, p1, p2, p3) {
-		// do not call this directly, call one of the doEdgesIntersect functions
-
+		var slope1 = (p1.y-p0.y)/(p1.x-p0.x);
+		var slope2 = (p3.y-p2.y)/(p3.x-p2.x);
+		if( (Math.abs(slope1) == Infinity && Math.abs(slope2) > SLOPE_ANGLE_INF_EPSILON) ||
+			(Math.abs(slope2) == Infinity && Math.abs(slope1) > SLOPE_ANGLE_INF_EPSILON) ){
+			return undefined;
+		}
+		if( (slope1 == Infinity && slope2 == Infinity) || Math.abs(slope1 - slope2) < SLOPE_ANGLE_EPSILON ){
+			return undefined;
+		}
 		var s02 = {'x':0, 'y':0};
 		var s10 = {'x':0, 'y':0};
 		var s32 = {'x':0, 'y':0};
