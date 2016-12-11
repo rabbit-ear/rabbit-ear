@@ -1,8 +1,11 @@
 <html>
 <head>
-	<meta charset="UTF-8">
-	<script language="javascript" type="text/javascript" src="lib/jquery-3.1.1.min.js"></script>
-	<script language="javascript" type="text/javascript" src="lib/jquery-ui.min.js"></script>
+<meta charset="UTF-8">
+<script language="javascript" type="text/javascript" src="graph.js"></script>
+<script language="javascript" type="text/javascript" src="lib/jquery-3.1.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="lib/jquery-ui.min.js"></script>
+<script language="javascript" type="text/javascript" src="lib/d3.min.js"></script>
+<script language="javascript" type="text/javascript" src="testsD3/d3.graph.js"></script>
 <script>
 	$( function() {
 		$( ".accordion" ).accordion({
@@ -10,14 +13,24 @@
 			collapsible: true
 		});
 	} );
-  </script>
-	<script src="lib/d3.min.js"></script>
-	<script language="javascript" type="text/javascript" src="graph.js"></script>
-	<script language="javascript" type="text/javascript" src="testsD3/d3.graph.js"></script>
-	<link href="lib/prism.css" rel="stylesheet" />
-	<style> 
+</script>
 
-	body {padding: 0; margin: 0;} 
+<link href="https://fonts.googleapis.com/css?family=Merriweather:400,700" rel="stylesheet">
+<link href="lib/prism.css" rel="stylesheet" />
+<style> 
+	pre[class*="language-"] {
+		margin-top: 1em;
+		margin-bottom:1em;
+		max-width:500px;
+		/*min-width:300px;*/
+	}
+	button:focus {outline:0;}
+
+	body {
+		font-family: 'Merriweather', Georgia, "Times New Roman", Times, serif;
+		padding: 0;
+		margin:2em;
+	} 
 	a:link { color: black; text-decoration: none; font-weight: bold;}
 	a:visited { color: black; text-decoration: none; font-weight: bold;}
 	a:hover { color: black; text-decoration: underline; font-weight: bold;}
@@ -37,9 +50,6 @@
 		text-align: center;
 		display:inline-block;
 	}
-	.page{
-		margin:2em;
-	}
 	.quote, .quoteauthor{
 		text-align:center;
 		font-style: italic;
@@ -54,164 +64,167 @@
 	h5{ font-size: 150%; }
 	p{ font-size: 180%; }
 
-pre[class*="language-"] {
-	margin: auto;
-    margin-top: 1em;
-    margin-bottom:1em;
-    max-width:500px;
-    /*min-width:300px;*/
-}
+	.links line {
+		stroke: #000;
+		stroke-width: 4px;
+		cursor: pointer;
+	}
+	.nodes circle {
+		stroke: #000;
+		fill: #FFF;
+		stroke-width: 4px;
+		cursor: pointer;
+	}
+	.ui-accordion .ui-accordion-header {
+		cursor: pointer;
+		position: relative;
+		margin: 2px 0 0 0;
+		padding: .5em .5em .5em .7em;
+		font-size: 150%;
+		font-style: italic;
+		color:#888;
+		font-weight: bold;
+		outline: 0;
+	}
+	.ui-accordion .ui-accordion-content, .ui-state-default {
+		display: block;
+		padding: 1em;
+		background: #f6f6f6;
+		border-top: 0;
+		overflow: auto;
+		font-size: 80%;
+	}
 
-button:focus {outline:0;}
 
-		.links line {
-			stroke: #000;
-			stroke-width: 4px;
-			cursor: pointer;
-		}
-		.nodes circle {
-			stroke: #000;
-			fill: #FFF;
-			stroke-width: 4px;
-			cursor: pointer;
-		}
-
-	</style>
-
- <style>
-  .ui-accordion .ui-accordion-header {
-    display: block;
-    cursor: pointer;
+.svg-container {
+    display: inline-block;
     position: relative;
-    margin: 2px 0 0 0;
-    padding: .5em .5em .5em .7em;
-    font-size: 150%;
-    font-style: italic;
-    color:#888;
-    font-weight: bold;
-    outline: 0;
+    width: 100%;
+    vertical-align: top;
+    overflow: hidden;
 }
-.ui-accordion .ui-accordion-content {
-    padding: 1em;
-    background: #f6f6f6;
-    border-top: 0;
-    overflow: auto;
-    font-size: 80%;
-}
-.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
-    /*border: 1px solid #c5c5c5;*/
-    background: #f6f6f6;
+.svg-content {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 </style>
-
 </head>
-<body>
 
+<body>
 <div class="page">
 
 <section id="graph">
 	<h1>Graphs</h1>
-<div class="accordion">
-	<h3>INSTRUCTIONS</h3>
-	<div>
-		<p>Graphs are a collection of <em>nodes</em> connected by <em>edges</em> (circles connected by lines).</p>
-		<p>Nodes and edges are usually meant to represent a larger idea, each of them storing individual properties, but edges must also always store the 2 nodes that they connect.</p>
-		<p>Nodes and edges are both stored in arrays, and each edge is an array of 2 numbers: the indices of the 2 nodes (in the node array) it connects.</p>
+	<div class="accordion">
+		<h3>INSTRUCTIONS</h3>
+		<div>
+			<p><a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">Graphs</a> are a collection of <em>nodes</em> connected by <em>edges</em> (circles connected by lines).</p>
+			<p>Nodes and edges are usually meant to represent a larger idea with each having unique properties, but edges must also always store the 2 nodes that they connect.</p>
+			<p>Nodes and edges are both stored in arrays, and each edge is an array of 2 numbers: the indices of the 2 nodes (in the node array) it connects.</p>
+		</div>
+	</div>	
+	<div class="centered">
+		<pre class="centered language-javascript"><code class="language-javascript"><span class="token keyword">var</span> graph = <span class="token keyword">new</span> Graph()</code></pre>
 	</div>
-</div>	
+
 <div class="centered">
-	<pre class="centered language-javascript"><code class="language-javascript"><span class="token keyword">var</span> graph = <span class="token keyword">new</span> Graph()</code></pre>
+<svg id="svgTest00" width="400" height="400"></svg>
 </div>
-<svg id="svgTest00" width="960" height="400"></svg>
-<div class="centered">
-	<pre class="centered language-javascript"><code class="language-javascript">console.</span><span class="token function">log</span>(<span class="token argument">graph</span>)
+
+	<div class="centered">
+		<pre class="centered language-javascript"><code class="language-javascript">console.</span><span class="token function">log</span>(<span class="token argument">graph</span>)
 <span id="spanGraphContents" class="token comment"></span></code></pre>
-</div>
+	</div>
 </section>
 
 <section id="adjacent-nodes">
 	<h1><a href="#adjacent-nodes">Get Nodes</a></h1>
-<div class="accordion">
-	<h3>INSTRUCTIONS</h3>
-	<div>
-		<p>To get all the nodes, access the <i>.nodes</i> property of the graph. To get certain nodes based on adjacency, use either <i>getNodesAdjacentToNode</i> or <i>getNodesAdjacentToEdge</i>.</p>
-		<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Nodes are adjacent when they are connected by an edge.</p>
+	<div class="accordion">
+		<h3>INSTRUCTIONS</h3>
+		<div>
+			<p>To get all the nodes, simply access the <i>.nodes</i> array.</p><p>To get certain nodes based on adjacency, use either <i>getNodesAdjacentToNode</i> or <i>getNodesAdjacentToEdge</i>.</p>
+			<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Nodes are adjacent when they are connected by an edge.</p>
+		</div>
 	</div>
-</div>
-<div class="centered">
-	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">nodes</span>;  <span class="token comment">// array</span></code></pre>
-</div>
-<div class="centered">
-	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNodesAdjacentToNodeResult"></span>graph.<span class="token function">getNodesAdjacentToNode</span>(<span id="spanNodesAdjacentToNodeInput" class="token argument"></span>)
+	<div class="centered">
+		<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">nodes</span>;  <span class="token comment">// array</span></code></pre>
+	</div>
+	<div class="centered">
+		<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNodesAdjacentToNodeResult"></span>graph.<span class="token function">getNodesAdjacentToNode</span>(<span id="spanNodesAdjacentToNodeInput" class="token argument"></span>)
 <span id="spanNodesAdjacentToEdgeResult"></span>graph.<span class="token function">getNodesAdjacentToEdge</span>(<span id="spanNodesAdjacentToEdgeInput" class="token argument"></span>)</code></pre>
-</div>
-	<svg id="svgTest01" width="960" height="400"></svg>
+	</div>
+
+<div class="centered">
+<svg id="svgTest01" width="400" height="400"></svg>
+<div>
 </section>
 
 <section id="adjacent-edges">
 	<h1><a href="#adjacent-nodes">Get Edges</a></h1>
-<div class="accordion">
-	<h3>INSTRUCTIONS</h3>
-	<div>
-		<p>To get all the edges, access the <i>.edges</i> property of the graph. To get certain edges based on adjacency, use either <i>getEdgesAdjacentToNode</i> or <i>getEdgesAdjacentToEdge</i>.</p>
-		<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Two edges are adjacent when they are both connected to the same node.</p>
+	<div class="accordion">
+		<h3>INSTRUCTIONS</h3>
+		<div>
+			<p>To get all the edges, simply access the <i>.edges</i> array.</p><p>To get certain edges based on adjacency, use either <i>getEdgesAdjacentToNode</i> or <i>getEdgesAdjacentToEdge</i>.</p>
+			<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Two edges are adjacent when they are both connected to the same node.</p>
+		</div>
 	</div>
-</div>
-<div class="centered">
-	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">edges</span>;  <span class="token comment">// array</span></code></pre>
-</div>
-<div class="centered">
-	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">getEdgesAdjacentToNode</span>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)
+	<div class="centered">
+		<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">edges</span>;  <span class="token comment">// array</span></code></pre>
+	</div>
+	<div class="centered">
+		<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">getEdgesAdjacentToNode</span>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)
 <span id="spanEdgesAdjacentToEdgeResult"></span>graph.<span class="token function">getEdgesAdjacentToEdge</span>(<span id="spanEdgesAdjacentToEdgeInput" class="token argument"></span>)</code></pre>
+	</div>
+
+<div class="centered">
+<svg id="svgTest02" width="400" height="400"></svg>
 </div>
-	<svg id="svgTest02" width="960" height="400"></svg>
 </section>
-
-
-
 
 <section id="remove-nodes">
 	<h1><a href="#remove-nodes">Remove Nodes</a></h1>
-<div class="accordion">
-	<h3>INSTRUCTIONS</h3>
-	<div>
-		<p>When removing a node, any edges which share the node get removed along with it.</p>
+	<div class="accordion">
+		<h3>INSTRUCTIONS</h3>
+		<div>
+			<p>When removing a node, any edges which share the node get removed along with it.</p>
+		</div>
 	</div>
-</div>
+	<div class="centered">
+		<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">removeNode</span>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)</code></pre>
+	</div>
+
 <div class="centered">
-	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">removeNode</span>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)</code></pre>
+<svg id="svgTest03" width="400" height="400"></svg>
 </div>
-	<svg id="svgTest03" width="960" height="400"></svg>
 </section>
-
-
 
 <section id="remove-edges">
-	<h1><a href="#remove-edges">Remove Edges</a></h1>
-<div class="accordion">
-	<h3>INSTRUCTIONS</h3>
-	<div>
-		<p>Removing an edge simply removes that edge, any attached nodes will remain untouched.</p>
+		<h1><a href="#remove-edges">Remove Edges</a></h1>
+	<div class="accordion">
+		<h3>INSTRUCTIONS</h3>
+		<div>
+			<p>Removing an edge simply removes that edge, any attached nodes will remain untouched.</p>
+		</div>
 	</div>
-</div>
+	<div class="centered">
+		<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">removeEdge</span>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)</code></pre>
+	</div>
+
 <div class="centered">
-	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanEdgesAdjacentToNodeResult"></span>graph.<span class="token function">removeEdge</span>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)</code></pre>
+<svg id="svgTest04" width="400" height="400"></svg>
 </div>
-	<svg id="svgTest04" width="960" height="400"></svg>
 </section>
 
-
 </div>
-
 
 <script language="javascript" type="text/javascript" src="testsD3/00_graph.js"></script>
 <script language="javascript" type="text/javascript" src="testsD3/01_adjacentNode.js"></script>
 <script language="javascript" type="text/javascript" src="testsD3/02_adjacentEdge.js"></script>
 <script language="javascript" type="text/javascript" src="testsD3/03_removeNode.js"></script>
 <script language="javascript" type="text/javascript" src="testsD3/04_removeEdge.js"></script>
-
-	<script>
-
+<script>
 	function updateNodesAdjacentToNode(input, output){
 		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }
@@ -237,47 +250,13 @@ button:focus {outline:0;}
 		$("#spanEdgesAdjacentToEdgeResult").html(outString);
 	}
 
-	// 	$("#spanAddEdge1").mouseenter(function(){ p501.setHighlight(true); })
-	// 	                  .mouseleave(function(){ p501.setHighlight(false); });
-	// 	$("#spanAddEdge2").mouseenter(function(){ p502.setHighlight(true); })
-	// 	                  .mouseleave(function(){ p502.setHighlight(false); });
-	// 	$("#spanAddEdge3").mouseenter(function(){ p503.setHighlight(true); })
-	// 	                  .mouseleave(function(){ p503.setHighlight(false); });
-	// 	$("#spanEdgeIntersect1").mouseenter(function(){ p505.setHighlight1(true); })
-	// 	                        .mouseleave(function(){ p505.setHighlight1(false); });
-	// 	$("#spanEdgeIntersect2").mouseenter(function(){ p505.setHighlight2(true); })
-	// 	                        .mouseleave(function(){ p505.setHighlight2(false); });
+	var svg = d3.select("div#container")
+		.append("svg")
+		.attr("preserveAspectRatio", "xMinYMin meet")
+		.attr("viewBox", "0 0 960 400")
+		.classed("svg-content", true);
 
-	// p506.mouseMovedCallback = function(x,y){
-	// 	if(x == undefined || y == undefined){
-	// 		$("#spanNearest1MouseX").html('x');
-	// 		$("#spanNearest1MouseY").html('y');
-	// 	}else{
-	// 		$("#spanNearest1MouseX").html(x.toFixed(2));
-	// 		$("#spanNearest1MouseY").html(y.toFixed(2));
-	// 	}
-	// };
-	// p507.mouseMovedCallback = function(x,y){
-	// 	if(x == undefined || y == undefined){
-	// 		$("#spanNearest2MouseX").html('x');
-	// 		$("#spanNearest2MouseY").html('y');
-	// 	}else{
-	// 		$("#spanNearest2MouseX").html(x.toFixed(2));
-	// 		$("#spanNearest2MouseY").html(y.toFixed(2));
-	// 	}
-	// };
-	// p508.mouseMovedCallback = function(x,y){
-	// 	if(x == undefined || y == undefined){
-	// 		$("#spanNearest3MouseX").html('x');
-	// 		$("#spanNearest3MouseY").html('y');
-	// 	}else{
-	// 		$("#spanNearest3MouseX").html(x.toFixed(2));
-	// 		$("#spanNearest3MouseY").html(y.toFixed(2));
-	// 	}
-	// };
-
-	</script>
-	
+</script>
 
 </body>
 </html>

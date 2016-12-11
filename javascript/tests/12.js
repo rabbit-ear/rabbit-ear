@@ -14,6 +14,8 @@ var test12 = function(p) {
 
 	var option = 2; // 0:horizontal  1:vertical  2:random angle
 
+	var handedness = 1;  // (1, or -1) approach from the left or the right
+
 	var angle;
 	function addCreases(){
 		switch (option){
@@ -27,6 +29,10 @@ var test12 = function(p) {
 			angle = Math.random()*Math.PI*2;
 			break;
 		}
+		
+		if(Math.random() < 0.5) handedness = 1;
+		else                    handedness = -1;
+
 		g.addEdgeWithVertices(0.5 + 0.25*Math.cos(angle), 0.5 + 0.25*Math.sin(angle), 
 		                      0.5 - 0.25*Math.cos(angle), 0.5 - 0.25*Math.sin(angle));
 		g.addEdgeWithVertices(0, 0, 1, 1);
@@ -35,6 +41,7 @@ var test12 = function(p) {
 
 	function reset(){
 		g.clear();
+		option = Math.floor(Math.random()*3);
 		addCreases();
 	}
 
@@ -52,10 +59,10 @@ var test12 = function(p) {
 				a = Math.PI * 0.5;
 			break;
 		}
-		g.nodes[2].x = 0.5 - 0.3*Math.cos( 0.1 + 0.1 * -Math.sin(count*0.01) + a);
-		g.nodes[2].y = 0.5 - 0.3*Math.sin( 0.1 + 0.1 * -Math.sin(count*0.01) + a);
-		g.nodes[3].x = 0.5 + 0.3*Math.cos( 0.1 + 0.1 * -Math.sin(count*0.01) + a);
-		g.nodes[3].y = 0.5 + 0.3*Math.sin( 0.1 + 0.1 * -Math.sin(count*0.01) + a);
+		g.nodes[2].x = 0.5 - 0.3*Math.cos( handedness * 0.1 + handedness * 0.1 * -Math.sin(count*0.01) + a);
+		g.nodes[2].y = 0.5 - 0.3*Math.sin( handedness * 0.1 + handedness * 0.1 * -Math.sin(count*0.01) + a);
+		g.nodes[3].x = 0.5 + 0.3*Math.cos( handedness * 0.1 + handedness * 0.1 * -Math.sin(count*0.01) + a);
+		g.nodes[3].y = 0.5 + 0.3*Math.sin( handedness * 0.1 + handedness * 0.1 * -Math.sin(count*0.01) + a);
 
 		var intersections = g.getAllEdgeIntersections();
 
@@ -90,11 +97,11 @@ var test12 = function(p) {
 	}
 
 	p.mousePressed = function(){
-		for(var i = 0; i < g.nodes.length; i++)
-			console.log(g.nodes[i].x + ' ' + g.nodes[i].y);
+		// for(var i = 0; i < g.nodes.length; i++)
+		// 	console.log(g.nodes[i].x + ' ' + g.nodes[i].y);
 	}
 
 	p.mouseReleased = function(){
-		// reset();
+		reset();
 	}
 };
