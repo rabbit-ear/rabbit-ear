@@ -1,5 +1,5 @@
 var g01 = new Graph();
-fillGraph(g01, 11);
+fillGraph(g01, 7);
 
 var d3Graph01 = graphToD3(g01);
 var svgCanvas01 = d3.select("#svgTest01");

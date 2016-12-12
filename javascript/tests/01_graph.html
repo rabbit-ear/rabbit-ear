@@ -12,8 +12,8 @@ function fillWithRandom(numNodes, numEdges){
 		graph.addNode(i);
 	}
 	for(var i = 0; i < numEdges; i++){
-		var one = Math.floor(Math.random()*numNodes);
-		var two = Math.floor(Math.random()*numNodes);
+		var one = Math.floor( Math.random()*numNodes );
+		var two = Math.floor( Math.random()*numNodes );
 		var e = {'a':one, 'b':two};
 		graph.addEdge(e);
 	}
@@ -21,8 +21,10 @@ function fillWithRandom(numNodes, numEdges){
 
 var graph = new Graph();
 
-var NODE_COUNT = 50;
-var EDGE_COUNT = 500;
+// var NODE_COUNT = 50;
+// var EDGE_COUNT = 500;
+var NODE_COUNT = 10;
+var EDGE_COUNT = 10;
 
 // CREATE A GRAPH, RANDOM COMPONENTS
 fillWithRandom(NODE_COUNT, EDGE_COUNT);
@@ -43,6 +45,21 @@ console.log(adjacentNodes);
 var adjacentEdges = graph.getEdgesAdjacentToEdge(0);
 console.log(" " + adjacentEdges.length + " edges are adjacent to the first edge (edges share a node)");
 console.log(adjacentEdges);
+
+var nodeToRemove = Math.floor(Math.random()*graph.nodes.length);
+
+console.log('removing node index: ' + nodeToRemove);
+console.log(graph.nodes);
+for(var i = 0; i < graph.edges.length; i++){
+	console.log(i + ': ' + graph.edges[i].a + ' ' + graph.edges[i].b);
+}
+
+graph.removeNode( nodeToRemove );
+
+console.log(graph.nodes);
+for(var i = 0; i < graph.edges.length; i++){
+	console.log(i + ': ' + graph.edges[i].a + ' ' + graph.edges[i].b);
+}
 
 </script>
 </body>

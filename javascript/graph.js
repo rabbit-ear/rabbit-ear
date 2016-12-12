@@ -50,6 +50,9 @@ class Graph{
 			if( this.edges[i].a == nodeIndex || this.edges[i].b == nodeIndex ){
 				this.edges.splice(i, 1);
 				didRemove = true;
+			} else{
+				if(this.edges[i].a > nodeIndex) this.edges[i].a -= 1;
+				if(this.edges[i].b > nodeIndex) this.edges[i].b -= 1;
 			}
 			if(!didRemove) i++;
 		}		
