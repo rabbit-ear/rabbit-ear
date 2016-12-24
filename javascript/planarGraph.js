@@ -238,6 +238,16 @@ class PlanarGraph extends Graph{
 		}
 	}
 
+	// quick and easy, use a square bounding box
+	verticesEquivalent(v1, v2, epsilon){  // Vertex type
+		return (v1.x - epsilon < v2.x && v1.x + epsilon > v2.x &&
+				v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
+	}
+	// verticesEquivalent(x1, y1, x2, y2, float epsilon){  // float type
+	// 	return (x1 - epsilon < x2 && x1 + epsilon > x2 &&
+	// 			y1 - epsilon < y2 && y1 + epsilon > y2);
+	// }
+
 	edgesIntersect(e1, e2){
 		// if true - returns {x,y} location of intersection
 		if(this.areEdgesAdjacent(e1, e2)){
@@ -261,52 +271,71 @@ class PlanarGraph extends Graph{
 		return this.lineSegmentIntersectionAlgorithm(p0, p1, p2, p3);
 	}
 
-	// quick and easy, use a square bounding box
-	verticesEquivalent(v1, v2, epsilon){  // Vertex type
-		return (v1.x - epsilon < v2.x && v1.x + epsilon > v2.x &&
-				v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
-	}
-	// verticesEquivalent(x1, y1, x2, y2, float epsilon){  // float type
-	// 	return (x1 - epsilon < x2 && x1 + epsilon > x2 &&
-	// 			y1 - epsilon < y2 && y1 + epsilon > y2);
-	// }
-
-
-	getAllEdgeIntersections(){
+	getEdgeIntersectionsWithEdge(edgeIndex){
 		var intersections = [];
-		// for(var i = 0; i < this.edges.length; i++){
-		// 	for(var j = 0; j < this.edges.length; j++){
-		for(var i = 0; i < this.edges.length - 1; i++){
-			for(var j = i+1; j < this.edges.length; j++){
-				// if(i != j){
-					var intersect = this.edgesIntersect(i, j);
-					if(intersect != undefined){
-						intersections.push(intersect);
-					}
-				// }
+		for(var i = 0; i < this.edges.length; i++){
+			if(edgeIndex != i){
+				var intersection = this.edgesIntersect(edgeIndex, i);
+				if(intersection != undefined){
+					intersection.e1 = edgeIndex;
+					intersection.e2 = i;
+					intersection.e1n1 = this.edges[edgeIndex].a;
+					intersection.e1n2 = this.edges[edgeIndex].b;
+					intersection.e2n1 = this.edges[i].a;
+					intersection.e2n2 = this.edges[i].b;
+					intersections.push(intersection);
+				}
 			}
 		}
 		return intersections;
 	}
 
-	getAllEdgeIntersectionsDetailed(){
-		var edgesIntersecting = [];  // type uint
-		for(var i = 0; i < this.edges.length - 1; i++){
-			for(var j = i+1; j < this.edges.length; j++){
-				var intersection = this.edgesIntersect(i, j);
+	getEdgeIntersectionsWithEdgeSimple(edgeIndex){
+		var intersections = [];
+		for(var i = 0; i < this.edges.length; i++){
+			if(edgeIndex != i){
+				var intersection = this.edgesIntersect(edgeIndex, i);
 				if(intersection != undefined){
-					edgesIntersecting.push( {'a':i,
-					                         'b':j,
-					                'edge1NodeA':this.edges[i].a,
-					                'edge1NodeB':this.edges[i].b,
-					                'edge2NodeA':this.edges[j].a,
-					                'edge2NodeB':this.edges[j].b,
-					                  'location':intersection} );
+					intersection.a = edgeIndex;
+					intersection.b = i;
+					intersections.push(intersection);
 				}
 			}
 		}
-		return edgesIntersecting;
+		return intersections;
 	}
+
+	getAllEdgeIntersections(){
+		var intersections = [];
+		for(var i = 0; i < this.edges.length - 1; i++){
+			for(var j = i+1; j < this.edges.length; j++){
+				var intersect = this.edgesIntersect(i, j);
+				if(intersect != undefined){
+					intersections.push(intersect);
+				}
+			}
+		}
+		return intersections;
+	}
+
+	// getAllEdgeIntersectionsDetailed(){
+	// 	var edgesIntersecting = [];  // type uint
+	// 	for(var i = 0; i < this.edges.length - 1; i++){
+	// 		for(var j = i+1; j < this.edges.length; j++){
+	// 			var intersection = this.edgesIntersect(i, j);
+	// 			if(intersection != undefined){
+	// 				edgesIntersecting.push( {'a':i,
+	// 				                         'b':j,
+	// 				                'edge1NodeA':this.edges[i].a,
+	// 				                'edge1NodeB':this.edges[i].b,
+	// 				                'edge2NodeA':this.edges[j].a,
+	// 				                'edge2NodeB':this.edges[j].b,
+	// 				                  'location':intersection} );
+	// 			}
+	// 		}
+	// 	}
+	// 	return edgesIntersecting;
+	// }
 
 
 	splitAtIntersections(){

@@ -5,167 +5,90 @@ var test05b = function(p){
 
 	var g = new PlanarGraph();	
 	var intersections = [];
+	var chopOn = false;
+	var chopI = 0;
 
-	function fullPageCreases(){
+	var ANIMATIONS = false;
+
+	function fullPageCreases(count){
 		g.clear();
-		for(var i = 0; i < 6; i++){
-			var edge1 = Math.floor(Math.random()*4);
-			var edge2 = (edge1+2)%4;
-			var x1, y2, x2, y2;
-			if(edge1 == 0 || edge1 == 2) x1 = Math.random()
-			else if(edge1 == 1)          x1 = 1;
-			else if(edge1 == 3)          x1 = 0;
-			if(edge1 == 1 || edge1 == 3) y1 = Math.random();
-			else if(edge1 == 0)          y1 = 1;
-			else if(edge1 == 2)          y1 = 0;
-			if(edge2 == 0 || edge2 == 2) x2 = Math.random()
-			else if(edge2 == 1)          x2 = 1;
-			else if(edge2 == 3)          x2 = 0;
-			if(edge2 == 1 || edge2 == 3) y2 = Math.random();
-			else if(edge2 == 0)          y2 = 1;
-			else if(edge2 == 2)          y2 = 0;
-			g.addEdgeWithVertices(x1, y1, x2, y2);
+		for(var i = 0; i < count; i++){
+			if(Math.random() < 0.5){
+				// horizontal: right pointing, or left pointing
+				if(Math.random() < 0.5) g.addEdgeWithVertices(0, Math.random(), 1, Math.random());
+				else                    g.addEdgeWithVertices(1, Math.random(), 0, Math.random());
+			} else{
+				// vertical: down pointing, or up pointing
+				if(Math.random() < 0.5) g.addEdgeWithVertices(Math.random(), 0, Math.random(), 1);
+				else                    g.addEdgeWithVertices(Math.random(), 1, Math.random(), 0);
+			}
 		}
 		g.cleanup();
 	}
 
 	function reset(){
-		fullPageCreases();
-		intersections = g.getAllEdgeIntersections();
+		fullPageCreases(20);
 	}
 
 	p.setup = function(){
 		canvas = p.createCanvas(WIDTH, HEIGHT);
-		p.strokeWeight(.01);
+		p.strokeWeight(.005);
 		reset();
 	}
 
 	function chop(){
-		console.log('chopping, Edge count: ' + g.edges.length);
 		g.cleanup();
-		intersections = g.getAllEdgeIntersectionsDetailed();
-		console.log(intersections);
-		for(var i = 0 ; i < intersections.length; i++){
-			var node1a = intersections[i]['edge1NodeA'];
-			var node1b = intersections[i]['edge1NodeB'];
-			var node2a = intersections[i]['edge2NodeA'];
-			var node2b = intersections[i]['edge2NodeB'];
-			g.removeEdgeBetween(node1a, node1b);
-			g.removeEdgeBetween(node2a, node2b);
-			g.addNode(intersections[i].location);
-			g.addEdgeFromExistingVertices(g.nodes.length-1, node1a);
-			g.addEdgeFromExistingVertices(g.nodes.length-1, node1b);
-			g.addEdgeFromExistingVertices(g.nodes.length-1, node2a);
-			g.addEdgeFromExistingVertices(g.nodes.length-1, node2b);
-		}
-		g.cleanup();
-		intersections = [];
-		console.log('done, new Edge count: ' + g.edges.length);
-	}
-
-	function chopOld(){
-		g.cleanup();
-		console.log('chopping, Edge count: ' + g.edges.length);
-		// we're going to be iterating and removing elements at the same time (!)
-		// we will remove edges. we only add to nodes array. nodes indices are preserved.
-		intersections = g.getAllEdgeIntersectionsDetailed();
-		console.log(intersections);
-		var iterations = 0;
-		while(intersections != undefined && intersections.length > 0){
-			console.log('++++');
-			var i = 0
-			var node1a = intersections[i]['edge1NodeA'];
-			var node1b = intersections[i]['edge1NodeB'];
-			var node2a = intersections[i]['edge2NodeA'];
-			var node2b = intersections[i]['edge2NodeB'];
-			var intersection = intersections[i].location;
-
-			if(g.areNodesAdjacent(node1a, node1b) && g.areNodesAdjacent(node2a, node2b)){
-				g.removeEdgeBetween(node1a, node1b);
-				g.removeEdgeBetween(node2a, node2b);
-				var newIntersectionVertexIndex = g.nodes.length;
-				// g.nodes.push({x:intersection.x, y:intersection.y});
-				g.addEdgeFromVertex(node1a, intersection.x, intersection.y);
-				g.addEdgeFromExistingVertices(node1b, newIntersectionVertexIndex);
-				g.addEdgeFromExistingVertices(node2a, newIntersectionVertexIndex);
-				g.addEdgeFromExistingVertices(node2b, newIntersectionVertexIndex);
-			}
-			
-			iterations += 1;
-			console.log(g);
-			g.cleanup();
-			console.log(g);
-			intersections = g.getAllEdgeIntersectionsDetailed();
-			if(intersections.length > 300) {
-				console.log(intersections);
-				console.log('BREAK LENGTH');
-				return;
-			}
-			if(iterations > 200){
-				console.log(intersections);
-				console.log('BREAK ITERATIONS');
-				return;
+		for(var i = 0; i < g.edges.length; i++){
+			var intersections = g.getEdgeIntersectionsWithEdge(i);
+			while(intersections.length > 0){
+				var newIntersectionIndex = g.nodes.length;
+				g.addNode({'x':intersections[0].x, 'y':intersections[0].y});
+				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e1n1);
+				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e1n2);
+				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e2n1);
+				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e2n2);
+				g.removeEdgeBetween(intersections[0].e1n1, intersections[0].e1n2);
+				g.removeEdgeBetween(intersections[0].e2n1, intersections[0].e2n2);
+				var intersections = g.getEdgeIntersectionsWithEdge(i);
 			}
 		}
-
 		g.cleanup();
-		intersections = [];
-		console.log('done, new Edge count: ' + g.edges.length);
 	}
 
-	// function chop(){
-	// 	g.cleanup();
-	// 	console.log('chopping, Edge count: ' + g.edges.length);
-	// 	// we're going to be iterating and removing elements at the same time (!)
-	// 	// we will remove edges. we only add to nodes array. nodes indices are preserved.
-	// 	intersections = g.getAllEdgeIntersectionsDetailed();
-	// 	var iterations = 0;
-	// 	while(intersections != undefined && intersections.length > 0){
-	// 			if(iterations > 100){
-	// 				console.log('--- NEW ROUND ---');
-	// 			}
-	// 		for(var i = intersections.length-1; i >= 0; i--){
-	// 			var node1a = intersections[i]['edge1NodeA'];
-	// 			var node1b = intersections[i]['edge1NodeB'];
-	// 			var node2a = intersections[i]['edge2NodeA'];
-	// 			var node2b = intersections[i]['edge2NodeB'];
-	// 			var intersection = intersections[i].location;
-	// 			if(iterations > 100){
-	// 				console.log(node1a + ' ' + node1b + ' ' + node2a + ' ' + node2b + ' x:' + intersection.x + ' y:' + intersection.y);
-	// 			}
 
-	// 			if(g.areNodesAdjacent(node1a, node1b) && g.areNodesAdjacent(node2a, node2b)){
-	// 				g.removeEdgeBetween(node1a, node1b);
-	// 				g.removeEdgeBetween(node2a, node2b);
-	// 				var newIntersectionVertexIndex = g.nodes.length;
-	// 				// g.nodes.push({x:intersection.x, y:intersection.y});
-	// 				g.addEdgeFromVertex(node1a, intersection.x, intersection.y);
-	// 				g.addEdgeFromExistingVertices(node1b, newIntersectionVertexIndex);
-	// 				g.addEdgeFromExistingVertices(node2a, newIntersectionVertexIndex);
-	// 				g.addEdgeFromExistingVertices(node2b, newIntersectionVertexIndex);
-	// 			}
-	// 		}
-	// 		iterations += 1;
-	// 		g.cleanup();
-	// 		intersections = g.getAllEdgeIntersectionsDetailed();
-	// 		if(intersections.length > 300) {
-	// 			console.log(intersections);
-	// 			console.log('BREAK LENGTH');
-	// 			return;
-	// 		}
-	// 		if(iterations > 200){
-	// 			console.log(intersections);
-	// 			console.log('BREAK ITERATIONS');
-	// 			return;
-	// 		}
-	// 	}
-
-	// 	g.cleanup();
-	// 	intersections = [];
-	// 	console.log('done, new Edge count: ' + g.edges.length);		
-	// }
+	function chopIncrement(inp){
+		g.cleanup();
+		for(var i = inp; i <inp+5; i++){
+			if(i < g.edges.length){
+				var intersections = g.getEdgeIntersectionsWithEdge(i);
+				while(intersections.length > 0){
+					var newIntersectionIndex = g.nodes.length;
+					g.addNode({'x':intersections[0].x, 'y':intersections[0].y});
+					g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e1n1);
+					g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e1n2);
+					g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e2n1);
+					g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e2n2);
+					g.removeEdgeBetween(intersections[0].e1n1, intersections[0].e1n2);
+					g.removeEdgeBetween(intersections[0].e2n1, intersections[0].e2n2);
+					var intersections = g.getEdgeIntersectionsWithEdge(i);
+				}
+			}
+		}
+	}
 
 	p.draw = function() {
+		// // uncomment for animations
+		if(ANIMATIONS){
+			if(chopOn){
+				chopIncrement(chopI)
+				chopI+=5;
+			}
+			if(chopI >= g.edges.length){
+				chopOn = false;
+				chopI = 0;
+			}			
+		}
+
 		// draw
 		p.clear();
 		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);
@@ -174,20 +97,22 @@ var test05b = function(p){
 		p.stroke(0, 0, 0);
 		drawCoordinateFrame(p);
 		drawGraphPoints(p, g);
-		p.stroke(0, 0, 0, 30);
+		p.stroke(0, 0, 0, 50);
 		drawGraphLines(p, g);
-		for(var i = 0; i < intersections.length; i++){
-			p.fill(255, 0, 0);
-			p.noStroke();
-			p.ellipse(intersections[i].x, intersections[i].y, .03, .03);
-		}
 	}
 
 	p.mouseReleased = function(){
-		// reset();
+		if(!ANIMATIONS){
+			reset();
+		}
 	}
 
 	p.mousePressed = function(){
-		chop();
+		if(ANIMATIONS){
+			chopOn = true;
+			chopI = 0;
+		} else{
+			chop();
+		}
 	}
 };

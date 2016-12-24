@@ -121,8 +121,8 @@
 		<h3>INSTRUCTIONS</h3>
 		<div>
 			<p><a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">Graphs</a> are a collection of <em>nodes</em> connected by <em>edges</em> (circles connected by lines).</p>
-			<p>Nodes and edges are usually meant to represent a larger idea with each having unique properties, but edges must also always store the 2 nodes that they connect.</p>
-			<p>Nodes and edges are both stored in arrays, and each edge is an array of 2 numbers: the indices of the 2 nodes (in the node array) it connects.</p>
+			<p>The lists of nodes and edges are stored as 2 arrays.</p>
+			<p>In its simplest form, edges store the 2 nodes that they connect. Each edge is made up of 2 numbers: the indices of the 2 nodes (in the node array) it connects.</p></p>
 		</div>
 	</div>	
 	<div class="centered">
@@ -144,7 +144,8 @@
 	<div class="accordion">
 		<h3>INSTRUCTIONS</h3>
 		<div>
-			<p>To get all the nodes, simply access the <i>.nodes</i> array.</p><p>To get certain nodes based on adjacency, use either <i>getNodesAdjacentToNode</i> or <i>getNodesAdjacentToEdge</i>.</p>
+			<p>To get all the nodes of Graph g, simply access the g<i>.nodes</i> array.</p>
+			<p>To get certain nodes based on adjacency, use either <i>getNodesAdjacentToNode</i> or <i>getNodesAdjacentToEdge</i>.</p>
 			<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Nodes are adjacent when they are connected by an edge.</p>
 		</div>
 	</div>
@@ -166,7 +167,8 @@
 	<div class="accordion">
 		<h3>INSTRUCTIONS</h3>
 		<div>
-			<p>To get all the edges, simply access the <i>.edges</i> array.</p><p>To get certain edges based on adjacency, use either <i>getEdgesAdjacentToNode</i> or <i>getEdgesAdjacentToEdge</i>.</p>
+			<p>To get all the edges of Graph g, simply access the g<i>.edges</i> array.</p>
+			<p>To get certain edges based on adjacency, use either <i>getEdgesAdjacentToNode</i> or <i>getEdgesAdjacentToEdge</i>.</p>
 			<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Two edges are adjacent when they are both connected to the same node.</p>
 		</div>
 	</div>
@@ -189,6 +191,7 @@
 		<h3>INSTRUCTIONS</h3>
 		<div>
 			<p>When removing a node, any edges which share the node will be removed also.</p>
+			<p>Because this shuffles the node array upon which edges are dependent, this also triggers the edge array to update accordingly.</p>
 		</div>
 	</div>
 	<div class="centered">
@@ -205,7 +208,7 @@
 	<div class="accordion">
 		<h3>INSTRUCTIONS</h3>
 		<div>
-			<p>Removing an edge simply removes that edge, any attached nodes will remain.</p>
+			<p>Removing an edge simply removes that edge, any previously-attached nodes will remain in the graph.</p>
 		</div>
 	</div>
 	<div class="centered">

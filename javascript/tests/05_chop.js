@@ -43,24 +43,22 @@ var test05 = function(p){
 	}
 
 	function chop(){
-		// we're going to be iterating and removing elements at the same time (!)
-		// we will remove edges. we only add to nodes array. nodes indices are preserved.
-		var intersections = g.getAllEdgeIntersectionsDetailed();
-		for(var i = 0; i < intersections.length; i++){
-			var node1a = intersections[i]['edge1NodeA'];
-			var node1b = intersections[i]['edge1NodeB'];
-			var node2a = intersections[i]['edge2NodeA'];
-			var node2b = intersections[i]['edge2NodeB'];
-			var intersection = intersections[i].location;
-
-			g.removeEdgeBetween(node1a, node1b);
-			g.removeEdgeBetween(node2a, node2b);
-			var newIntersectionVertexIndex = g.nodes.length;
-			g.addEdgeFromVertex(node1a, intersection.x, intersection.y);
-			g.addEdgeFromExistingVertices(node1b, newIntersectionVertexIndex);
-			g.addEdgeFromExistingVertices(node2a, newIntersectionVertexIndex);
-			g.addEdgeFromExistingVertices(node2b, newIntersectionVertexIndex);
+		g.cleanup();
+		for(var i = 0; i < g.edges.length; i++){
+			var intersections = g.getEdgeIntersectionsWithEdge(i);
+			while(intersections.length > 0){
+				var newIntersectionIndex = g.nodes.length;
+				g.addNode({'x':intersections[0].x, 'y':intersections[0].y});
+				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e1n1);
+				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e1n2);
+				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e2n1);
+				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e2n2);
+				g.removeEdgeBetween(intersections[0].e1n1, intersections[0].e1n2);
+				g.removeEdgeBetween(intersections[0].e2n1, intersections[0].e2n2);
+				var intersections = g.getEdgeIntersectionsWithEdge(i);
+			}
 		}
+		g.cleanup();
 	}
 
 	p.draw = function() {
