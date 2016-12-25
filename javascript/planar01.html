@@ -1,0 +1,126 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<script language="javascript" type="text/javascript" src="lib/jquery-3.1.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="lib/jquery-ui.min.js"></script>
+<script language="javascript" type="text/javascript" src="lib/p5.min.js"></script>
+<script language="javascript" type="text/javascript" src="graph.js"></script>
+<script language="javascript" type="text/javascript" src="planarGraph.js"></script>
+<script language="javascript" type="text/javascript" src="render.js"></script>
+<script>
+	$( function() {
+		$( ".accordion" ).accordion({
+			active: false,
+			collapsible: true
+		});
+	} );
+</script>
+<link href="https://fonts.googleapis.com/css?family=Merriweather:400,700" rel="stylesheet">
+<link href="lib/prism.css" rel="stylesheet" />
+<link href="style.css" rel="stylesheet" />
+<style>
+	.ui-accordion .ui-accordion-header {
+		cursor: pointer;
+		position: relative;
+		margin: 2px 0 0 0;
+		padding: .5em .5em .5em .7em;
+		font-size: 150%;
+		font-style: italic;
+		color:#888;
+		font-weight: bold;
+		outline: 0;
+	}
+	.ui-accordion .ui-accordion-content, .ui-state-default {
+		display: block;
+		padding: 1em;
+		background: #f6f6f6;
+		border-top: 0;
+		overflow: auto;
+		font-size: 80%;
+	}
+	.p5sketch{
+		margin-top:2em;
+		margin-bottom:2em;
+	}
+</style>
+</head>
+
+<body>
+<section id="intro">
+	<h1>Planar Graphs: Intersections</h1>
+	<div class="accordion">
+		<h3>INSTRUCTIONS</h3>
+		<div>
+			<p>a planar graph is <b>INVALID</b> if an edge cross another edge. It's simple to resolve by splitting the 2 edges into 4 and place a node at the intersection point.</p>
+		</div>
+	</div>
+	<div class="centered">
+		<div class="centered p5sketch" id="divTest04"></div>
+	</div>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getAllEdgeIntersections</span>()</code></pre>
+</section>
+
+<section id="intersections">
+	<h1><a href="#intersections">Parallel Lines</a></h1>
+	<div class="accordion">
+		<h3>INSTRUCTIONS</h3>
+		<div>
+			<p>Concerning floating point precision: at some point, two lines will be considered parallel, and impossible to intersect. We are</p>
+		</div>
+	</div>	
+	<div class="centered p5sketch" id="divTest05"></div>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getAllEdgeIntersections</span>()</code></pre>
+	<h1>Chopping</h1>
+	<div class="half p5sketch" id="divTest06"></div><div class="half p5sketch" id="divTest07"></div>
+	<p class="quote">press and hold</p>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">chopAtIntersections</span>()</code></pre>
+	<p>Avoid crossing lines. Get the the X &amp; Y of the intersection:</p>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">edgesIntersect</span>(<span class="token argument" id="spanEdgeIntersect1"> edge1</span>,<span class="token argument" id="spanEdgeIntersect2"> edge2 </span>)</code></pre>
+</section>
+
+<script language="javascript" type="text/javascript" src="tests/04_intersections.js"></script>
+<script language="javascript" type="text/javascript" src="tests/05_intersection.js"></script>
+<script language="javascript" type="text/javascript" src="tests/06_chop.js"></script>
+<script language="javascript" type="text/javascript" src="tests/07_chop_many.js"></script>
+<script>
+	var p504 = new p5(test04, 'divTest04');
+	var p505 = new p5(test05, 'divTest05');
+	var p506 = new p5(test06, 'divTest06');
+	var p507 = new p5(test07, 'divTest07');
+
+	$("#spanEdgeIntersect1").mouseenter(function(){ p506.setHighlight1(true); })
+	                        .mouseleave(function(){ p506.setHighlight1(false); });
+	$("#spanEdgeIntersect2").mouseenter(function(){ p506.setHighlight2(true); })
+	                        .mouseleave(function(){ p506.setHighlight2(false); });
+
+	p506.mouseMovedCallback = function(x,y){
+		if(x == undefined || y == undefined){
+			$("#spanNearest1MouseX").html('x');
+			$("#spanNearest1MouseY").html('y');
+		}else{
+			$("#spanNearest1MouseX").html(x.toFixed(2));
+			$("#spanNearest1MouseY").html(y.toFixed(2));
+		}
+	};
+	p507.mouseMovedCallback = function(x,y){
+		if(x == undefined || y == undefined){
+			$("#spanNearest2MouseX").html('x');
+			$("#spanNearest2MouseY").html('y');
+		}else{
+			$("#spanNearest2MouseX").html(x.toFixed(2));
+			$("#spanNearest2MouseY").html(y.toFixed(2));
+		}
+	};
+	p508.mouseMovedCallback = function(x,y){
+		if(x == undefined || y == undefined){
+			$("#spanNearest3MouseX").html('x');
+			$("#spanNearest3MouseY").html('y');
+		}else{
+			$("#spanNearest3MouseX").html(x.toFixed(2));
+			$("#spanNearest3MouseY").html(y.toFixed(2));
+		}
+	};
+</script>
+
+</body>
+</html>

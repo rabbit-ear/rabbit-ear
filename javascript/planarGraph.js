@@ -56,7 +56,7 @@ class PlanarGraph extends Graph{
 
 	clean(){
 		super.clean();
-	// 	this.mergeDuplicateVertices();
+		this.mergeDuplicateVertices();
 	}
 
 	mergeDuplicateVertices(){

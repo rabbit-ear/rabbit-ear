@@ -1,10 +1,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<script language="javascript" type="text/javascript" src="graph.js"></script>
 <script language="javascript" type="text/javascript" src="lib/jquery-3.1.1.min.js"></script>
 <script language="javascript" type="text/javascript" src="lib/jquery-ui.min.js"></script>
 <script language="javascript" type="text/javascript" src="lib/d3.min.js"></script>
+<script language="javascript" type="text/javascript" src="graph.js"></script>
 <script language="javascript" type="text/javascript" src="testsD3/d3.graph.js"></script>
 <script>
 	$( function() {
@@ -17,7 +17,9 @@
 
 <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700" rel="stylesheet">
 <link href="lib/prism.css" rel="stylesheet" />
+<link href="style.css" rel="stylesheet" />
 <style> 
+
 	pre[class*="language-"] {
 		margin-top: 1em;
 		margin-bottom:1em;
@@ -26,55 +28,6 @@
 	}
 	button:focus {outline:0;}
 
-	body {
-		font-family: 'Merriweather', Georgia, "Times New Roman", Times, serif;
-		padding: 0;
-		margin:2em;
-	} 
-	a:link { color: black; text-decoration: none; font-weight: bold;}
-	a:visited { color: black; text-decoration: none; font-weight: bold;}
-	a:hover { color: black; text-decoration: underline; font-weight: bold;}
-	a:active { color: black; text-decoration: none; font-weight: bold;}
-	.centered{
-		width: 100%;
-		text-align: center;
-		display:inline-block;
-	}
-	.half{
-		width: 50%;
-		text-align: center;
-		display:inline-block;
-	}
-	.third{
-		width: 33%;
-		text-align: center;
-		display:inline-block;
-	}
-	.quote, .quoteauthor{
-		text-align:center;
-		font-style: italic;
-	}
-	.quoteauthor{
-		font-weight: bold;
-	}
-	h1{ font-size: 400%; -webkit-margin-after: .2em; -webkit-margin-before: .2em; }
-	h2{ font-size: 320%; }
-	h3{ font-size: 260%; }
-	h4{ font-size: 200%; }
-	h5{ font-size: 150%; }
-	p{ font-size: 180%; }
-
-	.links line {
-		stroke: #000;
-		stroke-width: 4px;
-		cursor: pointer;
-	}
-	.nodes circle {
-		stroke: #000;
-		fill: #FFF;
-		stroke-width: 4px;
-		cursor: pointer;
-	}
 	.ui-accordion .ui-accordion-header {
 		cursor: pointer;
 		position: relative;
@@ -95,25 +48,35 @@
 		font-size: 80%;
 	}
 
+	.svg-container {
+		display: inline-block;
+		position: relative;
+		width: 100%;
+		vertical-align: top;
+		overflow: hidden;
+	}
+	.svg-content {
+		display: inline-block;
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+	.links line {
+		stroke: #000;
+		stroke-width: 4px;
+		cursor: pointer;
+	}
+	.nodes circle {
+		stroke: #000;
+		fill: #FFF;
+		stroke-width: 4px;
+		cursor: pointer;
+	}
 
-.svg-container {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    vertical-align: top;
-    overflow: hidden;
-}
-.svg-content {
-    display: inline-block;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
 </style>
 </head>
 
 <body>
-<div class="page">
 
 <section id="graph">
 	<h1>Graphs</h1>
@@ -220,7 +183,6 @@
 </div>
 </section>
 
-</div>
 
 <script language="javascript" type="text/javascript" src="testsD3/00_graph.js"></script>
 <script language="javascript" type="text/javascript" src="testsD3/01_adjacentNode.js"></script>

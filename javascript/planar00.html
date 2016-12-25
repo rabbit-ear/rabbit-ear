@@ -1,0 +1,147 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<script language="javascript" type="text/javascript" src="lib/jquery-3.1.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="lib/jquery-ui.min.js"></script>
+<script language="javascript" type="text/javascript" src="lib/p5.min.js"></script>
+<script language="javascript" type="text/javascript" src="graph.js"></script>
+<script language="javascript" type="text/javascript" src="planarGraph.js"></script>
+<script language="javascript" type="text/javascript" src="render.js"></script>
+<script>
+	$( function() {
+		$( ".accordion" ).accordion({
+			active: false,
+			collapsible: true
+		});
+	} );
+</script>
+<link href="https://fonts.googleapis.com/css?family=Merriweather:400,700" rel="stylesheet">
+<link href="lib/prism.css" rel="stylesheet" />
+<link href="style.css" rel="stylesheet" />
+<style>
+	.ui-accordion .ui-accordion-header {
+		cursor: pointer;
+		position: relative;
+		margin: 2px 0 0 0;
+		padding: .5em .5em .5em .7em;
+		font-size: 150%;
+		font-style: italic;
+		color:#888;
+		font-weight: bold;
+		outline: 0;
+	}
+	.ui-accordion .ui-accordion-content, .ui-state-default {
+		display: block;
+		padding: 1em;
+		background: #f6f6f6;
+		border-top: 0;
+		overflow: auto;
+		font-size: 80%;
+	}
+	.p5sketch{
+		margin-top:2em;
+		margin-bottom:2em;
+	}
+</style>
+</head>
+
+<body>
+<section id="intro">
+	<h1>Planar Graphs</h1>
+	<div class="accordion">
+		<h3>INSTRUCTIONS</h3>
+		<div>
+			<p><a href="https://en.wikipedia.org/wiki/Planar_graph">Planar Graphs</a> are a type of mathematical graph: a collection of creases defined by endpoints.</p>
+		</div>
+	</div>
+	<div class="centered">
+		<div id="containerIntro" class="centered p5sketch"></div>
+	</div>
+	<pre class="centered language-javascript"><code class="language-javascript"><span class="token keyword">var</span> graph = <span class="token keyword">new</span> PlanarGraph()
+graph.<span class="token function">fishBase</span>()</code></pre>
+</section>
+
+<section id="planar-graph">
+	<h1>Generate Creases</h1>
+	<p>add creases by adding their endpoints or add a crease using an existing crease for positioning.
+	<div class="third p5sketch" id="divTest01"></div><div class="third p5sketch" id="divTest02"></div><div class="third p5sketch" id="divTest03"></div>
+	<pre class="centered language-javascript"><code class="language-javascript"><span id="spanAddEdge1">graph.<span class="token function">addEdgeWithVertices</span>( x1, y1, x2, y2 )</span>    <span class="token comment">//(float, float, float, float)</span>
+<span id="spanAddEdge2">graph.<span class="token function">addEdgeFromVertex</span>( firstNodeIndex, x, y )</span>    <span class="token comment">//(uint, float, float)</span>
+<span id="spanAddEdge3">graph.<span class="token function">addEdgeFromVertex</span>( lastNodeIndex, x, y )</span>    <span class="token comment">//(uint, float, float)</span></code></pre>
+</section>
+
+<section id="intersections">
+	<h1><a href="#intersections">Clean()</a></h1>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">clean</span>()</code></pre>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">chopAtIntersections</span>()</code></pre>
+	<p>Avoid crossing lines. Get the the X &amp; Y of the intersection:</p>
+	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">edgesIntersect</span>(<span class="token argument" id="spanEdgeIntersect1"> edge1</span>,<span class="token argument" id="spanEdgeIntersect2"> edge2 </span>)</code></pre>
+</section>
+
+<script>
+	var introSketch = function(p) {
+		var paperSize = 250;
+		var g = new PlanarGraph();
+		p.wiggle = true;
+		p.reset = function(){
+			g.clear();
+			g.fishBase();
+		}
+		p.setup = function(){
+			canvas = p.createCanvas(paperSize, paperSize);
+			p.reset();
+		}
+		p.draw = function() {
+			// update
+			if(p.wiggle){
+				var mag = 0.005;
+				var speed = 0.001;
+				for(var i = 0; i < g.nodes.length; i++){
+					var boundary = g.nodes[i].isBoundary;
+					if(boundary == undefined){
+						// g.nodes[i].x += -0.0005 + 0.001 * p.noise(i*31.111+p.millis()*0.0002);
+						// g.nodes[i].y += -0.0005 + 0.001 * p.noise(i*44.22+10+p.millis()*0.0002);
+					} else if(boundary == 1 || boundary == 3){
+						g.nodes[i].x += -mag*0.5 + mag * p.noise(i*31.111+p.millis()*speed);
+					} else if(boundary == 2 || boundary == 4){
+						g.nodes[i].y += -mag*0.5 + mag * p.noise(i*44.22+10+p.millis()*speed);
+					}
+					if(g.nodes[i].x < 0.0) g.nodes[i].x = 0.0;
+					if(g.nodes[i].x > 1.0) g.nodes[i].x = 1.0;
+					if(g.nodes[i].y < 0.0) g.nodes[i].y = 0.0;
+					if(g.nodes[i].y > 1.0) g.nodes[i].y = 1.0;
+				}
+			}
+			// draw
+			p.clear();
+			p.applyMatrix(paperSize, 0, 0, paperSize, paperSize*0.5-paperSize*0.5, paperSize*0.5-paperSize*0.5);
+			p.strokeWeight(.01);
+			drawCoordinateFrame(p);
+			// drawGraphPoints(p, g);
+			drawGraphLines(p, g);
+		}
+		p.mousePressed = function(){
+			p.reset();
+		}
+	};
+</script>
+<script language="javascript" type="text/javascript" src="tests/03_add_nodes.js"></script>
+<script>
+	var p500 = new p5(introSketch, 'containerIntro');
+	// p500.wiggle = true;
+	var p501 = new p5(test03, 'divTest01');
+	p501.pattern = 0;
+	var p502 = new p5(test03, 'divTest02');
+	p502.pattern = 1;
+	var p503 = new p5(test03, 'divTest03');
+	p503.pattern = 2;
+
+	$("#spanAddEdge1").mouseenter(function(){ p501.setHighlight(true); })
+	                  .mouseleave(function(){ p501.setHighlight(false); });
+	$("#spanAddEdge2").mouseenter(function(){ p502.setHighlight(true); })
+	                  .mouseleave(function(){ p502.setHighlight(false); });
+	$("#spanAddEdge3").mouseenter(function(){ p503.setHighlight(true); })
+	                  .mouseleave(function(){ p503.setHighlight(false); });
+</script>
+</body>
+</html>

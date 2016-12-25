@@ -21,7 +21,7 @@ function fillGraph(graph, numNodes){
 		for(var i = 0; i < numEdges - numNodes; i++)
 			graph.addEdge( {'a':Math.floor(Math.random()*numNodes), 'b':Math.floor(Math.random()*numNodes)} );
 	}
-	graph.cleanup();
+	graph.clean();
 }
 
 function didTouchNode02(index, circles, links){

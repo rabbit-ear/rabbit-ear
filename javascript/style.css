@@ -1,0 +1,37 @@
+body {
+	font-family: 'Merriweather', Georgia, "Times New Roman", Times, serif;
+	padding: 0;
+	margin:2em;
+} 
+a:link { color: black; text-decoration: none; font-weight: bold;}
+a:visited { color: black; text-decoration: none; font-weight: bold;}
+a:hover { color: black; text-decoration: underline; font-weight: bold;}
+a:active { color: black; text-decoration: none; font-weight: bold;}
+.centered{
+	width: 100%;
+	text-align: center;
+	display:inline-block;
+}
+.half{
+	width: 50%;
+	text-align: center;
+	display:inline-block;
+}
+.third{
+	width: 33%;
+	text-align: center;
+	display:inline-block;
+}
+.quote, .quoteauthor{
+	text-align:center;
+	font-style: italic;
+}
+.quoteauthor{
+	font-weight: bold;
+}
+h1{ font-size: 400%; -webkit-margin-after: .2em; -webkit-margin-before: .2em; }
+h2{ font-size: 320%; }
+h3{ font-size: 260%; }
+h4{ font-size: 200%; }
+h5{ font-size: 150%; }
+p{ font-size: 180%; }
