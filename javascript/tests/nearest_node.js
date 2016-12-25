@@ -1,4 +1,4 @@
-var test06 = function(p) {
+var test07 = function(p) {
 	p.mouseMovedCallback = undefined;
 	p.numPoints = 30;
 	// var WIDTH = window.innerWidth;

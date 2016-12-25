@@ -1,4 +1,4 @@
-var test05 = function(p){
+var test06 = function(p){
 	var paperSize = 250;
 	var WIDTH = paperSize;
 	var HEIGHT = paperSize;
@@ -33,7 +33,7 @@ var test05 = function(p){
 		g.nodes.pop();
 		g.addEdgeFromExistingVertices(0, 1);
 		g.addEdgeFromExistingVertices(2, 3);
-		intersections = g.getAllEdgeIntersections();
+		intersections = g.getEdgeIntersectionsWithEdge(0);
 	}
 
 	p.setup = function(){
@@ -42,27 +42,7 @@ var test05 = function(p){
 		drawAnX(g);
 	}
 
-	function chop(){
-		g.cleanup();
-		for(var i = 0; i < g.edges.length; i++){
-			var intersections = g.getEdgeIntersectionsWithEdge(i);
-			while(intersections.length > 0){
-				var newIntersectionIndex = g.nodes.length;
-				g.addNode({'x':intersections[0].x, 'y':intersections[0].y});
-				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e1n1);
-				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e1n2);
-				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e2n1);
-				g.addEdgeFromExistingVertices(g.nodes.length-1, intersections[0].e2n2);
-				g.removeEdgeBetween(intersections[0].e1n1, intersections[0].e1n2);
-				g.removeEdgeBetween(intersections[0].e2n1, intersections[0].e2n2);
-				var intersections = g.getEdgeIntersectionsWithEdge(i);
-			}
-		}
-		g.cleanup();
-	}
-
 	p.draw = function() {
-
 		// update
 		for(var i = 0; i < g.nodes.length; i++){
 			var speed = 0.002;
@@ -76,27 +56,18 @@ var test05 = function(p){
 			if(g.nodes[i].y < bounds[i].ymin) g.nodes[i].y = bounds[i].ymin;
 			if(g.nodes[i].y > bounds[i].ymax) g.nodes[i].y = bounds[i].ymax;
 		}
-		intersections = g.getAllEdgeIntersections();
-		
+		intersections = g.getEdgeIntersectionsWithEdge(0);
+
 		// draw
 		p.clear();
 		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);
-		
+
 		p.fill(0, 0, 0);
 		p.stroke(0, 0, 0);
 		drawCoordinateFrame(p);
 		// drawGraphPoints(p, g);
-
-		if(g.edges.length == 2)
-			p.draw1();
-		else
-			p.draw2();
-	
-		// for(var i = 0; i < g.edges.length; i++){
-		// 	line(g.nodes[g.edges[i].a].x, g.nodes[g.edges[i].a].y,
-		// 	     g.nodes[g.edges[i].b].x, g.nodes[g.edges[i].b].y);
-		// }
-
+		if(g.edges.length == 2)  p.draw1();
+		else                     p.draw2();
 		// drawGraphLines(p, g);
 		for(var i = 0; i < intersections.length; i++){
 			p.fill(255, 0, 0);
@@ -112,7 +83,7 @@ var test05 = function(p){
 		p.ellipse(g.nodes[g.edges[0].b].x, g.nodes[g.edges[0].b].y, 0.01, 0.01);
 		p.line(g.nodes[g.edges[0].a].x, g.nodes[g.edges[0].a].y,
 			 g.nodes[g.edges[0].b].x, g.nodes[g.edges[0].b].y);
-	
+
 		if(highlighted2) p.stroke(255, 0, 0);
 		else p.stroke(0, 0, 0);
 		p.ellipse(g.nodes[g.edges[1].a].x, g.nodes[g.edges[1].a].y, 0.01, 0.01);
@@ -124,20 +95,6 @@ var test05 = function(p){
 	p.draw2 = function(){
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
-		// if(highlighted1) p.stroke(200, 200, 0);
-		// else p.stroke(0, 0, 0);
-		// p.ellipse(g.nodes[g.edges[0].a].x, g.nodes[g.edges[0].a].y, 0.01, 0.01);
-		// p.ellipse(g.nodes[g.edges[0].b].x, g.nodes[g.edges[0].b].y, 0.01, 0.01);
-		// p.line(g.nodes[g.edges[0].a].x, g.nodes[g.edges[0].a].y,
-		// 	 g.nodes[g.edges[0].b].x, g.nodes[g.edges[0].b].y);
-	
-		// if(highlighted2) p.stroke(200, 200, 0);
-		// else p.stroke(0, 0, 0);
-		// p.ellipse(g.nodes[g.edges[1].a].x, g.nodes[g.edges[1].a].y, 0.01, 0.01);
-		// p.ellipse(g.nodes[g.edges[1].b].x, g.nodes[g.edges[1].b].y, 0.01, 0.01);
-		// p.line(g.nodes[g.edges[1].a].x, g.nodes[g.edges[1].a].y,
-		// 	 g.nodes[g.edges[1].b].x, g.nodes[g.edges[1].b].y);
-
 	}
 
 	p.mouseReleased = function(){
@@ -145,6 +102,6 @@ var test05 = function(p){
 	}
 
 	p.mousePressed = function(){
-		chop();
+		g.chop();
 	}
 };

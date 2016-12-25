@@ -75,10 +75,10 @@ graph.<span class="token function">fishBase</span>()</code></pre>
 </section>
 <section id="intersections">
 	<h1><a href="#intersections">Intersections</a></h1>
-	<div class="centered p5sketch" id="divTest04"></div>
+	<div class="half p5sketch" id="divTest04"></div><div class="half p5sketch" id="divTest05"></div>
 	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getAllEdgeIntersections</span>()</code></pre>
 	<h1>Chopping</h1>
-	<div class="half p5sketch" id="divTest05"></div><div class="half p5sketch" id="divTest05b"></div>
+	<div class="half p5sketch" id="divTest06"></div><div class="half p5sketch" id="divTest07"></div>
 	<p class="quote">press and hold</p>
 	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">chopAtIntersections</span>()</code></pre>
 	<p>Avoid crossing lines. Get the the X &amp; Y of the intersection:</p>
@@ -86,7 +86,7 @@ graph.<span class="token function">fishBase</span>()</code></pre>
 </section>
 <section id="interaction">
 	<h1><a href="#interaction">Select</a></h1>
-	<div class="third p5sketch" id="divTest06"></div><div class="third p5sketch" id="divTest07"></div><div class="third p5sketch" id="divTest08"></div>
+	<div class="third p5sketch" id="divTest08"></div><div class="third p5sketch" id="divTest09"></div><div class="third p5sketch" id="divTest10"></div>
 	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getNearestNode</span>( <span class="token argument" id="spanNearest1MouseX">x</span>, <span class="token argument" id="spanNearest1MouseY">y</span> )
 graph.<span class="token function">getNearestEdge</span>( <span class="token argument" id="spanNearest2MouseX">x</span>, <span class="token argument" id="spanNearest2MouseY">y</span> )
 graph.<span class="token function">getNearestFace</span>( <span class="token argument" id="spanNearest3MouseX">x</span>, <span class="token argument" id="spanNearest3MouseY">y</span> )
@@ -94,10 +94,10 @@ graph.<span class="token function">getNearestFace</span>( <span class="token arg
 </section>
 <section id="faces">
 	<h1><a href="#faces">Find Faces</a></h1>
-	<div class="centered p5sketch" id="divTest10"></div>
+	<div class="centered p5sketch" id="divTest11"></div>
 	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">generateFaces</span>()  <span class="token comment">// from early code, finds duplicates<span></code></pre>
 	<h1>Clockwise</h1>
-	<div class="centered p5sketch" id="divTest09"></div>
+	<div class="centered p5sketch" id="divTest10"></div>
 	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getClockwiseNeighbor</span>( <span class="token argument">nodeIndex</span>, <span class="token argument">nodePrime</span> )</code></pre>
 	<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getClockwiseConnectedNodesSorted</span>( <span class="token argument">nodeIndex</span> )</code></pre>
 </section>
@@ -152,13 +152,14 @@ graph.<span class="token function">getNearestFace</span>( <span class="token arg
 </script>
 <script language="javascript" type="text/javascript" src="tests/03_add_nodes.js"></script>
 <script language="javascript" type="text/javascript" src="tests/04_intersections.js"></script>
-<script language="javascript" type="text/javascript" src="tests/05_chop.js"></script>
-<script language="javascript" type="text/javascript" src="tests/05b_chop.js"></script>
-<script language="javascript" type="text/javascript" src="tests/06_nearest_node.js"></script>
-<script language="javascript" type="text/javascript" src="tests/07_nearest_edge.js"></script>
-<script language="javascript" type="text/javascript" src="tests/08_nearest_face.js"></script>
-<script language="javascript" type="text/javascript" src="tests/09_clockwise_nodes.js"></script>
-<script language="javascript" type="text/javascript" src="tests/10_find_faces.js"></script>
+<script language="javascript" type="text/javascript" src="tests/05_intersection.js"></script>
+<script language="javascript" type="text/javascript" src="tests/06_chop.js"></script>
+<script language="javascript" type="text/javascript" src="tests/07_chop_many.js"></script>
+<script language="javascript" type="text/javascript" src="tests/08_nearest_node.js"></script>
+<script language="javascript" type="text/javascript" src="tests/09_nearest_edge.js"></script>
+<script language="javascript" type="text/javascript" src="tests/10_nearest_face.js"></script>
+<script language="javascript" type="text/javascript" src="tests/11_clockwise_nodes.js"></script>
+<script language="javascript" type="text/javascript" src="tests/12_find_faces.js"></script>
 <script>
 	var p500 = new p5(introSketch, 'containerIntro');
 	p500.wiggle = false;
@@ -170,12 +171,12 @@ graph.<span class="token function">getNearestFace</span>( <span class="token arg
 	p503.pattern = 2;
 	var p504 = new p5(test04, 'divTest04');
 	var p505 = new p5(test05, 'divTest05');
-	var p505b = new p5(test05b, 'divTest05b');
 	var p506 = new p5(test06, 'divTest06');
 	var p507 = new p5(test07, 'divTest07');
 	var p508 = new p5(test08, 'divTest08');
 	var p509 = new p5(test09, 'divTest09');
 	var p510 = new p5(test10, 'divTest10');
+	var p511 = new p5(test11, 'divTest11');
 </script>
 
 
@@ -186,10 +187,10 @@ graph.<span class="token function">getNearestFace</span>( <span class="token arg
 		                  .mouseleave(function(){ p502.setHighlight(false); });
 		$("#spanAddEdge3").mouseenter(function(){ p503.setHighlight(true); })
 		                  .mouseleave(function(){ p503.setHighlight(false); });
-		$("#spanEdgeIntersect1").mouseenter(function(){ p505.setHighlight1(true); })
-		                        .mouseleave(function(){ p505.setHighlight1(false); });
-		$("#spanEdgeIntersect2").mouseenter(function(){ p505.setHighlight2(true); })
-		                        .mouseleave(function(){ p505.setHighlight2(false); });
+		$("#spanEdgeIntersect1").mouseenter(function(){ p506.setHighlight1(true); })
+		                        .mouseleave(function(){ p506.setHighlight1(false); });
+		$("#spanEdgeIntersect2").mouseenter(function(){ p506.setHighlight2(true); })
+		                        .mouseleave(function(){ p506.setHighlight2(false); });
 
 	p506.mouseMovedCallback = function(x,y){
 		if(x == undefined || y == undefined){

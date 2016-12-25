@@ -1,4 +1,4 @@
-var test10 = function(p) {
+var test11 = function(p) {
 	p.mouseMovedCallback = undefined;
 	// var WIDTH = this.canvas.parentElement.offsetWidth;
 	// var HEIGHT = this.canvas.parentElement.offsetHeight;

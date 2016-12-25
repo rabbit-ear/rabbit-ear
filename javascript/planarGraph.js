@@ -7,7 +7,7 @@
 
 var USER_TAP_EPSILON = 0.01;
 var VERTEX_DUPLICATE_EPSILON = 0.003;
-var SLOPE_ANGLE_PLACES = 2;
+var SLOPE_ANGLE_PLACES = 2.5;
 var SLOPE_ANGLE_EPSILON = 1 * Math.pow(10,-SLOPE_ANGLE_PLACES);
 var SLOPE_ANGLE_INF_EPSILON = 1 * Math.pow(10,SLOPE_ANGLE_PLACES);
 
@@ -21,7 +21,12 @@ class PlanarGraph extends Graph{
 		super();
 		this.faces = [];
 		this.clockwiseNodeEdges = [];
+
+		this.verbose = false;
 	}
+
+	///////////////////////////////////////////////////////////////
+	// ADD PARTS
 
 	addEdgeWithVertices(x1, y1, x2, y2){  // floats
 		var nodeArrayLength = this.nodes.length;
@@ -40,12 +45,139 @@ class PlanarGraph extends Graph{
 		this.edges.push( {'a':existingIndex1, 'b':existingIndex2} );
 	}
 
-
 	addEdgeRadiallyFromVertex(existingIndex, angle, distance){ // uint, floats
 		var newX = this.nodes[existingIndex].x + Math.cos(angle) * distance;
 		var newY = this.nodes[existingIndex].y + Math.sin(angle) * distance;
 		this.addEdgeFromVertex(existingIndex, newX, newY);
 	}
+
+	///////////////////////////////////////////////////////////////
+	// CLEAN  /  REMOVE PARTS
+
+	clean(){
+		super.clean();
+	// 	this.mergeDuplicateVertices();
+	}
+
+	mergeDuplicateVertices(){
+		var i = 0;
+		while(i < this.nodes.length-1){
+			var j = i+1;
+			while(j < this.nodes.length){
+				var didRemove = false;
+				// do the points overlap?
+				if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], VERTEX_DUPLICATE_EPSILON) ){
+					didRemove = super.mergeNodes(i, j);
+					// console.log('merged 2 nodes: ' + i + ' ' + j);
+				}
+				// only iterate forward if we didn't remove an element
+				//   if we did, it basically iterated forward for us, repeat the same 'j'
+				// this is also possible because we know that j is always greater than i
+				if(!didRemove){
+					j+=1;
+				}
+			}
+			i+=1;
+		}
+	}
+
+	// quick and easy, use a square bounding box
+	verticesEquivalent(v1, v2, epsilon){  // Vertex type
+		return (v1.x - epsilon < v2.x && v1.x + epsilon > v2.x &&
+				v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
+	}
+	// verticesEquivalent(x1, y1, x2, y2, float epsilon){  // float type
+	// 	return (x1 - epsilon < x2 && x1 + epsilon > x2 &&
+	// 			y1 - epsilon < y2 && y1 + epsilon > y2);
+	// }
+
+
+
+	///////////////////////////////////////////////////////////////
+	// EDGE INTERSECTION
+
+	edgesIntersect(e1, e2){
+		// if true - returns {x,y} location of intersection
+		if(this.areEdgesAdjacent(e1, e2)){
+			return undefined;
+		}
+		var v0 = this.nodes[ this.edges[e1].a ];
+		var v1 = this.nodes[ this.edges[e1].b ];
+		var v2 = this.nodes[ this.edges[e2].a ];
+		var v3 = this.nodes[ this.edges[e2].b ];
+		return this.lineSegmentIntersectionAlgorithm(v0, v1, v2, v3);
+	}
+
+	edgesIntersectUsingVertices(p0, p1, p2, p3){
+		// if true - returns {x,y} location of intersection
+		if(this.verticesEquivalent(p0, p2, VERTEX_DUPLICATE_EPSILON) ||
+		   this.verticesEquivalent(p0, p3, VERTEX_DUPLICATE_EPSILON) ||
+		   this.verticesEquivalent(p1, p2, VERTEX_DUPLICATE_EPSILON) ||
+		   this.verticesEquivalent(p1, p3, VERTEX_DUPLICATE_EPSILON) ){
+		   	return undefined;
+		}
+		return this.lineSegmentIntersectionAlgorithm(p0, p1, p2, p3);
+	}
+
+	getEdgeIntersectionsWithEdge(edgeIndex){
+		var intersections = [];
+		for(var i = 0; i < this.edges.length; i++){
+			if(edgeIndex != i){
+				var intersection = this.edgesIntersect(edgeIndex, i);
+				if(intersection != undefined){
+					intersection.e1 = edgeIndex;
+					intersection.e2 = i;
+					intersection.e1n1 = this.edges[edgeIndex].a;
+					intersection.e1n2 = this.edges[edgeIndex].b;
+					intersection.e2n1 = this.edges[i].a;
+					intersection.e2n2 = this.edges[i].b;
+					intersections.push(intersection);
+				}
+			}
+		}
+		return intersections;
+	}
+
+	getAllEdgeIntersections(){
+		var intersections = [];
+		for(var i = 0; i < this.edges.length-1; i++){
+			for(var j = i+1; j < this.edges.length; j++){
+				var intersection = this.edgesIntersect(i, j);
+				if(intersection != undefined){
+					// it's just. i really think... we don't need this extra stuff in this function
+					// intersection.e1 = i;
+					// intersection.e2 = j;
+					// intersection.e1n1 = this.edges[i].a;
+					// intersection.e1n2 = this.edges[i].b;
+					// intersection.e2n1 = this.edges[j].a;
+					// intersection.e2n2 = this.edges[j].b;
+					intersections.push(intersection);
+				}
+			}
+		}
+		return intersections;
+	}
+
+
+	// splitAtIntersections(){
+	chop(){
+		for(var i = 0; i < this.edges.length; i++){
+			var intersections = this.getEdgeIntersectionsWithEdge(i);
+			while(intersections.length > 0){
+				var newIntersectionIndex = this.nodes.length;
+				this.addNode({'x':intersections[0].x, 'y':intersections[0].y});
+				this.addEdgeFromExistingVertices(this.nodes.length-1, intersections[0].e1n1);
+				this.addEdgeFromExistingVertices(this.nodes.length-1, intersections[0].e1n2);
+				this.addEdgeFromExistingVertices(this.nodes.length-1, intersections[0].e2n1);
+				this.addEdgeFromExistingVertices(this.nodes.length-1, intersections[0].e2n2);
+				this.removeEdgeBetween(intersections[0].e1n1, intersections[0].e1n2);
+				this.removeEdgeBetween(intersections[0].e2n1, intersections[0].e2n2);
+				var intersections = this.getEdgeIntersectionsWithEdge(i);
+			}
+		}
+	}
+
+
 
 	getClosestNode(x, y){
 		// can be optimized with a k-d tree
@@ -211,138 +343,6 @@ class PlanarGraph extends Graph{
 		return true;
 	}
 
-	cleanup(){
-		super.cleanup();
-		this.mergeDuplicateVertices();
-	}
-
-	mergeDuplicateVertices(){
-		var i = 0;
-		while(i < this.nodes.length-1){
-			var j = i+1;
-			while(j < this.nodes.length){
-				var didRemove = false;
-				// do the points overlap?
-				if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], VERTEX_DUPLICATE_EPSILON) ){
-					didRemove = super.mergeNodes(i, j);
-					// console.log('merged 2 nodes: ' + i + ' ' + j);
-				}
-				// only iterate forward if we didn't remove an element
-				//   if we did, it basically iterated forward for us, repeat the same 'j'
-				// this is also possible because we know that j is always greater than i
-				if(!didRemove){
-					j+=1;
-				}
-			}
-			i+=1;
-		}
-	}
-
-	// quick and easy, use a square bounding box
-	verticesEquivalent(v1, v2, epsilon){  // Vertex type
-		return (v1.x - epsilon < v2.x && v1.x + epsilon > v2.x &&
-				v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
-	}
-	// verticesEquivalent(x1, y1, x2, y2, float epsilon){  // float type
-	// 	return (x1 - epsilon < x2 && x1 + epsilon > x2 &&
-	// 			y1 - epsilon < y2 && y1 + epsilon > y2);
-	// }
-
-	edgesIntersect(e1, e2){
-		// if true - returns {x,y} location of intersection
-		if(this.areEdgesAdjacent(e1, e2)){
-			return undefined;
-		}
-		var v0 = this.nodes[ this.edges[e1].a ];
-		var v1 = this.nodes[ this.edges[e1].b ];
-		var v2 = this.nodes[ this.edges[e2].a ];
-		var v3 = this.nodes[ this.edges[e2].b ];
-		return this.lineSegmentIntersectionAlgorithm(v0, v1, v2, v3);
-	}
-
-	edgesIntersectUsingVertices(p0, p1, p2, p3){
-		// if true - returns {x,y} location of intersection
-		if(this.verticesEquivalent(p0, p2, VERTEX_DUPLICATE_EPSILON) ||
-		   this.verticesEquivalent(p0, p3, VERTEX_DUPLICATE_EPSILON) ||
-		   this.verticesEquivalent(p1, p2, VERTEX_DUPLICATE_EPSILON) ||
-		   this.verticesEquivalent(p1, p3, VERTEX_DUPLICATE_EPSILON) ){
-		   	return undefined;
-		}
-		return this.lineSegmentIntersectionAlgorithm(p0, p1, p2, p3);
-	}
-
-	getEdgeIntersectionsWithEdge(edgeIndex){
-		var intersections = [];
-		for(var i = 0; i < this.edges.length; i++){
-			if(edgeIndex != i){
-				var intersection = this.edgesIntersect(edgeIndex, i);
-				if(intersection != undefined){
-					intersection.e1 = edgeIndex;
-					intersection.e2 = i;
-					intersection.e1n1 = this.edges[edgeIndex].a;
-					intersection.e1n2 = this.edges[edgeIndex].b;
-					intersection.e2n1 = this.edges[i].a;
-					intersection.e2n2 = this.edges[i].b;
-					intersections.push(intersection);
-				}
-			}
-		}
-		return intersections;
-	}
-
-	getEdgeIntersectionsWithEdgeSimple(edgeIndex){
-		var intersections = [];
-		for(var i = 0; i < this.edges.length; i++){
-			if(edgeIndex != i){
-				var intersection = this.edgesIntersect(edgeIndex, i);
-				if(intersection != undefined){
-					intersection.a = edgeIndex;
-					intersection.b = i;
-					intersections.push(intersection);
-				}
-			}
-		}
-		return intersections;
-	}
-
-	getAllEdgeIntersections(){
-		var intersections = [];
-		for(var i = 0; i < this.edges.length - 1; i++){
-			for(var j = i+1; j < this.edges.length; j++){
-				var intersect = this.edgesIntersect(i, j);
-				if(intersect != undefined){
-					intersections.push(intersect);
-				}
-			}
-		}
-		return intersections;
-	}
-
-	// getAllEdgeIntersectionsDetailed(){
-	// 	var edgesIntersecting = [];  // type uint
-	// 	for(var i = 0; i < this.edges.length - 1; i++){
-	// 		for(var j = i+1; j < this.edges.length; j++){
-	// 			var intersection = this.edgesIntersect(i, j);
-	// 			if(intersection != undefined){
-	// 				edgesIntersecting.push( {'a':i,
-	// 				                         'b':j,
-	// 				                'edge1NodeA':this.edges[i].a,
-	// 				                'edge1NodeB':this.edges[i].b,
-	// 				                'edge2NodeA':this.edges[j].a,
-	// 				                'edge2NodeB':this.edges[j].b,
-	// 				                  'location':intersection} );
-	// 			}
-	// 		}
-	// 	}
-	// 	return edgesIntersecting;
-	// }
-
-
-	splitAtIntersections(){
-		var edgesIntersecting = edgesIntersectingEdges();
-	}
-
-
 	getVertexIndexAt(x, y){  // float float
 		for(var i = 0; i < this.nodes.length; i++){
 			if(this.verticesEquivalent(this.nodes[i].x, this.nodes[i].y, x, y, USER_TAP_EPSILON)){
@@ -495,37 +495,33 @@ class PlanarGraph extends Graph{
 	}
 
 	lineSegmentIntersectionAlgorithm(p0, p1, p2, p3) {
-		var slope1 = (p1.y-p0.y)/(p1.x-p0.x);
-		var slope2 = (p3.y-p2.y)/(p3.x-p2.x);
-		if( (Math.abs(slope1) == Infinity && Math.abs(slope2) > SLOPE_ANGLE_INF_EPSILON) ||
-			(Math.abs(slope2) == Infinity && Math.abs(slope1) > SLOPE_ANGLE_INF_EPSILON) ){
-			return undefined;
-		}
-		if( (slope1 == Infinity && slope2 == Infinity) || Math.abs(slope1 - slope2) < SLOPE_ANGLE_EPSILON ){
-			return undefined;
-		}
-		var s02 = {'x':0, 'y':0};
-		var s10 = {'x':0, 'y':0};
-		var s32 = {'x':0, 'y':0};
-		s10.x = p1.x - p0.x;
-		s10.y = p1.y - p0.y;
-		s32.x = p3.x - p2.x;
-		s32.y = p3.y - p2.y;
+		var rise1 = (p1.y-p0.y);
+		var run1  = (p1.x-p0.x);
+		var rise2 = (p3.y-p2.y);
+		var run2  = (p3.x-p2.x);
+		var slope1 = rise1 / run1;
+		var slope2 = rise2 / run2;
 
-		var denom = s10.x * s32.y - s32.x * s10.y;
+		// if lines are parallel to each other within a floating point error
+		if(Math.abs(slope1) == Infinity && Math.abs(slope2) > SLOPE_ANGLE_INF_EPSILON) return undefined;
+		if(Math.abs(slope2) == Infinity && Math.abs(slope1) > SLOPE_ANGLE_INF_EPSILON) return undefined;
+		var angle1 = Math.atan(slope1);
+		var angle2 = Math.atan(slope2);
+		if(Math.abs(angle1-angle2) < SLOPE_ANGLE_EPSILON) return undefined;
+
+		var denom = run1 * rise2 - run2 * rise1;
 		if (denom == 0)
 			return undefined; // Collinear
 		var denomPositive = false;
 		if(denom > 0) 
 			denomPositive = true;
 
-		s02.x = p0.x - p2.x;
-		s02.y = p0.y - p2.y;
-		var s_numer = s10.x * s02.y - s10.y * s02.x;
+		var s02 = {'x':p0.x - p2.x, 'y':p0.y - p2.y};
+		var s_numer = run1 * s02.y - rise1 * s02.x;
 		if ((s_numer < 0) == denomPositive)
 			return undefined; // No collision
 
-		var t_numer = s32.x * s02.y - s32.y * s02.x;
+		var t_numer = run2 * s02.y - rise2 * s02.x;
 		if ((t_numer < 0) == denomPositive)
 			return undefined; // No collision
 
@@ -533,7 +529,7 @@ class PlanarGraph extends Graph{
 			return undefined; // No collision
 		// Collision detected
 		var t = t_numer / denom;
-		var i = {'x':(p0.x + (t * s10.x)), 'y':(p0.y + (t * s10.y))};
+		var i = {'x':(p0.x + (t * run1)), 'y':(p0.y + (t * rise1))};
 		return i;
 	}
 
@@ -561,7 +557,7 @@ class PlanarGraph extends Graph{
 		this.addEdgeWithVertices(1, 0, 0, 1);
 		this.addEdgeWithVertices(0, 1, 1, .58578);
 		this.addEdgeWithVertices(0, 1, .41421, 0);
-		this.cleanup();
+		this.clean();
 	}
 	fishBase(){
 		this.addEdgeWithVertices(1, 0, 0, 1);
@@ -573,7 +569,7 @@ class PlanarGraph extends Graph{
 		this.addEdgeWithVertices(.70711, .7071, 1, 1);
 		this.addEdgeWithVertices(.70711, .70711, 1, .70711);
 		this.addEdgeWithVertices(.29288, .2929, .29288, 0);
-		this.cleanup();
+		this.clean();
 	}
 	birdBase(){
 		this.addEdgeWithVertices(.35355, .64645, 0, 1);
@@ -608,7 +604,7 @@ class PlanarGraph extends Graph{
 		this.addEdgeWithVertices(.79289, 0.5, 1, 0.5);
 		this.addEdgeWithVertices(0.5, .79289, 0.5, 1);
 		this.addEdgeWithVertices(.2071, 0.5, 0, 0.5);
-		this.cleanup();
+		this.clean();
 	}
 	frogBase(){
 		this.addEdgeWithVertices(0, 0, .14646, .35353);
@@ -675,7 +671,7 @@ class PlanarGraph extends Graph{
 		this.addEdgeWithVertices(.25, .25, 0, 0);
 		this.addEdgeWithVertices(.75, .25, 1, 0);
 		this.addEdgeWithVertices(.75, .75, 1, 1);
-		this.cleanup();
+		this.clean();
 	}
 
 

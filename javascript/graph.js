@@ -7,7 +7,6 @@ class Graph{
 	//              edges are adjacent when they are both connected to the same node
 	//  "similar": in the case of an edge: they contain the same 2 nodes, possibly in a different order
 
-
 	constructor() {
 		this.nodes = []; // can be of any type
 		this.edges = []; // each entry is {a:__, b:__} where __ is index in this.nodes
@@ -62,7 +61,7 @@ class Graph{
 		this.edges.splice(edgeIndex, 1);
 	}
 
-	cleanup(){   // should it be called "clean()" ?
+	clean(){
 		// remove circular edges (a node connecting to itself)
 		for(var i = this.edges.length-1; i >= 0; i--){
 			if(this.edges[i].a == this.edges[i].b)
@@ -74,11 +73,10 @@ class Graph{
 		while(i < this.edges.length){
 			var j = i+1;
 			while(j < this.edges.length){
-				// nested loop, compare every edge with every edge
+				// nested loop, uniquely compare every edge, remove if edges contain same nodes
 				var didRemove = false;
 				if ( this.areEdgesSimilar(i, j) ){
-					console.log("cleanup(): found similar edges, removing last " + i + '(' + this.edges[i].a + ' ' + this.edges[i].b + ') ' + j + '(' + this.edges[j].a + ' ' + this.edges[j].b + ') ' );
-					// if edges are comprised of the same vertices (in any order)
+					console.log("clean(): found similar edges, removing last " + i + '(' + this.edges[i].a + ' ' + this.edges[i].b + ') ' + j + '(' + this.edges[j].a + ' ' + this.edges[j].b + ') ' );
 					this.edges.splice(j, 1);
 					didRemove = true;
 				}
