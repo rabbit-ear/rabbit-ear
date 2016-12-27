@@ -1,4 +1,4 @@
-var test10 = function(p) {
+var test09 = function(p) {
 	// var WIDTH = this.canvas.parentElement.offsetWidth;
 	// var HEIGHT = this.canvas.parentElement.offsetHeight;
 	var paperSize = 250;
