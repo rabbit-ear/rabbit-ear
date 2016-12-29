@@ -42,3 +42,36 @@ pre[class*="language-"] {
 	max-width:500px;
 	/*min-width:300px;*/
 }
+/* accordion shared */
+.ui-accordion{
+	background: #f6f6f6;
+}
+/* accordion header */
+.ui-accordion .ui-accordion-header {
+	margin: 2px 0 0 0;
+	padding: .5em;
+	color:#888;
+	font-size: 140%;
+	font-style: italic;
+	font-weight: bold;
+	cursor: pointer;
+	outline: 0;
+}
+/* accordion body */
+.ui-accordion .ui-accordion-content {
+	display: block;
+	/*border: 0;*/
+	padding: 1em;
+	overflow: auto;
+	-webkit-margin-before:0px;
+	-webkit-margin-after:0px;
+}
+/* todo: figure out how to make internal div no padding */
+.ui-accordion div {
+	padding:0;
+}
+
+.p5sketch{
+	margin-top:2em;
+	margin-bottom:2em;
+}
