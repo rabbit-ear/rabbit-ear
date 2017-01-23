@@ -8,6 +8,8 @@ var test03_02 = function( p ) {
 
 	var mouseDownLocation = undefined;
 
+	var callback = undefined;  // callback function- format callback(x1, y1, x2, y2);
+
 	p.reset = function(){
 		g.clear();
 	}
@@ -43,6 +45,9 @@ var test03_02 = function( p ) {
 			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;	
 			p.line(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
 			p.ellipse(mouseDownLocation.x, mouseDownLocation.y, .01, .01);
+			if(callback != undefined){
+				callback(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
+			}
 		}
 
 	}

@@ -1,4 +1,4 @@
-var introSketch = function(p) {
+var sketch_intro = function(p) {
 	var paperSize = 250;
 	var g = new PlanarGraph();
 	p.wiggle = true;

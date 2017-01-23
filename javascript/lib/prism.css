@@ -5,8 +5,7 @@
  * @author ocodia
  */
 
-code[class*="language-"],
-pre[class*="language-"] {
+code, pre {
 	color: #f8f8f2;
 	background: none;
 	text-shadow: 0 1px rgba(0, 0, 0, 0.3);
@@ -29,20 +28,20 @@ pre[class*="language-"] {
 }
 
 /* Code blocks */
-pre[class*="language-"] {
+pre {
 	padding: 1em;
 	margin: .5em -1.0em;
 	overflow: auto;
 	border-radius: 0.3em;
 }
 
-:not(pre) > code[class*="language-"],
-pre[class*="language-"] {
+:not(pre) > code,
+pre {
 	background: #272822;
 }
 
 /* Inline code */
-:not(pre) > code[class*="language-"] {
+:not(pre) > code {
 	padding: .1em;
 	border-radius: .3em;
 	white-space: normal;

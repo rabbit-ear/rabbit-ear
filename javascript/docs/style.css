@@ -2,17 +2,45 @@ body {
 	font-family: 'Merriweather', Georgia, "Times New Roman", Times, serif;
 	padding: 0;
 	margin:2em;
+	padding-top:1em;
 } 
-a:link { color: black; text-decoration: none; font-weight: bold;}
-a:visited { color: black; text-decoration: none; font-weight: bold;}
-a:hover { color: black; text-decoration: underline; font-weight: bold;}
-a:active { color: black; text-decoration: none; font-weight: bold;}
+a { color: black; text-decoration: none; font-weight: bold;}
 h1{ font-size: 400%; -webkit-margin-after: .2em; -webkit-margin-before: .2em; }
 h2{ font-size: 320%; }
 h3{ font-size: 260%; }
 h4{ font-size: 200%; }
 h5{ font-size: 150%; }
 p{ font-size: 180%; }
+p.ui-accordion-content{ font-size: 140%; }
+
+/* NAV BAR */
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+li {
+    float: left;
+}
+
+li a {
+    display: block;
+    color:#FFF;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+li a:hover {
+    background-color: #111;
+}
+/* end nav bar */
 .centered{
 	width: 100%;
 	text-align: center;
@@ -36,7 +64,7 @@ p{ font-size: 180%; }
 	font-weight: bold;
 }
 button:focus {outline:0;}
-pre[class*="language-"] {
+pre {
 	margin-top: 1em;
 	margin-bottom:1em;
 	max-width:500px;
@@ -74,4 +102,30 @@ pre[class*="language-"] {
 .p5sketch{
 	margin-top:2em;
 	margin-bottom:2em;
+}
+
+/* D3 sketches */
+.svg-container {
+	display: inline-block;
+	position: relative;
+	width: 100%;
+	vertical-align: top;
+	overflow: hidden;
+}
+.svg-content {
+	display: inline-block;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+.links line {
+	stroke: #000;
+	stroke-width: 4px;
+	cursor: pointer;
+}
+.nodes circle {
+	stroke: #000;
+	fill: #FFF;
+	stroke-width: 4px;
+	cursor: pointer;
 }
