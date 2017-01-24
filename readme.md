@@ -1,8 +1,9 @@
 # origami math
 
-goals:
+javascript crease pattern library:
 
-- [x] foundational data structure: planar graph
+- [x] foundation: planar graph data structure
+- [x] rendering hooks to P5.js
 - [ ] import / export (.svg, ORIPA)
-- [ ] human-interaction tool to add creases
+- [ ] GUI interface, adding and modifying creases
 - [ ] parse raster image of crease pattern for possible best fit

@@ -10,10 +10,6 @@
 
 	<pre><code>graph.<span class="token function">addEdgeWithVertices</span>( <span id="divAddNode02x1">x1</span>, <span id="divAddNode02y1">y1</span>, <span id="divAddNode02x2">x2</span>, <span id="divAddNode02y2">y2<span> )</code></pre>
 
-	<div id="divTest03_03" class="centered p5sketch"></div>
-
-	<pre><code>graph.<span class="token function">addEdgeFromVertex</span>( firstNodeIndex, x, y )</code></pre>
-
 	<div class="third p5sketch" id="divTest01"></div>
 	<div class="third p5sketch" id="divTest02"></div>
 	<div class="third p5sketch" id="divTest03"></div>
@@ -48,7 +44,6 @@
 	var p503 = new p5(test03, 'divTest03');
 	p503.pattern = 2;
 	var p503_02 = new p5(test03_02, 'divTest03_02');
-	var p503_03 = new p5(test03_03, 'divTest03_03');
 
 	$("#spanAddEdge1").mouseenter(function(){ p501.setHighlight(true); })
 	                  .mouseleave(function(){ p501.setHighlight(false); });

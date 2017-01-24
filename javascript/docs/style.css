@@ -129,3 +129,70 @@ pre {
 	stroke-width: 4px;
 	cursor: pointer;
 }
+
+/* *************************** */
+/* some code from prism */
+
+code, pre {
+	color: #f8f8f2;
+	background: none;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+	text-align: left;
+	white-space: pre;
+	word-spacing: normal;
+	word-break: normal;
+	word-wrap: normal;
+	line-height: 1.5;
+
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	tab-size: 4;
+
+	-webkit-hyphens: none;
+	-moz-hyphens: none;
+	-ms-hyphens: none;
+	hyphens: none;
+}
+
+/* Code blocks */
+pre {
+	padding: 1em;
+	margin: .5em -1.0em;
+	overflow: auto;
+	border-radius: 0.3em;
+}
+
+:not(pre) > code,
+pre {
+	background: #272822;
+}
+
+/* Inline code */
+:not(pre) > code {
+	padding: .1em;
+	border-radius: .3em;
+	white-space: normal;
+}
+
+c{ /* comment */
+	color: #708090;
+}
+f{ /* function */
+	color: #66D9EF;
+}
+n { /* number */
+	color: #AE81FF;
+}
+v, def{ /* variable */
+	color: #A6E22E;
+}
+op, key{ /* operator */
+	color: #F92672;
+}
+str { /* string */
+	color: #E6DB74;
+}
+arg{ /* argument */
+	color: #FD9720;
+}
