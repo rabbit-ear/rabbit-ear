@@ -6,9 +6,10 @@
 		<p>Add creases by adding their endpoints or add a crease using an existing crease for positioning.</p>
 	</div>
 
-	<div id="divTest03_02" class="centered p5sketch"></div>
+	<div id="divTest03_drag" class="centered p5sketch"></div>
+	<div class="centered">click and drag</div>
 
-	<pre><code>graph.<span class="token function">addEdgeWithVertices</span>( <span id="divAddNode02x1">x1</span>, <span id="divAddNode02y1">y1</span>, <span id="divAddNode02x2">x2</span>, <span id="divAddNode02y2">y2<span> )</code></pre>
+	<pre><code>graph.<span class="token function">addEdgeWithVertices</span>( <span id="var1">x1</span>, <span id="var2">y1</span>, <span id="var3">x2</span>, <span id="var4">y2</span> );</code></pre>
 
 	<div class="third p5sketch" id="divTest01"></div>
 	<div class="third p5sketch" id="divTest02"></div>
@@ -17,24 +18,9 @@
 	<pre><code><span id="spanAddEdge1">graph.<span class="token function">addEdgeWithVertices</span>( x1, y1, x2, y2 )</span>    <span class="token comment">//(float, float, float, float)</span><br><span id="spanAddEdge2">graph.<span class="token function">addEdgeFromVertex</span>( firstNodeIndex, x, y )</span>    <span class="token comment">//(uint, float, float)</span><br><span id="spanAddEdge3">graph.<span class="token function">addEdgeFromVertex</span>( lastNodeIndex, x, y )</span>    <span class="token comment">//(uint, float, float)</span></code></pre>
 </section>
 
-<section id="intersections">
-	<h2><a href="#intersections">Clean</a></h2>
-	<div class="accordion">
-		<div>
-			<p>Clean does a few things:</p>
-			<p>First, it removes any redundant edges (when 2 or more edges join between the same nodes).</p>
-			<p>Secondly, because this is a planar graph, it is able to remove redundant nodes when 2 or more nodes exist at the same location in space.</p>
-			<p>Due to floating point precision, points are determined to be redundant when the are close enough to a certain floating point precision.</p>
-		</div>
-	</div>
-
-	<pre><code>graph.<span class="token function">clean</span>()</code></pre>
-	<pre><code>graph.<span class="token function">mergeDuplicateVertices</span>()    <span class="token comment">//calling clean() will automatically call this</span></code></pre>
-</section>
-
 <!-- include .js sketches -->
 <script language="javascript" type="text/javascript" src="../tests/03_add_nodes.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/03_add_nodes_02.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/03_add_nodes_drag.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/03_add_nodes_03.js"></script>
 <script>
 	var p501 = new p5(test03, 'divTest01');
@@ -43,7 +29,47 @@
 	p502.pattern = 1;
 	var p503 = new p5(test03, 'divTest03');
 	p503.pattern = 2;
-	var p503_02 = new p5(test03_02, 'divTest03_02');
+	var p503_drag = new p5(test03_drag, 'divTest03_drag');
+
+	var callback = function(e){
+		if(e == undefined){
+			$('#var1').html('x1');
+			$('#var2').html('y1');
+			$('#var3').html('x2');
+			$('#var4').html('y2');
+			$("#var1").removeClass("n");
+			$("#var2").removeClass("n");
+			$("#var3").removeClass("n");
+			$("#var4").removeClass("n");
+		}
+		else{
+			if(e.start.x == undefined || e.start.y == undefined){
+				$('#var1').html('x1');
+				$('#var2').html('y1');
+				$("#var1").removeClass("n");
+				$("#var2").removeClass("n");
+			} else{
+				$('#var1').html( (e.start.x).toFixed(2) );
+				$('#var2').html( (e.start.y).toFixed(2) );
+				$("#var1").addClass("n");
+				$("#var2").addClass("n");
+			}
+
+			if(e.end.x == undefined || e.end.y == undefined){
+				$('#var3').html('x2');
+				$('#var4').html('y2');
+				$("#var3").removeClass("n");
+				$("#var4").removeClass("n");
+			} else{
+				$('#var3').html( (e.end.x).toFixed(2) );
+				$('#var4').html( (e.end.y).toFixed(2) );
+				$("#var3").addClass("n");
+				$("#var4").addClass("n");
+			}
+		}
+	};
+
+	p503_drag.callback = callback;
 
 	$("#spanAddEdge1").mouseenter(function(){ p501.setHighlight(true); })
 	                  .mouseleave(function(){ p501.setHighlight(false); });

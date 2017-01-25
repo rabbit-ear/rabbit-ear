@@ -7,7 +7,7 @@
 	</div>
 	<pre><code><key>var</key> graph <op>=</op> <key>new</key> PlanarGraph()<br>graph.<f>fishBase</f>()</code></pre>
 	<div id="sketch_intro" class="centered p5sketch"></div>
-	<pre><code><c>//wiggle</c><br>graph.<f>nodes</f>[<n>3</n>] <op>=</op> { <str>x</str>:<f>noise</f>(<arg>t1</arg>), <str>y</str>:<f>noise</f>(<arg>t2</arg>) };<br>graph.<f>nodes</f>[<n>6</n>] <op>=</op> { <str>x</str>:<f>noise</f>(<arg>t3</arg>), <str>y</str>:<f>noise</f>(<arg>t4</arg>) };</code></pre>
+	<pre><code><c>//wiggle</c><br>graph.<f>nodes</f>[<n>3</n>] <op>=</op> { x:<f>noise</f>(<arg>t1</arg>), y:<f>noise</f>(<arg>t2</arg>) };<br>graph.<f>nodes</f>[<n>6</n>] <op>=</op> { x:<f>noise</f>(<arg>t3</arg>), y:<f>noise</f>(<arg>t4</arg>) };</code></pre>
 	<div class="accordion">
 		<p>A certain priority is placed on accessibility and real-time updating. Everything is available for you to change, and where possible, code is optimized to be able to be run inside of a game loop.</p>
 	</div>

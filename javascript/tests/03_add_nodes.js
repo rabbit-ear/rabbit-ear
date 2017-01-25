@@ -71,6 +71,12 @@ var test03 = function( p ) {
 		}
 	}
 	p.mousePressed = function(){
-		p.reset();
+		var mouseXScaled = p.mouseX / paperSize;
+		var mouseYScaled = p.mouseY / paperSize;
+		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+		if(mouseXScaled != undefined && mouseYScaled != undefined){
+			p.reset();
+		}
 	}
 };

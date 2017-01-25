@@ -11,36 +11,6 @@ h3{ font-size: 260%; }
 h4{ font-size: 200%; }
 h5{ font-size: 150%; }
 p{ font-size: 180%; }
-p.ui-accordion-content{ font-size: 140%; }
-
-/* NAV BAR */
-ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #333;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-}
-
-li {
-    float: left;
-}
-
-li a {
-    display: block;
-    color:#FFF;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-}
-li a:hover {
-    background-color: #111;
-}
-/* end nav bar */
 .centered{
 	width: 100%;
 	text-align: center;
@@ -64,12 +34,129 @@ li a:hover {
 	font-weight: bold;
 }
 button:focus {outline:0;}
+
+/* NAV BAR */
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+li {
+    float: left;
+}
+li a {
+    display: block;
+    color:#FFF;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+li a:hover {
+    background-color: #111;
+}
+
+/* P5.js and D3.js */
+.p5sketch{
+	margin-top:2em;
+	margin-bottom:2em;
+}
+.svg-container {
+	display: inline-block;
+	position: relative;
+	width: 100%;
+	vertical-align: top;
+	overflow: hidden;
+}
+.svg-content {
+	display: inline-block;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+.links line {
+	stroke: #000;
+	stroke-width: 4px;
+	cursor: pointer;
+}
+.nodes circle {
+	stroke: #000;
+	fill: #FFF;
+	stroke-width: 4px;
+	cursor: pointer;
+}
+
+/* code syntax highlighting */
+code, pre {
+	color: #f8f8f2;
+	background: none;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+	text-align: left;
+	white-space: pre;
+	word-spacing: normal;
+	word-break: normal;
+	word-wrap: normal;
+	line-height: 1.5;
+
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	tab-size: 4;
+
+	-webkit-hyphens: none;
+	-moz-hyphens: none;
+	-ms-hyphens: none;
+	hyphens: none;
+}
+
 pre {
+	padding: 1em;
 	margin-top: 1em;
 	margin-bottom:1em;
+	overflow: auto;
+	border-radius: 0.3em;
+	background: #272822;
 	max-width:500px;
 	/*min-width:300px;*/
 }
+
+code {
+	padding: .1em;
+	border-radius: .3em;
+	white-space: normal;
+}
+
+/* the following are short to allow quick typing */
+
+c{ /* comment */
+	color: #708090;
+}
+f{ /* function */
+	color: #66D9EF;
+}
+n, .n { /* number */
+	color: #AE81FF;
+}
+v, def{ /* variable */
+	color: #A6E22E;
+}
+op, key{ /* operator */
+	color: #F92672;
+}
+str { /* string */
+	color: #E6DB74;
+}
+arg{ /* argument */
+	color: #FD9720;
+}
+
+/* JQuery expanding DIV */
+p.ui-accordion-content{ font-size: 140%; }
 /* accordion shared */
 .ui-accordion{
 	background: #f6f6f6;
@@ -97,102 +184,4 @@ pre {
 /* todo: figure out how to make internal div no padding */
 .ui-accordion div {
 	padding:0;
-}
-
-.p5sketch{
-	margin-top:2em;
-	margin-bottom:2em;
-}
-
-/* D3 sketches */
-.svg-container {
-	display: inline-block;
-	position: relative;
-	width: 100%;
-	vertical-align: top;
-	overflow: hidden;
-}
-.svg-content {
-	display: inline-block;
-	position: absolute;
-	top: 0;
-	left: 0;
-}
-.links line {
-	stroke: #000;
-	stroke-width: 4px;
-	cursor: pointer;
-}
-.nodes circle {
-	stroke: #000;
-	fill: #FFF;
-	stroke-width: 4px;
-	cursor: pointer;
-}
-
-/* *************************** */
-/* some code from prism */
-
-code, pre {
-	color: #f8f8f2;
-	background: none;
-	text-shadow: 0 1px rgba(0, 0, 0, 0.3);
-	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-	text-align: left;
-	white-space: pre;
-	word-spacing: normal;
-	word-break: normal;
-	word-wrap: normal;
-	line-height: 1.5;
-
-	-moz-tab-size: 4;
-	-o-tab-size: 4;
-	tab-size: 4;
-
-	-webkit-hyphens: none;
-	-moz-hyphens: none;
-	-ms-hyphens: none;
-	hyphens: none;
-}
-
-/* Code blocks */
-pre {
-	padding: 1em;
-	margin: .5em -1.0em;
-	overflow: auto;
-	border-radius: 0.3em;
-}
-
-:not(pre) > code,
-pre {
-	background: #272822;
-}
-
-/* Inline code */
-:not(pre) > code {
-	padding: .1em;
-	border-radius: .3em;
-	white-space: normal;
-}
-
-c{ /* comment */
-	color: #708090;
-}
-f{ /* function */
-	color: #66D9EF;
-}
-n { /* number */
-	color: #AE81FF;
-}
-v, def{ /* variable */
-	color: #A6E22E;
-}
-op, key{ /* operator */
-	color: #F92672;
-}
-str { /* string */
-	color: #E6DB74;
-}
-arg{ /* argument */
-	color: #FD9720;
 }

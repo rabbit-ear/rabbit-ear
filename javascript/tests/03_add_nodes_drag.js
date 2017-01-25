@@ -1,4 +1,4 @@
-var test03_02 = function( p ) {
+var test03_drag = function( p ) {
 	var paperSize = 250;
 	var WIDTH = paperSize;
 	var HEIGHT = paperSize;
@@ -8,7 +8,7 @@ var test03_02 = function( p ) {
 
 	var mouseDownLocation = undefined;
 
-	var callback = undefined;  // callback function- format callback(x1, y1, x2, y2);
+	p.callback = undefined;  // callback function {start.x, start.y, end.x, end.y}
 
 	p.reset = function(){
 		g.clear();
@@ -46,7 +46,8 @@ var test03_02 = function( p ) {
 			p.line(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
 			p.ellipse(mouseDownLocation.x, mouseDownLocation.y, .01, .01);
 			if(callback != undefined){
-				callback(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
+				callback({ 'start':{'x':mouseDownLocation.x, 'y':mouseDownLocation.y}, 
+				             'end':{'x':mouseXScaled, 'y':mouseYScaled } });
 			}
 		}
 
@@ -71,5 +72,8 @@ var test03_02 = function( p ) {
 			}
 		}
 		mouseDownLocation = undefined;
+		if(callback != undefined){
+			callback(undefined);
+		}
 	}
 };

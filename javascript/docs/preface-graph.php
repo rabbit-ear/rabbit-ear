@@ -6,7 +6,11 @@
 <div>
 	<h3>Foundation</h3>
 	<p>An origami crease pattern is a type of planar graph, and a planar graph is a type of graph.</p>
-	<p>The parts of a graph are the most fundamental parts of a crease pattern. As you read the following, keep in mind: an 'edge' is a crease, and a 'node' is the endpoints of a crease</p>
+</div>
+<div class="centered">Graph → Planar Graph → Crease Pattern</div>
+<div>
+	<p>A graph and it's properties are the most fundamental part of a crease pattern. As you read the following, keep in mind: an 'edge' will be used to represent a crease, and a 'node' defines the endpoints of a crease</p>
+	<p>HOWEVER: A graph has no relation to 2D space. That comes later in the planar graph.</p>
 </div>
 
 <section id="graph">
