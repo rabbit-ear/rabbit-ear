@@ -24,7 +24,29 @@
 		<ul>
 		<li><a href="introduction.php">Introduction</a></li>
 		<li><a href="preface-graph.php">Preface: Graph</a></li>
-		<li><a href="addremove.php">Add / Remove</a></li>
-		<li><a href="cleanup.php">Clean Up</a></li>
+		<li class="dropdown">
+			<a href="javascript:void(0)" class="dropbtn">Crease Lines</a>
+			<div class="dropdown-content">
+			<a href="addremove.php">Add</a>
+			<a href="cleanup.php">Remove/Clean</a>
+			</div>
+		</li>
+		<li class="dropdown">
+			<a href="javascript:void(0)" class="dropbtn">Intersections</a>
+			<div class="dropdown-content">
+			<a href="intersections.php">Intersections</a>
+			<a href="intersections.php">Parallel Lines</a>
+			<a href="intersections.php">Chop</a>
+			</div>
+		</li>
+		<li class="dropdown">
+			<a href="javascript:void(0)" class="dropbtn">Faces</a>
+			<div class="dropdown-content">
+			<a href="addremove.php">Find</a>
+			<a href="#">Neighbors</a>
+			<a href="#"></a>
+			</div>
+		</li>
+		<li><a href="#">Complex</a></li>
 		</ul>
 	</nav>

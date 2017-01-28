@@ -36,29 +36,47 @@ p{ font-size: 180%; }
 button:focus {outline:0;}
 
 /* NAV BAR */
-ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #333;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
+nav ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #333;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	overflow:visible;
 }
-li {
-    float: left;
+nav li {
+	float: left;
 }
-li a {
-    display: block;
-    color:#FFF;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
+nav li a {
+	display: block;
+	color:#FFF;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
 }
-li a:hover {
-    background-color: #111;
+nav li a:hover {
+	background-color: #111;
+}
+.dropdown {
+	position: relative;
+	display: inline-block;
+}
+.dropdown-content {
+	display: none;
+	position: absolute;
+	background-color: #333;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+/*	padding: 12px 16px; */    
+	padding:0px 0px 16px 0px;
+	z-index: 1;
+}
+.dropdown:hover .dropdown-content {
+	display: block;
 }
 
 /* P5.js and D3.js */
