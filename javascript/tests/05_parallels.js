@@ -1,11 +1,7 @@
-var test05 = function(p) {
-	p.mouseMovedCallback = undefined;
-	// var WIDTH = this.canvas.parentElement.offsetWidth;
-	// var HEIGHT = this.canvas.parentElement.offsetHeight;
+var _05_parallels = function(p) {
 	var paperSize = 250;
 	var WIDTH = paperSize;
 	var HEIGHT = paperSize;
-	// myp5.canvas.parentElement.offsetWidth
 
 	var g = [new PlanarGraph(), new PlanarGraph(), new PlanarGraph(), new PlanarGraph(), new PlanarGraph()];
 	// g[0].verbose = true;

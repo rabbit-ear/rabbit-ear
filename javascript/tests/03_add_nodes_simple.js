@@ -1,15 +1,13 @@
-var test03 = function( p ) {
+var _03_add_nodes_simple = function( p ) {
+	p.callback = undefined;
+	p.numLines = 17;
+	p.pattern = Math.floor(Math.random()*2.999);
+
 	var paperSize = 250;
 	var WIDTH = paperSize;
 	var HEIGHT = paperSize;
 
 	var g = new PlanarGraph();
-	p.numLines = 17;
-	p.pattern = Math.floor(Math.random()*2.999);
-	var intersections = [];
-
-	var highlight = false;
-	p.setHighlight = function(on){ highlight = on; }
 
 	function fillWithRandom(graph, count){
 		for(var i = 0; i < count; i++)
@@ -36,8 +34,6 @@ var test03 = function( p ) {
 			fillWithSunburst(g, p.numLines);
 		else 
 			fillWithRandom(g, p.numLines);
-		if(p.showIntersections)
-			intersections = g.getAllEdgeIntersections();
 	}
 	p.setup = function(){
 		canvas = p.createCanvas(WIDTH, HEIGHT);
@@ -48,27 +44,12 @@ var test03 = function( p ) {
 	p.draw = function() {
 		p.clear();
 		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);
-		// p.stroke(0, 0, 0);
-		if (highlight){
-			p.background(0);
-			p.fill(255);
-			p.stroke(255);
-		} else {
-			p.background(255);
-			p.fill(0);
-			p.stroke(0);
-		}
+
 		p.strokeWeight(.01);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
 		p.stroke(0);
 		drawCoordinateFrame(p);
-		// intersections
-		p.fill(255, 0, 0);
-		p.noStroke();
-		for(var i = 0; i < intersections.length; i++){
-			p.ellipse(intersections[i].x, intersections[i].y, .03, .03);
-		}
 	}
 	p.mousePressed = function(){
 		var mouseXScaled = p.mouseX / paperSize;
@@ -76,6 +57,7 @@ var test03 = function( p ) {
 		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		if(mouseXScaled != undefined && mouseYScaled != undefined){
+			// mouse was pressed inside of canvas
 			p.reset();
 		}
 	}

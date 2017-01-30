@@ -1,5 +1,5 @@
-var _03_add_nodes_drag = function( p ) {
-	p.callback = undefined;  // one argument: {start: {x:_, y:_}, end: {x:_, y:_}}
+var _03_add_nodes_radial = function( p ) {
+	p.callback = undefined;
 
 	var paperSize = 250;
 	var WIDTH = paperSize;
@@ -12,10 +12,13 @@ var _03_add_nodes_drag = function( p ) {
 
 	p.reset = function(){
 		g.clear();
+		g.addNode({x:0.5, y:0.5});
 	}
 	p.setup = function(){
 		canvas = p.createCanvas(WIDTH, HEIGHT);
 		p.reset();
+		// noLoop();
+		// frameRate(10);
 	}
 	p.draw = function() {
 		p.clear();
@@ -27,6 +30,7 @@ var _03_add_nodes_drag = function( p ) {
 		p.strokeWeight(.01);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
+		p.stroke(0);
 		drawCoordinateFrame(p);
 
 		if(mouseDownLocation != undefined){
@@ -34,15 +38,14 @@ var _03_add_nodes_drag = function( p ) {
 			var mouseYScaled = p.mouseY / paperSize;
 			if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;	
-			p.line(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
-			p.ellipse(mouseDownLocation.x, mouseDownLocation.y, .01, .01);
+			p.line(g.nodes[0].x, g.nodes[0].y, mouseXScaled, mouseYScaled);
 			if(p.callback != undefined){
-				p.callback({ 'start':{'x':mouseDownLocation.x, 'y':mouseDownLocation.y}, 
+				p.callback({ 'start':{'x':g.nodes[0].x, 'y':g.nodes[0].y}, 
 				             'end':{'x':mouseXScaled, 'y':mouseYScaled } });
 			}
-		}
-
+		}	
 	}
+
 	p.mousePressed = function(){
 		var mouseXScaled = p.mouseX / paperSize;
 		var mouseYScaled = p.mouseY / paperSize;
@@ -62,7 +65,8 @@ var _03_add_nodes_drag = function( p ) {
 			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 			if(mouseXScaled != undefined && mouseYScaled != undefined){
 				// mouse was released inside of canvas
-				g.addEdgeWithVertices(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
+				g.addEdgeFromVertex(0, mouseXScaled, mouseYScaled);
+				// g.addEdgeWithVertices(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
 			}
 		}
 		mouseDownLocation = undefined;
@@ -70,4 +74,5 @@ var _03_add_nodes_drag = function( p ) {
 			p.callback(undefined);
 		}
 	}
+
 };

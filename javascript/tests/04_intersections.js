@@ -1,7 +1,7 @@
-var test04 = function(p) {
+var _04_intersections = function(p) {
 	var paperSize = 250;
-	var WIDTH = paperSize;//window.innerWidth;//paperSize;
-	var HEIGHT = paperSize;//window.innerHeight;//paperSize;
+	var WIDTH = paperSize;
+	var HEIGHT = paperSize;
 
 	var g = new PlanarGraph();
 	var numLines = 7;

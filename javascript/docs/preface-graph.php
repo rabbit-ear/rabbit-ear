@@ -4,14 +4,14 @@
 <script language="javascript" type="text/javascript" src="../testsD3/d3.graph.js"></script>
 
 <div>
-	<h3>Foundation</h3>
+	<h3>Background</h3>
 	<p>An origami crease pattern is a type of planar graph, and a planar graph is a type of graph.</p>
 </div>
-<div class="centered">Graph → Planar Graph → Crease Pattern</div>
+<div class="centered">Crease Pattern ← Planar Graph ← Graph</div>
 <div>
-	<p>A graph and it's properties are the most fundamental part of a crease pattern. As you read the following, keep in mind: an 'edge' will be used to represent a crease, and a 'node' defines the endpoints of a crease</p>
-	<p>HOWEVER: A graph has no relation to 2D space. That comes later in the planar graph.</p>
+	<p>From graph to crease pattern, the data structure moves from abstract to concrete, adding things like 2D space, faces, flat foldability rules, and more.</p>
 </div>
+<div class="centered">Origami Rules ← 2D space ← Nodes &amp; Edges</div>
 
 <section id="graph">
 	<h2>Graphs</h2>

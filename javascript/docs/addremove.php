@@ -6,32 +6,30 @@
 		<p>Add creases by adding their endpoints or add a crease using an existing crease for positioning.</p>
 	</div>
 
-	<div id="divTest03_drag" class="centered p5sketch"></div>
+	<h3>addEdgeWithVertices</h3>
+	<div id="divP5_drag" class="centered p5sketch"></div>
 	<div class="centered">click and drag</div>
+	<pre><code>graph.<v>addEdgeWithVertices</v>( <span id="var1">x1</span>, <span id="var2">y1</span>, <span id="var3">x2</span>, <span id="var4">y2</span> );</code></pre>
 
-	<pre><code>graph.<span class="token function">addEdgeWithVertices</span>( <span id="var1">x1</span>, <span id="var2">y1</span>, <span id="var3">x2</span>, <span id="var4">y2</span> );</code></pre>
+	<h3>addEdgeFromVertex</h3>
+	<div id="divP5_snake" class="centered p5sketch"></div>
+	<pre><code>graph.<v>addEdgeFromVertex</v>( graph.nodes.<f>length</f>-<n>1</n>, <span id="var5">x</span>, <span id="var6">y</span> );</code></pre>
 
-	<div class="third p5sketch" id="divTest01"></div>
-	<div class="third p5sketch" id="divTest02"></div>
-	<div class="third p5sketch" id="divTest03"></div>
+	<div id="divP5_radial" class="centered p5sketch"></div>
+	<pre><code>graph.<v>addEdgeFromVertex</v>( <n>0</n>, <span id="var7">x</span>, <span id="var8">y</span> );</code></pre>
 
-	<pre><code><span id="spanAddEdge1">graph.<span class="token function">addEdgeWithVertices</span>( x1, y1, x2, y2 )</span>    <span class="token comment">//(float, float, float, float)</span><br><span id="spanAddEdge2">graph.<span class="token function">addEdgeFromVertex</span>( firstNodeIndex, x, y )</span>    <span class="token comment">//(uint, float, float)</span><br><span id="spanAddEdge3">graph.<span class="token function">addEdgeFromVertex</span>( lastNodeIndex, x, y )</span>    <span class="token comment">//(uint, float, float)</span></code></pre>
 </section>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/03_add_nodes.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/03_add_nodes_drag.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/03_add_nodes_03.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/03_add_nodes_snake.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/03_add_nodes_radial.js"></script>
 <script>
-	var p501 = new p5(test03, 'divTest01');
-	p501.pattern = 0;
-	var p502 = new p5(test03, 'divTest02');
-	p502.pattern = 1;
-	var p503 = new p5(test03, 'divTest03');
-	p503.pattern = 2;
-	var p503_drag = new p5(test03_drag, 'divTest03_drag');
+	var p5a = new p5(_03_add_nodes_drag, 'divP5_drag');
+	var p5b = new p5(_03_add_nodes_snake, 'divP5_snake');
+	var p5c = new p5(_03_add_nodes_radial, 'divP5_radial');
 
-	var callback = function(e){
+	p5a.callback = function(e){
 		if(e == undefined){
 			$('#var1').html('x1');
 			$('#var2').html('y1');
@@ -69,14 +67,50 @@
 		}
 	};
 
-	p503_drag.callback = callback;
+	p5b.callback = function(e){
+		if(e == undefined){
+			$('#var5').html('x');
+			$('#var6').html('y');
+			$("#var5").removeClass("n");
+			$("#var6").removeClass("n");
+		}
+		else{
+			if(e.end.x == undefined || e.end.y == undefined){
+				$('#var5').html('x');
+				$('#var6').html('y');
+				$("#var5").removeClass("n");
+				$("#var6").removeClass("n");
+			} else{
+				$('#var5').html( (e.end.x).toFixed(2) );
+				$('#var6').html( (e.end.y).toFixed(2) );
+				$("#var5").addClass("n");
+				$("#var6").addClass("n");
+			}
+		}
+	};
 
-	$("#spanAddEdge1").mouseenter(function(){ p501.setHighlight(true); })
-	                  .mouseleave(function(){ p501.setHighlight(false); });
-	$("#spanAddEdge2").mouseenter(function(){ p502.setHighlight(true); })
-	                  .mouseleave(function(){ p502.setHighlight(false); });
-	$("#spanAddEdge3").mouseenter(function(){ p503.setHighlight(true); })
-	                  .mouseleave(function(){ p503.setHighlight(false); });
+	p5c.callback = function(e){
+		if(e == undefined){
+			$('#var7').html('x');
+			$('#var8').html('y');
+			$("#var7").removeClass("n");
+			$("#var8").removeClass("n");
+		}
+		else{
+			if(e.end.x == undefined || e.end.y == undefined){
+				$('#var7').html('x');
+				$('#var8').html('y');
+				$("#var7").removeClass("n");
+				$("#var8").removeClass("n");
+			} else{
+				$('#var7').html( (e.end.x).toFixed(2) );
+				$('#var8').html( (e.end.y).toFixed(2) );
+				$("#var7").addClass("n");
+				$("#var8").addClass("n");
+			}
+		}
+	};
+
 </script>
 
 <?php include 'footer.php';?>

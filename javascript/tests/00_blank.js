@@ -1,20 +1,21 @@
-var test03_03 = function( p ) {
+var _00_blank = function( p ) {
+	p.callback = undefined;  // one argument: _
+
 	var paperSize = 250;
 	var WIDTH = paperSize;
 	var HEIGHT = paperSize;
 
 	var g = new PlanarGraph();
-	p.numLines = 0;
+
+	// if mouse is pressed, this is an {x:_,y:_} object
+	var mouseDownLocation = undefined;  
 
 	p.reset = function(){
 		g.clear();
-		g.addNode({x:0.5, y:0.5});
 	}
 	p.setup = function(){
 		canvas = p.createCanvas(WIDTH, HEIGHT);
 		p.reset();
-		// noLoop();
-		// frameRate(10);
 	}
 	p.draw = function() {
 		p.clear();
@@ -26,25 +27,25 @@ var test03_03 = function( p ) {
 		p.strokeWeight(.01);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
-		p.stroke(0);
 		drawCoordinateFrame(p);
-
-		// intersections
-		p.fill(255, 0, 0);
-		p.noStroke();
-		for(var i = 0; i < intersections.length; i++){
-			p.ellipse(intersections[i].x, intersections[i].y, .03, .03);
-		}
 	}
 	p.mousePressed = function(){
 		var mouseXScaled = p.mouseX / paperSize;
 		var mouseYScaled = p.mouseY / paperSize;
 		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
-		// closestNode = g.getClosestNode(mouseXScaled, mouseYScaled);
-		// if(p.mouseMovedCallback != undefined)
-		// 	p.mouseMovedCallback(mouseXScaled, mouseYScaled);
+		if(mouseXScaled != undefined && mouseYScaled != undefined){
+			// mouse was pressed inside of canvas
+		}
+	}
 
-		g.addEdgeFromVertex(0, mouseXScaled, mouseYScaled);
+	p.mouseReleased = function(event){
+		var mouseXScaled = p.mouseX / paperSize;
+		var mouseYScaled = p.mouseY / paperSize;
+		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+		if(mouseXScaled != undefined && mouseYScaled != undefined){
+			// mouse was released inside of canvas
+		}
 	}
 };

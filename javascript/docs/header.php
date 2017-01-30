@@ -23,12 +23,18 @@
 	<nav>
 		<ul>
 		<li><a href="introduction.php">Introduction</a></li>
-		<li><a href="preface-graph.php">Preface: Graph</a></li>
+		<li class="dropdown">
+			<a href="javascript:void(0)" class="dropbtn">Background</a>
+			<div class="dropdown-content">
+			<a href="preface-graph.php">Graph</a>
+			</div>
+		</li>
 		<li class="dropdown">
 			<a href="javascript:void(0)" class="dropbtn">Crease Lines</a>
 			<div class="dropdown-content">
 			<a href="addremove.php">Add</a>
-			<a href="cleanup.php">Remove/Clean</a>
+			<a href="addremove.php">Remove</a>
+			<a href="cleanup.php">Clean</a>
 			</div>
 		</li>
 		<li class="dropdown">
@@ -42,7 +48,7 @@
 		<li class="dropdown">
 			<a href="javascript:void(0)" class="dropbtn">Faces</a>
 			<div class="dropdown-content">
-			<a href="addremove.php">Find</a>
+			<a href="addremove.php">Find Faces</a>
 			<a href="#">Neighbors</a>
 			<a href="#"></a>
 			</div>

@@ -42,13 +42,13 @@
 </section>
 
 <script language="javascript" type="text/javascript" src="../tests/04_intersections.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/05_intersection.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/05_parallels.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/06_chop.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/07_chop_many.js"></script>
 <script>
 	$(".accordion-title").html("MORE");
-	var p504 = new p5(test04, 'divTest04');
-	var p505 = new p5(test05, 'divTest05');
+	var p504 = new p5(_04_intersections, 'divTest04');
+	var p505 = new p5(_05_parallels, 'divTest05');
 	var p506 = new p5(test06, 'divTest06');
 	var p507 = new p5(test07, 'divTest07');
 
