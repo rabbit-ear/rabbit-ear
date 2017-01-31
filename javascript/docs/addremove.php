@@ -9,15 +9,23 @@
 	<h3>addEdgeWithVertices</h3>
 	<div id="divP5_drag" class="centered p5sketch"></div>
 	<div class="centered">click and drag</div>
-	<pre><code>graph.<v>addEdgeWithVertices</v>( <span id="var1">x1</span>, <span id="var2">y1</span>, <span id="var3">x2</span>, <span id="var4">y2</span> );</code></pre>
+
+	<div class="centered">
+		<pre><code>graph.<v>addEdgeWithVertices</v>( <span id="var1">x1</span>, <span id="var2">y1</span>, <span id="var3">x2</span>, <span id="var4">y2</span> );</code></pre>
+	</div>
 
 	<h3>addEdgeFromVertex</h3>
 	<div id="divP5_snake" class="centered p5sketch"></div>
-	<pre><code>graph.<v>addEdgeFromVertex</v>( graph.nodes.<f>length</f>-<n>1</n>, <span id="var5">x</span>, <span id="var6">y</span> );</code></pre>
+
+	<div class="centered">
+		<pre><code>graph.<v>addEdgeFromVertex</v>( graph.nodes.<f>length</f>-<n>1</n>, <span id="var5">x</span>, <span id="var6">y</span> );</code></pre>
+	</div>
 
 	<div id="divP5_radial" class="centered p5sketch"></div>
-	<pre><code>graph.<v>addEdgeFromVertex</v>( <n>0</n>, <span id="var7">x</span>, <span id="var8">y</span> );</code></pre>
 
+	<div class="centered">
+		<pre><code>graph.<v>addEdgeFromVertex</v>( <n>0</n>, <span id="var7">x</span>, <span id="var8">y</span> );</code></pre>
+	</div>
 </section>
 
 <!-- include .js sketches -->

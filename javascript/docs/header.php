@@ -26,7 +26,7 @@
 		<li class="dropdown">
 			<a href="javascript:void(0)" class="dropbtn">Background</a>
 			<div class="dropdown-content">
-			<a href="preface-graph.php">Graph</a>
+			<a href="graph.php">Graph</a>
 			</div>
 		</li>
 		<li class="dropdown">
@@ -41,8 +41,7 @@
 			<a href="javascript:void(0)" class="dropbtn">Intersections</a>
 			<div class="dropdown-content">
 			<a href="intersections.php">Intersections</a>
-			<a href="intersections.php">Parallel Lines</a>
-			<a href="intersections.php">Chop</a>
+			<a href="chop.php">Chop</a>
 			</div>
 		</li>
 		<li class="dropdown">
