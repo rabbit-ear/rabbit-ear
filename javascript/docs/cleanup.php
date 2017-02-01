@@ -30,7 +30,7 @@
 </section>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/10_clean.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/planarGraph/10_clean.js"></script>
 
 <script>
 	var p5a = new p5(_10_clean, 'divP5_clean');

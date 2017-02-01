@@ -1,7 +1,7 @@
 <?php include 'header.php';?>
 
 <script language="javascript" type="text/javascript" src="../lib/d3.min.js"></script>
-<script language="javascript" type="text/javascript" src="../testsD3/d3.graph.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph/d3.graph.js"></script>
 
 <section id="graph">
 	<h2>Graphs</h2>
@@ -112,11 +112,11 @@
 	</div>
 </section>
 
-<script language="javascript" type="text/javascript" src="../testsD3/00_graph.js"></script>
-<script language="javascript" type="text/javascript" src="../testsD3/01_adjacentNode.js"></script>
-<script language="javascript" type="text/javascript" src="../testsD3/02_adjacentEdge.js"></script>
-<script language="javascript" type="text/javascript" src="../testsD3/03_removeNode.js"></script>
-<script language="javascript" type="text/javascript" src="../testsD3/04_removeEdge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph/00_graph.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph/01_adjacentNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph/02_adjacentEdge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph/03_removeNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph/04_removeEdge.js"></script>
 <script>
 	$(".accordion-title").html("MORE");
 	function updateNodesAdjacentToNode(input, output){

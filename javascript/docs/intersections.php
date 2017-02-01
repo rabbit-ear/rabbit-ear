@@ -26,8 +26,8 @@
 	</div>
 </section>
 
-<script language="javascript" type="text/javascript" src="../tests/04_intersections.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/05_parallels.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/planarGraph/04_intersections.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/planarGraph/05_parallels.js"></script>
 <script>
 	$(".accordion-title").html("MORE");
 	var p504 = new p5(_04_intersections, 'divTest04');
