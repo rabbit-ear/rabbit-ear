@@ -3,7 +3,9 @@
 <section id="cleanup">
 	<h2><a href="#cleanup">Clean</a></h2>
 
-	<pre><code>graph.<span class="token function">clean</span>()</code></pre>
+	<div class="centered">
+		<pre><code>graph.<f>clean</f>()</code></pre>
+	</div>
 
 	<div class="accordion">
 		<div>
@@ -16,7 +18,9 @@
 	<h3>mergeDuplicateVertices</h3>
 	<div id="divP5_clean" class="centered p5sketch"></div>
 
-	<pre><code>graph.<span class="token function">mergeDuplicateVertices</span>()    <span class="token comment">//calling clean() will automatically call this</span></code></pre>
+	<div class="centered">
+		<pre><code>graph.<f>mergeDuplicateVertices</f>()    <c>//calling clean() will automatically call this</c></code></pre>
+	</div>
 
 	<div class="accordion">
 		<div>

@@ -61,6 +61,12 @@ nav li a {
 nav li a:hover {
 	background-color: #111;
 }
+nav li.dropdown a:hover{
+	cursor: pointer;	
+}
+nav li.dropbtn a:hover{
+	cursor: default;	
+}
 .dropdown {
 	position: relative;
 	display: inline-block;
@@ -77,6 +83,7 @@ nav li a:hover {
 }
 .dropdown:hover .dropdown-content {
 	display: block;
+	cursor: default;	
 }
 
 /* P5.js and D3.js */

@@ -1,6 +1,6 @@
 var sketch_intro = function(p) {
 	var paperSize = 250;
-	var g = new PlanarGraph();
+	var g = new CreasePattern();
 	p.wiggle = true;
 	var nodeStarts = [];
 	p.reset = function(){

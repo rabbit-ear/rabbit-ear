@@ -10,12 +10,17 @@
 		<pre><code>graph.<span class="token function">chop</span>()</code></pre>
 	</div>
 
-	<div class="half p5sketch" id="divTest06"></div><div class="half p5sketch" id="divTest07"></div>
+	<div class="centered p5sketch" id="divTest06"></div>
 	<p class="quote">press and hold</p>
 
 	<div class="centered">
 		<pre><code>graph.<f>edgesIntersect</f>(<span class="token argument" id="spanEdgeIntersect1"> edge1</span>,<span class="token argument" id="spanEdgeIntersect2"> edge2 </span>)</code></pre>
 	</div>
+	<p>the goal is to turn any overlapping lines into segments, adding the point of intersection between them</p>
+</section>
+
+<section id="chop">
+	<div class="centered p5sketch" id="divTest07"></div>
 </section>
 
 <script language="javascript" type="text/javascript" src="../tests/06_chop.js"></script>

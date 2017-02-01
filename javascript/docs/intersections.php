@@ -1,7 +1,7 @@
 <?php include 'header.php';?>
 
 <section id="intersections">
-	<h2>Planar Graphs: Intersections</h2>
+	<h2><a href="#intersesctions">Intersections</a></h2>
 	<div class="accordion">
 		<p>a planar graph is <b>INVALID</b> if an edge cross another edge. It's simple to resolve by splitting the 2 edges into 4 and place a node at the intersection point.</p>
 	</div>
