@@ -25,34 +25,29 @@
 		<ul>
 		<li><a href="introduction.php">Introduction</a></li>
 		<li class="dropdown">
-			<a href="javascript:void(0)" class="dropbtn">Background</a>
+			<a href="graph.php" class="dropbtn">Graph</a>
 			<div class="dropdown-content">
-			<a href="graph.php">Graph</a>
+			<a href="graph.php">Introduction</a>
+			<a href="graph.php">Add / Remove</a>
+			<a href="graph.php">Functions</a>
 			</div>
 		</li>
 		<li class="dropdown">
-			<a href="javascript:void(0)" class="dropbtn">Crease Lines</a>
+			<a href="javascript:void(0)" class="dropbtn">Planar Graph</a>
 			<div class="dropdown-content">
 			<a href="addremove.php">Add</a>
-			<a href="addremove.php">Remove</a>
+			<a href="#">Remove</a>
 			<a href="cleanup.php">Clean</a>
-			</div>
-		</li>
-		<li class="dropdown">
-			<a href="javascript:void(0)" class="dropbtn">Intersections</a>
-			<div class="dropdown-content">
 			<a href="intersections.php">Intersections</a>
 			<a href="chop.php">Chop</a>
+			<a href="#">Find Faces</a>
+			<a href="#">Neighbors</a>
 			</div>
 		</li>
 		<li class="dropdown">
-			<a href="javascript:void(0)" class="dropbtn">Faces</a>
+			<a href="javascript:void(0)" class="dropbtn">Crease Pattern</a>
 			<div class="dropdown-content">
-			<a href="addremove.php">Find Faces</a>
-			<a href="#">Neighbors</a>
-			<a href="#"></a>
 			</div>
 		</li>
-		<li><a href="#">Complex</a></li>
 		</ul>
 	</nav>

@@ -4,7 +4,7 @@
 <script language="javascript" type="text/javascript" src="../tests/graph/d3.graph.js"></script>
 
 <section id="graph">
-	<h2>Graphs</h2>
+	<h2>Graph()</h2>
 	<div class="centered">
 		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
 	</div>

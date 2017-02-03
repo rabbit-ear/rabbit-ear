@@ -161,8 +161,11 @@ class PlanarGraph extends Graph{
 
 	// splitAtIntersections(){
 	chop(){
+		var allIntersections = [];
 		for(var i = 0; i < this.edges.length; i++){
 			var intersections = this.getEdgeIntersectionsWithEdge(i);
+			if(intersections != undefined && intersections.length > 0)
+				allIntersections = allIntersections.concat(intersections);
 			while(intersections.length > 0){
 				var newIntersectionIndex = this.nodes.length;
 				this.addNode({'x':intersections[0].x, 'y':intersections[0].y});
@@ -172,9 +175,10 @@ class PlanarGraph extends Graph{
 				this.addEdgeFromExistingVertices(this.nodes.length-1, intersections[0].e2n2);
 				this.removeEdgeBetween(intersections[0].e1n1, intersections[0].e1n2);
 				this.removeEdgeBetween(intersections[0].e2n1, intersections[0].e2n2);
-				var intersections = this.getEdgeIntersectionsWithEdge(i);
+				intersections = this.getEdgeIntersectionsWithEdge(i);
 			}
 		}
+		return allIntersections;
 	}
 
 

@@ -6,11 +6,12 @@ body {
 } 
 a { color: black; text-decoration: none; font-weight: bold;}
 h1{ font-size: 400%; -webkit-margin-after: .2em; -webkit-margin-before: .2em; }
-h2{ font-size: 320%; }
-h3{ font-size: 260%; }
-h4{ font-size: 200%; }
+h2{ font-size: 270%; }
+h3{ font-size: 140%; }
+h4{ font-size: 240%; }
 h5{ font-size: 150%; }
-p{ font-size: 180%; }
+p{ font-size: 100%; }
+p.ui-accordion-content{ font-size: 120%; } /* JQuery expanding DIV */
 .centered{
 	width: 100%;
 	text-align: center;
@@ -88,8 +89,8 @@ nav li.dropbtn a:hover{
 
 /* P5.js and D3.js */
 .p5sketch{
-	margin-top:2em;
-	margin-bottom:2em;
+	margin-top:3em;
+	margin-bottom:3em;
 }
 .svg-container {
 	display: inline-block;
@@ -141,8 +142,8 @@ code, pre {
 
 pre {
 	padding: 1em;
-	margin-top: 1em;
-	margin-bottom:1em;
+	margin-top: 3em;
+	margin-bottom:3em;
 	overflow: auto;
 	border-radius: 0.3em;
 	background: #272822;
@@ -182,7 +183,6 @@ arg{ /* argument */
 }
 
 /* JQuery expanding DIV */
-p.ui-accordion-content{ font-size: 140%; }
 /* accordion shared */
 .ui-accordion{
 	background: #f6f6f6;

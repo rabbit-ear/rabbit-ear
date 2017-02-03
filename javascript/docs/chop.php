@@ -21,7 +21,14 @@
 
 <section id="chop">
 	<div class="centered p5sketch" id="divTest07"></div>
+	<div class="centered">
+		<pre><code><c></c><n><span class="span_intersection_count"></span></n></code></pre>
+	</div>
+	<div class="accordion">
+		<pre><code class="span_more_intersections"></code></pre>
+	</div>
 </section>
+
 
 <script language="javascript" type="text/javascript" src="../tests/planarGraph/06_chop.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/planarGraph/07_chop_many.js"></script>
@@ -35,33 +42,24 @@
 	$("#spanEdgeIntersect2").mouseenter(function(){ p506.setHighlight2(true); })
 	                        .mouseleave(function(){ p506.setHighlight2(false); });
 
-	p506.mouseMovedCallback = function(x,y){
-		if(x == undefined || y == undefined){
-			$("#spanNearest1MouseX").html('x');
-			$("#spanNearest1MouseY").html('y');
-		}else{
-			$("#spanNearest1MouseX").html(x.toFixed(2));
-			$("#spanNearest1MouseY").html(y.toFixed(2));
+	p507.callback = function(intersections){
+		if(intersections != undefined){
+			var count = intersections.length;
+			if(count != undefined){
+				$('.span_intersection_count').html( parseInt(count) );
+				var text = "[";
+				for(var i = 0; i < intersections.length; i++){
+					text += '{' + intersections[i].x + ',' + intersections[i].y + '}, '
+				}
+				text += "]";
+				$('.span_more_intersections').html(text);
+			}
 		}
-	};
-	p507.mouseMovedCallback = function(x,y){
-		if(x == undefined || y == undefined){
-			$("#spanNearest2MouseX").html('x');
-			$("#spanNearest2MouseY").html('y');
-		}else{
-			$("#spanNearest2MouseX").html(x.toFixed(2));
-			$("#spanNearest2MouseY").html(y.toFixed(2));
+		else if(intersections == undefined){
+			$('.span_intersection_count').html("");
+			// $('.span_more_intersections').html("");
 		}
-	};
-	p508.mouseMovedCallback = function(x,y){
-		if(x == undefined || y == undefined){
-			$("#spanNearest3MouseX").html('x');
-			$("#spanNearest3MouseY").html('y');
-		}else{
-			$("#spanNearest3MouseX").html(x.toFixed(2));
-			$("#spanNearest3MouseY").html(y.toFixed(2));
-		}
-	};
+	}
 </script>
 
 <?php include 'footer.php';?>
