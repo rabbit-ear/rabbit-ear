@@ -53,6 +53,32 @@ class CreasePattern extends PlanarGraph{
 	// 	return this.vertexLiesOnEdge(v, intersect);
 	// }
 
+	findInterestingPoints(){
+		return [
+			{x:0.0, y:0.0},
+			{x:0.0, y:1.0},
+			{x:1.0, y:0.0},
+			{x:1.0, y:1.0},
+			{x:0.5, y:0.5},
+			{x:0.0, y:0.5},
+			{x:0.5, y:0.0},
+			{x:1.0, y:0.5},
+			{x:0.5, y:1.0}
+		]
+	}
+
+	snap(){
+		var interestingPoints = this.findInterestingPoints();
+		for(var i = 0; i < this.nodes.length; i++){
+			for(var j = 0; j < interestingPoints.length; j++){
+				if(this.nodes[i] != undefined && this.verticesEquivalent(this.nodes[i], interestingPoints[j], 0.08)){
+					this.nodes[i].x = interestingPoints[j].x;
+					this.nodes[i].y = interestingPoints[j].y;
+				}				
+			}
+		}
+	}
+
 
 	log(){
 		super.log();

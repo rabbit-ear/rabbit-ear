@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css?family=Merriweather:400,700" rel="stylesheet">
+<style>
+html, body {
+	width:100%;
+	height:100%;
+	margin:0px;
+	font-family: sans-serif;
+}
+div{
+	width:100%;
+	height:100%;
+}
+.left{
+	float:left;
+	width:20%;
+	background-color: #EEE;
+}
+.right{
+	float:right;
+	width:20%;
+	background-color: #EEE;
+}
+.center{
+	width:50%;
+	height:90%;
+	text-align: center;
+	float:left;
+}
+.p5sketch{
+	margin:2%;
+}
+.cpanel{
+	padding-left:1%;
+	padding-right:1%;
+}
+</style>
+</head>
+<body>
+	<div class="container">
+		<div class="left cpanel">
+			<h3>draw line:</h3>
+			<p id="div-draw-line"></p>
+			<h3>add line:</h3>
+			<p id="div-add-line"></p>
+		</div>
+		<div id="div-editor" class="center p5sketch"></div>
+		<div class="right cpanel">
+			<h3>last event:</h3>
+			<p id="div-last-event"></p>
+		</div>
+	</div>
+
+<script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="../lib/jquery-ui.min.js"></script>
+<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
+<script language="javascript" type="text/javascript" src="../graph.js"></script>
+<script language="javascript" type="text/javascript" src="../planarGraph.js"></script>
+<script language="javascript" type="text/javascript" src="../creasePattern.js"></script>
+<script language="javascript" type="text/javascript" src="../render.js"></script>
+<script language="javascript" type="text/javascript" src="editor.js"></script>
+<script>
+var p5window = new p5(editor, 'div-editor');
+p5window.callback = function(e){
+	if(e == undefined){
+		$('#div-last-event').html('');
+		$('#div-draw-line').html('');
+	} else{
+		$('#div-last-event').html(e.description);
+		switch (e.description){
+			case "draw-line":
+				if(e.data != undefined && e.data.start != undefined && e.data.start.x != undefined && e.data.start.y != undefined && e.data.end != undefined && e.data.end.x != undefined && e.data.end.y != undefined){
+					$('#div-draw-line').html('(' + e.data.start.x.toFixed(2) + ',' + e.data.start.y.toFixed(2) + ')-(' + e.data.end.x.toFixed(2) + ',' + e.data.end.y.toFixed(2) + ')')
+				}
+			break;
+			case "add-line":
+				if(e.data != undefined && e.data.start != undefined && e.data.end != undefined){
+					$('#div-add-line').html('(' + e.data.start.x.toFixed(2) + ',' + e.data.start.y.toFixed(2) + ')-(' + e.data.end.x.toFixed(2) + ',' + e.data.end.y.toFixed(2) + ')');
+				}
+			break;
+			case "draw-line3":
+			break;
+		}
+	}
+};
+</script>
+
+</body>
+</html>
