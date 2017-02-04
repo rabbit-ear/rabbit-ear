@@ -37,15 +37,26 @@ div{
 	padding-left:1%;
 	padding-right:1%;
 }
+input{
+	width:86px;
+	font-size: 14px;
+}
+input.thin{
+	width:27px;
+}
 </style>
 </head>
 <body>
 	<div class="container">
 		<div class="left cpanel">
-			<h3>draw line:</h3>
-			<p id="div-draw-line"></p>
-			<h3>add line:</h3>
-			<p id="div-add-line"></p>
+			<h3>Draw Line:</h3>
+			<input type="text" id="div-draw-line-start">→<input type="text" id="div-draw-line-end">
+			<h3>Add Line:</h3>
+			<input type="text" id="div-add-line-start">→<input type="text" id="div-add-line-end">
+			<h3>Clean, Intersections:</h3>
+			<button onclick="cleanIntersections()">Clean</button>
+			Intersections: <input type="text" class="thin" id="div-intersections">
+
 		</div>
 		<div id="div-editor" class="center p5sketch"></div>
 		<div class="right cpanel">
@@ -66,19 +77,21 @@ div{
 var p5window = new p5(editor, 'div-editor');
 p5window.callback = function(e){
 	if(e == undefined){
-		$('#div-last-event').html('');
-		$('#div-draw-line').html('');
+		$('#div-last-event').val('');
+		$('#div-draw-line').val('');
 	} else{
-		$('#div-last-event').html(e.description);
+		$('#div-last-event').val(e.description);
 		switch (e.description){
 			case "draw-line":
 				if(e.data != undefined && e.data.start != undefined && e.data.start.x != undefined && e.data.start.y != undefined && e.data.end != undefined && e.data.end.x != undefined && e.data.end.y != undefined){
-					$('#div-draw-line').html('(' + e.data.start.x.toFixed(2) + ',' + e.data.start.y.toFixed(2) + ')-(' + e.data.end.x.toFixed(2) + ',' + e.data.end.y.toFixed(2) + ')')
+					$('#div-draw-line-start').val(e.data.start.x.toFixed(2) + ', ' + e.data.start.y.toFixed(2) );
+					$('#div-draw-line-end').val(e.data.end.x.toFixed(2) + ', ' + e.data.end.y.toFixed(2) );
 				}
 			break;
 			case "add-line":
 				if(e.data != undefined && e.data.start != undefined && e.data.end != undefined){
-					$('#div-add-line').html('(' + e.data.start.x.toFixed(2) + ',' + e.data.start.y.toFixed(2) + ')-(' + e.data.end.x.toFixed(2) + ',' + e.data.end.y.toFixed(2) + ')');
+					$('#div-add-line-start').val(e.data.start.x.toFixed(2) + ', ' + e.data.start.y.toFixed(2));
+					$('#div-add-line-end').val(e.data.end.x.toFixed(2) + ', ' + e.data.end.y.toFixed(2));
 				}
 			break;
 			case "draw-line3":
@@ -86,6 +99,15 @@ p5window.callback = function(e){
 		}
 	}
 };
+
+function cleanIntersections(){
+	console.log('button');
+	var intersections = p5window.cleanIntersections();
+	console.log(intersections);
+	if(intersections.length){
+		$('#div-intersections').val(intersections.length);
+	}
+}
 </script>
 
 </body>

@@ -25,6 +25,17 @@ class Graph{
 		this.edges.push(edge);
 	}
 
+	addNodes(nodes){
+		if(nodes != undefined && nodes.length > 0){
+			this.nodes = this.nodes.concat(nodes);
+		}
+	}
+	addEdges(edges){
+		if(edges != undefined && edges.length > 0){
+			// 
+		}
+	}
+
 	removeEdgeBetween(nodeIndex1, nodeIndex2){
 		var found = false;
 		var i = 0;

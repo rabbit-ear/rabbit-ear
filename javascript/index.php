@@ -2,7 +2,7 @@
 <html>
 <head>
 <script language="javascript">
-    window.location.href = "docs/introduction.php"
+    window.location.href = "docs/"
 </script>
 </head>
 

@@ -23,7 +23,7 @@
 <body>
 	<nav>
 		<ul>
-		<li><a href="introduction.php">Introduction</a></li>
+		<li><a href="index.php">Introduction</a></li>
 		<li class="dropdown">
 			<a href="graph.php" class="dropbtn">Graph</a>
 			<div class="dropdown-content">

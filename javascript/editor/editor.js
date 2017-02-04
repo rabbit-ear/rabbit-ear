@@ -10,6 +10,10 @@ var editor = function( p ) {
 	// if mouse is pressed, this is an {x:_,y:_} object
 	var mouseDownLocation = undefined;  
 
+	p.cleanIntersections = function(){
+		return g.cleanIntersections();
+	}
+
 	p.reset = function(){
 		g.clear();
 	}

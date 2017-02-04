@@ -79,6 +79,12 @@ class CreasePattern extends PlanarGraph{
 		}
 	}
 
+	cleanIntersections(){
+		this.clean();
+		var intersections = super.chop();
+		return intersections;
+	}
+
 
 	log(){
 		super.log();
