@@ -1,4 +1,4 @@
-var test09 = function(p) {
+var p5_nearest_face = function(p) {
 	p.mouseMovedCallback = undefined;
 	// var WIDTH = this.canvas.parentElement.offsetWidth;
 	// var HEIGHT = this.canvas.parentElement.offsetHeight;
@@ -7,7 +7,7 @@ var test09 = function(p) {
 	var HEIGHT = paperSize;
 	// myp5.canvas.parentElement.offsetWidth
 
-	var g = new PlanarGraph();
+	var g = new CreasePattern();
 	var closestEdge = undefined;
 
 	var closestFace = undefined;

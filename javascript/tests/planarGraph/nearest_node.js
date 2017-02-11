@@ -1,4 +1,4 @@
-var test07 = function(p) {
+var p5_nearest_node = function(p) {
 	p.mouseMovedCallback = undefined;
 	p.numPoints = 30;
 	// var WIDTH = window.innerWidth;

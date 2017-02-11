@@ -23,6 +23,7 @@
 <body>
 	<nav>
 		<ul>
+		<li><a href="../editor/index.html">Editor</a></li>
 		<li><a href="index.php">Introduction</a></li>
 		<li class="dropdown">
 			<a href="graph.php" class="dropbtn">Graph</a>
@@ -36,12 +37,12 @@
 			<a href="javascript:void(0)" class="dropbtn">Planar Graph</a>
 			<div class="dropdown-content">
 			<a href="addremove.php">Add</a>
-			<a href="#">Remove</a>
+			<a href="addremove">Remove</a>
 			<a href="cleanup.php">Clean</a>
 			<a href="intersections.php">Intersections</a>
 			<a href="chop.php">Chop</a>
-			<a href="#">Find Faces</a>
-			<a href="#">Neighbors</a>
+			<a href="faces.php">Find Faces</a>
+			<a href="select.php">Neighbors</a>
 			</div>
 		</li>
 		<li class="dropdown">

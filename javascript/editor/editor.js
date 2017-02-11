@@ -28,7 +28,7 @@ var editor = function( p ) {
 		p.background(255);
 		p.fill(0);
 		p.stroke(0);
-		p.strokeWeight(.01);
+		p.strokeWeight(.002);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
 		drawCoordinateFrame(p);

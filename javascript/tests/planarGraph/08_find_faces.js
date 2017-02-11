@@ -7,7 +7,7 @@ var test08 = function(p) {
 	var HEIGHT = paperSize;
 	// myp5.canvas.parentElement.offsetWidth
 
-	var g = new PlanarGraph();
+	var g = new CreasePattern();
 	var closestEdge = undefined;
 	p.scalar = 1.0;
 
