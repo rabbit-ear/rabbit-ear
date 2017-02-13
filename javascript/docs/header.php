@@ -5,9 +5,9 @@
 <script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/jquery-ui.min.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../graph.js"></script>
-<script language="javascript" type="text/javascript" src="../planarGraph.js"></script>
-<script language="javascript" type="text/javascript" src="../creasePattern.js"></script>
+<script language="javascript" type="text/javascript" src="../src/graph.js"></script>
+<script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
+<script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
 <script language="javascript" type="text/javascript" src="../render.js"></script>
 <script>
 	$( function() {
