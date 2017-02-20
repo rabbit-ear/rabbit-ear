@@ -10,6 +10,8 @@ var editor = function( p ) {
 	// if mouse is pressed, this is an {x:_,y:_} object
 	var mouseDownLocation = undefined;  
 
+	p.snapRadius = 0.08;
+
 	p.cleanIntersections = function(){
 		var count = g.cleanIntersections();
 		console.log(count);
@@ -35,7 +37,7 @@ var editor = function( p ) {
 		p.noStroke();
 		for(var i = 0; i < g.interestingPoints.length; i++){
 			var pt = g.interestingPoints[i];
-			p.ellipse(pt.x, pt.y, .08);
+			p.ellipse(pt.x, pt.y, p.snapRadius*2.0);
 		}
 
 		p.fill(0);
@@ -69,7 +71,7 @@ var editor = function( p ) {
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		if(mouseXScaled != undefined && mouseYScaled != undefined){
 			// mouse was pressed inside of canvas
-			mouseDownLocation = g.trySnapVertex({x:mouseXScaled, y:mouseYScaled});
+			mouseDownLocation = g.trySnapVertex({x:mouseXScaled, y:mouseYScaled}, p.snapRadius);
 		}
 	}
 
@@ -81,7 +83,7 @@ var editor = function( p ) {
 			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 			if(mouseXScaled != undefined && mouseYScaled != undefined){
 				// mouse was released inside of canvas
-				var snapMouseRelease = g.trySnapVertex({'x':mouseXScaled, 'y':mouseYScaled});
+				var snapMouseRelease = g.trySnapVertex({'x':mouseXScaled, 'y':mouseYScaled}, p.snapRadius);
 				g.addEdgeWithVertices(mouseDownLocation.x, mouseDownLocation.y, snapMouseRelease.x, snapMouseRelease.y);
 				if(p.callback != undefined){
 					var object = {

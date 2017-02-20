@@ -56,6 +56,8 @@ input.thin{
 			<h3>Clean, Intersections:</h3>
 			<button onclick="cleanIntersections()">Clean</button>
 			Intersections: <input type="text" class="thin" id="div-intersections">
+			<h3>Snap Radius:</h3>
+			<input type="range" id="div-snap-range"></input><input type="text" id="div-snap-range-value">
 			<h3>Look at Planar Graph:</h3>
 			<button onclick="logPlanarGraph()">Log</button>
 		</div>
@@ -76,6 +78,15 @@ input.thin{
 <script language="javascript" type="text/javascript" src="editor.js"></script>
 <script>
 var p5window = new p5(editor, 'div-editor');
+
+$(document).on('input', '#div-snap-range', function() {
+	var value = $('#div-snap-range').val() / 100.0;
+	value *= 0.2;
+    $('#div-snap-range-value').val(value.toFixed(3));
+	p5window.snapRadius = value;
+});
+// $('#div-snap-range').change( function(e) {
+// });
 p5window.callback = function(e){
 	if(e == undefined){
 		$('#div-last-event').val('');
