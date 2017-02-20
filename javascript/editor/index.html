@@ -2,13 +2,13 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<link href="https://fonts.googleapis.com/css?family=Merriweather:400,700" rel="stylesheet">
 <style>
 html, body {
 	width:100%;
 	height:100%;
 	margin:0px;
 	font-family: sans-serif;
+	cursor:default;
 }
 div{
 	width:100%;
@@ -56,7 +56,8 @@ input.thin{
 			<h3>Clean, Intersections:</h3>
 			<button onclick="cleanIntersections()">Clean</button>
 			Intersections: <input type="text" class="thin" id="div-intersections">
-
+			<h3>Look at Planar Graph:</h3>
+			<button onclick="logPlanarGraph()">Log</button>
 		</div>
 		<div id="div-editor" class="center p5sketch"></div>
 		<div class="right cpanel">
@@ -104,10 +105,15 @@ function cleanIntersections(){
 	console.log('button');
 	var intersections = p5window.cleanIntersections();
 	console.log(intersections);
-	if(intersections.length){
+	if(intersections.length >= 0){
 		$('#div-intersections').val(intersections.length);
 	}
 }
+
+function logPlanarGraph(){
+	console.log(p5window.getPlanarGraphObject());
+}
+
 </script>
 
 </body>

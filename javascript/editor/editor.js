@@ -11,7 +11,12 @@ var editor = function( p ) {
 	var mouseDownLocation = undefined;  
 
 	p.cleanIntersections = function(){
-		return g.cleanIntersections();
+		var count = g.cleanIntersections();
+		console.log(count);
+		return count;
+	}
+	p.getPlanarGraphObject = function(){
+		return g;
 	}
 
 	p.reset = function(){
@@ -26,6 +31,13 @@ var editor = function( p ) {
 		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);
 
 		p.background(255);
+		p.fill(96, 168, 255, 50);
+		p.noStroke();
+		for(var i = 0; i < g.interestingPoints.length; i++){
+			var pt = g.interestingPoints[i];
+			p.ellipse(pt.x, pt.y, .08);
+		}
+
 		p.fill(0);
 		p.stroke(0);
 		p.strokeWeight(.002);
@@ -57,7 +69,7 @@ var editor = function( p ) {
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		if(mouseXScaled != undefined && mouseYScaled != undefined){
 			// mouse was pressed inside of canvas
-			mouseDownLocation = {x:mouseXScaled, y:mouseYScaled};
+			mouseDownLocation = g.trySnapVertex({x:mouseXScaled, y:mouseYScaled});
 		}
 	}
 
@@ -69,13 +81,13 @@ var editor = function( p ) {
 			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 			if(mouseXScaled != undefined && mouseYScaled != undefined){
 				// mouse was released inside of canvas
-				g.addEdgeWithVertices(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
-				g.snap();
+				var snapMouseRelease = g.trySnapVertex({'x':mouseXScaled, 'y':mouseYScaled});
+				g.addEdgeWithVertices(mouseDownLocation.x, mouseDownLocation.y, snapMouseRelease.x, snapMouseRelease.y);
 				if(p.callback != undefined){
 					var object = {
 						description:"add-line",
 						data:{ 'start':{'x':mouseDownLocation.x, 'y':mouseDownLocation.y}, 
-					             'end':{'x':mouseXScaled, 'y':mouseYScaled } }
+					             'end':{'x':snapMouseRelease.x, 'y':snapMouseRelease.y } }
 					}
 					p.callback(object);
 				}
