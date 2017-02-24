@@ -32,7 +32,7 @@ var editor = function( p ) {
 		return g;
 	}
 	p.makeSVGBlob = function(){
-		return g.makeSVGBlob();
+		return g.exportSVG(700);
 	}
 
 	p.reset = function(){
