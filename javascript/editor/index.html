@@ -49,6 +49,8 @@ input.thin{
 <body>
 	<div class="container">
 		<div class="left cpanel">
+			<h3>New Crease Pattern:</h3>
+			<button onclick="clearCP()">New</button>
 			<h3>Draw Line:</h3>
 			<input type="text" id="div-draw-line-start">→<input type="text" id="div-draw-line-end">
 			<h3>Add Line:</h3>
@@ -60,6 +62,12 @@ input.thin{
 			<input type="range" id="div-snap-range"></input><input type="text" id="div-snap-range-value">
 			<h3>Look at Planar Graph:</h3>
 			<button onclick="logPlanarGraph()">Log</button>
+			<h3>Load Base:</h3>
+			<button onclick="loadBase('kite')">Kite</button>
+			<button onclick="loadBase('fish')">Fish</button>
+			<button onclick="loadBase('bird')">Bird</button>
+			<button onclick="loadBase('frog')">Frog</button>
+			<button onclick="download()">Create file</button>
 		</div>
 		<div id="div-editor" class="center p5sketch"></div>
 		<div class="right cpanel">
@@ -108,22 +116,54 @@ p5window.callback = function(e){
 			break;
 			case "draw-line3":
 			break;
+			case "clean":
+				if(e.data != undefined){
+					var intersections = e.data['intersections'];
+					if(intersections.length >= 0){
+						$('#div-intersections').val(intersections.length);
+					}
+				}
+			break;
 		}
 	}
 };
 
+function clearCP(){
+	p5window.clearCP();
+}
+
+function loadBase(base){
+	p5window.loadBase(base);
+}
+
 function cleanIntersections(){
-	console.log('button');
 	var intersections = p5window.cleanIntersections();
-	console.log(intersections);
-	if(intersections.length >= 0){
-		$('#div-intersections').val(intersections.length);
-	}
 }
 
 function logPlanarGraph(){
 	console.log(p5window.getPlanarGraphObject());
 }
+
+function download() {
+	var svgData = p5window.makeSVGBlob();
+	var fileName = "crease-pattern.svg";
+	saveData(svgData, fileName);
+}
+
+var saveData = (function () {
+	var a = document.createElement("a");
+	document.body.appendChild(a);
+	a.style = "display: none";
+	return function (data, fileName) {
+		var blob = new Blob([data], {type: "image/svg+xml;charset=utf-8"});
+		var url = window.URL.createObjectURL(blob);
+		a.href = url;
+		a.download = fileName;
+		a.click();
+		window.URL.revokeObjectURL(url);
+	};
+}());
+
 
 </script>
 
