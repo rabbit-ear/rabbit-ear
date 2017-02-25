@@ -18,34 +18,21 @@ html, body {
 	width:100%;
 	height:100%;
 }
-.left{
-	float:left;
-	width:20%;
-	background-color: #EEE;
-}
-.right{
-	float:right;
-	width:20%;
-	background-color: #EEE;
-}
 .center{
-	width:50%;
-	height:90%;
 	text-align: center;
-	float:left;
 }
 .p5sketch{
-	margin:2%;
+	margin:2% 0;
 }
 .cpanel{
 	padding-left:1%;
 	padding-right:1%;
 }
-input{
-	width:86px;
+input.input-med{
+	width:40%;
 	font-size: 14px;
 }
-input.thin{
+input.input-sm{
 	width:27px;
 }
 .modal-header{
@@ -63,20 +50,26 @@ input.thin{
 }
 .control-panel{
 	position: fixed;
-	top: 10px;
-	left: 10px;
 	z-index: 10;
 	display: block;
 	-webkit-overflow-scrolling: touch;
 	outline: 0;
 	width: 250px;
 }
+#modal-tools{
+	top: 10px;
+	right: 10px;
+}
+#modal-file{
+	top: 10px;
+	left: 10px;
+}
 h3.tools-title{
 	margin:2%;
 	padding:15px 0px 0px 0px;
 	font-size: 16px;
 	width:96%;
-	border-color: #444;
+	border-color: #DDD;
 	border-width: 1px;
 	border-top: 0;
 	border-bottom: 1;
@@ -84,16 +77,42 @@ h3.tools-title{
 	border-left: 0;
 	border-style: solid;
 }
+
 </style>
 </head>
 <body>
 
-
-	<div id="myModal" class="control-panel">
+	<div id="modal-tools" class="control-panel">
 		<div class="modal-content">
 			<div class="modal-header">
-				<!-- <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button> -->
 				 <h4 class="modal-title">Tools</h4>
+			</div>
+			<div class="modal-body">
+				<h3 class="tools-title">Mode: (spacebar)</h3>
+				<div class="btn-group" data-toggle="buttons">
+					<label class="btn btn-default active">
+					<input type="radio" name="options" id="option1" autocomplete="off" checked> Draw
+					</label>
+					<label class="btn btn-default">
+					<input type="radio" name="options" id="option2" autocomplete="off"> Select
+					</label>
+				</div>
+				<h3 class="tools-title">Draw Line:</h3>
+				<input type="text" class="input-med" readonly id="div-draw-line-start">→<input type="text" class="input-med" readonly id="div-draw-line-end">
+				<h3 class="tools-title" id="div-snap-range-value">Snap Radius: </h3>
+				<input type="range" id="div-snap-range"></input>
+				<h3 class="tools-title">Add Line:</h3>
+				<input type="text" readonly class="input-med" id="div-add-line-start">→<input type="text" readonly class="input-med" id="div-add-line-end">
+				<h3 class="tools-title">Clean, Intersections:</h3>
+				<button class="btn btn-sm btn-default" onclick="cleanIntersections()">Clean</button>
+				Intersections: <input type="text" class="input-sm" readonly id="div-intersections">
+			</div>
+		</div>
+	</div>
+	<div id="modal-file" class="control-panel">
+		<div class="modal-content">
+			<div class="modal-header">
+				 <h4 class="modal-title">File / View</h4>
 			</div>
 			<div class="modal-body">
 				<h3 class="tools-title">File</h3>
@@ -104,29 +123,17 @@ h3.tools-title{
 				<button class="btn btn-sm btn-default" onclick="loadBase('fish')">Fish</button>
 				<button class="btn btn-sm btn-default" onclick="loadBase('bird')">Bird</button>
 				<button class="btn btn-sm btn-default" onclick="loadBase('frog')">Frog</button>
-				<h3 class="tools-title">Draw Line:</h3>
-				<input type="text" id="div-draw-line-start">→<input type="text" id="div-draw-line-end">
-				<h3 class="tools-title">Add Line:</h3>
-				<input type="text" id="div-add-line-start">→<input type="text" id="div-add-line-end">
-				<h3 class="tools-title">Clean, Intersections:</h3>
-				<button class="btn btn-sm btn-default" onclick="cleanIntersections()">Clean</button>
-				Intersections: <input type="text" class="thin" id="div-intersections">
-				<h3 class="tools-title">Snap Radius:</h3>
-				<input type="range" id="div-snap-range"></input><input type="text" id="div-snap-range-value">
-				<h3 class="tools-title">Debug:</h3>
-				<button class="btn btn-sm btn-default" onclick="logPlanarGraph()">Log Data</button>
+				<h3 class="tools-title">Show:</h3>
+				<button type="button" class="btn btn-sm btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">Snap Radius</button>
 			</div>
-			<!-- <div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				<button type="button" class="btn btn-primary">Save changes</button>
-			</div> -->
+			<div class="modal-footer">
+				<button type="button" class="btn btn-sm btn-default disabled" data-dismiss="modal">Load</button>
+				<button type="button" class="btn btn-sm btn-primary disabled">Save</button>
+			</div>
 		</div>
 	</div>
 	
 	<div class="container">
-		<div class="left cpanel">
-
-		</div>
 		<div id="div-editor" class="center p5sketch"></div>
 	</div>
 
@@ -150,11 +157,11 @@ var slider_scale = 0.0025;
 var slider_start = 0.05;
 
 $('#div-snap-range').val(slider_start/slider_scale);
-$('#div-snap-range-value').val(slider_start);
+$('#div-snap-range-value').html("Snap Radius: " + slider_start);
 
 $(document).on('input', '#div-snap-range', function() {
 	var value = $('#div-snap-range').val() * slider_scale;
-	$('#div-snap-range-value').val(value.toFixed(3));
+	$('#div-snap-range-value').html("Snap Radius: " + value.toFixed(3));
 	p5window.snapRadius = value;
 });
 // $('#div-snap-range').change( function(e) {
@@ -243,12 +250,15 @@ function KeyPress(e) {
 
 document.onkeydown = KeyPress;
 
-// $('#myModal').modal({
+// $('#modal-tools').modal({
 // 	backdrop: 'static',
 // 	keyboard: false
 // }); 
 
-$("#myModal").draggable({
+$("#modal-tools").draggable({
+	handle: ".modal-header"
+});
+$("#modal-file").draggable({
 	handle: ".modal-header"
 });
 
