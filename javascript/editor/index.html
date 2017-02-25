@@ -2,6 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 <style>
 html, body {
 	width:100%;
@@ -10,7 +14,7 @@ html, body {
 	font-family: sans-serif;
 	cursor:default;
 }
-div{
+#div-editor{
 	width:100%;
 	height:100%;
 }
@@ -44,36 +48,86 @@ input{
 input.thin{
 	width:27px;
 }
+.modal-header{
+	background-color: #337ab7;
+	color:#FFF;
+    overflow: hidden;
+    border-radius: 5px 5px 0px 0px;
+}
+.modal-content{
+    margin-right: 0;
+    margin-left: 0;
+}
+.modal-body{
+	padding:0px 15px 15px 15px;
+}
+.control-panel{
+	position: fixed;
+	top: 10px;
+	left: 10px;
+	z-index: 10;
+	display: block;
+	-webkit-overflow-scrolling: touch;
+	outline: 0;
+	width: 250px;
+}
+h3.tools-title{
+	margin:2%;
+	padding:15px 0px 0px 0px;
+	font-size: 16px;
+	width:96%;
+	border-color: #444;
+	border-width: 1px;
+	border-top: 0;
+	border-bottom: 1;
+	border-right: 0;
+	border-left: 0;
+	border-style: solid;
+}
 </style>
 </head>
 <body>
+
+
+	<div id="myModal" class="control-panel">
+		<div class="modal-content">
+			<div class="modal-header">
+				<!-- <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button> -->
+				 <h4 class="modal-title">Tools</h4>
+			</div>
+			<div class="modal-body">
+				<h3 class="tools-title">File</h3>
+				<button class="btn btn-sm btn-default" onclick="clearCP()">New</button>
+				<button class="btn btn-sm btn-default" onclick="download()">Export SVG</button>
+				<h3 class="tools-title">Load Base:</h3>
+				<button class="btn btn-sm btn-default" onclick="loadBase('kite')">Kite</button>
+				<button class="btn btn-sm btn-default" onclick="loadBase('fish')">Fish</button>
+				<button class="btn btn-sm btn-default" onclick="loadBase('bird')">Bird</button>
+				<button class="btn btn-sm btn-default" onclick="loadBase('frog')">Frog</button>
+				<h3 class="tools-title">Draw Line:</h3>
+				<input type="text" id="div-draw-line-start">→<input type="text" id="div-draw-line-end">
+				<h3 class="tools-title">Add Line:</h3>
+				<input type="text" id="div-add-line-start">→<input type="text" id="div-add-line-end">
+				<h3 class="tools-title">Clean, Intersections:</h3>
+				<button class="btn btn-sm btn-default" onclick="cleanIntersections()">Clean</button>
+				Intersections: <input type="text" class="thin" id="div-intersections">
+				<h3 class="tools-title">Snap Radius:</h3>
+				<input type="range" id="div-snap-range"></input><input type="text" id="div-snap-range-value">
+				<h3 class="tools-title">Debug:</h3>
+				<button class="btn btn-sm btn-default" onclick="logPlanarGraph()">Log Data</button>
+			</div>
+			<!-- <div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary">Save changes</button>
+			</div> -->
+		</div>
+	</div>
+	
 	<div class="container">
 		<div class="left cpanel">
-			<h3>File:</h3>
-			<button onclick="clearCP()">New</button>
-			<button onclick="download()">Export SVG</button>
-			<h3>Load Base:</h3>
-			<button onclick="loadBase('kite')">Kite</button>
-			<button onclick="loadBase('fish')">Fish</button>
-			<button onclick="loadBase('bird')">Bird</button>
-			<button onclick="loadBase('frog')">Frog</button>
-			<h3>Draw Line:</h3>
-			<input type="text" id="div-draw-line-start">→<input type="text" id="div-draw-line-end">
-			<h3>Add Line:</h3>
-			<input type="text" id="div-add-line-start">→<input type="text" id="div-add-line-end">
-			<h3>Clean, Intersections:</h3>
-			<button onclick="cleanIntersections()">Clean</button>
-			Intersections: <input type="text" class="thin" id="div-intersections">
-			<h3>Snap Radius:</h3>
-			<input type="range" id="div-snap-range"></input><input type="text" id="div-snap-range-value">
-			<h3>Debug:</h3>
-			<button onclick="logPlanarGraph()">Log Data</button>
+
 		</div>
 		<div id="div-editor" class="center p5sketch"></div>
-		<div class="right cpanel">
-			<h3>last event:</h3>
-			<p id="div-last-event"></p>
-		</div>
 	</div>
 
 <script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
@@ -84,13 +138,23 @@ input.thin{
 <script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
 <script language="javascript" type="text/javascript" src="../render.js"></script>
 <script language="javascript" type="text/javascript" src="editor.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
 <script>
+$('.modal').modal('show');
+
 var p5window = new p5(editor, 'div-editor');
 
+var slider_scale = 0.0025;
+var slider_start = 0.05;
+
+$('#div-snap-range').val(slider_start/slider_scale);
+$('#div-snap-range-value').val(slider_start);
+
 $(document).on('input', '#div-snap-range', function() {
-	var value = $('#div-snap-range').val() / 100.0;
-	value *= 0.2;
-    $('#div-snap-range-value').val(value.toFixed(3));
+	var value = $('#div-snap-range').val() * slider_scale;
+	$('#div-snap-range-value').val(value.toFixed(3));
 	p5window.snapRadius = value;
 });
 // $('#div-snap-range').change( function(e) {
@@ -167,6 +231,7 @@ var saveData = (function () {
 function KeyPress(e) {
 	var evtobj = window.event? event : e
 	// if (evtobj.keyCode == 90 && evtobj.ctrlKey) {
+	// if(shift and z) redo the undo
 	if (evtobj.keyCode == 90){//evtobj.cmdKey) {
 		p5window.undo();
 	}
@@ -178,6 +243,48 @@ function KeyPress(e) {
 
 document.onkeydown = KeyPress;
 
+// $('#myModal').modal({
+// 	backdrop: 'static',
+// 	keyboard: false
+// }); 
+
+$("#myModal").draggable({
+	handle: ".modal-header"
+});
+
+
+       
+        // BootstrapDialog.show({
+        //     title: 'More dialog sizes',
+        //     message: 'Hi Apple!',
+        //     buttons: [{
+        //         label: 'Normal',
+        //         action: function(dialog){
+        //             dialog.setTitle('Normal');
+        //             dialog.setSize(BootstrapDialog.SIZE_NORMAL);
+        //         }
+        //     }, {
+        //         label: 'Small',
+        //         action: function(dialog){
+        //             dialog.setTitle('Small');
+        //             dialog.setSize(BootstrapDialog.SIZE_SMALL);
+        //         }
+        //     }, {
+        //         label: 'Wide',
+        //         action: function(dialog){
+        //             dialog.setTitle('Wide');
+        //             dialog.setSize(BootstrapDialog.SIZE_WIDE);
+        //         }
+        //     }, {
+        //         label: 'Large',
+        //         action: function(dialog){
+        //             dialog.setTitle('Large');
+        //             dialog.setSize(BootstrapDialog.SIZE_LARGE);
+        //         }
+        //     }]
+        // });
+        
+    
 </script>
 
 </body>

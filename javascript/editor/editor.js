@@ -44,7 +44,7 @@ var editor = function( p ) {
 	// if mouse is pressed, this is an {x:_,y:_} object
 	var mouseDownLocation = undefined;  
 
-	p.snapRadius = 0.08;
+	p.snapRadius = 0.05;
 
 	p.saveUndoState = function(){
 		if(p.undoHistory.length > 50){
