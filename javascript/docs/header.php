@@ -23,7 +23,7 @@
 <body>
 	<nav>
 		<ul>
-		<li><a href="../editor/index.html">Editor</a></li>
+		<li><a href="../editor/">Editor</a></li>
 		<li><a href="index.php">Introduction</a></li>
 		<li class="dropdown">
 			<a href="graph.php" class="dropbtn">Graph</a>

@@ -1,3 +1,35 @@
+function cloneSO(obj) {
+    // Handle the 3 simple types, and null or undefined
+    if (null == obj || "object" != typeof obj) return obj;
+
+    // Handle Date
+    if (obj instanceof Date) {
+        var copy = new Date();
+        copy.setTime(obj.getTime());
+        return copy;
+    }
+
+    // Handle Array
+    if (obj instanceof Array) {
+        var copy = [];
+        for (var i = 0, len = obj.length; i < len; i++) {
+            copy[i] = cloneSO(obj[i]);
+        }
+        return copy;
+    }
+
+    // Handle Object
+    if (obj instanceof Object) {
+        var copy = {};
+        for (var attr in obj) {
+            if (obj.hasOwnProperty(attr)) copy[attr] = cloneSO(obj[attr]);
+        }
+        return copy;
+    }
+
+    throw new Error("Unable to copy obj! Its type isn't supported.");
+}
+
 var editor = function( p ) {
 	p.callback = undefined;  // one argument: {start: {x:_, y:_}, end: {x:_, y:_}}
 
@@ -7,13 +39,27 @@ var editor = function( p ) {
 
 	var g = new CreasePattern();
 
+	p.undoHistory = [];
+
 	// if mouse is pressed, this is an {x:_,y:_} object
 	var mouseDownLocation = undefined;  
 
 	p.snapRadius = 0.08;
 
+	p.saveUndoState = function(){
+		if(p.undoHistory.length > 50){
+			p.undoHistory.shift();
+		}
+		// var clone = Object.assign({}, g);
+		// var clone = cloneSO(g);
+		// var clone = JSON.parse(JSON.stringify(g));
+		var clone = new CreasePattern();
+		clone.import(g);
+		p.undoHistory.push(clone);
+	}
+
 	p.loadBase = function(base){
-		console.log(base);
+		p.saveUndoState();
 		switch (base){
 			case 'kite': g.kiteBase(); break;
 			case 'fish': g.fishBase(); break;
@@ -24,6 +70,7 @@ var editor = function( p ) {
 	p.clearCP = function(){  g.clear();  }
 
 	p.cleanIntersections = function(){
+		p.saveUndoState();
 		// var count = g.cleanIntersections();
 		g.clean();
 		// doCallback('clean', {'intersections':count} );
@@ -32,10 +79,15 @@ var editor = function( p ) {
 		return g;
 	}
 	p.makeSVGBlob = function(){
-		return g.exportSVG(700);
+		return g.exportSVG(500);
 	}
-
+	p.undo = function(){
+		if(p.undoHistory.length){
+			g = p.undoHistory.pop();
+		}
+	}
 	p.reset = function(){
+		p.saveUndoState();
 		g.clear();
 	}
 	p.setup = function(){
@@ -103,6 +155,7 @@ var editor = function( p ) {
 	}
 
 	addLine = function(start, end){
+		p.saveUndoState();
 		g.addEdgeWithVertices(start.x, start.y, end.x, end.y);
 		doCallback('add-line', {'start':start,'end':end} );
 		// var newIntersections = g.cleanIntersections();

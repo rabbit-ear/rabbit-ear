@@ -49,8 +49,14 @@ input.thin{
 <body>
 	<div class="container">
 		<div class="left cpanel">
-			<h3>New Crease Pattern:</h3>
+			<h3>File:</h3>
 			<button onclick="clearCP()">New</button>
+			<button onclick="download()">Export SVG</button>
+			<h3>Load Base:</h3>
+			<button onclick="loadBase('kite')">Kite</button>
+			<button onclick="loadBase('fish')">Fish</button>
+			<button onclick="loadBase('bird')">Bird</button>
+			<button onclick="loadBase('frog')">Frog</button>
 			<h3>Draw Line:</h3>
 			<input type="text" id="div-draw-line-start">→<input type="text" id="div-draw-line-end">
 			<h3>Add Line:</h3>
@@ -60,14 +66,8 @@ input.thin{
 			Intersections: <input type="text" class="thin" id="div-intersections">
 			<h3>Snap Radius:</h3>
 			<input type="range" id="div-snap-range"></input><input type="text" id="div-snap-range-value">
-			<h3>Look at Planar Graph:</h3>
-			<button onclick="logPlanarGraph()">Log</button>
-			<h3>Load Base:</h3>
-			<button onclick="loadBase('kite')">Kite</button>
-			<button onclick="loadBase('fish')">Fish</button>
-			<button onclick="loadBase('bird')">Bird</button>
-			<button onclick="loadBase('frog')">Frog</button>
-			<button onclick="download()">Create file</button>
+			<h3>Debug:</h3>
+			<button onclick="logPlanarGraph()">Log Data</button>
 		</div>
 		<div id="div-editor" class="center p5sketch"></div>
 		<div class="right cpanel">
@@ -164,6 +164,19 @@ var saveData = (function () {
 	};
 }());
 
+function KeyPress(e) {
+	var evtobj = window.event? event : e
+	// if (evtobj.keyCode == 90 && evtobj.ctrlKey) {
+	if (evtobj.keyCode == 90){//evtobj.cmdKey) {
+		p5window.undo();
+	}
+	if(evtobj.shiftKey){
+		//shift pressed
+	}
+
+}
+
+document.onkeydown = KeyPress;
 
 </script>
 

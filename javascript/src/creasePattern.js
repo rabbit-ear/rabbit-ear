@@ -26,6 +26,14 @@ class CreasePattern extends PlanarGraph{
 		this.interestingPoints = this.starterLocations;
 	}
 
+	import(cp){
+		this.nodes = cp.nodes.slice();
+		this.edges = cp.edges.slice();
+		this.faces = cp.faces.slice();
+		this.clockwiseNodeEdges = cp.clockwiseNodeEdges.slice();
+		this.interestingPoints = cp.interestingPoints.slice();
+	}
+
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS
 
@@ -132,10 +140,10 @@ class CreasePattern extends PlanarGraph{
 		for(var i = 0; i < this.edges.length; i++){
 			var a = this.edges[i].a;
 			var b = this.edges[i].b;
-			var x1 = this.nodes[a].x * scale;
-			var y1 = this.nodes[a].y * scale;
-			var x2 = this.nodes[b].x * scale;
-			var y2 = this.nodes[b].y * scale;
+			var x1 = (this.nodes[a].x * scale).toFixed(4);
+			var y1 = (this.nodes[a].y * scale).toFixed(4);
+			var x2 = (this.nodes[b].x * scale).toFixed(4);
+			var y2 = (this.nodes[b].y * scale).toFixed(4);
 			blob += "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +x1+ "\" y1=\"" +y1+ "\" x2=\"" +x2+ "\" y2=\"" +y2+ "\"/>\n";
 		}
 		blob = blob + "</g>\n</svg>\n";

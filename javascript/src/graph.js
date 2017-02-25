@@ -1,5 +1,5 @@
 "use strict";
-var LOG = true;
+var LOG = false;
 
 class Graph{
 
