@@ -15,7 +15,8 @@ var editor = function( p ) {
 	p.snapRadius = 0.05;
 	p.showNodes = true;
 	p.showSnapRadius = true;
-	p.showFaces = true;
+	p.showFaces = false;
+	p.showClockwise = false;
 
 	p.saveUndoState = function(){
 		if(p.undoHistory.length > 50){
@@ -51,14 +52,14 @@ var editor = function( p ) {
 		// doCallback('clean', {'intersections':count} );
 	}
 	p.getPlanarGraphObject = function(){
-		return g;
+		return p.g;
 	}
 	p.makeSVGBlob = function(){
 		return p.g.exportSVG(500);
 	}
 	p.undo = function(){
 		if(p.undoHistory.length){
-			g = p.undoHistory.pop();
+			p.g = p.undoHistory.pop();
 		}
 	}
 	p.reset = function(){
@@ -104,7 +105,20 @@ var editor = function( p ) {
 				}
 				p.endShape();
 			}
+		}
 
+		if(p.showClockwise){
+			for(var e = 0; e < p.g.clockwiseNodeEdges.length; e++){
+				var sortedConnectedNodes = p.g.clockwiseNodeEdges[e];
+				for(var i = 0; i < sortedConnectedNodes.length; i++){
+					var edge = p.g.getEdgeConnectingNodes(e, sortedConnectedNodes[i]);
+					var color = HSVtoRGB(i/sortedConnectedNodes.length, 1.0, 1.0);
+					p.stroke(color.r, color.g, color.b);
+					p.line(p.g.nodes[ p.g.edges[edge].a ].x, p.g.nodes[ p.g.edges[edge].a ].y, 
+					       p.g.nodes[ p.g.edges[edge].b ].x, p.g.nodes[ p.g.edges[edge].b ].y );
+					p.ellipse(p.g.nodes[ sortedConnectedNodes[i] ].x, p.g.nodes[ sortedConnectedNodes[i] ].y, 0.01, 0.01);
+				}
+			}
 		}
 
 		if(mouseDownLocation != undefined){

@@ -357,6 +357,7 @@ class PlanarGraph extends Graph{
 		}
 		console.log('allNodesClockwise');
 		console.log(allNodesClockwise);
+		this.clockwiseNodeEdges = allNodesClockwise;
 		// walk around a face
 		this.faces = [];
 		var i = 0;

@@ -82,36 +82,6 @@ h3.tools-title{
 </head>
 <body>
 
-	<div id="modal-tools" class="control-panel">
-		<div class="modal-content">
-			<div class="modal-header">
-				 <h4 class="modal-title">Tools</h4>
-			</div>
-			<div class="modal-body">
-				<h3 class="tools-title">Mode</h3>
-				<div class="btn-group" data-toggle="buttons">
-					<label class="btn btn-default active">
-					<input type="radio" name="options" id="option1" autocomplete="off" checked> Draw
-					</label>
-					<label class="btn btn-default">
-					<input type="radio" name="options" id="option2" autocomplete="off"> Select
-					</label>
-				</div>
-				<h3 class="tools-title">Draw Line</h3>
-				<div class="center">
-					<input type="text" class="input-med" readonly id="div-draw-line-start">→<input type="text" class="input-med" readonly id="div-draw-line-end">
-				</div>
-				<h3 class="tools-title" id="div-snap-range-value">Snap Radius: </h3>
-				<input type="range" id="div-snap-range"></input>
-				<h3 class="tools-title">Clean, Intersections</h3>
-				<button class="btn btn-sm btn-default" onclick="cleanIntersections()">Clean</button>
-				Intersections: <input type="text" class="input-sm" readonly id="div-intersections">
-				<h3 class="tools-title">Faces</h3>
-				<button class="btn btn-sm btn-default" id="find-faces-button">Find Faces</button>
-					<button type="button" class="btn btn-sm btn-default active" id="show-faces-button" data-toggle="button" aria-pressed="true" autocomplete="off">Show Faces</button>
-			</div>
-		</div>
-	</div>
 	<div id="modal-file" class="control-panel">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -138,7 +108,40 @@ h3.tools-title{
 			</div>
 		</div>
 	</div>
-	
+
+	<div id="modal-tools" class="control-panel">
+		<div class="modal-content">
+			<div class="modal-header">
+				 <h4 class="modal-title">Tools</h4>
+			</div>
+			<div class="modal-body">
+				<h3 class="tools-title">Mode</h3>
+				<div class="btn-group" data-toggle="buttons">
+					<label class="btn btn-default active">
+					<input type="radio" name="options" id="option1" autocomplete="off" checked> Draw
+					</label>
+					<label class="btn btn-default">
+					<input type="radio" name="options" id="option2" autocomplete="off"> Select
+					</label>
+				</div>
+				<h3 class="tools-title">Draw Line</h3>
+				<div class="center">
+					<input type="text" class="input-med" readonly id="div-draw-line-start">→<input type="text" class="input-med" readonly id="div-draw-line-end">
+				</div>
+				<h3 class="tools-title" id="div-snap-range-value">Snap Radius: </h3>
+				<input type="range" id="div-snap-range"></input>
+				<h3 class="tools-title">Clean, Intersections</h3>
+				<button class="btn btn-sm btn-default" onclick="cleanIntersections()">Clean</button>
+				Intersections: <input type="text" class="input-sm" readonly id="div-intersections">
+				<h3 class="tools-title">Faces</h3>
+				<button class="btn btn-sm btn-default" id="find-faces-button">Find Faces</button>
+					<button type="button" class="btn btn-sm btn-default" id="show-faces-button" data-toggle="button" aria-pressed="false" autocomplete="off">Show Faces</button>
+				<button class="btn btn-sm btn-default" id="find-clockwise-button">Find Faces</button>
+					<button type="button" class="btn btn-sm btn-default" id="show-clockwise-button" data-toggle="button" aria-pressed="false" autocomplete="off">Clockwise</button>
+			</div>
+		</div>
+	</div>	
+
 	<div class="container">
 		<div id="div-editor" class="center p5sketch"></div>
 	</div>
@@ -276,11 +279,16 @@ $("#show-nodes-button").click(function() {
 
 $("#find-faces-button").click(function(){
 	p5window.findFaces();
-})
+});
 
 $("#show-faces-button").click(function(){
 	p5window.showFaces = !(p5window.showFaces);
-})
+});
+
+$("#show-clockwise-button").click(function(){
+	console.log(p5window.g.clockwiseNodeEdges);
+	p5window.showClockwise = !(p5window.showClockwise);
+});
        
         // BootstrapDialog.show({
         //     title: 'More dialog sizes',
