@@ -5,7 +5,6 @@ var LOG;
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
 class CreasePattern extends PlanarGraph{
 
-
 	constructor(){
 		super();
 		this.faces = [];
@@ -151,23 +150,27 @@ class CreasePattern extends PlanarGraph{
 	}
 
 
-appendUniquePoints(master, child){
-	var returned = master.slice(0);
-	for(var c = 0; c < child.length; c++){
-		var found = false;
-		var i = 0;
-		while (!found && i < master.length){
-			if(this.verticesEquivalent(master[i], child[c], VERTEX_DUPLICATE_EPSILON)){
-				found = true;
+	appendUniquePoints(master, child){
+		var returned = master.slice(0);
+		for(var c = 0; c < child.length; c++){
+			var found = false;
+			var i = 0;
+			while (!found && i < master.length){
+				if(this.verticesEquivalent(master[i], child[c], VERTEX_DUPLICATE_EPSILON)){
+					found = true;
+				}
+				i += 1;
 			}
-			i += 1;
+			if(!found){
+				returned.push(child[c]);
+			}
 		}
-		if(!found){
-			returned.push(child[c]);
-		}
+		return returned;
 	}
-	return returned;
-}
+
+	findAllFaces(){
+		this.generateFaces();
+	}
 
 
 	log(){

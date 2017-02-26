@@ -74,7 +74,7 @@ var test08 = function(p) {
 				p.vertex(g.nodes[ face[f] ].x, g.nodes[ face[f] ].y);
 			}
 			p.endShape();
-		}		
+		}
 		if(closestEdge != undefined){
 			p.stroke(255, 0, 0);
 			p.fill(255, 0, 0);

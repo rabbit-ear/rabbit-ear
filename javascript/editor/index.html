@@ -88,7 +88,7 @@ h3.tools-title{
 				 <h4 class="modal-title">Tools</h4>
 			</div>
 			<div class="modal-body">
-				<h3 class="tools-title">Mode: (spacebar)</h3>
+				<h3 class="tools-title">Mode</h3>
 				<div class="btn-group" data-toggle="buttons">
 					<label class="btn btn-default active">
 					<input type="radio" name="options" id="option1" autocomplete="off" checked> Draw
@@ -97,15 +97,18 @@ h3.tools-title{
 					<input type="radio" name="options" id="option2" autocomplete="off"> Select
 					</label>
 				</div>
-				<h3 class="tools-title">Draw Line:</h3>
-				<input type="text" class="input-med" readonly id="div-draw-line-start">→<input type="text" class="input-med" readonly id="div-draw-line-end">
+				<h3 class="tools-title">Draw Line</h3>
+				<div class="center">
+					<input type="text" class="input-med" readonly id="div-draw-line-start">→<input type="text" class="input-med" readonly id="div-draw-line-end">
+				</div>
 				<h3 class="tools-title" id="div-snap-range-value">Snap Radius: </h3>
 				<input type="range" id="div-snap-range"></input>
-				<h3 class="tools-title">Add Line:</h3>
-				<input type="text" readonly class="input-med" id="div-add-line-start">→<input type="text" readonly class="input-med" id="div-add-line-end">
-				<h3 class="tools-title">Clean, Intersections:</h3>
+				<h3 class="tools-title">Clean, Intersections</h3>
 				<button class="btn btn-sm btn-default" onclick="cleanIntersections()">Clean</button>
 				Intersections: <input type="text" class="input-sm" readonly id="div-intersections">
+				<h3 class="tools-title">Faces</h3>
+				<button class="btn btn-sm btn-default" id="find-faces-button">Find Faces</button>
+					<button type="button" class="btn btn-sm btn-default active" id="show-faces-button" data-toggle="button" aria-pressed="true" autocomplete="off">Show Faces</button>
 			</div>
 		</div>
 	</div>
@@ -116,15 +119,18 @@ h3.tools-title{
 			</div>
 			<div class="modal-body">
 				<h3 class="tools-title">File</h3>
-				<button class="btn btn-sm btn-default" onclick="clearCP()">New</button>
+				<button class="btn btn-sm btn-primary" onclick="clearCP()">New</button>
 				<button class="btn btn-sm btn-default" onclick="download()">Export SVG</button>
-				<h3 class="tools-title">Load Base:</h3>
+				<h3 class="tools-title">Load Base</h3>
 				<button class="btn btn-sm btn-default" onclick="loadBase('kite')">Kite</button>
 				<button class="btn btn-sm btn-default" onclick="loadBase('fish')">Fish</button>
 				<button class="btn btn-sm btn-default" onclick="loadBase('bird')">Bird</button>
 				<button class="btn btn-sm btn-default" onclick="loadBase('frog')">Frog</button>
-				<h3 class="tools-title">Show:</h3>
-				<button type="button" class="btn btn-sm btn-default" data-toggle="button" aria-pressed="false" autocomplete="off">Snap Radius</button>
+				<h3 class="tools-title">Show</h3>
+				<div class="btn-group">
+					<button type="button" class="btn btn-sm btn-default active" id="show-snap-radius-button" data-toggle="button" aria-pressed="true" autocomplete="off">Snap Radius</button>
+					<button type="button" class="btn btn-sm btn-default active" id="show-nodes-button" data-toggle="button" aria-pressed="true" autocomplete="off">Nodes</button>
+				</div>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-sm btn-default disabled" data-dismiss="modal">Load</button>
@@ -157,15 +163,14 @@ var slider_scale = 0.0025;
 var slider_start = 0.05;
 
 $('#div-snap-range').val(slider_start/slider_scale);
-$('#div-snap-range-value').html("Snap Radius: " + slider_start);
+	$('#div-snap-range-value').html("Snap Radius: " + (slider_start*100).toFixed(1) + "%");
 
 $(document).on('input', '#div-snap-range', function() {
 	var value = $('#div-snap-range').val() * slider_scale;
-	$('#div-snap-range-value').html("Snap Radius: " + value.toFixed(3));
+	$('#div-snap-range-value').html("Snap Radius: " + (value*100).toFixed(1) + "%");
 	p5window.snapRadius = value;
 });
-// $('#div-snap-range').change( function(e) {
-// });
+
 p5window.callback = function(e){
 	if(e == undefined){
 		$('#div-last-event').val('');
@@ -181,8 +186,8 @@ p5window.callback = function(e){
 			break;
 			case "add-line":
 				if(e.data != undefined && e.data.start != undefined && e.data.end != undefined){
-					$('#div-add-line-start').val(e.data.start.x.toFixed(2) + ', ' + e.data.start.y.toFixed(2));
-					$('#div-add-line-end').val(e.data.end.x.toFixed(2) + ', ' + e.data.end.y.toFixed(2));
+					$('#div-draw-line-start').val(e.data.start.x.toFixed(2) + ', ' + e.data.start.y.toFixed(2));
+					$('#div-draw-line-end').val(e.data.end.x.toFixed(2) + ', ' + e.data.end.y.toFixed(2));
 				}
 			break;
 			case "draw-line3":
@@ -245,7 +250,6 @@ function KeyPress(e) {
 	if(evtobj.shiftKey){
 		//shift pressed
 	}
-
 }
 
 document.onkeydown = KeyPress;
@@ -262,7 +266,21 @@ $("#modal-file").draggable({
 	handle: ".modal-header"
 });
 
+$("#show-snap-radius-button").click(function() {
+	p5window.showSnapRadius = !(p5window.showSnapRadius);
+});
 
+$("#show-nodes-button").click(function() {
+	p5window.showNodes = !(p5window.showNodes);
+});
+
+$("#find-faces-button").click(function(){
+	p5window.findFaces();
+})
+
+$("#show-faces-button").click(function(){
+	p5window.showFaces = !(p5window.showFaces);
+})
        
         // BootstrapDialog.show({
         //     title: 'More dialog sizes',
