@@ -73,9 +73,9 @@ var _11_merge_duplicates = function( p ) {
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		if(mouseXScaled != undefined && mouseYScaled != undefined){
 			// mouse was released inside of canvas
+			p.reset();
 		} else{
 			console.log(g.edges);			
 		}
-			p.reset();
 	}
 };

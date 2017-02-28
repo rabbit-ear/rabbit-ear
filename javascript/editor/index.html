@@ -138,6 +138,8 @@ h3.tools-title{
 					<button type="button" class="btn btn-sm btn-default" id="show-faces-button" data-toggle="button" aria-pressed="false" autocomplete="off">Show Faces</button>
 				<button class="btn btn-sm btn-default" id="find-clockwise-button">Find Faces</button>
 					<button type="button" class="btn btn-sm btn-default" id="show-clockwise-button" data-toggle="button" aria-pressed="false" autocomplete="off">Clockwise</button>
+					<button type="button" class="btn btn-sm btn-default" id="refresh-adjacency-button" data-toggle="button" aria-pressed="false" autocomplete="off">Refresh Adjacency</button>
+
 			</div>
 		</div>
 	</div>	
@@ -289,6 +291,11 @@ $("#show-faces-button").click(function(){
 $("#show-clockwise-button").click(function(){
 	console.log(p5window.g.clockwiseNodeEdges);
 	p5window.showClockwise = !(p5window.showClockwise);
+});
+
+$("#refresh-adjacency-button").click(function(){
+	p5window.refreshAdjacency();
+	console.log(p5window.g.nodes);
 });
        
         // BootstrapDialog.show({

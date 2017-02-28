@@ -26,21 +26,22 @@ class PlanarGraph extends Graph{
 		// reprogram these:
 		this.nodes = []; // each entry is object with properties: 
 		                 // {
-		                 //   position: {x:___,y:___}
+		                 //   x:___,
+		                 //   y:___,
 		                 //   adjacent:{
-		                 //     edges:[ {index:1, angle:30°}, {index:0, angle:60°}, ... ]
-		                 //     nodes:[ 2, 0, 1, ...]
+		                 //     edges:[ {edge:3, node:2, angle:30°}, {edge:0, node:3, angle:60°}, ... ]
+		                 //     nodes:[ 0, 1, 2, ...]
 		                 //   }
 		                 // }
 		                 // all angles are with respect to a universal coordinate frame
 	}
 
-	refreshNodeMath(){
-		// this recalculates the this.nodes.adjacent data
-	}
+	//////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////
+	//
+	//  1.
+	//  ADD PARTS
 
-	///////////////////////////////////////////////////////////////
-	// ADD PARTS
 
 	addEdgeWithVertices(x1, y1, x2, y2){  // floats
 		var nodeArrayLength = this.nodes.length;
@@ -65,14 +66,106 @@ class PlanarGraph extends Graph{
 		this.addEdgeFromVertex(existingIndex, newX, newY);
 	}
 
-	///////////////////////////////////////////////////////////////
-	// CLEAN  /  REMOVE PARTS
+	//////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////
+	//
+	//  2.
+	//  CLEAN  /  REFRESH COMPONENTS
+
+	// quick and easy, use a square bounding box
+	verticesEquivalent(v1, v2, epsilon){  // Vertex type
+		return (v1.x - epsilon < v2.x && v1.x + epsilon > v2.x &&
+				v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
+	}
+	// verticesEquivalent(x1, y1, x2, y2, float epsilon){  // float type
+	// 	return (x1 - epsilon < x2 && x1 + epsilon > x2 &&
+	// 			y1 - epsilon < y2 && y1 + epsilon > y2);
+	// } 
 
 	clean(){
 		var graphResult = super.clean();
 		var result = this.mergeDuplicateVertices();
-		
 	}
+
+	///////////////////////////////////
+	// Graph-related (non-positional)
+
+	refreshAdjacencyAtNode(nodeIndex){
+		// this recalculates the this.nodes.adjacent data
+		// EDGES
+		var adjacentEdges = this.getEdgesAdjacentToNode(nodeIndex);
+		for(var i = 0; i < adjacentEdges.length; i++){
+			var value = adjacentEdges[i];
+			adjacentEdges[i] = {'edge':value};
+		}
+		var edgeAngles = [];
+		for(var i = 0; i < adjacentEdges.length; i++){
+			var connectingNode = undefined;
+			var edge0 = this.edges[ adjacentEdges[i]['edge'] ].node[0];
+			var edge1 = this.edges[ adjacentEdges[i]['edge'] ].node[1];
+			if(edge0 != nodeIndex) connectingNode = edge0;
+			if(edge1 != nodeIndex) connectingNode = edge1;
+			if(connectingNode != undefined){
+				var dx = this.nodes[connectingNode].x - this.nodes[nodeIndex].x;
+				var dy = this.nodes[connectingNode].y - this.nodes[nodeIndex].y;
+				var edgeAngle = Math.atan2(dx, -dy);
+				adjacentEdges[i]['node'] = connectingNode;
+				adjacentEdges[i]['angle'] = edgeAngle;
+			}
+		}
+		adjacentEdges.sort(function(a,b) {
+			return (a.angle > b.angle) ? 1 : ((b.angle > a.angle) ? -1 : 0);
+		});
+		// NODES
+		var adjacentNodes = [];
+		for(var i = 0; i < adjacentEdges.length; i++){
+			adjacentNodes.push(adjacentEdges[i]['node']);
+		}
+		this.nodes[nodeIndex].adjacent = {'nodes': adjacentNodes, 'edges': adjacentEdges};
+	}
+
+	refreshAdjacencies(){
+		for(var i = 0; i < this.nodes.length; i++){
+			this.refreshAdjacencyAtNode(i);
+		}
+	}
+
+	getClockwiseNeighborAround(node, fromNode){
+		var array = this.nodes[node]['adjacent']['edges'];
+		for(var i = 0; i < array.length; i++){
+			if(array[i]['node'] == item){
+				var index = ((i+1)%array.length);
+				return array[index]['node'];
+			}
+		}
+		return undefined;
+	}
+
+	getNextNodeClockwise(array, fromNode){
+		for(var i = 0; i < array.length; i++){
+			if(array[i]['node'] == item){
+				var index = ((i+1)%array.length)
+				return array[ ];
+			}
+		}
+		return undefined;
+	}
+
+
+	getNextElementToItemInArray(array, item){
+		for(var i = 0; i < array.length; i++){
+			if(array[i] == item){
+				var index = i+1;
+				if(index >= array.length) index -= array.length;
+				return array[index];
+			}
+		}
+		return undefined;
+	}
+
+
+	//////////////////////////////
+	// position vicinity related
 
 	mergeDuplicateVertices(){
 		// DANGEROUS: removes nodes
@@ -93,46 +186,46 @@ class PlanarGraph extends Graph{
 		return removeCount;
 	}
 
-
-	// mergeDuplicateVertices(){
-	// 	// DANGEROUS: removes nodes
-	// 	var removeCount = 0;
-	// 	var i = 0;
-	// 	while(i < this.nodes.length-1){
-	// 		var j = i+1;
-	// 		// if(LOG) console.log(i);
-	// 		while(j < this.nodes.length){
-	// 			// if(LOG) console.log('-- ' + j);
-	// 			var didRemove = false;
-	// 			// do the points overlap?
-	// 			if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], VERTEX_DUPLICATE_EPSILON) ){
-	// 				didRemove = super.mergeNodes(i, j);
-	// 				// console.log('merged 2 nodes: ' + i + ' ' + j);
-	// 				removeCount += 1;
-	// 			}
-	// 			// only iterate forward if we didn't remove an element
-	// 			//   if we did, it basically iterated forward for us, repeat the same 'j'
-	// 			// this is also possible because we know that j is always greater than i
-	// 			if(!didRemove){
-	// 				j+=1;
-	// 			}
-	// 		}
-	// 		i+=1;
-	// 	}
-	// 	return removeCount;
-	// }
-
-
-
-	// quick and easy, use a square bounding box
-	verticesEquivalent(v1, v2, epsilon){  // Vertex type
-		return (v1.x - epsilon < v2.x && v1.x + epsilon > v2.x &&
-				v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
+	getClosestNode(x, y){
+		// can be optimized with a k-d tree
+		var index = undefined;
+		var distance = Math.sqrt(2);
+		for(var i = 0; i < this.nodes.length; i++){
+			var dist = Math.sqrt(Math.pow(this.nodes[i].x - x,2) + Math.pow(this.nodes[i].y - y,2));
+			if(dist < distance){
+				distance = dist;
+				index = i;
+			}
+		}
+		return index;
 	}
-	// verticesEquivalent(x1, y1, x2, y2, float epsilon){  // float type
-	// 	return (x1 - epsilon < x2 && x1 + epsilon > x2 &&
-	// 			y1 - epsilon < y2 && y1 + epsilon > y2);
-	// } 
+
+	getClosestEdge(x, y){
+		// can be optimized with a k-d tree
+
+		var index = this.getClosestNode(x, y);
+		if(index == undefined)
+			return undefined;
+
+		var subArray = this.getNodesAdjacentToNode(index);
+		if(subArray == undefined)
+			return undefined;
+
+		var subIndex = undefined;
+		var subDistance = Math.sqrt(2);
+		for(var i = 0; i < subArray.length; i++){
+			var dist = Math.sqrt(Math.pow(this.nodes[ subArray[i] ].x - x,2) + Math.pow(this.nodes[ subArray[i] ].y - y,2));
+			if(dist < subDistance){
+				subDistance = dist;
+				subIndex = i;
+			}
+		}
+		if(subIndex == undefined)
+			return undefined;
+
+		var edge = this.getEdgeConnectingNodes(index, subArray[subIndex] );
+		return edge;
+	}
 
 
 	///////////////////////////////////////////////////////////////
@@ -272,100 +365,7 @@ class PlanarGraph extends Graph{
 		return pg.nodes;
 	}
 
-	getClosestNode(x, y){
-		// can be optimized with a k-d tree
-		var index = undefined;
-		var distance = Math.sqrt(2);
-		for(var i = 0; i < this.nodes.length; i++){
-			var dist = Math.sqrt(Math.pow(this.nodes[i].x - x,2) + Math.pow(this.nodes[i].y - y,2));
-			if(dist < distance){
-				distance = dist;
-				index = i;
-			}
-		}
-		return index;
-	}
-
-	getClosestEdge(x, y){
-		// can be optimized with a k-d tree
-
-		var index = this.getClosestNode(x, y);
-		if(index == undefined)
-			return undefined;
-
-		var subArray = this.getNodesAdjacentToNode(index);
-		if(subArray == undefined)
-			return undefined;
-
-		var subIndex = undefined;
-		var subDistance = Math.sqrt(2);
-		for(var i = 0; i < subArray.length; i++){
-			var dist = Math.sqrt(Math.pow(this.nodes[ subArray[i] ].x - x,2) + Math.pow(this.nodes[ subArray[i] ].y - y,2));
-			if(dist < subDistance){
-				subDistance = dist;
-				subIndex = i;
-			}
-		}
-		if(subIndex == undefined)
-			return undefined;
-
-		var edge = this.getEdgeConnectingNodes(index, subArray[subIndex] );
-		return edge;
-	}
-
-	getClockwiseNeighbor(node, nodePrime){
-		var sortedNodes = getClockwiseConnectedNodesSorted(node);
-		var node = this.getNextElementToItemInArray( sortedNodes, nodePrime );
-		return node;
-	}
-
-	getClockwiseConnectedNodesSorted(nodeIndex){
-		var connected = this.getNodesAdjacentToNode(nodeIndex);
-		var nodeAngles = {};
-		for(var i = 0; i < connected.length; i++){
-			nodeAngles[ connected[i] ] = Math.atan2(-(this.nodes[nodeIndex].x - this.nodes[ connected[i] ].x),
-			                                         (this.nodes[nodeIndex].y - this.nodes[ connected[i] ].y) );
-			if(nodeAngles[ connected[i] ] < 0) nodeAngles[ connected[i] ] += 2*Math.PI;
-		}
-		var sortedNodes = [];
-		while(Object.keys(nodeAngles).length > 0){
-			var smallestAngle = undefined;
-			var smallestNode = undefined;
-			for (var key in nodeAngles) {
-				if(smallestAngle == undefined || nodeAngles[key] < smallestAngle){
-					smallestAngle = nodeAngles[key];
-					smallestNode = key;
-				}
-			}
-			sortedNodes.push( parseInt(smallestNode) );
-			delete nodeAngles[smallestNode];
-		}
-		return sortedNodes;
-	}
-	getClockwiseConnectedNodesAndAngles(nodeIndex){
-		var connected = this.getNodesAdjacentToNode(nodeIndex);
-		var nodeAngles = {};
-		for(var i = 0; i < connected.length; i++){
-			nodeAngles[ connected[i] ] = Math.atan2(-(this.nodes[nodeIndex].x - this.nodes[ connected[i] ].x),
-			                                         (this.nodes[nodeIndex].y - this.nodes[ connected[i] ].y) );
-			if(nodeAngles[ connected[i] ] < 0) nodeAngles[ connected[i] ] += 2*Math.PI;
-		}
-		return nodeAngles;
-	}
-
-	getNextElementToItemInArray(array, item){
-		for(var i = 0; i < array.length; i++){
-			if(array[i] == item){
-				var index = i+1;
-				if(index >= array.length) index -= array.length;
-				return array[index];
-			}
-		}
-		return undefined;
-	}
-
-
-
+// Planar Graph new data structures
 
 	generateFaces(){
 		var allNodesClockwise = [];

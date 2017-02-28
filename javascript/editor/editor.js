@@ -62,6 +62,9 @@ var editor = function( p ) {
 			p.g = p.undoHistory.pop();
 		}
 	}
+	p.refreshAdjacency = function(){
+		p.g.refreshAdjacencies();		
+	}
 	p.reset = function(){
 		p.saveUndoState();
 		p.g.clear();
