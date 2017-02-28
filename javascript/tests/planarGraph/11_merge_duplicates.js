@@ -7,7 +7,9 @@ var _11_merge_duplicates = function( p ) {
 
 	var g = new PlanarGraph();
 
-	var numEdges = 10;
+	var numEdges = 5;
+
+	var flashFades = [];
 
 	p.reset = function(){
 		g.clear();
@@ -35,12 +37,27 @@ var _11_merge_duplicates = function( p ) {
 		// update
 		t += 1;
 		for(var i = 0; i < g.nodes.length; i++){
-			g.nodes[i].x = 0.5+0.5*Math.cos(t*g.nodes[i].speed.x * 0.0002 + g.nodes[i].offset.x);
-			g.nodes[i].y = 0.5+0.5*Math.sin(t*g.nodes[i].speed.y * 0.0002 + g.nodes[i].offset.y);
+			g.nodes[i].x = 0.5+0.4*Math.cos(t*g.nodes[i].speed.x * 0.0003 + g.nodes[i].offset.x);
+			g.nodes[i].y = 0.5+0.4*Math.sin(t*g.nodes[i].speed.y * 0.0003 + g.nodes[i].offset.y);
 		}
-		if(g.mergeDuplicateVertices()){
-			if(p.callback != undefined){
-				p.callback(g.nodes.length, g.edges.length);
+		var mergeDataArray = g.mergeDuplicateVertices();
+		if(mergeDataArray.length){
+			for(var i = 0; i < mergeDataArray.length; i++){
+				var mergeData = mergeDataArray[i];
+				mergeData['brightness'] = 1.0;
+				flashFades.push(mergeData);
+				if(p.callback != undefined){
+					p.callback(g.nodes.length, g.edges.length);
+				}
+			}
+		}
+		// remove flashes if they are 
+		if(flashFades.length){
+			for(var i = flashFades.length-1; i >= 0; i--){
+				flashFades[i].brightness -= .1;
+				if(flashFades[i].brightness <= 0){
+					flashFades.splice(i, 1);
+				}
 			}
 		}
 
@@ -49,12 +66,21 @@ var _11_merge_duplicates = function( p ) {
 		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);
 
 		p.background(255);
+		// draw graph
 		p.fill(0);
 		p.stroke(0);
 		p.strokeWeight(.01);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
 		drawCoordinateFrame(p);
+
+		// draw flashes for joins
+		for(var i = 0; i < flashFades.length; i++){
+			var ff = flashFades[i].brightness;
+			p.fill(0,0,0,ff*255);
+			p.noStroke();
+			p.ellipse(flashFades[i].x, flashFades[i].y, 0.2 - 0.2*ff, 0.2 - 0.2*ff);
+		}
 	}
 	p.mousePressed = function(){
 		var mouseXScaled = p.mouseX / paperSize;
@@ -64,7 +90,6 @@ var _11_merge_duplicates = function( p ) {
 		if(mouseXScaled != undefined && mouseYScaled != undefined){
 			// mouse was pressed inside of canvas
 		}
-
 	}
 	p.mouseReleased = function(event){
 		var mouseXScaled = p.mouseX / paperSize;

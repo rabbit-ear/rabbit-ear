@@ -141,17 +141,6 @@ class PlanarGraph extends Graph{
 		return undefined;
 	}
 
-	getNextNodeClockwise(array, fromNode){
-		for(var i = 0; i < array.length; i++){
-			if(array[i]['node'] == item){
-				var index = ((i+1)%array.length)
-				return array[ ];
-			}
-		}
-		return undefined;
-	}
-
-
 	getNextElementToItemInArray(array, item){
 		for(var i = 0; i < array.length; i++){
 			if(array[i] == item){
@@ -170,21 +159,36 @@ class PlanarGraph extends Graph{
 	mergeDuplicateVertices(){
 		// DANGEROUS: removes nodes
 		// this looks for nodes.position which are physically nearby, within EPSILON radius
-		var removeCount = 0;
-		var i = 0;
-		while(i < this.nodes.length-1){
-			var j = this.nodes.length-1;
-			while(j > i){
+		var removeCatalog = [];
+		for(var i = 0; i < this.nodes.length-1; i++){
+			for(var j = this.nodes.length-1; j > i; j--){
 				if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], VERTEX_DUPLICATE_EPSILON) ){
 					super.mergeNodes(i, j);
-					removeCount += 1;
+					removeCatalog.push( {'x':this.nodes[i].x, 'y':this.nodes[i].y } );
 				}
-				j-=1;
 			}
-			i+=1;
 		}
-		return removeCount;
+		return removeCatalog;
 	}
+
+	// mergeDuplicateVertices(){
+	// 	// DANGEROUS: removes nodes
+	// 	// this looks for nodes.position which are physically nearby, within EPSILON radius
+	// 	var removeCount = 0;
+	// 	var i = 0;
+	// 	while(i < this.nodes.length-1){
+	// 		var j = this.nodes.length-1;
+	// 		while(j > i){
+	// 			if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], VERTEX_DUPLICATE_EPSILON) ){
+	// 				super.mergeNodes(i, j);
+	// 				removeCount += 1;
+	// 			}
+	// 			j-=1;
+	// 		}
+	// 		i+=1;
+	// 	}
+	// 	return removeCount;
+	// }
 
 	getClosestNode(x, y){
 		// can be optimized with a k-d tree
