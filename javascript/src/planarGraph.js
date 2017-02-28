@@ -27,17 +27,16 @@ class PlanarGraph extends Graph{
 		this.nodes = []; // each entry is object with properties: 
 		                 // {
 		                 //   position: {x:___,y:___}
-		                 //   edgeAngles: [40°, 60°, 120°, 290°]
-		                 //   
+		                 //   adjacent:{
+		                 //     edges:[ {index:1, angle:30°}, {index:0, angle:60°}, ... ]
+		                 //     nodes:[ 2, 0, 1, ...]
+		                 //   }
 		                 // }
+		                 // all angles are with respect to a universal coordinate frame
+	}
 
-		            // or
-		                 // {
-		                 //   position: {x:___,y:___}
-		                 //   edgeAngles: [40°, 60°, 120°, 290°]
-		                 //   
-		                 // }
-
+	refreshNodeMath(){
+		// this recalculates the this.nodes.adjacent data
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -72,10 +71,12 @@ class PlanarGraph extends Graph{
 	clean(){
 		var graphResult = super.clean();
 		var result = this.mergeDuplicateVertices();
+		
 	}
 
 	mergeDuplicateVertices(){
 		// DANGEROUS: removes nodes
+		// this looks for nodes.position which are physically nearby, within EPSILON radius
 		var removeCount = 0;
 		var i = 0;
 		while(i < this.nodes.length-1){

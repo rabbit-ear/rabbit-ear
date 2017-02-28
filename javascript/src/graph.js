@@ -239,6 +239,9 @@ class Graph{
 			if     (this.edges[i].node[1] == second) this.edges[i].node[1] = first;
 			else if(this.edges[i].node[1] > second)  this.edges[i].node[1] -= 1;
 		}
+		this.cleanCircularEdges();
+		this.cleanDuplicateEdges();
+		// this.removeNode(second);   // the above for loop does this, we can just call below:
 		this.nodes.splice(second,1);
 		return true;
 	}
