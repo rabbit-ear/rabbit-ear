@@ -15,11 +15,14 @@ function fillGraph(graph, numNodes){
 		var match;
 		do{ match = Math.floor(Math.random()*graph.nodes.length);
 		} while(match == first);
-		graph.addEdge( {'a':first, 'b':match} );
+		graph.addEdge(first, match);
 	}
 	if(numEdges > numNodes){
-		for(var i = 0; i < numEdges - numNodes; i++)
-			graph.addEdge( {'a':Math.floor(Math.random()*numNodes), 'b':Math.floor(Math.random()*numNodes)} );
+		for(var i = 0; i < numEdges - numNodes; i++){
+			var rand1 = Math.floor(Math.random()*numNodes);
+			var rand2 = Math.floor(Math.random()*numNodes);
+			graph.addEdge( rand1, rand2 );
+		}
 	}
 	graph.clean();
 	
@@ -31,9 +34,9 @@ function fillGraph(graph, numNodes){
 	nodeString += graph.nodes.length-1;
 	var edgeString = '';
 	for(var i = 0; i < graph.edges.length-1; i++){
-		edgeString += '[' + graph.edges[i].a + ',' + graph.edges[i].b + '], ';
+		edgeString += '[' + graph.edges[i].node[0] + ',' + graph.edges[i].node[1] + '], ';
 	}
-	edgeString += '[' + graph.edges[graph.edges.length-1].a + ',' + graph.edges[graph.edges.length-1].b + ']';
+	edgeString += '[' + graph.edges[graph.edges.length-1].node[0] + ',' + graph.edges[graph.edges.length-1].node[1] + ']';
 	var graphString = '{nodes: [' + nodeString + '],<br>&nbsp;edges: [ ' + edgeString + ' ]}';
 	$("#spanGraphContents").html(graphString);
 }

@@ -114,8 +114,8 @@ var editor = function( p ) {
 					var edge = p.g.getEdgeConnectingNodes(e, sortedConnectedNodes[i]);
 					var color = HSVtoRGB(i/sortedConnectedNodes.length, 1.0, 1.0);
 					p.stroke(color.r, color.g, color.b);
-					p.line(p.g.nodes[ p.g.edges[edge].a ].x, p.g.nodes[ p.g.edges[edge].a ].y, 
-					       p.g.nodes[ p.g.edges[edge].b ].x, p.g.nodes[ p.g.edges[edge].b ].y );
+					p.line(p.g.nodes[ p.g.edges[edge].node[0] ].x, p.g.nodes[ p.g.edges[edge].node[0] ].y, 
+					       p.g.nodes[ p.g.edges[edge].node[1] ].x, p.g.nodes[ p.g.edges[edge].node[1] ].y );
 					p.ellipse(p.g.nodes[ sortedConnectedNodes[i] ].x, p.g.nodes[ sortedConnectedNodes[i] ].y, 0.01, 0.01);
 				}
 			}

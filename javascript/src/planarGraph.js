@@ -23,6 +23,21 @@ class PlanarGraph extends Graph{
 		super();
 		this.faces = [];
 		this.clockwiseNodeEdges = [];
+		// reprogram these:
+		this.nodes = []; // each entry is object with properties: 
+		                 // {
+		                 //   position: {x:___,y:___}
+		                 //   edgeAngles: [40°, 60°, 120°, 290°]
+		                 //   
+		                 // }
+
+		            // or
+		                 // {
+		                 //   position: {x:___,y:___}
+		                 //   edgeAngles: [40°, 60°, 120°, 290°]
+		                 //   
+		                 // }
+
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -32,17 +47,17 @@ class PlanarGraph extends Graph{
 		var nodeArrayLength = this.nodes.length;
 		this.nodes.push( {'x':x1, 'y':y1, 'isBoundary':this.isBoundaryNode(x1, y1)} );
 		this.nodes.push( {'x':x2, 'y':y2, 'isBoundary':this.isBoundaryNode(x2, y2)} );
-		this.edges.push( {'a':nodeArrayLength, 'b':nodeArrayLength+1} );
+		this.edges.push( {'node':[nodeArrayLength, nodeArrayLength+1]} );
 	}
 
 	addEdgeFromVertex(existingIndex, newX, newY){ // uint, floats
 		var nodeArrayLength = this.nodes.length;
 		this.nodes.push( {'x':newX, 'y':newY, 'isBoundary':this.isBoundaryNode(newX, newY)} );
-		this.edges.push( {'a':existingIndex, 'b':nodeArrayLength} );
+		this.edges.push( {'node':[existingIndex, nodeArrayLength]} );
 	}
 
 	addEdgeFromExistingVertices(existingIndex1, existingIndex2){ // uint, uint
-		this.edges.push( {'a':existingIndex1, 'b':existingIndex2} );
+		this.edges.push( {'node':[existingIndex1, existingIndex2]} );
 	}
 
 	addEdgeRadiallyFromVertex(existingIndex, angle, distance){ // uint, floats
@@ -127,10 +142,10 @@ class PlanarGraph extends Graph{
 		if(this.areEdgesAdjacent(e1, e2)){
 			return undefined;
 		}
-		var v0 = this.nodes[ this.edges[e1].a ];
-		var v1 = this.nodes[ this.edges[e1].b ];
-		var v2 = this.nodes[ this.edges[e2].a ];
-		var v3 = this.nodes[ this.edges[e2].b ];
+		var v0 = this.nodes[ this.edges[e1].node[0] ];
+		var v1 = this.nodes[ this.edges[e1].node[1] ];
+		var v2 = this.nodes[ this.edges[e2].node[0] ];
+		var v3 = this.nodes[ this.edges[e2].node[1] ];
 		return this.lineSegmentIntersectionAlgorithm(v0, v1, v2, v3);
 	}
 
@@ -153,10 +168,10 @@ class PlanarGraph extends Graph{
 				if(intersection != undefined){
 					intersection.e1 = edgeIndex;
 					intersection.e2 = i;
-					intersection.e1n1 = this.edges[edgeIndex].a;
-					intersection.e1n2 = this.edges[edgeIndex].b;
-					intersection.e2n1 = this.edges[i].a;
-					intersection.e2n2 = this.edges[i].b;
+					intersection.e1n1 = this.edges[edgeIndex].node[0];
+					intersection.e1n2 = this.edges[edgeIndex].node[1];
+					intersection.e2n1 = this.edges[i].node[0];
+					intersection.e2n2 = this.edges[i].node[1];
 					intersections.push(intersection);
 				}
 			}
@@ -173,10 +188,10 @@ class PlanarGraph extends Graph{
 					// it's just. i really think... we don't need this extra stuff in this function
 					// intersection.e1 = i;
 					// intersection.e2 = j;
-					// intersection.e1n1 = this.edges[i].a;
-					// intersection.e1n2 = this.edges[i].b;
-					// intersection.e2n1 = this.edges[j].a;
-					// intersection.e2n2 = this.edges[j].b;
+					// intersection.e1n1 = this.edges[i].node[0];
+					// intersection.e1n2 = this.edges[i].node[1];
+					// intersection.e2n1 = this.edges[j].node[0];
+					// intersection.e2n2 = this.edges[j].node[1];
 					intersections.push(intersection);
 				}
 			}
@@ -348,7 +363,71 @@ class PlanarGraph extends Graph{
 		return undefined;
 	}
 
+
+
+
 	generateFaces(){
+		var allNodesClockwise = [];
+		for(var i = 0; i < this.nodes.length; i++){
+			var sortedNodes = this.getClockwiseConnectedNodesSorted(i);
+			if(sortedNodes == undefined) sortedNodes = [];
+			allNodesClockwise.push(sortedNodes);
+		}
+		console.log('allNodesClockwise');
+		console.log(allNodesClockwise);
+		this.clockwiseNodeEdges = allNodesClockwise;
+		// walk around a face
+		this.faces = [];
+		for(var i = 0; i < this.nodes.length; i++){
+			for(var n = 0; n < allNodesClockwise[i].length; n++){
+				var validFace = true;
+				var startNode = i;
+				var travelingNode = allNodesClockwise[i][n];
+				var theFace = [ startNode, travelingNode ];
+
+				while(validFace && travelingNode != startNode){
+					var prevNode = travelingNode;
+					travelingNode = this.getNextElementToItemInArray( allNodesClockwise[ travelingNode ], prevNode );
+					if(travelingNode == undefined){
+						console.log('!!!! next element in array returning undefined');
+						console.log(theFace);
+						return;
+					} else {
+						if(travelingNode == prevNode){
+							validFace = false;
+						} else{
+							theFace.push(travelingNode);
+						}
+					}
+				}
+
+				if(validFace){
+					this.faces.push(theFace);
+				}
+			}
+		}
+
+
+
+
+		console.log('FACES: not cleaned up');
+		console.log(this.faces);
+		var i = 0;
+		while(i < this.faces.length-1){
+			var j = this.faces.length-1;
+			while(j > i){
+				if(this.areFacesEquivalent(i, j)){
+					this.faces.splice(j, 1);
+				}
+				j--;
+			}
+			i++;
+		}
+		console.log('FACES: clean');
+		console.log(this.faces);
+	}
+
+	generateFacesFirst(){
 		var allNodesClockwise = [];
 		for(var i = 0; i < this.nodes.length; i++){
 			var sortedNodes = this.getClockwiseConnectedNodesSorted(i);
@@ -468,8 +547,8 @@ class PlanarGraph extends Graph{
 		}
 
 		for(var i = 0; i < this.edges.length; i++){
-			var a = this.nodes[ this.edges[i].a ];
-			var b = this.nodes[ this.edges[i].b ];
+			var a = this.nodes[ this.edges[i].node[0] ];
+			var b = this.nodes[ this.edges[i].node[1] ];
 			var crossproduct = (v.y - a.y) * (b.x - a.x) - (v.x - a.x) * (b.y - a.y);
 			if(Math.abs(crossproduct) < VERTEX_DUPLICATE_EPSILON){
 				// cross product is essentially zero, point lies along the (infinite) line
@@ -548,7 +627,7 @@ class PlanarGraph extends Graph{
 		}
 		console.log("\nEdges:\n" + this.edges.length + ")");
 		for(var i = 0; i < this.edges.length; i++){
-			console.log(' ' + i + ': (' + this.edges[i].a + ' -- ' + this.edges[i].b + ')');
+			console.log(' ' + i + ': (' + this.edges[i].node[0] + ' -- ' + this.edges[i].node[1] + ')');
 		}
 	}
 

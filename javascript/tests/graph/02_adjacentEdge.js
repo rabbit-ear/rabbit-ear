@@ -15,11 +15,14 @@ function fillGraph(graph, numNodes){
 		var match;
 		do{ match = Math.floor(Math.random()*graph.nodes.length);
 		} while(match == first);
-		graph.addEdge( {'a':first, 'b':match} );
+		graph.addEdge(first, match);
 	}
 	if(numEdges > numNodes){
-		for(var i = 0; i < numEdges - numNodes; i++)
-			graph.addEdge( {'a':Math.floor(Math.random()*numNodes), 'b':Math.floor(Math.random()*numNodes)} );
+		for(var i = 0; i < numEdges - numNodes; i++){
+			var rand1 = Math.floor(Math.random()*numNodes);
+			var rand2 = Math.floor(Math.random()*numNodes);
+			graph.addEdge( rand1, rand2 );
+		}
 	}
 	graph.clean();
 }

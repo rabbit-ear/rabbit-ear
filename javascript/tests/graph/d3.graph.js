@@ -11,8 +11,8 @@ function graphToD3(graph){
 	}
 	for(var i = 0; i < graph.edges.length; i++){
 		var nameString = 'link' + i;
-		var one = graph.edges[i].a;
-		var two = graph.edges[i].b;
+		var one = graph.edges[i].node[0];
+		var two = graph.edges[i].node[1];
 		var node1String = 'node' + one;
 		var node2String = 'node' + two;
 		forceGraph['links'].push( {'id' : nameString, 'source' : node1String, 'target' : node2String} );
