@@ -22,7 +22,6 @@ class PlanarGraph extends Graph{
 	constructor(){
 		super();
 		this.faces = [];
-		this.clockwiseNodeEdges = [];
 		// reprogram these:
 		this.nodes = []; // each entry is object with properties: 
 		                 // {
@@ -131,9 +130,11 @@ class PlanarGraph extends Graph{
 	}
 
 	getClockwiseNeighborAround(node, fromNode){
+		console.log('trying ' + node);
+		console.log(this.nodes[node]);
 		var array = this.nodes[node]['adjacent']['edges'];
 		for(var i = 0; i < array.length; i++){
-			if(array[i]['node'] == item){
+			if(array[i]['node'] == fromNode){
 				var index = ((i+1)%array.length);
 				return array[index]['node'];
 			}
@@ -164,7 +165,7 @@ class PlanarGraph extends Graph{
 			for(var j = this.nodes.length-1; j > i; j--){
 				if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], VERTEX_DUPLICATE_EPSILON) ){
 					super.mergeNodes(i, j);
-					removeCatalog.push( {'x':this.nodes[i].x, 'y':this.nodes[i].y } );
+					removeCatalog.push( {'x':this.nodes[i].x, 'y':this.nodes[i].y, 'nodes':[i,j] } );
 				}
 			}
 		}
@@ -369,54 +370,73 @@ class PlanarGraph extends Graph{
 		return pg.nodes;
 	}
 
+	arrayContainsNumberAtIndex(array, number){
+		for(var i = 0; i < array.length; i++) {
+			if (array[i] == number) {  return i;  }
+		} return undefined;
+	}
+
+	arrayContainsDuplicates(array){
+		if(array.length <= 1) return false;
+		for(var i = 0; i < array.length-1; i++) {
+			for(var j = i+1; j < array.length; j++){
+				if(array[i] == array[j]){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+
 // Planar Graph new data structures
 
 	generateFaces(){
-		var allNodesClockwise = [];
-		for(var i = 0; i < this.nodes.length; i++){
-			var sortedNodes = this.getClockwiseConnectedNodesSorted(i);
-			if(sortedNodes == undefined) sortedNodes = [];
-			allNodesClockwise.push(sortedNodes);
-		}
-		console.log('allNodesClockwise');
-		console.log(allNodesClockwise);
-		this.clockwiseNodeEdges = allNodesClockwise;
 		// walk around a face
 		this.faces = [];
-		for(var i = 0; i < this.nodes.length; i++){
-			for(var n = 0; n < allNodesClockwise[i].length; n++){
+		for(var startNode = 0; startNode < this.nodes.length; startNode++){
+			for(var n = 0; n < this.nodes[startNode].adjacent.edges.length; n++){
 				var validFace = true;
-				var startNode = i;
-				var travelingNode = allNodesClockwise[i][n];
+				var travelingNode = this.nodes[startNode].adjacent.edges[n].node;
 				var theFace = [ startNode, travelingNode ];
 
 				while(validFace && travelingNode != startNode){
-					var prevNode = travelingNode;
-					travelingNode = this.getNextElementToItemInArray( allNodesClockwise[ travelingNode ], prevNode );
+					var prevNode = theFace[ theFace.length-2 ];
+					travelingNode = this.getClockwiseNeighborAround( travelingNode, prevNode );
 					if(travelingNode == undefined){
 						console.log('!!!! next element in array returning undefined');
-						console.log(theFace);
 						return;
 					} else {
 						if(travelingNode == prevNode){
 							validFace = false;
 						} else{
-							theFace.push(travelingNode);
+							if(travelingNode != startNode){
+								theFace.push(travelingNode);
+							}
+							// var already = this.arrayContainsNumberAtIndex(theFace, travelingNode);
+							// if(already == undefined){
+							// 	theFace.push(travelingNode);								
+							// } else{
+								// face that makes a figure 8. visits a node twice in the middle.
+								// if(this.faces.length > 2){
+								// 	// we can use this sub section if it's larger than a line
+								// 	var cropFace = theFace.slice(already, 1 + theFace.length-already);
+								// 	this.faces.push(cropFace);
+								// } 
+								// validFace = false;
+							// }
 						}
+
 					}
 				}
 
-				if(validFace){
+				if(validFace && !this.arrayContainsDuplicates(theFace)){
 					this.faces.push(theFace);
 				}
 			}
 		}
 
-
-
-
-		console.log('FACES: not cleaned up');
-		console.log(this.faces);
+		// remove duplicate faces
 		var i = 0;
 		while(i < this.faces.length-1){
 			var j = this.faces.length-1;
@@ -428,7 +448,7 @@ class PlanarGraph extends Graph{
 			}
 			i++;
 		}
-		console.log('FACES: clean');
+		console.log('FACES:');
 		console.log(this.faces);
 	}
 

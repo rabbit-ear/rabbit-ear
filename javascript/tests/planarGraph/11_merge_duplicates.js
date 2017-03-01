@@ -1,5 +1,5 @@
 var _11_merge_duplicates = function( p ) {
-	p.callback = undefined;  // two arguments: number of nodes, number of edges
+	p.callback = undefined;  // three arguments: number of nodes, number of edges, merge-point-{x:_,y:_}
 
 	var paperSize = 250;
 	var WIDTH = paperSize;
@@ -25,7 +25,7 @@ var _11_merge_duplicates = function( p ) {
 			g.nodes[g.nodes.length-2]['speed'] = {'x':Math.random()*80,'y':Math.random()*80};
 		}
 		if(p.callback != undefined){
-			p.callback(g.nodes.length, g.edges.length);
+			p.callback(g.nodes.length, g.edges.length, undefined);
 		}
 	}
 	p.setup = function(){
@@ -47,7 +47,7 @@ var _11_merge_duplicates = function( p ) {
 				mergeData['brightness'] = 1.0;
 				flashFades.push(mergeData);
 				if(p.callback != undefined){
-					p.callback(g.nodes.length, g.edges.length);
+					p.callback(g.nodes.length, g.edges.length, {'x':mergeData.x, 'y':mergeData.y});
 				}
 			}
 		}

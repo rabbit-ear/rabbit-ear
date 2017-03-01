@@ -14,6 +14,17 @@
 			<p>- it removes redundant nodes (2 or more nodes exist at the same location in space.</p>
 		</div>
 	</div>
+	
+	<h3>mergeDuplicateVertices</h3>
+	<div id="divP5_merge" class="centered p5sketch"></div>
+
+	<div class="centered">
+		<p style="font-family:monospace; font-size:2.5em; margin-top:0"><span id="div-node-count"></span> nodes<br><span id="div-edge-count"></span> edges</p>
+	</div>
+
+	<div class="centered">
+		<pre><code><span id="span-merge-result"></span>← graph.<f>mergeDuplicateVertices</f>()</code></pre>
+	</div>
 
 	<h3>mergeDuplicateVertices</h3>
 	<div id="divP5_clean" class="centered p5sketch"></div>
@@ -28,13 +39,6 @@
 		</div>
 	</div>
 
-	<h3>mergeDuplicateVertices</h3>
-	<div id="divP5_merge" class="centered p5sketch"></div>
-
-	<div class="centered">
-		<p style="font-family:monospace; font-size:2.5em; margin-top:0"><span id="div-node-count"></span> nodes<br><span id="div-edge-count"></span> edges</p>
-	</div>
-
 </section>
 
 <!-- include .js sketches -->
@@ -44,9 +48,15 @@
 <script>
 	var p5a = new p5(_10_clean, 'divP5_clean');
 	var p5b = new p5(_11_merge_duplicates, 'divP5_merge');
-	p5b.callback = function(nodecount, edgecount){
+	p5b.callback = function(nodecount, edgecount, mergeInfo){
 		$("#div-node-count").html(nodecount);
 		$("#div-edge-count").html(edgecount);
+		// if(mergeInfo != undefined){
+		// 	var xString = (mergeInfo.x).toFixed(2);
+		// 	var yString = (mergeInfo.y).toFixed(2);
+		// 	var string = "{x:" + xString + ", y:" + yString + ", nodes:[" + mergeInfo.nodes[0] +"," + mergeInfo.nodes[1] + "]}";
+		// 	$("#span-merge-result").html(string);
+		// }
 	}
 </script>
 

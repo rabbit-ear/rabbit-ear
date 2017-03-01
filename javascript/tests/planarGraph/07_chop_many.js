@@ -66,15 +66,29 @@ var test07 = function(p){
 		drawGraphLines(p, g);
 	}
 	p.mouseReleased = function(){
-		p.reset();
-		if(p.callback != undefined){
-			p.callback(undefined);
+		var mouseXScaled = p.mouseX / paperSize;
+		var mouseYScaled = p.mouseY / paperSize;
+		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+		if(mouseXScaled != undefined && mouseYScaled != undefined){
+			// mouse was released inside of canvas
+			p.reset();
+			if(p.callback != undefined){
+				p.callback(undefined);
+			}
 		}
 	}
 	p.mousePressed = function(){
-		intersections = g.chop();
-		if(p.callback != undefined){
-			p.callback(intersections);
+		var mouseXScaled = p.mouseX / paperSize;
+		var mouseYScaled = p.mouseY / paperSize;
+		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+		if(mouseXScaled != undefined && mouseYScaled != undefined){
+			// mouse was pressed inside of canvas
+			intersections = g.chop();
+			if(p.callback != undefined){
+				p.callback(intersections);
+			}
 		}
 	}
 };

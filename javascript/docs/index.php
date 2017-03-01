@@ -10,7 +10,7 @@
 	</div>
 	<div id="sketch_intro" class="centered p5sketch"></div>
 	<div class="centered">
-		<pre><code><c>//wiggle</c><br>
+		<pre><code><c>// wiggle with noise() function</c><br>
 			cp.<f>nodes</f>[<n>3</n>].x <op>=</op> <f>noise</f>(<arg>t1</arg>);<br>cp.<f>nodes</f>[<n>3</n>].y <op>=</op> <f>noise</f>(<arg>t2</arg>);<br>cp.<f>nodes</f>[<n>6</n>].x <op>=</op> <f>noise</f>(<arg>t3</arg>);<br>cp.<f>nodes</f>[<n>6</n>].y <op>=</op> <f>noise</f>(<arg>t4</arg>);</code></pre>
 	</div>
 	<div class="accordion">

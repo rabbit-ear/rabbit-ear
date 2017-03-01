@@ -1,4 +1,6 @@
 var test06 = function(p){
+	p.callback = undefined;  // one argument: intersection point
+
 	var paperSize = 250;
 	var WIDTH = paperSize;
 	var HEIGHT = paperSize;
@@ -6,6 +8,8 @@ var test06 = function(p){
 	var highlighted2 = false;
 	p.setHighlight1 = function(on){ highlighted1 = on; }
 	p.setHighlight2 = function(on){ highlighted2 = on; }
+
+	var chopped = false;
 
 	var g = new PlanarGraph();	
 	var intersections = [];
@@ -79,17 +83,17 @@ var test06 = function(p){
 	p.draw1 = function(){
 		if(highlighted1) p.stroke(255, 0, 0);
 		else p.stroke(0, 0, 0);
-		p.ellipse(g.nodes[g.edges[0].a].x, g.nodes[g.edges[0].a].y, 0.01, 0.01);
-		p.ellipse(g.nodes[g.edges[0].b].x, g.nodes[g.edges[0].b].y, 0.01, 0.01);
-		p.line(g.nodes[g.edges[0].a].x, g.nodes[g.edges[0].a].y,
-			 g.nodes[g.edges[0].b].x, g.nodes[g.edges[0].b].y);
+		p.ellipse(g.nodes[g.edges[0].node[0]].x, g.nodes[g.edges[0].node[0]].y, 0.01, 0.01);
+		p.ellipse(g.nodes[g.edges[0].node[1]].x, g.nodes[g.edges[0].node[1]].y, 0.01, 0.01);
+		p.line(g.nodes[g.edges[0].node[0]].x, g.nodes[g.edges[0].node[0]].y,
+			 g.nodes[g.edges[0].node[1]].x, g.nodes[g.edges[0].node[1]].y);
 
 		if(highlighted2) p.stroke(255, 0, 0);
 		else p.stroke(0, 0, 0);
-		p.ellipse(g.nodes[g.edges[1].a].x, g.nodes[g.edges[1].a].y, 0.01, 0.01);
-		p.ellipse(g.nodes[g.edges[1].b].x, g.nodes[g.edges[1].b].y, 0.01, 0.01);
-		p.line(g.nodes[g.edges[1].a].x, g.nodes[g.edges[1].a].y,
-			 g.nodes[g.edges[1].b].x, g.nodes[g.edges[1].b].y);
+		p.ellipse(g.nodes[g.edges[1].node[0]].x, g.nodes[g.edges[1].node[0]].y, 0.01, 0.01);
+		p.ellipse(g.nodes[g.edges[1].node[1]].x, g.nodes[g.edges[1].node[1]].y, 0.01, 0.01);
+		p.line(g.nodes[g.edges[1].node[0]].x, g.nodes[g.edges[1].node[0]].y,
+			 g.nodes[g.edges[1].node[1]].x, g.nodes[g.edges[1].node[1]].y);
 
 	}
 	p.draw2 = function(){
@@ -98,10 +102,38 @@ var test06 = function(p){
 	}
 
 	p.mouseReleased = function(){
-		reset();
+		var mouseXScaled = p.mouseX / paperSize;
+		var mouseYScaled = p.mouseY / paperSize;
+		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+		if(mouseXScaled != undefined && mouseYScaled != undefined){
+			// mouse was released inside of canvas
+		} 
+
+		if(chopped){
+			reset();
+			chopped = false;
+			if(p.callback != undefined){
+				p.callback(undefined);
+			}
+		}
 	}
 
 	p.mousePressed = function(){
-		g.chop();
+		var mouseXScaled = p.mouseX / paperSize;
+		var mouseYScaled = p.mouseY / paperSize;
+		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+		if(mouseXScaled != undefined && mouseYScaled != undefined){
+			// mouse was pressed inside of canvas
+			chopped = true;
+			var intersections = g.chop();
+			if(intersections.length){
+				if(p.callback != undefined){
+					p.callback(intersections[0]);
+				}
+			}
+
+		}
 	}
 };
