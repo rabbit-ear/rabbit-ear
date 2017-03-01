@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="../dist/bootstrap/css/bootstrap.min.css">
 <!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<link rel="stylesheet" href="../dist/bootstrap/css/bootstrap-theme.min.css">
 <style>
 html, body {
 	width:100%;
@@ -100,6 +100,8 @@ h3.tools-title{
 				<div class="btn-group">
 					<button type="button" class="btn btn-sm btn-default active" id="show-snap-radius-button" data-toggle="button" aria-pressed="true" autocomplete="off">Snap Radius</button>
 					<button type="button" class="btn btn-sm btn-default active" id="show-nodes-button" data-toggle="button" aria-pressed="true" autocomplete="off">Nodes</button>
+					<button type="button" class="btn btn-sm btn-default" id="show-faces-button" data-toggle="button" aria-pressed="false" autocomplete="off">Faces</button>
+					<button type="button" class="btn btn-sm btn-default" id="show-clockwise-button" data-toggle="button" aria-pressed="false" autocomplete="off">Clockwise</button>
 				</div>
 			</div>
 			<div class="modal-footer">
@@ -135,11 +137,7 @@ h3.tools-title{
 				Intersections: <input type="text" class="input-sm" readonly id="div-intersections">
 				<h3 class="tools-title">Faces</h3>
 				<button class="btn btn-sm btn-default" id="find-faces-button">Find Faces</button>
-					<button type="button" class="btn btn-sm btn-default" id="show-faces-button" data-toggle="button" aria-pressed="false" autocomplete="off">Show Faces</button>
-				<button class="btn btn-sm btn-default" id="find-clockwise-button">Find Faces</button>
-					<button type="button" class="btn btn-sm btn-default" id="show-clockwise-button" data-toggle="button" aria-pressed="false" autocomplete="off">Clockwise</button>
-					<button type="button" class="btn btn-sm btn-default" id="refresh-adjacency-button" data-toggle="button" aria-pressed="false" autocomplete="off">Refresh Adjacency</button>
-
+				<button class="btn btn-sm btn-default" id="refresh-adjacency-button">Refresh Adjacency</button>
 			</div>
 		</div>
 	</div>	
@@ -157,7 +155,7 @@ h3.tools-title{
 <script language="javascript" type="text/javascript" src="../render.js"></script>
 <script language="javascript" type="text/javascript" src="editor.js"></script>
 <!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script type="text/javascript" src="../dist/bootstrap/js/bootstrap.min.js"></script>
 
 <script>
 $('.modal').modal('show');

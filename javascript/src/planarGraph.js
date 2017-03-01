@@ -6,7 +6,6 @@ var LOG;
 // this is a planar graph data structure containing edges and vertices
 // vertices are points in 3D space {x,y,z}  (z is 0 for now)
 
-
 var USER_TAP_EPSILON = 0.01;
 var VERTEX_DUPLICATE_EPSILON = 0.003;
 var SLOPE_ANGLE_PLACES = 2.5;
@@ -41,28 +40,31 @@ class PlanarGraph extends Graph{
 	//  1.
 	//  ADD PARTS
 
-
 	addEdgeWithVertices(x1, y1, x2, y2){  // floats
 		var nodeArrayLength = this.nodes.length;
 		this.nodes.push( {'x':x1, 'y':y1, 'isBoundary':this.isBoundaryNode(x1, y1)} );
 		this.nodes.push( {'x':x2, 'y':y2, 'isBoundary':this.isBoundaryNode(x2, y2)} );
 		this.edges.push( {'node':[nodeArrayLength, nodeArrayLength+1]} );
+		// this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
 	}
 
 	addEdgeFromVertex(existingIndex, newX, newY){ // uint, floats
 		var nodeArrayLength = this.nodes.length;
 		this.nodes.push( {'x':newX, 'y':newY, 'isBoundary':this.isBoundaryNode(newX, newY)} );
 		this.edges.push( {'node':[existingIndex, nodeArrayLength]} );
+		// this.changedNodes( [existingIndex, this.nodes.length-1] );
 	}
 
 	addEdgeFromExistingVertices(existingIndex1, existingIndex2){ // uint, uint
 		this.edges.push( {'node':[existingIndex1, existingIndex2]} );
+		// this.changedNodes( [existingIndex1, existingIndex2] );
 	}
 
 	addEdgeRadiallyFromVertex(existingIndex, angle, distance){ // uint, floats
 		var newX = this.nodes[existingIndex].x + Math.cos(angle) * distance;
 		var newY = this.nodes[existingIndex].y + Math.sin(angle) * distance;
 		this.addEdgeFromVertex(existingIndex, newX, newY);
+		// this.changedNodes( [existingIndex, this.nodes.length-1] );
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -85,6 +87,18 @@ class PlanarGraph extends Graph{
 		var graphResult = super.clean();
 		var result = this.mergeDuplicateVertices();
 	}
+
+	// changedNodes(nodeArray){
+	// 	var adjacent = [];
+	// 	for(var i = 0; i < nodeArray.length; i++){
+	// 		adjacent = adjacent.concat( this.getNodesAdjacentToNode(nodeArray[i]) );
+	// 	}
+	// 	//make list unique
+	// 	var unique = [...new Set(adjacent)]; 
+	// 	for(var i = 0; i < unique.length; i++){
+	// 		this.refreshAdjacencyAtNode(i);
+	// 	}
+	// }
 
 	///////////////////////////////////
 	// Graph-related (non-positional)
@@ -130,13 +144,11 @@ class PlanarGraph extends Graph{
 	}
 
 	getClockwiseNeighborAround(node, fromNode){
-		console.log('trying ' + node);
-		console.log(this.nodes[node]);
 		var array = this.nodes[node]['adjacent']['edges'];
 		for(var i = 0; i < array.length; i++){
 			if(array[i]['node'] == fromNode){
 				var index = ((i+1)%array.length);
-				return array[index]['node'];
+				return array[index];
 			}
 		}
 		return undefined;
@@ -152,7 +164,6 @@ class PlanarGraph extends Graph{
 		}
 		return undefined;
 	}
-
 
 	//////////////////////////////
 	// position vicinity related
@@ -171,25 +182,6 @@ class PlanarGraph extends Graph{
 		}
 		return removeCatalog;
 	}
-
-	// mergeDuplicateVertices(){
-	// 	// DANGEROUS: removes nodes
-	// 	// this looks for nodes.position which are physically nearby, within EPSILON radius
-	// 	var removeCount = 0;
-	// 	var i = 0;
-	// 	while(i < this.nodes.length-1){
-	// 		var j = this.nodes.length-1;
-	// 		while(j > i){
-	// 			if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], VERTEX_DUPLICATE_EPSILON) ){
-	// 				super.mergeNodes(i, j);
-	// 				removeCount += 1;
-	// 			}
-	// 			j-=1;
-	// 		}
-	// 		i+=1;
-	// 	}
-	// 	return removeCount;
-	// }
 
 	getClosestNode(x, y){
 		// can be optimized with a k-d tree
@@ -238,9 +230,7 @@ class PlanarGraph extends Graph{
 
 	edgesIntersect(e1, e2){
 		// if true - returns {x,y} location of intersection
-		if(this.areEdgesAdjacent(e1, e2)){
-			return undefined;
-		}
+		if(this.areEdgesAdjacent(e1, e2)){  return undefined;  }
 		var v0 = this.nodes[ this.edges[e1].node[0] ];
 		var v1 = this.nodes[ this.edges[e1].node[1] ];
 		var v2 = this.nodes[ this.edges[e2].node[0] ];
@@ -298,7 +288,6 @@ class PlanarGraph extends Graph{
 		return intersections;
 	}
 
-
 	// splitAtIntersections(){
 	// chop(){
 	// 	var intersectionPoints = new PlanarGraph();
@@ -329,6 +318,7 @@ class PlanarGraph extends Graph{
 	// 	intersectionPoints.mergeDuplicateVertices();
 	// 	return intersectionPoints.nodes;
 	// }
+
 	chop(){
 		if(LOG) console.log('planarGraph.js: chop()');
 		// var intersectionPoints = new PlanarGraph();
@@ -361,7 +351,7 @@ class PlanarGraph extends Graph{
 				this.clean();
 			}
 		}
-		if(LOG) console.log('planarGraph.js: finished chop()');
+		if(LOG){ console.log('planarGraph.js: finished chop()'); }
 		// return allIntersections;
 		// return a unique array of all intersection points
 		var pg = new PlanarGraph();  // creating a object inside of the object def itself?..
@@ -397,22 +387,35 @@ class PlanarGraph extends Graph{
 		for(var startNode = 0; startNode < this.nodes.length; startNode++){
 			for(var n = 0; n < this.nodes[startNode].adjacent.edges.length; n++){
 				var validFace = true;
-				var travelingNode = this.nodes[startNode].adjacent.edges[n].node;
-				var theFace = [ startNode, travelingNode ];
-
+				var nextAdjacent = this.nodes[startNode].adjacent.edges[n];
+				var travelingNode = nextAdjacent.node;
+				var theFace = {};
+				theFace['nodes'] = [ startNode, travelingNode ];
+				theFace['edges'] = [ nextAdjacent.edge ];
+				// var prevAngle = 0
+				// theFace['angles'] = [ this.nodes[startNode].adjacent.edges[n].angle ];
+				// var totalAngle = 0;
 				while(validFace && travelingNode != startNode){
-					var prevNode = theFace[ theFace.length-2 ];
-					travelingNode = this.getClockwiseNeighborAround( travelingNode, prevNode );
+					var prevNode = theFace['nodes'][ theFace['nodes'].length-2 ];
+					var nextAdjacent = this.getClockwiseNeighborAround( travelingNode, prevNode );
+					travelingNode = nextAdjacent.node;
+					// theFace['angles'].push(nextAdjacent.angle);
+					// var nextAngle = nextAdjacent.angle;
+					// totalAngle += (nextAngle - prevAngle);
+					// prevAngle = nextAngle;
 					if(travelingNode == undefined){
-						console.log('!!!! next element in array returning undefined');
-						return;
+						// next element in array returning undefined, something weird is going on
+						validFace = false;
 					} else {
 						if(travelingNode == prevNode){
 							validFace = false;
 						} else{
 							if(travelingNode != startNode){
-								theFace.push(travelingNode);
+								theFace['nodes'].push(travelingNode);
+								// var nextAngle = nextAdjacent.angle;
+								// totalAngle += (nextAngle - prevAngle);
 							}
+							theFace['edges'].push(nextAdjacent.edge);
 							// var already = this.arrayContainsNumberAtIndex(theFace, travelingNode);
 							// if(already == undefined){
 							// 	theFace.push(travelingNode);								
@@ -431,6 +434,7 @@ class PlanarGraph extends Graph{
 				}
 
 				if(validFace && !this.arrayContainsDuplicates(theFace)){
+					// theFace['angle'] = totalAngle;
 					this.faces.push(theFace);
 				}
 			}
@@ -448,77 +452,14 @@ class PlanarGraph extends Graph{
 			}
 			i++;
 		}
-		console.log('FACES:');
-		console.log(this.faces);
-	}
-
-	generateFacesFirst(){
-		var allNodesClockwise = [];
-		for(var i = 0; i < this.nodes.length; i++){
-			var sortedNodes = this.getClockwiseConnectedNodesSorted(i);
-			if(sortedNodes == undefined) sortedNodes = [];
-			allNodesClockwise.push(sortedNodes);
-		}
-		console.log('allNodesClockwise');
-		console.log(allNodesClockwise);
-		this.clockwiseNodeEdges = allNodesClockwise;
-		// walk around a face
-		this.faces = [];
-		var i = 0;
-		for(var i = 0; i < this.nodes.length; i++){
-			for(var n = 0; n < allNodesClockwise[i].length; n++){
-				var aFace = [ i ];
-				var iterate = 0;
-				var current = allNodesClockwise[i][n];
-				var previous = i;
-				console.log('=== INIT ' + i + ' ' + current);
-				while(iterate < 100 && i != current){
-					console.log('+++ ADDING: ' + current + ' prev: ' + previous + ' from CW ARRAY ' + current);
-					console.log(allNodesClockwise[current]);
-
-					aFace.push(current);
-					var previousBackup = previous;
-					previous = current;
-					// console.log('   algorithm ' + allNodesClockwise[ current ] + ' prev: ' + previousBackup);
-					current = this.getNextElementToItemInArray( allNodesClockwise[ current ], previousBackup );
-					console.log('NEXT: ' + current + ' prev: ' + previous );
-					if(current == undefined) iterate = 100;
-					if(aFace.length > 4) iterate = 100;
-
-					iterate++;
-				}
-				if(iterate < 99){
-					console.log('!! adding face');
-					console.log(aFace);
-					this.faces.push( aFace );
-				} else{
-					console.log('!! SKIPPING FACE');
-				}
-			}
-		}
-		console.log('FACES: not cleaned up');
-		console.log(this.faces);
-		var i = 0;
-		while(i < this.faces.length-1){
-			var j = 0;
-			while(j < this.faces.length){
-				if(this.areFacesEquivalent(i, j)){
-					this.faces.splice(j, 1);
-				}
-				j++;
-			}
-			i++;
-		}
-		console.log('FACES: clean');
-		console.log(this.faces);
 	}
 
 	areFacesEquivalent(faceIndex1, faceIndex2){
-		if(this.faces[faceIndex1].length != this.faces[faceIndex2].length) return false;
-		for(var i = 0; i < this.faces[faceIndex1].length; i++){
+		if(this.faces[faceIndex1].nodes.length != this.faces[faceIndex2].nodes.length) return false;
+		for(var i = 0; i < this.faces[faceIndex1].nodes.length; i++){
 			var found = false;
-			for(var j = 0; j < this.faces[faceIndex2].length; j++){
-				if(this.faces[faceIndex1][i] == this.faces[faceIndex2][j]) found = true;
+			for(var j = 0; j < this.faces[faceIndex2].nodes.length; j++){
+				if(this.faces[faceIndex1].nodes[i] == this.faces[faceIndex2].nodes[j]) found = true;
 			}
 			if(found == false) return false;
 		}
@@ -533,7 +474,6 @@ class PlanarGraph extends Graph{
 		}
 		return undefined;
 	}
-
 
 	isCornerNode(x, y){
 		// var E = VERTEX_DUPLICATE_EPSILON;

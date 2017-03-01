@@ -88,23 +88,14 @@ var editor = function( p ) {
 			}
 		}
 
-		p.fill(0);
-		p.stroke(0);
-		p.strokeWeight(.002);
-		if(p.showNodes){
-			drawGraphPoints(p, p.g);
-		}
-		drawGraphLines(p, p.g);
-		drawCoordinateFrame(p);
-
 		if(p.showFaces){
 			for(var i = 0; i < p.g.faces.length; i++){
 				var color = HSVtoRGB(i/p.g.faces.length, 1.0, 1.0);
-				p.fill(color.r, color.g, color.b, 50);
+				p.fill(color.r, color.g, color.b);
 				p.beginShape();
 				var face = p.g.faces[i];
-				for(f = 0; f < face.length; f++){
-					p.vertex(p.g.nodes[ face[f] ].x, p.g.nodes[ face[f] ].y);
+				for(f = 0; f < face.nodes.length; f++){
+					p.vertex(p.g.nodes[ face.nodes[f] ].x, p.g.nodes[ face.nodes[f] ].y);
 				}
 				p.endShape();
 			}
@@ -123,6 +114,16 @@ var editor = function( p ) {
 				}
 			}
 		}
+
+		p.fill(0);
+		p.stroke(0);
+		p.strokeWeight(.002);
+		if(p.showNodes){
+			drawGraphPoints(p, p.g);
+		}
+		drawGraphLines(p, p.g);
+		drawCoordinateFrame(p);
+
 
 		if(mouseDownLocation != undefined){
 			// a line is being dragged and added right now
