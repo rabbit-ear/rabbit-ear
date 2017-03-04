@@ -59,6 +59,9 @@ nav li a {
 	padding: 14px 16px;
 	text-decoration: none;
 }
+nav li a.link-fa{
+	padding:7px 14px;
+}
 nav li a:hover {
 	background-color: #111;
 }

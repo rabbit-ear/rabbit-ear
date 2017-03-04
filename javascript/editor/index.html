@@ -118,12 +118,12 @@ h3.tools-title{
 			</div>
 			<div class="modal-body">
 				<h3 class="tools-title">Mode</h3>
-				<div class="btn-group" data-toggle="buttons">
+				<div class="btn-group" id="mouse-mode-button" data-toggle="buttons">
 					<label class="btn btn-default active">
-					<input type="radio" name="options" id="option1" autocomplete="off" checked> Draw
+					<input type="radio" name="options" id="mouse-mode-button-1" autocomplete="off" value="draw" checked> Draw
 					</label>
 					<label class="btn btn-default">
-					<input type="radio" name="options" id="option2" autocomplete="off"> Select
+					<input type="radio" name="options" id="mouse-mode-button-2" autocomplete="off" value="select"> Select
 					</label>
 				</div>
 				<h3 class="tools-title">Draw Line</h3>
@@ -164,6 +164,11 @@ var p5window = new p5(editor, 'div-editor');
 
 var slider_scale = 0.0025;
 var slider_start = 0.05;
+
+$(document).on('change', 'input:radio[id^="mouse-mode-button"]', function (event) {
+	var mode_result = $('#mouse-mode-button input:radio:checked').val();
+	p5window.mouseMode = mode_result;
+});
 
 $('#div-snap-range').val(slider_start/slider_scale);
 	$('#div-snap-range-value').html("Snap Radius: " + (slider_start*100).toFixed(1) + "%");

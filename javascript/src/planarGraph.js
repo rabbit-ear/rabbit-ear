@@ -198,7 +198,7 @@ class PlanarGraph extends Graph{
 	}
 
 	getClosestEdge(x, y){
-		// can be optimized with a k-d tree
+		// super needs to be updated
 
 		var index = this.getClosestNode(x, y);
 		if(index == undefined)

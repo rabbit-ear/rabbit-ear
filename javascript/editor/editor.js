@@ -18,6 +18,9 @@ var editor = function( p ) {
 	p.showFaces = false;
 	p.showClockwise = false;
 
+	p.mouseMode = 'draw'; // 'draw', 'select', ...
+	p.selectedNode = undefined;
+
 	p.saveUndoState = function(){
 		if(p.undoHistory.length > 50){
 			p.undoHistory.shift();
@@ -115,6 +118,8 @@ var editor = function( p ) {
 			}
 		}
 
+
+
 		p.fill(0);
 		p.stroke(0);
 		p.strokeWeight(.002);
@@ -135,35 +140,77 @@ var editor = function( p ) {
 			p.ellipse(mouseDownLocation.x, mouseDownLocation.y, .01, .01);
 			doCallback('draw-line', {'start':mouseDownLocation, 'end':{'x':mouseXScaled, 'y':mouseYScaled }});
 		}
-	}
-	p.mousePressed = function(){
-		var mouseXScaled = p.mouseX / paperSize;
-		var mouseYScaled = p.mouseY / paperSize;
-		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
-		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
-		if(mouseXScaled != undefined && mouseYScaled != undefined){
-			// mouse was pressed inside of canvas
-			mouseDownLocation = p.g.trySnapVertex({x:mouseXScaled, y:mouseYScaled}, p.snapRadius);
-		}
-	}
-
-	p.mouseReleased = function(event){
-		if(mouseDownLocation != undefined){
+		if(p.mouseMode == 'select'){
 			var mouseXScaled = p.mouseX / paperSize;
 			var mouseYScaled = p.mouseY / paperSize;
 			if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 			if(mouseXScaled != undefined && mouseYScaled != undefined){
-				// mouse was released inside of canvas
-				var snapMouseRelease = p.g.trySnapVertex({'x':mouseXScaled, 'y':mouseYScaled}, p.snapRadius);
-				addLine(mouseDownLocation, snapMouseRelease);
+				var closest = p.g.getClosestNode(mouseXScaled, mouseYScaled);
+				if(closest != undefined){
+					p.fill(255, 0, 0);
+					p.noStroke();
+					// p.stroke(0);
+					// p.strokeWeight(.002);
+					p.ellipse(p.g.nodes[closest].x, p.g.nodes[closest].y, .02, .02);
+				}
 			}
-		} else{
-			if(p.callback != undefined){
-				p.callback(undefined);
-			}			
+			if(p.selectedNode != undefined){
+				p.stroke(255, 0, 0);
+				p.strokeWeight(0.005)
+				p.noFill();
+				p.ellipse(p.g.nodes[p.selectedNode].x, p.g.nodes[p.selectedNode].y, 0.025, 0.025);
+			}
 		}
-		mouseDownLocation = undefined;
+
+
+	}
+	p.mousePressed = function(){
+		if(p.mouseMode == 'select'){
+			var mouseXScaled = p.mouseX / paperSize;
+			var mouseYScaled = p.mouseY / paperSize;
+			if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+			if(mouseXScaled != undefined && mouseYScaled != undefined){
+				p.selectedNode = p.g.getClosestNode(mouseXScaled, mouseYScaled);
+			} else{
+				p.selectedNode = undefined;
+			}
+		}
+		if(p.mouseMode == 'draw'){
+			var mouseXScaled = p.mouseX / paperSize;
+			var mouseYScaled = p.mouseY / paperSize;
+			if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+			if(mouseXScaled != undefined && mouseYScaled != undefined){
+				// mouse was pressed inside of canvas
+				mouseDownLocation = p.g.trySnapVertex({x:mouseXScaled, y:mouseYScaled}, p.snapRadius);
+			}
+		}
+	}
+
+	p.mouseReleased = function(event){
+		if(p.mouseMode == 'select'){
+			
+		}
+		if(p.mouseMode == 'draw'){
+			if(mouseDownLocation != undefined){
+				var mouseXScaled = p.mouseX / paperSize;
+				var mouseYScaled = p.mouseY / paperSize;
+				if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
+				if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
+				if(mouseXScaled != undefined && mouseYScaled != undefined){
+					// mouse was released inside of canvas
+					var snapMouseRelease = p.g.trySnapVertex({'x':mouseXScaled, 'y':mouseYScaled}, p.snapRadius);
+					addLine(mouseDownLocation, snapMouseRelease);
+				}
+			} else{
+				if(p.callback != undefined){
+					p.callback(undefined);
+				}			
+			}
+			mouseDownLocation = undefined;
+		}
 	}
 
 	addLine = function(start, end){

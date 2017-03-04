@@ -18,12 +18,13 @@
 	} );
 </script>
 <!-- <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700" rel="stylesheet"> -->
+<link href="../dist/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
 <link href="style.css" rel="stylesheet" />
 </head>
 <body>
 	<nav>
 		<ul>
-		<li><a href="../editor/">Editor</a></li>
+		<li><a href="../editor/" class="link-fa"><i class="fa fa-pencil-square-o fa-2x"></i></a></li>
 		<li><a href="index.php">Introduction</a></li>
 		<li class="dropdown">
 			<a href="graph.php" class="dropbtn">Graph</a>
