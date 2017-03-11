@@ -1,12 +1,13 @@
 <?php include 'header.php';?>
 
+<h1>Face</h1>
 <section id="faces">
-<h1><a href="#faces">Find Faces</a></h1>
+	<h2>generateFaces</h2>
 	<div class="centered p5sketch" id="div-p5-faces"></div>
 	<div class="centered">
 		<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">generateFaces</span>()  <span class="token comment">// from early code, finds duplicates<span></code></pre>
 	</div>
-	<h1>Clockwise</h1>
+	<h2>Clockwise</h2>
 	<div class="centered p5sketch" id="div-p5-clockwise"></div>
 	<div class="centered">
 		<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getClockwiseNeighbor</span>( <span class="token argument">nodeIndex</span>, <span class="token argument">nodePrime</span> )</code></pre>

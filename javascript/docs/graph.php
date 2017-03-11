@@ -3,38 +3,39 @@
 <script language="javascript" type="text/javascript" src="../lib/d3.min.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/graph/d3.graph.js"></script>
 
+<h1>Graph</h1>
 <section id="graph">
-	<h2>Graph()</h2>
 	<div class="accordion">
-		<div>
-			<h3>table of contents</h3>
-			<ul>
-				<li>clear()</li>
-				<li>addNode(node) </li>
-				<li>addEdge(edge) </li>
-				<li>addNodes(nodes)</li>
-				<li>removeEdgesBetween(nodeIndex1, nodeIndex2)</li>
-				<li>removeNode(nodeIndex)</li>
-				<li>removeEdge(edgeIndex)</li>
-				<li>cleanCircularEdges()</li>
-				<li>cleanDuplicateEdges()</li>
-				<li>clean()</li>
-				<li>areNodesAdjacent(nodeIndex1, nodeIndex2)</li>
-				<li>areEdgesAdjacent(edgeIndex1, edgeIndex2)</li>
-				<li>areEdgesSimilar(eIndex1, eIndex2)</li>
-				<li>getNodesAdjacentToNode(nodeIndex)</li>
-				<li>getNodesAdjacentToEdge(edgeIndex)</li>
-				<li>getEdgesAdjacentToEdge(edgeIndex)</li>
-				<li>getEdgeConnectingNodes(nodeIndex1, nodeIndex2)</li>
-				<li>getEdgesAdjacentToNode(nodeIndex)</li>
-				<li>getEdgesConnectedToEdge(edgeIndex)</li>
-				<li>mergeNodes(nodeIndex1, nodeIndex2)</li>
-				<li>log()</li>
-				<li>logMore()</li>
-			</ul>
-		</div>
+		<p>A graph is the most fundamental part of the origami</p>
 	</div>
 
+	<div>
+		<h3>table of contents</h3>
+		<ul>
+			<li>clear()</li>
+			<li>addNode(node) </li>
+			<li>addEdge(edge) </li>
+			<li>addNodes(nodes)</li>
+			<li>removeEdgesBetween(nodeIndex1, nodeIndex2)</li>
+			<li>removeNode(nodeIndex)</li>
+			<li>removeEdge(edgeIndex)</li>
+			<li>cleanCircularEdges()</li>
+			<li>cleanDuplicateEdges()</li>
+			<li>clean()</li>
+			<li>areNodesAdjacent(nodeIndex1, nodeIndex2)</li>
+			<li>areEdgesAdjacent(edgeIndex1, edgeIndex2)</li>
+			<li>areEdgesSimilar(eIndex1, eIndex2)</li>
+			<li>getNodesAdjacentToNode(nodeIndex)</li>
+			<li>getNodesAdjacentToEdge(edgeIndex)</li>
+			<li>getEdgesAdjacentToEdge(edgeIndex)</li>
+			<li>getEdgeConnectingNodes(nodeIndex1, nodeIndex2)</li>
+			<li>getEdgesAdjacentToNode(nodeIndex)</li>
+			<li>getEdgesConnectedToEdge(edgeIndex)</li>
+			<li>mergeNodes(nodeIndex1, nodeIndex2)</li>
+			<li>log()</li>
+			<li>logMore()</li>
+		</ul>
+	</div>
 	<div class="centered">
 		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
 	</div>

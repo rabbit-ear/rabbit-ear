@@ -9,46 +9,44 @@
 <script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
 <script language="javascript" type="text/javascript" src="../render.js"></script>
-<script>
-	$( function() {
-		$( ".accordion" ).accordion({
-			active: false,
-			collapsible: true
-		});
-	} );
-</script>
-<!-- <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700" rel="stylesheet"> -->
+<link href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700" rel="stylesheet">
 <link href="../dist/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
 <link href="style.css" rel="stylesheet" />
 </head>
 <body>
 	<nav>
 		<ul>
-		<li><a href="../editor/" class="link-fa"><i class="fa fa-pencil-square-o fa-2x"></i></a></li>
-		<li><a href="index.php">Introduction</a></li>
+		<li><a href="../editor/" class="link-fa"><i class="fa fa-chevron-left fa-lg back-arrow"></i><i class="fa fa-pencil-square-o fa-2x"></i></a></li>
 		<li class="dropdown">
-			<a href="graph.php" class="dropbtn">Graph</a>
+			<a href="/" class="dropbtn">INTRO</a>
 			<div class="dropdown-content">
-			<a href="graph.php">Introduction</a>
-			<a href="graph.php">Add / Remove</a>
-			<a href="graph.php">Functions</a>
+			<a href="/">WELCOME</a>
+			<a href="download.php">DOWNLOAD</a>
 			</div>
 		</li>
 		<li class="dropdown">
-			<a href="javascript:void(0)" class="dropbtn">Planar Graph</a>
+			<a href="graph.php" class="dropbtn">I. GRAPH</a>
 			<div class="dropdown-content">
-			<a href="addremove.php">Add</a>
-			<a href="addremove">Remove</a>
-			<a href="cleanup.php">Clean</a>
-			<a href="intersections.php">Intersections</a>
-			<a href="chop.php">Chop</a>
-			<a href="faces.php">Find Faces</a>
-			<a href="select.php">Neighbors</a>
+			<a href="graph.php">INTRODUCTION</a>
+			<a href="graph.php">ADD / REMOVE</a>
+			<a href="graph.php">FUNCTIONS</a>
 			</div>
 		</li>
 		<li class="dropdown">
-			<a href="javascript:void(0)" class="dropbtn">Crease Pattern</a>
+			<a href="javascript:void(0)" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
+			<a href="addremove.php">ADD / REMOVE</a>
+			<a href="cleanup.php">CLEAN</a>
+			<a href="intersections.php">INTERSECTIONS</a>
+			<a href="chop.php">CHOP</a>
+			<a href="faces.php">FIND FACES</a>
+			<a href="select.php">NEIGHBORS</a>
+			</div>
+		</li>
+		<li class="dropdown">
+			<a href="javascript:void(0)" class="dropbtn">III. CREASE PATTERN</a>
+			<div class="dropdown-content">
+			<a href="">PLACEHOLDER</a>
 			</div>
 		</li>
 		</ul>

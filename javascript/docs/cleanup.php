@@ -1,7 +1,8 @@
 <?php include 'header.php';?>
 
+<h1>Clean</h1>
 <section id="cleanup">
-	<h2><a href="#cleanup">Clean</a></h2>
+	<h2>clean</h2>
 
 	<div class="centered">
 		<pre><code>graph.<f>clean</f>()</code></pre>

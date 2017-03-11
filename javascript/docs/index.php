@@ -1,27 +1,64 @@
 <?php include 'header.php';?>
+<script language="javascript" type="text/javascript" src="../lib/d3.min.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph/d3.graph.js"></script>
+
+<h1>ORIGAMI</h1>
 
 <section id="intro">
-<h2>Introduction</h2>
-	<div class="accordion">
-		<p>This is a library to assist in the building and manipulating of origami crease patterns. Crease patterns are represented by <a href="https://en.wikipedia.org/wiki/Planar_graph">Planar Graphs</a>. To begin, create a new planar graph object.</p>
-	</div>
+	<div id="sketch_intro" class="centered p5sketch"></div>
 	<div class="centered">
 		<pre><code><key>var</key> cp <op>=</op> <key>new</key> CreasePattern()<br>cp.<f>fishBase</f>()</code></pre>
 	</div>
-	<div id="sketch_intro" class="centered p5sketch"></div>
+	<div class="accordion">
+		<p>Here is a javascript library for origami crease patterns. It can perform origami math on vector files (.svg), often quick enough for real-time animations. Aside from origami-related math this library also works as a general .svg file processing tool.<p>
+	</div>
+<h2>Crease Patterns are Planar Graphs</h2>
+	<div id="sketch_intersections" class="centered p5sketch"></div>
 	<div class="centered">
-		<pre><code><c>// wiggle with noise() function</c><br>
-			cp.<f>nodes</f>[<n>3</n>].x <op>=</op> <f>noise</f>(<arg>t1</arg>);<br>cp.<f>nodes</f>[<n>3</n>].y <op>=</op> <f>noise</f>(<arg>t2</arg>);<br>cp.<f>nodes</f>[<n>6</n>].x <op>=</op> <f>noise</f>(<arg>t3</arg>);<br>cp.<f>nodes</f>[<n>6</n>].y <op>=</op> <f>noise</f>(<arg>t4</arg>);</code></pre>
+		<pre><code>planargraph.<f>getAllEdgeIntersections</f>();</code></pre>
 	</div>
 	<div class="accordion">
-		<p>A certain priority is placed on accessibility and real-time updating. Everything is available for you to change, and where possible, code is optimized to be able to be run inside of a game loop.</p>
+		<p>A <a href="https://en.wikipedia.org/wiki/Planar_graph">planar graph</a> can be thought of as a group of lines, defined by endpoints, existing in 2D space. The proper name for lines is "edges", and an endpoint is called a "node". Edges can share nodes, this makes them connected. To save the data structure, save a list of nodes as x,y points, and a list of edges as pointers to 2 nodes.</p>
+	</div>
+<h2>Planar Graphs are Graphs</h2>
+	<div class="centered">
+		<svg id="svgTest01" width="400" height="400"></svg>
+	</div>
+	<div class="centered">
+		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<f>getNodesAdjacentToNode</f>(<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>)<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<f>getNodesAdjacentToEdge</f>(<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>)</code></pre>
+	</div>
+	<div class="accordion">
+		<p>A <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">Graph</a> is a planar graph if you take away the idea of 2D space. There are edges and nodes, but they are abstract and don't exist in space. A graph can ask things like, "are 2 nodes connected by an edge?" A planar graph can do everything a graph can do, but a graph cannot do everything a planar graph can do.</p>
 	</div>
 </section>
 
 <!-- include .js sketches -->
+<script language="javascript" type="text/javascript" src="../tests/graph/01_adjacentNode.js"></script>
 <script language="javascript" type="text/javascript" src="sketch_intro.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/planarGraph/04_intersections.js"></script>
 <script>
 	new p5(sketch_intro, 'sketch_intro');
+	var p5intersections = new p5(_04_intersections, 'sketch_intersections');
+
+	$(".accordion-title").html("EXPLAIN");
+	function updateNodesAdjacentToNode(input, output){
+		var outString = '[<span class="token argument">' + output + '</span>] ← ';
+		if(input == undefined) { input = ''; outString = ''; }
+		$("#spanNodesAdjacentToNodeInput").html(input);
+		$("#spanNodesAdjacentToNodeResult").html(outString);
+	}
+	function updateNodesAdjacentToEdge(input, output){
+		var outString = '[<span class="token argument">' + output + '</span>] ← ';
+		if(input == undefined) { input = ''; outString = ''; }
+		$("#spanNodesAdjacentToEdgeInput").html(input);
+		$("#spanNodesAdjacentToEdgeResult").html(outString);
+	}
+	var svg = d3.select("div#container")
+		.append("svg")
+		.attr("preserveAspectRatio", "xMinYMin meet")
+		.attr("viewBox", "0 0 960 400")
+		.classed("svg-content", true);
 </script>
+
 
 <?php include 'footer.php';?>

@@ -2,11 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="../dist/bootstrap/css/bootstrap.min.css">
-<!-- Optional theme -->
-<link rel="stylesheet" href="../dist/bootstrap/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="../dist/bootstrap/css/bootstrap.min.readable.css">
+<link rel="stylesheet" href="../dist/font-awesome/css/font-awesome.min.css">
 <style>
+
 html, body {
 	width:100%;
 	height:100%;
@@ -18,12 +17,8 @@ html, body {
 	width:100%;
 	height:100%;
 }
-.center{
-	text-align: center;
-}
-.p5sketch{
-	margin:2% 0;
-}
+.center{ text-align: center; }
+.p5sketch{ margin:2% 0; }
 .cpanel{
 	padding-left:1%;
 	padding-right:1%;
@@ -32,9 +27,7 @@ input.input-med{
 	width:40%;
 	font-size: 14px;
 }
-input.input-sm{
-	width:27px;
-}
+input.input-sm{ width:27px; }
 .modal-header{
 	background-color: #337ab7;
 	color:#FFF;
@@ -45,9 +38,7 @@ input.input-sm{
     margin-right: 0;
     margin-left: 0;
 }
-.modal-body{
-	padding:0px 15px 15px 15px;
-}
+.modal-body{ padding:0px 15px 15px 15px; }
 .control-panel{
 	position: fixed;
 	z-index: 10;
@@ -77,6 +68,25 @@ h3.tools-title{
 	border-left: 0;
 	border-style: solid;
 }
+.btn-file {
+	position: relative;
+	overflow: hidden;
+}
+.btn-file input[type=file] {
+	position: absolute;
+	top: 0;
+	right: 0;
+	min-width: 100%;
+	min-height: 100%;
+	font-size: 100px;
+	text-align: right;
+	filter: alpha(opacity=0);
+	opacity: 0;
+	outline: none;
+	background: white;
+	cursor: inherit;
+	display: block;
+}
 
 </style>
 </head>
@@ -89,8 +99,8 @@ h3.tools-title{
 			</div>
 			<div class="modal-body">
 				<h3 class="tools-title">File</h3>
-				<button class="btn btn-sm btn-primary" onclick="clearCP()">New</button>
-				<button class="btn btn-sm btn-default" onclick="download()">Export SVG</button>
+				<button class="btn btn-sm btn-default" onclick="clearCP()">New</button>
+				<label class="btn btn-default btn-sm btn-file">Open<input type="file" id="files" style="display: none;"></label>
 				<h3 class="tools-title">Load Base</h3>
 				<button class="btn btn-sm btn-default" onclick="loadBase('kite')">Kite</button>
 				<button class="btn btn-sm btn-default" onclick="loadBase('fish')">Fish</button>
@@ -105,8 +115,8 @@ h3.tools-title{
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-sm btn-default disabled" data-dismiss="modal">Load</button>
-				<button type="button" class="btn btn-sm btn-primary disabled">Save</button>
+				<button type="button" class="btn btn-sm btn-default disabled">Export .oripa</button>
+				<button class="btn btn-sm btn-primary" onclick="download()">Export .svg</button>
 			</div>
 		</div>
 	</div>
@@ -136,8 +146,12 @@ h3.tools-title{
 				<button class="btn btn-sm btn-default" onclick="cleanIntersections()">Clean</button>
 				Intersections: <input type="text" class="input-sm" readonly id="div-intersections">
 				<h3 class="tools-title">Faces</h3>
-				<button class="btn btn-sm btn-default" id="find-faces-button">Find Faces</button>
-				<button class="btn btn-sm btn-default" id="refresh-adjacency-button">Refresh Adjacency</button>
+				<button class="btn btn-sm btn-default" id="refresh-adjacency-button">1.Refresh Adjacency</button>
+				<button class="btn btn-sm btn-default" id="find-faces-button">2.Find Faces</button>
+				<h3 class="tools-title">Keys</h3>
+				<div>
+					<p>Shift: <i class="fa fa-square-o fa-lg" id="i-shift-key-status"></i><p>
+				</div>
 			</div>
 		</div>
 	</div>	
@@ -156,6 +170,8 @@ h3.tools-title{
 <script language="javascript" type="text/javascript" src="editor.js"></script>
 <!-- Latest compiled and minified JavaScript -->
 <script type="text/javascript" src="../dist/bootstrap/js/bootstrap.min.js"></script>
+
+<script type="text/javascript" src="../dist/xml2json/src/xml2json.js"></script>
 
 <script>
 $('.modal').modal('show');
@@ -257,15 +273,28 @@ function KeyPress(e) {
 	}
 	if(evtobj.shiftKey){
 		//shift pressed
+		p5window.shiftKeyDown = true;
+		$("#i-shift-key-status").removeClass("fa-square-o");
+		$("#i-shift-key-status").addClass("fa-check-square-o");
+	}
+}
+function KeyRelease(e) {
+	var evtobj = window.event? event : e
+	// if(evtobj.keyCode == 16){
+	if(evtobj.key == "Shift"){
+		p5window.shiftKeyDown = false;
+		$("#i-shift-key-status").removeClass("fa-check-square-o");
+		$("#i-shift-key-status").addClass("fa-square-o");
 	}
 }
 
 document.onkeydown = KeyPress;
+document.onkeyup = KeyRelease;
 
 // $('#modal-tools').modal({
 // 	backdrop: 'static',
 // 	keyboard: false
-// }); 
+// });
 
 $("#modal-tools").draggable({
 	handle: ".modal-header"
@@ -300,7 +329,91 @@ $("#refresh-adjacency-button").click(function(){
 	p5window.refreshAdjacency();
 	console.log(p5window.g.nodes);
 });
-       
+
+
+function aThing(){
+	// Check for the various File API support.
+	if (window.File && window.FileReader && window.FileList && window.Blob) {
+		// Great success! All the File APIs are supported.
+	} else {
+		alert('The File APIs are not fully supported in this browser.');
+	}	
+}
+
+$("#files").click(function() {
+	console.log('reset');
+	this.value = null;
+});
+
+$(document).on('change', ':file', function() {
+	console.log('document on change file');
+	var input = $(this),
+		numFiles = input.get(0).files ? input.get(0).files.length : 1,
+		label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+	input.trigger('fileselect', [numFiles, label]);
+	readBlob();
+});
+
+function readBlob() {
+	console.log('read blob');
+	var files = document.getElementById('files').files;
+	if (!files.length) {
+		// they selected cancel
+		return;
+	}
+	var file = files[0];
+	var reader = new FileReader();
+
+	reader.onloadend = function(evt) {
+		console.log('on load end');
+		if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+			//byte range: ['Read ', file.size, ' byte file'].join('');
+			importSVG(evt.target.result);
+		}
+	};
+	var blob = file.slice(0, file.size);
+	reader.readAsBinaryString(blob);
+}
+
+function importSVG(xml){
+	exportJson = $.xml2json(xml);
+	console.log(exportJson);
+	var width = 1000;
+	var height = 1000;
+	var lines = undefined;
+	if(exportJson != undefined){
+		console.log("0");
+		if(exportJson["svg"] != undefined){
+			console.log("1");
+			if(exportJson["svg"]["g"] != undefined){
+				if(exportJson["svg"]["g"].constructor === Array){
+					// array
+					console.log("2a");
+					if(exportJson["svg"]["g"][0]["line"] != undefined){
+						lines = exportJson["svg"]["g"][0]["line"];
+					}
+				}else{
+					console.log("2b");
+					if(exportJson["svg"]["g"]["line"] != undefined){
+						lines = exportJson["svg"]["g"]["line"];
+					}
+				}
+			}
+		}
+	}
+	if(lines != undefined){
+		for(var i = 0; i < lines.length; i++){
+			var line = lines[i]['$'];
+			var x1 = line.x1 / width;
+			var y1 = line.y1 / height;
+			var x2 = line.x2 / width;
+			var y2 = line.y2 / height;
+			p5window.g.addEdgeWithVertices(x1, y1, x2, y2);
+			// console.log(x1 + ' ' + y1 + ' ' + x2 + ' ' + y2);
+		}
+	}	
+}
+
         // BootstrapDialog.show({
         //     title: 'More dialog sizes',
         //     message: 'Hi Apple!',

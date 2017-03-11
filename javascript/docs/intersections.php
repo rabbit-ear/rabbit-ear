@@ -1,20 +1,19 @@
 <?php include 'header.php';?>
 
+<h1>Intersections</h1>
 <section id="intersections">
-	<h2><a href="#intersesctions">Intersections</a></h2>
-	<div class="accordion">
-		<p>a planar graph is <b>INVALID</b> if an edge cross another edge. It's simple to resolve by splitting the 2 edges into 4 and place a node at the intersection point.</p>
-	</div>
-
+	<h2><a href="#intersesctions">getAllEdgeIntersections</a></h2>
 	<div class="centered p5sketch" id="divTest04"></div>
-
 	<div class="centered">
 		<pre><code>graph.<f>getAllEdgeIntersections</f>()</code></pre>
+	</div>
+	<div class="accordion">
+		<p>a planar graph is <b>INVALID</b> if an edge cross another edge. It's simple to resolve by splitting the 2 edges into 4 and place a node at the intersection point.</p>
 	</div>
 </section>
 
 <section id="parallel">
-	<h2><a href="#parallel">Parallel Lines</a></h2>
+	<h2>Parallel Lines</h2>
 	<div class="accordion">
 		<p>Concerning floating point precision: at some point, two lines will be considered parallel, and impossible to intersect. We are</p>
 	</div>

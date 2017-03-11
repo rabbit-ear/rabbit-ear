@@ -1,20 +1,19 @@
 <?php include 'header.php';?>
 
+<h1>Crease</h1>
 <section id="planar-graph">
-<h1>Generate Creases</h1>
-	<div class="accordion">
-		<p>Add creases by adding their endpoints or add a crease using an existing crease for positioning.</p>
-	</div>
-
-	<h2>addEdgeWithVertices</h2>
+<h2>addEdgeWithVertices</h2>
 	<div id="divP5_drag" class="centered p5sketch"></div>
 	<div class="centered">click and drag</div>
 
 	<div class="centered">
 		<pre><code>graph.<v>addEdgeWithVertices</v>( <span id="var1">x1</span>, <span id="var2">y1</span>, <span id="var3">x2</span>, <span id="var4">y2</span> );</code></pre>
 	</div>
+	<div class="accordion">
+		<p>A good way to think about creases is that they are lines connected by 2 points.</p>
+	</div>
 
-	<h2>addEdgeFromVertex</h2>
+<h2>addEdgeFromVertex</h2>
 	<h3>to the most recently added point</h3>
 	<div id="divP5_snake" class="centered p5sketch"></div>
 

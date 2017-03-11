@@ -18,8 +18,9 @@ var editor = function( p ) {
 	p.showFaces = false;
 	p.showClockwise = false;
 
+	p.shiftKeyDown = false;
 	p.mouseMode = 'draw'; // 'draw', 'select', ...
-	p.selectedNode = undefined;
+	p.selectedNodes = [];
 
 	p.saveUndoState = function(){
 		if(p.undoHistory.length > 50){
@@ -155,11 +156,13 @@ var editor = function( p ) {
 					p.ellipse(p.g.nodes[closest].x, p.g.nodes[closest].y, .02, .02);
 				}
 			}
-			if(p.selectedNode != undefined){
-				p.stroke(255, 0, 0);
-				p.strokeWeight(0.005)
-				p.noFill();
-				p.ellipse(p.g.nodes[p.selectedNode].x, p.g.nodes[p.selectedNode].y, 0.025, 0.025);
+			if(p.selectedNodes.length){
+				for(var sn = 0; sn < p.selectedNodes.length; sn++){
+					p.stroke(255, 0, 0);
+					p.strokeWeight(0.005)
+					p.noFill();
+					p.ellipse(p.g.nodes[p.selectedNodes[sn]].x, p.g.nodes[p.selectedNodes[sn]].y, 0.025, 0.025);
+				}
 			}
 		}
 
@@ -172,9 +175,13 @@ var editor = function( p ) {
 			if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 			if(mouseXScaled != undefined && mouseYScaled != undefined){
-				p.selectedNode = p.g.getClosestNode(mouseXScaled, mouseYScaled);
+				if(p.shiftKeyDown){
+					p.selectedNodes.push(p.g.getClosestNode(mouseXScaled, mouseYScaled));
+				} else{
+					p.selectedNodes = [p.g.getClosestNode(mouseXScaled, mouseYScaled)];
+				}
 			} else{
-				p.selectedNode = undefined;
+				p.selectedNodes = [];
 			}
 		}
 		if(p.mouseMode == 'draw'){

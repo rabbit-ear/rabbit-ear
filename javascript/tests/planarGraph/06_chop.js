@@ -48,7 +48,7 @@ var test06 = function(p){
 
 	p.draw = function() {
 		// update
-		for(var i = 0; i < g.nodes.length; i++){
+		for(var i = 0; i < 4; i++){
 			var speed = 0.002;
 			var mag = 0.02;
 			var mult1 = Math.pow(i*2, 1.5);
@@ -61,6 +61,12 @@ var test06 = function(p){
 			if(g.nodes[i].y > bounds[i].ymax) g.nodes[i].y = bounds[i].ymax;
 		}
 		intersections = g.getEdgeIntersectionsWithEdge(0);
+		if(!chopped){
+		if(p.callback != undefined){
+			p.callback(intersections[0]);
+		}
+	}
+
 
 		// draw
 		p.clear();
@@ -113,9 +119,9 @@ var test06 = function(p){
 		if(chopped){
 			reset();
 			chopped = false;
-			if(p.callback != undefined){
-				p.callback(undefined);
-			}
+			// if(p.callback != undefined){
+			// 	p.callback(undefined);
+			// }
 		}
 	}
 
@@ -130,7 +136,7 @@ var test06 = function(p){
 			var intersections = g.chop();
 			if(intersections.length){
 				if(p.callback != undefined){
-					p.callback(intersections[0]);
+					p.callback(undefined);
 				}
 			}
 

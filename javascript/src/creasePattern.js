@@ -49,6 +49,7 @@ class CreasePattern extends PlanarGraph{
 	// CLEAN  /  REMOVE PARTS
 
 	clean(){
+		// check if any nodes are free floating and not connected to any edges, remove them
 		super.clean();
 		var intersections = super.chop();
 		// this.interestingPoints = this.nodes;
@@ -133,22 +134,21 @@ class CreasePattern extends PlanarGraph{
 		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +scale+ "px\" height=\"" +scale+ "px\" viewBox=\"0 0 " +scale+ " " +scale+ "\">\n<g>\n";
 
 		//////// RECT BORDER
-		blob += "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"0\" x2=\"" +scale+ "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +scale+ "\" y1=\"0\" x2=\"" +scale+ "\" y2=\"" +scale+ "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +scale+ "\" y1=\"" +scale+ "\" x2=\"0\" y2=\"" +scale+ "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" +scale+ "\" x2=\"0\" y2=\"0\"/>\n";
+		blob += "<line stroke=\"#000000\" x1=\"0\" y1=\"0\" x2=\"" +scale+ "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +scale+ "\" y1=\"0\" x2=\"" +scale+ "\" y2=\"" +scale+ "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +scale+ "\" y1=\"" +scale+ "\" x2=\"0\" y2=\"" +scale+ "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" +scale+ "\" x2=\"0\" y2=\"0\"/>\n";
 		////////
 
 		for(var i = 0; i < this.edges.length; i++){
-			var a = this.edges[i].a;
-			var b = this.edges[i].b;
+			var a = this.edges[i].node[0];
+			var b = this.edges[i].node[1];
 			var x1 = (this.nodes[a].x * scale).toFixed(4);
 			var y1 = (this.nodes[a].y * scale).toFixed(4);
 			var x2 = (this.nodes[b].x * scale).toFixed(4);
 			var y2 = (this.nodes[b].y * scale).toFixed(4);
-			blob += "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +x1+ "\" y1=\"" +y1+ "\" x2=\"" +x2+ "\" y2=\"" +y2+ "\"/>\n";
+			blob += "<line stroke=\"#000000\" x1=\"" +x1+ "\" y1=\"" +y1+ "\" x2=\"" +x2+ "\" y2=\"" +y2+ "\"/>\n";
 		}
 		blob = blob + "</g>\n</svg>\n";
 		return blob;
 	}
-
 
 	appendUniquePoints(master, child){
 		var returned = master.slice(0);
@@ -171,7 +171,6 @@ class CreasePattern extends PlanarGraph{
 	findAllFaces(){
 		this.generateFaces();
 	}
-
 
 	log(){
 		super.log();

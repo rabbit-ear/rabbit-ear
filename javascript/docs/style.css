@@ -1,17 +1,39 @@
 body {
-	font-family: 'Merriweather', Georgia, "Times New Roman", Times, serif;
+	font-family: 'Cormorant', Georgia, "Times New Roman", Times, serif;
 	padding: 0;
 	margin:2em;
 	padding-top:1em;
 } 
 a { color: black; text-decoration: none; font-weight: bold;}
-h1{ font-size: 400%; -webkit-margin-after: .2em; -webkit-margin-before: .2em; }
-h2{ font-size: 270%; }
-h3{ font-size: 140%; }
-h4{ font-size: 240%; }
-h5{ font-size: 150%; }
-p{ font-size: 100%; }
-p.ui-accordion-content{ font-size: 120%; } /* JQuery expanding DIV */
+h1, h2, h3, h4, h5, p, nav, li{ 
+	font-weight: 500; 
+}
+h1{ 
+	font-weight: 300; 
+	font-size: 400%;
+	width:100%;
+	text-align: center;
+	-webkit-margin-after: 1em; 
+	-webkit-margin-before: 1.2em; 
+}
+h2{ 
+	font-size: 270%; 
+	-webkit-margin-after: 0.2em; 
+	-webkit-margin-before: 1em; 
+}
+h3{ font-size: 240%; }
+h4{ font-size: 200%; }
+h5{ font-size: 170%; }
+p{ font-size: 150%; }
+section{
+	padding: 0 10%;
+}
+h2{
+	padding-bottom: 4px;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: black;
+}
 .centered{
 	width: 100%;
 	text-align: center;
@@ -38,7 +60,7 @@ button:focus {outline:0;}
 
 /* NAV BAR */
 nav ul {
-	list-style-type: none;
+	list-style: none;
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
@@ -48,9 +70,11 @@ nav ul {
 	left: 0;
 	width: 100%;
 	overflow:visible;
+
 }
 nav li {
 	float: left;
+	letter-spacing: 1px;
 }
 nav li a {
 	display: block;
@@ -200,6 +224,7 @@ arg{ /* argument */
 	font-weight: bold;
 	cursor: pointer;
 	outline: 0;
+	text-align: center;
 }
 /* accordion body */
 .ui-accordion .ui-accordion-content {
@@ -213,4 +238,13 @@ arg{ /* argument */
 /* todo: figure out how to make internal div no padding */
 .ui-accordion div {
 	padding:0;
+}
+
+.back-arrow{
+	padding:0px 14px;
+	vertical-align: 10%;
+}
+
+.fa-pencil-square-o{
+	vertical-align: 0%;	
 }
