@@ -5,11 +5,8 @@
 
 <h1>Graph</h1>
 <section id="graph">
-	<div class="accordion">
-		<p>A graph is the most fundamental part of the origami</p>
-	</div>
 
-	<div>
+	<div style="display:none;">
 		<h3>table of contents</h3>
 		<ul>
 			<li>clear()</li>
@@ -37,13 +34,16 @@
 		</ul>
 	</div>
 	<div class="centered">
+		<svg id="svgTest00" width="400" height="400"></svg>
+	</div>
+
+	<div class="centered">
 		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
 	</div>
 
 	<div class="centered">
-		<svg id="svgTest00" width="400" height="400"></svg>
+		<pre><code>console.<f>log</f>(graph)<br><c><span id="spanGraphContents"></span></c></code></pre>
 	</div>
-
 	<div class="accordion">
 		<div>
 			<p><a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">Graphs</a> are a collection of <em>nodes</em> connected by <em>edges</em> (circles connected by lines).</p>
@@ -52,22 +52,16 @@
 		</div>
 	</div>
 
-	<div class="centered">
-		<pre><code>console.<f>log</f>(graph)<br><c><span id="spanGraphContents"></span></c></code></pre>
-	</div>
+
 </section>
 
-
-<div>
-	<h3>Background</h3>
-	<p>An origami crease pattern is a type of planar graph, and a planar graph is a type of graph.</p>
-</div>
+<section id="background">
+<h2>Background</h2>
+<p>An origami crease pattern is a type of planar graph, and a planar graph is a type of graph.</p>
 <div class="centered">Crease Pattern ← Planar Graph ← Graph</div>
-<div>
-	<p>From graph to crease pattern, the data structure moves from abstract to concrete, adding things like 2D space, faces, flat foldability rules, and more.</p>
-</div>
+<p>From graph to crease pattern, the data structure moves from abstract to concrete, adding things like 2D space, faces, flat foldability rules, and more.</p>
 <div class="centered">Origami Rules ← 2D space ← Nodes &amp; Edges</div>
-
+</section>
 
 
 <section id="adjacent-nodes">

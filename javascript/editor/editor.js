@@ -13,7 +13,7 @@ var editor = function( p ) {
 	var mouseDownLocation = undefined;  
 
 	p.snapRadius = 0.05;
-	p.showNodes = true;
+	p.showNodes = false;
 	p.showSnapRadius = true;
 	p.showFaces = false;
 	p.showClockwise = false;

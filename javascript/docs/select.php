@@ -1,8 +1,8 @@
 <?php include 'header.php';?>
 
-<h1><a href="#interaction">Neighbors</a></h1>
+<h1>Neighbors</h1>
 <section id="interaction">
-<h2><a href="#interaction">Select</a></h2>
+<h2>Select</h2>
 	<div class="third p5sketch" id="div-p5-nearest-node"></div>
 	<div class="third p5sketch" id="div-p5-nearest-edge"></div>
 	<div class="third p5sketch" id="div-p5-nearest-face"></div>

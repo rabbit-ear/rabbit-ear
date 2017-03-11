@@ -1,7 +1,8 @@
 <?php include 'header.php';?>
 
+<h1>Chop</h1>
 <section id="chop">
-	<h2>Chopping</h2>
+	<h2>edgesIntersect</h2>
 	<div class="accordion">
 		<p>Chopping will scan the entire graph for intersecting edges, chop lines at these segments so that no edges are overlapping.</p>
 	</div>

@@ -220,8 +220,8 @@ arg{ /* argument */
 	padding: .5em;
 	color:#888;
 	font-size: 140%;
-	font-style: italic;
-	font-weight: bold;
+/*	font-style: italic;
+*/	font-weight: bold;
 	cursor: pointer;
 	outline: 0;
 	text-align: center;

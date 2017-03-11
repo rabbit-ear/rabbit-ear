@@ -10,7 +10,7 @@
 		<pre><code><key>var</key> cp <op>=</op> <key>new</key> CreasePattern()<br>cp.<f>fishBase</f>()</code></pre>
 	</div>
 	<div class="accordion">
-		<p>Here is a javascript library for origami crease patterns. It can perform origami math on vector files (.svg), often quick enough for real-time animations. Aside from origami-related math this library also works as a general .svg file processing tool.<p>
+		<p>Here is a javascript library for origami crease patterns. It can perform origami math on vector files (.svg), often quick enough for real-time animations. Aside from origami-related math this library also works as a general .svg file processing tool.</p>
 	</div>
 <h2>Crease Patterns are Planar Graphs</h2>
 	<div id="sketch_intersections" class="centered p5sketch"></div>

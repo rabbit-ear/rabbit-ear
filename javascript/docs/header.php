@@ -24,22 +24,17 @@
 			<a href="download.php">DOWNLOAD</a>
 			</div>
 		</li>
-		<li class="dropdown">
+		<li>
 			<a href="graph.php" class="dropbtn">I. GRAPH</a>
-			<div class="dropdown-content">
-			<a href="graph.php">INTRODUCTION</a>
-			<a href="graph.php">ADD / REMOVE</a>
-			<a href="graph.php">FUNCTIONS</a>
-			</div>
 		</li>
 		<li class="dropdown">
 			<a href="javascript:void(0)" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
-			<a href="addremove.php">ADD / REMOVE</a>
+			<a href="addedge.php">CREASE</a>
 			<a href="cleanup.php">CLEAN</a>
 			<a href="intersections.php">INTERSECTIONS</a>
 			<a href="chop.php">CHOP</a>
-			<a href="faces.php">FIND FACES</a>
+			<a href="face.php">FACE</a>
 			<a href="select.php">NEIGHBORS</a>
 			</div>
 		</li>

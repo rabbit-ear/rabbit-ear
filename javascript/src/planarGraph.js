@@ -197,6 +197,24 @@ class PlanarGraph extends Graph{
 		return index;
 	}
 
+	getClosestNodes(x, y, howMany){
+		// can be optimized with a k-d tree
+		var distances = [];
+		for(var i = 0; i < this.nodes.length; i++){
+			var dist = Math.sqrt(Math.pow(this.nodes[i].x - x,2) + Math.pow(this.nodes[i].y - y,2));
+			distances.push( {'i':i, 'd':dist} );
+		}
+		distances.sort(function(a,b) {return (a.d > b.d) ? 1 : ((b.d > a.d) ? -1 : 0);} ); 
+		if(howMany > distances.length)
+			howMany = distances.length;
+		var indices = [];
+		for(var i = 0; i < howMany; i++){
+			indices.push(distances[i]['i']);
+		}
+		return indices;
+	}
+
+
 	getClosestEdge(x, y){
 		// super needs to be updated
 
