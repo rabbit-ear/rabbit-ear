@@ -1,5 +1,5 @@
 var p5_nearest_node = function(p) {
-	p.mouseMovedCallback = undefined;
+	p.callback = undefined;
 	p.numPoints = 30;
 	// var WIDTH = window.innerWidth;
 	// var HEIGHT = window.innerHeight;
@@ -37,8 +37,9 @@ var p5_nearest_node = function(p) {
 		drawCoordinateFrame(p);
 
 		if(mouseXScaled != undefined && mouseYScaled != undefined){
+			p.stroke(220, 220, 220);
 			for(var i = 0; i < closestNodes.length; i++){
-				p.stroke(50*i, 50*i, 50*i);
+				// p.stroke(50*i, 50*i, 50*i);
 				p.line(mouseXScaled, mouseYScaled, g.nodes[ closestNodes[i] ].x, 
 				                                   g.nodes[ closestNodes[i] ].y);
 			}
@@ -60,8 +61,9 @@ var p5_nearest_node = function(p) {
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		closestNode = g.getClosestNode(mouseXScaled, mouseYScaled);
 		closestNodes = g.getClosestNodes(mouseXScaled, mouseYScaled, 5);
-		if(p.mouseMovedCallback != undefined)
-			p.mouseMovedCallback(mouseXScaled, mouseYScaled);
+		if(p.callback != undefined){
+			p.callback({'x':mouseXScaled, 'y':mouseYScaled, 'nearest':closestNode});
+		}
 	}
 
 	p.mouseReleased = function(){

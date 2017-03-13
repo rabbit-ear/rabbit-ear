@@ -4,7 +4,17 @@ body {
 	margin:2em;
 	padding-top:1em;
 } 
-a { color: black; text-decoration: none; font-weight: bold;}
+a { 
+	color: black;
+	font-weight: bold;
+}
+a:hover{
+	text-decoration: none;
+}
+h1 a, h2 a, h3 a, h4 a, h5 a{
+	font-weight: normal;
+	text-decoration: none;	
+}
 h1, h2, h3, h4, h5, p, nav, li{ 
 	font-weight: 500; 
 }
@@ -24,7 +34,7 @@ h2{
 h3{ font-size: 240%; }
 h4{ font-size: 200%; }
 h5{ font-size: 170%; }
-p{ font-size: 150%; }
+p, li{ font-size: 150%; }
 section{
 	padding: 0 10%;
 }
@@ -70,11 +80,11 @@ nav ul {
 	left: 0;
 	width: 100%;
 	overflow:visible;
-
 }
 nav li {
 	float: left;
 	letter-spacing: 1px;
+	font-size: 100%;
 }
 nav li a {
 	display: block;

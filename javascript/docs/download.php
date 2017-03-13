@@ -5,9 +5,9 @@
 <h1>DOWNLOAD</h1>
 
 <section id="intro">
-	<p>This library is way unfinished. The most recent development version can be found here:</p>
+	<p>You probably got here because I shared the link directly with you, this library is still being built, but you can follow along here:</p>
 	<div class="centered">
-		<pre><code><a href="https://github.com/robbykraft/Origami/tree/master/javascript/src"><span style="color:white">Origami on Github</span></a></code></pre>
+		<pre><code><a href="https://github.com/robbykraft/Origami/tree/master/javascript/src" style="text-decoration:none;"><span style="color:white">Origami on Github</span></a></code></pre>
 	</div>
 
 </section>
