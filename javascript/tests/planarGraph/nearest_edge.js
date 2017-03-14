@@ -6,13 +6,15 @@ var p5_nearest_edge = function(p) {
 	var WIDTH = paperSize;
 	var HEIGHT = paperSize;
 	// myp5.canvas.parentElement.offsetWidth
+	var mouseXScaled;
+	var mouseYScaled;
 
 	var g = new CreasePattern();
 	var closestEdge = undefined;
 
 	function reset(){
 		g.clear();
-		g.frogBase();
+		g.birdBase();
 	}
 
 	p.setup = function(){
@@ -29,13 +31,20 @@ var p5_nearest_edge = function(p) {
 		drawCoordinateFrame(p);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
-		if(closestEdge != undefined){
+		if(closestEdge != undefined && closestEdge.edge != undefined){
 			p.stroke(255, 0, 0);
 			p.fill(255, 0, 0);
-			p.line(g.nodes[ g.edges[closestEdge].a ].x, g.nodes[ g.edges[closestEdge].a ].y, 
-			       g.nodes[ g.edges[closestEdge].b ].x, g.nodes[ g.edges[closestEdge].b ].y );
-			p.ellipse(g.nodes[ g.edges[closestEdge].a ].x, g.nodes[ g.edges[closestEdge].a ].y, .01, .01);
-			p.ellipse(g.nodes[ g.edges[closestEdge].b ].x, g.nodes[ g.edges[closestEdge].b ].y, .01, .01);
+			p.line(g.nodes[ g.edges[closestEdge.edge].node[0] ].x, g.nodes[ g.edges[closestEdge.edge].node[0] ].y, 
+			       g.nodes[ g.edges[closestEdge.edge].node[1] ].x, g.nodes[ g.edges[closestEdge.edge].node[1] ].y );
+			p.ellipse(g.nodes[ g.edges[closestEdge.edge].node[0] ].x, g.nodes[ g.edges[closestEdge.edge].node[0] ].y, .01, .01);
+			p.ellipse(g.nodes[ g.edges[closestEdge.edge].node[1] ].x, g.nodes[ g.edges[closestEdge.edge].node[1] ].y, .01, .01);
+
+			p.stroke(128, 128, 128);
+			p.line(mouseXScaled, mouseYScaled, closestEdge.location.x, closestEdge.location.y);
+
+			p.stroke(255, 0, 0);
+			p.fill(255, 0, 0);
+			p.ellipse(closestEdge.location.x, closestEdge.location.y, .02, .02);
 		}
 	}
 
@@ -43,8 +52,8 @@ var p5_nearest_edge = function(p) {
 		// var mouseX = event.screenX;
 		// var mouseX = (event.clientX - WIDTH*0.5 + paperSize*0.5) / paperSize;
 		// var mouseY = (event.clientY - HEIGHT*0.5 + paperSize*0.5) / paperSize;
-		var mouseXScaled = p.mouseX / paperSize;
-		var mouseYScaled = p.mouseY / paperSize;
+		mouseXScaled = p.mouseX / paperSize;
+		mouseYScaled = p.mouseY / paperSize;
 		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		closestEdge = g.getClosestEdge(mouseXScaled, mouseYScaled);

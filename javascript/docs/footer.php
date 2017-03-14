@@ -1,3 +1,5 @@
+	</div> <!-- main-content (header.php) -->
+
 	<script>
 	$( function() {
 		$( ".accordion" ).accordion({

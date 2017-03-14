@@ -1,4 +1,5 @@
 var _04_intersections = function(p) {
+	p.callback = undefined;
 	var paperSize = 250;
 	var WIDTH = paperSize;
 	var HEIGHT = paperSize;
@@ -55,6 +56,9 @@ var _04_intersections = function(p) {
 		p.noStroke();
 		for(var i = 0; i < intersections.length; i++){
 			p.ellipse(intersections[i].x, intersections[i].y, .03, .03);
+		}
+		if(p.callback != undefined){
+			p.callback(intersections);
 		}
 	}
 	p.mousePressed = function(){

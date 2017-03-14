@@ -40,13 +40,18 @@
 	<div class="centered">
 		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
 	</div>
+	<div class="accordion">
+		<div>
+			<p><a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">Graph</a> is a collection of things <em>"nodes"</em> (circles) and connections between them <em>"edges"</em> (lines).</p>
+			<p>When you talk about nodes, you identify them by a unique number-their index in the array. Same with edges. This behavior persists throughout the library.</p>
+		</div>
+	</div>
 
 	<div class="centered">
 		<pre><code>console.<f>log</f>(graph)<br><c><span id="spanGraphContents"></span></c></code></pre>
 	</div>
 	<div class="accordion">
 		<div>
-			<p><a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">Graphs</a> are a collection of <em>nodes</em> connected by <em>edges</em> (circles connected by lines).</p>
 			<p>The lists of nodes and edges are stored as 2 arrays.</p>
 			<p>In its simplest form, edges store the 2 nodes that they connect. Each edge is made up of 2 numbers: the indices of the 2 nodes (in the node array) it connects.</p></p>
 		</div>
@@ -54,15 +59,6 @@
 
 
 </section>
-
-<section id="background">
-<h2>Background</h2>
-<p>An origami crease pattern is a type of planar graph, and a planar graph is a type of graph.</p>
-<div class="centered">Crease Pattern ← Planar Graph ← Graph</div>
-<p>From graph to crease pattern, the data structure moves from abstract to concrete, adding things like 2D space, faces, flat foldability rules, and more.</p>
-<div class="centered">Origami Rules ← 2D space ← Nodes &amp; Edges</div>
-</section>
-
 
 <section id="adjacent-nodes">
 	<h2><a href="#adjacent-nodes">Get Nodes</a></h2>
@@ -77,7 +73,7 @@
 		<pre><code>graph.<v>nodes</v>;  <span class="token comment">// array</span></code></pre>
 	</div>
 	<div class="centered">
-		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<f>getNodesAdjacentToNode</f>(<span id="spanNodesAdjacentToNodeInput" class="token argument"></span>)<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<f>getNodesAdjacentToEdge</f>(<span id="spanNodesAdjacentToEdgeInput" class="token argument"></span>)</code></pre>
+		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<f>getNodesAdjacentToNode</f>(<span id="spanNodesAdjacentToNodeInput" class="token argument"> node </span>)<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<f>getNodesAdjacentToEdge</f>(<span id="spanNodesAdjacentToEdgeInput" class="token argument"> edge </span>)</code></pre>
 	</div>
 
 	<div class="centered">
@@ -98,7 +94,7 @@
 		<pre><code>graph.<v>edges</v>;  <span class="token comment">// array</span></code></pre>
 	</div>
 	<div class="centered">
-		<pre><code><span id="spanEdgesAdjacentToNodeResult"></span>graph.<f>getEdgesAdjacentToNode</f>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)<br><span id="spanEdgesAdjacentToEdgeResult"></span>graph.<f>getEdgesAdjacentToEdge</f>(<span id="spanEdgesAdjacentToEdgeInput" class="token argument"></span>)</code></pre>
+		<pre><code><span id="spanEdgesAdjacentToNodeResult"></span>graph.<f>getEdgesAdjacentToNode</f>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"> node </span>)<br><span id="spanEdgesAdjacentToEdgeResult"></span>graph.<f>getEdgesAdjacentToEdge</f>(<span id="spanEdgesAdjacentToEdgeInput" class="token argument"> edge </span>)</code></pre>
 	</div>
 
 	<div class="centered">

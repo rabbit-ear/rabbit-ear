@@ -23,7 +23,7 @@
 <h2>Crease Patterns are Planar Graphs</h2>
 	<div id="sketch_intersections" class="centered p5sketch"></div>
 	<div class="centered">
-		<pre><code>planargraph.<f>getAllEdgeIntersections</f>();</code></pre>
+		<pre><code><span id="span-intersection-results"></span>planargraph.<f>getAllEdgeIntersections</f>();</code></pre>
 	</div>
 	<div class="accordion">
 		<p>A <a href="https://en.wikipedia.org/wiki/Planar_graph">planar graph</a> can be thought of as a group of lines, defined by endpoints, existing in 2D space. The proper name for lines is "edges", and an endpoint is called a "node". Edges can share nodes, this makes them connected. To save the data structure, save a list of nodes as x,y points, and a list of edges as pointers to 2 nodes.</p>
@@ -47,6 +47,11 @@
 <script>
 	new p5(sketch_intro, 'sketch_intro');
 	var p5intersections = new p5(_04_intersections, 'sketch_intersections');
+	p5intersections.callback = function(e){
+		if(e != undefined){
+			$("#span-intersection-results").html('Array(' + e.length + ') ← ');
+		}
+	}
 
 	$(".accordion-title").html("EXPLAIN");
 	function updateNodesAdjacentToNode(input, output){

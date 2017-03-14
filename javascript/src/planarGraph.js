@@ -216,30 +216,26 @@ class PlanarGraph extends Graph{
 
 
 	getClosestEdge(x, y){
-		// super needs to be updated
-
-		var index = this.getClosestNode(x, y);
-		if(index == undefined)
+		if(x == undefined || y == undefined)
 			return undefined;
 
-		var subArray = this.getNodesAdjacentToNode(index);
-		if(subArray == undefined)
-			return undefined;
-
-		var subIndex = undefined;
-		var subDistance = Math.sqrt(2);
-		for(var i = 0; i < subArray.length; i++){
-			var dist = Math.sqrt(Math.pow(this.nodes[ subArray[i] ].x - x,2) + Math.pow(this.nodes[ subArray[i] ].y - y,2));
-			if(dist < subDistance){
-				subDistance = dist;
-				subIndex = i;
+		var minDist = undefined;
+		var minDistIndex = undefined;
+		var minLocation = undefined;
+		for(var i = 0; i < this.edges.length; i++){
+			var p1 = this.nodes[ this.edges[i].node[0] ];
+			var p2 = this.nodes[ this.edges[i].node[1] ];
+			var pT = this.minDistBetweenPointLine(p1.x, p1.y, p2.x, p2.y, x, y);
+			if(pT != undefined){
+				var thisDist = Math.sqrt(Math.pow(x-pT.x,2) + Math.pow(y-pT.y,2));
+				if(minDist == undefined || thisDist < minDist){
+					minDist = thisDist;
+					minDistIndex = i;
+					minLocation = pT;
+				}
 			}
 		}
-		if(subIndex == undefined)
-			return undefined;
-
-		var edge = this.getEdgeConnectingNodes(index, subArray[subIndex] );
-		return edge;
+		return {'edge':minDistIndex, 'location':minLocation, 'distance':minDist};
 	}
 
 
@@ -692,5 +688,16 @@ class PlanarGraph extends Graph{
 	// 	}
 	// 	return false; // No collision
 	// }
+
+	minDistBetweenPointLine(x1, y1, x2, y2, x3, y3){
+		// (x1,y1)-(x2,y2) define the line
+		// x3,y3 is the point
+		var p = Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2));
+		var u = ((x3-x1)*(x2-x1) + (y3-y1)*(y2-y1)) / (Math.pow(p,2));
+		if(u < 0 || u > 1.0) return undefined;
+		var x = x1 + u*(x2-x1);
+		var y = y1 + u*(y2-y1);
+		return {'x':x, 'y':y};
+	}
 
 }

@@ -14,7 +14,7 @@ var editor = function( p ) {
 
 	p.snapRadius = 0.05;
 	p.showNodes = false;
-	p.showSnapRadius = true;
+	p.showSnapRadius = false;
 	p.showFaces = false;
 	p.showClockwise = false;
 

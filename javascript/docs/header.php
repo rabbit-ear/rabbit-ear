@@ -16,11 +16,18 @@
 <body>
 	<nav>
 		<ul>
-		<li><a href="../editor/" class="link-fa"><i class="fa fa-chevron-left fa-lg back-arrow"></i><i class="fa fa-pencil-square-o fa-2x"></i></a></li>
+		<li></a></li>
+		<li class="dropdown">
+			<a href="javascript:void(0)" class="link-fa dropbtn"><i class="fa fa-pencil-square-o fa-2x left-pad"></i></a>
+			<div class="dropdown-content">
+			<a href="../editor/">EDITOR</a>
+			</div>
+		</li>
 		<li class="dropdown">
 			<a href="/" class="dropbtn">INTRO</a>
 			<div class="dropdown-content">
 			<a href="/">WELCOME</a>
+			<a href="background.php">BACKGROUND</a>
 			<a href="download.php">DOWNLOAD</a>
 			</div>
 		</li>
@@ -35,7 +42,7 @@
 			<a href="intersections.php">INTERSECTIONS</a>
 			<a href="chop.php">CHOP</a>
 			<a href="face.php">FACE</a>
-			<a href="select.php">NEIGHBORS</a>
+			<a href="neighbors.php">NEIGHBORS</a>
 			</div>
 		</li>
 		<li class="dropdown">
@@ -46,3 +53,4 @@
 		</li>
 		</ul>
 	</nav>
+	<div class="main-content">

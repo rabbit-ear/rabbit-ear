@@ -16,7 +16,7 @@
 		</div>
 	</div>
 	
-	<h3>mergeDuplicateVertices</h3>
+	<h2>mergeDuplicateVertices</h2>
 	<div id="divP5_merge" class="centered p5sketch"></div>
 
 	<div class="centered">
