@@ -14,7 +14,7 @@ var p5_nearest_face = function(p) {
 
 	function reset(){
 		g.clear();
-		g.birdBase();
+		g.frogBase();
 		// g.generateFaces();
 		// console.log( g.faces );
 	}

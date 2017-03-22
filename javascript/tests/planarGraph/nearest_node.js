@@ -37,9 +37,8 @@ var p5_nearest_node = function(p) {
 		drawCoordinateFrame(p);
 
 		if(mouseXScaled != undefined && mouseYScaled != undefined){
-			p.stroke(220, 220, 220);
 			for(var i = 0; i < closestNodes.length; i++){
-				// p.stroke(50*i, 50*i, 50*i);
+				p.stroke(50*i, 50*i, 50*i);
 				p.line(mouseXScaled, mouseYScaled, g.nodes[ closestNodes[i] ].x, 
 				                                   g.nodes[ closestNodes[i] ].y);
 			}

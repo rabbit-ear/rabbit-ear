@@ -17,7 +17,7 @@
 			<li>Planar Graph - 2D geometry</li>
 			<li>Crease Pattern - All origami related</li>
 		</ul>
-		<p>Apart from anything origami-related, this library also works as a general .svg file processing tool</p>
+		<p>On top of everything origami-related, this library also works well as a general .svg file processing tool</p>
 		</div>
 	</div>
 <h2>Crease Patterns are Planar Graphs</h2>

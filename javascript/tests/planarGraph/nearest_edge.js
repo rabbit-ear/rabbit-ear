@@ -39,11 +39,9 @@ var p5_nearest_edge = function(p) {
 			p.ellipse(g.nodes[ g.edges[closestEdge.edge].node[0] ].x, g.nodes[ g.edges[closestEdge.edge].node[0] ].y, .01, .01);
 			p.ellipse(g.nodes[ g.edges[closestEdge.edge].node[1] ].x, g.nodes[ g.edges[closestEdge.edge].node[1] ].y, .01, .01);
 
-			p.stroke(128, 128, 128);
+			p.stroke(0, 0, 0);
+			p.fill(0, 0, 0);
 			p.line(mouseXScaled, mouseYScaled, closestEdge.location.x, closestEdge.location.y);
-
-			p.stroke(255, 0, 0);
-			p.fill(255, 0, 0);
 			p.ellipse(closestEdge.location.x, closestEdge.location.y, .02, .02);
 		}
 	}
