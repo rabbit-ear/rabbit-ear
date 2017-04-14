@@ -27,7 +27,8 @@ class PlanarGraph extends Graph{
 		                 //   x:___,
 		                 //   y:___,
 		                 //   adjacent:{
-		                 //     edges:[ {edge:3, node:2, angle:30°}, {edge:0, node:3, angle:60°}, ... ]
+		                 //     edges:[ {edge:3, node:2, angle:30°},
+		                 //             {edge:0, node:3, angle:60°}, ... ]
 		                 //     nodes:[ 0, 1, 2, ...]
 		                 //   }
 		                 // }
@@ -121,7 +122,7 @@ class PlanarGraph extends Graph{
 			if(connectingNode != undefined){
 				var dx = this.nodes[connectingNode].x - this.nodes[nodeIndex].x;
 				var dy = this.nodes[connectingNode].y - this.nodes[nodeIndex].y;
-				var edgeAngle = Math.atan2(dx, -dy);
+				var edgeAngle = Math.atan2(dy, dx);
 				adjacentEdges[i]['node'] = connectingNode;
 				adjacentEdges[i]['angle'] = edgeAngle;
 			}

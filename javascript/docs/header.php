@@ -40,6 +40,7 @@
 			<a href="addedge.php">CREASE</a>
 			<a href="cleanup.php">CLEAN</a>
 			<a href="intersections.php">INTERSECTIONS</a>
+			<a href="adjacent.php">ADJACENCY</a>
 			<a href="chop.php">CHOP</a>
 			<a href="face.php">FACE</a>
 			<a href="neighbors.php">NEIGHBORS</a>
@@ -48,7 +49,7 @@
 		<li class="dropdown">
 			<a href="javascript:void(0)" class="dropbtn">III. CREASE PATTERN</a>
 			<div class="dropdown-content">
-			<a href="">PLACEHOLDER</a>
+			<a href="creasepattern.php">CREASE PATTERN</a>
 			</div>
 		</li>
 		</ul>

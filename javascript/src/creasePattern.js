@@ -36,13 +36,13 @@ class CreasePattern extends PlanarGraph{
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS
 
-	creaseBetweenPoints(x1, y1, x2, y2){  // floats
+	crease(x1, y1, x2, y2){  // floats
 		// if crease exists at x1 y1, or at x2 y2
 		// addEdgeFromVertex
 		// or addEdgeFromExistingVertices
 
 		// else
-		addEdgeWithVertices(x1, y1, x2, y2);
+		this.addEdgeWithVertices(x1, y1, x2, y2);
 	}
 
 	///////////////////////////////////////////////////////////////

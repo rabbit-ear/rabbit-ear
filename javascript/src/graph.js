@@ -12,6 +12,12 @@ class Graph{
 		this.nodes = []; // can be of any type (type is not dealt with in here)
 		this.edges = []; // each entry is object with one property: { node:[ ___(1)___, ___(2)___ ] }
 		                 //   the node array is size 2: node1Index, node2Index
+
+		// when you clean a graph, it will do different things based on these preferences
+		this.preferences = {
+			"allowDuplicate": false,  // classic mathematical graph, does not allow redundant edges 
+			"allowCircular": false   // classic mathematical graph, does not allow circular edges
+		};
 	}
 
 	// removes all edges and nodes
@@ -89,6 +95,16 @@ class Graph{
 		this.edges.splice(edgeIndex, 1);
 	}
 
+	// CLEAN GRAPH
+	clean(){
+		if(LOG) { console.log('graph.js: clean()'); }
+		var countCircular, countDuplicate;
+		if(!this.preferences.allowCircular) { countCircular = this.cleanCircularEdges();  }
+		if(!this.preferences.allowDuplicate){ countDuplicate = this.cleanDuplicateEdges();}
+		if(LOG) { console.log('graph.js: finish clean()'); }
+		return {'duplicate':countDuplicate, 'circular': countCircular};
+	}
+
 	// remove circular edges (a node connecting to itself)
 	cleanCircularEdges(){
 		if(LOG) { console.log('graph.js: cleanCircularEdges()'); }
@@ -102,7 +118,7 @@ class Graph{
 		return count;
 	}
 
-	// remove any duplicate edges (edges containing the same nodes)
+	// remove any duplicate edges (edges containing the same 2 nodes)
 	cleanDuplicateEdges(){
 		// (SIMPLE: does not modify NODE array)
 		if(LOG) { console.log('graph.js: cleanDuplicateEdges()'); }
@@ -127,14 +143,6 @@ class Graph{
 			i+=1;
 		}
 		return count;
-	}
-
-	clean(){
-		if(LOG) { console.log('graph.js: clean()'); }
-		var countCircular = this.cleanCircularEdges();
-		var countDuplicate = this.cleanDuplicateEdges();
-		if(LOG) { console.log('graph.js: finish clean()'); }
-		return {'duplicate':countDuplicate, 'circular': countCircular};
 	}
 
 	// TRUE FALSE QUERIES
