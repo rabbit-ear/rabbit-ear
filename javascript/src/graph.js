@@ -192,6 +192,9 @@ class Graph{
 		}
 		return adjacent;
 	}
+
+	// getEdgeConnectingNodes in 2 parts: if graph is classical (no duplicate edges)
+	//  the use "Edge" singular, else use "Edges" plural getEdgesConnectingNodes
 	getEdgeConnectingNodes(nodeIndex1, nodeIndex2){
 		// for this to work, graph must be cleaned. no duplicate edges
 		for(var i = 0; i < this.edges.length; i++){
@@ -203,6 +206,17 @@ class Graph{
 		// if nodes are not connected
 		return undefined;
 	}
+	getEdgesConnectingNodes(nodeIndex1, nodeIndex2){
+		var edges = [];
+		for(var i = 0; i < this.edges.length; i++){
+			if( (this.edges[i].node[0] == nodeIndex1 && this.edges[i].node[1] == nodeIndex2 ) ||
+				(this.edges[i].node[0] == nodeIndex2 && this.edges[i].node[1] == nodeIndex1 ) ){
+				edges.push(i);
+			}
+		}
+		return edges;
+	}
+
 	getEdgesAdjacentToNode(nodeIndex){  // uint
 		var connectedIndices = []; // uint
 		// iterate over all edges, if we find our node, add the edge

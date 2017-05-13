@@ -9,7 +9,9 @@ var _13_adjacent = function( p ) {
 
 	var numEdges = 5;
 
-	var fontSize = 0.05;
+	var fontSize = 0.033;
+
+	var showText = false;
 
 	p.reset = function(){
 		cp.clear();
@@ -38,30 +40,58 @@ var _13_adjacent = function( p ) {
 		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);
 
 		p.background(255);
-		// draw graph
-		p.fill(178);
-		p.stroke(178);
-		p.strokeWeight(.01);
-		drawGraphPoints(p, cp);
-		drawGraphLines(p, cp);
-		drawCoordinateFrame(p);
 
-		p.textSize(fontSize);
-		for(var n = 0; n < cp.nodes.length; n++){
-			var edges = cp.nodes[n].adjacent.edges
-			for(var e = 0; e < edges.length; e++){
-				var xOff = 0.05 * Math.cos(edges[e].angle);
-				var yOff = 0.05 * Math.sin(edges[e].angle);
-				p.stroke(220);
-				p.line(cp.nodes[n].x, cp.nodes[n].y, cp.nodes[n].x + xOff, cp.nodes[n].y + yOff);
-
-				p.noStroke();
-				p.fill(0);
-				var angleString = (Math.floor(edges[e].angle * 180 / Math.PI)).toString();
-				p.text(angleString, cp.nodes[n].x + xOff - (fontSize*0.4 + (angleString.length-1)*fontSize*0.25), cp.nodes[n].y + yOff + (fontSize*0.4));
+		if(!showText){
+			// draw graph
+			p.colorMode(p.HSB);
+			p.stroke(0);
+			p.strokeWeight(.01);
+			drawGraphPoints(p, cp);
+			drawGraphLines(p, cp);
+			drawCoordinateFrame(p);
+			for(var n = 0; n < cp.nodes.length; n++){
+				var edges = cp.nodes[n].adjacent.edges
+				for(var e = 0; e < edges.length; e++){
+					var angleDeg = Math.floor(edges[e].angle * 180 / Math.PI);
+					if(angleDeg < 0) angleDeg += 360;
+					var xOff = 0.05 * Math.cos(edges[e].angle);
+					var yOff = 0.05 * Math.sin(edges[e].angle);
+					p.stroke(angleDeg, 50, 100);
+					p.line(cp.nodes[n].x, cp.nodes[n].y, cp.nodes[n].x + xOff, cp.nodes[n].y + yOff);
+				}
 			}
+			p.colorMode(p.RGB);
+
 		}
 
+		if(showText){
+			// draw graph
+			p.stroke(0);
+			drawCoordinateFrame(p);
+			p.fill(178);
+			p.stroke(178);
+			p.strokeWeight(.01);
+			drawGraphPoints(p, cp);
+			drawGraphLines(p, cp);
+			// draw text
+			p.textSize(fontSize);
+			for(var n = 0; n < cp.nodes.length; n++){
+				var edges = cp.nodes[n].adjacent.edges
+				for(var e = 0; e < edges.length; e++){
+					var xOff = 0.05 * Math.cos(edges[e].angle);
+					var yOff = 0.05 * Math.sin(edges[e].angle);
+					p.stroke(220);
+					p.line(cp.nodes[n].x, cp.nodes[n].y, cp.nodes[n].x + xOff, cp.nodes[n].y + yOff);
+
+					p.noStroke();
+					p.fill(0);
+					var angleDeg = Math.floor(edges[e].angle * 180 / Math.PI);
+					if(angleDeg < 0) angleDeg += 360;
+					var angleString = (angleDeg).toString();
+					p.text(angleString + "°", cp.nodes[n].x + xOff - (fontSize*0.4 + (angleString.length-1)*fontSize*0.25), cp.nodes[n].y + yOff + (fontSize*0.4));
+				}
+			}
+		}
 
 	}
 	p.mousePressed = function(){
@@ -71,6 +101,7 @@ var _13_adjacent = function( p ) {
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		if(mouseXScaled != undefined && mouseYScaled != undefined){
 			// mouse was pressed inside of canvas
+			showText = true;
 		}
 	}
 	p.mouseReleased = function(event){
@@ -82,5 +113,6 @@ var _13_adjacent = function( p ) {
 			// mouse was released inside of canvas
 			p.reset();
 		}
+		showText = false;
 	}
 };

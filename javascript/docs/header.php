@@ -49,7 +49,7 @@
 		<li class="dropdown">
 			<a href="javascript:void(0)" class="dropbtn">III. CREASE PATTERN</a>
 			<div class="dropdown-content">
-			<a href="creasepattern.php">CREASE PATTERN</a>
+			<a href="kawasaki.php">KAWASAKI'S THEOREM</a>
 			</div>
 		</li>
 		</ul>

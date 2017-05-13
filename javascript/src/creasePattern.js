@@ -118,6 +118,57 @@ class CreasePattern extends PlanarGraph{
 		}
 	}
 
+	kawasaki(nodeIndex){
+		// this hands back an array of angles, the spaces between edges, clockwise.
+		// each angle object contains:
+		//  - arc angle
+		//  - details on the root data (nodes, edges, their angles)
+		//  - results from the kawasaki algorithm:
+		//     which is the amount in radians to add to each angle to make flat foldable 
+		var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
+		adjacentEdges.sort(function(a,b){return (a.angle > b.angle)?1:((b.angle > a.angle)?-1:0);});
+		// console.log(adjacentEdges);
+		var angles = [];
+		for(var i = 0; i < adjacentEdges.length; i++){
+			var nextI = (i+1)%adjacentEdges.length;
+			var angleDiff = adjacentEdges[nextI].angle - adjacentEdges[i].angle;
+			if(angleDiff < 0) angleDiff += Math.PI*2;
+			angles.push( {
+				"arc":angleDiff, 
+				"angles":[adjacentEdges[i].angle, adjacentEdges[nextI].angle], 
+				"nodes": [adjacentEdges[i].node, adjacentEdges[nextI].node], 
+				"edges": [adjacentEdges[i].edge, adjacentEdges[nextI].edge] } );
+		}
+		var sumEven = 0;
+		var sumOdd = 0;
+		for(var i = 0; i < angles.length; i++){
+			if(i % 2 == 0){ sumEven += angles[i].arc; } 
+			else { sumOdd += angles[i].arc; }
+		}
+		var dEven = Math.PI - sumEven;
+		var dOdd = Math.PI - sumOdd;
+		for(var i = 0; i < angles.length; i++){
+			if(i % 2 == 0){angles[i]["kawasaki"] = dEven * (angles[i].arc/(Math.PI*2)); }
+			else { angles[i]["kawasaki"] = dOdd * (angles[i].arc/(Math.PI*2)); }
+		}
+		return angles;
+	}
+
+	kawasakiDeviance(nodeIndex){
+		var kawasaki = kawasaki(nodeIndex);
+		var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
+		adjacentEdges.sort(function(a,b){return (a.angle > b.angle)?1:((b.angle > a.angle)?-1:0);});
+		var angles = [];
+		for(var i = 0; i < adjacentEdges.length; i++){
+			var nextI = (i+1)%adjacentEdges.length;
+			var angleDiff = adjacentEdges[nextI].angle - adjacentEdges[i].angle;
+			if(angleDiff < 0) angleDiff += Math.PI*2;
+			angles.push( {"arc":angleDiff, "angles":[adjacentEdges[i].angle, adjacentEdges[nextI].angle], "nodes": [i, nextI] } );
+		}
+		return angles;
+	}
+
+
 	// cleanIntersections(){
 	// 	this.clean();
 	// 	if(LOG) console.log('crease pattern: cleanIntersections()');
