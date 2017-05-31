@@ -20,8 +20,8 @@ var test09 = function(p) {
 	function reset(){
 		g.clear();
 		fillWithSunburst(g, numLines);
-		var angles = g.getClockwiseConnectedNodesAndAngles(0);
-		sortedConnectedNodes = g.getClockwiseConnectedNodesSorted(0);
+		// var angles = g.getClockwiseConnectedNodesAndAngles(0);
+		// sortedConnectedNodes = g.getClockwiseConnectedNodesSorted(0);
 	}
 
 	p.setup = function(){
@@ -44,14 +44,14 @@ var test09 = function(p) {
 		drawCoordinateFrame(p);
 		// drawGraphPoints(p, g);
 		// drawGraphLines(p, g);
-		for(var i = 0; i < sortedConnectedNodes.length; i++){
-			var edge = g.getEdgeConnectingNodes(0, sortedConnectedNodes[i]);
-			var color = HSVtoRGB(i/sortedConnectedNodes.length, 1.0, 1.0);
-			p.stroke(color.r, color.g, color.b);
-			p.line(g.nodes[ g.edges[edge].a ].x, g.nodes[ g.edges[edge].a ].y, 
-			       g.nodes[ g.edges[edge].b ].x, g.nodes[ g.edges[edge].b ].y );
-			p.ellipse(g.nodes[ sortedConnectedNodes[i] ].x, g.nodes[ sortedConnectedNodes[i] ].y, 0.01, 0.01);
-		}
+		// for(var i = 0; i < sortedConnectedNodes.length; i++){
+		// 	var edge = g.getEdgeConnectingNodes(0, sortedConnectedNodes[i]);
+		// 	var color = HSVtoRGB(i/sortedConnectedNodes.length, 1.0, 1.0);
+		// 	p.stroke(color.r, color.g, color.b);
+		// 	p.line(g.nodes[ g.edges[edge].a ].x, g.nodes[ g.edges[edge].a ].y, 
+		// 	       g.nodes[ g.edges[edge].b ].x, g.nodes[ g.edges[edge].b ].y );
+		// 	p.ellipse(g.nodes[ sortedConnectedNodes[i] ].x, g.nodes[ sortedConnectedNodes[i] ].y, 0.01, 0.01);
+		// }
 	}
 
 	p.mouseReleased = function(){

@@ -26,7 +26,11 @@
 	<div class="centered">
 		<pre><code><span id="span-merge-result"></span>← graph.<f>mergeDuplicateVertices</f>()</code></pre>
 	</div>
-
+	<div class="accordion">
+		<div>
+			<p>This sketch is calling mergeDuplicateVertices() every frame.</p>
+		</div>
+	</div>
 	<h3>mergeDuplicateVertices</h3>
 	<div id="divP5_clean" class="centered p5sketch"></div>
 

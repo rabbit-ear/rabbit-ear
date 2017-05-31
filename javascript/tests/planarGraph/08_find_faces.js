@@ -11,42 +11,45 @@ var test08 = function(p) {
 	var closestEdge = undefined;
 	p.scalar = 1.0;
 
-	g.generateFacesInProgress = function(){
-		var allNodesClockwise = [];
-		for(var i = 0; i < this.nodes.length; i++){
-			var sortedNodes = this.getClockwiseConnectedNodesSorted(i);
-			if(sortedNodes == undefined) sortedNodes = [];
-			allNodesClockwise.push(sortedNodes);
-		}
-		// walk around a face
-		this.faces = [];
-		var i = 0;
-		for(var i = 0; i < this.nodes.length; i++){
-			for(var n = 0; n < allNodesClockwise[i].length; n++){
-				var aFace = [ i ];
-				var iterate = 0;
-				var current = allNodesClockwise[i][n];
-				var previous = i;
-				while(iterate < 100 && i != current){
-					aFace.push(current);
-					var previousBackup = previous;
-					previous = current;
-					current = this.getNextElementToItemInArray( allNodesClockwise[ current ], previousBackup );
-					if(current == undefined) iterate = 100;
-					if(aFace.length > 4) iterate = 100;
-					iterate++;
-				}
-				if(iterate < 99){
-					this.faces.push( aFace );
-				}
-			}
-		}
-	}
+	// g.generateFacesInProgress = function(){
+	// 	var allNodesClockwise = [];
+	// 	for(var i = 0; i < this.nodes.length; i++){
+	// 			getClockwiseNeighborAround(node, fromNode){
+
+	// 		var sortedNodes = this.getClockwiseConnectedNodesSorted(i);
+	// 		if(sortedNodes == undefined) sortedNodes = [];
+	// 		allNodesClockwise.push(sortedNodes);
+	// 	}
+	// 	// walk around a face
+	// 	this.faces = [];
+	// 	var i = 0;
+	// 	for(var i = 0; i < this.nodes.length; i++){
+	// 		for(var n = 0; n < allNodesClockwise[i].length; n++){
+	// 			var aFace = [ i ];
+	// 			var iterate = 0;
+	// 			var current = allNodesClockwise[i][n];
+	// 			var previous = i;
+	// 			while(iterate < 100 && i != current){
+	// 				aFace.push(current);
+	// 				var previousBackup = previous;
+	// 				previous = current;
+	// 				current = this.getNextElementToItemInArray( allNodesClockwise[ current ], previousBackup );
+	// 				if(current == undefined) iterate = 100;
+	// 				if(aFace.length > 4) iterate = 100;
+	// 				iterate++;
+	// 			}
+	// 			if(iterate < 99){
+	// 				this.faces.push( aFace );
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	function reset(){
 		g.clear();
 		g.birdBase();
-		g.generateFacesInProgress();
+		g.refreshAdjacencies();
+		g.generateFaces();
 	}
 
 	p.setup = function(){

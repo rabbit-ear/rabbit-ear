@@ -11,7 +11,8 @@
 <script language="javascript" type="text/javascript" src="../render.js"></script>
 <link href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700" rel="stylesheet">
 <link href="../dist/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
-<link href="style.css" rel="stylesheet" />
+<link href="css/style.css" rel="stylesheet" />
+<link href="css/nav.css" rel="stylesheet" />
 </head>
 <body>
 	<nav>

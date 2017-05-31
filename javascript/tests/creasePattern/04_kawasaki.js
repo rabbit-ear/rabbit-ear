@@ -82,37 +82,44 @@ var _04_kawasaki = function( p ) {
 		p.fill(0);
 		p.stroke(192);
 		p.strokeWeight(.02);
-		drawGraphLines(p, cpFlat);
-		drawCoordinateFrame(p);
-
-		p.noFill();
-		for(var i = 0; i < innerAnglesFlat.length; i++){
-			if(i % 2 == 0){ p.stroke(210); }
-			// else { p.stroke(0, 210, 0); }
-			else { p.stroke(210); }
-			var radius = 0.55;
-			if(i%2 == 0) radius = 0.65;
-			p.arc(0.5, 0.5, radius, radius, innerAnglesFlat[i].angles[0], innerAnglesFlat[i].angles[1]);
-		}
-
-		// draw graph
-		p.fill(0);
-		p.stroke(0);
-		p.strokeWeight(.02);
 		// drawGraphPoints(p, cp);
 		drawGraphLines(p, cp);
 		drawCoordinateFrame(p);
 
 		p.stroke(255, 0, 0);
 		p.noFill();
-		for(var i = 0; i < innerAngles.length; i++){
-			if(i % 2 == 0){ p.stroke(255, 0, 0); }
-			// else { p.stroke(0, 210, 0); }
-			else { p.stroke(60, 90, 255); }
-			var radius = 0.5;
-			if(i%2 == 0) radius = 0.6;
-			p.arc(0.5, 0.5, radius, radius, innerAngles[i].angles[0], innerAngles[i].angles[1]);
+		// for(var i = 0; i < innerAngles.length; i++){
+		// 	if(i % 2 == 0){ p.stroke(210); }
+		// 	// else { p.stroke(0, 210, 0); }
+		// 	else { p.stroke(210); }
+		// 	var radius = 0.5;
+		// 	if(i%2 == 0) radius = 0.6;
+		// 	p.arc(0.5, 0.5, radius, radius, innerAngles[i].angles[0], innerAngles[i].angles[1]);
+		// }
+
+
+
+		// draw graph
+		p.fill(0);
+		p.stroke(0);
+		p.strokeWeight(.02);
+		drawGraphLines(p, cpFlat);
+		drawCoordinateFrame(p);
+
+		p.noFill();
+		p.stroke(255, 0, 0);
+		for(var i = 0; i < innerAnglesFlat.length; i++){
+			
+			var radius = 0.55;
+			if(i%2 == 0) radius = 0.65;
+			if(innerAngles[i].angles[0] > innerAnglesFlat[i].angles[0]){
+				p.arc(0.5, 0.5, radius, radius, innerAnglesFlat[i].angles[0], innerAngles[i].angles[0]);
+			}
+			else {
+				p.arc(0.5, 0.5, radius, radius, innerAngles[i].angles[0], innerAnglesFlat[i].angles[0]);
+			}
 		}
+
 
 	}
 	p.mousePressed = function(){
