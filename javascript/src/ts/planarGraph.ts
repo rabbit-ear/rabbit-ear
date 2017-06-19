@@ -1,5 +1,9 @@
+/// <reference path="graph.ts"/>
+
 "use strict";
-var LOG;
+// var LOG;
+
+
 
 // for purposes of modeling origami crease patterns
 //
@@ -16,6 +20,9 @@ var SLOPE_ANGLE_INF_EPSILON = 1 * Math.pow(10,SLOPE_ANGLE_PLACES);
 //    with creases (edges) defined by their endpoints (vertices)
 
 class PlanarNode{
+	x:number;
+	y:number;
+	adjacent:any
 	constructor(xx, yy){
 		this.x = xx;
 		this.y = yy;
@@ -24,9 +31,16 @@ class PlanarNode{
 	}
 }
 
+class Face{
+	nodes:[number];
+
+}
 
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
 class PlanarGraph extends Graph{
+
+	nodes:PlanarNode[]
+	faces:Face[]
 
 	constructor(){
 		super();
@@ -53,15 +67,18 @@ class PlanarGraph extends Graph{
 
 	addEdgeWithVertices(x1, y1, x2, y2){  // floats
 		var nodeArrayLength = this.nodes.length;
-		this.nodes.push( {'x':x1, 'y':y1, 'isBoundary':this.isBoundaryNode(x1, y1)} );
-		this.nodes.push( {'x':x2, 'y':y2, 'isBoundary':this.isBoundaryNode(x2, y2)} );
+		// this.nodes.push( {'x':x1, 'y':y1, 'isBoundary':this.isBoundaryNode(x1, y1)} );
+		// this.nodes.push( {'x':x2, 'y':y2, 'isBoundary':this.isBoundaryNode(x2, y2)} );
+		this.nodes.push( new PlanarNode(x1, y1) );
+		this.nodes.push( new PlanarNode(x2, y2) );
 		this.edges.push( new Edge(nodeArrayLength, nodeArrayLength+1) );
 		// this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
 	}
 
 	addEdgeFromVertex(existingIndex, newX, newY){ // uint, floats
 		var nodeArrayLength = this.nodes.length;
-		this.nodes.push( {'x':newX, 'y':newY, 'isBoundary':this.isBoundaryNode(newX, newY)} );
+		// this.nodes.push( {'x':newX, 'y':newY, 'isBoundary':this.isBoundaryNode(newX, newY)} );
+		this.nodes.push( new PlanarNode(newX, newY) );
 		this.edges.push( new Edge(existingIndex, nodeArrayLength) );
 		// this.changedNodes( [existingIndex, this.nodes.length-1] );
 	}
@@ -95,8 +112,9 @@ class PlanarGraph extends Graph{
 	// } 
 
 	clean(){
-		var graphResult = super.clean();
+		var graphResult = super.clean(); //{'duplicate':countDuplicate, 'circular': countCircular};
 		var result = this.mergeDuplicateVertices();
+		return graphResult; //TODO: add result to this
 	}
 
 	// changedNodes(nodeArray){
@@ -253,7 +271,7 @@ class PlanarGraph extends Graph{
 	///////////////////////////////////////////////////////////////
 	// EDGE INTERSECTION
 
-	edgesIntersect(e1, e2){
+	edgesIntersect(e1, e2): any{
 		// if true - returns {x,y} location of intersection
 		if(this.areEdgesAdjacent(e1, e2)){  return undefined;  }
 		var v0 = this.nodes[ this.edges[e1].node[0] ];
@@ -414,7 +432,7 @@ class PlanarGraph extends Graph{
 				var validFace = true;
 				var nextAdjacent = this.nodes[startNode].adjacent.edges[n];
 				var travelingNode = nextAdjacent.node;
-				var theFace = {};
+				var theFace = new Face();
 				theFace['nodes'] = [ startNode, travelingNode ];
 				theFace['edges'] = [ nextAdjacent.edge ];
 				// var prevAngle = 0
@@ -493,7 +511,7 @@ class PlanarGraph extends Graph{
 
 	getVertexIndexAt(x, y){  // float float
 		for(var i = 0; i < this.nodes.length; i++){
-			if(this.verticesEquivalent(this.nodes[i].x, this.nodes[i].y, x, y, USER_TAP_EPSILON)){
+			if(this.verticesEquivalent(this.nodes[i], new PlanarNode(x, y), USER_TAP_EPSILON)){
 				return i;
 			}
 		}
@@ -531,7 +549,7 @@ class PlanarGraph extends Graph{
 			if( this.verticesEquivalent(this.nodes[i], v, EPSILON) ){
 				intersect.x = this.nodes[i].x;
 				intersect.y = this.nodes[i].y;
-				intersect.z = this.nodes[i].z;
+				// intersect.z = this.nodes[i].z;
 				return true;
 			}
 		}
@@ -613,7 +631,8 @@ class PlanarGraph extends Graph{
 		super.log();
 		console.log("Vertices: (" + this.nodes.length + ")");
 		for(var i = 0; i < this.nodes.length; i++){
-			console.log(' ' + i + ': (' + this.nodes[i].x + ', ' + this.nodes[i].y + ', ' + this.nodes[i].z + ')');
+			// console.log(' ' + i + ': (' + this.nodes[i].x + ', ' + this.nodes[i].y + ', ' + this.nodes[i].z + ')');
+			console.log(' ' + i + ': (' + this.nodes[i].x + ', ' + this.nodes[i].y + ')');
 		}
 		console.log("\nEdges:\n" + this.edges.length + ")");
 		for(var i = 0; i < this.edges.length; i++){
