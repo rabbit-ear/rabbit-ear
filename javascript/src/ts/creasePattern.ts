@@ -1,7 +1,6 @@
 /// <reference path="planarGraph.ts"/>
 
 "use strict";
-// var LOG;
 
 // for purposes of modeling origami crease patterns
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)

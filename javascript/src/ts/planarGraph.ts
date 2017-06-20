@@ -1,9 +1,6 @@
 /// <reference path="graph.ts"/>
 
 "use strict";
-// var LOG;
-
-
 
 // for purposes of modeling origami crease patterns
 //
@@ -19,11 +16,21 @@ var SLOPE_ANGLE_INF_EPSILON = 1 * Math.pow(10,SLOPE_ANGLE_PLACES);
 // this graph represents an origami crease pattern
 //    with creases (edges) defined by their endpoints (vertices)
 
-class PlanarNode{
+class EdgeNodeAngle{
+	edge:number;  // index
+	node:number;  // index
+	angle:number; // degrees or radians IDK
+}
+
+class PlanarNode extends GraphNode{
 	x:number;
 	y:number;
-	adjacent:any
+	adjacent:{ 
+		edges:EdgeNodeAngle[], 
+		nodes:EdgeNodeAngle[]
+	}
 	constructor(xx, yy){
+		super();
 		this.x = xx;
 		this.y = yy;
 		if(xx == undefined){ this.x = 0; }
@@ -39,8 +46,8 @@ class Face{
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
 class PlanarGraph extends Graph{
 
-	nodes:PlanarNode[]
-	faces:Face[]
+	nodes:PlanarNode[];
+	faces:Face[];
 
 	constructor(){
 		super();
@@ -133,35 +140,43 @@ class PlanarGraph extends Graph{
 	// Graph-related (non-positional)
 
 	refreshAdjacencyAtNode(nodeIndex){
-		// this recalculates the this.nodes.adjacent data
-		// EDGES
-		var adjacentEdges = this.getEdgesAdjacentToNode(nodeIndex);
-		for(var i = 0; i < adjacentEdges.length; i++){
-			var value = adjacentEdges[i];
-			adjacentEdges[i] = {'edge':value};
-		}
-		var edgeAngles = [];
-		for(var i = 0; i < adjacentEdges.length; i++){
-			var connectingNode = undefined;
-			var edge0 = this.edges[ adjacentEdges[i]['edge'] ].node[0];
-			var edge1 = this.edges[ adjacentEdges[i]['edge'] ].node[1];
-			if(edge0 != nodeIndex) connectingNode = edge0;
-			if(edge1 != nodeIndex) connectingNode = edge1;
-			if(connectingNode != undefined){
-				var dx = this.nodes[connectingNode].x - this.nodes[nodeIndex].x;
-				var dy = this.nodes[connectingNode].y - this.nodes[nodeIndex].y;
+		///////// EDGES
+		var adjacentEdgeIndices = this.getEdgesAdjacentToNode(nodeIndex);
+		var adjacentEdges:EdgeNodeAngle[] = [];
+		for(var i = 0; i < adjacentEdgeIndices.length; i++){
+			var thisEdgeNodeAngle = new EdgeNodeAngle();
+			var node0 = this.edges[ adjacentEdgeIndices[i] ].node[0];
+			var node1 = this.edges[ adjacentEdgeIndices[i] ].node[1];
+			var edgesOtherNode = undefined
+			if(node0 == nodeIndex){ edgesOtherNode = node1; }
+			if(node1 == nodeIndex){ edgesOtherNode = node0; }
+			if(edgesOtherNode != undefined){
+				var dx = this.nodes[edgesOtherNode].x - this.nodes[nodeIndex].x;
+				var dy = this.nodes[edgesOtherNode].y - this.nodes[nodeIndex].y;
 				var edgeAngle = Math.atan2(dy, dx);
-				adjacentEdges[i]['node'] = connectingNode;
-				adjacentEdges[i]['angle'] = edgeAngle;
+				// could add a distance property here too
+				thisEdgeNodeAngle.edge = adjacentEdgeIndices[i];
+				thisEdgeNodeAngle.node = edgesOtherNode;
+				thisEdgeNodeAngle.angle = edgeAngle;
 			}
+			adjacentEdges.push( thisEdgeNodeAngle );
 		}
-		adjacentEdges.sort(function(a,b) {
-			return (a.angle > b.angle) ? 1 : ((b.angle > a.angle) ? -1 : 0);
-		});
-		// NODES
-		var adjacentNodes = [];
-		for(var i = 0; i < adjacentEdges.length; i++){
-			adjacentNodes.push(adjacentEdges[i]['node']);
+		///////// NODES
+		var adjacentNodeIndices = this.getNodesAdjacentToNode(nodeIndex);
+		var adjacentNodes:EdgeNodeAngle[] = [];
+		for(var i = 0; i < adjacentNodeIndices.length; i++){
+			var thisEdgeNodeAngle = new EdgeNodeAngle();
+			var nodesOtherNode = adjacentNodeIndices[i];
+			var nodesEdge = this.getEdgeConnectingNodes(nodeIndex, nodesOtherNode);
+			{
+				var dx = this.nodes[nodesOtherNode].x - this.nodes[nodeIndex].x;
+				var dy = this.nodes[nodesOtherNode].y - this.nodes[nodeIndex].y;
+				var edgeAngle = Math.atan2(dy, dx);
+			}
+			thisEdgeNodeAngle.edge = nodesEdge;
+			thisEdgeNodeAngle.node = nodesOtherNode;
+			thisEdgeNodeAngle.angle = edgeAngle;
+			adjacentNodes.push( thisEdgeNodeAngle );
 		}
 		this.nodes[nodeIndex].adjacent = {'nodes': adjacentNodes, 'edges': adjacentEdges};
 	}

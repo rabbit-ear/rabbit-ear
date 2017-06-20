@@ -1,10 +1,21 @@
 "use strict";
 var LOG = false;
 
-class Edge{
-	node:number[];
+class EdgeNode{
+	edge:number;  // index
+	node:number;  // index
+}
 
-	constructor(index1, index2){
+class GraphNode{  // "Node" is already taken by Typescript
+	adjacent:{
+		edges:EdgeNode[], // adjacent edges, and the nodes at their other end
+		nodes:EdgeNode[]  // adjacent nodes, and the edges it takes to get to them
+	}
+}
+
+class Edge{
+	node:[number,number]; // every edge must connect 2 nodes
+	constructor(index1:number, index2:number){
 		this.node = [index1, index2];
 	};
 }
@@ -16,9 +27,9 @@ class Graph{
 	//              edges are adjacent when they are both connected to the same node
 	//  "similar": in the case of an edge: they contain the same 2 nodes, possibly in a different order
 
-	nodes:any[]
-	edges:Edge[]
-	preferences:any
+	nodes:any[];
+	edges:Edge[];
+	preferences:any;
 
 	constructor() {
 		this.nodes = []; // can be of any type (type is not dealt with in here)
@@ -178,11 +189,11 @@ class Graph{
 		         (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[1]) ||
 		         (this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[0]) );
 	}
-	areEdgesSimilar(eIndex1, eIndex2){
-		return( (this.edges[eIndex1].node[0] == this.edges[eIndex2].node[0] &&
-		         this.edges[eIndex1].node[1] == this.edges[eIndex2].node[1] ) ||
-		        (this.edges[eIndex1].node[0] == this.edges[eIndex2].node[1] &&
-		         this.edges[eIndex1].node[1] == this.edges[eIndex2].node[0] ) );
+	areEdgesSimilar(edgeIndex1, edgeIndex2){
+		return( (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[0] &&
+		         this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[1] ) ||
+		        (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[1] &&
+		         this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[0] ) );
 	}
 
 	// GRAPH QUERIES
