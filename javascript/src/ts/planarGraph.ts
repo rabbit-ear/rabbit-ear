@@ -16,7 +16,7 @@ var SLOPE_ANGLE_INF_EPSILON = 1 * Math.pow(10,SLOPE_ANGLE_PLACES);
 // this graph represents an origami crease pattern
 //    with creases (edges) defined by their endpoints (vertices)
 
-class EdgeNodeAngle{
+class EdgeNodeAngle extends EdgeAndNode{
 	edge:number;  // index
 	node:number;  // index
 	angle:number; // degrees or radians IDK
@@ -25,7 +25,7 @@ class EdgeNodeAngle{
 class PlanarNode extends GraphNode{
 	x:number;
 	y:number;
-	adjacent:{ 
+	adjacent:{
 		edges:EdgeNodeAngle[], 
 		nodes:EdgeNodeAngle[]
 	}
@@ -36,6 +36,14 @@ class PlanarNode extends GraphNode{
 		if(xx == undefined){ this.x = 0; }
 		if(yy == undefined){ this.y = 0; }
 	}
+}
+
+class PlanarEdge extends Edge{
+	getEndpoints:()=>object;
+	constructor(index1:number, index2:number){
+		super(index1, index2);
+
+	};
 }
 
 class Face{
@@ -74,8 +82,6 @@ class PlanarGraph extends Graph{
 
 	addEdgeWithVertices(x1, y1, x2, y2){  // floats
 		var nodeArrayLength = this.nodes.length;
-		// this.nodes.push( {'x':x1, 'y':y1, 'isBoundary':this.isBoundaryNode(x1, y1)} );
-		// this.nodes.push( {'x':x2, 'y':y2, 'isBoundary':this.isBoundaryNode(x2, y2)} );
 		this.nodes.push( new PlanarNode(x1, y1) );
 		this.nodes.push( new PlanarNode(x2, y2) );
 		this.edges.push( new Edge(nodeArrayLength, nodeArrayLength+1) );
@@ -109,7 +115,7 @@ class PlanarGraph extends Graph{
 	//  CLEAN  /  REFRESH COMPONENTS
 
 	// quick and easy, use a square bounding box
-	verticesEquivalent(v1, v2, epsilon){  // Vertex type
+	verticesEquivalent(v1:PlanarNode, v2:PlanarNode, epsilon:number){  // Vertex type
 		return (v1.x - epsilon < v2.x && v1.x + epsilon > v2.x &&
 				v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
 	}
@@ -139,12 +145,14 @@ class PlanarGraph extends Graph{
 	///////////////////////////////////
 	// Graph-related (non-positional)
 
-	refreshAdjacencyAtNode(nodeIndex){
+	refreshAdjacencyAtNode(nodeIndex:number){
 		///////// EDGES
+		// get indices of all connected edges
 		var adjacentEdgeIndices = this.getEdgesAdjacentToNode(nodeIndex);
 		var adjacentEdges:EdgeNodeAngle[] = [];
 		for(var i = 0; i < adjacentEdgeIndices.length; i++){
-			var thisEdgeNodeAngle = new EdgeNodeAngle();
+			var newEdge = new EdgeNodeAngle();
+			// find other 
 			var node0 = this.edges[ adjacentEdgeIndices[i] ].node[0];
 			var node1 = this.edges[ adjacentEdgeIndices[i] ].node[1];
 			var edgesOtherNode = undefined
@@ -155,17 +163,17 @@ class PlanarGraph extends Graph{
 				var dy = this.nodes[edgesOtherNode].y - this.nodes[nodeIndex].y;
 				var edgeAngle = Math.atan2(dy, dx);
 				// could add a distance property here too
-				thisEdgeNodeAngle.edge = adjacentEdgeIndices[i];
-				thisEdgeNodeAngle.node = edgesOtherNode;
-				thisEdgeNodeAngle.angle = edgeAngle;
+				newEdge.edge = adjacentEdgeIndices[i];
+				newEdge.node = edgesOtherNode;
+				newEdge.angle = edgeAngle;
 			}
-			adjacentEdges.push( thisEdgeNodeAngle );
+			adjacentEdges.push( newEdge );
 		}
 		///////// NODES
 		var adjacentNodeIndices = this.getNodesAdjacentToNode(nodeIndex);
 		var adjacentNodes:EdgeNodeAngle[] = [];
 		for(var i = 0; i < adjacentNodeIndices.length; i++){
-			var thisEdgeNodeAngle = new EdgeNodeAngle();
+			var newNode = new EdgeNodeAngle();
 			var nodesOtherNode = adjacentNodeIndices[i];
 			var nodesEdge = this.getEdgeConnectingNodes(nodeIndex, nodesOtherNode);
 			{
@@ -173,10 +181,10 @@ class PlanarGraph extends Graph{
 				var dy = this.nodes[nodesOtherNode].y - this.nodes[nodeIndex].y;
 				var edgeAngle = Math.atan2(dy, dx);
 			}
-			thisEdgeNodeAngle.edge = nodesEdge;
-			thisEdgeNodeAngle.node = nodesOtherNode;
-			thisEdgeNodeAngle.angle = edgeAngle;
-			adjacentNodes.push( thisEdgeNodeAngle );
+			newNode.edge = nodesEdge;
+			newNode.node = nodesOtherNode;
+			newNode.angle = edgeAngle;
+			adjacentNodes.push( newNode );
 		}
 		this.nodes[nodeIndex].adjacent = {'nodes': adjacentNodes, 'edges': adjacentEdges};
 	}
@@ -227,7 +235,7 @@ class PlanarGraph extends Graph{
 		return removeCatalog;
 	}
 
-	getClosestNode(x, y){
+	getNearestNode(x, y){
 		// can be optimized with a k-d tree
 		var index = undefined;
 		var distance = Math.sqrt(2);
@@ -241,7 +249,7 @@ class PlanarGraph extends Graph{
 		return index;
 	}
 
-	getClosestNodes(x, y, howMany){
+	getNearestNodes(x, y, howMany){
 		// can be optimized with a k-d tree
 		var distances = [];
 		for(var i = 0; i < this.nodes.length; i++){
@@ -259,7 +267,7 @@ class PlanarGraph extends Graph{
 	}
 
 
-	getClosestEdge(x, y){
+	getNearestEdge(x, y){
 		if(x == undefined || y == undefined)
 			return undefined;
 
@@ -378,22 +386,15 @@ class PlanarGraph extends Graph{
 	// }
 
 	chop(){
-		if(LOG) console.log('planarGraph.js: chop()');
 		// var intersectionPoints = new PlanarGraph();
 		var allIntersections = [];  // keep a running total of all the intersection points
 		for(var i = 0; i < this.edges.length; i++){
-			if(LOG) { console.log('planarGraph.js: ' + i); }
 			var edgeCrossings = this.getEdgeIntersectionsWithEdge(i);
-			if(LOG) { console.log('got intersections with this edge'); }
-			if(LOG) { console.log(edgeCrossings); }
 			if(edgeCrossings != undefined && edgeCrossings.length > 0){
 				allIntersections = allIntersections.concat(edgeCrossings);
 				// intersectionPoints.addNodes(edgeCrossings);
 			}
-			if(LOG) { console.log(allIntersections); }
-			if(LOG) { console.log('iterating over edge crossings'); }
 			while(edgeCrossings.length > 0){
-				if(LOG) { console.log(edgeCrossings.length); }
 				var newIntersectionIndex = this.nodes.length;
 				this.addNode({'x':edgeCrossings[0].x, 'y':edgeCrossings[0].y});
 				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].e1n1);
@@ -409,7 +410,6 @@ class PlanarGraph extends Graph{
 				this.clean();
 			}
 		}
-		if(LOG){ console.log('planarGraph.js: finished chop()'); }
 		// return allIntersections;
 		// return a unique array of all intersection points
 		var pg = new PlanarGraph();  // creating a object inside of the object def itself?..

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+html,
+body {
+    margin: 0;
+    overflow: hidden;
+    height: 100%;
+}
+/* Scale canvas with resize attribute to full size */
+canvas[resize] {
+    width: 100%;
+    height: 100%;
+}
+</style>
+    <script type="text/javascript" src="../src/graph.js"></script>
+    <script type="text/javascript" src="../src/planarGraph.js"></script>
+    <script type="text/javascript" src="../src/creasePattern.js"></script>
+    <script type="text/javascript" src="../lib/paper-full.min.js"></script>
+    <script>
+        var cp = new CreasePattern();
+        cp.frogBase();
+    </script>
+    <script type="text/paperscript" canvas="canvas">
+
+        var position = view.center;
+        var children = project.activeLayer.children;
+        var nearestEdge = undefined;
+        var strokeRed = { hue:0, saturation:1, brightness:1 };
+        var strokeBlack = { hue:0, saturation:1, brightness:0 };
+        console.log(cp);
+        var cpPaths = [];
+        for(var i = 0; i < cp.edges.length; i++){
+            var p1 = new Point(cp.nodes[ cp.edges[i].node[0] ].x, cp.nodes[ cp.edges[i].node[0] ].y) * 400 + 100;
+            var p2 = new Point(cp.nodes[ cp.edges[i].node[1] ].x, cp.nodes[ cp.edges[i].node[1] ].y) * 400 + 100;
+            var path = new Path({
+                strokeColor: {
+                    hue:0,
+                    saturation:1,
+                    brightness:0
+                },
+                segments: [ p1, p2 ],
+                closed:false
+            });
+            cpPaths.push(path);
+        }
+
+        function update() {
+//            for (var i = 1; i < amount; i++) {
+//                var path = children[i];
+//                path.segments[0].point = mousePos;
+//            }
+            for(var i = 0; i < cp.edges.length; i++){
+                var color = strokeBlack;
+                var weight = 1;
+                if(nearestEdge != undefined && nearestEdge == i){
+                    color = strokeRed;
+                    weight = 3;
+                }
+                cpPaths[i].strokeColor = color;
+                cpPaths[i].strokeWidth = weight;
+            }
+        }
+
+        function onFrame(event) { }
+
+        function onMouseMove(event) {
+            nearestEdge = cp.getNearestEdge(event.point.x / 400.0 - 100/400.0, event.point.y / 400.0 - 100/400.0).edge;
+//            mousePos = event.point;
+            update();
+        }
+
+    </script>
+</head>
+<body style="background:white">
+    <canvas id="canvas" resize></canvas>
+</body>
+</html>
