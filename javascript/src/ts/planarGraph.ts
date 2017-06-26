@@ -48,8 +48,8 @@ class PlanarNode extends GraphNode{
 }
 
 class PlanarEdge extends Edge{
-	getEndpoints:()=>XYPoint =
-	function() { return XYPoint(); };
+	getEndpoints:()=>XYPoint[] =
+	function() { return [XYPoint(this.node[0]), XYPoint()]; };
 
 	constructor(index1:number, index2:number){
 		super(index1, index2);

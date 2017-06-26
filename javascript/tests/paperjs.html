@@ -15,155 +15,132 @@ canvas[resize] {
 	height: 100%;
 }
 </style>
-	<script type="text/javascript" src="../src/graph.js"></script>
-	<script type="text/javascript" src="../src/planarGraph.js"></script>
-	<script type="text/javascript" src="../src/creasePattern.js"></script>
-	<script type="text/javascript" src="../lib/paper-full.min.js"></script>
-	<script type="text/javascript" src="../lib/perlin.js"></script>
-	<script>
-		var cp = new CreasePattern();
-		// cp.frogBase();
-		cp.fishBase();
-		var paperPoints = [];
-		var paperEdges = [];
+<script type="text/javascript" src="../src/graph.js"></script>
+<script type="text/javascript" src="../src/planarGraph.js"></script>
+<script type="text/javascript" src="../src/creasePattern.js"></script>
+<script type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../lib/perlin.js"></script>
+<script>
 
+var cp = new CreasePattern();
+// cp.frogBase();
+cp.fishBase();
+var paperPoints = [];
+var paperEdges = [];
 
-	</script>
-	<script type="text/paperscript" canvas="canvas">
-		var children = project.activeLayer.children;
-		var nearestEdge = undefined;
-		var lineWeight = 4;
-		var paperSize;
+</script>
+<script type="text/paperscript" canvas="canvas">
 
-		var center = view.center;
+var children = project.activeLayer.children;
+var nearestEdge = undefined;
+var lineWeight = 4;
+var paperSize;
 
-		console.log(cp);
+var wobble2 = {x:cp.nodes[2].x, y:cp.nodes[2].y};
+var wobble3 = {x:cp.nodes[3].x, y:cp.nodes[3].y};
 
-		function mountainPath(){
-			return new Path({
-				strokeColor: { hue:350, saturation:1, brightness:1 },
-				strokeWidth: lineWeight,
-				closed: false
-			});
+var center = view.center;
+
+console.log(cp);
+
+function mountainPath(){
+	return new Path({
+		strokeColor: { hue:350, saturation:1, brightness:1 },
+		strokeWidth: lineWeight,
+		closed: false
+	});
+}
+function valleyPath(){
+	return new Path({
+		strokeColor: { hue:230, saturation:1, brightness:1 },
+		dashArray: [lineWeight, lineWeight],
+		strokeWidth: lineWeight,
+		closed: false
+	});
+}
+function borderPath(){
+	return new Path({
+		strokeColor: { hue:0, saturation:1, brightness:0 },
+		strokeWidth: lineWeight,
+		closed: false
+	});
+}
+
+function copyCPToPaperJS(){
+
+	center = view.center;
+	var paperWindowScale = 0.8;
+	if(window.innerWidth < window.innerHeight){ paperSize = window.innerWidth * paperWindowScale;
+	} else{ paperSize = window.innerHeight * paperWindowScale; }
+
+	project.activeLayer.removeChildren();
+	paperPoints = [];
+	paperEdges = [];
+
+	for(var i = 0; i < cp.nodes.length; i++){
+		var p = new Point(cp.nodes[ i ].x, cp.nodes[ i ].y) * paperSize + center - paperSize * 0.5;
+		paperPoints.push( p );
+	}
+	for(var i = 0; i < cp.edges.length; i++){
+		var node0 = cp.edges[i].node[0];
+		var node1 = cp.edges[i].node[1];
+		var path;
+		if(     cp.edges[i].orientation == CreaseDirection.mountain){ path = mountainPath(); }
+		else if(cp.edges[i].orientation == CreaseDirection.valley){ path = valleyPath(); }
+		else { path = borderPath(); }
+		path.segments = [ paperPoints[node0], paperPoints[node1] ];
+		paperEdges.push( path );
+	}
+}
+
+copyCPToPaperJS();
+
+function updateCPToPaperJS(){
+	center = view.center;
+	var paperWindowScale = 0.8;
+	if(window.innerWidth < window.innerHeight){ paperSize = window.innerWidth * paperWindowScale;
+	} else{ paperSize = window.innerHeight * paperWindowScale; }
+
+	for(var i = 0; i < cp.nodes.length; i++){
+		paperPoints[i].x = cp.nodes[i].x * paperSize + center.x - paperSize * 0.5;
+		paperPoints[i].y = cp.nodes[i].y * paperSize + center.y - paperSize * 0.5;
+	}
+	for(var i = 0; i < cp.edges.length; i++){
+		paperEdges[i].segments[0].point = paperPoints[ cp.edges[i].node[0] ];
+		paperEdges[i].segments[1].point = paperPoints[ cp.edges[i].node[1] ];
+	}
+}
+
+function onFrame(event) {
+	var scale = .04;
+	var sp = 1.5;
+	cp.nodes[2].x = wobble2.x + Math.sin(sp*event.time*.8) * scale
+	cp.nodes[2].y = wobble2.y + Math.cos(sp*event.time*.895) * scale;
+	cp.nodes[3].x = wobble3.x + Math.sin(sp*event.time*1.2) * scale;
+	cp.nodes[3].y = wobble3.y + Math.sin(sp*event.time) * scale;
+
+	updateCPToPaperJS();
+}
+
+function onResize(event) {
+	updateCPToPaperJS();
+}
+
+function onMouseMove(event) {
+	mousePos = event.point;
+	nearestEdge = cp.getNearestEdge( (mousePos.x - center.x + paperSize * 0.5) / paperSize , 
+									 (mousePos.y - center.y + paperSize * 0.5) / paperSize  ).edge;
+	for(var i = 0; i < cp.edges.length; i++){
+		var weight = 3;
+		if(nearestEdge != undefined && nearestEdge == i){
+			paperEdges[i].strokeWidth = lineWeight+2;
+		} else{
+			paperEdges[i].strokeWidth = lineWeight;
 		}
-		function valleyPath(){
-			return new Path({
-				strokeColor: { hue:230, saturation:1, brightness:1 },
-				dashArray: [lineWeight, lineWeight],
-				strokeWidth: lineWeight,
-				closed: false
-			});
-		}
-		function borderPath(){
-			return new Path({
-				strokeColor: { hue:0, saturation:1, brightness:0 },
-				strokeWidth: lineWeight,
-				closed: false
-			});
-		}
+	}
+}
 
-		function copyCPToPaperJS(){
-
-			center = view.center;
-			var paperWindowScale = 0.8;
-			if(window.innerWidth < window.innerHeight){ paperSize = window.innerWidth * paperWindowScale;
-			} else{ paperSize = window.innerHeight * paperWindowScale; }
-
-			project.activeLayer.removeChildren();
-			paperPoints = [];
-			paperEdges = [];
-
-			for(var i = 0; i < cp.nodes.length; i++){
-				var p = new Point(cp.nodes[ i ].x, cp.nodes[ i ].y) * paperSize + center - paperSize * 0.5;
-				paperPoints.push( p );
-			}
-			for(var i = 0; i < cp.edges.length; i++){
-				var node0 = cp.edges[i].node[0];
-				var node1 = cp.edges[i].node[1];
-				var path;
-				if(     cp.edges[i].orientation == CreaseDirection.mountain){ path = mountainPath(); }
-				else if(cp.edges[i].orientation == CreaseDirection.valley){ path = valleyPath(); }
-				else { path = borderPath(); }
-				path.segments = [ paperPoints[node0], paperPoints[node1] ];
-				paperEdges.push( path );
-			}
-		}
-
-		copyCPToPaperJS();
-
-		function update() {
-//			for (var i = 1; i < amount; i++) {
-//				var path = children[i];
-//				path.segments[0].point = mousePos;
-//			}
-		}
-
-		function onFrame(event) {
-
-			var n = 2;
-			var scale = 14;
-			var sp = 1.5;
-
-			paperPoints[n].x = cp.nodes[n].x * paperSize + center.x - paperSize * 0.5 + Math.sin(sp*event.time*.8) * scale;
-			paperPoints[n].y = cp.nodes[n].y * paperSize + center.y - paperSize * 0.5 + Math.cos(sp*event.time*.895) * scale;
-
-			for(var i = 0; i < cp.edges.length; i++){
-				if(cp.edges[i].node[0] == n){ paperEdges[i].segments[0].point = paperPoints[n]; }
-				if(cp.edges[i].node[1] == n){ paperEdges[i].segments[1].point = paperPoints[n]; }
-			}
-
-			n = 3;
-
-			paperPoints[n].x = cp.nodes[n].x * paperSize + center.x - paperSize * 0.5 + Math.sin(sp*event.time*1.2) * scale;
-			paperPoints[n].y = cp.nodes[n].y * paperSize + center.y - paperSize * 0.5 - Math.cos(sp*event.time) * scale;
-
-			for(var i = 0; i < cp.edges.length; i++){
-				if(cp.edges[i].node[0] == n){ paperEdges[i].segments[0].point = paperPoints[n]; }
-				if(cp.edges[i].node[1] == n){ paperEdges[i].segments[1].point = paperPoints[n]; }
-			}
-
-
-//			var i;
-//			i = 3;			
-//			var x1 = (cp.nodes[ cp.edges[i].node[0] ].x) * paperSize + center.x - paperSize * 0.5; 
-//			var y1 = (cp.nodes[ cp.edges[i].node[0] ].y) * paperSize + center.y - paperSize * 0.5;
-//			var x2 = (cp.nodes[ cp.edges[i].node[1] ].x) * paperSize + center.x - paperSize * 0.5; 
-//			var y2 = (cp.nodes[ cp.edges[i].node[1] ].y) * paperSize + center.y - paperSize * 0.5;
-//
-//
-//
-//			for(var i = 0; i < cp.edges.length; i++){
-//				var x1 = (cp.nodes[ cp.edges[i].node[0] ].x) * paperSize + center.x - paperSize * 0.5; 
-//				var y1 = (cp.nodes[ cp.edges[i].node[0] ].y) * paperSize + center.y - paperSize * 0.5;
-//				var x2 = (cp.nodes[ cp.edges[i].node[1] ].x) * paperSize + center.x - paperSize * 0.5; 
-//				var y2 = (cp.nodes[ cp.edges[i].node[1] ].y) * paperSize + center.y - paperSize * 0.5;
-//				//console.log(x1 +  ' ' + y1 + ' ' + x2 + ' ' + y2);
-//				cpPaths[i].segments[0].point.x = x1;
-//				cpPaths[i].segments[0].point.y = y1;
-//				cpPaths[i].segments[1].point.x = x2;
-//				cpPaths[i].segments[1].point.y = y2;
-//			}
-		}
-
-		function onResize(event) {
-			copyCPToPaperJS();
-		}
-
-		function onMouseMove(event) {
-			mousePos = event.point;
-			nearestEdge = cp.getNearestEdge( (mousePos.x - center.x + paperSize * 0.5) / paperSize , 
-											 (mousePos.y - center.y + paperSize * 0.5) / paperSize  ).edge;
-			for(var i = 0; i < cp.edges.length; i++){
-				var weight = 3;
-				if(nearestEdge != undefined && nearestEdge == i){
-					paperEdges[i].strokeWidth = lineWeight+2;
-				} else{
-					paperEdges[i].strokeWidth = lineWeight;
-				}
-			}
-		}
-
-	</script>
+</script>
 </head>
 <body style="background:white">
 	<canvas id="canvas" resize></canvas>
