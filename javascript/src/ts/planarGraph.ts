@@ -22,6 +22,15 @@ class EdgeNodeAngle extends EdgeAndNode{
 	angle:number; // degrees or radians IDK
 }
 
+class XYPoint{
+	x:number;
+	y:number;
+	constructor(xx:number, yy:number){
+		this.x = xx;
+		this.y = yy;
+	}
+}
+
 class PlanarNode extends GraphNode{
 	x:number;
 	y:number;
@@ -29,7 +38,7 @@ class PlanarNode extends GraphNode{
 		edges:EdgeNodeAngle[], 
 		nodes:EdgeNodeAngle[]
 	}
-	constructor(xx, yy){
+	constructor(xx:number, yy:number){
 		super();
 		this.x = xx;
 		this.y = yy;
@@ -39,16 +48,20 @@ class PlanarNode extends GraphNode{
 }
 
 class PlanarEdge extends Edge{
-	getEndpoints:()=>object;
+	getEndpoints:()=>XYPoint =
+	function() { return XYPoint(); };
+
 	constructor(index1:number, index2:number){
 		super(index1, index2);
-
 	};
+
+	// getEndpoints()->object{
+
+	// }
 }
 
 class Face{
-	nodes:[number];
-
+	nodes:number[];
 }
 
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
@@ -85,6 +98,7 @@ class PlanarGraph extends Graph{
 		this.nodes.push( new PlanarNode(x1, y1) );
 		this.nodes.push( new PlanarNode(x2, y2) );
 		this.edges.push( new Edge(nodeArrayLength, nodeArrayLength+1) );
+		return this.edges.length-1;
 		// this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
 	}
 

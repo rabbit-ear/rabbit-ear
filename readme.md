@@ -1,9 +1,7 @@
-# origami math
+# Origami Code
 
-javascript crease pattern library:
+Planar graph library to represent origami crease patterns and perform origami algorithms
 
-- [x] foundation: planar graph data structure
-- [x] rendering hooks to P5.js
-- [ ] import / export (.svg, ORIPA)
-- [ ] GUI interface, adding and modifying creases
-- [ ] parse raster image of crease pattern for possible best fit
+* graph and planar graph foundation structures
+* rendering with paper.js, p5.js
+* [ ] import / export (.svg, ORIPA, .fold)

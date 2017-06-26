@@ -87,6 +87,7 @@ var PlanarGraph = (function (_super) {
         this.nodes.push(new PlanarNode(x1, y1));
         this.nodes.push(new PlanarNode(x2, y2));
         this.edges.push(new Edge(nodeArrayLength, nodeArrayLength + 1));
+        return this.edges.length - 1;
         // this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
     };
     PlanarGraph.prototype.addEdgeFromVertex = function (existingIndex, newX, newY) {

@@ -54,7 +54,7 @@ var p5_nearest_edge = function(p) {
 		mouseYScaled = p.mouseY / paperSize;
 		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
-		closestEdge = g.getClosestEdge(mouseXScaled, mouseYScaled);
+		closestEdge = g.getNearestEdge(mouseXScaled, mouseYScaled);
 		if(p.mouseMovedCallback != undefined)
 			p.mouseMovedCallback(mouseXScaled, mouseYScaled);
 	}

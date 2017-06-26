@@ -58,8 +58,8 @@ var p5_nearest_node = function(p) {
 		mouseYScaled = p.mouseY / paperSize;
 		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
-		closestNode = g.getClosestNode(mouseXScaled, mouseYScaled);
-		closestNodes = g.getClosestNodes(mouseXScaled, mouseYScaled, 5);
+		closestNode = g.getNearestNode(mouseXScaled, mouseYScaled);
+		closestNodes = g.getNearestNodes(mouseXScaled, mouseYScaled, 5);
 		if(p.callback != undefined){
 			p.callback({'x':mouseXScaled, 'y':mouseYScaled, 'nearest':closestNode});
 		}

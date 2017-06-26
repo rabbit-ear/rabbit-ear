@@ -10,6 +10,28 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var CreaseDirection;
+(function (CreaseDirection) {
+    CreaseDirection[CreaseDirection["none"] = 0] = "none";
+    CreaseDirection[CreaseDirection["border"] = 1] = "border";
+    CreaseDirection[CreaseDirection["mountain"] = 2] = "mountain";
+    CreaseDirection[CreaseDirection["valley"] = 3] = "valley";
+})(CreaseDirection || (CreaseDirection = {}));
+var CreaseNode = (function (_super) {
+    __extends(CreaseNode, _super);
+    function CreaseNode(xx, yy) {
+        return _super.call(this, xx, yy) || this;
+    }
+    return CreaseNode;
+}(PlanarNode));
+var CreaseEdge = (function (_super) {
+    __extends(CreaseEdge, _super);
+    function CreaseEdge(index1, index2) {
+        return _super.call(this, index1, index2) || this;
+    }
+    ;
+    return CreaseEdge;
+}(PlanarEdge));
 // for purposes of modeling origami crease patterns
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
 var CreasePattern = (function (_super) {
@@ -83,6 +105,18 @@ var CreasePattern = (function (_super) {
         if (x < E)
             return 4;
         return undefined;
+    };
+    CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
+        var index = this.addEdgeWithVertices(x1, y1, x2, y2);
+        this.edges[index].orientation = CreaseDirection.border;
+    };
+    CreasePattern.prototype.creaseMountain = function (x1, y1, x2, y2) {
+        var index = this.addEdgeWithVertices(x1, y1, x2, y2);
+        this.edges[index].orientation = CreaseDirection.mountain;
+    };
+    CreasePattern.prototype.creaseValley = function (x1, y1, x2, y2) {
+        var index = this.addEdgeWithVertices(x1, y1, x2, y2);
+        this.edges[index].orientation = CreaseDirection.valley;
     };
     // vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
     // 	var v = this.nodes[vIndex];
@@ -233,18 +267,26 @@ var CreasePattern = (function (_super) {
         this.addEdgeWithVertices(0, 1, 1, .58578);
         this.addEdgeWithVertices(0, 1, .41421, 0);
         this.clean();
+        this.addPaperEdge(0, 0, 0, 1);
+        this.addPaperEdge(0, 1, 1, 1);
+        this.addPaperEdge(1, 1, 1, 0);
+        this.addPaperEdge(1, 0, 0, 0);
     };
     CreasePattern.prototype.fishBase = function () {
-        this.addEdgeWithVertices(1, 0, 0, 1);
-        this.addEdgeWithVertices(0, 1, .70711, .70711);
-        this.addEdgeWithVertices(0, 1, .29288, .2929);
-        this.addEdgeWithVertices(1, 0, .29289, .2929);
-        this.addEdgeWithVertices(1, 0, .7071, .7071);
-        this.addEdgeWithVertices(.29289, .2929, 0, 0);
-        this.addEdgeWithVertices(.70711, .7071, 1, 1);
-        this.addEdgeWithVertices(.70711, .70711, 1, .70711);
-        this.addEdgeWithVertices(.29288, .2929, .29288, 0);
+        this.creaseMountain(1, 0, 0, 1);
+        this.creaseValley(0, 1, .70711, .70711);
+        this.creaseValley(0, 1, .29288, .2929);
+        this.creaseValley(1, 0, .29289, .2929);
+        this.creaseValley(1, 0, .7071, .7071);
+        this.creaseValley(.29289, .2929, 0, 0);
+        this.creaseValley(.70711, .7071, 1, 1);
+        this.creaseMountain(.70711, .70711, 1, .70711);
+        this.creaseMountain(.29288, .2929, .29288, 0);
         this.clean();
+        this.addPaperEdge(0, 0, 0, 1);
+        this.addPaperEdge(0, 1, 1, 1);
+        this.addPaperEdge(1, 1, 1, 0);
+        this.addPaperEdge(1, 0, 0, 0);
     };
     CreasePattern.prototype.birdBase = function () {
         this.addEdgeWithVertices(.35355, .64645, 0, 1);
@@ -280,6 +322,10 @@ var CreasePattern = (function (_super) {
         this.addEdgeWithVertices(0.5, .79289, 0.5, 1);
         this.addEdgeWithVertices(.2071, 0.5, 0, 0.5);
         this.clean();
+        this.addPaperEdge(0, 0, 0, 1);
+        this.addPaperEdge(0, 1, 1, 1);
+        this.addPaperEdge(1, 1, 1, 0);
+        this.addPaperEdge(1, 0, 0, 0);
     };
     CreasePattern.prototype.frogBase = function () {
         this.addEdgeWithVertices(0, 0, .14646, .35353);
@@ -347,6 +393,10 @@ var CreasePattern = (function (_super) {
         this.addEdgeWithVertices(.75, .25, 1, 0);
         this.addEdgeWithVertices(.75, .75, 1, 1);
         this.clean();
+        this.addPaperEdge(0, 0, 0, 1);
+        this.addPaperEdge(0, 1, 1, 1);
+        this.addPaperEdge(1, 1, 1, 0);
+        this.addPaperEdge(1, 0, 0, 0);
     };
     return CreasePattern;
 }(PlanarGraph));
