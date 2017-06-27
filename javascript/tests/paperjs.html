@@ -25,8 +25,11 @@ canvas[resize] {
 var cp = new CreasePattern();
 // cp.frogBase();
 cp.fishBase();
+cp.refreshAdjacencies();
+// cp.generateFaces();
 var paperPoints = [];
 var paperEdges = [];
+var paperFaces = [];
 
 </script>
 <script type="text/paperscript" canvas="canvas">
@@ -76,6 +79,7 @@ function copyCPToPaperJS(){
 	project.activeLayer.removeChildren();
 	paperPoints = [];
 	paperEdges = [];
+	paperFaces = [];
 
 	for(var i = 0; i < cp.nodes.length; i++){
 		var p = new Point(cp.nodes[ i ].x, cp.nodes[ i ].y) * paperSize + center - paperSize * 0.5;
@@ -91,6 +95,48 @@ function copyCPToPaperJS(){
 		path.segments = [ paperPoints[node0], paperPoints[node1] ];
 		paperEdges.push( path );
 	}
+	for(var i = 0; i < cp.faces.length; i++){
+		var faceArray = cp.faces[i].nodes;
+		var segmentArray = [];
+		for(var j = 0; j < faceArray.length; j++){
+			segmentArray.push( paperPoints[ faceArray[j] ] );
+		}
+		paperFaces.push(new Path({
+//				fillColor: { hue:120, saturation:.8, brightness:.8 },
+//				fillColor: { red:0.0, green:0.0, blue:0.0, alpha:0.2 },
+				fillColor: { gray:0.0, alpha:0.1 },
+				segments: segmentArray,
+				closed: true
+			}) );
+	}
+}
+
+function incenter(pointArray){
+	var xSum = 0;
+	var ySum = 0;
+	var p = 0;
+	for(var i = 0; i < pointArray.length; i++){
+		var nextI = (i+1) % pointArray.length;
+		var nextnextI = (i+2) % pointArray.length;
+		var oLX = pointArray[nextI].x - pointArray[nextnextI].x;
+		var oLY = pointArray[nextI].y - pointArray[nextnextI].y;
+		var d = Math.sqrt(oLX*oLX + oLY*oLY);
+		xSum += pointArray[i].x * d;
+		ySum += pointArray[i].y * d;
+		p += d;
+	}
+	return new Point(xSum / p, ySum / p);
+}
+
+function centroid(pointArray){
+	if(pointArray.length == 0) return new Point();
+	var xSum = 0;
+	var ySum = 0;
+	for(var i = 0; i < pointArray.length; i++){
+		xSum += pointArray[i].x;
+		ySum += pointArray[i].y;
+	}
+	return new Point(xSum/pointArray.length, ySum/pointArray.length);
 }
 
 copyCPToPaperJS();
@@ -108,6 +154,18 @@ function updateCPToPaperJS(){
 	for(var i = 0; i < cp.edges.length; i++){
 		paperEdges[i].segments[0].point = paperPoints[ cp.edges[i].node[0] ];
 		paperEdges[i].segments[1].point = paperPoints[ cp.edges[i].node[1] ];
+	}
+	for(var i = 0; i < cp.faces.length; i++){
+		var faceArray = cp.faces[i].nodes;
+		var segmentArray = [];
+		for(var j = 0; j < faceArray.length; j++){
+			segmentArray.push( paperPoints[ faceArray[j] ] );
+			paperFaces[i].segments[j].point = paperPoints[ faceArray[j] ];
+		}
+		var center;
+		if(faceArray.length == 3){ center = incenter(segmentArray); } 
+		else{                      center = centroid(segmentArray); }
+		paperFaces[i].scale(0.5, center);
 	}
 }
 

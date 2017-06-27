@@ -48,8 +48,8 @@ class PlanarNode extends GraphNode{
 }
 
 class PlanarEdge extends Edge{
-	getEndpoints:()=>XYPoint[] =
-	function() { return [XYPoint(this.node[0]), XYPoint()]; };
+	// getEndpoints:()=>XYPoint[] =
+	// function() { return [XYPoint(this.node[0]), XYPoint()]; };
 
 	constructor(index1:number, index2:number){
 		super(index1, index2);
@@ -61,7 +61,9 @@ class PlanarEdge extends Edge{
 }
 
 class Face{
+	// clockwise
 	nodes:number[];
+	edges:number[];
 }
 
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
@@ -107,11 +109,13 @@ class PlanarGraph extends Graph{
 		// this.nodes.push( {'x':newX, 'y':newY, 'isBoundary':this.isBoundaryNode(newX, newY)} );
 		this.nodes.push( new PlanarNode(newX, newY) );
 		this.edges.push( new Edge(existingIndex, nodeArrayLength) );
+		return this.edges.length-1;
 		// this.changedNodes( [existingIndex, this.nodes.length-1] );
 	}
 
 	addEdgeFromExistingVertices(existingIndex1, existingIndex2){ // uint, uint
 		this.edges.push( new Edge(existingIndex1, existingIndex2) );
+		return this.edges.length-1;
 		// this.changedNodes( [existingIndex1, existingIndex2] );
 	}
 
@@ -119,7 +123,26 @@ class PlanarGraph extends Graph{
 		var newX = this.nodes[existingIndex].x + Math.cos(angle) * distance;
 		var newY = this.nodes[existingIndex].y + Math.sin(angle) * distance;
 		this.addEdgeFromVertex(existingIndex, newX, newY);
+		return this.edges.length-1;
 		// this.changedNodes( [existingIndex, this.nodes.length-1] );
+	}
+
+	addFace(nodeArray:number[]){
+		if(nodeArray.length == 0) return;
+		var edgeArray:number[] = [];
+		for(var i = 0; i < nodeArray.length; i++){
+			var nextI = (i + 1) % nodeArray.length;
+			var thisEdge = this.getEdgeConnectingNodes(nodeArray[i], nodeArray[nextI]);
+			if(thisEdge == undefined){
+				console.log("creating edge for face between " + nodeArray[i], nodeArray[nextI]);
+				thisEdge = this.addEdgeFromExistingVertices(nodeArray[i], nodeArray[nextI]);
+			}
+			edgeArray.push(thisEdge);
+		}
+		var face = new Face();
+		face.edges = edgeArray;
+		face.nodes = nodeArray;
+		this.faces.push(face);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
