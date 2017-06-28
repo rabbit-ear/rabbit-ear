@@ -26,8 +26,8 @@ var CreaseNode = (function (_super) {
 }(PlanarNode));
 var CreaseEdge = (function (_super) {
     __extends(CreaseEdge, _super);
-    function CreaseEdge(index1, index2) {
-        return _super.call(this, index1, index2) || this;
+    function CreaseEdge(g, index1, index2) {
+        return _super.call(this, g, index1, index2) || this;
     }
     ;
     return CreaseEdge;

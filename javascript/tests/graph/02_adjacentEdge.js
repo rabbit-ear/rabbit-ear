@@ -8,7 +8,7 @@ makeForceDirectedGraph(d3Graph02, svgCanvas02, didTouchNode02, didTouchEdge02);
 function fillGraph(graph, numNodes){
 	var numEdges = numNodes*1.2;
 	graph.clear();
-	for(var i = 0; i < numNodes; i++) graph.addNode(i);
+	for(var i = 0; i < numNodes; i++) graph.addNode(new GraphNode());
 	for(var i = 0; i < graph.nodes.length; i++){
 		// inverse relationship to scramble edges# with node#
 		var first = parseInt(graph.nodes.length-1-i);

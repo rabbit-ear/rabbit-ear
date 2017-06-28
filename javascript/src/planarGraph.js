@@ -23,8 +23,12 @@ var SLOPE_ANGLE_INF_EPSILON = 1 * Math.pow(10, SLOPE_ANGLE_PLACES);
 //    with creases (edges) defined by their endpoints (vertices)
 var EdgeNodeAngle = (function (_super) {
     __extends(EdgeNodeAngle, _super);
-    function EdgeNodeAngle() {
-        return _super !== null && _super.apply(this, arguments) || this;
+    function EdgeNodeAngle(e, n, a) {
+        var _this = _super.call(this, e, n) || this;
+        _this.edge = e;
+        _this.node = n;
+        _this.angle = a;
+        return _this;
     }
     return EdgeNodeAngle;
 }(EdgeAndNode));
@@ -53,18 +57,23 @@ var PlanarNode = (function (_super) {
 }(GraphNode));
 var PlanarEdge = (function (_super) {
     __extends(PlanarEdge, _super);
-    // getEndpoints:()=>XYPoint[] =
-    // function() { return [XYPoint(this.node[0]), XYPoint()]; };
-    function PlanarEdge(index1, index2) {
-        return _super.call(this, index1, index2) || this;
+    function PlanarEdge(g, index1, index2) {
+        var _this = _super.call(this, g, index1, index2) || this;
+        _this.endpoints = function () {
+            if (this.graph == undefined)
+                return undefined;
+            return [this.graph.nodes[this.node[0]], this.graph.nodes[this.node[1]]];
+        };
+        _this.graph = g;
+        return _this;
     }
     ;
     return PlanarEdge;
-}(Edge));
-var Face = (function () {
-    function Face() {
+}(GraphEdge));
+var PlanarFace = (function () {
+    function PlanarFace() {
     }
-    return Face;
+    return PlanarFace;
 }());
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
 var PlanarGraph = (function (_super) {
@@ -95,7 +104,7 @@ var PlanarGraph = (function (_super) {
         var nodeArrayLength = this.nodes.length;
         this.nodes.push(new PlanarNode(x1, y1));
         this.nodes.push(new PlanarNode(x2, y2));
-        this.edges.push(new Edge(nodeArrayLength, nodeArrayLength + 1));
+        this.edges.push(new PlanarEdge(this, nodeArrayLength, nodeArrayLength + 1));
         return this.edges.length - 1;
         // this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
     };
@@ -103,12 +112,12 @@ var PlanarGraph = (function (_super) {
         var nodeArrayLength = this.nodes.length;
         // this.nodes.push( {'x':newX, 'y':newY, 'isBoundary':this.isBoundaryNode(newX, newY)} );
         this.nodes.push(new PlanarNode(newX, newY));
-        this.edges.push(new Edge(existingIndex, nodeArrayLength));
+        this.edges.push(new PlanarEdge(this, existingIndex, nodeArrayLength));
         return this.edges.length - 1;
         // this.changedNodes( [existingIndex, this.nodes.length-1] );
     };
     PlanarGraph.prototype.addEdgeFromExistingVertices = function (existingIndex1, existingIndex2) {
-        this.edges.push(new Edge(existingIndex1, existingIndex2));
+        this.edges.push(new PlanarEdge(this, existingIndex1, existingIndex2));
         return this.edges.length - 1;
         // this.changedNodes( [existingIndex1, existingIndex2] );
     };
@@ -132,7 +141,7 @@ var PlanarGraph = (function (_super) {
             }
             edgeArray.push(thisEdge);
         }
-        var face = new Face();
+        var face = new PlanarFace();
         face.edges = edgeArray;
         face.nodes = nodeArray;
         this.faces.push(face);
@@ -175,7 +184,6 @@ var PlanarGraph = (function (_super) {
         var adjacentEdgeIndices = this.getEdgesAdjacentToNode(nodeIndex);
         var adjacentEdges = [];
         for (var i = 0; i < adjacentEdgeIndices.length; i++) {
-            var newEdge = new EdgeNodeAngle();
             // find other 
             var node0 = this.edges[adjacentEdgeIndices[i]].node[0];
             var node1 = this.edges[adjacentEdgeIndices[i]].node[1];
@@ -191,28 +199,19 @@ var PlanarGraph = (function (_super) {
                 var dy = this.nodes[edgesOtherNode].y - this.nodes[nodeIndex].y;
                 var edgeAngle = Math.atan2(dy, dx);
                 // could add a distance property here too
-                newEdge.edge = adjacentEdgeIndices[i];
-                newEdge.node = edgesOtherNode;
-                newEdge.angle = edgeAngle;
+                adjacentEdges.push(new EdgeNodeAngle(adjacentEdgeIndices[i], edgesOtherNode, edgeAngle));
             }
-            adjacentEdges.push(newEdge);
         }
         ///////// NODES
         var adjacentNodeIndices = this.getNodesAdjacentToNode(nodeIndex);
         var adjacentNodes = [];
         for (var i = 0; i < adjacentNodeIndices.length; i++) {
-            var newNode = new EdgeNodeAngle();
             var nodesOtherNode = adjacentNodeIndices[i];
             var nodesEdge = this.getEdgeConnectingNodes(nodeIndex, nodesOtherNode);
-            {
-                var dx = this.nodes[nodesOtherNode].x - this.nodes[nodeIndex].x;
-                var dy = this.nodes[nodesOtherNode].y - this.nodes[nodeIndex].y;
-                var edgeAngle = Math.atan2(dy, dx);
-            }
-            newNode.edge = nodesEdge;
-            newNode.node = nodesOtherNode;
-            newNode.angle = edgeAngle;
-            adjacentNodes.push(newNode);
+            var dx = this.nodes[nodesOtherNode].x - this.nodes[nodeIndex].x;
+            var dy = this.nodes[nodesOtherNode].y - this.nodes[nodeIndex].y;
+            var edgeAngle = Math.atan2(dy, dx);
+            adjacentNodes.push(new EdgeNodeAngle(nodesEdge, nodesOtherNode, edgeAngle));
         }
         this.nodes[nodeIndex].adjacent = { 'nodes': adjacentNodes, 'edges': adjacentEdges };
     };
@@ -409,7 +408,8 @@ var PlanarGraph = (function (_super) {
             }
             while (edgeCrossings.length > 0) {
                 var newIntersectionIndex = this.nodes.length;
-                this.addNode({ 'x': edgeCrossings[0].x, 'y': edgeCrossings[0].y });
+                this.addNode(new PlanarNode(edgeCrossings[0].x, edgeCrossings[0].y));
+                // this.addNode({'x':edgeCrossings[0].x, 'y':edgeCrossings[0].y});
                 this.addEdgeFromExistingVertices(this.nodes.length - 1, edgeCrossings[0].e1n1);
                 this.addEdgeFromExistingVertices(this.nodes.length - 1, edgeCrossings[0].e1n2);
                 this.addEdgeFromExistingVertices(this.nodes.length - 1, edgeCrossings[0].e2n1);
@@ -459,7 +459,7 @@ var PlanarGraph = (function (_super) {
                 var validFace = true;
                 var nextAdjacent = this.nodes[startNode].adjacent.edges[n];
                 var travelingNode = nextAdjacent.node;
-                var theFace = new Face();
+                var theFace = new PlanarFace();
                 theFace['nodes'] = [startNode, travelingNode];
                 theFace['edges'] = [nextAdjacent.edge];
                 // var prevAngle = 0

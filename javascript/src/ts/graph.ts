@@ -4,20 +4,71 @@ var LOG = false;
 class EdgeAndNode{
 	edge:number;  // index
 	node:number;  // index
-}
-
-class GraphNode{  // "Node" is already taken by Typescript
-	adjacent:{
-		edges:EdgeAndNode[], // adjacent edges, and the nodes at their other end
-		nodes:EdgeAndNode[]  // adjacent nodes, and the edges it takes to get to them
+	constructor(e:number, n:number){
+		this.edge = e;
+		this.node = n;
 	}
 }
 
-class Edge{
+class GraphNode{  // Nodes can represent anything
+	graph:Graph;
+	index:number;
+
+	adjacentEdges:()=>GraphEdge[] = function(){
+		if(this.graph == undefined) { throw "error" }
+		return this.graph.edges.filter(function (el:GraphEdge) { return el.node[0] == this.index || el.node[1] == this.index; });
+	}
+	adjacentNodes:()=>GraphNode[] = function(){
+		var adjacent:GraphNode[] = [];
+		for(var i = 0; i < this.graph.edges.length; i++){
+			if(this.graph.edges[i].node[0] == this.index) { adjacent.push( this.graph.nodes[ this.graph.edges[i].node[1] ] ); }
+			if(this.graph.edges[i].node[1] == this.index) { adjacent.push( this.graph.nodes[ this.graph.edges[i].node[0] ] ); }
+		}
+		return adjacent;
+	}
+	adjacentEdgesAndTheirNodes:()=>EdgeAndNode[] = function(){
+		var adjacentEdges:EdgeAndNode[] = [];
+		// iterate over all edges, if we find our node, add the edge
+		for(var i = 0; i < this.graph.edges.length; i++){
+			if      (this.graph.edges[i].node[0] == this.index){ adjacentEdges.push(new EdgeAndNode(i, this.graph.edges[i].node[1])); }
+			else if (this.graph.edges[i].node[1] == this.index){ adjacentEdges.push(new EdgeAndNode(i, this.graph.edges[i].node[0])); }
+		}
+		return adjacentEdges;
+	}
+	adjacentNodesAndTheirEdges:()=>EdgeAndNode[] = function(){
+		var adjacentNodes:EdgeAndNode[] = [];
+		for(var i = 0; i < this.graph.edges.length; i++){
+			// if we find our node, add the node on the other end of the edge
+			if(this.graph.edges[i].node[0] == this.index){adjacentNodes.push(new EdgeAndNode(i, this.graph.edges[i].node[1]));}
+			if(this.graph.edges[i].node[1] == this.index){adjacentNodes.push(new EdgeAndNode(i, this.graph.edges[i].node[0]));}
+		}
+		return this.graph.nodes.filter(function (el:GraphNode) {});		
+	}
+}
+
+class GraphEdge{
+	graph:Graph;
+	index:number;
+
 	node:[number,number]; // every edge must connect 2 nodes
-	constructor(index1:number, index2:number){
-		this.node = [index1, index2];
+	constructor(g:Graph, nodeIndex1:number, nodeIndex2:number){
+		this.node = [nodeIndex1, nodeIndex2];
+		this.graph = g;
 	};
+	adjacentEdges:()=>GraphEdge[] = function(){
+		return this.graph.edges.filter(function(el:GraphEdge)
+		{ 
+			return el.node[0] == this.node[0] ||
+			       el.node[0] == this.node[1] ||
+			       el.node[1] == this.node[0] ||
+			       el.node[1] == this.node[1];
+		});
+		// .remove(this)
+		//TODO: remove this edge from adjacent array
+	}
+	adjacentNodes:()=>GraphNode[] = function(){
+		return [this.graph.nodes[this.node[0]], this.graph.nodes[this.node[1]]];
+	}
 }
 
 class Graph{
@@ -27,8 +78,8 @@ class Graph{
 	//              edges are adjacent when they are both connected to the same node
 	//  "similar": in the case of an edge: they contain the same 2 nodes, possibly in a different order
 
-	nodes:GraphNode[];  // can be of any type (type is not dealt with in here)
-	edges:Edge[];
+	nodes:GraphNode[];
+	edges:GraphEdge[];
 	preferences:any;
 	didChange:(event:object)=>void;
 
@@ -38,7 +89,7 @@ class Graph{
 
 		// when you clean a graph, it will do different things based on these preferences
 		this.preferences = {
-			"curves": false,  // set to true, no longer classical graph, 
+			"allowDuplicate": false,  // set to true, no longer classical graph, 
 			"allowCircular": false   // classic mathematical graph, does not allow circular edges
 		};
 	}
@@ -49,28 +100,34 @@ class Graph{
 		this.edges = [];
 	}
 
-	addNode(node) {
+	addNode(node:GraphNode) {
+		node.graph = this;
+		node.index = this.nodes.length;
 		this.nodes.push(node);
-		return this.nodes.length-1;
+		return node.index;
 	}
 	addEdge(nodeIndex1:number, nodeIndex2:number) {
-		if(nodeIndex1 >= this.nodes.length || nodeIndex2 >= this.nodes.length ){ return undefined; }
-		this.edges.push( new Edge(nodeIndex1, nodeIndex2) );
-		return this.edges.length-1;
+		if(nodeIndex1 >= this.nodes.length || nodeIndex2 >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
+		var newEdge = new GraphEdge(this, nodeIndex1, nodeIndex2);
+		newEdge.index = this.edges.length;
+		this.edges.push( newEdge );
+		return newEdge.index;
 	}
 
 	addNodes(nodes){
 		// (SIMPLE: NODE array added to only at the end)
 		if(nodes != undefined && nodes.length > 0){
 			this.nodes = this.nodes.concat(nodes);
+			// update new nodes with their indices
+			for(var i = 0; i < this.nodes.length; i++){ this.nodes[i].index = i; }
 			return true;
 		}
 		return false;
 	}
-	addEdges(edges){
+	addEdges(edges:GraphEdge[]){
 		if(edges != undefined && edges.length > 0){
 			for(var i = 0; i < edges.length; i++){
-				this.addEdge(edges[i].nodes[0], edges[i].nodes[1] );
+				this.addEdge(edges[i].node[0], edges[i].node[1] );
 			}
 			return true;
 		}
@@ -79,19 +136,24 @@ class Graph{
 
 	removeEdgesBetween(nodeIndex1:number, nodeIndex2:number){
 		// (SIMPLE: NODE array length unchanged)
-		var count = 0;
-		var i = 0;
-		while(i < this.edges.length){
-			var didRemove = false;
-			if( (this.edges[i].node[0] == nodeIndex1 && this.edges[i].node[1] == nodeIndex2) || 
-				(this.edges[i].node[0] == nodeIndex2 && this.edges[i].node[1] == nodeIndex1) ){
-				this.edges.splice(i, 1);
-				didRemove = true;
-				count += 1;
-			}
-			if(!didRemove) i++;
-		}
-		return count;
+		// var count = 0;
+		// var i = 0;
+		// while(i < this.edges.length){
+		// 	var didRemove = false;
+		// 	if( (this.edges[i].node[0] == nodeIndex1 && this.edges[i].node[1] == nodeIndex2) || 
+		// 		(this.edges[i].node[0] == nodeIndex2 && this.edges[i].node[1] == nodeIndex1) ){
+		// 		this.edges.splice(i, 1);
+		// 		didRemove = true;
+		// 		count += 1;
+		// 	}
+		// 	if(!didRemove) i++;
+		// }
+		this.edges = this.edges.filter(function(el){ 
+			return !((el.node[0] == nodeIndex1 && el.node[1] == nodeIndex2) ||
+			         (el.node[0] == nodeIndex2 && el.node[1] == nodeIndex1) );
+		});
+		for(var i = 0; i < this.edges.length; i++){ this.edges[i].index = i; }
+		// return count;
 	}
 
 	removeNode(nodeIndex:number){
@@ -116,11 +178,14 @@ class Graph{
 			}
 			if(!didRemove) i++;
 		}
+		for(var i = 0; i < this.nodes.length; i++){ this.nodes[i].index = i; }
+		for(var i = 0; i < this.edges.length; i++){ this.edges[i].index = i; }
 		return true;
 	}
 
 	removeEdge(edgeIndex:number){
 		this.edges.splice(edgeIndex, 1);
+		for(var i = 0; i < this.edges.length; i++){ this.edges[i].index = i; }
 	}
 
 	// CLEAN GRAPH
@@ -143,6 +208,7 @@ class Graph{
 				count += 1;
 			}
 		}
+		for(var i = 0; i < this.edges.length; i++){ this.edges[i].index = i; }
 		return count;
 	}
 

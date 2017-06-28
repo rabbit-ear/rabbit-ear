@@ -20,6 +20,12 @@ class EdgeNodeAngle extends EdgeAndNode{
 	edge:number;  // index
 	node:number;  // index
 	angle:number; // degrees or radians IDK
+	constructor(e:number, n:number, a:number){
+		super(e, n);
+		this.edge = e;
+		this.node = n;
+		this.angle = a;
+	}
 }
 
 class XYPoint{
@@ -34,10 +40,7 @@ class XYPoint{
 class PlanarNode extends GraphNode{
 	x:number;
 	y:number;
-	adjacent:{
-		edges:EdgeNodeAngle[], 
-		nodes:EdgeNodeAngle[]
-	}
+
 	constructor(xx:number, yy:number){
 		super();
 		this.x = xx;
@@ -45,22 +48,28 @@ class PlanarNode extends GraphNode{
 		if(xx == undefined){ this.x = 0; }
 		if(yy == undefined){ this.y = 0; }
 	}
+
+	adjacent:{
+		edges:EdgeNodeAngle[], 
+		nodes:EdgeNodeAngle[]
+	}
 }
 
-class PlanarEdge extends Edge{
-	// getEndpoints:()=>XYPoint[] =
-	// function() { return [XYPoint(this.node[0]), XYPoint()]; };
+class PlanarEdge extends GraphEdge{
+	graph:PlanarGraph; // pointer to the graph
 
-	constructor(index1:number, index2:number){
-		super(index1, index2);
+	constructor(g:PlanarGraph, index1:number, index2:number){
+		super(g, index1, index2);
+		this.graph = g;
 	};
 
-	// getEndpoints()->object{
-
-	// }
+	endpoints:()=>PlanarNode[] = function() {
+		if (this.graph == undefined) return undefined;
+		return [this.graph.nodes[ this.node[0] ], this.graph.nodes[ this.node[1] ]];
+	};
 }
 
-class Face{
+class PlanarFace{
 	// clockwise
 	nodes:number[];
 	edges:number[];
@@ -70,7 +79,8 @@ class Face{
 class PlanarGraph extends Graph{
 
 	nodes:PlanarNode[];
-	faces:Face[];
+	edges:PlanarEdge[];
+	faces:PlanarFace[];
 
 	constructor(){
 		super();
@@ -99,7 +109,7 @@ class PlanarGraph extends Graph{
 		var nodeArrayLength = this.nodes.length;
 		this.nodes.push( new PlanarNode(x1, y1) );
 		this.nodes.push( new PlanarNode(x2, y2) );
-		this.edges.push( new Edge(nodeArrayLength, nodeArrayLength+1) );
+		this.edges.push( new PlanarEdge(this, nodeArrayLength, nodeArrayLength+1) );
 		return this.edges.length-1;
 		// this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
 	}
@@ -108,13 +118,13 @@ class PlanarGraph extends Graph{
 		var nodeArrayLength = this.nodes.length;
 		// this.nodes.push( {'x':newX, 'y':newY, 'isBoundary':this.isBoundaryNode(newX, newY)} );
 		this.nodes.push( new PlanarNode(newX, newY) );
-		this.edges.push( new Edge(existingIndex, nodeArrayLength) );
+		this.edges.push( new PlanarEdge(this, existingIndex, nodeArrayLength) );
 		return this.edges.length-1;
 		// this.changedNodes( [existingIndex, this.nodes.length-1] );
 	}
 
 	addEdgeFromExistingVertices(existingIndex1, existingIndex2){ // uint, uint
-		this.edges.push( new Edge(existingIndex1, existingIndex2) );
+		this.edges.push( new PlanarEdge(this, existingIndex1, existingIndex2) );
 		return this.edges.length-1;
 		// this.changedNodes( [existingIndex1, existingIndex2] );
 	}
@@ -139,7 +149,7 @@ class PlanarGraph extends Graph{
 			}
 			edgeArray.push(thisEdge);
 		}
-		var face = new Face();
+		var face = new PlanarFace();
 		face.edges = edgeArray;
 		face.nodes = nodeArray;
 		this.faces.push(face);
@@ -188,40 +198,31 @@ class PlanarGraph extends Graph{
 		var adjacentEdgeIndices = this.getEdgesAdjacentToNode(nodeIndex);
 		var adjacentEdges:EdgeNodeAngle[] = [];
 		for(var i = 0; i < adjacentEdgeIndices.length; i++){
-			var newEdge = new EdgeNodeAngle();
 			// find other 
 			var node0 = this.edges[ adjacentEdgeIndices[i] ].node[0];
 			var node1 = this.edges[ adjacentEdgeIndices[i] ].node[1];
 			var edgesOtherNode = undefined
 			if(node0 == nodeIndex){ edgesOtherNode = node1; }
 			if(node1 == nodeIndex){ edgesOtherNode = node0; }
+
 			if(edgesOtherNode != undefined){
 				var dx = this.nodes[edgesOtherNode].x - this.nodes[nodeIndex].x;
 				var dy = this.nodes[edgesOtherNode].y - this.nodes[nodeIndex].y;
 				var edgeAngle = Math.atan2(dy, dx);
 				// could add a distance property here too
-				newEdge.edge = adjacentEdgeIndices[i];
-				newEdge.node = edgesOtherNode;
-				newEdge.angle = edgeAngle;
+				adjacentEdges.push( new EdgeNodeAngle(adjacentEdgeIndices[i], edgesOtherNode, edgeAngle) );
 			}
-			adjacentEdges.push( newEdge );
 		}
 		///////// NODES
 		var adjacentNodeIndices = this.getNodesAdjacentToNode(nodeIndex);
 		var adjacentNodes:EdgeNodeAngle[] = [];
 		for(var i = 0; i < adjacentNodeIndices.length; i++){
-			var newNode = new EdgeNodeAngle();
 			var nodesOtherNode = adjacentNodeIndices[i];
 			var nodesEdge = this.getEdgeConnectingNodes(nodeIndex, nodesOtherNode);
-			{
-				var dx = this.nodes[nodesOtherNode].x - this.nodes[nodeIndex].x;
-				var dy = this.nodes[nodesOtherNode].y - this.nodes[nodeIndex].y;
-				var edgeAngle = Math.atan2(dy, dx);
-			}
-			newNode.edge = nodesEdge;
-			newNode.node = nodesOtherNode;
-			newNode.angle = edgeAngle;
-			adjacentNodes.push( newNode );
+			var dx = this.nodes[nodesOtherNode].x - this.nodes[nodeIndex].x;
+			var dy = this.nodes[nodesOtherNode].y - this.nodes[nodeIndex].y;
+			var edgeAngle = Math.atan2(dy, dx);
+			adjacentNodes.push( new EdgeNodeAngle(nodesEdge, nodesOtherNode, edgeAngle) );
 		}
 		this.nodes[nodeIndex].adjacent = {'nodes': adjacentNodes, 'edges': adjacentEdges};
 	}
@@ -433,7 +434,8 @@ class PlanarGraph extends Graph{
 			}
 			while(edgeCrossings.length > 0){
 				var newIntersectionIndex = this.nodes.length;
-				this.addNode({'x':edgeCrossings[0].x, 'y':edgeCrossings[0].y});
+				this.addNode(new PlanarNode(edgeCrossings[0].x, edgeCrossings[0].y));
+				// this.addNode({'x':edgeCrossings[0].x, 'y':edgeCrossings[0].y});
 				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].e1n1);
 				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].e1n2);
 				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].e2n1);
@@ -484,7 +486,7 @@ class PlanarGraph extends Graph{
 				var validFace = true;
 				var nextAdjacent = this.nodes[startNode].adjacent.edges[n];
 				var travelingNode = nextAdjacent.node;
-				var theFace = new Face();
+				var theFace = new PlanarFace();
 				theFace['nodes'] = [ startNode, travelingNode ];
 				theFace['edges'] = [ nextAdjacent.edge ];
 				// var prevAngle = 0

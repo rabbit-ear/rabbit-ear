@@ -17,8 +17,8 @@ class CreaseNode extends PlanarNode{
 
 class CreaseEdge extends PlanarEdge{
 	orientation:CreaseDirection;
-	constructor(index1:number, index2:number){
-		super(index1, index2);
+	constructor(g:CreasePattern, index1:number, index2:number){
+		super(g, index1, index2);
 	};
 }
 
