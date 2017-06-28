@@ -1,5 +1,13 @@
+
+// VOCABULARY:
+//  "adjacent": nodes are adjacent when they are connected by an edge
+//              edges are adjacent when they are both connected to the same node
+//  "similar": in the case of an edge: they contain the same 2 nodes, possibly in a different order
+
+
 "use strict";
 var LOG = false;
+
 
 class EdgeAndNode{
 	edge:number;  // index
@@ -15,8 +23,9 @@ class GraphNode{  // Nodes can represent anything
 	index:number;
 
 	adjacentEdges:()=>GraphEdge[] = function(){
-		if(this.graph == undefined) { throw "error" }
-		return this.graph.edges.filter(function (el:GraphEdge) { return el.node[0] == this.index || el.node[1] == this.index; });
+		if(this.graph == undefined) { throw "error: didn't set a node's parent graph. use graph.addNode()"; }
+		var thisIndex = this.index;
+		return this.graph.edges.filter(function (el:GraphEdge) { return el.node[0] == thisIndex || el.node[1] == thisIndex; });
 	}
 	adjacentNodes:()=>GraphNode[] = function(){
 		var adjacent:GraphNode[] = [];
@@ -56,13 +65,10 @@ class GraphEdge{
 		this.graph = g;
 	};
 	adjacentEdges:()=>GraphEdge[] = function(){
+		var node0 = this.node[0];
+		var node1 = this.node[1];
 		return this.graph.edges.filter(function(el:GraphEdge)
-		{ 
-			return el.node[0] == this.node[0] ||
-			       el.node[0] == this.node[1] ||
-			       el.node[1] == this.node[0] ||
-			       el.node[1] == this.node[1];
-		});
+		{  return el.node[0] == node0 || el.node[0] == node1 || el.node[1] == node0 || el.node[1] == node1; });
 		// .remove(this)
 		//TODO: remove this edge from adjacent array
 	}
@@ -72,15 +78,10 @@ class GraphEdge{
 }
 
 class Graph{
-
-	// VOCABULARY:
-	//  "adjacent": nodes are adjacent when they are connected by an edge
-	//              edges are adjacent when they are both connected to the same node
-	//  "similar": in the case of an edge: they contain the same 2 nodes, possibly in a different order
-
 	nodes:GraphNode[];
 	edges:GraphEdge[];
 	preferences:any;
+	// todo: callback hooks for when certain properties of the data structure have been altered
 	didChange:(event:object)=>void;
 
 	constructor() {
@@ -89,8 +90,8 @@ class Graph{
 
 		// when you clean a graph, it will do different things based on these preferences
 		this.preferences = {
-			"allowDuplicate": false,  // set to true, no longer classical graph, 
-			"allowCircular": false   // classic mathematical graph, does not allow circular edges
+			"allowDuplicate": false,  // set to truea and is no longer classical graph
+			"allowCircular": false    // classic mathematical graph does not allow circular edges
 		};
 	}
 
@@ -100,21 +101,20 @@ class Graph{
 		this.edges = [];
 	}
 
-	addNode(node:GraphNode) {
+	addNode(node:GraphNode):number {
 		node.graph = this;
 		node.index = this.nodes.length;
 		this.nodes.push(node);
 		return node.index;
 	}
-	addEdge(nodeIndex1:number, nodeIndex2:number) {
+	addEdge(nodeIndex1:number, nodeIndex2:number):number {
 		if(nodeIndex1 >= this.nodes.length || nodeIndex2 >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
 		var newEdge = new GraphEdge(this, nodeIndex1, nodeIndex2);
 		newEdge.index = this.edges.length;
 		this.edges.push( newEdge );
 		return newEdge.index;
 	}
-
-	addNodes(nodes){
+	addNodes(nodes):boolean{
 		// (SIMPLE: NODE array added to only at the end)
 		if(nodes != undefined && nodes.length > 0){
 			this.nodes = this.nodes.concat(nodes);
@@ -124,7 +124,7 @@ class Graph{
 		}
 		return false;
 	}
-	addEdges(edges:GraphEdge[]){
+	addEdges(edges:GraphEdge[]):boolean{
 		if(edges != undefined && edges.length > 0){
 			for(var i = 0; i < edges.length; i++){
 				this.addEdge(edges[i].node[0], edges[i].node[1] );
@@ -156,7 +156,7 @@ class Graph{
 		// return count;
 	}
 
-	removeNode(nodeIndex:number){
+	removeNode(nodeIndex:number):boolean{
 		// (NOT SIMPLE: NODE array altered)
 		if(nodeIndex >= this.nodes.length) { return false; }
 		// step 1: remove the node (easy)
@@ -189,7 +189,7 @@ class Graph{
 	}
 
 	// CLEAN GRAPH
-	clean(){
+	clean():object{
 		if(LOG) { console.log('graph.js: clean()'); }
 		var countCircular, countDuplicate;
 		if(!this.preferences.allowCircular) { countCircular = this.cleanCircularEdges();  }
@@ -199,7 +199,7 @@ class Graph{
 	}
 
 	// remove circular edges (a node connecting to itself)
-	cleanCircularEdges(){
+	cleanCircularEdges():number{
 		if(LOG) { console.log('graph.js: cleanCircularEdges()'); }
 		var count = 0;
 		for(var i = this.edges.length-1; i >= 0; i--){
@@ -213,7 +213,7 @@ class Graph{
 	}
 
 	// remove any duplicate edges (edges containing the same 2 nodes)
-	cleanDuplicateEdges(){
+	cleanDuplicateEdges():number{
 		// (SIMPLE: does not modify NODE array)
 		if(LOG) { console.log('graph.js: cleanDuplicateEdges()'); }
 		var count = 0;
@@ -236,60 +236,31 @@ class Graph{
 			}
 			i+=1;
 		}
+		for(var i = 0; i < this.edges.length; i++){ this.edges[i].index = i; }
 		return count;
 	}
 
 	// TRUE FALSE QUERIES
-	areNodesAdjacent(nodeIndex1:number, nodeIndex2:number){
-		for(var i = 0; i < this.edges.length; i++){
-			if( (this.edges[i].node[0] == nodeIndex1 && this.edges[i].node[1] == nodeIndex2 ) ||
-				(this.edges[i].node[0] == nodeIndex2 && this.edges[i].node[1] == nodeIndex1 ) ){
-				return true;
-			}
-		}
-		return false;
+	areNodesAdjacent(nodeIndex1:number, nodeIndex2:number):boolean{
+		if(this.getEdgeConnectingNodes == undefined){ return false; }
+		return true;
 	}
-	areEdgesAdjacent(edgeIndex1:number, edgeIndex2:number){
+	areEdgesAdjacent(edgeIndex1:number, edgeIndex2:number):boolean{
 		return ( (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[0]) ||
 		         (this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[1]) ||
 		         (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[1]) ||
 		         (this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[0]) );
 	}
-	areEdgesSimilar(edgeIndex1:number, edgeIndex2:number){
+	areEdgesSimilar(edgeIndex1:number, edgeIndex2:number):boolean{
 		return( (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[0] &&
 		         this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[1] ) ||
 		        (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[1] &&
 		         this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[0] ) );
 	}
 
-	// GRAPH QUERIES
-	getNodesAdjacentToNode(nodeIndex:number){
-		var adjacent = [];
-		for(var i = 0; i < this.edges.length; i++){
-			// if we find our node, add the node on the other end of the edge
-			if(this.edges[i].node[0] == nodeIndex) adjacent.push(this.edges[i].node[1]);
-			if(this.edges[i].node[1] == nodeIndex) adjacent.push(this.edges[i].node[0]);
-		}
-		return adjacent;
-	}
-	getNodesAdjacentToEdge(edgeIndex:number){
-		return [this.edges[edgeIndex].node[0], this.edges[edgeIndex].node[1]];
-	}
-	getEdgesAdjacentToEdge(edgeIndex:number){
-		var adjacent = [];
-		for(var i = 0; i < this.edges.length; i++){
-			if(edgeIndex != i){
-				if(this.areEdgesAdjacent(edgeIndex, i)){
-					adjacent.push(i);
-				}
-			}
-		}
-		return adjacent;
-	}
-
 	// getEdgeConnectingNodes in 2 parts: if graph is classical (no duplicate edges)
 	//  the use "Edge" singular, else use "Edges" plural getEdgesConnectingNodes
-	getEdgeConnectingNodes(nodeIndex1:number, nodeIndex2:number){
+	getEdgeConnectingNodes(nodeIndex1:number, nodeIndex2:number):number{
 		// for this to work, graph must be cleaned. no duplicate edges
 		for(var i = 0; i < this.edges.length; i++){
 			if( (this.edges[i].node[0] == nodeIndex1 && this.edges[i].node[1] == nodeIndex2 ) ||
@@ -300,7 +271,7 @@ class Graph{
 		// if nodes are not connected
 		return undefined;
 	}
-	getEdgesConnectingNodes(nodeIndex1:number, nodeIndex2:number){
+	getEdgesConnectingNodes(nodeIndex1:number, nodeIndex2:number):number[]{
 		var edges = [];
 		for(var i = 0; i < this.edges.length; i++){
 			if( (this.edges[i].node[0] == nodeIndex1 && this.edges[i].node[1] == nodeIndex2 ) ||
@@ -311,36 +282,9 @@ class Graph{
 		return edges;
 	}
 
-	getEdgesAdjacentToNode(nodeIndex:number){  // uint
-		var connectedIndices = []; // uint
-		// iterate over all edges, if we find our node, add the edge
-		for(var i = 0; i < this.edges.length; i++){
-			if(this.edges[i].node[0] == nodeIndex || this.edges[i].node[1] == nodeIndex)
-				connectedIndices.push(i);
-		}
-		return connectedIndices;
-	}
-
-	getEdgesConnectedToEdge(edgeIndex:number){
-		var connected1 = this.getEdgesAdjacentToNode(this.edges[edgeIndex].node[0]);
-		var connected2 = this.getEdgesAdjacentToNode(this.edges[edgeIndex].node[1]);
-		// remove self (edgeIndex) from answer
-		var found = connected1.indexOf(edgeIndex);
-		while(found != -1){
-			connected1.splice(found, 1);
-			found = connected1.indexOf(edgeIndex);
-		}
-		var found = connected2.indexOf(edgeIndex);
-		while(found != -1){
-			connected2.splice(found, 1);
-			found = connected2.indexOf(edgeIndex);
-		}
-		return connected1.concat(connected2);
-	}
-
 	// replaces all mention of one node with the other in both node and edge arrays
 	// shrinks the total number of nodes
-	mergeNodes(nodeIndex1:number, nodeIndex2:number){
+	mergeNodes(nodeIndex1:number, nodeIndex2:number):boolean{
 		if(LOG) console.log('graph.js: mergeNodes(' + nodeIndex1 + ',' + nodeIndex2 + ')');
 		// sort the 2 indices by whichever comes first in the node array
 		var first, second;

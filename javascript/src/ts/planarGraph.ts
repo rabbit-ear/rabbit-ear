@@ -28,15 +28,6 @@ class EdgeNodeAngle extends EdgeAndNode{
 	}
 }
 
-class XYPoint{
-	x:number;
-	y:number;
-	constructor(xx:number, yy:number){
-		this.x = xx;
-		this.y = yy;
-	}
-}
-
 class PlanarNode extends GraphNode{
 	x:number;
 	y:number;
@@ -48,25 +39,11 @@ class PlanarNode extends GraphNode{
 		if(xx == undefined){ this.x = 0; }
 		if(yy == undefined){ this.y = 0; }
 	}
-
-	adjacent:{
-		edges:EdgeNodeAngle[], 
-		nodes:EdgeNodeAngle[]
-	}
 }
 
 class PlanarEdge extends GraphEdge{
-	graph:PlanarGraph; // pointer to the graph
-
-	constructor(g:PlanarGraph, index1:number, index2:number){
-		super(g, index1, index2);
-		this.graph = g;
-	};
-
-	endpoints:()=>PlanarNode[] = function() {
-		if (this.graph == undefined) return undefined;
-		return [this.graph.nodes[ this.node[0] ], this.graph.nodes[ this.node[1] ]];
-	};
+	// convenience renaming
+	endPoints:()=>PlanarNode[] = function() { return this.adjacentNodes(); };
 }
 
 class PlanarFace{
@@ -85,18 +62,6 @@ class PlanarGraph extends Graph{
 	constructor(){
 		super();
 		this.faces = [];
-		// reprogram these:
-		this.nodes = []; // each entry is object with properties: 
-		                 // {
-		                 //   x:___,
-		                 //   y:___,
-		                 //   adjacent:{
-		                 //     edges:[ {edge:3, node:2, angle:30°},
-		                 //             {edge:0, node:3, angle:60°}, ... ]
-		                 //     nodes:[ 0, 1, 2, ...]
-		                 //   }
-		                 // }
-		                 // all angles are with respect to a universal coordinate frame
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -106,26 +71,20 @@ class PlanarGraph extends Graph{
 	//  ADD PARTS
 
 	addEdgeWithVertices(x1, y1, x2, y2){  // floats
-		var nodeArrayLength = this.nodes.length;
-		this.nodes.push( new PlanarNode(x1, y1) );
-		this.nodes.push( new PlanarNode(x2, y2) );
-		this.edges.push( new PlanarEdge(this, nodeArrayLength, nodeArrayLength+1) );
-		return this.edges.length-1;
+		var a = this.addNode( new PlanarNode(x1, y1) );
+		var b = this.addNode( new PlanarNode(x2, y2) );
+		return this.addEdge(a, b);
 		// this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
 	}
 
 	addEdgeFromVertex(existingIndex, newX, newY){ // uint, floats
-		var nodeArrayLength = this.nodes.length;
-		// this.nodes.push( {'x':newX, 'y':newY, 'isBoundary':this.isBoundaryNode(newX, newY)} );
-		this.nodes.push( new PlanarNode(newX, newY) );
-		this.edges.push( new PlanarEdge(this, existingIndex, nodeArrayLength) );
-		return this.edges.length-1;
+		var index = this.addNode( new PlanarNode(newX, newY) );
+		return this.addEdge(existingIndex, index);
 		// this.changedNodes( [existingIndex, this.nodes.length-1] );
 	}
 
 	addEdgeFromExistingVertices(existingIndex1, existingIndex2){ // uint, uint
-		this.edges.push( new PlanarEdge(this, existingIndex1, existingIndex2) );
-		return this.edges.length-1;
+		return this.addEdge(existingIndex1, existingIndex2);
 		// this.changedNodes( [existingIndex1, existingIndex2] );
 	}
 
@@ -195,7 +154,8 @@ class PlanarGraph extends Graph{
 	refreshAdjacencyAtNode(nodeIndex:number){
 		///////// EDGES
 		// get indices of all connected edges
-		var adjacentEdgeIndices = this.getEdgesAdjacentToNode(nodeIndex);
+		// var adjacentEdgeIndices = this.getEdgesAdjacentToNode(nodeIndex);
+		var adjacentEdgeIndices = this.nodes[nodeIndex].adjacentEdges();
 		var adjacentEdges:EdgeNodeAngle[] = [];
 		for(var i = 0; i < adjacentEdgeIndices.length; i++){
 			// find other 

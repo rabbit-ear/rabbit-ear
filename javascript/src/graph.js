@@ -13,7 +13,8 @@ var GraphNode = (function () {
             if (this.graph == undefined) {
                 throw "error";
             }
-            return this.graph.edges.filter(function (el) { return el.node[0] == this.index || el.node[1] == this.index; });
+            var thisIndex = this.index;
+            return this.graph.edges.filter(function (el) { return el.node[0] == thisIndex || el.node[1] == thisIndex; });
         };
         this.adjacentNodes = function () {
             var adjacent = [];
@@ -59,11 +60,13 @@ var GraphNode = (function () {
 var GraphEdge = (function () {
     function GraphEdge(g, nodeIndex1, nodeIndex2) {
         this.adjacentEdges = function () {
+            var node0 = this.node[0];
+            var node1 = this.node[1];
             return this.graph.edges.filter(function (el) {
-                return el.node[0] == this.node[0] ||
-                    el.node[0] == this.node[1] ||
-                    el.node[1] == this.node[0] ||
-                    el.node[1] == this.node[1];
+                return el.node[0] == node0 ||
+                    el.node[0] == node1 ||
+                    el.node[1] == node0 ||
+                    el.node[1] == node1;
             });
             // .remove(this)
             //TODO: remove this edge from adjacent array
@@ -255,6 +258,9 @@ var Graph = (function () {
                     j++;
             }
             i += 1;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            this.edges[i].index = i;
         }
         return count;
     };

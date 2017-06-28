@@ -25,17 +25,19 @@ function fillGraph(graph, numNodes){
 		}
 	}
 	graph.clean();
+	console.log(graph);
 }
 
 function didTouchNode02(index, circles, links){
 	var highlighted_id = [];
 	var highlighted_indices = [];
 	if(index != undefined){
-		var adjacent = g02.getEdgesAdjacentToNode(index);
+		// var adjacent = g02.getEdgesAdjacentToNode(index);
+		var adjacent = g02.nodes[index].adjacentEdges();
 		for(var i = 0; i < adjacent.length; i++){
-			var nameString = 'link' + adjacent[i];
+			var nameString = 'link' + adjacent[i].index;
 			highlighted_id.push(nameString);
-			highlighted_indices.push(adjacent[i]);
+			highlighted_indices.push(adjacent[i].index);
 		}
 	}
 	updateSelection('node' + index, circles, links, highlighted_id);
@@ -48,11 +50,12 @@ function didTouchEdge02(index, circles, links){
 	var highlighted_id = [];
 	var highlighted_indices = [];
 	if(index != undefined){
-		var adjacent = g02.getEdgesAdjacentToEdge(index);
+		// var adjacent = g02.getEdgesAdjacentToEdge(index);
+		var adjacent = g02.edges[index].adjacentEdges();
 		for(var i = 0; i < adjacent.length; i++){
-			var nameString = 'link' + adjacent[i];
+			var nameString = 'link' + adjacent[i].index;
 			highlighted_id.push(nameString);
-			highlighted_indices.push(adjacent[i]);
+			highlighted_indices.push(adjacent[i].index);
 		}
 	}
 	updateSelection('link' + index, circles, links, highlighted_id);

@@ -31,11 +31,12 @@ function didTouchNode01(index, circles, links){
 	var highlighted_id = [];
 	var highlighted_indices = [];
 	if(index != undefined){
-		var adjacent = g01.getNodesAdjacentToNode(index);
+		// var adjacent = g01.getNodesAdjacentToNode(index);
+		var adjacent = g01.nodes[index].adjacentNodes();
 		for(var i = 0; i < adjacent.length; i++){
-			var nameString = 'node' + adjacent[i];
+			var nameString = 'node' + adjacent[i].index;
 			highlighted_id.push(nameString);
-			highlighted_indices.push(adjacent[i]);
+			highlighted_indices.push(adjacent[i].index);
 		}
 	}
 	updateSelection('node' + index, circles, links, highlighted_id);
@@ -48,11 +49,12 @@ function didTouchEdge01(index, circles, links){
 	var highlighted_id = [];
 	var highlighted_indices = [];
 	if(index != undefined){
-		var adjacent = g01.getNodesAdjacentToEdge(index);
+		// var adjacent = g01.getNodesAdjacentToEdge(index);
+		var adjacent = g01.edges[index].adjacentNodes();
 		for(var i = 0; i < adjacent.length; i++){
-			var nameString = 'node' + adjacent[i];
+			var nameString = 'node' + adjacent[i].index;
 			highlighted_id.push(nameString);
-			highlighted_indices.push(adjacent[i]);
+			highlighted_indices.push(adjacent[i].index);
 		}
 	}
 	updateSelection('link' + index, circles, links, highlighted_id);
