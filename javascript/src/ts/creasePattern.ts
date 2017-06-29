@@ -17,8 +17,8 @@ class CreaseNode extends PlanarNode{
 
 class CreaseEdge extends PlanarEdge{
 	orientation:CreaseDirection;
-	constructor(g:CreasePattern, index1:number, index2:number){
-		super(g, index1, index2);
+	constructor(index1:number, index2:number){
+		super(index1, index2);
 	};
 }
 
@@ -169,7 +169,9 @@ class CreasePattern extends PlanarGraph{
 		//  - details on the root data (nodes, edges, their angles)
 		//  - results from the kawasaki algorithm:
 		//     which is the amount in radians to add to each angle to make flat foldable 
-		var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
+		// var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
+		var adjacentEdges = this.nodeAdjacentEdgesWithDetails(nodeIndex);
+		var thisNode = this.nodes[nodeIndex];
 		adjacentEdges.sort(function(a,b){return (a.angle > b.angle)?1:((b.angle > a.angle)?-1:0);});
 		// console.log(adjacentEdges);
 		var angles = [];
@@ -200,7 +202,7 @@ class CreasePattern extends PlanarGraph{
 
 	kawasakiDeviance(nodeIndex){
 		var kawasaki = kawasaki(nodeIndex);
-		var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
+		var adjacentEdges = this.nodeAdjacentEdgesWithDetails(nodeIndex);
 		adjacentEdges.sort(function(a,b){return (a.angle > b.angle)?1:((b.angle > a.angle)?-1:0);});
 		var angles = [];
 		for(var i = 0; i < adjacentEdges.length; i++){
@@ -298,14 +300,14 @@ class CreasePattern extends PlanarGraph{
 		this.addPaperEdge(1,1,0,1);
 		this.addPaperEdge(0,1,0,0);
 		this.clean();
-		this.addFace([0, 1, 3]);
-		this.addFace([0, 2, 1]);
-		this.addFace([4, 3, 1]);
-		this.addFace([5, 1, 2]);
-		this.addFace([6, 5, 2]);
-		this.addFace([6, 2, 0]);
-		this.addFace([7, 3, 4]);
-		this.addFace([7, 0, 3]);
+		this.addFaceBetweenNodes([0, 1, 3]);
+		this.addFaceBetweenNodes([0, 2, 1]);
+		this.addFaceBetweenNodes([4, 3, 1]);
+		this.addFaceBetweenNodes([5, 1, 2]);
+		this.addFaceBetweenNodes([6, 5, 2]);
+		this.addFaceBetweenNodes([6, 2, 0]);
+		this.addFaceBetweenNodes([7, 3, 4]);
+		this.addFaceBetweenNodes([7, 0, 3]);
 	}
 	birdBase(){
 		this.addEdgeWithVertices(.35355, .64645, 0, 1);

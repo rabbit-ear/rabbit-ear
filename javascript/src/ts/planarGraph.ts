@@ -70,40 +70,39 @@ class PlanarGraph extends Graph{
 	//  1.
 	//  ADD PARTS
 
-	addEdgeWithVertices(x1, y1, x2, y2){  // floats
+	addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number){  // floats
 		var a = this.addNode( new PlanarNode(x1, y1) );
 		var b = this.addNode( new PlanarNode(x2, y2) );
-		return this.addEdge(a, b);
+		return this.newEdge(a, b);
 		// this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
 	}
 
-	addEdgeFromVertex(existingIndex, newX, newY){ // uint, floats
+	addEdgeFromVertex(existingIndex:number, newX:number, newY:number){ // uint, floats
 		var index = this.addNode( new PlanarNode(newX, newY) );
-		return this.addEdge(existingIndex, index);
+		return this.newEdge(existingIndex, index);
 		// this.changedNodes( [existingIndex, this.nodes.length-1] );
 	}
 
-	addEdgeFromExistingVertices(existingIndex1, existingIndex2){ // uint, uint
-		return this.addEdge(existingIndex1, existingIndex2);
+	addEdgeFromExistingVertices(existingIndex1:number, existingIndex2:number){ // uint, uint
+		return this.newEdge(existingIndex1, existingIndex2);
 		// this.changedNodes( [existingIndex1, existingIndex2] );
 	}
 
-	addEdgeRadiallyFromVertex(existingIndex, angle, distance){ // uint, floats
+	addEdgeRadiallyFromVertex(existingIndex:number, angle:number, distance:number){ // uint, floats
 		var newX = this.nodes[existingIndex].x + Math.cos(angle) * distance;
 		var newY = this.nodes[existingIndex].y + Math.sin(angle) * distance;
-		this.addEdgeFromVertex(existingIndex, newX, newY);
-		return this.edges.length-1;
+		return this.addEdgeFromVertex(existingIndex, newX, newY);
 		// this.changedNodes( [existingIndex, this.nodes.length-1] );
 	}
 
-	addFace(nodeArray:number[]){
+	addFaceBetweenNodes(nodeArray:number[]){
 		if(nodeArray.length == 0) return;
 		var edgeArray:number[] = [];
 		for(var i = 0; i < nodeArray.length; i++){
 			var nextI = (i + 1) % nodeArray.length;
 			var thisEdge = this.getEdgeConnectingNodes(nodeArray[i], nodeArray[nextI]);
 			if(thisEdge == undefined){
-				console.log("creating edge for face between " + nodeArray[i], nodeArray[nextI]);
+				console.log("creating edge to make face between nodes " + nodeArray[i] + ' ' + nodeArray[nextI]);
 				thisEdge = this.addEdgeFromExistingVertices(nodeArray[i], nodeArray[nextI]);
 			}
 			edgeArray.push(thisEdge);
@@ -121,7 +120,7 @@ class PlanarGraph extends Graph{
 	//  CLEAN  /  REFRESH COMPONENTS
 
 	// quick and easy, use a square bounding box
-	verticesEquivalent(v1:PlanarNode, v2:PlanarNode, epsilon:number){  // Vertex type
+	verticesEquivalent(v1:PlanarNode, v2:PlanarNode, epsilon:number):boolean{
 		return (v1.x - epsilon < v2.x && v1.x + epsilon > v2.x &&
 				v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
 	}
@@ -130,10 +129,11 @@ class PlanarGraph extends Graph{
 	// 			y1 - epsilon < y2 && y1 + epsilon > y2);
 	// } 
 
-	clean(){
+	clean():object{
 		var graphResult = super.clean(); //{'duplicate':countDuplicate, 'circular': countCircular};
 		var result = this.mergeDuplicateVertices();
-		return graphResult; //TODO: add result to this
+		(<any>Object).assign(graphResult, result);
+		return graphResult;
 	}
 
 	// changedNodes(nodeArray){
@@ -151,16 +151,13 @@ class PlanarGraph extends Graph{
 	///////////////////////////////////
 	// Graph-related (non-positional)
 
-	refreshAdjacencyAtNode(nodeIndex:number){
-		///////// EDGES
-		// get indices of all connected edges
-		// var adjacentEdgeIndices = this.getEdgesAdjacentToNode(nodeIndex);
-		var adjacentEdgeIndices = this.nodes[nodeIndex].adjacentEdges();
+	nodeAdjacentEdgesWithDetails(nodeIndex:number):EdgeNodeAngle[]{
 		var adjacentEdges:EdgeNodeAngle[] = [];
-		for(var i = 0; i < adjacentEdgeIndices.length; i++){
+	 	var adjacentEdgeObjects = this.nodes[nodeIndex].adjacentEdges();
+		for(var i = 0; i < adjacentEdgeObjects.length; i++){
 			// find other 
-			var node0 = this.edges[ adjacentEdgeIndices[i] ].node[0];
-			var node1 = this.edges[ adjacentEdgeIndices[i] ].node[1];
+			var node0 = adjacentEdgeObjects[i].node[0];
+			var node1 = adjacentEdgeObjects[i].node[1];
 			var edgesOtherNode = undefined
 			if(node0 == nodeIndex){ edgesOtherNode = node1; }
 			if(node1 == nodeIndex){ edgesOtherNode = node0; }
@@ -170,30 +167,55 @@ class PlanarGraph extends Graph{
 				var dy = this.nodes[edgesOtherNode].y - this.nodes[nodeIndex].y;
 				var edgeAngle = Math.atan2(dy, dx);
 				// could add a distance property here too
-				adjacentEdges.push( new EdgeNodeAngle(adjacentEdgeIndices[i], edgesOtherNode, edgeAngle) );
+				adjacentEdges.push( new EdgeNodeAngle(adjacentEdgeObjects[i].index, edgesOtherNode, edgeAngle) );
 			}
 		}
-		///////// NODES
-		var adjacentNodeIndices = this.getNodesAdjacentToNode(nodeIndex);
-		var adjacentNodes:EdgeNodeAngle[] = [];
-		for(var i = 0; i < adjacentNodeIndices.length; i++){
-			var nodesOtherNode = adjacentNodeIndices[i];
-			var nodesEdge = this.getEdgeConnectingNodes(nodeIndex, nodesOtherNode);
-			var dx = this.nodes[nodesOtherNode].x - this.nodes[nodeIndex].x;
-			var dy = this.nodes[nodesOtherNode].y - this.nodes[nodeIndex].y;
-			var edgeAngle = Math.atan2(dy, dx);
-			adjacentNodes.push( new EdgeNodeAngle(nodesEdge, nodesOtherNode, edgeAngle) );
-		}
-		this.nodes[nodeIndex].adjacent = {'nodes': adjacentNodes, 'edges': adjacentEdges};
+		return adjacentEdges;
 	}
 
-	refreshAdjacencies(){
-		for(var i = 0; i < this.nodes.length; i++){
-			this.refreshAdjacencyAtNode(i);
-		}
-	}
+	// refreshAdjacencyAtNode(nodeIndex:number){
+	// 	///////// EDGES
+	// 	// get indices of all connected edges
+	// 	// var adjacentEdgeIndices = this.getEdgesAdjacentToNode(nodeIndex);
+	// 	var adjacentEdgeIndices = this.nodes[nodeIndex].adjacentEdges();
+	// 	var adjacentEdges:EdgeNodeAngle[] = [];
+	// 	for(var i = 0; i < adjacentEdgeIndices.length; i++){
+	// 		// find other 
+	// 		var node0 = this.edges[ adjacentEdgeIndices[i] ].node[0];
+	// 		var node1 = this.edges[ adjacentEdgeIndices[i] ].node[1];
+	// 		var edgesOtherNode = undefined
+	// 		if(node0 == nodeIndex){ edgesOtherNode = node1; }
+	// 		if(node1 == nodeIndex){ edgesOtherNode = node0; }
 
-	getClockwiseNeighborAround(node, fromNode){
+	// 		if(edgesOtherNode != undefined){
+	// 			var dx = this.nodes[edgesOtherNode].x - this.nodes[nodeIndex].x;
+	// 			var dy = this.nodes[edgesOtherNode].y - this.nodes[nodeIndex].y;
+	// 			var edgeAngle = Math.atan2(dy, dx);
+	// 			// could add a distance property here too
+	// 			adjacentEdges.push( new EdgeNodeAngle(adjacentEdgeIndices[i], edgesOtherNode, edgeAngle) );
+	// 		}
+	// 	}
+	// 	///////// NODES
+	// 	var adjacentNodeIndices = this.getNodesAdjacentToNode(nodeIndex);
+	// 	var adjacentNodes:EdgeNodeAngle[] = [];
+	// 	for(var i = 0; i < adjacentNodeIndices.length; i++){
+	// 		var nodesOtherNode = adjacentNodeIndices[i];
+	// 		var nodesEdge = this.getEdgeConnectingNodes(nodeIndex, nodesOtherNode);
+	// 		var dx = this.nodes[nodesOtherNode].x - this.nodes[nodeIndex].x;
+	// 		var dy = this.nodes[nodesOtherNode].y - this.nodes[nodeIndex].y;
+	// 		var edgeAngle = Math.atan2(dy, dx);
+	// 		adjacentNodes.push( new EdgeNodeAngle(nodesEdge, nodesOtherNode, edgeAngle) );
+	// 	}
+	// 	this.nodes[nodeIndex].adjacent = {'nodes': adjacentNodes, 'edges': adjacentEdges};
+	// }
+
+	// refreshAdjacencies(){
+	// 	for(var i = 0; i < this.nodes.length; i++){
+	// 		this.refreshAdjacencyAtNode(i);
+	// 	}
+	// }
+
+	getClockwiseNeighborAround(node:number, fromNode:number):any{
 		var array = this.nodes[node]['adjacent']['edges'];
 		for(var i = 0; i < array.length; i++){
 			if(array[i]['node'] == fromNode){
@@ -204,7 +226,7 @@ class PlanarGraph extends Graph{
 		return undefined;
 	}
 
-	getNextElementToItemInArray(array, item){
+	getNextElementToItemInArray(array:any[], item:any){
 		for(var i = 0; i < array.length; i++){
 			if(array[i] == item){
 				var index = i+1;
@@ -233,7 +255,7 @@ class PlanarGraph extends Graph{
 		return removeCatalog;
 	}
 
-	getNearestNode(x, y){
+	getNearestNode(x:number, y:number){
 		// can be optimized with a k-d tree
 		var index = undefined;
 		var distance = Math.sqrt(2);
@@ -247,7 +269,7 @@ class PlanarGraph extends Graph{
 		return index;
 	}
 
-	getNearestNodes(x, y, howMany){
+	getNearestNodes(x:number, y:number, howMany:number){
 		// can be optimized with a k-d tree
 		var distances = [];
 		for(var i = 0; i < this.nodes.length; i++){
@@ -265,7 +287,7 @@ class PlanarGraph extends Graph{
 	}
 
 
-	getNearestEdge(x, y){
+	getNearestEdge(x:number, y:number){
 		if(x == undefined || y == undefined)
 			return undefined;
 
@@ -292,7 +314,7 @@ class PlanarGraph extends Graph{
 	///////////////////////////////////////////////////////////////
 	// EDGE INTERSECTION
 
-	edgesIntersect(e1, e2): any{
+	edgesIntersect(e1:number, e2:number):any{
 		// if true - returns {x,y} location of intersection
 		if(this.areEdgesAdjacent(e1, e2)){  return undefined;  }
 		var v0 = this.nodes[ this.edges[e1].node[0] ];
@@ -439,76 +461,79 @@ class PlanarGraph extends Graph{
 // Planar Graph new data structures
 
 	generateFaces(){
-		// walk around a face
-		this.faces = [];
-		for(var startNode = 0; startNode < this.nodes.length; startNode++){
-			for(var n = 0; n < this.nodes[startNode].adjacent.edges.length; n++){
-				var validFace = true;
-				var nextAdjacent = this.nodes[startNode].adjacent.edges[n];
-				var travelingNode = nextAdjacent.node;
-				var theFace = new PlanarFace();
-				theFace['nodes'] = [ startNode, travelingNode ];
-				theFace['edges'] = [ nextAdjacent.edge ];
-				// var prevAngle = 0
-				// theFace['angles'] = [ this.nodes[startNode].adjacent.edges[n].angle ];
-				// var totalAngle = 0;
-				while(validFace && travelingNode != startNode){
-					var prevNode = theFace['nodes'][ theFace['nodes'].length-2 ];
-					var nextAdjacent = this.getClockwiseNeighborAround( travelingNode, prevNode );
-					travelingNode = nextAdjacent.node;
-					// theFace['angles'].push(nextAdjacent.angle);
-					// var nextAngle = nextAdjacent.angle;
-					// totalAngle += (nextAngle - prevAngle);
-					// prevAngle = nextAngle;
-					if(travelingNode == undefined){
-						// next element in array returning undefined, something weird is going on
-						validFace = false;
-					} else {
-						if(travelingNode == prevNode){
-							validFace = false;
-						} else{
-							if(travelingNode != startNode){
-								theFace['nodes'].push(travelingNode);
-								// var nextAngle = nextAdjacent.angle;
-								// totalAngle += (nextAngle - prevAngle);
-							}
-							theFace['edges'].push(nextAdjacent.edge);
-							// var already = this.arrayContainsNumberAtIndex(theFace, travelingNode);
-							// if(already == undefined){
-							// 	theFace.push(travelingNode);								
-							// } else{
-								// face that makes a figure 8. visits a node twice in the middle.
-								// if(this.faces.length > 2){
-								// 	// we can use this sub section if it's larger than a line
-								// 	var cropFace = theFace.slice(already, 1 + theFace.length-already);
-								// 	this.faces.push(cropFace);
-								// } 
-								// validFace = false;
-							// }
-						}
+		// // walk around a face
+		// this.faces = [];
+		// for(var startNode = 0; startNode < this.nodes.length; startNode++){
+		// 	var startNodeAdjacentEdges = this.nodeAdjacentEdgesWithDetails(startNode);
+		// 	// var startNodeAdjacentEdges = this.nodes[startNode].adjacentEdges().map(function(el){  });
 
-					}
-				}
+		// 	for(var n = 0; n < startNodeAdjacentEdges.length; n++){
+		// 		var validFace = true;
+		// 		var nextAdjacent:EdgeNodeAngle = startNodeAdjacentEdges[n];
+		// 		var travelingNode = nextAdjacent.node;
+		// 		var theFace = new PlanarFace();
+		// 		theFace['nodes'] = [ startNode, travelingNode ];
+		// 		theFace['edges'] = [ nextAdjacent.edge ];
+		// 		// var prevAngle = 0
+		// 		// theFace['angles'] = [ this.nodes[startNode].adjacent.edges[n].angle ];
+		// 		// var totalAngle = 0;
+		// 		while(validFace && travelingNode != startNode){
+		// 			var prevNode = theFace['nodes'][ theFace['nodes'].length-2 ];
+		// 			var nextAdjacent = this.getClockwiseNeighborAround( travelingNode, prevNode );
+		// 			travelingNode = nextAdjacent.node;
+		// 			// theFace['angles'].push(nextAdjacent.angle);
+		// 			// var nextAngle = nextAdjacent.angle;
+		// 			// totalAngle += (nextAngle - prevAngle);
+		// 			// prevAngle = nextAngle;
+		// 			if(travelingNode == undefined){
+		// 				// next element in array returning undefined, something weird is going on
+		// 				validFace = false;
+		// 			} else {
+		// 				if(travelingNode == prevNode){
+		// 					validFace = false;
+		// 				} else{
+		// 					if(travelingNode != startNode){
+		// 						theFace['nodes'].push(travelingNode);
+		// 						// var nextAngle = nextAdjacent.angle;
+		// 						// totalAngle += (nextAngle - prevAngle);
+		// 					}
+		// 					theFace['edges'].push(nextAdjacent.edge);
+		// 					// var already = this.arrayContainsNumberAtIndex(theFace, travelingNode);
+		// 					// if(already == undefined){
+		// 					// 	theFace.push(travelingNode);								
+		// 					// } else{
+		// 						// face that makes a figure 8. visits a node twice in the middle.
+		// 						// if(this.faces.length > 2){
+		// 						// 	// we can use this sub section if it's larger than a line
+		// 						// 	var cropFace = theFace.slice(already, 1 + theFace.length-already);
+		// 						// 	this.faces.push(cropFace);
+		// 						// } 
+		// 						// validFace = false;
+		// 					// }
+		// 				}
 
-				if(validFace && !this.arrayContainsDuplicates(theFace)){
-					// theFace['angle'] = totalAngle;
-					this.faces.push(theFace);
-				}
-			}
-		}
+		// 			}
+		// 		}
 
-		// remove duplicate faces
-		var i = 0;
-		while(i < this.faces.length-1){
-			var j = this.faces.length-1;
-			while(j > i){
-				if(this.areFacesEquivalent(i, j)){
-					this.faces.splice(j, 1);
-				}
-				j--;
-			}
-			i++;
-		}
+		// 		if(validFace && !this.arrayContainsDuplicates(theFace)){
+		// 			// theFace['angle'] = totalAngle;
+		// 			this.faces.push(theFace);
+		// 		}
+		// 	}
+		// }
+
+		// // remove duplicate faces
+		// var i = 0;
+		// while(i < this.faces.length-1){
+		// 	var j = this.faces.length-1;
+		// 	while(j > i){
+		// 		if(this.areFacesEquivalent(i, j)){
+		// 			this.faces.splice(j, 1);
+		// 		}
+		// 		j--;
+		// 	}
+		// 	i++;
+		// }
 	}
 
 	areFacesEquivalent(faceIndex1, faceIndex2){

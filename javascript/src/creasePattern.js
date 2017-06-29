@@ -289,14 +289,14 @@ var CreasePattern = (function (_super) {
         this.addPaperEdge(1, 1, 0, 1);
         this.addPaperEdge(0, 1, 0, 0);
         this.clean();
-        this.addFace([0, 1, 3]);
-        this.addFace([0, 2, 1]);
-        this.addFace([4, 3, 1]);
-        this.addFace([5, 1, 2]);
-        this.addFace([6, 5, 2]);
-        this.addFace([6, 2, 0]);
-        this.addFace([7, 3, 4]);
-        this.addFace([7, 0, 3]);
+        this.addFaceBetweenNodes([0, 1, 3]);
+        this.addFaceBetweenNodes([0, 2, 1]);
+        this.addFaceBetweenNodes([4, 3, 1]);
+        this.addFaceBetweenNodes([5, 1, 2]);
+        this.addFaceBetweenNodes([6, 5, 2]);
+        this.addFaceBetweenNodes([6, 2, 0]);
+        this.addFaceBetweenNodes([7, 3, 4]);
+        this.addFaceBetweenNodes([7, 0, 3]);
     };
     CreasePattern.prototype.birdBase = function () {
         this.addEdgeWithVertices(.35355, .64645, 0, 1);
