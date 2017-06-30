@@ -170,9 +170,8 @@ class CreasePattern extends PlanarGraph{
 		//  - results from the kawasaki algorithm:
 		//     which is the amount in radians to add to each angle to make flat foldable 
 		// var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
-		var adjacentEdges = this.nodeAdjacentEdgesWithDetails(nodeIndex);
 		var thisNode = this.nodes[nodeIndex];
-		adjacentEdges.sort(function(a,b){return (a.angle > b.angle)?1:((b.angle > a.angle)?-1:0);});
+		var adjacentEdges = thisNode.planarAdjacent();
 		// console.log(adjacentEdges);
 		var angles = [];
 		for(var i = 0; i < adjacentEdges.length; i++){
@@ -202,8 +201,7 @@ class CreasePattern extends PlanarGraph{
 
 	kawasakiDeviance(nodeIndex){
 		var kawasaki = kawasaki(nodeIndex);
-		var adjacentEdges = this.nodeAdjacentEdgesWithDetails(nodeIndex);
-		adjacentEdges.sort(function(a,b){return (a.angle > b.angle)?1:((b.angle > a.angle)?-1:0);});
+		var adjacentEdges = this.nodes[nodeIndex].planarAdjacent();
 		var angles = [];
 		for(var i = 0; i < adjacentEdges.length; i++){
 			var nextI = (i+1)%adjacentEdges.length;

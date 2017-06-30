@@ -49,21 +49,13 @@ var GraphNode = (function () {
         return this.graph.edges.filter(function (el) { return el.node[0] == thisIndex || el.node[1] == thisIndex; });
     };
     GraphNode.prototype.adjacentNodes = function () {
-        // var adjacent:GraphNode[] = [];
-        // var nodeArray:GraphNode[] = this.graph.edges.map(function(el){ 
-        // 	if(el.node[0] == this.index) return this.graph.nodes[ el.node[1] ];
-        // 	if(el.node[1] == this.index) return this.graph.nodes[ el.node[0] ];
-        // },this);
-        var firstHalf = this.graph.edges.filter(function (el) { return el.node[0] == this.index; }, this);
-        var secondHalf = this.graph.edges.filter(function (el) { return el.node[1] == this.index; }, this);
-        var node1Array = firstHalf.map(function (el) { return this.graph.nodes[el.node[1]]; }, this);
-        var node2Array = secondHalf.map(function (el) { return this.graph.nodes[el.node[0]]; }, this);
-        return node1Array.concat(node2Array);
-        // for(var i = 0; i < this.graph.edges.length; i++){
-        // 	if(this.graph.edges[i].node[0] == this.index) { adjacent.push( this.graph.nodes[ this.graph.edges[i].node[1] ] ); }
-        // 	if(this.graph.edges[i].node[1] == this.index) { adjacent.push( this.graph.nodes[ this.graph.edges[i].node[0] ] ); }
-        // }
-        // return adjacent;
+        var first = this.graph.edges
+            .filter(function (el) { return el.node[0] == this.index; }, this)
+            .map(function (el) { return this.graph.nodes[el.node[1]]; }, this);
+        var second = this.graph.edges
+            .filter(function (el) { return el.node[1] == this.index; }, this)
+            .map(function (el) { return this.graph.nodes[el.node[0]]; }, this);
+        return first.concat(second);
     };
     return GraphNode;
 }());
