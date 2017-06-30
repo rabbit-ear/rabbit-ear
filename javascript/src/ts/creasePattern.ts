@@ -217,7 +217,6 @@ class CreasePattern extends PlanarGraph{
 
 	// cleanIntersections(){
 	// 	this.clean();
-	// 	if(LOG) console.log('crease pattern: cleanIntersections()');
 	// 	var intersections = super.chop();
 	// 	this.interestingPoints = this.interestingPoints.concat(intersections);
 	// 	return intersections;

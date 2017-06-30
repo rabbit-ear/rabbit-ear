@@ -24,12 +24,8 @@ var test06 = function(p){
 	function drawAnX(graph){
 		graph.clear();
 		var w = 0.33;
-		var first = {x:Math.random()*w, y:Math.random()*w, z:0.0};
-		graph.nodes.push(first);
-		graph.addEdgeFromVertex(0, Math.random()*w+(1-w), Math.random()*w+(1-w));
-		var second = {x:Math.random()*w, y:Math.random()*w+(1-w), z:0.0};
-		graph.nodes.push(second);
-		graph.addEdgeFromVertex(2, Math.random()*w+(1-w), Math.random()*w);
+		graph.addEdgeWithVertices(Math.random()*w, Math.random()*w, Math.random()*w+(1-w), Math.random()*w+(1-w));
+		graph.addEdgeWithVertices(Math.random()*w, Math.random()*w+(1-w), Math.random()*w+(1-w), Math.random()*w);
 	}
 
 	function reset(){

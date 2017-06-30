@@ -7,14 +7,44 @@
 // this is a planar graph data structure containing edges and vertices
 // vertices are points in 3D space {x,y,z}  (z is 0 for now)
 
-var USER_TAP_EPSILON = 0.01;
 var EPSILON = 0.003;
+var USER_TAP_EPSILON = 0.01;
 var SLOPE_ANGLE_PLACES = 2.5;
 var SLOPE_ANGLE_EPSILON = 1 * Math.pow(10,-SLOPE_ANGLE_PLACES);
 var SLOPE_ANGLE_INF_EPSILON = 1 * Math.pow(10,SLOPE_ANGLE_PLACES);
 
 // this graph represents an origami crease pattern
 //    with creases (edges) defined by their endpoints (vertices)
+
+class XYPoint{
+	x:number;
+	y:number;
+	constructor(xx:number, yy:number){
+		this.x = xx;
+		this.y = yy;
+	}
+}
+
+class Intersection extends XYPoint{
+	// intersection of 2 edges - contains 1 intersection point, 2 edges, 4 nodes (2 edge 2 endpoints)
+	exists:boolean;  // t/f intersection exists
+	edges:[PlanarEdge, PlanarEdge];
+	nodes:[PlanarNode, PlanarNode, PlanarNode, PlanarNode];
+	constructor(a:PlanarEdge, b:PlanarEdge){
+		super(undefined, undefined);  // to be set later, if intersection exists
+		this.exists = false;
+		if(a.isAdjacentWithEdge(b)){ return undefined; }
+		var aPts:PlanarNode[] = a.endPoints();
+		var bPts:PlanarNode[] = b.endPoints();
+		var intersect = lineSegmentIntersectionAlgorithm(aPts[0], aPts[1], bPts[0], bPts[1]);
+		if(intersect == undefined){ return undefined; }
+		this.x = intersect.x;
+		this.y = intersect.y;
+		this.edges = [a,b];
+		this.nodes = [aPts[0], aPts[1], bPts[0], bPts[1]];
+		this.exists = true;
+	}
+}
 
 class EdgeNodeAngle extends EdgeAndNode{
 	edge:number;  // index
@@ -28,7 +58,7 @@ class EdgeNodeAngle extends EdgeAndNode{
 	}
 }
 
-class PlanarNode extends GraphNode{
+class PlanarNode extends GraphNode implements XYPoint{
 	x:number;
 	y:number;
 
@@ -39,12 +69,87 @@ class PlanarNode extends GraphNode{
 		if(xx == undefined){ this.x = 0; }
 		if(yy == undefined){ this.y = 0; }
 	}
+
+	// adjacentNodes():PlanarNode[]{
+	// 	return <PlanarNode[]>super.adjacentNodes();
+	// }
+
+	adjacentNodes():PlanarAdjacentNode[]{
+		return (<PlanarNode[]>super.adjacentNodes())
+			.map(function(el){ return new PlanarAdjacentNode(this, el); },this)
+			.sort(function(a,b){ return (a.angle < b.angle) ? 1 : (a.angle > b.angle) ? -1 : 0 });
+	}
+
+	// refreshAdjacencyAtNode(nodeIndex:number){
+	// 	///////// EDGES
+	// 	// get indices of all connected edges
+	// 	// var adjacentEdgeIndices = this.getEdgesAdjacentToNode(nodeIndex);
+	// 	var adjacentEdgeIndices = this.nodes[nodeIndex].adjacentEdges();
+	// 	var adjacentEdges:EdgeNodeAngle[] = [];
+	// 	for(var i = 0; i < adjacentEdgeIndices.length; i++){
+	// 		// find other 
+	// 		var node0 = this.edges[ adjacentEdgeIndices[i] ].node[0];
+	// 		var node1 = this.edges[ adjacentEdgeIndices[i] ].node[1];
+	// 		var edgesOtherNode = undefined
+	// 		if(node0 == nodeIndex){ edgesOtherNode = node1; }
+	// 		if(node1 == nodeIndex){ edgesOtherNode = node0; }
+
+	// 		if(edgesOtherNode != undefined){
+	// 			var dx = this.nodes[edgesOtherNode].x - this.nodes[nodeIndex].x;
+	// 			var dy = this.nodes[edgesOtherNode].y - this.nodes[nodeIndex].y;
+	// 			var edgeAngle = Math.atan2(dy, dx);
+	// 			// could add a distance property here too
+	// 			adjacentEdges.push( new EdgeNodeAngle(adjacentEdgeIndices[i], edgesOtherNode, edgeAngle) );
+	// 		}
+	// 	}
+		///////// NODES
 }
 
 class PlanarEdge extends GraphEdge{
 	// convenience renaming
-	endPoints:()=>PlanarNode[] = function() { return this.adjacentNodes(); };
+	// endPoints:()=>PlanarNode[] = function() { return this.adjacentNodes(); };
+	// actually asking for more typecasting than i expected
+	endPoints():PlanarNode[]{
+		var planarNodes:PlanarNode[] = <PlanarNode[]>this.graph.nodes;
+		return [planarNodes[this.node[0]], planarNodes[this.node[1]]];
+	}
 }
+
+class PlanarAdjacentNode extends PlanarNode{
+	// node adjacent to node, with angle offset and connecting edge
+	parent:PlanarNode;
+	edge:PlanarEdge;  // edge connecting the two nodes
+	angle:number; // radians
+	constructor(thisNode:PlanarNode, parentNode:PlanarNode){
+		// *sigh* basically make a copy whatever
+		super(thisNode.x, thisNode.y);
+		this.graph = thisNode.graph;
+		this.index = thisNode.index;
+		// save other stuff
+		this.parent = parentNode;
+		this.angle = Math.atan2(parentNode.y-thisNode.y, parentNode.x-thisNode.x);
+		this.edge = <PlanarEdge>thisNode.graph.edges[ thisNode.graph.getEdgeConnectingNodes(thisNode.index, parentNode.index) ];
+	}
+}
+
+// class PlanarAdjacentEdge extends PlanarEdge{
+// 	// edge adjacent to node, with angle offset and connecting edge
+// 	parent:PlanarNode;
+// 	edge:PlanarEdge;  // edge connecting the two nodes
+// 	angle:number; // radians
+// 	constructor(thisEdge:PlanarEdge, parentNode:PlanarNode){
+// 		super(thisEdge.)
+// 		// *sigh* basically make a copy whatever
+// 		super(thisNode.x, thisNode.y);
+// 		this.graph = thisNode.graph;
+// 		this.index = thisNode.index;
+// 		// save other stuff
+// 		this.parent = parentNode;
+// 		this.angle = Math.atan2(parentNode.y-thisNode.y, parentNode.x-thisNode.x);
+// 		this.edge = <PlanarEdge>thisNode.graph.edges[ thisNode.graph.getEdgeConnectingNodes(thisNode.index, parentNode.index) ];
+// 	}
+// }
+
 
 class PlanarFace{
 	// clockwise
@@ -61,7 +166,16 @@ class PlanarGraph extends Graph{
 
 	constructor(){
 		super();
+		this.clear(); // initalize all empty arrays
+	}
+
+	clear(){
+		super.clear(); // clears out nodes[] and edges[]
 		this.faces = [];
+	}
+
+	newEdge(nodeIndex1:number, nodeIndex2:number):number {
+		return this.addEdge(new PlanarEdge(nodeIndex1, nodeIndex2));
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -120,7 +234,7 @@ class PlanarGraph extends Graph{
 	//  CLEAN  /  REFRESH COMPONENTS
 
 	// quick and easy, use a square bounding box
-	verticesEquivalent(v1:PlanarNode, v2:PlanarNode, epsilon:number):boolean{
+	verticesEquivalent(v1:XYPoint, v2:XYPoint, epsilon:number):boolean{
 		return (v1.x - epsilon < v2.x && v1.x + epsilon > v2.x &&
 				v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
 	}
@@ -215,18 +329,25 @@ class PlanarGraph extends Graph{
 	// 	}
 	// }
 
-	getClockwiseNeighborAround(node:number, fromNode:number):any{
-		var array = this.nodes[node]['adjacent']['edges'];
-		for(var i = 0; i < array.length; i++){
-			if(array[i]['node'] == fromNode){
-				var index = ((i+1)%array.length);
-				return array[index];
+	getClockwiseNeighborAround(node:number, fromNode:number):PlanarAdjacentNode{
+		var adjacentNodes:PlanarAdjacentNode[] = this.nodes[node].adjacentNodes();
+		for(var i = 0; i < adjacentNodes.length; i++){
+			if(adjacentNodes[i].parent.index == fromNode){
+				var index = ((i+1)%adjacentNodes.length);
+				return adjacentNodes[index];
 			}
 		}
+		// var adjacentEdges:AdjacentEdge[] = this.nodes[node].adjacentEdges();
+		// for(var i = 0; i < adjacentEdges.length; i++){
+		// 	if(adjacentEdges[i]['node'] == fromNode){
+		// 		var index = ((i+1)%adjacentEdges.length);
+		// 		return adjacentEdges[index];
+		// 	}
+		// }
 		return undefined;
 	}
 
-	getNextElementToItemInArray(array:any[], item:any){
+	getNextElementToItemInArray(array:any[], item:any):any{
 		for(var i = 0; i < array.length; i++){
 			if(array[i] == item){
 				var index = i+1;
@@ -240,7 +361,7 @@ class PlanarGraph extends Graph{
 	//////////////////////////////
 	// position vicinity related
 
-	mergeDuplicateVertices(){
+	mergeDuplicateVertices():object[]{
 		// DANGEROUS: removes nodes
 		// this looks for nodes.position which are physically nearby, within EPSILON radius
 		var removeCatalog = [];
@@ -255,7 +376,7 @@ class PlanarGraph extends Graph{
 		return removeCatalog;
 	}
 
-	getNearestNode(x:number, y:number){
+	getNearestNode(x:number, y:number):number{  // returns index of node
 		// can be optimized with a k-d tree
 		var index = undefined;
 		var distance = Math.sqrt(2);
@@ -269,7 +390,7 @@ class PlanarGraph extends Graph{
 		return index;
 	}
 
-	getNearestNodes(x:number, y:number, howMany:number){
+	getNearestNodes(x:number, y:number, howMany:number):number[]{  // returns array of indices to nodes
 		// can be optimized with a k-d tree
 		var distances = [];
 		for(var i = 0; i < this.nodes.length; i++){
@@ -295,9 +416,8 @@ class PlanarGraph extends Graph{
 		var minDistIndex = undefined;
 		var minLocation = undefined;
 		for(var i = 0; i < this.edges.length; i++){
-			var p1 = this.nodes[ this.edges[i].node[0] ];
-			var p2 = this.nodes[ this.edges[i].node[1] ];
-			var pT = this.minDistBetweenPointLine(p1.x, p1.y, p2.x, p2.y, x, y);
+			var p = this.edges[i].endPoints();
+			var pT = minDistBetweenPointLine(p[0], p[1], x, y);
 			if(pT != undefined){
 				var thisDist = Math.sqrt(Math.pow(x-pT.x,2) + Math.pow(y-pT.y,2));
 				if(minDist == undefined || thisDist < minDist){
@@ -314,61 +434,36 @@ class PlanarGraph extends Graph{
 	///////////////////////////////////////////////////////////////
 	// EDGE INTERSECTION
 
-	edgesIntersect(e1:number, e2:number):any{
+	edgesIntersectUsingVertices(a1:XYPoint, a2:XYPoint, b1:XYPoint, b2:XYPoint):XYPoint{
+		// test line a1-a2 intersect with line b1-b2
 		// if true - returns {x,y} location of intersection
-		if(this.areEdgesAdjacent(e1, e2)){  return undefined;  }
-		var v0 = this.nodes[ this.edges[e1].node[0] ];
-		var v1 = this.nodes[ this.edges[e1].node[1] ];
-		var v2 = this.nodes[ this.edges[e2].node[0] ];
-		var v3 = this.nodes[ this.edges[e2].node[1] ];
-		return this.lineSegmentIntersectionAlgorithm(v0, v1, v2, v3);
-	}
-
-	edgesIntersectUsingVertices(p0, p1, p2, p3){
-		// if true - returns {x,y} location of intersection
-		if(this.verticesEquivalent(p0, p2, EPSILON) ||
-		   this.verticesEquivalent(p0, p3, EPSILON) ||
-		   this.verticesEquivalent(p1, p2, EPSILON) ||
-		   this.verticesEquivalent(p1, p3, EPSILON) ){
+		if(this.verticesEquivalent(a1, b1, EPSILON) ||
+		   this.verticesEquivalent(a1, b2, EPSILON) ||
+		   this.verticesEquivalent(a2, b1, EPSILON) ||
+		   this.verticesEquivalent(a2, b2, EPSILON) ){
 		   	return undefined;
 		}
-		return this.lineSegmentIntersectionAlgorithm(p0, p1, p2, p3);
+		return lineSegmentIntersectionAlgorithm(a1, a2, b1, b2);
 	}
 
-	getEdgeIntersectionsWithEdge(edgeIndex){
-		var intersections = [];
+	getEdgeIntersectionsWithEdge(edgeIndex):Intersection[]{
+		if(edgeIndex >= this.edges.length){ throw "getEdgeIntersectionsWithEdge() edge index larger than edge array"; }
+		var intersections:Intersection[] = [];
 		for(var i = 0; i < this.edges.length; i++){
 			if(edgeIndex != i){
-				var intersection = this.edgesIntersect(edgeIndex, i);
-				if(intersection != undefined){
-					intersection.e1 = edgeIndex;
-					intersection.e2 = i;
-					intersection.e1n1 = this.edges[edgeIndex].node[0];
-					intersection.e1n2 = this.edges[edgeIndex].node[1];
-					intersection.e2n1 = this.edges[i].node[0];
-					intersection.e2n2 = this.edges[i].node[1];
-					intersections.push(intersection);
-				}
+				var intersection = new Intersection(this.edges[edgeIndex], this.edges[i]);
+				if(intersection.exists){ intersections.push(intersection); }
 			}
 		}
 		return intersections;
 	}
 
-	getAllEdgeIntersections(){
-		var intersections = [];
+	getAllEdgeIntersections():Intersection[]{
+		var intersections:Intersection[] = [];
 		for(var i = 0; i < this.edges.length-1; i++){
 			for(var j = i+1; j < this.edges.length; j++){
-				var intersection = this.edgesIntersect(i, j);
-				if(intersection != undefined){
-					// it's just. i really think... we don't need this extra stuff in this function
-					// intersection.e1 = i;
-					// intersection.e2 = j;
-					// intersection.e1n1 = this.edges[i].node[0];
-					// intersection.e1n2 = this.edges[i].node[1];
-					// intersection.e2n1 = this.edges[j].node[0];
-					// intersection.e2n2 = this.edges[j].node[1];
-					intersections.push(intersection);
-				}
+				var intersection = new Intersection(this.edges[i], this.edges[j]);
+				if(intersection.exists){ intersections.push(intersection); }
 			}
 		}
 		return intersections;
@@ -378,7 +473,6 @@ class PlanarGraph extends Graph{
 	// chop(){
 	// 	var intersectionPoints = new PlanarGraph();
 	// 	// var allIntersections = [];
-	// 	if(LOG) console.log('crease pattern: chop()');
 	// 	for(var i = 0; i < this.edges.length; i++){
 	// 		var intersections = this.getEdgeIntersectionsWithEdge(i);
 	// 		if(intersections != undefined && intersections.length > 0){
@@ -409,21 +503,20 @@ class PlanarGraph extends Graph{
 		// var intersectionPoints = new PlanarGraph();
 		var allIntersections = [];  // keep a running total of all the intersection points
 		for(var i = 0; i < this.edges.length; i++){
-			var edgeCrossings = this.getEdgeIntersectionsWithEdge(i);
+			var edgeCrossings:Intersection[] = this.getEdgeIntersectionsWithEdge(i);
 			if(edgeCrossings != undefined && edgeCrossings.length > 0){
 				allIntersections = allIntersections.concat(edgeCrossings);
-				// intersectionPoints.addNodes(edgeCrossings);
 			}
 			while(edgeCrossings.length > 0){
 				var newIntersectionIndex = this.nodes.length;
 				this.addNode(new PlanarNode(edgeCrossings[0].x, edgeCrossings[0].y));
 				// this.addNode({'x':edgeCrossings[0].x, 'y':edgeCrossings[0].y});
-				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].e1n1);
-				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].e1n2);
-				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].e2n1);
-				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].e2n2);
-				this.removeEdgesBetween(edgeCrossings[0].e1n1, edgeCrossings[0].e1n2);
-				this.removeEdgesBetween(edgeCrossings[0].e2n1, edgeCrossings[0].e2n2);
+				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].nodes[0].index);
+				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].nodes[1].index);
+				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].nodes[2].index);
+				this.addEdgeFromExistingVertices(this.nodes.length-1, edgeCrossings[0].nodes[3].index);
+				this.removeEdgesBetween(edgeCrossings[0].nodes[0].index, edgeCrossings[0].nodes[1].index);
+				this.removeEdgesBetween(edgeCrossings[0].nodes[2].index, edgeCrossings[0].nodes[3].index);
 				edgeCrossings = this.getEdgeIntersectionsWithEdge(i);
 				// add intersections to array
 				allIntersections = allIntersections.concat(edgeCrossings);
@@ -439,13 +532,92 @@ class PlanarGraph extends Graph{
 		return pg.nodes;
 	}
 
+// Planar Graph new data structures
+
+	generateFaces(){
+		// walk around a face
+		this.faces = [];
+		for(var startNode = 0; startNode < this.nodes.length; startNode++){
+			// var startNodeAdjacentEdges = this.nodeAdjacentEdgesWithDetails(startNode);
+			var startNodeAdjacentEdges = this.nodes[startNode].adjacentNodes();
+			// var startNodeAdjacentEdges = this.nodes[startNode].adjacentEdges().map(function(el){  });
+
+			for(var n = 0; n < startNodeAdjacentEdges.length; n++){
+				var validFace = true;
+				var nextAdjacent:PlanarAdjacentNode = startNodeAdjacentEdges[n];
+				var travelingNode = this.nodes[nextAdjacent.index];
+				var theFace = new PlanarFace();
+				theFace.nodes = [ startNode, travelingNode.index ];
+				theFace.edges = [ nextAdjacent.edge.index ];
+				// var prevAngle = 0
+				// theFace['angles'] = [ this.nodes[startNode].adjacent.edges[n].angle ];
+				// var totalAngle = 0;
+				while(validFace && travelingNode.index != startNode){
+					var prevNode = theFace.nodes[ theFace['nodes'].length-2 ];
+					var nextAdjacent = this.getClockwiseNeighborAround( travelingNode.index, prevNode );
+					travelingNode = this.nodes[nextAdjacent.index];
+					// theFace['angles'].push(nextAdjacent.angle);
+					// var nextAngle = nextAdjacent.angle;
+					// totalAngle += (nextAngle - prevAngle);
+					// prevAngle = nextAngle;
+					if(travelingNode == undefined){
+						// next element in array returning undefined, something weird is going on
+						validFace = false;
+					} else {
+						if(travelingNode.index == prevNode){
+							validFace = false;
+						} else{
+							if(travelingNode.index != startNode){
+								theFace['nodes'].push(travelingNode.index);
+								// var nextAngle = nextAdjacent.angle;
+								// totalAngle += (nextAngle - prevAngle);
+							}
+							theFace['edges'].push(nextAdjacent.edge.index);
+							// var already = this.arrayContainsNumberAtIndex(theFace, travelingNode);
+							// if(already == undefined){
+							// 	theFace.push(travelingNode);								
+							// } else{
+								// face that makes a figure 8. visits a node twice in the middle.
+								// if(this.faces.length > 2){
+								// 	// we can use this sub section if it's larger than a line
+								// 	var cropFace = theFace.slice(already, 1 + theFace.length-already);
+								// 	this.faces.push(cropFace);
+								// } 
+								// validFace = false;
+							// }
+						}
+
+					}
+				}
+
+				if(validFace && !this.arrayContainsDuplicates(theFace)){
+					// theFace['angle'] = totalAngle;
+					this.faces.push(theFace);
+				}
+			}
+		}
+
+		// remove duplicate faces
+		var i = 0;
+		while(i < this.faces.length-1){
+			var j = this.faces.length-1;
+			while(j > i){
+				if(this.areFacesEquivalent(i, j)){
+					this.faces.splice(j, 1);
+				}
+				j--;
+			}
+			i++;
+		}
+	}
+
 	arrayContainsNumberAtIndex(array, number){
 		for(var i = 0; i < array.length; i++) {
 			if (array[i] == number) {  return i;  }
 		} return undefined;
 	}
 
-	arrayContainsDuplicates(array){
+	arrayContainsDuplicates(array):boolean{
 		if(array.length <= 1) return false;
 		for(var i = 0; i < array.length-1; i++) {
 			for(var j = i+1; j < array.length; j++){
@@ -458,129 +630,36 @@ class PlanarGraph extends Graph{
 	}
 
 
-// Planar Graph new data structures
 
-	generateFaces(){
-		// // walk around a face
-		// this.faces = [];
-		// for(var startNode = 0; startNode < this.nodes.length; startNode++){
-		// 	var startNodeAdjacentEdges = this.nodeAdjacentEdgesWithDetails(startNode);
-		// 	// var startNodeAdjacentEdges = this.nodes[startNode].adjacentEdges().map(function(el){  });
-
-		// 	for(var n = 0; n < startNodeAdjacentEdges.length; n++){
-		// 		var validFace = true;
-		// 		var nextAdjacent:EdgeNodeAngle = startNodeAdjacentEdges[n];
-		// 		var travelingNode = nextAdjacent.node;
-		// 		var theFace = new PlanarFace();
-		// 		theFace['nodes'] = [ startNode, travelingNode ];
-		// 		theFace['edges'] = [ nextAdjacent.edge ];
-		// 		// var prevAngle = 0
-		// 		// theFace['angles'] = [ this.nodes[startNode].adjacent.edges[n].angle ];
-		// 		// var totalAngle = 0;
-		// 		while(validFace && travelingNode != startNode){
-		// 			var prevNode = theFace['nodes'][ theFace['nodes'].length-2 ];
-		// 			var nextAdjacent = this.getClockwiseNeighborAround( travelingNode, prevNode );
-		// 			travelingNode = nextAdjacent.node;
-		// 			// theFace['angles'].push(nextAdjacent.angle);
-		// 			// var nextAngle = nextAdjacent.angle;
-		// 			// totalAngle += (nextAngle - prevAngle);
-		// 			// prevAngle = nextAngle;
-		// 			if(travelingNode == undefined){
-		// 				// next element in array returning undefined, something weird is going on
-		// 				validFace = false;
-		// 			} else {
-		// 				if(travelingNode == prevNode){
-		// 					validFace = false;
-		// 				} else{
-		// 					if(travelingNode != startNode){
-		// 						theFace['nodes'].push(travelingNode);
-		// 						// var nextAngle = nextAdjacent.angle;
-		// 						// totalAngle += (nextAngle - prevAngle);
-		// 					}
-		// 					theFace['edges'].push(nextAdjacent.edge);
-		// 					// var already = this.arrayContainsNumberAtIndex(theFace, travelingNode);
-		// 					// if(already == undefined){
-		// 					// 	theFace.push(travelingNode);								
-		// 					// } else{
-		// 						// face that makes a figure 8. visits a node twice in the middle.
-		// 						// if(this.faces.length > 2){
-		// 						// 	// we can use this sub section if it's larger than a line
-		// 						// 	var cropFace = theFace.slice(already, 1 + theFace.length-already);
-		// 						// 	this.faces.push(cropFace);
-		// 						// } 
-		// 						// validFace = false;
-		// 					// }
-		// 				}
-
-		// 			}
-		// 		}
-
-		// 		if(validFace && !this.arrayContainsDuplicates(theFace)){
-		// 			// theFace['angle'] = totalAngle;
-		// 			this.faces.push(theFace);
-		// 		}
-		// 	}
-		// }
-
-		// // remove duplicate faces
-		// var i = 0;
-		// while(i < this.faces.length-1){
-		// 	var j = this.faces.length-1;
-		// 	while(j > i){
-		// 		if(this.areFacesEquivalent(i, j)){
-		// 			this.faces.splice(j, 1);
-		// 		}
-		// 		j--;
-		// 	}
-		// 	i++;
-		// }
-	}
-
-	areFacesEquivalent(faceIndex1, faceIndex2){
+	areFacesEquivalent(faceIndex1:number, faceIndex2:number):boolean{
 		if(this.faces[faceIndex1].nodes.length != this.faces[faceIndex2].nodes.length) return false;
-		for(var i = 0; i < this.faces[faceIndex1].nodes.length; i++){
-			var found = false;
-			for(var j = 0; j < this.faces[faceIndex2].nodes.length; j++){
-				if(this.faces[faceIndex1].nodes[i] == this.faces[faceIndex2].nodes[j]) found = true;
-			}
-			if(found == false) return false;
+		var sorted1 = this.faces[faceIndex1].nodes.sort();
+		var sorted2 = this.faces[faceIndex2].nodes.sort();
+		for(var i = 0; i < sorted1.length; i++) {
+			if(sorted1[i] != sorted2[i]) return false;
 		}
 		return true;
 	}
 
-	getVertexIndexAt(x, y){  // float float
+	getVertexIndexAt(x:number, y:number){
+		var thisPoint = new XYPoint(x, y);
 		for(var i = 0; i < this.nodes.length; i++){
-			if(this.verticesEquivalent(this.nodes[i], new PlanarNode(x, y), USER_TAP_EPSILON)){
+			if(this.verticesEquivalent(this.nodes[i], thisPoint, USER_TAP_EPSILON)){
 				return i;
 			}
 		}
 		return undefined;
 	}
 
-	isCornerNode(x, y){
-		// var E = EPSILON;
-		// if( y < E ) return 1;
-		// if( x > 1.0 - E ) return 2;
-		// if( y > 1.0 - E ) return 3;
-		// if( x < E ) return 4;
-		// return undefined;
+	vertexLiesOnHorizontalEdge(v:XYPoint, edgeY:number):boolean{
+		if(v.y < edgeY + EPSILON && v.y > edgeY - EPSILON) return true;
+		return false;
 	}
-
-	isBoundaryNode(x, y){
-		var E = .1;//EPSILON;
-		if( y < E ) return 1;
-		if( x > 1.0 - E ) return 2;
-		if( y > 1.0 - E ) return 3;
-		if( x < E ) return 4;
-		return undefined;
+	vertexLiesOnVerticalEdge(v:XYPoint, edgeX:number):boolean{
+		if(v.x < edgeX + EPSILON && v.x > edgeX - EPSILON) return true;
+		return false;
 	}
-
-	// vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
-	// 	var v = this.nodes[vIndex];
-	// 	return this.vertexLiesOnEdge(v, intersect);
-	// }
-
-	vertexLiesOnEdge(v, intersect){  // Vertex, Vertex*
+	vertexLiesOnEdge(v:XYPoint, intersect:XYPoint):boolean{  // Vertex, Vertex*
 		// including a margin of error, bounding area around vertex
 
 		// first check if point lies on end points
@@ -679,94 +758,75 @@ class PlanarGraph extends Graph{
 		}
 	}
 
-	/////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////
-	//
-	//                            2D ALGORITHMS
-	//
 
-	// if points are all collinear
-	// checks if point q lies on line segment 'ab'
-	onSegment(a, point, b){  // Vertices
-		if (point.x <= Math.max(a.x, b.x) && point.x >= Math.min(a.x, b.x) &&
-			point.y <= Math.max(a.y, b.y) && point.y >= Math.min(a.y, b.y)){
-			console.log('returning true');
-			return true;
-		}
-		console.log('returning false');
-		return false;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+//
+//                            2D ALGORITHMS
+//
+
+// if points are all collinear
+// checks if point lies on line segment 'ab'
+function onSegment(a:XYPoint, point:XYPoint, b:XYPoint):boolean{
+	if (point.x <= Math.max(a.x, b.x) && point.x >= Math.min(a.x, b.x) &&
+		point.y <= Math.max(a.y, b.y) && point.y >= Math.min(a.y, b.y)){
+		return true;
 	}
+	return false;
+}
 
-	lineSegmentIntersectionAlgorithm(p0, p1, p2, p3) {
-		var rise1 = (p1.y-p0.y);
-		var run1  = (p1.x-p0.x);
-		var rise2 = (p3.y-p2.y);
-		var run2  = (p3.x-p2.x);
-		var slope1 = rise1 / run1;
-		var slope2 = rise2 / run2;
+function lineSegmentIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):XYPoint {
+	// p0-p1 is first line
+	// p2-p3 is second line
+	var rise1 = (p1.y-p0.y);
+	var run1  = (p1.x-p0.x);
+	var rise2 = (p3.y-p2.y);
+	var run2  = (p3.x-p2.x);
+	var slope1 = rise1 / run1;
+	var slope2 = rise2 / run2;
 
-		// if lines are parallel to each other within a floating point error
-		if(Math.abs(slope1) == Infinity && Math.abs(slope2) > SLOPE_ANGLE_INF_EPSILON) return undefined;
-		if(Math.abs(slope2) == Infinity && Math.abs(slope1) > SLOPE_ANGLE_INF_EPSILON) return undefined;
-		var angle1 = Math.atan(slope1);
-		var angle2 = Math.atan(slope2);
-		if(Math.abs(angle1-angle2) < SLOPE_ANGLE_EPSILON) return undefined;
+	// if lines are parallel to each other within a floating point error
+	if(Math.abs(slope1) == Infinity && Math.abs(slope2) > SLOPE_ANGLE_INF_EPSILON) return undefined;
+	if(Math.abs(slope2) == Infinity && Math.abs(slope1) > SLOPE_ANGLE_INF_EPSILON) return undefined;
+	var angle1 = Math.atan(slope1);
+	var angle2 = Math.atan(slope2);
+	if(Math.abs(angle1-angle2) < SLOPE_ANGLE_EPSILON) return undefined;
 
-		var denom = run1 * rise2 - run2 * rise1;
-		if (denom == 0)
-			return undefined; // Collinear
-		var denomPositive = false;
-		if(denom > 0) 
-			denomPositive = true;
+	var denom = run1 * rise2 - run2 * rise1;
+	if (denom == 0)
+		return undefined; // Collinear
+	var denomPositive = false;
+	if(denom > 0) 
+		denomPositive = true;
 
-		var s02 = {'x':p0.x - p2.x, 'y':p0.y - p2.y};
-		var s_numer = run1 * s02.y - rise1 * s02.x;
-		if ((s_numer < 0) == denomPositive)
-			return undefined; // No collision
+	var s02 = {'x':p0.x - p2.x, 'y':p0.y - p2.y};
+	// var s02 = new XYPoint(p0.x - p2.x, p0.y - p2.y);
 
-		var t_numer = run2 * s02.y - rise2 * s02.x;
-		if ((t_numer < 0) == denomPositive)
-			return undefined; // No collision
+	var s_numer = run1 * s02.y - rise1 * s02.x;
+	if ((s_numer < 0) == denomPositive)
+		return undefined; // No collision
 
-		if (((s_numer > denom) == denomPositive) || ((t_numer > denom) == denomPositive))
-			return undefined; // No collision
-		// Collision detected
-		var t = t_numer / denom;
-		var i = {'x':(p0.x + (t * run1)), 'y':(p0.y + (t * rise1))};
-		return i;
-	}
+	var t_numer = run2 * s02.y - rise2 * s02.x;
+	if ((t_numer < 0) == denomPositive)
+		return undefined; // No collision
 
-	// lineSegmentIntersectionAlgorithm(p0, p1, p2, p3) {
-	// 	var s1 = {'x':0, 'y':0};
-	// 	var s2 = {'x':0, 'y':0};
-	// 	s1.x = p1.x - p0.x;
-	// 	s1.y = p1.y - p0.y;
-	// 	s2.x = p3.x - p2.x;
-	// 	s2.y = p3.y - p2.y;
-	// 	var s = (-s1.y * (p0.x - p2.x) + s1.x * (p0.y - p2.y)) / (-s2.x * s1.y + s1.x * s2.y);
-	// 	var t = ( s2.x * (p0.y - p2.y) - s2.y * (p0.x - p2.x)) / (-s2.x * s1.y + s1.x * s2.y);
-	// 	console.log('x1:' + s1.x + ' y1:' + s1.y);
-	// 	console.log('x2:' + s2.x + ' y2:' + s2.y);
-	// 	console.log('s:' + s + ' t:' + t);
-	// 	if (s >= 0 && s <= 1 && t >= 0 && t <= 1){
-	// 		// Collision detected
-	// 		var i = {'x': p0.x + (t * s1.x), 'y': p0.y + (t * s1.y)};
-	// 		return true;
-	// 	}
-	// 	return false; // No collision
-	// }
+	if (((s_numer > denom) == denomPositive) || ((t_numer > denom) == denomPositive))
+		return undefined; // No collision
+	// Collision detected
+	var t = t_numer / denom;
+	// var i = {'x':(p0.x + (t * run1)), 'y':(p0.y + (t * rise1))};
+	// return i;
+	return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1) );
+}
 
-	minDistBetweenPointLine(x1, y1, x2, y2, x3, y3){
-		// (x1,y1)-(x2,y2) define the line
-		// x3,y3 is the point
-		var p = Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2));
-		var u = ((x3-x1)*(x2-x1) + (y3-y1)*(y2-y1)) / (Math.pow(p,2));
-		if(u < 0 || u > 1.0) return undefined;
-		var x = x1 + u*(x2-x1);
-		var y = y1 + u*(y2-y1);
-		return {'x':x, 'y':y};
-	}
-
+function minDistBetweenPointLine(a:XYPoint, b:XYPoint, x:number, y:number):XYPoint{
+	// (a)-(b) define the line
+	// x,y is the point
+	var p = Math.sqrt(Math.pow(b.x-a.x,2) + Math.pow(b.y-a.y,2));
+	var u = ((x-a.x)*(b.x-a.x) + (y-a.y)*(b.y-a.y)) / (Math.pow(p,2));
+	if(u < 0 || u > 1.0) return undefined;
+	return new XYPoint(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
 }

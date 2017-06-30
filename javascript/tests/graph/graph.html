@@ -8,11 +8,11 @@
 	<script>
 
 function fillWithRandom(numNodes, numEdges){
-	for(var i = 0; i < numNodes; i++){ graph.addNode(); }
+	for(var i = 0; i < numNodes; i++){ graph.newNode(); }
 	for(var i = 0; i < numEdges; i++){
 		var one = Math.floor( Math.random()*numNodes );
 		var two = Math.floor( Math.random()*numNodes );
-		graph.addEdge(one, two);
+		graph.newEdge(one, two);
 		console.log('new edge: ' + one + ' ' + two);
 	}
 }

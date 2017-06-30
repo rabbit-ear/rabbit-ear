@@ -26,8 +26,8 @@ var CreaseNode = (function (_super) {
 }(PlanarNode));
 var CreaseEdge = (function (_super) {
     __extends(CreaseEdge, _super);
-    function CreaseEdge(g, index1, index2) {
-        return _super.call(this, g, index1, index2) || this;
+    function CreaseEdge(index1, index2) {
+        return _super.call(this, index1, index2) || this;
     }
     ;
     return CreaseEdge;
@@ -159,7 +159,9 @@ var CreasePattern = (function (_super) {
         //  - details on the root data (nodes, edges, their angles)
         //  - results from the kawasaki algorithm:
         //     which is the amount in radians to add to each angle to make flat foldable 
-        var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
+        // var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
+        var adjacentEdges = this.nodeAdjacentEdgesWithDetails(nodeIndex);
+        var thisNode = this.nodes[nodeIndex];
         adjacentEdges.sort(function (a, b) { return (a.angle > b.angle) ? 1 : ((b.angle > a.angle) ? -1 : 0); });
         // console.log(adjacentEdges);
         var angles = [];
@@ -199,7 +201,7 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.kawasakiDeviance = function (nodeIndex) {
         var kawasaki = kawasaki(nodeIndex);
-        var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
+        var adjacentEdges = this.nodeAdjacentEdgesWithDetails(nodeIndex);
         adjacentEdges.sort(function (a, b) { return (a.angle > b.angle) ? 1 : ((b.angle > a.angle) ? -1 : 0); });
         var angles = [];
         for (var i = 0; i < adjacentEdges.length; i++) {
@@ -213,7 +215,6 @@ var CreasePattern = (function (_super) {
     };
     // cleanIntersections(){
     // 	this.clean();
-    // 	if(LOG) console.log('crease pattern: cleanIntersections()');
     // 	var intersections = super.chop();
     // 	this.interestingPoints = this.interestingPoints.concat(intersections);
     // 	return intersections;
