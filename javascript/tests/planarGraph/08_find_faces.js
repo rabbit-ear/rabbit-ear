@@ -48,7 +48,6 @@ var test08 = function(p) {
 	function reset(){
 		g.clear();
 		g.birdBase();
-		g.refreshAdjacencies();
 		g.generateFaces();
 	}
 
@@ -59,8 +58,8 @@ var test08 = function(p) {
 	}
 
 	p.draw = function() {
-		 p.scalar = 0.5+0.5*Math.sin(p.millis() / 1000.0) - .01;
-		 if(p.scalar < 0) p.scalar = 0.0;
+		p.scalar = 0.5+0.5*Math.sin(p.millis() / 1000.0) - .01;
+		if(p.scalar < 0) p.scalar = 0.0;
 		p.clear();
 		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);		
 		p.fill(0, 0, 0);
@@ -72,9 +71,9 @@ var test08 = function(p) {
 			var color = HSVtoRGB(i/g.faces.length, 1.0, 1.0);
 			p.fill(color.r, color.g, color.b, 50);
 			p.beginShape();
-			var face = g.faces[i];
-			for(f = 0; f < face.length; f++){
-				p.vertex(g.nodes[ face[f] ].x, g.nodes[ face[f] ].y);
+			var faceNodes = g.faces[i].nodes;
+			for(f = 0; f < faceNodes.length; f++){
+				p.vertex(faceNodes[f].x, faceNodes[f].y);
 			}
 			p.endShape();
 		}

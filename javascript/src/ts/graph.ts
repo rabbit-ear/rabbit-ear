@@ -7,15 +7,6 @@
 
 "use strict";
 
-class EdgeAndNode{
-	edge:number;  // index
-	node:number;  // index
-	constructor(e:number, n:number){
-		this.edge = e;
-		this.node = n;
-	}
-}
-
 class GraphNode{  // Nodes can represent anything
 	graph:Graph;
 	index:number;
@@ -33,24 +24,6 @@ class GraphNode{  // Nodes can represent anything
 			.filter(function(el){ return el.node[1] == this.index}, this)
 			.map(function(el){ return this.graph.nodes[ el.node[0] ] }, this);
 		return first.concat(second);
-	}
-	adjacentEdgesAndTheirNodes:()=>EdgeAndNode[] = function(){
-		var adjacentEdges:EdgeAndNode[] = [];
-		// iterate over all edges, if we find our node, add the edge
-		for(var i = 0; i < this.graph.edges.length; i++){
-			if      (this.graph.edges[i].node[0] == this.index){ adjacentEdges.push(new EdgeAndNode(i, this.graph.edges[i].node[1])); }
-			else if (this.graph.edges[i].node[1] == this.index){ adjacentEdges.push(new EdgeAndNode(i, this.graph.edges[i].node[0])); }
-		}
-		return adjacentEdges;
-	}
-	adjacentNodesAndTheirEdges:()=>EdgeAndNode[] = function(){
-		var adjacentNodes:EdgeAndNode[] = [];
-		for(var i = 0; i < this.graph.edges.length; i++){
-			// if we find our node, add the node on the other end of the edge
-			if(this.graph.edges[i].node[0] == this.index){adjacentNodes.push(new EdgeAndNode(i, this.graph.edges[i].node[1]));}
-			if(this.graph.edges[i].node[1] == this.index){adjacentNodes.push(new EdgeAndNode(i, this.graph.edges[i].node[0]));}
-		}
-		return this.graph.nodes.filter(function (el:GraphNode) {});		
 	}
 }
 

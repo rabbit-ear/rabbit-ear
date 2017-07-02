@@ -25,7 +25,6 @@ canvas[resize] {
 var cp = new CreasePattern();
 // cp.frogBase();
 cp.fishBase();
-cp.refreshAdjacencies();
 // cp.generateFaces();
 var paperPoints = [];
 var paperEdges = [];
@@ -86,20 +85,18 @@ function copyCPToPaperJS(){
 		paperPoints.push( p );
 	}
 	for(var i = 0; i < cp.edges.length; i++){
-		var node0 = cp.edges[i].node[0];
-		var node1 = cp.edges[i].node[1];
 		var path;
 		if(     cp.edges[i].orientation == CreaseDirection.mountain){ path = mountainPath(); }
 		else if(cp.edges[i].orientation == CreaseDirection.valley){ path = valleyPath(); }
 		else { path = borderPath(); }
-		path.segments = [ paperPoints[node0], paperPoints[node1] ];
+		path.segments = [ paperPoints[cp.edges[i].node[0] ], paperPoints[cp.edges[i].node[1] ] ];
 		paperEdges.push( path );
 	}
 	for(var i = 0; i < cp.faces.length; i++){
-		var faceArray = cp.faces[i].nodes;
+		var faceNodeArray = cp.faces[i].nodes;
 		var segmentArray = [];
-		for(var j = 0; j < faceArray.length; j++){
-			segmentArray.push( paperPoints[ faceArray[j] ] );
+		for(var j = 0; j < faceNodeArray.length; j++){
+			segmentArray.push( paperPoints[ faceNodeArray[j].index ] );
 		}
 		paperFaces.push(new Path({
 //				fillColor: { hue:120, saturation:.8, brightness:.8 },
@@ -156,14 +153,14 @@ function updateCPToPaperJS(){
 		paperEdges[i].segments[1].point = paperPoints[ cp.edges[i].node[1] ];
 	}
 	for(var i = 0; i < cp.faces.length; i++){
-		var faceArray = cp.faces[i].nodes;
+		var faceNodeArray = cp.faces[i].nodes;
 		var segmentArray = [];
-		for(var j = 0; j < faceArray.length; j++){
-			segmentArray.push( paperPoints[ faceArray[j] ] );
-			paperFaces[i].segments[j].point = paperPoints[ faceArray[j] ];
+		for(var j = 0; j < faceNodeArray.length; j++){
+			segmentArray.push( paperPoints[ faceNodeArray[j].index ] );
+			paperFaces[i].segments[j].point = paperPoints[ faceNodeArray[j].index ];
 		}
 		var center;
-		if(faceArray.length == 3){ center = incenter(segmentArray); } 
+		if(faceNodeArray.length == 3){ center = incenter(segmentArray); } 
 		else{                      center = centroid(segmentArray); }
 		paperFaces[i].scale(0.5, center);
 	}

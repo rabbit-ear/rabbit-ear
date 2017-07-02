@@ -5,41 +5,8 @@
 //              edges are adjacent when they are both connected to the same node
 //  "similar": in the case of an edge: they contain the same 2 nodes, possibly in a different order
 "use strict";
-var EdgeAndNode = (function () {
-    function EdgeAndNode(e, n) {
-        this.edge = e;
-        this.node = n;
-    }
-    return EdgeAndNode;
-}());
 var GraphNode = (function () {
     function GraphNode() {
-        this.adjacentEdgesAndTheirNodes = function () {
-            var adjacentEdges = [];
-            // iterate over all edges, if we find our node, add the edge
-            for (var i = 0; i < this.graph.edges.length; i++) {
-                if (this.graph.edges[i].node[0] == this.index) {
-                    adjacentEdges.push(new EdgeAndNode(i, this.graph.edges[i].node[1]));
-                }
-                else if (this.graph.edges[i].node[1] == this.index) {
-                    adjacentEdges.push(new EdgeAndNode(i, this.graph.edges[i].node[0]));
-                }
-            }
-            return adjacentEdges;
-        };
-        this.adjacentNodesAndTheirEdges = function () {
-            var adjacentNodes = [];
-            for (var i = 0; i < this.graph.edges.length; i++) {
-                // if we find our node, add the node on the other end of the edge
-                if (this.graph.edges[i].node[0] == this.index) {
-                    adjacentNodes.push(new EdgeAndNode(i, this.graph.edges[i].node[1]));
-                }
-                if (this.graph.edges[i].node[1] == this.index) {
-                    adjacentNodes.push(new EdgeAndNode(i, this.graph.edges[i].node[0]));
-                }
-            }
-            return this.graph.nodes.filter(function (el) { });
-        };
     }
     GraphNode.prototype.adjacentEdges = function () {
         if (this.graph == undefined) {

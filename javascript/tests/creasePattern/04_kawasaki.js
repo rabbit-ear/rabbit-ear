@@ -16,10 +16,10 @@ var _04_kawasaki = function( p ) {
 	p.endPointForAngle = function(angle){
 		var endPoint = { x:0.5 + 1.0*Math.cos(angle), 
 		                 y:0.5 + 1.0*Math.sin(angle) };
-		var a = cp.lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:0}, {x:1,y:0} );
-		var b = cp.lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:1,y:0}, {x:1,y:1} );
-		var c = cp.lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:1}, {x:1,y:1} );
-		var d = cp.lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:0}, {x:0,y:1} );
+		var a = lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:0}, {x:1,y:0} );
+		var b = lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:1,y:0}, {x:1,y:1} );
+		var c = lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:1}, {x:1,y:1} );
+		var d = lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:0}, {x:0,y:1} );
 		if(a != undefined) endPoint = a;
 		if(b != undefined) endPoint = b;
 		if(c != undefined) endPoint = c;
@@ -39,7 +39,6 @@ var _04_kawasaki = function( p ) {
 		cpFlat.import(cp);
 
 		cpFlat.clean();
-		cpFlat.refreshAdjacencies();
 		innerAngles = cpFlat.kawasaki(0);
 		if(p.callback != undefined){
 			p.callback(innerAngles);
@@ -62,7 +61,6 @@ var _04_kawasaki = function( p ) {
 		}
 		// update inner angles for drawing
 		cpFlat.clean();
-		cpFlat.refreshAdjacencies();
 		innerAnglesFlat = cpFlat.kawasaki(0);
 		// var diff = parseInt((angles[i].arc + angles[i].kawasaki)*180/Math.PI);
 		// console.log(i + ": " + parseInt(angles[i].arc*180/Math.PI) + "  " + parseInt(angles[i].kawasaki*180/Math.PI)  + "   =   " + diff);

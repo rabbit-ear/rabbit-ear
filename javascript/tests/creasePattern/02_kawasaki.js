@@ -25,10 +25,10 @@ var _02_kawasaki = function( p ) {
 			// distance += tan;
 			var endPoint = { x:0.5 + 1.0*Math.cos(angle), 
 			                 y:0.5 + 1.0*Math.sin(angle) };
-			var a = cp.lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:0}, {x:1,y:0} );
-			var b = cp.lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:1,y:0}, {x:1,y:1} );
-			var c = cp.lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:1}, {x:1,y:1} );
-			var d = cp.lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:0}, {x:0,y:1} );
+			var a = lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:0}, {x:1,y:0} );
+			var b = lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:1,y:0}, {x:1,y:1} );
+			var c = lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:1}, {x:1,y:1} );
+			var d = lineSegmentIntersectionAlgorithm(cp.nodes[0], endPoint, {x:0,y:0}, {x:0,y:1} );
 			if(a != undefined) endPoint = a;
 			if(b != undefined) endPoint = b;
 			if(c != undefined) endPoint = c;
@@ -36,7 +36,6 @@ var _02_kawasaki = function( p ) {
 			cp.addEdgeFromVertex(0, endPoint.x, endPoint.y);
 		}
 		cp.clean();
-		cp.refreshAdjacencies();
 		innerAngles = cp.kawasaki(0);
 		if(p.callback != undefined){
 			p.callback(innerAngles);

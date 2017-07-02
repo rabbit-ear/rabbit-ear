@@ -89,6 +89,19 @@ class PlanarNode extends GraphNode implements XYPoint{
 			.sort(function(a,b){ return (a.angle < b.angle) ? 1 : (a.angle > b.angle) ? -1 : 0 });
 			// .sort(function(a,b){return (a.angle > b.angle)?1:((b.angle > a.angle)?-1:0);});
 	}
+	translate(dx:number, dy:number){
+		this.x += dx;
+		this.y += dy;
+	}
+	rotateAroundNode(node:PlanarNode, angle:number){  // in radians
+		var dx = this.x-node.x;
+		var dy = this.y-node.y;
+		var distance = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
+		var currentAngle = Math.atan2(dy, dx);
+		this.x = node.x + distance*Math.cos(currentAngle + angle);
+		this.y = node.y + distance*Math.sin(currentAngle + angle);
+	}
+
 }
 
 class PlanarEdge extends GraphEdge{
@@ -202,18 +215,6 @@ class PlanarGraph extends Graph{
 		(<any>Object).assign(graphResult, result);
 		return graphResult;
 	}
-
-	// changedNodes(nodeArray){
-	// 	var adjacent = [];
-	// 	for(var i = 0; i < nodeArray.length; i++){
-	// 		adjacent = adjacent.concat( this.getNodesAdjacentToNode(nodeArray[i]) );
-	// 	}
-	// 	//make list unique
-	// 	var unique = [...new Set(adjacent)]; 
-	// 	for(var i = 0; i < unique.length; i++){
-	// 		this.refreshAdjacencyAtNode(i);
-	// 	}
-	// }
 
 	//////////////////////////////////////
 	//   Graph-related (non-positional)
@@ -550,56 +551,6 @@ class PlanarGraph extends Graph{
 		return false;
 	}
 
-	/*
-	connectingVertexIndicesSortedRadially(vIndex){  // uint
-		var connectedVertices = this.connectedVertexIndices(vIndex);  // array uint
-		var globalAngleValues = []; //float  // calculated from global 0deg line
-		// we have to query the global angle of each segment
-		// so we can locally sort each clockwise or counter clockwise
-		var sortedGlobalAngleValues = []; // float
-		for(var i = 0; i < connectedVertices.length; i++){
-			float angle = Math.atan2(this.nodes[connectedVertices[i]].y - this.nodes[vIndex].y,
-								     this.nodes[connectedVertices[i]].x - this.nodes[vIndex].x);
-			globalAngleValues.push( angle );
-			sortedGlobalAngleValues.push( angle );
-		}
-		sort(sortedGlobalAngleValues.begin(), sortedGlobalAngleValues.begin()+connectedVertices.length);
-		// now each edge'd sprout angle is sorted from -pi to pi
-		var connectedVertexIndicesSorted = []; // uint
-		for(var i = 0; i < connectedVertices.length; i++)
-			for(var j = 0; j < connectedVertices.length; j++)
-				if(sortedGlobalAngleValues[i] == globalAngleValues[j])
-					connectedVertexIndicesSorted.push(connectedVertices[j]);
-		return connectedVertexIndicesSorted;
-	}
-
-	connectingVertexInteriorAngles(vIndex, connectedVertexIndicesSorted){ // uint, uint array
-		var anglesBetweenVertices = []; // float
-		var anglesOfVertices = []; // float
-		for(var i = 0; i < connectedVertexIndicesSorted.length; i++){
-			float angle = atan2(this.nodes[connectedVertexIndicesSorted[i]].y - this.nodes[vIndex].y,
-								this.nodes[connectedVertexIndicesSorted[i]].x - this.nodes[vIndex].x);
-			anglesOfVertices.push(angle);
-		}
-		for(var i = 0; i < anglesOfVertices.length; i++){
-			// when it's the wrap around value (i==3) add 2pi to the angle it's subtracted from
-			float diff = anglesOfVertices[(i+1)%anglesOfVertices.length]
-			+ (M_PI*2 * (i==3))
-			- anglesOfVertices[i%anglesOfVertices.length];
-			anglesBetweenVertices.push( diff );
-		}
-		return anglesBetweenVertices;
-	}
-
-	void PlanarGraph::rotateVertex(int vertexIndex, int originVertexIndex, float angleRadians){
-		float distance = sqrt(powf( this->nodes[originVertexIndex].y - this->nodes[vertexIndex].y ,2)
-							  +powf( this->nodes[originVertexIndex].x - this->nodes[vertexIndex].x ,2));
-		float currentAngle = atan2(this->nodes[vertexIndex].y, this->nodes[vertexIndex].x);
-		this->nodes[vertexIndex].x = distance*cosf(currentAngle + angleRadians);
-		this->nodes[vertexIndex].y = distance*sinf(currentAngle + angleRadians);
-	}
-
-	*/
 
 	log(){
 		super.log();
@@ -613,10 +564,7 @@ class PlanarGraph extends Graph{
 			console.log(' ' + i + ': (' + this.edges[i].node[0] + ' -- ' + this.edges[i].node[1] + ')');
 		}
 	}
-
-
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
@@ -632,6 +580,23 @@ function onSegment(a:XYPoint, point:XYPoint, b:XYPoint):boolean{
 		return true;
 	}
 	return false;
+}
+
+function rayLineSegmentIntersectionAlgorithm(rayOrigin:XYPoint, rayDirection:XYPoint, point1:XYPoint, point2:XYPoint){
+	var v1 = new XYPoint(rayOrigin.x - point1.x, rayOrigin.y - point1.y);
+	var v2 = new XYPoint(point2.x - point1.x, point2.y - point1.y);
+	var v3 = new XYPoint(-rayDirection.y, rayDirection.x);
+	var dot = v2.x*v3.x + v2.y*v3.y;
+	if (Math.abs(dot) < EPSILON)//0.000001)
+		return undefined;
+	var cross = (v2.x*v1.y-v2.y*v1.x);
+	var t1 = cross / dot;
+	var t2 = (v1.x*v3.x + v1.y*v3.y) / dot;
+	if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)){
+		return new XYPoint(rayOrigin.x + rayDirection.x * t1, rayOrigin.y + rayDirection.y * t1);
+		//return t1;
+	}
+	return null;
 }
 
 function lineSegmentIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):XYPoint {
