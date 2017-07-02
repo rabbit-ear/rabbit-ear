@@ -367,6 +367,7 @@ class PlanarGraph extends Graph{
 		for(var i = 0; i < this.edges.length; i++){
 			var edgeCrossings:Intersection[] = this.getEdgeIntersectionsWithEdge(i);
 			if(edgeCrossings != undefined && edgeCrossings.length > 0){
+				// console.log(i + ": " + edgeCrossings.length);
 				allIntersections = allIntersections.concat(edgeCrossings);
 			}
 			while(edgeCrossings.length > 0){

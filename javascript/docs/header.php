@@ -8,7 +8,7 @@
 <script language="javascript" type="text/javascript" src="../src/graph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
-<script language="javascript" type="text/javascript" src="../render.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5jscp.js"></script>
 <link href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700" rel="stylesheet">
 <link href="../dist/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
 <link href="css/style.css" rel="stylesheet" />
