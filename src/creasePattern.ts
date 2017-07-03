@@ -10,8 +10,21 @@ enum CreaseDirection{
 }
 
 class CreaseNode extends PlanarNode{
+	graph:CreasePattern;
+
 	constructor(xx:number, yy:number){
 		super(xx, yy);
+	}
+	// isBoundary():boolean{
+	// 	if(this.y<EPSILON || this.x>1.0-EPSILON || this.y>1.0-EPSILON || this.x<EPSILON ){ return true; } 
+	// 	return false;
+	// }
+	isBoundary():boolean{
+		for(var i = 0; i < this.graph.boundary.length; i++){
+			var thisPt = new XYPoint(this.x, this.y);
+			if(onSegment(thisPt, this.graph.boundary[i].endPoints[0], this.graph.boundary[i].endPoints[1])){ return true; }
+		}
+		return false;
 	}
 }
 
@@ -65,14 +78,14 @@ class CreasePattern extends PlanarGraph{
 		this.faces = cp.faces.slice();
 	}
 
+	// re-implement super class functions with new types
 	newEdge(nodeIndex1:number, nodeIndex2:number):Crease {
 		return <Crease>this.addEdge(new Crease(nodeIndex1, nodeIndex2));
 	}
-	addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):Crease{  // floats
+	addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):Crease{
 		var a = this.addNode( new CreaseNode(x1, y1) );
 		var b = this.addNode( new CreaseNode(x2, y2) );
 		return this.newEdge(a.index, b.index);
-		// this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -113,26 +126,7 @@ class CreasePattern extends PlanarGraph{
 
 	clear(){
 		super.clear();
-		this.faces = [];
 		// this.interestingPoints = this.starterLocations;
-	}
-
-	isCornerNode(x, y){
-		// var E = EPSILON;
-		// if( y < E ) return 1;
-		// if( x > 1.0 - E ) return 2;
-		// if( y > 1.0 - E ) return 3;
-		// if( x < E ) return 4;
-		// return undefined;
-	}
-
-	isBoundaryNode(x, y){
-		var E = .1;//EPSILON;
-		if( y < E ) return 1;
-		if( x > 1.0 - E ) return 2;
-		if( y > 1.0 - E ) return 3;
-		if( x < E ) return 4;
-		return undefined;
 	}
 
 	// vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex

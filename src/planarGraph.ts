@@ -157,7 +157,7 @@ class PlanarGraph extends Graph{
 	addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):PlanarEdge{  // floats
 		var a = this.addNode( new PlanarNode(x1, y1) );
 		var b = this.addNode( new PlanarNode(x2, y2) );
-		return <PlanarEdge>this.addEdge(new PlanarEdge(a.index, b.index));
+		return this.newEdge(a.index, b.index);
 		// this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
 	}
 
@@ -486,8 +486,6 @@ class PlanarGraph extends Graph{
 		return false;
 	}
 
-
-
 	areFacesEquivalent(faceIndex1:number, faceIndex2:number):boolean{
 		// todo: does this work? checking memory location or check .index
 		if(this.faces[faceIndex1].nodes.length != this.faces[faceIndex2].nodes.length) return false;
@@ -575,11 +573,16 @@ class PlanarGraph extends Graph{
 
 // if points are all collinear
 // checks if point lies on line segment 'ab'
-function onSegment(a:XYPoint, point:XYPoint, b:XYPoint):boolean{
-	if (point.x <= Math.max(a.x, b.x) && point.x >= Math.min(a.x, b.x) &&
-		point.y <= Math.max(a.y, b.y) && point.y >= Math.min(a.y, b.y)){
-		return true;
-	}
+function onSegment(point:XYPoint, a:XYPoint, b:XYPoint):boolean{
+	// if (point.x <= Math.max(a.x, b.x) && point.x >= Math.min(a.x, b.x) &&
+	// 	point.y <= Math.max(a.y, b.y) && point.y >= Math.min(a.y, b.y)){
+	// 	return true;
+	// }
+	// return false;
+	var ab = Math.sqrt( Math.pow(a.x-b.x,2) + Math.pow(a.y-b.y,2) );
+	var pa = Math.sqrt( Math.pow(point.x-a.x,2) + Math.pow(point.y-a.y,2) );
+	var pb = Math.sqrt( Math.pow(point.x-b.x,2) + Math.pow(point.y-b.y,2) );
+	if( Math.abs(ab - (pa+pb)) < EPSILON ) return true;
 	return false;
 }
 
