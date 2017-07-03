@@ -75,26 +75,26 @@ class Graph{
 		this.edges = [];
 	}
 
-	newNode():number {
+	newNode():GraphNode {
 		return this.addNode(new GraphNode());
 	}
-	newEdge(nodeIndex1:number, nodeIndex2:number):number {
+	newEdge(nodeIndex1:number, nodeIndex2:number):GraphEdge {
 		return this.addEdge(new GraphEdge(nodeIndex1, nodeIndex2));
 	}
 
-	addNode(node:GraphNode):number{
+	addNode(node:GraphNode):GraphNode{
 		if(node == undefined){ throw "addNode() requires an argument: 1 GraphNode"; }
 		node.graph = this;
 		node.index = this.nodes.length;
 		this.nodes.push(node);
-		return node.index;
+		return node;
 	}
-	addEdge(edge:GraphEdge):number{
+	addEdge(edge:GraphEdge):GraphEdge{
 		if(edge.node[0] >= this.nodes.length || edge.node[1] >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
 		edge.graph = this;
 		edge.index = this.edges.length;
 		this.edges.push( edge );
-		return edge.index;
+		return edge;
 	}
 	addNodes(nodes:GraphNode[]){
 		if(nodes == undefined || nodes.length <= 0){ throw "addNodes() must contain array of GraphNodes"; }

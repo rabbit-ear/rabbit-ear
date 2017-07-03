@@ -36,7 +36,7 @@ var PaperCreasePattern = (function () {
 		});
 	}
 
-	faceFillColor = { gray:0.0, alpha:0.1 };
+	faceFillColor = { gray:0.0, alpha:0.0 };
 
 	function PaperCreasePattern(paperjs, creasePattern) {
 		if(creasePattern == undefined) { throw "PaperCreasePattern() initializer requires valid crease pattern"; }

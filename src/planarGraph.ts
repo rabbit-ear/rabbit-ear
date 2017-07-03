@@ -144,8 +144,8 @@ class PlanarGraph extends Graph{
 		this.faces = [];
 	}
 
-	newEdge(nodeIndex1:number, nodeIndex2:number):number {
-		return this.addEdge(new PlanarEdge(nodeIndex1, nodeIndex2));
+	newEdge(nodeIndex1:number, nodeIndex2:number):PlanarEdge {
+		return <PlanarEdge>this.addEdge(new PlanarEdge(nodeIndex1, nodeIndex2));
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -154,25 +154,25 @@ class PlanarGraph extends Graph{
 	//  1.
 	//  ADD PARTS
 
-	addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number){  // floats
+	addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):PlanarEdge{  // floats
 		var a = this.addNode( new PlanarNode(x1, y1) );
 		var b = this.addNode( new PlanarNode(x2, y2) );
-		return this.newEdge(a, b);
+		return <PlanarEdge>this.addEdge(new PlanarEdge(a.index, b.index));
 		// this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
 	}
 
-	addEdgeFromVertex(existingIndex:number, newX:number, newY:number){ // uint, floats
-		var index = this.addNode( new PlanarNode(newX, newY) );
-		return this.newEdge(existingIndex, index);
+	addEdgeFromVertex(existingIndex:number, newX:number, newY:number):PlanarEdge{ // uint, floats
+		var node = this.addNode( new PlanarNode(newX, newY) );
+		return this.newEdge(existingIndex, node.index);
 		// this.changedNodes( [existingIndex, this.nodes.length-1] );
 	}
 
-	addEdgeFromExistingVertices(existingIndex1:number, existingIndex2:number){ // uint, uint
+	addEdgeFromExistingVertices(existingIndex1:number, existingIndex2:number):PlanarEdge{ // uint, uint
 		return this.newEdge(existingIndex1, existingIndex2);
 		// this.changedNodes( [existingIndex1, existingIndex2] );
 	}
 
-	addEdgeRadiallyFromVertex(existingIndex:number, angle:number, distance:number){ // uint, floats
+	addEdgeRadiallyFromVertex(existingIndex:number, angle:number, distance:number):PlanarEdge{ // uint, floats
 		var newX = this.nodes[existingIndex].x + Math.cos(angle) * distance;
 		var newY = this.nodes[existingIndex].y + Math.sin(angle) * distance;
 		return this.addEdgeFromVertex(existingIndex, newX, newY);
@@ -187,7 +187,7 @@ class PlanarGraph extends Graph{
 			var thisEdge = this.edges[ this.getEdgeConnectingNodes(nodeArray[i], nodeArray[nextI]) ];
 			if(thisEdge == undefined){
 				console.log("creating edge to make face between nodes " + nodeArray[i] + ' ' + nodeArray[nextI]);
-				thisEdge = this.edges[ this.addEdgeFromExistingVertices(nodeArray[i], nodeArray[nextI]) ];
+				thisEdge = this.addEdgeFromExistingVertices(nodeArray[i], nodeArray[nextI]);
 			}
 			edgeArray.push(thisEdge);
 		}

@@ -24,13 +24,16 @@ var CreaseNode = (function (_super) {
     }
     return CreaseNode;
 }(PlanarNode));
-var CreaseEdge = (function (_super) {
-    __extends(CreaseEdge, _super);
-    function CreaseEdge(index1, index2) {
+var Crease = (function (_super) {
+    __extends(Crease, _super);
+    function Crease(index1, index2) {
         return _super.call(this, index1, index2) || this;
     }
     ;
-    return CreaseEdge;
+    Crease.prototype.mountain = function () { this.orientation = CreaseDirection.mountain; return this; };
+    Crease.prototype.valley = function () { this.orientation = CreaseDirection.valley; return this; };
+    Crease.prototype.border = function () { this.orientation = CreaseDirection.border; return this; };
+    return Crease;
 }(PlanarEdge));
 // for purposes of modeling origami crease patterns
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
@@ -62,14 +65,26 @@ var CreasePattern = (function (_super) {
         this.edges = cp.edges.slice();
         this.faces = cp.faces.slice();
     };
+    CreasePattern.prototype.newEdge = function (nodeIndex1, nodeIndex2) {
+        return this.addEdge(new Crease(nodeIndex1, nodeIndex2));
+    };
+    CreasePattern.prototype.addEdgeWithVertices = function (x1, y1, x2, y2) {
+        var a = this.addNode(new CreaseNode(x1, y1));
+        var b = this.addNode(new CreaseNode(x2, y2));
+        return this.newEdge(a.index, b.index);
+        // this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
+    };
     ///////////////////////////////////////////////////////////////
     // ADD PARTS
     CreasePattern.prototype.crease = function (x1, y1, x2, y2) {
-        // if crease exists at x1 y1, or at x2 y2
-        // addEdgeFromVertex
-        // or addEdgeFromExistingVertices
-        // else
-        this.addEdgeWithVertices(x1, y1, x2, y2);
+        return this.addEdgeWithVertices(x1, y1, x2, y2);
+    };
+    CreasePattern.prototype.creaseVector = function (start, vector) {
+    };
+    CreasePattern.prototype.creaseAngle = function (start, radians) {
+    };
+    CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
+        this.crease(x1, y1, x2, y2).border();
     };
     ///////////////////////////////////////////////////////////////
     // CLEAN  /  REMOVE PARTS
@@ -105,18 +120,6 @@ var CreasePattern = (function (_super) {
         if (x < E)
             return 4;
         return undefined;
-    };
-    CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
-        var index = this.addEdgeWithVertices(x1, y1, x2, y2);
-        this.edges[index].orientation = CreaseDirection.border;
-    };
-    CreasePattern.prototype.creaseMountain = function (x1, y1, x2, y2) {
-        var index = this.addEdgeWithVertices(x1, y1, x2, y2);
-        this.edges[index].orientation = CreaseDirection.mountain;
-    };
-    CreasePattern.prototype.creaseValley = function (x1, y1, x2, y2) {
-        var index = this.addEdgeWithVertices(x1, y1, x2, y2);
-        this.edges[index].orientation = CreaseDirection.valley;
     };
     // vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
     // 	var v = this.nodes[vIndex];
@@ -269,19 +272,19 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.fishBase = function () {
         this.clear();
-        this.creaseMountain(1, 0, 0, 1);
-        this.creaseValley(0, 1, .70711, .70711);
-        this.creaseValley(0, 1, .29289, .29289);
-        this.creaseValley(1, 0, .29289, .29289);
-        this.creaseValley(1, 0, .70711, .70711);
-        this.creaseValley(.29289, .29289, 0, 0);
-        this.creaseValley(.70711, .70711, 1, 1);
-        this.creaseMountain(.70711, .70711, 1, .70711);
-        this.creaseMountain(.29289, .29289, .29289, 0);
-        this.addPaperEdge(0, 0, .29289, 0);
-        this.addPaperEdge(.29289, 0, 1, 0);
-        this.addPaperEdge(1, 0, 1, .70711);
-        this.addPaperEdge(1, .70711, 1, 1);
+        this.crease(1, 0, 0, 1).mountain();
+        this.crease(0, 1, 0.70711, 0.70711).valley();
+        this.crease(0, 1, 0.29289, 0.29289).valley();
+        this.crease(1, 0, 0.29289, 0.29289).valley();
+        this.crease(1, 0, 0.70711, 0.70711).valley();
+        this.crease(0.29289, 0.29289, 0, 0).valley();
+        this.crease(0.70711, 0.70711, 1, 1).valley();
+        this.crease(0.70711, 0.70711, 1, 0.70711).mountain();
+        this.crease(0.29289, 0.29289, 0.29289, 0).mountain();
+        this.addPaperEdge(0, 0, 0.29289, 0);
+        this.addPaperEdge(0.29289, 0, 1, 0);
+        this.addPaperEdge(1, 0, 1, 0.70711);
+        this.addPaperEdge(1, 0.70711, 1, 1);
         this.addPaperEdge(1, 1, 0, 1);
         this.addPaperEdge(0, 1, 0, 0);
         this.clean();

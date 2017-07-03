@@ -15,11 +15,14 @@ class CreaseNode extends PlanarNode{
 	}
 }
 
-class CreaseEdge extends PlanarEdge{
+class Crease extends PlanarEdge{
 	orientation:CreaseDirection;
 	constructor(index1:number, index2:number){
 		super(index1, index2);
 	};
+	mountain(){ this.orientation = CreaseDirection.mountain; return this;}
+	valley()  { this.orientation = CreaseDirection.valley; return this;}
+	border()  { this.orientation = CreaseDirection.border; return this;}
 }
 
 // for purposes of modeling origami crease patterns
@@ -27,12 +30,12 @@ class CreaseEdge extends PlanarEdge{
 class CreasePattern extends PlanarGraph{
 
 	nodes:CreaseNode[];
-	edges:CreaseEdge[];
+	edges:Crease[];
 
 	landmarkNodes:XYPoint[];
 	landmarkEdges:[XYPoint,XYPoint];
 
-	borders:CreaseEdge[];
+	boundary:Crease[];
 
 	constructor(){
 		super();
@@ -62,16 +65,38 @@ class CreasePattern extends PlanarGraph{
 		this.faces = cp.faces.slice();
 	}
 
+	newEdge(nodeIndex1:number, nodeIndex2:number):Crease {
+		return <Crease>this.addEdge(new Crease(nodeIndex1, nodeIndex2));
+	}
+	addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):Crease{  // floats
+		var a = this.addNode( new CreaseNode(x1, y1) );
+		var b = this.addNode( new CreaseNode(x2, y2) );
+		return this.newEdge(a.index, b.index);
+		// this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
+	}
+
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS
 
-	crease(x1, y1, x2, y2){  // floats
-		// if crease exists at x1 y1, or at x2 y2
-		// addEdgeFromVertex
-		// or addEdgeFromExistingVertices
+	crease(x1:number, y1:number, x2:number, y2:number):Crease{
+		return this.addEdgeWithVertices(x1, y1, x2, y2);
+	}
 
-		// else
-		this.addEdgeWithVertices(x1, y1, x2, y2);
+	creaseVector(start:XYPoint,vector:XYPoint):Crease{
+		var boundaryIntersection = undefined;
+		for(var i = 0; i < this.boundary.length; i++){
+			var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1]);
+			if(thisIntersection != undefined){ boundaryIntersection = thisIntersection; }
+		}
+		if(boundaryIntersection == undefined) { throw "creaseVector() requires paper boundaries else it will crease to infinity"; }
+		return this.crease(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
+	}
+	creaseAngle(start:XYPoint,radians:number):Crease{
+		return this.creaseVector(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
+	}
+
+	addPaperEdge(x1:number, y1:number, x2:number, y2:number){
+		this.boundary.push(this.crease(x1, y1, x2, y2).border());
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -108,22 +133,6 @@ class CreasePattern extends PlanarGraph{
 		if( y > 1.0 - E ) return 3;
 		if( x < E ) return 4;
 		return undefined;
-	}
-
-	addPaperEdge(x1, y1, x2, y2){
-		var index = this.addEdgeWithVertices(x1, y1, x2, y2);
-		this.edges[index].orientation = CreaseDirection.border;
-	}
-
-
-	creaseMountain(x1, y1, x2, y2){
-		var index = this.addEdgeWithVertices(x1, y1, x2, y2);
-		this.edges[index].orientation = CreaseDirection.mountain;
-	}
-	
-	creaseValley(x1, y1, x2, y2){
-		var index = this.addEdgeWithVertices(x1, y1, x2, y2);
-		this.edges[index].orientation = CreaseDirection.valley;
 	}
 
 	// vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
@@ -279,21 +288,21 @@ class CreasePattern extends PlanarGraph{
 	}
 	fishBase(){
 		this.clear();
-		this.creaseMountain(1, 0, 0, 1);
-		this.creaseValley(0, 1, .70711, .70711);
-		this.creaseValley(0, 1, .29289, .29289);
-		this.creaseValley(1, 0, .29289, .29289);
-		this.creaseValley(1, 0, .70711, .70711);
-		this.creaseValley(.29289, .29289, 0, 0);
-		this.creaseValley(.70711, .70711, 1, 1);
-		this.creaseMountain(.70711, .70711, 1, .70711);
-		this.creaseMountain(.29289, .29289, .29289, 0);
-		this.addPaperEdge(0,0,.29289,0);
-		this.addPaperEdge(.29289,0,1,0);
-		this.addPaperEdge(1,0,1,.70711);
-		this.addPaperEdge(1,.70711,1,1);
-		this.addPaperEdge(1,1,0,1);
-		this.addPaperEdge(0,1,0,0);
+		this.crease(1,0, 0,1).mountain();
+		this.crease(0,1, 0.70711,0.70711).valley();
+		this.crease(0,1, 0.29289,0.29289).valley();
+		this.crease(1,0, 0.29289,0.29289).valley();
+		this.crease(1,0, 0.70711,0.70711).valley();
+		this.crease(0.29289,0.29289, 0,0).valley();
+		this.crease(0.70711,0.70711, 1,1).valley();
+		this.crease(0.70711,0.70711, 1,0.70711).mountain();
+		this.crease(0.29289,0.29289, 0.29289,0).mountain();
+		this.addPaperEdge(0,0, 0.29289,0);
+		this.addPaperEdge(0.29289,0, 1,0);
+		this.addPaperEdge(1,0, 1,0.70711);
+		this.addPaperEdge(1,0.70711, 1,1);
+		this.addPaperEdge(1,1, 0,1);
+		this.addPaperEdge(0,1, 0,0);
 		this.clean();
 		this.addFaceBetweenNodes([0, 1, 3]);
 		this.addFaceBetweenNodes([0, 2, 1]);

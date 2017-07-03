@@ -154,12 +154,12 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.addEdgeWithVertices = function (x1, y1, x2, y2) {
         var a = this.addNode(new PlanarNode(x1, y1));
         var b = this.addNode(new PlanarNode(x2, y2));
-        return this.newEdge(a, b);
+        return this.addEdge(new PlanarEdge(a.index, b.index));
         // this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
     };
     PlanarGraph.prototype.addEdgeFromVertex = function (existingIndex, newX, newY) {
-        var index = this.addNode(new PlanarNode(newX, newY));
-        return this.newEdge(existingIndex, index);
+        var node = this.addNode(new PlanarNode(newX, newY));
+        return this.newEdge(existingIndex, node.index);
         // this.changedNodes( [existingIndex, this.nodes.length-1] );
     };
     PlanarGraph.prototype.addEdgeFromExistingVertices = function (existingIndex1, existingIndex2) {
@@ -181,7 +181,7 @@ var PlanarGraph = (function (_super) {
             var thisEdge = this.edges[this.getEdgeConnectingNodes(nodeArray[i], nodeArray[nextI])];
             if (thisEdge == undefined) {
                 console.log("creating edge to make face between nodes " + nodeArray[i] + ' ' + nodeArray[nextI]);
-                thisEdge = this.edges[this.addEdgeFromExistingVertices(nodeArray[i], nodeArray[nextI])];
+                thisEdge = this.addEdgeFromExistingVertices(nodeArray[i], nodeArray[nextI]);
             }
             edgeArray.push(thisEdge);
         }

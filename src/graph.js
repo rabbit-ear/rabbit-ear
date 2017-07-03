@@ -77,7 +77,7 @@ var Graph = (function () {
         node.graph = this;
         node.index = this.nodes.length;
         this.nodes.push(node);
-        return node.index;
+        return node;
     };
     Graph.prototype.addEdge = function (edge) {
         if (edge.node[0] >= this.nodes.length || edge.node[1] >= this.nodes.length) {
@@ -86,7 +86,7 @@ var Graph = (function () {
         edge.graph = this;
         edge.index = this.edges.length;
         this.edges.push(edge);
-        return edge.index;
+        return edge;
     };
     Graph.prototype.addNodes = function (nodes) {
         if (nodes == undefined || nodes.length <= 0) {
