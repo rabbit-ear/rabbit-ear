@@ -154,7 +154,7 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.addEdgeWithVertices = function (x1, y1, x2, y2) {
         var a = this.addNode(new PlanarNode(x1, y1));
         var b = this.addNode(new PlanarNode(x2, y2));
-        return this.addEdge(new PlanarEdge(a.index, b.index));
+        return this.newEdge(a.index, b.index);
         // this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
     };
     PlanarGraph.prototype.addEdgeFromVertex = function (existingIndex, newX, newY) {
@@ -552,11 +552,17 @@ var PlanarGraph = (function (_super) {
 //
 // if points are all collinear
 // checks if point lies on line segment 'ab'
-function onSegment(a, point, b) {
-    if (point.x <= Math.max(a.x, b.x) && point.x >= Math.min(a.x, b.x) &&
-        point.y <= Math.max(a.y, b.y) && point.y >= Math.min(a.y, b.y)) {
+function onSegment(point, a, b) {
+    // if (point.x <= Math.max(a.x, b.x) && point.x >= Math.min(a.x, b.x) &&
+    // 	point.y <= Math.max(a.y, b.y) && point.y >= Math.min(a.y, b.y)){
+    // 	return true;
+    // }
+    // return false;
+    var ab = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+    var pa = Math.sqrt(Math.pow(point.x - a.x, 2) + Math.pow(point.y - a.y, 2));
+    var pb = Math.sqrt(Math.pow(point.x - b.x, 2) + Math.pow(point.y - b.y, 2));
+    if (Math.abs(ab - (pa + pb)) < EPSILON)
         return true;
-    }
     return false;
 }
 function rayLineSegmentIntersectionAlgorithm(rayOrigin, rayDirection, point1, point2) {

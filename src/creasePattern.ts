@@ -22,7 +22,7 @@ class CreaseNode extends PlanarNode{
 	isBoundary():boolean{
 		for(var i = 0; i < this.graph.boundary.length; i++){
 			var thisPt = new XYPoint(this.x, this.y);
-			if(onSegment(thisPt, this.graph.boundary[i].endPoints[0], this.graph.boundary[i].endPoints[1])){ return true; }
+			if(onSegment(thisPt, this.graph.boundary[i].endPoints()[0], this.graph.boundary[i].endPoints()[1])){ return true; }
 		}
 		return false;
 	}
@@ -44,32 +44,19 @@ class CreasePattern extends PlanarGraph{
 
 	nodes:CreaseNode[];
 	edges:Crease[];
-
-	landmarkNodes:XYPoint[];
-	landmarkEdges:[XYPoint,XYPoint];
-
 	boundary:Crease[];
+
+	landmarkNodes():XYPoint[]{ return this.nodes.map(function(el){ return new XYPoint(el.x, el.y); }); }
 
 	constructor(){
 		super();
+		this.boundary = [];
 		// square page
 		this.addPaperEdge(0,0, 0,1);
 		this.addPaperEdge(0,1, 1,1);
 		this.addPaperEdge(1,1, 1,0);
 		this.addPaperEdge(1,0, 0,0);
-		this.clean();
-
-		this.landmarkNodes = [
-			{x:0.0, y:0.0},
-			{x:0.0, y:1.0},
-			{x:1.0, y:0.0},
-			{x:1.0, y:1.0},
-			{x:0.5, y:0.5},
-			{x:0.0, y:0.5},
-			{x:0.5, y:0.0},
-			{x:1.0, y:0.5},
-			{x:0.5, y:1.0}
-		];
+		this.mergeDuplicateVertices();
 	}
 
 	import(cp:CreasePattern){
@@ -89,7 +76,59 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	///////////////////////////////////////////////////////////////
+	// CLEAN  /  REMOVE PARTS
+
+	clean(){
+		// check if any nodes are free floating and not connected to any edges, remove them
+		var superReturn = super.clean();
+		var intersections = super.chop();
+		// this.interestingPoints = this.nodes;
+		// this.interestingPoints = this.appendUniquePoints(this.nodes, this.starterLocations);
+		return superReturn;
+	}
+
+	clear(){
+		super.clear();
+
+		this.boundary = [];
+		// square page
+		this.addPaperEdge(0,0, 0,1);
+		this.addPaperEdge(0,1, 1,1);
+		this.addPaperEdge(1,1, 1,0);
+		this.addPaperEdge(1,0, 0,0);
+		super.mergeDuplicateVertices();
+		// this.interestingPoints = this.starterLocations;
+	}
+	///////////////////////////////////////////////////////////////
 	// ADD PARTS
+
+	addPaperEdge(x1:number, y1:number, x2:number, y2:number){
+		this.boundary.push(this.crease(x1, y1, x2, y2).border());
+	}
+
+	creasePointToPoint(a:XYPoint, b:XYPoint):Crease{
+		var midpoint = new XYPoint((a.x + b.x)*0.5, (a.y + b.y)*0.5);
+		var ab = new XYPoint(b.x - a.x, b.y - a.y);
+		var perp1 = new XYPoint(-ab.y, ab.x);
+		var perp2 = new XYPoint(ab.y, -ab.x);
+
+		var intersects = []
+		for(var i = 0; i < this.boundary.length; i++){
+			var endpts = this.boundary[i].endPoints();
+			var test1 = rayLineSegmentIntersectionAlgorithm(midpoint, perp1, endpts[0], endpts[1]);
+			var test2 = rayLineSegmentIntersectionAlgorithm(midpoint, perp2, endpts[0], endpts[1]);
+			if(test1 != undefined){ intersects.push(test1); }
+			if(test2 != undefined){ intersects.push(test2); }
+		}
+		if(intersects.length >= 2){
+			return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+		}
+		throw "points have no perpendicular bisector inside of the boundaries";
+	}
+
+	creaseEdgeToEdge(a:Crease, b:Crease){
+
+	}
 
 	crease(x1:number, y1:number, x2:number, y2:number):Crease{
 		return this.addEdgeWithVertices(x1, y1, x2, y2);
@@ -104,29 +143,9 @@ class CreasePattern extends PlanarGraph{
 		if(boundaryIntersection == undefined) { throw "creaseVector() requires paper boundaries else it will crease to infinity"; }
 		return this.crease(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
 	}
+
 	creaseAngle(start:XYPoint,radians:number):Crease{
 		return this.creaseVector(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
-	}
-
-	addPaperEdge(x1:number, y1:number, x2:number, y2:number){
-		this.boundary.push(this.crease(x1, y1, x2, y2).border());
-	}
-
-	///////////////////////////////////////////////////////////////
-	// CLEAN  /  REMOVE PARTS
-
-	clean(){
-		// check if any nodes are free floating and not connected to any edges, remove them
-		var superReturn = super.clean();
-		var intersections = super.chop();
-		// this.interestingPoints = this.nodes;
-		// this.interestingPoints = this.appendUniquePoints(this.nodes, this.starterLocations);
-		return superReturn;
-	}
-
-	clear(){
-		super.clear();
-		// this.interestingPoints = this.starterLocations;
 	}
 
 	// vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex

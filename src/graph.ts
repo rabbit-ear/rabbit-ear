@@ -169,8 +169,8 @@ class Graph{
 	// CLEAN will change the edges, but nodes will remain unaffected
 	clean():object{
 		var countCircular, countDuplicate;
-		if(!this.preferences.allowCircular) { countCircular = this.cleanCircularEdges();  }
-		if(!this.preferences.allowDuplicate){ countDuplicate = this.cleanDuplicateEdges();}
+		if(!(this.preferences.allowCircular)) { countCircular = this.cleanCircularEdges();  }
+		if(!(this.preferences.allowDuplicate)){ countDuplicate = this.cleanDuplicateEdges();}
 		return {'duplicate':countDuplicate, 'circular': countCircular};
 	}
 

@@ -41,20 +41,25 @@ var PaperCreasePattern = (function () {
 	function PaperCreasePattern(paperjs, creasePattern) {
 		if(creasePattern == undefined) { throw "PaperCreasePattern() initializer requires valid crease pattern"; }
 		// holds onto a pointer to the data model
+		this.myPaperJS = paperjs
 		this.cp = creasePattern;
+		// layer for drawing
+		this.cpLayer = new this.myPaperJS.Layer();
+		// drawing options
+		this.lineWeight = .0075;
+
+		this.initialize();
+    }
+    PaperCreasePattern.prototype.initialize = function(){
 		// on-screen drawn elements
 		this.points = [];
 		this.edges = [];
 		this.faces = [];
-		// layer for drawing
-		this.cpLayer = new paperjs.Layer();
+		// drawing layer
 		this.cpLayer.activate();
-//		this.cpLayer.removeChildren();
-		// drawing options
-		this.lineWeight = .0075;
-
+		this.cpLayer.removeChildren();
 		for(var i = 0; i < this.cp.nodes.length; i++){
-			var p = new paperjs.Point(this.cp.nodes[ i ].x, this.cp.nodes[ i ].y);
+			var p = new this.myPaperJS.Point(this.cp.nodes[ i ].x, this.cp.nodes[ i ].y);
 			this.points.push( p );
 		}
 		for(var i = 0; i < this.cp.edges.length; i++){
@@ -70,13 +75,13 @@ var PaperCreasePattern = (function () {
 			for(var j = 0; j < this.cp.faces[i].nodes.length; j++){
 				segmentArray.push( this.points[ this.cp.faces[i].nodes[j].index ] );
 			}
-			this.faces.push(new paperjs.Path({
+			this.faces.push(new this.myPaperJS.Path({
 					fillColor: faceFillColor,
 					segments: segmentArray,
 					closed: true
 				})
 			);
-		}
+		}    	
     }
     PaperCreasePattern.prototype.update = function () {
 		for(var i = 0; i < this.cp.nodes.length; i++){

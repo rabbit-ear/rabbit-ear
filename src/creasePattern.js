@@ -22,6 +22,19 @@ var CreaseNode = (function (_super) {
     function CreaseNode(xx, yy) {
         return _super.call(this, xx, yy) || this;
     }
+    // isBoundary():boolean{
+    // 	if(this.y<EPSILON || this.x>1.0-EPSILON || this.y>1.0-EPSILON || this.x<EPSILON ){ return true; } 
+    // 	return false;
+    // }
+    CreaseNode.prototype.isBoundary = function () {
+        for (var i = 0; i < this.graph.boundary.length; i++) {
+            var thisPt = new XYPoint(this.x, this.y);
+            if (onSegment(thisPt, this.graph.boundary[i].endPoints()[0], this.graph.boundary[i].endPoints()[1])) {
+                return true;
+            }
+        }
+        return false;
+    };
     return CreaseNode;
 }(PlanarNode));
 var Crease = (function (_super) {
@@ -41,30 +54,22 @@ var CreasePattern = (function (_super) {
     __extends(CreasePattern, _super);
     function CreasePattern() {
         var _this = _super.call(this) || this;
+        _this.boundary = [];
         // square page
         _this.addPaperEdge(0, 0, 0, 1);
         _this.addPaperEdge(0, 1, 1, 1);
         _this.addPaperEdge(1, 1, 1, 0);
         _this.addPaperEdge(1, 0, 0, 0);
-        _this.clean();
-        _this.landmarkNodes = [
-            { x: 0.0, y: 0.0 },
-            { x: 0.0, y: 1.0 },
-            { x: 1.0, y: 0.0 },
-            { x: 1.0, y: 1.0 },
-            { x: 0.5, y: 0.5 },
-            { x: 0.0, y: 0.5 },
-            { x: 0.5, y: 0.0 },
-            { x: 1.0, y: 0.5 },
-            { x: 0.5, y: 1.0 }
-        ];
+        _this.mergeDuplicateVertices();
         return _this;
     }
+    CreasePattern.prototype.landmarkNodes = function () { return this.nodes.map(function (el) { return new XYPoint(el.x, el.y); }); };
     CreasePattern.prototype["import"] = function (cp) {
         this.nodes = cp.nodes.slice();
         this.edges = cp.edges.slice();
         this.faces = cp.faces.slice();
     };
+    // re-implement super class functions with new types
     CreasePattern.prototype.newEdge = function (nodeIndex1, nodeIndex2) {
         return this.addEdge(new Crease(nodeIndex1, nodeIndex2));
     };
@@ -72,19 +77,6 @@ var CreasePattern = (function (_super) {
         var a = this.addNode(new CreaseNode(x1, y1));
         var b = this.addNode(new CreaseNode(x2, y2));
         return this.newEdge(a.index, b.index);
-        // this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
-    };
-    ///////////////////////////////////////////////////////////////
-    // ADD PARTS
-    CreasePattern.prototype.crease = function (x1, y1, x2, y2) {
-        return this.addEdgeWithVertices(x1, y1, x2, y2);
-    };
-    CreasePattern.prototype.creaseVector = function (start, vector) {
-    };
-    CreasePattern.prototype.creaseAngle = function (start, radians) {
-    };
-    CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
-        this.crease(x1, y1, x2, y2).border();
     };
     ///////////////////////////////////////////////////////////////
     // CLEAN  /  REMOVE PARTS
@@ -98,28 +90,62 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.clear = function () {
         _super.prototype.clear.call(this);
-        this.faces = [];
+        this.boundary = [];
+        // square page
+        this.addPaperEdge(0, 0, 0, 1);
+        this.addPaperEdge(0, 1, 1, 1);
+        this.addPaperEdge(1, 1, 1, 0);
+        this.addPaperEdge(1, 0, 0, 0);
+        _super.prototype.mergeDuplicateVertices.call(this);
         // this.interestingPoints = this.starterLocations;
     };
-    CreasePattern.prototype.isCornerNode = function (x, y) {
-        // var E = EPSILON;
-        // if( y < E ) return 1;
-        // if( x > 1.0 - E ) return 2;
-        // if( y > 1.0 - E ) return 3;
-        // if( x < E ) return 4;
-        // return undefined;
+    ///////////////////////////////////////////////////////////////
+    // ADD PARTS
+    CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
+        this.boundary.push(this.crease(x1, y1, x2, y2).border());
     };
-    CreasePattern.prototype.isBoundaryNode = function (x, y) {
-        var E = .1; //EPSILON;
-        if (y < E)
-            return 1;
-        if (x > 1.0 - E)
-            return 2;
-        if (y > 1.0 - E)
-            return 3;
-        if (x < E)
-            return 4;
-        return undefined;
+    CreasePattern.prototype.creasePointToPoint = function (a, b) {
+        var midpoint = new XYPoint((a.x + b.x) * 0.5, (a.y + b.y) * 0.5);
+        var ab = new XYPoint(b.x - a.x, b.y - a.y);
+        var perp1 = new XYPoint(-ab.y, ab.x);
+        var perp2 = new XYPoint(ab.y, -ab.x);
+        var intersects = [];
+        for (var i = 0; i < this.boundary.length; i++) {
+            var endpts = this.boundary[i].endPoints();
+            var test1 = rayLineSegmentIntersectionAlgorithm(midpoint, perp1, endpts[0], endpts[1]);
+            var test2 = rayLineSegmentIntersectionAlgorithm(midpoint, perp2, endpts[0], endpts[1]);
+            if (test1 != undefined) {
+                intersects.push(test1);
+            }
+            if (test2 != undefined) {
+                intersects.push(test2);
+            }
+        }
+        if (intersects.length >= 2) {
+            return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+        }
+        throw "points have no perpendicular bisector inside of the boundaries";
+    };
+    CreasePattern.prototype.creaseEdgeToEdge = function (a, b) {
+    };
+    CreasePattern.prototype.crease = function (x1, y1, x2, y2) {
+        return this.addEdgeWithVertices(x1, y1, x2, y2);
+    };
+    CreasePattern.prototype.creaseVector = function (start, vector) {
+        var boundaryIntersection = undefined;
+        for (var i = 0; i < this.boundary.length; i++) {
+            var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1]);
+            if (thisIntersection != undefined) {
+                boundaryIntersection = thisIntersection;
+            }
+        }
+        if (boundaryIntersection == undefined) {
+            throw "creaseVector() requires paper boundaries else it will crease to infinity";
+        }
+        return this.crease(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
+    };
+    CreasePattern.prototype.creaseAngle = function (start, radians) {
+        return this.creaseVector(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
     };
     // vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
     // 	var v = this.nodes[vIndex];

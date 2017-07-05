@@ -172,10 +172,10 @@ var Graph = (function () {
     // CLEAN will change the edges, but nodes will remain unaffected
     Graph.prototype.clean = function () {
         var countCircular, countDuplicate;
-        if (!this.preferences.allowCircular) {
+        if (!(this.preferences.allowCircular)) {
             countCircular = this.cleanCircularEdges();
         }
-        if (!this.preferences.allowDuplicate) {
+        if (!(this.preferences.allowDuplicate)) {
             countDuplicate = this.cleanDuplicateEdges();
         }
         return { 'duplicate': countDuplicate, 'circular': countCircular };
