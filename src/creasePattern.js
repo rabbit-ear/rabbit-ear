@@ -96,7 +96,7 @@ var CreasePattern = (function (_super) {
         this.addPaperEdge(0, 1, 1, 1);
         this.addPaperEdge(1, 1, 1, 0);
         this.addPaperEdge(1, 0, 0, 0);
-        _super.prototype.mergeDuplicateVertices.call(this);
+        this.mergeDuplicateVertices();
         // this.interestingPoints = this.starterLocations;
     };
     ///////////////////////////////////////////////////////////////
@@ -121,7 +121,14 @@ var CreasePattern = (function (_super) {
                 intersects.push(test2);
             }
         }
-        if (intersects.length >= 2) {
+        if (intersects.length == 2) {
+            return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+        }
+        else if (intersects.length > 2) {
+            var pg = new PlanarGraph();
+            pg.nodes = intersects;
+            pg.mergeDuplicateVertices();
+            intersects = pg.nodes;
             return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
         }
         throw "points have no perpendicular bisector inside of the boundaries";

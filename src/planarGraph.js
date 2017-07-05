@@ -606,7 +606,6 @@ function lineSegmentIntersectionAlgorithm(p0, p1, p2, p3) {
     if (denom > 0)
         denomPositive = true;
     var s02 = { 'x': p0.x - p2.x, 'y': p0.y - p2.y };
-    // var s02 = new XYPoint(p0.x - p2.x, p0.y - p2.y);
     var s_numer = run1 * s02.y - rise1 * s02.x;
     if ((s_numer < 0) == denomPositive)
         return undefined; // No collision
