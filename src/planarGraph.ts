@@ -23,6 +23,12 @@ class XYPoint{
 		this.x = xx;
 		this.y = yy;
 	}
+	Dot(point:XYPoint):number {
+		return this.x * point.x + this.y * point.y;
+	}
+	Mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
+	Rotate90():XYPoint { return new XYPoint(-this.y, this.x); }
+	Normalize():XYPoint { var m = this.Mag(); return new XYPoint(this.x / m, this.y / m); }
 }
 
 class Intersection extends XYPoint{
@@ -61,6 +67,15 @@ class PlanarPair{
 class PlanarNode extends GraphNode implements XYPoint{
 	x:number;
 	y:number;
+
+// implements XYPoint
+	Dot(point:XYPoint):number {
+		return this.x * point.x + this.y * point.y;
+	}
+	Rotate90() { return new XYPoint(-this.y, this.x); }
+	Mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
+	Normalize():XYPoint { var m = this.Mag(); return new XYPoint(this.x / m, this.y / m); }
+
 
 	constructor(xx:number, yy:number){
 		super();
@@ -603,6 +618,22 @@ function rayLineSegmentIntersectionAlgorithm(rayOrigin:XYPoint, rayDirection:XYP
 	return null;
 }
 
+function lineIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):XYPoint {
+	// p0-p1 is first line
+	// p2-p3 is second line
+	var rise1 = (p1.y-p0.y);
+	var run1  = (p1.x-p0.x);
+	var rise2 = (p3.y-p2.y);
+	var run2  = (p3.x-p2.x);
+	var denom = run1 * rise2 - run2 * rise1;
+	// var denom = l1.u.x * l2.u.y - l1.u.y * l2.u.x;
+	if(denom == 0) return undefined;
+	// return XYPoint((l1.d * l2.u.y - l2.d * l1.u.y) / denom, (l2.d * l1.u.x - l1.d * l2.u.x) / denom);
+	var s02 = {'x':p0.x - p2.x, 'y':p0.y - p2.y};
+	var t = (run2 * s02.y - rise2 * s02.x) / denom;
+	return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1) );
+}
+
 function lineSegmentIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):XYPoint {
 	// p0-p1 is first line
 	// p2-p3 is second line
@@ -645,6 +676,15 @@ function lineSegmentIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3
 	// return i;
 	return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1) );
 }
+
+function linesParallel(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):boolean {
+	// p0-p1 is first line
+	// p2-p3 is second line
+	var u = new XYPoint(p1.x - p0.x, p1.y - p0.y);
+	var v = new XYPoint(p3.x - p2.x, p3.y - p2.y);
+	return (Math.abs( u.Dot( v.Rotate90() ) ) < EPSILON);
+}
+
 
 function minDistBetweenPointLine(a:XYPoint, b:XYPoint, x:number, y:number):XYPoint{
 	// (a)-(b) define the line

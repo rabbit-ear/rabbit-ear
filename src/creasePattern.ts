@@ -103,16 +103,42 @@ class CreasePattern extends PlanarGraph{
 	// ADD PARTS
 
 	addPaperEdge(x1:number, y1:number, x2:number, y2:number){
-		this.boundary.push(this.crease(x1, y1, x2, y2).border());
+		this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
 	}
-
+	creaseBetween2Points(a:XYPoint, b:XYPoint):Crease{
+		return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
+	}
+	// AXIOM 1
+	creaseConnectingPoints(a:XYPoint, b:XYPoint):Crease{
+		var ab = new XYPoint(b.x - a.x, b.y - a.y);
+		var ba = new XYPoint(a.x - b.x, a.y - b.y);
+		var intersects = [];
+		for(var i = 0; i < this.boundary.length; i++){
+			var endpts = this.boundary[i].endPoints();
+			var test1 = rayLineSegmentIntersectionAlgorithm(a, ab, endpts[0], endpts[1]);
+			var test2 = rayLineSegmentIntersectionAlgorithm(b, ba, endpts[0], endpts[1]);
+			if(test1 != undefined){ intersects.push(test1); }
+			if(test2 != undefined){ intersects.push(test2); }
+		}
+		if(intersects.length == 2){
+			return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+		} else if (intersects.length > 2){
+			var pg = new PlanarGraph();
+			pg.nodes = intersects;
+			pg.mergeDuplicateVertices();
+			intersects = pg.nodes;
+			return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+		}		
+		return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
+	}
+	// AXIOM 2
 	creasePointToPoint(a:XYPoint, b:XYPoint):Crease{
 		var midpoint = new XYPoint((a.x + b.x)*0.5, (a.y + b.y)*0.5);
 		var ab = new XYPoint(b.x - a.x, b.y - a.y);
 		var perp1 = new XYPoint(-ab.y, ab.x);
 		var perp2 = new XYPoint(ab.y, -ab.x);
 
-		var intersects = []
+		var intersects = [];
 		for(var i = 0; i < this.boundary.length; i++){
 			var endpts = this.boundary[i].endPoints();
 			var test1 = rayLineSegmentIntersectionAlgorithm(midpoint, perp1, endpts[0], endpts[1]);
@@ -131,13 +157,48 @@ class CreasePattern extends PlanarGraph{
 		}
 		throw "points have no perpendicular bisector inside of the boundaries";
 	}
-
+	// AXIOM 3
 	creaseEdgeToEdge(a:Crease, b:Crease){
+		if (linesParallel(a.endPoints()[0], a.endPoints()[1], b.endPoints()[0], b.endPoints()[1])) {
+			var u = new XYPoint(a.endPoints()[1].x - a.endPoints()[0].x, a.endPoints()[1].y - a.endPoints()[0].y);
+			var perp:XYPoint = u.Rotate90();
+			var intersect1 = lineIntersectionAlgorithm(u, new XYPoint(u.x+perp.x, u.y+perp.y), a.endPoints()[0], a.endPoints()[1]);
+			var intersect2 = lineIntersectionAlgorithm(u, new XYPoint(u.x+perp.x, u.y+perp.y), b.endPoints()[0], b.endPoints()[1]);
+			var midpoint = new XYPoint((intersect1.x + intersect2.x)*0.5, (intersect1.y + intersect2.y)*0.5);
+			return this.creaseConnectingPoints(midpoint, new XYPoint(midpoint.x+u.x, midpoint.y+u.y));
+		}
+		else {
+			var u = new XYPoint(a.endPoints()[1].x - a.endPoints()[0].x, a.endPoints()[1].y - a.endPoints()[0].y);
+			var v = new XYPoint(b.endPoints()[1].x - b.endPoints()[0].x, b.endPoints()[1].y - b.endPoints()[0].y);
+			var thisOne = new XYPoint(u.x + v.x, u.y + v.y).Normalize();
+			// var theOther = new XYPoint(u.x - v.x, u.y - v.y).Normalize();
+			var intersection = lineIntersectionAlgorithm(a.endPoints()[0], a.endPoints()[1], b.endPoints()[0], b.endPoints()[1]);
 
-	}
+			var thisOneAlt = new XYPoint(-thisOne.x, -thisOne.y);
+			// l.u = (u1 + u2).Normalize();
+			// l.u = (u1 - u2).Normalize();
 
-	crease(x1:number, y1:number, x2:number, y2:number):Crease{
-		return this.addEdgeWithVertices(x1, y1, x2, y2);
+			// l.d = lineIntersectionAlgorithm(l1, l2).Dot(l.u);
+
+			var intersects = [];
+			for(var i = 0; i < this.boundary.length; i++){
+				var endpts = this.boundary[i].endPoints();
+				var test1 = rayLineSegmentIntersectionAlgorithm(intersection, thisOne, endpts[0], endpts[1]);
+				var test2 = rayLineSegmentIntersectionAlgorithm(intersection, thisOneAlt, endpts[0], endpts[1]);
+				if(test1 != undefined){ intersects.push(test1); }
+				if(test2 != undefined){ intersects.push(test2); }
+			}
+			if(intersects.length == 2){
+				return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+			} else if (intersects.length > 2){
+				var pg = new PlanarGraph();
+				pg.nodes = intersects;
+				pg.mergeDuplicateVertices();
+				intersects = pg.nodes;
+				return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+			}
+			throw "not working idk";
+		};
 	}
 
 	creaseVector(start:XYPoint,vector:XYPoint):Crease{
@@ -147,7 +208,7 @@ class CreasePattern extends PlanarGraph{
 			if(thisIntersection != undefined){ boundaryIntersection = thisIntersection; }
 		}
 		if(boundaryIntersection == undefined) { throw "creaseVector() requires paper boundaries else it will crease to infinity"; }
-		return this.crease(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
+		return this.addEdgeWithVertices(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
 	}
 
 	creaseAngle(start:XYPoint,radians:number):Crease{
@@ -307,15 +368,15 @@ class CreasePattern extends PlanarGraph{
 	}
 	fishBase(){
 		this.clear();
-		this.crease(1,0, 0,1).mountain();
-		this.crease(0,1, 0.70711,0.70711).valley();
-		this.crease(0,1, 0.29289,0.29289).valley();
-		this.crease(1,0, 0.29289,0.29289).valley();
-		this.crease(1,0, 0.70711,0.70711).valley();
-		this.crease(0.29289,0.29289, 0,0).valley();
-		this.crease(0.70711,0.70711, 1,1).valley();
-		this.crease(0.70711,0.70711, 1,0.70711).mountain();
-		this.crease(0.29289,0.29289, 0.29289,0).mountain();
+		this.addEdgeWithVertices(1,0, 0,1).mountain();
+		this.addEdgeWithVertices(0,1, 0.70711,0.70711).valley();
+		this.addEdgeWithVertices(0,1, 0.29289,0.29289).valley();
+		this.addEdgeWithVertices(1,0, 0.29289,0.29289).valley();
+		this.addEdgeWithVertices(1,0, 0.70711,0.70711).valley();
+		this.addEdgeWithVertices(0.29289,0.29289, 0,0).valley();
+		this.addEdgeWithVertices(0.70711,0.70711, 1,1).valley();
+		this.addEdgeWithVertices(0.70711,0.70711, 1,0.70711).mountain();
+		this.addEdgeWithVertices(0.29289,0.29289, 0.29289,0).mountain();
 		this.addPaperEdge(0,0, 0.29289,0);
 		this.addPaperEdge(0.29289,0, 1,0);
 		this.addPaperEdge(1,0, 1,0.70711);

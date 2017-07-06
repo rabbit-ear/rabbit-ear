@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+html, body {
+	margin: 0;
+	overflow: hidden;
+	height: 100%;
+}
+canvas[resize] {
+	width: 100%;
+	height: 100%;
+}
+</style>
+<script type="text/javascript" src="../../src/graph.js"></script>
+<script type="text/javascript" src="../../src/planarGraph.js"></script>
+<script type="text/javascript" src="../../src/creasePattern.js"></script>
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="paperjscp.js"></script>
+<script type="text/javascript">
+
+window.onload = function() {
+	var cp = new CreasePattern();
+	console.log(cp);
+
+	var canvas = document.getElementById('canvas');
+	paper.setup(canvas);
+	zoomView(paper);
+
+	var paperCP = new PaperCreasePattern(paper, cp);
+
+	var selected = undefined;
+
+	var decorationLayer = new paper.Layer();
+	decorationLayer.activate();
+	var mark1 = new paper.Shape.Circle({
+		center: [0.0, 0.0],
+		radius: 0.02,
+		strokeWidth:0.01,
+		strokeColor: { hue:220, saturation:0.6, brightness:1 }
+	});
+	var mark2 = new paper.Shape.Circle({
+		center: [1.0, 1.0],
+		radius: 0.02,
+		strokeWidth:0.01,
+		strokeColor: { hue:220, saturation:0.6, brightness:1 }
+	});
+
+	cp.creasePointToPoint(mark1.position, mark2.position).valley();
+	paperCP.initialize();
+
+	// paper.view.onFrame = function(event) { }
+	paper.view.onResize = function(event) {
+		zoomView(paper);
+	}
+	paper.view.onMouseMove = function(event) {
+		mousePos = event.point;
+		if(selected != undefined){
+			selected.position = mousePos;
+			cp.clear();
+			cp.creasePointToPoint(mark1.position, mark2.position).valley();
+			paperCP.initialize();
+		}
+	}
+	paper.view.onMouseDown = function(event){
+		var eps = 0.02;
+		mousePos = event.point;
+		if(mousePos.x - eps < mark1.position.x && mousePos.x + eps > mark1.position.x && 
+		   mousePos.y - eps < mark1.position.y && mousePos.y + eps > mark1.position.y){
+		   	selected = mark1;
+		}
+		else if(mousePos.x - eps < mark2.position.x && mousePos.x + eps > mark2.position.x && 
+		        mousePos.y - eps < mark2.position.y && mousePos.y + eps > mark2.position.y){
+		   	selected = mark2;
+		}
+		else{ selected = undefined; }
+	}
+	paper.view.onMouseUp = function(event){
+		selected = undefined;
+	}
+}
+
+</script>
+</head>
+<body>
+	<canvas id="canvas" resize></canvas>
+</body>
+</html>

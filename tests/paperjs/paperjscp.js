@@ -15,22 +15,22 @@ var PaperCreasePattern = (function () {
 
 	function mountainPath(lineWeight){
 		return new paper.Path({
-			strokeColor: { hue:350, saturation:1, brightness:1 },
+			strokeColor: { gray:0.5, alpha:1.0 },//{ hue:350, saturation:1, brightness:1 },
 			strokeWidth: lineWeight,
 			closed: false
 		});
 	}
 	function valleyPath(lineWeight){
 		return new paper.Path({
-			strokeColor: { hue:230, saturation:1, brightness:1 },
-			dashArray: [lineWeight, lineWeight],
+			strokeColor: { hue:130, saturation:0.8, brightness:0.7 },//{ hue:230, saturation:1, brightness:1 },
+			dashArray: [lineWeight*3, lineWeight],
 			strokeWidth: lineWeight,
 			closed: false
 		});
 	}
 	function borderPath(lineWeight){
 		return new paper.Path({
-			strokeColor: { hue:0, saturation:1, brightness:0 },
+			strokeColor: { gray:0.0, alpha:1.0 },//{ hue:0, saturation:1, brightness:0 },
 			strokeWidth: lineWeight,
 			closed: false
 		});

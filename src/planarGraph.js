@@ -26,6 +26,12 @@ var XYPoint = (function () {
         this.x = xx;
         this.y = yy;
     }
+    XYPoint.prototype.Dot = function (point) {
+        return this.x * point.x + this.y * point.y;
+    };
+    XYPoint.prototype.Mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    XYPoint.prototype.Rotate90 = function () { return new XYPoint(-this.y, this.x); };
+    XYPoint.prototype.Normalize = function () { var m = this.Mag(); return new XYPoint(this.x / m, this.y / m); };
     return XYPoint;
 }());
 var Intersection = (function (_super) {
@@ -73,6 +79,13 @@ var PlanarNode = (function (_super) {
         }
         return _this;
     }
+    // implements XYPoint
+    PlanarNode.prototype.Dot = function (point) {
+        return this.x * point.x + this.y * point.y;
+    };
+    PlanarNode.prototype.Rotate90 = function () { return new XYPoint(-this.y, this.x); };
+    PlanarNode.prototype.Mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    PlanarNode.prototype.Normalize = function () { var m = this.Mag(); return new XYPoint(this.x / m, this.y / m); };
     PlanarNode.prototype.adjacentNodes = function () {
         return _super.prototype.adjacentNodes.call(this);
     };
@@ -581,6 +594,22 @@ function rayLineSegmentIntersectionAlgorithm(rayOrigin, rayDirection, point1, po
     }
     return null;
 }
+function lineIntersectionAlgorithm(p0, p1, p2, p3) {
+    // p0-p1 is first line
+    // p2-p3 is second line
+    var rise1 = (p1.y - p0.y);
+    var run1 = (p1.x - p0.x);
+    var rise2 = (p3.y - p2.y);
+    var run2 = (p3.x - p2.x);
+    var denom = run1 * rise2 - run2 * rise1;
+    // var denom = l1.u.x * l2.u.y - l1.u.y * l2.u.x;
+    if (denom == 0)
+        return undefined;
+    // return XYPoint((l1.d * l2.u.y - l2.d * l1.u.y) / denom, (l2.d * l1.u.x - l1.d * l2.u.x) / denom);
+    var s02 = { 'x': p0.x - p2.x, 'y': p0.y - p2.y };
+    var t = (run2 * s02.y - rise2 * s02.x) / denom;
+    return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1));
+}
 function lineSegmentIntersectionAlgorithm(p0, p1, p2, p3) {
     // p0-p1 is first line
     // p2-p3 is second line
@@ -619,6 +648,13 @@ function lineSegmentIntersectionAlgorithm(p0, p1, p2, p3) {
     // var i = {'x':(p0.x + (t * run1)), 'y':(p0.y + (t * rise1))};
     // return i;
     return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1));
+}
+function linesParallel(p0, p1, p2, p3) {
+    // p0-p1 is first line
+    // p2-p3 is second line
+    var u = new XYPoint(p1.x - p0.x, p1.y - p0.y);
+    var v = new XYPoint(p3.x - p2.x, p3.y - p2.y);
+    return (Math.abs(u.Dot(v.Rotate90())) < EPSILON);
 }
 function minDistBetweenPointLine(a, b, x, y) {
     // (a)-(b) define the line

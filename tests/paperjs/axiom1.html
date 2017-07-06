@@ -38,16 +38,16 @@ window.onload = function() {
 		center: [0.0, 0.0],
 		radius: 0.02,
 		strokeWidth:0.01,
-		strokeColor: 'red'
+		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
 	var mark2 = new paper.Shape.Circle({
 		center: [1.0, 1.0],
 		radius: 0.02,
 		strokeWidth:0.01,
-		strokeColor: 'red'
+		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
 
-	cp.creasePointToPoint(mark1.position, mark2.position).valley();
+	cp.creaseConnectingPoints(mark1.position, mark2.position).valley();
 	paperCP.initialize();
 
 	// paper.view.onFrame = function(event) { }
@@ -59,7 +59,7 @@ window.onload = function() {
 		if(selected != undefined){
 			selected.position = mousePos;
 			cp.clear();
-			cp.creasePointToPoint(mark1.position, mark2.position).valley();
+			cp.creaseConnectingPoints(mark1.position, mark2.position).valley();
 			paperCP.initialize();
 		}
 	}
