@@ -111,7 +111,6 @@ class CreasePattern extends PlanarGraph{
 	// creaseRay(origin:XYPoint, direction:XYPoint):Crease{
 	// }
 	// creaseLineSegment(a:XYPoint, b:XYPoint):Crease{
-		
 	// }
 
 	// AXIOM 1
@@ -170,6 +169,14 @@ class CreasePattern extends PlanarGraph{
 			}
 			throw "lines have no inner edge inside of the boundaries";
 		};
+	}
+	// AXIOM 4
+	creasePerpendicularThroughPoint(crease:Crease, point:XYPoint):Crease{
+		var endPts = crease.endPoints();
+		var ab = new XYPoint(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
+		var perp = new XYPoint(-ab.y, ab.x);
+		var point2 = new XYPoint(point.x + perp.x, point.y + perp.y);
+		return this.creaseConnectingPoints(point, point2);
 	}
 
 	creaseVector(start:XYPoint,vector:XYPoint):Crease{

@@ -170,6 +170,14 @@ var CreasePattern = (function (_super) {
         }
         ;
     };
+    // AXIOM 4
+    CreasePattern.prototype.creasePerpendicularThroughPoint = function (crease, point) {
+        var endPts = crease.endPoints();
+        var ab = new XYPoint(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
+        var perp = new XYPoint(-ab.y, ab.x);
+        var point2 = new XYPoint(point.x + perp.x, point.y + perp.y);
+        return this.creaseConnectingPoints(point, point2);
+    };
     CreasePattern.prototype.creaseVector = function (start, vector) {
         var boundaryIntersection = undefined;
         for (var i = 0; i < this.boundary.length; i++) {
