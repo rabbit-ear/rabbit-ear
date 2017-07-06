@@ -26,9 +26,8 @@ var XYPoint = (function () {
         this.x = xx;
         this.y = yy;
     }
-    XYPoint.prototype.Dot = function (point) {
-        return this.x * point.x + this.y * point.y;
-    };
+    XYPoint.prototype.Dot = function (point) { return this.x * point.x + this.y * point.y; };
+    XYPoint.prototype.Cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
     XYPoint.prototype.Mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
     XYPoint.prototype.Rotate90 = function () { return new XYPoint(-this.y, this.x); };
     XYPoint.prototype.Normalize = function () { var m = this.Mag(); return new XYPoint(this.x / m, this.y / m); };
@@ -80,9 +79,8 @@ var PlanarNode = (function (_super) {
         return _this;
     }
     // implements XYPoint
-    PlanarNode.prototype.Dot = function (point) {
-        return this.x * point.x + this.y * point.y;
-    };
+    PlanarNode.prototype.Dot = function (point) { return this.x * point.x + this.y * point.y; };
+    PlanarNode.prototype.Cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
     PlanarNode.prototype.Rotate90 = function () { return new XYPoint(-this.y, this.x); };
     PlanarNode.prototype.Mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
     PlanarNode.prototype.Normalize = function () { var m = this.Mag(); return new XYPoint(this.x / m, this.y / m); };

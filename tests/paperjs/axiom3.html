@@ -66,8 +66,12 @@ window.onload = function() {
 			cp.clear();
 			var edgeA = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
 			var edgeB = cp.creaseConnectingPoints(mark3.position, mark4.position).mountain();
-			cp.creaseEdgeToEdge(edgeA, edgeB).forEach(function(el){el.valley();});
+			var edges = cp.creaseEdgeToEdge(edgeA, edgeB);
+			edges.forEach(function(el){el.valley();});
 			paperCP.initialize();
+			if(edges.length >= 2){
+				paperCP.edges[edges[1].index].strokeColor = { hue:20, saturation:0.6, brightness:1 };
+			}
 		}
 	}
 	paper.view.onMouseDown = function(event){

@@ -158,13 +158,15 @@ var CreasePattern = (function (_super) {
             var dir90 = dir.Rotate90();
             var intersects90 = this.boundaryLineIntersection(intersection, dir90);
             if (intersects90.length >= 2) {
-                creases.push(this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
+                if (Math.abs(u.Cross(dir)) < Math.abs(u.Cross(dir90)))
+                    creases.push(this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
+                else
+                    creases.unshift(this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
             }
-            // console.log(dir.x + ' ' + dir.y + ' ----- ' + dir90.x + ' ' + dir90.y);
             if (creases.length) {
                 return creases;
             }
-            throw "not working idk";
+            throw "lines have no inner edge inside of the boundaries";
         }
         ;
     };

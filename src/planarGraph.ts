@@ -23,9 +23,8 @@ class XYPoint{
 		this.x = xx;
 		this.y = yy;
 	}
-	Dot(point:XYPoint):number {
-		return this.x * point.x + this.y * point.y;
-	}
+	Dot(point:XYPoint):number { return this.x * point.x + this.y * point.y; }
+	Cross(vector:XYPoint):number{ return this.x*vector.y - this.y*vector.x; }
 	Mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
 	Rotate90():XYPoint { return new XYPoint(-this.y, this.x); }
 	Normalize():XYPoint { var m = this.Mag(); return new XYPoint(this.x / m, this.y / m); }
@@ -69,9 +68,8 @@ class PlanarNode extends GraphNode implements XYPoint{
 	y:number;
 
 // implements XYPoint
-	Dot(point:XYPoint):number {
-		return this.x * point.x + this.y * point.y;
-	}
+	Dot(point:XYPoint):number { return this.x * point.x + this.y * point.y; }
+	Cross(vector:XYPoint):number{ return this.x*vector.y - this.y*vector.x; }
 	Rotate90() { return new XYPoint(-this.y, this.x); }
 	Mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
 	Normalize():XYPoint { var m = this.Mag(); return new XYPoint(this.x / m, this.y / m); }
