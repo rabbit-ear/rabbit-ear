@@ -107,105 +107,62 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.creaseBetween2Points = function (a, b) {
         return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
     };
+    // creaseRay(origin:XYPoint, direction:XYPoint):Crease{
+    // }
+    // creaseLineSegment(a:XYPoint, b:XYPoint):Crease{
+    // }
     // AXIOM 1
     CreasePattern.prototype.creaseConnectingPoints = function (a, b) {
         var ab = new XYPoint(b.x - a.x, b.y - a.y);
-        var ba = new XYPoint(a.x - b.x, a.y - b.y);
-        var intersects = [];
-        for (var i = 0; i < this.boundary.length; i++) {
-            var endpts = this.boundary[i].endPoints();
-            var test1 = rayLineSegmentIntersectionAlgorithm(a, ab, endpts[0], endpts[1]);
-            var test2 = rayLineSegmentIntersectionAlgorithm(b, ba, endpts[0], endpts[1]);
-            if (test1 != undefined) {
-                intersects.push(test1);
-            }
-            if (test2 != undefined) {
-                intersects.push(test2);
-            }
-        }
-        if (intersects.length == 2) {
+        var intersects = this.boundaryLineIntersection(a, ab);
+        if (intersects.length >= 2) {
             return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
         }
-        else if (intersects.length > 2) {
-            var pg = new PlanarGraph();
-            pg.nodes = intersects;
-            pg.mergeDuplicateVertices();
-            intersects = pg.nodes;
-            return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
-        }
-        return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
+        throw "points have no crease line inside of the boundaries";
     };
     // AXIOM 2
     CreasePattern.prototype.creasePointToPoint = function (a, b) {
         var midpoint = new XYPoint((a.x + b.x) * 0.5, (a.y + b.y) * 0.5);
         var ab = new XYPoint(b.x - a.x, b.y - a.y);
         var perp1 = new XYPoint(-ab.y, ab.x);
-        var perp2 = new XYPoint(ab.y, -ab.x);
-        var intersects = [];
-        for (var i = 0; i < this.boundary.length; i++) {
-            var endpts = this.boundary[i].endPoints();
-            var test1 = rayLineSegmentIntersectionAlgorithm(midpoint, perp1, endpts[0], endpts[1]);
-            var test2 = rayLineSegmentIntersectionAlgorithm(midpoint, perp2, endpts[0], endpts[1]);
-            if (test1 != undefined) {
-                intersects.push(test1);
-            }
-            if (test2 != undefined) {
-                intersects.push(test2);
-            }
-        }
-        if (intersects.length == 2) {
-            return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
-        }
-        else if (intersects.length > 2) {
-            var pg = new PlanarGraph();
-            pg.nodes = intersects;
-            pg.mergeDuplicateVertices();
-            intersects = pg.nodes;
+        var intersects = this.boundaryLineIntersection(midpoint, perp1);
+        if (intersects.length >= 2) {
             return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
         }
         throw "points have no perpendicular bisector inside of the boundaries";
     };
     // AXIOM 3
     CreasePattern.prototype.creaseEdgeToEdge = function (a, b) {
-        if (linesParallel(a.endPoints()[0], a.endPoints()[1], b.endPoints()[0], b.endPoints()[1])) {
-            var u = new XYPoint(a.endPoints()[1].x - a.endPoints()[0].x, a.endPoints()[1].y - a.endPoints()[0].y);
+        var aEndPts = a.endPoints();
+        var bEndPts = b.endPoints();
+        if (linesParallel(aEndPts[0], aEndPts[1], bEndPts[0], bEndPts[1])) {
+            var u = new XYPoint(aEndPts[1].x - aEndPts[0].x, aEndPts[1].y - aEndPts[0].y);
             var perp = u.Rotate90();
-            var intersect1 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), a.endPoints()[0], a.endPoints()[1]);
-            var intersect2 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), b.endPoints()[0], b.endPoints()[1]);
+            var intersect1 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), aEndPts[0], aEndPts[1]);
+            var intersect2 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), bEndPts[0], bEndPts[1]);
             var midpoint = new XYPoint((intersect1.x + intersect2.x) * 0.5, (intersect1.y + intersect2.y) * 0.5);
-            return this.creaseConnectingPoints(midpoint, new XYPoint(midpoint.x + u.x, midpoint.y + u.y));
+            return [this.creaseConnectingPoints(midpoint, new XYPoint(midpoint.x + u.x, midpoint.y + u.y))];
         }
         else {
-            var u = new XYPoint(a.endPoints()[1].x - a.endPoints()[0].x, a.endPoints()[1].y - a.endPoints()[0].y);
-            var v = new XYPoint(b.endPoints()[1].x - b.endPoints()[0].x, b.endPoints()[1].y - b.endPoints()[0].y);
-            var thisOne = new XYPoint(u.x + v.x, u.y + v.y).Normalize();
-            // var theOther = new XYPoint(u.x - v.x, u.y - v.y).Normalize();
-            var intersection = lineIntersectionAlgorithm(a.endPoints()[0], a.endPoints()[1], b.endPoints()[0], b.endPoints()[1]);
-            var thisOneAlt = new XYPoint(-thisOne.x, -thisOne.y);
-            // l.u = (u1 + u2).Normalize();
-            // l.u = (u1 - u2).Normalize();
-            // l.d = lineIntersectionAlgorithm(l1, l2).Dot(l.u);
-            var intersects = [];
-            for (var i = 0; i < this.boundary.length; i++) {
-                var endpts = this.boundary[i].endPoints();
-                var test1 = rayLineSegmentIntersectionAlgorithm(intersection, thisOne, endpts[0], endpts[1]);
-                var test2 = rayLineSegmentIntersectionAlgorithm(intersection, thisOneAlt, endpts[0], endpts[1]);
-                if (test1 != undefined) {
-                    intersects.push(test1);
-                }
-                if (test2 != undefined) {
-                    intersects.push(test2);
-                }
+            var creases = [];
+            var intersection = lineIntersectionAlgorithm(aEndPts[0], aEndPts[1], bEndPts[0], bEndPts[1]);
+            var u = new XYPoint(aEndPts[1].x - aEndPts[0].x, aEndPts[1].y - aEndPts[0].y);
+            var v = new XYPoint(bEndPts[1].x - bEndPts[0].x, bEndPts[1].y - bEndPts[0].y);
+            var uMag = u.Mag();
+            var vMag = v.Mag();
+            var dir = new XYPoint((u.x * vMag + v.x * uMag), (u.y * vMag + v.y * uMag));
+            var intersects = this.boundaryLineIntersection(intersection, dir);
+            if (intersects.length >= 2) {
+                creases.push(this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y));
             }
-            if (intersects.length == 2) {
-                return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+            var dir90 = dir.Rotate90();
+            var intersects90 = this.boundaryLineIntersection(intersection, dir90);
+            if (intersects90.length >= 2) {
+                creases.push(this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
             }
-            else if (intersects.length > 2) {
-                var pg = new PlanarGraph();
-                pg.nodes = intersects;
-                pg.mergeDuplicateVertices();
-                intersects = pg.nodes;
-                return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+            // console.log(dir.x + ' ' + dir.y + ' ----- ' + dir90.x + ' ' + dir90.y);
+            if (creases.length) {
+                return creases;
             }
             throw "not working idk";
         }
@@ -226,6 +183,47 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.creaseAngle = function (start, radians) {
         return this.creaseVector(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
+    };
+    CreasePattern.prototype.boundaryLineIntersection = function (origin, direction) {
+        var opposite = new XYPoint(-direction.x, -direction.y);
+        var intersects = [];
+        for (var i = 0; i < this.boundary.length; i++) {
+            var endpts = this.boundary[i].endPoints();
+            var test1 = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
+            var test2 = rayLineSegmentIntersectionAlgorithm(origin, opposite, endpts[0], endpts[1]);
+            if (test1 != undefined) {
+                intersects.push(test1);
+            }
+            if (test2 != undefined) {
+                intersects.push(test2);
+            }
+        }
+        for (var i = 0; i < intersects.length - 1; i++) {
+            for (var j = intersects.length - 1; j > i; j--) {
+                if (this.verticesEquivalent(intersects[i], intersects[j], EPSILON)) {
+                    intersects.splice(j, 1);
+                }
+            }
+        }
+        return intersects;
+    };
+    CreasePattern.prototype.boundaryRayIntersection = function (origin, direction) {
+        var intersects = [];
+        for (var i = 0; i < this.boundary.length; i++) {
+            var endpts = this.boundary[i].endPoints();
+            var test = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
+            if (test != undefined) {
+                intersects.push(test);
+            }
+        }
+        for (var i = 0; i < intersects.length - 1; i++) {
+            for (var j = intersects.length - 1; j > i; j--) {
+                if (this.verticesEquivalent(intersects[i], intersects[j], EPSILON)) {
+                    intersects.splice(j, 1);
+                }
+            }
+        }
+        return intersects;
     };
     // vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
     // 	var v = this.nodes[vIndex];

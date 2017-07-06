@@ -603,19 +603,19 @@ function onSegment(point:XYPoint, a:XYPoint, b:XYPoint):boolean{
 
 function rayLineSegmentIntersectionAlgorithm(rayOrigin:XYPoint, rayDirection:XYPoint, point1:XYPoint, point2:XYPoint){
 	var v1 = new XYPoint(rayOrigin.x - point1.x, rayOrigin.y - point1.y);
-	var v2 = new XYPoint(point2.x - point1.x, point2.y - point1.y);
-	var v3 = new XYPoint(-rayDirection.y, rayDirection.x);
-	var dot = v2.x*v3.x + v2.y*v3.y;
+	var vLineSeg = new XYPoint(point2.x - point1.x, point2.y - point1.y);
+	var vRayPerp = new XYPoint(-rayDirection.y, rayDirection.x);
+	var dot = vLineSeg.x*vRayPerp.x + vLineSeg.y*vRayPerp.y;
 	if (Math.abs(dot) < EPSILON)//0.000001)
 		return undefined;
-	var cross = (v2.x*v1.y-v2.y*v1.x);
+	var cross = (vLineSeg.x*v1.y-vLineSeg.y*v1.x);
 	var t1 = cross / dot;
-	var t2 = (v1.x*v3.x + v1.y*v3.y) / dot;
+	var t2 = (v1.x*vRayPerp.x + v1.y*vRayPerp.y) / dot;
 	if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)){
 		return new XYPoint(rayOrigin.x + rayDirection.x * t1, rayOrigin.y + rayDirection.y * t1);
 		//return t1;
 	}
-	return null;
+	return undefined;
 }
 
 function lineIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):XYPoint {
