@@ -179,17 +179,30 @@ var CreasePattern = (function (_super) {
         return this.creaseConnectingPoints(point, point2);
     };
     // AXIOM 5
-    CreasePattern.prototype.creasePointToLine = function (origin, point, line, markers) {
-        // "markers" is a pointer variable where the answer gets transferred back through the argument
+    CreasePattern.prototype.creasePointToLine = function (origin, point, line) {
         var endPts = line.endPoints();
         var radius = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
-        markers = circleLineIntersectionAlgorithm(origin, radius, endPts[0], endPts[1]);
-        // return (radius*radius) * dr_squared > (D*D)
+        var intersections = circleLineIntersectionAlgorithm(origin, radius, endPts[0], endPts[1]);
+        // return (radius*radius) * dr_squared > (D*D)  // check if there are any intersections
         var creases = [];
-        for (var i = 0; i < markers.length; i++) {
-            creases.push(this.creasePointToPoint(point, markers[i]));
+        for (var i = 0; i < intersections.length; i++) {
+            creases.push(this.creasePointToPoint(point, intersections[i]));
         }
         return creases;
+    };
+    // AXIOM 7
+    CreasePattern.prototype.creasePerpendicularPointOntoLine = function (point, ontoLine, perpendicularTo) {
+        var endPts = perpendicularTo.endPoints();
+        var align = new XYPoint(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
+        var pointParallel = new XYPoint(point.x + align.x, point.y + align.y);
+        var intersection = lineIntersectionAlgorithm(point, pointParallel, ontoLine.endPoints()[0], ontoLine.endPoints()[1]);
+        if (intersection != undefined) {
+            var midPoint = new XYPoint((intersection.x + point.x) * 0.5, (intersection.y + point.y) * 0.5);
+            var perp = new XYPoint(-align.y, align.x);
+            var midPoint2 = new XYPoint(midPoint.x + perp.x, midPoint.y + perp.y);
+            return this.creaseConnectingPoints(midPoint, midPoint2);
+        }
+        throw "axiom 7: two crease lines cannot be parallel";
     };
     CreasePattern.prototype.creaseVector = function (start, vector) {
         var boundaryIntersection = undefined;

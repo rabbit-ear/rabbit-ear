@@ -695,8 +695,8 @@ function circleLineIntersectionAlgorithm(center:XYPoint, radius:number, p0:XYPoi
 	var y2 = (-D*dx - Math.abs(dy)*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
 
 	var intersections = [];
-	if(x1 != NaN){ intersections.push( new XYPoint(x1 + center.x, y1 + center.y) ); }
-	if(x2 != NaN){ intersections.push( new XYPoint(x2 + center.x, y2 + center.y) ); }
+	if(!isNaN(x1)){ intersections.push( new XYPoint(x1 + center.x, y1 + center.y) ); }
+	if(!isNaN(x2)){ intersections.push( new XYPoint(x2 + center.x, y2 + center.y) ); }
 	return intersections;
 }
 

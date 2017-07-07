@@ -190,6 +190,20 @@ class CreasePattern extends PlanarGraph{
 		}
 		return creases;
 	}
+	// AXIOM 7
+	creasePerpendicularPointOntoLine(point:XYPoint, ontoLine:Crease, perpendicularTo:Crease):Crease{
+		var endPts = perpendicularTo.endPoints();
+		var align = new XYPoint(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
+		var pointParallel = new XYPoint(point.x+align.x, point.y+align.y);
+		var intersection = lineIntersectionAlgorithm(point, pointParallel, ontoLine.endPoints()[0], ontoLine.endPoints()[1]);
+		if(intersection != undefined){
+			var midPoint = new XYPoint((intersection.x + point.x)*0.5, (intersection.y + point.y)*0.5);
+			var perp = new XYPoint(-align.y, align.x);
+			var midPoint2 = new XYPoint(midPoint.x + perp.x, midPoint.y + perp.y);
+			return this.creaseConnectingPoints(midPoint, midPoint2);
+		}
+		throw "axiom 7: two crease lines cannot be parallel"
+	}
 
 	creaseVector(start:XYPoint,vector:XYPoint):Crease{
 		var boundaryIntersection = undefined;

@@ -35,33 +35,29 @@ window.onload = function() {
 	var decorationLayer = new paper.Layer();
 	decorationLayer.activate();
 	var mark1 = new paper.Shape.Circle({
-		center: [0.0, 0.0], radius: 0.02, strokeWidth:0.01,
+		center: [0.5, 0.0], radius: 0.02, strokeWidth:0.01,
 		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
 	var mark2 = new paper.Shape.Circle({
-		center: [0.5, 1.0], radius: 0.02, strokeWidth:0.01,
+		center: [1.0, 1.0], radius: 0.02, strokeWidth:0.01,
 		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
 	var mark3 = new paper.Shape.Circle({
-		center: [0.5, 0.5], radius: 0.02, strokeWidth:0.01,
+		center: [0.0, 0.75], radius: 0.02, strokeWidth:0.01,
 		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
 	var mark4 = new paper.Shape.Circle({
-		center: [1.0, 0.5], radius: 0.02, strokeWidth:0.01,
-		strokeColor: { hue:20, saturation:0.6, brightness:1 }
+		center: [1.0, 0.75], radius: 0.02, strokeWidth:0.01,
+		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
-	var edge = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
-	cp.creasePointToLine(mark3.position, mark4.position, edge).forEach(function(el){ el.valley(); });
+	var mark5 = new paper.Shape.Circle({
+		center: [0.20, 0.5], radius: 0.02, strokeWidth:0.01,
+		strokeColor: { hue:220, saturation:0.6, brightness:1 }
+	});
+	var crease1 = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
+	var crease2 = cp.creaseConnectingPoints(mark3.position, mark4.position).mountain();
+	cp.creasePerpendicularPointOntoLine(mark5.position, crease1, crease2).valley();
 	paperCP.initialize();
-	// algorithm helper visuals
-	var radius = Math.sqrt( Math.pow(mark4.position.x - mark3.position.x,2) + Math.pow(mark4.position.y - mark3.position.y,2));
-	var markers = circleLineIntersectionAlgorithm(mark3.position, radius, mark1.position, mark2.position);
-	for(var i = 0; i < markers.length; i++){
-		new paper.Shape.Circle({
-			center: [markers[i].x, markers[i].y], radius: 0.02, strokeWidth:0.01,
-			strokeColor: { hue:130, saturation:0.8, brightness:0.7 }
-		});
-	}
 
 	// paper.view.onFrame = function(event) { }
 	paper.view.onResize = function(event) {
@@ -72,18 +68,10 @@ window.onload = function() {
 		if(selected != undefined){
 			selected.position = mousePos;
 			cp.clear();
-			var edge = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
-			cp.creasePointToLine(mark3.position, mark4.position, edge).forEach(function(el){ el.valley(); });
+			var crease1 = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
+			var crease2 = cp.creaseConnectingPoints(mark3.position, mark4.position).mountain();
+			cp.creasePerpendicularPointOntoLine(mark5.position, crease1, crease2).valley();
 			paperCP.initialize();
-			// algorithm helper visuals
-			var radius = Math.sqrt( Math.pow(mark4.position.x - mark3.position.x,2) + Math.pow(mark4.position.y - mark3.position.y,2));
-			var markers = circleLineIntersectionAlgorithm(mark3.position, radius, mark1.position, mark2.position);
-			for(var i = 0; i < markers.length; i++){
-				new paper.Shape.Circle({
-					center: [markers[i].x, markers[i].y], radius: 0.02, strokeWidth:0.01,
-					strokeColor: { hue:130, saturation:0.8, brightness:0.7 }
-				});
-			}
 		}
 	}
 	paper.view.onMouseDown = function(event){
@@ -104,6 +92,10 @@ window.onload = function() {
 		else if(mousePos.x - eps < mark4.position.x && mousePos.x + eps > mark4.position.x && 
 		        mousePos.y - eps < mark4.position.y && mousePos.y + eps > mark4.position.y){
 		   	selected = mark4;
+		}
+		else if(mousePos.x - eps < mark5.position.x && mousePos.x + eps > mark5.position.x && 
+		        mousePos.y - eps < mark5.position.y && mousePos.y + eps > mark5.position.y){
+		   	selected = mark5;
 		}
 		else{ selected = undefined; }
 	}
