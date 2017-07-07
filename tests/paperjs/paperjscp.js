@@ -11,6 +11,20 @@ function zoomView(paperjs){
 	return mat;
 }
 
+// function zoomView(paperjs){
+// 	var paperSize, paperWindowScale = 0.8;
+// 	if(window.innerWidth < window.innerHeight){ paperSize = window.innerWidth * paperWindowScale;  } 
+// 	else                                      { paperSize = window.innerHeight * paperWindowScale; }
+// 	var mat = new paperjs.Matrix(1, 0, 0, 1, 0, 0);
+// 	if(window.innerWidth < window.innerHeight){ mat.translate(window.innerWidth * 0.5, window.innerWidth * 0.5);}
+// 	else                                      { mat.translate(window.innerHeight * 0.5, window.innerHeight * 0.5); }
+// 	mat.scale(paperSize, paperSize);
+// 	mat.translate(-0.5, -0.5);	
+// 	paperjs.view.matrix = mat;
+// 	return mat;
+// }
+
+
 var PaperCreasePattern = (function () {
 
 	function mountainPath(lineWeight){

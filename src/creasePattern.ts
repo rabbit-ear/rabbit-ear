@@ -171,12 +171,24 @@ class CreasePattern extends PlanarGraph{
 		};
 	}
 	// AXIOM 4
-	creasePerpendicularThroughPoint(crease:Crease, point:XYPoint):Crease{
-		var endPts = crease.endPoints();
+	creasePerpendicularThroughPoint(line:Crease, point:XYPoint):Crease{
+		var endPts = line.endPoints();
 		var ab = new XYPoint(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
 		var perp = new XYPoint(-ab.y, ab.x);
 		var point2 = new XYPoint(point.x + perp.x, point.y + perp.y);
 		return this.creaseConnectingPoints(point, point2);
+	}
+	// AXIOM 5
+	creasePointToLine(origin:XYPoint, point:XYPoint, line:Crease):Crease[]{
+		var endPts = line.endPoints();
+		var radius = Math.sqrt( Math.pow(origin.x-point.x,2) + Math.pow(origin.y-point.y,2) );
+		var intersections = circleLineIntersectionAlgorithm(origin, radius, endPts[0], endPts[1]);
+		// return (radius*radius) * dr_squared > (D*D)  // check if there are any intersections
+		var creases = [];
+		for(var i = 0; i < intersections.length; i++){
+			creases.push( this.creasePointToPoint(point, intersections[i]) );
+		}
+		return creases;
 	}
 
 	creaseVector(start:XYPoint,vector:XYPoint):Crease{

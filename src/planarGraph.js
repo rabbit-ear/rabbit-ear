@@ -647,6 +647,32 @@ function lineSegmentIntersectionAlgorithm(p0, p1, p2, p3) {
     // return i;
     return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1));
 }
+function circleLineIntersectionAlgorithm(center, radius, p0, p1) {
+    var r_squared = Math.pow(radius, 2);
+    var x1 = p0.x - center.x;
+    var y1 = p0.y - center.y;
+    var x2 = p1.x - center.x;
+    var y2 = p1.y - center.y;
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var dr_squared = dx * dx + dy * dy;
+    var D = x1 * y2 - x2 * y1;
+    function sgn(x) { if (x < 0) {
+        return -1;
+    } return 1; }
+    var x1 = (D * dy + sgn(dy) * dx * Math.sqrt(r_squared * dr_squared - (D * D))) / (dr_squared);
+    var x2 = (D * dy - sgn(dy) * dx * Math.sqrt(r_squared * dr_squared - (D * D))) / (dr_squared);
+    var y1 = (-D * dx + Math.abs(dy) * Math.sqrt(r_squared * dr_squared - (D * D))) / (dr_squared);
+    var y2 = (-D * dx - Math.abs(dy) * Math.sqrt(r_squared * dr_squared - (D * D))) / (dr_squared);
+    var intersections = [];
+    if (x1 != NaN) {
+        intersections.push(new XYPoint(x1 + center.x, y1 + center.y));
+    }
+    if (x2 != NaN) {
+        intersections.push(new XYPoint(x2 + center.x, y2 + center.y));
+    }
+    return intersections;
+}
 function linesParallel(p0, p1, p2, p3) {
     // p0-p1 is first line
     // p2-p3 is second line

@@ -171,12 +171,25 @@ var CreasePattern = (function (_super) {
         ;
     };
     // AXIOM 4
-    CreasePattern.prototype.creasePerpendicularThroughPoint = function (crease, point) {
-        var endPts = crease.endPoints();
+    CreasePattern.prototype.creasePerpendicularThroughPoint = function (line, point) {
+        var endPts = line.endPoints();
         var ab = new XYPoint(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
         var perp = new XYPoint(-ab.y, ab.x);
         var point2 = new XYPoint(point.x + perp.x, point.y + perp.y);
         return this.creaseConnectingPoints(point, point2);
+    };
+    // AXIOM 5
+    CreasePattern.prototype.creasePointToLine = function (origin, point, line, markers) {
+        // "markers" is a pointer variable where the answer gets transferred back through the argument
+        var endPts = line.endPoints();
+        var radius = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
+        markers = circleLineIntersectionAlgorithm(origin, radius, endPts[0], endPts[1]);
+        // return (radius*radius) * dr_squared > (D*D)
+        var creases = [];
+        for (var i = 0; i < markers.length; i++) {
+            creases.push(this.creasePointToPoint(point, markers[i]));
+        }
+        return creases;
     };
     CreasePattern.prototype.creaseVector = function (start, vector) {
         var boundaryIntersection = undefined;
