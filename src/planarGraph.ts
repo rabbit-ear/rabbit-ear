@@ -157,6 +157,11 @@ class PlanarGraph extends Graph{
 		this.faces = [];
 	}
 
+	// converts node positions from object notation .x .y into array notation [0] [1]
+	nodesArray():number[][]{
+		return this.nodes.map(function(el){return [el.x, el.y]});
+	}
+
 	newEdge(nodeIndex1:number, nodeIndex2:number):PlanarEdge {
 		return <PlanarEdge>this.addEdge(new PlanarEdge(nodeIndex1, nodeIndex2));
 	}

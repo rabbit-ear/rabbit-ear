@@ -43,25 +43,38 @@ window.onload = function() {
 		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
 	var mark3 = new paper.Shape.Circle({
-		center: [0.5, 0.5], radius: 0.02, strokeWidth:0.01,
+		center: [0.33333, 0.5], radius: 0.02, strokeWidth:0.01,
 		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
 	var mark4 = new paper.Shape.Circle({
-		center: [1.0, 0.5], radius: 0.02, strokeWidth:0.01,
-		strokeColor: { hue:20, saturation:0.6, brightness:1 }
+		center: [0.66666, 0.5], radius: 0.02, strokeWidth:0.01,
+		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
+
+	//{ hue:130, saturation:0.8, brightness:0.7 }
+
+
 	var edge = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
-	cp.creasePointToLine(mark3.position, mark4.position, edge).forEach(function(el){ el.valley(); });
+	var newCreases = cp.creasePointToLine(mark3.position, mark4.position, edge);
+	newCreases.forEach(function(el){ el.valley(); });
 	paperCP.initialize();
+	if(newCreases.length >= 2){
+		paperCP.edges[ newCreases[1].index ].strokeColor = { hue:20, saturation:0.6, brightness:1 };
+	}
 	// algorithm helper visuals
 	var radius = Math.sqrt( Math.pow(mark4.position.x - mark3.position.x,2) + Math.pow(mark4.position.y - mark3.position.y,2));
 	var markers = circleLineIntersectionAlgorithm(mark3.position, radius, mark1.position, mark2.position);
-	for(var i = 0; i < markers.length; i++){
+	if(markers.length >= 2){
 		new paper.Shape.Circle({
-			center: [markers[i].x, markers[i].y], radius: 0.02, strokeWidth:0.01,
+			center: [markers[0].x, markers[0].y], radius: 0.02, strokeWidth:0.01,
 			strokeColor: { hue:130, saturation:0.8, brightness:0.7 }
 		});
+		new paper.Shape.Circle({
+			center: [markers[1].x, markers[1].y], radius: 0.02, strokeWidth:0.01,
+			strokeColor: { hue:20, saturation:0.6, brightness:1 }
+		});
 	}
+
 
 	// paper.view.onFrame = function(event) { }
 	paper.view.onResize = function(event) {
@@ -73,15 +86,23 @@ window.onload = function() {
 			selected.position = mousePos;
 			cp.clear();
 			var edge = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
-			cp.creasePointToLine(mark3.position, mark4.position, edge).forEach(function(el){ el.valley(); });
+			var newCreases = cp.creasePointToLine(mark3.position, mark4.position, edge);
+			newCreases.forEach(function(el){ el.valley(); });
 			paperCP.initialize();
+			if(newCreases.length >= 2){
+				paperCP.edges[ newCreases[1].index ].strokeColor = { hue:20, saturation:0.6, brightness:1 };
+			}
 			// algorithm helper visuals
 			var radius = Math.sqrt( Math.pow(mark4.position.x - mark3.position.x,2) + Math.pow(mark4.position.y - mark3.position.y,2));
 			var markers = circleLineIntersectionAlgorithm(mark3.position, radius, mark1.position, mark2.position);
-			for(var i = 0; i < markers.length; i++){
+			if(markers.length >= 2){
 				new paper.Shape.Circle({
-					center: [markers[i].x, markers[i].y], radius: 0.02, strokeWidth:0.01,
+					center: [markers[0].x, markers[0].y], radius: 0.02, strokeWidth:0.01,
 					strokeColor: { hue:130, saturation:0.8, brightness:0.7 }
+				});
+				new paper.Shape.Circle({
+					center: [markers[1].x, markers[1].y], radius: 0.02, strokeWidth:0.01,
+					strokeColor: { hue:20, saturation:0.6, brightness:1 }
 				});
 			}
 		}

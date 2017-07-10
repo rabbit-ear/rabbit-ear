@@ -1,28 +1,28 @@
 
-function zoomView(paperjs){
-	var paperSize, paperWindowScale = 0.8;
-	if(window.innerWidth < window.innerHeight){ paperSize = window.innerWidth * paperWindowScale;  } 
-	else                                      { paperSize = window.innerHeight * paperWindowScale; }
-	var mat = new paperjs.Matrix(1, 0, 0, 1, 0, 0);
-	mat.translate(window.innerWidth * 0.5, window.innerHeight * 0.5);
-	mat.scale(paperSize, paperSize);
-	mat.translate(-0.5, -0.5);	
-	paperjs.view.matrix = mat;
-	return mat;
-}
-
 // function zoomView(paperjs){
 // 	var paperSize, paperWindowScale = 0.8;
 // 	if(window.innerWidth < window.innerHeight){ paperSize = window.innerWidth * paperWindowScale;  } 
 // 	else                                      { paperSize = window.innerHeight * paperWindowScale; }
 // 	var mat = new paperjs.Matrix(1, 0, 0, 1, 0, 0);
-// 	if(window.innerWidth < window.innerHeight){ mat.translate(window.innerWidth * 0.5, window.innerWidth * 0.5);}
-// 	else                                      { mat.translate(window.innerHeight * 0.5, window.innerHeight * 0.5); }
+// 	mat.translate(window.innerWidth * 0.5, window.innerHeight * 0.5);
 // 	mat.scale(paperSize, paperSize);
 // 	mat.translate(-0.5, -0.5);	
 // 	paperjs.view.matrix = mat;
 // 	return mat;
 // }
+
+function zoomView(paperjs){
+	var paperSize, paperWindowScale = 0.8;
+	if(window.innerWidth < window.innerHeight){ paperSize = window.innerWidth * paperWindowScale;  } 
+	else                                      { paperSize = window.innerHeight * paperWindowScale; }
+	var mat = new paperjs.Matrix(1, 0, 0, 1, 0, 0);
+	if(window.innerWidth < window.innerHeight){ mat.translate(window.innerWidth * 0.5, window.innerWidth * 0.5);}
+	else                                      { mat.translate(window.innerHeight * 0.5, window.innerHeight * 0.5); }
+	mat.scale(paperSize, paperSize);
+	mat.translate(-0.5, -0.5);	
+	paperjs.view.matrix = mat;
+	return mat;
+}
 
 
 var PaperCreasePattern = (function () {
@@ -59,6 +59,7 @@ var PaperCreasePattern = (function () {
 		this.cp = creasePattern;
 		// layer for drawing
 		this.cpLayer = new this.myPaperJS.Layer();
+		this.nodeLayer = new this.myPaperJS.Layer();
 		// drawing options
 		this.lineWeight = .0075;
 
@@ -70,12 +71,20 @@ var PaperCreasePattern = (function () {
 		this.edges = [];
 		this.faces = [];
 		// drawing layer
-		this.cpLayer.activate();
-		this.cpLayer.removeChildren();
+		this.nodeLayer.activate();
+		this.nodeLayer.removeChildren();
 		for(var i = 0; i < this.cp.nodes.length; i++){
 			var p = new this.myPaperJS.Point(this.cp.nodes[ i ].x, this.cp.nodes[ i ].y);
 			this.points.push( p );
+			new paper.Shape.Circle({
+					center: [p.x, p.y], 
+					radius: 0.02, 
+					//strokeWidth:0.01,
+					fillColor: { hue:220, saturation:0.6, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
+				});
 		}
+		this.cpLayer.activate();
+		this.cpLayer.removeChildren();
 		for(var i = 0; i < this.cp.edges.length; i++){
 			var path;
 			if(     this.cp.edges[i].orientation == CreaseDirection.mountain){ path = mountainPath(this.lineWeight); }

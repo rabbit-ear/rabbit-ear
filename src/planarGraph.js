@@ -154,6 +154,10 @@ var PlanarGraph = (function (_super) {
         _super.prototype.clear.call(this); // clears out nodes[] and edges[]
         this.faces = [];
     };
+    // converts node positions from object notation .x .y into array notation [0] [1]
+    PlanarGraph.prototype.nodesArray = function () {
+        return this.nodes.map(function (el) { return [el.x, el.y]; });
+    };
     PlanarGraph.prototype.newEdge = function (nodeIndex1, nodeIndex2) {
         return this.addEdge(new PlanarEdge(nodeIndex1, nodeIndex2));
     };

@@ -7,10 +7,11 @@ html, body {
 	margin: 0;
 	overflow: hidden;
 	height: 100%;
+	text-align:center;
 }
 canvas[resize] {
-	width: 100%;
-	height: 100%;
+	width: 100vmin;
+	height: 100vmin;
 }
 </style>
 <script type="text/javascript" src="../../src/graph.js"></script>
@@ -22,12 +23,13 @@ canvas[resize] {
 
 var cp = new CreasePattern();
 console.log(cp);
+var paperCP;
 
 window.onload = function() {
 	var canvas = document.getElementById('canvas');
 	paper.setup(canvas);
 	zoomView(paper);
-	var paperCP = new PaperCreasePattern(paper, cp);
+	paperCP = new PaperCreasePattern(paper, cp);
 
 	paper.view.onFrame = function(event) { }
 	paper.view.onResize = function(event) {

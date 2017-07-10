@@ -56,10 +56,10 @@ var CreasePattern = (function (_super) {
         var _this = _super.call(this) || this;
         _this.boundary = [];
         // square page
-        _this.addPaperEdge(0, 0, 0, 1);
-        _this.addPaperEdge(0, 1, 1, 1);
-        _this.addPaperEdge(1, 1, 1, 0);
-        _this.addPaperEdge(1, 0, 0, 0);
+        _this.addPaperEdge(0, 0, 1, 0);
+        _this.addPaperEdge(1, 0, 1, 1);
+        _this.addPaperEdge(1, 1, 0, 1);
+        _this.addPaperEdge(0, 1, 0, 0);
         _this.mergeDuplicateVertices();
         return _this;
     }
@@ -92,20 +92,49 @@ var CreasePattern = (function (_super) {
         _super.prototype.clear.call(this);
         this.boundary = [];
         // square page
-        this.addPaperEdge(0, 0, 0, 1);
-        this.addPaperEdge(0, 1, 1, 1);
-        this.addPaperEdge(1, 1, 1, 0);
-        this.addPaperEdge(1, 0, 0, 0);
+        // make sure paper edges are winding clockwise!!
+        this.addPaperEdge(0, 0, 1, 0);
+        this.addPaperEdge(1, 0, 1, 1);
+        this.addPaperEdge(1, 1, 0, 1);
+        this.addPaperEdge(0, 1, 0, 0);
         this.mergeDuplicateVertices();
         // this.interestingPoints = this.starterLocations;
     };
     ///////////////////////////////////////////////////////////////
     // ADD PARTS
+    CreasePattern.prototype.pointInside = function (p) {
+        for (var i = 0; i < this.boundary.length; i++) {
+            var endpts = this.boundary[i].endPoints();
+            var cross = (p.y - endpts[0].y) * (endpts[1].x - endpts[0].x) -
+                (p.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
+            if (cross < 0)
+                return false;
+        }
+        return true;
+    };
     CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
         this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
     };
-    CreasePattern.prototype.creaseBetween2Points = function (a, b) {
-        return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
+    CreasePattern.prototype.creaseOnly = function (a, b) {
+        if (this.pointInside(a) && this.pointInside(b))
+            return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
+        if (!this.pointInside(a) && !this.pointInside(b))
+            return this.creaseConnectingPoints(a, b);
+        var inside, outside;
+        if (this.pointInside(a)) {
+            inside = a;
+            outside = b;
+        }
+        else {
+            outside = a;
+            inside = b;
+        }
+        for (var i = 0; i < this.boundary.length; i++) {
+            var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1]);
+            if (intersection != undefined) {
+                return this.addEdgeWithVertices(intersection.x, intersection.y, inside.x, inside.y);
+            }
+        }
     };
     // creaseRay(origin:XYPoint, direction:XYPoint):Crease{
     // }

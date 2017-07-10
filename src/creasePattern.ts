@@ -52,10 +52,10 @@ class CreasePattern extends PlanarGraph{
 		super();
 		this.boundary = [];
 		// square page
-		this.addPaperEdge(0,0, 0,1);
-		this.addPaperEdge(0,1, 1,1);
-		this.addPaperEdge(1,1, 1,0);
-		this.addPaperEdge(1,0, 0,0);
+		this.addPaperEdge(0,0, 1,0);
+		this.addPaperEdge(1,0, 1,1);
+		this.addPaperEdge(1,1, 0,1);
+		this.addPaperEdge(0,1, 0,0);
 		this.mergeDuplicateVertices();
 	}
 
@@ -92,21 +92,42 @@ class CreasePattern extends PlanarGraph{
 
 		this.boundary = [];
 		// square page
-		this.addPaperEdge(0,0, 0,1);
-		this.addPaperEdge(0,1, 1,1);
-		this.addPaperEdge(1,1, 1,0);
-		this.addPaperEdge(1,0, 0,0);
+		// make sure paper edges are winding clockwise!!
+		this.addPaperEdge(0,0, 1,0);
+		this.addPaperEdge(1,0, 1,1);
+		this.addPaperEdge(1,1, 0,1);
+		this.addPaperEdge(0,1, 0,0);
 		this.mergeDuplicateVertices();
 		// this.interestingPoints = this.starterLocations;
 	}
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS
 
+	pointInside(p:XYPoint){
+		for(var i = 0; i < this.boundary.length; i++){
+			var endpts = this.boundary[i].endPoints();
+			var cross = (p.y - endpts[0].y) * (endpts[1].x - endpts[0].x) - 
+			            (p.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
+			if (cross < 0) return false;
+		}
+		return true;
+	}
+
 	addPaperEdge(x1:number, y1:number, x2:number, y2:number){
 		this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
 	}
-	creaseBetween2Points(a:XYPoint, b:XYPoint):Crease{
-		return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
+	creaseOnly(a:XYPoint, b:XYPoint):Crease{
+		if(this.pointInside(a) && this.pointInside(b)) return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
+		if(!this.pointInside(a) && !this.pointInside(b)) return this.creaseConnectingPoints(a,b);
+		var inside, outside;
+		if(this.pointInside(a)){ inside = a; outside = b; }
+		else { outside = a; inside = b; }
+		for(var i = 0; i < this.boundary.length; i++){
+			var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1]);
+			if(intersection != undefined){
+				return this.addEdgeWithVertices(intersection.x, intersection.y, inside.x, inside.y);
+			}
+		}
 	}
 	// creaseRay(origin:XYPoint, direction:XYPoint):Crease{
 	// }
