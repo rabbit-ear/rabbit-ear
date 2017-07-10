@@ -118,8 +118,13 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.creaseOnly = function (a, b) {
         if (this.pointInside(a) && this.pointInside(b))
             return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
-        if (!this.pointInside(a) && !this.pointInside(b))
-            return this.creaseConnectingPoints(a, b);
+        if (!this.pointInside(a) && !this.pointInside(b)) {
+            // if both are outside, only give us a crease if the two points invove an intersection with the boundary
+            for (var i = 0; i < this.boundary.length; i++) {
+                if (lineSegmentIntersectionAlgorithm(a, b, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1]))
+                    return this.creaseConnectingPoints(a, b);
+            }
+        }
         var inside, outside;
         if (this.pointInside(a)) {
             inside = a;
