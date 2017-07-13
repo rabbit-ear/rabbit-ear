@@ -29,14 +29,14 @@ var PaperCreasePattern = (function () {
 
 	function mountainPath(lineWeight){
 		return new paper.Path({
-			strokeColor: { gray:0.5, alpha:1.0 },//{ hue:350, saturation:1, brightness:1 },
+			strokeColor: { hue:220, saturation:0.6, brightness:0 },//{ gray:0.5, alpha:1.0 },//{ hue:350, saturation:1, brightness:1 },
 			strokeWidth: lineWeight,
 			closed: false
 		});
 	}
 	function valleyPath(lineWeight){
 		return new paper.Path({
-			strokeColor: { hue:130, saturation:0.8, brightness:0.7 },//{ hue:230, saturation:1, brightness:1 },
+			strokeColor: { hue:220, saturation:0.6, brightness:1 },//{ hue:130, saturation:0.8, brightness:0.7 },//{ hue:230, saturation:1, brightness:1 },
 			dashArray: [lineWeight*3, lineWeight],
 			strokeWidth: lineWeight,
 			closed: false
@@ -76,12 +76,12 @@ var PaperCreasePattern = (function () {
 		for(var i = 0; i < this.cp.nodes.length; i++){
 			var p = new this.myPaperJS.Point(this.cp.nodes[ i ].x, this.cp.nodes[ i ].y);
 			this.points.push( p );
-			new paper.Shape.Circle({
-					center: [p.x, p.y], 
-					radius: 0.02, 
-					//strokeWidth:0.01,
-					fillColor: { hue:220, saturation:0.6, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
-				});
+			// new paper.Shape.Circle({
+			// 		center: [p.x, p.y], 
+			// 		radius: 0.02, 
+			// 		//strokeWidth:0.01,
+			// 		fillColor: { hue:220, saturation:0.6, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
+			// 	});
 		}
 		this.cpLayer.activate();
 		this.cpLayer.removeChildren();

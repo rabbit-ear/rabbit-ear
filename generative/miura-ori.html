@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+html, body {
+	margin: 0;
+	overflow: hidden;
+	height: 100%;
+	text-align:center;
+}
+canvas[resize] {
+	width: 100vmin;
+	height: 100vmin;
+}
+</style>
+<script type="text/javascript" src="../src/graph.js"></script>
+<script type="text/javascript" src="../src/planarGraph.js"></script>
+<script type="text/javascript" src="../src/creasePattern.js"></script>
+<script type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../tests/paperjs/paperjscp.js"></script>
+<script type="text/javascript" src="../lib/d3.min.js"></script>
+<script type="text/javascript">
+
+var cp = new CreasePattern();
+var paperCP;
+console.log(cp);
+
+window.onload = function() {
+	var canvas = document.getElementById('canvas');
+	paper.setup(canvas);
+	zoomView(paper);
+
+	var j = 0;
+	var xstart = -0.1;
+	var ystart = -0.1;
+	do{
+		var x = xstart + j*0.08;
+		var y = ystart;
+		var yoff = 0.05*Math.sin(j*0.4);
+		var one;
+		var mod = 1;
+		var i = 0
+		do{
+			one = new XYPoint(x + mod*.1, (i*0.1) + yoff + ystart);
+			y += 0.1;
+			mod = (i%2);
+			var two = new XYPoint(x + mod*.1, ((i+1)*0.1) + yoff + ystart);
+			var crease = cp.creaseOnly(one, two);
+			if(crease != undefined) {
+				if(j%2 == 0) crease.mountain();
+				else crease.valley();
+			}
+			var lastOne = new XYPoint((xstart + (j-1)*0.08) + mod*.1, ((i+1)*0.1) + 0.05*Math.sin((j-1)*0.4) + ystart);
+			var crease = cp.creaseOnly(two, lastOne);
+			if(crease != undefined) {
+				if((i+j)%2 == 0) crease.mountain();
+				else crease.valley();
+			}
+			one = two;
+			i++;
+		} while(y < 1);
+		j++;
+	} while(x < 1);
+	paperCP = new PaperCreasePattern(paper, cp);
+
+	paper.view.onFrame = function(event) { }
+	paper.view.onResize = function(event) {
+		zoomView(paper);
+	}
+	paper.view.onMouseMove = function(event) {
+		mousePos = event.point;
+	}
+	paper.view.onMouseDown = function(event){
+		mousePos = event.point;
+	}
+}
+
+</script>
+</head>
+<body>
+	<canvas id="canvas" resize></canvas>
+</body>
+</html>

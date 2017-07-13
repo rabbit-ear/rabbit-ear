@@ -133,6 +133,7 @@ class CreasePattern extends PlanarGraph{
 				return this.addEdgeWithVertices(intersection.x, intersection.y, inside.x, inside.y);
 			}
 		}
+		return undefined;
 	}
 	// creaseRay(origin:XYPoint, direction:XYPoint):Crease{
 	// }
