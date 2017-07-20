@@ -15,13 +15,13 @@ function fillGraph(graph, numNodes){
 		var match;
 		do{ match = Math.floor(Math.random()*graph.nodes.length);
 		} while(match == first);
-		graph.newEdge(first, match);
+		graph.newEdge(graph.nodes[first], graph.nodes[match]);
 	}
 	if(numEdges > numNodes){
 		for(var i = 0; i < numEdges - numNodes; i++){
 			var rand1 = Math.floor(Math.random()*numNodes);
 			var rand2 = Math.floor(Math.random()*numNodes);
-			graph.newEdge( rand1, rand2 );
+			graph.newEdge( graph.nodes[rand1], graph.nodes[rand2] );
 		}
 	}
 	graph.clean();

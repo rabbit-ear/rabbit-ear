@@ -1,6 +1,9 @@
 var g02 = new Graph();
 fillGraph(g02, 7);
 
+var updateEdgesAdjacentToNode; // set these to functions to interact with DOM
+var updateEdgesAdjacentToEdge;
+
 var d3Graph02 = graphToD3(g02);
 var svgCanvas02 = d3.select("#svgTest02");
 makeForceDirectedGraph(d3Graph02, svgCanvas02, didTouchNode02, didTouchEdge02);
@@ -15,13 +18,13 @@ function fillGraph(graph, numNodes){
 		var match;
 		do{ match = Math.floor(Math.random()*graph.nodes.length);
 		} while(match == first);
-		graph.newEdge(first, match);
+		graph.newEdge(graph.nodes[first], graph.nodes[match]);
 	}
 	if(numEdges > numNodes){
 		for(var i = 0; i < numEdges - numNodes; i++){
 			var rand1 = Math.floor(Math.random()*numNodes);
 			var rand2 = Math.floor(Math.random()*numNodes);
-			graph.newEdge( rand1, rand2 );
+			graph.newEdge( graph.nodes[rand1], graph.nodes[rand2] );
 		}
 	}
 	graph.clean();
@@ -41,10 +44,11 @@ function didTouchNode02(index, circles, links){
 		}
 	}
 	updateSelection('node' + index, circles, links, highlighted_id);
-	updateEdgesAdjacentToNode(index, highlighted_indices);
-	updateEdgesAdjacentToEdge(undefined);
+	if(updateEdgesAdjacentToNode != undefined){ updateEdgesAdjacentToNode(index, highlighted_indices); }
+	if(updateEdgesAdjacentToEdge != undefined){ updateEdgesAdjacentToEdge(undefined); }
 	return highlighted_id;
 }
+
 
 function didTouchEdge02(index, circles, links){
 	var highlighted_id = [];
@@ -59,8 +63,8 @@ function didTouchEdge02(index, circles, links){
 		}
 	}
 	updateSelection('link' + index, circles, links, highlighted_id);
-	updateEdgesAdjacentToEdge(index, highlighted_indices);
-	updateEdgesAdjacentToNode(undefined);
+	if(updateEdgesAdjacentToEdge != undefined){ updateEdgesAdjacentToEdge(index, highlighted_indices); }
+	if(updateEdgesAdjacentToNode != undefined){ updateEdgesAdjacentToNode(undefined); }
 	return highlighted_id;
 }
 
