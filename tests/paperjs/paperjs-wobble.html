@@ -23,12 +23,6 @@ canvas[resize] {
 <script type="text/javascript" src="../../lib/perlin.js"></script>
 <script>
 
-var cp = new CreasePattern();
-// cp.frogBase();
-cp.fishBase();
-// cp.generateFaces();
-console.log(cp);
-
 function incenter(pointArray){
 	var xSum = 0, ySum = 0, p = 0;
 	for(var i = 0; i < pointArray.length; i++){
@@ -56,6 +50,12 @@ function centroid(pointArray){
 
 window.onload = function() {
 
+	var cp = new CreasePattern();
+	// cp.frogBase();
+	cp.fishBase();
+	// cp.generateFaces();
+	console.log(cp);
+
 	var canvas = document.getElementById('canvas');
 	// Create an empty project and a view for the canvas:
 	paper.setup(canvas);
@@ -64,16 +64,16 @@ window.onload = function() {
 	var paperCP = new PaperCreasePattern(paper, cp);
 	console.log(paperCP);
 
-	var wobble2 = {x:cp.nodes[2].x, y:cp.nodes[2].y};
-	var wobble3 = {x:cp.nodes[3].x, y:cp.nodes[3].y};
+	var wobble2 = {x:cp.nodes[4].x, y:cp.nodes[4].y};
+	var wobble3 = {x:cp.nodes[5].x, y:cp.nodes[5].y};
 
 	paper.view.onFrame = function(event) {
 		var scale = .04;
 		var sp = 1.5;
-		cp.nodes[2].x = wobble2.x + Math.sin(sp*event.time*.8) * scale
-		cp.nodes[2].y = wobble2.y + Math.cos(sp*event.time*.895) * scale;
-		cp.nodes[3].x = wobble3.x + Math.sin(sp*event.time*1.2) * scale;
-		cp.nodes[3].y = wobble3.y + Math.sin(sp*event.time) * scale;
+		cp.nodes[4].x = wobble2.x + Math.sin(sp*event.time*.8) * scale
+		cp.nodes[4].y = wobble2.y + Math.cos(sp*event.time*.895) * scale;
+		cp.nodes[5].x = wobble3.x + Math.sin(sp*event.time*1.2) * scale;
+		cp.nodes[5].y = wobble3.y + Math.sin(sp*event.time) * scale;
 
 		paperCP.update();
 		// shrink faces, use incenter if face is triangle

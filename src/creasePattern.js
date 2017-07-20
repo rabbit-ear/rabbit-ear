@@ -39,8 +39,8 @@ var CreaseNode = (function (_super) {
 }(PlanarNode));
 var Crease = (function (_super) {
     __extends(Crease, _super);
-    function Crease(index1, index2) {
-        return _super.call(this, index1, index2) || this;
+    function Crease(node1, node2) {
+        return _super.call(this, node1, node2) || this;
     }
     ;
     Crease.prototype.mountain = function () { this.orientation = CreaseDirection.mountain; return this; };
@@ -70,13 +70,13 @@ var CreasePattern = (function (_super) {
         this.faces = cp.faces.slice();
     };
     // re-implement super class functions with new types
-    CreasePattern.prototype.newEdge = function (nodeIndex1, nodeIndex2) {
-        return this.addEdge(new Crease(nodeIndex1, nodeIndex2));
+    CreasePattern.prototype.newEdge = function (node1, node2) {
+        return this.addEdge(new Crease(node1, node2));
     };
     CreasePattern.prototype.addEdgeWithVertices = function (x1, y1, x2, y2) {
         var a = this.addNode(new CreaseNode(x1, y1));
         var b = this.addNode(new CreaseNode(x2, y2));
-        return this.newEdge(a.index, b.index);
+        return this.newEdge(a, b);
     };
     ///////////////////////////////////////////////////////////////
     // CLEAN  /  REMOVE PARTS
@@ -140,6 +140,7 @@ var CreasePattern = (function (_super) {
                 return this.addEdgeWithVertices(intersection.x, intersection.y, inside.x, inside.y);
             }
         }
+        return undefined;
     };
     // creaseRay(origin:XYPoint, direction:XYPoint):Crease{
     // }
@@ -406,10 +407,10 @@ var CreasePattern = (function (_super) {
         for (var i = 0; i < this.edges.length; i++) {
             var a = this.edges[i].node[0];
             var b = this.edges[i].node[1];
-            var x1 = (this.nodes[a].x * scale).toFixed(4);
-            var y1 = (this.nodes[a].y * scale).toFixed(4);
-            var x2 = (this.nodes[b].x * scale).toFixed(4);
-            var y2 = (this.nodes[b].y * scale).toFixed(4);
+            var x1 = (a.x * scale).toFixed(4);
+            var y1 = (a.y * scale).toFixed(4);
+            var x2 = (b.x * scale).toFixed(4);
+            var y2 = (b.y * scale).toFixed(4);
             blob += "<line stroke=\"#000000\" x1=\"" + x1 + "\" y1=\"" + y1 + "\" x2=\"" + x2 + "\" y2=\"" + y2 + "\"/>\n";
         }
         blob = blob + "</g>\n</svg>\n";
@@ -455,21 +456,17 @@ var CreasePattern = (function (_super) {
         this.addEdgeWithVertices(0.70711, 0.70711, 1, 1).valley();
         this.addEdgeWithVertices(0.70711, 0.70711, 1, 0.70711).mountain();
         this.addEdgeWithVertices(0.29289, 0.29289, 0.29289, 0).mountain();
-        this.addPaperEdge(0, 0, 0.29289, 0);
-        this.addPaperEdge(0.29289, 0, 1, 0);
-        this.addPaperEdge(1, 0, 1, 0.70711);
-        this.addPaperEdge(1, 0.70711, 1, 1);
-        this.addPaperEdge(1, 1, 0, 1);
-        this.addPaperEdge(0, 1, 0, 0);
         this.clean();
-        this.addFaceBetweenNodes([0, 1, 3]);
-        this.addFaceBetweenNodes([0, 2, 1]);
-        this.addFaceBetweenNodes([4, 3, 1]);
-        this.addFaceBetweenNodes([5, 1, 2]);
-        this.addFaceBetweenNodes([6, 5, 2]);
-        this.addFaceBetweenNodes([6, 2, 0]);
-        this.addFaceBetweenNodes([7, 3, 4]);
-        this.addFaceBetweenNodes([7, 0, 3]);
+        this.edges[9].mountain();
+        this.edges[12].mountain();
+        // this.addFaceBetweenNodes([0, 1, 3]);
+        // this.addFaceBetweenNodes([0, 2, 1]);
+        // this.addFaceBetweenNodes([4, 3, 1]);
+        // this.addFaceBetweenNodes([5, 1, 2]);
+        // this.addFaceBetweenNodes([6, 5, 2]);
+        // this.addFaceBetweenNodes([6, 2, 0]);
+        // this.addFaceBetweenNodes([7, 3, 4]);
+        // this.addFaceBetweenNodes([7, 0, 3]);
     };
     CreasePattern.prototype.birdBase = function () {
         this.addEdgeWithVertices(.35355, .64645, 0, 1);

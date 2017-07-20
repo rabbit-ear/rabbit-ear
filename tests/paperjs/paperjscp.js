@@ -11,15 +11,21 @@
 // 	return mat;
 // }
 
-function zoomView(paperjs){
+function zoomView(paperjs, optionalWidth, optionalHeight, retinaScale){
+	var pixelScale = retinaScale;
+	if(retinaScale == undefined) { pixelScale = 1.0; }
+	var w = optionalWidth;
+	var h = optionalHeight;
+	if(optionalWidth == undefined)  { w = window.innerWidth;  }
+	if(optionalHeight == undefined) { h = window.innerHeight; }
 	var paperSize, paperWindowScale = 0.8;
-	if(window.innerWidth < window.innerHeight){ paperSize = window.innerWidth * paperWindowScale;  } 
-	else                                      { paperSize = window.innerHeight * paperWindowScale; }
+	if(w < h){ paperSize = w * paperWindowScale * pixelScale; } 
+	else     { paperSize = h * paperWindowScale * pixelScale; }
 	var mat = new paperjs.Matrix(1, 0, 0, 1, 0, 0);
-	if(window.innerWidth < window.innerHeight){ mat.translate(window.innerWidth * 0.5, window.innerWidth * 0.5);}
-	else                                      { mat.translate(window.innerHeight * 0.5, window.innerHeight * 0.5); }
+	if(w < h){ mat.translate(w * 0.5 * pixelScale, w * 0.5 * pixelScale); }
+	else     { mat.translate(h * 0.5 * pixelScale, h * 0.5 * pixelScale); }
 	mat.scale(paperSize, paperSize);
-	mat.translate(-0.5, -0.5);	
+	mat.translate(-0.5, -0.5);
 	paperjs.view.matrix = mat;
 	return mat;
 }
@@ -29,14 +35,14 @@ var PaperCreasePattern = (function () {
 
 	function mountainPath(lineWeight){
 		return new paper.Path({
-			strokeColor: { hue:220, saturation:0.6, brightness:0 },//{ gray:0.5, alpha:1.0 },//{ hue:350, saturation:1, brightness:1 },
+			strokeColor: { hue:220, saturation:0.6, brightness:1 },//{ gray:0.5, alpha:1.0 },//{ hue:350, saturation:1, brightness:1 },
 			strokeWidth: lineWeight,
 			closed: false
 		});
 	}
 	function valleyPath(lineWeight){
 		return new paper.Path({
-			strokeColor: { hue:220, saturation:0.6, brightness:1 },//{ hue:130, saturation:0.8, brightness:0.7 },//{ hue:230, saturation:1, brightness:1 },
+			strokeColor: { hue:350, saturation:0, brightness:0.6 },//{ hue:130, saturation:0.8, brightness:0.7 },//{ hue:230, saturation:1, brightness:1 },
 			dashArray: [lineWeight*3, lineWeight],
 			strokeWidth: lineWeight,
 			closed: false
@@ -61,7 +67,7 @@ var PaperCreasePattern = (function () {
 		this.cpLayer = new this.myPaperJS.Layer();
 		this.nodeLayer = new this.myPaperJS.Layer();
 		// drawing options
-		this.lineWeight = .0075;
+		this.lineWeight = .01;
 
 		this.initialize();
     }

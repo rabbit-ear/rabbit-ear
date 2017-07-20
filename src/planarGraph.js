@@ -64,6 +64,20 @@ var PlanarPair = (function () {
     }
     return PlanarPair;
 }());
+var PlanarAngle = (function () {
+    // constructor(parent:PlanarNode, node1:PlanarNode, node2:PlanarNode){
+    // 	this.node = parent;
+    // 	this.angle = Math.atan2(node.y-parent.y, node.x-parent.x);
+    // 	this.edge = edge;
+    // }
+    function PlanarAngle(node, edge1, edge2, angle) {
+        var nodeInCommon = edge1.nodeInCommon(edge2);
+        this.node = nodeInCommon;
+        this.angle = 0; //Math.atan2(node.y-parent.y, node.x-parent.x);
+        this.edges = [edge1, edge2];
+    }
+    return PlanarAngle;
+}());
 var PlanarNode = (function (_super) {
     __extends(PlanarNode, _super);
     function PlanarNode(xx, yy) {
@@ -122,12 +136,14 @@ var PlanarEdge = (function (_super) {
     function PlanarEdge() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    // graph:PlanarGraph;
     // convenience renaming
     // endPoints:()=>PlanarNode[] = function() { return this.adjacentNodes(); };
     // actually asking for more typecasting than i expected
     PlanarEdge.prototype.endPoints = function () {
-        var planarNodes = this.graph.nodes;
-        return [planarNodes[this.node[0]], planarNodes[this.node[1]]];
+        // var planarNodes:PlanarNode[] = <PlanarNode[]>this.graph.nodes;
+        // return [planarNodes[0], planarNodes[1]];
+        return [this.node[0], this.node[1]];
     };
     PlanarEdge.prototype.adjacentNodes = function () {
         return _super.prototype.adjacentNodes.call(this);
@@ -158,8 +174,25 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.nodesArray = function () {
         return this.nodes.map(function (el) { return [el.x, el.y]; });
     };
-    PlanarGraph.prototype.newEdge = function (nodeIndex1, nodeIndex2) {
-        return this.addEdge(new PlanarEdge(nodeIndex1, nodeIndex2));
+    PlanarGraph.prototype.addNode = function (node) {
+        if (node == undefined) {
+            throw "addNode() requires an argument: 1 GraphNode";
+        }
+        node.graph = this;
+        node.index = this.nodes.length;
+        this.nodes.push(node);
+        return node;
+    };
+    PlanarGraph.prototype.addEdge = function (edge) {
+        // todo, make sure graph edge is valid
+        // if(edge.node[0] >= this.nodes.length || edge.node[1] >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
+        edge.graph = this;
+        edge.index = this.edges.length;
+        this.edges.push(edge);
+        return edge;
+    };
+    PlanarGraph.prototype.newEdge = function (node1, node2) {
+        return this.addEdge(new PlanarEdge(node1, node2));
     };
     //////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////
@@ -169,22 +202,22 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.addEdgeWithVertices = function (x1, y1, x2, y2) {
         var a = this.addNode(new PlanarNode(x1, y1));
         var b = this.addNode(new PlanarNode(x2, y2));
-        return this.newEdge(a.index, b.index);
+        return this.newEdge(a, b);
         // this.changedNodes( [this.nodes.length-2, this.nodes.length-1] );
     };
-    PlanarGraph.prototype.addEdgeFromVertex = function (existingIndex, newX, newY) {
+    PlanarGraph.prototype.addEdgeFromVertex = function (existingNode, newX, newY) {
         var node = this.addNode(new PlanarNode(newX, newY));
-        return this.newEdge(existingIndex, node.index);
+        return this.newEdge(existingNode, node);
         // this.changedNodes( [existingIndex, this.nodes.length-1] );
     };
-    PlanarGraph.prototype.addEdgeFromExistingVertices = function (existingIndex1, existingIndex2) {
-        return this.newEdge(existingIndex1, existingIndex2);
+    PlanarGraph.prototype.addEdgeFromExistingVertices = function (existingNode1, existingNode2) {
+        return this.newEdge(existingNode1, existingNode2);
         // this.changedNodes( [existingIndex1, existingIndex2] );
     };
-    PlanarGraph.prototype.addEdgeRadiallyFromVertex = function (existingIndex, angle, distance) {
-        var newX = this.nodes[existingIndex].x + Math.cos(angle) * distance;
-        var newY = this.nodes[existingIndex].y + Math.sin(angle) * distance;
-        return this.addEdgeFromVertex(existingIndex, newX, newY);
+    PlanarGraph.prototype.addEdgeRadiallyFromVertex = function (existingNode, angle, distance) {
+        var newX = existingNode.x + Math.cos(angle) * distance;
+        var newY = existingNode.y + Math.sin(angle) * distance;
+        return this.addEdgeFromVertex(existingNode, newX, newY);
         // this.changedNodes( [existingIndex, this.nodes.length-1] );
     };
     PlanarGraph.prototype.addFaceBetweenNodes = function (nodeArray) {
@@ -193,7 +226,7 @@ var PlanarGraph = (function (_super) {
         var edgeArray = [];
         for (var i = 0; i < nodeArray.length; i++) {
             var nextI = (i + 1) % nodeArray.length;
-            var thisEdge = this.edges[this.getEdgeConnectingNodes(nodeArray[i], nodeArray[nextI])];
+            var thisEdge = this.getEdgeConnectingNodes(nodeArray[i], nodeArray[nextI]);
             if (thisEdge == undefined) {
                 console.log("creating edge to make face between nodes " + nodeArray[i] + ' ' + nodeArray[nextI]);
                 thisEdge = this.addEdgeFromExistingVertices(nodeArray[i], nodeArray[nextI]);
@@ -202,7 +235,7 @@ var PlanarGraph = (function (_super) {
         }
         var face = new PlanarFace();
         face.edges = edgeArray;
-        face.nodes = nodeArray.map(function (el) { return this.nodes[el]; }, this);
+        face.nodes = nodeArray;
         this.faces.push(face);
     };
     //////////////////////////////////////////////////////////////////////////////
@@ -261,7 +294,7 @@ var PlanarGraph = (function (_super) {
         for (var i = 0; i < this.nodes.length - 1; i++) {
             for (var j = this.nodes.length - 1; j > i; j--) {
                 if (this.verticesEquivalent(this.nodes[i], this.nodes[j], EPSILON)) {
-                    _super.prototype.mergeNodes.call(this, i, j);
+                    _super.prototype.mergeNodes.call(this, this.nodes[i], this.nodes[j]);
                     // removeCatalog.push( {'x':this.nodes[i].x, 'y':this.nodes[i].y, 'nodes':[i,j] } );
                     removeCatalog.push(new XYPoint(this.nodes[i].x, this.nodes[i].y));
                 }
@@ -319,6 +352,13 @@ var PlanarGraph = (function (_super) {
         return { 'edge': minDistIndex, 'location': minLocation, 'distance': minDist };
     };
     ///////////////////////////////////////////////////////////////
+    // CALCULATIONS
+    PlanarGraph.prototype.interiorAngle3Nodes = function (centerNode, node1, node2) {
+        var adjacentEdges = centerNode.planarAdjacent();
+        console.log(adjacentEdges);
+        return 0;
+    };
+    ///////////////////////////////////////////////////////////////
     // EDGE INTERSECTION
     PlanarGraph.prototype.edgesIntersectUsingVertices = function (a1, a2, b1, b2) {
         // test line a1-a2 intersect with line b1-b2
@@ -371,12 +411,12 @@ var PlanarGraph = (function (_super) {
                 var newIntersectionIndex = this.nodes.length;
                 this.addNode(new PlanarNode(edgeCrossings[0].x, edgeCrossings[0].y));
                 // this.addNode({'x':edgeCrossings[0].x, 'y':edgeCrossings[0].y});
-                this.addEdgeFromExistingVertices(this.nodes.length - 1, edgeCrossings[0].nodes[0].index);
-                this.addEdgeFromExistingVertices(this.nodes.length - 1, edgeCrossings[0].nodes[1].index);
-                this.addEdgeFromExistingVertices(this.nodes.length - 1, edgeCrossings[0].nodes[2].index);
-                this.addEdgeFromExistingVertices(this.nodes.length - 1, edgeCrossings[0].nodes[3].index);
-                this.removeEdgesBetween(edgeCrossings[0].nodes[0].index, edgeCrossings[0].nodes[1].index);
-                this.removeEdgesBetween(edgeCrossings[0].nodes[2].index, edgeCrossings[0].nodes[3].index);
+                this.addEdgeFromExistingVertices(this.nodes[this.nodes.length - 1], edgeCrossings[0].nodes[0]);
+                this.addEdgeFromExistingVertices(this.nodes[this.nodes.length - 1], edgeCrossings[0].nodes[1]);
+                this.addEdgeFromExistingVertices(this.nodes[this.nodes.length - 1], edgeCrossings[0].nodes[2]);
+                this.addEdgeFromExistingVertices(this.nodes[this.nodes.length - 1], edgeCrossings[0].nodes[3]);
+                this.removeEdgesBetween(edgeCrossings[0].nodes[0], edgeCrossings[0].nodes[1]);
+                this.removeEdgesBetween(edgeCrossings[0].nodes[2], edgeCrossings[0].nodes[3]);
                 edgeCrossings = this.getEdgeIntersectionsWithEdge(i);
                 // add intersections to array
                 allIntersections = allIntersections.concat(edgeCrossings);
@@ -526,8 +566,8 @@ var PlanarGraph = (function (_super) {
             }
         }
         for (var i = 0; i < this.edges.length; i++) {
-            var a = this.nodes[this.edges[i].node[0]];
-            var b = this.nodes[this.edges[i].node[1]];
+            var a = this.edges[i].node[0];
+            var b = this.edges[i].node[1];
             var crossproduct = (v.y - a.y) * (b.x - a.x) - (v.x - a.x) * (b.y - a.y);
             if (Math.abs(crossproduct) < EPSILON) {
                 // cross product is essentially zero, point lies along the (infinite) line

@@ -13,16 +13,15 @@ class GraphNode{  // Nodes can represent anything
 
 	adjacentEdges():GraphEdge[]{
 		if(this.graph == undefined) { throw "error: didn't set a node's parent graph. use graph.newNode()"; }
-		var thisIndex = this.index;
-		return this.graph.edges.filter(function(el:GraphEdge){ return el.node[0] == thisIndex || el.node[1] == thisIndex; });
+		return this.graph.edges.filter(function(el:GraphEdge){ return el.node[0] === this || el.node[1] === this; }, this);
 	}
 	adjacentNodes():GraphNode[]{
 		var first:GraphNode[] = this.graph.edges
-			.filter(function(el){ return el.node[0] == this.index}, this)
-			.map(function(el){ return this.graph.nodes[ el.node[1] ] }, this);
+			.filter(function(el){ return el.node[0] == this}, this)
+			.map(function(el){ return el.node[1] }, this);
 		var second:GraphNode[] = this.graph.edges
-			.filter(function(el){ return el.node[1] == this.index}, this)
-			.map(function(el){ return this.graph.nodes[ el.node[0] ] }, this);
+			.filter(function(el){ return el.node[1] == this}, this)
+			.map(function(el){ return el.node[0] }, this);
 		return first.concat(second);
 	}
 }
@@ -31,25 +30,34 @@ class GraphEdge{
 	graph:Graph;
 	index:number;
 
-	node:[number,number]; // every edge must connect 2 nodes
-	constructor(nodeIndex1:number, nodeIndex2:number){
-		this.node = [nodeIndex1, nodeIndex2];
+	node:[GraphNode,GraphNode]; // every edge must connect 2 nodes
+	constructor(node1:GraphNode, node2:GraphNode){
+		this.node = [node1, node2];
 	};
 	adjacentEdges():GraphEdge[]{
 		return this.graph.edges
-		.filter(function(el:GraphEdge) {  return el.node[0] == this.node[0] || 
-		                                         el.node[0] == this.node[1] || 
-		                                         el.node[1] == this.node[0] || 
-		                                         el.node[1] == this.node[1]; }, this)
+		.filter(function(el:GraphEdge) {  return el.node[0] === this.node[0] || 
+		                                         el.node[0] === this.node[1] || 
+		                                         el.node[1] === this.node[0] || 
+		                                         el.node[1] === this.node[1]; }, this)
 		.filter(function(el:GraphEdge){ return !(el === this) }, this);
 	}
 	adjacentNodes():GraphNode[]{
-		return [this.graph.nodes[this.node[0]], this.graph.nodes[this.node[1]]];
+		return [this.node[0], this.node[1]];
 	}
 	isAdjacentWithEdge(edge:GraphEdge):boolean{
-		return ( (this.node[0] == edge.node[0]) || (this.node[1] == edge.node[1]) ||
-		         (this.node[0] == edge.node[1]) || (this.node[1] == edge.node[0]) );		
+		return ( (this.node[0] === edge.node[0]) || (this.node[1] === edge.node[1]) ||
+		         (this.node[0] === edge.node[1]) || (this.node[1] === edge.node[0]) );		
 	}
+	nodeInCommon(otherEdge:GraphEdge):GraphNode{
+		if(this === otherEdge) return undefined;
+		if(this.node[0] === otherEdge.node[0]) return this.node[0];
+		if(this.node[0] === otherEdge.node[1]) return this.node[0];
+		if(this.node[1] === otherEdge.node[0]) return this.node[1];
+		if(this.node[1] === otherEdge.node[1]) return this.node[1];
+		return undefined;
+	}
+
 }
 
 class Graph{
@@ -78,8 +86,8 @@ class Graph{
 	newNode():GraphNode {
 		return this.addNode(new GraphNode());
 	}
-	newEdge(nodeIndex1:number, nodeIndex2:number):GraphEdge {
-		return this.addEdge(new GraphEdge(nodeIndex1, nodeIndex2));
+	newEdge(node1:GraphNode, node2:GraphNode):GraphEdge {
+		return this.addEdge(new GraphEdge(node1, node2));
 	}
 
 	addNode(node:GraphNode):GraphNode{
@@ -90,7 +98,8 @@ class Graph{
 		return node;
 	}
 	addEdge(edge:GraphEdge):GraphEdge{
-		if(edge.node[0] >= this.nodes.length || edge.node[1] >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
+		// todo, make sure graph edge is valid
+		// if(edge.node[0] >= this.nodes.length || edge.node[1] >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
 		edge.graph = this;
 		edge.index = this.edges.length;
 		this.edges.push( edge );
@@ -120,35 +129,30 @@ class Graph{
 		this.clean();
 	}
 
-	removeEdgesBetween(nodeIndex1:number, nodeIndex2:number):number{ // returns how many removed
+	removeEdgesBetween(node1:GraphNode, node2:GraphNode):number{ // returns how many removed
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ 
-			return !((el.node[0] == nodeIndex1 && el.node[1] == nodeIndex2) ||
-			         (el.node[0] == nodeIndex2 && el.node[1] == nodeIndex1) );
+			return !((el.node[0] == node1 && el.node[1] == node2) ||
+			         (el.node[0] == node2 && el.node[1] == node1) );
 		});
 		this.edgeArrayDidChange();
 		return len - this.edges.length;
 	}
 
-	removeNode(nodeIndex:number):boolean{
+	removeNode(node:GraphNode):boolean{
+		for(var i = 0; i < this.nodes.length; i++) { this.nodes[i].index = i; }
 		// (NOT SIMPLE: NODE array altered)
-		if(nodeIndex >= this.nodes.length) { return false; }
+		if(node.index >= this.nodes.length) { return false; }
 		// step 1: remove the node (easy)
-		this.nodes.splice(nodeIndex, 1);
+		this.nodes.splice(node.index, 1);
 		// step 2: traverse all edges, do (2) things:
 		var i = 0;
 		while(i < this.edges.length){
 			var didRemove = false;
-			if( this.edges[i].node[0] == nodeIndex || this.edges[i].node[1] == nodeIndex ){
+			if( this.edges[i].node[0] === node || this.edges[i].node[1] === node ){
 				// remove edges which contained that node
 				this.edges.splice(i, 1);
 				didRemove = true;
-			} else{
-				// [0 1 2 3 4 5 6 (removed) 8 9 10 11 12]
-				// because the array looks like this,
-				// node indices after the removed node are off by 1
-				if(this.edges[i].node[0] > nodeIndex) this.edges[i].node[0] -= 1;
-				if(this.edges[i].node[1] > nodeIndex) this.edges[i].node[1] -= 1;
 			}
 			if(!didRemove) i++;
 		}
@@ -230,23 +234,23 @@ class Graph{
 
 	// getEdgeConnectingNodes in 2 parts: if graph is classical (no duplicate edges)
 	//  the use "Edge" singular, else use "Edges" plural getEdgesConnectingNodes
-	getEdgeConnectingNodes(nodeIndex1:number, nodeIndex2:number):number{
+	getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge{
 		// for this to work, graph must be cleaned. no duplicate edges
 		for(var i = 0; i < this.edges.length; i++){
-			if( (this.edges[i].node[0] == nodeIndex1 && this.edges[i].node[1] == nodeIndex2 ) ||
-				(this.edges[i].node[0] == nodeIndex2 && this.edges[i].node[1] == nodeIndex1 ) ){
-				return i;
+			if( (this.edges[i].node[0] === node1 && this.edges[i].node[1] === node2 ) ||
+				(this.edges[i].node[0] === node2 && this.edges[i].node[1] === node1 ) ){
+				return this.edges[i];
 			}
 		}
 		// if nodes are not connected
 		return undefined;
 	}
-	getEdgesConnectingNodes(nodeIndex1:number, nodeIndex2:number):number[]{
+	getEdgesConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge[]{
 		var edges = [];
 		for(var i = 0; i < this.edges.length; i++){
-			if( (this.edges[i].node[0] == nodeIndex1 && this.edges[i].node[1] == nodeIndex2 ) ||
-				(this.edges[i].node[0] == nodeIndex2 && this.edges[i].node[1] == nodeIndex1 ) ){
-				edges.push(i);
+			if( (this.edges[i].node[0] == node1 && this.edges[i].node[1] == node2 ) ||
+				(this.edges[i].node[0] == node2 && this.edges[i].node[1] == node1 ) ){
+				edges.push( this.edges[i] );
 			}
 		}
 		return edges;
@@ -254,19 +258,17 @@ class Graph{
 
 	// replaces all mention of one node with the other in both node and edge arrays
 	// shrinks the total number of nodes
-	mergeNodes(nodeIndex1:number, nodeIndex2:number):boolean{
+	mergeNodes(node1:GraphNode, node2:GraphNode):boolean{
 		// sort the 2 indices by whichever comes first in the node array
 		var first, second;
-		if(nodeIndex1 == nodeIndex2) { return false; }
-		if(nodeIndex1 < nodeIndex2) { first = nodeIndex1; second = nodeIndex2; }
-		if(nodeIndex1 > nodeIndex2) { first = nodeIndex2; second = nodeIndex1; }
+		if(node1 === node2) { return false; }
+		if(node1.index < node2.index) { first = node1; second = node2; }
+		else                          { first = node2; second = node1; }
 		// replace all instances in EDGE array
 		// and decrement all indices greater than nodeIndex2 (node array is about to lose nodeIndex2)
 		for(var i = 0; i < this.edges.length; i++){
-			if     (this.edges[i].node[0] == second) this.edges[i].node[0] = first;
-			else if(this.edges[i].node[0] > second)  this.edges[i].node[0] -= 1;
-			if     (this.edges[i].node[1] == second) this.edges[i].node[1] = first;
-			else if(this.edges[i].node[1] > second)  this.edges[i].node[1] -= 1;
+			if(this.edges[i].node[0] == second) this.edges[i].node[0] = first;
+			if(this.edges[i].node[1] == second) this.edges[i].node[1] = first;
 		}
 		this.cleanCircularEdges();
 		this.cleanDuplicateEdges();
