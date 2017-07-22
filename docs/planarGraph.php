@@ -16,7 +16,7 @@
 </section>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/04_intersections.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/04_intersections.js"></script>
 <script>
 	new p5(_04_intersections, 'sketch_intersections');
 </script>

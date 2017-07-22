@@ -30,9 +30,9 @@
 </section>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/03_add_nodes_drag.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/03_add_nodes_snake.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/03_add_nodes_radial.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/03_add_nodes_drag.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/03_add_nodes_snake.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/03_add_nodes_radial.js"></script>
 <script>
 	var p5a = new p5(_03_add_nodes_drag, 'divP5_drag');
 	var p5b = new p5(_03_add_nodes_snake, 'divP5_snake');

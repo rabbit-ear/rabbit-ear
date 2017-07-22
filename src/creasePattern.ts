@@ -79,11 +79,13 @@ class CreasePattern extends PlanarGraph{
 	// CLEAN  /  REMOVE PARTS
 
 	clean(){
+		console.log("CREASE PATTERN clean()");
 		// check if any nodes are free floating and not connected to any edges, remove them
 		var superReturn = super.clean();
-		var intersections = super.chop();
+		//var intersections = super.chop();
 		// this.interestingPoints = this.nodes;
 		// this.interestingPoints = this.appendUniquePoints(this.nodes, this.starterLocations);
+		console.log("clean() end");
 		return superReturn;
 	}
 

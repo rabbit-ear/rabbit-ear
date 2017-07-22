@@ -47,8 +47,8 @@
 </section>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/10_clean.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/11_merge_duplicates.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/10_clean.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/11_merge_duplicates.js"></script>
 
 <script>
 	var p5a = new p5(_10_clean, 'divP5_clean');

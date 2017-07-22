@@ -97,7 +97,6 @@ class PlanarNode extends GraphNode implements XYPoint{
 	Mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
 	Normalize():XYPoint { var m = this.Mag(); return new XYPoint(this.x / m, this.y / m); }
 
-
 	constructor(xx:number, yy:number){
 		super();
 		this.x = xx;
@@ -112,6 +111,97 @@ class PlanarNode extends GraphNode implements XYPoint{
 	adjacentEdges():PlanarEdge[]{
 		return <PlanarEdge[]>super.adjacentEdges();
 	}
+	faces():PlanarFace[]{
+		var facesArray = [];
+		// get all of its nodes/edges clockwise around it
+		var adjacentArray = this.planarAdjacent();
+		for(var n = 0; n < adjacentArray.length; n++){
+			// from the start node, venture off in every connected node direction, attempt to make a face
+			var adjacentPair:PlanarPair = adjacentArray[n];
+			var nextAdjacent = adjacentPair;
+			var lastAdjacent;
+			// attempt to build a face, add first 2 points and connecting edge
+			var theFace = new PlanarFace();
+			var theFaceInteriorAngleSum = 0;
+			theFace.nodes = [ this, nextAdjacent.node ];
+			theFace.edges = [ adjacentPair.edge ];
+			var invalidFace = false;
+			while(!invalidFace && nextAdjacent.node.index != this.index){
+				// travel down edges, select the most immediately-clockwise connected node
+				// this requires to get the node we just came from
+				var fromNode = theFace.nodes[ theFace.nodes.length-2 ];
+				// step forward down the next edge
+				lastAdjacent = nextAdjacent;
+				nextAdjacent = nextAdjacent.node.getClockwiseAdjacent(fromNode);
+				// check if we have reached the beginning again, if the face is complete
+				if(nextAdjacent.node == undefined){ invalidFace = true; } // something weird is going on
+				else {
+					if(nextAdjacent.node === fromNode){ invalidFace = true; } 
+					else{
+						if(nextAdjacent.node.index != this.index){
+							theFace['nodes'].push(nextAdjacent.node);
+							var nextAngle = nextAdjacent.angle;
+							var prevAngle = lastAdjacent.angle;
+							console.log("thinking");
+							while(nextAngle < prevAngle) { 
+								console.log(nextAngle + '  ' + prevAngle);
+								nextAngle += Math.PI*2; 
+							}
+							// while(nextAngle < 0)         { nextAngle += Math.PI*2; }
+							// while(nextAngle > Math.PI*2) { nextAngle -= Math.PI*2; }
+							// while(prevAngle < 0)         { prevAngle += Math.PI*2; }
+							// while(prevAngle > Math.PI*2) { prevAngle -= Math.PI*2; }
+							var angleDifference = prevAngle - nextAngle;
+							theFaceInteriorAngleSum += angleDifference;
+						}
+						theFace['edges'].push(nextAdjacent.edge);
+						// theFaceInteriorAngleSum += adjacentPair.angle;
+					}
+				}
+			}
+
+			if(!invalidFace){// && !this.arrayContainsDuplicates(theFace)){
+				// theFace['angle'] = totalAngle;
+				facesArray.push(theFace);
+				console.log("adding a face");
+				console.log(theFaceInteriorAngleSum);
+			}
+		}
+
+		// remove duplicate faces
+		// var i = 0;
+		// while(i < facesArray.length-1){
+		// 	var j = facesArray.length-1;
+		// 	while(j > i){
+		// 		if(this.areFacesEquivalent(i, j)){
+		// 			facesArray.splice(j, 1);
+		// 		}
+		// 		j--;
+		// 	}
+		// 	i++;
+		// }
+		return facesArray
+	}
+	//      D  G
+	//      | /
+	//      |/
+	//     this---Q
+	//     / \
+	//    /   \
+	//   P     S
+	//  clockwise neighbor around:(this), from node:(Q) will give you (S)
+	getClockwiseAdjacent(node:PlanarNode):PlanarPair{
+		var adjacentNodes:PlanarPair[] = this.planarAdjacent();
+		for(var i = 0; i < adjacentNodes.length; i++){
+			if(adjacentNodes[i].node === node){
+				var index = ((i+1)%adjacentNodes.length);
+				return adjacentNodes[index];
+			}
+		}
+		// return undefined;
+		throw "getClockwiseNeighbor() fromNode was not found adjacent to the specified node";
+	}
+
 	// a sorted (clockwise) adjacency list of nodes and their connecting edges to this node
 	planarAdjacent():PlanarPair[]{
 		return (<PlanarEdge[]>super.adjacentEdges())
@@ -272,7 +362,9 @@ class PlanarGraph extends Graph{
 	}
 
 	clean():object{
+		console.log("PLANAR GRAPH clean()");
 		var graphResult = super.clean(); //{'duplicate':countDuplicate, 'circular': countCircular};
+		console.log("merging duplicate vertices");
 		var result = this.mergeDuplicateVertices();
 		(<any>Object).assign(graphResult, result);
 		return graphResult;

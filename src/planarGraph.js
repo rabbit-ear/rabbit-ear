@@ -104,6 +104,98 @@ var PlanarNode = (function (_super) {
     PlanarNode.prototype.adjacentEdges = function () {
         return _super.prototype.adjacentEdges.call(this);
     };
+    PlanarNode.prototype.faces = function () {
+        var facesArray = [];
+        // get all of its nodes/edges clockwise around it
+        var adjacentArray = this.planarAdjacent();
+        for (var n = 0; n < adjacentArray.length; n++) {
+            // from the start node, venture off in every connected node direction, attempt to make a face
+            var adjacentPair = adjacentArray[n];
+            var nextAdjacent = adjacentPair;
+            var lastAdjacent;
+            // attempt to build a face, add first 2 points and connecting edge
+            var theFace = new PlanarFace();
+            var theFaceInteriorAngleSum = 0;
+            theFace.nodes = [this, nextAdjacent.node];
+            theFace.edges = [adjacentPair.edge];
+            var invalidFace = false;
+            while (!invalidFace && nextAdjacent.node.index != this.index) {
+                // travel down edges, select the most immediately-clockwise connected node
+                // this requires to get the node we just came from
+                var fromNode = theFace.nodes[theFace.nodes.length - 2];
+                // step forward down the next edge
+                lastAdjacent = nextAdjacent;
+                nextAdjacent = nextAdjacent.node.getClockwiseAdjacent(fromNode);
+                // check if we have reached the beginning again, if the face is complete
+                if (nextAdjacent.node == undefined) {
+                    invalidFace = true;
+                } // something weird is going on
+                else {
+                    if (nextAdjacent.node === fromNode) {
+                        invalidFace = true;
+                    }
+                    else {
+                        if (nextAdjacent.node.index != this.index) {
+                            theFace['nodes'].push(nextAdjacent.node);
+                            var nextAngle = nextAdjacent.angle;
+                            var prevAngle = lastAdjacent.angle;
+                            console.log("thinking");
+                            while (nextAngle < prevAngle) {
+                                console.log(nextAngle + '  ' + prevAngle);
+                                nextAngle += Math.PI * 2;
+                            }
+                            // while(nextAngle < 0)         { nextAngle += Math.PI*2; }
+                            // while(nextAngle > Math.PI*2) { nextAngle -= Math.PI*2; }
+                            // while(prevAngle < 0)         { prevAngle += Math.PI*2; }
+                            // while(prevAngle > Math.PI*2) { prevAngle -= Math.PI*2; }
+                            var angleDifference = prevAngle - nextAngle;
+                            theFaceInteriorAngleSum += angleDifference;
+                        }
+                        theFace['edges'].push(nextAdjacent.edge);
+                        // theFaceInteriorAngleSum += adjacentPair.angle;
+                    }
+                }
+            }
+            if (!invalidFace) {
+                // theFace['angle'] = totalAngle;
+                facesArray.push(theFace);
+                console.log("adding a face");
+                console.log(theFaceInteriorAngleSum);
+            }
+        }
+        // remove duplicate faces
+        // var i = 0;
+        // while(i < facesArray.length-1){
+        // 	var j = facesArray.length-1;
+        // 	while(j > i){
+        // 		if(this.areFacesEquivalent(i, j)){
+        // 			facesArray.splice(j, 1);
+        // 		}
+        // 		j--;
+        // 	}
+        // 	i++;
+        // }
+        return facesArray;
+    };
+    //      D  G
+    //      | /
+    //      |/
+    //     this---Q
+    //     / \
+    //    /   \
+    //   P     S
+    //  clockwise neighbor around:(this), from node:(Q) will give you (S)
+    PlanarNode.prototype.getClockwiseAdjacent = function (node) {
+        var adjacentNodes = this.planarAdjacent();
+        for (var i = 0; i < adjacentNodes.length; i++) {
+            if (adjacentNodes[i].node === node) {
+                var index = ((i + 1) % adjacentNodes.length);
+                return adjacentNodes[index];
+            }
+        }
+        // return undefined;
+        throw "getClockwiseNeighbor() fromNode was not found adjacent to the specified node";
+    };
     // a sorted (clockwise) adjacency list of nodes and their connecting edges to this node
     PlanarNode.prototype.planarAdjacent = function () {
         return _super.prototype.adjacentEdges.call(this)
@@ -249,7 +341,9 @@ var PlanarGraph = (function (_super) {
             v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
     };
     PlanarGraph.prototype.clean = function () {
+        console.log("PLANAR GRAPH clean()");
         var graphResult = _super.prototype.clean.call(this); //{'duplicate':countDuplicate, 'circular': countCircular};
+        console.log("merging duplicate vertices");
         var result = this.mergeDuplicateVertices();
         Object.assign(graphResult, result);
         return graphResult;

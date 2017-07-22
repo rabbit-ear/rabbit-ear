@@ -15,9 +15,9 @@
 </section>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/12_adjacent.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/13_adjacent.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/14_adjacent.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/12_adjacent.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/13_adjacent.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/14_adjacent.js"></script>
 
 <script>
 	var p5a = new p5(_12_adjacent, 'divP5_adjacent1');

@@ -19,8 +19,8 @@
 </div>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/08_find_faces.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/09_clockwise_nodes.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/08_find_faces.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/09_clockwise_nodes.js"></script>
 <script>
 	var p5a = new p5(test08, 'div-p5-faces');
 	var p5b = new p5(test09, 'div-p5-clockwise');

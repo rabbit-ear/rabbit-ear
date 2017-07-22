@@ -81,11 +81,13 @@ var CreasePattern = (function (_super) {
     ///////////////////////////////////////////////////////////////
     // CLEAN  /  REMOVE PARTS
     CreasePattern.prototype.clean = function () {
+        console.log("CREASE PATTERN clean()");
         // check if any nodes are free floating and not connected to any edges, remove them
         var superReturn = _super.prototype.clean.call(this);
-        var intersections = _super.prototype.chop.call(this);
+        //var intersections = super.chop();
         // this.interestingPoints = this.nodes;
         // this.interestingPoints = this.appendUniquePoints(this.nodes, this.starterLocations);
+        console.log("clean() end");
         return superReturn;
     };
     CreasePattern.prototype.clear = function () {

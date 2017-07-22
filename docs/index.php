@@ -43,7 +43,7 @@
 <!-- include .js sketches -->
 <script language="javascript" type="text/javascript" src="../tests/graph/01_adjacentNode.js"></script>
 <script language="javascript" type="text/javascript" src="sketch_intro.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/04_intersections.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/04_intersections.js"></script>
 <script>
 	new p5(sketch_intro, 'sketch_intro');
 	var p5intersections = new p5(_04_intersections, 'sketch_intersections');

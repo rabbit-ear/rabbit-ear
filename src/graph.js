@@ -176,10 +176,13 @@ var Graph = (function () {
     } };
     // CLEAN will change the edges, but nodes will remain unaffected
     Graph.prototype.clean = function () {
+        console.log("GRAPH clean()");
         var countCircular, countDuplicate;
+        console.log("cleaning circular edges");
         if (!(this.preferences.allowCircular)) {
             countCircular = this.cleanCircularEdges();
         }
+        console.log("cleaning duplicate edges");
         if (!(this.preferences.allowDuplicate)) {
             countDuplicate = this.cleanDuplicateEdges();
         }
@@ -188,7 +191,7 @@ var Graph = (function () {
     // remove circular edges (a node connecting to itself)
     Graph.prototype.cleanCircularEdges = function () {
         var len = this.edges.length;
-        this.edges = this.edges.filter(function (el) { return !(el.node[0] == el.node[1]); });
+        this.edges = this.edges.filter(function (el) { return !(el.node[0] === el.node[1]); });
         if (this.edges.length != len) {
             this.edgeArrayDidChange();
         }
@@ -283,15 +286,15 @@ var Graph = (function () {
         // replace all instances in EDGE array
         // and decrement all indices greater than nodeIndex2 (node array is about to lose nodeIndex2)
         for (var i = 0; i < this.edges.length; i++) {
-            if (this.edges[i].node[0] == second)
+            if (this.edges[i].node[0] === second)
                 this.edges[i].node[0] = first;
-            if (this.edges[i].node[1] == second)
+            if (this.edges[i].node[1] === second)
                 this.edges[i].node[1] = first;
         }
         this.cleanCircularEdges();
         this.cleanDuplicateEdges();
         // this.removeNode(second);   // the above for loop does this, we can just call below:
-        this.nodes.splice(second, 1);
+        this.nodes.splice(second.index, 1);
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
         return true;

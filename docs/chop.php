@@ -35,8 +35,8 @@
 </section>
 
 
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/06_chop.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/planarGraph/07_chop_many.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/06_chop.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/07_chop_many.js"></script>
 <script>
 	$(".accordion-title").html("MORE");
 	var p506 = new p5(test06, 'divTest06');
