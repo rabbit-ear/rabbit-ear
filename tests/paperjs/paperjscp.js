@@ -80,7 +80,7 @@ var PaperCreasePattern = (function () {
 		this.nodeLayer.activate();
 		this.nodeLayer.removeChildren();
 		for(var i = 0; i < this.cp.nodes.length; i++){
-			var p = new this.myPaperJS.Point(this.cp.nodes[ i ].x, this.cp.nodes[ i ].y);
+			var p = new this.myPaperJS.Point(this.cp.nodes[i].x, this.cp.nodes[i].y);
 			this.points.push( p );
 			// new paper.Shape.Circle({
 			// 		center: [p.x, p.y], 
@@ -96,7 +96,7 @@ var PaperCreasePattern = (function () {
 			if(     this.cp.edges[i].orientation == CreaseDirection.mountain){ path = mountainPath(this.lineWeight); }
 			else if(this.cp.edges[i].orientation == CreaseDirection.valley){ path = valleyPath(this.lineWeight); }
 			else { path = borderPath(this.lineWeight); }
-			path.segments = [ this.points[this.cp.edges[i].node[0] ], this.points[this.cp.edges[i].node[1] ] ];
+			path.segments = [ this.points[this.cp.edges[i].node[0].index ], this.points[this.cp.edges[i].node[1].index ] ];
 			this.edges.push( path );
 		}
 		for(var i = 0; i < this.cp.faces.length; i++){
@@ -118,8 +118,8 @@ var PaperCreasePattern = (function () {
 			this.points[i].y = this.cp.nodes[i].y;
 		}
 		for(var i = 0; i < this.cp.edges.length; i++){
-			this.edges[i].segments[0].point = this.points[ this.cp.edges[i].node[0] ];
-			this.edges[i].segments[1].point = this.points[ this.cp.edges[i].node[1] ];
+			this.edges[i].segments[0].point = this.points[ this.cp.edges[i].node[0].index ];
+			this.edges[i].segments[1].point = this.points[ this.cp.edges[i].node[1].index ];
 		}
 		for(var i = 0; i < this.cp.faces.length; i++){
 			var faceNodeArray = this.cp.faces[i].nodes;

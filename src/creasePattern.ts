@@ -116,7 +116,8 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	addPaperEdge(x1:number, y1:number, x2:number, y2:number){
-		this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
+		// this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
+		this.addEdgeWithVertices(x1, y1, x2, y2).border();
 	}
 	creaseOnly(a:XYPoint, b:XYPoint):Crease{
 		if(this.pointInside(a) && this.pointInside(b)) return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
@@ -463,6 +464,15 @@ class CreasePattern extends PlanarGraph{
 		// this.addFaceBetweenNodes([7, 0, 3]);
 	}
 	birdBase(){
+		super.clear();
+		this.addPaperEdge(0.0,0.0,0.5,0.0);
+		this.addPaperEdge(0.5,0.0,1.0,0.0);
+		this.addPaperEdge(1.0,0.0,1.0,0.5);
+		this.addPaperEdge(1.0,0.5,1.0,1.0);
+		this.addPaperEdge(1.0,1.0,0.5,1.0);
+		this.addPaperEdge(0.5,1.0,0.0,1.0);
+		this.addPaperEdge(0.0,1.0,0.0,0.5);
+		this.addPaperEdge(0.0,0.5,0.0,0.0);
 		this.addEdgeWithVertices(.35355, .64645, 0, 1);
 		this.addEdgeWithVertices(0.5, 0.5, .35355, .64645);
 		this.addEdgeWithVertices(.64645, .35356, 0.5, 0.5);

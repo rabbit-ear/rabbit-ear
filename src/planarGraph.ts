@@ -83,6 +83,34 @@ class PlanarAngle{
 	}
 }
 
+function fmod(a,b) { return Number((a - (Math.floor(a / b) * b)).toPrecision(8)); };
+
+function angleDiff(a, b){
+	// var dif = fmod(b - a + Math.PI, Math.PI*2);
+	// if (dif < 0) dif += Math.PI*2;
+	// return dif - Math.PI;
+	return fmod( ( a - b + Math.PI + Math.PI*2 ), Math.PI*2 ) - Math.PI;
+}
+
+function averageAngle(a, b){
+	var x = Math.cos(a) + Math.cos(b);
+	var y = Math.sin(a) + Math.sin(b);
+	return Math.atan2(y, x);
+}
+
+function angleBetween(a:PlanarNode, b:PlanarNode, c:PlanarNode){
+	// var one = Math.atan2(a.y-b.y, a.x-b.x);
+	// var two = Math.atan2(c.y-b.y, c.x-b.x);
+	// var x = Math.cos(one) + Math.cos(two);
+	// var y = Math.sin(one) + Math.sin(two);
+	// return Math.atan2(y, x);
+	var v1 = (new XYPoint(a.x - b.x, a.y - b.y) ).Normalize();
+	var v2 = (new XYPoint(c.x - b.x, c.y - b.y) ).Normalize();
+	var v3 = (new XYPoint(v1.x + v2.x, v1.y + v2.y) ).Normalize();
+	return Math.atan2(v3.y, v3.x);
+	// return Math.atan2(v2.y,v2.x) - Math.atan2(v1.y,v1.x);
+}
+
 class PlanarNode extends GraphNode implements XYPoint{
 
 	graph:PlanarGraph;
@@ -111,6 +139,50 @@ class PlanarNode extends GraphNode implements XYPoint{
 	adjacentEdges():PlanarEdge[]{
 		return <PlanarEdge[]>super.adjacentEdges();
 	}
+	adjacentFaces():PlanarFace[]{
+		var adjacentFaces = [];
+		var homeAdjacencyArray = this.planarAdjacent();
+		for(var n = 0; n < homeAdjacencyArray.length; n++){
+			var thisFace = new PlanarFace();
+			var invalidFace = false;
+			// var angleSum = 0;
+			thisFace.nodes = [ this ];
+			thisFace.edges = [];
+			var a2b:PlanarPair = undefined;
+			var a:PlanarNode = undefined;
+			var b:PlanarNode = this;
+			var b2c:PlanarPair = homeAdjacencyArray[n];
+			var c:PlanarNode = b2c.node;
+			do{
+				if(c === a){ invalidFace = true; break; }
+				thisFace.nodes.push(c);
+				thisFace.edges.push(b2c.edge);
+				// increment, step forward
+				a = b;
+				b = c;
+				a2b = b2c;
+				b2c = b.getClockwiseAdjacent(a);
+				c = b2c.node;
+				// var angle = angleBetween(a, b, c);
+				// console.log("angle " + angle);
+				// angleSum += Math.abs(angle);
+			}while(c !== this);
+			// close off triangle. add edge connecting to start node
+			thisFace.edges.push(b2c.edge);
+			// var angle = angleBetween(b, c, thisFace.nodes[1]);
+			// console.log("angle " + angle);
+			// angleSum += Math.abs(angle);
+			if(!invalidFace){
+				adjacentFaces.push(thisFace);
+				// console.log("adding a face with angle sum " + angleSum);
+			} else{
+				console.log("found invalid face");
+				console.log(thisFace);
+			}
+		}
+		return adjacentFaces;
+	}
+/*
 	faces():PlanarFace[]{
 		var facesArray = [];
 		// get all of its nodes/edges clockwise around it
@@ -123,9 +195,11 @@ class PlanarNode extends GraphNode implements XYPoint{
 			// attempt to build a face, add first 2 points and connecting edge
 			var theFace = new PlanarFace();
 			var theFaceInteriorAngleSum = 0;
+			// var firstAngle = lastAdjacent.angle;
 			theFace.nodes = [ this, nextAdjacent.node ];
 			theFace.edges = [ adjacentPair.edge ];
 			var invalidFace = false;
+			var iCount = 0;
 			while(!invalidFace && nextAdjacent.node.index != this.index){
 				// travel down edges, select the most immediately-clockwise connected node
 				// this requires to get the node we just came from
@@ -141,18 +215,14 @@ class PlanarNode extends GraphNode implements XYPoint{
 						if(nextAdjacent.node.index != this.index){
 							theFace['nodes'].push(nextAdjacent.node);
 							var nextAngle = nextAdjacent.angle;
-							var prevAngle = lastAdjacent.angle;
-							console.log("thinking");
-							while(nextAngle < prevAngle) { 
-								console.log(nextAngle + '  ' + prevAngle);
-								nextAngle += Math.PI*2; 
-							}
-							// while(nextAngle < 0)         { nextAngle += Math.PI*2; }
-							// while(nextAngle > Math.PI*2) { nextAngle -= Math.PI*2; }
-							// while(prevAngle < 0)         { prevAngle += Math.PI*2; }
-							// while(prevAngle > Math.PI*2) { prevAngle -= Math.PI*2; }
-							var angleDifference = prevAngle - nextAngle;
+							var prevAngle = lastAdjacent.angle + Math.PI; // angle of line from B to A, opposite angle
+							Math.atan2(v2.y,v2.x) - Math.atan2(v1.y,v1.x)
+							var angleDifference = angleDiff(nextAngle, prevAngle)
+							angleDifference = Math.abs(angleDifference);
+							console.log(angleDifference);
+							console.log( iCount + ": adding " + angleDifference + " to total " + theFaceInteriorAngleSum);
 							theFaceInteriorAngleSum += angleDifference;
+							iCount++;
 						}
 						theFace['edges'].push(nextAdjacent.edge);
 						// theFaceInteriorAngleSum += adjacentPair.angle;
@@ -162,9 +232,23 @@ class PlanarNode extends GraphNode implements XYPoint{
 
 			if(!invalidFace){// && !this.arrayContainsDuplicates(theFace)){
 				// theFace['angle'] = totalAngle;
+
+							// var nextAngle = nextAdjacent.angle;
+							// var prevAngle = lastAdjacent.angle;
+							// console.log("NEW ANGLES:");
+							// console.log(prevAngle + ' - ' + nextAngle);
+							// var angleDifference = nextAngle - prevAngle;
+							// console.log(angleDifference);
+							// while(angleDifference > Math.PI*2){ angleDifference -= Math.PI*2; }
+							// while(angleDifference < 0){ angleDifference += Math.PI*2; }
+							// console.log(angleDifference);
+							// console.log("adding " + iCount + " number to angle");
+							// iCount++;
+							// theFaceInteriorAngleSum += angleDifference;
+
+
 				facesArray.push(theFace);
-				console.log("adding a face");
-				console.log(theFaceInteriorAngleSum);
+				console.log("adding a face with angle sum " + theFaceInteriorAngleSum);
 			}
 		}
 
@@ -181,7 +265,7 @@ class PlanarNode extends GraphNode implements XYPoint{
 		// 	i++;
 		// }
 		return facesArray
-	}
+	}*/
 	//      D  G
 	//      | /
 	//      |/
@@ -254,6 +338,7 @@ class PlanarFace{
 	// clockwise
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
+	angles:number[];  // optional, maybe delete someday
 }
 
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
