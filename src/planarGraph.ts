@@ -83,32 +83,22 @@ class PlanarAngle{
 	}
 }
 
-function fmod(a,b) { return Number((a - (Math.floor(a / b) * b)).toPrecision(8)); };
+// function clockwiseAngleBetween(a:XYPoint, b:XYPoint, c:XYPoint):number{
+// 	var A = Math.atan2(a.y-b.y, a.x-b.x);
+// 	var B = Math.atan2(c.y-b.y, c.x-b.x);
+// 	while(A < 0){ A += Math.PI*2; }
+// 	while(B < 0){ B += Math.PI*2; }
+// 	var A_B = A - B;
+// 	if(A_B >= 0) return A_B;
+// 	return Math.PI*2 - (B - A);
+// }
 
-function angleDiff(a, b){
-	// var dif = fmod(b - a + Math.PI, Math.PI*2);
-	// if (dif < 0) dif += Math.PI*2;
-	// return dif - Math.PI;
-	return fmod( ( a - b + Math.PI + Math.PI*2 ), Math.PI*2 ) - Math.PI;
-}
-
-function averageAngle(a, b){
-	var x = Math.cos(a) + Math.cos(b);
-	var y = Math.sin(a) + Math.sin(b);
-	return Math.atan2(y, x);
-}
-
-function angleBetween(a:PlanarNode, b:PlanarNode, c:PlanarNode){
-	// var one = Math.atan2(a.y-b.y, a.x-b.x);
-	// var two = Math.atan2(c.y-b.y, c.x-b.x);
-	// var x = Math.cos(one) + Math.cos(two);
-	// var y = Math.sin(one) + Math.sin(two);
-	// return Math.atan2(y, x);
-	var v1 = (new XYPoint(a.x - b.x, a.y - b.y) ).Normalize();
-	var v2 = (new XYPoint(c.x - b.x, c.y - b.y) ).Normalize();
-	var v3 = (new XYPoint(v1.x + v2.x, v1.y + v2.y) ).Normalize();
-	return Math.atan2(v3.y, v3.x);
-	// return Math.atan2(v2.y,v2.x) - Math.atan2(v1.y,v1.x);
+function clockwiseAngleFrom(a:number, b:number):number{
+	while(a < 0){ a += Math.PI*2; }
+	while(b < 0){ b += Math.PI*2; }
+	var a_b = a - b;
+	if(a_b >= 0) return a_b;
+	return Math.PI*2 - (b - a);
 }
 
 class PlanarNode extends GraphNode implements XYPoint{
@@ -145,16 +135,16 @@ class PlanarNode extends GraphNode implements XYPoint{
 		for(var n = 0; n < homeAdjacencyArray.length; n++){
 			var thisFace = new PlanarFace();
 			var invalidFace = false;
-			// var angleSum = 0;
+			var angleSum = 0;
 			thisFace.nodes = [ this ];
 			thisFace.edges = [];
-			var a2b:PlanarPair = undefined;
-			var a:PlanarNode = undefined;
+			var a2b:PlanarPair;
+			var a:PlanarNode;
 			var b:PlanarNode = this;
 			var b2c:PlanarPair = homeAdjacencyArray[n];
 			var c:PlanarNode = b2c.node;
 			do{
-				if(c === a){ invalidFace = true; break; }
+				if(c === a){ invalidFace = true; break; } // this shouldn't be needed if graph is clean
 				thisFace.nodes.push(c);
 				thisFace.edges.push(b2c.edge);
 				// increment, step forward
@@ -163,109 +153,25 @@ class PlanarNode extends GraphNode implements XYPoint{
 				a2b = b2c;
 				b2c = b.getClockwiseAdjacent(a);
 				c = b2c.node;
-				// var angle = angleBetween(a, b, c);
-				// console.log("angle " + angle);
-				// angleSum += Math.abs(angle);
+				angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
 			}while(c !== this);
-			// close off triangle. add edge connecting to start node
+			// close off triangle
 			thisFace.edges.push(b2c.edge);
-			// var angle = angleBetween(b, c, thisFace.nodes[1]);
-			// console.log("angle " + angle);
-			// angleSum += Math.abs(angle);
-			if(!invalidFace){
-				adjacentFaces.push(thisFace);
-				// console.log("adding a face with angle sum " + angleSum);
-			} else{
-				console.log("found invalid face");
-				console.log(thisFace);
+			// find interior angle from left off to the original point
+			var c2a = this.getClockwiseAdjacent(b);
+			angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
+			// add face if valid
+			if(!invalidFace && thisFace.nodes.length > 2){
+				// sum of interior angles rule, (n-2) * PI
+				var polygonAngle = angleSum / (thisFace.nodes.length-2);
+				if(polygonAngle - EPSILON <= Math.PI && polygonAngle + EPSILON >= Math.PI){
+					adjacentFaces.push(thisFace);
+				}
 			}
 		}
 		return adjacentFaces;
 	}
-/*
-	faces():PlanarFace[]{
-		var facesArray = [];
-		// get all of its nodes/edges clockwise around it
-		var adjacentArray = this.planarAdjacent();
-		for(var n = 0; n < adjacentArray.length; n++){
-			// from the start node, venture off in every connected node direction, attempt to make a face
-			var adjacentPair:PlanarPair = adjacentArray[n];
-			var nextAdjacent = adjacentPair;
-			var lastAdjacent;
-			// attempt to build a face, add first 2 points and connecting edge
-			var theFace = new PlanarFace();
-			var theFaceInteriorAngleSum = 0;
-			// var firstAngle = lastAdjacent.angle;
-			theFace.nodes = [ this, nextAdjacent.node ];
-			theFace.edges = [ adjacentPair.edge ];
-			var invalidFace = false;
-			var iCount = 0;
-			while(!invalidFace && nextAdjacent.node.index != this.index){
-				// travel down edges, select the most immediately-clockwise connected node
-				// this requires to get the node we just came from
-				var fromNode = theFace.nodes[ theFace.nodes.length-2 ];
-				// step forward down the next edge
-				lastAdjacent = nextAdjacent;
-				nextAdjacent = nextAdjacent.node.getClockwiseAdjacent(fromNode);
-				// check if we have reached the beginning again, if the face is complete
-				if(nextAdjacent.node == undefined){ invalidFace = true; } // something weird is going on
-				else {
-					if(nextAdjacent.node === fromNode){ invalidFace = true; } 
-					else{
-						if(nextAdjacent.node.index != this.index){
-							theFace['nodes'].push(nextAdjacent.node);
-							var nextAngle = nextAdjacent.angle;
-							var prevAngle = lastAdjacent.angle + Math.PI; // angle of line from B to A, opposite angle
-							Math.atan2(v2.y,v2.x) - Math.atan2(v1.y,v1.x)
-							var angleDifference = angleDiff(nextAngle, prevAngle)
-							angleDifference = Math.abs(angleDifference);
-							console.log(angleDifference);
-							console.log( iCount + ": adding " + angleDifference + " to total " + theFaceInteriorAngleSum);
-							theFaceInteriorAngleSum += angleDifference;
-							iCount++;
-						}
-						theFace['edges'].push(nextAdjacent.edge);
-						// theFaceInteriorAngleSum += adjacentPair.angle;
-					}
-				}
-			}
 
-			if(!invalidFace){// && !this.arrayContainsDuplicates(theFace)){
-				// theFace['angle'] = totalAngle;
-
-							// var nextAngle = nextAdjacent.angle;
-							// var prevAngle = lastAdjacent.angle;
-							// console.log("NEW ANGLES:");
-							// console.log(prevAngle + ' - ' + nextAngle);
-							// var angleDifference = nextAngle - prevAngle;
-							// console.log(angleDifference);
-							// while(angleDifference > Math.PI*2){ angleDifference -= Math.PI*2; }
-							// while(angleDifference < 0){ angleDifference += Math.PI*2; }
-							// console.log(angleDifference);
-							// console.log("adding " + iCount + " number to angle");
-							// iCount++;
-							// theFaceInteriorAngleSum += angleDifference;
-
-
-				facesArray.push(theFace);
-				console.log("adding a face with angle sum " + theFaceInteriorAngleSum);
-			}
-		}
-
-		// remove duplicate faces
-		// var i = 0;
-		// while(i < facesArray.length-1){
-		// 	var j = facesArray.length-1;
-		// 	while(j > i){
-		// 		if(this.areFacesEquivalent(i, j)){
-		// 			facesArray.splice(j, 1);
-		// 		}
-		// 		j--;
-		// 	}
-		// 	i++;
-		// }
-		return facesArray
-	}*/
 	//      D  G
 	//      | /
 	//      |/
