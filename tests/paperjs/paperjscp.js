@@ -110,7 +110,7 @@ var PaperCreasePattern = (function () {
 					closed: true
 				})
 			);
-		}    	
+		}
     }
     PaperCreasePattern.prototype.update = function () {
 		for(var i = 0; i < this.cp.nodes.length; i++){
