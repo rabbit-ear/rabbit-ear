@@ -238,6 +238,53 @@ class PlanarEdge extends GraphEdge{
 	adjacentEdges():PlanarEdge[]{
 		return <PlanarEdge[]>super.adjacentEdges();
 	}
+	// adjacentFaces():PlanarFace[]{
+	// 	var adjacentFaces = [];
+	// 	var endpoints = this.endPoints();
+	// 	var startA:PlanarNode = endpoints[0];
+	// 	var startB:PlanarNode = endpoints[1];
+
+	// 	var thing = startA.getClockwiseAdjacent(startB);
+	// 	var homeAdjacencyArray = this.planarAdjacent();
+
+	// 		var thisFace = new PlanarFace();
+	// 		var invalidFace = false;
+	// 		var angleSum = 0;
+	// 		thisFace.nodes = [ this ];
+	// 		thisFace.edges = [];
+	// 		var a2b:PlanarPair;
+	// 		var a:PlanarNode;
+	// 		var b:PlanarNode = this;
+	// 		var b2c:PlanarPair = homeAdjacencyArray[n];
+	// 		var c:PlanarNode = b2c.node;
+	// 		do{
+	// 			if(c === a){ invalidFace = true; break; } // this shouldn't be needed if graph is clean
+	// 			thisFace.nodes.push(c);
+	// 			thisFace.edges.push(b2c.edge);
+	// 			// increment, step forward
+	// 			a = b;
+	// 			b = c;
+	// 			a2b = b2c;
+	// 			b2c = b.getClockwiseAdjacent(a);
+	// 			c = b2c.node;
+	// 			angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
+	// 		}while(c !== this);
+	// 		// close off triangle
+	// 		thisFace.edges.push(b2c.edge);
+	// 		// find interior angle from left off to the original point
+	// 		var c2a = this.getClockwiseAdjacent(b);
+	// 		angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
+	// 		// add face if valid
+	// 		if(!invalidFace && thisFace.nodes.length > 2){
+	// 			// sum of interior angles rule, (n-2) * PI
+	// 			var polygonAngle = angleSum / (thisFace.nodes.length-2);
+	// 			if(polygonAngle - EPSILON <= Math.PI && polygonAngle + EPSILON >= Math.PI){
+	// 				adjacentFaces.push(thisFace);
+	// 			}
+	// 		}
+
+	// 	return adjacentFaces;
+	// }
 }
 
 class PlanarFace{

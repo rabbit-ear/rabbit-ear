@@ -115,8 +115,8 @@ var CreasePattern = (function (_super) {
         return true;
     };
     CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
-        // this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
-        this.addEdgeWithVertices(x1, y1, x2, y2).border();
+        this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
+        // this.addEdgeWithVertices(x1, y1, x2, y2).border();
     };
     CreasePattern.prototype.creaseOnly = function (a, b) {
         if (this.pointInside(a) && this.pointInside(b))
@@ -151,8 +151,14 @@ var CreasePattern = (function (_super) {
     // }
     // AXIOM 1
     CreasePattern.prototype.creaseConnectingPoints = function (a, b) {
+        console.log("creaseConnectingPoints");
+        console.log(this.boundary);
+        console.log(a);
+        console.log(b);
         var ab = new XYPoint(b.x - a.x, b.y - a.y);
+        console.log(ab);
         var intersects = this.boundaryLineIntersection(a, ab);
+        console.log(intersects);
         if (intersects.length >= 2) {
             return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
         }
