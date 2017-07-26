@@ -10,10 +10,13 @@ function simple(){
 
 	scope.view.onFrame = function(event) { }
 	scope.view.onResize = function(event) {
+		paper = scope;
 		zoomView(scope, canvas.width, canvas.height, 0.5);
 	}
 	scope.view.onMouseMove = function(event) {
 		mousePos = event.point;
 	}
-	scope.view.onMouseDown = function(event){ }
+	scope.view.onMouseDown = function(event){
+		paper = scope;		
+	}
 } simple();

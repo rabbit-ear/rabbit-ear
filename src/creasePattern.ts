@@ -144,14 +144,8 @@ class CreasePattern extends PlanarGraph{
 
 	// AXIOM 1
 	creaseConnectingPoints(a:XYPoint, b:XYPoint):Crease{
-		console.log("creaseConnectingPoints");
-		console.log(this.boundary);
-		console.log(a);
-		console.log(b);
 		var ab = new XYPoint(b.x - a.x, b.y - a.y);
-		console.log(ab);
 		var intersects = this.boundaryLineIntersection(a, ab);
-		console.log(intersects);
 		if(intersects.length >= 2){
 			return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
 		}
