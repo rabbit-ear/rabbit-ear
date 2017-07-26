@@ -63,34 +63,18 @@ class PlanarPair{
 	}
 }
 
-class PlanarAngle{
-	// the radial space between 2 edges
-	// an angle defined by two adjacent edges
-	node:PlanarNode;    // center node
-	edges:[PlanarEdge,PlanarEdge];  // two adjacent edges
-	angle:number; // radians
-	// constructor(parent:PlanarNode, node1:PlanarNode, node2:PlanarNode){
-	// 	this.node = parent;
-	// 	this.angle = Math.atan2(node.y-parent.y, node.x-parent.x);
-	// 	this.edge = edge;
-	// }
-	constructor(node:PlanarNode, edge1:PlanarEdge, edge2:PlanarEdge, angle){
-
-		var nodeInCommon = <PlanarNode>edge1.nodeInCommon(edge2);
-		this.node = nodeInCommon;
-		this.angle = 0;//Math.atan2(node.y-parent.y, node.x-parent.x);
-		this.edges = [edge1, edge2];
-	}
-}
-
-// function clockwiseAngleBetween(a:XYPoint, b:XYPoint, c:XYPoint):number{
-// 	var A = Math.atan2(a.y-b.y, a.x-b.x);
-// 	var B = Math.atan2(c.y-b.y, c.x-b.x);
-// 	while(A < 0){ A += Math.PI*2; }
-// 	while(B < 0){ B += Math.PI*2; }
-// 	var A_B = A - B;
-// 	if(A_B >= 0) return A_B;
-// 	return Math.PI*2 - (B - A);
+// class PlanarAngle{
+// 	// the radial space between 2 edges
+// 	// an angle defined by two adjacent edges
+// 	node:PlanarNode;    // center node
+// 	edges:[PlanarEdge,PlanarEdge];  // two adjacent edges
+// 	angle:number; // radians
+// 	constructor(node:PlanarNode, edge1:PlanarEdge, edge2:PlanarEdge, angle){
+// 		var nodeInCommon = <PlanarNode>edge1.nodeInCommon(edge2);
+// 		this.node = nodeInCommon;
+// 		this.angle = 0;//Math.atan2(node.y-parent.y, node.x-parent.x);
+// 		this.edges = [edge1, edge2];
+// 	}
 // }
 
 function clockwiseAngleFrom(a:number, b:number):number{
@@ -137,7 +121,6 @@ class PlanarNode extends GraphNode implements XYPoint{
 			var invalidFace = false;
 			var angleSum = 0;
 			thisFace.nodes = [ this ];
-			thisFace.edges = [];
 			var a2b:PlanarPair;
 			var a:PlanarNode;
 			var b:PlanarNode = this;
@@ -148,17 +131,15 @@ class PlanarNode extends GraphNode implements XYPoint{
 				thisFace.nodes.push(c);
 				thisFace.edges.push(b2c.edge);
 				// increment, step forward
-				a = b;
-				b = c;
-				a2b = b2c;
-				b2c = b.getClockwiseAdjacent(a);
+				a = b;   b = c;   a2b = b2c;
+				b2c = b.adjacentNodeClockwiseFrom(a);
 				c = b2c.node;
 				angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
 			}while(c !== this);
 			// close off triangle
 			thisFace.edges.push(b2c.edge);
 			// find interior angle from left off to the original point
-			var c2a = this.getClockwiseAdjacent(b);
+			var c2a = this.adjacentNodeClockwiseFrom(b);
 			angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
 			// add face if valid
 			if(!invalidFace && thisFace.nodes.length > 2){
@@ -180,7 +161,7 @@ class PlanarNode extends GraphNode implements XYPoint{
 	//    /   \
 	//   P     S
 	//  clockwise neighbor around:(this), from node:(Q) will give you (S)
-	getClockwiseAdjacent(node:PlanarNode):PlanarPair{
+	adjacentNodeClockwiseFrom(node:PlanarNode):PlanarPair{
 		var adjacentNodes:PlanarPair[] = this.planarAdjacent();
 		for(var i = 0; i < adjacentNodes.length; i++){
 			if(adjacentNodes[i].node === node){
@@ -189,7 +170,7 @@ class PlanarNode extends GraphNode implements XYPoint{
 			}
 		}
 		// return undefined;
-		throw "getClockwiseNeighbor() fromNode was not found adjacent to the specified node";
+		throw "adjacentNodeClockwiseFrom() fromNode was not found adjacent to the specified node";
 	}
 
 	// a sorted (clockwise) adjacency list of nodes and their connecting edges to this node
@@ -291,7 +272,12 @@ class PlanarFace{
 	// clockwise
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
-	angles:number[];  // optional, maybe delete someday
+	// angles:number[];  // optional, maybe delete someday
+	constructor(){
+		this.nodes = [];
+		this.edges = [];
+		// this.angles = [];
+	}
 }
 
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)

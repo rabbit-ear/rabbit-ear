@@ -19,24 +19,32 @@ canvas[resize] {
 <script type="text/javascript" src="../../src/creasePattern.js"></script>
 <script type="text/javascript" src="../../lib/paper-full.min.js"></script>
 <script type="text/javascript" src="paperjscp.js"></script>
+<script type="text/javascript" src="../../lib/d3.min.js"></script>
 <script type="text/javascript">
 
 var cp = new CreasePattern();
 console.log(cp);
-var paperCP;
 
 window.onload = function() {
 	var canvas = document.getElementById('canvas');
-	paper.setup(canvas);
-	zoomView(paper);
-	paperCP = new PaperCreasePattern(paper, cp);
+	var scope = new paper.PaperScope();
+	// setup paper scope with canvas
+	scope.setup(canvas);
+	zoomView(scope, canvas.width, canvas.height, 0.5);
+
+	var paperCP = new PaperCreasePattern(scope, cp);
 
 	paper.view.onFrame = function(event) { }
 	paper.view.onResize = function(event) {
-		zoomView(paper);
+		paper = scope;
+		zoomView(scope, canvas.width, canvas.height, 0.5);
 	}
 	paper.view.onMouseMove = function(event) {
-		mousePos = event.point;
+		var mousePos = event.point;
+	}
+	paper.view.onMouseDown = function(event){
+		paper = scope;
+		var mousePos = event.point;
 	}
 }
 
