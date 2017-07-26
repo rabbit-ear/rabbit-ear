@@ -219,6 +219,14 @@ class PlanarEdge extends GraphEdge{
 	adjacentEdges():PlanarEdge[]{
 		return <PlanarEdge[]>super.adjacentEdges();
 	}
+
+	crossedEdges():Intersection[]{
+		var intersections:Intersection[] = [];
+		for(var i = 0; i < this.graph.edges.length; i++){
+			
+		}
+		return intersections;
+	}
 	// adjacentFaces():PlanarFace[]{
 	// 	var adjacentFaces = [];
 	// 	var endpoints = this.endPoints();
@@ -556,9 +564,11 @@ class PlanarGraph extends Graph{
 		// var intersectionPoints = new PlanarGraph();
 		var allIntersections = [];  // keep a running total of all the intersection points
 		for(var i = 0; i < this.edges.length; i++){
+			console.log("edge " + i);
+			console.log(this.edges[i].endPoints()[0].x + " " + this.edges[i].endPoints()[0].y);
 			var edgeCrossings:Intersection[] = this.getEdgeIntersectionsWithEdge(i);
 			if(edgeCrossings != undefined && edgeCrossings.length > 0){
-				// console.log(i + ": " + edgeCrossings.length);
+				console.log(i + ": # crossings" + edgeCrossings.length);
 				allIntersections = allIntersections.concat(edgeCrossings);
 			}
 			while(edgeCrossings.length > 0){

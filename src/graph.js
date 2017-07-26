@@ -233,16 +233,16 @@ var Graph = (function () {
         return true;
     };
     Graph.prototype.areEdgesAdjacent = function (edgeIndex1, edgeIndex2) {
-        return ((this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[0]) ||
-            (this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[1]) ||
-            (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[1]) ||
-            (this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[0]));
+        return ((this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[0]) ||
+            (this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[1]) ||
+            (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[1]) ||
+            (this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[0]));
     };
     Graph.prototype.areEdgesSimilar = function (edgeIndex1, edgeIndex2) {
-        return ((this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[0] &&
-            this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[1]) ||
-            (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[1] &&
-                this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[0]));
+        return ((this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[0] &&
+            this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[1]) ||
+            (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[1] &&
+                this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[0]));
     };
     // getEdgeConnectingNodes in 2 parts: if graph is classical (no duplicate edges)
     //  the use "Edge" singular, else use "Edges" plural getEdgesConnectingNodes

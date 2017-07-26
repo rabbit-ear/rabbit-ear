@@ -55,6 +55,13 @@ var PaperCreasePattern = (function () {
 			closed: false
 		});
 	}
+	function markPath(lineWeight){
+		return new paper.Path({
+			strokeColor: { gray:0.75, alpha:1.0 },//{ hue:0, saturation:1, brightness:0 },
+			strokeWidth: lineWeight*0.5,
+			closed: false
+		});
+	}
 
 	faceFillColor = { gray:0.0, alpha:0.0 };
 
@@ -95,7 +102,8 @@ var PaperCreasePattern = (function () {
 			var path;
 			if(     this.cp.edges[i].orientation == CreaseDirection.mountain){ path = mountainPath(this.lineWeight); }
 			else if(this.cp.edges[i].orientation == CreaseDirection.valley){ path = valleyPath(this.lineWeight); }
-			else { path = borderPath(this.lineWeight); }
+			else if(this.cp.edges[i].orientation == CreaseDirection.border){ path = borderPath(this.lineWeight); }
+			else { path = markPath(this.lineWeight); }
 			path.segments = [ this.points[this.cp.edges[i].node[0].index ], this.points[this.cp.edges[i].node[1].index ] ];
 			this.edges.push( path );
 		}

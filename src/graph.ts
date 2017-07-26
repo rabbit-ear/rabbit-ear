@@ -223,16 +223,16 @@ class Graph{
 		return true;
 	}
 	areEdgesAdjacent(edgeIndex1:number, edgeIndex2:number):boolean{
-		return ( (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[0]) ||
-		         (this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[1]) ||
-		         (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[1]) ||
-		         (this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[0]) );
+		return ( (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[0]) ||
+		         (this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[1]) ||
+		         (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[1]) ||
+		         (this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[0]) );
 	}
 	areEdgesSimilar(edgeIndex1:number, edgeIndex2:number):boolean{
-		return( (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[0] &&
-		         this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[1] ) ||
-		        (this.edges[edgeIndex1].node[0] == this.edges[edgeIndex2].node[1] &&
-		         this.edges[edgeIndex1].node[1] == this.edges[edgeIndex2].node[0] ) );
+		return( (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[0] &&
+		         this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[1] ) ||
+		        (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[1] &&
+		         this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[0] ) );
 	}
 
 	// getEdgeConnectingNodes in 2 parts: if graph is classical (no duplicate edges)

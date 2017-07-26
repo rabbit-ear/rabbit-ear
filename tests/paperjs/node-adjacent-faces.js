@@ -9,6 +9,7 @@ function node_adjacent_faces(){
 
 	var cp = new CreasePattern();
 	cp.birdBase();
+	cp.clean();
 	var paperCP = new PaperCreasePattern(scope, cp);
 	var nearestEdge = undefined;
 	var nearestNode = undefined;
