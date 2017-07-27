@@ -34,10 +34,10 @@ var p5_nearest_edge = function(p) {
 		if(closestEdge != undefined && closestEdge.edge != undefined){
 			p.stroke(255, 0, 0);
 			p.fill(255, 0, 0);
-			p.line(g.nodes[ g.edges[closestEdge.edge].node[0] ].x, g.nodes[ g.edges[closestEdge.edge].node[0] ].y, 
-			       g.nodes[ g.edges[closestEdge.edge].node[1] ].x, g.nodes[ g.edges[closestEdge.edge].node[1] ].y );
-			p.ellipse(g.nodes[ g.edges[closestEdge.edge].node[0] ].x, g.nodes[ g.edges[closestEdge.edge].node[0] ].y, .01, .01);
-			p.ellipse(g.nodes[ g.edges[closestEdge.edge].node[1] ].x, g.nodes[ g.edges[closestEdge.edge].node[1] ].y, .01, .01);
+			p.line(g.edges[closestEdge.edge].node[0].x, g.edges[closestEdge.edge].node[0].y, 
+			       g.edges[closestEdge.edge].node[1].x, g.edges[closestEdge.edge].node[1].y );
+			p.ellipse(g.edges[closestEdge.edge].node[0].x, g.edges[closestEdge.edge].node[0].y, .01, .01);
+			p.ellipse(g.edges[closestEdge.edge].node[1].x, g.edges[closestEdge.edge].node[1].y, .01, .01);
 
 			p.stroke(0, 0, 0);
 			p.fill(0, 0, 0);

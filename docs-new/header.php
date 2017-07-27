@@ -28,8 +28,7 @@
 			<a href="/docs-new/" class="dropbtn">INTRO</a>
 			<div class="dropdown-content">
 			<a href="/docs-new/">WELCOME</a>
-			<a href="background.php">BACKGROUND</a>
-			<a href="download.php">DOWNLOAD</a>
+			<a href="https://github.com/robbykraft/Origami">DOWNLOAD</a>
 			</div>
 		</li>
 		<li>
@@ -40,6 +39,7 @@
 			<div class="dropdown-content">
 			<a href="clean.php">CLEAN</a>
 			<a href="face.php">FACE</a>
+			<a href="neighbors.php">NEIGHBOR</a>
 			</div>
 		</li>
 		<li class="dropdown">
