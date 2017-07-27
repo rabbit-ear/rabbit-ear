@@ -33,32 +33,51 @@ function zoomView(paperjs, optionalWidth, optionalHeight, retinaScale){
 
 var PaperCreasePattern = (function () {
 
-	function mountainPath(lineWeight){
+	PaperCreasePattern.prototype.newPathForCrease = function(crease){
+		if( crease.orientation == CreaseDirection.mountain){ return this.newMountainPath(this.lineWeight); }
+		else if(crease.orientation == CreaseDirection.valley){ return this.newValleyPath(this.lineWeight); }
+		else if(crease.orientation == CreaseDirection.border){ return this.newBorderPath(this.lineWeight); }
+		return this.newMarkPath(this.lineWeight);
+	}
+
+	PaperCreasePattern.prototype.colorForCrease = function(creaseOrientation){
+		if( creaseOrientation == CreaseDirection.mountain){ 
+			return { hue:220, saturation:0.6, brightness:1 };
+			//{ gray:0.5, alpha:1.0 },//{ hue:350, saturation:1, brightness:1 },
+		} else if(creaseOrientation == CreaseDirection.valley){ 
+			return { hue:350, saturation:0, brightness:0.6 };
+			//{ hue:130, saturation:0.8, brightness:0.7 },//{ hue:230, saturation:1, brightness:1 },
+		} else if(creaseOrientation == CreaseDirection.border){ 
+			return { gray:0.0, alpha:1.0 };//{ hue:0, saturation:1, brightness:0 }
+		} return { gray:0.75, alpha:1.0 };
+	}
+
+	PaperCreasePattern.prototype.newMountainPath = function(lineWeight){
 		return new paper.Path({
-			strokeColor: { hue:220, saturation:0.6, brightness:1 },//{ gray:0.5, alpha:1.0 },//{ hue:350, saturation:1, brightness:1 },
+			strokeColor: this.colorForCrease(CreaseDirection.mountain),
 			strokeWidth: lineWeight,
 			closed: false
 		});
 	}
-	function valleyPath(lineWeight){
+	PaperCreasePattern.prototype.newValleyPath = function(lineWeight){
 		return new paper.Path({
-			strokeColor: { hue:350, saturation:0, brightness:0.6 },//{ hue:130, saturation:0.8, brightness:0.7 },//{ hue:230, saturation:1, brightness:1 },
+			strokeColor: this.colorForCrease(CreaseDirection.valley),
 			dashArray: [lineWeight*3, lineWeight],
 			strokeWidth: lineWeight,
 			closed: false
 		});
 	}
-	function borderPath(lineWeight){
+	PaperCreasePattern.prototype.newBorderPath = function(lineWeight){
 		return new paper.Path({
-			strokeColor: { gray:0.0, alpha:1.0 },//{ hue:0, saturation:1, brightness:0 },
+			strokeColor: this.colorForCrease(CreaseDirection.border),
 			strokeWidth: lineWeight,
 			closed: false
 		});
 	}
-	function markPath(lineWeight){
+	PaperCreasePattern.prototype.newMarkPath = function(lineWeight){
 		return new paper.Path({
-			strokeColor: { gray:0.75, alpha:1.0 },//{ hue:0, saturation:1, brightness:0 },
-			strokeWidth: lineWeight*0.5,
+			strokeColor: this.colorForCrease(CreaseDirection.none),
+			strokeWidth: lineWeight*0.66666,
 			closed: false
 		});
 	}
@@ -99,11 +118,7 @@ var PaperCreasePattern = (function () {
 		this.cpLayer.activate();
 		this.cpLayer.removeChildren();
 		for(var i = 0; i < this.cp.edges.length; i++){
-			var path;
-			if(     this.cp.edges[i].orientation == CreaseDirection.mountain){ path = mountainPath(this.lineWeight); }
-			else if(this.cp.edges[i].orientation == CreaseDirection.valley){ path = valleyPath(this.lineWeight); }
-			else if(this.cp.edges[i].orientation == CreaseDirection.border){ path = borderPath(this.lineWeight); }
-			else { path = markPath(this.lineWeight); }
+			var path = this.newPathForCrease(this.cp.edges[i]);
 			path.segments = [ this.points[this.cp.edges[i].node[0].index ], this.points[this.cp.edges[i].node[1].index ] ];
 			this.edges.push( path );
 		}

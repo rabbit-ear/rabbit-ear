@@ -1,0 +1,217 @@
+/* Eric Meyer’s Reset CSS 2.0 */
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary, time, mark, audio, video
+{ margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline; }
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section { display: block; }
+body { line-height: 1; }
+ol, ul { list-style: none; }
+blockquote, q { quotes: none; }
+blockquote:before, blockquote:after, q:before, q:after { content: ''; content: none; }
+table { border-collapse: collapse; border-spacing: 0; }
+/* Eric Meyer’s Reset CSS 2.0 */
+
+
+canvas[resize] {
+	width: 60vmin;
+	height: 60vmin;
+}
+body{
+	font-family: 'Cormorant', Georgia, "Times New Roman", Times, serif;
+	margin:2em;
+	margin-top:3em;
+}
+a{
+	color: black;
+	font-weight: bold;
+}
+a:hover{
+	text-decoration: none;
+}
+h1{font-size: 420%; font-weight: 300;}
+h2{font-size: 280%; font-weight: 300;}
+h3{font-size: 240%; font-weight: 300;}
+h4{font-size: 180%; font-weight: 300;}
+h5{font-size: 150%; font-weight: 300;}
+p, ol, ul  /* blockquote, pre, */
+{
+	padding-top:0.5em;
+	padding-bottom:0.5em;
+	font-size: 150%;
+}
+
+h1{padding-top:1em; padding-bottom:1em; text-align: center;}
+h2{
+	padding-top:.6em;
+	padding-bottom: 6px;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: black;
+}
+ul{
+	list-style-type: square;
+	padding-left:1em;
+}
+b, strong{
+	font-weight: bold;
+}
+
+/*
+h1 a, h2 a, h3 a, h4 a, h5 a{
+	font-weight: normal;
+	text-decoration: none;	
+}
+h1, h2, h3, h4, h5, p, nav, li{ 
+	font-weight: 500; 
+}
+h1{
+	font-weight: 300; 
+	font-size: 400%;
+	width:100%;
+	text-align: center;
+	-webkit-margin-after: 1em; 
+	-webkit-margin-before: 1.2em; 
+}
+h2{
+	font-size: 270%; 
+	-webkit-margin-after: 0.2em; 
+	-webkit-margin-before: 1em; 
+}
+h3{ font-size: 240%; }
+h4{ font-size: 200%; }
+h5{ font-size: 170%; }
+p, li{ font-size: 150%; }
+section{
+	padding: 0 10%;
+}
+h2{
+	padding-bottom: 4px;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: black;
+}
+*/
+
+
+.centered{
+	width: 100%;
+	text-align: center;
+	display:inline-block;
+}
+.half{
+	width: 50%;
+	text-align: center;
+	display:inline-block;
+}
+.third{
+	width: 33%;
+	text-align: center;
+	display:inline-block;
+}
+.quote, .quoteauthor{
+	text-align:center;
+	font-style: italic;
+}
+.quoteauthor{
+	font-weight: bold;
+}
+button:focus {outline:0;}
+
+/* P5.js and D3.js */
+.p5sketch{
+	margin-top:3em;
+	margin-bottom:3em;
+}
+.svg-container {
+	display: inline-block;
+	position: relative;
+	width: 100%;
+	vertical-align: top;
+	overflow: hidden;
+}
+.svg-content {
+	display: inline-block;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+.links line {
+	stroke: #000;
+	stroke-width: 4px;
+	cursor: pointer;
+}
+.nodes circle {
+	stroke: #000;
+	fill: #FFF;
+	stroke-width: 4px;
+	cursor: pointer;
+}
+
+/* code syntax highlighting */
+code, pre {
+	color: #f8f8f2;
+	background: none;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+	text-align: left;
+	white-space: pre;
+	word-spacing: normal;
+	word-break: normal;
+	word-wrap: normal;
+	line-height: 1.5;
+
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	tab-size: 4;
+
+	-webkit-hyphens: none;
+	-moz-hyphens: none;
+	-ms-hyphens: none;
+	hyphens: none;
+}
+
+pre {
+	padding: 1em;
+	margin-top: 3em;
+	margin-bottom:3em;
+	overflow: auto;
+	border-radius: 0.3em;
+	background: #272822;
+	max-width:800px;
+	display:inline-block;
+	min-width:500px;
+}
+
+code {
+	padding: .1em;
+	border-radius: .3em;
+	white-space: normal;
+}
+
+/* the following are short to allow quick typing */
+
+c{ /* comment */
+	color: #708090;
+}
+f{ /* function */
+	color: #66D9EF;
+}
+n, .n { /* number */
+	color: #AE81FF;
+}
+v, def{ /* variable */
+	color: #A6E22E;
+}
+op, key{ /* operator */
+	color: #F92672;
+}
+str { /* string */
+	color: #E6DB74;
+}
+arg{ /* argument */
+	color: #FD9720;
+}

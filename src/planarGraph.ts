@@ -394,9 +394,9 @@ class PlanarGraph extends Graph{
 	}
 
 	clean():object{
-		console.log("PLANAR GRAPH clean()");
+		// console.log("PLANAR GRAPH clean()");
 		var graphResult = super.clean(); //{'duplicate':countDuplicate, 'circular': countCircular};
-		console.log("merging duplicate vertices");
+		// console.log("merging duplicate vertices");
 		var result = this.mergeDuplicateVertices();
 		(<any>Object).assign(graphResult, result);
 		return graphResult;

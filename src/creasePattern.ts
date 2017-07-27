@@ -90,13 +90,13 @@ class CreasePattern extends PlanarGraph{
 	// CLEAN  /  REMOVE PARTS
 
 	clean(){
-		console.log("CREASE PATTERN clean()");
+		// console.log("CREASE PATTERN clean()");
 		// check if any nodes are free floating and not connected to any edges, remove them
 		var superReturn = super.clean();
 		//var intersections = super.chop();
 		// this.interestingPoints = this.nodes;
 		// this.interestingPoints = this.appendUniquePoints(this.nodes, this.starterLocations);
-		console.log("clean() end");
+		// console.log("clean() end");
 		return superReturn;
 	}
 
@@ -259,8 +259,6 @@ class CreasePattern extends PlanarGraph{
 		return this.creaseVector(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
 	}
 
-
-
 	boundaryLineIntersection(origin:XYPoint, direction:XYPoint):XYPoint[]{
 		var opposite = new XYPoint(-direction.x, -direction.y);
 		var intersects:XYPoint[] = [];
@@ -301,8 +299,6 @@ class CreasePattern extends PlanarGraph{
 	// 	var v = this.nodes[vIndex];
 	// 	return this.vertexLiesOnEdge(v, intersect);
 	// }
-
-
 
 	trySnapVertex(newVertex, snapRadius){ // newVertex has {x:__, y:__}
 		// find the closest interesting point to the vertex
@@ -445,13 +441,28 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	kiteBase(){
-		this.addEdgeWithVertices(1, 0, 0, 1);
-		this.addEdgeWithVertices(0, 1, 1, .58578);
-		this.addEdgeWithVertices(0, 1, .41421, 0);
+		this.clear();
+		this.boundary = [];
+		this.addPaperEdge(0.0, 0.0, 0.41421, 0.0);
+		this.addPaperEdge(0.41421, 0.0, 1.0, 0.0);
+		this.addPaperEdge(1.0, 0.0, 1.0, 0.58578);
+		this.addPaperEdge(1.0, 0.58578, 1.0, 1.0);
+		this.addPaperEdge(1.0, 1.0, 0.0, 1.0);
+		this.addPaperEdge(0.0, 1.0, 0.0, 0.0);
+		this.addEdgeWithVertices(1, 0, 0, 1).mountain();
+		this.addEdgeWithVertices(0, 1, 1, 0.58578).valley();
+		this.addEdgeWithVertices(0, 1, 0.41421, 0).valley();
 		this.clean();
 	}
 	fishBase(){
 		this.clear();
+		this.boundary = [];
+		this.addPaperEdge(0.0, 0.0, 0.29289, 0.0);
+		this.addPaperEdge(0.29289, 0.0, 1.0, 0.0);
+		this.addPaperEdge(1.0, 0.0, 1.0, 0.70711);
+		this.addPaperEdge(1.0, 0.70711, 1.0, 1.0);
+		this.addPaperEdge(1.0, 1.0, 0.0, 1.0);
+		this.addPaperEdge(0.0, 1.0, 0.0, 0.0);
 		this.addEdgeWithVertices(1,0, 0,1).mountain();
 		this.addEdgeWithVertices(0,1, 0.70711,0.70711).valley();
 		this.addEdgeWithVertices(0,1, 0.29289,0.29289).valley();
@@ -462,8 +473,6 @@ class CreasePattern extends PlanarGraph{
 		this.addEdgeWithVertices(0.70711,0.70711, 1,0.70711).mountain();
 		this.addEdgeWithVertices(0.29289,0.29289, 0.29289,0).mountain();
 		this.clean();
-		this.edges[9].mountain();
-		this.edges[12].mountain();
 		// this.addFaceBetweenNodes([0, 1, 3]);
 		// this.addFaceBetweenNodes([0, 2, 1]);
 		// this.addFaceBetweenNodes([4, 3, 1]);
@@ -484,6 +493,7 @@ class CreasePattern extends PlanarGraph{
 		this.addPaperEdge(0.5,1.0,0.0,1.0);
 		this.addPaperEdge(0.0,1.0,0.0,0.5);
 		this.addPaperEdge(0.0,0.5,0.0,0.0);
+		// eight 22.5 degree lines
 		this.addEdgeWithVertices(0, 1, 0.5, .79289).mountain();
 		this.addEdgeWithVertices(0, 1, .2071, 0.5).mountain();
 		this.addEdgeWithVertices(1, 0, 0.5, .20711).mountain();
@@ -495,11 +505,11 @@ class CreasePattern extends PlanarGraph{
 		// corner 45 degree lines
 		this.addEdgeWithVertices(0, 0, .35353, .35353).valley();
 		this.addEdgeWithVertices(.35355, .64645, 0, 1).valley();
-		this.addEdgeWithVertices(1, 0, .64645, .35356).valley();
+		this.addEdgeWithVertices(1, 0, .64645, .35356).mountain();
 		this.addEdgeWithVertices(.64643, .64643, 1, 1).valley();
 		// center X
 		this.addEdgeWithVertices(0.5, 0.5, .35355, .64645).valley();
-		this.addEdgeWithVertices(.64645, .35356, 0.5, 0.5).valley();
+		this.addEdgeWithVertices(.64645, .35356, 0.5, 0.5).mountain();
 		this.addEdgeWithVertices(0.5, 0.5, .64643, .64643).valley();
 		this.addEdgeWithVertices(.35353, .35353, 0.5, 0.5).valley();
 		// center ⃟

@@ -5,12 +5,12 @@ var drawGraphLines = function(p, planarGraph){
 		var v = planarGraph.nodes[i];
 		point_array[i*3+0] = v.x;
 		point_array[i*3+1] = v.y;
-		point_array[i*3+2] = v.z;
+		point_array[i*3+2] = 0;//v.z;
 	}
 	var line_array = [];
 	for(var i = 0; i < planarGraph.edges.length; i++){
-		line_array[i*2+0] = planarGraph.edges[i].node[0];
-		line_array[i*2+1] = planarGraph.edges[i].node[1];
+		line_array[i*2+0] = planarGraph.edges[i].node[0].index;
+		line_array[i*2+1] = planarGraph.edges[i].node[1].index;
 	}
 	// DRAW THINGS
 	for(var i = 0; i < line_array.length*0.5; i++){

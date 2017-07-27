@@ -6,19 +6,24 @@ function test_js(){
 	zoomView(scope, canvas.width, canvas.height, 0.5);
 
 	var cp = new CreasePattern();
-	// cp.nodes = [];
-	// cp.edges = [];
-	// cp.boundary = [];
-	cp.birdBase();
-	var paperCP = new PaperCreasePattern(scope, cp);
+	cp.nodes = [];
+	cp.edges = [];
+	cp.boundary = [];
+	// cp.birdBase();
 
 	var nearestEdge = undefined;
 	var nearestNode = undefined;
 
-	// cp.addEdgeWithVertices(0.5, 0.0, 0.5, 1.0);
-	// cp.addEdgeWithVertices(0.5, 0.5, 1.0, 0.5);
+	cp.addEdgeWithVertices(0.5, 0.0, 0.5, 1.0);
+	cp.addEdgeWithVertices(0.5, 0.5, 1.0, 0.5);
 	// cp.addEdgeWithVertices(0.5, 0.5, 0.0, 0.5);
 
+	cp.chop();
+	cp.clean();
+	cp.chop();
+	cp.clean();
+
+	var paperCP = new PaperCreasePattern(scope, cp);
 	paperCP.initialize();
 
 	var nodeCircle = new paper.Shape.Circle({

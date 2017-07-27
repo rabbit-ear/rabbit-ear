@@ -333,9 +333,9 @@ var PlanarGraph = (function (_super) {
             v1.y - epsilon < v2.y && v1.y + epsilon > v2.y);
     };
     PlanarGraph.prototype.clean = function () {
-        console.log("PLANAR GRAPH clean()");
+        // console.log("PLANAR GRAPH clean()");
         var graphResult = _super.prototype.clean.call(this); //{'duplicate':countDuplicate, 'circular': countCircular};
-        console.log("merging duplicate vertices");
+        // console.log("merging duplicate vertices");
         var result = this.mergeDuplicateVertices();
         Object.assign(graphResult, result);
         return graphResult;

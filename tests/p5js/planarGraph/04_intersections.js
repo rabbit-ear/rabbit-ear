@@ -9,10 +9,11 @@ var _04_intersections = function(p) {
 	var intersections = [];
 
 	function fillWithRope(graph, count){
-		var first = {x:Math.random(), y:Math.random(), z:0.0};
-		graph.nodes.push(first);
+		// var first = {x:Math.random(), y:Math.random(), z:0.0};
+		// graph.nodes.push(first);
+		graph.newNode();
 		for(var i = 0; i < count; i++)
-			graph.addEdgeFromVertex(i, Math.random(), Math.random());
+			graph.addEdgeFromVertex(graph.nodes[i], Math.random(), Math.random());
 	}
 
 	p.reset = function(){

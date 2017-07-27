@@ -176,13 +176,13 @@ var Graph = (function () {
     } };
     // CLEAN will change the edges, but nodes will remain unaffected
     Graph.prototype.clean = function () {
-        console.log("GRAPH clean()");
+        // console.log("GRAPH clean()");
         var countCircular, countDuplicate;
-        console.log("cleaning circular edges");
+        // console.log("cleaning circular edges");
         if (!(this.preferences.allowCircular)) {
             countCircular = this.cleanCircularEdges();
         }
-        console.log("cleaning duplicate edges");
+        // console.log("cleaning duplicate edges");
         if (!(this.preferences.allowDuplicate)) {
             countDuplicate = this.cleanDuplicateEdges();
         }
