@@ -77,18 +77,6 @@ var PlanarPair = (function () {
 // 		this.edges = [edge1, edge2];
 // 	}
 // }
-function clockwiseAngleFrom(a, b) {
-    while (a < 0) {
-        a += Math.PI * 2;
-    }
-    while (b < 0) {
-        b += Math.PI * 2;
-    }
-    var a_b = a - b;
-    if (a_b >= 0)
-        return a_b;
-    return Math.PI * 2 - (b - a);
-}
 var PlanarNode = (function (_super) {
     __extends(PlanarNode, _super);
     function PlanarNode(xx, yy) {
@@ -240,6 +228,25 @@ var PlanarFace = (function () {
         this.edges = [];
         // this.angles = [];
     }
+    PlanarFace.prototype.equivalent = function (face) {
+        if (face.nodes.length != this.nodes.length)
+            return false;
+        var iFace = undefined;
+        for (var i = 0; i < this.nodes.length; i++) {
+            if (this.nodes[0] === face.nodes[i]) {
+                iFace = i;
+                break;
+            }
+        }
+        if (iFace == undefined)
+            return false;
+        for (var i = 0; i < this.nodes.length; i++) {
+            var iFaceMod = (iFace + i) % this.nodes.length;
+            if (this.nodes[i] !== face.nodes[iFaceMod])
+                return false;
+        }
+        return true;
+    };
     return PlanarFace;
 }());
 // creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
@@ -522,36 +529,96 @@ var PlanarGraph = (function (_super) {
     ///////////////////////////////////////////////////////////////
     // FACE
     PlanarGraph.prototype.generateFaces = function () {
+        var faces = [];
+        for (var i = 0; i < this.nodes.length; i++) {
+            var thisNode = this.nodes[i];
+            var adjacentFaces = [];
+            var homeAdjacencyArray = thisNode.planarAdjacent();
+            for (var n = 0; n < homeAdjacencyArray.length; n++) {
+                var thisFace = new PlanarFace();
+                var invalidFace = false;
+                var angleSum = 0;
+                thisFace.nodes = [thisNode];
+                var a2b;
+                var a;
+                var b = thisNode;
+                var b2c = homeAdjacencyArray[n];
+                var c = b2c.node;
+                do {
+                    if (c === a) {
+                        invalidFace = true;
+                        break;
+                    } // this shouldn't be needed if graph is clean
+                    thisFace.nodes.push(c);
+                    thisFace.edges.push(b2c.edge);
+                    // increment, step forward
+                    a = b;
+                    b = c;
+                    a2b = b2c;
+                    b2c = b.adjacentNodeClockwiseFrom(a);
+                    c = b2c.node;
+                    angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
+                } while (c !== thisNode);
+                // close off triangle
+                thisFace.edges.push(b2c.edge);
+                // find interior angle from left off to the original point
+                if (thisNode === b) {
+                    invalidFace = true;
+                } // this is consistently happening with one of the paper corner vertices
+                else {
+                    var c2a = thisNode.adjacentNodeClockwiseFrom(b);
+                    angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
+                }
+                // add face if valid
+                if (!invalidFace && thisFace.nodes.length > 2) {
+                    // sum of interior angles rule, (n-2) * PI
+                    var polygonAngle = angleSum / (thisFace.nodes.length - 2);
+                    if (polygonAngle - EPSILON <= Math.PI && polygonAngle + EPSILON >= Math.PI) {
+                        adjacentFaces.push(thisFace);
+                    }
+                }
+            }
+            for (var af = 0; af < adjacentFaces.length; af++) {
+                var duplicate = false;
+                for (var tf = 0; tf < this.faces.length; tf++) {
+                    if (this.faces[tf].equivalent(adjacentFaces[af])) {
+                        duplicate = true;
+                        break;
+                    }
+                }
+                if (!duplicate) {
+                    this.faces.push(adjacentFaces[af]);
+                }
+            }
+        }
+    };
+    /*generateFaces(){
         // walk around a face
         this.faces = [];
-        for (var startIndex = 0; startIndex < this.nodes.length; startIndex++) {
+        for(var startIndex = 0; startIndex < this.nodes.length; startIndex++){
             // from a starting node, get all of its nodes/edges clockwise around it
             var startNodeAdjacent = this.nodes[startIndex].planarAdjacent();
-            for (var n = 0; n < startNodeAdjacent.length; n++) {
+            for(var n = 0; n < startNodeAdjacent.length; n++){
                 // from the start node, venture off in every connected node direction, attempt to make a face
-                var adjacentPair = startNodeAdjacent[n];
+                var adjacentPair:PlanarPair = startNodeAdjacent[n];
                 var currentNode = adjacentPair.node;
                 // attempt to build a face, add first 2 points and connecting edge
                 var theFace = new PlanarFace();
-                theFace.nodes = [this.nodes[startIndex], currentNode];
-                theFace.edges = [adjacentPair.edge];
+                theFace.nodes = [ this.nodes[startIndex], currentNode ];
+                theFace.edges = [ adjacentPair.edge ];
                 var validFace = true;
-                while (validFace && currentNode.index != startIndex) {
+                while(validFace && currentNode.index != startIndex){
                     // travel down edges, select the most immediately-clockwise connected node
                     // this requires to get the node we just came from
-                    var fromNode = theFace.nodes[theFace.nodes.length - 2];
+                    var fromNode = theFace.nodes[ theFace.nodes.length-2 ];
                     // step forwar down the next edge
-                    currentNode = this.getClockwiseNeighborAround(currentNode, fromNode);
+                    currentNode = this.getClockwiseNeighborAround( currentNode, fromNode );
                     // check if we have reached the beginning again, if the face is complete
-                    if (currentNode == undefined) {
-                        validFace = false;
-                    } // something weird is going on
+                    if(currentNode == undefined){ validFace = false;} // something weird is going on
                     else {
-                        if (currentNode === fromNode) {
-                            validFace = false;
-                        }
-                        else {
-                            if (currentNode.index != startIndex) {
+                        if(currentNode === fromNode){ validFace = false; }
+                        else{
+                            if(currentNode.index != startIndex){
                                 theFace['nodes'].push(currentNode);
                                 // var nextAngle = adjacentPair.angle;
                                 // totalAngle += (nextAngle - prevAngle);
@@ -559,38 +626,41 @@ var PlanarGraph = (function (_super) {
                             theFace['edges'].push(adjacentPair.edge);
                             // var already = this.arrayContainsNumberAtIndex(theFace, currentNode);
                             // if(already == undefined){
-                            // 	theFace.push(currentNode);								
+                            // 	theFace.push(currentNode);
                             // } else{
-                            // face that makes a figure 8. visits a node twice in the middle.
-                            // if(this.faces.length > 2){
-                            // 	// we can use this sub section if it's larger than a line
-                            // 	var cropFace = theFace.slice(already, 1 + theFace.length-already);
-                            // 	this.faces.push(cropFace);
-                            // } 
-                            // validFace = false;
+                                // face that makes a figure 8. visits a node twice in the middle.
+                                // if(this.faces.length > 2){
+                                // 	// we can use this sub section if it's larger than a line
+                                // 	var cropFace = theFace.slice(already, 1 + theFace.length-already);
+                                // 	this.faces.push(cropFace);
+                                // }
+                                // validFace = false;
                             // }
                         }
+
                     }
                 }
-                if (validFace && !this.arrayContainsDuplicates(theFace)) {
+
+                if(validFace && !this.arrayContainsDuplicates(theFace)){
                     // theFace['angle'] = totalAngle;
                     this.faces.push(theFace);
                 }
             }
         }
+
         // remove duplicate faces
         var i = 0;
-        while (i < this.faces.length - 1) {
-            var j = this.faces.length - 1;
-            while (j > i) {
-                if (this.areFacesEquivalent(i, j)) {
+        while(i < this.faces.length-1){
+            var j = this.faces.length-1;
+            while(j > i){
+                if(this.areFacesEquivalent(i, j)){
                     this.faces.splice(j, 1);
                 }
                 j--;
             }
             i++;
         }
-    };
+    }*/
     PlanarGraph.prototype.arrayContainsNumberAtIndex = function (array, number) {
         for (var i = 0; i < array.length; i++) {
             if (array[i] == number) {
@@ -693,6 +763,18 @@ var PlanarGraph = (function (_super) {
 //
 //                            2D ALGORITHMS
 //
+function clockwiseAngleFrom(a, b) {
+    while (a < 0) {
+        a += Math.PI * 2;
+    }
+    while (b < 0) {
+        b += Math.PI * 2;
+    }
+    var a_b = a - b;
+    if (a_b >= 0)
+        return a_b;
+    return Math.PI * 2 - (b - a);
+}
 // if points are all collinear
 // checks if point lies on line segment 'ab'
 function onSegment(point, a, b) {

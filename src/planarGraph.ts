@@ -77,14 +77,6 @@ class PlanarPair{
 // 	}
 // }
 
-function clockwiseAngleFrom(a:number, b:number):number{
-	while(a < 0){ a += Math.PI*2; }
-	while(b < 0){ b += Math.PI*2; }
-	var a_b = a - b;
-	if(a_b >= 0) return a_b;
-	return Math.PI*2 - (b - a);
-}
-
 class PlanarNode extends GraphNode implements XYPoint{
 
 	graph:PlanarGraph;
@@ -198,7 +190,6 @@ class PlanarNode extends GraphNode implements XYPoint{
 		this.x = node.x + distance*Math.cos(currentAngle + angle);
 		this.y = node.y + distance*Math.sin(currentAngle + angle);
 	}
-
 }
 
 class PlanarEdge extends GraphEdge{
@@ -285,6 +276,19 @@ class PlanarFace{
 		this.nodes = [];
 		this.edges = [];
 		// this.angles = [];
+	}
+	equivalent(face:PlanarFace):boolean{
+		if(face.nodes.length != this.nodes.length) return false;
+		var iFace = undefined;
+		for(var i = 0; i < this.nodes.length; i++){
+			if(this.nodes[0] === face.nodes[i]){ iFace = i; break; }
+		}
+		if(iFace == undefined) return false;
+		for(var i = 0; i < this.nodes.length; i++){
+			var iFaceMod = (iFace + i) % this.nodes.length;
+			if(this.nodes[i] !== face.nodes[iFaceMod]) return false;
+		}
+		return true;
 	}
 }
 
@@ -600,6 +604,60 @@ class PlanarGraph extends Graph{
 	// FACE
 
 	generateFaces(){
+		var faces = [];
+		for(var i = 0; i < this.nodes.length; i++){
+			var thisNode = this.nodes[i];
+			var adjacentFaces = [];
+			var homeAdjacencyArray = thisNode.planarAdjacent();
+			for(var n = 0; n < homeAdjacencyArray.length; n++){
+				var thisFace = new PlanarFace();
+				var invalidFace = false;
+				var angleSum = 0;
+				thisFace.nodes = [ thisNode ];
+				var a2b:PlanarPair;
+				var a:PlanarNode;
+				var b:PlanarNode = thisNode;
+				var b2c:PlanarPair = homeAdjacencyArray[n];
+				var c:PlanarNode = b2c.node;
+				do{
+					if(c === a){ invalidFace = true; break; } // this shouldn't be needed if graph is clean
+					thisFace.nodes.push(c);
+					thisFace.edges.push(b2c.edge);
+					// increment, step forward
+					a = b;   b = c;   a2b = b2c;
+					b2c = b.adjacentNodeClockwiseFrom(a);
+					c = b2c.node;
+					angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
+				}while(c !== thisNode);
+				// close off triangle
+				thisFace.edges.push(b2c.edge);
+				// find interior angle from left off to the original point
+				if(thisNode === b){ invalidFace = true;} // this is consistently happening with one of the paper corner vertices
+				else{
+					var c2a = thisNode.adjacentNodeClockwiseFrom(b);
+					angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
+				}
+				// add face if valid
+				if(!invalidFace && thisFace.nodes.length > 2){
+					// sum of interior angles rule, (n-2) * PI
+					var polygonAngle = angleSum / (thisFace.nodes.length-2);
+					if(polygonAngle - EPSILON <= Math.PI && polygonAngle + EPSILON >= Math.PI){
+						adjacentFaces.push(thisFace);
+					}
+				}
+
+			}
+			for(var af = 0; af < adjacentFaces.length; af++){
+				var duplicate = false;
+				for(var tf = 0; tf < this.faces.length; tf++){
+					if(this.faces[tf].equivalent(adjacentFaces[af])){ duplicate = true; break; }
+				}
+				if(!duplicate){ this.faces.push(adjacentFaces[af]); }
+			}
+		}
+	}
+
+	/*generateFaces(){
 		// walk around a face
 		this.faces = [];
 		for(var startIndex = 0; startIndex < this.nodes.length; startIndex++){
@@ -667,7 +725,7 @@ class PlanarGraph extends Graph{
 			}
 			i++;
 		}
-	}
+	}*/
 
 	arrayContainsNumberAtIndex(array, number:number){
 		for(var i = 0; i < array.length; i++) {
@@ -771,6 +829,14 @@ class PlanarGraph extends Graph{
 //
 //                            2D ALGORITHMS
 //
+
+function clockwiseAngleFrom(a:number, b:number):number{
+	while(a < 0){ a += Math.PI*2; }
+	while(b < 0){ b += Math.PI*2; }
+	var a_b = a - b;
+	if(a_b >= 0) return a_b;
+	return Math.PI*2 - (b - a);
+}
 
 // if points are all collinear
 // checks if point lies on line segment 'ab'

@@ -13,13 +13,13 @@
 	</div>
 	<div class="explain">
 	<!-- <div class="accordion"> -->
-		<p>Mathematically, an origami crease pattern is a <strong><a href="https://en.wikipedia.org/wiki/Planar_graph">planar graph</a></strong> data structure containing:</p>
+		<p>Mathematically, an origami crease pattern is a <strong><a href="https://en.wikipedia.org/wiki/Planar_graph">planar graph</a></strong> and contains:</p>
 		<ul>
 			<li><strong>nodes:</strong> crease endpoint in x,y space</li>
-			<li><strong>edges:</strong> crease lines, non-overlapping straight lines (or maybe curved)* connecting 2 nodes</li>
+			<li><strong>edges:</strong> crease lines, non-overlapping straight lines* connecting 2 nodes</li>
 			<li><strong>faces</strong></li>
 		</ul>
-		<p>* the math is wicked but maybe this will handle curved creases one day.</p>
+		<p>* curved creases are the new black, however the math is wicked.</p>
 	<!-- </div> -->
 	</div>
 <h2>Planar Graphs</h2>
@@ -39,6 +39,17 @@
 	</div>
 	<div class="explain">
 		<p>In a <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">graph</a>, edges connect to nodes but the nodes don't exist in space. It's much more abstract. A planar graph is built on a graph, and the graph is where you ask questions like "give me all nodes connected to this node". Connections exist but the idea of x,y space doesn't.</p>
+	</div>
+<h2>Code</h2>
+	<div class="explain">
+		<p>These pages chronicle the making of this code. It came together in 3 parts. Each class inherits from the one above it.</p>
+	</div>
+	<div>
+		<ul>
+			<li><strong>graph.js:</strong></li>
+			<li><strong>planarGraph.js:</strong></li>
+			<li><strong>creasePattern.js</strong></li>
+		</ul>
 	</div>
 </section>
 

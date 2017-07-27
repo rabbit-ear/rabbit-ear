@@ -6,7 +6,7 @@ function mouse_select(){
 	zoomView(scope, canvas.width, canvas.height, 0.5);
 
 	var cp = new CreasePattern();
-	cp.birdBase();
+	cp.fishBase();
 	var paperCP = new PaperCreasePattern(scope, cp);
 
 	var nearestEdge = undefined;

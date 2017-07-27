@@ -82,7 +82,7 @@ var PaperCreasePattern = (function () {
 		});
 	}
 
-	faceFillColor = { gray:0.0, alpha:0.0 };
+	faceFillColor = { gray:0.0, alpha:0.1 };
 
 	function PaperCreasePattern(paperjs, creasePattern) {
 		if(creasePattern == undefined) { throw "PaperCreasePattern() initializer requires valid crease pattern"; }
@@ -137,8 +137,10 @@ var PaperCreasePattern = (function () {
 			for(var j = 0; j < this.cp.faces[i].nodes.length; j++){
 				segmentArray.push( this.points[ this.cp.faces[i].nodes[j].index ] );
 			}
+			var color = 100 + 200 * i/this.cp.faces.length;
 			this.faces.push(new this.myPaperJS.Path({
-					fillColor: faceFillColor,
+					// fillColor: faceFillColor,
+					fillColor: { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 },
 					segments: segmentArray,
 					closed: true
 				})

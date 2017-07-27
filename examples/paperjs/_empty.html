@@ -18,12 +18,11 @@ canvas[resize] {
 <script type="text/javascript" src="../../src/planarGraph.js"></script>
 <script type="text/javascript" src="../../src/creasePattern.js"></script>
 <script type="text/javascript" src="../../lib/paper-full.min.js"></script>
-<script type="text/javascript" src="paperjscp.js"></script>
-<script type="text/javascript" src="../../lib/d3.min.js"></script>
+<script type="text/javascript" src="../paperjs.cp.js"></script>
 <script type="text/javascript">
 
 var cp = new CreasePattern();
-console.log(cp);
+var paperCP;
 
 window.onload = function() {
 	var canvas = document.getElementById('canvas');
@@ -32,7 +31,7 @@ window.onload = function() {
 	scope.setup(canvas);
 	zoomView(scope, canvas.width, canvas.height, 0.5);
 
-	var paperCP = new PaperCreasePattern(scope, cp);
+	paperCP = new PaperCreasePattern(scope, cp);
 
 	paper.view.onFrame = function(event) { }
 	paper.view.onResize = function(event) {

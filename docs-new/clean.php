@@ -18,7 +18,7 @@
 
 	<div class="explain">
 		<div>
-			<p>This sketch is calling mergeDuplicateVertices() every frame.</p>
+			<p>The shift from graph to planar graph introduces the concept of adjacency in 2D space. Nodes that occupy the same space can be merged into one, and their adjacent edges join too.</p>
 		</div>
 	</div>
 </section>

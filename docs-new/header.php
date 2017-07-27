@@ -35,7 +35,7 @@
 			<a href="graph.php" class="dropbtn">I. GRAPH</a>
 		</li>
 		<li class="dropdown">
-			<a href="javascript:void(0)" class="dropbtn">II. PLANAR GRAPH</a>
+			<a href="planarGraph.php" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
 			<a href="clean.php">CLEAN</a>
 			<a href="face.php">FACE</a>
@@ -43,7 +43,7 @@
 			</div>
 		</li>
 		<li class="dropdown">
-			<a href="javascript:void(0)" class="dropbtn">III. CREASE PATTERN</a>
+			<a href="creasePattern.php" class="dropbtn">III. CREASE PATTERN</a>
 			<div class="dropdown-content">
 			<a href="axioms.php">ORIGAMI AXIOMS</a>
 			</div>
