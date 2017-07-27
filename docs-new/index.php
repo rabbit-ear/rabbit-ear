@@ -11,24 +11,24 @@
 	<div class="centered">
 		<pre><code><key>var</key> cp <op>=</op> <key>new</key> CreasePattern()<br>cp.<f>fishBase</f>()</code></pre>
 	</div>
-	<div class="accordion">
-		<div>
+	<div class="explain">
+	<!-- <div class="accordion"> -->
 		<p>Mathematically, an origami crease pattern is a <strong><a href="https://en.wikipedia.org/wiki/Planar_graph">planar graph</a></strong> data structure containing:</p>
 		<ul>
 			<li><strong>nodes:</strong> crease endpoint in x,y space</li>
 			<li><strong>edges:</strong> crease lines, non-overlapping straight lines (or maybe curved)* connecting 2 nodes</li>
 			<li><strong>faces</strong></li>
 		</ul>
-		<p>* traditional planar graphs have straight lines only. The math is wicked, but I'm leaving optional flags and opportunity to code curved creases.</p>
-		</div>
+		<p>* the math is wicked but maybe this will handle curved creases one day.</p>
+	<!-- </div> -->
 	</div>
 <h2>Planar Graphs</h2>
 	<div id="sketch_intersections" class="centered p5sketch"></div>
 	<div class="centered">
 		<pre><code><span id="span-intersection-results"></span>planarGraph.<f>getAllEdgeIntersections</f>();</code></pre>
 	</div>
-	<div class="accordion">
-		<p>The edges of a planar graph exist in a 2D plane.</p>
+	<div class="explain">
+		<p>Because edges and nodes exist in a 2D plane, we can do things like detect edge intersections.</p>
 	</div>
 <h2>Graphs</h2>
 	<div class="centered">
@@ -37,7 +37,7 @@
 	<div class="centered">
 		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<f>getNodesAdjacentToNode</f>(<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>)<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<f>getNodesAdjacentToEdge</f>(<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>)</code></pre>
 	</div>
-	<div class="accordion">
+	<div class="explain">
 		<p>In a <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">graph</a>, edges connect to nodes but the nodes don't exist in space. It's much more abstract. A planar graph is built on a graph, and the graph is where you ask questions like "give me all nodes connected to this node". Connections exist but the idea of x,y space doesn't.</p>
 	</div>
 </section>
