@@ -16,10 +16,10 @@ var _12_adjacent = function( p ) {
 			var y1pos = Math.random();
 			var x2pos = Math.random();
 			var y2pos = Math.random();
-			cp.crease( x1pos, y1pos, x2pos, y2pos );
+			cp.addEdgeWithVertices( x1pos, y1pos, x2pos, y2pos );
 		}
 		cp.clean();
-		cp.refreshAdjacencies();
+		// cp.refreshAdjacencies();
 		for(var i = 0; i < cp.nodes.length; i++){
 			console.log(cp.nodes[i].adjacent);
 		}

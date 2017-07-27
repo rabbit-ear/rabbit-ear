@@ -25,9 +25,9 @@
 			</div>
 		</li>
 		<li class="dropdown">
-			<a href="/" class="dropbtn">INTRO</a>
+			<a href="/docs-new/" class="dropbtn">INTRO</a>
 			<div class="dropdown-content">
-			<a href="/">WELCOME</a>
+			<a href="/docs-new/">WELCOME</a>
 			<a href="background.php">BACKGROUND</a>
 			<a href="download.php">DOWNLOAD</a>
 			</div>
@@ -38,13 +38,8 @@
 		<li class="dropdown">
 			<a href="javascript:void(0)" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
-			<a href="addedge.php">CREASE</a>
-			<a href="cleanup.php">CLEAN</a>
-			<a href="intersections.php">INTERSECTIONS</a>
-			<a href="adjacent.php">ADJACENCY</a>
-			<a href="chop.php">CHOP</a>
+			<a href="clean.php">CLEAN</a>
 			<a href="face.php">FACE</a>
-			<a href="neighbors.php">NEIGHBORS</a>
 			</div>
 		</li>
 		<li class="dropdown">

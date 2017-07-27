@@ -59,6 +59,10 @@ ul{
 	list-style-type: square;
 	padding-left:1em;
 }
+ol{
+	list-style-type: upper-roman;
+	padding-left:2em;
+}
 b, strong{
 	font-weight: bold;
 }
