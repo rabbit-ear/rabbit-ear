@@ -8,7 +8,7 @@
 <script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/paperjs/paperjscp.js"></script>
+<script language="javascript" type="text/javascript" src="../examples/paperjs.cp.js"></script>
 <link href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700" rel="stylesheet">
 <link href="../lib/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
 <link href="css/style.css" rel="stylesheet" />
@@ -50,7 +50,7 @@
 		<li class="dropdown">
 			<a href="javascript:void(0)" class="dropbtn">III. CREASE PATTERN</a>
 			<div class="dropdown-content">
-			<a href="kawasaki.php">KAWASAKI'S THEOREM</a>
+			<a href="axioms.php">ORIGAMI AXIOMS</a>
 			</div>
 		</li>
 		</ul>

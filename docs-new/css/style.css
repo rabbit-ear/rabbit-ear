@@ -25,13 +25,16 @@ body{
 	margin:2em;
 	margin-top:3em;
 }
-a{
-	color: black;
-	font-weight: bold;
-}
-a:hover{
+a, a:hover, a:visited, a:active{
+	color:black; 
 	text-decoration: none;
 }
+p a{
+	font-weight: bold;
+	text-decoration: underline;
+}
+p a:hover{ text-decoration: none; }
+
 h1{font-size: 420%; font-weight: 300;}
 h2{font-size: 280%; font-weight: 300;}
 h3{font-size: 240%; font-weight: 300;}
@@ -62,6 +65,7 @@ b, strong{
 .explain{
 	padding:1em;
 	background-color: #FFFFAA;
+	box-shadow: 5px 5px 5px #CCC;
 }
 /*
 h1 a, h2 a, h3 a, h4 a, h5 a{

@@ -16,12 +16,13 @@ nav li {
 	letter-spacing: 1px;
 	font-size: 100%;
 }
+nav li a, nav li a:hover, nav li a:visited, nav li a:active{
+	color: #FFF; text-decoration: none;
+}
 nav li a {
 	display: block;
-	color:#FFF;
 	text-align: center;
 	padding: 14px 16px;
-	text-decoration: none;
 }
 nav li a.link-fa{
 	padding:7px 14px;

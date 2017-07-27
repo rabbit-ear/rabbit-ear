@@ -20,9 +20,9 @@ class CreaseNode extends PlanarNode{
 	// 	return false;
 	// }
 	isBoundary():boolean{
-		for(var i = 0; i < this.graph.boundary.length; i++){
+		for(var i = 0; i < this.graph.boundary.edges.length; i++){
 			var thisPt = new XYPoint(this.x, this.y);
-			if(onSegment(thisPt, this.graph.boundary[i].endPoints()[0], this.graph.boundary[i].endPoints()[1])){ return true; }
+			if(onSegment(thisPt, this.graph.boundary.edges[i].endPoints()[0], this.graph.boundary.edges[i].endPoints()[1])){ return true; }
 		}
 		return false;
 	}
@@ -45,27 +45,26 @@ class CreasePattern extends PlanarGraph{
 
 	nodes:CreaseNode[];
 	edges:Crease[];
-	boundary:Crease[];
+	boundary:PlanarGraph;
 
 	landmarkNodes():XYPoint[]{ return this.nodes.map(function(el){ return new XYPoint(el.x, el.y); }); }
 
 	constructor(){
 		super();
-		this.boundary = [];
-		// this.addPaperEdge(0,0, 1,0);
-		// this.addPaperEdge(1,0, 1,1);
-		// this.addPaperEdge(1,1, 0,1);
-		// this.addPaperEdge(0,1, 0,0);
-		this.mergeDuplicateVertices();
+		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
+		this.unitSquarePaper();
 	}
 
-	unitSquare():CreasePattern{
+	unitSquarePaper(){
 		// square page
+		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
+		else                           { this.boundary.clear(); }
+		// make sure paper edges are winding clockwise!!
 		this.addPaperEdge(0,0, 1,0);
 		this.addPaperEdge(1,0, 1,1);
 		this.addPaperEdge(1,1, 0,1);
 		this.addPaperEdge(0,1, 0,0);
-		return this;
+		this.boundary.mergeDuplicateVertices();
 	}
 
 
@@ -73,7 +72,8 @@ class CreasePattern extends PlanarGraph{
 		this.nodes = cp.nodes.slice();
 		this.edges = cp.edges.slice();
 		this.faces = cp.faces.slice();
-		this.boundary = cp.boundary.slice();
+		// TODO: copy boundary too
+		// this.boundary = cp.boundary.slice();
 	}
 
 	// re-implement super class functions with new types
@@ -102,22 +102,15 @@ class CreasePattern extends PlanarGraph{
 
 	clear(){
 		super.clear();
-		this.boundary = [];
-		// square page
-		// make sure paper edges are winding clockwise!!
-		// this.addPaperEdge(0,0, 1,0);
-		// this.addPaperEdge(1,0, 1,1);
-		// this.addPaperEdge(1,1, 0,1);
-		// this.addPaperEdge(0,1, 0,0);
-		this.mergeDuplicateVertices();
+		this.unitSquarePaper();
 		// this.interestingPoints = this.starterLocations;
 	}
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS
 
 	pointInside(p:XYPoint){
-		for(var i = 0; i < this.boundary.length; i++){
-			var endpts = this.boundary[i].endPoints();
+		for(var i = 0; i < this.boundary.edges.length; i++){
+			var endpts = this.boundary.edges[i].endPoints();
 			var cross = (p.y - endpts[0].y) * (endpts[1].x - endpts[0].x) - 
 			            (p.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
 			if (cross < 0) return false;
@@ -127,21 +120,22 @@ class CreasePattern extends PlanarGraph{
 
 	addPaperEdge(x1:number, y1:number, x2:number, y2:number){
 		// this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
-		this.addEdgeWithVertices(x1, y1, x2, y2).border();
+		// this.addEdgeWithVertices(x1, y1, x2, y2).border();
+		this.boundary.addEdgeWithVertices(x1, y1, x2, y2);
 	}
 	creaseOnly(a:XYPoint, b:XYPoint):Crease{
 		if(this.pointInside(a) && this.pointInside(b)) return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
 		if(!this.pointInside(a) && !this.pointInside(b)) {
 			// if both are outside, only give us a crease if the two points invove an intersection with the boundary
-			for(var i = 0; i < this.boundary.length; i++){
-				if(lineSegmentIntersectionAlgorithm(a, b, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1])) return this.creaseConnectingPoints(a,b);
+			for(var i = 0; i < this.boundary.edges.length; i++){
+				if(lineSegmentIntersectionAlgorithm(a, b, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1])) return this.creaseConnectingPoints(a,b);
 			}
 		}
 		var inside, outside;
 		if(this.pointInside(a)){ inside = a; outside = b; }
 		else { outside = a; inside = b; }
-		for(var i = 0; i < this.boundary.length; i++){
-			var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1]);
+		for(var i = 0; i < this.boundary.edges.length; i++){
+			var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1]);
 			if(intersection != undefined){
 				return this.addEdgeWithVertices(intersection.x, intersection.y, inside.x, inside.y);
 			}
@@ -247,8 +241,8 @@ class CreasePattern extends PlanarGraph{
 
 	creaseVector(start:XYPoint,vector:XYPoint):Crease{
 		var boundaryIntersection = undefined;
-		for(var i = 0; i < this.boundary.length; i++){
-			var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1]);
+		for(var i = 0; i < this.boundary.edges.length; i++){
+			var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1]);
 			if(thisIntersection != undefined){ boundaryIntersection = thisIntersection; }
 		}
 		if(boundaryIntersection == undefined) { throw "creaseVector() requires paper boundaries else it will crease to infinity"; }
@@ -262,8 +256,8 @@ class CreasePattern extends PlanarGraph{
 	boundaryLineIntersection(origin:XYPoint, direction:XYPoint):XYPoint[]{
 		var opposite = new XYPoint(-direction.x, -direction.y);
 		var intersects:XYPoint[] = [];
-		for(var i = 0; i < this.boundary.length; i++){
-			var endpts = this.boundary[i].endPoints();
+		for(var i = 0; i < this.boundary.edges.length; i++){
+			var endpts = this.boundary.edges[i].endPoints();
 			var test1 = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
 			var test2 = rayLineSegmentIntersectionAlgorithm(origin, opposite, endpts[0], endpts[1]);
 			if(test1 != undefined){ intersects.push(test1); }
@@ -280,8 +274,8 @@ class CreasePattern extends PlanarGraph{
 	}
 	boundaryRayIntersection(origin:XYPoint, direction:XYPoint):XYPoint[]{
 		var intersects:XYPoint[] = [];
-		for(var i = 0; i < this.boundary.length; i++){
-			var endpts = this.boundary[i].endPoints();
+		for(var i = 0; i < this.boundary.edges.length; i++){
+			var endpts = this.boundary.edges[i].endPoints();
 			var test = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
 			if(test != undefined){ intersects.push(test); }
 		}
@@ -442,13 +436,12 @@ class CreasePattern extends PlanarGraph{
 
 	kiteBase(){
 		this.clear();
-		this.boundary = [];
-		this.addPaperEdge(0.0, 0.0, 0.41421, 0.0);
-		this.addPaperEdge(0.41421, 0.0, 1.0, 0.0);
-		this.addPaperEdge(1.0, 0.0, 1.0, 0.58578);
-		this.addPaperEdge(1.0, 0.58578, 1.0, 1.0);
-		this.addPaperEdge(1.0, 1.0, 0.0, 1.0);
-		this.addPaperEdge(0.0, 1.0, 0.0, 0.0);
+		this.addEdgeWithVertices(0.0, 0.0, 0.41421, 0.0).border();
+		this.addEdgeWithVertices(0.41421, 0.0, 1.0, 0.0).border();
+		this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.58578).border();
+		this.addEdgeWithVertices(1.0, 0.58578, 1.0, 1.0).border();
+		this.addEdgeWithVertices(1.0, 1.0, 0.0, 1.0).border();
+		this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.0).border();
 		this.addEdgeWithVertices(1, 0, 0, 1).mountain();
 		this.addEdgeWithVertices(0, 1, 1, 0.58578).valley();
 		this.addEdgeWithVertices(0, 1, 0.41421, 0).valley();
@@ -456,13 +449,12 @@ class CreasePattern extends PlanarGraph{
 	}
 	fishBase(){
 		this.clear();
-		this.boundary = [];
-		this.addPaperEdge(0.0, 0.0, 0.29289, 0.0);
-		this.addPaperEdge(0.29289, 0.0, 1.0, 0.0);
-		this.addPaperEdge(1.0, 0.0, 1.0, 0.70711);
-		this.addPaperEdge(1.0, 0.70711, 1.0, 1.0);
-		this.addPaperEdge(1.0, 1.0, 0.0, 1.0);
-		this.addPaperEdge(0.0, 1.0, 0.0, 0.0);
+		this.addEdgeWithVertices(0.0, 0.0, 0.29289, 0.0).border();
+		this.addEdgeWithVertices(0.29289, 0.0, 1.0, 0.0).border();
+		this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.70711).border();
+		this.addEdgeWithVertices(1.0, 0.70711, 1.0, 1.0).border();
+		this.addEdgeWithVertices(1.0, 1.0, 0.0, 1.0).border();
+		this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.0).border();
 		this.addEdgeWithVertices(1,0, 0,1).mountain();
 		this.addEdgeWithVertices(0,1, 0.70711,0.70711).valley();
 		this.addEdgeWithVertices(0,1, 0.29289,0.29289).valley();
@@ -484,15 +476,14 @@ class CreasePattern extends PlanarGraph{
 	}
 	birdBase(){
 		super.clear();
-		this.boundary = [];
-		this.addPaperEdge(0.0,0.0,0.5,0.0);
-		this.addPaperEdge(0.5,0.0,1.0,0.0);
-		this.addPaperEdge(1.0,0.0,1.0,0.5);
-		this.addPaperEdge(1.0,0.5,1.0,1.0);
-		this.addPaperEdge(1.0,1.0,0.5,1.0);
-		this.addPaperEdge(0.5,1.0,0.0,1.0);
-		this.addPaperEdge(0.0,1.0,0.0,0.5);
-		this.addPaperEdge(0.0,0.5,0.0,0.0);
+		this.addEdgeWithVertices(0.0,0.0,0.5,0.0).border();
+		this.addEdgeWithVertices(0.5,0.0,1.0,0.0).border();
+		this.addEdgeWithVertices(1.0,0.0,1.0,0.5).border();
+		this.addEdgeWithVertices(1.0,0.5,1.0,1.0).border();
+		this.addEdgeWithVertices(1.0,1.0,0.5,1.0).border();
+		this.addEdgeWithVertices(0.5,1.0,0.0,1.0).border();
+		this.addEdgeWithVertices(0.0,1.0,0.0,0.5).border();
+		this.addEdgeWithVertices(0.0,0.5,0.0,0.0).border();
 		// eight 22.5 degree lines
 		this.addEdgeWithVertices(0, 1, 0.5, .79289).mountain();
 		this.addEdgeWithVertices(0, 1, .2071, 0.5).mountain();

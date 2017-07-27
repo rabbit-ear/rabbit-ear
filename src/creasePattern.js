@@ -27,9 +27,9 @@ var CreaseNode = (function (_super) {
     // 	return false;
     // }
     CreaseNode.prototype.isBoundary = function () {
-        for (var i = 0; i < this.graph.boundary.length; i++) {
+        for (var i = 0; i < this.graph.boundary.edges.length; i++) {
             var thisPt = new XYPoint(this.x, this.y);
-            if (onSegment(thisPt, this.graph.boundary[i].endPoints()[0], this.graph.boundary[i].endPoints()[1])) {
+            if (onSegment(thisPt, this.graph.boundary.edges[i].endPoints()[0], this.graph.boundary.edges[i].endPoints()[1])) {
                 return true;
             }
         }
@@ -55,28 +55,34 @@ var CreasePattern = (function (_super) {
     __extends(CreasePattern, _super);
     function CreasePattern() {
         var _this = _super.call(this) || this;
-        _this.boundary = [];
-        // this.addPaperEdge(0,0, 1,0);
-        // this.addPaperEdge(1,0, 1,1);
-        // this.addPaperEdge(1,1, 0,1);
-        // this.addPaperEdge(0,1, 0,0);
-        _this.mergeDuplicateVertices();
+        if (_this.boundary === undefined) {
+            _this.boundary = new PlanarGraph();
+        }
+        _this.unitSquarePaper();
         return _this;
     }
     CreasePattern.prototype.landmarkNodes = function () { return this.nodes.map(function (el) { return new XYPoint(el.x, el.y); }); };
-    CreasePattern.prototype.unitSquare = function () {
+    CreasePattern.prototype.unitSquarePaper = function () {
         // square page
+        if (this.boundary === undefined) {
+            this.boundary = new PlanarGraph();
+        }
+        else {
+            this.boundary.clear();
+        }
+        // make sure paper edges are winding clockwise!!
         this.addPaperEdge(0, 0, 1, 0);
         this.addPaperEdge(1, 0, 1, 1);
         this.addPaperEdge(1, 1, 0, 1);
         this.addPaperEdge(0, 1, 0, 0);
-        return this;
+        this.boundary.mergeDuplicateVertices();
     };
     CreasePattern.prototype["import"] = function (cp) {
         this.nodes = cp.nodes.slice();
         this.edges = cp.edges.slice();
         this.faces = cp.faces.slice();
-        this.boundary = cp.boundary.slice();
+        // TODO: copy boundary too
+        // this.boundary = cp.boundary.slice();
     };
     // re-implement super class functions with new types
     CreasePattern.prototype.newEdge = function (node1, node2) {
@@ -101,21 +107,14 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.clear = function () {
         _super.prototype.clear.call(this);
-        this.boundary = [];
-        // square page
-        // make sure paper edges are winding clockwise!!
-        // this.addPaperEdge(0,0, 1,0);
-        // this.addPaperEdge(1,0, 1,1);
-        // this.addPaperEdge(1,1, 0,1);
-        // this.addPaperEdge(0,1, 0,0);
-        this.mergeDuplicateVertices();
+        this.unitSquarePaper();
         // this.interestingPoints = this.starterLocations;
     };
     ///////////////////////////////////////////////////////////////
     // ADD PARTS
     CreasePattern.prototype.pointInside = function (p) {
-        for (var i = 0; i < this.boundary.length; i++) {
-            var endpts = this.boundary[i].endPoints();
+        for (var i = 0; i < this.boundary.edges.length; i++) {
+            var endpts = this.boundary.edges[i].endPoints();
             var cross = (p.y - endpts[0].y) * (endpts[1].x - endpts[0].x) -
                 (p.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
             if (cross < 0)
@@ -125,15 +124,16 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
         // this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
-        this.addEdgeWithVertices(x1, y1, x2, y2).border();
+        // this.addEdgeWithVertices(x1, y1, x2, y2).border();
+        this.boundary.addEdgeWithVertices(x1, y1, x2, y2);
     };
     CreasePattern.prototype.creaseOnly = function (a, b) {
         if (this.pointInside(a) && this.pointInside(b))
             return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
         if (!this.pointInside(a) && !this.pointInside(b)) {
             // if both are outside, only give us a crease if the two points invove an intersection with the boundary
-            for (var i = 0; i < this.boundary.length; i++) {
-                if (lineSegmentIntersectionAlgorithm(a, b, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1]))
+            for (var i = 0; i < this.boundary.edges.length; i++) {
+                if (lineSegmentIntersectionAlgorithm(a, b, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1]))
                     return this.creaseConnectingPoints(a, b);
             }
         }
@@ -146,8 +146,8 @@ var CreasePattern = (function (_super) {
             outside = a;
             inside = b;
         }
-        for (var i = 0; i < this.boundary.length; i++) {
-            var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1]);
+        for (var i = 0; i < this.boundary.edges.length; i++) {
+            var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1]);
             if (intersection != undefined) {
                 return this.addEdgeWithVertices(intersection.x, intersection.y, inside.x, inside.y);
             }
@@ -253,8 +253,8 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.creaseVector = function (start, vector) {
         var boundaryIntersection = undefined;
-        for (var i = 0; i < this.boundary.length; i++) {
-            var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary[i].endPoints()[0], this.boundary[i].endPoints()[1]);
+        for (var i = 0; i < this.boundary.edges.length; i++) {
+            var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1]);
             if (thisIntersection != undefined) {
                 boundaryIntersection = thisIntersection;
             }
@@ -270,8 +270,8 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.boundaryLineIntersection = function (origin, direction) {
         var opposite = new XYPoint(-direction.x, -direction.y);
         var intersects = [];
-        for (var i = 0; i < this.boundary.length; i++) {
-            var endpts = this.boundary[i].endPoints();
+        for (var i = 0; i < this.boundary.edges.length; i++) {
+            var endpts = this.boundary.edges[i].endPoints();
             var test1 = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
             var test2 = rayLineSegmentIntersectionAlgorithm(origin, opposite, endpts[0], endpts[1]);
             if (test1 != undefined) {
@@ -292,8 +292,8 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.boundaryRayIntersection = function (origin, direction) {
         var intersects = [];
-        for (var i = 0; i < this.boundary.length; i++) {
-            var endpts = this.boundary[i].endPoints();
+        for (var i = 0; i < this.boundary.edges.length; i++) {
+            var endpts = this.boundary.edges[i].endPoints();
             var test = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
             if (test != undefined) {
                 intersects.push(test);
@@ -453,13 +453,12 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.kiteBase = function () {
         this.clear();
-        this.boundary = [];
-        this.addPaperEdge(0.0, 0.0, 0.41421, 0.0);
-        this.addPaperEdge(0.41421, 0.0, 1.0, 0.0);
-        this.addPaperEdge(1.0, 0.0, 1.0, 0.58578);
-        this.addPaperEdge(1.0, 0.58578, 1.0, 1.0);
-        this.addPaperEdge(1.0, 1.0, 0.0, 1.0);
-        this.addPaperEdge(0.0, 1.0, 0.0, 0.0);
+        this.addEdgeWithVertices(0.0, 0.0, 0.41421, 0.0).border();
+        this.addEdgeWithVertices(0.41421, 0.0, 1.0, 0.0).border();
+        this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.58578).border();
+        this.addEdgeWithVertices(1.0, 0.58578, 1.0, 1.0).border();
+        this.addEdgeWithVertices(1.0, 1.0, 0.0, 1.0).border();
+        this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.0).border();
         this.addEdgeWithVertices(1, 0, 0, 1).mountain();
         this.addEdgeWithVertices(0, 1, 1, 0.58578).valley();
         this.addEdgeWithVertices(0, 1, 0.41421, 0).valley();
@@ -467,13 +466,12 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.fishBase = function () {
         this.clear();
-        this.boundary = [];
-        this.addPaperEdge(0.0, 0.0, 0.29289, 0.0);
-        this.addPaperEdge(0.29289, 0.0, 1.0, 0.0);
-        this.addPaperEdge(1.0, 0.0, 1.0, 0.70711);
-        this.addPaperEdge(1.0, 0.70711, 1.0, 1.0);
-        this.addPaperEdge(1.0, 1.0, 0.0, 1.0);
-        this.addPaperEdge(0.0, 1.0, 0.0, 0.0);
+        this.addEdgeWithVertices(0.0, 0.0, 0.29289, 0.0).border();
+        this.addEdgeWithVertices(0.29289, 0.0, 1.0, 0.0).border();
+        this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.70711).border();
+        this.addEdgeWithVertices(1.0, 0.70711, 1.0, 1.0).border();
+        this.addEdgeWithVertices(1.0, 1.0, 0.0, 1.0).border();
+        this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.0).border();
         this.addEdgeWithVertices(1, 0, 0, 1).mountain();
         this.addEdgeWithVertices(0, 1, 0.70711, 0.70711).valley();
         this.addEdgeWithVertices(0, 1, 0.29289, 0.29289).valley();
@@ -495,15 +493,14 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.birdBase = function () {
         _super.prototype.clear.call(this);
-        this.boundary = [];
-        this.addPaperEdge(0.0, 0.0, 0.5, 0.0);
-        this.addPaperEdge(0.5, 0.0, 1.0, 0.0);
-        this.addPaperEdge(1.0, 0.0, 1.0, 0.5);
-        this.addPaperEdge(1.0, 0.5, 1.0, 1.0);
-        this.addPaperEdge(1.0, 1.0, 0.5, 1.0);
-        this.addPaperEdge(0.5, 1.0, 0.0, 1.0);
-        this.addPaperEdge(0.0, 1.0, 0.0, 0.5);
-        this.addPaperEdge(0.0, 0.5, 0.0, 0.0);
+        this.addEdgeWithVertices(0.0, 0.0, 0.5, 0.0).border();
+        this.addEdgeWithVertices(0.5, 0.0, 1.0, 0.0).border();
+        this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.5).border();
+        this.addEdgeWithVertices(1.0, 0.5, 1.0, 1.0).border();
+        this.addEdgeWithVertices(1.0, 1.0, 0.5, 1.0).border();
+        this.addEdgeWithVertices(0.5, 1.0, 0.0, 1.0).border();
+        this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.5).border();
+        this.addEdgeWithVertices(0.0, 0.5, 0.0, 0.0).border();
         // eight 22.5 degree lines
         this.addEdgeWithVertices(0, 1, 0.5, .79289).mountain();
         this.addEdgeWithVertices(0, 1, .2071, 0.5).mountain();

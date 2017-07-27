@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+html, body {
+	margin: 0;
+	/*overflow: hidden;*/
+	/*height: 100%;*/
+}
+canvas[resize] {
+	width: 1000px;
+	height: 1000px;
+}
+</style>
+<script type="text/javascript" src="../../../src/graph.js"></script>
+<script type="text/javascript" src="../../../src/planarGraph.js"></script>
+<script type="text/javascript" src="../../../src/creasePattern.js"></script>
+<script type="text/javascript" src="../../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../paperjs.cp.js"></script>
+<script type="text/javascript" src="../../../lib/perlin.js"></script>
+<script>
+
+var cpWobble = new CreasePattern();
+// cpWobble.frogBase();
+cpWobble.fishBase();
+// cpWobble.generateFaces();
+console.log(cpWobble);
+
+
+
+var cpRay = new CreasePattern();
+// cpRay.generateFaces();
+for(var i = 0; i < 10; i++){
+	cpRay.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
+}
+// cpRay.chop();
+console.log(cpRay);
+
+
+function incenter(pointArray){
+	var xSum = 0, ySum = 0, p = 0;
+	for(var i = 0; i < pointArray.length; i++){
+		var nextI = (i+1) % pointArray.length;
+		var nextnextI = (i+2) % pointArray.length;
+		var oLX = pointArray[nextI].x - pointArray[nextnextI].x;
+		var oLY = pointArray[nextI].y - pointArray[nextnextI].y;
+		var d = Math.sqrt(oLX*oLX + oLY*oLY);
+		xSum += pointArray[i].x * d;
+		ySum += pointArray[i].y * d;
+		p += d;
+	}
+	return new paper.Point(xSum / p, ySum / p);
+}
+
+function centroid(pointArray){
+	if(pointArray.length == 0) return new paper.Point();
+	var xSum = 0, ySum = 0;
+	for(var i = 0; i < pointArray.length; i++){
+		xSum += pointArray[i].x;
+		ySum += pointArray[i].y;
+	}
+	return new paper.Point(xSum/pointArray.length, ySum/pointArray.length);
+}
+
+
+
+
+
+
+window.onload = function() {
+
+	var canvas1 = document.getElementById('canvas1');
+	// Create an empty project and a view for the canvas:
+	paper.setup(canvas1);
+	zoomView(paper);
+
+	var paperCP1 = new PaperCreasePattern(paper, cpWobble);
+	console.log(paperCP1);
+
+	var wobble2 = {x:cpWobble.nodes[2].x, y:cpWobble.nodes[2].y};
+	var wobble3 = {x:cpWobble.nodes[3].x, y:cpWobble.nodes[3].y};
+
+	paper.view.onFrame = function(event) {
+		var scale = .04;
+		var sp = 1.5;
+		cpWobble.nodes[2].x = wobble2.x + Math.sin(sp*event.time*.8) * scale
+		cpWobble.nodes[2].y = wobble2.y + Math.cos(sp*event.time*.895) * scale;
+		cpWobble.nodes[3].x = wobble3.x + Math.sin(sp*event.time*1.2) * scale;
+		cpWobble.nodes[3].y = wobble3.y + Math.sin(sp*event.time) * scale;
+
+		paperCP1.update();
+		// shrink faces, use incenter if face is triangle
+		for(var i = 0; i < paperCP1.faces.length; i++){
+			var facePoints = [];
+			for(var j = 0; j < paperCP1.faces[i].segments.length; j++){
+				facePoints.push(paperCP1.faces[i].segments[j].point);
+			}
+			var faceCenter;
+			if(facePoints.length == 3){ faceCenter = incenter(facePoints); } 
+			else                      { faceCenter = centroid(facePoints); }
+			paperCP1.faces[i].scale(0.8, faceCenter);
+		}		
+	}
+
+	paper.view.onResize = function(event) {
+		zoomView(paper);
+	}
+
+	paper.view.onMouseMove = function(event) {
+		mousePos = event.point;
+		var nearestEdge = cpWobble.getNearestEdge( mousePos.x, mousePos.y ).edge;
+		for(var i = 0; i < cpWobble.edges.length; i++){
+			var weight = 3;
+			if(nearestEdge != undefined && nearestEdge == i){
+				paperCP1.edges[i].strokeWidth = paperCP1.lineWeight*2;
+			} else{
+				paperCP1.edges[i].strokeWidth = paperCP1.lineWeight;
+			}
+		}
+	}
+
+//	paper.view.draw();
+
+
+	var canvas2 = document.getElementById('canvas2');
+	// Create an empty project and a view for the canvas:
+	paper.setup(canvas2);
+	zoomView(paper);
+	
+	var paperCP2 = new PaperCreasePattern(paper, cpRay);
+	console.log(paperCP2);
+
+	var rayCenter = new XYPoint(0.5, 0.5);
+	var rayDirection = new XYPoint(1.0, 0.0);
+	var intersectionLayer = new paper.Layer();
+	var intersections = [];
+
+	paper.view.onFrame = function(event) {
+		intersectionLayer.activate();
+		intersectionLayer.removeChildren();
+		intersections = [];
+		rayDirection = new XYPoint(Math.cos(event.time), Math.sin(event.time));
+		for(var i = 0; i < cpRay.edges.length; i++){
+			var endPoints = cpRay.edges[i].endPoints();
+			var intersection = rayLineSegmentIntersectionAlgorithm(rayCenter, rayDirection, endPoints[0], endPoints[1]);
+			if(intersection != undefined){
+				intersections.push(intersection);
+				var shape = new paper.Shape.Circle(new paper.Point(intersection.x, intersection.y), .01);
+				//shape.strokeColor = 'black';
+				shape.fillColor = 'red';
+				paperCP2.edges[i].strokeColor = 'red';
+			} else{
+				paperCP2.edges[i].strokeColor = 'black';		
+			}
+		}
+	}
+
+	paper.view.onResize = function(event) {
+		zoomView(paper);
+	}
+
+	paper.view.onMouseMove = function(event) {
+		mousePos = event.point;
+	}
+
+//	paper.view.draw();
+}
+
+
+</script>
+</head>
+<body>
+<h1>Canvas 1</h1>
+	<canvas id="canvas1" resize></canvas>
+<h1>Canvas 2</h1>
+	<canvas id="canvas2" resize></canvas>
+</body>
+</html>
