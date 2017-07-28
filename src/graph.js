@@ -136,30 +136,10 @@ var Graph = (function () {
         return len - this.edges.length;
     };
     Graph.prototype.removeNode = function (node) {
-        for (var i = 0; i < this.nodes.length; i++) {
-            this.nodes[i].index = i;
-        }
-        // (NOT SIMPLE: NODE array altered)
-        if (node.index >= this.nodes.length) {
-            return false;
-        }
-        // step 1: remove the node (easy)
-        this.nodes.splice(node.index, 1);
-        // step 2: traverse all edges, do (2) things:
-        var i = 0;
-        while (i < this.edges.length) {
-            var didRemove = false;
-            if (this.edges[i].node[0] === node || this.edges[i].node[1] === node) {
-                // remove edges which contained that node
-                this.edges.splice(i, 1);
-                didRemove = true;
-            }
-            if (!didRemove)
-                i++;
-        }
+        this.nodes = this.nodes.filter(function (el) { return el !== node; });
+        this.edges = this.edges.filter(function (el) { return el.node[0] !== node && el.node[1] !== node; });
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
-        return true;
     };
     Graph.prototype.removeEdge = function (edgeIndex) {
         if (edgeIndex > this.edges.length) {
@@ -199,28 +179,15 @@ var Graph = (function () {
     };
     // remove any duplicate edges (edges containing the same 2 nodes)
     Graph.prototype.cleanDuplicateEdges = function () {
-        // N^2 time
         // (SIMPLE: does not modify NODE array)
         var count = 0;
-        var i = 0;
-        while (i < this.edges.length) {
-            var j = i + 1;
-            while (j < this.edges.length) {
-                // nested loop, uniquely compare every edge, remove if edges contain same nodes
-                var didRemove = false;
+        for (var i = 0; i < this.edges.length - 1; i++) {
+            for (var j = this.edges.length - 1; j > i; j--) {
                 if (this.areEdgesSimilar(i, j)) {
-                    //console.log("clean(): found similar edges, removing last " + i + '(' + this.edges[i].node[0] + ' ' + this.edges[i].node[1] + ') ' + j + '(' + this.edges[j].node[0] + ' ' + this.edges[j].node[1] + ') ' );
                     this.edges.splice(j, 1);
-                    didRemove = true;
                     count += 1;
                 }
-                // only iterate forward if we didn't remove an element
-                //   if we did, it basically iterated forward for us, repeat the same 'j'
-                // this is also possible because we know that j is always greater than i
-                if (!didRemove)
-                    j++;
             }
-            i += 1;
         }
         this.edgeArrayDidChange();
         return count;
@@ -270,33 +237,22 @@ var Graph = (function () {
     // replaces all mention of one node with the other in both node and edge arrays
     // shrinks the total number of nodes
     Graph.prototype.mergeNodes = function (node1, node2) {
-        // sort the 2 indices by whichever comes first in the node array
-        var first, second;
         if (node1 === node2) {
             return false;
         }
-        if (node1.index < node2.index) {
-            first = node1;
-            second = node2;
-        }
-        else {
-            first = node2;
-            second = node1;
-        }
-        // replace all instances in EDGE array
-        // and decrement all indices greater than nodeIndex2 (node array is about to lose nodeIndex2)
-        for (var i = 0; i < this.edges.length; i++) {
-            if (this.edges[i].node[0] === second)
-                this.edges[i].node[0] = first;
-            if (this.edges[i].node[1] === second)
-                this.edges[i].node[1] = first;
-        }
+        this.edges = this.edges.map(function (el) {
+            if (el.node[0] === node2)
+                el.node[0] = node1;
+            if (el.node[1] === node2)
+                el.node[1] = node1;
+            return el;
+        });
         this.cleanCircularEdges();
         this.cleanDuplicateEdges();
-        // this.removeNode(second);   // the above for loop does this, we can just call below:
-        this.nodes.splice(second.index, 1);
-        this.nodeArrayDidChange();
-        this.edgeArrayDidChange();
+        this.removeNode(node2); // the above for loop does this, we can just call below:
+        // this.nodes.splice(node2.index,1);
+        // this.nodeArrayDidChange();
+        // this.edgeArrayDidChange();
         return true;
     };
     Graph.prototype.log = function () {

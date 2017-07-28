@@ -463,6 +463,19 @@ var PlanarGraph = (function (_super) {
                 }
             }
         }
+        // for (x,y) that is not orthogonal to the length of the edge (past the endpoint)
+        // check distance to node endpoints
+        for (var i = 0; i < this.nodes.length; i++) {
+            var dist = Math.sqrt(Math.pow(this.nodes[i].x - x, 2) + Math.pow(this.nodes[i].y - y, 2));
+            if (dist < minDist) {
+                var adjEdges = this.nodes[i].adjacentEdges();
+                if (adjEdges != undefined && adjEdges.length > 0) {
+                    minDist = dist;
+                    minDistIndex = adjEdges[0].index;
+                    minLocation = { x: this.nodes[i].x, y: this.nodes[i].y };
+                }
+            }
+        }
         return { 'edge': minDistIndex, 'location': minLocation, 'distance': minDist };
     };
     ///////////////////////////////////////////////////////////////
@@ -535,8 +548,6 @@ var PlanarGraph = (function (_super) {
         this.addEdgeFromExistingVertices(centerNode, intersection.nodes[2]);
         this.addEdgeFromExistingVertices(centerNode, intersection.nodes[3]);
         this.mergeDuplicateVertices();
-        this.nodeArrayDidChange();
-        this.edgeArrayDidChange();
     };
     PlanarGraph.prototype.chop = function () {
         var intersection;
@@ -544,7 +555,6 @@ var PlanarGraph = (function (_super) {
         do {
             intersection = this.anyEdgeCrossings();
             this.chopEdgesWithIntersection(intersection);
-            this.mergeDuplicateVertices();
             i++;
         } while (intersection !== undefined && i < 1000);
     };

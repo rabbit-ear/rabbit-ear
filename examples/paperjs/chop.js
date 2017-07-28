@@ -24,11 +24,12 @@ function node_adjacent_faces(){
 
 	function resetCP(){
 		cp.clear();
-		for(var i = 0; i < 10; i++){
+		cp.nodes = [];
+		cp.edges = [];
+		for(var i = 0; i < 20; i++){
 			var angle = Math.random()*Math.PI*2;
 			cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
 		}
-		cp.chop();
 		cp.chop();
 		paperCP.initialize();
 	}
