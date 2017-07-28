@@ -40,9 +40,10 @@
 	<div class="explain">
 		<p>In a <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">graph</a>, edges connect to nodes but the nodes don't exist in space. It's much more abstract. A planar graph is built on a graph, and the graph is where you ask questions like "give me all nodes connected to this node". Connections exist but the idea of x,y space doesn't.</p>
 	</div>
-<h2>Code</h2>
+<h2>This Library</h2>
 	<div class="explain">
 		<p>These pages chronicle the making of this code. It came together in 3 parts. Each class inherits from the one above it.</p>
+		<p>This library, the 3 files below, are wrapped up in one file <b>creasePattern.js</b></p>
 	</div>
 	<div>
 		<ul>

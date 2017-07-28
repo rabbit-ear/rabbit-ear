@@ -1,5 +1,5 @@
 var p5_nearest_edge = function(p) {
-	p.mouseMovedCallback = undefined;
+	p.callback = undefined;
 	// var WIDTH = this.canvas.parentElement.offsetWidth;
 	// var HEIGHT = this.canvas.parentElement.offsetHeight;
 	var paperSize = 250;
@@ -14,7 +14,7 @@ var p5_nearest_edge = function(p) {
 
 	function reset(){
 		g.clear();
-		g.birdBase();
+		g.fishBase();
 	}
 
 	p.setup = function(){
@@ -55,8 +55,9 @@ var p5_nearest_edge = function(p) {
 		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		closestEdge = g.getNearestEdge(mouseXScaled, mouseYScaled);
-		if(p.mouseMovedCallback != undefined)
-			p.mouseMovedCallback(mouseXScaled, mouseYScaled);
+		console.log(closestEdge);
+		if(p.callback != undefined)
+			p.callback({'x':mouseXScaled, 'y':mouseYScaled, 'nearest':closestEdge});
 	}
 
 	p.mouseReleased = function(){

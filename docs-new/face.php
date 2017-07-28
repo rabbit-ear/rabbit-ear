@@ -4,13 +4,12 @@
 
 <section id="intro">
 
-<h2>adjacentFaces()</h2>
 	<div class="centered">
 		<canvas id="canvas-node-adjacent-faces" resize></canvas>
 	</div>
 
 	<div class="centered">
-		<pre><code>cp.<f>creaseConnectingPoints</f>(point1, point2)</code></pre>
+		<pre><code>cp.<v>nodes</v>[<n id="adjacent-face-node">0</n>].<f>adjacentFaces</f>()</code></pre>
 	</div>
 
 	<div class="explain">
@@ -22,8 +21,40 @@
 		</ol>
 	</div>
 
+	<canvas id="canvas-1" resize></canvas>
+	<canvas id="canvas-2" resize></canvas>
+	<canvas id="canvas-3" resize></canvas>
+
+	<div class="centered">
+		<pre><code>cp.<f>generateFaces</f>()</code></pre>
+	</div>
+
 </section>
 
 <script type="text/javascript" src="../examples/paperjs/node-adjacent-faces.js"></script>
+<script type="text/javascript" src="../examples/paperjs/blank.js"></script>
+<script>
+var cp1 = new CreasePattern();
+cp1.kiteBase();
+cp1.generateFaces();
+var cp2 = new CreasePattern();
+cp2.fishBase();
+cp2.generateFaces();
+var cp3 = new CreasePattern();
+cp3.birdBase();
+cp3.generateFaces();
+
+fillCanvasWithCP("canvas-1", cp1);
+fillCanvasWithCP("canvas-2", cp2);
+fillCanvasWithCP("canvas-3", cp3);
+</script>
+
+<script>
+// console.log(_node_adjacent_faces);
+node_adjacent_faces_callback = function(event){
+	document.getElementById("adjacent-face-node").innerHTML = event.node;
+	console.log(event);
+}
+</script>
 
 <?php include 'footer.php';?>

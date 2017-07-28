@@ -17,7 +17,7 @@
 	<div class="half p5sketch" id="div-p5-nearest-node"></div>
 	<div class="half p5sketch" id="div-p5-nearest-edge"></div>
 	<div class="centered">
-		<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNearest1NodeIndex"></span>cp.<span class="token function">getNearestNode</span>( <n id="spanNearest1MouseX">x</n>, <n id="spanNearest1MouseY">y</n> )<br>cp.<span class="token function">getNearestEdge</span>( <span class="token argument" id="spanNearest2MouseX">x</span>, <span class="token argument" id="spanNearest2MouseY">y</span> )</code></pre>
+		<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNearestNodeIndex"></span>cp.<span class="token function">getNearestNode</span>( <n id="spanNearest1MouseX">x</n>, <n id="spanNearest1MouseY">y</n> )<br><span id="spanNearestEdgeIndex"></span>cp.<span class="token function">getNearestEdge</span>( <n class="token argument" id="spanNearest2MouseX">x</n>, <n class="token argument" id="spanNearest2MouseY">y</n> )</code></pre>
 	</div>
 	<div class="explain">
 		<p>Nodes can return multiple nodes, and nearest edges provide the location on the edge that is the nearest point.</p>
@@ -40,11 +40,26 @@
 		if(e.x != undefined && e.y != undefined){
 			$("#spanNearest1MouseX").html((e.x).toFixed(2));
 			$("#spanNearest1MouseY").html((e.y).toFixed(2));
-			$("#spanNearest1NodeIndex").html('<n>' + e.nearest + '</n>  ← ');
+			$("#spanNearestNodeIndex").html('#<n>' + e.nearest + '</n>  ← ');
 		} else{
 			$("#spanNearest1MouseX").html(' x');
 			$("#spanNearest1MouseY").html(' y ');
-			$("#spanNearest1NodeIndex").html('');
+			$("#spanNearestNodeIndex").html('');
+		}
+		// console.log(e);
+	}
+	p5b.callback = function(e){
+		if(e.x != undefined && e.y != undefined){
+			$("#spanNearest2MouseX").html((e.x).toFixed(2));
+			$("#spanNearest2MouseY").html((e.y).toFixed(2));
+// distance
+// edge
+// location
+			$("#spanNearestEdgeIndex").html('#<n>' + e.nearest.edge + '</n>, (<n>' + e.nearest.location.x.toFixed(2) + '</n>,<n>' + e.nearest.location.y.toFixed(2) + '</n>)  ← ');
+		} else{
+			$("#spanNearest2MouseX").html(' x');
+			$("#spanNearest2MouseY").html(' y ');
+			$("#spanNearestEdgeIndex").html('');
 		}
 		// console.log(e);
 	}

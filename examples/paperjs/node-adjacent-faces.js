@@ -1,6 +1,9 @@
 // a node's adjacent faces
 
+var node_adjacent_faces_callback = undefined;
+
 function node_adjacent_faces(){
+
 	var canvas = document.getElementById('canvas-node-adjacent-faces');
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
@@ -11,7 +14,6 @@ function node_adjacent_faces(){
 	cp.birdBase();
 	cp.clean();
 	var paperCP = new PaperCreasePattern(scope, cp);
-	var nearestEdge = undefined;
 	var nearestNode = undefined;
 
 	var faceLayer = new paper.Layer();
@@ -32,7 +34,6 @@ function node_adjacent_faces(){
 	scope.view.onMouseMove = function(event) {
 		mousePos = event.point;
 		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
-		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
 		if(nearestNode != nNode){
 			nearestNode = nNode;
 			nodeCircle.position.x = cp.nodes[nearestNode].x;
@@ -49,10 +50,14 @@ function node_adjacent_faces(){
 						closed: true
 				});
 			}
-			console.log("Node: " + nearestNode);
+			// console.log("Node: " + nearestNode);
+			if(node_adjacent_faces_callback != undefined){
+				node_adjacent_faces_callback({'node':nearestNode});
+			}
 		}
 	}
-
 	scope.view.onMouseDown = function(event){ }
 
+	// on boot, load (0.5, 0.5)
+	scope.view.onMouseMove({point:{x:0.0, y:0.0}});
 } node_adjacent_faces();
