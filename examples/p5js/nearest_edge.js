@@ -55,7 +55,6 @@ var p5_nearest_edge = function(p) {
 		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		closestEdge = g.getNearestEdge(mouseXScaled, mouseYScaled);
-		console.log(closestEdge);
 		if(p.callback != undefined)
 			p.callback({'x':mouseXScaled, 'y':mouseYScaled, 'nearest':closestEdge});
 	}

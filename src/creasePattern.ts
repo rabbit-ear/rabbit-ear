@@ -64,6 +64,7 @@ class CreasePattern extends PlanarGraph{
 		this.addPaperEdge(1,0, 1,1);
 		this.addPaperEdge(1,1, 0,1);
 		this.addPaperEdge(0,1, 0,0);
+		this.mergeDuplicateVertices();
 		this.boundary.mergeDuplicateVertices();
 	}
 
@@ -121,6 +122,7 @@ class CreasePattern extends PlanarGraph{
 	addPaperEdge(x1:number, y1:number, x2:number, y2:number){
 		// this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
 		// this.addEdgeWithVertices(x1, y1, x2, y2).border();
+		this.addEdgeWithVertices(x1, y1, x2, y2);
 		this.boundary.addEdgeWithVertices(x1, y1, x2, y2);
 	}
 	creaseOnly(a:XYPoint, b:XYPoint):Crease{
@@ -239,18 +241,18 @@ class CreasePattern extends PlanarGraph{
 		throw "axiom 7: two crease lines cannot be parallel"
 	}
 
-	creaseVector(start:XYPoint,vector:XYPoint):Crease{
+	creaseRay(start:XYPoint,vector:XYPoint):Crease{
 		var boundaryIntersection = undefined;
 		for(var i = 0; i < this.boundary.edges.length; i++){
 			var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1]);
 			if(thisIntersection != undefined){ boundaryIntersection = thisIntersection; }
 		}
-		if(boundaryIntersection == undefined) { throw "creaseVector() requires paper boundaries else it will crease to infinity"; }
+		if(boundaryIntersection == undefined) { throw "creaseRay() requires paper boundaries else it will crease to infinity"; }
 		return this.addEdgeWithVertices(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
 	}
 
 	creaseAngle(start:XYPoint,radians:number):Crease{
-		return this.creaseVector(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
+		return this.creaseRay(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
 	}
 
 	boundaryLineIntersection(origin:XYPoint, direction:XYPoint):XYPoint[]{
@@ -435,7 +437,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	kiteBase(){
-		this.clear();
+		super.clear();
 		this.addEdgeWithVertices(0.0, 0.0, 0.41421, 0.0).border();
 		this.addEdgeWithVertices(0.41421, 0.0, 1.0, 0.0).border();
 		this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.58578).border();
@@ -448,7 +450,7 @@ class CreasePattern extends PlanarGraph{
 		this.clean();
 	}
 	fishBase(){
-		this.clear();
+		super.clear();
 		this.addEdgeWithVertices(0.0, 0.0, 0.29289, 0.0).border();
 		this.addEdgeWithVertices(0.29289, 0.0, 1.0, 0.0).border();
 		this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.70711).border();

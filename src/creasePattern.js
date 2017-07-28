@@ -75,6 +75,7 @@ var CreasePattern = (function (_super) {
         this.addPaperEdge(1, 0, 1, 1);
         this.addPaperEdge(1, 1, 0, 1);
         this.addPaperEdge(0, 1, 0, 0);
+        this.mergeDuplicateVertices();
         this.boundary.mergeDuplicateVertices();
     };
     CreasePattern.prototype["import"] = function (cp) {
@@ -125,6 +126,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
         // this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
         // this.addEdgeWithVertices(x1, y1, x2, y2).border();
+        this.addEdgeWithVertices(x1, y1, x2, y2);
         this.boundary.addEdgeWithVertices(x1, y1, x2, y2);
     };
     CreasePattern.prototype.creaseOnly = function (a, b) {
@@ -251,7 +253,7 @@ var CreasePattern = (function (_super) {
         }
         throw "axiom 7: two crease lines cannot be parallel";
     };
-    CreasePattern.prototype.creaseVector = function (start, vector) {
+    CreasePattern.prototype.creaseRay = function (start, vector) {
         var boundaryIntersection = undefined;
         for (var i = 0; i < this.boundary.edges.length; i++) {
             var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1]);
@@ -260,12 +262,12 @@ var CreasePattern = (function (_super) {
             }
         }
         if (boundaryIntersection == undefined) {
-            throw "creaseVector() requires paper boundaries else it will crease to infinity";
+            throw "creaseRay() requires paper boundaries else it will crease to infinity";
         }
         return this.addEdgeWithVertices(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
     };
     CreasePattern.prototype.creaseAngle = function (start, radians) {
-        return this.creaseVector(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
+        return this.creaseRay(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
     };
     CreasePattern.prototype.boundaryLineIntersection = function (origin, direction) {
         var opposite = new XYPoint(-direction.x, -direction.y);
@@ -452,7 +454,7 @@ var CreasePattern = (function (_super) {
         _super.prototype.log.call(this);
     };
     CreasePattern.prototype.kiteBase = function () {
-        this.clear();
+        _super.prototype.clear.call(this);
         this.addEdgeWithVertices(0.0, 0.0, 0.41421, 0.0).border();
         this.addEdgeWithVertices(0.41421, 0.0, 1.0, 0.0).border();
         this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.58578).border();
@@ -465,7 +467,7 @@ var CreasePattern = (function (_super) {
         this.clean();
     };
     CreasePattern.prototype.fishBase = function () {
-        this.clear();
+        _super.prototype.clear.call(this);
         this.addEdgeWithVertices(0.0, 0.0, 0.29289, 0.0).border();
         this.addEdgeWithVertices(0.29289, 0.0, 1.0, 0.0).border();
         this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.70711).border();
