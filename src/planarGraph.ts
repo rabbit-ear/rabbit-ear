@@ -17,8 +17,9 @@ var SLOPE_ANGLE_INF_EPSILON = 1 * Math.pow(10,SLOPE_ANGLE_PLACES);
 // this graph represents an origami crease pattern
 //    with creases (edges) defined by their endpoints (vertices)
 
-function epsilonEqual(a:number, b:number):boolean{
-	return (a - EPSILON_HIGH < b && a + EPSILON_HIGH > b);
+function epsilonEqual(a:number, b:number, epsilon:number):boolean{
+	if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
+	return (a - epsilon < b && a + epsilon > b);
 }
 
 class XYPoint{
@@ -626,6 +627,7 @@ class PlanarGraph extends Graph{
 	}
 
 	chop(){
+		this.mergeDuplicateVertices();
 		var intersection;
 		var i = 0;
 		do{

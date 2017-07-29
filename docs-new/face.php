@@ -29,10 +29,17 @@
 		<pre><code>cp.<f>generateFaces</f>()</code></pre>
 	</div>
 
+	<div class="tests">
+		<ul>
+			<li>adjacentNodeClockwiseFrom()</li>
+			<li>planarAdjacent()</li>
+		</ul>
+	</div>
+
 </section>
 
-<script type="text/javascript" src="../examples/paperjs/node-adjacent-faces.js"></script>
-<script type="text/javascript" src="../examples/paperjs/blank.js"></script>
+<script type="text/javascript" src="../tests/paperjs/node-adjacent-faces.js"></script>
+<script type="text/javascript" src="../tests/paperjs/blank.js"></script>
 <script>
 var cp1 = new CreasePattern();
 cp1.kiteBase();

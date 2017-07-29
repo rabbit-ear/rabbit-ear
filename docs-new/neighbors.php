@@ -25,13 +25,13 @@
 </section>
 </section>
 
-<script type="text/javascript" src="../examples/paperjs/mouse-select.js"></script>
+<script type="text/javascript" src="../tests/paperjs/mouse-select.js"></script>
 
 <!-- include .js sketches -->
 <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../examples/p5js.cp.js"></script>
-<script language="javascript" type="text/javascript" src="../examples/p5js/nearest_node.js"></script>
-<script language="javascript" type="text/javascript" src="../examples/p5js/nearest_edge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js.cp.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/nearest_node.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/nearest_edge.js"></script>
 <script>
 	var p5a = new p5(p5_nearest_node, 'div-p5-nearest-node');
 	var p5b = new p5(p5_nearest_edge, 'div-p5-nearest-edge');

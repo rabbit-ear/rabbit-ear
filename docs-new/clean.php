@@ -26,8 +26,8 @@
 
 <!-- include .js sketches -->
 <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../examples/p5js.cp.js"></script>
-<script language="javascript" type="text/javascript" src="../examples/p5js/11_merge_duplicates.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js.cp.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/p5js/11_merge_duplicates.js"></script>
 
 <script>
 	var p5b = new p5(_11_merge_duplicates, 'divP5_merge');

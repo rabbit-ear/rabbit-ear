@@ -71,6 +71,19 @@ b, strong{
 	background-color: #FFFFAA;
 	box-shadow: 5px 5px 5px #CCC;
 }
+.tests{
+	padding:1em;
+	border-width: 5px;  
+	border-style: dashed;
+	border-color: black;
+	background-color: #FFF;
+	box-shadow: 5px 5px 5px #CCC;
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+}
+.tests li{
+	padding-top:.33em;
+	padding-bottom:.33em;
+}
 /*
 h1 a, h2 a, h3 a, h4 a, h5 a{
 	font-weight: normal;

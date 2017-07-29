@@ -109,11 +109,11 @@
 	</div>
 </section>
 
-<script language="javascript" type="text/javascript" src="../examples/d3js/graph_simple.js"></script>
-<script language="javascript" type="text/javascript" src="../examples/d3js/graph_adjacentNode.js"></script>
-<script language="javascript" type="text/javascript" src="../examples/d3js/graph_adjacentEdge.js"></script>
-<script language="javascript" type="text/javascript" src="../examples/d3js/graph_removeNode.js"></script>
-<script language="javascript" type="text/javascript" src="../examples/d3js/graph_removeEdge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/d3js/graph_simple.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/d3js/graph_adjacentNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/d3js/graph_adjacentEdge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/d3js/graph_removeNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/d3js/graph_removeEdge.js"></script>
 <script>
 	$(".accordion-title").html("MORE");
 	function updateNodesAdjacentToNode(input, output){

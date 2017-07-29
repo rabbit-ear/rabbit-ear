@@ -18,6 +18,6 @@
 
 </section>
 
-<script type="text/javascript" src="../examples/paperjs/node-adjacent-faces.js"></script>
+<script type="text/javascript" src="../tests/paperjs/node-adjacent-faces.js"></script>
 
 <?php include 'footer.php';?>

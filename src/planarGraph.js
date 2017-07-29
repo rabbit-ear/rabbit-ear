@@ -550,6 +550,7 @@ var PlanarGraph = (function (_super) {
         this.mergeDuplicateVertices();
     };
     PlanarGraph.prototype.chop = function () {
+        this.mergeDuplicateVertices();
         var intersection;
         var i = 0;
         do {

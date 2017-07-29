@@ -82,11 +82,11 @@
 
 </section>
 
-<script type="text/javascript" src="../examples/paperjs/axiom1.js"></script>
-<script type="text/javascript" src="../examples/paperjs/axiom2.js"></script>
-<script type="text/javascript" src="../examples/paperjs/axiom3.js"></script>
-<script type="text/javascript" src="../examples/paperjs/axiom4.js"></script>
-<script type="text/javascript" src="../examples/paperjs/axiom5.js"></script>
-<script type="text/javascript" src="../examples/paperjs/axiom7.js"></script>
+<script type="text/javascript" src="../tests/paperjs/axiom1.js"></script>
+<script type="text/javascript" src="../tests/paperjs/axiom2.js"></script>
+<script type="text/javascript" src="../tests/paperjs/axiom3.js"></script>
+<script type="text/javascript" src="../tests/paperjs/axiom4.js"></script>
+<script type="text/javascript" src="../tests/paperjs/axiom5.js"></script>
+<script type="text/javascript" src="../tests/paperjs/axiom7.js"></script>
 
 <?php include 'footer.php';?>
