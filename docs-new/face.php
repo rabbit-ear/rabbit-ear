@@ -37,12 +37,28 @@
 			<li>planarAdjacent()</li>
 		</ul>
 	</div>
+	<div class="centered">
+		<canvas id="canvas-radial-rainbow" resize></canvas>
+	</div>
+	
+	<div class="centered">
+		<pre><code><span id="edge-angle-div"></span></code></pre>
+	</div>
 
 
 </section>
 
 <script type="text/javascript" src="../tests/js/node-adjacent-faces.js"></script>
 <script type="text/javascript" src="../tests/js/blank.js"></script>
+<script type="text/javascript" src="../tests/js/radial_rainbow.js"></script>
+<script>
+radial_rainbow_callback = function(event){
+	var angleDegrees = event * 180 / Math.PI;
+	if(angleDegrees < 0) angleDegrees += 360;
+	document.getElementById("edge-angle-div").innerHTML = angleDegrees.toFixed(1) + "°";
+}
+</script>
+
 <script>
 var cp1 = new CreasePattern();
 cp1.kiteBase();

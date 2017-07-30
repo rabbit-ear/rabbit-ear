@@ -10,10 +10,21 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> cp<key> = new</key> CreasePattern()</code></pre>
+		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>square</v>()</code></pre>
 	</div>
 	<div class="explain">
-		<p>A crease pattern</a></strong></p>
+		<p>A crease pattern</strong></p>
+	</div>
+
+	<div class="centered">
+		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>rectangle</v>(width, height)</code></pre>
+	</div>
+	<div class="explain">
+		<p>Can also take any shaped polygon, a series of points. This will only work with non-looping polygons that are wound clockwise.</strong></p>
+	</div>
+
+	<div class="centered">
+		<pre><code><key>var</key> pointArray = [<br>&nbsp;<key>new</key> XYPoint(0.5, 0.5),<br>&nbsp;<key>new</key> XYPoint(0.0, 1.0), <br>&nbsp;<key>new</key> XYPoint(1.0, 1.0)<br>];<br><key>var</key> cp<key> = new</key> CreasePattern().<f>polygon</f>(pointArray)</code></pre>
 	</div>
 
 </section>

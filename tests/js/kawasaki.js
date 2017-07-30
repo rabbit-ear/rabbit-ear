@@ -6,6 +6,8 @@ function kawasaki_sketch(){
 	zoomView(scope, canvas.width, canvas.height, 0.5);
 
 	var cp = new CreasePattern();
+	cp.nodes = [];
+	cp.edges = [];
 
 	cp.addEdgeWithVertices(.35995, .34829, .35995, .01228);
 	cp.addEdgeWithVertices(.35995, .34829, .02393, .01228);
@@ -23,6 +25,11 @@ function kawasaki_sketch(){
 	console.log(adjacent);
 
 	var paperCP = new PaperCreasePattern(scope, cp);
+
+	for(var i = 0; i < paperCP.edges.length; i++){
+		var hue = i/paperCP.edges.length * 360;
+		paperCP.edges[i].strokeColor = { hue:hue, saturation:0.8, brightness:1.0 };
+	}
 
 	scope.view.onFrame = function(event) { }
 	scope.view.onResize = function(event) {

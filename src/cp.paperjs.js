@@ -103,6 +103,10 @@ var PaperCreasePattern = (function () {
 		this.points = [];
 		this.edges = [];
 		this.faces = [];
+
+		this.paperEdgeLayer.removeChildren();
+		this.nodeLayer.removeChildren();
+		this.cpLayer.removeChildren();
 		// draw paper edge
 		this.paperEdgeLayer.activate();
 		this.paperEdgeLayer.removeChildren();

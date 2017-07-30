@@ -9,7 +9,7 @@
 	<div id="divP5_merge" class="centered p5sketch"></div>
 
 	<div class="centered">
-		<p style="font-family:monospace; font-size:2.5em; margin-top:0"><span id="div-node-count"></span> nodes<br><span id="div-edge-count"></span> edges</p>
+		<pre><code><span id="div-node-count"></span> nodes, <span id="div-edge-count"></span> edges</code></pre>
 	</div>
 
 	<div class="centered">
