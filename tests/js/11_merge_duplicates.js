@@ -41,7 +41,7 @@ var _11_merge_duplicates = function( p ) {
 			g.nodes[i].y = 0.5+0.4*Math.sin(t*g.nodes[i].speed.y * 0.0003 + g.nodes[i].offset.y);
 		}
 		var mergeDataArray = g.mergeDuplicateVertices();
-		if(mergeDataArray.length){
+		if(mergeDataArray != undefined && mergeDataArray.length){
 			for(var i = 0; i < mergeDataArray.length; i++){
 				var mergeData = mergeDataArray[i];
 				mergeData['brightness'] = 1.0;

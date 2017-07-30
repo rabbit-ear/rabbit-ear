@@ -1,5 +1,5 @@
-function simple(){
-	var canvas = document.getElementById('canvas-simple');
+function kawasaki_sketch(){
+	var canvas = document.getElementById('canvas-kawasaki');
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
@@ -35,4 +35,4 @@ function simple(){
 	scope.view.onMouseDown = function(event){
 		paper = scope;		
 	}
-} simple();
+} kawasaki_sketch();

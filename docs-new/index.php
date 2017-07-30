@@ -1,6 +1,8 @@
 <?php include 'header.php';?>
 <script language="javascript" type="text/javascript" src="../lib/d3.min.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/d3js.cp.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.d3js.js"></script>
+<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
 
 <h1>ORIGAMI</h1>
 
@@ -56,10 +58,8 @@
 
 <!-- include .js sketches -->
 <script language="javascript" type="text/javascript" src="js/cp_fish_wobble.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/d3js/graph_adjacentNode.js"></script>
-<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/p5js.cp.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/p5js/04_intersections.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/graph_adjacentNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/04_intersections.js"></script>
 <script>
 	var p5intersections = new p5(_04_intersections, 'sketch_intersections');
 	function updateNodesAdjacentToNode(input, output){

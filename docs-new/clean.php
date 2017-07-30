@@ -21,13 +21,21 @@
 			<p>The shift from graph to planar graph introduces the concept of adjacency in 2D space. Nodes that occupy the same space can be merged into one, and their adjacent edges join too.</p>
 		</div>
 	</div>
+
+	<div class="tests">
+		<ul>
+			<li>clean()</li>
+			<li>mergeDuplicateVertices()</li>
+		</ul>
+	</div>
+
 </section>
 
 
 <!-- include .js sketches -->
 <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/p5js.cp.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/p5js/11_merge_duplicates.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/11_merge_duplicates.js"></script>
 
 <script>
 	var p5b = new p5(_11_merge_duplicates, 'divP5_merge');

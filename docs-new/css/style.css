@@ -67,17 +67,21 @@ b, strong{
 	font-weight: bold;
 }
 .explain{
+	margin-top:2em;
+	margin-bottom:2em;
 	padding:1em;
 	background-color: #FFFFAA;
 	box-shadow: 5px 5px 5px #CCC;
 }
 .tests{
+	margin-top:2em;
+	margin-bottom:2em;
 	padding:1em;
 	border-width: 5px;  
 	border-style: dashed;
 	border-color: black;
 	background-color: #FFF;
-	box-shadow: 5px 5px 5px #CCC;
+	box-shadow: inset 5px 5px 10px #CCC;
 	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 }
 .tests li{
@@ -200,8 +204,8 @@ code, pre {
 
 pre {
 	padding: 1em;
-	margin-top: 3em;
-	margin-bottom:3em;
+	margin-top: 2em;
+	margin-bottom:2em;
 	overflow: auto;
 	border-radius: 0.3em;
 	background: #272822;

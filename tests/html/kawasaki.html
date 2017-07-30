@@ -7,78 +7,21 @@ html, body {
 	margin: 0;
 	overflow: hidden;
 	height: 100%;
+	text-align:center;
 }
 canvas[resize] {
-	width: 100%;
-	height: 100%;
+	width: 100vmin;
+	height: 100vmin;
 }
 </style>
-<script type="text/javascript" src="../../../src/graph.js"></script>
-<script type="text/javascript" src="../../../src/planarGraph.js"></script>
-<script type="text/javascript" src="../../../src/creasePattern.js"></script>
-<script type="text/javascript" src="../../../lib/paper-full.min.js"></script>
-<script type="text/javascript" src="../../paperjs.cp.js"></script>
-<script>
-
-var cp = new CreasePattern();
-cp.addEdgeWithVertices(1,0, 0,1).mountain();
-cp.addEdgeWithVertices(0,1, 0.70711,0.70711).valley();
-cp.addEdgeWithVertices(0,1, 0.29289,0.29289).valley();
-cp.addEdgeWithVertices(1,0, 0.29289,0.29289).valley();
-cp.addEdgeWithVertices(1,0, 0.70711,0.70711).valley();
-cp.addEdgeWithVertices(0.29289,0.29289, 0,0).valley();
-cp.addEdgeWithVertices(0.70711,0.70711, 1,1).valley();
-// cp.addEdgeWithVertices(0.70711,0.70711, 1,0.70711).mountain();
-// cp.addEdgeWithVertices(0.29289,0.29289, 0.29289,0).mountain();
-cp.clean();
-// cp.frogBase();
-// cp.fishBase();
-
-console.log(cp);
-
-window.onload = function() {
-
-	var canvas = document.getElementById('canvas');
-	// Create an empty project and a view for the canvas:
-	paper.setup(canvas);
-	zoomView(paper);
-
-	var paperCP = new PaperCreasePattern(paper, cp);
-	console.log(paperCP);
-
-	var wobble1 = {x:cp.nodes[4].x, y:cp.nodes[4].y};
-	var wobble2 = {x:cp.nodes[5].x, y:cp.nodes[5].y};
-
-	paper.view.onFrame = function(event) {
-		var scale = .04;
-		var sp = 1.5;
-		cp.nodes[4].x = wobble1.x + Math.sin(sp*event.time*.8) * scale
-		cp.nodes[4].y = wobble1.y + Math.cos(sp*event.time*.895) * scale;
-		cp.nodes[5].x = wobble2.x + Math.sin(sp*event.time*1.2) * scale;
-		cp.nodes[5].y = wobble2.y + Math.sin(sp*event.time) * scale;
-
-		paperCP.update();
-	}
-
-	paper.view.onResize = function(event) {
-		zoomView(paper);
-	}
-
-	paper.view.onMouseMove = function(event) {
-		mousePos = event.point;
-	}
-
-	paper.view.onMouseDown = function(event){
-		// console.log(cp.kawasaki(4));
-		cp.interiorAngle3Nodes(cp.nodes[4], cp.nodes[1], cp.nodes[2]);
-	}
-
-//	paper.view.draw();
-}
-
-</script>
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../src/graph.js"></script>
+<script type="text/javascript" src="../../src/planarGraph.js"></script>
+<script type="text/javascript" src="../../src/creasePattern.js"></script>
+<script type="text/javascript" src="../../src/cp.paperjs.js"></script>
 </head>
 <body>
-	<canvas id="canvas" resize></canvas>
+	<canvas id="canvas-kawasaki" resize></canvas>
 </body>
+<script type="text/javascript" src="../js/kawasaki.js"></script>
 </html>
