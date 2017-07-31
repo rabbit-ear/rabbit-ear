@@ -1,5 +1,8 @@
 // generate faces
 
+	var cp = new CreasePattern();
+
+
 function node_adjacent_faces(){
 	var canvas = document.getElementById('canvas-chop');
 	var scope = new paper.PaperScope();
@@ -7,7 +10,6 @@ function node_adjacent_faces(){
 	scope.setup(canvas);
 	zoomView(scope, canvas.width, canvas.height, 0.5);
 
-	var cp = new CreasePattern();
 	var paperCP = new PaperCreasePattern(scope, cp);
 
 	var nearestEdge = undefined;
@@ -26,11 +28,13 @@ function node_adjacent_faces(){
 		cp.clear();
 		cp.nodes = [];
 		cp.edges = [];
-		for(var i = 0; i < 50; i++){
+		for(var i = 0; i < 10; i++){
 			var angle = Math.random()*Math.PI*2;
 			cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
 		}
-		cp.chop();
+		var crossings = cp.chop();
+		// console.log(crossings.length + " crossings");
+		console.log(crossings);
 		paperCP.initialize();
 	}
 	resetCP();
@@ -70,4 +74,6 @@ function node_adjacent_faces(){
 		resetCP();
 	}
 
-} node_adjacent_faces();
+	return this;
+
+} var adj_f = node_adjacent_faces();

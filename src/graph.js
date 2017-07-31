@@ -136,17 +136,30 @@ var Graph = (function () {
         return len - this.edges.length;
     };
     Graph.prototype.removeNode = function (node) {
+        var nodesLength = this.nodes.length;
+        var edgesLength = this.edges.length;
         this.nodes = this.nodes.filter(function (el) { return el !== node; });
         this.edges = this.edges.filter(function (el) { return el.node[0] !== node && el.node[1] !== node; });
-        this.nodeArrayDidChange();
-        this.edgeArrayDidChange();
-    };
-    Graph.prototype.removeEdge = function (edgeIndex) {
-        if (edgeIndex > this.edges.length) {
-            throw "removeEdge() index is greater than length of edge array";
+        if (this.edges.length != edgesLength) {
+            this.edgeArrayDidChange();
         }
-        this.edges.splice(edgeIndex, 1);
-        this.edgeArrayDidChange();
+        if (this.nodes.length != nodesLength) {
+            this.nodeArrayDidChange();
+            return true;
+        }
+        return false;
+    };
+    // removeEdge(edgeIndex:number){
+    // 	if(edgeIndex > this.edges.length){ throw "removeEdge() index is greater than length of edge array"; }
+    // 	this.edges.splice(edgeIndex, 1);
+    // 	this.edgeArrayDidChange();
+    // }
+    Graph.prototype.removeEdge = function (edge) {
+        var len = this.edges.length;
+        this.edges = this.edges.filter(function (el) { return el !== edge; });
+        if (len == this.edges.length)
+            return false;
+        return true;
     };
     Graph.prototype.nodeArrayDidChange = function () { for (var i = 0; i < this.nodes.length; i++) {
         this.nodes[i].index = i;
@@ -156,26 +169,17 @@ var Graph = (function () {
     } };
     // CLEAN will change the edges, but nodes will remain unaffected
     Graph.prototype.clean = function () {
-        // console.log("GRAPH clean()");
-        var countCircular, countDuplicate;
-        // console.log("cleaning circular edges");
-        if (!(this.preferences.allowCircular)) {
-            countCircular = this.cleanCircularEdges();
-        }
-        // console.log("cleaning duplicate edges");
-        if (!(this.preferences.allowDuplicate)) {
-            countDuplicate = this.cleanDuplicateEdges();
-        }
-        return { 'duplicate': countDuplicate, 'circular': countCircular };
+        return { 'duplicate': this.cleanDuplicateEdges(),
+            'circular': this.cleanCircularEdges() };
     };
     // remove circular edges (a node connecting to itself)
     Graph.prototype.cleanCircularEdges = function () {
-        var len = this.edges.length;
+        var edgesLength = this.edges.length;
         this.edges = this.edges.filter(function (el) { return !(el.node[0] === el.node[1]); });
-        if (this.edges.length != len) {
+        if (this.edges.length != edgesLength) {
             this.edgeArrayDidChange();
         }
-        return len - this.edges.length;
+        return edgesLength - this.edges.length;
     };
     // remove any duplicate edges (edges containing the same 2 nodes)
     Graph.prototype.cleanDuplicateEdges = function () {
@@ -189,7 +193,9 @@ var Graph = (function () {
                 }
             }
         }
-        this.edgeArrayDidChange();
+        if (count > 0) {
+            this.edgeArrayDidChange();
+        }
         return count;
     };
     // TRUE FALSE QUERIES
@@ -247,12 +253,8 @@ var Graph = (function () {
                 el.node[1] = node1;
             return el;
         });
-        this.cleanCircularEdges();
-        this.cleanDuplicateEdges();
-        this.removeNode(node2); // the above for loop does this, we can just call below:
-        // this.nodes.splice(node2.index,1);
-        // this.nodeArrayDidChange();
-        // this.edgeArrayDidChange();
+        this.removeNode(node2);
+        this.clean();
         return true;
     };
     Graph.prototype.log = function () {

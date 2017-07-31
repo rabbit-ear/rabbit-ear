@@ -58,12 +58,30 @@ var CreasePattern = (function (_super) {
         if (_this.boundary === undefined) {
             _this.boundary = new PlanarGraph();
         }
-        _this.unitSquarePaper();
+        _this.square();
         return _this;
     }
     CreasePattern.prototype.landmarkNodes = function () { return this.nodes.map(function (el) { return new XYPoint(el.x, el.y); }); };
-    CreasePattern.prototype.unitSquarePaper = function () {
-        // square page
+    CreasePattern.prototype.square = function (width) {
+        var w = 1.0;
+        if (width != undefined && width != 0) {
+            w = Math.abs(width);
+        }
+        if (this.boundary === undefined) {
+            this.boundary = new PlanarGraph();
+        }
+        else {
+            this.boundary.clear();
+        }
+        this.addPaperEdge(0, 0, w, 0);
+        this.addPaperEdge(w, 0, w, w);
+        this.addPaperEdge(w, w, 0, w);
+        this.addPaperEdge(0, w, 0, 0);
+        this.mergeDuplicateVertices();
+        this.boundary.mergeDuplicateVertices();
+        return this;
+    };
+    CreasePattern.prototype.rectangle = function (width, height) {
         if (this.boundary === undefined) {
             this.boundary = new PlanarGraph();
         }
@@ -71,12 +89,21 @@ var CreasePattern = (function (_super) {
             this.boundary.clear();
         }
         // make sure paper edges are winding clockwise!!
-        this.addPaperEdge(0, 0, 1, 0);
-        this.addPaperEdge(1, 0, 1, 1);
-        this.addPaperEdge(1, 1, 0, 1);
-        this.addPaperEdge(0, 1, 0, 0);
+        this.addPaperEdge(0, 0, width, 0);
+        this.addPaperEdge(width, 0, width, height);
+        this.addPaperEdge(width, height, 0, height);
+        this.addPaperEdge(0, height, 0, 0);
         this.mergeDuplicateVertices();
         this.boundary.mergeDuplicateVertices();
+        return this;
+    };
+    CreasePattern.prototype.polygon = function (edgePoints) {
+        // TODO: make sure paper edges are winding clockwise!!
+        for (var i = 0; i < edgePoints.length; i++) {
+            var nextI = (i + 1) % edgePoints.length;
+            this.addPaperEdge(edgePoints[i].x, edgePoints[i].y, edgePoints[nextI].x, edgePoints[nextI].y);
+        }
+        return this;
     };
     CreasePattern.prototype["import"] = function (cp) {
         this.nodes = cp.nodes.slice();
@@ -108,11 +135,14 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.clear = function () {
         _super.prototype.clear.call(this);
-        this.unitSquarePaper();
+        this.square();
         // this.interestingPoints = this.starterLocations;
     };
     ///////////////////////////////////////////////////////////////
     // ADD PARTS
+    CreasePattern.prototype.fold = function (param1, param2, param3, param4) {
+        // detects which parameters are there
+    };
     CreasePattern.prototype.pointInside = function (p) {
         for (var i = 0; i < this.boundary.edges.length; i++) {
             var endpts = this.boundary.edges[i].endPoints();

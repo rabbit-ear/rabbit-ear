@@ -22,8 +22,11 @@ var SLOPE_ANGLE_EPSILON = 1 * Math.pow(10, -SLOPE_ANGLE_PLACES);
 var SLOPE_ANGLE_INF_EPSILON = 1 * Math.pow(10, SLOPE_ANGLE_PLACES);
 // this graph represents an origami crease pattern
 //    with creases (edges) defined by their endpoints (vertices)
-function epsilonEqual(a, b) {
-    return (a - EPSILON_HIGH < b && a + EPSILON_HIGH > b);
+function epsilonEqual(a, b, epsilon) {
+    if (epsilon == undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    return (a - epsilon < b && a + epsilon > b);
 }
 var XYPoint = (function () {
     function XYPoint(xx, yy) {
@@ -43,13 +46,13 @@ var Intersection = (function (_super) {
         var _this = _super.call(this, undefined, undefined) || this;
         _this.exists = false;
         if (a.isAdjacentWithEdge(b)) {
-            return undefined;
+            return _this;
         }
         var aPts = a.endPoints();
         var bPts = b.endPoints();
         var intersect = lineSegmentIntersectionAlgorithm(aPts[0], aPts[1], bPts[0], bPts[1]);
         if (intersect == undefined) {
-            return undefined;
+            return _this;
         }
         _this.x = intersect.x;
         _this.y = intersect.y;
@@ -202,7 +205,6 @@ var PlanarEdge = (function (_super) {
     function PlanarEdge() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    // graph:PlanarGraph;
     // convenience renaming
     // endPoints:()=>PlanarNode[] = function() { return this.adjacentNodes(); };
     // actually asking for more typecasting than i expected
@@ -217,11 +219,31 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.adjacentEdges = function () {
         return _super.prototype.adjacentEdges.call(this);
     };
-    PlanarEdge.prototype.crossedEdges = function () {
-        var intersections = [];
-        for (var i = 0; i < this.graph.edges.length; i++) {
-        }
-        return intersections;
+    PlanarEdge.prototype.crossingEdges = function () {
+        return this.graph.edges
+            .filter(function (el) { return this !== el; }, this)
+            .map(function (el) { return new Intersection(this, el); }, this)
+            .filter(function (el) { return el.exists; })
+            .sort(function (a, b) { if (a.x < b.x) {
+            return -1;
+        } if (a.x > b.x) {
+            return 1;
+        } return 0; })
+            .sort(function (a, b) { if (a.y < b.y) {
+            return -1;
+        } if (a.y > b.y) {
+            return 1;
+        } return 0; });
+        // var intersections:Intersection[] = [];
+        // for(var i = 0; i < this.graph.edges.length; i++){
+        // 	if(this.graph.edges[i] !== this){
+        // 		var intersect = new Intersection(this, this.graph.edges[i]);
+        // 		if(intersect.exists){ intersections.push(intersect); }
+        // 	}
+        // }
+        // return intersections
+        // 	.sort(function(a,b){if(a.x<b.x){return -1;}if(a.x>b.x){return 1;}return 0;})
+        // 	.sort(function(a,b){if(a.y<b.y){return -1;}if(a.y>b.y){return 1;}return 0;});
     };
     return PlanarEdge;
 }(GraphEdge));
@@ -384,38 +406,37 @@ var PlanarGraph = (function (_super) {
     };
     ////////////////////////////////////
     //   Planar-related (positional)
-    PlanarGraph.prototype.firstDuplicateVertices = function () {
-        // console.log("first Duplicate Vertices");
+    PlanarGraph.prototype.searchAndMergeOneDuplicatePair = function (epsilon) {
         for (var i = 0; i < this.nodes.length - 1; i++) {
             for (var j = i + 1; j < this.nodes.length; j++) {
-                if (this.verticesEquivalent(this.nodes[i], this.nodes[j], EPSILON)) {
-                    return [this.nodes[i], this.nodes[j]];
+                if (this.verticesEquivalent(this.nodes[i], this.nodes[j], epsilon)) {
+                    _super.prototype.mergeNodes.call(this, this.nodes[i], this.nodes[j]);
+                    return true;
                 }
             }
         }
-        return undefined;
+        return false;
     };
-    PlanarGraph.prototype.mergeDuplicateVertices = function () {
-        var duplicate;
-        do {
-            duplicate = this.firstDuplicateVertices();
-            if (duplicate != undefined)
-                _super.prototype.mergeNodes.call(this, duplicate[0], duplicate[1]);
-        } while (duplicate !== undefined);
-        // DANGEROUS: removes nodes
-        // this looks for nodes.position which are physically nearby, within EPSILON radius
-        // var removeCatalog:XYPoint[] = [];
-        // for(var i = 0; i < this.nodes.length-1; i++){
-        // 	for(var j = this.nodes.length-1; j > i; j--){
-        // 		if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], EPSILON) ){
-        // 			super.mergeNodes(this.nodes[i], this.nodes[j]);
-        // 			// removeCatalog.push( {'x':this.nodes[i].x, 'y':this.nodes[i].y, 'nodes':[i,j] } );
-        // 			// removeCatalog.push( new XYPoint(this.nodes[i].x, this.nodes[i].y) );
-        // 		}
-        // 	}
-        // }
-        // return removeCatalog;
+    PlanarGraph.prototype.mergeDuplicateVertices = function (epsilon) {
+        if (epsilon == undefined) {
+            epsilon = EPSILON;
+        }
+        while (this.searchAndMergeOneDuplicatePair(epsilon)) { }
+        ;
     };
+    // DANGEROUS: removes nodes
+    // this looks for nodes.position which are physically nearby, within EPSILON radius
+    // var removeCatalog:XYPoint[] = [];
+    // for(var i = 0; i < this.nodes.length-1; i++){
+    // 	for(var j = this.nodes.length-1; j > i; j--){
+    // 		if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], EPSILON) ){
+    // 			super.mergeNodes(this.nodes[i], this.nodes[j]);
+    // 			// removeCatalog.push( {'x':this.nodes[i].x, 'y':this.nodes[i].y, 'nodes':[i,j] } );
+    // 			// removeCatalog.push( new XYPoint(this.nodes[i].x, this.nodes[i].y) );
+    // 		}
+    // 	}
+    // }
+    // return removeCatalog;
     PlanarGraph.prototype.getNearestNode = function (x, y) {
         // can be optimized with a k-d tree
         var index = undefined;
@@ -537,6 +558,61 @@ var PlanarGraph = (function (_super) {
         }
         return undefined;
     };
+    PlanarGraph.prototype.chopAllCrossingsWithEdge = function (edge) {
+        var intersections = edge.crossingEdges();
+        if (intersections.length === 0) {
+            return [];
+        }
+        var endNodes = [edge.node[0], edge.node[1]]
+            .sort(function (a, b) { if (a.x < b.x) {
+            return -1;
+        } if (a.x > b.x) {
+            return 1;
+        } return 0; })
+            .sort(function (a, b) { if (a.y < b.y) {
+            return -1;
+        } if (a.y > b.y) {
+            return 1;
+        } return 0; });
+        // remove the edge
+        _super.prototype.removeEdge.call(this, edge);
+        // step down the intersections, rebuild edges in order
+        var centerNodes = [];
+        for (var i = 0; i < intersections.length; i++) {
+            var intersection = intersections[i];
+            if (intersection.exists) {
+                var crossingEdge;
+                var crossingNodes = [];
+                if (intersection.edges[0] === edge) {
+                    crossingEdge = intersection.edges[1];
+                    crossingNodes = [intersection.nodes[2], intersection.nodes[3]];
+                }
+                else if (intersection.edges[1] === edge) {
+                    crossingEdge = intersection.edges[0];
+                    crossingNodes = [intersection.nodes[0], intersection.nodes[1]];
+                }
+                else {
+                    console.log(":p something weird");
+                }
+                this.removeEdge(crossingEdge);
+                // this.removeEdgesBetween(crossingNodes[0], crossingNodes[1]);
+                var centerNode = this.addNode(new PlanarNode(intersection.x, intersection.y));
+                centerNodes.push(centerNode);
+                this.addEdgeFromExistingVertices(centerNode, crossingNodes[0]);
+                this.addEdgeFromExistingVertices(centerNode, crossingNodes[1]);
+            }
+            else {
+                console.log("yes, this happened");
+            }
+        }
+        this.addEdgeFromExistingVertices(endNodes[0], centerNodes[0]);
+        for (var i = 0; i < centerNodes.length - 1; i++) {
+            this.addEdgeFromExistingVertices(centerNodes[i], centerNodes[i + 1]);
+        }
+        this.addEdgeFromExistingVertices(centerNodes[centerNodes.length - 1], endNodes[1]);
+        _super.prototype.clean.call(this);
+        return intersections.map(function (el) { return new XYPoint(el.x, el.y); });
+    };
     PlanarGraph.prototype.chopEdgesWithIntersection = function (intersection) {
         if (intersection == undefined)
             return;
@@ -550,14 +626,14 @@ var PlanarGraph = (function (_super) {
         this.mergeDuplicateVertices();
     };
     PlanarGraph.prototype.chop = function () {
-        this.mergeDuplicateVertices();
-        var intersection;
-        var i = 0;
-        do {
-            intersection = this.anyEdgeCrossings();
-            this.chopEdgesWithIntersection(intersection);
-            i++;
-        } while (intersection !== undefined && i < 1000);
+        var crossings = [];
+        for (var i = 0; i < this.edges.length; i++) {
+            crossings = crossings.concat(this.chopAllCrossingsWithEdge(this.edges[i]));
+            this.clean();
+        }
+        // todo: crossings sometimes has duplicate points, either clean it up here,
+        //       or something can be improved about the algorithm
+        return crossings;
     };
     PlanarGraph.prototype.chopOld = function () {
         // var intersectionPoints = new PlanarGraph();
