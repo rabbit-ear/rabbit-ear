@@ -23,6 +23,11 @@ var GraphNode = (function () {
             .map(function (el) { return el.node[0]; }, this);
         return first.concat(second);
     };
+    GraphNode.prototype.isAdjacentToNode = function (node) {
+        if (this.graph.getEdgeConnectingNodes(this, node) == undefined)
+            return false;
+        return true;
+    };
     return GraphNode;
 }());
 var GraphEdge = (function () {
@@ -43,21 +48,32 @@ var GraphEdge = (function () {
     GraphEdge.prototype.adjacentNodes = function () {
         return [this.node[0], this.node[1]];
     };
-    GraphEdge.prototype.isAdjacentWithEdge = function (edge) {
+    GraphEdge.prototype.isAdjacentToEdge = function (edge) {
         return ((this.node[0] === edge.node[0]) || (this.node[1] === edge.node[1]) ||
             (this.node[0] === edge.node[1]) || (this.node[1] === edge.node[0]));
     };
-    GraphEdge.prototype.nodeInCommon = function (otherEdge) {
+    GraphEdge.prototype.isSimilarToEdge = function (edge) {
+        return ((this.node[0] === edge.node[0] && this.node[1] === edge.node[1]) ||
+            (this.node[0] === edge.node[1] && this.node[1] === edge.node[0]));
+    };
+    GraphEdge.prototype.commonNodeWithEdge = function (otherEdge) {
+        // only for adjacent edges
         if (this === otherEdge)
             return undefined;
-        if (this.node[0] === otherEdge.node[0])
+        if (this.node[0] === otherEdge.node[0] || this.node[0] === otherEdge.node[1])
             return this.node[0];
-        if (this.node[0] === otherEdge.node[1])
+        if (this.node[1] === otherEdge.node[0] || this.node[1] === otherEdge.node[1])
+            return this.node[1];
+        return undefined;
+    };
+    GraphEdge.prototype.uncommonNodeWithEdge = function (otherEdge) {
+        // only for adjacent edges
+        if (this === otherEdge)
+            return undefined;
+        if (this.node[0] === otherEdge.node[0] || this.node[0] === otherEdge.node[1])
+            return this.node[1];
+        if (this.node[1] === otherEdge.node[0] || this.node[1] === otherEdge.node[1])
             return this.node[0];
-        if (this.node[1] === otherEdge.node[0])
-            return this.node[1];
-        if (this.node[1] === otherEdge.node[1])
-            return this.node[1];
         return undefined;
     };
     return GraphEdge;
@@ -71,7 +87,16 @@ var Graph = (function () {
             "allowCircular": false // classic mathematical graph does not allow circular edges
         };
     }
-    // removes all edges and nodes
+    ///////////////////////////////////////////////
+    // ADD PARTS
+    ///////////////////////////////////////////////
+    Graph.prototype.nodeArrayDidChange = function () { for (var i = 0; i < this.nodes.length; i++) {
+        this.nodes[i].index = i;
+    } };
+    Graph.prototype.edgeArrayDidChange = function () { for (var i = 0; i < this.edges.length; i++) {
+        this.edges[i].index = i;
+    } };
+    // nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}
     Graph.prototype.clear = function () {
         this.nodes = [];
         this.edges = [];
@@ -126,6 +151,9 @@ var Graph = (function () {
         }
         this.clean();
     };
+    ///////////////////////////////////////////////
+    // REMOVE PARTS
+    ///////////////////////////////////////////////
     Graph.prototype.removeEdgesBetween = function (node1, node2) {
         var len = this.edges.length;
         this.edges = this.edges.filter(function (el) {
@@ -149,96 +177,12 @@ var Graph = (function () {
         }
         return false;
     };
-    // removeEdge(edgeIndex:number){
-    // 	if(edgeIndex > this.edges.length){ throw "removeEdge() index is greater than length of edge array"; }
-    // 	this.edges.splice(edgeIndex, 1);
-    // 	this.edgeArrayDidChange();
-    // }
     Graph.prototype.removeEdge = function (edge) {
         var len = this.edges.length;
         this.edges = this.edges.filter(function (el) { return el !== edge; });
         if (len == this.edges.length)
             return false;
         return true;
-    };
-    Graph.prototype.nodeArrayDidChange = function () { for (var i = 0; i < this.nodes.length; i++) {
-        this.nodes[i].index = i;
-    } };
-    Graph.prototype.edgeArrayDidChange = function () { for (var i = 0; i < this.edges.length; i++) {
-        this.edges[i].index = i;
-    } };
-    // CLEAN will change the edges, but nodes will remain unaffected
-    Graph.prototype.clean = function () {
-        return { 'duplicate': this.cleanDuplicateEdges(),
-            'circular': this.cleanCircularEdges() };
-    };
-    // remove circular edges (a node connecting to itself)
-    Graph.prototype.cleanCircularEdges = function () {
-        var edgesLength = this.edges.length;
-        this.edges = this.edges.filter(function (el) { return !(el.node[0] === el.node[1]); });
-        if (this.edges.length != edgesLength) {
-            this.edgeArrayDidChange();
-        }
-        return edgesLength - this.edges.length;
-    };
-    // remove any duplicate edges (edges containing the same 2 nodes)
-    Graph.prototype.cleanDuplicateEdges = function () {
-        // (SIMPLE: does not modify NODE array)
-        var count = 0;
-        for (var i = 0; i < this.edges.length - 1; i++) {
-            for (var j = this.edges.length - 1; j > i; j--) {
-                if (this.areEdgesSimilar(i, j)) {
-                    this.edges.splice(j, 1);
-                    count += 1;
-                }
-            }
-        }
-        if (count > 0) {
-            this.edgeArrayDidChange();
-        }
-        return count;
-    };
-    // TRUE FALSE QUERIES
-    Graph.prototype.areNodesAdjacent = function (nodeIndex1, nodeIndex2) {
-        if (this.getEdgeConnectingNodes == undefined) {
-            return false;
-        }
-        return true;
-    };
-    Graph.prototype.areEdgesAdjacent = function (edgeIndex1, edgeIndex2) {
-        return ((this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[0]) ||
-            (this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[1]) ||
-            (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[1]) ||
-            (this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[0]));
-    };
-    Graph.prototype.areEdgesSimilar = function (edgeIndex1, edgeIndex2) {
-        return ((this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[0] &&
-            this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[1]) ||
-            (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[1] &&
-                this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[0]));
-    };
-    // getEdgeConnectingNodes in 2 parts: if graph is classical (no duplicate edges)
-    //  the use "Edge" singular, else use "Edges" plural getEdgesConnectingNodes
-    Graph.prototype.getEdgeConnectingNodes = function (node1, node2) {
-        // for this to work, graph must be cleaned. no duplicate edges
-        for (var i = 0; i < this.edges.length; i++) {
-            if ((this.edges[i].node[0] === node1 && this.edges[i].node[1] === node2) ||
-                (this.edges[i].node[0] === node2 && this.edges[i].node[1] === node1)) {
-                return this.edges[i];
-            }
-        }
-        // if nodes are not connected
-        return undefined;
-    };
-    Graph.prototype.getEdgesConnectingNodes = function (node1, node2) {
-        var edges = [];
-        for (var i = 0; i < this.edges.length; i++) {
-            if ((this.edges[i].node[0] == node1 && this.edges[i].node[1] == node2) ||
-                (this.edges[i].node[0] == node2 && this.edges[i].node[1] == node1)) {
-                edges.push(this.edges[i]);
-            }
-        }
-        return edges;
     };
     // replaces all mention of one node with the other in both node and edge arrays
     // shrinks the total number of nodes
@@ -257,14 +201,67 @@ var Graph = (function () {
         this.clean();
         return true;
     };
-    Graph.prototype.log = function () {
+    // remove circular edges (a node connecting to itself)
+    Graph.prototype.cleanCircularEdges = function () {
+        var edgesLength = this.edges.length;
+        this.edges = this.edges.filter(function (el) { return !(el.node[0] === el.node[1]); });
+        if (this.edges.length != edgesLength) {
+            this.edgeArrayDidChange();
+        }
+        return edgesLength - this.edges.length;
+    };
+    // remove any duplicate edges (edges containing the same 2 nodes)
+    Graph.prototype.cleanDuplicateEdges = function () {
+        // (SIMPLE: does not modify NODE array)
+        var count = 0;
+        for (var i = 0; i < this.edges.length - 1; i++) {
+            for (var j = this.edges.length - 1; j > i; j--) {
+                if (this.edges[i].isSimilarToEdge(this.edges[j])) {
+                    this.edges.splice(j, 1);
+                    count += 1;
+                }
+            }
+        }
+        if (count > 0) {
+            this.edgeArrayDidChange();
+        }
+        return count;
+    };
+    // CLEAN will change the edges, but nodes will remain unaffected
+    Graph.prototype.clean = function () {
+        return { 'duplicate': this.cleanDuplicateEdges(),
+            'circular': this.cleanCircularEdges() };
+    };
+    ///////////////////////////////////////////////
+    // GET PARTS
+    ///////////////////////////////////////////////
+    // getEdgeConnectingNodes in 2 parts: if graph is classical (no duplicate edges)
+    //  the use "Edge" singular, else use "Edges" plural getEdgesConnectingNodes
+    Graph.prototype.getEdgeConnectingNodes = function (node1, node2) {
+        // for this to work, graph must be cleaned. no duplicate edges
+        for (var i = 0; i < this.edges.length; i++) {
+            if ((this.edges[i].node[0] === node1 && this.edges[i].node[1] === node2) ||
+                (this.edges[i].node[0] === node2 && this.edges[i].node[1] === node1)) {
+                return this.edges[i];
+            }
+        }
+        // if nodes are not connected
+        return undefined;
+    };
+    Graph.prototype.getEdgesConnectingNodes = function (node1, node2) {
+        return this.edges.filter(function (el) {
+            (el.node[0] == node1 && el.node[1] == node2) ||
+                (el.node[0] == node2 && el.node[1] == node1);
+        });
+    };
+    Graph.prototype.log = function (detailed) {
         console.log('#Nodes: ' + this.nodes.length);
         console.log('#Edges: ' + this.edges.length);
-        // if(detailed != undefined){
-        // for(var i = 0; i < this.edges.length; i++){
-        // 	console.log(i + ': ' + this.edges[i].node[0] + ' ' + this.edges[i].node[1]);
-        // }
-        // }
+        if (detailed != undefined && detailed == true) {
+            for (var i = 0; i < this.edges.length; i++) {
+                console.log(i + ': ' + this.edges[i].node[0] + ' ' + this.edges[i].node[1]);
+            }
+        }
     };
     return Graph;
 }());

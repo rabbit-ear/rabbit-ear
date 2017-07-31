@@ -44,7 +44,7 @@ class Intersection extends XYPoint{
 	constructor(a:PlanarEdge, b:PlanarEdge){
 		super(undefined, undefined);  // to be set later, if intersection exists
 		this.exists = false;
-		if(a.isAdjacentWithEdge(b)){ return this; }
+		if(a.isAdjacentToEdge(b)){ return this; }
 		var aPts:PlanarNode[] = a.endPoints();
 		var bPts:PlanarNode[] = b.endPoints();
 		var intersect = lineSegmentIntersectionAlgorithm(aPts[0], aPts[1], bPts[0], bPts[1]);
@@ -927,16 +927,13 @@ class PlanarGraph extends Graph{
 	}
 
 
-	log(){
-		super.log();
-		console.log("Vertices: (" + this.nodes.length + ")");
+	log(detailed?:boolean){
+		super.log(detailed);
 		for(var i = 0; i < this.nodes.length; i++){
-			// console.log(' ' + i + ': (' + this.nodes[i].x + ', ' + this.nodes[i].y + ', ' + this.nodes[i].z + ')');
 			console.log(' ' + i + ': (' + this.nodes[i].x + ', ' + this.nodes[i].y + ')');
 		}
-		console.log("\nEdges:\n" + this.edges.length + ")");
 		for(var i = 0; i < this.edges.length; i++){
-			console.log(' ' + i + ': (' + this.edges[i].node[0] + ' -- ' + this.edges[i].node[1] + ')');
+			console.log(' ' + i + ': (' + this.edges[i].node[0].index + ' -- ' + this.edges[i].node[1].index + ')');
 		}
 	}
 }

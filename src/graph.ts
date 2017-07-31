@@ -7,7 +7,7 @@
 
 "use strict";
 
-class GraphNode{  // Nodes can represent anything
+class GraphNode{
 	graph:Graph;
 	index:number;
 
@@ -23,6 +23,10 @@ class GraphNode{  // Nodes can represent anything
 			.filter(function(el){ return el.node[1] == this}, this)
 			.map(function(el){ return el.node[0] }, this);
 		return first.concat(second);
+	}
+	isAdjacentToNode(node:GraphNode):boolean{
+		if(this.graph.getEdgeConnectingNodes(this, node) == undefined) return false;
+		return true;
 	}
 }
 
@@ -45,16 +49,30 @@ class GraphEdge{
 	adjacentNodes():GraphNode[]{
 		return [this.node[0], this.node[1]];
 	}
-	isAdjacentWithEdge(edge:GraphEdge):boolean{
-		return ( (this.node[0] === edge.node[0]) || (this.node[1] === edge.node[1]) ||
-		         (this.node[0] === edge.node[1]) || (this.node[1] === edge.node[0]) );		
+	isAdjacentToEdge(edge:GraphEdge):boolean{
+		return( (this.node[0] === edge.node[0]) || (this.node[1] === edge.node[1]) ||
+		        (this.node[0] === edge.node[1]) || (this.node[1] === edge.node[0]) );
 	}
-	nodeInCommon(otherEdge:GraphEdge):GraphNode{
+	isSimilarToEdge(edge:GraphEdge):boolean{
+		return( (this.node[0] === edge.node[0] && this.node[1] === edge.node[1] ) ||
+		        (this.node[0] === edge.node[1] && this.node[1] === edge.node[0] ) );
+	}
+	commonNodeWithEdge(otherEdge:GraphEdge):GraphNode{
+		// only for adjacent edges
 		if(this === otherEdge) return undefined;
-		if(this.node[0] === otherEdge.node[0]) return this.node[0];
-		if(this.node[0] === otherEdge.node[1]) return this.node[0];
-		if(this.node[1] === otherEdge.node[0]) return this.node[1];
-		if(this.node[1] === otherEdge.node[1]) return this.node[1];
+		if(this.node[0] === otherEdge.node[0] || this.node[0] === otherEdge.node[1]) 
+			return this.node[0];
+		if(this.node[1] === otherEdge.node[0] || this.node[1] === otherEdge.node[1])
+			return this.node[1];
+		return undefined;
+	}
+	uncommonNodeWithEdge(otherEdge:GraphEdge):GraphNode{
+		// only for adjacent edges
+		if(this === otherEdge) return undefined;
+		if(this.node[0] === otherEdge.node[0] || this.node[0] === otherEdge.node[1]) 
+			return this.node[1];
+		if(this.node[1] === otherEdge.node[0] || this.node[1] === otherEdge.node[1])
+			return this.node[0];
 		return undefined;
 	}
 }
@@ -62,21 +80,22 @@ class GraphEdge{
 class Graph{
 	nodes:GraphNode[];
 	edges:GraphEdge[];
-	preferences:any;
 	// todo: callback hooks for when certain properties of the data structure have been altered
 	didChange:(event:object)=>void;
 
 	constructor() {
 		this.clear(); // initialize empty arrays
-
-		// when you clean a graph, it will do different things based on these preferences
-		this.preferences = {
-			"allowDuplicate": false,  // set to truea and is no longer classical graph
-			"allowCircular": false    // classic mathematical graph does not allow circular edges
-		};
 	}
 
-	// removes all edges and nodes
+
+	///////////////////////////////////////////////
+	// ADD PARTS
+	///////////////////////////////////////////////
+
+	nodeArrayDidChange(){for(var i=0; i<this.nodes.length; i++){this.nodes[i].index=i;}}
+	edgeArrayDidChange(){for(var i=0; i<this.edges.length; i++){this.edges[i].index=i;}}
+	// nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}
+
 	clear(){
 		this.nodes = [];
 		this.edges = [];
@@ -128,6 +147,11 @@ class Graph{
 		this.clean();
 	}
 
+
+	///////////////////////////////////////////////
+	// REMOVE PARTS
+	///////////////////////////////////////////////
+
 	removeEdgesBetween(node1:GraphNode, node2:GraphNode):number{ // returns how many removed
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ 
@@ -148,91 +172,11 @@ class Graph{
 		return false;
 	}
 
-	// removeEdge(edgeIndex:number){
-	// 	if(edgeIndex > this.edges.length){ throw "removeEdge() index is greater than length of edge array"; }
-	// 	this.edges.splice(edgeIndex, 1);
-	// 	this.edgeArrayDidChange();
-	// }
 	removeEdge(edge:GraphEdge):boolean{
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ return el !== edge; });
 		if(len == this.edges.length) return false;
 		return true;
-	}
-
-	nodeArrayDidChange(){ for(var i = 0; i < this.nodes.length; i++){ this.nodes[i].index = i; } }
-	edgeArrayDidChange(){ for(var i = 0; i < this.edges.length; i++){ this.edges[i].index = i; } }
-
-	// CLEAN will change the edges, but nodes will remain unaffected
-	clean():object{
-		return {'duplicate': this.cleanDuplicateEdges(), 
-		         'circular': this.cleanCircularEdges() };
-	}
-
-	// remove circular edges (a node connecting to itself)
-	cleanCircularEdges():number{
-		var edgesLength = this.edges.length;
-		this.edges = this.edges.filter(function(el){ return !(el.node[0] === el.node[1]); });
-		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
-		return edgesLength - this.edges.length;
-	}
-
-	// remove any duplicate edges (edges containing the same 2 nodes)
-	cleanDuplicateEdges():number{
-		// (SIMPLE: does not modify NODE array)
-		var count = 0;
-		for(var i = 0; i < this.edges.length-1; i++){
-			for(var j = this.edges.length-1; j > i; j--){
-				if(this.areEdgesSimilar(i, j)){
-					this.edges.splice(j, 1);
-					count += 1;
-				}
-			}
-		}
-		if(count > 0){ this.edgeArrayDidChange(); }
-		return count;
-	}
-
-	// TRUE FALSE QUERIES
-	areNodesAdjacent(nodeIndex1:number, nodeIndex2:number):boolean{
-		if(this.getEdgeConnectingNodes == undefined){ return false; }
-		return true;
-	}
-	areEdgesAdjacent(edgeIndex1:number, edgeIndex2:number):boolean{
-		return ( (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[0]) ||
-		         (this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[1]) ||
-		         (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[1]) ||
-		         (this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[0]) );
-	}
-	areEdgesSimilar(edgeIndex1:number, edgeIndex2:number):boolean{
-		return( (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[0] &&
-		         this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[1] ) ||
-		        (this.edges[edgeIndex1].node[0] === this.edges[edgeIndex2].node[1] &&
-		         this.edges[edgeIndex1].node[1] === this.edges[edgeIndex2].node[0] ) );
-	}
-
-	// getEdgeConnectingNodes in 2 parts: if graph is classical (no duplicate edges)
-	//  the use "Edge" singular, else use "Edges" plural getEdgesConnectingNodes
-	getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge{
-		// for this to work, graph must be cleaned. no duplicate edges
-		for(var i = 0; i < this.edges.length; i++){
-			if( (this.edges[i].node[0] === node1 && this.edges[i].node[1] === node2 ) ||
-				(this.edges[i].node[0] === node2 && this.edges[i].node[1] === node1 ) ){
-				return this.edges[i];
-			}
-		}
-		// if nodes are not connected
-		return undefined;
-	}
-	getEdgesConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge[]{
-		var edges = [];
-		for(var i = 0; i < this.edges.length; i++){
-			if( (this.edges[i].node[0] == node1 && this.edges[i].node[1] == node2 ) ||
-				(this.edges[i].node[0] == node2 && this.edges[i].node[1] == node1 ) ){
-				edges.push( this.edges[i] );
-			}
-		}
-		return edges;
 	}
 
 	// replaces all mention of one node with the other in both node and edge arrays
@@ -249,13 +193,68 @@ class Graph{
 		return true;
 	}
 
-	log(){ // (detailed)
+	// remove circular edges (a node connecting to itself)
+	cleanCircularEdges():number{
+		var edgesLength = this.edges.length;
+		this.edges = this.edges.filter(function(el){ return !(el.node[0] === el.node[1]); });
+		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
+		return edgesLength - this.edges.length;
+	}
+
+	// remove any duplicate edges (edges containing the same 2 nodes)
+	cleanDuplicateEdges():number{
+		// (SIMPLE: does not modify NODE array)
+		var count = 0;
+		for(var i = 0; i < this.edges.length-1; i++){
+			for(var j = this.edges.length-1; j > i; j--){
+				if(this.edges[i].isSimilarToEdge(this.edges[j])){
+					this.edges.splice(j, 1);
+					count += 1;
+				}
+			}
+		}
+		if(count > 0){ this.edgeArrayDidChange(); }
+		return count;
+	}
+
+	// CLEAN will change the edges, but nodes will remain unaffected
+	clean():object{
+		return {'duplicate': this.cleanDuplicateEdges(), 
+		         'circular': this.cleanCircularEdges() };
+	}
+
+
+	///////////////////////////////////////////////
+	// GET PARTS
+	///////////////////////////////////////////////
+
+	// getEdgeConnectingNodes in 2 parts: if graph is classical (no duplicate edges)
+	//  the use "Edge" singular, else use "Edges" plural getEdgesConnectingNodes
+	getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge{
+		// for this to work, graph must be cleaned. no duplicate edges
+		for(var i = 0; i < this.edges.length; i++){
+			if( (this.edges[i].node[0] === node1 && this.edges[i].node[1] === node2 ) ||
+				(this.edges[i].node[0] === node2 && this.edges[i].node[1] === node1 ) ){
+				return this.edges[i];
+			}
+		}
+		// if nodes are not connected
+		return undefined;
+	}
+	getEdgesConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge[]{
+		return this.edges.filter(function(el){
+			(el.node[0] == node1 && el.node[1] == node2 ) ||
+			(el.node[0] == node2 && el.node[1] == node1 )
+		});
+	}
+
+	log(detailed?:boolean){
 		console.log('#Nodes: ' + this.nodes.length);
 		console.log('#Edges: ' + this.edges.length);
-		// if(detailed != undefined){
-			// for(var i = 0; i < this.edges.length; i++){
-			// 	console.log(i + ': ' + this.edges[i].node[0] + ' ' + this.edges[i].node[1]);
-			// }
-		// }
+		if(detailed != undefined && detailed == true){
+			for(var i = 0; i < this.edges.length; i++){
+				console.log(i + ': ' + this.edges[i].node[0] + ' ' + this.edges[i].node[1]);
+			}
+		}
 	}
 }

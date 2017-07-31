@@ -45,7 +45,7 @@ var Intersection = (function (_super) {
     function Intersection(a, b) {
         var _this = _super.call(this, undefined, undefined) || this;
         _this.exists = false;
-        if (a.isAdjacentWithEdge(b)) {
+        if (a.isAdjacentToEdge(b)) {
             return _this;
         }
         var aPts = a.endPoints();
@@ -413,20 +413,23 @@ var PlanarGraph = (function (_super) {
         }
         while (this.searchAndMergeOneDuplicatePair(epsilon)) { }
         ;
+        // var removeCatalog:XYPoint[] = [];
+        // removeCatalog.push( new XYPoint(this.nodes[i].x, this.nodes[i].y) );
+        // return removeCatalog;
     };
-    // DANGEROUS: removes nodes
-    // this looks for nodes.position which are physically nearby, within EPSILON radius
-    // var removeCatalog:XYPoint[] = [];
-    // for(var i = 0; i < this.nodes.length-1; i++){
-    // 	for(var j = this.nodes.length-1; j > i; j--){
-    // 		if ( this.verticesEquivalent(this.nodes[i], this.nodes[j], EPSILON) ){
-    // 			super.mergeNodes(this.nodes[i], this.nodes[j]);
-    // 			// removeCatalog.push( {'x':this.nodes[i].x, 'y':this.nodes[i].y, 'nodes':[i,j] } );
-    // 			// removeCatalog.push( new XYPoint(this.nodes[i].x, this.nodes[i].y) );
-    // 		}
-    // 	}
-    // }
-    // return removeCatalog;
+    PlanarGraph.prototype.mergeCollinearLines = function (epsilon) {
+        //gather all lines collinear to this one line
+        // gather all the collinear points, remove all edges between all of them
+        // but leave the nodes
+        // sort the nodes by this:
+        // nodeArray
+        // 	.sort(function(a,b){if(a.x<b.x){return -1;}if(a.x>b.x){return 1;}return 0;})
+        // 	.sort(function(a,b){if(a.y<b.y){return -1;}if(a.y>b.y){return 1;}return 0;});
+        // add edges back onto the line
+    };
+    PlanarGraph.prototype.clearUnusedCollinearNodes = function () {
+        // remove all nodes separating two collinear lines
+    };
     PlanarGraph.prototype.getNearestNode = function (x, y) {
         // can be optimized with a k-d tree
         var index = undefined;
@@ -871,16 +874,13 @@ var PlanarGraph = (function (_super) {
         }
         return false;
     };
-    PlanarGraph.prototype.log = function () {
-        _super.prototype.log.call(this);
-        console.log("Vertices: (" + this.nodes.length + ")");
+    PlanarGraph.prototype.log = function (detailed) {
+        _super.prototype.log.call(this, detailed);
         for (var i = 0; i < this.nodes.length; i++) {
-            // console.log(' ' + i + ': (' + this.nodes[i].x + ', ' + this.nodes[i].y + ', ' + this.nodes[i].z + ')');
             console.log(' ' + i + ': (' + this.nodes[i].x + ', ' + this.nodes[i].y + ')');
         }
-        console.log("\nEdges:\n" + this.edges.length + ")");
         for (var i = 0; i < this.edges.length; i++) {
-            console.log(' ' + i + ': (' + this.edges[i].node[0] + ' -- ' + this.edges[i].node[1] + ')');
+            console.log(' ' + i + ': (' + this.edges[i].node[0].index + ' -- ' + this.edges[i].node[1].index + ')');
         }
     };
     return PlanarGraph;
