@@ -1,7 +1,8 @@
 // generate faces
 
-	var cp = new CreasePattern();
+var cp;
 
+var paperCP;
 
 function node_adjacent_faces(){
 	var canvas = document.getElementById('canvas-chop');
@@ -10,7 +11,8 @@ function node_adjacent_faces(){
 	scope.setup(canvas);
 	zoomView(scope, canvas.width, canvas.height, 0.5);
 
-	var paperCP = new PaperCreasePattern(scope, cp);
+	cp = new CreasePattern();
+	paperCP = new PaperCreasePattern(scope, cp);
 
 	var nearestEdge = undefined;
 	var nearestNode = undefined;
@@ -28,7 +30,7 @@ function node_adjacent_faces(){
 		cp.clear();
 		cp.nodes = [];
 		cp.edges = [];
-		for(var i = 0; i < 10; i++){
+		for(var i = 0; i < 30; i++){
 			var angle = Math.random()*Math.PI*2;
 			cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
 		}

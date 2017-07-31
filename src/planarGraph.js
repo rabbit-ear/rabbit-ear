@@ -234,16 +234,6 @@ var PlanarEdge = (function (_super) {
         } if (a.y > b.y) {
             return 1;
         } return 0; });
-        // var intersections:Intersection[] = [];
-        // for(var i = 0; i < this.graph.edges.length; i++){
-        // 	if(this.graph.edges[i] !== this){
-        // 		var intersect = new Intersection(this, this.graph.edges[i]);
-        // 		if(intersect.exists){ intersections.push(intersect); }
-        // 	}
-        // }
-        // return intersections
-        // 	.sort(function(a,b){if(a.x<b.x){return -1;}if(a.x>b.x){return 1;}return 0;})
-        // 	.sort(function(a,b){if(a.y<b.y){return -1;}if(a.y>b.y){return 1;}return 0;});
     };
     return PlanarEdge;
 }(GraphEdge));
@@ -577,54 +567,47 @@ var PlanarGraph = (function (_super) {
         // remove the edge
         _super.prototype.removeEdge.call(this, edge);
         // step down the intersections, rebuild edges in order
-        var centerNodes = [];
+        var newLineNodes = [];
         for (var i = 0; i < intersections.length; i++) {
             var intersection = intersections[i];
-            if (intersection.exists) {
-                var crossingEdge;
-                var crossingNodes = [];
-                if (intersection.edges[0] === edge) {
-                    crossingEdge = intersection.edges[1];
-                    crossingNodes = [intersection.nodes[2], intersection.nodes[3]];
-                }
-                else if (intersection.edges[1] === edge) {
-                    crossingEdge = intersection.edges[0];
-                    crossingNodes = [intersection.nodes[0], intersection.nodes[1]];
-                }
-                else {
-                    console.log(":p something weird");
-                }
-                this.removeEdge(crossingEdge);
-                // this.removeEdgesBetween(crossingNodes[0], crossingNodes[1]);
-                var centerNode = this.addNode(new PlanarNode(intersection.x, intersection.y));
-                centerNodes.push(centerNode);
-                this.addEdgeFromExistingVertices(centerNode, crossingNodes[0]);
-                this.addEdgeFromExistingVertices(centerNode, crossingNodes[1]);
+            var crossingEdge;
+            var crossingNodes = [];
+            if (intersection.edges[0] === edge) {
+                crossingEdge = intersection.edges[1];
+                crossingNodes = [intersection.nodes[2], intersection.nodes[3]];
+            }
+            else if (intersection.edges[1] === edge) {
+                crossingEdge = intersection.edges[0];
+                crossingNodes = [intersection.nodes[0], intersection.nodes[1]];
             }
             else {
-                console.log("yes, this happened");
+                console.log(":p something weird");
             }
+            this.removeEdge(crossingEdge);
+            var newNode = this.addNode(new PlanarNode(intersection.x, intersection.y));
+            this.addEdgeFromExistingVertices(newNode, crossingNodes[0]);
+            this.addEdgeFromExistingVertices(newNode, crossingNodes[1]);
+            newLineNodes.push(newNode);
         }
-        this.addEdgeFromExistingVertices(endNodes[0], centerNodes[0]);
-        for (var i = 0; i < centerNodes.length - 1; i++) {
-            this.addEdgeFromExistingVertices(centerNodes[i], centerNodes[i + 1]);
+        this.addEdgeFromExistingVertices(endNodes[0], newLineNodes[0]);
+        for (var i = 0; i < newLineNodes.length - 1; i++) {
+            this.addEdgeFromExistingVertices(newLineNodes[i], newLineNodes[i + 1]);
         }
-        this.addEdgeFromExistingVertices(centerNodes[centerNodes.length - 1], endNodes[1]);
+        this.addEdgeFromExistingVertices(newLineNodes[newLineNodes.length - 1], endNodes[1]);
         _super.prototype.clean.call(this);
         return intersections.map(function (el) { return new XYPoint(el.x, el.y); });
     };
-    PlanarGraph.prototype.chopEdgesWithIntersection = function (intersection) {
-        if (intersection == undefined)
-            return;
-        this.removeEdgesBetween(intersection.nodes[0], intersection.nodes[1]);
-        this.removeEdgesBetween(intersection.nodes[2], intersection.nodes[3]);
-        var centerNode = this.addNode(new PlanarNode(intersection.x, intersection.y));
-        this.addEdgeFromExistingVertices(centerNode, intersection.nodes[0]);
-        this.addEdgeFromExistingVertices(centerNode, intersection.nodes[1]);
-        this.addEdgeFromExistingVertices(centerNode, intersection.nodes[2]);
-        this.addEdgeFromExistingVertices(centerNode, intersection.nodes[3]);
-        this.mergeDuplicateVertices();
-    };
+    // chopEdgesWithIntersection(intersection:Intersection){
+    // 	if(intersection == undefined) return;
+    // 	this.removeEdgesBetween(intersection.nodes[0], intersection.nodes[1]);
+    // 	this.removeEdgesBetween(intersection.nodes[2], intersection.nodes[3]);
+    // 	var centerNode = this.addNode(new PlanarNode(intersection.x, intersection.y));
+    // 	this.addEdgeFromExistingVertices(centerNode, intersection.nodes[0]);
+    // 	this.addEdgeFromExistingVertices(centerNode, intersection.nodes[1]);
+    // 	this.addEdgeFromExistingVertices(centerNode, intersection.nodes[2]);
+    // 	this.addEdgeFromExistingVertices(centerNode, intersection.nodes[3]);
+    // 	this.mergeDuplicateVertices();
+    // }
     PlanarGraph.prototype.chop = function () {
         var crossings = [];
         for (var i = 0; i < this.edges.length; i++) {
@@ -635,41 +618,41 @@ var PlanarGraph = (function (_super) {
         //       or something can be improved about the algorithm
         return crossings;
     };
-    PlanarGraph.prototype.chopOld = function () {
-        // var intersectionPoints = new PlanarGraph();
-        var allIntersections = []; // keep a running total of all the intersection points
-        for (var i = 0; i < this.edges.length; i++) {
-            console.log("edge " + i);
-            console.log(this.edges[i].endPoints()[0].x + " " + this.edges[i].endPoints()[0].y);
-            var edgeCrossings = this.getEdgeIntersectionsWithEdge(i);
-            if (edgeCrossings != undefined && edgeCrossings.length > 0) {
-                console.log(i + ": # crossings" + edgeCrossings.length);
-                allIntersections = allIntersections.concat(edgeCrossings);
-            }
-            while (edgeCrossings.length > 0) {
-                var newIntersectionIndex = this.nodes.length;
-                this.addNode(new PlanarNode(edgeCrossings[0].x, edgeCrossings[0].y));
-                // this.addNode({'x':edgeCrossings[0].x, 'y':edgeCrossings[0].y});
-                this.addEdgeFromExistingVertices(this.nodes[this.nodes.length - 1], edgeCrossings[0].nodes[0]);
-                this.addEdgeFromExistingVertices(this.nodes[this.nodes.length - 1], edgeCrossings[0].nodes[1]);
-                this.addEdgeFromExistingVertices(this.nodes[this.nodes.length - 1], edgeCrossings[0].nodes[2]);
-                this.addEdgeFromExistingVertices(this.nodes[this.nodes.length - 1], edgeCrossings[0].nodes[3]);
-                this.removeEdgesBetween(edgeCrossings[0].nodes[0], edgeCrossings[0].nodes[1]);
-                this.removeEdgesBetween(edgeCrossings[0].nodes[2], edgeCrossings[0].nodes[3]);
-                edgeCrossings = this.getEdgeIntersectionsWithEdge(i);
-                // add intersections to array
-                allIntersections = allIntersections.concat(edgeCrossings);
-                // intersectionPoints.addNodes(edgeCrossings);
-                this.clean();
-            }
-        }
-        // return allIntersections;
-        // return a unique array of all intersection points
-        var pg = new PlanarGraph(); // creating a object inside of the object def itself?..
-        pg.nodes = allIntersections;
-        pg.mergeDuplicateVertices();
-        return pg.nodes;
-    };
+    // chopOld(){
+    // 	// var intersectionPoints = new PlanarGraph();
+    // 	var allIntersections = [];  // keep a running total of all the intersection points
+    // 	for(var i = 0; i < this.edges.length; i++){
+    // 		console.log("edge " + i);
+    // 		console.log(this.edges[i].endPoints()[0].x + " " + this.edges[i].endPoints()[0].y);
+    // 		var edgeCrossings:Intersection[] = this.getEdgeIntersectionsWithEdge(i);
+    // 		if(edgeCrossings != undefined && edgeCrossings.length > 0){
+    // 			console.log(i + ": # crossings" + edgeCrossings.length);
+    // 			allIntersections = allIntersections.concat(edgeCrossings);
+    // 		}
+    // 		while(edgeCrossings.length > 0){
+    // 			var newIntersectionIndex = this.nodes.length;
+    // 			this.addNode(new PlanarNode(edgeCrossings[0].x, edgeCrossings[0].y));
+    // 			// this.addNode({'x':edgeCrossings[0].x, 'y':edgeCrossings[0].y});
+    // 			this.addEdgeFromExistingVertices(this.nodes[this.nodes.length-1], edgeCrossings[0].nodes[0]);
+    // 			this.addEdgeFromExistingVertices(this.nodes[this.nodes.length-1], edgeCrossings[0].nodes[1]);
+    // 			this.addEdgeFromExistingVertices(this.nodes[this.nodes.length-1], edgeCrossings[0].nodes[2]);
+    // 			this.addEdgeFromExistingVertices(this.nodes[this.nodes.length-1], edgeCrossings[0].nodes[3]);
+    // 			this.removeEdgesBetween(edgeCrossings[0].nodes[0], edgeCrossings[0].nodes[1]);
+    // 			this.removeEdgesBetween(edgeCrossings[0].nodes[2], edgeCrossings[0].nodes[3]);
+    // 			edgeCrossings = this.getEdgeIntersectionsWithEdge(i);
+    // 			// add intersections to array
+    // 			allIntersections = allIntersections.concat(edgeCrossings);
+    // 			// intersectionPoints.addNodes(edgeCrossings);
+    // 			this.clean();
+    // 		}
+    // 	}
+    // 	// return allIntersections;
+    // 	// return a unique array of all intersection points
+    // 	var pg = new PlanarGraph();  // creating a object inside of the object def itself?..
+    // 	pg.nodes = allIntersections;
+    // 	pg.mergeDuplicateVertices();
+    // 	return pg.nodes;
+    // }
     ///////////////////////////////////////////////////////////////
     // FACE
     PlanarGraph.prototype.generateFaces = function () {
