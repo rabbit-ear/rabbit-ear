@@ -1,10 +1,8 @@
-// generate faces
 
 var cp;
-
 var paperCP;
 
-function node_adjacent_faces(){
+function chop_sketch(){
 	var canvas = document.getElementById('canvas-chop');
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
@@ -76,6 +74,4 @@ function node_adjacent_faces(){
 		resetCP();
 	}
 
-	return this;
-
-} var adj_f = node_adjacent_faces();
+} chop_sketch();

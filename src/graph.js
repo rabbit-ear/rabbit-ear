@@ -81,11 +81,6 @@ var GraphEdge = (function () {
 var Graph = (function () {
     function Graph() {
         this.clear(); // initialize empty arrays
-        // when you clean a graph, it will do different things based on these preferences
-        this.preferences = {
-            "allowDuplicate": false,
-            "allowCircular": false // classic mathematical graph does not allow circular edges
-        };
     }
     ///////////////////////////////////////////////
     // ADD PARTS

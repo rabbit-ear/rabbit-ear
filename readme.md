@@ -1,46 +1,58 @@
 # Graph
 
-contains
-
-* class GraphNode
-* class GraphEdge
-
 ### GraphNode
-
-* graph:Graph
-* index:number
 
 ```typescript
 adjacentEdges():GraphEdge[]
 adjacentNodes():GraphNode[]
+isAdjacentToNode(node:GraphNode):boolean
 ```
 
 ### GraphEdge
 
-* graph:Graph
-* index:number
-* node:[number,number]
-
 ```typescript
 adjacentEdges():GraphEdge[]
 adjacentNodes():GraphNode[]
-isAdjacentWithEdge(edge:GraphEdge):boolean
+isAdjacentToEdge(edge:GraphEdge):boolean
+isSimilarToEdge(edge:GraphEdge):boolean
+commonNodeWithEdge(otherEdge:GraphEdge):GraphNode
+uncommonNodeWithEdge(otherEdge:GraphEdge):GraphNode
+```
+
+### Graph
+
+Add Components
+
+```typescript
+newNode():GraphNode 
+newEdge(node1:GraphNode, node2:GraphNode):GraphEdge 
+addNode(node:GraphNode):GraphNode
+addEdge(edge:GraphEdge):GraphEdge
+```
+
+Remove Components
+
+```typescript
+clear()
+removeNode(node:GraphNode):boolean
+removeEdge(edge:GraphEdge):boolean
+removeEdgesBetween(node1:GraphNode, node2:GraphNode):number
+mergeNodes(node1:GraphNode, node2:GraphNode):boolean
+cleanCircularEdges():number
+cleanDuplicateEdges():number
+clean():object
+```
+
+Query Components
+
+```typescript
+getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge
+getEdgesConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge[]
 ```
 
 # Planar Graph
 
 contains
-
-* class PlanarNode
-* class PlanarEdge
-* class PlanarFace
-
-and
-
-* class PlanarPair
-* class XYPoint
-* class Intersection
-
 
 ### PlanarNode
 
