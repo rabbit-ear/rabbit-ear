@@ -224,6 +224,8 @@ var Graph = (function () {
     };
     // CLEAN will change the edges, but nodes will remain unaffected
     Graph.prototype.clean = function () {
+        this.edgeArrayDidChange();
+        this.nodeArrayDidChange();
         return { 'duplicate': this.cleanDuplicateEdges(),
             'circular': this.cleanCircularEdges() };
     };

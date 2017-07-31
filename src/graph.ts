@@ -219,6 +219,8 @@ class Graph{
 
 	// CLEAN will change the edges, but nodes will remain unaffected
 	clean():object{
+		this.edgeArrayDidChange();
+		this.nodeArrayDidChange();
 		return {'duplicate': this.cleanDuplicateEdges(), 
 		         'circular': this.cleanCircularEdges() };
 	}
