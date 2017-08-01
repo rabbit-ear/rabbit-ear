@@ -86,8 +86,8 @@ var PlanarPair = (function () {
 // }
 var PlanarNode = (function (_super) {
     __extends(PlanarNode, _super);
-    function PlanarNode(xx, yy) {
-        var _this = _super.call(this) || this;
+    function PlanarNode(graph, xx, yy) {
+        var _this = _super.call(this, graph) || this;
         _this.x = xx;
         _this.y = yy;
         if (xx == undefined) {
@@ -203,14 +203,15 @@ var PlanarNode = (function (_super) {
     };
     return PlanarNode;
 }(GraphNode));
-var EdgeIntersection = (function () {
+var EdgeIntersection = (function (_super) {
+    __extends(EdgeIntersection, _super);
     function EdgeIntersection(otherEdge, intersectionX, intersectionY) {
-        this.edge = otherEdge;
-        this.x = intersectionX;
-        this.y = intersectionY;
+        var _this = _super.call(this, intersectionX, intersectionY) || this;
+        _this.edge = otherEdge;
+        return _this;
     }
     return EdgeIntersection;
-}());
+}(XYPoint));
 var PlanarEdge = (function (_super) {
     __extends(PlanarEdge, _super);
     function PlanarEdge() {
@@ -307,10 +308,10 @@ var PlanarGraph = (function (_super) {
     // ADD PARTS
     ///////////////////////////////////////////////
     // newNode(x:number, y:number):PlanarNode {
-    // 	return this.addNode(new PlanarNode(x, y));
+    // 	return this.addNode(new PlanarNode(this, x, y));
     // }
     PlanarGraph.prototype.newEdge = function (node1, node2) {
-        return this.addEdge(new PlanarEdge(node1, node2));
+        return this.addEdge(new PlanarEdge(this, node1, node2));
     };
     PlanarGraph.prototype.addNode = function (node) {
         if (node == undefined) {
@@ -330,12 +331,12 @@ var PlanarGraph = (function (_super) {
         return edge;
     };
     PlanarGraph.prototype.addEdgeWithVertices = function (x1, y1, x2, y2) {
-        var a = this.addNode(new PlanarNode(x1, y1));
-        var b = this.addNode(new PlanarNode(x2, y2));
+        var a = this.addNode(new PlanarNode(this, x1, y1));
+        var b = this.addNode(new PlanarNode(this, x2, y2));
         return this.newEdge(a, b);
     };
     PlanarGraph.prototype.addEdgeFromVertex = function (existingNode, newX, newY) {
-        var node = this.addNode(new PlanarNode(newX, newY));
+        var node = this.addNode(new PlanarNode(this, newX, newY));
         return this.newEdge(existingNode, node);
     };
     PlanarGraph.prototype.addEdgeFromExistingVertices = function (a, b) {
@@ -591,7 +592,7 @@ var PlanarGraph = (function (_super) {
         for (var i = 0; i < intersections.length; i++) {
             if (intersections[i] != undefined) {
                 this.removeEdge(intersections[i].edge);
-                var newNode = this.addNode(new PlanarNode(intersections[i].x, intersections[i].y));
+                var newNode = this.addNode(new PlanarNode(this, intersections[i].x, intersections[i].y));
                 this.newEdge(intersections[i].edge.node[0], newNode);
                 this.newEdge(newNode, intersections[i].edge.node[1]);
                 newLineNodes.push(newNode);
@@ -611,7 +612,7 @@ var PlanarGraph = (function (_super) {
     // 	if(intersection == undefined) return;
     // 	this.removeEdgesBetween(intersection.nodes[0], intersection.nodes[1]);
     // 	this.removeEdgesBetween(intersection.nodes[2], intersection.nodes[3]);
-    // 	var centerNode = this.addNode(new PlanarNode(intersection.x, intersection.y));
+    // 	var centerNode = this.addNode(new PlanarNode(this, intersection.x, intersection.y));
     // 	this.newEdge(centerNode, intersection.nodes[0]);
     // 	this.newEdge(centerNode, intersection.nodes[1]);
     // 	this.newEdge(centerNode, intersection.nodes[2]);
@@ -643,7 +644,7 @@ var PlanarGraph = (function (_super) {
     // 		}
     // 		while(edgeCrossings.length > 0){
     // 			var newIntersectionIndex = this.nodes.length;
-    // 			this.addNode(new PlanarNode(edgeCrossings[0].x, edgeCrossings[0].y));
+    // 			this.addNode(new PlanarNode(this, edgeCrossings[0].x, edgeCrossings[0].y));
     // 			// this.addNode({'x':edgeCrossings[0].x, 'y':edgeCrossings[0].y});
     // 			this.newEdge(this.nodes[this.nodes.length-1], edgeCrossings[0].nodes[0]);
     // 			this.newEdge(this.nodes[this.nodes.length-1], edgeCrossings[0].nodes[1]);

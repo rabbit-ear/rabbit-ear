@@ -6,7 +6,8 @@
 //  "similar": in the case of an edge: they contain the same 2 nodes, possibly in a different order
 "use strict";
 var GraphNode = (function () {
-    function GraphNode() {
+    function GraphNode(graph) {
+        this.graph = graph;
     }
     GraphNode.prototype.adjacentEdges = function () {
         if (this.graph == undefined) {
@@ -31,7 +32,8 @@ var GraphNode = (function () {
     return GraphNode;
 }());
 var GraphEdge = (function () {
-    function GraphEdge(node1, node2) {
+    function GraphEdge(graph, node1, node2) {
+        this.graph = graph;
         this.node = [node1, node2];
     }
     ;
@@ -97,10 +99,10 @@ var Graph = (function () {
         this.edges = [];
     };
     Graph.prototype.newNode = function () {
-        return this.addNode(new GraphNode());
+        return this.addNode(new GraphNode(this));
     };
     Graph.prototype.newEdge = function (node1, node2) {
-        return this.addEdge(new GraphEdge(node1, node2));
+        return this.addEdge(new GraphEdge(this, node1, node2));
     };
     Graph.prototype.addNode = function (node) {
         if (node == undefined) {

@@ -12,8 +12,8 @@ enum CreaseDirection{
 class CreaseNode extends PlanarNode{
 	graph:CreasePattern;
 
-	constructor(xx:number, yy:number){
-		super(xx, yy);
+	constructor(graph:CreasePattern, xx:number, yy:number){
+		super(graph, xx, yy);
 	}
 	// isBoundary():boolean{
 	// 	if(this.y<EPSILON || this.x>1.0-EPSILON || this.y>1.0-EPSILON || this.x<EPSILON ){ return true; } 
@@ -30,8 +30,8 @@ class CreaseNode extends PlanarNode{
 
 class Crease extends PlanarEdge{
 	orientation:CreaseDirection;
-	constructor(node1:CreaseNode, node2:CreaseNode){
-		super(node1, node2);
+	constructor(graph:CreasePattern, node1:CreaseNode, node2:CreaseNode){
+		super(graph, node1, node2);
 	};
 	mark(){ this.orientation = CreaseDirection.none; return this;}
 	mountain(){ this.orientation = CreaseDirection.mountain; return this;}
@@ -101,11 +101,11 @@ class CreasePattern extends PlanarGraph{
 
 	// re-implement super class functions with new types
 	newEdge(node1:CreaseNode, node2:CreaseNode):Crease {
-		return <Crease>this.addEdge(new Crease(node1, node2));
+		return <Crease>this.addEdge(new Crease(this, node1, node2));
 	}
 	addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):Crease{
-		var a = <CreaseNode>this.addNode( new CreaseNode(x1, y1) );
-		var b = <CreaseNode>this.addNode( new CreaseNode(x2, y2) );
+		var a = <CreaseNode>this.addNode( new CreaseNode(this, x1, y1) );
+		var b = <CreaseNode>this.addNode( new CreaseNode(this, x2, y2) );
 		return this.newEdge(a, b);
 	}
 

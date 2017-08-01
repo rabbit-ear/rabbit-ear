@@ -11,6 +11,8 @@ class GraphNode{
 	graph:Graph;
 	index:number;
 
+	constructor(graph:Graph){ this.graph = graph; }
+
 	adjacentEdges():GraphEdge[]{
 		if(this.graph == undefined) { throw "error: didn't set a node's parent graph. use graph.newNode()"; }
 		return this.graph.edges.filter(function(el:GraphEdge){ return el.node[0] === this || el.node[1] === this; }, this);
@@ -35,7 +37,8 @@ class GraphEdge{
 	index:number;
 
 	node:[GraphNode,GraphNode]; // every edge must connect 2 nodes
-	constructor(node1:GraphNode, node2:GraphNode){
+	constructor(graph:Graph, node1:GraphNode, node2:GraphNode){
+		this.graph = graph;
 		this.node = [node1, node2];
 	};
 	adjacentEdges():GraphEdge[]{
@@ -102,10 +105,10 @@ class Graph{
 	}
 
 	newNode():GraphNode {
-		return this.addNode(new GraphNode());
+		return this.addNode(new GraphNode(this));
 	}
 	newEdge(node1:GraphNode, node2:GraphNode):GraphEdge {
-		return this.addEdge(new GraphEdge(node1, node2));
+		return this.addEdge(new GraphEdge(this, node1, node2));
 	}
 
 	addNode(node:GraphNode):GraphNode{
