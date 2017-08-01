@@ -178,8 +178,8 @@ var PlanarNode = (function (_super) {
                 return adjacentNodes[index];
             }
         }
-        // return undefined;
-        throw "adjacentNodeClockwiseFrom() fromNode was not found adjacent to the specified node";
+        return undefined;
+        // throw "adjacentNodeClockwiseFrom() fromNode was not found adjacent to the specified node";
     };
     PlanarNode.prototype.rotateAroundNode = function (node, angle) {
         var dx = this.x - node.x;
@@ -555,16 +555,26 @@ var PlanarGraph = (function (_super) {
     // 	this.newEdge(centerNode, intersection.nodes[3]);
     // 	this.mergeDuplicateVertices();
     // }
-    PlanarGraph.prototype.chop = function () {
+    PlanarGraph.prototype.chopOneRound = function () {
         var crossings = [];
-        // var max = this.edges.length;
         for (var i = 0; i < this.edges.length; i++) {
-            // console.log("chop " + i);
             crossings = crossings.concat(this.chopAllCrossingsWithEdge(this.edges[i]));
             this.clean();
         }
-        // todo: crossings sometimes has duplicate points, either clean it up here,
-        //       or something can be improved about the algorithm
+        return crossings;
+    };
+    PlanarGraph.prototype.chop = function () {
+        var protection = 0;
+        var crossings = [];
+        var additionalCrossings;
+        do {
+            additionalCrossings = this.chopOneRound();
+            crossings = crossings.concat(additionalCrossings);
+            protection += 1;
+        } while (additionalCrossings.length != 0 && protection < 100);
+        if (protection >= 100) {
+            console.log("breaking loop, exceeded 100");
+        }
         return crossings;
     };
     ///////////////////////////////////////////////////////////////
@@ -597,6 +607,10 @@ var PlanarGraph = (function (_super) {
                     b = c;
                     a2b = b2c;
                     b2c = b.adjacentNodeClockwiseFrom(a);
+                    if (b2c == undefined) {
+                        invalidFace = true;
+                        break;
+                    }
                     c = b2c.node;
                     angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
                 } while (c !== thisNode);
@@ -608,7 +622,9 @@ var PlanarGraph = (function (_super) {
                 } // this is consistently happening with one of the paper corner vertices
                 else {
                     var c2a = thisNode.adjacentNodeClockwiseFrom(b);
-                    angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
+                    if (c2a != undefined) {
+                        angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
+                    }
                 }
                 // add face if valid
                 if (!invalidFace && thisFace.nodes.length > 2) {

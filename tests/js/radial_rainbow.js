@@ -79,7 +79,7 @@ function radial_rainbow(){
 				if(planarAdjacent[i].edge === nearestEdge){
 					paperCP.edges[edgeIndex].strokeColor = { red:1.0, green:0.0, blue:0.0 };
 					if(radial_rainbow_callback != undefined){
-						radial_rainbow_callback(planarAdjacent[i].angle);
+						radial_rainbow_callback(planarAdjacent[i]);
 					}
 				}
 				else{

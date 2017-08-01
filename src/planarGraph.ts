@@ -174,8 +174,8 @@ class PlanarNode extends GraphNode implements XYPoint{
 				return adjacentNodes[index];
 			}
 		}
-		// return undefined;
-		throw "adjacentNodeClockwiseFrom() fromNode was not found adjacent to the specified node";
+		return undefined;
+		// throw "adjacentNodeClockwiseFrom() fromNode was not found adjacent to the specified node";
 	}
 
 	rotateAroundNode(node:PlanarNode, angle:number){  // in radians
@@ -602,16 +602,25 @@ class PlanarGraph extends Graph{
 	// 	this.mergeDuplicateVertices();
 	// }
 
-	chop():XYPoint[]{
+	chopOneRound():XYPoint[]{
 		var crossings = [];
-		// var max = this.edges.length;
 		for(var i = 0; i < this.edges.length; i++){
-			// console.log("chop " + i);
 			crossings = crossings.concat(this.chopAllCrossingsWithEdge(this.edges[i]));
 			this.clean();
 		}
-		// todo: crossings sometimes has duplicate points, either clean it up here,
-		//       or something can be improved about the algorithm
+		return crossings;
+	}
+
+	chop(){
+		var protection = 0;
+		var crossings = [];
+		var additionalCrossings;
+		do{
+			additionalCrossings = this.chopOneRound();
+			crossings = crossings.concat(additionalCrossings);
+			protection += 1;
+		}while(additionalCrossings.length != 0 && protection < 100);
+		if(protection >= 100){ console.log("breaking loop, exceeded 100"); }
 		return crossings;
 	}
 
@@ -641,6 +650,7 @@ class PlanarGraph extends Graph{
 					// increment, step forward
 					a = b;   b = c;   a2b = b2c;
 					b2c = b.adjacentNodeClockwiseFrom(a);
+					if(b2c == undefined){ invalidFace = true; break; }
 					c = b2c.node;
 					angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
 				}while(c !== thisNode);
@@ -650,7 +660,9 @@ class PlanarGraph extends Graph{
 				if(thisNode === b){ invalidFace = true;} // this is consistently happening with one of the paper corner vertices
 				else{
 					var c2a = thisNode.adjacentNodeClockwiseFrom(b);
-					angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
+					if(c2a != undefined){ 
+						angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
+					}
 				}
 				// add face if valid
 				if(!invalidFace && thisFace.nodes.length > 2){

@@ -34,6 +34,7 @@ function node_adjacent_faces(){
 		zoomView(scope, canvas.width, canvas.height, 0.5);
 	}
 	scope.view.onMouseMove = function(event) {
+		paper = scope;
 		mousePos = event.point;
 		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
 		if(nearestNode !== nNode){
@@ -54,12 +55,12 @@ function node_adjacent_faces(){
 			}
 			// console.log("Node: " + nearestNode);
 			if(node_adjacent_faces_callback != undefined){
-				node_adjacent_faces_callback({'node':nearestNode.index});
+				node_adjacent_faces_callback({'node':nearestNode});
 			}
 		}
 	}
 	scope.view.onMouseDown = function(event){ }
 
-	// on boot, load (0.5, 0.5)
+	// on boot, load (0.0, 0.0)
 	scope.view.onMouseMove({point:{x:0.0, y:0.0}});
 } node_adjacent_faces();

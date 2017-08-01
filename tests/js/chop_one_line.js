@@ -1,21 +1,22 @@
-// generate faces
 
-edge_intersections_callback = undefined;
+var cp;
+var paperCP;
 
-function edge_intersections(){
-	var canvas = document.getElementById('canvas-intersections');
+function chop_one_line(){
+	var canvas = document.getElementById('canvas-chop-one-line');
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
 	zoomView(scope, canvas.width, canvas.height, 0.5);
 
-	var cp = new CreasePattern();
-	var paperCP = new PaperCreasePattern(scope, cp);
+	cp = new CreasePattern();
+	paperCP = new PaperCreasePattern(scope, cp);
 
 	var nearestEdge = undefined;
 	var nearestNode = undefined;
 
-	var intersectionsLayer = new paper.Layer();
+	var NUM_LINES = 30;
+
 	var mouseNodeLayer = new paper.Layer();
 	mouseNodeLayer.activate();
 	mouseNodeLayer.removeChildren();
@@ -29,27 +30,26 @@ function edge_intersections(){
 		cp.clear();
 		cp.nodes = [];
 		cp.edges = [];
-		for(var i = 0; i < 30; i++){
-			var angle = Math.random()*Math.PI*2;
-			cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
+		// cp.creaseOnly(new XYPoint(0.0, 0.495), new XYPoint(1.0, 0.505));
+		var firstEdge = cp.creaseOnly(new XYPoint(0.0, 0.5), new XYPoint(1.0, 0.5));
+		var v = .8/(NUM_LINES-1);
+		for(var i = 0; i < NUM_LINES; i++){
+			var x = .1 + .8*(i/(NUM_LINES-1));
+			cp.creaseOnly(
+				new XYPoint(x + Math.random()*v-v*0.5, 0.25 + Math.random()*v-v*0.5), 
+				new XYPoint(x + Math.random()*v-v*0.5, 0.75 + Math.random()*v-v*0.5)
+			);
 		}
-		var intersections = cp.chop();
+		// var crossings = firstEdge.crossingEdges();
+		// var crossings = cp.chop();
+		// var crossings = cp.chopAllCrossingsWithEdge(firstEdge);
+		// console.log(crossings);
+		var edge = cp.creaseOnly(new XYPoint(0.0, 0.6), new XYPoint(1.0, 0.6));
+		var crossings = cp.chop();
+		// var crossings = cp.chopAllCrossingsWithEdge(edge);
+		console.log(crossings);
+		// console.log(crossings.length + " crossings");
 		paperCP.initialize();
-
-		intersectionsLayer.activate();
-		intersectionsLayer.removeChildren();
-		// var intersections = cp.getAllEdgeIntersections();
-		// console.log(intersections);
-		for(var i = 0; i < intersections.length; i++){
-			var nodeCircle = new paper.Shape.Circle({
-				center: [intersections[i].x, intersections[i].y],
-				radius: 0.01,
-				fillColor: { hue:220, saturation:0.6, brightness:0.8 }//{ hue:130, saturation:0.8, brightness:0.7 }
-			});
-		}
-		if(edge_intersections_callback != undefined){
-			edge_intersections_callback(intersections);
-		}
 	}
 	resetCP();
 
@@ -88,4 +88,4 @@ function edge_intersections(){
 		resetCP();
 	}
 
-} edge_intersections();
+}  chop_one_line();

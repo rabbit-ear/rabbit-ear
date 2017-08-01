@@ -534,43 +534,43 @@ var CreasePattern = (function (_super) {
         this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.5).border();
         this.addEdgeWithVertices(0.0, 0.5, 0.0, 0.0).border();
         // eight 22.5 degree lines
-        this.addEdgeWithVertices(0, 1, 0.5, .79289).mountain();
-        this.addEdgeWithVertices(0, 1, .2071, 0.5).mountain();
-        this.addEdgeWithVertices(1, 0, 0.5, .20711).mountain();
-        this.addEdgeWithVertices(1, 0, .79289, 0.5).mountain();
-        this.addEdgeWithVertices(1, 1, .79291, 0.5).mountain();
-        this.addEdgeWithVertices(1, 1, 0.5, .79291).mountain();
-        this.addEdgeWithVertices(0, 0, .20709, 0.5).mountain();
-        this.addEdgeWithVertices(0, 0, 0.5, .2071).mountain();
+        this.addEdgeWithVertices(0, 1, 0.5, .79290).mountain();
+        this.addEdgeWithVertices(0, 1, .20710, 0.5).mountain();
+        this.addEdgeWithVertices(1, 0, 0.5, .20710).mountain();
+        this.addEdgeWithVertices(1, 0, .79290, 0.5).mountain();
+        this.addEdgeWithVertices(1, 1, .79290, 0.5).mountain();
+        this.addEdgeWithVertices(1, 1, 0.5, .79290).mountain();
+        this.addEdgeWithVertices(0, 0, .20710, 0.5).mountain();
+        this.addEdgeWithVertices(0, 0, 0.5, .20710).mountain();
         // corner 45 degree lines
-        this.addEdgeWithVertices(0, 0, .35353, .35353).valley();
-        this.addEdgeWithVertices(.35355, .64645, 0, 1).valley();
-        this.addEdgeWithVertices(1, 0, .64645, .35356).mountain();
-        this.addEdgeWithVertices(.64643, .64643, 1, 1).valley();
+        this.addEdgeWithVertices(0, 0, .35354, .35354).valley();
+        this.addEdgeWithVertices(.35354, .64645, 0, 1).valley();
+        this.addEdgeWithVertices(1, 0, .64645, .35354).mountain();
+        this.addEdgeWithVertices(.64645, .64645, 1, 1).valley();
         // center X
-        this.addEdgeWithVertices(0.5, 0.5, .35355, .64645).valley();
-        this.addEdgeWithVertices(.64645, .35356, 0.5, 0.5).mountain();
-        this.addEdgeWithVertices(0.5, 0.5, .64643, .64643).valley();
-        this.addEdgeWithVertices(.35353, .35353, 0.5, 0.5).valley();
+        this.addEdgeWithVertices(0.5, 0.5, .35354, .64645).valley();
+        this.addEdgeWithVertices(.64645, .35354, 0.5, 0.5).mountain();
+        this.addEdgeWithVertices(0.5, 0.5, .64645, .64645).valley();
+        this.addEdgeWithVertices(.35354, .35354, 0.5, 0.5).valley();
         // center ⃟
-        this.addEdgeWithVertices(.35355, .35354, .2071, 0.5).mark();
-        this.addEdgeWithVertices(0.5, .20711, .35355, .35354).mark();
-        this.addEdgeWithVertices(.35355, .64645, 0.5, .7929).mark();
-        this.addEdgeWithVertices(.2071, 0.5, .35355, .64645).mark();
-        this.addEdgeWithVertices(.64645, .64645, .79289, 0.5).mark();
-        this.addEdgeWithVertices(0.5, .7929, .64645, .64645).mark();
-        this.addEdgeWithVertices(.64645, .35356, 0.5, .20711).mark();
-        this.addEdgeWithVertices(.79289, 0.5, .64645, .35356).mark();
+        this.addEdgeWithVertices(.35354, .35354, .20710, 0.5).mark();
+        this.addEdgeWithVertices(0.5, .20710, .35354, .35354).mark();
+        this.addEdgeWithVertices(.35354, .64645, 0.5, .79290).mark();
+        this.addEdgeWithVertices(.20710, 0.5, .35354, .64645).mark();
+        this.addEdgeWithVertices(.64645, .64645, .79290, 0.5).mark();
+        this.addEdgeWithVertices(0.5, .79290, .64645, .64645).mark();
+        this.addEdgeWithVertices(.64645, .35354, 0.5, .20710).mark();
+        this.addEdgeWithVertices(.79290, 0.5, .64645, .35354).mark();
         // center +
-        this.addEdgeWithVertices(0.5, 0.5, 0.5, .79289).mountain();
-        this.addEdgeWithVertices(0.5, .20711, 0.5, 0.5).mountain();
-        this.addEdgeWithVertices(0.5, 0.5, .79289, 0.5).mountain();
-        this.addEdgeWithVertices(.2071, 0.5, 0.5, 0.5).mountain();
+        this.addEdgeWithVertices(0.5, 0.5, 0.5, .79290).mountain();
+        this.addEdgeWithVertices(0.5, .20710, 0.5, 0.5).mountain();
+        this.addEdgeWithVertices(0.5, 0.5, .79290, 0.5).mountain();
+        this.addEdgeWithVertices(.20710, 0.5, 0.5, 0.5).mountain();
         // paper edge center connections
-        this.addEdgeWithVertices(0.5, .20711, 0.5, 0).valley();
-        this.addEdgeWithVertices(.79289, 0.5, 1, 0.5).valley();
-        this.addEdgeWithVertices(0.5, .79289, 0.5, 1).valley();
-        this.addEdgeWithVertices(.2071, 0.5, 0, 0.5).valley();
+        this.addEdgeWithVertices(0.5, .20710, 0.5, 0).valley();
+        this.addEdgeWithVertices(.79290, 0.5, 1, 0.5).valley();
+        this.addEdgeWithVertices(0.5, .79290, 0.5, 1).valley();
+        this.addEdgeWithVertices(.20710, 0.5, 0, 0.5).valley();
         this.clean();
     };
     CreasePattern.prototype.frogBase = function () {

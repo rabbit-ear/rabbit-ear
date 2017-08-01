@@ -13,24 +13,18 @@
 	</div>
 
 	<div class="explain">
-		<p>Now that edges exist in 2D space, we can generate a face whenever 3 or more edges close off a space.</p>
+		<p>Notice that even if edges enclose a space, a face won't get made if there is a stray edge poking into the polygon.</p>
 	</div>
-	<canvas id="canvas-1" resize></canvas>
-	<canvas id="canvas-2" resize></canvas>
-	<canvas id="canvas-3" resize></canvas>
+
+	<div class="centered">
+		<canvas id="canvas-faces-random" resize></canvas>
+		<canvas id="canvas-faces-random-partial" resize></canvas>
+	</div>
 
 	<div class="centered">
 		<pre><code>cp.<f>generateFaces</f>()</code></pre>
 	</div>
 	
-	<div class="explain">
-		<p>This performs "edge walking" face detection</p>
-		<ol>
-			<li>Start at 1 node, walk away down 1 edge</li>
-			<li>Upon reaching the next node, make the most immediate right turn available</li>
-			<li>Walk down this new edge, repeat, always making immediate right turns until returning home</li>
-		</ol>
-	</div>
 	<div class="tests">
 		<ul>
 			<li>adjacentNodeClockwiseFrom()</li>
@@ -42,7 +36,26 @@
 	</div>
 	
 	<div class="centered">
-		<pre><code><span id="edge-angle-div"></span></code></pre>
+		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<f>planarAdjacent</f>()</code></pre>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-faces-radial" resize></canvas>
+	</div>
+
+	<div class="explain">
+		<p>Edge Walking Face Detection:</p>
+		<ol>
+			<li>Begin with a node, walk down one adjacent edge</li>
+			<li>Upon reaching the next node, make the most immediate right turn available</li>
+			<li>Walk down this new edge, repeat, always making immediate right turns until returning home</li>
+		</ol>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-1" resize></canvas>
+		<canvas id="canvas-2" resize></canvas>
+		<canvas id="canvas-3" resize></canvas>
 	</div>
 
 
@@ -51,11 +64,19 @@
 <script type="text/javascript" src="../tests/js/node-adjacent-faces.js"></script>
 <script type="text/javascript" src="../tests/js/blank.js"></script>
 <script type="text/javascript" src="../tests/js/radial_rainbow.js"></script>
+<script type="text/javascript" src="../tests/js/faces_radial.js"></script>
+<script type="text/javascript" src="../tests/js/faces_random.js"></script>
+<script type="text/javascript" src="../tests/js/faces_random_partial.js"></script>
 <script>
 radial_rainbow_callback = function(event){
-	var angleDegrees = event * 180 / Math.PI;
+	var edgeNum = event.edge.index;
+	var nodeNum = event.node.index;
+	var angleDegrees = event.angle * 180 / Math.PI;
 	if(angleDegrees < 0) angleDegrees += 360;
-	document.getElementById("edge-angle-div").innerHTML = angleDegrees.toFixed(1) + "°";
+	document.getElementById("edge-angle-div").innerHTML = 
+		"{angle:<n>" + angleDegrees.toFixed(1) + "</n>°, " + 
+		"edge#:<n>" + edgeNum + "</n>, " + 
+		"node#:<n>" + nodeNum + "</n>} ← ";
 }
 </script>
 
@@ -78,8 +99,7 @@ fillCanvasWithCP("canvas-3", cp3);
 <script>
 // console.log(_node_adjacent_faces);
 node_adjacent_faces_callback = function(event){
-	document.getElementById("adjacent-face-node").innerHTML = event.node;
-	console.log(event);
+	document.getElementById("adjacent-face-node").innerHTML = event.node.index;
 }
 </script>
 
