@@ -19,7 +19,7 @@ addEdge(edge:GraphEdge):GraphEdge
 clear()
 removeNode(node:GraphNode):boolean
 removeEdge(edge:GraphEdge):boolean
-removeEdgesBetween(node1:GraphNode, node2:GraphNode):number
+removeEdgeBetween(node1:GraphNode, node2:GraphNode):number
 mergeNodes(node1:GraphNode, node2:GraphNode):boolean
 cleanCircularEdges():number
 cleanDuplicateEdges():number
@@ -30,7 +30,6 @@ clean():object
 
 ```typescript
 getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge
-getEdgesConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge[]
 ```
 
 ## Components

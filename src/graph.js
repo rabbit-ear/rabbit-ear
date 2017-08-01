@@ -38,14 +38,16 @@ var GraphEdge = (function () {
     }
     ;
     GraphEdge.prototype.adjacentEdges = function () {
+        // todo:test this
         return this.graph.edges
             .filter(function (el) {
-            return el.node[0] === this.node[0] ||
-                el.node[0] === this.node[1] ||
-                el.node[1] === this.node[0] ||
-                el.node[1] === this.node[1];
-        }, this)
-            .filter(function (el) { return !(el === this); }, this);
+            return el !== this &&
+                (el.node[0] === this.node[0] ||
+                    el.node[0] === this.node[1] ||
+                    el.node[1] === this.node[0] ||
+                    el.node[1] === this.node[1]);
+        }, this);
+        // .filter(function(el:GraphEdge){ return el !== this; }, this);
     };
     GraphEdge.prototype.adjacentNodes = function () {
         return [this.node[0], this.node[1]];
@@ -76,6 +78,7 @@ var GraphEdge = (function () {
             return this.node[1];
         if (this.node[1] === otherEdge.node[0] || this.node[1] === otherEdge.node[1])
             return this.node[0];
+        // optional ending: returning both of its two nodes, as if to say all are uncommon
         return undefined;
     };
     return GraphEdge;
@@ -84,9 +87,6 @@ var Graph = (function () {
     function Graph() {
         this.clear(); // initialize empty arrays
     }
-    ///////////////////////////////////////////////
-    // ADD PARTS
-    ///////////////////////////////////////////////
     Graph.prototype.nodeArrayDidChange = function () { for (var i = 0; i < this.nodes.length; i++) {
         this.nodes[i].index = i;
     } };
@@ -94,10 +94,9 @@ var Graph = (function () {
         this.edges[i].index = i;
     } };
     // nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}
-    Graph.prototype.clear = function () {
-        this.nodes = [];
-        this.edges = [];
-    };
+    ///////////////////////////////////////////////
+    // ADD PARTS
+    ///////////////////////////////////////////////
     Graph.prototype.newNode = function () {
         return this.addNode(new GraphNode(this));
     };
@@ -151,7 +150,11 @@ var Graph = (function () {
     ///////////////////////////////////////////////
     // REMOVE PARTS
     ///////////////////////////////////////////////
-    Graph.prototype.removeEdgesBetween = function (node1, node2) {
+    Graph.prototype.clear = function () {
+        this.nodes = [];
+        this.edges = [];
+    };
+    Graph.prototype.removeEdgeBetween = function (node1, node2) {
         var len = this.edges.length;
         this.edges = this.edges.filter(function (el) {
             return !((el.node[0] == node1 && el.node[1] == node2) ||
@@ -253,10 +256,10 @@ var Graph = (function () {
                 (el.node[0] == node2 && el.node[1] == node1);
         });
     };
-    Graph.prototype.log = function (detailed) {
+    Graph.prototype.log = function (verbose) {
         console.log('#Nodes: ' + this.nodes.length);
         console.log('#Edges: ' + this.edges.length);
-        if (detailed != undefined && detailed == true) {
+        if (verbose != undefined && verbose == true) {
             for (var i = 0; i < this.edges.length; i++) {
                 console.log(i + ': ' + this.edges[i].node[0] + ' ' + this.edges[i].node[1]);
             }

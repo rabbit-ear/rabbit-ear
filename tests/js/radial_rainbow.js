@@ -65,10 +65,10 @@ function radial_rainbow(){
 	scope.view.onMouseMove = function(event){ 
 		mousePos = event.point;
 		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
-		if(nearestEdge != nEdge){
+		if(nearestEdge !== nEdge){
 			nearestEdge = nEdge;
 			for(var i = 0; i < cp.edges.length; i++){
-				if(nearestEdge != undefined && nearestEdge == i){
+				if(nearestEdge != undefined && nearestEdge === cp.edges[i]){
 					paperCP.edges[i].strokeWidth = paperCP.lineWeight*1.2;
 				} else{
 					paperCP.edges[i].strokeWidth = paperCP.lineWeight*0.66666;
@@ -76,7 +76,7 @@ function radial_rainbow(){
 			}
 			for(var i = 0; i < planarAdjacent.length; i++){
 				var edgeIndex = planarAdjacent[i].edge.index;
-				if(planarAdjacent[i].edge.index == nearestEdge){
+				if(planarAdjacent[i].edge === nearestEdge){
 					paperCP.edges[edgeIndex].strokeColor = { red:1.0, green:0.0, blue:0.0 };
 					if(radial_rainbow_callback != undefined){
 						radial_rainbow_callback(planarAdjacent[i].angle);

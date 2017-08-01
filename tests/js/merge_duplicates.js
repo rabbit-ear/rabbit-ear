@@ -35,13 +35,13 @@ function mergeDuplicatesSketch(){
 		paper = scope;
 		zoomView(scope, canvas.width, canvas.height, 0.5);
 	}
-	scope.view.onMouseMove = function(event) {
+	scope.view.onMouseMove = function(event){ 
 		mousePos = event.point;
 		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
-		if(nearestEdge != nEdge){
+		if(nearestEdge !== nEdge){
 			nearestEdge = nEdge;
 			for(var i = 0; i < cp.edges.length; i++){
-				if(nearestEdge != undefined && nearestEdge == i){
+				if(nearestEdge != undefined && nearestEdge === cp.edges[i]){
 					// paperCP.edges[i].strokeWidth = paperCP.lineWeight*2;
 					paperCP.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
 				} else{

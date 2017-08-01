@@ -201,7 +201,7 @@ class CreasePattern extends PlanarGraph{
 		var bEndPts = b.endPoints();
 		if ( linesParallel(aEndPts[0], aEndPts[1], bEndPts[0], bEndPts[1]) ) {
 			var u = new XYPoint(aEndPts[1].x - aEndPts[0].x, aEndPts[1].y - aEndPts[0].y);
-			var perp:XYPoint = u.Rotate90();
+			var perp:XYPoint = u.rotate90();
 			var intersect1 = lineIntersectionAlgorithm(u, new XYPoint(u.x+perp.x, u.y+perp.y), aEndPts[0], aEndPts[1]);
 			var intersect2 = lineIntersectionAlgorithm(u, new XYPoint(u.x+perp.x, u.y+perp.y), bEndPts[0], bEndPts[1]);
 			var midpoint = new XYPoint((intersect1.x + intersect2.x)*0.5, (intersect1.y + intersect2.y)*0.5);
@@ -212,17 +212,17 @@ class CreasePattern extends PlanarGraph{
 			var intersection = lineIntersectionAlgorithm(aEndPts[0], aEndPts[1], bEndPts[0], bEndPts[1]);
 			var u = new XYPoint(aEndPts[1].x - aEndPts[0].x, aEndPts[1].y - aEndPts[0].y);
 			var v = new XYPoint(bEndPts[1].x - bEndPts[0].x, bEndPts[1].y - bEndPts[0].y);
-			var uMag = u.Mag();
-			var vMag = v.Mag();
+			var uMag = u.mag();
+			var vMag = v.mag();
 			var dir = new XYPoint( (u.x*vMag + v.x*uMag), (u.y*vMag + v.y*uMag) );
 			var intersects = this.boundaryLineIntersection(intersection, dir);
 			if(intersects.length >= 2){
 				creases.push(this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y));
 			}
-			var dir90 = dir.Rotate90();
+			var dir90 = dir.rotate90();
 			var intersects90 = this.boundaryLineIntersection(intersection, dir90);
 			if(intersects90.length >= 2){
-				if(Math.abs(u.Cross(dir)) < Math.abs(u.Cross(dir90)))
+				if(Math.abs(u.cross(dir)) < Math.abs(u.cross(dir90)))
 					creases.push(this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
 				else creases.unshift(this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
 			}
@@ -293,7 +293,7 @@ class CreasePattern extends PlanarGraph{
 		}
 		for(var i = 0; i < intersects.length-1; i++){
 			for(var j = intersects.length-1; j > i; j--){
-				if ( this.verticesEquivalent(intersects[i], intersects[j], EPSILON) ){
+				if( intersects[i].equivalent(intersects[j]) ){
 					intersects.splice(j,1);
 				}
 			}
@@ -309,7 +309,7 @@ class CreasePattern extends PlanarGraph{
 		}
 		for(var i = 0; i < intersects.length-1; i++){
 			for(var j = intersects.length-1; j > i; j--){
-				if ( this.verticesEquivalent(intersects[i], intersects[j], EPSILON) ){
+				if( intersects[i].equivalent(intersects[j], EPSILON) ){
 					intersects.splice(j,1);
 				}
 			}
@@ -322,13 +322,13 @@ class CreasePattern extends PlanarGraph{
 	// 	return this.vertexLiesOnEdge(v, intersect);
 	// }
 
-	trySnapVertex(newVertex, snapRadius){ // newVertex has {x:__, y:__}
+	trySnapVertex(newVertex:XYPoint, epsilon:number){ // newVertex has {x:__, y:__}
 		// find the closest interesting point to the vertex
 		var closestDistance = undefined;
 		var closestIndex = undefined;
 		for(var i = 0; i < this.landmarkNodes.length; i++){
 			// we could improve this, this.verticesEquivalent could return the distance itself, saving calculations
-			if(this.verticesEquivalent(newVertex, this.landmarkNodes[i], snapRadius)){
+			if(newVertex.equivalent(this.landmarkNodes[i], epsilon)){
 				var thisDistance = Math.sqrt(Math.pow(newVertex.x-this.landmarkNodes[i].x,2) + 
 				                             Math.pow(newVertex.y-this.landmarkNodes[i].y,2));
 				if(closestIndex == undefined || (thisDistance < closestDistance)){
@@ -343,10 +343,10 @@ class CreasePattern extends PlanarGraph{
 		return newVertex;
 	}
 
-	snapAll(snapRadius){ // probably should not be used! it merges points that are simply near each other
+	snapAll(epsilon:number){ // probably should not be used! it merges points that are simply near each other
 		for(var i = 0; i < this.nodes.length; i++){
 			for(var j = 0; j < this.landmarkNodes.length; j++){
-				if(this.nodes[i] != undefined && this.verticesEquivalent(this.nodes[i], this.landmarkNodes[j], snapRadius)){
+				if(this.nodes[i] != undefined && this.nodes[i].equivalent(this.landmarkNodes[j], epsilon)){
 					this.nodes[i].x = this.landmarkNodes[j].x;
 					this.nodes[i].y = this.landmarkNodes[j].y;
 				}				
@@ -442,7 +442,7 @@ class CreasePattern extends PlanarGraph{
 			var found = false;
 			var i = 0;
 			while (!found && i < master.length){
-				if(this.verticesEquivalent(master[i], child[c], EPSILON)){
+				if(master[i].equivalent(child[c])){
 					found = true;
 				}
 				i += 1;

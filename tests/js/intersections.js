@@ -1,6 +1,8 @@
 // generate faces
 
-function node_intersections(){
+edge_intersections_callback = undefined;
+
+function edge_intersections(){
 	var canvas = document.getElementById('canvas-intersections');
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
@@ -13,6 +15,7 @@ function node_intersections(){
 	var nearestEdge = undefined;
 	var nearestNode = undefined;
 
+	var intersectionsLayer = new paper.Layer();
 	var mouseNodeLayer = new paper.Layer();
 	mouseNodeLayer.activate();
 	mouseNodeLayer.removeChildren();
@@ -26,24 +29,26 @@ function node_intersections(){
 		cp.clear();
 		cp.nodes = [];
 		cp.edges = [];
-		for(var i = 0; i < 100; i++){
+		for(var i = 0; i < 20; i++){
 			var angle = Math.random()*Math.PI*2;
 			cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
 		}
-		// cp.chop();
+		var intersections = cp.chop();
 		paperCP.initialize();
 
-		var intersectionsLayer = new paper.Layer();
 		intersectionsLayer.activate();
 		intersectionsLayer.removeChildren();
-		var intersections = cp.getAllEdgeIntersections();
-		console.log(intersections);
+		// var intersections = cp.getAllEdgeIntersections();
+		// console.log(intersections);
 		for(var i = 0; i < intersections.length; i++){
 			var nodeCircle = new paper.Shape.Circle({
 				center: [intersections[i].x, intersections[i].y],
 				radius: 0.01,
 				fillColor: { hue:220, saturation:0.6, brightness:0.8 }//{ hue:130, saturation:0.8, brightness:0.7 }
 			});
+		}
+		if(edge_intersections_callback != undefined){
+			edge_intersections_callback(intersections);
 		}
 	}
 	resetCP();
@@ -57,16 +62,16 @@ function node_intersections(){
 		mousePos = event.point;
 		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
 		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
-		if(nearestNode != nNode){
+		if(nearestNode !== nNode){
 			nearestNode = nNode;
-			nodeCircle.position.x = cp.nodes[nearestNode].x;
-			nodeCircle.position.y = cp.nodes[nearestNode].y;
+			nodeCircle.position.x = nearestNode.x;
+			nodeCircle.position.y = nearestNode.y;
 			// console.log("Node: " + nearestNode);
 		}
-		if(nearestEdge != nEdge){
+		if(nearestEdge !== nEdge){
 			nearestEdge = nEdge;
 			for(var i = 0; i < cp.edges.length; i++){
-				if(nearestEdge != undefined && nearestEdge == i){
+				if(nearestEdge != undefined && nearestEdge === cp.edges[i]){
 					// paperCP.edges[i].strokeWidth = paperCP.lineWeight*2;
 					paperCP.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
 				} else{
@@ -83,4 +88,4 @@ function node_intersections(){
 		resetCP();
 	}
 
-} node_intersections();
+} edge_intersections();

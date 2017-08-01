@@ -46,16 +46,16 @@ function node_adjacent_faces(){
 		mousePos = event.point;
 		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
 		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
-		if(nearestNode != nNode){
+		if(nearestNode !== nNode){
 			nearestNode = nNode;
-			nodeCircle.position.x = cp.nodes[nearestNode].x;
-			nodeCircle.position.y = cp.nodes[nearestNode].y;
-			console.log("Node: " + nearestNode);
+			nodeCircle.position.x = nearestNode.x;
+			nodeCircle.position.y = nearestNode.y;
+			// console.log("Node: " + nearestNode);
 		}
-		if(nearestEdge != nEdge){
+		if(nearestEdge !== nEdge){
 			nearestEdge = nEdge;
 			for(var i = 0; i < cp.edges.length; i++){
-				if(nearestEdge != undefined && nearestEdge == i){
+				if(nearestEdge != undefined && nearestEdge === cp.edges[i]){
 					// paperCP.edges[i].strokeWidth = paperCP.lineWeight*2;
 					paperCP.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
 				} else{
@@ -63,7 +63,7 @@ function node_adjacent_faces(){
 					paperCP.edges[i].strokeColor = paperCP.colorForCrease(cp.edges[i].orientation);
 				}
 			}
-			console.log("Edge: " + nearestEdge);
+			// console.log("Edge: " + nearestEdge);
 		}
 	}
 

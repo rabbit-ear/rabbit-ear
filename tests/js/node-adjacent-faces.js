@@ -16,6 +16,8 @@ function node_adjacent_faces(){
 	var paperCP = new PaperCreasePattern(scope, cp);
 	var nearestNode = undefined;
 
+	console.log(cp);
+
 	var faceLayer = new paper.Layer();
 	var mouseNodeLayer = new paper.Layer();
 	mouseNodeLayer.activate();
@@ -34,13 +36,13 @@ function node_adjacent_faces(){
 	scope.view.onMouseMove = function(event) {
 		mousePos = event.point;
 		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
-		if(nearestNode != nNode){
+		if(nearestNode !== nNode){
 			nearestNode = nNode;
-			nodeCircle.position.x = cp.nodes[nearestNode].x;
-			nodeCircle.position.y = cp.nodes[nearestNode].y;
+			nodeCircle.position.x = nearestNode.x;
+			nodeCircle.position.y = nearestNode.y;
 			faceLayer.activate();
 			faceLayer.removeChildren();
-			var faces = cp.nodes[nearestNode].adjacentFaces();
+			var faces = nearestNode.adjacentFaces();
 			for(var i = 0; i < faces.length; i++){
 				var segmentArray = faces[i].nodes;
 				var color = 100 + 200 * i/faces.length;
@@ -52,7 +54,7 @@ function node_adjacent_faces(){
 			}
 			// console.log("Node: " + nearestNode);
 			if(node_adjacent_faces_callback != undefined){
-				node_adjacent_faces_callback({'node':nearestNode});
+				node_adjacent_faces_callback({'node':nearestNode.index});
 			}
 		}
 	}
