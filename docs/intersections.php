@@ -9,7 +9,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><span id="span-merge-result"></span> ← graph.<f>chop</f>()</code></pre>
+		<pre><code><span id="span-merge-result"></span>graph.<f>chop</f>()</code></pre>
 	</div>
 
 	<div class="explain">
@@ -38,7 +38,7 @@
 <script>
 	edge_intersections_callback = function(event){
 		if(event != undefined){
-			document.getElementById("span-merge-result").innerHTML = event.length;
+			document.getElementById("span-merge-result").innerHTML = event.length + " ← ";
 		}
 	}
 </script>

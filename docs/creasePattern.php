@@ -10,7 +10,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>square</v>()</code></pre>
+		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>square</v>().<v>birdBase</v>()</code></pre>
 	</div>
 	<div class="explain">
 		<p>A crease pattern</strong></p>

@@ -24,9 +24,11 @@
 		</div>
 	</div>
 
-	<canvas id="canvas1" resize></canvas>
-	<canvas id="canvas2" resize></canvas>
-	<canvas id="canvas3" resize></canvas>
+	<div class="centered">
+		<canvas id="canvas1" resize></canvas>
+		<canvas id="canvas2" resize></canvas>
+		<canvas id="canvas3" resize></canvas>
+	</div>
 
 	<div class="tests">
 		<ul>

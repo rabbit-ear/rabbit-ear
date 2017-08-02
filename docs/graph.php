@@ -9,18 +9,18 @@
 		<svg id="svgTest00" width="400" height="400"></svg>
 	</div>
 
+	<div class="quote">
+		<p>A <b>graph</b> is a collection of <b>nodes</b> and <b>edges</b> (circles and lines)</p>
+	</div>
+
 	<div class="centered">
 		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
 	</div>
 	<div class="explain">
 		<div>
-			<p>A <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">graph</a> is a collection of <em>nodes</em> (circles) and <em>edges</em> (lines).</p>
-			<p>Unlike these renderings, graph nodes don't have a position in space, it is an abstract model of nodes and the connections between them.</p>
+			
+			<p>Unlike these visualizations, graphs don't exist in space, they are an abstract model of connections between nodes.</p>
 		</div>
-	</div>
-
-	<div class="centered">
-		<pre><code>console.<f>log</f>(graph)<br><c><span id="spanGraphContents"></span></c></code></pre>
 	</div>
 
 </section>
@@ -30,7 +30,7 @@
 
 	<h2><a href="#nodes-and-edges">&sect;</a> Nodes and Edges</h2>
 
-	<div class="explain">
+	<div class="quote">
 		<div>
 			<p>All of a graph's nodes and edges are stored in arrays called <b>nodes</b> and <b>edges</b>.</p>
 		</div>

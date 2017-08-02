@@ -489,6 +489,7 @@ class PlanarGraph extends Graph{
 	}
 
 	getEdgeIntersections():XYPoint[]{
+		// todo should this make new XYPoints instead of returning EdgeIntersection objects?
 		var intersections = [];
 		// check all edges against each other for intersections
 		for(var i = 0; i < this.edges.length-1; i++){

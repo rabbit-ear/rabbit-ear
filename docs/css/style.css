@@ -40,8 +40,7 @@ h2{font-size: 280%; font-weight: 300;}
 h3{font-size: 240%; font-weight: 300;}
 h4{font-size: 180%; font-weight: 300;}
 h5{font-size: 150%; font-weight: 300;}
-p, ol, ul  /* blockquote, pre, */
-{
+p, ol, ul  /* blockquote, pre, */ {
 	padding-top:0.5em;
 	padding-bottom:0.5em;
 	font-size: 150%;
@@ -72,6 +71,13 @@ b, strong{
 	padding:1em;
 	background-color: #FFFFAA;
 	box-shadow: 5px 5px 5px #CCC;
+}
+.quote{
+	margin-top:2em;
+	margin-bottom:2em;
+	text-align:center;
+	font-style: italic;
+	font-size: 90%;
 }
 .tests{
 	margin-top:2em;
@@ -139,13 +145,6 @@ h2{
 	width: 33%;
 	text-align: center;
 	display:inline-block;
-}
-.quote, .quoteauthor{
-	text-align:center;
-	font-style: italic;
-}
-.quoteauthor{
-	font-weight: bold;
 }
 button:focus {outline:0;}
 
