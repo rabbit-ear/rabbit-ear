@@ -41,7 +41,7 @@ var _04_intersections = function(p) {
 			else             g.nodes[i].y = Math.pow(2*(ynoise-0.5), 0.8)*0.5 + 0.5;//((ynoise-0.5)*2);
 			// g.nodes[i].y = Math.sqrt(ynoise);
 		}
-		intersections = g.getAllEdgeIntersections();
+		intersections = g.getEdgeIntersections();
 
 		// draw
 		p.clear();

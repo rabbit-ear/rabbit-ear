@@ -440,6 +440,26 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.clearUnusedCollinearNodes = function () {
         // remove all nodes separating two collinear lines
     };
+    PlanarGraph.prototype.getEdgeIntersections = function () {
+        var intersections = [];
+        for (var i = 0; i < this.edges.length - 1; i++) {
+            for (var j = i + 1; j < this.edges.length; j++) {
+                var intersection = this.edges[i].intersection(this.edges[j]);
+                if (intersection != undefined) {
+                    var copy = false;
+                    for (var k = 0; k < intersections.length; k++) {
+                        if (intersection.equivalent(intersections[k])) {
+                            copy = true;
+                        }
+                    }
+                    if (!copy) {
+                        intersections.push(intersection);
+                    }
+                }
+            }
+        }
+        return intersections;
+    };
     PlanarGraph.prototype.getNearestNode = function (x, y) {
         // can be optimized with a k-d tree
         var node = undefined;
