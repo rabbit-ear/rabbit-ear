@@ -36,7 +36,7 @@ function faces_random(){
 		cp.creaseOnly(new XYPoint(1-inset, 1-inset), new XYPoint(1-inset, inset) );
 		cp.creaseOnly(new XYPoint(1-inset, inset), new XYPoint(inset, inset) );
 		for(var i = 0; i < 10; i++){
-			cp.creaseConnectingPoints(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.random(), Math.random()) );
+			cp.creaseThroughPoints(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.random(), Math.random()) );
 		}
 		var intersections = cp.chop();
 		cp.generateFaces();

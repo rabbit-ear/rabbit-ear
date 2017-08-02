@@ -1,13 +1,13 @@
 
-var cp;
-var paperCP;
-
 function chop_one_line(){
 	var canvas = document.getElementById('canvas-chop-one-line');
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
 	zoomView(scope, canvas.width, canvas.height, 0.5);
+
+var cp;
+var paperCP;
 
 	cp = new CreasePattern();
 	paperCP = new PaperCreasePattern(scope, cp);
@@ -60,6 +60,7 @@ function chop_one_line(){
 	}
 	scope.view.onMouseMove = function(event){ 
 		mousePos = event.point;
+		console.log(mousePos);
 		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
 		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
 		if(nearestNode !== nNode){

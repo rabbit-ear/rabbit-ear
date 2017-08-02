@@ -14,7 +14,7 @@
 		<pre><code><key>var</key> cp <op>=</op> <key>new</key> CreasePattern()<br>cp.<f>fishBase</f>()</code></pre>
 	</div>
 	<div class="quote">
-		<p>This is a planar graph library in javascript for creating origami crease patterns</p>
+		<p>This is a planar graph javascript library for creating origami crease patterns</p>
 	</div>
 	<div class="quote">
 		<p><a href="http://github.com/robbykraft/Origami/">Download</a></p>

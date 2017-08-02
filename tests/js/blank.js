@@ -1,4 +1,4 @@
-// generate faces
+// blank
 
 function fillCanvasWithCP(canvasName, cp){
 	var canvas = document.getElementById(canvasName);

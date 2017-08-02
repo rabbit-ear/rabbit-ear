@@ -199,6 +199,21 @@ class Graph{
 		return true;
 	}
 
+	cleanUnusedNodes():number{
+		var usedNodes = [];
+		for(var i = 0; i < this.nodes.length; i++){ usedNodes[i] = false; }
+		for(var i = 0; i < this.edges.length; i++){
+			usedNodes[this.edges[i].node[0].index] = true;
+			usedNodes[this.edges[i].node[1].index] = true;
+		}
+		var count = 0;
+		for(var i = this.nodes.length-1; i >= 0; i--){
+			var index = this.nodes[i].index;
+			if(usedNodes[index] == false){ this.nodes.splice(i, 1); count++; }
+		}
+		return count;
+	}
+
 	// remove circular edges (a node connecting to itself)
 	cleanCircularEdges():number{
 		var edgesLength = this.edges.length;

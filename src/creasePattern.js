@@ -49,6 +49,14 @@ var CreaseNode = (function (_super) {
         }
         return false;
     };
+    // AXIOM 1
+    CreaseNode.prototype.creaseLineThrough = function (point) {
+        return this.graph.creaseThroughPoints(this, point);
+    };
+    // AXIOM 2
+    CreaseNode.prototype.creaseToPoint = function (point) {
+        return this.graph.creasePointToPoint(this, point);
+    };
     return CreaseNode;
 }(PlanarNode));
 var Crease = (function (_super) {
@@ -61,6 +69,10 @@ var Crease = (function (_super) {
     Crease.prototype.mountain = function () { this.orientation = CreaseDirection.mountain; return this; };
     Crease.prototype.valley = function () { this.orientation = CreaseDirection.valley; return this; };
     Crease.prototype.border = function () { this.orientation = CreaseDirection.border; return this; };
+    // AXIOM 3
+    Crease.prototype.creaseToEdge = function (edge) {
+        return this.graph.creaseEdgeToEdge(this, edge);
+    };
     return Crease;
 }(PlanarEdge));
 // for purposes of modeling origami crease patterns
@@ -81,12 +93,16 @@ var CreasePattern = (function (_super) {
         if (width != undefined && width != 0) {
             w = Math.abs(width);
         }
+        // clear old data
         if (this.boundary === undefined) {
             this.boundary = new PlanarGraph();
         }
         else {
             this.boundary.clear();
         }
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        this.cleanUnusedNodes();
+        // add edges
         this.addPaperEdge(0, 0, w, 0);
         this.addPaperEdge(w, 0, w, w);
         this.addPaperEdge(w, w, 0, w);
@@ -96,12 +112,15 @@ var CreasePattern = (function (_super) {
         return this;
     };
     CreasePattern.prototype.rectangle = function (width, height) {
+        // clear old data
         if (this.boundary === undefined) {
             this.boundary = new PlanarGraph();
         }
         else {
             this.boundary.clear();
         }
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        this.cleanUnusedNodes();
         // make sure paper edges are winding clockwise!!
         this.addPaperEdge(0, 0, width, 0);
         this.addPaperEdge(width, 0, width, height);
@@ -112,6 +131,15 @@ var CreasePattern = (function (_super) {
         return this;
     };
     CreasePattern.prototype.polygon = function (edgePoints) {
+        // clear old data
+        if (this.boundary === undefined) {
+            this.boundary = new PlanarGraph();
+        }
+        else {
+            this.boundary.clear();
+        }
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        this.cleanUnusedNodes();
         // TODO: make sure paper edges are winding clockwise!!
         for (var i = 0; i < edgePoints.length; i++) {
             var nextI = (i + 1) % edgePoints.length;
@@ -216,7 +244,7 @@ var CreasePattern = (function (_super) {
             // if both are outside, only give us a crease if the two points invove an intersection with the boundary
             for (var i = 0; i < this.boundary.edges.length; i++) {
                 if (lineSegmentIntersectionAlgorithm(a, b, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1]))
-                    return this.creaseConnectingPoints(a, b);
+                    return this.creaseThroughPoints(a, b);
             }
         }
         var inside, outside;
@@ -241,7 +269,7 @@ var CreasePattern = (function (_super) {
     // creaseLineSegment(a:XYPoint, b:XYPoint):Crease{
     // }
     // AXIOM 1
-    CreasePattern.prototype.creaseConnectingPoints = function (a, b) {
+    CreasePattern.prototype.creaseThroughPoints = function (a, b) {
         var ab = new XYPoint(b.x - a.x, b.y - a.y);
         var intersects = this.boundaryLineIntersection(a, ab);
         if (intersects.length >= 2) {
@@ -270,7 +298,7 @@ var CreasePattern = (function (_super) {
             var intersect1 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), aEndPts[0], aEndPts[1]);
             var intersect2 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), bEndPts[0], bEndPts[1]);
             var midpoint = new XYPoint((intersect1.x + intersect2.x) * 0.5, (intersect1.y + intersect2.y) * 0.5);
-            return [this.creaseConnectingPoints(midpoint, new XYPoint(midpoint.x + u.x, midpoint.y + u.y))];
+            return [this.creaseThroughPoints(midpoint, new XYPoint(midpoint.x + u.x, midpoint.y + u.y))];
         }
         else {
             var creases = [];
@@ -305,7 +333,7 @@ var CreasePattern = (function (_super) {
         var ab = new XYPoint(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
         var perp = new XYPoint(-ab.y, ab.x);
         var point2 = new XYPoint(point.x + perp.x, point.y + perp.y);
-        return this.creaseConnectingPoints(point, point2);
+        return this.creaseThroughPoints(point, point2);
     };
     // AXIOM 5
     CreasePattern.prototype.creasePointToLine = function (origin, point, line) {
@@ -329,7 +357,7 @@ var CreasePattern = (function (_super) {
             var midPoint = new XYPoint((intersection.x + point.x) * 0.5, (intersection.y + point.y) * 0.5);
             var perp = new XYPoint(-align.y, align.x);
             var midPoint2 = new XYPoint(midPoint.x + perp.x, midPoint.y + perp.y);
-            return this.creaseConnectingPoints(midPoint, midPoint2);
+            return this.creaseThroughPoints(midPoint, midPoint2);
         }
         throw "axiom 7: two crease lines cannot be parallel";
     };

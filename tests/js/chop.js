@@ -1,13 +1,13 @@
 
-var cp;
-var paperCP;
-
 function chop_sketch(){
 	var canvas = document.getElementById('canvas-chop');
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
 	zoomView(scope, canvas.width, canvas.height, 0.5);
+
+var cp;
+var paperCP;
 
 	cp = new CreasePattern();
 	paperCP = new PaperCreasePattern(scope, cp);

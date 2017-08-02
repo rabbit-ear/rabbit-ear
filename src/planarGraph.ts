@@ -540,7 +540,7 @@ class PlanarGraph extends Graph{
 
 		var minDist = undefined;
 		var minDistIndex = undefined;
-		var minLocation = undefined;
+		var minLocation = {x:undefined, y:undefined};
 		for(var i = 0; i < this.edges.length; i++){
 			var p = this.edges[i].endPoints();
 			var pT = minDistBetweenPointLine(p[0], p[1], x, y);

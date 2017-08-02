@@ -39,9 +39,19 @@ class CreaseNode extends PlanarNode{
 		}
 		return false;
 	}
+
+	// AXIOM 1
+	creaseLineThrough(point:XYPoint):Crease{
+		return this.graph.creaseThroughPoints(this, point);
+	}
+	// AXIOM 2
+	creaseToPoint(point:XYPoint):Crease{
+		return this.graph.creasePointToPoint(this, point);
+	}
 }
 
 class Crease extends PlanarEdge{
+	graph:CreasePattern
 	orientation:CreaseDirection;
 	constructor(graph:CreasePattern, node1:CreaseNode, node2:CreaseNode){
 		super(graph, node1, node2);
@@ -50,6 +60,11 @@ class Crease extends PlanarEdge{
 	mountain(){ this.orientation = CreaseDirection.mountain; return this;}
 	valley()  { this.orientation = CreaseDirection.valley; return this;}
 	border()  { this.orientation = CreaseDirection.border; return this;}
+
+	// AXIOM 3
+	creaseToEdge(edge:Crease):Crease[]{
+		return this.graph.creaseEdgeToEdge(this, edge);
+	}
 }
 
 // for purposes of modeling origami crease patterns
@@ -71,8 +86,12 @@ class CreasePattern extends PlanarGraph{
 	square(width?:number):CreasePattern{
 		var w = 1.0;
 		if(width != undefined && width != 0){ w = Math.abs(width); }
+		// clear old data
 		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
 		else                           { this.boundary.clear(); }
+		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+		this.cleanUnusedNodes();
+		// add edges
 		this.addPaperEdge(0,0, w,0);
 		this.addPaperEdge(w,0, w,w);
 		this.addPaperEdge(w,w, 0,w);
@@ -83,8 +102,11 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	rectangle(width:number, height:number):CreasePattern{
+		// clear old data
 		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
 		else                           { this.boundary.clear(); }
+		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+		this.cleanUnusedNodes();
 		// make sure paper edges are winding clockwise!!
 		this.addPaperEdge(0,0, width,0);
 		this.addPaperEdge(width,0, width,height);
@@ -96,6 +118,11 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	polygon(edgePoints:XYPoint[]):CreasePattern{
+		// clear old data
+		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
+		else                           { this.boundary.clear(); }
+		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+		this.cleanUnusedNodes();
 		// TODO: make sure paper edges are winding clockwise!!
 		for(var i = 0; i < edgePoints.length; i++){
 			var nextI = (i+1) % edgePoints.length;
@@ -198,7 +225,7 @@ class CreasePattern extends PlanarGraph{
 		if(!this.pointInside(a) && !this.pointInside(b)) {
 			// if both are outside, only give us a crease if the two points invove an intersection with the boundary
 			for(var i = 0; i < this.boundary.edges.length; i++){
-				if(lineSegmentIntersectionAlgorithm(a, b, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1])) return this.creaseConnectingPoints(a,b);
+				if(lineSegmentIntersectionAlgorithm(a, b, this.boundary.edges[i].endPoints()[0], this.boundary.edges[i].endPoints()[1])) return this.creaseThroughPoints(a,b);
 			}
 		}
 		var inside, outside;
@@ -218,7 +245,7 @@ class CreasePattern extends PlanarGraph{
 	// }
 
 	// AXIOM 1
-	creaseConnectingPoints(a:XYPoint, b:XYPoint):Crease{
+	creaseThroughPoints(a:XYPoint, b:XYPoint):Crease{
 		var ab = new XYPoint(b.x - a.x, b.y - a.y);
 		var intersects = this.boundaryLineIntersection(a, ab);
 		if(intersects.length >= 2){
@@ -247,7 +274,7 @@ class CreasePattern extends PlanarGraph{
 			var intersect1 = lineIntersectionAlgorithm(u, new XYPoint(u.x+perp.x, u.y+perp.y), aEndPts[0], aEndPts[1]);
 			var intersect2 = lineIntersectionAlgorithm(u, new XYPoint(u.x+perp.x, u.y+perp.y), bEndPts[0], bEndPts[1]);
 			var midpoint = new XYPoint((intersect1.x + intersect2.x)*0.5, (intersect1.y + intersect2.y)*0.5);
-			return [this.creaseConnectingPoints(midpoint, new XYPoint(midpoint.x+u.x, midpoint.y+u.y))];
+			return [this.creaseThroughPoints(midpoint, new XYPoint(midpoint.x+u.x, midpoint.y+u.y))];
 		}
 		else {
 			var creases:Crease[] = [];
@@ -280,7 +307,7 @@ class CreasePattern extends PlanarGraph{
 		var ab = new XYPoint(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
 		var perp = new XYPoint(-ab.y, ab.x);
 		var point2 = new XYPoint(point.x + perp.x, point.y + perp.y);
-		return this.creaseConnectingPoints(point, point2);
+		return this.creaseThroughPoints(point, point2);
 	}
 	// AXIOM 5
 	creasePointToLine(origin:XYPoint, point:XYPoint, line:Crease):Crease[]{
@@ -304,7 +331,7 @@ class CreasePattern extends PlanarGraph{
 			var midPoint = new XYPoint((intersection.x + point.x)*0.5, (intersection.y + point.y)*0.5);
 			var perp = new XYPoint(-align.y, align.x);
 			var midPoint2 = new XYPoint(midPoint.x + perp.x, midPoint.y + perp.y);
-			return this.creaseConnectingPoints(midPoint, midPoint2);
+			return this.creaseThroughPoints(midPoint, midPoint2);
 		}
 		throw "axiom 7: two crease lines cannot be parallel"
 	}

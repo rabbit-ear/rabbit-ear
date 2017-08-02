@@ -20,7 +20,7 @@
 	
 	<div class="tests">
 		<ul>
-			<li>chop test 1</li>
+			<li><a href="../tests/html/chop_one_line.html">chop test 1</a></li>
 			<li>chop test 2</li>
 			<li>chop test 3</li>
 			<li>chop test 4</li>
