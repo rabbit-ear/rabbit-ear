@@ -21,8 +21,8 @@
 	<div class="tests">
 		<ul>
 			<li><a href="../tests/html/chop_one_line.html">chop test 1</a></li>
-			<li>chop test 2</li>
-			<li>chop test 3</li>
+			<li><a href="../tests/html/chop_collinear_vert.html">chopping collinear intersections, vertical</a></li>
+			<li><a href="../tests/html/chop_collinear_horiz.html">chopping collinear intersections, horizontal</a></li>
 			<li>chop test 4</li>
 			<li>chop test 5</li>
 			<li>chop test 5</li>
@@ -33,7 +33,6 @@
 
 <!-- include .js sketches -->
 <script language="javascript" type="text/javascript" src="../tests/js/intersections.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/faces_random.js"></script>
 
 <script>
 	edge_intersections_callback = function(event){
