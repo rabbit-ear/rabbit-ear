@@ -189,6 +189,11 @@ var PlanarNode = (function (_super) {
         this.x = node.x + distance * Math.cos(currentAngle + angle);
         this.y = node.y + distance * Math.sin(currentAngle + angle);
     };
+    PlanarNode.prototype.position = function (x, y) {
+        this.x = x;
+        this.y = y;
+        return this;
+    };
     // implements XYPoint
     PlanarNode.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
     PlanarNode.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
@@ -294,9 +299,11 @@ var PlanarGraph = (function (_super) {
     ///////////////////////////////////////////////
     // ADD PARTS
     ///////////////////////////////////////////////
-    // newNode(x:number, y:number):PlanarNode {
-    // 	return this.addNode(new PlanarNode(this, x, y));
-    // }
+    PlanarGraph.prototype.newNode = function () {
+        var x = 0;
+        var y = 0;
+        return this.addNode(new PlanarNode(this, x, y));
+    };
     PlanarGraph.prototype.newEdge = function (node1, node2) {
         return this.addEdge(new PlanarEdge(this, node1, node2));
     };
@@ -400,22 +407,25 @@ var PlanarGraph = (function (_super) {
             for (var j = i + 1; j < this.nodes.length; j++) {
                 if (this.nodes[i].equivalent(this.nodes[j], epsilon)) {
                     _super.prototype.mergeNodes.call(this, this.nodes[i], this.nodes[j]);
-                    return true;
+                    return new XYPoint(this.nodes[i].x, this.nodes[i].y);
                 }
             }
         }
-        return false;
+        return undefined;
     };
     PlanarGraph.prototype.mergeDuplicateVertices = function (epsilon) {
         if (epsilon == undefined) {
             epsilon = EPSILON;
         }
-        var count = 0;
-        while (this.searchAndMergeOneDuplicatePair(epsilon)) {
-            count += 1;
-        }
-        ;
-        return count;
+        var duplicateArray = [];
+        var duplicate = undefined;
+        do {
+            duplicate = this.searchAndMergeOneDuplicatePair(epsilon);
+            if (duplicate != undefined) {
+                duplicateArray.push(duplicate);
+            }
+        } while (duplicate != undefined);
+        return duplicateArray;
     };
     PlanarGraph.prototype.mergeCollinearLines = function (epsilon) {
         //gather all lines collinear to this one line

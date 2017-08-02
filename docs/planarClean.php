@@ -4,7 +4,9 @@
 
 <section id="intro">
 
-<h2>mergeDuplicateVertices</h2>
+	<div class="centered">
+		<pre><code>graph.<f>clean</f>()</code></pre>
+	</div>
 
 	<div id="divP5_merge" class="centered p5sketch"></div>
 
@@ -13,12 +15,12 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><span id="span-merge-result"></span>← graph.<f>mergeDuplicateVertices</f>()</code></pre>
+		<pre><code><span id="span-merge-result"></span>← graph.<f>mergeDuplicateVertices</f>(<n>epsilon</n>)</code></pre>
 	</div>
 
 	<div class="explain">
 		<div>
-			<p>The shift from graph to planar graph introduces the concept of adjacency in 2D space. Nodes that occupy the same space can be merged into one, and their adjacent edges join too.</p>
+			<p>The merge function has an optional argument of an epsilon value, it will merge points that fall within the radius of epsilon.</p>
 		</div>
 	</div>
 

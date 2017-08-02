@@ -1,38 +1,10 @@
 <?php include 'header.php';?>
-
 <script language="javascript" type="text/javascript" src="../lib/d3.min.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/graph/d3.graph.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.d3js.js"></script>
+<h3 class="centered" style="padding-top:2em;">CHAPTER I.</h3>
+<h1>GRAPHS</h1>
 
-<h1>Graph</h1>
-<section id="graph">
-
-	<div style="display:none;">
-		<h3>table of contents</h3>
-		<ul>
-			<li>clear()</li>
-			<li>addNode(node) </li>
-			<li>addEdge(edge) </li>
-			<li>addNodes(nodes)</li>
-			<li>removeEdgesBetween(nodeIndex1, nodeIndex2)</li>
-			<li>removeNode(nodeIndex)</li>
-			<li>removeEdge(edgeIndex)</li>
-			<li>cleanCircularEdges()</li>
-			<li>cleanDuplicateEdges()</li>
-			<li>clean()</li>
-			<li>areNodesAdjacent(nodeIndex1, nodeIndex2)</li>
-			<li>areEdgesAdjacent(edgeIndex1, edgeIndex2)</li>
-			<li>areEdgesSimilar(eIndex1, eIndex2)</li>
-			<li>getNodesAdjacentToNode(nodeIndex)</li>
-			<li>getNodesAdjacentToEdge(edgeIndex)</li>
-			<li>getEdgesAdjacentToEdge(edgeIndex)</li>
-			<li>getEdgeConnectingNodes(nodeIndex1, nodeIndex2)</li>
-			<li>getEdgesAdjacentToNode(nodeIndex)</li>
-			<li>getEdgesConnectedToEdge(edgeIndex)</li>
-			<li>mergeNodes(nodeIndex1, nodeIndex2)</li>
-			<li>log()</li>
-			<li>logMore()</li>
-		</ul>
-	</div>
+<section id="intro">
 	<div class="centered">
 		<svg id="svgTest00" width="400" height="400"></svg>
 	</div>
@@ -40,53 +12,86 @@
 	<div class="centered">
 		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
 	</div>
-	<div class="accordion">
+	<div class="explain">
 		<div>
-			<p><a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">Graph</a> is a collection of things <em>"nodes"</em> (circles) and connections between them <em>"edges"</em> (lines).</p>
-			<p>When you talk about nodes, you identify them by a unique number-their index in the array. Same with edges. This behavior persists throughout the library.</p>
+			<p>A <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">graph</a> is a collection of <em>nodes</em> (circles) and <em>edges</em> (lines).</p>
+			<p>Unlike these renderings, graph nodes don't have a position in space, it is an abstract model of nodes and the connections between them.</p>
 		</div>
 	</div>
 
 	<div class="centered">
 		<pre><code>console.<f>log</f>(graph)<br><c><span id="spanGraphContents"></span></c></code></pre>
 	</div>
-	<div class="accordion">
-		<div>
-			<p>The lists of nodes and edges are stored as 2 arrays.</p>
-			<p>In its simplest form, edges store the 2 nodes that they connect. Each edge is made up of 2 numbers: the indices of the 2 nodes (in the node array) it connects.</p></p>
-		</div>
-	</div>
-
 
 </section>
 
-<section id="adjacent-nodes">
-	<h2><a href="#adjacent-nodes">Get Nodes</a></h2>
-	<div class="accordion">
+
+<section id="nodes-and-edges">
+
+	<h2><a href="#nodes-and-edges">&sect;</a> Nodes and Edges</h2>
+
+	<div class="explain">
 		<div>
-			<p>To get all the nodes of Graph g, simply access the g<i>.nodes</i> array.</p>
-			<p>To get certain nodes based on adjacency, use either <i>getNodesAdjacentToNode</i> or <i>getNodesAdjacentToEdge</i>.</p>
-			<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Nodes are adjacent when they are connected by an edge.</p>
+			<p>All of a graph's nodes and edges are stored in arrays called <b>nodes</b> and <b>edges</b>.</p>
 		</div>
 	</div>
+
 	<div class="centered">
-		<pre><code>graph.<v>nodes</v>;  <span class="token comment">// array</span></code></pre>
+		<pre><code>graph.<v>nodes</v>;  <c>// all the graph's nodes</c><br>graph.<v>edges</v>;  <c>// all the graph's edges</c></code></pre>
 	</div>
+
+	<div class="explain">
+		<div>
+			<p><i>newNode()</i> will create a new <i>GraphNode</i>, add it to the graph, and return a reference to the new node</p>
+		</div>
+	</div>
+
 	<div class="centered">
-		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<f>getNodesAdjacentToNode</f>(<span id="spanNodesAdjacentToNodeInput" class="token argument"> node </span>)<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<f>getNodesAdjacentToEdge</f>(<span id="spanNodesAdjacentToEdgeInput" class="token argument"> edge </span>)</code></pre>
+		<pre><code><key>var</key> node <op>=</op> graph.<v>newNode</v>();</code></pre>
+	</div>
+
+	<div class="centered">
+		<pre><code><key>var</key> edge <op>=</op> graph.<v>newEdge</v>(node1, node2);  <c>// having already created node1 and node2</c></code></pre>
+	</div>
+
+	<div class="tests">
+		<ul>
+			<li>newNode():<n>GraphNode</n></li>
+			<li>newEdge(node1:<n>GraphNode</n>, node2:<n>GraphNode</n>):<n>GraphEdge</n></li>
+			<li>clear()</li>
+		</ul>
+	</div>
+	
+</section>
+
+<section id="adjacent-nodes">
+	<h2><a href="#adjacent-nodes">&sect;</a> Get Nodes</h2>
+
+	<div class="centered">
+		<pre><code>graph.<v>nodes</v>[<n>0</n>];  <c>// the first node</c></code></pre>
 	</div>
 
 	<div class="centered">
 		<svg id="svgTest01" width="400" height="400"></svg>
 	<div>
+
+	<div class="centered">
+		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<v>nodes</v>[<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<v>edges</v>[<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()</code></pre>
+	</div>
+
+	<div class="explain">
+		<div>
+			<p>Once you have a node, you can call functions on it, such as getting all adjacent nodes.</p>
+			<p><strong>2 nodes are adjacent if they are connected by an edge</strong></p>
+		</div>
+	</div>
+
 </section>
 
 <section id="adjacent-edges">
-	<h2><a href="#adjacent-nodes">Get Edges</a></h2>
-	<div class="accordion">
+	<h2><a href="#adjacent-nodes">&sect;</a> Get Edges</h2>
+	<div class="explain">
 		<div>
-			<p>To get all the edges of Graph g, simply access the g<i>.edges</i> array.</p>
-			<p>To get certain edges based on adjacency, use either <i>getEdgesAdjacentToNode</i> or <i>getEdgesAdjacentToEdge</i>.</p>
 			<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Two edges are adjacent when they are both connected to the same node.</p>
 		</div>
 	</div>
@@ -103,8 +108,8 @@
 </section>
 
 <section id="remove-nodes">
-	<h2><a href="#remove-nodes">Remove Nodes</a></h2>
-	<div class="accordion">
+	<h2><a href="#remove-nodes">&sect;</a> Remove Nodes</h2>
+	<div class="explain">
 		<div>
 			<p>When removing a node, any edges which share the node will be removed also.</p>
 			<p>Because this shuffles the node array upon which edges are dependent, this also triggers the edge array to update accordingly.</p>
@@ -120,8 +125,8 @@
 </section>
 
 <section id="remove-edges">
-	<h2><a href="#remove-edges">Remove Edges</a></h2>
-	<div class="accordion">
+	<h2><a href="#remove-edges">&sect;</a> Remove Edges</h2>
+	<div class="explain">
 		<p>Removing an edge simply removes that edge, any previously-attached nodes will remain in the graph.</p>
 	</div>
 	<div class="centered">
@@ -131,13 +136,31 @@
 	<div class="centered">
 		<svg id="svgTest04" width="400" height="400"></svg>
 	</div>
+
+	<div class="tests">
+		<ul>
+			<li>removeEdgesBetween(node1:GraphNode, node2:GraphNode):number</li>
+			<li>removeNode(node:GraphNode)</li>
+			<li>removeEdge(edgeIndex:number)</li>
+		</ul>
+	</div>
+
 </section>
 
-<script language="javascript" type="text/javascript" src="../tests/graph/00_graph.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/graph/01_adjacentNode.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/graph/02_adjacentEdge.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/graph/03_removeNode.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/graph/04_removeEdge.js"></script>
+	<div class="tests">
+		<ul>
+			<li>clean():object</li>
+			<li>cleanCircularEdges():number</li>
+			<li>cleanDuplicateEdges():number</li>
+		</ul>
+	</div>
+
+
+<script language="javascript" type="text/javascript" src="../tests/js/graph_simple.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/graph_adjacentNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/graph_adjacentEdge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/graph_removeNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/graph_removeEdge.js"></script>
 <script>
 	$(".accordion-title").html("MORE");
 	function updateNodesAdjacentToNode(input, output){

@@ -1,24 +1,30 @@
 <?php include 'header.php';?>
 
-<section id="intro">
-<h2>PlanarGraph()</h2>
-	<div class="centered">
-		<pre><code><key>var</key> graph <op>=</op> <key>new</key> PlanarGraph()</code></pre>
-	</div>
-	<div id="sketch_intersections" class="centered p5sketch"></div>
-	<div class="centered">
-		<pre><code><c>//Planar Graph</c><br>
-			cp.<f>nodes</f>[<n>3</n>].x <op>=</op> <f>noise</f>(<arg>t1</arg>);<br>cp.<f>nodes</f>[<n>3</n>].y <op>=</op> <f>noise</f>(<arg>t2</arg>);<br>cp.<f>nodes</f>[<n>6</n>].x <op>=</op> <f>noise</f>(<arg>t3</arg>);<br>cp.<f>nodes</f>[<n>6</n>].y <op>=</op> <f>noise</f>(<arg>t4</arg>);</code></pre>
-	</div>
-	<div class="accordion">
-		<p>A certain priority is placed on accessibility and real-time updating. Everything is available for you to change, and where possible, code is optimized to be able to be run inside of a game loop.</p>
-	</div>
-</section>
+<h3 class="centered" style="padding-top:2em;">CHAPTER II.</h3>
+<h1>PLANAR GRAPHS</h1>
 
-<!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/04_intersections.js"></script>
-<script>
-	new p5(_04_intersections, 'sketch_intersections');
-</script>
+<section id="intro">
+
+	<div class="centered">
+		<pre><code><key>var</key> planarGraph<key> = new</key> PlanarGraph()</code></pre>
+	</div>
+
+	<div class="explain">
+		<p>Mathematically, an origami crease pattern is a <strong><a href="https://en.wikipedia.org/wiki/Planar_graph">planar graph</a></strong> and contains:</p>
+		<ul>
+			<li><strong>nodes:</strong> crease endpoint in x,y space</li>
+			<li><strong>edges:</strong> crease lines, non-overlapping straight lines* connecting 2 nodes</li>
+			<li><strong>faces</strong></li>
+		</ul>
+		<p>* curved creases are the new black, however the math is wicked.</p>
+	</div>
+
+
+	<div class="explain">
+		<p>The planar graph inherits from a graph and uses <i>PlanarNode</i> and <i>PlanarEdge</i> in place of <i>GraphNode</i> and <i>GraphEdge</i>.</p>
+		<p>Edges work the same way: connecting 2 nodes, but nodes now have an X and Y property, they exist in 2D space.</p>
+	</div>
+
+</section>
 
 <?php include 'footer.php';?>

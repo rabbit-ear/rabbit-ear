@@ -17,7 +17,7 @@ var p5_nearest_node = function(p) {
 	function reset(){
 		g.clear();
 		for(var i = 0 ;i  < p.numPoints; i++){
-			g.nodes.push( {x:Math.random(), y:Math.random(), z:0.0} );
+			g.newNode().position(Math.random(), Math.random());
 		}
 		closestNode = undefined;
 		closestNodes = [];
@@ -39,17 +39,17 @@ var p5_nearest_node = function(p) {
 		if(mouseXScaled != undefined && mouseYScaled != undefined){
 			for(var i = 0; i < closestNodes.length; i++){
 				p.stroke(50*i, 50*i, 50*i);
-				p.line(mouseXScaled, mouseYScaled, g.nodes[ closestNodes[i] ].x, 
-				                                   g.nodes[ closestNodes[i] ].y);
+				p.line(mouseXScaled, mouseYScaled, closestNodes[i].x, 
+				                                   closestNodes[i].y);
 			}
 		}		
 		p.stroke(0, 0, 0);
 		drawGraphPoints(p, g);
 		if(mouseXScaled != undefined && mouseYScaled != undefined && closestNode != undefined){
-			p.line(mouseXScaled, mouseYScaled, g.nodes[closestNode].x, g.nodes[closestNode].y);
+			p.line(mouseXScaled, mouseYScaled, closestNode.x, closestNode.y);
 			p.fill(255, 0, 0);
 			p.stroke(255, 0, 0);
-			p.ellipse(g.nodes[closestNode].x, g.nodes[closestNode].y, .03, .03);
+			p.ellipse(closestNode.x, closestNode.y, .03, .03);
 		}
 	}
 
@@ -61,7 +61,7 @@ var p5_nearest_node = function(p) {
 		closestNode = g.getNearestNode(mouseXScaled, mouseYScaled);
 		closestNodes = g.getNearestNodes(mouseXScaled, mouseYScaled, 5);
 		if(p.callback != undefined){
-			p.callback({'x':mouseXScaled, 'y':mouseYScaled, 'nearest':closestNode});
+			p.callback({'x':mouseXScaled, 'y':mouseYScaled, 'node':closestNode});
 		}
 	}
 

@@ -1,59 +1,62 @@
 <?php include 'header.php';?>
 <script language="javascript" type="text/javascript" src="../lib/d3.min.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/graph/d3.graph.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.d3js.js"></script>
+<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
 
 <h1>ORIGAMI</h1>
 
 <section id="intro">
-	<div id="sketch_intro" class="centered p5sketch"></div>
+	<div class="centered">
+		<canvas id="canvas-fish-base-wobble" resize></canvas>
+	</div>
 	<div class="centered">
 		<pre><code><key>var</key> cp <op>=</op> <key>new</key> CreasePattern()<br>cp.<f>fishBase</f>()</code></pre>
 	</div>
-	<div class="accordion">
-		<div>
-		<p>This is a javascript library for origami crease patterns. These docs explain the code in much detail, I wrote these docs as I built the code. Code is split into 3 main parts:</p>
-		<ul style="list-style-type: upper-roman;">
-			<li>Graph - abstract math foundations</li>
-			<li>Planar Graph - 2D geometry</li>
-			<li>Crease Pattern - All origami related</li>
-		</ul>
-		<p>On top of everything origami-related, this library also works well as a general .svg file processing tool</p>
-		</div>
+	<div class="explain">
+		<p>Origami crease patterns are collections of crease lines on a 2D membrane. They also follow certain rules specific to origami.</p>
+		<p>Explore these pages and follow the path that I took to create a library that handles origami crease pattern math, play with the examples, learn all the algorithms that I had to learn too.</p>
 	</div>
-<h2>Crease Patterns are Planar Graphs</h2>
+
+<h2>Planar Graphs</h2>
 	<div id="sketch_intersections" class="centered p5sketch"></div>
 	<div class="centered">
-		<pre><code><span id="span-intersection-results"></span>planargraph.<f>getAllEdgeIntersections</f>();</code></pre>
+		<pre><code><span id="span-intersection-results"></span>planarGraph.<f>getAllEdgeIntersections</f>();</code></pre>
 	</div>
-	<div class="accordion">
-		<p>A <a href="https://en.wikipedia.org/wiki/Planar_graph">planar graph</a> can be thought of as a group of lines, defined by endpoints, existing in 2D space. The proper name for lines is "edges", and an endpoint is called a "node". Edges can share nodes, this makes them connected. To save the data structure, save a list of nodes as x,y points, and a list of edges as pointers to 2 nodes.</p>
+	<div class="explain">
+		<p>Mathematically speaking, a crease pattern is a planar graph: a data structure that has edges (lines) in a 2D plane, defined by their endpoints (nodes).</p>
+		<p>Because these edges and nodes exist in a 2D plane, we can do things like detect edge intersections.</p>
 	</div>
-<h2>Planar Graphs are Graphs</h2>
+<h2>Graphs</h2>
 	<div class="centered">
 		<svg id="svgTest01" width="400" height="400"></svg>
 	</div>
 	<div class="centered">
 		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<f>getNodesAdjacentToNode</f>(<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>)<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<f>getNodesAdjacentToEdge</f>(<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>)</code></pre>
 	</div>
-	<div class="accordion">
-		<p>A <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">graph</a> is a planar graph if you take away the idea of 2D space. There are edges and nodes, but they are abstract and don't exist in space. A graph can ask things like, "are 2 nodes connected by an edge?" A planar graph can do everything a graph can do, but a graph cannot do everything a planar graph can do.</p>
+	<div class="explain">
+		<p>A mathematical <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">graph</a>, however, does not exist in space. Connections exist between nodes (by way of edges) but the idea of distance in space doesn't exist.</p>
+	</div>
+<h2>This Library</h2>
+	<div class="explain">
+		<p>These pages chronicle the making of this code. It came together in 3 parts. Each class inherits from the one above it.</p>
+		<p>This library, the 3 files below, are wrapped up in one file <b>creasePattern.js</b></p>
+	</div>
+	<div>
+		<ul>
+			<li><strong>graph.js:</strong></li>
+			<li><strong>planarGraph.js:</strong></li>
+			<li><strong>creasePattern.js</strong></li>
+		</ul>
 	</div>
 </section>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/graph/01_adjacentNode.js"></script>
-<script language="javascript" type="text/javascript" src="sketch_intro.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/04_intersections.js"></script>
+<script language="javascript" type="text/javascript" src="js/cp_fish_wobble.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/graph_adjacentNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/04_intersections.js"></script>
 <script>
-	new p5(sketch_intro, 'sketch_intro');
 	var p5intersections = new p5(_04_intersections, 'sketch_intersections');
-	p5intersections.callback = function(e){
-		if(e != undefined){
-			$("#span-intersection-results").html('Array(' + e.length + ') ← ');
-		}
-	}
-
-	$(".accordion-title").html("EXPLAIN");
 	function updateNodesAdjacentToNode(input, output){
 		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }

@@ -1,30 +1,112 @@
 <?php include 'header.php';?>
 
-<h1>Face</h1>
-<section id="faces">
-	<h2>generateFaces</h2>
-	<div class="centered p5sketch" id="div-p5-faces"></div>
-	<div class="centered">
-		<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">generateFaces</span>()  <span class="token comment">// from early code, finds duplicates<span></code></pre>
-	</div>
-	<h2>Clockwise</h2>
-	<div class="centered p5sketch" id="div-p5-clockwise"></div>
-	<div class="centered">
-		<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getClockwiseNeighbor</span>( <span class="token argument">nodeIndex</span>, <span class="token argument">nodePrime</span> )</code></pre>
-	</div>
-	<div class="centered">
-		<pre class="centered language-javascript"><code class="language-javascript">graph.<span class="token function">getClockwiseConnectedNodesSorted</span>( <span class="token argument">nodeIndex</span> )</code></pre>
-	</div>
-</section>
-</div>
+<h1>FACE</h1>
 
-<!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/js/08_find_faces.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/09_clockwise_nodes.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/radial_rainbow.js"></script>
+<section id="intro">
+
+	<div class="centered">
+		<canvas id="canvas-node-adjacent-faces" resize></canvas>
+	</div>
+
+	<div class="centered">
+		<pre><code>cp.<v>nodes</v>[<n id="adjacent-face-node">0</n>].<f>adjacentFaces</f>()</code></pre>
+	</div>
+
+	<div class="explain">
+		<p>Even if an edge properly encloses a space, a face won't get made if there is a stray edge poking into the polygon.</p>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-faces-random" resize></canvas>
+		<canvas id="canvas-faces-random-partial" resize></canvas>
+	</div>
+
+	<div class="centered">
+		<pre><code>cp.<f>generateFaces</f>()</code></pre>
+	</div>
+	
+	<div class="tests">
+		<ul>
+			<li>adjacentNodeClockwiseFrom()</li>
+			<li>planarAdjacent()</li>
+		</ul>
+	</div>
+
+</section>
+<section>
+
+<h2>Face Finding Algorithm</h2>
+
+	<div class="centered">
+		<canvas id="canvas-radial-rainbow" resize></canvas>
+	</div>
+	
+	<div class="centered">
+		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<f>planarAdjacent</f>()</code></pre>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-faces-radial" resize></canvas>
+	</div>
+
+	<div class="explain">
+		<p>Edge Walking Face Detection:</p>
+		<ol>
+			<li>Begin with a node, walk down one adjacent edge</li>
+			<li>Upon reaching the next node, make the most immediate right turn available, walk down edge</li>
+			<li>Repeat, always turning right, stop when you reach the node from which you began</li>
+		</ol>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-1" resize></canvas>
+		<canvas id="canvas-2" resize></canvas>
+		<canvas id="canvas-3" resize></canvas>
+	</div>
+
+
+</section>
+
+<script type="text/javascript" src="../tests/js/node-adjacent-faces.js"></script>
+<script type="text/javascript" src="../tests/js/blank.js"></script>
+<script type="text/javascript" src="../tests/js/radial_rainbow.js"></script>
+<script type="text/javascript" src="../tests/js/faces_radial.js"></script>
+<script type="text/javascript" src="../tests/js/faces_random.js"></script>
+<script type="text/javascript" src="../tests/js/faces_random_partial.js"></script>
 <script>
-	var p5a = new p5(test08, 'div-p5-faces');
-	var p5b = new p5(test09, 'div-p5-clockwise');
+radial_rainbow_callback = function(event){
+	var edgeNum = event.edge.index;
+	var nodeNum = event.node.index;
+	var angleDegrees = event.angle * 180 / Math.PI;
+	if(angleDegrees < 0) angleDegrees += 360;
+	document.getElementById("edge-angle-div").innerHTML = 
+		"{angle:<n>" + angleDegrees.toFixed(1) + "</n>°, " + 
+		"edge#:<n>" + edgeNum + "</n>, " + 
+		"node#:<n>" + nodeNum + "</n>} ← ";
+}
+</script>
+
+<script>
+var cp1 = new CreasePattern();
+cp1.kiteBase();
+cp1.generateFaces();
+var cp2 = new CreasePattern();
+cp2.fishBase();
+cp2.generateFaces();
+var cp3 = new CreasePattern();
+cp3.birdBase();
+cp3.generateFaces();
+
+fillCanvasWithCP("canvas-1", cp1);
+fillCanvasWithCP("canvas-2", cp2);
+fillCanvasWithCP("canvas-3", cp3);
+</script>
+
+<script>
+// console.log(_node_adjacent_faces);
+node_adjacent_faces_callback = function(event){
+	document.getElementById("adjacent-face-node").innerHTML = event.node.index;
+}
 </script>
 
 <?php include 'footer.php';?>

@@ -1,36 +1,45 @@
 <?php include 'header.php';?>
 
-<h1>Intersections</h1>
-<section id="intersections">
-	<h2><a href="#intersesctions">getAllEdgeIntersections</a></h2>
-	<div class="centered p5sketch" id="divTest04"></div>
+<h1>INTERSECTIONS</h1>
+
+<section id="intro">
+
 	<div class="centered">
-		<pre><code>graph.<f>getAllEdgeIntersections</f>()</code></pre>
+		<canvas id="canvas-intersections" resize></canvas>
 	</div>
-	<div class="accordion">
-		<p>a planar graph is <b>INVALID</b> if an edge cross another edge. It's simple to resolve by splitting the 2 edges into 4 and place a node at the intersection point.</p>
+
+	<div class="centered">
+		<pre><code><span id="span-merge-result"></span> ← graph.<f>chop</f>()</code></pre>
 	</div>
+
+	<div class="explain">
+		<div>
+			<p>Chopping a planar graph requires a lot of passes, or a smart algorithm. Each time one intersection gets chopped, 2 edges get removed, and replaced with 4 edges and 1 new node. .</p>
+		</div>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-faces-random" resize></canvas>
+	</div>
+
+	<div class="tests">
+		<ul>
+			<li>clean()</li>
+			<li>mergeDuplicateVertices(epsilon:number)</li>
+		</ul>
+	</div>
+
 </section>
 
-<section id="parallel">
-	<h2>Parallel Lines</h2>
-	<div class="accordion">
-		<p>Concerning floating point precision: at some point, two lines will be considered parallel, and impossible to intersect. We are</p>
-	</div>
+<!-- include .js sketches -->
+<script language="javascript" type="text/javascript" src="../tests/js/intersections.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/faces_random.js"></script>
 
-	<div class="centered p5sketch" id="divTest05"></div>
-	
-	<div class="centered">
-		<pre><code>graph.<f>getAllEdgeIntersections</f>()</code></pre>
-	</div>
-</section>
-
-<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/04_intersections.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/p5js/planarGraph/05_parallels.js"></script>
 <script>
-	$(".accordion-title").html("MORE");
-	var p504 = new p5(_04_intersections, 'divTest04');
-	var p505 = new p5(_05_parallels, 'divTest05');
+	edge_intersections_callback = function(event){
+		if(event != undefined){
+			document.getElementById("span-merge-result").innerHTML = event.length;
+		}
+	}
 </script>
-
 <?php include 'footer.php';?>

@@ -187,6 +187,12 @@ class PlanarNode extends GraphNode implements XYPoint{
 		this.y = node.y + distance*Math.sin(currentAngle + angle);
 	}
 
+	position(x:number, y:number):PlanarNode{
+		this.x = x;
+		this.y = y;
+		return this;
+	}
+
 // implements XYPoint
 	dot(point:XYPoint):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XYPoint):number{ return this.x*vector.y - this.y*vector.x; }
@@ -329,9 +335,10 @@ class PlanarGraph extends Graph{
 	// ADD PARTS
 	///////////////////////////////////////////////
 
-	// newNode(x:number, y:number):PlanarNode {
-	// 	return this.addNode(new PlanarNode(this, x, y));
-	// }
+	newNode():PlanarNode {
+		var x = 0; var y = 0;
+		return <PlanarNode>this.addNode(new PlanarNode(this, x, y));
+	}
 	newEdge(node1:PlanarNode, node2:PlanarNode):PlanarEdge {
 		return this.addEdge(new PlanarEdge(this, node1, node2));
 	}
@@ -440,23 +447,27 @@ class PlanarGraph extends Graph{
 		throw "getClockwiseNeighborAround() fromNode was not found adjacent to the specified node";
 	}
 
-	searchAndMergeOneDuplicatePair(epsilon:number):boolean{
+	searchAndMergeOneDuplicatePair(epsilon:number):XYPoint{
 		for(var i = 0; i < this.nodes.length-1; i++){
 			for(var j = i+1; j < this.nodes.length; j++){
 				if ( this.nodes[i].equivalent( this.nodes[j], epsilon) ){
 					super.mergeNodes(this.nodes[i], this.nodes[j]);
-					return true;
+					return new XYPoint(this.nodes[i].x, this.nodes[i].y);
 				}
 			}
 		}
-		return false;
+		return undefined;
 	}
 
-	mergeDuplicateVertices(epsilon?:number):number{
+	mergeDuplicateVertices(epsilon?:number):XYPoint[]{
 		if(epsilon == undefined){ epsilon = EPSILON; }
-		var count = 0;
-		while(this.searchAndMergeOneDuplicatePair(epsilon)){ count += 1; };
-		return count;
+		var duplicateArray = [];
+		var duplicate = undefined
+		do{
+			duplicate = this.searchAndMergeOneDuplicatePair(epsilon);
+			if(duplicate != undefined){ duplicateArray.push(duplicate); }
+		} while(duplicate != undefined)
+		return duplicateArray;
 	}
 
 	mergeCollinearLines(epsilon?:number){
@@ -477,7 +488,7 @@ class PlanarGraph extends Graph{
 		// remove all nodes separating two collinear lines
 	}
 
-	getNearestNode(x:number, y:number):PlanarNode{  // returns index of node
+	getNearestNode(x:number, y:number):PlanarNode{
 		// can be optimized with a k-d tree
 		var node = undefined;
 		var distance = Infinity;
@@ -491,7 +502,7 @@ class PlanarGraph extends Graph{
 		return node;
 	}
 
-	getNearestNodes(x:number, y:number, howMany:number):PlanarNode[]{  // returns array of indices to nodes
+	getNearestNodes(x:number, y:number, howMany:number):PlanarNode[]{
 		// can be optimized with a k-d tree
 		var distances = [];
 		for(var i = 0; i < this.nodes.length; i++){
