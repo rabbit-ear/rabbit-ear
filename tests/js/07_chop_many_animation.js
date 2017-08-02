@@ -76,7 +76,7 @@ var test07 = function(p){
 		
 		p.fill(0, 0, 0);
 		p.stroke(0, 0, 0);
-		drawCoordinateFrame(p);
+		// drawCoordinateFrame(p);
 		drawGraphPoints(p, g);
 		p.stroke(0, 0, 0, 30);
 		drawGraphLines(p, g);

@@ -441,10 +441,13 @@ var PlanarGraph = (function (_super) {
         // remove all nodes separating two collinear lines
     };
     PlanarGraph.prototype.getEdgeIntersections = function () {
+        // todo should this make new XYPoints instead of returning EdgeIntersection objects?
         var intersections = [];
+        // check all edges against each other for intersections
         for (var i = 0; i < this.edges.length - 1; i++) {
             for (var j = i + 1; j < this.edges.length; j++) {
                 var intersection = this.edges[i].intersection(this.edges[j]);
+                // add to array if exists, and is unique
                 if (intersection != undefined) {
                     var copy = false;
                     for (var k = 0; k < intersections.length; k++) {

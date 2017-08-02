@@ -72,7 +72,7 @@ var _11_merge_duplicates = function( p ) {
 		p.strokeWeight(.01);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
-		drawCoordinateFrame(p);
+		// drawCoordinateFrame(p);
 
 		// draw flashes for joins
 		for(var i = 0; i < flashFades.length; i++){

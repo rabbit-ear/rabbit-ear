@@ -37,7 +37,7 @@ var _10_clean = function( p ) {
 		p.strokeWeight(.01);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
-		drawCoordinateFrame(p);
+		// drawCoordinateFrame(p);
 	}
 	p.mousePressed = function(){
 		var mouseXScaled = p.mouseX / paperSize;

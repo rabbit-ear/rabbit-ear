@@ -13,7 +13,7 @@
 	</div>
 
 	<div class="explain">
-		<p>Even if an edge properly encloses a space, a face won't get made if there is a stray edge poking into the polygon.</p>
+		<p>Even if edges properly enclose a space, a face won't be created if there is a stray edge poking into the polygon.</p>
 	</div>
 
 	<div class="centered">
@@ -42,7 +42,7 @@
 	</div>
 	
 	<div class="centered">
-		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<f>planarAdjacent</f>()</code></pre>
+		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<a href="methods/planarAdjacent.php"><f>planarAdjacent</f>()</a></code></pre>
 	</div>
 
 	<div class="centered">

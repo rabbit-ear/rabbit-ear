@@ -13,19 +13,20 @@
 	<div class="centered">
 		<pre><code><key>var</key> cp <op>=</op> <key>new</key> CreasePattern()<br>cp.<f>fishBase</f>()</code></pre>
 	</div>
-	<div class="explain">
-		<p>Origami crease patterns are collections of crease lines on a 2D membrane. They also follow certain rules specific to origami.</p>
-		<p>Explore these pages and follow the path that I took to create a library that handles origami crease pattern math, play with the examples, learn all the algorithms that I had to learn too.</p>
+	<div class="quote">
+		<p>This is a planar graph library in javascript for creating origami crease patterns</p>
+	</div>
+	<div class="quote">
+		<p><a href="http://github.com/robbykraft/Origami/">Download</a></p>
 	</div>
 
 <h2>Planar Graphs</h2>
 	<div id="sketch_intersections" class="centered p5sketch"></div>
 	<div class="centered">
-		<pre><code><span id="span-intersection-results"></span>planarGraph.<f>getAllEdgeIntersections</f>();</code></pre>
+		<pre><code><span id="span-intersection-results"></span>planarGraph.<f>getEdgeIntersections</f>();</code></pre>
 	</div>
-	<div class="explain">
-		<p>Mathematically speaking, a crease pattern is a planar graph: a data structure that has edges (lines) in a 2D plane, defined by their endpoints (nodes).</p>
-		<p>Because these edges and nodes exist in a 2D plane, we can do things like detect edge intersections.</p>
+	<div class="quote">
+		<p><a href="planarGraph.php">About planar graphs ⇒</a></p>
 	</div>
 <h2>Graphs</h2>
 	<div class="centered">
@@ -34,21 +35,16 @@
 	<div class="centered">
 		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<f>getNodesAdjacentToNode</f>(<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>)<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<f>getNodesAdjacentToEdge</f>(<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>)</code></pre>
 	</div>
-	<div class="explain">
-		<p>A mathematical <a href="https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)">graph</a>, however, does not exist in space. Connections exist between nodes (by way of edges) but the idea of distance in space doesn't exist.</p>
+	<div class="quote">
+		<p><a href="graph.php">About graphs ⇒</a></p>
 	</div>
-<h2>This Library</h2>
-	<div class="explain">
-		<p>These pages chronicle the making of this code. It came together in 3 parts. Each class inherits from the one above it.</p>
-		<p>This library, the 3 files below, are wrapped up in one file <b>creasePattern.js</b></p>
+
+<h2>About</h2>
+	<div class="quote">
+		<p>This is <a href="http://github.com/robbykraft/Origami/">in development</a></p>
+		<p>This libary is available under the MIT open source license.</p>
 	</div>
-	<div>
-		<ul>
-			<li><strong>graph.js:</strong></li>
-			<li><strong>planarGraph.js:</strong></li>
-			<li><strong>creasePattern.js</strong></li>
-		</ul>
-	</div>
+
 </section>
 
 <!-- include .js sketches -->
@@ -57,6 +53,9 @@
 <script language="javascript" type="text/javascript" src="../tests/js/04_intersections.js"></script>
 <script>
 	var p5intersections = new p5(_04_intersections, 'sketch_intersections');
+	p5intersections.callback = function(e){
+		document.getElementById("span-intersection-results").innerHTML = e.length + " ← ";
+	}
 	function updateNodesAdjacentToNode(input, output){
 		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }

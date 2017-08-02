@@ -49,7 +49,7 @@ var _04_intersections = function(p) {
 		p.fill(0, 0, 0);
 		p.stroke(0, 0, 0);
 		p.strokeWeight(.01);
-		drawCoordinateFrame(p);
+		// drawCoordinateFrame(p);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
 		// intersections

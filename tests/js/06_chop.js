@@ -70,7 +70,7 @@ var test06 = function(p){
 
 		p.fill(0, 0, 0);
 		p.stroke(0, 0, 0);
-		drawCoordinateFrame(p);
+		// drawCoordinateFrame(p);
 		// drawGraphPoints(p, g);
 		if(g.edges.length == 2)  p.draw1();
 		else                     p.draw2();

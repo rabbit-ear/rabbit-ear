@@ -17,10 +17,7 @@
 		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
 	</div>
 	<div class="explain">
-		<div>
-			
-			<p>Unlike these visualizations, graphs don't exist in space, they are an abstract model of connections between nodes.</p>
-		</div>
+		<p>Unlike these visualizations, graphs don't exist in space, they are an abstract model of connections between nodes</p>
 	</div>
 
 </section>
@@ -31,19 +28,15 @@
 	<h2><a href="#nodes-and-edges">&sect;</a> Nodes and Edges</h2>
 
 	<div class="quote">
-		<div>
-			<p>All of a graph's nodes and edges are stored in arrays called <b>nodes</b> and <b>edges</b>.</p>
-		</div>
+		<p>All of a graph's nodes and edges are stored in arrays called <b>nodes</b> and <b>edges</b>.</p>
 	</div>
 
 	<div class="centered">
 		<pre><code>graph.<v>nodes</v>;  <c>// all the graph's nodes</c><br>graph.<v>edges</v>;  <c>// all the graph's edges</c></code></pre>
 	</div>
 
-	<div class="explain">
-		<div>
-			<p><i>newNode()</i> will create a new <i>GraphNode</i>, add it to the graph, and return a reference to the new node</p>
-		</div>
+	<div class="quote">
+		<p><i>newNode()</i> will create a new <i>GraphNode</i>, add it to the graph, and return a reference to the new node</p>
 	</div>
 
 	<div class="centered">
@@ -56,9 +49,8 @@
 
 	<div class="tests">
 		<ul>
-			<li>newNode():<n>GraphNode</n></li>
-			<li>newEdge(node1:<n>GraphNode</n>, node2:<n>GraphNode</n>):<n>GraphEdge</n></li>
-			<li>clear()</li>
+			<li><a href="../tests/html/graph_stress.html">10,000 edges</a></li>
+			<li><a href="../tests/html/graph_remove.html">remove a node</a></li>
 		</ul>
 	</div>
 	
@@ -73,7 +65,11 @@
 
 	<div class="centered">
 		<svg id="svgTest01" width="400" height="400"></svg>
-	<div>
+	</div>
+
+	<div class="quote" style="">
+		<p>Click nodes and edges</p>
+	</div>
 
 	<div class="centered">
 		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<v>nodes</v>[<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<v>edges</v>[<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()</code></pre>
@@ -81,8 +77,7 @@
 
 	<div class="explain">
 		<div>
-			<p>Once you have a node, you can call functions on it, such as getting all adjacent nodes.</p>
-			<p><strong>2 nodes are adjacent if they are connected by an edge</strong></p>
+			<p><strong>Two nodes are adjacent if they are connected by an edge</strong></p>
 		</div>
 	</div>
 
@@ -90,11 +85,13 @@
 
 <section id="adjacent-edges">
 	<h2><a href="#adjacent-nodes">&sect;</a> Get Edges</h2>
+	
 	<div class="explain">
 		<div>
-			<p><i>"adjacency"</i> has to do with edge-connections and has nothing to do with position in space. Two edges are adjacent when they are both connected to the same node.</p>
+			<p><strong>Two edges are adjacent when they are both connected to the same node</strong></p>
 		</div>
 	</div>
+
 	<div class="centered">
 		<pre><code>graph.<v>edges</v>;  <span class="token comment">// array</span></code></pre>
 	</div>
@@ -109,11 +106,8 @@
 
 <section id="remove-nodes">
 	<h2><a href="#remove-nodes">&sect;</a> Remove Nodes</h2>
-	<div class="explain">
-		<div>
+	<div class="quote">
 			<p>When removing a node, any edges which share the node will be removed also.</p>
-			<p>Because this shuffles the node array upon which edges are dependent, this also triggers the edge array to update accordingly.</p>
-		</div>
 	</div>
 	<div class="centered">
 		<pre><code><span id="spanEdgesAdjacentToNodeResult"></span>graph.<f>removeNode</f>(<span id="spanEdgesAdjacentToNodeInput" class="token argument"></span>)</code></pre>
@@ -126,7 +120,7 @@
 
 <section id="remove-edges">
 	<h2><a href="#remove-edges">&sect;</a> Remove Edges</h2>
-	<div class="explain">
+	<div class="quote">
 		<p>Removing an edge simply removes that edge, any previously-attached nodes will remain in the graph.</p>
 	</div>
 	<div class="centered">
@@ -152,6 +146,14 @@
 			<li>clean():object</li>
 			<li>cleanCircularEdges():number</li>
 			<li>cleanDuplicateEdges():number</li>
+		</ul>
+	</div>
+
+	<div class="tests">
+		<ul>
+			<li>newNode():<n>GraphNode</n></li>
+			<li>newEdge(node1:<n>GraphNode</n>, node2:<n>GraphNode</n>):<n>GraphEdge</n></li>
+			<li>clear()</li>
 		</ul>
 	</div>
 

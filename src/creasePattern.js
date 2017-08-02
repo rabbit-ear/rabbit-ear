@@ -17,6 +17,20 @@ var CreaseDirection;
     CreaseDirection[CreaseDirection["mountain"] = 2] = "mountain";
     CreaseDirection[CreaseDirection["valley"] = 3] = "valley";
 })(CreaseDirection || (CreaseDirection = {}));
+var Fold = (function () {
+    function Fold(foldFunction, argumentArray) {
+        this.func = undefined;
+        this.args = [];
+        this.func = foldFunction;
+        this.args = argumentArray;
+    }
+    return Fold;
+}());
+var FoldSequence = (function () {
+    function FoldSequence() {
+    }
+    return FoldSequence;
+}());
 var CreaseNode = (function (_super) {
     __extends(CreaseNode, _super);
     function CreaseNode(graph, xx, yy) {
@@ -138,6 +152,42 @@ var CreasePattern = (function (_super) {
         this.square();
         // this.interestingPoints = this.starterLocations;
     };
+    CreasePattern.prototype.bottomEdge = function () {
+        var boundaries = this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { var ay = a.node[0].y + a.node[1].y; var by = b.node[0].y + b.node[1].y; return (ay < by) ? 1 : (ay > by) ? -1 : 0; });
+        if (boundaries.length > 0) {
+            return boundaries[0];
+        }
+        return undefined;
+    };
+    CreasePattern.prototype.topEdge = function () {
+        var boundaries = this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { var ay = a.node[0].y + a.node[1].y; var by = b.node[0].y + b.node[1].y; return (ay > by) ? 1 : (ay < by) ? -1 : 0; });
+        if (boundaries.length > 0) {
+            return boundaries[0];
+        }
+        return undefined;
+    };
+    CreasePattern.prototype.rightEdge = function () {
+        var boundaries = this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { var ax = a.node[0].x + a.node[1].x; var bx = b.node[0].x + b.node[1].x; return (ax < bx) ? 1 : (ax > bx) ? -1 : 0; });
+        if (boundaries.length > 0) {
+            return boundaries[0];
+        }
+        return undefined;
+    };
+    CreasePattern.prototype.leftEdge = function () {
+        var boundaries = this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { var ax = a.node[0].x + a.node[1].x; var bx = b.node[0].x + b.node[1].x; return (ax > bx) ? 1 : (ax < bx) ? -1 : 0; });
+        if (boundaries.length > 0) {
+            return boundaries[0];
+        }
+        return undefined;
+    };
     ///////////////////////////////////////////////////////////////
     // ADD PARTS
     CreasePattern.prototype.fold = function (param1, param2, param3, param4) {
@@ -156,7 +206,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
         // this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
         // this.addEdgeWithVertices(x1, y1, x2, y2).border();
-        this.addEdgeWithVertices(x1, y1, x2, y2);
+        this.addEdgeWithVertices(x1, y1, x2, y2).border();
         this.boundary.addEdgeWithVertices(x1, y1, x2, y2);
     };
     CreasePattern.prototype.creaseOnly = function (a, b) {

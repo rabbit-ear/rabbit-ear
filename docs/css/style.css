@@ -94,6 +94,23 @@ b, strong{
 	padding-top:.33em;
 	padding-bottom:.33em;
 }
+.tests a:hover{
+	text-decoration: underline;
+}
+code a, code a:visited, code a:active, code a:hover{
+	color:white;
+	text-decoration: none;
+}
+code a:hover{
+	/*border-width: 5px;*/
+	border-bottom-width: 3px;
+	border-style: solid;
+	border-color: white;/*#66D9EF;*/
+}
+code h1, code h2, code h3, code h4, code h5{
+	padding:0;
+	border-bottom-width:0px;
+}
 /*
 h1 a, h2 a, h3 a, h4 a, h5 a{
 	font-weight: normal;

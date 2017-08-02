@@ -7,6 +7,9 @@
 	<div class="centered">
 		<pre><code>graph.<f>clean</f>()</code></pre>
 	</div>
+	<div class="quote">
+		<p>Cleaning a planar graph, it's now possible to merge nodes that are near each other</p>
+	</div>
 
 	<div id="divP5_merge" class="centered p5sketch"></div>
 
@@ -20,7 +23,7 @@
 
 	<div class="explain">
 		<div>
-			<p>The merge function has an optional argument of an epsilon value, it will merge points that fall within the radius of epsilon.</p>
+			<p><b>Epsilon</b> is the radius around a point where merging occurs. It's a fraction of the size of the canvas. A larger number will merge across a further distance.</p>
 		</div>
 	</div>
 

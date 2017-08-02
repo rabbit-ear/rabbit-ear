@@ -28,7 +28,7 @@ var p5_nearest_edge = function(p) {
 		p.applyMatrix(paperSize, 0, 0, paperSize, WIDTH*0.5-paperSize*0.5, HEIGHT*0.5-paperSize*0.5);		
 		p.fill(0, 0, 0);
 		p.stroke(0, 0, 0);
-		drawCoordinateFrame(p);
+		// drawCoordinateFrame(p);
 		drawGraphPoints(p, g);
 		drawGraphLines(p, g);
 		if(closestEdge != undefined && closestEdge.edge != undefined){

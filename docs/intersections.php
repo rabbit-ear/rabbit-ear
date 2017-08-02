@@ -17,15 +17,15 @@
 			<p>Chopping a planar graph requires a lot of passes, or a smart algorithm. Each time one intersection gets chopped, 2 edges get removed, and replaced with 4 edges and 1 new node. .</p>
 		</div>
 	</div>
-
-	<div class="centered">
-		<canvas id="canvas-faces-random" resize></canvas>
-	</div>
-
+	
 	<div class="tests">
 		<ul>
-			<li>clean()</li>
-			<li>mergeDuplicateVertices(epsilon:number)</li>
+			<li>chop test 1</li>
+			<li>chop test 2</li>
+			<li>chop test 3</li>
+			<li>chop test 4</li>
+			<li>chop test 5</li>
+			<li>chop test 5</li>
 		</ul>
 	</div>
 
