@@ -35,7 +35,7 @@
 
 	<div class="tests">
 		<ul>
-			<li>clean()</li>
+			<li><a href="../tests/html/merge_node_check.html">merge node transparency check</a></li>
 			<li>mergeDuplicateVertices(epsilon:number)</li>
 		</ul>
 	</div>

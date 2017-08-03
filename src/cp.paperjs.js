@@ -172,3 +172,38 @@ var PaperCreasePattern = (function () {
 	};
 	return PaperCreasePattern;
 }());
+
+
+// callback returns the crease pattern as an argument
+function loadSVG(path, callback){
+	paper.project.importSVG("/tests/svg/sea-turtle.svg", function(e){
+		var svgLayer = e;
+		// svgLayer.strokeWidth = 0.004;
+		var w = svgLayer.bounds.size.width;
+		var h = svgLayer.bounds.size.height;
+		var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
+		svgLayer.matrix = mat;
+
+		var cp = new CreasePattern();
+		function recurseAndAdd(childrenArray){
+			for(var i = 0; i < childrenArray.length; i++){
+				if(childrenArray[i].segments != undefined){ // found a line
+					for(var j = 0; j < childrenArray[i].segments.length-1; j++){
+						cp.creaseOnly(childrenArray[i].segments[j].point,
+						                         childrenArray[i].segments[j+1].point);
+					}
+				} else if (childrenArray[i].children != undefined){
+					recurseAndAdd(childrenArray[i].children);
+				}
+			}
+		}
+		recurseAndAdd(svgLayer.children);
+		svgLayer.removeChildren();
+		svgLayer.remove();
+		cp.clean();
+		cp.chop();
+		if(callback != undefined){
+			callback(cp);
+		}
+	});
+}
