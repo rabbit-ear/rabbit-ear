@@ -402,6 +402,9 @@ var CreasePattern = (function (_super) {
                 }
             }
         }
+        for (var i = 0; i < intersects.length; i++) {
+            console.log(intersects[i].x + "," + intersects[i].y);
+        }
         return intersects;
     };
     CreasePattern.prototype.boundaryRayIntersection = function (origin, direction) {

@@ -375,6 +375,9 @@ class CreasePattern extends PlanarGraph{
 				}
 			}
 		}
+		for(var i = 0; i < intersects.length; i++){
+			console.log(intersects[i].x + "," + intersects[i].y);
+		}
 		return intersects;		
 	}
 	boundaryRayIntersection(origin:XYPoint, direction:XYPoint):XYPoint[]{
