@@ -28,13 +28,13 @@ function faces_random(){
 
 	function resetCP(){
 		cp.clear();
-		cp.nodes = [];
-		cp.edges = [];
-		var inset = 0.0001;
-		cp.creaseOnly(new XYPoint(inset, inset), new XYPoint(inset, 1-inset) );
-		cp.creaseOnly(new XYPoint(inset, 1-inset), new XYPoint(1-inset, 1-inset) );
-		cp.creaseOnly(new XYPoint(1-inset, 1-inset), new XYPoint(1-inset, inset) );
-		cp.creaseOnly(new XYPoint(1-inset, inset), new XYPoint(inset, inset) );
+		// cp.nodes = [];
+		// cp.edges = [];
+		// var inset = 0.0001;
+		// cp.creaseOnly(new XYPoint(inset, inset), new XYPoint(inset, 1-inset) );
+		// cp.creaseOnly(new XYPoint(inset, 1-inset), new XYPoint(1-inset, 1-inset) );
+		// cp.creaseOnly(new XYPoint(1-inset, 1-inset), new XYPoint(1-inset, inset) );
+		// cp.creaseOnly(new XYPoint(1-inset, inset), new XYPoint(inset, inset) );
 		for(var i = 0; i < 10; i++){
 			cp.creaseThroughPoints(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.random(), Math.random()) );
 		}

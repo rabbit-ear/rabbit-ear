@@ -357,8 +357,16 @@ class CreasePattern extends PlanarGraph{
 			var endpts = this.boundary.edges[i].endPoints();
 			var test1 = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
 			var test2 = rayLineSegmentIntersectionAlgorithm(origin, opposite, endpts[0], endpts[1]);
-			if(test1 != undefined){ intersects.push(test1); }
-			if(test2 != undefined){ intersects.push(test2); }
+			if(test1 != undefined){ 
+				test1.x = wholeNumberify(test1.x);
+				test1.y = wholeNumberify(test1.y);
+				intersects.push(test1); 
+			}
+			if(test2 != undefined){ 
+				test2.x = wholeNumberify(test2.x);
+				test2.y = wholeNumberify(test2.y);
+				intersects.push(test2); 
+			}
 		}
 		for(var i = 0; i < intersects.length-1; i++){
 			for(var j = intersects.length-1; j > i; j--){
@@ -628,54 +636,54 @@ class CreasePattern extends PlanarGraph{
 		this.addEdgeWithVertices(0.5, 0.5, .35353, .14646);
 		this.addEdgeWithVertices(.14646, .35353, .14646, 0.5);
 		this.addEdgeWithVertices(0, 0.5, .14646, 0.5);
-		this.addEdgeWithVertices(0.5, 0.5, 0.5, .14644);
-		this.addEdgeWithVertices(0.5, .14644, 0.5, 0);
+		this.addEdgeWithVertices(0.5, 0.5, 0.5, .14646);
+		this.addEdgeWithVertices(0.5, .14646, 0.5, 0);
 		this.addEdgeWithVertices(0.5, 0, .35353, .14646);
 		this.addEdgeWithVertices(.35353, .14646, 0.5, .14646);
-		this.addEdgeWithVertices(.14646, .35354, 0, 0.5);
-		this.addEdgeWithVertices(.14646, .35354, .25, .25);
+		this.addEdgeWithVertices(.14646, .35353, 0, 0.5);
+		this.addEdgeWithVertices(.14646, .35353, .25, .25);
 		this.addEdgeWithVertices(.25, .25, .35353, .14646);
-		this.addEdgeWithVertices(0, 1, .35352, .85354);
+		this.addEdgeWithVertices(0, 1, .35353, .85353);
 		this.addEdgeWithVertices(0, 1, .14646, .64646);
-		this.addEdgeWithVertices(.35352, .85354, 0.5, 0.5);
+		this.addEdgeWithVertices(.35353, .85353, 0.5, 0.5);
 		this.addEdgeWithVertices(0.5, 0.5, .14646, .64646);
-		this.addEdgeWithVertices(.35352, .85354, 0.5, .85354);
-		this.addEdgeWithVertices(0.5, 1, 0.5, .85354);
-		this.addEdgeWithVertices(0.5, 0.5, 0.5, .85354);
-		this.addEdgeWithVertices(0.5, 0.5, .14643, 0.5);
+		this.addEdgeWithVertices(.35353, .85353, 0.5, .85353);
+		this.addEdgeWithVertices(0.5, 1, 0.5, .85353);
+		this.addEdgeWithVertices(0.5, 0.5, 0.5, .85353);
+		this.addEdgeWithVertices(0.5, 0.5, .14646, 0.5);
 		this.addEdgeWithVertices(0, 0.5, .14646, .64646);
 		this.addEdgeWithVertices(.14646, .64646, .14646, 0.5);
-		this.addEdgeWithVertices(.35353, .85354, 0.5, 1);
-		this.addEdgeWithVertices(.35353, .85354, .25, .75);
+		this.addEdgeWithVertices(.35353, .85353, 0.5, 1);
+		this.addEdgeWithVertices(.35353, .85353, .25, .75);
 		this.addEdgeWithVertices(.25, .75, .14646, .64646);
-		this.addEdgeWithVertices(1, 0, .85352, .35353);
-		this.addEdgeWithVertices(1, 0, .64645, .14646);
-		this.addEdgeWithVertices(.85352, .35353, 0.5, 0.5);
-		this.addEdgeWithVertices(0.5, 0.5, .64645, .14646);
-		this.addEdgeWithVertices(.85352, .35353, .85352, 0.5);
-		this.addEdgeWithVertices(1, 0.5, .85352, 0.5);
-		this.addEdgeWithVertices(0.5, 0, .64645, .14646);
-		this.addEdgeWithVertices(.64645, .14646, 0.5, .14646);
-		this.addEdgeWithVertices(.8535, .35354, 1, 0.5);
-		this.addEdgeWithVertices(.8535, .35354, .75, .25);
-		this.addEdgeWithVertices(.75, .25, .64645, .14646);
-		this.addEdgeWithVertices(1, 1, .64645, .85354);
-		this.addEdgeWithVertices(1, 1, .85352, .64646);
-		this.addEdgeWithVertices(.64645, .85354, 0.5, 0.5);
-		this.addEdgeWithVertices(0.5, 0.5, .85352, .64646);
-		this.addEdgeWithVertices(.64645, .85354, 0.5, .85354);
-		this.addEdgeWithVertices(0.5, 0.5, .85354, 0.5);
-		this.addEdgeWithVertices(1, 0.5, .85352, .64646);
-		this.addEdgeWithVertices(.85352, .64646, .85352, 0.5);
-		this.addEdgeWithVertices(.64645, .85354, 0.5, 1);
-		this.addEdgeWithVertices(.64645, .85354, .75, .75);
-		this.addEdgeWithVertices(.75, .75, .85352, .64646);
+		this.addEdgeWithVertices(1, 0, .85353, .35353);
+		this.addEdgeWithVertices(1, 0, .64646, .14646);
+		this.addEdgeWithVertices(.85353, .35353, 0.5, 0.5);
+		this.addEdgeWithVertices(0.5, 0.5, .64646, .14646);
+		this.addEdgeWithVertices(.85353, .35353, .85353, 0.5);
+		this.addEdgeWithVertices(1, 0.5, .85353, 0.5);
+		this.addEdgeWithVertices(0.5, 0, .64646, .14646);
+		this.addEdgeWithVertices(.64646, .14646, 0.5, .14646);
+		this.addEdgeWithVertices(.85353, .35353, 1, 0.5);
+		this.addEdgeWithVertices(.85353, .35353, .75, .25);
+		this.addEdgeWithVertices(.75, .25, .64646, .14646);
+		this.addEdgeWithVertices(1, 1, .64646, .85353);
+		this.addEdgeWithVertices(1, 1, .85353, .64646);
+		this.addEdgeWithVertices(.64646, .85353, 0.5, 0.5);
+		this.addEdgeWithVertices(0.5, 0.5, .85353, .64646);
+		this.addEdgeWithVertices(.64646, .85353, 0.5, .85353);
+		this.addEdgeWithVertices(0.5, 0.5, .85353, 0.5);
+		this.addEdgeWithVertices(1, 0.5, .85353, .64646);
+		this.addEdgeWithVertices(.85353, .64646, .85353, 0.5);
+		this.addEdgeWithVertices(.64646, .85353, 0.5, 1);
+		this.addEdgeWithVertices(.64646, .85353, .75, .75);
+		this.addEdgeWithVertices(.75, .75, .85353, .64646);
 		this.addEdgeWithVertices(.35353, .14646, .35353, 0);
-		this.addEdgeWithVertices(.64645, .14646, .64645, 0);
-		this.addEdgeWithVertices(.85352, .35353, 1, .35353);
-		this.addEdgeWithVertices(.85352, .64646, 1, .64646);
-		this.addEdgeWithVertices(.64645, .85354, .64645, 1);
-		this.addEdgeWithVertices(.35352, .85354, .35352, 1);
+		this.addEdgeWithVertices(.64646, .14646, .64646, 0);
+		this.addEdgeWithVertices(.85353, .35353, 1, .35353);
+		this.addEdgeWithVertices(.85353, .64646, 1, .64646);
+		this.addEdgeWithVertices(.64646, .85353, .64646, 1);
+		this.addEdgeWithVertices(.35353, .85353, .35353, 1);
 		this.addEdgeWithVertices(.14646, .64646, 0, .64646);
 		this.addEdgeWithVertices(.14646, .35353, 0, .35353);
 		this.addEdgeWithVertices(0.5, 0.5, .25, .25);

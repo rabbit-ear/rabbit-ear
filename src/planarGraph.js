@@ -788,10 +788,21 @@ function rayLineSegmentIntersectionAlgorithm(rayOrigin, rayDirection, point1, po
     var t1 = cross / dot;
     var t2 = (v1.x * vRayPerp.x + v1.y * vRayPerp.y) / dot;
     if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)) {
-        return new XYPoint(rayOrigin.x + rayDirection.x * t1, rayOrigin.y + rayDirection.y * t1);
+        var x = rayOrigin.x + rayDirection.x * t1;
+        var y = rayOrigin.y + rayDirection.y * t1;
+        // todo: really, we need to move beyond the need for whole numbers
+        x = wholeNumberify(x);
+        y = wholeNumberify(y);
+        return new XYPoint(x, y);
         //return t1;
     }
     return undefined;
+}
+function wholeNumberify(num) {
+    if (Math.abs(Math.round(num) - num) < EPSILON_HIGH) {
+        num = Math.round(num);
+    }
+    return num;
 }
 function lineIntersectionAlgorithm(p0, p1, p2, p3) {
     // p0-p1 is first line
@@ -809,47 +820,99 @@ function lineIntersectionAlgorithm(p0, p1, p2, p3) {
     var t = (run2 * s02.y - rise2 * s02.x) / denom;
     return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1));
 }
-function lineSegmentIntersectionAlgorithm(p0, p1, p2, p3) {
+function lineSegmentIntersectionAlgorithm(A, B, C, D) {
+    var CmP = new XYPoint(C.x - A.x, C.y - A.y);
+    var r = new XYPoint(B.x - A.x, B.y - A.y);
+    var s = new XYPoint(D.x - C.x, D.y - C.y);
+    var CmPxr = CmP.x * r.y - CmP.y * r.x;
+    var CmPxs = CmP.x * s.y - CmP.y * s.x;
+    var rxs = r.x * s.y - r.y * s.x;
+    if (CmPxr === 0) {
+        // Lines are collinear, and so intersect if they have any overlap
+        // return ((C.x - A.x < 0.0) != (C.x - B.x < 0.0)) || ((C.y - A.y < 0.0) != (C.y - B.y < 0.0));
+        if (((C.x - A.x < 0.0) != (C.x - B.x < 0.0)) || ((C.y - A.y < 0.0) != (C.y - B.y < 0.0))) {
+            // return new XYPoint(0.0, 0.0);
+        }
+        return undefined;
+    }
+    if (rxs === 0) {
+        return undefined;
+        // return false; // Lines are parallel.
+    }
+    var rxsr = 1.0 / rxs;
+    var t = CmPxs * rxsr;
+    var u = CmPxr * rxsr;
+    if ((t >= 0.0) && (t <= 1.0) && (u >= 0.0) && (u <= 1.0)) {
+        return new XYPoint(A.x + r.x * t, A.y + r.y * t);
+    }
+    return undefined;
+}
+/*
+function lineSegmentIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):XYPoint {
     // p0-p1 is first line
     // p2-p3 is second line
-    var rise1 = (p1.y - p0.y);
-    var run1 = (p1.x - p0.x);
-    var rise2 = (p3.y - p2.y);
-    var run2 = (p3.x - p2.x);
+    var rise1 = (p1.y-p0.y);
+    var run1  = (p1.x-p0.x);
+    var rise2 = (p3.y-p2.y);
+    var run2  = (p3.x-p2.x);
     var slope1 = rise1 / run1;
     var slope2 = rise2 / run2;
+
     // if lines are parallel to each other within a floating point error
-    if (Math.abs(slope1) == Infinity && Math.abs(slope2) > SLOPE_ANGLE_INF_EPSILON)
-        return undefined;
-    if (Math.abs(slope2) == Infinity && Math.abs(slope1) > SLOPE_ANGLE_INF_EPSILON)
-        return undefined;
+    if(Math.abs(slope1) == Infinity && Math.abs(slope2) > SLOPE_ANGLE_INF_EPSILON) return undefined;
+    if(Math.abs(slope2) == Infinity && Math.abs(slope1) > SLOPE_ANGLE_INF_EPSILON) return undefined;
     var angle1 = Math.atan(slope1);
     var angle2 = Math.atan(slope2);
-    if (Math.abs(angle1 - angle2) < SLOPE_ANGLE_EPSILON)
+    if(Math.abs(angle1-angle2) < SLOPE_ANGLE_EPSILON){
+        console.log("if(Math.abs(angle1-angle2) < SLOPE_ANGLE_EPSILON){ ");
         return undefined;
+    }
+
     var denom = run1 * rise2 - run2 * rise1;
-    if (denom == 0)
-        return undefined; // Collinear
+    if (denom == 0){
+        console.log("if (denom == 0){");
+        return undefined; // Collinear lines
+    }
     var denomPositive = false;
-    if (denom > 0)
+    if(denom > 0){
         denomPositive = true;
-    var s02 = { 'x': p0.x - p2.x, 'y': p0.y - p2.y };
+    }
+
+    var s02 = {'x':p0.x - p2.x, 'y':p0.y - p2.y};
+
     var s_numer = run1 * s02.y - rise1 * s02.x;
-    if ((s_numer < 0) == denomPositive)
+    if ((s_numer < 0) == denomPositive){
+        console.log("if ((s_numer < 0) == denomPositive)");
         return undefined; // No collision
+    }
+
     var t_numer = run2 * s02.y - rise2 * s02.x;
-    if ((t_numer < 0) == denomPositive)
+    if ((t_numer < 0) == denomPositive){
+        console.log("if ((t_numer < 0) == denomPositive){");
         return undefined; // No collision
-    // if(!epsilonEqual(s_numer, denom) && !epsilonEqual(t_numer, denom)){ // ! (point exists on line)
-    if (((s_numer > denom) == denomPositive) || ((t_numer > denom) == denomPositive))
+    }
+
+    if (((s_numer > denom) == denomPositive) || ((t_numer > denom) == denomPositive)){
+        console.log("x   s_numer " + s_numer);
+        console.log("x   t_numer " + t_numer);
+        console.log("x   denom " + denom);
+        console.log("x   denomPositive " + denomPositive);
         return undefined; // No collision
+    }
+    // } }else{
+    // 	console.log(".   s_numer " + s_numer);
+    // 	console.log(".   t_numer " + t_numer);
+    // 	console.log(".   denom " + denom);
+    // 	console.log(".   denomPositive " + denomPositive);
     // }
+
     // Collision detected
     var t = t_numer / denom;
     // var i = {'x':(p0.x + (t * run1)), 'y':(p0.y + (t * rise1))};
     // return i;
-    return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1));
+    return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1) );
 }
+*/
 function circleLineIntersectionAlgorithm(center, radius, p0, p1) {
     var r_squared = Math.pow(radius, 2);
     var x1 = p0.x - center.x;

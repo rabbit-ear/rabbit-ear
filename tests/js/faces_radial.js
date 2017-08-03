@@ -25,8 +25,8 @@ function node_adjacent_faces(){
 
 	function resetCP(){
 		cp.clear();
-		cp.nodes = [];
-		cp.edges = [];
+		// cp.nodes = [];
+		// cp.edges = [];
 
 		var angle = 0;
 		while(angle < Math.PI*2){
@@ -35,11 +35,11 @@ function node_adjacent_faces(){
 		}
 		cp.clean();
 
-		var inset = 0.0001;
-		cp.creaseOnly(new XYPoint(inset, inset), new XYPoint(inset, 1-inset) );
-		cp.creaseOnly(new XYPoint(inset, 1-inset), new XYPoint(1-inset, 1-inset) );
-		cp.creaseOnly(new XYPoint(1-inset, 1-inset), new XYPoint(1-inset, inset) );
-		cp.creaseOnly(new XYPoint(1-inset, inset), new XYPoint(inset, inset) );
+		// var inset = 0.0001;
+		// cp.creaseOnly(new XYPoint(inset, inset), new XYPoint(inset, 1-inset) );
+		// cp.creaseOnly(new XYPoint(inset, 1-inset), new XYPoint(1-inset, 1-inset) );
+		// cp.creaseOnly(new XYPoint(1-inset, 1-inset), new XYPoint(1-inset, inset) );
+		// cp.creaseOnly(new XYPoint(1-inset, inset), new XYPoint(inset, inset) );
 
 		cp.chop();
 		cp.generateFaces();

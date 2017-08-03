@@ -88,13 +88,13 @@ radial_rainbow_callback = function(event){
 
 <script>
 var cp1 = new CreasePattern();
-cp1.kiteBase();
+cp1.fishBase();
 cp1.generateFaces();
 var cp2 = new CreasePattern();
-cp2.fishBase();
+cp2.birdBase();
 cp2.generateFaces();
 var cp3 = new CreasePattern();
-cp3.birdBase();
+cp3.frogBase();
 cp3.generateFaces();
 
 fillCanvasWithCP("canvas-1", cp1);
