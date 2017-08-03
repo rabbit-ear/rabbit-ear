@@ -25,7 +25,7 @@ function axiom1() {
 		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
 
-	cp.creaseConnectingPoints(mark1.position, mark2.position).valley();
+	cp.creaseThroughPoints(mark1.position, mark2.position).valley();
 	paperCP.initialize();
 
 	// scope.view.onFrame = function(event) { }
@@ -38,7 +38,7 @@ function axiom1() {
 		if(selected != undefined){
 			selected.position = mousePos;
 			cp.clear();
-			cp.creaseConnectingPoints(mark1.position, mark2.position).valley();
+			cp.creaseThroughPoints(mark1.position, mark2.position).valley();
 			paperCP.initialize();
 		}
 	}

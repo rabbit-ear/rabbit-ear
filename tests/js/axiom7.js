@@ -32,8 +32,8 @@ function axiom7(){
 		center: [0.5, 0.5], radius: 0.02, strokeWidth:0.01,
 		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
-	var crease1 = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
-	var crease2 = cp.creaseConnectingPoints(mark3.position, mark4.position).mountain();
+	var crease1 = cp.creaseThroughPoints(mark1.position, mark2.position).mountain();
+	var crease2 = cp.creaseThroughPoints(mark3.position, mark4.position).mountain();
 	cp.creasePerpendicularPointOntoLine(mark5.position, crease1, crease2).valley();
 	paperCP.initialize();
 
@@ -47,8 +47,8 @@ function axiom7(){
 		if(selected != undefined){
 			selected.position = mousePos;
 			cp.clear();
-			var crease1 = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
-			var crease2 = cp.creaseConnectingPoints(mark3.position, mark4.position).mountain();
+			var crease1 = cp.creaseThroughPoints(mark1.position, mark2.position).mountain();
+			var crease2 = cp.creaseThroughPoints(mark3.position, mark4.position).mountain();
 			cp.creasePerpendicularPointOntoLine(mark5.position, crease1, crease2).valley();
 			paperCP.initialize();
 		}

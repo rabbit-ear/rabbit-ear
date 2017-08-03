@@ -28,8 +28,8 @@ function axiom3(){
 		center: [0.5, 1.0], radius: 0.02, strokeWidth:0.01,
 		strokeColor: { hue:220, saturation:0.6, brightness:1 }
 	});
-	var edgeA = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
-	var edgeB = cp.creaseConnectingPoints(mark3.position, mark4.position).mountain();
+	var edgeA = cp.creaseThroughPoints(mark1.position, mark2.position).mountain();
+	var edgeB = cp.creaseThroughPoints(mark3.position, mark4.position).mountain();
 	cp.creaseEdgeToEdge(edgeA, edgeB).forEach(function(el){el.valley();});
 	paperCP.initialize();
 
@@ -43,8 +43,8 @@ function axiom3(){
 		if(selected != undefined){
 			selected.position = mousePos;
 			cp.clear();
-			var edgeA = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
-			var edgeB = cp.creaseConnectingPoints(mark3.position, mark4.position).mountain();
+			var edgeA = cp.creaseThroughPoints(mark1.position, mark2.position).mountain();
+			var edgeB = cp.creaseThroughPoints(mark3.position, mark4.position).mountain();
 			var edges = cp.creaseEdgeToEdge(edgeA, edgeB);
 			edges.forEach(function(el){el.valley();});
 			paperCP.initialize();

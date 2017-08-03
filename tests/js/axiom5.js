@@ -32,7 +32,7 @@ function axiom5(){
 	//{ hue:130, saturation:0.8, brightness:0.7 }
 
 
-	var edge = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
+	var edge = cp.creaseThroughPoints(mark1.position, mark2.position).mountain();
 	var newCreases = cp.creasePointToLine(mark3.position, mark4.position, edge);
 	newCreases.forEach(function(el){ el.valley(); });
 	paperCP.initialize();
@@ -64,7 +64,7 @@ function axiom5(){
 		if(selected != undefined){
 			selected.position = mousePos;
 			cp.clear();
-			var edge = cp.creaseConnectingPoints(mark1.position, mark2.position).mountain();
+			var edge = cp.creaseThroughPoints(mark1.position, mark2.position).mountain();
 			var newCreases = cp.creasePointToLine(mark3.position, mark4.position, edge);
 			newCreases.forEach(function(el){ el.valley(); });
 			paperCP.initialize();
