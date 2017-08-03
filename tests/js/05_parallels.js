@@ -1,6 +1,6 @@
 var _05_parallels = function(p) {
 	var paperSize = 250;
-	var WIDTH = paperSize;
+	var WIDTH = paperSize*2;
 	var HEIGHT = paperSize;
 
 	var g = [new PlanarGraph(), new PlanarGraph(), new PlanarGraph(), new PlanarGraph(), new PlanarGraph()];
@@ -9,24 +9,25 @@ var _05_parallels = function(p) {
 
 	var count = 0;
 	var flip = [1, 1, 1, 1, 1];  // (1, or -1) approach from the left or the right
-	var angles = [Math.PI*0.5 * 0.8,
-		          Math.PI*0.5 * 0.5,
-		          Math.PI*0.5 * 0.2,
-		          0.5*Math.PI, 
-		          0];
+	var angles = [0.5*Math.PI, 
+	              Math.PI*0.5 * 0.8,
+	              Math.PI*0.5 * 0.5,
+	              Math.PI*0.5 * 0.2,
+	              0];
+	var len = 0.3;
 	function reset(){
 		count = 0;
 		for(var i = 0; i < 5; i++) {
 			g[i].clear();
-			var row = Math.floor(i/3.0);
-			g[i].addEdgeWithVertices(0.25*((i+1)%4) +row*0.35 + 0.2*Math.cos(angles[i]), 0.25+(row*0.5) + 0.2*Math.sin(angles[i]), 
-			                         0.25*((i+1)%4) +row*0.35 - 0.2*Math.cos(angles[i]), 0.25+(row*0.5) - 0.2*Math.sin(angles[i]));
+			g[i].addEdgeWithVertices(0.36*(i-1) + len*Math.cos(angles[i]), 0.5 + len*Math.sin(angles[i]),
+			                         0.36*(i-1) - len*Math.cos(angles[i]), 0.5 - len*Math.sin(angles[i]));
 			g[i].addEdgeWithVertices(0, 0, 1, 1);
 			g[i].clean();
 
 			if(Math.random() < 0.5) flip[i] = 1;
 			else                    flip[i] = -1;
 		}
+		flip[4] = 1;
 	}
 
 	p.setup = function(){
@@ -45,13 +46,12 @@ var _05_parallels = function(p) {
 		// drawCoordinateFrame(p);
 
 		for(var i = 0; i < 5; i++){
-			var row = Math.floor(i/3.0);
-			g[i].nodes[2].x = 0.25*((i+1)%4) +row*0.35 - 0.2*Math.cos( flip[i] * 0.1 + flip[i] * 0.1 * -Math.sin(count*0.01) + angles[i]);
-			g[i].nodes[2].y = 0.25+(row*0.5)           - 0.2*Math.sin( flip[i] * 0.1 + flip[i] * 0.1 * -Math.sin(count*0.01) + angles[i]);
-			g[i].nodes[3].x = 0.25*((i+1)%4) +row*0.35 + 0.2*Math.cos( flip[i] * 0.1 + flip[i] * 0.1 * -Math.sin(count*0.01) + angles[i]);
-			g[i].nodes[3].y = 0.25+(row*0.5)           + 0.2*Math.sin( flip[i] * 0.1 + flip[i] * 0.1 * -Math.sin(count*0.01) + angles[i]);
+			g[i].nodes[2].x = 0.36*(i-1) - len*Math.cos(flip[i]*0.1 + flip[i]*0.1* -Math.sin(count*0.01)+angles[i]);
+			g[i].nodes[2].y = 0.5 - len*Math.sin(flip[i]*0.1 + flip[i]*0.1* -Math.sin(count*0.01)+angles[i]);
+			g[i].nodes[3].x = 0.36*(i-1) + len*Math.cos(flip[i]*0.1 + flip[i]*0.1* -Math.sin(count*0.01)+angles[i]);
+			g[i].nodes[3].y = 0.5 + len*Math.sin(flip[i]*0.1 + flip[i]*0.1* -Math.sin(count*0.01)+angles[i]);
 
-			var intersections = g[i].getAllEdgeIntersections();
+			var intersections = g[i].getEdgeIntersections();
 
 			p.fill(0, 0, 0);
 			p.stroke(0, 0, 0);

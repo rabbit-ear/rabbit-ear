@@ -10,14 +10,28 @@ function new_sketch(){
 
 	var NUM_FAN = 12;
 	var nearestEdge = undefined;
+	var padding = 0.1;
 
 	function init(){
 		cp.clear();
-		cp.creaseOnly(new XYPoint(0.5, 0.25), new XYPoint(0.5, 0.75));
+		cp.nodes = [];
+		cp.edges = [];
+		cp.creaseOnly(new XYPoint(0.5, padding), new XYPoint(0.5, 1.0-padding));
 		for(var i = 1; i < NUM_FAN; i++){
 			var pct = (i)/(NUM_FAN);
-			cp.creaseRay(new XYPoint(0.5, 0.25 + 0.5*pct), new XYPoint(-Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
+			var edge = cp.creaseRay(new XYPoint(0.5, padding + (1.0-padding*2)*pct), new XYPoint(-Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
+			// console.log(edge.node[0].x + "," + edge.node[0].y)
 		}
+		for(var i = 1; i < (NUM_FAN-1); i++){
+			var pct = (i)/(NUM_FAN-1);
+			var edge = cp.creaseRay(new XYPoint(0.5, padding + (1.0-padding*2)*pct), new XYPoint(Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
+			// console.log(edge.node[0].x + "," + edge.node[0].y)
+		}
+
+		// for(var i = 1; i < cp.edges.length; i++){
+		// 	console.log(cp.edges[0].intersection(cp.edges[i]));
+		// }
+		// cp.chopAllCrossingsWithEdge(cp.edges[0]);
 		cp.chop();
 		paperCP.initialize();
 	} init();

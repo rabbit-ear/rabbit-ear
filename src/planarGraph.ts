@@ -856,38 +856,54 @@ function lineIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoin
 	return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1) );
 }
 
-function lineSegmentIntersectionAlgorithm(A:XYPoint, B:XYPoint, C:XYPoint, D:XYPoint):XYPoint{
-	var CmP = new XYPoint(C.x - A.x, C.y - A.y);
-	var r = new XYPoint(B.x - A.x, B.y - A.y);
-	var s = new XYPoint(D.x - C.x, D.y - C.y);
-
-	var CmPxr:number = CmP.x * r.y - CmP.y * r.x;
-	var CmPxs:number = CmP.x * s.y - CmP.y * s.x;
-	var rxs:number = r.x * s.y - r.y * s.x;
-
-	if (CmPxr === 0){
-		// Lines are collinear, and so intersect if they have any overlap
-		// return ((C.x - A.x < 0.0) != (C.x - B.x < 0.0)) || ((C.y - A.y < 0.0) != (C.y - B.y < 0.0));
-		if(((C.x - A.x < 0.0) != (C.x - B.x < 0.0)) || ((C.y - A.y < 0.0) != (C.y - B.y < 0.0))){
-			// return new XYPoint(0.0, 0.0);
-		}
-		return undefined;
-	}
-
-	if (rxs === 0){
-		return undefined;
-		// return false; // Lines are parallel.
-	}
-
-	var rxsr = 1.0 / rxs;
-	var t = CmPxs * rxsr;
-	var u = CmPxr * rxsr;
-
-	if((t >= 0.0) && (t <= 1.0) && (u >= 0.0) && (u <= 1.0)){
-		return new XYPoint(A.x + r.x*t, A.y + r.y*t);
-	}
-	return undefined;
+function crossProduct(point1, point2) {
+	return point1.x * point2.y - point1.y * point2.x;
 }
+function subtractPoints(point1, point2) {
+	return new XYPoint(point1.x - point2.x, point1.y - point2.y);
+}
+function allEqual(args:boolean[]):boolean {
+	for(var i = 1; i < args.length; i++){
+		if(args[i] != args[0]) return false;
+	}
+	return true;
+
+}
+function lineSegmentIntersectionAlgorithm(p:XYPoint, p2:XYPoint, q:XYPoint, q2:XYPoint):XYPoint {
+	var r = subtractPoints(p2, p);
+	var s = subtractPoints(q2, q);
+
+	var uNumerator = crossProduct(subtractPoints(q, p), r);
+	var denominator = crossProduct(r, s);
+
+	if (uNumerator == 0 && denominator == 0) {
+		// They are collinear
+		
+		// Do they overlap? (Are all the point differences in either direction the same sign)
+		if(!allEqual([(q.x - p.x) < 0, (q.x - p2.x) < 0, (q2.x - p.x) < 0, (q2.x - p2.x) < 0]) ||
+		   !allEqual([(q.y - p.y) < 0, (q.y - p2.y) < 0, (q2.y - p.y) < 0, (q2.y - p2.y) < 0])){
+			return undefined;
+		}		
+		// Do they touch? (Are any of the points equal?)
+		if(p.equivalent(q)){ return new XYPoint(p.x, p.y); }
+		if(p.equivalent(q2)){ return new XYPoint(p.x, p.y); }
+		if(p2.equivalent(q)){ return new XYPoint(p2.x, p2.y); }
+		if(p2.equivalent(q2)){ return new XYPoint(p2.x, p2.y); }
+	}
+
+	if (denominator == 0) {
+		// lines are paralell
+		return undefined;
+	}
+
+	var u = uNumerator / denominator;
+	var t = crossProduct(subtractPoints(q, p), s) / denominator;
+
+	if((t >= 0) && (t <= 1) && (u >= 0) && (u <= 1)){
+		return new XYPoint(p.x + r.x*t, p.y + r.y*t);
+	}
+}
+
 /*
 function lineSegmentIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):XYPoint {
 	// p0-p1 is first line

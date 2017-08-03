@@ -6,9 +6,10 @@ function mouse_select(){
 	zoomView(scope, canvas.width, canvas.height, 0.5);
 
 	var cp = new CreasePattern();
-	cp.fishBase();
+	cp.birdBase();
 
 	var paperCP = new PaperCreasePattern(scope, cp);
+	for(var i = 0; i < paperCP.edges.length; i++){ paperCP.edges[i].strokeWidth = paperCP.lineWeight*1.5; }
 
 	var nearestEdge = undefined;
 	var nearestNode = undefined;
