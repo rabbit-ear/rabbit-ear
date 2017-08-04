@@ -1,3 +1,5 @@
+var mouse_select_callback;
+
 function mouse_select(){
 	var canvas = document.getElementById('canvas-mouse-select');
 	var scope = new paper.PaperScope();
@@ -28,7 +30,8 @@ function mouse_select(){
 		paper = scope;
 		zoomView(scope, canvas.width, canvas.height, 0.5);
 	}
-	scope.view.onMouseMove = function(event){ 
+	scope.view.onMouseMove = function(event){
+		if(mouse_select_callback != undefined){ mouse_select_callback(event.point); }
 		mousePos = event.point;
 		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
 		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;

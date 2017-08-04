@@ -6,7 +6,7 @@
 <section id="intro">
 
 	<div class="centered">
-		<canvas id="canvas-node-adjacent-faces" resize></canvas>
+		<canvas id="canvas-1" resize></canvas>
 	</div>
 
 	<div class="centered">
@@ -29,6 +29,14 @@
 
 </section>
 
-<script type="text/javascript" src="../tests/js/node-adjacent-faces.js"></script>
+<script type="text/javascript" src="../tests/js/blank.js"></script>
+
+<script>
+var cp1 = new CreasePattern();
+cp1.birdBase();
+// cp1.generateFaces();
+
+fillCanvasWithCP("canvas-1", cp1);
+</script>
 
 <?php include 'footer.php';?>

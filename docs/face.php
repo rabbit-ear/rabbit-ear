@@ -2,8 +2,7 @@
 
 <h1>FACE</h1>
 
-<section id="intro">
-
+<section id="face">
 	<div class="centered">
 		<canvas id="canvas-node-adjacent-faces" resize></canvas>
 	</div>
@@ -24,18 +23,25 @@
 	<div class="centered">
 		<pre><code>cp.<f>generateFaces</f>()</code></pre>
 	</div>
-	
-	<div class="tests">
-		<ul>
-			<li>adjacentNodeClockwiseFrom()</li>
-			<li>planarAdjacent()</li>
-		</ul>
-	</div>
-
 </section>
-<section>
+
 
 <h2>Face Finding Algorithm</h2>
+<section>
+
+	<div class="quote">
+		<p>Faces are found by walking down edges, and whenever reaching a node, always making the sharpest right turn, a face is found when you end up where you began.</li>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-1" resize></canvas>
+		<canvas id="canvas-2" resize></canvas>
+		<canvas id="canvas-3" resize></canvas>
+	</div>
+
+	<div class="quote">
+		<p>To find the sharpest right turn, we need to sort adjacent edges by their angles.</p>
+	</div>
 
 	<div class="centered">
 		<canvas id="canvas-radial-rainbow" resize></canvas>
@@ -45,27 +51,22 @@
 		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<a href="methods/planarAdjacent.php"><f>planarAdjacent</f>()</a></code></pre>
 	</div>
 
+	<div class="quote">
+		<p>Does this library use degrees or radians? I haven't made up my mind.</p>
+	</div>
+
 	<div class="centered">
 		<canvas id="canvas-faces-radial" resize></canvas>
 	</div>
 
-	<div class="explain">
-		<p>Edge Walking Face Detection:</p>
-		<ol>
-			<li>Begin with a node, walk down one adjacent edge</li>
-			<li>Upon reaching the next node, make the most immediate right turn available, walk down edge</li>
-			<li>Repeat, always turning right, stop when you reach the node from which you began</li>
-		</ol>
-	</div>
-
-	<div class="centered">
-		<canvas id="canvas-1" resize></canvas>
-		<canvas id="canvas-2" resize></canvas>
-		<canvas id="canvas-3" resize></canvas>
-	</div>
-
 
 </section>
+
+<div class="tests">
+	<ul>
+		<li></li>
+	</ul>
+</div>
 
 <script type="text/javascript" src="../tests/js/node-adjacent-faces.js"></script>
 <script type="text/javascript" src="../tests/js/blank.js"></script>
@@ -80,9 +81,9 @@ radial_rainbow_callback = function(event){
 	var angleDegrees = event.angle * 180 / Math.PI;
 	if(angleDegrees < 0) angleDegrees += 360;
 	document.getElementById("edge-angle-div").innerHTML = 
-		"{angle:<n>" + angleDegrees.toFixed(1) + "</n>°, " + 
-		"edge#:<n>" + edgeNum + "</n>, " + 
-		"node#:<n>" + nodeNum + "</n>} ← ";
+		"{<n>" + angleDegrees.toFixed(1) + "</n>°, " + 
+		"<v>edge" + edgeNum + "</v>, " + 
+		"<v>node" + nodeNum + "</v>} ← ";
 }
 </script>
 

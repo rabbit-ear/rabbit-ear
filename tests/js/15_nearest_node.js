@@ -1,6 +1,6 @@
 var p5_nearest_node = function(p) {
 	p.callback = undefined;
-	p.numPoints = 30;
+	p.numPoints = 50;
 	// var WIDTH = window.innerWidth;
 	// var HEIGHT = window.innerHeight;
 	var paperSize = 250;
@@ -47,9 +47,9 @@ var p5_nearest_node = function(p) {
 		drawGraphPoints(p, g);
 		if(mouseXScaled != undefined && mouseYScaled != undefined && closestNode != undefined){
 			p.line(mouseXScaled, mouseYScaled, closestNode.x, closestNode.y);
-			p.fill(255, 0, 0);
-			p.stroke(255, 0, 0);
-			p.ellipse(closestNode.x, closestNode.y, .03, .03);
+			// p.fill(255, 0, 0);
+			// p.stroke(255, 0, 0);
+			// p.ellipse(closestNode.x, closestNode.y, .03, .03);
 		}
 	}
 

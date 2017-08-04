@@ -27,19 +27,23 @@
 	</div>
 
 	<div class="centered p5sketch" id="intersections-div"></div>
+
+	<div class="quote">
+		<p>The paralell test is based on angles, so it's important to verify that all these red lights turn on/off at the same moment.</p>
+	</div>
 	
 </section>
 
-	<div class="tests">
-		<ul>
-			<li><a href="../tests/html/chop_one_line.html">chop overlapping lines</a></li>
-			<li><a href="../tests/html/chop_collinear_vert.html">chop vertical collinear</a></li>
-			<li><a href="../tests/html/chop_collinear_horiz.html">chop horizontal collinear</a></li>
-			<li><a href="../tests/html/chop_angle_ray.html">chop angled rays</a></li>
-			<li>chop test 5</li>
-			<li>chop test 5</li>
-		</ul>
-	</div>
+<div class="tests">
+	<ul>
+		<li><a href="../tests/html/chop_one_line.html">chop overlapping lines</a></li>
+		<li><a href="../tests/html/chop_collinear_vert.html">chop vertical collinear</a></li>
+		<li><a href="../tests/html/chop_collinear_horiz.html">chop horizontal collinear</a></li>
+		<li><a href="../tests/html/chop_angle_ray.html">chop angled rays</a></li>
+		<li>chop test 5</li>
+		<li>chop test 5</li>
+	</ul>
+</div>
 
 
 <!-- include .js sketches -->

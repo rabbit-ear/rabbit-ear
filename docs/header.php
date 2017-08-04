@@ -32,10 +32,7 @@
 			</div>
 		</li>
 		<li class="dropdown">
-			<a href="graph.php" class="dropbtn">I. GRAPH</a>
-			<div class="dropdown-content">
-			<a href="graphClean.php">CLEAN</a>
-			</div>
+			<a href="graph.php" class="">I. GRAPH</a>
 		</li>
 		<li class="dropdown">
 			<a href="planarGraph.php" class="dropbtn">II. PLANAR GRAPH</a>

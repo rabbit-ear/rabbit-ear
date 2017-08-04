@@ -4,25 +4,24 @@
 
 <section id="intro">
 
-<h2>get nearest</h2>
 	<div class="centered">
 		<canvas id="canvas-mouse-select" resize></canvas>
 	</div>
 
 	<div class="centered">
-		<pre><code>cp.<f>getNearestNode</f>(point)<br>cp.<f>getNearestEdge</f>(point)</code></pre>
+		<pre><code>cp.<f>getNearestNode</f>(<n id="sketch-ms-x1">x</n>, <n id="sketch-ms-y1">y</n>)<br>cp.<f>getNearestEdge</f>(<n id="sketch-ms-x2">x</n>, <n id="sketch-ms-y2">y</n>)</code></pre>
 	</div>
 
-<h2>nearest nodes</h2>
+	<div class="quote">
+		<p>getNearestNodes gives you multiple nodes, and getNearestEdge also provide the nearest point on an edge.</p>
+	</div>
+
 	<div class="half p5sketch" id="div-p5-nearest-node"></div>
 	<div class="half p5sketch" id="div-p5-nearest-edge"></div>
 	<div class="centered">
-		<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNearestNodeIndex"></span>cp.<span class="token function">getNearestNode</span>( <n id="spanNearest1MouseX">x</n>, <n id="spanNearest1MouseY">y</n> )<br><span id="spanNearestEdgeIndex"></span>cp.<span class="token function">getNearestEdge</span>( <n class="token argument" id="spanNearest2MouseX">x</n>, <n class="token argument" id="spanNearest2MouseY">y</n> )</code></pre>
+		<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNearestNodeIndex"></span>cp.<f>getNearestNode</f>( <n id="spanNearest1MouseX">x</n>, <n id="spanNearest1MouseY">y</n> )<br><span id="spanNearestEdgeIndex"></span>cp.<f>getNearestEdge</f>( <n class="token argument" id="spanNearest2MouseX">x</n>, <n class="token argument" id="spanNearest2MouseY">y</n> )</code></pre>
 	</div>
-	<div class="explain">
-		<p>Nodes can return multiple nodes, and nearest edges provide the location on the edge that is the nearest point.</p>
-	</div>
-</section>
+
 </section>
 
 <script type="text/javascript" src="../tests/js/mouse-select.js"></script>
@@ -33,6 +32,14 @@
 <script language="javascript" type="text/javascript" src="../tests/js/15_nearest_node.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/15_nearest_edge.js"></script>
 <script>
+
+mouse_select_callback = function(e){
+	document.getElementById("sketch-ms-x1").innerHTML = (e.x).toFixed(2);
+	document.getElementById("sketch-ms-y1").innerHTML = (e.y).toFixed(2);
+	document.getElementById("sketch-ms-x2").innerHTML = (e.x).toFixed(2);
+	document.getElementById("sketch-ms-y2").innerHTML = (e.y).toFixed(2);
+}
+
 	var p5a = new p5(p5_nearest_node, 'div-p5-nearest-node');
 	var p5b = new p5(p5_nearest_edge, 'div-p5-nearest-edge');
 
@@ -40,7 +47,7 @@
 		if(e.x != undefined && e.y != undefined && e.node != undefined){
 			$("#spanNearest1MouseX").html((e.x).toFixed(2));
 			$("#spanNearest1MouseY").html((e.y).toFixed(2));
-			$("#spanNearestNodeIndex").html('#<n>' + e.node.index + '</n>  ← ');
+			$("#spanNearestNodeIndex").html('<v>node' + e.node.index + '</v>  ← ');
 		} else{
 			$("#spanNearest1MouseX").html(' x');
 			$("#spanNearest1MouseY").html(' y ');
@@ -55,7 +62,7 @@
 // distance
 // edge
 // location
-			$("#spanNearestEdgeIndex").html('#<n>' + e.nearest.edge.index + '</n>, (<n>' + e.nearest.x.toFixed(2) + '</n>,<n>' + e.nearest.y.toFixed(2) + '</n>)  ← ');
+			$("#spanNearestEdgeIndex").html('<v>edge' + e.nearest.edge.index + '</v>, (<n>' + e.nearest.x.toFixed(2) + '</n>,<n>' + e.nearest.y.toFixed(2) + '</n>)  ← ');
 		} else{
 			$("#spanNearest2MouseX").html(' x');
 			$("#spanNearest2MouseY").html(' y ');

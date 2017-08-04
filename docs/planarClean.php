@@ -32,15 +32,13 @@
 		<canvas id="canvas2" resize></canvas>
 		<canvas id="canvas3" resize></canvas>
 	</div>
-
-	<div class="tests">
-		<ul>
-			<li><a href="../tests/html/merge_node_check.html">merge node transparency check</a></li>
-			<li>mergeDuplicateVertices(epsilon:number)</li>
-		</ul>
-	</div>
-
 </section>
+
+<div class="tests">
+	<ul>
+		<li><a href="../tests/html/merge_node_check.html">merge node transparency check</a></li>
+	</ul>
+</div>
 
 
 <!-- include .js sketches -->
