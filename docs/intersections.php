@@ -29,7 +29,7 @@
 	<div class="centered p5sketch" id="intersections-div"></div>
 
 	<div class="quote">
-		<p>The paralell test is based on angles, so it's important to verify that all these red lights turn on/off at the same moment.</p>
+		<p>Collinear lines (the last pair) should not intersect.</p>
 	</div>
 	
 </section>
@@ -48,7 +48,7 @@
 
 <!-- include .js sketches -->
 <script language="javascript" type="text/javascript" src="../tests/js/intersections.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/05_parallels.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/05_parallels_scale.js"></script>
 <script>
 	var p505 = new p5(_05_parallels, 'intersections-div');
 </script>
@@ -56,7 +56,7 @@
 <script>
 	edge_intersections_callback = function(event){
 		if(event != undefined){
-			document.getElementById("span-merge-result").innerHTML = event.length + " ← ";
+			document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
 		}
 	}
 </script>

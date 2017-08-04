@@ -27,7 +27,6 @@
 		<li class="dropdown">
 			<a href="/docs/" class="dropbtn">INTRO</a>
 			<div class="dropdown-content">
-			<a href="/docs/">WELCOME</a>
 			<a href="https://github.com/robbykraft/Origami">DOWNLOAD</a>
 			</div>
 		</li>
@@ -48,6 +47,7 @@
 			<div class="dropdown-content">
 			<a href="axioms.php">ORIGAMI AXIOMS</a>
 			<a href="importExport.php">IMPORT &amp; EXPORT</a>
+			<a href="flatFoldable.php">FLAT FOLDABLE</a>
 			</div>
 		</li>
 		</ul>

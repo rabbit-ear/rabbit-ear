@@ -49,6 +49,36 @@ var CreaseNode = (function (_super) {
         }
         return false;
     };
+    CreaseNode.prototype.flatFoldable = function () {
+        if (this.isBoundary()) {
+            return true;
+        }
+        var adj = this.planarAdjacent();
+        // console.log(adj);
+        if (adj.length % 2 != 0) {
+            return false;
+        }
+        var aSum = 0;
+        var bSum = 0;
+        for (var i = 0; i < adj.length; i++) {
+            var nextI = (i + 1) % adj.length;
+            var angleDiff = clockwiseAngleFrom(adj[i].angle, adj[nextI].angle);
+            // console.log(angleDiff);
+            if (i % 2 == 0) {
+                aSum += angleDiff;
+            }
+            else {
+                bSum += angleDiff;
+            }
+        }
+        // console.log(aSum + " " + bSum);
+        if (epsilonEqual(aSum, Math.PI, EPSILON_LOW) && epsilonEqual(bSum, Math.PI, EPSILON_LOW)) {
+            return true;
+        }
+        return false;
+    };
+    //////////////////////////////
+    // FOLDS
     // AXIOM 1
     CreaseNode.prototype.creaseLineThrough = function (point) {
         return this.graph.creaseThroughPoints(this, point);

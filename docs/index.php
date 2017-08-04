@@ -14,7 +14,7 @@
 		<pre><code><key>var</key> cp <op>=</op> <key>new</key> CreasePattern()<br>cp.<f>fishBase</f>()</code></pre>
 	</div>
 	<div class="quote">
-		<p>This is a planar graph javascript library for creating origami crease patterns</p>
+		<p>This is a planar graph javascript library for creating and having fun with origami crease patterns</p>
 	</div>
 	<div class="quote">
 		<p><a href="http://github.com/robbykraft/Origami/">Download</a></p>
@@ -42,6 +42,7 @@
 <h2>About</h2>
 	<div class="quote">
 		<p>This is <a href="http://github.com/robbykraft/Origami/">in development</a></p>
+		<p>These docs make heavy use of <a href="http://paperjs.org/">paper.js</a>, <a href="http://d3js.org/">d3.js</a>, and <a href="http://p5js.org/">p5.js</a></p>
 		<p>This libary is available under the MIT open source license.</p>
 	</div>
 
@@ -54,7 +55,7 @@
 <script>
 	var p5intersections = new p5(_04_intersections, 'sketch_intersections');
 	p5intersections.callback = function(e){
-		document.getElementById("span-intersection-results").innerHTML = e.length + " ← ";
+		document.getElementById("span-intersection-results").innerHTML = "<v>Array</v>(<n>" + e.length + "</n>) ← ";
 	}
 	function updateNodesAdjacentToNode(input, output){
 		var outString = '[<span class="token argument">' + output + '</span>] ← ';

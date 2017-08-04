@@ -11,6 +11,8 @@
 // 	return mat;
 // }
 
+var EPSILON_FILE_IMPORT = 0.005;
+
 function zoomView(paperjs, optionalWidth, optionalHeight, retinaScale){
 	var pixelScale = retinaScale;
 	if(retinaScale == undefined) { pixelScale = 1.0; }
@@ -90,8 +92,8 @@ var PaperCreasePattern = (function () {
 		this.myPaperJS = paperjs
 		this.cp = creasePattern;
 		// layer for drawing
-		this.paperEdgeLayer = new this.myPaperJS.Layer();
 		this.cpLayer = new this.myPaperJS.Layer();
+		this.paperEdgeLayer = new this.myPaperJS.Layer();
 		this.nodeLayer = new this.myPaperJS.Layer();
 		// drawing options
 		this.lineWeight = .01;
@@ -176,7 +178,7 @@ var PaperCreasePattern = (function () {
 
 // callback returns the crease pattern as an argument
 function loadSVG(path, callback){
-	paper.project.importSVG("/tests/svg/sea-turtle.svg", function(e){
+	paper.project.importSVG(path, function(e){
 		var svgLayer = e;
 		// svgLayer.strokeWidth = 0.004;
 		var w = svgLayer.bounds.size.width;
@@ -201,6 +203,7 @@ function loadSVG(path, callback){
 		svgLayer.removeChildren();
 		svgLayer.remove();
 		cp.clean();
+		cp.mergeDuplicateVertices(EPSILON_FILE_IMPORT);
 		cp.chop();
 		if(callback != undefined){
 			callback(cp);

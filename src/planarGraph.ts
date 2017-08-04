@@ -856,29 +856,21 @@ function lineIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoin
 	return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1) );
 }
 
-function crossProduct(point1, point2) {
-	return point1.x * point2.y - point1.y * point2.x;
-}
-function subtractPoints(point1, point2) {
-	return new XYPoint(point1.x - point2.x, point1.y - point2.y);
-}
 function allEqual(args:boolean[]):boolean {
 	for(var i = 1; i < args.length; i++){
 		if(args[i] != args[0]) return false;
 	}
 	return true;
-
 }
+
 function lineSegmentIntersectionAlgorithm(p:XYPoint, p2:XYPoint, q:XYPoint, q2:XYPoint):XYPoint {
-	var r = subtractPoints(p2, p);
-	var s = subtractPoints(q2, q);
+	var r = new XYPoint(p2.x - p.x, p2.y - p.y);
+	var s = new XYPoint(q2.x - q.x, q2.y - q.y);
+	var uNumerator = (new XYPoint(q.x - p.x, q.y - p.y)).cross(r);//crossProduct(subtractPoints(q, p), r);
+	var denominator = r.cross(s);
 
-	var uNumerator = crossProduct(subtractPoints(q, p), r);
-	var denominator = crossProduct(r, s);
-
-	if (uNumerator == 0 && denominator == 0) {
-		// They are collinear
-		
+	if (Math.abs(uNumerator) < EPSILON_HIGH && Math.abs(denominator) < EPSILON_HIGH) {
+		// collinear
 		// Do they overlap? (Are all the point differences in either direction the same sign)
 		if(!allEqual([(q.x - p.x) < 0, (q.x - p2.x) < 0, (q2.x - p.x) < 0, (q2.x - p2.x) < 0]) ||
 		   !allEqual([(q.y - p.y) < 0, (q.y - p2.y) < 0, (q2.y - p.y) < 0, (q2.y - p2.y) < 0])){
@@ -891,13 +883,13 @@ function lineSegmentIntersectionAlgorithm(p:XYPoint, p2:XYPoint, q:XYPoint, q2:X
 		if(p2.equivalent(q2)){ return new XYPoint(p2.x, p2.y); }
 	}
 
-	if (denominator == 0) {
-		// lines are paralell
+	if (Math.abs(denominator) < EPSILON_HIGH) {
+		// parallel
 		return undefined;
 	}
 
 	var u = uNumerator / denominator;
-	var t = crossProduct(subtractPoints(q, p), s) / denominator;
+	var t = (new XYPoint(q.x - p.x, q.y - p.y)).cross(s) / denominator;
 
 	if((t >= 0) && (t <= 1) && (u >= 0) && (u <= 1)){
 		return new XYPoint(p.x + r.x*t, p.y + r.y*t);

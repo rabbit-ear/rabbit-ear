@@ -51,6 +51,11 @@ var _05_parallels = function(p) {
 			g[i].nodes[3].x = 0.36*(i-1) + len*Math.cos(flip[i]*0.1 + flip[i]*0.1* -Math.sin(count*0.01)+angles[i]);
 			g[i].nodes[3].y = 0.5 + len*Math.sin(flip[i]*0.1 + flip[i]*0.1* -Math.sin(count*0.01)+angles[i]);
 
+			g[i].nodes[2].x = g[i].nodes[0].x + 0.04*Math.sin(count*0.01);
+			g[i].nodes[2].y = g[i].nodes[0].y;// + 0.04*Math.sin(count*0.01);
+			g[i].nodes[3].x = g[i].nodes[1].x - 0.04*Math.sin(count*0.01);
+			g[i].nodes[3].y = g[i].nodes[1].y;// - 0.04*Math.sin(count*0.01);
+
 			var intersections = g[i].getEdgeIntersections();
 
 			p.fill(0, 0, 0);
