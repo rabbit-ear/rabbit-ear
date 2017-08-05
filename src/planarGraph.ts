@@ -427,6 +427,34 @@ class PlanarGraph extends Graph{
 	// REMOVE PARTS
 	///////////////////////////////////////////////
 
+	removeNodeIfUnused(node):boolean{
+		var used = false;
+		for(var i = 0; i < this.edges.length; i++){ 
+			if(this.edges[i].node[0] === node || this.edges[i].node[1] === node){ used = true; return false; }
+		}
+		if(!used){ 
+			this.removeNode(node);
+			return true;
+		}
+		return false;
+	}
+
+	// in a planar graph, if you remove an edge it should TRY to remove the nodes connected to it too
+	removeEdgeBetween(node1:GraphNode, node2:GraphNode):number{ // returns how many removed
+		var len = super.removeEdgeBetween(node1, node2);
+		this.removeNodeIfUnused(node1);
+		this.removeNodeIfUnused(node2);
+		return len;
+	}
+
+	removeEdge(edge:GraphEdge):boolean{
+		var endNodes = [edge.node[0], edge.node[1]];
+		var success = super.removeEdge(edge);
+		this.removeNodeIfUnused(endNodes[0]);
+		this.removeNodeIfUnused(endNodes[1]);
+		return success;
+	}
+
 	clear(){
 		super.clear(); // clears out nodes[] and edges[]
 		this.faces = [];
