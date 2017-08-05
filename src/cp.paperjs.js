@@ -112,11 +112,15 @@ var PaperCreasePattern = (function () {
 		// draw paper edge
 		this.paperEdgeLayer.activate();
 		this.paperEdgeLayer.removeChildren();
+		var boundaryPath = this.newBorderPath(this.lineWeight);
+		var boundarySegments = [];
 		for(var i = 0; i < this.cp.boundary.edges.length; i++){
-			var path = this.newBorderPath(this.lineWeight);
-			var endpoints = this.cp.boundary.edges[i].endPoints();
-			path.segments = [ endpoints[0], endpoints[1] ];
+			var endpoints = this.cp.boundary.edges[i].node;
+			boundarySegments.push(endpoints[0]);
+			boundarySegments.push(endpoints[1]);
 		}
+		boundaryPath.segments = boundarySegments;
+		boundaryPath.closed = true;
 
 		// drawing layer
 		this.nodeLayer.activate();

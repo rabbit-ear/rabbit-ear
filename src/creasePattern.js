@@ -386,6 +386,9 @@ var CreasePattern = (function (_super) {
         throw "axiom 7: two crease lines cannot be parallel";
     };
     CreasePattern.prototype.creaseRay = function (start, vector) {
+        if (start == undefined || vector == undefined || isNaN(start.x) || isNaN(start.y) || isNaN(vector.x) || isNaN(vector.y)) {
+            return undefined;
+        }
         var boundaryIntersection = undefined;
         for (var i = 0; i < this.boundary.edges.length; i++) {
             var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary.edges[i].node[0], this.boundary.edges[i].node[1]);

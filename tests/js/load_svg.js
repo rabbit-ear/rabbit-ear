@@ -9,7 +9,7 @@ function load_svg_sketch(){
 	var cp;
 	var paperCP;
 
-	loadSVG("/tests/svg/sea-turtle.svg", function(e){ 
+	loadSVG("/tests/svg/crane.svg", function(e){ 
 		cp = e;
 		paperCP = new PaperCreasePattern(scope, cp);
 	});

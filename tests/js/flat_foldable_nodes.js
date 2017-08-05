@@ -1,3 +1,4 @@
+var flat_foldable_nodes_callback;
 
 function flat_foldable_nodes(){
 	var canvas = document.getElementById('canvas-flat-foldable-nodes');

@@ -17,20 +17,31 @@ function fish_base_flat_wobble(){
 		nearFishBase(fishCP);
 		paperCP.initialize();
 
-		var scale = .08;
-		var sp = 1.5;
-		fishCP.nodes[6].x = wobble2.x + Math.sin(sp*event.time*.8) * scale
-		fishCP.nodes[6].y = wobble2.y + Math.cos(sp*event.time*.895) * scale;
-		fishCP.nodes[7].x = wobble3.x + Math.sin(sp*event.time*1.2) * scale;
-		fishCP.nodes[7].y = wobble3.y + Math.sin(sp*event.time) * scale;
-		var topAngles = fishCP.nodes[7].interiorAngles();
+		var scale = .04;
+		var spd = 1.5;
+		fishCP.nodes[6].x = wobble2.x + Math.sin(spd*event.time) * scale
+		fishCP.nodes[6].y = wobble2.y + Math.cos(spd*event.time*.895) * scale;
+		fishCP.nodes[7].x = wobble3.x - Math.cos(spd*event.time*.895+Math.PI) * scale;
+		fishCP.nodes[7].y = wobble3.y - Math.sin(spd*event.time+Math.PI) * scale;
+
+		var topNode = fishCP.nodes[7];
+		var topAngles = topNode.interiorAngles();
 		var triTop = topAngles[1];
-		var a0 = triTop.angle;
 		var a1 = topAngles[0].angle;
 		var a2 = topAngles[2].angle;
-		var rayAngle = Math.PI - a2;
-		var triTopOneEdgeAngle = triTop.edges[0].absoluteAngle(fishCP.nodes[7]);
-		fishCP.creaseRay(fishCP.nodes[7], new XYPoint(Math.cos(triTopOneEdgeAngle - rayAngle), Math.sin(triTopOneEdgeAngle - rayAngle)) ).mountain();
+		var topRayAngle = Math.PI - a2;
+		var triTopOneEdgeAngle = triTop.edges[0].absoluteAngle(topNode);
+		fishCP.creaseRay(topNode, new XYPoint(Math.cos(triTopOneEdgeAngle - topRayAngle), Math.sin(triTopOneEdgeAngle - topRayAngle)) ).mountain();
+
+		var bottomNode = fishCP.nodes[6];
+		var bottomAngles = bottomNode.interiorAngles();
+		var triBottom = bottomAngles[1];
+		var b1 = bottomAngles[0].angle;
+		var b2 = bottomAngles[2].angle;
+		var bottomRayAngle = Math.PI - b2;
+		var triBottomOneEdgeAngle = triBottom.edges[0].absoluteAngle(bottomNode);
+		var bottomVector = new XYPoint(Math.cos(triBottomOneEdgeAngle - bottomRayAngle), Math.sin(triBottomOneEdgeAngle - bottomRayAngle));
+		fishCP.creaseRay(bottomNode, bottomVector ).mountain();
 
 		fishCP.clean();
 

@@ -355,6 +355,8 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	creaseRay(start:XYPoint,vector:XYPoint):Crease{
+
+		if(start == undefined || vector == undefined || isNaN(start.x) || isNaN(start.y) || isNaN(vector.x) || isNaN(vector.y) ){ return undefined; }
 		var boundaryIntersection = undefined;
 		for(var i = 0; i < this.boundary.edges.length; i++){
 			var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary.edges[i].node[0], this.boundary.edges[i].node[1]);
