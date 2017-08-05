@@ -10,7 +10,7 @@ function flat_foldable_nodes(){
 	var paperCP;
 	
 
-	loadSVG("/tests/svg/sea-turtle.svg", function(e){ 
+	loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 		cp = e;
 		paperCP = new PaperCreasePattern(scope, cp);
 

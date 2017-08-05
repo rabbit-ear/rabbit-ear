@@ -65,6 +65,15 @@ class EdgeIntersection extends XYPoint{
 	}
 }
 
+class InteriorAngle{
+	edges:[PlanarEdge,PlanarEdge];
+	angle:number;
+	constructor(angle, edge1, edge2){
+		this.angle = angle;
+		this.edges = [edge1, edge2];
+	}
+}
+
 // class NearestEdgeObject {
 // 	edge:PlanarEdge; 
 // 	pointOnEdge:XYPoint;
@@ -147,14 +156,20 @@ class PlanarNode extends GraphNode implements XYPoint{
 	planarAdjacent():PlanarPair[]{
 		return this.adjacentEdges()
 			.map(function(el){ 
-				var nodes = el.endPoints();
-				if(this === nodes[0])
-					return new PlanarPair(nodes[0], nodes[1], el);
-				else 
-					return new PlanarPair(nodes[1], nodes[0], el);
+				if(this === el.node[0]) return new PlanarPair(el.node[0], el.node[1], el);
+				else                    return new PlanarPair(el.node[1], el.node[0], el);
 			},this)
 			.sort(function(a,b){ return (a.angle < b.angle) ? 1 : (a.angle > b.angle) ? -1 : 0 });
 			// .sort(function(a,b){return (a.angle > b.angle)?1:((b.angle > a.angle)?-1:0);});
+	}
+
+	interiorAngles():InteriorAngle[]{
+		var adj = this.planarAdjacent();
+		return adj.map(function(el, i){
+			var nextI = (i+1)%this.length;
+			var angleDifference = clockwiseAngleFrom(this[i].angle, this[nextI].angle);
+			return new InteriorAngle(angleDifference, this[i].edge, this[nextI].edge);
+		}, adj);
 	}
 
 	//      D  G
@@ -215,7 +230,7 @@ class PlanarEdge extends GraphEdge{
 	// convenience renaming
 	// endPoints:()=>PlanarNode[] = function() { return this.adjacentNodes(); };
 	// actually asking for more typecasting than i expected
-	endPoints():PlanarNode[]{ return [this.node[0], this.node[1]];}
+	endPoints():PlanarNode[]{ return this.node;}
 	adjacentNodes():PlanarNode[]{ return <PlanarNode[]>super.adjacentNodes(); }
 	adjacentEdges():PlanarEdge[]{ return <PlanarEdge[]>super.adjacentEdges(); }
 
@@ -240,6 +255,16 @@ class PlanarEdge extends GraphEdge{
 				if(a.y-b.y > EPSILON_HIGH){ return 1; }
 				return 0;});
 	}
+
+	absoluteAngle(startNode:PlanarNode):number{  // startNode is one of this edge's 2 nodes
+		// measure edge as if it were a ray from one node to the other
+		var endNode;
+		if(startNode === this.node[0]){ endNode = this.node[1]; }
+		else if(startNode === this.node[1]){ endNode = this.node[0]; }
+		else{ return undefined; }
+		return Math.atan2(endNode.y-startNode.y, endNode.x-startNode.x);
+	}
+
 	// adjacentFaces():PlanarFace[]{
 	// 	var adjacentFaces = [];
 	// 	var endpoints = this.endPoints();
@@ -542,7 +567,7 @@ class PlanarGraph extends Graph{
 		var minDistIndex = undefined;
 		var minLocation = {x:undefined, y:undefined};
 		for(var i = 0; i < this.edges.length; i++){
-			var p = this.edges[i].endPoints();
+			var p = this.edges[i].node;
 			var pT = minDistBetweenPointLine(p[0], p[1], x, y);
 			if(pT != undefined){
 				var thisDist = Math.sqrt(Math.pow(x-pT.x,2) + Math.pow(y-pT.y,2));

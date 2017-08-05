@@ -1,4 +1,4 @@
-var mouse_node_move_wiggle_callback;
+var flat_foldable_nodes_wiggle_callback;
 
 function flat_foldable_nodes_wiggle(){
 	var canvas = document.getElementById('canvas-flat-foldable-nodes-wiggle');
@@ -26,7 +26,7 @@ function flat_foldable_nodes_wiggle(){
 		strokeColor: { hue:0, saturation:0, brightness:0 }
 	});
 
-	loadSVG("/tests/svg/sea-turtle.svg", function(e){ 
+	loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 		cp = e;
 		paperCP = new PaperCreasePattern(scope, cp);
 		nodeLayer.bringToFront();
@@ -56,7 +56,6 @@ function flat_foldable_nodes_wiggle(){
 	}
 	scope.view.onMouseMove = function(event){ 
 		paper = scope;
-		if(mouse_node_move_wiggle_callback != undefined){ mouse_node_move_wiggle_callback(event.point); }
 		if(movingNode != undefined){
 			movingNode.x = event.point.x;
 			movingNode.y = event.point.y;
@@ -69,6 +68,9 @@ function flat_foldable_nodes_wiggle(){
 				nearestNode = nNode;
 				nodeCircle.position.x = nearestNode.x;
 				nodeCircle.position.y = nearestNode.y;
+				if(flat_foldable_nodes_wiggle_callback != undefined){
+					flat_foldable_nodes_wiggle_callback({'point':event.point, 'node':nearestNode.index, 'valid':nearestNode.flatFoldable()});					
+				}
 			}
 		}
 		paperCP.initialize();
