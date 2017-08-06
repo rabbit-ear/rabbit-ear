@@ -390,6 +390,40 @@ var PlanarGraph = (function (_super) {
     ///////////////////////////////////////////////
     // REMOVE PARTS
     ///////////////////////////////////////////////
+    PlanarGraph.prototype.removeNodeIfUnused = function (node) {
+        var edges = node.adjacentEdges();
+        switch (edges.length) {
+            case 0:
+                return this.removeNode(node);
+            case 2:
+                // also attempt to remove node that only has 2 edges, and those 2 edges are collinear.
+                var angleDiff = Math.abs(edges[0].absoluteAngle(node) - edges[1].absoluteAngle(node));
+                if (epsilonEqual(angleDiff, Math.PI)) {
+                    var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]),
+                        edges[1].uncommonNodeWithEdge(edges[0])];
+                    _super.prototype.removeEdge.call(this, edges[0]);
+                    _super.prototype.removeEdge.call(this, edges[1]);
+                    this.newEdge(farNodes[0], farNodes[1]);
+                    return this.removeNode(node);
+                }
+                break;
+        }
+        return false;
+    };
+    // in a planar graph, if you remove an edge it should TRY to remove the nodes connected to it too
+    PlanarGraph.prototype.removeEdgeBetween = function (node1, node2) {
+        var len = _super.prototype.removeEdgeBetween.call(this, node1, node2);
+        this.removeNodeIfUnused(node1);
+        this.removeNodeIfUnused(node2);
+        return len;
+    };
+    PlanarGraph.prototype.removeEdge = function (edge) {
+        var endNodes = [edge.node[0], edge.node[1]];
+        var success = _super.prototype.removeEdge.call(this, edge);
+        this.removeNodeIfUnused(endNodes[0]);
+        this.removeNodeIfUnused(endNodes[1]);
+        return success;
+    };
     PlanarGraph.prototype.clear = function () {
         _super.prototype.clear.call(this); // clears out nodes[] and edges[]
         this.faces = [];
@@ -588,7 +622,7 @@ var PlanarGraph = (function (_super) {
         var newLineNodes = [];
         for (var i = 0; i < intersections.length; i++) {
             if (intersections[i] != undefined) {
-                this.removeEdge(intersections[i].edge);
+                _super.prototype.removeEdge.call(this, intersections[i].edge);
                 var newNode = this.addNode(new PlanarNode(this, intersections[i].x, intersections[i].y));
                 this.newEdge(intersections[i].edge.node[0], newNode);
                 this.newEdge(newNode, intersections[i].edge.node[1]);

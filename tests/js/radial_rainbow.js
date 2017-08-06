@@ -18,21 +18,12 @@ function radial_rainbow(){
 	var nearestEdge = undefined;
 	var nearestNode = undefined;
 	var planarAdjacent = undefined;
-	// var mouseNodeLayer = new paper.Layer();
-	// mouseNodeLayer.activate();
-	// mouseNodeLayer.removeChildren();
-	// var nodeCircle = new paper.Shape.Circle({
-	// 	center: [0, 0],
-	// 	radius: 0.02,
-	// 	fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
-	// });
 
 	function colorForAngle(angle){
-		var brightness = angle;
-		if(angle < 0) brightness = angle + Math.PI*2;
-		return (brightness / (2*Math.PI) * 0.75);
+		var color = angle / Math.PI * 180;
+		while(color < 0){color += 360;}
+		return {hue:color, saturation:1.0, brightness:0.9};
 	}
-
 
 	function resetCP(){
 		cp.clear();
@@ -49,10 +40,7 @@ function radial_rainbow(){
 		planarAdjacent = cp.nodes[0].planarAdjacent();
 		for(var i = 0; i < planarAdjacent.length; i++){
 			var edgeIndex = planarAdjacent[i].edge.index;
-			// var angleDegrees = planarAdjacent[i].angle * 180 / Math.PI;
-			// if(angleDegrees < 0) angleDegrees += 360;
-			// paperCP.edges[edgeIndex].strokeColor = { hue:angleDegrees, saturation:0.8, brightness:1.0 };
-			paperCP.edges[edgeIndex].strokeColor = { gray:colorForAngle(planarAdjacent[i].angle) };
+			paperCP.edges[edgeIndex].strokeColor = {gray:0.0};
 		}
 	}
 	resetCP();
@@ -67,23 +55,19 @@ function radial_rainbow(){
 		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
 		if(nearestEdge !== nEdge){
 			nearestEdge = nEdge;
-			for(var i = 0; i < cp.edges.length; i++){
-				if(nearestEdge != undefined && nearestEdge === cp.edges[i]){
-					paperCP.edges[i].strokeWidth = paperCP.lineWeight*1.2;
-				} else{
-					paperCP.edges[i].strokeWidth = paperCP.lineWeight*0.66666;
-				}
-			}
 			for(var i = 0; i < planarAdjacent.length; i++){
 				var edgeIndex = planarAdjacent[i].edge.index;
 				if(planarAdjacent[i].edge === nearestEdge){
-					paperCP.edges[edgeIndex].strokeColor = { red:1.0, green:0.0, blue:0.0 };
+					paperCP.edges[edgeIndex].strokeColor = colorForAngle(planarAdjacent[i].angle);
+					paperCP.edges[edgeIndex].strokeWidth = paperCP.lineWeight*1.5;
+					paperCP.edges[edgeIndex].bringToFront();
 					if(radial_rainbow_callback != undefined){
 						radial_rainbow_callback(planarAdjacent[i]);
 					}
 				}
 				else{
-					paperCP.edges[edgeIndex].strokeColor = { gray:colorForAngle(planarAdjacent[i].angle) };					
+					paperCP.edges[edgeIndex].strokeColor = {gray:0.0};
+					paperCP.edges[edgeIndex].strokeWidth = paperCP.lineWeight*0.66666;
 				}
 			}
 		}

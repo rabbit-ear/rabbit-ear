@@ -428,13 +428,22 @@ class PlanarGraph extends Graph{
 	///////////////////////////////////////////////
 
 	removeNodeIfUnused(node):boolean{
-		var used = false;
-		for(var i = 0; i < this.edges.length; i++){ 
-			if(this.edges[i].node[0] === node || this.edges[i].node[1] === node){ used = true; return false; }
-		}
-		if(!used){ 
-			this.removeNode(node);
-			return true;
+		var edges = node.adjacentEdges();
+		switch (edges.length){
+			case 0:
+				return this.removeNode(node);
+			case 2:
+			// also attempt to remove node that only has 2 edges, and those 2 edges are collinear.
+				var angleDiff = Math.abs(edges[0].absoluteAngle(node) - edges[1].absoluteAngle(node));
+				if(epsilonEqual(angleDiff, Math.PI)){
+					var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]), 
+					                edges[1].uncommonNodeWithEdge(edges[0])]
+					super.removeEdge(edges[0]);
+					super.removeEdge(edges[1]);
+					this.newEdge(farNodes[0], farNodes[1]);
+					return this.removeNode(node);
+				}
+			break;
 		}
 		return false;
 	}
@@ -656,7 +665,7 @@ class PlanarGraph extends Graph{
 		var newLineNodes = [];
 		for(var i = 0; i < intersections.length; i++){
 			if(intersections[i] != undefined){
-			this.removeEdge(intersections[i].edge);
+			super.removeEdge(intersections[i].edge);
 			var newNode = this.addNode(new PlanarNode(this, intersections[i].x, intersections[i].y));
 			this.newEdge(intersections[i].edge.node[0], newNode);
 			this.newEdge(newNode, intersections[i].edge.node[1]);

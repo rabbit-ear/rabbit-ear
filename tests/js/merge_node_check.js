@@ -11,7 +11,7 @@ function merge_node_sketch(){
 	var nodeLayer = new scope.Layer();
 
 	function init(){
-		loadSVG("/tests/svg/sea-turtle.svg", function(e){ 
+		loadSVG("/tests/svg/sea-turtle-base.svg", function(e){ 
 			cp = e;
 			paperCP = new PaperCreasePattern(scope, cp);
 			nodeLayer.bringToFront();

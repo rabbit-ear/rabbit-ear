@@ -1,7 +1,7 @@
-var flat_foldable_nodes_wiggle_callback;
+var mouse_node_move_stay_callback;
 
-function flat_foldable_nodes_wiggle(){
-	var canvas = document.getElementById('canvas-flat-foldable-nodes-wiggle');
+function mouse_node_move_stay(){
+	var canvas = document.getElementById('canvas-mouse-node-move-stay');
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
@@ -26,7 +26,7 @@ function flat_foldable_nodes_wiggle(){
 		strokeColor: { hue:0, saturation:0, brightness:0 }
 	});
 
-	loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
+	loadSVG("/tests/svg/sea-turtle-advanced.svg", function(e){ 
 		cp = e;
 		paperCP = new PaperCreasePattern(scope, cp);
 		nodeLayer.bringToFront();
@@ -68,8 +68,8 @@ function flat_foldable_nodes_wiggle(){
 				nearestNode = nNode;
 				nodeCircle.position.x = nearestNode.x;
 				nodeCircle.position.y = nearestNode.y;
-				if(flat_foldable_nodes_wiggle_callback != undefined){
-					flat_foldable_nodes_wiggle_callback({'point':event.point, 'node':nearestNode.index, 'valid':nearestNode.flatFoldable()});					
+				if(mouse_node_move_stay_callback != undefined){
+					mouse_node_move_stay_callback({'point':event.point, 'node':nearestNode.index, 'valid':nearestNode.flatFoldable()});					
 				}
 			}
 		}
@@ -83,6 +83,8 @@ function flat_foldable_nodes_wiggle(){
 	scope.view.onMouseUp = function(event){
 		paper = scope;
 		if(movingNode != undefined && movingNodeOriginalLocation != undefined){
+			console.log("moving: " + movingNode.x + ", " + movingNode.y);
+			console.log("back to: " + movingNodeOriginalLocation.x + ", " + movingNodeOriginalLocation.y);
 			movingNode.x = movingNodeOriginalLocation.x;
 			movingNode.y = movingNodeOriginalLocation.y;
 			nodeCircle.position.x = movingNode.x;
@@ -93,4 +95,4 @@ function flat_foldable_nodes_wiggle(){
 			paperCP.initialize();
 		}
 	}
-} flat_foldable_nodes_wiggle();
+} mouse_node_move_stay();

@@ -128,13 +128,14 @@ var PaperCreasePattern = (function () {
 		for(var i = 0; i < this.cp.nodes.length; i++){
 			var p = new this.myPaperJS.Point(this.cp.nodes[i].x, this.cp.nodes[i].y);
 			this.points.push( p );
-			// new paper.Shape.Circle({
-			// 		center: [p.x, p.y], 
-			// 		radius: 0.02, 
-			// 		//strokeWidth:0.01,
-			// 		fillColor: { hue:220, saturation:0.6, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
-			// 	});
+			new paper.Shape.Circle({
+					center: [p.x, p.y], 
+					radius: 0.01, 
+					//strokeWidth:0.01,
+					fillColor: { hue:220, saturation:0.6, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
+				});
 		}
+		this.nodeLayer.visible = false;
 		this.cpLayer.activate();
 		this.cpLayer.removeChildren();
 		for(var i = 0; i < this.cp.edges.length; i++){

@@ -79,7 +79,7 @@ radial_rainbow_callback = function(event){
 	var edgeNum = event.edge.index;
 	var nodeNum = event.node.index;
 	var angleDegrees = event.angle * 180 / Math.PI;
-	if(angleDegrees < 0) angleDegrees += 360;
+	// if(angleDegrees < 0) angleDegrees += 360;
 	document.getElementById("edge-angle-div").innerHTML = 
 		"{<n>" + angleDegrees.toFixed(1) + "</n>°, " + 
 		"<v>edge" + edgeNum + "</v>, " + 
