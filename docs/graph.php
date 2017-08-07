@@ -97,7 +97,7 @@
 <h2><a href="#edges">&sect;</a> Edges</h2>
 <section id="edges">
 	<div class="centered">
-		<pre><code>graph.<v>edges</v>;  <span class="token comment">// array</span></code></pre>
+		<pre><code>graph.<v>edges</v>[<n>0</n>];  <c>// the first edge</c></code></pre>
 	</div>
 
 	<div class="centered">
@@ -144,6 +144,7 @@
 		<ul>
 			<li><a href="../tests/html/graph_stress.html">10,000 edges</a></li>
 			<li><a href="../tests/html/graph_remove.html">remove a node</a></li>
+			<li><a href="../tests/html/graph_in_common.html">common and uncommon nodes</a></li>
 		</ul>
 	</div>
 </section>

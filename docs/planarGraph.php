@@ -18,6 +18,11 @@
 		<p>A planar graph amends a graph's nodes with (X,Y) coordinates and adds the ability to detect faces</p>
 	</div>
 
+	<div class="quote">
+		<p>Removing an edge on a planar graph will attempt to remove the nodes too. </p>
+	</div>
+
+
 </section>
 
 <script language="javascript" type="text/javascript" src="../tests/js/04_intersections.js"></script>
