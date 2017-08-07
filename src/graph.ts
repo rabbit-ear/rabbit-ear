@@ -90,6 +90,9 @@ class Graph{
 	// todo: callback hooks for when certain properties of the data structure have been altered
 	didChange:(event:object)=>void;
 
+	nodeType = GraphNode;
+	edgeType = GraphEdge;
+
 	constructor() {
 		this.clear(); // initialize empty arrays
 	}
@@ -103,10 +106,10 @@ class Graph{
 	///////////////////////////////////////////////
 
 	newNode():GraphNode {
-		return this.addNode(new GraphNode(this));
+		return this.addNode(new this.nodeType(this));
 	}
 	newEdge(node1:GraphNode, node2:GraphNode):GraphEdge {
-		return this.addEdge(new GraphEdge(this, node1, node2));
+		return this.addEdge(new this.edgeType(this, node1, node2));
 	}
 
 	addNode(node:GraphNode):GraphNode{

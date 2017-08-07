@@ -85,6 +85,8 @@ var GraphEdge = (function () {
 }());
 var Graph = (function () {
     function Graph() {
+        this.nodeType = GraphNode;
+        this.edgeType = GraphEdge;
         this.clear(); // initialize empty arrays
     }
     Graph.prototype.nodeArrayDidChange = function () { for (var i = 0; i < this.nodes.length; i++) {
@@ -98,10 +100,10 @@ var Graph = (function () {
     // ADD PARTS
     ///////////////////////////////////////////////
     Graph.prototype.newNode = function () {
-        return this.addNode(new GraphNode(this));
+        return this.addNode(new this.nodeType(this));
     };
     Graph.prototype.newEdge = function (node1, node2) {
-        return this.addEdge(new GraphEdge(this, node1, node2));
+        return this.addEdge(new this.edgeType(this, node1, node2));
     };
     Graph.prototype.addNode = function (node) {
         if (node == undefined) {

@@ -19,15 +19,17 @@ class Fold{
 }
 
 class FoldSequence{
-
+	// uses edge and node indices
+	// because the actual objects will go away, or don't yet exist at the beginning
+	// nope nopE! that't won't work. if you "implement" the fold sequence on another sized
+	// sheet of paper, the fold won't execute the same way, different node indices will get applied.
 }
 
 class CreaseNode extends PlanarNode{
 	graph:CreasePattern;
 
-	constructor(graph:CreasePattern, xx:number, yy:number){
-		super(graph, xx, yy);
-	}
+	constructor(graph:CreasePattern){ super(graph); }
+
 	// isBoundary():boolean{
 	// 	if(this.y<EPSILON || this.x>1.0-EPSILON || this.y>1.0-EPSILON || this.x<EPSILON ){ return true; } 
 	// 	return false;
@@ -97,6 +99,9 @@ class CreasePattern extends PlanarGraph{
 	edges:Crease[];
 	boundary:PlanarGraph;
 
+	nodeType = CreaseNode;
+	edgeType = Crease;
+
 	landmarkNodes():XYPoint[]{ return this.nodes.map(function(el){ return new XYPoint(el.x, el.y); }); }
 
 	constructor(){
@@ -106,6 +111,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	square(width?:number):CreasePattern{
+		console.log("setting page size: square()");
 		var w = 1.0;
 		if(width != undefined && width != 0){ w = Math.abs(width); }
 		// clear old data
@@ -124,6 +130,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	rectangle(width:number, height:number):CreasePattern{
+		console.log("setting page size: rectangle(" + width + "," + height + ")");
 		// clear old data
 		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
 		else                           { this.boundary.clear(); }
@@ -140,6 +147,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	polygon(edgePoints:XYPoint[]):CreasePattern{
+		console.log("setting page size: polygon(): " + edgePoints.length + " points");
 		// clear old data
 		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
 		else                           { this.boundary.clear(); }
@@ -162,14 +170,18 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	// re-implement super class functions with new types
-	newEdge(node1:CreaseNode, node2:CreaseNode):Crease {
-		return <Crease>this.addEdge(new Crease(this, node1, node2));
-	}
-	addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):Crease{
-		var a = <CreaseNode>this.addNode( new CreaseNode(this, x1, y1) );
-		var b = <CreaseNode>this.addNode( new CreaseNode(this, x2, y2) );
-		return this.newEdge(a, b);
-	}
+	// newEdge(node1:CreaseNode, node2:CreaseNode):Crease {
+	// 	return <Crease>this.addEdge(new Crease(this, node1, node2));
+	// }
+	// newNode():CreaseNode {
+	// 	var x = 0; var y = 0;
+	// 	return <CreaseNode>this.addNode(<GraphNode>(new CreaseNode(this).position(x, y)));
+	// }
+	// addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):Crease{
+	// 	var a = <CreaseNode>this.addNode( new CreaseNode(this, x1, y1) );
+	// 	var b = <CreaseNode>this.addNode( new CreaseNode(this, x2, y2) );
+	// 	return this.newEdge(a, b);
+	// }
 
 	///////////////////////////////////////////////////////////////
 	// CLEAN  /  REMOVE PARTS
@@ -186,8 +198,8 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	clear(){
+		// todo: we should reset the border and stuff, maybe?
 		super.clear();
-		this.square();
 		// this.interestingPoints = this.starterLocations;
 	}
 
@@ -238,12 +250,13 @@ class CreasePattern extends PlanarGraph{
 
 	addPaperEdge(x1:number, y1:number, x2:number, y2:number){
 		// this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
-		// this.addEdgeWithVertices(x1, y1, x2, y2).border();
-		this.addEdgeWithVertices(x1, y1, x2, y2).border();
+		(<Crease>this.addEdgeWithVertices(x1, y1, x2, y2)).border();
+		// this.addEdgeWithVertices(x1, y1, x2, y2);
+		// (<Crease>this.addEdgeWithVertices(x1, y1, x2, y2)).border();
 		this.boundary.addEdgeWithVertices(x1, y1, x2, y2);
 	}
 	creaseOnly(a:XYPoint, b:XYPoint):Crease{
-		if(this.pointInside(a) && this.pointInside(b)) return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
+		if(this.pointInside(a) && this.pointInside(b)) return <Crease>this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
 		if(!this.pointInside(a) && !this.pointInside(b)) {
 			// if both are outside, only give us a crease if the two points invove an intersection with the boundary
 			for(var i = 0; i < this.boundary.edges.length; i++){
@@ -256,7 +269,7 @@ class CreasePattern extends PlanarGraph{
 		for(var i = 0; i < this.boundary.edges.length; i++){
 			var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].node[0], this.boundary.edges[i].node[1]);
 			if(intersection != undefined){
-				return this.addEdgeWithVertices(intersection.x, intersection.y, inside.x, inside.y);
+				return <Crease>this.addEdgeWithVertices(intersection.x, intersection.y, inside.x, inside.y);
 			}
 		}
 		return undefined;
@@ -271,7 +284,7 @@ class CreasePattern extends PlanarGraph{
 		var ab = new XYPoint(b.x - a.x, b.y - a.y);
 		var intersects = this.boundaryLineIntersection(a, ab);
 		if(intersects.length >= 2){
-			return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+			return <Crease>this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
 		}
 		throw "points have no crease line inside of the boundaries";
 	}
@@ -282,7 +295,7 @@ class CreasePattern extends PlanarGraph{
 		var perp1 = new XYPoint(-ab.y, ab.x);
 		var intersects = this.boundaryLineIntersection(midpoint, perp1);
 		if(intersects.length >= 2){
-			return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+			return <Crease>this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
 		}
 		throw "points have no perpendicular bisector inside of the boundaries";
 	}
@@ -306,14 +319,14 @@ class CreasePattern extends PlanarGraph{
 			var dir = new XYPoint( (u.x*vMag + v.x*uMag), (u.y*vMag + v.y*uMag) );
 			var intersects = this.boundaryLineIntersection(intersection, dir);
 			if(intersects.length >= 2){
-				creases.push(this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y));
+				creases.push(<Crease>this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y));
 			}
 			var dir90 = dir.rotate90();
 			var intersects90 = this.boundaryLineIntersection(intersection, dir90);
 			if(intersects90.length >= 2){
 				if(Math.abs(u.cross(dir)) < Math.abs(u.cross(dir90)))
-					creases.push(this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
-				else creases.unshift(this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
+					creases.push(<Crease>this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
+				else creases.unshift(<Crease>this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
 			}
 			if(creases.length){
 				return creases;
@@ -363,7 +376,7 @@ class CreasePattern extends PlanarGraph{
 			if(thisIntersection != undefined){ boundaryIntersection = thisIntersection; }
 		}
 		if(boundaryIntersection == undefined) { throw "creaseRay() requires paper boundaries else it will crease to infinity"; }
-		return this.addEdgeWithVertices(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
+		return <Crease>this.addEdgeWithVertices(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
 	}
 
 	creaseAngle(start:XYPoint,radians:number):Crease{
@@ -564,92 +577,92 @@ class CreasePattern extends PlanarGraph{
 
 	kiteBase(){
 		super.clear();
-		this.addEdgeWithVertices(0.0, 0.0, 0.41421, 0.0).border();
-		this.addEdgeWithVertices(0.41421, 0.0, 1.0, 0.0).border();
-		this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.58578).border();
-		this.addEdgeWithVertices(1.0, 0.58578, 1.0, 1.0).border();
-		this.addEdgeWithVertices(1.0, 1.0, 0.0, 1.0).border();
-		this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.0).border();
-		this.addEdgeWithVertices(1, 0, 0, 1).mountain();
-		this.addEdgeWithVertices(0, 1, 1, 0.58578).valley();
-		this.addEdgeWithVertices(0, 1, 0.41421, 0).valley();
+		(<Crease>this.addEdgeWithVertices(0.0, 0.0, 0.41421, 0.0)).border();
+		(<Crease>this.addEdgeWithVertices(0.41421, 0.0, 1.0, 0.0)).border();
+		(<Crease>this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.58578)).border();
+		(<Crease>this.addEdgeWithVertices(1.0, 0.58578, 1.0, 1.0)).border();
+		(<Crease>this.addEdgeWithVertices(1.0, 1.0, 0.0, 1.0)).border();
+		(<Crease>this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.0)).border();
+		(<Crease>this.addEdgeWithVertices(1, 0, 0, 1)).mountain();
+		(<Crease>this.addEdgeWithVertices(0, 1, 1, 0.58578)).valley();
+		(<Crease>this.addEdgeWithVertices(0, 1, 0.41421, 0)).valley();
 		this.clean();
 	}
 	fishBase(){
 		super.clear();
-		this.addEdgeWithVertices(0.0, 0.0, 0.29289, 0.0).border();
-		this.addEdgeWithVertices(0.29289, 0.0, 1.0, 0.0).border();
-		this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.70711).border();
-		this.addEdgeWithVertices(1.0, 0.70711, 1.0, 1.0).border();
-		this.addEdgeWithVertices(1.0, 1.0, 0.0, 1.0).border();
-		this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.0).border();
-		this.addEdgeWithVertices(1,0, 0,1).mountain();
-		this.addEdgeWithVertices(0,1, 0.70711,0.70711).valley();
-		this.addEdgeWithVertices(0,1, 0.29289,0.29289).valley();
-		this.addEdgeWithVertices(1,0, 0.29289,0.29289).valley();
-		this.addEdgeWithVertices(1,0, 0.70711,0.70711).valley();
-		this.addEdgeWithVertices(0.29289,0.29289, 0,0).valley();
-		this.addEdgeWithVertices(0.70711,0.70711, 1,1).valley();
-		this.addEdgeWithVertices(0.70711,0.70711, 1,0.70711).mountain();
-		this.addEdgeWithVertices(0.29289,0.29289, 0.29289,0).mountain();
+		(<Crease>this.addEdgeWithVertices(0.0, 0.0, 0.29289, 0.0)).border();
+		(<Crease>this.addEdgeWithVertices(0.29289, 0.0, 1.0, 0.0)).border();
+		(<Crease>this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.70711)).border();
+		(<Crease>this.addEdgeWithVertices(1.0, 0.70711, 1.0, 1.0)).border();
+		(<Crease>this.addEdgeWithVertices(1.0, 1.0, 0.0, 1.0)).border();
+		(<Crease>this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.0)).border();
+		(<Crease>this.addEdgeWithVertices(1,0, 0,1)).mountain();
+		(<Crease>this.addEdgeWithVertices(0,1, 0.70711,0.70711)).valley();
+		(<Crease>this.addEdgeWithVertices(0,1, 0.29289,0.29289)).valley();
+		(<Crease>this.addEdgeWithVertices(1,0, 0.29289,0.29289)).valley();
+		(<Crease>this.addEdgeWithVertices(1,0, 0.70711,0.70711)).valley();
+		(<Crease>this.addEdgeWithVertices(0.29289,0.29289, 0,0)).valley();
+		(<Crease>this.addEdgeWithVertices(0.70711,0.70711, 1,1)).valley();
+		(<Crease>this.addEdgeWithVertices(0.70711,0.70711, 1,0.70711)).mountain();
+		(<Crease>this.addEdgeWithVertices(0.29289,0.29289, 0.29289,0)).mountain();
 		this.clean();
-		// this.addFaceBetweenNodes([0, 1, 3]);
-		// this.addFaceBetweenNodes([0, 2, 1]);
-		// this.addFaceBetweenNodes([4, 3, 1]);
-		// this.addFaceBetweenNodes([5, 1, 2]);
-		// this.addFaceBetweenNodes([6, 5, 2]);
-		// this.addFaceBetweenNodes([6, 2, 0]);
-		// this.addFaceBetweenNodes([7, 3, 4]);
-		// this.addFaceBetweenNodes([7, 0, 3]);
+		// this.newFaceBetweenNodes([0, 1, 3]);
+		// this.newFaceBetweenNodes([0, 2, 1]);
+		// this.newFaceBetweenNodes([4, 3, 1]);
+		// this.newFaceBetweenNodes([5, 1, 2]);
+		// this.newFaceBetweenNodes([6, 5, 2]);
+		// this.newFaceBetweenNodes([6, 2, 0]);
+		// this.newFaceBetweenNodes([7, 3, 4]);
+		// this.newFaceBetweenNodes([7, 0, 3]);
 	}
 	birdBase(){
 		super.clear();
-		this.addEdgeWithVertices(0.0,0.0,0.5,0.0).border();
-		this.addEdgeWithVertices(0.5,0.0,1.0,0.0).border();
-		this.addEdgeWithVertices(1.0,0.0,1.0,0.5).border();
-		this.addEdgeWithVertices(1.0,0.5,1.0,1.0).border();
-		this.addEdgeWithVertices(1.0,1.0,0.5,1.0).border();
-		this.addEdgeWithVertices(0.5,1.0,0.0,1.0).border();
-		this.addEdgeWithVertices(0.0,1.0,0.0,0.5).border();
-		this.addEdgeWithVertices(0.0,0.5,0.0,0.0).border();
+		(<Crease>this.addEdgeWithVertices(0.0,0.0,0.5,0.0)).border();
+		(<Crease>this.addEdgeWithVertices(0.5,0.0,1.0,0.0)).border();
+		(<Crease>this.addEdgeWithVertices(1.0,0.0,1.0,0.5)).border();
+		(<Crease>this.addEdgeWithVertices(1.0,0.5,1.0,1.0)).border();
+		(<Crease>this.addEdgeWithVertices(1.0,1.0,0.5,1.0)).border();
+		(<Crease>this.addEdgeWithVertices(0.5,1.0,0.0,1.0)).border();
+		(<Crease>this.addEdgeWithVertices(0.0,1.0,0.0,0.5)).border();
+		(<Crease>this.addEdgeWithVertices(0.0,0.5,0.0,0.0)).border();
 		// eight 22.5 degree lines
-		this.addEdgeWithVertices(0, 1, 0.5, .79290).mountain();
-		this.addEdgeWithVertices(0, 1, .20710, 0.5).mountain();
-		this.addEdgeWithVertices(1, 0, 0.5, .20710).mountain();
-		this.addEdgeWithVertices(1, 0, .79290, 0.5).mountain();
-		this.addEdgeWithVertices(1, 1, .79290, 0.5).mountain();
-		this.addEdgeWithVertices(1, 1, 0.5, .79290).mountain();
-		this.addEdgeWithVertices(0, 0, .20710, 0.5).mountain();
-		this.addEdgeWithVertices(0, 0, 0.5, .20710).mountain();
+		(<Crease>this.addEdgeWithVertices(0, 1, 0.5, .79290)).mountain();
+		(<Crease>this.addEdgeWithVertices(0, 1, .20710, 0.5)).mountain();
+		(<Crease>this.addEdgeWithVertices(1, 0, 0.5, .20710)).mountain();
+		(<Crease>this.addEdgeWithVertices(1, 0, .79290, 0.5)).mountain();
+		(<Crease>this.addEdgeWithVertices(1, 1, .79290, 0.5)).mountain();
+		(<Crease>this.addEdgeWithVertices(1, 1, 0.5, .79290)).mountain();
+		(<Crease>this.addEdgeWithVertices(0, 0, .20710, 0.5)).mountain();
+		(<Crease>this.addEdgeWithVertices(0, 0, 0.5, .20710)).mountain();
 		// corner 45 degree lines
-		this.addEdgeWithVertices(0, 0, .35354, .35354).valley();
-		this.addEdgeWithVertices(.35354, .64645, 0, 1).valley();
-		this.addEdgeWithVertices(1, 0, .64645, .35354).mountain();
-		this.addEdgeWithVertices(.64645, .64645, 1, 1).valley();
+		(<Crease>this.addEdgeWithVertices(0, 0, .35354, .35354)).valley();
+		(<Crease>this.addEdgeWithVertices(.35354, .64645, 0, 1)).valley();
+		(<Crease>this.addEdgeWithVertices(1, 0, .64645, .35354)).mountain();
+		(<Crease>this.addEdgeWithVertices(.64645, .64645, 1, 1)).valley();
 		// center X
-		this.addEdgeWithVertices(0.5, 0.5, .35354, .64645).valley();
-		this.addEdgeWithVertices(.64645, .35354, 0.5, 0.5).mountain();
-		this.addEdgeWithVertices(0.5, 0.5, .64645, .64645).valley();
-		this.addEdgeWithVertices(.35354, .35354, 0.5, 0.5).valley();
+		(<Crease>this.addEdgeWithVertices(0.5, 0.5, .35354, .64645)).valley();
+		(<Crease>this.addEdgeWithVertices(.64645, .35354, 0.5, 0.5)).mountain();
+		(<Crease>this.addEdgeWithVertices(0.5, 0.5, .64645, .64645)).valley();
+		(<Crease>this.addEdgeWithVertices(.35354, .35354, 0.5, 0.5)).valley();
 		// center ⃟
-		this.addEdgeWithVertices(.35354, .35354, .20710, 0.5).mark();
-		this.addEdgeWithVertices(0.5, .20710, .35354, .35354).mark();
-		this.addEdgeWithVertices(.35354, .64645, 0.5, .79290).mark();
-		this.addEdgeWithVertices(.20710, 0.5, .35354, .64645).mark();
-		this.addEdgeWithVertices(.64645, .64645, .79290, 0.5).mark();
-		this.addEdgeWithVertices(0.5, .79290, .64645, .64645).mark();
-		this.addEdgeWithVertices(.64645, .35354, 0.5, .20710).mark();
-		this.addEdgeWithVertices(.79290, 0.5, .64645, .35354).mark();
+		(<Crease>this.addEdgeWithVertices(.35354, .35354, .20710, 0.5)).mark();
+		(<Crease>this.addEdgeWithVertices(0.5, .20710, .35354, .35354)).mark();
+		(<Crease>this.addEdgeWithVertices(.35354, .64645, 0.5, .79290)).mark();
+		(<Crease>this.addEdgeWithVertices(.20710, 0.5, .35354, .64645)).mark();
+		(<Crease>this.addEdgeWithVertices(.64645, .64645, .79290, 0.5)).mark();
+		(<Crease>this.addEdgeWithVertices(0.5, .79290, .64645, .64645)).mark();
+		(<Crease>this.addEdgeWithVertices(.64645, .35354, 0.5, .20710)).mark();
+		(<Crease>this.addEdgeWithVertices(.79290, 0.5, .64645, .35354)).mark();
 		// center +
-		this.addEdgeWithVertices(0.5, 0.5, 0.5, .79290).mountain();
-		this.addEdgeWithVertices(0.5, .20710, 0.5, 0.5).mountain();
-		this.addEdgeWithVertices(0.5, 0.5, .79290, 0.5).mountain();
-		this.addEdgeWithVertices(.20710, 0.5, 0.5, 0.5).mountain();
+		(<Crease>this.addEdgeWithVertices(0.5, 0.5, 0.5, .79290)).mountain();
+		(<Crease>this.addEdgeWithVertices(0.5, .20710, 0.5, 0.5)).mountain();
+		(<Crease>this.addEdgeWithVertices(0.5, 0.5, .79290, 0.5)).mountain();
+		(<Crease>this.addEdgeWithVertices(.20710, 0.5, 0.5, 0.5)).mountain();
 		// paper edge center connections
-		this.addEdgeWithVertices(0.5, .20710, 0.5, 0).valley();
-		this.addEdgeWithVertices(.79290, 0.5, 1, 0.5).valley();
-		this.addEdgeWithVertices(0.5, .79290, 0.5, 1).valley();
-		this.addEdgeWithVertices(.20710, 0.5, 0, 0.5).valley();
+		(<Crease>this.addEdgeWithVertices(0.5, .20710, 0.5, 0)).valley();
+		(<Crease>this.addEdgeWithVertices(.79290, 0.5, 1, 0.5)).valley();
+		(<Crease>this.addEdgeWithVertices(0.5, .79290, 0.5, 1)).valley();
+		(<Crease>this.addEdgeWithVertices(.20710, 0.5, 0, 0.5)).valley();
 		this.clean();
 	}
 	frogBase(){

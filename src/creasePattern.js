@@ -33,8 +33,8 @@ var FoldSequence = (function () {
 }());
 var CreaseNode = (function (_super) {
     __extends(CreaseNode, _super);
-    function CreaseNode(graph, xx, yy) {
-        return _super.call(this, graph, xx, yy) || this;
+    function CreaseNode(graph) {
+        return _super.call(this, graph) || this;
     }
     // isBoundary():boolean{
     // 	if(this.y<EPSILON || this.x>1.0-EPSILON || this.y>1.0-EPSILON || this.x<EPSILON ){ return true; } 
@@ -109,6 +109,8 @@ var CreasePattern = (function (_super) {
     __extends(CreasePattern, _super);
     function CreasePattern() {
         var _this = _super.call(this) || this;
+        _this.nodeType = CreaseNode;
+        _this.edgeType = Crease;
         if (_this.boundary === undefined) {
             _this.boundary = new PlanarGraph();
         }
@@ -117,6 +119,7 @@ var CreasePattern = (function (_super) {
     }
     CreasePattern.prototype.landmarkNodes = function () { return this.nodes.map(function (el) { return new XYPoint(el.x, el.y); }); };
     CreasePattern.prototype.square = function (width) {
+        console.log("setting page size: square()");
         var w = 1.0;
         if (width != undefined && width != 0) {
             w = Math.abs(width);
@@ -140,6 +143,7 @@ var CreasePattern = (function (_super) {
         return this;
     };
     CreasePattern.prototype.rectangle = function (width, height) {
+        console.log("setting page size: rectangle(" + width + "," + height + ")");
         // clear old data
         if (this.boundary === undefined) {
             this.boundary = new PlanarGraph();
@@ -159,6 +163,7 @@ var CreasePattern = (function (_super) {
         return this;
     };
     CreasePattern.prototype.polygon = function (edgePoints) {
+        console.log("setting page size: polygon(): " + edgePoints.length + " points");
         // clear old data
         if (this.boundary === undefined) {
             this.boundary = new PlanarGraph();
@@ -183,14 +188,18 @@ var CreasePattern = (function (_super) {
         // this.boundary = cp.boundary.slice();
     };
     // re-implement super class functions with new types
-    CreasePattern.prototype.newEdge = function (node1, node2) {
-        return this.addEdge(new Crease(this, node1, node2));
-    };
-    CreasePattern.prototype.addEdgeWithVertices = function (x1, y1, x2, y2) {
-        var a = this.addNode(new CreaseNode(this, x1, y1));
-        var b = this.addNode(new CreaseNode(this, x2, y2));
-        return this.newEdge(a, b);
-    };
+    // newEdge(node1:CreaseNode, node2:CreaseNode):Crease {
+    // 	return <Crease>this.addEdge(new Crease(this, node1, node2));
+    // }
+    // newNode():CreaseNode {
+    // 	var x = 0; var y = 0;
+    // 	return <CreaseNode>this.addNode(<GraphNode>(new CreaseNode(this).position(x, y)));
+    // }
+    // addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):Crease{
+    // 	var a = <CreaseNode>this.addNode( new CreaseNode(this, x1, y1) );
+    // 	var b = <CreaseNode>this.addNode( new CreaseNode(this, x2, y2) );
+    // 	return this.newEdge(a, b);
+    // }
     ///////////////////////////////////////////////////////////////
     // CLEAN  /  REMOVE PARTS
     CreasePattern.prototype.clean = function () {
@@ -204,8 +213,8 @@ var CreasePattern = (function (_super) {
         return superReturn;
     };
     CreasePattern.prototype.clear = function () {
+        // todo: we should reset the border and stuff, maybe?
         _super.prototype.clear.call(this);
-        this.square();
         // this.interestingPoints = this.starterLocations;
     };
     CreasePattern.prototype.bottomEdge = function () {
@@ -261,8 +270,9 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
         // this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
-        // this.addEdgeWithVertices(x1, y1, x2, y2).border();
         this.addEdgeWithVertices(x1, y1, x2, y2).border();
+        // this.addEdgeWithVertices(x1, y1, x2, y2);
+        // (<Crease>this.addEdgeWithVertices(x1, y1, x2, y2)).border();
         this.boundary.addEdgeWithVertices(x1, y1, x2, y2);
     };
     CreasePattern.prototype.creaseOnly = function (a, b) {
@@ -626,14 +636,14 @@ var CreasePattern = (function (_super) {
         this.addEdgeWithVertices(0.70711, 0.70711, 1, 0.70711).mountain();
         this.addEdgeWithVertices(0.29289, 0.29289, 0.29289, 0).mountain();
         this.clean();
-        // this.addFaceBetweenNodes([0, 1, 3]);
-        // this.addFaceBetweenNodes([0, 2, 1]);
-        // this.addFaceBetweenNodes([4, 3, 1]);
-        // this.addFaceBetweenNodes([5, 1, 2]);
-        // this.addFaceBetweenNodes([6, 5, 2]);
-        // this.addFaceBetweenNodes([6, 2, 0]);
-        // this.addFaceBetweenNodes([7, 3, 4]);
-        // this.addFaceBetweenNodes([7, 0, 3]);
+        // this.newFaceBetweenNodes([0, 1, 3]);
+        // this.newFaceBetweenNodes([0, 2, 1]);
+        // this.newFaceBetweenNodes([4, 3, 1]);
+        // this.newFaceBetweenNodes([5, 1, 2]);
+        // this.newFaceBetweenNodes([6, 5, 2]);
+        // this.newFaceBetweenNodes([6, 2, 0]);
+        // this.newFaceBetweenNodes([7, 3, 4]);
+        // this.newFaceBetweenNodes([7, 0, 3]);
     };
     CreasePattern.prototype.birdBase = function () {
         _super.prototype.clear.call(this);

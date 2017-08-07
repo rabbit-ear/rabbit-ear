@@ -104,12 +104,19 @@ class PlanarNode extends GraphNode implements XYPoint{
 	x:number;
 	y:number;
 
-	constructor(graph:PlanarGraph, xx:number, yy:number){
-		super(graph);
-		if(xx == undefined){ xx = 0; }
-		if(yy == undefined){ yy = 0; }
-		this.x = xx;
-		this.y = yy;
+	// constructor(graph:PlanarGraph, xx:number, yy:number){
+	// 	super(graph);
+	// 	if(xx == undefined){ xx = 0; }
+	// 	if(yy == undefined){ yy = 0; }
+	// 	this.x = xx;
+	// 	this.y = yy;
+	// }
+	constructor(graph:PlanarGraph){ super(graph); }
+
+	position(x:number, y:number):PlanarNode{
+		this.x = x;
+		this.y = y;
+		return this;
 	}
 
 	adjacentNodes():PlanarNode[]{ return <PlanarNode[]>super.adjacentNodes(); }
@@ -202,11 +209,7 @@ class PlanarNode extends GraphNode implements XYPoint{
 		this.y = node.y + distance*Math.sin(currentAngle + angle);
 	}
 
-	position(x:number, y:number):PlanarNode{
-		this.x = x;
-		this.y = y;
-		return this;
-	}
+
 
 // implements XYPoint
 	dot(point:XYPoint):number { return this.x * point.x + this.y * point.y; }
@@ -347,6 +350,9 @@ class PlanarGraph extends Graph{
 	edges:PlanarEdge[];
 	faces:PlanarFace[];
 
+	nodeType = PlanarNode;
+	edgeType = PlanarEdge;
+
 	constructor(){
 		super();
 		this.clear(); // initalize all empty arrays
@@ -360,21 +366,21 @@ class PlanarGraph extends Graph{
 	// ADD PARTS
 	///////////////////////////////////////////////
 
-	newNode():PlanarNode {
-		var x = 0; var y = 0;
-		return <PlanarNode>this.addNode(new PlanarNode(this, x, y));
-	}
-	newEdge(node1:PlanarNode, node2:PlanarNode):PlanarEdge {
-		return this.addEdge(new PlanarEdge(this, node1, node2));
-	}
+	// newNode():PlanarNode {
+	// 	var x = 0; var y = 0;
+	// 	return <PlanarNode>this.addNode(<GraphNode>(new PlanarNode(this).position(x, y)));
+	// }
+	// newEdge(node1:PlanarNode, node2:PlanarNode):PlanarEdge {
+	// 	return this.addEdge(new PlanarEdge(this, node1, node2));
+	// }
 
-	addNode(node:PlanarNode):PlanarNode{
-		if(node == undefined){ throw "addNode() requires an argument: 1 GraphNode"; }
-		node.graph = this;
-		node.index = this.nodes.length;
-		this.nodes.push(node);
-		return node;
-	}
+	// addNode(node:PlanarNode):PlanarNode{
+	// 	if(node == undefined){ throw "addNode() requires an argument: 1 GraphNode"; }
+	// 	node.graph = this;
+	// 	node.index = this.nodes.length;
+	// 	this.nodes.push(node);
+	// 	return node;
+	// }
 	addEdge(edge:PlanarEdge):PlanarEdge{
 		// todo, make sure graph edge is valid
 		// if(edge.node[0] >= this.nodes.length || edge.node[1] >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
@@ -385,18 +391,18 @@ class PlanarGraph extends Graph{
 	}
 
 	addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):PlanarEdge{
-		var a = this.addNode( new PlanarNode(this, x1, y1) );
-		var b = this.addNode( new PlanarNode(this, x2, y2) );
-		return this.newEdge(a, b);
+		var a = (<PlanarNode>this.newNode()).position(x1, y1);
+		var b = (<PlanarNode>this.newNode()).position(x2, y2);
+		return <PlanarEdge>this.newEdge(<GraphNode>a, <GraphNode>b);
 	}
 
 	addEdgeFromVertex(existingNode:PlanarNode, newX:number, newY:number):PlanarEdge{
-		var node = this.addNode( new PlanarNode(this, newX, newY) );
-		return this.newEdge(existingNode, node);
+		var node = this.addNode( new PlanarNode(this).position(newX, newY) );
+		return <PlanarEdge>this.newEdge(existingNode, node);
 	}
 
 	addEdgeFromExistingVertices(a:PlanarNode, b:PlanarNode):PlanarEdge{
-		return this.newEdge(a, b);
+		return <PlanarEdge>this.newEdge(a, b);
 	}
 
 	addEdgeRadiallyFromVertex(existingNode:PlanarNode, angle:number, length:number):PlanarEdge{
@@ -405,7 +411,7 @@ class PlanarGraph extends Graph{
 		return this.addEdgeFromVertex(existingNode, newX, newY);
 	}
 
-	addFaceBetweenNodes(nodeArray:PlanarNode[]){
+	newFaceBetweenNodes(nodeArray:PlanarNode[]){
 		if(nodeArray.length == 0) return;
 		var edgeArray:PlanarEdge[] = [];
 		for(var i = 0; i < nodeArray.length; i++){
@@ -413,7 +419,7 @@ class PlanarGraph extends Graph{
 			var thisEdge = <PlanarEdge>this.getEdgeConnectingNodes(nodeArray[i], nodeArray[nextI]);
 			if(thisEdge == undefined){
 				console.log("creating edge to make face between nodes " + nodeArray[i] + ' ' + nodeArray[nextI]);
-				thisEdge = this.newEdge(nodeArray[i], nodeArray[nextI]);
+				thisEdge = <PlanarEdge>this.newEdge(nodeArray[i], nodeArray[nextI]);
 			}
 			edgeArray.push(thisEdge);
 		}
@@ -665,11 +671,11 @@ class PlanarGraph extends Graph{
 		var newLineNodes = [];
 		for(var i = 0; i < intersections.length; i++){
 			if(intersections[i] != undefined){
-			super.removeEdge(intersections[i].edge);
-			var newNode = this.addNode(new PlanarNode(this, intersections[i].x, intersections[i].y));
-			this.newEdge(intersections[i].edge.node[0], newNode);
-			this.newEdge(newNode, intersections[i].edge.node[1]);
-			newLineNodes.push(newNode);
+				super.removeEdge(intersections[i].edge);
+				var newNode = this.addNode(new PlanarNode(this).position(intersections[i].x, intersections[i].y));
+				this.newEdge(intersections[i].edge.node[0], newNode);
+				this.newEdge(newNode, intersections[i].edge.node[1]);
+				newLineNodes.push(newNode);
 			}
 		}
 		// remove the edge
