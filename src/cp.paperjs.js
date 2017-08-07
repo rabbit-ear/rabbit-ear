@@ -115,7 +115,7 @@ var PaperCreasePattern = (function () {
 		var boundaryPath = this.newBorderPath(this.lineWeight);
 		var boundarySegments = [];
 		for(var i = 0; i < this.cp.boundary.edges.length; i++){
-			var endpoints = this.cp.boundary.edges[i].node;
+			var endpoints = this.cp.boundary.edges[i].nodes;
 			boundarySegments.push(endpoints[0]);
 			boundarySegments.push(endpoints[1]);
 		}
@@ -140,7 +140,7 @@ var PaperCreasePattern = (function () {
 		this.cpLayer.removeChildren();
 		for(var i = 0; i < this.cp.edges.length; i++){
 			var path = this.newPathForCrease(this.cp.edges[i]);
-			path.segments = [ this.points[this.cp.edges[i].node[0].index ], this.points[this.cp.edges[i].node[1].index ] ];
+			path.segments = [ this.points[this.cp.edges[i].nodes[0].index ], this.points[this.cp.edges[i].nodes[1].index ] ];
 			this.edges.push( path );
 		}
 		for(var i = 0; i < this.cp.faces.length; i++){
@@ -165,8 +165,8 @@ var PaperCreasePattern = (function () {
 			this.points[i].y = this.cp.nodes[i].y;
 		}
 		for(var i = 0; i < this.cp.edges.length; i++){
-			this.edges[i].segments[0].point = this.points[ this.cp.edges[i].node[0].index ];
-			this.edges[i].segments[1].point = this.points[ this.cp.edges[i].node[1].index ];
+			this.edges[i].segments[0].point = this.points[ this.cp.edges[i].nodes[0].index ];
+			this.edges[i].segments[1].point = this.points[ this.cp.edges[i].nodes[1].index ];
 		}
 		for(var i = 0; i < this.cp.faces.length; i++){
 			var faceNodeArray = this.cp.faces[i].nodes;

@@ -33,8 +33,8 @@ var FoldSequence = (function () {
 }());
 var CreaseNode = (function (_super) {
     __extends(CreaseNode, _super);
-    function CreaseNode(graph) {
-        return _super.call(this, graph) || this;
+    function CreaseNode() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     // isBoundary():boolean{
     // 	if(this.y<EPSILON || this.x>1.0-EPSILON || this.y>1.0-EPSILON || this.x<EPSILON ){ return true; } 
@@ -43,7 +43,7 @@ var CreaseNode = (function (_super) {
     CreaseNode.prototype.isBoundary = function () {
         for (var i = 0; i < this.graph.boundary.edges.length; i++) {
             var thisPt = new XYPoint(this.x, this.y);
-            if (onSegment(thisPt, this.graph.boundary.edges[i].node[0], this.graph.boundary.edges[i].node[1])) {
+            if (onSegment(thisPt, this.graph.boundary.edges[i].nodes[0], this.graph.boundary.edges[i].nodes[1])) {
                 return true;
             }
         }
@@ -103,8 +103,6 @@ var Crease = (function (_super) {
     };
     return Crease;
 }(PlanarEdge));
-// for purposes of modeling origami crease patterns
-// creases are lines (edges) with endpoints v1, v2 (indices in vertex array)
 var CreasePattern = (function (_super) {
     __extends(CreasePattern, _super);
     function CreasePattern() {
@@ -220,7 +218,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.bottomEdge = function () {
         var boundaries = this.edges
             .filter(function (el) { return el.orientation === CreaseDirection.border; })
-            .sort(function (a, b) { var ay = a.node[0].y + a.node[1].y; var by = b.node[0].y + b.node[1].y; return (ay < by) ? 1 : (ay > by) ? -1 : 0; });
+            .sort(function (a, b) { var ay = a.nodes[0].y + a.nodes[1].y; var by = b.nodes[0].y + b.nodes[1].y; return (ay < by) ? 1 : (ay > by) ? -1 : 0; });
         if (boundaries.length > 0) {
             return boundaries[0];
         }
@@ -229,7 +227,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.topEdge = function () {
         var boundaries = this.edges
             .filter(function (el) { return el.orientation === CreaseDirection.border; })
-            .sort(function (a, b) { var ay = a.node[0].y + a.node[1].y; var by = b.node[0].y + b.node[1].y; return (ay > by) ? 1 : (ay < by) ? -1 : 0; });
+            .sort(function (a, b) { var ay = a.nodes[0].y + a.nodes[1].y; var by = b.nodes[0].y + b.nodes[1].y; return (ay > by) ? 1 : (ay < by) ? -1 : 0; });
         if (boundaries.length > 0) {
             return boundaries[0];
         }
@@ -238,7 +236,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.rightEdge = function () {
         var boundaries = this.edges
             .filter(function (el) { return el.orientation === CreaseDirection.border; })
-            .sort(function (a, b) { var ax = a.node[0].x + a.node[1].x; var bx = b.node[0].x + b.node[1].x; return (ax < bx) ? 1 : (ax > bx) ? -1 : 0; });
+            .sort(function (a, b) { var ax = a.nodes[0].x + a.nodes[1].x; var bx = b.nodes[0].x + b.nodes[1].x; return (ax < bx) ? 1 : (ax > bx) ? -1 : 0; });
         if (boundaries.length > 0) {
             return boundaries[0];
         }
@@ -247,7 +245,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.leftEdge = function () {
         var boundaries = this.edges
             .filter(function (el) { return el.orientation === CreaseDirection.border; })
-            .sort(function (a, b) { var ax = a.node[0].x + a.node[1].x; var bx = b.node[0].x + b.node[1].x; return (ax > bx) ? 1 : (ax < bx) ? -1 : 0; });
+            .sort(function (a, b) { var ax = a.nodes[0].x + a.nodes[1].x; var bx = b.nodes[0].x + b.nodes[1].x; return (ax > bx) ? 1 : (ax < bx) ? -1 : 0; });
         if (boundaries.length > 0) {
             return boundaries[0];
         }
@@ -260,7 +258,7 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.pointInside = function (p) {
         for (var i = 0; i < this.boundary.edges.length; i++) {
-            var endpts = this.boundary.edges[i].node;
+            var endpts = this.boundary.edges[i].nodes;
             var cross = (p.y - endpts[0].y) * (endpts[1].x - endpts[0].x) -
                 (p.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
             if (cross < 0)
@@ -281,7 +279,7 @@ var CreasePattern = (function (_super) {
         if (!this.pointInside(a) && !this.pointInside(b)) {
             // if both are outside, only give us a crease if the two points invove an intersection with the boundary
             for (var i = 0; i < this.boundary.edges.length; i++) {
-                if (lineSegmentIntersectionAlgorithm(a, b, this.boundary.edges[i].node[0], this.boundary.edges[i].node[1]))
+                if (lineSegmentIntersectionAlgorithm(a, b, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]))
                     return this.creaseThroughPoints(a, b);
             }
         }
@@ -295,7 +293,7 @@ var CreasePattern = (function (_super) {
             inside = b;
         }
         for (var i = 0; i < this.boundary.edges.length; i++) {
-            var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].node[0], this.boundary.edges[i].node[1]);
+            var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
             if (intersection != undefined) {
                 return this.addEdgeWithVertices(intersection.x, intersection.y, inside.x, inside.y);
             }
@@ -328,19 +326,19 @@ var CreasePattern = (function (_super) {
     };
     // AXIOM 3
     CreasePattern.prototype.creaseEdgeToEdge = function (a, b) {
-        if (linesParallel(a.node[0], a.node[1], b.node[0], b.node[1])) {
-            var u = new XYPoint(a.node[1].x - a.node[0].x, a.node[1].y - a.node[0].y);
+        if (linesParallel(a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1])) {
+            var u = new XYPoint(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
             var perp = u.rotate90();
-            var intersect1 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), a.node[0], a.node[1]);
-            var intersect2 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), b.node[0], b.node[1]);
+            var intersect1 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), a.nodes[0], a.nodes[1]);
+            var intersect2 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), b.nodes[0], b.nodes[1]);
             var midpoint = new XYPoint((intersect1.x + intersect2.x) * 0.5, (intersect1.y + intersect2.y) * 0.5);
             return [this.creaseThroughPoints(midpoint, new XYPoint(midpoint.x + u.x, midpoint.y + u.y))];
         }
         else {
             var creases = [];
-            var intersection = lineIntersectionAlgorithm(a.node[0], a.node[1], b.node[0], b.node[1]);
-            var u = new XYPoint(a.node[1].x - a.node[0].x, a.node[1].y - a.node[0].y);
-            var v = new XYPoint(b.node[1].x - b.node[0].x, b.node[1].y - b.node[0].y);
+            var intersection = lineIntersectionAlgorithm(a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]);
+            var u = new XYPoint(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
+            var v = new XYPoint(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y);
             var uMag = u.mag();
             var vMag = v.mag();
             var dir = new XYPoint((u.x * vMag + v.x * uMag), (u.y * vMag + v.y * uMag));
@@ -365,7 +363,7 @@ var CreasePattern = (function (_super) {
     };
     // AXIOM 4
     CreasePattern.prototype.creasePerpendicularThroughPoint = function (line, point) {
-        var ab = new XYPoint(line.node[1].x - line.node[0].x, line.node[1].y - line.node[0].y);
+        var ab = new XYPoint(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y);
         var perp = new XYPoint(-ab.y, ab.x);
         var point2 = new XYPoint(point.x + perp.x, point.y + perp.y);
         return this.creaseThroughPoints(point, point2);
@@ -373,7 +371,7 @@ var CreasePattern = (function (_super) {
     // AXIOM 5
     CreasePattern.prototype.creasePointToLine = function (origin, point, line) {
         var radius = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
-        var intersections = circleLineIntersectionAlgorithm(origin, radius, line.node[0], line.node[1]);
+        var intersections = circleLineIntersectionAlgorithm(origin, radius, line.nodes[0], line.nodes[1]);
         // return (radius*radius) * dr_squared > (D*D)  // check if there are any intersections
         var creases = [];
         for (var i = 0; i < intersections.length; i++) {
@@ -383,10 +381,10 @@ var CreasePattern = (function (_super) {
     };
     // AXIOM 7
     CreasePattern.prototype.creasePerpendicularPointOntoLine = function (point, ontoLine, perpendicularTo) {
-        var endPts = perpendicularTo.node;
+        var endPts = perpendicularTo.nodes;
         var align = new XYPoint(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
         var pointParallel = new XYPoint(point.x + align.x, point.y + align.y);
-        var intersection = lineIntersectionAlgorithm(point, pointParallel, ontoLine.node[0], ontoLine.node[1]);
+        var intersection = lineIntersectionAlgorithm(point, pointParallel, ontoLine.nodes[0], ontoLine.nodes[1]);
         if (intersection != undefined) {
             var midPoint = new XYPoint((intersection.x + point.x) * 0.5, (intersection.y + point.y) * 0.5);
             var perp = new XYPoint(-align.y, align.x);
@@ -401,7 +399,7 @@ var CreasePattern = (function (_super) {
         }
         var boundaryIntersection = undefined;
         for (var i = 0; i < this.boundary.edges.length; i++) {
-            var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary.edges[i].node[0], this.boundary.edges[i].node[1]);
+            var thisIntersection = rayLineSegmentIntersectionAlgorithm(start, vector, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
             if (thisIntersection != undefined) {
                 boundaryIntersection = thisIntersection;
             }
@@ -418,7 +416,7 @@ var CreasePattern = (function (_super) {
         var opposite = new XYPoint(-direction.x, -direction.y);
         var intersects = [];
         for (var i = 0; i < this.boundary.edges.length; i++) {
-            var endpts = this.boundary.edges[i].node;
+            var endpts = this.boundary.edges[i].nodes;
             var test1 = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
             var test2 = rayLineSegmentIntersectionAlgorithm(origin, opposite, endpts[0], endpts[1]);
             if (test1 != undefined) {
@@ -439,15 +437,15 @@ var CreasePattern = (function (_super) {
                 }
             }
         }
-        for (var i = 0; i < intersects.length; i++) {
-            console.log(intersects[i].x + "," + intersects[i].y);
-        }
+        // for(var i = 0; i < intersects.length; i++){
+        // 	console.log(intersects[i].x + "," + intersects[i].y);
+        // }
         return intersects;
     };
     CreasePattern.prototype.boundaryRayIntersection = function (origin, direction) {
         var intersects = [];
         for (var i = 0; i < this.boundary.edges.length; i++) {
-            var endpts = this.boundary.edges[i].node;
+            var endpts = this.boundary.edges[i].nodes;
             var test = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
             if (test != undefined) {
                 intersects.push(test);
@@ -571,8 +569,8 @@ var CreasePattern = (function (_super) {
         blob += "<line stroke=\"#000000\" x1=\"0\" y1=\"0\" x2=\"" + scale + "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" + scale + "\" y1=\"0\" x2=\"" + scale + "\" y2=\"" + scale + "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" + scale + "\" y1=\"" + scale + "\" x2=\"0\" y2=\"" + scale + "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" + scale + "\" x2=\"0\" y2=\"0\"/>\n";
         ////////
         for (var i = 0; i < this.edges.length; i++) {
-            var a = this.edges[i].node[0];
-            var b = this.edges[i].node[1];
+            var a = this.edges[i].nodes[0];
+            var b = this.edges[i].nodes[1];
             var x1 = (a.x * scale).toFixed(4);
             var y1 = (a.y * scale).toFixed(4);
             var x2 = (b.x * scale).toFixed(4);

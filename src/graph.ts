@@ -15,15 +15,15 @@ class GraphNode{
 
 	adjacentEdges():GraphEdge[]{
 		if(this.graph == undefined) { throw "error: didn't set a node's parent graph. use graph.newNode()"; }
-		return this.graph.edges.filter(function(el:GraphEdge){ return el.node[0] === this || el.node[1] === this; }, this);
+		return this.graph.edges.filter(function(el:GraphEdge){ return el.nodes[0] === this || el.nodes[1] === this; }, this);
 	}
 	adjacentNodes():GraphNode[]{
 		var first:GraphNode[] = this.graph.edges
-			.filter(function(el){ return el.node[0] == this}, this)
-			.map(function(el){ return el.node[1] }, this);
+			.filter(function(el){ return el.nodes[0] == this}, this)
+			.map(function(el){ return el.nodes[1] }, this);
 		var second:GraphNode[] = this.graph.edges
-			.filter(function(el){ return el.node[1] == this}, this)
-			.map(function(el){ return el.node[0] }, this);
+			.filter(function(el){ return el.nodes[1] == this}, this)
+			.map(function(el){ return el.nodes[0] }, this);
 		return first.concat(second);
 	}
 	isAdjacentToNode(node:GraphNode):boolean{
@@ -35,50 +35,50 @@ class GraphNode{
 class GraphEdge{
 	graph:Graph;
 	index:number;
-	node:[GraphNode,GraphNode]; // every edge must connect 2 nodes
+	nodes:[GraphNode,GraphNode]; // every edge must connect 2 nodes
 
 	constructor(graph:Graph, node1:GraphNode, node2:GraphNode){
 		this.graph = graph;
-		this.node = [node1, node2];
+		this.nodes = [node1, node2];
 	};
 
 	adjacentEdges():GraphEdge[]{
 		// todo:test this
 		return this.graph.edges
 		.filter(function(el:GraphEdge) {  return el !== this &&
-		                (el.node[0] === this.node[0] || 
-		                 el.node[0] === this.node[1] || 
-		                 el.node[1] === this.node[0] || 
-		                 el.node[1] === this.node[1]); }, this)
+		                (el.nodes[0] === this.nodes[0] || 
+		                 el.nodes[0] === this.nodes[1] || 
+		                 el.nodes[1] === this.nodes[0] || 
+		                 el.nodes[1] === this.nodes[1]); }, this)
 		// .filter(function(el:GraphEdge){ return el !== this; }, this);
 	}
 	adjacentNodes():GraphNode[]{
-		return [this.node[0], this.node[1]];
+		return [this.nodes[0], this.nodes[1]];
 	}
 	isAdjacentToEdge(edge:GraphEdge):boolean{
-		return( (this.node[0] === edge.node[0]) || (this.node[1] === edge.node[1]) ||
-		        (this.node[0] === edge.node[1]) || (this.node[1] === edge.node[0]) );
+		return( (this.nodes[0] === edge.nodes[0]) || (this.nodes[1] === edge.nodes[1]) ||
+		        (this.nodes[0] === edge.nodes[1]) || (this.nodes[1] === edge.nodes[0]) );
 	}
 	isSimilarToEdge(edge:GraphEdge):boolean{
-		return( (this.node[0] === edge.node[0] && this.node[1] === edge.node[1] ) ||
-		        (this.node[0] === edge.node[1] && this.node[1] === edge.node[0] ) );
+		return( (this.nodes[0] === edge.nodes[0] && this.nodes[1] === edge.nodes[1] ) ||
+		        (this.nodes[0] === edge.nodes[1] && this.nodes[1] === edge.nodes[0] ) );
 	}
 	commonNodeWithEdge(otherEdge:GraphEdge):GraphNode{
 		// only for adjacent edges
 		if(this === otherEdge) return undefined;
-		if(this.node[0] === otherEdge.node[0] || this.node[0] === otherEdge.node[1]) 
-			return this.node[0];
-		if(this.node[1] === otherEdge.node[0] || this.node[1] === otherEdge.node[1])
-			return this.node[1];
+		if(this.nodes[0] === otherEdge.nodes[0] || this.nodes[0] === otherEdge.nodes[1]) 
+			return this.nodes[0];
+		if(this.nodes[1] === otherEdge.nodes[0] || this.nodes[1] === otherEdge.nodes[1])
+			return this.nodes[1];
 		return undefined;
 	}
 	uncommonNodeWithEdge(otherEdge:GraphEdge):GraphNode{
 		// only for adjacent edges
 		if(this === otherEdge) return undefined;
-		if(this.node[0] === otherEdge.node[0] || this.node[0] === otherEdge.node[1]) 
-			return this.node[1];
-		if(this.node[1] === otherEdge.node[0] || this.node[1] === otherEdge.node[1])
-			return this.node[0];
+		if(this.nodes[0] === otherEdge.nodes[0] || this.nodes[0] === otherEdge.nodes[1]) 
+			return this.nodes[1];
+		if(this.nodes[1] === otherEdge.nodes[0] || this.nodes[1] === otherEdge.nodes[1])
+			return this.nodes[0];
 		// optional ending: returning both of its two nodes, as if to say all are uncommon
 		return undefined;
 	}
@@ -90,6 +90,7 @@ class Graph{
 	// todo: callback hooks for when certain properties of the data structure have been altered
 	didChange:(event:object)=>void;
 
+	// the fundamental node/edge types get switched out in subclassed instances of Graph
 	nodeType = GraphNode;
 	edgeType = GraphEdge;
 
@@ -121,10 +122,10 @@ class Graph{
 	}
 	addEdge(edge:GraphEdge):GraphEdge{
 		// todo, make sure graph edge is valid
-		// if(edge.node[0] >= this.nodes.length || edge.node[1] >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
+		// if(edge.nodes[0] >= this.nodes.length || edge.nodes[1] >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
 		edge.graph = this;
 		edge.index = this.edges.length;
-		this.edges.push( edge );
+		this.edges.push(edge);
 		return edge;
 	}
 	addNodes(nodes:GraphNode[]){
@@ -164,8 +165,8 @@ class Graph{
 	removeEdgeBetween(node1:GraphNode, node2:GraphNode):number{ // returns how many removed
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ 
-			return !((el.node[0] == node1 && el.node[1] == node2) ||
-			         (el.node[0] == node2 && el.node[1] == node1) );
+			return !((el.nodes[0] == node1 && el.nodes[1] == node2) ||
+			         (el.nodes[0] == node2 && el.nodes[1] == node1) );
 		});
 		this.edgeArrayDidChange();
 		return len - this.edges.length;
@@ -175,7 +176,7 @@ class Graph{
 		var nodesLength = this.nodes.length;
 		var edgesLength = this.edges.length;
 		this.nodes = this.nodes.filter(function(el){ return el !== node; });
-		this.edges = this.edges.filter(function(el){ return el.node[0] !== node && el.node[1] !== node; });
+		this.edges = this.edges.filter(function(el){ return el.nodes[0] !== node && el.nodes[1] !== node; });
 		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
 		if(this.nodes.length != nodesLength){ this.nodeArrayDidChange(); return true; }
 		return false;
@@ -193,8 +194,8 @@ class Graph{
 	mergeNodes(node1:GraphNode, node2:GraphNode):boolean{
 		if(node1 === node2) { return false; }
 		this.edges = this.edges.map(function(el){
-			if(el.node[0] === node2) el.node[0] = node1;
-			if(el.node[1] === node2) el.node[1] = node1;
+			if(el.nodes[0] === node2) el.nodes[0] = node1;
+			if(el.nodes[1] === node2) el.nodes[1] = node1;
 			return el;
 		});
 		this.removeNode(node2); 
@@ -206,8 +207,8 @@ class Graph{
 		var usedNodes = [];
 		for(var i = 0; i < this.nodes.length; i++){ usedNodes[i] = false; }
 		for(var i = 0; i < this.edges.length; i++){
-			usedNodes[this.edges[i].node[0].index] = true;
-			usedNodes[this.edges[i].node[1].index] = true;
+			usedNodes[this.edges[i].nodes[0].index] = true;
+			usedNodes[this.edges[i].nodes[1].index] = true;
 		}
 		var count = 0;
 		for(var i = this.nodes.length-1; i >= 0; i--){
@@ -220,7 +221,7 @@ class Graph{
 	// remove circular edges (a node connecting to itself)
 	cleanCircularEdges():number{
 		var edgesLength = this.edges.length;
-		this.edges = this.edges.filter(function(el){ return !(el.node[0] === el.node[1]); });
+		this.edges = this.edges.filter(function(el){ return !(el.nodes[0] === el.nodes[1]); });
 		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
 		return edgesLength - this.edges.length;
 	}
@@ -259,8 +260,8 @@ class Graph{
 	getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge{
 		// for this to work, graph must be cleaned. no duplicate edges
 		for(var i = 0; i < this.edges.length; i++){
-			if( (this.edges[i].node[0] === node1 && this.edges[i].node[1] === node2 ) ||
-				(this.edges[i].node[0] === node2 && this.edges[i].node[1] === node1 ) ){
+			if( (this.edges[i].nodes[0] === node1 && this.edges[i].nodes[1] === node2 ) ||
+				(this.edges[i].nodes[0] === node2 && this.edges[i].nodes[1] === node1 ) ){
 				return this.edges[i];
 			}
 		}
@@ -269,8 +270,8 @@ class Graph{
 	}
 	getEdgesConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge[]{
 		return this.edges.filter(function(el){
-			(el.node[0] == node1 && el.node[1] == node2 ) ||
-			(el.node[0] == node2 && el.node[1] == node1 )
+			(el.nodes[0] == node1 && el.nodes[1] == node2 ) ||
+			(el.nodes[0] == node2 && el.nodes[1] == node1 )
 		});
 	}
 
@@ -279,7 +280,7 @@ class Graph{
 		console.log('#Edges: ' + this.edges.length);
 		if(verbose != undefined && verbose == true){
 			for(var i = 0; i < this.edges.length; i++){
-				console.log(i + ': ' + this.edges[i].node[0] + ' ' + this.edges[i].node[1]);
+				console.log(i + ': ' + this.edges[i].nodes[0] + ' ' + this.edges[i].nodes[1]);
 			}
 		}
 	}

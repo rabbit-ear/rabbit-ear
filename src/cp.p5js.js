@@ -9,8 +9,8 @@ var drawGraphLines = function(p, planarGraph){
 	}
 	var line_array = [];
 	for(var i = 0; i < planarGraph.edges.length; i++){
-		line_array[i*2+0] = planarGraph.edges[i].node[0].index;
-		line_array[i*2+1] = planarGraph.edges[i].node[1].index;
+		line_array[i*2+0] = planarGraph.edges[i].nodes[0].index;
+		line_array[i*2+1] = planarGraph.edges[i].nodes[1].index;
 	}
 	// DRAW THINGS
 	for(var i = 0; i < line_array.length*0.5; i++){
@@ -118,8 +118,8 @@ function HSVtoRGB(h, s, v) {
 // 	}
 // 	var line_array = [];
 // 	for(var i = 0; i < planarGraph.edges.length; i++){
-// 		line_array[i*2+0] = planarGraph.edges[i].node[0];
-// 		line_array[i*2+1] = planarGraph.edges[i].node[1];
+// 		line_array[i*2+0] = planarGraph.edges[i].nodes[0];
+// 		line_array[i*2+1] = planarGraph.edges[i].nodes[1];
 // 	}
 // 	// DRAW THINGS
 // 	for(var i = 0; i < line_array.length*0.5; i++){

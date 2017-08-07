@@ -34,10 +34,10 @@ var p5_nearest_edge = function(p) {
 		if(closestEdge != undefined && closestEdge.edge != undefined){
 			p.stroke(255, 0, 0);
 			p.fill(255, 0, 0);
-			p.line(closestEdge.edge.node[0].x, closestEdge.edge.node[0].y, 
-			       closestEdge.edge.node[1].x, closestEdge.edge.node[1].y );
-			p.ellipse(closestEdge.edge.node[0].x, closestEdge.edge.node[0].y, .01, .01);
-			p.ellipse(closestEdge.edge.node[1].x, closestEdge.edge.node[1].y, .01, .01);
+			p.line(closestEdge.edge.nodes[0].x, closestEdge.edge.nodes[0].y, 
+			       closestEdge.edge.nodes[1].x, closestEdge.edge.nodes[1].y );
+			p.ellipse(closestEdge.edge.nodes[0].x, closestEdge.edge.nodes[0].y, .01, .01);
+			p.ellipse(closestEdge.edge.nodes[1].x, closestEdge.edge.nodes[1].y, .01, .01);
 
 			p.stroke(0, 0, 0);
 			p.fill(0, 0, 0);

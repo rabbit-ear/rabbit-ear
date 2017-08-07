@@ -34,9 +34,9 @@ function fillGraph(graph, numNodes){
 	nodeString += graph.nodes.length-1;
 	var edgeString = '';
 	for(var i = 0; i < graph.edges.length-1; i++){
-		edgeString += '[' + graph.edges[i].node[0].index + ',' + graph.edges[i].node[1].index + '], ';
+		edgeString += '[' + graph.edges[i].nodes[0].index + ',' + graph.edges[i].nodes[1].index + '], ';
 	}
-	edgeString += '[' + graph.edges[graph.edges.length-1].node[0].index + ',' + graph.edges[graph.edges.length-1].node[1].index + ']';
+	edgeString += '[' + graph.edges[graph.edges.length-1].nodes[0].index + ',' + graph.edges[graph.edges.length-1].nodes[1].index + ']';
 	var graphString = '{nodes: [' + nodeString + '],<br>&nbsp;edges: [ ' + edgeString + ' ]}';
 	$("#spanGraphContents").html(graphString);
 }
