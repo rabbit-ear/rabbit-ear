@@ -30,9 +30,9 @@ var _05_parallel = function(p) {
 		if(Math.random() < 0.5) handedness = 1;
 		else                    handedness = -1;
 
-		g.addEdgeWithVertices(0.5 + 0.25*Math.cos(angle), 0.5 + 0.25*Math.sin(angle), 
+		g.newPlanarEdge(0.5 + 0.25*Math.cos(angle), 0.5 + 0.25*Math.sin(angle), 
 		                      0.5 - 0.25*Math.cos(angle), 0.5 - 0.25*Math.sin(angle));
-		g.addEdgeWithVertices(0, 0, 1, 1);
+		g.newPlanarEdge(0, 0, 1, 1);
 		g.clean();
 	}
 

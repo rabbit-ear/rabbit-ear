@@ -9,16 +9,16 @@ function kawasaki_sketch(){
 	cp.nodes = [];
 	cp.edges = [];
 
-	cp.addEdgeWithVertices(.35995, .34829, .35995, .01228);
-	cp.addEdgeWithVertices(.35995, .34829, .02393, .01228);
-	cp.addEdgeWithVertices(.35995, .34829, .97391, .96248);
-	cp.addEdgeWithVertices(.35995, .34829, .61437, .96248);
-	cp.addEdgeWithVertices(.35995, .34829, .97391, .6026);
-	cp.addEdgeWithVertices(.35995, .34829, .35995, .96248);
-	cp.addEdgeWithVertices(.35995, .34829, .02393, .48738);
-	cp.addEdgeWithVertices(.35995, .34829, .10552, .96248);
-	cp.addEdgeWithVertices(.35995, .34829, .59738, .01228);
-	cp.addEdgeWithVertices(.35995, .34829, .97391, .27863);
+	cp.newPlanarEdge(.35995, .34829, .35995, .01228);
+	cp.newPlanarEdge(.35995, .34829, .02393, .01228);
+	cp.newPlanarEdge(.35995, .34829, .97391, .96248);
+	cp.newPlanarEdge(.35995, .34829, .61437, .96248);
+	cp.newPlanarEdge(.35995, .34829, .97391, .6026);
+	cp.newPlanarEdge(.35995, .34829, .35995, .96248);
+	cp.newPlanarEdge(.35995, .34829, .02393, .48738);
+	cp.newPlanarEdge(.35995, .34829, .10552, .96248);
+	cp.newPlanarEdge(.35995, .34829, .59738, .01228);
+	cp.newPlanarEdge(.35995, .34829, .97391, .27863);
 	cp.clean();
 	console.log(cp);
 	var adjacent = cp.nodes[4].planarAdjacent();

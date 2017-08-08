@@ -411,7 +411,7 @@ class PlanarGraph extends Graph{
 	 * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
 	 */
 	clean():any{
-		var newNodes = this.chop(); // todo: return this newNodes
+		// var newNodes = this.chop(); // todo: return this newNodes
 		return {
 			'edges':super.clean(), 
 			'nodes':this.cleanUnusedNodes() + this.cleanDuplicateNodes().length
@@ -457,6 +457,7 @@ class PlanarGraph extends Graph{
 		var crossings = [];
 		for(var i = 0; i < this.edges.length; i++){
 			crossings = crossings.concat(this.chopAllCrossingsWithEdge(this.edges[i]));
+			// this.cleanDuplicateNodes();
 			this.clean();
 		}
 		return crossings;

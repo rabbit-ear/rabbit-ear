@@ -33,7 +33,7 @@ var _04_kawasaki = function( p ) {
 		for(var i = 0; i < numEdges; i++){
 			var angle = Math.random()*Math.PI * 2;
 			var endPoint = p.endPointForAngle(angle);
-			cp.addEdgeFromVertex(0, endPoint.x, endPoint.y);
+			cp.newPlanarEdgeFromNode(0, endPoint.x, endPoint.y);
 		}
 
 		cpFlat.import(cp);

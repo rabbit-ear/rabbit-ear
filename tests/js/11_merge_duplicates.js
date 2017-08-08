@@ -18,7 +18,7 @@ var _11_merge_duplicates = function( p ) {
 			var y1pos = Math.random();
 			var x2pos = Math.random();
 			var y2pos = Math.random();
-			g.addEdgeWithVertices( x1pos, y1pos, x2pos, y2pos );
+			g.newPlanarEdge( x1pos, y1pos, x2pos, y2pos );
 			g.nodes[g.nodes.length-1]['offset'] = {'x':Math.random()*80,'y':Math.random()*80};
 			g.nodes[g.nodes.length-1]['speed'] = {'x':Math.random()*80,'y':Math.random()*80};
 			g.nodes[g.nodes.length-2]['offset'] = {'x':Math.random()*80,'y':Math.random()*80};
@@ -40,7 +40,7 @@ var _11_merge_duplicates = function( p ) {
 			g.nodes[i].x = 0.5+0.4*Math.cos(t*g.nodes[i].speed.x * 0.0003 + g.nodes[i].offset.x);
 			g.nodes[i].y = 0.5+0.4*Math.sin(t*g.nodes[i].speed.y * 0.0003 + g.nodes[i].offset.y);
 		}
-		var mergeDataArray = g.mergeDuplicateVertices(0.0075);
+		var mergeDataArray = g.cleanDuplicateNodes(0.0075);
 		if(mergeDataArray != undefined && mergeDataArray.length){
 			for(var i = 0; i < mergeDataArray.length; i++){
 				var mergeData = mergeDataArray[i];

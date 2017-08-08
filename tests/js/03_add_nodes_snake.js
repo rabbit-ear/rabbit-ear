@@ -65,8 +65,8 @@ var _03_add_nodes_snake = function( p ) {
 			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 			if(mouseXScaled != undefined && mouseYScaled != undefined){
 				// mouse was released inside of canvas
-				g.addEdgeFromVertex(g.nodes.length-1, mouseXScaled, mouseYScaled);
-				// g.addEdgeWithVertices(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
+				g.newPlanarEdgeFromNode(g.nodes.length-1, mouseXScaled, mouseYScaled);
+				// g.newPlanarEdge(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
 			}
 		}
 		mouseDownLocation = undefined;

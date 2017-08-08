@@ -13,7 +13,7 @@ var test09 = function(p) {
 	function fillWithSunburst(graph, count){
 		graph.addNode( new PlanarNode(0.5, 0.5) );
 		for(var i = 0; i < count; i++)
-			graph.addEdgeFromVertex(0, Math.random(), Math.random());
+			graph.newPlanarEdgeFromNode(0, Math.random(), Math.random());
 	}
 
 	function reset(){

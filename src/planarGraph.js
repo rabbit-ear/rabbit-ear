@@ -421,7 +421,7 @@ var PlanarGraph = (function (_super) {
      * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
      */
     PlanarGraph.prototype.clean = function () {
-        var newNodes = this.chop(); // todo: return this newNodes
+        // var newNodes = this.chop(); // todo: return this newNodes
         return {
             'edges': _super.prototype.clean.call(this),
             'nodes': this.cleanUnusedNodes() + this.cleanDuplicateNodes().length
@@ -474,6 +474,7 @@ var PlanarGraph = (function (_super) {
         var crossings = [];
         for (var i = 0; i < this.edges.length; i++) {
             crossings = crossings.concat(this.chopAllCrossingsWithEdge(this.edges[i]));
+            // this.cleanDuplicateNodes();
             this.clean();
         }
         return crossings;

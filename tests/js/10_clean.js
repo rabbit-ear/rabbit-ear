@@ -17,10 +17,10 @@ var _10_clean = function( p ) {
 		for(var i = 0; i < numLines; i++){
 			var xpos = Math.pow(1.15,i)/numLines*0.1;
 			var ypos = (i+1)/(numLines+1);
-			// g.addEdgeWithVertices( 0.5 + xpos, ypos, 0.5 + (xpos+lineW), ypos );
-			// g.addEdgeWithVertices( 0.5 - xpos, ypos, 0.5 - (xpos+lineW), ypos );
-			g.addEdgeWithVertices( 0.5 + xpos, 1.0-ypos, 1.0, 1.0-ypos );
-			g.addEdgeWithVertices( 0.5 - xpos, 1.0-ypos, 0.0, 1.0-ypos );
+			// g.newPlanarEdge( 0.5 + xpos, ypos, 0.5 + (xpos+lineW), ypos );
+			// g.newPlanarEdge( 0.5 - xpos, ypos, 0.5 - (xpos+lineW), ypos );
+			g.newPlanarEdge( 0.5 + xpos, 1.0-ypos, 1.0, 1.0-ypos );
+			g.newPlanarEdge( 0.5 - xpos, 1.0-ypos, 0.0, 1.0-ypos );
 		}
 	}
 	p.setup = function(){

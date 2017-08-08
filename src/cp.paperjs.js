@@ -208,7 +208,7 @@ function loadSVG(path, callback){
 		svgLayer.removeChildren();
 		svgLayer.remove();
 		cp.clean();
-		cp.mergeDuplicateVertices(EPSILON_FILE_IMPORT);
+		cp.cleanDuplicateNodes(EPSILON_FILE_IMPORT);
 		cp.chop();
 		if(callback != undefined){
 			callback(cp);

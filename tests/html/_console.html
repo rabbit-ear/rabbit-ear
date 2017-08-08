@@ -10,7 +10,7 @@
 
 function fillWithRandom(count){
 	for(var i = 0; i < count; i++){
-		g.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
+		g.newPlanarEdge(Math.random(), Math.random(), Math.random(), Math.random());
 	}
 	g.log();
 	console.log('clean');
@@ -24,7 +24,7 @@ function fillWithSunburst(count){
 	var center = {x:0.5, y:0.5, z:0.0};
 	g.nodes.push(center);
 	for(var i = 0; i < count; i++){
-		g.addEdgeFromVertex(0, Math.random(), Math.random());
+		g.newPlanarEdgeFromNode(0, Math.random(), Math.random());
 	}
 }
 
@@ -33,7 +33,7 @@ function fillWithRope(count){
 	var first = {x:Math.random(), y:Math.random(), z:0.0};
 	g.nodes.push(first);
 	for(var i = 0; i < count; i++){
-		g.addEdgeFromVertex(i, Math.random(), Math.random());
+		g.newPlanarEdgeFromNode(i, Math.random(), Math.random());
 	}
 }
 

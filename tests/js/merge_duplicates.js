@@ -24,7 +24,7 @@ function mergeDuplicatesSketch(){
 			cp.creaseOnly(new XYPoint(i, 0.5 + 0.45*Math.cos(i*freq)), 
 			              new XYPoint((i+inc), 0.5 + 0.45*Math.cos((i+inc)*freq)));
 		}
-		cp.mergeDuplicateVertices(epsilon_mrg_dup);
+		cp.cleanDuplicateNodes(epsilon_mrg_dup);
 		paperCP.initialize();
 	}
 

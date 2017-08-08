@@ -15,12 +15,12 @@ var test07 = function(p){
 		for(var i = 0; i < count; i++){
 			if(Math.random() < 0.5){
 				// horizontal: right pointing, or left pointing
-				if(Math.random() < 0.5) g.addEdgeWithVertices(0, Math.random(), 1, Math.random());
-				else                    g.addEdgeWithVertices(1, Math.random(), 0, Math.random());
+				if(Math.random() < 0.5) g.newPlanarEdge(0, Math.random(), 1, Math.random());
+				else                    g.newPlanarEdge(1, Math.random(), 0, Math.random());
 			} else{
 				// vertical: down pointing, or up pointing
-				if(Math.random() < 0.5) g.addEdgeWithVertices(Math.random(), 0, Math.random(), 1);
-				else                    g.addEdgeWithVertices(Math.random(), 1, Math.random(), 0);
+				if(Math.random() < 0.5) g.newPlanarEdge(Math.random(), 0, Math.random(), 1);
+				else                    g.newPlanarEdge(Math.random(), 1, Math.random(), 0);
 			}
 		}
 	}

@@ -32,7 +32,7 @@ console.log(cpWobble);
 var cpRay = new CreasePattern();
 // cpRay.generateFaces();
 for(var i = 0; i < 10; i++){
-	cpRay.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
+	cpRay.newPlanarEdge(Math.random(), Math.random(), Math.random(), Math.random());
 }
 // cpRay.chop();
 console.log(cpRay);

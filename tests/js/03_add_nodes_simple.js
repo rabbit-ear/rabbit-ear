@@ -11,19 +11,19 @@ var _03_add_nodes_simple = function( p ) {
 
 	function fillWithRandom(graph, count){
 		for(var i = 0; i < count; i++)
-			graph.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
+			graph.newPlanarEdge(Math.random(), Math.random(), Math.random(), Math.random());
 	}
 	function fillWithSunburst(graph, count){
 		var center = {x:0.5, y:0.5, z:0.0};
 		graph.nodes.push(center);
 		for(var i = 0; i < count; i++)
-			graph.addEdgeFromVertex(0, Math.random(), Math.random());
+			graph.newPlanarEdgeFromNode(0, Math.random(), Math.random());
 	}
 	function fillWithRope(graph, count){
 		var first = {x:Math.random(), y:Math.random(), z:0.0};
 		graph.nodes.push(first);
 		for(var i = 0; i < count; i++)
-			graph.addEdgeFromVertex(i, Math.random(), Math.random());
+			graph.newPlanarEdgeFromNode(i, Math.random(), Math.random());
 	}
 
 	p.reset = function(){

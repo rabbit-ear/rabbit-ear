@@ -14,9 +14,9 @@ function test_js(){
 	var nearestEdge = undefined;
 	var nearestNode = undefined;
 
-	cp.addEdgeWithVertices(0.5, 0.0, 0.5, 1.0);
-	cp.addEdgeWithVertices(0.5, 0.5, 1.0, 0.5);
-	// cp.addEdgeWithVertices(0.5, 0.5, 0.0, 0.5);
+	cp.newPlanarEdge(0.5, 0.0, 0.5, 1.0);
+	cp.newPlanarEdge(0.5, 0.5, 1.0, 0.5);
+	// cp.newPlanarEdge(0.5, 0.5, 0.0, 0.5);
 
 	cp.chop();
 	cp.clean();

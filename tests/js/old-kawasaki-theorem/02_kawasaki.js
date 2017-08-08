@@ -33,7 +33,7 @@ var _02_kawasaki = function( p ) {
 			if(b != undefined) endPoint = b;
 			if(c != undefined) endPoint = c;
 			if(d != undefined) endPoint = d;
-			cp.addEdgeFromVertex(0, endPoint.x, endPoint.y);
+			cp.newPlanarEdgeFromNode(0, endPoint.x, endPoint.y);
 		}
 		cp.clean();
 		innerAngles = cp.kawasaki(0);

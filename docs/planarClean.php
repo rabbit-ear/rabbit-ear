@@ -18,7 +18,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><span id="span-merge-result"></span>← graph.<f>mergeDuplicateVertices</f>(<n>epsilon</n>)</code></pre>
+		<pre><code><span id="span-merge-result"></span>← graph.<f>cleanDuplicateNodes</f>(<n>epsilon</n>)</code></pre>
 	</div>
 
 	<div class="explain">
@@ -77,9 +77,9 @@
 		}
 	}
 
-	cp[0].mergeDuplicateVertices(0.01);
-	cp[1].mergeDuplicateVertices(0.025);
-	cp[2].mergeDuplicateVertices(0.066);
+	cp[0].cleanDuplicateNodes(0.01);
+	cp[1].cleanDuplicateNodes(0.025);
+	cp[2].cleanDuplicateNodes(0.066);
 	fillCanvasWithCP("canvas1", cp[0]);
 	fillCanvasWithCP("canvas2", cp[1]);
 	fillCanvasWithCP("canvas3", cp[2]);

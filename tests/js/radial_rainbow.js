@@ -34,7 +34,7 @@ function radial_rainbow(){
 			cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle)));
 			angle+= Math.random()*0.2;
 		}
-		cp.mergeDuplicateVertices();
+		cp.cleanDuplicateNodes();
 		paperCP.initialize();
 
 		planarAdjacent = cp.nodes[0].planarAdjacent();

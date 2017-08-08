@@ -13,7 +13,7 @@ var _04_intersections = function(p) {
 		// graph.nodes.push(first);
 		graph.newNode();
 		for(var i = 0; i < count; i++)
-			graph.addEdgeFromVertex(graph.nodes[i], Math.random(), Math.random());
+			graph.newPlanarEdgeFromNode(graph.nodes[i], Math.random(), Math.random());
 	}
 
 	p.reset = function(){

@@ -65,8 +65,8 @@ var _03_add_nodes_radial = function( p ) {
 			if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 			if(mouseXScaled != undefined && mouseYScaled != undefined){
 				// mouse was released inside of canvas
-				g.addEdgeFromVertex(0, mouseXScaled, mouseYScaled);
-				// g.addEdgeWithVertices(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
+				g.newPlanarEdgeFromNode(0, mouseXScaled, mouseYScaled);
+				// g.newPlanarEdge(mouseDownLocation.x, mouseDownLocation.y, mouseXScaled, mouseYScaled);
 			}
 		}
 		mouseDownLocation = undefined;

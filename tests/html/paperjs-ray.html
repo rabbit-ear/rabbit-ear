@@ -26,7 +26,7 @@ canvas[resize] {
 var cp = new CreasePattern();
 // cp.generateFaces();
 for(var i = 0; i < 10; i++){
-	cp.addEdgeWithVertices(Math.random(), Math.random(), Math.random(), Math.random());
+	cp.newPlanarEdge(Math.random(), Math.random(), Math.random(), Math.random());
 }
 // cp.chop();
 console.log(cp);

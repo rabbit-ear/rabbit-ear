@@ -16,7 +16,7 @@ var _12_adjacent = function( p ) {
 			var y1pos = Math.random();
 			var x2pos = Math.random();
 			var y2pos = Math.random();
-			cp.addEdgeWithVertices( x1pos, y1pos, x2pos, y2pos );
+			cp.newPlanarEdge( x1pos, y1pos, x2pos, y2pos );
 		}
 		cp.clean();
 		// cp.refreshAdjacencies();
