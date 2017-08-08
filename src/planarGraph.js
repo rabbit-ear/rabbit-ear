@@ -1,4 +1,9 @@
 /// <reference path="graph.ts"/>
+// planarGraph.js
+// a planar graph data structure containing edges and vertices in 2D space
+// mit open source license, robby kraft
+// VOCABULARY
+//  "unused": a node is unused if it is not connected to an edge
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -10,15 +15,10 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-// this is a planar graph data structure containing edges and vertices in 2D space
-// valid planar graph has no edges crossing each other, 
 var EPSILON_LOW = 0.003;
 var EPSILON = 0.00001;
 var EPSILON_HIGH = 0.00000001;
 var EPSILON_UI = 0.05; // user tap, based on precision of a finger on a screen
-var SLOPE_ANGLE_PLACES = 2.5;
-var SLOPE_ANGLE_EPSILON = 1 * Math.pow(10, -SLOPE_ANGLE_PLACES);
-var SLOPE_ANGLE_INF_EPSILON = 1 * Math.pow(10, SLOPE_ANGLE_PLACES);
 function epsilonEqual(a, b, epsilon) {
     if (epsilon == undefined) {
         epsilon = EPSILON_HIGH;
@@ -26,16 +26,17 @@ function epsilonEqual(a, b, epsilon) {
     return (Math.abs(a - b) < epsilon);
 }
 var XYPoint = (function () {
-    function XYPoint(xx, yy) {
-        this.x = xx;
-        this.y = yy;
+    function XYPoint(x, y) {
+        this.x = x;
+        this.y = y;
     }
+    XYPoint.prototype.position = function (x, y) { this.x = x; this.y = y; return this; };
+    XYPoint.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
+    XYPoint.prototype.normalize = function () { var m = this.mag(); this.x /= m; this.y /= m; return this; };
+    XYPoint.prototype.rotate90 = function () { var x = this.x; this.x = -this.y; this.y = x; return this; };
     XYPoint.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
     XYPoint.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
-    XYPoint.prototype.rotate90 = function () { return new XYPoint(-this.y, this.x); };
     XYPoint.prototype.mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
-    XYPoint.prototype.normalize = function () { var m = this.mag(); return new XYPoint(this.x / m, this.y / m); };
-    XYPoint.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
     XYPoint.prototype.equivalent = function (point, epsilon) {
         if (epsilon == undefined) {
             epsilon = EPSILON_HIGH;
@@ -97,18 +98,11 @@ var PlanarNode = (function (_super) {
     function PlanarNode() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    PlanarNode.prototype.position = function (x, y) {
-        this.x = x;
-        this.y = y;
-        return this;
-    };
-    // adjacentNodes():PlanarNode[]{ return <PlanarNode[]>super.adjacentNodes(); }
-    // adjacentEdges():PlanarEdge[]{ return <PlanarEdge[]>super.adjacentEdges(); }
     PlanarNode.prototype.adjacentFaces = function () {
         var adjacentFaces = [];
         var homeAdjacencyArray = this.planarAdjacent();
         for (var n = 0; n < homeAdjacencyArray.length; n++) {
-            var thisFace = new PlanarFace();
+            var thisFace = new PlanarFace(this.graph);
             var invalidFace = false;
             var angleSum = 0;
             thisFace.nodes = [this];
@@ -148,6 +142,14 @@ var PlanarNode = (function (_super) {
         }
         return adjacentFaces;
     };
+    PlanarNode.prototype.interiorAngles = function () {
+        var adj = this.planarAdjacent();
+        return adj.map(function (el, i) {
+            var nextI = (i + 1) % this.length;
+            var angleDifference = clockwiseAngleFrom(this[i].angle, this[nextI].angle);
+            return new InteriorAngle(angleDifference, this[i].edge, this[nextI].edge);
+        }, adj);
+    };
     PlanarNode.prototype.planarAdjacent = function () {
         return this.adjacentEdges()
             .map(function (el) {
@@ -157,51 +159,35 @@ var PlanarNode = (function (_super) {
                 return new PlanarPair(el.nodes[1], el.nodes[0], el);
         }, this)
             .sort(function (a, b) { return (a.angle < b.angle) ? 1 : (a.angle > b.angle) ? -1 : 0; });
-        // .sort(function(a,b){return (a.angle > b.angle)?1:((b.angle > a.angle)?-1:0);});
     };
-    PlanarNode.prototype.interiorAngles = function () {
-        var adj = this.planarAdjacent();
-        return adj.map(function (el, i) {
-            var nextI = (i + 1) % this.length;
-            var angleDifference = clockwiseAngleFrom(this[i].angle, this[nextI].angle);
-            return new InteriorAngle(angleDifference, this[i].edge, this[nextI].edge);
-        }, adj);
-    };
-    //      D  G
-    //      | /
-    //      |/
-    //     this---Q
-    //     / \
-    //    /   \
-    //   P     S
-    //  clockwise neighbor around:(this), from node:(Q) will give you (S)
+    /** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
+     * @returns {PlanarPair} PlanarPair object containing the clockwise node and the edge connecting the two.
+     */
     PlanarNode.prototype.adjacentNodeClockwiseFrom = function (node) {
-        // a sorted (clockwise) adjacency list of nodes and their connecting edges to this node
         var adjacentNodes = this.planarAdjacent();
         for (var i = 0; i < adjacentNodes.length; i++) {
             if (adjacentNodes[i].node === node) {
-                var index = ((i + 1) % adjacentNodes.length);
-                return adjacentNodes[index];
+                return adjacentNodes[((i + 1) % adjacentNodes.length)];
             }
         }
         return undefined;
-        // throw "adjacentNodeClockwiseFrom() fromNode was not found adjacent to the specified node";
     };
-    PlanarNode.prototype.rotateAroundNode = function (node, angle) {
-        var dx = this.x - node.x;
-        var dy = this.y - node.y;
-        var distance = Math.sqrt(Math.pow(dy, 2) + Math.pow(dx, 2));
+    PlanarNode.prototype.rotateAround = function (center, angle) {
+        var dx = this.x - center.x;
+        var dy = this.y - center.y;
+        var radius = Math.sqrt(Math.pow(dy, 2) + Math.pow(dx, 2));
         var currentAngle = Math.atan2(dy, dx);
-        this.x = node.x + distance * Math.cos(currentAngle + angle);
-        this.y = node.y + distance * Math.sin(currentAngle + angle);
+        this.x = center.x + radius * Math.cos(currentAngle + angle);
+        this.y = center.y + radius * Math.sin(currentAngle + angle);
     };
     // implements XYPoint
+    PlanarNode.prototype.position = function (x, y) { this.x = x; this.y = y; return this; };
+    PlanarNode.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
+    PlanarNode.prototype.normalize = function () { var m = this.mag(); this.x /= m; this.y /= m; return this; };
+    PlanarNode.prototype.rotate90 = function () { var x = this.x; this.x = -this.y; this.y = x; return this; };
     PlanarNode.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
     PlanarNode.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
-    PlanarNode.prototype.rotate90 = function () { return new XYPoint(-this.y, this.x); };
     PlanarNode.prototype.mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
-    PlanarNode.prototype.normalize = function () { var m = this.mag(); return new XYPoint(this.x / m, this.y / m); };
-    PlanarNode.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
     PlanarNode.prototype.equivalent = function (point, epsilon) {
         if (epsilon == undefined) {
             epsilon = EPSILON_HIGH;
@@ -216,13 +202,8 @@ var PlanarEdge = (function (_super) {
     function PlanarEdge() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    // convenience renaming
-    // endPoints:()=>PlanarNode[] = function() { return this.adjacentNodes(); };
-    // actually asking for more typecasting than i expected
-    PlanarEdge.prototype.endPoints = function () { return this.nodes; };
-    // adjacentNodes():PlanarNode[]{ return <PlanarNode[]>super.adjacentNodes(); }
-    // adjacentEdges():PlanarEdge[]{ return <PlanarEdge[]>super.adjacentEdges(); }
     PlanarEdge.prototype.intersection = function (edge) {
+        // todo: should adjacent edges return the point in common they have with each other?
         if (this.isAdjacentToEdge(edge)) {
             return undefined;
         }
@@ -275,7 +256,8 @@ var PlanarEdge = (function (_super) {
 }(GraphEdge));
 var PlanarFace = (function () {
     // angles:number[];  // maybe someday
-    function PlanarFace() {
+    function PlanarFace(graph) {
+        this.graph = graph;
         this.nodes = [];
         this.edges = [];
         // this.angles = [];
@@ -307,53 +289,32 @@ var PlanarGraph = (function (_super) {
         var _this = _super.call(this) || this;
         _this.nodeType = PlanarNode;
         _this.edgeType = PlanarEdge;
-        _this.clear(); // initalize all empty arrays
+        _this.clear();
         return _this;
     }
-    // converts node objects into array of arrays notation [0]=x [1]=y
+    // converts node objects into array of arrays notation x is [0], and y is [1]
     PlanarGraph.prototype.nodesArray = function () { return this.nodes.map(function (el) { return [el.x, el.y]; }); };
     ///////////////////////////////////////////////
     // ADD PARTS
     ///////////////////////////////////////////////
-    // newNode():PlanarNode {
-    // 	var x = 0; var y = 0;
-    // 	return <PlanarNode>this.addNode(<GraphNode>(new PlanarNode(this).position(x, y)));
-    // }
-    // newEdge(node1:PlanarNode, node2:PlanarNode):PlanarEdge {
-    // 	return this.addEdge(new PlanarEdge(this, node1, node2));
-    // }
-    // addNode(node:PlanarNode):PlanarNode{
-    // 	if(node == undefined){ throw "addNode() requires an argument: 1 GraphNode"; }
-    // 	node.graph = this;
-    // 	node.index = this.nodes.length;
-    // 	this.nodes.push(node);
-    // 	return node;
-    // }
-    PlanarGraph.prototype.addEdge = function (edge) {
-        // todo, make sure graph edge is valid
-        // if(edge.nodes[0] >= this.nodes.length || edge.nodes[1] >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
-        edge.graph = this;
-        edge.index = this.edges.length;
-        this.edges.push(edge);
-        return edge;
-    };
-    PlanarGraph.prototype.addEdgeWithVertices = function (x1, y1, x2, y2) {
+    /** Create two nodes with x,y coordinates and an edge between them and adds them to the graph
+     * @returns {PlanarEdge} pointer to the edge
+     */
+    PlanarGraph.prototype.newPlanarEdge = function (x1, y1, x2, y2) {
         var a = this.newNode().position(x1, y1);
         var b = this.newNode().position(x2, y2);
         return this.newEdge(a, b);
     };
-    PlanarGraph.prototype.addEdgeFromVertex = function (existingNode, newX, newY) {
-        var node = this.addNode(new PlanarNode(this).position(newX, newY));
+    /** Create one node with x,y coordinates and an edge between it and an existing node, and adds them to the graph
+     * @returns {PlanarEdge} pointer to the edge
+     */
+    PlanarGraph.prototype.newPlanarEdgeFromNode = function (existingNode, x, y) {
+        var node = this.newNode().position(x, y);
         return this.newEdge(existingNode, node);
     };
-    PlanarGraph.prototype.addEdgeFromExistingVertices = function (a, b) {
-        return this.newEdge(a, b);
-    };
-    PlanarGraph.prototype.addEdgeRadiallyFromVertex = function (existingNode, angle, length) {
-        var newX = existingNode.x + Math.cos(angle) * length;
-        var newY = existingNode.y + Math.sin(angle) * length;
-        return this.addEdgeFromVertex(existingNode, newX, newY);
-    };
+    /** Create one face between the three or more nodes supplied in the nodeArray argument
+     * @returns {PlanarFace} pointer to the face
+     */
     PlanarGraph.prototype.newFaceBetweenNodes = function (nodeArray) {
         if (nodeArray.length == 0)
             return;
@@ -367,41 +328,23 @@ var PlanarGraph = (function (_super) {
             }
             edgeArray.push(thisEdge);
         }
-        var face = new PlanarFace();
+        var face = new PlanarFace(this);
         face.edges = edgeArray;
         face.nodes = nodeArray;
         this.faces.push(face);
+        return face;
     };
     ///////////////////////////////////////////////
     // REMOVE PARTS
     ///////////////////////////////////////////////
-    PlanarGraph.prototype.removeNodeIfUnused = function (node) {
-        var edges = node.adjacentEdges();
-        switch (edges.length) {
-            case 0:
-                return this.removeNode(node);
-            case 2:
-                // also attempt to remove node that only has 2 edges, and those 2 edges are collinear.
-                var angleDiff = Math.abs(edges[0].absoluteAngle(node) - edges[1].absoluteAngle(node));
-                if (epsilonEqual(angleDiff, Math.PI)) {
-                    var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]),
-                        edges[1].uncommonNodeWithEdge(edges[0])];
-                    _super.prototype.removeEdge.call(this, edges[0]);
-                    _super.prototype.removeEdge.call(this, edges[1]);
-                    this.newEdge(farNodes[0], farNodes[1]);
-                    return this.removeNode(node);
-                }
-                break;
-        }
-        return false;
+    /** Removes all nodes, edges, and faces, returning the graph to it's original state */
+    PlanarGraph.prototype.clear = function () {
+        _super.prototype.clear.call(this); // empties nodes[] and edges[]
+        this.faces = [];
     };
-    // in a planar graph, if you remove an edge it should TRY to remove the nodes connected to it too
-    PlanarGraph.prototype.removeEdgeBetween = function (node1, node2) {
-        var len = _super.prototype.removeEdgeBetween.call(this, node1, node2);
-        this.removeNodeIfUnused(node1);
-        this.removeNodeIfUnused(node2);
-        return len;
-    };
+    /** Removes an edge and also attempt to remove the two nodes left behind if they are otherwise unused
+     * @returns {boolean} if the edge was removed
+     */
     PlanarGraph.prototype.removeEdge = function (edge) {
         var endNodes = [edge.nodes[0], edge.nodes[1]];
         var success = _super.prototype.removeEdge.call(this, edge);
@@ -409,50 +352,51 @@ var PlanarGraph = (function (_super) {
         this.removeNodeIfUnused(endNodes[1]);
         return success;
     };
-    PlanarGraph.prototype.clear = function () {
-        _super.prototype.clear.call(this); // clears out nodes[] and edges[]
-        this.faces = [];
+    /** Attempt to remove an edge if one is found that connects the 2 nodes supplied, and also attempt to remove the two nodes left behind if they are otherwise unused
+     * @returns {number} how many edges were removed
+     */
+    PlanarGraph.prototype.removeEdgeBetween = function (node1, node2) {
+        var count = _super.prototype.removeEdgeBetween.call(this, node1, node2);
+        this.removeNodeIfUnused(node1);
+        this.removeNodeIfUnused(node2);
+        return count;
     };
-    //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////
-    //
-    //  2.
-    //  CLEAN COMPONENTS
-    PlanarGraph.prototype.clean = function () {
-        // console.log("PLANAR GRAPH clean()");
-        var graphResult = _super.prototype.clean.call(this); //{'duplicate':countDuplicate, 'circular': countCircular};
-        // console.log("merging duplicate vertices");
-        var result = this.mergeDuplicateVertices();
-        //todo: i think i need to run graph.clean() again
-        // var graphResult = super.clean();
-        Object.assign(graphResult, result);
-        return graphResult;
+    /** Remove a node if it is either unconnected to any edges, or is in the middle of 2 collinear edges
+     * @returns {boolean} if node was removed
+     */
+    PlanarGraph.prototype.removeNodeIfUnused = function (node) {
+        var edges = node.adjacentEdges();
+        switch (edges.length) {
+            case 0: return this.removeNode(node);
+            case 2:
+                // collinear check
+                var angleDiff = edges[0].absoluteAngle(node) - edges[1].absoluteAngle(node);
+                if (epsilonEqual(Math.abs(angleDiff), Math.PI)) {
+                    var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]),
+                        edges[1].uncommonNodeWithEdge(edges[0])];
+                    _super.prototype.removeEdge.call(this, edges[0]);
+                    _super.prototype.removeEdge.call(this, edges[1]);
+                    this.newEdge(farNodes[0], farNodes[1]);
+                    return this.removeNode(node);
+                }
+        }
+        return false;
     };
-    ////////////////////////////////////
-    //  POSITIONAL CALCULATION
-    ////////////////////////////////////
-    //      D  G
-    //      | /
-    //      |/
-    //      A----Q
-    //     / \
-    //    /   \
-    //   P     S
-    //  clockwise neighbor around:(A), fromNode:(Q) will give you (S)
-    PlanarGraph.prototype.getClockwiseNeighborAround = function (centerNode, fromNode) {
-        var adjacentNodes = centerNode.planarAdjacent();
-        for (var i = 0; i < adjacentNodes.length; i++) {
-            if (adjacentNodes[i].node === fromNode) {
-                var index = ((i + 1) % adjacentNodes.length);
-                return adjacentNodes[index].node;
+    // cleanNodesBetweenCollinearEdges():number{
+    PlanarGraph.prototype.cleanUnusedNodes = function () {
+        var count = 0; //super.cleanUnusedNodes();
+        for (var i = this.nodes.length - 1; i >= 0; i--) {
+            if (this.removeNodeIfUnused(this.nodes[i])) {
+                count += 1;
             }
         }
-        throw "getClockwiseNeighborAround() fromNode was not found adjacent to the specified node";
+        return count;
     };
     PlanarGraph.prototype.searchAndMergeOneDuplicatePair = function (epsilon) {
         for (var i = 0; i < this.nodes.length - 1; i++) {
             for (var j = i + 1; j < this.nodes.length; j++) {
                 if (this.nodes[i].equivalent(this.nodes[j], epsilon)) {
+                    // todo, mergeNodes does repeated cleaning, suppress and move to end of function
                     _super.prototype.mergeNodes.call(this, this.nodes[i], this.nodes[j]);
                     return new XYPoint(this.nodes[i].x, this.nodes[i].y);
                 }
@@ -460,12 +404,11 @@ var PlanarGraph = (function (_super) {
         }
         return undefined;
     };
-    PlanarGraph.prototype.mergeDuplicateVertices = function (epsilon) {
+    PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
         if (epsilon == undefined) {
             epsilon = EPSILON;
         }
-        var duplicateArray = [];
-        var duplicate = undefined;
+        var duplicate, duplicateArray = [];
         do {
             duplicate = this.searchAndMergeOneDuplicatePair(epsilon);
             if (duplicate != undefined) {
@@ -474,19 +417,85 @@ var PlanarGraph = (function (_super) {
         } while (duplicate != undefined);
         return duplicateArray;
     };
-    PlanarGraph.prototype.mergeCollinearLines = function (epsilon) {
-        //gather all lines collinear to this one line
-        // gather all the collinear points, remove all edges between all of them
-        // but leave the nodes
-        // sort the nodes by this:
-        // nodeArray
-        // 	.sort(function(a,b){if(a.x<b.x){return -1;}if(a.x>b.x){return 1;}return 0;})
-        // 	.sort(function(a,b){if(a.y<b.y){return -1;}if(a.y>b.y){return 1;}return 0;});
-        // add edges back onto the line
+    /** Removes circular and duplicate edges, merges and removes duplicate nodes, and refreshes .index values
+     * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
+     */
+    PlanarGraph.prototype.clean = function () {
+        var newNodes = this.chop(); // todo: return this newNodes
+        return {
+            'edges': _super.prototype.clean.call(this),
+            'nodes': this.cleanUnusedNodes() + this.cleanDuplicateNodes().length
+        };
     };
-    PlanarGraph.prototype.clearUnusedCollinearNodes = function () {
-        // remove all nodes separating two collinear lines
+    ///////////////////////////////////////////////////////////////
+    // CHOP, EDGE INTERSECTION
+    PlanarGraph.prototype.chopAllCrossingsWithEdge = function (edge) {
+        var intersections = edge.crossingEdges();
+        if (intersections.length === 0) {
+            return [];
+        }
+        var endNodes = edge.nodes.sort(function (a, b) {
+            if (a.x - b.x < -EPSILON_HIGH) {
+                return -1;
+            }
+            if (a.x - b.x > EPSILON_HIGH) {
+                return 1;
+            }
+            if (a.y - b.y < -EPSILON_HIGH) {
+                return -1;
+            }
+            if (a.y - b.y > EPSILON_HIGH) {
+                return 1;
+            }
+            return 0;
+        });
+        // iterate through intersections, rebuild edges in order
+        var newLineNodes = [];
+        for (var i = 0; i < intersections.length; i++) {
+            if (intersections[i] != undefined) {
+                _super.prototype.removeEdge.call(this, intersections[i].edge);
+                var newNode = this.addNode(new PlanarNode(this).position(intersections[i].x, intersections[i].y));
+                this.newEdge(intersections[i].edge.nodes[0], newNode);
+                this.newEdge(newNode, intersections[i].edge.nodes[1]);
+                newLineNodes.push(newNode);
+            }
+        }
+        // remove the edge
+        _super.prototype.removeEdge.call(this, edge);
+        this.newEdge(endNodes[0], newLineNodes[0]);
+        for (var i = 0; i < newLineNodes.length - 1; i++) {
+            this.newEdge(newLineNodes[i], newLineNodes[i + 1]);
+        }
+        this.newEdge(newLineNodes[newLineNodes.length - 1], endNodes[1]);
+        _super.prototype.clean.call(this);
+        return intersections.map(function (el) { return new XYPoint(el.x, el.y); });
     };
+    PlanarGraph.prototype.chopOneRound = function () {
+        var crossings = [];
+        for (var i = 0; i < this.edges.length; i++) {
+            crossings = crossings.concat(this.chopAllCrossingsWithEdge(this.edges[i]));
+            this.clean();
+        }
+        return crossings;
+    };
+    PlanarGraph.prototype.chop = function () {
+        //todo: remove protection, or bake it into the class itself
+        var protection = 0;
+        var allCrossings = [];
+        var thisCrossings;
+        do {
+            thisCrossings = this.chopOneRound();
+            allCrossings = allCrossings.concat(thisCrossings);
+            protection += 1;
+        } while (thisCrossings.length != 0 && protection < 400);
+        if (protection >= 400) {
+            console.log("breaking loop, exceeded 400");
+        }
+        return allCrossings;
+    };
+    ///////////////////////////////////////////////
+    // GET PARTS
+    ///////////////////////////////////////////////
     PlanarGraph.prototype.getEdgeIntersections = function () {
         // todo should this make new XYPoints instead of returning EdgeIntersection objects?
         var intersections = [];
@@ -541,9 +550,7 @@ var PlanarGraph = (function (_super) {
         if (x == undefined || y == undefined) {
             return undefined;
         }
-        var minDist = undefined;
-        var minDistIndex = undefined;
-        var minLocation = { x: undefined, y: undefined };
+        var minDist, minDistIndex, minLocation = { x: undefined, y: undefined };
         for (var i = 0; i < this.edges.length; i++) {
             var p = this.edges[i].nodes;
             var pT = minDistBetweenPointLine(p[0], p[1], x, y);
@@ -573,100 +580,20 @@ var PlanarGraph = (function (_super) {
     };
     ///////////////////////////////////////////////////////////////
     // CALCULATIONS
-    PlanarGraph.prototype.interiorAngle3Nodes = function (centerNode, node1, node2) {
-        var adjacentEdges = centerNode.planarAdjacent();
-        console.log(adjacentEdges);
-        return 0;
-    };
-    ///////////////////////////////////////////////////////////////
-    // CHOP, EDGE INTERSECTION
-    PlanarGraph.prototype.chopAllCrossingsWithEdge = function (edge) {
-        var intersections = edge.crossingEdges();
-        // console.log(intersections)
-        if (intersections.length === 0) {
-            return [];
-        }
-        // console.log("proceding to resolve " + intersections.length + " crossings");
-        // for(var i = 0; i < intersections.length; i++){console.log(i + ": " + intersections[i].x + " " + intersections[i].y);}
-        var endNodes = edge.nodes.sort(function (a, b) {
-            if (a.x - b.x < -EPSILON_HIGH) {
-                return -1;
-            }
-            if (a.x - b.x > EPSILON_HIGH) {
-                return 1;
-            }
-            if (a.y - b.y < -EPSILON_HIGH) {
-                return -1;
-            }
-            if (a.y - b.y > EPSILON_HIGH) {
-                return 1;
-            }
-            return 0;
-        });
-        // step down the intersections, rebuild edges in order
-        var newLineNodes = [];
-        for (var i = 0; i < intersections.length; i++) {
-            if (intersections[i] != undefined) {
-                _super.prototype.removeEdge.call(this, intersections[i].edge);
-                var newNode = this.addNode(new PlanarNode(this).position(intersections[i].x, intersections[i].y));
-                this.newEdge(intersections[i].edge.nodes[0], newNode);
-                this.newEdge(newNode, intersections[i].edge.nodes[1]);
-                newLineNodes.push(newNode);
-            }
-        }
-        // remove the edge
-        _super.prototype.removeEdge.call(this, edge);
-        this.newEdge(endNodes[0], newLineNodes[0]);
-        for (var i = 0; i < newLineNodes.length - 1; i++) {
-            this.newEdge(newLineNodes[i], newLineNodes[i + 1]);
-        }
-        this.newEdge(newLineNodes[newLineNodes.length - 1], endNodes[1]);
-        _super.prototype.clean.call(this);
-        return intersections.map(function (el) { return new XYPoint(el.x, el.y); });
-    };
-    // chopEdgesWithIntersection(intersection:Intersection){
-    // 	if(intersection == undefined) return;
-    // 	this.removeEdgesBetween(intersection.nodes[0], intersection.nodes[1]);
-    // 	this.removeEdgesBetween(intersection.nodes[2], intersection.nodes[3]);
-    // 	var centerNode = this.addNode(new PlanarNode(this, intersection.x, intersection.y));
-    // 	this.newEdge(centerNode, intersection.nodes[0]);
-    // 	this.newEdge(centerNode, intersection.nodes[1]);
-    // 	this.newEdge(centerNode, intersection.nodes[2]);
-    // 	this.newEdge(centerNode, intersection.nodes[3]);
-    // 	this.mergeDuplicateVertices();
+    // interiorAngle3Nodes(centerNode:PlanarNode, node1:PlanarNode, node2:PlanarNode):number{
+    // 	var adjacentEdges = centerNode.planarAdjacent();
+    // 	console.log(adjacentEdges);
+    // 	return 0;
     // }
-    PlanarGraph.prototype.chopOneRound = function () {
-        var crossings = [];
-        for (var i = 0; i < this.edges.length; i++) {
-            crossings = crossings.concat(this.chopAllCrossingsWithEdge(this.edges[i]));
-            this.clean();
-        }
-        return crossings;
-    };
-    PlanarGraph.prototype.chop = function () {
-        var protection = 0;
-        var crossings = [];
-        var additionalCrossings;
-        do {
-            additionalCrossings = this.chopOneRound();
-            crossings = crossings.concat(additionalCrossings);
-            protection += 1;
-        } while (additionalCrossings.length != 0 && protection < 100);
-        if (protection >= 100) {
-            console.log("breaking loop, exceeded 100");
-        }
-        return crossings;
-    };
     ///////////////////////////////////////////////////////////////
     // FACE
     PlanarGraph.prototype.generateFaces = function () {
-        var faces = [];
         for (var i = 0; i < this.nodes.length; i++) {
             var thisNode = this.nodes[i];
             var adjacentFaces = [];
             var homeAdjacencyArray = thisNode.planarAdjacent();
             for (var n = 0; n < homeAdjacencyArray.length; n++) {
-                var thisFace = new PlanarFace();
+                var thisFace = new PlanarFace(this);
                 var invalidFace = false;
                 var angleSum = 0;
                 thisFace.nodes = [thisNode];
@@ -728,58 +655,6 @@ var PlanarGraph = (function (_super) {
                 }
             }
         }
-    };
-    PlanarGraph.prototype.arrayContainsDuplicates = function (array) {
-        if (array.length <= 1)
-            return false;
-        for (var i = 0; i < array.length - 1; i++) {
-            for (var j = i + 1; j < array.length; j++) {
-                if (array[i] === array[j]) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-    PlanarGraph.prototype.getNodeIndexNear = function (x, y, thisEpsilon) {
-        var thisPoint = new XYPoint(x, y);
-        for (var i = 0; i < this.nodes.length; i++) {
-            if (this.nodes[i].equivalent(thisPoint, thisEpsilon)) {
-                return i;
-            }
-        }
-        return undefined;
-    };
-    PlanarGraph.prototype.vertexLiesOnEdge = function (v, intersect) {
-        // including a margin of error, bounding area around vertex
-        // first check if point lies on end points
-        for (var i = 0; i < this.nodes.length; i++) {
-            if (this.nodes[i].equivalent(v)) {
-                intersect.x = this.nodes[i].x;
-                intersect.y = this.nodes[i].y;
-                return true;
-            }
-        }
-        for (var i = 0; i < this.edges.length; i++) {
-            var a = this.edges[i].nodes[0];
-            var b = this.edges[i].nodes[1];
-            var crossproduct = (v.y - a.y) * (b.x - a.x) - (v.x - a.x) * (b.y - a.y);
-            if (Math.abs(crossproduct) < EPSILON) {
-                // cross product is essentially zero, point lies along the (infinite) line
-                // now check if it is between the two points
-                var dotproduct = (v.x - a.x) * (b.x - a.x) + (v.y - a.y) * (b.y - a.y);
-                // dot product must be between 0 and the squared length of the line segment
-                if (dotproduct > 0) {
-                    var lengthSquared = Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2);
-                    if (dotproduct < lengthSquared) {
-                        //TODO: intersection
-                        // intersect =
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
     };
     PlanarGraph.prototype.log = function (verbose) {
         _super.prototype.log.call(this, verbose);
@@ -910,72 +785,6 @@ function lineSegmentIntersectionAlgorithm(p, p2, q, q2) {
         return new XYPoint(p.x + r.x * t, p.y + r.y * t);
     }
 }
-/*
-function lineSegmentIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):XYPoint {
-    // p0-p1 is first line
-    // p2-p3 is second line
-    var rise1 = (p1.y-p0.y);
-    var run1  = (p1.x-p0.x);
-    var rise2 = (p3.y-p2.y);
-    var run2  = (p3.x-p2.x);
-    var slope1 = rise1 / run1;
-    var slope2 = rise2 / run2;
-
-    // if lines are parallel to each other within a floating point error
-    if(Math.abs(slope1) == Infinity && Math.abs(slope2) > SLOPE_ANGLE_INF_EPSILON) return undefined;
-    if(Math.abs(slope2) == Infinity && Math.abs(slope1) > SLOPE_ANGLE_INF_EPSILON) return undefined;
-    var angle1 = Math.atan(slope1);
-    var angle2 = Math.atan(slope2);
-    if(Math.abs(angle1-angle2) < SLOPE_ANGLE_EPSILON){
-        console.log("if(Math.abs(angle1-angle2) < SLOPE_ANGLE_EPSILON){ ");
-        return undefined;
-    }
-
-    var denom = run1 * rise2 - run2 * rise1;
-    if (denom == 0){
-        console.log("if (denom == 0){");
-        return undefined; // Collinear lines
-    }
-    var denomPositive = false;
-    if(denom > 0){
-        denomPositive = true;
-    }
-
-    var s02 = {'x':p0.x - p2.x, 'y':p0.y - p2.y};
-
-    var s_numer = run1 * s02.y - rise1 * s02.x;
-    if ((s_numer < 0) == denomPositive){
-        console.log("if ((s_numer < 0) == denomPositive)");
-        return undefined; // No collision
-    }
-
-    var t_numer = run2 * s02.y - rise2 * s02.x;
-    if ((t_numer < 0) == denomPositive){
-        console.log("if ((t_numer < 0) == denomPositive){");
-        return undefined; // No collision
-    }
-
-    if (((s_numer > denom) == denomPositive) || ((t_numer > denom) == denomPositive)){
-        console.log("x   s_numer " + s_numer);
-        console.log("x   t_numer " + t_numer);
-        console.log("x   denom " + denom);
-        console.log("x   denomPositive " + denomPositive);
-        return undefined; // No collision
-    }
-    // } }else{
-    // 	console.log(".   s_numer " + s_numer);
-    // 	console.log(".   t_numer " + t_numer);
-    // 	console.log(".   denom " + denom);
-    // 	console.log(".   denomPositive " + denomPositive);
-    // }
-
-    // Collision detected
-    var t = t_numer / denom;
-    // var i = {'x':(p0.x + (t * run1)), 'y':(p0.y + (t * rise1))};
-    // return i;
-    return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1) );
-}
-*/
 function circleLineIntersectionAlgorithm(center, radius, p0, p1) {
     var r_squared = Math.pow(radius, 2);
     var x1 = p0.x - center.x;
@@ -1017,4 +826,28 @@ function minDistBetweenPointLine(a, b, x, y) {
     if (u < 0 || u > 1.0)
         return undefined;
     return new XYPoint(a.x + u * (b.x - a.x), a.y + u * (b.y - a.y));
+}
+//////////////////////////////////////////////////
+// RECYCLE BIN - READY TO DELETE
+//////////////////////////////////////////////////
+function arrayContainsDuplicates(array) {
+    if (array.length <= 1)
+        return false;
+    for (var i = 0; i < array.length - 1; i++) {
+        for (var j = i + 1; j < array.length; j++) {
+            if (array[i] === array[j]) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+function getNodeIndexNear(x, y, thisEpsilon) {
+    var thisPoint = new XYPoint(x, y);
+    for (var i = 0; i < this.nodes.length; i++) {
+        if (this.nodes[i].equivalent(thisPoint, thisEpsilon)) {
+            return i;
+        }
+    }
+    return undefined;
 }

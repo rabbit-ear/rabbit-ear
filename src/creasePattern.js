@@ -1,4 +1,7 @@
 /// <reference path="planarGraph.ts"/>
+// creasePattern.js
+// for the purposes of performing origami operations on a planar graph
+// mit open source license, robby kraft
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -136,8 +139,8 @@ var CreasePattern = (function (_super) {
         this.addPaperEdge(w, 0, w, w);
         this.addPaperEdge(w, w, 0, w);
         this.addPaperEdge(0, w, 0, 0);
-        this.mergeDuplicateVertices();
-        this.boundary.mergeDuplicateVertices();
+        this.cleanDuplicateNodes();
+        this.boundary.cleanDuplicateNodes();
         return this;
     };
     CreasePattern.prototype.rectangle = function (width, height) {
@@ -156,8 +159,8 @@ var CreasePattern = (function (_super) {
         this.addPaperEdge(width, 0, width, height);
         this.addPaperEdge(width, height, 0, height);
         this.addPaperEdge(0, height, 0, 0);
-        this.mergeDuplicateVertices();
-        this.boundary.mergeDuplicateVertices();
+        this.cleanDuplicateNodes();
+        this.boundary.cleanDuplicateNodes();
         return this;
     };
     CreasePattern.prototype.polygon = function (edgePoints) {
@@ -193,7 +196,7 @@ var CreasePattern = (function (_super) {
     // 	var x = 0; var y = 0;
     // 	return <CreaseNode>this.addNode(<GraphNode>(new CreaseNode(this).position(x, y)));
     // }
-    // addEdgeWithVertices(x1:number, y1:number, x2:number, y2:number):Crease{
+    // newPlanarEdge(x1:number, y1:number, x2:number, y2:number):Crease{
     // 	var a = <CreaseNode>this.addNode( new CreaseNode(this, x1, y1) );
     // 	var b = <CreaseNode>this.addNode( new CreaseNode(this, x2, y2) );
     // 	return this.newEdge(a, b);
@@ -201,14 +204,7 @@ var CreasePattern = (function (_super) {
     ///////////////////////////////////////////////////////////////
     // CLEAN  /  REMOVE PARTS
     CreasePattern.prototype.clean = function () {
-        // console.log("CREASE PATTERN clean()");
-        // check if any nodes are free floating and not connected to any edges, remove them
-        var superReturn = _super.prototype.clean.call(this);
-        //var intersections = super.chop();
-        // this.interestingPoints = this.nodes;
-        // this.interestingPoints = this.appendUniquePoints(this.nodes, this.starterLocations);
-        // console.log("clean() end");
-        return superReturn;
+        return _super.prototype.clean.call(this);
     };
     CreasePattern.prototype.clear = function () {
         // todo: we should reset the border and stuff, maybe?
@@ -267,15 +263,15 @@ var CreasePattern = (function (_super) {
         return true;
     };
     CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
-        // this.boundary.push(this.addEdgeWithVertices(x1, y1, x2, y2).border());
-        this.addEdgeWithVertices(x1, y1, x2, y2).border();
-        // this.addEdgeWithVertices(x1, y1, x2, y2);
-        // (<Crease>this.addEdgeWithVertices(x1, y1, x2, y2)).border();
-        this.boundary.addEdgeWithVertices(x1, y1, x2, y2);
+        // this.boundary.push(this.newPlanarEdge(x1, y1, x2, y2).border());
+        this.newPlanarEdge(x1, y1, x2, y2).border();
+        // this.newPlanarEdge(x1, y1, x2, y2);
+        // (<Crease>this.newPlanarEdge(x1, y1, x2, y2)).border();
+        this.boundary.newPlanarEdge(x1, y1, x2, y2);
     };
     CreasePattern.prototype.creaseOnly = function (a, b) {
         if (this.pointInside(a) && this.pointInside(b))
-            return this.addEdgeWithVertices(a.x, a.y, b.x, b.y);
+            return this.newPlanarEdge(a.x, a.y, b.x, b.y);
         if (!this.pointInside(a) && !this.pointInside(b)) {
             // if both are outside, only give us a crease if the two points invove an intersection with the boundary
             for (var i = 0; i < this.boundary.edges.length; i++) {
@@ -295,7 +291,7 @@ var CreasePattern = (function (_super) {
         for (var i = 0; i < this.boundary.edges.length; i++) {
             var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
             if (intersection != undefined) {
-                return this.addEdgeWithVertices(intersection.x, intersection.y, inside.x, inside.y);
+                return this.newPlanarEdge(intersection.x, intersection.y, inside.x, inside.y);
             }
         }
         return undefined;
@@ -309,7 +305,7 @@ var CreasePattern = (function (_super) {
         var ab = new XYPoint(b.x - a.x, b.y - a.y);
         var intersects = this.boundaryLineIntersection(a, ab);
         if (intersects.length >= 2) {
-            return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+            return this.newPlanarEdge(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
         }
         throw "points have no crease line inside of the boundaries";
     };
@@ -320,7 +316,7 @@ var CreasePattern = (function (_super) {
         var perp1 = new XYPoint(-ab.y, ab.x);
         var intersects = this.boundaryLineIntersection(midpoint, perp1);
         if (intersects.length >= 2) {
-            return this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+            return this.newPlanarEdge(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
         }
         throw "points have no perpendicular bisector inside of the boundaries";
     };
@@ -344,15 +340,15 @@ var CreasePattern = (function (_super) {
             var dir = new XYPoint((u.x * vMag + v.x * uMag), (u.y * vMag + v.y * uMag));
             var intersects = this.boundaryLineIntersection(intersection, dir);
             if (intersects.length >= 2) {
-                creases.push(this.addEdgeWithVertices(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y));
+                creases.push(this.newPlanarEdge(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y));
             }
             var dir90 = dir.rotate90();
             var intersects90 = this.boundaryLineIntersection(intersection, dir90);
             if (intersects90.length >= 2) {
                 if (Math.abs(u.cross(dir)) < Math.abs(u.cross(dir90)))
-                    creases.push(this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
+                    creases.push(this.newPlanarEdge(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
                 else
-                    creases.unshift(this.addEdgeWithVertices(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
+                    creases.unshift(this.newPlanarEdge(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
             }
             if (creases.length) {
                 return creases;
@@ -407,7 +403,7 @@ var CreasePattern = (function (_super) {
         if (boundaryIntersection == undefined) {
             throw "creaseRay() requires paper boundaries else it will crease to infinity";
         }
-        return this.addEdgeWithVertices(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
+        return this.newPlanarEdge(start.x, start.y, boundaryIntersection.x, boundaryIntersection.y);
     };
     CreasePattern.prototype.creaseAngle = function (start, radians) {
         return this.creaseRay(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
@@ -605,34 +601,34 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.kiteBase = function () {
         _super.prototype.clear.call(this);
-        this.addEdgeWithVertices(0.0, 0.0, 0.41421, 0.0).border();
-        this.addEdgeWithVertices(0.41421, 0.0, 1.0, 0.0).border();
-        this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.58578).border();
-        this.addEdgeWithVertices(1.0, 0.58578, 1.0, 1.0).border();
-        this.addEdgeWithVertices(1.0, 1.0, 0.0, 1.0).border();
-        this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.0).border();
-        this.addEdgeWithVertices(1, 0, 0, 1).mountain();
-        this.addEdgeWithVertices(0, 1, 1, 0.58578).valley();
-        this.addEdgeWithVertices(0, 1, 0.41421, 0).valley();
+        this.newPlanarEdge(0.0, 0.0, 0.41421, 0.0).border();
+        this.newPlanarEdge(0.41421, 0.0, 1.0, 0.0).border();
+        this.newPlanarEdge(1.0, 0.0, 1.0, 0.58578).border();
+        this.newPlanarEdge(1.0, 0.58578, 1.0, 1.0).border();
+        this.newPlanarEdge(1.0, 1.0, 0.0, 1.0).border();
+        this.newPlanarEdge(0.0, 1.0, 0.0, 0.0).border();
+        this.newPlanarEdge(1, 0, 0, 1).mountain();
+        this.newPlanarEdge(0, 1, 1, 0.58578).valley();
+        this.newPlanarEdge(0, 1, 0.41421, 0).valley();
         this.clean();
     };
     CreasePattern.prototype.fishBase = function () {
         _super.prototype.clear.call(this);
-        this.addEdgeWithVertices(0.0, 0.0, 0.29289, 0.0).border();
-        this.addEdgeWithVertices(0.29289, 0.0, 1.0, 0.0).border();
-        this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.70711).border();
-        this.addEdgeWithVertices(1.0, 0.70711, 1.0, 1.0).border();
-        this.addEdgeWithVertices(1.0, 1.0, 0.0, 1.0).border();
-        this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.0).border();
-        this.addEdgeWithVertices(1, 0, 0, 1).mountain();
-        this.addEdgeWithVertices(0, 1, 0.70711, 0.70711).valley();
-        this.addEdgeWithVertices(0, 1, 0.29289, 0.29289).valley();
-        this.addEdgeWithVertices(1, 0, 0.29289, 0.29289).valley();
-        this.addEdgeWithVertices(1, 0, 0.70711, 0.70711).valley();
-        this.addEdgeWithVertices(0.29289, 0.29289, 0, 0).valley();
-        this.addEdgeWithVertices(0.70711, 0.70711, 1, 1).valley();
-        this.addEdgeWithVertices(0.70711, 0.70711, 1, 0.70711).mountain();
-        this.addEdgeWithVertices(0.29289, 0.29289, 0.29289, 0).mountain();
+        this.newPlanarEdge(0.0, 0.0, 0.29289, 0.0).border();
+        this.newPlanarEdge(0.29289, 0.0, 1.0, 0.0).border();
+        this.newPlanarEdge(1.0, 0.0, 1.0, 0.70711).border();
+        this.newPlanarEdge(1.0, 0.70711, 1.0, 1.0).border();
+        this.newPlanarEdge(1.0, 1.0, 0.0, 1.0).border();
+        this.newPlanarEdge(0.0, 1.0, 0.0, 0.0).border();
+        this.newPlanarEdge(1, 0, 0, 1).mountain();
+        this.newPlanarEdge(0, 1, 0.70711, 0.70711).valley();
+        this.newPlanarEdge(0, 1, 0.29289, 0.29289).valley();
+        this.newPlanarEdge(1, 0, 0.29289, 0.29289).valley();
+        this.newPlanarEdge(1, 0, 0.70711, 0.70711).valley();
+        this.newPlanarEdge(0.29289, 0.29289, 0, 0).valley();
+        this.newPlanarEdge(0.70711, 0.70711, 1, 1).valley();
+        this.newPlanarEdge(0.70711, 0.70711, 1, 0.70711).mountain();
+        this.newPlanarEdge(0.29289, 0.29289, 0.29289, 0).mountain();
         this.clean();
         // this.newFaceBetweenNodes([0, 1, 3]);
         // this.newFaceBetweenNodes([0, 2, 1]);
@@ -645,119 +641,119 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.birdBase = function () {
         _super.prototype.clear.call(this);
-        this.addEdgeWithVertices(0.0, 0.0, 0.5, 0.0).border();
-        this.addEdgeWithVertices(0.5, 0.0, 1.0, 0.0).border();
-        this.addEdgeWithVertices(1.0, 0.0, 1.0, 0.5).border();
-        this.addEdgeWithVertices(1.0, 0.5, 1.0, 1.0).border();
-        this.addEdgeWithVertices(1.0, 1.0, 0.5, 1.0).border();
-        this.addEdgeWithVertices(0.5, 1.0, 0.0, 1.0).border();
-        this.addEdgeWithVertices(0.0, 1.0, 0.0, 0.5).border();
-        this.addEdgeWithVertices(0.0, 0.5, 0.0, 0.0).border();
+        this.newPlanarEdge(0.0, 0.0, 0.5, 0.0).border();
+        this.newPlanarEdge(0.5, 0.0, 1.0, 0.0).border();
+        this.newPlanarEdge(1.0, 0.0, 1.0, 0.5).border();
+        this.newPlanarEdge(1.0, 0.5, 1.0, 1.0).border();
+        this.newPlanarEdge(1.0, 1.0, 0.5, 1.0).border();
+        this.newPlanarEdge(0.5, 1.0, 0.0, 1.0).border();
+        this.newPlanarEdge(0.0, 1.0, 0.0, 0.5).border();
+        this.newPlanarEdge(0.0, 0.5, 0.0, 0.0).border();
         // eight 22.5 degree lines
-        this.addEdgeWithVertices(0, 1, 0.5, .79290).mountain();
-        this.addEdgeWithVertices(0, 1, .20710, 0.5).mountain();
-        this.addEdgeWithVertices(1, 0, 0.5, .20710).mountain();
-        this.addEdgeWithVertices(1, 0, .79290, 0.5).mountain();
-        this.addEdgeWithVertices(1, 1, .79290, 0.5).mountain();
-        this.addEdgeWithVertices(1, 1, 0.5, .79290).mountain();
-        this.addEdgeWithVertices(0, 0, .20710, 0.5).mountain();
-        this.addEdgeWithVertices(0, 0, 0.5, .20710).mountain();
+        this.newPlanarEdge(0, 1, 0.5, .79290).mountain();
+        this.newPlanarEdge(0, 1, .20710, 0.5).mountain();
+        this.newPlanarEdge(1, 0, 0.5, .20710).mountain();
+        this.newPlanarEdge(1, 0, .79290, 0.5).mountain();
+        this.newPlanarEdge(1, 1, .79290, 0.5).mountain();
+        this.newPlanarEdge(1, 1, 0.5, .79290).mountain();
+        this.newPlanarEdge(0, 0, .20710, 0.5).mountain();
+        this.newPlanarEdge(0, 0, 0.5, .20710).mountain();
         // corner 45 degree lines
-        this.addEdgeWithVertices(0, 0, .35354, .35354).valley();
-        this.addEdgeWithVertices(.35354, .64645, 0, 1).valley();
-        this.addEdgeWithVertices(1, 0, .64645, .35354).mountain();
-        this.addEdgeWithVertices(.64645, .64645, 1, 1).valley();
+        this.newPlanarEdge(0, 0, .35354, .35354).valley();
+        this.newPlanarEdge(.35354, .64645, 0, 1).valley();
+        this.newPlanarEdge(1, 0, .64645, .35354).mountain();
+        this.newPlanarEdge(.64645, .64645, 1, 1).valley();
         // center X
-        this.addEdgeWithVertices(0.5, 0.5, .35354, .64645).valley();
-        this.addEdgeWithVertices(.64645, .35354, 0.5, 0.5).mountain();
-        this.addEdgeWithVertices(0.5, 0.5, .64645, .64645).valley();
-        this.addEdgeWithVertices(.35354, .35354, 0.5, 0.5).valley();
+        this.newPlanarEdge(0.5, 0.5, .35354, .64645).valley();
+        this.newPlanarEdge(.64645, .35354, 0.5, 0.5).mountain();
+        this.newPlanarEdge(0.5, 0.5, .64645, .64645).valley();
+        this.newPlanarEdge(.35354, .35354, 0.5, 0.5).valley();
         // center ⃟
-        this.addEdgeWithVertices(.35354, .35354, .20710, 0.5).mark();
-        this.addEdgeWithVertices(0.5, .20710, .35354, .35354).mark();
-        this.addEdgeWithVertices(.35354, .64645, 0.5, .79290).mark();
-        this.addEdgeWithVertices(.20710, 0.5, .35354, .64645).mark();
-        this.addEdgeWithVertices(.64645, .64645, .79290, 0.5).mark();
-        this.addEdgeWithVertices(0.5, .79290, .64645, .64645).mark();
-        this.addEdgeWithVertices(.64645, .35354, 0.5, .20710).mark();
-        this.addEdgeWithVertices(.79290, 0.5, .64645, .35354).mark();
+        this.newPlanarEdge(.35354, .35354, .20710, 0.5).mark();
+        this.newPlanarEdge(0.5, .20710, .35354, .35354).mark();
+        this.newPlanarEdge(.35354, .64645, 0.5, .79290).mark();
+        this.newPlanarEdge(.20710, 0.5, .35354, .64645).mark();
+        this.newPlanarEdge(.64645, .64645, .79290, 0.5).mark();
+        this.newPlanarEdge(0.5, .79290, .64645, .64645).mark();
+        this.newPlanarEdge(.64645, .35354, 0.5, .20710).mark();
+        this.newPlanarEdge(.79290, 0.5, .64645, .35354).mark();
         // center +
-        this.addEdgeWithVertices(0.5, 0.5, 0.5, .79290).mountain();
-        this.addEdgeWithVertices(0.5, .20710, 0.5, 0.5).mountain();
-        this.addEdgeWithVertices(0.5, 0.5, .79290, 0.5).mountain();
-        this.addEdgeWithVertices(.20710, 0.5, 0.5, 0.5).mountain();
+        this.newPlanarEdge(0.5, 0.5, 0.5, .79290).mountain();
+        this.newPlanarEdge(0.5, .20710, 0.5, 0.5).mountain();
+        this.newPlanarEdge(0.5, 0.5, .79290, 0.5).mountain();
+        this.newPlanarEdge(.20710, 0.5, 0.5, 0.5).mountain();
         // paper edge center connections
-        this.addEdgeWithVertices(0.5, .20710, 0.5, 0).valley();
-        this.addEdgeWithVertices(.79290, 0.5, 1, 0.5).valley();
-        this.addEdgeWithVertices(0.5, .79290, 0.5, 1).valley();
-        this.addEdgeWithVertices(.20710, 0.5, 0, 0.5).valley();
+        this.newPlanarEdge(0.5, .20710, 0.5, 0).valley();
+        this.newPlanarEdge(.79290, 0.5, 1, 0.5).valley();
+        this.newPlanarEdge(0.5, .79290, 0.5, 1).valley();
+        this.newPlanarEdge(.20710, 0.5, 0, 0.5).valley();
         this.clean();
     };
     CreasePattern.prototype.frogBase = function () {
-        this.addEdgeWithVertices(0, 0, .14646, .35353);
-        this.addEdgeWithVertices(0, 0, .35353, .14646);
-        this.addEdgeWithVertices(.14646, .35353, 0.5, 0.5);
-        this.addEdgeWithVertices(0.5, 0.5, .35353, .14646);
-        this.addEdgeWithVertices(.14646, .35353, .14646, 0.5);
-        this.addEdgeWithVertices(0, 0.5, .14646, 0.5);
-        this.addEdgeWithVertices(0.5, 0.5, 0.5, .14646);
-        this.addEdgeWithVertices(0.5, .14646, 0.5, 0);
-        this.addEdgeWithVertices(0.5, 0, .35353, .14646);
-        this.addEdgeWithVertices(.35353, .14646, 0.5, .14646);
-        this.addEdgeWithVertices(.14646, .35353, 0, 0.5);
-        this.addEdgeWithVertices(.14646, .35353, .25, .25);
-        this.addEdgeWithVertices(.25, .25, .35353, .14646);
-        this.addEdgeWithVertices(0, 1, .35353, .85353);
-        this.addEdgeWithVertices(0, 1, .14646, .64646);
-        this.addEdgeWithVertices(.35353, .85353, 0.5, 0.5);
-        this.addEdgeWithVertices(0.5, 0.5, .14646, .64646);
-        this.addEdgeWithVertices(.35353, .85353, 0.5, .85353);
-        this.addEdgeWithVertices(0.5, 1, 0.5, .85353);
-        this.addEdgeWithVertices(0.5, 0.5, 0.5, .85353);
-        this.addEdgeWithVertices(0.5, 0.5, .14646, 0.5);
-        this.addEdgeWithVertices(0, 0.5, .14646, .64646);
-        this.addEdgeWithVertices(.14646, .64646, .14646, 0.5);
-        this.addEdgeWithVertices(.35353, .85353, 0.5, 1);
-        this.addEdgeWithVertices(.35353, .85353, .25, .75);
-        this.addEdgeWithVertices(.25, .75, .14646, .64646);
-        this.addEdgeWithVertices(1, 0, .85353, .35353);
-        this.addEdgeWithVertices(1, 0, .64646, .14646);
-        this.addEdgeWithVertices(.85353, .35353, 0.5, 0.5);
-        this.addEdgeWithVertices(0.5, 0.5, .64646, .14646);
-        this.addEdgeWithVertices(.85353, .35353, .85353, 0.5);
-        this.addEdgeWithVertices(1, 0.5, .85353, 0.5);
-        this.addEdgeWithVertices(0.5, 0, .64646, .14646);
-        this.addEdgeWithVertices(.64646, .14646, 0.5, .14646);
-        this.addEdgeWithVertices(.85353, .35353, 1, 0.5);
-        this.addEdgeWithVertices(.85353, .35353, .75, .25);
-        this.addEdgeWithVertices(.75, .25, .64646, .14646);
-        this.addEdgeWithVertices(1, 1, .64646, .85353);
-        this.addEdgeWithVertices(1, 1, .85353, .64646);
-        this.addEdgeWithVertices(.64646, .85353, 0.5, 0.5);
-        this.addEdgeWithVertices(0.5, 0.5, .85353, .64646);
-        this.addEdgeWithVertices(.64646, .85353, 0.5, .85353);
-        this.addEdgeWithVertices(0.5, 0.5, .85353, 0.5);
-        this.addEdgeWithVertices(1, 0.5, .85353, .64646);
-        this.addEdgeWithVertices(.85353, .64646, .85353, 0.5);
-        this.addEdgeWithVertices(.64646, .85353, 0.5, 1);
-        this.addEdgeWithVertices(.64646, .85353, .75, .75);
-        this.addEdgeWithVertices(.75, .75, .85353, .64646);
-        this.addEdgeWithVertices(.35353, .14646, .35353, 0);
-        this.addEdgeWithVertices(.64646, .14646, .64646, 0);
-        this.addEdgeWithVertices(.85353, .35353, 1, .35353);
-        this.addEdgeWithVertices(.85353, .64646, 1, .64646);
-        this.addEdgeWithVertices(.64646, .85353, .64646, 1);
-        this.addEdgeWithVertices(.35353, .85353, .35353, 1);
-        this.addEdgeWithVertices(.14646, .64646, 0, .64646);
-        this.addEdgeWithVertices(.14646, .35353, 0, .35353);
-        this.addEdgeWithVertices(0.5, 0.5, .25, .25);
-        this.addEdgeWithVertices(0.5, 0.5, .75, .25);
-        this.addEdgeWithVertices(0.5, 0.5, .75, .75);
-        this.addEdgeWithVertices(0.5, 0.5, .25, .75);
-        this.addEdgeWithVertices(.25, .75, 0, 1);
-        this.addEdgeWithVertices(.25, .25, 0, 0);
-        this.addEdgeWithVertices(.75, .25, 1, 0);
-        this.addEdgeWithVertices(.75, .75, 1, 1);
+        this.newPlanarEdge(0, 0, .14646, .35353);
+        this.newPlanarEdge(0, 0, .35353, .14646);
+        this.newPlanarEdge(.14646, .35353, 0.5, 0.5);
+        this.newPlanarEdge(0.5, 0.5, .35353, .14646);
+        this.newPlanarEdge(.14646, .35353, .14646, 0.5);
+        this.newPlanarEdge(0, 0.5, .14646, 0.5);
+        this.newPlanarEdge(0.5, 0.5, 0.5, .14646);
+        this.newPlanarEdge(0.5, .14646, 0.5, 0);
+        this.newPlanarEdge(0.5, 0, .35353, .14646);
+        this.newPlanarEdge(.35353, .14646, 0.5, .14646);
+        this.newPlanarEdge(.14646, .35353, 0, 0.5);
+        this.newPlanarEdge(.14646, .35353, .25, .25);
+        this.newPlanarEdge(.25, .25, .35353, .14646);
+        this.newPlanarEdge(0, 1, .35353, .85353);
+        this.newPlanarEdge(0, 1, .14646, .64646);
+        this.newPlanarEdge(.35353, .85353, 0.5, 0.5);
+        this.newPlanarEdge(0.5, 0.5, .14646, .64646);
+        this.newPlanarEdge(.35353, .85353, 0.5, .85353);
+        this.newPlanarEdge(0.5, 1, 0.5, .85353);
+        this.newPlanarEdge(0.5, 0.5, 0.5, .85353);
+        this.newPlanarEdge(0.5, 0.5, .14646, 0.5);
+        this.newPlanarEdge(0, 0.5, .14646, .64646);
+        this.newPlanarEdge(.14646, .64646, .14646, 0.5);
+        this.newPlanarEdge(.35353, .85353, 0.5, 1);
+        this.newPlanarEdge(.35353, .85353, .25, .75);
+        this.newPlanarEdge(.25, .75, .14646, .64646);
+        this.newPlanarEdge(1, 0, .85353, .35353);
+        this.newPlanarEdge(1, 0, .64646, .14646);
+        this.newPlanarEdge(.85353, .35353, 0.5, 0.5);
+        this.newPlanarEdge(0.5, 0.5, .64646, .14646);
+        this.newPlanarEdge(.85353, .35353, .85353, 0.5);
+        this.newPlanarEdge(1, 0.5, .85353, 0.5);
+        this.newPlanarEdge(0.5, 0, .64646, .14646);
+        this.newPlanarEdge(.64646, .14646, 0.5, .14646);
+        this.newPlanarEdge(.85353, .35353, 1, 0.5);
+        this.newPlanarEdge(.85353, .35353, .75, .25);
+        this.newPlanarEdge(.75, .25, .64646, .14646);
+        this.newPlanarEdge(1, 1, .64646, .85353);
+        this.newPlanarEdge(1, 1, .85353, .64646);
+        this.newPlanarEdge(.64646, .85353, 0.5, 0.5);
+        this.newPlanarEdge(0.5, 0.5, .85353, .64646);
+        this.newPlanarEdge(.64646, .85353, 0.5, .85353);
+        this.newPlanarEdge(0.5, 0.5, .85353, 0.5);
+        this.newPlanarEdge(1, 0.5, .85353, .64646);
+        this.newPlanarEdge(.85353, .64646, .85353, 0.5);
+        this.newPlanarEdge(.64646, .85353, 0.5, 1);
+        this.newPlanarEdge(.64646, .85353, .75, .75);
+        this.newPlanarEdge(.75, .75, .85353, .64646);
+        this.newPlanarEdge(.35353, .14646, .35353, 0);
+        this.newPlanarEdge(.64646, .14646, .64646, 0);
+        this.newPlanarEdge(.85353, .35353, 1, .35353);
+        this.newPlanarEdge(.85353, .64646, 1, .64646);
+        this.newPlanarEdge(.64646, .85353, .64646, 1);
+        this.newPlanarEdge(.35353, .85353, .35353, 1);
+        this.newPlanarEdge(.14646, .64646, 0, .64646);
+        this.newPlanarEdge(.14646, .35353, 0, .35353);
+        this.newPlanarEdge(0.5, 0.5, .25, .25);
+        this.newPlanarEdge(0.5, 0.5, .75, .25);
+        this.newPlanarEdge(0.5, 0.5, .75, .75);
+        this.newPlanarEdge(0.5, 0.5, .25, .75);
+        this.newPlanarEdge(.25, .75, 0, 1);
+        this.newPlanarEdge(.25, .25, 0, 0);
+        this.newPlanarEdge(.75, .25, 1, 0);
+        this.newPlanarEdge(.75, .75, 1, 1);
         this.chop();
         this.clean();
     };

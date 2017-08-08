@@ -5,7 +5,8 @@
 //  "adjacent": nodes are adjacent when they are connected by an edge
 //              edges are adjacent when they are both connected to the same node
 //  "similar": edges are similar if they contain the same 2 nodes, even if in a different order
-//
+//  "connect": an edge connects two nodes
+//  "new"/"add": functions like "newNode" vs. "addNode", easy way to remember is that the "new" function will use the javascript "new" object initializer. Objects are created in the "new" functions.
 
 "use strict";
 
@@ -42,7 +43,7 @@ class GraphEdge{
 	constructor(graph:Graph, node1:GraphNode, node2:GraphNode){
 		this.graph = graph;
 		this.nodes = [node1, node2];
-	};
+	}
 
 	adjacentEdges():GraphEdge[]{
 		return this.graph.edges
@@ -276,14 +277,15 @@ class Graph{
 		return count;
 	}
 
-	/** Removes circular and duplicate edges, refresh .index values, doesn't remove any nodes
+	/** Removes circular and duplicate edges, refreshes .index values, doesn't remove any nodes
 	 * @returns {number} the number of edges removed
 	 */
-	clean():number{
+	clean():any{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();
 		return this.cleanDuplicateEdges() + this.cleanCircularEdges();
 	}
+//	 * @returns {EdgeNodeCount} the number of edges and nodes removed, nodes will always be 0, for a graph, however a subclassed planar graph will remove nodes.
 
 
 	///////////////////////////////////////////////
@@ -328,4 +330,13 @@ class Graph{
 	nodeArrayDidChange(){for(var i=0; i<this.nodes.length; i++){this.nodes[i].index=i;}}
 	edgeArrayDidChange(){for(var i=0; i<this.edges.length; i++){this.edges[i].index=i;}}
 	// nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
+}
+
+class EdgeNodeCount{
+	edges:number;
+	nodes:number;
+	constructor(edgeCount, nodeCount){
+		this.edges = edgeCount;
+		this.nodes = nodeCount;
+	}
 }
