@@ -1,9 +1,11 @@
+// graph.js
 // a mathematical graph with edges and nodes
+// mit open source license, robby kraft
 //
-// VOCABULARY:
 //  "adjacent": nodes are adjacent when they are connected by an edge
 //              edges are adjacent when they are both connected to the same node
-//  "similar": in the case of an edge: they contain the same 2 nodes, possibly in a different order
+//  "similar": edges are similar if they contain the same 2 nodes, even if in a different order
+//
 
 "use strict";
 
@@ -43,14 +45,12 @@ class GraphEdge{
 	};
 
 	adjacentEdges():GraphEdge[]{
-		// todo:test this
 		return this.graph.edges
 		.filter(function(el:GraphEdge) {  return el !== this &&
 		                (el.nodes[0] === this.nodes[0] || 
 		                 el.nodes[0] === this.nodes[1] || 
 		                 el.nodes[1] === this.nodes[0] || 
 		                 el.nodes[1] === this.nodes[1]); }, this)
-		// .filter(function(el:GraphEdge){ return el !== this; }, this);
 	}
 	adjacentNodes():GraphNode[]{
 		return [this.nodes[0], this.nodes[1]];
@@ -89,30 +89,37 @@ class Graph{
 	edges:GraphEdge[];
 	// todo: callback hooks for when certain properties of the data structure have been altered
 	didChange:(event:object)=>void;
-
-	// the fundamental node/edge types get switched out in subclassed instances of Graph
+	
+	// for subclassing (ie. PlanarGraph) the node/edge types get reset to new types (PlanarNode)
 	nodeType = GraphNode;
 	edgeType = GraphEdge;
 
-	constructor() {
-		this.clear(); // initialize empty arrays
-	}
+	constructor(){ this.clear(); }
 
-	nodeArrayDidChange(){for(var i=0; i<this.nodes.length; i++){this.nodes[i].index=i;}}
-	edgeArrayDidChange(){for(var i=0; i<this.edges.length; i++){this.edges[i].index=i;}}
-	// nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}
 
 	///////////////////////////////////////////////
 	// ADD PARTS
 	///////////////////////////////////////////////
 
+	/** Create a node and add it to the graph
+	 * @returns {GraphNode} pointer to the node
+	 */
 	newNode():GraphNode {
 		return this.addNode(new this.nodeType(this));
 	}
+
+	/** Create an edge and add it to the graph
+	 * @param {GraphNode} two nodes that the edge connects
+	 * @returns {GraphEdge} if successful, pointer to the edge
+	 */
 	newEdge(node1:GraphNode, node2:GraphNode):GraphEdge {
 		return this.addEdge(new this.edgeType(this, node1, node2));
 	}
 
+	/** Add an already-initialized node to the graph
+	 * @param {GraphNode} must be already initialized
+	 * @returns {GraphNode} pointer to the node
+	 */
 	addNode(node:GraphNode):GraphNode{
 		if(node == undefined){ throw "addNode() requires an argument: 1 GraphNode"; }
 		node.graph = this;
@@ -120,36 +127,48 @@ class Graph{
 		this.nodes.push(node);
 		return node;
 	}
+
+	/** Add an already-initialized edge to the graph
+	 * @param {GraphEdge} must be initialized, and two nodes must be already be a part of this graph
+	 * @returns {GraphEdge} if successful, pointer to the edge
+	 */
 	addEdge(edge:GraphEdge):GraphEdge{
-		// todo, make sure graph edge is valid
-		// if(edge.nodes[0] >= this.nodes.length || edge.nodes[1] >= this.nodes.length ){ throw "addEdge() node indices greater than array length"; }
+		if(edge.nodes[0] === undefined ||
+		   edge.nodes[1] === undefined || 
+		   edge.nodes[0].graph !== this ||
+		   edge.nodes[1].graph !== this ){ return undefined; }
 		edge.graph = this;
 		edge.index = this.edges.length;
 		this.edges.push(edge);
 		return edge;
 	}
-	addNodes(nodes:GraphNode[]){
+
+	/** Add already-initialized node objects from an array to the graph
+	 * @returns {number} number of nodes added to the graph
+	 */
+	addNodes(nodes:GraphNode[]):number{
 		if(nodes == undefined || nodes.length <= 0){ throw "addNodes() must contain array of GraphNodes"; }
 		var len = this.nodes.length;
 		var checkedNodes = nodes.filter(function(el){ return (el instanceof GraphNode); });
 		this.nodes = this.nodes.concat(checkedNodes);
-		// update new nodes with their indices, pointers
 		for(var i = len; i < this.nodes.length; i++){
 			this.nodes[i].graph = this;
 			this.nodes[i].index = i;
 		}
+		return this.nodes.length - len;
 	}
+
+	/** Add already-initialized edge objects from an array to the graph, cleaning out any duplicate and circular edges
+	 * @returns {number} number of edges added to the graph
+	 */
 	addEdges(edges:GraphEdge[]){
 		if(edges == undefined || edges.length <= 0){ throw "addEdges() must contain array of GraphEdges"; }
 		var len = this.edges.length;
 		var checkedEdges = edges.filter(function(el){ return (el instanceof GraphEdge); });
 		this.edges = this.edges.concat(checkedEdges);
-		// update new edges with their indices, pointers
-		for(var i = len; i < this.edges.length; i++){
-			this.edges[i].graph = this;
-			this.edges[i].index = i;
-		}
+		for(var i = len; i < this.edges.length; i++){ this.edges[i].graph = this; }
 		this.clean();
+		return this.edges.length - len;
 	}
 
 
@@ -157,12 +176,16 @@ class Graph{
 	// REMOVE PARTS
 	///////////////////////////////////////////////
 
+	/** Removes all nodes and edges, returning the graph to it's original state */
 	clear(){
 		this.nodes = [];
 		this.edges = [];
 	}
 
-	removeEdgeBetween(node1:GraphNode, node2:GraphNode):number{ // returns how many removed
+	/** Searches and removes any edges connecting the two nodes supplied in the arguments
+	 * @returns {number} number of edges removed. in the case of an unclean graph, there may be more than one
+	 */
+	removeEdgeBetween(node1:GraphNode, node2:GraphNode):number{
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ 
 			return !((el.nodes[0] == node1 && el.nodes[1] == node2) ||
@@ -172,6 +195,9 @@ class Graph{
 		return len - this.edges.length;
 	}
 
+	/** Remove a node and any edges that connect to it
+	 * @returns {boolean} if the node was removed
+	 */
 	removeNode(node:GraphNode):boolean{
 		var nodesLength = this.nodes.length;
 		var edgesLength = this.edges.length;
@@ -182,27 +208,32 @@ class Graph{
 		return false;
 	}
 
+	/** Remove an edge
+	 * @returns {boolean} if the edge was removed
+	 */
 	removeEdge(edge:GraphEdge):boolean{
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ return el !== edge; });
-		if(len == this.edges.length) return false;
-		return true;
+		return (len !== this.edges.length);
 	}
 
-	// replaces all mention of one node with the other in both node and edge arrays
-	// shrinks the total number of nodes
-	mergeNodes(node1:GraphNode, node2:GraphNode):boolean{
-		if(node1 === node2) { return false; }
+	/** Remove the second node and replaces all mention of it with the first in every edge
+	 * @returns {object} the number of edges removed as a result of the merge
+	 */
+	mergeNodes(node1:GraphNode, node2:GraphNode):number{
+		if(node1 === node2) { return 0; }
 		this.edges = this.edges.map(function(el){
 			if(el.nodes[0] === node2) el.nodes[0] = node1;
 			if(el.nodes[1] === node2) el.nodes[1] = node1;
 			return el;
 		});
-		this.removeNode(node2); 
-		this.clean();
-		return true;
+		this.nodes = this.nodes.filter(function(el){ return el !== node2; });
+		return this.clean();
 	}
 
+	/** Removes any node that isn't a part of an edge
+	 * @returns {number} the number of nodes removed
+	 */
 	cleanUnusedNodes():number{
 		var usedNodes = [];
 		for(var i = 0; i < this.nodes.length; i++){ usedNodes[i] = false; }
@@ -218,7 +249,9 @@ class Graph{
 		return count;
 	}
 
-	// remove circular edges (a node connecting to itself)
+	/** Remove all edges that contain the same node at both ends
+	 * @returns {number} the number of edges removed
+	 */
 	cleanCircularEdges():number{
 		var edgesLength = this.edges.length;
 		this.edges = this.edges.filter(function(el){ return !(el.nodes[0] === el.nodes[1]); });
@@ -226,9 +259,10 @@ class Graph{
 		return edgesLength - this.edges.length;
 	}
 
-	// remove any duplicate edges (edges containing the same 2 nodes)
+	/** Remove edges that are similar to another edge
+	 * @returns {number} the number of edges removed
+	 */
 	cleanDuplicateEdges():number{
-		// (SIMPLE: does not modify NODE array)
 		var count = 0;
 		for(var i = 0; i < this.edges.length-1; i++){
 			for(var j = this.edges.length-1; j > i; j--){
@@ -242,21 +276,23 @@ class Graph{
 		return count;
 	}
 
-	// CLEAN will change the edges, but nodes will remain unaffected
-	clean():object{
+	/** Removes circular and duplicate edges, refresh .index values, doesn't remove any nodes
+	 * @returns {number} the number of edges removed
+	 */
+	clean():number{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();
-		return {'duplicate': this.cleanDuplicateEdges(), 
-		         'circular': this.cleanCircularEdges() };
+		return this.cleanDuplicateEdges() + this.cleanCircularEdges();
 	}
 
 
 	///////////////////////////////////////////////
 	// GET PARTS
 	///////////////////////////////////////////////
-
-	// getEdgeConnectingNodes in 2 parts: if graph is classical (no duplicate edges)
-	//  the use "Edge" singular, else use "Edges" plural getEdgesConnectingNodes
+	
+	/** Searches for an edge that contains the 2 nodes supplied in the function call. Will return first edge found, if graph isn't clean it will miss any subsequent duplicate edges.
+	 * @returns {GraphEdge} edge, if exists. undefined, if no edge connects the nodes (not adjacent)
+	 */
 	getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge{
 		// for this to work, graph must be cleaned. no duplicate edges
 		for(var i = 0; i < this.edges.length; i++){
@@ -265,13 +301,17 @@ class Graph{
 				return this.edges[i];
 			}
 		}
-		// if nodes are not connected
+		// nodes are not adjacent
 		return undefined;
 	}
+
+	/** Searches for all edges that contains the 2 nodes supplied in the function call. This is suitable for unclean graphs, graphs with duplicate edges.
+	 * @returns {GraphEdge[]} array of edges, if any exist. empty array if no edge connects the nodes (not adjacent)
+	 */
 	getEdgesConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge[]{
 		return this.edges.filter(function(el){
-			(el.nodes[0] == node1 && el.nodes[1] == node2 ) ||
-			(el.nodes[0] == node2 && el.nodes[1] == node1 )
+			return (el.nodes[0] === node1 && el.nodes[1] === node2 ) ||
+			       (el.nodes[0] === node2 && el.nodes[1] === node1 );
 		});
 	}
 
@@ -284,4 +324,8 @@ class Graph{
 			}
 		}
 	}
+
+	nodeArrayDidChange(){for(var i=0; i<this.nodes.length; i++){this.nodes[i].index=i;}}
+	edgeArrayDidChange(){for(var i=0; i<this.edges.length; i++){this.edges[i].index=i;}}
+	// nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
 }

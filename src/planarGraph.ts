@@ -152,8 +152,7 @@ class PlanarNode extends GraphNode implements XYPoint{
 				if(this === el.nodes[0]) return new PlanarPair(el.nodes[0], el.nodes[1], el);
 				else                    return new PlanarPair(el.nodes[1], el.nodes[0], el);
 			},this)
-			.sort(function(a,b){ return (a.angle < b.angle) ? 1 : (a.angle > b.angle) ? -1 : 0 });
-			// .sort(function(a,b){return (a.angle > b.angle)?1:((b.angle > a.angle)?-1:0);});
+			.sort(function(a,b){return (a.angle < b.angle)?1:(a.angle > b.angle)?-1:0});
 	}
 
 	interiorAngles():InteriorAngle[]{
@@ -214,14 +213,12 @@ class PlanarEdge extends GraphEdge{
 	graph:PlanarGraph;
 	nodes:[PlanarNode,PlanarNode];
 
-	// convenience renaming
-	// endPoints:()=>PlanarNode[] = function() { return this.adjacentNodes(); };
-	// actually asking for more typecasting than i expected
 	endPoints():PlanarNode[]{ return this.nodes;}
 	// adjacentNodes():PlanarNode[]{ return <PlanarNode[]>super.adjacentNodes(); }
 	// adjacentEdges():PlanarEdge[]{ return <PlanarEdge[]>super.adjacentEdges(); }
 
 	intersection(edge:PlanarEdge):EdgeIntersection{
+		// todo: should adjacent edges return the point in common they have with each other?
 		if(this.isAdjacentToEdge(edge)){ return undefined; }
 		var intersect = lineSegmentIntersectionAlgorithm(this.nodes[0], this.nodes[1], edge.nodes[0], edge.nodes[1]);
 		if(intersect == undefined){ return undefined; }
