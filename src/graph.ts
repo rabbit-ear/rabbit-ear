@@ -219,17 +219,18 @@ class Graph{
 	}
 
 	/** Remove the second node and replaces all mention of it with the first in every edge
-	 * @returns {object} the number of edges removed as a result of the merge
+	 * @returns {GraphNode} undefined if no merge, otherwise returns a pointer to the remaining node
 	 */
-	mergeNodes(node1:GraphNode, node2:GraphNode):number{
-		if(node1 === node2) { return 0; }
+	mergeNodes(node1:GraphNode, node2:GraphNode):GraphNode{
+		if(node1 === node2) { return undefined; }
 		this.edges = this.edges.map(function(el){
 			if(el.nodes[0] === node2) el.nodes[0] = node1;
 			if(el.nodes[1] === node2) el.nodes[1] = node1;
 			return el;
 		});
 		this.nodes = this.nodes.filter(function(el){ return el !== node2; });
-		return this.clean();
+		this.clean();
+		return node1;
 	}
 
 	/** Removes any node that isn't a part of an edge

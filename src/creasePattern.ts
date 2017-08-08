@@ -191,8 +191,13 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	clear(){
-		// todo: we should reset the border and stuff, maybe?
 		super.clear();
+		if(this.boundary != undefined){
+			for(var i = 0; i < this.boundary.edges.length; i++){
+				var nodes = this.boundary.edges[i].nodes;
+				(<Crease>this.newPlanarEdge(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y)).border();
+			}
+		}
 		// this.interestingPoints = this.starterLocations;
 	}
 

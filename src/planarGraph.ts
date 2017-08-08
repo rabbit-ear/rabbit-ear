@@ -384,13 +384,12 @@ class PlanarGraph extends Graph{
 		return count;
 	}
 
-	searchAndMergeOneDuplicatePair(epsilon:number):XYPoint{
+	searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
 		for(var i = 0; i < this.nodes.length-1; i++){
 			for(var j = i+1; j < this.nodes.length; j++){
 				if ( this.nodes[i].equivalent( this.nodes[j], epsilon) ){
 					// todo, mergeNodes does repeated cleaning, suppress and move to end of function
-					super.mergeNodes(this.nodes[i], this.nodes[j]);
-					return new XYPoint(this.nodes[i].x, this.nodes[i].y);
+					return <PlanarNode>super.mergeNodes(this.nodes[i], this.nodes[j]);
 				}
 			}
 		}
@@ -399,19 +398,20 @@ class PlanarGraph extends Graph{
 
 	cleanDuplicateNodes(epsilon?:number):XYPoint[]{
 		if(epsilon == undefined){ epsilon = EPSILON; }
-		var duplicate, duplicateArray = [];
+		var node:PlanarNode;
+		var locations:XYPoint[] = [];
 		do{
-			duplicate = this.searchAndMergeOneDuplicatePair(epsilon);
-			if(duplicate != undefined){ duplicateArray.push(duplicate); }
-		} while(duplicate != undefined)
-		return duplicateArray;
+			node = this.searchAndMergeOneDuplicatePair(epsilon);
+			if(node != undefined){ locations.push(new XYPoint(node.x, node.y)); }
+		} while(node != undefined)
+		return locations;
 	}
 
 	/** Removes circular and duplicate edges, merges and removes duplicate nodes, and refreshes .index values
 	 * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
 	 */
 	clean():any{
-		// var newNodes = this.chop(); // todo: return this newNodes
+		var newNodes = this.chop(); // todo: return this newNodes
 		return {
 			'edges':super.clean(), 
 			'nodes':this.cleanUnusedNodes() + this.cleanDuplicateNodes().length
@@ -458,7 +458,9 @@ class PlanarGraph extends Graph{
 		for(var i = 0; i < this.edges.length; i++){
 			crossings = crossings.concat(this.chopAllCrossingsWithEdge(this.edges[i]));
 			// this.cleanDuplicateNodes();
-			this.clean();
+			super.clean();
+			this.cleanUnusedNodes();
+			this.cleanDuplicateNodes();
 		}
 		return crossings;
 	}

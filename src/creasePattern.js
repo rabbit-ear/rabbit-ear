@@ -207,8 +207,13 @@ var CreasePattern = (function (_super) {
         return _super.prototype.clean.call(this);
     };
     CreasePattern.prototype.clear = function () {
-        // todo: we should reset the border and stuff, maybe?
         _super.prototype.clear.call(this);
+        if (this.boundary != undefined) {
+            for (var i = 0; i < this.boundary.edges.length; i++) {
+                var nodes = this.boundary.edges[i].nodes;
+                this.newPlanarEdge(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y).border();
+            }
+        }
         // this.interestingPoints = this.starterLocations;
     };
     CreasePattern.prototype.bottomEdge = function () {

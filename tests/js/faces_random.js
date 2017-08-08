@@ -2,6 +2,8 @@
 
 faces_random_callback = undefined;
 
+var cp;
+
 function faces_random(){
 	var canvas = document.getElementById('canvas-faces-random');
 	var scope = new paper.PaperScope();
@@ -9,7 +11,7 @@ function faces_random(){
 	scope.setup(canvas);
 	zoomView(scope, canvas.width, canvas.height, 0.5);
 
-	var cp = new CreasePattern();
+	cp = new CreasePattern();
 	var paperCP = new PaperCreasePattern(scope, cp);
 
 	var nearestEdge = undefined;

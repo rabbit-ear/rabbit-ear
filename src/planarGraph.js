@@ -397,8 +397,7 @@ var PlanarGraph = (function (_super) {
             for (var j = i + 1; j < this.nodes.length; j++) {
                 if (this.nodes[i].equivalent(this.nodes[j], epsilon)) {
                     // todo, mergeNodes does repeated cleaning, suppress and move to end of function
-                    _super.prototype.mergeNodes.call(this, this.nodes[i], this.nodes[j]);
-                    return new XYPoint(this.nodes[i].x, this.nodes[i].y);
+                    return _super.prototype.mergeNodes.call(this, this.nodes[i], this.nodes[j]);
                 }
             }
         }
@@ -408,20 +407,21 @@ var PlanarGraph = (function (_super) {
         if (epsilon == undefined) {
             epsilon = EPSILON;
         }
-        var duplicate, duplicateArray = [];
+        var node;
+        var locations = [];
         do {
-            duplicate = this.searchAndMergeOneDuplicatePair(epsilon);
-            if (duplicate != undefined) {
-                duplicateArray.push(duplicate);
+            node = this.searchAndMergeOneDuplicatePair(epsilon);
+            if (node != undefined) {
+                locations.push(new XYPoint(node.x, node.y));
             }
-        } while (duplicate != undefined);
-        return duplicateArray;
+        } while (node != undefined);
+        return locations;
     };
     /** Removes circular and duplicate edges, merges and removes duplicate nodes, and refreshes .index values
      * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
      */
     PlanarGraph.prototype.clean = function () {
-        // var newNodes = this.chop(); // todo: return this newNodes
+        var newNodes = this.chop(); // todo: return this newNodes
         return {
             'edges': _super.prototype.clean.call(this),
             'nodes': this.cleanUnusedNodes() + this.cleanDuplicateNodes().length
@@ -475,7 +475,9 @@ var PlanarGraph = (function (_super) {
         for (var i = 0; i < this.edges.length; i++) {
             crossings = crossings.concat(this.chopAllCrossingsWithEdge(this.edges[i]));
             // this.cleanDuplicateNodes();
-            this.clean();
+            _super.prototype.clean.call(this);
+            this.cleanUnusedNodes();
+            this.cleanDuplicateNodes();
         }
         return crossings;
     };
