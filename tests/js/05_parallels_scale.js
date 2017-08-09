@@ -19,7 +19,7 @@ var _05_parallels = function(p) {
 			g[i].newPlanarEdge(0.45*(i-1) + len*Math.cos(angles[i]), 0.5 + len*Math.sin(angles[i]),
 			                         0.45*(i-1) - len*Math.cos(angles[i]), 0.5 - len*Math.sin(angles[i]));
 			g[i].newPlanarEdge(0, 0, 1, 1);
-			g[i].clean();
+			// g[i].clean();
 		}
 	}
 

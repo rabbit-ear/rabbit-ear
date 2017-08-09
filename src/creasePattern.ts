@@ -118,13 +118,13 @@ class CreasePattern extends PlanarGraph{
 		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
 		else                           { this.boundary.clear(); }
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		this.cleanUnusedNodes();
+		// this.cleanUnusedNodes();
 		// add edges
 		this.addPaperEdge(0,0, w,0);
 		this.addPaperEdge(w,0, w,w);
 		this.addPaperEdge(w,w, 0,w);
 		this.addPaperEdge(0,w, 0,0);
-		this.cleanDuplicateNodes();
+		super.cleanDuplicateNodes();
 		this.boundary.cleanDuplicateNodes();
 		return this;
 	}
@@ -135,7 +135,7 @@ class CreasePattern extends PlanarGraph{
 		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
 		else                           { this.boundary.clear(); }
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		this.cleanUnusedNodes();
+		// this.cleanUnusedNodes();
 		// make sure paper edges are winding clockwise!!
 		this.addPaperEdge(0,0, width,0);
 		this.addPaperEdge(width,0, width,height);
@@ -152,7 +152,7 @@ class CreasePattern extends PlanarGraph{
 		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
 		else                           { this.boundary.clear(); }
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		this.cleanUnusedNodes();
+		// this.cleanUnusedNodes();
 		// TODO: make sure paper edges are winding clockwise!!
 		for(var i = 0; i < edgePoints.length; i++){
 			var nextI = (i+1) % edgePoints.length;
@@ -186,9 +186,9 @@ class CreasePattern extends PlanarGraph{
 	///////////////////////////////////////////////////////////////
 	// CLEAN  /  REMOVE PARTS
 
-	clean(){
-		return super.clean();
-	}
+	// clean(){
+	// 	return super.clean();
+	// }
 
 	clear(){
 		super.clear();

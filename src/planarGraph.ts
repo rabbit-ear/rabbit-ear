@@ -399,7 +399,7 @@ class PlanarGraph extends Graph{
 			for(var j = i+1; j < this.nodes.length; j++){
 				if ( this.nodes[i].equivalent( this.nodes[j], epsilon) ){
 					// todo, mergeNodes does repeated cleaning, suppress and move to end of function
-					return <PlanarNode>super.mergeNodes(this.nodes[i], this.nodes[j]);
+					return <PlanarNode>this.mergeNodes(this.nodes[i], this.nodes[j]);
 				}
 			}
 		}
@@ -422,10 +422,14 @@ class PlanarGraph extends Graph{
 	 * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
 	 */
 	clean():any{
+		console.log("PLANAR GRAPH CLEAN()");
+		console.log("cleaning duplicate nodes");
 		var duplicates = this.cleanDuplicateNodes();
+		console.log("chopping");
 		var newNodes = this.chop(); // todo: return this newNodes
+		console.log("super");
 		return {
-			'edges':super.clean(), 
+			'edges':super.cleanGraph(), 
 			'nodes':this.cleanUnusedNodes() + duplicates.length
 		};
 	}
@@ -449,7 +453,7 @@ class PlanarGraph extends Graph{
 			if(intersections[i] != undefined){
 				// todo: don't remove the edge, but copy it, so that if it is a crease pattern and this is a mountain/valley fold it copies that property along with it
 				// shallow copy
-				var edgeClone = this.copyEdge(intersections[i].edge);
+				// var edgeClone = this.copyEdge(intersections[i].edge);
 				super.removeEdge(intersections[i].edge);
 				var newNode = (<PlanarNode>this.newNode()).position(intersections[i].x, intersections[i].y);
 				this.newEdge(intersections[i].edge.nodes[0], newNode);
@@ -464,18 +468,20 @@ class PlanarGraph extends Graph{
 			this.newEdge(newLineNodes[i], newLineNodes[i+1]);
 		}
 		this.newEdge(newLineNodes[newLineNodes.length-1], endNodes[1]);
-		super.clean();
+		super.cleanGraph();
 		return intersections.map(function(el){ return new XYPoint(el.x, el.y); } );
 	}
 
 	chopOneRound():XYPoint[]{
 		var crossings = [];
 		for(var i = 0; i < this.edges.length; i++){
-			crossings = crossings.concat(this.chopAllCrossingsWithEdge(this.edges[i]));
-			// this.cleanDuplicateNodes();
-			super.clean();
-			this.cleanUnusedNodes();
-			this.cleanDuplicateNodes();
+			var thisRound = this.chopAllCrossingsWithEdge(this.edges[i]);
+			crossings = crossings.concat(thisRound);
+			if(thisRound.length > 0){
+				super.cleanGraph();
+				this.cleanUnusedNodes();
+				this.cleanDuplicateNodes();
+			}
 		}
 		return crossings;
 	}

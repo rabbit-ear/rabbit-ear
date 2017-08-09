@@ -20,10 +20,10 @@ var GraphNode = (function () {
     };
     GraphNode.prototype.adjacentNodes = function () {
         var first = this.graph.edges
-            .filter(function (el) { return el.nodes[0] == this; }, this)
+            .filter(function (el) { return el.nodes[0] === this; }, this)
             .map(function (el) { return el.nodes[1]; }, this);
         var second = this.graph.edges
-            .filter(function (el) { return el.nodes[1] == this; }, this)
+            .filter(function (el) { return el.nodes[1] === this; }, this)
             .map(function (el) { return el.nodes[0]; }, this);
         return first.concat(second);
     };
@@ -178,7 +178,7 @@ var Graph = (function () {
         for (var i = len; i < this.edges.length; i++) {
             this.edges[i].graph = this;
         }
-        this.clean();
+        this.cleanGraph();
         return this.edges.length - len;
     };
     ///////////////////////////////////////////////
@@ -195,8 +195,8 @@ var Graph = (function () {
     Graph.prototype.removeEdgeBetween = function (node1, node2) {
         var len = this.edges.length;
         this.edges = this.edges.filter(function (el) {
-            return !((el.nodes[0] == node1 && el.nodes[1] == node2) ||
-                (el.nodes[0] == node2 && el.nodes[1] == node1));
+            return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
+                (el.nodes[0] === node2 && el.nodes[1] === node1));
         });
         this.edgeArrayDidChange();
         return len - this.edges.length;
@@ -241,13 +241,18 @@ var Graph = (function () {
             return el;
         });
         this.nodes = this.nodes.filter(function (el) { return el !== node2; });
-        this.clean();
+        this.cleanGraph();
+        // this.edgeArrayDidChange();
+        // this.nodeArrayDidChange();
+        // this.cleanDuplicateEdges();
+        // this.cleanCircularEdges();
         return node1;
     };
     /** Removes any node that isn't a part of an edge
      * @returns {number} the number of nodes removed
      */
     Graph.prototype.cleanUnusedNodes = function () {
+        this.nodeArrayDidChange(); // this function depends on .index values, run this to be safe
         var usedNodes = [];
         for (var i = 0; i < this.nodes.length; i++) {
             usedNodes[i] = false;
@@ -264,24 +269,11 @@ var Graph = (function () {
                 count++;
             }
         }
-        this.nodeArrayDidChange();
+        if (count > 0) {
+            this.nodeArrayDidChange();
+        }
         return count;
     };
-    // cleanUnusedNodes():number{
-    // 	var count = 0;
-    // 	for(var i = this.nodes.length-1; i >= 0; i--){
-    // 		for(var j = 0; j < this.edges.length; j++){
-    // 			if(this.edges[j].nodes[0] === this.nodes[i] || this.edges[j].nodes[0] === this.nodes[i]){
-    // 				break;
-    // 			}
-    // 		}
-    // 		// made it through all edges
-    // 		this.nodes.splice(i, 1);
-    // 		count += 1;
-    // 	}
-    // 	this.nodeArrayDidChange();
-    // 	return count;
-    // }
     /** Remove all edges that contain the same node at both ends
      * @returns {number} the number of edges removed
      */
@@ -311,15 +303,17 @@ var Graph = (function () {
         }
         return count;
     };
-    /** Removes circular and duplicate edges, refreshes .index values, doesn't remove any nodes
-     * @returns {number} the number of edges removed
-     */
-    Graph.prototype.clean = function () {
+    Graph.prototype.cleanGraph = function () {
         this.edgeArrayDidChange();
         this.nodeArrayDidChange();
         return this.cleanDuplicateEdges() + this.cleanCircularEdges();
     };
-    //	 * @returns {EdgeNodeCount} the number of edges and nodes removed, nodes will always be 0, for a graph, however a subclassed planar graph will remove nodes.
+    /** Only modifies edges array. Removes circular and duplicate edges, refreshes .index values of both edges and nodes arrays
+     * @returns {number} the number of edges removed
+     */
+    Graph.prototype.clean = function () {
+        return this.cleanGraph();
+    };
     ///////////////////////////////////////////////
     // GET PARTS
     ///////////////////////////////////////////////

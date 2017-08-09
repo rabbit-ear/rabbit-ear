@@ -30,7 +30,6 @@ var paperCP;
 		cp.clear();
 		cp.nodes = [];
 		cp.edges = [];
-		// cp.creaseOnly(new XYPoint(0.0, 0.495), new XYPoint(1.0, 0.505));
 		var firstEdge = cp.creaseOnly(new XYPoint(0.0, 0.5), new XYPoint(1.0, 0.5));
 		var v = .8/(NUM_LINES-1);
 		for(var i = 0; i < NUM_LINES; i++){
@@ -40,14 +39,10 @@ var paperCP;
 				new XYPoint(x + Math.random()*v-v*0.5, 0.75 + Math.random()*v-v*0.5)
 			);
 		}
-		// var crossings = firstEdge.crossingEdges();
-		// var crossings = cp.chop();
-		// var crossings = cp.chopAllCrossingsWithEdge(firstEdge);
-		// console.log(crossings);
-		var edge = cp.creaseOnly(new XYPoint(0.0, 0.6), new XYPoint(1.0, 0.6));
+		var lowerEdge = cp.creaseOnly(new XYPoint(0.0, 0.6), new XYPoint(1.0, 0.6));
 		var crossings = cp.chop();
-		// var crossings = cp.chopAllCrossingsWithEdge(edge);
-		console.log(crossings);
+		// var crossings = cp.chopAllCrossingsWithEdge(lowerEdge);
+		// console.log(crossings);
 		// console.log(crossings.length + " crossings");
 		paperCP.initialize();
 	}
@@ -60,7 +55,6 @@ var paperCP;
 	}
 	scope.view.onMouseMove = function(event){ 
 		mousePos = event.point;
-		console.log(mousePos);
 		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
 		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
 		if(nearestNode !== nNode){

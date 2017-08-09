@@ -184,7 +184,7 @@ class Graph{
 		var checkedEdges = edges.filter(function(el){ return (el instanceof GraphEdge); });
 		this.edges = this.edges.concat(checkedEdges);
 		for(var i = len; i < this.edges.length; i++){ this.edges[i].graph = this; }
-		this.clean();
+		this.cleanGraph();
 		return this.edges.length - len;
 	}
 
@@ -245,7 +245,11 @@ class Graph{
 			return el;
 		});
 		this.nodes = this.nodes.filter(function(el){ return el !== node2; });
-		this.clean();
+		this.cleanGraph();
+		// this.edgeArrayDidChange();
+		// this.nodeArrayDidChange();
+		// this.cleanDuplicateEdges();
+		// this.cleanCircularEdges();
 		return node1;
 	}
 
@@ -296,16 +300,18 @@ class Graph{
 		return count;
 	}
 
-	/** Only modifies edges array. Removes circular and duplicate edges, refreshes .index values of both edges and nodes arrays
-	 * @returns {number} the number of edges removed
-	 */
-	clean():any{
+	cleanGraph():number{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();
 		return this.cleanDuplicateEdges() + this.cleanCircularEdges();
 	}
-//	 * @returns {EdgeNodeCount} the number of edges and nodes removed, nodes will always be 0, for a graph, however a subclassed planar graph will remove nodes.
 
+	/** Only modifies edges array. Removes circular and duplicate edges, refreshes .index values of both edges and nodes arrays
+	 * @returns {number} the number of edges removed
+	 */
+	clean():any{
+		return this.cleanGraph();
+	}
 
 	///////////////////////////////////////////////
 	// GET PARTS

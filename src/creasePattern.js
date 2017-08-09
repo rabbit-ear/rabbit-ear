@@ -133,13 +133,13 @@ var CreasePattern = (function (_super) {
             this.boundary.clear();
         }
         this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        this.cleanUnusedNodes();
+        // this.cleanUnusedNodes();
         // add edges
         this.addPaperEdge(0, 0, w, 0);
         this.addPaperEdge(w, 0, w, w);
         this.addPaperEdge(w, w, 0, w);
         this.addPaperEdge(0, w, 0, 0);
-        this.cleanDuplicateNodes();
+        _super.prototype.cleanDuplicateNodes.call(this);
         this.boundary.cleanDuplicateNodes();
         return this;
     };
@@ -153,7 +153,7 @@ var CreasePattern = (function (_super) {
             this.boundary.clear();
         }
         this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        this.cleanUnusedNodes();
+        // this.cleanUnusedNodes();
         // make sure paper edges are winding clockwise!!
         this.addPaperEdge(0, 0, width, 0);
         this.addPaperEdge(width, 0, width, height);
@@ -173,7 +173,7 @@ var CreasePattern = (function (_super) {
             this.boundary.clear();
         }
         this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        this.cleanUnusedNodes();
+        // this.cleanUnusedNodes();
         // TODO: make sure paper edges are winding clockwise!!
         for (var i = 0; i < edgePoints.length; i++) {
             var nextI = (i + 1) % edgePoints.length;
@@ -203,9 +203,9 @@ var CreasePattern = (function (_super) {
     // }
     ///////////////////////////////////////////////////////////////
     // CLEAN  /  REMOVE PARTS
-    CreasePattern.prototype.clean = function () {
-        return _super.prototype.clean.call(this);
-    };
+    // clean(){
+    // 	return super.clean();
+    // }
     CreasePattern.prototype.clear = function () {
         _super.prototype.clear.call(this);
         if (this.boundary != undefined) {

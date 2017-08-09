@@ -29,10 +29,12 @@ function edge_intersections(){
 		cp.clear();
 		cp.nodes = [];
 		cp.edges = [];
-		for(var i = 0; i < 30; i++){
+		for(var i = 0; i < 20; i++){
 			var angle = Math.random()*Math.PI*2;
 			cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
 		}
+		// var intersections
+		// cp.clean();
 		var intersections = cp.chop();
 		paperCP.initialize();
 
