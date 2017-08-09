@@ -27,7 +27,7 @@ document.body.innerHTML += "<h1>" + graph.nodes.length + " Nodes, " + graph.edge
 
 var edgeConnections = "";
 for(var i = 0; i < graph.edges.length; i++){
-	edgeConnections += "(" + graph.edges[i].node[0].index + "," + graph.edges[i].node[1].index + ") ";
+	edgeConnections += "(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") ";
 }
 document.body.innerHTML += edgeConnections;
 
@@ -41,7 +41,7 @@ document.body.innerHTML += "<h1>" + graph.nodes.length + " Nodes, " + graph.edge
 
 edgeConnections = "";
 for(var i = 0; i < graph.edges.length; i++){
-	edgeConnections += "(" + graph.edges[i].node[0].index + "," + graph.edges[i].node[1].index + ") ";
+	edgeConnections += "(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") ";
 }
 document.body.innerHTML += edgeConnections;
 

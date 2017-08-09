@@ -401,6 +401,7 @@ var PlanarGraph = (function (_super) {
         return count;
     };
     PlanarGraph.prototype.searchAndMergeOneDuplicatePair = function (epsilon) {
+        console.log("searchAndMergeOneDuplicatePair");
         for (var i = 0; i < this.nodes.length - 1; i++) {
             for (var j = i + 1; j < this.nodes.length; j++) {
                 if (this.nodes[i].equivalent(this.nodes[j], epsilon)) {
@@ -412,6 +413,7 @@ var PlanarGraph = (function (_super) {
         return undefined;
     };
     PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
+        console.log("cleanDuplicateNodes");
         if (epsilon == undefined) {
             epsilon = EPSILON;
         }

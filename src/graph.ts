@@ -22,10 +22,10 @@ class GraphNode{
 	}
 	adjacentNodes():GraphNode[]{
 		var first:GraphNode[] = this.graph.edges
-			.filter(function(el){ return el.nodes[0] == this}, this)
+			.filter(function(el){ return el.nodes[0] === this}, this)
 			.map(function(el){ return el.nodes[1] }, this);
 		var second:GraphNode[] = this.graph.edges
-			.filter(function(el){ return el.nodes[1] == this}, this)
+			.filter(function(el){ return el.nodes[1] === this}, this)
 			.map(function(el){ return el.nodes[0] }, this);
 		return first.concat(second);
 	}
@@ -205,8 +205,8 @@ class Graph{
 	removeEdgeBetween(node1:GraphNode, node2:GraphNode):number{
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ 
-			return !((el.nodes[0] == node1 && el.nodes[1] == node2) ||
-			         (el.nodes[0] == node2 && el.nodes[1] == node1) );
+			return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
+			         (el.nodes[0] === node2 && el.nodes[1] === node1) );
 		});
 		this.edgeArrayDidChange();
 		return len - this.edges.length;
@@ -253,6 +253,7 @@ class Graph{
 	 * @returns {number} the number of nodes removed
 	 */
 	cleanUnusedNodes():number{
+		this.nodeArrayDidChange();  // this function depends on .index values, run this to be safe
 		var usedNodes = [];
 		for(var i = 0; i < this.nodes.length; i++){ usedNodes[i] = false; }
 		for(var i = 0; i < this.edges.length; i++){
@@ -264,6 +265,7 @@ class Graph{
 			var index = this.nodes[i].index;
 			if(usedNodes[index] == false){ this.nodes.splice(i, 1); count++; }
 		}
+		if(count > 0){ this.nodeArrayDidChange(); }
 		return count;
 	}
 
@@ -294,7 +296,7 @@ class Graph{
 		return count;
 	}
 
-	/** Removes circular and duplicate edges, refreshes .index values, doesn't remove any nodes
+	/** Only modifies edges array. Removes circular and duplicate edges, refreshes .index values of both edges and nodes arrays
 	 * @returns {number} the number of edges removed
 	 */
 	clean():any{

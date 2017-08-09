@@ -77,9 +77,9 @@
 		}
 	}
 
-	cp[0].cleanDuplicateNodes(0.01);
-	cp[1].cleanDuplicateNodes(0.025);
-	cp[2].cleanDuplicateNodes(0.066);
+	// cp[0].cleanDuplicateNodes(0.01);
+	// cp[1].cleanDuplicateNodes(0.025);
+	// cp[2].cleanDuplicateNodes(0.066);
 	fillCanvasWithCP("canvas1", cp[0]);
 	fillCanvasWithCP("canvas2", cp[1]);
 	fillCanvasWithCP("canvas3", cp[2]);

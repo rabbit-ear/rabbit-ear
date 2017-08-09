@@ -48,14 +48,14 @@ var nodeToRemove = Math.floor(Math.random()*graph.nodes.length);
 console.log('removing node index: ' + nodeToRemove);
 console.log(graph.nodes);
 for(var i = 0; i < graph.edges.length; i++){
-	console.log(i + ': ' + graph.edges[i].node[0] + ' ' + graph.edges[i].node[1]);
+	console.log(i + ': ' + graph.edges[i].nodes[0] + ' ' + graph.edges[i].nodes[1]);
 }
 
 graph.removeNode( nodeToRemove );
 
 console.log(graph.nodes);
 for(var i = 0; i < graph.edges.length; i++){
-	console.log(i + ': ' + graph.edges[i].node[0] + ' ' + graph.edges[i].node[1]);
+	console.log(i + ': ' + graph.edges[i].nodes[0] + ' ' + graph.edges[i].nodes[1]);
 }
 
 </script>

@@ -264,8 +264,24 @@ var Graph = (function () {
                 count++;
             }
         }
+        this.nodeArrayDidChange();
         return count;
     };
+    // cleanUnusedNodes():number{
+    // 	var count = 0;
+    // 	for(var i = this.nodes.length-1; i >= 0; i--){
+    // 		for(var j = 0; j < this.edges.length; j++){
+    // 			if(this.edges[j].nodes[0] === this.nodes[i] || this.edges[j].nodes[0] === this.nodes[i]){
+    // 				break;
+    // 			}
+    // 		}
+    // 		// made it through all edges
+    // 		this.nodes.splice(i, 1);
+    // 		count += 1;
+    // 	}
+    // 	this.nodeArrayDidChange();
+    // 	return count;
+    // }
     /** Remove all edges that contain the same node at both ends
      * @returns {number} the number of edges removed
      */

@@ -35,9 +35,9 @@ var commonString = "";
 for(var i = 1; i < graph.edges.length; i++){
 	var node0 = graph.edges[0].commonNodeWithEdge(graph.edges[i]);
 	var nodeI = graph.edges[i].commonNodeWithEdge(graph.edges[0]);
-	if (node0 === undefined){ commonString += "(" + graph.edges[0].node[0].index + "," + graph.edges[0].node[1].index + "):(" + graph.edges[i].node[0].index + "," + graph.edges[i].node[1].index + ") aren't adjacent<br>"; }
+	if (node0 === undefined){ commonString += "(" + graph.edges[0].nodes[0].index + "," + graph.edges[0].nodes[1].index + "):(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") aren't adjacent<br>"; }
 	else { 
-		commonString += "(" + graph.edges[0].node[0].index + "," + graph.edges[0].node[1].index + "):(" + graph.edges[i].node[0].index + "," + graph.edges[i].node[1].index + ") = " + node0.index + ", " + nodeI.index + "<br>"; 
+		commonString += "(" + graph.edges[0].nodes[0].index + "," + graph.edges[0].nodes[1].index + "):(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") = " + node0.index + ", " + nodeI.index + "<br>"; 
 	}
 }
 
@@ -52,9 +52,9 @@ var uncommonString = "";
 for(var i = 1; i < graph.edges.length; i++){
 	var node0 = graph.edges[0].uncommonNodeWithEdge(graph.edges[i]);
 	var nodeI = graph.edges[i].uncommonNodeWithEdge(graph.edges[0]);
-	if (node0 === undefined){ uncommonString += "(" + graph.edges[0].node[0].index + "," + graph.edges[0].node[1].index + "):(" + graph.edges[i].node[0].index + "," + graph.edges[i].node[1].index + ") aren't adjacent<br>"; }
+	if (node0 === undefined){ uncommonString += "(" + graph.edges[0].nodes[0].index + "," + graph.edges[0].nodes[1].index + "):(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") aren't adjacent<br>"; }
 	else { 
-		uncommonString += "(" + graph.edges[0].node[0].index + "," + graph.edges[0].node[1].index + "):(" + graph.edges[i].node[0].index + "," + graph.edges[i].node[1].index + ") = " + node0.index + ", " + nodeI.index + "<br>"; 
+		uncommonString += "(" + graph.edges[0].nodes[0].index + "," + graph.edges[0].nodes[1].index + "):(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") = " + node0.index + ", " + nodeI.index + "<br>"; 
 	}
 }
 

@@ -30,7 +30,7 @@ document.body.innerHTML += "<h1>" + graph.nodes.length + " Nodes, " + graph.edge
 
 // var edgeConnections = "";
 // for(var i = 0; i < graph.edges.length; i++){
-// 	edgeConnections += "(" + graph.edges[i].node[0].index + "," + graph.edges[i].node[1].index + ") ";
+// 	edgeConnections += "(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") ";
 // }
 // document.body.innerHTML += edgeConnections;
 
@@ -43,7 +43,7 @@ document.body.innerHTML += "<h1>" + graph.nodes.length + " Nodes, " + graph.edge
 
 // edgeConnections = "";
 // for(var i = 0; i < graph.edges.length; i++){
-// 	edgeConnections += "(" + graph.edges[i].node[0].index + "," + graph.edges[i].node[1].index + ") ";
+// 	edgeConnections += "(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") ";
 // }
 // document.body.innerHTML += edgeConnections;
 
@@ -65,10 +65,10 @@ document.body.innerHTML += "<h1>Adjacent Edges</h1>";
 
 // ADJACENT EDGES
 var adjacentEdges = graph.edges[0].adjacentEdges();
-document.body.innerHTML += "<h3>" + adjacentEdges.length + " edges are adjacent to the first edge (" + graph.edges[0].node[0].index + "," + graph.edges[0].node[1].index + ")</h3>";
+document.body.innerHTML += "<h3>" + adjacentEdges.length + " edges are adjacent to the first edge (" + graph.edges[0].nodes[0].index + "," + graph.edges[0].nodes[1].index + ")</h3>";
 var adjacentDetails = "";
 for(var i = 0; i < adjacentEdges.length; i++){
-	adjacentDetails += "(" + adjacentEdges[i].node[0].index + "," + adjacentEdges[i].node[1].index + ") ";
+	adjacentDetails += "(" + adjacentEdges[i].nodes[0].index + "," + adjacentEdges[i].nodes[1].index + ") ";
 }
 document.body.innerHTML += adjacentDetails;
 
@@ -79,14 +79,14 @@ document.body.innerHTML += adjacentDetails;
 // console.log('removing node index: ' + nodeToRemove);
 // console.log(graph.nodes);
 // for(var i = 0; i < graph.edges.length; i++){
-// 	console.log(i + ': ' + graph.edges[i].node[0] + ' ' + graph.edges[i].node[1]);
+// 	console.log(i + ': ' + graph.edges[i].nodes[0] + ' ' + graph.edges[i].nodes[1]);
 // }
 
 // graph.removeNode( nodeToRemove );
 
 // console.log(graph.nodes);
 // for(var i = 0; i < graph.edges.length; i++){
-// 	console.log(i + ': ' + graph.edges[i].node[0] + ' ' + graph.edges[i].node[1]);
+// 	console.log(i + ': ' + graph.edges[i].nodes[0] + ' ' + graph.edges[i].nodes[1]);
 // }
 
 </script>
