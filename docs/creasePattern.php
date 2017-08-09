@@ -10,21 +10,24 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>square</v>().<v>birdBase</v>()</code></pre>
+		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>birdBase</v>()</code></pre>
 	</div>
-	<div class="explain">
-		<p>A crease pattern</strong></p>
-	</div>
-
-	<div class="centered">
-		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>rectangle</v>(width, height)</code></pre>
-	</div>
-	<div class="explain">
-		<p>Can also take any shaped polygon, a series of points. This will only work with non-looping polygons that are wound clockwise.</strong></p>
+	<div class="quote">
+		<p>A crease pattern. This library comes with the few of the popular bases baked in.</strong></p>
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> pointArray = [<br>&nbsp;<key>new</key> XYPoint(0.5, 0.5),<br>&nbsp;<key>new</key> XYPoint(0.0, 1.0), <br>&nbsp;<key>new</key> XYPoint(1.0, 1.0)<br>];<br><key>var</key> cp<key> = new</key> CreasePattern().<f>polygon</f>(pointArray)</code></pre>
+		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>loadSVG</v>(<str>"filename"</str>)</code></pre>
+	</div>
+	<div class="quote">
+		<p>Can also load crease patterns from a file.</p>
+	</div>
+
+	<div class="centered">
+		<pre><code> </code></pre>
+	</div>
+	<div class="quote">
+		<p>And of course, build up a crease pattern from a sequence of folds.</p>
 	</div>
 
 </section>

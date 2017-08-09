@@ -308,9 +308,17 @@ var PlanarGraph = (function (_super) {
     /** Create one node with an x,y location and an edge between it and an existing node
      * @returns {PlanarEdge} pointer to the edge
      */
-    PlanarGraph.prototype.newPlanarEdgeFromNode = function (existingNode, x, y) {
-        var node = this.newNode().position(x, y);
-        return this.newEdge(existingNode, node);
+    PlanarGraph.prototype.newPlanarEdgeFromNode = function (node, x, y) {
+        var newNode = this.newNode().position(x, y);
+        return this.newEdge(node, newNode);
+    };
+    /** Create one node with an angle and distance away from an existing node and make an edge between them
+     * @returns {PlanarEdge} pointer to the edge
+     */
+    PlanarGraph.prototype.newPlanarEdgeRadiallyFromNode = function (node, angle, length) {
+        var newNode = this.copyNode(node)
+            .translate(Math.cos(angle) * length, Math.sin(angle) * length);
+        return this.newEdge(node, newNode);
     };
     /** Create one face between the three or more nodes supplied in the nodeArray argument
      * @returns {PlanarFace} pointer to the face
@@ -456,7 +464,7 @@ var PlanarGraph = (function (_super) {
             if (intersections[i] != undefined) {
                 // todo: don't remove the edge, but copy it, so that if it is a crease pattern and this is a mountain/valley fold it copies that property along with it
                 // shallow copy
-                var edgeClone = Object.assign({}, intersections[i].edge);
+                var edgeClone = this.copyEdge(intersections[i].edge);
                 _super.prototype.removeEdge.call(this, intersections[i].edge);
                 var newNode = this.newNode().position(intersections[i].x, intersections[i].y);
                 this.newEdge(intersections[i].edge.nodes[0], newNode);

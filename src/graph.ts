@@ -117,6 +117,22 @@ class Graph{
 		return this.addEdge(new this.edgeType(this, node1, node2));
 	}
 
+	/** Copies the contents of an existing node into a new node and adds it to the graph
+	 * @returns {GraphNode} pointer to the node
+	 */
+	copyNode(node:GraphNode):GraphNode {
+		var nodeClone = <GraphNode>(<any>Object).assign(this.newNode(), node);
+		return this.addNode(nodeClone);
+	}
+
+	/** Copies the contents of an existing edge into a new edge and adds it to the graph
+	 * @returns {GraphEdge} pointer to the edge
+	 */
+	copyEdge(edge:GraphEdge):GraphEdge {
+		var edgeClone = (<any>Object).assign(this.newEdge(edge.nodes[0], edge.nodes[1]), edge);
+		return this.addEdge(edgeClone);
+	}
+
 	/** Add an already-initialized node to the graph
 	 * @param {GraphNode} must be already initialized
 	 * @returns {GraphNode} pointer to the node

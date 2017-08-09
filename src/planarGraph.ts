@@ -294,9 +294,18 @@ class PlanarGraph extends Graph{
 	/** Create one node with an x,y location and an edge between it and an existing node
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
-	newPlanarEdgeFromNode(existingNode:PlanarNode, x:number, y:number):PlanarEdge{
-		var node = (<PlanarNode>this.newNode()).position(x, y);
-		return <PlanarEdge>this.newEdge(existingNode, node);
+	newPlanarEdgeFromNode(node:PlanarNode, x:number, y:number):PlanarEdge{
+		var newNode = (<PlanarNode>this.newNode()).position(x, y);
+		return <PlanarEdge>this.newEdge(node, newNode);
+	}
+
+	/** Create one node with an angle and distance away from an existing node and make an edge between them
+	 * @returns {PlanarEdge} pointer to the edge
+	 */
+	newPlanarEdgeRadiallyFromNode(node:PlanarNode, angle:number, length:number):PlanarEdge{
+		var newNode = (<PlanarNode>this.copyNode(node))
+		               .translate(Math.cos(angle)*length, Math.sin(angle)*length);
+		return <PlanarEdge>this.newEdge(node, newNode);
 	}
 
 	/** Create one face between the three or more nodes supplied in the nodeArray argument
@@ -438,7 +447,7 @@ class PlanarGraph extends Graph{
 			if(intersections[i] != undefined){
 				// todo: don't remove the edge, but copy it, so that if it is a crease pattern and this is a mountain/valley fold it copies that property along with it
 				// shallow copy
-				var edgeClone = (<any>Object).assign({}, intersections[i].edge);
+				var edgeClone = this.copyEdge(intersections[i].edge);
 				super.removeEdge(intersections[i].edge);
 				var newNode = (<PlanarNode>this.newNode()).position(intersections[i].x, intersections[i].y);
 				this.newEdge(intersections[i].edge.nodes[0], newNode);
