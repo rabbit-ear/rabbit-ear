@@ -451,23 +451,23 @@ class PlanarGraph extends Graph{
 		var newLineNodes = [];
 		for(var i = 0; i < intersections.length; i++){
 			if(intersections[i] != undefined){
-				// todo: don't remove the edge, but copy it, so that if it is a crease pattern and this is a mountain/valley fold it copies that property along with it
-				// shallow copy
-				// var edgeClone = this.copyEdge(intersections[i].edge);
-				super.removeEdge(intersections[i].edge);
 				var newNode = (<PlanarNode>this.newNode()).position(intersections[i].x, intersections[i].y);
-				this.newEdge(intersections[i].edge.nodes[0], newNode);
-				this.newEdge(newNode, intersections[i].edge.nodes[1]);
+				var edgeClone = this.copyEdge(intersections[i].edge);
+				edgeClone.nodes = [newNode, intersections[i].edge.nodes[1]];
+				intersections[i].edge.nodes[1] = newNode;
 				newLineNodes.push(newNode);
 			}
 		}
-		// remove the edge
-		super.removeEdge(edge);
-		this.newEdge(endNodes[0], newLineNodes[0]);
+		// replace the original edge with smaller collinear pieces of itself
+		var edgeCloneStart = this.copyEdge(edge);
+		edgeCloneStart.nodes = [endNodes[0], newLineNodes[0]];
 		for(var i = 0; i < newLineNodes.length-1; i++){
-			this.newEdge(newLineNodes[i], newLineNodes[i+1]);
+			var edgeClone = this.copyEdge(edge);
+			edgeClone.nodes = [newLineNodes[i], newLineNodes[i+1]];
 		}
-		this.newEdge(newLineNodes[newLineNodes.length-1], endNodes[1]);
+		var edgeCloneEnd = this.copyEdge(edge);
+		edgeCloneEnd.nodes = [newLineNodes[newLineNodes.length-1], endNodes[1]];
+		super.removeEdge(edge);
 		super.cleanGraph();
 		return intersections.map(function(el){ return new XYPoint(el.x, el.y); } );
 	}

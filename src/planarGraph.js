@@ -470,21 +470,30 @@ var PlanarGraph = (function (_super) {
             if (intersections[i] != undefined) {
                 // todo: don't remove the edge, but copy it, so that if it is a crease pattern and this is a mountain/valley fold it copies that property along with it
                 // shallow copy
-                // var edgeClone = this.copyEdge(intersections[i].edge);
-                _super.prototype.removeEdge.call(this, intersections[i].edge);
                 var newNode = this.newNode().position(intersections[i].x, intersections[i].y);
-                this.newEdge(intersections[i].edge.nodes[0], newNode);
-                this.newEdge(newNode, intersections[i].edge.nodes[1]);
+                var edgeClone = this.copyEdge(intersections[i].edge);
+                edgeClone.nodes = [newNode, intersections[i].edge.nodes[1]];
+                intersections[i].edge.nodes[1] = newNode;
+                // super.removeEdge(intersections[i].edge);
+                // this.newEdge(intersections[i].edge.nodes[0], newNode);
+                // this.newEdge(newNode, intersections[i].edge.nodes[1]);
                 newLineNodes.push(newNode);
             }
         }
         // remove the edge
-        _super.prototype.removeEdge.call(this, edge);
-        this.newEdge(endNodes[0], newLineNodes[0]);
+        // super.removeEdge(edge);
+        var edgeCloneStart = this.copyEdge(edge);
+        edgeCloneStart.nodes = [endNodes[0], newLineNodes[0]];
+        // this.newEdge(endNodes[0], newLineNodes[0]);
         for (var i = 0; i < newLineNodes.length - 1; i++) {
-            this.newEdge(newLineNodes[i], newLineNodes[i + 1]);
+            // this.newEdge(newLineNodes[i], newLineNodes[i+1]);
+            var edgeClone = this.copyEdge(edge);
+            edgeClone.nodes = [newLineNodes[i], newLineNodes[i + 1]];
         }
-        this.newEdge(newLineNodes[newLineNodes.length - 1], endNodes[1]);
+        var edgeCloneEnd = this.copyEdge(edge);
+        edgeCloneEnd.nodes = [newLineNodes[newLineNodes.length - 1], endNodes[1]];
+        // this.newEdge(newLineNodes[newLineNodes.length-1], endNodes[1]);
+        _super.prototype.removeEdge.call(this, edge);
         _super.prototype.cleanGraph.call(this);
         return intersections.map(function (el) { return new XYPoint(el.x, el.y); });
     };

@@ -300,6 +300,8 @@ class Graph{
 		return count;
 	}
 
+	// internally to this Graph class, we have to call this function instead of clean()
+	// even though they are the same. during subclassing, clean() gets overwritten by new methods
 	cleanGraph():number{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();

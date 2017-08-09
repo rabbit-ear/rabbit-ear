@@ -40,8 +40,7 @@
 		<li><a href="../tests/html/chop_collinear_vert.html">chop vertical collinear</a></li>
 		<li><a href="../tests/html/chop_collinear_horiz.html">chop horizontal collinear</a></li>
 		<li><a href="../tests/html/chop_angle_ray.html">chop angled rays</a></li>
-		<li>chop test 5</li>
-		<li>chop test 5</li>
+		<li><a href="../tests/html/chop_mountain_valley.html">chop and preserve mountain/valley</a></li>
 	</ul>
 </div>
 

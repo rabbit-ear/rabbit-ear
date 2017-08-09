@@ -303,6 +303,8 @@ var Graph = (function () {
         }
         return count;
     };
+    // internally to this Graph class, we have to call this function instead of clean()
+    // even though they are the same. during subclassing, clean() gets overwritten by new methods
     Graph.prototype.cleanGraph = function () {
         this.edgeArrayDidChange();
         this.nodeArrayDidChange();

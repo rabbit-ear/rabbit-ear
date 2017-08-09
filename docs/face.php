@@ -52,6 +52,10 @@
 	</div>
 
 	<div class="quote">
+		<p>Computers render +Y axis downwards. Angles increase clockwise, and arc tangent gives results between -180 and +180.</p>
+	</div>
+
+	<div class="quote">
 		<p>Does this library use degrees or radians? I haven't made up my mind.</p>
 	</div>
 

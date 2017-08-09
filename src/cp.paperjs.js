@@ -79,7 +79,7 @@ var PaperCreasePattern = (function () {
 	PaperCreasePattern.prototype.newMarkPath = function(lineWeight){
 		return new paper.Path({
 			strokeColor: this.colorForCrease(CreaseDirection.none),
-			strokeWidth: lineWeight*0.66666,
+			strokeWidth: lineWeight*0.33333,//0.66666,
 			closed: false
 		});
 	}
