@@ -1,12 +1,19 @@
 // graph.js
-// a mathematical graph with edges and nodes
+// a mathematical undirected graph with edges and nodes
 // mit open source license, robby kraft
 //
-//  "adjacent": nodes are adjacent when they are connected by an edge
+//  "adjacent": 2 nodes are adjacent when they are connected by an edge
 //              edges are adjacent when they are both connected to the same node
 //  "similar": edges are similar if they contain the same 2 nodes, even if in a different order
-//  "connect": an edge connects two nodes
+//  "incident": an edge is incident to its two nodes
+//  "endpoints": a node is an endpoint of its edge
 //  "new"/"add": functions like "newNode" vs. "addNode", easy way to remember is that the "new" function will use the javascript "new" object initializer. Objects are created in the "new" functions.
+//  "size" the size of a graph is the number of edges
+//  "cycle" a set of edges that form a closed circut, it's possible to walk down a cycle and end up where you began without visiting the same edge twice.
+//  "multigraph": not this graph. but the special case where circular and duplicate edges are allowed
+//  "degree": the degree of a node is how many edges are incident to it
+//  "isolated": a node is isolated if it is connected to 0 edges, degree 0
+//  "leaf": a node is a leaf if it is connected to only 1 edge, degree 1
 
 "use strict";
 
@@ -17,7 +24,6 @@ class GraphNode{
 	constructor(graph:Graph){ this.graph = graph; }
 
 	adjacentEdges():GraphEdge[]{
-		if(this.graph == undefined) { throw "error: didn't set a node's parent graph. use graph.newNode()"; }
 		return this.graph.edges.filter(function(el:GraphEdge){ return el.nodes[0] === this || el.nodes[1] === this; }, this);
 	}
 	adjacentNodes():GraphNode[]{
@@ -33,6 +39,7 @@ class GraphNode{
 		if(this.graph.getEdgeConnectingNodes(this, node) == undefined) return false;
 		return true;
 	}
+	degree():number{ return this.adjacentEdges().length; }
 }
 
 class GraphEdge{
@@ -199,6 +206,15 @@ class Graph{
 		this.edges = [];
 	}
 
+	/** Remove an edge
+	 * @returns {boolean} if the edge was removed
+	 */
+	removeEdge(edge:GraphEdge):boolean{
+		var len = this.edges.length;
+		this.edges = this.edges.filter(function(el){ return el !== edge; });
+		return (len !== this.edges.length);
+	}
+
 	/** Searches and removes any edges connecting the two nodes supplied in the arguments
 	 * @returns {number} number of edges removed. in the case of an unclean graph, there may be more than one
 	 */
@@ -225,13 +241,24 @@ class Graph{
 		return false;
 	}
 
-	/** Remove an edge
-	 * @returns {boolean} if the edge was removed
+	/** Removes any node that isn't a part of an edge
+	 * @returns {number} the number of nodes removed
 	 */
-	removeEdge(edge:GraphEdge):boolean{
-		var len = this.edges.length;
-		this.edges = this.edges.filter(function(el){ return el !== edge; });
-		return (len !== this.edges.length);
+	removeIsolatedNodes():number{
+		this.nodeArrayDidChange();  // this function depends on .index values, run this to be safe
+		var nodeDegree = [];
+		for(var i = 0; i < this.nodes.length; i++){ nodeDegree[i] = false; }
+		for(var i = 0; i < this.edges.length; i++){
+			nodeDegree[this.edges[i].nodes[0].index] = true;
+			nodeDegree[this.edges[i].nodes[1].index] = true;
+		}
+		var count = 0;
+		for(var i = this.nodes.length-1; i >= 0; i--){
+			var index = this.nodes[i].index;
+			if(nodeDegree[index] == false){ this.nodes.splice(i, 1); count++; }
+		}
+		if(count > 0){ this.nodeArrayDidChange(); }
+		return count;
 	}
 
 	/** Remove the second node and replaces all mention of it with the first in every edge
@@ -246,31 +273,7 @@ class Graph{
 		});
 		this.nodes = this.nodes.filter(function(el){ return el !== node2; });
 		this.cleanGraph();
-		// this.edgeArrayDidChange();
-		// this.nodeArrayDidChange();
-		// this.cleanDuplicateEdges();
-		// this.cleanCircularEdges();
 		return node1;
-	}
-
-	/** Removes any node that isn't a part of an edge
-	 * @returns {number} the number of nodes removed
-	 */
-	cleanUnusedNodes():number{
-		this.nodeArrayDidChange();  // this function depends on .index values, run this to be safe
-		var usedNodes = [];
-		for(var i = 0; i < this.nodes.length; i++){ usedNodes[i] = false; }
-		for(var i = 0; i < this.edges.length; i++){
-			usedNodes[this.edges[i].nodes[0].index] = true;
-			usedNodes[this.edges[i].nodes[1].index] = true;
-		}
-		var count = 0;
-		for(var i = this.nodes.length-1; i >= 0; i--){
-			var index = this.nodes[i].index;
-			if(usedNodes[index] == false){ this.nodes.splice(i, 1); count++; }
-		}
-		if(count > 0){ this.nodeArrayDidChange(); }
-		return count;
 	}
 
 	/** Remove all edges that contain the same node at both ends

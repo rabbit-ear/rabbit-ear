@@ -356,8 +356,8 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.removeEdge = function (edge) {
         var endNodes = [edge.nodes[0], edge.nodes[1]];
         var success = _super.prototype.removeEdge.call(this, edge);
-        this.removeNodeIfUnused(endNodes[0]);
-        this.removeNodeIfUnused(endNodes[1]);
+        this.cleanUselessNode(endNodes[0]);
+        this.cleanUselessNode(endNodes[1]);
         return success;
     };
     /** Attempt to remove an edge if one is found that connects the 2 nodes supplied, and also attempt to remove the two nodes left behind if they are otherwise unused
@@ -365,14 +365,14 @@ var PlanarGraph = (function (_super) {
      */
     PlanarGraph.prototype.removeEdgeBetween = function (node1, node2) {
         var count = _super.prototype.removeEdgeBetween.call(this, node1, node2);
-        this.removeNodeIfUnused(node1);
-        this.removeNodeIfUnused(node2);
+        this.cleanUselessNode(node1);
+        this.cleanUselessNode(node2);
         return count;
     };
     /** Remove a node if it is either unconnected to any edges, or is in the middle of 2 collinear edges
      * @returns {boolean} if node was removed
      */
-    PlanarGraph.prototype.removeNodeIfUnused = function (node) {
+    PlanarGraph.prototype.cleanUselessNode = function (node) {
         var edges = node.adjacentEdges();
         switch (edges.length) {
             case 0: return this.removeNode(node);
@@ -382,24 +382,29 @@ var PlanarGraph = (function (_super) {
                 if (epsilonEqual(Math.abs(angleDiff), Math.PI)) {
                     var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]),
                         edges[1].uncommonNodeWithEdge(edges[0])];
-                    _super.prototype.removeEdge.call(this, edges[0]);
+                    // super.removeEdge(edges[0]);
+                    edges[0].nodes = [farNodes[0], farNodes[1]];
                     _super.prototype.removeEdge.call(this, edges[1]);
-                    this.newEdge(farNodes[0], farNodes[1]);
+                    // this.newEdge(farNodes[0], farNodes[1]);
                     return this.removeNode(node);
                 }
         }
         return false;
     };
-    // cleanNodesBetweenCollinearEdges():number{
-    PlanarGraph.prototype.cleanUnusedNodes = function () {
-        var count = 0; //super.cleanUnusedNodes();
+    PlanarGraph.prototype.cleanUselessNodes = function () {
+        var count = _super.prototype.removeIsolatedNodes.call(this);
         for (var i = this.nodes.length - 1; i >= 0; i--) {
-            if (this.removeNodeIfUnused(this.nodes[i])) {
+            if (this.cleanUselessNode(this.nodes[i])) {
                 count += 1;
             }
         }
         return count;
     };
+    // cleanNodes():number{
+    // 	var count = this.cleanUselessNodes();
+    // 	this.cleanDuplicateNodes();
+    // 	return count;
+    // }
     PlanarGraph.prototype.searchAndMergeOneDuplicatePair = function (epsilon) {
         console.log("searchAndMergeOneDuplicatePair");
         for (var i = 0; i < this.nodes.length - 1; i++) {
@@ -439,7 +444,7 @@ var PlanarGraph = (function (_super) {
         console.log("super");
         return {
             'edges': _super.prototype.cleanGraph.call(this),
-            'nodes': this.cleanUnusedNodes() + duplicates.length
+            'nodes': this.cleanUselessNodes() + duplicates.length
         };
     };
     ///////////////////////////////////////////////////////////////
@@ -468,31 +473,22 @@ var PlanarGraph = (function (_super) {
         var newLineNodes = [];
         for (var i = 0; i < intersections.length; i++) {
             if (intersections[i] != undefined) {
-                // todo: don't remove the edge, but copy it, so that if it is a crease pattern and this is a mountain/valley fold it copies that property along with it
-                // shallow copy
                 var newNode = this.newNode().position(intersections[i].x, intersections[i].y);
                 var edgeClone = this.copyEdge(intersections[i].edge);
                 edgeClone.nodes = [newNode, intersections[i].edge.nodes[1]];
                 intersections[i].edge.nodes[1] = newNode;
-                // super.removeEdge(intersections[i].edge);
-                // this.newEdge(intersections[i].edge.nodes[0], newNode);
-                // this.newEdge(newNode, intersections[i].edge.nodes[1]);
                 newLineNodes.push(newNode);
             }
         }
-        // remove the edge
-        // super.removeEdge(edge);
+        // replace the original edge with smaller collinear pieces of itself
         var edgeCloneStart = this.copyEdge(edge);
         edgeCloneStart.nodes = [endNodes[0], newLineNodes[0]];
-        // this.newEdge(endNodes[0], newLineNodes[0]);
         for (var i = 0; i < newLineNodes.length - 1; i++) {
-            // this.newEdge(newLineNodes[i], newLineNodes[i+1]);
             var edgeClone = this.copyEdge(edge);
             edgeClone.nodes = [newLineNodes[i], newLineNodes[i + 1]];
         }
         var edgeCloneEnd = this.copyEdge(edge);
         edgeCloneEnd.nodes = [newLineNodes[newLineNodes.length - 1], endNodes[1]];
-        // this.newEdge(newLineNodes[newLineNodes.length-1], endNodes[1]);
         _super.prototype.removeEdge.call(this, edge);
         _super.prototype.cleanGraph.call(this);
         return intersections.map(function (el) { return new XYPoint(el.x, el.y); });
@@ -504,7 +500,7 @@ var PlanarGraph = (function (_super) {
             crossings = crossings.concat(thisRound);
             if (thisRound.length > 0) {
                 _super.prototype.cleanGraph.call(this);
-                this.cleanUnusedNodes();
+                this.cleanUselessNodes();
                 this.cleanDuplicateNodes();
             }
         }

@@ -36,7 +36,7 @@
 
 <div class="tests">
 	<ul>
-		<li><a href="../tests/html/chop_one_line.html">chop overlapping lines</a></li>
+		<li><a href="../tests/html/chop_cross_many.html">chop overlapping lines</a></li>
 		<li><a href="../tests/html/chop_collinear_vert.html">chop vertical collinear</a></li>
 		<li><a href="../tests/html/chop_collinear_horiz.html">chop horizontal collinear</a></li>
 		<li><a href="../tests/html/chop_angle_ray.html">chop angled rays</a></li>

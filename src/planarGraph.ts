@@ -347,8 +347,8 @@ class PlanarGraph extends Graph{
 	removeEdge(edge:GraphEdge):boolean{
 		var endNodes = [edge.nodes[0], edge.nodes[1]];
 		var success = super.removeEdge(edge);
-		this.removeNodeIfUnused(endNodes[0]);
-		this.removeNodeIfUnused(endNodes[1]);
+		this.cleanUselessNode(endNodes[0]);
+		this.cleanUselessNode(endNodes[1]);
 		return success;
 	}
 
@@ -357,15 +357,15 @@ class PlanarGraph extends Graph{
 	 */
 	removeEdgeBetween(node1:GraphNode, node2:GraphNode):number{
 		var count = super.removeEdgeBetween(node1, node2);
-		this.removeNodeIfUnused(node1);
-		this.removeNodeIfUnused(node2);
+		this.cleanUselessNode(node1);
+		this.cleanUselessNode(node2);
 		return count;
 	}
 
 	/** Remove a node if it is either unconnected to any edges, or is in the middle of 2 collinear edges
 	 * @returns {boolean} if node was removed
 	 */
-	removeNodeIfUnused(node):boolean{
+	cleanUselessNode(node):boolean{
 		var edges = node.adjacentEdges();
 		switch (edges.length){
 			case 0: return this.removeNode(node);
@@ -375,23 +375,30 @@ class PlanarGraph extends Graph{
 				if(epsilonEqual(Math.abs(angleDiff), Math.PI)){
 					var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]), 
 					                edges[1].uncommonNodeWithEdge(edges[0])]
-					super.removeEdge(edges[0]);
+					// super.removeEdge(edges[0]);
+					edges[0].nodes = [farNodes[0], farNodes[1]];
 					super.removeEdge(edges[1]);
-					this.newEdge(farNodes[0], farNodes[1]);
+					// this.newEdge(farNodes[0], farNodes[1]);
 					return this.removeNode(node);
 				}
 		}
 		return false;
 	}
 
-	// cleanNodesBetweenCollinearEdges():number{
-	cleanUnusedNodes():number{
-		var count = 0;//super.cleanUnusedNodes();
+	cleanUselessNodes():number{
+		var count = super.removeIsolatedNodes();
 		for(var i = this.nodes.length-1; i >= 0; i--){
-			if(this.removeNodeIfUnused(this.nodes[i])){ count += 1; }
+			if(this.cleanUselessNode(this.nodes[i])){ count += 1; }
 		}
 		return count;
 	}
+
+	// cleanNodes():number{
+	// 	var count = this.cleanUselessNodes();
+	// 	this.cleanDuplicateNodes();
+	// 	return count;
+	// }
+
 
 	searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
 		console.log("searchAndMergeOneDuplicatePair");
@@ -430,7 +437,7 @@ class PlanarGraph extends Graph{
 		console.log("super");
 		return {
 			'edges':super.cleanGraph(), 
-			'nodes':this.cleanUnusedNodes() + duplicates.length
+			'nodes':this.cleanUselessNodes() + duplicates.length
 		};
 	}
 
@@ -479,7 +486,7 @@ class PlanarGraph extends Graph{
 			crossings = crossings.concat(thisRound);
 			if(thisRound.length > 0){
 				super.cleanGraph();
-				this.cleanUnusedNodes();
+				this.cleanUselessNodes();
 				this.cleanDuplicateNodes();
 			}
 		}
