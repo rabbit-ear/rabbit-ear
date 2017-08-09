@@ -635,6 +635,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(0.70711, 0.70711, 1, 0.70711).mountain();
         this.newPlanarEdge(0.29289, 0.29289, 0.29289, 0).mountain();
         this.clean();
+        this.generateFaces();
         // this.newFaceBetweenNodes([0, 1, 3]);
         // this.newFaceBetweenNodes([0, 2, 1]);
         // this.newFaceBetweenNodes([4, 3, 1]);

@@ -92,7 +92,8 @@ var PaperCreasePattern = (function () {
 		this.myPaperJS = paperjs
 		this.cp = creasePattern;
 		// layer for drawing
-		this.cpLayer = new this.myPaperJS.Layer();
+		this.faceLayer = new this.myPaperJS.Layer();
+		this.edgeLayer = new this.myPaperJS.Layer();
 		this.paperEdgeLayer = new this.myPaperJS.Layer();
 		this.nodeLayer = new this.myPaperJS.Layer();
 		// drawing options
@@ -108,7 +109,8 @@ var PaperCreasePattern = (function () {
 
 		this.paperEdgeLayer.removeChildren();
 		this.nodeLayer.removeChildren();
-		this.cpLayer.removeChildren();
+		this.edgeLayer.removeChildren();
+		this.faceLayer.removeChildren();
 		// draw paper edge
 		this.paperEdgeLayer.activate();
 		this.paperEdgeLayer.removeChildren();
@@ -136,13 +138,15 @@ var PaperCreasePattern = (function () {
 				});
 		}
 		this.nodeLayer.visible = false;
-		this.cpLayer.activate();
-		this.cpLayer.removeChildren();
+		this.edgeLayer.activate();
+		this.edgeLayer.removeChildren();
 		for(var i = 0; i < this.cp.edges.length; i++){
 			var path = this.newPathForCrease(this.cp.edges[i]);
 			path.segments = [ this.points[this.cp.edges[i].nodes[0].index ], this.points[this.cp.edges[i].nodes[1].index ] ];
 			this.edges.push( path );
 		}
+		this.faceLayer.activate();
+		this.faceLayer.removeChildren();
 		for(var i = 0; i < this.cp.faces.length; i++){
 			var segmentArray = [];
 			for(var j = 0; j < this.cp.faces[i].nodes.length; j++){

@@ -282,7 +282,7 @@ class PlanarGraph extends Graph{
 	// ADD PARTS
 	///////////////////////////////////////////////
 
-	/** Create two nodes with x,y coordinates and an edge between them and adds them to the graph
+	/** Create two new nodes each with x,y locations and an edge between them
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
 	newPlanarEdge(x1:number, y1:number, x2:number, y2:number):PlanarEdge{
@@ -291,7 +291,7 @@ class PlanarGraph extends Graph{
 		return <PlanarEdge>this.newEdge(a, b);
 	}
 
-	/** Create one node with x,y coordinates and an edge between it and an existing node, and adds them to the graph
+	/** Create one node with an x,y location and an edge between it and an existing node
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
 	newPlanarEdgeFromNode(existingNode:PlanarNode, x:number, y:number):PlanarEdge{
@@ -411,10 +411,11 @@ class PlanarGraph extends Graph{
 	 * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
 	 */
 	clean():any{
+		var duplicates = this.cleanDuplicateNodes();
 		var newNodes = this.chop(); // todo: return this newNodes
 		return {
 			'edges':super.clean(), 
-			'nodes':this.cleanUnusedNodes() + this.cleanDuplicateNodes().length
+			'nodes':this.cleanUnusedNodes() + duplicates.length
 		};
 	}
 
@@ -435,8 +436,11 @@ class PlanarGraph extends Graph{
 		var newLineNodes = [];
 		for(var i = 0; i < intersections.length; i++){
 			if(intersections[i] != undefined){
+				// todo: don't remove the edge, but copy it, so that if it is a crease pattern and this is a mountain/valley fold it copies that property along with it
+				// shallow copy
+				var edgeClone = (<any>Object).assign({}, intersections[i].edge);
 				super.removeEdge(intersections[i].edge);
-				var newNode = this.addNode(new PlanarNode(this).position(intersections[i].x, intersections[i].y));
+				var newNode = (<PlanarNode>this.newNode()).position(intersections[i].x, intersections[i].y);
 				this.newEdge(intersections[i].edge.nodes[0], newNode);
 				this.newEdge(newNode, intersections[i].edge.nodes[1]);
 				newLineNodes.push(newNode);

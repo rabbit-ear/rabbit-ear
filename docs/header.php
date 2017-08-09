@@ -21,7 +21,7 @@
 		<li class="dropdown">
 			<a href="javascript:void(0)" class="link-fa dropbtn"><i class="fa fa-pencil-square-o fa-2x left-pad"></i></a>
 			<div class="dropdown-content">
-			<a href="../editor/">EDITOR</a>
+<!-- 			<a href="../editor/">EDITOR</a> -->
 			</div>
 		</li>
 		<li class="dropdown">
