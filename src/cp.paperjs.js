@@ -26,17 +26,16 @@ var isRetina = function(){
     return false;
 }();
 
-function zoomView(paperjs, optionalWidth, optionalHeight, retinaScale){
-	pixelScale = retinaScale;
-	if(retinaScale == undefined) { 
-		if(isRetina){ pixelScale = 0.5; }
-		else          { pixelScale = 1.0; }
-	}
+function zoomView(paperjs, optionalWidth, optionalHeight, padding){
+	var pad = padding;
+	if(pad == undefined){ pad = 0.1; }
+	var pixelScale = 1.0;
+	if(isRetina){ pixelScale = 0.5; }
 	var w = optionalWidth;
 	var h = optionalHeight;
 	if(optionalWidth == undefined)  { w = window.innerWidth;  }
 	if(optionalHeight == undefined) { h = window.innerHeight; }
-	var paperSize, paperWindowScale = 0.8;
+	var paperSize, paperWindowScale = 1.0 - pad*2;
 	if(w < h){ paperSize = w * paperWindowScale * pixelScale; } 
 	else     { paperSize = h * paperWindowScale * pixelScale; }
 	var mat = new paperjs.Matrix(1, 0, 0, 1, 0, 0);
@@ -47,7 +46,6 @@ function zoomView(paperjs, optionalWidth, optionalHeight, retinaScale){
 	paperjs.view.matrix = mat;
 	return mat;
 }
-
 
 var PaperCreasePattern = (function () {
 
@@ -128,17 +126,19 @@ var PaperCreasePattern = (function () {
 		this.edgeLayer.removeChildren();
 		this.faceLayer.removeChildren();
 		// draw paper edge
-		this.paperEdgeLayer.activate();
-		this.paperEdgeLayer.removeChildren();
-		var boundaryPath = this.newBorderPath(this.lineWeight);
-		var boundarySegments = [];
-		for(var i = 0; i < this.cp.boundary.edges.length; i++){
-			var endpoints = this.cp.boundary.edges[i].nodes;
-			boundarySegments.push(endpoints[0]);
-			boundarySegments.push(endpoints[1]);
+		if(this.cp.boundary != undefined){
+			this.paperEdgeLayer.activate();
+			this.paperEdgeLayer.removeChildren();
+			var boundaryPath = this.newBorderPath(this.lineWeight);
+			var boundarySegments = [];
+			for(var i = 0; i < this.cp.boundary.edges.length; i++){
+				var endpoints = this.cp.boundary.edges[i].nodes;
+				boundarySegments.push(endpoints[0]);
+				boundarySegments.push(endpoints[1]);
+			}
+			boundaryPath.segments = boundarySegments;
+			boundaryPath.closed = true;
 		}
-		boundaryPath.segments = boundarySegments;
-		boundaryPath.closed = true;
 
 		// drawing layer
 		this.nodeLayer.activate();

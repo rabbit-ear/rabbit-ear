@@ -30,6 +30,14 @@ class XYPoint{
 	// translate(dx:number, dy:number):XYPoint{ this.x += dx; this.y += dy; return this;}
 	normalize():XYPoint { var m = this.mag(); return new XYPoint(this.x/m, this.y/m);}
 	rotate90():XYPoint { return new XYPoint(-this.y, this.x); }
+	rotate(origin:XYPoint, angle:number){
+		var dx = this.x-origin.x;
+		var dy = this.y-origin.y;
+		var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
+		var currentAngle = Math.atan2(dy, dx);
+		return new XYPoint(origin.x + radius*Math.cos(currentAngle + angle),
+		                   origin.y + radius*Math.sin(currentAngle + angle));
+	}
 	dot(point:XYPoint):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XYPoint):number{ return this.x*vector.y - this.y*vector.x; }
 	mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
@@ -98,54 +106,11 @@ class InteriorAngle{
 // 	}
 // }
 
-class PlanarNode extends GraphNode implements XYPoint{
+class PlanarNode extends GraphNode{
 
 	graph:PlanarGraph;
 	x:number;
 	y:number;
-
-	// adjacentFaces():PlanarFace[]{
-	// 	var adjacentFaces = [];
-	// 	var homeAdjacencyArray = this.planarAdjacent();
-	// 	for(var n = 0; n < homeAdjacencyArray.length; n++){
-	// 		var thisFace = new PlanarFace(this.graph);
-	// 		var invalidFace = false;
-	// 		var angleSum = 0;
-	// 		thisFace.nodes = [ this ];
-	// 		var a2b:PlanarPair;
-	// 		var a:PlanarNode;
-	// 		var b:PlanarNode = this;
-	// 		var b2c:PlanarPair = homeAdjacencyArray[n];
-	// 		var c:PlanarNode = b2c.node;
-	// 		do{
-	// 			if(c === a){ invalidFace = true; break; } // this shouldn't be needed if graph is clean
-	// 			thisFace.nodes.push(c);
-	// 			thisFace.edges.push(b2c.edge);
-	// 			// increment, step forward
-	// 			a = b;   b = c;   a2b = b2c;
-	// 			b2c = b.adjacentNodeClockwiseFrom(a);
-	// 			if(b2c == undefined){ invalidFace = true; break; }
-	// 			c = b2c.node;
-	// 			angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
-	// 		}while(c !== this);
-	// 		// close off triangle
-	// 		thisFace.edges.push(b2c.edge);
-	// 		// find interior angle from left off to the original point
-	// 		var c2a = this.adjacentNodeClockwiseFrom(b);
-	// 		if(c2a != undefined){ 
-	// 			angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
-	// 		}
-	// 		// add face if valid
-	// 		if(!invalidFace && thisFace.nodes.length > 2){
-	// 			// sum of interior angles rule, (n-2) * PI
-	// 			var polygonAngle = angleSum / (thisFace.nodes.length-2);
-	// 			if(polygonAngle - EPSILON <= Math.PI && polygonAngle + EPSILON >= Math.PI){
-	// 				adjacentFaces.push(thisFace);
-	// 			}
-	// 		}
-	// 	}
-	// 	return adjacentFaces;
-	// }
 
 	adjacentFaces():PlanarFace[]{
 		var adjacentFaces = [];
@@ -187,27 +152,20 @@ class PlanarNode extends GraphNode implements XYPoint{
 		return undefined;
 	}
 
-	rotateAround(center:XYPoint, angle:number){
-		var dx = this.x-center.x;
-		var dy = this.y-center.y;
-		var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
-		var currentAngle = Math.atan2(dy, dx);
-		this.x = center.x + radius*Math.cos(currentAngle + angle);
-		this.y = center.y + radius*Math.sin(currentAngle + angle);
-	}
-
 // implements XYPoint
 // todo: probably need to break apart XYPoint and this. this modifies the x and y in place. XYPoint returns a new one and doesn't modify the current one in place
 	position(x:number, y:number):PlanarNode{ this.x = x; this.y = y; return this; }
 	translate(dx:number, dy:number):PlanarNode{ this.x += dx; this.y += dy; return this;}
 	normalize():PlanarNode { var m = this.mag(); this.x /= m; this.y /= m; return this; }
-	// rotate90():PlanarNode { var x = this.x; this.x = -this.y; this.y = x; return this; }
-	rotate90():PlanarNode { 
-		var x:number = this.x;
-		var y:number = this.y;
-		this.x = -y;
-		this.y = x;
-		return this; 
+	rotate90():PlanarNode { var x = this.x; this.x = -this.y; this.y = x; return this; }
+	rotate(origin:XYPoint, angle:number):PlanarNode{
+		var dx = this.x-origin.x;
+		var dy = this.y-origin.y;
+		var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
+		var currentAngle = Math.atan2(dy, dx);
+		this.x = origin.x + radius*Math.cos(currentAngle + angle);
+		this.y = origin.y + radius*Math.sin(currentAngle + angle);
+		return this;
 	}
 	dot(point:XYPoint):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XYPoint):number{ return this.x*vector.y - this.y*vector.x; }
@@ -272,12 +230,12 @@ class PlanarFace{
 	// clockwise
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
-	// angles:number[];  // maybe someday
+	angles:number[];  // maybe someday
 	constructor(graph:PlanarGraph){
 		this.graph = graph;
 		this.nodes = [];
 		this.edges = [];
-		// this.angles = [];
+		this.angles = [];
 	}
 	equivalent(face:PlanarFace):boolean{
 		if(face.nodes.length != this.nodes.length) return false;
@@ -345,29 +303,6 @@ class PlanarGraph extends Graph{
 		               .translate(Math.cos(angle)*length, Math.sin(angle)*length);
 		return <PlanarEdge>this.newEdge(node, newNode);
 	}
-
-	/** Create one face between the three or more nodes supplied in the nodeArray argument
-	 * @returns {PlanarFace} pointer to the face
-	 */
-	newFaceBetweenNodes(nodeArray:PlanarNode[]):PlanarFace{
-		if(nodeArray.length == 0) return;
-		var edgeArray:PlanarEdge[] = [];
-		for(var i = 0; i < nodeArray.length; i++){
-			var nextI = (i + 1) % nodeArray.length;
-			var thisEdge = <PlanarEdge>this.getEdgeConnectingNodes(nodeArray[i], nodeArray[nextI]);
-			if(thisEdge == undefined){
-				console.log("creating edge to make face between nodes " + nodeArray[i] + ' ' + nodeArray[nextI]);
-				thisEdge = <PlanarEdge>this.newEdge(nodeArray[i], nodeArray[nextI]);
-			}
-			edgeArray.push(thisEdge);
-		}
-		var face = new PlanarFace(this);
-		face.edges = edgeArray;
-		face.nodes = nodeArray
-		this.faces.push(face);
-		return face;
-	}
-
 
 	///////////////////////////////////////////////
 	// REMOVE PARTS
@@ -444,45 +379,6 @@ class PlanarGraph extends Graph{
 	// 	return count;
 	// }
 
-	makeFace(circut:PlanarPair[]):PlanarFace{
-		if(circut == undefined || circut.length < 3) return undefined;
-		var face = new PlanarFace(this);
-		face.nodes = circut.map(function(el){return el.node;});
-		// so the first node is already present, it's just in the last spot. is this okay?
-		// face.nodes.unshift(circut[0].parent);
-		face.edges = circut.map(function(el){return el.edge;});
-		var angleSum = 0;
-		for(var i = 0; i < circut.length; i++){
-			var nextI = (i+1)%(circut.length);
-			angleSum += clockwiseAngleFrom(circut[i].angle, circut[nextI].angle - Math.PI);
-		}
-		// sum of interior angles rule, (n-2) * PI
-		if(face.nodes.length > 2 && epsilonEqual(angleSum/(face.nodes.length-2), Math.PI, EPSILON)){
-			return face;
-		}
-	}
-
-	findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarPair[]{
-		var incidentEdge = <PlanarEdge>this.getEdgeConnectingNodes(node1, node2);
-		if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
-		var pairs:PlanarPair[] = [];
-		var lastNode = node1;
-		var travelingNode = node2;
-		var visitedList = [lastNode];
-		var nextWalk = new PlanarPair(lastNode, travelingNode, incidentEdge);
-		pairs.push(nextWalk);
-		do{
-			visitedList.push(travelingNode);
-			nextWalk = travelingNode.adjacentNodeClockwiseFrom(lastNode);
-			pairs.push(nextWalk);
-			lastNode = travelingNode;
-			travelingNode = nextWalk.node;
-			if(travelingNode === node1){ return pairs; }
-		} while(!arrayContainsObject(visitedList, travelingNode));
-		return undefined;
-	}
-
-
 	searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
 		for(var i = 0; i < this.nodes.length-1; i++){
 			for(var j = i+1; j < this.nodes.length; j++){
@@ -536,21 +432,17 @@ class PlanarGraph extends Graph{
 		for(var i = 0; i < intersections.length; i++){
 			if(intersections[i] != undefined){
 				var newNode = (<PlanarNode>this.newNode()).position(intersections[i].x, intersections[i].y);
-				var edgeClone = this.copyEdge(intersections[i].edge);
-				edgeClone.nodes = [newNode, intersections[i].edge.nodes[1]];
+				this.copyEdge(intersections[i].edge).nodes = [newNode, intersections[i].edge.nodes[1]];
 				intersections[i].edge.nodes[1] = newNode;
 				newLineNodes.push(newNode);
 			}
 		}
 		// replace the original edge with smaller collinear pieces of itself
-		var edgeCloneStart = this.copyEdge(edge);
-		edgeCloneStart.nodes = [endNodes[0], newLineNodes[0]];
+		this.copyEdge(edge).nodes = [endNodes[0], newLineNodes[0]];
 		for(var i = 0; i < newLineNodes.length-1; i++){
-			var edgeClone = this.copyEdge(edge);
-			edgeClone.nodes = [newLineNodes[i], newLineNodes[i+1]];
+			this.copyEdge(edge).nodes = [newLineNodes[i], newLineNodes[i+1]];
 		}
-		var edgeCloneEnd = this.copyEdge(edge);
-		edgeCloneEnd.nodes = [newLineNodes[newLineNodes.length-1], endNodes[1]];
+		this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length-1], endNodes[1]];
 		super.removeEdge(edge);
 		super.cleanGraph();
 		return intersections.map(function(el){ return new XYPoint(el.x, el.y); } );
@@ -689,6 +581,43 @@ class PlanarGraph extends Graph{
 				}
 				if(!duplicate){ this.faces.push(adjacentFaces[af]); }
 			}
+		}
+	}
+
+	findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarPair[]{
+		var incidentEdge = <PlanarEdge>this.getEdgeConnectingNodes(node1, node2);
+		if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
+		var pairs:PlanarPair[] = [];
+		var lastNode = node1;
+		var travelingNode = node2;
+		var visitedList = [lastNode];
+		var nextWalk = new PlanarPair(lastNode, travelingNode, incidentEdge);
+		pairs.push(nextWalk);
+		do{
+			visitedList.push(travelingNode);
+			nextWalk = travelingNode.adjacentNodeClockwiseFrom(lastNode);
+			pairs.push(nextWalk);
+			lastNode = travelingNode;
+			travelingNode = nextWalk.node;
+			if(travelingNode === node1){ return pairs; }
+		} while(!arrayContainsObject(visitedList, travelingNode));
+		return undefined;
+	}
+
+	makeFace(circut:PlanarPair[]):PlanarFace{
+		if(circut == undefined || circut.length < 3) return undefined;
+		var face = new PlanarFace(this);
+		face.nodes = circut.map(function(el){return el.node;});
+		// so the first node is already present, it's just in the last spot. is this okay?
+		// face.nodes.unshift(circut[0].parent);
+		face.edges = circut.map(function(el){return el.edge;});
+		for(var i = 0; i < circut.length; i++){
+			face.angles.push(clockwiseAngleFrom(circut[i].angle, circut[(i+1)%(circut.length)].angle-Math.PI));
+		}
+		var angleSum = face.angles.reduce(function(sum,value){ return sum + value; }, 0);
+		// sum of interior angles rule, (n-2) * PI
+		if(face.nodes.length > 2 && epsilonEqual(angleSum/(face.nodes.length-2), Math.PI, EPSILON)){
+			return face;
 		}
 	}
 

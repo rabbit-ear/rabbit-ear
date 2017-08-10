@@ -4,18 +4,10 @@ function full_screen_sketch(){
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height);
+	zoomView(scope, canvas.width, canvas.height, 0.0);
 
-var cp;
-var paperCP;
-
-	cp = new CreasePattern();
-	paperCP = new PaperCreasePattern(scope, cp);
-
-	var nearestEdge = undefined;
-	var nearestNode = undefined;
-
-	var NUM_LINES = 30;
+	var cp = new PlanarGraph();
+	var paperCP = new PaperCreasePattern(scope, cp);
 
 	var mouseNodeLayer = new paper.Layer();
 	mouseNodeLayer.activate();
@@ -26,24 +18,13 @@ var paperCP;
 		fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
 	});
 
+	var aspect = canvas.width / canvas.height;
+
 	function resetCP(){
 		cp.clear();
-		cp.nodes = [];
-		cp.edges = [];
-		var firstEdge = cp.creaseOnly(new XYPoint(0.0, 0.5), new XYPoint(1.0, 0.5));
-		var v = .8/(NUM_LINES-1);
-		for(var i = 0; i < NUM_LINES; i++){
-			var x = .1 + .8*(i/(NUM_LINES-1));
-			cp.creaseOnly(
-				new XYPoint(x + Math.random()*v-v*0.5, 0.25 + Math.random()*v-v*0.5), 
-				new XYPoint(x + Math.random()*v-v*0.5, 0.75 + Math.random()*v-v*0.5)
-			);
-		}
-		var lowerEdge = cp.creaseOnly(new XYPoint(0.0, 0.6), new XYPoint(1.0, 0.6));
+		cp.newPlanarEdge(0.0, 0.0, 1.0 * aspect, 1.0);
+		cp.newPlanarEdge(0.0, 1.0, 1.0 * aspect, 0.0);
 		var crossings = cp.chop();
-		// var crossings = cp.chopAllCrossingsWithEdge(lowerEdge);
-		// console.log(crossings);
-		// console.log(crossings.length + " crossings");
 		paperCP.initialize();
 	}
 	resetCP();
@@ -51,30 +32,13 @@ var paperCP;
 	scope.view.onFrame = function(event){ }
 	scope.view.onResize = function(event){
 		paper = scope;
-		zoomView(scope, canvas.width, canvas.height);
+		zoomView(scope, canvas.width, canvas.height, 0.0);
 	}
 	scope.view.onMouseMove = function(event){ 
 		mousePos = event.point;
-		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
-		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
-		if(nearestNode !== nNode){
-			nearestNode = nNode;
-			nodeCircle.position.x = nearestNode.x;
-			nodeCircle.position.y = nearestNode.y;
-			// console.log("Node: " + nearestNode);
-		}
-		if(nearestEdge !== nEdge){
-			nearestEdge = nEdge;
-			for(var i = 0; i < cp.edges.length; i++){
-				if(nearestEdge != undefined && nearestEdge === cp.edges[i]){
-					// paperCP.edges[i].strokeWidth = paperCP.lineWeight*2;
-					paperCP.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
-				} else{
-					// paperCP.edges[i].strokeWidth = paperCP.lineWeight;
-					paperCP.edges[i].strokeColor = paperCP.colorForCrease(cp.edges[i].orientation);
-				}
-			}
-			// console.log("Edge: " + nearestEdge);
+		if(mousePos != undefined){
+			nodeCircle.position.x = mousePos.x;
+			nodeCircle.position.y = mousePos.y;
 		}
 	}
 

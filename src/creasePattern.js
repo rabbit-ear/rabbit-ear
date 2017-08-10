@@ -632,14 +632,6 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(0.29289, 0.29289, 0.29289, 0).mountain();
         this.clean();
         this.generateFaces();
-        // this.newFaceBetweenNodes([0, 1, 3]);
-        // this.newFaceBetweenNodes([0, 2, 1]);
-        // this.newFaceBetweenNodes([4, 3, 1]);
-        // this.newFaceBetweenNodes([5, 1, 2]);
-        // this.newFaceBetweenNodes([6, 5, 2]);
-        // this.newFaceBetweenNodes([6, 2, 0]);
-        // this.newFaceBetweenNodes([7, 3, 4]);
-        // this.newFaceBetweenNodes([7, 0, 3]);
     };
     CreasePattern.prototype.birdBase = function () {
         _super.prototype.clear.call(this);
