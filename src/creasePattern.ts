@@ -124,7 +124,7 @@ class CreasePattern extends PlanarGraph{
 		this.addPaperEdge(w,0, w,w);
 		this.addPaperEdge(w,w, 0,w);
 		this.addPaperEdge(0,w, 0,0);
-		super.cleanDuplicateNodes();
+		this.cleanDuplicateNodes();
 		this.boundary.cleanDuplicateNodes();
 		return this;
 	}
@@ -186,12 +186,10 @@ class CreasePattern extends PlanarGraph{
 	///////////////////////////////////////////////////////////////
 	// CLEAN  /  REMOVE PARTS
 
-	// clean(){
-	// 	return super.clean();
-	// }
-
 	clear(){
-		super.clear();
+		this.nodes = [];
+		this.edges = [];
+		this.faces = [];
 		if(this.boundary != undefined){
 			for(var i = 0; i < this.boundary.edges.length; i++){
 				var nodes = this.boundary.edges[i].nodes;
@@ -567,10 +565,6 @@ class CreasePattern extends PlanarGraph{
 
 	findAllFaces(){
 		this.generateFaces();
-	}
-
-	log(){
-		super.log();
 	}
 
 	kiteBase(){

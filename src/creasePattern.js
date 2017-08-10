@@ -139,7 +139,7 @@ var CreasePattern = (function (_super) {
         this.addPaperEdge(w, 0, w, w);
         this.addPaperEdge(w, w, 0, w);
         this.addPaperEdge(0, w, 0, 0);
-        _super.prototype.cleanDuplicateNodes.call(this);
+        this.cleanDuplicateNodes();
         this.boundary.cleanDuplicateNodes();
         return this;
     };
@@ -203,11 +203,10 @@ var CreasePattern = (function (_super) {
     // }
     ///////////////////////////////////////////////////////////////
     // CLEAN  /  REMOVE PARTS
-    // clean(){
-    // 	return super.clean();
-    // }
     CreasePattern.prototype.clear = function () {
-        _super.prototype.clear.call(this);
+        this.nodes = [];
+        this.edges = [];
+        this.faces = [];
         if (this.boundary != undefined) {
             for (var i = 0; i < this.boundary.edges.length; i++) {
                 var nodes = this.boundary.edges[i].nodes;
@@ -600,9 +599,6 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.findAllFaces = function () {
         this.generateFaces();
-    };
-    CreasePattern.prototype.log = function () {
-        _super.prototype.log.call(this);
     };
     CreasePattern.prototype.kiteBase = function () {
         _super.prototype.clear.call(this);

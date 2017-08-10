@@ -282,6 +282,13 @@ class PlanarGraph extends Graph{
 	// ADD PARTS
 	///////////////////////////////////////////////
 
+	/** Create a new isolated planar node at x,y
+	 * @returns {PlanarNode} pointer to the node
+	 */
+	newPlanarNode(x:number, y:number):PlanarNode{
+		return (<PlanarNode>this.newNode()).position(x, y);
+	}
+
 	/** Create two new nodes each with x,y locations and an edge between them
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
@@ -337,7 +344,8 @@ class PlanarGraph extends Graph{
 
 	/** Removes all nodes, edges, and faces, returning the graph to it's original state */
 	clear(){
-		super.clear(); // empties nodes[] and edges[]
+		this.nodes = [];
+		this.edges = [];
 		this.faces = [];
 	}
 
@@ -345,27 +353,33 @@ class PlanarGraph extends Graph{
 	 * @returns {boolean} if the edge was removed
 	 */
 	removeEdge(edge:GraphEdge):boolean{
+		var len = this.edges.length;
 		var endNodes = [edge.nodes[0], edge.nodes[1]];
-		var success = super.removeEdge(edge);
-		this.cleanUselessNode(endNodes[0]);
-		this.cleanUselessNode(endNodes[1]);
-		return success;
+		this.edges = this.edges.filter(function(el){ return el !== edge; });
+		this.cleanNodeIfUseless(endNodes[0]);
+		this.cleanNodeIfUseless(endNodes[1]);
+		return (len !== this.edges.length);
 	}
 
 	/** Attempt to remove an edge if one is found that connects the 2 nodes supplied, and also attempt to remove the two nodes left behind if they are otherwise unused
 	 * @returns {number} how many edges were removed
 	 */
 	removeEdgeBetween(node1:GraphNode, node2:GraphNode):number{
-		var count = super.removeEdgeBetween(node1, node2);
-		this.cleanUselessNode(node1);
-		this.cleanUselessNode(node2);
-		return count;
+		var len = this.edges.length;
+		this.edges = this.edges.filter(function(el){ 
+			return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
+			         (el.nodes[0] === node2 && el.nodes[1] === node1) );
+		});
+		this.edgeArrayDidChange();
+		this.cleanNodeIfUseless(node1);
+		this.cleanNodeIfUseless(node2);
+		return len - this.edges.length;
 	}
 
 	/** Remove a node if it is either unconnected to any edges, or is in the middle of 2 collinear edges
 	 * @returns {boolean} if node was removed
 	 */
-	cleanUselessNode(node):boolean{
+	cleanNodeIfUseless(node):boolean{
 		var edges = node.adjacentEdges();
 		switch (edges.length){
 			case 0: return this.removeNode(node);
@@ -388,7 +402,7 @@ class PlanarGraph extends Graph{
 	cleanUselessNodes():number{
 		var count = super.removeIsolatedNodes();
 		for(var i = this.nodes.length-1; i >= 0; i--){
-			if(this.cleanUselessNode(this.nodes[i])){ count += 1; }
+			if(this.cleanNodeIfUseless(this.nodes[i])){ count += 1; }
 		}
 		return count;
 	}
@@ -401,7 +415,6 @@ class PlanarGraph extends Graph{
 
 
 	searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
-		console.log("searchAndMergeOneDuplicatePair");
 		for(var i = 0; i < this.nodes.length-1; i++){
 			for(var j = i+1; j < this.nodes.length; j++){
 				if ( this.nodes[i].equivalent( this.nodes[j], epsilon) ){
@@ -414,7 +427,6 @@ class PlanarGraph extends Graph{
 	}
 
 	cleanDuplicateNodes(epsilon?:number):XYPoint[]{
-		console.log("cleanDuplicateNodes");
 		if(epsilon == undefined){ epsilon = EPSILON; }
 		var node:PlanarNode;
 		var locations:XYPoint[] = [];
@@ -429,12 +441,8 @@ class PlanarGraph extends Graph{
 	 * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
 	 */
 	clean():any{
-		console.log("PLANAR GRAPH CLEAN()");
-		console.log("cleaning duplicate nodes");
 		var duplicates = this.cleanDuplicateNodes();
-		console.log("chopping");
 		var newNodes = this.chop(); // todo: return this newNodes
-		console.log("super");
 		return {
 			'edges':super.cleanGraph(), 
 			'nodes':this.cleanUselessNodes() + duplicates.length
@@ -658,7 +666,13 @@ class PlanarGraph extends Graph{
 	}
 
 	log(verbose?:boolean){
-		super.log(verbose);
+		console.log('#Nodes: ' + this.nodes.length);
+		console.log('#Edges: ' + this.edges.length);
+		if(verbose != undefined && verbose == true){
+			for(var i = 0; i < this.edges.length; i++){
+				console.log(i + ': ' + this.edges[i].nodes[0] + ' ' + this.edges[i].nodes[1]);
+			}
+		}
 		for(var i = 0; i < this.nodes.length; i++){
 			console.log(' ' + i + ': (' + this.nodes[i].x + ', ' + this.nodes[i].y + ')');
 		}

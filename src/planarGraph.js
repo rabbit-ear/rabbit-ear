@@ -297,6 +297,12 @@ var PlanarGraph = (function (_super) {
     ///////////////////////////////////////////////
     // ADD PARTS
     ///////////////////////////////////////////////
+    /** Create a new isolated planar node at x,y
+     * @returns {PlanarNode} pointer to the node
+     */
+    PlanarGraph.prototype.newPlanarNode = function (x, y) {
+        return this.newNode().position(x, y);
+    };
     /** Create two new nodes each with x,y locations and an edge between them
      * @returns {PlanarEdge} pointer to the edge
      */
@@ -347,32 +353,39 @@ var PlanarGraph = (function (_super) {
     ///////////////////////////////////////////////
     /** Removes all nodes, edges, and faces, returning the graph to it's original state */
     PlanarGraph.prototype.clear = function () {
-        _super.prototype.clear.call(this); // empties nodes[] and edges[]
+        this.nodes = [];
+        this.edges = [];
         this.faces = [];
     };
     /** Removes an edge and also attempt to remove the two nodes left behind if they are otherwise unused
      * @returns {boolean} if the edge was removed
      */
     PlanarGraph.prototype.removeEdge = function (edge) {
+        var len = this.edges.length;
         var endNodes = [edge.nodes[0], edge.nodes[1]];
-        var success = _super.prototype.removeEdge.call(this, edge);
-        this.cleanUselessNode(endNodes[0]);
-        this.cleanUselessNode(endNodes[1]);
-        return success;
+        this.edges = this.edges.filter(function (el) { return el !== edge; });
+        this.cleanNodeIfUseless(endNodes[0]);
+        this.cleanNodeIfUseless(endNodes[1]);
+        return (len !== this.edges.length);
     };
     /** Attempt to remove an edge if one is found that connects the 2 nodes supplied, and also attempt to remove the two nodes left behind if they are otherwise unused
      * @returns {number} how many edges were removed
      */
     PlanarGraph.prototype.removeEdgeBetween = function (node1, node2) {
-        var count = _super.prototype.removeEdgeBetween.call(this, node1, node2);
-        this.cleanUselessNode(node1);
-        this.cleanUselessNode(node2);
-        return count;
+        var len = this.edges.length;
+        this.edges = this.edges.filter(function (el) {
+            return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
+                (el.nodes[0] === node2 && el.nodes[1] === node1));
+        });
+        this.edgeArrayDidChange();
+        this.cleanNodeIfUseless(node1);
+        this.cleanNodeIfUseless(node2);
+        return len - this.edges.length;
     };
     /** Remove a node if it is either unconnected to any edges, or is in the middle of 2 collinear edges
      * @returns {boolean} if node was removed
      */
-    PlanarGraph.prototype.cleanUselessNode = function (node) {
+    PlanarGraph.prototype.cleanNodeIfUseless = function (node) {
         var edges = node.adjacentEdges();
         switch (edges.length) {
             case 0: return this.removeNode(node);
@@ -394,7 +407,7 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.cleanUselessNodes = function () {
         var count = _super.prototype.removeIsolatedNodes.call(this);
         for (var i = this.nodes.length - 1; i >= 0; i--) {
-            if (this.cleanUselessNode(this.nodes[i])) {
+            if (this.cleanNodeIfUseless(this.nodes[i])) {
                 count += 1;
             }
         }
@@ -406,7 +419,6 @@ var PlanarGraph = (function (_super) {
     // 	return count;
     // }
     PlanarGraph.prototype.searchAndMergeOneDuplicatePair = function (epsilon) {
-        console.log("searchAndMergeOneDuplicatePair");
         for (var i = 0; i < this.nodes.length - 1; i++) {
             for (var j = i + 1; j < this.nodes.length; j++) {
                 if (this.nodes[i].equivalent(this.nodes[j], epsilon)) {
@@ -418,7 +430,6 @@ var PlanarGraph = (function (_super) {
         return undefined;
     };
     PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
-        console.log("cleanDuplicateNodes");
         if (epsilon == undefined) {
             epsilon = EPSILON;
         }
@@ -436,12 +447,8 @@ var PlanarGraph = (function (_super) {
      * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
      */
     PlanarGraph.prototype.clean = function () {
-        console.log("PLANAR GRAPH CLEAN()");
-        console.log("cleaning duplicate nodes");
         var duplicates = this.cleanDuplicateNodes();
-        console.log("chopping");
         var newNodes = this.chop(); // todo: return this newNodes
-        console.log("super");
         return {
             'edges': _super.prototype.cleanGraph.call(this),
             'nodes': this.cleanUselessNodes() + duplicates.length
@@ -685,7 +692,13 @@ var PlanarGraph = (function (_super) {
         }
     };
     PlanarGraph.prototype.log = function (verbose) {
-        _super.prototype.log.call(this, verbose);
+        console.log('#Nodes: ' + this.nodes.length);
+        console.log('#Edges: ' + this.edges.length);
+        if (verbose != undefined && verbose == true) {
+            for (var i = 0; i < this.edges.length; i++) {
+                console.log(i + ': ' + this.edges[i].nodes[0] + ' ' + this.edges[i].nodes[1]);
+            }
+        }
         for (var i = 0; i < this.nodes.length; i++) {
             console.log(' ' + i + ': (' + this.nodes[i].x + ', ' + this.nodes[i].y + ')');
         }
