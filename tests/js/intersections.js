@@ -7,7 +7,7 @@ function edge_intersections(){
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height);
+	zoomView(scope, canvas.width, canvas.height, 0.0);
 
 	var cp = new CreasePattern();
 	var paperCP = new PaperCreasePattern(scope, cp);
@@ -26,22 +26,18 @@ function edge_intersections(){
 	});
 
 	function resetCP(){
+		var aspect = canvas.width / canvas.height;
 		cp.clear();
-		cp.nodes = [];
-		cp.edges = [];
-		for(var i = 0; i < 20; i++){
+		cp.rectangle(aspect, 1.0);
+		for(var i = 0; i < 30; i++){
 			var angle = Math.random()*Math.PI*2;
-			cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
+			cp.creaseRay(new XYPoint(Math.random() * aspect, Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
 		}
-		// var intersections
-		// cp.clean();
 		var intersections = cp.chop();
 		paperCP.initialize();
 
 		intersectionsLayer.activate();
 		intersectionsLayer.removeChildren();
-		// var intersections = cp.getAllEdgeIntersections();
-		// console.log(intersections);
 		for(var i = 0; i < intersections.length; i++){
 			var nodeCircle = new paper.Shape.Circle({
 				center: [intersections[i].x, intersections[i].y],
@@ -58,7 +54,8 @@ function edge_intersections(){
 	scope.view.onFrame = function(event){ }
 	scope.view.onResize = function(event){
 		paper = scope;
-		zoomView(scope, canvas.width, canvas.height);
+		resetCP();
+		zoomView(scope, canvas.width, canvas.height, 0.0);
 	}
 	scope.view.onMouseMove = function(event){ 
 		mousePos = event.point;

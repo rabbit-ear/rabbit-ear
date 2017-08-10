@@ -33,10 +33,12 @@ function nearest_nodes_sketch(){
 	scope.view.onFrame = function(event){ }
 	scope.view.onResize = function(event){
 		paper = scope;
+		resetCP();
 		zoomView(scope, canvas.width, canvas.height, 0.0);
 	}
 	scope.view.onMouseMove = function(event){ 
-		var nodes = cp.getNearestNodes( event.point.x, event.point.y, 100 );
+		paper = scope;
+		var nodes = cp.getNearestNodes( event.point.x, event.point.y, 50 );
 
 		edgeLayer.activate();
 		edgeLayer.removeChildren();

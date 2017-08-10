@@ -19,8 +19,20 @@ table { border-collapse: collapse; border-spacing: 0; }
 canvas[resize] {
 	width: 90vw;
 	height: 90vw;
-	max-width: 69vh;
-	max-height: 69vh;
+	max-width: 66vh;
+	max-height: 66vh;
+}
+canvas[resize].panorama {
+	width: 90vw;
+	height: 30vw;
+	max-width: 90vw;
+	max-height: 30vw;
+}
+canvas[resize].fill {
+	width: 90vw;
+	height: 90vh;
+	max-width: 90vw;
+	max-height: 90vh;
 }
 body{
 	font-family: 'Cormorant', Georgia, "Times New Roman", Times, serif;

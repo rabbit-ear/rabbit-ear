@@ -7,7 +7,7 @@
 <section id="intro">
 
 	<div class="centered">
-		<canvas id="canvas-intersections" resize></canvas>
+		<canvas id="canvas-intersections" resize class="panorama"></canvas>
 	</div>
 
 	<div class="centered">

@@ -18,9 +18,8 @@ function full_screen_sketch(){
 		fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
 	});
 
-	var aspect = canvas.width / canvas.height;
-
 	function resetCP(){
+		var aspect = canvas.width / canvas.height;
 		cp.clear();
 		cp.newPlanarEdge(0.0, 0.0, 1.0 * aspect, 1.0);
 		cp.newPlanarEdge(0.0, 1.0, 1.0 * aspect, 0.0);
@@ -32,6 +31,7 @@ function full_screen_sketch(){
 	scope.view.onFrame = function(event){ }
 	scope.view.onResize = function(event){
 		paper = scope;
+		resetCP();
 		zoomView(scope, canvas.width, canvas.height, 0.0);
 	}
 	scope.view.onMouseMove = function(event){ 

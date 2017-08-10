@@ -22,6 +22,10 @@
 		<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNearestNodeIndex"></span>cp.<f>getNearestNode</f>( <n id="spanNearest1MouseX">x</n>, <n id="spanNearest1MouseY">y</n> )<br><span id="spanNearestEdgeIndex"></span>cp.<f>getNearestEdge</f>( <n class="token argument" id="spanNearest2MouseX">x</n>, <n class="token argument" id="spanNearest2MouseY">y</n> )</code></pre>
 	</div>
 
+	<div class="centered">
+		<canvas id="canvas-nearest-nodes" resize class="fill"></canvas>
+	</div>
+
 </section>
 
 <script type="text/javascript" src="../tests/js/mouse-select.js"></script>
@@ -31,6 +35,7 @@
 <script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/15_nearest_node.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/15_nearest_edge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/nearest_nodes.js"></script>
 <script>
 
 mouse_select_callback = function(e){
