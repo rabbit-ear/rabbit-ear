@@ -33,7 +33,8 @@ var XYPoint = (function () {
     XYPoint.prototype.position = function (x, y) { this.x = x; this.y = y; return this; };
     XYPoint.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
     XYPoint.prototype.normalize = function () { var m = this.mag(); this.x /= m; this.y /= m; return this; };
-    XYPoint.prototype.rotate90 = function () { var x = this.x; this.x = -this.y; this.y = x; return this; };
+    // rotate90():XYPoint { var x = this.x; this.x = -this.y; this.y = x; return this; }
+    XYPoint.prototype.rotate90 = function () { return new XYPoint(-this.y, this.x); };
     XYPoint.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
     XYPoint.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
     XYPoint.prototype.mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
@@ -184,7 +185,14 @@ var PlanarNode = (function (_super) {
     PlanarNode.prototype.position = function (x, y) { this.x = x; this.y = y; return this; };
     PlanarNode.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
     PlanarNode.prototype.normalize = function () { var m = this.mag(); this.x /= m; this.y /= m; return this; };
-    PlanarNode.prototype.rotate90 = function () { var x = this.x; this.x = -this.y; this.y = x; return this; };
+    // rotate90():PlanarNode { var x = this.x; this.x = -this.y; this.y = x; return this; }
+    PlanarNode.prototype.rotate90 = function () {
+        var x = this.x;
+        var y = this.y;
+        this.x = -y;
+        this.y = x;
+        return this;
+    };
     PlanarNode.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
     PlanarNode.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
     PlanarNode.prototype.mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };

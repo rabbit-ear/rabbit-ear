@@ -26,10 +26,10 @@ class XYPoint{
 		this.x = x;
 		this.y = y;
 	}
-	position(x:number, y:number):XYPoint{ this.x = x; this.y = y; return this; }
-	translate(dx:number, dy:number):XYPoint{ this.x += dx; this.y += dy; return this;}
-	normalize():XYPoint { var m = this.mag(); this.x /= m; this.y /= m; return this; }
-	rotate90():XYPoint { var x = this.x; this.x = -this.y; this.y = x; return this; }
+	// position(x:number, y:number):XYPoint{ this.x = x; this.y = y; return this; }
+	// translate(dx:number, dy:number):XYPoint{ this.x += dx; this.y += dy; return this;}
+	normalize():XYPoint { var m = this.mag(); return new XYPoint(this.x/m, this.y/m);}
+	rotate90():XYPoint { return new XYPoint(-this.y, this.x); }
 	dot(point:XYPoint):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XYPoint):number{ return this.x*vector.y - this.y*vector.x; }
 	mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
@@ -181,10 +181,18 @@ class PlanarNode extends GraphNode implements XYPoint{
 	}
 
 // implements XYPoint
+// todo: probably need to break apart XYPoint and this. this modifies the x and y in place. XYPoint returns a new one and doesn't modify the current one in place
 	position(x:number, y:number):PlanarNode{ this.x = x; this.y = y; return this; }
 	translate(dx:number, dy:number):PlanarNode{ this.x += dx; this.y += dy; return this;}
 	normalize():PlanarNode { var m = this.mag(); this.x /= m; this.y /= m; return this; }
-	rotate90():PlanarNode { var x = this.x; this.x = -this.y; this.y = x; return this; }
+	// rotate90():PlanarNode { var x = this.x; this.x = -this.y; this.y = x; return this; }
+	rotate90():PlanarNode { 
+		var x:number = this.x;
+		var y:number = this.y;
+		this.x = -y;
+		this.y = x;
+		return this; 
+	}
 	dot(point:XYPoint):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XYPoint):number{ return this.x*vector.y - this.y*vector.x; }
 	mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }

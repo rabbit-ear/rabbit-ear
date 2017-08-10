@@ -40,7 +40,7 @@ var _11_merge_duplicates = function( p ) {
 			g.nodes[i].x = 0.5+0.4*Math.cos(t*g.nodes[i].speed.x * 0.0003 + g.nodes[i].offset.x);
 			g.nodes[i].y = 0.5+0.4*Math.sin(t*g.nodes[i].speed.y * 0.0003 + g.nodes[i].offset.y);
 		}
-		var mergeDataArray = [];//g.cleanDuplicateNodes(0.0075);
+		var mergeDataArray = g.cleanDuplicateNodes(0.0075);
 		if(mergeDataArray != undefined && mergeDataArray.length){
 			for(var i = 0; i < mergeDataArray.length; i++){
 				var mergeData = mergeDataArray[i];

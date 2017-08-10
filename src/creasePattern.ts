@@ -299,7 +299,7 @@ class CreasePattern extends PlanarGraph{
 	creaseEdgeToEdge(a:Crease, b:Crease):Crease[]{
 		if ( linesParallel(a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]) ) {
 			var u = new XYPoint(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
-			var perp:XYPoint = u.rotate90();
+			var perp:XYPoint = new XYPoint(u.x, u.y).rotate90();
 			var intersect1 = lineIntersectionAlgorithm(u, new XYPoint(u.x+perp.x, u.y+perp.y), a.nodes[0], a.nodes[1]);
 			var intersect2 = lineIntersectionAlgorithm(u, new XYPoint(u.x+perp.x, u.y+perp.y), b.nodes[0], b.nodes[1]);
 			var midpoint = new XYPoint((intersect1.x + intersect2.x)*0.5, (intersect1.y + intersect2.y)*0.5);
