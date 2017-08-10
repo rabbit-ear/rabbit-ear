@@ -45,10 +45,14 @@ class PlanarPair{
 	node:PlanarNode;
 	edge:PlanarEdge;  // edge connecting the two nodes
 	angle:number; // radians
+	// parent node
+	parent:PlanarNode;
 	constructor(parent:PlanarNode, node:PlanarNode, edge:PlanarEdge){
 		this.node = node;
 		this.angle = Math.atan2(node.y-parent.y, node.x-parent.x);
 		this.edge = edge;
+		// optional
+		this.parent = parent;
 	}
 }
 
@@ -100,46 +104,58 @@ class PlanarNode extends GraphNode implements XYPoint{
 	x:number;
 	y:number;
 
+	// adjacentFaces():PlanarFace[]{
+	// 	var adjacentFaces = [];
+	// 	var homeAdjacencyArray = this.planarAdjacent();
+	// 	for(var n = 0; n < homeAdjacencyArray.length; n++){
+	// 		var thisFace = new PlanarFace(this.graph);
+	// 		var invalidFace = false;
+	// 		var angleSum = 0;
+	// 		thisFace.nodes = [ this ];
+	// 		var a2b:PlanarPair;
+	// 		var a:PlanarNode;
+	// 		var b:PlanarNode = this;
+	// 		var b2c:PlanarPair = homeAdjacencyArray[n];
+	// 		var c:PlanarNode = b2c.node;
+	// 		do{
+	// 			if(c === a){ invalidFace = true; break; } // this shouldn't be needed if graph is clean
+	// 			thisFace.nodes.push(c);
+	// 			thisFace.edges.push(b2c.edge);
+	// 			// increment, step forward
+	// 			a = b;   b = c;   a2b = b2c;
+	// 			b2c = b.adjacentNodeClockwiseFrom(a);
+	// 			if(b2c == undefined){ invalidFace = true; break; }
+	// 			c = b2c.node;
+	// 			angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
+	// 		}while(c !== this);
+	// 		// close off triangle
+	// 		thisFace.edges.push(b2c.edge);
+	// 		// find interior angle from left off to the original point
+	// 		var c2a = this.adjacentNodeClockwiseFrom(b);
+	// 		if(c2a != undefined){ 
+	// 			angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
+	// 		}
+	// 		// add face if valid
+	// 		if(!invalidFace && thisFace.nodes.length > 2){
+	// 			// sum of interior angles rule, (n-2) * PI
+	// 			var polygonAngle = angleSum / (thisFace.nodes.length-2);
+	// 			if(polygonAngle - EPSILON <= Math.PI && polygonAngle + EPSILON >= Math.PI){
+	// 				adjacentFaces.push(thisFace);
+	// 			}
+	// 		}
+	// 	}
+	// 	return adjacentFaces;
+	// }
+
 	adjacentFaces():PlanarFace[]{
 		var adjacentFaces = [];
-		var homeAdjacencyArray = this.planarAdjacent();
-		for(var n = 0; n < homeAdjacencyArray.length; n++){
-			var thisFace = new PlanarFace(this.graph);
-			var invalidFace = false;
-			var angleSum = 0;
-			thisFace.nodes = [ this ];
-			var a2b:PlanarPair;
-			var a:PlanarNode;
-			var b:PlanarNode = this;
-			var b2c:PlanarPair = homeAdjacencyArray[n];
-			var c:PlanarNode = b2c.node;
-			do{
-				if(c === a){ invalidFace = true; break; } // this shouldn't be needed if graph is clean
-				thisFace.nodes.push(c);
-				thisFace.edges.push(b2c.edge);
-				// increment, step forward
-				a = b;   b = c;   a2b = b2c;
-				b2c = b.adjacentNodeClockwiseFrom(a);
-				c = b2c.node;
-				angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
-			}while(c !== this);
-			// close off triangle
-			thisFace.edges.push(b2c.edge);
-			// find interior angle from left off to the original point
-			var c2a = this.adjacentNodeClockwiseFrom(b);
-			angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
-			// add face if valid
-			if(!invalidFace && thisFace.nodes.length > 2){
-				// sum of interior angles rule, (n-2) * PI
-				var polygonAngle = angleSum / (thisFace.nodes.length-2);
-				if(polygonAngle - EPSILON <= Math.PI && polygonAngle + EPSILON >= Math.PI){
-					adjacentFaces.push(thisFace);
-				}
-			}
+		var adj = this.planarAdjacent();
+		for(var n = 0; n < adj.length; n++){
+			var face = this.graph.makeFace( this.graph.findClockwiseCircut(this, adj[n].node) );
+			if(face != undefined){ adjacentFaces.push(face); }
 		}
 		return adjacentFaces;
 	}
-
 	interiorAngles():InteriorAngle[]{
 		var adj = this.planarAdjacent();
 		return adj.map(function(el, i){
@@ -240,8 +256,15 @@ class PlanarEdge extends GraphEdge{
 		return Math.atan2(endNode.y-startNode.y, endNode.x-startNode.x);
 	}
 
-	// adjacentFaces():PlanarFace[]{
-	// }
+	adjacentFaces():PlanarFace[]{
+		var adjacentFaces = [];
+		var face1 = this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[0], this.nodes[1]) );
+		if(face1 != undefined){ adjacentFaces.push(face1); }
+		var face2 = this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[1], this.nodes[0]) );
+		if(face2 != undefined){ adjacentFaces.push(face2); }
+		return adjacentFaces;
+	}
+
 }
 
 class PlanarFace{
@@ -420,6 +443,44 @@ class PlanarGraph extends Graph{
 	// 	this.cleanDuplicateNodes();
 	// 	return count;
 	// }
+
+	makeFace(circut:PlanarPair[]):PlanarFace{
+		if(circut == undefined || circut.length < 3) return undefined;
+		var face = new PlanarFace(this);
+		face.nodes = circut.map(function(el){return el.node;});
+		// so the first node is already present, it's just in the last spot. is this okay?
+		// face.nodes.unshift(circut[0].parent);
+		face.edges = circut.map(function(el){return el.edge;});
+		var angleSum = 0;
+		for(var i = 0; i < circut.length; i++){
+			var nextI = (i+1)%(circut.length);
+			angleSum += clockwiseAngleFrom(circut[i].angle, circut[nextI].angle - Math.PI);
+		}
+		// sum of interior angles rule, (n-2) * PI
+		if(face.nodes.length > 2 && epsilonEqual(angleSum/(face.nodes.length-2), Math.PI, EPSILON)){
+			return face;
+		}
+	}
+
+	findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarPair[]{
+		var incidentEdge = <PlanarEdge>this.getEdgeConnectingNodes(node1, node2);
+		if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
+		var pairs:PlanarPair[] = [];
+		var lastNode = node1;
+		var travelingNode = node2;
+		var visitedList = [lastNode];
+		var nextWalk = new PlanarPair(lastNode, travelingNode, incidentEdge);
+		pairs.push(nextWalk);
+		do{
+			visitedList.push(travelingNode);
+			nextWalk = travelingNode.adjacentNodeClockwiseFrom(lastNode);
+			pairs.push(nextWalk);
+			lastNode = travelingNode;
+			travelingNode = nextWalk.node;
+			if(travelingNode === node1){ return pairs; }
+		} while(!arrayContainsObject(visitedList, travelingNode));
+		return undefined;
+	}
 
 
 	searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
@@ -618,51 +679,9 @@ class PlanarGraph extends Graph{
 	// FACE
 
 	generateFaces(){
+		this.faces = [];
 		for(var i = 0; i < this.nodes.length; i++){
-			var thisNode = this.nodes[i];
-			var adjacentFaces = [];
-			var homeAdjacencyArray = thisNode.planarAdjacent();
-			for(var n = 0; n < homeAdjacencyArray.length; n++){
-				var thisFace = new PlanarFace(this);
-				var invalidFace = false;
-				var angleSum = 0;
-				thisFace.nodes = [ thisNode ];
-				var a2b:PlanarPair;
-				var a:PlanarNode;
-				var b:PlanarNode = thisNode;
-				var b2c:PlanarPair = homeAdjacencyArray[n];
-				var c:PlanarNode = b2c.node;
-				do{
-					if(c === a){ invalidFace = true; break; } // this shouldn't be needed if graph is clean
-					thisFace.nodes.push(c);
-					thisFace.edges.push(b2c.edge);
-					// increment, step forward
-					a = b;   b = c;   a2b = b2c;
-					b2c = b.adjacentNodeClockwiseFrom(a);
-					if(b2c == undefined){ invalidFace = true; break; }
-					c = b2c.node;
-					angleSum += clockwiseAngleFrom(a2b.angle, b2c.angle - Math.PI);
-				}while(c !== thisNode);
-				// close off triangle
-				thisFace.edges.push(b2c.edge);
-				// find interior angle from left off to the original point
-				if(thisNode === b){ invalidFace = true;} // this is consistently happening with one of the paper corner vertices
-				else{
-					var c2a = thisNode.adjacentNodeClockwiseFrom(b);
-					if(c2a != undefined){ 
-						angleSum += clockwiseAngleFrom(b2c.angle, c2a.angle - Math.PI);
-					}
-				}
-				// add face if valid
-				if(!invalidFace && thisFace.nodes.length > 2){
-					// sum of interior angles rule, (n-2) * PI
-					var polygonAngle = angleSum / (thisFace.nodes.length-2);
-					if(polygonAngle - EPSILON <= Math.PI && polygonAngle + EPSILON >= Math.PI){
-						adjacentFaces.push(thisFace);
-					}
-				}
-
-			}
+			var adjacentFaces = this.nodes[i].adjacentFaces();
 			for(var af = 0; af < adjacentFaces.length; af++){
 				var duplicate = false;
 				for(var tf = 0; tf < this.faces.length; tf++){
@@ -858,6 +877,11 @@ function arrayContainsDuplicates(array):boolean{
 			}
 		}
 	}
+	return false;
+}
+
+function arrayContainsObject(array, object):boolean{
+	for(var i = 0; i < array.length; i++) { if(array[i] === object){ return true; } }
 	return false;
 }
 

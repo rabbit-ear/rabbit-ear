@@ -11,8 +11,8 @@
 		<pre><code>cp.<v>nodes</v>[<n id="adjacent-face-node">0</n>].<f>adjacentFaces</f>()</code></pre>
 	</div>
 
-	<div class="explain">
-		<p>Even if edges properly enclose a space, a face won't be created if there is a stray edge poking into the polygon.</p>
+	<div class="quote">
+		<p>This algorithm above, <b>adjacentFaces()</b>, is running in real time</p>
 	</div>
 
 	<div class="centered">
@@ -22,6 +22,14 @@
 
 	<div class="centered">
 		<pre><code>cp.<f>generateFaces</f>()</code></pre>
+	</div>
+
+	<div class="quote">
+		<p>This algorithm, <b>generateFaces()</b>, calculates and stores all the faces, and ran once at the beginning</p>
+	</div>
+
+	<div class="explain">
+		<p>A face won't be created if there is a stray edge poking into the polygon.</p>
 	</div>
 </section>
 
@@ -36,7 +44,7 @@
 	<div class="centered">
 		<canvas id="canvas-1" resize></canvas>
 		<canvas id="canvas-2" resize></canvas>
-		<canvas id="canvas-3" resize></canvas>
+		<!-- <canvas id="canvas-3" resize></canvas> -->
 	</div>
 
 	<div class="quote">
@@ -98,13 +106,13 @@ cp1.generateFaces();
 var cp2 = new CreasePattern();
 cp2.birdBase();
 cp2.generateFaces();
-var cp3 = new CreasePattern();
-cp3.frogBase();
-cp3.generateFaces();
+// var cp3 = new CreasePattern();
+// cp3.frogBase();
+// cp3.generateFaces();
 
 fillCanvasWithCP("canvas-1", cp1);
 fillCanvasWithCP("canvas-2", cp2);
-fillCanvasWithCP("canvas-3", cp3);
+// fillCanvasWithCP("canvas-3", cp3);
 </script>
 
 <script>
