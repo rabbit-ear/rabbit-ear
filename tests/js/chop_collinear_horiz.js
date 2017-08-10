@@ -4,7 +4,7 @@ function chop_collinear_horiz(){
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height, 0.5);
+	zoomView(scope, canvas.width, canvas.height);
 
 var cp;
 var paperCP;
@@ -45,7 +45,7 @@ var paperCP;
 	scope.view.onFrame = function(event){ }
 	scope.view.onResize = function(event){
 		paper = scope;
-		zoomView(scope, canvas.width, canvas.height, 0.5);
+		zoomView(scope, canvas.width, canvas.height);
 	}
 	scope.view.onMouseMove = function(event){ 
 		mousePos = event.point;

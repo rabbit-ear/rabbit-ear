@@ -5,7 +5,7 @@ function fish_base_wobble(){
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height, 0.5);
+	zoomView(scope, canvas.width, canvas.height);
 
 	fishCP.fishBase();
 	var paperCP = new PaperCreasePattern(scope, fishCP);
@@ -28,7 +28,7 @@ function fish_base_wobble(){
 	}
 
 	scope.view.onResize = function(event) {
-		zoomView(scope, canvas.width, canvas.height, 0.5);
+		zoomView(scope, canvas.width, canvas.height);
 	}
 
 	scope.view.onMouseMove = function(event) {

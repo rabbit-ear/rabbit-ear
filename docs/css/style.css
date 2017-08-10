@@ -17,8 +17,10 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 
 canvas[resize] {
-	width: 60vmin;
-	height: 60vmin;
+	width: 90vw;
+	height: 90vw;	
+	max-width: 60vh;
+	max-height: 60vh;
 }
 body{
 	font-family: 'Cormorant', Georgia, "Times New Roman", Times, serif;

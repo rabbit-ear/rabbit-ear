@@ -12,10 +12,26 @@
 // }
 
 var EPSILON_FILE_IMPORT = 0.005;
+var pixelScale;
+
+var isRetina = function(){
+    var mediaQuery = "(-webkit-min-device-pixel-ratio: 1.5),\
+            (min--moz-device-pixel-ratio: 1.5),\
+            (-o-min-device-pixel-ratio: 3/2),\
+            (min-resolution: 1.5dppx)";
+    if (window.devicePixelRatio > 1)
+        return true;
+    if (window.matchMedia && window.matchMedia(mediaQuery).matches)
+        return true;
+    return false;
+}();
 
 function zoomView(paperjs, optionalWidth, optionalHeight, retinaScale){
-	var pixelScale = retinaScale;
-	if(retinaScale == undefined) { pixelScale = 1.0; }
+	pixelScale = retinaScale;
+	if(retinaScale == undefined) { 
+		if(isRetina){ pixelScale = 0.5; }
+		else          { pixelScale = 1.0; }
+	}
 	var w = optionalWidth;
 	var h = optionalHeight;
 	if(optionalWidth == undefined)  { w = window.innerWidth;  }

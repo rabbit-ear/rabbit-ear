@@ -29,14 +29,14 @@ window.onload = function() {
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height, 0.5);
+	zoomView(scope, canvas.width, canvas.height);
 
 	paperCP = new PaperCreasePattern(scope, cp);
 
 	paper.view.onFrame = function(event) { }
 	paper.view.onResize = function(event) {
 		paper = scope;
-		zoomView(scope, canvas.width, canvas.height, 0.5);
+		zoomView(scope, canvas.width, canvas.height);
 	}
 	paper.view.onMouseMove = function(event) {
 		var mousePos = event.point;

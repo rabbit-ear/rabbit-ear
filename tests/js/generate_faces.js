@@ -5,7 +5,7 @@ function node_adjacent_faces(){
 	var scope = new paper.PaperScope();
 	// setup paper scope with canvas
 	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height, 0.5);
+	zoomView(scope, canvas.width, canvas.height);
 
 	var cp = new CreasePattern();
 	cp.birdBase();
@@ -15,7 +15,7 @@ function node_adjacent_faces(){
 	scope.view.onFrame = function(event){ }
 	scope.view.onResize = function(event){
 		paper = scope;
-		zoomView(scope, canvas.width, canvas.height, 0.5);
+		zoomView(scope, canvas.width, canvas.height);
 	}
 	scope.view.onMouseMove = function(event){ }
 
