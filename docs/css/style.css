@@ -15,14 +15,18 @@ blockquote:before, blockquote:after, q:before, q:after { content: ''; content: n
 table { border-collapse: collapse; border-spacing: 0; }
 /* Eric Meyer’s Reset CSS 2.0 */
 
-
 canvas[resize] {
 	width: 90vw;
 	height: 90vw;
-	max-width: 66vh;
-	max-height: 66vh;
+	max-width: 60vh;
+	max-height: 60vh;
 }
-canvas[resize].panorama {
+canvas[resize].large {
+	width: 90vw;
+	height: 90vw;
+	max-width: 80vh;
+	max-height: 80vh;
+}canvas[resize].panorama {
 	width: 90vw;
 	height: 30vw;
 	max-width: 90vw;

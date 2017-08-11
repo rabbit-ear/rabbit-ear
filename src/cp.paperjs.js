@@ -1,16 +1,4 @@
 
-// function zoomView(paperjs){
-// 	var paperSize, paperWindowScale = 0.8;
-// 	if(window.innerWidth < window.innerHeight){ paperSize = window.innerWidth * paperWindowScale;  } 
-// 	else                                      { paperSize = window.innerHeight * paperWindowScale; }
-// 	var mat = new paperjs.Matrix(1, 0, 0, 1, 0, 0);
-// 	mat.translate(window.innerWidth * 0.5, window.innerHeight * 0.5);
-// 	mat.scale(paperSize, paperSize);
-// 	mat.translate(-0.5, -0.5);	
-// 	paperjs.view.matrix = mat;
-// 	return mat;
-// }
-
 var EPSILON_FILE_IMPORT = 0.005;
 var pixelScale;
 
@@ -27,15 +15,15 @@ var isRetina = function(){
 }();
 
 function zoomView(paperjs, optionalWidth, optionalHeight, padding){
-	var pad = padding;
-	if(pad == undefined){ pad = 0.1; }
+	if(padding == undefined){ padding = 0.1; }
+	var paperWindowScale = 1.0 - padding*2;
 	var pixelScale = 1.0;
 	if(isRetina){ pixelScale = 0.5; }
 	var w = optionalWidth;
 	var h = optionalHeight;
 	if(optionalWidth == undefined)  { w = window.innerWidth;  }
 	if(optionalHeight == undefined) { h = window.innerHeight; }
-	var paperSize, paperWindowScale = 1.0 - pad*2;
+	var paperSize;
 	if(w < h){ paperSize = w * paperWindowScale * pixelScale; } 
 	else     { paperSize = h * paperWindowScale * pixelScale; }
 	var mat = new paperjs.Matrix(1, 0, 0, 1, 0, 0);
@@ -47,77 +35,75 @@ function zoomView(paperjs, optionalWidth, optionalHeight, padding){
 	return mat;
 }
 
+// function zoomView(paperjs){
+// 	var paperSize, paperWindowScale = 0.8;
+// 	if(window.innerWidth < window.innerHeight){ paperSize = window.innerWidth * paperWindowScale;  } 
+// 	else                                      { paperSize = window.innerHeight * paperWindowScale; }
+// 	var mat = new paperjs.Matrix(1, 0, 0, 1, 0, 0);
+// 	mat.translate(window.innerWidth * 0.5, window.innerHeight * 0.5);
+// 	mat.scale(paperSize, paperSize);
+// 	mat.translate(-0.5, -0.5);	
+// 	paperjs.view.matrix = mat;
+// 	return mat;
+// }
+
 var PaperCreasePattern = (function () {
 
-	PaperCreasePattern.prototype.newPathForCrease = function(crease){
-		if( crease.orientation == CreaseDirection.mountain){ return this.newMountainPath(this.lineWeight); }
-		else if(crease.orientation == CreaseDirection.valley){ return this.newValleyPath(this.lineWeight); }
-		else if(crease.orientation == CreaseDirection.border){ return this.newBorderPath(this.lineWeight); }
-		return this.newMarkPath(this.lineWeight);
-	}
+	var lineWeight = 0.01;
 
-	PaperCreasePattern.prototype.colorForCrease = function(creaseOrientation){
-		if( creaseOrientation == CreaseDirection.mountain){ 
-			return { hue:220, saturation:0.6, brightness:1 };
-			//{ gray:0.5, alpha:1.0 },//{ hue:350, saturation:1, brightness:1 },
-		} else if(creaseOrientation == CreaseDirection.valley){ 
-			return { hue:350, saturation:0, brightness:0.6 };
-			//{ hue:130, saturation:0.8, brightness:0.7 },//{ hue:230, saturation:1, brightness:1 },
-		} else if(creaseOrientation == CreaseDirection.border){ 
-			return { gray:0.0, alpha:1.0 };//{ hue:0, saturation:1, brightness:0 }
-		} return { gray:0.75, alpha:1.0 };
+	PaperCreasePattern.prototype.style = {};
+	PaperCreasePattern.prototype.style.nodes = {
+		radius: 0.015, 
+		fillColor: { hue:25, saturation:0.7, brightness:1.0 }//{ hue:20, saturation:0.6, brightness:1 }
 	}
+	PaperCreasePattern.prototype.style.mountain = {
+		strokeColor: { hue:220, saturation:0.6, brightness:1 }, 
+		dashArray: undefined,
+		strokeWidth: lineWeight
+	};
+	PaperCreasePattern.prototype.style.valley = {
+		strokeColor: { hue:350, saturation:0, brightness:0.6 },
+		dashArray: [lineWeight*3, lineWeight],
+		strokeWidth: lineWeight
+	};
+	PaperCreasePattern.prototype.style.border = {
+		strokeColor: { gray:0.0, alpha:1.0 },
+		dashArray: undefined,
+		strokeWidth: lineWeight
+	};
+	PaperCreasePattern.prototype.style.mark = {
+		strokeColor: { gray:0.75, alpha:1.0 },
+		dashArray: undefined,
+		strokeWidth: lineWeight*0.66666
+	};
+	PaperCreasePattern.prototype.style.face = {
+		fillColor: { gray:0.0, alpha:0.05 }
+	};
 
-	PaperCreasePattern.prototype.newMountainPath = function(lineWeight){
-		return new paper.Path({
-			strokeColor: this.colorForCrease(CreaseDirection.mountain),
-			strokeWidth: lineWeight,
-			closed: false
-		});
+	PaperCreasePattern.prototype.styleForCrease = function(orientation){
+		if   (orientation == CreaseDirection.mountain){ return this.style.mountain; }
+		else if(orientation == CreaseDirection.valley){ return this.style.valley; }
+		else if(orientation == CreaseDirection.border){ return this.style.border; }
+		return this.style.mark;
 	}
-	PaperCreasePattern.prototype.newValleyPath = function(lineWeight){
-		return new paper.Path({
-			strokeColor: this.colorForCrease(CreaseDirection.valley),
-			dashArray: [lineWeight*3, lineWeight],
-			strokeWidth: lineWeight,
-			closed: false
-		});
-	}
-	PaperCreasePattern.prototype.newBorderPath = function(lineWeight){
-		return new paper.Path({
-			strokeColor: this.colorForCrease(CreaseDirection.border),
-			strokeWidth: lineWeight,
-			closed: false
-		});
-	}
-	PaperCreasePattern.prototype.newMarkPath = function(lineWeight){
-		return new paper.Path({
-			strokeColor: this.colorForCrease(CreaseDirection.none),
-			strokeWidth: lineWeight*0.66666,
-			closed: false
-		});
-	}
-
-	faceFillColor = { gray:0.0, alpha:0.1 };
 
 	function PaperCreasePattern(paperjs, creasePattern) {
-		if(creasePattern == undefined) { throw "PaperCreasePattern() initializer requires valid crease pattern"; }
+		if(creasePattern == undefined || paperjs == undefined) { throw "PaperCreasePattern() init issue"; }
 		// holds onto a pointer to the data model
 		this.myPaperJS = paperjs
 		this.cp = creasePattern;
-		// layer for drawing
+
+		// the order of the following sets the z index order too
 		this.faceLayer = new this.myPaperJS.Layer();
 		this.edgeLayer = new this.myPaperJS.Layer();
 		this.paperEdgeLayer = new this.myPaperJS.Layer();
 		this.nodeLayer = new this.myPaperJS.Layer();
-		// drawing options
-		this.lineWeight = .01;
 
 		this.initialize();
     }
     PaperCreasePattern.prototype.initialize = function(){
 		// on-screen drawn elements
-		this.points = [];
+		this.nodes = [];
 		this.edges = [];
 		this.faces = [];
 
@@ -125,78 +111,51 @@ var PaperCreasePattern = (function () {
 		this.nodeLayer.removeChildren();
 		this.edgeLayer.removeChildren();
 		this.faceLayer.removeChildren();
+
 		// draw paper edge
 		if(this.cp.boundary != undefined){
 			this.paperEdgeLayer.activate();
 			this.paperEdgeLayer.removeChildren();
-			var boundaryPath = this.newBorderPath(this.lineWeight);
 			var boundarySegments = [];
 			for(var i = 0; i < this.cp.boundary.edges.length; i++){
 				var endpoints = this.cp.boundary.edges[i].nodes;
 				boundarySegments.push(endpoints[0]);
 				boundarySegments.push(endpoints[1]);
 			}
-			boundaryPath.segments = boundarySegments;
-			boundaryPath.closed = true;
+			var boundaryPath = new paper.Path({segments: boundarySegments, closed: true });
+			Object.assign(boundaryPath, this.styleForCrease(CreaseDirection.border));
 		}
 
-		// drawing layer
 		this.nodeLayer.activate();
 		this.nodeLayer.removeChildren();
 		for(var i = 0; i < this.cp.nodes.length; i++){
-			var p = new this.myPaperJS.Point(this.cp.nodes[i].x, this.cp.nodes[i].y);
-			this.points.push( p );
-			new paper.Shape.Circle({
-					center: [p.x, p.y], 
-					radius: 0.01, 
-					//strokeWidth:0.01,
-					fillColor: { hue:220, saturation:0.6, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
-				});
+			var circle = new paper.Shape.Circle({ center: [this.cp.nodes[i].x, this.cp.nodes[i].y] });
+			Object.assign(circle, this.style.nodes);
+			this.nodes.push( circle );
 		}
-		this.nodeLayer.visible = false;
+
 		this.edgeLayer.activate();
 		this.edgeLayer.removeChildren();
 		for(var i = 0; i < this.cp.edges.length; i++){
-			var path = this.newPathForCrease(this.cp.edges[i]);
-			path.segments = [ this.points[this.cp.edges[i].nodes[0].index ], this.points[this.cp.edges[i].nodes[1].index ] ];
+			var path = new paper.Path({segments: this.cp.edges[i].nodes, closed: false });
+			Object.assign(path, this.styleForCrease(this.cp.edges[i].orientation));
 			this.edges.push( path );
 		}
 		this.faceLayer.activate();
 		this.faceLayer.removeChildren();
 		for(var i = 0; i < this.cp.faces.length; i++){
-			var segmentArray = [];
-			for(var j = 0; j < this.cp.faces[i].nodes.length; j++){
-				segmentArray.push( this.points[ this.cp.faces[i].nodes[j].index ] );
-			}
 			var color = 100 + 200 * i/this.cp.faces.length;
-			this.faces.push(new this.myPaperJS.Path({
-					// fillColor: faceFillColor,
-					fillColor: { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 },
-					segments: segmentArray,
-					closed: true
-				})
-			);
+			this.faces.push(new this.myPaperJS.Path({ segments: this.cp.faces[i].nodes, closed: true }) );
+			this.faces[this.faces.length-1].fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
 		}
-
     }
+
     PaperCreasePattern.prototype.update = function () {
-		for(var i = 0; i < this.cp.nodes.length; i++){
-			this.points[i].x = this.cp.nodes[i].x;
-			this.points[i].y = this.cp.nodes[i].y;
-		}
-		for(var i = 0; i < this.cp.edges.length; i++){
-			this.edges[i].segments[0].point = this.points[ this.cp.edges[i].nodes[0].index ];
-			this.edges[i].segments[1].point = this.points[ this.cp.edges[i].nodes[1].index ];
-		}
-		for(var i = 0; i < this.cp.faces.length; i++){
-			var faceNodeArray = this.cp.faces[i].nodes;
-			var segmentArray = [];
-			for(var j = 0; j < faceNodeArray.length; j++){
-				segmentArray.push( this.points[ faceNodeArray[j].index ] );
-				this.faces[i].segments[j].point = this.points[ faceNodeArray[j].index ];
-			}
-		}
+		for(var i = 0; i < this.cp.nodes.length; i++){ this.nodes[i].position = this.cp.nodes[i]; }
+		for(var i = 0; i < this.cp.edges.length; i++){ this.edges[i].segments = this.cp.edges[i].nodes; }
+		for(var i = 0; i < this.cp.faces.length; i++){ this.faces[i].segments = this.cp.faces[i].nodes; }
 	};
+
 	return PaperCreasePattern;
 }());
 
@@ -217,7 +176,7 @@ function loadSVG(path, callback){
 				if(childrenArray[i].segments != undefined){ // found a line
 					for(var j = 0; j < childrenArray[i].segments.length-1; j++){
 						cp.creaseOnly(childrenArray[i].segments[j].point,
-						                         childrenArray[i].segments[j+1].point);
+						              childrenArray[i].segments[j+1].point);
 					}
 				} else if (childrenArray[i].children != undefined){
 					recurseAndAdd(childrenArray[i].children);

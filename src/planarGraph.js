@@ -390,6 +390,8 @@ var PlanarGraph = (function (_super) {
             for (var j = i + 1; j < this.nodes.length; j++) {
                 if (this.nodes[i].equivalent(this.nodes[j], epsilon)) {
                     // todo, mergeNodes does repeated cleaning, suppress and move to end of function
+                    // this.nodes[i].x = (this.nodes[i].x + this.nodes[j].x)*0.5;
+                    // this.nodes[i].y = (this.nodes[i].y + this.nodes[j].y)*0.5;
                     return this.mergeNodes(this.nodes[i], this.nodes[j]);
                 }
             }

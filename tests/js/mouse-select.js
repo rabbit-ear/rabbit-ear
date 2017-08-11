@@ -11,7 +11,7 @@ function mouse_select(){
 	cp.birdBase();
 
 	var paperCP = new PaperCreasePattern(scope, cp);
-	for(var i = 0; i < paperCP.edges.length; i++){ paperCP.edges[i].strokeWidth = paperCP.lineWeight*1.5; }
+	// for(var i = 0; i < paperCP.edges.length; i++){ paperCP.edges[i].strokeWidth = paperCP.lineWeight*1.5; }
 
 	var nearestEdge = undefined;
 	var nearestNode = undefined;
@@ -49,7 +49,7 @@ function mouse_select(){
 					paperCP.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
 				} else{
 					// paperCP.edges[i].strokeWidth = paperCP.lineWeight;
-					paperCP.edges[i].strokeColor = paperCP.colorForCrease(cp.edges[i].orientation);
+					paperCP.edges[i].strokeColor = paperCP.styleForCrease(cp.edges[i].orientation).strokeColor;
 				}
 			}
 			// console.log("Edge: " + nearestEdge);

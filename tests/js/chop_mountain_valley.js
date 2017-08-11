@@ -40,7 +40,7 @@ function chop_mountain_valley(){
 				if(nearestEdge != undefined && nearestEdge === cp.edges[i]){
 					paperCP.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
 				} else{
-					paperCP.edges[i].strokeColor = paperCP.colorForCrease(cp.edges[i].orientation);
+					Object.assign(paperCP.edges[i], paperCP.styleForCrease(cp.edges[i].orientation));
 				}
 			}
 		}

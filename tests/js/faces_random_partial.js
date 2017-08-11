@@ -82,7 +82,7 @@ function faces_random_partial(){
 					paperCP.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
 				} else{
 					// paperCP.edges[i].strokeWidth = paperCP.lineWeight;
-					paperCP.edges[i].strokeColor = paperCP.colorForCrease(cp.edges[i].orientation);
+					paperCP.edges[i].strokeColor = paperCP.styleForCrease(cp.edges[i].orientation).strokeColor;
 				}
 			}
 			// console.log("Edge: " + nearestEdge);

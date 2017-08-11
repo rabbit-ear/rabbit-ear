@@ -13,8 +13,6 @@ function flat_foldable_nodes_wiggle(){
 	var nearestNode = undefined;
 	var movingNode = undefined;
 	var movingNodeOriginalLocation = undefined;
-	
-	var nodeLayer = new scope.Layer();
 
 	var mouseNodeLayer = new paper.Layer();
 	mouseNodeLayer.activate();
@@ -29,23 +27,17 @@ function flat_foldable_nodes_wiggle(){
 	loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 		cp = e;
 		paperCP = new PaperCreasePattern(scope, cp);
-		nodeLayer.bringToFront();
-		makeFlatFoldableIndicators();
+		colorNodesFlatFoldable();
+		for(var i = 0; i < paperCP.nodes.length; i++){ paperCP.nodes[i].radius = 0.02; }
 	});
 
 	var nearestEdge = undefined;
 
-	function makeFlatFoldableIndicators(){
-		nodeLayer.activate();
-		nodeLayer.removeChildren();
+	function colorNodesFlatFoldable(){
 		for(var i = 0; i < cp.nodes.length; i++){
 			var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
 			if( !cp.nodes[i].flatFoldable() ){ color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } }
-			var nodeCircle = new scope.Shape.Circle({
-				center: [cp.nodes[i].x, cp.nodes[i].y],
-				radius: 0.02,
-				fillColor: color
-			});
+			paperCP.nodes[i].fillColor = color;
 		}
 	}
 
@@ -59,21 +51,19 @@ function flat_foldable_nodes_wiggle(){
 		if(movingNode != undefined){
 			movingNode.x = event.point.x;
 			movingNode.y = event.point.y;
-			nodeCircle.position.x = movingNode.x;
-			nodeCircle.position.y = movingNode.y;
-			if(cp != undefined){ makeFlatFoldableIndicators(); }
+			nodeCircle.position = movingNode;
+			paperCP.update();
+			if(cp != undefined){ colorNodesFlatFoldable(); }
 		} else{
 			var nNode = cp.getNearestNode( event.point.x, event.point.y );
 			if(nearestNode !== nNode){
 				nearestNode = nNode;
-				nodeCircle.position.x = nearestNode.x;
-				nodeCircle.position.y = nearestNode.y;
+				nodeCircle.position = nearestNode;
 				if(flat_foldable_nodes_wiggle_callback != undefined){
 					flat_foldable_nodes_wiggle_callback({'point':event.point, 'node':nearestNode.index, 'valid':nearestNode.flatFoldable()});					
 				}
 			}
 		}
-		paperCP.initialize();
 	}
 	scope.view.onMouseDown = function(event){
 		paper = scope;
@@ -85,12 +75,11 @@ function flat_foldable_nodes_wiggle(){
 		if(movingNode != undefined && movingNodeOriginalLocation != undefined){
 			movingNode.x = movingNodeOriginalLocation.x;
 			movingNode.y = movingNodeOriginalLocation.y;
-			nodeCircle.position.x = movingNode.x;
-			nodeCircle.position.y = movingNode.y;
+			nodeCircle.position = movingNode;
 			movingNode = undefined;
 			movingNodeOriginalLocation = undefined;
-			if(cp != undefined){ makeFlatFoldableIndicators(); }
-			paperCP.initialize();
+			paperCP.update();
+			if(cp != undefined){ colorNodesFlatFoldable(); }
 		}
 	}
 } flat_foldable_nodes_wiggle();

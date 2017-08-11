@@ -59,7 +59,7 @@ function radial_rainbow(){
 				var edgeIndex = planarAdjacent[i].edge.index;
 				if(planarAdjacent[i].edge === nearestEdge){
 					paperCP.edges[edgeIndex].strokeColor = colorForAngle(planarAdjacent[i].angle);
-					paperCP.edges[edgeIndex].strokeWidth = paperCP.lineWeight*1.5;
+					paperCP.edges[edgeIndex].strokeWidth = 0.02;//paperCP.lineWeight*1.5;
 					paperCP.edges[edgeIndex].bringToFront();
 					if(radial_rainbow_callback != undefined){
 						radial_rainbow_callback(planarAdjacent[i]);
@@ -67,7 +67,7 @@ function radial_rainbow(){
 				}
 				else{
 					paperCP.edges[edgeIndex].strokeColor = {gray:0.0};
-					paperCP.edges[edgeIndex].strokeWidth = paperCP.lineWeight*0.66666;
+					paperCP.edges[edgeIndex].strokeWidth = 0.01*0.66666;//paperCP.lineWeight*0.66666;
 				}
 			}
 		}

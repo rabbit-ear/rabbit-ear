@@ -7,7 +7,7 @@
 <h2>Kawasaki's Theorem</h2>
 
 	<div class="centered">
-		<canvas id="canvas-flat-foldable-nodes-wiggle" resize></canvas>
+		<canvas id="canvas-flat-foldable-nodes-wiggle" class="large" resize></canvas>
 	</div>
 
 	<div class="centered">
