@@ -1,28 +1,14 @@
 
 var PaperSketch = (function () {
 
-	PaperSketch.prototype.style = {};
-
-	PaperSketch.prototype.styleForCrease = function(orientation){
-		if   (orientation == CreaseDirection.mountain){ return this.style.mountain; }
-		else if(orientation == CreaseDirection.valley){ return this.style.valley; }
-		else if(orientation == CreaseDirection.border){ return this.style.border; }
-		return this.style.mark;
-	}
-
 	function PaperSketch(canvasName) {
-		if(canvasName == undefined) { throw "PaperSketch() init issue"; }
-		// holds onto a pointer to the data model
+		if(canvasName == undefined) { throw "PaperSketch(canvas) needs a canvas"; }
 		this.canvasName = canvasName;
 
-		this.initialize();
+		this.init();
 	}
 
-	var thingy = function(){
-		console.log("thingy");
-	}
-
-	PaperSketch.prototype.initialize = function(){
+	PaperSketch.prototype.init = function(){
 		this.canvas = document.getElementById(this.canvasName);
 		this.scope = new paper.PaperScope();
 		// setup paper scope with canvas
@@ -32,30 +18,22 @@ var PaperSketch = (function () {
 		this.cp = new CreasePattern();
 		this.paperCP = new PaperCreasePattern(this.scope, this.cp);
 
-		// this.scope.view.onFrame = function(event){ this.onFrame(event); }
-		this.scope.view.onResize = function(event){    }
-		this.scope.view.onMouseMove = function(event){ thingy();}
-		this.scope.view.onMouseDown = function(event){ console.log("this");}
-		this.reset();
+		var that = this;
+		this.scope.view.onFrame = function(event){     that.onFrame(event); }
+		this.scope.view.onResize = function(event){    that.onResize(event); }
+		this.scope.view.onMouseMove = function(event){ that.onMouseMove(event); }
+		this.scope.view.onMouseDown = function(event){ that.onMouseDown(event); }		
 	}
 
-	PaperSketch.prototype.reset = function() {
-
-		var NUM_LINES = 10;
-
-		this.cp.clear();
-		for(var i = 0; i < NUM_LINES; i++){
-			var crease = this.cp.creaseOnly( new XYPoint(Math.random(), Math.random()), new XYPoint(Math.random(), Math.random()) );
-		}
-		this.cp.clean();
-		this.paperCP.initialize();
-	}
-
+	PaperSketch.prototype.setup = function() { }
 	PaperSketch.prototype.update = function () { };
+
 	PaperSketch.prototype.onFrame = function (event) { };
-	PaperSketch.prototype.resize = function (event) { };
-	PaperSketch.prototype.mouseMove = function (event) { };
-	PaperSketch.prototype.mouseDown = function (event) { };
+	PaperSketch.prototype.onResize = function (event) { 
+		zoomView(this.scope, this.canvas.width, this.canvas.height);
+	};
+	PaperSketch.prototype.onMouseMove = function (event) { };
+	PaperSketch.prototype.onMouseDown = function (event) { };
 
 	return PaperSketch;
 }());
