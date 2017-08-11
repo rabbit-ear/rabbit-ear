@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+html, body {
+	margin: 0;
+	overflow: hidden;
+	height: 100%;
+	text-align:center;
+}
+canvas[resize] {
+	width: 100vmin;
+	height: 100vmin;
+}
+</style>
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../src/graph.js"></script>
+<script type="text/javascript" src="../../src/planarGraph.js"></script>
+<script type="text/javascript" src="../../src/creasePattern.js"></script>
+<script type="text/javascript" src="../../src/cp.paperjs.js"></script>
+</head>
+<body>
+	<canvas id="canvas" resize></canvas>
+</body>
+<script>
+
+var cp = new CreasePattern();
+var paperCP = new PaperCreasePattern(cp, "canvas");
+paperCP.zoomToFit(0.05);
+
+paperCP.onFrame = function(event) { }
+paperCP.onResize = function(event) { }
+paperCP.onMouseMove = function(event) {
+	var mousePos = event.point;
+}
+paperCP.onMouseDown = function(event){
+	var mousePos = event.point;
+}
+
+</script>
+</html>

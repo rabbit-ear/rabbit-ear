@@ -18,20 +18,16 @@ function flat_foldable_nodes_wiggle(){
 	mouseNodeLayer.activate();
 	mouseNodeLayer.removeChildren();
 	var nodeCircle = new paper.Shape.Circle({
-		center: [0, 0],
-		radius: 0.02,
-		strokeWidth: 0.005,
-		strokeColor: { hue:0, saturation:0, brightness:0 }
+		center: [0, 0], radius: 0.02, strokeWidth: 0.005, strokeColor: { gray:0 }
 	});
 
 	loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 		cp = e;
 		paperCP = new PaperCreasePattern(scope, cp);
+		paperCP.nodeLayer.visible = true;
 		colorNodesFlatFoldable();
 		for(var i = 0; i < paperCP.nodes.length; i++){ paperCP.nodes[i].radius = 0.02; }
 	});
-
-	var nearestEdge = undefined;
 
 	function colorNodesFlatFoldable(){
 		for(var i = 0; i < cp.nodes.length; i++){

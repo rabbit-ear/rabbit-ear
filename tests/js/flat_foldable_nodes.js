@@ -13,20 +13,18 @@ function flat_foldable_nodes(){
 	loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 		cp = e;
 		paperCP = new PaperCreasePattern(scope, cp);
-
-		var nodeLayer = new scope.Layer();
-		nodeLayer.activate();
-		nodeLayer.removeChildren();
-		for(var i = 0; i < cp.nodes.length; i++){
-			var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
-			if( !cp.nodes[i].flatFoldable() ){
-				color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 }
-			}
-			paperCP.nodes[i].fillColor = color;
-		}
+		paperCP.nodeLayer.visible = true;
+		colorNodesFlatFoldable();
+		for(var i = 0; i < paperCP.nodes.length; i++){ paperCP.nodes[i].radius = 0.02; }
 	});
 
-	var nearestEdge = undefined;
+	function colorNodesFlatFoldable(){
+		for(var i = 0; i < cp.nodes.length; i++){
+			var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
+			if( !cp.nodes[i].flatFoldable() ){ color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } }
+			paperCP.nodes[i].fillColor = color;
+		}
+	}
 
 	scope.view.onFrame = function(event) { }
 	scope.view.onResize = function(event) {
