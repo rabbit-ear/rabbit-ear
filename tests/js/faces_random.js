@@ -17,12 +17,12 @@ function faces_random(){
 	var nearestEdge = undefined;
 	// var nearestNode = undefined;
 
-	var intersectionsLayer = new paper.Layer();
+	var intersectionsLayer = new scope.Layer();
 	
-	// var mouseNodeLayer = new paper.Layer();
+	// var mouseNodeLayer = new scope.Layer();
 	// mouseNodeLayer.activate();
 	// mouseNodeLayer.removeChildren();
-	// var nodeCircle = new paper.Shape.Circle({
+	// var nodeCircle = new scope.Shape.Circle({
 	// 	center: [0, 0],
 	// 	radius: 0.01,
 	// 	fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
@@ -43,11 +43,12 @@ function faces_random(){
 		var intersections = cp.chop();
 		cp.generateFaces();
 		paperCP.initialize();
-
+		console.log("this cp");
+		console.log(cp);
 		// intersectionsLayer.activate();
 		// intersectionsLayer.removeChildren();
 		// for(var i = 0; i < intersections.length; i++){
-		// 	var nodeCircle = new paper.Shape.Circle({
+		// 	var nodeCircle = new scope.Shape.Circle({
 		// 		center: [intersections[i].x, intersections[i].y],
 		// 		radius: 0.01,
 		// 		fillColor: { hue:220, saturation:0.6, brightness:0.8 }//{ hue:130, saturation:0.8, brightness:0.7 }

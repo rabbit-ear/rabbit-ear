@@ -77,7 +77,7 @@ var PaperCreasePattern = (function () {
 		strokeWidth: lineWeight*0.66666
 	};
 	PaperCreasePattern.prototype.style.face = {
-		fillColor: { gray:0.0, alpha:0.05 }
+		fillColor: { gray:0.0, alpha:0.2 }
 	};
 
 	PaperCreasePattern.prototype.styleForCrease = function(orientation){
@@ -107,6 +107,8 @@ var PaperCreasePattern = (function () {
 		this.edges = [];
 		this.faces = [];
 
+		this.nodeLayer.visible = false;
+
 		this.paperEdgeLayer.removeChildren();
 		this.nodeLayer.removeChildren();
 		this.edgeLayer.removeChildren();
@@ -115,7 +117,6 @@ var PaperCreasePattern = (function () {
 		// draw paper edge
 		if(this.cp.boundary != undefined){
 			this.paperEdgeLayer.activate();
-			this.paperEdgeLayer.removeChildren();
 			var boundarySegments = [];
 			for(var i = 0; i < this.cp.boundary.edges.length; i++){
 				var endpoints = this.cp.boundary.edges[i].nodes;
@@ -127,26 +128,23 @@ var PaperCreasePattern = (function () {
 		}
 
 		this.nodeLayer.activate();
-		this.nodeLayer.removeChildren();
 		for(var i = 0; i < this.cp.nodes.length; i++){
 			var circle = new paper.Shape.Circle({ center: [this.cp.nodes[i].x, this.cp.nodes[i].y] });
 			Object.assign(circle, this.style.nodes);
 			this.nodes.push( circle );
 		}
-
 		this.edgeLayer.activate();
-		this.edgeLayer.removeChildren();
 		for(var i = 0; i < this.cp.edges.length; i++){
 			var path = new paper.Path({segments: this.cp.edges[i].nodes, closed: false });
 			Object.assign(path, this.styleForCrease(this.cp.edges[i].orientation));
 			this.edges.push( path );
 		}
 		this.faceLayer.activate();
-		this.faceLayer.removeChildren();
 		for(var i = 0; i < this.cp.faces.length; i++){
+			var face = new this.myPaperJS.Path({segments:this.cp.faces[i].nodes,closed:true});
 			var color = 100 + 200 * i/this.cp.faces.length;
-			this.faces.push(new this.myPaperJS.Path({ segments: this.cp.faces[i].nodes, closed: true }) );
-			this.faces[this.faces.length-1].fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
+			face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
+			var face = this.faces.push(face);
 		}
     }
 
