@@ -1,81 +1,43 @@
-function axiom3(){
-	var canvas = document.getElementById('canvas-axiom-3');
-	var scope = new paper.PaperScope();
-	// setup paper scope with canvas
-	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height);
+var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
 
-	var cp = new CreasePattern();
-	var paperCP = new PaperCreasePattern(scope, cp);
+var axiom3 = new PaperCreasePattern(new CreasePattern(), "canvas-axiom-3");
+axiom3.zoomToFit(0.05);
 
-	var selected = undefined;
+axiom3.selectedNode = undefined;
+axiom3.decorationLayer = new axiom3.scope.Layer();
+axiom3.decorationLayer.activate();
+axiom3.marks = [];
+for(var i = 0; i < 4; i++) axiom3.marks.push(new axiom3.scope.Shape.Circle(circleStyle));
+axiom3.marks[0].position = [0.5, 0.0];
+axiom3.marks[1].position = [0.0, 0.5];
+axiom3.marks[2].position = [1.0, 0.5];
+axiom3.marks[3].position = [0.5, 1.0];
 
-	var decorationLayer = new paper.Layer();
-	decorationLayer.activate();
-	var mark1 = new paper.Shape.Circle({
-		center: [0.5, 0.0], radius: 0.02, strokeWidth:0.01,
-		strokeColor: { hue:220, saturation:0.6, brightness:1 }
-	});
-	var mark2 = new paper.Shape.Circle({
-		center: [0.0, 0.5], radius: 0.02, strokeWidth:0.01,
-		strokeColor: { hue:220, saturation:0.6, brightness:1 }
-	});
-	var mark3 = new paper.Shape.Circle({
-		center: [1.0, 0.5], radius: 0.02, strokeWidth:0.01,
-		strokeColor: { hue:220, saturation:0.6, brightness:1 }
-	});
-	var mark4 = new paper.Shape.Circle({
-		center: [0.5, 1.0], radius: 0.02, strokeWidth:0.01,
-		strokeColor: { hue:220, saturation:0.6, brightness:1 }
-	});
-	var edgeA = cp.creaseThroughPoints(mark1.position, mark2.position).mountain();
-	var edgeB = cp.creaseThroughPoints(mark3.position, mark4.position).mountain();
-	cp.creaseEdgeToEdge(edgeA, edgeB).forEach(function(el){el.valley();});
-	paperCP.initialize();
+axiom3.reset = function(){
+	axiom3.cp.clear();
+	var edgeA = axiom3.cp.creaseThroughPoints(axiom3.marks[0].position, axiom3.marks[1].position).mountain();
+	var edgeB = axiom3.cp.creaseThroughPoints(axiom3.marks[2].position, axiom3.marks[3].position).mountain();
+	var edges = axiom3.cp.creaseEdgeToEdge(edgeA, edgeB);
+	edges.forEach(function(el){el.valley();});
+	axiom3.initialize();
+	if(edges.length >= 2){
+		axiom3.edges[edges[1].index].strokeColor = { hue:20, saturation:0.6, brightness:1 };
+	}
+}
+axiom3.reset();
 
-	// scope.view.onFrame = function(event) { }
-	scope.view.onResize = function(event) {
-		paper = scope;
-		zoomView(scope, canvas.width, canvas.height);
+axiom3.onFrame = function(event) { }
+axiom3.onResize = function(event) { }
+axiom3.onMouseMove = function(event) {
+	if(axiom3.selectedNode != undefined){
+		axiom3.selectedNode.position = event.point;
+		axiom3.reset();		
 	}
-	scope.view.onMouseMove = function(event) {
-		mousePos = event.point;
-		if(selected != undefined){
-			selected.position = mousePos;
-			cp.clear();
-			var edgeA = cp.creaseThroughPoints(mark1.position, mark2.position).mountain();
-			var edgeB = cp.creaseThroughPoints(mark3.position, mark4.position).mountain();
-			var edges = cp.creaseEdgeToEdge(edgeA, edgeB);
-			edges.forEach(function(el){el.valley();});
-			paperCP.initialize();
-			if(edges.length >= 2){
-				paperCP.edges[edges[1].index].strokeColor = { hue:20, saturation:0.6, brightness:1 };
-			}
-		}
+}
+axiom3.onMouseDown = function(event){
+	for(var i = 0; i < axiom3.marks.length; i++){
+		if(pointsSimilar(event.point, axiom3.marks[i].position)){ axiom3.selectedNode = axiom3.marks[i];return;}
 	}
-	scope.view.onMouseDown = function(event){
-		paper = scope;
-		var eps = 0.02;
-		mousePos = event.point;
-		if(mousePos.x - eps < mark1.position.x && mousePos.x + eps > mark1.position.x && 
-		   mousePos.y - eps < mark1.position.y && mousePos.y + eps > mark1.position.y){
-		   	selected = mark1;
-		}
-		else if(mousePos.x - eps < mark2.position.x && mousePos.x + eps > mark2.position.x && 
-		        mousePos.y - eps < mark2.position.y && mousePos.y + eps > mark2.position.y){
-		   	selected = mark2;
-		}
-		else if(mousePos.x - eps < mark3.position.x && mousePos.x + eps > mark3.position.x && 
-		        mousePos.y - eps < mark3.position.y && mousePos.y + eps > mark3.position.y){
-		   	selected = mark3;
-		}
-		else if(mousePos.x - eps < mark4.position.x && mousePos.x + eps > mark4.position.x && 
-		        mousePos.y - eps < mark4.position.y && mousePos.y + eps > mark4.position.y){
-		   	selected = mark4;
-		}
-		else{ selected = undefined; }
-	}
-	scope.view.onMouseUp = function(event){
-		selected = undefined;
-	}
-} axiom3();
+	axiom3.selectedNode = undefined;
+}
+axiom3.onMouseUp = function(event){ axiom3.selectedNode = undefined; }

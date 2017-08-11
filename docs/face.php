@@ -81,7 +81,6 @@
 </div>
 
 <script type="text/javascript" src="../tests/js/node-adjacent-faces.js"></script>
-<script type="text/javascript" src="../tests/js/blank.js"></script>
 <script type="text/javascript" src="../tests/js/radial_rainbow.js"></script>
 <script type="text/javascript" src="../tests/js/faces_radial.js"></script>
 <script type="text/javascript" src="../tests/js/faces_random.js"></script>
@@ -110,9 +109,9 @@ cp2.generateFaces();
 // cp3.frogBase();
 // cp3.generateFaces();
 
-fillCanvasWithCP("canvas-1", cp1);
-fillCanvasWithCP("canvas-2", cp2);
-// fillCanvasWithCP("canvas-3", cp3);
+new PaperCreasePattern(cp1, "canvas-1");
+new PaperCreasePattern(cp2, "canvas-2");
+
 </script>
 
 <script>

@@ -45,7 +45,6 @@
 <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/11_merge_duplicates.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/blank.js"></script>
 
 <script>
 	var p5b = new p5(_11_merge_duplicates, 'divP5_merge');
@@ -80,9 +79,12 @@
 	cp[0].cleanDuplicateNodes(0.01);
 	cp[1].cleanDuplicateNodes(0.025);
 	cp[2].cleanDuplicateNodes(0.066);
-	fillCanvasWithCP("canvas1", cp[0]);
-	fillCanvasWithCP("canvas2", cp[1]);
-	fillCanvasWithCP("canvas3", cp[2]);
+	var paper1 = new PaperCreasePattern(cp[0], "canvas1");
+	var paper2 = new PaperCreasePattern(cp[1], "canvas2");
+	var paper3 = new PaperCreasePattern(cp[2], "canvas3");
+	paper1.nodeLayer.visible = true;
+	paper2.nodeLayer.visible = true;
+	paper3.nodeLayer.visible = true;
 
 </script>
 

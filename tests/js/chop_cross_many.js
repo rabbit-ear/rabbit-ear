@@ -1,86 +1,57 @@
 
-function chop_cross_many(){
-	var canvas = document.getElementById('canvas-chop-cross-many');
-	var scope = new paper.PaperScope();
-	// setup paper scope with canvas
-	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height);
+var chopCross = new PaperCreasePattern(new CreasePattern(), "canvas-chop-cross-many");
+chopCross.zoomToFit(0.05);
 
-var cp;
-var paperCP;
+chopCross.nearestEdge = undefined;
+chopCross.nearestNode = undefined;
+chopCross.mouseNodeLayer = new chopCross.scope.Layer();
+chopCross.mouseNodeLayer.activate();
+chopCross.mouseNodeLayer.removeChildren();
+chopCross.nearestCircle = new chopCross.scope.Shape.Circle({
+	center: [0, 0],
+	radius: 0.01,
+	fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
+});
 
-	cp = new CreasePattern();
-	paperCP = new PaperCreasePattern(scope, cp);
-
-	var nearestEdge = undefined;
-	var nearestNode = undefined;
-
+chopCross.reset = function(){
 	var NUM_LINES = 30;
-
-	var mouseNodeLayer = new paper.Layer();
-	mouseNodeLayer.activate();
-	mouseNodeLayer.removeChildren();
-	var nodeCircle = new paper.Shape.Circle({
-		center: [0, 0],
-		radius: 0.01,
-		fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
-	});
-
-	function resetCP(){
-		cp.clear();
-		cp.nodes = [];
-		cp.edges = [];
-		var firstEdge = cp.creaseOnly(new XYPoint(0.0, 0.5), new XYPoint(1.0, 0.5));
-		var v = .8/(NUM_LINES-1);
-		for(var i = 0; i < NUM_LINES; i++){
-			var x = .1 + .8*(i/(NUM_LINES-1));
-			cp.creaseOnly(
-				new XYPoint(x + Math.random()*v-v*0.5, 0.25 + Math.random()*v-v*0.5), 
-				new XYPoint(x + Math.random()*v-v*0.5, 0.75 + Math.random()*v-v*0.5)
-			);
-		}
-		var lowerEdge = cp.creaseOnly(new XYPoint(0.0, 0.6), new XYPoint(1.0, 0.6));
-		var crossings = cp.chop();
-		// var crossings = cp.chopAllCrossingsWithEdge(lowerEdge);
-		// console.log(crossings);
-		// console.log(crossings.length + " crossings");
-		paperCP.initialize();
+	chopCross.cp.clear();
+	chopCross.cp.nodes = [];
+	chopCross.cp.edges = [];
+	var firstEdge = chopCross.cp.creaseOnly(new XYPoint(0.0, 0.5), new XYPoint(1.0, 0.5));
+	var v = .8/(NUM_LINES-1);
+	for(var i = 0; i < NUM_LINES; i++){
+		var x = .1 + .8*(i/(NUM_LINES-1));
+		chopCross.cp.creaseOnly(
+			new XYPoint(x + Math.random()*v-v*0.5, 0.25 + Math.random()*v-v*0.5), 
+			new XYPoint(x + Math.random()*v-v*0.5, 0.75 + Math.random()*v-v*0.5)
+		);
 	}
-	resetCP();
+	var lowerEdge = chopCross.cp.creaseOnly(new XYPoint(0.0, 0.6), new XYPoint(1.0, 0.6));
+	var crossings = chopCross.cp.chop();
+	chopCross.initialize();
+}
+chopCross.reset();
 
-	scope.view.onFrame = function(event){ }
-	scope.view.onResize = function(event){
-		paper = scope;
-		zoomView(scope, canvas.width, canvas.height);
+chopCross.onFrame = function(event) { }
+chopCross.onResize = function(event) { }
+chopCross.onMouseDown = function(event){ chopCross.reset(); }
+chopCross.onMouseUp = function(event){ }
+chopCross.onMouseMove = function(event) { 
+	var nNode = chopCross.cp.getNearestNode( event.point.x, event.point.y );
+	var nEdge = chopCross.cp.getNearestEdge( event.point.x, event.point.y ).edge;
+	if(chopCross.nearestNode !== nNode){
+		chopCross.nearestNode = nNode;
+		chopCross.nearestCircle.position = chopCross.nearestNode;
 	}
-	scope.view.onMouseMove = function(event){ 
-		mousePos = event.point;
-		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
-		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
-		if(nearestNode !== nNode){
-			nearestNode = nNode;
-			nodeCircle.position.x = nearestNode.x;
-			nodeCircle.position.y = nearestNode.y;
-			// console.log("Node: " + nearestNode);
-		}
-		if(nearestEdge !== nEdge){
-			nearestEdge = nEdge;
-			for(var i = 0; i < cp.edges.length; i++){
-				if(nearestEdge != undefined && nearestEdge === cp.edges[i]){
-					// paperCP.edges[i].strokeWidth = paperCP.lineWeight*2;
-					paperCP.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
-				} else{
-					// paperCP.edges[i].strokeWidth = paperCP.lineWeight;
-					paperCP.edges[i].strokeColor = paperCP.styleForCrease(cp.edges[i].orientation).strokeColor;
-				}
+	if(chopCross.nearestEdge !== nEdge){
+		chopCross.nearestEdge = nEdge;
+		for(var i = 0; i < chopCross.cp.edges.length; i++){
+			if(chopCross.nearestEdge != undefined && chopCross.nearestEdge === chopCross.cp.edges[i]){
+				chopCross.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
+			} else{
+				chopCross.edges[i].strokeColor = chopCross.styleForCrease(chopCross.cp.edges[i].orientation).strokeColor;
 			}
-			// console.log("Edge: " + nearestEdge);
 		}
 	}
-
-	scope.view.onMouseDown = function(event){
-		paper = scope;
-		resetCP();
-	}
-
-}  chop_cross_many();
+}

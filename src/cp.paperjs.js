@@ -4,12 +4,19 @@
 
 var EPSILON_FILE_IMPORT = 0.005;
 
+function pointsSimilar(p1, p2, epsilon){
+	if(epsilon == undefined) epsilon = 0.02;
+	if( Math.abs(p1.x-p2.x) < epsilon && Math.abs(p1.y-p2.y) < epsilon ) return true;
+	return false;
+}
+
 var PaperCreasePattern = (function () {
 
 	PaperCreasePattern.prototype.onResize = function(event){ }
 	PaperCreasePattern.prototype.onFrame = function(event){ }
 	PaperCreasePattern.prototype.onMouseMove = function(event){ }
 	PaperCreasePattern.prototype.onMouseDown = function(event){ }
+	PaperCreasePattern.prototype.onMouseUp = function(event){ }
 
 	function PaperCreasePattern(creasePattern, canvas) {
 		if(creasePattern == undefined || canvas == undefined) { throw "PaperCreasePattern() init issue"; }
@@ -24,6 +31,7 @@ var PaperCreasePattern = (function () {
 		this.scope.view.onFrame = function(event){     paper = that.scope; that.onFrame(event); }
 		this.scope.view.onMouseMove = function(event){ paper = that.scope; that.onMouseMove(event); }
 		this.scope.view.onMouseDown = function(event){ paper = that.scope; that.onMouseDown(event); }
+		this.scope.view.onMouseUp = function(event){ paper = that.scope; that.onMouseUp(event); }
 		this.scope.view.onResize = function(event){    
 			paper = that.scope; 
 			that.zoomToFit(); 

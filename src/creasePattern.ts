@@ -567,7 +567,7 @@ class CreasePattern extends PlanarGraph{
 		this.generateFaces();
 	}
 
-	kiteBase(){
+	kiteBase():CreasePattern{
 		super.clear();
 		(<Crease>this.newPlanarEdge(0.0, 0.0, 0.41421, 0.0)).border();
 		(<Crease>this.newPlanarEdge(0.41421, 0.0, 1.0, 0.0)).border();
@@ -579,8 +579,9 @@ class CreasePattern extends PlanarGraph{
 		(<Crease>this.newPlanarEdge(0, 1, 1, 0.58578)).valley();
 		(<Crease>this.newPlanarEdge(0, 1, 0.41421, 0)).valley();
 		this.clean();
+		return this;
 	}
-	fishBase(){
+	fishBase():CreasePattern{
 		super.clear();
 		(<Crease>this.newPlanarEdge(0.0, 0.0, 0.29289, 0.0)).border();
 		(<Crease>this.newPlanarEdge(0.29289, 0.0, 1.0, 0.0)).border();
@@ -599,8 +600,9 @@ class CreasePattern extends PlanarGraph{
 		(<Crease>this.newPlanarEdge(0.29289,0.29289, 0.29289,0)).mountain();
 		this.clean();
 		this.generateFaces();
+		return this;
 	}
-	birdBase(){
+	birdBase():CreasePattern{
 		super.clear();
 		(<Crease>this.newPlanarEdge(0.0,0.0,0.5,0.0)).border();
 		(<Crease>this.newPlanarEdge(0.5,0.0,1.0,0.0)).border();
@@ -649,8 +651,9 @@ class CreasePattern extends PlanarGraph{
 		(<Crease>this.newPlanarEdge(0.5, .79290, 0.5, 1)).valley();
 		(<Crease>this.newPlanarEdge(.20710, 0.5, 0, 0.5)).valley();
 		this.clean();
+		return this;
 	}
-	frogBase(){
+	frogBase():CreasePattern{
 		this.newPlanarEdge(0, 0, .14646, .35353);
 		this.newPlanarEdge(0, 0, .35353, .14646);
 		this.newPlanarEdge(.14646, .35353, 0.5, 0.5);
@@ -717,6 +720,7 @@ class CreasePattern extends PlanarGraph{
 		this.newPlanarEdge(.75, .75, 1, 1);
 		this.chop();
 		this.clean();
+		return this;
 	}
 
 

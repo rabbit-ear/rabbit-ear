@@ -10,7 +10,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>square</v>().<v>birdBase</v>()</code></pre>
+		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>birdBase</v>()</code></pre>
 	</div>
 	<div class="explain">
 		<p>A crease pattern</strong></p>
@@ -29,14 +29,12 @@
 
 </section>
 
-<script type="text/javascript" src="../tests/js/blank.js"></script>
+
 
 <script>
-var cp1 = new CreasePattern();
-cp1.birdBase();
-// cp1.generateFaces();
-
-fillCanvasWithCP("canvas-1", cp1);
+	new PaperCreasePattern(new CreasePattern().birdBase(), "canvas-1");
 </script>
+
+
 
 <?php include 'footer.php';?>

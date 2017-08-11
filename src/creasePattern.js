@@ -612,6 +612,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(0, 1, 1, 0.58578).valley();
         this.newPlanarEdge(0, 1, 0.41421, 0).valley();
         this.clean();
+        return this;
     };
     CreasePattern.prototype.fishBase = function () {
         _super.prototype.clear.call(this);
@@ -632,6 +633,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(0.29289, 0.29289, 0.29289, 0).mountain();
         this.clean();
         this.generateFaces();
+        return this;
     };
     CreasePattern.prototype.birdBase = function () {
         _super.prototype.clear.call(this);
@@ -682,6 +684,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(0.5, .79290, 0.5, 1).valley();
         this.newPlanarEdge(.20710, 0.5, 0, 0.5).valley();
         this.clean();
+        return this;
     };
     CreasePattern.prototype.frogBase = function () {
         this.newPlanarEdge(0, 0, .14646, .35353);
@@ -750,6 +753,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(.75, .75, 1, 1);
         this.chop();
         this.clean();
+        return this;
     };
     return CreasePattern;
 }(PlanarGraph));

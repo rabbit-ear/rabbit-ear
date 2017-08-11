@@ -1,77 +1,52 @@
 
-function chop_sketch(){
-	var canvas = document.getElementById('canvas-chop');
-	var scope = new paper.PaperScope();
-	// setup paper scope with canvas
-	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height);
+var chop_sketch = new PaperCreasePattern(new CreasePattern(), "canvas-chop");
+chop_sketch.zoomToFit(0.05);
 
-var cp;
-var paperCP;
+chop_sketch.nearestEdge = undefined;
+chop_sketch.nearestNode = undefined;
+chop_sketch.mouseNodeLayer = new chop_sketch.scope.Layer();
+chop_sketch.mouseNodeLayer.activate();
+chop_sketch.mouseNodeLayer.removeChildren();
+chop_sketch.nearestCircle = new chop_sketch.scope.Shape.Circle({
+	center: [0, 0],
+	radius: 0.01,
+	fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
+});
 
-	cp = new CreasePattern();
-	paperCP = new PaperCreasePattern(scope, cp);
-
-	var nearestEdge = undefined;
-	var nearestNode = undefined;
-
-	var mouseNodeLayer = new paper.Layer();
-	mouseNodeLayer.activate();
-	mouseNodeLayer.removeChildren();
-	var nodeCircle = new paper.Shape.Circle({
-		center: [0, 0],
-		radius: 0.01,
-		fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
-	});
-
-	function resetCP(){
-		cp.clear();
-		cp.nodes = [];
-		cp.edges = [];
-		for(var i = 0; i < 30; i++){
-			var angle = Math.random()*Math.PI*2;
-			cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
-		}
-		var crossings = cp.chop();
-		// console.log(crossings.length + " crossings");
-		console.log(crossings);
-		paperCP.initialize();
+chop_sketch.reset = function(){
+	chop_sketch.cp.clear();
+	chop_sketch.cp.nodes = [];
+	chop_sketch.cp.edges = [];
+	for(var i = 0; i < 30; i++){
+		var angle = Math.random()*Math.PI*2;
+		chop_sketch.cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
 	}
-	resetCP();
+	var crossings = chop_sketch.cp.chop();
+	chop_sketch.initialize();
+}
+chop_sketch.reset();
 
-	scope.view.onFrame = function(event){ }
-	scope.view.onResize = function(event){
-		paper = scope;
-		zoomView(scope, canvas.width, canvas.height);
+chop_sketch.onFrame = function(event) { }
+chop_sketch.onResize = function(event) { }
+chop_sketch.onMouseDown = function(event){ chop_sketch.reset(); }
+chop_sketch.onMouseUp = function(event){ }
+chop_sketch.onMouseMove = function(event) { 
+	var nNode = chop_sketch.cp.getNearestNode( event.point.x, event.point.y );
+	var nEdge = chop_sketch.cp.getNearestEdge( event.point.x, event.point.y ).edge;
+	if(chop_sketch.nearestNode !== nNode){
+		chop_sketch.nearestNode = nNode;
+		chop_sketch.nearestCircle.position = chop_sketch.nearestNode;
 	}
-	scope.view.onMouseMove = function(event){ 
-		mousePos = event.point;
-		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
-		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
-		if(nearestNode !== nNode){
-			nearestNode = nNode;
-			nodeCircle.position.x = nearestNode.x;
-			nodeCircle.position.y = nearestNode.y;
-			// console.log("Node: " + nearestNode);
-		}
-		if(nearestEdge !== nEdge){
-			nearestEdge = nEdge;
-			for(var i = 0; i < cp.edges.length; i++){
-				if(nearestEdge != undefined && nearestEdge === cp.edges[i]){
-					// paperCP.edges[i].strokeWidth = paperCP.lineWeight*2;
-					paperCP.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
-				} else{
-					// paperCP.edges[i].strokeWidth = paperCP.lineWeight;
-					paperCP.edges[i].strokeColor = paperCP.styleForCrease(cp.edges[i].orientation).strokeColor;
-				}
+	if(chop_sketch.nearestEdge !== nEdge){
+		chop_sketch.nearestEdge = nEdge;
+		for(var i = 0; i < chop_sketch.cp.edges.length; i++){
+			if(chop_sketch.nearestEdge != undefined && chop_sketch.nearestEdge === chop_sketch.cp.edges[i]){
+				// chop_sketch.edges[i].strokeWidth = chop_sketch.lineWeight*2;
+				chop_sketch.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
+			} else{
+				// chop_sketch.edges[i].strokeWidth = chop_sketch.lineWeight;
+				chop_sketch.edges[i].strokeColor = chop_sketch.styleForCrease(chop_sketch.cp.edges[i].orientation).strokeColor;
 			}
-			// console.log("Edge: " + nearestEdge);
 		}
 	}
-
-	scope.view.onMouseDown = function(event){
-		paper = scope;
-		resetCP();
-	}
-
-} chop_sketch();
+}
