@@ -2,16 +2,8 @@
 var chopRays = new PaperCreasePattern(new CreasePattern(), "canvas-chop-angle-ray");
 chopRays.zoomToFit(0.05);
 
-chopRays.nearestEdge = undefined;
-chopRays.nearestNode = undefined;
-chopRays.mouseNodeLayer = new chopRays.scope.Layer();
-chopRays.mouseNodeLayer.activate();
-chopRays.mouseNodeLayer.removeChildren();
-chopRays.nearestCircle = new chopRays.scope.Shape.Circle({
-	center: [0, 0],
-	radius: 0.01,
-	fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
-});
+// chopRays.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
+chopRays.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
 
 chopRays.reset = function(){
 	var padding = 0.1;
@@ -38,21 +30,4 @@ chopRays.onFrame = function(event) { }
 chopRays.onResize = function(event) { }
 chopRays.onMouseDown = function(event){ chopRays.reset(); }
 chopRays.onMouseUp = function(event){ }
-chopRays.onMouseMove = function(event) { 
-	var nNode = chopRays.cp.getNearestNode( event.point.x, event.point.y );
-	var nEdge = chopRays.cp.getNearestEdge( event.point.x, event.point.y ).edge;
-	if(chopRays.nearestNode !== nNode){
-		chopRays.nearestNode = nNode;
-		chopRays.nearestCircle.position = chopRays.nearestNode;
-	}
-	if(chopRays.nearestEdge !== nEdge){
-		chopRays.nearestEdge = nEdge;
-		for(var i = 0; i < chopRays.cp.edges.length; i++){
-			if(chopRays.nearestEdge != undefined && chopRays.nearestEdge === chopRays.cp.edges[i]){
-				chopRays.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
-			} else{
-				chopRays.edges[i].strokeColor = chopRays.styleForCrease(chopRays.cp.edges[i].orientation).strokeColor;
-			}
-		}
-	}
-}
+chopRays.onMouseMove = function(event) { }

@@ -14,9 +14,9 @@ var PaperCreasePattern = (function () {
 
 	PaperCreasePattern.prototype.onResize = function(event){ }
 	PaperCreasePattern.prototype.onFrame = function(event){ }
-	PaperCreasePattern.prototype.onMouseMove = function(event){ }
 	PaperCreasePattern.prototype.onMouseDown = function(event){ }
 	PaperCreasePattern.prototype.onMouseUp = function(event){ }
+	PaperCreasePattern.prototype.onMouseMove = function(event){ }
 
 	function PaperCreasePattern(creasePattern, canvas) {
 		if(creasePattern == undefined || canvas == undefined) { throw "PaperCreasePattern() init issue"; }
@@ -29,9 +29,15 @@ var PaperCreasePattern = (function () {
 
 		var that = this;
 		this.scope.view.onFrame = function(event){     paper = that.scope; that.onFrame(event); }
-		this.scope.view.onMouseMove = function(event){ paper = that.scope; that.onMouseMove(event); }
 		this.scope.view.onMouseDown = function(event){ paper = that.scope; that.onMouseDown(event); }
-		this.scope.view.onMouseUp = function(event){ paper = that.scope; that.onMouseUp(event); }
+		this.scope.view.onMouseUp = function(event){   paper = that.scope; that.onMouseUp(event); }
+		this.scope.view.onMouseMove = function(event){ 
+			paper = that.scope;
+			if(that.nearestNodeColor != undefined){ that.highlightNearestNode(event.point); }
+			if(that.nearestEdgeColor != undefined){ that.highlightNearestEdge(event.point); }
+			if(that.nearestFaceColor != undefined){ that.highlightNearestFace(event.point); }
+			that.onMouseMove(event);
+		}
 		this.scope.view.onResize = function(event){    
 			paper = that.scope; 
 			that.zoomToFit(); 
@@ -43,7 +49,25 @@ var PaperCreasePattern = (function () {
 		this.edgeLayer = new this.scope.Layer();
 		this.paperEdgeLayer = new this.scope.Layer();
 		this.nodeLayer = new this.scope.Layer();
+		
+		this.nodeLayer.visible = false;
 
+		// set these to a color (paperjs color object) for automatic nearest calculation
+		this.nearestNodeColor = undefined;
+		this.nearestEdgeColor = undefined;
+		this.nearestFaceColor = undefined;
+		this.nearestNode = undefined;
+		this.nearestEdge = undefined;
+		this.nearestFace = undefined;
+
+		this.mouseNodeLayer = new this.scope.Layer();
+		this.nearestNodeCircle = new this.scope.Shape.Circle({
+			center: [0, 0],
+			radius: 0.02,
+			visible: false,
+			fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
+		});
+		
 		this.zoomToFit();
 
 		this.initialize();
@@ -53,8 +77,6 @@ var PaperCreasePattern = (function () {
 		this.nodes = [];
 		this.edges = [];
 		this.faces = [];
-
-		this.nodeLayer.visible = false;
 
 		this.paperEdgeLayer.removeChildren();
 		this.nodeLayer.removeChildren();
@@ -127,6 +149,29 @@ var PaperCreasePattern = (function () {
 		mat.translate(-0.5, -0.5);
 		this.scope.view.matrix = mat;
 		return mat;
+	}
+
+	PaperCreasePattern.prototype.highlightNearestNode = function(position){
+		var node = this.cp.getNearestNode( position.x, position.y );
+		if(this.nearestNode !== node){
+			this.nearestNodeCircle.visible = true;
+			this.nearestNodeCircle.fillColor = this.nearestNodeColor;
+			this.nearestNode = node;
+			this.nearestNodeCircle.position = this.nearestNode;
+		}
+	}
+	PaperCreasePattern.prototype.highlightNearestEdge = function(position){
+		var edge = this.cp.getNearestEdge( position.x, position.y ).edge;
+		if(this.nearestEdge !== edge){
+			this.nearestEdge = edge;
+			for(var i = 0; i < this.cp.edges.length; i++){
+				if(this.nearestEdge != undefined && this.nearestEdge === this.cp.edges[i]){
+					this.edges[i].strokeColor = this.nearestEdgeColor;
+				} else{
+					this.edges[i].strokeColor = this.styleForCrease(this.cp.edges[i].orientation).strokeColor;
+				}
+			}
+		}
 	}
 
 	///////////////////////////////////////////////////

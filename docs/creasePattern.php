@@ -35,11 +35,7 @@
 <script type="text/javascript" src="../tests/js/blank.js"></script>
 
 <script>
-var cp1 = new CreasePattern();
-cp1.birdBase();
-// cp1.generateFaces();
-
-fillCanvasWithCP("canvas-1", cp1);
+	new PaperCreasePattern(new CreasePattern().birdBase(), "canvas-1");
 </script>
 
 <?php include 'footer.php';?>

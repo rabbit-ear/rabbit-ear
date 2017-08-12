@@ -2,65 +2,40 @@
 
 var node_adjacent_faces_callback = undefined;
 
-function node_adjacent_faces(){
+var nodeFaces = new PaperCreasePattern(new CreasePattern(), "canvas-node-adjacent-faces");
+nodeFaces.zoomToFit(0.05);
+nodeFaces.nearestNodeColor = { hue:220, saturation:0.6, brightness:1 };
+nodeFaces.faceLayer = new nodeFaces.scope.Layer();
+nodeFaces.edgeLayer.bringToFront();
+nodeFaces.paperEdgeLayer.bringToFront();
+nodeFaces.mouseNodeLayer.bringToFront();
 
-	var canvas = document.getElementById('canvas-node-adjacent-faces');
-	var scope = new paper.PaperScope();
-	// setup paper scope with canvas
-	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height);
+nodeFaces.reset = function(){
+	nodeFaces.cp.clear();
+	nodeFaces.cp.birdBase();
+	nodeFaces.cp.clean();
+	nodeFaces.initialize();
+}
+nodeFaces.reset();
 
-	var cp = new CreasePattern();
-	cp.birdBase();
-	cp.clean();
-	var paperCP = new PaperCreasePattern(scope, cp);
-	var nearestNode = undefined;
-
-	console.log(cp);
-
-	var faceLayer = new paper.Layer();
-	var mouseNodeLayer = new paper.Layer();
-	mouseNodeLayer.activate();
-	mouseNodeLayer.removeChildren();
-
-	var nodeCircle = new paper.Shape.Circle({
-		center: [0, 0],
-		radius: 0.03,
-		fillColor: { hue:220, saturation:0.8, brightness:1.0 }//{ hue:130, saturation:0.8, brightness:0.7 }
-	});
-
-	scope.view.onFrame = function(event) { }
-	scope.view.onResize = function(event) {
-		zoomView(scope, canvas.width, canvas.height);
+nodeFaces.onFrame = function(event) { }
+nodeFaces.onResize = function(event) { }
+nodeFaces.onMouseDown = function(event){ nodeFaces.reset(); }
+nodeFaces.onMouseUp = function(event){ }
+nodeFaces.onMouseMove = function(event) { 
+	nodeFaces.faceLayer.activate();
+	nodeFaces.faceLayer.removeChildren();
+	var faces = nodeFaces.nearestNode.adjacentFaces();
+	for(var i = 0; i < faces.length; i++){
+		var color = 100 + 200 * i/faces.length;
+		new nodeFaces.scope.Path({
+				fillColor: { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 },
+				segments: faces[i].nodes,
+				closed: true
+		});
 	}
-	scope.view.onMouseMove = function(event) {
-		paper = scope;
-		mousePos = event.point;
-		var nNode = cp.getNearestNode( mousePos.x, mousePos.y );
-		if(nearestNode !== nNode){
-			nearestNode = nNode;
-			nodeCircle.position.x = nearestNode.x;
-			nodeCircle.position.y = nearestNode.y;
-			faceLayer.activate();
-			faceLayer.removeChildren();
-			var faces = nearestNode.adjacentFaces();
-			for(var i = 0; i < faces.length; i++){
-				var segmentArray = faces[i].nodes;
-				var color = 100 + 200 * i/faces.length;
-				new paper.Path({
-						fillColor: { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 },
-						segments: segmentArray,
-						closed: true
-				});
-			}
-			// console.log("Node: " + nearestNode);
-			if(node_adjacent_faces_callback != undefined){
-				node_adjacent_faces_callback({'node':nearestNode});
-			}
-		}
+	if(node_adjacent_faces_callback != undefined){
+		node_adjacent_faces_callback({'node':nodeFaces.nearestNode});
 	}
-	scope.view.onMouseDown = function(event){ }
+}
 
-	// on boot, load (0.0, 0.0)
-	scope.view.onMouseMove({point:{x:0.0, y:0.0}});
-} node_adjacent_faces();

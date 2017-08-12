@@ -58,5 +58,6 @@
 			document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
 		}
 	}
+	intersectionSketch.reset();
 </script>
 <?php include 'footer.php';?>

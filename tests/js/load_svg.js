@@ -1,44 +1,23 @@
 
-function load_svg_sketch(){
-	var canvas = document.getElementById('canvas-load-svg');
-	var scope = new paper.PaperScope();
-	// setup paper scope with canvas
-	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height);
+var loadSVGSketch = new PaperCreasePattern(new CreasePattern(), "canvas-load-svg");
+loadSVGSketch.zoomToFit(0.05);
 
-	var cp;
-	var paperCP;
+loadSVG("/tests/svg/crane.svg", function(e){ 
+	loadSVGSketch.cp = e;
+	loadSVGSketch.initialize();
+});
 
-	loadSVG("/tests/svg/crane.svg", function(e){ 
-		cp = e;
-		paperCP = new PaperCreasePattern(scope, cp);
-	});
+loadSVGSketch.nearestEdgeColor = { hue:0, saturation:0.7, brightness:1.0 };
 
-	var nearestEdge = undefined;
+loadSVGSketch.reset = function(){
+	loadSVGSketch.cp.clear();
+	loadSVGSketch.initialize();
+}
+loadSVGSketch.reset();
 
-	scope.view.onFrame = function(event) { }
-	scope.view.onResize = function(event) {
-		paper = scope;
-		zoomView(scope, canvas.width, canvas.height);
-	}
-	scope.view.onMouseMove = function(event){ 
-		mousePos = event.point;
-		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
-		if(nearestEdge !== nEdge){
-			nearestEdge = nEdge;
-			for(var i = 0; i < cp.edges.length; i++){
-				if(nearestEdge != undefined && nearestEdge === cp.edges[i]){
-					// paperCP.edges[i].strokeWidth = paperCP.lineWeight*2;
-					paperCP.edges[i].strokeColor = { hue:0, saturation:0.8, brightness:1 };
-				} else{
-					// paperCP.edges[i].strokeWidth = paperCP.lineWeight;
-					paperCP.edges[i].strokeColor = paperCP.styleForCrease(cp.edges[i].orientation).strokeColor;
-				}
-			}
-			// console.log("Edge: " + nearestEdge);
-		}
-	}
-	scope.view.onMouseDown = function(event){
-		paper = scope;		
-	}
-} load_svg_sketch();
+loadSVGSketch.onFrame = function(event) { }
+loadSVGSketch.onResize = function(event) { }
+loadSVGSketch.onMouseDown = function(event){ }
+loadSVGSketch.onMouseUp = function(event){ }
+loadSVGSketch.onMouseMove = function(event) { }
+

@@ -1,41 +1,34 @@
 var flat_foldable_nodes_callback;
 
-function flat_foldable_nodes(){
-	var canvas = document.getElementById('canvas-flat-foldable-nodes');
-	var scope = new paper.PaperScope();
-	// setup paper scope with canvas
-	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height);
+var ffSketch = new PaperCreasePattern(new CreasePattern(), "canvas-flat-foldable-nodes");
+ffSketch.zoomToFit(0.05);
 
-	var cp;
-	var paperCP;
-	
-	loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
-		cp = e;
-		paperCP = new PaperCreasePattern(scope, cp);
-		paperCP.nodeLayer.visible = true;
-		colorNodesFlatFoldable();
-		for(var i = 0; i < paperCP.nodes.length; i++){ paperCP.nodes[i].radius = 0.02; }
-	});
+loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
+	ffSketch.cp = e;
+	ffSketch.initialize();
+	ffSketch.nodeLayer.visible = true;
+	ffSketch.colorNodesFlatFoldable();
+	for(var i = 0; i < ffSketch.nodes.length; i++){ ffSketch.nodes[i].radius = 0.02; }
+});
 
-	function colorNodesFlatFoldable(){
-		for(var i = 0; i < cp.nodes.length; i++){
-			var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
-			if( !cp.nodes[i].flatFoldable() ){ color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } }
-			paperCP.nodes[i].fillColor = color;
-		}
+ffSketch.colorNodesFlatFoldable = function(){
+	for(var i = 0; i < ffSketch.cp.nodes.length; i++){
+		var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
+		if( !ffSketch.cp.nodes[i].flatFoldable() ){ color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } }
+		ffSketch.nodes[i].fillColor = color;
 	}
+}
 
-	scope.view.onFrame = function(event) { }
-	scope.view.onResize = function(event) {
-		paper = scope;
-		zoomView(scope, canvas.width, canvas.height);
-	}
-	scope.view.onMouseMove = function(event){ 
-		paper = scope;
-		mousePos = event.point;
-	}
-	scope.view.onMouseDown = function(event){
-		paper = scope;
-	}
-} flat_foldable_nodes();
+ffSketch.nearestEdgeColor = { hue:0, saturation:0.7, brightness:1.0 };
+
+ffSketch.reset = function(){
+	ffSketch.cp.clear();
+	ffSketch.initialize();
+}
+ffSketch.reset();
+
+ffSketch.onFrame = function(event) { }
+ffSketch.onResize = function(event) { }
+ffSketch.onMouseDown = function(event){ }
+ffSketch.onMouseUp = function(event){ }
+ffSketch.onMouseMove = function(event) { }

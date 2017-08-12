@@ -13,7 +13,7 @@
 	</div>
 
 	<div class="quote">
-		<p>getNearestNodes gives you multiple nodes, and getNearestEdge also provide the nearest point on an edge.</p>
+		<p>getNearestEdge provides further information, like the nearest point on an edge.</p>
 	</div>
 
 	<div class="half p5sketch" id="div-p5-nearest-node"></div>
@@ -26,6 +26,13 @@
 		<canvas id="canvas-nearest-nodes" resize class="fill"></canvas>
 	</div>
 
+	<div class="centered">
+		<pre><code>cp.<f>getNearestNodes</f>(<n id="sketch-ms-x1">x</n>, <n id="sketch-ms-y1">y</n>)</code></pre>
+	</div>
+
+	<div class="quote">
+		<p>getNearestNodes (plural) lets you query for more than one, and returns an array of nodes sorted by distance.</p>
+	</div>
 </section>
 
 <script type="text/javascript" src="../tests/js/mouse-select.js"></script>

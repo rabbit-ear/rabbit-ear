@@ -51,6 +51,10 @@ var p5_nearest_node = function(p) {
 			// p.stroke(255, 0, 0);
 			// p.ellipse(closestNode.x, closestNode.y, .03, .03);
 		}
+		if(closestNodes != undefined && closestNodes.length > 0){
+			p.stroke(255, 0, 0);
+			p.ellipse(closestNodes[0].x, closestNodes[0].y, .01, .01);
+		}
 	}
 
 	p.mouseMoved = function(event){
@@ -59,7 +63,7 @@ var p5_nearest_node = function(p) {
 		if(mouseXScaled < 0.0 || mouseXScaled > 1.0) mouseXScaled = undefined;
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		closestNode = g.getNearestNode(mouseXScaled, mouseYScaled);
-		closestNodes = g.getNearestNodes(mouseXScaled, mouseYScaled, 5);
+		closestNodes = g.getNearestNodes(mouseXScaled, mouseYScaled, 1);
 		if(p.callback != undefined){
 			p.callback({'x':mouseXScaled, 'y':mouseYScaled, 'node':closestNode});
 		}
