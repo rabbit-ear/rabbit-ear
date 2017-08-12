@@ -1,10 +1,10 @@
 
 var project = new PaperCreasePattern(new CreasePattern(), "canvas");
-project.zoomToFit(0.05);
+// project.zoomToFit(0.05);
 
 project.reset = function(){
-	project.cp.clear();
-	project.initialize();
+	// project.cp.clear();
+	// project.initialize();
 }
 project.reset();
 

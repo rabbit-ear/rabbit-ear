@@ -1,81 +1,54 @@
-// generate faces
-
 var radial_rainbow_callback = undefined;
 
-function radial_rainbow(){
-	var canvas = document.getElementById('canvas-radial-rainbow');
-	var scope = new paper.PaperScope();
-	// setup paper scope with canvas
-	scope.setup(canvas);
-	zoomView(scope, canvas.width, canvas.height);
+var radialRay = new PaperCreasePattern(new CreasePattern(), "canvas-radial-rainbow");
+radialRay.zoomToFit(0.05);
+radialRay.nearestEdgeColor = { gray:0.0 };
 
-	var cp = new CreasePattern();
-	cp.nodes = [];
-	cp.edges = [];
+radialRay.colorForAngle = function(angle){
+	var color = angle / Math.PI * 180;
+	while(color < 0){color += 360;}
+	return {hue:color, saturation:1.0, brightness:0.9};
+}
 
-	var paperCP = new PaperCreasePattern(scope, cp);
-
-	var nearestEdge = undefined;
-	var nearestNode = undefined;
-	var planarAdjacent = undefined;
-
-	function colorForAngle(angle){
-		var color = angle / Math.PI * 180;
-		while(color < 0){color += 360;}
-		return {hue:color, saturation:1.0, brightness:0.9};
+radialRay.reset = function(){
+	radialRay.cp.clear();
+	radialRay.cp.nodes = [];
+	radialRay.cp.edges = [];
+	var angle = 0;
+	while(angle < Math.PI*2){
+		radialRay.cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle)));
+		angle+= Math.random()*0.2;
 	}
+	radialRay.cp.cleanDuplicateNodes();
+	radialRay.initialize();
 
-	function resetCP(){
-		cp.clear();
-		cp.nodes = [];
-		cp.edges = [];
-		var angle = 0;
-		while(angle < Math.PI*2){
-			cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle)));
-			angle+= Math.random()*0.2;
-		}
-		cp.cleanDuplicateNodes();
-		paperCP.initialize();
-
-		planarAdjacent = cp.nodes[0].planarAdjacent();
-		for(var i = 0; i < planarAdjacent.length; i++){
-			var edgeIndex = planarAdjacent[i].edge.index;
-			paperCP.edges[edgeIndex].strokeColor = {gray:0.0};
-		}
+	radialRay.planarAdjacent = radialRay.cp.nodes[0].planarAdjacent();
+	for(var i = 0; i < radialRay.planarAdjacent.length; i++){
+		var edgeIndex = radialRay.planarAdjacent[i].edge.index;
+		radialRay.edges[edgeIndex].strokeColor = {gray:0.0};
 	}
-	resetCP();
+}
+radialRay.reset();
 
-	scope.view.onFrame = function(event){ }
-	scope.view.onResize = function(event){
-		paper = scope;
-		zoomView(scope, canvas.width, canvas.height);
-	}
-	scope.view.onMouseMove = function(event){ 
-		mousePos = event.point;
-		var nEdge = cp.getNearestEdge( mousePos.x, mousePos.y ).edge;
-		if(nearestEdge !== nEdge){
-			nearestEdge = nEdge;
-			for(var i = 0; i < planarAdjacent.length; i++){
-				var edgeIndex = planarAdjacent[i].edge.index;
-				if(planarAdjacent[i].edge === nearestEdge){
-					paperCP.edges[edgeIndex].strokeColor = colorForAngle(planarAdjacent[i].angle);
-					paperCP.edges[edgeIndex].strokeWidth = 0.02;//paperCP.lineWeight*1.5;
-					paperCP.edges[edgeIndex].bringToFront();
-					if(radial_rainbow_callback != undefined){
-						radial_rainbow_callback(planarAdjacent[i]);
-					}
-				}
-				else{
-					paperCP.edges[edgeIndex].strokeColor = {gray:0.0};
-					paperCP.edges[edgeIndex].strokeWidth = 0.01*0.66666;//paperCP.lineWeight*0.66666;
-				}
+radialRay.onFrame = function(event) { }
+radialRay.onResize = function(event) { }
+radialRay.onMouseDown = function(event){ }
+radialRay.onMouseUp = function(event){ }
+radialRay.onMouseMove = function(event) {
+	// nearestEdge = nEdge;
+	for(var i = 0; i < radialRay.planarAdjacent.length; i++){
+		var edgeIndex = radialRay.planarAdjacent[i].edge.index;
+		if(radialRay.planarAdjacent[i].edge === radialRay.nearestEdge){
+			radialRay.edges[edgeIndex].strokeColor = radialRay.colorForAngle(radialRay.planarAdjacent[i].angle);
+			radialRay.edges[edgeIndex].strokeWidth = 0.02;//radialRay.lineWeight*1.5;
+			radialRay.edges[edgeIndex].bringToFront();
+			if(radial_rainbow_callback != undefined){
+				radial_rainbow_callback(radialRay.planarAdjacent[i]);
 			}
 		}
+		else{
+			radialRay.edges[edgeIndex].strokeColor = {gray:0.0};
+			radialRay.edges[edgeIndex].strokeWidth = 0.01*0.66666;//paperCP.lineWeight*0.66666;
+		}
 	}
-
-	scope.view.onMouseDown = function(event){
-		paper = scope;
-		resetCP();
-	}
-
-} radial_rainbow();
+}
