@@ -15,10 +15,10 @@ axiom3.marks[3].position = [0.5, 1.0];
 
 axiom3.reset = function(){
 	axiom3.cp.clear();
-	var edgeA = axiom3.cp.creaseThroughPoints(axiom3.marks[0].position, axiom3.marks[1].position).mountain();
-	var edgeB = axiom3.cp.creaseThroughPoints(axiom3.marks[2].position, axiom3.marks[3].position).mountain();
+	var edgeA = axiom3.cp.creaseThroughPoints(axiom3.marks[0].position, axiom3.marks[1].position).valley();
+	var edgeB = axiom3.cp.creaseThroughPoints(axiom3.marks[2].position, axiom3.marks[3].position).valley();
 	var edges = axiom3.cp.creaseEdgeToEdge(edgeA, edgeB);
-	edges.forEach(function(el){el.valley();});
+	edges.forEach(function(el){el.mountain();});
 	axiom3.initialize();
 	if(edges.length >= 2){
 		axiom3.edges[edges[1].index].strokeColor = { hue:20, saturation:0.6, brightness:1 };

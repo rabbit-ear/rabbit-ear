@@ -1,24 +1,27 @@
 <?php include 'header.php';?>
+<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
 
 <h1>CLEAN</h1>
 
 <section id="intro">
 
 	<div class="centered">
-		<pre><code>graph.<f>clean</f>()</code></pre>
+		<canvas id="canvas-intersections" resize class="panorama"></canvas>
 	</div>
+
+	<div class="centered">
+		<pre><code><span id="span-merge-result-unused"></span>graph.<f>clean</f>()</code></pre>
+	</div>
+
 	<div class="quote">
-		<p>Cleaning a planar graph, it's now possible to merge nodes that are near each other</p>
+		<p>This is the name of the same process that filtered edges in a graph, but in a planar graph it can do much more</p>
 	</div>
 
 	<div id="divP5_merge" class="centered p5sketch"></div>
 
 	<div class="centered">
 		<pre><code><span id="div-node-count"></span> nodes, <span id="div-edge-count"></span> edges</code></pre>
-	</div>
-
-	<div class="centered">
-		<pre><code><span id="span-merge-result"></span>← graph.<f>cleanDuplicateNodes</f>(<n>epsilon</n>)</code></pre>
 	</div>
 
 	<div class="explain">
@@ -32,19 +35,69 @@
 		<canvas id="canvas2" resize></canvas>
 		<canvas id="canvas3" resize></canvas>
 	</div>
+
+	<div class="centered">
+		<pre><code>graph.<f>cleanDuplicateNodes</f>(<n>epsilon</n>)</code></pre>
+	</div>
+
+</section>
+
+<h2>INTERSECTIONS</h2>
+
+<section id="intro">
+
+	<div class="centered">
+		<pre><code><span id="span-merge-result"></span>graph.<f>chop</f>()</code></pre>
+	</div>
+
+
+	<div class="centered">
+		<pre><code>graph.<f>getEdgeIntersections</f>()</code></pre>
+	</div>
+</section>
+
+<section id="parallel">
+	<h2>Parallel Lines</h2>
+	<div class="explain">
+		<p>At some point, two lines will be considered parallel due to floating point precision, and could vary from machine to machine, so this library needs to be in control of the epsilon calculation.</p>
+	</div>
+
+	<div class="centered p5sketch" id="intersections-div"></div>
+
+	<div class="quote">
+		<p>Collinear lines (the last pair) should not intersect.</p>
+	</div>
+	
 </section>
 
 <div class="tests">
 	<ul>
+		<li><a href="../tests/html/chop_cross_many.html">chop overlapping lines</a></li>
+		<li><a href="../tests/html/chop_collinear_vert.html">chop vertical collinear</a></li>
+		<li><a href="../tests/html/chop_collinear_horiz.html">chop horizontal collinear</a></li>
+		<li><a href="../tests/html/chop_angle_ray.html">chop angled rays</a></li>
+		<li><a href="../tests/html/chop_mountain_valley.html">chop and preserve mountain/valley</a></li>
 		<li><a href="../tests/html/merge_node_check.html">merge node transparency check</a></li>
 	</ul>
 </div>
 
-
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/intersections.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/05_parallels_scale.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/11_merge_duplicates.js"></script>
+
+<script>
+	var p505 = new p5(_05_parallels, 'intersections-div');
+</script>
+
+<script>
+	edge_intersections_callback = function(event){
+		if(event != undefined){
+			document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
+		}
+	}
+	intersectionSketch.reset();
+</script>
 
 <script>
 	var p5b = new p5(_11_merge_duplicates, 'divP5_merge');

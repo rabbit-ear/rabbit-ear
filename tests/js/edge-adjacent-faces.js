@@ -7,7 +7,7 @@ edgeFaces.zoomToFit(0.05);
 edgeFaces.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
 edgeFaces.faceLayer = new edgeFaces.scope.Layer();
 edgeFaces.edgeLayer.bringToFront();
-edgeFaces.paperEdgeLayer.bringToFront();
+edgeFaces.boundaryLayer.bringToFront();
 
 edgeFaces.reset = function(){
 	edgeFaces.cp.clear();

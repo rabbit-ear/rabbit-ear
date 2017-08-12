@@ -7,7 +7,7 @@ nodeFaces.zoomToFit(0.05);
 nodeFaces.nearestNodeColor = { hue:220, saturation:0.6, brightness:1 };
 nodeFaces.faceLayer = new nodeFaces.scope.Layer();
 nodeFaces.edgeLayer.bringToFront();
-nodeFaces.paperEdgeLayer.bringToFront();
+nodeFaces.boundaryLayer.bringToFront();
 nodeFaces.mouseNodeLayer.bringToFront();
 
 nodeFaces.reset = function(){

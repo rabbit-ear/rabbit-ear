@@ -13,7 +13,7 @@ axiom1.marks[1].position = [1.0, 1.0];
 
 axiom1.reset = function(){
 	axiom1.cp.clear();
-	axiom1.cp.creaseThroughPoints(axiom1.marks[0].position, axiom1.marks[1].position).valley();
+	axiom1.cp.creaseThroughPoints(axiom1.marks[0].position, axiom1.marks[1].position).mountain();
 	axiom1.initialize();
 }
 axiom1.reset();

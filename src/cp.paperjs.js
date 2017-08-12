@@ -57,7 +57,7 @@ var PaperCreasePattern = (function () {
 		// the order of the following sets the z index order too
 		this.faceLayer = new this.scope.Layer();
 		this.edgeLayer = new this.scope.Layer();
-		this.paperEdgeLayer = new this.scope.Layer();
+		this.boundaryLayer = new this.scope.Layer();
 		this.nodeLayer = new this.scope.Layer();
 		
 		this.nodeLayer.visible = false;
@@ -88,7 +88,7 @@ var PaperCreasePattern = (function () {
 		this.edges = [];
 		this.faces = [];
 
-		this.paperEdgeLayer.removeChildren();
+		this.boundaryLayer.removeChildren();
 		this.nodeLayer.removeChildren();
 		this.edgeLayer.removeChildren();
 		this.faceLayer.removeChildren();
@@ -96,7 +96,7 @@ var PaperCreasePattern = (function () {
 		// draw paper edge
 		if(this.cp == undefined){ return; }
 		if(this.cp.boundary != undefined){
-			this.paperEdgeLayer.activate();
+			this.boundaryLayer.activate();
 			var boundarySegments = [];
 			for(var i = 0; i < this.cp.boundary.edges.length; i++){
 				var endpoints = this.cp.boundary.edges[i].nodes;
@@ -203,13 +203,15 @@ var PaperCreasePattern = (function () {
 		fillColor: { hue:25, saturation:0.7, brightness:1.0 }//{ hue:20, saturation:0.6, brightness:1 }
 	}
 	PaperCreasePattern.prototype.style.mountain = {
-		strokeColor: { hue:220, saturation:0.6, brightness:1 }, 
-		dashArray: undefined,
+		strokeColor: { gray:0.5 },//{ hue:340, saturation:0.75, brightness:0.9 },
+		dashArray: [lineWeight*4, lineWeight, lineWeight, lineWeight],
+		// dashArray: undefined,
 		strokeWidth: lineWeight
 	};
 	PaperCreasePattern.prototype.style.valley = {
-		strokeColor: { hue:350, saturation:0, brightness:0.6 },
-		dashArray: [lineWeight*3, lineWeight],
+		strokeColor: { hue:220, saturation:0.6, brightness:1 },
+		// dashArray: [lineWeight*3, lineWeight],
+		dashArray: undefined,
 		strokeWidth: lineWeight
 	};
 	PaperCreasePattern.prototype.style.border = {

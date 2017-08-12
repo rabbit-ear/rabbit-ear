@@ -31,7 +31,7 @@ var XYPoint = (function () {
         this.y = y;
     }
     // position(x:number, y:number):XYPoint{ this.x = x; this.y = y; return this; }
-    // translate(dx:number, dy:number):XYPoint{ this.x += dx; this.y += dy; return this;}
+    // translated(dx:number, dy:number):XYPoint{ this.x += dx; this.y += dy; return this;}
     XYPoint.prototype.normalize = function () { var m = this.mag(); return new XYPoint(this.x / m, this.y / m); };
     XYPoint.prototype.rotate90 = function () { return new XYPoint(-this.y, this.x); };
     XYPoint.prototype.rotate = function (origin, angle) {
@@ -604,6 +604,7 @@ var PlanarGraph = (function (_super) {
                 }
             }
         }
+        return this.faces;
     };
     PlanarGraph.prototype.findClockwiseCircut = function (node1, node2) {
         var incidentEdge = this.getEdgeConnectingNodes(node1, node2);

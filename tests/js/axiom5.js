@@ -15,9 +15,9 @@ axiom5.marks[3].position = [0.66666, 0.5];
 
 axiom5.reset = function(){
 	axiom5.cp.clear();
-	var edge = axiom5.cp.creaseThroughPoints(axiom5.marks[0].position, axiom5.marks[1].position).mountain();
+	var edge = axiom5.cp.creaseThroughPoints(axiom5.marks[0].position, axiom5.marks[1].position).valley();
 	var newCreases = axiom5.cp.creasePointToLine(axiom5.marks[2].position, axiom5.marks[3].position, edge);
-	newCreases.forEach(function(el){ el.valley(); });
+	newCreases.forEach(function(el){ el.mountain(); });
 	axiom5.initialize();
 	if(newCreases.length >= 2){
 		axiom5.edges[ newCreases[1].index ].strokeColor = { hue:20, saturation:0.6, brightness:1 };
@@ -28,7 +28,7 @@ axiom5.reset = function(){
 	if(markers.length >= 2){
 		new axiom5.scope.Shape.Circle({
 			center: [markers[0].x, markers[0].y], radius: 0.02, strokeWidth:0.01,
-			strokeColor: { hue:130, saturation:0.8, brightness:0.7 }
+			strokeColor: axiom5.style.mountain.strokeColor//{ hue:130, saturation:0.8, brightness:0.7 }
 		});
 		new axiom5.scope.Shape.Circle({
 			center: [markers[1].x, markers[1].y], radius: 0.02, strokeWidth:0.01,

@@ -19,20 +19,22 @@
 	<div class="centered">
 		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>loadSVG</v>(<str>"filename"</str>)</code></pre>
 	</div>
+
 	<div class="quote">
 		<p>Can also load crease patterns from a file.</p>
 	</div>
 
 	<div class="centered">
-		<pre><code> </code></pre>
+		<canvas id="canvas-single-joint" resize></canvas>
 	</div>
+
 	<div class="quote">
 		<p>And of course, build up a crease pattern from a sequence of folds.</p>
 	</div>
 
 </section>
 
-<script type="text/javascript" src="../tests/js/blank.js"></script>
+<script type="text/javascript" src="../tests/js/joint.js"></script>
 
 <script>
 	new PaperCreasePattern("canvas-1", new CreasePattern().birdBase());

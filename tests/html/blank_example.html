@@ -27,7 +27,6 @@ canvas[resize] {
 	<canvas id="canvas-3" resize></canvas>
 	<canvas id="canvas-4" resize></canvas>
 </body>
-<script type="text/javascript" src="../js/blank.js"></script>
 <script>
 var cp1 = new CreasePattern();
 cp1.kiteBase();
@@ -42,9 +41,9 @@ cp3.generateFaces();
 // cp4.frogBase();
 // cp4.generateFaces();
 
-fillCanvasWithCP("canvas-1", cp1);
-fillCanvasWithCP("canvas-2", cp2);
-fillCanvasWithCP("canvas-3", cp3);
-// fillCanvasWithCP("canvas-4", cp4);
+new PaperCreasePattern("canvas-1", cp1);
+new PaperCreasePattern("canvas-2", cp2);
+new PaperCreasePattern("canvas-3", cp3);
+// new PaperCreasePattern("canvas-4", cp4);
 </script>
 </html>

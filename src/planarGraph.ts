@@ -27,7 +27,7 @@ class XYPoint{
 		this.y = y;
 	}
 	// position(x:number, y:number):XYPoint{ this.x = x; this.y = y; return this; }
-	// translate(dx:number, dy:number):XYPoint{ this.x += dx; this.y += dy; return this;}
+	// translated(dx:number, dy:number):XYPoint{ this.x += dx; this.y += dy; return this;}
 	normalize():XYPoint { var m = this.mag(); return new XYPoint(this.x/m, this.y/m);}
 	rotate90():XYPoint { return new XYPoint(-this.y, this.x); }
 	rotate(origin:XYPoint, angle:number){
@@ -572,7 +572,7 @@ class PlanarGraph extends Graph{
 	///////////////////////////////////////////////////////////////
 	// FACE
 
-	generateFaces(){
+	generateFaces():PlanarFace[]{
 		this.faces = [];
 		for(var i = 0; i < this.nodes.length; i++){
 			var adjacentFaces = this.nodes[i].adjacentFaces();
@@ -584,6 +584,7 @@ class PlanarGraph extends Graph{
 				if(!duplicate){ this.faces.push(adjacentFaces[af]); }
 			}
 		}
+		return this.faces;
 	}
 
 	findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarPair[]{

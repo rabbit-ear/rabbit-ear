@@ -37,7 +37,6 @@
 			<a href="planarGraph.php" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
 			<a href="planarClean.php">CLEAN</a>
-			<a href="intersections.php">INTERSECTIONS</a>
 			<a href="face.php">FACE</a>
 			<a href="neighbors.php">NEIGHBOR</a>
 			</div>

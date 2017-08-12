@@ -13,11 +13,19 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> planarGraph<key> = new</key> PlanarGraph();<br><span id="span-intersection-results"></span>planarGraph.<a href="library/getEdgeIntersections.php"><f>getEdgeIntersections</f></a>();</code></pre>
+		<pre><code><key>var</key> planarGraph<key> = new</key> PlanarGraph()<br><span id="span-intersection-results"></span>planarGraph.<a href="library/getEdgeIntersections.php"><f>getEdgeIntersections</f></a>()</code></pre>
 	</div>
 
 	<div class="quote">
 		<p>A planar graph gives 2D space (X,Y) to the nodes.</p>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-face-single" resize></canvas>
+	</div>
+
+	<div class="centered">
+		<pre><code><span id="span-generate-face-result"></span>planarGraph.<a href="library/getEdgeIntersections.php"><f>generateFaces</f></a>()</code></pre>
 	</div>
 
 	<div class="quote">
@@ -51,6 +59,7 @@
 <script language="javascript" type="text/javascript" src="../tests/js/mouse_delete_edge.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/intersect_wobble.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/nearest_nodes.js"></script>
+<script type="text/javascript" src="../tests/js/face_single.js"></script>
 <script>
 var p5js = new p5(function(p, canvasName) { 
 	noise = function(d){ return p.noise(d); }
@@ -58,8 +67,13 @@ var p5js = new p5(function(p, canvasName) {
 }, '');
 
 wobble_intersections_callback = function(e){
-	document.getElementById("span-intersection-results").innerHTML = "Array(<n>" + e.length + "</n>) ← ";
+	document.getElementById("span-intersection-results").innerHTML = "<v>Array</v>(<n>" + e.length + "</n>) ← ";
 }
+
+singleFaceCallback = function(e){
+	document.getElementById("span-generate-face-result").innerHTML = "<v>Array</v>(<n>" + e.length + "</n>) ← ";
+}
+singleFace.reset();
 </script>
 
 <?php include 'footer.php';?>
