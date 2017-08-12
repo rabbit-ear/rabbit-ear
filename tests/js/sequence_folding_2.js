@@ -1,5 +1,5 @@
 
-var sequence2 = new PaperCreasePattern(new CreasePattern(), "canvas-sequence-folding-2");
+var sequence2 = new PaperCreasePattern("canvas-sequence-folding-2");
 sequence2.zoomToFit(0.1);
 
 sequence2.reset = function(){ }

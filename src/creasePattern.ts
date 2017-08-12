@@ -563,10 +563,6 @@ class CreasePattern extends PlanarGraph{
 		return returned;
 	}
 
-	findAllFaces(){
-		this.generateFaces();
-	}
-
 	kiteBase():CreasePattern{
 		super.clear();
 		(<Crease>this.newPlanarEdge(0.0, 0.0, 0.41421, 0.0)).border();

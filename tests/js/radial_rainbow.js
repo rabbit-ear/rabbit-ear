@@ -1,6 +1,6 @@
 var radial_rainbow_callback = undefined;
 
-var radialRay = new PaperCreasePattern(new CreasePattern(), "canvas-radial-rainbow");
+var radialRay = new PaperCreasePattern("canvas-radial-rainbow");
 radialRay.zoomToFit(0.05);
 radialRay.nearestEdgeColor = { gray:0.0 };
 

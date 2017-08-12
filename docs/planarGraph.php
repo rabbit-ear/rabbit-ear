@@ -8,31 +8,58 @@
 
 <section id="intro">
 
-	<div id="sketch_intersections" class="centered p5sketch"></div>
+	<div class="centered">
+		<canvas id="canvas-intersection-wobble" resize class="panorama"></canvas>
+	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> planarGraph<key> = new</key> PlanarGraph();<br><span id="span-intersection-results"></span>planarGraph.<f>getEdgeIntersections</f>();</code></pre>
+		<pre><code><key>var</key> planarGraph<key> = new</key> PlanarGraph();<br><span id="span-intersection-results"></span>planarGraph.<a href="library/getEdgeIntersections.php"><f>getEdgeIntersections</f></a>();</code></pre>
 	</div>
 
 	<div class="quote">
-		<p>A planar graph amends a graph's nodes with (X,Y) coordinates and adds the ability to detect faces</p>
+		<p>A planar graph gives 2D space (X,Y) to the nodes.</p>
 	</div>
 
 	<div class="quote">
-		<p>Removing an edge on a planar graph will attempt to remove the nodes too. </p>
+		<p>It's now possible to calculate edge crossings, faces, and interact with the screen.</p>
 	</div>
 
+	<div class="centered">
+		<canvas id="canvas-mouse-delete-edge" resize></canvas>
+	</div>
+
+	<div class="quote">
+		<p>More sophisticated operations can occur like removing nodes left behind that are coplanar to an edge.</p>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-nearest-nodes" resize class="fill"></canvas>
+	</div>
 
 </section>
 
-<script language="javascript" type="text/javascript" src="../tests/js/04_intersections.js"></script>
+<div class="nav">
+	<div class="nav-back">
+		<p><a href="/docs/graph.php">⇦ Back: Graphs</a></p>
+	</div>
+	<div class="nav-next">
+		<p><a href="planarClean.php">Next: Clean ⇒</a></p>
+	</div>
+</div>
 
+
+<script language="javascript" type="text/javascript" src="../tests/js/mouse_delete_edge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/intersect_wobble.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/nearest_nodes.js"></script>
 <script>
+var p5js = new p5(function(p, canvasName) { 
+	noise = function(d){ return p.noise(d); }
+	millis = function(){ return p.millis(); }
+}, '');
 
-var p5intersections = new p5(_04_intersections, 'sketch_intersections');
-// p5intersections.callback = function(e){
-// 	document.getElementById("span-intersection-results").innerHTML = e.length + " ← ";
-// }
+wobble_intersections_callback = function(e){
+	document.getElementById("span-intersection-results").innerHTML = "Array(<n>" + e.length + "</n>) ← ";
+}
 </script>
 
 <?php include 'footer.php';?>

@@ -1,6 +1,6 @@
 var mouse_select_callback;
 
-var mouseSelect = new PaperCreasePattern(new CreasePattern(), "canvas-mouse-select");
+var mouseSelect = new PaperCreasePattern("canvas-mouse-select");
 mouseSelect.zoomToFit(0.05);
 
 mouseSelect.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };

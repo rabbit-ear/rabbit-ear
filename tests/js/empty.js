@@ -1,5 +1,5 @@
 
-var project = new PaperCreasePattern(new CreasePattern(), "canvas");
+var project = new PaperCreasePattern("canvas");
 // project.zoomToFit(0.05);
 
 project.reset = function(){

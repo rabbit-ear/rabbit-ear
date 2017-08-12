@@ -1,5 +1,5 @@
 
-var chopCross = new PaperCreasePattern(new CreasePattern(), "canvas-chop-cross-many");
+var chopCross = new PaperCreasePattern("canvas-chop-cross-many");
 chopCross.zoomToFit(0.05);
 
 chopCross.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };

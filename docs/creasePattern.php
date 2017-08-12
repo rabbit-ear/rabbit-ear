@@ -35,7 +35,7 @@
 <script type="text/javascript" src="../tests/js/blank.js"></script>
 
 <script>
-	new PaperCreasePattern(new CreasePattern().birdBase(), "canvas-1");
+	new PaperCreasePattern("canvas-1", new CreasePattern().birdBase());
 </script>
 
 <?php include 'footer.php';?>

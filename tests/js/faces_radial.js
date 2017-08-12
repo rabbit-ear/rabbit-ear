@@ -1,6 +1,6 @@
 // generate faces
 
-var radialFaces = new PaperCreasePattern(new CreasePattern(), "canvas-faces-radial");
+var radialFaces = new PaperCreasePattern("canvas-faces-radial");
 radialFaces.zoomToFit(0.05);
 
 radialFaces.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };

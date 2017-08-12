@@ -26,7 +26,7 @@ canvas[resize] {
 <script>
 
 var cp = new CreasePattern();
-var paperCP = new PaperCreasePattern(cp, "canvas");
+var paperCP = new PaperCreasePattern("canvas", cp);
 paperCP.zoomToFit(0.05);
 
 paperCP.onFrame = function(event) { }

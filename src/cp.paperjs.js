@@ -2,6 +2,13 @@
 // render and style a crease pattern into an HTML canvas using PaperJS
 // reimplement methods for interaction
 
+try {
+	var cp = new CreasePattern();
+} catch(err) {
+	console.log(err.message);
+	throw "cp.paper.js requires the crease pattern js library github.com/robbykraft/Origami"
+}
+
 var EPSILON_FILE_IMPORT = 0.005;
 
 function pointsSimilar(p1, p2, epsilon){
@@ -18,11 +25,14 @@ var PaperCreasePattern = (function () {
 	PaperCreasePattern.prototype.onMouseUp = function(event){ }
 	PaperCreasePattern.prototype.onMouseMove = function(event){ }
 
-	function PaperCreasePattern(creasePattern, canvas) {
-		if(creasePattern == undefined || canvas == undefined) { throw "PaperCreasePattern() init issue"; }
+	function PaperCreasePattern(canvas, creasePattern) {
+		if(canvas == undefined) { throw "PaperCreasePattern() init issue"; }
 		if(typeof canvas === "string"){ this.canvas = document.getElementById(canvas); }
 		else this.canvas = canvas;
+
 		this.cp = creasePattern;
+		if(this.cp === undefined) { this.cp = new CreasePattern(); }
+		
 
 		this.scope = new paper.PaperScope();
 		this.scope.setup(canvas);
@@ -127,7 +137,7 @@ var PaperCreasePattern = (function () {
 		// store padding for future calls
 		if(padding != undefined){ this.padding = padding; }
 		// use stored padding if we can
-		var paperWindowScale = 1.0;
+		var paperWindowScale = 1.0 - .015;
 		if(this.padding != undefined){ paperWindowScale = 1.0 - this.padding*2; }
 		var pixelScale = 1.0;
 		if(isRetina){ pixelScale = 0.5; }

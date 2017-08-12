@@ -1,5 +1,5 @@
 
-var loadSVGSketch = new PaperCreasePattern(new CreasePattern(), "canvas-load-svg");
+var loadSVGSketch = new PaperCreasePattern("canvas-load-svg");
 loadSVGSketch.zoomToFit(0.05);
 
 loadSVG("/tests/svg/crane.svg", function(e){ 

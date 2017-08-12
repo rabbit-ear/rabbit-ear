@@ -1,6 +1,6 @@
 var turtle_shell_callback;
 
-var turtleShell = new PaperCreasePattern(new CreasePattern(), "canvas-turtle-shell");
+var turtleShell = new PaperCreasePattern("canvas-turtle-shell");
 turtleShell.zoomToFit(0.05);
 	
 turtleShell.makeFlatFoldableIndicators = function(){

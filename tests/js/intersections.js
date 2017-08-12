@@ -1,7 +1,7 @@
 
 edge_intersections_callback = undefined;
 
-var intersectionSketch = new PaperCreasePattern(new CreasePattern(), "canvas-intersections");
+var intersectionSketch = new PaperCreasePattern("canvas-intersections");
 intersectionSketch.zoomToFit(0.05);
 intersectionSketch.intersectionsLayer = new intersectionSketch.scope.Layer();
 

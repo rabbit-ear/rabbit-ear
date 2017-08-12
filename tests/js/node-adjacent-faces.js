@@ -2,7 +2,7 @@
 
 var node_adjacent_faces_callback = undefined;
 
-var nodeFaces = new PaperCreasePattern(new CreasePattern(), "canvas-node-adjacent-faces");
+var nodeFaces = new PaperCreasePattern("canvas-node-adjacent-faces");
 nodeFaces.zoomToFit(0.05);
 nodeFaces.nearestNodeColor = { hue:220, saturation:0.6, brightness:1 };
 nodeFaces.faceLayer = new nodeFaces.scope.Layer();

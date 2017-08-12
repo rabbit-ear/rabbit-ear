@@ -1,6 +1,6 @@
 var flat_foldable_nodes_callback;
 
-var ffSketch = new PaperCreasePattern(new CreasePattern(), "canvas-flat-foldable-nodes");
+var ffSketch = new PaperCreasePattern("canvas-flat-foldable-nodes");
 ffSketch.zoomToFit(0.05);
 
 loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 

@@ -597,9 +597,6 @@ var CreasePattern = (function (_super) {
         }
         return returned;
     };
-    CreasePattern.prototype.findAllFaces = function () {
-        this.generateFaces();
-    };
     CreasePattern.prototype.kiteBase = function () {
         _super.prototype.clear.call(this);
         this.newPlanarEdge(0.0, 0.0, 0.41421, 0.0).border();

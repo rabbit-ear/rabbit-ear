@@ -1,4 +1,4 @@
-var mergeNodeCheck = new PaperCreasePattern(new CreasePattern(), "canvas-merge-node-check");
+var mergeNodeCheck = new PaperCreasePattern("canvas-merge-node-check");
 mergeNodeCheck.zoomToFit(0.05);
 
 mergeNodeCheck.reset = function(){

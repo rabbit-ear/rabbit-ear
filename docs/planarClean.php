@@ -79,9 +79,9 @@
 	cp[0].cleanDuplicateNodes(0.01);
 	cp[1].cleanDuplicateNodes(0.025);
 	cp[2].cleanDuplicateNodes(0.066);
-	var paper1 = new PaperCreasePattern(cp[0], "canvas1");
-	var paper2 = new PaperCreasePattern(cp[1], "canvas2");
-	var paper3 = new PaperCreasePattern(cp[2], "canvas3");
+	var paper1 = new PaperCreasePattern("canvas1", cp[0]);
+	var paper2 = new PaperCreasePattern("canvas2", cp[1]);
+	var paper3 = new PaperCreasePattern("canvas3", cp[2]);
 	paper1.nodeLayer.visible = true;
 	paper2.nodeLayer.visible = true;
 	paper3.nodeLayer.visible = true;

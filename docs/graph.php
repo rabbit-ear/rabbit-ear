@@ -19,7 +19,7 @@
 		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
 	</div>
 	<div class="explain">
-		<p>Unlike these visualizations, graphs don't exist in space, they are an abstract model of connections between nodes</p>
+		<p>Unlike these visualizations, graphs don't exist in space, they are an abstract model of connections between nodes.</p>
 	</div>
 </section>
 
@@ -32,47 +32,40 @@
 	</div>
 
 	<div class="centered">
-		<pre><code>graph.<v>nodes</v><op>:</op><v>GraphNode</v> <op>=</op> [];  <c>// empty array of the graph's nodes</c><br>graph.<v>edges</v><op>:</op><v>GraphEdge</v>  <op>=</op> [];  <c>// empty array of the graph's edges</c></code></pre>
+		<pre><code>graph.<v>nodes</v> <c> // array of GraphNode</c><br>graph.<v>edges</v> <c> // array of GraphEdge</c></code></pre>
 	</div>
 
 
 	<div class="quote">
-		<p>The type of the nodes is a <a href="methods/GraphNode.php">GraphNode</a>, and edges is a <a href="methods/GraphEdge.php">GraphEdge</a>.</p>
+		<p>The type of the nodes is a <a href="library/GraphNode.php">Graph Node</a>, and edges is a <a href="library/GraphEdge.php">Graph Edge</a>.</p>
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> node <op>=</op> graph.<v>newNode</v>();</code></pre>
+		<pre><code>graph.<v>newNode</v>()</code></pre>
 	</div>
 
 	<div class="quote">
-		<p>newEdge(a,b) requires you specify 2 nodes to connect.</p>
+		<p>This makes a new node. You can store a reference to it.</p>
 	</div>
+
 	<div class="centered">
-		<pre><code><key>var</key> edge <op>=</op> graph.<v>newEdge</v>(<arg>node1</arg>, <arg>node2</arg>);</code></pre>
+		<pre><code><key>var</key> node <op>=</op> graph.<v>newNode</v>()</code> <c> // node is a GraphNode</c></pre>
 	</div>
 
 	<div class="quote">
-		<p>These return a pointer to the newly created object.</p>
+		<p>A new edge needs to know the 2 nodes its connecting.</p>
 	</div>
-</section>
-
-<h2><a href="#">&sect;</a> Clean</h2>
-
-<section id="clean">
-	<div class="explain">
-		<p>Cleaning a graph will removing any duplicate or circular edges and leave the nodes untouched.</p>
-	</div>
-
 	<div class="centered">
-		<pre><code>graph.<f>clean</f>()</code></pre>
+		<pre><code><key>var</key> edge <op>=</op> graph.<v>newEdge</v>(<arg>node1</arg>, <arg>node2</arg>) <c> // edge is a GraphEdge</c></code></pre>
 	</div>
+
 </section>
 
 <h2><a href="#nodes">&sect;</a> Nodes</h2>
 
 <section id="nodes">
 	<div class="centered">
-		<pre><code>graph.<v>nodes</v>[<n>0</n>];  <c>// the first node</c></code></pre>
+		<pre><code>graph.<v>nodes</v>[<n>0</n>]  <c>// the first node</c></code></pre>
 	</div>
 
 	<div class="centered">
@@ -109,16 +102,13 @@
 	</div>
 
 	<div class="explain">
-		<p><strong>Two edges are adjacent when they are both connected to the same node</strong></p>
+		<p>Two edges are <strong>adjacent</strong> when they are both connected to the same node</p>
 	</div>
 
 </section>
 
 <h2><a href="#remove-nodes">&sect;</a> Remove</h2>
 <section id="remove-nodes">
-	<div class="quote">
-			<p>When removing a node, any edges which share the node will be removed also.</p>
-	</div>
 
 	<div class="centered">
 		<svg id="svgTest03" width="400" height="400"></svg>
@@ -129,7 +119,7 @@
 	</div>
 
 	<div class="quote">
-		<p>Removing an edge simply removes that edge, any previously-attached nodes will remain in the graph.</p>
+			<p>When removing a node, any edges which share the node will be removed also.</p>
 	</div>
 
 	<div class="centered">
@@ -140,6 +130,56 @@
 		<pre><code><span id="spanEdgesAdjacentToNodeResult"></span>graph.<f>removeEdge</f>(<v><span id="spanEdgesAdjacentToNodeInput" class="token argument">edge</span></v>)</code></pre>
 	</div>
 
+	<div class="quote">
+		<p>Removing an edge will do simply that and the nodes remain untouched.</p>
+	</div>
+
+</section>
+
+<h2><a href="#">&sect;</a> Clean</h2>
+
+<section id="clean">
+
+	<div class="centered">
+		<pre><code>graph.<f>clean</f>() <c>// # of edges removed</c></code></pre>
+	</div>
+
+	<div class="quote">
+		<p>Cleaning removes duplicate and circular edges. You can also target specific edges:</p>
+	</div>
+
+	<div class="centered">
+		<pre><code>graph.<f>removeEdge</f>(<arg>edge</arg>) <c> // T/F removed or not removed</c><br>graph.<f>removeEdgeBetween</f>(<arg>node1</arg>, <arg>node2</arg>) <c> // # of edges removed</c></code></pre>
+	</div>
+
+	<div class="quote">
+		<p>Removing Nodes:</p>
+	</div>
+
+	<div class="centered">
+		<pre><code>graph.<f>removeNode</f>(<arg>node</arg>) <c> // T/F removed or not removed</c><br>graph.<f>removeIsolatedNodes</f>() <c>// # of nodes removed</c></code></pre>
+	</div>
+
+	<div class="quote">
+		<p><strong>Isolated nodes</strong> are nodes that aren't connected to an edge.</p>
+	</div>
+
+	<div class="centered">
+		<pre><code><key>var</key> node<key> =</key> graph.<f>mergeNodes</f>(<arg>node1</arg>,<arg>node2</arg>) <c>// node is a GraphNode</c></code></pre>
+	</div>
+
+</section>
+
+<div class="nav">
+	<div class="nav-back">
+		<p><a href="/docs/">⇦ Back: Welcome</a></p>
+	</div>
+	<div class="nav-next">
+		<p><a href="planarGraph.php">Next: Planar Graphs ⇒</a></p>
+	</div>
+</div>
+
+<section id="tests">
 	<div class="tests">
 		<ul>
 			<li><a href="../tests/html/graph_stress.html">10,000 edges</a></li>
@@ -148,8 +188,8 @@
 			<li><a href="../tests/html/graph_in_common.html">common and uncommon nodes</a></li>
 		</ul>
 	</div>
+	
 </section>
-
 
 <script language="javascript" type="text/javascript" src="../tests/js/graph_simple.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/graph_adjacentNode.js"></script>

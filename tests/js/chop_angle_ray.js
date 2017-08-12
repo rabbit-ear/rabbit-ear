@@ -1,5 +1,5 @@
 
-var chopRays = new PaperCreasePattern(new CreasePattern(), "canvas-chop-angle-ray");
+var chopRays = new PaperCreasePattern("canvas-chop-angle-ray");
 chopRays.zoomToFit(0.05);
 
 // chopRays.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };

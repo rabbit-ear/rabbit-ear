@@ -97,6 +97,21 @@ b, strong{
 	font-style: italic;
 	font-size: 90%;
 }
+.nav {
+	margin-top:2em;
+	margin-bottom:2em;
+	font-style: italic;
+	font-size: 90%;
+	width: 100%;
+}
+.nav-back {
+	width: 50%;
+	float: left;
+}
+.nav-next {
+	margin-left: 50%;
+	text-align: right;
+}
 .tests{
 	margin-top:2em;
 	margin-bottom:2em;
@@ -121,7 +136,7 @@ code a, code a:visited, code a:active, code a:hover{
 }
 code a:hover{
 	/*border-width: 5px;*/
-	border-bottom-width: 3px;
+	border-bottom-width: 2px;
 	border-style: solid;
 	border-color: white;/*#66D9EF;*/
 }

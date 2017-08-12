@@ -1,7 +1,7 @@
 // generate faces
 faces_random_callback = undefined;
 
-var randomFaces = new PaperCreasePattern(new CreasePattern(), "canvas-faces-random");
+var randomFaces = new PaperCreasePattern("canvas-faces-random");
 randomFaces.zoomToFit(0.05);
 randomFaces.style.mark.strokeColor = {gray:0.0, alpha:1.0};
 

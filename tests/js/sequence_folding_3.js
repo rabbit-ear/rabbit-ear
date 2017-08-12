@@ -1,5 +1,5 @@
 
-var sequence3 = new PaperCreasePattern(new CreasePattern(), "canvas-sequence-folding-3");
+var sequence3 = new PaperCreasePattern("canvas-sequence-folding-3");
 sequence3.zoomToFit(0.1);
 
 sequence3.reset = function(){ }
@@ -26,4 +26,3 @@ sequence3.onResize = function(event) { }
 sequence3.onMouseDown = function(event){ }
 sequence3.onMouseUp = function(event){ }
 sequence3.onMouseMove = function(event) { }
-

@@ -1,5 +1,5 @@
 
-var fishSwim = new PaperCreasePattern(new CreasePattern(), "canvas-fish-base-wobble");
+var fishSwim = new PaperCreasePattern("canvas-fish-base-wobble");
 fishSwim.zoomToFit(0.05);
 
 

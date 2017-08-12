@@ -550,7 +550,7 @@ var PlanarGraph = (function (_super) {
         if (x == undefined || y == undefined) {
             return undefined;
         }
-        var minDist, minDistIndex, minLocation = { x: undefined, y: undefined };
+        var minDist, nearestEdge, minLocation = { x: undefined, y: undefined };
         for (var i = 0; i < this.edges.length; i++) {
             var p = this.edges[i].nodes;
             var pT = minDistBetweenPointLine(p[0], p[1], x, y);
@@ -558,7 +558,7 @@ var PlanarGraph = (function (_super) {
                 var thisDist = Math.sqrt(Math.pow(x - pT.x, 2) + Math.pow(y - pT.y, 2));
                 if (minDist == undefined || thisDist < minDist) {
                     minDist = thisDist;
-                    minDistIndex = i;
+                    nearestEdge = this.edges[i];
                     minLocation = pT;
                 }
             }
@@ -571,12 +571,12 @@ var PlanarGraph = (function (_super) {
                 var adjEdges = this.nodes[i].adjacentEdges();
                 if (adjEdges != undefined && adjEdges.length > 0) {
                     minDist = dist;
-                    minDistIndex = adjEdges[0].index;
+                    nearestEdge = adjEdges[0];
                     minLocation = { x: this.nodes[i].x, y: this.nodes[i].y };
                 }
             }
         }
-        return new EdgeIntersection(this.edges[minDistIndex], minLocation.x, minLocation.y);
+        return new EdgeIntersection(nearestEdge, minLocation.x, minLocation.y);
     };
     ///////////////////////////////////////////////////////////////
     // CALCULATIONS

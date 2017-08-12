@@ -1,5 +1,5 @@
 
-var chop_sketch = new PaperCreasePattern(new CreasePattern(), "canvas-chop");
+var chop_sketch = new PaperCreasePattern("canvas-chop");
 chop_sketch.zoomToFit(0.05);
 
 chop_sketch.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };

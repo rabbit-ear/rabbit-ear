@@ -56,7 +56,7 @@
 	</div>
 	
 	<div class="centered">
-		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<a href="methods/planarAdjacent.php"><f>planarAdjacent</f>()</a></code></pre>
+		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<a href="library/planarAdjacent.php"><f>planarAdjacent</f>()</a></code></pre>
 	</div>
 
 	<div class="quote">
@@ -109,8 +109,8 @@ cp2.generateFaces();
 // cp3.frogBase();
 // cp3.generateFaces();
 
-new PaperCreasePattern(cp1, "canvas-1");
-new PaperCreasePattern(cp2, "canvas-2");
+new PaperCreasePattern("canvas-1", cp1);
+new PaperCreasePattern("canvas-2", cp2);
 
 </script>
 

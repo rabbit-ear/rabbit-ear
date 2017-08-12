@@ -32,7 +32,7 @@
 
 
 <script>
-	new PaperCreasePattern(new CreasePattern().birdBase(), "canvas-1").zoomToFit(0.05);
+	new PaperCreasePattern( "canvas-1", new CreasePattern().birdBase()).zoomToFit(0.05);
 </script>
 
 

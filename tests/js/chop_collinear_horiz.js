@@ -1,5 +1,5 @@
 
-var chopHoriz = new PaperCreasePattern(new CreasePattern(), "canvas-chop-collinear-horiz");
+var chopHoriz = new PaperCreasePattern("canvas-chop-collinear-horiz");
 chopHoriz.zoomToFit(0.05);
 
 chopHoriz.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
