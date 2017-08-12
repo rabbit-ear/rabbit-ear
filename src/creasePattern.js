@@ -412,6 +412,16 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.creaseAngle = function (start, radians) {
         return this.creaseRay(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
     };
+    CreasePattern.prototype.creaseAngleBisector = function (a, b) {
+        var commonNode = a.commonNodeWithEdge(b);
+        if (commonNode === undefined)
+            return undefined;
+        var aAngle = a.absoluteAngle(commonNode);
+        var bAngle = b.absoluteAngle(commonNode);
+        var clockwise = clockwiseAngleFrom(bAngle, aAngle);
+        var newAngle = bAngle - clockwise * 0.5 + Math.PI;
+        return this.creaseRay(commonNode, new XYPoint(Math.cos(newAngle), Math.sin(newAngle)));
+    };
     CreasePattern.prototype.boundaryLineIntersection = function (origin, direction) {
         var opposite = new XYPoint(-direction.x, -direction.y);
         var intersects = [];

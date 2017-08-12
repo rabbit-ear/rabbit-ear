@@ -200,6 +200,7 @@ var Graph = (function () {
     Graph.prototype.removeEdge = function (edge) {
         var len = this.edges.length;
         this.edges = this.edges.filter(function (el) { return el !== edge; });
+        this.edgeArrayDidChange();
         return (len !== this.edges.length);
     };
     /** Searches and removes any edges connecting the two nodes supplied in the arguments

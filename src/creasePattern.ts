@@ -364,7 +364,6 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	creaseRay(start:XYPoint,vector:XYPoint):Crease{
-
 		if(start == undefined || vector == undefined || isNaN(start.x) || isNaN(start.y) || isNaN(vector.x) || isNaN(vector.y) ){ return undefined; }
 		var boundaryIntersection = undefined;
 		for(var i = 0; i < this.boundary.edges.length; i++){
@@ -377,6 +376,16 @@ class CreasePattern extends PlanarGraph{
 
 	creaseAngle(start:XYPoint,radians:number):Crease{
 		return this.creaseRay(start, new XYPoint(Math.cos(radians), Math.sin(radians)));
+	}
+
+	creaseAngleBisector(a:Crease, b:Crease):Crease{
+		var commonNode = <PlanarNode>a.commonNodeWithEdge(b);
+		if(commonNode === undefined) return undefined;
+		var aAngle = a.absoluteAngle(commonNode);
+		var bAngle = b.absoluteAngle(commonNode);
+		var clockwise = clockwiseAngleFrom(bAngle, aAngle);
+		var newAngle = bAngle - clockwise*0.5 + Math.PI;
+		return this.creaseRay(commonNode, new XYPoint(Math.cos(newAngle), Math.sin(newAngle)));
 	}
 
 	boundaryLineIntersection(origin:XYPoint, direction:XYPoint):XYPoint[]{

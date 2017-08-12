@@ -212,6 +212,7 @@ class Graph{
 	removeEdge(edge:GraphEdge):boolean{
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ return el !== edge; });
+		this.edgeArrayDidChange();
 		return (len !== this.edges.length);
 	}
 
