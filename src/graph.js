@@ -186,6 +186,28 @@ var Graph = (function () {
         this.cleanGraph();
         return this.edges.length - len;
     };
+    /** This will deep-copy the contents of this graph and return it as a new object
+     * @returns {Graph}
+     */
+    Graph.prototype.duplicate = function () {
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        var g = new Graph();
+        for (var i = 0; i < this.nodes.length; i++) {
+            var newNode = Object.assign(g.newNode(), this.nodes[i]);
+            newNode.graph = g;
+            // newNode.index = i;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            var a = this.edges[i].nodes[0].index;
+            var b = this.edges[i].nodes[1].index;
+            var newEdge = Object.assign(g.newEdge(g.nodes[a], g.nodes[b]), this.edges[i]);
+            newEdge.graph = g;
+            newEdge.nodes = [g.nodes[a], g.nodes[b]];
+            // newEdge.index = i;
+        }
+        return g;
+    };
     ///////////////////////////////////////////////
     // REMOVE PARTS
     ///////////////////////////////////////////////

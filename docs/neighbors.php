@@ -27,7 +27,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code>cp.<f>getNearestNodes</f>(<n id="sketch-ms-x1">x</n>, <n id="sketch-ms-y1">y</n>)</code></pre>
+		<pre><code>cp.<f>getNearestNodes</f>(<n id="sketch-ms-x1">x</n>, <n id="sketch-ms-y1">y</n>, <n>how many nodes</n>)</code></pre>
 	</div>
 
 	<div class="quote">

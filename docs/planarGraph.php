@@ -17,7 +17,7 @@
 	</div>
 
 	<div class="quote">
-		<p>A planar graph gives 2D space (X,Y) to the nodes.</p>
+		<p>A planar graph gives 2D space (X,Y) to the nodes. It's now possible for edges to cross and make faces.</p>
 	</div>
 
 	<div class="centered">
@@ -29,19 +29,16 @@
 	</div>
 
 	<div class="quote">
-		<p>It's now possible to calculate edge crossings, faces, and interact with the screen.</p>
+		<p>More sophisticated operations can occur like identifying collinear nodes.</p>
 	</div>
 
 	<div class="centered">
 		<canvas id="canvas-mouse-delete-edge" resize></canvas>
 	</div>
 
-	<div class="quote">
-		<p>More sophisticated operations can occur like removing nodes left behind that are coplanar to an edge.</p>
-	</div>
 
 	<div class="centered">
-		<canvas id="canvas-nearest-nodes" resize class="fill"></canvas>
+		<canvas id="canvas-face-anim" class="panorama" resize></canvas>
 	</div>
 
 </section>
@@ -55,16 +52,19 @@
 	</div>
 </div>
 
+<canvas id="p5-empty-canvas" style="display:none;"></canvas>
+
 
 <script language="javascript" type="text/javascript" src="../tests/js/mouse_delete_edge.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/intersect_wobble.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/nearest_nodes.js"></script>
+<script type="text/javascript" src="../tests/js/face_anim.js"></script>
 <script type="text/javascript" src="../tests/js/face_single.js"></script>
 <script>
 var p5js = new p5(function(p, canvasName) { 
 	noise = function(d){ return p.noise(d); }
 	millis = function(){ return p.millis(); }
-}, '');
+}, 'p5-empty-canvas');
 
 wobble_intersections_callback = function(e){
 	document.getElementById("span-intersection-results").innerHTML = "<v>Array</v>(<n>" + e.length + "</n>) ← ";

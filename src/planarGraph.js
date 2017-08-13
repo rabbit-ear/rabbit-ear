@@ -307,6 +307,12 @@ var PlanarGraph = (function (_super) {
         var newNode = this.newNode().position(x, y);
         return this.newEdge(node, newNode);
     };
+    /** Create one node with an x,y location and an edge between it and an existing node
+     * @returns {PlanarEdge} pointer to the edge
+     */
+    PlanarGraph.prototype.newPlanarEdgeBetweenNodes = function (a, b) {
+        return this.newEdge(a, b);
+    };
     /** Create one node with an angle and distance away from an existing node and make an edge between them
      * @returns {PlanarEdge} pointer to the edge
      */
@@ -314,6 +320,28 @@ var PlanarGraph = (function (_super) {
         var newNode = this.copyNode(node)
             .translate(Math.cos(angle) * length, Math.sin(angle) * length);
         return this.newEdge(node, newNode);
+    };
+    /** This will deep-copy the contents of this graph and return it as a new object
+     * @returns {PlanarGraph}
+     */
+    PlanarGraph.prototype.duplicate = function () {
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        var g = new PlanarGraph();
+        for (var i = 0; i < this.nodes.length; i++) {
+            var newNode = Object.assign(g.newPlanarNode(this.nodes[i].x, this.nodes[i].y), this.nodes[i]);
+            newNode.graph = g;
+            // newNode.index = i;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            var a = this.edges[i].nodes[0].index;
+            var b = this.edges[i].nodes[1].index;
+            var newEdge = Object.assign(g.newPlanarEdgeBetweenNodes(g.nodes[a], g.nodes[b]), this.edges[i]);
+            newEdge.graph = g;
+            newEdge.nodes = [g.nodes[a], g.nodes[b]];
+            // newEdge.index = i;
+        }
+        return g;
     };
     ///////////////////////////////////////////////
     // REMOVE PARTS
