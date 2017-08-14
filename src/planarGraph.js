@@ -73,10 +73,21 @@ var EdgeIntersection = (function (_super) {
     return EdgeIntersection;
 }(XYPoint));
 var InteriorAngle = (function () {
-    function InteriorAngle(angle, edge1, edge2) {
-        this.angle = angle;
+    function InteriorAngle(edge1, edge2) {
+        this.node = edge1.commonNodeWithEdge(edge2);
+        if (this.node === undefined) {
+            return undefined;
+        }
+        this.angle = clockwiseAngleFrom(edge1.absoluteAngle(this.node), edge2.absoluteAngle(this.node));
         this.edges = [edge1, edge2];
     }
+    InteriorAngle.prototype.equivalent = function (a) {
+        if ((a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
+            (a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0]))) {
+            return true;
+        }
+        return false;
+    };
     return InteriorAngle;
 }());
 // class NearestEdgeObject {
@@ -122,8 +133,8 @@ var PlanarNode = (function (_super) {
         var adj = this.planarAdjacent();
         return adj.map(function (el, i) {
             var nextI = (i + 1) % this.length;
-            var angleDifference = clockwiseAngleFrom(this[i].angle, this[nextI].angle);
-            return new InteriorAngle(angleDifference, this[i].edge, this[nextI].edge);
+            // var angleDifference = clockwiseAngleFrom(this[i].angle, this[nextI].angle);
+            return new InteriorAngle(this[i].edge, this[nextI].edge);
         }, adj);
     };
     PlanarNode.prototype.planarAdjacent = function () {

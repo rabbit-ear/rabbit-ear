@@ -75,10 +75,20 @@ class EdgeIntersection extends XYPoint{
 
 class InteriorAngle{
 	edges:[PlanarEdge,PlanarEdge];
+	node:PlanarNode;
 	angle:number;
-	constructor(angle, edge1, edge2){
-		this.angle = angle;
+	constructor(edge1:PlanarEdge, edge2:PlanarEdge){
+		this.node = <PlanarNode>edge1.commonNodeWithEdge(edge2);
+		if(this.node === undefined){ return undefined; }
+		this.angle = clockwiseAngleFrom(edge1.absoluteAngle(this.node), edge2.absoluteAngle(this.node));
 		this.edges = [edge1, edge2];
+	}
+	equivalent(a:InteriorAngle):boolean{
+		if( (a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
+			(a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0]))){
+			return true;
+		}
+		return false;
 	}
 }
 
@@ -125,8 +135,8 @@ class PlanarNode extends GraphNode{
 		var adj = this.planarAdjacent();
 		return adj.map(function(el, i){
 			var nextI = (i+1)%this.length;
-			var angleDifference = clockwiseAngleFrom(this[i].angle, this[nextI].angle);
-			return new InteriorAngle(angleDifference, this[i].edge, this[nextI].edge);
+			// var angleDifference = clockwiseAngleFrom(this[i].angle, this[nextI].angle);
+			return new InteriorAngle(this[i].edge, this[nextI].edge);
 		}, adj);
 	}
 

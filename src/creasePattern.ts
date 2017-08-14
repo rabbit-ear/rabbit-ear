@@ -363,6 +363,28 @@ class CreasePattern extends PlanarGraph{
 		throw "axiom 7: two crease lines cannot be parallel"
 	}
 
+	findFlatFoldable(angle:InteriorAngle):number{
+		var interiorAngles = angle.node.interiorAngles();
+		var adjacent = angle.node.planarAdjacent();
+		if(interiorAngles.length != 3){ return; }
+		// find this interior angle among the other interior angles
+		var foundIndex = undefined;
+		for(var i = 0; i < interiorAngles.length; i++){
+			if(angle.equivalent(interiorAngles[i])){ foundIndex = i; }
+		}
+		if(foundIndex === undefined){ return undefined; }
+		var sumEven = 0;
+		var sumOdd = 0;
+		for(var i = 0; i < interiorAngles.length-1; i++){
+			var index = (i+foundIndex+1) % interiorAngles.length;
+			if(i % 2 == 0){ sumEven += interiorAngles[i].angle; } 
+			else { sumOdd += interiorAngles[i].angle; }
+		}
+		var dEven = Math.PI - sumEven;
+		var dOdd = Math.PI - sumOdd;
+		return angle.edges[1].absoluteAngle(angle.node) - dOdd;
+	}
+
 	creaseRay(start:XYPoint,vector:XYPoint):Crease{
 		if(start == undefined || vector == undefined || isNaN(start.x) || isNaN(start.y) || isNaN(vector.x) || isNaN(vector.y) ){ return undefined; }
 		var boundaryIntersection = undefined;
