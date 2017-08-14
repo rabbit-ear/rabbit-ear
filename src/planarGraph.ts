@@ -1,8 +1,8 @@
-/// <reference path="graph.ts"/>
-
 // planarGraph.js
 // a planar graph data structure containing edges and vertices in 2D space
 // mit open source license, robby kraft
+
+/// <reference path="graph.ts"/>
 
 // VOCABULARY
 //  "unused": a node is unused if it is not connected to an edge
@@ -131,6 +131,7 @@ class PlanarNode extends GraphNode{
 		}
 		return adjacentFaces;
 	}
+
 	interiorAngles():InteriorAngle[]{
 		var adj = this.planarAdjacent();
 		return adj.map(function(el, i){
@@ -236,11 +237,11 @@ class PlanarEdge extends GraphEdge{
 }
 
 class PlanarFace{
+	// this library is counting on the edges and nodes to be stored in clockwise winding
 	graph:PlanarGraph;
-	// clockwise
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
-	angles:number[];  // maybe someday
+	angles:number[];
 	constructor(graph:PlanarGraph){
 		this.graph = graph;
 		this.nodes = [];
@@ -248,6 +249,7 @@ class PlanarFace{
 		this.angles = [];
 	}
 	equivalent(face:PlanarFace):boolean{
+		// quick check, only verfies nodes
 		if(face.nodes.length != this.nodes.length) return false;
 		var iFace = undefined;
 		for(var i = 0; i < this.nodes.length; i++){
@@ -257,6 +259,15 @@ class PlanarFace{
 		for(var i = 0; i < this.nodes.length; i++){
 			var iFaceMod = (iFace + i) % this.nodes.length;
 			if(this.nodes[i] !== face.nodes[iFaceMod]) return false;
+		}
+		return true;
+	}
+	contains(point:XYPoint):boolean{
+		for(var i = 0; i < this.edges.length; i++){
+			var endpts = this.edges[i].nodes;
+			var cross = (point.y - endpts[0].y) * (endpts[1].x - endpts[0].x) - 
+			            (point.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
+			if (cross < 0) return false;
 		}
 		return true;
 	}
@@ -276,6 +287,36 @@ class PlanarGraph extends Graph{
 	// converts node objects into array of arrays notation x is [0], and y is [1]
 	nodesArray():number[][]{return this.nodes.map(function(el){return [el.x, el.y]});}
 
+	/** This will deep-copy the contents of this graph and return it as a new object
+	 * @returns {PlanarGraph} 
+	 */
+	duplicate():PlanarGraph{
+		this.nodeArrayDidChange();
+		this.edgeArrayDidChange();
+		var g = new PlanarGraph();
+		for(var i = 0; i < this.nodes.length; i++){
+			var n = g.addNode(new PlanarNode(g));
+			(<any>Object).assign(n, this.nodes[i]);
+			n.graph = g; n.index = i;
+		}
+		for(var i = 0; i < this.edges.length; i++){
+			var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+			var e = g.addEdge(new PlanarEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
+			(<any>Object).assign(e, this.edges[i]);
+			e.graph = g; e.index = i;
+			e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+		}
+		for(var i = 0; i < this.faces.length; i++){
+			var f = new PlanarFace(g);
+			(<any>Object).assign(f, this.faces[i]);
+			for(var j=0;j<this.faces[i].nodes.length;j++){f.nodes.push(f.nodes[this.faces[i].nodes[j].index]);}
+			for(var j=0;j<this.faces[i].edges.length;j++){f.edges.push(f.edges[this.faces[i].edges[j].index]);}
+			for(var j=0;j<this.faces[i].angles.length;j++){f.angles.push(this.faces[i].angles[j]); }
+			f.graph = g;
+			g.faces.push(f);
+		}
+		return g;
+	}
 
 	///////////////////////////////////////////////
 	// ADD PARTS
@@ -312,7 +353,6 @@ class PlanarGraph extends Graph{
 		return <PlanarEdge>this.newEdge(a, b);
 	}
 
-
 	/** Create one node with an angle and distance away from an existing node and make an edge between them
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
@@ -322,53 +362,16 @@ class PlanarGraph extends Graph{
 		return <PlanarEdge>this.newEdge(node, newNode);
 	}
 
-	/** This will deep-copy the contents of this graph and return it as a new object
-	 * @returns {PlanarGraph} 
-	 */
-	duplicate():PlanarGraph{
-		this.nodeArrayDidChange();
-		this.edgeArrayDidChange();
-		var g = new PlanarGraph();
-		for(var i = 0; i < this.nodes.length; i++){
-			var newNode = g.addNode(new PlanarNode(g));
-			(<any>Object).assign(newNode, this.nodes[i]);
-			newNode.graph = g;
-			newNode.index = i;
-		}
-		for(var i = 0; i < this.edges.length; i++){
-			var a = this.edges[i].nodes[0].index;
-			var b = this.edges[i].nodes[1].index;
-			var newEdge = g.addEdge(new PlanarEdge(g, g.nodes[a], g.nodes[b]));
-			(<any>Object).assign(newEdge, this.edges[i]);
-			newEdge.graph = g;
-			newEdge.nodes = [g.nodes[a], g.nodes[b]];
-			newEdge.index = i;
-		}
-		// for(var i = 0 ; i < this.nodes.length; i++){
-		// 	var newNode = <PlanarNode>(<any>Object).assign(g.newPlanarNode(this.nodes[i].x, this.nodes[i].y), this.nodes[i]);
-		// 	newNode.graph = g;
-		// 	// newNode.index = i;
-		// }
-		// for(var i = 0 ; i < this.edges.length; i++){
-		// 	var a = this.edges[i].nodes[0].index;
-		// 	var b = this.edges[i].nodes[1].index;
-		// 	var newEdge = <PlanarEdge>(<any>Object).assign(g.newPlanarEdgeBetweenNodes(g.nodes[a], g.nodes[b]), this.edges[i]);
-		// 	newEdge.graph = g;
-		// 	newEdge.nodes = [g.nodes[a], g.nodes[b]];
-		// 	// newEdge.index = i;
-		// }
-		return g;
-	}
-
 	///////////////////////////////////////////////
 	// REMOVE PARTS
 	///////////////////////////////////////////////
 
 	/** Removes all nodes, edges, and faces, returning the graph to it's original state */
-	clear(){
+	clear():PlanarGraph{
 		this.nodes = [];
 		this.edges = [];
 		this.faces = [];
+		return this;
 	}
 
 	/** Removes an edge and also attempt to remove the two nodes left behind if they are otherwise unused

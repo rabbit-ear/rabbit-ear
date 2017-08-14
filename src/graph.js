@@ -95,6 +95,29 @@ var Graph = (function () {
         this.edgeType = GraphEdge;
         this.clear();
     }
+    /** This will deep-copy the contents of this graph and return it as a new object
+     * @returns {Graph}
+     */
+    Graph.prototype.duplicate = function () {
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        var g = new Graph();
+        for (var i = 0; i < this.nodes.length; i++) {
+            var n = g.addNode(new GraphNode(g));
+            Object.assign(n, this.nodes[i]);
+            n.graph = g;
+            n.index = i;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+            var e = g.addEdge(new GraphEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
+            Object.assign(e, this.edges[i]);
+            e.graph = g;
+            e.index = i;
+            e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+        }
+        return g;
+    };
     ///////////////////////////////////////////////
     // ADD PARTS
     ///////////////////////////////////////////////
@@ -110,20 +133,6 @@ var Graph = (function () {
      */
     Graph.prototype.newEdge = function (node1, node2) {
         return this.addEdge(new this.edgeType(this, node1, node2));
-    };
-    /** Copies the contents of an existing node into a new node and adds it to the graph
-     * @returns {GraphNode} pointer to the node
-     */
-    Graph.prototype.copyNode = function (node) {
-        var nodeClone = Object.assign(this.newNode(), node);
-        return this.addNode(nodeClone);
-    };
-    /** Copies the contents of an existing edge into a new edge and adds it to the graph
-     * @returns {GraphEdge} pointer to the edge
-     */
-    Graph.prototype.copyEdge = function (edge) {
-        var edgeClone = Object.assign(this.newEdge(edge.nodes[0], edge.nodes[1]), edge);
-        return this.addEdge(edgeClone);
     };
     /** Add an already-initialized node to the graph
      * @param {GraphNode} must be already initialized
@@ -186,31 +195,19 @@ var Graph = (function () {
         this.cleanGraph();
         return this.edges.length - len;
     };
-    /** This will deep-copy the contents of this graph and return it as a new object
-     * @returns {Graph}
+    /** Copies the contents of an existing node into a new node and adds it to the graph
+     * @returns {GraphNode} pointer to the node
      */
-    Graph.prototype.duplicate = function () {
-        this.nodeArrayDidChange();
-        this.edgeArrayDidChange();
-        var g = new Graph();
-        for (var i = 0; i < this.nodes.length; i++) {
-            var newNode = g.addNode(new GraphNode(g));
-            Object.assign(newNode, this.nodes[i]);
-            // var newNode = <GraphNode>(<any>Object).assign(g.newNode(), this.nodes[i]);
-            newNode.graph = g;
-            newNode.index = i;
-        }
-        for (var i = 0; i < this.edges.length; i++) {
-            var a = this.edges[i].nodes[0].index;
-            var b = this.edges[i].nodes[1].index;
-            var newEdge = g.addEdge(new GraphEdge(g, g.nodes[a], g.nodes[b]));
-            Object.assign(newEdge, this.edges[i]);
-            // var newEdge = <GraphEdge>(<any>Object).assign(g.newEdge(g.nodes[a], g.nodes[b]), this.edges[i]);
-            newEdge.graph = g;
-            newEdge.nodes = [g.nodes[a], g.nodes[b]];
-            newEdge.index = i;
-        }
-        return g;
+    Graph.prototype.copyNode = function (node) {
+        var nodeClone = Object.assign(this.newNode(), node);
+        return this.addNode(nodeClone);
+    };
+    /** Copies the contents of an existing edge into a new edge and adds it to the graph
+     * @returns {GraphEdge} pointer to the edge
+     */
+    Graph.prototype.copyEdge = function (edge) {
+        var edgeClone = Object.assign(this.newEdge(edge.nodes[0], edge.nodes[1]), edge);
+        return this.addEdge(edgeClone);
     };
     ///////////////////////////////////////////////
     // REMOVE PARTS
@@ -219,6 +216,7 @@ var Graph = (function () {
     Graph.prototype.clear = function () {
         this.nodes = [];
         this.edges = [];
+        return this;
     };
     /** Remove an edge
      * @returns {boolean} if the edge was removed

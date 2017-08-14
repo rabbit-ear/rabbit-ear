@@ -1,7 +1,7 @@
-/// <reference path="planarGraph.ts"/>
 // creasePattern.js
 // for the purposes of performing origami operations on a planar graph
 // mit open source license, robby kraft
+/// <reference path="planarGraph.ts"/>
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -39,10 +39,6 @@ var CreaseNode = (function (_super) {
     function CreaseNode() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    // isBoundary():boolean{
-    // 	if(this.y<EPSILON || this.x>1.0-EPSILON || this.y>1.0-EPSILON || this.x<EPSILON ){ return true; } 
-    // 	return false;
-    // }
     CreaseNode.prototype.isBoundary = function () {
         for (var i = 0; i < this.graph.boundary.edges.length; i++) {
             var thisPt = new XYPoint(this.x, this.y);
@@ -119,88 +115,6 @@ var CreasePattern = (function (_super) {
         return _this;
     }
     CreasePattern.prototype.landmarkNodes = function () { return this.nodes.map(function (el) { return new XYPoint(el.x, el.y); }); };
-    CreasePattern.prototype.square = function (width) {
-        console.log("setting page size: square()");
-        var w = 1.0;
-        if (width != undefined && width != 0) {
-            w = Math.abs(width);
-        }
-        // clear old data
-        if (this.boundary === undefined) {
-            this.boundary = new PlanarGraph();
-        }
-        else {
-            this.boundary.clear();
-        }
-        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        // this.cleanUnusedNodes();
-        // add edges
-        this.addPaperEdge(0, 0, w, 0);
-        this.addPaperEdge(w, 0, w, w);
-        this.addPaperEdge(w, w, 0, w);
-        this.addPaperEdge(0, w, 0, 0);
-        this.cleanDuplicateNodes();
-        this.boundary.cleanDuplicateNodes();
-        return this;
-    };
-    CreasePattern.prototype.rectangle = function (width, height) {
-        console.log("setting page size: rectangle(" + width + "," + height + ")");
-        // clear old data
-        if (this.boundary === undefined) {
-            this.boundary = new PlanarGraph();
-        }
-        else {
-            this.boundary.clear();
-        }
-        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        // this.cleanUnusedNodes();
-        // make sure paper edges are winding clockwise!!
-        this.addPaperEdge(0, 0, width, 0);
-        this.addPaperEdge(width, 0, width, height);
-        this.addPaperEdge(width, height, 0, height);
-        this.addPaperEdge(0, height, 0, 0);
-        this.cleanDuplicateNodes();
-        this.boundary.cleanDuplicateNodes();
-        return this;
-    };
-    CreasePattern.prototype.polygon = function (edgePoints) {
-        console.log("setting page size: polygon(): " + edgePoints.length + " points");
-        // clear old data
-        if (this.boundary === undefined) {
-            this.boundary = new PlanarGraph();
-        }
-        else {
-            this.boundary.clear();
-        }
-        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        // this.cleanUnusedNodes();
-        // TODO: make sure paper edges are winding clockwise!!
-        for (var i = 0; i < edgePoints.length; i++) {
-            var nextI = (i + 1) % edgePoints.length;
-            this.addPaperEdge(edgePoints[i].x, edgePoints[i].y, edgePoints[nextI].x, edgePoints[nextI].y);
-        }
-        return this;
-    };
-    CreasePattern.prototype["import"] = function (cp) {
-        this.nodes = cp.nodes.slice();
-        this.edges = cp.edges.slice();
-        this.faces = cp.faces.slice();
-        // TODO: copy boundary too
-        // this.boundary = cp.boundary.slice();
-    };
-    // re-implement super class functions with new types
-    // newEdge(node1:CreaseNode, node2:CreaseNode):Crease {
-    // 	return <Crease>this.addEdge(new Crease(this, node1, node2));
-    // }
-    // newNode():CreaseNode {
-    // 	var x = 0; var y = 0;
-    // 	return <CreaseNode>this.addNode(<GraphNode>(new CreaseNode(this).position(x, y)));
-    // }
-    // newPlanarEdge(x1:number, y1:number, x2:number, y2:number):Crease{
-    // 	var a = <CreaseNode>this.addNode( new CreaseNode(this, x1, y1) );
-    // 	var b = <CreaseNode>this.addNode( new CreaseNode(this, x2, y2) );
-    // 	return this.newEdge(a, b);
-    // }
     /** This will deep-copy the contents of this graph and return it as a new object
      * @returns {CreasePattern}
      */
@@ -211,42 +125,120 @@ var CreasePattern = (function (_super) {
         g.boundary = undefined;
         g.clear();
         for (var i = 0; i < this.nodes.length; i++) {
-            var newNode = g.addNode(new CreaseNode(g));
-            Object.assign(newNode, this.nodes[i]);
-            newNode.graph = g;
-            newNode.index = i;
+            var n = g.addNode(new CreaseNode(g));
+            Object.assign(n, this.nodes[i]);
+            n.graph = g;
+            n.index = i;
         }
         for (var i = 0; i < this.edges.length; i++) {
-            var a = this.edges[i].nodes[0].index;
-            var b = this.edges[i].nodes[1].index;
-            var newEdge = g.addEdge(new Crease(g, g.nodes[a], g.nodes[b]));
-            Object.assign(newEdge, this.edges[i]);
-            newEdge.graph = g;
-            newEdge.nodes = [g.nodes[a], g.nodes[b]];
-            newEdge.orientation = this.edges[i].orientation;
-            newEdge.index = i;
+            var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+            var e = g.addEdge(new Crease(g, g.nodes[index[0]], g.nodes[index[1]]));
+            Object.assign(e, this.edges[i]);
+            e.graph = g;
+            e.index = i;
+            e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+            // e.orientation = this.edges[i].orientation;
+        }
+        for (var i = 0; i < this.faces.length; i++) {
+            var f = new PlanarFace(g);
+            Object.assign(f, this.faces[i]);
+            for (var j = 0; j < this.faces[i].nodes.length; j++) {
+                f.nodes.push(f.nodes[this.faces[i].nodes[j].index]);
+            }
+            for (var j = 0; j < this.faces[i].edges.length; j++) {
+                f.edges.push(f.edges[this.faces[i].edges[j].index]);
+            }
+            for (var j = 0; j < this.faces[i].angles.length; j++) {
+                f.angles.push(this.faces[i].angles[j]);
+            }
+            f.graph = g;
+            g.faces.push(f);
         }
         // boundary
         this.boundary.nodeArrayDidChange();
         this.boundary.edgeArrayDidChange();
-        var bound = new PlanarGraph();
+        var b = new PlanarGraph();
         for (var i = 0; i < this.boundary.nodes.length; i++) {
-            var newBNode = bound.addNode(new PlanarNode(bound));
-            Object.assign(newBNode, this.boundary.nodes[i]);
-            newBNode.graph = bound;
-            newBNode.index = i;
+            var bn = b.addNode(new PlanarNode(b));
+            Object.assign(bn, this.boundary.nodes[i]);
+            bn.graph = b;
+            bn.index = i;
         }
         for (var i = 0; i < this.boundary.edges.length; i++) {
-            var a = this.boundary.edges[i].nodes[0].index;
-            var b = this.boundary.edges[i].nodes[1].index;
-            var newBEdge = bound.addEdge(new PlanarEdge(bound, bound.nodes[a], bound.nodes[b]));
-            Object.assign(newBEdge, this.boundary.edges[i]);
-            newBEdge.graph = bound;
-            newBEdge.nodes = [bound.nodes[a], bound.nodes[b]];
-            newBEdge.index = i;
+            var index = [this.boundary.edges[i].nodes[0].index, this.boundary.edges[i].nodes[1].index];
+            var be = b.addEdge(new PlanarEdge(b, b.nodes[index[0]], b.nodes[index[1]]));
+            Object.assign(be, this.boundary.edges[i]);
+            be.graph = b;
+            be.index = i;
+            be.nodes = [b.nodes[index[0]], b.nodes[index[1]]];
         }
-        g.boundary = bound;
+        for (var i = 0; i < this.boundary.faces.length; i++) {
+            var bf = new PlanarFace(b);
+            Object.assign(bf, this.boundary.faces[i]);
+            for (var j = 0; j < this.boundary.faces[i].nodes.length; j++) {
+                bf.nodes.push(b.nodes[this.boundary.faces[i].nodes[j].index]);
+            }
+            for (var j = 0; j < this.boundary.faces[i].edges.length; j++) {
+                bf.edges.push(b.edges[this.boundary.faces[i].edges[j].index]);
+            }
+            for (var j = 0; j < this.boundary.faces[i].angles.length; j++) {
+                bf.angles.push(this.boundary.faces[i].angles[j]);
+            }
+            bf.graph = b;
+            b.faces.push(f);
+        }
+        g.boundary = b;
         return g;
+    };
+    //////////////////////////////////////////////
+    // BOUNDARY
+    CreasePattern.prototype.square = function (width) {
+        console.log("setting page size: square()");
+        var w = 1.0;
+        // todo: isReal() - check if is real number
+        if (width != undefined && width != 0) {
+            w = Math.abs(width);
+        }
+        return this.setBoundary([new XYPoint(0, 0), new XYPoint(w, 0), new XYPoint(w, w), new XYPoint(0, w)]);
+    };
+    CreasePattern.prototype.rectangle = function (width, height) {
+        console.log("setting page size: rectangle(" + width + "," + height + ")");
+        // todo: should this return undefined if a rectangle has not been made? or return this?
+        if (width === undefined || height === undefined) {
+            return undefined;
+        }
+        width = Math.abs(width);
+        height = Math.abs(height);
+        var points = [new XYPoint(0, 0),
+            new XYPoint(width, 0),
+            new XYPoint(width, height),
+            new XYPoint(0, height)];
+        return this.setBoundary(points);
+    };
+    CreasePattern.prototype.setBoundary = function (points) {
+        // TODO: make sure paper edges are winding clockwise!!
+        // clear old data
+        if (this.boundary === undefined) {
+            this.boundary = new PlanarGraph();
+        }
+        else {
+            this.boundary.clear();
+        }
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        // todo: if an edge gets removed, it will leave behind its nodes. we might need the following:
+        // this.cleanUnusedNodes();
+        // todo: test that this is the right way to remove last item:
+        if (points[0].equivalent(points[points.length - 1])) {
+            points.pop();
+        }
+        for (var i = 0; i < points.length; i++) {
+            var nextI = (i + 1) % points.length;
+            this.newPlanarEdge(points[i].x, points[i].y, points[nextI].x, points[nextI].y).border();
+            this.boundary.newPlanarEdge(points[i].x, points[i].y, points[nextI].x, points[nextI].y);
+        }
+        this.cleanDuplicateNodes();
+        this.boundary.cleanDuplicateNodes();
+        return this;
     };
     ///////////////////////////////////////////////////////////////
     // CLEAN  /  REMOVE PARTS
@@ -254,13 +246,15 @@ var CreasePattern = (function (_super) {
         this.nodes = [];
         this.edges = [];
         this.faces = [];
-        if (this.boundary != undefined) {
-            for (var i = 0; i < this.boundary.edges.length; i++) {
-                var nodes = this.boundary.edges[i].nodes;
-                this.newPlanarEdge(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y).border();
-            }
+        if (this.boundary === undefined) {
+            return this;
         }
-        // this.interestingPoints = this.starterLocations;
+        for (var i = 0; i < this.boundary.edges.length; i++) {
+            var nodes = this.boundary.edges[i].nodes;
+            this.newPlanarEdge(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y).border();
+        }
+        this.cleanDuplicateNodes();
+        return this;
     };
     CreasePattern.prototype.bottomEdge = function () {
         var boundaries = this.edges
@@ -312,13 +306,6 @@ var CreasePattern = (function (_super) {
                 return false;
         }
         return true;
-    };
-    CreasePattern.prototype.addPaperEdge = function (x1, y1, x2, y2) {
-        // this.boundary.push(this.newPlanarEdge(x1, y1, x2, y2).border());
-        this.newPlanarEdge(x1, y1, x2, y2).border();
-        // this.newPlanarEdge(x1, y1, x2, y2);
-        // (<Crease>this.newPlanarEdge(x1, y1, x2, y2)).border();
-        this.boundary.newPlanarEdge(x1, y1, x2, y2);
     };
     CreasePattern.prototype.creaseOnly = function (a, b) {
         if (this.pointInside(a) && this.pointInside(b))

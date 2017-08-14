@@ -1,7 +1,7 @@
-/// <reference path="graph.ts"/>
 // planarGraph.js
 // a planar graph data structure containing edges and vertices in 2D space
 // mit open source license, robby kraft
+/// <reference path="graph.ts"/>
 // VOCABULARY
 //  "unused": a node is unused if it is not connected to an edge
 "use strict";
@@ -263,6 +263,7 @@ var PlanarFace = (function () {
         this.angles = [];
     }
     PlanarFace.prototype.equivalent = function (face) {
+        // quick check, only verfies nodes
         if (face.nodes.length != this.nodes.length)
             return false;
         var iFace = undefined;
@@ -281,6 +282,16 @@ var PlanarFace = (function () {
         }
         return true;
     };
+    PlanarFace.prototype.contains = function (point) {
+        for (var i = 0; i < this.edges.length; i++) {
+            var endpts = this.edges[i].nodes;
+            var cross = (point.y - endpts[0].y) * (endpts[1].x - endpts[0].x) -
+                (point.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
+            if (cross < 0)
+                return false;
+        }
+        return true;
+    };
     return PlanarFace;
 }());
 var PlanarGraph = (function (_super) {
@@ -294,6 +305,44 @@ var PlanarGraph = (function (_super) {
     }
     // converts node objects into array of arrays notation x is [0], and y is [1]
     PlanarGraph.prototype.nodesArray = function () { return this.nodes.map(function (el) { return [el.x, el.y]; }); };
+    /** This will deep-copy the contents of this graph and return it as a new object
+     * @returns {PlanarGraph}
+     */
+    PlanarGraph.prototype.duplicate = function () {
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        var g = new PlanarGraph();
+        for (var i = 0; i < this.nodes.length; i++) {
+            var n = g.addNode(new PlanarNode(g));
+            Object.assign(n, this.nodes[i]);
+            n.graph = g;
+            n.index = i;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+            var e = g.addEdge(new PlanarEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
+            Object.assign(e, this.edges[i]);
+            e.graph = g;
+            e.index = i;
+            e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+        }
+        for (var i = 0; i < this.faces.length; i++) {
+            var f = new PlanarFace(g);
+            Object.assign(f, this.faces[i]);
+            for (var j = 0; j < this.faces[i].nodes.length; j++) {
+                f.nodes.push(f.nodes[this.faces[i].nodes[j].index]);
+            }
+            for (var j = 0; j < this.faces[i].edges.length; j++) {
+                f.edges.push(f.edges[this.faces[i].edges[j].index]);
+            }
+            for (var j = 0; j < this.faces[i].angles.length; j++) {
+                f.angles.push(this.faces[i].angles[j]);
+            }
+            f.graph = g;
+            g.faces.push(f);
+        }
+        return g;
+    };
     ///////////////////////////////////////////////
     // ADD PARTS
     ///////////////////////////////////////////////
@@ -332,43 +381,6 @@ var PlanarGraph = (function (_super) {
             .translate(Math.cos(angle) * length, Math.sin(angle) * length);
         return this.newEdge(node, newNode);
     };
-    /** This will deep-copy the contents of this graph and return it as a new object
-     * @returns {PlanarGraph}
-     */
-    PlanarGraph.prototype.duplicate = function () {
-        this.nodeArrayDidChange();
-        this.edgeArrayDidChange();
-        var g = new PlanarGraph();
-        for (var i = 0; i < this.nodes.length; i++) {
-            var newNode = g.addNode(new PlanarNode(g));
-            Object.assign(newNode, this.nodes[i]);
-            newNode.graph = g;
-            newNode.index = i;
-        }
-        for (var i = 0; i < this.edges.length; i++) {
-            var a = this.edges[i].nodes[0].index;
-            var b = this.edges[i].nodes[1].index;
-            var newEdge = g.addEdge(new PlanarEdge(g, g.nodes[a], g.nodes[b]));
-            Object.assign(newEdge, this.edges[i]);
-            newEdge.graph = g;
-            newEdge.nodes = [g.nodes[a], g.nodes[b]];
-            newEdge.index = i;
-        }
-        // for(var i = 0 ; i < this.nodes.length; i++){
-        // 	var newNode = <PlanarNode>(<any>Object).assign(g.newPlanarNode(this.nodes[i].x, this.nodes[i].y), this.nodes[i]);
-        // 	newNode.graph = g;
-        // 	// newNode.index = i;
-        // }
-        // for(var i = 0 ; i < this.edges.length; i++){
-        // 	var a = this.edges[i].nodes[0].index;
-        // 	var b = this.edges[i].nodes[1].index;
-        // 	var newEdge = <PlanarEdge>(<any>Object).assign(g.newPlanarEdgeBetweenNodes(g.nodes[a], g.nodes[b]), this.edges[i]);
-        // 	newEdge.graph = g;
-        // 	newEdge.nodes = [g.nodes[a], g.nodes[b]];
-        // 	// newEdge.index = i;
-        // }
-        return g;
-    };
     ///////////////////////////////////////////////
     // REMOVE PARTS
     ///////////////////////////////////////////////
@@ -377,6 +389,7 @@ var PlanarGraph = (function (_super) {
         this.nodes = [];
         this.edges = [];
         this.faces = [];
+        return this;
     };
     /** Removes an edge and also attempt to remove the two nodes left behind if they are otherwise unused
      * @returns {boolean} if the edge was removed
