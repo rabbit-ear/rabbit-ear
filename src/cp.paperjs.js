@@ -110,12 +110,14 @@ var PaperCreasePattern = (function () {
 		for(var i = 0; i < this.cp.nodes.length; i++){
 			var circle = new paper.Shape.Circle({ center: [this.cp.nodes[i].x, this.cp.nodes[i].y] });
 			Object.assign(circle, this.style.nodes);
+			circle.strokeCap = 'round';
 			this.nodes.push( circle );
 		}
 		this.edgeLayer.activate();
 		for(var i = 0; i < this.cp.edges.length; i++){
 			var path = new paper.Path({segments: this.cp.edges[i].nodes, closed: false });
 			Object.assign(path, this.styleForCrease(this.cp.edges[i].orientation));
+			path.strokeCap = 'round';
 			this.edges.push( path );
 		}
 		this.faceLayer.activate();
@@ -204,7 +206,8 @@ var PaperCreasePattern = (function () {
 	}
 	PaperCreasePattern.prototype.style.mountain = {
 		strokeColor: { gray:0.5 },//{ hue:340, saturation:0.75, brightness:0.9 },
-		dashArray: [lineWeight*4, lineWeight, lineWeight, lineWeight],
+		dashArray: [lineWeight*2, lineWeight*1.5, lineWeight*.1, lineWeight*1.5],
+		// dashArray: [lineWeight*4, lineWeight, lineWeight, lineWeight],
 		// dashArray: undefined,
 		strokeWidth: lineWeight
 	};

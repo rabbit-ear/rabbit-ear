@@ -9,8 +9,8 @@ axiom4.decorationLayer.activate();
 axiom4.marks = [];
 for(var i = 0; i < 3; i++) axiom4.marks.push(new axiom4.scope.Shape.Circle(circleStyle));
 axiom4.marks[0].position = [0.0, 0.0];
-axiom4.marks[1].position = [0.5, 1.0];
-axiom4.marks[2].position = [0.5, 0.5];
+axiom4.marks[1].position = [1.0, 1.0];
+axiom4.marks[2].position = [1.0, 0.5];
 
 axiom4.reset = function(){
 	axiom4.cp.clear();

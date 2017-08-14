@@ -183,6 +183,54 @@ class CreasePattern extends PlanarGraph{
 	// 	return this.newEdge(a, b);
 	// }
 
+	/** This will deep-copy the contents of this graph and return it as a new object
+	 * @returns {CreasePattern} 
+	 */
+	duplicate():CreasePattern{
+		this.nodeArrayDidChange();
+		this.edgeArrayDidChange();
+		var g = new CreasePattern();
+		g.boundary = undefined;
+		g.clear();
+		for(var i = 0; i < this.nodes.length; i++){
+			var newNode = g.addNode(new CreaseNode(g));
+			(<any>Object).assign(newNode, this.nodes[i]);
+			newNode.graph = g;
+			newNode.index = i;
+		}
+		for(var i = 0; i < this.edges.length; i++){
+			var a = this.edges[i].nodes[0].index;
+			var b = this.edges[i].nodes[1].index;
+			var newEdge = <Crease>g.addEdge(new Crease(g, g.nodes[a], g.nodes[b]));
+			(<any>Object).assign(newEdge, this.edges[i]);
+			newEdge.graph = g;
+			newEdge.nodes = [g.nodes[a], g.nodes[b]];
+			newEdge.orientation = this.edges[i].orientation;
+			newEdge.index = i;
+		}
+		// boundary
+		this.boundary.nodeArrayDidChange();
+		this.boundary.edgeArrayDidChange();
+		var bound = new PlanarGraph();
+		for(var i = 0; i < this.boundary.nodes.length; i++){
+			var newBNode = bound.addNode(new PlanarNode(bound));
+			(<any>Object).assign(newBNode, this.boundary.nodes[i]);
+			newBNode.graph = bound;
+			newBNode.index = i;
+		}
+		for(var i = 0; i < this.boundary.edges.length; i++){
+			var a = this.boundary.edges[i].nodes[0].index;
+			var b = this.boundary.edges[i].nodes[1].index;
+			var newBEdge = <PlanarEdge>bound.addEdge(new PlanarEdge(bound, bound.nodes[a], bound.nodes[b]));
+			(<any>Object).assign(newBEdge, this.boundary.edges[i]);
+			newBEdge.graph = bound;
+			newBEdge.nodes = [bound.nodes[a], bound.nodes[b]];
+			newBEdge.index = i;
+		}
+		g.boundary = bound;
+		return g;
+	}
+
 	///////////////////////////////////////////////////////////////
 	// CLEAN  /  REMOVE PARTS
 
@@ -270,6 +318,8 @@ class CreasePattern extends PlanarGraph{
 		}
 		return undefined;
 	}
+
+
 	// creaseRay(origin:XYPoint, direction:XYPoint):Crease{
 	// }
 	// creaseLineSegment(a:XYPoint, b:XYPoint):Crease{
@@ -365,7 +415,6 @@ class CreasePattern extends PlanarGraph{
 
 	findFlatFoldable(angle:InteriorAngle):number{
 		var interiorAngles = angle.node.interiorAngles();
-		var adjacent = angle.node.planarAdjacent();
 		if(interiorAngles.length != 3){ return; }
 		// find this interior angle among the other interior angles
 		var foundIndex = undefined;
@@ -382,7 +431,17 @@ class CreasePattern extends PlanarGraph{
 		}
 		var dEven = Math.PI - sumEven;
 		var dOdd = Math.PI - sumOdd;
-		return angle.edges[1].absoluteAngle(angle.node) - dOdd;
+		var angle0 = angle.edges[0].absoluteAngle(angle.node);
+		var angle1 = angle.edges[1].absoluteAngle(angle.node);
+		// this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
+		console.log(clockwiseAngleFrom(angle0, angle1) + " " + clockwiseAngleFrom(angle1, angle0));
+		if(clockwiseAngleFrom(angle0, angle1) < clockwiseAngleFrom(angle1, angle0)){
+			// return angle1 - dOdd;
+			return angle1 - dEven;
+		} else{
+			return angle1 - dOdd;
+		}
+
 	}
 
 	creaseRay(start:XYPoint,vector:XYPoint):Crease{

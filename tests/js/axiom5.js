@@ -9,9 +9,9 @@ axiom5.decorationLayer.activate();
 axiom5.marks = [];
 for(var i = 0; i < 4; i++) axiom5.marks.push(new axiom5.scope.Shape.Circle(circleStyle));
 axiom5.marks[0].position = [0.0, 0.0];
-axiom5.marks[1].position = [0.5, 1.0];
-axiom5.marks[2].position = [0.33333, 0.5];
-axiom5.marks[3].position = [0.66666, 0.5];
+axiom5.marks[1].position = [1.0, 1.0];
+axiom5.marks[2].position = [0.7071, 1.0-0.7071];
+axiom5.marks[3].position = [1.0, 0.0];
 
 axiom5.reset = function(){
 	axiom5.cp.clear();

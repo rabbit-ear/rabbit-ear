@@ -11,10 +11,10 @@
 		<pre><code>cp.<v>nodes</v>[<n id="adjacent-face-node">0</n>].<f>adjacentFaces</f>()</code></pre>
 	</div>
 
-	<div class="quote">
+<!-- 	<div class="quote">
 		<p>This algorithm above, <b>adjacentFaces()</b>, is running in real time</p>
 	</div>
-
+ -->
 	<div class="centered">
 		<canvas id="canvas-faces-random" resize></canvas>
 		<canvas id="canvas-faces-random-partial" resize></canvas>

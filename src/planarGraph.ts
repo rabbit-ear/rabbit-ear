@@ -329,19 +329,34 @@ class PlanarGraph extends Graph{
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
 		var g = new PlanarGraph();
-		for(var i = 0 ; i < this.nodes.length; i++){
-			var newNode = <PlanarNode>(<any>Object).assign(g.newPlanarNode(this.nodes[i].x, this.nodes[i].y), this.nodes[i]);
+		for(var i = 0; i < this.nodes.length; i++){
+			var newNode = g.addNode(new PlanarNode(g));
+			(<any>Object).assign(newNode, this.nodes[i]);
 			newNode.graph = g;
-			// newNode.index = i;
+			newNode.index = i;
 		}
-		for(var i = 0 ; i < this.edges.length; i++){
+		for(var i = 0; i < this.edges.length; i++){
 			var a = this.edges[i].nodes[0].index;
 			var b = this.edges[i].nodes[1].index;
-			var newEdge = <PlanarEdge>(<any>Object).assign(g.newPlanarEdgeBetweenNodes(g.nodes[a], g.nodes[b]), this.edges[i]);
+			var newEdge = g.addEdge(new PlanarEdge(g, g.nodes[a], g.nodes[b]));
+			(<any>Object).assign(newEdge, this.edges[i]);
 			newEdge.graph = g;
 			newEdge.nodes = [g.nodes[a], g.nodes[b]];
-			// newEdge.index = i;
+			newEdge.index = i;
 		}
+		// for(var i = 0 ; i < this.nodes.length; i++){
+		// 	var newNode = <PlanarNode>(<any>Object).assign(g.newPlanarNode(this.nodes[i].x, this.nodes[i].y), this.nodes[i]);
+		// 	newNode.graph = g;
+		// 	// newNode.index = i;
+		// }
+		// for(var i = 0 ; i < this.edges.length; i++){
+		// 	var a = this.edges[i].nodes[0].index;
+		// 	var b = this.edges[i].nodes[1].index;
+		// 	var newEdge = <PlanarEdge>(<any>Object).assign(g.newPlanarEdgeBetweenNodes(g.nodes[a], g.nodes[b]), this.edges[i]);
+		// 	newEdge.graph = g;
+		// 	newEdge.nodes = [g.nodes[a], g.nodes[b]];
+		// 	// newEdge.index = i;
+		// }
 		return g;
 	}
 
@@ -600,6 +615,46 @@ class PlanarGraph extends Graph{
 		}
 		return new EdgeIntersection(nearestEdge, minLocation.x, minLocation.y);
 	}
+
+	getNearestEdges(x:number, y:number, howMany:number):any[]{
+		if(x == undefined || y == undefined){ return undefined; }
+		var minDist, nearestEdge, minLocation = {x:undefined, y:undefined};
+		var edges = this.edges.map(function(el){ 
+			var pT = minDistBetweenPointLine(el.nodes[0], el.nodes[1], x, y);
+			if(pT === undefined) return undefined;
+			var distances = [
+				Math.sqrt(Math.pow(x-pT.x,2) + Math.pow(y-pT.y,2)), // perp dist
+				Math.sqrt(Math.pow(el.nodes[0].x - x, 2) + Math.pow(el.nodes[0].y - y, 2)), // node 1 dist
+				Math.sqrt(Math.pow(el.nodes[1].x - x, 2) + Math.pow(el.nodes[1].y - y, 2)), // node 2 dist
+			].filter(function(el){return el !== undefined; })
+			 .sort(function(a,b){return (a > b)?1:(a < b)?-1:0});
+			if(distances.length){ return {'edge':el, 'distance':distances[0]}; }			
+		});
+		return edges.filter(function(el){return el != undefined; });
+		// var edges2 = this.edges.map(function(el){
+		// 	var dist = Math.sqrt(Math.pow(el.nodes[i].x - x,2) + Math.pow(el.nodes[i].y - y,2));
+		// 	if(dist < minDist){
+		// 		var adjEdges = this.nodes[i].adjacentEdges();
+		// 		if(adjEdges != undefined && adjEdges.length > 0){
+		// 			minDist = dist;
+		// 			nearestEdge = adjEdges[0];
+		// 			minLocation = {x:this.nodes[i].x, y:this.nodes[i].y};
+		// 		}
+		// 	}
+		// });
+		// for(var i = 0; i < this.nodes.length; i++){
+		// 	var dist = Math.sqrt(Math.pow(this.nodes[i].x - x,2) + Math.pow(this.nodes[i].y - y,2));
+		// 	if(dist < minDist){
+		// 		var adjEdges = this.nodes[i].adjacentEdges();
+		// 		if(adjEdges != undefined && adjEdges.length > 0){
+		// 			minDist = dist;
+		// 			nearestEdge = adjEdges[0];
+		// 			minLocation = {x:this.nodes[i].x, y:this.nodes[i].y};
+		// 		}
+		// 	}
+		// }
+	}
+
 
 	///////////////////////////////////////////////////////////////
 	// CALCULATIONS

@@ -203,18 +203,22 @@ class Graph{
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
 		var g = new Graph();
-		for(var i = 0 ; i < this.nodes.length; i++){
-			var newNode = <GraphNode>(<any>Object).assign(g.newNode(), this.nodes[i]);
+		for(var i = 0; i < this.nodes.length; i++){
+			var newNode = g.addNode(new GraphNode(g));
+			(<any>Object).assign(newNode, this.nodes[i]);
+			// var newNode = <GraphNode>(<any>Object).assign(g.newNode(), this.nodes[i]);
 			newNode.graph = g;
-			// newNode.index = i;
+			newNode.index = i;
 		}
-		for(var i = 0 ; i < this.edges.length; i++){
+		for(var i = 0; i < this.edges.length; i++){
 			var a = this.edges[i].nodes[0].index;
 			var b = this.edges[i].nodes[1].index;
-			var newEdge = <GraphEdge>(<any>Object).assign(g.newEdge(g.nodes[a], g.nodes[b]), this.edges[i]);
+			var newEdge = g.addEdge(new GraphEdge(g, g.nodes[a], g.nodes[b]));
+			(<any>Object).assign(newEdge, this.edges[i]);
+			// var newEdge = <GraphEdge>(<any>Object).assign(g.newEdge(g.nodes[a], g.nodes[b]), this.edges[i]);
 			newEdge.graph = g;
 			newEdge.nodes = [g.nodes[a], g.nodes[b]];
-			// newEdge.index = i;
+			newEdge.index = i;
 		}
 		return g;
 	}

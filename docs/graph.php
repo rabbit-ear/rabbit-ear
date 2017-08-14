@@ -28,20 +28,11 @@
 
 <section id="nodes-and-edges">
 	<div class="quote">
-		<p>All of a graph's nodes and edges are stored in arrays called <b>nodes</b> and <b>edges</b>.</p>
+		<p>All of a graph's nodes and edges are stored in arrays called <b>nodes</b> and <b>edges</b>.</p><p>The types are <a href="library/GraphNode.php">Graph Node</a> and <a href="library/GraphEdge.php">Graph Edge</a>.</p>
 	</div>
 
 	<div class="centered">
 		<pre><code>graph.<v>nodes</v> <c> // array of GraphNode</c><br>graph.<v>edges</v> <c> // array of GraphEdge</c></code></pre>
-	</div>
-
-
-	<div class="quote">
-		<p>The type of the nodes is a <a href="library/GraphNode.php">Graph Node</a>, and edges is a <a href="library/GraphEdge.php">Graph Edge</a>.</p>
-	</div>
-
-	<div class="centered">
-		<pre><code>graph.<v>newNode</v>()</code></pre>
 	</div>
 
 	<div class="quote">
