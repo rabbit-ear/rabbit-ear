@@ -15,7 +15,7 @@ ffSingle.reset = function(){
 		for(var i = 0; i < 3; i++){
 			var angle = Math.random()*Math.PI*2;
 			this.angles[i] = angle;
-			this.cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle))).valley();
+			this.cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle))).mountain();
 		}
 		this.cp.clean();
 		centerNode = this.cp.getNearestNode(0.5, 0.5);
@@ -25,20 +25,19 @@ ffSingle.reset = function(){
 	} while(tooSmall);
 
 	this.initialize();
-	// console.log("flatFoldable: " + centerNode.flatFoldable());
-	console.log(centerNode.kawasaki());
 }
 ffSingle.reset();
 
 ffSingle.rebuild = function(){
 	// make 3 fan lines with a good sized interior angle between them
+	var centerNode;
 	do{
 		this.cp.clear();
 		this.cp.nodes = [];
 		this.cp.edges = [];
 		for(var i = 0; i < 3; i++){
 			var angle = this.angles[i];  //small difference here
-			this.cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle))).valley();
+			this.cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle))).mountain();
 		}
 		this.cp.clean();
 		centerNode = this.cp.getNearestNode(0.5, 0.5);
@@ -60,31 +59,19 @@ ffSingle.onMouseDown = function(event){
 ffSingle.onMouseUp = function(event){ }
 ffSingle.onMouseMove = function(event) {
 	this.rebuild();
-	for(var i = 0; i < this.cp.edges.length; i++){ this.cp.edges[i].mark(); }
+	// for(var i = 0; i < this.cp.edges.length; i++){ this.cp.edges[i].mark(); }
 	var angle = this.cp.getNearestInteriorAngle(event.point.x, event.point.y);
 	if(angle == undefined || angle.edges == undefined) return;
 
-	// console.log(angle);
-	
-	angle.edges[0].mountain();
-	angle.edges[1].valley();
+	// angle.edges[0].mountain();
+	// angle.edges[1].valley();
 
-	// var edges = this.cp.getNearestEdges(event.point.x, event.point.y, 2);
-	// if(edges.length && edges[0] != undefined) edges[0].edge.mountain();
-	// if(edges.length && edges[1] != undefined) edges[1].edge.valley();
-	// if(edges.length == 2){
-	// 	var centerNode = this.cp.getNearestNode(0.5, 0.5);
-	// 	var angle0 = edges[0].edge.absoluteAngle(centerNode);
-	// 	var angle1 = edges[1].edge.absoluteAngle(centerNode);
-	// 	var interior;
-	// 	if(clockwiseAngleFrom(angle0, angle1) < clockwiseAngleFrom(angle1, angle0)){
-	// 		interior = new InteriorAngle(edges[1].edge, edges[0].edge);
-	// 	} else{
-	// 		interior = new InteriorAngle(edges[0].edge, edges[1].edge);
-	// 	}
-	// 	var newAngle = this.cp.findFlatFoldable(interior);
-	// 	this.cp.creaseRay(new XYPoint(interior.node.x, interior.node.y), new XYPoint(Math.cos(newAngle), Math.sin(newAngle))).mark();
-	// }
-	// this.cp.clean();
+	if(angle.edges.length == 2){
+		var newAngle = this.cp.findFlatFoldable(angle);
+		this.cp.creaseRay(new XYPoint(angle.node.x, angle.node.y), new XYPoint(Math.cos(newAngle), Math.sin(newAngle))).valley();
+	}
+	this.cp.clean();
 	this.initialize();
+
+	var centerNode = this.cp.getNearestNode(0.5, 0.5);
 }

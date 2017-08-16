@@ -397,22 +397,24 @@ class CreasePattern extends PlanarGraph{
 		var sumOdd = 0;
 		for(var i = 0; i < interiorAngles.length-1; i++){
 			var index = (i+foundIndex+1) % interiorAngles.length;
-			if(i % 2 == 0){ sumEven += interiorAngles[i].angle; } 
-			else { sumOdd += interiorAngles[i].angle; }
+			if(i % 2 == 0){ sumEven += interiorAngles[index].angle; } 
+			else { sumOdd += interiorAngles[index].angle; }
 		}
 		var dEven = Math.PI - sumEven;
 		var dOdd = Math.PI - sumOdd;
 		var angle0 = angle.edges[0].absoluteAngle(angle.node);
 		var angle1 = angle.edges[1].absoluteAngle(angle.node);
 		// this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
-		console.log(clockwiseAngleFrom(angle0, angle1) + " " + clockwiseAngleFrom(angle1, angle0));
-		if(clockwiseAngleFrom(angle0, angle1) < clockwiseAngleFrom(angle1, angle0)){
+		// console.log(clockwiseAngleFrom(angle0, angle1) + " " + clockwiseAngleFrom(angle1, angle0));
+		// if(clockwiseAngleFrom(angle0, angle1) < clockwiseAngleFrom(angle1, angle0)){
 			// return angle1 - dOdd;
-			return angle1 - dEven;
-		} else{
-			return angle1 - dOdd;
-		}
+			// return angle1 - dEven;
+		// } else{
+			// return angle0 - dOdd;
+		// }
 
+		// return angle0 + dEven;
+		return angle0 - dEven;
 	}
 
 	creaseRay(start:XYPoint,vector:XYPoint):Crease{
