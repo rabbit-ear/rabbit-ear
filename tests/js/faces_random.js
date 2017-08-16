@@ -5,8 +5,7 @@ var randomFaces = new PaperCreasePattern("canvas-faces-random");
 randomFaces.zoomToFit(0.05);
 randomFaces.style.mark.strokeColor = {gray:0.0, alpha:1.0};
 
-// randomFaces.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
-randomFaces.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+randomFaces.selectNearestEdge = true;
 
 randomFaces.reset = function(){
 	randomFaces.cp.clear();

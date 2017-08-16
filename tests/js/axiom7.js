@@ -12,13 +12,13 @@ axiom7.marks[0].position = [0.0, 0.0];
 axiom7.marks[1].position = [1.0, 1.0];
 axiom7.marks[2].position = [0.0, 0.5];
 axiom7.marks[3].position = [1.0, 0.5];
-axiom7.marks[4].position = [1.0, 0.666];
+axiom7.marks[4].position = [0.0, 0.333];
 
 axiom7.reset = function(){
 	axiom7.cp.clear();
-	var crease1 = axiom7.cp.creaseThroughPoints(axiom7.marks[0].position, axiom7.marks[1].position).valley();
-	var crease2 = axiom7.cp.creaseThroughPoints(axiom7.marks[2].position, axiom7.marks[3].position).valley();
-	axiom7.cp.creasePerpendicularPointOntoLine(axiom7.marks[4].position, crease1, crease2).mountain();
+	var crease1 = axiom7.cp.creaseThroughPoints(axiom7.marks[0].position, axiom7.marks[1].position).mark();
+	var crease2 = axiom7.cp.creaseThroughPoints(axiom7.marks[2].position, axiom7.marks[3].position).mark();
+	axiom7.cp.creasePerpendicularPointOntoLine(axiom7.marks[4].position, crease1, crease2).valley();
 	axiom7.initialize();
 }
 axiom7.reset();

@@ -194,7 +194,7 @@ class PlanarEdge extends GraphEdge{
 	nodes:[PlanarNode,PlanarNode];
 
 	intersection(edge:PlanarEdge):EdgeIntersection{
-		// todo: should adjacent edges return the point in common they have with each other?
+		// todo: should intersecting adjacent edges return the point in common they have with each other?
 		if(this.isAdjacentToEdge(edge)){ return undefined; }
 		var intersect = lineSegmentIntersectionAlgorithm(this.nodes[0], this.nodes[1], edge.nodes[0], edge.nodes[1]);
 		if(intersect == undefined){ return undefined; }
@@ -226,14 +226,10 @@ class PlanarEdge extends GraphEdge{
 	}
 
 	adjacentFaces():PlanarFace[]{
-		var adjacentFaces = [];
-		var face1 = this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[0], this.nodes[1]) );
-		if(face1 != undefined){ adjacentFaces.push(face1); }
-		var face2 = this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[1], this.nodes[0]) );
-		if(face2 != undefined){ adjacentFaces.push(face2); }
-		return adjacentFaces;
+		return [ this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[0], this.nodes[1]) ),
+		         this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[1], this.nodes[0]) ) ]
+		         .filter(function(el){ return el !== undefined });
 	}
-
 }
 
 class PlanarFace{
@@ -381,6 +377,7 @@ class PlanarGraph extends Graph{
 		var len = this.edges.length;
 		var endNodes = [edge.nodes[0], edge.nodes[1]];
 		this.edges = this.edges.filter(function(el){ return el !== edge; });
+		this.edgeArrayDidChange();
 		this.cleanNodeIfUseless(endNodes[0]);
 		this.cleanNodeIfUseless(endNodes[1]);
 		return (len !== this.edges.length);
@@ -909,6 +906,18 @@ function arrayContainsDuplicates(array):boolean{
 		}
 	}
 	return false;
+}
+
+function arrayRemoveDuplicates(array, compFunction):any[]{
+	if(array.length <= 1) return [];
+	for(var i = 0; i < array.length-1; i++){
+		for(var j = array.length-1; j > i; j--){
+			if(compFunction(array[i], array[j])){
+				array.splice(j,1);
+			}
+		}
+	}
+	return array;
 }
 
 function arrayContainsObject(array, object):boolean{

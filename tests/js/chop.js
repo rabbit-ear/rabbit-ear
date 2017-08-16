@@ -2,8 +2,8 @@
 var chop_sketch = new PaperCreasePattern("canvas-chop");
 chop_sketch.zoomToFit(0.05);
 
-chop_sketch.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
-chop_sketch.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+chop_sketch.selectNearestNode = true;
+chop_sketch.selectNearestEdge = true;
 
 chop_sketch.reset = function(){
 	chop_sketch.cp.clear();

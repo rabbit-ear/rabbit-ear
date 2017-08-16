@@ -4,45 +4,46 @@ var faceAnim = new PaperCreasePattern("canvas-face-anim", new PlanarGraph());
 
 faceAnim.reset = function(){
 
-	faceAnim.NUM_LINES = 30;
-	faceAnim.aspect = faceAnim.canvas.width / faceAnim.canvas.height;
+	this.NUM_LINES = 30;
+	this.aspect = this.canvas.width / this.canvas.height;
 
-	faceAnim.g = new PlanarGraph();
+	this.g = new PlanarGraph();
 
+	this.g.clear();
+	this.g.nodes = [];
+	this.g.edges = [];
 
-	faceAnim.g.clear();
-	faceAnim.g.nodes = [];
-	faceAnim.g.edges = [];
-
-	faceAnim.positions = [];
-	faceAnim.angles = [];
-	for(var i = 0; i < faceAnim.NUM_LINES; i++){
-		faceAnim.positions[i] = new XYPoint(Math.random() * faceAnim.aspect, Math.random());
-		faceAnim.angles[i] = Math.random() * Math.PI*2;
+	this.positions = [];
+	this.angles = [];
+	for(var i = 0; i < this.NUM_LINES; i++){
+		this.positions[i] = new XYPoint(Math.random() * this.aspect, Math.random());
+		this.angles[i] = Math.random() * Math.PI*2;
 	}
-	for(var i = 0; i < faceAnim.NUM_LINES; i += 2){
-		faceAnim.g.newPlanarEdge(faceAnim.positions[i+0].x, faceAnim.positions[i+0].y,
-		                         faceAnim.positions[i+1].x, faceAnim.positions[i+1].y);
+	for(var i = 0; i < this.NUM_LINES; i += 2){
+		this.g.newPlanarEdge(this.positions[i+0].x, this.positions[i+0].y,
+		                         this.positions[i+1].x, this.positions[i+1].y);
 	}
-	faceAnim.cp = faceAnim.g.duplicate();
-	faceAnim.initialize();
+	this.cp = this.g.duplicate();
+	this.initialize();
+	this.style.mark.strokeColor = {gray:0.0};
+	// this.style.mark.strokeWidth = 0.002;
 }
 faceAnim.reset();
 
 faceAnim.onFrame = function(event) { 
 	var mag = .3;
-	faceAnim.cp = faceAnim.g.duplicate();
-	for(var i = 0; i < faceAnim.NUM_LINES; i++){
-		faceAnim.cp.nodes[i].x=faceAnim.positions[i].x+mag* Math.cos(faceAnim.angles[i])*Math.sin(event.time) * (1/faceAnim.aspect);
-		faceAnim.cp.nodes[i].y=faceAnim.positions[i].y+mag* Math.sin(faceAnim.angles[i])*Math.sin(event.time);
+	this.cp = this.g.duplicate();
+	for(var i = 0; i < this.NUM_LINES; i++){
+		this.cp.nodes[i].x=this.positions[i].x+mag* Math.cos(this.angles[i])*Math.sin(event.time) * (1/this.aspect);
+		this.cp.nodes[i].y=this.positions[i].y+mag* Math.sin(this.angles[i])*Math.sin(event.time);
 	}
-	faceAnim.cp.clean();
-	faceAnim.cp.generateFaces();
-	faceAnim.initialize();
+	this.cp.clean();
+	this.cp.generateFaces();
+	this.initialize();
 }
 faceAnim.onResize = function(event) { }
 faceAnim.onMouseDown = function(event){ 
-	faceAnim.reset();
+	this.reset();
 }
 faceAnim.onMouseUp = function(event){ }
 faceAnim.onMouseMove = function(event) { }

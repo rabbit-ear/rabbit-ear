@@ -2,7 +2,8 @@ var radial_rainbow_callback = undefined;
 
 var radialRay = new PaperCreasePattern("canvas-radial-rainbow");
 radialRay.zoomToFit(0.05);
-radialRay.nearestEdgeColor = { gray:0.0 };
+radialRay.selectNearestEdge = true;
+radialRay.style.selectedEdge = { gray:0.0 };
 
 radialRay.colorForAngle = function(angle){
 	var color = angle / Math.PI * 180;

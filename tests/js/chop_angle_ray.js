@@ -2,8 +2,7 @@
 var chopRays = new PaperCreasePattern("canvas-chop-angle-ray");
 chopRays.zoomToFit(0.05);
 
-// chopRays.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
-chopRays.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+chopRays.selectNearestEdge = true;
 
 chopRays.reset = function(){
 	var padding = 0.1;

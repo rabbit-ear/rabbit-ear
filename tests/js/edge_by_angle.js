@@ -2,7 +2,7 @@
 var edgeAngle = new PaperCreasePattern("canvas-edge-by-angle");
 edgeAngle.zoomToFit(0.05);
 
-edgeAngle.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+edgeAngle.selectNearestEdge = true;
 
 edgeAngle.reset = function(){
 	edgeAngle.cp.clear();

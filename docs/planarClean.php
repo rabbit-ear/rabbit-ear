@@ -135,10 +135,13 @@
 	var paper1 = new PaperCreasePattern("canvas1", cp[0]);
 	var paper2 = new PaperCreasePattern("canvas2", cp[1]);
 	var paper3 = new PaperCreasePattern("canvas3", cp[2]);
-	paper1.nodeLayer.visible = true;
-	paper2.nodeLayer.visible = true;
-	paper3.nodeLayer.visible = true;
-
+	paper1.style.nodes.visible = true;
+	paper2.style.nodes.visible = true;
+	paper3.style.nodes.visible = true;
+	paper1.update();
+	paper2.update();
+	paper3.update();
 </script>
+
 
 <?php include 'footer.php';?>

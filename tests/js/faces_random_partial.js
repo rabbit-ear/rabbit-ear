@@ -4,7 +4,7 @@ faces_random_partial_callback = undefined;
 var partialFaces = new PaperCreasePattern("canvas-faces-random-partial");
 partialFaces.zoomToFit(0.05);
 
-partialFaces.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+partialFaces.selectNearestEdge = true;
 
 partialFaces.reset = function(){
 	partialFaces.cp.clear();

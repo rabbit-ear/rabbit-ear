@@ -2,8 +2,8 @@
 var chopHoriz = new PaperCreasePattern("canvas-chop-collinear-horiz");
 chopHoriz.zoomToFit(0.05);
 
-chopHoriz.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
-chopHoriz.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+chopHoriz.selectNearestNode = true;
+chopHoriz.selectNearestEdge = true;
 
 chopHoriz.reset = function(){
 	var NUM_LINES = 20;

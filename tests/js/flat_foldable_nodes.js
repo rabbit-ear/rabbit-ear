@@ -19,7 +19,7 @@ ffSketch.colorNodesFlatFoldable = function(){
 	}
 }
 
-ffSketch.nearestEdgeColor = { hue:0, saturation:0.7, brightness:1.0 };
+ffSketch.selectNearestEdge = true;
 
 ffSketch.reset = function(){
 	ffSketch.cp.clear();

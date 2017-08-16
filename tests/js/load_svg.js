@@ -7,7 +7,7 @@ loadSVG("/tests/svg/crane.svg", function(e){
 	loadSVGSketch.initialize();
 });
 
-loadSVGSketch.nearestEdgeColor = { hue:0, saturation:0.7, brightness:1.0 };
+loadSVGSketch.selectNearestEdge = true;
 
 loadSVGSketch.reset = function(){
 	loadSVGSketch.cp.clear();

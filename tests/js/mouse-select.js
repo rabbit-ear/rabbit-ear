@@ -3,8 +3,8 @@ var mouse_select_callback;
 var mouseSelect = new PaperCreasePattern("canvas-mouse-select");
 mouseSelect.zoomToFit(0.05);
 
-mouseSelect.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
-mouseSelect.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+mouseSelect.selectNearestNode = true;
+mouseSelect.selectNearestEdge = true;
 
 mouseSelect.reset = function(){
 	mouseSelect.cp.clear();

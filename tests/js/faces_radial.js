@@ -3,8 +3,8 @@
 var radialFaces = new PaperCreasePattern("canvas-faces-radial");
 radialFaces.zoomToFit(0.05);
 
-radialFaces.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
-radialFaces.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+radialFaces.selectNearestNode = true;
+radialFaces.selectNearestEdge = true;
 
 radialFaces.reset = function(){
 	radialFaces.cp.clear();

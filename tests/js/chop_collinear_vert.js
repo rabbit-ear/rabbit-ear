@@ -2,8 +2,8 @@
 var chopVert = new PaperCreasePattern("canvas-chop-collinear-vert");
 chopVert.zoomToFit(0.05);
 
-chopVert.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
-chopVert.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+chopVert.selectNearestNode = true;
+chopVert.selectNearestEdge = true;
 
 chopVert.reset = function(){
 	var NUM_LINES = 20;

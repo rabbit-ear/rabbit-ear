@@ -2,8 +2,7 @@
 var chopMV = new PaperCreasePattern("canvas-chop-mountain-valley");
 chopMV.zoomToFit(0.05);
 
-// chopMV.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
-chopMV.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+chopMV.selectNearestEdge = true;
 
 chopMV.reset = function(){
 	var NUM_LINES = 10;

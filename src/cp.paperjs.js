@@ -19,40 +19,18 @@ function pointsSimilar(p1, p2, epsilon){
 
 var PaperCreasePattern = (function () {
 
-	PaperCreasePattern.prototype.onResize = function(event){ }
-	PaperCreasePattern.prototype.onFrame = function(event){ }
-	PaperCreasePattern.prototype.onMouseDown = function(event){ }
-	PaperCreasePattern.prototype.onMouseUp = function(event){ }
-	PaperCreasePattern.prototype.onMouseMove = function(event){ }
-
 	function PaperCreasePattern(canvas, creasePattern) {
-		if(canvas == undefined) { throw "PaperCreasePattern() init issue"; }
+		if(canvas === undefined) { throw "PaperCreasePattern() needs to be initialized with an HTML canvas"; }
 		if(typeof canvas === "string"){ this.canvas = document.getElementById(canvas); }
 		else this.canvas = canvas;
 
+		// data model
 		this.cp = creasePattern;
-		if(this.cp === undefined) { this.cp = new CreasePattern(); }
+		if(this.cp === undefined){ this.cp = new CreasePattern(); }
 		
-
+		// PAPER JS
 		this.scope = new paper.PaperScope();
 		this.scope.setup(canvas);
-
-		var that = this;
-		this.scope.view.onFrame = function(event){     paper = that.scope; that.onFrame(event); }
-		this.scope.view.onMouseDown = function(event){ paper = that.scope; that.onMouseDown(event); }
-		this.scope.view.onMouseUp = function(event){   paper = that.scope; that.onMouseUp(event); }
-		this.scope.view.onMouseMove = function(event){ 
-			paper = that.scope;
-			if(that.nearestNodeColor != undefined){ that.highlightNearestNode(event.point); }
-			if(that.nearestEdgeColor != undefined){ that.highlightNearestEdge(event.point); }
-			if(that.nearestFaceColor != undefined){ that.highlightNearestFace(event.point); }
-			that.onMouseMove(event);
-		}
-		this.scope.view.onResize = function(event){    
-			paper = that.scope; 
-			that.zoomToFit(); 
-			that.onResize(event); 
-		}
 
 		// the order of the following sets the z index order too
 		this.faceLayer = new this.scope.Layer();
@@ -60,26 +38,48 @@ var PaperCreasePattern = (function () {
 		this.boundaryLayer = new this.scope.Layer();
 		this.nodeLayer = new this.scope.Layer();
 		
-		this.nodeLayer.visible = false;
-
-		// set these to a color (paperjs color object) for automatic nearest calculation
-		this.nearestNodeColor = undefined;
-		this.nearestEdgeColor = undefined;
-		this.nearestFaceColor = undefined;
+		// user interaction
+		this.mouseDown = false;
 		this.nearestNode = undefined;
 		this.nearestEdge = undefined;
 		this.nearestFace = undefined;
+		// setting these true causes this to highlight parts
+		this.selectNearestNode = false;
+		this.selectNearestEdge = false;
+		this.selectNearestFace = false;
+		this.selected = { nodes:[], edges:[], faces:[] };
 
-		this.mouseNodeLayer = new this.scope.Layer();
-		this.nearestNodeCircle = new this.scope.Shape.Circle({
-			center: [0, 0],
-			radius: 0.02,
-			visible: false,
-			fillColor: { hue:0, saturation:0.8, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
-		});
+		this.style = this.defaultStyleTemplate();
+
+		var that = this;
+		this.scope.view.onFrame = function(event){     
+			paper = that.scope; 
+			that.onFrame(event); 
+		}
+		this.scope.view.onMouseDown = function(event){ 
+			paper = that.scope; 
+			that.mouseDown = true; 
+			that.onMouseDown(event);
+		}
+		this.scope.view.onMouseUp = function(event){
+			paper = that.scope;
+			that.mouseDown = false;
+			that.onMouseUp(event);
+		}
+		this.scope.view.onMouseMove = function(event){ 
+			paper = that.scope;
+			if(that.selectNearestNode){ that.highlightNearestNode(event.point); }
+			if(that.selectNearestEdge){ that.highlightNearestEdge(event.point); }
+			if(that.selectNearestFace){ that.highlightNearestFace(event.point); }
+			that.onMouseMove(event);
+		}
+		this.scope.view.onResize = function(event){    
+			paper = that.scope; 
+			that.zoomToFit(); 
+			that.onResize(event); 
+		}
 		
 		this.zoomToFit();
-
 		this.initialize();
     }
     PaperCreasePattern.prototype.initialize = function(){
@@ -94,14 +94,12 @@ var PaperCreasePattern = (function () {
 		this.faceLayer.removeChildren();
 
 		// draw paper edge
-		if(this.cp == undefined){ return; }
-		if(this.cp.boundary != undefined){
+		if(this.cp === undefined){ return; }
+		if(this.cp.boundary !== undefined){
 			this.boundaryLayer.activate();
 			var boundarySegments = [];
 			for(var i = 0; i < this.cp.boundary.edges.length; i++){
-				var endpoints = this.cp.boundary.edges[i].nodes;
-				boundarySegments.push(endpoints[0]);
-				boundarySegments.push(endpoints[1]);
+				boundarySegments = boundarySegments.concat(this.cp.boundary.edges[i].nodes);
 			}
 			var boundaryPath = new paper.Path({segments: boundarySegments, closed: true });
 			Object.assign(boundaryPath, this.styleForCrease(CreaseDirection.border));
@@ -110,14 +108,12 @@ var PaperCreasePattern = (function () {
 		for(var i = 0; i < this.cp.nodes.length; i++){
 			var circle = new paper.Shape.Circle({ center: [this.cp.nodes[i].x, this.cp.nodes[i].y] });
 			Object.assign(circle, this.style.nodes);
-			circle.strokeCap = 'round';
 			this.nodes.push( circle );
 		}
 		this.edgeLayer.activate();
 		for(var i = 0; i < this.cp.edges.length; i++){
 			var path = new paper.Path({segments: this.cp.edges[i].nodes, closed: false });
 			Object.assign(path, this.styleForCrease(this.cp.edges[i].orientation));
-			path.strokeCap = 'round';
 			this.edges.push( path );
 		}
 		this.faceLayer.activate();
@@ -130,21 +126,36 @@ var PaperCreasePattern = (function () {
     }
 
     PaperCreasePattern.prototype.update = function () {
-		for(var i = 0; i < this.cp.nodes.length; i++){ this.nodes[i].position = this.cp.nodes[i]; }
-		for(var i = 0; i < this.cp.edges.length; i++){ this.edges[i].segments = this.cp.edges[i].nodes; }
-		for(var i = 0; i < this.cp.faces.length; i++){ this.faces[i].segments = this.cp.faces[i].nodes; }
+		for(var i = 0; i < this.cp.nodes.length; i++){ 
+			this.nodes[i].position = this.cp.nodes[i]; 
+			Object.assign(this.nodes[i], this.style.nodes);
+		}
+		for(var i = 0; i < this.cp.edges.length; i++){ 
+			this.edges[i].segments = this.cp.edges[i].nodes; 
+			Object.assign(this.edges[i], this.styleForCrease(this.cp.edges[i].orientation));
+		}
+		for(var i = 0; i < this.cp.faces.length; i++){ 
+			this.faces[i].segments = this.cp.faces[i].nodes; 
+		}
+		// update user-selected
+		for(var i = 0; i < this.selected.nodes.length; i++){
+			Object.assign(this.nodes[this.selected.nodes[i].index], this.style.selectedNode);
+		}
+		for(var i = 0; i < this.selected.edges.length; i++){
+			Object.assign(this.edges[this.selected.edges[i].index], this.style.selectedEdge);
+		}	
 	};
 
 	PaperCreasePattern.prototype.zoomToFit = function(padding){
 		// store padding for future calls
-		if(padding != undefined){ this.padding = padding; }
+		if(padding !== undefined){ this.padding = padding; }
 		// use stored padding if we can
 		var paperWindowScale = 1.0 - .015;
-		if(this.padding != undefined){ paperWindowScale = 1.0 - this.padding*2; }
+		if(this.padding !== undefined){ paperWindowScale = 1.0 - this.padding*2; }
 		var pixelScale = 1.0;
 		if(isRetina){ pixelScale = 0.5; }
 		var w, h;
-		if(this.canvas != undefined){
+		if(this.canvas !== undefined){
 			w = this.canvas.width;
 			h = this.canvas.height;
 		} else { 
@@ -161,30 +172,43 @@ var PaperCreasePattern = (function () {
 		mat.translate(-0.5, -0.5);
 		this.scope.view.matrix = mat;
 		return mat;
-	}
+	};
+
+	///////////////////////////////////////////////////
+	// USER INTERACTION
+	///////////////////////////////////////////////////
+
+	PaperCreasePattern.prototype.onResize = function(event){ }
+	PaperCreasePattern.prototype.onFrame = function(event){ }
+	PaperCreasePattern.prototype.onMouseDown = function(event){ }
+	PaperCreasePattern.prototype.onMouseUp = function(event){ }
+	PaperCreasePattern.prototype.onMouseMove = function(event){ }
 
 	PaperCreasePattern.prototype.highlightNearestNode = function(position){
 		var node = this.cp.getNearestNode( position.x, position.y );
+		if(node === undefined) return;
 		if(this.nearestNode !== node){
-			this.nearestNodeCircle.visible = true;
-			this.nearestNodeCircle.fillColor = this.nearestNodeColor;
+			// first, undo the last selected node
+			this.selected.nodes = this.selected.nodes.filter(function(el){ return el.index !== this.nearestNode.index; },this);
+			// set newest nearest to a style
 			this.nearestNode = node;
-			this.nearestNodeCircle.position = this.nearestNode;
+			this.selected.nodes.push(this.nodes[this.nearestNode.index]);
+			this.update();
 		}
-	}
+	};
+
 	PaperCreasePattern.prototype.highlightNearestEdge = function(position){
 		var edge = this.cp.getNearestEdge( position.x, position.y ).edge;
+		if(edge === undefined) return;
 		if(this.nearestEdge !== edge){
+			// first, undo the last selected node
+			this.selected.edges = this.selected.edges.filter(function(el){ return el.index !== this.nearestEdge.index; },this);
+			// set newest nearest to a style
 			this.nearestEdge = edge;
-			for(var i = 0; i < this.cp.edges.length; i++){
-				if(this.nearestEdge != undefined && this.nearestEdge === this.cp.edges[i]){
-					this.edges[i].strokeColor = this.nearestEdgeColor;
-				} else{
-					this.edges[i].strokeColor = this.styleForCrease(this.cp.edges[i].orientation).strokeColor;
-				}
-			}
+			this.selected.edges.push(this.edges[this.nearestEdge.index]);
+			this.update();
 		}
-	}
+	};
 
 	///////////////////////////////////////////////////
 	// STYLE
@@ -193,42 +217,59 @@ var PaperCreasePattern = (function () {
 	var lineWeight = 0.01;
 
 	PaperCreasePattern.prototype.styleForCrease = function(orientation){
-		if   (orientation == CreaseDirection.mountain){ return this.style.mountain; }
-		else if(orientation == CreaseDirection.valley){ return this.style.valley; }
-		else if(orientation == CreaseDirection.border){ return this.style.border; }
+		if   (orientation === CreaseDirection.mountain){ return this.style.mountain; }
+		else if(orientation === CreaseDirection.valley){ return this.style.valley; }
+		else if(orientation === CreaseDirection.border){ return this.style.border; }
 		return this.style.mark;
-	}
+	};
 
-	PaperCreasePattern.prototype.style = {};
-	PaperCreasePattern.prototype.style.nodes = {
-		radius: 0.015, 
-		fillColor: { hue:25, saturation:0.7, brightness:1.0 }//{ hue:20, saturation:0.6, brightness:1 }
-	}
-	PaperCreasePattern.prototype.style.mountain = {
-		strokeColor: { gray:0.5 },//{ hue:340, saturation:0.75, brightness:0.9 },
-		dashArray: [lineWeight*2, lineWeight*1.5, lineWeight*.1, lineWeight*1.5],
-		// dashArray: [lineWeight*4, lineWeight, lineWeight, lineWeight],
-		// dashArray: undefined,
-		strokeWidth: lineWeight
-	};
-	PaperCreasePattern.prototype.style.valley = {
-		strokeColor: { hue:220, saturation:0.6, brightness:1 },
-		// dashArray: [lineWeight*3, lineWeight],
-		dashArray: undefined,
-		strokeWidth: lineWeight
-	};
-	PaperCreasePattern.prototype.style.border = {
-		strokeColor: { gray:0.0, alpha:1.0 },
-		dashArray: undefined,
-		strokeWidth: lineWeight
-	};
-	PaperCreasePattern.prototype.style.mark = {
-		strokeColor: { gray:0.75, alpha:1.0 },
-		dashArray: undefined,
-		strokeWidth: lineWeight*0.66666
-	};
-	PaperCreasePattern.prototype.style.face = {
-		fillColor: { gray:0.0, alpha:0.2 }
+	PaperCreasePattern.prototype.defaultStyleTemplate = function(){
+		return {
+			selectedNode: {
+				radius: 0.02, 
+				fillColor: { hue:0, saturation:0.8, brightness:1 },
+				visible: true
+			},
+			selectedEdge: {
+				strokeColor: { hue:0, saturation:0.8, brightness:1 }
+			},
+			selectedFace: {
+				fillColor: { hue:0, saturation:0.8, brightness:1 }
+			},
+			nodes: {
+				radius: 0.015, 
+				visible: false,
+				fillColor: { hue:25, saturation:0.7, brightness:1.0 }//{ hue:20, saturation:0.6, brightness:1 }
+			},
+			mountain: {
+				strokeColor: { gray:0.666 },//{ hue:340, saturation:0.75, brightness:0.9 },
+				// dashArray: [lineWeight*2, lineWeight*1.5, lineWeight*.1, lineWeight*1.5],
+				dashArray: undefined,
+				strokeWidth: lineWeight,
+				strokeCap : 'round'
+			},
+			valley: {
+				strokeColor: { hue:220, saturation:0.6, brightness:1 },
+				dashArray: [lineWeight*2, lineWeight*2],
+				// dashArray: undefined,
+				strokeWidth: lineWeight,
+				strokeCap : 'round'
+			},
+			border: {
+				strokeColor: { gray:0.0, alpha:1.0 },
+				dashArray: undefined,
+				strokeWidth: lineWeight
+			},
+			mark: {
+				strokeColor: { gray:0.75, alpha:1.0 },
+				dashArray: undefined,
+				strokeWidth: lineWeight*0.66666,
+				strokeCap : 'round'
+			},
+			face: {
+				fillColor: { gray:0.0, alpha:0.2 }
+			}
+		}
 	};
 
 	return PaperCreasePattern;

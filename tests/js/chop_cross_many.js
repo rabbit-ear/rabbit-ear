@@ -2,8 +2,8 @@
 var chopCross = new PaperCreasePattern("canvas-chop-cross-many");
 chopCross.zoomToFit(0.05);
 
-chopCross.nearestNodeColor = { hue:0, saturation:0.8, brightness:1 };
-chopCross.nearestEdgeColor = { hue:0, saturation:0.8, brightness:1 };
+chopCross.selectNearestNode = true;
+chopCross.selectNearestEdge = true;
 
 chopCross.reset = function(){
 	var NUM_LINES = 30;
