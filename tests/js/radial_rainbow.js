@@ -1,9 +1,7 @@
 var radial_rainbow_callback = undefined;
 
-var radialRay = new PaperCreasePattern("canvas-radial-rainbow");
+var radialRay = new PaperCreasePattern("canvas-radial-rainbow", new PlanarGraph());
 radialRay.zoomToFit(0.05);
-radialRay.selectNearestEdge = true;
-radialRay.style.selectedEdge = { gray:0.0 };
 
 radialRay.colorForAngle = function(angle){
 	var color = angle / Math.PI * 180;
@@ -12,28 +10,31 @@ radialRay.colorForAngle = function(angle){
 }
 
 radialRay.reset = function(){
-	radialRay.cp.clear();
-	radialRay.cp.nodes = [];
-	radialRay.cp.edges = [];
+	this.cp.clear();
+	this.cp.nodes = [];
+	this.cp.edges = [];
 	var angle = 0;
 	while(angle < Math.PI*2){
-		radialRay.cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle)));
-		angle+= Math.random()*0.2;
+		var len = 0.4 + Math.random()*0.1;
+		this.cp.newPlanarEdge(0.5, 0.5, 0.5+len*Math.cos(angle), 0.5+len*Math.sin(angle) );
+		angle+= Math.random()*0.2 + 0.05;
 	}
-	radialRay.cp.cleanDuplicateNodes();
-	radialRay.initialize();
-
-	radialRay.planarAdjacent = radialRay.cp.nodes[0].planarAdjacent();
-	for(var i = 0; i < radialRay.planarAdjacent.length; i++){
-		var edgeIndex = radialRay.planarAdjacent[i].edge.index;
-		radialRay.edges[edgeIndex].strokeColor = {gray:0.0};
+	this.cp.cleanDuplicateNodes();
+	this.initialize();
+	this.selectNearestEdge = true;
+	this.style.selectedEdge = { gray:0.0 };
+	this.style.mark.strokeColor = { gray:0.0 };
+	this.planarAdjacent = this.cp.getNearestNode(0.5, 0.5).planarAdjacent();
+	for(var i = 0; i < this.planarAdjacent.length; i++){
+		var edgeIndex = this.planarAdjacent[i].edge.index;
+		this.edges[edgeIndex].strokeColor = {gray:0.0};
 	}
 }
 radialRay.reset();
 
 radialRay.onFrame = function(event) { }
 radialRay.onResize = function(event) { }
-radialRay.onMouseDown = function(event){ }
+radialRay.onMouseDown = function(event){ radialRay.reset(); }
 radialRay.onMouseUp = function(event){ }
 radialRay.onMouseMove = function(event) {
 	// nearestEdge = nEdge;

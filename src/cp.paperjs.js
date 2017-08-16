@@ -37,17 +37,11 @@ var PaperCreasePattern = (function () {
 		this.edgeLayer = new this.scope.Layer();
 		this.boundaryLayer = new this.scope.Layer();
 		this.nodeLayer = new this.scope.Layer();
-		
-		// user interaction
-		this.mouseDown = false;
-		this.nearestNode = undefined;
-		this.nearestEdge = undefined;
-		this.nearestFace = undefined;
+				
 		// setting these true causes this to highlight parts
 		this.selectNearestNode = false;
 		this.selectNearestEdge = false;
 		this.selectNearestFace = false;
-		this.selected = { nodes:[], edges:[], faces:[] };
 
 		this.style = this.defaultStyleTemplate();
 
@@ -92,6 +86,13 @@ var PaperCreasePattern = (function () {
 		this.nodeLayer.removeChildren();
 		this.edgeLayer.removeChildren();
 		this.faceLayer.removeChildren();
+
+		// user interaction
+		this.mouseDown = false;
+		this.nearestNode = undefined;
+		this.nearestEdge = undefined;
+		this.nearestFace = undefined;
+		this.selected = { nodes:[], edges:[], faces:[] };
 
 		// draw paper edge
 		if(this.cp === undefined){ return; }

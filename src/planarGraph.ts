@@ -134,6 +134,8 @@ class PlanarNode extends GraphNode{
 
 	interiorAngles():InteriorAngle[]{
 		var adj = this.planarAdjacent();
+		// if this node is a leaf, should 1 angle be 360 degrees? or no interior angles
+		if(adj.length <= 1){ return []; }
 		return adj.map(function(el, i){
 			var nextI = (i+1)%this.length;
 			// var angleDifference = clockwiseAngleFrom(this[i].angle, this[nextI].angle);
@@ -631,30 +633,37 @@ class PlanarGraph extends Graph{
 			if(distances.length){ return {'edge':el, 'distance':distances[0]}; }			
 		});
 		return edges.filter(function(el){return el != undefined; });
-		// var edges2 = this.edges.map(function(el){
-		// 	var dist = Math.sqrt(Math.pow(el.nodes[i].x - x,2) + Math.pow(el.nodes[i].y - y,2));
-		// 	if(dist < minDist){
-		// 		var adjEdges = this.nodes[i].adjacentEdges();
-		// 		if(adjEdges != undefined && adjEdges.length > 0){
-		// 			minDist = dist;
-		// 			nearestEdge = adjEdges[0];
-		// 			minLocation = {x:this.nodes[i].x, y:this.nodes[i].y};
-		// 		}
-		// 	}
-		// });
-		// for(var i = 0; i < this.nodes.length; i++){
-		// 	var dist = Math.sqrt(Math.pow(this.nodes[i].x - x,2) + Math.pow(this.nodes[i].y - y,2));
-		// 	if(dist < minDist){
-		// 		var adjEdges = this.nodes[i].adjacentEdges();
-		// 		if(adjEdges != undefined && adjEdges.length > 0){
-		// 			minDist = dist;
-		// 			nearestEdge = adjEdges[0];
-		// 			minLocation = {x:this.nodes[i].x, y:this.nodes[i].y};
-		// 		}
-		// 	}
-		// }
 	}
 
+	getNearestInteriorAngle(x:number, y:number):InteriorAngle{
+		var node = this.getNearestNode(x,y);
+		var angles = node.interiorAngles();
+		if(angles == undefined || angles.length === 0){ return undefined; }
+		var anglesWithD = angles.map(function(el){
+			var d0 = minDistBetweenPointLine(el.edges[0].nodes[0],el.edges[0].nodes[1],x,y);
+			var d1 = minDistBetweenPointLine(el.edges[1].nodes[0],el.edges[1].nodes[1],x,y);
+			var d;
+			if(d0 === undefined || d1 === undefined){ d = Infinity; }
+			else{d = Math.sqrt(Math.pow(d0.x-x,2)+Math.pow(d0.y-y,2)) + 
+			         Math.sqrt(Math.pow(d1.x-x,2)+Math.pow(d1.y-y,2));}
+			// var distNodes0 = [
+			// 	Math.sqrt(Math.pow(el.edges[0].nodes[0].x - x, 2) + 
+			// 	          Math.pow(el.edges[0].nodes[0].y - y, 2)),
+			// 	Math.sqrt(Math.pow(el.edges[0].nodes[1].x - x, 2) + 
+			// 	          Math.pow(el.edges[0].nodes[1].y - y, 2))
+			// ].sort(function(a,b){return (a > b)?1:(a < b)?-1:0});
+			// var distNodes1 = [
+			// 	Math.sqrt(Math.pow(el.edges[1].nodes[0].x - x, 2) + 
+			// 	          Math.pow(el.edges[1].nodes[0].y - y, 2)),
+			// 	Math.sqrt(Math.pow(el.edges[1].nodes[1].x - x, 2) + 
+			// 	          Math.pow(el.edges[1].nodes[1].y - y, 2))
+			// ].sort(function(a,b){return (a > b)?1:(a < b)?-1:0});
+			// var distNodes = distNodes0[0] + distNodes1[0];
+			// if(distNodes != undefined && distNodes < d){ d = distNodes; }
+			return {'angle':el,'dist':d}; 
+		}).sort(function(a,b){return (a.dist > b.dist)?1:(a.dist < b.dist)?-1:0});
+		return anglesWithD[0].angle;
+	}
 
 	///////////////////////////////////////////////////////////////
 	// CALCULATIONS
