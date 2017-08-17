@@ -636,33 +636,29 @@ class PlanarGraph extends Graph{
 	}
 
 	getNearestInteriorAngle(x:number, y:number):InteriorAngle{
-		var node = this.getNearestNode(x,y);
-		var angles = node.interiorAngles();
+		// var node = this.getNearestNode(x,y);
+		// var angles = node.interiorAngles();
+		var nodes = this.getNearestNodes(x,y,5);
+		var node, angles;
+		for(var i = 0; i < nodes.length; i++){
+			node = nodes[i];
+			angles = node.interiorAngles();
+			if(angles !== undefined && angles.length > 0){ break; }
+		}
 		if(angles == undefined || angles.length === 0){ return undefined; }
-		var anglesWithD = angles.map(function(el){
-			var d0 = minDistBetweenPointLine(el.edges[0].nodes[0],el.edges[0].nodes[1],x,y);
-			var d1 = minDistBetweenPointLine(el.edges[1].nodes[0],el.edges[1].nodes[1],x,y);
-			var d;
-			if(d0 === undefined || d1 === undefined){ d = Infinity; }
-			else{d = Math.sqrt(Math.pow(d0.x-x,2)+Math.pow(d0.y-y,2)) + 
-			         Math.sqrt(Math.pow(d1.x-x,2)+Math.pow(d1.y-y,2));}
-			// var distNodes0 = [
-			// 	Math.sqrt(Math.pow(el.edges[0].nodes[0].x - x, 2) + 
-			// 	          Math.pow(el.edges[0].nodes[0].y - y, 2)),
-			// 	Math.sqrt(Math.pow(el.edges[0].nodes[1].x - x, 2) + 
-			// 	          Math.pow(el.edges[0].nodes[1].y - y, 2))
-			// ].sort(function(a,b){return (a > b)?1:(a < b)?-1:0});
-			// var distNodes1 = [
-			// 	Math.sqrt(Math.pow(el.edges[1].nodes[0].x - x, 2) + 
-			// 	          Math.pow(el.edges[1].nodes[0].y - y, 2)),
-			// 	Math.sqrt(Math.pow(el.edges[1].nodes[1].x - x, 2) + 
-			// 	          Math.pow(el.edges[1].nodes[1].y - y, 2))
-			// ].sort(function(a,b){return (a > b)?1:(a < b)?-1:0});
-			// var distNodes = distNodes0[0] + distNodes1[0];
-			// if(distNodes != undefined && distNodes < d){ d = distNodes; }
-			return {'angle':el,'dist':d}; 
-		}).sort(function(a,b){return (a.dist > b.dist)?1:(a.dist < b.dist)?-1:0});
-		return anglesWithD[0].angle;
+		// cross product on each edge pair
+		var anglesInside = angles.filter(function(el){ 
+			var pt0 = <PlanarNode>el.edges[0].uncommonNodeWithEdge(el.edges[1]);
+			var pt1 = <PlanarNode>el.edges[1].uncommonNodeWithEdge(el.edges[0]);
+			var cross0 = (y - node.y) * (pt1.x - node.x) - 
+			             (x - node.x) * (pt1.y - node.y);
+			var cross1 = (y - pt0.y) * (node.x - pt0.x) - 
+			             (x - pt0.x) * (node.y - pt0.y);
+			if (cross0 < 0 || cross1 < 0){ return false; }
+			return true;
+		});
+		if(anglesInside.length > 0) return anglesInside[0];
+		return undefined;
 	}
 
 	///////////////////////////////////////////////////////////////

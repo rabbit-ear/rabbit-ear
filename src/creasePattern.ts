@@ -170,7 +170,7 @@ class CreasePattern extends PlanarGraph{
 	// BOUNDARY
 
 	square(width?:number):CreasePattern{
-		console.log("setting page size: square()");
+		// console.log("setting page size: square()");
 		var w = 1.0;
 		// todo: isReal() - check if is real number
 		if(width != undefined && width != 0){ w = Math.abs(width); }
@@ -178,7 +178,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	rectangle(width:number, height:number):CreasePattern{
-		console.log("setting page size: rectangle(" + width + "," + height + ")");
+		// console.log("setting page size: rectangle(" + width + "," + height + ")");
 		// todo: should this return undefined if a rectangle has not been made? or return this?
 		if(width === undefined || height === undefined){ return undefined; }
 		width = Math.abs(width); height = Math.abs(height);

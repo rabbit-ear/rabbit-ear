@@ -193,7 +193,7 @@ var CreasePattern = (function (_super) {
     //////////////////////////////////////////////
     // BOUNDARY
     CreasePattern.prototype.square = function (width) {
-        console.log("setting page size: square()");
+        // console.log("setting page size: square()");
         var w = 1.0;
         // todo: isReal() - check if is real number
         if (width != undefined && width != 0) {
@@ -202,7 +202,7 @@ var CreasePattern = (function (_super) {
         return this.setBoundary([new XYPoint(0, 0), new XYPoint(w, 0), new XYPoint(w, w), new XYPoint(0, w)]);
     };
     CreasePattern.prototype.rectangle = function (width, height) {
-        console.log("setting page size: rectangle(" + width + "," + height + ")");
+        // console.log("setting page size: rectangle(" + width + "," + height + ")");
         // todo: should this return undefined if a rectangle has not been made? or return this?
         if (width === undefined || height === undefined) {
             return undefined;
