@@ -33,6 +33,15 @@
 	<div class="quote">
 		<p>getNearestNodes (plural) lets you query for more than one, and returns an array of nodes sorted by distance.</p>
 	</div>
+
+	<div class="centered">
+		<canvas id="canvas-nearest-angle" resize></canvas>
+	</div>
+
+	<div class="centered">
+		<pre><code>cp.<f>getNearestInteriorAngle</f>(<n id="sketch-nia-x">x</n>, <n id="sketch-nia-y">y</n>)</code></pre>
+	</div>
+
 </section>
 
 <script type="text/javascript" src="../tests/js/mouse-select.js"></script>
@@ -43,7 +52,19 @@
 <script language="javascript" type="text/javascript" src="../tests/js/15_nearest_node.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/15_nearest_edge.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/nearest_nodes.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/js/nearest_angle.js"></script>
 <script>
+
+nearAngleCallback = function(point){
+	if(point === undefined){
+		document.getElementById("sketch-nia-x").innerHTML = 'x';
+		document.getElementById("sketch-nia-y").innerHTML = 'y';
+	}
+	else{
+		document.getElementById("sketch-nia-x").innerHTML = (point.x).toFixed(2);
+		document.getElementById("sketch-nia-y").innerHTML = (point.y).toFixed(2);
+	}
+}
 
 mouse_select_callback = function(e){
 	document.getElementById("sketch-ms-x1").innerHTML = (e.x).toFixed(2);

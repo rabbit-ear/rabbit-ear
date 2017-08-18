@@ -1,5 +1,7 @@
+var flat_foldable_single_callback;
 
 var ffSingle = new PaperCreasePattern("canvas-flat-foldable-single");
+ffSingle.zoomToFit(0.05);
 ffSingle.masterCP = new CreasePattern();
 
 ffSingle.rebuild = function(){
@@ -38,13 +40,20 @@ ffSingle.onMouseDown = function(event){
 ffSingle.onMouseUp = function(event){ }
 ffSingle.onMouseMove = function(event) {
 	this.rebuild();
-	var angle = this.cp.getNearestInteriorAngle(event.point.x, event.point.y);
-	if(angle == undefined || angle.edges == undefined) return;
-	if(angle.edges.length == 2){
-		var newAngle = this.cp.findFlatFoldable(angle);
-		this.cp.creaseRay(new XYPoint(angle.node.x, angle.node.y), 
-		                  new XYPoint(Math.cos(newAngle), Math.sin(newAngle))).valley();
+	var solutionAngle = undefined;
+	var angle = undefined;
+	if(event.point.x >= 0 && event.point.x <= 1 && event.point.y >= 0 && event.point.y <= 1){
+		angle = this.cp.getNearestInteriorAngle(event.point.x, event.point.y);
+		if(angle == undefined || angle.edges == undefined) return;
+		if(angle.edges.length == 2){
+			solutionAngle = this.cp.findFlatFoldable(angle);
+			this.cp.creaseRay(new XYPoint(angle.node.x, angle.node.y), 
+			                  new XYPoint(Math.cos(solutionAngle), Math.sin(solutionAngle))).valley();
+		}
 	}
 	this.cp.clean();
 	this.initialize();
+	if(flat_foldable_single_callback != undefined){
+		flat_foldable_single_callback({'flatFoldable':this.cp.getNearestNode(0.5, 0.5).flatFoldable(), 'solution':solutionAngle, 'angle':angle});
+	}
 }
