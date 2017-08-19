@@ -53,6 +53,12 @@ ffSingle.onMouseMove = function(event) {
 	}
 	this.cp.clean();
 	this.initialize();
+	for(var i = 0; i < this.edges.length; i++){ this.edges[i].strokeWidth = 0.01; }
+	if(angle != undefined && angle.edges != undefined){
+		for(var i = 0; i < angle.edges.length; i++){
+			this.edges[ angle.edges[i].index ].strokeWidth = 0.01333;
+		}
+	}
 	if(flat_foldable_single_callback != undefined){
 		flat_foldable_single_callback({'flatFoldable':this.cp.getNearestNode(0.5, 0.5).flatFoldable(), 'solution':solutionAngle, 'angle':angle});
 	}

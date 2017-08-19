@@ -1,6 +1,6 @@
 
 var sJoint = new PaperCreasePattern("canvas-single-joint");
-// sJoint.zoomToFit(0.05);
+sJoint.zoomToFit(0.05);
 
 sJoint.reset = function(){
 	var interiorAngles;
@@ -20,17 +20,21 @@ sJoint.reset = function(){
 		var tooSmall = false;
 		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i].angle < Math.PI*0.5) tooSmall = true; }
 	} while(tooSmall);
-	
+
+	var angles = [];
 	for(var i = 0; i < interiorAngles.length; i++){
-		// crease angle bisectors
-		var bisector = sJoint.cp.creaseAngleBisector(interiorAngles[i].edges[0], interiorAngles[i].edges[1]);
+		angles.push(cp.findFlatFoldable(interiorAngles[i]));
+	}
+
+	for(var i = 0; i < angles.length; i++){
+		var ray = sJoint.cp.creaseRay(centerNode, new XYPoint(Math.cos(angles[i]), Math.sin(angles[i])) );
 		sJoint.cp.clean();
 		// 2 crease lines for every original fan line
 		var commonNode = interiorAngles[i].edges[0].commonNodeWithEdge(interiorAngles[i].edges[1]);
 		var center = new XYPoint(commonNode.x, commonNode.y);
 		var angle1 = interiorAngles[i].edges[0].absoluteAngle(commonNode);
 		var angle2 = interiorAngles[i].edges[1].absoluteAngle(commonNode);
-		var dir = bisector.absoluteAngle(commonNode);
+		var dir = ray.absoluteAngle(commonNode);
 		var l = 0.2;
 		sJoint.cp.creaseRay(new XYPoint(center.x + l*Math.cos(dir), center.y + l*Math.sin(dir)), 
 		                     new XYPoint(Math.cos(angle1), Math.sin(angle1)) ).valley();
@@ -44,11 +48,11 @@ sJoint.reset = function(){
 		if(newAdj[i].orientation === undefined){ newAdj[i].valley(); }
 	}
 	// remove extra marks
-	// for(var i = sJoint.cp.edges.length-1; i >= 0; i--){
-	// 	if(sJoint.cp.edges[i].orientation === CreaseDirection.mark){ 
-	// 		sJoint.cp.removeEdge(sJoint.cp.edges[i]); 
-	// 	}
-	// }
+	for(var i = sJoint.cp.edges.length-1; i >= 0; i--){
+		if(sJoint.cp.edges[i].orientation === CreaseDirection.mark){ 
+			sJoint.cp.removeEdge(sJoint.cp.edges[i]); 
+		}
+	}
 
 	sJoint.initialize();
 }
