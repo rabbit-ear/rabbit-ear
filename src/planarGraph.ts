@@ -375,14 +375,14 @@ class PlanarGraph extends Graph{
 	/** Removes an edge and also attempt to remove the two nodes left behind if they are otherwise unused
 	 * @returns {boolean} if the edge was removed
 	 */
-	removeEdge(edge:GraphEdge):boolean{
+	removeEdge(edge:GraphEdge):number{
 		var len = this.edges.length;
 		var endNodes = [edge.nodes[0], edge.nodes[1]];
 		this.edges = this.edges.filter(function(el){ return el !== edge; });
 		this.edgeArrayDidChange();
 		this.cleanNodeIfUseless(endNodes[0]);
 		this.cleanNodeIfUseless(endNodes[1]);
-		return (len !== this.edges.length);
+		return len - this.edges.length;
 	}
 
 	/** Attempt to remove an edge if one is found that connects the 2 nodes supplied, and also attempt to remove the two nodes left behind if they are otherwise unused
@@ -401,9 +401,9 @@ class PlanarGraph extends Graph{
 	}
 
 	/** Remove a node if it is either unconnected to any edges, or is in the middle of 2 collinear edges
-	 * @returns {boolean} if node was removed
+	 * @returns {number} how many nodes were removed
 	 */
-	cleanNodeIfUseless(node):boolean{
+	cleanNodeIfUseless(node):number{
 		var edges = node.adjacentEdges();
 		switch (edges.length){
 			case 0: return this.removeNode(node);
@@ -420,7 +420,7 @@ class PlanarGraph extends Graph{
 					return this.removeNode(node);
 				}
 		}
-		return false;
+		return 0;
 	}
 
 	cleanUselessNodes():number{
@@ -759,11 +759,6 @@ function clockwiseAngleFrom(a:number, b:number):number{
 // if points are all collinear
 // checks if point lies on line segment 'ab'
 function onSegment(point:XYPoint, a:XYPoint, b:XYPoint):boolean{
-	// if (point.x <= Math.max(a.x, b.x) && point.x >= Math.min(a.x, b.x) &&
-	// 	point.y <= Math.max(a.y, b.y) && point.y >= Math.min(a.y, b.y)){
-	// 	return true;
-	// }
-	// return false;
 	var ab = Math.sqrt( Math.pow(a.x-b.x,2) + Math.pow(a.y-b.y,2) );
 	var pa = Math.sqrt( Math.pow(point.x-a.x,2) + Math.pow(point.y-a.y,2) );
 	var pb = Math.sqrt( Math.pow(point.x-b.x,2) + Math.pow(point.y-b.y,2) );
@@ -826,6 +821,11 @@ function lineSegmentIntersectionAlgorithm(p:XYPoint, p2:XYPoint, q:XYPoint, q2:X
 	var s = new XYPoint(q2.x - q.x, q2.y - q.y);
 	var uNumerator = (new XYPoint(q.x - p.x, q.y - p.y)).cross(r);//crossProduct(subtractPoints(q, p), r);
 	var denominator = r.cross(s);
+
+	if(onSegment(p, q, q2)){ return p; }
+	if(onSegment(p2, q, q2)){ return p2; }
+	if(onSegment(q, p, p2)){ return q; }
+	if(onSegment(q2, p, p2)){ return q2; }
 
 	if (Math.abs(uNumerator) < EPSILON_HIGH && Math.abs(denominator) < EPSILON_HIGH) {
 		// collinear
@@ -895,6 +895,14 @@ function minDistBetweenPointLine(a:XYPoint, b:XYPoint, x:number, y:number):XYPoi
 	var u = ((x-a.x)*(b.x-a.x) + (y-a.y)*(b.y-a.y)) / (Math.pow(p,2));
 	if(u < 0 || u > 1.0) return undefined;
 	return new XYPoint(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
+}
+
+function reflectPointAcrossLine(point:XYPoint, a:XYPoint, b:XYPoint){
+	var p = Math.sqrt(Math.pow(b.x-a.x,2) + Math.pow(b.y-a.y,2));
+	var u = ((point.x-a.x)*(b.x-a.x) + (point.y-a.y)*(b.y-a.y)) / (Math.pow(p,2));
+	var collinear = new XYPoint(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
+	var d = new XYPoint(point.x - collinear.x, point.y - collinear.y);
+	return new XYPoint(collinear.x - d.x, collinear.y - d.y);
 }
 
 //////////////////////////////////////////////////

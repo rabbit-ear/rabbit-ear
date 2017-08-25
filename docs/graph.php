@@ -140,7 +140,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code>graph.<f>removeEdge</f>(<arg>edge</arg>) <c> // T/F removed or not removed</c><br>graph.<f>removeEdgeBetween</f>(<arg>node1</arg>, <arg>node2</arg>) <c> // # of edges removed</c></code></pre>
+		<pre><code>graph.<f>removeEdge</f>(<arg>edge</arg>) <c> // # of edges removed</c><br>graph.<f>removeEdgeBetween</f>(<arg>node1</arg>, <arg>node2</arg>) <c> // # of edges removed</c></code></pre>
 	</div>
 
 	<div class="quote">
@@ -148,7 +148,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code>graph.<f>removeNode</f>(<arg>node</arg>) <c> // T/F removed or not removed</c><br>graph.<f>removeIsolatedNodes</f>() <c>// # of nodes removed</c></code></pre>
+		<pre><code>graph.<f>removeNode</f>(<arg>node</arg>) <c> // # of nodes removed</c><br>graph.<f>removeIsolatedNodes</f>() <c>// # of nodes removed</c></code></pre>
 	</div>
 
 	<div class="quote">

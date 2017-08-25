@@ -8,11 +8,16 @@ axiom7.decorationLayer = new axiom7.scope.Layer();
 axiom7.decorationLayer.activate();
 axiom7.marks = [];
 for(var i = 0; i < 5; i++) axiom7.marks.push(new axiom7.scope.Shape.Circle(circleStyle));
-axiom7.marks[0].position = [0.0, 0.0];
-axiom7.marks[1].position = [1.0, 1.0];
-axiom7.marks[2].position = [0.0, 0.5];
-axiom7.marks[3].position = [1.0, 0.5];
-axiom7.marks[4].position = [0.0, 0.333];
+// axiom7.marks[0].position = [0.0, 0.0];
+// axiom7.marks[1].position = [1.0, 1.0];
+// axiom7.marks[2].position = [0.0, 0.5];
+// axiom7.marks[3].position = [1.0, 0.5];
+// axiom7.marks[4].position = [0.0, 0.75];
+axiom7.marks[0].position = [1.0, 0.0];
+axiom7.marks[1].position = [0.5, 1.0];
+axiom7.marks[2].position = [0.0, 0.0];
+axiom7.marks[3].position = [1.0, 1.0];
+axiom7.marks[4].position = [0.5, 0.0];
 
 axiom7.reset = function(){
 	axiom7.cp.clear();

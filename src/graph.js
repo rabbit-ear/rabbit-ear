@@ -15,6 +15,13 @@
 //  "isolated": a node is isolated if it is connected to 0 edges, degree 0
 //  "leaf": a node is a leaf if it is connected to only 1 edge, degree 1
 "use strict";
+var EdgeNodeCount = (function () {
+    function EdgeNodeCount(edgeCount, nodeCount) {
+        this.edges = edgeCount;
+        this.nodes = nodeCount;
+    }
+    return EdgeNodeCount;
+}());
 var GraphNode = (function () {
     function GraphNode(graph) {
         this.graph = graph;
@@ -167,7 +174,7 @@ var Graph = (function () {
      * @returns {number} number of nodes added to the graph
      */
     Graph.prototype.addNodes = function (nodes) {
-        if (nodes == undefined || nodes.length <= 0) {
+        if (nodes === undefined || nodes.length <= 0) {
             throw "addNodes() must contain array of GraphNodes";
         }
         var len = this.nodes.length;
@@ -225,7 +232,7 @@ var Graph = (function () {
         var len = this.edges.length;
         this.edges = this.edges.filter(function (el) { return el !== edge; });
         this.edgeArrayDidChange();
-        return (len !== this.edges.length);
+        return len - this.edges.length;
     };
     /** Searches and removes any edges connecting the two nodes supplied in the arguments
      * @returns {number} number of edges removed. in the case of an unclean graph, there may be more than one
@@ -252,9 +259,8 @@ var Graph = (function () {
         }
         if (this.nodes.length != nodesLength) {
             this.nodeArrayDidChange();
-            return true;
         }
-        return false;
+        return nodesLength - this.nodes.length;
     };
     /** Removes any node that isn't a part of an edge
      * @returns {number} the number of nodes removed
@@ -329,14 +335,15 @@ var Graph = (function () {
         }
         return count;
     };
-    // internally to this Graph class, we have to call this function instead of clean()
-    // even though they are the same. during subclassing, clean() gets overwritten by new methods
+    /** Graph specific clean function: removes circular and duplicate edges, refreshes .index. Only modifies edges array.
+     * @returns {number} the number of edges removed
+     */
     Graph.prototype.cleanGraph = function () {
         this.edgeArrayDidChange();
         this.nodeArrayDidChange();
         return this.cleanDuplicateEdges() + this.cleanCircularEdges();
     };
-    /** Only modifies edges array. Removes circular and duplicate edges, refreshes .index values of both edges and nodes arrays
+    /** Clean calls cleanGraph(), unless this class has been subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
      * @returns {number} the number of edges removed
      */
     Graph.prototype.clean = function () {
@@ -384,11 +391,4 @@ var Graph = (function () {
         this.edges[i].index = i;
     } };
     return Graph;
-}());
-var EdgeNodeCount = (function () {
-    function EdgeNodeCount(edgeCount, nodeCount) {
-        this.edges = edgeCount;
-        this.nodes = nodeCount;
-    }
-    return EdgeNodeCount;
 }());

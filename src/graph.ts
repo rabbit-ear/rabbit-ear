@@ -17,6 +17,15 @@
 
 "use strict";
 
+class EdgeNodeCount{
+	edges:number;
+	nodes:number;
+	constructor(edgeCount, nodeCount){
+		this.edges = edgeCount;
+		this.nodes = nodeCount;
+	}
+}
+
 class GraphNode{
 	graph:Graph;
 	index:number;
@@ -177,7 +186,7 @@ class Graph{
 	 * @returns {number} number of nodes added to the graph
 	 */
 	addNodes(nodes:GraphNode[]):number{
-		if(nodes == undefined || nodes.length <= 0){ throw "addNodes() must contain array of GraphNodes"; }
+		if(nodes === undefined || nodes.length <= 0){ throw "addNodes() must contain array of GraphNodes"; }
 		var len = this.nodes.length;
 		var checkedNodes = nodes.filter(function(el){ return (el instanceof GraphNode); });
 		this.nodes = this.nodes.concat(checkedNodes);
@@ -231,11 +240,11 @@ class Graph{
 	/** Remove an edge
 	 * @returns {boolean} if the edge was removed
 	 */
-	removeEdge(edge:GraphEdge):boolean{
+	removeEdge(edge:GraphEdge):number{
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ return el !== edge; });
 		this.edgeArrayDidChange();
-		return (len !== this.edges.length);
+		return len - this.edges.length;
 	}
 
 	/** Searches and removes any edges connecting the two nodes supplied in the arguments
@@ -254,14 +263,14 @@ class Graph{
 	/** Remove a node and any edges that connect to it
 	 * @returns {boolean} if the node was removed
 	 */
-	removeNode(node:GraphNode):boolean{
+	removeNode(node:GraphNode):number{
 		var nodesLength = this.nodes.length;
 		var edgesLength = this.edges.length;
 		this.nodes = this.nodes.filter(function(el){ return el !== node; });
 		this.edges = this.edges.filter(function(el){ return el.nodes[0] !== node && el.nodes[1] !== node; });
 		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
-		if(this.nodes.length != nodesLength){ this.nodeArrayDidChange(); return true; }
-		return false;
+		if(this.nodes.length != nodesLength){ this.nodeArrayDidChange(); }
+		return nodesLength - this.nodes.length;
 	}
 
 	/** Removes any node that isn't a part of an edge
@@ -326,15 +335,16 @@ class Graph{
 		return count;
 	}
 
-	// internally to this Graph class, we have to call this function instead of clean()
-	// even though they are the same. during subclassing, clean() gets overwritten by new methods
+	/** Graph specific clean function: removes circular and duplicate edges, refreshes .index. Only modifies edges array.
+	 * @returns {number} the number of edges removed
+	 */
 	cleanGraph():number{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();
 		return this.cleanDuplicateEdges() + this.cleanCircularEdges();
 	}
 
-	/** Only modifies edges array. Removes circular and duplicate edges, refreshes .index values of both edges and nodes arrays
+	/** Clean calls cleanGraph(), unless this class has been subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
 	 * @returns {number} the number of edges removed
 	 */
 	clean():any{
@@ -383,13 +393,4 @@ class Graph{
 	nodeArrayDidChange(){for(var i=0; i<this.nodes.length; i++){this.nodes[i].index=i;}}
 	edgeArrayDidChange(){for(var i=0; i<this.edges.length; i++){this.edges[i].index=i;}}
 	// nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
-}
-
-class EdgeNodeCount{
-	edges:number;
-	nodes:number;
-	constructor(edgeCount, nodeCount){
-		this.edges = edgeCount;
-		this.nodes = nodeCount;
-	}
 }

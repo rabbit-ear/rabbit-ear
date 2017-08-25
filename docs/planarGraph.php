@@ -13,11 +13,11 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> planarGraph<key> = new</key> PlanarGraph()<br><span id="span-intersection-results"></span>planarGraph.<a href="library/getEdgeIntersections.php"><f>getEdgeIntersections</f></a>()</code></pre>
+		<pre><code><key>var</key> planarGraph<key> = new</key> PlanarGraph()<br><span id="span-intersection-results"></span>planarGraph.<a href="library/getEdgeIntersections.php"><f>getEdgeIntersections</f></a>()<c> // <a href="library/edgeIntersection.php">EdgeIntersection</a></c></code></pre>
 	</div>
 
 	<div class="quote">
-		<p>A planar graph gives 2D space (X,Y) to the nodes. It's now possible for edges to cross and make faces.</p>
+		<p>A planar graph gives 2D space (X,Y) to the nodes. It's now possible for edges to cross and make faces, and more</p>
 	</div>
 
 	<div class="centered">
@@ -27,15 +27,6 @@
 	<div class="centered">
 		<pre><code><span id="span-generate-face-result"></span>planarGraph.<a href="library/getEdgeIntersections.php"><f>generateFaces</f></a>()</code></pre>
 	</div>
-
-	<div class="quote">
-		<p>More sophisticated operations can occur like identifying collinear nodes.</p>
-	</div>
-
-	<div class="centered">
-		<canvas id="canvas-mouse-delete-edge" resize></canvas>
-	</div>
-
 
 	<div class="centered">
 		<canvas id="canvas-face-anim" class="panorama" resize></canvas>
@@ -55,7 +46,6 @@
 <canvas id="p5-empty-canvas" style="display:none;"></canvas>
 
 
-<script language="javascript" type="text/javascript" src="../tests/js/mouse_delete_edge.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/intersect_wobble.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/nearest_nodes.js"></script>
 <script type="text/javascript" src="../tests/js/face_anim.js"></script>

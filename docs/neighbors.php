@@ -39,7 +39,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code>cp.<f>getNearestInteriorAngle</f>(<n id="sketch-nia-x">x</n>, <n id="sketch-nia-y">y</n>)</code></pre>
+		<pre><code>cp.<f>getNearestInteriorAngle</f>(<n id="sketch-nia-x">x</n>, <n id="sketch-nia-y">y</n>)<c> // </c><a href="library/interiorAngle.php"><c>InteriorAngle</c></a></code></pre>
 	</div>
 
 </section>

@@ -19,7 +19,7 @@ ffSingle.reset = function(){
 		this.masterCP.edges = [];
 		for(var i = 0; i < 3; i++){
 			var angle = Math.random()*Math.PI*2;
-			this.masterCP.creaseRay(center, new XYPoint(Math.cos(angle), Math.sin(angle))).mountain();
+			this.masterCP.creaseRay(center, new XYPoint(Math.cos(angle), Math.sin(angle))).valley();
 		}
 		this.masterCP.clean();
 		var centerNode = this.masterCP.getNearestNode(0.5, 0.5);
@@ -48,17 +48,17 @@ ffSingle.onMouseMove = function(event) {
 		if(angle.edges.length == 2){
 			solutionAngle = this.cp.findFlatFoldable(angle);
 			this.cp.creaseRay(new XYPoint(angle.node.x, angle.node.y), 
-			                  new XYPoint(Math.cos(solutionAngle), Math.sin(solutionAngle))).valley();
+			                  new XYPoint(Math.cos(solutionAngle), Math.sin(solutionAngle))).mountain();
 		}
 	}
 	this.cp.clean();
 	this.initialize();
-	for(var i = 0; i < this.edges.length; i++){ this.edges[i].strokeWidth = 0.01; }
-	if(angle != undefined && angle.edges != undefined){
-		for(var i = 0; i < angle.edges.length; i++){
-			this.edges[ angle.edges[i].index ].strokeWidth = 0.01333;
-		}
-	}
+	// for(var i = 0; i < this.edges.length; i++){ this.edges[i].strokeWidth = 0.01; }
+	// if(angle != undefined && angle.edges != undefined){
+	// 	for(var i = 0; i < angle.edges.length; i++){
+	// 		this.edges[ angle.edges[i].index ].strokeWidth = 0.01333;
+	// 	}
+	// }
 	if(flat_foldable_single_callback != undefined){
 		flat_foldable_single_callback({'flatFoldable':this.cp.getNearestNode(0.5, 0.5).flatFoldable(), 'solution':solutionAngle, 'angle':angle});
 	}

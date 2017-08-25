@@ -7,16 +7,30 @@
 <section id="intro">
 
 	<div class="centered">
-		<canvas id="canvas-intersections" resize class="panorama"></canvas>
-	</div>
-
-	<div class="centered">
-		<pre><code><span id="span-merge-result-unused"></span>graph.<f>clean</f>()</code></pre>
+		<pre><code>graph.<f>clean</f>()</code></pre>
 	</div>
 
 	<div class="quote">
-		<p>This is the name of the same process that filtered edges in a graph, but in a planar graph it can do much more</p>
+		<p>On top of cleaning like a graph, cleaning a planar graph also consolidates overlapping nodes and edges and chops any crossing edges.</p>
 	</div>
+
+</section>
+
+<h2>Collinear Nodes</h2>
+<section id="collinear-nodes">
+
+	<div class="centered">
+		<canvas id="canvas-mouse-delete-edge" resize></canvas>
+	</div>
+
+	<div class="quote">
+		<p>In this sketch where nodes are removed, nodes left behind between 2 collinear lines will remove themselves and merge the 2 lines.</p>
+	</div>
+
+</section>
+
+<h2>Overlap</h2>
+<section id="duplicate-nodes">
 
 	<div id="divP5_merge" class="centered p5sketch"></div>
 
@@ -24,10 +38,9 @@
 		<pre><code><span id="div-node-count"></span> nodes, <span id="div-edge-count"></span> edges</code></pre>
 	</div>
 
-	<div class="explain">
-		<div>
-			<p><b>Epsilon</b> is the radius around a point where merging occurs. It's a fraction of the size of the canvas. A larger number will merge across a further distance.</p>
-		</div>
+
+	<div class="quote">
+		<p>In a planar graph "duplicate nodes" are nodes that are near each other in space.</p>
 	</div>
 
 	<div class="centered">
@@ -40,25 +53,35 @@
 		<pre><code>graph.<f>cleanDuplicateNodes</f>(<n>epsilon</n>)</code></pre>
 	</div>
 
+	<div class="explain">
+		<p><b>Epsilon</b> is the radius around a point where merging occurs. It's a fraction of the size of the canvas. A larger number will merge across a further distance.</p>
+	</div>
+
 </section>
 
-<h2>INTERSECTIONS</h2>
+<h2>Crossings</h2>
 
-<section id="intro">
+<section id="intersections">
+
+	<div class="centered">
+		<pre><code>graph.<f>getEdgeIntersections</f>()</code></pre>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-intersections" resize class="panorama"></canvas>
+	</div>
 
 	<div class="centered">
 		<pre><code><span id="span-merge-result"></span>graph.<f>chop</f>()</code></pre>
 	</div>
 
 
-	<div class="centered">
-		<pre><code>graph.<f>getEdgeIntersections</f>()</code></pre>
-	</div>
 </section>
 
+<h2>Parallel</h2>
 <section id="parallel">
-	<h2>Parallel Lines</h2>
-	<div class="explain">
+
+	<div class="quote">
 		<p>At some point, two lines will be considered parallel due to floating point precision, and could vary from machine to machine, so this library needs to be in control of the epsilon calculation.</p>
 	</div>
 
@@ -82,6 +105,7 @@
 </div>
 
 <!-- include .js sketches -->
+<script language="javascript" type="text/javascript" src="../tests/js/mouse_delete_edge.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/intersections.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/05_parallels_scale.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/11_merge_duplicates.js"></script>

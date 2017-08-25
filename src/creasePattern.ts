@@ -95,6 +95,8 @@ class CreasePattern extends PlanarGraph{
 	edges:Crease[];
 	boundary:PlanarGraph;
 
+	symmetryLine:[XYPoint, XYPoint] = undefined;
+
 	nodeType = CreaseNode;
 	edgeType = Crease;
 
@@ -253,6 +255,37 @@ class CreasePattern extends PlanarGraph{
 		if(boundaries.length>0){ return boundaries[0]; }
 		return undefined;
 	}
+
+	///////////////////////////////////////////////////////////////
+	// SYMMETRY
+
+	bookSymmetry():CreasePattern{
+		var top = this.topEdge();
+		var bottom = this.bottomEdge();
+		var a = new XYPoint( (top.nodes[0].x+top.nodes[1].x)*0.5, (top.nodes[0].y+top.nodes[1].y)*0.5);
+		var b = new XYPoint( (bottom.nodes[0].x+bottom.nodes[1].x)*0.5, (bottom.nodes[0].y+bottom.nodes[1].y)*0.5);
+		return this.setSymmetryLine(a, b);
+	}
+
+	diagonalSymmetry():CreasePattern{
+		var top = this.topEdge().nodes.sort(function(a,b){ return (a.x<b.x)?1:(a.x>b.x)?-1:0 });
+		var bottom = this.bottomEdge().nodes.sort(function(a,b){ return (a.x<b.x)?-1:(a.x>b.x)?1:0 });
+		return this.setSymmetryLine(top[0], bottom[0]);
+	}
+
+	setSymmetryLine(a:XYPoint, b:XYPoint):CreasePattern{
+		this.symmetryLine = [a, b];
+		return this;
+	}
+
+	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
+		if(this.symmetryLine === undefined){ return undefined; }
+		var ra = reflectPointAcrossLine(new XYPoint(ax, ay), this.symmetryLine[0], this.symmetryLine[1]);
+		var rb = reflectPointAcrossLine(new XYPoint(bx, by), this.symmetryLine[0], this.symmetryLine[1]);
+		return <Crease>this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
+	}
+
+
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS
 
@@ -270,8 +303,15 @@ class CreasePattern extends PlanarGraph{
 		return true;
 	}
 
+	newCrease(ax:number, ay:number, bx:number, by:number):Crease{
+		return this.creaseOnly(new XYPoint(ax, ay), new XYPoint(bx, by));
+	}
+
 	creaseOnly(a:XYPoint, b:XYPoint):Crease{
-		if(this.pointInside(a) && this.pointInside(b)) return <Crease>this.newPlanarEdge(a.x, a.y, b.x, b.y);
+		if(this.pointInside(a) && this.pointInside(b)){
+			this.creaseSymmetry(a.x, a.y, b.x, b.y);
+			return <Crease>this.newPlanarEdge(a.x, a.y, b.x, b.y);
+		}
 		if(!this.pointInside(a) && !this.pointInside(b)) {
 			// if both are outside, only give us a crease if the two points invove an intersection with the boundary
 			for(var i = 0; i < this.boundary.edges.length; i++){
@@ -284,6 +324,7 @@ class CreasePattern extends PlanarGraph{
 		for(var i = 0; i < this.boundary.edges.length; i++){
 			var intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
 			if(intersection != undefined){
+				this.creaseSymmetry(intersection.x, intersection.y, inside.x, inside.y);
 				return <Crease>this.newPlanarEdge(intersection.x, intersection.y, inside.x, inside.y);
 			}
 		}
@@ -415,6 +456,24 @@ class CreasePattern extends PlanarGraph{
 
 		// return angle0 + dEven;
 		return angle0 - dEven;
+	}
+
+	creaseRayUntilIntersection(start:XYPoint, vector:XYPoint):Crease{
+		var nearestIntersection = undefined;
+		var intersections = this.edges
+			.map(function(el){ return rayLineSegmentIntersectionAlgorithm(start, vector, el.nodes[0], el.nodes[1]); })
+			.filter(function(el){ return el !== undefined; })
+			.filter(function(el){ return !el.equivalent(start) })
+			.sort(function(a,b){
+				var da = Math.sqrt(Math.pow(start.x-a.x,2) + Math.pow(start.y-a.y,2));
+				var db = Math.sqrt(Math.pow(start.x-b.x,2) + Math.pow(start.y-b.y,2));
+				return (da > db)?1:(da < db)?-1:0;
+			});
+		if(intersections.length){
+			return this.creaseOnly(start, intersections[0]);
+		} else{
+			return this.creaseRay(start, vector);
+		}
 	}
 
 	creaseRay(start:XYPoint,vector:XYPoint):Crease{

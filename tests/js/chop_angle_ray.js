@@ -8,20 +8,20 @@ chopRays.reset = function(){
 	var padding = 0.1;
 	var NUM_FAN = 12;
 
-	chopRays.cp.clear();
-	chopRays.cp.nodes = [];
-	chopRays.cp.edges = [];
-	chopRays.cp.creaseOnly(new XYPoint(0.5, padding), new XYPoint(0.5, 1.0-padding));
+	this.cp.clear();
+	this.cp.nodes = [];
+	this.cp.edges = [];
+	this.cp.creaseOnly(new XYPoint(0.5, padding), new XYPoint(0.5, 1.0-padding));
 	for(var i = 1; i < NUM_FAN; i++){
 		var pct = (i)/(NUM_FAN);
-		var edge = chopRays.cp.creaseRay(new XYPoint(0.5, padding + (1.0-padding*2)*pct), new XYPoint(-Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
+		var edge = this.cp.creaseRay(new XYPoint(0.5, padding + (1.0-padding*2)*pct), new XYPoint(-Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
 	}
 	for(var i = 1; i < (NUM_FAN-1); i++){
 		var pct = (i)/(NUM_FAN-1);
-		var edge = chopRays.cp.creaseRay(new XYPoint(0.5, padding + (1.0-padding*2)*pct), new XYPoint(Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
+		var edge = this.cp.creaseRay(new XYPoint(0.5, padding + (1.0-padding*2)*pct), new XYPoint(Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
 	}
-	chopRays.cp.chop();
-	chopRays.initialize();
+	this.cp.chop();
+	this.initialize();
 }
 chopRays.reset();
 
