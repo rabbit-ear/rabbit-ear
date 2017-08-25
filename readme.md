@@ -97,3 +97,7 @@ node adjacent to node, with angle offset and connecting edge
 * node:PlanarNode
 * edge:PlanarEdge
 * angle:number
+
+# TODO
+
+* issues arise using a non-convex polygon of paper. like checking if edge crosses outside the paper fails.

@@ -8,7 +8,7 @@ mirror.reset = function(){
 	this.cp.clear();
 	this.cp.diagonalSymmetry();
 	for(var i = 0; i < 5; i++){
-		this.cp.newCrease(Math.random(), Math.random(), Math.random(), Math.random());
+		this.cp.crease(Math.random(), Math.random(), Math.random(), Math.random());
 	}
 	this.cp.clean();
 	this.initialize();

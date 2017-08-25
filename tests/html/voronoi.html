@@ -56,7 +56,7 @@ window.onload = function() {
 		for(var i = 0; i < v.edges.length; i++){
 			var edge = v.edges[i];
 			if(edge[0] != undefined && edge[1] != undefined){
-				cp.creaseOnly(new XYPoint(edge[0][0], edge[0][1]), new XYPoint(edge[1][0], edge[1][1]));
+				cp.crease(edge[0][0], edge[0][1], edge[1][0], edge[1][1]);
 			}
 		}
 		for(var i = 0; i < mouseDowns.length; i++){

@@ -11,7 +11,7 @@ chopRays2.reset = function(){
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.creaseOnly(new XYPoint(0.0, 0.0), new XYPoint(1.0, 1.0));
+	this.cp.crease(0.0, 0.0, 1.0, 1.0);
 	for(var i = 1; i < NUM_FAN; i++){
 		var pct = (i)/(NUM_FAN);
 		var edge = this.cp.creaseRay(new XYPoint(padding + (1.0-padding*2)*pct, 

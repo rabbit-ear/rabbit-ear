@@ -6,20 +6,20 @@ chopMV.selectNearestEdge = true;
 
 chopMV.reset = function(){
 	var NUM_LINES = 10;
-	chopMV.cp.clear();
+	this.cp.clear();
 	for(var i = 0; i < NUM_LINES; i++){
-		var crease = chopMV.cp.creaseOnly( new XYPoint(Math.random(), Math.random()), new XYPoint(Math.random(), Math.random()) );
+		var crease = this.cp.crease( Math.random(), Math.random(), Math.random(), Math.random() );
 		if(Math.random() < 0.5){ crease.mountain(); } 
 		else{                    crease.valley(); }
 	}
-	chopMV.cp.clean();
-	chopMV.initialize();
+	this.cp.clean();
+	this.initialize();
 }
 chopMV.reset();
 
 chopMV.onFrame = function(event) { }
 chopMV.onResize = function(event) { }
-chopMV.onMouseDown = function(event){ chopMV.reset(); }
+chopMV.onMouseDown = function(event){ this.reset(); }
 chopMV.onMouseUp = function(event){ }
 chopMV.onMouseMove = function(event) { }
 

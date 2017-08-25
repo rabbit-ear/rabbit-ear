@@ -287,13 +287,16 @@ function loadSVG(path, callback){
 		var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
 		svgLayer.matrix = mat;
 
-		var cp = new CreasePattern();
+		var cp = new CreasePattern();//.rectangle(w,h);
 		function recurseAndAdd(childrenArray){
 			for(var i = 0; i < childrenArray.length; i++){
 				if(childrenArray[i].segments != undefined){ // found a line
 					for(var j = 0; j < childrenArray[i].segments.length-1; j++){
-						cp.creaseOnly(childrenArray[i].segments[j].point,
-						              childrenArray[i].segments[j+1].point);
+						cp.crease(childrenArray[i].segments[j].point, childrenArray[i].segments[j+1].point);
+						// cp.crease(childrenArray[i].segments[j].point.x,
+						//           childrenArray[i].segments[j].point.y, 
+						//           childrenArray[i].segments[j+1].point.x,
+						//           childrenArray[i].segments[j+1].point.y);
 					}
 				} else if (childrenArray[i].children != undefined){
 					recurseAndAdd(childrenArray[i].children);

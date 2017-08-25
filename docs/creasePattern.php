@@ -29,12 +29,12 @@
 	</div>
 
 	<div class="centered">
-		<canvas id="canvas-joint-triangle" resize></canvas>
+		<canvas id="canvas-joint-triangle-animated" resize></canvas>
 	</div>
 
 </section>
 
-<script type="text/javascript" src="../tests/js/joint_tri.js"></script>
+<script type="text/javascript" src="../tests/js/joint_tri_anim.js"></script>
 
 <script>
 	new PaperCreasePattern("canvas-1", new CreasePattern().birdBase());

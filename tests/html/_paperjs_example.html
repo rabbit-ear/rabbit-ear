@@ -44,8 +44,7 @@ paperCP.onMouseDown = function(event){
 function reset(){
 	cp.clear();
 	for(var i = 0; i < NUM_LINES; i++){
-		var crease = cp.creaseOnly( new XYPoint(Math.random(), Math.random()), 
-		                            new XYPoint(Math.random(), Math.random()) );
+		cp.crease(Math.random(), Math.random(), Math.random(), Math.random());
 	}
 	cp.clean();
 	paperCP.initialize();

@@ -27,6 +27,7 @@ nearAngle.onMouseMove = function(event) {
 	this.update();
 	for(var i = 0; i < this.edges.length; i++){ this.edges[i].strokeColor = {gray:0.0}; }
 	var angle = this.cp.getNearestInteriorAngle(event.point.x, event.point.y);
+	if(angle === undefined) return;
 	for(var i = 0; i < angle.edges.length; i++){
 		var index = angle.edges[i].index;
 		this.edges[ index ].strokeColor = { hue:0, saturation:0.8, brightness:1 };

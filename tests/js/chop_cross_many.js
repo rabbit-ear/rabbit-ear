@@ -7,26 +7,24 @@ chopCross.selectNearestEdge = true;
 
 chopCross.reset = function(){
 	var NUM_LINES = 30;
-	chopCross.cp.clear();
-	chopCross.cp.nodes = [];
-	chopCross.cp.edges = [];
-	var firstEdge = chopCross.cp.creaseOnly(new XYPoint(0.0, 0.5), new XYPoint(1.0, 0.5));
+	this.cp.clear();
+	this.cp.nodes = [];
+	this.cp.edges = [];
+	var firstEdge = this.cp.crease( 0.0, 0.5, 1.0, 0.5 );
 	var v = .8/(NUM_LINES-1);
 	for(var i = 0; i < NUM_LINES; i++){
 		var x = .1 + .8*(i/(NUM_LINES-1));
-		chopCross.cp.creaseOnly(
-			new XYPoint(x + Math.random()*v-v*0.5, 0.25 + Math.random()*v-v*0.5), 
-			new XYPoint(x + Math.random()*v-v*0.5, 0.75 + Math.random()*v-v*0.5)
-		);
+		this.cp.crease( x + Math.random()*v-v*0.5, 0.25 + Math.random()*v-v*0.5, 
+		                     x + Math.random()*v-v*0.5, 0.75 + Math.random()*v-v*0.5 );
 	}
-	var lowerEdge = chopCross.cp.creaseOnly(new XYPoint(0.0, 0.6), new XYPoint(1.0, 0.6));
-	var crossings = chopCross.cp.chop();
-	chopCross.initialize();
+	var lowerEdge = this.cp.crease( 0.0, 0.6, 1.0, 0.6 );
+	var crossings = this.cp.chop();
+	this.initialize();
 }
 chopCross.reset();
 
 chopCross.onFrame = function(event) { }
 chopCross.onResize = function(event) { }
-chopCross.onMouseDown = function(event){ chopCross.reset(); }
+chopCross.onMouseDown = function(event){ this.reset(); }
 chopCross.onMouseUp = function(event){ }
 chopCross.onMouseMove = function(event) { }

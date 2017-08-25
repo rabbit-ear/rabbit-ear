@@ -786,6 +786,14 @@ var PlanarGraph = (function (_super) {
 //
 //                            2D ALGORITHMS
 //
+// if number is within epsilon range of a whole number, remove the floating point noise.
+//  example: turns 0.999999989764 into 1.0
+function wholeNumberify(num) {
+    if (Math.abs(Math.round(num) - num) < EPSILON_HIGH) {
+        num = Math.round(num);
+    }
+    return num;
+}
 function clockwiseAngleFrom(a, b) {
     while (a < 0) {
         a += Math.PI * 2;
@@ -813,27 +821,18 @@ function rayLineSegmentIntersectionAlgorithm(rayOrigin, rayDirection, point1, po
     var vLineSeg = new XYPoint(point2.x - point1.x, point2.y - point1.y);
     var vRayPerp = new XYPoint(-rayDirection.y, rayDirection.x);
     var dot = vLineSeg.x * vRayPerp.x + vLineSeg.y * vRayPerp.y;
-    if (Math.abs(dot) < EPSILON)
+    if (Math.abs(dot) < EPSILON) {
         return undefined;
+    }
     var cross = (vLineSeg.x * v1.y - vLineSeg.y * v1.x);
     var t1 = cross / dot;
     var t2 = (v1.x * vRayPerp.x + v1.y * vRayPerp.y) / dot;
     if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)) {
-        var x = rayOrigin.x + rayDirection.x * t1;
-        var y = rayOrigin.y + rayDirection.y * t1;
         // todo: really, we need to move beyond the need for whole numbers
-        x = wholeNumberify(x);
-        y = wholeNumberify(y);
+        var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
+        var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
         return new XYPoint(x, y);
-        //return t1;
     }
-    return undefined;
-}
-function wholeNumberify(num) {
-    if (Math.abs(Math.round(num) - num) < EPSILON_HIGH) {
-        num = Math.round(num);
-    }
-    return num;
 }
 function lineIntersectionAlgorithm(p0, p1, p2, p3) {
     // p0-p1 is first line
@@ -955,6 +954,8 @@ function reflectPointAcrossLine(point, a, b) {
     var d = new XYPoint(point.x - collinear.x, point.y - collinear.y);
     return new XYPoint(collinear.x - d.x, collinear.y - d.y);
 }
+function isValidPoint(point) { return (point !== undefined && !isNaN(point.x) && !isNaN(point.y)); }
+function isValidNumber(n) { return (n !== undefined && !isNaN(n) && !isNaN(n)); }
 //////////////////////////////////////////////////
 // RECYCLE BIN - READY TO DELETE
 //////////////////////////////////////////////////
