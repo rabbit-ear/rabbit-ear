@@ -11,11 +11,11 @@ rayIntersect.reset = function(){
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.creaseThroughPoints(new XYPoint(Math.random(), Math.random()), 
-	                            new XYPoint(Math.random(), Math.random()) );
+	this.cp.creaseThroughPoints(new XY(Math.random(), Math.random()), 
+	                            new XY(Math.random(), Math.random()) );
 	var angle = Math.random()*Math.PI*2;
-	this.cp.creaseRayUntilIntersection(new XYPoint(Math.random(), Math.random()), 
-	                                   new XYPoint(Math.cos(angle), Math.sin(angle)));
+	this.cp.creaseRayUntilIntersection(new XY(Math.random(), Math.random()), 
+	                                   new XY(Math.cos(angle), Math.sin(angle)));
 	this.cp.clean();
 	this.initialize();
 }

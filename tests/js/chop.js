@@ -11,7 +11,7 @@ chop_sketch.reset = function(){
 	chop_sketch.cp.edges = [];
 	for(var i = 0; i < 30; i++){
 		var angle = Math.random()*Math.PI*2;
-		chop_sketch.cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
+		chop_sketch.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
 	var crossings = chop_sketch.cp.chop();
 	chop_sketch.initialize();

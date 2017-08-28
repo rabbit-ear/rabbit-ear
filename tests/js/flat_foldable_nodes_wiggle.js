@@ -48,7 +48,7 @@ ffMoveNode.onFrame = function(event) { }
 ffMoveNode.onResize = function(event) { }
 ffMoveNode.onMouseDown = function(event){ 
 	ffMoveNode.movingNode = ffMoveNode.cp.getNearestNode( event.point.x, event.point.y );
-	ffMoveNode.mNodeOriginalLocation = new XYPoint(ffMoveNode.movingNode.x, ffMoveNode.movingNode.y);
+	ffMoveNode.mNodeOriginalLocation = new XY(ffMoveNode.movingNode.x, ffMoveNode.movingNode.y);
 	if(ffMoveNode.cp != undefined){ ffMoveNode.colorNodesFlatFoldable(); }
 }
 ffMoveNode.onMouseUp = function(event){ 

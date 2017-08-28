@@ -14,7 +14,7 @@ intersectionSketch.reset = function(){
 	intersectionSketch.cp.nodes = [];
 	for(var i = 0; i < NUM_LINES; i++){
 		var angle = Math.random()*Math.PI*2;
-		intersectionSketch.cp.creaseRay(new XYPoint(Math.random() * aspect, Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
+		intersectionSketch.cp.creaseRay(new XY(Math.random() * aspect, Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
 	var intersections = intersectionSketch.cp.chop();
 	intersectionSketch.initialize();

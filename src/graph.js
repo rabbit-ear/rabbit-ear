@@ -10,6 +10,7 @@
 //  "new"/"add": functions like "newNode" vs. "addNode", easy way to remember is that the "new" function will use the javascript "new" object initializer. Objects are created in the "new" functions.
 //  "size" the size of a graph is the number of edges
 //  "cycle" a set of edges that form a closed circut, it's possible to walk down a cycle and end up where you began without visiting the same edge twice.
+//  "circuit" a circuit is a cycle except that it's allowed to visit the same node more than once.
 //  "multigraph": not this graph. but the special case where circular and duplicate edges are allowed
 //  "degree": the degree of a node is how many edges are incident to it
 //  "isolated": a node is isolated if it is connected to 0 edges, degree 0
@@ -26,9 +27,15 @@ var GraphNode = (function () {
     function GraphNode(graph) {
         this.graph = graph;
     }
+    /** Get an array of edges that contain this node
+     * @returns {GraphEdge[]} array of adjacent edges
+     */
     GraphNode.prototype.adjacentEdges = function () {
         return this.graph.edges.filter(function (el) { return el.nodes[0] === this || el.nodes[1] === this; }, this);
     };
+    /** Get an array of nodes that share an edge in common with this node
+     * @returns {GraphNode[]} array of adjacent nodes
+     */
     GraphNode.prototype.adjacentNodes = function () {
         var first = this.graph.edges
             .filter(function (el) { return el.nodes[0] === this; }, this)
@@ -38,11 +45,17 @@ var GraphNode = (function () {
             .map(function (el) { return el.nodes[0]; }, this);
         return first.concat(second);
     };
+    /** Test if a node is connected to another node by an edge
+     * @returns {boolean} true or false, adjacent or not
+     */
     GraphNode.prototype.isAdjacentToNode = function (node) {
-        if (this.graph.getEdgeConnectingNodes(this, node) == undefined)
+        if (this.graph.getEdgeConnectingNodes(this, node) === undefined)
             return false;
         return true;
     };
+    /** The degree of a node is the number of adjacent edges
+     * @returns {number} number of adjacent edges
+     */
     GraphNode.prototype.degree = function () { return this.adjacentEdges().length; };
     return GraphNode;
 }());
@@ -51,6 +64,9 @@ var GraphEdge = (function () {
         this.graph = graph;
         this.nodes = [node1, node2];
     }
+    /** Get an array of edges that share a node in common with this edge
+     * @returns {GraphEdge[]} array of adjacent edges
+     */
     GraphEdge.prototype.adjacentEdges = function () {
         return this.graph.edges
             .filter(function (el) {
@@ -61,17 +77,29 @@ var GraphEdge = (function () {
                     el.nodes[1] === this.nodes[1]);
         }, this);
     };
+    /** Get the two nodes of this edge
+     * @returns {GraphNode[]} the two nodes of this edge
+     */
     GraphEdge.prototype.adjacentNodes = function () {
         return [this.nodes[0], this.nodes[1]];
     };
+    /** Test if an edge is connected to another edge by a common node
+     * @returns {boolean} true or false, adjacent or not
+     */
     GraphEdge.prototype.isAdjacentToEdge = function (edge) {
         return ((this.nodes[0] === edge.nodes[0]) || (this.nodes[1] === edge.nodes[1]) ||
             (this.nodes[0] === edge.nodes[1]) || (this.nodes[1] === edge.nodes[0]));
     };
+    /** Test if an edge contains the same nodes as another edge
+     * @returns {boolean} true or false, similar or not
+     */
     GraphEdge.prototype.isSimilarToEdge = function (edge) {
         return ((this.nodes[0] === edge.nodes[0] && this.nodes[1] === edge.nodes[1]) ||
             (this.nodes[0] === edge.nodes[1] && this.nodes[1] === edge.nodes[0]));
     };
+    /** For adjacent edges, get the node they share in common
+     * @returns {GraphNode} the node in common
+     */
     GraphEdge.prototype.commonNodeWithEdge = function (otherEdge) {
         // only for adjacent edges
         if (this === otherEdge)
@@ -82,6 +110,9 @@ var GraphEdge = (function () {
             return this.nodes[1];
         return undefined;
     };
+    /** For adjacent edges, get this edge's node that is not shared in common with the other edge
+     * @returns {GraphNode} the node not in common
+     */
     GraphEdge.prototype.uncommonNodeWithEdge = function (otherEdge) {
         // only for adjacent edges
         if (this === otherEdge)

@@ -100,7 +100,7 @@ var _11_merge_duplicates = function( p ) {
 			// mouse was released inside of canvas
 			p.reset();
 		} else{
-			console.log(g.edges);			
+			// console.log(g.edges);
 		}
 	}
 };

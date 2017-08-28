@@ -7,7 +7,7 @@ singleFace.reset = function(){
 	singleFace.cp.clear();
 	singleFace.cp.nodes = [];
 	singleFace.cp.edges = [];
-	var center = new XYPoint(0.5, 0.5);
+	var center = new XY(0.5, 0.5);
 
 	var newNumSides;
 	do{
@@ -18,7 +18,7 @@ singleFace.reset = function(){
 	var r = 0.1;
 	for(var i = 0; i < singleFace.SIDES; i++){
 		var angle = i * Math.PI*2 / singleFace.SIDES;
-		var rayPoint = new XYPoint(center.x+Math.cos(angle) * r, center.y+Math.sin(angle) * r);
+		var rayPoint = new XY(center.x+Math.cos(angle) * r, center.y+Math.sin(angle) * r);
 		singleFace.cp.creasePerpendicularThroughPoint({nodes:[center, rayPoint]}, rayPoint);
 	}
 	singleFace.cp.clean();

@@ -14,11 +14,11 @@ chopRays.reset = function(){
 	this.cp.crease(0.5, padding, 0.5, 1.0-padding);
 	for(var i = 1; i < NUM_FAN; i++){
 		var pct = (i)/(NUM_FAN);
-		var edge = this.cp.creaseRay(new XYPoint(0.5, padding + (1.0-padding*2)*pct), new XYPoint(-Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
+		var edge = this.cp.creaseRay(new XY(0.5, padding + (1.0-padding*2)*pct), new XY(-Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
 	}
 	for(var i = 1; i < (NUM_FAN-1); i++){
 		var pct = (i)/(NUM_FAN-1);
-		var edge = this.cp.creaseRay(new XYPoint(0.5, padding + (1.0-padding*2)*pct), new XYPoint(Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
+		var edge = this.cp.creaseRay(new XY(0.5, padding + (1.0-padding*2)*pct), new XY(Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
 	}
 	this.cp.chop();
 	this.initialize();

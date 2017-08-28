@@ -13,7 +13,7 @@
 		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>birdBase</v>()</code></pre>
 	</div>
 	<div class="quote">
-		<p>Load crease patterns from a file and transform them</strong></p>
+		<p>Load crease patterns from a file and it will attempt to interpret mountain valley assignment</strong></p>
 	</div>
 
 	<div class="centered">
@@ -21,11 +21,11 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>loadSVG</v>(<str>"filename"</str>)</code></pre>
+		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>loadSVG</v>(<str>"crane.svg"</str>)</code></pre>
 	</div>
 
 	<div class="quote">
-		<p>This generative joint relies on the flat-foldability algorithm.</p>
+		<p>This generative twist is flat-foldable</p>
 	</div>
 
 	<div class="centered">
@@ -42,7 +42,7 @@
 
 var loadSVGSketch = new PaperCreasePattern("canvas-load-svg");
 
-loadSVG("/tests/svg/sea-turtle.svg", function(cp){ 
+loadSVG("/tests/svg/crane.svg", function(cp){ 
 	loadSVGSketch.cp = cp;
 	loadSVGSketch.initialize();
 });

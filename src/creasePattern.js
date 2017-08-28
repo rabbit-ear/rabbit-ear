@@ -15,7 +15,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var CreaseDirection;
 (function (CreaseDirection) {
-    CreaseDirection[CreaseDirection["none"] = 0] = "none";
+    CreaseDirection[CreaseDirection["mark"] = 0] = "mark";
     CreaseDirection[CreaseDirection["border"] = 1] = "border";
     CreaseDirection[CreaseDirection["mountain"] = 2] = "mountain";
     CreaseDirection[CreaseDirection["valley"] = 3] = "valley";
@@ -41,7 +41,7 @@ var CreaseNode = (function (_super) {
     }
     CreaseNode.prototype.isBoundary = function () {
         for (var i = 0; i < this.graph.boundary.edges.length; i++) {
-            var thisPt = new XYPoint(this.x, this.y);
+            var thisPt = new XY(this.x, this.y);
             if (onSegment(thisPt, this.graph.boundary.edges[i].nodes[0], this.graph.boundary.edges[i].nodes[1])) {
                 return true;
             }
@@ -89,10 +89,12 @@ var CreaseNode = (function (_super) {
 var Crease = (function (_super) {
     __extends(Crease, _super);
     function Crease(graph, node1, node2) {
-        return _super.call(this, graph, node1, node2) || this;
+        var _this = _super.call(this, graph, node1, node2) || this;
+        _this.orientation = CreaseDirection.mark;
+        return _this;
     }
     ;
-    Crease.prototype.mark = function () { this.orientation = CreaseDirection.none; return this; };
+    Crease.prototype.mark = function () { this.orientation = CreaseDirection.mark; return this; };
     Crease.prototype.mountain = function () { this.orientation = CreaseDirection.mountain; return this; };
     Crease.prototype.valley = function () { this.orientation = CreaseDirection.valley; return this; };
     Crease.prototype.border = function () { this.orientation = CreaseDirection.border; return this; };
@@ -115,7 +117,7 @@ var CreasePattern = (function (_super) {
         _this.square();
         return _this;
     }
-    CreasePattern.prototype.landmarkNodes = function () { return this.nodes.map(function (el) { return new XYPoint(el.x, el.y); }); };
+    CreasePattern.prototype.landmarkNodes = function () { return this.nodes.map(function (el) { return new XY(el.x, el.y); }); };
     /** This will deep-copy the contents of this graph and return it as a new object
      * @returns {CreasePattern}
      */
@@ -213,10 +215,11 @@ var CreasePattern = (function (_super) {
         return this.newPlanarEdge(a_x, a_y, b_x, b_y);
     };
     /** Create a crease that is a line segment, and will crop if it extends beyond boundary
-     * @arg 4 numbers or 2 XYPoints
+     * @arg 4 numbers or 2 XYs
      * @returns {Crease} pointer to the Crease
      */
     CreasePattern.prototype.crease = function (a, b, c, d) {
+        if (a instanceof Crease) { }
         var endpoints = undefined;
         // input (a and b) are 2 xy points
         // if(a.hasOwnProperty('x') && a.hasOwnProperty('y') && 
@@ -229,11 +232,11 @@ var CreasePattern = (function (_super) {
             if (!isValidNumber(a) || !isValidNumber(b) || !isValidNumber(c) || !isValidNumber(d)) {
                 return undefined;
             }
-            endpoints = this.clipLineSegmentInBoundary(new XYPoint(a, b), new XYPoint(c, d));
+            endpoints = this.clipLineSegmentInBoundary(new XY(a, b), new XY(c, d));
         }
         if (endpoints === undefined || endpoints.length < 2) {
-            throw "crease(): coordinates lie outside boundary";
-        }
+            return;
+        } //throw "crease(): coordinates lie outside boundary"; }
         return this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
     };
     CreasePattern.prototype.creaseRay = function (origin, direction) {
@@ -265,7 +268,7 @@ var CreasePattern = (function (_super) {
         }
     };
     CreasePattern.prototype.creaseAngle = function (origin, radians) {
-        return this.creaseRay(origin, new XYPoint(Math.cos(radians), Math.sin(radians)));
+        return this.creaseRay(origin, new XY(Math.cos(radians), Math.sin(radians)));
     };
     CreasePattern.prototype.creaseAngleBisector = function (a, b) {
         var commonNode = a.commonNodeWithEdge(b);
@@ -275,14 +278,14 @@ var CreasePattern = (function (_super) {
         var bAngle = b.absoluteAngle(commonNode);
         var clockwise = clockwiseAngleFrom(bAngle, aAngle);
         var newAngle = bAngle - clockwise * 0.5 + Math.PI;
-        return this.creaseRay(commonNode, new XYPoint(Math.cos(newAngle), Math.sin(newAngle)));
+        return this.creaseRay(commonNode, new XY(Math.cos(newAngle), Math.sin(newAngle)));
     };
     CreasePattern.prototype.creaseSymmetry = function (ax, ay, bx, by) {
         if (this.symmetryLine === undefined) {
             return undefined;
         }
-        var ra = reflectPointAcrossLine(new XYPoint(ax, ay), this.symmetryLine[0], this.symmetryLine[1]);
-        var rb = reflectPointAcrossLine(new XYPoint(bx, by), this.symmetryLine[0], this.symmetryLine[1]);
+        var ra = reflectPointAcrossLine(new XY(ax, ay), this.symmetryLine[0], this.symmetryLine[1]);
+        var rb = reflectPointAcrossLine(new XY(bx, by), this.symmetryLine[0], this.symmetryLine[1]);
         return this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
     };
     CreasePattern.prototype.clipLineSegmentInBoundary = function (a, b) {
@@ -318,7 +321,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.clipRayInBoundary = function (origin, direction) {
         // todo this only works for convex polygon shaped boundary, needs to search for nearest point to origin
         if (!this.pointInside(origin)) {
-            var b = new XYPoint(origin.x + direction.x, origin.y + direction.y);
+            var b = new XY(origin.x + direction.x, origin.y + direction.y);
             return this.clipLineInBoundary(origin, b);
         }
         for (var i = 0; i < this.boundary.edges.length; i++) {
@@ -330,7 +333,7 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.clipLineInBoundary = function (a, b) {
         // todo this only works for convex polygon shaped boundary
-        var b_a = new XYPoint(b.x - a.x, b.y - a.y);
+        var b_a = new XY(b.x - a.x, b.y - a.y);
         var intersects = this.boundaryLineIntersection(a, b_a);
         if (intersects.length === 2) {
             return [intersects[0], intersects[1]];
@@ -346,9 +349,9 @@ var CreasePattern = (function (_super) {
     };
     // AXIOM 2
     CreasePattern.prototype.creasePointToPoint = function (a, b) {
-        var midpoint = new XYPoint((a.x + b.x) * 0.5, (a.y + b.y) * 0.5);
-        var ab = new XYPoint(b.x - a.x, b.y - a.y);
-        var perp1 = new XYPoint(-ab.y, ab.x);
+        var midpoint = new XY((a.x + b.x) * 0.5, (a.y + b.y) * 0.5);
+        var ab = new XY(b.x - a.x, b.y - a.y);
+        var perp1 = new XY(-ab.y, ab.x);
         var intersects = this.boundaryLineIntersection(midpoint, perp1);
         if (intersects.length >= 2) {
             return this.newCrease(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
@@ -358,21 +361,21 @@ var CreasePattern = (function (_super) {
     // AXIOM 3
     CreasePattern.prototype.creaseEdgeToEdge = function (a, b) {
         if (linesParallel(a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1])) {
-            var u = new XYPoint(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
-            var perp = new XYPoint(u.x, u.y).rotate90();
-            var intersect1 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), a.nodes[0], a.nodes[1]);
-            var intersect2 = lineIntersectionAlgorithm(u, new XYPoint(u.x + perp.x, u.y + perp.y), b.nodes[0], b.nodes[1]);
-            var midpoint = new XYPoint((intersect1.x + intersect2.x) * 0.5, (intersect1.y + intersect2.y) * 0.5);
-            return [this.creaseThroughPoints(midpoint, new XYPoint(midpoint.x + u.x, midpoint.y + u.y))];
+            var u = new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
+            var perp = new XY(u.x, u.y).rotate90();
+            var intersect1 = lineIntersectionAlgorithm(u, new XY(u.x + perp.x, u.y + perp.y), a.nodes[0], a.nodes[1]);
+            var intersect2 = lineIntersectionAlgorithm(u, new XY(u.x + perp.x, u.y + perp.y), b.nodes[0], b.nodes[1]);
+            var midpoint = new XY((intersect1.x + intersect2.x) * 0.5, (intersect1.y + intersect2.y) * 0.5);
+            return [this.creaseThroughPoints(midpoint, new XY(midpoint.x + u.x, midpoint.y + u.y))];
         }
         else {
             var creases = [];
             var intersection = lineIntersectionAlgorithm(a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]);
-            var u = new XYPoint(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
-            var v = new XYPoint(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y);
+            var u = new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
+            var v = new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y);
             var uMag = u.mag();
             var vMag = v.mag();
-            var dir = new XYPoint((u.x * vMag + v.x * uMag), (u.y * vMag + v.y * uMag));
+            var dir = new XY((u.x * vMag + v.x * uMag), (u.y * vMag + v.y * uMag));
             var intersects = this.boundaryLineIntersection(intersection, dir);
             if (intersects.length >= 2) {
                 creases.push(this.newCrease(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y));
@@ -394,9 +397,9 @@ var CreasePattern = (function (_super) {
     };
     // AXIOM 4
     CreasePattern.prototype.creasePerpendicularThroughPoint = function (line, point) {
-        var ab = new XYPoint(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y);
-        var perp = new XYPoint(-ab.y, ab.x);
-        var point2 = new XYPoint(point.x + perp.x, point.y + perp.y);
+        var ab = new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y);
+        var perp = new XY(-ab.y, ab.x);
+        var point2 = new XY(point.x + perp.x, point.y + perp.y);
         return this.creaseThroughPoints(point, point2);
     };
     // AXIOM 5
@@ -413,19 +416,19 @@ var CreasePattern = (function (_super) {
     // AXIOM 7
     CreasePattern.prototype.creasePerpendicularPointOntoLine = function (point, ontoLine, perpendicularTo) {
         var endPts = perpendicularTo.nodes;
-        var align = new XYPoint(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
-        var pointParallel = new XYPoint(point.x + align.x, point.y + align.y);
+        var align = new XY(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
+        var pointParallel = new XY(point.x + align.x, point.y + align.y);
         var intersection = lineIntersectionAlgorithm(point, pointParallel, ontoLine.nodes[0], ontoLine.nodes[1]);
         if (intersection != undefined) {
-            var midPoint = new XYPoint((intersection.x + point.x) * 0.5, (intersection.y + point.y) * 0.5);
-            var perp = new XYPoint(-align.y, align.x);
-            var midPoint2 = new XYPoint(midPoint.x + perp.x, midPoint.y + perp.y);
+            var midPoint = new XY((intersection.x + point.x) * 0.5, (intersection.y + point.y) * 0.5);
+            var perp = new XY(-align.y, align.x);
+            var midPoint2 = new XY(midPoint.x + perp.x, midPoint.y + perp.y);
             return this.creaseThroughPoints(midPoint, midPoint2);
         }
         throw "axiom 7: two crease lines cannot be parallel";
     };
     CreasePattern.prototype.boundaryLineIntersection = function (origin, direction) {
-        var opposite = new XYPoint(-direction.x, -direction.y);
+        var opposite = new XY(-direction.x, -direction.y);
         var intersects = [];
         for (var i = 0; i < this.boundary.edges.length; i++) {
             var endpts = this.boundary.edges[i].nodes;
@@ -480,7 +483,7 @@ var CreasePattern = (function (_super) {
         if (width != undefined && width != 0) {
             w = Math.abs(width);
         }
-        return this.setBoundary([new XYPoint(0, 0), new XYPoint(w, 0), new XYPoint(w, w), new XYPoint(0, w)]);
+        return this.setBoundary([new XY(0, 0), new XY(w, 0), new XY(w, w), new XY(0, w)]);
     };
     CreasePattern.prototype.rectangle = function (width, height) {
         // console.log("setting page size: rectangle(" + width + "," + height + ")");
@@ -490,10 +493,10 @@ var CreasePattern = (function (_super) {
         }
         width = Math.abs(width);
         height = Math.abs(height);
-        var points = [new XYPoint(0, 0),
-            new XYPoint(width, 0),
-            new XYPoint(width, height),
-            new XYPoint(0, height)];
+        var points = [new XY(0, 0),
+            new XY(width, 0),
+            new XY(width, height),
+            new XY(0, height)];
         return this.setBoundary(points);
     };
     CreasePattern.prototype.setBoundary = function (points) {
@@ -578,8 +581,8 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.bookSymmetry = function () {
         var top = this.topEdge();
         var bottom = this.bottomEdge();
-        var a = new XYPoint((top.nodes[0].x + top.nodes[1].x) * 0.5, (top.nodes[0].y + top.nodes[1].y) * 0.5);
-        var b = new XYPoint((bottom.nodes[0].x + bottom.nodes[1].x) * 0.5, (bottom.nodes[0].y + bottom.nodes[1].y) * 0.5);
+        var a = new XY((top.nodes[0].x + top.nodes[1].x) * 0.5, (top.nodes[0].y + top.nodes[1].y) * 0.5);
+        var b = new XY((bottom.nodes[0].x + bottom.nodes[1].x) * 0.5, (bottom.nodes[0].y + bottom.nodes[1].y) * 0.5);
         return this.setSymmetryLine(a, b);
     };
     CreasePattern.prototype.diagonalSymmetry = function () {
@@ -587,8 +590,16 @@ var CreasePattern = (function (_super) {
         var bottom = this.bottomEdge().nodes.sort(function (a, b) { return (a.x < b.x) ? -1 : (a.x > b.x) ? 1 : 0; });
         return this.setSymmetryLine(top[0], bottom[0]);
     };
+    CreasePattern.prototype.noSymmetry = function () {
+        return this.setSymmetryLine();
+    };
     CreasePattern.prototype.setSymmetryLine = function (a, b) {
-        this.symmetryLine = [a, b];
+        if (!isValidPoint(a) || !isValidPoint(b)) {
+            this.symmetryLine = undefined;
+        }
+        else {
+            this.symmetryLine = [a, b];
+        }
         return this;
     };
     CreasePattern.prototype.findFlatFoldable = function (angle) {

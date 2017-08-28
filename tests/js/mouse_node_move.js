@@ -52,7 +52,7 @@ function mouse_node_move(){
 	scope.view.onMouseDown = function(event){
 		paper = scope;
 		movingNode = cp.getNearestNode( event.point.x, event.point.y );
-		movingNodeOriginalLocation = new XYPoint(movingNode.x, movingNode.y);
+		movingNodeOriginalLocation = new XY(movingNode.x, movingNode.y);
 	}
 	scope.view.onMouseUp = function(event){
 		paper = scope;

@@ -16,7 +16,7 @@ faceAnim.reset = function(){
 	this.positions = [];
 	this.angles = [];
 	for(var i = 0; i < this.NUM_LINES; i++){
-		this.positions[i] = new XYPoint(Math.random() * this.aspect, Math.random());
+		this.positions[i] = new XY(Math.random() * this.aspect, Math.random());
 		this.angles[i] = Math.random() * Math.PI*2;
 	}
 	for(var i = 0; i < this.NUM_LINES; i += 2){

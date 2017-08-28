@@ -24,7 +24,7 @@ jointTri.reset = function(){
 		for(var i = 0; i < 3; i++){
 			var angle = Math.random()*Math.PI*2;
 			this.startAngles.push(angle);
-			this.cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle))).mountain();
+			this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle), Math.sin(angle))).mountain();
 		}
 		this.cp.clean();
 		centerNode = this.cp.getNearestNode(0.5, 0.5);
@@ -55,7 +55,7 @@ jointTri.onFrame = function(event) {
 	this.cp.edges = [];
 	for(var i = 0; i < 3; i++){
 		var angle = this.startAngles[i] + Math.cos(event.time*this.freq[i]+this.offs[i])*this.amp[i];
-		this.cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle)));//.mountain());
+		this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle), Math.sin(angle)));//.mountain());
 	}
 	this.cp.clean();
 
@@ -71,19 +71,19 @@ jointTri.onFrame = function(event) {
 	var newTriNodes = [];
 
 	for(var i = 0; i < angles.length; i++){
-		var ray = this.cp.creaseRay(centerNode, new XYPoint(Math.cos(angles[i]), Math.sin(angles[i])) );
+		var ray = this.cp.creaseRay(centerNode, new XY(Math.cos(angles[i]), Math.sin(angles[i])) );
 		this.cp.clean();
 		// 2 crease lines for every original fan line
 		var commonNode = interiorAngles[i].edges[0].commonNodeWithEdge(interiorAngles[i].edges[1]);
-		var center = new XYPoint(commonNode.x, commonNode.y);
+		var center = new XY(commonNode.x, commonNode.y);
 		var angle1 = interiorAngles[i].edges[0].absoluteAngle(commonNode);
 		var angle2 = interiorAngles[i].edges[1].absoluteAngle(commonNode);
 		var dir = ray.absoluteAngle(commonNode);
 		var l = 0.2;
-		var newSpot = new XYPoint(center.x+l*Math.cos(dir),center.y+l*Math.sin(dir));
+		var newSpot = new XY(center.x+l*Math.cos(dir),center.y+l*Math.sin(dir));
 		this.cp.creaseRayUntilIntersection(newSpot,
-		                                       new XYPoint(Math.cos(angle1), Math.sin(angle1)) ).valley();
-		var e = this.cp.creaseRayUntilIntersection(newSpot, new XYPoint(Math.cos(angle1+Math.PI), 
+		                                       new XY(Math.cos(angle1), Math.sin(angle1)) ).valley();
+		var e = this.cp.creaseRayUntilIntersection(newSpot, new XY(Math.cos(angle1+Math.PI), 
 		                                                                Math.sin(angle1+Math.PI)) ).valley();
 		if( newSpot.equivalent(e.nodes[0]) ){ newTriNodes.push(e.nodes[1]); }
 		if( newSpot.equivalent(e.nodes[1]) ){ newTriNodes.push(e.nodes[0]); }

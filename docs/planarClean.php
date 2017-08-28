@@ -46,7 +46,7 @@
 	<div class="centered">
 		<canvas id="canvas1" resize></canvas>
 		<canvas id="canvas2" resize></canvas>
-		<canvas id="canvas3" resize></canvas>
+		<!-- <canvas id="canvas3" resize></canvas> -->
 	</div>
 
 	<div class="centered">
@@ -152,17 +152,18 @@
 	}
 
 	cp[0].cleanDuplicateNodes(0.01);
-	cp[1].cleanDuplicateNodes(0.025);
-	cp[2].cleanDuplicateNodes(0.066);
+	// cp[1].cleanDuplicateNodes(0.025);
+	cp[1].cleanDuplicateNodes(0.05);
+	// cp[2].cleanDuplicateNodes(0.066);
 	var paper1 = new PaperCreasePattern("canvas1", cp[0]);
 	var paper2 = new PaperCreasePattern("canvas2", cp[1]);
-	var paper3 = new PaperCreasePattern("canvas3", cp[2]);
+	// var paper3 = new PaperCreasePattern("canvas3", cp[2]);
 	paper1.style.nodes.visible = true;
 	paper2.style.nodes.visible = true;
-	paper3.style.nodes.visible = true;
+	// paper3.style.nodes.visible = true;
 	paper1.update();
 	paper2.update();
-	paper3.update();
+	// paper3.update();
 </script>
 
 

@@ -14,7 +14,8 @@ for(var i = 0; i < 4; i++) axiom3.marks.push(new axiom3.scope.Shape.Circle(circl
 // axiom3.marks[3].position = [0.5, 1.0];
 axiom3.marks[0].position = [0.0, 0.0];
 axiom3.marks[1].position = [1.0, 1.0];
-axiom3.marks[2].position = [0.25, 0.5];
+// axiom3.marks[2].position = [0.25, 0.5];
+axiom3.marks[2].position = [0.5, 0.0];
 axiom3.marks[3].position = [1.0, 0.5];
 
 axiom3.reset = function(){

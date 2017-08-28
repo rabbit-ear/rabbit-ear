@@ -4,7 +4,7 @@ var nearAngle = new PaperCreasePattern("canvas-nearest-angle", new PlanarGraph()
 
 nearAngle.reset = function(){
 	// make 3 fan lines with a good sized interior angle between them
-	var center = new XYPoint(0.5, 0.5);
+	var center = new XY(0.5, 0.5);
 	var angle = 0;
 	while(angle < Math.PI*2){
 		var len = 0.5;

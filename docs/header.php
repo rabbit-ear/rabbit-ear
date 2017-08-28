@@ -46,8 +46,10 @@
 			<a href="creasePattern.php" class="dropbtn">III. CREASE PATTERN</a>
 			<div class="dropdown-content">
 			<a href="axioms.php">ORIGAMI AXIOMS</a>
-			<a href="importExport.php">IMPORT &amp; EXPORT</a>
+			<!-- <a href="importExport.php">IMPORT &amp; EXPORT</a> -->
 			<a href="flatFoldable.php">FLAT FOLDABLE</a>
+			<a href="material.php">PAPER</a>
+			<a href="symmetry.php">SYMMETRY</a>
 			</div>
 		</li>
 		</ul>

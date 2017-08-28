@@ -25,33 +25,33 @@ function epsilonEqual(a, b, epsilon) {
     }
     return (Math.abs(a - b) < epsilon);
 }
-var XYPoint = (function () {
-    function XYPoint(x, y) {
+var XY = (function () {
+    function XY(x, y) {
         this.x = x;
         this.y = y;
     }
-    // position(x:number, y:number):XYPoint{ this.x = x; this.y = y; return this; }
-    // translated(dx:number, dy:number):XYPoint{ this.x += dx; this.y += dy; return this;}
-    XYPoint.prototype.normalize = function () { var m = this.mag(); return new XYPoint(this.x / m, this.y / m); };
-    XYPoint.prototype.rotate90 = function () { return new XYPoint(-this.y, this.x); };
-    XYPoint.prototype.rotate = function (origin, angle) {
+    // position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
+    // translated(dx:number, dy:number):XY{ this.x += dx; this.y += dy; return this;}
+    XY.prototype.normalize = function () { var m = this.mag(); return new XY(this.x / m, this.y / m); };
+    XY.prototype.rotate90 = function () { return new XY(-this.y, this.x); };
+    XY.prototype.rotate = function (origin, angle) {
         var dx = this.x - origin.x;
         var dy = this.y - origin.y;
         var radius = Math.sqrt(Math.pow(dy, 2) + Math.pow(dx, 2));
         var currentAngle = Math.atan2(dy, dx);
-        return new XYPoint(origin.x + radius * Math.cos(currentAngle + angle), origin.y + radius * Math.sin(currentAngle + angle));
+        return new XY(origin.x + radius * Math.cos(currentAngle + angle), origin.y + radius * Math.sin(currentAngle + angle));
     };
-    XYPoint.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
-    XYPoint.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
-    XYPoint.prototype.mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
-    XYPoint.prototype.equivalent = function (point, epsilon) {
+    XY.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
+    XY.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
+    XY.prototype.mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    XY.prototype.equivalent = function (point, epsilon) {
         if (epsilon == undefined) {
             epsilon = EPSILON_HIGH;
         }
         // rect bounding box, cheaper than radius calculation
         return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon));
     };
-    return XYPoint;
+    return XY;
 }());
 var PlanarPair = (function () {
     function PlanarPair(parent, node, edge) {
@@ -71,7 +71,7 @@ var EdgeIntersection = (function (_super) {
         return _this;
     }
     return EdgeIntersection;
-}(XYPoint));
+}(XY));
 var InteriorAngle = (function () {
     function InteriorAngle(edge1, edge2) {
         this.node = edge1.commonNodeWithEdge(edge2);
@@ -92,9 +92,9 @@ var InteriorAngle = (function () {
 }());
 // class NearestEdgeObject {
 // 	edge:PlanarEdge; 
-// 	pointOnEdge:XYPoint;
+// 	pointOnEdge:XY;
 // 	distance:number;
-// 	constructor(edge:PlanarEdge, pointOnEdge:XYPoint, distance:number){
+// 	constructor(edge:PlanarEdge, pointOnEdge:XY, distance:number){
 // 		this.edge = edge;
 // 		this.pointOnEdge = pointOnEdge;
 // 		this.distance = distance;
@@ -163,8 +163,8 @@ var PlanarNode = (function (_super) {
         }
         return undefined;
     };
-    // implements XYPoint
-    // todo: probably need to break apart XYPoint and this. this modifies the x and y in place. XYPoint returns a new one and doesn't modify the current one in place
+    // implements XY
+    // todo: probably need to break apart XY and this. this modifies the x and y in place. XY returns a new one and doesn't modify the current one in place
     PlanarNode.prototype.position = function (x, y) { this.x = x; this.y = y; return this; };
     PlanarNode.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
     PlanarNode.prototype.normalize = function () { var m = this.mag(); this.x /= m; this.y /= m; return this; };
@@ -436,56 +436,58 @@ var PlanarGraph = (function (_super) {
         }
         return 0;
     };
-    PlanarGraph.prototype.cleanUselessNodes = function () {
+    /** Removes all isolated nodes and performs cleanNodeIfUseless() on every node
+     * @returns {number} how many nodes were removed
+     */
+    PlanarGraph.prototype.cleanAllUselessNodes = function () {
         var count = _super.prototype.removeIsolatedNodes.call(this);
         for (var i = this.nodes.length - 1; i >= 0; i--) {
-            if (this.cleanNodeIfUseless(this.nodes[i])) {
-                count += 1;
-            }
+            count += this.cleanNodeIfUseless(this.nodes[i]);
         }
         return count;
     };
     // cleanNodes():number{
-    // 	var count = this.cleanUselessNodes();
+    // 	var count = this.cleanAllUselessNodes();
     // 	this.cleanDuplicateNodes();
     // 	return count;
     // }
-    PlanarGraph.prototype.searchAndMergeOneDuplicatePair = function (epsilon) {
-        for (var i = 0; i < this.nodes.length - 1; i++) {
-            for (var j = i + 1; j < this.nodes.length; j++) {
-                if (this.nodes[i].equivalent(this.nodes[j], epsilon)) {
-                    // todo, mergeNodes does repeated cleaning, suppress and move to end of function
-                    // this.nodes[i].x = (this.nodes[i].x + this.nodes[j].x)*0.5;
-                    // this.nodes[i].y = (this.nodes[i].y + this.nodes[j].y)*0.5;
-                    return this.mergeNodes(this.nodes[i], this.nodes[j]);
+    PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
+        var that = this;
+        function searchAndMergeOneDuplicatePair(epsilon) {
+            for (var i = 0; i < that.nodes.length - 1; i++) {
+                for (var j = i + 1; j < that.nodes.length; j++) {
+                    if (that.nodes[i].equivalent(that.nodes[j], epsilon)) {
+                        // todo, mergeNodes does repeated cleaning, suppress and move to end of function
+                        // that.nodes[i].x = (that.nodes[i].x + that.nodes[j].x)*0.5;
+                        // that.nodes[i].y = (that.nodes[i].y + that.nodes[j].y)*0.5;
+                        return that.mergeNodes(that.nodes[i], that.nodes[j]);
+                    }
                 }
             }
+            return undefined;
         }
-        return undefined;
-    };
-    PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
-        if (epsilon == undefined) {
+        if (epsilon === undefined) {
             epsilon = EPSILON;
         }
         var node;
         var locations = [];
         do {
-            node = this.searchAndMergeOneDuplicatePair(epsilon);
+            node = searchAndMergeOneDuplicatePair(epsilon);
             if (node != undefined) {
-                locations.push(new XYPoint(node.x, node.y));
+                locations.push(new XY(node.x, node.y));
             }
         } while (node != undefined);
         return locations;
     };
     /** Removes circular and duplicate edges, merges and removes duplicate nodes, and refreshes .index values
-     * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
+     * @returns {object} 'edges' the number of edges removed, and 'nodes' an XY location for every duplicate node merging
      */
     PlanarGraph.prototype.clean = function () {
         var duplicates = this.cleanDuplicateNodes();
         var newNodes = this.chop(); // todo: return this newNodes
         return {
             'edges': _super.prototype.cleanGraph.call(this),
-            'nodes': this.cleanUselessNodes() + duplicates.length
+            'nodes': this.cleanAllUselessNodes() + duplicates.length
         };
     };
     ///////////////////////////////////////////////////////////////
@@ -528,28 +530,29 @@ var PlanarGraph = (function (_super) {
         this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length - 1], endNodes[1]];
         _super.prototype.removeEdge.call(this, edge);
         _super.prototype.cleanGraph.call(this);
-        return intersections.map(function (el) { return new XYPoint(el.x, el.y); });
-    };
-    PlanarGraph.prototype.chopOneRound = function () {
-        var crossings = [];
-        for (var i = 0; i < this.edges.length; i++) {
-            var thisRound = this.chopAllCrossingsWithEdge(this.edges[i]);
-            crossings = crossings.concat(thisRound);
-            if (thisRound.length > 0) {
-                _super.prototype.cleanGraph.call(this);
-                this.cleanUselessNodes();
-                this.cleanDuplicateNodes();
-            }
-        }
-        return crossings;
+        return intersections.map(function (el) { return new XY(el.x, el.y); });
     };
     PlanarGraph.prototype.chop = function () {
+        var that = this;
+        function chopOneRound() {
+            var crossings = [];
+            for (var i = 0; i < that.edges.length; i++) {
+                var thisRound = that.chopAllCrossingsWithEdge(that.edges[i]);
+                crossings = crossings.concat(thisRound);
+                if (thisRound.length > 0) {
+                    that.cleanGraph();
+                    that.cleanAllUselessNodes();
+                    that.cleanDuplicateNodes();
+                }
+            }
+            return crossings;
+        }
         //todo: remove protection, or bake it into the class itself
         var protection = 0;
         var allCrossings = [];
         var thisCrossings;
         do {
-            thisCrossings = this.chopOneRound();
+            thisCrossings = chopOneRound();
             allCrossings = allCrossings.concat(thisCrossings);
             protection += 1;
         } while (thisCrossings.length != 0 && protection < 400);
@@ -562,7 +565,7 @@ var PlanarGraph = (function (_super) {
     // GET PARTS
     ///////////////////////////////////////////////
     PlanarGraph.prototype.getEdgeIntersections = function () {
-        // todo should this make new XYPoints instead of returning EdgeIntersection objects?
+        // todo should this make new XYs instead of returning EdgeIntersection objects?
         var intersections = [];
         // check all edges against each other for intersections
         for (var i = 0; i < this.edges.length - 1; i++) {
@@ -817,9 +820,9 @@ function onSegment(point, a, b) {
     return false;
 }
 function rayLineSegmentIntersectionAlgorithm(rayOrigin, rayDirection, point1, point2) {
-    var v1 = new XYPoint(rayOrigin.x - point1.x, rayOrigin.y - point1.y);
-    var vLineSeg = new XYPoint(point2.x - point1.x, point2.y - point1.y);
-    var vRayPerp = new XYPoint(-rayDirection.y, rayDirection.x);
+    var v1 = new XY(rayOrigin.x - point1.x, rayOrigin.y - point1.y);
+    var vLineSeg = new XY(point2.x - point1.x, point2.y - point1.y);
+    var vRayPerp = new XY(-rayDirection.y, rayDirection.x);
     var dot = vLineSeg.x * vRayPerp.x + vLineSeg.y * vRayPerp.y;
     if (Math.abs(dot) < EPSILON) {
         return undefined;
@@ -831,7 +834,7 @@ function rayLineSegmentIntersectionAlgorithm(rayOrigin, rayDirection, point1, po
         // todo: really, we need to move beyond the need for whole numbers
         var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
         var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
-        return new XYPoint(x, y);
+        return new XY(x, y);
     }
 }
 function lineIntersectionAlgorithm(p0, p1, p2, p3) {
@@ -845,10 +848,10 @@ function lineIntersectionAlgorithm(p0, p1, p2, p3) {
     // var denom = l1.u.x * l2.u.y - l1.u.y * l2.u.x;
     if (denom == 0)
         return undefined;
-    // return XYPoint((l1.d * l2.u.y - l2.d * l1.u.y) / denom, (l2.d * l1.u.x - l1.d * l2.u.x) / denom);
+    // return XY((l1.d * l2.u.y - l2.d * l1.u.y) / denom, (l2.d * l1.u.x - l1.d * l2.u.x) / denom);
     var s02 = { 'x': p0.x - p2.x, 'y': p0.y - p2.y };
     var t = (run2 * s02.y - rise2 * s02.x) / denom;
-    return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1));
+    return new XY(p0.x + (t * run1), p0.y + (t * rise1));
 }
 function allEqual(args) {
     for (var i = 1; i < args.length; i++) {
@@ -858,9 +861,9 @@ function allEqual(args) {
     return true;
 }
 function lineSegmentIntersectionAlgorithm(p, p2, q, q2) {
-    var r = new XYPoint(p2.x - p.x, p2.y - p.y);
-    var s = new XYPoint(q2.x - q.x, q2.y - q.y);
-    var uNumerator = (new XYPoint(q.x - p.x, q.y - p.y)).cross(r); //crossProduct(subtractPoints(q, p), r);
+    var r = new XY(p2.x - p.x, p2.y - p.y);
+    var s = new XY(q2.x - q.x, q2.y - q.y);
+    var uNumerator = (new XY(q.x - p.x, q.y - p.y)).cross(r); //crossProduct(subtractPoints(q, p), r);
     var denominator = r.cross(s);
     if (onSegment(p, q, q2)) {
         return p;
@@ -883,16 +886,16 @@ function lineSegmentIntersectionAlgorithm(p, p2, q, q2) {
         }
         // Do they touch? (Are any of the points equal?)
         if (p.equivalent(q)) {
-            return new XYPoint(p.x, p.y);
+            return new XY(p.x, p.y);
         }
         if (p.equivalent(q2)) {
-            return new XYPoint(p.x, p.y);
+            return new XY(p.x, p.y);
         }
         if (p2.equivalent(q)) {
-            return new XYPoint(p2.x, p2.y);
+            return new XY(p2.x, p2.y);
         }
         if (p2.equivalent(q2)) {
-            return new XYPoint(p2.x, p2.y);
+            return new XY(p2.x, p2.y);
         }
     }
     if (Math.abs(denominator) < EPSILON_HIGH) {
@@ -900,9 +903,9 @@ function lineSegmentIntersectionAlgorithm(p, p2, q, q2) {
         return undefined;
     }
     var u = uNumerator / denominator;
-    var t = (new XYPoint(q.x - p.x, q.y - p.y)).cross(s) / denominator;
+    var t = (new XY(q.x - p.x, q.y - p.y)).cross(s) / denominator;
     if ((t >= 0) && (t <= 1) && (u >= 0) && (u <= 1)) {
-        return new XYPoint(p.x + r.x * t, p.y + r.y * t);
+        return new XY(p.x + r.x * t, p.y + r.y * t);
     }
 }
 function circleLineIntersectionAlgorithm(center, radius, p0, p1) {
@@ -924,18 +927,18 @@ function circleLineIntersectionAlgorithm(center, radius, p0, p1) {
     var y2 = (-D * dx - Math.abs(dy) * Math.sqrt(r_squared * dr_squared - (D * D))) / (dr_squared);
     var intersections = [];
     if (!isNaN(x1)) {
-        intersections.push(new XYPoint(x1 + center.x, y1 + center.y));
+        intersections.push(new XY(x1 + center.x, y1 + center.y));
     }
     if (!isNaN(x2)) {
-        intersections.push(new XYPoint(x2 + center.x, y2 + center.y));
+        intersections.push(new XY(x2 + center.x, y2 + center.y));
     }
     return intersections;
 }
 function linesParallel(p0, p1, p2, p3) {
     // p0-p1 is first line
     // p2-p3 is second line
-    var u = new XYPoint(p1.x - p0.x, p1.y - p0.y);
-    var v = new XYPoint(p3.x - p2.x, p3.y - p2.y);
+    var u = new XY(p1.x - p0.x, p1.y - p0.y);
+    var v = new XY(p3.x - p2.x, p3.y - p2.y);
     return (Math.abs(u.dot(v.rotate90())) < EPSILON);
 }
 function minDistBetweenPointLine(a, b, x, y) {
@@ -945,14 +948,14 @@ function minDistBetweenPointLine(a, b, x, y) {
     var u = ((x - a.x) * (b.x - a.x) + (y - a.y) * (b.y - a.y)) / (Math.pow(p, 2));
     if (u < 0 || u > 1.0)
         return undefined;
-    return new XYPoint(a.x + u * (b.x - a.x), a.y + u * (b.y - a.y));
+    return new XY(a.x + u * (b.x - a.x), a.y + u * (b.y - a.y));
 }
 function reflectPointAcrossLine(point, a, b) {
     var p = Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
     var u = ((point.x - a.x) * (b.x - a.x) + (point.y - a.y) * (b.y - a.y)) / (Math.pow(p, 2));
-    var collinear = new XYPoint(a.x + u * (b.x - a.x), a.y + u * (b.y - a.y));
-    var d = new XYPoint(point.x - collinear.x, point.y - collinear.y);
-    return new XYPoint(collinear.x - d.x, collinear.y - d.y);
+    var collinear = new XY(a.x + u * (b.x - a.x), a.y + u * (b.y - a.y));
+    var d = new XY(point.x - collinear.x, point.y - collinear.y);
+    return new XY(collinear.x - d.x, collinear.y - d.y);
 }
 function isValidPoint(point) { return (point !== undefined && !isNaN(point.x) && !isNaN(point.y)); }
 function isValidNumber(n) { return (n !== undefined && !isNaN(n) && !isNaN(n)); }
@@ -992,7 +995,7 @@ function arrayContainsObject(array, object) {
     return false;
 }
 function getNodeIndexNear(x, y, thisEpsilon) {
-    var thisPoint = new XYPoint(x, y);
+    var thisPoint = new XY(x, y);
     for (var i = 0; i < this.nodes.length; i++) {
         if (this.nodes[i].equivalent(thisPoint, thisEpsilon)) {
             return i;

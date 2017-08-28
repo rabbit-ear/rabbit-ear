@@ -25,6 +25,10 @@
 
 <h2>Kawasaki's Theorem</h2>
 
+	<div class="quote">
+		<p>Find one crease to which upon adding to a node will make that node locally flat-foldable.</p>
+	</div>
+
 	<div class="centered">
 		<canvas id="canvas-flat-foldable-single" resize></canvas>
 	</div>

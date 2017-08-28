@@ -13,13 +13,17 @@
 	</div>
 
 	<div class="quote">
-		<p>getNearestEdge provides further information, like the nearest point on an edge.</p>
+		<p>These functions are useful for relocating parts after an operation, and user-input.</p>
 	</div>
 
 	<div class="half p5sketch" id="div-p5-nearest-node"></div>
 	<div class="half p5sketch" id="div-p5-nearest-edge"></div>
 	<div class="centered">
 		<pre class="centered language-javascript"><code class="language-javascript"><span id="spanNearestNodeIndex"></span>cp.<f>getNearestNode</f>( <n id="spanNearest1MouseX">x</n>, <n id="spanNearest1MouseY">y</n> )<br><span id="spanNearestEdgeIndex"></span>cp.<f>getNearestEdge</f>( <n class="token argument" id="spanNearest2MouseX">x</n>, <n class="token argument" id="spanNearest2MouseY">y</n> )</code></pre>
+	</div>
+
+	<div class="quote">
+		<p>The nearest edge provides information like the nearest point on the edge.</p>
 	</div>
 
 	<div class="centered">
@@ -31,7 +35,7 @@
 	</div>
 
 	<div class="quote">
-		<p>getNearestNodes (plural) lets you query for more than one, and returns an array of nodes sorted by distance.</p>
+		<p>It's possible to get more than just one in an array sorted by distance.</p>
 	</div>
 
 	<div class="centered">

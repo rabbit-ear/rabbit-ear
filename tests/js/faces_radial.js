@@ -10,7 +10,7 @@ radialFaces.reset = function(){
 	radialFaces.cp.clear();
 	var angle = 0;
 	while(angle < Math.PI*2){
-		radialFaces.cp.creaseRay(new XYPoint(0.5, 0.5), new XYPoint(Math.cos(angle), Math.sin(angle)));
+		radialFaces.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle), Math.sin(angle)));
 		angle+= Math.random()*0.5;
 	}
 	radialFaces.cp.clean();

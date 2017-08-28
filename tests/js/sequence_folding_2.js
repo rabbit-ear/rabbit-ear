@@ -8,10 +8,10 @@ sequence2.reset();
 sequence2.onFrame = function(event) { 
 	var mag = 0.1;
 	var paperCorners = [
-		new XYPoint(0.0 + mag*Math.cos(event.time*1.75+4), 0.0),
-		new XYPoint(0.0, 1.0),
-		new XYPoint(1.0 + mag*Math.sin(event.time*1.5+2), 1.0),
-		new XYPoint(1.0, 0.0 + mag*Math.cos(event.time*0.888888+5))
+		new XY(0.0 + mag*Math.cos(event.time*1.75+4), 0.0),
+		new XY(0.0, 1.0),
+		new XY(1.0 + mag*Math.sin(event.time*1.5+2), 1.0),
+		new XY(1.0, 0.0 + mag*Math.cos(event.time*0.888888+5))
 	];
 	sequence2.cp.clear();
 	sequence2.cp.polygon(paperCorners);

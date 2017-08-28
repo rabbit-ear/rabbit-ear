@@ -12,14 +12,14 @@ ffSingle.rebuild = function(){
 
 ffSingle.reset = function(){
 	// make 3 fan lines with a good sized interior angle between them
-	var center = new XYPoint(0.5, 0.5);
+	var center = new XY(0.5, 0.5);
 	do{
 		this.masterCP.clear();
 		this.masterCP.nodes = [];
 		this.masterCP.edges = [];
 		for(var i = 0; i < 3; i++){
 			var angle = Math.random()*Math.PI*2;
-			this.masterCP.creaseRay(center, new XYPoint(Math.cos(angle), Math.sin(angle))).valley();
+			this.masterCP.creaseRay(center, new XY(Math.cos(angle), Math.sin(angle))).valley();
 		}
 		this.masterCP.clean();
 		var centerNode = this.masterCP.getNearestNode(0.5, 0.5);
@@ -47,8 +47,8 @@ ffSingle.onMouseMove = function(event) {
 		if(angle == undefined || angle.edges == undefined) return;
 		if(angle.edges.length == 2){
 			solutionAngle = this.cp.findFlatFoldable(angle);
-			this.cp.creaseRay(new XYPoint(angle.node.x, angle.node.y), 
-			                  new XYPoint(Math.cos(solutionAngle), Math.sin(solutionAngle))).mountain();
+			this.cp.creaseRay(new XY(angle.node.x, angle.node.y), 
+			                  new XY(Math.cos(solutionAngle), Math.sin(solutionAngle))).mountain();
 		}
 	}
 	this.cp.clean();

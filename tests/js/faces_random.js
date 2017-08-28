@@ -10,7 +10,7 @@ randomFaces.selectNearestEdge = true;
 randomFaces.reset = function(){
 	randomFaces.cp.clear();
 	for(var i = 0; i < 10; i++){
-		randomFaces.cp.creaseThroughPoints(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.random(), Math.random()) );
+		randomFaces.cp.creaseThroughPoints(new XY(Math.random(), Math.random()), new XY(Math.random(), Math.random()) );
 	}
 	var intersections = randomFaces.cp.chop();
 	randomFaces.cp.generateFaces();

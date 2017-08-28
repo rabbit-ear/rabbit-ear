@@ -11,7 +11,7 @@ deleteEdge.reset = function(){
 	this.cp.edges = [];
 	for(var i = 0; i < 15; i++){
 		var angle = Math.random()*Math.PI*2;
-		this.cp.creaseRay(new XYPoint(Math.random(), Math.random()), new XYPoint(Math.cos(angle), Math.sin(angle)));
+		this.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
 	this.cp.chop();
 	this.initialize();

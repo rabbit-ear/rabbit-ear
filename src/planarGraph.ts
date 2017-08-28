@@ -19,29 +19,29 @@ function epsilonEqual(a:number, b:number, epsilon?:number):boolean{
 	return ( Math.abs(a - b) < epsilon );
 }
 
-class XYPoint{
+class XY{
 	x:number;
 	y:number;
 	constructor(x:number, y:number){
 		this.x = x;
 		this.y = y;
 	}
-	// position(x:number, y:number):XYPoint{ this.x = x; this.y = y; return this; }
-	// translated(dx:number, dy:number):XYPoint{ this.x += dx; this.y += dy; return this;}
-	normalize():XYPoint { var m = this.mag(); return new XYPoint(this.x/m, this.y/m);}
-	rotate90():XYPoint { return new XYPoint(-this.y, this.x); }
-	rotate(origin:XYPoint, angle:number){
+	// position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
+	// translated(dx:number, dy:number):XY{ this.x += dx; this.y += dy; return this;}
+	normalize():XY { var m = this.mag(); return new XY(this.x/m, this.y/m);}
+	rotate90():XY { return new XY(-this.y, this.x); }
+	rotate(origin:XY, angle:number){
 		var dx = this.x-origin.x;
 		var dy = this.y-origin.y;
 		var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
 		var currentAngle = Math.atan2(dy, dx);
-		return new XYPoint(origin.x + radius*Math.cos(currentAngle + angle),
+		return new XY(origin.x + radius*Math.cos(currentAngle + angle),
 		                   origin.y + radius*Math.sin(currentAngle + angle));
 	}
-	dot(point:XYPoint):number { return this.x * point.x + this.y * point.y; }
-	cross(vector:XYPoint):number{ return this.x*vector.y - this.y*vector.x; }
+	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
+	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
 	mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
-	equivalent(point:XYPoint, epsilon?:number):boolean{
+	equivalent(point:XY, epsilon?:number):boolean{
 		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		// rect bounding box, cheaper than radius calculation
 		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
@@ -64,7 +64,7 @@ class PlanarPair{
 	}
 }
 
-class EdgeIntersection extends XYPoint{
+class EdgeIntersection extends XY{
 	// this is a unique class- used in intersection(), crossingEdges() on PlanarEdge
 	edge:PlanarEdge;
 	constructor(otherEdge:PlanarEdge, intersectionX:number, intersectionY:number){
@@ -94,9 +94,9 @@ class InteriorAngle{
 
 // class NearestEdgeObject {
 // 	edge:PlanarEdge; 
-// 	pointOnEdge:XYPoint;
+// 	pointOnEdge:XY;
 // 	distance:number;
-// 	constructor(edge:PlanarEdge, pointOnEdge:XYPoint, distance:number){
+// 	constructor(edge:PlanarEdge, pointOnEdge:XY, distance:number){
 // 		this.edge = edge;
 // 		this.pointOnEdge = pointOnEdge;
 // 		this.distance = distance;
@@ -165,13 +165,13 @@ class PlanarNode extends GraphNode{
 		return undefined;
 	}
 
-// implements XYPoint
-// todo: probably need to break apart XYPoint and this. this modifies the x and y in place. XYPoint returns a new one and doesn't modify the current one in place
+// implements XY
+// todo: probably need to break apart XY and this. this modifies the x and y in place. XY returns a new one and doesn't modify the current one in place
 	position(x:number, y:number):PlanarNode{ this.x = x; this.y = y; return this; }
 	translate(dx:number, dy:number):PlanarNode{ this.x += dx; this.y += dy; return this;}
 	normalize():PlanarNode { var m = this.mag(); this.x /= m; this.y /= m; return this; }
 	rotate90():PlanarNode { var x = this.x; this.x = -this.y; this.y = x; return this; }
-	rotate(origin:XYPoint, angle:number):PlanarNode{
+	rotate(origin:XY, angle:number):PlanarNode{
 		var dx = this.x-origin.x;
 		var dy = this.y-origin.y;
 		var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
@@ -180,10 +180,10 @@ class PlanarNode extends GraphNode{
 		this.y = origin.y + radius*Math.sin(currentAngle + angle);
 		return this;
 	}
-	dot(point:XYPoint):number { return this.x * point.x + this.y * point.y; }
-	cross(vector:XYPoint):number{ return this.x*vector.y - this.y*vector.x; }
+	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
+	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
 	mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
-	equivalent(point:XYPoint, epsilon?:number):boolean{
+	equivalent(point:XY, epsilon?:number):boolean{
 		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		// rect bounding box, cheaper than radius calculation
 		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
@@ -260,7 +260,7 @@ class PlanarFace{
 		}
 		return true;
 	}
-	contains(point:XYPoint):boolean{
+	contains(point:XY):boolean{
 		for(var i = 0; i < this.edges.length; i++){
 			var endpts = this.edges[i].nodes;
 			var cross = (point.y - endpts[0].y) * (endpts[1].x - endpts[0].x) - 
@@ -423,61 +423,65 @@ class PlanarGraph extends Graph{
 		return 0;
 	}
 
-	cleanUselessNodes():number{
+	/** Removes all isolated nodes and performs cleanNodeIfUseless() on every node
+	 * @returns {number} how many nodes were removed
+	 */
+	cleanAllUselessNodes():number{
 		var count = super.removeIsolatedNodes();
 		for(var i = this.nodes.length-1; i >= 0; i--){
-			if(this.cleanNodeIfUseless(this.nodes[i])){ count += 1; }
+			count += this.cleanNodeIfUseless(this.nodes[i]);
 		}
 		return count;
 	}
 
 	// cleanNodes():number{
-	// 	var count = this.cleanUselessNodes();
+	// 	var count = this.cleanAllUselessNodes();
 	// 	this.cleanDuplicateNodes();
 	// 	return count;
 	// }
 
-	searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
-		for(var i = 0; i < this.nodes.length-1; i++){
-			for(var j = i+1; j < this.nodes.length; j++){
-				if ( this.nodes[i].equivalent( this.nodes[j], epsilon) ){
-					// todo, mergeNodes does repeated cleaning, suppress and move to end of function
-					// this.nodes[i].x = (this.nodes[i].x + this.nodes[j].x)*0.5;
-					// this.nodes[i].y = (this.nodes[i].y + this.nodes[j].y)*0.5;
-					return <PlanarNode>this.mergeNodes(this.nodes[i], this.nodes[j]);
+	cleanDuplicateNodes(epsilon?:number):XY[]{
+		var that = this;
+		function searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
+			for(var i = 0; i < that.nodes.length-1; i++){
+				for(var j = i+1; j < that.nodes.length; j++){
+					if ( that.nodes[i].equivalent( that.nodes[j], epsilon) ){
+						// todo, mergeNodes does repeated cleaning, suppress and move to end of function
+						// that.nodes[i].x = (that.nodes[i].x + that.nodes[j].x)*0.5;
+						// that.nodes[i].y = (that.nodes[i].y + that.nodes[j].y)*0.5;
+						return <PlanarNode>that.mergeNodes(that.nodes[i], that.nodes[j]);
+					}
 				}
 			}
+			return undefined;
 		}
-		return undefined;
-	}
 
-	cleanDuplicateNodes(epsilon?:number):XYPoint[]{
-		if(epsilon == undefined){ epsilon = EPSILON; }
+		if(epsilon === undefined){ epsilon = EPSILON; }
 		var node:PlanarNode;
-		var locations:XYPoint[] = [];
+		var locations:XY[] = [];
 		do{
-			node = this.searchAndMergeOneDuplicatePair(epsilon);
-			if(node != undefined){ locations.push(new XYPoint(node.x, node.y)); }
+			node = searchAndMergeOneDuplicatePair(epsilon);
+			if(node != undefined){ locations.push(new XY(node.x, node.y)); }
 		} while(node != undefined)
 		return locations;
 	}
 
 	/** Removes circular and duplicate edges, merges and removes duplicate nodes, and refreshes .index values
-	 * @returns {object} 'edges' the number of edges removed, and 'nodes' an XYPoint location for every duplicate node merging
+	 * @returns {object} 'edges' the number of edges removed, and 'nodes' an XY location for every duplicate node merging
 	 */
 	clean():any{
 		var duplicates = this.cleanDuplicateNodes();
 		var newNodes = this.chop(); // todo: return this newNodes
 		return {
 			'edges':super.cleanGraph(), 
-			'nodes':this.cleanUselessNodes() + duplicates.length
+			'nodes':this.cleanAllUselessNodes() + duplicates.length
 		};
 	}
 
 	///////////////////////////////////////////////////////////////
 	// CHOP, EDGE INTERSECTION
 
-	chopAllCrossingsWithEdge(edge:PlanarEdge):XYPoint[]{
+	chopAllCrossingsWithEdge(edge:PlanarEdge):XY[]{
 		var intersections = edge.crossingEdges();
 		if(intersections.length === 0) { return []; }
 		var endNodes = edge.nodes.sort(function(a,b){
@@ -505,30 +509,31 @@ class PlanarGraph extends Graph{
 		this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length-1], endNodes[1]];
 		super.removeEdge(edge);
 		super.cleanGraph();
-		return intersections.map(function(el){ return new XYPoint(el.x, el.y); } );
-	}
-
-	chopOneRound():XYPoint[]{
-		var crossings = [];
-		for(var i = 0; i < this.edges.length; i++){
-			var thisRound = this.chopAllCrossingsWithEdge(this.edges[i]);
-			crossings = crossings.concat(thisRound);
-			if(thisRound.length > 0){
-				super.cleanGraph();
-				this.cleanUselessNodes();
-				this.cleanDuplicateNodes();
-			}
-		}
-		return crossings;
+		return intersections.map(function(el){ return new XY(el.x, el.y); } );
 	}
 
 	chop(){
+		var that = this;
+		function chopOneRound():XY[]{
+			var crossings = [];
+			for(var i = 0; i < that.edges.length; i++){
+				var thisRound = that.chopAllCrossingsWithEdge(that.edges[i]);
+				crossings = crossings.concat(thisRound);
+				if(thisRound.length > 0){
+					that.cleanGraph();
+					that.cleanAllUselessNodes();
+					that.cleanDuplicateNodes();
+				}
+			}
+			return crossings;
+		}
+
 		//todo: remove protection, or bake it into the class itself
 		var protection = 0;
 		var allCrossings = [];
 		var thisCrossings;
 		do{
-			thisCrossings = this.chopOneRound();
+			thisCrossings = chopOneRound();
 			allCrossings = allCrossings.concat(thisCrossings);
 			protection += 1;
 		}while(thisCrossings.length != 0 && protection < 400);
@@ -540,8 +545,8 @@ class PlanarGraph extends Graph{
 	// GET PARTS
 	///////////////////////////////////////////////
 
-	getEdgeIntersections():XYPoint[]{
-		// todo should this make new XYPoints instead of returning EdgeIntersection objects?
+	getEdgeIntersections():XY[]{
+		// todo should this make new XYs instead of returning EdgeIntersection objects?
 		var intersections = [];
 		// check all edges against each other for intersections
 		for(var i = 0; i < this.edges.length-1; i++){
@@ -766,7 +771,7 @@ function clockwiseAngleFrom(a:number, b:number):number{
 
 // if points are all collinear
 // checks if point lies on line segment 'ab'
-function onSegment(point:XYPoint, a:XYPoint, b:XYPoint):boolean{
+function onSegment(point:XY, a:XY, b:XY):boolean{
 	var ab = Math.sqrt( Math.pow(a.x-b.x,2) + Math.pow(a.y-b.y,2) );
 	var pa = Math.sqrt( Math.pow(point.x-a.x,2) + Math.pow(point.y-a.y,2) );
 	var pb = Math.sqrt( Math.pow(point.x-b.x,2) + Math.pow(point.y-b.y,2) );
@@ -774,10 +779,10 @@ function onSegment(point:XYPoint, a:XYPoint, b:XYPoint):boolean{
 	return false;
 }
 
-function rayLineSegmentIntersectionAlgorithm(rayOrigin:XYPoint, rayDirection:XYPoint, point1:XYPoint, point2:XYPoint){
-	var v1 = new XYPoint(rayOrigin.x - point1.x, rayOrigin.y - point1.y);
-	var vLineSeg = new XYPoint(point2.x - point1.x, point2.y - point1.y);
-	var vRayPerp = new XYPoint(-rayDirection.y, rayDirection.x);
+function rayLineSegmentIntersectionAlgorithm(rayOrigin:XY, rayDirection:XY, point1:XY, point2:XY){
+	var v1 = new XY(rayOrigin.x - point1.x, rayOrigin.y - point1.y);
+	var vLineSeg = new XY(point2.x - point1.x, point2.y - point1.y);
+	var vRayPerp = new XY(-rayDirection.y, rayDirection.x);
 	var dot = vLineSeg.x*vRayPerp.x + vLineSeg.y*vRayPerp.y;
 	if (Math.abs(dot) < EPSILON){ return undefined; }
 	var cross = (vLineSeg.x*v1.y-vLineSeg.y*v1.x);
@@ -787,11 +792,11 @@ function rayLineSegmentIntersectionAlgorithm(rayOrigin:XYPoint, rayDirection:XYP
 		// todo: really, we need to move beyond the need for whole numbers
 		var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
 		var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
-		return new XYPoint(x, y);
+		return new XY(x, y);
 	}
 }
 
-function lineIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):XYPoint {
+function lineIntersectionAlgorithm(p0:XY, p1:XY, p2:XY, p3:XY):XY {
 	// p0-p1 is first line
 	// p2-p3 is second line
 	var rise1 = (p1.y-p0.y);
@@ -801,10 +806,10 @@ function lineIntersectionAlgorithm(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoin
 	var denom = run1 * rise2 - run2 * rise1;
 	// var denom = l1.u.x * l2.u.y - l1.u.y * l2.u.x;
 	if(denom == 0) return undefined;
-	// return XYPoint((l1.d * l2.u.y - l2.d * l1.u.y) / denom, (l2.d * l1.u.x - l1.d * l2.u.x) / denom);
+	// return XY((l1.d * l2.u.y - l2.d * l1.u.y) / denom, (l2.d * l1.u.x - l1.d * l2.u.x) / denom);
 	var s02 = {'x':p0.x - p2.x, 'y':p0.y - p2.y};
 	var t = (run2 * s02.y - rise2 * s02.x) / denom;
-	return new XYPoint(p0.x + (t * run1), p0.y + (t * rise1) );
+	return new XY(p0.x + (t * run1), p0.y + (t * rise1) );
 }
 
 function allEqual(args:boolean[]):boolean {
@@ -814,10 +819,10 @@ function allEqual(args:boolean[]):boolean {
 	return true;
 }
 
-function lineSegmentIntersectionAlgorithm(p:XYPoint, p2:XYPoint, q:XYPoint, q2:XYPoint):XYPoint {
-	var r = new XYPoint(p2.x - p.x, p2.y - p.y);
-	var s = new XYPoint(q2.x - q.x, q2.y - q.y);
-	var uNumerator = (new XYPoint(q.x - p.x, q.y - p.y)).cross(r);//crossProduct(subtractPoints(q, p), r);
+function lineSegmentIntersectionAlgorithm(p:XY, p2:XY, q:XY, q2:XY):XY {
+	var r = new XY(p2.x - p.x, p2.y - p.y);
+	var s = new XY(q2.x - q.x, q2.y - q.y);
+	var uNumerator = (new XY(q.x - p.x, q.y - p.y)).cross(r);//crossProduct(subtractPoints(q, p), r);
 	var denominator = r.cross(s);
 
 	if(onSegment(p, q, q2)){ return p; }
@@ -833,10 +838,10 @@ function lineSegmentIntersectionAlgorithm(p:XYPoint, p2:XYPoint, q:XYPoint, q2:X
 			return undefined;
 		}		
 		// Do they touch? (Are any of the points equal?)
-		if(p.equivalent(q)){ return new XYPoint(p.x, p.y); }
-		if(p.equivalent(q2)){ return new XYPoint(p.x, p.y); }
-		if(p2.equivalent(q)){ return new XYPoint(p2.x, p2.y); }
-		if(p2.equivalent(q2)){ return new XYPoint(p2.x, p2.y); }
+		if(p.equivalent(q)){ return new XY(p.x, p.y); }
+		if(p.equivalent(q2)){ return new XY(p.x, p.y); }
+		if(p2.equivalent(q)){ return new XY(p2.x, p2.y); }
+		if(p2.equivalent(q2)){ return new XY(p2.x, p2.y); }
 	}
 
 	if (Math.abs(denominator) < EPSILON_HIGH) {
@@ -845,14 +850,14 @@ function lineSegmentIntersectionAlgorithm(p:XYPoint, p2:XYPoint, q:XYPoint, q2:X
 	}
 
 	var u = uNumerator / denominator;
-	var t = (new XYPoint(q.x - p.x, q.y - p.y)).cross(s) / denominator;
+	var t = (new XY(q.x - p.x, q.y - p.y)).cross(s) / denominator;
 
 	if((t >= 0) && (t <= 1) && (u >= 0) && (u <= 1)){
-		return new XYPoint(p.x + r.x*t, p.y + r.y*t);
+		return new XY(p.x + r.x*t, p.y + r.y*t);
 	}
 }
 
-function circleLineIntersectionAlgorithm(center:XYPoint, radius:number, p0:XYPoint, p1:XYPoint):XYPoint[]{
+function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY):XY[]{
 	var r_squared =  Math.pow(radius,2);
 
 	var x1 = p0.x - center.x;
@@ -872,38 +877,38 @@ function circleLineIntersectionAlgorithm(center:XYPoint, radius:number, p0:XYPoi
 	var y2 = (-D*dx - Math.abs(dy)*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
 
 	var intersections = [];
-	if(!isNaN(x1)){ intersections.push( new XYPoint(x1 + center.x, y1 + center.y) ); }
-	if(!isNaN(x2)){ intersections.push( new XYPoint(x2 + center.x, y2 + center.y) ); }
+	if(!isNaN(x1)){ intersections.push( new XY(x1 + center.x, y1 + center.y) ); }
+	if(!isNaN(x2)){ intersections.push( new XY(x2 + center.x, y2 + center.y) ); }
 	return intersections;
 }
 
-function linesParallel(p0:XYPoint, p1:XYPoint, p2:XYPoint, p3:XYPoint):boolean {
+function linesParallel(p0:XY, p1:XY, p2:XY, p3:XY):boolean {
 	// p0-p1 is first line
 	// p2-p3 is second line
-	var u = new XYPoint(p1.x - p0.x, p1.y - p0.y);
-	var v = new XYPoint(p3.x - p2.x, p3.y - p2.y);
+	var u = new XY(p1.x - p0.x, p1.y - p0.y);
+	var v = new XY(p3.x - p2.x, p3.y - p2.y);
 	return (Math.abs( u.dot( v.rotate90() ) ) < EPSILON);
 }
 
 
-function minDistBetweenPointLine(a:XYPoint, b:XYPoint, x:number, y:number):XYPoint{
+function minDistBetweenPointLine(a:XY, b:XY, x:number, y:number):XY{
 	// (a)-(b) define the line
 	// x,y is the point
 	var p = Math.sqrt(Math.pow(b.x-a.x,2) + Math.pow(b.y-a.y,2));
 	var u = ((x-a.x)*(b.x-a.x) + (y-a.y)*(b.y-a.y)) / (Math.pow(p,2));
 	if(u < 0 || u > 1.0) return undefined;
-	return new XYPoint(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
+	return new XY(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
 }
 
-function reflectPointAcrossLine(point:XYPoint, a:XYPoint, b:XYPoint){
+function reflectPointAcrossLine(point:XY, a:XY, b:XY){
 	var p = Math.sqrt(Math.pow(b.x-a.x,2) + Math.pow(b.y-a.y,2));
 	var u = ((point.x-a.x)*(b.x-a.x) + (point.y-a.y)*(b.y-a.y)) / (Math.pow(p,2));
-	var collinear = new XYPoint(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
-	var d = new XYPoint(point.x - collinear.x, point.y - collinear.y);
-	return new XYPoint(collinear.x - d.x, collinear.y - d.y);
+	var collinear = new XY(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
+	var d = new XY(point.x - collinear.x, point.y - collinear.y);
+	return new XY(collinear.x - d.x, collinear.y - d.y);
 }
 
-function isValidPoint(point:XYPoint):boolean{ return (point !== undefined && !isNaN(point.x) && !isNaN(point.y)); }
+function isValidPoint(point:XY):boolean{ return (point !== undefined && !isNaN(point.x) && !isNaN(point.y)); }
 function isValidNumber(n:number):boolean{ return (n !== undefined && !isNaN(n) && !isNaN(n)); }
 
 //////////////////////////////////////////////////
@@ -940,7 +945,7 @@ function arrayContainsObject(array, object):boolean{
 }
 
 function getNodeIndexNear(x:number, y:number, thisEpsilon:number){
-	var thisPoint = new XYPoint(x, y);
+	var thisPoint = new XY(x, y);
 	for(var i = 0; i < this.nodes.length; i++){
 		if(this.nodes[i].equivalent(thisPoint, thisEpsilon)){
 			return i;

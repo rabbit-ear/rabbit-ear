@@ -131,8 +131,8 @@ window.onload = function() {
 	var paperCP2 = new PaperCreasePattern(paper, cpRay);
 	console.log(paperCP2);
 
-	var rayCenter = new XYPoint(0.5, 0.5);
-	var rayDirection = new XYPoint(1.0, 0.0);
+	var rayCenter = new XY(0.5, 0.5);
+	var rayDirection = new XY(1.0, 0.0);
 	var intersectionLayer = new paper.Layer();
 	var intersections = [];
 
@@ -140,7 +140,7 @@ window.onload = function() {
 		intersectionLayer.activate();
 		intersectionLayer.removeChildren();
 		intersections = [];
-		rayDirection = new XYPoint(Math.cos(event.time), Math.sin(event.time));
+		rayDirection = new XY(Math.cos(event.time), Math.sin(event.time));
 		for(var i = 0; i < cpRay.edges.length; i++){
 			var endPoints = cpRay.edges[i].endPoints();
 			var intersection = rayLineSegmentIntersectionAlgorithm(rayCenter, rayDirection, endPoints[0], endPoints[1]);
