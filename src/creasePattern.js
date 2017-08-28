@@ -476,6 +476,14 @@ var CreasePattern = (function (_super) {
     };
     //////////////////////////////////////////////
     // BOUNDARY
+    // rectangular bounding box around the paper: [x,y],[width,height]
+    CreasePattern.prototype.boundingBox = function () {
+        var left = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); })[0].x;
+        var right = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? -1 : ((b.x > a.x) ? 1 : 0); })[0].x;
+        var top = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); })[0].y;
+        var bottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? -1 : ((b.y > a.y) ? 1 : 0); })[0].y;
+        return [[left, top], [right - left, bottom - top]];
+    };
     CreasePattern.prototype.square = function (width) {
         // console.log("setting page size: square()");
         var w = 1.0;

@@ -46,6 +46,7 @@ class XY{
 		// rect bounding box, cheaper than radius calculation
 		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
 	}
+	arrayForm():[number, number]{ return [this.x, this.y]; }
 }
 
 class PlanarPair{
@@ -188,6 +189,7 @@ class PlanarNode extends GraphNode{
 		// rect bounding box, cheaper than radius calculation
 		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
 	}
+	arrayForm():[number, number]{ return [this.x, this.y]; }
 }
 
 class PlanarEdge extends GraphEdge{

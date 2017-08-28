@@ -51,6 +51,7 @@ var XY = (function () {
         // rect bounding box, cheaper than radius calculation
         return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon));
     };
+    XY.prototype.arrayForm = function () { return [this.x, this.y]; };
     return XY;
 }());
 var PlanarPair = (function () {
@@ -188,6 +189,7 @@ var PlanarNode = (function (_super) {
         // rect bounding box, cheaper than radius calculation
         return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon));
     };
+    PlanarNode.prototype.arrayForm = function () { return [this.x, this.y]; };
     return PlanarNode;
 }(GraphNode));
 var PlanarEdge = (function (_super) {
