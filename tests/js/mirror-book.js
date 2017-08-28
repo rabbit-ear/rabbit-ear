@@ -10,7 +10,11 @@ mirrorB.reset = function(){
 	this.cp.bookSymmetry();
 	for(var i = 0; i < 15; i++){
 		var home = {x:Math.random(), y:Math.random()};
-		var angle = 2*Math.PI / Math.floor(Math.random()*16);
+		if(Math.random() < 0.75 && this.cp.nodes.length > 2){
+			var index = Math.floor(Math.random()*this.cp.nodes.length);
+			home = this.cp.nodes[ index ];
+		}
+		var angle = 2*Math.PI / 32 * Math.floor(Math.random()*32);
 		var d = Math.random() * 0.5;
 		var end = {x:home.x+d*Math.cos(angle), y:home.y+d*Math.sin(angle)};
 		this.cp.crease(home, end);

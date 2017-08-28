@@ -169,6 +169,20 @@ class CreasePattern extends PlanarGraph{
 		return g;
 	}
 
+	possibleFolds():CreasePattern{
+		var next = this.duplicate();
+		next.nodes = [];
+		next.edges = [];
+		next.faces = [];
+		for(var i = 0; i < this.edges.length-1; i++){
+			for(var j = i+1; j < this.edges.length; j++){
+				next.creaseEdgeToEdge(this.edges[i], this.edges[j]);
+			}
+		}
+		next.cleanDuplicateNodes();
+		return next;
+	}
+
 
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS

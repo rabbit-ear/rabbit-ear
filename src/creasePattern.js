@@ -193,6 +193,19 @@ var CreasePattern = (function (_super) {
         g.boundary = b;
         return g;
     };
+    CreasePattern.prototype.possibleFolds = function () {
+        var next = this.duplicate();
+        next.nodes = [];
+        next.edges = [];
+        next.faces = [];
+        for (var i = 0; i < this.edges.length - 1; i++) {
+            for (var j = i + 1; j < this.edges.length; j++) {
+                next.creaseEdgeToEdge(this.edges[i], this.edges[j]);
+            }
+        }
+        // next.clean();
+        return next;
+    };
     ///////////////////////////////////////////////////////////////
     // ADD PARTS
     // fold(param1, param2, param3, param4){

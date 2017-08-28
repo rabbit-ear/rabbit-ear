@@ -21,22 +21,7 @@ canvas[resize] {
 <script type="text/javascript" src="../../src/cp.paperjs.js"></script>
 </head>
 <body>
-	<canvas id="canvas" resize></canvas>
+	<canvas id="canvas-possible-folds" resize></canvas>
 </body>
-<script>
-
-var cp = new CreasePattern();
-var project = new PaperCreasePattern("canvas", cp);
-project.zoomToFit(0.05);
-
-project.onFrame = function(event) { }
-project.onResize = function(event) { }
-project.onMouseMove = function(event) {
-	var mousePos = event.point;
-}
-project.onMouseDown = function(event){
-	var mousePos = event.point;
-}
-
-</script>
+<script type="text/javascript" src="../js/possible_folds.js"></script>
 </html>

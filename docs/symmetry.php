@@ -10,11 +10,11 @@
 <section id="intro">
 
 	<div class="quote">
-		<p>Classical origami designs so frequently employ bilaterial symmetry.</p>
+		<p>Classical origami designs make frequent use of bilaterial symmetry.</p>
 	</div>
 
 	<div class="centered">
-		<canvas id="canvas-mirror" resize></canvas>
+		<canvas id="canvas-mirror-book" resize></canvas>
 	</div>
 
 	<div class="centered">
@@ -22,7 +22,7 @@
 	</div>
 
 	<div class="centered">
-		<canvas id="canvas-mirror-book" resize></canvas>
+		<canvas id="canvas-mirror" resize></canvas>
 	</div>
 
 	<div class="quote">

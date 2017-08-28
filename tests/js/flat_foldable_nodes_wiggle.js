@@ -25,7 +25,7 @@ ffMoveNode.style.nodes = {
 loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 	ffMoveNode.cp = e;
 	ffMoveNode.initialize();
-	ffMoveNode.nodeLayer.moveToFront();
+	if(ffMoveNode.nodeLayer != undefined && ffMoveNode.nodeLayer.moveToFront != undefined) ffMoveNode.nodeLayer.moveToFront();
 	ffMoveNode.colorNodesFlatFoldable();
 	for(var i = 0; i < ffMoveNode.nodes.length; i++){ ffMoveNode.nodes[i].radius = 0.02; }
 });
@@ -65,13 +65,11 @@ ffMoveNode.onMouseMove = function(event) {
 	if(ffMoveNode.movingNode != undefined){
 		ffMoveNode.movingNode.x = event.point.x;
 		ffMoveNode.movingNode.y = event.point.y;
-		ffMoveNode.nearestNodeCircle.position = ffMoveNode.movingNode;
 		ffMoveNode.update();
 	} else{
 		var nNode = ffMoveNode.cp.getNearestNode( event.point.x, event.point.y );
 		if(nearestNode !== nNode){
 			nearestNode = nNode;
-			ffMoveNode.nearestNodeCircle.position = nearestNode;
 		}
 	}
 	if(ffMoveNode.cp != undefined){ ffMoveNode.colorNodesFlatFoldable(); }

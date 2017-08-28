@@ -7,6 +7,10 @@
 
 <h2>Locally Flat Foldable</h2>
 
+	<div class="quote">
+		<p>Global flat-foldability is an np-hard problem, but local flat-foldability can be determined with a few tests.</p>
+	</div>
+
 	<div class="centered">
 		<canvas id="canvas-flat-foldable-nodes-wiggle" class="large" resize></canvas>
 	</div>
@@ -16,7 +20,7 @@
 	</div>
 
 	<div class="quote">
-		<p>To check if a node is locally flat foldable, it must satisfy Kawasaki's theorem, .... It's also possible to test each case individually.</p>
+		<p>This is testing for Kawasaki's theorem, ...</p>
 	</div>
 
 </section>
