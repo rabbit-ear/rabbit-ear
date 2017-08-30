@@ -753,9 +753,12 @@ class PlanarGraph extends Graph{
 
 	edgeExistsThroughPoints(a:XY, b:XY):boolean{
 		for(var i = 0; i < this.edges.length; i++){
+				console.log(a);
+				console.log(this.edges[i].nodes[0]);
 			if( (a.equivalent(this.edges[i].nodes[0]) && b.equivalent(this.edges[i].nodes[1])) || 
 				(a.equivalent(this.edges[i].nodes[1]) && b.equivalent(this.edges[i].nodes[0])) ){
 				return true;
+			}
 		}
 		return false;
 	}

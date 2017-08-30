@@ -255,10 +255,10 @@ class CreasePattern extends PlanarGraph{
 			                      bounds.origin.y + bounds.size.height*0.5);
 			var i = 0;
 			do{
-				console.log("new round");
-				console.log(this.edges.length);
+				// console.log("new round");
+				// console.log(this.edges.length);
 				crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
-				console.log(this.edges.length);
+				// console.log(this.edges.length);
 				this.clean();
 				i++;
 			}while( edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length );

@@ -787,6 +787,17 @@ var PlanarGraph = (function (_super) {
             console.log(' ' + i + ': (' + this.edges[i].nodes[0].index + ' -- ' + this.edges[i].nodes[1].index + ')');
         }
     };
+    PlanarGraph.prototype.edgeExistsThroughPoints = function (a, b) {
+        for (var i = 0; i < this.edges.length; i++) {
+            console.log(a);
+            console.log(this.edges[i].nodes[0]);
+            if ((a.equivalent(this.edges[i].nodes[0]) && b.equivalent(this.edges[i].nodes[1])) ||
+                (a.equivalent(this.edges[i].nodes[1]) && b.equivalent(this.edges[i].nodes[0]))) {
+                return true;
+            }
+        }
+        return false;
+    };
     return PlanarGraph;
 }(Graph));
 /////////////////////////////////////////////////////////////////////////////////
