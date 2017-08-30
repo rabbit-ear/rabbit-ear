@@ -290,19 +290,15 @@ class PlanarFace{
 		}
 		return edges;
 	}
-	// edgeAdjacentFaces():PlanarFace[]{
-	// 	var adjacent = this.graph.faces.filter(function(el){
-	// 		for(var i = 0; i < el.edges.length; i++){
-	// 			for(var j = 0; j < this.edges.length; j++){
-	// 				if(el.edges[i] === this.edges[j]){
-
-	// 				}
-	// 			}
-	// 		}
-	// 	}, this);
-	// 	return adjacent;
-	// }
-
+	edgeAdjacentFaces():PlanarFace[]{
+		return this.edges.map(function(ed){
+			var allFaces = this.graph.faces.filter(function(el){return !this.equivalent(el);},this);
+			for(var i = 0; i < allFaces.length; i++){
+				var adjArray = allFaces[i].edges.filter(function(ef){return ed === ef;});
+				if(adjArray.length > 0){ return allFaces[i]; }
+			}
+		}, this).filter(function(el){return el !== undefined;});
+	}
 	contains(point:XY):boolean{
 		for(var i = 0; i < this.edges.length; i++){
 			var endpts = this.edges[i].nodes;
