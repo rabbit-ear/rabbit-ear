@@ -10,12 +10,12 @@ voronoiSketch.style.mark.strokeWidth = 0.003;
 voronoiSketch.reset = function(){
 	this.cp.clear();
 	this.initialize();
-	voronoi = d3.voronoi().extent( this.cp.boundingBox() );
+	voronoi = d3.voronoi().extent( this.cp.boundingBoxD3() );
 }
 voronoiSketch.reset();
 
 voronoiSketch.onResize = function(){
-	voronoi = d3.voronoi().extent( this.cp.boundingBox() );
+	voronoi = d3.voronoi().extent( this.cp.boundingBoxD3() );
 }
 
 voronoiSketch.onMouseDown = function(event){

@@ -20,92 +20,9 @@ canvas[resize] {
 <script type="text/javascript" src="../../src/planarGraph.js"></script>
 <script type="text/javascript" src="../../src/creasePattern.js"></script>
 <script type="text/javascript" src="../../src/cp.paperjs.js"></script>
-<script type="text/javascript">
-
-var cp = new CreasePattern();
-console.log(cp);
-
-window.onload = function() {
-	var canvas = document.getElementById('canvas');
-	paper.setup(canvas);
-	zoomView(paper);
-	var paperCP = new PaperCreasePattern(paper, cp);
-
-	var mouseDowns = [
-		[0,0], [0,1], [1,1], [1,0]
-	];
-
-	var voronoi = d3.voronoi();
-
-	paper.view.onFrame = function(event) { }
-	paper.view.onResize = function(event) {
-		zoomView(paper);
-	}
-	paper.view.onMouseMove = function(event) {
-		mousePos = event.point;
-	}
-	paper.view.onMouseDown = function(event){
-		mouseDowns.push([event.point.x, event.point.y]);
-		cp.clear();
-		// cp.addNode(new CreaseNode(event.point.x, event.point.y));
-		if(mouseDowns.length < 3) return;
-
-		var v = voronoi(mouseDowns);
-		console.log(v);
-		// var v = voronoi(cp.nodesArray());
-		for(var i = 0; i < v.edges.length; i++){
-			var edge = v.edges[i];
-			if(edge[0] != undefined && edge[1] != undefined){
-				cp.crease(edge[0][0], edge[0][1], edge[1][0], edge[1][1]);
-			}
-		}
-		for(var i = 0; i < mouseDowns.length; i++){
-			cp.addNode(new CreaseNode(mouseDowns[i][0], mouseDowns[i][1]));
-		}
-
-		paperCP.initialize();
-
-		for(var i = 0; i < mouseDowns.length; i++){
-			new paper.Shape.Circle({
-					center: mouseDowns[i], 
-					radius: 0.02, 
-					//strokeWidth:0.01,
-					fillColor: { hue:220, saturation:0.6, brightness:1 }//{ hue:130, saturation:0.8, brightness:0.7 }
-				});
-		}
-
-
-		// var d = voronoi.triangles(mouseDowns);
-		// for(var i = 0; i < d.length; i++){
-		// 	var segments = [ new paper.Point(d[i][0][0], d[i][0][1]), 
-		// 	                 new paper.Point(d[i][1][0], d[i][1][1]), 
-		// 	                 new paper.Point(d[i][2][0], d[i][2][1]) ];
-		// 	var path = new paper.Path({
-		// 		segments: segments,
-		// 		strokeColor: { gray:0.8, alpha:1.0 },//{ hue:350, saturation:1, brightness:1 },
-		// 		strokeWidth: .01,
-		// 		closed: false
-		// 	});
-		// }
-		// var v = voronoi(cp.nodesArray());
-		// for(var i = 0; i < v.edges.length; i++){
-		// 	var edge = v.edges[i];
-		// 	if(edge[0] != undefined && edge[1] != undefined){
-		// 		var path = new paper.Path({
-		// 			segments: [ new paper.Point(edge[0][0], edge[0][1]), new paper.Point(edge[1][0], edge[1][1]) ],
-		// 			strokeColor: { gray:0.5, alpha:1.0 },//{ hue:350, saturation:1, brightness:1 },
-		// 			strokeWidth: .01,
-		// 			closed: false
-		// 		});
-		// 	}
-		// }
-
-	}
-}
-
-</script>
 </head>
 <body>
-	<canvas id="canvas" resize></canvas>
+	<canvas id="canvas-voronoi" resize></canvas>
 </body>
+<script type="text/javascript" src="../js/voronoi.js"></script>
 </html>

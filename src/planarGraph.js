@@ -284,6 +284,46 @@ var PlanarFace = (function () {
         }
         return true;
     };
+    PlanarFace.prototype.commonEdge = function (face) {
+        // faces will have only 1 edge in common if all faces are convex
+        for (var i = 0; i < this.edges.length; i++) {
+            for (var j = 0; j < face.edges.length; j++) {
+                if (this.edges[i] === face.edges[j]) {
+                    return this.edges[i];
+                }
+            }
+        }
+    };
+    PlanarFace.prototype.commonEdges = function (face) {
+        // faces will have only 1 edge in common if all faces are convex
+        var edges = [];
+        for (var i = 0; i < this.edges.length; i++) {
+            for (var j = 0; j < face.edges.length; j++) {
+                if (this.edges[i] === face.edges[j]) {
+                    edges.push(this.edges[i]);
+                }
+            }
+        }
+        return arrayRemoveDuplicates(edges, function (a, b) { return a === b; });
+    };
+    PlanarFace.prototype.uncommonEdges = function (face) {
+        var edges = this.edges.slice(0);
+        for (var i = 0; i < face.edges.length; i++) {
+            edges = edges.filter(function (el) { return el !== face.edges[i]; });
+        }
+        return edges;
+    };
+    // edgeAdjacentFaces():PlanarFace[]{
+    // 	var adjacent = this.graph.faces.filter(function(el){
+    // 		for(var i = 0; i < el.edges.length; i++){
+    // 			for(var j = 0; j < this.edges.length; j++){
+    // 				if(el.edges[i] === this.edges[j]){
+    // 				}
+    // 			}
+    // 		}
+    // 	}, this);
+    // 	return adjacent;
+    // }
     PlanarFace.prototype.contains = function (point) {
         for (var i = 0; i < this.edges.length; i++) {
             var endpts = this.edges[i].nodes;
@@ -995,7 +1035,7 @@ function arrayContainsDuplicates(array) {
 }
 function arrayRemoveDuplicates(array, compFunction) {
     if (array.length <= 1)
-        return [];
+        return array;
     for (var i = 0; i < array.length - 1; i++) {
         for (var j = array.length - 1; j > i; j--) {
             if (compFunction(array[i], array[j])) {

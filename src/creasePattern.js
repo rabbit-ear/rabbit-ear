@@ -193,14 +193,17 @@ var CreasePattern = (function (_super) {
         g.boundary = b;
         return g;
     };
-    CreasePattern.prototype.possibleFolds3 = function () {
+    CreasePattern.prototype.possibleFolds3 = function (edges) {
         var next = this.duplicate();
         next.nodes = [];
         next.edges = [];
         next.faces = [];
-        for (var i = 0; i < this.edges.length - 1; i++) {
-            for (var j = i + 1; j < this.edges.length; j++) {
-                next.creaseEdgeToEdge(this.edges[i], this.edges[j]);
+        if (edges === undefined) {
+            edges = this.edges;
+        }
+        for (var i = 0; i < edges.length - 1; i++) {
+            for (var j = i + 1; j < edges.length; j++) {
+                next.creaseEdgeToEdge(edges[i], edges[j]);
             }
         }
         next.cleanDuplicateNodes();
@@ -258,26 +261,49 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.foldInHalf = function () {
         var crease;
-        if (epsilonEqual(this.width(), this.height())) {
+        var bounds = this.boundingBox();
+        var centroid = new XY(bounds.origin.x + bounds.size.width * 0.5, bounds.origin.y + bounds.size.height * 0.5);
+        // var edges = [this.boundary.]
+        var validCreases = this.possibleFolds3().edges.filter(function (el) {
+            return onSegment(centroid, el.nodes[0], el.nodes[1]);
+        }).sort(function (a, b) {
+            var aSum = a.nodes[0].index + a.nodes[1].index;
+            var bSum = b.nodes[0].index + b.nodes[1].index;
+            return (aSum > bSum) ? 1 : (aSum < bSum) ? -1 : 0;
+        });
+        console.log(validCreases);
+        var edgeCount = this.edges.length;
+        var i = 0;
+        do {
+            // console.log("new round");
+            // console.log(this.edges.length);
+            crease = this.creaseThroughPoints(validCreases[i].nodes[0], validCreases[i].nodes[1]);
+            // console.log(this.edges.length);
             this.clean();
-            var edgeCount = this.edges.length;
-            var edgeMidpoints = this.edges.map(function (el) { return el.midpoint(); });
-            var arrayOfPointsAndMidpoints = this.nodes.map(function (el) { return new XY(el.x, el.y); }).concat(edgeMidpoints);
-            // console.log(arrayOfPointsAndMidpoints);
-            var bounds = this.boundingBox();
-            var centroid = new XY(bounds.origin.x + bounds.size.width * 0.5, bounds.origin.y + bounds.size.height * 0.5);
-            var i = 0;
-            do {
-                // console.log("new round");
-                // console.log(this.edges.length);
-                crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
-                // console.log(this.edges.length);
-                this.clean();
-                i++;
-            } while (edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length);
-            if (edgeCount !== this.edges.length)
-                return crease;
-        }
+            i++;
+        } while (edgeCount === this.edges.length && i < validCreases.length);
+        if (edgeCount !== this.edges.length)
+            return crease;
+        // if(epsilonEqual(this.width(), this.height())){
+        // 		this.clean();
+        // 	var edgeCount = this.edges.length;
+        // 	var edgeMidpoints = this.edges.map(function(el){return el.midpoint();});
+        // 	var arrayOfPointsAndMidpoints = this.nodes.map(function(el){return new XY(el.x, el.y);}).concat(edgeMidpoints);
+        // 	// console.log(arrayOfPointsAndMidpoints);
+        // 	var bounds = this.boundingBox();
+        // 	var centroid = new XY(bounds.origin.x + bounds.size.width*0.5,
+        // 	                      bounds.origin.y + bounds.size.height*0.5);
+        // 	var i = 0;
+        // 	do{
+        // 		// console.log("new round");
+        // 		// console.log(this.edges.length);
+        // 		crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
+        // 		// console.log(this.edges.length);
+        // 		this.clean();
+        // 		i++;
+        // 	}while( edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length );
+        // 	if(edgeCount !== this.edges.length) return crease;
+        // }
         return;
     };
     CreasePattern.prototype.pointInside = function (p) {

@@ -18,7 +18,11 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> planarGraph<key> = new</key> PlanarGraph()</code></pre>
+		<pre><code>cp.<v>bookSymmetry</v>()<br>cp.<v>diagonalSymmetry</v>()</code></pre>
+	</div>
+
+	<div class="quote">
+		<p><b>Book</b> or <b>horizontal</b> (line through edge) and <b>diagonal</b> (line through corners) symmetry.</p>
 	</div>
 
 	<div class="centered">
@@ -26,12 +30,25 @@
 	</div>
 
 	<div class="quote">
-		<p><b>Book</b> or <b>horizontal</b> (line through edge) and <b>diagonal</b> (line through corners) symmetry.</p>
+		<p>You can also specify a unique line of symmetry with two points</p>
+	</div>
+
+	<div class="centered">
+		<pre><code>cp.<v>setSymmetryLine</v>(<arg>point1</arg>, <arg>point2</arg>)</code></pre>
+	</div>
+
+	<div class="quote">
+		<p>This works like a state machine. Turn symmetry "on" and every fold's reflection will be creased also until the moment you turn symmetry off again.</p>
+	</div>
+
+	<div class="centered">
+		<pre><code>cp.<v>noSymmetry</v>()</code></pre>
 	</div>
 
 	<div class="quote">
 		<p>I would like to generalize the symmetry application function as much as possible.</p>
 	</div>
+
 
 </section>
 
