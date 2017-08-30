@@ -197,6 +197,9 @@ var PlanarEdge = (function (_super) {
     function PlanarEdge() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    PlanarEdge.prototype.midpoint = function () {
+        return new XY(0.5 * (this.nodes[0].x + this.nodes[1].x), 0.5 * (this.nodes[0].y + this.nodes[1].y));
+    };
     PlanarEdge.prototype.intersection = function (edge) {
         // todo: should intersecting adjacent edges return the point in common they have with each other?
         if (this.isAdjacentToEdge(edge)) {

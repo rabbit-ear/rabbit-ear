@@ -193,6 +193,19 @@ var CreasePattern = (function (_super) {
         g.boundary = b;
         return g;
     };
+    CreasePattern.prototype.possibleFolds3 = function () {
+        var next = this.duplicate();
+        next.nodes = [];
+        next.edges = [];
+        next.faces = [];
+        for (var i = 0; i < this.edges.length - 1; i++) {
+            for (var j = i + 1; j < this.edges.length; j++) {
+                next.creaseEdgeToEdge(this.edges[i], this.edges[j]);
+            }
+        }
+        next.cleanDuplicateNodes();
+        return next;
+    };
     CreasePattern.prototype.possibleFolds = function () {
         var next = this.duplicate();
         next.nodes = [];
@@ -203,14 +216,70 @@ var CreasePattern = (function (_super) {
                 next.creaseEdgeToEdge(this.edges[i], this.edges[j]);
             }
         }
-        // next.clean();
+        for (var i = 0; i < this.nodes.length - 1; i++) {
+            for (var j = i + 1; j < this.nodes.length; j++) {
+                next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
+                next.creasePointToPoint(this.nodes[i], this.nodes[j]);
+            }
+        }
+        next.cleanDuplicateNodes();
+        return next;
+    };
+    CreasePattern.prototype.possibleFolds2 = function () {
+        var next = this.duplicate();
+        next.nodes = [];
+        next.edges = [];
+        next.faces = [];
+        for (var i = 0; i < this.nodes.length - 1; i++) {
+            for (var j = i + 1; j < this.nodes.length; j++) {
+                next.creasePointToPoint(this.nodes[i], this.nodes[j]);
+            }
+        }
+        next.cleanDuplicateNodes();
+        return next;
+    };
+    CreasePattern.prototype.possibleFolds1 = function () {
+        var next = this.duplicate();
+        next.nodes = [];
+        next.edges = [];
+        next.faces = [];
+        for (var i = 0; i < this.nodes.length - 1; i++) {
+            for (var j = i + 1; j < this.nodes.length; j++) {
+                next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
+            }
+        }
+        next.cleanDuplicateNodes();
         return next;
     };
     ///////////////////////////////////////////////////////////////
     // ADD PARTS
-    // fold(param1, param2, param3, param4){
-    // 	// detects which parameters are there
-    // }
+    CreasePattern.prototype.fold = function (param1, param2, param3, param4) {
+        // detects which parameters are there
+    };
+    CreasePattern.prototype.foldInHalf = function () {
+        var crease;
+        if (epsilonEqual(this.width(), this.height())) {
+            this.clean();
+            var edgeCount = this.edges.length;
+            var edgeMidpoints = this.edges.map(function (el) { return el.midpoint(); });
+            var arrayOfPointsAndMidpoints = this.nodes.map(function (el) { return new XY(el.x, el.y); }).concat(edgeMidpoints);
+            // console.log(arrayOfPointsAndMidpoints);
+            var bounds = this.boundingBox();
+            var centroid = new XY(bounds.origin.x + bounds.size.width * 0.5, bounds.origin.y + bounds.size.height * 0.5);
+            var i = 0;
+            do {
+                console.log("new round");
+                console.log(this.edges.length);
+                crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
+                console.log(this.edges.length);
+                this.clean();
+                i++;
+            } while (edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length);
+            if (edgeCount !== this.edges.length)
+                return crease;
+        }
+        return;
+    };
     CreasePattern.prototype.pointInside = function (p) {
         for (var i = 0; i < this.boundary.edges.length; i++) {
             var endpts = this.boundary.edges[i].nodes;
@@ -356,9 +425,11 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.creaseThroughPoints = function (a, b) {
         var endPoints = this.clipLineInBoundary(a, b);
         if (endPoints === undefined) {
-            throw "creaseThroughPoints(): crease line doesn't cross inside boundary";
-        }
-        return this.newCrease(endPoints[0].x, endPoints[0].y, endPoints[1].x, endPoints[1].y);
+            return;
+        } //throw "creaseThroughPoints(): crease line doesn't cross inside boundary"; }
+        var newCrease = this.newCrease(endPoints[0].x, endPoints[0].y, endPoints[1].x, endPoints[1].y);
+        newCrease.madeBy = new Fold(this.creaseThroughPoints, [new XY(a.x, a.y), new XY(b.x, b.y)]);
+        return newCrease;
     };
     // AXIOM 2
     CreasePattern.prototype.creasePointToPoint = function (a, b) {
@@ -367,9 +438,12 @@ var CreasePattern = (function (_super) {
         var perp1 = new XY(-ab.y, ab.x);
         var intersects = this.boundaryLineIntersection(midpoint, perp1);
         if (intersects.length >= 2) {
-            return this.newCrease(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+            var newCrease = this.newCrease(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+            newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(a.x, a.y), new XY(b.x, b.y)]);
+            return newCrease;
         }
-        throw "points have no perpendicular bisector inside of the boundaries";
+        return;
+        // throw "points have no perpendicular bisector inside of the boundaries";
     };
     // AXIOM 3
     CreasePattern.prototype.creaseEdgeToEdge = function (a, b) {
@@ -379,7 +453,16 @@ var CreasePattern = (function (_super) {
             var intersect1 = lineIntersectionAlgorithm(u, new XY(u.x + perp.x, u.y + perp.y), a.nodes[0], a.nodes[1]);
             var intersect2 = lineIntersectionAlgorithm(u, new XY(u.x + perp.x, u.y + perp.y), b.nodes[0], b.nodes[1]);
             var midpoint = new XY((intersect1.x + intersect2.x) * 0.5, (intersect1.y + intersect2.y) * 0.5);
-            return [this.creaseThroughPoints(midpoint, new XY(midpoint.x + u.x, midpoint.y + u.y))];
+            var crease = this.creaseThroughPoints(midpoint, new XY(midpoint.x + u.x, midpoint.y + u.y));
+            if (crease !== undefined) {
+                crease.madeBy = new Fold(this.creaseEdgeToEdge, [
+                    new XY(a.nodes[0].x, a.nodes[0].y),
+                    new XY(a.nodes[1].x, a.nodes[1].y),
+                    new XY(b.nodes[0].x, b.nodes[0].y),
+                    new XY(b.nodes[1].x, b.nodes[1].y)
+                ]);
+            }
+            return [crease];
         }
         else {
             var creases = [];
@@ -402,9 +485,20 @@ var CreasePattern = (function (_super) {
                     creases.unshift(this.newCrease(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
             }
             if (creases.length) {
+                for (var i = 0; i < creases.length; i++) {
+                    if (creases[i] !== undefined) {
+                        creases[i].madeBy = new Fold(this.creaseEdgeToEdge, [
+                            new XY(a.nodes[0].x, a.nodes[0].y),
+                            new XY(a.nodes[1].x, a.nodes[1].y),
+                            new XY(b.nodes[0].x, b.nodes[0].y),
+                            new XY(b.nodes[1].x, b.nodes[1].y)
+                        ]);
+                    }
+                }
                 return creases;
             }
-            throw "lines have no inner edge inside of the boundaries";
+            return;
+            // throw "lines have no inner edge inside of the boundaries";
         }
         ;
     };
@@ -413,7 +507,11 @@ var CreasePattern = (function (_super) {
         var ab = new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y);
         var perp = new XY(-ab.y, ab.x);
         var point2 = new XY(point.x + perp.x, point.y + perp.y);
-        return this.creaseThroughPoints(point, point2);
+        var crease = this.creaseThroughPoints(point, point2);
+        if (crease !== undefined) {
+            crease.madeBy = new Fold(this.creasePerpendicularThroughPoint, [new XY(line.nodes[0].x, line.nodes[0].y), new XY(line.nodes[1].x, line.nodes[1].y), new XY(point.x, point.y)]);
+        }
+        return crease;
     };
     // AXIOM 5
     CreasePattern.prototype.creasePointToLine = function (origin, point, line) {
@@ -440,6 +538,7 @@ var CreasePattern = (function (_super) {
         }
         throw "axiom 7: two crease lines cannot be parallel";
     };
+    /////////////////////////////////////////////////////////////////////
     CreasePattern.prototype.boundaryLineIntersection = function (origin, direction) {
         var opposite = new XY(-direction.x, -direction.y);
         var intersects = [];
@@ -495,7 +594,26 @@ var CreasePattern = (function (_super) {
         var right = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? -1 : ((b.x > a.x) ? 1 : 0); })[0].x;
         var top = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); })[0].y;
         var bottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? -1 : ((b.y > a.y) ? 1 : 0); })[0].y;
+        return { origin: new XY(left, top), size: { width: right - left, height: bottom - top } };
+    };
+    CreasePattern.prototype.boundingBoxD3 = function () {
+        var left = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); })[0].x;
+        var right = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? -1 : ((b.x > a.x) ? 1 : 0); })[0].x;
+        var top = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); })[0].y;
+        var bottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? -1 : ((b.y > a.y) ? 1 : 0); })[0].y;
         return [[left, top], [right - left, bottom - top]];
+    };
+    CreasePattern.prototype.width = function () {
+        // this is the width of the BOUNDING BOX. be careful if the polygon is not a square
+        var left = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); })[0].x;
+        var right = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? -1 : ((b.x > a.x) ? 1 : 0); })[0].x;
+        return right - left;
+    };
+    CreasePattern.prototype.height = function () {
+        // this is the height of the BOUNDING BOX. be careful if the polygon is not a square
+        var top = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); })[0].y;
+        var bottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? -1 : ((b.y > a.y) ? 1 : 0); })[0].y;
+        return bottom - top;
     };
     CreasePattern.prototype.square = function (width) {
         // console.log("setting page size: square()");
@@ -594,6 +712,24 @@ var CreasePattern = (function (_super) {
             .sort(function (a, b) { var ax = a.nodes[0].x + a.nodes[1].x; var bx = b.nodes[0].x + b.nodes[1].x; return (ax > bx) ? 1 : (ax < bx) ? -1 : 0; });
         if (boundaries.length > 0) {
             return boundaries[0];
+        }
+        return undefined;
+    };
+    CreasePattern.prototype.topLeftCorner = function () {
+        var boundaries = this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { var ay = a.nodes[0].y + a.nodes[1].y; var by = b.nodes[0].y + b.nodes[1].y; return (ay > by) ? 1 : (ay < by) ? -1 : 0; });
+        if (boundaries.length > 0) {
+            return boundaries[0].nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : (a.x < b.x) ? -1 : 0; })[0];
+        }
+        return undefined;
+    };
+    CreasePattern.prototype.topRightCorner = function () {
+        var boundaries = this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { var ay = a.nodes[0].y + a.nodes[1].y; var by = b.nodes[0].y + b.nodes[1].y; return (ay > by) ? 1 : (ay < by) ? -1 : 0; });
+        if (boundaries.length > 0) {
+            return boundaries[0].nodes.sort(function (a, b) { return (a.x > b.x) ? -1 : (a.x < b.x) ? 1 : 0; })[0];
         }
         return undefined;
     };

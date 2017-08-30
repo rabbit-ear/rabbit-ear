@@ -197,6 +197,9 @@ class PlanarEdge extends GraphEdge{
 	graph:PlanarGraph;
 	nodes:[PlanarNode,PlanarNode];
 
+	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
+	                               0.5*(this.nodes[0].y + this.nodes[1].y));}
+
 	intersection(edge:PlanarEdge):EdgeIntersection{
 		// todo: should intersecting adjacent edges return the point in common they have with each other?
 		if(this.isAdjacentToEdge(edge)){ return undefined; }
@@ -747,6 +750,16 @@ class PlanarGraph extends Graph{
 			console.log(' ' + i + ': (' + this.edges[i].nodes[0].index + ' -- ' + this.edges[i].nodes[1].index + ')');
 		}
 	}
+
+	edgeExistsThroughPoints(a:XY, b:XY):boolean{
+		for(var i = 0; i < this.edges.length; i++){
+			if( (a.equivalent(this.edges[i].nodes[0]) && b.equivalent(this.edges[i].nodes[1])) || 
+				(a.equivalent(this.edges[i].nodes[1]) && b.equivalent(this.edges[i].nodes[0])) ){
+				return true;
+		}
+		return false;
+	}
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////
