@@ -628,6 +628,7 @@ class CreasePattern extends PlanarGraph{
 		this.nodes = [];
 		this.edges = [];
 		this.faces = [];
+		this.symmetryLine = undefined;
 		if(this.boundary === undefined){ return this; }
 		for(var i = 0; i < this.boundary.edges.length; i++){
 			var nodes = this.boundary.edges[i].nodes;

@@ -669,6 +669,7 @@ var CreasePattern = (function (_super) {
         this.nodes = [];
         this.edges = [];
         this.faces = [];
+        this.symmetryLine = undefined;
         if (this.boundary === undefined) {
             return this;
         }

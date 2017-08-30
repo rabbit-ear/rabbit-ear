@@ -771,6 +771,9 @@ class PlanarGraph extends Graph{
 //                            2D ALGORITHMS
 //
 
+function map(input:number, floor1:number, ceiling1:number, floor2:number, ceiling2:number):number{
+	return (input - floor1 / (ceiling1 - floor1)) * (ceiling2 - floor2) + floor2;
+}
 
 // if number is within epsilon range of a whole number, remove the floating point noise.
 //  example: turns 0.999999989764 into 1.0
