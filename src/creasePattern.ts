@@ -119,6 +119,7 @@ class CreasePattern extends PlanarGraph{
 	duplicate():CreasePattern{
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
+		this.faceArrayDidChange();
 		var g = new CreasePattern();
 		g.boundary = undefined;
 		g.clear();
@@ -137,12 +138,21 @@ class CreasePattern extends PlanarGraph{
 		}
 		for(var i = 0; i < this.faces.length; i++){
 			var f = new PlanarFace(g);
-			(<any>Object).assign(f, this.faces[i]);
-			for(var j=0;j<this.faces[i].nodes.length;j++){f.nodes.push(f.nodes[this.faces[i].nodes[j].index]);}
-			for(var j=0;j<this.faces[i].edges.length;j++){f.edges.push(f.edges[this.faces[i].edges[j].index]);}
-			for(var j=0;j<this.faces[i].angles.length;j++){f.angles.push(this.faces[i].angles[j]); }
-			f.graph = g;
 			g.faces.push(f);
+			f.graph = g; 
+			f.index = i;
+			// (<any>Object).assign(f, this.faces[i]);
+			for(var j=0;j<this.faces[i].nodes.length;j++){
+				var nIndex = this.faces[i].nodes[j].index;
+				f.nodes.push(g.nodes[nIndex]);
+			}
+			for(var j=0;j<this.faces[i].edges.length;j++){
+				var eIndex = this.faces[i].edges[j].index;
+				f.edges.push(g.edges[eIndex]);
+			}
+			for(var j=0;j<this.faces[i].angles.length;j++){
+				f.angles.push(this.faces[i].angles[j]); 
+			}
 		}
 		// boundary
 		this.boundary.nodeArrayDidChange();
@@ -865,7 +875,186 @@ class CreasePattern extends PlanarGraph{
 	// 	return intersections;
 	// }
 
-	exportSVG(scale){
+
+	joinedPaths():XY[][]{
+		var cp = this.duplicate();
+		cp.clean();
+		cp.removeIsolatedNodes();
+		var paths = [];
+		while(cp.edges.length > 0){
+			var node = cp.nodes[0];
+			var adj = <CreaseNode[]>node.adjacentNodes();
+			var path = [];
+			if(adj.length === 0){
+				// this shouldn't ever happen
+				cp.removeIsolatedNodes();
+			}else{
+				var nextNode = adj[0];
+				var edge = cp.getEdgeConnectingNodes(node, nextNode);
+				path.push( new XY(node.x, node.y) );
+				// remove edge
+				cp.edges = cp.edges.filter(function(el){
+					return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
+					         (el.nodes[0] === nextNode && el.nodes[1] === node) );
+				});
+				cp.removeIsolatedNodes();
+				node = nextNode;
+				adj = [];
+				if(node !== undefined){ adj = <CreaseNode[]>node.adjacentNodes(); }
+				while(adj.length > 0){
+					nextNode = adj[0];
+					path.push( new XY(node.x, node.y) );
+					cp.edges = cp.edges.filter(function(el){
+						return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
+						         (el.nodes[0] === nextNode && el.nodes[1] === node) );
+					});
+					cp.removeIsolatedNodes();
+					node = nextNode;
+					adj = <CreaseNode[]>node.adjacentNodes();
+				}
+				path.push(new XY(node.x, node.y));
+			}
+			paths.push(path);
+		}
+		return paths;
+
+	}
+	// joinedPaths():XY[][]{
+	// 	var cp = this.duplicate();
+	// 	cp.clean();
+
+	// 	console.log(cp);
+
+	// 	var edge = cp.edges[0];
+	// 	var adj = <Crease[]>edge.adjacentEdges();
+	// 	var nextEdge = undefined;
+	// 	console.log(edge.nodes[0].x.toFixed(2) + " " + edge.nodes[0].y.toFixed(2) + " -- " + edge.nodes[1].x.toFixed(2) + " " + edge.nodes[1].y.toFixed(2) );
+
+	// 	var path = [];
+	// 	if(adj.length === 0){
+	// 		// lone edge, no adjacency.
+	// 		path.push(new XY(edge.nodes[0].x, edge.nodes[0].y));
+	// 		path.push(new XY(edge.nodes[1].x, edge.nodes[1].y));
+	// 		cp.edges = cp.edges.filter(function(el){ return el !== edge; });
+	// 	} else{
+	// 		// the first edge of a path, set the first point before walking
+	// 		nextEdge = adj[0];
+	// 		var node = <CreaseNode>edge.uncommonNodeWithEdge(nextEdge);
+	// 		path.push( new XY(node.x, node.y) );
+	// 		console.log("adding: " + node.x.toFixed(2) + " " + node.y.toFixed(2) + "  uncommon");
+	// 		while(nextEdge !== undefined){
+	// 			console.log(edge);
+	// 			node = <CreaseNode>edge.commonNodeWithEdge(nextEdge);
+	// 			var notNode = <CreaseNode>nextEdge.uncommonNodeWithEdge(edge);
+	// 			console.log("adding: " + node.x.toFixed(2) + " " + node.y.toFixed(2) + " ... not " + notNode.x.toFixed(2) + " " + notNode.y.toFixed(2) + "  common");
+	// 			console.log("these next 2 are supposed to be equal");
+	// 			console.log(nextEdge);
+	// 			path.push( new XY(node.x, node.y) );
+	// 			var edgeToRemove = edge;
+	// 			edge = nextEdge;
+	// 			cp.edges = cp.edges.filter(function(el){ return el !== edgeToRemove; });
+	// 			adj = <Crease[]>edge.adjacentEdges();
+	// 			nextEdge = undefined;
+	// 			if(adj.length > 0){ nextEdge = adj[0]; }
+	// 		}
+
+	// 		var a = edge.nodes[0]; 
+	// 		var b = edge.nodes[1];
+	// 		if( node === a) path.push(new XY(b.x, b.y));
+	// 		if( node === b) path.push(new XY(a.x, a.y));
+	// 		console.log("adding: " + path[path.length-1].x.toFixed(2) + " " + path[path.length-1].y.toFixed(2) + "  end");
+	// 		cp.edges = cp.edges.filter(function(el){ return el !== edge; });
+	// 	}
+	// 	return [path];
+	// }
+
+	/*joinedPaths():XY[][]{
+		// function removeEdgeLite(graph:Graph, edge:GraphEdge){
+		// 	graph.edges = graph.edges.filter(function(el){ return el !== edge; });
+		// 	graph.edgeArrayDidChange();
+		// }
+
+		var cp = this.duplicate();
+		cp.clean();
+		var paths = [];
+		while(cp.edges.length > 0){
+			console.log("cp.edges.length: " + cp.edges.length);
+			console.log(cp.edges);
+			console.log("NEW LOOP");
+			// pick a starting edge
+			var thisEdge = cp.edges[0];
+			// get it's adjacent array
+			var adj = <Crease[]>thisEdge.adjacentEdges();
+
+			if(adj !== undefined && adj.length > 0){
+				var nextEdge = adj[0];
+				var node = <CreaseNode>thisEdge.uncommonNodeWithEdge(nextEdge);
+				var thisPath:XY[] = [];
+				if(node !== undefined){ thisPath.push(new XY(node.x, node.y)); }
+
+				while(adj.length > 0){
+					nextEdge = adj[0];  // redundant the first time only
+					console.log("adj.length: " + adj.length);
+					console.log("edges: " + cp.edges.length);
+					node = <CreaseNode>thisEdge.commonNodeWithEdge(nextEdge);
+					thisPath.push(new XY(node.x, node.y));
+					//remove edge from graph and add it to our paths array
+					console.log("removing " + thisEdge.index + " from: " + cp.edges.length);
+					cp.edges = cp.edges.filter(function(el){ return el !== thisEdge; });
+					console.log("finished removing. now: " + cp.edges.length);
+					// cp.edgeArrayDidChange();
+					thisEdge = nextEdge;
+					adj = <Crease[]>thisEdge.adjacentEdges();
+				}
+
+				var a = thisEdge.nodes[0]; 
+				var b = thisEdge.nodes[1];
+				if( node === a) thisPath.push(new XY(b.x, b.y));
+				if( node === b) thisPath.push(new XY(a.x, a.y));
+				console.log("ADD THIS PATH");
+				console.log(thisPath);
+			} else{
+				var a = thisEdge.nodes[0]; 
+				var b = thisEdge.nodes[1];
+				var thisPath:XY[] = [];
+				thisPath.push(new XY(b.x, b.y));
+				thisPath.push(new XY(a.x, a.y));
+				cp.edges = cp.edges.filter(function(el){ return el !== thisEdge; });
+			}
+			// paths[paths.length] = thisPath;
+			paths.push(thisPath);
+		}
+		return paths;
+	}*/
+
+	svgMin(scale:number):string{
+		console.log("svgMin");
+		var paths = this.joinedPaths();
+		if(scale == undefined || scale <= 0){
+			scale = 400;
+		}
+		var blob = "";
+		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +scale+ "px\" height=\"" +scale+ "px\" viewBox=\"0 0 " +scale+ " " +scale+ "\">\n<g>\n";
+
+		for(var i = 0; i < paths.length; i++){
+			if(paths[i].length >= 0){
+				blob += "<polyline fill=\"none\" stroke-width=\"3\" stroke=\"#000000\" points=\"";
+				for(var j = 0; j < paths[i].length; j++){
+					var point = paths[i][j];
+					blob += (scale*point.x).toFixed(4) + "," + (scale*point.y).toFixed(4) + " ";
+				}
+				blob += "\"/>\n";
+			}
+		}
+
+		//////// RECT BORDER
+		// blob += "<line stroke=\"#000000\" x1=\"0\" y1=\"0\" x2=\"" +scale+ "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +scale+ "\" y1=\"0\" x2=\"" +scale+ "\" y2=\"" +scale+ "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +scale+ "\" y1=\"" +scale+ "\" x2=\"0\" y2=\"" +scale+ "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" +scale+ "\" x2=\"0\" y2=\"0\"/>\n";
+
+		blob = blob + "</g>\n</svg>\n";
+		return blob;
+	}
+
+	svg(scale){
 		if(scale == undefined || scale <= 0){
 			scale = 1;
 		}

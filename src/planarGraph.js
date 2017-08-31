@@ -323,15 +323,6 @@ var PlanarFace = (function () {
                 }
             }
         }, this).filter(function (el) { return el !== undefined; });
-        // var adjacent = this.graph.faces.filter(function(el){
-        // 	for(var i = 0; i < el.edges.length; i++){
-        // 		for(var j = 0; j < this.edges.length; j++){
-        // 			if(el.edges[i] === this.edges[j]){
-        // 			}
-        // 		}
-        // 	}
-        // }, this);
-        // return adjacent;
     };
     PlanarFace.prototype.contains = function (point) {
         for (var i = 0; i < this.edges.length; i++) {
@@ -762,6 +753,9 @@ var PlanarGraph = (function (_super) {
     // }
     ///////////////////////////////////////////////////////////////
     // FACE
+    PlanarGraph.prototype.faceArrayDidChange = function () { for (var i = 0; i < this.faces.length; i++) {
+        this.faces[i].index = i;
+    } };
     PlanarGraph.prototype.generateFaces = function () {
         this.faces = [];
         for (var i = 0; i < this.nodes.length; i++) {
@@ -779,6 +773,7 @@ var PlanarGraph = (function (_super) {
                 }
             }
         }
+        this.faceArrayDidChange();
         return this.faces;
     };
     PlanarGraph.prototype.findClockwiseCircut = function (node1, node2) {
@@ -821,6 +816,44 @@ var PlanarGraph = (function (_super) {
             return face;
         }
     };
+    PlanarGraph.prototype.adjacentFacesTree = function (start) {
+        function allocateFaces(face) {
+            var adjacent = face.edgeAdjacentFaces();
+        }
+        // when a face gets allocated, set this to true
+        var allocated = this.faces.map(function (el) { return false; });
+        var limit = 0;
+        var thisDepth = start.edgeAdjacentFaces();
+        var tree = new AdjacentFace();
+        tree.face = start;
+        allocated[tree.face.index] = true;
+        tree.adjacent = thisDepth.map(function (el) {
+            var f = new AdjacentFace();
+            f.face = el;
+            return f;
+        });
+        for (var i = 0; i < tree.adjacent.length; i++) {
+            allocated[tree.adjacent[i].face.index] = true;
+        }
+        do {
+            var nextDepth = [];
+            for (var i = 0; i < thisDepth.length; i++) {
+                nextDepth = nextDepth.concat(thisDepth[i].edgeAdjacentFaces());
+            }
+            nextDepth.filter(function (el) { return !allocated[el.index]; });
+            thisDepth = nextDepth;
+            var t = new AdjacentFace();
+            // t.face = start;
+            t.adjacent = thisDepth.map(function (el) {
+                var f = new AdjacentFace();
+                f.face = el;
+                return f;
+            });
+            limit++;
+        } while (limit < this.faces.length);
+        return;
+    };
+    ///////////////////////////////////////////////////////////////////////
     PlanarGraph.prototype.log = function (verbose) {
         console.log('#Nodes: ' + this.nodes.length);
         console.log('#Edges: ' + this.edges.length);
@@ -849,6 +882,11 @@ var PlanarGraph = (function (_super) {
     };
     return PlanarGraph;
 }(Graph));
+var AdjacentFace = (function () {
+    function AdjacentFace() {
+    }
+    return AdjacentFace;
+}());
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 //

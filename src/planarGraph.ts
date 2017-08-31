@@ -245,6 +245,8 @@ class PlanarFace{
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
 	angles:number[];
+	index:number;
+
 	constructor(graph:PlanarGraph){
 		this.graph = graph;
 		this.nodes = [];
@@ -717,6 +719,8 @@ class PlanarGraph extends Graph{
 	///////////////////////////////////////////////////////////////
 	// FACE
 
+	faceArrayDidChange(){for(var i=0; i<this.faces.length; i++){this.faces[i].index=i;}}
+
 	generateFaces():PlanarFace[]{
 		this.faces = [];
 		for(var i = 0; i < this.nodes.length; i++){
@@ -729,6 +733,7 @@ class PlanarGraph extends Graph{
 				if(!duplicate){ this.faces.push(adjacentFaces[af]); }
 			}
 		}
+		this.faceArrayDidChange();
 		return this.faces;
 	}
 
@@ -769,6 +774,50 @@ class PlanarGraph extends Graph{
 		}
 	}
 
+	adjacentFacesTree(start:PlanarFace):AdjacentFace{
+
+		function allocateFaces(face:PlanarFace){
+			var adjacent = face.edgeAdjacentFaces();
+		}
+
+		// when a face gets allocated, set this to true
+		var allocated = this.faces.map(function(el){ return false; });
+		var limit = 0;
+
+		var thisDepth = start.edgeAdjacentFaces();
+
+		var tree = new AdjacentFace();
+		tree.face = start;
+		allocated[ tree.face.index ] = true;
+		tree.adjacent = thisDepth.map(function(el){
+			var f = new AdjacentFace();
+			f.face = el;
+			return f;
+		});
+		for(var i = 0; i < tree.adjacent.length; i++){
+			allocated[ tree.adjacent[i].face.index ] = true;
+		}
+		do{
+			var nextDepth:PlanarFace[] = [];
+			for(var i = 0; i < thisDepth.length; i++){
+				nextDepth = nextDepth.concat(thisDepth[i].edgeAdjacentFaces());
+			}
+			nextDepth.filter(function(el){ return !allocated[el.index]; });
+			thisDepth = nextDepth;
+			var t = new AdjacentFace();
+			// t.face = start;
+			t.adjacent = thisDepth.map(function(el){
+				var f = new AdjacentFace();
+				f.face = el;
+				return f;
+			});
+			limit++;
+		}while(limit < this.faces.length);
+		return;
+	}
+
+	///////////////////////////////////////////////////////////////////////
+
 	log(verbose?:boolean){
 		console.log('#Nodes: ' + this.nodes.length);
 		console.log('#Edges: ' + this.edges.length);
@@ -797,6 +846,11 @@ class PlanarGraph extends Graph{
 		return false;
 	}
 
+}
+
+class AdjacentFace{
+	face:PlanarFace;
+	adjacent:AdjacentFace[];
 }
 
 /////////////////////////////////////////////////////////////////////////////////
