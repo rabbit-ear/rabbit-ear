@@ -1,6 +1,6 @@
 mouse_delete_edge_callback = undefined;
 
-var deleteEdge = new PaperCreasePattern("canvas-mouse-delete-edge");
+var deleteEdge = new OrigamiPaper("canvas-mouse-delete-edge");
 deleteEdge.zoomToFit(0.05);
 
 deleteEdge.selectNearestEdge = true;

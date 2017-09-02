@@ -1,5 +1,5 @@
 
-var faceAnim = new PaperCreasePattern("canvas-face-anim", new PlanarGraph());
+var faceAnim = new OrigamiPaper("canvas-face-anim", new PlanarGraph());
 // faceAnim.zoomToFit(0.05);
 
 faceAnim.reset = function(){

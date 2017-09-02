@@ -1,5 +1,5 @@
 
-var jointTri = new PaperCreasePattern("canvas-joint-triangle-animated");
+var jointTri = new OrigamiPaper("canvas-joint-triangle-animated");
 jointTri.zoomToFit(0.05);
 // jointTri.selectNearestEdge = true;
 

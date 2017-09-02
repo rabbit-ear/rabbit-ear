@@ -6,7 +6,7 @@ function new_sketch(){
 	zoomView(scope, canvas.width, canvas.height);
 
 	var cp = new CreasePattern();
-	var paperCP = new PaperCreasePattern(scope, cp);
+	var paperCP = new OrigamiPaper(scope, cp);
 
 	function init(){
 		cp.clear();

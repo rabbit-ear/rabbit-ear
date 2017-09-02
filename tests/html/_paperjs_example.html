@@ -28,7 +28,7 @@ canvas[resize] {
 var NUM_LINES = 10;
 
 var cp = new CreasePattern();
-var paperCP = new PaperCreasePattern("canvas", cp);
+var paperCP = new OrigamiPaper("canvas", cp);
 paperCP.zoomToFit(0.1);
 
 paperCP.onFrame = function(event) { }

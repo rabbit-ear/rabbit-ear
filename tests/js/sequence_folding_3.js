@@ -1,5 +1,5 @@
 
-var sequence3 = new PaperCreasePattern("canvas-sequence-folding-3");
+var sequence3 = new OrigamiPaper("canvas-sequence-folding-3");
 sequence3.zoomToFit(0.1);
 
 sequence3.reset = function(){ }

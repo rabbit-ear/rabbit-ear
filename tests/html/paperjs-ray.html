@@ -38,7 +38,7 @@ window.onload = function() {
 	paper.setup(canvas);
 	zoomView(paper);
 	
-	var paperCP = new PaperCreasePattern(paper, cp);
+	var paperCP = new OrigamiPaper(paper, cp);
 	console.log(paperCP);
 
 	var rayCenter = new XY(0.5, 0.5);

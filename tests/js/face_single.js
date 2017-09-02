@@ -1,6 +1,6 @@
 var singleFaceCallback;
 
-var singleFace = new PaperCreasePattern("canvas-face-single");
+var singleFace = new OrigamiPaper("canvas-face-single");
 // singleFace.zoomToFit(0.05);
 
 singleFace.reset = function(){

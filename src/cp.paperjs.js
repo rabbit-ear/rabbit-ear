@@ -1,4 +1,4 @@
-// PaperCreasePattern
+// OrigamiPaper
 // render and style a crease pattern into an HTML canvas using PaperJS
 // reimplement methods for interaction
 
@@ -17,10 +17,10 @@ function pointsSimilar(p1, p2, epsilon){
 	return false;
 }
 
-var PaperCreasePattern = (function () {
+var OrigamiPaper = (function () {
 
-	function PaperCreasePattern(canvas, creasePattern) {
-		if(canvas === undefined) { throw "PaperCreasePattern() needs to be initialized with an HTML canvas"; }
+	function OrigamiPaper(canvas, creasePattern) {
+		if(canvas === undefined) { throw "OrigamiPaper() needs to be initialized with an HTML canvas"; }
 		if(typeof canvas === "string"){ this.canvas = document.getElementById(canvas); }
 		else this.canvas = canvas;
 
@@ -31,6 +31,7 @@ var PaperCreasePattern = (function () {
 		// PAPER JS
 		this.scope = new paper.PaperScope();
 		this.scope.setup(canvas);
+		this.zoomToFit();
 
 		// the order of the following sets the z index order too
 		this.faceLayer = new this.scope.Layer();
@@ -73,10 +74,9 @@ var PaperCreasePattern = (function () {
 			that.onResize(event); 
 		}
 		
-		this.zoomToFit();
 		this.initialize();
     }
-    PaperCreasePattern.prototype.initialize = function(){
+    OrigamiPaper.prototype.initialize = function(){
 		// on-screen drawn elements
 		this.nodes = [];
 		this.edges = [];
@@ -124,9 +124,10 @@ var PaperCreasePattern = (function () {
 			face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
 			this.faces.push( face );
 		}
+		this.zoomToFit();
     }
 
-    PaperCreasePattern.prototype.update = function () {
+    OrigamiPaper.prototype.update = function () {
 		for(var i = 0; i < this.cp.nodes.length; i++){ 
 			this.nodes[i].position = this.cp.nodes[i]; 
 			Object.assign(this.nodes[i], this.style.nodes);
@@ -147,28 +148,33 @@ var PaperCreasePattern = (function () {
 		}	
 	};
 
-	PaperCreasePattern.prototype.zoomToFit = function(padding){
+	OrigamiPaper.prototype.zoomToFit = function(padding){
 		// store padding for future calls
+		var pageWidth = this.cp.width();
+		var pageHeight = this.cp.height();
 		if(padding !== undefined){ this.padding = padding; }
 		// use stored padding if we can
 		var paperWindowScale = 1.0 - .015;
 		if(this.padding !== undefined){ paperWindowScale = 1.0 - this.padding*2; }
 		var pixelScale = 1.0;
 		if(isRetina){ pixelScale = 0.5; }
-		var w, h;
+		var canvasWidth, canvasHeight;
 		if(this.canvas !== undefined){
-			w = this.canvas.width;
-			h = this.canvas.height;
+			canvasWidth = this.canvas.width;
+			canvasHeight = this.canvas.height;
 		} else { 
-			w = window.innerWidth;
-			h = window.innerHeight;
+			canvasWidth = window.innerWidth;
+			canvasHeight = window.innerHeight;
 		}
 		var paperSize;
-		if(w < h){ paperSize = w * paperWindowScale * pixelScale; } 
-		else     { paperSize = h * paperWindowScale * pixelScale; }
+		if(canvasWidth < canvasHeight){ paperSize = canvasWidth*paperWindowScale*pixelScale; } 
+		else                          { paperSize = canvasHeight*paperWindowScale*pixelScale; }
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
-		if(w < h){ mat.translate(w * 0.5 * pixelScale, w * 0.5 * pixelScale); }
-		else     { mat.translate(h * 0.5 * pixelScale, h * 0.5 * pixelScale); }
+		if(canvasWidth < canvasHeight){ 
+			mat.translate(canvasWidth * 0.5 * pixelScale, canvasWidth * 0.5 * pixelScale); 
+		} else { 
+			mat.translate(canvasHeight * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale); 
+		}
 		mat.scale(paperSize, paperSize);
 		mat.translate(-0.5, -0.5);
 		this.scope.view.matrix = mat;
@@ -179,13 +185,13 @@ var PaperCreasePattern = (function () {
 	// USER INTERACTION
 	///////////////////////////////////////////////////
 
-	PaperCreasePattern.prototype.onResize = function(event){ }
-	PaperCreasePattern.prototype.onFrame = function(event){ }
-	PaperCreasePattern.prototype.onMouseDown = function(event){ }
-	PaperCreasePattern.prototype.onMouseUp = function(event){ }
-	PaperCreasePattern.prototype.onMouseMove = function(event){ }
+	OrigamiPaper.prototype.onResize = function(event){ }
+	OrigamiPaper.prototype.onFrame = function(event){ }
+	OrigamiPaper.prototype.onMouseDown = function(event){ }
+	OrigamiPaper.prototype.onMouseUp = function(event){ }
+	OrigamiPaper.prototype.onMouseMove = function(event){ }
 
-	PaperCreasePattern.prototype.highlightNearestNode = function(position){
+	OrigamiPaper.prototype.highlightNearestNode = function(position){
 		var node = this.cp.getNearestNode( position.x, position.y );
 		if(node === undefined) return;
 		if(this.nearestNode !== node){
@@ -198,7 +204,7 @@ var PaperCreasePattern = (function () {
 		}
 	};
 
-	PaperCreasePattern.prototype.highlightNearestEdge = function(position){
+	OrigamiPaper.prototype.highlightNearestEdge = function(position){
 		var edge = this.cp.getNearestEdge( position.x, position.y ).edge;
 		if(edge === undefined) return;
 		if(this.nearestEdge !== edge){
@@ -217,14 +223,14 @@ var PaperCreasePattern = (function () {
 
 	var lineWeight = 0.01;
 
-	PaperCreasePattern.prototype.styleForCrease = function(orientation){
+	OrigamiPaper.prototype.styleForCrease = function(orientation){
 		if   (orientation === CreaseDirection.mountain){ return this.style.mountain; }
 		else if(orientation === CreaseDirection.valley){ return this.style.valley; }
 		else if(orientation === CreaseDirection.border){ return this.style.border; }
 		return this.style.mark;
 	};
 
-	PaperCreasePattern.prototype.defaultStyleTemplate = function(){
+	OrigamiPaper.prototype.defaultStyleTemplate = function(){
 		return {
 			selectedNode: {
 				radius: 0.02, 
@@ -273,7 +279,7 @@ var PaperCreasePattern = (function () {
 		}
 	};
 
-	return PaperCreasePattern;
+	return OrigamiPaper;
 }());
 
 
@@ -287,16 +293,22 @@ function loadSVG(path, callback){
 		var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
 		svgLayer.matrix = mat;
 
+		// fix the closed segments thing
+
 		var cp = new CreasePattern().rectangle(w,h);
 		function recurseAndAdd(childrenArray){
 			for(var i = 0; i < childrenArray.length; i++){
 				if(childrenArray[i].segments != undefined){ // found a line
-					for(var j = 0; j < childrenArray[i].segments.length-1; j++){
-						// cp.crease(childrenArray[i].segments[j].point, childrenArray[i].segments[j+1].point);
+					var numSegments = childrenArray[i].segments.length-1;
+					if(childrenArray[i].closed === true){
+						numSegments = childrenArray[i].segments.length;
+					}
+					for(var j = 0; j < numSegments; j++){
+						var next = (j+1)%childrenArray[i].segments.length;
 						cp.newCrease(childrenArray[i].segments[j].point.x,
 						             childrenArray[i].segments[j].point.y, 
-						             childrenArray[i].segments[j+1].point.x,
-						             childrenArray[i].segments[j+1].point.y);
+						             childrenArray[i].segments[next].point.x,
+						             childrenArray[i].segments[next].point.y);
 					}
 				} else if (childrenArray[i].children != undefined){
 					recurseAndAdd(childrenArray[i].children);

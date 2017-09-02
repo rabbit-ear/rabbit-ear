@@ -1,5 +1,5 @@
 
-var fishSwim = new PaperCreasePattern("canvas-fish-base-wobble");
+var fishSwim = new OrigamiPaper("canvas-fish-base-wobble");
 fishSwim.zoomToFit(0.05);
 
 
@@ -49,7 +49,7 @@ fishSwim.onMouseMove = function(event) {
 // 	zoomView(scope, canvas.width, canvas.height);
 
 // 	fishCP.fishBase();
-// 	var paperCP = new PaperCreasePattern(scope, fishCP);
+// 	var paperCP = new OrigamiPaper(scope, fishCP);
 // 	// paperCP.faceLayer.visible = false;
 // 	for(var j = 0; j < paperCP.faceLayer.children.length; j++){
 // 		paperCP.faceLayer.children[j].fillColor.alpha = 0.001;

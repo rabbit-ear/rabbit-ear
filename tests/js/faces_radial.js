@@ -1,6 +1,6 @@
 // generate faces
 
-var radialFaces = new PaperCreasePattern("canvas-faces-radial");
+var radialFaces = new OrigamiPaper("canvas-faces-radial");
 radialFaces.zoomToFit(0.05);
 
 radialFaces.selectNearestNode = true;

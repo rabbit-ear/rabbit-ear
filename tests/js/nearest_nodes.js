@@ -1,5 +1,5 @@
 
-var nearNodeSketch = new PaperCreasePattern("canvas-nearest-nodes", new PlanarGraph());
+var nearNodeSketch = new OrigamiPaper("canvas-nearest-nodes", new PlanarGraph());
 nearNodeSketch.zoomToFit(0.0);
 
 nearNodeSketch.edgeLayer = new paper.Layer();

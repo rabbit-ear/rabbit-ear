@@ -79,8 +79,8 @@ cp2.generateFaces();
 // cp3.frogBase();
 // cp3.generateFaces();
 
-new PaperCreasePattern("canvas-1", cp1);
-new PaperCreasePattern("canvas-2", cp2);
+new OrigamiPaper("canvas-1", cp1);
+new OrigamiPaper("canvas-2", cp2);
 
 </script>
 

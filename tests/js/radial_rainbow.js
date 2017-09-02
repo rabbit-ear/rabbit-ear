@@ -1,6 +1,6 @@
 var radial_rainbow_callback = undefined;
 
-var radialRay = new PaperCreasePattern("canvas-radial-rainbow", new PlanarGraph());
+var radialRay = new OrigamiPaper("canvas-radial-rainbow", new PlanarGraph());
 radialRay.zoomToFit(0.05);
 
 radialRay.colorForAngle = function(angle){

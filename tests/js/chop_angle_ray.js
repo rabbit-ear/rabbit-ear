@@ -1,5 +1,5 @@
 
-var chopRays = new PaperCreasePattern("canvas-chop-angle-ray");
+var chopRays = new OrigamiPaper("canvas-chop-angle-ray");
 chopRays.zoomToFit(0.05);
 
 chopRays.selectNearestEdge = true;

@@ -37,10 +37,10 @@
 <script type="text/javascript" src="../tests/js/joint_tri_anim.js"></script>
 
 <script>
-	new PaperCreasePattern("canvas-1", new CreasePattern().birdBase());
+	new OrigamiPaper("canvas-1", new CreasePattern().birdBase());
 
 
-var loadSVGSketch = new PaperCreasePattern("canvas-load-svg");
+var loadSVGSketch = new OrigamiPaper("canvas-load-svg");
 
 loadSVG("/tests/svg/crane.svg", function(cp){ 
 	loadSVGSketch.cp = cp;

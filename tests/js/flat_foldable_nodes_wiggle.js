@@ -1,7 +1,7 @@
 var flat_foldable_nodes_wiggle_callback;
 var flat_foldable_nodes_callback;
 
-var ffMoveNode = new PaperCreasePattern("canvas-flat-foldable-nodes-wiggle");
+var ffMoveNode = new OrigamiPaper("canvas-flat-foldable-nodes-wiggle");
 ffMoveNode.zoomToFit(0.05);
 
 nearestNode = undefined;

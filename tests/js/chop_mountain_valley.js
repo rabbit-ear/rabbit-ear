@@ -1,5 +1,5 @@
 
-var chopMV = new PaperCreasePattern("canvas-chop-mountain-valley");
+var chopMV = new OrigamiPaper("canvas-chop-mountain-valley");
 chopMV.zoomToFit(0.05);
 
 chopMV.selectNearestEdge = true;

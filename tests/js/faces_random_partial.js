@@ -1,7 +1,7 @@
 // generate faces
 faces_random_partial_callback = undefined;
 
-var partialFaces = new PaperCreasePattern("canvas-faces-random-partial");
+var partialFaces = new OrigamiPaper("canvas-faces-random-partial");
 partialFaces.zoomToFit(0.05);
 
 partialFaces.selectNearestEdge = true;

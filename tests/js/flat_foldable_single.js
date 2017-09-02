@@ -1,6 +1,6 @@
 var flat_foldable_single_callback;
 
-var ffSingle = new PaperCreasePattern("canvas-flat-foldable-single");
+var ffSingle = new OrigamiPaper("canvas-flat-foldable-single");
 ffSingle.zoomToFit(0.05);
 ffSingle.masterCP = new CreasePattern();
 

@@ -1,5 +1,5 @@
 
-var rayIntersect = new PaperCreasePattern("canvas-chop-ray-intersect");
+var rayIntersect = new OrigamiPaper("canvas-chop-ray-intersect");
 rayIntersect.zoomToFit(0.05);
 
 rayIntersect.selectNearestEdge = true;

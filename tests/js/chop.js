@@ -1,5 +1,5 @@
 
-var chop_sketch = new PaperCreasePattern("canvas-chop");
+var chop_sketch = new OrigamiPaper("canvas-chop");
 chop_sketch.zoomToFit(0.05);
 
 chop_sketch.selectNearestNode = true;

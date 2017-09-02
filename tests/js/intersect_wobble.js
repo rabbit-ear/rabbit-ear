@@ -1,6 +1,6 @@
 var wobble_intersections_callback = undefined;
 
-var wobble = new PaperCreasePattern("canvas-intersection-wobble", new PlanarGraph());
+var wobble = new OrigamiPaper("canvas-intersection-wobble", new PlanarGraph());
 wobble.zoomToFit(0.05);
 
 wobble.intersections = [];

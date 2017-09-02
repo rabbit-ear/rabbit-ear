@@ -29,7 +29,7 @@ window.onload = function() {
 	var canvas = document.getElementById('canvas');
 	paper.setup(canvas);
 	zoomView(paper);
-	var paperCP = new PaperCreasePattern(paper, cp);
+	var paperCP = new OrigamiPaper(paper, cp);
 
 	var voronoi = d3.voronoi();
 

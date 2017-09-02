@@ -1,5 +1,5 @@
 
-var foldHalf = new PaperCreasePattern("canvas-fold-in-half");
+var foldHalf = new OrigamiPaper("canvas-fold-in-half");
 foldHalf.zoomToFit(0.05);
 
 // foldHalf.selectNearestEdge = true;

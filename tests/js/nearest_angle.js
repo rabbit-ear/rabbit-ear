@@ -1,6 +1,6 @@
 var nearAngleCallback;
 
-var nearAngle = new PaperCreasePattern("canvas-nearest-angle", new PlanarGraph());
+var nearAngle = new OrigamiPaper("canvas-nearest-angle", new PlanarGraph());
 
 nearAngle.reset = function(){
 	// make 3 fan lines with a good sized interior angle between them

@@ -1,5 +1,5 @@
 
-var sJoint = new PaperCreasePattern("canvas-single-joint");
+var sJoint = new OrigamiPaper("canvas-single-joint");
 sJoint.zoomToFit(0.05);
 
 sJoint.reset = function(){

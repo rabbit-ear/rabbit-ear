@@ -1,5 +1,5 @@
 
-var chopVert = new PaperCreasePattern("canvas-chop-collinear-vert");
+var chopVert = new OrigamiPaper("canvas-chop-collinear-vert");
 chopVert.zoomToFit(0.05);
 
 chopVert.selectNearestNode = true;

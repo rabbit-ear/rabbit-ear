@@ -1,6 +1,6 @@
 var mouse_select_callback;
 
-var mouseSelect = new PaperCreasePattern("canvas-mouse-select");
+var mouseSelect = new OrigamiPaper("canvas-mouse-select");
 mouseSelect.zoomToFit(0.05);
 
 mouseSelect.selectNearestNode = true;

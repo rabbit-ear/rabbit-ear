@@ -2,7 +2,7 @@
 
 var edge_adjacent_faces_callback = undefined;
 
-var edgeFaces = new PaperCreasePattern("canvas-edge-adjacent-faces");
+var edgeFaces = new OrigamiPaper("canvas-edge-adjacent-faces");
 edgeFaces.zoomToFit(0.05);
 edgeFaces.selectNearestEdge = true;
 edgeFaces.edgeLayer.bringToFront();

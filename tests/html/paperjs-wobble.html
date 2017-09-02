@@ -61,7 +61,7 @@ window.onload = function() {
 	paper.setup(canvas);
 	zoomView(paper);
 
-	var paperCP = new PaperCreasePattern(paper, cp);
+	var paperCP = new OrigamiPaper(paper, cp);
 	console.log(paperCP);
 
 	var wobble2 = {x:cp.nodes[4].x, y:cp.nodes[4].y};

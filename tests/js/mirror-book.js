@@ -1,5 +1,5 @@
 
-var mirrorB = new PaperCreasePattern("canvas-mirror-book");
+var mirrorB = new OrigamiPaper("canvas-mirror-book");
 mirrorB.zoomToFit(0.05);
 
 // mirrorB.selectNearestEdge = true;

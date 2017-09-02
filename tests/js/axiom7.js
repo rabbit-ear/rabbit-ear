@@ -1,6 +1,6 @@
 var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
 
-var axiom7 = new PaperCreasePattern("canvas-axiom-7");
+var axiom7 = new OrigamiPaper("canvas-axiom-7");
 axiom7.zoomToFit(0.05);
 
 axiom7.selectedNode = undefined;

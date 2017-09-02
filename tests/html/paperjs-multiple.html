@@ -75,7 +75,7 @@ window.onload = function() {
 	paper.setup(canvas1);
 	zoomView(paper);
 
-	var paperCP1 = new PaperCreasePattern(paper, cpWobble);
+	var paperCP1 = new OrigamiPaper(paper, cpWobble);
 	console.log(paperCP1);
 
 	var wobble2 = {x:cpWobble.nodes[2].x, y:cpWobble.nodes[2].y};
@@ -128,7 +128,7 @@ window.onload = function() {
 	paper.setup(canvas2);
 	zoomView(paper);
 	
-	var paperCP2 = new PaperCreasePattern(paper, cpRay);
+	var paperCP2 = new OrigamiPaper(paper, cpRay);
 	console.log(paperCP2);
 
 	var rayCenter = new XY(0.5, 0.5);

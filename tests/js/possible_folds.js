@@ -1,5 +1,5 @@
 
-var possible = new PaperCreasePattern("canvas-possible-folds");
+var possible = new OrigamiPaper("canvas-possible-folds");
 possible.zoomToFit(0.05);
 
 possible.nextSet;

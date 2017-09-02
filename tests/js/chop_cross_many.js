@@ -1,5 +1,5 @@
 
-var chopCross = new PaperCreasePattern("canvas-chop-cross-many");
+var chopCross = new OrigamiPaper("canvas-chop-cross-many");
 chopCross.zoomToFit(0.05);
 
 chopCross.selectNearestNode = true;

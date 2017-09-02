@@ -1,5 +1,5 @@
 
-var edgeAngle = new PaperCreasePattern("canvas-edge-by-angle");
+var edgeAngle = new OrigamiPaper("canvas-edge-by-angle");
 edgeAngle.zoomToFit(0.05);
 
 edgeAngle.selectNearestEdge = true;

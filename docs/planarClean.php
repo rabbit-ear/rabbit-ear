@@ -23,6 +23,10 @@
 		<canvas id="canvas-mouse-delete-edge" resize></canvas>
 	</div>
 
+	<div class="centered">
+		<pre><code>graph.<f>removeEdge</f>(<arg>edge</arg>)</code></pre>
+	</div>
+
 	<div class="quote">
 		<p>In this sketch where nodes are removed, nodes left behind between 2 collinear lines will remove themselves and merge the 2 lines.</p>
 	</div>
@@ -155,9 +159,9 @@
 	// cp[1].cleanDuplicateNodes(0.025);
 	cp[1].cleanDuplicateNodes(0.05);
 	// cp[2].cleanDuplicateNodes(0.066);
-	var paper1 = new PaperCreasePattern("canvas1", cp[0]);
-	var paper2 = new PaperCreasePattern("canvas2", cp[1]);
-	// var paper3 = new PaperCreasePattern("canvas3", cp[2]);
+	var paper1 = new OrigamiPaper("canvas1", cp[0]);
+	var paper2 = new OrigamiPaper("canvas2", cp[1]);
+	// var paper3 = new OrigamiPaper("canvas3", cp[2]);
 	paper1.style.nodes.visible = true;
 	paper2.style.nodes.visible = true;
 	// paper3.style.nodes.visible = true;

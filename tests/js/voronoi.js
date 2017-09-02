@@ -1,5 +1,5 @@
 
-var voronoiSketch = new PaperCreasePattern("canvas-voronoi");
+var voronoiSketch = new OrigamiPaper("canvas-voronoi");
 voronoiSketch.zoomToFit(0.05);
 
 var input = new PlanarGraph();

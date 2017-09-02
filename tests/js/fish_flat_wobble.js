@@ -8,7 +8,7 @@ function fish_base_flat_wobble(){
 	zoomView(scope, canvas.width, canvas.height);
 
 	nearFishBase(fishCP);
-	var paperCP = new PaperCreasePattern(scope, fishCP);
+	var paperCP = new OrigamiPaper(scope, fishCP);
 	var wobble2 = {x:fishCP.nodes[6].x, y:fishCP.nodes[6].y};
 	var wobble3 = {x:fishCP.nodes[7].x, y:fishCP.nodes[7].y};
 

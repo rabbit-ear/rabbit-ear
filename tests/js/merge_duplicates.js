@@ -13,4 +13,4 @@ for(var j = 0; j < 1; j+=inc){
 // cp.cleanDuplicateNodes(0.025);
 cp.cleanDuplicateNodes(0.066);
 
-PaperCreasePattern(cp, "canvas-merge-duplicates");
+OrigamiPaper(cp, "canvas-merge-duplicates");

@@ -28,7 +28,7 @@ function mouse_node_move_stay(){
 
 	loadSVG("/tests/svg/sea-turtle-advanced.svg", function(e){ 
 		cp = e;
-		paperCP = new PaperCreasePattern(scope, cp);
+		paperCP = new OrigamiPaper(scope, cp);
 		nodeLayer.bringToFront();
 		makeFlatFoldableIndicators();
 	});

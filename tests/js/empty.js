@@ -1,5 +1,5 @@
 
-var project = new PaperCreasePattern("canvas");
+var project = new OrigamiPaper("canvas");
 // project.zoomToFit(0.05);
 
 project.reset = function(){

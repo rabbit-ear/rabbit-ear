@@ -10,7 +10,7 @@ function node_adjacent_faces(){
 	var cp = new CreasePattern();
 	cp.birdBase();
 	cp.generateFaces();
-	var paperCP = new PaperCreasePattern(scope, cp);
+	var paperCP = new OrigamiPaper(scope, cp);
 
 	scope.view.onFrame = function(event){ }
 	scope.view.onResize = function(event){

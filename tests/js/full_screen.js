@@ -7,7 +7,7 @@ function full_screen_sketch(){
 	zoomView(scope, canvas.width, canvas.height, 0.0);
 
 	var cp = new PlanarGraph();
-	var paperCP = new PaperCreasePattern(scope, cp);
+	var paperCP = new OrigamiPaper(scope, cp);
 
 	var mouseNodeLayer = new paper.Layer();
 	mouseNodeLayer.activate();

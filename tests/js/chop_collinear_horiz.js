@@ -1,5 +1,5 @@
 
-var chopHoriz = new PaperCreasePattern("canvas-chop-collinear-horiz");
+var chopHoriz = new OrigamiPaper("canvas-chop-collinear-horiz");
 chopHoriz.zoomToFit(0.05);
 
 chopHoriz.selectNearestNode = true;

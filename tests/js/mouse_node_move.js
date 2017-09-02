@@ -10,7 +10,7 @@ function mouse_node_move(){
 	var cp = new CreasePattern();
 	cp.birdBase();
 
-	var paperCP = new PaperCreasePattern(scope, cp);
+	var paperCP = new OrigamiPaper(scope, cp);
 	// for(var i = 0; i < paperCP.edges.length; i++){ paperCP.edges[i].strokeWidth = paperCP.lineWeight*1.5; }
 
 	var nearestNode = undefined;
