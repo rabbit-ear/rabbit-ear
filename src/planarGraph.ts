@@ -512,7 +512,7 @@ class PlanarGraph extends Graph{
 	 */
 	clean():any{
 		var duplicates = this.cleanDuplicateNodes();
-		var newNodes = this.chop(); // todo: return this newNodes
+		var newNodes = this.fragment(); // todo: return this newNodes
 		return {
 			'edges':super.cleanGraph(), 
 			'nodes':this.cleanAllUselessNodes() + duplicates.length
@@ -520,9 +520,9 @@ class PlanarGraph extends Graph{
 	}
 
 	///////////////////////////////////////////////////////////////
-	// CHOP, EDGE INTERSECTION
+	// fragment, EDGE INTERSECTION
 
-	chopAllCrossingsWithEdge(edge:PlanarEdge):XY[]{
+	fragmentAllCrossingsWithEdge(edge:PlanarEdge):XY[]{
 		var intersections = edge.crossingEdges();
 		if(intersections.length === 0) { return []; }
 		var endNodes = edge.nodes.sort(function(a,b){
@@ -553,12 +553,12 @@ class PlanarGraph extends Graph{
 		return intersections.map(function(el){ return new XY(el.x, el.y); } );
 	}
 
-	chop(){
+	fragment(){
 		var that = this;
-		function chopOneRound():XY[]{
+		function fragmentOneRound():XY[]{
 			var crossings = [];
 			for(var i = 0; i < that.edges.length; i++){
-				var thisRound = that.chopAllCrossingsWithEdge(that.edges[i]);
+				var thisRound = that.fragmentAllCrossingsWithEdge(that.edges[i]);
 				crossings = crossings.concat(thisRound);
 				if(thisRound.length > 0){
 					that.cleanGraph();
@@ -574,7 +574,7 @@ class PlanarGraph extends Graph{
 		var allCrossings = [];
 		var thisCrossings;
 		do{
-			thisCrossings = chopOneRound();
+			thisCrossings = fragmentOneRound();
 			allCrossings = allCrossings.concat(thisCrossings);
 			protection += 1;
 		}while(thisCrossings.length != 0 && protection < 400);

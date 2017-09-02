@@ -20,7 +20,7 @@ chopRays.reset = function(){
 		var pct = (i)/(NUM_FAN-1);
 		var edge = this.cp.creaseRay(new XY(0.5, padding + (1.0-padding*2)*pct), new XY(Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
 	}
-	this.cp.chop();
+	this.cp.fragment();
 	this.initialize();
 }
 chopRays.reset();

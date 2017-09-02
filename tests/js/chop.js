@@ -13,7 +13,7 @@ chop_sketch.reset = function(){
 		var angle = Math.random()*Math.PI*2;
 		chop_sketch.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
-	var crossings = chop_sketch.cp.chop();
+	var crossings = chop_sketch.cp.fragment();
 	chop_sketch.initialize();
 }
 chop_sketch.reset();

@@ -12,7 +12,7 @@ randomFaces.reset = function(){
 	for(var i = 0; i < 10; i++){
 		randomFaces.cp.creaseThroughPoints(new XY(Math.random(), Math.random()), new XY(Math.random(), Math.random()) );
 	}
-	var intersections = randomFaces.cp.chop();
+	var intersections = randomFaces.cp.fragment();
 	randomFaces.cp.generateFaces();
 	randomFaces.initialize();
 	if(faces_random_callback != undefined){

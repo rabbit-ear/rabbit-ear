@@ -16,7 +16,7 @@ intersectionSketch.reset = function(){
 		var angle = Math.random()*Math.PI*2;
 		intersectionSketch.cp.creaseRay(new XY(Math.random() * aspect, Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
-	var intersections = intersectionSketch.cp.chop();
+	var intersections = intersectionSketch.cp.fragment();
 	intersectionSketch.initialize();
 	intersectionSketch.nodeLayer.bringToFront();
 

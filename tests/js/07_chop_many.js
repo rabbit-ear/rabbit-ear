@@ -85,7 +85,7 @@ var test07 = function(p){
 		if(mouseYScaled < 0.0 || mouseYScaled > 1.0) mouseYScaled = undefined;
 		if(mouseXScaled != undefined && mouseYScaled != undefined){
 			// mouse was pressed inside of canvas
-			intersections = g.chop();
+			intersections = g.fragment();
 			if(p.callback != undefined){
 				p.callback(intersections);
 			}

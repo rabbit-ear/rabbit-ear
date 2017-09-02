@@ -529,15 +529,15 @@ var PlanarGraph = (function (_super) {
      */
     PlanarGraph.prototype.clean = function () {
         var duplicates = this.cleanDuplicateNodes();
-        var newNodes = this.chop(); // todo: return this newNodes
+        var newNodes = this.fragment(); // todo: return this newNodes
         return {
             'edges': _super.prototype.cleanGraph.call(this),
             'nodes': this.cleanAllUselessNodes() + duplicates.length
         };
     };
     ///////////////////////////////////////////////////////////////
-    // CHOP, EDGE INTERSECTION
-    PlanarGraph.prototype.chopAllCrossingsWithEdge = function (edge) {
+    // fragment, EDGE INTERSECTION
+    PlanarGraph.prototype.fragmentAllCrossingsWithEdge = function (edge) {
         var intersections = edge.crossingEdges();
         if (intersections.length === 0) {
             return [];
@@ -577,12 +577,12 @@ var PlanarGraph = (function (_super) {
         _super.prototype.cleanGraph.call(this);
         return intersections.map(function (el) { return new XY(el.x, el.y); });
     };
-    PlanarGraph.prototype.chop = function () {
+    PlanarGraph.prototype.fragment = function () {
         var that = this;
-        function chopOneRound() {
+        function fragmentOneRound() {
             var crossings = [];
             for (var i = 0; i < that.edges.length; i++) {
-                var thisRound = that.chopAllCrossingsWithEdge(that.edges[i]);
+                var thisRound = that.fragmentAllCrossingsWithEdge(that.edges[i]);
                 crossings = crossings.concat(thisRound);
                 if (thisRound.length > 0) {
                     that.cleanGraph();
@@ -597,7 +597,7 @@ var PlanarGraph = (function (_super) {
         var allCrossings = [];
         var thisCrossings;
         do {
-            thisCrossings = chopOneRound();
+            thisCrossings = fragmentOneRound();
             allCrossings = allCrossings.concat(thisCrossings);
             protection += 1;
         } while (thisCrossings.length != 0 && protection < 400);

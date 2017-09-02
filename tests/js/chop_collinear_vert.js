@@ -15,7 +15,7 @@ chopVert.reset = function(){
 		var y = .1 + .8*(i/(NUM_LINES-1));
 		this.cp.crease(Math.random(), y, 0.5, y);
 	}
-	var crossings = this.cp.chop();
+	var crossings = this.cp.fragment();
 	this.initialize();
 }
 chopVert.reset();

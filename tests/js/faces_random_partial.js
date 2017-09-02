@@ -12,7 +12,7 @@ partialFaces.reset = function(){
 		var angle = Math.random()*Math.PI*2;
 		partialFaces.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
-	var intersections = partialFaces.cp.chop();
+	var intersections = partialFaces.cp.fragment();
 	partialFaces.cp.generateFaces();
 	partialFaces.initialize();
 	if(faces_random_callback != undefined){

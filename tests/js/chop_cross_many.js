@@ -18,7 +18,7 @@ chopCross.reset = function(){
 		                     x + Math.random()*v-v*0.5, 0.75 + Math.random()*v-v*0.5 );
 	}
 	var lowerEdge = this.cp.crease( 0.0, 0.6, 1.0, 0.6 );
-	var crossings = this.cp.chop();
+	var crossings = this.cp.fragment();
 	this.initialize();
 }
 chopCross.reset();

@@ -11,30 +11,17 @@
 	</div>
 
 	<div class="quote">
-		<p>On top of cleaning like a graph, cleaning a planar graph also consolidates overlapping nodes and edges and chops any crossing edges.</p>
+		<p>a planar graph is cleaned with operations that utilize x y location</p>
 	</div>
 
 </section>
 
-<h2>Collinear Nodes</h2>
-<section id="collinear-nodes">
-
-	<div class="centered">
-		<canvas id="canvas-mouse-delete-edge" resize></canvas>
-	</div>
-
-	<div class="centered">
-		<pre><code>graph.<f>removeEdge</f>(<arg>edge</arg>)</code></pre>
-	</div>
+<h2>Duplicate Nodes in Space</h2>
+<section id="duplicate-nodes">
 
 	<div class="quote">
-		<p>In this sketch where nodes are removed, nodes left behind between 2 collinear lines will remove themselves and merge the 2 lines.</p>
+		<p>When two nodes occupy the same space they will be merged into one</p>
 	</div>
-
-</section>
-
-<h2>Overlap</h2>
-<section id="duplicate-nodes">
 
 	<div id="divP5_merge" class="centered p5sketch"></div>
 
@@ -42,10 +29,6 @@
 		<pre><code><span id="div-node-count"></span> nodes, <span id="div-edge-count"></span> edges</code></pre>
 	</div>
 
-
-	<div class="quote">
-		<p>In a planar graph "duplicate nodes" are nodes that are near each other in space.</p>
-	</div>
 
 	<div class="centered">
 		<canvas id="canvas1" resize></canvas>
@@ -63,12 +46,16 @@
 
 </section>
 
-<h2>Crossings</h2>
+<h2>Fragment</h2>
 
 <section id="intersections">
 
+	<div class="quote">
+		<p>Fragmenting edges will chop them at their edge crossings</p>
+	</div>
+
 	<div class="centered">
-		<pre><code>graph.<f>getEdgeIntersections</f>()</code></pre>
+		<pre><code><span id="span-merge-result"></span>graph.<f>fragment</f>()</code></pre>
 	</div>
 
 	<div class="centered">
@@ -76,9 +63,29 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><span id="span-merge-result"></span>graph.<f>chop</f>()</code></pre>
+		<pre><code>graph.<f>getEdgeIntersections</f>()</code></pre>
 	</div>
 
+	<div class="quote">
+		<p>This will give you the crossing locations without fragmenting. It returns an <a href="library/EdgeIntersection">EdgeIntersection</a> object.</p>
+	</div>
+
+</section>
+
+<h2>Collinear Nodes</h2>
+<section id="collinear-nodes">
+
+	<div class="centered">
+		<canvas id="canvas-mouse-delete-edge" resize></canvas>
+	</div>
+
+	<div class="centered">
+		<pre><code>graph.<f>removeEdge</f>(<arg>edge</arg>)</code></pre>
+	</div>
+
+	<div class="quote">
+		<p>Removing edges will remove their nodes, and so will nodes left behind between 2 collinear lines be removed as well.</p>
+	</div>
 
 </section>
 

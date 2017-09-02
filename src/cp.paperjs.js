@@ -150,34 +150,37 @@ var OrigamiPaper = (function () {
 
 	OrigamiPaper.prototype.zoomToFit = function(padding){
 		// store padding for future calls
-		var pageWidth = this.cp.width();
-		var pageHeight = this.cp.height();
 		if(padding !== undefined){ this.padding = padding; }
 		// use stored padding if we can
 		var paperWindowScale = 1.0 - .015;
 		if(this.padding !== undefined){ paperWindowScale = 1.0 - this.padding*2; }
 		var pixelScale = 1.0;
 		if(isRetina){ pixelScale = 0.5; }
-		var canvasWidth, canvasHeight;
-		if(this.canvas !== undefined){
-			canvasWidth = this.canvas.width;
-			canvasHeight = this.canvas.height;
-		} else { 
-			canvasWidth = window.innerWidth;
-			canvasHeight = window.innerHeight;
-		}
-		var paperSize;
-		if(canvasWidth < canvasHeight){ paperSize = canvasWidth*paperWindowScale*pixelScale; } 
-		else                          { paperSize = canvasHeight*paperWindowScale*pixelScale; }
+		// crease pattern size
+		console.log(this.cp);
+		var cpWidth = 1.0; 
+		var cpHeight = 1.0;
+		if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
+		if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
+		var cpAspect = cpWidth / cpHeight;
+		var cpMin = cpWidth;
+		if(cpHeight < cpWidth){ cpMin = cpHeight; }
+		// canvas size
+		var canvasWidth = this.canvas.width;
+		var canvasHeight = this.canvas.height;
+		var canvasAspect = canvasWidth / canvasHeight;
+		// cp to canvas ratio
+		var cpCanvasRatio = canvasHeight / cpHeight;
+		if(cpAspect > canvasAspect) { cpCanvasRatio = canvasWidth / cpWidth; }
+		// matrix
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
-		if(canvasWidth < canvasHeight){ 
-			mat.translate(canvasWidth * 0.5 * pixelScale, canvasWidth * 0.5 * pixelScale); 
-		} else { 
-			mat.translate(canvasHeight * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale); 
-		}
-		mat.scale(paperSize, paperSize);
-		mat.translate(-0.5, -0.5);
+		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale); 
+		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
+		          cpCanvasRatio*paperWindowScale*pixelScale);
+		mat.translate(-cpWidth*0.5, -cpHeight*0.5);
 		this.scope.view.matrix = mat;
+
+		lineWeight = 0.01 * cpMin;
 		return mat;
 	};
 
@@ -290,7 +293,7 @@ function loadSVG(path, callback){
 		// svgLayer.strokeWidth = 0.004;
 		var w = svgLayer.bounds.size.width;
 		var h = svgLayer.bounds.size.height;
-		var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
+		// var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
 		svgLayer.matrix = mat;
 
 		// fix the closed segments thing
@@ -320,7 +323,7 @@ function loadSVG(path, callback){
 		svgLayer.remove();
 		// cp.clean();
 		cp.cleanDuplicateNodes();//EPSILON_FILE_IMPORT);
-		// cp.chop();
+		// cp.fragment();
 		if(callback != undefined){
 			callback(cp);
 		}

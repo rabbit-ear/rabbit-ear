@@ -24,7 +24,7 @@ chopRays2.reset = function(){
 			                                     padding + (1.0-padding*2)*pct), 
 		                             new XY(Math.sin(-Math.PI*0.25+Math.PI*pct), -Math.cos(-Math.PI*0.25+Math.PI*pct)));
 	}
-	this.cp.chop();
+	this.cp.fragment();
 	this.initialize();
 }
 chopRays2.reset();

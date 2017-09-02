@@ -14,7 +14,7 @@ radialFaces.reset = function(){
 		angle+= Math.random()*0.5;
 	}
 	radialFaces.cp.clean();
-	radialFaces.cp.chop();
+	radialFaces.cp.fragment();
 	radialFaces.cp.generateFaces();
 	radialFaces.initialize();
 }

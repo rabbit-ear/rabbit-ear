@@ -94,7 +94,7 @@ var test07 = function(p){
 			chopI = 0;
 			g.clean();
 		} else{
-			g.chop();
+			g.fragment();
 		}
 	}
 };

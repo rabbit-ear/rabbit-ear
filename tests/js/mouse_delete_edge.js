@@ -13,7 +13,7 @@ deleteEdge.reset = function(){
 		var angle = Math.random()*Math.PI*2;
 		this.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
-	this.cp.chop();
+	this.cp.fragment();
 	this.initialize();
 	this.style.nodes.visible = true;
 	this.update();
