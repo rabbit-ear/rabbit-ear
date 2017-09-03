@@ -17,28 +17,28 @@ testPoint1 = new XY(Math.random(),Math.random());
 testPoint2 = new XY(Math.random(),Math.random());
 
 reflex.computeReflection = function(){
-	// var m = this.reflectMatrix(this.testLine);
 	var m = this.reflectMatrix(this.reflectionLine);
 	var p1t = m.transform(testPoint1);
 	var p2t = m.transform(testPoint2);
-	// console.log(p1t);
-	// console.log(p2t);
-	// console.log(m);
-
 	var reflection = this.cp.crease(p1t, p2t);
 	if(reflection !== undefined){ reflection.valley(); }
 	this.initialize();	
 }
 
+function matrixMult(a,b){
+}
+
 reflex.reflectMatrix = function(symmetryLine){
 	var midpoint = symmetryLine.midpoint();
 	var angle = symmetryLine.absoluteAngle();
-	// console.log(midpoint);
-	// console.log(angle);
-	var mat = new paper.Matrix(1, 0, 0, 1, 0, 0);
-	mat = mat.rotate(angle*180/Math.PI, midpoint);
-	mat = mat.scale(1, -1, midpoint);
-	mat = mat.rotate(-angle*180/Math.PI, midpoint);
+	// var mat = {};
+	var mat = new paper.Matrix();
+	mat.a = Math.cos(angle) * Math.cos(-angle) + Math.sin(angle) * Math.sin(-angle);
+	mat.b = Math.cos(angle) * -Math.sin(-angle) + Math.sin(angle) * Math.cos(-angle);
+	mat.c = Math.sin(angle) * Math.cos(-angle) + -Math.cos(angle) * Math.sin(-angle);
+	mat.d = Math.sin(angle) * -Math.sin(-angle) + -Math.cos(angle) * Math.cos(-angle);
+	mat.tx = midpoint.x + mat.a * -midpoint.x + -midpoint.y * mat.c;
+	mat.ty = midpoint.y + mat.b * -midpoint.x + -midpoint.y * mat.d;
 	return mat;
 }
 
@@ -72,5 +72,4 @@ reflex.onMouseDown = function(event){
 }
 reflex.onMouseUp = function(event){ 
 	reflex.selectedNode = undefined;
-	// this.computeReflection();
 }

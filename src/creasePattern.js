@@ -417,7 +417,6 @@ var CreasePattern = (function (_super) {
             outside = a;
             inside = b;
         }
-        console.log("only one is inside");
         var intersection = undefined;
         for (var i = 0; i < this.boundary.edges.length; i++) {
             intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
@@ -425,7 +424,6 @@ var CreasePattern = (function (_super) {
                 break;
             }
         }
-        console.log(intersection);
         if (intersection === undefined) {
             return undefined;
         }
