@@ -411,15 +411,21 @@ var CreasePattern = (function (_super) {
         if (!aInside && !bInside) {
             return this.clipLineInBoundary(a, b);
         }
-        var inside = a, outside = b;
+        var inside = a;
+        var outside = b;
         if (bInside) {
             outside = a;
             inside = b;
         }
+        console.log("only one is inside");
         var intersection = undefined;
         for (var i = 0; i < this.boundary.edges.length; i++) {
             intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
+            if (intersection !== undefined) {
+                break;
+            }
         }
+        console.log(intersection);
         if (intersection === undefined) {
             return undefined;
         }

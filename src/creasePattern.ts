@@ -397,12 +397,14 @@ class CreasePattern extends PlanarGraph{
 		// if both are outside, it's still possible the line crosses into the boundary
 		if(!aInside && !bInside) { return this.clipLineInBoundary(a, b); }
 
-		var inside = a, outside = b;
+		var inside = a;
+		var outside = b;
 		if(bInside){ outside = a; inside = b; }
 
 		var intersection = undefined;
 		for(var i = 0; i < this.boundary.edges.length; i++){
 			intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
+			if(intersection !== undefined){ break; }
 		}
 		if(intersection === undefined){ return undefined; }
 		if( aInside ){ return [inside, intersection]; }
