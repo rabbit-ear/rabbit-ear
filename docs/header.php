@@ -9,10 +9,12 @@
 <script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
-<link href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700" rel="stylesheet">
-<link href="../lib/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
-<link href="css/style.css" rel="stylesheet" />
-<link href="css/nav.css" rel="stylesheet" />
+<script language="javascript" type="text/javascript" src="../lib/katex/katex.min.js"></script>
+<link rel="stylesheet" href="../lib/katex/katex.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700">
+<link rel="stylesheet" href="../lib/font-awesome/css/font-awesome.min.css" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/nav.css" />
 </head>
 <body>
 	<nav>
@@ -39,6 +41,7 @@
 			<a href="math.php">MATH</a>
 			<a href="planarClean.php">CLEAN</a>
 			<a href="face.php">FACE</a>
+			<a href="reflection.php">REFLECTION</a>
 			<a href="neighbors.php">NEIGHBOR</a>
 			</div>
 		</li>

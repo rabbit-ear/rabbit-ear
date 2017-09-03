@@ -746,7 +746,6 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 
-
 	findFlatFoldable(angle:InteriorAngle):number{
 		var interiorAngles = angle.node.interiorAngles();
 		if(interiorAngles.length != 3){ return; }
@@ -917,7 +916,6 @@ class CreasePattern extends PlanarGraph{
 			paths.push(path);
 		}
 		return paths;
-
 	}
 
 	svgMin(scale:number):string{

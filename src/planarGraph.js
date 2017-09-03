@@ -237,6 +237,10 @@ var PlanarEdge = (function (_super) {
         });
     };
     PlanarEdge.prototype.absoluteAngle = function (startNode) {
+        // if not specified it will pick one node
+        if (startNode === undefined) {
+            startNode = this.nodes[1];
+        }
         // measure edge as if it were a ray from one node to the other
         var endNode;
         if (startNode === this.nodes[0]) {
@@ -537,7 +541,42 @@ var PlanarGraph = (function (_super) {
     };
     ///////////////////////////////////////////////////////////////
     // fragment, EDGE INTERSECTION
-    PlanarGraph.prototype.fragmentAllCrossingsWithEdge = function (edge) {
+    /** Fragment looks at every edge and one by one removes 2 crossing edges and replaces them with a node at their intersection and 4 edges connecting their original endpoints to the intersection.
+     * @returns {XY[]} array of XY locations of all the intersection locations
+     */
+    PlanarGraph.prototype.fragment = function () {
+        var that = this;
+        function fragmentOneRound() {
+            var crossings = [];
+            for (var i = 0; i < that.edges.length; i++) {
+                var thisRound = that.fragmentEdge(that.edges[i]);
+                crossings = crossings.concat(thisRound);
+                if (thisRound.length > 0) {
+                    that.cleanGraph();
+                    that.cleanAllUselessNodes();
+                    that.cleanDuplicateNodes();
+                }
+            }
+            return crossings;
+        }
+        //todo: remove protection, or bake it into the class itself
+        var protection = 0;
+        var allCrossings = [];
+        var thisCrossings;
+        do {
+            thisCrossings = fragmentOneRound();
+            allCrossings = allCrossings.concat(thisCrossings);
+            protection += 1;
+        } while (thisCrossings.length != 0 && protection < 400);
+        if (protection >= 400) {
+            console.log("breaking loop, exceeded 400");
+        }
+        return allCrossings;
+    };
+    /** This function targets a single edge and performs the fragment operation on crossing edges.
+     * @returns {XY[]} array of XY locations of all the intersection locations
+     */
+    PlanarGraph.prototype.fragmentEdge = function (edge) {
         var intersections = edge.crossingEdges();
         if (intersections.length === 0) {
             return [];
@@ -577,38 +616,12 @@ var PlanarGraph = (function (_super) {
         _super.prototype.cleanGraph.call(this);
         return intersections.map(function (el) { return new XY(el.x, el.y); });
     };
-    PlanarGraph.prototype.fragment = function () {
-        var that = this;
-        function fragmentOneRound() {
-            var crossings = [];
-            for (var i = 0; i < that.edges.length; i++) {
-                var thisRound = that.fragmentAllCrossingsWithEdge(that.edges[i]);
-                crossings = crossings.concat(thisRound);
-                if (thisRound.length > 0) {
-                    that.cleanGraph();
-                    that.cleanAllUselessNodes();
-                    that.cleanDuplicateNodes();
-                }
-            }
-            return crossings;
-        }
-        //todo: remove protection, or bake it into the class itself
-        var protection = 0;
-        var allCrossings = [];
-        var thisCrossings;
-        do {
-            thisCrossings = fragmentOneRound();
-            allCrossings = allCrossings.concat(thisCrossings);
-            protection += 1;
-        } while (thisCrossings.length != 0 && protection < 400);
-        if (protection >= 400) {
-            console.log("breaking loop, exceeded 400");
-        }
-        return allCrossings;
-    };
     ///////////////////////////////////////////////
     // GET PARTS
     ///////////////////////////////////////////////
+    /** Without changing the graph, this function collects the XY locations of every point that two edges cross each other.
+     * @returns {XY[]} array of XY locations of all the intersection locations
+     */
     PlanarGraph.prototype.getEdgeIntersections = function () {
         // todo should this make new XYs instead of returning EdgeIntersection objects?
         var intersections = [];
@@ -632,7 +645,19 @@ var PlanarGraph = (function (_super) {
         }
         return intersections;
     };
+    /** Add an already-initialized edge to the graph
+     * @param {XY} either two numbers (x,y) or one XY point object (XY)
+     * @returns {PlanarNode} nearest node to the point
+     */
     PlanarGraph.prototype.getNearestNode = function (x, y) {
+        // input x is an xy point
+        if (isValidPoint(x)) {
+            y = x.y;
+            x = x.x;
+        }
+        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+            return;
+        }
         // can be optimized with a k-d tree
         var node = undefined;
         var distance = Infinity;
@@ -646,6 +671,14 @@ var PlanarGraph = (function (_super) {
         return node;
     };
     PlanarGraph.prototype.getNearestNodes = function (x, y, howMany) {
+        // input x is an xy point
+        if (isValidPoint(x)) {
+            y = x.y;
+            x = x.x;
+        }
+        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+            return;
+        }
         // can be optimized with a k-d tree
         var distances = [];
         for (var i = 0; i < this.nodes.length; i++) {
@@ -660,8 +693,13 @@ var PlanarGraph = (function (_super) {
         return distances.slice(0, howMany).map(function (el) { return this.nodes[el.i]; }, this);
     };
     PlanarGraph.prototype.getNearestEdge = function (x, y) {
-        if (x == undefined || y == undefined) {
-            return undefined;
+        // input x is an xy point
+        if (isValidPoint(x)) {
+            y = x.y;
+            x = x.x;
+        }
+        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+            return;
         }
         var minDist, nearestEdge, minLocation = { x: undefined, y: undefined };
         for (var i = 0; i < this.edges.length; i++) {
@@ -692,8 +730,13 @@ var PlanarGraph = (function (_super) {
         return new EdgeIntersection(nearestEdge, minLocation.x, minLocation.y);
     };
     PlanarGraph.prototype.getNearestEdges = function (x, y, howMany) {
-        if (x == undefined || y == undefined) {
-            return undefined;
+        // input x is an xy point
+        if (isValidPoint(x)) {
+            y = x.y;
+            x = x.x;
+        }
+        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+            return;
         }
         var minDist, nearestEdge, minLocation = { x: undefined, y: undefined };
         var edges = this.edges.map(function (el) {
@@ -713,6 +756,14 @@ var PlanarGraph = (function (_super) {
         return edges.filter(function (el) { return el != undefined; });
     };
     PlanarGraph.prototype.getNearestInteriorAngle = function (x, y) {
+        // input x is an xy point
+        if (isValidPoint(x)) {
+            y = x.y;
+            x = x.x;
+        }
+        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+            return;
+        }
         // var node = this.getNearestNode(x,y);
         // var angles = node.interiorAngles();
         var nodes = this.getNearestNodes(x, y, 5);
@@ -816,43 +867,82 @@ var PlanarGraph = (function (_super) {
             return face;
         }
     };
+    // reflectFace(edge:PlanarEdge){
+    // 	var midpoint = edge.midpoint();
+    // 	var mat = new paper.Matrix(1, 0, 0, 1, 0, 0);
+    // 	// svgLayer.matrix = mat;
+    // }
     PlanarGraph.prototype.adjacentFacesTree = function (start) {
-        function allocateFaces(face) {
-            var adjacent = face.edgeAdjacentFaces();
+        this.faceArrayDidChange();
+        var abc = [];
+        abc.push(face);
+        abc = abc.concat(adjacentArray);
+        var face = start;
+        var adjacentArray = face.edgeAdjacentFaces();
+        var nextLevelAdjacent = [];
+        for (var i = 0; i < adjacentArray.length; i++) {
+            nextLevelAdjacent.push({ parent: start, adj: adjacentArray[i] });
         }
-        // when a face gets allocated, set this to true
-        var allocated = this.faces.map(function (el) { return false; });
-        var limit = 0;
-        var thisDepth = start.edgeAdjacentFaces();
-        var tree = new AdjacentFace();
-        tree.face = start;
-        allocated[tree.face.index] = true;
-        tree.adjacent = thisDepth.map(function (el) {
-            var f = new AdjacentFace();
-            f.face = el;
-            return f;
-        });
-        for (var i = 0; i < tree.adjacent.length; i++) {
-            allocated[tree.adjacent[i].face.index] = true;
-        }
+        var tree = new AdjacentFace(start);
+        var round = 0;
+        // this thing
+        var adj = tree;
+        var foundInThisRound;
         do {
-            var nextDepth = [];
-            for (var i = 0; i < thisDepth.length; i++) {
-                nextDepth = nextDepth.concat(thisDepth[i].edgeAdjacentFaces());
+            foundInThisRound = false;
+            var thisLevelAdjacent = nextLevelAdjacent;
+            var nextLevelAdjacent = [];
+            for (var i = 0; i < thisLevelAdjacent.length; i++) {
+                if (!arrayContainsObject(abc, thisLevelAdjacent[i].adj)) {
+                    // instad of this, find parent, push it to the parent's tree
+                    abc.push(thisLevelAdjacent[i].adj);
+                    // continue as normal
+                    var newAdj = new AdjacentFace(thisLevelAdjacent[i].adj);
+                    adj.adjacent.push(newAdj);
+                    nextLevelAdjacent.push({ parent: newAdj, adj: newAdj });
+                    foundInThisRound = true;
+                }
             }
-            nextDepth.filter(function (el) { return !allocated[el.index]; });
-            thisDepth = nextDepth;
-            var t = new AdjacentFace();
-            // t.face = start;
-            t.adjacent = thisDepth.map(function (el) {
-                var f = new AdjacentFace();
-                f.face = el;
-                return f;
-            });
-            limit++;
-        } while (limit < this.faces.length);
-        return;
+        } while (foundInThisRound === true);
+        return tree;
     };
+    // adjacentFacesTree(start:PlanarFace):AdjacentFace{
+    // 	function allocateFaces(face:PlanarFace){
+    // 		var adjacent = face.edgeAdjacentFaces();
+    // 	}
+    // 	// when a face gets allocated, set this to true
+    // 	var allocated = this.faces.map(function(el){ return false; });
+    // 	var limit = 0;
+    // 	var thisDepth = start.edgeAdjacentFaces();
+    // 	var tree = new AdjacentFace();
+    // 	tree.face = start;
+    // 	allocated[ tree.face.index ] = true;
+    // 	tree.adjacent = thisDepth.map(function(el){
+    // 		var f = new AdjacentFace();
+    // 		f.face = el;
+    // 		return f;
+    // 	});
+    // 	for(var i = 0; i < tree.adjacent.length; i++){
+    // 		allocated[ tree.adjacent[i].face.index ] = true;
+    // 	}
+    // 	do{
+    // 		var nextDepth:PlanarFace[] = [];
+    // 		for(var i = 0; i < thisDepth.length; i++){
+    // 			nextDepth = nextDepth.concat(thisDepth[i].edgeAdjacentFaces());
+    // 		}
+    // 		nextDepth.filter(function(el){ return !allocated[el.index]; });
+    // 		thisDepth = nextDepth;
+    // 		var t = new AdjacentFace();
+    // 		// t.face = start;
+    // 		t.adjacent = thisDepth.map(function(el){
+    // 			var f = new AdjacentFace();
+    // 			f.face = el;
+    // 			return f;
+    // 		});
+    // 		limit++;
+    // 	}while(limit < this.faces.length);
+    // 	return;
+    // }
     ///////////////////////////////////////////////////////////////////////
     PlanarGraph.prototype.log = function (verbose) {
         console.log('#Nodes: ' + this.nodes.length);
@@ -883,7 +973,9 @@ var PlanarGraph = (function (_super) {
     return PlanarGraph;
 }(Graph));
 var AdjacentFace = (function () {
-    function AdjacentFace() {
+    function AdjacentFace(face) {
+        this.face = face;
+        this.adjacent = [];
     }
     return AdjacentFace;
 }());

@@ -27,19 +27,18 @@ wobble.reset = function(){
 wobble.reset();
 
 wobble.onFrame = function(event) { 
-	var centerX = (wobble.canvas.width / wobble.canvas.height) * 0.5;
-	var magX = 0.666;//1.0;
-	var magY = 0.666;
+	// var centerX = 0.5;//(wobble.canvas.width / wobble.canvas.height) * 0.5;
+	var scale = 0.666;
 	for(var i = 0; i < wobble.cp.nodes.length; i++){
 		var xnoise = p5js.noise(i*31.111+p5js.millis()*0.0002);
-		if(xnoise < 0.5) wobble.cp.nodes[i].x = -Math.pow(2*(0.5-xnoise), 0.8)*magX + centerX;
-		else             wobble.cp.nodes[i].x = Math.pow(2*(xnoise-0.5), 0.8)*magX + centerX;
+		if(xnoise < 0.5) wobble.cp.nodes[i].x = -Math.pow(2*(0.5-xnoise), 0.8)*scale + 0.5;
+		else             wobble.cp.nodes[i].x = Math.pow(2*(xnoise-0.5), 0.8)*scale + 0.5;
 
 		wobble.cp.nodes[i].x *= 1.25;
 
 		var ynoise = p5js.noise(i*44.22+10+p5js.millis()*0.0002);
-		if(ynoise < 0.5) wobble.cp.nodes[i].y = -Math.pow(2*(0.5-ynoise), 0.8)*magY + 0.5;
-		else             wobble.cp.nodes[i].y = Math.pow(2*(ynoise-0.5), 0.8)*magY + 0.5;
+		if(ynoise < 0.5) wobble.cp.nodes[i].y = -Math.pow(2*(0.5-ynoise), 0.8)*scale + 0.5;
+		else             wobble.cp.nodes[i].y = Math.pow(2*(ynoise-0.5), 0.8)*scale + 0.5;
 		// wobble.cp.nodes[i].y = Math.sqrt(ynoise);
 	}
 

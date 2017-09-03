@@ -180,7 +180,10 @@ h2{
 }
 */
 
-
+.large{
+	font-size:250%;
+}
+.inline{ display:inline-block; }
 .centered{
 	width: 100%;
 	text-align: center;
@@ -196,6 +199,7 @@ h2{
 	text-align: center;
 	display:inline-block;
 }
+
 button:focus {outline:0;}
 
 /* P5.js and D3.js */

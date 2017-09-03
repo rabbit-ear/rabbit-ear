@@ -157,7 +157,6 @@ var OrigamiPaper = (function () {
 		var pixelScale = 1.0;
 		if(isRetina){ pixelScale = 0.5; }
 		// crease pattern size
-		console.log(this.cp);
 		var cpWidth = 1.0; 
 		var cpHeight = 1.0;
 		if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
@@ -195,7 +194,7 @@ var OrigamiPaper = (function () {
 	OrigamiPaper.prototype.onMouseMove = function(event){ }
 
 	OrigamiPaper.prototype.highlightNearestNode = function(position){
-		var node = this.cp.getNearestNode( position.x, position.y );
+		var node = this.cp.getNearestNode( position );
 		if(node === undefined) return;
 		if(this.nearestNode !== node){
 			// first, undo the last selected node
@@ -287,17 +286,14 @@ var OrigamiPaper = (function () {
 
 
 // callback returns the crease pattern as an argument
-function loadSVG(path, callback){
+function loadSVG(path, callback, epsilon){
 	paper.project.importSVG(path, function(e){
 		var svgLayer = e;
-		// svgLayer.strokeWidth = 0.004;
 		var w = svgLayer.bounds.size.width;
 		var h = svgLayer.bounds.size.height;
+		// no longer re-sizing down to 1 x aspect size
 		// var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
-		svgLayer.matrix = mat;
-
-		// fix the closed segments thing
-
+		// svgLayer.matrix = mat;
 		var cp = new CreasePattern().rectangle(w,h);
 		function recurseAndAdd(childrenArray){
 			for(var i = 0; i < childrenArray.length; i++){
@@ -322,7 +318,9 @@ function loadSVG(path, callback){
 		svgLayer.removeChildren();
 		svgLayer.remove();
 		// cp.clean();
-		cp.cleanDuplicateNodes();//EPSILON_FILE_IMPORT);
+		var eps = epsilon;
+		if(eps !== undefined){ eps = EPSILON; } //EPSILON_FILE_IMPORT; }
+		cp.cleanDuplicateNodes(eps);
 		// cp.fragment();
 		if(callback != undefined){
 			callback(cp);

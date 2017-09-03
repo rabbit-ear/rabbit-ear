@@ -39,12 +39,12 @@
 <script>
 	new OrigamiPaper("canvas-1", new CreasePattern().birdBase());
 
-
-var loadSVGSketch = new OrigamiPaper("canvas-load-svg");
-
-loadSVG("/tests/svg/crane.svg", function(cp){ 
-	loadSVGSketch.cp = cp;
-	loadSVGSketch.initialize();
+loadSVG("/tests/svg/crane.svg", function(cp){
+	console.log("rendered file");
+	console.log(cp);
+	new OrigamiPaper("canvas-load-svg", cp);
+	// loadSVGSketch.cp = cp;
+	// loadSVGSketch.initialize();
 });
 
 </script>

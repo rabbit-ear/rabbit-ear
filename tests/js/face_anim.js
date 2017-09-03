@@ -16,12 +16,12 @@ faceAnim.reset = function(){
 	this.positions = [];
 	this.angles = [];
 	for(var i = 0; i < this.NUM_LINES; i++){
-		this.positions[i] = new XY(Math.random() * this.aspect, Math.random());
+		this.positions[i] = new XY(Math.random() * this.aspect - this.aspect*0.4, Math.random());
 		this.angles[i] = Math.random() * Math.PI*2;
 	}
 	for(var i = 0; i < this.NUM_LINES; i += 2){
 		this.g.newPlanarEdge(this.positions[i+0].x, this.positions[i+0].y,
-		                         this.positions[i+1].x, this.positions[i+1].y);
+		                     this.positions[i+1].x, this.positions[i+1].y);
 	}
 	this.cp = this.g.duplicate();
 	this.initialize();

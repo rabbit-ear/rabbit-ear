@@ -11,7 +11,7 @@ nearNodeSketch.reset = function(){
 	var aspect = nearNodeSketch.canvas.width / nearNodeSketch.canvas.height;
 	nearNodeSketch.cp.clear();
 	for(var i = 0; i < NUM_NODES; i++){
-		nearNodeSketch.cp.newPlanarNode(Math.random() * aspect, Math.random());
+		nearNodeSketch.cp.newPlanarNode(Math.random()*aspect - (Math.random()*aspect*0.5), Math.random());
 	}
 	nearNodeSketch.initialize();
 	nearNodeSketch.nodeLayer.visible = true;
