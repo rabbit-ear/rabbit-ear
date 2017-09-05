@@ -3,7 +3,7 @@ var reflexMatrixCallback = undefined;
 var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
 
 var reflex = new OrigamiPaper("canvas-reflection");
-reflex.zoomToFit(0.05);
+// reflex.zoomToFit(0.0);
 
 reflex.selectedNode = undefined;
 reflex.decorationLayer = new reflex.scope.Layer();
@@ -15,38 +15,34 @@ reflex.marks[1].position = [1.0, 1.0];
 
 testPoint1 = new XY(Math.random(),Math.random());
 testPoint2 = new XY(Math.random(),Math.random());
+testPoint3 = new XY(Math.random(),Math.random());
 
 reflex.computeReflection = function(){
-	var m = this.reflectMatrix(this.reflectionLine);
-	var p1t = m.transform(testPoint1);
-	var p2t = m.transform(testPoint2);
-	var reflection = this.cp.crease(p1t, p2t);
-	if(reflection !== undefined){ reflection.valley(); }
+	if(this.reflectionLine === undefined) return;
+	var m = this.reflectionLine.reflectionMatrix();
+	var p1t = testPoint1.transform(m);
+	var p2t = testPoint2.transform(m);
+	var p3t = testPoint3.transform(m);
+	var reflection1 = this.cp.newCrease(p1t.x,p1t.y, p2t.x,p2t.y);
+	var reflection2 = this.cp.newCrease(p1t.x,p1t.y, p3t.x,p3t.y);
+	var reflection3 = this.cp.newCrease(p2t.x,p2t.y, p3t.x,p3t.y);
+	if(reflection1 !== undefined){ reflection1.valley(); }
+	if(reflection2 !== undefined){ reflection2.valley(); }
+	if(reflection3 !== undefined){ reflection3.valley(); }
 	this.initialize();	
-}
-
-function matrixMult(a,b){
-}
-
-reflex.reflectMatrix = function(symmetryLine){
-	var midpoint = symmetryLine.midpoint();
-	var angle = symmetryLine.absoluteAngle();
-	// var mat = {};
-	var mat = new paper.Matrix();
-	mat.a = Math.cos(angle) * Math.cos(-angle) + Math.sin(angle) * Math.sin(-angle);
-	mat.b = Math.cos(angle) * -Math.sin(-angle) + Math.sin(angle) * Math.cos(-angle);
-	mat.c = Math.sin(angle) * Math.cos(-angle) + -Math.cos(angle) * Math.sin(-angle);
-	mat.d = Math.sin(angle) * -Math.sin(-angle) + -Math.cos(angle) * Math.cos(-angle);
-	mat.tx = midpoint.x + mat.a * -midpoint.x + -midpoint.y * mat.c;
-	mat.ty = midpoint.y + mat.b * -midpoint.x + -midpoint.y * mat.d;
-	return mat;
 }
 
 reflex.reset = function(){
 	this.cp.clear();
 	this.reflectionLine = this.cp.creaseThroughPoints(this.marks[0].position, this.marks[1].
-		position).valley();
-	this.testLine = this.cp.crease(testPoint1, testPoint2).mountain();
+		position);
+	if(this.reflectionLine !== undefined){ this.reflectionLine.valley(); }
+	this.testLine1 = this.cp.newCrease(testPoint1.x,testPoint1.y, testPoint2.x,testPoint2.y);
+	this.testLine2 = this.cp.newCrease(testPoint1.x,testPoint1.y, testPoint3.x,testPoint3.y);
+	this.testLine3 = this.cp.newCrease(testPoint2.x,testPoint2.y, testPoint3.x,testPoint3.y);
+	if(this.testLine1 !== undefined){ this.testLine1.mountain(); }
+	if(this.testLine2 !== undefined){ this.testLine2.mountain(); }
+	if(this.testLine3 !== undefined){ this.testLine3.mountain(); }
 	this.computeReflection();
 	// this.initialize();
 }
@@ -60,8 +56,8 @@ reflex.onMouseMove = function(event) {
 		reflex.reset();
 	}
 	this.computeReflection();
-	if(reflexMatrixCallback != undefined){
-		reflexMatrixCallback(this.reflectMatrix(this.reflectionLine));
+	if(reflexMatrixCallback != undefined && this.reflectionLine !== undefined){
+		reflexMatrixCallback(this.reflectionLine.reflectionMatrix());
 	}
 }
 reflex.onMouseDown = function(event){

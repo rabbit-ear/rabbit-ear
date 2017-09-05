@@ -70,6 +70,14 @@
 		<p>This will give you the crossing locations without fragmenting. It returns an <a href="library/EdgeIntersection">EdgeIntersection</a> object.</p>
 	</div>
 
+	<div class="centered">
+		<canvas id="canvas-crane-1" resize></canvas><canvas id="canvas-crane-2" resize></canvas>
+	</div>
+
+	<div class="quote">
+		<p>The SVG on the right has been <a href="library/fragment">fragmented</a></p>
+	</div>
+
 </section>
 
 <h2>Collinear Nodes</h2>
@@ -89,19 +97,15 @@
 
 </section>
 
-<h2>Parallel</h2>
+<h2>Intersection of Two Edges</h2>
 <section id="parallel">
 
-	<div class="quote">
-		<p>At some point, two lines will be considered parallel due to floating point precision, and could vary from machine to machine, so this library needs to be in control of the epsilon calculation.</p>
-	</div>
-
 	<div class="centered p5sketch" id="intersections-div"></div>
-
-	<div class="quote">
-		<p>Collinear lines (the last pair) should not intersect.</p>
-	</div>
 	
+	<div class="quote">
+		<p>Collinear lines at certain angles is a good place to test the robustness of the intersection algorithm</p>
+	</div>
+
 </section>
 
 <div class="tests">
@@ -120,6 +124,26 @@
 <script language="javascript" type="text/javascript" src="../tests/js/intersections.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/05_parallels_scale.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/js/11_merge_duplicates.js"></script>
+
+<script>
+var crane1CP = new OrigamiPaper("canvas-crane-1", cp);
+loadSVGNoFragment("/tests/svg/crane.svg", function(cp){ 
+	// crane1CP = new OrigamiPaper("canvas-folded", cp);
+	crane1CP.cp = cp;
+	crane1CP.initialize();
+	crane1CP.zoomToFit(0.05);
+	crane1CP.selectNearestEdge = true;
+});
+
+var crane2CP = new OrigamiPaper("canvas-crane-2", cp);
+loadSVG("/tests/svg/crane.svg", function(cp){ 
+	// crane2CP = new OrigamiPaper("canvas-folded", cp);
+	crane2CP.cp = cp;
+	crane2CP.initialize();
+	crane2CP.zoomToFit(0.05);
+	crane2CP.selectNearestEdge = true;
+});
+</script>
 
 <script>
 	var p505 = new p5(_05_parallels, 'intersections-div');
@@ -154,11 +178,11 @@
 		cp[i] = new CreasePattern();
 		cp[i].nodes = [];
 		cp[i].edges = [];
-		var freq = 12;
+		var freq = Math.PI*2;
 		var inc = Math.PI/(12*freq * 2);
 		for(var j = 0; j < 1-inc; j+=inc){
 			cp[i].crease(j, 0.5 + 0.45*Math.sin(j*freq), (j+inc), 0.5 + 0.45*Math.sin((j+inc)*freq));
-			cp[i].crease(j, 0.5 + 0.45*Math.cos(j*freq), (j+inc), 0.5 + 0.45*Math.cos((j+inc)*freq));
+			cp[i].crease(j, 0.5 + 0.45*Math.sin(j*freq-Math.PI*0.5), (j+inc), 0.5 + 0.45*Math.sin((j+inc)*freq-Math.PI*0.5));
 		}
 	}
 

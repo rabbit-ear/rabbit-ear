@@ -9,7 +9,7 @@
 	</div>
 
 	<div class="quote">
-		<p>A 1x2 column is added to a traditional 2x2 reflection matrix because it isn't required that the line of reflection cross at the origin.</p>
+		<p>A 2x2 matrix is sufficient for a reflection line that goes through the origin. For all lines, an additional 1x2 column is required.</p>
 	</div>
 
 	<div class="centered">

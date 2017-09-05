@@ -26,7 +26,7 @@ voronoiSketch.onMouseDown = function(event){
 	if(this.cp.pointInside(event.point)){ input.newPlanarNode(event.point.x, event.point.y); }
 	if(input.nodes.length < 2) return;
 
-	var nodes = input.nodes.map(function(el){return el.arrayForm();});
+	var nodes = input.nodes.map(function(el){return el.values();});
 	var v = voronoi( nodes );
 	for(var i = 0; i < v.edges.length; i++){
 		var edge = v.edges[i];

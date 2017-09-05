@@ -22,7 +22,8 @@ ffMoveNode.style.nodes = {
 	radius: 0.02 
 };
 
-loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
+// loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
+loadSVG("/tests/svg/crane.svg", function(e){ 
 	ffMoveNode.cp = e;
 	ffMoveNode.initialize();
 	if(ffMoveNode.nodeLayer != undefined && ffMoveNode.nodeLayer.moveToFront != undefined) ffMoveNode.nodeLayer.moveToFront();

@@ -52,22 +52,54 @@
 	</div>
 
 	<div class="centered">
-		<canvas id="canvas-faces-radial" resize></canvas>
+		<canvas id="canvas-radial-rainbow" resize></canvas>
+	</div>
+	
+	<div class="centered">
+		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<a href="library/planarAdjacent.php"><f>planarAdjacent</f>()</a></code></pre>
 	</div>
 
+	<div class="quote">
+		<p>After sorting the lines by angle, it's easy to find the next most right turn.</p>
+	</div>
+
+	<div class="quote">
+		<p>Along the way it's important to sum up the angles visited along the walk. Interior angles are right turns.</p>
+	</div>
+
+	<div class="quote">
+		<p>Since we know we are making right turns, if there are 4 angles of 270 degrees, we just walked around the outside of a perimeter of a square.</p>
+	</div>
+
+	<!-- <div class="centered">
+		<canvas id="canvas-faces-radial" resize></canvas>
+	</div> -->
 
 </section>
-
+<!-- 
 <div class="tests">
 	<ul>
 		<li></li>
 	</ul>
 </div>
-
+ -->
 <script type="text/javascript" src="../tests/js/node-adjacent-faces.js"></script>
 <script type="text/javascript" src="../tests/js/faces_radial.js"></script>
 <script type="text/javascript" src="../tests/js/faces_random.js"></script>
 <script type="text/javascript" src="../tests/js/faces_random_partial.js"></script>
+<script type="text/javascript" src="../tests/js/radial_rainbow.js"></script>
+<script>
+radial_rainbow_callback = function(event){
+	var edgeNum = event.edge.index;
+	var nodeNum = event.node.index;
+	var angleDegrees = event.angle * 180 / Math.PI;
+	// if(angleDegrees < 0) angleDegrees += 360;
+	document.getElementById("edge-angle-div").innerHTML = 
+		"{<n>" + angleDegrees.toFixed(1) + "</n>°, " + 
+		"<v>edge" + edgeNum + "</v>, " + 
+		"<v>node" + nodeNum + "</v>} ← ";
+}
+</script>
 <script>
 var cp1 = new CreasePattern();
 cp1.fishBase();

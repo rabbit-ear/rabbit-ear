@@ -29,7 +29,7 @@
 	</div>
 
 	<div class="quote">
-		<p>Any polygon can be made by supplying an array of points (convex &amp; clockwise winding).</strong></p>
+		<p>Any polygon can be made by supplying an array of points (convex &amp; clockwise winding).</p>
 	</div>
 
 	<div class="centered">
@@ -38,8 +38,14 @@
 
 </section>
 
-<h2>Thickness</h2>
-<section></section>
+<h2>Origami</h2>
+<section>
+
+	<div class="quote">
+		<p>It's fun to try to fit origami crease patterns onto non-square paper</p>
+	</div>	
+
+</section>
 
 <script>
 	new OrigamiPaper("canvas-1", new CreasePattern()).zoomToFit(0.05);

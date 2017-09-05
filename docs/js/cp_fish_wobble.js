@@ -2,7 +2,6 @@
 var fishSwim = new OrigamiPaper("canvas-fish-base-wobble");
 fishSwim.zoomToFit(0.05);
 
-
 fishSwim.reset = function(){
 	fishSwim.cp.clear();
 	fishSwim.cp.fishBase();

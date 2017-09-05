@@ -34,6 +34,10 @@
 	</div>
 
 	<div class="centered">
+		<canvas id="canvas-reflection" resize></canvas>
+	</div>
+
+	<div class="centered">
 		<pre><code>cp.<v>setSymmetryLine</v>(<arg>point1</arg>, <arg>point2</arg>)</code></pre>
 	</div>
 
@@ -45,15 +49,10 @@
 		<pre><code>cp.<v>noSymmetry</v>()</code></pre>
 	</div>
 
-	<div class="quote">
-		<p>I would like to generalize the symmetry application function as much as possible.</p>
-	</div>
-
-
 </section>
 
 <script src="../tests/js/mirror.js"></script>
 <script src="../tests/js/mirror-book.js"></script>
-
+<script src="../tests/js/reflection.js"></script>
 
 <?php include 'footer.php';?>

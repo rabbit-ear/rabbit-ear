@@ -19,6 +19,61 @@ function epsilonEqual(a:number, b:number, epsilon?:number):boolean{
 	return ( Math.abs(a - b) < epsilon );
 }
 
+class Matrix{
+	a:number; b:number; tx:number;
+	c:number; d:number; ty:number;
+	constructor(){this.a=1; this.b=0; this.c=0; this.d=1; this.tx=0; this.ty=0;}
+	mult(matrix:Matrix):Matrix{
+		var m1 = this.copy();
+		var m2 = matrix.copy();
+		// this is counting on a or b != result   eg: cannot do mat3x3MultUnique(a, b, a);
+		// r.[0] = this.[0] * m.[0] + this.[1] * m.[3] + this.[2] * m.[6];
+		// r.[1] = this.[0] * m.[1] + this.[1] * m.[4] + this.[2] * m.[7];
+		// r.[2] = this.[0] * m.[2] + this.[1] * m.[5] + this.[2] * m.[8];
+		// r.[3] = this.[3] * m.[0] + this.[4] * m.[3] + this.[5] * m.[6];
+		// r.[4] = this.[3] * m.[1] + this.[4] * m.[4] + this.[5] * m.[7];
+		// r.[5] = this.[3] * m.[2] + this.[4] * m.[5] + this.[5] * m.[8];
+		// r.[6] = this.[6] * m.[0] + this.[7] * m.[3] + this.[8] * m.[6];
+		// r.[7] = this.[6] * m.[1] + this.[7] * m.[4] + this.[8] * m.[7];
+		// r.[8] = this.[6] * m.[2] + this.[7] * m.[5] + this.[8] * m.[8];
+		// r.a = m1.a * m2.a + m1.b * m2.c + m1.tx * 0;
+		// r.b = m1.a * m2.b + m1.b * m2.d + m1.tx * 0;
+		// r.tx = m1.a * m2.tx + m1.b * m2.ty + m1.tx * 1;
+		// r.c = m1.c * m2.a + m1.d * m2.c + m1.ty * 0;
+		// r.d = m1.c * m2.b + m1.d * m2.d + m1.ty * 0;
+		// r.ty = m1.c * m2.tx + m1.d * m2.ty + m1.ty * 1;
+		// var r = new Matrix();
+		// r.a = m1.a * m2.a + m1.b * m2.c;
+		// r.b = m1.a * m2.b + m1.b * m2.d;
+		// r.tx = m1.a * m2.tx + m1.b * m2.ty + m1.tx;
+		// r.c = m1.c * m2.a + m1.d * m2.c;
+		// r.d = m1.c * m2.b + m1.d * m2.d;
+		// r.ty = m1.c * m2.tx + m1.d * m2.ty + m1.ty;
+		// return r;
+		// 0 = 0 * m2.a + m1.[7] * m2.c + m1.[8] * 0;
+		// 0 = 0 * m2.b + m1.[7] * m2.d + m1.[8] * 0;
+		// 1 = 0 * m2.tx + m1.[7] * m2.ty + m1.[8] * 1;
+		var r = new Matrix();
+		r.a = m1.a * m2.a + m1.c * m2.b;
+		r.c = m1.a * m2.c + m1.c * m2.d;
+		r.tx = m1.a * m2.tx + m1.c * m2.ty + m1.tx;
+		r.b = m1.b * m2.a + m1.d * m2.b;
+		r.d = m1.b * m2.c + m1.d * m2.d;
+		r.ty = m1.b * m2.tx + m1.d * m2.ty + m1.ty;
+		return r;
+	}
+	copy():Matrix{
+		var m = new Matrix();
+		m.a = this.a;
+		m.b = this.b;
+		m.c = this.c;
+		m.d = this.d;
+		m.tx = this.tx;
+		m.ty = this.ty;
+		return m;
+	}
+}
+
 class XY{
 	x:number;
 	y:number;
@@ -26,6 +81,7 @@ class XY{
 		this.x = x;
 		this.y = y;
 	}
+	values():[number, number]{ return [this.x, this.y]; }
 	// position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
 	// translated(dx:number, dy:number):XY{ this.x += dx; this.y += dy; return this;}
 	normalize():XY { var m = this.mag(); return new XY(this.x/m, this.y/m);}
@@ -36,7 +92,7 @@ class XY{
 		var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
 		var currentAngle = Math.atan2(dy, dx);
 		return new XY(origin.x + radius*Math.cos(currentAngle + angle),
-		                   origin.y + radius*Math.sin(currentAngle + angle));
+		              origin.y + radius*Math.sin(currentAngle + angle));
 	}
 	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
@@ -46,7 +102,10 @@ class XY{
 		// rect bounding box, cheaper than radius calculation
 		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
 	}
-	arrayForm():[number, number]{ return [this.x, this.y]; }
+	transform(matrix):XY{
+		return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx,
+		              this.x * matrix.b + this.y * matrix.d + matrix.ty);
+	}
 }
 
 class PlanarPair{
@@ -167,6 +226,7 @@ class PlanarNode extends GraphNode{
 	}
 
 // implements XY
+	values():[number, number]{ return [this.x, this.y]; }
 // todo: probably need to break apart XY and this. this modifies the x and y in place. XY returns a new one and doesn't modify the current one in place
 	position(x:number, y:number):PlanarNode{ this.x = x; this.y = y; return this; }
 	translate(dx:number, dy:number):PlanarNode{ this.x += dx; this.y += dy; return this;}
@@ -189,7 +249,12 @@ class PlanarNode extends GraphNode{
 		// rect bounding box, cheaper than radius calculation
 		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
 	}
-	arrayForm():[number, number]{ return [this.x, this.y]; }
+	transform(matrix):PlanarNode{
+		var xx = this.x; var yy = this.y;
+		this.x = xx * matrix.a + yy * matrix.c + matrix.tx;
+		this.y = xx * matrix.b + yy * matrix.d + matrix.ty;
+		return this;
+	}
 }
 
 class PlanarEdge extends GraphEdge{
@@ -238,6 +303,23 @@ class PlanarEdge extends GraphEdge{
 		return [ this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[0], this.nodes[1]) ),
 		         this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[1], this.nodes[0]) ) ]
 		         .filter(function(el){ return el !== undefined });
+	}
+	transform(matrix){
+		this.nodes[0].transform(matrix);
+		this.nodes[1].transform(matrix);
+	}
+	// using this edge as a line of reflection, returns the matrix representation form
+	reflectionMatrix():Matrix{
+		var midpoint = this.midpoint();
+		var angle = this.absoluteAngle();
+		var mat = new Matrix();
+		mat.a = Math.cos(angle) *  Math.cos(-angle) +  Math.sin(angle) * Math.sin(-angle);
+		mat.b = Math.cos(angle) * -Math.sin(-angle) +  Math.sin(angle) * Math.cos(-angle);
+		mat.c = Math.sin(angle) *  Math.cos(-angle) + -Math.cos(angle) * Math.sin(-angle);
+		mat.d = Math.sin(angle) * -Math.sin(-angle) + -Math.cos(angle) * Math.cos(-angle);
+		mat.tx = midpoint.x + mat.a * -midpoint.x + -midpoint.y * mat.c;
+		mat.ty = midpoint.y + mat.b * -midpoint.x + -midpoint.y * mat.d;
+		return mat;
 	}
 }
 
@@ -311,6 +393,11 @@ class PlanarFace{
 			if (cross < 0) return false;
 		}
 		return true;
+	}
+	transform(matrix){
+		for(var i = 0; i < this.nodes.length; i++){
+			this.nodes[i].transform(matrix);
+		}
 	}
 }
 
@@ -809,46 +896,161 @@ class PlanarGraph extends Graph{
 
 	// }
 
-	adjacentFacesTree(start:PlanarFace):AdjacentFace{
+	adjacentFaceTree(start:PlanarFace):any{
 		this.faceArrayDidChange();
-
-		var abc = [];
-		abc.push(face);
-		abc = abc.concat(adjacentArray);
-
-		var face = start;
-		var adjacentArray = face.edgeAdjacentFaces();
-		var nextLevelAdjacent = [];
-		for(var i = 0; i < adjacentArray.length; i++){
-			nextLevelAdjacent.push({parent:start, adj:adjacentArray[i]});
+		// this will keep track of faces still needing to be visited
+		var faceRanks = [];
+		for(var i = 0; i < this.faces.length; i++){ faceRanks.push(undefined); }
+		function allFacesRanked():boolean{
+			for(var i = 0; i < faceRanks.length; i++){
+				if(faceRanks[i] === undefined){ return false; }
+			}
+			return true;
 		}
 
-		var tree = new AdjacentFace(start);
-		var round = 0;
+		var rank = [];
+		var rankI = 0;
+		rank.push([start]);
+		// rank 0 is an array of 1 face, the start face
+		faceRanks[start.index] = {rank:0, parents:[], face:start};
 
-		// this thing
-		var adj = tree;
-
-		var foundInThisRound;
-		do{
-			foundInThisRound = false;
-			var thisLevelAdjacent = nextLevelAdjacent;
-			var nextLevelAdjacent = [];
-			for(var i = 0; i < thisLevelAdjacent.length; i++){
-				if(!arrayContainsObject(abc, thisLevelAdjacent[i].adj)){
-					// instad of this, find parent, push it to the parent's tree
-					abc.push(thisLevelAdjacent[i].adj);
-					// continue as normal
-					var newAdj = new AdjacentFace(thisLevelAdjacent[i].adj);
-					adj.adjacent.push( newAdj );
-					nextLevelAdjacent.push( {parent:newAdj, adj:newAdj} );
-					foundInThisRound = true;
+		// loop
+		var safety = 0;
+		while(!allFacesRanked() && safety < this.faces.length+1){
+			rankI += 1;
+			rank[rankI] = [];
+			for(var p = 0; p < rank[rankI-1].length; p++){
+				var adjacent = rank[rankI-1][p].edgeAdjacentFaces();
+				for(var i = 0; i < adjacent.length; i++){
+					// add a face if it hasn't already been found
+					if(faceRanks[adjacent[i].index] === undefined){
+						rank[rankI].push(adjacent[i]);
+						var parentArray = faceRanks[ rank[rankI-1][p].index ].parents.slice();
+						// add nearest parent to beginning of array
+						parentArray.unshift( rank[rankI-1][p] );
+						// OR, add them to the beginning
+						// parentArray.push( rank[rankI-1][p] );
+						faceRanks[adjacent[i].index] = {rank:rankI, parents:parentArray, face:adjacent[i]};
+					}
 				}
 			}
-		}while(foundInThisRound === true);
+			safety++;
+		}
 
-		return tree;
+		// console.log(faceRanks);
+		// console.log(rank);
+
+		for(var i = 0; i < faceRanks.length ;i++){
+			if(faceRanks[i].parents.length > 0){
+				var parent = <PlanarFace>faceRanks[i].parents[0];
+				var edge = <PlanarEdge>parent.commonEdge(faceRanks[i].face);
+				var m = edge.reflectionMatrix();
+				faceRanks[i].matrix = m;
+			}
+		}
+
+		for(var i = 0; i < rank.length; i++){
+			for(var j = 0; j < rank[i].length; j++){
+				var parents = <PlanarFace[]>faceRanks[ rank[i][j].index ].parents;
+				var matrix = faceRanks[ rank[i][j].index ].matrix;
+				if(parents !== undefined && m !== undefined && parents.length > 0){
+					var parentGlobal = faceRanks[ parents[0].index ].global;
+					// console.log( faceRanks[ parents[0].index ].global );
+					if(parentGlobal !== undefined){
+						// faceRanks[ rank[i][j].index ].global = matrix.mult(parentGlobal.copy());
+						faceRanks[ rank[i][j].index ].global = parentGlobal.copy().mult(matrix);
+					} else{
+						faceRanks[ rank[i][j].index ].global = matrix.copy();
+					}
+					// console.log("done, adding it to global");
+				} else{
+					faceRanks[ rank[i][j].index ].matrix = new Matrix();
+					faceRanks[ rank[i][j].index ].global = new Matrix();
+				}
+			}
+		}
+
+		return {rank:rank, faces:faceRanks};
+/*
+		var root = new AdjacentFace(start);
+		var rootAdjacent = start.edgeAdjacentFaces();
+		for(var i = 0; i < rootAdjacent.length; i++){
+			root.adjacent.push(new AdjacentFace(rootAdjacent[i]));
+		}
+
+		var treeAdded = [];
+		for(var i = 0; i < this.faces.length; i++){ treeAdded.push(false); }
+
+		for(var r = 1; r < rank.length; r++){
+			var thisRank = rank[r];
+			for(var f = 0; f < thisRank.length; f++){
+				var thisFace = thisRank[f];
+				var thisFaceParents = faceRanks[ thisFace.index ].parents;
+				var thisBranch = root;
+				// console.log("beginning dive " + found.length);
+				for(var p = 0; p < thisFaceParents.length; p++){
+					var found = false;
+					for(var i = 0; i < thisBranch.adjacent.length; i++){
+						if(thisBranch.adjacent[i].face === thisFaceParents[p]){
+							if(treeAdded[thisFace.index] === false){
+								thisBranch = thisBranch.adjacent[i];
+								// found = new AdjacentFace(thisFace);
+								treeAdded[thisFace.index] = true;
+								// break;
+							}
+						}
+					}
+					if(found === false){ break; }
+				}
+				// console.log("end dive " + found.length);
+				// console.log("rank "+r+" face "+f+" adding "+found.length+" elements");
+				if(found === true ){ thisBranch.adjacent.push(new AdjacentFace(thisFace)); }
+				// thisBranch.adjacent = thisBranch.adjacent.concat(found);
+			}
+		}
+		return root;*/
 	}
+
+	// adjacentFacesTree(start:PlanarFace):AdjacentFace{
+	// 	this.faceArrayDidChange();
+
+	// 	var abc = [];
+	// 	abc.push(face);
+	// 	abc = abc.concat(adjacentArray);
+
+	// 	var face = start;
+	// 	var adjacentArray = face.edgeAdjacentFaces();
+	// 	var nextLevelAdjacent = [];
+	// 	for(var i = 0; i < adjacentArray.length; i++){
+	// 		nextLevelAdjacent.push({parent:start, adj:adjacentArray[i]});
+	// 	}
+
+	// 	var tree = new AdjacentFace(start);
+	// 	var round = 0;
+
+	// 	// this thing
+	// 	var adj = tree;
+
+	// 	var foundInThisRound;
+	// 	do{
+	// 		foundInThisRound = false;
+	// 		var thisLevelAdjacent = nextLevelAdjacent;
+	// 		var nextLevelAdjacent = [];
+	// 		for(var i = 0; i < thisLevelAdjacent.length; i++){
+	// 			if(!arrayContainsObject(abc, thisLevelAdjacent[i].adj)){
+	// 				// instad of this, find parent, push it to the parent's tree
+	// 				abc.push(thisLevelAdjacent[i].adj);
+	// 				// continue as normal
+	// 				var newAdj = new AdjacentFace(thisLevelAdjacent[i].adj);
+	// 				adj.adjacent.push( newAdj );
+	// 				nextLevelAdjacent.push( {parent:newAdj, adj:newAdj} );
+	// 				foundInThisRound = true;
+	// 			}
+	// 		}
+	// 	}while(foundInThisRound === true);
+
+	// 	return tree;
+	// }
 
 	// adjacentFacesTree(start:PlanarFace):AdjacentFace{
 
@@ -926,6 +1128,7 @@ class PlanarGraph extends Graph{
 
 class AdjacentFace{
 	face:PlanarFace;
+	parentEdge:PlanarEdge; // edge connecting to parent
 	adjacent:AdjacentFace[];
 	constructor(face:PlanarFace){
 		this.face = face;

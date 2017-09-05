@@ -408,9 +408,8 @@ var CreasePattern = (function (_super) {
             return [a, b];
         }
         // if both are outside, it's still possible the line crosses into the boundary
-        if (!aInside && !bInside) {
-            return this.clipLineInBoundary(a, b);
-        }
+        // if(!aInside && !bInside) { return this.clipLineInBoundary(a, b); }
+        // maybe we don't want this feature
         var inside = a;
         var outside = b;
         if (bInside) {

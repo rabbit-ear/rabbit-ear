@@ -180,6 +180,10 @@ var OrigamiPaper = (function () {
 		this.scope.view.matrix = mat;
 
 		lineWeight = 0.01 * cpMin;
+
+		// console.log(canvasWidth);
+		// console.log(cpWidth);
+		// console.log(cpCanvasRatio);
 		return mat;
 	};
 
@@ -284,42 +288,63 @@ var OrigamiPaper = (function () {
 	return OrigamiPaper;
 }());
 
+function paperPathToCP(paperPath){
+	var svgLayer = paperPath;
+	var w = svgLayer.bounds.size.width;
+	var h = svgLayer.bounds.size.height;
+					// no longer re-sizing down to 1 x aspect size
+	var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
+	svgLayer.matrix = mat;
+	var cp = new CreasePattern();//.rectangle(w,h);
+	function recurseAndAdd(childrenArray){
+		for(var i = 0; i < childrenArray.length; i++){
+			if(childrenArray[i].segments != undefined){ // found a line
+				var numSegments = childrenArray[i].segments.length-1;
+				if(childrenArray[i].closed === true){
+					numSegments = childrenArray[i].segments.length;
+				}
+				for(var j = 0; j < numSegments; j++){
+					var next = (j+1)%childrenArray[i].segments.length;
+					cp.newCrease(childrenArray[i].segments[j].point.x,
+					             childrenArray[i].segments[j].point.y, 
+					             childrenArray[i].segments[next].point.x,
+					             childrenArray[i].segments[next].point.y);
+				}
+			} else if (childrenArray[i].children != undefined){
+				recurseAndAdd(childrenArray[i].children);
+			}
+		}
+	}
+	recurseAndAdd(svgLayer.children);
+	svgLayer.removeChildren();
+	svgLayer.remove();
+	return cp;
+}
 
 // callback returns the crease pattern as an argument
 function loadSVG(path, callback, epsilon){
+	// var newScope = new paper.PaperScope();
 	paper.project.importSVG(path, function(e){
-		var svgLayer = e;
-		var w = svgLayer.bounds.size.width;
-		var h = svgLayer.bounds.size.height;
-		// no longer re-sizing down to 1 x aspect size
-		// var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
-		// svgLayer.matrix = mat;
-		var cp = new CreasePattern().rectangle(w,h);
-		function recurseAndAdd(childrenArray){
-			for(var i = 0; i < childrenArray.length; i++){
-				if(childrenArray[i].segments != undefined){ // found a line
-					var numSegments = childrenArray[i].segments.length-1;
-					if(childrenArray[i].closed === true){
-						numSegments = childrenArray[i].segments.length;
-					}
-					for(var j = 0; j < numSegments; j++){
-						var next = (j+1)%childrenArray[i].segments.length;
-						cp.newCrease(childrenArray[i].segments[j].point.x,
-						             childrenArray[i].segments[j].point.y, 
-						             childrenArray[i].segments[next].point.x,
-						             childrenArray[i].segments[next].point.y);
-					}
-				} else if (childrenArray[i].children != undefined){
-					recurseAndAdd(childrenArray[i].children);
-				}
-			}
-		}
-		recurseAndAdd(svgLayer.children);
-		svgLayer.removeChildren();
-		svgLayer.remove();
+		var cp = paperPathToCP(e);
 		// cp.clean();
-		var eps = epsilon;
-		if(eps !== undefined){ eps = EPSILON; } //EPSILON_FILE_IMPORT; }
+		var eps = EPSILON_FILE_IMPORT;
+		if(eps !== undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; } EPSILON
+		cp.cleanDuplicateNodes(eps);
+		cp.fragment();
+		cp.cleanDuplicateNodes(eps);
+		if(callback != undefined){
+			callback(cp);
+		}
+	});
+}
+
+function loadSVGNoFragment(path, callback, epsilon){
+	// var newScope = new paper.PaperScope();
+	paper.project.importSVG(path, function(e){
+		var cp = paperPathToCP(e);
+		// cp.clean();
+		var eps = EPSILON_FILE_IMPORT;
+		if(eps !== undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; }
 		cp.cleanDuplicateNodes(eps);
 		// cp.fragment();
 		if(callback != undefined){
@@ -327,7 +352,6 @@ function loadSVG(path, callback, epsilon){
 		}
 	});
 }
-
 var isRetina = function(){
     var mediaQuery = "(-webkit-min-device-pixel-ratio: 1.5),\
             (min--moz-device-pixel-ratio: 1.5),\
