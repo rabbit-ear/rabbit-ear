@@ -23,7 +23,7 @@ ffMoveNode.style.nodes = {
 };
 
 // loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
-loadSVG("/tests/svg/crane.svg", function(e){ 
+loadSVG("/tests/svg/crane-errors.svg", function(e){ 
 	ffMoveNode.cp = e;
 	ffMoveNode.initialize();
 	if(ffMoveNode.nodeLayer != undefined && ffMoveNode.nodeLayer.moveToFront != undefined) ffMoveNode.nodeLayer.moveToFront();

@@ -10,8 +10,8 @@ reflex.decorationLayer = new reflex.scope.Layer();
 reflex.decorationLayer.activate();
 reflex.marks = [];
 for(var i = 0; i < 2; i++) reflex.marks.push(new reflex.scope.Shape.Circle(circleStyle));
-reflex.marks[0].position = [0.0, 0.0];
-reflex.marks[1].position = [1.0, 1.0];
+reflex.marks[0].position = [0.0833, 0.0833];
+reflex.marks[1].position = [0.9166, 0.9166];
 
 testPoint1 = new XY(Math.random(),Math.random());
 testPoint2 = new XY(Math.random(),Math.random());

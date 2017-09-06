@@ -1,8 +1,9 @@
 
 var foldedState = new OrigamiPaper("canvas-folded", cp);
 
-// loadSVG("/tests/svg/sea-turtle-base.svg", function(cp){ 
-loadSVG("/tests/svg/crane.svg", function(cp){ 
+// loadSVG("/tests/svg/crane.svg", function(cp){ 
+loadSVG("/tests/svg/fish-base-tanaka.svg", function(cp){ 
+// loadSVG("/tests/svg/crane.svg", function(cp){ 
 	// foldedState = new OrigamiPaper("canvas-folded", cp);
 	foldedState.cp = cp;
 	// foldedState.cp = new CreasePattern().birdBase();;
@@ -16,9 +17,14 @@ foldedState.fold = function(){
 	// var answer = this.cp.adjacentFaceTree(this.cp.faces[40]);
 
 	// var rani = Math.floor(Math.random()*this.cp.faces.length);
-	// var answer = this.cp.adjacentFaceTree(this.cp.faces[rani]);
-	var answer = this.cp.adjacentFaceTree(this.cp.faces[33]);
 	// console.log(rani);
+	// var answer = this.cp.adjacentFaceTree(this.cp.faces[rani]);
+	// crane
+	var answer = this.cp.adjacentFaceTree(this.cp.faces[33]);
+	// turtle
+	// var answer = this.cp.adjacentFaceTree(this.cp.faces[16]);
+	// crane 2
+	// var answer = this.cp.adjacentFaceTree(this.cp.faces[26]);
 
 	var folded = [];
 	this.foldedLayer = new this.scope.Layer();
@@ -39,9 +45,14 @@ foldedState.fold = function(){
 		this.faces.push( face );
 	}
 
-	this.cp.clear();
-	this.cp.nodes = [];
-	this.cp.edges = [];
+	// this.cp.clear();
+	// this.cp.nodes = [];
+	// this.cp.edges = [];
+	this.cp.faces = [];
+	this.style.mountain.strokeWidth = 0.0015;
+	this.style.valley.strokeWidth = 0.0015;
+	this.style.border.strokeWidth = 0.0015;
+	this.style.mark.strokeWidth = 0.0015;
 	this.initialize();
 	this.boundaryLayer.visible = false;
 
