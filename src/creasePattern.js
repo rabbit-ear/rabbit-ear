@@ -60,7 +60,10 @@ var CreaseNode = (function (_super) {
             .reduce(function (sum, el) { return sum + el.angle; }, 0);
         return [aSum, bSum];
     };
-    CreaseNode.prototype.flatFoldable = function () {
+    CreaseNode.prototype.flatFoldable = function (epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_LOW;
+        }
         if (this.isBoundary()) {
             return true;
         }
@@ -68,8 +71,8 @@ var CreaseNode = (function (_super) {
         if (sums == undefined) {
             return false;
         } // not an even number of interior angles
-        if (epsilonEqual(sums[0], Math.PI, 0.01) &&
-            epsilonEqual(sums[1], Math.PI, 0.01)) {
+        if (epsilonEqual(sums[0], Math.PI, epsilon) &&
+            epsilonEqual(sums[1], Math.PI, epsilon)) {
             return true;
         }
         return false;
@@ -1001,7 +1004,6 @@ var CreasePattern = (function (_super) {
         return paths;
     };
     CreasePattern.prototype.svgMin = function (scale) {
-        console.log("svgMin");
         var paths = this.joinedPaths();
         if (scale == undefined || scale <= 0) {
             scale = 1000;

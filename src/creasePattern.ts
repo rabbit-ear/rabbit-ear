@@ -945,7 +945,6 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	svgMin(scale:number):string{
-		console.log("svgMin");
 		var paths = this.joinedPaths();
 		if(scale == undefined || scale <= 0){
 			scale = 1000;
