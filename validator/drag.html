@@ -3,37 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="flat foldable foldability origami calculator validator svg opx fold">
-<meta name="author" content="Robby Kraft">
-<title>Origami Crease Pattern Validator</title>
-<link href="../lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="style.css" rel="stylesheet">
 <style>
-
-.success{
-	background-color: #28A745;/*#0275D8;*/
-}
-.fail{
-	background-color: #FF2222;
+html, body {
+	height:100%;
+	width:100%;
+	background-color: #333;
+	margin:0px;
+	padding:0px;
 }
 canvas[resize]{
-	width:100%;
-	height:100%;
-}
-#result-container{
-	padding-top: 2em;
-	display:none;
+	width:98%;
+	height:98%;
 }
 div#dropZone {
-  background: black;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 999;
-  opacity: 0.6;
-  visibility: hidden;
+	background: black;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 999;
+	opacity: 0.6;
+	visibility: hidden;
 }
 </style>
 </head>
@@ -41,16 +32,8 @@ div#dropZone {
 	<div id="dropZone">
 	</div>
 	<canvas id="canvas" resize></canvas>
-	<input type="file" id="files" style="opacity:0;">
-
-<script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="../lib/bootstrap/assets/js/ie10-viewport-bug-workaround.js"></script>
+	<input type="file" id="files" style="display:none;">
+	<a href="#" class="btn btn-lg btn-secondary" id="open-file" style="display:none;">Open File</a>
 
 <script language="javascript" type="text/javascript" src="../src/graph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
@@ -58,114 +41,33 @@ div#dropZone {
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
 
+<script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
+
 <script>
 var project1 = new OrigamiPaper("canvas");
-</script>
-<!-- file upload -->
-<script>
-$("#files").css('opacity','0');
-$("#open-file").click(function(e){
-   e.preventDefault();
-   $("#files").trigger('click');
-});
-</script>
-
-<script>
-$(document).on('change', ':file', function() {
-	console.log('document on change file');
-	var input = $(this),
-		numFiles = input.get(0).files ? input.get(0).files.length : 1,
-		label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-	input.trigger('fileselect', [numFiles, label]);
-	readBlob();
-});
-
-function readBlob() {
-	// console.log('read blob');
-	var files = document.getElementById('files').files;
-	if (!files.length) {
-		// they selected cancel
-		return;
-	}
-	var file = files[0];
-	var reader = new FileReader();
-
-	reader.onloadend = function(evt) {
-		// console.log('on load end');
-		if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-			//byte range: ['Read ', file.size, ' byte file'].join('');
-			// importSVG(evt.target.result);
-			svgBlobLoaded(evt.target.result);
-		}
-	};
-	var blob = file.slice(0, file.size);
-	reader.readAsBinaryString(blob);
-}
 
 function svgBlobLoaded(svg){
-	
 	loadSVG(svg, function(cp){
 		project1.cp = cp;
-		// project1 = new OrigamiPaper("canvas", cp);
-		// project1.colorNodesFlatFoldable = function(){
-		// 	var ffTestPassed = true;
-		// 	for(var i = 0; i < project1.cp.nodes.length; i++){
-		// 		var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
-		// 		if( !project1.cp.nodes[i].flatFoldable(0.01) ){
-		// 			ffTestPassed = false;
-		// 			color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
-		// 		}
-		// 		project1.nodes[i].fillColor = color;
-		// 	}
-		// 	setJumbotron(ffTestPassed);
-		// }
-		// project1.style.nodes.visible = true;
-		// project1.zoomToFit(0.05);
 		project1.initialize();
 		console.log(project1.cp.svgMin());
-		// project1.colorNodesFlatFoldable();
-		// for(var i = 0; i < project1.nodes.length; i++){ project1.nodes[i].radius = 0.02; }
 	});
 }
 
 </script>
 
-
-
 <!-- drag to upload -->
 <script>
 var dropZone = document.getElementById('dropZone');
-
-function showDropZone() {
-	dropZone.style.visibility = "visible";
-}
-function hideDropZone() {
-	dropZone.style.visibility = "hidden";
-}
-
+function showDropZone() { dropZone.style.visibility = "visible"; }
+function hideDropZone() { dropZone.style.visibility = "hidden"; }
 function allowDrag(e) {
 	if (true) {  // Test that the item being dragged is a valid one
 		e.dataTransfer.dropEffect = 'copy';
 		e.preventDefault();
 	}
 }
-
-//seperate event
-function addEventHandler(obj, evt, handler) {
-	if (obj.addEventListener) {
-		// W3C method
-		obj.addEventListener(evt, handler, false);
-	} else if (obj.attachEvent) {
-		// IE method.
-		obj.attachEvent('on' + evt, handler);
-	} else {
-		// Old school method.
-		obj['on' + evt] = handler;
-	}
-}
-
 function handleDrop(e) {
-
 	Function.prototype.bindToEventHandler = function bindToEventHandler() {
 		var handler = this;
 		var boundParameters = Array.prototype.slice.call(arguments);
@@ -176,10 +78,8 @@ function handleDrop(e) {
 			handler.apply(this, boundParameters);
 		}
 	};
-		
 	e.preventDefault();
 	hideDropZone();
-
 	var dt = e.dataTransfer;
 	var files = dt.files;
 	for (var i = 0; i < files.length; i++) {
@@ -195,19 +95,52 @@ function handleDrop(e) {
 	}
 	return true;
 }
-// 1
-window.addEventListener('dragenter', function(e) {
-	showDropZone();
-});
-// 2
+window.addEventListener('dragenter', function(e) { showDropZone(); });
 dropZone.addEventListener('dragenter', allowDrag);
 dropZone.addEventListener('dragover', allowDrag);
-// 3
-dropZone.addEventListener('dragleave', function(e) {
-	hideDropZone();
-});
-// 4
+dropZone.addEventListener('dragleave', function(e) { hideDropZone(); });
 dropZone.addEventListener('drop', handleDrop);
+function addEventHandler(obj, evt, handler) {
+	// w3c
+	if (obj.addEventListener){ obj.addEventListener(evt, handler, false); }
+	// ie
+	else if (obj.attachEvent) { obj.attachEvent('on' + evt, handler); }
+	// old
+	else { obj['on' + evt] = handler; }
+}
+</script>
+
+<!-- button to upload -->
+<script>
+document.getElementById("open-file").addEventListener("click", function(e){
+	e.preventDefault();
+	document.getElementById("files").click()
+});
+document.addEventListener('change', function(){
+	console.log('document on change file');
+	var input = $(this),
+		numFiles = input.get(0).files ? input.get(0).files.length : 1,
+		label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+	input.trigger('fileselect', [numFiles, label]);
+	readBlob();
+}, false);
+function readBlob() {
+	var files = document.getElementById('files').files;
+	if (!files.length) {
+		// they selected cancel
+		return;
+	}
+	var file = files[0];
+	var reader = new FileReader();
+	reader.onloadend = function(evt) {
+		if (evt.target.readyState == FileReader.DONE){
+			//byte range: ['Read ', file.size, ' byte file'].join('');
+			svgBlobLoaded(evt.target.result);
+		}
+	};
+	var blob = file.slice(0, file.size);
+	reader.readAsBinaryString(blob);
+}
 </script>
 
 </body>
