@@ -57,7 +57,9 @@ function svgBlobLoaded(svg){
 	loadSVG(svg, function(cp){
 		project.cp = cp;
 		project.initialize();
-		var svgMin = project.cp.svgMin();
+		project.zoomToFit();
+
+		// var svgMin = project.cp.svgMin();
 		// download(svgMin, "creasepattern.svg");
 	});
 }

@@ -643,12 +643,16 @@ var CreasePattern = (function (_super) {
         // this is the width of the BOUNDING BOX. be careful if the polygon is not a square
         var left = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); })[0].x;
         var right = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? -1 : ((b.x > a.x) ? 1 : 0); })[0].x;
+        // console.log("w left: " + left);
+        // console.log("w right: " + right);
         return right - left;
     };
     CreasePattern.prototype.height = function () {
         // this is the height of the BOUNDING BOX. be careful if the polygon is not a square
         var top = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); })[0].y;
         var bottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? -1 : ((b.y > a.y) ? 1 : 0); })[0].y;
+        // console.log("h top: " + top);
+        // console.log("h bottom: " + bottom);
         return bottom - top;
     };
     CreasePattern.prototype.square = function (width) {
@@ -697,6 +701,10 @@ var CreasePattern = (function (_super) {
         return this;
     };
     CreasePattern.prototype.setBoundary = function (points) {
+        // todo: test that this is the right way to remove last item:
+        if (points[0].equivalent(points[points.length - 1])) {
+            points.pop();
+        }
         // TODO: make sure paper edges are winding clockwise!!
         // clear old data
         if (this.boundary === undefined) {
@@ -707,11 +715,7 @@ var CreasePattern = (function (_super) {
         }
         this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
         // todo: if an edge gets removed, it will leave behind its nodes. we might need the following:
-        // this.cleanUnusedNodes();
-        // todo: test that this is the right way to remove last item:
-        if (points[0].equivalent(points[points.length - 1])) {
-            points.pop();
-        }
+        this.cleanAllUselessNodes();
         for (var i = 0; i < points.length; i++) {
             var nextI = (i + 1) % points.length;
             this.newPlanarEdge(points[i].x, points[i].y, points[nextI].x, points[nextI].y).border();

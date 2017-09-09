@@ -31,6 +31,7 @@ var OrigamiPaper = (function () {
 		// PAPER JS
 		this.scope = new paper.PaperScope();
 		this.scope.setup(canvas);
+		this.style = this.defaultStyleTemplate();
 		this.zoomToFit();
 
 		// the order of the following sets the z index order too
@@ -44,8 +45,6 @@ var OrigamiPaper = (function () {
 		this.selectNearestNode = false;
 		this.selectNearestEdge = false;
 		this.selectNearestFace = false;
-
-		this.style = this.defaultStyleTemplate();
 
 		var that = this;
 		this.scope.view.onFrame = function(event){     
@@ -136,6 +135,13 @@ var OrigamiPaper = (function () {
 	}
 
 	OrigamiPaper.prototype.update = function () {
+		if(this.cp === undefined || this.nodes === undefined || this.edges === undefined || this.faces === undefined){ return; }
+		if(this.cp.nodes.length != this.nodes.length || 
+		   this.cp.edges.length != this.edges.length ||
+		   this.cp.faces.length != this.faces.length ){ return; }
+		for(var i = 0; i < this.boundaryLayer.children.length; i++){
+			Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
+		}
 		for(var i = 0; i < this.cp.nodes.length; i++){ 
 			this.nodes[i].position = this.cp.nodes[i]; 
 			Object.assign(this.nodes[i], this.style.nodes);
@@ -169,6 +175,8 @@ var OrigamiPaper = (function () {
 		var cpHeight = 1.0;
 		if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
 		if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
+		// console.log("cp width: " + cpWidth);
+		// console.log("cp height: " + cpHeight);
 		var cpAspect = cpWidth / cpHeight;
 		var cpMin = cpWidth;
 		if(cpHeight < cpWidth){ cpMin = cpHeight; }
@@ -187,7 +195,11 @@ var OrigamiPaper = (function () {
 		mat.translate(-cpWidth*0.5, -cpHeight*0.5);
 		this.scope.view.matrix = mat;
 
-		this.setStrokeWidth(0.005 * cpMin);
+		// this is all to make the stroke width update. need a better way asap.
+		if(this.style === undefined){ this.style = {}; }
+		this.style.strokeWidth = 0.01 * cpMin;
+		this.setStrokeWidth(0.01 * cpMin);
+		this.update();
 
 		// console.log(canvasWidth);
 		// console.log(cpWidth);
@@ -252,7 +264,8 @@ var OrigamiPaper = (function () {
 	}
 
 	OrigamiPaper.prototype.defaultStyleTemplate = function(){
-		var dStrokeWidth = 0.01;
+		if(this.style === undefined){ this.style = {}; }
+		if(this.style.strokeWidth === undefined){ this.style.strokeWidth = 0.01; }
 		return {
 			backgroundColor: { gray:1.0, alpha:1.0 },
 			selectedNode: {
@@ -273,27 +286,27 @@ var OrigamiPaper = (function () {
 			},
 			mountain: {
 				strokeColor: { gray:0.666 },//{ hue:340, saturation:0.75, brightness:0.9 },
-				// dashArray: [dStrokeWidth*2, dStrokeWidth*1.5, dStrokeWidth*.1, dStrokeWidth*1.5],
+				// dashArray: [this.style.strokeWidth*2, this.style.strokeWidth*1.5, this.style.strokeWidth*.1, this.style.strokeWidth*1.5],
 				dashArray: undefined,
-				strokeWidth: dStrokeWidth,
+				strokeWidth: this.style.strokeWidth,
 				strokeCap : 'round'
 			},
 			valley: {
 				strokeColor: { hue:220, saturation:0.6, brightness:1 },
-				dashArray: [dStrokeWidth*2, dStrokeWidth*2],
+				dashArray: [this.style.strokeWidth*2, this.style.strokeWidth*2],
 				// dashArray: undefined,
-				strokeWidth: dStrokeWidth,
+				strokeWidth: this.style.strokeWidth,
 				strokeCap : 'round'
 			},
 			border: {
 				strokeColor: { gray:0.0, alpha:1.0 },
 				dashArray: undefined,
-				strokeWidth: dStrokeWidth
+				strokeWidth: this.style.strokeWidth
 			},
 			mark: {
 				strokeColor: { gray:0.75, alpha:1.0 },
 				dashArray: undefined,
-				strokeWidth: dStrokeWidth*0.66666,
+				strokeWidth: this.style.strokeWidth*0.66666,
 				strokeCap : 'round'
 			},
 			face: {
@@ -301,7 +314,6 @@ var OrigamiPaper = (function () {
 			}
 		}
 	};
-
 	return OrigamiPaper;
 }());
 
@@ -310,15 +322,17 @@ function paperPathToCP(paperPath){
 	var w = svgLayer.bounds.size.width;
 	var h = svgLayer.bounds.size.height;
 	// no longer re-sizing down to 1 x aspect size
-	var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
+	// var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
+	var mat = new paper.Matrix(1,0,0,1,0,0);
 	svgLayer.matrix = mat;
 	var cp = new CreasePattern();//.rectangle(w,h);
+	// erase boundary, to be set later by convex hull
 	cp.nodes = [];
 	cp.edges = [];
 	// cp.boundary = new PlanarGraph();
 	function recurseAndAdd(childrenArray){
 		for(var i = 0; i < childrenArray.length; i++){
-			if(childrenArray[i].segments != undefined){ // found a line
+			if(childrenArray[i].segments !== undefined){ // found a line
 				var numSegments = childrenArray[i].segments.length-1;
 				if(childrenArray[i].closed === true){
 					numSegments = childrenArray[i].segments.length;
@@ -330,13 +344,17 @@ function paperPathToCP(paperPath){
 								 childrenArray[i].segments[next].point.x,
 								 childrenArray[i].segments[next].point.y);
 				}
-			} else if (childrenArray[i].children != undefined){
+			} else if (childrenArray[i].children !== undefined){
 				recurseAndAdd(childrenArray[i].children);
 			}
 		}
 	}
 	// console.log(svgLayer);
 	recurseAndAdd(svgLayer.children);
+	// find the convex hull of the CP, set it to the boundary
+	var hull = convexHull(cp.nodes);
+	cp.setBoundary(hull);
+	// cleanup
 	svgLayer.removeChildren();
 	svgLayer.remove();
 	return cp;
@@ -347,8 +365,6 @@ function loadSVG(path, callback, epsilon){
 	// var newScope = new paper.PaperScope();
 	paper.project.importSVG(path, function(e){
 		var cp = paperPathToCP(e);
-		var hull = convexHull(cp.nodes);
-		cp.setBoundary(hull);
 		var eps = EPSILON_FILE_IMPORT;
 		if(eps !== undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; } EPSILON
 		cp.cleanDuplicateNodes(eps);
@@ -364,8 +380,6 @@ function loadSVGNoFragment(path, callback, epsilon){
 	// var newScope = new paper.PaperScope();
 	paper.project.importSVG(path, function(e){
 		var cp = paperPathToCP(e);
-		var hull = convexHull(cp.nodes);
-		cp.setBoundary(hull);
 		var eps = EPSILON_FILE_IMPORT;
 		if(eps !== undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; }
 		cp.cleanDuplicateNodes(eps);
