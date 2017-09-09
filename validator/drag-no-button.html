@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 <style>
 html, body {
 	height:100%;
@@ -14,7 +13,7 @@ html, body {
 }
 canvas[resize]{
 	width:100%;
-	height:86%;
+	height:98%;
 }
 div#dropZone {
 	background: black;
@@ -33,9 +32,7 @@ div#dropZone {
 	<div id="dropZone"></div>
 	<canvas id="canvas" resize></canvas>
 	<input type="file" id="files" style="display:none;">
-	<div style="text-align:center;">
-		<a href="#" class="btn btn-lg btn-secondary" id="open-file">Open File</a>
-	</div>
+	<a href="#" class="btn btn-lg btn-secondary" id="open-file" style="display:none;">Open File</a>
 </body>
 
 <script language="javascript" type="text/javascript" src="../src/graph.js"></script>
@@ -44,11 +41,7 @@ div#dropZone {
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
 
-<script src="../lib/bootstrap/js/tether.min.js"></script>
-<script src="../lib/jquery-3.2.1.slim.min.js"></script>
-<script src="../lib/bootstrap/js/popper.min.js"></script>
-<script src="../lib/bootstrap/js/bootstrap.min.js"></script>
-<script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
+<script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
 
 <script>
 var project = new OrigamiPaper("canvas");

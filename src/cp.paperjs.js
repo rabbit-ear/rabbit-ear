@@ -187,7 +187,7 @@ var OrigamiPaper = (function () {
 		mat.translate(-cpWidth*0.5, -cpHeight*0.5);
 		this.scope.view.matrix = mat;
 
-		lineWeight = 0.01 * cpMin;
+		this.setStrokeWidth(0.005 * cpMin);
 
 		// console.log(canvasWidth);
 		// console.log(cpWidth);
@@ -235,7 +235,6 @@ var OrigamiPaper = (function () {
 	// STYLE
 	///////////////////////////////////////////////////
 
-	var lineWeight = 0.01;
 
 	OrigamiPaper.prototype.styleForCrease = function(orientation){
 		if   (orientation === CreaseDirection.mountain){ return this.style.mountain; }
@@ -244,7 +243,16 @@ var OrigamiPaper = (function () {
 		return this.style.mark;
 	};
 
+	OrigamiPaper.prototype.setStrokeWidth = function(strokeWidth){
+		if(this.style === undefined){ return; }
+		this.style.mountain.strokeWidth = strokeWidth;
+		this.style.valley.strokeWidth = strokeWidth;
+		this.style.border.strokeWidth = strokeWidth;
+		this.style.mark.strokeWidth = strokeWidth*0.66666;
+	}
+
 	OrigamiPaper.prototype.defaultStyleTemplate = function(){
+		var dStrokeWidth = 0.01;
 		return {
 			backgroundColor: { gray:1.0, alpha:1.0 },
 			selectedNode: {
@@ -265,27 +273,27 @@ var OrigamiPaper = (function () {
 			},
 			mountain: {
 				strokeColor: { gray:0.666 },//{ hue:340, saturation:0.75, brightness:0.9 },
-				// dashArray: [lineWeight*2, lineWeight*1.5, lineWeight*.1, lineWeight*1.5],
+				// dashArray: [dStrokeWidth*2, dStrokeWidth*1.5, dStrokeWidth*.1, dStrokeWidth*1.5],
 				dashArray: undefined,
-				strokeWidth: lineWeight,
+				strokeWidth: dStrokeWidth,
 				strokeCap : 'round'
 			},
 			valley: {
 				strokeColor: { hue:220, saturation:0.6, brightness:1 },
-				dashArray: [lineWeight*2, lineWeight*2],
+				dashArray: [dStrokeWidth*2, dStrokeWidth*2],
 				// dashArray: undefined,
-				strokeWidth: lineWeight,
+				strokeWidth: dStrokeWidth,
 				strokeCap : 'round'
 			},
 			border: {
 				strokeColor: { gray:0.0, alpha:1.0 },
 				dashArray: undefined,
-				strokeWidth: lineWeight
+				strokeWidth: dStrokeWidth
 			},
 			mark: {
 				strokeColor: { gray:0.75, alpha:1.0 },
 				dashArray: undefined,
-				strokeWidth: lineWeight*0.66666,
+				strokeWidth: dStrokeWidth*0.66666,
 				strokeCap : 'round'
 			},
 			face: {
@@ -301,7 +309,7 @@ function paperPathToCP(paperPath){
 	var svgLayer = paperPath;
 	var w = svgLayer.bounds.size.width;
 	var h = svgLayer.bounds.size.height;
-					// no longer re-sizing down to 1 x aspect size
+	// no longer re-sizing down to 1 x aspect size
 	var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
 	svgLayer.matrix = mat;
 	var cp = new CreasePattern();//.rectangle(w,h);
