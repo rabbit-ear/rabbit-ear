@@ -175,8 +175,11 @@ var OrigamiPaper = (function () {
 		var cpHeight = 1.0;
 		if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
 		if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
+		var cpBounds = this.cp.boundingBox();
 		// console.log("cp width: " + cpWidth);
 		// console.log("cp height: " + cpHeight);
+		// console.log(cpBounds.size);
+		// console.log(cpBounds.origin);
 		var cpAspect = cpWidth / cpHeight;
 		var cpMin = cpWidth;
 		if(cpHeight < cpWidth){ cpMin = cpHeight; }
@@ -192,7 +195,7 @@ var OrigamiPaper = (function () {
 		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale); 
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
-		mat.translate(-cpWidth*0.5, -cpHeight*0.5);
+		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
 		this.scope.view.matrix = mat;
 
 		// this is all to make the stroke width update. need a better way asap.
