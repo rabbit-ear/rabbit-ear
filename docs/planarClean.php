@@ -127,7 +127,7 @@
 
 <script>
 var crane1CP = new OrigamiPaper("canvas-crane-1", cp);
-loadSVGNoFragment("/tests/svg/crane.svg", function(cp){ 
+loadSVGNoFragment("/tests/svg/crane-errors.svg", function(cp){ 
 	// crane1CP = new OrigamiPaper("canvas-folded", cp);
 	crane1CP.cp = cp;
 	crane1CP.initialize();
@@ -136,7 +136,7 @@ loadSVGNoFragment("/tests/svg/crane.svg", function(cp){
 });
 
 var crane2CP = new OrigamiPaper("canvas-crane-2", cp);
-loadSVG("/tests/svg/crane.svg", function(cp){ 
+loadSVG("/tests/svg/crane-errors.svg", function(cp){ 
 	// crane2CP = new OrigamiPaper("canvas-folded", cp);
 	crane2CP.cp = cp;
 	crane2CP.initialize();

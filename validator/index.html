@@ -5,34 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="flat foldable foldability origami calculator validator svg opx fold">
 <meta name="author" content="Robby Kraft">
-<!-- <link rel="icon" href="../lib/bootstrap/favicon.ico"> -->
 <title>Origami Crease Pattern Validator</title>
 <link href="../lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="style.css" rel="stylesheet">
 <style>
-	.success{
-		background-color: #007bff;
-	}
+
+.success{
+	background-color: #28A745;/*#0275D8;*/
+}
+.fail{
+	background-color: #FF2222;
+}
 canvas[resize]{
 	width:45vmax;
 	height:45vmax;
 }
+.half{
+	display:inline-block;
+	width:45vmax;
+	height:45vmax;
+}
+#result-container{
+	padding-top: 2em;
+	display:none;
+}
+div#dropZone {
+  background: black;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+  opacity: 0.6;
+  visibility: hidden;
+}
 </style>
 </head>
 <body>
-
+	<div id="dropZone">
+	</div>
 	<div class="site-wrapper">
 	  <div class="site-wrapper-inner">
 		<div class="cover-container">
 		  <div class="masthead clearfix">
 			<div class="inner">
-<!--               <h3 class="masthead-brand">Cover</h3> -->
+			  <!-- <h3 class="masthead-brand">Origami</h3> -->
 			  <nav class="nav nav-masthead">
-				<a class="nav-link active" href="#">Info</a>
+				<a class="nav-link active" href="#">Information</a>
 				<a class="nav-link" href="http://github.com/robbykraft/Origami">Code</a>
 			  </nav>
 			</div>
+			  <input type="file" id="files" style="opacity:0;">
 		  </div>
+
 
 		  <div class="inner cover">
 			<h1 class="cover-heading">Crease Pattern Validator</h1>
@@ -42,48 +68,37 @@ canvas[resize]{
 			</p>
 			<p class="lead">Flat-foldability check and simulation of folded state</p>
 		  </div>
-
-<!-- 		  <div class="mastfoot">
-			<div class="inner">
-			  <p>Made by <a href="https://twitter.com/robbykraft">@robbykraft</a></p>
+		  <div class="mastfoot">
+			<div class="">
+			  <p>Made by <a href="https://twitter.com/robbykraft">Robby</a></p>
 			</div>
 		  </div>
- -->		  
+
 		</div>
 	  </div>
-
 	</div>
-			  <input type="file" id="files">
 
-	<div class="container">
-		<div class="jumbotron success">
-		<h1>Valid</h1>
-		<p>crease pattern is flat-foldable</p>
+	<div id="result-container">
+		<div class="container">
+			<div id="jumbo-container" class="jumbotron success">
+				<h1 id="jumbo-title">Valid</h1>
+				<p id="jumbo-message">crease pattern is flat-foldable</p>
+			</div>
+		</div>
+		<div>
+			<canvas id="canvas-1" resize></canvas><canvas id="canvas-2" resize></canvas><!-- <div class="half"></div> -->
 		</div>
 	</div>
 
-	<div>
-		<canvas id="canvas1" resize></canvas><canvas id="canvas2" resize></canvas>
+<script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
 
-	</div>
-
-<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
-<script>
-window.jQuery || document.write('<script src="../lib/bootstrap/assets/js/vendor/jquery.min.js"><\/script>')
-</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
-
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-
-
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="../lib/bootstrap/assets/js/ie10-viewport-bug-workaround.js"></script>
 
-
-<script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
-<script language="javascript" type="text/javascript" src="../lib/jquery-ui.min.js"></script>
 <script language="javascript" type="text/javascript" src="../src/graph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
@@ -91,27 +106,96 @@ window.jQuery || document.write('<script src="../lib/bootstrap/assets/js/vendor/
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
 
 <script>
-
-var project = new OrigamiPaper("canvas1", new CreasePattern().birdBase());
-var project = new OrigamiPaper("canvas2", new CreasePattern().fishBase());
-
+var project1 = new OrigamiPaper("canvas-1");
+var foldedState = new OrigamiPaper("canvas-2");
 </script>
-
+<!-- file upload -->
 <script>
-
 $("#files").css('opacity','0');
-
 $("#open-file").click(function(e){
    e.preventDefault();
    $("#files").trigger('click');
 });
+</script>
+<!-- drag to upload -->
+<script>
+var dropZone = document.getElementById('dropZone');
 
+function showDropZone() {
+	dropZone.style.visibility = "visible";
+}
+function hideDropZone() {
+	dropZone.style.visibility = "hidden";
+}
+
+function allowDrag(e) {
+	if (true) {  // Test that the item being dragged is a valid one
+		e.dataTransfer.dropEffect = 'copy';
+		e.preventDefault();
+	}
+}
+
+//seperate event
+function addEventHandler(obj, evt, handler) {
+	if (obj.addEventListener) {
+		// W3C method
+		obj.addEventListener(evt, handler, false);
+	} else if (obj.attachEvent) {
+		// IE method.
+		obj.attachEvent('on' + evt, handler);
+	} else {
+		// Old school method.
+		obj['on' + evt] = handler;
+	}
+}
+
+function handleDrop(e) {
+
+	Function.prototype.bindToEventHandler = function bindToEventHandler() {
+		var handler = this;
+		var boundParameters = Array.prototype.slice.call(arguments);
+		//create closure
+		return function (e) {
+			e = e || window.event; // get window.event if e argument missing (in IE)   
+			boundParameters.unshift(e);
+			handler.apply(this, boundParameters);
+		}
+	};
+		
+	e.preventDefault();
+	hideDropZone();
+
+	var dt = e.dataTransfer;
+	var files = dt.files;
+	for (var i = 0; i < files.length; i++) {
+		var file = files[i];
+		var reader = new FileReader();
+		//attach event handlers here...  
+		reader.readAsDataURL(file);
+		addEventHandler(reader, 'loadend', function (e, file) {
+			var bin = this.result;
+			var decoded = window.atob(this.result.substring(26));
+			svgBlobLoaded(decoded);
+		}.bindToEventHandler(file));
+	}
+	return true;
+}
+// 1
+window.addEventListener('dragenter', function(e) {
+	showDropZone();
+});
+// 2
+dropZone.addEventListener('dragenter', allowDrag);
+dropZone.addEventListener('dragover', allowDrag);
+// 3
+dropZone.addEventListener('dragleave', function(e) {
+	hideDropZone();
+});
+// 4
+dropZone.addEventListener('drop', handleDrop);
 </script>
 
-
 <script>
-
-
 $(document).on('change', ':file', function() {
 	console.log('document on change file');
 	var input = $(this),
@@ -122,7 +206,7 @@ $(document).on('change', ':file', function() {
 });
 
 function readBlob() {
-	console.log('read blob');
+	// console.log('read blob');
 	var files = document.getElementById('files').files;
 	if (!files.length) {
 		// they selected cancel
@@ -132,15 +216,122 @@ function readBlob() {
 	var reader = new FileReader();
 
 	reader.onloadend = function(evt) {
-		console.log('on load end');
+		// console.log('on load end');
 		if (evt.target.readyState == FileReader.DONE) { // DONE == 2
 			//byte range: ['Read ', file.size, ' byte file'].join('');
 			// importSVG(evt.target.result);
-			console.log(evt.target.result);
+			svgBlobLoaded(evt.target.result);
 		}
 	};
 	var blob = file.slice(0, file.size);
 	reader.readAsBinaryString(blob);
+}
+
+function showAndScrollResults(){
+	document.getElementById("result-container").style.display = "block";
+	window.dispatchEvent(new Event('resize'));
+	// $('html, body').scrollTo('#result-container');
+	document.getElementById('result-container').scrollIntoView({behavior: "smooth"});	
+}
+
+function setJumbotron(success){
+	var titleSuccess = "Valid";
+	var titleFail = "Invalid";
+	var messageSuccess = "crease pattern is flat-foldable";
+	var messageFail = "crease pattern contains non-flat-foldable nodes";
+	if(success){
+		$("#jumbo-container").removeClass("fail");
+		$("#jumbo-container").addClass("success");
+		document.getElementById("jumbo-title").innerHTML = titleSuccess;
+		document.getElementById("jumbo-message").innerHTML = messageSuccess;
+	}
+	else{
+		$("#jumbo-container").removeClass("success");
+		$("#jumbo-container").addClass("fail");
+		document.getElementById("jumbo-title").innerHTML = titleFail;
+		document.getElementById("jumbo-message").innerHTML = messageFail;
+	}
+}
+
+function svgBlobLoaded(svg){
+	// console.log(svg);
+	
+	loadSVG(svg, function(cp){
+		////////////////////////////////////////////////////////////////////////
+		project1 = new OrigamiPaper("canvas-1", cp);
+		project1.colorNodesFlatFoldable = function(){
+			var ffTestPassed = true;
+			for(var i = 0; i < project1.cp.nodes.length; i++){
+				var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
+				if( !project1.cp.nodes[i].flatFoldable() ){
+					ffTestPassed = false;
+					color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
+				}
+				project1.nodes[i].fillColor = color;
+			}
+			setJumbotron(ffTestPassed);
+		}
+		project1.style.nodes.visible = true;
+		project1.zoomToFit(0.05);
+		project1.initialize();
+		project1.colorNodesFlatFoldable();
+		for(var i = 0; i < project1.nodes.length; i++){ project1.nodes[i].radius = 0.02; }
+
+
+		foldedState = new OrigamiPaper("canvas-2", cp);
+		foldedState.faceLayer.visible = false;
+		foldedState.fold = function(){
+			// var answer = this.cp.adjacentFaceTree(this.cp.faces[40]);
+
+			// var rani = Math.floor(Math.random()*this.cp.faces.length);
+			// console.log(rani);
+			// var answer = this.cp.adjacentFaceTree(this.cp.faces[rani]);
+			// crane
+			var answer = this.cp.adjacentFaceTree(this.cp.faces[33]);
+			// turtle
+			// var answer = this.cp.adjacentFaceTree(this.cp.faces[16]);
+			// crane 2
+			// var answer = this.cp.adjacentFaceTree(this.cp.faces[26]);
+
+			var folded = [];
+			this.foldedLayer = new this.scope.Layer();
+			this.foldedLayer.removeChildren();
+			this.foldedLayer.activate();
+
+			for(var i = 0; i < answer.faces.length; i++){
+				var face = answer.faces[i].face;
+				var matrix = answer.faces[i].global;
+				var segments = [];
+				for(var p = 0; p < face.nodes.length; p++){
+					segments.push( new XY(face.nodes[p].x, face.nodes[p].y ).transform(matrix) );
+				}
+				var face = new this.scope.Path({segments:segments,closed:true});
+				var color = 100 + 200 * i/this.cp.faces.length;
+				// face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
+				face.fillColor = { gray:0.0, alpha:0.05 };
+				this.faces.push( face );
+			}
+
+			// this.cp.clear();
+			// this.cp.nodes = [];
+			// this.cp.edges = [];
+			this.cp.faces = [];
+			this.style.mountain.strokeWidth = 0.0015;
+			this.style.valley.strokeWidth = 0.0015;
+			this.style.border.strokeWidth = 0.0015;
+			this.style.mark.strokeWidth = 0.0015;
+			this.initialize();
+			this.boundaryLayer.visible = false;
+		}
+		// foldedState.cp = cp;
+		// foldedState.cp = new CreasePattern().birdBase();;
+		foldedState.cp.generateFaces();
+		foldedState.initialize();
+		foldedState.zoomToFit(0.05);
+		foldedState.fold();
+
+		showAndScrollResults();
+	});
 }
 	
 

@@ -28,7 +28,7 @@
 			</div>
 		</li>
 		<li class="dropdown">
-			<a href="/docs/" class="dropbtn">WELCOME</a>
+			<a href="/docs/" class="dropbtn">HELLO</a>
 			<div class="dropdown-content">
 			<a href="https://github.com/robbykraft/Origami">DOWNLOAD</a>
 			</div>

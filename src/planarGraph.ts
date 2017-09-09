@@ -15,7 +15,7 @@ var EPSILON_HIGH = 0.00000001;
 var EPSILON_UI =   0.05;  // user tap, based on precision of a finger on a screen
 
 function epsilonEqual(a:number, b:number, epsilon?:number):boolean{
-	if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
+	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return ( Math.abs(a - b) < epsilon );
 }
 
@@ -92,7 +92,7 @@ class XY{
 		var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
 		var currentAngle = Math.atan2(dy, dx);
 		return new XY(origin.x + radius*Math.cos(currentAngle + angle),
-		              origin.y + radius*Math.sin(currentAngle + angle));
+					  origin.y + radius*Math.sin(currentAngle + angle));
 	}
 	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
@@ -104,7 +104,7 @@ class XY{
 	}
 	transform(matrix):XY{
 		return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx,
-		              this.x * matrix.b + this.y * matrix.d + matrix.ty);
+					  this.x * matrix.b + this.y * matrix.d + matrix.ty);
 	}
 }
 
@@ -263,7 +263,7 @@ class PlanarEdge extends GraphEdge{
 	nodes:[PlanarNode,PlanarNode];
 
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
-	                               0.5*(this.nodes[0].y + this.nodes[1].y));}
+								   0.5*(this.nodes[0].y + this.nodes[1].y));}
 
 	intersection(edge:PlanarEdge):EdgeIntersection{
 		// todo: should intersecting adjacent edges return the point in common they have with each other?
@@ -301,8 +301,8 @@ class PlanarEdge extends GraphEdge{
 
 	adjacentFaces():PlanarFace[]{
 		return [ this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[0], this.nodes[1]) ),
-		         this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[1], this.nodes[0]) ) ]
-		         .filter(function(el){ return el !== undefined });
+				 this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[1], this.nodes[0]) ) ]
+				 .filter(function(el){ return el !== undefined });
 	}
 	transform(matrix){
 		this.nodes[0].transform(matrix);
@@ -389,7 +389,7 @@ class PlanarFace{
 		for(var i = 0; i < this.edges.length; i++){
 			var endpts = this.edges[i].nodes;
 			var cross = (point.y - endpts[0].y) * (endpts[1].x - endpts[0].x) - 
-			            (point.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
+						(point.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
 			if (cross < 0) return false;
 		}
 		return true;
@@ -486,7 +486,7 @@ class PlanarGraph extends Graph{
 	 */
 	newPlanarEdgeRadiallyFromNode(node:PlanarNode, angle:number, length:number):PlanarEdge{
 		var newNode = (<PlanarNode>this.copyNode(node))
-		               .translate(Math.cos(angle)*length, Math.sin(angle)*length);
+					   .translate(Math.cos(angle)*length, Math.sin(angle)*length);
 		return <PlanarEdge>this.newEdge(node, newNode);
 	}
 
@@ -522,7 +522,7 @@ class PlanarGraph extends Graph{
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ 
 			return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
-			         (el.nodes[0] === node2 && el.nodes[1] === node1) );
+					 (el.nodes[0] === node2 && el.nodes[1] === node1) );
 		});
 		this.edgeArrayDidChange();
 		this.cleanNodeIfUseless(node1);
@@ -542,7 +542,7 @@ class PlanarGraph extends Graph{
 				var angleDiff = edges[0].absoluteAngle(node) - edges[1].absoluteAngle(node);
 				if(epsilonEqual(Math.abs(angleDiff), Math.PI)){
 					var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]), 
-					                edges[1].uncommonNodeWithEdge(edges[0])]
+									edges[1].uncommonNodeWithEdge(edges[0])]
 					// super.removeEdge(edges[0]);
 					edges[0].nodes = [farNodes[0], farNodes[1]];
 					super.removeEdge(edges[1]);
@@ -812,9 +812,9 @@ class PlanarGraph extends Graph{
 			var pt0 = <PlanarNode>el.edges[0].uncommonNodeWithEdge(el.edges[1]);
 			var pt1 = <PlanarNode>el.edges[1].uncommonNodeWithEdge(el.edges[0]);
 			var cross0 = (y - node.y) * (pt1.x - node.x) - 
-			             (x - node.x) * (pt1.y - node.y);
+						 (x - node.x) * (pt1.y - node.y);
 			var cross1 = (y - pt0.y) * (node.x - pt0.x) - 
-			             (x - pt0.x) * (node.y - pt0.y);
+						 (x - pt0.x) * (node.y - pt0.y);
 			if (cross0 < 0 || cross1 < 0){ return false; }
 			return true;
 		});
@@ -1123,7 +1123,6 @@ class PlanarGraph extends Graph{
 		}
 		return false;
 	}
-
 }
 
 class AdjacentFace{
@@ -1141,6 +1140,51 @@ class AdjacentFace{
 //
 //                            2D ALGORITHMS
 //
+
+
+function convexHull(points){
+	var hull = [];
+	if(points === undefined || points.length === 0){ return []; }
+	var sorted = points.sort(function(a,b){
+			if(a.x-b.x < -EPSILON_HIGH){ return -1; }
+			if(a.x-b.x > EPSILON_HIGH){ return 1; }
+			if(a.y-b.y < -EPSILON_HIGH){ return -1; }
+			if(a.y-b.y > EPSILON_HIGH){ return 1; }
+			return 0;});
+	hull.push(sorted[0]);
+	var ang = 0;  // the current direction the perimeter walker is facing
+	var count = 0;
+	do{
+		count++;
+		var h = hull.length-1;
+		var angles = sorted
+			.filter(function(el){ 
+				return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH)) })
+			.map(function(el){
+				var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
+				while(angle < ang){ angle += Math.PI*2; }
+				return {node:el, angle:angle}; })
+			.sort(function(a,b){return (a.angle < b.angle)?-1:(a.angle > b.angle)?1:0});
+		if(angles.length === 0){ return []; }
+		// narrowest-most right turn
+		var smallest = angles[0];
+		// collect all other points that are collinear
+		angles = angles.filter(function(el){ return epsilonEqual(smallest.angle, el.angle, EPSILON_LOW); })
+		.map(function(el){ 
+			var distance = Math.sqrt(Math.pow(hull[h].x-el.node.x, 2) + Math.pow(hull[h].y-el.node.y, 2));
+			el.distance = distance;
+			return el;})
+		// include all collinear points along the hull
+		// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
+		// exclude all collinear points along the hull 
+		.sort(function(a,b){return (a.distance < b.distance)?1:(a.distance > b.distance)?-1:0});
+		// if the point is already in the convex hull, we've made a loop.
+		if(arrayContainsObject(hull, angles[0].node)){ return hull; }
+		ang = Math.atan2( hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x)
+		hull.push(angles[0].node);
+	}while(count < 1000);
+	return [];
+}
 
 function map(input:number, floor1:number, ceiling1:number, floor2:number, ceiling2:number):number{
 	return (input - floor1 / (ceiling1 - floor1)) * (ceiling2 - floor2) + floor2;
@@ -1345,3 +1389,10 @@ function getNodeIndexNear(x:number, y:number, thisEpsilon:number){
 	}
 	return undefined;
 }
+
+function pointsEquivalent(a, b, epsilon?):boolean{
+	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+	// rect bounding box, cheaper than radius calculation
+	return (epsilonEqual(a.x, b.x, epsilon) && epsilonEqual(a.y, b.y, epsilon))
+}
+

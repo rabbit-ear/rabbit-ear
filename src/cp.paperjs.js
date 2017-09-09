@@ -34,6 +34,7 @@ var OrigamiPaper = (function () {
 		this.zoomToFit();
 
 		// the order of the following sets the z index order too
+		this.backgroundLayer = new this.scope.Layer();
 		this.faceLayer = new this.scope.Layer();
 		this.edgeLayer = new this.scope.Layer();
 		this.boundaryLayer = new this.scope.Layer();
@@ -75,13 +76,14 @@ var OrigamiPaper = (function () {
 		}
 		
 		this.initialize();
-    }
-    OrigamiPaper.prototype.initialize = function(){
+	}
+	OrigamiPaper.prototype.initialize = function(){
 		// on-screen drawn elements
 		this.nodes = [];
 		this.edges = [];
 		this.faces = [];
 
+		this.backgroundLayer.removeChildren();
 		this.boundaryLayer.removeChildren();
 		this.nodeLayer.removeChildren();
 		this.edgeLayer.removeChildren();
@@ -94,14 +96,20 @@ var OrigamiPaper = (function () {
 		this.nearestFace = undefined;
 		this.selected = { nodes:[], edges:[], faces:[] };
 
-		// draw paper edge
+		// draw paper
 		if(this.cp === undefined){ return; }
 		if(this.cp.boundary !== undefined){
-			this.boundaryLayer.activate();
 			var boundarySegments = [];
 			for(var i = 0; i < this.cp.boundary.edges.length; i++){
 				boundarySegments = boundarySegments.concat(this.cp.boundary.edges[i].nodes);
 			}
+			// paper color
+			this.backgroundLayer.activate();
+			var paperBackground = new paper.Path({segments: boundarySegments, closed: true });
+			paperBackground.fillColor = this.style.backgroundColor;
+			paperBackground.strokeWidth = 0;
+			// boundary color
+			this.boundaryLayer.activate();
 			var boundaryPath = new paper.Path({segments: boundarySegments, closed: true });
 			Object.assign(boundaryPath, this.styleForCrease(CreaseDirection.border));
 		}
@@ -125,9 +133,9 @@ var OrigamiPaper = (function () {
 			this.faces.push( face );
 		}
 		this.zoomToFit();
-    }
+	}
 
-    OrigamiPaper.prototype.update = function () {
+	OrigamiPaper.prototype.update = function () {
 		for(var i = 0; i < this.cp.nodes.length; i++){ 
 			this.nodes[i].position = this.cp.nodes[i]; 
 			Object.assign(this.nodes[i], this.style.nodes);
@@ -145,7 +153,7 @@ var OrigamiPaper = (function () {
 		}
 		for(var i = 0; i < this.selected.edges.length; i++){
 			Object.assign(this.edges[this.selected.edges[i].index], this.style.selectedEdge);
-		}	
+		}   
 	};
 
 	OrigamiPaper.prototype.zoomToFit = function(padding){
@@ -175,7 +183,7 @@ var OrigamiPaper = (function () {
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
 		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale); 
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
-		          cpCanvasRatio*paperWindowScale*pixelScale);
+				  cpCanvasRatio*paperWindowScale*pixelScale);
 		mat.translate(-cpWidth*0.5, -cpHeight*0.5);
 		this.scope.view.matrix = mat;
 
@@ -238,6 +246,7 @@ var OrigamiPaper = (function () {
 
 	OrigamiPaper.prototype.defaultStyleTemplate = function(){
 		return {
+			backgroundColor: { gray:1.0, alpha:1.0 },
 			selectedNode: {
 				radius: 0.02, 
 				fillColor: { hue:0, saturation:0.8, brightness:1 },
@@ -296,6 +305,9 @@ function paperPathToCP(paperPath){
 	var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
 	svgLayer.matrix = mat;
 	var cp = new CreasePattern();//.rectangle(w,h);
+	cp.nodes = [];
+	cp.edges = [];
+	// cp.boundary = new PlanarGraph();
 	function recurseAndAdd(childrenArray){
 		for(var i = 0; i < childrenArray.length; i++){
 			if(childrenArray[i].segments != undefined){ // found a line
@@ -306,15 +318,16 @@ function paperPathToCP(paperPath){
 				for(var j = 0; j < numSegments; j++){
 					var next = (j+1)%childrenArray[i].segments.length;
 					cp.newCrease(childrenArray[i].segments[j].point.x,
-					             childrenArray[i].segments[j].point.y, 
-					             childrenArray[i].segments[next].point.x,
-					             childrenArray[i].segments[next].point.y);
+								 childrenArray[i].segments[j].point.y, 
+								 childrenArray[i].segments[next].point.x,
+								 childrenArray[i].segments[next].point.y);
 				}
 			} else if (childrenArray[i].children != undefined){
 				recurseAndAdd(childrenArray[i].children);
 			}
 		}
 	}
+	// console.log(svgLayer);
 	recurseAndAdd(svgLayer.children);
 	svgLayer.removeChildren();
 	svgLayer.remove();
@@ -327,11 +340,48 @@ function loadSVG(path, callback, epsilon){
 	paper.project.importSVG(path, function(e){
 		var cp = paperPathToCP(e);
 		// cp.clean();
+		// cp.rectangle(1,1);
+
+		// var edgeNodes = [];
+		// for(var i = 0; i < cp.edges.length; i++){
+		// 	if(cp.edges[i].orientation === CreaseDirection.border){
+		// 		edgeNodes.push(cp.edges[i])
+		// 	}
+		// }
+
+		// var insideNodes = cp.nodes.filter(function(el){ return !arrayContainsObject(edgeNodes, el); });
+		console.log(cp.nodes);
+		var hull = convexHull(cp.nodes);
+		console.log(hull);
+		cp.setBoundary(hull);
+
+
+	// var convexHull = new ConvexHullGrahamScan();
+
+	//add points
+	//(needs to be done for each point, a foreach
+	//loop on the input array can be used.)
+	// for(var i = 0; i < cp.nodes.length; i++){
+	//    convexHull.addPoint(cp.nodes[i].x, cp.nodes[i].y);
+	// }
+
+	//getHull() returns the array of points
+	//that make up the convex hull.
+	// var hullPoints = convexHull.getHull();
+
+	// console.log('hullPoints');
+	// console.log(hullPoints);
+
 		var eps = EPSILON_FILE_IMPORT;
 		if(eps !== undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; } EPSILON
 		cp.cleanDuplicateNodes(eps);
 		cp.fragment();
 		cp.cleanDuplicateNodes(eps);
+
+///////////////////////////////////////////////////////////////////////
+		// var hull = convexHull(cp.nodes);
+		// console.log(hull);
+
 		if(callback != undefined){
 			callback(cp);
 		}
@@ -353,13 +403,13 @@ function loadSVGNoFragment(path, callback, epsilon){
 	});
 }
 var isRetina = function(){
-    var mediaQuery = "(-webkit-min-device-pixel-ratio: 1.5),\
-            (min--moz-device-pixel-ratio: 1.5),\
-            (-o-min-device-pixel-ratio: 3/2),\
-            (min-resolution: 1.5dppx)";
-    if (window.devicePixelRatio > 1)
-        return true;
-    if (window.matchMedia && window.matchMedia(mediaQuery).matches)
-        return true;
-    return false;
+	var mediaQuery = "(-webkit-min-device-pixel-ratio: 1.5),\
+			(min--moz-device-pixel-ratio: 1.5),\
+			(-o-min-device-pixel-ratio: 3/2),\
+			(min-resolution: 1.5dppx)";
+	if (window.devicePixelRatio > 1)
+		return true;
+	if (window.matchMedia && window.matchMedia(mediaQuery).matches)
+		return true;
+	return false;
 }();

@@ -55,8 +55,8 @@ class CreaseNode extends PlanarNode{
 		if(this.isBoundary()){ return true; }
 		var sums = this.kawasaki();
 		if(sums == undefined){ return false; } // not an even number of interior angles
-		if(epsilonEqual(sums[0], Math.PI, EPSILON_LOW) && 
-		   epsilonEqual(sums[1], Math.PI, EPSILON_LOW) ){ return true; }
+		if(epsilonEqual(sums[0], Math.PI, 0.01) && 
+		   epsilonEqual(sums[1], Math.PI, 0.01) ){ return true; }
 		return false;
 	}
 
@@ -639,6 +639,28 @@ class CreasePattern extends PlanarGraph{
 		              new XY(width,height), 
 		              new XY(0,height)];
 		return this.setBoundary(points);
+	}
+
+	noBoundary():CreasePattern{
+		// TODO: make sure paper edges are winding clockwise!!
+		// clear old data
+		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
+		else                           { this.boundary.clear(); }
+		// 1: collect the nodes that are attached to border edges
+		// var edgeNodes = this.edges
+		// 	.filter(function(el){ return el.orientation !== CreaseDirection.border; })
+		// 	.map(function(el){ return el.nodes; });
+
+		// this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+		// var edgeNodes = this.edges.map()
+
+		// 2: iterate over edge nodes and remove them if they are unused
+
+		// todo: if an edge gets removed, it will leave behind its nodes. we might need the following:
+		// this.cleanUnusedNodes();
+		// todo: test that this is the right way to remove last item:
+		// if( points[0].equivalent(points[points.length-1]) ){ points.pop(); }
+		return this;		
 	}
 
 	setBoundary(points:XY[]):CreasePattern{

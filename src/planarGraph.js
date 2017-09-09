@@ -20,7 +20,7 @@ var EPSILON = 0.00001;
 var EPSILON_HIGH = 0.00000001;
 var EPSILON_UI = 0.05; // user tap, based on precision of a finger on a screen
 function epsilonEqual(a, b, epsilon) {
-    if (epsilon == undefined) {
+    if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
     return (Math.abs(a - b) < epsilon);
@@ -1190,6 +1190,66 @@ var AdjacentFace = (function () {
 //
 //                            2D ALGORITHMS
 //
+function convexHull(points) {
+    var hull = [];
+    if (points === undefined || points.length === 0) {
+        return [];
+    }
+    var sorted = points.sort(function (a, b) {
+        if (a.x - b.x < -EPSILON_HIGH) {
+            return -1;
+        }
+        if (a.x - b.x > EPSILON_HIGH) {
+            return 1;
+        }
+        if (a.y - b.y < -EPSILON_HIGH) {
+            return -1;
+        }
+        if (a.y - b.y > EPSILON_HIGH) {
+            return 1;
+        }
+        return 0;
+    });
+    hull.push(sorted[0]);
+    var ang = 0; // the current direction the perimeter walker is facing
+    var count = 0;
+    do {
+        count++;
+        var h = hull.length - 1;
+        var angles = sorted
+            .filter(function (el) {
+            return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH));
+        })
+            .map(function (el) {
+            var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
+            while (angle < ang) {
+                angle += Math.PI * 2;
+            }
+            return { node: el, angle: angle };
+        })
+            .sort(function (a, b) { return (a.angle < b.angle) ? -1 : (a.angle > b.angle) ? 1 : 0; });
+        if (angles.length === 0) {
+            return [];
+        }
+        // narrowest-most right turn
+        var smallest = angles[0];
+        // collect all other points that are collinear
+        angles = angles.filter(function (el) { return epsilonEqual(smallest.angle, el.angle, EPSILON_LOW); })
+            .map(function (el) {
+            var distance = Math.sqrt(Math.pow(hull[h].x - el.node.x, 2) + Math.pow(hull[h].y - el.node.y, 2));
+            el.distance = distance;
+            return el;
+        })
+            .sort(function (a, b) { return (a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0; });
+        // if the point is already in the convex hull, we've made a loop.
+        if (arrayContainsObject(hull, angles[0].node)) {
+            return hull;
+        }
+        ang = Math.atan2(hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
+        hull.push(angles[0].node);
+    } while (count < 1000);
+    return [];
+}
 function map(input, floor1, ceiling1, floor2, ceiling2) {
     return (input - floor1 / (ceiling1 - floor1)) * (ceiling2 - floor2) + floor2;
 }
@@ -1406,4 +1466,11 @@ function getNodeIndexNear(x, y, thisEpsilon) {
         }
     }
     return undefined;
+}
+function pointsEquivalent(a, b, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    // rect bounding box, cheaper than radius calculation
+    return (epsilonEqual(a.x, b.x, epsilon) && epsilonEqual(a.y, b.y, epsilon));
 }

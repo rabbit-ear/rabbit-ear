@@ -20,27 +20,30 @@
 		<p><a href="http://github.com/robbykraft/Origami/">Download</a></p>
 	</div>
 
-<h2>Planar Graphs</h2>
-	<div class="quote">
-		<p>These docs explain what's happening under the hood</p>
-	</div>
 	<div id="sketch_intersections" class="centered p5sketch"></div>
 	<div class="centered">
-		<pre><code><span id="span-intersection-results"></span>planarGraph.<f>getEdgeIntersections</f>();</code></pre>
+		<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>getEdgeIntersections</f></a>();</code></pre>
 	</div>
 	<div class="quote">
-		<p><a href="planarGraph.php">About planar graphs ⇒</a></p>
+		<p>These docs are a diary of how I built this library</p>
 	</div>
-<h2>Graphs</h2>
+	<div class="quote">
+		<p>Click on a function or object inside the code to learn more</p>
+	</div>
+<!-- 	<div class="quote">
+		<p><a href="planarGraph.php">About planar graphs ⇒</a></p>
+	</div> -->
+
+
 	<div class="centered">
 		<svg id="svgTest01" width="400" height="400"></svg>
 	</div>
 	<div class="centered">
 		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<v>nodes</v>[<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<v>edges</v>[<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()</code></pre>
 	</div>
-	<div class="quote">
+<!-- 	<div class="quote">
 		<p><a href="graph.php">About graphs ⇒</a></p>
-	</div>
+	</div> -->
 
 <h2>About</h2>
 	<div class="quote">
