@@ -51,12 +51,13 @@ class CreaseNode extends PlanarNode{
 		return [aSum, bSum];
 	}
 
-	flatFoldable():boolean{
+	flatFoldable(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_LOW; }
 		if(this.isBoundary()){ return true; }
 		var sums = this.kawasaki();
 		if(sums == undefined){ return false; } // not an even number of interior angles
-		if(epsilonEqual(sums[0], Math.PI, 0.01) && 
-		   epsilonEqual(sums[1], Math.PI, 0.01) ){ return true; }
+		if(epsilonEqual(sums[0], Math.PI, epsilon) && 
+		   epsilonEqual(sums[1], Math.PI, epsilon) ){ return true; }
 		return false;
 	}
 

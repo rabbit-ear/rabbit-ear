@@ -26,33 +26,6 @@ class Matrix{
 	mult(matrix:Matrix):Matrix{
 		var m1 = this.copy();
 		var m2 = matrix.copy();
-		// this is counting on a or b != result   eg: cannot do mat3x3MultUnique(a, b, a);
-		// r.[0] = this.[0] * m.[0] + this.[1] * m.[3] + this.[2] * m.[6];
-		// r.[1] = this.[0] * m.[1] + this.[1] * m.[4] + this.[2] * m.[7];
-		// r.[2] = this.[0] * m.[2] + this.[1] * m.[5] + this.[2] * m.[8];
-		// r.[3] = this.[3] * m.[0] + this.[4] * m.[3] + this.[5] * m.[6];
-		// r.[4] = this.[3] * m.[1] + this.[4] * m.[4] + this.[5] * m.[7];
-		// r.[5] = this.[3] * m.[2] + this.[4] * m.[5] + this.[5] * m.[8];
-		// r.[6] = this.[6] * m.[0] + this.[7] * m.[3] + this.[8] * m.[6];
-		// r.[7] = this.[6] * m.[1] + this.[7] * m.[4] + this.[8] * m.[7];
-		// r.[8] = this.[6] * m.[2] + this.[7] * m.[5] + this.[8] * m.[8];
-		// r.a = m1.a * m2.a + m1.b * m2.c + m1.tx * 0;
-		// r.b = m1.a * m2.b + m1.b * m2.d + m1.tx * 0;
-		// r.tx = m1.a * m2.tx + m1.b * m2.ty + m1.tx * 1;
-		// r.c = m1.c * m2.a + m1.d * m2.c + m1.ty * 0;
-		// r.d = m1.c * m2.b + m1.d * m2.d + m1.ty * 0;
-		// r.ty = m1.c * m2.tx + m1.d * m2.ty + m1.ty * 1;
-		// var r = new Matrix();
-		// r.a = m1.a * m2.a + m1.b * m2.c;
-		// r.b = m1.a * m2.b + m1.b * m2.d;
-		// r.tx = m1.a * m2.tx + m1.b * m2.ty + m1.tx;
-		// r.c = m1.c * m2.a + m1.d * m2.c;
-		// r.d = m1.c * m2.b + m1.d * m2.d;
-		// r.ty = m1.c * m2.tx + m1.d * m2.ty + m1.ty;
-		// return r;
-		// 0 = 0 * m2.a + m1.[7] * m2.c + m1.[8] * 0;
-		// 0 = 0 * m2.b + m1.[7] * m2.d + m1.[8] * 0;
-		// 1 = 0 * m2.tx + m1.[7] * m2.ty + m1.[8] * 1;
 		var r = new Matrix();
 		r.a = m1.a * m2.a + m1.c * m2.b;
 		r.c = m1.a * m2.c + m1.c * m2.d;
@@ -64,12 +37,8 @@ class Matrix{
 	}
 	copy():Matrix{
 		var m = new Matrix();
-		m.a = this.a;
-		m.b = this.b;
-		m.c = this.c;
-		m.d = this.d;
-		m.tx = this.tx;
-		m.ty = this.ty;
+		m.a = this.a;   m.c = this.c;   m.tx = this.tx;
+		m.b = this.b;   m.d = this.d;   m.ty = this.ty;
 		return m;
 	}
 }
@@ -831,6 +800,14 @@ class PlanarGraph extends Graph{
 	// 	return 0;
 	// }
 
+	nodeNormals(){
+
+	}
+
+	nodeTangents(){
+		// var nodes2Edges = this.nodes.map()
+	}
+
 	///////////////////////////////////////////////////////////////
 	// FACE
 
@@ -889,13 +866,6 @@ class PlanarGraph extends Graph{
 		}
 	}
 
-	// reflectFace(edge:PlanarEdge){
-	// 	var midpoint = edge.midpoint();
-	// 	var mat = new paper.Matrix(1, 0, 0, 1, 0, 0);
-	// 	// svgLayer.matrix = mat;
-
-	// }
-
 	adjacentFaceTree(start:PlanarFace):any{
 		this.faceArrayDidChange();
 		// this will keep track of faces still needing to be visited
@@ -936,10 +906,8 @@ class PlanarGraph extends Graph{
 			}
 			safety++;
 		}
-
 		// console.log(faceRanks);
 		// console.log(rank);
-
 		for(var i = 0; i < faceRanks.length ;i++){
 			if(faceRanks[i].parents.length > 0){
 				var parent = <PlanarFace>faceRanks[i].parents[0];
@@ -948,7 +916,6 @@ class PlanarGraph extends Graph{
 				faceRanks[i].matrix = m;
 			}
 		}
-
 		for(var i = 0; i < rank.length; i++){
 			for(var j = 0; j < rank[i].length; j++){
 				var parents = <PlanarFace[]>faceRanks[ rank[i][j].index ].parents;
@@ -969,130 +936,8 @@ class PlanarGraph extends Graph{
 				}
 			}
 		}
-
 		return {rank:rank, faces:faceRanks};
-/*
-		var root = new AdjacentFace(start);
-		var rootAdjacent = start.edgeAdjacentFaces();
-		for(var i = 0; i < rootAdjacent.length; i++){
-			root.adjacent.push(new AdjacentFace(rootAdjacent[i]));
-		}
-
-		var treeAdded = [];
-		for(var i = 0; i < this.faces.length; i++){ treeAdded.push(false); }
-
-		for(var r = 1; r < rank.length; r++){
-			var thisRank = rank[r];
-			for(var f = 0; f < thisRank.length; f++){
-				var thisFace = thisRank[f];
-				var thisFaceParents = faceRanks[ thisFace.index ].parents;
-				var thisBranch = root;
-				// console.log("beginning dive " + found.length);
-				for(var p = 0; p < thisFaceParents.length; p++){
-					var found = false;
-					for(var i = 0; i < thisBranch.adjacent.length; i++){
-						if(thisBranch.adjacent[i].face === thisFaceParents[p]){
-							if(treeAdded[thisFace.index] === false){
-								thisBranch = thisBranch.adjacent[i];
-								// found = new AdjacentFace(thisFace);
-								treeAdded[thisFace.index] = true;
-								// break;
-							}
-						}
-					}
-					if(found === false){ break; }
-				}
-				// console.log("end dive " + found.length);
-				// console.log("rank "+r+" face "+f+" adding "+found.length+" elements");
-				if(found === true ){ thisBranch.adjacent.push(new AdjacentFace(thisFace)); }
-				// thisBranch.adjacent = thisBranch.adjacent.concat(found);
-			}
-		}
-		return root;*/
 	}
-
-	// adjacentFacesTree(start:PlanarFace):AdjacentFace{
-	// 	this.faceArrayDidChange();
-
-	// 	var abc = [];
-	// 	abc.push(face);
-	// 	abc = abc.concat(adjacentArray);
-
-	// 	var face = start;
-	// 	var adjacentArray = face.edgeAdjacentFaces();
-	// 	var nextLevelAdjacent = [];
-	// 	for(var i = 0; i < adjacentArray.length; i++){
-	// 		nextLevelAdjacent.push({parent:start, adj:adjacentArray[i]});
-	// 	}
-
-	// 	var tree = new AdjacentFace(start);
-	// 	var round = 0;
-
-	// 	// this thing
-	// 	var adj = tree;
-
-	// 	var foundInThisRound;
-	// 	do{
-	// 		foundInThisRound = false;
-	// 		var thisLevelAdjacent = nextLevelAdjacent;
-	// 		var nextLevelAdjacent = [];
-	// 		for(var i = 0; i < thisLevelAdjacent.length; i++){
-	// 			if(!arrayContainsObject(abc, thisLevelAdjacent[i].adj)){
-	// 				// instad of this, find parent, push it to the parent's tree
-	// 				abc.push(thisLevelAdjacent[i].adj);
-	// 				// continue as normal
-	// 				var newAdj = new AdjacentFace(thisLevelAdjacent[i].adj);
-	// 				adj.adjacent.push( newAdj );
-	// 				nextLevelAdjacent.push( {parent:newAdj, adj:newAdj} );
-	// 				foundInThisRound = true;
-	// 			}
-	// 		}
-	// 	}while(foundInThisRound === true);
-
-	// 	return tree;
-	// }
-
-	// adjacentFacesTree(start:PlanarFace):AdjacentFace{
-
-	// 	function allocateFaces(face:PlanarFace){
-	// 		var adjacent = face.edgeAdjacentFaces();
-	// 	}
-
-	// 	// when a face gets allocated, set this to true
-	// 	var allocated = this.faces.map(function(el){ return false; });
-	// 	var limit = 0;
-
-	// 	var thisDepth = start.edgeAdjacentFaces();
-
-	// 	var tree = new AdjacentFace();
-	// 	tree.face = start;
-	// 	allocated[ tree.face.index ] = true;
-	// 	tree.adjacent = thisDepth.map(function(el){
-	// 		var f = new AdjacentFace();
-	// 		f.face = el;
-	// 		return f;
-	// 	});
-	// 	for(var i = 0; i < tree.adjacent.length; i++){
-	// 		allocated[ tree.adjacent[i].face.index ] = true;
-	// 	}
-	// 	do{
-	// 		var nextDepth:PlanarFace[] = [];
-	// 		for(var i = 0; i < thisDepth.length; i++){
-	// 			nextDepth = nextDepth.concat(thisDepth[i].edgeAdjacentFaces());
-	// 		}
-	// 		nextDepth.filter(function(el){ return !allocated[el.index]; });
-	// 		thisDepth = nextDepth;
-	// 		var t = new AdjacentFace();
-	// 		// t.face = start;
-	// 		t.adjacent = thisDepth.map(function(el){
-	// 			var f = new AdjacentFace();
-	// 			f.face = el;
-	// 			return f;
-	// 		});
-	// 		limit++;
-	// 	}while(limit < this.faces.length);
-	// 	return;
-	// }
 
 	///////////////////////////////////////////////////////////////////////
 
@@ -1101,7 +946,7 @@ class PlanarGraph extends Graph{
 		console.log('#Edges: ' + this.edges.length);
 		if(verbose != undefined && verbose == true){
 			for(var i = 0; i < this.edges.length; i++){
-				console.log(i + ': ' + this.edges[i].nodes[0] + ' ' + this.edges[i].nodes[1]);
+				console.log(i+': '+ this.edges[i].nodes[0] + ' ' + this.edges[i].nodes[1]);
 			}
 		}
 		for(var i = 0; i < this.nodes.length; i++){
@@ -1143,23 +988,30 @@ class AdjacentFace{
 
 
 function convexHull(points){
-	var hull = [];
+	// validate input
 	if(points === undefined || points.length === 0){ return []; }
+	// # points in the convex hull before escaping function
+	var INFINITE_LOOP = 10000;
+	// sort points by x and y
 	var sorted = points.sort(function(a,b){
 			if(a.x-b.x < -EPSILON_HIGH){ return -1; }
 			if(a.x-b.x > EPSILON_HIGH){ return 1; }
 			if(a.y-b.y < -EPSILON_HIGH){ return -1; }
 			if(a.y-b.y > EPSILON_HIGH){ return 1; }
 			return 0;});
+	var hull = [];
 	hull.push(sorted[0]);
-	var ang = 0;  // the current direction the perimeter walker is facing
-	var count = 0;
+	// the current direction the perimeter walker is facing
+	var ang = 0;  
+	var infiniteLoop = 0;
 	do{
-		count++;
+		infiniteLoop++;
 		var h = hull.length-1;
 		var angles = sorted
+			// remove all points in the same location from this search
 			.filter(function(el){ 
 				return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH)) })
+			// sort by angle, setting lowest values next to "ang"
 			.map(function(el){
 				var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
 				while(angle < ang){ angle += Math.PI*2; }
@@ -1167,22 +1019,25 @@ function convexHull(points){
 			.sort(function(a,b){return (a.angle < b.angle)?-1:(a.angle > b.angle)?1:0});
 		if(angles.length === 0){ return []; }
 		// narrowest-most right turn
-		var smallest = angles[0];
-		// collect all other points that are collinear
-		angles = angles.filter(function(el){ return epsilonEqual(smallest.angle, el.angle, EPSILON_LOW); })
+		var rightTurn = angles[0];
+		// collect all other points that are collinear along the same ray
+		angles = angles.filter(function(el){ return epsilonEqual(rightTurn.angle, el.angle, EPSILON_LOW); })
+		// sort collinear points by their distances from the connecting point
 		.map(function(el){ 
 			var distance = Math.sqrt(Math.pow(hull[h].x-el.node.x, 2) + Math.pow(hull[h].y-el.node.y, 2));
 			el.distance = distance;
 			return el;})
-		// include all collinear points along the hull
-		// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
-		// exclude all collinear points along the hull 
+		// (OPTION 1) exclude all collinear points along the hull 
 		.sort(function(a,b){return (a.distance < b.distance)?1:(a.distance > b.distance)?-1:0});
-		// if the point is already in the convex hull, we've made a loop.
+		// (OPTION 2) include all collinear points along the hull
+		// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
+		// if the point is already in the convex hull, we've made a loop. we're done
 		if(arrayContainsObject(hull, angles[0].node)){ return hull; }
-		ang = Math.atan2( hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x)
+		// add point to hull, prepare to loop again
 		hull.push(angles[0].node);
-	}while(count < 1000);
+		// update walking direction with the angle to the new point
+		ang = Math.atan2( hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
+	}while(infiniteLoop < INFINITE_LOOP);
 	return [];
 }
 

@@ -339,49 +339,13 @@ function loadSVG(path, callback, epsilon){
 	// var newScope = new paper.PaperScope();
 	paper.project.importSVG(path, function(e){
 		var cp = paperPathToCP(e);
-		// cp.clean();
-		// cp.rectangle(1,1);
-
-		// var edgeNodes = [];
-		// for(var i = 0; i < cp.edges.length; i++){
-		// 	if(cp.edges[i].orientation === CreaseDirection.border){
-		// 		edgeNodes.push(cp.edges[i])
-		// 	}
-		// }
-
-		// var insideNodes = cp.nodes.filter(function(el){ return !arrayContainsObject(edgeNodes, el); });
-		console.log(cp.nodes);
 		var hull = convexHull(cp.nodes);
-		console.log(hull);
 		cp.setBoundary(hull);
-
-
-	// var convexHull = new ConvexHullGrahamScan();
-
-	//add points
-	//(needs to be done for each point, a foreach
-	//loop on the input array can be used.)
-	// for(var i = 0; i < cp.nodes.length; i++){
-	//    convexHull.addPoint(cp.nodes[i].x, cp.nodes[i].y);
-	// }
-
-	//getHull() returns the array of points
-	//that make up the convex hull.
-	// var hullPoints = convexHull.getHull();
-
-	// console.log('hullPoints');
-	// console.log(hullPoints);
-
 		var eps = EPSILON_FILE_IMPORT;
 		if(eps !== undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; } EPSILON
 		cp.cleanDuplicateNodes(eps);
 		cp.fragment();
 		cp.cleanDuplicateNodes(eps);
-
-///////////////////////////////////////////////////////////////////////
-		// var hull = convexHull(cp.nodes);
-		// console.log(hull);
-
 		if(callback != undefined){
 			callback(cp);
 		}
@@ -392,7 +356,8 @@ function loadSVGNoFragment(path, callback, epsilon){
 	// var newScope = new paper.PaperScope();
 	paper.project.importSVG(path, function(e){
 		var cp = paperPathToCP(e);
-		// cp.clean();
+		var hull = convexHull(cp.nodes);
+		cp.setBoundary(hull);
 		var eps = EPSILON_FILE_IMPORT;
 		if(eps !== undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; }
 		cp.cleanDuplicateNodes(eps);

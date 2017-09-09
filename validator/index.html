@@ -263,7 +263,7 @@ function svgBlobLoaded(svg){
 			var ffTestPassed = true;
 			for(var i = 0; i < project1.cp.nodes.length; i++){
 				var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
-				if( !project1.cp.nodes[i].flatFoldable() ){
+				if( !project1.cp.nodes[i].flatFoldable(0.01) ){
 					ffTestPassed = false;
 					color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
 				}
