@@ -982,7 +982,7 @@ var PlanarGraph = (function (_super) {
         // console.log(faceRanks);
         // console.log(rank);
         for (var i = 0; i < faceRanks.length; i++) {
-            if (faceRanks[i].parents.length > 0) {
+            if (faceRanks[i].parents !== undefined && faceRanks[i].parents.length > 0) {
                 var parent = faceRanks[i].parents[0];
                 var edge = parent.commonEdge(faceRanks[i].face);
                 var m = edge.reflectionMatrix();

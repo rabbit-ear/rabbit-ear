@@ -23,6 +23,13 @@
 </section>
 
 <script src="../tests/js/reflection.js"></script>
+
+<script>
+katex.render("\\begin{bmatrix} a & b & tx \\\\ c & d & ty \\end{bmatrix}", document.getElementById("matrix-1"));
+katex.render("\\begin{Bmatrix} a & b \\\\ c & d \\end{Bmatrix}", document.getElementById("matrix-2"));
+katex.render("\\begin{Bmatrix} tx \\\\ ty \\end{Bmatrix}", document.getElementById("matrix-3"));
+</script>
+
 <script>
 reflexMatrixCallback = function(el){
 	if(el !== undefined){
@@ -41,12 +48,7 @@ reflexMatrixCallback = function(el){
 		katex.render("\\begin{bmatrix} "+a+" & "+b+" & "+tx+" \\\\ "+c+" & "+d+" & "+ty+" \\end{bmatrix}", document.getElementById("matrix-1"));
 	}
 }
-</script>
-
-<script>
-katex.render("\\begin{bmatrix} a & b & tx \\\\ c & d & ty \\end{bmatrix}", document.getElementById("matrix-1"));
-katex.render("\\begin{Bmatrix} a & b \\\\ c & d \\end{Bmatrix}", document.getElementById("matrix-2"));
-katex.render("\\begin{Bmatrix} tx \\\\ ty \\end{Bmatrix}", document.getElementById("matrix-3"));
+reflex.computeReflection();
 </script>
 
 <?php include 'footer.php';?>

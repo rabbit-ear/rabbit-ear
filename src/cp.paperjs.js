@@ -31,6 +31,7 @@ var OrigamiPaper = (function () {
 		// PAPER JS
 		this.scope = new paper.PaperScope();
 		this.scope.setup(canvas);
+		this.cpMin = 1.0; // thickness of lines based on this
 		this.style = this.defaultStyleTemplate();
 		this.zoomToFit();
 
@@ -135,31 +136,41 @@ var OrigamiPaper = (function () {
 	}
 
 	OrigamiPaper.prototype.update = function () {
-		if(this.cp === undefined || this.nodes === undefined || this.edges === undefined || this.faces === undefined){ return; }
-		if(this.cp.nodes.length != this.nodes.length || 
-		   this.cp.edges.length != this.edges.length ||
-		   this.cp.faces.length != this.faces.length ){ return; }
-		for(var i = 0; i < this.boundaryLayer.children.length; i++){
-			Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
+		if(this.cp === undefined){ return; }
+		if(this.nodes !== undefined && this.cp.nodes.length !== this.nodes.length){ return; }
+		if(this.edges !== undefined && this.cp.edges.length !== this.edges.length){ return; }
+		if(this.faces !== undefined && this.cp.faces.length !== this.faces.length){ return; }
+		if(this.boundaryLayer !== undefined){
+			for(var i = 0; i < this.boundaryLayer.children.length; i++){
+				Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
+			}
 		}
-		for(var i = 0; i < this.cp.nodes.length; i++){ 
-			this.nodes[i].position = this.cp.nodes[i]; 
-			Object.assign(this.nodes[i], this.style.nodes);
+		if(this.nodes !== undefined && this.cp.nodes !== undefined && this.cp.nodes.length === this.nodes.length){
+			for(var i = 0; i < this.cp.nodes.length; i++){ 
+				this.nodes[i].position = this.cp.nodes[i]; 
+				Object.assign(this.nodes[i], this.style.nodes);
+			}
 		}
-		for(var i = 0; i < this.cp.edges.length; i++){ 
-			this.edges[i].segments = this.cp.edges[i].nodes; 
-			Object.assign(this.edges[i], this.styleForCrease(this.cp.edges[i].orientation));
+		if(this.edges !== undefined && this.cp.edges !== undefined && this.cp.edges.length === this.edges.length){
+			for(var i = 0; i < this.cp.edges.length; i++){ 
+				this.edges[i].segments = this.cp.edges[i].nodes; 
+				Object.assign(this.edges[i], this.styleForCrease(this.cp.edges[i].orientation));
+			}
 		}
-		for(var i = 0; i < this.cp.faces.length; i++){ 
-			this.faces[i].segments = this.cp.faces[i].nodes; 
+		if(this.faces !== undefined && this.cp.faces !== undefined && this.cp.faces.length === this.faces.length){
+			for(var i = 0; i < this.cp.faces.length; i++){ 
+				this.faces[i].segments = this.cp.faces[i].nodes; 
+			}
 		}
 		// update user-selected
-		for(var i = 0; i < this.selected.nodes.length; i++){
-			Object.assign(this.nodes[this.selected.nodes[i].index], this.style.selectedNode);
+		if(this.selected !== undefined){
+			for(var i = 0; i < this.selected.nodes.length; i++){
+				Object.assign(this.nodes[this.selected.nodes[i].index], this.style.selectedNode);
+			}
+			for(var i = 0; i < this.selected.edges.length; i++){
+				Object.assign(this.edges[this.selected.edges[i].index], this.style.selectedEdge);
+			}
 		}
-		for(var i = 0; i < this.selected.edges.length; i++){
-			Object.assign(this.edges[this.selected.edges[i].index], this.style.selectedEdge);
-		}   
 	};
 
 	OrigamiPaper.prototype.zoomToFit = function(padding){
@@ -175,14 +186,11 @@ var OrigamiPaper = (function () {
 		var cpHeight = 1.0;
 		if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
 		if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
-		var cpBounds = this.cp.boundingBox();
-		// console.log("cp width: " + cpWidth);
-		// console.log("cp height: " + cpHeight);
-		// console.log(cpBounds.size);
-		// console.log(cpBounds.origin);
+		var cpBounds = {origin:{x:0,y:0}, size:{width:cpWidth, height:cpHeight}};
+		if(this.cp.boundingBox !== undefined){ this.cp.boundingBox(); }
 		var cpAspect = cpWidth / cpHeight;
-		var cpMin = cpWidth;
-		if(cpHeight < cpWidth){ cpMin = cpHeight; }
+		this.cpMin = cpWidth;
+		if(cpHeight < cpWidth){ this.cpMin = cpHeight; }
 		// canvas size
 		var canvasWidth = this.canvas.width;
 		var canvasHeight = this.canvas.height;
@@ -200,9 +208,8 @@ var OrigamiPaper = (function () {
 
 		// this is all to make the stroke width update. need a better way asap.
 		if(this.style === undefined){ this.style = {}; }
-		this.style.strokeWidth = 0.01 * cpMin;
-		this.setStrokeWidth(0.01 * cpMin);
-		this.update();
+		this.updateWeights();
+		// this.update();
 
 		// console.log(canvasWidth);
 		// console.log(cpWidth);
@@ -258,21 +265,34 @@ var OrigamiPaper = (function () {
 		return this.style.mark;
 	};
 
-	OrigamiPaper.prototype.setStrokeWidth = function(strokeWidth){
+	OrigamiPaper.prototype.updateWeights = function(fraction){
+		if(fraction === undefined){ fraction = 0.01; }
+		var weight = this.cpMin * fraction;
 		if(this.style === undefined){ return; }
-		this.style.mountain.strokeWidth = strokeWidth;
-		this.style.valley.strokeWidth = strokeWidth;
-		this.style.border.strokeWidth = strokeWidth;
-		this.style.mark.strokeWidth = strokeWidth*0.66666;
+		this.style.strokeWidth = 0.01;
+		this.style.mountain.strokeWidth = weight;
+		this.style.valley.strokeWidth = weight;
+		this.style.border.strokeWidth = weight;
+		this.style.mark.strokeWidth = weight*0.66666;
+		if(this.nodes !== undefined){
+			for(var i = 0; i < this.nodes.length; i++){ 
+				this.nodes[i].radius = weight * 1.5; 
+			}
+		}
+		if(this.selected !== undefined){
+			for(var i = 0; i < this.selected.nodes.length; i++){
+				this.nodes[this.selected.nodes[i].index].radius = weight * 2;
+			}
+		}
 	}
-
 	OrigamiPaper.prototype.defaultStyleTemplate = function(){
+		if(this.cpMin === undefined){ this.cpMin = 1.0; }
 		if(this.style === undefined){ this.style = {}; }
-		if(this.style.strokeWidth === undefined){ this.style.strokeWidth = 0.01; }
+		if(this.style.strokeWidth === undefined){ this.style.strokeWidth = 0.01 * this.cpMin; }
 		return {
 			backgroundColor: { gray:1.0, alpha:1.0 },
 			selectedNode: {
-				radius: 0.02, 
+				radius: 0.02 * this.cpMin, 
 				fillColor: { hue:0, saturation:0.8, brightness:1 },
 				visible: true
 			},
@@ -283,7 +303,7 @@ var OrigamiPaper = (function () {
 				fillColor: { hue:0, saturation:0.8, brightness:1 }
 			},
 			nodes: {
-				radius: 0.015, 
+				radius: 0.015 * this.cpMin, 
 				visible: false,
 				fillColor: { hue:25, saturation:0.7, brightness:1.0 }//{ hue:20, saturation:0.6, brightness:1 }
 			},

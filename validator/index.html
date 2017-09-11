@@ -6,7 +6,7 @@
 <meta name="description" content="flat foldable foldability origami calculator validator svg opx fold">
 <meta name="author" content="Robby Kraft">
 <title>Origami Crease Pattern Validator</title>
-<link href="../lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 <link href="style.css" rel="stylesheet">
 <style>
 
@@ -90,67 +90,152 @@ div#dropZone {
 		</div>
 	</div>
 
-<script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="../lib/bootstrap/assets/js/ie10-viewport-bug-workaround.js"></script>
-
 <script language="javascript" type="text/javascript" src="../src/graph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
 
+<script src="../lib/bootstrap/js/tether.min.js"></script>
+<script src="../lib/jquery-3.2.1.slim.min.js"></script>
+<script src="../lib/bootstrap/js/popper.min.js"></script>
+<script src="../lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
+
+
 <script>
 var project1 = new OrigamiPaper("canvas-1");
-var foldedState = new OrigamiPaper("canvas-2");
+var project2 = new OrigamiPaper("canvas-2");
+
+function svgBlobLoaded(svg){
+	loadSVG(svg, function(cp){
+		// project.cp = cp;
+		// project.initialize();
+		// project.zoomToFit();
+		////////////////////////////////////////////////////////////////////////
+		project1 = new OrigamiPaper("canvas-1", cp.duplicate());
+		project1.colorNodesFlatFoldable = function(){
+			var ffTestPassed = true;
+			for(var i = 0; i < project1.cp.nodes.length; i++){
+				var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
+				if( !project1.cp.nodes[i].flatFoldable(0.01) ){
+					ffTestPassed = false;
+					color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
+				}
+				project1.nodes[i].fillColor = color;
+			}
+			setJumbotron(ffTestPassed);
+			if(ffTestPassed){ document.getElementById("canvas-2").style.display = "inline-block"; }
+			else            { document.getElementById("canvas-2").style.display = "none"; }
+		}
+		project1.initialize();
+		project1.zoomToFit(0.05);
+		project1.colorNodesFlatFoldable();
+		for(var i = 0; i < project1.nodes.length; i++){ 
+		// 	project1.nodes[i].radius = 0.1 * project1.cpMin;
+			project1.nodes[i].visible = true;
+		}
+
+		project2 = new OrigamiPaper("canvas-2", cp.duplicate());
+		project2.backgroundLayer.visible = false;
+		project2.faceLayer.visible = false;
+		project2.edgeLayer.visible = false;
+		project2.boundaryLayer.visible = false;
+		project2.nodeLayer.visible = false;
+
+		project2.fold = function(){
+			// find a face near the middle
+			var centerNode = this.cp.getNearestNode(this.cp.width() * 0.5, this.cp.height()*0.5);
+			if(centerNode === undefined){ return; }
+			var centerFaces = centerNode.adjacentFaces();
+			if(centerFaces === undefined || centerFaces.length == 0){ return; }
+			var sortedFaces = centerFaces.sort(function(a,b){
+				var avgA = 0;
+				var avgB = 0;
+				for(var i = 0; i < a.nodes.length; i++){ avgA += a.nodes[i].y; }
+				avgA /= (a.nodes.length);
+				for(var i = 0; i < b.nodes.length; i++){ avgB += b.nodes[i].y; }
+				avgB /= (a.nodes.length);
+				return (avgA < avgB) ? 1 : ((avgA > avgB) ? -1 : 0);
+			});
+			var centerBottomFace = sortedFaces[0];
+
+			var answer = this.cp.adjacentFaceTree(centerBottomFace);
+
+			var folded = [];
+			this.foldedLayer = new this.scope.Layer();
+			this.foldedLayer.removeChildren();
+			this.foldedLayer.activate();
+
+			for(var i = 0; i < answer.faces.length; i++){
+				var face = answer.faces[i].face;
+				var matrix = answer.faces[i].global;
+				var segments = [];
+				for(var p = 0; p < face.nodes.length; p++){
+					segments.push( new XY(face.nodes[p].x, face.nodes[p].y ).transform(matrix) );
+				}
+				var face = new this.scope.Path({segments:segments,closed:true});
+				var color = 100 + 200 * i/this.cp.faces.length;
+				// face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
+				face.fillColor = { gray:1.0, alpha:0.1 };
+				this.faces.push( face );
+			}
+
+			// this.cp.clear();
+			// this.cp.nodes = [];
+			// this.cp.edges = [];
+
+
+			this.cp.faces = [];
+			this.style.mountain.strokeWidth = 0.0015;
+			this.style.valley.strokeWidth = 0.0015;
+			this.style.border.strokeWidth = 0.0015;
+			this.style.mark.strokeWidth = 0.0015;
+			this.initialize();
+			this.backgroundLayer.visible = false;
+			this.faceLayer.visible = false;
+			this.edgeLayer.visible = false;
+			this.boundaryLayer.visible = false;
+			this.nodeLayer.visible = false;
+		}
+		// project2.cp = cp;
+		// project2.cp = new CreasePattern().birdBase();;
+		project2.cp.generateFaces();
+		project2.initialize();
+		project2.zoomToFit(0.05);
+		project2.fold();
+
+		showAndScrollResults();
+	});
+}
+
 </script>
-<!-- file upload -->
-<script>
-$("#files").css('opacity','0');
-$("#open-file").click(function(e){
-   e.preventDefault();
-   $("#files").trigger('click');
-});
+
+<!-- download svg blob -->
+<!-- <script>
+function download(text, filename){
+	var blob = new Blob([text], {type: "image/svg+xml"});
+	var url = window.URL.createObjectURL(blob);
+	var a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
+}
 </script>
+ -->
+
 <!-- drag to upload -->
 <script>
 var dropZone = document.getElementById('dropZone');
-
-function showDropZone() {
-	dropZone.style.visibility = "visible";
-}
-function hideDropZone() {
-	dropZone.style.visibility = "hidden";
-}
-
+function showDropZone() { dropZone.style.visibility = "visible"; }
+function hideDropZone() { dropZone.style.visibility = "hidden"; }
 function allowDrag(e) {
 	if (true) {  // Test that the item being dragged is a valid one
 		e.dataTransfer.dropEffect = 'copy';
 		e.preventDefault();
 	}
 }
-
-//seperate event
-function addEventHandler(obj, evt, handler) {
-	if (obj.addEventListener) {
-		// W3C method
-		obj.addEventListener(evt, handler, false);
-	} else if (obj.attachEvent) {
-		// IE method.
-		obj.attachEvent('on' + evt, handler);
-	} else {
-		// Old school method.
-		obj['on' + evt] = handler;
-	}
-}
-
 function handleDrop(e) {
-
 	Function.prototype.bindToEventHandler = function bindToEventHandler() {
 		var handler = this;
 		var boundParameters = Array.prototype.slice.call(arguments);
@@ -161,10 +246,8 @@ function handleDrop(e) {
 			handler.apply(this, boundParameters);
 		}
 	};
-		
 	e.preventDefault();
 	hideDropZone();
-
 	var dt = e.dataTransfer;
 	var files = dt.files;
 	for (var i = 0; i < files.length; i++) {
@@ -180,33 +263,35 @@ function handleDrop(e) {
 	}
 	return true;
 }
-// 1
-window.addEventListener('dragenter', function(e) {
-	showDropZone();
-});
-// 2
+window.addEventListener('dragenter', function(e) { showDropZone(); });
 dropZone.addEventListener('dragenter', allowDrag);
 dropZone.addEventListener('dragover', allowDrag);
-// 3
-dropZone.addEventListener('dragleave', function(e) {
-	hideDropZone();
-});
-// 4
+dropZone.addEventListener('dragleave', function(e) { hideDropZone(); });
 dropZone.addEventListener('drop', handleDrop);
+function addEventHandler(obj, evt, handler) {
+	// w3c
+	if (obj.addEventListener){ obj.addEventListener(evt, handler, false); }
+	// ie
+	else if (obj.attachEvent) { obj.attachEvent('on' + evt, handler); }
+	// old
+	else { obj['on' + evt] = handler; }
+}
 </script>
 
+<!-- button to upload -->
 <script>
-$(document).on('change', ':file', function() {
-	console.log('document on change file');
+document.getElementById("open-file").addEventListener("click", function(e){
+	e.preventDefault();
+	document.getElementById("files").click()
+});
+document.addEventListener('change', function(){
 	var input = $(this),
 		numFiles = input.get(0).files ? input.get(0).files.length : 1,
 		label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
 	input.trigger('fileselect', [numFiles, label]);
 	readBlob();
-});
-
+}, false);
 function readBlob() {
-	// console.log('read blob');
 	var files = document.getElementById('files').files;
 	if (!files.length) {
 		// they selected cancel
@@ -214,19 +299,18 @@ function readBlob() {
 	}
 	var file = files[0];
 	var reader = new FileReader();
-
 	reader.onloadend = function(evt) {
-		// console.log('on load end');
-		if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+		if (evt.target.readyState == FileReader.DONE){
 			//byte range: ['Read ', file.size, ' byte file'].join('');
-			// importSVG(evt.target.result);
 			svgBlobLoaded(evt.target.result);
 		}
 	};
 	var blob = file.slice(0, file.size);
 	reader.readAsBinaryString(blob);
 }
+</script>
 
+<script>
 function showAndScrollResults(){
 	document.getElementById("result-container").style.display = "block";
 	window.dispatchEvent(new Event('resize'));
@@ -253,87 +337,6 @@ function setJumbotron(success){
 	}
 }
 
-function svgBlobLoaded(svg){
-	// console.log(svg);
-	
-	loadSVG(svg, function(cp){
-		////////////////////////////////////////////////////////////////////////
-		project1 = new OrigamiPaper("canvas-1", cp);
-		project1.colorNodesFlatFoldable = function(){
-			var ffTestPassed = true;
-			for(var i = 0; i < project1.cp.nodes.length; i++){
-				var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
-				if( !project1.cp.nodes[i].flatFoldable(0.01) ){
-					ffTestPassed = false;
-					color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
-				}
-				project1.nodes[i].fillColor = color;
-			}
-			setJumbotron(ffTestPassed);
-		}
-		project1.style.nodes.visible = true;
-		project1.zoomToFit(0.05);
-		project1.initialize();
-		project1.colorNodesFlatFoldable();
-		for(var i = 0; i < project1.nodes.length; i++){ project1.nodes[i].radius = 0.02; }
-
-
-		foldedState = new OrigamiPaper("canvas-2", cp);
-		foldedState.faceLayer.visible = false;
-		foldedState.fold = function(){
-			// var answer = this.cp.adjacentFaceTree(this.cp.faces[40]);
-
-			// var rani = Math.floor(Math.random()*this.cp.faces.length);
-			// console.log(rani);
-			// var answer = this.cp.adjacentFaceTree(this.cp.faces[rani]);
-			// crane
-			var answer = this.cp.adjacentFaceTree(this.cp.faces[33]);
-			// turtle
-			// var answer = this.cp.adjacentFaceTree(this.cp.faces[16]);
-			// crane 2
-			// var answer = this.cp.adjacentFaceTree(this.cp.faces[26]);
-
-			var folded = [];
-			this.foldedLayer = new this.scope.Layer();
-			this.foldedLayer.removeChildren();
-			this.foldedLayer.activate();
-
-			for(var i = 0; i < answer.faces.length; i++){
-				var face = answer.faces[i].face;
-				var matrix = answer.faces[i].global;
-				var segments = [];
-				for(var p = 0; p < face.nodes.length; p++){
-					segments.push( new XY(face.nodes[p].x, face.nodes[p].y ).transform(matrix) );
-				}
-				var face = new this.scope.Path({segments:segments,closed:true});
-				var color = 100 + 200 * i/this.cp.faces.length;
-				// face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
-				face.fillColor = { gray:0.0, alpha:0.05 };
-				this.faces.push( face );
-			}
-
-			// this.cp.clear();
-			// this.cp.nodes = [];
-			// this.cp.edges = [];
-			this.cp.faces = [];
-			this.style.mountain.strokeWidth = 0.0015;
-			this.style.valley.strokeWidth = 0.0015;
-			this.style.border.strokeWidth = 0.0015;
-			this.style.mark.strokeWidth = 0.0015;
-			this.initialize();
-			this.boundaryLayer.visible = false;
-		}
-		// foldedState.cp = cp;
-		// foldedState.cp = new CreasePattern().birdBase();;
-		foldedState.cp.generateFaces();
-		foldedState.initialize();
-		foldedState.zoomToFit(0.05);
-		foldedState.fold();
-
-		showAndScrollResults();
-	});
-}
-	
 
 </script>
 </body>

@@ -951,7 +951,7 @@ class CreasePattern extends PlanarGraph{
 	svgMin(scale:number):string{
 		var paths = this.joinedPaths();
 		if(scale == undefined || scale <= 0){
-			scale = 1000;
+			scale = 1;
 		}
 		var blob = "";
 		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +scale+ "px\" height=\"" +scale+ "px\" viewBox=\"0 0 " +scale+ " " +scale+ "\">\n<g>\n";
