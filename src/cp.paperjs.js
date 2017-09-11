@@ -17,6 +17,180 @@ function pointsSimilar(p1, p2, epsilon){
 	return false;
 }
 
+var OrigamiFold = (function(){
+
+	OrigamiFold.prototype.onResize = function(event){ }
+	OrigamiFold.prototype.onFrame = function(event){ }
+	OrigamiFold.prototype.onMouseDown = function(event){ }
+	OrigamiFold.prototype.onMouseUp = function(event){ }
+	OrigamiFold.prototype.onMouseMove = function(event){ }
+
+	function OrigamiFold(canvas, creasePattern) {
+		if(canvas === undefined) { throw "OrigamiFold() needs to be initialized with an HTML canvas"; }
+		if(typeof canvas === "string"){ this.canvas = document.getElementById(canvas); }
+		else this.canvas = canvas;
+
+		// data model
+		this.cp = creasePattern;
+		if(this.cp === undefined){ this.cp = new CreasePattern(); }
+		
+		// PAPER JS
+		this.scope = new paper.PaperScope();
+		this.scope.setup(canvas);
+		this.cpMin = 1.0;
+		this.style = { face:{ fillColor:{ gray:1.0, alpha:0.1 } } };
+
+		this.zoomToFit();
+
+		// the order of the following sets the z index order too
+		// this.backgroundLayer = new this.scope.Layer();
+		// this.faceLayer = new this.scope.Layer();
+		this.foldedLayer = new this.scope.Layer();
+				
+		var that = this;
+		this.scope.view.onFrame = function(event){     
+			paper = that.scope; 
+			that.onFrame(event); 
+		}
+		this.scope.view.onMouseDown = function(event){ 
+			paper = that.scope; 
+			that.mouseDown = true; 
+			that.onMouseDown(event);
+		}
+		this.scope.view.onMouseUp = function(event){
+			paper = that.scope;
+			that.mouseDown = false;
+			that.onMouseUp(event);
+		}
+		this.scope.view.onMouseMove = function(event){ 
+			paper = that.scope;
+			that.onMouseMove(event);
+		}
+		this.scope.view.onResize = function(event){    
+			paper = that.scope; 
+			that.zoomToFit(); 
+			that.onResize(event); 
+		}
+		this.initialize();
+	}
+	OrigamiFold.prototype.initialize = function(){
+		// on-screen drawn elements
+		this.faces = [];
+		/////////////////////////////////////////////////////////////
+		// make calculations
+		
+		this.cp.generateFaces();
+		this.fold();
+
+		/////////////////////////////////////////////////////////////
+		// draw things
+
+		// user interaction
+		this.mouseDown = false;
+
+		// draw paper
+		if(this.cp === undefined){ return; }
+		// this.faceLayer.activate();
+		// for(var i = 0; i < this.cp.faces.length; i++){
+		// 	var face = new this.scope.Path({segments:this.cp.faces[i].nodes,closed:true});
+		// 	face.fillColor = this.style.face.fillColor;
+		// 	this.faces.push( face );
+		// }
+		this.zoomToFit();
+	}
+
+	OrigamiFold.prototype.update = function () {
+		if(this.cp === undefined){ return; }
+		if(this.faces !== undefined && this.cp.faces.length !== this.faces.length){ return; }
+		if(this.faces !== undefined && this.cp.faces !== undefined && this.cp.faces.length === this.faces.length){
+			for(var i = 0; i < this.cp.faces.length; i++){ 
+				this.faces[i].segments = this.cp.faces[i].nodes; 
+			}
+		}
+	};
+
+	OrigamiFold.prototype.fold = function(){
+		// find a face near the middle
+		var centerNode = this.cp.getNearestNode(this.cp.width() * 0.5, this.cp.height()*0.5);
+		if(centerNode === undefined){ return; }
+		var centerFaces = centerNode.adjacentFaces();
+		if(centerFaces === undefined || centerFaces.length == 0){ return; }
+		var sortedFaces = centerFaces.sort(function(a,b){
+			var avgA = 0;
+			var avgB = 0;
+			for(var i = 0; i < a.nodes.length; i++){ avgA += a.nodes[i].y; }
+			avgA /= (a.nodes.length);
+			for(var i = 0; i < b.nodes.length; i++){ avgB += b.nodes[i].y; }
+			avgB /= (a.nodes.length);
+			return (avgA < avgB) ? 1 : ((avgA > avgB) ? -1 : 0);
+		});
+		var centerBottomFace = sortedFaces[0];
+
+		var answer = this.cp.adjacentFaceTree(centerBottomFace);
+
+		var folded = [];
+		this.foldedLayer.removeChildren();
+		this.foldedLayer.activate();
+
+		for(var i = 0; i < answer.faces.length; i++){
+			var face = answer.faces[i].face;
+			var matrix = answer.faces[i].global;
+			var segments = [];
+			for(var p = 0; p < face.nodes.length; p++){
+				segments.push( new XY(face.nodes[p].x, face.nodes[p].y ).transform(matrix) );
+			}
+			var face = new this.scope.Path({segments:segments,closed:true});
+			var color = 100 + 200 * i/this.cp.faces.length;
+			// face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
+			face.fillColor = { gray:1.0, alpha:0.1 };
+			this.faces.push( face );
+		}
+		this.cp.faces = [];
+	};
+
+	OrigamiFold.prototype.zoomToFit = function(padding){
+		// store padding for future calls
+		if(padding !== undefined){ this.padding = padding; }
+		// use stored padding if we can
+		var paperWindowScale = 1.0 - .015;
+		if(this.padding !== undefined){ paperWindowScale = 1.0 - this.padding*2; }
+		var pixelScale = 1.0;
+		if(isRetina){ pixelScale = 0.5; }
+		// crease pattern size
+		var cpWidth = 1.0; 
+		var cpHeight = 1.0;
+		if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
+		if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
+		var cpBounds = {origin:{x:0,y:0}, size:{width:cpWidth, height:cpHeight}};
+		if(this.cp.boundingBox !== undefined){ this.cp.boundingBox(); }
+		var cpAspect = cpWidth / cpHeight;
+		this.cpMin = cpWidth;
+		if(cpHeight < cpWidth){ this.cpMin = cpHeight; }
+		// canvas size
+		var canvasWidth = this.canvas.width;
+		var canvasHeight = this.canvas.height;
+		var canvasAspect = canvasWidth / canvasHeight;
+		// cp to canvas ratio
+		var cpCanvasRatio = canvasHeight / cpHeight;
+		if(cpAspect > canvasAspect) { cpCanvasRatio = canvasWidth / cpWidth; }
+		// matrix
+		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
+		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale); 
+		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
+				  cpCanvasRatio*paperWindowScale*pixelScale);
+		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
+		this.scope.view.matrix = mat;
+
+		// this is all to make the stroke width update. need a better way asap.
+		if(this.style === undefined){ this.style = {}; }
+		// this.update();
+
+		return mat;
+	};
+
+	return OrigamiFold;
+}());
+
 var OrigamiPaper = (function () {
 
 	function OrigamiPaper(canvas, creasePattern) {
