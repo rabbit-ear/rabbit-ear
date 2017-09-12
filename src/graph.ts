@@ -369,16 +369,16 @@ class Graph{
 	/** Graph specific clean function: removes circular and duplicate edges, refreshes .index. Only modifies edges array.
 	 * @returns {number} the number of edges removed
 	 */
-	cleanGraph():number{
+	cleanGraph():GraphCleanReport{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();
-		return this.cleanDuplicateEdges() + this.cleanCircularEdges();
+		return new GraphCleanReport(this.cleanDuplicateEdges() + this.cleanCircularEdges())
 	}
 
 	/** Clean calls cleanGraph(), unless this class has been subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
 	 * @returns {number} the number of edges removed
 	 */
-	clean():any{
+	clean():GraphCleanReport{
 		return this.cleanGraph();
 	}
 
@@ -424,4 +424,19 @@ class Graph{
 	nodeArrayDidChange(){for(var i=0; i<this.nodes.length; i++){this.nodes[i].index=i;}}
 	edgeArrayDidChange(){for(var i=0; i<this.edges.length; i++){this.edges[i].index=i;}}
 	// nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
+}
+
+
+class GraphCleanReport {
+	edges:number;
+	isolated:XY[];  // nodes removed for being unattached to any edge
+	constructor(numEdges?:number){
+		this.edges = numEdges;
+		this.isolated = [];
+		if(this.edges === undefined){ this.edges = 0; }
+	}
+	join(report:GraphCleanReport){
+		this.edges += report.edges;
+		this.isolated.concat(report.isolated);
+	}
 }

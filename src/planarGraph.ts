@@ -122,7 +122,8 @@ class InteriorAngle{
 	}
 }
 
-class NodeCleanReport{
+class PlanarCleanReport extends GraphCleanReport{
+	edges:number;
 	fragment:XY[];  // nodes added at intersection of 2 lines, from fragment()
 	collinear:XY[]; // nodes removed due to being collinear
 	duplicate:XY[]; // nodes removed due to occupying the same space
@@ -133,7 +134,7 @@ class NodeCleanReport{
 		this.duplicate = [];
 		this.isolated = [];
 	}
-	add(report:NodeCleanReport){
+	join(report:NodeCleanReport){
 		this.fragment.concat(report.fragment);
 		this.collinear.concat(report.collinear);
 		this.duplicate.concat(report.duplicate);
