@@ -67,6 +67,31 @@ div#dropZone {
 			  <a href="#" class="btn btn-lg btn-secondary" id="open-file">Open File</a>
 			</p>
 			<p class="lead">Flat-foldability check and simulation of folded state</p>
+			<div>
+				<a href="#" class="btn btn-sm btn-secondary" id="settings">(ε) Epsilon</a>
+			</div>
+		  </div>
+		  <div>
+			<div id="settings-div" style="padding:1em; display:none">
+				<!-- <p>(ε) epsilon</p> -->
+				<div id="epsilon-radio" class="btn-group" data-toggle="buttons">
+				  <label class="btn btn-outline-secondary">
+				    <input type="radio" name="options" id="option1" autocomplete="off" >0.0000001
+				  </label>
+				  <label class="btn btn-outline-secondary active">
+				    <input type="radio" name="options" id="option2" autocomplete="off" checked>0.00001
+				  </label>
+				  <label class="btn btn-outline-secondary">
+				    <input type="radio" name="options" id="option3" autocomplete="off">0.001
+				  </label>
+				  <label class="btn btn-outline-secondary">
+				    <input type="radio" name="options" id="option3" autocomplete="off">0.04
+				  </label>
+				</div>
+				<div style="padding-top:1em;">
+					<a href="#" class="btn btn-sm btn-secondary disabled" id="recalculate">Recalculate</a>
+				</div>
+			</div>
 		  </div>
 		  <div class="mastfoot">
 			<div class="">
@@ -78,7 +103,7 @@ div#dropZone {
 	  </div>
 	</div>
 
-	<div id="result-container">
+	<div id="result-container" style="padding-bottom:4em;">
 		<div class="container">
 			<div id="jumbo-container" class="jumbotron success">
 				<h1 id="jumbo-title">Valid</h1>
@@ -107,13 +132,22 @@ div#dropZone {
 var project1 = new OrigamiPaper("canvas-1");
 var project2 = new OrigamiPaper("canvas-2");
 
+var inputFile = undefined;
+var valid_epsilon = 0.00001;
+
+function setInputFile(svg){
+	inputFile = svg;
+	$("#recalculate").removeClass("disabled");
+}
+
 function svgBlobLoaded(svg){
+	setInputFile(svg);
+
 	loadSVG(svg, function(cp){
-		// project.cp = cp;
-		// project.initialize();
-		// project.zoomToFit();
-		////////////////////////////////////////////////////////////////////////
+
 		project1 = new OrigamiPaper("canvas-1", cp.duplicate());
+		project1.initialize();
+		project1.zoomToFit(0.05);
 		project1.colorNodesFlatFoldable = function(){
 			var ffTestPassed = true;
 			for(var i = 0; i < project1.cp.nodes.length; i++){
@@ -123,29 +157,21 @@ function svgBlobLoaded(svg){
 					color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
 				}
 				project1.nodes[i].fillColor = color;
+				project1.nodes[i].visible = true;
 			}
 			setJumbotron(ffTestPassed);
 			if(ffTestPassed){ document.getElementById("canvas-2").style.display = "inline-block"; }
 			else            { document.getElementById("canvas-2").style.display = "none"; }
 		}
-		project1.initialize();
-		project1.zoomToFit(0.05);
 		project1.colorNodesFlatFoldable();
-		for(var i = 0; i < project1.nodes.length; i++){ 
-		// 	project1.nodes[i].radius = 0.1 * project1.cpMin;
-			project1.nodes[i].visible = true;
-		}
 
 		project2 = new OrigamiFold("canvas-2", cp.duplicate());
-		// project2.cp = cp;
-		// project2.cp = new CreasePattern().birdBase();;
-		// project2.cp.generateFaces();
+		project2.epsilon = EPSILON;
 		project2.initialize();
 		project2.zoomToFit(0.05);
-		// project2.fold();
 
 		showAndScrollResults();
-	});
+	}, valid_epsilon);
 }
 
 </script>
@@ -162,6 +188,28 @@ function download(text, filename){
 }
 </script>
  -->
+
+<!-- epsilon settings -->
+<script>
+document.getElementById("settings").addEventListener("click", function(e){
+	$("#settings-div").toggle();
+});
+document.getElementById("recalculate").addEventListener("click", function(e){
+	if(inputFile !== undefined){
+		svgBlobLoaded(inputFile);
+	} else{
+		$("#recalculate").addClass("disabled");
+	}
+});
+$('#epsilon-radio label').click(function(e) {
+    // $(this).addClass('active').siblings().removeClass('active');
+    console.log($(this));
+    console.log(e.target.innerText);
+    valid_epsilon = parseFloat(e.target.innerText);
+    // TODO: insert whatever you want to do with $(this) here
+    console.log(e);
+});
+</script>
 
 <!-- drag to upload -->
 <script>

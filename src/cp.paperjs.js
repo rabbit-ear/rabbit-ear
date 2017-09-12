@@ -37,14 +37,10 @@ var OrigamiFold = (function(){
 		// PAPER JS
 		this.scope = new paper.PaperScope();
 		this.scope.setup(canvas);
-		this.cpMin = 1.0;
 		this.style = { face:{ fillColor:{ gray:1.0, alpha:0.1 } } };
-
 		this.zoomToFit();
 
 		// the order of the following sets the z index order too
-		// this.backgroundLayer = new this.scope.Layer();
-		// this.faceLayer = new this.scope.Layer();
 		this.foldedLayer = new this.scope.Layer();
 				
 		var that = this;
@@ -74,38 +70,16 @@ var OrigamiFold = (function(){
 		this.initialize();
 	}
 	OrigamiFold.prototype.initialize = function(){
-		// on-screen drawn elements
-		this.faces = [];
-		/////////////////////////////////////////////////////////////
-		// make calculations
-		
+		if(this.cp === undefined){ return; }
 		this.cp.generateFaces();
 		this.fold();
-
-		/////////////////////////////////////////////////////////////
-		// draw things
-
-		// user interaction
-		this.mouseDown = false;
-
-		// draw paper
-		if(this.cp === undefined){ return; }
-		// this.faceLayer.activate();
-		// for(var i = 0; i < this.cp.faces.length; i++){
-		// 	var face = new this.scope.Path({segments:this.cp.faces[i].nodes,closed:true});
-		// 	face.fillColor = this.style.face.fillColor;
-		// 	this.faces.push( face );
-		// }
 		this.zoomToFit();
 	}
 
 	OrigamiFold.prototype.update = function () {
-		if(this.cp === undefined){ return; }
-		if(this.faces !== undefined && this.cp.faces.length !== this.faces.length){ return; }
-		if(this.faces !== undefined && this.cp.faces !== undefined && this.cp.faces.length === this.faces.length){
-			for(var i = 0; i < this.cp.faces.length; i++){ 
-				this.faces[i].segments = this.cp.faces[i].nodes; 
-			}
+		if(this.faces === undefined){ return; }
+		for(var i = 0; i < this.faces.length; i++){
+			this.faces[i].fillColor = this.style.face.fillColor;
 		}
 	};
 
@@ -126,26 +100,24 @@ var OrigamiFold = (function(){
 		});
 		var centerBottomFace = sortedFaces[0];
 
-		var answer = this.cp.adjacentFaceTree(centerBottomFace);
+		var foldTree = this.cp.adjacentFaceTree(centerBottomFace);
 
-		var folded = [];
 		this.foldedLayer.removeChildren();
 		this.foldedLayer.activate();
+		this.faces = [];
 
-		for(var i = 0; i < answer.faces.length; i++){
-			var face = answer.faces[i].face;
-			var matrix = answer.faces[i].global;
+		for(var i = 0; i < foldTree.faces.length; i++){
+			var face = foldTree.faces[i].face;
+			var matrix = foldTree.faces[i].global;
 			var segments = [];
 			for(var p = 0; p < face.nodes.length; p++){
 				segments.push( new XY(face.nodes[p].x, face.nodes[p].y ).transform(matrix) );
 			}
 			var face = new this.scope.Path({segments:segments,closed:true});
-			var color = 100 + 200 * i/this.cp.faces.length;
-			// face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
-			face.fillColor = { gray:1.0, alpha:0.1 };
+			face.fillColor = this.style.face.fillColor;
 			this.faces.push( face );
 		}
-		this.cp.faces = [];
+		// this.cp.faces = [];
 	};
 
 	OrigamiFold.prototype.zoomToFit = function(padding){
@@ -180,11 +152,6 @@ var OrigamiFold = (function(){
 				  cpCanvasRatio*paperWindowScale*pixelScale);
 		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
 		this.scope.view.matrix = mat;
-
-		// this is all to make the stroke width update. need a better way asap.
-		if(this.style === undefined){ this.style = {}; }
-		// this.update();
-
 		return mat;
 	};
 
@@ -197,6 +164,8 @@ var OrigamiPaper = (function () {
 		if(canvas === undefined) { throw "OrigamiPaper() needs to be initialized with an HTML canvas"; }
 		if(typeof canvas === "string"){ this.canvas = document.getElementById(canvas); }
 		else this.canvas = canvas;
+
+		this.epsilon = EPSILON;
 
 		// data model
 		this.cp = creasePattern;
@@ -559,11 +528,14 @@ function paperPathToCP(paperPath){
 
 // callback returns the crease pattern as an argument
 function loadSVG(path, callback, epsilon){
+	console.log("load svg epsilon");
+	console.log(epsilon);
 	// var newScope = new paper.PaperScope();
 	paper.project.importSVG(path, function(e){
 		var cp = paperPathToCP(e);
-		var eps = EPSILON_FILE_IMPORT;
-		if(eps !== undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; } EPSILON
+		var eps = epsilon;
+		if(eps === undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; } EPSILON
+		console.log(eps);
 		cp.cleanDuplicateNodes(eps);
 		cp.fragment();
 		cp.cleanDuplicateNodes(eps);
