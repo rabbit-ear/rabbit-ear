@@ -127,7 +127,7 @@
 
 <script>
 var crane1CP = new OrigamiPaper("canvas-crane-1", cp);
-loadSVGNoFragment("/tests/svg/crane-errors.svg", function(cp){ 
+loadSVGUnclean("/tests/svg/crane-errors.svg", function(cp){ 
 	// crane1CP = new OrigamiPaper("canvas-folded", cp);
 	crane1CP.cp = cp;
 	crane1CP.initialize();

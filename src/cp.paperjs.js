@@ -547,14 +547,12 @@ function loadSVG(path, callback, epsilon){
 	});
 }
 
-function loadSVGNoFragment(path, callback, epsilon){
+function loadSVGUnclean(path, callback, epsilon){
 	// var newScope = new paper.PaperScope();
 	paper.project.importSVG(path, function(e){
 		var cp = paperPathToCP(e);
 		var eps = EPSILON_FILE_IMPORT;
 		if(eps !== undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; }
-		cp.cleanDuplicateNodes(eps);
-		// cp.fragment();
 		if(callback != undefined){
 			callback(cp);
 		}

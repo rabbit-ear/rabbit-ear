@@ -959,9 +959,11 @@ class CreasePattern extends PlanarGraph{
 		if(scale === undefined || scale <= 0){
 			scale = 1;
 		}
-		var strokeWidth = this.width() * 0.005;
+		var width = this.width();
+		var height = this.height();
+		var strokeWidth = Math.floor(width * 0.005);
 		var blob = "";
-		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +scale+ "px\" height=\"" +scale+ "px\" viewBox=\"0 0 " +scale+ " " +scale+ "\">\n<g>\n";
+		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +width+ "px\" height=\"" +height+ "px\" viewBox=\"0 0 " +width+ " " +height+ "\">\n<g>\n";
 
 		for(var i = 0; i < paths.length; i++){
 			if(paths[i].length >= 0){

@@ -54,14 +54,17 @@ div#dropZone {
 var project = new OrigamiPaper("canvas");
 
 function svgBlobLoaded(svg){
-	loadSVG(svg, function(cp){
-		project.cp = cp;
-		project.cp.cleanAllUselessNodes();
-		project.initialize();
+	loadSVGUnclean(svg, function(cp){
+		console.log(cp.clean(0.1));
+		project = new OrigamiPaper("canvas", cp);
+		// project.cp = cp;
+		// console.log(project.cp.cleanAllUselessNodes());
+		// console.log(project.cp.clean());
+		// project.initialize();
 		project.zoomToFit();
 		var svgMin = project.cp.svgMin();
 		download(svgMin, "creasepattern.svg");
-	});
+	}, 1);
 }
 
 </script>

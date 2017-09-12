@@ -19,6 +19,7 @@ var EPSILON_LOW = 0.003;
 var EPSILON = 0.00001;
 var EPSILON_HIGH = 0.00000001;
 var EPSILON_UI = 0.05; // user tap, based on precision of a finger on a screen
+var EPSILON_COLLINEAR = Math.PI * 0.001;
 function epsilonEqual(a, b, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
@@ -556,14 +557,18 @@ var PlanarGraph = (function (_super) {
             case 2:
                 // collinear check
                 var angleDiff = edges[0].absoluteAngle(node) - edges[1].absoluteAngle(node);
-                if (epsilonEqual(Math.abs(angleDiff), Math.PI)) {
+                // console.log("collinear check " + angleDiff);
+                if (epsilonEqual(Math.abs(angleDiff), Math.PI, EPSILON_COLLINEAR)) {
                     var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]),
                         edges[1].uncommonNodeWithEdge(edges[0])];
                     // super.removeEdge(edges[0]);
                     edges[0].nodes = [farNodes[0], farNodes[1]];
-                    _super.prototype.removeEdge.call(this, edges[1]);
+                    var nodeLen = this.nodes.length;
+                    this.removeEdge(edges[1]);
                     // this.newEdge(farNodes[0], farNodes[1]);
-                    return this.removeNode(node);
+                    this.removeNode(node);
+                    console.log("Collinear " + (nodeLen - this.nodes.length));
+                    return nodeLen - this.nodes.length;
                 }
         }
         return 0;
@@ -573,9 +578,11 @@ var PlanarGraph = (function (_super) {
      */
     PlanarGraph.prototype.cleanAllUselessNodes = function () {
         var count = _super.prototype.removeIsolatedNodes.call(this);
+        console.log("count1  " + count);
         for (var i = this.nodes.length - 1; i >= 0; i--) {
             count += this.cleanNodeIfUseless(this.nodes[i]);
         }
+        console.log("count final  " + count);
         return count;
     };
     // cleanNodes():number{
@@ -584,6 +591,9 @@ var PlanarGraph = (function (_super) {
     // 	return count;
     // }
     PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
         var that = this;
         function searchAndMergeOneDuplicatePair(epsilon) {
             for (var i = 0; i < that.nodes.length - 1; i++) {
@@ -614,12 +624,13 @@ var PlanarGraph = (function (_super) {
     /** Removes circular and duplicate edges, merges and removes duplicate nodes, and refreshes .index values
      * @returns {object} 'edges' the number of edges removed, and 'nodes' an XY location for every duplicate node merging
      */
-    PlanarGraph.prototype.clean = function () {
-        var duplicates = this.cleanDuplicateNodes();
+    PlanarGraph.prototype.clean = function (epsilon) {
+        var duplicates = this.cleanDuplicateNodes(epsilon);
         var newNodes = this.fragment(); // todo: return this newNodes
+        duplicates.concat(this.cleanDuplicateNodes(epsilon));
         return {
             'edges': _super.prototype.cleanGraph.call(this),
-            'nodes': this.cleanAllUselessNodes() + duplicates.length
+            'nodes': { 'fragment': newNodes, 'duplicate': duplicates.length, 'collinear': this.cleanAllUselessNodes() }
         };
     };
     ///////////////////////////////////////////////////////////////
