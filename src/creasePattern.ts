@@ -956,15 +956,16 @@ class CreasePattern extends PlanarGraph{
 
 	svgMin(scale:number):string{
 		var paths = this.joinedPaths();
-		if(scale == undefined || scale <= 0){
+		if(scale === undefined || scale <= 0){
 			scale = 1;
 		}
+		var strokeWidth = this.width() * 0.005;
 		var blob = "";
 		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +scale+ "px\" height=\"" +scale+ "px\" viewBox=\"0 0 " +scale+ " " +scale+ "\">\n<g>\n";
 
 		for(var i = 0; i < paths.length; i++){
 			if(paths[i].length >= 0){
-				blob += "<polyline fill=\"none\" stroke-width=\"1\" stroke=\"#000000\" points=\"";
+				blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
 				for(var j = 0; j < paths[i].length; j++){
 					var point = paths[i][j];
 					blob += (scale*point.x).toFixed(4) + "," + (scale*point.y).toFixed(4) + " ";
@@ -981,7 +982,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	svg(scale){
-		if(scale == undefined || scale <= 0){
+		if(scale === undefined || scale <= 0){
 			scale = 1;
 		}
 		var blob = "";
