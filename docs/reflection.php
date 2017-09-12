@@ -25,8 +25,8 @@
 <script src="../tests/js/reflection.js"></script>
 
 <script>
-katex.render("\\begin{bmatrix} a & b & tx \\\\ c & d & ty \\end{bmatrix}", document.getElementById("matrix-1"));
-katex.render("\\begin{Bmatrix} a & b \\\\ c & d \\end{Bmatrix}", document.getElementById("matrix-2"));
+katex.render("\\begin{bmatrix} a & c & tx \\\\ b & d & ty \\end{bmatrix}", document.getElementById("matrix-1"));
+katex.render("\\begin{Bmatrix} a & c \\\\ b & d \\end{Bmatrix}", document.getElementById("matrix-2"));
 katex.render("\\begin{Bmatrix} tx \\\\ ty \\end{Bmatrix}", document.getElementById("matrix-3"));
 </script>
 

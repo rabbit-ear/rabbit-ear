@@ -419,7 +419,7 @@ var OrigamiPaper = (function () {
 		this.style.mark.strokeWidth = weight*0.66666;
 		if(this.nodes !== undefined){
 			for(var i = 0; i < this.nodes.length; i++){ 
-				this.nodes[i].radius = weight * 1.5; 
+				this.nodes[i].radius = weight * 1.5 * 0.5; 
 			}
 		}
 		if(this.selected !== undefined){
@@ -446,7 +446,7 @@ var OrigamiPaper = (function () {
 				fillColor: { hue:0, saturation:0.8, brightness:1 }
 			},
 			nodes: {
-				radius: 0.015 * this.cpMin, 
+				radius: 0.015 * this.cpMin * 0.5, 
 				visible: false,
 				fillColor: { hue:25, saturation:0.7, brightness:1.0 }//{ hue:20, saturation:0.6, brightness:1 }
 			},
@@ -533,9 +533,11 @@ function loadSVG(path, callback, epsilon){
 	// var newScope = new paper.PaperScope();
 	paper.project.importSVG(path, function(e){
 		var cp = paperPathToCP(e);
+		var width = cp.width();
+		var height = cp.height();
+		// todo: 
 		var eps = epsilon;
 		if(eps === undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; } EPSILON
-		console.log(eps);
 		cp.cleanDuplicateNodes(eps);
 		cp.fragment();
 		cp.cleanDuplicateNodes(eps);

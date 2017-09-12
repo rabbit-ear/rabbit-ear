@@ -454,6 +454,24 @@ var PlanarGraph = (function (_super) {
         }
         return g;
     };
+    PlanarGraph.prototype.width = function () {
+        if (this.nodes === undefined || this.nodes.length === 0) {
+            return 0;
+        }
+        var leftToRight = this.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); });
+        var left = leftToRight[0];
+        var right = leftToRight[leftToRight.length - 1];
+        return right.x - left.x;
+    };
+    PlanarGraph.prototype.height = function () {
+        if (this.nodes === undefined || this.nodes.length === 0) {
+            return 0;
+        }
+        var topToBottom = this.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); });
+        var top = topToBottom[0];
+        var bottom = topToBottom[topToBottom.length - 1];
+        return bottom.y - top.y;
+    };
     ///////////////////////////////////////////////
     // ADD PARTS
     ///////////////////////////////////////////////

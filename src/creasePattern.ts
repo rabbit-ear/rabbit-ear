@@ -596,34 +596,40 @@ class CreasePattern extends PlanarGraph{
 
 	// rectangular bounding box around the paper: [x,y],[width,height]
 	boundingBox():{origin:XY,size:{width:number,height:number}}{
-		var left = this.boundary.nodes.sort(function(a,b){return (a.x>b.x) ? 1:((b.x>a.x) ? -1:0);} )[0].x;
-		var right = this.boundary.nodes.sort(function(a,b){return (a.x>b.x) ? -1:((b.x>a.x) ? 1:0);} )[0].x;
-		var top = this.boundary.nodes.sort(function(a,b){return (a.y>b.y) ? 1:((b.y>a.y) ? -1:0);} )[0].y;
-		var bottom = this.boundary.nodes.sort(function(a,b){return (a.y>b.y) ? -1:((b.y>a.y) ? 1:0);} )[0].y;
+		var leftToRight = this.boundary.nodes.sort(function(a,b){return (a.x>b.x) ? 1:((b.x>a.x) ? -1:0);} );
+		var topToBottom = this.boundary.nodes.sort(function(a,b){return (a.y>b.y) ? 1:((b.y>a.y) ? -1:0);} );
+		var left = leftToRight[0].x;
+		var right = leftToRight[leftToRight.length-1].x;
+		var top = topToBottom[0].y;
+		var bottom = topToBottom[topToBottom.length-1].y;
 		return {origin:new XY(left, top), size:{width:right-left, height:bottom-top}};
 	}
 	boundingBoxD3():[[number,number],[number,number]]{
-		var left = this.boundary.nodes.sort(function(a,b){return (a.x>b.x) ? 1:((b.x>a.x) ? -1:0);} )[0].x;
-		var right = this.boundary.nodes.sort(function(a,b){return (a.x>b.x) ? -1:((b.x>a.x) ? 1:0);} )[0].x;
-		var top = this.boundary.nodes.sort(function(a,b){return (a.y>b.y) ? 1:((b.y>a.y) ? -1:0);} )[0].y;
-		var bottom = this.boundary.nodes.sort(function(a,b){return (a.y>b.y) ? -1:((b.y>a.y) ? 1:0);} )[0].y;
+		var leftToRight = this.boundary.nodes.sort(function(a,b){return (a.x>b.x) ? 1:((b.x>a.x) ? -1:0);} );
+		var topToBottom = this.boundary.nodes.sort(function(a,b){return (a.y>b.y) ? 1:((b.y>a.y) ? -1:0);} );
+		var left = leftToRight[0].x;
+		var right = leftToRight[leftToRight.length-1].x;
+		var top = topToBottom[0].y;
+		var bottom = topToBottom[topToBottom.length-1].y;
 		return [[left, top], [right-left, bottom-top]];
 	}
 	width():number{
 		// this is the width of the BOUNDING BOX. be careful if the polygon is not a square
-		var left = this.boundary.nodes.sort(function(a,b){return (a.x>b.x) ? 1:((b.x>a.x) ? -1:0);} )[0].x;
-		var right = this.boundary.nodes.sort(function(a,b){return (a.x>b.x) ? -1:((b.x>a.x) ? 1:0);} )[0].x;
+		var leftToRight = this.boundary.nodes.sort(function(a,b){return (a.x>b.x) ? 1:((b.x>a.x) ? -1:0);} );
+		var left = leftToRight[0];
+		var right = leftToRight[leftToRight.length-1];
 		// console.log("w left: " + left);
 		// console.log("w right: " + right);
-		return right-left;
+		return right.x - left.x;
 	}
 	height():number{
 		// this is the height of the BOUNDING BOX. be careful if the polygon is not a square
-		var top = this.boundary.nodes.sort(function(a,b){return (a.y>b.y) ? 1:((b.y>a.y) ? -1:0);} )[0].y;
-		var bottom = this.boundary.nodes.sort(function(a,b){return (a.y>b.y) ? -1:((b.y>a.y) ? 1:0);} )[0].y;
+		var topToBottom = this.boundary.nodes.sort(function(a,b){return (a.y>b.y) ? 1:((b.y>a.y) ? -1:0);} );
+		var top = topToBottom[0];
+		var bottom = topToBottom[topToBottom.length-1];
 		// console.log("h top: " + top);
 		// console.log("h bottom: " + bottom);
-		return bottom-top;
+		return bottom.y - top.y;
 	}
 
 	square(width?:number):CreasePattern{
