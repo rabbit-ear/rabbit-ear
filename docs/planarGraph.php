@@ -17,7 +17,7 @@
 	</div>
 
 	<div class="quote">
-		<p>A planar graph gives 2D space (X,Y) to the nodes. It's now possible for edges to cross and make faces, and more</p>
+		<p>A planar graph places a graph's nodes in 2D space (X,Y). It's now possible for edges to cross and make faces, locate parts based on distances, and more..</p>
 	</div>
 
 	<div class="centered">

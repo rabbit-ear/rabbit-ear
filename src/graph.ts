@@ -260,6 +260,9 @@ class Graph{
 	///////////////////////////////////////////////
 	// REMOVE PARTS
 	///////////////////////////////////////////////
+	//
+	// TARGET SPECIFIC COMPONENTS
+	//
 
 	/** Removes all nodes and edges, returning the graph to it's original state */
 	clear():Graph{
@@ -304,26 +307,6 @@ class Graph{
 		return nodesLength - this.nodes.length;
 	}
 
-	/** Removes any node that isn't a part of an edge
-	 * @returns {number} the number of nodes removed
-	 */
-	removeIsolatedNodes():number{
-		this.nodeArrayDidChange();  // this function depends on .index values, run this to be safe
-		var nodeDegree = [];
-		for(var i = 0; i < this.nodes.length; i++){ nodeDegree[i] = false; }
-		for(var i = 0; i < this.edges.length; i++){
-			nodeDegree[this.edges[i].nodes[0].index] = true;
-			nodeDegree[this.edges[i].nodes[1].index] = true;
-		}
-		var count = 0;
-		for(var i = this.nodes.length-1; i >= 0; i--){
-			var index = this.nodes[i].index;
-			if(nodeDegree[index] == false){ this.nodes.splice(i, 1); count++; }
-		}
-		if(count > 0){ this.nodeArrayDidChange(); }
-		return count;
-	}
-
 	/** Remove the second node and replaces all mention of it with the first in every edge
 	 * @returns {GraphNode} undefined if no merge, otherwise returns a pointer to the remaining node
 	 */
@@ -339,20 +322,47 @@ class Graph{
 		return node1;
 	}
 
-	/** Remove all edges that contain the same node at both ends
-	 * @returns {number} the number of edges removed
+	///////////////////////////////////////////////
+	// REMOVE PARTS
+	///////////////////////////////////////////////
+	//
+	// SEARCH AND REMOVE
+	//
+
+	/** Removes any node that isn't a part of an edge
+	 * @returns {GraphCleanReport} the number of nodes removed
 	 */
-	cleanCircularEdges():number{
+	removeIsolatedNodes():GraphCleanReport{
+		this.nodeArrayDidChange();  // this function depends on .index values, run this to be safe
+		var nodeDegree = [];
+		for(var i = 0; i < this.nodes.length; i++){ nodeDegree[i] = false; }
+		for(var i = 0; i < this.edges.length; i++){
+			nodeDegree[this.edges[i].nodes[0].index] = true;
+			nodeDegree[this.edges[i].nodes[1].index] = true;
+		}
+		var count = 0;
+		for(var i = this.nodes.length-1; i >= 0; i--){
+			var index = this.nodes[i].index;
+			if(nodeDegree[index] == false){ this.nodes.splice(i, 1); count++; }
+		}
+		if(count > 0){ this.nodeArrayDidChange(); }
+		return new GraphCleanReport(0, count);
+	}
+
+	/** Remove all edges that contain the same node at both ends
+	 * @returns {GraphCleanReport} the number of edges removed
+	 */
+	cleanCircularEdges():GraphCleanReport{
 		var edgesLength = this.edges.length;
 		this.edges = this.edges.filter(function(el){ return !(el.nodes[0] === el.nodes[1]); });
 		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
-		return edgesLength - this.edges.length;
+		return new GraphCleanReport(edgesLength - this.edges.length);
 	}
 
 	/** Remove edges that are similar to another edge
-	 * @returns {number} the number of edges removed
+	 * @returns {GraphCleanReport} the number of edges removed
 	 */
-	cleanDuplicateEdges():number{
+	cleanDuplicateEdges():GraphCleanReport{
 		var count = 0;
 		for(var i = 0; i < this.edges.length-1; i++){
 			for(var j = this.edges.length-1; j > i; j--){
@@ -363,20 +373,20 @@ class Graph{
 			}
 		}
 		if(count > 0){ this.edgeArrayDidChange(); }
-		return count;
+		return new GraphCleanReport(count);
 	}
 
 	/** Graph specific clean function: removes circular and duplicate edges, refreshes .index. Only modifies edges array.
-	 * @returns {number} the number of edges removed
+	 * @returns {GraphCleanReport} the number of edges removed
 	 */
 	cleanGraph():GraphCleanReport{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();
-		return new GraphCleanReport(this.cleanDuplicateEdges() + this.cleanCircularEdges())
+		return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
 	}
 
 	/** Clean calls cleanGraph(), unless this class has been subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
-	 * @returns {number} the number of edges removed
+	 * @returns {GraphCleanReport} the number of edges removed
 	 */
 	clean():GraphCleanReport{
 		return this.cleanGraph();
@@ -429,14 +439,17 @@ class Graph{
 
 class GraphCleanReport {
 	edges:number;
-	isolated:XY[];  // nodes removed for being unattached to any edge
-	constructor(numEdges?:number){
+	isolated:number;  // nodes removed for being unattached to any edge
+	constructor(numEdges?:number, numIsolatedNodes?:number){
 		this.edges = numEdges;
-		this.isolated = [];
+		this.isolated = numIsolatedNodes;
 		if(this.edges === undefined){ this.edges = 0; }
+		if(this.isolated === undefined){ this.isolated = 0; }
 	}
-	join(report:GraphCleanReport){
+	join(report:GraphCleanReport):GraphCleanReport{
 		this.edges += report.edges;
-		this.isolated.concat(report.isolated);
+		// this.isolated.concat(report.isolated);
+		this.isolated += report.isolated;
+		return this;
 	}
 }

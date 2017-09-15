@@ -128,6 +128,28 @@ var InteriorAngle = (function () {
     };
     return InteriorAngle;
 }());
+var PlanarCleanReport = (function (_super) {
+    __extends(PlanarCleanReport, _super);
+    function PlanarCleanReport() {
+        var _this = _super.call(this) || this;
+        _this.edges = 0;
+        _this.fragment = [];
+        _this.collinear = [];
+        _this.duplicate = [];
+        _this.isolated = 0;
+        return _this;
+    }
+    PlanarCleanReport.prototype.join = function (report) {
+        this.edges += report.edges;
+        this.fragment.concat(report.fragment);
+        this.collinear.concat(report.collinear);
+        this.duplicate.concat(report.duplicate);
+        // this.isolated.concat(report.isolated);
+        this.isolated += report.isolated;
+        return this;
+    };
+    return PlanarCleanReport;
+}(GraphCleanReport));
 // class NearestEdgeObject {
 // 	edge:PlanarEdge; 
 // 	pointOnEdge:XY;
@@ -625,6 +647,7 @@ var PlanarGraph = (function (_super) {
      * @returns {object} 'edges' the number of edges removed, and 'nodes' an XY location for every duplicate node merging
      */
     PlanarGraph.prototype.clean = function (epsilon) {
+        console.log("calling clean()");
         var duplicates = this.cleanDuplicateNodes(epsilon);
         var newNodes = this.fragment(); // todo: return this newNodes
         duplicates.concat(this.cleanDuplicateNodes(epsilon));

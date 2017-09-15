@@ -30,7 +30,7 @@
 <h2>Kawasaki's Theorem</h2>
 
 	<div class="quote">
-		<p>Find one crease to which upon adding to a node will make that node locally flat-foldable.</p>
+		<p>These 3 mountain folds need one additional valley fold to make the joint flat foldable.</p>
 	</div>
 
 	<div class="centered">

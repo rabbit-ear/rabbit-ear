@@ -127,18 +127,25 @@ class PlanarCleanReport extends GraphCleanReport{
 	fragment:XY[];  // nodes added at intersection of 2 lines, from fragment()
 	collinear:XY[]; // nodes removed due to being collinear
 	duplicate:XY[]; // nodes removed due to occupying the same space
-	isolated:XY[];  // nodes removed for being unattached to any edge
+	isolated:number;  // nodes removed for being unattached to any edge
 	constructor(){
+		super();
+		this.edges = 0;
 		this.fragment = [];
 		this.collinear = [];
 		this.duplicate = [];
-		this.isolated = [];
+		this.isolated = 0;
 	}
-	join(report:NodeCleanReport){
-		this.fragment.concat(report.fragment);
-		this.collinear.concat(report.collinear);
-		this.duplicate.concat(report.duplicate);
-		this.isolated.concat(report.isolated);
+	join(report:GraphCleanReport):PlanarCleanReport{
+		this.edges += report.edges;
+		this.isolated += report.isolated;
+		// if we are merging 2 planar clean reports, type cast this variable and check properties
+		var planarReport = <PlanarCleanReport>report;
+		if(planarReport.fragment !== undefined){ this.fragment.concat(planarReport.fragment); }
+		if(planarReport.collinear !== undefined){ this.collinear.concat(planarReport.collinear) };
+		if(planarReport.duplicate !== undefined){ this.duplicate.concat(planarReport.duplicate) };
+		// this.isolated.concat(report.isolated);
+		return this;
 	}
 }
 
@@ -562,17 +569,24 @@ class PlanarGraph extends Graph{
 		return 0;
 	}
 
+	///////////////////////////////////////////////
+	// REMOVE PARTS
+	///////////////////////////////////////////////
+	//
+	// SEARCH AND REMOVE
+	//
+
 	/** Removes all isolated nodes and performs cleanNodeIfUseless() on every node
 	 * @returns {number} how many nodes were removed
 	 */
-	cleanAllUselessNodes():number{
-		var count = super.removeIsolatedNodes();
-		console.log("count1  " + count);
+	cleanAllUselessNodes():PlanarCleanReport{
+		var report = new PlanarCleanReport().join( this.removeIsolatedNodes() );
+		var count = 0;
 		for(var i = this.nodes.length-1; i >= 0; i--){
 			count += this.cleanNodeIfUseless(this.nodes[i]);
 		}
-		console.log("count final  " + count);
-		return count;
+		report.isolated += count;
+		return report;
 	}
 
 	// cleanNodes():number{
@@ -581,7 +595,7 @@ class PlanarGraph extends Graph{
 	// 	return count;
 	// }
 
-	cleanDuplicateNodes(epsilon?:number):XY[]{
+	cleanDuplicateNodes(epsilon?:number):PlanarCleanReport{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var that = this;
 		function searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
@@ -605,21 +619,23 @@ class PlanarGraph extends Graph{
 			node = searchAndMergeOneDuplicatePair(epsilon);
 			if(node != undefined){ locations.push(new XY(node.x, node.y)); }
 		} while(node != undefined)
-		return locations;
+		var report = new PlanarCleanReport();
+		report.duplicate = locations;
+		return report;
 	}
 
 	/** Removes circular and duplicate edges, merges and removes duplicate nodes, and refreshes .index values
 	 * @returns {object} 'edges' the number of edges removed, and 'nodes' an XY location for every duplicate node merging
 	 */
-	clean(epsilon?:number):any{
+	clean(epsilon?:number):PlanarCleanReport{
 		console.log("calling clean()");
-		var duplicates = this.cleanDuplicateNodes(epsilon);
-		var newNodes = this.fragment(); // todo: return this newNodes
-		duplicates.concat(this.cleanDuplicateNodes(epsilon));
-		return {
-			'edges':super.cleanGraph(), 
-			'nodes':{'fragment':newNodes,'duplicate':duplicates.length,'collinear':this.cleanAllUselessNodes()}
-		};
+		var report = new PlanarCleanReport();
+		report.join( this.cleanDuplicateNodes(epsilon) );
+		report.join( this.fragment() );
+		report.join( this.cleanDuplicateNodes(epsilon) );
+		report.join( this.cleanGraph() );
+		report.join( this.cleanAllUselessNodes() );
+		return report;
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -628,17 +644,19 @@ class PlanarGraph extends Graph{
 	/** Fragment looks at every edge and one by one removes 2 crossing edges and replaces them with a node at their intersection and 4 edges connecting their original endpoints to the intersection.
 	 * @returns {XY[]} array of XY locations of all the intersection locations
 	 */
-	fragment(){
+	fragment():PlanarCleanReport{
+		var report = new PlanarCleanReport();
 		var that = this;
 		function fragmentOneRound():XY[]{
+			var roundReport = new PlanarCleanReport();
 			var crossings = [];
 			for(var i = 0; i < that.edges.length; i++){
 				var thisRound = that.fragmentEdge(that.edges[i]);
 				crossings = crossings.concat(thisRound);
 				if(thisRound.length > 0){
-					that.cleanGraph();
-					that.cleanAllUselessNodes();
-					that.cleanDuplicateNodes();
+					roundReport.join( that.cleanGraph() );
+					roundReport.join( that.cleanAllUselessNodes() );
+					roundReport.join( that.cleanDuplicateNodes() );
 				}
 			}
 			return crossings;
@@ -654,7 +672,8 @@ class PlanarGraph extends Graph{
 			protection += 1;
 		}while(thisCrossings.length != 0 && protection < 400);
 		if(protection >= 400){ console.log("breaking loop, exceeded 400"); }
-		return allCrossings;
+		report.fragment = allCrossings;
+		return report;
 	}
 
 	/** This function targets a single edge and performs the fragment operation on crossing edges.
@@ -668,8 +687,8 @@ class PlanarGraph extends Graph{
 			if(a.x-b.x > EPSILON_HIGH){ return 1; }
 			if(a.y-b.y < -EPSILON_HIGH){ return -1; }
 			if(a.y-b.y > EPSILON_HIGH){ return 1; }
-			return 0;});
-
+			return 0;
+		});
 		// iterate through intersections, rebuild edges in order
 		var newLineNodes = [];
 		for(var i = 0; i < intersections.length; i++){
@@ -686,8 +705,8 @@ class PlanarGraph extends Graph{
 			this.copyEdge(edge).nodes = [newLineNodes[i], newLineNodes[i+1]];
 		}
 		this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length-1], endNodes[1]];
-		super.removeEdge(edge);
-		super.cleanGraph();
+		this.removeEdge(edge);
+		this.cleanGraph();
 		return intersections.map(function(el){ return new XY(el.x, el.y); } );
 	}
 
