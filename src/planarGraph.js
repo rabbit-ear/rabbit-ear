@@ -133,26 +133,28 @@ var PlanarCleanReport = (function (_super) {
     function PlanarCleanReport() {
         var _this = _super.call(this) || this;
         _this.edges = { duplicate: 0, circular: 0 };
-        _this.fragment = [];
-        _this.collinear = [];
-        _this.duplicate = [];
-        _this.isolated = 0;
+        _this.nodes = {
+            isolated: 0,
+            fragment: [],
+            collinear: [],
+            duplicate: []
+        };
         return _this;
     }
     PlanarCleanReport.prototype.join = function (report) {
-        this.isolated += report.isolated;
+        this.nodes.isolated += report.nodes.isolated;
         this.edges.duplicate += report.edges.duplicate;
         this.edges.circular += report.edges.circular;
         // if we are merging 2 planar clean reports, type cast this variable and check properties
         var planarReport = report;
-        if (planarReport.fragment !== undefined) {
-            this.fragment = this.fragment.concat(planarReport.fragment);
+        if (planarReport.nodes.fragment !== undefined) {
+            this.nodes.fragment = this.nodes.fragment.concat(planarReport.nodes.fragment);
         }
-        if (planarReport.collinear !== undefined) {
-            this.collinear = this.collinear.concat(planarReport.collinear);
+        if (planarReport.nodes.collinear !== undefined) {
+            this.nodes.collinear = this.nodes.collinear.concat(planarReport.nodes.collinear);
         }
-        if (planarReport.duplicate !== undefined) {
-            this.duplicate = this.duplicate.concat(planarReport.duplicate);
+        if (planarReport.nodes.duplicate !== undefined) {
+            this.nodes.duplicate = this.nodes.duplicate.concat(planarReport.nodes.duplicate);
         }
         return this;
     };
@@ -486,22 +488,20 @@ var PlanarGraph = (function (_super) {
         return g;
     };
     PlanarGraph.prototype.width = function () {
-        if (this.nodes === undefined || this.nodes.length === 0) {
-            return 0;
-        }
-        var leftToRight = this.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); });
-        var left = leftToRight[0];
-        var right = leftToRight[leftToRight.length - 1];
-        return right.x - left.x;
+        // if(this.nodes === undefined || this.nodes.length === 0){ return 0; }
+        // var leftToRight = this.nodes.sort(function(a,b){return (a.x>b.x) ? 1:((b.x>a.x) ? -1:0);} );
+        // var left = leftToRight[0];
+        // var right = leftToRight[leftToRight.length-1];
+        // return right.x - left.x;
+        return 1;
     };
     PlanarGraph.prototype.height = function () {
-        if (this.nodes === undefined || this.nodes.length === 0) {
-            return 0;
-        }
-        var topToBottom = this.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); });
-        var top = topToBottom[0];
-        var bottom = topToBottom[topToBottom.length - 1];
-        return bottom.y - top.y;
+        // if(this.nodes === undefined || this.nodes.length === 0){ return 0; }
+        // var topToBottom = this.nodes.sort(function(a,b){return (a.y>b.y) ? 1:((b.y>a.y) ? -1:0);} );
+        // var top = topToBottom[0];
+        // var bottom = topToBottom[topToBottom.length-1];
+        // return bottom.y - top.y;
+        return 1;
     };
     ///////////////////////////////////////////////
     // ADD PARTS
@@ -561,6 +561,11 @@ var PlanarGraph = (function (_super) {
         this.edgeArrayDidChange();
         this.cleanNodeIfUseless(endNodes[0]);
         this.cleanNodeIfUseless(endNodes[1]);
+        // todo: this is hitting the same node repeatedly from different sides, so keeping track of nodes is not working
+        // var report = new PlanarCleanReport();
+        // var a = this.cleanNodeIfUseless(endNodes[0]);
+        // var b = this.cleanNodeIfUseless(endNodes[1]);
+        // console.log(a +  " " + b)
         return len - this.edges.length;
     };
     /** Attempt to remove an edge if one is found that connects the 2 nodes supplied, and also attempt to remove the two nodes left behind if they are otherwise unused
@@ -597,7 +602,7 @@ var PlanarGraph = (function (_super) {
                     this.removeEdge(edges[1]);
                     // this.newEdge(farNodes[0], farNodes[1]);
                     this.removeNode(node);
-                    console.log("Collinear " + (nodeLen - this.nodes.length));
+                    // console.log("Collinear " + (nodeLen - this.nodes.length));
                     return nodeLen - this.nodes.length;
                 }
         }
@@ -618,7 +623,7 @@ var PlanarGraph = (function (_super) {
         for (var i = this.nodes.length - 1; i >= 0; i--) {
             count += this.cleanNodeIfUseless(this.nodes[i]);
         }
-        report.isolated += count;
+        report.nodes.isolated += count;
         return report;
     };
     // cleanNodes():number{
@@ -656,7 +661,7 @@ var PlanarGraph = (function (_super) {
             }
         } while (node != undefined);
         var report = new PlanarCleanReport();
-        report.duplicate = locations;
+        report.nodes.duplicate = locations;
         return report;
     };
     /** Removes circular and duplicate edges, merges and removes duplicate nodes, and refreshes .index values
@@ -683,7 +688,7 @@ var PlanarGraph = (function (_super) {
             for (var i = 0; i < that.edges.length; i++) {
                 var fragmentReport = that.fragmentEdge(that.edges[i]);
                 roundReport.join(fragmentReport);
-                if (fragmentReport.fragment.length > 0) {
+                if (fragmentReport.nodes.fragment.length > 0) {
                     roundReport.join(that.cleanGraph());
                     roundReport.join(that.cleanAllUselessNodes());
                     roundReport.join(that.cleanDuplicateNodes());
@@ -699,7 +704,7 @@ var PlanarGraph = (function (_super) {
             thisReport = fragmentOneRound();
             report.join(thisReport);
             protection += 1;
-        } while (thisReport.fragment.length != 0 && protection < 400);
+        } while (thisReport.nodes.fragment.length != 0 && protection < 400);
         if (protection >= 400) {
             console.log("breaking loop, exceeded 400");
         }
@@ -714,7 +719,7 @@ var PlanarGraph = (function (_super) {
         if (intersections.length === 0) {
             return report;
         }
-        report.fragment = intersections.map(function (el) { return new XY(el.x, el.y); });
+        report.nodes.fragment = intersections.map(function (el) { return new XY(el.x, el.y); });
         var endNodes = edge.nodes.sort(function (a, b) {
             if (a.x - b.x < -EPSILON_HIGH) {
                 return -1;

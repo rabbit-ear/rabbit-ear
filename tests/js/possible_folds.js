@@ -20,6 +20,7 @@ possible.refresh = function(){
 }
 
 possible.reset = function(){
+	paper = this.scope; 
 	// this.cp.clear();
 	// this.initialize();
 	this.refresh();

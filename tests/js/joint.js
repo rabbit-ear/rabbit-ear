@@ -3,6 +3,7 @@ var sJoint = new OrigamiPaper("canvas-single-joint");
 sJoint.zoomToFit(0.05);
 
 sJoint.reset = function(){
+	paper = this.scope; 
 	var interiorAngles;
 	var centerNode;
 	// make 3 fan lines with a good sized interior angle between them

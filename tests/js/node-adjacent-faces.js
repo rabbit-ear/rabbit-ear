@@ -11,6 +11,7 @@ nodeFaces.boundaryLayer.bringToFront();
 nodeFaces.nodeLayer.bringToFront();
 
 nodeFaces.reset = function(){
+	paper = this.scope; 
 	this.cp.clear();
 	this.cp.birdBase();
 	this.cp.clean();

@@ -6,6 +6,7 @@ chop_sketch.selectNearestNode = true;
 chop_sketch.selectNearestEdge = true;
 
 chop_sketch.reset = function(){
+	paper = this.scope; 
 	chop_sketch.cp.clear();
 	chop_sketch.cp.nodes = [];
 	chop_sketch.cp.edges = [];

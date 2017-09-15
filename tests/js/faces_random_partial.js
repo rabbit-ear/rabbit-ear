@@ -7,6 +7,7 @@ partialFaces.zoomToFit(0.05);
 partialFaces.selectNearestEdge = true;
 
 partialFaces.reset = function(){
+	paper = this.scope; 
 	partialFaces.cp.clear();
 	for(var i = 0; i < 30; i++){
 		var angle = Math.random()*Math.PI*2;

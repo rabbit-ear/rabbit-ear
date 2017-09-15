@@ -344,7 +344,9 @@ var Graph = (function () {
         if (count > 0) {
             this.nodeArrayDidChange();
         }
-        return new GraphCleanReport(count);
+        var report = new GraphCleanReport();
+        report.nodes.isolated = count;
+        return report;
     };
     /** Remove all edges that contain the same node at both ends
      * @returns {GraphCleanReport} the number of edges removed
@@ -355,7 +357,9 @@ var Graph = (function () {
         if (this.edges.length != edgesLength) {
             this.edgeArrayDidChange();
         }
-        return new GraphCleanReport(0, 0, edgesLength - this.edges.length);
+        var report = new GraphCleanReport();
+        report.edges.circular = edgesLength - this.edges.length;
+        return report;
     };
     /** Remove edges that are similar to another edge
      * @returns {GraphCleanReport} the number of edges removed
@@ -373,7 +377,9 @@ var Graph = (function () {
         if (count > 0) {
             this.edgeArrayDidChange();
         }
-        return new GraphCleanReport(0, count);
+        var report = new GraphCleanReport();
+        report.edges.duplicate = count;
+        return report;
     };
     /** Graph specific clean function: removes circular and duplicate edges, refreshes .index. Only modifies edges array.
      * @returns {GraphCleanReport} the number of edges removed
@@ -381,10 +387,7 @@ var Graph = (function () {
     Graph.prototype.cleanGraph = function () {
         this.edgeArrayDidChange();
         this.nodeArrayDidChange();
-        // return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
-        var report = this.cleanDuplicateEdges().join(this.cleanCircularEdges());
-        console.log(report.edges);
-        return report;
+        return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
     };
     /** Clean calls cleanGraph(), unless this class has been subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
      * @returns {GraphCleanReport} the number of edges removed
@@ -436,24 +439,12 @@ var Graph = (function () {
     return Graph;
 }());
 var GraphCleanReport = (function () {
-    function GraphCleanReport(numIsolatedNodes, numDuplicateEdges, numCircularEdges) {
-        this.isolated = numIsolatedNodes;
-        this.edges = { duplicate: numDuplicateEdges, circular: numCircularEdges };
-        if (this.isolated === undefined) {
-            this.isolated = 0;
-        }
-        if (this.edges === undefined) {
-            this.edges = { duplicate: 0, circular: 0 };
-        }
-        if (this.edges.duplicate === undefined) {
-            this.edges.duplicate = 0;
-        }
-        if (this.edges.circular === undefined) {
-            this.edges.circular = 0;
-        }
+    function GraphCleanReport() {
+        this.nodes = { isolated: 0 };
+        this.edges = { duplicate: 0, circular: 0 };
     }
     GraphCleanReport.prototype.join = function (report) {
-        this.isolated += report.isolated;
+        this.nodes.isolated += report.nodes.isolated;
         this.edges.duplicate += report.edges.duplicate;
         this.edges.circular += report.edges.circular;
         return this;

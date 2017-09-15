@@ -6,6 +6,7 @@ mirrorB.zoomToFit(0.05);
 mirrorB.style.mark.strokeColor = {gray:0};
 
 mirrorB.reset = function(){
+	paper = this.scope; 
 	this.cp.clear();
 	this.cp.noSymmetry();
 	this.cp.creaseEdgeToEdge(this.cp.rightEdge(), this.cp.leftEdge())[0].valley();

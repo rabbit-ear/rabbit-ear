@@ -6,6 +6,7 @@ deleteEdge.zoomToFit(0.05);
 deleteEdge.selectNearestEdge = true;
 
 deleteEdge.reset = function(){
+	paper = this.scope; 
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];

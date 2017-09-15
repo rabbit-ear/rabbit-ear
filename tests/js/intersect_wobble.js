@@ -10,6 +10,7 @@ wobble.cpForFaces = new PlanarGraph();
 wobble.style.mark.strokeColor = {gray:0.0};
 
 wobble.reset = function(){
+	paper = this.scope; 
 	var numLines = 9;
 	wobble.cp.clear();
 	wobble.cp.newNode();

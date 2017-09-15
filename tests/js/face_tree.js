@@ -9,6 +9,7 @@ faceTree.zoomToFit(0.05);
 // faceTree.boundaryLayer.bringToFront();
 
 faceTree.reset = function(){
+	paper = this.scope; 
 	this.cp.clear();
 	this.cp.birdBase();
 	this.cp.clean();

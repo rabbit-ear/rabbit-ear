@@ -60,6 +60,7 @@ reflex.computeReflection = function(){
 }
 
 reflex.reset = function(){
+	paper = this.scope; 
 	this.cp.clear();
 	this.reflectionLine = this.cp.creaseThroughPoints(this.marks[0].position, this.marks[1].
 		position);

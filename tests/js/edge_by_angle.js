@@ -5,6 +5,7 @@ edgeAngle.zoomToFit(0.05);
 edgeAngle.selectNearestEdge = true;
 
 edgeAngle.reset = function(){
+	paper = this.scope; 
 	edgeAngle.cp.clear();
 	var centerNode = edgeAngle.cp.newNode().position(0.5, 0.5);
 	var num = Math.floor(Math.random()*12 + 3);

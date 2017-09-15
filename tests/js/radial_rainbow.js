@@ -10,6 +10,7 @@ radialRay.colorForAngle = function(angle){
 }
 
 radialRay.reset = function(){
+	paper = this.scope; 
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];

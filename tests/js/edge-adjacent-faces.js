@@ -9,6 +9,7 @@ edgeFaces.edgeLayer.bringToFront();
 edgeFaces.boundaryLayer.bringToFront();
 
 edgeFaces.reset = function(){
+	paper = this.scope; 
 	this.cp.clear();
 	this.cp.birdBase();
 	this.cp.clean();

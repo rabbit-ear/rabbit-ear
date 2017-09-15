@@ -8,6 +8,7 @@ randomFaces.style.mark.strokeColor = {gray:0.0, alpha:1.0};
 randomFaces.selectNearestEdge = true;
 
 randomFaces.reset = function(){
+	paper = this.scope; 
 	randomFaces.cp.clear();
 	for(var i = 0; i < 10; i++){
 		randomFaces.cp.creaseThroughPoints(new XY(Math.random(), Math.random()), new XY(Math.random(), Math.random()) );

@@ -11,6 +11,7 @@ ffSingle.rebuild = function(){
 }
 
 ffSingle.reset = function(){
+	paper = this.scope; 
 	// make 3 fan lines with a good sized interior angle between them
 	var center = new XY(0.5, 0.5);
 	do{

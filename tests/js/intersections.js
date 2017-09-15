@@ -6,24 +6,24 @@ intersectionSketch.zoomToFit(0.05);
 intersectionSketch.intersectionsLayer = new intersectionSketch.scope.Layer();
 
 intersectionSketch.reset = function(){
+	paper = this.scope; 
 	var NUM_LINES = 30;
-	var aspect = intersectionSketch.canvas.width / intersectionSketch.canvas.height;
-	intersectionSketch.cp.clear();
-	intersectionSketch.cp.rectangle(aspect, 1.0);
-	intersectionSketch.cp.edges = [];
-	intersectionSketch.cp.nodes = [];
+	var aspect = this.canvas.width / this.canvas.height;
+	this.cp.clear();
+	this.cp.rectangle(aspect, 1.0);
+	this.cp.edges = [];
+	this.cp.nodes = [];
 	for(var i = 0; i < NUM_LINES; i++){
 		var angle = Math.random()*Math.PI*2;
-		intersectionSketch.cp.creaseRay(new XY(Math.random() * aspect, Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
+		this.cp.creaseRay(new XY(Math.random() * aspect, Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
-	var intersections = intersectionSketch.cp.fragment()
-	console.log(intersections);
-	intersections = intersections.fragment;
-	intersectionSketch.initialize();
-	intersectionSketch.nodeLayer.bringToFront();
+	var report = this.cp.fragment()
+	var intersections = report.nodes.fragment;
+	this.initialize();
+	this.nodeLayer.bringToFront();
 
-	intersectionSketch.intersectionsLayer.activate();
-	intersectionSketch.intersectionsLayer.removeChildren();
+	this.intersectionsLayer.activate();
+	this.intersectionsLayer.removeChildren();
 	for(var i = 0; i < intersections.length; i++){
 		var nodeCircle = new paper.Shape.Circle({
 			center: [intersections[i].x, intersections[i].y],

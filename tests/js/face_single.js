@@ -4,6 +4,7 @@ var singleFace = new OrigamiPaper("canvas-face-single");
 // singleFace.zoomToFit(0.05);
 
 singleFace.reset = function(){
+	paper = this.scope; 
 	singleFace.cp.clear();
 	singleFace.cp.nodes = [];
 	singleFace.cp.edges = [];

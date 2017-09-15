@@ -3,6 +3,7 @@ var faceAnim = new OrigamiPaper("canvas-face-anim", new PlanarGraph());
 // faceAnim.zoomToFit(0.05);
 
 faceAnim.reset = function(){
+	paper = this.scope; 
 
 	this.NUM_LINES = 30;
 	this.aspect = this.canvas.width / this.canvas.height;

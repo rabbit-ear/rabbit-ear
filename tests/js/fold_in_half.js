@@ -6,6 +6,7 @@ foldHalf.zoomToFit(0.05);
 foldHalf.style.mark.strokeColor = {gray:0};
 
 foldHalf.reset = function(){
+	paper = this.scope; 
 	this.cp.clear();
 	this.initialize();
 }

@@ -6,6 +6,7 @@ mirror.zoomToFit(0.05);
 mirror.style.mark.strokeColor = {gray:0};
 
 mirror.reset = function(){
+	paper = this.scope; 
 	this.cp.clear();
 	this.cp.noSymmetry();
 	this.cp.creaseThroughPoints(this.cp.nodes[1], this.cp.nodes[3]).valley();

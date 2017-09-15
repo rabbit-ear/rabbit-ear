@@ -5,6 +5,7 @@ chopRays.zoomToFit(0.05);
 chopRays.selectNearestEdge = true;
 
 chopRays.reset = function(){
+	paper = this.scope; 
 	var padding = 0.1;
 	var NUM_FAN = 12;
 

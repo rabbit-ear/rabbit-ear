@@ -6,6 +6,7 @@ chopCross.selectNearestNode = true;
 chopCross.selectNearestEdge = true;
 
 chopCross.reset = function(){
+	paper = this.scope; 
 	var NUM_LINES = 30;
 	this.cp.clear();
 	this.cp.nodes = [];

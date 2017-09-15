@@ -40,6 +40,7 @@ ffMoveNode.colorNodesFlatFoldable = function(){
 }
 
 ffMoveNode.reset = function(){
+	paper = this.scope; 
 	ffMoveNode.cp.clear();
 	ffMoveNode.initialize();
 }

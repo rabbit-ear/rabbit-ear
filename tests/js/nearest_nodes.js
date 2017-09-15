@@ -7,6 +7,7 @@ nearNodeSketch.edgeLayer.activate();
 nearNodeSketch.edgeLayer.removeChildren();
 
 nearNodeSketch.reset = function(){
+	paper = this.scope; 
 	var NUM_NODES = 300;
 	var aspect = nearNodeSketch.canvas.width / nearNodeSketch.canvas.height;
 	nearNodeSketch.cp.clear();

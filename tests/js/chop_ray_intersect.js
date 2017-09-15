@@ -5,6 +5,7 @@ rayIntersect.zoomToFit(0.05);
 rayIntersect.selectNearestEdge = true;
 
 rayIntersect.reset = function(){
+	paper = this.scope; 
 	var padding = 0.1;
 	var NUM_FAN = 12;
 

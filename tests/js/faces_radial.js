@@ -7,6 +7,7 @@ radialFaces.selectNearestNode = true;
 radialFaces.selectNearestEdge = true;
 
 radialFaces.reset = function(){
+	paper = this.scope; 
 	radialFaces.cp.clear();
 	var angle = 0;
 	while(angle < Math.PI*2){

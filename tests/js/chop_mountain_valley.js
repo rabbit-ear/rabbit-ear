@@ -5,6 +5,7 @@ chopMV.zoomToFit(0.05);
 chopMV.selectNearestEdge = true;
 
 chopMV.reset = function(){
+	paper = this.scope; 
 	var NUM_LINES = 10;
 	this.cp.clear();
 	for(var i = 0; i < NUM_LINES; i++){

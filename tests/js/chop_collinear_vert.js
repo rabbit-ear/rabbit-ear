@@ -6,6 +6,7 @@ chopVert.selectNearestNode = true;
 chopVert.selectNearestEdge = true;
 
 chopVert.reset = function(){
+	paper = this.scope; 
 	var NUM_LINES = 20;
 	this.cp.clear();
 	this.cp.nodes = [];

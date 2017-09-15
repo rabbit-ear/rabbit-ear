@@ -130,8 +130,9 @@ var crane1CP = new OrigamiPaper("canvas-crane-1", cp);
 loadSVGUnclean("/tests/svg/crane-errors.svg", function(cp){ 
 	// crane1CP = new OrigamiPaper("canvas-folded", cp);
 	crane1CP.cp = cp;
-	crane1CP.initialize();
+	paper = crane1CP.scope; 
 	crane1CP.zoomToFit(0.05);
+	crane1CP.initialize();
 	crane1CP.selectNearestEdge = true;
 });
 
@@ -139,23 +140,15 @@ var crane2CP = new OrigamiPaper("canvas-crane-2", cp);
 loadSVG("/tests/svg/crane-errors.svg", function(cp){ 
 	// crane2CP = new OrigamiPaper("canvas-folded", cp);
 	crane2CP.cp = cp;
-	crane2CP.initialize();
+	paper = crane2CP.scope; 
 	crane2CP.zoomToFit(0.05);
+	crane2CP.initialize();
 	crane2CP.selectNearestEdge = true;
 });
 </script>
 
 <script>
 	var p505 = new p5(_05_parallels, 'intersections-div');
-</script>
-
-<script>
-	edge_intersections_callback = function(event){
-		if(event != undefined){
-			document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
-		}
-	}
-	intersectionSketch.reset();
 </script>
 
 <script>
@@ -201,5 +194,14 @@ loadSVG("/tests/svg/crane-errors.svg", function(cp){
 	// paper3.update();
 </script>
 
+
+<script>
+	edge_intersections_callback = function(event){
+		if(event !== undefined){
+			document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
+		}
+	}
+	intersectionSketch.reset();
+</script>
 
 <?php include 'footer.php';?>
