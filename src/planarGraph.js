@@ -132,7 +132,7 @@ var PlanarCleanReport = (function (_super) {
     __extends(PlanarCleanReport, _super);
     function PlanarCleanReport() {
         var _this = _super.call(this) || this;
-        _this.edges = 0;
+        _this.edges = { duplicate: 0, circular: 0 };
         _this.fragment = [];
         _this.collinear = [];
         _this.duplicate = [];
@@ -140,12 +140,20 @@ var PlanarCleanReport = (function (_super) {
         return _this;
     }
     PlanarCleanReport.prototype.join = function (report) {
-        this.edges += report.edges;
-        this.fragment.concat(report.fragment);
-        this.collinear.concat(report.collinear);
-        this.duplicate.concat(report.duplicate);
-        // this.isolated.concat(report.isolated);
         this.isolated += report.isolated;
+        this.edges.duplicate += report.edges.duplicate;
+        this.edges.circular += report.edges.circular;
+        // if we are merging 2 planar clean reports, type cast this variable and check properties
+        var planarReport = report;
+        if (planarReport.fragment !== undefined) {
+            this.fragment = this.fragment.concat(planarReport.fragment);
+        }
+        if (planarReport.collinear !== undefined) {
+            this.collinear = this.collinear.concat(planarReport.collinear);
+        }
+        if (planarReport.duplicate !== undefined) {
+            this.duplicate = this.duplicate.concat(planarReport.duplicate);
+        }
         return this;
     };
     return PlanarCleanReport;
@@ -595,17 +603,23 @@ var PlanarGraph = (function (_super) {
         }
         return 0;
     };
+    ///////////////////////////////////////////////
+    // REMOVE PARTS
+    ///////////////////////////////////////////////
+    //
+    // SEARCH AND REMOVE
+    //
     /** Removes all isolated nodes and performs cleanNodeIfUseless() on every node
      * @returns {number} how many nodes were removed
      */
     PlanarGraph.prototype.cleanAllUselessNodes = function () {
-        var count = _super.prototype.removeIsolatedNodes.call(this);
-        console.log("count1  " + count);
+        var report = new PlanarCleanReport().join(this.removeIsolatedNodes());
+        var count = 0;
         for (var i = this.nodes.length - 1; i >= 0; i--) {
             count += this.cleanNodeIfUseless(this.nodes[i]);
         }
-        console.log("count final  " + count);
-        return count;
+        report.isolated += count;
+        return report;
     };
     // cleanNodes():number{
     // 	var count = this.cleanAllUselessNodes();
@@ -641,20 +655,21 @@ var PlanarGraph = (function (_super) {
                 locations.push(new XY(node.x, node.y));
             }
         } while (node != undefined);
-        return locations;
+        var report = new PlanarCleanReport();
+        report.duplicate = locations;
+        return report;
     };
     /** Removes circular and duplicate edges, merges and removes duplicate nodes, and refreshes .index values
      * @returns {object} 'edges' the number of edges removed, and 'nodes' an XY location for every duplicate node merging
      */
     PlanarGraph.prototype.clean = function (epsilon) {
-        console.log("calling clean()");
-        var duplicates = this.cleanDuplicateNodes(epsilon);
-        var newNodes = this.fragment(); // todo: return this newNodes
-        duplicates.concat(this.cleanDuplicateNodes(epsilon));
-        return {
-            'edges': _super.prototype.cleanGraph.call(this),
-            'nodes': { 'fragment': newNodes, 'duplicate': duplicates.length, 'collinear': this.cleanAllUselessNodes() }
-        };
+        var report = new PlanarCleanReport();
+        report.join(this.cleanDuplicateNodes(epsilon));
+        report.join(this.fragment());
+        report.join(this.cleanDuplicateNodes(epsilon));
+        report.join(this.cleanGraph());
+        report.join(this.cleanAllUselessNodes());
+        return report;
     };
     ///////////////////////////////////////////////////////////////
     // fragment, EDGE INTERSECTION
@@ -664,40 +679,42 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.fragment = function () {
         var that = this;
         function fragmentOneRound() {
-            var crossings = [];
+            var roundReport = new PlanarCleanReport();
             for (var i = 0; i < that.edges.length; i++) {
-                var thisRound = that.fragmentEdge(that.edges[i]);
-                crossings = crossings.concat(thisRound);
-                if (thisRound.length > 0) {
-                    that.cleanGraph();
-                    that.cleanAllUselessNodes();
-                    that.cleanDuplicateNodes();
+                var fragmentReport = that.fragmentEdge(that.edges[i]);
+                roundReport.join(fragmentReport);
+                if (fragmentReport.fragment.length > 0) {
+                    roundReport.join(that.cleanGraph());
+                    roundReport.join(that.cleanAllUselessNodes());
+                    roundReport.join(that.cleanDuplicateNodes());
                 }
             }
-            return crossings;
+            return roundReport;
         }
         //todo: remove protection, or bake it into the class itself
         var protection = 0;
-        var allCrossings = [];
-        var thisCrossings;
+        var report = new PlanarCleanReport();
+        var thisReport;
         do {
-            thisCrossings = fragmentOneRound();
-            allCrossings = allCrossings.concat(thisCrossings);
+            thisReport = fragmentOneRound();
+            report.join(thisReport);
             protection += 1;
-        } while (thisCrossings.length != 0 && protection < 400);
+        } while (thisReport.fragment.length != 0 && protection < 400);
         if (protection >= 400) {
             console.log("breaking loop, exceeded 400");
         }
-        return allCrossings;
+        return report;
     };
-    /** This function targets a single edge and performs the fragment operation on crossing edges.
+    /** This function targets a single edge and performs the fragment operation on all crossing edges.
      * @returns {XY[]} array of XY locations of all the intersection locations
      */
     PlanarGraph.prototype.fragmentEdge = function (edge) {
+        var report = new PlanarCleanReport();
         var intersections = edge.crossingEdges();
         if (intersections.length === 0) {
-            return [];
+            return report;
         }
+        report.fragment = intersections.map(function (el) { return new XY(el.x, el.y); });
         var endNodes = edge.nodes.sort(function (a, b) {
             if (a.x - b.x < -EPSILON_HIGH) {
                 return -1;
@@ -715,6 +732,7 @@ var PlanarGraph = (function (_super) {
         });
         // iterate through intersections, rebuild edges in order
         var newLineNodes = [];
+        // todo, add endNodes into this array
         for (var i = 0; i < intersections.length; i++) {
             if (intersections[i] != undefined) {
                 var newNode = this.newNode().position(intersections[i].x, intersections[i].y);
@@ -729,9 +747,9 @@ var PlanarGraph = (function (_super) {
             this.copyEdge(edge).nodes = [newLineNodes[i], newLineNodes[i + 1]];
         }
         this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length - 1], endNodes[1]];
-        _super.prototype.removeEdge.call(this, edge);
-        _super.prototype.cleanGraph.call(this);
-        return intersections.map(function (el) { return new XY(el.x, el.y); });
+        this.removeEdge(edge);
+        report.join(this.cleanGraph());
+        return report;
     };
     ///////////////////////////////////////////////
     // GET PARTS

@@ -346,7 +346,7 @@ class Graph{
 			if(nodeDegree[index] == false){ this.nodes.splice(i, 1); count++; }
 		}
 		if(count > 0){ this.nodeArrayDidChange(); }
-		return new GraphCleanReport(0, count);
+		return new GraphCleanReport(count);
 	}
 
 	/** Remove all edges that contain the same node at both ends
@@ -356,7 +356,7 @@ class Graph{
 		var edgesLength = this.edges.length;
 		this.edges = this.edges.filter(function(el){ return !(el.nodes[0] === el.nodes[1]); });
 		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
-		return new GraphCleanReport(edgesLength - this.edges.length);
+		return new GraphCleanReport(0,0,edgesLength - this.edges.length);
 	}
 
 	/** Remove edges that are similar to another edge
@@ -373,7 +373,7 @@ class Graph{
 			}
 		}
 		if(count > 0){ this.edgeArrayDidChange(); }
-		return new GraphCleanReport(count);
+		return new GraphCleanReport(0,count);
 	}
 
 	/** Graph specific clean function: removes circular and duplicate edges, refreshes .index. Only modifies edges array.
@@ -382,7 +382,10 @@ class Graph{
 	cleanGraph():GraphCleanReport{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();
-		return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
+		// return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
+		var report = this.cleanDuplicateEdges().join( this.cleanCircularEdges() );
+		console.log(report.edges);
+		return report;
 	}
 
 	/** Clean calls cleanGraph(), unless this class has been subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
@@ -438,18 +441,20 @@ class Graph{
 
 
 class GraphCleanReport {
-	edges:number;
+	edges:{duplicate:number, circular:number};
 	isolated:number;  // nodes removed for being unattached to any edge
-	constructor(numEdges?:number, numIsolatedNodes?:number){
-		this.edges = numEdges;
+	constructor(numIsolatedNodes?:number, numDuplicateEdges?:number, numCircularEdges?:number){
 		this.isolated = numIsolatedNodes;
-		if(this.edges === undefined){ this.edges = 0; }
+		this.edges = {duplicate:numDuplicateEdges, circular:numCircularEdges};
 		if(this.isolated === undefined){ this.isolated = 0; }
+		if(this.edges === undefined){ this.edges = {duplicate:0, circular:0}; }
+		if(this.edges.duplicate === undefined){ this.edges.duplicate = 0; }
+		if(this.edges.circular === undefined){ this.edges.circular = 0; }
 	}
 	join(report:GraphCleanReport):GraphCleanReport{
-		this.edges += report.edges;
-		// this.isolated.concat(report.isolated);
 		this.isolated += report.isolated;
+		this.edges.duplicate += report.edges.duplicate;
+		this.edges.circular += report.edges.circular;
 		return this;
 	}
 }
