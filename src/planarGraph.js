@@ -23,8 +23,7 @@ function isValidPoint(point) { return (point !== undefined && !isNaN(point.x) &&
 function isValidNumber(n) { return (n !== undefined && !isNaN(n) && !isNaN(n)); }
 /////////////////////////////// NUMBERS /////////////////////////////// 
 function map(input, floor1, ceiling1, floor2, ceiling2) {
-    return ((input - floor1) / (ceiling1 - floor1)) * (ceiling2 - floor2)
-        + floor2;
+    return ((input - floor1) / (ceiling1 - floor1)) * (ceiling2 - floor2) + floor2;
 }
 /** are 2 numbers similar to each other within an epsilon range. */
 function epsilonEqual(a, b, epsilon) {

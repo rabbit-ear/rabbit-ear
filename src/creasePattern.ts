@@ -547,6 +547,72 @@ class CreasePattern extends PlanarGraph{
 		throw "axiom 7: two crease lines cannot be parallel"
 	}
 
+
+	creaseVoronoiSimple(v, interp){
+		if(interp === undefined){ interp = 0.5; }
+		// protection against null data inside array
+		var vEdges = v.edges.filter(function(el){ return el !== undefined; });
+		for(var e = 0; e < vEdges.length; e++){
+			var endpts = [ new XY(vEdges[e][0][0], vEdges[e][0][1]), 
+			               new XY(vEdges[e][1][0], vEdges[e][1][1]) ];
+			// traditional voronoi diagram lines
+			this.newCrease(endpts[0].x, endpts[0].y, endpts[1].x, endpts[1].y).valley();
+			// for each edge, find the left and right cell center nodes
+			var sideNodes = [];
+			if(vEdges[e].left !== undefined){sideNodes.push(new XY(vEdges[e].left[0],vEdges[e].left[1]));}
+			if(vEdges[e].right !== undefined){sideNodes.push(new XY(vEdges[e].right[0],vEdges[e].right[1]));}
+			var midpts = sideNodes.map(function(el){
+				return [interpolate(endpts[0], el, interp), interpolate(endpts[1], el, interp)];
+			});
+			for(var m = 0; m < midpts.length; m++){
+				// interpolate from the cell edge endpoints to the node
+				this.newCrease(midpts[m][0].x, midpts[m][0].y, midpts[m][1].x, midpts[m][1].y).mountain();
+				// connect smaller voronoi cells to the large voronoi cell endpoints
+				this.newCrease(endpts[0].x, endpts[0].y, midpts[m][0].x, midpts[m][0].y).mountain();
+				this.newCrease(endpts[1].x, endpts[1].y, midpts[m][1].x, midpts[m][1].y).mountain();
+			}
+		}
+	}
+
+	creaseVoronoi(v, interp){
+		if(interp === undefined){ interp = 0.5; }
+		// protection against null data inside array
+		var vEdges = v.edges.filter(function(el){ return el !== undefined; });
+		for(var e = 0; e < vEdges.length; e++){
+			var endpts = [ new XY(vEdges[e][0][0], vEdges[e][0][1]), 
+			               new XY(vEdges[e][1][0], vEdges[e][1][1]) ];
+			// traditional voronoi diagram lines
+			this.newCrease(endpts[0].x, endpts[0].y, endpts[1].x, endpts[1].y).valley();
+			// for each edge, find the left and right cell center nodes
+			var sideNodes = [];
+			if(vEdges[e].left !== undefined){sideNodes.push(new XY(vEdges[e].left[0],vEdges[e].left[1]));}
+			if(vEdges[e].right !== undefined){sideNodes.push(new XY(vEdges[e].right[0],vEdges[e].right[1]));}
+			var midpts = sideNodes.map(function(el){
+				return [interpolate(endpts[0], el, interp), interpolate(endpts[1], el, interp)];
+			});
+			var arteries = [];
+			for(var m = 0; m < midpts.length; m++){
+				// interpolate from the cell edge endpoints to the node
+				this.newCrease(midpts[m][0].x, midpts[m][0].y, midpts[m][1].x, midpts[m][1].y).mountain();
+				// connect smaller voronoi cells to the large voronoi cell endpoints
+				var a=this.newCrease(endpts[0].x, endpts[0].y, midpts[m][0].x, midpts[m][0].y).mountain();
+				var b=this.newCrease(endpts[1].x, endpts[1].y, midpts[m][1].x, midpts[m][1].y).mountain();
+				arteries.push([a,b]);
+			}
+			if(midpts.length == 2){
+				var a = this.crease(midpts[0][0], midpts[1][0]).mark();
+				var b = this.crease(midpts[0][1], midpts[1][1]).mark();
+				console.log("creasing");
+				console.log(arteries);
+				this.creaseAngleBisector(a, arteries[0][0]);
+				this.creaseAngleBisector(a, arteries[0][1]);
+				this.creaseAngleBisector(b, arteries[1][0]);
+				this.creaseAngleBisector(b, arteries[1][1]);
+			}
+		}
+	}
+
+
 /////////////////////////////////////////////////////////////////////
 	
 	boundaryLineIntersection(origin:XY, direction:XY):XY[]{

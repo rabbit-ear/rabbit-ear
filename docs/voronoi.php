@@ -18,7 +18,11 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> cp<key> = new</key> CreasePattern()</code></pre>
+		<pre><code><v>cp</v>.<f>creaseVoronoi</f>(<n id="interp-value"></n>)</code></pre>
+	</div>
+
+	<div class="quote">
+		<p>It's easy to crease by hand to the 1/2 mark, with a computer we can parameterize this value.</p>
 	</div>
 
 
@@ -26,5 +30,15 @@
 
 <script src="../lib/d3.min.js"></script>
 <script src="../tests/js/voronoi_interp.js"></script>
+
+<script type="text/javascript">
+
+voronoiInterpCallback = function(e){
+	if(e !== undefined){
+		document.getElementById("interp-value").innerHTML = e.toFixed(2);
+	}
+}
+
+</script>
 
 <?php include 'footer.php';?>

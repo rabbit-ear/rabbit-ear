@@ -52,8 +52,9 @@
 			<a href="axioms.php">ORIGAMI AXIOMS</a>
 			<!-- <a href="importExport.php">IMPORT &amp; EXPORT</a> -->
 			<a href="flatFoldable.php">FLAT FOLDABLE</a>
-			<a href="paper.php">PAPER</a>
+			<a href="voronoi.php">VORONOI</a>
 			<a href="symmetry.php">SYMMETRY</a>
+			<a href="paper.php">PAPER</a>
 			</div>
 		</li>
 		</ul>
