@@ -1,13 +1,13 @@
 
-var voronoiSketch = new OrigamiPaper("canvas-voronoi");
-voronoiSketch.updateWeights(0.005, 0.0025);
-voronoiSketch.zoomToFit(0.05);
-voronoiSketch.updateWeights(0.005, 0.0025);
+var voronoiInterp = new OrigamiPaper("canvas-voronoi-interpolate");
+voronoiInterp.updateWeights(0.005, 0.0025);
+voronoiInterp.zoomToFit(0.05);
+voronoiInterp.updateWeights(0.005, 0.0025);
 
 var input = new PlanarGraph();
 var voronoiAlgorithm; // global D3 algorithm implementation
 
-voronoiSketch.style.mark.strokeWidth = 0.003;
+voronoiInterp.style.mark.strokeWidth = 0.003;
 
 var vInterpolation = 0.5;
 
@@ -53,14 +53,14 @@ function creaseVoronoi(cp, v, interp){
 	}
 }
 
-voronoiSketch.reset = function(){
+voronoiInterp.reset = function(){
 	this.cp.clear();
 	this.init();
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 }
-voronoiSketch.reset();
+voronoiInterp.reset();
 
-voronoiSketch.redraw = function(){
+voronoiInterp.redraw = function(){
 
 	var nodes = input.nodes.map(function(el){return el.values();});
 	var v = voronoiAlgorithm( nodes );
@@ -92,20 +92,20 @@ voronoiSketch.redraw = function(){
 	}
 }
 
-voronoiSketch.onResize = function(){
+voronoiInterp.onResize = function(){
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 }
 
-voronoiSketch.onMouseDown = function(event){
+voronoiInterp.onMouseDown = function(event){
 
 	if(this.cp.pointInside(event.point)){ input.newPlanarNode(event.point.x, event.point.y); }
 	if(input.nodes.length < 2) return;
 
 	this.redraw();
 }
-voronoiSketch.onMouseUp = function(event){ }
-voronoiSketch.onMouseMove = function(event) { }
-voronoiSketch.onFrame = function(event){
+voronoiInterp.onMouseUp = function(event){ }
+voronoiInterp.onMouseMove = function(event) { }
+voronoiInterp.onFrame = function(event){
 	vInterpolation = map( Math.sin(event.time*0.5), -1, 1, 0.4, 0.9 );
 	this.redraw();
 }

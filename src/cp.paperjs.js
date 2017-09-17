@@ -318,6 +318,7 @@ var OrigamiPaper = (function () {
 		if(this.faces !== undefined && this.cp.faces !== undefined && this.cp.faces.length === this.faces.length){
 			for(var i = 0; i < this.cp.faces.length; i++){ 
 				this.faces[i].segments = this.cp.faces[i].nodes; 
+				Object.assign(this.faces[i], this.style.face);
 			}
 		}
 		// update user-selected
@@ -428,6 +429,7 @@ var OrigamiPaper = (function () {
 		this.style.selectedNode.radius = circleRadius / 0.75;
 		this.style.mountain.strokeWidth = strokeWeight;
 		this.style.valley.strokeWidth = strokeWeight;
+		this.style.valley.dashArray = [strokeWeight*2, strokeWeight*2];
 		this.style.border.strokeWidth = strokeWeight;
 		this.style.mark.strokeWidth = strokeWeight*0.66666;
 	}

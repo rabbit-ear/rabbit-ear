@@ -17,7 +17,7 @@ function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x
 function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
 /////////////////////////////// NUMBERS /////////////////////////////// 
 function map(input:number, floor1:number, ceiling1:number, floor2:number, ceiling2:number):number{
-	return (input - floor1 / (ceiling1 - floor1)) * (ceiling2 - floor2) + floor2;
+	return ( (input - floor1) / (ceiling1 - floor1) ) * (ceiling2 - floor2) + floor2;
 }
 /** are 2 numbers similar to each other within an epsilon range. */
 function epsilonEqual(a:number, b:number, epsilon?:number):boolean{
