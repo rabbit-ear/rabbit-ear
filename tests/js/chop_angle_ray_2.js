@@ -26,7 +26,7 @@ chopRays2.reset = function(){
 		                             new XY(Math.sin(-Math.PI*0.25+Math.PI*pct), -Math.cos(-Math.PI*0.25+Math.PI*pct)));
 	}
 	this.cp.fragment();
-	this.initialize();
+	this.init();
 }
 chopRays2.reset();
 

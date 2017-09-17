@@ -132,7 +132,7 @@ loadSVGUnclean("/tests/svg/crane-errors.svg", function(cp){
 	crane1CP.cp = cp;
 	paper = crane1CP.scope; 
 	crane1CP.zoomToFit(0.05);
-	crane1CP.initialize();
+	crane1CP.init();
 	crane1CP.selectNearestEdge = true;
 });
 
@@ -142,7 +142,7 @@ loadSVG("/tests/svg/crane-errors.svg", function(cp){
 	crane2CP.cp = cp;
 	paper = crane2CP.scope; 
 	crane2CP.zoomToFit(0.05);
-	crane2CP.initialize();
+	crane2CP.init();
 	crane2CP.selectNearestEdge = true;
 });
 </script>

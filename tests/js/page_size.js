@@ -5,7 +5,7 @@ var project = new OrigamiPaper("canvas");
 project.reset = function(){
 	paper = this.scope; 
 	// project.cp.clear();
-	// project.initialize();
+	// project.init();
 }
 project.reset();
 

@@ -74,7 +74,7 @@ jointTri.reset = function(){
 		}
 	}
 
-	jointTri.initialize();
+	jointTri.init();
 }
 jointTri.reset();
 

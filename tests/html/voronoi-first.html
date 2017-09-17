@@ -42,10 +42,10 @@ window.onload = function() {
 	}
 	paper.view.onMouseDown = function(event){
 		cp.addNode(new CreaseNode(event.point.x, event.point.y));
-		var v = voronoi(cp.nodesArray());
-		paperCP.initialize();
+		var v = voronoi(cp.nodes_array());
+		paperCP.init();
 
-		var d = voronoi.triangles(cp.nodesArray());
+		var d = voronoi.triangles(cp.nodes_array());
 		for(var i = 0; i < d.length; i++){
 			var segments = [ new paper.Point(d[i][0][0], d[i][0][1]), 
 			                 new paper.Point(d[i][1][0], d[i][1][1]), 
@@ -57,7 +57,7 @@ window.onload = function() {
 				closed: false
 			});
 		}
-		var v = voronoi(cp.nodesArray());
+		var v = voronoi(cp.nodes_array());
 		for(var i = 0; i < v.edges.length; i++){
 			var edge = v.edges[i];
 			if(edge[0] != undefined && edge[1] != undefined){

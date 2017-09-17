@@ -5,7 +5,7 @@ mergeNodeCheck.reset = function(){
 	paper = this.scope; 
 	loadSVG("/tests/svg/sea-turtle-base.svg", function(e){ 
 		mergeNodeCheck.cp = e;
-		mergeNodeCheck.initialize();
+		mergeNodeCheck.init();
 		mergeNodeCheck.nodeLayer.visible = true;
 		mergeNodeCheck.nodeLayer.bringToFront();
 		for(var i = 0; i < mergeNodeCheck.nodeLayer.children.length; i++){

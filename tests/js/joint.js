@@ -55,7 +55,7 @@ sJoint.reset = function(){
 		}
 	}
 
-	sJoint.initialize();
+	sJoint.init();
 }
 sJoint.reset();
 

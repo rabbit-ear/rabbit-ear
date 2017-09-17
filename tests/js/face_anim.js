@@ -25,7 +25,7 @@ faceAnim.reset = function(){
 		                     this.positions[i+1].x, this.positions[i+1].y);
 	}
 	this.cp = this.g.duplicate();
-	this.initialize();
+	this.init();
 	this.style.mark.strokeColor = {gray:0.0};
 	// this.style.mark.strokeWidth = 0.002;
 }
@@ -40,7 +40,7 @@ faceAnim.onFrame = function(event) {
 	}
 	this.cp.clean();
 	this.cp.generateFaces();
-	this.initialize();
+	this.init();
 }
 faceAnim.onResize = function(event) { }
 faceAnim.onMouseDown = function(event){ 

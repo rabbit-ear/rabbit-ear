@@ -14,7 +14,7 @@ axiom2.marks[1].position = [1.0, 1.0];
 axiom2.reset = function(){
 	axiom2.cp.clear();
 	axiom2.cp.creasePointToPoint(axiom2.marks[0].position, axiom2.marks[1].position).valley();
-	axiom2.initialize();
+	axiom2.init();
 }
 axiom2.reset();
 

@@ -22,7 +22,7 @@ turtleShell.reset = function(){
 	loadSVG("/tests/svg/turtle-shell.svg", function(e){ 
 		// shellTrace = e;
 		turtleShell.cp = e;
-		turtleShell.initialize();
+		turtleShell.init();
 		// paperCP = new OrigamiPaper(scope, shellTrace);
 		// nodeLayer.bringToFront();
 		turtleShell.makeFlatFoldableIndicators();

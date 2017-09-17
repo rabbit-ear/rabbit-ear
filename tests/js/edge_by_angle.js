@@ -12,7 +12,7 @@ edgeAngle.reset = function(){
 	for(var i = 0; i < num; i++){
 		edgeAngle.cp.newPlanarEdgeRadiallyFromNode(centerNode, Math.PI*2/num*i, 0.333);
 	}
-	edgeAngle.initialize();
+	edgeAngle.init();
 }
 edgeAngle.reset();
 

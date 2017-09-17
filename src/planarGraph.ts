@@ -54,6 +54,10 @@ function arrayRemoveDuplicates(array, compFunction):any[]{
 /////////////////////////////////////////////////////////////////////////////////
 //                            2D ALGORITHMS
 /////////////////////////////////////////////////////////////////////////////////
+function interpolate(p1:XY, p2:XY, pct:number):XY{
+	var inv = 1.0 - pct;
+	return new XY(p1.x*pct + p2.x*inv, p1.y*pct + p2.y*inv);
+}
 /** if points are all collinear, checks if point lies on line segment 'ab' */
 function onSegment(point:XY, a:XY, b:XY, epsilon?:number):boolean{
 	if(epsilon === undefined){ epsilon = EPSILON; }
@@ -653,7 +657,7 @@ class PlanarGraph extends Graph{
 	constructor(){ super(); this.clear(); }
 
 	// converts node objects into array of arrays notation x is [0], and y is [1]
-	nodesArray():number[][]{return this.nodes.map(function(el){return [el.x, el.y]});}
+	nodes_array():number[][]{return this.nodes.map(function(el){return [el.x, el.y]});}
 
 	/** This will deep-copy the contents of this graph and return it as a new object
 	 * @returns {PlanarGraph} 

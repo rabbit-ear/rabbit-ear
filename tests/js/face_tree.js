@@ -17,7 +17,7 @@ faceTree.reset = function(){
 
 	console.log(this.cp.adjacentFaceTree(this.cp.faces[0]));
 
-	this.initialize();
+	this.init();
 }
 faceTree.reset();
 

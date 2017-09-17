@@ -19,7 +19,7 @@ wobble.reset = function(){
 	for(var i = 0; i < numLines; i++){
 		wobble.cp.newPlanarEdgeFromNode(wobble.cp.nodes[i], Math.random(), Math.random());
 	}
-	wobble.initialize();
+	wobble.init();
 	for(var i = 0; i < wobble.edgeLayer.children.length; i++){
 		wobble.edgeLayer.children[i].strokeColor = {gray:0.0};
 	}
@@ -46,7 +46,7 @@ wobble.onFrame = function(event) {
 	// wobble.cp.generateFaces();
 	// todo: wobble.cpForFaces = wobble.cp.duplicate()
 	// write the duplicate function that does a deep copy
-	// wobble.initialize();
+	// wobble.init();
 	// for(var i = 0; i < wobble.edgeLayer.children.length; i++){
 	// 	wobble.edgeLayer.children[i].strokeColor = {gray:0.0};
 	// }

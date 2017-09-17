@@ -15,7 +15,7 @@ deleteEdge.reset = function(){
 		this.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
 	this.cp.fragment();
-	this.initialize();
+	this.init();
 	this.style.nodes.visible = true;
 	this.update();
 	if(mouse_delete_edge_callback != undefined){
@@ -31,7 +31,7 @@ deleteEdge.onMouseDown = function(event){
 		this.cp.removeEdge(this.nearestEdge);
 		this.cp.edgeArrayDidChange();
 		this.nearestEdge = undefined;
-		this.initialize();
+		this.init();
 		this.selected.edges = [];
 		// this.nodeLayer.visible = true;
 	}

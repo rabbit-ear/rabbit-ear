@@ -114,7 +114,7 @@ jointTri.onFrame = function(event) {
 	// 	}
 	// }
 
-	jointTri.initialize();
+	jointTri.init();
 }
 jointTri.onResize = function(event) { }
 jointTri.onMouseDown = function(event){ 

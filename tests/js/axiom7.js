@@ -24,7 +24,7 @@ axiom7.reset = function(){
 	var crease1 = axiom7.cp.creaseThroughPoints(axiom7.marks[0].position, axiom7.marks[1].position).mark();
 	var crease2 = axiom7.cp.creaseThroughPoints(axiom7.marks[2].position, axiom7.marks[3].position).mark();
 	axiom7.cp.creasePerpendicularPointOntoLine(axiom7.marks[4].position, crease1, crease2).valley();
-	axiom7.initialize();
+	axiom7.init();
 }
 axiom7.reset();
 

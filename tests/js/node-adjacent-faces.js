@@ -15,7 +15,7 @@ nodeFaces.reset = function(){
 	this.cp.clear();
 	this.cp.birdBase();
 	this.cp.clean();
-	this.initialize();
+	this.init();
 }
 nodeFaces.reset();
 

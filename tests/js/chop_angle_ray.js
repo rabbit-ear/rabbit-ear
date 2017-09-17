@@ -22,7 +22,7 @@ chopRays.reset = function(){
 		var edge = this.cp.creaseRay(new XY(0.5, padding + (1.0-padding*2)*pct), new XY(Math.sin(Math.PI*pct), -Math.cos(Math.PI*pct)));
 	}
 	this.cp.fragment();
-	this.initialize();
+	this.init();
 }
 chopRays.reset();
 

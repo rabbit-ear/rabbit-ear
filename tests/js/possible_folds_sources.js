@@ -22,7 +22,7 @@ possible2.refresh = function(){
 possible2.reset = function(){
 	paper = this.scope; 
 	// this.cp.clear();
-	// this.initialize();
+	// this.init();
 	this.refresh();
 }
 possible2.reset();
@@ -36,7 +36,7 @@ possible2.onMouseDown = function(event){
 			crease.valley(); 
 		}
 	}
-	this.initialize();
+	this.init();
 	this.refresh();
 }
 possible2.onMouseUp = function(event){ }

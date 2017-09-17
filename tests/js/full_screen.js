@@ -24,7 +24,7 @@ function full_screen_sketch(){
 		cp.newPlanarEdge(0.0, 0.0, 1.0 * aspect, 1.0);
 		cp.newPlanarEdge(0.0, 1.0, 1.0 * aspect, 0.0);
 		var crossings = cp.fragment();
-		paperCP.initialize();
+		paperCP.init();
 	}
 	resetCP();
 

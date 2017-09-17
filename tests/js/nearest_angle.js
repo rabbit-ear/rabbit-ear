@@ -12,7 +12,7 @@ nearAngle.reset = function(){
 		angle+= Math.PI/7;
 	}
 	this.cp.cleanDuplicateNodes();
-	this.initialize();
+	this.init();
 	for(var i = 0; i < this.edges.length; i++){ this.edges[i].strokeColor = {gray:0.0}; }
 }
 nearAngle.reset();

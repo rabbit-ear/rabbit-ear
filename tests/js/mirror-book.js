@@ -24,7 +24,7 @@ mirrorB.reset = function(){
 		this.cp.creaseThroughPoints(a, b);
 	}
 	// this.cp.clean();
-	this.initialize();
+	this.init();
 }
 mirrorB.reset();
 

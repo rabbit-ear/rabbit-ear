@@ -15,7 +15,7 @@ chop_sketch.reset = function(){
 		chop_sketch.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
 	var crossings = chop_sketch.cp.fragment();
-	chop_sketch.initialize();
+	chop_sketch.init();
 }
 chop_sketch.reset();
 

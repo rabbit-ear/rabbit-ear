@@ -15,7 +15,7 @@ function fish_base_flat_wobble(){
 	scope.view.onFrame = function(event) {
 		// reset everything
 		nearFishBase(fishCP);
-		paperCP.initialize();
+		paperCP.init();
 
 		var scale = .04;
 		var spd = 1.5;
@@ -47,7 +47,7 @@ function fish_base_flat_wobble(){
 
 		// console.log(fishCP.nodes[7].flatFoldable());
 
-		paperCP.initialize();
+		paperCP.init();
 		// paperCP.update();
 	}
 

@@ -19,7 +19,7 @@ intersectionSketch.reset = function(){
 	}
 	var report = this.cp.fragment()
 	var intersections = report.nodes.fragment;
-	this.initialize();
+	this.init();
 	this.nodeLayer.bringToFront();
 
 	this.intersectionsLayer.activate();

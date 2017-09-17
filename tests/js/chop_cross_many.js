@@ -20,7 +20,7 @@ chopCross.reset = function(){
 	}
 	var lowerEdge = this.cp.crease( 0.0, 0.6, 1.0, 0.6 );
 	var crossings = this.cp.fragment();
-	this.initialize();
+	this.init();
 }
 chopCross.reset();
 

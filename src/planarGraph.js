@@ -72,6 +72,10 @@ function arrayRemoveDuplicates(array, compFunction) {
 /////////////////////////////////////////////////////////////////////////////////
 //                            2D ALGORITHMS
 /////////////////////////////////////////////////////////////////////////////////
+function interpolate(p1, p2, pct) {
+    var inv = 1.0 - pct;
+    return new XY(p1.x * pct + p2.x * inv, p1.y * pct + p2.y * inv);
+}
 /** if points are all collinear, checks if point lies on line segment 'ab' */
 function onSegment(point, a, b, epsilon) {
     if (epsilon === undefined) {
@@ -760,7 +764,7 @@ var PlanarGraph = (function (_super) {
         return _this;
     }
     // converts node objects into array of arrays notation x is [0], and y is [1]
-    PlanarGraph.prototype.nodesArray = function () { return this.nodes.map(function (el) { return [el.x, el.y]; }); };
+    PlanarGraph.prototype.nodes_array = function () { return this.nodes.map(function (el) { return [el.x, el.y]; }); };
     /** This will deep-copy the contents of this graph and return it as a new object
      * @returns {PlanarGraph}
      */

@@ -18,7 +18,7 @@ rayIntersect.reset = function(){
 	this.cp.creaseRayUntilIntersection(new XY(Math.random(), Math.random()), 
 	                                   new XY(Math.cos(angle), Math.sin(angle)));
 	this.cp.clean();
-	this.initialize();
+	this.init();
 }
 rayIntersect.reset();
 

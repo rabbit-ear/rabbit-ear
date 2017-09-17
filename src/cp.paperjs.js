@@ -71,9 +71,9 @@ var OrigamiFold = (function(){
 			that.zoomToFit(); 
 			that.onResize(event); 
 		}
-		this.initialize();
+		this.init();
 	}
-	OrigamiFold.prototype.initialize = function(){
+	OrigamiFold.prototype.init = function(){
 		if(this.cp === undefined){ return; }
 		this.cp.generateFaces();
 		this.fold();
@@ -127,6 +127,7 @@ var OrigamiFold = (function(){
 	};
 
 	OrigamiFold.prototype.zoomToFit = function(padding){
+		paper = this.scope;
 		// store padding for future calls
 		if(padding !== undefined){ this.padding = padding; }
 		// use stored padding if we can
@@ -231,9 +232,9 @@ var OrigamiPaper = (function () {
 			that.onResize(event); 
 		}
 		
-		this.initialize();
+		this.init();
 	}
-	OrigamiPaper.prototype.initialize = function(){
+	OrigamiPaper.prototype.init = function(){
 		// on-screen drawn elements
 		this.nodes = [];
 		this.edges = [];
@@ -292,6 +293,7 @@ var OrigamiPaper = (function () {
 	}
 
 	OrigamiPaper.prototype.update = function () {
+		paper = this.scope;
 		if(this.cp === undefined){ return; }
 		if(this.nodes !== undefined && this.cp.nodes.length !== this.nodes.length){ return; }
 		if(this.edges !== undefined && this.cp.edges.length !== this.edges.length){ return; }
@@ -330,6 +332,7 @@ var OrigamiPaper = (function () {
 	};
 
 	OrigamiPaper.prototype.zoomToFit = function(padding){
+		paper = this.scope;
 		// store padding for future calls
 		if(padding !== undefined){ this.padding = padding; }
 		// use stored padding if we can
@@ -361,15 +364,10 @@ var OrigamiPaper = (function () {
 				  cpCanvasRatio*paperWindowScale*pixelScale);
 		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
 		this.scope.view.matrix = mat;
-
 		// this is all to make the stroke width update.
 		this.updateWeights();
-		// this.update();
-
-		// console.log(canvasWidth);
-		// console.log(cpWidth);
-		// console.log(cpCanvasRatio);
-		return mat;
+		// console.log(mat);
+		// return mat;
 	};
 
 	///////////////////////////////////////////////////
@@ -432,7 +430,6 @@ var OrigamiPaper = (function () {
 		this.style.valley.strokeWidth = strokeWeight;
 		this.style.border.strokeWidth = strokeWeight;
 		this.style.mark.strokeWidth = strokeWeight*0.66666;
-		// this.update();
 	}
 	OrigamiPaper.prototype.defaultStyleTemplate = function(){
 		if(this.style === undefined){ this.style = {}; }
@@ -534,8 +531,8 @@ function paperPathToCP(paperPath){
 
 // callback returns the crease pattern as an argument
 function loadSVG(path, callback, epsilon){
-	console.log("load svg epsilon");
-	console.log(epsilon);
+	// console.log("load svg epsilon");
+	// console.log(epsilon);
 	// var newScope = new paper.PaperScope();
 	paper.project.importSVG(path, function(e){
 		var cp = paperPathToCP(e);

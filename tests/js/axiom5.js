@@ -22,7 +22,7 @@ axiom5.reset = function(){
 	var edge = axiom5.cp.creaseThroughPoints(axiom5.marks[0].position, axiom5.marks[1].position).mark();
 	var newCreases = axiom5.cp.creasePointToLine(axiom5.marks[2].position, axiom5.marks[3].position, edge);
 	newCreases.forEach(function(el){ el.valley(); });
-	axiom5.initialize();
+	axiom5.init();
 	if(newCreases.length >= 2){
 		axiom5.edges[ newCreases[1].index ].strokeColor = { hue:20, saturation:0.6, brightness:1 };
 	}

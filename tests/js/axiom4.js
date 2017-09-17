@@ -16,7 +16,7 @@ axiom4.reset = function(){
 	axiom4.cp.clear();
 	var edge = axiom4.cp.creaseThroughPoints(axiom4.marks[0].position, axiom4.marks[1].position).mark();
 	axiom4.cp.creasePerpendicularThroughPoint(edge, axiom4.marks[2].position).valley();
-	axiom4.initialize();
+	axiom4.init();
 }
 axiom4.reset();
 

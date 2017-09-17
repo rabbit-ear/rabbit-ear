@@ -5,7 +5,7 @@ ffSketch.zoomToFit(0.05);
 
 loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 	ffSketch.cp = e;
-	ffSketch.initialize();
+	ffSketch.init();
 	ffSketch.nodeLayer.visible = true;
 	ffSketch.colorNodesFlatFoldable();
 	for(var i = 0; i < ffSketch.nodes.length; i++){ 
@@ -27,7 +27,7 @@ ffSketch.selectNearestEdge = true;
 ffSketch.reset = function(){
 	paper = this.scope; 
 	ffSketch.cp.clear();
-	ffSketch.initialize();
+	ffSketch.init();
 	for(var i = 0; i < ffSketch.nodes.length; i++){ 
 		ffSketch.nodes[i].visible = true;
 	}

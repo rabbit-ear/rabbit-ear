@@ -8,7 +8,7 @@ loadSVG("/tests/svg/fish-base-tanaka.svg", function(cp){
 	foldedState.cp = cp;
 	// foldedState.cp = new CreasePattern().birdBase();;
 	foldedState.cp.generateFaces();
-	foldedState.initialize();
+	foldedState.init();
 	foldedState.zoomToFit(0.05);
 	foldedState.fold();
 });
@@ -53,7 +53,7 @@ foldedState.fold = function(){
 	this.style.valley.strokeWidth = 0.0015;
 	this.style.border.strokeWidth = 0.0015;
 	this.style.mark.strokeWidth = 0.0015;
-	this.initialize();
+	this.init();
 	this.boundaryLayer.visible = false;
 
 }

@@ -73,7 +73,7 @@ function mouse_node_move_stay(){
 				}
 			}
 		}
-		paperCP.initialize();
+		paperCP.init();
 	}
 	scope.view.onMouseDown = function(event){
 		paper = scope;
@@ -92,7 +92,7 @@ function mouse_node_move_stay(){
 			movingNode = undefined;
 			movingNodeOriginalLocation = undefined;
 			if(cp != undefined){ makeFlatFoldableIndicators(); }
-			paperCP.initialize();
+			paperCP.init();
 		}
 	}
 } mouse_node_move_stay();

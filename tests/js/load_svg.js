@@ -4,7 +4,7 @@ loadSVGSketch.zoomToFit(0.05);
 
 loadSVG("/tests/svg/crane.svg", function(e){ 
 	loadSVGSketch.cp = e;
-	loadSVGSketch.initialize();
+	loadSVGSketch.init();
 });
 
 loadSVGSketch.selectNearestEdge = true;
@@ -12,7 +12,7 @@ loadSVGSketch.selectNearestEdge = true;
 loadSVGSketch.reset = function(){
 	paper = this.scope; 
 	loadSVGSketch.cp.clear();
-	loadSVGSketch.initialize();
+	loadSVGSketch.init();
 }
 loadSVGSketch.reset();
 

@@ -44,7 +44,7 @@ loadSVG("/tests/svg/crane.svg", function(cp){
 	console.log(cp);
 	new OrigamiPaper("canvas-load-svg", cp);
 	// loadSVGSketch.cp = cp;
-	// loadSVGSketch.initialize();
+	// loadSVGSketch.init();
 });
 
 </script>

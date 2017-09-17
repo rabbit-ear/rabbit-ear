@@ -24,7 +24,7 @@ singleFace.reset = function(){
 	}
 	singleFace.cp.clean();
 	var faces = singleFace.cp.generateFaces();
-	singleFace.initialize();
+	singleFace.init();
 	singleFace.boundaryLayer.visible = false;
 	if(singleFaceCallback != undefined){ singleFaceCallback(faces); }
 }

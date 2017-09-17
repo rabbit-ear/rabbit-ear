@@ -26,7 +26,7 @@ ffMoveNode.style.nodes = {
 // loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 loadSVG("/tests/svg/crane-errors.svg", function(e){ 
 	ffMoveNode.cp = e;
-	ffMoveNode.initialize();
+	ffMoveNode.init();
 	if(ffMoveNode.nodeLayer != undefined && ffMoveNode.nodeLayer.moveToFront != undefined){
 		ffMoveNode.nodeLayer.moveToFront();
 	}
@@ -53,7 +53,7 @@ ffMoveNode.colorNodesFlatFoldable = function(){
 ffMoveNode.reset = function(){
 	paper = this.scope; 
 	ffMoveNode.cp.clear();
-	ffMoveNode.initialize();
+	ffMoveNode.init();
 }
 ffMoveNode.reset();
 

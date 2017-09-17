@@ -21,7 +21,7 @@ radialRay.reset = function(){
 		angle+= Math.random()*0.2 + 0.05;
 	}
 	this.cp.cleanDuplicateNodes();
-	this.initialize();
+	this.init();
 	this.selectNearestEdge = true;
 	this.style.selectedEdge = { gray:0.0 };
 	this.style.mark.strokeColor = { gray:0.0 };

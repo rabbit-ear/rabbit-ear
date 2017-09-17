@@ -15,7 +15,7 @@ partialFaces.reset = function(){
 	}
 	var intersections = partialFaces.cp.fragment();
 	partialFaces.cp.generateFaces();
-	partialFaces.initialize();
+	partialFaces.init();
 	if(faces_random_callback != undefined){
 		faces_random_callback(intersections);
 	}

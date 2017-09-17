@@ -17,7 +17,7 @@ chopHoriz.reset = function(){
 		this.cp.crease( x, Math.random(), x, 0.5 );
 	}
 	var crossings = this.cp.fragment();
-	this.initialize();
+	this.init();
 }
 chopHoriz.reset();
 

@@ -30,7 +30,7 @@ axiom3.reset = function(){
 	var edgeB = axiom3.cp.creaseThroughPoints(axiom3.marks[2].position, axiom3.marks[3].position).mark();
 	var edges = axiom3.cp.creaseEdgeToEdge(edgeA, edgeB);
 	edges.forEach(function(el){el.valley();});
-	axiom3.initialize();
+	axiom3.init();
 	if(edges.length >= 2){
 		axiom3.edges[edges[1].index].strokeColor = { hue:20, saturation:0.6, brightness:1 };
 	}

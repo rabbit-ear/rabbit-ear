@@ -608,7 +608,7 @@ class CreasePattern extends PlanarGraph{
 		var bottom = topToBottom[topToBottom.length-1].y;
 		return {origin:new XY(left, top), size:{width:right-left, height:bottom-top}};
 	}
-	boundingBoxD3():[[number,number],[number,number]]{
+	boundingBox_array():[[number,number],[number,number]]{
 		var leftToRight = this.boundary.nodes.sort(function(a,b){return (a.x>b.x) ? 1:((b.x>a.x) ? -1:0);} );
 		var topToBottom = this.boundary.nodes.sort(function(a,b){return (a.y>b.y) ? 1:((b.y>a.y) ? -1:0);} );
 		var left = leftToRight[0].x;

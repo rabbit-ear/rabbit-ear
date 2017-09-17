@@ -7,7 +7,7 @@ ffSingle.masterCP = new CreasePattern();
 ffSingle.rebuild = function(){
 	this.cp = this.masterCP.duplicate();
 	this.cp.clean();
-	this.initialize();
+	this.init();
 }
 
 ffSingle.reset = function(){
@@ -53,7 +53,7 @@ ffSingle.onMouseMove = function(event) {
 		}
 	}
 	this.cp.clean();
-	this.initialize();
+	this.init();
 	// for(var i = 0; i < this.edges.length; i++){ this.edges[i].strokeWidth = 0.01; }
 	// if(angle != undefined && angle.edges != undefined){
 	// 	for(var i = 0; i < angle.edges.length; i++){

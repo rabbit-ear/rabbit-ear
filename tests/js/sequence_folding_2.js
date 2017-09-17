@@ -20,7 +20,7 @@ sequence2.onFrame = function(event) {
 	sequence2.cp.clean();
 	// console.log(sequence2.cp.nodes[12].flatFoldable());
 	// console.log(sequence2.cp.nodes[12].x + " " + sequence2.cp.nodes[12].y);
-	sequence2.initialize();
+	sequence2.init();
 }
 sequence2.onResize = function(event) { }
 sequence2.onMouseDown = function(event){ }

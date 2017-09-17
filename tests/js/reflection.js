@@ -50,7 +50,7 @@ reflex.computeReflection = function(){
 	if(reflection1 !== undefined){ reflection1.valley(); }
 	if(reflection2 !== undefined){ reflection2.valley(); }
 	if(reflection3 !== undefined){ reflection3.valley(); }
-	this.initialize();
+	this.init();
 	for(var i = this.edges.length-3; i < this.edges.length; i++){
 		this.edges[i].strokeColor = this.style.mountain.strokeColor;
 	}
@@ -72,7 +72,7 @@ reflex.reset = function(){
 	if(this.testLine2 !== undefined){ this.testLine2.mountain(); }
 	if(this.testLine3 !== undefined){ this.testLine3.mountain(); }
 	this.computeReflection();
-	// this.initialize();
+	// this.init();
 }
 reflex.reset();
 

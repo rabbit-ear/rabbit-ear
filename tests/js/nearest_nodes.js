@@ -14,7 +14,7 @@ nearNodeSketch.reset = function(){
 	for(var i = 0; i < NUM_NODES; i++){
 		nearNodeSketch.cp.newPlanarNode(Math.random()*aspect - (Math.random()*aspect*0.5), Math.random());
 	}
-	nearNodeSketch.initialize();
+	nearNodeSketch.init();
 	nearNodeSketch.nodeLayer.visible = true;
 	console.log(nearNodeSketch.nodeLayer.children[0]);
 	for(var i = 0; i < nearNodeSketch.nodeLayer.children.length; i++){

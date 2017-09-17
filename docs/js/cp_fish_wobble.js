@@ -7,7 +7,7 @@ fishSwim.reset = function(){
 	fishSwim.cp.fishBase();
 	fishSwim.wobble2 = {x:fishSwim.cp.nodes[7].x, y:fishSwim.cp.nodes[7].y};
 	fishSwim.wobble3 = {x:fishSwim.cp.nodes[6].x, y:fishSwim.cp.nodes[6].y};
-	fishSwim.initialize();
+	fishSwim.init();
 	fishSwim.faceLayer.visible = false;
 	// for(var j = 0; j < fishSwim.faceLayer.children.length; j++){
 	// 	fishSwim.faceLayer.children[j].fillColor.alpha = 0.001;

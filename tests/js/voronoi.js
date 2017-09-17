@@ -9,13 +9,13 @@ voronoiSketch.style.mark.strokeWidth = 0.003;
 
 voronoiSketch.reset = function(){
 	this.cp.clear();
-	this.initialize();
-	voronoi = d3.voronoi().extent( this.cp.boundingBoxD3() );
+	this.init();
+	voronoi = d3.voronoi().extent( this.cp.boundingBox_array() );
 }
 voronoiSketch.reset();
 
 voronoiSketch.onResize = function(){
-	voronoi = d3.voronoi().extent( this.cp.boundingBoxD3() );
+	voronoi = d3.voronoi().extent( this.cp.boundingBox_array() );
 }
 
 voronoiSketch.onMouseDown = function(event){
@@ -28,11 +28,29 @@ voronoiSketch.onMouseDown = function(event){
 
 	var nodes = input.nodes.map(function(el){return el.values();});
 	var v = voronoi( nodes );
+	console.log(v);
 	for(var i = 0; i < v.edges.length; i++){
 		var edge = v.edges[i];
 		if(edge != undefined && edge[0] != undefined && edge[1] != undefined){
 			var crease = this.cp.crease(edge[0][0], edge[0][1], edge[1][0], edge[1][1]);
 			if(crease !== undefined){ crease.valley(); }
+		}
+	}
+
+	// for(var c = 0; c < v.cells.length; c++){
+	// 	for(var e = 0; e < v.cells[c].halfedges.length; e++){
+	// 		var center = v.cells[c].site;
+	// 		var vEdge = v.edges[ v.cells[c].halfedges[e] ];
+	// 	}
+	// }
+
+	for(var e = 0; e < v.edges.length; e++){
+		var endpoints = [ v.edges[e][0], v.edges[e][1] ];
+		if(v.edges[e].left !== undefined){
+			
+		}
+		if(v.edges[e].right !== undefined){
+			
 		}
 	}
 
@@ -50,7 +68,7 @@ voronoiSketch.onMouseDown = function(event){
 
 	this.cp.clean();
 	this.cp.generateFaces();
-	this.initialize();
+	this.init();
 
 	for(var i = 0; i < nodes.length; i++){
 		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.01, fillColor:this.style.valley.strokeColor});

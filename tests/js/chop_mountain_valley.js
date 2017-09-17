@@ -14,7 +14,7 @@ chopMV.reset = function(){
 		else{                    crease.valley(); }
 	}
 	this.cp.clean();
-	this.initialize();
+	this.init();
 }
 chopMV.reset();
 

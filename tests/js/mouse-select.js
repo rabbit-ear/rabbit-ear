@@ -10,7 +10,7 @@ mouseSelect.reset = function(){
 	paper = this.scope; 
 	mouseSelect.cp.clear();
 	mouseSelect.cp.birdBase();
-	mouseSelect.initialize();
+	mouseSelect.init();
 }
 mouseSelect.reset();
 
