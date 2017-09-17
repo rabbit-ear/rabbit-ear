@@ -63,7 +63,7 @@ uncommonNodeWithEdge(otherEdge:GraphEdge):GraphNode
 * y:number
 
 ```typescript
-planarAdjacent():PlanarPair[] // adjacency as in Graph, but with angle connecting edges
+planarAdjacent():AdjacentNodes[] // adjacency as in Graph, but with angle connecting edges
 translate(dx:number, dy:number)
 rotateAroundNode(node:PlanarNode, angle:number)
 ```
@@ -90,10 +90,11 @@ intersection of 2 edges - contains 1 intersection point, 2 edges, 4 nodes (2 edg
 * nodes:[PlanarNode, PlanarNode, PlanarNode, PlanarNode]
 
 
-### PlanarPair
+### AdjacentNodes
 
 node adjacent to node, with angle offset and connecting edge
 
+* parent:PlanarNode
 * node:PlanarNode
 * edge:PlanarEdge
 * angle:number

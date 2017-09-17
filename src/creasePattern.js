@@ -1080,7 +1080,7 @@ var CreasePattern = (function (_super) {
         return returned;
     };
     CreasePattern.prototype.kiteBase = function () {
-        _super.prototype.clear.call(this);
+        this.clear();
         this.newPlanarEdge(0.0, 0.0, 0.41421, 0.0).border();
         this.newPlanarEdge(0.41421, 0.0, 1.0, 0.0).border();
         this.newPlanarEdge(1.0, 0.0, 1.0, 0.58578).border();
@@ -1094,7 +1094,7 @@ var CreasePattern = (function (_super) {
         return this;
     };
     CreasePattern.prototype.fishBase = function () {
-        _super.prototype.clear.call(this);
+        this.clear();
         this.newPlanarEdge(0.0, 0.0, 0.29289, 0.0).border();
         this.newPlanarEdge(0.29289, 0.0, 1.0, 0.0).border();
         this.newPlanarEdge(1.0, 0.0, 1.0, 0.70711).border();
@@ -1115,7 +1115,7 @@ var CreasePattern = (function (_super) {
         return this;
     };
     CreasePattern.prototype.birdBase = function () {
-        _super.prototype.clear.call(this);
+        this.clear();
         this.newPlanarEdge(0.0, 0.0, 0.5, 0.0).border();
         this.newPlanarEdge(0.5, 0.0, 1.0, 0.0).border();
         this.newPlanarEdge(1.0, 0.0, 1.0, 0.5).border();

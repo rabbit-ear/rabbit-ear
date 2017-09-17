@@ -7,7 +7,7 @@
 <div class="explain">
 	<p>class method on object <a>PlanarNode</a></p>
 	<p><b>Arguments:</b> none</p>
-	<p><b>Returned:</b> 1 array of <a>PlanarPair</a> type</p>
+	<p><b>Returned:</b> 1 array of <a>AdjacentNodes</a> type</p>
 </div>
 
 <h2>Example Code</h2>

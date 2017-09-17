@@ -311,13 +311,12 @@ class Matrix{
 		return m;
 	}
 }
-class PlanarPair{
+class AdjacentNodes{
 	// node adjacent to node, with angle offset and connecting edge
+	parent:PlanarNode;  // "first" node, polarity needed for angle calculation
 	node:PlanarNode;
+	angle:number; // radians, angle from parent to node
 	edge:PlanarEdge;  // edge connecting the two nodes
-	angle:number; // radians
-	// parent node
-	parent:PlanarNode;
 	constructor(parent:PlanarNode, node:PlanarNode, edge:PlanarEdge){
 		this.node = node;
 		this.angle = Math.atan2(node.y-parent.y, node.x-parent.x);
@@ -326,15 +325,15 @@ class PlanarPair{
 		this.parent = parent;
 	}
 }
-class AdjacentFace{
-	face:PlanarFace;
-	parentEdge:PlanarEdge; // edge connecting to parent
-	adjacent:AdjacentFace[];
-	constructor(face:PlanarFace){
-		this.face = face;
-		this.adjacent = [];
-	}
-}
+// class AdjacentFace{
+// 	face:PlanarFace;
+// 	parentEdge:PlanarEdge; // edge connecting to parent
+// 	adjacent:AdjacentFace[];
+// 	constructor(face:PlanarFace){
+// 		this.face = face;
+// 		this.adjacent = [];
+// 	}
+// }
 class EdgeIntersection extends XY{
 	// this is a unique class- used in intersection(), crossingEdges() on PlanarEdge
 	edge:PlanarEdge;
@@ -450,20 +449,21 @@ class PlanarNode extends GraphNode{
 		}, adj);
 	}
 
-	planarAdjacent():PlanarPair[]{
+	/** Adjacent nodes sorted clockwise by angle toward adjacent node, type AdjacentNodes object */
+	planarAdjacent():AdjacentNodes[]{
 		return (<PlanarEdge[]>this.adjacentEdges())
 			.map(function(el){ 
-				if(this === el.nodes[0]) return new PlanarPair(el.nodes[0], el.nodes[1], el);
-				else                     return new PlanarPair(el.nodes[1], el.nodes[0], el);
+				if(this === el.nodes[0]) return new AdjacentNodes(el.nodes[0], el.nodes[1], el);
+				else                     return new AdjacentNodes(el.nodes[1], el.nodes[0], el);
 			},this)
 			.sort(function(a,b){return (a.angle < b.angle)?1:(a.angle > b.angle)?-1:0});
 	}
 
 	/** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
-	 * @returns {PlanarPair} PlanarPair object containing the clockwise node and the edge connecting the two.
+	 * @returns {AdjacentNodes} AdjacentNodes object containing the clockwise node and the edge connecting the two.
 	 */
-	adjacentNodeClockwiseFrom(node:PlanarNode):PlanarPair{
-		var adjacentNodes:PlanarPair[] = this.planarAdjacent();
+	adjacentNodeClockwiseFrom(node:PlanarNode):AdjacentNodes{
+		var adjacentNodes:AdjacentNodes[] = this.planarAdjacent();
 		for(var i = 0; i < adjacentNodes.length; i++){
 			if(adjacentNodes[i].node === node){
 				return adjacentNodes[ ((i+1)%adjacentNodes.length) ];
@@ -815,6 +815,7 @@ class PlanarGraph extends Graph{
 					// console.log("Collinear " + (nodeLen - this.nodes.length));
 					return nodeLen - this.nodes.length;
 				}
+			// return below, no break
 		}
 		return 0;
 	}
@@ -1140,14 +1141,14 @@ class PlanarGraph extends Graph{
 		return this.faces;
 	}
 
-	findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarPair[]{
+	findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):AdjacentNodes[]{
 		var incidentEdge = <PlanarEdge>this.getEdgeConnectingNodes(node1, node2);
 		if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
-		var pairs:PlanarPair[] = [];
+		var pairs:AdjacentNodes[] = [];
 		var lastNode = node1;
 		var travelingNode = node2;
 		var visitedList = [lastNode];
-		var nextWalk = new PlanarPair(lastNode, travelingNode, incidentEdge);
+		var nextWalk = new AdjacentNodes(lastNode, travelingNode, incidentEdge);
 		pairs.push(nextWalk);
 		do{
 			visitedList.push(travelingNode);
@@ -1160,7 +1161,7 @@ class PlanarGraph extends Graph{
 		return undefined;
 	}
 
-	makeFace(circut:PlanarPair[]):PlanarFace{
+	makeFace(circut:AdjacentNodes[]):PlanarFace{
 		if(circut == undefined || circut.length < 3) return undefined;
 		var face = new PlanarFace(this);
 		face.nodes = circut.map(function(el){return el.node;});
@@ -1201,7 +1202,7 @@ class PlanarGraph extends Graph{
 			rankI += 1;
 			rank[rankI] = [];
 			for(var p = 0; p < rank[rankI-1].length; p++){
-				var adjacent = rank[rankI-1][p].edgeAdjacentFaces();
+				var adjacent:PlanarFace[] = rank[rankI-1][p].edgeAdjacentFaces();
 				for(var i = 0; i < adjacent.length; i++){
 					// add a face if it hasn't already been found
 					if(faceRanks[adjacent[i].index] === undefined){

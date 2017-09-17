@@ -400,23 +400,25 @@ var Matrix = (function () {
     };
     return Matrix;
 }());
-var PlanarPair = (function () {
-    function PlanarPair(parent, node, edge) {
+var AdjacentNodes = (function () {
+    function AdjacentNodes(parent, node, edge) {
         this.node = node;
         this.angle = Math.atan2(node.y - parent.y, node.x - parent.x);
         this.edge = edge;
         // optional
         this.parent = parent;
     }
-    return PlanarPair;
+    return AdjacentNodes;
 }());
-var AdjacentFace = (function () {
-    function AdjacentFace(face) {
-        this.face = face;
-        this.adjacent = [];
-    }
-    return AdjacentFace;
-}());
+// class AdjacentFace{
+// 	face:PlanarFace;
+// 	parentEdge:PlanarEdge; // edge connecting to parent
+// 	adjacent:AdjacentFace[];
+// 	constructor(face:PlanarFace){
+// 		this.face = face;
+// 		this.adjacent = [];
+// 	}
+// }
 var EdgeIntersection = (function (_super) {
     __extends(EdgeIntersection, _super);
     function EdgeIntersection(otherEdge, intersectionX, intersectionY) {
@@ -527,18 +529,19 @@ var PlanarNode = (function (_super) {
             return new InteriorAngle(this[i].edge, this[nextI].edge);
         }, adj);
     };
+    /** Adjacent nodes sorted clockwise by angle toward adjacent node, type AdjacentNodes object */
     PlanarNode.prototype.planarAdjacent = function () {
         return this.adjacentEdges()
             .map(function (el) {
             if (this === el.nodes[0])
-                return new PlanarPair(el.nodes[0], el.nodes[1], el);
+                return new AdjacentNodes(el.nodes[0], el.nodes[1], el);
             else
-                return new PlanarPair(el.nodes[1], el.nodes[0], el);
+                return new AdjacentNodes(el.nodes[1], el.nodes[0], el);
         }, this)
             .sort(function (a, b) { return (a.angle < b.angle) ? 1 : (a.angle > b.angle) ? -1 : 0; });
     };
     /** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
-     * @returns {PlanarPair} PlanarPair object containing the clockwise node and the edge connecting the two.
+     * @returns {AdjacentNodes} AdjacentNodes object containing the clockwise node and the edge connecting the two.
      */
     PlanarNode.prototype.adjacentNodeClockwiseFrom = function (node) {
         var adjacentNodes = this.planarAdjacent();
@@ -1290,7 +1293,7 @@ var PlanarGraph = (function (_super) {
         var lastNode = node1;
         var travelingNode = node2;
         var visitedList = [lastNode];
-        var nextWalk = new PlanarPair(lastNode, travelingNode, incidentEdge);
+        var nextWalk = new AdjacentNodes(lastNode, travelingNode, incidentEdge);
         pairs.push(nextWalk);
         do {
             visitedList.push(travelingNode);

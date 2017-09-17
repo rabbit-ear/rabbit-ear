@@ -1030,7 +1030,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	kiteBase():CreasePattern{
-		super.clear();
+		this.clear();
 		(<Crease>this.newPlanarEdge(0.0, 0.0, 0.41421, 0.0)).border();
 		(<Crease>this.newPlanarEdge(0.41421, 0.0, 1.0, 0.0)).border();
 		(<Crease>this.newPlanarEdge(1.0, 0.0, 1.0, 0.58578)).border();
@@ -1044,7 +1044,7 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 	fishBase():CreasePattern{
-		super.clear();
+		this.clear();
 		(<Crease>this.newPlanarEdge(0.0, 0.0, 0.29289, 0.0)).border();
 		(<Crease>this.newPlanarEdge(0.29289, 0.0, 1.0, 0.0)).border();
 		(<Crease>this.newPlanarEdge(1.0, 0.0, 1.0, 0.70711)).border();
@@ -1065,7 +1065,7 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 	birdBase():CreasePattern{
-		super.clear();
+		this.clear();
 		(<Crease>this.newPlanarEdge(0.0,0.0,0.5,0.0)).border();
 		(<Crease>this.newPlanarEdge(0.5,0.0,1.0,0.0)).border();
 		(<Crease>this.newPlanarEdge(1.0,0.0,1.0,0.5)).border();

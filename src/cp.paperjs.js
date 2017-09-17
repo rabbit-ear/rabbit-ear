@@ -89,6 +89,7 @@ var OrigamiFold = (function(){
 
 	OrigamiFold.prototype.fold = function(){
 		// find a face near the middle
+		if(this.cp === undefined){ return; }
 		var centerNode = this.cp.getNearestNode(this.cp.width() * 0.5, this.cp.height()*0.5);
 		if(centerNode === undefined){ return; }
 		var centerFaces = centerNode.adjacentFaces();
@@ -102,6 +103,7 @@ var OrigamiFold = (function(){
 			avgB /= (a.nodes.length);
 			return (avgA < avgB) ? 1 : ((avgA > avgB) ? -1 : 0);
 		});
+		if(sortedFaces.length <= 1){ return; }
 		var centerBottomFace = sortedFaces[0];
 
 		var foldTree = this.cp.adjacentFaceTree(centerBottomFace);
@@ -360,8 +362,7 @@ var OrigamiPaper = (function () {
 		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
 		this.scope.view.matrix = mat;
 
-		// this is all to make the stroke width update. need a better way asap.
-		if(this.style === undefined){ this.style = {}; }
+		// this is all to make the stroke width update.
 		this.updateWeights();
 		// this.update();
 
@@ -419,34 +420,28 @@ var OrigamiPaper = (function () {
 		return this.style.mark;
 	};
 
-	OrigamiPaper.prototype.updateWeights = function(fraction){
-		if(fraction === undefined){ fraction = 0.01; }
-		var weight = this.cpMin * fraction;
+	OrigamiPaper.prototype.updateWeights = function(strokeFraction, circleFraction){
 		if(this.style === undefined){ return; }
-		this.style.strokeWidth = 0.01;
-		this.style.mountain.strokeWidth = weight;
-		this.style.valley.strokeWidth = weight;
-		this.style.border.strokeWidth = weight;
-		this.style.mark.strokeWidth = weight*0.66666;
-		if(this.nodes !== undefined){
-			for(var i = 0; i < this.nodes.length; i++){ 
-				this.nodes[i].radius = weight * 1.5 * 0.5; 
-			}
-		}
-		if(this.selected !== undefined){
-			for(var i = 0; i < this.selected.nodes.length; i++){
-				this.nodes[this.selected.nodes[i].index].radius = weight * 2;
-			}
-		}
+		if(strokeFraction === undefined){ strokeFraction = 0.01; }
+		if(circleFraction === undefined){ circleFraction = 0.015; }
+		var strokeWeight = this.cpMin * strokeFraction;
+		var circleRadius = this.cpMin * circleFraction;
+		this.style.nodes.radius = circleRadius;
+		this.style.selectedNode.radius = circleRadius / 0.75;
+		this.style.mountain.strokeWidth = strokeWeight;
+		this.style.valley.strokeWidth = strokeWeight;
+		this.style.border.strokeWidth = strokeWeight;
+		this.style.mark.strokeWidth = strokeWeight*0.66666;
+		// this.update();
 	}
 	OrigamiPaper.prototype.defaultStyleTemplate = function(){
-		if(this.cpMin === undefined){ this.cpMin = 1.0; }
 		if(this.style === undefined){ this.style = {}; }
-		if(this.style.strokeWidth === undefined){ this.style.strokeWidth = 0.01 * this.cpMin; }
+		var strokeWidth = 0.01;
+		var circleRadius = 0.015;
 		return {
 			backgroundColor: { gray:1.0, alpha:1.0 },
 			selectedNode: {
-				radius: 0.02 * this.cpMin, 
+				radius: circleRadius / 0.75, 
 				fillColor: { hue:0, saturation:0.8, brightness:1 },
 				visible: true
 			},
@@ -457,20 +452,20 @@ var OrigamiPaper = (function () {
 				fillColor: { hue:0, saturation:0.8, brightness:1 }
 			},
 			nodes: {
-				radius: 0.015 * this.cpMin * 0.5, 
+				radius: circleRadius, 
 				visible: false,
-				fillColor: { hue:25, saturation:0.7, brightness:1.0 }//{ hue:20, saturation:0.6, brightness:1 }
+				// fillColor: { hue:25, saturation:0.7, brightness:1.0 }//{ hue:20, saturation:0.6, brightness:1 }
 			},
 			mountain: {
 				strokeColor: { gray:0.666 },//{ hue:340, saturation:0.75, brightness:0.9 },
 				// dashArray: [this.style.strokeWidth*2, this.style.strokeWidth*1.5, this.style.strokeWidth*.1, this.style.strokeWidth*1.5],
 				dashArray: undefined,
-				strokeWidth: this.style.strokeWidth,
+				strokeWidth: strokeWidth,
 				strokeCap : 'round'
 			},
 			valley: {
 				strokeColor: { hue:220, saturation:0.6, brightness:1 },
-				dashArray: [this.style.strokeWidth*2, this.style.strokeWidth*2],
+				dashArray: [strokeWidth*2, strokeWidth*2],
 				// dashArray: undefined,
 				strokeWidth: this.style.strokeWidth,
 				strokeCap : 'round'
@@ -478,12 +473,12 @@ var OrigamiPaper = (function () {
 			border: {
 				strokeColor: { gray:0.0, alpha:1.0 },
 				dashArray: undefined,
-				strokeWidth: this.style.strokeWidth
+				strokeWidth: strokeWidth
 			},
 			mark: {
 				strokeColor: { gray:0.75, alpha:1.0 },
 				dashArray: undefined,
-				strokeWidth: this.style.strokeWidth*0.66666,
+				strokeWidth: strokeWidth*0.66666,
 				strokeCap : 'round'
 			},
 			face: {
