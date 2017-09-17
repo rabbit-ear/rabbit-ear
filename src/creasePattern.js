@@ -97,6 +97,7 @@ var Crease = (function (_super) {
     function Crease(graph, node1, node2) {
         var _this = _super.call(this, graph, node1, node2) || this;
         _this.orientation = CreaseDirection.mark;
+        _this.rayOrigin = undefined;
         return _this;
     }
     ;
@@ -104,6 +105,34 @@ var Crease = (function (_super) {
     Crease.prototype.mountain = function () { this.orientation = CreaseDirection.mountain; return this; };
     Crease.prototype.valley = function () { this.orientation = CreaseDirection.valley; return this; };
     Crease.prototype.border = function () { this.orientation = CreaseDirection.border; return this; };
+    Crease.prototype.noCrossing = function () {
+        // find this edge's first intersection
+        // remove this edge
+        // replace it with an edge that doesn't intersect other edges
+        var o = this.rayOrigin;
+        if (o === undefined) {
+            o = this.nodes[0];
+        }
+        var angle = this.absoluteAngle(o);
+        var rayDirection = new XY(Math.cos(angle), Math.sin(angle));
+        var intersection = undefined;
+        var shortest = Infinity;
+        for (var i = 0; i < this.graph.edges.length; i++) {
+            var inter = rayLineSegmentIntersection(o, rayDirection, this.graph.edges[i].nodes[0], this.graph.edges[i].nodes[1]);
+            if (inter !== undefined && !o.equivalent(inter)) {
+                var d = Math.sqrt(Math.pow(o.x - inter.x, 2) + Math.pow(o.y - inter.y, 2));
+                if (d < shortest) {
+                    shortest = d;
+                    intersection = inter;
+                }
+            }
+        }
+        if (intersection !== undefined) {
+            var edge = this.graph.newCrease(o.x, o.y, intersection.x, intersection.y);
+            this.graph.removeEdge(this);
+            return edge;
+        }
+    };
     // AXIOM 3
     Crease.prototype.creaseToEdge = function (edge) {
         return this.graph.creaseEdgeToEdge(this, edge);
@@ -360,9 +389,16 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.creaseRay = function (origin, direction) {
         var endpoints = this.clipRayInBoundary(origin, direction);
         if (endpoints === undefined) {
-            throw "creaseRay does not appear to be inside the boundary";
+            return;
+        } //throw "creaseRay does not appear to be inside the boundary"; }
+        var newCrease = this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
+        if (origin.equivalent(newCrease.nodes[0])) {
+            newCrease.rayOrigin = newCrease.nodes[0];
         }
-        return this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
+        if (origin.equivalent(newCrease.nodes[1])) {
+            newCrease.rayOrigin = newCrease.nodes[1];
+        }
+        return newCrease;
     };
     CreasePattern.prototype.creaseRayUntilIntersection = function (origin, direction) {
         if (!isValidPoint(origin) || !isValidPoint(direction)) {
@@ -389,14 +425,32 @@ var CreasePattern = (function (_super) {
         return this.creaseRay(origin, new XY(Math.cos(radians), Math.sin(radians)));
     };
     CreasePattern.prototype.creaseAngleBisector = function (a, b) {
-        var commonNode = a.commonNodeWithEdge(b);
-        if (commonNode === undefined)
+        var aCommon, bCommon;
+        if (a.nodes[0].equivalent(b.nodes[0])) {
+            aCommon = a.nodes[0];
+            bCommon = b.nodes[0];
+        }
+        if (a.nodes[0].equivalent(b.nodes[1])) {
+            aCommon = a.nodes[0];
+            bCommon = b.nodes[1];
+        }
+        if (a.nodes[1].equivalent(b.nodes[0])) {
+            aCommon = a.nodes[1];
+            bCommon = b.nodes[0];
+        }
+        if (a.nodes[1].equivalent(b.nodes[1])) {
+            aCommon = a.nodes[1];
+            bCommon = b.nodes[1];
+        }
+        // var commonNode = <PlanarNode>a.commonNodeWithEdge(b);
+        // console.log(commonNode);
+        if (aCommon === undefined)
             return undefined;
-        var aAngle = a.absoluteAngle(commonNode);
-        var bAngle = b.absoluteAngle(commonNode);
+        var aAngle = a.absoluteAngle(aCommon);
+        var bAngle = b.absoluteAngle(bCommon);
         var clockwise = clockwiseAngleFrom(bAngle, aAngle);
         var newAngle = bAngle - clockwise * 0.5 + Math.PI;
-        return this.creaseRay(commonNode, new XY(Math.cos(newAngle), Math.sin(newAngle)));
+        return this.creaseRay(aCommon, new XY(Math.cos(newAngle), Math.sin(newAngle)));
     };
     CreasePattern.prototype.creaseSymmetry = function (ax, ay, bx, by) {
         if (this.symmetryLine === undefined) {
@@ -642,12 +696,10 @@ var CreasePattern = (function (_super) {
             if (midpts.length == 2) {
                 var a = this.crease(midpts[0][0], midpts[1][0]).mark();
                 var b = this.crease(midpts[0][1], midpts[1][1]).mark();
-                console.log("creasing");
-                console.log(arteries);
-                this.creaseAngleBisector(a, arteries[0][0]);
-                this.creaseAngleBisector(a, arteries[0][1]);
-                this.creaseAngleBisector(b, arteries[1][0]);
-                this.creaseAngleBisector(b, arteries[1][1]);
+                this.creaseAngleBisector(arteries[0][0], a).noCrossing();
+                this.creaseAngleBisector(a, arteries[1][0]).noCrossing();
+                this.creaseAngleBisector(b, arteries[0][1]).noCrossing();
+                this.creaseAngleBisector(arteries[1][1], b).noCrossing();
             }
         }
     };

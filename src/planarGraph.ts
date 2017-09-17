@@ -261,6 +261,9 @@ class XY{
 	reflect(a:XY,b:XY):XY{
 		return this.transform( new Matrix().reflection(a,b) );
 	}
+	// distance(a:XY):number{
+	// 	return Math.sqrt( Math.pow(this.x-a.x,2) + Math.pow(this.y-a.y,2) );
+	// }
 }
 /** This is a 2x3 matrix: 2x2 for scale and rotation and 2x1 for translation */
 class Matrix{
@@ -510,6 +513,9 @@ class PlanarNode extends GraphNode{
 	reflect(a:XY,b:XY):XY{
 		return this.transform( new Matrix().reflection(a,b) );
 	}
+	// distance(a:XY):number{
+	// 	return Math.sqrt( Math.pow(this.x-a.x,2) + Math.pow(this.y-a.y,2) );
+	// }
 }
 
 class PlanarEdge extends GraphEdge{

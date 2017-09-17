@@ -83,15 +83,44 @@ class Crease extends PlanarEdge{
 	orientation:CreaseDirection;
 	// how it was made
 	madeBy:Fold;
+	rayOrigin:CreaseNode; // if it was a ray, save which endpoint was the origin
 
 	constructor(graph:CreasePattern, node1:CreaseNode, node2:CreaseNode){
 		super(graph, node1, node2);
 		this.orientation = CreaseDirection.mark;
+		this.rayOrigin = undefined;
 	};
 	mark(){ this.orientation = CreaseDirection.mark; return this;}
 	mountain(){ this.orientation = CreaseDirection.mountain; return this;}
 	valley()  { this.orientation = CreaseDirection.valley; return this;}
 	border()  { this.orientation = CreaseDirection.border; return this;}
+
+	noCrossing():Crease{
+		// find this edge's first intersection
+		// remove this edge
+		// replace it with an edge that doesn't intersect other edges
+		var o = this.rayOrigin;
+		if(o === undefined){ o = <CreaseNode>this.nodes[0]; }
+		var angle = this.absoluteAngle(o);
+		var rayDirection = new XY(Math.cos(angle), Math.sin(angle));
+		var intersection = undefined;
+		var shortest = Infinity;
+		for(var i = 0; i < this.graph.edges.length; i++){
+			var inter = rayLineSegmentIntersection(o, rayDirection, this.graph.edges[i].nodes[0], this.graph.edges[i].nodes[1]);
+			if(inter !== undefined && !o.equivalent(inter)){
+				var d = Math.sqrt( Math.pow(o.x-inter.x,2) + Math.pow(o.y-inter.y,2) );
+				if(d < shortest){
+					shortest = d;
+					intersection = inter;
+				}
+			}
+		}
+		if(intersection !== undefined){
+			var edge = this.graph.newCrease(o.x, o.y, intersection.x, intersection.y);
+			this.graph.removeEdge(this);
+			return edge;
+		}
+	}
 
 	// AXIOM 3
 	creaseToEdge(edge:Crease):Crease[]{
@@ -350,8 +379,11 @@ class CreasePattern extends PlanarGraph{
 
 	creaseRay(origin:XY,direction:XY):Crease{
 		var endpoints = this.clipRayInBoundary(origin, direction);
-		if(endpoints === undefined) { throw "creaseRay does not appear to be inside the boundary"; }
-		return this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
+		if(endpoints === undefined) { return; }//throw "creaseRay does not appear to be inside the boundary"; }
+		var newCrease = this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
+		if(origin.equivalent(newCrease.nodes[0])){ newCrease.rayOrigin = <CreaseNode>newCrease.nodes[0]; }
+		if(origin.equivalent(newCrease.nodes[1])){ newCrease.rayOrigin = <CreaseNode>newCrease.nodes[1]; }
+		return newCrease;
 	}
 
 	creaseRayUntilIntersection(origin:XY, direction:XY):Crease{
@@ -378,13 +410,19 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	creaseAngleBisector(a:Crease, b:Crease):Crease{
-		var commonNode = <PlanarNode>a.commonNodeWithEdge(b);
-		if(commonNode === undefined) return undefined;
-		var aAngle = a.absoluteAngle(commonNode);
-		var bAngle = b.absoluteAngle(commonNode);
+		var aCommon, bCommon;
+		if(a.nodes[0].equivalent(b.nodes[0])){ aCommon = a.nodes[0]; bCommon = b.nodes[0]; }
+		if(a.nodes[0].equivalent(b.nodes[1])){ aCommon = a.nodes[0]; bCommon = b.nodes[1]; }
+		if(a.nodes[1].equivalent(b.nodes[0])){ aCommon = a.nodes[1]; bCommon = b.nodes[0]; }
+		if(a.nodes[1].equivalent(b.nodes[1])){ aCommon = a.nodes[1]; bCommon = b.nodes[1]; }
+		// var commonNode = <PlanarNode>a.commonNodeWithEdge(b);
+		// console.log(commonNode);
+		if(aCommon === undefined) return undefined;
+		var aAngle = a.absoluteAngle(aCommon);
+		var bAngle = b.absoluteAngle(bCommon);
 		var clockwise = clockwiseAngleFrom(bAngle, aAngle);
 		var newAngle = bAngle - clockwise*0.5 + Math.PI;
-		return this.creaseRay(commonNode, new XY(Math.cos(newAngle), Math.sin(newAngle)));
+		return this.creaseRay(aCommon, new XY(Math.cos(newAngle), Math.sin(newAngle)));
 	}
 
 	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
@@ -602,12 +640,10 @@ class CreasePattern extends PlanarGraph{
 			if(midpts.length == 2){
 				var a = this.crease(midpts[0][0], midpts[1][0]).mark();
 				var b = this.crease(midpts[0][1], midpts[1][1]).mark();
-				console.log("creasing");
-				console.log(arteries);
-				this.creaseAngleBisector(a, arteries[0][0]);
-				this.creaseAngleBisector(a, arteries[0][1]);
-				this.creaseAngleBisector(b, arteries[1][0]);
-				this.creaseAngleBisector(b, arteries[1][1]);
+				this.creaseAngleBisector(arteries[0][0], a).noCrossing();
+				this.creaseAngleBisector(a, arteries[1][0]).noCrossing();
+				this.creaseAngleBisector(b, arteries[0][1]).noCrossing();
+				this.creaseAngleBisector(arteries[1][1], b).noCrossing();
 			}
 		}
 	}
