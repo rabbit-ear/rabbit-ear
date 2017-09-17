@@ -22,7 +22,7 @@
 	</div>
 
 	<div class="quote">
-		<p><b>Book</b> or <b>horizontal</b> (line through edge) and <b>diagonal</b> (line through corners) symmetry.</p>
+		<p>After calling one of these functions, every crease will automatically be creased twice.</p>
 	</div>
 
 	<div class="centered">

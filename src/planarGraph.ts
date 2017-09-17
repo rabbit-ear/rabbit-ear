@@ -4,45 +4,222 @@
 
 /// <reference path="graph.ts"/>
 
-// VOCABULARY
-//  "unused": a node is unused if it is not connected to an edge
-
 "use strict";
 
-var EPSILON_LOW =  0.003;
-var EPSILON =      0.00001;
+var EPSILON_LOW  = 0.003;
+var EPSILON      = 0.00001;
 var EPSILON_HIGH = 0.00000001;
-var EPSILON_UI =   0.05;  // user tap, based on precision of a finger on a screen
-var EPSILON_COLLINEAR = Math.PI * 0.001;
+var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a screen
+var EPSILON_COLLINEAR = EPSILON_LOW;//Math.PI * 0.001; // what decides 2 similar angles
 
+//////////////////////////// TYPE CHECKING //////////////////////////// 
+function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
+function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
+/////////////////////////////// NUMBERS /////////////////////////////// 
+function map(input:number, floor1:number, ceiling1:number, floor2:number, ceiling2:number):number{
+	return (input - floor1 / (ceiling1 - floor1)) * (ceiling2 - floor2) + floor2;
+}
+/** are 2 numbers similar to each other within an epsilon range. */
 function epsilonEqual(a:number, b:number, epsilon?:number):boolean{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return ( Math.abs(a - b) < epsilon );
 }
-
-class Matrix{
-	a:number; b:number; tx:number;
-	c:number; d:number; ty:number;
-	constructor(){this.a=1; this.b=0; this.c=0; this.d=1; this.tx=0; this.ty=0;}
-	mult(matrix:Matrix):Matrix{
-		var m1 = this.copy();
-		var m2 = matrix.copy();
-		var r = new Matrix();
-		r.a = m1.a * m2.a + m1.c * m2.b;
-		r.c = m1.a * m2.c + m1.c * m2.d;
-		r.tx = m1.a * m2.tx + m1.c * m2.ty + m1.tx;
-		r.b = m1.b * m2.a + m1.d * m2.b;
-		r.d = m1.b * m2.c + m1.d * m2.d;
-		r.ty = m1.b * m2.tx + m1.d * m2.ty + m1.ty;
-		return r;
+// if number is within epsilon range of a whole number, remove the floating point noise.
+//  example: turns 0.999999989764 into 1.0
+function wholeNumberify(num:number):number{
+	if(Math.abs(Math.round(num) - num) < EPSILON_HIGH){ num = Math.round(num); }
+	return num;
+}
+/////////////////////////////// ARRAYS /////////////////////////////// 
+/** all values in an array are equivalent based on != comparison */
+function allEqual(args:boolean[]):boolean {
+	for(var i = 1; i < args.length; i++){ if(args[i] != args[0]) return false;}
+	return true;
+}
+function arrayContainsObject(array, object):boolean{
+	for(var i = 0; i < array.length; i++) { if(array[i] === object){ return true; } }
+	return false;
+}
+function arrayRemoveDuplicates(array, compFunction):any[]{
+	if(array.length <= 1) return array;
+	for(var i = 0; i < array.length-1; i++){
+		for(var j = array.length-1; j > i; j--){
+			if(compFunction(array[i], array[j])){
+				array.splice(j,1);
+			}
+		}
 	}
-	copy():Matrix{
-		var m = new Matrix();
-		m.a = this.a;   m.c = this.c;   m.tx = this.tx;
-		m.b = this.b;   m.d = this.d;   m.ty = this.ty;
-		return m;
+	return array;
+}
+/////////////////////////////////////////////////////////////////////////////////
+//                            2D ALGORITHMS
+/////////////////////////////////////////////////////////////////////////////////
+/** if points are all collinear, checks if point lies on line segment 'ab' */
+function onSegment(point:XY, a:XY, b:XY, epsilon?:number):boolean{
+	if(epsilon === undefined){ epsilon = EPSILON; }
+	var a_b = Math.sqrt( Math.pow(a.x - b.x,  2) + Math.pow(a.y - b.y,  2) );
+	var p_a = Math.sqrt( Math.pow(point.x-a.x,2) + Math.pow(point.y-a.y,2) );
+	var p_b = Math.sqrt( Math.pow(point.x-b.x,2) + Math.pow(point.y-b.y,2) );
+	return (Math.abs(a_b - (p_a+p_b)) < epsilon);
+}
+/** There are 2 angles between 2 vectors (angle in radians), from A to B, return the clockwise one  */
+function clockwiseAngleFrom(a:number, b:number):number{
+	while(a < 0){ a += Math.PI*2; }
+	while(b < 0){ b += Math.PI*2; }
+	var a_b = a - b;
+	if(a_b >= 0) return a_b;
+	return Math.PI*2 - (b - a);
+}
+function linesParallel(p0:XY, p1:XY, p2:XY, p3:XY, epsilon?:number):boolean {
+	if(epsilon === undefined){ epsilon = EPSILON; }
+	// p0-p1 is first line, p2-p3 is second line
+	var u = new XY(p1.x - p0.x, p1.y - p0.y);
+	var v = new XY(p3.x - p2.x, p3.y - p2.y);
+	return (Math.abs( u.dot( v.rotate90() ) ) < epsilon);
+}
+function minDistBetweenPointLine(a:XY, b:XY, x:number, y:number):XY{
+	// (a)-(b) define the line, (x,y) is the point
+	var p = Math.sqrt(Math.pow(b.x-a.x,2) + Math.pow(b.y-a.y,2));
+	var u = ((x-a.x)*(b.x-a.x) + (y-a.y)*(b.y-a.y)) / (Math.pow(p,2));
+	if(u < 0 || u > 1.0) return undefined;
+	return new XY(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
+}
+function rayLineSegmentIntersection(rayOrigin:XY, rayDirection:XY, point1:XY, point2:XY){
+	var v1 = new XY(rayOrigin.x - point1.x, rayOrigin.y - point1.y);
+	var vLineSeg = new XY(point2.x - point1.x, point2.y - point1.y);
+	var vRayPerp = new XY(-rayDirection.y, rayDirection.x);
+	var dot = vLineSeg.x*vRayPerp.x + vLineSeg.y*vRayPerp.y;
+	if (Math.abs(dot) < EPSILON){ return undefined; }
+	var cross = (vLineSeg.x*v1.y-vLineSeg.y*v1.x);
+	var t1 = cross / dot;
+	var t2 = (v1.x*vRayPerp.x + v1.y*vRayPerp.y) / dot;
+	if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)){
+		// todo: really, we need to move beyond the need for whole numbers
+		var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
+		var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
+		return new XY(x, y);
 	}
 }
+function lineIntersectionAlgorithm(p0:XY, p1:XY, p2:XY, p3:XY):XY {
+	// p0-p1 is first line, p2-p3 is second line
+	var rise1 = (p1.y-p0.y);
+	var run1  = (p1.x-p0.x);
+	var rise2 = (p3.y-p2.y);
+	var run2  = (p3.x-p2.x);
+	var denom = run1 * rise2 - run2 * rise1;
+	// var denom = l1.u.x * l2.u.y - l1.u.y * l2.u.x;
+	if(denom == 0) return undefined;
+	// return XY((l1.d * l2.u.y - l2.d * l1.u.y) / denom, (l2.d * l1.u.x - l1.d * l2.u.x) / denom);
+	var s02 = {'x':p0.x - p2.x, 'y':p0.y - p2.y};
+	var t = (run2 * s02.y - rise2 * s02.x) / denom;
+	return new XY(p0.x + (t * run1), p0.y + (t * rise1) );
+}
+function lineSegmentIntersectionAlgorithm(p:XY, p2:XY, q:XY, q2:XY):XY {
+	var r = new XY(p2.x - p.x, p2.y - p.y);
+	var s = new XY(q2.x - q.x, q2.y - q.y);
+	var uNumerator = (new XY(q.x - p.x, q.y - p.y)).cross(r);//crossProduct(subtractPoints(q, p), r);
+	var denominator = r.cross(s);
+	if(onSegment(p, q, q2)){ return p; }
+	if(onSegment(p2, q, q2)){ return p2; }
+	if(onSegment(q, p, p2)){ return q; }
+	if(onSegment(q2, p, p2)){ return q2; }
+	if (Math.abs(uNumerator) < EPSILON_HIGH && Math.abs(denominator) < EPSILON_HIGH) {
+		// collinear
+		// Do they overlap? (Are all the point differences in either direction the same sign)
+		if(!allEqual([(q.x - p.x) < 0, (q.x - p2.x) < 0, (q2.x - p.x) < 0, (q2.x - p2.x) < 0]) ||
+		   !allEqual([(q.y - p.y) < 0, (q.y - p2.y) < 0, (q2.y - p.y) < 0, (q2.y - p2.y) < 0])){
+			return undefined;
+		}		
+		// Do they touch? (Are any of the points equal?)
+		if(p.equivalent(q)){ return new XY(p.x, p.y); }
+		if(p.equivalent(q2)){ return new XY(p.x, p.y); }
+		if(p2.equivalent(q)){ return new XY(p2.x, p2.y); }
+		if(p2.equivalent(q2)){ return new XY(p2.x, p2.y); }
+	}
+	if (Math.abs(denominator) < EPSILON_HIGH) {
+		// parallel
+		return undefined;
+	}
+	var u = uNumerator / denominator;
+	var t = (new XY(q.x - p.x, q.y - p.y)).cross(s) / denominator;
+	if((t >= 0) && (t <= 1) && (u >= 0) && (u <= 1)){
+		return new XY(p.x + r.x*t, p.y + r.y*t);
+	}
+}
+function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY):XY[]{
+	var r_squared =  Math.pow(radius,2);
+	var x1 = p0.x - center.x;
+	var y1 = p0.y - center.y;
+	var x2 = p1.x - center.x;
+	var y2 = p1.y - center.y;
+	var dx = x2 - x1;
+	var dy = y2 - y1;
+	var dr_squared = dx*dx + dy*dy;
+	var D = x1*y2 - x2*y1;
+	function sgn(x){ if(x < 0){return -1;} return 1; }
+	var x1 = (D*dy + sgn(dy)*dx*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
+	var x2 = (D*dy - sgn(dy)*dx*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
+	var y1 = (-D*dx + Math.abs(dy)*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
+	var y2 = (-D*dx - Math.abs(dy)*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
+	var intersections = [];
+	if(!isNaN(x1)){ intersections.push( new XY(x1 + center.x, y1 + center.y) ); }
+	if(!isNaN(x2)){ intersections.push( new XY(x2 + center.x, y2 + center.y) ); }
+	return intersections;
+}
+function convexHull(points){
+	// validate input
+	if(points === undefined || points.length === 0){ return []; }
+	// # points in the convex hull before escaping function
+	var INFINITE_LOOP = 10000;
+	// sort points by x and y
+	var sorted = points.sort(function(a,b){
+			if(a.x-b.x < -EPSILON_HIGH){ return -1; }  if(a.x-b.x > EPSILON_HIGH){ return 1; }
+			if(a.y-b.y < -EPSILON_HIGH){ return -1; }  if(a.y-b.y > EPSILON_HIGH){ return 1; }
+			return 0;});
+	var hull = [];
+	hull.push(sorted[0]);
+	// the current direction the perimeter walker is facing
+	var ang = 0;  
+	var infiniteLoop = 0;
+	do{
+		infiniteLoop++;
+		var h = hull.length-1;
+		var angles = sorted
+			// remove all points in the same location from this search
+			.filter(function(el){ 
+				return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH)) })
+			// sort by angle, setting lowest values next to "ang"
+			.map(function(el){
+				var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
+				while(angle < ang){ angle += Math.PI*2; }
+				return {node:el, angle:angle}; })
+			.sort(function(a,b){return (a.angle < b.angle)?-1:(a.angle > b.angle)?1:0});
+		if(angles.length === 0){ return []; }
+		// narrowest-most right turn
+		var rightTurn = angles[0];
+		// collect all other points that are collinear along the same ray
+		angles = angles.filter(function(el){ return epsilonEqual(rightTurn.angle, el.angle, EPSILON_LOW); })
+		// sort collinear points by their distances from the connecting point
+		.map(function(el){ 
+			var distance = Math.sqrt(Math.pow(hull[h].x-el.node.x, 2) + Math.pow(hull[h].y-el.node.y, 2));
+			el.distance = distance;
+			return el;})
+		// (OPTION 1) exclude all collinear points along the hull 
+		.sort(function(a,b){return (a.distance < b.distance)?1:(a.distance > b.distance)?-1:0});
+		// (OPTION 2) include all collinear points along the hull
+		// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
+		// if the point is already in the convex hull, we've made a loop. we're done
+		if(arrayContainsObject(hull, angles[0].node)){ return hull; }
+		// add point to hull, prepare to loop again
+		hull.push(angles[0].node);
+		// update walking direction with the angle to the new point
+		ang = Math.atan2( hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
+	}while(infiniteLoop < INFINITE_LOOP);
+	return [];
+}
+/////////////////////////////////////////////////////////////////////////////////
+//                                 CLASSES
+/////////////////////////////////////////////////////////////////////////////////
 
 class XY{
 	x:number;
@@ -76,8 +253,64 @@ class XY{
 		return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx,
 					  this.x * matrix.b + this.y * matrix.d + matrix.ty);
 	}
+	/** reflects this point about a line that passes through 'a' and 'b' */
+	reflect(a:XY,b:XY):XY{
+		return this.transform( new Matrix().reflection(a,b) );
+	}
 }
-
+/** This is a 2x3 matrix: 2x2 for scale and rotation and 2x1 for translation */
+class Matrix{
+	a:number; c:number; tx:number;
+	b:number; d:number; ty:number;
+	constructor(a?:number, b?:number, c?:number, d?:number, tx?:number, ty?:number){
+		this.a=a; this.b=b; this.c=c; this.d=d; this.tx=tx; this.ty=ty;
+		if(a === undefined){ this.a = 1; }
+		if(b === undefined){ this.b = 0; }
+		if(c === undefined){ this.c = 0; }
+		if(d === undefined){ this.d = 1; }
+		if(tx === undefined){ this.tx = 0; }
+		if(ty === undefined){ this.ty = 0; }
+	}
+	/** Sets this to be the identity matrix */
+	identity(){ this.a=1; this.b=0; this.c=0; this.d=1; this.tx=0; this.ty=0; }
+	/** Returns a new matrix, the sum of this and the argument. Will not change this or the argument
+	 * @returns {Matrix} 
+	 */
+	mult(matrix:Matrix):Matrix{
+		var m1 = this.copy();
+		var m2 = matrix.copy();
+		var r = new Matrix();
+		r.a = m1.a * m2.a + m1.c * m2.b;
+		r.c = m1.a * m2.c + m1.c * m2.d;
+		r.tx = m1.a * m2.tx + m1.c * m2.ty + m1.tx;
+		r.b = m1.b * m2.a + m1.d * m2.b;
+		r.d = m1.b * m2.c + m1.d * m2.d;
+		r.ty = m1.b * m2.tx + m1.d * m2.ty + m1.ty;
+		return r;
+	}
+	/** Calculates the matrix representation of a reflection across a line
+	 * @returns {Matrix} 
+	 */
+	reflection(a:XY, b:XY):Matrix{
+		var angle = Math.atan2(b.y-a.y, b.x-a.x);
+		this.a = Math.cos(angle) *  Math.cos(-angle) +  Math.sin(angle) * Math.sin(-angle);
+		this.b = Math.cos(angle) * -Math.sin(-angle) +  Math.sin(angle) * Math.cos(-angle);
+		this.c = Math.sin(angle) *  Math.cos(-angle) + -Math.cos(angle) * Math.sin(-angle);
+		this.d = Math.sin(angle) * -Math.sin(-angle) + -Math.cos(angle) * Math.cos(-angle);
+		this.tx = a.x + this.a * -a.x + -a.y * this.c;
+		this.ty = a.y + this.b * -a.x + -a.y * this.d;
+		return this;
+	}
+	/** Deep-copy the Matrix and return it as a new object
+	 * @returns {Matrix} 
+	 */
+	copy():Matrix{
+		var m = new Matrix();
+		m.a = this.a;   m.c = this.c;   m.tx = this.tx;
+		m.b = this.b;   m.d = this.d;   m.ty = this.ty;
+		return m;
+	}
+}
 class PlanarPair{
 	// node adjacent to node, with angle offset and connecting edge
 	node:PlanarNode;
@@ -93,7 +326,15 @@ class PlanarPair{
 		this.parent = parent;
 	}
 }
-
+class AdjacentFace{
+	face:PlanarFace;
+	parentEdge:PlanarEdge; // edge connecting to parent
+	adjacent:AdjacentFace[];
+	constructor(face:PlanarFace){
+		this.face = face;
+		this.adjacent = [];
+	}
+}
 class EdgeIntersection extends XY{
 	// this is a unique class- used in intersection(), crossingEdges() on PlanarEdge
 	edge:PlanarEdge;
@@ -102,7 +343,6 @@ class EdgeIntersection extends XY{
 		this.edge = otherEdge;
 	}
 }
-
 class InteriorAngle{
 	edges:[PlanarEdge,PlanarEdge];
 	node:PlanarNode;
@@ -262,6 +502,10 @@ class PlanarNode extends GraphNode{
 		this.y = xx * matrix.b + yy * matrix.d + matrix.ty;
 		return this;
 	}
+	/** reflects about a line that passes through 'a' and 'b' */
+	reflect(a:XY,b:XY):XY{
+		return this.transform( new Matrix().reflection(a,b) );
+	}
 }
 
 class PlanarEdge extends GraphEdge{
@@ -315,19 +559,8 @@ class PlanarEdge extends GraphEdge{
 		this.nodes[0].transform(matrix);
 		this.nodes[1].transform(matrix);
 	}
-	// using this edge as a line of reflection, returns the matrix representation form
-	reflectionMatrix():Matrix{
-		var midpoint = this.midpoint();
-		var angle = this.absoluteAngle();
-		var mat = new Matrix();
-		mat.a = Math.cos(angle) *  Math.cos(-angle) +  Math.sin(angle) * Math.sin(-angle);
-		mat.b = Math.cos(angle) * -Math.sin(-angle) +  Math.sin(angle) * Math.cos(-angle);
-		mat.c = Math.sin(angle) *  Math.cos(-angle) + -Math.cos(angle) * Math.sin(-angle);
-		mat.d = Math.sin(angle) * -Math.sin(-angle) + -Math.cos(angle) * Math.cos(-angle);
-		mat.tx = midpoint.x + mat.a * -midpoint.x + -midpoint.y * mat.c;
-		mat.ty = midpoint.y + mat.b * -midpoint.x + -midpoint.y * mat.d;
-		return mat;
-	}
+	// if this edge is the line of reflection, returns the matrix representation form
+	reflectionMatrix():Matrix{ return new Matrix().reflection(this.nodes[0], this.nodes[1]); }
 }
 
 class PlanarFace{
@@ -1035,6 +1268,8 @@ class PlanarGraph extends Graph{
 		}
 	}
 
+	///////////////////////////////////////////////////////////////////////
+	// delete?
 	edgeExistsThroughPoints(a:XY, b:XY):boolean{
 		for(var i = 0; i < this.edges.length; i++){
 				console.log(a);
@@ -1047,285 +1282,3 @@ class PlanarGraph extends Graph{
 		return false;
 	}
 }
-
-class AdjacentFace{
-	face:PlanarFace;
-	parentEdge:PlanarEdge; // edge connecting to parent
-	adjacent:AdjacentFace[];
-	constructor(face:PlanarFace){
-		this.face = face;
-		this.adjacent = [];
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-//
-//                            2D ALGORITHMS
-//
-
-
-function convexHull(points){
-	// validate input
-	if(points === undefined || points.length === 0){ return []; }
-	// # points in the convex hull before escaping function
-	var INFINITE_LOOP = 10000;
-	// sort points by x and y
-	var sorted = points.sort(function(a,b){
-			if(a.x-b.x < -EPSILON_HIGH){ return -1; }
-			if(a.x-b.x > EPSILON_HIGH){ return 1; }
-			if(a.y-b.y < -EPSILON_HIGH){ return -1; }
-			if(a.y-b.y > EPSILON_HIGH){ return 1; }
-			return 0;});
-	var hull = [];
-	hull.push(sorted[0]);
-	// the current direction the perimeter walker is facing
-	var ang = 0;  
-	var infiniteLoop = 0;
-	do{
-		infiniteLoop++;
-		var h = hull.length-1;
-		var angles = sorted
-			// remove all points in the same location from this search
-			.filter(function(el){ 
-				return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH)) })
-			// sort by angle, setting lowest values next to "ang"
-			.map(function(el){
-				var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
-				while(angle < ang){ angle += Math.PI*2; }
-				return {node:el, angle:angle}; })
-			.sort(function(a,b){return (a.angle < b.angle)?-1:(a.angle > b.angle)?1:0});
-		if(angles.length === 0){ return []; }
-		// narrowest-most right turn
-		var rightTurn = angles[0];
-		// collect all other points that are collinear along the same ray
-		angles = angles.filter(function(el){ return epsilonEqual(rightTurn.angle, el.angle, EPSILON_LOW); })
-		// sort collinear points by their distances from the connecting point
-		.map(function(el){ 
-			var distance = Math.sqrt(Math.pow(hull[h].x-el.node.x, 2) + Math.pow(hull[h].y-el.node.y, 2));
-			el.distance = distance;
-			return el;})
-		// (OPTION 1) exclude all collinear points along the hull 
-		.sort(function(a,b){return (a.distance < b.distance)?1:(a.distance > b.distance)?-1:0});
-		// (OPTION 2) include all collinear points along the hull
-		// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
-		// if the point is already in the convex hull, we've made a loop. we're done
-		if(arrayContainsObject(hull, angles[0].node)){ return hull; }
-		// add point to hull, prepare to loop again
-		hull.push(angles[0].node);
-		// update walking direction with the angle to the new point
-		ang = Math.atan2( hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
-	}while(infiniteLoop < INFINITE_LOOP);
-	return [];
-}
-
-function map(input:number, floor1:number, ceiling1:number, floor2:number, ceiling2:number):number{
-	return (input - floor1 / (ceiling1 - floor1)) * (ceiling2 - floor2) + floor2;
-}
-
-// if number is within epsilon range of a whole number, remove the floating point noise.
-//  example: turns 0.999999989764 into 1.0
-function wholeNumberify(num:number):number{
-	if(Math.abs(Math.round(num) - num) < EPSILON_HIGH){ num = Math.round(num); }
-	return num;
-}
-
-function clockwiseAngleFrom(a:number, b:number):number{
-	while(a < 0){ a += Math.PI*2; }
-	while(b < 0){ b += Math.PI*2; }
-	var a_b = a - b;
-	if(a_b >= 0) return a_b;
-	return Math.PI*2 - (b - a);
-}
-
-// if points are all collinear
-// checks if point lies on line segment 'ab'
-function onSegment(point:XY, a:XY, b:XY):boolean{
-	var ab = Math.sqrt( Math.pow(a.x-b.x,2) + Math.pow(a.y-b.y,2) );
-	var pa = Math.sqrt( Math.pow(point.x-a.x,2) + Math.pow(point.y-a.y,2) );
-	var pb = Math.sqrt( Math.pow(point.x-b.x,2) + Math.pow(point.y-b.y,2) );
-	if( Math.abs(ab - (pa+pb)) < EPSILON ) return true;
-	return false;
-}
-
-function rayLineSegmentIntersectionAlgorithm(rayOrigin:XY, rayDirection:XY, point1:XY, point2:XY){
-	var v1 = new XY(rayOrigin.x - point1.x, rayOrigin.y - point1.y);
-	var vLineSeg = new XY(point2.x - point1.x, point2.y - point1.y);
-	var vRayPerp = new XY(-rayDirection.y, rayDirection.x);
-	var dot = vLineSeg.x*vRayPerp.x + vLineSeg.y*vRayPerp.y;
-	if (Math.abs(dot) < EPSILON){ return undefined; }
-	var cross = (vLineSeg.x*v1.y-vLineSeg.y*v1.x);
-	var t1 = cross / dot;
-	var t2 = (v1.x*vRayPerp.x + v1.y*vRayPerp.y) / dot;
-	if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)){
-		// todo: really, we need to move beyond the need for whole numbers
-		var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
-		var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
-		return new XY(x, y);
-	}
-}
-
-function lineIntersectionAlgorithm(p0:XY, p1:XY, p2:XY, p3:XY):XY {
-	// p0-p1 is first line
-	// p2-p3 is second line
-	var rise1 = (p1.y-p0.y);
-	var run1  = (p1.x-p0.x);
-	var rise2 = (p3.y-p2.y);
-	var run2  = (p3.x-p2.x);
-	var denom = run1 * rise2 - run2 * rise1;
-	// var denom = l1.u.x * l2.u.y - l1.u.y * l2.u.x;
-	if(denom == 0) return undefined;
-	// return XY((l1.d * l2.u.y - l2.d * l1.u.y) / denom, (l2.d * l1.u.x - l1.d * l2.u.x) / denom);
-	var s02 = {'x':p0.x - p2.x, 'y':p0.y - p2.y};
-	var t = (run2 * s02.y - rise2 * s02.x) / denom;
-	return new XY(p0.x + (t * run1), p0.y + (t * rise1) );
-}
-
-function allEqual(args:boolean[]):boolean {
-	for(var i = 1; i < args.length; i++){
-		if(args[i] != args[0]) return false;
-	}
-	return true;
-}
-
-function lineSegmentIntersectionAlgorithm(p:XY, p2:XY, q:XY, q2:XY):XY {
-	var r = new XY(p2.x - p.x, p2.y - p.y);
-	var s = new XY(q2.x - q.x, q2.y - q.y);
-	var uNumerator = (new XY(q.x - p.x, q.y - p.y)).cross(r);//crossProduct(subtractPoints(q, p), r);
-	var denominator = r.cross(s);
-
-	if(onSegment(p, q, q2)){ return p; }
-	if(onSegment(p2, q, q2)){ return p2; }
-	if(onSegment(q, p, p2)){ return q; }
-	if(onSegment(q2, p, p2)){ return q2; }
-
-	if (Math.abs(uNumerator) < EPSILON_HIGH && Math.abs(denominator) < EPSILON_HIGH) {
-		// collinear
-		// Do they overlap? (Are all the point differences in either direction the same sign)
-		if(!allEqual([(q.x - p.x) < 0, (q.x - p2.x) < 0, (q2.x - p.x) < 0, (q2.x - p2.x) < 0]) ||
-		   !allEqual([(q.y - p.y) < 0, (q.y - p2.y) < 0, (q2.y - p.y) < 0, (q2.y - p2.y) < 0])){
-			return undefined;
-		}		
-		// Do they touch? (Are any of the points equal?)
-		if(p.equivalent(q)){ return new XY(p.x, p.y); }
-		if(p.equivalent(q2)){ return new XY(p.x, p.y); }
-		if(p2.equivalent(q)){ return new XY(p2.x, p2.y); }
-		if(p2.equivalent(q2)){ return new XY(p2.x, p2.y); }
-	}
-
-	if (Math.abs(denominator) < EPSILON_HIGH) {
-		// parallel
-		return undefined;
-	}
-
-	var u = uNumerator / denominator;
-	var t = (new XY(q.x - p.x, q.y - p.y)).cross(s) / denominator;
-
-	if((t >= 0) && (t <= 1) && (u >= 0) && (u <= 1)){
-		return new XY(p.x + r.x*t, p.y + r.y*t);
-	}
-}
-
-function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY):XY[]{
-	var r_squared =  Math.pow(radius,2);
-
-	var x1 = p0.x - center.x;
-	var y1 = p0.y - center.y;
-	var x2 = p1.x - center.x;
-	var y2 = p1.y - center.y;
-	var dx = x2 - x1;
-	var dy = y2 - y1;
-	var dr_squared = dx*dx + dy*dy;
-	var D = x1*y2 - x2*y1;
-
-	function sgn(x){ if(x < 0){return -1;} return 1; }
-
-	var x1 = (D*dy + sgn(dy)*dx*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
-	var x2 = (D*dy - sgn(dy)*dx*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
-	var y1 = (-D*dx + Math.abs(dy)*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
-	var y2 = (-D*dx - Math.abs(dy)*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
-
-	var intersections = [];
-	if(!isNaN(x1)){ intersections.push( new XY(x1 + center.x, y1 + center.y) ); }
-	if(!isNaN(x2)){ intersections.push( new XY(x2 + center.x, y2 + center.y) ); }
-	return intersections;
-}
-
-function linesParallel(p0:XY, p1:XY, p2:XY, p3:XY):boolean {
-	// p0-p1 is first line
-	// p2-p3 is second line
-	var u = new XY(p1.x - p0.x, p1.y - p0.y);
-	var v = new XY(p3.x - p2.x, p3.y - p2.y);
-	return (Math.abs( u.dot( v.rotate90() ) ) < EPSILON);
-}
-
-
-function minDistBetweenPointLine(a:XY, b:XY, x:number, y:number):XY{
-	// (a)-(b) define the line
-	// x,y is the point
-	var p = Math.sqrt(Math.pow(b.x-a.x,2) + Math.pow(b.y-a.y,2));
-	var u = ((x-a.x)*(b.x-a.x) + (y-a.y)*(b.y-a.y)) / (Math.pow(p,2));
-	if(u < 0 || u > 1.0) return undefined;
-	return new XY(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
-}
-
-function reflectPointAcrossLine(point:XY, a:XY, b:XY){
-	var p = Math.sqrt(Math.pow(b.x-a.x,2) + Math.pow(b.y-a.y,2));
-	var u = ((point.x-a.x)*(b.x-a.x) + (point.y-a.y)*(b.y-a.y)) / (Math.pow(p,2));
-	var collinear = new XY(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
-	var d = new XY(point.x - collinear.x, point.y - collinear.y);
-	return new XY(collinear.x - d.x, collinear.y - d.y);
-}
-
-function isValidPoint(point:XY):boolean{ return (point !== undefined && !isNaN(point.x) && !isNaN(point.y)); }
-function isValidNumber(n:number):boolean{ return (n !== undefined && !isNaN(n) && !isNaN(n)); }
-
-//////////////////////////////////////////////////
-// RECYCLE BIN - READY TO DELETE
-//////////////////////////////////////////////////
-
-function arrayContainsDuplicates(array):boolean{
-	if(array.length <= 1) return false;
-	for(var i = 0; i < array.length-1; i++) {
-		for(var j = i+1; j < array.length; j++){
-			if(array[i] === array[j]){
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-function arrayRemoveDuplicates(array, compFunction):any[]{
-	if(array.length <= 1) return array;
-	for(var i = 0; i < array.length-1; i++){
-		for(var j = array.length-1; j > i; j--){
-			if(compFunction(array[i], array[j])){
-				array.splice(j,1);
-			}
-		}
-	}
-	return array;
-}
-
-function arrayContainsObject(array, object):boolean{
-	for(var i = 0; i < array.length; i++) { if(array[i] === object){ return true; } }
-	return false;
-}
-
-function getNodeIndexNear(x:number, y:number, thisEpsilon:number){
-	var thisPoint = new XY(x, y);
-	for(var i = 0; i < this.nodes.length; i++){
-		if(this.nodes[i].equivalent(thisPoint, thisEpsilon)){
-			return i;
-		}
-	}
-	return undefined;
-}
-
-function pointsEquivalent(a, b, epsilon?):boolean{
-	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-	// rect bounding box, cheaper than radius calculation
-	return (epsilonEqual(a.x, b.x, epsilon) && epsilonEqual(a.y, b.y, epsilon))
-}
-

@@ -12,6 +12,7 @@ ffMoveNode.selectNearestNode = true;
 ffMoveNode.style.selectedNode = { 
 	fillColor: undefined, 
 	strokeWidth: 0.005,
+	radius: 0.02,
 	strokeColor: { gray:0 }
 }
 ffMoveNode.style.nodes = { 
@@ -19,22 +20,32 @@ ffMoveNode.style.nodes = {
 	fillColor: undefined,
 	strokeColor: undefined,
 	strokeWidth: 0.0,
-	radius: 0.02 
+	radius: 0.02
 };
 
 // loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 loadSVG("/tests/svg/crane-errors.svg", function(e){ 
 	ffMoveNode.cp = e;
 	ffMoveNode.initialize();
-	if(ffMoveNode.nodeLayer != undefined && ffMoveNode.nodeLayer.moveToFront != undefined) ffMoveNode.nodeLayer.moveToFront();
+	if(ffMoveNode.nodeLayer != undefined && ffMoveNode.nodeLayer.moveToFront != undefined){
+		ffMoveNode.nodeLayer.moveToFront();
+	}
+	if(ffMoveNode.cpMin !== 0){
+		ffMoveNode.style.selectedNode.strokeWidth = 0.005*ffMoveNode.cpMin;
+		ffMoveNode.style.selectedNode.radius = 0.02*ffMoveNode.cpMin;
+		ffMoveNode.style.nodes.radius = 0.02 * ffMoveNode.cpMin;
+	}
+	ffMoveNode.zoomToFit();
+	ffMoveNode.update();
 	ffMoveNode.colorNodesFlatFoldable();
-	for(var i = 0; i < ffMoveNode.nodes.length; i++){ ffMoveNode.nodes[i].radius = 0.02; }
 });
 
 ffMoveNode.colorNodesFlatFoldable = function(){
 	for(var i = 0; i < ffMoveNode.cp.nodes.length; i++){
 		var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
-		if( !ffMoveNode.cp.nodes[i].flatFoldable() ){ color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } }
+		if( !ffMoveNode.cp.nodes[i].flatFoldable() ){ 
+			color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
+		}
 		ffMoveNode.nodes[i].fillColor = color;
 	}
 }

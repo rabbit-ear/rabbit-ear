@@ -23,6 +23,21 @@ var EdgeNodeCount = (function () {
     }
     return EdgeNodeCount;
 }());
+/** When a graph is cleaned it returns this change log */
+var GraphCleanReport = (function () {
+    function GraphCleanReport() {
+        this.nodes = { isolated: 0 };
+        this.edges = { duplicate: 0, circular: 0 };
+    }
+    GraphCleanReport.prototype.join = function (report) {
+        this.nodes.isolated += report.nodes.isolated;
+        this.edges.duplicate += report.edges.duplicate;
+        this.edges.circular += report.edges.circular;
+        return this;
+    };
+    return GraphCleanReport;
+}());
+/** Nodes are 1 of the 2 fundamental components in a graph */
 var GraphNode = (function () {
     function GraphNode(graph) {
         this.graph = graph;
@@ -59,6 +74,7 @@ var GraphNode = (function () {
     GraphNode.prototype.degree = function () { return this.adjacentEdges().length; };
     return GraphNode;
 }());
+/** Edges are 1 of the 2 fundamental components in a graph. 1 edge connect 2 nodes. */
 var GraphEdge = (function () {
     function GraphEdge(graph, node1, node2) {
         this.graph = graph;
@@ -126,14 +142,15 @@ var GraphEdge = (function () {
     };
     return GraphEdge;
 }());
+/** A graph contains unlimited nodes and edges and can perform operations on them. the headlining act of graph.js */
 var Graph = (function () {
     function Graph() {
-        // for subclassing (ie. PlanarGraph) the node/edge types get reset to new types (PlanarNode)
+        // When subclassed (ie. PlanarGraph) types are overwritten
         this.nodeType = GraphNode;
         this.edgeType = GraphEdge;
         this.clear();
     }
-    /** This will deep-copy the contents of this graph and return it as a new object
+    /** Deep-copy the contents of this graph and return it as a new object
      * @returns {Graph}
      */
     Graph.prototype.duplicate = function () {
@@ -251,8 +268,7 @@ var Graph = (function () {
     // REMOVE PARTS
     ///////////////////////////////////////////////
     //
-    // TARGET SPECIFIC COMPONENTS
-    //
+    // TARGETS KNOWN
     /** Removes all nodes and edges, returning the graph to it's original state */
     Graph.prototype.clear = function () {
         this.nodes = [];
@@ -318,8 +334,7 @@ var Graph = (function () {
     // REMOVE PARTS
     ///////////////////////////////////////////////
     //
-    // SEARCH AND REMOVE
-    //
+    // TARGETS UNKNOWN (SEARCH REQUIRED)
     /** Removes any node that isn't a part of an edge
      * @returns {GraphCleanReport} the number of nodes removed
      */
@@ -437,17 +452,4 @@ var Graph = (function () {
         this.edges[i].index = i;
     } };
     return Graph;
-}());
-var GraphCleanReport = (function () {
-    function GraphCleanReport() {
-        this.nodes = { isolated: 0 };
-        this.edges = { duplicate: 0, circular: 0 };
-    }
-    GraphCleanReport.prototype.join = function (report) {
-        this.nodes.isolated += report.nodes.isolated;
-        this.edges.duplicate += report.edges.duplicate;
-        this.edges.circular += report.edges.circular;
-        return this;
-    };
-    return GraphCleanReport;
 }());

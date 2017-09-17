@@ -8,7 +8,10 @@ loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){
 	ffSketch.initialize();
 	ffSketch.nodeLayer.visible = true;
 	ffSketch.colorNodesFlatFoldable();
-	for(var i = 0; i < ffSketch.nodes.length; i++){ ffSketch.nodes[i].radius = 0.02; }
+	for(var i = 0; i < ffSketch.nodes.length; i++){ 
+		ffSketch.nodes[i].visible = true;
+		ffSketch.nodes[i].radius = 0.02; 
+	}
 });
 
 ffSketch.colorNodesFlatFoldable = function(){
@@ -25,6 +28,9 @@ ffSketch.reset = function(){
 	paper = this.scope; 
 	ffSketch.cp.clear();
 	ffSketch.initialize();
+	for(var i = 0; i < ffSketch.nodes.length; i++){ 
+		ffSketch.nodes[i].visible = true;
+	}
 }
 ffSketch.reset();
 

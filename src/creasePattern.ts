@@ -61,6 +61,10 @@ class CreaseNode extends PlanarNode{
 		return false;
 	}
 
+	maekawa():boolean{
+		return false;
+	}
+
 	//////////////////////////////
 	// FOLDS
 	// AXIOM 1
@@ -305,7 +309,7 @@ class CreasePattern extends PlanarGraph{
 		return;
 	}
 
-	pointInside(p:XY){
+	pointInside(p:XY):boolean{
 		for(var i = 0; i < this.boundary.edges.length; i++){
 			var endpts = this.boundary.edges[i].nodes;
 			var cross = (p.y - endpts[0].y) * (endpts[1].x - endpts[0].x) - 
@@ -354,7 +358,7 @@ class CreasePattern extends PlanarGraph{
 		if(!isValidPoint(origin) || !isValidPoint(direction)){ return undefined; }
 		var nearestIntersection = undefined;
 		var intersections = this.edges
-			.map(function(el){ return rayLineSegmentIntersectionAlgorithm(origin, direction, el.nodes[0], el.nodes[1]); })
+			.map(function(el){ return rayLineSegmentIntersection(origin, direction, el.nodes[0], el.nodes[1]); })
 			.filter(function(el){ return el !== undefined; })
 			.filter(function(el){ return !el.equivalent(origin) })
 			.sort(function(a,b){
@@ -385,8 +389,8 @@ class CreasePattern extends PlanarGraph{
 
 	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
 		if(this.symmetryLine === undefined){ return undefined; }
-		var ra = reflectPointAcrossLine(new XY(ax, ay), this.symmetryLine[0], this.symmetryLine[1]);
-		var rb = reflectPointAcrossLine(new XY(bx, by), this.symmetryLine[0], this.symmetryLine[1]);
+		var ra = new XY(ax, ay).reflect(this.symmetryLine[0], this.symmetryLine[1]);
+		var rb = new XY(bx, by).reflect(this.symmetryLine[0], this.symmetryLine[1]);
 		return <Crease>this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
 	}
 
@@ -420,7 +424,7 @@ class CreasePattern extends PlanarGraph{
 			return this.clipLineInBoundary(origin, b);
 		}
 		for(var i = 0; i < this.boundary.edges.length; i++){
-			var intersection = rayLineSegmentIntersectionAlgorithm(origin, direction, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
+			var intersection = rayLineSegmentIntersection(origin, direction, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
 			if(intersection != undefined){ return [origin, intersection]; }
 		}
 	}
@@ -550,8 +554,8 @@ class CreasePattern extends PlanarGraph{
 		var intersects:XY[] = [];
 		for(var i = 0; i < this.boundary.edges.length; i++){
 			var endpts = this.boundary.edges[i].nodes;
-			var test1 = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
-			var test2 = rayLineSegmentIntersectionAlgorithm(origin, opposite, endpts[0], endpts[1]);
+			var test1 = rayLineSegmentIntersection(origin, direction, endpts[0], endpts[1]);
+			var test2 = rayLineSegmentIntersection(origin, opposite, endpts[0], endpts[1]);
 			if(test1 != undefined){ 
 				test1.x = wholeNumberify(test1.x);
 				test1.y = wholeNumberify(test1.y);
@@ -577,7 +581,7 @@ class CreasePattern extends PlanarGraph{
 		var intersects:XY[] = [];
 		for(var i = 0; i < this.boundary.edges.length; i++){
 			var endpts = this.boundary.edges[i].nodes;
-			var test = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
+			var test = rayLineSegmentIntersection(origin, direction, endpts[0], endpts[1]);
 			if(test != undefined){ intersects.push(test); }
 		}
 		// todo, need remove duplicate points from array function

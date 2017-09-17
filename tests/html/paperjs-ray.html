@@ -53,7 +53,7 @@ window.onload = function() {
 		rayDirection = new XY(Math.cos(event.time), Math.sin(event.time));
 		for(var i = 0; i < cp.edges.length; i++){
 			var endPoints = cp.edges[i].endPoints();
-			var intersection = rayLineSegmentIntersectionAlgorithm(rayCenter, rayDirection, endPoints[0], endPoints[1]);
+			var intersection = rayLineSegmentIntersection(rayCenter, rayDirection, endPoints[0], endPoints[1]);
 			if(intersection != undefined){
 				intersections.push(intersection);
 				var shape = new paper.Shape.Circle(new paper.Point(intersection.x, intersection.y), .01);

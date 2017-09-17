@@ -77,6 +77,9 @@ var CreaseNode = (function (_super) {
         }
         return false;
     };
+    CreaseNode.prototype.maekawa = function () {
+        return false;
+    };
     //////////////////////////////
     // FOLDS
     // AXIOM 1
@@ -367,7 +370,7 @@ var CreasePattern = (function (_super) {
         }
         var nearestIntersection = undefined;
         var intersections = this.edges
-            .map(function (el) { return rayLineSegmentIntersectionAlgorithm(origin, direction, el.nodes[0], el.nodes[1]); })
+            .map(function (el) { return rayLineSegmentIntersection(origin, direction, el.nodes[0], el.nodes[1]); })
             .filter(function (el) { return el !== undefined; })
             .filter(function (el) { return !el.equivalent(origin); })
             .sort(function (a, b) {
@@ -399,8 +402,8 @@ var CreasePattern = (function (_super) {
         if (this.symmetryLine === undefined) {
             return undefined;
         }
-        var ra = reflectPointAcrossLine(new XY(ax, ay), this.symmetryLine[0], this.symmetryLine[1]);
-        var rb = reflectPointAcrossLine(new XY(bx, by), this.symmetryLine[0], this.symmetryLine[1]);
+        var ra = new XY(ax, ay).reflect(this.symmetryLine[0], this.symmetryLine[1]);
+        var rb = new XY(bx, by).reflect(this.symmetryLine[0], this.symmetryLine[1]);
         return this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
     };
     CreasePattern.prototype.clipLineSegmentInBoundary = function (a, b) {
@@ -443,7 +446,7 @@ var CreasePattern = (function (_super) {
             return this.clipLineInBoundary(origin, b);
         }
         for (var i = 0; i < this.boundary.edges.length; i++) {
-            var intersection = rayLineSegmentIntersectionAlgorithm(origin, direction, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
+            var intersection = rayLineSegmentIntersection(origin, direction, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
             if (intersection != undefined) {
                 return [origin, intersection];
             }
@@ -580,8 +583,8 @@ var CreasePattern = (function (_super) {
         var intersects = [];
         for (var i = 0; i < this.boundary.edges.length; i++) {
             var endpts = this.boundary.edges[i].nodes;
-            var test1 = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
-            var test2 = rayLineSegmentIntersectionAlgorithm(origin, opposite, endpts[0], endpts[1]);
+            var test1 = rayLineSegmentIntersection(origin, direction, endpts[0], endpts[1]);
+            var test2 = rayLineSegmentIntersection(origin, opposite, endpts[0], endpts[1]);
             if (test1 != undefined) {
                 test1.x = wholeNumberify(test1.x);
                 test1.y = wholeNumberify(test1.y);
@@ -607,7 +610,7 @@ var CreasePattern = (function (_super) {
         var intersects = [];
         for (var i = 0; i < this.boundary.edges.length; i++) {
             var endpts = this.boundary.edges[i].nodes;
-            var test = rayLineSegmentIntersectionAlgorithm(origin, direction, endpts[0], endpts[1]);
+            var test = rayLineSegmentIntersection(origin, direction, endpts[0], endpts[1]);
             if (test != undefined) {
                 intersects.push(test);
             }

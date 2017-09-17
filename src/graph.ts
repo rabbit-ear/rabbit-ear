@@ -27,9 +27,25 @@ class EdgeNodeCount{
 	}
 }
 
+/** When a graph is cleaned it returns this change log */
+class GraphCleanReport {
+	edges:{duplicate:number, circular:number};
+	nodes:{isolated:number};  // nodes removed for being unattached to any edge
+	constructor(){
+		this.nodes = {isolated:0};
+		this.edges = {duplicate:0, circular:0};
+	}
+	join(report:GraphCleanReport):GraphCleanReport{
+		this.nodes.isolated += report.nodes.isolated;
+		this.edges.duplicate += report.edges.duplicate;
+		this.edges.circular += report.edges.circular;
+		return this;
+	}
+}
+/** Nodes are 1 of the 2 fundamental components in a graph */
 class GraphNode{
-	graph:Graph;
-	index:number;
+	graph:Graph;  // pointer to the graph this node is a member. required for adjacent calculations
+	index:number; // the index of this node in the graph's node array
 
 	constructor(graph:Graph){ this.graph = graph; }
 
@@ -63,11 +79,11 @@ class GraphNode{
 	 */
 	degree():number{ return this.adjacentEdges().length; }
 }
-
+/** Edges are 1 of the 2 fundamental components in a graph. 1 edge connect 2 nodes. */
 class GraphEdge{
-	graph:Graph;
-	index:number;
-	nodes:[GraphNode,GraphNode]; // every edge must connect 2 nodes
+	graph:Graph;   // pointer to the graph this edge is a member. required for adjacent calculations
+	index:number;  // the index of this edge in the graph's edge array
+	nodes:[GraphNode,GraphNode]; // not optional. every edge must connect 2 nodes
 
 	constructor(graph:Graph, node1:GraphNode, node2:GraphNode){
 		this.graph = graph;
@@ -131,21 +147,20 @@ class GraphEdge{
 		return undefined;
 	}
 }
-
+/** A graph contains unlimited nodes and edges and can perform operations on them. the headlining act of graph.js */
 class Graph{
 	nodes:GraphNode[];
 	edges:GraphEdge[];
 	// todo: callback hooks for when certain properties of the data structure have been altered
 	didChange:(event:object)=>void;
 	
-	// for subclassing (ie. PlanarGraph) the node/edge types get reset to new types (PlanarNode)
+	// When subclassed (ie. PlanarGraph) types are overwritten
 	nodeType = GraphNode;
 	edgeType = GraphEdge;
 
 	constructor(){ this.clear(); }
 
-
-	/** This will deep-copy the contents of this graph and return it as a new object
+	/** Deep-copy the contents of this graph and return it as a new object
 	 * @returns {Graph} 
 	 */
 	duplicate():Graph{
@@ -261,8 +276,7 @@ class Graph{
 	// REMOVE PARTS
 	///////////////////////////////////////////////
 	//
-	// TARGET SPECIFIC COMPONENTS
-	//
+	// TARGETS KNOWN
 
 	/** Removes all nodes and edges, returning the graph to it's original state */
 	clear():Graph{
@@ -326,8 +340,7 @@ class Graph{
 	// REMOVE PARTS
 	///////////////////////////////////////////////
 	//
-	// SEARCH AND REMOVE
-	//
+	// TARGETS UNKNOWN (SEARCH REQUIRED)
 
 	/** Removes any node that isn't a part of an edge
 	 * @returns {GraphCleanReport} the number of nodes removed
@@ -437,23 +450,7 @@ class Graph{
 		}
 	}
 
-	nodeArrayDidChange(){for(var i=0; i<this.nodes.length; i++){this.nodes[i].index=i;}}
-	edgeArrayDidChange(){for(var i=0; i<this.edges.length; i++){this.edges[i].index=i;}}
+	nodeArrayDidChange(){for(var i=0;i<this.nodes.length;i++){this.nodes[i].index=i;}}
+	edgeArrayDidChange(){for(var i=0;i<this.edges.length;i++){this.edges[i].index=i;}}
 	// nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
-}
-
-
-class GraphCleanReport {
-	edges:{duplicate:number, circular:number};
-	nodes:{isolated:number};  // nodes removed for being unattached to any edge
-	constructor(){
-		this.nodes = {isolated:0};
-		this.edges = {duplicate:0, circular:0};
-	}
-	join(report:GraphCleanReport):GraphCleanReport{
-		this.nodes.isolated += report.nodes.isolated;
-		this.edges.duplicate += report.edges.duplicate;
-		this.edges.circular += report.edges.circular;
-		return this;
-	}
 }

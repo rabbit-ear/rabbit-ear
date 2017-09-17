@@ -17,6 +17,10 @@ function pointsSimilar(p1, p2, epsilon){
 	return false;
 }
 
+///////////////////////////////////////////////
+//  RENDER SIMULATED FLAT-FOLDING OF ORIGAMI 
+///////////////////////////////////////////////
+
 var OrigamiFold = (function(){
 
 	OrigamiFold.prototype.onResize = function(event){ }
@@ -157,6 +161,13 @@ var OrigamiFold = (function(){
 
 	return OrigamiFold;
 }());
+
+
+
+///////////////////////////////////////////////
+//  RENDER FLAT ORIGAMI CREASE PATTERN
+///////////////////////////////////////////////
+
 
 var OrigamiPaper = (function () {
 
