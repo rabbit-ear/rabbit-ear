@@ -1061,16 +1061,16 @@ class CreasePattern extends PlanarGraph{
 		return paths;
 	}
 
-	svgMin(scale:number):string{
+	svgMin(size:number):string{
 		var paths = this.joinedPaths();
-		if(scale === undefined || scale <= 0){
-			scale = 1;
-		}
 		var width = this.width();
 		var height = this.height();
-		var strokeWidth = Math.floor(width * 0.005);
+		if(size === undefined || size <= 0){ size = 600; }
+		var scale = size / width;
+		var strokeWidth = (width*scale * 0.0025).toFixed(1);
+		if(strokeWidth === "0" || strokeWidth === "0.0"){ strokeWidth = "0.5"; }
 		var blob = "";
-		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +width+ "px\" height=\"" +height+ "px\" viewBox=\"0 0 " +width+ " " +height+ "\">\n<g>\n";
+		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +(width*scale)+ "px\" height=\"" +(height*scale)+ "px\" viewBox=\"0 0 " +(width*scale)+ " " +(height*scale)+ "\">\n<g>\n";
 
 		for(var i = 0; i < paths.length; i++){
 			if(paths[i].length >= 0){
@@ -1090,15 +1090,22 @@ class CreasePattern extends PlanarGraph{
 		return blob;
 	}
 
-	svg(scale){
-		if(scale === undefined || scale <= 0){
-			scale = 1;
+	svg(size:number):string{
+		if(size === undefined || size <= 0){
+			size = 600;
 		}
+		var width = this.width();
+		var height = this.height();
+		var scale = size / width;
 		var blob = "";
-		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +scale+ "px\" height=\"" +scale+ "px\" viewBox=\"0 0 " +scale+ " " +scale+ "\">\n<g>\n";
+		var widthScaled = (width*scale).toFixed(2);
+		var heightScaled = (height*scale).toFixed(2);
+		var strokeWidth = (width*scale * 0.0025).toFixed(1);
+		if(strokeWidth === "0" || strokeWidth === "0.0"){ strokeWidth = "0.5"; }
+		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +widthScaled+ "px\" height=\"" +heightScaled+ "px\" viewBox=\"0 0 " +widthScaled+ " " +heightScaled+ "\">\n<g>\n";
 
 		//////// RECT BORDER
-		blob += "<line stroke=\"#000000\" x1=\"0\" y1=\"0\" x2=\"" +scale+ "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +scale+ "\" y1=\"0\" x2=\"" +scale+ "\" y2=\"" +scale+ "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +scale+ "\" y1=\"" +scale+ "\" x2=\"0\" y2=\"" +scale+ "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" +scale+ "\" x2=\"0\" y2=\"0\"/>\n";
+		blob += "<line stroke=\"#000000\" stroke-width=\"" + strokeWidth + "\" x1=\"0\" y1=\"0\" x2=\"" +widthScaled+ "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +widthScaled+ "\" y1=\"0\" x2=\"" +widthScaled+ "\" y2=\"" +heightScaled+ "\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +widthScaled+ "\" y1=\"" +heightScaled+ "\" x2=\"0\" y2=\"" +heightScaled+ "\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" +heightScaled+ "\" x2=\"0\" y2=\"0\"/>\n";
 		////////
 
 		for(var i = 0; i < this.edges.length; i++){
@@ -1108,7 +1115,7 @@ class CreasePattern extends PlanarGraph{
 			var y1 = (a.y * scale).toFixed(4);
 			var x2 = (b.x * scale).toFixed(4);
 			var y2 = (b.y * scale).toFixed(4);
-			blob += "<line stroke=\"#000000\" x1=\"" +x1+ "\" y1=\"" +y1+ "\" x2=\"" +x2+ "\" y2=\"" +y2+ "\"/>\n";
+			blob += "<line stroke=\"#000000\" stroke-width=\"" + strokeWidth + "\" x1=\"" +x1+ "\" y1=\"" +y1+ "\" x2=\"" +x2+ "\" y2=\"" +y2+ "\"/>\n";
 		}
 		blob = blob + "</g>\n</svg>\n";
 		return blob;

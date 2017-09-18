@@ -59,7 +59,9 @@ function svgBlobLoaded(svg){
 		project.init();
 		project.zoomToFit();
 		project.update();
-		var svgMin = project.cp.svgMin();
+		var scale = 600 / cp.width();
+		if(isNaN(scale) || scale === undefined){ scale = 1.0; }
+		var svgMin = project.cp.svg(scale);
 		download(svgMin, "creasepattern.svg");
 	});
 	// loadSVGUnclean(svg, function(cp){

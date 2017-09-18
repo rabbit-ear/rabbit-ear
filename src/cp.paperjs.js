@@ -492,9 +492,9 @@ function paperPathToCP(paperPath){
 	var svgLayer = paperPath;
 	var w = svgLayer.bounds.size.width;
 	var h = svgLayer.bounds.size.height;
-	// no longer re-sizing down to 1 x aspect size
-	// var mat = new paper.Matrix(1/w, 0, 0, 1/h, 0, 0);
-	var mat = new paper.Matrix(1,0,0,1,0,0);
+	// re-sizing down to 1 x aspect size
+	var mat = new paper.Matrix(1/w, 0, 0, 1/w, 0, 0);
+	// var mat = new paper.Matrix(1,0,0,1,0,0);
 	svgLayer.matrix = mat;
 	var cp = new CreasePattern();//.rectangle(w,h);
 	// erase boundary, to be set later by convex hull

@@ -133,8 +133,7 @@ var project2 = new OrigamiFold("canvas-2");
 var inputFile = undefined;
 var valid_epsilon = 0.00001;
 
-// $("#result-container").style.display = none;
-	document.getElementById("result-container").style.display = "none";
+document.getElementById("result-container").style.display = "none";
 
 function setInputFile(svg){
 	inputFile = svg;
@@ -145,11 +144,11 @@ function svgBlobLoaded(svg){
 	setInputFile(svg);
 
 	loadSVG(svg, function(cp){
-		// var zero = new OrigamiPaper("canvas-1");
-		// zero.init();
-		// zero.zoomToFit(0.05);
 
 		// project1 = new OrigamiPaper("canvas-1", cp.duplicate());
+		project1.cp = new CreasePattern();
+		project1.init();
+		
 		project1.cp = cp.duplicate();
 		project1.style.nodes.visible = true;
 		project1.style.nodes.radius = 0.015 * project1.cpMin;
@@ -173,10 +172,10 @@ function svgBlobLoaded(svg){
 		}
 		project1.colorNodesFlatFoldable();
 
-		// project2 = new OrigamiFold("canvas-2", cp.duplicate());
-		// project2.epsilon = EPSILON;
-		// project2.init();
-		// project2.zoomToFit(0.05);
+		project2 = new OrigamiFold("canvas-2", cp.duplicate());
+		project2.epsilon = EPSILON;
+		project2.init();
+		project2.zoomToFit(0.05);
 
 		showAndScrollResults();
 	}, valid_epsilon);
