@@ -585,8 +585,8 @@ class CreasePattern extends PlanarGraph{
 		throw "axiom 7: two crease lines cannot be parallel"
 	}
 
-
-	creaseVoronoiSimple(v, interp){
+	// use D3 voronoi calculation and pass in as argument 'v'
+	voronoiSimple(v, interp){
 		if(interp === undefined){ interp = 0.5; }
 		// protection against null data inside array
 		var vEdges = v.edges.filter(function(el){ return el !== undefined; });
@@ -612,7 +612,8 @@ class CreasePattern extends PlanarGraph{
 		}
 	}
 
-	creaseVoronoi(v, interp){
+	// use D3 voronoi calculation and pass in as argument 'v'
+	voronoi(v, interp){
 		if(interp === undefined){ interp = 0.5; }
 		// protection against null data inside array
 		var vEdges = v.edges.filter(function(el){ return el !== undefined; });

@@ -631,7 +631,8 @@ var CreasePattern = (function (_super) {
         }
         throw "axiom 7: two crease lines cannot be parallel";
     };
-    CreasePattern.prototype.creaseVoronoiSimple = function (v, interp) {
+    // use D3 voronoi calculation and pass in as argument 'v'
+    CreasePattern.prototype.voronoiSimple = function (v, interp) {
         if (interp === undefined) {
             interp = 0.5;
         }
@@ -662,7 +663,8 @@ var CreasePattern = (function (_super) {
             }
         }
     };
-    CreasePattern.prototype.creaseVoronoi = function (v, interp) {
+    // use D3 voronoi calculation and pass in as argument 'v'
+    CreasePattern.prototype.voronoi = function (v, interp) {
         if (interp === undefined) {
             interp = 0.5;
         }

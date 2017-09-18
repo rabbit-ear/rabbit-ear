@@ -13,7 +13,7 @@
 	</div>
 
 	<div class="quote">
-		<p>Computers render +Y axis downwards. Angles increase clockwise, and arc tangent gives results between -180 and +180.</p>
+		<p>Notice the angle value. Computers render +Y axis downwards. Angles increase clockwise.</p>
 	</div>
 
 	<div class="quote">

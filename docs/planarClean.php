@@ -80,8 +80,12 @@
 
 </section>
 
-<h2>Collinear Nodes</h2>
+<h2>Collinear Planar Graph Edges</h2>
 <section id="collinear-nodes">
+
+	<div class="quote">
+		<p>Collinear nodes can be removed, the two edges on either side merged into one.</p>
+	</div>
 
 	<div class="centered">
 		<canvas id="canvas-mouse-delete-edge" resize></canvas>

@@ -9,6 +9,11 @@ var voronoiAlgorithm; // global D3 algorithm implementation
 
 var vInterpolation = 0.5;
 
+var nodeCircles = [];
+
+var dragOn = false;
+var selectedNode = undefined;
+
 voronoiSketch.reset = function(){
 	this.cp.clear();
 	this.init();
@@ -17,33 +22,21 @@ voronoiSketch.reset = function(){
 voronoiSketch.reset();
 
 voronoiSketch.redraw = function(){
-
 	var nodes = input.nodes.map(function(el){return el.values();});
 	var v = voronoiAlgorithm( nodes );
-
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.creaseVoronoi(v, vInterpolation);
-	// var delaunay = voronoi.triangles( nodes );
-	// for(var i = 0; i < delaunay.length; i++){
-	// 	var triangle = delaunay[i];
-	// 	for(var j = 0; j < triangle.length; j++){
-	// 		var nextJ = (j+1)%3;
-	// 		this.cp.crease(triangle[j][0], triangle[j][1], triangle[nextJ][0], triangle[nextJ][1]).mark();
-	// 	}
-	// }
-	// console.log(v);
-	// console.log(delaunay);
+	this.cp.voronoi(v, vInterpolation);
 
-	// this.cp.clean();
-	// // this.cp.generateFaces();
-	this.updateWeights(0.005, 0.0025);
+	this.updateWeights(0.0025, 0.00125);
 	this.init();
 	// this.update();
 
+	nodeCircles = [];
 	for(var i = 0; i < nodes.length; i++){
-		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.01, fillColor:this.style.valley.strokeColor});
+		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.0025, fillColor:this.style.valley.strokeColor});
+		nodeCircles.push(nodeCircle);
 		nodeCircle.position = nodes[i];
 	}
 }
@@ -53,12 +46,35 @@ voronoiSketch.onResize = function(){
 }
 
 voronoiSketch.onMouseDown = function(event){
-
-	if(this.cp.pointInside(event.point)){ input.newPlanarNode(event.point.x, event.point.y); }
-	if(input.nodes.length < 2) return;
-
+	if(selectedNode === undefined){
+		if(this.cp.pointInside(event.point)){ input.newPlanarNode(event.point.x, event.point.y); }
+	} else{
+		dragOn = true;
+	}
 	this.redraw();
 }
-voronoiSketch.onMouseUp = function(event){ }
-voronoiSketch.onMouseMove = function(event) { }
+voronoiSketch.onMouseUp = function(event){ 
+	dragOn = false;
+}
+voronoiSketch.onMouseMove = function(event) { 
+	var mouse = event.point;
+	if(dragOn){
+		input.nodes[selectedNode].x = mouse.x;
+		input.nodes[selectedNode].y = mouse.y;
+		// var nodeCircle = nodeCircles[selectedNode];
+		// if(nodeCircle !== undefined){
+		// 	nodeCircle.position = event.point;
+		// }
+		this.redraw();
+	} else{
+		selectedNode = undefined;
+		for(var i = 0; i < input.nodes.length; i++){
+			if(nodeCircles[i] !== undefined){
+				var d = input.nodes[i].distance(event.point);
+				if(d < 0.01){ nodeCircles[i].radius = 0.005; selectedNode = i;}
+				else        { nodeCircles[i].radius = 0.0025; }
+			}
+		}
+	}
+}
 voronoiSketch.onFrame = function(event){ }

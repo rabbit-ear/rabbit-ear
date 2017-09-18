@@ -13,9 +13,9 @@ voronoiInterp.reset = function(){
 	this.cp.clear();
 	this.init();
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
-	for(var i = 0; i < 3; i++){
-		var x = map(Math.random(), 0, 1, 0.2, 0.8);
-		var y = map(Math.random(), 0, 1, 0.2, 0.8);
+	for(var i = 0; i < 4; i++){
+		var x = map(Math.random(), 0, 1, 0.1, 0.9);
+		var y = map(Math.random(), 0, 1, 0.1, 0.9);
 		input.newPlanarNode(x, y);
 	}
 }
@@ -29,7 +29,7 @@ voronoiInterp.redraw = function(){
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.creaseVoronoi(v, vInterpolation);
+	this.cp.voronoiSimple(v, vInterpolation);
 	// var delaunay = voronoi.triangles( nodes );
 	// for(var i = 0; i < delaunay.length; i++){
 	// 	var triangle = delaunay[i];
@@ -65,7 +65,7 @@ voronoiInterp.onMouseDown = function(event){
 voronoiInterp.onMouseUp = function(event){ }
 voronoiInterp.onMouseMove = function(event) { }
 voronoiInterp.onFrame = function(event){
-	vInterpolation = map( Math.sin(event.time*0.5), -1, 1, 0.4, 0.8 );
+	vInterpolation = map( Math.sin(event.time*0.75), -1, 1, 0.4, 0.8 );
 	if(voronoiInterpCallback !== undefined){
 		voronoiInterpCallback(vInterpolation);
 	}

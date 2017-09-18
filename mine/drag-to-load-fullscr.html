@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<style>
+html, body {
+	height:100%;
+	width:100%;
+	background-color: #333;
+	margin:0px;
+	padding:0px;
+}
+canvas[resize]{
+	width:100%;
+	height:98%;
+}
+div#dropZone {
+	background: black;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 999;
+	opacity: 0.6;
+	visibility: hidden;
+}
+</style>
+</head>
+<body>
+	<div id="dropZone"></div>
+	<canvas id="canvas" resize></canvas>
+	<input type="file" id="files" style="display:none;">
+	<a href="#" class="btn btn-lg btn-secondary" id="open-file" style="display:none;">Open File</a>
+</body>
+
+<script language="javascript" type="text/javascript" src="../src/graph.js"></script>
+<script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
+<script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
+<script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
+<script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
+
+<script>
+var project = new OrigamiPaper("canvas");
+
+function svgBlobLoaded(svg){
+	loadSVG(svg, function(cp){
+		project.cp = cp;
+		project.init();
+		project.update();
+		var svgMin = project.cp.svgMin();
+		download(svgMin, "creasepattern.svg");
+	});
+}
+
+</script>
+
+<!-- download svg blob -->
+<script>
+function download(text, filename){
+	var blob = new Blob([text], {type: "image/svg+xml"});
+	var url = window.URL.createObjectURL(blob);
+	var a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
+}
+</script>
+
+<!-- drag to upload -->
+<script>
+var dropZone = document.getElementById('dropZone');
+function showDropZone() { dropZone.style.visibility = "visible"; }
+function hideDropZone() { dropZone.style.visibility = "hidden"; }
+function allowDrag(e) {
+	if (true) {  // Test that the item being dragged is a valid one
+		e.dataTransfer.dropEffect = 'copy';
+		e.preventDefault();
+	}
+}
+function handleDrop(e) {
+	Function.prototype.bindToEventHandler = function bindToEventHandler() {
+		var handler = this;
+		var boundParameters = Array.prototype.slice.call(arguments);
+		//create closure
+		return function (e) {
+			e = e || window.event; // get window.event if e argument missing (in IE)   
+			boundParameters.unshift(e);
+			handler.apply(this, boundParameters);
+		}
+	};
+	e.preventDefault();
+	hideDropZone();
+	var dt = e.dataTransfer;
+	var files = dt.files;
+	for (var i = 0; i < files.length; i++) {
+		var file = files[i];
+		var reader = new FileReader();
+		//attach event handlers here...  
+		reader.readAsDataURL(file);
+		addEventHandler(reader, 'loadend', function (e, file) {
+			var bin = this.result;
+			var decoded = window.atob(this.result.substring(26));
+			svgBlobLoaded(decoded);
+		}.bindToEventHandler(file));
+	}
+	return true;
+}
+window.addEventListener('dragenter', function(e) { showDropZone(); });
+dropZone.addEventListener('dragenter', allowDrag);
+dropZone.addEventListener('dragover', allowDrag);
+dropZone.addEventListener('dragleave', function(e) { hideDropZone(); });
+dropZone.addEventListener('drop', handleDrop);
+function addEventHandler(obj, evt, handler) {
+	// w3c
+	if (obj.addEventListener){ obj.addEventListener(evt, handler, false); }
+	// ie
+	else if (obj.attachEvent) { obj.attachEvent('on' + evt, handler); }
+	// old
+	else { obj['on' + evt] = handler; }
+}
+</script>
+
+<!-- button to upload -->
+<script>
+document.getElementById("open-file").addEventListener("click", function(e){
+	e.preventDefault();
+	document.getElementById("files").click()
+});
+document.addEventListener('change', function(){
+	var input = $(this),
+		numFiles = input.get(0).files ? input.get(0).files.length : 1,
+		label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+	input.trigger('fileselect', [numFiles, label]);
+	readBlob();
+}, false);
+function readBlob() {
+	var files = document.getElementById('files').files;
+	if (!files.length) {
+		// they selected cancel
+		return;
+	}
+	var file = files[0];
+	var reader = new FileReader();
+	reader.onloadend = function(evt) {
+		if (evt.target.readyState == FileReader.DONE){
+			//byte range: ['Read ', file.size, ' byte file'].join('');
+			svgBlobLoaded(evt.target.result);
+		}
+	};
+	var blob = file.slice(0, file.size);
+	reader.readAsBinaryString(blob);
+}
+</script>
+
+</html>

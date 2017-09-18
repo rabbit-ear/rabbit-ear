@@ -20,15 +20,18 @@
 		<p><a href="http://github.com/robbykraft/Origami/">Download</a></p>
 	</div>
 
+<h2>Graphs</h2>
+	
+	<div class="quote">
+		<p>A crease pattern is built from a planar graph</p>
+	</div>
+
 	<div id="sketch_intersections" class="centered p5sketch"></div>
 	<div class="centered">
 		<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>getEdgeIntersections</f></a>();</code></pre>
 	</div>
 	<div class="quote">
-		<p>These docs are a diary of how I built this library</p>
-	</div>
-	<div class="quote">
-		<p>Click on a function or object inside the code to learn more</p>
+		<p>These pages are a diary of how I built this library. Many things are interactive.</p>
 	</div>
 <!-- 	<div class="quote">
 		<p><a href="planarGraph.php">About planar graphs ⇒</a></p>

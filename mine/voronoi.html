@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<style>
+html, body {
+	height:100%;
+	width:100%;
+	background-color: #333;
+	margin:0px;
+	padding:0px;
+}
+canvas[resize]{
+	width:100%;
+	height:86%;
+}
+</style>
+</head>
+<body>
+	<canvas id="canvas" resize></canvas>
+	<input type="file" id="files" style="display:none;">
+	<div style="text-align:center;">
+		<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
+	</div>
+</body>
+
+<script type="text/javascript" src="../lib/d3.min.js"></script>
+<script type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../src/graph.js"></script>
+<script type="text/javascript" src="../src/planarGraph.js"></script>
+<script type="text/javascript" src="../src/creasePattern.js"></script>
+<script type="text/javascript" src="../src/cp.paperjs.js"></script>
+<script src="../lib/bootstrap/js/tether.min.js"></script>
+<script src="../lib/jquery-3.2.1.slim.min.js"></script>
+<script src="../lib/bootstrap/js/popper.min.js"></script>
+<script src="../lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
+
+<!-- download svg blob -->
+<script>
+document.getElementById("download-file").addEventListener("click", function(e){
+	e.preventDefault();
+	var scale = 600 / project.cpMin;
+	var svgBlob = project.cp.svg(scale);
+	download(svgBlob, "creasepattern.svg");
+});
+function download(text, filename){
+	var blob = new Blob([text], {type: "image/svg+xml"});
+	var url = window.URL.createObjectURL(blob);
+	var a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
+}
+</script>	
+
+<script type="text/javascript">
+
+var project = new OrigamiPaper("canvas");
+project.updateWeights(0.005, 0.0025);
+project.zoomToFit();
+project.updateWeights(0.005, 0.0025);
+
+var input = new PlanarGraph();
+var voronoiAlgorithm; // global D3 algorithm implementation
+
+var vInterpolation = 0.5;
+
+var nodeCircles = [];
+
+var dragOn = false;
+var selectedNode = undefined;
+
+project.reset = function(){
+	this.cp.clear();
+	this.init();
+	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
+}
+project.reset();
+
+project.redraw = function(){
+	var nodes = input.nodes.map(function(el){return el.values();});
+	var v = voronoiAlgorithm( nodes );
+	this.cp.clear();
+	this.cp.nodes = [];
+	this.cp.edges = [];
+	this.cp.voronoi(v, vInterpolation);
+
+	this.updateWeights(0.0025, 0.00125);
+	this.init();
+	// this.update();
+
+	nodeCircles = [];
+	for(var i = 0; i < nodes.length; i++){
+		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.0025, fillColor:this.style.valley.strokeColor});
+		nodeCircles.push(nodeCircle);
+		nodeCircle.position = nodes[i];
+	}
+}
+
+project.onResize = function(){
+	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
+}
+
+project.onMouseDown = function(event){
+	if(selectedNode === undefined){
+		if(this.cp.pointInside(event.point)){ input.newPlanarNode(event.point.x, event.point.y); }
+	} else{
+		dragOn = true;
+	}
+	this.redraw();
+}
+project.onMouseUp = function(event){ 
+	dragOn = false;
+}
+project.onMouseMove = function(event) { 
+	var mouse = event.point;
+	if(dragOn){
+		input.nodes[selectedNode].x = mouse.x;
+		input.nodes[selectedNode].y = mouse.y;
+		// var nodeCircle = nodeCircles[selectedNode];
+		// if(nodeCircle !== undefined){
+		// 	nodeCircle.position = event.point;
+		// }
+		this.redraw();
+	} else{
+		selectedNode = undefined;
+		for(var i = 0; i < input.nodes.length; i++){
+			if(nodeCircles[i] !== undefined){
+				var d = input.nodes[i].distance(event.point);
+				if(d < 0.01){ nodeCircles[i].radius = 0.005; selectedNode = i;}
+				else        { nodeCircles[i].radius = 0.0025; }
+			}
+		}
+	}
+}
+project.onFrame = function(event){ }
+
+</script>
+
+</html>

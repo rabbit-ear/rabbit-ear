@@ -22,7 +22,7 @@
 	</div>
 
 	<div class="quote">
-		<p>It's easy to crease by hand to the 1/2 mark, with a computer we can parameterize this value.</p>
+		<p>By hand, it's easy to crease the line at the midpoint (0.5), with a computer we can parameterize this value.</p>
 	</div>
 
 

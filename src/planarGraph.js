@@ -329,6 +329,9 @@ var XY = (function () {
     XY.prototype.reflect = function (a, b) {
         return this.transform(new Matrix().reflection(a, b));
     };
+    XY.prototype.distance = function (a) {
+        return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2));
+    };
     return XY;
 }());
 /** This is a 2x3 matrix: 2x2 for scale and rotation and 2x1 for translation */
@@ -592,6 +595,9 @@ var PlanarNode = (function (_super) {
     /** reflects about a line that passes through 'a' and 'b' */
     PlanarNode.prototype.reflect = function (a, b) {
         return this.transform(new Matrix().reflection(a, b));
+    };
+    PlanarNode.prototype.distance = function (a) {
+        return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2));
     };
     return PlanarNode;
 }(GraphNode));

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+html, body {
+	margin: 0;
+	overflow: hidden;
+	height: 100%;
+	text-align:center;
+}
+canvas[resize] {
+	width: 100vmin;
+	height: 100vmin;
+}
+</style>
+<script type="text/javascript" src="../lib/d3.min.js"></script>
+<script type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../src/graph.js"></script>
+<script type="text/javascript" src="../src/planarGraph.js"></script>
+<script type="text/javascript" src="../src/creasePattern.js"></script>
+<script type="text/javascript" src="../src/cp.paperjs.js"></script>
+</head>
+<body>
+	<canvas id="canvas" resize></canvas>
+</body>
+<script type="text/javascript">
+
+var project = new OrigamiPaper("canvas");
+project.zoomToFit(0.05);
+
+project.style.mark.strokeWidth = 0.003;
+
+project.reset = function(){
+	project.cp.clear();
+	console.log("going to load");
+	loadSVG("../tests/svg/bunny-layer-2.svg", function(c){
+		console.log(c);
+		project.cp = c;
+		project.init();
+	});
+}
+project.reset();
+
+// project.onResize = function(){ }
+// project.onMouseDown = function(event){ }
+// project.onMouseUp = function(event){ }
+// project.onMouseMove = function(event) { }
+
+</script>
+
+</html>
