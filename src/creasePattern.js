@@ -29,6 +29,12 @@ var Fold = (function () {
     }
     return Fold;
 }());
+// crease pattern change callback, hook directly into cp.paperjs.js init()
+var ChangeType;
+(function (ChangeType) {
+    ChangeType[ChangeType["position"] = 0] = "position";
+    ChangeType[ChangeType["newLine"] = 1] = "newLine";
+})(ChangeType || (ChangeType = {}));
 var FoldSequence = (function () {
     function FoldSequence() {
     }
@@ -758,18 +764,18 @@ var CreasePattern = (function (_super) {
     // rectangular bounding box around the paper: [x,y],[width,height]
     CreasePattern.prototype.boundingBox = function () {
         var leftToRight = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); });
-        var topToBottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); });
         var left = leftToRight[0].x;
         var right = leftToRight[leftToRight.length - 1].x;
+        var topToBottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); });
         var top = topToBottom[0].y;
         var bottom = topToBottom[topToBottom.length - 1].y;
         return { origin: new XY(left, top), size: { width: right - left, height: bottom - top } };
     };
     CreasePattern.prototype.boundingBox_array = function () {
         var leftToRight = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); });
-        var topToBottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); });
         var left = leftToRight[0].x;
         var right = leftToRight[leftToRight.length - 1].x;
+        var topToBottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); });
         var top = topToBottom[0].y;
         var bottom = topToBottom[topToBottom.length - 1].y;
         return [[left, top], [right - left, bottom - top]];
@@ -779,8 +785,6 @@ var CreasePattern = (function (_super) {
         var leftToRight = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); });
         var left = leftToRight[0];
         var right = leftToRight[leftToRight.length - 1];
-        // console.log("w left: " + left);
-        // console.log("w right: " + right);
         return right.x - left.x;
     };
     CreasePattern.prototype.height = function () {
@@ -788,8 +792,6 @@ var CreasePattern = (function (_super) {
         var topToBottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); });
         var top = topToBottom[0];
         var bottom = topToBottom[topToBottom.length - 1];
-        // console.log("h top: " + top);
-        // console.log("h bottom: " + bottom);
         return bottom.y - top.y;
     };
     CreasePattern.prototype.square = function (width) {
@@ -1145,19 +1147,22 @@ var CreasePattern = (function (_super) {
         return paths;
     };
     CreasePattern.prototype.svgMin = function (size) {
-        var paths = this.joinedPaths();
-        var width = this.width();
-        var height = this.height();
         if (size === undefined || size <= 0) {
             size = 600;
         }
-        var scale = size / width;
+        var bounds = this.boundingBox();
+        var width = bounds.size.width;
+        var height = bounds.size.height;
+        var padX = bounds.origin.x;
+        var padY = bounds.origin.y;
+        var scale = size / (width + padX * 2);
         var strokeWidth = (width * scale * 0.0025).toFixed(1);
         if (strokeWidth === "0" || strokeWidth === "0.0") {
             strokeWidth = "0.5";
         }
+        var paths = this.joinedPaths();
         var blob = "";
-        blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" + (width * scale) + "px\" height=\"" + (height * scale) + "px\" viewBox=\"0 0 " + (width * scale) + " " + (height * scale) + "\">\n<g>\n";
+        blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" + ((width + padX * 2) * scale) + "px\" height=\"" + ((height + padY * 2) * scale) + "px\" viewBox=\"0 0 " + ((width + padX * 2) * scale) + " " + ((height + padY * 2) * scale) + "\">\n<g>\n";
         for (var i = 0; i < paths.length; i++) {
             if (paths[i].length >= 0) {
                 blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
@@ -1177,13 +1182,16 @@ var CreasePattern = (function (_super) {
         if (size === undefined || size <= 0) {
             size = 600;
         }
-        var width = this.width();
-        var height = this.height();
-        var scale = size / width;
+        var bounds = this.boundingBox();
+        var width = bounds.size.width;
+        var height = bounds.size.height;
+        var padX = bounds.origin.x;
+        var padY = bounds.origin.y;
+        var scale = size / (width + padX * 2);
         var blob = "";
-        var widthScaled = (width * scale).toFixed(2);
-        var heightScaled = (height * scale).toFixed(2);
-        var strokeWidth = (width * scale * 0.0025).toFixed(1);
+        var widthScaled = ((width + padX * 2) * scale).toFixed(2);
+        var heightScaled = ((height + padY * 2) * scale).toFixed(2);
+        var strokeWidth = ((width + padX * 2) * scale * 0.0025).toFixed(1);
         if (strokeWidth === "0" || strokeWidth === "0.0") {
             strokeWidth = "0.5";
         }

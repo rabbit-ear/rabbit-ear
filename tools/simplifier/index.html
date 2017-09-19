@@ -54,27 +54,13 @@ div#dropZone {
 var project = new OrigamiPaper("canvas");
 
 function svgBlobLoaded(svg){
-	loadSVG(svg, function(cp){
-		project.cp = cp;
-		project.init();
-		project.zoomToFit();
-		project.update();
+	
+	project.load(svg, function(){
 		var scale = 600 / cp.width();
 		if(isNaN(scale) || scale === undefined){ scale = 1.0; }
-		var svgMin = project.cp.svg(scale);
+		var svgMin = project.cp.svgMin(scale);
 		download(svgMin, "creasepattern.svg");
 	});
-	// loadSVGUnclean(svg, function(cp){
-	// 	console.log(cp.clean(0.1));
-	// 	project = new OrigamiPaper("canvas", cp);
-	// 	// project.cp = cp;
-	// 	// console.log(project.cp.cleanAllUselessNodes());
-	// 	// console.log(project.cp.clean());
-	// 	// project.init();
-	// 	project.zoomToFit();
-	// 	var svgMin = project.cp.svgMin();
-	// 	download(svgMin, "creasepattern.svg");
-	// }, 1);
 }
 
 </script>

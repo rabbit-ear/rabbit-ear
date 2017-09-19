@@ -130,25 +130,19 @@
 <script language="javascript" type="text/javascript" src="../tests/js/11_merge_duplicates.js"></script>
 
 <script>
+	
 var crane1CP = new OrigamiPaper("canvas-crane-1", cp);
-loadSVGUnclean("/tests/svg/crane-errors.svg", function(cp){ 
-	// crane1CP = new OrigamiPaper("canvas-folded", cp);
-	crane1CP.cp = cp;
-	paper = crane1CP.scope; 
+crane1CP.loadUnclean("/tests/svg/crane-errors.svg", function(){ 
 	crane1CP.zoomToFit(0.05);
-	crane1CP.init();
 	crane1CP.selectNearestEdge = true;
 });
 
 var crane2CP = new OrigamiPaper("canvas-crane-2", cp);
-loadSVG("/tests/svg/crane-errors.svg", function(cp){ 
-	// crane2CP = new OrigamiPaper("canvas-folded", cp);
-	crane2CP.cp = cp;
-	paper = crane2CP.scope; 
+crane2CP.load("/tests/svg/crane-errors.svg", function(){ 
 	crane2CP.zoomToFit(0.05);
-	crane2CP.init();
 	crane2CP.selectNearestEdge = true;
 });
+
 </script>
 
 <script>
