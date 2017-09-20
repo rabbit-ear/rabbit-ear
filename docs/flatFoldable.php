@@ -2,9 +2,11 @@
 
 <h1>FLAT FOLDABLE</h1>
 
+<div class="centered">
+	<canvas id="canvas-folded-crane" class="large" resize></canvas>
+</div>
 
 <section id="flat-foldable">
-
 <h2>Locally Flat Foldable</h2>
 
 	<div class="quote">
@@ -45,6 +47,14 @@
 
 <script type="text/javascript" src="../tests/js/flat_foldable_nodes_wiggle.js"></script>
 <script type="text/javascript" src="../tests/js/flat_foldable_single.js"></script>
+
+<script>
+var foldedCrane = new OrigamiFold("canvas-folded-crane");
+foldedCrane.load("../tests/svg/crane.svg", function(){
+	foldedCrane.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+	foldedCrane.update();
+});
+</script>
 
 <script>
 flat_foldable_single_callback = function(e){

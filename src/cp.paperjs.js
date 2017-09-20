@@ -87,6 +87,21 @@ var OrigamiFold = (function(){
 		}
 	};
 
+	OrigamiFold.prototype.load = function(svg, callback, epsilon){
+		var that = this;
+		this.scope.project.importSVG(svg, function(e){
+			var cp = paperPathToCP(e);
+			if(epsilon === undefined){ epsilon = EPSILON_FILE_IMPORT; }
+			cp.clean(epsilon);
+			that.cp = cp;
+			that.init();
+			// that.setCreasePattern( cp );
+			if(callback != undefined){
+				callback(this.cp);
+			}
+		});
+	}
+
 	OrigamiFold.prototype.fold = function(){
 		// find a face near the middle
 		if(this.cp === undefined){ return; }

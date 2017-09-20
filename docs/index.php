@@ -23,7 +23,7 @@
 <h2>Graphs</h2>
 	
 	<div class="quote">
-		<p>A crease pattern is built from a planar graph</p>
+		<p>A planar graph is a graph (nodes &amp; edges) with the addition of 2D space</p>
 	</div>
 
 	<div id="sketch_intersections" class="centered p5sketch"></div>
@@ -51,7 +51,7 @@
 <h2>About</h2>
 	<div class="quote">
 		<p>This is <a href="http://github.com/robbykraft/Origami/">in development</a></p>
-		<p>These docs make heavy use of <a href="http://paperjs.org/">paper.js</a>, <a href="http://d3js.org/">d3.js</a>, and <a href="http://p5js.org/">p5.js</a></p>
+		<p>These docs make heavy use of <a href="http://paperjs.org/">paper.js</a>, <a href="http://d3js.org/">d3.js</a>, and <a href="http://p5js.org/">p5.js</a>. Thank you developers.</p>
 		<p>This libary is available under the MIT open source license.</p>
 	</div>
 

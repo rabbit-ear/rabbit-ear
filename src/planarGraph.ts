@@ -320,7 +320,7 @@ class Matrix{
 }
 class AdjacentNodes{
 	// node adjacent to node, with angle offset and connecting edge
-	parent:PlanarNode;  // "first" node, polarity needed for angle calculation
+	parent:PlanarNode;  // "first" node, polarity required for angle calculation
 	node:PlanarNode;
 	angle:number; // radians, angle from parent to node
 	edge:PlanarEdge;  // edge connecting the two nodes

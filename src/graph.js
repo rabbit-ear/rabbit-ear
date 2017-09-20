@@ -404,7 +404,7 @@ var Graph = (function () {
         this.nodeArrayDidChange();
         return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
     };
-    /** Clean calls cleanGraph(), unless this class has been subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
+    /** Clean calls cleanGraph(), gets overwritten when subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
      * @returns {GraphCleanReport} the number of edges removed
      */
     Graph.prototype.clean = function () {

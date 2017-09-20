@@ -1,8 +1,22 @@
 <?php include 'header.php';?>
+<script language="javascript" type="text/javascript" src="../lib/d3.min.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.d3js.js"></script>
 
 <h1>MATH</h1>
 
 <section id="intro">
+	<div class="quote">
+		<p>The more 2D linear algebra I have thrown at this library the better.</p>
+	</div>
+
+	<div class="centered">
+		<svg id="svgTest00" width="400" height="400"></svg>
+	</div>
+
+	<div class="quote">
+		<p>The svg</p>
+	</div>
+
 
 	<div class="centered">
 		<canvas id="canvas-radial-rainbow" resize></canvas>
@@ -21,7 +35,7 @@
 	</div>
 
 </section>
-
+<script language="javascript" type="text/javascript" src="../tests/js/graph_simple.js"></script>
 <script type="text/javascript" src="../tests/js/radial_rainbow.js"></script>
 <script>
 radial_rainbow_callback = function(event){
