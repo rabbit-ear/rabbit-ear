@@ -16,14 +16,7 @@
 //  "isolated": a node is isolated if it is connected to 0 edges, degree 0
 //  "leaf": a node is a leaf if it is connected to only 1 edge, degree 1
 "use strict";
-var EdgeNodeCount = (function () {
-    function EdgeNodeCount(edgeCount, nodeCount) {
-        this.edges = edgeCount;
-        this.nodes = nodeCount;
-    }
-    return EdgeNodeCount;
-}());
-/** When a graph is cleaned it returns this change log */
+/** a change log report for when a graph is cleaned */
 var GraphCleanReport = (function () {
     function GraphCleanReport() {
         this.nodes = { isolated: 0 };

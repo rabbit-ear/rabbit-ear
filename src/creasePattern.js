@@ -222,9 +222,16 @@ var CreasePattern = (function (_super) {
         }
         for (var i = 0; i < this.boundary.faces.length; i++) {
             var bf = new PlanarFace(b);
+            bf.graph = b; // redundant
             Object.assign(bf, this.boundary.faces[i]);
+            bf.nodes = [];
+            bf.edges = [];
+            bf.angles = [];
             for (var j = 0; j < this.boundary.faces[i].nodes.length; j++) {
                 bf.nodes.push(b.nodes[this.boundary.faces[i].nodes[j].index]);
+                if (j > 1000) {
+                    throw "quit";
+                }
             }
             for (var j = 0; j < this.boundary.faces[i].edges.length; j++) {
                 bf.edges.push(b.edges[this.boundary.faces[i].edges[j].index]);
@@ -232,7 +239,6 @@ var CreasePattern = (function (_super) {
             for (var j = 0; j < this.boundary.faces[i].angles.length; j++) {
                 bf.angles.push(this.boundary.faces[i].angles[j]);
             }
-            bf.graph = b;
             b.faces.push(f);
         }
         g.boundary = b;
@@ -862,6 +868,7 @@ var CreasePattern = (function (_super) {
         }
         this.cleanDuplicateNodes();
         this.boundary.cleanDuplicateNodes();
+        this.boundary.generateFaces();
         return this;
     };
     ///////////////////////////////////////////////////////////////
@@ -1034,6 +1041,18 @@ var CreasePattern = (function (_super) {
                     this.nodes[i].y = this.landmarkNodes[j].y;
                 }
             }
+        }
+    };
+    CreasePattern.prototype.contains = function (a, b) {
+        var point;
+        if (isValidPoint(a)) {
+            point = a;
+        }
+        else if (isValidNumber(a) && isValidNumber(b)) {
+            point = new XY(a, b);
+        }
+        if (this.boundary.faces.length > 0) {
+            return this.boundary.faces[0].contains(point);
         }
     };
     CreasePattern.prototype.kawasaki = function (nodeIndex) {

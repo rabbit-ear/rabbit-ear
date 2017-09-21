@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<style>
+html, body {
+	height:100%;
+	width:100%;
+	background-color: #eee;
+	margin:0px;
+	padding:0px;
+}
+canvas[resize]{
+	width:100%;
+	height:86%;
+}
+div#dropZone {
+	background: black;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 999;
+	opacity: 0.6;
+	visibility: hidden;
+}
+</style>
+</head>
+<body>
+	<div id="dropZone"></div>
+	<canvas id="canvas" resize></canvas>
+	<input type="file" id="files" style="display:none;">
+	<div class="container">
+		<div class="row justify-content-md-center">
+			<div class="col-sm">
+				<div class="btn-group" id="radio-target-type" data-toggle="buttons">
+					<label class="btn btn-outline-secondary active">
+						<input type="radio" name="options" id="radio-button-point" autocomplete="off" checked> Point
+					</label>
+					<label class="btn btn-outline-secondary">
+						<input type="radio" name="options" id="radio-button-line" autocomplete="off"> Line
+					</label>
+				</div>
+			</div>
+			<div class="col-sm">
+				<input type="number" class="form-control" id="target-x1" placeholder="x">
+			</div>
+			<div class="col-sm">
+				<input type="number" class="form-control" id="target-y1" placeholder="y">
+			</div>
+			<div class="col-sm" id="col-target-x2" style="display:none;">
+				<input type="number" class="form-control" id="target-x2" placeholder="x">
+			</div>
+			<div class="col-sm" id="col-target-y2" style="display:none;">
+				<input type="number" class="form-control" id="target-y2" placeholder="y">
+			</div>
+			<div class="col-sm">
+				<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
+					<label class="btn btn-outline-secondary active">
+						<input type="radio" name="options" id="radio-button-add" autocomplete="off" checked> Crease
+					</label>
+					<label class="btn btn-outline-secondary">
+						<input type="radio" name="options" id="radio-button-remove" autocomplete="off"> Remove Crease
+					</label>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script language="javascript" type="text/javascript" src="../src/graph.js"></script>
+<script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
+<script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
+<script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
+
+<script src="../lib/bootstrap/js/tether.min.js"></script>
+<script src="../lib/jquery-3.2.1.slim.min.js"></script>
+<script src="../lib/bootstrap/js/popper.min.js"></script>
+<script src="../lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
+
+<script>
+
+$("#radio-target-type :input").change(function() {
+	switch(this.id){
+	case "radio-button-point":
+		$("#col-target-x2").css("display", "none");
+		$("#col-target-y2").css("display", "none");
+	break;
+	case "radio-button-line":
+		$("#col-target-x2").css("display", "block");
+		$("#col-target-y2").css("display", "block");
+	break;
+	}
+});
+
+$("#radio-input-mode :input").change(function() {
+	switch(this.id){
+	case "radio-button-add":
+		project.inputMode = "add";
+	break;
+	case "radio-button-remove":
+		project.inputMode = "remove";
+	break;
+	}
+});
+
+// document.getElementById("radio-button-point").addEventListener("click", function(){
+// 	console.log("oiot");
+// }, false);
+// document.getElementById("radio-button-line").addEventListener("click", function(){
+
+// }, false);
+
+</script>
+
+<script>
+var project = new OrigamiPaper("canvas");
+project.zoomToFit(0.05);
+project.style.border.strokeWidth = 0.002;
+project.update();
+
+project.nextSet = new CreasePattern();
+project.nextSetLayer = new project.scope.Layer();
+project.selectedNextLayer = new project.scope.Layer();
+
+project.inputMode = "add";
+// project.inputMode = "remove";
+
+var target = new XY(0, 0.287308);
+project.targetLayer = new project.scope.Layer();
+	
+project.recalculateFolds = function(){
+	this.nextSet = this.cp.possibleFolds();
+	this.selectedNextLayer.removeChildren();
+	this.selectedNextLayer.activate();
+	for(var i = 0; i < this.nextSet.edges.length; i++){
+		var newPath = new this.scope.Path({segments: this.nextSet.edges[i].nodes, closed: false });
+		Object.assign(newPath, this.style.mark);
+		newPath.strokeWidth = 0.001;
+	}
+	this.selectedNextLayer.sendToBack();
+	this.backgroundLayer.sendToBack();
+	this.nextSetLayer.bringToFront();
+	this.targetLayer.bringToFront();
+}
+
+project.reset = function(){
+	paper = this.scope; 
+
+	this.recalculateFolds();
+
+	// circle around the target point
+	this.targetLayer.removeChildren();
+	this.targetLayer.activate();
+	var targetCircle = new this.scope.Path.Circle(target, 0.015);
+	Object.assign(targetCircle, { strokeWidth: 0.01, strokeColor: {red:1.0, green:0.0, blue:0.0}, fillColor: undefined });
+}
+project.reset();
+
+project.onFrame = function(event) { }
+project.onResize = function(event) { }
+project.onMouseDown = function(event){
+	if(selectedEdge !== undefined){
+		switch(this.inputMode){
+		case "add":
+			var crease = this.cp.crease(selectedEdge.edge.nodes[0], selectedEdge.edge.nodes[1]);
+			if(crease !== undefined){ 
+				crease.valley(); 
+			}
+		break;
+		case "remove":
+			if(selectedEdge.edge.orientation !== CreaseDirection.border){
+				this.cp.removeEdge(selectedEdge.edge);
+			}
+		break;
+		}
+		this.init();
+		this.recalculateFolds();
+	}
+}
+project.onMouseUp = function(event){ }
+project.onMouseMove = function(event) { 
+	this.nextSetLayer.removeChildren();
+	this.nextSetLayer.activate();
+	if(!this.cp.contains(event.point)){ return; }
+	switch(this.inputMode){
+	case "add":
+		selectedEdge = this.nextSet.getNearestEdge(event.point.x, event.point.y);
+	break;
+	case "remove":
+		selectedEdge = this.cp.getNearestEdge(event.point.x, event.point.y);
+	break;
+	}
+	if(selectedEdge != undefined){
+		var newPath = new paper.Path({segments: selectedEdge.edge.nodes, closed: false });
+		Object.assign(newPath, this.style.mark);
+		newPath.strokeColor = {hue:0, saturation:1, brightness:1};
+		if(selectedEdge.edge === undefined || selectedEdge.edge.madeBy === undefined || selectedEdge.edge.madeBy.args === undefined){ return; }
+		var args = selectedEdge.edge.madeBy.args;
+		if(args.length === 2){
+			var points = [[args[0].x, args[0].y],
+			              [args[1].x, args[1].y] ];
+			var circle0 = new paper.Path.Circle(points[0], 0.01);
+			var circle1 = new paper.Path.Circle(points[1], 0.01);
+			Object.assign(circle0, { strokeWidth: 0.01, strokeColor: {gray:0.0}, fillColor: undefined });
+			Object.assign(circle1, { strokeWidth: 0.01, strokeColor: {gray:0.0}, fillColor: undefined });
+		}
+		if(args.length === 4){
+			var seg1 = [[args[0].x, args[0].y],
+			            [args[1].x, args[1].y] ];
+			var newPath1 = new paper.Path({segments: seg1, closed: false });
+			Object.assign(newPath1, this.style.mountain);
+			newPath1.strokeColor = { gray:0.0 };//{hue:0, saturation:1, brightness:1};//{hue:140, saturation:0.7, brightness:0.9};
+			// newPath1.strokeWidth = 0.015;
+
+			var seg2 = [[args[2].x, args[2].y],
+			            [args[3].x, args[3].y] ];
+			var newPath2 = new paper.Path({segments: seg2, closed: false });
+			Object.assign(newPath2, this.style.mountain);
+			newPath2.strokeColor = { gray:0.0 };//{hue:0, saturation:1, brightness:1};//{hue:140, saturation:0.7, brightness:0.9};
+			// newPath2.strokeWidth = 0.015;
+		}
+	}
+}
+
+
+function svgBlobLoaded(svg){
+	project.loadUnclean(svg, function(){
+		project.cp.square();
+		for(var i = 0; i < project.cp.edges.length; i++){ 
+			if(project.cp.edges[i].orientation !== CreaseDirection.border)
+				project.cp.edges[i].valley(); 
+		}
+		project.init();
+		project.style.border.strokeWidth = 0.002;
+		project.update();
+		project.recalculateFolds();
+	});
+	// loadSVG(svg, function(cp){
+	// 	for(var i = 0; i < cp.edges.length; i++){ cp.edges[i].valley(); }
+	// 	project.setCreasePattern(cp);
+	// 	project.recalculateFolds();
+	// });
+}
+
+</script>
+
+<!-- download svg blob -->
+<script>
+// document.getElementById("download-file").addEventListener("click", function(e){
+// 	e.preventDefault();
+// 	var scale = 600 / project.cpMin;
+// 	var svgBlob = project.cp.svg(scale);
+// 	download(svgBlob, "creasepattern.svg");
+// });
+// function download(text, filename){
+// 	var blob = new Blob([text], {type: "image/svg+xml"});
+// 	var url = window.URL.createObjectURL(blob);
+// 	var a = document.createElement("a");
+// 	a.href = url;
+// 	a.download = filename;
+// 	a.click();
+// }
+</script>
+
+<!-- drag to upload -->
+<script>
+var dropZone = document.getElementById('dropZone');
+function showDropZone() { dropZone.style.visibility = "visible"; }
+function hideDropZone() { dropZone.style.visibility = "hidden"; }
+function allowDrag(e) {
+	if (true) {  // Test that the item being dragged is a valid one
+		e.dataTransfer.dropEffect = 'copy';
+		e.preventDefault();
+	}
+}
+function handleDrop(e) {
+	Function.prototype.bindToEventHandler = function bindToEventHandler() {
+		var handler = this;
+		var boundParameters = Array.prototype.slice.call(arguments);
+		//create closure
+		return function (e) {
+			e = e || window.event; // get window.event if e argument missing (in IE)   
+			boundParameters.unshift(e);
+			handler.apply(this, boundParameters);
+		}
+	};
+	e.preventDefault();
+	hideDropZone();
+	var dt = e.dataTransfer;
+	var files = dt.files;
+	for (var i = 0; i < files.length; i++) {
+		var file = files[i];
+		var reader = new FileReader();
+		//attach event handlers here...  
+		reader.readAsDataURL(file);
+		addEventHandler(reader, 'loadend', function (e, file) {
+			var bin = this.result;
+			var decoded = window.atob(this.result.substring(26));
+			svgBlobLoaded(decoded);
+		}.bindToEventHandler(file));
+	}
+	return true;
+}
+window.addEventListener('dragenter', function(e) { showDropZone(); });
+dropZone.addEventListener('dragenter', allowDrag);
+dropZone.addEventListener('dragover', allowDrag);
+dropZone.addEventListener('dragleave', function(e) { hideDropZone(); });
+dropZone.addEventListener('drop', handleDrop);
+function addEventHandler(obj, evt, handler) {
+	// w3c
+	if (obj.addEventListener){ obj.addEventListener(evt, handler, false); }
+	// ie
+	else if (obj.attachEvent) { obj.attachEvent('on' + evt, handler); }
+	// old
+	else { obj['on' + evt] = handler; }
+}
+</script>
+
+
+</html>

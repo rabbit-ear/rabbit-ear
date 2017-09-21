@@ -409,7 +409,7 @@ var OrigamiPaper = (function () {
 		// mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
 		mat.translate(-cpWidth*0.5 - cpBounds.origin.x, -cpHeight*0.5 - cpBounds.origin.y);
 		this.scope.view.matrix = mat;
-		this.updateWeights();
+		// this.updateWeights();
 		return mat;
 	};
 
@@ -463,18 +463,18 @@ var OrigamiPaper = (function () {
 
 	// todo get rid of this
 	OrigamiPaper.prototype.updateWeights = function(strokeFraction, circleFraction){
-		if(this.style === undefined){ return; }
-		if(strokeFraction === undefined){ strokeFraction = 0.01; }
-		if(circleFraction === undefined){ circleFraction = 0.015; }
-		var strokeWeight = this.cpMin * strokeFraction;
-		var circleRadius = this.cpMin * circleFraction;
-		this.style.nodes.radius = circleRadius;
-		this.style.selectedNode.radius = circleRadius / 0.75;
-		this.style.mountain.strokeWidth = strokeWeight;
-		this.style.valley.strokeWidth = strokeWeight;
-		this.style.valley.dashArray = [strokeWeight*2, strokeWeight*2];
-		this.style.border.strokeWidth = strokeWeight;
-		this.style.mark.strokeWidth = strokeWeight*0.66666;
+		// if(this.style === undefined){ return; }
+		// if(strokeFraction === undefined){ strokeFraction = 0.01; }
+		// if(circleFraction === undefined){ circleFraction = 0.015; }
+		// var strokeWeight = this.cpMin * strokeFraction;
+		// var circleRadius = this.cpMin * circleFraction;
+		// this.style.nodes.radius = circleRadius;
+		// this.style.selectedNode.radius = circleRadius / 0.75;
+		// this.style.mountain.strokeWidth = strokeWeight;
+		// this.style.valley.strokeWidth = strokeWeight;
+		// this.style.valley.dashArray = [strokeWeight*2, strokeWeight*2];
+		// this.style.border.strokeWidth = strokeWeight;
+		// this.style.mark.strokeWidth = strokeWeight*0.66666;
 	}
 	OrigamiPaper.prototype.defaultStyleTemplate = function(){
 		if(this.style === undefined){ this.style = {}; }
@@ -509,7 +509,7 @@ var OrigamiPaper = (function () {
 				strokeColor: { hue:220, saturation:0.6, brightness:1 },
 				dashArray: [strokeWidth*2, strokeWidth*2],
 				// dashArray: undefined,
-				strokeWidth: this.style.strokeWidth,
+				strokeWidth: strokeWidth,
 				strokeCap : 'round'
 			},
 			border: {

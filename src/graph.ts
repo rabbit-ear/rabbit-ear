@@ -18,16 +18,7 @@
 
 "use strict";
 
-class EdgeNodeCount{
-	edges:number;
-	nodes:number;
-	constructor(edgeCount, nodeCount){
-		this.edges = edgeCount;
-		this.nodes = nodeCount;
-	}
-}
-
-/** When a graph is cleaned it returns this change log */
+/** a change log report for when a graph is cleaned */
 class GraphCleanReport {
 	edges:{duplicate:number, circular:number};
 	nodes:{isolated:number};  // nodes removed for being unattached to any edge

@@ -16,8 +16,8 @@ var EPSILON_COLLINEAR = EPSILON_LOW;//Math.PI * 0.001; // what decides 2 similar
 function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
 function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
 /////////////////////////////// NUMBERS /////////////////////////////// 
-function map(input:number, floor1:number, ceiling1:number, floor2:number, ceiling2:number):number{
-	return ( (input - floor1) / (ceiling1 - floor1) ) * (ceiling2 - floor2) + floor2;
+function map(input:number, fl1:number, ceil1:number, fl2:number, ceil2:number):number{
+	return ( (input - fl1) / (ceil1 - fl1) ) * (ceil2 - fl2) + fl2;
 }
 /** are 2 numbers similar to each other within an epsilon range. */
 function epsilonEqual(a:number, b:number, epsilon?:number):boolean{
@@ -98,10 +98,11 @@ function rayLineSegmentIntersection(rayOrigin:XY, rayDirection:XY, point1:XY, po
 	var t1 = cross / dot;
 	var t2 = (v1.x*vRayPerp.x + v1.y*vRayPerp.y) / dot;
 	if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)){
+		return new XY(rayOrigin.x + rayDirection.x * t1, rayOrigin.y + rayDirection.y * t1);
 		// todo: really, we need to move beyond the need for whole numbers
-		var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
-		var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
-		return new XY(x, y);
+		// var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
+		// var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
+		// return new XY(x, y);
 	}
 }
 function lineIntersectionAlgorithm(p0:XY, p1:XY, p2:XY, p3:XY):XY {
@@ -170,7 +171,7 @@ function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY)
 	if(!isNaN(x2)){ intersections.push( new XY(x2 + center.x, y2 + center.y) ); }
 	return intersections;
 }
-function convexHull(points){
+function convexHull(points:XY[]):XY[]{
 	// validate input
 	if(points === undefined || points.length === 0){ return []; }
 	// # points in the convex hull before escaping function
@@ -196,7 +197,7 @@ function convexHull(points){
 			.map(function(el){
 				var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
 				while(angle < ang){ angle += Math.PI*2; }
-				return {node:el, angle:angle}; })
+				return {node:el, angle:angle, distance:undefined}; })  // distance to be set later
 			.sort(function(a,b){return (a.angle < b.angle)?-1:(a.angle > b.angle)?1:0});
 		if(angles.length === 0){ return []; }
 		// narrowest-most right turn

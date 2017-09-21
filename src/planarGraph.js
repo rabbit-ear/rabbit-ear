@@ -22,8 +22,8 @@ var EPSILON_COLLINEAR = EPSILON_LOW; //Math.PI * 0.001; // what decides 2 simila
 function isValidPoint(point) { return (point !== undefined && !isNaN(point.x) && !isNaN(point.y)); }
 function isValidNumber(n) { return (n !== undefined && !isNaN(n) && !isNaN(n)); }
 /////////////////////////////// NUMBERS /////////////////////////////// 
-function map(input, floor1, ceiling1, floor2, ceiling2) {
-    return ((input - floor1) / (ceiling1 - floor1)) * (ceiling2 - floor2) + floor2;
+function map(input, fl1, ceil1, fl2, ceil2) {
+    return ((input - fl1) / (ceil1 - fl1)) * (ceil2 - fl2) + fl2;
 }
 /** are 2 numbers similar to each other within an epsilon range. */
 function epsilonEqual(a, b, epsilon) {
@@ -128,10 +128,11 @@ function rayLineSegmentIntersection(rayOrigin, rayDirection, point1, point2) {
     var t1 = cross / dot;
     var t2 = (v1.x * vRayPerp.x + v1.y * vRayPerp.y) / dot;
     if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)) {
+        return new XY(rayOrigin.x + rayDirection.x * t1, rayOrigin.y + rayDirection.y * t1);
         // todo: really, we need to move beyond the need for whole numbers
-        var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
-        var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
-        return new XY(x, y);
+        // var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
+        // var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
+        // return new XY(x, y);
     }
 }
 function lineIntersectionAlgorithm(p0, p1, p2, p3) {
@@ -263,8 +264,8 @@ function convexHull(points) {
             while (angle < ang) {
                 angle += Math.PI * 2;
             }
-            return { node: el, angle: angle };
-        })
+            return { node: el, angle: angle, distance: undefined };
+        }) // distance to be set later
             .sort(function (a, b) { return (a.angle < b.angle) ? -1 : (a.angle > b.angle) ? 1 : 0; });
         if (angles.length === 0) {
             return [];

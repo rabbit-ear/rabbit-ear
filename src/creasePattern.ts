@@ -212,11 +212,18 @@ class CreasePattern extends PlanarGraph{
 		}
 		for(var i = 0; i < this.boundary.faces.length; i++){
 			var bf = new PlanarFace(b);
+			bf.graph = b;  // redundant
 			(<any>Object).assign(bf, this.boundary.faces[i]);
-			for(var j=0;j<this.boundary.faces[i].nodes.length;j++){bf.nodes.push(b.nodes[this.boundary.faces[i].nodes[j].index]);}
+			bf.nodes = [];
+			bf.edges = [];
+			bf.angles = [];
+			for(var j=0;j<this.boundary.faces[i].nodes.length;j++){
+			
+				bf.nodes.push(b.nodes[this.boundary.faces[i].nodes[j].index]);
+				if(j > 1000){ throw "quit"; }
+			}
 			for(var j=0;j<this.boundary.faces[i].edges.length;j++){bf.edges.push(b.edges[this.boundary.faces[i].edges[j].index]);}
 			for(var j=0;j<this.boundary.faces[i].angles.length;j++){bf.angles.push(this.boundary.faces[i].angles[j]); }
-			bf.graph = b;
 			b.faces.push(f);
 		}
 		g.boundary = b;
@@ -801,6 +808,7 @@ class CreasePattern extends PlanarGraph{
 		}
 		this.cleanDuplicateNodes();
 		this.boundary.cleanDuplicateNodes();
+		this.boundary.generateFaces();
 		return this;
 	}
 
@@ -961,6 +969,16 @@ class CreasePattern extends PlanarGraph{
 			}
 		}
 	}
+
+	contains(a:any, b:any):boolean{
+		var point;
+		if(isValidPoint(a)){ point = a; }
+		else if(isValidNumber(a) && isValidNumber(b)){ point = new XY(a,b);}
+		if(this.boundary.faces.length > 0){
+			return this.boundary.faces[0].contains(point);
+		}
+	}
+
 
 	kawasaki(nodeIndex){
 		// this hands back an array of angles, the spaces between edges, clockwise.

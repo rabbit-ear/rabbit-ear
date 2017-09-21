@@ -123,6 +123,10 @@ project.onMouseMove = function(event) {
 		// if(nodeCircle !== undefined){
 		// 	nodeCircle.position = event.point;
 		// }
+		if(!this.cp.contains(mouse.x, mouse.y)){
+			dragOn = false;
+			input.nodes.splice(selectedNode,1);
+		}
 		this.redraw();
 	} else{
 		selectedNode = undefined;

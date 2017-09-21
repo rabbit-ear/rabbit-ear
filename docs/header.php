@@ -39,7 +39,6 @@
 		<li class="dropdown">
 			<a href="planarGraph.php" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
-			<a href="math.php">MATH</a>
 			<a href="planarClean.php">CLEAN</a>
 			<a href="face.php">FACE</a>
 			<a href="reflection.php">REFLECTION</a>
