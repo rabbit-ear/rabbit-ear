@@ -130,6 +130,13 @@ var target = new XY(0, 0.287308);
 project.targetLayer = new project.scope.Layer();
 	
 project.recalculateFolds = function(){
+	// don't split the lines, but add their crossings as isolated nodes
+	this.cp.removeIsolatedNodes();
+	var intersections = this.cp.getEdgeIntersections();
+	for(var i = 0; i < intersections.length; i++){
+		this.cp.newPlanarNode(intersections[i].x, intersections[i].y);
+	}
+
 	this.nextSet = this.cp.possibleFolds();
 	this.selectedNextLayer.removeChildren();
 	this.selectedNextLayer.activate();
