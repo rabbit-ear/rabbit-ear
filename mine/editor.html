@@ -16,51 +16,20 @@ canvas[resize]{
 	width:100%;
 	height:86%;
 }
-div#dropZone {
-	background: black;
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 999;
-	opacity: 0.6;
-	visibility: hidden;
-}
-.col-md-3, .col-md-2{
-	text-align: center;
+.col-md-4{
+	padding-top:.5em;
 	padding-bottom:.5em;
 }
 </style>
 </head>
 <body>
-	<div id="dropZone"></div>
 	<canvas id="canvas" resize></canvas>
-	<input type="file" id="files" style="display:none;">
 	<div class="container">
-		<div class="row justify-content-md-center">
-			<div class="col-md-3">
-				<div class="btn-group" id="radio-target-type" data-toggle="buttons">
-					<label class="btn btn-outline-secondary active">
-						<input type="radio" name="options" id="radio-button-point" autocomplete="off" checked> Point
-					</label>
-					<label class="btn btn-outline-secondary">
-						<input type="radio" name="options" id="radio-button-line" autocomplete="off"> Line
-					</label>
-				</div>
+		<div class="row">
+			<div class="col-md-4" style="text-align: center;">
+				<a href="#" class="btn btn-lg btn-secondary" id="fragment-button">Fragment</a>		
 			</div>
-			<div class="col-md-2">
-				<input type="number" class="form-control" id="target-x1" placeholder="x">
-				<input type="number" class="form-control" id="target-x2" placeholder="x" style="display:none;">
-			</div>
-			<div class="col-md-2">
-				<input type="number" class="form-control" id="target-y1" placeholder="y">
-				<input type="number" class="form-control" id="target-y2" placeholder="y" style="display:none;">
-			</div>
-			<div class="col-md-2">
-				<a href="#" class="btn btn-lg btn-secondary" id="download-file">Results</a>
-			</div>
-			<div class="col-md-3">
+			<div class="col-md-4" style="text-align: center;">
 				<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
 					<label class="btn btn-outline-secondary active">
 						<input type="radio" name="options" id="radio-button-add" autocomplete="off" checked> Crease
@@ -69,6 +38,9 @@ div#dropZone {
 						<input type="radio" name="options" id="radio-button-remove" autocomplete="off"> Remove Crease
 					</label>
 				</div>
+			</div>
+			<div class="col-md-4" style="text-align: center;">
+				<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
 			</div>
 		</div>
 	</div>
@@ -87,16 +59,15 @@ div#dropZone {
 <script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
 
 <script>
-
 $("#radio-target-type :input").change(function() {
 	switch(this.id){
 	case "radio-button-point":
-		$("#target-x2").css("display", "none");
-		$("#target-y2").css("display", "none");
+		$("#col-target-x2").css("display", "none");
+		$("#col-target-y2").css("display", "none");
 	break;
 	case "radio-button-line":
-		$("#target-x2").css("display", "block");
-		$("#target-y2").css("display", "block");
+		$("#col-target-x2").css("display", "block");
+		$("#col-target-y2").css("display", "block");
 	break;
 	}
 });
@@ -110,7 +81,10 @@ $("#radio-input-mode :input").change(function() {
 	break;
 	}
 });
-
+document.getElementById("fragment-button").addEventListener("click", function(e){
+	project.cp.clean();
+	project.init();
+});
 </script>
 
 <script>
@@ -125,9 +99,6 @@ project.selectedNextLayer = new project.scope.Layer();
 
 project.inputMode = "add";
 // project.inputMode = "remove";
-
-var target = new XY(0, 0.287308);
-project.targetLayer = new project.scope.Layer();
 	
 project.recalculateFolds = function(){
 	this.nextSet = this.cp.possibleFolds();
@@ -141,19 +112,12 @@ project.recalculateFolds = function(){
 	this.selectedNextLayer.sendToBack();
 	this.backgroundLayer.sendToBack();
 	this.nextSetLayer.bringToFront();
-	this.targetLayer.bringToFront();
 }
 
 project.reset = function(){
 	paper = this.scope; 
 
 	this.recalculateFolds();
-
-	// circle around the target point
-	this.targetLayer.removeChildren();
-	this.targetLayer.activate();
-	var targetCircle = new this.scope.Path.Circle(target, 0.015);
-	Object.assign(targetCircle, { strokeWidth: 0.01, strokeColor: {red:1.0, green:0.0, blue:0.0}, fillColor: undefined });
 }
 project.reset();
 
@@ -219,72 +183,23 @@ project.onMouseMove = function(event) {
 		}
 	}
 }
-
-function svgBlobLoaded(svg){
-	project.loadUnclean(svg, function(){
-		project.cp.square();
-		for(var i = 0; i < project.cp.edges.length; i++){ 
-			if(project.cp.edges[i].orientation !== CreaseDirection.border)
-				project.cp.edges[i].valley(); 
-		}
-		project.init();
-		project.recalculateFolds();
-	});
-}
-
 </script>
 
-<!-- drag to upload -->
+<!-- download svg blob -->
 <script>
-var dropZone = document.getElementById('dropZone');
-function showDropZone() { dropZone.style.visibility = "visible"; }
-function hideDropZone() { dropZone.style.visibility = "hidden"; }
-function allowDrag(e) {
-	if (true) {  // Test that the item being dragged is a valid one
-		e.dataTransfer.dropEffect = 'copy';
-		e.preventDefault();
-	}
-}
-function handleDrop(e) {
-	Function.prototype.bindToEventHandler = function bindToEventHandler() {
-		var handler = this;
-		var boundParameters = Array.prototype.slice.call(arguments);
-		//create closure
-		return function (e) {
-			e = e || window.event; // get window.event if e argument missing (in IE)   
-			boundParameters.unshift(e);
-			handler.apply(this, boundParameters);
-		}
-	};
+document.getElementById("download-file").addEventListener("click", function(e){
 	e.preventDefault();
-	hideDropZone();
-	var dt = e.dataTransfer;
-	var files = dt.files;
-	for (var i = 0; i < files.length; i++) {
-		var file = files[i];
-		var reader = new FileReader();
-		//attach event handlers here...  
-		reader.readAsDataURL(file);
-		addEventHandler(reader, 'loadend', function (e, file) {
-			var bin = this.result;
-			var decoded = window.atob(this.result.substring(26));
-			svgBlobLoaded(decoded);
-		}.bindToEventHandler(file));
-	}
-	return true;
-}
-window.addEventListener('dragenter', function(e) { showDropZone(); });
-dropZone.addEventListener('dragenter', allowDrag);
-dropZone.addEventListener('dragover', allowDrag);
-dropZone.addEventListener('dragleave', function(e) { hideDropZone(); });
-dropZone.addEventListener('drop', handleDrop);
-function addEventHandler(obj, evt, handler) {
-	// w3c
-	if (obj.addEventListener){ obj.addEventListener(evt, handler, false); }
-	// ie
-	else if (obj.attachEvent) { obj.attachEvent('on' + evt, handler); }
-	// old
-	else { obj['on' + evt] = handler; }
+	var scale = 600 / project.cpMin;
+	var svgBlob = project.cp.svg(scale);
+	download(svgBlob, "creasepattern.svg");
+});
+function download(text, filename){
+	var blob = new Blob([text], {type: "image/svg+xml"});
+	var url = window.URL.createObjectURL(blob);
+	var a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
 }
 </script>
 
