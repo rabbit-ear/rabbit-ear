@@ -127,6 +127,9 @@ $('#target-y2').on('input',function(e){ targets[1].y = parseFloat( $('#target-y2
 var project = new OrigamiPaper("canvas");
 project.zoomToFit(0.05);
 project.style.border.strokeWidth = 0.002;
+project.style.mountain.strokeWidth = 0.005;
+project.style.valley.strokeWidth = 0.005;
+project.style.valley.dashArray = [0.005 * 2, 0.005 * 2];
 project.update();
 
 project.nextSet = new CreasePattern();
@@ -173,14 +176,14 @@ project.updateTargets = function(){
 		}
 	}
 	if(valid[0] && valid[1]){
-		var targetCircle = new this.scope.Path({segments:targets, strokeWidth:0.01, strokeColor:{red:1.0, green:0.0, blue:0.0}});
+		var targetCircle = new this.scope.Path({segments:targets, strokeWidth:0.001, strokeColor:{red:1.0, green:0.0, blue:0.0}});
 	} else if(valid[0]){
-		var targetCircle = new this.scope.Path.Circle(targets[0], 0.015);
-		Object.assign(targetCircle, { strokeWidth: 0.01, strokeColor: {red:1.0, green:0.0, blue:0.0}, fillColor: undefined });
+		var targetCircle = new this.scope.Path.Circle(targets[0], 0.01);
+		Object.assign(targetCircle, { strokeWidth: 0.005, strokeColor: {red:1.0, green:0.0, blue:0.0}, fillColor: undefined });
 
 	} else if(valid[1]){
-		var targetCircle = new this.scope.Path.Circle(targets[1], 0.015);
-		Object.assign(targetCircle, { strokeWidth: 0.01, strokeColor: {red:1.0, green:0.0, blue:0.0}, fillColor: undefined });
+		var targetCircle = new this.scope.Path.Circle(targets[1], 0.01);
+		Object.assign(targetCircle, { strokeWidth: 0.005, strokeColor: {red:1.0, green:0.0, blue:0.0}, fillColor: undefined });
 	}
 }
 
