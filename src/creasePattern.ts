@@ -438,6 +438,28 @@ class CreasePattern extends PlanarGraph{
 		return this.creaseRay(aCommon, new XY(Math.cos(newAngle), Math.sin(newAngle)));
 	}
 
+	creaseAngleBisectorSmaller(a:Crease, b:Crease):Crease{
+		var aCommon, bCommon;
+		if(a.nodes[0].equivalent(b.nodes[0])){ aCommon = a.nodes[0]; bCommon = b.nodes[0]; }
+		if(a.nodes[0].equivalent(b.nodes[1])){ aCommon = a.nodes[0]; bCommon = b.nodes[1]; }
+		if(a.nodes[1].equivalent(b.nodes[0])){ aCommon = a.nodes[1]; bCommon = b.nodes[0]; }
+		if(a.nodes[1].equivalent(b.nodes[1])){ aCommon = a.nodes[1]; bCommon = b.nodes[1]; }
+		// var commonNode = <PlanarNode>a.commonNodeWithEdge(b);
+		// console.log(commonNode);
+		if(aCommon === undefined) return undefined;
+		var aAngle = a.absoluteAngle(aCommon);
+		var bAngle = b.absoluteAngle(bCommon);
+		var clockwise = clockwiseAngleFrom(bAngle, aAngle);
+		var counter = clockwiseAngleFrom(aAngle, bAngle);
+		var clockwiseAngle = bAngle - clockwise*0.5 + Math.PI;
+		var correctedAngle = bAngle - clockwise*0.5;
+		if(clockwise < counter){
+			return this.creaseRay(aCommon, new XY(Math.cos(correctedAngle), Math.sin(correctedAngle)));
+		}
+		return this.creaseRay(aCommon, new XY(Math.cos(clockwiseAngle), Math.sin(clockwiseAngle)));
+	}
+
+
 	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
 		if(this.symmetryLine === undefined){ return undefined; }
 		var ra = new XY(ax, ay).reflect(this.symmetryLine[0], this.symmetryLine[1]);
@@ -642,7 +664,7 @@ class CreasePattern extends PlanarGraph{
 			var midpts = sideNodes.map(function(el){
 				return [interpolate(endpts[0], el, interp), interpolate(endpts[1], el, interp)];
 			});
-			var arteries = [];
+			var arteries:[Crease,Crease][] = [];
 			for(var m = 0; m < midpts.length; m++){
 				// interpolate from the cell edge endpoints to the node
 				this.newCrease(midpts[m][0].x, midpts[m][0].y, midpts[m][1].x, midpts[m][1].y).mountain();
@@ -654,10 +676,10 @@ class CreasePattern extends PlanarGraph{
 			if(midpts.length == 2){
 				var a = this.crease(midpts[0][0], midpts[1][0]).mark();
 				var b = this.crease(midpts[0][1], midpts[1][1]).mark();
-				this.creaseAngleBisector(arteries[0][0], a).noCrossing();
-				this.creaseAngleBisector(a, arteries[1][0]).noCrossing();
-				this.creaseAngleBisector(b, arteries[0][1]).noCrossing();
-				this.creaseAngleBisector(arteries[1][1], b).noCrossing();
+				this.creaseAngleBisectorSmaller(arteries[0][0], a).noCrossing();
+				this.creaseAngleBisectorSmaller(a, arteries[1][0]).noCrossing();
+				this.creaseAngleBisectorSmaller(b, arteries[0][1]).noCrossing();
+				this.creaseAngleBisectorSmaller(arteries[1][1], b).noCrossing();
 			}
 		}
 	}

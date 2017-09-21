@@ -67,7 +67,7 @@ function download(text, filename){
 	a.download = filename;
 	a.click();
 }
-</script>	
+</script>
 
 <script type="text/javascript">
 
@@ -88,12 +88,16 @@ var selectedNode = undefined;
 
 var simpleVoronoi = false;
 
-project.reset = function(){
-	this.cp.clear();
-	this.init();
-	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
-}
-project.reset();
+
+// project.setup = function(){
+// 
+// }
+
+// project.draw = function(){
+// }
+
+// project.setup();
+// var drawLoop = setInterval(project.draw, 1000/60);
 
 project.redraw = function(){
 	var nodes = input.nodes.map(function(el){return el.values();});
@@ -123,6 +127,25 @@ project.redraw = function(){
 		nodeCircle.position = nodes[i];
 	}
 }
+
+
+project.reset = function(){
+	this.cp.clear();
+	this.init();
+	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
+
+	// add to voronoi
+	// var numdots = 30;
+	// for(var i = 0; i < numdots; i++){
+	// 	var freq = Math.PI*2 * (i/numdots);
+	// 	var freq2 = Math.PI*2 * (i/numdots/5);
+	// 	var x = (i/numdots) + Math.cos(freq2)*0.1;
+	// 	var y = map(Math.cos(freq), -1, 1, 0, 1) + Math.sin(freq2)*0.1;
+	// 	input.newPlanarNode(x, y);
+	// }
+	// this.redraw();
+}
+project.reset();
 
 project.onResize = function(){
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
