@@ -128,6 +128,7 @@ project.redraw = function(){
 	}
 }
 
+var numdots = 80;
 
 project.reset = function(){
 	this.cp.clear();
@@ -135,15 +136,26 @@ project.reset = function(){
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 
 	// add to voronoi
-	// var numdots = 30;
+	for(var i = 0; i < numdots; i++){
+		var freq = Math.PI*2 * (i/numdots * 2);
+		var freq2 = Math.PI*2 * (i/numdots * 5);
+		var x = (i/numdots) + Math.cos(freq2)*0.1;
+		var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.1;
+		if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
+			input.newPlanarNode(x, y);
+		}
+	}
+
 	// for(var i = 0; i < numdots; i++){
-	// 	var freq = Math.PI*2 * (i/numdots);
-	// 	var freq2 = Math.PI*2 * (i/numdots/5);
-	// 	var x = (i/numdots) + Math.cos(freq2)*0.1;
-	// 	var y = map(Math.cos(freq), -1, 1, 0, 1) + Math.sin(freq2)*0.1;
-	// 	input.newPlanarNode(x, y);
+	// 	var freq = Math.PI*2 * (i/numdots * 2);
+	// 	var freq2 = Math.PI*2 * (i/numdots * 5);		
+	// 	var x = (i/numdots) + Math.cos(freq2)*0.05;
+	// 	var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.05;
+	// 	if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
+	// 		input.newPlanarNode(x, y);
+	// 	}
 	// }
-	// this.redraw();
+	this.redraw();
 }
 project.reset();
 
@@ -152,6 +164,11 @@ project.onResize = function(){
 }
 
 project.onMouseDown = function(event){
+	// mouse change
+	// numdots = Math.floor(event.point.x * 10 + 1);
+	// console.log(numdots);
+	// this.reset();
+
 	if(selectedNode === undefined){
 		if(this.cp.pointInside(event.point)){ 
 			input.newPlanarNode(event.point.x, event.point.y); 
@@ -174,7 +191,9 @@ project.onMouseDown = function(event){
 project.onMouseUp = function(event){ 
 	dragOn = false;
 }
-project.onMouseMove = function(event) { 
+project.onMouseMove = function(event) {
+
+
 	var mouse = event.point;
 	if(dragOn){
 		input.nodes[selectedNode].x = mouse.x;

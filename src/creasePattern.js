@@ -741,12 +741,24 @@ var CreasePattern = (function (_super) {
                 arteries.push([a, b]);
             }
             if (midpts.length == 2) {
-                var a = this.crease(midpts[0][0], midpts[1][0]).mark();
-                var b = this.crease(midpts[0][1], midpts[1][1]).mark();
-                this.creaseAngleBisectorSmaller(arteries[0][0], a).noCrossing();
-                this.creaseAngleBisectorSmaller(a, arteries[1][0]).noCrossing();
-                this.creaseAngleBisectorSmaller(b, arteries[0][1]).noCrossing();
-                this.creaseAngleBisectorSmaller(arteries[1][1], b).noCrossing();
+                var c = [];
+                var a = this.crease(midpts[0][0], midpts[1][0]);
+                var b = this.crease(midpts[0][1], midpts[1][1]);
+                if (a !== undefined) {
+                    a.mark();
+                }
+                if (b !== undefined) {
+                    b.mark();
+                }
+                c.push(this.creaseAngleBisectorSmaller(arteries[0][0], a));
+                c.push(this.creaseAngleBisectorSmaller(a, arteries[1][0]));
+                c.push(this.creaseAngleBisectorSmaller(b, arteries[0][1]));
+                c.push(this.creaseAngleBisectorSmaller(arteries[1][1], b));
+                for (var i = 0; i < c.length; i++) {
+                    if (c[i] !== undefined) {
+                        c[i].noCrossing();
+                    }
+                }
             }
         }
     };
