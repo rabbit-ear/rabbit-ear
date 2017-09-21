@@ -8,24 +8,13 @@
 html, body {
 	height:100%;
 	width:100%;
-	background-color: #eee;
+	background-color: #EEE;
 	margin:0px;
 	padding:0px;
 }
 canvas[resize]{
 	width:100%;
 	height:86%;
-}
-div#dropZone {
-	background: black;
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 999;
-	opacity: 0.6;
-	visibility: hidden;
 }
 .col-md-3, .col-md-2{
 	text-align: center;
@@ -34,7 +23,6 @@ div#dropZone {
 </style>
 </head>
 <body>
-	<div id="dropZone"></div>
 	<canvas id="canvas" resize></canvas>
 	<input type="file" id="files" style="display:none;">
 	<div class="container">
@@ -73,6 +61,7 @@ div#dropZone {
 		</div>
 	</div>
 </body>
+<script src="../tools/drag-to-upload.js"></script>
 
 <script language="javascript" type="text/javascript" src="../src/graph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
@@ -87,7 +76,6 @@ div#dropZone {
 <script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
 
 <script>
-
 $("#radio-target-type :input").change(function() {
 	switch(this.id){
 	case "radio-button-point":
@@ -119,8 +107,6 @@ $('#target-x1').on('input',function(e){ targets[0].x = parseFloat( $('#target-x1
 $('#target-y1').on('input',function(e){ targets[0].y = parseFloat( $('#target-y1').val() ); project.updateTargets();});
 $('#target-x2').on('input',function(e){ targets[1].x = parseFloat( $('#target-x2').val() ); project.updateTargets();});
 $('#target-y2').on('input',function(e){ targets[1].y = parseFloat( $('#target-y2').val() ); project.updateTargets();});
-
-
 </script>
 
 <script>
@@ -141,7 +127,7 @@ project.inputMode = "add";
 
 var targets = [new XY(undefined, undefined), new XY(undefined, undefined)];
 project.targetLayer = new project.scope.Layer();
-	
+
 project.recalculateFolds = function(){
 	// don't split the lines, but add their crossings as isolated nodes
 	this.cp.removeIsolatedNodes();
@@ -259,7 +245,7 @@ project.onMouseMove = function(event) {
 	}
 }
 
-function svgBlobLoaded(svg){
+function fileBlobLoaded(svg){
 	project.loadUnclean(svg, function(){
 		project.cp.square();
 		for(var i = 0; i < project.cp.edges.length; i++){ 
@@ -273,58 +259,5 @@ function svgBlobLoaded(svg){
 
 </script>
 
-<!-- drag to upload -->
-<script>
-var dropZone = document.getElementById('dropZone');
-function showDropZone() { dropZone.style.visibility = "visible"; }
-function hideDropZone() { dropZone.style.visibility = "hidden"; }
-function allowDrag(e) {
-	if (true) {  // Test that the item being dragged is a valid one
-		e.dataTransfer.dropEffect = 'copy';
-		e.preventDefault();
-	}
-}
-function handleDrop(e) {
-	Function.prototype.bindToEventHandler = function bindToEventHandler() {
-		var handler = this;
-		var boundParameters = Array.prototype.slice.call(arguments);
-		//create closure
-		return function (e) {
-			e = e || window.event; // get window.event if e argument missing (in IE)   
-			boundParameters.unshift(e);
-			handler.apply(this, boundParameters);
-		}
-	};
-	e.preventDefault();
-	hideDropZone();
-	var dt = e.dataTransfer;
-	var files = dt.files;
-	for (var i = 0; i < files.length; i++) {
-		var file = files[i];
-		var reader = new FileReader();
-		//attach event handlers here...  
-		reader.readAsDataURL(file);
-		addEventHandler(reader, 'loadend', function (e, file) {
-			var bin = this.result;
-			var decoded = window.atob(this.result.substring(26));
-			svgBlobLoaded(decoded);
-		}.bindToEventHandler(file));
-	}
-	return true;
-}
-window.addEventListener('dragenter', function(e) { showDropZone(); });
-dropZone.addEventListener('dragenter', allowDrag);
-dropZone.addEventListener('dragover', allowDrag);
-dropZone.addEventListener('dragleave', function(e) { hideDropZone(); });
-dropZone.addEventListener('drop', handleDrop);
-function addEventHandler(obj, evt, handler) {
-	// w3c
-	if (obj.addEventListener){ obj.addEventListener(evt, handler, false); }
-	// ie
-	else if (obj.attachEvent) { obj.attachEvent('on' + evt, handler); }
-	// old
-	else { obj['on' + evt] = handler; }
-}
-</script>
 
 </html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<style>
+html, body {
+	height:100%;
+	width:100%;
+	background-color: #EEE;
+	margin:0px;
+}
+canvas[resize]{
+	width:45vmax;
+	height:45vmax;
+}
+#download-file, #open-file{ padding:0.5em; }
+.toolbar{ text-align: center; }
+</style>
+</head>
+<body>
+	<div class="toolbar">
+		<canvas id="canvas-1" resize></canvas><canvas id="canvas-2" resize></canvas>
+	</div>
+
+	<input type="file" id="files" style="display:none;">
+	<div class="toolbar">
+		<a href="#" class="btn btn-lg btn-secondary" id="open-file">Open File</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
+	</div>
+</body>
+
+<script src="../tools/drag-to-upload.js"></script>
+<script language="javascript" type="text/javascript" src="../src/graph.js"></script>
+<script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
+<script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
+<script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
+
+<script src="../lib/bootstrap/js/tether.min.js"></script>
+<script src="../lib/jquery-3.2.1.slim.min.js"></script>
+<script src="../lib/bootstrap/js/popper.min.js"></script>
+<script src="../lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
+
+<script>
+var foldedState = new OrigamiFold("canvas-2");
+var project = new OrigamiPaper("canvas-1");
+
+// incoming file from upload-button or drag-to-upload
+function fileBlobLoaded(svg){
+	project.load(svg, function(){ 
+		foldedState.cp = project.cp.duplicate();
+		foldedState.init();
+		foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+		foldedState.update();
+	});
+}
+</script>
+
+<!-- download svg blob -->
+<script>
+function download(text, filename){
+	var blob = new Blob([text], {type: "image/svg+xml"});
+	var url = window.URL.createObjectURL(blob);
+	var a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
+}
+</script>
+
+<!-- button to download -->
+<script>
+document.getElementById("download-file").addEventListener("click", function(e){
+	e.preventDefault();
+	var scale = 600 / project.cpMin;
+	var svgBlob = project.cp.svg(scale);
+	download(svgBlob, "creasepattern.svg");
+});	
+</script>
+
+<!-- button to upload -->
+<script>
+document.getElementById("open-file").addEventListener("click", function(e){
+	e.preventDefault();
+	document.getElementById("files").click()
+});
+document.addEventListener('change', function(){
+	var input = $(this),
+		numFiles = input.get(0).files ? input.get(0).files.length : 1,
+		label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+	input.trigger('fileselect', [numFiles, label]);
+	readBlob();
+}, false);
+function readBlob() {
+	var files = document.getElementById('files').files;
+	if (!files.length) {
+		// they selected cancel
+		return;
+	}
+	var file = files[0];
+	var reader = new FileReader();
+	reader.onloadend = function(evt) {
+		if (evt.target.readyState == FileReader.DONE){
+			//byte range: ['Read ', file.size, ' byte file'].join('');
+			fileBlobLoaded(evt.target.result);
+		}
+	};
+	var blob = file.slice(0, file.size);
+	reader.readAsBinaryString(blob);
+}
+</script>
+
+</html>

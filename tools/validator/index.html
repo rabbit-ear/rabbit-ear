@@ -29,22 +29,9 @@ canvas[resize]{
 	padding-top: 2em;
 	/*display:none;*/
 }
-div#dropZone {
-  background: black;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 999;
-  opacity: 0.6;
-  visibility: hidden;
-}
 </style>
 </head>
 <body>
-	<div id="dropZone">
-	</div>
 	<div class="site-wrapper">
 	  <div class="site-wrapper-inner">
 		<div class="cover-container">
@@ -126,6 +113,8 @@ div#dropZone {
 <script src="../../lib/bootstrap/js/bootstrap.min.js"></script>
 <script src="../../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
 
+<script src="../drag-to-upload.js"></script>
+
 <script>
 var project1 = new OrigamiPaper("canvas-1");
 var project2 = new OrigamiFold("canvas-2");
@@ -140,7 +129,7 @@ function setInputFile(svg){
 	$("#recalculate").removeClass("disabled");
 }
 
-function svgBlobLoaded(svg){
+function fileBlobLoaded(svg){
 	setInputFile(svg);
 
 	loadSVG(svg, function(cp){
@@ -203,7 +192,7 @@ document.getElementById("settings").addEventListener("click", function(e){
 });
 document.getElementById("recalculate").addEventListener("click", function(e){
 	if(inputFile !== undefined){
-		svgBlobLoaded(inputFile);
+		fileBlobLoaded(inputFile);
 	} else{
 		$("#recalculate").addClass("disabled");
 	}
@@ -218,59 +207,6 @@ $('#epsilon-radio label').click(function(e) {
 });
 </script>
 
-<!-- drag to upload -->
-<script>
-var dropZone = document.getElementById('dropZone');
-function showDropZone() { dropZone.style.visibility = "visible"; }
-function hideDropZone() { dropZone.style.visibility = "hidden"; }
-function allowDrag(e) {
-	if (true) {  // Test that the item being dragged is a valid one
-		e.dataTransfer.dropEffect = 'copy';
-		e.preventDefault();
-	}
-}
-function handleDrop(e) {
-	Function.prototype.bindToEventHandler = function bindToEventHandler() {
-		var handler = this;
-		var boundParameters = Array.prototype.slice.call(arguments);
-		//create closure
-		return function (e) {
-			e = e || window.event; // get window.event if e argument missing (in IE)   
-			boundParameters.unshift(e);
-			handler.apply(this, boundParameters);
-		}
-	};
-	e.preventDefault();
-	hideDropZone();
-	var dt = e.dataTransfer;
-	var files = dt.files;
-	for (var i = 0; i < files.length; i++) {
-		var file = files[i];
-		var reader = new FileReader();
-		//attach event handlers here...  
-		reader.readAsDataURL(file);
-		addEventHandler(reader, 'loadend', function (e, file) {
-			var bin = this.result;
-			var decoded = window.atob(this.result.substring(26));
-			svgBlobLoaded(decoded);
-		}.bindToEventHandler(file));
-	}
-	return true;
-}
-window.addEventListener('dragenter', function(e) { showDropZone(); });
-dropZone.addEventListener('dragenter', allowDrag);
-dropZone.addEventListener('dragover', allowDrag);
-dropZone.addEventListener('dragleave', function(e) { hideDropZone(); });
-dropZone.addEventListener('drop', handleDrop);
-function addEventHandler(obj, evt, handler) {
-	// w3c
-	if (obj.addEventListener){ obj.addEventListener(evt, handler, false); }
-	// ie
-	else if (obj.attachEvent) { obj.attachEvent('on' + evt, handler); }
-	// old
-	else { obj['on' + evt] = handler; }
-}
-</script>
 
 <!-- button to upload -->
 <script>
@@ -296,7 +232,7 @@ function readBlob() {
 	reader.onloadend = function(evt) {
 		if (evt.target.readyState == FileReader.DONE){
 			//byte range: ['Read ', file.size, ' byte file'].join('');
-			svgBlobLoaded(evt.target.result);
+			fileBlobLoaded(evt.target.result);
 		}
 	};
 	var blob = file.slice(0, file.size);

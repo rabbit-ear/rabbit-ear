@@ -81,6 +81,7 @@ var OrigamiFold = (function(){
 	}
 
 	OrigamiFold.prototype.update = function () {
+		paper = this.scope;
 		if(this.faces === undefined){ return; }
 		for(var i = 0; i < this.faces.length; i++){
 			this.faces[i].fillColor = this.style.face.fillColor;
@@ -103,6 +104,7 @@ var OrigamiFold = (function(){
 	}
 
 	OrigamiFold.prototype.fold = function(){
+		paper = this.scope;
 		// find a face near the middle
 		if(this.cp === undefined){ return; }
 		var centerNode = this.cp.getNearestNode(this.cp.width() * 0.5, this.cp.height()*0.5);

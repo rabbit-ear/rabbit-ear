@@ -8,36 +8,27 @@
 html, body {
 	height:100%;
 	width:100%;
-	background-color: #333;
+	background-color: #EEE;
 	margin:0px;
-	padding:0px;
 }
 canvas[resize]{
 	width:100%;
 	height:86%;
 }
-div#dropZone {
-	background: black;
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 999;
-	opacity: 0.6;
-	visibility: hidden;
-}
+#download-file, #open-file{ padding:0.5em; }
+.toolbar{ text-align: center; }
 </style>
 </head>
 <body>
-	<div id="dropZone"></div>
 	<canvas id="canvas" resize></canvas>
 	<input type="file" id="files" style="display:none;">
-	<div style="text-align:center;">
+	<div class="toolbar">
 		<a href="#" class="btn btn-lg btn-secondary" id="open-file">Open File</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
 	</div>
 </body>
 
+<script src="../tools/drag-to-upload.js"></script>
 <script language="javascript" type="text/javascript" src="../src/graph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
 <script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
@@ -53,16 +44,10 @@ div#dropZone {
 <script>
 var project = new OrigamiPaper("canvas");
 
-function svgBlobLoaded(svg){
-	loadSVG(svg, function(cp){
-		project.cp = cp;
-		project.init();
-		project.update();
-		var svgMin = project.cp.svgMin();
-		download(svgMin, "creasepattern.svg");
-	});
+// incoming file from upload-button or drag-to-upload
+function fileBlobLoaded(svg){
+	project.load(svg, function(){ });
 }
-
 </script>
 
 <!-- download svg blob -->
@@ -77,58 +62,14 @@ function download(text, filename){
 }
 </script>
 
-<!-- drag to upload -->
+<!-- button to download -->
 <script>
-var dropZone = document.getElementById('dropZone');
-function showDropZone() { dropZone.style.visibility = "visible"; }
-function hideDropZone() { dropZone.style.visibility = "hidden"; }
-function allowDrag(e) {
-	if (true) {  // Test that the item being dragged is a valid one
-		e.dataTransfer.dropEffect = 'copy';
-		e.preventDefault();
-	}
-}
-function handleDrop(e) {
-	Function.prototype.bindToEventHandler = function bindToEventHandler() {
-		var handler = this;
-		var boundParameters = Array.prototype.slice.call(arguments);
-		//create closure
-		return function (e) {
-			e = e || window.event; // get window.event if e argument missing (in IE)   
-			boundParameters.unshift(e);
-			handler.apply(this, boundParameters);
-		}
-	};
+document.getElementById("download-file").addEventListener("click", function(e){
 	e.preventDefault();
-	hideDropZone();
-	var dt = e.dataTransfer;
-	var files = dt.files;
-	for (var i = 0; i < files.length; i++) {
-		var file = files[i];
-		var reader = new FileReader();
-		//attach event handlers here...  
-		reader.readAsDataURL(file);
-		addEventHandler(reader, 'loadend', function (e, file) {
-			var bin = this.result;
-			var decoded = window.atob(this.result.substring(26));
-			svgBlobLoaded(decoded);
-		}.bindToEventHandler(file));
-	}
-	return true;
-}
-window.addEventListener('dragenter', function(e) { showDropZone(); });
-dropZone.addEventListener('dragenter', allowDrag);
-dropZone.addEventListener('dragover', allowDrag);
-dropZone.addEventListener('dragleave', function(e) { hideDropZone(); });
-dropZone.addEventListener('drop', handleDrop);
-function addEventHandler(obj, evt, handler) {
-	// w3c
-	if (obj.addEventListener){ obj.addEventListener(evt, handler, false); }
-	// ie
-	else if (obj.attachEvent) { obj.attachEvent('on' + evt, handler); }
-	// old
-	else { obj['on' + evt] = handler; }
-}
+	var scale = 600 / project.cpMin;
+	var svgBlob = project.cp.svg(scale);
+	download(svgBlob, "creasepattern.svg");
+});	
 </script>
 
 <!-- button to upload -->
@@ -155,7 +96,7 @@ function readBlob() {
 	reader.onloadend = function(evt) {
 		if (evt.target.readyState == FileReader.DONE){
 			//byte range: ['Read ', file.size, ' byte file'].join('');
-			svgBlobLoaded(evt.target.result);
+			fileBlobLoaded(evt.target.result);
 		}
 	};
 	var blob = file.slice(0, file.size);

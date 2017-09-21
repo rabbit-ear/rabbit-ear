@@ -7,9 +7,8 @@
 html, body {
 	height:100%;
 	width:100%;
-	background-color: #333;
+	background-color: #EEE;
 	margin:0px;
-	padding:0px;
 }
 canvas[resize]{
 	width:100%;
@@ -128,7 +127,7 @@ project.redraw = function(){
 	}
 }
 
-var numdots = 80;
+var numdots = Math.PI*20;
 
 project.reset = function(){
 	this.cp.clear();
@@ -136,21 +135,21 @@ project.reset = function(){
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 
 	// add to voronoi
-	for(var i = 0; i < numdots; i++){
-		var freq = Math.PI*2 * (i/numdots * 2);
-		var freq2 = Math.PI*2 * (i/numdots * 5);
-		var x = (i/numdots) + Math.cos(freq2)*0.1;
-		var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.1;
+	for(var i = -10; i < numdots+10; i++){
+		var freq = Math.PI*2 * (i/numdots)  * 0.5;  //0.5
+		var freq2 = Math.PI*2 * (i/numdots) * 3;  //4
+		var x = (i/numdots) + Math.cos(freq2)*0.2;
+		var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.2;
 		if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
 			input.newPlanarNode(x, y);
 		}
 	}
 
-	// for(var i = 0; i < numdots; i++){
-	// 	var freq = Math.PI*2 * (i/numdots * 2);
-	// 	var freq2 = Math.PI*2 * (i/numdots * 5);		
-	// 	var x = (i/numdots) + Math.cos(freq2)*0.05;
-	// 	var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.05;
+	// for(var i = 0; i < numdots+30; i++){
+	// 	var freq = Math.PI*2 * (i/numdots * .5);  //0.5
+	// 	var freq2 = Math.PI*2 * (i/numdots * Math.PI);  //4
+	// 	var x = (i/numdots) + Math.cos(freq2)*0.1;
+	// 	var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.1;
 	// 	if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
 	// 		input.newPlanarNode(x, y);
 	// 	}

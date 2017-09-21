@@ -12,6 +12,9 @@
 	<div class="centered">
 		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>birdBase</v>()</code></pre>
 	</div>
+
+<h2>Paper</h2>
+
 	<div class="quote">
 		<p>Load crease patterns from a file and it will attempt to interpret mountain valley assignment</strong></p>
 	</div>
@@ -22,6 +25,16 @@
 
 	<div class="centered">
 		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>loadSVG</v>(<str>"crane.svg"</str>)</code></pre>
+	</div>
+
+<h2>Creases</h2>
+
+	<div class="quote">
+		<p>Creases are planar graph edges with more properties.</strong></p>
+	</div>
+
+	<div class="centered">
+	<pre><code><v>CreaseDirection</v>{<br>&nbsp;mark,<br>&nbsp;border,<br>&nbsp;mountain,<br>&nbsp;valley<br>}</code></pre>
 	</div>
 
 	<div class="quote">
