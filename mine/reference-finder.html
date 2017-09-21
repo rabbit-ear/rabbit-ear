@@ -93,6 +93,11 @@ $("#radio-target-type :input").change(function() {
 	case "radio-button-point":
 		$("#target-x2").css("display", "none");
 		$("#target-y2").css("display", "none");
+		$("#target-x2").val("");
+		$("#target-y2").val("");
+		targets[1].x = undefined;
+		targets[1].y = undefined;
+		project.updateTargets();
 	break;
 	case "radio-button-line":
 		$("#target-x2").css("display", "block");
@@ -110,6 +115,11 @@ $("#radio-input-mode :input").change(function() {
 	break;
 	}
 });
+$('#target-x1').on('input',function(e){ targets[0].x = parseFloat( $('#target-x1').val() ); project.updateTargets();});
+$('#target-y1').on('input',function(e){ targets[0].y = parseFloat( $('#target-y1').val() ); project.updateTargets();});
+$('#target-x2').on('input',function(e){ targets[1].x = parseFloat( $('#target-x2').val() ); project.updateTargets();});
+$('#target-y2').on('input',function(e){ targets[1].y = parseFloat( $('#target-y2').val() ); project.updateTargets();});
+
 
 </script>
 
@@ -126,7 +136,7 @@ project.selectedNextLayer = new project.scope.Layer();
 project.inputMode = "add";
 // project.inputMode = "remove";
 
-var target = new XY(0, 0.287308);
+var targets = [new XY(undefined, undefined), new XY(undefined, undefined)];
 project.targetLayer = new project.scope.Layer();
 	
 project.recalculateFolds = function(){
@@ -150,19 +160,38 @@ project.recalculateFolds = function(){
 	this.nextSetLayer.bringToFront();
 	this.targetLayer.bringToFront();
 }
+project.updateTargets = function(){
+	console.log(targets[0]);
+	console.log(targets[1]);
+	// circle around the target point
+	this.targetLayer.removeChildren();
+	this.targetLayer.activate();
+	var valid = [false, false];
+	for(var i = 0; i < 2; i++){
+		if(isValidPoint(targets[i]) && this.cp.contains(targets[i])){
+			valid[i] = true;
+		}
+	}
+	if(valid[0] && valid[1]){
+		var targetCircle = new this.scope.Path({segments:targets, strokeWidth:0.01, strokeColor:{red:1.0, green:0.0, blue:0.0}});
+	} else if(valid[0]){
+		var targetCircle = new this.scope.Path.Circle(targets[0], 0.015);
+		Object.assign(targetCircle, { strokeWidth: 0.01, strokeColor: {red:1.0, green:0.0, blue:0.0}, fillColor: undefined });
+
+	} else if(valid[1]){
+		var targetCircle = new this.scope.Path.Circle(targets[1], 0.015);
+		Object.assign(targetCircle, { strokeWidth: 0.01, strokeColor: {red:1.0, green:0.0, blue:0.0}, fillColor: undefined });
+	}
+}
 
 project.reset = function(){
 	paper = this.scope; 
 
 	this.recalculateFolds();
-
-	// circle around the target point
-	this.targetLayer.removeChildren();
-	this.targetLayer.activate();
-	var targetCircle = new this.scope.Path.Circle(target, 0.015);
-	Object.assign(targetCircle, { strokeWidth: 0.01, strokeColor: {red:1.0, green:0.0, blue:0.0}, fillColor: undefined });
+	this.updateTargets();
 }
 project.reset();
+
 
 project.onFrame = function(event) { }
 project.onResize = function(event) { }
