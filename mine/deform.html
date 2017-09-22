@@ -27,6 +27,7 @@ canvas[resize]{
 	<input type="file" id="files" style="display:none;">
 	<div class="toolbar">
 		<a href="#" class="btn btn-lg btn-secondary" id="open-file">Open File</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="wiggle-button">Wiggle into place!</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
 	</div>
 </body>
@@ -47,6 +48,14 @@ canvas[resize]{
 <script>
 var foldedState = new OrigamiFold("canvas-2");
 var project = new OrigamiPaper("canvas-1");
+
+project.load("../tests/svg/crane-errors.svg", function(){
+	project.colorNodesFlatFoldable();
+	foldedState.cp = project.cp.duplicate();
+	foldedState.init();
+	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+	foldedState.update();
+});
 
 // incoming file from upload-button or drag-to-upload
 function fileBlobLoaded(svg){
@@ -74,6 +83,51 @@ function download(text, filename){
 }
 </script>
 
+<!-- button to wiggle crease pattern -->
+<script>
+var wiggleLoop = undefined;
+var wiggleCount = 0;
+document.getElementById("wiggle-button").addEventListener("click", function(e){
+	e.preventDefault();
+	if(wiggleLoop === undefined){
+		wiggleLoop = setInterval(function(){
+			var wiggleCount = project.cp.wiggle();
+			if (wiggleCount < 20){ console.log(wiggleCount + " left"); }
+			if (wiggleCount < 5){ 
+				clearInterval(wiggleLoop); 
+				foldedState.cp = project.cp.duplicate();
+				foldedState.init();
+				foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+				foldedState.update();
+			}
+			// if (wiggleCount === 0){ console.log("finishing"); }
+			// wiggleCount++;
+			// if(wiggleCount %100 === 0){ 
+				// wiggleCount = 0;
+				project.update();
+				project.colorNodesFlatFoldable();
+			// }
+		}, 5);
+	} else{
+		clearInterval(wiggleLoop);
+		wiggleLoop = undefined;
+	}
+
+	// project.cp.wiggle();
+
+
+
+	// var sumRating = 0;
+	// for(var i = 0; i < project.cp.nodes.length; i++){
+	// 	var rating = project.cp.nodes[i].kawasakiRating();
+	// 	sumRating += rating;
+	// 	console.log(rating);
+	// }
+	// console.log("+++++++++++++++++++");
+	// console.log(sumRating);
+});
+</script>
+
 <!-- button to download -->
 <script>
 document.getElementById("download-file").addEventListener("click", function(e){
@@ -81,7 +135,7 @@ document.getElementById("download-file").addEventListener("click", function(e){
 	var scale = 600 / project.cpMin;
 	var svgBlob = project.cp.svg(scale);
 	download(svgBlob, "creasepattern.svg");
-});	
+});
 </script>
 
 <!-- button to upload -->

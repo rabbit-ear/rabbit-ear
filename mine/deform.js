@@ -1,6 +1,4 @@
-var flat_foldable_nodes_wiggle_callback;
-var flat_foldable_nodes_callback;
-
+var callbackReport;
 
 nearestNode = undefined;
 project.movingNode = undefined;
@@ -20,23 +18,6 @@ project.style.nodes = {
 	strokeWidth: 0.0,
 	radius: 0.02
 };
-
-// loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
-// loadSVG("/tests/svg/crane-errors.svg", function(e){ 
-// 	project.cp = e;
-// 	project.init();
-// 	if(project.nodeLayer != undefined && project.nodeLayer.moveToFront != undefined){
-// 		project.nodeLayer.moveToFront();
-// 	}
-// 	if(project.cpMin !== 0){
-// 		project.style.selectedNode.strokeWidth = 0.005*project.cpMin;
-// 		project.style.selectedNode.radius = 0.02*project.cpMin;
-// 		project.style.nodes.radius = 0.02 * project.cpMin;
-// 	}
-// 	project.zoomToFit();
-// 	project.update();
-// 	project.colorNodesFlatFoldable();
-// });
 
 project.colorNodesFlatFoldable = function(){
 	for(var i = 0; i < this.cp.nodes.length; i++){
@@ -83,7 +64,7 @@ project.onMouseMove = function(event) {
 		}
 	}
 	if(this.cp != undefined){ this.colorNodesFlatFoldable(); }
-	if(flat_foldable_nodes_wiggle_callback != undefined){
-		flat_foldable_nodes_wiggle_callback({'point':event.point, 'node':nearestNode.index, 'valid':nearestNode.flatFoldable()});
+	if(callbackReport != undefined){
+		callbackReport({'point':event.point, 'node':nearestNode.index, 'valid':nearestNode.flatFoldable()});
 	}
 }

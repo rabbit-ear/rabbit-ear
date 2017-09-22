@@ -57,6 +57,19 @@ class CreaseNode extends PlanarNode{
 		return [aSum, bSum];
 	}
 
+	kawasakiRating():number{
+		if(this.isBoundary()){return 0;}
+		// for each node: 0.0 to 1.0
+		// 0.0 is 100% success on all nodes flat foldable.
+		// 1.0 is as far from wrong as possible - 180 degrees apart from each other
+		var sums = this.kawasaki();
+		if(sums !== undefined){
+			var diff = Math.abs(sums[0] - sums[1]) / Math.PI;
+			return diff;
+		}
+		return 0;
+	}
+
 	flatFoldable(epsilon?:number):boolean{
 		if(epsilon === undefined){ epsilon = EPSILON_LOW; }
 		if(this.isBoundary()){ return true; }
@@ -291,6 +304,39 @@ class CreasePattern extends PlanarGraph{
 		}
 		next.cleanDuplicateNodes();
 		return next;
+	}
+
+	// number of nodes tried to wiggle (ignores those correct within epsilon range)
+	wiggle():number{
+		var nodesAttempted:number = 0;
+		// var dup = this.duplicate();
+		for(var i = 0; i < this.nodes.length; i++){
+			var rating = this.nodes[i].kawasakiRating();
+			if(rating > EPSILON_HIGH){
+				nodesAttempted++;
+				// try a value very close
+				// get the power of the number
+				// var r = 1;
+				// while(Math.floor( rating * Math.pow(10,r) ) === 0 && r < 20){ r++; }
+				// console.log(r);
+				// var move = new XY( (Math.random()*2*rating) - rating, 
+				//                    (Math.random()*2*rating) - rating);
+				// var move = new XY( (Math.random()*rating*0.1) - rating*0.05, 
+				//                    (Math.random()*rating*0.1) - rating*0.05);
+				var randomAngle = Math.random()*Math.PI*20; // wrap around to make sure it's random
+				var move = new XY( 0.05*rating * Math.cos(randomAngle), 
+				                   0.05*rating * Math.sin(randomAngle));
+				this.nodes[i].x += move.x;
+				this.nodes[i].y += move.y;
+				var newRating = this.nodes[i].kawasakiRating();
+				if(newRating > rating){
+					// undo
+					this.nodes[i].x -= move.x;
+					this.nodes[i].y -= move.y;
+				}
+			}
+		}
+		return nodesAttempted;
 	}
 	
 	///////////////////////////////////////////////////////////////
@@ -1158,12 +1204,16 @@ class CreasePattern extends PlanarGraph{
 		var widthScaled = ((width+padX*2)*scale).toFixed(2);
 		var heightScaled = ((height+padY*2)*scale).toFixed(2);
 		var strokeWidth = ((width+padX*2)*scale * 0.0025).toFixed(1);
+		var dashW = ((width+padX*2)*scale * 0.0025 * 3).toFixed(1);
 		if(strokeWidth === "0" || strokeWidth === "0.0"){ strokeWidth = "0.5"; }
 		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +widthScaled+ "px\" height=\"" +heightScaled+ "px\" viewBox=\"0 0 " +widthScaled+ " " +heightScaled+ "\">\n<g>\n";
 
 		//////// RECT BORDER
 		blob += "<line stroke=\"#000000\" stroke-width=\"" + strokeWidth + "\" x1=\"0\" y1=\"0\" x2=\"" +widthScaled+ "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +widthScaled+ "\" y1=\"0\" x2=\"" +widthScaled+ "\" y2=\"" +heightScaled+ "\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +widthScaled+ "\" y1=\"" +heightScaled+ "\" x2=\"0\" y2=\"" +heightScaled+ "\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" +heightScaled+ "\" x2=\"0\" y2=\"0\"/>\n";
 		////////
+		var valleyStyle = "stroke=\"#4030FF\" stroke-dasharray=\"" + dashW + "," + dashW + "\" ";
+		var mountainStyle = "stroke=\"#FF1030\" ";
+		var noStyle = "stroke=\"#000000\" ";
 
 		for(var i = 0; i < this.edges.length; i++){
 			var a = <CreaseNode>this.edges[i].nodes[0];
@@ -1172,7 +1222,10 @@ class CreasePattern extends PlanarGraph{
 			var y1 = (a.y * scale).toFixed(4);
 			var x2 = (b.x * scale).toFixed(4);
 			var y2 = (b.y * scale).toFixed(4);
-			blob += "<line stroke=\"#000000\" stroke-width=\"" + strokeWidth + "\" x1=\"" +x1+ "\" y1=\"" +y1+ "\" x2=\"" +x2+ "\" y2=\"" +y2+ "\"/>\n";
+			var thisStyle = noStyle;
+			if(this.edges[i].orientation === CreaseDirection.mountain){ thisStyle = mountainStyle; }
+			if(this.edges[i].orientation === CreaseDirection.valley){ thisStyle = valleyStyle; }
+			blob += "<line " + thisStyle + "stroke-width=\"" + strokeWidth + "\" x1=\"" +x1+ "\" y1=\"" +y1+ "\" x2=\"" +x2+ "\" y2=\"" +y2+ "\"/>\n";
 		}
 		blob = blob + "</g>\n</svg>\n";
 		return blob;
