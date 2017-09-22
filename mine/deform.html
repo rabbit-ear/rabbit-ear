@@ -28,6 +28,7 @@ canvas[resize]{
 	<div class="toolbar">
 		<a href="#" class="btn btn-lg btn-secondary" id="open-file">Open File</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="wiggle-button">Wiggle into place!</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="fold-button">Fold</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
 	</div>
 </body>
@@ -48,13 +49,14 @@ canvas[resize]{
 <script>
 var foldedState = new OrigamiFold("canvas-2");
 var project = new OrigamiPaper("canvas-1");
+project.zoomToFit(0.05);
 
 project.load("../tests/svg/crane-errors.svg", function(){
 	project.colorNodesFlatFoldable();
-	foldedState.cp = project.cp.duplicate();
-	foldedState.init();
-	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-	foldedState.update();
+	// foldedState.cp = project.cp.duplicate();
+	// foldedState.init();
+	// foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+	// foldedState.update();
 });
 
 // incoming file from upload-button or drag-to-upload
@@ -92,13 +94,14 @@ document.getElementById("wiggle-button").addEventListener("click", function(e){
 	if(wiggleLoop === undefined){
 		wiggleLoop = setInterval(function(){
 			var wiggleCount = project.cp.wiggle();
-			if (wiggleCount < 20){ console.log(wiggleCount + " left"); }
-			if (wiggleCount < 5){ 
+			// if (wiggleCount < 20){ console.log(wiggleCount + " left"); }
+			if (wiggleCount < 20){ 
 				clearInterval(wiggleLoop); 
-				foldedState.cp = project.cp.duplicate();
-				foldedState.init();
-				foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-				foldedState.update();
+				wiggleLoop = undefined;
+				// foldedState.cp = project.cp.duplicate();
+				// foldedState.init();
+				// foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+				// foldedState.update();
 			}
 			// if (wiggleCount === 0){ console.log("finishing"); }
 			// wiggleCount++;
@@ -107,7 +110,7 @@ document.getElementById("wiggle-button").addEventListener("click", function(e){
 				project.update();
 				project.colorNodesFlatFoldable();
 			// }
-		}, 5);
+		}, 3);
 	} else{
 		clearInterval(wiggleLoop);
 		wiggleLoop = undefined;
@@ -125,6 +128,20 @@ document.getElementById("wiggle-button").addEventListener("click", function(e){
 	// }
 	// console.log("+++++++++++++++++++");
 	// console.log(sumRating);
+});
+</script>
+
+
+
+
+<!-- button to fold -->
+<script>
+document.getElementById("fold-button").addEventListener("click", function(e){
+	e.preventDefault();
+	foldedState.cp = project.cp.duplicate();
+	foldedState.init();
+	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+	foldedState.update();
 });
 </script>
 

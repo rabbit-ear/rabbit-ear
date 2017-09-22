@@ -1232,7 +1232,7 @@ class PlanarGraph extends Graph{
 		// console.log(faceRanks);
 		// console.log(rank);
 		for(var i = 0; i < faceRanks.length; i++){
-			if(faceRanks[i].parents !== undefined && faceRanks[i].parents.length > 0){
+			if(faceRanks[i] !== undefined && faceRanks[i].parents !== undefined && faceRanks[i].parents.length > 0){
 				var parent = <PlanarFace>faceRanks[i].parents[0];
 				var edge = <PlanarEdge>parent.commonEdge(faceRanks[i].face);
 				var m = edge.reflectionMatrix();

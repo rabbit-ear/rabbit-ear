@@ -325,7 +325,7 @@ var CreasePattern = (function (_super) {
         // var dup = this.duplicate();
         for (var i = 0; i < this.nodes.length; i++) {
             var rating = this.nodes[i].kawasakiRating();
-            if (rating > EPSILON_HIGH) {
+            if (rating > EPSILON) {
                 nodesAttempted++;
                 // try a value very close
                 // get the power of the number

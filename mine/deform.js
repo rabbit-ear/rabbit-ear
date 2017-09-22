@@ -5,6 +5,7 @@ project.movingNode = undefined;
 project.mNodeOriginalLocation = undefined;
 project.nNode = undefined;
 project.selectNearestNode = true;
+project.style.valley.strokeColor = project.style.mountain.strokeColor;
 project.style.selectedNode = { 
 	fillColor: undefined, 
 	strokeWidth: 0.005,
@@ -44,8 +45,8 @@ project.onMouseDown = function(event){
 }
 project.onMouseUp = function(event){ 
 	if(this.movingNode != undefined && this.mNodeOriginalLocation != undefined){
-		this.movingNode.x = this.mNodeOriginalLocation.x;
-		this.movingNode.y = this.mNodeOriginalLocation.y;
+		// this.movingNode.x = this.mNodeOriginalLocation.x;
+		// this.movingNode.y = this.mNodeOriginalLocation.y;
 		this.movingNode = undefined;
 		this.mNodeOriginalLocation = undefined;
 		this.update();

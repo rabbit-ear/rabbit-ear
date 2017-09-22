@@ -130,15 +130,17 @@ var OrigamiFold = (function(){
 		this.faces = [];
 
 		for(var i = 0; i < foldTree.faces.length; i++){
-			var face = foldTree.faces[i].face;
-			var matrix = foldTree.faces[i].global;
-			var segments = [];
-			for(var p = 0; p < face.nodes.length; p++){
-				segments.push( new XY(face.nodes[p].x, face.nodes[p].y ).transform(matrix) );
+			if(foldTree.faces[i] !== undefined){
+				var face = foldTree.faces[i].face;
+				var matrix = foldTree.faces[i].global;
+				var segments = [];
+				for(var p = 0; p < face.nodes.length; p++){
+					segments.push( new XY(face.nodes[p].x, face.nodes[p].y ).transform(matrix) );
+				}
+				var faceShape = new this.scope.Path({segments:segments,closed:true});
+				faceShape.fillColor = this.style.face.fillColor;
+				this.faces.push( faceShape );
 			}
-			var face = new this.scope.Path({segments:segments,closed:true});
-			face.fillColor = this.style.face.fillColor;
-			this.faces.push( face );
 		}
 		// this.cp.faces = [];
 	};
@@ -557,10 +559,15 @@ function paperPathToCP(paperPath){
 				}
 				for(var j = 0; j < numSegments; j++){
 					var next = (j+1)%childrenArray[i].segments.length;
-					cp.newCrease(childrenArray[i].segments[j].point.x,
+					var crease = cp.newCrease(childrenArray[i].segments[j].point.x,
 								 childrenArray[i].segments[j].point.y, 
 								 childrenArray[i].segments[next].point.x,
 								 childrenArray[i].segments[next].point.y);
+					var color = childrenArray[i].strokeColor;
+					if(color !== undefined && crease !== undefined){
+						if(color.red > color.blue){crease.mountain();}
+						if(color.red < color.blue){crease.valley();}
+					}
 				}
 			} else if (childrenArray[i].children !== undefined){
 				recurseAndAdd(childrenArray[i].children);
