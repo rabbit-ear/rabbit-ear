@@ -35,6 +35,24 @@ class FoldSequence{
 	// sheet of paper, the fold won't execute the same way, different node indices will get applied.
 }
 
+// function shuffle(a) {
+// 	var array = [];
+// 	for(var i = 0; i < a.length; i++){ array.push(a); }
+
+// 	var currentIndex = array.length, temporaryValue, randomIndex;
+// 	// While there remain elements to shuffle...
+// 	while (0 !== currentIndex) {
+// 		// Pick a remaining element...
+// 		randomIndex = Math.floor(Math.random() * currentIndex);
+// 		currentIndex -= 1;
+// 		// And swap it with the current element.
+// 		temporaryValue = array[currentIndex];
+// 		array[currentIndex] = array[randomIndex];
+// 		array[randomIndex] = temporaryValue;
+// 	}
+// 	return array;
+// }
+
 class CreaseNode extends PlanarNode{
 	graph:CreasePattern;
 
@@ -195,49 +213,66 @@ class CreasePattern extends PlanarGraph{
 			f.graph = g; 
 			f.index = i;
 			// (<any>Object).assign(f, this.faces[i]);
-			for(var j=0;j<this.faces[i].nodes.length;j++){
-				var nIndex = this.faces[i].nodes[j].index;
-				f.nodes.push(g.nodes[nIndex]);
-			}
-			for(var j=0;j<this.faces[i].edges.length;j++){
-				var eIndex = this.faces[i].edges[j].index;
-				f.edges.push(g.edges[eIndex]);
-			}
-			for(var j=0;j<this.faces[i].angles.length;j++){
-				f.angles.push(this.faces[i].angles[j]); 
+			if(this.faces[i] !== undefined){
+				if(this.faces[i].nodes !== undefined){
+				for(var j=0;j<this.faces[i].nodes.length;j++){
+					var nIndex = this.faces[i].nodes[j].index;
+					f.nodes.push(g.nodes[nIndex]);
+				}
+				}
+				if(this.faces[i].edges !== undefined){
+				for(var j=0;j<this.faces[i].edges.length;j++){
+					var eIndex = this.faces[i].edges[j].index;
+					f.edges.push(g.edges[eIndex]);
+				}
+				}
+				if(this.faces[i].angles !== undefined){
+				for(var j=0;j<this.faces[i].angles.length;j++){
+					f.angles.push(this.faces[i].angles[j]); 
+				}
+				}
 			}
 		}
 		// boundary
 		this.boundary.nodeArrayDidChange();
 		this.boundary.edgeArrayDidChange();
 		var b = new PlanarGraph();
-		for(var i = 0; i < this.boundary.nodes.length; i++){
-			var bn = b.addNode(new PlanarNode(b));
-			(<any>Object).assign(bn, this.boundary.nodes[i]);
-			bn.graph = b; bn.index = i;
-		}
-		for(var i = 0; i < this.boundary.edges.length; i++){
-			var index = [this.boundary.edges[i].nodes[0].index, this.boundary.edges[i].nodes[1].index];
-			var be = b.addEdge(new PlanarEdge(b, b.nodes[index[0]], b.nodes[index[1]]));
-			(<any>Object).assign(be, this.boundary.edges[i]);
-			be.graph = b; be.index = i;
-			be.nodes = [b.nodes[index[0]], b.nodes[index[1]]];
-		}
-		for(var i = 0; i < this.boundary.faces.length; i++){
-			var bf = new PlanarFace(b);
-			bf.graph = b;  // redundant
-			(<any>Object).assign(bf, this.boundary.faces[i]);
-			bf.nodes = [];
-			bf.edges = [];
-			bf.angles = [];
-			for(var j=0;j<this.boundary.faces[i].nodes.length;j++){
-			
-				bf.nodes.push(b.nodes[this.boundary.faces[i].nodes[j].index]);
-				if(j > 1000){ throw "quit"; }
+		if(this.boundary !== undefined){
+			if(this.boundary.nodes !== undefined){
+			for(var i = 0; i < this.boundary.nodes.length; i++){
+				var bn = b.addNode(new PlanarNode(b));
+				(<any>Object).assign(bn, this.boundary.nodes[i]);
+				bn.graph = b; bn.index = i;
 			}
-			for(var j=0;j<this.boundary.faces[i].edges.length;j++){bf.edges.push(b.edges[this.boundary.faces[i].edges[j].index]);}
-			for(var j=0;j<this.boundary.faces[i].angles.length;j++){bf.angles.push(this.boundary.faces[i].angles[j]); }
-			b.faces.push(f);
+			}
+			if(this.boundary.edges !== undefined){
+			for(var i = 0; i < this.boundary.edges.length; i++){
+				var index = [this.boundary.edges[i].nodes[0].index, this.boundary.edges[i].nodes[1].index];
+				var be = b.addEdge(new PlanarEdge(b, b.nodes[index[0]], b.nodes[index[1]]));
+				(<any>Object).assign(be, this.boundary.edges[i]);
+				be.graph = b; be.index = i;
+				be.nodes = [b.nodes[index[0]], b.nodes[index[1]]];
+			}
+			}
+			if(this.boundary.faces !== undefined){
+			for(var i = 0; i < this.boundary.faces.length; i++){
+				var bf = new PlanarFace(b);
+				bf.graph = b;  // redundant
+				(<any>Object).assign(bf, this.boundary.faces[i]);
+				bf.nodes = [];
+				bf.edges = [];
+				bf.angles = [];
+				if(this.boundary.faces[i] !== undefined){
+				for(var j=0;j<this.boundary.faces[i].nodes.length;j++){
+					bf.nodes.push(b.nodes[this.boundary.faces[i].nodes[j].index]);
+					if(j > 1000){ throw "quit"; }
+				}
+				for(var j=0;j<this.boundary.faces[i].edges.length;j++){bf.edges.push(b.edges[this.boundary.faces[i].edges[j].index]);}
+				for(var j=0;j<this.boundary.faces[i].angles.length;j++){bf.angles.push(this.boundary.faces[i].angles[j]); }
+				b.faces.push(f);
+				}
+			}
+			}
 		}
 		g.boundary = b;
 		return g;
@@ -310,30 +345,38 @@ class CreasePattern extends PlanarGraph{
 	wiggle():number{
 		var nodesAttempted:number = 0;
 		// var dup = this.duplicate();
+		// var shuffleNodes = shuffle(this.nodes);
 		for(var i = 0; i < this.nodes.length; i++){
 			var rating = this.nodes[i].kawasakiRating();
 			if(rating > EPSILON){
 				nodesAttempted++;
-				// try a value very close
-				// get the power of the number
-				// var r = 1;
-				// while(Math.floor( rating * Math.pow(10,r) ) === 0 && r < 20){ r++; }
-				// console.log(r);
-				// var move = new XY( (Math.random()*2*rating) - rating, 
-				//                    (Math.random()*2*rating) - rating);
-				// var move = new XY( (Math.random()*rating*0.1) - rating*0.05, 
-				//                    (Math.random()*rating*0.1) - rating*0.05);
-				var randomAngle = Math.random()*Math.PI*20; // wrap around to make sure it's random
-				var move = new XY( 0.05*rating * Math.cos(randomAngle), 
-				                   0.05*rating * Math.sin(randomAngle));
-				this.nodes[i].x += move.x;
-				this.nodes[i].y += move.y;
-				var newRating = this.nodes[i].kawasakiRating();
-				if(newRating > rating){
-					// undo
+				// guess some numbers.
+				var guesses = []; // {xy:__(XY)__, rating:__(number)__};
+				for(var n = 0; n < 12; n++){
+					// maybe store angle so that we can keep track of it between rounds
+					var randomAngle = Math.random()*Math.PI*20; // wrap around to make sure it's random
+					var radius = Math.random() * rating;
+					var move = new XY( 0.05*radius * Math.cos(randomAngle), 
+					                   0.05*radius * Math.sin(randomAngle));
+					this.nodes[i].x += move.x;
+					this.nodes[i].y += move.y;
+					var newRating = this.nodes[i].kawasakiRating();
+					var adjNodes = this.nodes[i].adjacentNodes();
+					var adjRating = 0;
+					for(var adj = 0; adj < adjNodes.length; adj++){
+						adjRating += this.nodes[i].kawasakiRating();
+					}
+					guesses.push( {xy:move, rating:newRating+adjRating} );
+					// undo change
 					this.nodes[i].x -= move.x;
 					this.nodes[i].y -= move.y;
 				}
+				var sortedGuesses = guesses.sort(function(a,b) {return a.rating - b.rating;} );
+				// if(sortedGuesses[0].rating < rating){
+					this.nodes[i].x += sortedGuesses[0].xy.x;
+					this.nodes[i].y += sortedGuesses[0].xy.y;
+					// perform quick intersection test, does any line associated with this node intersect with other lines? if so, undo change.
+				// }
 			}
 		}
 		return nodesAttempted;

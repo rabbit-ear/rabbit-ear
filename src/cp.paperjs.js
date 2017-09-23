@@ -173,10 +173,13 @@ var OrigamiFold = (function(){
 		if(cpAspect > canvasAspect) { cpCanvasRatio = canvasWidth / cpWidth; }
 		// matrix
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
+		var customZoom = 0.66;
+		mat.scale(0.66, 0.66);  // scale a bit
 		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale); 
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
 		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
+		mat.translate((1.0-customZoom), (1.0-customZoom));  // scale a bit - translate to center
 		this.scope.view.matrix = mat;
 		return mat;
 	};

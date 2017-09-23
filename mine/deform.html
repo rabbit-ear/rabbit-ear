@@ -15,7 +15,7 @@ canvas[resize]{
 	width:45vmax;
 	height:45vmax;
 }
-#download-file, #open-file{ padding:0.5em; }
+/*#download-file, #open-file{ padding:0.5em; }*/
 .toolbar{ text-align: center; }
 </style>
 </head>
@@ -26,10 +26,15 @@ canvas[resize]{
 
 	<input type="file" id="files" style="display:none;">
 	<div class="toolbar">
-		<a href="#" class="btn btn-lg btn-secondary" id="open-file">Open File</a>
-		<a href="#" class="btn btn-lg btn-secondary" id="wiggle-button">Wiggle into place!</a>
-		<a href="#" class="btn btn-lg btn-secondary" id="fold-button">Fold</a>
-		<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
+		<a href="#" class="btn btn-lg btn-outline-secondary" id="reload-file">Reload</a>
+		<a href="#" class="btn btn-lg btn-outline-secondary" id="wiggle-button">Wiggle!</a>
+<!-- 		<div class="btn-group" data-toggle="buttons">
+			<label class="btn btn-lg btn-outline-secondary" id="wiggle-button">
+				<input type="checkbox" autocomplete="off" id="wiggle-input"> Wiggle!
+			</label>
+		</div>
+ -->		<a href="#" class="btn btn-lg btn-outline-secondary" id="fold-button">Fold</a>
+		<a href="#" class="btn btn-lg btn-outline-secondary" id="download-file">Download</a>
 	</div>
 </body>
 
@@ -51,24 +56,33 @@ var foldedState = new OrigamiFold("canvas-2");
 var project = new OrigamiPaper("canvas-1");
 project.zoomToFit(0.05);
 
+var loadedCP = undefined;
+
 project.load("../tests/svg/crane-errors.svg", function(){
 	project.colorNodesFlatFoldable();
-	// foldedState.cp = project.cp.duplicate();
-	// foldedState.init();
-	// foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-	// foldedState.update();
+	// foldCP();
+	loadedCP = project.cp.duplicate();
 });
 
 // incoming file from upload-button or drag-to-upload
 function fileBlobLoaded(svg){
 	project.load(svg, function(){
 		project.colorNodesFlatFoldable();
-		foldedState.cp = project.cp.duplicate();
-		foldedState.init();
-		foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-		foldedState.update();
+		foldCP();
 	});
 }
+</script>
+
+<script>
+document.getElementById("reload-file").addEventListener("click", function(e){
+	e.preventDefault();
+	project.setCreasePattern( loadedCP.duplicate() );
+	project.colorNodesFlatFoldable();
+
+	// project.load("../tests/svg/crane-errors.svg", function(){
+	// 	// foldCP();
+	// });
+});	
 </script>
 
 <script src="deform.js"></script>
@@ -85,40 +99,45 @@ function download(text, filename){
 }
 </script>
 
-<!-- button to wiggle crease pattern -->
 <script>
 var wiggleLoop = undefined;
 var wiggleCount = 0;
+function startWiggle(){
+	$("#wiggle-button").addClass("active");	
+	wiggleLoop = setInterval(function(){
+		var wiggleCount = project.cp.wiggle();
+		if (wiggleCount < 20){ 
+			console.log("programmatically stopping wiggle");
+			stopWiggle();
+			foldCP();
+		}
+		project.update();
+		project.colorNodesFlatFoldable();
+	}, 3);
+	// project.cp.wiggle();
+}
+function stopWiggle(){
+	$("#wiggle-button").removeClass("active");	
+	clearInterval(wiggleLoop);
+	wiggleLoop = undefined;
+}
+</script>
+
+<script>
+function foldCP(){
+	foldedState.cp = project.cp.duplicate();
+	foldedState.init();
+	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+	foldedState.update();
+}
+</script>
+
+<!-- button to wiggle crease pattern -->
+<script>
 document.getElementById("wiggle-button").addEventListener("click", function(e){
 	e.preventDefault();
-	if(wiggleLoop === undefined){
-		wiggleLoop = setInterval(function(){
-			var wiggleCount = project.cp.wiggle();
-			// if (wiggleCount < 20){ console.log(wiggleCount + " left"); }
-			if (wiggleCount < 20){ 
-				clearInterval(wiggleLoop); 
-				wiggleLoop = undefined;
-				// foldedState.cp = project.cp.duplicate();
-				// foldedState.init();
-				// foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-				// foldedState.update();
-			}
-			// if (wiggleCount === 0){ console.log("finishing"); }
-			// wiggleCount++;
-			// if(wiggleCount %100 === 0){ 
-				// wiggleCount = 0;
-				project.update();
-				project.colorNodesFlatFoldable();
-			// }
-		}, 3);
-	} else{
-		clearInterval(wiggleLoop);
-		wiggleLoop = undefined;
-	}
-
-	// project.cp.wiggle();
-
-
+	if(wiggleLoop === undefined){ startWiggle(); } 
+	else{ stopWiggle(); }
 
 	// var sumRating = 0;
 	// for(var i = 0; i < project.cp.nodes.length; i++){
@@ -157,34 +176,34 @@ document.getElementById("download-file").addEventListener("click", function(e){
 
 <!-- button to upload -->
 <script>
-document.getElementById("open-file").addEventListener("click", function(e){
-	e.preventDefault();
-	document.getElementById("files").click()
-});
-document.addEventListener('change', function(){
-	var input = $(this),
-		numFiles = input.get(0).files ? input.get(0).files.length : 1,
-		label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-	input.trigger('fileselect', [numFiles, label]);
-	readBlob();
-}, false);
-function readBlob() {
-	var files = document.getElementById('files').files;
-	if (!files.length) {
-		// they selected cancel
-		return;
-	}
-	var file = files[0];
-	var reader = new FileReader();
-	reader.onloadend = function(evt) {
-		if (evt.target.readyState == FileReader.DONE){
-			//byte range: ['Read ', file.size, ' byte file'].join('');
-			fileBlobLoaded(evt.target.result);
-		}
-	};
-	var blob = file.slice(0, file.size);
-	reader.readAsBinaryString(blob);
-}
+// document.getElementById("open-file").addEventListener("click", function(e){
+// 	e.preventDefault();
+// 	document.getElementById("files").click()
+// });
+// document.addEventListener('change', function(){
+// 	var input = $(this),
+// 		numFiles = input.get(0).files ? input.get(0).files.length : 1,
+// 		label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+// 	input.trigger('fileselect', [numFiles, label]);
+// 	readBlob();
+// }, false);
+// function readBlob() {
+// 	var files = document.getElementById('files').files;
+// 	if (!files.length) {
+// 		// they selected cancel
+// 		return;
+// 	}
+// 	var file = files[0];
+// 	var reader = new FileReader();
+// 	reader.onloadend = function(evt) {
+// 		if (evt.target.readyState == FileReader.DONE){
+// 			//byte range: ['Read ', file.size, ' byte file'].join('');
+// 			fileBlobLoaded(evt.target.result);
+// 		}
+// 	};
+// 	var blob = file.slice(0, file.size);
+// 	reader.readAsBinaryString(blob);
+// }
 </script>
 
 </html>

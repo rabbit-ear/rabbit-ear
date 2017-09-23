@@ -905,6 +905,12 @@ class PlanarGraph extends Graph{
 	/** Fragment looks at every edge and one by one removes 2 crossing edges and replaces them with a node at their intersection and 4 edges connecting their original endpoints to the intersection.
 	 * @returns {XY[]} array of XY locations of all the intersection locations
 	 */
+
+
+// new idea
+		// build a N x N matrix of edge to edge relationships, but only use the top triangle
+		// fill matrix with approximations
+
 	fragment():PlanarCleanReport{
 		var that = this;
 		function fragmentOneRound():PlanarCleanReport{
