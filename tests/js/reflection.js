@@ -33,9 +33,11 @@ do{
 
 }while(passed === false);
 
-reflex.marks[0].position = testPoints[0];
-reflex.marks[1].position = testPoints[1];
+// reflex.marks[0].position = testPoints[0];
+// reflex.marks[1].position = testPoints[1];
 
+reflex.marks[0].position = new XY(0.2, 0.2);
+reflex.marks[1].position = new XY(0.8, 0.8);
 
 
 reflex.computeReflection = function(){

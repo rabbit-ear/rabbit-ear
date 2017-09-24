@@ -54,6 +54,9 @@ canvas[resize]{
 <script>
 var foldedState = new OrigamiFold("canvas-2");
 var project = new OrigamiPaper("canvas-1");
+</script>
+<script src="deform.js"></script>
+<script>
 project.zoomToFit(0.05);
 
 var loadedCP = undefined;
@@ -67,25 +70,32 @@ project.load("../tests/svg/crane-errors.svg", function(){
 // incoming file from upload-button or drag-to-upload
 function fileBlobLoaded(svg){
 	project.load(svg, function(){
+		loadedCP = project.cp.duplicate();
 		project.colorNodesFlatFoldable();
-		foldCP();
+		// foldCP();
 	});
 }
 </script>
 
+<!-- reload the last opened file -->
 <script>
 document.getElementById("reload-file").addEventListener("click", function(e){
 	e.preventDefault();
 	project.setCreasePattern( loadedCP.duplicate() );
 	project.colorNodesFlatFoldable();
-
-	// project.load("../tests/svg/crane-errors.svg", function(){
-	// 	// foldCP();
-	// });
+	foldedState.cp = new CreasePattern();
+	foldedState.init();
+	// foldCP();
 });	
 </script>
 
-<script src="deform.js"></script>
+<script>
+function foldCP(){
+	foldedState.cp = project.cp.duplicate();
+	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+	foldedState.init();
+}
+</script>
 
 <!-- download svg blob -->
 <script>
@@ -104,8 +114,10 @@ var wiggleLoop = undefined;
 var wiggleCount = 0;
 function startWiggle(){
 	$("#wiggle-button").addClass("active");	
+	// project.cp.wiggle();
 	wiggleLoop = setInterval(function(){
 		var wiggleCount = project.cp.wiggle();
+		foldCP();
 		if (wiggleCount < 20){ 
 			console.log("programmatically stopping wiggle");
 			stopWiggle();
@@ -114,21 +126,11 @@ function startWiggle(){
 		project.update();
 		project.colorNodesFlatFoldable();
 	}, 3);
-	// project.cp.wiggle();
 }
 function stopWiggle(){
 	$("#wiggle-button").removeClass("active");	
 	clearInterval(wiggleLoop);
 	wiggleLoop = undefined;
-}
-</script>
-
-<script>
-function foldCP(){
-	foldedState.cp = project.cp.duplicate();
-	foldedState.init();
-	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-	foldedState.update();
 }
 </script>
 

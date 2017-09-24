@@ -39,10 +39,12 @@
 		<li class="dropdown">
 			<a href="planarGraph.php" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
-			<a href="planarClean.php">CLEAN</a>
-			<a href="face.php">FACE</a>
-			<a href="reflection.php">REFLECTION</a>
-			<a href="neighbors.php">NEIGHBOR</a>
+			<a href="planarTypes.php">a. DATA TYPES</a>
+			<a href="planarClean.php">b. CLEAN</a>
+			<a href="face.php">c. FACE</a>
+			<a href="reflection.php">d. LIN. ALGEBRA</a>
+			<a href="neighbors.php">e. NEIGHBOR</a>
+			<a href="epsilon.php">f. EPSILON</a>
 			</div>
 		</li>
 		<li class="dropdown">

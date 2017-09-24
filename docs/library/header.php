@@ -11,7 +11,8 @@
 <script language="javascript" type="text/javascript" src="../../src/cp.paperjs.js"></script>
 <link href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700" rel="stylesheet">
 <link href="../../lib/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
-<link href="../css/style.css" rel="stylesheet" />
+<link href="../css/library.css" rel="stylesheet" />
+<link href="../../lib/prism/prism.css" rel="stylesheet" />
 </head>
 <body>
 	<div class="main-content">

@@ -1,0 +1,298 @@
+/* Eric Meyer’s Reset CSS 2.0 */
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary, time, mark, audio, video
+{ margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline; }
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section { display: block; }
+body { line-height: 1; }
+ol, ul { list-style: none; }
+blockquote, q { quotes: none; }
+blockquote:before, blockquote:after, q:before, q:after { content: ''; content: none; }
+table { border-collapse: collapse; border-spacing: 0; }
+/* Eric Meyer’s Reset CSS 2.0 */
+
+canvas[resize] {
+	width: 90vw;
+	height: 90vw;
+	max-width: 60vh;
+	max-height: 60vh;
+}
+canvas[resize].large {
+	width: 90vw;
+	height: 90vw;
+	max-width: 80vh;
+	max-height: 80vh;
+}canvas[resize].panorama {
+	width: 90vw;
+	height: 30vw;
+	max-width: 90vw;
+	max-height: 30vw;
+}
+canvas[resize].fill {
+	width: 90vw;
+	height: 90vh;
+	max-width: 90vw;
+	max-height: 90vh;
+}
+body{
+	font-family: 'Cormorant', Georgia, "Times New Roman", Times, serif;
+	margin:2em;
+}
+a, a:hover, a:visited, a:active{
+	color:black; 
+	text-decoration: none;
+}
+p a{
+	font-weight: bold;
+	text-decoration: underline;
+}
+p a:hover{ text-decoration: none; }
+
+h1{font-size: 420%; font-weight: 300;}
+h2{font-size: 280%; font-weight: 300;}
+h3{font-size: 240%; font-weight: 300;}
+h4{font-size: 180%; font-weight: 300;}
+h5{font-size: 150%; font-weight: 300;}
+p, ol, ul  /* blockquote, pre, */ {
+	padding-top:0.5em;
+	padding-bottom:0.5em;
+	font-size: 150%;
+}
+h2{
+	padding-top:.6em;
+	padding-bottom: 6px;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: black;
+}
+h1{padding-top:.66em; padding-bottom:.66em; text-align: center;}
+h3{padding-top:1em; padding-bottom:0em; text-align: center;}
+h4{padding-top:0em; padding-bottom:0em; text-align: center;}
+ul{
+	list-style-type: square;
+	padding-left:1em;
+}
+ol{
+	list-style-type: upper-roman;
+	padding-left:2em;
+}
+b, strong{
+	font-weight: bold;
+}
+.explain{
+	margin-top:2em;
+	margin-bottom:2em;
+	padding:1em;
+	background-color: #FFFFAA;
+	box-shadow: 5px 5px 5px #CCC;
+}
+.quote{
+	margin-top:2em;
+	margin-bottom:2em;
+	text-align:center;
+	font-style: italic;
+	font-size: 90%;
+}
+.nav {
+	margin-top:2em;
+	margin-bottom:2em;
+	font-style: italic;
+	font-size: 90%;
+	width: 100%;
+}
+.nav-back {
+	width: 50%;
+	float: left;
+}
+.nav-next {
+	margin-left: 50%;
+	text-align: right;
+}
+.tests{
+	margin-top:2em;
+	margin-bottom:2em;
+	padding:1em;
+	border-width: 5px;  
+	border-style: dashed;
+	border-color: black;
+	background-color: #FFF;
+	box-shadow: inset 5px 5px 10px #CCC;
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+}
+.tests li{
+	padding-top:.33em;
+	padding-bottom:.33em;
+}
+.tests a:hover{
+	text-decoration: underline;
+}
+code a, code a:visited, code a:active, code a:hover{
+	color:white;
+	text-decoration: none;
+}
+code a:hover{
+	/*border-width: 5px;*/
+	border-bottom-width: 2px;
+	border-style: solid;
+	border-color: white;/*#66D9EF;*/
+}
+code h1, code h2, code h3, code h4, code h5{
+	padding:0;
+	border-bottom-width:0px;
+}
+/*
+h1 a, h2 a, h3 a, h4 a, h5 a{
+	font-weight: normal;
+	text-decoration: none;	
+}
+h1, h2, h3, h4, h5, p, nav, li{ 
+	font-weight: 500; 
+}
+h1{
+	font-weight: 300; 
+	font-size: 400%;
+	width:100%;
+	text-align: center;
+	-webkit-margin-after: 1em; 
+	-webkit-margin-before: 1.2em; 
+}
+h2{
+	font-size: 270%; 
+	-webkit-margin-after: 0.2em; 
+	-webkit-margin-before: 1em; 
+}
+h3{ font-size: 240%; }
+h4{ font-size: 200%; }
+h5{ font-size: 170%; }
+p, li{ font-size: 150%; }
+section{
+	padding: 0 10%;
+}
+h2{
+	padding-bottom: 4px;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: black;
+}
+*/
+
+.large{
+	font-size:250%;
+}
+.inline{ display:inline-block; }
+.centered{
+	width: 100%;
+	text-align: center;
+	display:inline-block;
+}
+.half{
+	width: 45%;
+	text-align: center;
+	display:inline-block;
+}
+.third{
+	width: 33%;
+	text-align: center;
+	display:inline-block;
+}
+
+button:focus {outline:0;}
+
+/* P5.js and D3.js */
+.p5sketch{
+	margin-top:3em;
+	margin-bottom:3em;
+}
+.svg-container {
+	display: inline-block;
+	position: relative;
+	width: 100%;
+	vertical-align: top;
+	overflow: hidden;
+}
+.svg-content {
+	display: inline-block;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+.links line {
+	stroke: #000;
+	stroke-width: 4px;
+	cursor: pointer;
+}
+.nodes circle {
+	stroke: #000;
+	fill: #FFF;
+	stroke-width: 4px;
+	cursor: pointer;
+}
+
+/* code syntax highlighting */
+code, pre {
+	color: #f8f8f2;
+	background: none;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+	text-align: left;
+	white-space: pre;
+	word-spacing: normal;
+	word-break: normal;
+	word-wrap: normal;
+	line-height: 1.5;
+
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	tab-size: 4;
+
+	-webkit-hyphens: none;
+	-moz-hyphens: none;
+	-ms-hyphens: none;
+	hyphens: none;
+}
+
+pre {
+	padding: 1em;
+	margin-top: 2em;
+	margin-bottom:2em;
+	overflow: auto;
+	border-radius: 0.3em;
+	background: #272822;
+	max-width:800px;
+	display:inline-block;
+	min-width:500px;
+}
+
+code {
+	padding: .1em;
+	border-radius: .3em;
+	white-space: normal;
+}
+
+/* the following are short to allow quick typing */
+
+c{ /* comment */
+	color: #708090;
+}
+f{ /* function */
+	color: #66D9EF;
+}
+n, .n { /* number */
+	color: #AE81FF;
+}
+v, def{ /* variable */
+	color: #A6E22E;
+}
+op, key{ /* operator */
+	color: #F92672;
+}
+str { /* string */
+	color: #E6DB74;
+}
+arg{ /* argument */
+	color: #FD9720;
+}

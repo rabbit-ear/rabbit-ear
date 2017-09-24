@@ -74,6 +74,8 @@ var OrigamiFold = (function(){
 		this.init();
 	}
 	OrigamiFold.prototype.init = function(){
+		this.foldedLayer.removeChildren();
+		
 		if(this.cp === undefined){ return; }
 		this.cp.generateFaces();
 		this.fold();

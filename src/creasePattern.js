@@ -274,9 +274,6 @@ var CreasePattern = (function (_super) {
                     if (this.boundary.faces[i] !== undefined) {
                         for (var j = 0; j < this.boundary.faces[i].nodes.length; j++) {
                             bf.nodes.push(b.nodes[this.boundary.faces[i].nodes[j].index]);
-                            if (j > 1000) {
-                                throw "quit";
-                            }
                         }
                         for (var j = 0; j < this.boundary.faces[i].edges.length; j++) {
                             bf.edges.push(b.edges[this.boundary.faces[i].edges[j].index]);

@@ -16,7 +16,6 @@ nearNodeSketch.reset = function(){
 	}
 	nearNodeSketch.init();
 	nearNodeSketch.nodeLayer.visible = true;
-	console.log(nearNodeSketch.nodeLayer.children[0]);
 	for(var i = 0; i < nearNodeSketch.nodeLayer.children.length; i++){
 		nearNodeSketch.nodeLayer.children[i].radius = 0.004;
 		// nearNodeSketch.nodeLayer.children[i].fillColor = { hue:220, saturation:0.6, brightness: 1.0 };

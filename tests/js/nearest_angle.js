@@ -3,13 +3,16 @@ var nearAngleCallback;
 var nearAngle = new OrigamiPaper("canvas-nearest-angle", new PlanarGraph());
 
 nearAngle.reset = function(){
+	this.cp.nodes = [];
+	this.cp.edges = [];
 	// make 3 fan lines with a good sized interior angle between them
 	var center = new XY(0.5, 0.5);
 	var angle = 0;
 	while(angle < Math.PI*2){
 		var len = 0.5;
 		this.cp.newPlanarEdge(0.5, 0.5, 0.5+len*Math.cos(angle), 0.5+len*Math.sin(angle) );
-		angle+= Math.PI/7;
+		// angle+= Math.PI/7;
+		angle += Math.PI / 64 + Math.random() * Math.PI / 6;
 	}
 	this.cp.cleanDuplicateNodes();
 	this.init();

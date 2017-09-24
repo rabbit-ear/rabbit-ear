@@ -1,11 +1,12 @@
-/* http://prismjs.com/download.html?themes=prism-okaidia&languages=markup+css+clike+javascript+json */
+/* http://prismjs.com/download.html?themes=prism-okaidia&languages=clike+javascript+typescript */
 /**
  * okaidia theme for JavaScript, CSS and HTML
  * Loosely based on Monokai textmate theme by http://www.monokai.nl/
  * @author ocodia
  */
 
-code, pre {
+code[class*="language-"],
+pre[class*="language-"] {
 	color: #f8f8f2;
 	background: none;
 	text-shadow: 0 1px rgba(0, 0, 0, 0.3);
@@ -28,20 +29,20 @@ code, pre {
 }
 
 /* Code blocks */
-pre {
+pre[class*="language-"] {
 	padding: 1em;
-	margin: .5em -1.0em;
+	margin: .5em 0;
 	overflow: auto;
 	border-radius: 0.3em;
 }
 
-:not(pre) > code,
-pre {
+:not(pre) > code[class*="language-"],
+pre[class*="language-"] {
 	background: #272822;
 }
 
 /* Inline code */
-:not(pre) > code {
+:not(pre) > code[class*="language-"] {
 	padding: .1em;
 	border-radius: .3em;
 	white-space: normal;
@@ -120,6 +121,3 @@ pre {
 	cursor: help;
 }
 
-.token.argument {
-	color: #FD9720;
-}
