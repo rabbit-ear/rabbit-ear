@@ -23,10 +23,7 @@ jointTri.reset = function(){
 		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i].angle < Math.PI*0.5) tooSmall = true; }
 	} while(tooSmall);
 
-	var angles = [];
-	for(var i = 0; i < interiorAngles.length; i++){
-		angles.push(cp.findFlatFoldable(interiorAngles[i]));
-	}
+	var angles = interiorAngles.map(function(el){ return cp.findFlatFoldable(el); });
 
 	var newTriNodes = [];
 

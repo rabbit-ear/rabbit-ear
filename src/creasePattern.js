@@ -29,6 +29,24 @@ var Fold = (function () {
     }
     return Fold;
 }());
+var MadeByType;
+(function (MadeByType) {
+    MadeByType[MadeByType["ray"] = 0] = "ray";
+    MadeByType[MadeByType["doubleRay"] = 1] = "doubleRay";
+    MadeByType[MadeByType["endpoints"] = 2] = "endpoints";
+    MadeByType[MadeByType["axiom1"] = 3] = "axiom1";
+    MadeByType[MadeByType["axiom2"] = 4] = "axiom2";
+    MadeByType[MadeByType["axiom3"] = 5] = "axiom3";
+    MadeByType[MadeByType["axiom4"] = 6] = "axiom4";
+    MadeByType[MadeByType["axiom5"] = 7] = "axiom5";
+    MadeByType[MadeByType["axiom6"] = 8] = "axiom6";
+    MadeByType[MadeByType["axiom7"] = 9] = "axiom7";
+})(MadeByType || (MadeByType = {}));
+var MadeBy = (function () {
+    function MadeBy() {
+    }
+    return MadeBy;
+}());
 // crease pattern change callback, hook directly into cp.paperjs.js init()
 var ChangeType;
 (function (ChangeType) {
@@ -126,6 +144,12 @@ var CreaseNode = (function (_super) {
     CreaseNode.prototype.creaseToPoint = function (point) {
         return this.graph.creasePointToPoint(this, point);
     };
+    CreaseNode.prototype.findFlatFoldable = function () {
+        var that = this;
+        return this.interiorAngles().map(function (el) {
+            return that.graph.findFlatFoldable(el);
+        });
+    };
     return CreaseNode;
 }(PlanarNode));
 var Crease = (function (_super) {
@@ -133,7 +157,8 @@ var Crease = (function (_super) {
     function Crease(graph, node1, node2) {
         var _this = _super.call(this, graph, node1, node2) || this;
         _this.orientation = CreaseDirection.mark;
-        _this.rayOrigin = undefined;
+        _this.newMadeBy = new MadeBy();
+        _this.newMadeBy.endPoints = [node1, node2];
         return _this;
     }
     ;
@@ -145,7 +170,7 @@ var Crease = (function (_super) {
         // find this edge's first intersection
         // remove this edge
         // replace it with an edge that doesn't intersect other edges
-        var o = this.rayOrigin;
+        var o = this.newMadeBy.rayOrigin;
         if (o === undefined) {
             o = this.nodes[0];
         }
@@ -310,18 +335,22 @@ var CreasePattern = (function (_super) {
         next.nodes = [];
         next.edges = [];
         next.faces = [];
+        console.log("start");
         for (var i = 0; i < this.edges.length - 1; i++) {
             for (var j = i + 1; j < this.edges.length; j++) {
                 next.creaseEdgeToEdge(this.edges[i], this.edges[j]);
             }
         }
+        console.log("1");
         for (var i = 0; i < this.nodes.length - 1; i++) {
             for (var j = i + 1; j < this.nodes.length; j++) {
                 next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
                 next.creasePointToPoint(this.nodes[i], this.nodes[j]);
             }
         }
+        console.log("2 and 3");
         next.cleanDuplicateNodes();
+        console.log("cleaned");
         return next;
     };
     CreasePattern.prototype.possibleFolds2 = function () {
@@ -370,11 +399,14 @@ var CreasePattern = (function (_super) {
                     this.nodes[i].y += move.y;
                     var newRating = this.nodes[i].kawasakiRating();
                     var adjNodes = this.nodes[i].adjacentNodes();
+                    // var numRatings = 1;  // begin with this node. add the adjacent nodes
                     var adjRating = 0;
                     for (var adj = 0; adj < adjNodes.length; adj++) {
                         adjRating += this.nodes[i].kawasakiRating();
+                        // numRatings += 1;
                     }
                     guesses.push({ xy: move, rating: newRating + adjRating });
+                    // guesses.push( {xy:move, rating:(newRating+adjRating)/numRatings} );
                     // undo change
                     this.nodes[i].x -= move.x;
                     this.nodes[i].y -= move.y;
@@ -389,6 +421,10 @@ var CreasePattern = (function (_super) {
         }
         return nodesAttempted;
     };
+    CreasePattern.prototype.flatFoldable = function () {
+        return this.nodes.map(function (el) { return el.flatFoldable(); })
+            .reduce(function (prev, cur) { return prev && cur; });
+    };
     ///////////////////////////////////////////////////////////////
     // ADD PARTS
     CreasePattern.prototype.fold = function (param1, param2, param3, param4) {
@@ -396,49 +432,49 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.foldInHalf = function () {
         var crease;
-        var bounds = this.boundingBox();
-        var centroid = new XY(bounds.origin.x + bounds.size.width * 0.5, bounds.origin.y + bounds.size.height * 0.5);
-        // var edges = [this.boundary.]
-        var validCreases = this.possibleFolds3().edges.filter(function (el) {
-            return onSegment(centroid, el.nodes[0], el.nodes[1]);
-        }).sort(function (a, b) {
-            var aSum = a.nodes[0].index + a.nodes[1].index;
-            var bSum = b.nodes[0].index + b.nodes[1].index;
-            return (aSum > bSum) ? 1 : (aSum < bSum) ? -1 : 0;
-        });
-        console.log(validCreases);
-        var edgeCount = this.edges.length;
-        var i = 0;
-        do {
-            // console.log("new round");
-            // console.log(this.edges.length);
-            crease = this.creaseThroughPoints(validCreases[i].nodes[0], validCreases[i].nodes[1]);
-            // console.log(this.edges.length);
+        // var bounds = this.boundingBox();
+        // var centroid = new XY(bounds.origin.x + bounds.size.width*0.5,
+        //                       bounds.origin.y + bounds.size.height*0.5);
+        // // var edges = [this.boundary.]
+        // var validCreases = this.possibleFolds3().edges.filter(function(el){ 
+        // 	return onSegment(centroid, el.nodes[0], el.nodes[1]);
+        // }).sort(function(a,b){ 
+        // 	var aSum = a.nodes[0].index + a.nodes[1].index;
+        // 	var bSum = b.nodes[0].index + b.nodes[1].index;
+        // 	return (aSum>bSum)?1:(aSum<bSum)?-1:0;
+        // });
+        // // console.log(validCreases);
+        // var edgeCount = this.edges.length;
+        // var i = 0;
+        // do{
+        // 	// console.log("new round");
+        // 	// console.log(this.edges.length);
+        // 	crease = this.creaseThroughPoints(validCreases[i].nodes[0], validCreases[i].nodes[1]);
+        // 	// console.log(this.edges.length);
+        // 	this.clean();
+        // 	i++;
+        // }while( edgeCount === this.edges.length && i < validCreases.length );
+        // if(edgeCount !== this.edges.length) return crease;
+        if (epsilonEqual(this.width(), this.height())) {
             this.clean();
-            i++;
-        } while (edgeCount === this.edges.length && i < validCreases.length);
-        if (edgeCount !== this.edges.length)
-            return crease;
-        // if(epsilonEqual(this.width(), this.height())){
-        // 		this.clean();
-        // 	var edgeCount = this.edges.length;
-        // 	var edgeMidpoints = this.edges.map(function(el){return el.midpoint();});
-        // 	var arrayOfPointsAndMidpoints = this.nodes.map(function(el){return new XY(el.x, el.y);}).concat(edgeMidpoints);
-        // 	// console.log(arrayOfPointsAndMidpoints);
-        // 	var bounds = this.boundingBox();
-        // 	var centroid = new XY(bounds.origin.x + bounds.size.width*0.5,
-        // 	                      bounds.origin.y + bounds.size.height*0.5);
-        // 	var i = 0;
-        // 	do{
-        // 		// console.log("new round");
-        // 		// console.log(this.edges.length);
-        // 		crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
-        // 		// console.log(this.edges.length);
-        // 		this.clean();
-        // 		i++;
-        // 	}while( edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length );
-        // 	if(edgeCount !== this.edges.length) return crease;
-        // }
+            var edgeCount = this.edges.length;
+            var edgeMidpoints = this.edges.map(function (el) { return el.midpoint(); });
+            var arrayOfPointsAndMidpoints = this.nodes.map(function (el) { return new XY(el.x, el.y); }).concat(edgeMidpoints);
+            // console.log(arrayOfPointsAndMidpoints);
+            var bounds = this.boundingBox();
+            var centroid = new XY(bounds.origin.x + bounds.size.width * 0.5, bounds.origin.y + bounds.size.height * 0.5);
+            var i = 0;
+            do {
+                // console.log("new round");
+                // console.log(this.edges.length);
+                crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
+                // console.log(this.edges.length);
+                this.clean();
+                i++;
+            } while (edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length);
+            if (edgeCount !== this.edges.length)
+                return crease;
+        }
         return;
     };
     CreasePattern.prototype.pointInside = function (p) {
@@ -489,10 +525,10 @@ var CreasePattern = (function (_super) {
         } //throw "creaseRay does not appear to be inside the boundary"; }
         var newCrease = this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
         if (origin.equivalent(newCrease.nodes[0])) {
-            newCrease.rayOrigin = newCrease.nodes[0];
+            newCrease.newMadeBy.rayOrigin = newCrease.nodes[0];
         }
         if (origin.equivalent(newCrease.nodes[1])) {
-            newCrease.rayOrigin = newCrease.nodes[1];
+            newCrease.newMadeBy.rayOrigin = newCrease.nodes[1];
         }
         return newCrease;
     };
@@ -516,6 +552,9 @@ var CreasePattern = (function (_super) {
         else {
             return this.creaseRay(origin, direction);
         }
+    };
+    CreasePattern.prototype.creaseRayRepeat = function (origin, direction) {
+        return;
     };
     CreasePattern.prototype.creaseAngle = function (origin, radians) {
         return this.creaseRay(origin, new XY(Math.cos(radians), Math.sin(radians)));
@@ -998,6 +1037,26 @@ var CreasePattern = (function (_super) {
         this.cleanDuplicateNodes();
         this.boundary.cleanDuplicateNodes();
         this.boundary.generateFaces();
+        return this;
+    };
+    CreasePattern.prototype.setMinRectBoundary = function () {
+        this.boundary = new PlanarGraph();
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        var xMin = Infinity;
+        var xMax = 0;
+        var yMin = Infinity;
+        var yMax = 0;
+        for (var i = 0; i < this.nodes.length; i++) {
+            if (this.nodes[i].x > xMax)
+                xMax = this.nodes[i].x;
+            if (this.nodes[i].x < xMin)
+                xMin = this.nodes[i].x;
+            if (this.nodes[i].y > yMax)
+                yMax = this.nodes[i].y;
+            if (this.nodes[i].y < yMin)
+                yMin = this.nodes[i].y;
+        }
+        this.setBoundary([new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax)]);
         return this;
     };
     ///////////////////////////////////////////////////////////////

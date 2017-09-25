@@ -22,6 +22,26 @@ class Fold{
 	}
 }
 
+enum MadeByType{
+	ray,
+	doubleRay,
+	endpoints,
+	axiom1,
+	axiom2,
+	axiom3,
+	axiom4,
+	axiom5,
+	axiom6,
+	axiom7
+}
+
+class MadeBy{
+	type:MadeByType;
+	rayOrigin:CreaseNode;  // if it's a ray, there will be 1 endPoint
+	endPoints:CreaseNode[];  // if it's a point 2 point fold, no rayOrigin and 2 endPoints
+	intersections:Crease[];  // 1:1 with endPoints
+}
+
 // crease pattern change callback, hook directly into cp.paperjs.js init()
 enum ChangeType{
 	position,
@@ -112,6 +132,12 @@ class CreaseNode extends PlanarNode{
 	creaseToPoint(point:XY):Crease{
 		return this.graph.creasePointToPoint(this, point);
 	}
+	findFlatFoldable():number[]{ // angles for the rays to cast from this node
+		var that = this;
+		return this.interiorAngles().map(function(el){
+			return that.graph.findFlatFoldable(el);
+		});
+	}
 }
 
 class Crease extends PlanarEdge{
@@ -119,13 +145,14 @@ class Crease extends PlanarEdge{
 	graph:CreasePattern;
 	orientation:CreaseDirection;
 	// how it was made
+	newMadeBy:MadeBy;
 	madeBy:Fold;
-	rayOrigin:CreaseNode; // if it was a ray, save which endpoint was the origin
 
 	constructor(graph:CreasePattern, node1:CreaseNode, node2:CreaseNode){
 		super(graph, node1, node2);
 		this.orientation = CreaseDirection.mark;
-		this.rayOrigin = undefined;
+		this.newMadeBy = new MadeBy();
+		this.newMadeBy.endPoints = [node1, node2];
 	};
 	mark(){ this.orientation = CreaseDirection.mark; return this;}
 	mountain(){ this.orientation = CreaseDirection.mountain; return this;}
@@ -136,7 +163,7 @@ class Crease extends PlanarEdge{
 		// find this edge's first intersection
 		// remove this edge
 		// replace it with an edge that doesn't intersect other edges
-		var o = this.rayOrigin;
+		var o = this.newMadeBy.rayOrigin;
 		if(o === undefined){ o = <CreaseNode>this.nodes[0]; }
 		var angle = this.absoluteAngle(o);
 		var rayDirection = new XY(Math.cos(angle), Math.sin(angle));
@@ -297,18 +324,22 @@ class CreasePattern extends PlanarGraph{
 		next.nodes = [];
 		next.edges = [];
 		next.faces = [];
+		console.log("start");
 		for(var i = 0; i < this.edges.length-1; i++){
 			for(var j = i+1; j < this.edges.length; j++){
 				next.creaseEdgeToEdge(this.edges[i], this.edges[j]);
 			}
 		}
+		console.log("1");
 		for(var i = 0; i < this.nodes.length-1; i++){
 			for(var j = i+1; j < this.nodes.length; j++){
 				next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
 				next.creasePointToPoint(this.nodes[i], this.nodes[j]);
 			}
 		}
+		console.log("2 and 3");
 		next.cleanDuplicateNodes();
+		console.log("cleaned");
 		return next;
 	}
 
@@ -361,11 +392,14 @@ class CreasePattern extends PlanarGraph{
 					this.nodes[i].y += move.y;
 					var newRating = this.nodes[i].kawasakiRating();
 					var adjNodes = this.nodes[i].adjacentNodes();
+					// var numRatings = 1;  // begin with this node. add the adjacent nodes
 					var adjRating = 0;
 					for(var adj = 0; adj < adjNodes.length; adj++){
 						adjRating += this.nodes[i].kawasakiRating();
+						// numRatings += 1;
 					}
 					guesses.push( {xy:move, rating:newRating+adjRating} );
+					// guesses.push( {xy:move, rating:(newRating+adjRating)/numRatings} );
 					// undo change
 					this.nodes[i].x -= move.x;
 					this.nodes[i].y -= move.y;
@@ -380,6 +414,11 @@ class CreasePattern extends PlanarGraph{
 		}
 		return nodesAttempted;
 	}
+
+	flatFoldable():boolean{
+		return this.nodes.map(function(el){return el.flatFoldable()})
+		                 .reduce(function(prev,cur){return prev && cur;});
+	}
 	
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS
@@ -389,53 +428,53 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	foldInHalf():Crease{
-		var crease;
-		var bounds = this.boundingBox();
-		var centroid = new XY(bounds.origin.x + bounds.size.width*0.5,
-		                      bounds.origin.y + bounds.size.height*0.5);
+		var crease:Crease;
+		// var bounds = this.boundingBox();
+		// var centroid = new XY(bounds.origin.x + bounds.size.width*0.5,
+		//                       bounds.origin.y + bounds.size.height*0.5);
 
-		// var edges = [this.boundary.]
+		// // var edges = [this.boundary.]
 
-		var validCreases = this.possibleFolds3().edges.filter(function(el){ 
-			return onSegment(centroid, el.nodes[0], el.nodes[1]);
-		}).sort(function(a,b){ 
-			var aSum = a.nodes[0].index + a.nodes[1].index;
-			var bSum = b.nodes[0].index + b.nodes[1].index;
-			return (aSum>bSum)?1:(aSum<bSum)?-1:0;
-		});
-		console.log(validCreases);
-		var edgeCount = this.edges.length;
-		var i = 0;
-		do{
-			// console.log("new round");
-			// console.log(this.edges.length);
-			crease = this.creaseThroughPoints(validCreases[i].nodes[0], validCreases[i].nodes[1]);
-			// console.log(this.edges.length);
-			this.clean();
-			i++;
-		}while( edgeCount === this.edges.length && i < validCreases.length );
-		if(edgeCount !== this.edges.length) return crease;
+		// var validCreases = this.possibleFolds3().edges.filter(function(el){ 
+		// 	return onSegment(centroid, el.nodes[0], el.nodes[1]);
+		// }).sort(function(a,b){ 
+		// 	var aSum = a.nodes[0].index + a.nodes[1].index;
+		// 	var bSum = b.nodes[0].index + b.nodes[1].index;
+		// 	return (aSum>bSum)?1:(aSum<bSum)?-1:0;
+		// });
+		// // console.log(validCreases);
+		// var edgeCount = this.edges.length;
+		// var i = 0;
+		// do{
+		// 	// console.log("new round");
+		// 	// console.log(this.edges.length);
+		// 	crease = this.creaseThroughPoints(validCreases[i].nodes[0], validCreases[i].nodes[1]);
+		// 	// console.log(this.edges.length);
+		// 	this.clean();
+		// 	i++;
+		// }while( edgeCount === this.edges.length && i < validCreases.length );
+		// if(edgeCount !== this.edges.length) return crease;
 
-		// if(epsilonEqual(this.width(), this.height())){
-		// 		this.clean();
-		// 	var edgeCount = this.edges.length;
-		// 	var edgeMidpoints = this.edges.map(function(el){return el.midpoint();});
-		// 	var arrayOfPointsAndMidpoints = this.nodes.map(function(el){return new XY(el.x, el.y);}).concat(edgeMidpoints);
-		// 	// console.log(arrayOfPointsAndMidpoints);
-		// 	var bounds = this.boundingBox();
-		// 	var centroid = new XY(bounds.origin.x + bounds.size.width*0.5,
-		// 	                      bounds.origin.y + bounds.size.height*0.5);
-		// 	var i = 0;
-		// 	do{
-		// 		// console.log("new round");
-		// 		// console.log(this.edges.length);
-		// 		crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
-		// 		// console.log(this.edges.length);
-		// 		this.clean();
-		// 		i++;
-		// 	}while( edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length );
-		// 	if(edgeCount !== this.edges.length) return crease;
-		// }
+		if(epsilonEqual(this.width(), this.height())){
+				this.clean();
+			var edgeCount = this.edges.length;
+			var edgeMidpoints = this.edges.map(function(el){return el.midpoint();});
+			var arrayOfPointsAndMidpoints = this.nodes.map(function(el){return new XY(el.x, el.y);}).concat(edgeMidpoints);
+			// console.log(arrayOfPointsAndMidpoints);
+			var bounds = this.boundingBox();
+			var centroid = new XY(bounds.origin.x + bounds.size.width*0.5,
+			                      bounds.origin.y + bounds.size.height*0.5);
+			var i = 0;
+			do{
+				// console.log("new round");
+				// console.log(this.edges.length);
+				crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
+				// console.log(this.edges.length);
+				this.clean();
+				i++;
+			}while( edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length );
+			if(edgeCount !== this.edges.length) return crease;
+		}
 		return;
 	}
 
@@ -482,8 +521,8 @@ class CreasePattern extends PlanarGraph{
 		var endpoints = this.clipRayInBoundary(origin, direction);
 		if(endpoints === undefined) { return; }//throw "creaseRay does not appear to be inside the boundary"; }
 		var newCrease = this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
-		if(origin.equivalent(newCrease.nodes[0])){ newCrease.rayOrigin = <CreaseNode>newCrease.nodes[0]; }
-		if(origin.equivalent(newCrease.nodes[1])){ newCrease.rayOrigin = <CreaseNode>newCrease.nodes[1]; }
+		if(origin.equivalent(newCrease.nodes[0])){ newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[0]; }
+		if(origin.equivalent(newCrease.nodes[1])){ newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[1]; }
 		return newCrease;
 	}
 
@@ -504,6 +543,10 @@ class CreasePattern extends PlanarGraph{
 		} else{
 			return this.creaseRay(origin, direction);
 		}
+	}
+
+	creaseRayRepeat(origin:XY, direction:XY):Crease{
+		return;
 	}
 
 	creaseAngle(origin:XY,radians:number):Crease{
@@ -779,7 +822,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 
-/////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////
 	
 	boundaryLineIntersection(origin:XY, direction:XY):XY[]{
 		var opposite = new XY(-direction.x, -direction.y);
@@ -925,6 +968,23 @@ class CreasePattern extends PlanarGraph{
 		this.cleanDuplicateNodes();
 		this.boundary.cleanDuplicateNodes();
 		this.boundary.generateFaces();
+		return this;
+	}
+
+	setMinRectBoundary():CreasePattern{
+		this.boundary = new PlanarGraph();
+		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+		var xMin = Infinity;
+		var xMax = 0;
+		var yMin = Infinity;
+		var yMax = 0;
+		for(var i = 0; i < this.nodes.length; i++){ 
+			if(this.nodes[i].x > xMax) xMax = this.nodes[i].x;
+			if(this.nodes[i].x < xMin) xMin = this.nodes[i].x;
+			if(this.nodes[i].y > yMax) yMax = this.nodes[i].y;
+			if(this.nodes[i].y < yMin) yMin = this.nodes[i].y;
+		}
+		this.setBoundary( [new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax) ]);
 		return this;
 	}
 
@@ -1449,3 +1509,4 @@ class CreasePattern extends PlanarGraph{
 
 
 }
+

@@ -31,6 +31,7 @@
 			<a href="/docs/" class="dropbtn">HELLO</a>
 			<div class="dropdown-content">
 			<a href="https://github.com/robbykraft/Origami">DOWNLOAD</a>
+			<a href="types.php">LIBRARY OF TYPES</a>
 			</div>
 		</li>
 		<li class="dropdown">
@@ -39,7 +40,6 @@
 		<li class="dropdown">
 			<a href="planarGraph.php" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
-			<a href="planarTypes.php">a. DATA TYPES</a>
 			<a href="planarClean.php">b. CLEAN</a>
 			<a href="face.php">c. FACE</a>
 			<a href="reflection.php">d. LIN. ALGEBRA</a>
