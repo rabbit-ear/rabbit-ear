@@ -306,7 +306,7 @@ var CreasePattern = (function (_super) {
                         for (var j = 0; j < this.boundary.faces[i].angles.length; j++) {
                             bf.angles.push(this.boundary.faces[i].angles[j]);
                         }
-                        b.faces.push(f);
+                        b.faces.push(bf);
                     }
                 }
             }
@@ -1234,11 +1234,12 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.contains = function (a, b) {
         var point;
         if (isValidPoint(a)) {
-            point = a;
+            point = new XY(a.x, a.y);
         }
         else if (isValidNumber(a) && isValidNumber(b)) {
             point = new XY(a, b);
         }
+        console.log(this.boundary);
         if (this.boundary.faces.length > 0) {
             return this.boundary.faces[0].contains(point);
         }
