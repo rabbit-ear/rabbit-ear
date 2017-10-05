@@ -814,7 +814,11 @@ class CreasePattern extends PlanarGraph{
 				var midpoints = [el[0], el[1]].map(function(mapEl){
 					return interpolate(new XY(mapEl[0], mapEl[1]), new XY(focus[0], focus[1]), interp);
 				});
-				var index = arrayContains(quarterEdges, [midpoints[0], midpoints[1]], function(a,b){  });
+				var index = arrayContains(quarterEdges, [midpoints[0], midpoints[1]], function(a,b){ 
+					if(a[0].equivalent(b[0]) || 
+					   a[0].equivalent(b[1]) ||
+					   a[1].equivalent(b[0]) || 
+					   a[1].equivalent(b[1]) ) return true; });
 				if(index === undefined){
 					theseQuarterEdgeIndices.push(quarterEdges.length);
 					quarterEdges.push([midpoints[0], midpoints[1]]);
