@@ -8,20 +8,40 @@ jointTri.reset = function(){
 	var interiorAngles;
 	var centerNode;
 	// make 3 fan lines with a good sized interior angle between them
-	do{
-		this.cp.clear();
-		this.cp.nodes = [];
-		this.cp.edges = [];
-		for(var i = 0; i < 3; i++){
-			var angle = Math.random()*Math.PI*2;
-			this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle), Math.sin(angle))).mountain();
-		}
-		this.cp.clean();
-		centerNode = this.cp.getNearestNode(0.5, 0.5);
-		interiorAngles = centerNode.interiorAngles();
-		var tooSmall = false;
-		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i].angle < Math.PI*0.5) tooSmall = true; }
-	} while(tooSmall);
+	// do{
+		// this.cp.clear();
+		// this.cp.nodes = [];
+		// this.cp.edges = [];
+		// for(var i = 0; i < 3; i++){
+		// 	var angle = Math.random()*Math.PI*2;
+		// 	this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle), Math.sin(angle))).mountain();
+		// }
+		// this.cp.clean();
+		// centerNode = this.cp.getNearestNode(0.5, 0.5);
+		// interiorAngles = centerNode.interiorAngles();
+		// var tooSmall = false;
+		// for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i].angle < Math.PI*0.5) tooSmall = true; }
+	// } while(tooSmall);
+
+	// manual input
+	var angle = [
+		(360 - 345) * Math.PI / 180,
+		(360 - 225) * Math.PI / 180,
+		(360 - 120) * Math.PI / 180
+	];
+	this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle[0]), Math.sin(angle[0]))).mountain();
+	this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle[1]), Math.sin(angle[1]))).mountain();
+	this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle[2]), Math.sin(angle[2]))).mountain();
+	// flipped
+	// this.cp.creaseRay(new XY(0.5, 0.5), new XY(-Math.cos(angle[0]), Math.sin(angle[0]))).mountain();
+	// this.cp.creaseRay(new XY(0.5, 0.5), new XY(-Math.cos(angle[1]), Math.sin(angle[1]))).mountain();
+	// this.cp.creaseRay(new XY(0.5, 0.5), new XY(-Math.cos(angle[2]), Math.sin(angle[2]))).mountain();
+
+
+	this.cp.clean();
+	centerNode = this.cp.getNearestNode(0.5, 0.5);
+	interiorAngles = centerNode.interiorAngles();
+
 
 	var angles = interiorAngles.map(function(el){ return cp.findFlatFoldable(el); });
 
@@ -50,7 +70,7 @@ jointTri.reset = function(){
 
 	var newAdj = centerNode.adjacentEdges();
 	for(var i = newAdj.length-1; i >= 0; i--){
-		this.cp.removeEdge(newAdj[i]);
+		// this.cp.removeEdge(newAdj[i]);
 	}
 
 	for(var i = 0; i < newTriNodes.length; i++){
@@ -66,13 +86,20 @@ jointTri.reset = function(){
 	// }
 	// remove extra marks
 	for(var i = jointTri.cp.edges.length-1; i >= 0; i--){
-		if(jointTri.cp.edges[i].orientation === CreaseDirection.mark){ 
+		if(jointTri.cp.edges[i] !== undefined && jointTri.cp.edges[i].orientation === CreaseDirection.mark){ 
 			jointTri.cp.removeEdge(jointTri.cp.edges[i]); 
 		}
 	}
 
 	jointTri.init();
+
+
+	var scale = 600 / this.cpMin;
+	var svgBlob = this.cp.svg(scale);
+	download(svgBlob, "creasepattern.svg");
+
 }
+
 jointTri.reset();
 
 jointTri.onFrame = function(event) { }
@@ -82,3 +109,13 @@ jointTri.onMouseDown = function(event){
 }
 jointTri.onMouseUp = function(event){ }
 jointTri.onMouseMove = function(event) { }
+
+
+function download(text, filename){
+	var blob = new Blob([text], {type: "image/svg+xml"});
+	var url = window.URL.createObjectURL(blob);
+	var a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
+}

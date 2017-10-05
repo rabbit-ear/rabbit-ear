@@ -25,11 +25,16 @@
 		<p>By hand, it's easy to crease the line at the midpoint (0.5), with a computer we can parameterize this value.</p>
 	</div>
 
+	<div class="centered">
+		<canvas id="canvas-voronoi-edit" resize></canvas>
+	</div>
+
 
 </section>
 
 <script src="../lib/d3.min.js"></script>
 <script src="../tests/js/voronoi_interp.js"></script>
+<script src="../tests/js/voronoi_edit.js"></script>
 
 <script type="text/javascript">
 

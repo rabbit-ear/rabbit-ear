@@ -186,6 +186,8 @@ crane2CP.load("/tests/svg/crane-errors.svg", function(){
 	// var paper3 = new OrigamiPaper("canvas3", cp[2]);
 	paper1.style.nodes.visible = true;
 	paper2.style.nodes.visible = true;
+	paper1.style.nodes.fillColor = { hue:25, saturation:0.7, brightness:1.0 };
+	paper2.style.nodes.fillColor = { hue:25, saturation:0.7, brightness:1.0 };
 	// paper3.style.nodes.visible = true;
 	paper1.update();
 	paper2.update();

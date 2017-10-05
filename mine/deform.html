@@ -118,7 +118,7 @@ function startWiggle(){
 	wiggleLoop = setInterval(function(){
 		var wiggleCount = project.cp.wiggle();
 		foldCP();
-		if (wiggleCount < 20){ 
+		if (wiggleCount < 5){ 
 			console.log("programmatically stopping wiggle");
 			stopWiggle();
 			foldCP();

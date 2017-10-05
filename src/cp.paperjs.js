@@ -44,6 +44,8 @@ var OrigamiFold = (function(){
 		this.style = { face:{ fillColor:{ gray:1.0, alpha:0.1 } } };
 		this.zoomToFit();
 
+		this.customZoom = 0.66;
+
 		// the order of the following sets the z index order too
 		this.foldedLayer = new this.scope.Layer();
 				
@@ -75,7 +77,6 @@ var OrigamiFold = (function(){
 	}
 	OrigamiFold.prototype.init = function(){
 		this.foldedLayer.removeChildren();
-		
 		if(this.cp === undefined){ return; }
 		this.cp.generateFaces();
 		this.fold();
@@ -109,23 +110,10 @@ var OrigamiFold = (function(){
 		paper = this.scope;
 		// find a face near the middle
 		if(this.cp === undefined){ return; }
-		var centerNode = this.cp.getNearestNode(this.cp.width() * 0.5, this.cp.height()*0.5);
-		if(centerNode === undefined){ return; }
-		var centerFaces = centerNode.adjacentFaces();
-		if(centerFaces === undefined || centerFaces.length == 0){ return; }
-		var sortedFaces = centerFaces.sort(function(a,b){
-			var avgA = 0;
-			var avgB = 0;
-			for(var i = 0; i < a.nodes.length; i++){ avgA += a.nodes[i].y; }
-			avgA /= (a.nodes.length);
-			for(var i = 0; i < b.nodes.length; i++){ avgB += b.nodes[i].y; }
-			avgB /= (a.nodes.length);
-			return (avgA < avgB) ? 1 : ((avgA > avgB) ? -1 : 0);
-		});
-		if(sortedFaces.length <= 1){ return; }
-		var centerBottomFace = sortedFaces[0];
 
-		var foldTree = this.cp.adjacentFaceTree(centerBottomFace);
+		var centerFace = this.cp.getNearestFace(this.cp.width() * 0.5, this.cp.height()*0.5);
+		if(centerFace === undefined){ return; }
+		var foldTree = this.cp.adjacentFaceTree(centerFace);
 
 		this.foldedLayer.removeChildren();
 		this.foldedLayer.activate();
@@ -175,13 +163,12 @@ var OrigamiFold = (function(){
 		if(cpAspect > canvasAspect) { cpCanvasRatio = canvasWidth / cpWidth; }
 		// matrix
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
-		var customZoom = 0.66;
-		mat.scale(0.66, 0.66);  // scale a bit
+		mat.scale(this.customZoom, this.customZoom);  // scale a bit
 		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale); 
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
 		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
-		mat.translate((1.0-customZoom), (1.0-customZoom));  // scale a bit - translate to center
+		mat.translate((1.0-this.customZoom), (1.0-this.customZoom));  // scale a bit - translate to center
 		this.scope.view.matrix = mat;
 		return mat;
 	};

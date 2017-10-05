@@ -42,7 +42,7 @@
 			<div class="dropdown-content">
 			<a href="planarClean.php">b. CLEAN</a>
 			<a href="face.php">c. FACE</a>
-			<a href="reflection.php">d. LIN. ALGEBRA</a>
+			<a href="reflection.php">d. REFLECTION</a>
 			<a href="neighbors.php">e. NEIGHBOR</a>
 			<a href="epsilon.php">f. EPSILON</a>
 			</div>
@@ -53,6 +53,7 @@
 			<a href="axioms.php">ORIGAMI AXIOMS</a>
 			<!-- <a href="importExport.php">IMPORT &amp; EXPORT</a> -->
 			<a href="flatFoldable.php">FLAT FOLDABLE</a>
+			<a href="boxPleating.php">BOX PLEATING</a>
 			<a href="voronoi.php">VORONOI</a>
 			<a href="symmetry.php">SYMMETRY</a>
 			<a href="paper.php">PAPER</a>

@@ -673,7 +673,7 @@ var PlanarEdge = (function (_super) {
         this.nodes[0].transform(matrix);
         this.nodes[1].transform(matrix);
     };
-    // if this edge is the line of reflection, returns the matrix representation form
+    // returns the matrix representation form of this edge as the line of reflection
     PlanarEdge.prototype.reflectionMatrix = function () { return new Matrix().reflection(this.nodes[0], this.nodes[1]); };
     return PlanarEdge;
 }(GraphEdge));
@@ -1220,6 +1220,41 @@ var PlanarGraph = (function (_super) {
             }
         });
         return edges.filter(function (el) { return el != undefined; });
+    };
+    PlanarGraph.prototype.getNearestFace = function (x, y) {
+        // input x is an xy point
+        if (isValidPoint(x)) {
+            y = x.y;
+            x = x.x;
+        }
+        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+            return;
+        }
+        var nearestNode = this.getNearestNode(x, y);
+        if (nearestNode === undefined) {
+            return;
+        }
+        var faces = nearestNode.adjacentFaces();
+        if (faces === undefined || faces.length == 0) {
+            return;
+        }
+        var sortedFaces = faces.sort(function (a, b) {
+            var avgA = 0;
+            var avgB = 0;
+            for (var i = 0; i < a.nodes.length; i++) {
+                avgA += a.nodes[i].y;
+            }
+            avgA /= (a.nodes.length);
+            for (var i = 0; i < b.nodes.length; i++) {
+                avgB += b.nodes[i].y;
+            }
+            avgB /= (a.nodes.length);
+            return (avgA < avgB) ? 1 : ((avgA > avgB) ? -1 : 0);
+        });
+        if (sortedFaces.length <= 1) {
+            return;
+        }
+        return sortedFaces[0];
     };
     PlanarGraph.prototype.getNearestInteriorAngle = function (x, y) {
         // input x is an xy point

@@ -45,11 +45,13 @@ var project = new OrigamiPaper("canvas");
 
 function fileBlobLoaded(svg){
 	project.load(svg, function(){
+		project.cp.setMinRectBoundary();
+		project.init();
 		var scale = 600 / cp.width();
 		if(isNaN(scale) || scale === undefined){ scale = 1.0; }
 		var svgMin = project.cp.svgMin(scale);
 		download(svgMin, "creasepattern.svg");
-	});
+	}, EPSILON);
 }
 
 </script>

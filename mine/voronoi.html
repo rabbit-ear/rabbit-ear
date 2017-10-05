@@ -101,10 +101,12 @@ var simpleVoronoi = false;
 project.redraw = function(){
 	var nodes = input.nodes.map(function(el){return el.values();});
 	var v = voronoiAlgorithm( nodes );
+	console.log(voronoiAlgorithm.triangles(nodes));
+	console.log(v);
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.voronoi(v, vInterpolation);
+	this.cp.voronoiSimple(v, vInterpolation);
 
 	if(simpleVoronoi === true){
 		for(var i = this.cp.edges.length-1; i >= 0; i--){
@@ -116,7 +118,7 @@ project.redraw = function(){
 		}
 	}
 
-	this.updateWeights(0.0025, 0.00125);
+	this.updateWeights(0.005, 0.0025);
 	this.init();
 
 	nodeCircles = [];
@@ -131,19 +133,24 @@ var numdots = Math.PI*20;
 
 project.reset = function(){
 	this.cp.clear();
+	this.cp.rectangle(1.333333,1);
 	this.init();
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 
 	// add to voronoi
-	for(var i = -10; i < numdots+10; i++){
-		var freq = Math.PI*2 * (i/numdots)  * 0.5;  //0.5
-		var freq2 = Math.PI*2 * (i/numdots) * 3;  //4
-		var x = (i/numdots) + Math.cos(freq2)*0.2;
-		var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.2;
-		if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
-			input.newPlanarNode(x, y);
-		}
-	}
+	// for(var i = -10; i < numdots+10; i++){
+	// 	var freq = Math.PI*2 * (i/numdots)  * 0.5;  //0.5
+	// 	var freq2 = Math.PI*2 * (i/numdots) * 3;  //4
+	// 	var x = (i/numdots) + Math.cos(freq2)*0.2;
+	// 	var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.2;
+	// 	if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
+	// 		input.newPlanarNode(x, y);
+	// 	}
+	// }
+
+	input.newPlanarNode(0.6, 0.15);
+	input.newPlanarNode(0.6, 0.85);
+	input.newPlanarNode(0.8, 0.5);
 
 	// for(var i = 0; i < numdots+30; i++){
 	// 	var freq = Math.PI*2 * (i/numdots * .5);  //0.5

@@ -1,3 +1,8 @@
+function d3VoronoiToCP(){
+	
+}
+
+
 function graphToD3(graph){
 	
 	// this converts a Graph() object with "nodes" [] and "edges" []
