@@ -101,8 +101,8 @@ var simpleVoronoi = false;
 project.redraw = function(){
 	var nodes = input.nodes.map(function(el){return el.values();});
 	var v = voronoiAlgorithm( nodes );
-	console.log(voronoiAlgorithm.triangles(nodes));
-	console.log(v);
+	// console.log(voronoiAlgorithm.triangles(nodes));
+	// console.log(v);
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];

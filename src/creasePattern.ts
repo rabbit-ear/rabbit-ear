@@ -797,61 +797,89 @@ class CreasePattern extends PlanarGraph{
 			}).forEach(function(el){
 				this.newCrease(el[0].x, el[0].y, el[1].x, el[1].y).valley();
 			},this);
-		var nodes = [];
-		for(var i = 0; i < v.edges.length; i++){
-			var end0 = new XY(v.edges[i][0][0], v.edges[i][0][1]);
-			var end1 = new XY(v.edges[i][1][0], v.edges[i][1][1]);
-			nodes.push({position:end0, edges:[]});
-			nodes.push({position:end1, edges:[]});
+
+		// D3 gives list of edges and cells, we need to make our own list of nodes
+		var xyEdges = v.edges.filter(function(el){ return el !== undefined; })
+		                     .map(function(el){ 
+			return [new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
+		});
+		var vNodes = [];
+		for(var i = 0; i < xyEdges.length; i++){
+			vNodes.push({position:xyEdges[i][0],halfEdges:[],quarterPoints:[],sites:[]});
+			vNodes.push({position:xyEdges[i][1],halfEdges:[],quarterPoints:[],sites:[]});
 		}
+		vNodes = arrayRemoveDuplicates(vNodes, function(a,b){return a.position.equivalent(b.position);});
+		xyEdges.forEach(function(el, i){
+			for(var n = 0; n < vNodes.length; n++){
+				if(el[0].equivalent(vNodes[n].position)){ vNodes[n].halfEdges.push(i); }
+				if(el[1].equivalent(vNodes[n].position)){ vNodes[n].halfEdges.push(i); }
+			}
+		});
+
+		// build our list of quarter edges and points
 		var quarterEdges = [];
+		var quarterPoints = [];
 		for(var i = 0; i < v.cells.length; i++){
-			var focus = v.cells[i].site;
+			var site = v.cells[i].site;
 			var edges = v.cells[i].halfedges.map(function(el){ return v.edges[el]; });
 			// voronoi cells shrunk by interp amount
 			var theseQuarterEdgeIndices = [];
 			edges.forEach(function(el){
 				var midpoints = [el[0], el[1]].map(function(mapEl){
-					return interpolate(new XY(mapEl[0], mapEl[1]), new XY(focus[0], focus[1]), interp);
+					return interpolate(new XY(mapEl[0], mapEl[1]), new XY(site[0], site[1]), interp);
 				});
-				var index = arrayContains(quarterEdges, [midpoints[0], midpoints[1]], function(a,b){ 
-					if(a[0].equivalent(b[0]) || 
-					   a[0].equivalent(b[1]) ||
-					   a[1].equivalent(b[0]) || 
-					   a[1].equivalent(b[1]) ) return true; });
-				if(index === undefined){
-					theseQuarterEdgeIndices.push(quarterEdges.length);
-					quarterEdges.push([midpoints[0], midpoints[1]]);
-				} else{
-					theseQuarterEdgeIndices.push(index);
+				var endpoints = [ new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
+				for(var n = 0; n < vNodes.length; n++){
+					if(vNodes[n].position.equivalent(endpoints[0])){ 
+						if(!arrayContainsObject(vNodes[n].sites, site)){
+							vNodes[n].sites.push(site);
+						}
+						if(arrayContains(vNodes[n].quarterPoints, midpoints[0], function(a,b){return a.equivalent(b);}) === undefined){
+							vNodes[n].quarterPoints.push(midpoints[0]);
+						}
+					}
+					if(vNodes[n].position.equivalent(endpoints[1])){ 
+						if(!arrayContainsObject(vNodes[n].sites, site)){
+							vNodes[n].sites.push(site);
+						}
+						if(arrayContains(vNodes[n].quarterPoints, midpoints[1], function(a,b){ return a.equivalent(b); }) === undefined){
+							vNodes[n].quarterPoints.push(midpoints[1]);
+						}
+					}
 				}
-
+				theseQuarterEdgeIndices.push(quarterEdges.length);
+				quarterEdges.push([midpoints[0], midpoints[1]]);
+				midpoints.forEach(function(el){quarterPoints.push(el);});
 			});
-			// console.log("quarterEdges");
-			// console.log(quarterEdges);
 			v.cells[i].quarterEdges = theseQuarterEdgeIndices;
-			// for(var i = 0; i < quarterEdges.length; i++){
-			// }
 		}
 		quarterEdges.forEach(function(el){
 			this.newCrease(el[0].x, el[0].y, el[1].x, el[1].y);
 		}, this);
 		v.quarterEdges = quarterEdges;
-		// D3 gives list of edges and cells, we need to make our own list of nodes
-		var xyEdges = v.edges.map(function(el){ 
-			return [new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
-		});
-		nodes = arrayRemoveDuplicates(nodes, function(a,b){return a.position.equivalent(b.position);});
-		xyEdges.forEach(function(el, i){
-			for(var n = 0; n < nodes.length; n++){
-				if(el[0].equivalent(nodes[n].position)){ nodes[n].edges.push(i); }
-				if(el[1].equivalent(nodes[n].position)){ nodes[n].edges.push(i); }
-			}
-		});
-		// console.log(nodes);
-		for(var i = 0; i < nodes.length; i++){
+		quarterPoints = arrayRemoveDuplicates(quarterPoints, function(a,b){ return a.equivalent(b);});
+		v.quarterPoints = quarterPoints;
+		v.nodes = vNodes;
 
-		}
+		// draw the inner rabbit ear joints
+		v.nodes.forEach(function(el){
+			// site - quarterpoint ribs
+			el.quarterPoints.forEach(function(qp){
+				this.newCrease(el.position.x, el.position.y, qp.x, qp.y);
+			}, this);
+			// triangle boundary line
+			for(var i = 0; i < el.quarterPoints.length; i++){
+				var nextI = (i+1)%el.quarterPoints.length;
+				var prevI = (i+el.quarterPoints.length-1)%el.quarterPoints.length;
+				var nextNextI = (i+2)%el.quarterPoints.length;
+				var interiorAngle1 = smallerInteriorAngle(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI]);
+				var interiorAngle2 = smallerInteriorAngle(el.quarterPoints[nextI], el.quarterPoints[i], el.quarterPoints[nextNextI]);
+				if(interiorAngle1 + interiorAngle2 > Math.PI*0.5){
+					this.newCrease(el.quarterPoints[i].x, el.quarterPoints[i].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y);
+				}
+
+			}
+		}, this);
 	}
 
 

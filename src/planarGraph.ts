@@ -83,6 +83,16 @@ function clockwiseAngleFrom(a:number, b:number):number{
 	if(a_b >= 0) return a_b;
 	return Math.PI*2 - (b - a);
 }
+//there are 2 angles between 2 vectors, this retursn the smaller one
+function smallerInteriorAngle(center:XY, p1:XY, p2:XY):number{
+	var angle1 = Math.atan2(p1.y-center.y, p1.x-center.x);
+	var angle2 = Math.atan2(p2.y-center.y, p2.x-center.x);
+	var interior1 = clockwiseAngleFrom(angle1, angle2);
+	var interior2 = clockwiseAngleFrom(angle2, angle1);
+	if(interior1 < interior2) return interior1;
+	return interior2;
+}
+
 function linesParallel(p0:XY, p1:XY, p2:XY, p3:XY, epsilon?:number):boolean {
 	if(epsilon === undefined){ epsilon = EPSILON; }
 	// p0-p1 is first line, p2-p3 is second line

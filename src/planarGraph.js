@@ -69,6 +69,15 @@ function arrayRemoveDuplicates(array, compFunction) {
     }
     return array;
 }
+// this will return the index of the object in the array, or undefined if not found
+function arrayContains(array, object, compFunction) {
+    for (var i = 0; i < array.length; i++) {
+        if (compFunction(array[i], object) === true) {
+            return i;
+        }
+    }
+    return undefined;
+}
 /////////////////////////////////////////////////////////////////////////////////
 //                            2D ALGORITHMS
 /////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +107,16 @@ function clockwiseAngleFrom(a, b) {
     if (a_b >= 0)
         return a_b;
     return Math.PI * 2 - (b - a);
+}
+//there are 2 angles between 2 vectors, this retursn the smaller one
+function smallerInteriorAngle(center, p1, p2) {
+    var angle1 = Math.atan2(p1.y - center.y, p1.x - center.x);
+    var angle2 = Math.atan2(p2.y - center.y, p2.x - center.x);
+    var interior1 = clockwiseAngleFrom(angle1, angle2);
+    var interior2 = clockwiseAngleFrom(angle2, angle1);
+    if (interior1 < interior2)
+        return interior1;
+    return interior2;
 }
 function linesParallel(p0, p1, p2, p3, epsilon) {
     if (epsilon === undefined) {
