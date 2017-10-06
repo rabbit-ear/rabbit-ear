@@ -84,13 +84,36 @@ function clockwiseAngleFrom(a:number, b:number):number{
 	return Math.PI*2 - (b - a);
 }
 //there are 2 angles between 2 vectors, this retursn the smaller one
-function smallerInteriorAngle(center:XY, p1:XY, p2:XY):number{
-	var angle1 = Math.atan2(p1.y-center.y, p1.x-center.x);
-	var angle2 = Math.atan2(p2.y-center.y, p2.x-center.x);
-	var interior1 = clockwiseAngleFrom(angle1, angle2);
-	var interior2 = clockwiseAngleFrom(angle2, angle1);
+function smallerInteriorAngle(center:XY, a:number, b:number):number{
+	var interior1 = clockwiseAngleFrom(a, b);
+	var interior2 = clockwiseAngleFrom(b, a);
 	if(interior1 < interior2) return interior1;
 	return interior2;
+}
+
+//there are 2 angles between 2 vectors, this retursn the smaller one
+function smallerInteriorAngleVector(center:XY, pointA:XY, pointB:XY):number{
+	var angleA = Math.atan2(pointA.y-center.y, pointA.x-center.x);
+	var angleB = Math.atan2(pointB.y-center.y, pointB.x-center.x);
+	var interiorA = clockwiseAngleFrom(angleA, angleB);
+	var interiorB = clockwiseAngleFrom(angleB, angleA);
+	if(interiorA < interiorB) return interiorA;
+	return interiorB;
+}
+
+function bisectSmallerInteriorAngle(center:XY, pointA:XY, pointB:XY):number{
+	console.log("bisectSmallerInteriorAngle");
+	var angleA = Math.atan2(pointA.y-center.y, pointA.x-center.x);
+	var angleB = Math.atan2(pointB.y-center.y, pointB.x-center.x);
+	var interiorA = clockwiseAngleFrom(angleA, angleB);
+	var interiorB = clockwiseAngleFrom(angleB, angleA);
+
+	if(interiorA < interiorB) {
+		console.log("A: " + angleA + " + "  + interiorA + " * 0.5");
+		return angleA - interiorA * 0.5;
+	}
+	console.log("B: " + angleB + " + "  + interiorB + " * 0.5");
+	return angleB - interiorB * 0.5;
 }
 
 function linesParallel(p0:XY, p1:XY, p2:XY, p3:XY, epsilon?:number):boolean {

@@ -867,17 +867,65 @@ class CreasePattern extends PlanarGraph{
 			el.quarterPoints.forEach(function(qp){
 				this.newCrease(el.position.x, el.position.y, qp.x, qp.y);
 			}, this);
-			// triangle boundary line
-			for(var i = 0; i < el.quarterPoints.length; i++){
-				var nextI = (i+1)%el.quarterPoints.length;
-				var prevI = (i+el.quarterPoints.length-1)%el.quarterPoints.length;
-				var nextNextI = (i+2)%el.quarterPoints.length;
-				var interiorAngle1 = smallerInteriorAngle(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI]);
-				var interiorAngle2 = smallerInteriorAngle(el.quarterPoints[nextI], el.quarterPoints[i], el.quarterPoints[nextNextI]);
-				if(interiorAngle1 + interiorAngle2 > Math.PI*0.5){
-					this.newCrease(el.quarterPoints[i].x, el.quarterPoints[i].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y);
-				}
 
+			if(el.quarterPoints.length === 3){
+				var triangle = [];  // nodes and their opposite edges
+				for(var i = 0; i < el.quarterPoints.length; i++){
+					var nextI = (i+1)%el.quarterPoints.length;
+					var prevI = (i+el.quarterPoints.length-1)%el.quarterPoints.length;
+					triangle.push({
+						point:el.quarterPoints[i], 
+						angle:smallerInteriorAngleVector(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI])
+						});
+				}
+				for(var i = 0; i < triangle.length; i++){
+					var nextI = (i+1)%triangle.length;
+					var prevI = (i+2)%triangle.length;
+					if(triangle[prevI].angle + triangle[nextI].angle > Math.PI*0.5){
+						triangle[i].oppositeEdgeVisible = true;
+					} else{
+						triangle[i].oppositeEdgeVisible = false;
+					}
+					var bisects = [
+					bisectSmallerInteriorAngle(
+						triangle[i].point, 
+						el.position, 
+						triangle[prevI].point),
+					bisectSmallerInteriorAngle(
+						triangle[i].point, 
+						triangle[nextI].point, 
+						el.position)
+					];
+					triangle[i].bisectAngles = bisects;
+				}
+				for(var i = 0; i < triangle.length; i++){
+					var nextI = (i+1)%triangle.length;
+					var prevI = (i+2)%triangle.length;
+					if(triangle[i].oppositeEdgeVisible){
+						this.newCrease(el.quarterPoints[prevI].x, el.quarterPoints[prevI].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y);
+					}
+					if(triangle[i].bisectAngles !== undefined){
+						for(var ba = 0; ba < triangle[i].bisectAngles.length; ba++){
+							var dir = new XY(Math.cos(triangle[i].bisectAngles[ba]), Math.sin(triangle[i].bisectAngles[ba]));
+							this.creaseRayUntilIntersection(triangle[i].point, dir);	
+						}
+					}
+
+				}
+				console.log(triangle);
+
+			} else{
+				// triangle boundary line
+				for(var i = 0; i < el.quarterPoints.length; i++){
+					var nextI = (i+1)%el.quarterPoints.length;
+					var prevI = (i+el.quarterPoints.length-1)%el.quarterPoints.length;
+					var nextNextI = (i+2)%el.quarterPoints.length;
+					var interiorAngle1 = smallerInteriorAngleVector(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI]);
+					var interiorAngle2 = smallerInteriorAngleVector(el.quarterPoints[nextI], el.quarterPoints[i], el.quarterPoints[nextNextI]);
+					if(interiorAngle1 + interiorAngle2 > Math.PI*0.5){
+						this.newCrease(el.quarterPoints[i].x, el.quarterPoints[i].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y);
+					}
+				}
 			}
 		}, this);
 	}
