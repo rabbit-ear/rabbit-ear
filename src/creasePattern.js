@@ -936,11 +936,39 @@ var CreasePattern = (function (_super) {
                     else {
                         triangle[i].oppositeEdgeVisible = false;
                     }
+                }
+                for (var i = 0; i < triangle.length; i++) {
+                    var nextI = (i + 1) % triangle.length;
+                    var prevI = (i + 2) % triangle.length;
+                    var prevThird = el.position;
+                    var nextThird = el.position;
+                    if (triangle[prevI].oppositeEdgeVisible === false ||
+                        triangle[nextI].oppositeEdgeVisible === false) {
+                        nextThird = triangle[prevI].point;
+                        prevThird = triangle[nextI].point;
+                    }
                     var bisects = [
-                        bisectSmallerInteriorAngle(triangle[i].point, el.position, triangle[prevI].point),
-                        bisectSmallerInteriorAngle(triangle[i].point, triangle[nextI].point, el.position)
+                        bisectSmallerInteriorAngle(triangle[i].point, prevThird, triangle[prevI].point),
+                        bisectSmallerInteriorAngle(triangle[i].point, triangle[nextI].point, nextThird)
+                    ];
+                    var interiors = [
+                        0.5 * smallerInteriorAngleVector(triangle[i].point, prevThird, triangle[prevI].point),
+                        0.5 * smallerInteriorAngleVector(triangle[i].point, triangle[nextI].point, nextThird)
                     ];
                     triangle[i].bisectAngles = bisects;
+                    triangle[i].interiorAngles = interiors;
+                }
+                for (var i = 0; i < triangle.length; i++) {
+                    var nextI = (i + 1) % triangle.length;
+                    var prevI = (i + 2) % triangle.length;
+                    if (triangle[i].oppositeEdgeVisible === false) {
+                        var nextAbs = Math.atan2(triangle[nextI].point.y - triangle[i].point.y, triangle[nextI].point.x - triangle[i].point.x);
+                        var prevAbs = Math.atan2(triangle[prevI].point.y - triangle[i].point.y, triangle[prevI].point.x - triangle[i].point.x);
+                        triangle[i].bisectAngles = [
+                            nextAbs - triangle[nextI].interiorAngles[0],
+                            prevAbs + triangle[prevI].interiorAngles[0]
+                        ];
+                    }
                 }
                 for (var i = 0; i < triangle.length; i++) {
                     var nextI = (i + 1) % triangle.length;

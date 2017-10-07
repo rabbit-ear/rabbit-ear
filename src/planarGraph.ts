@@ -102,17 +102,11 @@ function smallerInteriorAngleVector(center:XY, pointA:XY, pointB:XY):number{
 }
 
 function bisectSmallerInteriorAngle(center:XY, pointA:XY, pointB:XY):number{
-	console.log("bisectSmallerInteriorAngle");
 	var angleA = Math.atan2(pointA.y-center.y, pointA.x-center.x);
 	var angleB = Math.atan2(pointB.y-center.y, pointB.x-center.x);
 	var interiorA = clockwiseAngleFrom(angleA, angleB);
 	var interiorB = clockwiseAngleFrom(angleB, angleA);
-
-	if(interiorA < interiorB) {
-		console.log("A: " + angleA + " + "  + interiorA + " * 0.5");
-		return angleA - interiorA * 0.5;
-	}
-	console.log("B: " + angleB + " + "  + interiorB + " * 0.5");
+	if(interiorA < interiorB) return angleA - interiorA * 0.5;
 	return angleB - interiorB * 0.5;
 }
 
