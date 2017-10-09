@@ -898,6 +898,16 @@ var CreasePattern = (function (_super) {
                         }
                     }
                 }
+                for (var n = 0; n < vNodes.length; n++) {
+                    // sort v nodes
+                    vNodes[n].quarterPoints = vNodes[n].quarterPoints.sort(function (a, b) {
+                        var aV = new XY(a.x - vNodes[n].position.x, a.y - vNodes[n].position.y);
+                        var bV = new XY(b.x - vNodes[n].position.x, b.y - vNodes[n].position.y);
+                        var aT = Math.atan2(aV.y, aV.x);
+                        var bT = Math.atan2(bV.y, bV.x);
+                        return (aT < bT) ? -1 : (aT > bT) ? 1 : 0;
+                    });
+                }
                 theseQuarterEdgeIndices.push(quarterEdges.length);
                 quarterEdges.push([midpoints[0], midpoints[1]]);
                 midpoints.forEach(function (el) { quarterPoints.push(el); });
@@ -919,24 +929,23 @@ var CreasePattern = (function (_super) {
             }, this);
             if (el.quarterPoints.length === 3) {
                 var triangle = []; // nodes and their opposite edges
+                // gather the interior angles of the triangle
+                // determine if it is acute or obtuse (opposite face requires to be hidden)
                 for (var i = 0; i < el.quarterPoints.length; i++) {
                     var nextI = (i + 1) % el.quarterPoints.length;
                     var prevI = (i + el.quarterPoints.length - 1) % el.quarterPoints.length;
+                    var interiorAngle = smallerInteriorAngleVector(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI]);
+                    var acuteAngle = true;
+                    if (interiorAngle > Math.PI * 0.5) {
+                        acuteAngle = false;
+                    }
                     triangle.push({
                         point: el.quarterPoints[i],
-                        angle: smallerInteriorAngleVector(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI])
+                        interiorAngle: interiorAngle,
+                        oppositeEdgeVisible: acuteAngle
                     });
                 }
-                for (var i = 0; i < triangle.length; i++) {
-                    var nextI = (i + 1) % triangle.length;
-                    var prevI = (i + 2) % triangle.length;
-                    if (triangle[prevI].angle + triangle[nextI].angle > Math.PI * 0.5) {
-                        triangle[i].oppositeEdgeVisible = true;
-                    }
-                    else {
-                        triangle[i].oppositeEdgeVisible = false;
-                    }
-                }
+                // calculate the rabbit ear folds based on 
                 for (var i = 0; i < triangle.length; i++) {
                     var nextI = (i + 1) % triangle.length;
                     var prevI = (i + 2) % triangle.length;
@@ -983,7 +992,8 @@ var CreasePattern = (function (_super) {
                         }
                     }
                 }
-                console.log(triangle);
+                // console.log(triangle);
+                el.triangle = triangle;
             }
             else {
                 // triangle boundary line
@@ -1587,14 +1597,18 @@ var CreasePattern = (function (_super) {
         var bounds = this.boundingBox();
         var width = bounds.size.width;
         var height = bounds.size.height;
-        var padX = bounds.origin.x;
-        var padY = bounds.origin.y;
-        var scale = size / (width + padX * 2);
+        var orgX = bounds.origin.x;
+        var orgY = bounds.origin.y;
+        var scale = size / (width);
+        console.log(bounds);
+        console.log(width);
+        console.log(orgX);
+        console.log(scale);
         var blob = "";
-        var widthScaled = ((width + padX * 2) * scale).toFixed(2);
-        var heightScaled = ((height + padY * 2) * scale).toFixed(2);
-        var strokeWidth = ((width + padX * 2) * scale * 0.0025).toFixed(1);
-        var dashW = ((width + padX * 2) * scale * 0.0025 * 3).toFixed(1);
+        var widthScaled = ((width) * scale).toFixed(2);
+        var heightScaled = ((height) * scale).toFixed(2);
+        var strokeWidth = ((width) * scale * 0.0025).toFixed(1);
+        var dashW = ((width) * scale * 0.0025 * 3).toFixed(1);
         if (strokeWidth === "0" || strokeWidth === "0.0") {
             strokeWidth = "0.5";
         }
@@ -1608,10 +1622,10 @@ var CreasePattern = (function (_super) {
         for (var i = 0; i < this.edges.length; i++) {
             var a = this.edges[i].nodes[0];
             var b = this.edges[i].nodes[1];
-            var x1 = (a.x * scale).toFixed(4);
-            var y1 = (a.y * scale).toFixed(4);
-            var x2 = (b.x * scale).toFixed(4);
-            var y2 = (b.y * scale).toFixed(4);
+            var x1 = ((a.x - orgX) * scale).toFixed(4);
+            var y1 = ((a.y - orgY) * scale).toFixed(4);
+            var x2 = ((b.x - orgX) * scale).toFixed(4);
+            var y2 = ((b.y - orgY) * scale).toFixed(4);
             var thisStyle = noStyle;
             if (this.edges[i].orientation === CreaseDirection.mountain) {
                 thisStyle = mountainStyle;

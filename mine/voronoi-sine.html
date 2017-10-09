@@ -42,12 +42,11 @@ canvas[resize]{
 <script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
 
 <script>
-var showCreases = true;
 $('#show-creases-button').change(function() {
 	var checked = $(this).prop('checked');
-	showCreases = !checked;
+	simpleVoronoi = !checked;
 	console.log($(this).prop('checked'));
-	project.makeVoronoi(touchNodes, !showCreases);
+	project.redraw();
 })
 </script>
 
@@ -70,50 +69,25 @@ function download(text, filename){
 </script>
 
 <script type="text/javascript">
-var voronoiAlgorithm; // global D3 algorithm implementation
-
-
 
 var project = new OrigamiPaper("canvas");
 project.updateWeights(0.005, 0.0025);
 project.zoomToFit();
 project.updateWeights(0.005, 0.0025);
 
-var touchNodes = new PlanarGraph();
-var touchNodesCircles = [];
-var touchNodesLayer
+var input = new PlanarGraph();
+var voronoiAlgorithm; // global D3 algorithm implementation
+
+var vInterpolation = 0.5;
+
+var nodeCircles = [];
 
 var dragOn = false;
 var selectedNode = undefined;
 
-project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
-	var nodes = input.nodes.map(function(el){return el.values();});
-	var v = voronoiAlgorithm( nodes );
-	this.cp.clear();
-	this.cp.nodes = [];
-	this.cp.edges = [];
-	this.cp.voronoiSimple(v, interpolation);
-	if(hideCreaseMarks === true){
-		for(var i = this.cp.edges.length-1; i >= 0; i--){
-			// if(this.cp.edges[i].orientation !== CreaseDirection.valley){
-			if(this.cp.edges[i].orientation === CreaseDirection.mark || 
-			   this.cp.edges[i].orientation === CreaseDirection.mountain){
-				this.cp.removeEdge(this.cp.edges[i]);
-			}
-		}
-	}
-	this.updateWeights(0.005, 0.0025);
-	this.init();
-	touchNodesLayer.activate();
-	touchNodesLayer.removeChildren();
-	touchNodesCircles = [];
-	for(var i = 0; i < touchNodes.nodes.length; i++){
-		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.0025, fillColor:this.style.valley.strokeColor});
-		touchNodesCircles.push(nodeCircle);
-		nodeCircle.position = touchNodes.nodes[i];
-	}
-	return v;
-}
+var simpleVoronoi = false;
+
+
 // project.setup = function(){
 // 
 // }
@@ -124,32 +98,52 @@ project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
 // project.setup();
 // var drawLoop = setInterval(project.draw, 1000/60);
 
+project.redraw = function(){
+	var nodes = input.nodes.map(function(el){return el.values();});
+	var v = voronoiAlgorithm( nodes );
+	this.cp.clear();
+	this.cp.nodes = [];
+	this.cp.edges = [];
+	this.cp.voronoi(v, vInterpolation);
 
+	if(simpleVoronoi === true){
+		for(var i = this.cp.edges.length-1; i >= 0; i--){
+			// if(this.cp.edges[i].orientation !== CreaseDirection.valley){
+			if(this.cp.edges[i].orientation === CreaseDirection.mark || 
+			   this.cp.edges[i].orientation === CreaseDirection.mountain){
+				this.cp.removeEdge(this.cp.edges[i]);
+			}
+		}
+	}
+
+	this.updateWeights(0.0025, 0.00125);
+	this.init();
+
+	nodeCircles = [];
+	for(var i = 0; i < nodes.length; i++){
+		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.0025, fillColor:this.style.valley.strokeColor});
+		nodeCircles.push(nodeCircle);
+		nodeCircle.position = nodes[i];
+	}
+}
+
+var numdots = Math.PI*20;
 
 project.reset = function(){
 	this.cp.clear();
-	this.cp.rectangle(1.333333,1);
 	this.init();
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 
-	if(touchNodesLayer !== undefined){ touchNodesLayer.removeChildren(); }
-	touchNodesLayer = new this.scope.Layer();
-
-	// var numdots = Math.PI*20;
 	// add to voronoi
-	// for(var i = -10; i < numdots+10; i++){
-	// 	var freq = Math.PI*2 * (i/numdots)  * 0.5;  //0.5
-	// 	var freq2 = Math.PI*2 * (i/numdots) * 3;  //4
-	// 	var x = (i/numdots) + Math.cos(freq2)*0.2;
-	// 	var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.2;
-	// 	if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
-	// 		touchNodes.newPlanarNode(x, y);
-	// 	}
-	// }
-
-	touchNodes.newPlanarNode(0.6, 0.15);
-	touchNodes.newPlanarNode(0.6, 0.85);
-	touchNodes.newPlanarNode(0.8, 0.5);
+	for(var i = -10; i < numdots+10; i++){
+		var freq = Math.PI*2 * (i/numdots)  * 0.5;  //0.5
+		var freq2 = Math.PI*2 * (i/numdots) * 3;  //4
+		var x = (i/numdots) + Math.cos(freq2)*0.2;
+		var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.2;
+		if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
+			input.newPlanarNode(x, y);
+		}
+	}
 
 	// for(var i = 0; i < numdots+30; i++){
 	// 	var freq = Math.PI*2 * (i/numdots * .5);  //0.5
@@ -157,11 +151,10 @@ project.reset = function(){
 	// 	var x = (i/numdots) + Math.cos(freq2)*0.1;
 	// 	var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.1;
 	// 	if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
-	// 		touchNodes.newPlanarNode(x, y);
+	// 		input.newPlanarNode(x, y);
 	// 	}
 	// }
-	var v = this.makeVoronoi(touchNodes, 0.5, !showCreases);
-	console.log(v); 
+	this.redraw();
 }
 project.reset();
 
@@ -175,54 +168,51 @@ project.onMouseDown = function(event){
 	// console.log(numdots);
 	// this.reset();
 
-	var v;
-
 	if(selectedNode === undefined){
 		if(this.cp.pointInside(event.point)){ 
-			touchNodes.newPlanarNode(event.point.x, event.point.y); 
-			v = this.makeVoronoi(touchNodes, 0.5, !showCreases);
+			input.newPlanarNode(event.point.x, event.point.y); 
+			this.redraw();
 			selectedNode = undefined;
-			for(var i = 0; i < touchNodes.nodes.length; i++){
-				if(touchNodesCircles[i] !== undefined){
-					var d = touchNodes.nodes[i].distance(event.point);
-					if(d < 0.01){ touchNodesCircles[i].radius = 0.005; selectedNode = i;}
-					else        { touchNodesCircles[i].radius = 0.0025; }
+			for(var i = 0; i < input.nodes.length; i++){
+				if(nodeCircles[i] !== undefined){
+					var d = input.nodes[i].distance(event.point);
+					if(d < 0.01){ nodeCircles[i].radius = 0.005; selectedNode = i;}
+					else        { nodeCircles[i].radius = 0.0025; }
 				}
 			}
 			dragOn = true;
 		}
 	} else{
-		v = this.makeVoronoi(touchNodes, 0.5, !showCreases);
 		dragOn = true;
+		this.redraw();
 	}
-	console.log(v); 
 }
 project.onMouseUp = function(event){ 
 	dragOn = false;
 }
 project.onMouseMove = function(event) {
 
+
 	var mouse = event.point;
 	if(dragOn){
-		touchNodes.nodes[selectedNode].x = mouse.x;
-		touchNodes.nodes[selectedNode].y = mouse.y;
-		// var nodeCircle = touchNodesCircles[selectedNode];
+		input.nodes[selectedNode].x = mouse.x;
+		input.nodes[selectedNode].y = mouse.y;
+		// var nodeCircle = nodeCircles[selectedNode];
 		// if(nodeCircle !== undefined){
 		// 	nodeCircle.position = event.point;
 		// }
 		if(!this.cp.contains(mouse.x, mouse.y)){
 			dragOn = false;
-			touchNodes.nodes.splice(selectedNode,1);
+			input.nodes.splice(selectedNode,1);
 		}
-		var v = this.makeVoronoi(touchNodes, 0.5, !showCreases);
-		console.log(v); 
+		this.redraw();
 	} else{
 		selectedNode = undefined;
-		for(var i = 0; i < touchNodes.nodes.length; i++){
-			if(touchNodesCircles[i] !== undefined){
-				var d = touchNodes.nodes[i].distance(event.point);
-				if(d < 0.01){ touchNodesCircles[i].radius = 0.005; selectedNode = i;}
-				else        { touchNodesCircles[i].radius = 0.0025; }
+		for(var i = 0; i < input.nodes.length; i++){
+			if(nodeCircles[i] !== undefined){
+				var d = input.nodes[i].distance(event.point);
+				if(d < 0.01){ nodeCircles[i].radius = 0.005; selectedNode = i;}
+				else        { nodeCircles[i].radius = 0.0025; }
 			}
 		}
 	}

@@ -114,52 +114,51 @@ project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
 	}
 	return v;
 }
-// project.setup = function(){
-// 
-// }
-
-// project.draw = function(){
-// }
-
-// project.setup();
-// var drawLoop = setInterval(project.draw, 1000/60);
-
 
 
 project.reset = function(){
 	this.cp.clear();
-	this.cp.rectangle(1.333333,1);
+	// this.cp.rectangle(1.333333,1);
+	this.cp.setBoundary([
+		new XY(-1, 0),
+		new XY(-0.5, -0.866),
+		new XY(0.5, -0.866),
+		new XY(1, 0),
+		new XY(0.5, 0.866),
+		new XY(-0.5, 0.866)]);
 	this.init();
-	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
+	
+	voronoiAlgorithm = d3.voronoi().extent( [[-1.5,-.866-.866*0.5],[2,1.732050807568877]] );
+	// voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 
 	if(touchNodesLayer !== undefined){ touchNodesLayer.removeChildren(); }
 	touchNodesLayer = new this.scope.Layer();
 
-	// var numdots = Math.PI*20;
-	// add to voronoi
-	// for(var i = -10; i < numdots+10; i++){
-	// 	var freq = Math.PI*2 * (i/numdots)  * 0.5;  //0.5
-	// 	var freq2 = Math.PI*2 * (i/numdots) * 3;  //4
-	// 	var x = (i/numdots) + Math.cos(freq2)*0.2;
-	// 	var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.2;
-	// 	if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
-	// 		touchNodes.newPlanarNode(x, y);
-	// 	}
-	// }
+	var mag = 0.1;
+	for(var i = 0; i < 5; i++){
+		for(var j = 0; j < i; j++){
+			var pt = new XY(mag* (i+(j%2)*0.5), mag*j*0.866);
+			// var pt = new XY(Math.random()*0.8, Math.random()*0.8);
+			if(Math.random() < 0.4){
+				for(var s = 0; s < 6; s++){
+					var d = Math.sqrt(Math.pow(pt.x,2) + Math.pow(pt.y,2));
+					var a = Math.atan2(pt.y, pt.x);
+					var rotate = Math.PI*2/6*s;
+					var rotated = new XY(d * Math.cos(a+rotate), d * Math.sin(a+rotate));
+					console.log(rotated.x +  " "  + rotated.y);
+					touchNodes.newPlanarNode(rotated.x, rotated.y);
+				}
+			}
+			// put a node down in snowflake form
+			// reflect it across 6 times
+			// build the reflection into crease pattern library
+		}
+	}
 
-	touchNodes.newPlanarNode(0.6, 0.15);
-	touchNodes.newPlanarNode(0.6, 0.85);
-	touchNodes.newPlanarNode(0.8, 0.5);
+	// touchNodes.newPlanarNode(0.6, 0.15);
+	// touchNodes.newPlanarNode(0.6, 0.85);
+	// touchNodes.newPlanarNode(0.8, 0.5);
 
-	// for(var i = 0; i < numdots+30; i++){
-	// 	var freq = Math.PI*2 * (i/numdots * .5);  //0.5
-	// 	var freq2 = Math.PI*2 * (i/numdots * Math.PI);  //4
-	// 	var x = (i/numdots) + Math.cos(freq2)*0.1;
-	// 	var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.1;
-	// 	if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
-	// 		touchNodes.newPlanarNode(x, y);
-	// 	}
-	// }
 	var v = this.makeVoronoi(touchNodes, 0.5, !showCreases);
 	console.log(v); 
 }
