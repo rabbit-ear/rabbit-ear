@@ -45,9 +45,9 @@ canvas[resize]{
 var showCreases = true;
 $('#show-creases-button').change(function() {
 	var checked = $(this).prop('checked');
-	showCreases = !checked;
+	showCreases = checked;
 	console.log($(this).prop('checked'));
-	project.makeVoronoi(touchNodes, !showCreases);
+	project.makeVoronoi(touchNodes, 0.5, !showCreases);
 })
 </script>
 
@@ -114,6 +114,7 @@ project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
 	}
 	return v;
 }
+
 // project.setup = function(){
 // 
 // }
@@ -128,7 +129,7 @@ project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
 
 project.reset = function(){
 	this.cp.clear();
-	this.cp.rectangle(1.333333,1);
+	// this.cp.rectangle(1.333333,1);
 	this.init();
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 
@@ -161,7 +162,7 @@ project.reset = function(){
 	// 	}
 	// }
 	var v = this.makeVoronoi(touchNodes, 0.5, !showCreases);
-	console.log(v); 
+	console.log(v);
 }
 project.reset();
 

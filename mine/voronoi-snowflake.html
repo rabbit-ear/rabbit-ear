@@ -45,9 +45,9 @@ canvas[resize]{
 var showCreases = true;
 $('#show-creases-button').change(function() {
 	var checked = $(this).prop('checked');
-	showCreases = !checked;
+	showCreases = checked;
 	console.log($(this).prop('checked'));
-	project.makeVoronoi(touchNodes, !showCreases);
+	project.makeVoronoi(touchNodes, 0.5, !showCreases)
 })
 </script>
 
@@ -134,8 +134,8 @@ project.reset = function(){
 	if(touchNodesLayer !== undefined){ touchNodesLayer.removeChildren(); }
 	touchNodesLayer = new this.scope.Layer();
 
-	var mag = 0.1;
-	for(var i = 0; i < 5; i++){
+	var mag = 0.08;
+	for(var i = 0; i < 8; i++){
 		for(var j = 0; j < i; j++){
 			var pt = new XY(mag* (i+(j%2)*0.5), mag*j*0.866);
 			// var pt = new XY(Math.random()*0.8, Math.random()*0.8);

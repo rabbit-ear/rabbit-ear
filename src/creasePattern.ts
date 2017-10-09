@@ -937,8 +937,8 @@ class CreasePattern extends PlanarGraph{
 						var prevAbs = Math.atan2(triangle[prevI].point.y - triangle[i].point.y,
 						                         triangle[prevI].point.x - triangle[i].point.x);
 						triangle[i].bisectAngles = [
-							nextAbs - triangle[nextI].interiorAngles[0],
-							prevAbs + triangle[prevI].interiorAngles[0]
+							nextAbs + triangle[nextI].interiorAngles[0],
+							prevAbs - triangle[prevI].interiorAngles[0]
 							];
 					}
 				}
