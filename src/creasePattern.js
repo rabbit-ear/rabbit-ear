@@ -921,12 +921,9 @@ var CreasePattern = (function (_super) {
         quarterPoints = arrayRemoveDuplicates(quarterPoints, function (a, b) { return a.equivalent(b); });
         v.quarterPoints = quarterPoints;
         v.nodes = vNodes;
+        this.clean();
         // draw the inner rabbit ear joints
         v.nodes.forEach(function (el) {
-            // site - quarterpoint ribs
-            el.quarterPoints.forEach(function (qp) {
-                this.newCrease(el.position.x, el.position.y, qp.x, qp.y);
-            }, this);
             if (el.quarterPoints.length === 3) {
                 var triangle = []; // nodes and their opposite edges
                 // gather the interior angles of the triangle
@@ -979,19 +976,99 @@ var CreasePattern = (function (_super) {
                         ];
                     }
                 }
+                var triangleMidpoints = [];
+                var hiddenOppositeAngles = [];
                 for (var i = 0; i < triangle.length; i++) {
                     var nextI = (i + 1) % triangle.length;
                     var prevI = (i + 2) % triangle.length;
                     if (triangle[i].oppositeEdgeVisible) {
                         this.newCrease(el.quarterPoints[prevI].x, el.quarterPoints[prevI].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y);
+                        triangleMidpoints.push(new XY((el.quarterPoints[prevI].x + el.quarterPoints[nextI].x) * 0.5, (el.quarterPoints[prevI].y + el.quarterPoints[nextI].y) * 0.5));
                     }
+                    else {
+                        var startNode = new XY((el.quarterPoints[prevI].x + el.quarterPoints[nextI].x) * 0.5, (el.quarterPoints[prevI].y + el.quarterPoints[nextI].y) * 0.5);
+                        var endNode = el.position;
+                        var angle = Math.atan2(endNode.y - startNode.y, endNode.x - startNode.x);
+                        while (angle < 0)
+                            angle += Math.PI * 2;
+                        while (angle >= Math.PI * 2)
+                            angle -= Math.PI * 2;
+                        hiddenOppositeAngles.push(angle);
+                    }
+                    // else{
+                    // 	triangleMidpoints.push(new XY(el.position.x, el.position.y));						
+                    // }
+                }
+                // this.fragment();
+                // var centerNodes = this.nodes.filter(function(fn){ return fn.equivalent(el.position,0.0001); });
+                // if(centerNodes.length > 0){
+                // var centerEdges = centerNodes[0].adjacentEdges();
+                // 	centerEdges.forEach(function(ce){
+                // 		var absAng = ce.absoluteAngle();
+                // 		var absAng2 = absAng + Math.PI;
+                // 		while(absAng2 > Math.PI*2) absAng2 -= Math.PI*2;
+                // 		if(arrayContains(hiddenOppositeAngles, absAng, function(a,b){return epsilonEqual(a,b,0.1);}) === undefined && 
+                // 		   arrayContains(hiddenOppositeAngles, absAng2, function(a,b){return epsilonEqual(a,b,0.1);}) === undefined ){
+                // 			this.removeEdge(ce);
+                // 		}
+                // 	},this);
+                // }
+                // triangleMidpoints.forEach(function(tm){
+                // 	// var newCrease = this.newCrease( el.position.x, el.position.y, tm.x, tm.y );
+                // 	// if(newCrease !== undefined){ newCrease.mountain(); }
+                // },this);
+                var rabbitEarCenters = [];
+                for (var i = 0; i < triangle.length; i++) {
+                    var nextI = (i + 1) % triangle.length;
+                    var prevI = (i + 2) % triangle.length;
                     if (triangle[i].bisectAngles !== undefined) {
                         for (var ba = 0; ba < triangle[i].bisectAngles.length; ba++) {
                             var dir = new XY(Math.cos(triangle[i].bisectAngles[ba]), Math.sin(triangle[i].bisectAngles[ba]));
-                            this.creaseRayUntilIntersection(triangle[i].point, dir);
+                            var crease = this.creaseRayUntilIntersection(triangle[i].point, dir);
+                            if (crease.nodes[0].equivalent(triangle[i].point)) {
+                                rabbitEarCenters.push(new XY(crease.nodes[1].x, crease.nodes[1].y));
+                            }
+                            else if (crease.nodes[1].equivalent(triangle[i].point)) {
+                                rabbitEarCenters.push(new XY(crease.nodes[0].x, crease.nodes[0].y));
+                            }
+                            if (crease !== undefined) {
+                                crease.valley();
+                            }
                         }
                     }
                 }
+                rabbitEarCenters = arrayRemoveDuplicates(rabbitEarCenters, function (a, b) { return a.equivalent(b); });
+                this.fragment();
+                triangleMidpoints.forEach(function (tm) {
+                    var tmCreases = this.edges.filter(function (cr) {
+                        return cr.nodes[0].equivalent(tm, 0.0001) || cr.nodes[1].equivalent(tm, 0.0001);
+                    });
+                    tmCreases.forEach(function (cr) {
+                        for (var i = 0; i < rabbitEarCenters.length; i++) {
+                            if (cr.nodes[0].equivalent(rabbitEarCenters[i], 0.0001) ||
+                                cr.nodes[1].equivalent(rabbitEarCenters[i], 0.0001)) {
+                                cr.orientation = CreaseDirection.mark;
+                            }
+                        }
+                    });
+                }, this);
+                // for(var i = 0 ; i < centerEdges.length; i++){
+                // 	this.crease(centerEdges[i].x, centerEdges[i].y, rabbitEarCenters[i].x, rabbitEarCenters[i].y);
+                // }
+                // this.fragment();
+                // var centerNodes = this.nodes.filter(function(fn){ return fn.equivalent(el.position,0.0001); });
+                // if(centerNodes.length > 0){
+                // 	var centerEdges = centerNodes[0].adjacentEdges();
+                // 	centerEdges.forEach(function(ce){
+                // 		if(ce.orientation !== CreaseDirection.valley){
+                // 			this.removeEdge(ce);
+                // 		}
+                // 	},this);
+                // }
+                // rabbitEarCenters.forEach(function(re){
+                // 	var newCrease = this.newCrease( el.position.x, el.position.y, re.x, re.y );
+                // 	if(newCrease !== undefined){ newCrease.valley(); }
+                // },this);
                 // console.log(triangle);
                 el.triangle = triangle;
             }
@@ -1008,6 +1085,11 @@ var CreasePattern = (function (_super) {
                     }
                 }
             }
+            // site - quarterpoint ribs
+            el.quarterPoints.forEach(function (qp) {
+                this.newCrease(el.position.x, el.position.y, qp.x, qp.y);
+            }, this);
+            // this.fragment();
         }, this);
     };
     // // use D3 voronoi calculation and pass in as argument 'v'
