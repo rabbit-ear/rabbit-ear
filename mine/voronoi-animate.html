@@ -76,8 +76,10 @@ var voronoiAlgorithm; // global D3 algorithm implementation
 
 var project = new OrigamiPaper("canvas");
 project.updateWeights(0.005, 0.0025);
-project.zoomToFit();
-project.updateWeights(0.005, 0.0025);
+project.zoomToFit(0.02);
+
+project.style.mountain.strokeColor = {gray:0.0, alpha:1.0};
+project.style.valley.strokeColor = {gray:0.0, alpha:1.0};
 
 var touchNodes = new PlanarGraph();
 var touchNodesCircles = [];
@@ -102,7 +104,7 @@ project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
 			}
 		}
 	}
-	this.updateWeights(0.01, 0.005);
+	this.updateWeights(0.008, 0.004);
 	this.init();
 	touchNodesLayer.activate();
 	touchNodesLayer.removeChildren();
@@ -124,7 +126,8 @@ project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
 	// site nodes
 	touchNodesCircles = [];
 	for(var i = 0; i < touchNodes.nodes.length; i++){
-		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.01, fillColor:this.style.valley.strokeColor});
+		var nodeColor = {gray:0.0, alpha:1.0};//this.style.valley.strokeColor;
+		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.008, fillColor:nodeColor});
 		touchNodesCircles.push(nodeCircle);
 		nodeCircle.position = touchNodes.nodes[i];
 	}
@@ -174,7 +177,7 @@ project.onFrame = function(event){
 
 		var phase = .6*Math.sin(iPctPi+event.time);
 		var off = 0.8 + 0.2*Math.sin(event.time) + 0.2*Math.cos(event.time*7/11);
-		var innerPhase = event.time*3/5;
+		var innerPhase = event.time*1/5;
 		var innerMag = 0.55;//1.85;
 		var innerOff = 0.6 + 0.4*Math.sin(event.time*0.5);
 		// var ininMag = 0.3;

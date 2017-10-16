@@ -864,7 +864,7 @@ class CreasePattern extends PlanarGraph{
 			v.cells[i].quarterEdges = theseQuarterEdgeIndices;
 		}
 		quarterEdges.forEach(function(el){
-			this.newCrease(el[0].x, el[0].y, el[1].x, el[1].y);
+			this.newCrease(el[0].x, el[0].y, el[1].x, el[1].y).mountain();
 		}, this);
 		v.quarterEdges = quarterEdges;
 		quarterPoints = arrayRemoveDuplicates(quarterPoints, function(a,b){ return a.equivalent(b);});
@@ -947,7 +947,7 @@ class CreasePattern extends PlanarGraph{
 					var nextI = (i+1)%triangle.length;
 					var prevI = (i+2)%triangle.length;
 					if(triangle[i].oppositeEdgeVisible){
-						this.newCrease(el.quarterPoints[prevI].x, el.quarterPoints[prevI].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y);
+						this.newCrease(el.quarterPoints[prevI].x, el.quarterPoints[prevI].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y).mountain();
 						triangleMidpoints.push(new XY(
 							(el.quarterPoints[prevI].x + el.quarterPoints[nextI].x)*0.5, 
 							(el.quarterPoints[prevI].y + el.quarterPoints[nextI].y)*0.5
@@ -1018,7 +1018,7 @@ class CreasePattern extends PlanarGraph{
 						for(var i = 0; i < rabbitEarCenters.length; i++){
 							if(cr.nodes[0].equivalent(rabbitEarCenters[i], 0.0001) || 
 							   cr.nodes[1].equivalent(rabbitEarCenters[i], 0.0001) ){
-								cr.orientation = CreaseDirection.mark;
+								cr.mountain();
 							}
 						}
 					});
@@ -1058,7 +1058,7 @@ class CreasePattern extends PlanarGraph{
 					var interiorAngle1 = smallerInteriorAngleVector(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI]);
 					var interiorAngle2 = smallerInteriorAngleVector(el.quarterPoints[nextI], el.quarterPoints[i], el.quarterPoints[nextNextI]);
 					if(interiorAngle1 + interiorAngle2 > Math.PI*0.5){
-						this.newCrease(el.quarterPoints[i].x, el.quarterPoints[i].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y);
+						this.newCrease(el.quarterPoints[i].x, el.quarterPoints[i].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y).mountain();
 					}
 				}
 			}
@@ -1067,7 +1067,7 @@ class CreasePattern extends PlanarGraph{
 
 			// site - quarterpoint ribs
 			el.quarterPoints.forEach(function(qp){
-				this.newCrease(el.position.x, el.position.y, qp.x, qp.y);
+				this.newCrease(el.position.x, el.position.y, qp.x, qp.y).mountain();
 			}, this);
 
 
