@@ -1,15 +1,15 @@
+// drag-to-upload file
+// 1) implement the callback function is "fileDidLoad(blob, mimeType)"
 
-// 1) include this anywhere in your .html
-// 2) the callback function is "fileBlobLoaded(blob)". Implement it
-
-// create a div for the drop zone: <div id="dropZone"></div>
+// creates a div for the drop zone
 var dropZone = document.createElement("div");
 dropZone.innerHTML = "";
-dropZone.id = "dropZone"
-dropZone.style = "background: black; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; opacity: 0.6; visibility: hidden;";
-document.getElementsByTagName('body')[0].appendChild(dropZone);
-// or capture it if it already exists
-// var dropZone = document.getElementById('dropZone');
+dropZone.id = "drop-zone"
+dropZone.style = "background: black; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; opacity: 0.6; visibility: hidden; display:flex; align-items:center; justify-content:center;";
+document.body.appendChild(dropZone);
+var cutout = document.createElement("div");
+cutout.style = "pointer-events:none; border-width: 15px; border-style: dashed; border-color: white; width:90%; height:90%;";
+dropZone.appendChild(cutout);
 
 function showDropZone() { dropZone.style.visibility = "visible"; }
 function hideDropZone() { dropZone.style.visibility = "hidden"; }
@@ -23,7 +23,6 @@ function handleDrop(e) {
 	Function.prototype.bindToEventHandler = function bindToEventHandler() {
 		var handler = this;
 		var boundParameters = Array.prototype.slice.call(arguments);
-		//create closure
 		return function (e) {
 			e = e || window.event; // get window.event if e argument missing (in IE)   
 			boundParameters.unshift(e);
@@ -40,9 +39,14 @@ function handleDrop(e) {
 		//attach event handlers here...  
 		reader.readAsDataURL(file);
 		addEventHandler(reader, 'loadend', function (e, file) {
-			var bin = this.result;
-			var decoded = window.atob(this.result.substring(26));
-			fileBlobLoaded(decoded);
+			// mime type
+			var colonIndex = this.result.indexOf(':');
+			var semicolonIndex = this.result.indexOf(';');
+			var mimeType = this.result.substr(colonIndex + 1, semicolonIndex - (colonIndex + 1));
+			// strip type header block from base 64 contents
+			var b64 = this.result.split(',')[1];
+			var decoded = window.atob(b64);
+			fileDidLoad(decoded, mimeType);
 		}.bindToEventHandler(file));
 	}
 	return true;
@@ -53,10 +57,7 @@ dropZone.addEventListener('dragover', allowDrag);
 dropZone.addEventListener('dragleave', function(e) { hideDropZone(); });
 dropZone.addEventListener('drop', handleDrop);
 function addEventHandler(obj, evt, handler) {
-	// w3c
-	if (obj.addEventListener){ obj.addEventListener(evt, handler, false); }
-	// ie
-	else if (obj.attachEvent) { obj.attachEvent('on' + evt, handler); }
-	// old
-	else { obj['on' + evt] = handler; }
+	if (obj.addEventListener){ obj.addEventListener(evt, handler, false); } // w3c
+	else if (obj.attachEvent) { obj.attachEvent('on' + evt, handler); } // ie
+	else { obj['on' + evt] = handler; } // old
 }

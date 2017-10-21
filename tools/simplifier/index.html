@@ -43,7 +43,7 @@ canvas[resize]{
 <script>
 var project = new OrigamiPaper("canvas");
 
-function fileBlobLoaded(svg){
+function fileDidLoad(svg){
 	project.load(svg, function(){
 		project.cp.setMinRectBoundary();
 		project.init();
@@ -92,7 +92,7 @@ function readBlob() {
 	reader.onloadend = function(evt) {
 		if (evt.target.readyState == FileReader.DONE){
 			//byte range: ['Read ', file.size, ' byte file'].join('');
-			fileBlobLoaded(evt.target.result);
+			fileDidLoad(evt.target.result);
 		}
 	};
 	var blob = file.slice(0, file.size);

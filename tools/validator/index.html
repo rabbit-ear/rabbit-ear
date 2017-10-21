@@ -130,7 +130,7 @@ function setInputFile(svg){
 	$("#recalculate").removeClass("disabled");
 }
 
-function fileBlobLoaded(svg){
+function fileDidLoad(svg){
 	setInputFile(svg);
 
 	loadSVG(svg, function(cp){
@@ -193,7 +193,7 @@ document.getElementById("settings").addEventListener("click", function(e){
 });
 document.getElementById("recalculate").addEventListener("click", function(e){
 	if(inputFile !== undefined){
-		fileBlobLoaded(inputFile);
+		fileDidLoad(inputFile);
 	} else{
 		$("#recalculate").addClass("disabled");
 	}
@@ -233,7 +233,7 @@ function readBlob() {
 	reader.onloadend = function(evt) {
 		if (evt.target.readyState == FileReader.DONE){
 			//byte range: ['Read ', file.size, ' byte file'].join('');
-			fileBlobLoaded(evt.target.result);
+			fileDidLoad(evt.target.result);
 		}
 	};
 	var blob = file.slice(0, file.size);

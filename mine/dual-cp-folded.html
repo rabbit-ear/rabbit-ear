@@ -49,7 +49,7 @@ var foldedState = new OrigamiFold("canvas-2");
 var project = new OrigamiPaper("canvas-1");
 
 // incoming file from upload-button or drag-to-upload
-function fileBlobLoaded(svg){
+function fileDidLoad(svg){
 	project.load(svg, function(){ 
 		foldedState.cp = project.cp.duplicate();
 		foldedState.init();
@@ -105,7 +105,7 @@ function readBlob() {
 	reader.onloadend = function(evt) {
 		if (evt.target.readyState == FileReader.DONE){
 			//byte range: ['Read ', file.size, ' byte file'].join('');
-			fileBlobLoaded(evt.target.result);
+			fileDidLoad(evt.target.result);
 		}
 	};
 	var blob = file.slice(0, file.size);

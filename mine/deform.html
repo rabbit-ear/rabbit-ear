@@ -68,7 +68,7 @@ project.load("../tests/svg/crane-errors.svg", function(){
 });
 
 // incoming file from upload-button or drag-to-upload
-function fileBlobLoaded(svg){
+function fileDidLoad(svg){
 	project.load(svg, function(){
 		loadedCP = project.cp.duplicate();
 		project.colorNodesFlatFoldable();
@@ -200,7 +200,7 @@ document.getElementById("download-file").addEventListener("click", function(e){
 // 	reader.onloadend = function(evt) {
 // 		if (evt.target.readyState == FileReader.DONE){
 // 			//byte range: ['Read ', file.size, ' byte file'].join('');
-// 			fileBlobLoaded(evt.target.result);
+// 			fileDidLoad(evt.target.result);
 // 		}
 // 	};
 // 	var blob = file.slice(0, file.size);

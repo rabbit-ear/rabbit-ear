@@ -315,7 +315,7 @@ project.onMouseMove = function(event) {
 	}
 }
 
-function fileBlobLoaded(svg){
+function fileDidLoad(svg){
 	project.loadUnclean(svg, function(){
 		project.cp.square();
 		for(var i = 0; i < project.cp.edges.length; i++){ 
