@@ -1,7 +1,3 @@
 # Origami Code
 
-This **Crease Pattern** class is built on top of a **Planar Graph** class, which is built on top of a **Graph** class.
-
-### [Graph](docs/Graph.md)
-### [Planar Graph](docs/PlanarGraph.md)
-### [Crease Pattern](docs/CreasePattern.md)
+This [Crease Pattern](docs/CreasePattern.md) class is built on top of a [Planar Graph](docs/PlanarGraph.md) class, which in turn is built on top of a [Graph](docs/Graph.md) class.

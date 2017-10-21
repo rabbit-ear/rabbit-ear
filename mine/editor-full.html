@@ -5,7 +5,6 @@
 <link rel="stylesheet" href="../lib/bootstrap/css/bootstrap.min.css">
 <link rel="stylesheet" href="../lib/font-awesome/css/font-awesome.min.css">
 <style>
-
 html, body {
 	width:100%;
 	height:100%;
@@ -86,18 +85,14 @@ div.tools-title{
 	border-right: 0;
 	border-left: 0;
 	border-style: solid;
-
 }
-
 canvas[resize] {
 	width: 98vh;
 	height: 98vh;
 }
-
 </style>
 </head>
 <body>
-	<input type="file" id="files" style="display:none;">
 
 <!-- tooltip when you hover is the keyboard shortcut (K) in parenthesis -->
 
@@ -293,17 +288,18 @@ project.onMouseMove = function(event) {
 }
 </script>
 
-
-<!-- download svg blob -->
+<!-- download svg file -->
 <script>
 document.getElementById("download-file").addEventListener("click", function(e){
 	e.preventDefault();
 	var scale = 600 / project.cpMin;
 	var svgBlob = project.cp.svg(scale);
-	download(svgBlob, "creasepattern.svg");
+	download(svgBlob, "creasepattern.svg", "image/svg+xml");
 });
-function download(text, filename){
-	var blob = new Blob([text], {type: "image/svg+xml"});
+function download(fileContents, filename, mimeType){
+	if(filename === undefined){ filename = "download.svg"; }
+	if(mimeType === undefined){ mimeType = "image/svg+xml"; }
+	var blob = new Blob([fileContents], {type: mimeType});
 	var url = window.URL.createObjectURL(blob);
 	var a = document.createElement("a");
 	a.href = url;
@@ -313,50 +309,31 @@ function download(text, filename){
 </script>
 
 <!-- button to open -->
+<script src="../tools/file-open-button.js"></script>
+
 <script>
-document.getElementById("open-file").addEventListener("click", function(e){
-	e.preventDefault();
-	document.getElementById("files").click()
-});
-document.addEventListener('change', function(){
-	var input = $(this),
-		numFiles = input.get(0).files ? input.get(0).files.length : 1,
-		label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-	input.trigger('fileselect', [numFiles, label]);
-	readBlob();
-}, false);
-function readBlob() {
-	var files = document.getElementById('files').files;
-	if (!files.length) {
-		// they selected cancel
-		return;
+function fileDidLoad(blob, mimeType){
+	switch (mimeType){
+		case "image/svg+xml":
+			project.loadUnclean(blob, function(){
+				project.cp.square();
+				for(var i = 0; i < project.cp.edges.length; i++){ 
+					if(project.cp.edges[i].orientation !== CreaseDirection.border)
+						project.cp.edges[i].valley(); 
+				}
+				project.init();
+				project.recalculateFolds();
+			});		
+		break;
+		case "text/plain": alert("Unclear what to import from this text file"); break;
+		case "image/png": alert("PNG import not supported. Try a vector file format."); break;
+		case "image/jpeg": alert("JPEG import not supported. Try a vector file format."); break;
+		case "opx": alert("ORIPA file support is coming"); break;
+		case "fold": alert("FOLD file support is coming"); break;
+		default: break;
 	}
-	var file = files[0];
-	var reader = new FileReader();
-	reader.onloadend = function(evt) {
-		if (evt.target.readyState == FileReader.DONE){
-			//byte range: ['Read ', file.size, ' byte file'].join('');
-			fileDidLoad(evt.target.result);
-		}
-	};
-	var blob = file.slice(0, file.size);
-	reader.readAsBinaryString(blob);
 }
-
-function fileDidLoad(blob){
-	project.loadUnclean(blob, function(){
-		project.cp.square();
-		for(var i = 0; i < project.cp.edges.length; i++){ 
-			if(project.cp.edges[i].orientation !== CreaseDirection.border)
-				project.cp.edges[i].valley(); 
-		}
-		project.init();
-		project.recalculateFolds();
-	});	
-}
-
 </script>
-
 
 <script>
 $("#radio-target-type :input").change(function() {
@@ -409,14 +386,17 @@ document.getElementById("new-button").addEventListener("click", function(e){
 	project.reset();
 	project.init();
 });
+$("#modal-tools").draggable({ handle: ".modal-header" });
+$("#modal-file").draggable({ handle: ".modal-header" });
+$("#show-snap-radius-button").click(function(){ });
+$("#show-nodes-button").click(function(){ });
+$("#find-faces-button").click(function(){ });
+$("#show-faces-button").click(function(){ });
+$("#show-clockwise-button").click(function(){ });
+$("#refresh-adjacency-button").click(function(){ });
 </script>
 
-<!-- <script type="text/javascript" src="../lib/bootstrap/js/bootstrap.min.js"></script>
- -->
 <script>
-// $('.modal').modal('show');
-
-// var p5window = new p5(editor, 'div-editor');
 
 var slider_scale = 0.0025;
 var slider_start = 0.05;
@@ -434,29 +414,6 @@ var slider_start = 0.05;
 // 	$('#div-snap-range-value').html("Snap Radius: " + (value*100).toFixed(1) + "%");
 // 	// p5window.snapRadius = value;
 // });
-
-// function clearCP(){
-// 	// p5window.clearCP();
-// }
-
-// function loadBase(base){
-// 	// p5window.loadBase(base);
-// }
-
-// function cleanIntersections(){
-// 	// var intersections = p5window.cleanIntersections();
-// }
-
-// function logPlanarGraph(){
-// 	// console.log(p5window.getPlanarGraphObject());
-// }
-
-// function download() {
-// 	// var svgData = p5window.makeSVGBlob();
-// 	// var fileName = "crease-pattern.svg";
-// 	// saveData(svgData, fileName);
-// }
-
 
 document.onkeydown = function(e) {
 	var evtobj = window.event? event : e
@@ -482,16 +439,6 @@ document.onkeyup = function(e) {
 		$("#i-shift-key-status").addClass("fa-square-o");
 	}
 };
-
-$("#modal-tools").draggable({ handle: ".modal-header" });
-$("#modal-file").draggable({ handle: ".modal-header" });
-$("#show-snap-radius-button").click(function(){ });
-$("#show-nodes-button").click(function(){ });
-$("#find-faces-button").click(function(){ });
-$("#show-faces-button").click(function(){ });
-$("#show-clockwise-button").click(function(){ });
-$("#refresh-adjacency-button").click(function(){ });
-    
 </script>
 
 </body>
