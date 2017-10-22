@@ -496,7 +496,7 @@ var OrigamiPaper = (function () {
 				// fillColor: { hue:25, saturation:0.7, brightness:1.0 }//{ hue:20, saturation:0.6, brightness:1 }
 			},
 			mountain: {
-				strokeColor: { gray:0.666 },//{ hue:340, saturation:0.75, brightness:0.9 },
+				strokeColor: { hue:0, saturation:0.9, brightness:1.0 },
 				// dashArray: [this.style.strokeWidth*2, this.style.strokeWidth*1.5, this.style.strokeWidth*.1, this.style.strokeWidth*1.5],
 				dashArray: undefined,
 				strokeWidth: strokeWidth,

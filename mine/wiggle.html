@@ -26,15 +26,12 @@ canvas[resize]{
 
 	<input type="file" id="files" style="display:none;">
 	<div class="toolbar">
-		<a href="#" class="btn btn-lg btn-outline-secondary" id="reload-file">Reload</a>
-		<a href="#" class="btn btn-lg btn-outline-secondary" id="wiggle-button">Wiggle!</a>
-<!-- 		<div class="btn-group" data-toggle="buttons">
-			<label class="btn btn-lg btn-outline-secondary" id="wiggle-button">
-				<input type="checkbox" autocomplete="off" id="wiggle-input"> Wiggle!
-			</label>
+		<a href="#" class="btn btn-lg btn-outline-secondary" id="wiggle-button">Wiggle</a>
+		<!-- <a href="#" class="btn btn-lg btn-outline-secondary" id="fold-button">Fold</a> -->
+		<div class="btn-group">
+			<a href="#" class="btn btn-lg btn-outline-secondary" id="reload-file">Reload</a>
+			<a href="#" class="btn btn-lg btn-outline-secondary" id="download-file">Download</a>
 		</div>
- -->		<a href="#" class="btn btn-lg btn-outline-secondary" id="fold-button">Fold</a>
-		<a href="#" class="btn btn-lg btn-outline-secondary" id="download-file">Download</a>
 	</div>
 </body>
 
@@ -55,15 +52,16 @@ canvas[resize]{
 var foldedState = new OrigamiFold("canvas-2");
 var project = new OrigamiPaper("canvas-1");
 </script>
-<script src="deform.js"></script>
+<script src="wiggle.js"></script>
 <script>
 project.zoomToFit(0.05);
 
 var loadedCP = undefined;
 
+// load crane base by default
 project.load("../tests/svg/crane-errors.svg", function(){
 	project.colorNodesFlatFoldable();
-	// foldCP();
+	foldCP();
 	loadedCP = project.cp.duplicate();
 });
 
@@ -72,7 +70,7 @@ function fileDidLoad(svg){
 	project.load(svg, function(){
 		loadedCP = project.cp.duplicate();
 		project.colorNodesFlatFoldable();
-		// foldCP();
+		foldCP();
 	});
 }
 </script>
@@ -85,7 +83,7 @@ document.getElementById("reload-file").addEventListener("click", function(e){
 	project.colorNodesFlatFoldable();
 	foldedState.cp = new CreasePattern();
 	foldedState.init();
-	// foldCP();
+	foldCP();
 });	
 </script>
 
@@ -117,12 +115,11 @@ function startWiggle(){
 	// project.cp.wiggle();
 	wiggleLoop = setInterval(function(){
 		var wiggleCount = project.cp.wiggle();
-		foldCP();
 		if (wiggleCount < 5){ 
 			console.log("programmatically stopping wiggle");
 			stopWiggle();
-			foldCP();
 		}
+		foldCP();
 		project.update();
 		project.colorNodesFlatFoldable();
 	}, 3);
@@ -159,10 +156,7 @@ document.getElementById("wiggle-button").addEventListener("click", function(e){
 <script>
 document.getElementById("fold-button").addEventListener("click", function(e){
 	e.preventDefault();
-	foldedState.cp = project.cp.duplicate();
-	foldedState.init();
-	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-	foldedState.update();
+	foldCP();
 });
 </script>
 

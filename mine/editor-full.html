@@ -151,7 +151,7 @@ canvas[resize] {
 				<a href="#" class="btn btn-sm btn-outline-secondary" id="open-file">Open File</a>
 				<h3 class="tools-title">Export</h3>
 				<a href="#" class="btn btn-sm btn-outline-secondary disabled">.oripa</a>
-				<a href="#" class="btn btn-sm btn-primary" id="download-file">.svg</a>
+				<a href="#" class="btn btn-sm btn-primary" id="download-svg-file">.svg</a>
 				<h3 class="tools-title">Show / Hide</h3>
 				<div class="btn-group">
 					<a href="#" class="btn btn-sm btn-outline-secondary" id="show-possible-creases-button">Possible Creases</a>
@@ -189,11 +189,13 @@ project.update();
 project.showCreases = false;
 
 project.allPossibleFolds = new CreasePattern();
-project.possibleFoldLayer = new project.scope.Layer();
-project.selectedNextLayer = new project.scope.Layer();
-project.selectedNextLayer.visible = false;
+project.targetCreaseSourceLayer = new project.scope.Layer();
+project.possibleCreasesLayer = new project.scope.Layer();
+project.possibleCreasesLayer.visible = false;
 
-project.inputMode = "add";
+project.inputMode = "add-valley";
+// project.inputMode = "add-mountain";
+// project.inputMode = "add-mark";
 // project.inputMode = "remove";
 
 project.recalculateFolds = function(){
@@ -205,16 +207,16 @@ project.recalculateFolds = function(){
 	}
 	// calculate all possible folds
 	this.allPossibleFolds = this.cp.possibleFolds();
-	this.selectedNextLayer.removeChildren();
-	this.selectedNextLayer.activate();
+	this.possibleCreasesLayer.removeChildren();
+	this.possibleCreasesLayer.activate();
 	for(var i = 0; i < this.allPossibleFolds.edges.length; i++){
 		var newPath = new this.scope.Path({segments: this.allPossibleFolds.edges[i].nodes, closed: false });
 		Object.assign(newPath, this.style.mark);
 		newPath.strokeWidth = 0.001;
 	}
-	this.selectedNextLayer.sendToBack();
+	this.possibleCreasesLayer.sendToBack();
 	this.backgroundLayer.sendToBack();
-	this.possibleFoldLayer.bringToFront();
+	this.targetCreaseSourceLayer.bringToFront();
 }
 
 project.reset = function(){
@@ -229,11 +231,17 @@ project.onResize = function(event) { }
 project.onMouseDown = function(event){
 	if(selectedEdge !== undefined){
 		switch(this.inputMode){
-		case "add":
+		case "add-valley":
 			var crease = this.cp.crease(selectedEdge.edge.nodes[0], selectedEdge.edge.nodes[1]);
-			if(crease !== undefined){ 
-				crease.valley(); 
-			}
+			if(crease !== undefined){ crease.valley(); }
+		break;
+		case "add-mountain":
+			var crease = this.cp.crease(selectedEdge.edge.nodes[0], selectedEdge.edge.nodes[1]);
+			if(crease !== undefined){ crease.mountain(); }
+		break;
+		case "add-mark":
+			var crease = this.cp.crease(selectedEdge.edge.nodes[0], selectedEdge.edge.nodes[1]);
+			if(crease !== undefined){ crease.mark(); }
 		break;
 		case "remove":
 			if(selectedEdge.edge.orientation !== CreaseDirection.border){
@@ -250,11 +258,13 @@ project.onMouseMove = function(event) {
 	var mouseString = event.point.x.toFixed(2) + " " + event.point.y.toFixed(2);
 	var ta = document.getElementById('mouse-position-text').value = mouseString;
 
-	this.possibleFoldLayer.removeChildren();
-	this.possibleFoldLayer.activate();
+	this.targetCreaseSourceLayer.removeChildren();
+	this.targetCreaseSourceLayer.activate();
 	if(!this.cp.contains(event.point)){ return; }
 	switch(this.inputMode){
-	case "add":
+	case "add-valley":
+	case "add-mountain":
+	case "add-mark":
 		selectedEdge = this.allPossibleFolds.getNearestEdge(event.point.x, event.point.y);
 	break;
 	case "remove":
@@ -263,8 +273,15 @@ project.onMouseMove = function(event) {
 	}
 	if(selectedEdge != undefined){
 		var newPath = new paper.Path({segments: selectedEdge.edge.nodes, closed: false });
-		Object.assign(newPath, this.style.mark);
-		newPath.strokeColor = {hue:0, saturation:1, brightness:1};
+		// Object.assign(newPath, this.style.mark);
+		// newPath.strokeColor = {hue:0, saturation:1, brightness:1};
+		switch(this.inputMode){
+			case "add-valley": Object.assign(newPath, this.style.valley); break;
+			case "add-mountain": Object.assign(newPath, this.style.mountain); break;
+			case "add-mark": Object.assign(newPath, this.style.mark); break;
+		}
+		newPath.strokeColor.alpha = 0.666;
+
 		if(selectedEdge.edge === undefined || selectedEdge.edge.madeBy === undefined || selectedEdge.edge.madeBy.args === undefined){ return; }
 		var args = selectedEdge.edge.madeBy.args;
 		if(args.length === 2){
@@ -293,15 +310,13 @@ project.onMouseMove = function(event) {
 
 <!-- download svg file -->
 <script>
-document.getElementById("download-file").addEventListener("click", function(e){
+document.getElementById("download-svg-file").addEventListener("click", function(e){
 	e.preventDefault();
 	var scale = 600 / project.cpMin;
 	var svgBlob = project.cp.svg(scale);
 	download(svgBlob, "creasepattern.svg", "image/svg+xml");
 });
 function download(fileContents, filename, mimeType){
-	if(filename === undefined){ filename = "download.svg"; }
-	if(mimeType === undefined){ mimeType = "image/svg+xml"; }
 	var blob = new Blob([fileContents], {type: mimeType});
 	var url = window.URL.createObjectURL(blob);
 	var a = document.createElement("a");
@@ -352,19 +367,25 @@ $("#radio-input-mode :input").change(function() {
 		console.log(this.id);
 	switch(this.id){
 	case "radio-button-mountain":
-		project.inputMode = "add";
+		project.inputMode = "add-mountain";
 		$("#radio-button-mountain-label").addClass("active"); 
 		$("#radio-button-valley-label").removeClass("active");
 		$("#radio-button-mark-label").removeClass("active");
 	break;
 	case "radio-button-valley":
-		project.inputMode = "add";
+		project.inputMode = "add-valley";
 		$("#radio-button-valley-label").addClass("active"); 
 		$("#radio-button-mountain-label").removeClass("active"); 
 		$("#radio-button-mark-label").removeClass("active");
 	break;
+	// case "radio-button-mark":
+	// 	project.inputMode = "remove";
+	// 	$("#radio-button-mark-label").addClass("active");
+	// 	$("#radio-button-mountain-label").removeClass("active");
+	// 	$("#radio-button-valley-label").removeClass("active"); 
+	// break;
 	case "radio-button-mark":
-		project.inputMode = "remove";
+		project.inputMode = "add-mark";
 		$("#radio-button-mark-label").addClass("active");
 		$("#radio-button-mountain-label").removeClass("active");
 		$("#radio-button-valley-label").removeClass("active"); 
@@ -375,7 +396,7 @@ document.getElementById("show-possible-creases-button").addEventListener("click"
 	project.showCreases = !project.showCreases;
 	if(project.showCreases){ $("#show-possible-creases-button").addClass("active"); }
 	else           { $("#show-possible-creases-button").removeClass("active"); }
-	project.selectedNextLayer.visible = project.showCreases;
+	project.possibleCreasesLayer.visible = project.showCreases;
 });
 document.getElementById("fragment-button").addEventListener("click", function(e){
 	project.cp.clean();
