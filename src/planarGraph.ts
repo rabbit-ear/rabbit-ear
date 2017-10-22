@@ -1126,6 +1126,26 @@ class PlanarGraph extends Graph{
 		});
 		return edges.filter(function(el){return el != undefined; });
 	}
+	getNearestEdgeFrom2Nodes(a:XY, b:XY):PlanarEdge{
+		var aNear = this.getNearestNode(a.x, a.y);
+		var bNear = this.getNearestNode(b.x, b.y);
+		var edge = <PlanarEdge>this.getEdgeConnectingNodes(aNear, bNear);
+		if(edge !== undefined) return edge;
+		// check more
+		for(var cou = 3; cou < 20; cou+=3){
+			var aNears = this.getNearestNodes(a.x, a.y, cou);
+			var bNears = this.getNearestNodes(b.x, b.y, cou);
+			for(var i = 0; i < aNears.length; i++){
+				for(var j = 0; j < bNears.length; j++){
+					if(i !== j){
+						var edge = <PlanarEdge>this.getEdgeConnectingNodes(aNears[i], bNears[j]);
+						if(edge !== undefined) return edge;
+					}
+				}
+			}
+		}
+		return undefined;
+	}
 
 	getNearestFace(x:any, y:any):PlanarFace{
 		// input x is an xy point
