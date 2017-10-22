@@ -1,14 +1,18 @@
-// drag-to-upload file
+// drag-and-drop to upload a file
+//
 // 1) implement the callback function is "fileDidLoad(blob, mimeType)"
 
 // creates a div for the drop zone
 var dropZone = document.createElement("div");
 dropZone.innerHTML = "";
 dropZone.id = "drop-zone"
-dropZone.style = "background: black; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; opacity: 0.6; visibility: hidden; display:flex; align-items:center; justify-content:center;";
+dropZone.style = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 931; visibility: hidden; display:flex; align-items:center; justify-content:center;";
 document.body.appendChild(dropZone);
+var darkZoneLayer = document.createElement("div");
+darkZoneLayer.style = "z-index: 932; position: fixed; top: 0; left: 0; background: black; opacity: 0.6; width: 100%; height: 100%;";
+dropZone.appendChild(darkZoneLayer);
 var cutout = document.createElement("div");
-cutout.style = "pointer-events:none; border-width: 15px; border-style: dashed; border-color: white; width:90%; height:90%;";
+cutout.style = "z-index: 933; pointer-events:none; border-width: 15px; border-style: dashed; border-color: white; width:90%; height:90%;";
 dropZone.appendChild(cutout);
 
 function showDropZone() { dropZone.style.visibility = "visible"; }

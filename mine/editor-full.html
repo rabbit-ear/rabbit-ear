@@ -167,8 +167,6 @@ canvas[resize] {
 		<canvas id="canvas" resize></canvas>
 	</div>
 
-<script src="../tools/drag-to-upload.js"></script>
-
 <script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/jquery-ui.min.js"></script>
 <script language="javascript" type="text/javascript" src="../src/graph.js"></script>
@@ -176,6 +174,11 @@ canvas[resize] {
 <script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
+
+<!-- drag and drop to upload file -->
+<script src="../tools/drag-and-drop.js"></script>
+<!-- button to upload file -->
+<script src="../tools/file-upload-button.js"></script>
 
 <script>
 var project = new OrigamiPaper("canvas");
@@ -308,9 +311,6 @@ function download(fileContents, filename, mimeType){
 }
 </script>
 
-<!-- button to open -->
-<script src="../tools/file-open-button.js"></script>
-
 <script>
 function fileDidLoad(blob, mimeType){
 	switch (mimeType){
@@ -323,7 +323,7 @@ function fileDidLoad(blob, mimeType){
 				}
 				project.init();
 				project.recalculateFolds();
-			});		
+			});
 		break;
 		case "text/plain": alert("Unclear what to import from this text file"); break;
 		case "image/png": alert("PNG import not supported. Try a vector file format."); break;
