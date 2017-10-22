@@ -61,7 +61,6 @@ var OrigamiPaper = (function () {
 		this.mouseDownLocation = new XY(0,0);
 		// user interaction layers
 		this.mouseDragLayer = new this.scope.Layer();
-
 				
 		// setting these true causes this to highlight parts
 		this.selectNearestNode = false;

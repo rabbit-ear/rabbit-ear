@@ -1,101 +1,14 @@
+<!-- origami crease pattern editor -->
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<link rel="stylesheet" href="../lib/bootstrap/css/bootstrap.min.css">
-<link rel="stylesheet" href="../lib/font-awesome/css/font-awesome.min.css">
-<style>
-html, body {
-	width:100%;
-	height:100%;
-	margin:0px;
-	font-family: sans-serif;
-	cursor:default;
-}
-body{
-	display:flex;
-	align-items:center;
-	justify-content: center;
-}
-#div-editor{
-	width:100%;
-	height:100%;
-}
-.center{ text-align: center; }
-.p5sketch{ margin:2% 0; }
-.cpanel{
-	padding-left:1%;
-	padding-right:1%;
-}
-input.input-med{
-	width:40%;
-	font-size: 14px;
-}
-input.input-sm{ width:27px; }
-.modal-header{
-	background-color: #333;
-	color:#FFF;
-    overflow: hidden;
-    border-radius: 5px 5px 0px 0px;
-    font-family: sans-serif;
-}
-.modal-content{
-    margin-right: 0;
-    margin-left: 0;
-}
-.modal-body{ padding:0px 15px 15px 15px; }
-.control-panel{
-	position: fixed;
-	z-index: 10;
-	display: block;
-	-webkit-overflow-scrolling: touch;
-	outline: 0;
-	width: 220px;
-}
-#modal-tools{
-	top: 10px;
-	left: 10px;
-}
-#modal-file{
-	top: 10px;
-	right: 10px;
-}
-h3.tools-title{
-	margin:2%;
-	padding:15px 0px 0px 0px;
-	font-size: 16px;
-	width:96%;
-	border-color: #DDD;
-	border-width: 1px;
-	border-top: 0;
-	border-bottom: 1;
-	border-right: 0;
-	border-left: 0;
-	border-style: solid;
-}
-div.tools-title{
-	margin:2%;
-	padding:0px 0px 0px 0px;
-	font-size: 16px;
-	width:96%;
-	border-color: #DDD;
-	border-width: 1px;
-	border-top: 0;
-	border-bottom: 1;
-	border-right: 0;
-	border-left: 0;
-	border-style: solid;
-}
-canvas[resize] {
-	width: 98vh;
-	height: 98vh;
-}
-</style>
+<link rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="../../lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <!-- tooltip when you hover is the keyboard shortcut (K) in parenthesis -->
-
 	<div id="modal-tools" class="control-panel">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -167,197 +80,20 @@ canvas[resize] {
 		<canvas id="canvas" resize></canvas>
 	</div>
 
-<script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
-<script language="javascript" type="text/javascript" src="../lib/jquery-ui.min.js"></script>
-<script language="javascript" type="text/javascript" src="../src/graph.js"></script>
-<script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
-<script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
-<script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
-<script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
+<script language="javascript" type="text/javascript" src="../../lib/jquery-3.1.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
+<script language="javascript" type="text/javascript" src="../../src/graph.js"></script>
+<script language="javascript" type="text/javascript" src="../../src/planarGraph.js"></script>
+<script language="javascript" type="text/javascript" src="../../src/creasePattern.js"></script>
+<script language="javascript" type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script language="javascript" type="text/javascript" src="../../src/cp.paperjs.js"></script>
 
 <!-- drag and drop to upload file -->
-<script src="../tools/drag-and-drop.js"></script>
+<script src="../drag-and-drop.js"></script>
 <!-- button to upload file -->
-<script src="../tools/file-upload-button.js"></script>
+<script src="../file-upload-button.js"></script>
 
-<script>
-var project = new OrigamiPaper("canvas");
-project.zoomToFit(0.05);
-project.style.border.strokeWidth = 0.002;
-project.update();
-
-project.showCreases = false;
-
-project.allPossibleFolds = new CreasePattern();
-project.targetCreaseSourceLayer = new project.scope.Layer();
-project.possibleCreasesLayer = new project.scope.Layer();
-project.possibleCreasesLayer.visible = false;
-
-project.inputMode = "add-valley";
-// project.inputMode = "add-mountain";
-// project.inputMode = "add-mark";
-// project.inputMode = "remove";
-
-project.recalculateFolds = function(){
-	// don't split the lines, but add their crossings as isolated nodes
-	this.cp.removeIsolatedNodes();
-	var intersections = this.cp.getEdgeIntersections();
-	for(var i = 0; i < intersections.length; i++){
-		this.cp.newPlanarNode(intersections[i].x, intersections[i].y);
-	}
-	// calculate all possible folds
-	this.allPossibleFolds = this.cp.possibleFolds();
-	this.possibleCreasesLayer.removeChildren();
-	this.possibleCreasesLayer.activate();
-	for(var i = 0; i < this.allPossibleFolds.edges.length; i++){
-		var newPath = new this.scope.Path({segments: this.allPossibleFolds.edges[i].nodes, closed: false });
-		Object.assign(newPath, this.style.mark);
-		newPath.strokeWidth = 0.001;
-	}
-	this.possibleCreasesLayer.sendToBack();
-	this.backgroundLayer.sendToBack();
-	this.targetCreaseSourceLayer.bringToFront();
-}
-
-project.reset = function(){
-	paper = this.scope; 
-	this.recalculateFolds();
-}
-project.reset();
-
-project.onFrame = function(event) { }
-project.onResize = function(event) { }
-project.onMouseDown = function(event){ }
-project.onMouseUp = function(event){ 
-	if(this.mouseDidDrag){
-		this.mouseDragLayer.activate();
-		this.mouseDragLayer.clear();
-		// crease the line
-		var edge = this.allPossibleFolds.getNearestEdgeFrom2Nodes(this.mouseDownLocation, event.point);
-		if(edge !== undefined){
-			var crease = this.cp.crease(edge.nodes[0], edge.nodes[1]);
-			if(crease !== undefined){
-			switch(this.inputMode){
-				case "add-valley": crease.valley(); break;
-				case "add-mountain": crease.mountain(); break;
-				case "add-mark": crease.mark(); break;
-				case "remove":
-					if(selectedEdge.edge.orientation !== CreaseDirection.border){
-						this.cp.removeEdge(selectedEdge.edge);
-					}
-				break;
-				}
-			}
-			this.init();
-			this.recalculateFolds();
-		}
-	} else{
-		if(selectedEdge !== undefined){
-			var crease = this.cp.crease(selectedEdge.edge.nodes[0], selectedEdge.edge.nodes[1]);
-			if(crease !== undefined){
-			switch(this.inputMode){
-				case "add-valley": crease.valley(); break;
-				case "add-mountain": crease.mountain(); break;
-				case "add-mark": crease.mark(); break;
-				case "remove":
-					if(selectedEdge.edge.orientation !== CreaseDirection.border){
-						this.cp.removeEdge(selectedEdge.edge);
-					}
-				break;
-				}
-			}
-			this.init();
-			this.recalculateFolds();
-		}		
-	}
-}
-project.onMouseDidBeginDrag = function(event){
-	this.targetCreaseSourceLayer.removeChildren();	
-}
-project.onMouseMove = function(event) {
-	if(this.mouseDown){
-		if(this.mouseDidDrag === false){
-			// mouse begin drag
-			this.targetCreaseSourceLayer.removeChildren();
-		}
-		this.mouseDragLayer.activate();
-		this.mouseDragLayer.clear();
-		var dragPath = new paper.Path({segments: [this.mouseDownLocation, event.point], closed: false });
-		switch(this.inputMode){
-			case "add-valley": Object.assign(dragPath, this.style.valley); break;
-			case "add-mountain": Object.assign(dragPath, this.style.mountain); break;
-			case "add-mark": Object.assign(dragPath, this.style.mark); break;
-		}
-		dragPath.strokeColor.alpha = 0.333;
-		var edge = this.allPossibleFolds.getNearestEdgeFrom2Nodes(this.mouseDownLocation, event.point);
-		if(edge !== undefined){
-			var newPath = new paper.Path({segments: edge.nodes, closed: false });	
-			switch(this.inputMode){
-				case "add-valley": Object.assign(newPath, this.style.valley); break;
-				case "add-mountain": Object.assign(newPath, this.style.mountain); break;
-				case "add-mark": Object.assign(newPath, this.style.mark); break;
-			}
-			newPath.strokeColor.alpha = 0.666;
-		}
-	} else{
-		this.targetCreaseSourceLayer.removeChildren();
-		this.targetCreaseSourceLayer.activate();
-		if(!this.cp.contains(event.point)){ return; }
-		switch(this.inputMode){
-		case "add-valley":
-		case "add-mountain":
-		case "add-mark":
-			selectedEdge = this.allPossibleFolds.getNearestEdge(event.point.x, event.point.y);
-		break;
-		case "remove":
-			selectedEdge = this.cp.getNearestEdge(event.point.x, event.point.y);
-		break;
-		}		
-		
-		if(selectedEdge != undefined){
-			this.targetCreaseSourceLayer.activate();
-			var newPath = new paper.Path({segments: selectedEdge.edge.nodes, closed: false });
-			// Object.assign(newPath, this.style.mark);
-			// newPath.strokeColor = {hue:0, saturation:1, brightness:1};
-			switch(this.inputMode){
-				case "add-valley": Object.assign(newPath, this.style.valley); break;
-				case "add-mountain": Object.assign(newPath, this.style.mountain); break;
-				case "add-mark": Object.assign(newPath, this.style.mark); break;
-			}
-			newPath.strokeColor.alpha = 0.666;
-
-			if(selectedEdge.edge === undefined || selectedEdge.edge.madeBy === undefined || selectedEdge.edge.madeBy.args === undefined){ return; }
-			var args = selectedEdge.edge.madeBy.args;
-			if(args.length === 2){
-				var points = [[args[0].x, args[0].y],
-				              [args[1].x, args[1].y] ];
-				var circle0 = new paper.Path.Circle(points[0], 0.01);
-				var circle1 = new paper.Path.Circle(points[1], 0.01);
-				Object.assign(circle0, {strokeWidth:0.01,strokeColor:{gray:0.0},fillColor:undefined});
-				Object.assign(circle1, {strokeWidth:0.01,strokeColor:{gray:0.0},fillColor:undefined});
-			}
-			if(args.length === 4){
-				var seg1 = [[args[0].x, args[0].y],
-				            [args[1].x, args[1].y] ];
-				var newPath1 = new paper.Path({segments: seg1, closed: false });
-				Object.assign(newPath1, this.style.mountain);
-				newPath1.strokeColor = { gray:0.0 };
-				var seg2 = [[args[2].x, args[2].y],
-				            [args[3].x, args[3].y] ];
-				var newPath2 = new paper.Path({segments: seg2, closed: false });
-				Object.assign(newPath2, this.style.mountain);
-				newPath2.strokeColor = { gray:0.0 };
-			}
-		}
-
-	}
-
-	var mouseString = event.point.x.toFixed(2) + " " + event.point.y.toFixed(2);
-	var ta = document.getElementById('mouse-position-text').value = mouseString;
-
-
-}
-</script>
+<script src="editor.js"></script>
 
 <!-- download svg file -->
 <script>
