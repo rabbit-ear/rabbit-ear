@@ -148,7 +148,7 @@ canvas[resize] {
 			<div class="modal-body">
 				<h3 class="tools-title">File</h3>
 				<button class="btn btn-sm btn-outline-secondary" id="new-button">New</button>
-				<a href="#" class="btn btn-sm btn-outline-secondary" id="open-file">Open File</a>
+				<a href="#" class="btn btn-sm btn-outline-secondary" id="load-file">Open File</a>
 				<h3 class="tools-title">Export</h3>
 				<a href="#" class="btn btn-sm btn-outline-secondary disabled">.oripa</a>
 				<a href="#" class="btn btn-sm btn-primary" id="download-svg-file">.svg</a>
@@ -363,20 +363,37 @@ $("#radio-target-type :input").change(function() {
 	break;
 	}
 });
+function setCreaseWithType(direction){
+	switch (direction){
+		case "mountain":
+			project.inputMode = "add-mountain";
+			$("#radio-button-mountain-label").addClass("active"); 
+			$("#radio-button-valley-label").removeClass("active");
+			$("#radio-button-mark-label").removeClass("active");
+		break;
+		case "valley":
+			project.inputMode = "add-valley";
+			$("#radio-button-valley-label").addClass("active"); 
+			$("#radio-button-mountain-label").removeClass("active"); 
+			$("#radio-button-mark-label").removeClass("active");
+		break;
+		case "mark":
+			project.inputMode = "add-mark";
+			$("#radio-button-mark-label").addClass("active");
+			$("#radio-button-mountain-label").removeClass("active");
+			$("#radio-button-valley-label").removeClass("active"); 
+		break;
+	}
+
+}
 $("#radio-input-mode :input").change(function() {
 		console.log(this.id);
 	switch(this.id){
 	case "radio-button-mountain":
-		project.inputMode = "add-mountain";
-		$("#radio-button-mountain-label").addClass("active"); 
-		$("#radio-button-valley-label").removeClass("active");
-		$("#radio-button-mark-label").removeClass("active");
+		setCreaseWithType("mountain");
 	break;
 	case "radio-button-valley":
-		project.inputMode = "add-valley";
-		$("#radio-button-valley-label").addClass("active"); 
-		$("#radio-button-mountain-label").removeClass("active"); 
-		$("#radio-button-mark-label").removeClass("active");
+		setCreaseWithType("valley");
 	break;
 	// case "radio-button-mark":
 	// 	project.inputMode = "remove";
@@ -385,10 +402,7 @@ $("#radio-input-mode :input").change(function() {
 	// 	$("#radio-button-valley-label").removeClass("active"); 
 	// break;
 	case "radio-button-mark":
-		project.inputMode = "add-mark";
-		$("#radio-button-mark-label").addClass("active");
-		$("#radio-button-mountain-label").removeClass("active");
-		$("#radio-button-valley-label").removeClass("active"); 
+		setCreaseWithType("mark");
 	break;
 	}
 });
@@ -438,10 +452,19 @@ var slider_start = 0.05;
 
 document.onkeydown = function(e) {
 	var evtobj = window.event? event : e
+	console.log(evtobj);
 	// if (evtobj.keyCode == 90 && evtobj.ctrlKey) {
 	// if(shift and z) redo the undo
-	if (evtobj.keyCode == 90){//evtobj.cmdKey) {
-		// p5window.undo();
+	switch (evtobj.keyCode){
+		case 77:  // m
+			setCreaseWithType("mountain");
+		break;
+		case 86:  // v
+			setCreaseWithType("valley");
+		break;
+		case 90: 
+			// p5window.undo();
+		break;
 	}
 	if(evtobj.shiftKey){
 		//shift pressed
@@ -453,7 +476,7 @@ document.onkeydown = function(e) {
 
 document.onkeyup = function(e) {
 	var evtobj = window.event? event : e
-	// if(evtobj.keyCode == 16){
+	// if(evtobj.keyCode == 16){ }
 	if(evtobj.key == "Shift"){
 		// p5window.shiftKeyDown = false;
 		$("#i-shift-key-status").removeClass("fa-check-square-o");

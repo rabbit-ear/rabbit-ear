@@ -1,7 +1,7 @@
 // file upload button manager
 //
 // 1) implement the callback function is "fileDidLoad(blob, mimeType)"
-// 2) create an element: <a href="#" id="open-file">Open File</a>
+// 2) create an element: <a href="#" id="load-file">Open File</a>
 //    (make sure this .js file is included AFTER that element)
 
 // creates an input dialog button
@@ -11,7 +11,7 @@ fileDialogButton.id = "files"
 fileDialogButton.style = "display:none;";
 document.body.appendChild(fileDialogButton);
 
-document.getElementById("open-file").addEventListener("click", function(e){
+document.getElementById("load-file").addEventListener("click", function(e){
 	e.preventDefault();
 	document.getElementById("files").click()
 });
