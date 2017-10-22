@@ -74,3 +74,9 @@ canvas[resize] {
 	width: 98vh;
 	height: 98vh;
 }
+
+canvas.folded {
+	margin:10px;
+	width:200px;
+	height:200px;
+}

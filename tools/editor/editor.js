@@ -1,3 +1,6 @@
+var foldedState = new OrigamiFold("canvas-folded");
+
+
 var project = new OrigamiPaper("canvas");
 project.zoomToFit(0.05);
 project.style.border.strokeWidth = 0.002;
@@ -38,8 +41,9 @@ project.recalculateFolds = function(){
 }
 
 project.reset = function(){
-	paper = this.scope; 
+	paper = this.scope;
 	this.recalculateFolds();
+	foldCP();
 }
 project.reset();
 
@@ -68,6 +72,7 @@ project.onMouseUp = function(event){
 			}
 			this.init();
 			this.recalculateFolds();
+			foldCP();
 		}
 	} else{
 		if(selectedEdge !== undefined){
@@ -86,6 +91,7 @@ project.onMouseUp = function(event){
 			}
 			this.init();
 			this.recalculateFolds();
+			foldCP();
 		}		
 	}
 }

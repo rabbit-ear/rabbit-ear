@@ -72,7 +72,7 @@
 				</div>
 			</div>
 			<h3 class="tools-title">Approximate Folding</h3>
-				<div style="margin:10px; width:200px; height:200px; background-color:#eee;"></div>
+				<canvas class="folded" id="canvas-folded"></canvas>
 		</div>
 	</div>
 
@@ -93,61 +93,28 @@
 <!-- button to upload file -->
 <script src="../file-upload-button.js"></script>
 
+<script>
+function foldCP(){
+	foldedState.cp = project.cp.duplicate();
+	foldedState.cp.clean();
+	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+	foldedState.init();
+}
+</script>
+
 <script src="editor.js"></script>
-
-<!-- download svg file -->
-<script>
-document.getElementById("download-svg-file").addEventListener("click", function(e){
-	e.preventDefault();
-	var scale = 600 / project.cpMin;
-	var svgBlob = project.cp.svg(scale);
-	download(svgBlob, "creasepattern.svg", "image/svg+xml");
-});
-function download(fileContents, filename, mimeType){
-	var blob = new Blob([fileContents], {type: mimeType});
-	var url = window.URL.createObjectURL(blob);
-	var a = document.createElement("a");
-	a.href = url;
-	a.download = filename;
-	a.click();
-}
-</script>
-
-<script>
-function fileDidLoad(blob, mimeType){
-	switch (mimeType){
-		case "image/svg+xml":
-			project.loadUnclean(blob, function(){
-				project.cp.square();
-				for(var i = 0; i < project.cp.edges.length; i++){ 
-					if(project.cp.edges[i].orientation !== CreaseDirection.border)
-						project.cp.edges[i].valley(); 
-				}
-				project.init();
-				project.recalculateFolds();
-			});
-		break;
-		case "text/plain": alert("Unclear what to import from this text file"); break;
-		case "image/png": alert("PNG import not supported. Try a vector file format."); break;
-		case "image/jpeg": alert("JPEG import not supported. Try a vector file format."); break;
-		case "opx": alert("ORIPA file support is coming"); break;
-		case "fold": alert("FOLD file support is coming"); break;
-		default: break;
-	}
-}
-</script>
 
 <script>
 $("#radio-target-type :input").change(function() {
 	switch(this.id){
-	case "radio-button-point":
-		$("#col-target-x2").css("display", "none");
-		$("#col-target-y2").css("display", "none");
-	break;
-	case "radio-button-line":
-		$("#col-target-x2").css("display", "block");
-		$("#col-target-y2").css("display", "block");
-	break;
+		case "radio-button-point":
+			$("#col-target-x2").css("display", "none");
+			$("#col-target-y2").css("display", "none");
+		break;
+		case "radio-button-line":
+			$("#col-target-x2").css("display", "block");
+			$("#col-target-y2").css("display", "block");
+		break;
 	}
 });
 function setCreaseWithType(direction){
@@ -270,6 +237,48 @@ document.onkeyup = function(e) {
 		$("#i-shift-key-status").addClass("fa-square-o");
 	}
 };
+</script>
+
+<!-- download svg file -->
+<script>
+document.getElementById("download-svg-file").addEventListener("click", function(e){
+	e.preventDefault();
+	var scale = 600 / project.cpMin;
+	var svgBlob = project.cp.svg(scale);
+	download(svgBlob, "creasepattern.svg", "image/svg+xml");
+});
+function download(fileContents, filename, mimeType){
+	var blob = new Blob([fileContents], {type: mimeType});
+	var url = window.URL.createObjectURL(blob);
+	var a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
+}
+</script>
+
+<script>
+function fileDidLoad(blob, mimeType){
+	switch (mimeType){
+		case "image/svg+xml":
+			project.loadUnclean(blob, function(){
+				project.cp.square();
+				for(var i = 0; i < project.cp.edges.length; i++){ 
+					if(project.cp.edges[i].orientation !== CreaseDirection.border)
+						project.cp.edges[i].valley(); 
+				}
+				project.init();
+				project.recalculateFolds();
+			});
+		break;
+		case "text/plain": alert("Unclear what to import from this text file"); break;
+		case "image/png": alert("PNG import not supported. Try a vector file format."); break;
+		case "image/jpeg": alert("JPEG import not supported. Try a vector file format."); break;
+		case "opx": alert("ORIPA file support is coming"); break;
+		case "fold": alert("FOLD file support is coming"); break;
+		default: break;
+	}
+}
 </script>
 
 </body>
