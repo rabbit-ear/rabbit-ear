@@ -15,6 +15,13 @@ blockquote:before, blockquote:after, q:before, q:after { content: ''; content: n
 table { border-collapse: collapse; border-spacing: 0; }
 /* Eric Meyer’s Reset CSS 2.0 */
 
+::selection {
+  background: #fffb5f; /* WebKit/Blink Browsers */
+}
+::-moz-selection {
+  background: #fffb5f; /* Gecko Browsers */
+}
+
 canvas[resize] {
 	width: 90vw;
 	height: 90vw;

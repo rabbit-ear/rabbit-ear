@@ -32,7 +32,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code>graph.<v>nodes</v> <c> // array of GraphNode</c><br>graph.<v>edges</v> <c> // array of GraphEdge</c></code></pre>
+		<pre><code>graph.<v>nodes</v> <key>=</key> [] <c> // array of GraphNode</c><br>graph.<v>edges</v> <key>=</key> [] <c> // array of GraphEdge</c></code></pre>
 	</div>
 
 	<div class="quote">
@@ -56,19 +56,19 @@
 
 <section id="nodes">
 	<div class="centered">
-		<pre><code>graph.<v>nodes</v>[<n>0</n>]  <c>// the first node</c></code></pre>
+		<pre><code>graph.<v>nodes</v>[<n>0</n>]  <c>// the first node</c><br>graph.<v>nodes</v>.length  <c>// total number of nodes</c></code></pre>
 	</div>
 
 	<div class="centered">
 		<svg id="svgTest01" width="400" height="400"></svg>
 	</div>
 
-	<div class="centered">
-		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<v>nodes</v>[<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<v>edges</v>[<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()</code></pre>
+	<div class="quote" style="">
+		<p>This graph is interactive with the code below</p>
 	</div>
 
-	<div class="quote" style="">
-		<p>Click nodes and edges</p>
+	<div class="centered">
+		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<v>nodes</v>[<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<v>edges</v>[<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()</code></pre>
 	</div>
 
 	<div class="explain">
@@ -80,8 +80,13 @@
 
 <h2><a href="#edges">&sect;</a> Edges</h2>
 <section id="edges">
+
+	<div class="quote">
+		<p>An edge connects two nodes</p>
+	</div>
+	
 	<div class="centered">
-		<pre><code>graph.<v>edges</v>[<n>0</n>];  <c>// the first edge</c></code></pre>
+		<pre><code>graph.<v>edges</v>[<n>0</n>]  <c>// the first edge</c><br>graph.<v>edges</v>.length  <c>// total number of edges</c></code></pre>
 	</div>
 
 	<div class="centered">
@@ -93,7 +98,11 @@
 	</div>
 
 	<div class="explain">
-		<p>Two edges are <strong>adjacent</strong> when they are both connected to the same node</p>
+		<p>Invalid edges</p>
+		<ol>
+			<li>CIRCULAR an edge cannot connect a node to the same node</li>
+			<li>DUPLICATE the same 2 nodes cannot have more than 1 edge between them</li>
+		</ol>
 	</div>
 
 </section>

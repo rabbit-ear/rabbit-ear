@@ -75,7 +75,11 @@ function onSegment(point:XY, a:XY, b:XY, epsilon?:number):boolean{
 	var p_b = Math.sqrt( Math.pow(point.x-b.x,2) + Math.pow(point.y-b.y,2) );
 	return (Math.abs(a_b - (p_a+p_b)) < epsilon);
 }
-/** There are 2 angles between 2 vectors (angle in radians), from A to B, return the clockwise one  */
+/** There are 2 interior angles between 2 angle measurements, from A to B, return the clockwise one
+ * @param {number} angle in radians
+ * @param {number} angle in radians
+ * @returns {number} clockwise interior angle (from a to b) in radians
+ */
 function clockwiseAngleFrom(a:number, b:number):number{
 	while(a < 0){ a += Math.PI*2; }
 	while(b < 0){ b += Math.PI*2; }
@@ -83,24 +87,39 @@ function clockwiseAngleFrom(a:number, b:number):number{
 	if(a_b >= 0) return a_b;
 	return Math.PI*2 - (b - a);
 }
-//there are 2 angles between 2 vectors, this retursn the smaller one
-function smallerInteriorAngle(center:XY, a:number, b:number):number{
+/** There are 2 interior angles between 2 angle measurements, return the smaller one
+ * @param {number} angle in radians
+ * @param {number} angle in radians
+ * @returns {number} smaller of the 2 interior angles betwen a and b in radians
+ */
+function smallerInteriorAngle(a:number, b:number):number{
 	var interior1 = clockwiseAngleFrom(a, b);
 	var interior2 = clockwiseAngleFrom(b, a);
 	if(interior1 < interior2) return interior1;
 	return interior2;
 }
-
-//there are 2 angles between 2 vectors, this retursn the smaller one
-function smallerInteriorAngleVector(center:XY, pointA:XY, pointB:XY):number{
-	var angleA = Math.atan2(pointA.y-center.y, pointA.x-center.x);
-	var angleB = Math.atan2(pointB.y-center.y, pointB.x-center.x);
-	var interiorA = clockwiseAngleFrom(angleA, angleB);
-	var interiorB = clockwiseAngleFrom(angleB, angleA);
-	if(interiorA < interiorB) return interiorA;
-	return interiorB;
+/** There are 2 interior angles between 2 vectors, return the smaller one
+ * @param {XY} angle as a vector
+ * @param {XY} angle as a vector
+ * @returns {number} smaller of the 2 interior angles betwen a and b in radians
+ */
+function smallerInteriorAngleVector(pointA:XY, pointB:XY):number{
+	return smallerInteriorAngle(Math.atan2(pointA.y, pointA.x), Math.atan2(pointB.y, pointB.x));
+	// var angleA = Math.atan2(pointA.y-center.y, pointA.x-center.x);
+	// var angleB = Math.atan2(pointB.y-center.y, pointB.x-center.x);
+	// var angleA = Math.atan2(pointA.y, pointA.x);
+	// var angleB = Math.atan2(pointB.y, pointB.x);
+	// var interiorA = clockwiseAngleFrom(angleA, angleB);
+	// var interiorB = clockwiseAngleFrom(angleB, angleA);
+	// if(interiorA < interiorB) return interiorA;
+	// return interiorB;
 }
-
+/** This locates the smaller interior angle of the two, and returns half of the smaller angle
+ * @param {XY} center
+ * @param {XY} angle as a vector
+ * @param {XY} angle as a vector
+ * @returns {number} smaller of the 2 interior angles betwen a and b in radians
+ */
 function bisectSmallerInteriorAngle(center:XY, pointA:XY, pointB:XY):number{
 	var angleA = Math.atan2(pointA.y-center.y, pointA.x-center.x);
 	var angleB = Math.atan2(pointB.y-center.y, pointB.x-center.x);
@@ -135,10 +154,6 @@ function rayLineSegmentIntersection(rayOrigin:XY, rayDirection:XY, point1:XY, po
 	var t2 = (v1.x*vRayPerp.x + v1.y*vRayPerp.y) / dot;
 	if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)){
 		return new XY(rayOrigin.x + rayDirection.x * t1, rayOrigin.y + rayDirection.y * t1);
-		// todo: really, we need to move beyond the need for whole numbers
-		// var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
-		// var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
-		// return new XY(x, y);
 	}
 }
 function lineIntersectionAlgorithm(p0:XY, p1:XY, p2:XY, p3:XY):XY {
@@ -272,19 +287,22 @@ class XY{
 	values():[number, number]{ return [this.x, this.y]; }
 	// position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
 	// translated(dx:number, dy:number):XY{ this.x += dx; this.y += dy; return this;}
-	normalize():XY { var m = this.mag(); return new XY(this.x/m, this.y/m);}
+	normalize():XY { var m = this.magnitude(); return new XY(this.x/m, this.y/m);}
 	rotate90():XY { return new XY(-this.y, this.x); }
 	rotate(origin:XY, angle:number){
-		var dx = this.x-origin.x;
-		var dy = this.y-origin.y;
-		var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
-		var currentAngle = Math.atan2(dy, dx);
-		return new XY(origin.x + radius*Math.cos(currentAngle + angle),
-					  origin.y + radius*Math.sin(currentAngle + angle));
+		// TODO: needs testing
+		return this.transform( new Matrix().rotation(angle, origin) );
+		// var dx = this.x-origin.x;
+		// var dy = this.y-origin.y;
+		// var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
+		// var currentAngle = Math.atan2(dy, dx);
+		// return new XY(origin.x + radius*Math.cos(currentAngle + angle),
+		// 			  origin.y + radius*Math.sin(currentAngle + angle));
 	}
 	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
-	mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
+	magnitude():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
+	distanceTo(a:XY):number{return Math.sqrt(Math.pow(this.x-a.x,2)+Math.pow(this.y-a.y,2));}
 	equivalent(point:XY, epsilon?:number):boolean{
 		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		// rect bounding box, cheaper than radius calculation
@@ -297,9 +315,6 @@ class XY{
 	/** reflects this point about a line that passes through 'a' and 'b' */
 	reflect(a:XY,b:XY):XY{
 		return this.transform( new Matrix().reflection(a,b) );
-	}
-	distance(a:XY):number{
-		return Math.sqrt( Math.pow(this.x-a.x,2) + Math.pow(this.y-a.y,2) );
 	}
 }
 /** This is a 2x3 matrix: 2x2 for scale and rotation and 2x1 for translation */
@@ -317,12 +332,12 @@ class Matrix{
 	}
 	/** Sets this to be the identity matrix */
 	identity(){ this.a=1; this.b=0; this.c=0; this.d=1; this.tx=0; this.ty=0; }
-	/** Returns a new matrix, the sum of this and the argument. Will not change this or the argument
+	/** Returns a new matrix that is the sum of this and the argument. Will not change this or the argument
 	 * @returns {Matrix} 
 	 */
 	mult(matrix:Matrix):Matrix{
-		var m1 = this.copy();
-		var m2 = matrix.copy();
+		var m1 = this;
+		var m2 = matrix;
 		var r = new Matrix();
 		r.a = m1.a * m2.a + m1.c * m2.b;
 		r.c = m1.a * m2.c + m1.c * m2.d;
@@ -343,6 +358,12 @@ class Matrix{
 		this.d = Math.sin(angle) * -Math.sin(-angle) + -Math.cos(angle) * Math.cos(-angle);
 		this.tx = a.x + this.a * -a.x + -a.y * this.c;
 		this.ty = a.y + this.b * -a.x + -a.y * this.d;
+		return this;
+	}
+	rotation(angle, origin?:XY):Matrix{
+		this.a = Math.cos(angle);   this.c = -Math.sin(angle);
+		this.b = Math.sin(angle);   this.d = Math.cos(angle);
+		if(origin != undefined){ this.tx = origin.x; this.ty = origin.y; }
 		return this;
 	}
 	/** Deep-copy the Matrix and return it as a new object
@@ -402,6 +423,50 @@ class InteriorAngle{
 			return true;
 		}
 		return false;
+	}
+}
+
+class Spring { 
+	xpos:number = 0;
+	ypos:number = 0;
+	tempxpos:number = 0;
+	tempypos:number = 0;
+
+	mass:number = 1;
+	k:number = 1;
+	damp:number = 0.9;
+	rest_posx:number = 0;
+	rest_posy:number = 0;
+
+	velx:number = 0.0;
+	vely:number = 0.0;
+	accel:number = 0;
+	force:number = 0;
+
+	// Constructor
+	constructor(x, y, d, m){
+		if(x !== undefined && y != undefined){
+			this.xpos = this.rest_posx = this.tempxpos = x;
+			this.ypos = this.rest_posy = this.tempypos = y;
+		}
+		if(d !== undefined){ this.damp = d; }
+		if(m !== undefined){ this.mass = m; }
+	}
+
+	update(movePosition?:XY){
+		if (movePosition !== undefined) {
+			this.rest_posx = movePosition.x;
+			this.rest_posy = movePosition.y;
+		}
+		this.force = -this.k * (this.tempxpos - this.rest_posx);
+		this.accel = this.force / this.mass;
+		this.velx = this.damp * (this.velx + this.accel);
+		this.tempxpos = this.tempxpos + this.velx;
+
+		this.force = -this.k * (this.tempypos - this.rest_posy);
+		this.accel = this.force / this.mass;
+		this.vely = this.damp * (this.vely + this.accel);
+		this.tempypos = this.tempypos + this.vely;
 	}
 }
 
@@ -521,7 +586,7 @@ class PlanarNode extends GraphNode{
 // todo: probably need to break apart XY and this. this modifies the x and y in place. XY returns a new one and doesn't modify the current one in place
 	position(x:number, y:number):PlanarNode{ this.x = x; this.y = y; return this; }
 	translate(dx:number, dy:number):PlanarNode{ this.x += dx; this.y += dy; return this;}
-	normalize():PlanarNode { var m = this.mag(); this.x /= m; this.y /= m; return this; }
+	normalize():PlanarNode { var m = this.magnitude(); this.x /= m; this.y /= m; return this; }
 	rotate90():PlanarNode { var x = this.x; this.x = -this.y; this.y = x; return this; }
 	rotate(origin:XY, angle:number):PlanarNode{
 		var dx = this.x-origin.x;
@@ -534,7 +599,7 @@ class PlanarNode extends GraphNode{
 	}
 	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
-	mag():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
+	magnitude():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
 	equivalent(point:XY, epsilon?:number):boolean{
 		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		// rect bounding box, cheaper than radius calculation
@@ -550,7 +615,7 @@ class PlanarNode extends GraphNode{
 	reflect(a:XY,b:XY):XY{
 		return this.transform( new Matrix().reflection(a,b) );
 	}
-	distance(a:XY):number{
+	distanceTo(a:XY):number{
 		return Math.sqrt( Math.pow(this.x-a.x,2) + Math.pow(this.y-a.y,2) );
 	}
 }

@@ -723,8 +723,8 @@ class CreasePattern extends PlanarGraph{
 			var intersection = lineIntersectionAlgorithm(a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]);
 			var u = new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
 			var v = new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y);
-			var uMag = u.mag();
-			var vMag = v.mag();
+			var uMag = u.magnitude();
+			var vMag = v.magnitude();
 			var dir = new XY( (u.x*vMag + v.x*uMag), (u.y*vMag + v.y*uMag) );
 			var intersects = this.boundaryLineIntersection(intersection, dir);
 			if(intersects.length >= 2){
@@ -884,7 +884,11 @@ class CreasePattern extends PlanarGraph{
 				for(var i = 0; i < el.quarterPoints.length; i++){
 					var nextI = (i+1)%el.quarterPoints.length;
 					var prevI = (i+el.quarterPoints.length-1)%el.quarterPoints.length;
-					var interiorAngle = smallerInteriorAngleVector(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI]);
+					var a = new XY(el.quarterPoints[prevI].x - el.quarterPoints[i].x, 
+					               el.quarterPoints[prevI].y - el.quarterPoints[i].y);
+					var b = new XY(el.quarterPoints[nextI].x - el.quarterPoints[i].x, 
+					               el.quarterPoints[nextI].y - el.quarterPoints[i].y);
+					var interiorAngle = smallerInteriorAngleVector(a, b);
 					var acuteAngle = true;
 					if(interiorAngle > Math.PI*0.5){ acuteAngle = false; }
 					triangle.push({
@@ -914,15 +918,11 @@ class CreasePattern extends PlanarGraph{
 							triangle[nextI].point, 
 							nextThird)
 						];
+					var a = new XY(prevThird.y-triangle[i].point.y, prevThird.x-triangle[i].point.x)
+					var b = new XY(triangle[prevI].point.y-triangle[i].point.y, triangle[prevI].point.x-triangle[i].point.x);
 					var interiors = [
-						0.5 * smallerInteriorAngleVector(
-							triangle[i].point, 
-							prevThird, 
-							triangle[prevI].point),
-						0.5 * smallerInteriorAngleVector(
-							triangle[i].point, 
-							triangle[nextI].point, 
-							nextThird)
+						0.5 * smallerInteriorAngleVector(a, b),
+						0.5 * smallerInteriorAngleVector(b, a)
 						];
 					triangle[i].bisectAngles = bisects;
 					triangle[i].interiorAngles = interiors;
@@ -1055,8 +1055,20 @@ class CreasePattern extends PlanarGraph{
 					var nextI = (i+1)%el.quarterPoints.length;
 					var prevI = (i+el.quarterPoints.length-1)%el.quarterPoints.length;
 					var nextNextI = (i+2)%el.quarterPoints.length;
-					var interiorAngle1 = smallerInteriorAngleVector(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI]);
-					var interiorAngle2 = smallerInteriorAngleVector(el.quarterPoints[nextI], el.quarterPoints[i], el.quarterPoints[nextNextI]);
+					
+
+					var a1 = new XY(el.quarterPoints[prevI].x - el.quarterPoints[i].x, 
+					                el.quarterPoints[prevI].y - el.quarterPoints[i].y);
+					var b1 = new XY(el.quarterPoints[nextI].x - el.quarterPoints[i].x, 
+					                el.quarterPoints[nextI].y - el.quarterPoints[i].y);
+					var interiorAngle1 = smallerInteriorAngleVector(a1, b1);
+					// var interiorAngle1 = smallerInteriorAngleVector(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI]);
+					var a2 = new XY(el.quarterPoints[i].x - el.quarterPoints[nextI].x, 
+					                el.quarterPoints[i].y - el.quarterPoints[nextI].y);
+					var b2 = new XY(el.quarterPoints[nextNextI].x - el.quarterPoints[nextI].x, 
+					                el.quarterPoints[nextNextI].y - el.quarterPoints[nextI].y);
+					var interiorAngle2 = smallerInteriorAngleVector(a2, b2);
+					// var interiorAngle2 = smallerInteriorAngleVector(el.quarterPoints[nextI], el.quarterPoints[i], el.quarterPoints[nextNextI]);
 					if(interiorAngle1 + interiorAngle2 > Math.PI*0.5){
 						this.newCrease(el.quarterPoints[i].x, el.quarterPoints[i].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y).mountain();
 					}

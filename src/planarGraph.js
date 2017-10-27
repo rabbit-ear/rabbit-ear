@@ -95,7 +95,11 @@ function onSegment(point, a, b, epsilon) {
     var p_b = Math.sqrt(Math.pow(point.x - b.x, 2) + Math.pow(point.y - b.y, 2));
     return (Math.abs(a_b - (p_a + p_b)) < epsilon);
 }
-/** There are 2 angles between 2 vectors (angle in radians), from A to B, return the clockwise one  */
+/** There are 2 interior angles between 2 angle measurements, from A to B, return the clockwise one
+ * @param {number} angle in radians
+ * @param {number} angle in radians
+ * @returns {number} clockwise interior angle (from a to b) in radians
+ */
 function clockwiseAngleFrom(a, b) {
     while (a < 0) {
         a += Math.PI * 2;
@@ -108,24 +112,40 @@ function clockwiseAngleFrom(a, b) {
         return a_b;
     return Math.PI * 2 - (b - a);
 }
-//there are 2 angles between 2 vectors, this retursn the smaller one
-function smallerInteriorAngle(center, a, b) {
+/** There are 2 interior angles between 2 angle measurements, return the smaller one
+ * @param {number} angle in radians
+ * @param {number} angle in radians
+ * @returns {number} smaller of the 2 interior angles betwen a and b in radians
+ */
+function smallerInteriorAngle(a, b) {
     var interior1 = clockwiseAngleFrom(a, b);
     var interior2 = clockwiseAngleFrom(b, a);
     if (interior1 < interior2)
         return interior1;
     return interior2;
 }
-//there are 2 angles between 2 vectors, this retursn the smaller one
-function smallerInteriorAngleVector(center, pointA, pointB) {
-    var angleA = Math.atan2(pointA.y - center.y, pointA.x - center.x);
-    var angleB = Math.atan2(pointB.y - center.y, pointB.x - center.x);
-    var interiorA = clockwiseAngleFrom(angleA, angleB);
-    var interiorB = clockwiseAngleFrom(angleB, angleA);
-    if (interiorA < interiorB)
-        return interiorA;
-    return interiorB;
+/** There are 2 interior angles between 2 vectors, return the smaller one
+ * @param {XY} angle as a vector
+ * @param {XY} angle as a vector
+ * @returns {number} smaller of the 2 interior angles betwen a and b in radians
+ */
+function smallerInteriorAngleVector(pointA, pointB) {
+    return smallerInteriorAngle(Math.atan2(pointA.y, pointA.x), Math.atan2(pointB.y, pointB.x));
+    // var angleA = Math.atan2(pointA.y-center.y, pointA.x-center.x);
+    // var angleB = Math.atan2(pointB.y-center.y, pointB.x-center.x);
+    // var angleA = Math.atan2(pointA.y, pointA.x);
+    // var angleB = Math.atan2(pointB.y, pointB.x);
+    // var interiorA = clockwiseAngleFrom(angleA, angleB);
+    // var interiorB = clockwiseAngleFrom(angleB, angleA);
+    // if(interiorA < interiorB) return interiorA;
+    // return interiorB;
 }
+/** This locates the smaller interior angle of the two, and returns half of the smaller angle
+ * @param {XY} center
+ * @param {XY} angle as a vector
+ * @param {XY} angle as a vector
+ * @returns {number} smaller of the 2 interior angles betwen a and b in radians
+ */
 function bisectSmallerInteriorAngle(center, pointA, pointB) {
     var angleA = Math.atan2(pointA.y - center.y, pointA.x - center.x);
     var angleB = Math.atan2(pointB.y - center.y, pointB.x - center.x);
@@ -165,10 +185,6 @@ function rayLineSegmentIntersection(rayOrigin, rayDirection, point1, point2) {
     var t2 = (v1.x * vRayPerp.x + v1.y * vRayPerp.y) / dot;
     if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)) {
         return new XY(rayOrigin.x + rayDirection.x * t1, rayOrigin.y + rayDirection.y * t1);
-        // todo: really, we need to move beyond the need for whole numbers
-        // var x = wholeNumberify(rayOrigin.x + rayDirection.x * t1);
-        // var y = wholeNumberify(rayOrigin.y + rayDirection.y * t1);
-        // return new XY(x, y);
     }
 }
 function lineIntersectionAlgorithm(p0, p1, p2, p3) {
@@ -340,18 +356,22 @@ var XY = (function () {
     XY.prototype.values = function () { return [this.x, this.y]; };
     // position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
     // translated(dx:number, dy:number):XY{ this.x += dx; this.y += dy; return this;}
-    XY.prototype.normalize = function () { var m = this.mag(); return new XY(this.x / m, this.y / m); };
+    XY.prototype.normalize = function () { var m = this.magnitude(); return new XY(this.x / m, this.y / m); };
     XY.prototype.rotate90 = function () { return new XY(-this.y, this.x); };
     XY.prototype.rotate = function (origin, angle) {
-        var dx = this.x - origin.x;
-        var dy = this.y - origin.y;
-        var radius = Math.sqrt(Math.pow(dy, 2) + Math.pow(dx, 2));
-        var currentAngle = Math.atan2(dy, dx);
-        return new XY(origin.x + radius * Math.cos(currentAngle + angle), origin.y + radius * Math.sin(currentAngle + angle));
+        // TODO: needs testing
+        return this.transform(new Matrix().rotation(angle, origin));
+        // var dx = this.x-origin.x;
+        // var dy = this.y-origin.y;
+        // var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
+        // var currentAngle = Math.atan2(dy, dx);
+        // return new XY(origin.x + radius*Math.cos(currentAngle + angle),
+        // 			  origin.y + radius*Math.sin(currentAngle + angle));
     };
     XY.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
     XY.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
-    XY.prototype.mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    XY.prototype.magnitude = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    XY.prototype.distanceTo = function (a) { return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2)); };
     XY.prototype.equivalent = function (point, epsilon) {
         if (epsilon == undefined) {
             epsilon = EPSILON_HIGH;
@@ -365,9 +385,6 @@ var XY = (function () {
     /** reflects this point about a line that passes through 'a' and 'b' */
     XY.prototype.reflect = function (a, b) {
         return this.transform(new Matrix().reflection(a, b));
-    };
-    XY.prototype.distance = function (a) {
-        return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2));
     };
     return XY;
 }());
@@ -401,12 +418,12 @@ var Matrix = (function () {
     }
     /** Sets this to be the identity matrix */
     Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; };
-    /** Returns a new matrix, the sum of this and the argument. Will not change this or the argument
+    /** Returns a new matrix that is the sum of this and the argument. Will not change this or the argument
      * @returns {Matrix}
      */
     Matrix.prototype.mult = function (matrix) {
-        var m1 = this.copy();
-        var m2 = matrix.copy();
+        var m1 = this;
+        var m2 = matrix;
         var r = new Matrix();
         r.a = m1.a * m2.a + m1.c * m2.b;
         r.c = m1.a * m2.c + m1.c * m2.d;
@@ -427,6 +444,17 @@ var Matrix = (function () {
         this.d = Math.sin(angle) * -Math.sin(-angle) + -Math.cos(angle) * Math.cos(-angle);
         this.tx = a.x + this.a * -a.x + -a.y * this.c;
         this.ty = a.y + this.b * -a.x + -a.y * this.d;
+        return this;
+    };
+    Matrix.prototype.rotation = function (angle, origin) {
+        this.a = Math.cos(angle);
+        this.c = -Math.sin(angle);
+        this.b = Math.sin(angle);
+        this.d = Math.cos(angle);
+        if (origin != undefined) {
+            this.tx = origin.x;
+            this.ty = origin.y;
+        }
         return this;
     };
     /** Deep-copy the Matrix and return it as a new object
@@ -489,6 +517,49 @@ var InteriorAngle = (function () {
         return false;
     };
     return InteriorAngle;
+}());
+var Spring = (function () {
+    // Constructor
+    function Spring(x, y, d, m) {
+        this.xpos = 0;
+        this.ypos = 0;
+        this.tempxpos = 0;
+        this.tempypos = 0;
+        this.mass = 1;
+        this.k = 1;
+        this.damp = 0.9;
+        this.rest_posx = 0;
+        this.rest_posy = 0;
+        this.velx = 0.0;
+        this.vely = 0.0;
+        this.accel = 0;
+        this.force = 0;
+        if (x !== undefined && y != undefined) {
+            this.xpos = this.rest_posx = this.tempxpos = x;
+            this.ypos = this.rest_posy = this.tempypos = y;
+        }
+        if (d !== undefined) {
+            this.damp = d;
+        }
+        if (m !== undefined) {
+            this.mass = m;
+        }
+    }
+    Spring.prototype.update = function (movePosition) {
+        if (movePosition !== undefined) {
+            this.rest_posx = movePosition.x;
+            this.rest_posy = movePosition.y;
+        }
+        this.force = -this.k * (this.tempxpos - this.rest_posx);
+        this.accel = this.force / this.mass;
+        this.velx = this.damp * (this.velx + this.accel);
+        this.tempxpos = this.tempxpos + this.velx;
+        this.force = -this.k * (this.tempypos - this.rest_posy);
+        this.accel = this.force / this.mass;
+        this.vely = this.damp * (this.vely + this.accel);
+        this.tempypos = this.tempypos + this.vely;
+    };
+    return Spring;
 }());
 var PlanarCleanReport = (function (_super) {
     __extends(PlanarCleanReport, _super);
@@ -601,7 +672,7 @@ var PlanarNode = (function (_super) {
     // todo: probably need to break apart XY and this. this modifies the x and y in place. XY returns a new one and doesn't modify the current one in place
     PlanarNode.prototype.position = function (x, y) { this.x = x; this.y = y; return this; };
     PlanarNode.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
-    PlanarNode.prototype.normalize = function () { var m = this.mag(); this.x /= m; this.y /= m; return this; };
+    PlanarNode.prototype.normalize = function () { var m = this.magnitude(); this.x /= m; this.y /= m; return this; };
     PlanarNode.prototype.rotate90 = function () { var x = this.x; this.x = -this.y; this.y = x; return this; };
     PlanarNode.prototype.rotate = function (origin, angle) {
         var dx = this.x - origin.x;
@@ -614,7 +685,7 @@ var PlanarNode = (function (_super) {
     };
     PlanarNode.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
     PlanarNode.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
-    PlanarNode.prototype.mag = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    PlanarNode.prototype.magnitude = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
     PlanarNode.prototype.equivalent = function (point, epsilon) {
         if (epsilon == undefined) {
             epsilon = EPSILON_HIGH;
@@ -633,7 +704,7 @@ var PlanarNode = (function (_super) {
     PlanarNode.prototype.reflect = function (a, b) {
         return this.transform(new Matrix().reflection(a, b));
     };
-    PlanarNode.prototype.distance = function (a) {
+    PlanarNode.prototype.distanceTo = function (a) {
         return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2));
     };
     return PlanarNode;
