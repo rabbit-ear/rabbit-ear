@@ -527,7 +527,7 @@ var Spring = (function () {
         this.tempypos = 0;
         this.mass = 1;
         this.k = 1;
-        this.damp = 0.9;
+        this.damp = 0.8;
         this.rest_posx = 0;
         this.rest_posy = 0;
         this.velx = 0.0;
@@ -717,6 +717,7 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.midpoint = function () {
         return new XY(0.5 * (this.nodes[0].x + this.nodes[1].x), 0.5 * (this.nodes[0].y + this.nodes[1].y));
     };
+    PlanarEdge.prototype.length = function () { return this.nodes[0].distanceTo(this.nodes[1]); };
     PlanarEdge.prototype.intersection = function (edge) {
         // todo: should intersecting adjacent edges return the point in common they have with each other?
         if (this.isAdjacentToEdge(edge)) {
@@ -874,6 +875,7 @@ var PlanarGraph = (function (_super) {
         var _this = _super.call(this) || this;
         _this.nodeType = PlanarNode;
         _this.edgeType = PlanarEdge;
+        _this.properties = { "speed": 0 }; // we need something to be able to set to skip over functions
         _this.clear();
         return _this;
     }

@@ -68,12 +68,12 @@ var OrigamiPaper = (function () {
 		this.selectNearestFace = false;
 
 		var that = this;
-		this.scope.view.onFrame = function(event){     
-			paper = that.scope; 
-			that.onFrame(event); 
+		this.scope.view.onFrame = function(event){
+			paper = that.scope;
+			that.onFrame(event);
 		}
-		this.scope.view.onMouseDown = function(event){ 
-			paper = that.scope; 
+		this.scope.view.onMouseDown = function(event){
+			paper = that.scope;
 			that.mouseDown = true;
 			that.mouseDidDrag = false;
 			that.mouseDownLocation = event.point;
@@ -84,7 +84,7 @@ var OrigamiPaper = (function () {
 			that.mouseDown = false;
 			that.onMouseUp(event);
 		}
-		this.scope.view.onMouseMove = function(event){ 
+		this.scope.view.onMouseMove = function(event){
 			paper = that.scope;
 			if(that.mouseDown){ 
 				if(that.mouseDidDrag === false){
@@ -97,7 +97,7 @@ var OrigamiPaper = (function () {
 			if(that.selectNearestFace){ that.highlightNearestFace(event.point); }
 			that.onMouseMove(event);
 		}
-		this.scope.view.onResize = function(event){    
+		this.scope.view.onResize = function(event){
 			paper = that.scope; 
 			that.zoomToFit(); 
 			that.onResize(event); 
@@ -420,11 +420,11 @@ var OrigamiFold = (function(){
 		this.foldedLayer = new this.scope.Layer();
 				
 		var that = this;
-		this.scope.view.onFrame = function(event){     
+		this.scope.view.onFrame = function(event){
 			paper = that.scope; 
 			that.onFrame(event); 
 		}
-		this.scope.view.onMouseDown = function(event){ 
+		this.scope.view.onMouseDown = function(event){
 			paper = that.scope; 
 			that.mouseDown = true; 
 			that.onMouseDown(event);
@@ -434,11 +434,11 @@ var OrigamiFold = (function(){
 			that.mouseDown = false;
 			that.onMouseUp(event);
 		}
-		this.scope.view.onMouseMove = function(event){ 
+		this.scope.view.onMouseMove = function(event){
 			paper = that.scope;
 			that.onMouseMove(event);
 		}
-		this.scope.view.onResize = function(event){    
+		this.scope.view.onResize = function(event){
 			paper = that.scope; 
 			that.zoomToFit(); 
 			that.onResize(event); 
@@ -534,7 +534,7 @@ var OrigamiFold = (function(){
 		// matrix
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
 		mat.scale(this.customZoom, this.customZoom);  // scale a bit
-		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale); 
+		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale);
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
 		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);

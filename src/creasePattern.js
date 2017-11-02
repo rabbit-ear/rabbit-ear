@@ -379,6 +379,10 @@ var CreasePattern = (function (_super) {
     };
     // number of nodes tried to wiggle (ignores those correct within epsilon range)
     CreasePattern.prototype.wiggle = function () {
+        var lengths = this.edges.forEach(function (crease, i) {
+            return crease.length();
+        });
+        // prevent too much deviation from length
         var nodesAttempted = 0;
         // var dup = this.duplicate();
         // var shuffleNodes = shuffle(this.nodes);

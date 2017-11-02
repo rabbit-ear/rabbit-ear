@@ -434,7 +434,7 @@ class Spring {
 
 	mass:number = 1;
 	k:number = 1;
-	damp:number = 0.9;
+	damp:number = 0.8;
 	rest_posx:number = 0;
 	rest_posy:number = 0;
 
@@ -628,6 +628,8 @@ class PlanarEdge extends GraphEdge{
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
 
+	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
+
 	intersection(edge:PlanarEdge):EdgeIntersection{
 		// todo: should intersecting adjacent edges return the point in common they have with each other?
 		if(this.isAdjacentToEdge(edge)){ return undefined; }
@@ -761,6 +763,8 @@ class PlanarGraph extends Graph{
 
 	nodeType = PlanarNode;
 	edgeType = PlanarEdge;
+
+	properties = {"speed":0}; // we need something to be able to set to skip over functions
 
 	constructor(){ super(); this.clear(); }
 

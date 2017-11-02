@@ -373,6 +373,12 @@ class CreasePattern extends PlanarGraph{
 
 	// number of nodes tried to wiggle (ignores those correct within epsilon range)
 	wiggle():number{
+
+		var lengths = this.edges.forEach(function(crease, i){
+			return crease.length();
+		});
+		// prevent too much deviation from length
+		
 		var nodesAttempted:number = 0;
 		// var dup = this.duplicate();
 		// var shuffleNodes = shuffle(this.nodes);

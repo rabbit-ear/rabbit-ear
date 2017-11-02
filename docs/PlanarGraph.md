@@ -2,6 +2,14 @@
 
 ## Properties
 
+```
+nodes:PlanarNode[]
+edges:PlanarEdge[]
+faces:PlanarFace[]
+```
+
+---
+
 #### nodes
 
 ```
@@ -21,6 +29,37 @@ faces:PlanarFace[]
 ```
 
 ## Methods
+
+```
+constructor()
+nodes_array():number[][]
+duplicate():PlanarGraph
+width():number
+height():number
+newPlanarNode(x:number, y:number):PlanarNode
+newPlanarEdge(x1:number, y1:number, x2:number, y2:number):PlanarEdge
+newPlanarEdgeFromNode(node:PlanarNode, x:number, y:number):PlanarEdge
+newPlanarEdgeBetweenNodes(a:PlanarNode, b:PlanarNode):PlanarEdge
+newPlanarEdgeRadiallyFromNode(node:PlanarNode, angle:number, length:number):PlanarEdge
+clear():PlanarGraph
+removeEdge(edge:GraphEdge):number
+removeEdgeBetween(node1:GraphNode, node2:GraphNode):number
+cleanNodeIfUseless(node):number
+cleanAllUselessNodes():PlanarCleanReport
+cleanDuplicateNodes(epsilon?:number):PlanarCleanReport
+clean(epsilon?:number):PlanarCleanReport
+fragment():PlanarCleanReport
+fragmentEdge(edge:PlanarEdge):PlanarCleanReport
+getEdgeIntersections():XY[]
+getNearestNode(x:any, y:any):PlanarNode
+getNearestNodes(x:any, y:any, howMany:number):PlanarNode[]
+getNearestEdge(x:any, y:any):EdgeIntersection
+getNearestEdges(x:any, y:any, howMany:number):any[]
+getNearestFace(x:any, y:any):PlanarFace
+getNearestInteriorAngle(x:any, y:any):InteriorAngle
+```
+
+---
 
 #### constructor
 

@@ -18,8 +18,9 @@
 	<div class="centered">
 		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
 	</div>
+
 	<div class="explain">
-		<p>Unlike these visualizations, graphs don't exist in space, they are an abstract model of connections between nodes.</p>
+		<p>Graphs don't exist in 2D space (or any space), they are an abstract map showing connections between nodes.</p>
 	</div>
 </section>
 
