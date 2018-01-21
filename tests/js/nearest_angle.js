@@ -15,7 +15,7 @@ nearAngle.reset = function(){
 		angle += Math.PI / 64 + Math.random() * Math.PI / 6;
 	}
 	this.cp.cleanDuplicateNodes();
-	this.init();
+	this.draw();
 	for(var i = 0; i < this.edges.length; i++){ this.edges[i].strokeColor = {gray:0.0}; }
 }
 nearAngle.reset();

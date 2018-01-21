@@ -60,16 +60,16 @@ var project = new OrigamiPaper("canvas-1");
 <script src="wiggle.js"></script>
 
 <script>
-project.zoomToFit(0.05);
+project.setPadding(0.05);
 
 var loadedCP = undefined;
 
 // load crane base by default
-project.load("../tests/svg/crane.svg", function(){
-	project.colorNodesFlatFoldable();
-	foldCP();
-	loadedCP = project.cp.duplicate();
-});
+// project.load("../tests/svg/crane-errors.svg", function(){
+// 	project.colorNodesFlatFoldable();
+// 	foldCP();
+// 	loadedCP = project.cp.duplicate();
+// });
 
 // incoming file from upload-button or drag-to-upload
 function fileDidLoad(svg, mimeType){
@@ -88,7 +88,7 @@ document.getElementById("reload-file").addEventListener("click", function(e){
 	project.setCreasePattern( loadedCP.duplicate() );
 	project.colorNodesFlatFoldable();
 	foldedState.cp = new CreasePattern();
-	foldedState.init();
+	foldedState.draw();
 	foldCP();
 });	
 </script>
@@ -97,7 +97,7 @@ document.getElementById("reload-file").addEventListener("click", function(e){
 function foldCP(){
 	foldedState.cp = project.cp.duplicate();
 	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-	foldedState.init();
+	foldedState.draw();
 }
 </script>
 
@@ -121,10 +121,10 @@ function startWiggle(){
 	// project.cp.wiggle();
 	wiggleLoop = setInterval(function(){
 		var wiggleCount = project.cp.wiggle();
-		if (wiggleCount < 5){ 
-			console.log("programmatically stopping wiggle");
-			stopWiggle();
-		}
+		// if (wiggleCount < 5){ 
+		// 	console.log("programmatically stopping wiggle");
+		// 	stopWiggle();
+		// }
 		foldCP();
 		project.update();
 		project.colorNodesFlatFoldable();
@@ -157,10 +157,10 @@ document.getElementById("wiggle-button").addEventListener("click", function(e){
 
 <!-- button to fold -->
 <script>
-document.getElementById("fold-button").addEventListener("click", function(e){
-	e.preventDefault();
-	foldCP();
-});
+// document.getElementById("fold-button").addEventListener("click", function(e){
+// 	e.preventDefault();
+// 	foldCP();
+// });
 </script>
 
 <!-- button to download -->

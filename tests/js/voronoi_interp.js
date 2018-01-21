@@ -1,7 +1,7 @@
 var voronoiInterpCallback = undefined;
 
 var voronoiInterp = new OrigamiPaper("canvas-voronoi-interpolate");
-voronoiInterp.zoomToFit(0.05);
+voronoiInterp.setPadding(0.05);
 
 // keep track of voronoi nodes in a separate graph
 var input = new PlanarGraph();
@@ -11,7 +11,7 @@ var vInterpolation = 0.5;
 
 voronoiInterp.reset = function(){
 	this.cp.clear();
-	this.init();
+	this.draw();
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 	for(var i = 0; i < 4; i++){
 		var x = map(Math.random(), 0, 1, 0.1, 0.9);
@@ -29,7 +29,7 @@ voronoiInterp.redraw = function(){
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.voronoiSimple(v, vInterpolation);
+	this.cp.voronoi(v, vInterpolation);
 	// var delaunay = voronoi.triangles( nodes );
 	// for(var i = 0; i < delaunay.length; i++){
 	// 	var triangle = delaunay[i];
@@ -44,7 +44,7 @@ voronoiInterp.redraw = function(){
 	// this.cp.clean();
 	// // this.cp.generateFaces();
 	this.updateWeights(0.005, 0.0025);
-	this.init();
+	this.draw();
 	// this.update();
 
 	for(var i = 0; i < nodes.length; i++){

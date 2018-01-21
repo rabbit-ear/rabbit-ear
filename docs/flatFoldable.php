@@ -90,7 +90,7 @@
 var unfoldedCrane = new OrigamiPaper("canvas-unfolded-crane");
 unfoldedCrane.load("../tests/svg/crane.svg", function(){
 	unfoldedCrane.style.valley = unfoldedCrane.style.mountain;
-	unfoldedCrane.init();
+	unfoldedCrane.draw();
 });
 
 var foldedCrane = new OrigamiFold("canvas-folded-crane");
@@ -114,7 +114,7 @@ function redoOneCrease(){
 	oneCrease.cp.clean();
 	oneCrease.cp.generateFaces();
 	oneCrease.faceLayer.visible = false;
-	oneCrease.init();
+	oneCrease.draw();
 
 	var oneCreaseFolded = new OrigamiFold("canvas-one-crease-folded", oneCrease.cp.duplicate());
 	oneCreaseFolded.onMouseDown = oneCrease.onMouseDown
@@ -129,7 +129,7 @@ redoOneCrease();
 // var oneCreaseFolded = new OrigamiFold("canvas-one-crease-folded", oneCrease.cp.duplicate());
 // oneCreaseFolded.cp.creaseThroughPoints(new XY(0.5, 0.5), offCenter).valley();
 // oneCreaseFolded.cp.clean();
-// oneCreaseFolded.init();
+// oneCreaseFolded.draw();
 // console.log(oneCreaseFolded.cp);
 
 // console.log("one crease");
@@ -140,11 +140,11 @@ redoOneCrease();
 // });
 
 // oneCreaseFolded.cp = ;
-// oneCreaseFolded.init();
+// oneCreaseFolded.draw();
 // oneCreaseFolded.style = { face:{ fillColor:{ gray:0.0, alpha:0.4 } } };
 // oneCreaseFolded.update();
 // oneCreaseFolded.customZoom = 2;
-// oneCreaseFolded.zoomToFit();
+// oneCreaseFolded.setPadding();
 
 
 </script>
@@ -155,7 +155,7 @@ offSquaresFolded.load("../tests/svg/off-squares.svg", function(){
 	offSquaresFolded.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 	offSquaresFolded.update();
 	offSquaresFolded.customZoom = 2;
-	offSquaresFolded.zoomToFit();
+	offSquaresFolded.setPadding();
 });
 
 var offSquares = new OrigamiPaper("canvas-off-squares");

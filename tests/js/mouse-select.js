@@ -1,7 +1,7 @@
 var mouse_select_callback;
 
 var mouseSelect = new OrigamiPaper("canvas-mouse-select");
-mouseSelect.zoomToFit(0.05);
+mouseSelect.setPadding(0.05);
 
 mouseSelect.selectNearestNode = true;
 mouseSelect.selectNearestEdge = true;
@@ -10,7 +10,7 @@ mouseSelect.reset = function(){
 	paper = this.scope; 
 	mouseSelect.cp.clear();
 	mouseSelect.cp.birdBase();
-	mouseSelect.init();
+	mouseSelect.draw();
 }
 mouseSelect.reset();
 

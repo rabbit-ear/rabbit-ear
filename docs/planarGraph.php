@@ -55,9 +55,6 @@
 		<p>Does this library use degrees or radians? I haven't made up my mind.</p>
 	</div>
 
-	<div class="centered">
-		<svg id="svgTest00" width="400" height="400"></svg>
-	</div>
 
 </section>
 
@@ -100,7 +97,6 @@ singleFaceCallback = function(e){
 singleFace.reset();
 </script>
 
-<script language="javascript" type="text/javascript" src="../tests/js/graph_simple.js"></script>
 <script type="text/javascript" src="../tests/js/radial_rainbow.js"></script>
 <script>
 radial_rainbow_callback = function(event){

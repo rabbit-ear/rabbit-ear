@@ -1,7 +1,7 @@
 
 var voronoiSketch = new OrigamiPaper("canvas-voronoi");
 voronoiSketch.updateWeights(0.005, 0.0025);
-voronoiSketch.zoomToFit(0.05);
+voronoiSketch.setPadding(0.05);
 voronoiSketch.updateWeights(0.005, 0.0025);
 
 var input = new PlanarGraph();
@@ -16,7 +16,7 @@ var selectedNode = undefined;
 
 voronoiSketch.reset = function(){
 	this.cp.clear();
-	this.init();
+	this.draw();
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 }
 voronoiSketch.reset();
@@ -30,7 +30,7 @@ voronoiSketch.redraw = function(){
 	this.cp.voronoi(v, vInterpolation);
 
 	this.updateWeights(0.0025, 0.00125);
-	this.init();
+	this.draw();
 	// this.update();
 
 	nodeCircles = [];
@@ -70,7 +70,7 @@ voronoiSketch.onMouseMove = function(event) {
 		selectedNode = undefined;
 		for(var i = 0; i < input.nodes.length; i++){
 			if(nodeCircles[i] !== undefined){
-				var d = input.nodes[i].distance(event.point);
+				var d = input.nodes[i].distanceTo(event.point);
 				if(d < 0.01){ nodeCircles[i].radius = 0.005; selectedNode = i;}
 				else        { nodeCircles[i].radius = 0.0025; }
 			}

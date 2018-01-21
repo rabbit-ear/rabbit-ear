@@ -2,7 +2,7 @@ var foldedState = new OrigamiFold("canvas-folded");
 
 
 var project = new OrigamiPaper("canvas");
-project.zoomToFit(0.05);
+project.setPadding(0.05);
 project.style.border.strokeWidth = 0.002;
 project.update();
 
@@ -70,7 +70,7 @@ project.onMouseUp = function(event){
 					break;
 				}
 			}
-			this.init();
+			this.draw();
 			this.recalculateFolds();
 			foldCP();
 		}
@@ -89,7 +89,7 @@ project.onMouseUp = function(event){
 					break;
 				}
 			}
-			this.init();
+			this.draw();
 			this.recalculateFolds();
 			foldCP();
 		}		

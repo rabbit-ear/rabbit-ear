@@ -72,7 +72,7 @@ function download(text, filename){
 
 var project = new OrigamiPaper("canvas");
 project.updateWeights(0.005, 0.0025);
-project.zoomToFit();
+project.setPadding();
 project.updateWeights(0.005, 0.0025);
 
 var input = new PlanarGraph();
@@ -117,7 +117,7 @@ project.redraw = function(){
 	}
 
 	this.updateWeights(0.0025, 0.00125);
-	this.init();
+	this.draw();
 
 	nodeCircles = [];
 	for(var i = 0; i < nodes.length; i++){
@@ -131,7 +131,7 @@ var numdots = Math.PI*20;
 
 project.reset = function(){
 	this.cp.clear();
-	this.init();
+	this.draw();
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 
 	// add to voronoi

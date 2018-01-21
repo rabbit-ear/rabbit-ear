@@ -1,7 +1,7 @@
 var turtle_shell_callback;
 
 var turtleShell = new OrigamiPaper("canvas-turtle-shell");
-turtleShell.zoomToFit(0.05);
+turtleShell.setPadding(0.05);
 	
 turtleShell.makeFlatFoldableIndicators = function(){
 	turtleShell.nodeLayer.visible = true;
@@ -22,7 +22,7 @@ turtleShell.reset = function(){
 	loadSVG("/tests/svg/turtle-shell.svg", function(e){ 
 		// shellTrace = e;
 		turtleShell.cp = e;
-		turtleShell.init();
+		turtleShell.draw();
 		// paperCP = new OrigamiPaper(scope, shellTrace);
 		// nodeLayer.bringToFront();
 		turtleShell.makeFlatFoldableIndicators();

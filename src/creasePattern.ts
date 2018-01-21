@@ -371,6 +371,80 @@ class CreasePattern extends PlanarGraph{
 		return next;
 	}
 
+
+	// precision is an epsilon value: 0.00001
+/*	wiggle(precision):XY[]{
+		if (precision === undefined){ precision = EPSILON; }
+
+		var lengths = this.edges.forEach(function(crease, i){
+			return crease.length();
+		});
+		// prevent too much deviation from length
+		
+		var dup = this.duplicate();
+
+		var forces = [];
+		for(var i = 0; i < dup.nodes.length; i++){ forces.push(new XY(0,0)); }
+
+		var nodesAttempted:number = 0;
+		// var shuffleNodes = shuffle(dup.nodes);
+		for(var i = 0; i < dup.nodes.length; i++){
+			var rating = dup.nodes[i].kawasakiRating();
+
+			var edgeLengths = dup.edges.forEach(function(el){ return el.length(); });
+
+			if(rating > precision){
+				nodesAttempted++;
+				// guess some numbers.
+				var guesses = []; // {xy:__(XY)__, rating:__(number)__};
+				for(var n = 0; n < 12; n++){
+					// maybe store angle so that we can keep track of it between rounds
+					var randomAngle = Math.PI*2 / 12 * n; // wrap around to make sure it's random
+					var radius = Math.random() * rating;
+					var move = new XY( 0.05*radius * Math.cos(randomAngle), 
+					                   0.05*radius * Math.sin(randomAngle));
+					dup.nodes[i].x += move.x;
+					dup.nodes[i].y += move.y;
+					var newRating = dup.nodes[i].kawasakiRating();
+					var adjNodes = dup.nodes[i].adjacentNodes();
+					// var numRatings = 1;  // begin with this node. add the adjacent nodes
+					var adjRating = 0;
+					for(var adj = 0; adj < adjNodes.length; adj++){
+						adjRating += dup.nodes[i].kawasakiRating();
+						// numRatings += 1;
+					}
+					guesses.push( {xy:move, rating:newRating+adjRating} );
+					// guesses.push( {xy:move, rating:(newRating+adjRating)/numRatings} );
+					// undo change
+					dup.nodes[i].x -= move.x;
+					dup.nodes[i].y -= move.y;
+				}
+				var sortedGuesses = guesses.sort(function(a,b) {return a.rating - b.rating;} );
+				// if(sortedGuesses[0].rating < rating){
+				forces[i].x += sortedGuesses[0].xy.x;
+				forces[i].y += sortedGuesses[0].xy.y;
+					// dup.nodes[i].x += sortedGuesses[0].xy.x;
+					// dup.nodes[i].y += sortedGuesses[0].xy.y;
+					// perform quick intersection test, does any line associated with this node intersect with other lines? if so, undo change.
+				// }
+			}
+		}
+		// for(var i = 0; i < forces.length; i++){
+		// 	dup.nodes[i].x += forces[i].x;
+		// 	dup.nodes[i].y += forces[i].y;
+		// }
+
+		// for(var i = 0; i < this.nodes.length; i++){ 
+		// 	this.nodes[i].x = dup.nodes[i].x;
+		// 	this.nodes[i].y = dup.nodes[i].y;
+		// }
+
+		// console.log(forces);
+		return forces;
+		// return dup;
+	}
+*/
+
 	// number of nodes tried to wiggle (ignores those correct within epsilon range)
 	wiggle():number{
 
@@ -378,7 +452,7 @@ class CreasePattern extends PlanarGraph{
 			return crease.length();
 		});
 		// prevent too much deviation from length
-		
+
 		var nodesAttempted:number = 0;
 		// var dup = this.duplicate();
 		// var shuffleNodes = shuffle(this.nodes);
@@ -794,7 +868,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	// use D3 voronoi calculation and pass in as argument 'v'
-	voronoiSimple(v, interp){
+	voronoiGussets(v, interp){
 		if(interp === undefined){ interp = 0.5; }
 		// draw classical voronoi graph edges
 		v.edges.filter(function(el){ return el !== undefined; })
@@ -1095,31 +1169,31 @@ class CreasePattern extends PlanarGraph{
 
 
 	// // use D3 voronoi calculation and pass in as argument 'v'
-	// voronoiSimple(v, interp){
-	// 	if(interp === undefined){ interp = 0.5; }
-	// 	// protection against null data inside array
-	// 	var vEdges = v.edges.filter(function(el){ return el !== undefined; });
-	// 	for(var e = 0; e < vEdges.length; e++){
-	// 		var endpts = [ new XY(vEdges[e][0][0], vEdges[e][0][1]), 
-	// 		               new XY(vEdges[e][1][0], vEdges[e][1][1]) ];
-	// 		// traditional voronoi diagram lines
-	// 		this.newCrease(endpts[0].x, endpts[0].y, endpts[1].x, endpts[1].y).valley();
-	// 		// for each edge, find the left and right cell center nodes
-	// 		var sideNodes = [];
-	// 		if(vEdges[e].left !== undefined){sideNodes.push(new XY(vEdges[e].left[0],vEdges[e].left[1]));}
-	// 		if(vEdges[e].right !== undefined){sideNodes.push(new XY(vEdges[e].right[0],vEdges[e].right[1]));}
-	// 		var midpts = sideNodes.map(function(el){
-	// 			return [interpolate(endpts[0], el, interp), interpolate(endpts[1], el, interp)];
-	// 		});
-	// 		for(var m = 0; m < midpts.length; m++){
-	// 			// interpolate from the cell edge endpoints to the node
-	// 			this.newCrease(midpts[m][0].x, midpts[m][0].y, midpts[m][1].x, midpts[m][1].y).mountain();
-	// 			// connect smaller voronoi cells to the large voronoi cell endpoints
-	// 			this.newCrease(endpts[0].x, endpts[0].y, midpts[m][0].x, midpts[m][0].y).mountain();
-	// 			this.newCrease(endpts[1].x, endpts[1].y, midpts[m][1].x, midpts[m][1].y).mountain();
-	// 		}
-	// 	}
-	// }
+	voronoiSimple(v, interp){
+		if(interp === undefined){ interp = 0.5; }
+		// protection against null data inside array
+		var vEdges = v.edges.filter(function(el){ return el !== undefined; });
+		for(var e = 0; e < vEdges.length; e++){
+			var endpts = [ new XY(vEdges[e][0][0], vEdges[e][0][1]), 
+			               new XY(vEdges[e][1][0], vEdges[e][1][1]) ];
+			// traditional voronoi diagram lines
+			this.newCrease(endpts[0].x, endpts[0].y, endpts[1].x, endpts[1].y).valley();
+			// for each edge, find the left and right cell center nodes
+			var sideNodes = [];
+			if(vEdges[e].left !== undefined){sideNodes.push(new XY(vEdges[e].left[0],vEdges[e].left[1]));}
+			if(vEdges[e].right !== undefined){sideNodes.push(new XY(vEdges[e].right[0],vEdges[e].right[1]));}
+			var midpts = sideNodes.map(function(el){
+				return [interpolate(endpts[0], el, interp), interpolate(endpts[1], el, interp)];
+			});
+			for(var m = 0; m < midpts.length; m++){
+				// interpolate from the cell edge endpoints to the node
+				this.newCrease(midpts[m][0].x, midpts[m][0].y, midpts[m][1].x, midpts[m][1].y).mountain();
+				// connect smaller voronoi cells to the large voronoi cell endpoints
+				this.newCrease(endpts[0].x, endpts[0].y, midpts[m][0].x, midpts[m][0].y).mountain();
+				this.newCrease(endpts[1].x, endpts[1].y, midpts[m][1].x, midpts[m][1].y).mountain();
+			}
+		}
+	}
 
 	// use D3 voronoi calculation and pass in as argument 'v'
 	voronoi(v, interp){

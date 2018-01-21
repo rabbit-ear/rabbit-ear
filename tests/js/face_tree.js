@@ -3,7 +3,7 @@
 var face_tree_callback = undefined;
 
 var faceTree = new OrigamiPaper("canvas-face-tree");
-faceTree.zoomToFit(0.05);
+faceTree.setPadding(0.05);
 // faceTree.selectNearestEdge = true;
 // faceTree.edgeLayer.bringToFront();
 // faceTree.boundaryLayer.bringToFront();
@@ -17,7 +17,7 @@ faceTree.reset = function(){
 
 	console.log(this.cp.adjacentFaceTree(this.cp.faces[0]));
 
-	this.init();
+	this.draw();
 }
 faceTree.reset();
 

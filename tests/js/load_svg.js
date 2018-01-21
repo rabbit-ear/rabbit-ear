@@ -1,10 +1,10 @@
 
 var loadSVGSketch = new OrigamiPaper("canvas-load-svg");
-loadSVGSketch.zoomToFit(0.05);
+loadSVGSketch.setPadding(0.05);
 
 loadSVG("/tests/svg/crane.svg", function(e){ 
 	loadSVGSketch.cp = e;
-	loadSVGSketch.init();
+	loadSVGSketch.draw();
 });
 
 loadSVGSketch.selectNearestEdge = true;
@@ -12,7 +12,7 @@ loadSVGSketch.selectNearestEdge = true;
 loadSVGSketch.reset = function(){
 	paper = this.scope; 
 	loadSVGSketch.cp.clear();
-	loadSVGSketch.init();
+	loadSVGSketch.draw();
 }
 loadSVGSketch.reset();
 

@@ -9,21 +9,13 @@ edges:GraphEdge[]
 
 ---
 
-#### nodes
+#### nodes `nodes:GraphNode[]`
 
 * type: array of [`GraphNode`](GraphNode.md)
 
-```
-nodes:GraphNode[]
-```
-
-#### edges
+#### edges `edges:GraphEdge[]`
 
 * type: array of [`GraphEdge`](GraphEdge.md)
-
-```
-edges:GraphEdge[]
-```
 
 ## Methods
 
@@ -47,108 +39,56 @@ getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge
 
 ### 1. Add Components
 
-#### newNode
+#### newNode `newNode():GraphNode`
 
 *pointer to the newly created node*
 
 * returns: [`GraphNode`](GraphNode.md) 
 
-```
-newNode():GraphNode
-```
-
-#### newEdge
+#### newEdge `newEdge(node1:GraphNode, node2:GraphNode):GraphEdge`
 
 * returns: [`GraphEdge`](GraphEdge.md)
 
-```
-newEdge(node1:GraphNode, node2:GraphNode):GraphEdge 
-```
-
-#### addNode
+#### addNode `addNode(node:GraphNode):GraphNode`
 
 * returns: [`GraphNode`](GraphNode.md) a pointer to the newly added node
 
-```
-addNode(node:GraphNode):GraphNode
-```
-
-#### addEdge
+#### addEdge `addEdge(edge:GraphEdge):GraphEdge`
 
 * returns: [`GraphEdge`](GraphEdge.md) a pointer to the newly added edge
 
-```
-addEdge(edge:GraphEdge):GraphEdge
-```
-
 ### 2. Remove Components
 
-#### clear
+#### clear `clear()`
 
 *remove all nodes and edges*
 
-```
-clear()
-```
-
-#### removeNode
+#### removeNode `removeNode(node:GraphNode):boolean`
 
 * returns: `boolean` true if successful remove
 
-```
-removeNode(node:GraphNode):boolean
-```
-
-#### removeEdge
+#### removeEdge `removeEdge(edge:GraphEdge):boolean`
 
 * returns: `boolean` true if successful remove
 
-```
-removeEdge(edge:GraphEdge):boolean
-```
-
-#### removeEdgeBetween
+#### removeEdgeBetween `removeEdgeBetween(node1:GraphNode, node2:GraphNode):number`
 
 * returns: `boolean` true if successful remove
 
-```
-removeEdgeBetween(node1:GraphNode, node2:GraphNode):number
-```
-
-#### mergeNodes
+#### mergeNodes `mergeNodes(node1:GraphNode, node2:GraphNode):boolean`
 
 * returns: `boolean` true if successful merge
 
-```
-mergeNodes(node1:GraphNode, node2:GraphNode):boolean
-```
-
-#### cleanCircularEdges
+#### cleanCircularEdges `cleanCircularEdges():number`
 
 * returns: number of circular edges
 
-```
-cleanCircularEdges():number
-```
-
-#### cleanDuplicateEdges
+#### cleanDuplicateEdges `cleanDuplicateEdges():number`
 
 * returns: number of duplicate edges
 
-```
-cleanDuplicateEdges():number
-```
-
-#### clean
-
-```
-clean():object
-```
+#### clean `clean():object`
 
 ### 3. Query Components
 
-#### getEdgeConnectingNodes
-
-```
-getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge
-```
+#### getEdgeConnectingNodes `getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge`

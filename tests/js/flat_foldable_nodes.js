@@ -1,11 +1,11 @@
 var flat_foldable_nodes_callback;
 
 var ffSketch = new OrigamiPaper("canvas-flat-foldable-nodes");
-ffSketch.zoomToFit(0.05);
+ffSketch.setPadding(0.05);
 
 loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 	ffSketch.cp = e;
-	ffSketch.init();
+	ffSketch.draw();
 	ffSketch.nodeLayer.visible = true;
 	ffSketch.colorNodesFlatFoldable();
 	for(var i = 0; i < ffSketch.nodes.length; i++){ 
@@ -27,7 +27,7 @@ ffSketch.selectNearestEdge = true;
 ffSketch.reset = function(){
 	paper = this.scope; 
 	ffSketch.cp.clear();
-	ffSketch.init();
+	ffSketch.draw();
 	for(var i = 0; i < ffSketch.nodes.length; i++){ 
 		ffSketch.nodes[i].visible = true;
 	}

@@ -27,7 +27,7 @@ canvas[resize] {
 
 var cp = new CreasePattern();
 var project = new OrigamiPaper("canvas", cp);
-project.zoomToFit(0.05);
+project.setPadding(0.05);
 
 project.onFrame = function(event) { }
 project.onResize = function(event) { }

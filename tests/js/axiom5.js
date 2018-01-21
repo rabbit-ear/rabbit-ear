@@ -1,7 +1,7 @@
 var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
 
 var axiom5 = new OrigamiPaper("canvas-axiom-5");
-axiom5.zoomToFit(0.05);
+axiom5.setPadding(0.05);
 
 axiom5.selectedNode = undefined;
 axiom5.decorationLayer = new axiom5.scope.Layer();
@@ -22,7 +22,7 @@ axiom5.reset = function(){
 	var edge = axiom5.cp.creaseThroughPoints(axiom5.marks[0].position, axiom5.marks[1].position).mark();
 	var newCreases = axiom5.cp.creasePointToLine(axiom5.marks[2].position, axiom5.marks[3].position, edge);
 	newCreases.forEach(function(el){ el.valley(); });
-	axiom5.init();
+	axiom5.draw();
 	if(newCreases.length >= 2){
 		axiom5.edges[ newCreases[1].index ].strokeColor = { hue:20, saturation:0.6, brightness:1 };
 	}

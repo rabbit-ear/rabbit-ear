@@ -1,6 +1,6 @@
 
 var chopRays2 = new OrigamiPaper("canvas-chop-angle-ray-2");
-chopRays2.zoomToFit(0.05);
+chopRays2.setPadding(0.05);
 
 chopRays2.selectNearestEdge = true;
 
@@ -26,7 +26,7 @@ chopRays2.reset = function(){
 		                             new XY(Math.sin(-Math.PI*0.25+Math.PI*pct), -Math.cos(-Math.PI*0.25+Math.PI*pct)));
 	}
 	this.cp.fragment();
-	this.init();
+	this.draw();
 }
 chopRays2.reset();
 

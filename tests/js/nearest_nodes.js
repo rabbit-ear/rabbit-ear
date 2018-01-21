@@ -1,6 +1,6 @@
 
 var nearNodeSketch = new OrigamiPaper("canvas-nearest-nodes", new PlanarGraph());
-nearNodeSketch.zoomToFit(0.0);
+nearNodeSketch.setPadding(0.0);
 
 nearNodeSketch.edgeLayer = new paper.Layer();
 nearNodeSketch.edgeLayer.activate();
@@ -14,7 +14,7 @@ nearNodeSketch.reset = function(){
 	for(var i = 0; i < NUM_NODES; i++){
 		nearNodeSketch.cp.newPlanarNode(Math.random()*aspect - (Math.random()*aspect*0.5), Math.random());
 	}
-	nearNodeSketch.init();
+	nearNodeSketch.draw();
 	nearNodeSketch.nodeLayer.visible = true;
 	for(var i = 0; i < nearNodeSketch.nodeLayer.children.length; i++){
 		nearNodeSketch.nodeLayer.children[i].radius = 0.004;

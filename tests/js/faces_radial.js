@@ -1,7 +1,7 @@
 // generate faces
 
 var radialFaces = new OrigamiPaper("canvas-faces-radial");
-radialFaces.zoomToFit(0.05);
+radialFaces.setPadding(0.05);
 
 radialFaces.selectNearestNode = true;
 radialFaces.selectNearestEdge = true;
@@ -17,7 +17,7 @@ radialFaces.reset = function(){
 	radialFaces.cp.clean();
 	radialFaces.cp.fragment();
 	radialFaces.cp.generateFaces();
-	radialFaces.init();
+	radialFaces.draw();
 }
 radialFaces.reset();
 

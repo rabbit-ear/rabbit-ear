@@ -1,6 +1,6 @@
 
 var jointTri = new OrigamiPaper("canvas-joint-triangle-animated");
-jointTri.zoomToFit(0.05);
+jointTri.setPadding(0.05);
 // jointTri.selectNearestEdge = true;
 
 var AMP = 0.1;
@@ -114,7 +114,7 @@ jointTri.onFrame = function(event) {
 	// 	}
 	// }
 
-	jointTri.init();
+	jointTri.draw();
 }
 jointTri.onResize = function(event) { }
 jointTri.onMouseDown = function(event){ 

@@ -1,7 +1,7 @@
 var singleFaceCallback;
 
 var singleFace = new OrigamiPaper("canvas-face-single");
-// singleFace.zoomToFit(0.05);
+// singleFace.setPadding(0.05);
 
 singleFace.reset = function(){
 	paper = this.scope; 
@@ -24,7 +24,7 @@ singleFace.reset = function(){
 	}
 	singleFace.cp.clean();
 	var faces = singleFace.cp.generateFaces();
-	singleFace.init();
+	singleFace.draw();
 	singleFace.boundaryLayer.visible = false;
 	if(singleFaceCallback != undefined){ singleFaceCallback(faces); }
 }

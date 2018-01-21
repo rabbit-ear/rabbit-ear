@@ -117,7 +117,7 @@ canvas[resize]{
 
 <script>
 var project1 = new OrigamiPaper("canvas-1");
-var project2 = new OrigamiFold("canvas-2");
+var foldedState = new OrigamiFold("canvas-2");
 
 var inputFile = undefined;
 // var valid_epsilon = 0.00001;
@@ -137,13 +137,13 @@ function fileDidLoad(svg){
 
 		// project1 = new OrigamiPaper("canvas-1", cp.duplicate());
 		project1.cp = new CreasePattern();
-		project1.init();
+		project1.draw();
 		
 		project1.cp = cp.duplicate();
 		project1.style.nodes.visible = true;
 		project1.style.nodes.radius = 0.015 * project1.cpMin;
-		project1.init();
-		project1.zoomToFit(0.05);
+		project1.draw();
+		project1.setPadding(0.05);
 		project1.colorNodesFlatFoldable = function(){
 			var ffTestPassed = true;
 			for(var i = 0; i < project1.cp.nodes.length; i++){
@@ -162,10 +162,15 @@ function fileDidLoad(svg){
 		}
 		project1.colorNodesFlatFoldable();
 
-		project2 = new OrigamiFold("canvas-2", cp.duplicate());
-		project2.epsilon = EPSILON;
-		project2.init();
-		project2.zoomToFit(0.05);
+		foldedState.cp = cp.duplicate();
+		foldedState.draw();
+		// foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+		foldedState.update();
+
+		// project2 = new OrigamiFold("canvas-2", cp.duplicate());
+		// project2.epsilon = EPSILON;
+		// project2.draw();
+		// project2.buildViewMatrix(0.05);
 
 		showAndScrollResults();
 	}, valid_epsilon);

@@ -20,11 +20,7 @@ canvas[resize]{
 	<canvas id="canvas" resize></canvas>
 	<input type="file" id="files" style="display:none;">
 	<div style="text-align:center;">
-		<div class="btn-group" data-toggle="buttons">
-			<label class="btn btn-lg btn-outline-secondary active">
-				<input type="checkbox" id="show-creases-button" checked autocomplete="off"> Show Creases
-			</label>
-		</div>
+		<a href="#" class="btn btn-lg btn-secondary" id="crease-button">Crease</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
 	</div>
 </body>
@@ -43,12 +39,20 @@ canvas[resize]{
 
 <script>
 var showCreases = true;
-$('#show-creases-button').change(function() {
-	var checked = $(this).prop('checked');
-	showCreases = checked;
-	console.log($(this).prop('checked'));
-	project.makeVoronoi(touchNodes, 0.5, !showCreases);
-})
+document.getElementById("crease-button").addEventListener("click", function(e){
+	e.preventDefault();
+	// var checked = $(this).prop('checked');
+	// showCreases = checked;
+	// console.log($(this).prop('checked'));
+	// project.makeVoronoi(touchNodes, 0.5, !showCreases);
+
+	// var scale = 600 / project.cpMin;
+	// var svgBlob = project.cp.svg(scale);
+	// download(svgBlob, "creasepattern.svg");
+	var v = project.makeVoronoi(touchNodes, 0.5, true);
+
+});
+
 </script>
 
 <!-- download svg blob -->
@@ -72,11 +76,9 @@ function download(text, filename){
 <script type="text/javascript">
 var voronoiAlgorithm; // global D3 algorithm implementation
 
-
-
 var project = new OrigamiPaper("canvas");
 project.updateWeights(0.005, 0.0025);
-project.zoomToFit();
+project.setPadding();
 project.updateWeights(0.005, 0.0025);
 
 var touchNodes = new PlanarGraph();
@@ -86,14 +88,14 @@ var touchNodesLayer
 var dragOn = false;
 var selectedNode = undefined;
 
-project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
+project.makeVoronoi = function(input, interpolation, gussets){
 	var nodes = input.nodes.map(function(el){return el.values();});
 	var v = voronoiAlgorithm( nodes );
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
 	this.cp.voronoiSimple(v, interpolation);
-	if(hideCreaseMarks === true){
+	if(gussets === false){
 		for(var i = this.cp.edges.length-1; i >= 0; i--){
 			// if(this.cp.edges[i].orientation !== CreaseDirection.valley){
 			if(this.cp.edges[i].orientation === CreaseDirection.mark || 
@@ -103,7 +105,7 @@ project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
 		}
 	}
 	this.updateWeights(0.005, 0.0025);
-	this.init();
+	this.draw();
 	touchNodesLayer.activate();
 	touchNodesLayer.removeChildren();
 	touchNodesCircles = [];
@@ -130,7 +132,7 @@ project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
 project.reset = function(){
 	this.cp.clear();
 	this.cp.rectangle(1.3,1);
-	this.init();
+	this.draw();
 	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
 
 	if(touchNodesLayer !== undefined){ touchNodesLayer.removeChildren(); }
@@ -179,8 +181,7 @@ project.reset = function(){
 	// 		touchNodes.newPlanarNode(x, y);
 	// 	}
 	// }
-	var v = this.makeVoronoi(touchNodes, 0.5, !showCreases);
-	console.log(v);
+	var v = this.makeVoronoi(touchNodes, 0.5, false);
 }
 project.reset();
 
@@ -199,11 +200,11 @@ project.onMouseDown = function(event){
 	if(selectedNode === undefined){
 		if(this.cp.pointInside(event.point)){ 
 			touchNodes.newPlanarNode(event.point.x, event.point.y); 
-			v = this.makeVoronoi(touchNodes, 0.5, !showCreases);
+			v = this.makeVoronoi(touchNodes, 0.5, false);
 			selectedNode = undefined;
 			for(var i = 0; i < touchNodes.nodes.length; i++){
 				if(touchNodesCircles[i] !== undefined){
-					var d = touchNodes.nodes[i].distance(event.point);
+					var d = touchNodes.nodes[i].distanceTo(event.point);
 					if(d < 0.01){ touchNodesCircles[i].radius = 0.005; selectedNode = i;}
 					else        { touchNodesCircles[i].radius = 0.0025; }
 				}
@@ -211,10 +212,9 @@ project.onMouseDown = function(event){
 			dragOn = true;
 		}
 	} else{
-		v = this.makeVoronoi(touchNodes, 0.5, !showCreases);
+		v = this.makeVoronoi(touchNodes, 0.5, false);
 		dragOn = true;
 	}
-	console.log(v); 
 }
 project.onMouseUp = function(event){ 
 	dragOn = false;
@@ -233,13 +233,12 @@ project.onMouseMove = function(event) {
 			dragOn = false;
 			touchNodes.nodes.splice(selectedNode,1);
 		}
-		var v = this.makeVoronoi(touchNodes, 0.5, !showCreases);
-		console.log(v); 
+		var v = this.makeVoronoi(touchNodes, 0.5, false);
 	} else{
 		selectedNode = undefined;
 		for(var i = 0; i < touchNodes.nodes.length; i++){
 			if(touchNodesCircles[i] !== undefined){
-				var d = touchNodes.nodes[i].distance(event.point);
+				var d = touchNodes.nodes[i].distanceTo(event.point);
 				if(d < 0.01){ touchNodesCircles[i].radius = 0.005; selectedNode = i;}
 				else        { touchNodesCircles[i].radius = 0.0025; }
 			}

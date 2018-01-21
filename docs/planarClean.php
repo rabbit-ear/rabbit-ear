@@ -133,13 +133,13 @@
 	
 var crane1CP = new OrigamiPaper("canvas-crane-1", cp);
 crane1CP.loadUnclean("/tests/svg/crane-errors.svg", function(){ 
-	crane1CP.zoomToFit(0.05);
+	crane1CP.setPadding(0.05);
 	crane1CP.selectNearestEdge = true;
 });
 
 var crane2CP = new OrigamiPaper("canvas-crane-2", cp);
 crane2CP.load("/tests/svg/crane-errors.svg", function(){ 
-	crane2CP.zoomToFit(0.05);
+	crane2CP.setPadding(0.05);
 	crane2CP.selectNearestEdge = true;
 });
 

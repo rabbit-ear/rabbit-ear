@@ -47,7 +47,7 @@ function mouse_node_move(){
 				nodeCircle.position.y = nearestNode.y;
 			}
 		}
-		paperCP.init();
+		paperCP.draw();
 	}
 	scope.view.onMouseDown = function(event){
 		paper = scope;
@@ -63,7 +63,7 @@ function mouse_node_move(){
 			nodeCircle.position.y = movingNode.y;
 			movingNode = undefined;
 			movingNodeOriginalLocation = undefined;
-			paperCP.init();
+			paperCP.draw();
 		}
 	}
 } mouse_node_move();

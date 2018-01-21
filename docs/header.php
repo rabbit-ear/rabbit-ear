@@ -24,14 +24,18 @@
 		<li class="dropdown">
 			<a href="javascript:void(0)" class="link-fa dropbtn"><i class="fa fa-pencil-square-o fa-2x left-pad"></i></a>
 			<div class="dropdown-content">
-<!-- 			<a href="../editor/">EDITOR</a> -->
+			<a href="../tools/validator/index.html">Crease Pattern Validator</a>
+			<a href="../tools/editor/index.html">Crease Pattern Editor</a>
+			<a href="../tools/simplifier/index.html">Path Simplify</a>
+			<a href="../mine/reference-finder.html">Reference Finder</a>
+			<a href="../mine/wiggle.html">Wiggle</a>
 			</div>
 		</li>
 		<li class="dropdown">
 			<a href="/docs/" class="dropbtn">HELLO</a>
 			<div class="dropdown-content">
-			<a href="https://github.com/robbykraft/Origami">DOWNLOAD</a>
-			<a href="types.php">LIBRARY OF TYPES</a>
+			<a href="https://github.com/robbykraft/Origami"><i class="fa fa-github "></i>&nbsp;&nbsp;CODE</a>
+			<a href="types.php">LIBRARY</a>
 			</div>
 		</li>
 		<li class="dropdown">
@@ -40,11 +44,11 @@
 		<li class="dropdown">
 			<a href="planarGraph.php" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
-			<a href="planarClean.php">b. CLEAN</a>
-			<a href="face.php">c. FACE</a>
-			<a href="reflection.php">d. REFLECTION</a>
-			<a href="neighbors.php">e. NEIGHBOR</a>
-			<a href="epsilon.php">f. EPSILON</a>
+			<a href="planarClean.php">B. CLEAN</a>
+			<a href="face.php">C. FACE</a>
+			<a href="reflection.php">D. REFLECTION</a>
+			<a href="neighbors.php">E. NEIGHBOR</a>
+			<a href="epsilon.php">F. EPSILON</a>
 			</div>
 		</li>
 		<li class="dropdown">

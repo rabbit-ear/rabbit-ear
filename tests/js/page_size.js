@@ -1,11 +1,11 @@
 
 var project = new OrigamiPaper("canvas");
-// project.zoomToFit(0.05);
+// project.setPadding(0.05);
 
 project.reset = function(){
 	paper = this.scope; 
 	// project.cp.clear();
-	// project.init();
+	// project.draw();
 }
 project.reset();
 

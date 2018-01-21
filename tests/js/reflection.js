@@ -3,7 +3,7 @@ var reflexMatrixCallback = undefined;
 var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
 
 var reflex = new OrigamiPaper("canvas-reflection");
-// reflex.zoomToFit(0.0);
+// reflex.setPadding(0.0);
 
 reflex.selectedNode = undefined;
 reflex.decorationLayer = new reflex.scope.Layer();
@@ -52,7 +52,7 @@ reflex.computeReflection = function(){
 	if(reflection1 !== undefined){ reflection1.valley(); }
 	if(reflection2 !== undefined){ reflection2.valley(); }
 	if(reflection3 !== undefined){ reflection3.valley(); }
-	this.init();
+	this.draw();
 	for(var i = this.edges.length-3; i < this.edges.length; i++){
 		this.edges[i].strokeColor = this.style.mountain.strokeColor;
 	}
@@ -74,7 +74,7 @@ reflex.reset = function(){
 	if(this.testLine2 !== undefined){ this.testLine2.mountain(); }
 	if(this.testLine3 !== undefined){ this.testLine3.mountain(); }
 	this.computeReflection();
-	// this.init();
+	// this.draw();
 }
 reflex.reset();
 

@@ -1,7 +1,7 @@
 var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
 
 var axiom7 = new OrigamiPaper("canvas-axiom-7");
-axiom7.zoomToFit(0.05);
+axiom7.setPadding(0.05);
 
 axiom7.selectedNode = undefined;
 axiom7.decorationLayer = new axiom7.scope.Layer();
@@ -24,7 +24,7 @@ axiom7.reset = function(){
 	var crease1 = axiom7.cp.creaseThroughPoints(axiom7.marks[0].position, axiom7.marks[1].position).mark();
 	var crease2 = axiom7.cp.creaseThroughPoints(axiom7.marks[2].position, axiom7.marks[3].position).mark();
 	axiom7.cp.creasePerpendicularPointOntoLine(axiom7.marks[4].position, crease1, crease2).valley();
-	axiom7.init();
+	axiom7.draw();
 }
 axiom7.reset();
 

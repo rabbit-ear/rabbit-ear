@@ -1,6 +1,6 @@
 
 var faceAnim = new OrigamiPaper("canvas-face-anim", new PlanarGraph());
-// faceAnim.zoomToFit(0.05);
+// faceAnim.setPadding(0.05);
 
 faceAnim.reset = function(){
 	paper = this.scope; 
@@ -25,7 +25,7 @@ faceAnim.reset = function(){
 		                     this.positions[i+1].x, this.positions[i+1].y);
 	}
 	this.cp = this.g.duplicate();
-	this.init();
+	this.draw();
 	this.style.mark.strokeColor = {gray:0.0};
 	// this.style.mark.strokeWidth = 0.002;
 }
@@ -40,7 +40,7 @@ faceAnim.onFrame = function(event) {
 	}
 	this.cp.clean();
 	this.cp.generateFaces();
-	this.init();
+	this.draw();
 }
 faceAnim.onResize = function(event) { }
 faceAnim.onMouseDown = function(event){ 

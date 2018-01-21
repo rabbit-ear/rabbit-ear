@@ -76,7 +76,7 @@ var voronoiAlgorithm; // global D3 algorithm implementation
 
 var project = new OrigamiPaper("canvas");
 project.updateWeights(0.005, 0.0025);
-project.zoomToFit();
+project.setPadding();
 project.updateWeights(0.005, 0.0025);
 
 var touchNodes = new PlanarGraph();
@@ -92,7 +92,7 @@ project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.voronoiSimple(v, interpolation);
+	this.cp.voronoi(v, interpolation);
 	if(hideCreaseMarks === true){
 		for(var i = this.cp.edges.length-1; i >= 0; i--){
 			// if(this.cp.edges[i].orientation !== CreaseDirection.valley){
@@ -103,7 +103,7 @@ project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
 		}
 	}
 	this.updateWeights(0.005, 0.0025);
-	this.init();
+	this.draw();
 	touchNodesLayer.activate();
 	touchNodesLayer.removeChildren();
 	touchNodesCircles = [];
@@ -126,7 +126,7 @@ project.reset = function(){
 		new XY(1, 0),
 		new XY(0.5, 0.866),
 		new XY(-0.5, 0.866)]);
-	this.init();
+	this.draw();
 	
 	voronoiAlgorithm = d3.voronoi().extent( [[-1.5,-.866-.866*0.5],[2,1.732050807568877]] );
 	// voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );

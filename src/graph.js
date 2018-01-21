@@ -15,7 +15,14 @@
 //  "degree": the degree of a node is how many edges are incident to it
 //  "isolated": a node is isolated if it is connected to 0 edges, degree 0
 //  "leaf": a node is a leaf if it is connected to only 1 edge, degree 1
+//  "pendant": an edge incident with a leaf node
 "use strict";
+function uniqueObjects(nodes) {
+    var objects = [];
+    return nodes.filter(function (el) {
+        return objects.indexOf(el) >= 0 ? false : objects.push(el);
+    });
+}
 /** a change log report for when a graph is cleaned */
 var GraphCleanReport = (function () {
     function GraphCleanReport() {
@@ -45,26 +52,52 @@ var GraphNode = (function () {
      * @returns {GraphNode[]} array of adjacent nodes
      */
     GraphNode.prototype.adjacentNodes = function () {
-        var first = this.graph.edges
-            .filter(function (el) { return el.nodes[0] === this; }, this)
-            .map(function (el) { return el.nodes[1]; }, this);
-        var second = this.graph.edges
-            .filter(function (el) { return el.nodes[1] === this; }, this)
-            .map(function (el) { return el.nodes[0]; }, this);
-        return first.concat(second);
+        var checked = []; // the last step, to remove duplicate nodes
+        return this.graph.edges.filter(function (el) {
+            return el.nodes[0] === this || el.nodes[1] === this;
+        }, this)
+            .filter(function (el) { return !el.isCircular(); })
+            .map(function (el) {
+            if (el.nodes[0] === this) {
+                return el.nodes[1];
+            }
+            return el.nodes[0];
+        }, this)
+            .filter(function (el) {
+            return checked.indexOf(el) >= 0 ? false : checked.push(el);
+        }, this);
+        // iterate over adjacent edges, return the other node
+        // var first:GraphNode[] = this.graph.edges
+        // 	.filter(function(el){ return el.nodes[0] === this}, this)
+        // 	.map(function(el){ return el.nodes[1] }, this);
+        // var second:GraphNode[] = this.graph.edges
+        // 	.filter(function(el){ return el.nodes[1] === this}, this)
+        // 	.map(function(el){ return el.nodes[0] }, this);
+        // return uniqueObjects(first.concat(second));
     };
     /** Test if a node is connected to another node by an edge
      * @returns {boolean} true or false, adjacent or not
      */
     GraphNode.prototype.isAdjacentToNode = function (node) {
-        if (this.graph.getEdgeConnectingNodes(this, node) === undefined)
-            return false;
-        return true;
+        return this.graph.getEdgeConnectingNodes(this, node) !== undefined;
     };
-    /** The degree of a node is the number of adjacent edges
+    /** The degree of a node is the number of adjacent edges, circular edges are counted twice
      * @returns {number} number of adjacent edges
      */
-    GraphNode.prototype.degree = function () { return this.adjacentEdges().length; };
+    GraphNode.prototype.degree = function () {
+        return this.graph.edges.map(function (el) {
+            var sum = 0;
+            if (el.nodes[0] === this) {
+                sum += 1;
+            }
+            if (el.nodes[1] === this) {
+                sum += 1;
+            }
+            return sum;
+        }, this).reduce(function (previous, current) { return previous + current; });
+        // this implementation is insufficient because it doesn't count circular edges twice
+        // return this.adjacentEdges().length;
+    };
     return GraphNode;
 }());
 /** Edges are 1 of the 2 fundamental components in a graph. 1 edge connect 2 nodes. */
@@ -99,6 +132,10 @@ var GraphEdge = (function () {
         return ((this.nodes[0] === edge.nodes[0]) || (this.nodes[1] === edge.nodes[1]) ||
             (this.nodes[0] === edge.nodes[1]) || (this.nodes[1] === edge.nodes[0]));
     };
+    /** Test if an edge points both at both ends to the same node
+     * @returns {boolean} true or false, circular or not
+     */
+    GraphEdge.prototype.isCircular = function () { return this.nodes[0] === this.nodes[1]; };
     /** Test if an edge contains the same nodes as another edge
      * @returns {boolean} true or false, similar or not
      */
@@ -225,6 +262,7 @@ var Graph = (function () {
             this.nodes[i].graph = this;
             this.nodes[i].index = i;
         }
+        // calling clean() is not required
         return this.nodes.length - len;
     };
     /** Add already-initialized edge objects from an array to the graph, cleaning out any duplicate and circular edges
@@ -240,6 +278,7 @@ var Graph = (function () {
         for (var i = len; i < this.edges.length; i++) {
             this.edges[i].graph = this;
         }
+        // clean() required. there are potentially duplicate or circular edges
         this.cleanGraph();
         return this.edges.length - len;
     };
@@ -313,10 +352,12 @@ var Graph = (function () {
             return undefined;
         }
         this.edges = this.edges.map(function (el) {
-            if (el.nodes[0] === node2)
+            if (el.nodes[0] === node2) {
                 el.nodes[0] = node1;
-            if (el.nodes[1] === node2)
+            }
+            if (el.nodes[1] === node2) {
                 el.nodes[1] = node1;
+            }
             return el;
         });
         this.nodes = this.nodes.filter(function (el) { return el !== node2; });
@@ -332,7 +373,8 @@ var Graph = (function () {
      * @returns {GraphCleanReport} the number of nodes removed
      */
     Graph.prototype.removeIsolatedNodes = function () {
-        this.nodeArrayDidChange(); // this function depends on .index values, run this to be safe
+        // this function relies on .index values. it would be nice if it didn't
+        this.nodeArrayDidChange();
         var nodeDegree = [];
         for (var i = 0; i < this.nodes.length; i++) {
             nodeDegree[i] = false;

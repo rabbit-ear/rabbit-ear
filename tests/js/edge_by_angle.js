@@ -1,6 +1,6 @@
 
 var edgeAngle = new OrigamiPaper("canvas-edge-by-angle");
-edgeAngle.zoomToFit(0.05);
+edgeAngle.setPadding(0.05);
 
 edgeAngle.selectNearestEdge = true;
 
@@ -12,7 +12,7 @@ edgeAngle.reset = function(){
 	for(var i = 0; i < num; i++){
 		edgeAngle.cp.newPlanarEdgeRadiallyFromNode(centerNode, Math.PI*2/num*i, 0.333);
 	}
-	edgeAngle.init();
+	edgeAngle.draw();
 }
 edgeAngle.reset();
 

@@ -1,6 +1,6 @@
 
 var noCross = new OrigamiPaper("canvas-no-crossing");
-noCross.zoomToFit(0.05);
+noCross.setPadding(0.05);
 
 var resetCP;
 var refCP;
@@ -11,7 +11,7 @@ noCross.load("/tests/svg/water_strider_marks.svg", function(e){
 	noCross.load("/tests/svg/water_strider_lines.svg", function(e){
 		noCross.cp.setMinRectBoundary();
 		refCP = noCross.cp.duplicate();
-		noCross.init();
+		noCross.draw();
 	});
 });
 
@@ -34,9 +34,9 @@ noCross.onMouseMove = function(event) {
 		var creases = this.cp.creaseRayRepeat(new XY(event.point.x, event.point.y), new XY(0,-1));
 		creases.forEach(function(el){ if(el !== undefined) el.valley(); })
 		// this.cp.clean();
-		this.init();
+		this.draw();
 	} else{
 		this.cp = refCP
-		this.init();
+		this.draw();
 	}
 }

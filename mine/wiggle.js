@@ -33,7 +33,7 @@ project.colorNodesFlatFoldable = function(){
 
 project.reset = function(){
 	project.cp.clear();
-	project.init();
+	project.draw();
 }
 project.reset();
 

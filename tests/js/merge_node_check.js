@@ -1,11 +1,11 @@
 var mergeNodeCheck = new OrigamiPaper("canvas-merge-node-check");
-mergeNodeCheck.zoomToFit(0.05);
+mergeNodeCheck.setPadding(0.05);
 
 mergeNodeCheck.reset = function(){
 	paper = this.scope; 
 	loadSVG("/tests/svg/sea-turtle-base.svg", function(e){ 
 		mergeNodeCheck.cp = e;
-		mergeNodeCheck.init();
+		mergeNodeCheck.draw();
 		mergeNodeCheck.nodeLayer.visible = true;
 		mergeNodeCheck.nodeLayer.bringToFront();
 		for(var i = 0; i < mergeNodeCheck.nodeLayer.children.length; i++){

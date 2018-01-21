@@ -48,8 +48,8 @@
 </section>
 
 <script>
-	new OrigamiPaper("canvas-1", new CreasePattern()).zoomToFit(0.05);
-	new OrigamiPaper("canvas-2", new CreasePattern().rectangle(1.618,1)).zoomToFit(0.05);
+	new OrigamiPaper("canvas-1", new CreasePattern()).setPadding(0.05);
+	new OrigamiPaper("canvas-2", new CreasePattern().rectangle(1.618,1)).setPadding(0.05);
 </script>
 
 

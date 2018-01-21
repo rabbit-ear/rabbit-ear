@@ -26,7 +26,7 @@ canvas[resize] {
 <script>
 
 var project = new OrigamiPaper("canvas");
-// project.zoomToFit(0.05);
+// project.setPadding(0.05);
 
 project.reset = function(){
 	var interiorAngles;
@@ -48,7 +48,7 @@ project.reset = function(){
 	for(var i = 0; i < interiorAngles.length; i++){
 		project.cp.creaseAngleBisector(interiorAngles[i].edges[0], interiorAngles[i].edges[1]).valley();
 	}
-	project.init();
+	project.draw();
 }
 project.reset();
 

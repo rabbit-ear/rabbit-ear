@@ -59,7 +59,7 @@
 		// console.log(cp);
 		// new OrigamiPaper("canvas-load-svg", cp);
 		// loadSVGSketch.cp = cp;
-		// loadSVGSketch.init();
+		// loadSVGSketch.draw();
 	});
 
 </script>

@@ -53,7 +53,9 @@ document.body.innerHTML += "<hr>";
 document.body.innerHTML += "<h1>Adjacent Nodes</h1>";
 
 // ADJACENT NODES
+console.time("adjacent");
 var adjacentNodes = graph.nodes[0].adjacentNodes();
+console.timeEnd("adjacent");
 document.body.innerHTML += "<h3>" + adjacentNodes.length + " nodes are adjacent to the first node, node 0</h3>";
 var adjacentDetails = "";
 for(var i = 0; i < adjacentNodes.length; i++){

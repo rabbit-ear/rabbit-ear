@@ -98,7 +98,7 @@ function foldCP(){
 	foldedState.cp = project.cp.duplicate();
 	foldedState.cp.clean();
 	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-	foldedState.init();
+	foldedState.draw();
 }
 </script>
 
@@ -168,12 +168,12 @@ document.getElementById("show-possible-creases-button").addEventListener("click"
 });
 document.getElementById("fragment-button").addEventListener("click", function(e){
 	project.cp.clean();
-	project.init();
+	project.draw();
 });
 document.getElementById("new-button").addEventListener("click", function(e){
 	project.cp.clear();
 	project.reset();
-	project.init();
+	project.draw();
 });
 $("#modal-tools").draggable({ handle: ".modal-header" });
 $("#modal-file").draggable({ handle: ".modal-header" });
@@ -267,7 +267,7 @@ function fileDidLoad(blob, mimeType){
 					if(project.cp.edges[i].orientation !== CreaseDirection.border)
 						project.cp.edges[i].valley(); 
 				}
-				project.init();
+				project.draw();
 				project.recalculateFolds();
 			});
 		break;

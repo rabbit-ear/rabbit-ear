@@ -3,7 +3,7 @@
 var edge_adjacent_faces_callback = undefined;
 
 var edgeFaces = new OrigamiPaper("canvas-edge-adjacent-faces");
-edgeFaces.zoomToFit(0.05);
+edgeFaces.setPadding(0.05);
 edgeFaces.selectNearestEdge = true;
 edgeFaces.edgeLayer.bringToFront();
 edgeFaces.boundaryLayer.bringToFront();
@@ -13,7 +13,7 @@ edgeFaces.reset = function(){
 	this.cp.clear();
 	this.cp.birdBase();
 	this.cp.clean();
-	this.init();
+	this.draw();
 }
 edgeFaces.reset();
 

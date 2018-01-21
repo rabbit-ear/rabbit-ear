@@ -47,7 +47,7 @@ var OrigamiPaper = (function () {
 		this.cpMin = 1.0; // thickness of lines based on this
 		this.style = this.defaultStyleTemplate();
 		this.padding = 0.0075; // padding inside the canvas
-		this.zoomToFit();
+		this.buildViewMatrix();
 
 		// the order of the following sets the z index order too
 		this.backgroundLayer = new this.scope.Layer();
@@ -99,19 +99,19 @@ var OrigamiPaper = (function () {
 		}
 		this.scope.view.onResize = function(event){
 			paper = that.scope; 
-			that.zoomToFit(); 
+			that.buildViewMatrix(); 
 			that.onResize(event); 
 		}
-		this.init();
+		this.draw();
 	}
 	OrigamiPaper.prototype.setCreasePattern = function(creasePattern){
 		this.cp = creasePattern;
 		// var width = this.cp.width();
 		// var height = this.cp.height();
-		this.init();
+		this.draw();
 	}
 
-	OrigamiPaper.prototype.init = function(){
+	OrigamiPaper.prototype.draw = function(){
 		if(this.cp === undefined){ return; }
 
 		// on-screen drawn elements
@@ -166,7 +166,7 @@ var OrigamiPaper = (function () {
 			face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
 			this.faces.push( face );
 		}
-		this.zoomToFit();
+		this.buildViewMatrix();
 	}
 
 	OrigamiPaper.prototype.load = function(svg, callback, epsilon){
@@ -199,9 +199,12 @@ var OrigamiPaper = (function () {
 	};
 
 	OrigamiPaper.prototype.updateStyles = function () {
-		for(var i = 0; i < this.nodes.length; i++){ Object.assign(this.nodes[i], this.style.nodes); }
-		for(var i = 0; i < this.cp.edges.length; i++){ Object.assign(this.edges[i], this.styleForCrease(this.cp.edges[i].orientation)); }
-		for(var i = 0; i < this.cp.faces.length; i++){ Object.assign(this.faces[i], this.style.face); }
+		for(var i = 0; i < this.nodes.length; i++){ 
+			Object.assign(this.nodes[i], this.style.nodes); }
+		for(var i = 0; i < this.cp.edges.length; i++){ 
+			Object.assign(this.edges[i], this.styleForCrease(this.cp.edges[i].orientation)); }
+		for(var i = 0; i < this.cp.faces.length; i++){ 
+			Object.assign(this.faces[i], this.style.face); }
 
 		if(this.boundaryLayer !== undefined){
 			for(var i = 0; i < this.boundaryLayer.children.length; i++){
@@ -229,7 +232,10 @@ var OrigamiPaper = (function () {
 		this.updateStyles();
 	};
 
-	OrigamiPaper.prototype.zoomToFit = function(padding){
+	OrigamiPaper.prototype.setPadding = function(padding){
+		this.buildViewMatrix(padding);
+	}
+	OrigamiPaper.prototype.buildViewMatrix = function(padding){
 		paper = this.scope;
 		if(padding !== undefined && !isNaN(padding)){ this.padding = padding; }
 		var paperWindowScale = 1.0 - this.padding*2;
@@ -269,6 +275,9 @@ var OrigamiPaper = (function () {
 	// USER INTERACTION
 	///////////////////////////////////////////////////
 
+	// OrigamiPaper.prototype.setup = function(event){ }
+	// OrigamiPaper.prototype.update = function(event){ }
+	// OrigamiPaper.prototype.draw = function(event){ }
 	OrigamiPaper.prototype.onResize = function(event){ }
 	OrigamiPaper.prototype.onFrame = function(event){ }
 	OrigamiPaper.prototype.onMouseDown = function(event){ }
@@ -412,7 +421,7 @@ var OrigamiFold = (function(){
 		this.scope = new paper.PaperScope();
 		this.scope.setup(canvas);
 		this.style = { face:{ fillColor:{ gray:1.0, alpha:0.1 } } };
-		this.zoomToFit();
+		this.buildViewMatrix();
 
 		this.customZoom = 0.6;
 
@@ -440,17 +449,17 @@ var OrigamiFold = (function(){
 		}
 		this.scope.view.onResize = function(event){
 			paper = that.scope; 
-			that.zoomToFit(); 
+			that.buildViewMatrix(); 
 			that.onResize(event); 
 		}
-		this.init();
+		this.draw();
 	}
-	OrigamiFold.prototype.init = function(){
+	OrigamiFold.prototype.draw = function(){
 		this.foldedLayer.removeChildren();
 		if(this.cp === undefined){ return; }
 		this.cp.generateFaces();
 		this.fold();
-		this.zoomToFit();
+		this.buildViewMatrix();
 	}
 
 	OrigamiFold.prototype.update = function () {
@@ -468,7 +477,7 @@ var OrigamiFold = (function(){
 			if(epsilon === undefined){ epsilon = EPSILON_FILE_IMPORT; }
 			cp.clean(epsilon);
 			that.cp = cp;
-			that.init();
+			that.draw();
 			// that.setCreasePattern( cp );
 			if(callback != undefined){
 				callback(this.cp);
@@ -505,7 +514,7 @@ var OrigamiFold = (function(){
 		// this.cp.faces = [];
 	};
 
-	OrigamiFold.prototype.zoomToFit = function(padding){
+	OrigamiFold.prototype.buildViewMatrix = function(padding){
 		paper = this.scope;
 		// store padding for future calls
 		if(padding !== undefined){ this.padding = padding; }

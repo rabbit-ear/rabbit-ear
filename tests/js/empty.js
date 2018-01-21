@@ -2,7 +2,7 @@ var project = new OrigamiPaper("canvas");
 
 project.reset = function(){
 	// this.cp
-	// this.init();
+	// this.draw();
 }
 project.reset();
 

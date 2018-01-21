@@ -1,7 +1,7 @@
 var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
 
 var axiom2 = new OrigamiPaper("canvas-axiom-2");
-axiom2.zoomToFit(0.05);
+axiom2.setPadding(0.05);
 
 axiom2.selectedNode = undefined;
 axiom2.decorationLayer = new axiom2.scope.Layer();
@@ -14,7 +14,7 @@ axiom2.marks[1].position = [1.0, 1.0];
 axiom2.reset = function(){
 	axiom2.cp.clear();
 	axiom2.cp.creasePointToPoint(axiom2.marks[0].position, axiom2.marks[1].position).valley();
-	axiom2.init();
+	axiom2.draw();
 }
 axiom2.reset();
 

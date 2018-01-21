@@ -3,7 +3,7 @@
 var node_adjacent_faces_callback = undefined;
 
 var nodeFaces = new OrigamiPaper("canvas-node-adjacent-faces");
-nodeFaces.zoomToFit(0.05);
+nodeFaces.setPadding(0.05);
 nodeFaces.style.selectedNode.fillColor = { hue:220, saturation:0.6, brightness:1 };
 nodeFaces.selectNearestNode = true;
 nodeFaces.edgeLayer.bringToFront();
@@ -15,7 +15,7 @@ nodeFaces.reset = function(){
 	this.cp.clear();
 	this.cp.birdBase();
 	this.cp.clean();
-	this.init();
+	this.draw();
 }
 nodeFaces.reset();
 

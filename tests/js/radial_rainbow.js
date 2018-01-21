@@ -1,7 +1,7 @@
 var radial_rainbow_callback = undefined;
 
 var radialRay = new OrigamiPaper("canvas-radial-rainbow", new PlanarGraph());
-radialRay.zoomToFit(0.05);
+radialRay.setPadding(0.05);
 
 radialRay.colorForAngle = function(angle){
 	var color = angle / Math.PI * 180;
@@ -21,7 +21,7 @@ radialRay.reset = function(){
 		angle+= Math.random()*0.2 + 0.05;
 	}
 	this.cp.cleanDuplicateNodes();
-	this.init();
+	this.draw();
 	this.selectNearestEdge = true;
 	this.style.selectedEdge = { gray:0.0 };
 	this.style.mark.strokeColor = { gray:0.0 };

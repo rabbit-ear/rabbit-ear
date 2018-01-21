@@ -43,7 +43,7 @@ window.onload = function() {
 	paper.view.onMouseDown = function(event){
 		cp.addNode(new CreaseNode(event.point.x, event.point.y));
 		var v = voronoi(cp.nodes_array());
-		paperCP.init();
+		paperCP.draw();
 
 		var d = voronoi.triangles(cp.nodes_array());
 		for(var i = 0; i < d.length; i++){

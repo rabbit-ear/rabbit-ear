@@ -1,6 +1,6 @@
 
 var mirrorB = new OrigamiPaper("canvas-mirror-book");
-mirrorB.zoomToFit(0.05);
+mirrorB.setPadding(0.05);
 
 // mirrorB.selectNearestEdge = true;
 mirrorB.style.mark.strokeColor = {gray:0};
@@ -24,7 +24,7 @@ mirrorB.reset = function(){
 		this.cp.creaseThroughPoints(a, b);
 	}
 	// this.cp.clean();
-	this.init();
+	this.draw();
 }
 mirrorB.reset();
 

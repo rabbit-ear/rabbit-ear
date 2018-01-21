@@ -1,6 +1,6 @@
 
 var sequence3 = new OrigamiPaper("canvas-sequence-folding-3");
-sequence3.zoomToFit(0.1);
+sequence3.setPadding(0.1);
 
 sequence3.reset = function(){ }
 sequence3.reset();
@@ -20,7 +20,7 @@ sequence3.onFrame = function(event) {
 	sequence3.cp.clean();
 	// console.log(sequence3.cp.nodes[8].flatFoldable());
 	// console.log(sequence3.cp.nodes[8].x + " " + sequence3.cp.nodes[8].y);
-	sequence3.init();
+	sequence3.draw();
 }
 sequence3.onResize = function(event) { }
 sequence3.onMouseDown = function(event){ }

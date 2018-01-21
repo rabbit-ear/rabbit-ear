@@ -1,6 +1,6 @@
 
 var chopVert = new OrigamiPaper("canvas-chop-collinear-vert");
-chopVert.zoomToFit(0.05);
+chopVert.setPadding(0.05);
 
 chopVert.selectNearestNode = true;
 chopVert.selectNearestEdge = true;
@@ -17,7 +17,7 @@ chopVert.reset = function(){
 		this.cp.crease(Math.random(), y, 0.5, y);
 	}
 	var crossings = this.cp.fragment();
-	this.init();
+	this.draw();
 }
 chopVert.reset();
 

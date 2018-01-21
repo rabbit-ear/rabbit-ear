@@ -2,7 +2,7 @@
 faces_random_partial_callback = undefined;
 
 var partialFaces = new OrigamiPaper("canvas-faces-random-partial");
-partialFaces.zoomToFit(0.05);
+partialFaces.setPadding(0.05);
 
 partialFaces.selectNearestEdge = true;
 
@@ -15,7 +15,7 @@ partialFaces.reset = function(){
 	}
 	var intersections = partialFaces.cp.fragment();
 	partialFaces.cp.generateFaces();
-	partialFaces.init();
+	partialFaces.draw();
 	if(faces_random_callback != undefined){
 		faces_random_callback(intersections);
 	}

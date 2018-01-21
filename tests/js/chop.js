@@ -1,6 +1,6 @@
 
 var chop_sketch = new OrigamiPaper("canvas-chop");
-chop_sketch.zoomToFit(0.05);
+chop_sketch.setPadding(0.05);
 
 chop_sketch.selectNearestNode = true;
 chop_sketch.selectNearestEdge = true;
@@ -15,7 +15,7 @@ chop_sketch.reset = function(){
 		chop_sketch.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
 	var crossings = chop_sketch.cp.fragment();
-	chop_sketch.init();
+	chop_sketch.draw();
 }
 chop_sketch.reset();
 

@@ -2,7 +2,7 @@ var flat_foldable_nodes_wiggle_callback;
 var flat_foldable_nodes_callback;
 
 var ffMoveNode = new OrigamiPaper("canvas-flat-foldable-nodes-wiggle");
-ffMoveNode.zoomToFit(0.05);
+ffMoveNode.setPadding(0.05);
 
 nearestNode = undefined;
 ffMoveNode.movingNode = undefined;
@@ -26,7 +26,7 @@ ffMoveNode.style.nodes = {
 // loadSVG("/tests/svg/sea-turtle-errors.svg", function(e){ 
 loadSVG("/tests/svg/crane-errors.svg", function(e){ 
 	ffMoveNode.cp = e;
-	ffMoveNode.init();
+	ffMoveNode.draw();
 	if(ffMoveNode.nodeLayer != undefined && ffMoveNode.nodeLayer.moveToFront != undefined){
 		ffMoveNode.nodeLayer.moveToFront();
 	}
@@ -35,7 +35,7 @@ loadSVG("/tests/svg/crane-errors.svg", function(e){
 		ffMoveNode.style.selectedNode.radius = 0.02*ffMoveNode.cpMin;
 		ffMoveNode.style.nodes.radius = 0.02 * ffMoveNode.cpMin;
 	}
-	ffMoveNode.zoomToFit();
+	ffMoveNode.setPadding();
 	ffMoveNode.update();
 	ffMoveNode.colorNodesFlatFoldable();
 });
@@ -53,7 +53,7 @@ ffMoveNode.colorNodesFlatFoldable = function(){
 ffMoveNode.reset = function(){
 	paper = this.scope; 
 	ffMoveNode.cp.clear();
-	ffMoveNode.init();
+	ffMoveNode.draw();
 }
 ffMoveNode.reset();
 

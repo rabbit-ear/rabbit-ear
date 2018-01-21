@@ -1,7 +1,7 @@
 var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
 
 var axiom3 = new OrigamiPaper("canvas-axiom-3");
-axiom3.zoomToFit(0.05);
+axiom3.setPadding(0.05);
 
 axiom3.selectedNode = undefined;
 axiom3.decorationLayer = new axiom3.scope.Layer();
@@ -30,7 +30,7 @@ axiom3.reset = function(){
 	var edgeB = axiom3.cp.creaseThroughPoints(axiom3.marks[2].position, axiom3.marks[3].position).mark();
 	var edges = axiom3.cp.creaseEdgeToEdge(edgeA, edgeB);
 	edges.forEach(function(el){el.valley();});
-	axiom3.init();
+	axiom3.draw();
 	if(edges.length >= 2){
 		axiom3.edges[edges[1].index].strokeColor = { hue:20, saturation:0.6, brightness:1 };
 	}

@@ -16,10 +16,10 @@ table { border-collapse: collapse; border-spacing: 0; }
 /* Eric Meyer’s Reset CSS 2.0 */
 
 ::selection {
-  background: #fffb5f; /* WebKit/Blink Browsers */
+	background: #fffb5f; /* WebKit/Blink Browsers */
 }
 ::-moz-selection {
-  background: #fffb5f; /* Gecko Browsers */
+	background: #fffb5f; /* Gecko Browsers */
 }
 
 canvas[resize] {
@@ -33,7 +33,8 @@ canvas[resize].large {
 	height: 90vw;
 	max-width: 80vh;
 	max-height: 80vh;
-}canvas[resize].panorama {
+}
+canvas[resize].panorama {
 	width: 90vw;
 	height: 30vw;
 	max-width: 90vw;
@@ -51,14 +52,16 @@ body{
 	margin-top:3em;
 }
 a, a:hover, a:visited, a:active{
-	color:black; 
+	color:#38F;
 	text-decoration: none;
 }
 p a{
 	font-weight: bold;
-	text-decoration: underline;
+	text-decoration: none;
 }
-p a:hover{ text-decoration: none; }
+p a:hover{ text-decoration: underline; }
+h3 a:hover, h4 a:hover{ text-decoration: underline; }
+h2 a{ color:#000; }
 
 h1{font-size: 420%; font-weight: 300;}
 h2{font-size: 280%; font-weight: 300;}
@@ -66,12 +69,16 @@ h3{font-size: 240%; font-weight: 300;}
 h4{font-size: 180%; font-weight: 300;}
 h5{font-size: 150%; font-weight: 300;}
 p, ol, ul  /* blockquote, pre, */ {
-	padding-top:0.5em;
-	padding-bottom:0.5em;
-	font-size: 150%;
+/*	padding-top:0.5em;
+	padding-bottom:0.5em; */
+	font-size: 140%;
 }
 
-h1{padding-top:1em; padding-bottom:1em; text-align: center;}
+h1{
+	padding-top:1em;
+	padding-bottom:1em;
+	text-align: center;
+}
 h2{
 	padding-top:.6em;
 	padding-bottom: 6px;
@@ -96,34 +103,19 @@ b, strong{
 	padding:1em;
 	background-color: #FFFFAA;
 	box-shadow: 5px 5px 5px #CCC;
+	line-height: 2em;
 }
 .quote{
-	margin-top:2em;
-	margin-bottom:2em;
+	margin:2em 10vw 2em 10vw;
 	text-align:center;
 	font-style: italic;
-	font-size: 90%;
-}
-.nav {
-	margin-top:2em;
-	margin-bottom:2em;
-	font-style: italic;
-	font-size: 90%;
-	width: 100%;
-}
-.nav-back {
-	width: 50%;
-	float: left;
-}
-.nav-next {
-	margin-left: 50%;
-	text-align: right;
+	line-height: 1.5em;
 }
 .tests{
 	margin-top:2em;
 	margin-bottom:2em;
 	padding:1em;
-	border-width: 5px;  
+	border-width: 5px;
 	border-style: dashed;
 	border-color: black;
 	background-color: #FFF;
@@ -137,56 +129,21 @@ b, strong{
 .tests a:hover{
 	text-decoration: underline;
 }
-code a, code a:visited, code a:active, code a:hover{
-	color:white;
-	text-decoration: none;
+.nav {
+	margin-top:2em;
+	margin-bottom:2em;
+	font-style: italic;
+	font-size: 100%;
+	width: 100%;
 }
-code a:hover{
-	/*border-width: 5px;*/
-	border-bottom-width: 2px;
-	border-style: solid;
-	border-color: white;/*#66D9EF;*/
+.nav-back {
+	width: 50%;
+	float: left;
 }
-code h1, code h2, code h3, code h4, code h5{
-	padding:0;
-	border-bottom-width:0px;
+.nav-next {
+	margin-left: 50%;
+	text-align: right;
 }
-/*
-h1 a, h2 a, h3 a, h4 a, h5 a{
-	font-weight: normal;
-	text-decoration: none;	
-}
-h1, h2, h3, h4, h5, p, nav, li{ 
-	font-weight: 500; 
-}
-h1{
-	font-weight: 300; 
-	font-size: 400%;
-	width:100%;
-	text-align: center;
-	-webkit-margin-after: 1em; 
-	-webkit-margin-before: 1.2em; 
-}
-h2{
-	font-size: 270%; 
-	-webkit-margin-after: 0.2em; 
-	-webkit-margin-before: 1em; 
-}
-h3{ font-size: 240%; }
-h4{ font-size: 200%; }
-h5{ font-size: 170%; }
-p, li{ font-size: 150%; }
-section{
-	padding: 0 10%;
-}
-h2{
-	padding-bottom: 4px;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
-	border-bottom-color: black;
-}
-*/
-
 .large{
 	font-size:250%;
 }
@@ -261,7 +218,11 @@ code, pre {
 	-ms-hyphens: none;
 	hyphens: none;
 }
-
+code {
+	padding: .1em;
+	border-radius: .3em;
+	white-space: normal;
+}
 pre {
 	padding: 1em;
 	margin-top: 2em;
@@ -274,10 +235,15 @@ pre {
 	min-width:500px;
 }
 
-code {
-	padding: .1em;
-	border-radius: .3em;
-	white-space: normal;
+code a, code a:visited, code a:active, code a:hover{
+	color:white;
+	text-decoration: none;
+}
+code a:hover{
+	/*border-width: 5px;*/
+	border-bottom-width: 1.5px;
+	border-style: solid;
+	border-color: white;/*#66D9EF;*/
 }
 
 /* the following are short to allow quick typing */

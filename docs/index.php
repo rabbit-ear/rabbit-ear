@@ -23,7 +23,7 @@
 <h2>Graphs</h2>
 	
 	<div class="quote">
-		<p>A planar graph is a graph (nodes &amp; edges) with the addition of 2D space</p>
+		<p>Origami crease patterns are modeled on planar graphs, which are graphs (nodes &amp; edges) in 2D space</p>
 	</div>
 
 	<div id="sketch_intersections" class="centered p5sketch"></div>
@@ -31,22 +31,48 @@
 		<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>getEdgeIntersections</f></a>();</code></pre>
 	</div>
 	<div class="quote">
-		<p>These pages are a diary of how I built this library. Many things are interactive.</p>
+		<p>Explore the sections in detail: <a href="graph.php">Graphs</a>, <a href="planarGraph.php">Planar Graphs</a>, <a href="creasePattern.php">Crease Patterns</a> for more information and visual examples of code.</p>
 	</div>
-<!-- 	<div class="quote">
-		<p><a href="planarGraph.php">About planar graphs ⇒</a></p>
-	</div> -->
+
+<h2>Playgrounds</h2>
+<p>&nbsp;</p>
+
+	<h4><a href="/tools/validator/index.html">Crease Pattern Validator</a></h4>
+	<div class="quote">
+		<p>Check if your crease pattern is flat-foldable, and see a flat-folded approximation</p>
+	</div>
 
 
-	<div class="centered">
-		<svg id="svgTest01" width="400" height="400"></svg>
+	<h4><a href="/tools/editor/index.html">Crease Pattern Editor</a></h4>
+	<div class="quote">
+		<p>Add/remove creases, see a folded-form approximation, import and export SVG files</p>
 	</div>
-	<div class="centered">
-		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<v>nodes</v>[<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<v>edges</v>[<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()</code></pre>
+
+
+	<h4><a href="/tools/simplifier/index.html">Path Simplify</a></h4>
+	<div class="quote">
+		<p>This contains an path-walking algorithm that will merge as many individual lines into few polylines</p>
 	</div>
-<!-- 	<div class="quote">
-		<p><a href="graph.php">About graphs ⇒</a></p>
-	</div> -->
+
+
+	<h4><a href="/mine/reference-finder.html">Reference Finder</a></h4>
+	<div class="quote">
+		<p>Visualize all crease lines made possible by axioms 1-3 in an attempt to locate a point of your choosing</p>
+	</div>
+
+
+
+	<h4><a href="/mine/wiggle.html">Wiggle</a></h4>
+	<div class="quote">
+		<p>This will identify crease intersections which do not satisfy flat-foldability and attempt to wiggle vertices around until the condition is met</p>
+	</div>
+
+
+	<div class="explain">
+		<p>Much of this work is still in progress!</p>
+	</div>
+
+
 
 <h2>About</h2>
 	<div class="quote">

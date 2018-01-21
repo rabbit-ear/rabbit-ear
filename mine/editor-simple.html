@@ -83,13 +83,13 @@ $("#radio-input-mode :input").change(function() {
 });
 document.getElementById("fragment-button").addEventListener("click", function(e){
 	project.cp.clean();
-	project.init();
+	project.draw();
 });
 </script>
 
 <script>
 var project = new OrigamiPaper("canvas");
-project.zoomToFit(0.05);
+project.setPadding(0.05);
 project.style.border.strokeWidth = 0.002;
 project.update();
 
@@ -145,7 +145,7 @@ project.onMouseDown = function(event){
 			}
 		break;
 		}
-		this.init();
+		this.draw();
 		this.recalculateFolds();
 	}
 }

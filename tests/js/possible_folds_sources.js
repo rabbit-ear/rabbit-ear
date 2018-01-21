@@ -1,6 +1,6 @@
 
 var possible2 = new OrigamiPaper("canvas-possible-folds-sources");
-possible2.zoomToFit(0.05);
+possible2.setPadding(0.05);
 
 possible2.nextSet;
 possible2.nextSetLayer = new possible2.scope.Layer();
@@ -22,7 +22,7 @@ possible2.refresh = function(){
 possible2.reset = function(){
 	paper = this.scope; 
 	// this.cp.clear();
-	// this.init();
+	// this.draw();
 	this.refresh();
 }
 possible2.reset();
@@ -36,7 +36,7 @@ possible2.onMouseDown = function(event){
 			crease.valley(); 
 		}
 	}
-	this.init();
+	this.draw();
 	this.refresh();
 }
 possible2.onMouseUp = function(event){ }

@@ -15,8 +15,16 @@
 //  "degree": the degree of a node is how many edges are incident to it
 //  "isolated": a node is isolated if it is connected to 0 edges, degree 0
 //  "leaf": a node is a leaf if it is connected to only 1 edge, degree 1
+//  "pendant": an edge incident with a leaf node
 
 "use strict";
+
+function uniqueObjects(nodes:GraphNode[]):GraphNode[] {
+	var objects = [];
+	return nodes.filter(function(el) {
+		return objects.indexOf(el) >= 0 ? false : objects.push(el);
+	});
+}
 
 /** a change log report for when a graph is cleaned */
 class GraphCleanReport {
@@ -44,31 +52,44 @@ class GraphNode{
 	 * @returns {GraphEdge[]} array of adjacent edges
 	 */
 	adjacentEdges():GraphEdge[]{
-		return this.graph.edges.filter(function(el:GraphEdge){ return el.nodes[0] === this || el.nodes[1] === this; }, this);
+		return this.graph.edges.filter(function(el:GraphEdge){
+			return el.nodes[0] === this || el.nodes[1] === this;
+		},this);
 	}
 	/** Get an array of nodes that share an edge in common with this node
 	 * @returns {GraphNode[]} array of adjacent nodes
 	 */
 	adjacentNodes():GraphNode[]{
-		var first:GraphNode[] = this.graph.edges
-			.filter(function(el){ return el.nodes[0] === this}, this)
-			.map(function(el){ return el.nodes[1] }, this);
-		var second:GraphNode[] = this.graph.edges
-			.filter(function(el){ return el.nodes[1] === this}, this)
-			.map(function(el){ return el.nodes[0] }, this);
-		return first.concat(second);
+		var checked = []; // the last step, to remove duplicate nodes
+		return this.adjacentEdges()
+		.filter(function(el:GraphEdge){ return !el.isCircular(); })
+		.map(function(el:GraphEdge){
+			if(el.nodes[0] === this){ return el.nodes[1]; }
+			return el.nodes[0];
+		},this)
+		.filter(function(el:GraphNode){
+			return checked.indexOf(el) >= 0 ? false : checked.push(el);
+		},this);
 	}
 	/** Test if a node is connected to another node by an edge
 	 * @returns {boolean} true or false, adjacent or not
 	 */
 	isAdjacentToNode(node:GraphNode):boolean{
-		if(this.graph.getEdgeConnectingNodes(this, node) === undefined) return false;
-		return true;
+		return this.graph.getEdgeConnectingNodes(this, node) !== undefined;
 	}
-	/** The degree of a node is the number of adjacent edges
+	/** The degree of a node is the number of adjacent edges, circular edges are counted twice
 	 * @returns {number} number of adjacent edges
 	 */
-	degree():number{ return this.adjacentEdges().length; }
+	degree():number{
+		return this.graph.edges.map(function(el){
+			var sum = 0;
+			if(el.nodes[0] === this){ sum += 1; }
+			if(el.nodes[1] === this){ sum += 1; }
+			return sum;
+		}, this).reduce(function(a, b){ return a + b; });
+		// this implementation is insufficient because it doesn't count circular edges twice
+		// return this.adjacentEdges().length;
+	}
 }
 /** Edges are 1 of the 2 fundamental components in a graph. 1 edge connect 2 nodes. */
 class GraphEdge{
@@ -105,6 +126,10 @@ class GraphEdge{
 		return( (this.nodes[0] === edge.nodes[0]) || (this.nodes[1] === edge.nodes[1]) ||
 		        (this.nodes[0] === edge.nodes[1]) || (this.nodes[1] === edge.nodes[0]) );
 	}
+	/** Test if an edge points both at both ends to the same node
+	 * @returns {boolean} true or false, circular or not
+	 */
+	isCircular():boolean{ return this.nodes[0] === this.nodes[1]; }
 	/** Test if an edge contains the same nodes as another edge
 	 * @returns {boolean} true or false, similar or not
 	 */
@@ -231,6 +256,7 @@ class Graph{
 			this.nodes[i].graph = this;
 			this.nodes[i].index = i;
 		}
+		// calling clean() is not required
 		return this.nodes.length - len;
 	}
 
@@ -243,6 +269,7 @@ class Graph{
 		var checkedEdges = edges.filter(function(el){ return (el instanceof GraphEdge); });
 		this.edges = this.edges.concat(checkedEdges);
 		for(var i = len; i < this.edges.length; i++){ this.edges[i].graph = this; }
+		// clean() required. there are potentially duplicate or circular edges
 		this.cleanGraph();
 		return this.edges.length - len;
 	}
@@ -318,8 +345,8 @@ class Graph{
 	mergeNodes(node1:GraphNode, node2:GraphNode):GraphNode{
 		if(node1 === node2) { return undefined; }
 		this.edges = this.edges.map(function(el){
-			if(el.nodes[0] === node2) el.nodes[0] = node1;
-			if(el.nodes[1] === node2) el.nodes[1] = node1;
+			if(el.nodes[0] === node2){ el.nodes[0] = node1; }
+			if(el.nodes[1] === node2){ el.nodes[1] = node1; }
 			return el;
 		});
 		this.nodes = this.nodes.filter(function(el){ return el !== node2; });
@@ -337,7 +364,8 @@ class Graph{
 	 * @returns {GraphCleanReport} the number of nodes removed
 	 */
 	removeIsolatedNodes():GraphCleanReport{
-		this.nodeArrayDidChange();  // this function depends on .index values, run this to be safe
+		// this function relies on .index values. it would be nice if it didn't
+		this.nodeArrayDidChange();
 		var nodeDegree = [];
 		for(var i = 0; i < this.nodes.length; i++){ nodeDegree[i] = false; }
 		for(var i = 0; i < this.edges.length; i++){

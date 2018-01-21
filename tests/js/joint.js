@@ -1,6 +1,6 @@
 
 var sJoint = new OrigamiPaper("canvas-single-joint");
-sJoint.zoomToFit(0.05);
+sJoint.setPadding(0.05);
 
 sJoint.reset = function(){
 	paper = this.scope; 
@@ -55,7 +55,7 @@ sJoint.reset = function(){
 		}
 	}
 
-	sJoint.init();
+	sJoint.draw();
 }
 sJoint.reset();
 

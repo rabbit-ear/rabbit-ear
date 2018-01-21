@@ -1,6 +1,6 @@
 
 var chopMV = new OrigamiPaper("canvas-chop-mountain-valley");
-chopMV.zoomToFit(0.05);
+chopMV.setPadding(0.05);
 
 chopMV.selectNearestEdge = true;
 
@@ -14,7 +14,7 @@ chopMV.reset = function(){
 		else{                    crease.valley(); }
 	}
 	this.cp.clean();
-	this.init();
+	this.draw();
 }
 chopMV.reset();
 

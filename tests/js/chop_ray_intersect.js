@@ -1,6 +1,6 @@
 
 var rayIntersect = new OrigamiPaper("canvas-chop-ray-intersect");
-rayIntersect.zoomToFit(0.05);
+rayIntersect.setPadding(0.05);
 
 rayIntersect.selectNearestEdge = true;
 
@@ -18,7 +18,7 @@ rayIntersect.reset = function(){
 	this.cp.creaseRayUntilIntersection(new XY(Math.random(), Math.random()), 
 	                                   new XY(Math.cos(angle), Math.sin(angle)));
 	this.cp.clean();
-	this.init();
+	this.draw();
 }
 rayIntersect.reset();
 

@@ -1,6 +1,6 @@
 
 var chopHoriz = new OrigamiPaper("canvas-chop-collinear-horiz");
-chopHoriz.zoomToFit(0.05);
+chopHoriz.setPadding(0.05);
 
 chopHoriz.selectNearestNode = true;
 chopHoriz.selectNearestEdge = true;
@@ -17,7 +17,7 @@ chopHoriz.reset = function(){
 		this.cp.crease( x, Math.random(), x, 0.5 );
 	}
 	var crossings = this.cp.fragment();
-	this.init();
+	this.draw();
 }
 chopHoriz.reset();
 

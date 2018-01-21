@@ -1,7 +1,7 @@
 mouse_delete_edge_callback = undefined;
 
 var deleteEdge = new OrigamiPaper("canvas-mouse-delete-edge");
-deleteEdge.zoomToFit(0.05);
+deleteEdge.setPadding(0.05);
 
 deleteEdge.selectNearestEdge = true;
 
@@ -15,7 +15,7 @@ deleteEdge.reset = function(){
 		this.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
 	this.cp.fragment();
-	this.init();
+	this.draw();
 	this.style.nodes.visible = true;
 	this.style.nodes.fillColor = { hue:25, saturation:0.7, brightness:1.0 };
 	this.update();
@@ -32,7 +32,7 @@ deleteEdge.onMouseDown = function(event){
 		this.cp.removeEdge(this.nearestEdge);
 		this.cp.edgeArrayDidChange();
 		this.nearestEdge = undefined;
-		this.init();
+		this.draw();
 		this.selected.edges = [];
 		// this.nodeLayer.visible = true;
 	}

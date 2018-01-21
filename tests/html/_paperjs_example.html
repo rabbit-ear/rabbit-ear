@@ -29,7 +29,7 @@ var NUM_LINES = 10;
 
 var cp = new CreasePattern();
 var paperCP = new OrigamiPaper("canvas", cp);
-paperCP.zoomToFit(0.1);
+paperCP.setPadding(0.1);
 
 paperCP.onFrame = function(event) { }
 paperCP.onResize = function(event) { }
@@ -47,7 +47,7 @@ function reset(){
 		cp.crease(Math.random(), Math.random(), Math.random(), Math.random());
 	}
 	cp.clean();
-	paperCP.init();
+	paperCP.draw();
 }
 reset();
 

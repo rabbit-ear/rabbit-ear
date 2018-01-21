@@ -52,7 +52,7 @@ var project = new OrigamiPaper("canvas-1");
 function fileDidLoad(svg){
 	project.load(svg, function(){ 
 		foldedState.cp = project.cp.duplicate();
-		foldedState.init();
+		foldedState.draw();
 		foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 		foldedState.update();
 	});

@@ -2,7 +2,7 @@
 edge_intersections_callback = undefined;
 
 var intersectionSketch = new OrigamiPaper("canvas-intersections");
-intersectionSketch.zoomToFit(0.05);
+intersectionSketch.setPadding(0.05);
 intersectionSketch.intersectionsLayer = new intersectionSketch.scope.Layer();
 
 intersectionSketch.reset = function(){
@@ -19,7 +19,7 @@ intersectionSketch.reset = function(){
 	}
 	var report = this.cp.fragment()
 	var intersections = report.nodes.fragment;
-	this.init();
+	this.draw();
 	this.nodeLayer.bringToFront();
 
 	this.intersectionsLayer.activate();
