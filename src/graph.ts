@@ -19,27 +19,31 @@
 
 "use strict";
 
-function uniqueObjects(nodes:GraphNode[]):GraphNode[] {
-	var objects = [];
-	return nodes.filter(function(el) {
-		return objects.indexOf(el) >= 0 ? false : objects.push(el);
-	});
-}
-
 /** a change log report for when a graph is cleaned */
-class GraphCleanReport {
-	edges:{duplicate:number, circular:number};
-	nodes:{isolated:number};  // nodes removed for being unattached to any edge
-	constructor(){
-		this.nodes = {isolated:0};
-		this.edges = {duplicate:0, circular:0};
+class GraphClean {
+	// "total" must be greater than or equal to the other members of each object
+	// "total" can include removed edges/nodes which don't count as "duplicate" or "circular"
+	edges:{total:number, duplicate:number, circular:number};
+	nodes:{total:number, isolated:number};
+	// intialize a GraphClean with totals, but no other details like "duplicate" or "isolated"
+	constructor(numNodes?:number, numEdges?:number){
+		this.nodes = {total:0, isolated:0};
+		this.edges = {total:0, duplicate:0, circular:0};
+		if(numNodes !== undefined){ this.nodes.total = numNodes; }
+		if(numEdges !== undefined){ this.edges.total = numEdges; }
 	}
-	join(report:GraphCleanReport):GraphCleanReport{
+	join(report:GraphClean):GraphClean{
+		this.nodes.total += report.nodes.total;
+		this.edges.total += report.edges.total;
 		this.nodes.isolated += report.nodes.isolated;
 		this.edges.duplicate += report.edges.duplicate;
 		this.edges.circular += report.edges.circular;
 		return this;
 	}
+	// use these setters instead of setting the property directly, handles totals
+	isolatedNodes(num:number):GraphClean{ this.nodes.isolated = num; this.nodes.total += num; return this; }
+	duplicateEdges(num:number):GraphClean{ this.edges.duplicate = num; this.edges.total += num; return this; }
+	circularEdges(num:number):GraphClean{ this.edges.circular = num; this.edges.total += num; return this; }
 }
 /** Nodes are 1 of the 2 fundamental components in a graph */
 class GraphNode{
@@ -130,6 +134,8 @@ class GraphEdge{
 	 * @returns {boolean} true or false, circular or not
 	 */
 	isCircular():boolean{ return this.nodes[0] === this.nodes[1]; }
+	// do we need to test for invalid edges?
+		// && this.nodes[0] !== undefined;
 	/** Test if an edge contains the same nodes as another edge
 	 * @returns {boolean} true or false, similar or not
 	 */
@@ -138,7 +144,7 @@ class GraphEdge{
 		        (this.nodes[0] === edge.nodes[1] && this.nodes[1] === edge.nodes[0] ) );
 	}
 	/** For adjacent edges, get the node they share in common
-	 * @returns {GraphNode} the node in common
+	 * @returns {GraphNode} the node in common, undefined if not adjacent
 	 */
 	commonNodeWithEdge(otherEdge:GraphEdge):GraphNode{
 		// only for adjacent edges
@@ -150,7 +156,7 @@ class GraphEdge{
 		return undefined;
 	}
 	/** For adjacent edges, get this edge's node that is not shared in common with the other edge
-	 * @returns {GraphNode} the node not in common
+	 * @returns {GraphNode} the node not in common, undefined if not adjacent
 	 */
 	uncommonNodeWithEdge(otherEdge:GraphEdge):GraphNode{
 		// only for adjacent edges
@@ -163,7 +169,8 @@ class GraphEdge{
 		return undefined;
 	}
 }
-/** A graph contains unlimited nodes and edges and can perform operations on them. the headlining act of graph.js */
+
+/** A graph contains unlimited nodes and edges and can perform operations on them */
 class Graph{
 	nodes:GraphNode[];
 	edges:GraphEdge[];
@@ -304,54 +311,55 @@ class Graph{
 	}
 
 	/** Remove an edge
-	 * @returns {boolean} if the edge was removed
+	 * @returns {GraphClean} number of edges removed
 	 */
-	removeEdge(edge:GraphEdge):number{
-		var len = this.edges.length;
+	removeEdge(edge:GraphEdge):GraphClean{
+		var edgesLength = this.edges.length;
 		this.edges = this.edges.filter(function(el){ return el !== edge; });
 		this.edgeArrayDidChange();
-		return len - this.edges.length;
+		return new GraphClean(undefined, edgesLength - this.edges.length);
 	}
 
 	/** Searches and removes any edges connecting the two nodes supplied in the arguments
-	 * @returns {number} number of edges removed. in the case of an unclean graph, there may be more than one
+	 * @returns {GraphClean} number of edges removed. in the case of an unclean graph, there may be more than one
 	 */
-	removeEdgeBetween(node1:GraphNode, node2:GraphNode):number{
-		var len = this.edges.length;
+	removeEdgeBetween(node1:GraphNode, node2:GraphNode):GraphClean{
+		var edgesLength = this.edges.length;
 		this.edges = this.edges.filter(function(el){ 
 			return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
 			         (el.nodes[0] === node2 && el.nodes[1] === node1) );
 		});
 		this.edgeArrayDidChange();
-		return len - this.edges.length;
+		return new GraphClean(undefined, edgesLength - this.edges.length);
 	}
 
 	/** Remove a node and any edges that connect to it
-	 * @returns {boolean} if the node was removed
+	 * @returns {GraphClean} number of nodes and edges removed
 	 */
-	removeNode(node:GraphNode):number{
+	removeNode(node:GraphNode):GraphClean{
 		var nodesLength = this.nodes.length;
 		var edgesLength = this.edges.length;
 		this.nodes = this.nodes.filter(function(el){ return el !== node; });
 		this.edges = this.edges.filter(function(el){ return el.nodes[0] !== node && el.nodes[1] !== node; });
 		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
 		if(this.nodes.length != nodesLength){ this.nodeArrayDidChange(); }
-		return nodesLength - this.nodes.length;
+		// todo: a graphDidChange object like graphClean but
+		return new GraphClean(nodesLength-this.nodes.length, edgesLength-this.edges.length);
 	}
 
 	/** Remove the second node and replaces all mention of it with the first in every edge
-	 * @returns {GraphNode} undefined if no merge, otherwise returns a pointer to the remaining node
+	 * @returns {GraphClean} returns a pointer to the remaining node
 	 */
-	mergeNodes(node1:GraphNode, node2:GraphNode):GraphNode{
+	mergeNodes(node1:GraphNode, node2:GraphNode):GraphClean{
 		if(node1 === node2) { return undefined; }
 		this.edges = this.edges.map(function(el){
 			if(el.nodes[0] === node2){ el.nodes[0] = node1; }
 			if(el.nodes[1] === node2){ el.nodes[1] = node1; }
 			return el;
 		});
+		var nodesLength = this.nodes.length;
 		this.nodes = this.nodes.filter(function(el){ return el !== node2; });
-		this.cleanGraph();
-		return node1;
+		return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
 	}
 
 	///////////////////////////////////////////////
@@ -361,9 +369,9 @@ class Graph{
 	// TARGETS UNKNOWN (SEARCH REQUIRED)
 
 	/** Removes any node that isn't a part of an edge
-	 * @returns {GraphCleanReport} the number of nodes removed
+	 * @returns {GraphClean} the number of nodes removed
 	 */
-	removeIsolatedNodes():GraphCleanReport{
+	removeIsolatedNodes():GraphClean{
 		// this function relies on .index values. it would be nice if it didn't
 		this.nodeArrayDidChange();
 		var nodeDegree = [];
@@ -378,27 +386,23 @@ class Graph{
 			if(nodeDegree[index] == false){ this.nodes.splice(i, 1); count++; }
 		}
 		if(count > 0){ this.nodeArrayDidChange(); }
-		var report = new GraphCleanReport();
-		report.nodes.isolated = count;
-		return report;
+		return new GraphClean().isolatedNodes(count);
 	}
 
 	/** Remove all edges that contain the same node at both ends
-	 * @returns {GraphCleanReport} the number of edges removed
+	 * @returns {GraphClean} the number of edges removed
 	 */
-	cleanCircularEdges():GraphCleanReport{
+	cleanCircularEdges():GraphClean{
 		var edgesLength = this.edges.length;
 		this.edges = this.edges.filter(function(el){ return !(el.nodes[0] === el.nodes[1]); });
 		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
-		var report = new GraphCleanReport();
-		report.edges.circular = edgesLength - this.edges.length;
-		return report;
+		return new GraphClean().circularEdges(edgesLength - this.edges.length);
 	}
 
 	/** Remove edges that are similar to another edge
-	 * @returns {GraphCleanReport} the number of edges removed
+	 * @returns {GraphClean} the number of edges removed
 	 */
-	cleanDuplicateEdges():GraphCleanReport{
+	cleanDuplicateEdges():GraphClean{
 		var count = 0;
 		for(var i = 0; i < this.edges.length-1; i++){
 			for(var j = this.edges.length-1; j > i; j--){
@@ -409,24 +413,24 @@ class Graph{
 			}
 		}
 		if(count > 0){ this.edgeArrayDidChange(); }
-		var report = new GraphCleanReport();
-		report.edges.duplicate = count;
-		return report;
+		return new GraphClean().duplicateEdges(count);
 	}
 
 	/** Graph specific clean function: removes circular and duplicate edges, refreshes .index. Only modifies edges array.
-	 * @returns {GraphCleanReport} the number of edges removed
+	 * @returns {GraphClean} the number of edges removed
 	 */
-	cleanGraph():GraphCleanReport{
+	cleanGraph():GraphClean{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();
+		// should we remove isolated nodes as a part of clean()?
+		// return this.cleanDuplicateEdges().join(this.cleanCircularEdges()).join(this.removeIsolatedNodes());
 		return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
 	}
 
 	/** Clean calls cleanGraph(), gets overwritten when subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
-	 * @returns {GraphCleanReport} the number of edges removed
+	 * @returns {GraphClean} the number of edges removed
 	 */
-	clean():GraphCleanReport{
+	clean():GraphClean{
 		return this.cleanGraph();
 	}
 
@@ -471,5 +475,14 @@ class Graph{
 
 	nodeArrayDidChange(){for(var i=0;i<this.nodes.length;i++){this.nodes[i].index=i;}}
 	edgeArrayDidChange(){for(var i=0;i<this.edges.length;i++){this.edges[i].index=i;}}
-	// nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
+//	nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
+}
+
+/* a multigraph is a graph which allows circular and duplicate edges */
+class Multigraph extends Graph{
+	cleanGraph():GraphClean{
+		this.edgeArrayDidChange();
+		this.nodeArrayDidChange();
+		return new GraphClean();
+	}
 }
