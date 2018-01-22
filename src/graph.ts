@@ -79,7 +79,7 @@ class GraphNode{
 	 * @returns {boolean} true or false, adjacent or not
 	 */
 	isAdjacentToNode(node:GraphNode):boolean{
-		return this.graph.getEdgeConnectingNodes(this, node) !== undefined;
+		return (this.graph.getEdgeConnectingNodes(this, node) !== undefined);
 	}
 	/** The degree of a node is the number of adjacent edges, circular edges are counted twice
 	 * @returns {number} number of adjacent edges
@@ -130,12 +130,6 @@ class GraphEdge{
 		return( (this.nodes[0] === edge.nodes[0]) || (this.nodes[1] === edge.nodes[1]) ||
 		        (this.nodes[0] === edge.nodes[1]) || (this.nodes[1] === edge.nodes[0]) );
 	}
-	/** Test if an edge points both at both ends to the same node
-	 * @returns {boolean} true or false, circular or not
-	 */
-	isCircular():boolean{ return this.nodes[0] === this.nodes[1]; }
-	// do we need to test for invalid edges?
-		// && this.nodes[0] !== undefined;
 	/** Test if an edge contains the same nodes as another edge
 	 * @returns {boolean} true or false, similar or not
 	 */
@@ -143,6 +137,12 @@ class GraphEdge{
 		return( (this.nodes[0] === edge.nodes[0] && this.nodes[1] === edge.nodes[1] ) ||
 		        (this.nodes[0] === edge.nodes[1] && this.nodes[1] === edge.nodes[0] ) );
 	}
+	/** Test if an edge points both at both ends to the same node
+	 * @returns {boolean} true or false, circular or not
+	 */
+	isCircular():boolean{ return this.nodes[0] === this.nodes[1]; }
+	// do we need to test for invalid edges?
+		// && this.nodes[0] !== undefined;
 	/** For adjacent edges, get the node they share in common
 	 * @returns {GraphNode} the node in common, undefined if not adjacent
 	 */
@@ -478,7 +478,7 @@ class Graph{
 //	nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
 }
 
-/* a multigraph is a graph which allows circular and duplicate edges */
+/** a multigraph is a graph which allows circular and duplicate edges */
 class Multigraph extends Graph{
 	cleanGraph():GraphClean{
 		this.edgeArrayDidChange();
