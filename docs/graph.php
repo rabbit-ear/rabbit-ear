@@ -11,11 +11,13 @@
 		<svg id="svgTest00" width="400" height="400"></svg>
 	</div>
 
-	<p class="quote">A <b>graph</b> is a collection of <b>nodes</b> and <b>edges</b> (circles and lines)</p>
+	<p class="quote">A <b>graph</b> is a collection of <b>nodes</b> and <b>edges</b></p>
 
 	<div class="centered">
 		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
 	</div>
+
+	<p class="quote">This creates an empty graph with no nodes or edges</p>
 
 	<p class="explain">Graphs don't exist in 2D space (or any space), they are an abstract map showing connections between nodes.</p>
 </section>
@@ -41,20 +43,23 @@
 		<pre><code><key>var</key> edge <op>=</op> graph.<v>newEdge</v>(<arg>node1</arg>, <arg>node2</arg>) <c> // edge is a GraphEdge</c></code></pre>
 	</div>
 
+	<p class="quote">Use the array to get any node or edge after it's been created</p>
+
+	<div class="centered">
+		<pre><code>graph.<v>newNode</v>()<br><key>var</key> node <op>=</op> graph.<v>nodes</v>[<n>0</n>]  <c>// the first node</c></code></pre>
+	</div>
+
 </section>
 
 <h2><a href="#nodes">&sect;</a> Nodes</h2>
 
 <section id="nodes">
-	<div class="centered">
-		<pre><code>graph.<v>nodes</v>[<n>0</n>]  <c>// the first node</c><br>graph.<v>nodes</v>.length  <c>// total number of nodes</c></code></pre>
-	</div>
 
 	<div class="centered">
 		<svg id="svgTest01" width="400" height="400"></svg>
 	</div>
 
-	<p class="quote">This graph is interactive with the code below</p>
+	<p class="quote">This graph is interactive</p>
 
 	<div class="centered">
 		<pre><code><span id="spanNodesAdjacentToNodeResult"></span>graph.<v>nodes</v>[<n><span id="spanNodesAdjacentToNodeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()<br><span id="spanNodesAdjacentToEdgeResult"></span>graph.<v>edges</v>[<n><span id="spanNodesAdjacentToEdgeInput" class="token argument"></span></n>].<f>adjacentNodes</f>()</code></pre>

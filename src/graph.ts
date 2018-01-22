@@ -19,7 +19,7 @@
 
 "use strict";
 
-/** a change log report for when a graph is cleaned */
+/** a survey of the objects removed from a graph after a function is performed */
 class GraphClean {
 	// "total" must be greater than or equal to the other members of each object
 	// "total" can include removed edges/nodes which don't count as "duplicate" or "circular"

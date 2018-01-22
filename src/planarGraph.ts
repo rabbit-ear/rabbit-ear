@@ -12,6 +12,10 @@ var EPSILON_HIGH = 0.00000001;
 var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a screen
 var EPSILON_COLLINEAR = EPSILON_LOW;//Math.PI * 0.001; // what decides 2 similar angles
 
+function flatMap<T, U>(array: T[], mapFunc: (x: T) => U[]) : U[] {
+	return array.reduce((cumulus: U[], next: T) => [...mapFunc(next), ...cumulus], <U[]> []);
+}
+
 //////////////////////////// TYPE CHECKING //////////////////////////// 
 function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
 function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
@@ -424,6 +428,60 @@ class InteriorAngle{
 	}
 }
 
+/** a PlanarJoint is defined by 2 edges and 3 nodes (one common, 2 endpoints) 
+ *  clockwise order is required and enforced
+ *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
+ */
+class PlanarJoint{
+	// the node in common with the edges
+	node:PlanarNode;
+	// the indices of these 2 nodes directly correlate to 2 edges' indices
+	edges:[PlanarEdge, PlanarEdge];
+	endNodes:[PlanarNode, PlanarNode];
+	// angle clockwise from edge 0 to edge 1 is in index 0. edge 1 to 0 is in index 1
+	angles:[number, number];
+	constructor(edge1:PlanarEdge, edge2:PlanarEdge, sortBySmaller?:boolean){
+		this.node = <PlanarNode>edge1.commonNodeWithEdge(edge2);
+		if(this.node === undefined){ return undefined; }
+		// make sure we are storing clockwise from A->B the smaller interior angle
+		var a = edge1, b = edge2;
+		if(sortBySmaller !== undefined && sortBySmaller === true){
+			var interior1 = clockwiseAngleFrom(a.absoluteAngle(), b.absoluteAngle());
+			var interior2 = clockwiseAngleFrom(b.absoluteAngle(), a.absoluteAngle());
+			if(interior2 < interior1){ b = edge1; a = edge2; }
+		}
+		this.edges = [a, b];
+		this.endNodes = [
+			(a.nodes[0] === this.node) ? a.nodes[1] : a.nodes[0],
+			(b.nodes[0] === this.node) ? b.nodes[1] : b.nodes[0]
+		];
+	}
+	interiorAngle():number{
+		return clockwiseAngleFrom(this.edges[0].absoluteAngle(this.node), this.edges[1].absoluteAngle(this.node));
+	}
+	bisectAngle():number{
+		var angleA = this.edges[0].absoluteAngle(this.node);
+		var angleB = this.edges[1].absoluteAngle(this.node);
+		var interiorA = clockwiseAngleFrom(angleA, angleB);
+		return angleA - interiorA * 0.5;
+	}
+	// todo: needs testing
+	subsectAngle(divisions:number):number[]{
+		if(divisions === undefined || divisions < 1){ throw "subsetAngle() requires a parameter greater than 1"; }
+		var angleA = this.edges[0].absoluteAngle(this.node);
+		var angleB = this.edges[1].absoluteAngle(this.node);
+		var interiorA = clockwiseAngleFrom(angleA, angleB);
+		var results:number[] = [];
+		for(var i = 1; i < divisions; i++){
+			results.push( angleA - interiorA * (1.0/divisions) * i );
+		}
+		return results;
+	}
+
+	// (private function)
+	sortByClockwise(){}
+}
+
 class Spring { 
 	xpos:number = 0;
 	ypos:number = 0;
@@ -572,6 +630,16 @@ class PlanarNode extends GraphNode{
 			// var angleDifference = clockwiseAngleFrom(this[i].angle, this[nextI].angle);
 			return new InteriorAngle(this[i].edge, this[nextI].edge);
 		}, adj);
+	}
+
+	joints():PlanarJoint[]{
+		var adjacent = this.planarAdjacent();
+		// if this node is a leaf, should 1 angle be 360 degrees? or no interior angles
+		if(adjacent.length <= 1){ return []; }
+		return adjacent.map(function(el, i){
+			var nextI = (i+1)%this.length;
+			return new PlanarJoint(this[i].edge, this[nextI].edge);
+		}, adjacent);
 	}
 
 	/** Adjacent nodes sorted clockwise by angle toward adjacent node, type AdjacentNodes object */
@@ -989,13 +1057,13 @@ class PlanarGraph extends Graph{
 						// that.nodes[i].y = (that.nodes[i].y + that.nodes[j].y)*0.5;
 						// return that.mergeNodes(that.nodes[i], that.nodes[j]);
 						if(that.nodes[i] === that.nodes[j]) { return undefined; }
-						this.edges = this.edges.map(function(el){
+						that.edges = that.edges.map(function(el){
 							if(el.nodes[0] === that.nodes[j]){ el.nodes[0] = that.nodes[i]; }
 							if(el.nodes[1] === that.nodes[j]){ el.nodes[1] = that.nodes[i]; }
 							return el;
 						});
-						this.nodes = this.nodes.filter(function(el){ return el !== that.nodes[j]; });
-						this.cleanGraph();
+						that.nodes = that.nodes.filter(function(el){ return el !== that.nodes[j]; });
+						that.cleanGraph();
 						return that.nodes[i];
 					}
 				}
@@ -1303,6 +1371,13 @@ class PlanarGraph extends Graph{
 
 	nodeTangents(){
 		// var nodes2Edges = this.nodes.map()
+	}
+
+	///////////////////////////////////////////////////////////////
+	// INTERIOR ANGLES
+
+	generatePlanarJoints(){
+		return flatMap(this.nodes, function(el){ return el.joints(); });
 	}
 
 	///////////////////////////////////////////////////////////////

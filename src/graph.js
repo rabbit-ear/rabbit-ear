@@ -27,7 +27,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-/** a change log report for when a graph is cleaned */
+/** a survey of the objects removed from a graph after a function is performed */
 var GraphClean = (function () {
     // intialize a GraphClean with totals, but no other details like "duplicate" or "isolated"
     function GraphClean(numNodes, numEdges) {

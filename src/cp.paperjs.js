@@ -10,7 +10,7 @@ try {
 	var cp = new CreasePattern();
 } catch(err) {
 	console.log(err.message);
-	throw "cp.paper.js requires the crease pattern js library github.com/robbykraft/Origami"
+	throw "cp.paper.js requires the crease pattern js library github.com/robbykraft/Origami, and to be included before this file"
 }
 
 var EPSILON_FILE_IMPORT = 0.005;
