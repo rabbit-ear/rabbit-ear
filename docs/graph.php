@@ -126,26 +126,34 @@
 <section id="clean">
 
 	<div class="centered">
-		<pre><code>graph.<f>clean</f>() <c>// # of edges removed</c></code></pre>
+		<pre><code>graph.<f>clean</f>()</code></pre>
 	</div>
 
-	<p class="quote">Cleaning removes duplicate and circular edges. You can also target specific edges:</p>
+	<p class="quote">Cleaning a graph removes duplicate and circular edges. You can also target specific edges:</p>
 
 	<div class="centered">
-		<pre><code>graph.<f>removeEdge</f>(<arg>edge</arg>) <c> // # of edges removed</c><br>graph.<f>removeEdgeBetween</f>(<arg>node1</arg>, <arg>node2</arg>) <c> // # of edges removed</c></code></pre>
+		<pre><code>graph.<f>removeEdge</f>(<arg>edge</arg>)<br>graph.<f>removeEdgeBetween</f>(<arg>node1</arg>, <arg>node2</arg>)</code></pre>
 	</div>
 
 	<p class="quote">Removing Nodes:</p>
 
 	<div class="centered">
-		<pre><code>graph.<f>removeNode</f>(<arg>node</arg>) <c> // # of nodes removed</c><br>graph.<f>removeIsolatedNodes</f>() <c>// # of nodes removed</c></code></pre>
+		<pre><code>graph.<f>removeNode</f>(<arg>node</arg>)</c><br>graph.<f>removeIsolatedNodes</f>()</code></pre>
 	</div>
 
 	<p class="quote"><strong>Isolated nodes</strong> are nodes that aren't connected to an edge.</p>
 
 	<div class="centered">
-		<pre><code><key>var</key> node<key> =</key> graph.<f>mergeNodes</f>(<arg>node1</arg>,<arg>node2</arg>) <c>// node is a GraphNode</c></code></pre>
+		<pre><code>graph.<f>mergeNodes</f>(<arg>node1</arg>,<arg>node2</arg>)</code></pre>
 	</div>
+
+	<p class="quote">Each of these functions returns a <b>GraphClean</b> Object</p>
+
+	<div class="centered">
+		<pre><code>{<br>&nbsp;&nbsp;edges<key>:</key>{total<key>:</key><f>number</f>, duplicate<key>:</key><f>number</f>, circular<key>:</key><f>number</f>},<br>&nbsp;&nbsp;nodes<key>:</key>{total<key>:</key><f>number</f>, isolated<key>:</key><f>number</f>}<br>}</code></pre>
+	</div>
+
+	<p class="quote">Each of the entries in a <b>GraphClean</b> object is the number of elements of that type <strong>removed</strong></p>
 
 </section>
 

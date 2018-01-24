@@ -143,6 +143,14 @@ class GraphEdge{
 	isCircular():boolean{ return this.nodes[0] === this.nodes[1]; }
 	// do we need to test for invalid edges?
 		// && this.nodes[0] !== undefined;
+	/** If this is a edge with duplicate edge(s), returns an array of duplicates not including self
+	 * @returns {GraphEdge[]} array of duplicate GraphEdge, empty array if none
+	 */
+	duplicateEdges():GraphEdge[]{
+		return this.graph.edges.filter(function(el){
+			return this.isSimilarToEdge(el);
+		}, this);
+	}
 	/** For adjacent edges, get the node they share in common
 	 * @returns {GraphNode} the node in common, undefined if not adjacent
 	 */
@@ -478,6 +486,7 @@ class Graph{
 //	nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
 }
 
+
 /** a multigraph is a graph which allows circular and duplicate edges */
 class Multigraph extends Graph{
 	cleanGraph():GraphClean{
@@ -486,3 +495,4 @@ class Multigraph extends Graph{
 		return new GraphClean();
 	}
 }
+
