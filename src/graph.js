@@ -154,6 +154,14 @@ var GraphEdge = (function () {
     GraphEdge.prototype.isCircular = function () { return this.nodes[0] === this.nodes[1]; };
     // do we need to test for invalid edges?
     // && this.nodes[0] !== undefined;
+    /** If this is a edge with duplicate edge(s), returns an array of duplicates not including self
+     * @returns {GraphEdge[]} array of duplicate GraphEdge, empty array if none
+     */
+    GraphEdge.prototype.duplicateEdges = function () {
+        return this.graph.edges.filter(function (el) {
+            return this.isSimilarToEdge(el);
+        }, this);
+    };
     /** For adjacent edges, get the node they share in common
      * @returns {GraphNode} the node in common, undefined if not adjacent
      */
@@ -308,10 +316,8 @@ var Graph = (function () {
         return this.addEdge(edgeClone);
     };
     ///////////////////////////////////////////////
-    // REMOVE PARTS
+    // REMOVE PARTS (TARGETS KNOWN)
     ///////////////////////////////////////////////
-    //
-    // TARGETS KNOWN
     /** Removes all nodes and edges, returning the graph to it's original state */
     Graph.prototype.clear = function () {
         this.nodes = [];
@@ -377,16 +383,15 @@ var Graph = (function () {
         return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
     };
     ///////////////////////////////////////////////
-    // REMOVE PARTS
+    // REMOVE PARTS (SEARCH REQUIRED TO LOCATE)
     ///////////////////////////////////////////////
-    //
-    // TARGETS UNKNOWN (SEARCH REQUIRED)
     /** Removes any node that isn't a part of an edge
      * @returns {GraphClean} the number of nodes removed
      */
     Graph.prototype.removeIsolatedNodes = function () {
         // this function relies on .index values. it would be nice if it didn't
         this.nodeArrayDidChange();
+        // build an array containing T/F if a node is NOT isolated for each node
         var nodeDegree = [];
         for (var i = 0; i < this.nodes.length; i++) {
             nodeDegree[i] = false;
@@ -395,18 +400,14 @@ var Graph = (function () {
             nodeDegree[this.edges[i].nodes[0].index] = true;
             nodeDegree[this.edges[i].nodes[1].index] = true;
         }
-        var count = 0;
-        for (var i = this.nodes.length - 1; i >= 0; i--) {
-            var index = this.nodes[i].index;
-            if (nodeDegree[index] == false) {
-                this.nodes.splice(i, 1);
-                count++;
-            }
-        }
-        if (count > 0) {
+        // filter out isolated nodes
+        var nodeLength = this.nodes.length;
+        this.nodes = this.nodes.filter(function (el, i) { return nodeDegree[i]; });
+        var isolatedCount = nodeLength - this.nodes.length;
+        if (isolatedCount > 0) {
             this.nodeArrayDidChange();
         }
-        return new GraphClean().isolatedNodes(count);
+        return new GraphClean().isolatedNodes(isolatedCount);
     };
     /** Remove all edges that contain the same node at both ends
      * @returns {GraphClean} the number of edges removed

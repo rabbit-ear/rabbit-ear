@@ -39,11 +39,11 @@ for(var i = 0; i < graph.edges.length; i++){
 document.body.innerHTML += edgeString;
 
 //////////////////
-var removeCount = graph.cleanDuplicateEdges();
+var cleanReport = graph.cleanDuplicateEdges();
 
 document.body.innerHTML += "<hr>";
 document.body.innerHTML += "<h1>Clean Duplicate Edges</h1>";
-document.body.innerHTML += "<h3>Cleaning... removed " + removeCount + " Edges</h3>";
+document.body.innerHTML += "<h3>Cleaning... removed " + cleanReport.edges.duplicate + " Edges</h3>";
 
 var nodeString = "NODES: ";
 for(var i = 0; i < graph.nodes.length; i++){ nodeString += "(" + graph.nodes[i].index + ") "; }
@@ -58,11 +58,11 @@ for(var i = 0; i < graph.edges.length; i++){
 document.body.innerHTML += edgeString;
 
 //////////////////
-var removeCount = graph.cleanCircularEdges();
+var cleanReport = graph.cleanCircularEdges();
 
 document.body.innerHTML += "<hr>";
 document.body.innerHTML += "<h1>Clean Circular Edges</h1>";
-document.body.innerHTML += "<h3>Cleaning... removed " + removeCount + " Edges</h3>";
+document.body.innerHTML += "<h3>Cleaning... removed " + cleanReport.edges.circular + " Edges</h3>";
 
 var nodeString = "NODES: ";
 for(var i = 0; i < graph.nodes.length; i++){ nodeString += "(" + graph.nodes[i].index + ") "; }
@@ -77,12 +77,12 @@ for(var i = 0; i < graph.edges.length; i++){
 document.body.innerHTML += edgeString;
 
 //////////////////
-var removeCount = graph.removeIsolatedNodes();
+var cleanReport = graph.removeIsolatedNodes();
 
 document.body.innerHTML += "<hr>";
 document.body.innerHTML += "<h1>Remove Isolated Nodes</h1>";
 document.body.innerHTML += "Node indices will update with their new values counting up from zero, look closely to see the consistencies inside the edges.";
-document.body.innerHTML += "<h3>Cleaning... removed " + removeCount + " Nodes</h3>";
+document.body.innerHTML += "<h3>Cleaning... removed " + cleanReport.nodes.isolated + " Nodes</h3>";
 
 
 var nodeString = "NODES: ";

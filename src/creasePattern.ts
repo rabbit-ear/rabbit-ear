@@ -308,21 +308,6 @@ class CreasePattern extends PlanarGraph{
 		return g;
 	}
 
-	possibleFolds3(edges?:Crease[]):CreasePattern{
-		var next = this.duplicate();
-		next.nodes = [];
-		next.edges = [];
-		next.faces = [];
-		if(edges === undefined){ edges = this.edges; }
-		for(var i = 0; i < edges.length-1; i++){
-			for(var j = i+1; j < edges.length; j++){
-				next.creaseEdgeToEdge(edges[i], edges[j]);
-			}
-		}
-		next.cleanDuplicateNodes();
-		return next;
-	}
-
 	possibleFolds():CreasePattern{
 		var next = this.duplicate();
 		next.nodes = [];
@@ -336,20 +321,6 @@ class CreasePattern extends PlanarGraph{
 		for(var i = 0; i < this.nodes.length-1; i++){
 			for(var j = i+1; j < this.nodes.length; j++){
 				next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
-				next.creasePointToPoint(this.nodes[i], this.nodes[j]);
-			}
-		}
-		next.cleanDuplicateNodes();
-		return next;
-	}
-
-	possibleFolds2():CreasePattern{
-		var next = this.duplicate();
-		next.nodes = [];
-		next.edges = [];
-		next.faces = [];
-		for(var i = 0; i < this.nodes.length-1; i++){
-			for(var j = i+1; j < this.nodes.length; j++){
 				next.creasePointToPoint(this.nodes[i], this.nodes[j]);
 			}
 		}
@@ -371,6 +342,34 @@ class CreasePattern extends PlanarGraph{
 		return next;
 	}
 
+	possibleFolds2():CreasePattern{
+		var next = this.duplicate();
+		next.nodes = [];
+		next.edges = [];
+		next.faces = [];
+		for(var i = 0; i < this.nodes.length-1; i++){
+			for(var j = i+1; j < this.nodes.length; j++){
+				next.creasePointToPoint(this.nodes[i], this.nodes[j]);
+			}
+		}
+		next.cleanDuplicateNodes();
+		return next;
+	}
+
+	possibleFolds3(edges?:Crease[]):CreasePattern{
+		var next = this.duplicate();
+		next.nodes = [];
+		next.edges = [];
+		next.faces = [];
+		if(edges === undefined){ edges = this.edges; }
+		for(var i = 0; i < edges.length-1; i++){
+			for(var j = i+1; j < edges.length; j++){
+				next.creaseEdgeToEdge(edges[i], edges[j]);
+			}
+		}
+		next.cleanDuplicateNodes();
+		return next;
+	}
 
 	// precision is an epsilon value: 0.00001
 /*	wiggle(precision):XY[]{

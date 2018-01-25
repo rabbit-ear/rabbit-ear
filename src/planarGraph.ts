@@ -548,9 +548,6 @@ class PlanarClean extends GraphClean{
 		if(numNodes !== undefined){ this.nodes.total += numNodes; }
 		if(numEdges !== undefined){ this.edges.total += numEdges; }
 	}
-	isolatedNodes(num:number):PlanarClean{
-		this.nodes.isolated = num; this.nodes.total += num; return this;
-	}
 	fragmentedNodes(nodes):PlanarClean{
 		this.nodes.fragment = nodes; this.nodes.total += nodes.length; return this;
 	}

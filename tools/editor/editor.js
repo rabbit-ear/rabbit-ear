@@ -27,13 +27,15 @@ project.recalculateFolds = function(){
 		this.cp.newPlanarNode(intersections[i].x, intersections[i].y);
 	}
 	// calculate all possible folds
-	this.allPossibleFolds = this.cp.possibleFolds();
+	// this.allPossibleFolds = this.cp.possibleFolds();
 	this.possibleCreasesLayer.removeChildren();
 	this.possibleCreasesLayer.activate();
-	for(var i = 0; i < this.allPossibleFolds.edges.length; i++){
-		var newPath = new this.scope.Path({segments: this.allPossibleFolds.edges[i].nodes, closed: false });
-		Object.assign(newPath, this.style.mark);
-		newPath.strokeWidth = 0.001;
+	if(this.allPossibleFolds !== undefined){
+		for(var i = 0; i < this.allPossibleFolds.edges.length; i++){
+			var newPath = new this.scope.Path({segments: this.allPossibleFolds.edges[i].nodes, closed: false });
+			Object.assign(newPath, this.style.mark);
+			newPath.strokeWidth = 0.001;
+		}
 	}
 	this.possibleCreasesLayer.sendToBack();
 	this.backgroundLayer.sendToBack();

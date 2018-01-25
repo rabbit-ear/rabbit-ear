@@ -635,11 +635,6 @@ var PlanarClean = (function (_super) {
         }
         return _this;
     }
-    PlanarClean.prototype.isolatedNodes = function (num) {
-        this.nodes.isolated = num;
-        this.nodes.total += num;
-        return this;
-    };
     PlanarClean.prototype.fragmentedNodes = function (nodes) {
         this.nodes.fragment = nodes;
         this.nodes.total += nodes.length;
@@ -1548,10 +1543,7 @@ var PlanarGraph = (function (_super) {
     ///////////////////////////////////////////////////////////////
     // INTERIOR ANGLES
     PlanarGraph.prototype.generatePlanarJoints = function () {
-        console.time("joints");
-        var okay = flatMap(this.nodes, function (el) { return el.joints(); });
-        console.timeEnd("joints");
-        return okay;
+        return flatMap(this.nodes, function (el) { return el.joints(); });
     };
     ///////////////////////////////////////////////////////////////
     // FACE
