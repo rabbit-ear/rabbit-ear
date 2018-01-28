@@ -4,6 +4,16 @@
 
 /// <reference path="graph.ts"/>
 
+interface rbushObject{
+	insert(data:object):object;
+	load(data:object[]);
+	search(data:object):object[];
+	duration?: number;
+	color?: string;
+}
+declare function rbush():rbushObject;
+// declare var rbush:rbushObject;
+
 "use strict";
 
 var EPSILON_LOW  = 0.003;
@@ -608,6 +618,9 @@ class PlanarNode extends GraphNode{
 	x:number;
 	y:number;
 
+	// for fast algorithms, temporarily storing information on here
+	cache:object;
+
 	adjacentFaces():PlanarFace[]{
 		var adjacentFaces = [];
 		var adj = this.planarAdjacent();
@@ -1042,7 +1055,161 @@ class PlanarGraph extends Graph{
 	// 	return count;
 	// }
 
+	// cleanDuplicateNodesTest(epsilon?:number){
+	// 	function search(quadtree, x0, y0, x3, y3) {
+	// 		quadtree.visit(function(node, x1, y1, x2, y2) {
+	// 			if (!node.length) {
+	// 				do {
+	// 					var d = node.data;
+	// 					d.scanned = true;
+	// 					d.selected = (d[0] >= x0) && (d[0] < x3) && (d[1] >= y0) && (d[1] < y3);
+	// 				} while (node = node.next);
+	// 			}
+	// 			return x1 >= x3 || y1 >= y3 || x2 < x0 || y2 < y0;
+	// 		});
+	// 	}
+	// 	var tree = d3.quadtree()
+	// 	var coords:number[][] = this.nodes.map(function(el){return [el.x, el.y];});
+	// 	tree.addAll(coords);
+	// 	search(tree, 0, 0, 1, 1);
+	// 	console.log(coords);
+	// 	return tree;
+	// }
+
+	clusteringTest(epsilon?:number){
+		if (epsilon == undefined){ epsilon = EPSILON; }
+		var tree = rbush();
+		var nodes = this.nodes.map(function(el){
+			return {
+				minX: el.x - epsilon,
+				minY: el.y - epsilon,
+				maxX: el.x + epsilon,
+				maxY: el.y + epsilon
+			};
+		});
+		tree.load(nodes);
+		var result = tree.search({
+			minX: 0.45,
+			minY: 0.45,
+			maxX: 0.55,
+			maxY: 0.55
+		});
+		console.log(tree);
+		console.log(result);
+
+	}
+
+
 	cleanDuplicateNodes(epsilon?:number):PlanarClean{
+		var tree = rbush();
+		// cache each node's adjacent edges
+		// this.nodes.forEach(function(el){ el.cache = {'edges':[]}; });
+		// this.edges.forEach(function(el){ 
+		// 	el.nodes[0].cache['edges'].push(el);
+		// 	el.nodes[1].cache['edges'].push(el);
+		// });
+		var nodes = this.nodes.map(function(el){
+			return {
+				minX: el.x - epsilon,
+				minY: el.y - epsilon,
+				maxX: el.x + epsilon,
+				maxY: el.y + epsilon,
+				node: el
+			};
+		});
+		tree.load(nodes);
+
+		var that = this;
+		function merge2Nodes(nodeA, nodeB){//:PlanarClean{
+			that.edges.forEach(function(el){
+				if(el.nodes[0] === nodeB){ el.nodes[0] = nodeA; }
+				if(el.nodes[1] === nodeB){ el.nodes[1] = nodeA; }
+			});
+			that.nodes = that.nodes.filter(function(el){ return el !== nodeB; });
+			// return new PlanarClean().duplicateNodes(new XY(nodeB.x, nodeB.y)).join(that.cleanGraph());
+			that.cleanGraph();
+		}
+
+		// var clean = new PlanarClean()
+
+		for(var i = 0; i < this.nodes.length; i++){
+			var result = tree.search({
+				minX: this.nodes[i].x - epsilon,
+				minY: this.nodes[i].y - epsilon,
+				maxX: this.nodes[i].x + epsilon,
+				maxY: this.nodes[i].y + epsilon
+			});
+			for(var r = 0; r < result.length; r++){
+				if(this.nodes[i] !== result[r]['node']){
+					// clean.join(merge2Nodes(this.nodes[i], result[r]['node']));
+					merge2Nodes(this.nodes[i], result[r]['node']);
+				}
+			}
+		}
+		// return clean
+		return new PlanarClean();
+	}
+
+
+	cleanDuplicateNodesBroken(epsilon?:number):PlanarClean{
+		if(epsilon === undefined){ epsilon = EPSILON; }
+
+		this.nodes.forEach(function(el){ el.cache = {'edges':[]}; });
+		this.edges.forEach(function(el){ 
+			el.nodes[0].cache['edges'].push(el);
+			el.nodes[1].cache['edges'].push(el);
+		});
+		var sortedNodes = this.nodes.slice().sort(function(a,b){
+				if(a.x-b.x < -epsilon){ return -1; }
+				if(a.x-b.x > epsilon){ return 1; }
+				if(a.y-b.y < -epsilon){ return -1; }
+				if(a.y-b.y > epsilon){ return 1; }
+				return 0;});
+
+		// even better, add a property to these objects in sorted nodes that is the distance to the nearest node. THEN sort the sorted nodes by the distances to other nodes so the algorithm takes care of clustered nodes before it takes care of nodes that are farther apart
+
+		// this performs a kind of a line sweep algorithm
+		// console.log(this.nodes);
+
+		var that = this;
+		function searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
+			for(var j = 1; j < 20; j++){
+				for(var i = 0; i < sortedNodes.length-j; i++){
+					if( sortedNodes[i].equivalent( sortedNodes[i+j], epsilon )){
+
+						var nodeStaying = sortedNodes[i];
+						var nodeRemoving = sortedNodes[i+j];
+						that.edges.forEach(function(el){
+							if(el.nodes[0] === nodeRemoving){ el.nodes[0] = nodeStaying; }
+							if(el.nodes[1] === nodeRemoving){ el.nodes[1] = nodeStaying; }
+						});
+						// var incidentEdges = nodeRemoving.cache['edges'];
+						// incidentEdges.forEach(function(el){
+						// 	if(el.nodes[0] === nodeRemoving){ el.nodes[0] = nodeStaying; }
+						// 	if(el.nodes[1] === nodeRemoving){ el.nodes[1] = nodeStaying; }
+						// });
+						that.nodes = that.nodes.filter(function(el){ return el !== nodeRemoving; });
+						// sortedNodes.splice(i+1, 1);
+						sortedNodes = sortedNodes.filter(function(el){ return el !== nodeRemoving; });
+						// damn do we need to do this everytime?
+						that.cleanGraph();
+						return nodeStaying;
+					}
+				}
+			}
+			return undefined;
+		}
+
+		var node:PlanarNode;
+		var locations:XY[] = [];
+		do{
+			node = searchAndMergeOneDuplicatePair(epsilon);
+			if(node != undefined){ locations.push(new XY(node.x, node.y)); }
+		} while(node != undefined)
+		return new PlanarClean().duplicateNodes(locations);
+	}
+
+	cleanDuplicateNodesSlow(epsilon?:number):PlanarClean{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var that = this;
 		function searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{

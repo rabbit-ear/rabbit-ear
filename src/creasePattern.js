@@ -316,22 +316,6 @@ var CreasePattern = (function (_super) {
         g.boundary = b;
         return g;
     };
-    CreasePattern.prototype.possibleFolds3 = function (edges) {
-        var next = this.duplicate();
-        next.nodes = [];
-        next.edges = [];
-        next.faces = [];
-        if (edges === undefined) {
-            edges = this.edges;
-        }
-        for (var i = 0; i < edges.length - 1; i++) {
-            for (var j = i + 1; j < edges.length; j++) {
-                next.creaseEdgeToEdge(edges[i], edges[j]);
-            }
-        }
-        next.cleanDuplicateNodes();
-        return next;
-    };
     CreasePattern.prototype.possibleFolds = function () {
         var next = this.duplicate();
         next.nodes = [];
@@ -351,6 +335,19 @@ var CreasePattern = (function (_super) {
         next.cleanDuplicateNodes();
         return next;
     };
+    CreasePattern.prototype.possibleFolds1 = function () {
+        var next = this.duplicate();
+        next.nodes = [];
+        next.edges = [];
+        next.faces = [];
+        for (var i = 0; i < this.nodes.length - 1; i++) {
+            for (var j = i + 1; j < this.nodes.length; j++) {
+                next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
+            }
+        }
+        next.cleanDuplicateNodes();
+        return next;
+    };
     CreasePattern.prototype.possibleFolds2 = function () {
         var next = this.duplicate();
         next.nodes = [];
@@ -364,14 +361,17 @@ var CreasePattern = (function (_super) {
         next.cleanDuplicateNodes();
         return next;
     };
-    CreasePattern.prototype.possibleFolds1 = function () {
+    CreasePattern.prototype.possibleFolds3 = function (edges) {
         var next = this.duplicate();
         next.nodes = [];
         next.edges = [];
         next.faces = [];
-        for (var i = 0; i < this.nodes.length - 1; i++) {
-            for (var j = i + 1; j < this.nodes.length; j++) {
-                next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
+        if (edges === undefined) {
+            edges = this.edges;
+        }
+        for (var i = 0; i < edges.length - 1; i++) {
+            for (var j = i + 1; j < edges.length; j++) {
+                next.creaseEdgeToEdge(edges[i], edges[j]);
             }
         }
         next.cleanDuplicateNodes();
