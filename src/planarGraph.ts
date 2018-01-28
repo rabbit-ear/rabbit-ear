@@ -1136,6 +1136,7 @@ class PlanarGraph extends Graph{
 
 
 	cleanDuplicateNodes(epsilon?:number):PlanarClean{
+		if (epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var tree = rbush();
 		// cache each node's adjacent edges
 		// this.nodes.forEach(function(el){ el.cache = {'edges':[]}; });

@@ -1236,6 +1236,9 @@ var PlanarGraph = (function (_super) {
         console.log(result);
     };
     PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
         var tree = rbush();
         // cache each node's adjacent edges
         // this.nodes.forEach(function(el){ el.cache = {'edges':[]}; });

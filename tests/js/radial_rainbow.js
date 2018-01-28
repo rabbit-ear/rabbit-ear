@@ -26,6 +26,8 @@ radialRay.reset = function(){
 	this.style.selectedEdge = { gray:0.0 };
 	this.style.mark.strokeColor = { gray:0.0 };
 	this.planarAdjacent = this.cp.getNearestNode(0.5, 0.5).planarAdjacent();
+	console.log(this.cp.getNearestNode(0.5, 0.5));
+	console.log(this.planarAdjacent);
 	for(var i = 0; i < this.planarAdjacent.length; i++){
 		var edgeIndex = this.planarAdjacent[i].edge.index;
 		this.edges[edgeIndex].strokeColor = {gray:0.0};
