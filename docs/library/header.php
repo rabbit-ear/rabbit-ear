@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <script language="javascript" type="text/javascript" src="../../lib/jquery-3.1.1.min.js"></script>
 <script language="javascript" type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
+<script language="javascript" type="text/javascript" src="../../src/3rdparty.js"></script>
 <script language="javascript" type="text/javascript" src="../../src/graph.js"></script>
 <script language="javascript" type="text/javascript" src="../../src/planarGraph.js"></script>
 <script language="javascript" type="text/javascript" src="../../src/creasePattern.js"></script>

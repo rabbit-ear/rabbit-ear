@@ -619,7 +619,7 @@ class PlanarNode extends GraphNode{
 	y:number;
 
 	// for fast algorithms, temporarily storing information on here
-	cache:object;
+	cache:object = {};
 
 	adjacentFaces():PlanarFace[]{
 		var adjacentFaces = [];
@@ -735,7 +735,18 @@ class PlanarEdge extends GraphEdge{
 	}
 
 	crossingEdges():EdgeIntersection[]{
+		// optimize by excluding all edges outside of the quad space occupied by this edge
+		var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
+		var maxX = (this.nodes[0].x > this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
+		var minY = (this.nodes[0].y < this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
+		var maxY = (this.nodes[0].y > this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
 		return this.graph.edges
+			.filter(function(el){ return !(
+				(el.nodes[0].x < minX && el.nodes[1].x < minX) ||
+				(el.nodes[0].x > maxX && el.nodes[1].x > maxX) ||
+				(el.nodes[0].y < minY && el.nodes[1].y < minY) ||
+				(el.nodes[0].y > maxY && el.nodes[1].y > maxY)
+				)},this)
 			.filter(function(el){ return this !== el}, this)
 			.map(function(el){ return this.intersection(el) }, this)
 			.filter(function(el){ return el != undefined})
@@ -1016,15 +1027,12 @@ class PlanarGraph extends Graph{
 				if(epsilonEqual(Math.abs(angleDiff), Math.PI, EPSILON_COLLINEAR)){
 					var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]), 
 									edges[1].uncommonNodeWithEdge(edges[0])]
-					// super.removeEdge(edges[0]);
 					edges[0].nodes = [farNodes[0], farNodes[1]];
-					var nodeLen = this.nodes.length;
 					this.removeEdge(edges[1]);
 					// this.newEdge(farNodes[0], farNodes[1]);
 					this.removeNode(node);
 					// console.log("Collinear " + (nodeLen - this.nodes.length));
-					// todo: edges increases by 1, should we use -1 ?
-					return new PlanarClean(nodeLen - this.nodes.length, -1);
+					return new PlanarClean(1, 1);
 				}
 			// return below, no break
 		}
@@ -1042,10 +1050,37 @@ class PlanarGraph extends Graph{
 	 * @returns {number} how many nodes were removed
 	 */
 	cleanAllUselessNodes():PlanarClean{
+		// prepare adjacency information
+		this.nodes.forEach(function(el){ el.cache['adjacentEdges'] = []; });
+		this.edges.forEach(function(el){ 
+			el.nodes[0].cache['adjacentEdges'].push(el);
+			el.nodes[1].cache['adjacentEdges'].push(el);
+		});
 		var report = new PlanarClean().join( this.removeIsolatedNodes() );
+		this.nodeArrayDidChange();
+		this.edgeArrayDidChange();
 		for(var i = this.nodes.length-1; i >= 0; i--){
-			report.join(this.cleanNodeIfUseless(this.nodes[i]));
+			var edges = this.nodes[i].cache['adjacentEdges'];
+			switch (edges.length){
+				case 0: report.join(this.removeNode(this.nodes[i])); break;
+				case 2:
+					// collinear check
+					var angleDiff = edges[0].absoluteAngle(this.nodes[i]) - edges[1].absoluteAngle(this.nodes[i]);
+					// console.log("collinear check " + angleDiff);
+					if(epsilonEqual(Math.abs(angleDiff), Math.PI, EPSILON_COLLINEAR)){
+						var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]), 
+										edges[1].uncommonNodeWithEdge(edges[0])]
+						edges[0].nodes = [farNodes[0], farNodes[1]];
+						this.edges.splice(edges[1].index, 1);
+						this.edgeArrayDidChange();
+						this.nodes.splice(this.nodes[i].index, 1);
+						this.nodeArrayDidChange();
+						report.join( new PlanarClean(1, 1) );
+					}
+				break;
+			}
 		}
+		this.nodes.forEach(function(el){ el.cache['adjacentEdges'] = undefined; });
 		return report;
 	}
 
@@ -1120,17 +1155,16 @@ class PlanarGraph extends Graph{
 		tree.load(nodes);
 
 		var that = this;
-		function merge2Nodes(nodeA, nodeB){//:PlanarClean{
+		function merge2Nodes(nodeA, nodeB):PlanarClean{
 			that.edges.forEach(function(el){
 				if(el.nodes[0] === nodeB){ el.nodes[0] = nodeA; }
 				if(el.nodes[1] === nodeB){ el.nodes[1] = nodeA; }
 			});
 			that.nodes = that.nodes.filter(function(el){ return el !== nodeB; });
-			// return new PlanarClean().duplicateNodes(new XY(nodeB.x, nodeB.y)).join(that.cleanGraph());
-			that.cleanGraph();
+			return new PlanarClean().duplicateNodes(new XY(nodeB.x, nodeB.y)).join(that.cleanGraph());
 		}
 
-		// var clean = new PlanarClean()
+		var clean = new PlanarClean()
 
 		for(var i = 0; i < this.nodes.length; i++){
 			var result = tree.search({
@@ -1141,13 +1175,11 @@ class PlanarGraph extends Graph{
 			});
 			for(var r = 0; r < result.length; r++){
 				if(this.nodes[i] !== result[r]['node']){
-					// clean.join(merge2Nodes(this.nodes[i], result[r]['node']));
-					merge2Nodes(this.nodes[i], result[r]['node']);
+					clean.join(merge2Nodes(this.nodes[i], result[r]['node']));
 				}
 			}
 		}
-		// return clean
-		return new PlanarClean();
+		return clean;
 	}
 
 
@@ -1275,12 +1307,16 @@ class PlanarGraph extends Graph{
 		function fragmentOneRound():PlanarClean{
 			var roundReport = new PlanarClean();
 			for(var i = 0; i < that.edges.length; i++){
+				// console.time("fragmentEdge");
 				var fragmentReport = that.fragmentEdge(that.edges[i]);
 				roundReport.join(fragmentReport);
 				if(fragmentReport.nodes.fragment.length > 0){
+					// console.timeEnd("fragmentEdge");
+					// console.time("clean");
 					roundReport.join( that.cleanGraph() );
 					roundReport.join( that.cleanAllUselessNodes() );
 					roundReport.join( that.cleanDuplicateNodes() );
+					// console.timeEnd("clean");
 				}
 			}
 			return roundReport;
@@ -1290,12 +1326,14 @@ class PlanarGraph extends Graph{
 		var protection = 0;
 		var report = new PlanarClean();
 		var thisReport:PlanarClean;
+		// console.time("fragment");
 		do{
 			thisReport = fragmentOneRound();
 			report.join( thisReport );
 			protection += 1;
 		}while(thisReport.nodes.fragment.length != 0 && protection < 400);
 		if(protection >= 400){ console.log("breaking loop, exceeded 400"); }
+		// console.timeEnd("fragment");
 		return report;
 	}
 
@@ -1304,9 +1342,12 @@ class PlanarGraph extends Graph{
 	 */
 	fragmentEdge(edge:PlanarEdge):PlanarClean{
 		var report = new PlanarClean();
+		// console.time("crossingEdge");
 		var intersections:EdgeIntersection[] = edge.crossingEdges();
+		// console.timeEnd("crossingEdge");
 		if(intersections.length === 0) { return report; }
 		report.nodes.fragment = intersections.map(function(el){ return new XY(el.x, el.y);});
+		// console.time("fragmentEdge");
 		var endNodes = edge.nodes.sort(function(a,b){
 			if(a.x-b.x < -EPSILON_HIGH){ return -1; }  if(a.x-b.x > EPSILON_HIGH){ return 1; }
 			if(a.y-b.y < -EPSILON_HIGH){ return -1; }  if(a.y-b.y > EPSILON_HIGH){ return 1; }
@@ -1330,6 +1371,7 @@ class PlanarGraph extends Graph{
 		}
 		this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length-1], endNodes[1]];
 		this.removeEdge(edge);
+		// console.timeEnd("fragmentEdge");
 		report.join(this.cleanGraph());
 		return report;
 	}

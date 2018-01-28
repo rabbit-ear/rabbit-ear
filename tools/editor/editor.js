@@ -27,7 +27,7 @@ project.recalculateFolds = function(){
 		this.cp.newPlanarNode(intersections[i].x, intersections[i].y);
 	}
 	// calculate all possible folds
-	// this.allPossibleFolds = this.cp.possibleFolds();
+	this.allPossibleFolds = this.cp.possibleFolds();
 	this.possibleCreasesLayer.removeChildren();
 	this.possibleCreasesLayer.activate();
 	if(this.allPossibleFolds !== undefined){
