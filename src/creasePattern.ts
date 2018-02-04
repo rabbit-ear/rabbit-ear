@@ -313,17 +313,21 @@ class CreasePattern extends PlanarGraph{
 		next.nodes = [];
 		next.edges = [];
 		next.faces = [];
+		console.time("edge2edge");
 		for(var i = 0; i < this.edges.length-1; i++){
 			for(var j = i+1; j < this.edges.length; j++){
 				next.creaseEdgeToEdge(this.edges[i], this.edges[j]);
 			}
 		}
+		console.timeEnd("edge2edge");
+		console.time("creasepoints");
 		for(var i = 0; i < this.nodes.length-1; i++){
 			for(var j = i+1; j < this.nodes.length; j++){
 				next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
 				next.creasePointToPoint(this.nodes[i], this.nodes[j]);
 			}
 		}
+		console.timeEnd("creasepoints");
 		next.cleanDuplicateNodes();
 		return next;
 	}
@@ -338,7 +342,7 @@ class CreasePattern extends PlanarGraph{
 				next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
 			}
 		}
-		next.cleanDuplicateNodes();
+		// next.cleanDuplicateNodes();
 		return next;
 	}
 
@@ -352,7 +356,7 @@ class CreasePattern extends PlanarGraph{
 				next.creasePointToPoint(this.nodes[i], this.nodes[j]);
 			}
 		}
-		next.cleanDuplicateNodes();
+		// next.cleanDuplicateNodes();
 		return next;
 	}
 
@@ -367,7 +371,7 @@ class CreasePattern extends PlanarGraph{
 				next.creaseEdgeToEdge(edges[i], edges[j]);
 			}
 		}
-		next.cleanDuplicateNodes();
+		// next.cleanDuplicateNodes();
 		return next;
 	}
 

@@ -79,8 +79,8 @@
 
 <canvas id="p5-empty-canvas" style="display:none;"></canvas>
 
-<script language="javascript" type="text/javascript" src="../tests/js/intersect_wobble.js"></script>
-<script type="text/javascript" src="../tests/js/face_single.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/intersect_wobble.js"></script>
+<script type="text/javascript" src="../tests/face_single.js"></script>
 <script>
 var p5js = new p5(function(p, canvasName) { 
 	noise = function(d){ return p.noise(d); }
@@ -97,7 +97,7 @@ singleFaceCallback = function(e){
 singleFace.reset();
 </script>
 
-<script type="text/javascript" src="../tests/js/radial_rainbow.js"></script>
+<script type="text/javascript" src="../tests/radial_rainbow.js"></script>
 <script>
 radial_rainbow_callback = function(event){
 	var edgeNum = event.edge.index;

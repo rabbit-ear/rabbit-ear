@@ -25,7 +25,7 @@
 <h2><a href="#nodes-and-edges">&sect;</a> Nodes and Edges</h2>
 
 <section id="nodes-and-edges">
-	<p class="quote">All of a graph's nodes and edges are stored in arrays called <b>nodes</b> and <b>edges</b>.<br>The types are <a href="library/GraphNode.php">Graph Node</a> and <a href="library/GraphEdge.php">Graph Edge</a>.</p>
+	<p class="quote">The graph holds onto all its nodes and edges in arrays.<br>The types are <a href="library/GraphNode.php">Graph Node</a> and <a href="library/GraphEdge.php">Graph Edge</a>.</p>
 
 	<div class="centered">
 		<pre><code>graph.<v>nodes</v> <key>=</key> [] <c> // array of GraphNode</c><br>graph.<v>edges</v> <key>=</key> [] <c> // array of GraphEdge</c></code></pre>
@@ -178,11 +178,11 @@
 	
 </section>
 
-<script language="javascript" type="text/javascript" src="../tests/js/graph_simple.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/graph_adjacentNode.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/graph_adjacentEdge.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/graph_removeNode.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/graph_removeEdge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph_simple.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph_adjacentNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph_adjacentEdge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph_removeNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph_removeEdge.js"></script>
 <script>
 	$(".accordion-title").html("MORE");
 	function updateNodesAdjacentToNode(input, output){

@@ -124,21 +124,21 @@
 </div>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/js/mouse_delete_edge.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/intersections.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/05_parallels_scale.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/11_merge_duplicates.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/mouse_delete_edge.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/intersections.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/05_parallels_scale.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/11_merge_duplicates.js"></script>
 
 <script>
 	
 var crane1CP = new OrigamiPaper("canvas-crane-1", cp);
-crane1CP.loadUnclean("/tests/svg/crane-errors.svg", function(){ 
+crane1CP.loadUnclean("/files/svg/crane-errors.svg", function(){ 
 	crane1CP.setPadding(0.05);
 	crane1CP.selectNearestEdge = true;
 });
 
 var crane2CP = new OrigamiPaper("canvas-crane-2", cp);
-crane2CP.load("/tests/svg/crane-errors.svg", function(){ 
+crane2CP.load("/files/svg/crane-errors.svg", function(){ 
 	crane2CP.setPadding(0.05);
 	crane2CP.selectNearestEdge = true;
 });

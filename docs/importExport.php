@@ -16,6 +16,6 @@
 	
 </section>
 
-<script type="text/javascript" src="../tests/js/load_svg.js"></script>
+<script type="text/javascript" src="../tests/load_svg.js"></script>
 
 <?php include 'footer.php';?>

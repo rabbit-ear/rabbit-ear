@@ -1,0 +1,51 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script language="javascript" type="text/javascript" src="../src/graph.js"></script>
+</head>
+<body>
+</body>
+<script>
+
+function fillWithRandom(numNodes, numEdges){
+	for(var i = 0; i < numNodes; i++){ graph.newNode(); }
+	for(var i = 0; i < numEdges; i++){
+		var one = Math.floor( Math.random()*numNodes );
+		var two = Math.floor( Math.random()*numNodes );
+		graph.newEdge(graph.nodes[one], graph.nodes[two]);
+	}
+}
+
+var NODE_COUNT = 6 + Math.floor(Math.random()*4);
+var EDGE_COUNT = 1000;
+
+// CREATE A GRAPH, RANDOM COMPONENTS
+var graph = new Graph();
+fillWithRandom(NODE_COUNT, EDGE_COUNT);
+graph.clean();
+document.body.innerHTML += "<h1>" + graph.nodes.length + " Nodes, " + graph.edges.length + " Edges</h1>";
+
+var edgeConnections = "";
+for(var i = 0; i < graph.edges.length; i++){
+	edgeConnections += "(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") ";
+}
+document.body.innerHTML += edgeConnections;
+
+var nodeToRemove = Math.floor(Math.random()*graph.nodes.length);
+
+document.body.innerHTML += "<h3>Removed node " + nodeToRemove + ", cleaning edges...</h3>";
+
+graph.removeNode(graph.nodes[nodeToRemove]);
+
+document.body.innerHTML += "<h1>" + graph.nodes.length + " Nodes, " + graph.edges.length + " Edges</h1>";
+
+edgeConnections = "";
+for(var i = 0; i < graph.edges.length; i++){
+	edgeConnections += "(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") ";
+}
+document.body.innerHTML += edgeConnections;
+
+document.body.innerHTML += "<hr>These numbers represent the # location in the node array. Now that element " + nodeToRemove + " was removed, everything after " + nodeToRemove + " shifted to take its place. Notice how there is no longer a node " + (NODE_COUNT-1) + ".";
+
+</script>
+</html>

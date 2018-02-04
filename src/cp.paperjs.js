@@ -27,12 +27,20 @@ function pointsSimilar(p1, p2, epsilon){
 ///////////////////////////////////////////////
 
 
-var OrigamiPaper = (function () {
+var OrigamiPaper = (function(){
 
 	function OrigamiPaper(canvas, creasePattern) {
 		if(canvas === undefined) { throw "OrigamiPaper() needs to be initialized with an HTML canvas"; }
-		if(typeof canvas === "string"){ this.canvas = document.getElementById(canvas); }
-		else this.canvas = canvas;
+		if(typeof canvas === "string"){ 
+			this.canvas = document.getElementById(canvas);
+			// if canvas string isn't found, try the generic case id="canvas"
+			if(this.canvas === null){
+				this.canvas = document.getElementById("canvas");
+			}
+		}
+		else{ this.canvas = canvas; }
+
+		console.log(this.canvas);
 
 		this.epsilon = EPSILON;
 
@@ -43,7 +51,7 @@ var OrigamiPaper = (function () {
 		
 		// PAPER JS
 		this.scope = new paper.PaperScope();
-		this.scope.setup(canvas);
+		this.scope.setup(this.canvas);
 		this.cpMin = 1.0; // thickness of lines based on this
 		this.style = this.defaultStyleTemplate();
 		this.padding = 0.0075; // padding inside the canvas
@@ -410,8 +418,13 @@ var OrigamiFold = (function(){
 
 	function OrigamiFold(canvas, creasePattern) {
 		if(canvas === undefined) { throw "OrigamiFold() needs to be initialized with an HTML canvas"; }
-		if(typeof canvas === "string"){ this.canvas = document.getElementById(canvas); }
-		else this.canvas = canvas;
+		if(typeof canvas === "string"){
+			this.canvas = document.getElementById(canvas);
+			if(this.canvas === null){
+				this.canvas = document.getElementById("canvas");
+			}
+		}
+		else{ this.canvas = canvas; }
 
 		// data model
 		this.cp = creasePattern;
@@ -558,6 +571,7 @@ var OrigamiFold = (function(){
 
 
 function paperPathToCP(paperPath){
+	console.time("paperPathToCP");
 	var svgLayer = paperPath;
 	var w = svgLayer.bounds.size.width;
 	var h = svgLayer.bounds.size.height;
@@ -603,6 +617,7 @@ function paperPathToCP(paperPath){
 	// cleanup
 	svgLayer.removeChildren();
 	svgLayer.remove();
+	console.timeEnd("paperPathToCP");
 	return cp;
 }
 

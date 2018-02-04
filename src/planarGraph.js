@@ -1246,6 +1246,7 @@ var PlanarGraph = (function (_super) {
         // 	el.nodes[0].cache['edges'].push(el);
         // 	el.nodes[1].cache['edges'].push(el);
         // });
+        console.time("map");
         var nodes = this.nodes.map(function (el) {
             return {
                 minX: el.x - epsilon,
@@ -1255,7 +1256,11 @@ var PlanarGraph = (function (_super) {
                 node: el
             };
         });
+        console.timeEnd("map");
+        // console.log(nodes);
+        console.time("load");
         tree.load(nodes);
+        console.timeEnd("load");
         var that = this;
         function merge2Nodes(nodeA, nodeB) {
             that.edges.forEach(function (el) {
@@ -1271,6 +1276,7 @@ var PlanarGraph = (function (_super) {
         }
         var clean = new PlanarClean();
         for (var i = 0; i < this.nodes.length; i++) {
+            // console.log("" + i + " / " + this.nodes.length);
             var result = tree.search({
                 minX: this.nodes[i].x - epsilon,
                 minY: this.nodes[i].y - epsilon,

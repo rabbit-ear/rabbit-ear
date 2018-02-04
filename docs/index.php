@@ -85,8 +85,8 @@
 
 <!-- include .js sketches -->
 <script language="javascript" type="text/javascript" src="js/cp_fish_wobble.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/graph_adjacentNode.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/js/04_intersections.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/graph_adjacentNode.js"></script>
+<script language="javascript" type="text/javascript" src="../tests/04_intersections.js"></script>
 <script>
 	var p5intersections = new p5(_04_intersections, 'sketch_intersections');
 	p5intersections.callback = function(e){

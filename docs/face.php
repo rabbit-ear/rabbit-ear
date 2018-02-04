@@ -83,11 +83,11 @@
 	</ul>
 </div>
  -->
-<script type="text/javascript" src="../tests/js/node-adjacent-faces.js"></script>
-<script type="text/javascript" src="../tests/js/faces_radial.js"></script>
-<script type="text/javascript" src="../tests/js/faces_random.js"></script>
-<script type="text/javascript" src="../tests/js/faces_random_partial.js"></script>
-<script type="text/javascript" src="../tests/js/radial_rainbow.js"></script>
+<script type="text/javascript" src="../tests/node-adjacent-faces.js"></script>
+<script type="text/javascript" src="../tests/faces_radial.js"></script>
+<script type="text/javascript" src="../tests/faces_random.js"></script>
+<script type="text/javascript" src="../tests/faces_random_partial.js"></script>
+<script type="text/javascript" src="../tests/radial_rainbow.js"></script>
 <script>
 radial_rainbow_callback = function(event){
 	var edgeNum = event.edge.index;

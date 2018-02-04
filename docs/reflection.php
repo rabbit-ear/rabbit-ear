@@ -22,7 +22,7 @@
 
 </section>
 
-<script src="../tests/js/reflection.js"></script>
+<script src="../tests/reflection.js"></script>
 
 <script>
 katex.render("\\begin{bmatrix} a & c & tx \\\\ b & d & ty \\end{bmatrix}", document.getElementById("matrix-1"));

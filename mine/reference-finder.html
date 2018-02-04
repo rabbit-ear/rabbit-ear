@@ -81,8 +81,6 @@ canvas[resize]{
 <script src="../lib/bootstrap/js/bootstrap.min.js"></script>
 <script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
 
-
-
 <script>
 $("#radio-target-type :input").change(function() {
 	switch(this.id){
@@ -213,6 +211,7 @@ project.recalculateFolds = function(){
 	for(var i = 0; i < this.nextSet.edges.length; i++){
 		var newPath = new this.scope.Path({segments: this.nextSet.edges[i].nodes, closed: false });
 		Object.assign(newPath, this.style.mark);
+		newPath.strokeColor = { gray:0.82, alpha:1.0 },
 		newPath.strokeWidth = 0.001;
 	}
 	this.selectedNextLayer.sendToBack();
@@ -221,8 +220,8 @@ project.recalculateFolds = function(){
 	this.targetLayer.bringToFront();
 }
 project.updateTargets = function(){
-	console.log(targets[0]);
-	console.log(targets[1]);
+	// console.log(targets[0]);
+	// console.log(targets[1]);
 	// circle around the target point
 	this.targetLayer.removeChildren();
 	this.targetLayer.activate();

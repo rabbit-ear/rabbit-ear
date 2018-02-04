@@ -1,0 +1,45 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script language="javascript" type="text/javascript" src="../src/graph.js"></script>
+	<script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
+	<style> body {padding: 0; margin: 0;} </style>
+</head>
+<body>
+	<script>
+
+function fillWithRandom(count){
+	for(var i = 0; i < count; i++){
+		g.newPlanarEdge(Math.random(), Math.random(), Math.random(), Math.random());
+	}
+	g.log();
+	console.log('clean');
+	g.clean();
+	console.log('testing intersections');
+	var list = g.getAllEdgeIntersections();
+	console.log(list);
+}
+
+function fillWithSunburst(count){
+	var center = {x:0.5, y:0.5, z:0.0};
+	g.nodes.push(center);
+	for(var i = 0; i < count; i++){
+		g.newPlanarEdgeFromNode(0, Math.random(), Math.random());
+	}
+}
+
+function fillWithRope(count){
+	g.clear();
+	var first = {x:Math.random(), y:Math.random(), z:0.0};
+	g.nodes.push(first);
+	for(var i = 0; i < count; i++){
+		g.newPlanarEdgeFromNode(i, Math.random(), Math.random());
+	}
+}
+
+var g = new PlanarGraph();
+fillWithRandom(1000);
+
+</script>
+</body>
+</html>

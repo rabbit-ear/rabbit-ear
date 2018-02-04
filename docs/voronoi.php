@@ -33,8 +33,8 @@
 </section>
 
 <script src="../lib/d3.min.js"></script>
-<script src="../tests/js/voronoi_interp.js"></script>
-<script src="../tests/js/voronoi_edit.js"></script>
+<script src="../tests/voronoi_interp.js"></script>
+<script src="../tests/voronoi_edit.js"></script>
 
 <script type="text/javascript">
 

@@ -47,14 +47,14 @@
 
 </section>
 
-<script type="text/javascript" src="../tests/js/joint_tri_anim.js"></script>
+<script type="text/javascript" src="../tests/joint_tri_anim.js"></script>
 
 <script>
 	new OrigamiPaper("canvas-1", new CreasePattern().birdBase());
 
 	var craneCP = new OrigamiPaper("canvas-load-svg");
 
-	craneCP.load("/tests/svg/crane.svg", function(){
+	craneCP.load("/files/svg/crane.svg", function(){
 		// console.log("rendered file");
 		// console.log(cp);
 		// new OrigamiPaper("canvas-load-svg", cp);

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript" src="../src/3rdparty.js"></script>
+<script type="text/javascript" src="../src/graph.js"></script>
+<script type="text/javascript" src="../src/planarGraph.js"></script>
+<script type="text/javascript" src="../src/creasePattern.js"></script>
+<script type="text/javascript" src="../lib/fold.js"></script>
+<script type="text/javascript">FOLD = require('fold'); </script>
+<script>
+window.onload = function() {
+	var fileInput = document.getElementById('files');
+	fileInput.addEventListener('change', function(e) {
+		var file = fileInput.files[0];
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			// console.log(reader.result);
+			FOLD.convert.convertFromTo(reader.result, "opx", "fold");
+		}
+		// reader.readAsDataURL(file);
+		reader.readAsText(file);
+	});
+}
+</script>
+</head>
+<body>
+<input type="file" id="files" name="file" />
+</body>
+</html>

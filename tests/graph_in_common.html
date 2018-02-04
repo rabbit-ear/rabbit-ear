@@ -1,0 +1,64 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script language="javascript" type="text/javascript" src="../src/graph.js"></script>
+</head>
+<body>
+</body>
+<script>
+
+function fillWithRandom(numNodes, numEdges){
+	for(var i = 0; i < numNodes; i++){ graph.newNode(); }
+	for(var i = 0; i < numEdges; i++){
+		var one = Math.floor( Math.random()*numNodes );
+		var two = Math.floor( Math.random()*numNodes );
+		graph.newEdge(graph.nodes[one], graph.nodes[two]);
+	}
+}
+
+var graph = new Graph();
+
+var NODE_COUNT = 7;
+var EDGE_COUNT = 20;
+
+// CREATE A GRAPH, RANDOM COMPONENTS
+fillWithRandom(NODE_COUNT, EDGE_COUNT);
+graph.clean();
+document.body.innerHTML += "<h1>" + graph.nodes.length + " Nodes, " + graph.edges.length + " Edges</h1>";
+
+document.body.innerHTML += "<hr>";
+
+document.body.innerHTML += "<h1>Node in Common</h1>";
+document.body.innerHTML += "<h3>both way comparisons, results should be equivalent</h3>";
+
+var commonString = "";
+for(var i = 1; i < graph.edges.length; i++){
+	var node0 = graph.edges[0].commonNodeWithEdge(graph.edges[i]);
+	var nodeI = graph.edges[i].commonNodeWithEdge(graph.edges[0]);
+	if (node0 === undefined){ commonString += "(" + graph.edges[0].nodes[0].index + "," + graph.edges[0].nodes[1].index + "):(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") aren't adjacent<br>"; }
+	else { 
+		commonString += "(" + graph.edges[0].nodes[0].index + "," + graph.edges[0].nodes[1].index + "):(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") = " + node0.index + ", " + nodeI.index + "<br>"; 
+	}
+}
+
+document.body.innerHTML += commonString;
+
+document.body.innerHTML += "<hr>";
+
+document.body.innerHTML += "<h1>Nodes not in Common</h1>";
+document.body.innerHTML += "<h3>both way comparisons, results should be different</h3>";
+
+var uncommonString = "";
+for(var i = 1; i < graph.edges.length; i++){
+	var node0 = graph.edges[0].uncommonNodeWithEdge(graph.edges[i]);
+	var nodeI = graph.edges[i].uncommonNodeWithEdge(graph.edges[0]);
+	if (node0 === undefined){ uncommonString += "(" + graph.edges[0].nodes[0].index + "," + graph.edges[0].nodes[1].index + "):(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") aren't adjacent<br>"; }
+	else { 
+		uncommonString += "(" + graph.edges[0].nodes[0].index + "," + graph.edges[0].nodes[1].index + "):(" + graph.edges[i].nodes[0].index + "," + graph.edges[i].nodes[1].index + ") = " + node0.index + ", " + nodeI.index + "<br>"; 
+	}
+}
+
+document.body.innerHTML += uncommonString;
+
+</script>
+</html>

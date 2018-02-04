@@ -82,19 +82,19 @@
 
 </section>
 
-<script type="text/javascript" src="../tests/js/flat_foldable_nodes_wiggle.js"></script>
-<script type="text/javascript" src="../tests/js/flat_foldable_single.js"></script>
-<script type="text/javascript" src="../tests/js/face_matrix.js"></script>
+<script type="text/javascript" src="../tests/flat_foldable_nodes_wiggle.js"></script>
+<script type="text/javascript" src="../tests/flat_foldable_single.js"></script>
+<script type="text/javascript" src="../tests/face_matrix.js"></script>
 
 <script>
 var unfoldedCrane = new OrigamiPaper("canvas-unfolded-crane");
-unfoldedCrane.load("../tests/svg/crane.svg", function(){
+unfoldedCrane.load("../files/svg/crane.svg", function(){
 	unfoldedCrane.style.valley = unfoldedCrane.style.mountain;
 	unfoldedCrane.draw();
 });
 
 var foldedCrane = new OrigamiFold("canvas-folded-crane");
-foldedCrane.load("../tests/svg/crane.svg", function(){
+foldedCrane.load("../files/svg/crane.svg", function(){
 	foldedCrane.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 	foldedCrane.update();
 });
@@ -133,7 +133,7 @@ redoOneCrease();
 // console.log(oneCreaseFolded.cp);
 
 // console.log("one crease");
-// oneCreaseFolded.load("../tests/svg/one-crease.svg", function(){
+// oneCreaseFolded.load("../files/svg/one-crease.svg", function(){
 // 	console.log("one crease end");
 // 	oneCreaseFolded.style = { face:{ fillColor:{ gray:0.0, alpha:0.5 } } };
 // 	oneCreaseFolded.update();
@@ -151,7 +151,7 @@ redoOneCrease();
 
 <script>
 var offSquaresFolded = new OrigamiFold("canvas-off-squares-folded");
-offSquaresFolded.load("../tests/svg/off-squares.svg", function(){
+offSquaresFolded.load("../files/svg/off-squares.svg", function(){
 	offSquaresFolded.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 	offSquaresFolded.update();
 	offSquaresFolded.customZoom = 2;
@@ -159,7 +159,7 @@ offSquaresFolded.load("../tests/svg/off-squares.svg", function(){
 });
 
 var offSquares = new OrigamiPaper("canvas-off-squares");
-offSquares.load("../tests/svg/off-squares.svg", function(){
+offSquares.load("../files/svg/off-squares.svg", function(){
 	offSquares.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 	offSquares.update();
 });

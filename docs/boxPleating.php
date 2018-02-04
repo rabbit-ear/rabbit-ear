@@ -31,6 +31,6 @@
 
 </section>
 
-<script src="../tests/js/no_crossing.js"></script>
+<script src="../tests/no_crossing.js"></script>
 
 <?php include 'footer.php';?>

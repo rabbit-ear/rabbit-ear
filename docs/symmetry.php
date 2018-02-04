@@ -51,8 +51,8 @@
 
 </section>
 
-<script src="../tests/js/mirror.js"></script>
-<script src="../tests/js/mirror-book.js"></script>
-<script src="../tests/js/reflection.js"></script>
+<script src="../tests/mirror.js"></script>
+<script src="../tests/mirror-book.js"></script>
+<script src="../tests/reflection.js"></script>
 
 <?php include 'footer.php';?>
