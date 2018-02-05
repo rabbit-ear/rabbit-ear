@@ -145,23 +145,23 @@ var OrigamiPaper = (function(){
 			}
 			// paper color
 			this.backgroundLayer.activate();
-			var paperBackground = new paper.Path({segments: boundarySegments, closed: true });
+			var paperBackground = new this.scope.Path({segments: boundarySegments, closed: true });
 			paperBackground.fillColor = this.style.backgroundColor;
 			paperBackground.strokeWidth = 0;
 			// boundary color
 			this.boundaryLayer.activate();
-			var boundaryPath = new paper.Path({segments: boundarySegments, closed: true });
+			var boundaryPath = new this.scope.Path({segments: boundarySegments, closed: true });
 			Object.assign(boundaryPath, this.styleForCrease(CreaseDirection.border));
 		}
 		this.nodeLayer.activate();
 		for(var i = 0; i < this.cp.nodes.length; i++){
-			var circle = new paper.Shape.Circle({ center: [this.cp.nodes[i].x, this.cp.nodes[i].y] });
+			var circle = new this.scope.Shape.Circle({ center: [this.cp.nodes[i].x, this.cp.nodes[i].y] });
 			Object.assign(circle, this.style.nodes);
 			this.nodes.push( circle );
 		}
 		this.edgeLayer.activate();
 		for(var i = 0; i < this.cp.edges.length; i++){
-			var path = new paper.Path({segments: this.cp.edges[i].nodes, closed: false });
+			var path = new this.scope.Path({segments: this.cp.edges[i].nodes, closed: false });
 			Object.assign(path, this.styleForCrease(this.cp.edges[i].orientation));
 			this.edges.push( path );
 		}
@@ -269,7 +269,7 @@ var OrigamiPaper = (function(){
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
 		// mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
-		mat.translate(-cpWidth*0.5 - cpBounds.origin.x, -cpHeight*0.5 - cpBounds.origin.y);
+		mat.translate(-cpWidth*0.5 - cpBounds.topLeft.x, -cpHeight*0.5 - cpBounds.topLeft.y);
 		this.scope.view.matrix = mat;
 		// don't call this!
 		// this.updateWeights();
@@ -555,7 +555,7 @@ var OrigamiFold = (function(){
 		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale);
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
-		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
+		mat.translate(-cpBounds.topLeft.x-cpWidth*0.5, -cpBounds.topLeft.y-cpHeight*0.5);
 		mat.translate((1.0-this.customZoom), (1.0-this.customZoom));  // scale a bit - translate to center
 		this.scope.view.matrix = mat;
 		return mat;

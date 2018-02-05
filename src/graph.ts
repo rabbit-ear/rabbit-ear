@@ -137,6 +137,11 @@ class GraphEdge{
 		return( (this.nodes[0] === edge.nodes[0] && this.nodes[1] === edge.nodes[1] ) ||
 		        (this.nodes[0] === edge.nodes[1] && this.nodes[1] === edge.nodes[0] ) );
 	}
+	otherNode(node:GraphNode):GraphNode{
+		if(this.nodes[0] === node){ return this.nodes[1]; }
+		if(this.nodes[1] === node){ return this.nodes[0]; }
+		return undefined;
+	}
 	/** Test if an edge points both at both ends to the same node
 	 * @returns {boolean} true or false, circular or not
 	 */

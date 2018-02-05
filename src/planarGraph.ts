@@ -4,15 +4,17 @@
 
 /// <reference path="graph.ts"/>
 
+// DEPENDENCIES:
+// rbush.js
 interface rbushObject{
+	// duration?: number;
+	// color?: string;
 	insert(data:object):object;
 	load(data:object[]);
 	search(data:object):object[];
-	duration?: number;
-	color?: string;
 }
 declare function rbush():rbushObject;
-// declare var rbush:rbushObject;
+/////////////////////////////////////
 
 "use strict";
 
@@ -22,14 +24,11 @@ var EPSILON_HIGH = 0.00000001;
 var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a screen
 var EPSILON_COLLINEAR = EPSILON_LOW;//Math.PI * 0.001; // what decides 2 similar angles
 
-function flatMap<T, U>(array: T[], mapFunc: (x: T) => U[]) : U[] {
-	return array.reduce((cumulus: U[], next: T) => [...mapFunc(next), ...cumulus], <U[]> []);
-}
-
 //////////////////////////// TYPE CHECKING //////////////////////////// 
 function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
 function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
-/////////////////////////////// NUMBERS /////////////////////////////// 
+/////////////////////////////// NUMBERS ///////////////////////////////
+/** map a number from one range into another */
 function map(input:number, fl1:number, ceil1:number, fl2:number, ceil2:number):number{
 	return ( (input - fl1) / (ceil1 - fl1) ) * (ceil2 - fl2) + fl2;
 }
@@ -45,11 +44,15 @@ function wholeNumberify(num:number):number{
 	return num;
 }
 /////////////////////////////// ARRAYS /////////////////////////////// 
-/** all values in an array are equivalent based on != comparison */
+function flatMap<T, U>(array: T[], mapFunc: (x: T) => U[]) : U[] {
+	return array.reduce((cumulus: U[], next: T) => [...mapFunc(next), ...cumulus], <U[]> []);
+}
+/** all values in an array are equivalent based on !== comparison */
 function allEqual(args:boolean[]):boolean {
-	for(var i = 1; i < args.length; i++){ if(args[i] != args[0]) return false;}
+	for(var i = 1; i < args.length; i++){ if(args[i] !== args[0]) return false;}
 	return true;
 }
+/** does an array contain an object, based on reference comparison */
 function arrayContainsObject(array, object):boolean{
 	for(var i = 0; i < array.length; i++) { if(array[i] === object){ return true; } }
 	return false;
@@ -89,7 +92,7 @@ function onSegment(point:XY, a:XY, b:XY, epsilon?:number):boolean{
 	var p_b = Math.sqrt( Math.pow(point.x-b.x,2) + Math.pow(point.y-b.y,2) );
 	return (Math.abs(a_b - (p_a+p_b)) < epsilon);
 }
-/** There are 2 interior angles between 2 angle measurements, from A to B, return the clockwise one
+/** There are 2 interior angles between 2 absolute angle measurements, from A to B, return the clockwise one
  * @param {number} angle in radians
  * @param {number} angle in radians
  * @returns {number} clockwise interior angle (from a to b) in radians
@@ -100,6 +103,14 @@ function clockwiseAngleFrom(a:number, b:number):number{
 	var a_b = a - b;
 	if(a_b >= 0) return a_b;
 	return Math.PI*2 - (b - a);
+}
+///////////////
+function clockwiseInteriorAngle(a:XY, b:XY):number{
+	var dotProduct = b.x*a.x + b.y*a.y;
+	var determinant = b.x*a.y - b.y*a.x;
+	var angle = Math.atan2(determinant, dotProduct);
+	if(angle < 0){ angle += Math.PI*2; }
+	return angle * 180 / Math.PI;
 }
 /** There are 2 interior angles between 2 angle measurements, return the smaller one
  * @param {number} angle in radians
@@ -135,6 +146,10 @@ function smallerInteriorAngleVector(pointA:XY, pointB:XY):number{
  * @returns {number} smaller of the 2 interior angles betwen a and b in radians
  */
 function bisectSmallerInteriorAngle(center:XY, pointA:XY, pointB:XY):number{
+	var a = new XY(pointA.y-center.y, pointA.x-center.x);
+	var b = new XY(pointB.y-center.y, pointB.x-center.x);
+	var angleA = clockwiseInteriorAngle(a,b);
+	var angleB = clockwiseInteriorAngle(b,a);
 	var angleA = Math.atan2(pointA.y-center.y, pointA.x-center.x);
 	var angleB = Math.atan2(pointB.y-center.y, pointB.x-center.x);
 	var interiorA = clockwiseAngleFrom(angleA, angleB);
@@ -142,7 +157,9 @@ function bisectSmallerInteriorAngle(center:XY, pointA:XY, pointB:XY):number{
 	if(interiorA < interiorB) return angleA - interiorA * 0.5;
 	return angleB - interiorB * 0.5;
 }
-
+function bisectClockwiseVector(vecA:XY, vecB:XY){
+	
+}
 function linesParallel(p0:XY, p1:XY, p2:XY, p3:XY, epsilon?:number):boolean {
 	if(epsilon === undefined){ epsilon = EPSILON; }
 	// p0-p1 is first line, p2-p3 is second line
@@ -288,7 +305,7 @@ function convexHull(points:XY[]):XY[]{
 	return [];
 }
 /////////////////////////////////////////////////////////////////////////////////
-//                                 CLASSES
+//                                GEOMETRY
 /////////////////////////////////////////////////////////////////////////////////
 
 class XY{
@@ -399,6 +416,11 @@ class Matrix{
 		return m;
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////////
+//                            PLANAR GRAPH PARTS
+/////////////////////////////////////////////////////////////////////////////////
+
 class AdjacentNodes{
 	// node adjacent to node, with angle offset and connecting edge
 	parent:PlanarNode;  // "first" node, polarity required for angle calculation
@@ -501,50 +523,6 @@ class PlanarJoint{
 
 	// (private function)
 	sortByClockwise(){}
-}
-
-class Spring { 
-	xpos:number = 0;
-	ypos:number = 0;
-	tempxpos:number = 0;
-	tempypos:number = 0;
-
-	mass:number = 1;
-	k:number = 1;
-	damp:number = 0.8;
-	rest_posx:number = 0;
-	rest_posy:number = 0;
-
-	velx:number = 0.0;
-	vely:number = 0.0;
-	accel:number = 0;
-	force:number = 0;
-
-	// Constructor
-	constructor(x, y, d, m){
-		if(x !== undefined && y != undefined){
-			this.xpos = this.rest_posx = this.tempxpos = x;
-			this.ypos = this.rest_posy = this.tempypos = y;
-		}
-		if(d !== undefined){ this.damp = d; }
-		if(m !== undefined){ this.mass = m; }
-	}
-
-	update(movePosition?:XY){
-		if (movePosition !== undefined) {
-			this.rest_posx = movePosition.x;
-			this.rest_posy = movePosition.y;
-		}
-		this.force = -this.k * (this.tempxpos - this.rest_posx);
-		this.accel = this.force / this.mass;
-		this.velx = this.damp * (this.velx + this.accel);
-		this.tempxpos = this.tempxpos + this.velx;
-
-		this.force = -this.k * (this.tempypos - this.rest_posy);
-		this.accel = this.force / this.mass;
-		this.vely = this.damp * (this.vely + this.accel);
-		this.tempypos = this.tempypos + this.vely;
-	}
 }
 
 class PlanarClean extends GraphClean{
@@ -735,6 +713,12 @@ class PlanarEdge extends GraphEdge{
 
 	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
 
+	// form a vector by placing one of the nodes at the origin
+	vector(originNode:PlanarNode):XY{
+		var otherNode = otherNode(originNode);
+		return new XY(otherNode.x - originNode.x, otherNode.y - originNode.y);
+	}
+
 	intersection(edge:PlanarEdge):EdgeIntersection{
 		// todo: should intersecting adjacent edges return the point in common they have with each other?
 		if(this.isAdjacentToEdge(edge)){ return undefined; }
@@ -886,55 +870,6 @@ class PlanarGraph extends Graph{
 
 	constructor(){ super(); this.clear(); }
 
-	// converts node objects into array of arrays notation x is [0], and y is [1]
-	nodes_array():number[][]{return this.nodes.map(function(el){return [el.x, el.y]});}
-
-	/** This will deep-copy the contents of this graph and return it as a new object
-	 * @returns {PlanarGraph} 
-	 */
-	duplicate():PlanarGraph{
-		this.nodeArrayDidChange();
-		this.edgeArrayDidChange();
-		var g = new PlanarGraph();
-		for(var i = 0; i < this.nodes.length; i++){
-			var n = g.addNode(new PlanarNode(g));
-			(<any>Object).assign(n, this.nodes[i]);
-			n.graph = g; n.index = i;
-		}
-		for(var i = 0; i < this.edges.length; i++){
-			var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
-			var e = g.addEdge(new PlanarEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
-			(<any>Object).assign(e, this.edges[i]);
-			e.graph = g; e.index = i;
-			e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
-		}
-		for(var i = 0; i < this.faces.length; i++){
-			var f = new PlanarFace(g);
-			(<any>Object).assign(f, this.faces[i]);
-			for(var j=0;j<this.faces[i].nodes.length;j++){f.nodes.push(f.nodes[this.faces[i].nodes[j].index]);}
-			for(var j=0;j<this.faces[i].edges.length;j++){f.edges.push(f.edges[this.faces[i].edges[j].index]);}
-			for(var j=0;j<this.faces[i].angles.length;j++){f.angles.push(this.faces[i].angles[j]); }
-			f.graph = g;
-			g.faces.push(f);
-		}
-		return g;
-	}
-
-	bounds():Rect{
-		if(this.nodes === undefined || this.nodes.length === 0){ return undefined; }
-		var minX = Infinity;
-		var maxX = -Infinity;
-		var minY = Infinity;
-		var maxY = -Infinity;
-		this.nodes.forEach(function(el){
-			if(el.x > maxX){ maxX = el.x; }
-			if(el.x < minX){ minX = el.x; }
-			if(el.y > maxY){ maxY = el.y; }
-			if(el.y < minY){ minY = el.y; }
-		});
-		return new Rect(minX, minY, maxX-minX, maxY-minY);
-	}
-
 	///////////////////////////////////////////////
 	// ADD PARTS
 	///////////////////////////////////////////////
@@ -1054,7 +989,7 @@ class PlanarGraph extends Graph{
 	// REMOVE PARTS
 	///////////////////////////////////////////////
 	//
-	// SEARCH AND REMOVE
+	// REQUIRES SEARCH BEFORE REMOVE
 	//
 
 	/** Removes all isolated nodes and performs cleanNodeIfUseless() on every node
@@ -1095,56 +1030,6 @@ class PlanarGraph extends Graph{
 		return report;
 	}
 
-	// cleanNodes():number{
-	// 	var count = this.cleanAllUselessNodes();
-	// 	this.cleanDuplicateNodes();
-	// 	return count;
-	// }
-
-	// cleanDuplicateNodesTest(epsilon?:number){
-	// 	function search(quadtree, x0, y0, x3, y3) {
-	// 		quadtree.visit(function(node, x1, y1, x2, y2) {
-	// 			if (!node.length) {
-	// 				do {
-	// 					var d = node.data;
-	// 					d.scanned = true;
-	// 					d.selected = (d[0] >= x0) && (d[0] < x3) && (d[1] >= y0) && (d[1] < y3);
-	// 				} while (node = node.next);
-	// 			}
-	// 			return x1 >= x3 || y1 >= y3 || x2 < x0 || y2 < y0;
-	// 		});
-	// 	}
-	// 	var tree = d3.quadtree()
-	// 	var coords:number[][] = this.nodes.map(function(el){return [el.x, el.y];});
-	// 	tree.addAll(coords);
-	// 	search(tree, 0, 0, 1, 1);
-	// 	console.log(coords);
-	// 	return tree;
-	// }
-
-	clusteringTest(epsilon?:number){
-		if (epsilon == undefined){ epsilon = EPSILON; }
-		var tree = rbush();
-		var nodes = this.nodes.map(function(el){
-			return {
-				minX: el.x - epsilon,
-				minY: el.y - epsilon,
-				maxX: el.x + epsilon,
-				maxY: el.y + epsilon
-			};
-		});
-		tree.load(nodes);
-		var result = tree.search({
-			minX: 0.45,
-			minY: 0.45,
-			maxX: 0.55,
-			maxY: 0.55
-		});
-		console.log(tree);
-		console.log(result);
-	}
-
-
 	cleanDuplicateNodes(epsilon?:number):PlanarClean{
 		if (epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var tree = rbush();
@@ -1183,7 +1068,6 @@ class PlanarGraph extends Graph{
 		var clean = new PlanarClean()
 
 		for(var i = 0; i < this.nodes.length; i++){
-			// console.log("" + i + " / " + this.nodes.length);
 			var result = tree.search({
 				minX: this.nodes[i].x - epsilon,
 				minY: this.nodes[i].y - epsilon,
@@ -1197,101 +1081,6 @@ class PlanarGraph extends Graph{
 			}
 		}
 		return clean;
-	}
-
-
-	cleanDuplicateNodesBroken(epsilon?:number):PlanarClean{
-		if(epsilon === undefined){ epsilon = EPSILON; }
-
-		this.nodes.forEach(function(el){ el.cache = {'edges':[]}; });
-		this.edges.forEach(function(el){ 
-			el.nodes[0].cache['edges'].push(el);
-			el.nodes[1].cache['edges'].push(el);
-		});
-		var sortedNodes = this.nodes.slice().sort(function(a,b){
-				if(a.x-b.x < -epsilon){ return -1; }
-				if(a.x-b.x > epsilon){ return 1; }
-				if(a.y-b.y < -epsilon){ return -1; }
-				if(a.y-b.y > epsilon){ return 1; }
-				return 0;});
-
-		// even better, add a property to these objects in sorted nodes that is the distance to the nearest node. THEN sort the sorted nodes by the distances to other nodes so the algorithm takes care of clustered nodes before it takes care of nodes that are farther apart
-
-		// this performs a kind of a line sweep algorithm
-		// console.log(this.nodes);
-
-		var that = this;
-		function searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
-			for(var j = 1; j < 20; j++){
-				for(var i = 0; i < sortedNodes.length-j; i++){
-					if( sortedNodes[i].equivalent( sortedNodes[i+j], epsilon )){
-
-						var nodeStaying = sortedNodes[i];
-						var nodeRemoving = sortedNodes[i+j];
-						that.edges.forEach(function(el){
-							if(el.nodes[0] === nodeRemoving){ el.nodes[0] = nodeStaying; }
-							if(el.nodes[1] === nodeRemoving){ el.nodes[1] = nodeStaying; }
-						});
-						// var incidentEdges = nodeRemoving.cache['edges'];
-						// incidentEdges.forEach(function(el){
-						// 	if(el.nodes[0] === nodeRemoving){ el.nodes[0] = nodeStaying; }
-						// 	if(el.nodes[1] === nodeRemoving){ el.nodes[1] = nodeStaying; }
-						// });
-						that.nodes = that.nodes.filter(function(el){ return el !== nodeRemoving; });
-						// sortedNodes.splice(i+1, 1);
-						sortedNodes = sortedNodes.filter(function(el){ return el !== nodeRemoving; });
-						// damn do we need to do this everytime?
-						that.cleanGraph();
-						return nodeStaying;
-					}
-				}
-			}
-			return undefined;
-		}
-
-		var node:PlanarNode;
-		var locations:XY[] = [];
-		do{
-			node = searchAndMergeOneDuplicatePair(epsilon);
-			if(node != undefined){ locations.push(new XY(node.x, node.y)); }
-		} while(node != undefined)
-		return new PlanarClean().duplicateNodes(locations);
-	}
-
-	cleanDuplicateNodesSlow(epsilon?:number):PlanarClean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var that = this;
-		function searchAndMergeOneDuplicatePair(epsilon:number):PlanarNode{
-			for(var i = 0; i < that.nodes.length-1; i++){
-				for(var j = i+1; j < that.nodes.length; j++){
-					if ( that.nodes[i].equivalent( that.nodes[j], epsilon) ){
-						// todo, mergeNodes does repeated cleaning, suppress and move to end of function
-						// that.nodes[i].x = (that.nodes[i].x + that.nodes[j].x)*0.5;
-						// that.nodes[i].y = (that.nodes[i].y + that.nodes[j].y)*0.5;
-						// return that.mergeNodes(that.nodes[i], that.nodes[j]);
-						if(that.nodes[i] === that.nodes[j]) { return undefined; }
-						that.edges = that.edges.map(function(el){
-							if(el.nodes[0] === that.nodes[j]){ el.nodes[0] = that.nodes[i]; }
-							if(el.nodes[1] === that.nodes[j]){ el.nodes[1] = that.nodes[i]; }
-							return el;
-						});
-						that.nodes = that.nodes.filter(function(el){ return el !== that.nodes[j]; });
-						that.cleanGraph();
-						return that.nodes[i];
-					}
-				}
-			}
-			return undefined;
-		}
-
-		if(epsilon === undefined){ epsilon = EPSILON; }
-		var node:PlanarNode;
-		var locations:XY[] = [];
-		do{
-			node = searchAndMergeOneDuplicatePair(epsilon);
-			if(node != undefined){ locations.push(new XY(node.x, node.y)); }
-		} while(node != undefined)
-		return new PlanarClean().duplicateNodes(locations);
 	}
 
 	/** Removes circular and duplicate edges, merges and removes duplicate nodes, and refreshes .index values
@@ -1396,6 +1185,21 @@ class PlanarGraph extends Graph{
 	///////////////////////////////////////////////
 	// GET PARTS
 	///////////////////////////////////////////////
+
+	bounds():Rect{
+		if(this.nodes === undefined || this.nodes.length === 0){ return undefined; }
+		var minX = Infinity;
+		var maxX = -Infinity;
+		var minY = Infinity;
+		var maxY = -Infinity;
+		this.nodes.forEach(function(el){
+			if(el.x > maxX){ maxX = el.x; }
+			if(el.x < minX){ minX = el.x; }
+			if(el.y > maxY){ maxY = el.y; }
+			if(el.y < minY){ minY = el.y; }
+		});
+		return new Rect(minX, minY, maxX-minX, maxY-minY);
+	}
 
 	/** Without changing the graph, this function collects the XY locations of every point that two edges cross each other.
 	 * @returns {XY[]} array of XY locations of all the intersection locations
@@ -1577,6 +1381,37 @@ class PlanarGraph extends Graph{
 		});
 		if(anglesInside.length > 0) return anglesInside[0];
 		return undefined;
+	}
+
+	/** This will deep-copy the entire graph and its contents and return it as a new object
+	 * @returns {PlanarGraph} 
+	 */
+	duplicate():PlanarGraph{
+		this.nodeArrayDidChange();
+		this.edgeArrayDidChange();
+		var g = new PlanarGraph();
+		for(var i = 0; i < this.nodes.length; i++){
+			var n = g.addNode(new PlanarNode(g));
+			(<any>Object).assign(n, this.nodes[i]);
+			n.graph = g; n.index = i;
+		}
+		for(var i = 0; i < this.edges.length; i++){
+			var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+			var e = g.addEdge(new PlanarEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
+			(<any>Object).assign(e, this.edges[i]);
+			e.graph = g; e.index = i;
+			e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+		}
+		for(var i = 0; i < this.faces.length; i++){
+			var f = new PlanarFace(g);
+			(<any>Object).assign(f, this.faces[i]);
+			for(var j=0;j<this.faces[i].nodes.length;j++){f.nodes.push(f.nodes[this.faces[i].nodes[j].index]);}
+			for(var j=0;j<this.faces[i].edges.length;j++){f.edges.push(f.edges[this.faces[i].edges[j].index]);}
+			for(var j=0;j<this.faces[i].angles.length;j++){f.angles.push(this.faces[i].angles[j]); }
+			f.graph = g;
+			g.faces.push(f);
+		}
+		return g;
 	}
 
 	///////////////////////////////////////////////////////////////

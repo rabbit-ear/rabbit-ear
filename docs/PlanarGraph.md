@@ -32,7 +32,6 @@ faces:PlanarFace[]
 
 ```
 constructor()
-nodes_array():number[][]
 duplicate():PlanarGraph
 width():number
 height():number
@@ -65,14 +64,6 @@ getNearestInteriorAngle(x:any, y:any):InteriorAngle
 
 ```
 constructor()
-```
-
-#### nodes_array
-
-*converts node objects into array of arrays notation x is [0], and y is [1]*
-
-```	
-nodes_array():number[][]
 ```
 
 #### duplicate

@@ -11,17 +11,17 @@ html, body {
 	text-align:center;
 }
 canvas[resize] {
-	width: 100vmin;
-	height: 100vmin;
+	width: 90vmin;
+	height: 90vmin;
 }
 </style>
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
-<script type="text/javascript" src="../../src/3rdparty.js"></script>
-<script type="text/javascript" src="../../src/graph.js"></script>
-<script type="text/javascript" src="../../src/planarGraph.js"></script>
-<script type="text/javascript" src="../../src/creasePattern.js"></script>
-<script type="text/javascript" src="../../src/cp.paperjs.js"></script>
+<script type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../src/3rdparty.js"></script>
+<script type="text/javascript" src="../src/graph.js"></script>
+<script type="text/javascript" src="../src/planarGraph.js"></script>
+<script type="text/javascript" src="../src/creasePattern.js"></script>
+<script type="text/javascript" src="../src/cp.paperjs.js"></script>
 </head>
 <body>
 	<div class="dropdown">
@@ -29,6 +29,9 @@ canvas[resize] {
 	</div>
 	<canvas id="canvas" resize></canvas>
 <script>
+// load on start:
+$.getScript("vectors.js", function(arg){});
+// all files
 var filenames = [
 	"axiom1.js",
 	"axiom2.js",
@@ -96,6 +99,7 @@ var filenames = [
 	"sequence_folding_2.js",
 	"sequence_folding_3.js",
 	"turtle_shell.js",
+	"vectors.js",
 	"voronoi.js",
 	"voronoi_edit.js",
 	"voronoi_interp.js"
@@ -107,12 +111,8 @@ for(var i = 0; i < filenames.length; i++){
 	fileSelect.add(option);
 }
 $("#file-select").change(function(event){
-	console.log(event);
 	var url = $("#file-select").val();
-	console.log( url );
-	$.getScript(url, function(arg){
-		console.log(arg);
-	});
+	$.getScript(url, function(arg){});
 });
 </script>
  
