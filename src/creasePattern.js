@@ -533,14 +533,14 @@ var CreasePattern = (function (_super) {
         // 	i++;
         // }while( edgeCount === this.edges.length && i < validCreases.length );
         // if(edgeCount !== this.edges.length) return crease;
-        if (epsilonEqual(this.width(), this.height())) {
+        var bounds = this.bounds();
+        if (epsilonEqual(bounds.size.width, bounds.size.height)) {
             this.clean();
             var edgeCount = this.edges.length;
             var edgeMidpoints = this.edges.map(function (el) { return el.midpoint(); });
             var arrayOfPointsAndMidpoints = this.nodes.map(function (el) { return new XY(el.x, el.y); }).concat(edgeMidpoints);
             // console.log(arrayOfPointsAndMidpoints);
-            var bounds = this.boundingBox();
-            var centroid = new XY(bounds.origin.x + bounds.size.width * 0.5, bounds.origin.y + bounds.size.height * 0.5);
+            var centroid = new XY(bounds.topLeft.x + bounds.size.width * 0.5, bounds.topLeft.y + bounds.size.height * 0.5);
             var i = 0;
             do {
                 // console.log("new round");
@@ -569,7 +569,11 @@ var CreasePattern = (function (_super) {
         // use this.crease() instead
         // this is a private function and expects you have checked boundary intersect conditions
         this.creaseSymmetry(a_x, a_y, b_x, b_y);
-        return this.newPlanarEdge(a_x, a_y, b_x, b_y);
+        var newCrease = this.newPlanarEdge(a_x, a_y, b_x, b_y);
+        if (this.didChange !== undefined) {
+            this.didChange(undefined);
+        }
+        return newCrease;
     };
     /** Create a crease that is a line segment, and will crop if it extends beyond boundary
      * @arg 4 numbers or 2 XYs
@@ -1318,39 +1322,6 @@ var CreasePattern = (function (_super) {
     };
     //////////////////////////////////////////////
     // BOUNDARY
-    // rectangular bounding box around the paper: [x,y],[width,height]
-    CreasePattern.prototype.boundingBox = function () {
-        var leftToRight = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); });
-        var left = leftToRight[0].x;
-        var right = leftToRight[leftToRight.length - 1].x;
-        var topToBottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); });
-        var top = topToBottom[0].y;
-        var bottom = topToBottom[topToBottom.length - 1].y;
-        return { origin: new XY(left, top), size: { width: right - left, height: bottom - top } };
-    };
-    CreasePattern.prototype.boundingBox_array = function () {
-        var leftToRight = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); });
-        var left = leftToRight[0].x;
-        var right = leftToRight[leftToRight.length - 1].x;
-        var topToBottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); });
-        var top = topToBottom[0].y;
-        var bottom = topToBottom[topToBottom.length - 1].y;
-        return [[left, top], [right - left, bottom - top]];
-    };
-    CreasePattern.prototype.width = function () {
-        // this is the width of the BOUNDING BOX. be careful if the polygon is not a square
-        var leftToRight = this.boundary.nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : 0); });
-        var left = leftToRight[0];
-        var right = leftToRight[leftToRight.length - 1];
-        return right.x - left.x;
-    };
-    CreasePattern.prototype.height = function () {
-        // this is the height of the BOUNDING BOX. be careful if the polygon is not a square
-        var topToBottom = this.boundary.nodes.sort(function (a, b) { return (a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0); });
-        var top = topToBottom[0];
-        var bottom = topToBottom[topToBottom.length - 1];
-        return bottom.y - top.y;
-    };
     CreasePattern.prototype.square = function (width) {
         // console.log("setting page size: square()");
         var w = 1.0;
@@ -1740,11 +1711,11 @@ var CreasePattern = (function (_super) {
         if (size === undefined || size <= 0) {
             size = 600;
         }
-        var bounds = this.boundingBox();
+        var bounds = this.bounds();
         var width = bounds.size.width;
         var height = bounds.size.height;
-        var padX = bounds.origin.x;
-        var padY = bounds.origin.y;
+        var padX = bounds.topLeft.x;
+        var padY = bounds.topLeft.y;
         var scale = size / (width + padX * 2);
         var strokeWidth = (width * scale * 0.0025).toFixed(1);
         if (strokeWidth === "0" || strokeWidth === "0.0") {
@@ -1772,11 +1743,11 @@ var CreasePattern = (function (_super) {
         if (size === undefined || size <= 0) {
             size = 600;
         }
-        var bounds = this.boundingBox();
+        var bounds = this.bounds();
         var width = bounds.size.width;
         var height = bounds.size.height;
-        var orgX = bounds.origin.x;
-        var orgY = bounds.origin.y;
+        var orgX = bounds.topLeft.x;
+        var orgY = bounds.topLeft.y;
         var scale = size / (width);
         console.log(bounds);
         console.log(width);

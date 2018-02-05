@@ -12,7 +12,9 @@ var vInterpolation = 0.5;
 voronoiInterp.reset = function(){
 	this.cp.clear();
 	this.draw();
-	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
+	var bounds = this.cp.bounds();
+	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 	for(var i = 0; i < 4; i++){
 		var x = map(Math.random(), 0, 1, 0.1, 0.9);
 		var y = map(Math.random(), 0, 1, 0.1, 0.9);
@@ -54,7 +56,9 @@ voronoiInterp.redraw = function(){
 }
 
 voronoiInterp.onResize = function(){
-	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
+	var bounds = this.cp.bounds();
+	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 
 voronoiInterp.onMouseDown = function(event){

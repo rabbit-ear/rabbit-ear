@@ -246,7 +246,9 @@ project.reset = function(){
 	this.cp.clear();
 	// this.cp.rectangle(1.3,1);
 	this.draw();
-	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
+	var bounds = this.cp.bounds();
+	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 
 	if(touchNodesLayer !== undefined){ touchNodesLayer.removeChildren(); }
 	touchNodesLayer = new this.scope.Layer();
@@ -264,7 +266,9 @@ project.reset = function(){
 project.reset();
 
 project.onResize = function(){
-	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
+	var bounds = this.cp.bounds();
+	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 
 project.onMouseDown = function(event){

@@ -40,8 +40,6 @@ var OrigamiPaper = (function(){
 		}
 		else{ this.canvas = canvas; }
 
-		console.log(this.canvas);
-
 		this.epsilon = EPSILON;
 
 		// data model
@@ -254,8 +252,7 @@ var OrigamiPaper = (function(){
 		var cpHeight = 1.0;
 		if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
 		if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
-		var cpBounds = {origin:new XY(0,0), size:{width:cpWidth, height:cpHeight}};
-		if(this.cp.boundingBox !== undefined){ cpBounds = this.cp.boundingBox(); }
+		var cpBounds = this.cp.bounds();
 		var cpAspect = cpWidth / cpHeight;
 		this.cpMin = cpWidth;
 		if(cpHeight < cpWidth){ this.cpMin = cpHeight; }
@@ -541,8 +538,7 @@ var OrigamiFold = (function(){
 		var cpHeight = 1.0;
 		if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
 		if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
-		var cpBounds = {origin:{x:0,y:0}, size:{width:cpWidth, height:cpHeight}};
-		if(this.cp.boundingBox !== undefined){ this.cp.boundingBox(); }
+		var cpBounds = this.cp.bounds();
 		var cpAspect = cpWidth / cpHeight;
 		this.cpMin = cpWidth;
 		if(cpHeight < cpWidth){ this.cpMin = cpHeight; }

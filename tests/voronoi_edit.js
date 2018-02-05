@@ -52,7 +52,9 @@ voronoiEditor.reset = function(){
 	this.cp.clear();
 	// this.cp.rectangle(1.333333,1);
 	this.draw();
-	voronoiAlgorithmEditor = d3.voronoi().extent( this.cp.boundingBox_array() );
+	var bounds = this.cp.bounds();
+	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 
 	// add to voronoi
 	// for(var i = -10; i < numdots+10; i++){
@@ -79,7 +81,9 @@ voronoiEditor.reset = function(){
 voronoiEditor.reset();
 
 voronoiEditor.onResize = function(){
-	voronoiAlgorithmEditor = d3.voronoi().extent( this.cp.boundingBox_array() );
+	var bounds = this.cp.bounds();
+	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 
 voronoiEditor.onMouseDown = function(event){

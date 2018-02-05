@@ -331,6 +331,17 @@ class XY{
 		return this.transform( new Matrix().reflection(a,b) );
 	}
 }
+
+class Rect{
+	// didChange:(event:object)=>void;
+	topLeft:{x:number,y:number};
+	size:{width:number, height:number};
+	constructor(x:number,y:number,width:number,height:number){
+		this.topLeft = {'x':x, 'y':y};
+		this.size = {'width':width, 'height':height};
+	}
+}
+
 /** This is a 2x3 matrix: 2x2 for scale and rotation and 2x1 for translation */
 class Matrix{
 	a:number; c:number; tx:number;
@@ -869,7 +880,9 @@ class PlanarGraph extends Graph{
 	nodeType = PlanarNode;
 	edgeType = PlanarEdge;
 
-	properties = {"speed":0}; // we need something to be able to set to skip over functions
+	properties = {"optimization":0}; // we need something to be able to set to skip over functions
+
+	didChange:(event:object)=>void;
 
 	constructor(){ super(); this.clear(); }
 
@@ -907,21 +920,19 @@ class PlanarGraph extends Graph{
 		return g;
 	}
 
-	width():number{
-		// if(this.nodes === undefined || this.nodes.length === 0){ return 0; }
-		// var leftToRight = this.nodes.sort(function(a,b){return (a.x>b.x) ? 1:((b.x>a.x) ? -1:0);} );
-		// var left = leftToRight[0];
-		// var right = leftToRight[leftToRight.length-1];
-		// return right.x - left.x;
-		return 1;
-	}
-	height():number{
-		// if(this.nodes === undefined || this.nodes.length === 0){ return 0; }
-		// var topToBottom = this.nodes.sort(function(a,b){return (a.y>b.y) ? 1:((b.y>a.y) ? -1:0);} );
-		// var top = topToBottom[0];
-		// var bottom = topToBottom[topToBottom.length-1];
-		// return bottom.y - top.y;
-		return 1;
+	bounds():Rect{
+		if(this.nodes === undefined || this.nodes.length === 0){ return undefined; }
+		var minX = Infinity;
+		var maxX = -Infinity;
+		var minY = Infinity;
+		var maxY = -Infinity;
+		this.nodes.forEach(function(el){
+			if(el.x > maxX){ maxX = el.x; }
+			if(el.x < minX){ minX = el.x; }
+			if(el.y > maxY){ maxY = el.y; }
+			if(el.y < minY){ minY = el.y; }
+		});
+		return new Rect(minX, minY, maxX-minX, maxY-minY);
 	}
 
 	///////////////////////////////////////////////
@@ -1131,7 +1142,6 @@ class PlanarGraph extends Graph{
 		});
 		console.log(tree);
 		console.log(result);
-
 	}
 
 
@@ -1144,7 +1154,7 @@ class PlanarGraph extends Graph{
 		// 	el.nodes[0].cache['edges'].push(el);
 		// 	el.nodes[1].cache['edges'].push(el);
 		// });
-		console.time("map");
+		// console.time("map");
 		var nodes = this.nodes.map(function(el){
 			return {
 				minX: el.x - epsilon,
@@ -1154,11 +1164,11 @@ class PlanarGraph extends Graph{
 				node: el
 			};
 		});
-		console.timeEnd("map");
+		// console.timeEnd("map");
 		// console.log(nodes);
-		console.time("load");
+		// console.time("load");
 		tree.load(nodes);
-		console.timeEnd("load");
+		// console.timeEnd("load");
 
 		var that = this;
 		function merge2Nodes(nodeA, nodeB):PlanarClean{

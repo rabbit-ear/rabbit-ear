@@ -17,7 +17,9 @@ var selectedNode = undefined;
 voronoiSketch.reset = function(){
 	this.cp.clear();
 	this.draw();
-	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
+	var bounds = this.cp.bounds();
+	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 voronoiSketch.reset();
 
@@ -42,7 +44,9 @@ voronoiSketch.redraw = function(){
 }
 
 voronoiSketch.onResize = function(){
-	voronoiAlgorithm = d3.voronoi().extent( this.cp.boundingBox_array() );
+	var bounds = this.cp.bounds();
+	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 
 voronoiSketch.onMouseDown = function(event){
