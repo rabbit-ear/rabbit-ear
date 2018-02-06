@@ -248,11 +248,12 @@ var OrigamiPaper = (function(){
 		var pixelScale = 1.0;
 		if(isRetina){ pixelScale = 0.5; }
 		// crease pattern size
-		var cpWidth = 1.0; 
-		var cpHeight = 1.0;
-		if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
-		if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
 		var cpBounds = this.cp.bounds();
+		// if(cpBounds.width !== undefined){ cpWidth = this.cp.width(); }
+		// if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
+		var cpWidth = cpBounds.size.width;
+		var cpHeight = cpBounds.size.height;
+
 		var cpAspect = cpWidth / cpHeight;
 		this.cpMin = cpWidth;
 		if(cpHeight < cpWidth){ this.cpMin = cpHeight; }

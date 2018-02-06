@@ -3,7 +3,7 @@ var voronoiEditor = new OrigamiPaper("canvas-voronoi-edit");
 voronoiEditor.setPadding();
 
 var inputEditor = new PlanarGraph();
-var voronoiAlgorithmEditor; // global D3 algorithm implementation
+var voronoiAlgorithm; // global D3 algorithm implementation
 
 var vInterpolation = 0.5;
 
@@ -18,7 +18,7 @@ var simpleVoronoi = false;
 voronoiEditor.redraw = function(){
 	paper = this.scope;
 	var nodes = inputEditor.nodes.map(function(el){return el.values();});
-	var v = voronoiAlgorithmEditor( nodes );
+	var v = voronoiAlgorithm( nodes );
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];

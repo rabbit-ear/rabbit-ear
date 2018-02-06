@@ -1017,7 +1017,8 @@ var CreasePattern = (function (_super) {
                     var prevI = (i + el.quarterPoints.length - 1) % el.quarterPoints.length;
                     var a = new XY(el.quarterPoints[prevI].x - el.quarterPoints[i].x, el.quarterPoints[prevI].y - el.quarterPoints[i].y);
                     var b = new XY(el.quarterPoints[nextI].x - el.quarterPoints[i].x, el.quarterPoints[nextI].y - el.quarterPoints[i].y);
-                    var interiorAngle = smallerInteriorAngleVector(a, b);
+                    // smallest of the 2 interior angles
+                    var interiorAngle = interiorAngles(a, b)[0];
                     var acuteAngle = true;
                     if (interiorAngle > Math.PI * 0.5) {
                         acuteAngle = false;
@@ -1040,15 +1041,16 @@ var CreasePattern = (function (_super) {
                         prevThird = triangle[nextI].point;
                     }
                     var bisects = [
-                        bisectSmallerInteriorAngle(triangle[i].point, prevThird, triangle[prevI].point),
-                        bisectSmallerInteriorAngle(triangle[i].point, triangle[nextI].point, nextThird)
+                        bisect(prevThird.subtract(triangle[i].point), triangle[prevI].point.subtract(triangle[i].point))[0],
+                        bisect(triangle[nextI].point.subtract(triangle[i].point), nextThird.subtract(triangle[i].point))[0],
                     ];
                     var a = new XY(prevThird.y - triangle[i].point.y, prevThird.x - triangle[i].point.x);
                     var b = new XY(triangle[prevI].point.y - triangle[i].point.y, triangle[prevI].point.x - triangle[i].point.x);
-                    var interiors = [
-                        0.5 * smallerInteriorAngleVector(a, b),
-                        0.5 * smallerInteriorAngleVector(b, a)
-                    ];
+                    // var interiors = [
+                    // 	0.5 * smallerInteriorAngleVector(a, b),
+                    // 	0.5 * smallerInteriorAngleVector(b, a)
+                    // 	];
+                    var interiors = interiorAngles(a, b).forEach(function (el) { return el * 0.5; });
                     triangle[i].bisectAngles = bisects;
                     triangle[i].interiorAngles = interiors;
                 }
@@ -1168,11 +1170,11 @@ var CreasePattern = (function (_super) {
                     var nextNextI = (i + 2) % el.quarterPoints.length;
                     var a1 = new XY(el.quarterPoints[prevI].x - el.quarterPoints[i].x, el.quarterPoints[prevI].y - el.quarterPoints[i].y);
                     var b1 = new XY(el.quarterPoints[nextI].x - el.quarterPoints[i].x, el.quarterPoints[nextI].y - el.quarterPoints[i].y);
-                    var interiorAngle1 = smallerInteriorAngleVector(a1, b1);
+                    var interiorAngle1 = interiorAngles(a1, b1)[0];
                     // var interiorAngle1 = smallerInteriorAngleVector(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI]);
                     var a2 = new XY(el.quarterPoints[i].x - el.quarterPoints[nextI].x, el.quarterPoints[i].y - el.quarterPoints[nextI].y);
                     var b2 = new XY(el.quarterPoints[nextNextI].x - el.quarterPoints[nextI].x, el.quarterPoints[nextNextI].y - el.quarterPoints[nextI].y);
-                    var interiorAngle2 = smallerInteriorAngleVector(a2, b2);
+                    var interiorAngle2 = interiorAngles(a2, b2)[0];
                     // var interiorAngle2 = smallerInteriorAngleVector(el.quarterPoints[nextI], el.quarterPoints[i], el.quarterPoints[nextNextI]);
                     if (interiorAngle1 + interiorAngle2 > Math.PI * 0.5) {
                         this.newCrease(el.quarterPoints[i].x, el.quarterPoints[i].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y).mountain();
@@ -1322,6 +1324,9 @@ var CreasePattern = (function (_super) {
     };
     //////////////////////////////////////////////
     // BOUNDARY
+    CreasePattern.prototype.bounds = function () {
+        return this.boundary.bounds();
+    };
     CreasePattern.prototype.square = function (width) {
         // console.log("setting page size: square()");
         var w = 1.0;
@@ -1368,11 +1373,11 @@ var CreasePattern = (function (_super) {
         return this;
     };
     CreasePattern.prototype.setBoundary = function (points) {
+        // TODO: make sure paper edges are winding clockwise!!
         // todo: test that this is the right way to remove last item:
         if (points[0].equivalent(points[points.length - 1])) {
             points.pop();
         }
-        // TODO: make sure paper edges are winding clockwise!!
         // clear old data
         if (this.boundary === undefined) {
             this.boundary = new PlanarGraph();

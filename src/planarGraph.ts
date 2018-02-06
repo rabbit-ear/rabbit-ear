@@ -98,6 +98,7 @@ function onSegment(point:XY, a:XY, b:XY, epsilon?:number):boolean{
  * @returns {number} clockwise interior angle (from a to b) in radians
  */
 function clockwiseAngleFrom(a:number, b:number):number{
+	// this is on average 50 to 100 times faster than clockwiseInteriorAngle
 	while(a < 0){ a += Math.PI*2; }
 	while(b < 0){ b += Math.PI*2; }
 	var a_b = a - b;
@@ -106,59 +107,32 @@ function clockwiseAngleFrom(a:number, b:number):number{
 }
 ///////////////
 function clockwiseInteriorAngle(a:XY, b:XY):number{
+	// this is on average 50 to 100 slower faster than clockwiseAngleFrom
 	var dotProduct = b.x*a.x + b.y*a.y;
 	var determinant = b.x*a.y - b.y*a.x;
 	var angle = Math.atan2(determinant, dotProduct);
 	if(angle < 0){ angle += Math.PI*2; }
 	return angle * 180 / Math.PI;
 }
-/** There are 2 interior angles between 2 angle measurements, return the smaller one
- * @param {number} angle in radians
- * @param {number} angle in radians
- * @returns {number} smaller of the 2 interior angles betwen a and b in radians
+/** There are 2 interior angles between 2 vectors, return both, always the smaller first
+ * @param {XY} vector
+ * @returns {number[]} 2 angle measurements between vectors
  */
-function smallerInteriorAngle(a:number, b:number):number{
-	var interior1 = clockwiseAngleFrom(a, b);
-	var interior2 = clockwiseAngleFrom(b, a);
-	if(interior1 < interior2) return interior1;
-	return interior2;
+function interiorAngles(a:XY, b:XY):number[]{
+	var interior1 = clockwiseInteriorAngle(a, b);
+	var interior2 = clockwiseInteriorAngle(b, a);
+	if(interior1 < interior2) return [interior1, interior2];
+	return [interior2, interior1];
 }
-/** There are 2 interior angles between 2 vectors, return the smaller one
- * @param {XY} angle as a vector
- * @param {XY} angle as a vector
- * @returns {number} smaller of the 2 interior angles betwen a and b in radians
+/** This bisects 2 vectors, returning both smaller and larger outside angle bisections [small,large]
+ * @param {XY} vector
+ * @returns {XY[]} 2 vector angle bisections, the smaller interior angle is always first
  */
-function smallerInteriorAngleVector(pointA:XY, pointB:XY):number{
-	return smallerInteriorAngle(Math.atan2(pointA.y, pointA.x), Math.atan2(pointB.y, pointB.x));
-	// var angleA = Math.atan2(pointA.y-center.y, pointA.x-center.x);
-	// var angleB = Math.atan2(pointB.y-center.y, pointB.x-center.x);
-	// var angleA = Math.atan2(pointA.y, pointA.x);
-	// var angleB = Math.atan2(pointB.y, pointB.x);
-	// var interiorA = clockwiseAngleFrom(angleA, angleB);
-	// var interiorB = clockwiseAngleFrom(angleB, angleA);
-	// if(interiorA < interiorB) return interiorA;
-	// return interiorB;
-}
-/** This locates the smaller interior angle of the two, and returns half of the smaller angle
- * @param {XY} center
- * @param {XY} angle as a vector
- * @param {XY} angle as a vector
- * @returns {number} smaller of the 2 interior angles betwen a and b in radians
- */
-function bisectSmallerInteriorAngle(center:XY, pointA:XY, pointB:XY):number{
-	var a = new XY(pointA.y-center.y, pointA.x-center.x);
-	var b = new XY(pointB.y-center.y, pointB.x-center.x);
-	var angleA = clockwiseInteriorAngle(a,b);
-	var angleB = clockwiseInteriorAngle(b,a);
-	var angleA = Math.atan2(pointA.y-center.y, pointA.x-center.x);
-	var angleB = Math.atan2(pointB.y-center.y, pointB.x-center.x);
-	var interiorA = clockwiseAngleFrom(angleA, angleB);
-	var interiorB = clockwiseAngleFrom(angleB, angleA);
-	if(interiorA < interiorB) return angleA - interiorA * 0.5;
-	return angleB - interiorB * 0.5;
-}
-function bisectClockwiseVector(vecA:XY, vecB:XY){
-	
+function bisect(a:XY, b:XY):XY[]{
+	a = a.normalize();
+	b = b.normalize();
+	return [ new XY(a.x + b.x, a.y + b.y).normalize(),
+	         new XY(-a.x + -b.x, -a.y + -b.y).normalize() ];
 }
 function linesParallel(p0:XY, p1:XY, p2:XY, p3:XY, epsilon?:number):boolean {
 	if(epsilon === undefined){ epsilon = EPSILON; }
@@ -347,6 +321,8 @@ class XY{
 	reflect(a:XY,b:XY):XY{
 		return this.transform( new Matrix().reflection(a,b) );
 	}
+	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
+	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }
 }
 
 class Rect{
@@ -701,6 +677,8 @@ class PlanarNode extends GraphNode{
 	distanceTo(a:XY):number{
 		return Math.sqrt( Math.pow(this.x-a.x,2) + Math.pow(this.y-a.y,2) );
 	}
+	scale(magnitude:number):PlanarNode{ this.x*=magnitude; this.y*=magnitude; return this; }
+	subtract(sub:XY):PlanarNode{ this.x-=sub.x; this.y-=sub.y; return this; }
 }
 
 class PlanarEdge extends GraphEdge{
