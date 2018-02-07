@@ -97,9 +97,9 @@ var CreaseNode = (function (_super) {
             return undefined;
         }
         var aSum = angles.filter(function (el, i) { return i % 2; })
-            .reduce(function (sum, el) { return sum + el.angle; }, 0);
+            .reduce(function (sum, el) { return sum + el.angle(); }, 0);
         var bSum = angles.filter(function (el, i) { return !(i % 2); })
-            .reduce(function (sum, el) { return sum + el.angle; }, 0);
+            .reduce(function (sum, el) { return sum + el.angle(); }, 0);
         return [aSum, bSum];
     };
     CreaseNode.prototype.kawasakiRating = function () {
@@ -702,7 +702,7 @@ var CreasePattern = (function (_super) {
             return undefined;
         var aAngle = a.absoluteAngle(aCommon);
         var bAngle = b.absoluteAngle(bCommon);
-        var clockwise = clockwiseAngleFrom(bAngle, aAngle);
+        var clockwise = clockwiseInteriorAngleRadians(bAngle, aAngle);
         var newAngle = bAngle - clockwise * 0.5 + Math.PI;
         return this.creaseRay(aCommon, new XY(Math.cos(newAngle), Math.sin(newAngle)));
     };
@@ -730,8 +730,8 @@ var CreasePattern = (function (_super) {
             return undefined;
         var aAngle = a.absoluteAngle(aCommon);
         var bAngle = b.absoluteAngle(bCommon);
-        var clockwise = clockwiseAngleFrom(bAngle, aAngle);
-        var counter = clockwiseAngleFrom(aAngle, bAngle);
+        var clockwise = clockwiseInteriorAngleRadians(bAngle, aAngle);
+        var counter = clockwiseInteriorAngleRadians(aAngle, bAngle);
         var clockwiseAngle = bAngle - clockwise * 0.5 + Math.PI;
         var correctedAngle = bAngle - clockwise * 0.5;
         if (clockwise < counter) {
@@ -1535,10 +1535,10 @@ var CreasePattern = (function (_super) {
         for (var i = 0; i < interiorAngles.length - 1; i++) {
             var index = (i + foundIndex + 1) % interiorAngles.length;
             if (i % 2 == 0) {
-                sumEven += interiorAngles[index].angle;
+                sumEven += interiorAngles[index].angle();
             }
             else {
-                sumOdd += interiorAngles[index].angle;
+                sumOdd += interiorAngles[index].angle();
             }
         }
         var dEven = Math.PI - sumEven;
@@ -1546,8 +1546,8 @@ var CreasePattern = (function (_super) {
         var angle0 = angle.edges[0].absoluteAngle(angle.node);
         var angle1 = angle.edges[1].absoluteAngle(angle.node);
         // this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
-        // console.log(clockwiseAngleFrom(angle0, angle1) + " " + clockwiseAngleFrom(angle1, angle0));
-        // if(clockwiseAngleFrom(angle0, angle1) < clockwiseAngleFrom(angle1, angle0)){
+        // console.log(clockwiseInteriorAngleRadians(angle0, angle1) + " " + clockwiseInteriorAngleRadians(angle1, angle0));
+        // if(clockwiseInteriorAngleRadians(angle0, angle1) < clockwiseInteriorAngleRadians(angle1, angle0)){
         // return angle1 - dOdd;
         // return angle1 - dEven;
         // } else{

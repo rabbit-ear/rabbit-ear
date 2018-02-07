@@ -106,7 +106,7 @@ function onSegment(point, a, b, epsilon) {
  * @param {number} angle in radians
  * @returns {number} clockwise interior angle (from a to b) in radians
  */
-function clockwiseAngleFrom(a, b) {
+function clockwiseInteriorAngleRadians(a, b) {
     // this is on average 50 to 100 times faster than clockwiseInteriorAngle
     while (a < 0) {
         a += Math.PI * 2;
@@ -121,14 +121,14 @@ function clockwiseAngleFrom(a, b) {
 }
 ///////////////
 function clockwiseInteriorAngle(a, b) {
-    // this is on average 50 to 100 slower faster than clockwiseAngleFrom
+    // this is on average 50 to 100 slower faster than clockwiseInteriorAngleRadians
     var dotProduct = b.x * a.x + b.y * a.y;
     var determinant = b.x * a.y - b.y * a.x;
     var angle = Math.atan2(determinant, dotProduct);
     if (angle < 0) {
         angle += Math.PI * 2;
     }
-    return angle * 180 / Math.PI;
+    return angle;
 }
 /** There are 2 interior angles between 2 vectors, return both, always the smaller first
  * @param {XY} vector
@@ -136,7 +136,9 @@ function clockwiseInteriorAngle(a, b) {
  */
 function interiorAngles(a, b) {
     var interior1 = clockwiseInteriorAngle(a, b);
-    var interior2 = clockwiseInteriorAngle(b, a);
+    // we don't need to run atan2 again..
+    // var interior2 = clockwiseInteriorAngle(b, a);
+    var interior2 = Math.PI * 2 - interior1;
     if (interior1 < interior2)
         return [interior1, interior2];
     return [interior2, interior1];
@@ -506,39 +508,39 @@ var EdgeIntersection = (function (_super) {
     }
     return EdgeIntersection;
 }(XY));
-var InteriorAngle = (function () {
-    function InteriorAngle(edge1, edge2) {
-        this.node = edge1.commonNodeWithEdge(edge2);
-        if (this.node === undefined) {
-            return undefined;
-        }
-        this.angle = clockwiseAngleFrom(edge1.absoluteAngle(this.node), edge2.absoluteAngle(this.node));
-        this.edges = [edge1, edge2];
-    }
-    InteriorAngle.prototype.equivalent = function (a) {
-        if ((a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
-            (a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0]))) {
-            return true;
-        }
-        return false;
-    };
-    return InteriorAngle;
-}());
+// class InteriorAngle{
+// 	edges:[PlanarEdge,PlanarEdge];
+// 	node:PlanarNode;
+// 	angle:number;
+// 	constructor(edge1:PlanarEdge, edge2:PlanarEdge){
+// 		this.node = <PlanarNode>edge1.commonNodeWithEdge(edge2);
+// 		if(this.node === undefined){ return undefined; }
+// 		this.angle = clockwiseInteriorAngleRadians(edge1.absoluteAngle(this.node), edge2.absoluteAngle(this.node));
+// 		this.edges = [edge1, edge2];
+// 	}
+// 	equivalent(a:InteriorAngle):boolean{
+// 		return( (a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
+// 			(a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0])));
+// 	}
+// }
 /** a PlanarJoint is defined by 2 edges and 3 nodes (one common, 2 endpoints)
- *  clockwise order is required and enforced
+ *  clockwise order is required
  *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
  */
 var PlanarJoint = (function () {
-    function PlanarJoint(edge1, edge2, sortBySmaller) {
+    // angle clockwise from edge 0 to edge 1 is in index 0. edge 1 to 0 is in index 1
+    // angle:number;// this should be a function
+    // set autoSortBySmaller to "discover" the clockwise orientation- setting the smaller interior angle 
+    function PlanarJoint(edge1, edge2, autoSortBySmaller) {
         this.node = edge1.commonNodeWithEdge(edge2);
         if (this.node === undefined) {
             return undefined;
         }
         // make sure we are storing clockwise from A->B the smaller interior angle
         var a = edge1, b = edge2;
-        if (sortBySmaller !== undefined && sortBySmaller === true) {
-            var interior1 = clockwiseAngleFrom(a.absoluteAngle(), b.absoluteAngle());
-            var interior2 = clockwiseAngleFrom(b.absoluteAngle(), a.absoluteAngle());
+        if (autoSortBySmaller !== undefined && autoSortBySmaller === true) {
+            var interior1 = clockwiseInteriorAngleRadians(a.absoluteAngle(), b.absoluteAngle());
+            var interior2 = clockwiseInteriorAngleRadians(b.absoluteAngle(), a.absoluteAngle());
             if (interior2 < interior1) {
                 b = edge1;
                 a = edge2;
@@ -550,14 +552,24 @@ var PlanarJoint = (function () {
             (b.nodes[0] === this.node) ? b.nodes[1] : b.nodes[0]
         ];
     }
-    PlanarJoint.prototype.interiorAngle = function () {
-        return clockwiseAngleFrom(this.edges[0].absoluteAngle(this.node), this.edges[1].absoluteAngle(this.node));
+    PlanarJoint.prototype.vectors = function () {
+        return this.edges.map(function (el) { return el.vector(this.node); }, this);
     };
-    PlanarJoint.prototype.bisectAngle = function () {
-        var angleA = this.edges[0].absoluteAngle(this.node);
-        var angleB = this.edges[1].absoluteAngle(this.node);
-        var interiorA = clockwiseAngleFrom(angleA, angleB);
-        return angleA - interiorA * 0.5;
+    PlanarJoint.prototype.angle = function () {
+        var vectors = this.vectors();
+        return clockwiseInteriorAngle(vectors[0], vectors[1]);
+    };
+    PlanarJoint.prototype.bisect = function () {
+        // var vectors = this.vectors();
+        // return bisect(vectors[0], vectors[1])[0];
+        var absolute1 = this.edges[0].absoluteAngle(this.node);
+        var absolute2 = this.edges[1].absoluteAngle(this.node);
+        while (absolute1 < 0) {
+            absolute1 += Math.PI * 2;
+        }
+        var interior = clockwiseInteriorAngleRadians(absolute1, absolute2);
+        var bisected = absolute1 - interior * 0.5;
+        return new XY(Math.cos(bisected), Math.sin(bisected));
     };
     // todo: needs testing
     PlanarJoint.prototype.subsectAngle = function (divisions) {
@@ -566,12 +578,16 @@ var PlanarJoint = (function () {
         }
         var angleA = this.edges[0].absoluteAngle(this.node);
         var angleB = this.edges[1].absoluteAngle(this.node);
-        var interiorA = clockwiseAngleFrom(angleA, angleB);
+        var interiorA = clockwiseInteriorAngleRadians(angleA, angleB);
         var results = [];
         for (var i = 1; i < divisions; i++) {
             results.push(angleA - interiorA * (1.0 / divisions) * i);
         }
         return results;
+    };
+    PlanarJoint.prototype.equivalent = function (a) {
+        return ((a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
+            (a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0])));
     };
     // (private function)
     PlanarJoint.prototype.sortByClockwise = function () { };
@@ -675,29 +691,6 @@ var PlanarNode = (function (_super) {
         }
         return adjacentFaces;
     };
-    PlanarNode.prototype.interiorAngles = function () {
-        var adj = this.planarAdjacent();
-        // if this node is a leaf, should 1 angle be 360 degrees? or no interior angles
-        if (adj.length <= 1) {
-            return [];
-        }
-        return adj.map(function (el, i) {
-            var nextI = (i + 1) % this.length;
-            // var angleDifference = clockwiseAngleFrom(this[i].angle, this[nextI].angle);
-            return new InteriorAngle(this[i].edge, this[nextI].edge);
-        }, adj);
-    };
-    PlanarNode.prototype.joints = function () {
-        var adjacent = this.planarAdjacent();
-        // if this node is a leaf, should 1 angle be 360 degrees? or no interior angles
-        if (adjacent.length <= 1) {
-            return [];
-        }
-        return adjacent.map(function (el, i) {
-            var nextI = (i + 1) % this.length;
-            return new PlanarJoint(this[i].edge, this[nextI].edge);
-        }, adjacent);
-    };
     /** Adjacent nodes sorted clockwise by angle toward adjacent node, type AdjacentNodes object */
     PlanarNode.prototype.planarAdjacent = function () {
         return this.adjacentEdges()
@@ -708,6 +701,17 @@ var PlanarNode = (function (_super) {
                 return new AdjacentNodes(el.nodes[1], el.nodes[0], el);
         }, this)
             .sort(function (a, b) { return (a.angle < b.angle) ? 1 : (a.angle > b.angle) ? -1 : 0; });
+    };
+    PlanarNode.prototype.interiorAngles = function () {
+        var adjacent = this.planarAdjacent();
+        // if this node is a leaf, should 1 angle be 360 degrees? or no interior angles
+        if (adjacent.length <= 1) {
+            return [];
+        }
+        return adjacent.map(function (el, i) {
+            var nextI = (i + 1) % this.length;
+            return new PlanarJoint(this[i].edge, this[nextI].edge);
+        }, adjacent);
     };
     /** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
      * @returns {AdjacentNodes} AdjacentNodes object containing the clockwise node and the edge connecting the two.
@@ -776,7 +780,7 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.length = function () { return this.nodes[0].distanceTo(this.nodes[1]); };
     // form a vector by placing one of the nodes at the origin
     PlanarEdge.prototype.vector = function (originNode) {
-        var otherNode = otherNode(originNode);
+        var otherNode = this.otherNode(originNode);
         return new XY(otherNode.x - originNode.x, otherNode.y - originNode.y);
     };
     PlanarEdge.prototype.intersection = function (edge) {
@@ -1572,7 +1576,7 @@ var PlanarGraph = (function (_super) {
     ///////////////////////////////////////////////////////////////
     // INTERIOR ANGLES
     PlanarGraph.prototype.generatePlanarJoints = function () {
-        return flatMap(this.nodes, function (el) { return el.joints(); });
+        return flatMap(this.nodes, function (el) { return el.interiorAngles(); });
     };
     ///////////////////////////////////////////////////////////////
     // FACE
@@ -1631,7 +1635,7 @@ var PlanarGraph = (function (_super) {
         // face.nodes.unshift(circut[0].parent);
         face.edges = circut.map(function (el) { return el.edge; });
         for (var i = 0; i < circut.length; i++) {
-            face.angles.push(clockwiseAngleFrom(circut[i].angle, circut[(i + 1) % (circut.length)].angle - Math.PI));
+            face.angles.push(clockwiseInteriorAngleRadians(circut[i].angle, circut[(i + 1) % (circut.length)].angle - Math.PI));
         }
         var angleSum = face.angles.reduce(function (sum, value) { return sum + value; }, 0);
         // sum of interior angles rule, (n-2) * PI

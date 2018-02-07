@@ -19,7 +19,7 @@ sJoint.reset = function(){
 		centerNode = sJoint.cp.getNearestNode(0.5, 0.5);
 		interiorAngles = centerNode.interiorAngles();
 		var tooSmall = false;
-		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i].angle < Math.PI*0.5) tooSmall = true; }
+		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i].angle() < Math.PI*0.5) tooSmall = true; }
 	} while(tooSmall);
 
 	var angles = [];

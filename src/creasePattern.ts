@@ -93,9 +93,9 @@ class CreaseNode extends PlanarNode{
 		// only computes if number of interior angles are even
 		if(angles.length % 2 != 0){ return undefined; }
 		var aSum = angles.filter(function(el,i){return i%2;})
-		                 .reduce(function(sum, el) {return sum + el.angle; }, 0);
+		                 .reduce(function(sum, el) {return sum + el.angle(); }, 0);
 		var bSum = angles.filter(function(el,i){return !(i%2);})
-		                 .reduce(function(sum, el) { return sum + el.angle; }, 0);
+		                 .reduce(function(sum, el) { return sum + el.angle(); }, 0);
 		return [aSum, bSum];
 	}
 
@@ -687,7 +687,7 @@ class CreasePattern extends PlanarGraph{
 		if(aCommon === undefined) return undefined;
 		var aAngle = a.absoluteAngle(aCommon);
 		var bAngle = b.absoluteAngle(bCommon);
-		var clockwise = clockwiseAngleFrom(bAngle, aAngle);
+		var clockwise = clockwiseInteriorAngleRadians(bAngle, aAngle);
 		var newAngle = bAngle - clockwise*0.5 + Math.PI;
 		return this.creaseRay(aCommon, new XY(Math.cos(newAngle), Math.sin(newAngle)));
 	}
@@ -703,8 +703,8 @@ class CreasePattern extends PlanarGraph{
 		if(aCommon === undefined) return undefined;
 		var aAngle = a.absoluteAngle(aCommon);
 		var bAngle = b.absoluteAngle(bCommon);
-		var clockwise = clockwiseAngleFrom(bAngle, aAngle);
-		var counter = clockwiseAngleFrom(aAngle, bAngle);
+		var clockwise = clockwiseInteriorAngleRadians(bAngle, aAngle);
+		var counter = clockwiseInteriorAngleRadians(aAngle, bAngle);
 		var clockwiseAngle = bAngle - clockwise*0.5 + Math.PI;
 		var correctedAngle = bAngle - clockwise*0.5;
 		if(clockwise < counter){
@@ -1467,7 +1467,7 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 
-	findFlatFoldable(angle:InteriorAngle):number{
+	findFlatFoldable(angle:PlanarJoint):number{
 		var interiorAngles = angle.node.interiorAngles();
 		if(interiorAngles.length != 3){ return; }
 		// find this interior angle among the other interior angles
@@ -1480,16 +1480,16 @@ class CreasePattern extends PlanarGraph{
 		var sumOdd = 0;
 		for(var i = 0; i < interiorAngles.length-1; i++){
 			var index = (i+foundIndex+1) % interiorAngles.length;
-			if(i % 2 == 0){ sumEven += interiorAngles[index].angle; } 
-			else { sumOdd += interiorAngles[index].angle; }
+			if(i % 2 == 0){ sumEven += interiorAngles[index].angle(); } 
+			else { sumOdd += interiorAngles[index].angle(); }
 		}
 		var dEven = Math.PI - sumEven;
 		var dOdd = Math.PI - sumOdd;
 		var angle0 = angle.edges[0].absoluteAngle(angle.node);
 		var angle1 = angle.edges[1].absoluteAngle(angle.node);
 		// this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
-		// console.log(clockwiseAngleFrom(angle0, angle1) + " " + clockwiseAngleFrom(angle1, angle0));
-		// if(clockwiseAngleFrom(angle0, angle1) < clockwiseAngleFrom(angle1, angle0)){
+		// console.log(clockwiseInteriorAngleRadians(angle0, angle1) + " " + clockwiseInteriorAngleRadians(angle1, angle0));
+		// if(clockwiseInteriorAngleRadians(angle0, angle1) < clockwiseInteriorAngleRadians(angle1, angle0)){
 			// return angle1 - dOdd;
 			// return angle1 - dEven;
 		// } else{

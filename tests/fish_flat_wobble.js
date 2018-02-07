@@ -27,8 +27,8 @@ function fish_base_flat_wobble(){
 		var topNode = fishCP.nodes[7];
 		var topAngles = topNode.interiorAngles();
 		var triTop = topAngles[1];
-		var a1 = topAngles[0].angle;
-		var a2 = topAngles[2].angle;
+		var a1 = topAngles[0].angle();
+		var a2 = topAngles[2].angle();
 		var topRayAngle = Math.PI - a2;
 		var triTopOneEdgeAngle = triTop.edges[0].absoluteAngle(topNode);
 		fishCP.creaseRay(topNode, new XY(Math.cos(triTopOneEdgeAngle - topRayAngle), Math.sin(triTopOneEdgeAngle - topRayAngle)) ).mountain();
@@ -36,8 +36,8 @@ function fish_base_flat_wobble(){
 		var bottomNode = fishCP.nodes[6];
 		var bottomAngles = bottomNode.interiorAngles();
 		var triBottom = bottomAngles[1];
-		var b1 = bottomAngles[0].angle;
-		var b2 = bottomAngles[2].angle;
+		var b1 = bottomAngles[0].angle();
+		var b2 = bottomAngles[2].angle();
 		var bottomRayAngle = Math.PI - b2;
 		var triBottomOneEdgeAngle = triBottom.edges[0].absoluteAngle(bottomNode);
 		var bottomVector = new XY(Math.cos(triBottomOneEdgeAngle - bottomRayAngle), Math.sin(triBottomOneEdgeAngle - bottomRayAngle));
