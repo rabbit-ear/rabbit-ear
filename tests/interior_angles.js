@@ -30,7 +30,7 @@ project.updateAngles = function(){
 	// var clockwiseAngles = interior.map(function(el){ return el.angle(); });
 	// console.log(clockwiseAngles);
 
-	var interior = centerNode.interiorAngles();
+	var interior = centerNode.interiorAngles().sort(function(a,b){ return a.angle() < b.angle(); });
 
 	// var vectors = interior.map(function(el){return el.vectors();});
 
@@ -41,7 +41,7 @@ project.updateAngles = function(){
 	interior.forEach(function(el){
 		var vectors = el.vectors().map(function(el){return el.normalize().scale(radiuses[i%3]);})
 		var arcCenter = el.bisect().scale(radiuses[i%3]);
-		var dot = new this.scope.Path.Circle(arcCenter, 0.04);
+		var dot = new this.scope.Path.Circle(arcCenter.normalize().scale(0.9), 0.04);
 		dot.style.fillColor = { gray:0.0, alpha:1.0 };
 		var arc = new this.scope.Path.Arc(vectors[0], arcCenter, vectors[1]);
 		arc.add(new this.scope.Point(0.0, 0.0));
