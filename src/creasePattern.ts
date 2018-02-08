@@ -913,7 +913,7 @@ class CreasePattern extends PlanarGraph{
 			var theseQuarterEdgeIndices = [];
 			edges.forEach(function(el){
 				var midpoints = [el[0], el[1]].map(function(mapEl){
-					return interpolate(new XY(mapEl[0], mapEl[1]), new XY(site[0], site[1]), interp);
+					return new XY(mapEl[0], mapEl[1]).lerp(new XY(site[0], site[1]), interp);
 				});
 				var endpoints = [ new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
 				for(var n = 0; n < vNodes.length; n++){
@@ -1188,7 +1188,7 @@ class CreasePattern extends PlanarGraph{
 			if(vEdges[e].left !== undefined){sideNodes.push(new XY(vEdges[e].left[0],vEdges[e].left[1]));}
 			if(vEdges[e].right !== undefined){sideNodes.push(new XY(vEdges[e].right[0],vEdges[e].right[1]));}
 			var midpts = sideNodes.map(function(el){
-				return [interpolate(endpts[0], el, interp), interpolate(endpts[1], el, interp)];
+				return [endpts[0].lerp(el, interp), endpts[1].lerp(el, interp)];
 			});
 			for(var m = 0; m < midpts.length; m++){
 				// interpolate from the cell edge endpoints to the node
@@ -1215,7 +1215,7 @@ class CreasePattern extends PlanarGraph{
 			if(vEdges[e].left !== undefined){sideNodes.push(new XY(vEdges[e].left[0],vEdges[e].left[1]));}
 			if(vEdges[e].right !== undefined){sideNodes.push(new XY(vEdges[e].right[0],vEdges[e].right[1]));}
 			var midpts = sideNodes.map(function(el){
-				return [interpolate(endpts[0], el, interp), interpolate(endpts[1], el, interp)];
+				return [endpts[0].lerp(el, interp), endpts[1].lerp(el, interp)];
 			});
 			var arteries:[Crease,Crease][] = [];
 			for(var m = 0; m < midpts.length; m++){

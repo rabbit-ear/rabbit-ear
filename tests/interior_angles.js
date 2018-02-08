@@ -4,6 +4,9 @@ var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
 var black = {hue:0, saturation:0, brightness:0 };
 
 
+var colors = [red,yellow,blue];
+
+
 var project = new OrigamiPaper("canvas", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
 project.style.mountain.strokeWidth = 0.02;
 project.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
@@ -18,23 +21,12 @@ var draggingNode = undefined;
 project.arcLayer = new project.scope.Layer();
 project.arcLayer.sendToBack();
 project.backgroundLayer.sendToBack();
-// project.edgeLayer.bringToFront();
-// project.mouseDragLayer.bringToFront();
 
 project.updateAngles = function(){
 	this.arcLayer.activate();
 	this.arcLayer.removeChildren();
 
-	// var interior = centerNode.interiorAngles();
-	// console.log(interior);
-	// var clockwiseAngles = interior.map(function(el){ return el.angle(); });
-	// console.log(clockwiseAngles);
-
 	var interior = centerNode.interiorAngles().sort(function(a,b){ return a.angle() < b.angle(); });
-
-	// var vectors = interior.map(function(el){return el.vectors();});
-
-	colors = [red,yellow,blue];
 
 	var i = 0;
 	var radiuses = [0.35, 0.3, 0.25];
@@ -51,36 +43,6 @@ project.updateAngles = function(){
 		i++;
 	},this);
 
-
-
-	// var nodes = validNodes.map(function(el){return new XY(el.x, el.y);});
-	// var bisections = bisect(nodes[0], nodes[1]);
-	// var small = bisections[0];
-	// var large = bisections[1];
-	// // bisect smaller angle
-	// var arc1Pts = [ new XY(validNodes[0].x, validNodes[0].y), small, new XY(validNodes[1].x, validNodes[1].y) ];
-	// for(var i = 0; i < 3; i++){ arc1Pts[i] = arc1Pts[i].normalize().scale(0.25); }
-	// // bisect larger angle
-	// var arc2Pts = [ new XY(validNodes[0].x, validNodes[0].y), large, new XY(validNodes[1].x, validNodes[1].y) ];
-	// for(var i = 0; i < 3; i++){ arc2Pts[i] = arc2Pts[i].normalize().scale(0.3); }
-	// // draw things
-	// var smallArc = new this.scope.Path.Arc(arc1Pts[0], arc1Pts[1], arc1Pts[2]);
-	// smallArc.add(new this.scope.Point(0.0, 0.0));
-	// smallArc.closed = true;
-	// var largeArc = new this.scope.Path.Arc(arc2Pts[0], arc2Pts[1], arc2Pts[2]);
-	// largeArc.add(new this.scope.Point(0.0, 0.0));
-	// largeArc.closed = true;
-	// var smallLine = new this.scope.Path({segments:[[0.0, 0.0], [small.x,small.y]], closed:true});
-	// var largeLine = new this.scope.Path({segments:[[0.0, 0.0], [large.x,large.y]], closed:true});
-
-	// Object.assign(smallLine, this.style.mountain);
-	// Object.assign(largeLine, this.style.mountain);
-	// Object.assign(smallLine, {strokeColor:yellow});
-	// Object.assign(largeLine, {strokeColor:blue});
-	// Object.assign(smallArc, this.style.mountain);
-	// Object.assign(largeArc, this.style.mountain);
-	// Object.assign(smallArc, {strokeColor:null, fillColor:blue});
-	// Object.assign(largeArc, {strokeColor:null, fillColor:red});
 }
 
 project.reset = function(){

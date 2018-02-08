@@ -80,10 +80,6 @@ function arrayContains(array, object, compFunction):number{
 /////////////////////////////////////////////////////////////////////////////////
 //                            2D ALGORITHMS
 /////////////////////////////////////////////////////////////////////////////////
-function interpolate(p1:XY, p2:XY, pct:number):XY{
-	var inv = 1.0 - pct;
-	return new XY(p1.x*pct + p2.x*inv, p1.y*pct + p2.y*inv);
-}
 /** if points are all collinear, checks if point lies on line segment 'ab' */
 function onSegment(point:XY, a:XY, b:XY, epsilon?:number):boolean{
 	if(epsilon === undefined){ epsilon = EPSILON; }
@@ -319,6 +315,11 @@ class XY{
 		return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx,
 					  this.x * matrix.b + this.y * matrix.d + matrix.ty);
 	}
+	lerp(point:XY, pct:number):XY{
+		var inv = 1.0 - pct;
+		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
+	}
+
 	/** reflects this point about a line that passes through 'a' and 'b' */
 	reflect(a:XY,b:XY):XY{
 		return this.transform( new Matrix().reflection(a,b) );
