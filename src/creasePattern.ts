@@ -77,6 +77,15 @@ class FoldSequence{
 // 	return array;
 // }
 
+
+class CreaseJunction extends PlanarJunction{
+	kawasaki():boolean{
+		// todo
+		return true;
+	}
+}
+
+
 class CreaseNode extends PlanarNode{
 	graph:CreasePattern;
 
@@ -89,13 +98,13 @@ class CreaseNode extends PlanarNode{
 	}
 
 	kawasaki():[number,number]{
-		var angles = this.interiorAngles();
+		var angles = this.junction().interiorAngles();
 		// only computes if number of interior angles are even
 		if(angles.length % 2 != 0){ return undefined; }
 		var aSum = angles.filter(function(el,i){return i%2;})
-		                 .reduce(function(sum, el) {return sum + el.angle(); }, 0);
+		                 .reduce(function(sum, el) {return sum + el; }, 0);
 		var bSum = angles.filter(function(el,i){return !(i%2);})
-		                 .reduce(function(sum, el) { return sum + el.angle(); }, 0);
+		                 .reduce(function(sum, el) { return sum + el; }, 0);
 		return [aSum, bSum];
 	}
 
@@ -136,12 +145,16 @@ class CreaseNode extends PlanarNode{
 	creaseToPoint(point:XY):Crease{
 		return this.graph.creasePointToPoint(this, point);
 	}
+
+	/*
 	findFlatFoldable():number[]{ // angles for the rays to cast from this node
 		var that = this;
-		return this.interiorAngles().map(function(el){
+		return this.junction().interiorAngles().map(function(el){
 			return that.graph.findFlatFoldable(el);
 		});
 	}
+
+	*/
 }
 
 class Crease extends PlanarEdge{
@@ -1467,6 +1480,9 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 
+
+
+/*
 	findFlatFoldable(angle:PlanarJoint):number{
 		var interiorAngles = angle.node.interiorAngles();
 		if(interiorAngles.length != 3){ return; }
@@ -1499,6 +1515,11 @@ class CreasePattern extends PlanarGraph{
 		// return angle0 + dEven;
 		return angle0 - dEven;
 	}
+
+	*/
+
+
+
 
 	// vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
 	// 	var v = this.nodes[vIndex];
@@ -1546,7 +1567,7 @@ class CreasePattern extends PlanarGraph{
 		}
 	}
 
-
+/*
 	kawasaki(nodeIndex){
 		// this hands back an array of angles, the spaces between edges, clockwise.
 		// each angle object contains:
@@ -1597,6 +1618,7 @@ class CreasePattern extends PlanarGraph{
 		return angles;
 	}
 
+*/
 
 	// cleanIntersections(){
 	// 	this.clean();

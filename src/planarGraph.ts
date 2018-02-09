@@ -319,7 +319,6 @@ class XY{
 		var inv = 1.0 - pct;
 		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
 	}
-
 	/** reflects this point about a line that passes through 'a' and 'b' */
 	reflect(a:XY,b:XY):XY{
 		return this.transform( new Matrix().reflection(a,b) );
@@ -400,20 +399,22 @@ class Matrix{
 //                            PLANAR GRAPH PARTS
 /////////////////////////////////////////////////////////////////////////////////
 
-class AdjacentNodes{
-	// node adjacent to node, with angle offset and connecting edge
-	parent:PlanarNode;  // "first" node, polarity required for angle calculation
-	node:PlanarNode;
-	angle:number; // radians, angle from parent to node
-	edge:PlanarEdge;  // edge connecting the two nodes
-	constructor(parent:PlanarNode, node:PlanarNode, edge:PlanarEdge){
-		this.node = node;
-		this.angle = Math.atan2(node.y-parent.y, node.x-parent.x);
-		this.edge = edge;
-		// optional
-		this.parent = parent;
-	}
-}
+// class AdjacentNodes{
+// 	// node adjacent to node, with angle offset and connecting edge
+// 	parent:PlanarNode;  // "first" node, polarity required for angle calculation
+// 	node:PlanarNode;
+// 	angle:number; // radians, angle from parent to node
+// 	edge:PlanarEdge;  // edge connecting the two nodes
+// 	constructor(parent:PlanarNode, node:PlanarNode, edge:PlanarEdge){
+// 		this.node = node;
+// 		this.angle = Math.atan2(node.y-parent.y, node.x-parent.x);
+// 		this.edge = edge;
+// 		// optional
+// 		this.parent = parent;
+// 	}
+// }
+
+
 // class AdjacentFace{
 // 	face:PlanarFace;
 // 	parentEdge:PlanarEdge; // edge connecting to parent
@@ -423,6 +424,28 @@ class AdjacentNodes{
 // 		this.adjacent = [];
 // 	}
 // }
+
+function findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarEdge[]{
+	var incidentEdge = <PlanarEdge>this.getEdgeConnectingNodes(node1, node2);
+	if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
+	var pairs:PlanarEdge[] = [];
+	var lastNode = node1;
+	var travelingNode = node2;
+	var visitedList = [lastNode];
+	var nextWalk = incidentEdge;//new AdjacentNodes(lastNode, travelingNode, incidentEdge);
+	pairs.push(nextWalk);
+	do{
+		visitedList.push(travelingNode);
+		nextWalk = travelingNode.junction().clockwiseEdge(nextWalk);
+		// nextWalk = travelingNode.adjacentNodeClockwiseFrom(lastNode);
+		pairs.push(nextWalk);
+		lastNode = travelingNode;
+		travelingNode = <PlanarNode>nextWalk.otherNode(lastNode);
+		if(travelingNode === node1){ return pairs; }
+	} while(!arrayContainsObject(visitedList, travelingNode));
+	return undefined;
+}
+
 class EdgeIntersection extends XY{
 	// this is a unique class- used in intersection(), crossingEdges() on PlanarEdge
 	edge:PlanarEdge;
@@ -431,21 +454,6 @@ class EdgeIntersection extends XY{
 		this.edge = otherEdge;
 	}
 }
-// class InteriorAngle{
-// 	edges:[PlanarEdge,PlanarEdge];
-// 	node:PlanarNode;
-// 	angle:number;
-// 	constructor(edge1:PlanarEdge, edge2:PlanarEdge){
-// 		this.node = <PlanarNode>edge1.commonNodeWithEdge(edge2);
-// 		if(this.node === undefined){ return undefined; }
-// 		this.angle = clockwiseInteriorAngleRadians(edge1.absoluteAngle(this.node), edge2.absoluteAngle(this.node));
-// 		this.edges = [edge1, edge2];
-// 	}
-// 	equivalent(a:InteriorAngle):boolean{
-// 		return( (a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
-// 			(a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0])));
-// 	}
-// }
 
 /** a PlanarJoint is defined by 2 edges and 3 nodes (one common, 2 endpoints) 
  *  clockwise order is required
@@ -512,6 +520,61 @@ class PlanarJoint{
 
 	// (private function)
 	sortByClockwise(){}
+}
+
+class PlanarJunction{
+	node:PlanarNode;
+	joints:PlanarJoint[];
+	edges:PlanarEdge[];
+	constructor(node:PlanarNode){
+		this.node = node;
+		var sortedEdges = (<PlanarEdge[]>this.node.adjacentEdges())
+			.map(function(el){
+				var otherNode = <PlanarNode>el.otherNode(this.node);
+				return {'edge':el, 'angle':Math.atan2(otherNode.y-this.node.y, otherNode.x-this.node.x)};
+			},this)
+			.sort(function(a,b){return (a.angle < b.angle)?1:(a.angle > b.angle)?-1:0})
+			.map(function(el){ return el.edge });
+		this.joints = sortedEdges.map(function(el,i){
+			var nexti = (i+1)%sortedEdges.length;
+			return new PlanarJoint(el, sortedEdges[nexti]);
+		});
+		this.edges = this.joints.map(function(el:PlanarJoint){return el.edges[0];});
+	}
+	edgeAngles():number[]{
+		return this.edges.map(function(el){return el.absoluteAngle(this.node);},this);
+	}
+	interiorAngles():number[]{
+		var absoluteAngles = this.edges.map(function(el){return el.absoluteAngle(this.node);},this);
+		return absoluteAngles.map(function(el,i){
+			var nextI = (i+1)%this.edges.length;
+			return clockwiseInteriorAngleRadians(el, absoluteAngles[nextI]);
+		},this);
+	}
+	/** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
+	 * @returns {PlanarNode}
+	 */
+	clockwiseNode(fromNode:PlanarNode):PlanarNode{
+		for(var i = 0; i < this.edges.length; i++){
+			if(this.edges[i].otherNode(this.node) === fromNode){
+				return <PlanarNode>this.edges[ (i+1)%this.edges.length ].otherNode(this.node);
+			}
+		}
+	}
+	clockwiseEdge(fromEdge:PlanarEdge):PlanarEdge{
+		for(var i = 0; i < this.edges.length; i++){
+			if(this.edges[i] === fromEdge){ return this.edges[ (i+1)%this.edges.length ]; }
+		}
+	}
+
+	faces():PlanarFace[]{
+		var adjacentFaces = [];
+		for(var n = 0; n < this.edges.length; n++){
+			var face = new PlanarFace(this.node.graph).makeFromCircuit( findClockwiseCircut(this.node, <PlanarNode>this.edges[n].otherNode(this.node)) );
+			if(face !== undefined){ adjacentFaces.push(face); }
+		}
+		return adjacentFaces;
+	}
 }
 
 class PlanarClean extends GraphClean{
@@ -596,52 +659,47 @@ class PlanarNode extends GraphNode{
 	x:number;
 	y:number;
 
-	// for fast algorithms, temporarily storing information on here
+	// for speeding up algorithms, temporarily store information here
 	cache:object = {};
 
 	adjacentFaces():PlanarFace[]{
-		var adjacentFaces = [];
-		var adj = this.planarAdjacent();
-		for(var n = 0; n < adj.length; n++){
-			var face = this.graph.makeFace( this.graph.findClockwiseCircut(this, adj[n].node) );
-			if(face != undefined){ adjacentFaces.push(face); }
-		}
-		return adjacentFaces;
+		return this.junction().faces();
 	}
 
 	/** Adjacent nodes sorted clockwise by angle toward adjacent node, type AdjacentNodes object */
-	planarAdjacent():AdjacentNodes[]{
-		return (<PlanarEdge[]>this.adjacentEdges())
-			.map(function(el){ 
-				if(this === el.nodes[0]) return new AdjacentNodes(el.nodes[0], el.nodes[1], el);
-				else                     return new AdjacentNodes(el.nodes[1], el.nodes[0], el);
-			},this)
-			.sort(function(a,b){return (a.angle < b.angle)?1:(a.angle > b.angle)?-1:0});
-	}
+	// planarAdjacent():AdjacentNodes[]{
+	// 	return (<PlanarEdge[]>this.adjacentEdges())
+	// 		.map(function(el){ 
+	// 			if(this === el.nodes[0]) return new AdjacentNodes(el.nodes[0], el.nodes[1], el);
+	// 			else                     return new AdjacentNodes(el.nodes[1], el.nodes[0], el);
+	// 		},this)
+	// 		.sort(function(a,b){return (a.angle < b.angle)?1:(a.angle > b.angle)?-1:0});
+	// }
 
+	junction():PlanarJunction{return new PlanarJunction(this);}
 
-	interiorAngles():PlanarJoint[]{
-		var adjacent = this.planarAdjacent();
-		// if this node is a leaf, should 1 angle be 360 degrees? or no interior angles
-		if(adjacent.length <= 1){ return []; }
-		return adjacent.map(function(el, i){
-			var nextI = (i+1)%this.length;
-			return new PlanarJoint(this[i].edge, this[nextI].edge);
-		}, adjacent);
-	}
+	// interiorAngles():PlanarJoint[]{
+	// 	var adjacent = this.planarAdjacent();
+	// 	// if this node is a leaf, should 1 angle be 360 degrees? or no interior angles
+	// 	if(adjacent.length <= 1){ return []; }
+	// 	return adjacent.map(function(el, i){
+	// 		var nextI = (i+1)%this.length;
+	// 		return new PlanarJoint(this[i].edge, this[nextI].edge);
+	// 	}, adjacent);
+	// }
 
 	/** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
 	 * @returns {AdjacentNodes} AdjacentNodes object containing the clockwise node and the edge connecting the two.
 	 */
-	adjacentNodeClockwiseFrom(node:PlanarNode):AdjacentNodes{
-		var adjacentNodes:AdjacentNodes[] = this.planarAdjacent();
-		for(var i = 0; i < adjacentNodes.length; i++){
-			if(adjacentNodes[i].node === node){
-				return adjacentNodes[ ((i+1)%adjacentNodes.length) ];
-			}
-		}
-		return undefined;
-	}
+	// adjacentNodeClockwiseFrom(node:PlanarNode):AdjacentNodes{
+	// 	var adjacentNodes:AdjacentNodes[] = this.planarAdjacent();
+	// 	for(var i = 0; i < adjacentNodes.length; i++){
+	// 		if(adjacentNodes[i].node === node){
+	// 			return adjacentNodes[ ((i+1)%adjacentNodes.length) ];
+	// 		}
+	// 	}
+	// 	return undefined;
+	// }
 
 // implements XY
 	values():[number, number]{ return [this.x, this.y]; }
@@ -672,6 +730,10 @@ class PlanarNode extends GraphNode{
 		this.x = xx * matrix.a + yy * matrix.c + matrix.tx;
 		this.y = xx * matrix.b + yy * matrix.d + matrix.ty;
 		return this;
+	}
+	lerp(point:XY, pct:number):XY{
+		var inv = 1.0 - pct;
+		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
 	}
 	/** reflects about a line that passes through 'a' and 'b' */
 	reflect(a:XY,b:XY):XY{
@@ -746,9 +808,10 @@ class PlanarEdge extends GraphEdge{
 	}
 
 	adjacentFaces():PlanarFace[]{
-		return [ this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[0], this.nodes[1]) ),
-				 this.graph.makeFace( this.graph.findClockwiseCircut(this.nodes[1], this.nodes[0]) ) ]
-				 .filter(function(el){ return el !== undefined });
+		return [
+			new PlanarFace(this.graph).makeFromCircuit( findClockwiseCircut(this.nodes[0], this.nodes[1]) ),
+			new PlanarFace(this.graph).makeFromCircuit( findClockwiseCircut(this.nodes[1], this.nodes[0]) )]
+			.filter(function(el){ return el !== undefined });
 	}
 	transform(matrix){
 		this.nodes[0].transform(matrix);
@@ -771,6 +834,30 @@ class PlanarFace{
 		this.nodes = [];
 		this.edges = [];
 		this.angles = [];
+	}
+	makeFromCircuit(circut:PlanarEdge[]):PlanarFace{
+		if(circut == undefined || circut.length < 3) return undefined;
+		this.edges = circut;
+		this.nodes = circut.map(function(el,i){
+			return <PlanarNode>el.uncommonNodeWithEdge( circut[ (i+1)%circut.length ] );
+		});
+		this.angles = [];
+		// so the first node is already present, it's just in the last spot. is this okay?
+		// this.nodes.unshift(circut[0].parent);
+		// this.edges = circut.map(function(el){return el.edge;});
+		for(var i = 0; i < this.edges.length; i++){
+			var nextI = (i+1)%this.edges.length;
+			var common = <PlanarNode>this.edges[i].commonNodeWithEdge(this.edges[nextI]);
+			var angle = clockwiseInteriorAngleRadians(this.edges[i].absoluteAngle(common), this.edges[nextI].absoluteAngle(common)-Math.PI);
+			this.angles.push(angle);
+			// this.angles.push(clockwiseInteriorAngleRadians(this.edges[i].angle, this.edges[(i+1)%(this.edges.length)].angle-Math.PI));
+		}
+		var angleSum = this.angles.reduce(function(sum,value){ return sum + value; }, 0);
+		// sum of interior angles rule, (n-2) * PI
+		if(this.nodes.length > 2 && epsilonEqual(angleSum/(this.nodes.length-2), Math.PI, EPSILON)){
+			return this;
+		}
+		return undefined;
 	}
 	equivalent(face:PlanarFace):boolean{
 		// quick check, only verfies nodes
@@ -1416,7 +1503,7 @@ class PlanarGraph extends Graph{
 	// INTERIOR ANGLES
 
 	generatePlanarJoints(){
-		return flatMap(this.nodes, function(el){ return el.interiorAngles(); });
+		return flatMap(this.nodes, function(el){ return el.junction().interiorAngles(); });
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -1438,43 +1525,6 @@ class PlanarGraph extends Graph{
 		}
 		this.faceArrayDidChange();
 		return this.faces;
-	}
-
-	findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):AdjacentNodes[]{
-		var incidentEdge = <PlanarEdge>this.getEdgeConnectingNodes(node1, node2);
-		if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
-		var pairs:AdjacentNodes[] = [];
-		var lastNode = node1;
-		var travelingNode = node2;
-		var visitedList = [lastNode];
-		var nextWalk = new AdjacentNodes(lastNode, travelingNode, incidentEdge);
-		pairs.push(nextWalk);
-		do{
-			visitedList.push(travelingNode);
-			nextWalk = travelingNode.adjacentNodeClockwiseFrom(lastNode);
-			pairs.push(nextWalk);
-			lastNode = travelingNode;
-			travelingNode = nextWalk.node;
-			if(travelingNode === node1){ return pairs; }
-		} while(!arrayContainsObject(visitedList, travelingNode));
-		return undefined;
-	}
-
-	makeFace(circut:AdjacentNodes[]):PlanarFace{
-		if(circut == undefined || circut.length < 3) return undefined;
-		var face = new PlanarFace(this);
-		face.nodes = circut.map(function(el){return el.node;});
-		// so the first node is already present, it's just in the last spot. is this okay?
-		// face.nodes.unshift(circut[0].parent);
-		face.edges = circut.map(function(el){return el.edge;});
-		for(var i = 0; i < circut.length; i++){
-			face.angles.push(clockwiseInteriorAngleRadians(circut[i].angle, circut[(i+1)%(circut.length)].angle-Math.PI));
-		}
-		var angleSum = face.angles.reduce(function(sum,value){ return sum + value; }, 0);
-		// sum of interior angles rule, (n-2) * PI
-		if(face.nodes.length > 2 && epsilonEqual(angleSum/(face.nodes.length-2), Math.PI, EPSILON)){
-			return face;
-		}
 	}
 
 	adjacentFaceTree(start:PlanarFace):any{

@@ -76,6 +76,17 @@ var FoldSequence = (function () {
 // 	}
 // 	return array;
 // }
+var CreaseJunction = (function (_super) {
+    __extends(CreaseJunction, _super);
+    function CreaseJunction() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    CreaseJunction.prototype.kawasaki = function () {
+        // todo
+        return true;
+    };
+    return CreaseJunction;
+}(PlanarJunction));
 var CreaseNode = (function (_super) {
     __extends(CreaseNode, _super);
     function CreaseNode() {
@@ -91,15 +102,15 @@ var CreaseNode = (function (_super) {
         return false;
     };
     CreaseNode.prototype.kawasaki = function () {
-        var angles = this.interiorAngles();
+        var angles = this.junction().interiorAngles();
         // only computes if number of interior angles are even
         if (angles.length % 2 != 0) {
             return undefined;
         }
         var aSum = angles.filter(function (el, i) { return i % 2; })
-            .reduce(function (sum, el) { return sum + el.angle(); }, 0);
+            .reduce(function (sum, el) { return sum + el; }, 0);
         var bSum = angles.filter(function (el, i) { return !(i % 2); })
-            .reduce(function (sum, el) { return sum + el.angle(); }, 0);
+            .reduce(function (sum, el) { return sum + el; }, 0);
         return [aSum, bSum];
     };
     CreaseNode.prototype.kawasakiRating = function () {
@@ -145,12 +156,6 @@ var CreaseNode = (function (_super) {
     // AXIOM 2
     CreaseNode.prototype.creaseToPoint = function (point) {
         return this.graph.creasePointToPoint(this, point);
-    };
-    CreaseNode.prototype.findFlatFoldable = function () {
-        var that = this;
-        return this.interiorAngles().map(function (el) {
-            return that.graph.findFlatFoldable(el);
-        });
     };
     return CreaseNode;
 }(PlanarNode));
@@ -961,7 +966,7 @@ var CreasePattern = (function (_super) {
             var theseQuarterEdgeIndices = [];
             edges.forEach(function (el) {
                 var midpoints = [el[0], el[1]].map(function (mapEl) {
-                    return interpolate(new XY(mapEl[0], mapEl[1]), new XY(site[0], site[1]), interp);
+                    return new XY(mapEl[0], mapEl[1]).lerp(new XY(site[0], site[1]), interp);
                 });
                 var endpoints = [new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
                 for (var n = 0; n < vNodes.length; n++) {
@@ -1209,7 +1214,7 @@ var CreasePattern = (function (_super) {
                 sideNodes.push(new XY(vEdges[e].right[0], vEdges[e].right[1]));
             }
             var midpts = sideNodes.map(function (el) {
-                return [interpolate(endpts[0], el, interp), interpolate(endpts[1], el, interp)];
+                return [endpts[0].lerp(el, interp), endpts[1].lerp(el, interp)];
             });
             for (var m = 0; m < midpts.length; m++) {
                 // interpolate from the cell edge endpoints to the node
@@ -1241,7 +1246,7 @@ var CreasePattern = (function (_super) {
                 sideNodes.push(new XY(vEdges[e].right[0], vEdges[e].right[1]));
             }
             var midpts = sideNodes.map(function (el) {
-                return [interpolate(endpts[0], el, interp), interpolate(endpts[1], el, interp)];
+                return [endpts[0].lerp(el, interp), endpts[1].lerp(el, interp)];
             });
             var arteries = [];
             for (var m = 0; m < midpts.length; m++) {
@@ -1515,47 +1520,41 @@ var CreasePattern = (function (_super) {
         }
         return this;
     };
-    CreasePattern.prototype.findFlatFoldable = function (angle) {
-        var interiorAngles = angle.node.interiorAngles();
-        if (interiorAngles.length != 3) {
-            return;
-        }
-        // find this interior angle among the other interior angles
-        var foundIndex = undefined;
-        for (var i = 0; i < interiorAngles.length; i++) {
-            if (angle.equivalent(interiorAngles[i])) {
-                foundIndex = i;
+    /*
+        findFlatFoldable(angle:PlanarJoint):number{
+            var interiorAngles = angle.node.interiorAngles();
+            if(interiorAngles.length != 3){ return; }
+            // find this interior angle among the other interior angles
+            var foundIndex = undefined;
+            for(var i = 0; i < interiorAngles.length; i++){
+                if(angle.equivalent(interiorAngles[i])){ foundIndex = i; }
             }
-        }
-        if (foundIndex === undefined) {
-            return undefined;
-        }
-        var sumEven = 0;
-        var sumOdd = 0;
-        for (var i = 0; i < interiorAngles.length - 1; i++) {
-            var index = (i + foundIndex + 1) % interiorAngles.length;
-            if (i % 2 == 0) {
-                sumEven += interiorAngles[index].angle();
+            if(foundIndex === undefined){ return undefined; }
+            var sumEven = 0;
+            var sumOdd = 0;
+            for(var i = 0; i < interiorAngles.length-1; i++){
+                var index = (i+foundIndex+1) % interiorAngles.length;
+                if(i % 2 == 0){ sumEven += interiorAngles[index].angle(); }
+                else { sumOdd += interiorAngles[index].angle(); }
             }
-            else {
-                sumOdd += interiorAngles[index].angle();
-            }
+            var dEven = Math.PI - sumEven;
+            var dOdd = Math.PI - sumOdd;
+            var angle0 = angle.edges[0].absoluteAngle(angle.node);
+            var angle1 = angle.edges[1].absoluteAngle(angle.node);
+            // this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
+            // console.log(clockwiseInteriorAngleRadians(angle0, angle1) + " " + clockwiseInteriorAngleRadians(angle1, angle0));
+            // if(clockwiseInteriorAngleRadians(angle0, angle1) < clockwiseInteriorAngleRadians(angle1, angle0)){
+                // return angle1 - dOdd;
+                // return angle1 - dEven;
+            // } else{
+                // return angle0 - dOdd;
+            // }
+    
+            // return angle0 + dEven;
+            return angle0 - dEven;
         }
-        var dEven = Math.PI - sumEven;
-        var dOdd = Math.PI - sumOdd;
-        var angle0 = angle.edges[0].absoluteAngle(angle.node);
-        var angle1 = angle.edges[1].absoluteAngle(angle.node);
-        // this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
-        // console.log(clockwiseInteriorAngleRadians(angle0, angle1) + " " + clockwiseInteriorAngleRadians(angle1, angle0));
-        // if(clockwiseInteriorAngleRadians(angle0, angle1) < clockwiseInteriorAngleRadians(angle1, angle0)){
-        // return angle1 - dOdd;
-        // return angle1 - dEven;
-        // } else{
-        // return angle0 - dOdd;
-        // }
-        // return angle0 + dEven;
-        return angle0 - dEven;
-    };
+    
+        */
     // vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
     // 	var v = this.nodes[vIndex];
     // 	return this.vertexLiesOnEdge(v, intersect);
@@ -1602,65 +1601,58 @@ var CreasePattern = (function (_super) {
             return this.boundary.faces[0].contains(point);
         }
     };
-    CreasePattern.prototype.kawasaki = function (nodeIndex) {
-        // this hands back an array of angles, the spaces between edges, clockwise.
-        // each angle object contains:
-        //  - arc angle
-        //  - details on the root data (nodes, edges, their angles)
-        //  - results from the kawasaki algorithm:
-        //     which is the amount in radians to add to each angle to make flat foldable 
-        // var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
-        var thisNode = this.nodes[nodeIndex];
-        var adjacentEdges = thisNode.planarAdjacent();
-        // console.log(adjacentEdges);
-        var angles = [];
-        for (var i = 0; i < adjacentEdges.length; i++) {
-            var nextI = (i + 1) % adjacentEdges.length;
-            var angleDiff = adjacentEdges[nextI].angle - adjacentEdges[i].angle;
-            if (angleDiff < 0)
-                angleDiff += Math.PI * 2;
-            angles.push({
-                "arc": angleDiff,
-                "angles": [adjacentEdges[i].angle, adjacentEdges[nextI].angle],
-                "nodes": [adjacentEdges[i].node, adjacentEdges[nextI].node],
-                "edges": [adjacentEdges[i].edge, adjacentEdges[nextI].edge]
-            });
-        }
-        var sumEven = 0;
-        var sumOdd = 0;
-        for (var i = 0; i < angles.length; i++) {
-            if (i % 2 == 0) {
-                sumEven += angles[i].arc;
+    /*
+        kawasaki(nodeIndex){
+            // this hands back an array of angles, the spaces between edges, clockwise.
+            // each angle object contains:
+            //  - arc angle
+            //  - details on the root data (nodes, edges, their angles)
+            //  - results from the kawasaki algorithm:
+            //     which is the amount in radians to add to each angle to make flat foldable
+            // var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
+            var thisNode = this.nodes[nodeIndex];
+            var adjacentEdges = thisNode.planarAdjacent();
+            // console.log(adjacentEdges);
+            var angles = [];
+            for(var i = 0; i < adjacentEdges.length; i++){
+                var nextI = (i+1)%adjacentEdges.length;
+                var angleDiff = adjacentEdges[nextI].angle - adjacentEdges[i].angle;
+                if(angleDiff < 0) angleDiff += Math.PI*2;
+                angles.push( {
+                    "arc":angleDiff,
+                    "angles":[adjacentEdges[i].angle, adjacentEdges[nextI].angle],
+                    "nodes": [adjacentEdges[i].node, adjacentEdges[nextI].node],
+                    "edges": [adjacentEdges[i].edge, adjacentEdges[nextI].edge] } );
             }
-            else {
-                sumOdd += angles[i].arc;
+            var sumEven = 0;
+            var sumOdd = 0;
+            for(var i = 0; i < angles.length; i++){
+                if(i % 2 == 0){ sumEven += angles[i].arc; }
+                else { sumOdd += angles[i].arc; }
             }
-        }
-        var dEven = Math.PI - sumEven;
-        var dOdd = Math.PI - sumOdd;
-        for (var i = 0; i < angles.length; i++) {
-            if (i % 2 == 0) {
-                angles[i]["kawasaki"] = dEven * (angles[i].arc / (Math.PI * 2));
+            var dEven = Math.PI - sumEven;
+            var dOdd = Math.PI - sumOdd;
+            for(var i = 0; i < angles.length; i++){
+                if(i % 2 == 0){angles[i]["kawasaki"] = dEven * (angles[i].arc/(Math.PI*2)); }
+                else { angles[i]["kawasaki"] = dOdd * (angles[i].arc/(Math.PI*2)); }
             }
-            else {
-                angles[i]["kawasaki"] = dOdd * (angles[i].arc / (Math.PI * 2));
+            return angles;
+        }
+    
+        kawasakiDeviance(nodeIndex){
+            var kawasaki = kawasaki(nodeIndex);
+            var adjacentEdges = this.nodes[nodeIndex].planarAdjacent();
+            var angles = [];
+            for(var i = 0; i < adjacentEdges.length; i++){
+                var nextI = (i+1)%adjacentEdges.length;
+                var angleDiff = adjacentEdges[nextI].angle - adjacentEdges[i].angle;
+                if(angleDiff < 0) angleDiff += Math.PI*2;
+                angles.push( {"arc":angleDiff, "angles":[adjacentEdges[i].angle, adjacentEdges[nextI].angle], "nodes": [i, nextI] } );
             }
+            return angles;
         }
-        return angles;
-    };
-    CreasePattern.prototype.kawasakiDeviance = function (nodeIndex) {
-        var kawasaki = kawasaki(nodeIndex);
-        var adjacentEdges = this.nodes[nodeIndex].planarAdjacent();
-        var angles = [];
-        for (var i = 0; i < adjacentEdges.length; i++) {
-            var nextI = (i + 1) % adjacentEdges.length;
-            var angleDiff = adjacentEdges[nextI].angle - adjacentEdges[i].angle;
-            if (angleDiff < 0)
-                angleDiff += Math.PI * 2;
-            angles.push({ "arc": angleDiff, "angles": [adjacentEdges[i].angle, adjacentEdges[nextI].angle], "nodes": [i, nextI] });
-        }
-        return angles;
-    };
+    
+    */
     // cleanIntersections(){
     // 	this.clean();
     // 	var intersections = super.fragment();

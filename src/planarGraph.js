@@ -87,10 +87,6 @@ function arrayContains(array, object, compFunction) {
 /////////////////////////////////////////////////////////////////////////////////
 //                            2D ALGORITHMS
 /////////////////////////////////////////////////////////////////////////////////
-function interpolate(p1, p2, pct) {
-    var inv = 1.0 - pct;
-    return new XY(p1.x * pct + p2.x * inv, p1.y * pct + p2.y * inv);
-}
 /** if points are all collinear, checks if point lies on line segment 'ab' */
 function onSegment(point, a, b, epsilon) {
     if (epsilon === undefined) {
@@ -380,6 +376,10 @@ var XY = (function () {
     XY.prototype.transform = function (matrix) {
         return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx, this.x * matrix.b + this.y * matrix.d + matrix.ty);
     };
+    XY.prototype.lerp = function (point, pct) {
+        var inv = 1.0 - pct;
+        return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
+    };
     /** reflects this point about a line that passes through 'a' and 'b' */
     XY.prototype.reflect = function (a, b) {
         return this.transform(new Matrix().reflection(a, b));
@@ -480,16 +480,20 @@ var Matrix = (function () {
 /////////////////////////////////////////////////////////////////////////////////
 //                            PLANAR GRAPH PARTS
 /////////////////////////////////////////////////////////////////////////////////
-var AdjacentNodes = (function () {
-    function AdjacentNodes(parent, node, edge) {
-        this.node = node;
-        this.angle = Math.atan2(node.y - parent.y, node.x - parent.x);
-        this.edge = edge;
-        // optional
-        this.parent = parent;
-    }
-    return AdjacentNodes;
-}());
+// class AdjacentNodes{
+// 	// node adjacent to node, with angle offset and connecting edge
+// 	parent:PlanarNode;  // "first" node, polarity required for angle calculation
+// 	node:PlanarNode;
+// 	angle:number; // radians, angle from parent to node
+// 	edge:PlanarEdge;  // edge connecting the two nodes
+// 	constructor(parent:PlanarNode, node:PlanarNode, edge:PlanarEdge){
+// 		this.node = node;
+// 		this.angle = Math.atan2(node.y-parent.y, node.x-parent.x);
+// 		this.edge = edge;
+// 		// optional
+// 		this.parent = parent;
+// 	}
+// }
 // class AdjacentFace{
 // 	face:PlanarFace;
 // 	parentEdge:PlanarEdge; // edge connecting to parent
@@ -499,6 +503,30 @@ var AdjacentNodes = (function () {
 // 		this.adjacent = [];
 // 	}
 // }
+function findClockwiseCircut(node1, node2) {
+    var incidentEdge = this.getEdgeConnectingNodes(node1, node2);
+    if (incidentEdge == undefined) {
+        return undefined;
+    } // nodes are not adjacent
+    var pairs = [];
+    var lastNode = node1;
+    var travelingNode = node2;
+    var visitedList = [lastNode];
+    var nextWalk = incidentEdge; //new AdjacentNodes(lastNode, travelingNode, incidentEdge);
+    pairs.push(nextWalk);
+    do {
+        visitedList.push(travelingNode);
+        nextWalk = travelingNode.junction().clockwiseEdge(nextWalk);
+        // nextWalk = travelingNode.adjacentNodeClockwiseFrom(lastNode);
+        pairs.push(nextWalk);
+        lastNode = travelingNode;
+        travelingNode = nextWalk.otherNode(lastNode);
+        if (travelingNode === node1) {
+            return pairs;
+        }
+    } while (!arrayContainsObject(visitedList, travelingNode));
+    return undefined;
+}
 var EdgeIntersection = (function (_super) {
     __extends(EdgeIntersection, _super);
     function EdgeIntersection(otherEdge, intersectionX, intersectionY) {
@@ -508,21 +536,6 @@ var EdgeIntersection = (function (_super) {
     }
     return EdgeIntersection;
 }(XY));
-// class InteriorAngle{
-// 	edges:[PlanarEdge,PlanarEdge];
-// 	node:PlanarNode;
-// 	angle:number;
-// 	constructor(edge1:PlanarEdge, edge2:PlanarEdge){
-// 		this.node = <PlanarNode>edge1.commonNodeWithEdge(edge2);
-// 		if(this.node === undefined){ return undefined; }
-// 		this.angle = clockwiseInteriorAngleRadians(edge1.absoluteAngle(this.node), edge2.absoluteAngle(this.node));
-// 		this.edges = [edge1, edge2];
-// 	}
-// 	equivalent(a:InteriorAngle):boolean{
-// 		return( (a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
-// 			(a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0])));
-// 	}
-// }
 /** a PlanarJoint is defined by 2 edges and 3 nodes (one common, 2 endpoints)
  *  clockwise order is required
  *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
@@ -592,6 +605,61 @@ var PlanarJoint = (function () {
     // (private function)
     PlanarJoint.prototype.sortByClockwise = function () { };
     return PlanarJoint;
+}());
+var PlanarJunction = (function () {
+    function PlanarJunction(node) {
+        this.node = node;
+        var sortedEdges = this.node.adjacentEdges()
+            .map(function (el) {
+            var otherNode = el.otherNode(this.node);
+            return { 'edge': el, 'angle': Math.atan2(otherNode.y - this.node.y, otherNode.x - this.node.x) };
+        }, this)
+            .sort(function (a, b) { return (a.angle < b.angle) ? 1 : (a.angle > b.angle) ? -1 : 0; })
+            .map(function (el) { return el.edge; });
+        this.joints = sortedEdges.map(function (el, i) {
+            var nexti = (i + 1) % sortedEdges.length;
+            return new PlanarJoint(el, sortedEdges[nexti]);
+        });
+        this.edges = this.joints.map(function (el) { return el.edges[0]; });
+    }
+    PlanarJunction.prototype.edgeAngles = function () {
+        return this.edges.map(function (el) { return el.absoluteAngle(this.node); }, this);
+    };
+    PlanarJunction.prototype.interiorAngles = function () {
+        var absoluteAngles = this.edges.map(function (el) { return el.absoluteAngle(this.node); }, this);
+        return absoluteAngles.map(function (el, i) {
+            var nextI = (i + 1) % this.edges.length;
+            return clockwiseInteriorAngleRadians(el, absoluteAngles[nextI]);
+        }, this);
+    };
+    /** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
+     * @returns {PlanarNode}
+     */
+    PlanarJunction.prototype.clockwiseNode = function (fromNode) {
+        for (var i = 0; i < this.edges.length; i++) {
+            if (this.edges[i].otherNode(this.node) === fromNode) {
+                return this.edges[(i + 1) % this.edges.length].otherNode(this.node);
+            }
+        }
+    };
+    PlanarJunction.prototype.clockwiseEdge = function (fromEdge) {
+        for (var i = 0; i < this.edges.length; i++) {
+            if (this.edges[i] === fromEdge) {
+                return this.edges[(i + 1) % this.edges.length];
+            }
+        }
+    };
+    PlanarJunction.prototype.faces = function () {
+        var adjacentFaces = [];
+        for (var n = 0; n < this.edges.length; n++) {
+            var face = new PlanarFace(this.node.graph).makeFromCircuit(findClockwiseCircut(this.node, this.edges[n].otherNode(this.node)));
+            if (face !== undefined) {
+                adjacentFaces.push(face);
+            }
+        }
+        return adjacentFaces;
+    };
+    return PlanarJunction;
 }());
 var PlanarClean = (function (_super) {
     __extends(PlanarClean, _super);
@@ -676,55 +744,44 @@ var PlanarNode = (function (_super) {
     __extends(PlanarNode, _super);
     function PlanarNode() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
-        // for fast algorithms, temporarily storing information on here
+        // for speeding up algorithms, temporarily store information here
         _this.cache = {};
         return _this;
     }
     PlanarNode.prototype.adjacentFaces = function () {
-        var adjacentFaces = [];
-        var adj = this.planarAdjacent();
-        for (var n = 0; n < adj.length; n++) {
-            var face = this.graph.makeFace(this.graph.findClockwiseCircut(this, adj[n].node));
-            if (face != undefined) {
-                adjacentFaces.push(face);
-            }
-        }
-        return adjacentFaces;
+        return this.junction().faces();
     };
     /** Adjacent nodes sorted clockwise by angle toward adjacent node, type AdjacentNodes object */
-    PlanarNode.prototype.planarAdjacent = function () {
-        return this.adjacentEdges()
-            .map(function (el) {
-            if (this === el.nodes[0])
-                return new AdjacentNodes(el.nodes[0], el.nodes[1], el);
-            else
-                return new AdjacentNodes(el.nodes[1], el.nodes[0], el);
-        }, this)
-            .sort(function (a, b) { return (a.angle < b.angle) ? 1 : (a.angle > b.angle) ? -1 : 0; });
-    };
-    PlanarNode.prototype.interiorAngles = function () {
-        var adjacent = this.planarAdjacent();
-        // if this node is a leaf, should 1 angle be 360 degrees? or no interior angles
-        if (adjacent.length <= 1) {
-            return [];
-        }
-        return adjacent.map(function (el, i) {
-            var nextI = (i + 1) % this.length;
-            return new PlanarJoint(this[i].edge, this[nextI].edge);
-        }, adjacent);
-    };
+    // planarAdjacent():AdjacentNodes[]{
+    // 	return (<PlanarEdge[]>this.adjacentEdges())
+    // 		.map(function(el){ 
+    // 			if(this === el.nodes[0]) return new AdjacentNodes(el.nodes[0], el.nodes[1], el);
+    // 			else                     return new AdjacentNodes(el.nodes[1], el.nodes[0], el);
+    // 		},this)
+    // 		.sort(function(a,b){return (a.angle < b.angle)?1:(a.angle > b.angle)?-1:0});
+    // }
+    PlanarNode.prototype.junction = function () { return new PlanarJunction(this); };
+    // interiorAngles():PlanarJoint[]{
+    // 	var adjacent = this.planarAdjacent();
+    // 	// if this node is a leaf, should 1 angle be 360 degrees? or no interior angles
+    // 	if(adjacent.length <= 1){ return []; }
+    // 	return adjacent.map(function(el, i){
+    // 		var nextI = (i+1)%this.length;
+    // 		return new PlanarJoint(this[i].edge, this[nextI].edge);
+    // 	}, adjacent);
+    // }
     /** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
      * @returns {AdjacentNodes} AdjacentNodes object containing the clockwise node and the edge connecting the two.
      */
-    PlanarNode.prototype.adjacentNodeClockwiseFrom = function (node) {
-        var adjacentNodes = this.planarAdjacent();
-        for (var i = 0; i < adjacentNodes.length; i++) {
-            if (adjacentNodes[i].node === node) {
-                return adjacentNodes[((i + 1) % adjacentNodes.length)];
-            }
-        }
-        return undefined;
-    };
+    // adjacentNodeClockwiseFrom(node:PlanarNode):AdjacentNodes{
+    // 	var adjacentNodes:AdjacentNodes[] = this.planarAdjacent();
+    // 	for(var i = 0; i < adjacentNodes.length; i++){
+    // 		if(adjacentNodes[i].node === node){
+    // 			return adjacentNodes[ ((i+1)%adjacentNodes.length) ];
+    // 		}
+    // 	}
+    // 	return undefined;
+    // }
     // implements XY
     PlanarNode.prototype.values = function () { return [this.x, this.y]; };
     // todo: probably need to break apart XY and this. this modifies the x and y in place. XY returns a new one and doesn't modify the current one in place
@@ -757,6 +814,10 @@ var PlanarNode = (function (_super) {
         this.x = xx * matrix.a + yy * matrix.c + matrix.tx;
         this.y = xx * matrix.b + yy * matrix.d + matrix.ty;
         return this;
+    };
+    PlanarNode.prototype.lerp = function (point, pct) {
+        var inv = 1.0 - pct;
+        return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
     };
     /** reflects about a line that passes through 'a' and 'b' */
     PlanarNode.prototype.reflect = function (a, b) {
@@ -849,8 +910,10 @@ var PlanarEdge = (function (_super) {
         return Math.atan2(endNode.y - startNode.y, endNode.x - startNode.x);
     };
     PlanarEdge.prototype.adjacentFaces = function () {
-        return [this.graph.makeFace(this.graph.findClockwiseCircut(this.nodes[0], this.nodes[1])),
-            this.graph.makeFace(this.graph.findClockwiseCircut(this.nodes[1], this.nodes[0]))]
+        return [
+            new PlanarFace(this.graph).makeFromCircuit(findClockwiseCircut(this.nodes[0], this.nodes[1])),
+            new PlanarFace(this.graph).makeFromCircuit(findClockwiseCircut(this.nodes[1], this.nodes[0]))
+        ]
             .filter(function (el) { return el !== undefined; });
     };
     PlanarEdge.prototype.transform = function (matrix) {
@@ -868,6 +931,31 @@ var PlanarFace = (function () {
         this.edges = [];
         this.angles = [];
     }
+    PlanarFace.prototype.makeFromCircuit = function (circut) {
+        if (circut == undefined || circut.length < 3)
+            return undefined;
+        this.edges = circut;
+        this.nodes = circut.map(function (el, i) {
+            return el.uncommonNodeWithEdge(circut[(i + 1) % circut.length]);
+        });
+        this.angles = [];
+        // so the first node is already present, it's just in the last spot. is this okay?
+        // this.nodes.unshift(circut[0].parent);
+        // this.edges = circut.map(function(el){return el.edge;});
+        for (var i = 0; i < this.edges.length; i++) {
+            var nextI = (i + 1) % this.edges.length;
+            var common = this.edges[i].commonNodeWithEdge(this.edges[nextI]);
+            var angle = clockwiseInteriorAngleRadians(this.edges[i].absoluteAngle(common), this.edges[nextI].absoluteAngle(common) - Math.PI);
+            this.angles.push(angle);
+            // this.angles.push(clockwiseInteriorAngleRadians(this.edges[i].angle, this.edges[(i+1)%(this.edges.length)].angle-Math.PI));
+        }
+        var angleSum = this.angles.reduce(function (sum, value) { return sum + value; }, 0);
+        // sum of interior angles rule, (n-2) * PI
+        if (this.nodes.length > 2 && epsilonEqual(angleSum / (this.nodes.length - 2), Math.PI, EPSILON)) {
+            return this;
+        }
+        return undefined;
+    };
     PlanarFace.prototype.equivalent = function (face) {
         // quick check, only verfies nodes
         if (face.nodes.length != this.nodes.length)
@@ -1576,7 +1664,7 @@ var PlanarGraph = (function (_super) {
     ///////////////////////////////////////////////////////////////
     // INTERIOR ANGLES
     PlanarGraph.prototype.generatePlanarJoints = function () {
-        return flatMap(this.nodes, function (el) { return el.interiorAngles(); });
+        return flatMap(this.nodes, function (el) { return el.junction().interiorAngles(); });
     };
     ///////////////////////////////////////////////////////////////
     // FACE
@@ -1602,46 +1690,6 @@ var PlanarGraph = (function (_super) {
         }
         this.faceArrayDidChange();
         return this.faces;
-    };
-    PlanarGraph.prototype.findClockwiseCircut = function (node1, node2) {
-        var incidentEdge = this.getEdgeConnectingNodes(node1, node2);
-        if (incidentEdge == undefined) {
-            return undefined;
-        } // nodes are not adjacent
-        var pairs = [];
-        var lastNode = node1;
-        var travelingNode = node2;
-        var visitedList = [lastNode];
-        var nextWalk = new AdjacentNodes(lastNode, travelingNode, incidentEdge);
-        pairs.push(nextWalk);
-        do {
-            visitedList.push(travelingNode);
-            nextWalk = travelingNode.adjacentNodeClockwiseFrom(lastNode);
-            pairs.push(nextWalk);
-            lastNode = travelingNode;
-            travelingNode = nextWalk.node;
-            if (travelingNode === node1) {
-                return pairs;
-            }
-        } while (!arrayContainsObject(visitedList, travelingNode));
-        return undefined;
-    };
-    PlanarGraph.prototype.makeFace = function (circut) {
-        if (circut == undefined || circut.length < 3)
-            return undefined;
-        var face = new PlanarFace(this);
-        face.nodes = circut.map(function (el) { return el.node; });
-        // so the first node is already present, it's just in the last spot. is this okay?
-        // face.nodes.unshift(circut[0].parent);
-        face.edges = circut.map(function (el) { return el.edge; });
-        for (var i = 0; i < circut.length; i++) {
-            face.angles.push(clockwiseInteriorAngleRadians(circut[i].angle, circut[(i + 1) % (circut.length)].angle - Math.PI));
-        }
-        var angleSum = face.angles.reduce(function (sum, value) { return sum + value; }, 0);
-        // sum of interior angles rule, (n-2) * PI
-        if (face.nodes.length > 2 && epsilonEqual(angleSum / (face.nodes.length - 2), Math.PI, EPSILON)) {
-            return face;
-        }
     };
     PlanarGraph.prototype.adjacentFaceTree = function (start) {
         this.faceArrayDidChange();
