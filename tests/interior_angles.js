@@ -26,27 +26,26 @@ project.updateAngles = function(){
 	this.arcLayer.activate();
 	this.arcLayer.removeChildren();
 
-	var interior = centerNode.interiorAngles().sort(function(a,b){ return a.angle() < b.angle(); });
-
 	var i = 0;
 	var radiuses = [0.35, 0.3, 0.25];
-	interior.forEach(function(el){
-		var vectors = el.vectors().map(function(el){return el.normalize().scale(radiuses[i%3]);})
-		var arcCenter = el.bisect().scale(radiuses[i%3]);
-		var dot = new this.scope.Path.Circle(arcCenter.normalize().scale(0.9), 0.04);
-		dot.style.fillColor = { gray:0.0, alpha:1.0 };
-		var arc = new this.scope.Path.Arc(vectors[0], arcCenter, vectors[1]);
-		arc.add(new this.scope.Point(0.0, 0.0));
-		arc.closed = true;
-		Object.assign(arc, this.style.mountain);
-		Object.assign(arc, {strokeColor:null, fillColor:colors[i%3]});
-		i++;
-	},this);
-
+	
+	centerNode.junction().joints
+		.sort(function(a,b){ return a.angle() < b.angle();})
+		.forEach(function(el){
+			var vectors = el.vectors().map(function(el){return el.normalize().scale(radiuses[i%3]);})
+			var arcCenter = el.bisect().scale(radiuses[i%3]);
+			var dot = new this.scope.Path.Circle(arcCenter.normalize().scale(0.9), 0.04);
+			dot.style.fillColor = { gray:0.0, alpha:1.0 };
+			var arc = new this.scope.Path.Arc(vectors[0], arcCenter, vectors[1]);
+			arc.add(new this.scope.Point(0.0, 0.0));
+			arc.closed = true;
+			Object.assign(arc, this.style.mountain);
+			Object.assign(arc, {strokeColor:null, fillColor:colors[i%3]});
+			i++;
+		},this);
 }
 
 project.reset = function(){
-	console.log("reset");
 	this.selectNearestNode = true;
 	var creases = [
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),

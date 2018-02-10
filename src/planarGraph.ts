@@ -425,6 +425,8 @@ class Matrix{
 // 	}
 // }
 
+/** walk from node1 to node2, continue always making right-most inner angle turn. 
+ */
 function findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarEdge[]{
 	if(node1 === undefined || node2 === undefined){ return undefined; }
 	var incidentEdge = <PlanarEdge>node1.graph.getEdgeConnectingNodes(node1, node2);
@@ -433,12 +435,11 @@ function findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarEdge[]{
 	var lastNode = node1;
 	var travelingNode = node2;
 	var visitedList = [lastNode];
-	var nextWalk = incidentEdge;//new AdjacentNodes(lastNode, travelingNode, incidentEdge);
+	var nextWalk = incidentEdge;
 	pairs.push(nextWalk);
 	do{
 		visitedList.push(travelingNode);
 		nextWalk = travelingNode.junction().clockwiseEdge(nextWalk);
-		// nextWalk = travelingNode.adjacentNodeClockwiseFrom(lastNode);
 		pairs.push(nextWalk);
 		lastNode = travelingNode;
 		travelingNode = <PlanarNode>nextWalk.otherNode(lastNode);
@@ -525,6 +526,7 @@ class PlanarJoint{
 
 class PlanarJunction{
 	node:PlanarNode;
+	// joints and edges are sorted clockwise
 	joints:PlanarJoint[];
 	edges:PlanarEdge[];
 	constructor(node:PlanarNode){
@@ -640,19 +642,6 @@ class PlanarClean extends GraphClean{
 // 		this.distance = distance;
 // 	}
 // }
-// class PlanarAngle{
-// 	// the radial space between 2 edges
-// 	// an angle defined by two adjacent edges
-// 	node:PlanarNode;    // center node
-// 	edges:[PlanarEdge,PlanarEdge];  // two adjacent edges
-// 	angle:number; // radians
-// 	constructor(node:PlanarNode, edge1:PlanarEdge, edge2:PlanarEdge, angle){
-// 		var nodeInCommon = <PlanarNode>edge1.nodeInCommon(edge2);
-// 		this.node = nodeInCommon;
-// 		this.angle = 0;//Math.atan2(node.y-parent.y, node.x-parent.x);
-// 		this.edges = [edge1, edge2];
-// 	}
-// }
 
 class PlanarNode extends GraphNode{
 
@@ -667,16 +656,7 @@ class PlanarNode extends GraphNode{
 		return this.junction().faces();
 	}
 
-	/** Adjacent nodes sorted clockwise by angle toward adjacent node, type AdjacentNodes object */
-	// planarAdjacent():AdjacentNodes[]{
-	// 	return (<PlanarEdge[]>this.adjacentEdges())
-	// 		.map(function(el){ 
-	// 			if(this === el.nodes[0]) return new AdjacentNodes(el.nodes[0], el.nodes[1], el);
-	// 			else                     return new AdjacentNodes(el.nodes[1], el.nodes[0], el);
-	// 		},this)
-	// 		.sort(function(a,b){return (a.angle < b.angle)?1:(a.angle > b.angle)?-1:0});
-	// }
-
+	/** Adjacent nodes and edges sorted clockwise around this node */
 	junction():PlanarJunction{return new PlanarJunction(this);}
 
 	// interiorAngles():PlanarJoint[]{

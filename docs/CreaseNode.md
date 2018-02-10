@@ -14,10 +14,10 @@ adjacentFaces():PlanarFace[]
 interiorAngles():InteriorAngle[]
 ```
 
-### Adjacent nodes sorted clockwise by angle toward adjacent node, type AdjacentNodes object
+### Adjacent nodes sorted clockwise by angle toward adjacent node
 
 ```
-planarAdjacent():AdjacentNodes[]
+moved to: PlanarJunction
 ```
 
 ### Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
