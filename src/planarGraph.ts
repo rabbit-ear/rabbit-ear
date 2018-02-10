@@ -426,7 +426,8 @@ class Matrix{
 // }
 
 function findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarEdge[]{
-	var incidentEdge = <PlanarEdge>this.getEdgeConnectingNodes(node1, node2);
+	if(node1 === undefined || node2 === undefined){ return undefined; }
+	var incidentEdge = <PlanarEdge>node1.graph.getEdgeConnectingNodes(node1, node2);
 	if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
 	var pairs:PlanarEdge[] = [];
 	var lastNode = node1;
@@ -848,7 +849,7 @@ class PlanarFace{
 		for(var i = 0; i < this.edges.length; i++){
 			var nextI = (i+1)%this.edges.length;
 			var common = <PlanarNode>this.edges[i].commonNodeWithEdge(this.edges[nextI]);
-			var angle = clockwiseInteriorAngleRadians(this.edges[i].absoluteAngle(common), this.edges[nextI].absoluteAngle(common)-Math.PI);
+			var angle = clockwiseInteriorAngleRadians(this.edges[i].absoluteAngle(common), this.edges[nextI].absoluteAngle(common));
 			this.angles.push(angle);
 			// this.angles.push(clockwiseInteriorAngleRadians(this.edges[i].angle, this.edges[(i+1)%(this.edges.length)].angle-Math.PI));
 		}
@@ -1515,6 +1516,7 @@ class PlanarGraph extends Graph{
 		this.faces = [];
 		for(var i = 0; i < this.nodes.length; i++){
 			var adjacentFaces = this.nodes[i].adjacentFaces();
+			// console.log(adjacentFaces);
 			for(var af = 0; af < adjacentFaces.length; af++){
 				var duplicate = false;
 				for(var tf = 0; tf < this.faces.length; tf++){
