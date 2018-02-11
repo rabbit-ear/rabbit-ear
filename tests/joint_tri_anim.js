@@ -31,7 +31,7 @@ jointTri.reset = function(){
 		centerNode = this.cp.getNearestNode(0.5, 0.5);
 		interiorAngles = centerNode.interiorAngles();
 		var tooSmall = false;
-		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i].angle() < Math.PI*0.5) tooSmall = true; }
+		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i] < Math.PI*0.5) tooSmall = true; }
 	} while(tooSmall);
 
 	this.freq = [];
@@ -63,10 +63,11 @@ jointTri.onFrame = function(event) {
 	///////////////////////////////////////	
 
 	centerNode = this.cp.getNearestNode(0.5, 0.5);
-	interiorAngles = centerNode.interiorAngles();
+	var joints = centerNode.junction().joints;
+	interiorAngles = centerNode.junction().interiorAngles();
 	var angles = [];
-	for(var i = 0; i < interiorAngles.length; i++){
-		angles.push(cp.findFlatFoldable(interiorAngles[i]));
+	for(var i = 0; i < joints.length; i++){
+		angles.push(cp.findFlatFoldable(joints[i]));
 	}
 
 	var newTriNodes = [];
@@ -75,10 +76,10 @@ jointTri.onFrame = function(event) {
 		var ray = this.cp.creaseRay(centerNode, new XY(Math.cos(angles[i]), Math.sin(angles[i])) );
 		this.cp.clean();
 		// 2 crease lines for every original fan line
-		var commonNode = interiorAngles[i].edges[0].commonNodeWithEdge(interiorAngles[i].edges[1]);
+		var commonNode = joints[i].edges[0].commonNodeWithEdge(joints[i].edges[1]);
 		var center = new XY(commonNode.x, commonNode.y);
-		var angle1 = interiorAngles[i].edges[0].absoluteAngle(commonNode);
-		var angle2 = interiorAngles[i].edges[1].absoluteAngle(commonNode);
+		var angle1 = joints[i].edges[0].absoluteAngle(commonNode);
+		var angle2 = joints[i].edges[1].absoluteAngle(commonNode);
 		var dir = ray.absoluteAngle(commonNode);
 		var l = 0.2;
 		var newSpot = new XY(center.x+l*Math.cos(dir),center.y+l*Math.sin(dir));

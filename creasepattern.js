@@ -364,7 +364,6 @@ var Multigraph = (function (_super) {
     };
     return Multigraph;
 }(Graph));
-"use strict";
 var EPSILON_LOW = 0.003;
 var EPSILON = 0.00001;
 var EPSILON_HIGH = 0.00000001;
@@ -386,44 +385,6 @@ function wholeNumberify(num) {
         num = Math.round(num);
     }
     return num;
-}
-function flatMap(array, mapFunc) {
-    return array.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
-}
-function allEqual(args) {
-    for (var i = 1; i < args.length; i++) {
-        if (args[i] !== args[0])
-            return false;
-    }
-    return true;
-}
-function arrayContainsObject(array, object) {
-    for (var i = 0; i < array.length; i++) {
-        if (array[i] === object) {
-            return true;
-        }
-    }
-    return false;
-}
-function arrayRemoveDuplicates(array, compFunction) {
-    if (array.length <= 1)
-        return array;
-    for (var i = 0; i < array.length - 1; i++) {
-        for (var j = array.length - 1; j > i; j--) {
-            if (compFunction(array[i], array[j])) {
-                array.splice(j, 1);
-            }
-        }
-    }
-    return array;
-}
-function arrayContains(array, object, compFunction) {
-    for (var i = 0; i < array.length; i++) {
-        if (compFunction(array[i], object) === true) {
-            return i;
-        }
-    }
-    return undefined;
 }
 function onSegment(point, a, b, epsilon) {
     if (epsilon === undefined) {
@@ -753,6 +714,44 @@ var Matrix = (function () {
     };
     return Matrix;
 }());
+function flatMap(array, mapFunc) {
+    return array.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
+}
+function allEqual(args) {
+    for (var i = 1; i < args.length; i++) {
+        if (args[i] !== args[0])
+            return false;
+    }
+    return true;
+}
+function arrayContainsObject(array, object) {
+    for (var i = 0; i < array.length; i++) {
+        if (array[i] === object) {
+            return true;
+        }
+    }
+    return false;
+}
+function arrayRemoveDuplicates(array, compFunction) {
+    if (array.length <= 1)
+        return array;
+    for (var i = 0; i < array.length - 1; i++) {
+        for (var j = array.length - 1; j > i; j--) {
+            if (compFunction(array[i], array[j])) {
+                array.splice(j, 1);
+            }
+        }
+    }
+    return array;
+}
+function arrayContains(array, object, compFunction) {
+    for (var i = 0; i < array.length; i++) {
+        if (compFunction(array[i], object) === true) {
+            return i;
+        }
+    }
+    return undefined;
+}
 function findClockwiseCircut(node1, node2) {
     if (node1 === undefined || node2 === undefined) {
         return undefined;
@@ -972,8 +971,21 @@ var PlanarNode = (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.junctionType = PlanarJunction;
         _this.cache = {};
+        _this.junc = _this.junction();
         return _this;
     }
+    PlanarNode.prototype.adjacentEdges = function () {
+        return this.graph.edges
+            .filter(function (el) {
+            return el.nodes[0] === this || el.nodes[1] === this;
+        }, this)
+            .map(function (el) {
+            var other = el.otherNode(this);
+            return { 'edge': el, 'angle': Math.atan2(other.y - this.y, other.x - this.x) };
+        }, this)
+            .sort(function (a, b) { return (a.angle < b.angle) ? 1 : (a.angle > b.angle) ? -1 : 0; })
+            .map(function (el) { return el.edge; });
+    };
     PlanarNode.prototype.adjacentFaces = function () {
         var junction = this.junction();
         if (junction === undefined) {
@@ -1025,12 +1037,8 @@ var PlanarNode = (function (_super) {
         var inv = 1.0 - pct;
         return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
     };
-    PlanarNode.prototype.reflect = function (a, b) {
-        return this.transform(new Matrix().reflection(a, b));
-    };
-    PlanarNode.prototype.distanceTo = function (a) {
-        return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2));
-    };
+    PlanarNode.prototype.reflect = function (a, b) { return this.transform(new Matrix().reflection(a, b)); };
+    PlanarNode.prototype.distanceTo = function (a) { return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2)); };
     PlanarNode.prototype.scale = function (magnitude) { this.x *= magnitude; this.y *= magnitude; return this; };
     PlanarNode.prototype.subtract = function (sub) { this.x -= sub.x; this.y -= sub.y; return this; };
     return PlanarNode;
