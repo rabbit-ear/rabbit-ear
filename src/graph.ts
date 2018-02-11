@@ -199,7 +199,7 @@ class Graph{
 	/** Deep-copy the contents of this graph and return it as a new object
 	 * @returns {Graph} 
 	 */
-	duplicate():Graph{
+	copy():Graph{
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
 		var g = new Graph();

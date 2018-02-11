@@ -82,27 +82,7 @@ var CreaseJunction = (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     CreaseJunction.prototype.kawasaki = function () {
-        // todo
-        return true;
-    };
-    return CreaseJunction;
-}(PlanarJunction));
-var CreaseNode = (function (_super) {
-    __extends(CreaseNode, _super);
-    function CreaseNode() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    CreaseNode.prototype.isBoundary = function () {
-        for (var i = 0; i < this.graph.boundary.edges.length; i++) {
-            var thisPt = new XY(this.x, this.y);
-            if (onSegment(thisPt, this.graph.boundary.edges[i].nodes[0], this.graph.boundary.edges[i].nodes[1])) {
-                return true;
-            }
-        }
-        return false;
-    };
-    CreaseNode.prototype.kawasaki = function () {
-        var angles = this.junction().interiorAngles();
+        var angles = this.interiorAngles();
         // only computes if number of interior angles are even
         if (angles.length % 2 != 0) {
             return undefined;
@@ -112,6 +92,38 @@ var CreaseNode = (function (_super) {
         var bSum = angles.filter(function (el, i) { return !(i % 2); })
             .reduce(function (sum, el) { return sum + el; }, 0);
         return [aSum, bSum];
+    };
+    return CreaseJunction;
+}(PlanarJunction));
+var CreaseNode = (function (_super) {
+    __extends(CreaseNode, _super);
+    function CreaseNode() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.junctionType = CreaseJunction;
+        return _this;
+    }
+    // jointType = PlanarJoint;
+    CreaseNode.prototype.isBoundary = function () {
+        for (var i = 0; i < this.graph.boundary.edges.length; i++) {
+            var thisPt = new XY(this.x, this.y);
+            if (onSegment(thisPt, this.graph.boundary.edges[i].nodes[0], this.graph.boundary.edges[i].nodes[1])) {
+                return true;
+            }
+        }
+        return false;
+    };
+    // to subclass PlanarJunction into CreaseJunction
+    CreaseNode.prototype.junction = function () {
+        //todo: check cache for junction object
+        // store this new one if doesn't exist yet
+        var junction = new this.junctionType(this);
+        if (junction.edges.length === 0) {
+            return undefined;
+        }
+        return junction;
+    };
+    CreaseNode.prototype.kawasaki = function () {
+        return this.junction().kawasaki();
     };
     CreaseNode.prototype.kawasakiRating = function () {
         if (this.isBoundary()) {
@@ -156,6 +168,12 @@ var CreaseNode = (function (_super) {
     // AXIOM 2
     CreaseNode.prototype.creaseToPoint = function (point) {
         return this.graph.creasePointToPoint(this, point);
+    };
+    CreaseNode.prototype.findFlatFoldable = function () {
+        var that = this;
+        return this.junction().joints.map(function (el) {
+            return that.graph.findFlatFoldable(el);
+        });
     };
     return CreaseNode;
 }(PlanarNode));
@@ -212,6 +230,7 @@ var CreasePattern = (function (_super) {
     function CreasePattern() {
         var _this = _super.call(this) || this;
         _this.symmetryLine = undefined;
+        // When subclassed (ie. PlanarGraph) types are overwritten
         _this.nodeType = CreaseNode;
         _this.edgeType = Crease;
         if (_this.boundary === undefined) {
@@ -224,7 +243,7 @@ var CreasePattern = (function (_super) {
     /** This will deep-copy the contents of this graph and return it as a new object
      * @returns {CreasePattern}
      */
-    CreasePattern.prototype.duplicate = function () {
+    CreasePattern.prototype.copy = function () {
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
         this.faceArrayDidChange();
@@ -322,7 +341,7 @@ var CreasePattern = (function (_super) {
         return g;
     };
     CreasePattern.prototype.possibleFolds = function () {
-        var next = this.duplicate();
+        var next = this.copy();
         next.nodes = [];
         next.edges = [];
         next.faces = [];
@@ -345,7 +364,7 @@ var CreasePattern = (function (_super) {
         return next;
     };
     CreasePattern.prototype.possibleFolds1 = function () {
-        var next = this.duplicate();
+        var next = this.copy();
         next.nodes = [];
         next.edges = [];
         next.faces = [];
@@ -358,7 +377,7 @@ var CreasePattern = (function (_super) {
         return next;
     };
     CreasePattern.prototype.possibleFolds2 = function () {
-        var next = this.duplicate();
+        var next = this.copy();
         next.nodes = [];
         next.edges = [];
         next.faces = [];
@@ -371,7 +390,7 @@ var CreasePattern = (function (_super) {
         return next;
     };
     CreasePattern.prototype.possibleFolds3 = function (edges) {
-        var next = this.duplicate();
+        var next = this.copy();
         next.nodes = [];
         next.edges = [];
         next.faces = [];
@@ -395,7 +414,7 @@ var CreasePattern = (function (_super) {
             });
             // prevent too much deviation from length
             
-            var dup = this.duplicate();
+            var dup = this.copy();
     
             var forces = [];
             for(var i = 0; i < dup.nodes.length; i++){ forces.push(new XY(0,0)); }
@@ -465,7 +484,7 @@ var CreasePattern = (function (_super) {
         });
         // prevent too much deviation from length
         var nodesAttempted = 0;
-        // var dup = this.duplicate();
+        // var dup = this.copy();
         // var shuffleNodes = shuffle(this.nodes);
         for (var i = 0; i < this.nodes.length; i++) {
             var rating = this.nodes[i].kawasakiRating();
@@ -1520,41 +1539,48 @@ var CreasePattern = (function (_super) {
         }
         return this;
     };
-    /*
-        findFlatFoldable(angle:PlanarJoint):number{
-            var interiorAngles = angle.node.interiorAngles();
-            if(interiorAngles.length != 3){ return; }
-            // find this interior angle among the other interior angles
-            var foundIndex = undefined;
-            for(var i = 0; i < interiorAngles.length; i++){
-                if(angle.equivalent(interiorAngles[i])){ foundIndex = i; }
-            }
-            if(foundIndex === undefined){ return undefined; }
-            var sumEven = 0;
-            var sumOdd = 0;
-            for(var i = 0; i < interiorAngles.length-1; i++){
-                var index = (i+foundIndex+1) % interiorAngles.length;
-                if(i % 2 == 0){ sumEven += interiorAngles[index].angle(); }
-                else { sumOdd += interiorAngles[index].angle(); }
-            }
-            var dEven = Math.PI - sumEven;
-            var dOdd = Math.PI - sumOdd;
-            var angle0 = angle.edges[0].absoluteAngle(angle.node);
-            var angle1 = angle.edges[1].absoluteAngle(angle.node);
-            // this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
-            // console.log(clockwiseInteriorAngleRadians(angle0, angle1) + " " + clockwiseInteriorAngleRadians(angle1, angle0));
-            // if(clockwiseInteriorAngleRadians(angle0, angle1) < clockwiseInteriorAngleRadians(angle1, angle0)){
-                // return angle1 - dOdd;
-                // return angle1 - dEven;
-            // } else{
-                // return angle0 - dOdd;
-            // }
-    
-            // return angle0 + dEven;
-            return angle0 - dEven;
+    CreasePattern.prototype.findFlatFoldable = function (angle) {
+        var junction = angle.node.junction();
+        // todo: allow searches for other number edges
+        if (junction.edges.length != 3) {
+            return;
         }
-    
-        */
+        // find this interior angle among the other interior angles
+        var foundIndex = undefined;
+        for (var i = 0; i < junction.joints.length; i++) {
+            if (angle.equivalent(junction.joints[i])) {
+                foundIndex = i;
+            }
+        }
+        if (foundIndex === undefined) {
+            return undefined;
+        }
+        var sumEven = 0;
+        var sumOdd = 0;
+        for (var i = 0; i < junction.joints.length - 1; i++) {
+            var index = (i + foundIndex + 1) % junction.joints.length;
+            if (i % 2 == 0) {
+                sumEven += junction.joints[index].angle();
+            }
+            else {
+                sumOdd += junction.joints[index].angle();
+            }
+        }
+        var dEven = Math.PI - sumEven;
+        var dOdd = Math.PI - sumOdd;
+        var angle0 = angle.edges[0].absoluteAngle(angle.node);
+        var angle1 = angle.edges[1].absoluteAngle(angle.node);
+        // this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
+        // console.log(clockwiseInteriorAngleRadians(angle0, angle1) + " " + clockwiseInteriorAngleRadians(angle1, angle0));
+        // if(clockwiseInteriorAngleRadians(angle0, angle1) < clockwiseInteriorAngleRadians(angle1, angle0)){
+        // return angle1 - dOdd;
+        // return angle1 - dEven;
+        // } else{
+        // return angle0 - dOdd;
+        // }
+        // return angle0 + dEven;
+        return angle0 - dEven;
+    };
     // vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
     // 	var v = this.nodes[vIndex];
     // 	return this.vertexLiesOnEdge(v, intersect);
@@ -1660,7 +1686,7 @@ var CreasePattern = (function (_super) {
     // 	return intersections;
     // }
     CreasePattern.prototype.joinedPaths = function () {
-        var cp = this.duplicate();
+        var cp = this.copy();
         cp.clean();
         cp.removeIsolatedNodes();
         var paths = [];

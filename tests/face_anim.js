@@ -24,7 +24,7 @@ faceAnim.reset = function(){
 		this.g.newPlanarEdge(this.positions[i+0].x, this.positions[i+0].y,
 		                     this.positions[i+1].x, this.positions[i+1].y);
 	}
-	this.cp = this.g.duplicate();
+	this.cp = this.g.copy();
 	this.draw();
 	this.style.mark.strokeColor = {gray:0.0};
 	// this.style.mark.strokeWidth = 0.002;
@@ -33,7 +33,7 @@ faceAnim.reset();
 
 faceAnim.onFrame = function(event) { 
 	var mag = .3;
-	this.cp = this.g.duplicate();
+	this.cp = this.g.copy();
 	for(var i = 0; i < this.NUM_LINES; i++){
 		this.cp.nodes[i].x=this.positions[i].x+mag* Math.cos(this.angles[i])*Math.sin(event.time) * (1/this.aspect);
 		this.cp.nodes[i].y=this.positions[i].y+mag* Math.sin(this.angles[i])*Math.sin(event.time);

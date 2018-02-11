@@ -82,11 +82,8 @@
 
 <script language="javascript" type="text/javascript" src="../../lib/jquery-3.1.1.min.js"></script>
 <script language="javascript" type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
-<script language="javascript" type="text/javascript" src="../../src/3rdparty.js"></script>
-<script language="javascript" type="text/javascript" src="../../src/graph.js"></script>
-<script language="javascript" type="text/javascript" src="../../src/planarGraph.js"></script>
-<script language="javascript" type="text/javascript" src="../../src/creasePattern.js"></script>
 <script language="javascript" type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script language="javascript" type="text/javascript" src="../../creasepattern.js"></script>
 <script language="javascript" type="text/javascript" src="../../src/cp.paperjs.js"></script>
 
 <!-- drag and drop to upload file -->
@@ -96,7 +93,7 @@
 
 <script>
 function foldCP(){
-	foldedState.cp = project.cp.duplicate();
+	foldedState.cp = project.cp.copy();
 	foldedState.cp.clean();
 	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 	foldedState.draw();

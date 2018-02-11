@@ -32,7 +32,7 @@ faces:PlanarFace[]
 
 ```
 constructor()
-duplicate():PlanarGraph
+copy():PlanarGraph
 width():number
 height():number
 newPlanarNode(x:number, y:number):PlanarNode
@@ -73,7 +73,7 @@ constructor()
 * returns: [PlanarGraph](PlanarGraph.md)
 
 ```
-duplicate():PlanarGraph
+copy():PlanarGraph
 ```
 
 #### width height

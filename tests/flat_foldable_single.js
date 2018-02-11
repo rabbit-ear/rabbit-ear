@@ -5,7 +5,7 @@ ffSingle.setPadding(0.05);
 ffSingle.masterCP = new CreasePattern();
 
 ffSingle.rebuild = function(){
-	this.cp = this.masterCP.duplicate();
+	this.cp = this.masterCP.copy();
 	this.cp.clean();
 	this.draw();
 }
@@ -24,9 +24,9 @@ ffSingle.reset = function(){
 		}
 		this.masterCP.clean();
 		var centerNode = this.masterCP.getNearestNode(0.5, 0.5);
-		interiorAngles = centerNode.interiorAngles();
+		interiorAngles = centerNode.junction().interiorAngles();
 		var tooSmall = false;
-		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i].angle() < Math.PI*0.5) tooSmall = true; }
+		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i] < Math.PI*0.5) tooSmall = true; }
 	} while(tooSmall);
 	this.masterCP.clean();
 	this.rebuild();

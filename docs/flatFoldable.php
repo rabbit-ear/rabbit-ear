@@ -116,7 +116,7 @@ function redoOneCrease(){
 	oneCrease.faceLayer.visible = false;
 	oneCrease.draw();
 
-	var oneCreaseFolded = new OrigamiFold("canvas-one-crease-folded", oneCrease.cp.duplicate());
+	var oneCreaseFolded = new OrigamiFold("canvas-one-crease-folded", oneCrease.cp.copy());
 	oneCreaseFolded.onMouseDown = oneCrease.onMouseDown
 	// oneCreaseFolded.cp = ;
 	oneCreaseFolded.style = { face:{ fillColor:{ gray:0.0, alpha:0.4 } } };
@@ -126,7 +126,7 @@ function redoOneCrease(){
 redoOneCrease();
 
 
-// var oneCreaseFolded = new OrigamiFold("canvas-one-crease-folded", oneCrease.cp.duplicate());
+// var oneCreaseFolded = new OrigamiFold("canvas-one-crease-folded", oneCrease.cp.copy());
 // oneCreaseFolded.cp.creaseThroughPoints(new XY(0.5, 0.5), offCenter).valley();
 // oneCreaseFolded.cp.clean();
 // oneCreaseFolded.draw();
@@ -155,7 +155,7 @@ offSquaresFolded.load("../files/svg/off-squares.svg", function(){
 	offSquaresFolded.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 	offSquaresFolded.update();
 	offSquaresFolded.customZoom = 2;
-	offSquaresFolded.setPadding();
+	offSquaresFolded.buildViewMatrix();
 });
 
 var offSquares = new OrigamiPaper("canvas-off-squares");
@@ -221,7 +221,7 @@ var _04_kawasaki = function( p ) {
 		}
 		cp.clean();
 
-		cpFlat = cp.duplicate();
+		cpFlat = cp.copy();
 
 		cpFlat.clean();
 		innerAngles = cpFlat.kawasaki(0);

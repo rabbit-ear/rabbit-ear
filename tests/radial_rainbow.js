@@ -10,6 +10,8 @@ radialRay.colorForAngle = function(angle){
 	return {hue:color, saturation:1.0, brightness:0.9};
 }
 
+this.centerNode;
+
 radialRay.reset = function(){
 	paper = this.scope; 
 	this.cp.clear();
@@ -26,10 +28,10 @@ radialRay.reset = function(){
 	this.selectNearestEdge = true;
 	this.style.selectedEdge = { gray:0.0 };
 	this.style.mark.strokeColor = { gray:0.0 };
-	this.adjacentEdges = this.cp.getNearestNode(0.5, 0.5).junction().edges;
+	this.centerNode = this.cp.getNearestNode(0.5, 0.5);
+	this.adjacentEdges = this.centerNode.junction().edges;
 	for(var i = 0; i < this.adjacentEdges.length; i++){
 		var edgeIndex = this.adjacentEdges[i].index;
-		console.log(edgeIndex);
 		this.edges[edgeIndex].strokeColor = {gray:0.0};
 	}
 }
@@ -47,7 +49,7 @@ radialRay.onMouseMove = function(event) {
 			radialRay.edges[edgeIndex].strokeWidth = 0.02;//radialRay.lineWeight*1.5;
 			radialRay.edges[edgeIndex].bringToFront();
 			if(radial_rainbow_callback != undefined){
-				radial_rainbow_callback(radialRay.planarAdjacent[i]);
+				radial_rainbow_callback({node:this.centerNode,angle:radialRay.adjacentEdges[i].absoluteAngle(this.centerNode),edge:radialRay.adjacentEdges[i]});
 			}
 		}
 		else{

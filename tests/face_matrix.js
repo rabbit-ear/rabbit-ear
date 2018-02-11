@@ -16,7 +16,8 @@ project.reset();
 
 project.makeFacePathLines = function(startingFace){
 	if(startingFace === undefined){
-		startingFace = project.cp.getNearestFace(project.cp.width() * 0.5, project.cp.height()*0.5);
+		var bounds = project.cp.bounds();
+		startingFace = project.cp.getNearestFace(bounds.size.width * 0.5, bounds.size.height*0.5);
 	}
 	if(startingFace === undefined){ return; }
 	var tree = project.cp.adjacentFaceTree(startingFace);

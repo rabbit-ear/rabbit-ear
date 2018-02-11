@@ -79,15 +79,24 @@ class FoldSequence{
 
 
 class CreaseJunction extends PlanarJunction{
-	kawasaki():boolean{
-		// todo
-		return true;
+	kawasaki():[number,number]{
+		var angles = this.interiorAngles();
+		// only computes if number of interior angles are even
+		if(angles.length % 2 != 0){ return undefined; }
+		var aSum = angles.filter(function(el,i){return i%2;})
+		                 .reduce(function(sum, el) {return sum + el; }, 0);
+		var bSum = angles.filter(function(el,i){return !(i%2);})
+		                 .reduce(function(sum, el) { return sum + el; }, 0);
+		return [aSum, bSum];
 	}
 }
 
 
 class CreaseNode extends PlanarNode{
 	graph:CreasePattern;
+
+	junctionType = CreaseJunction;
+	// jointType = PlanarJoint;
 
 	isBoundary():boolean{
 		for(var i = 0; i < this.graph.boundary.edges.length; i++){
@@ -97,15 +106,18 @@ class CreaseNode extends PlanarNode{
 		return false;
 	}
 
+	// to subclass PlanarJunction into CreaseJunction
+	junction():CreaseJunction{
+		//todo: check cache for junction object
+		// store this new one if doesn't exist yet
+		var junction = new this.junctionType(this);
+		if (junction.edges.length === 0){ return undefined; }
+		return junction;
+	}
+
+
 	kawasaki():[number,number]{
-		var angles = this.junction().interiorAngles();
-		// only computes if number of interior angles are even
-		if(angles.length % 2 != 0){ return undefined; }
-		var aSum = angles.filter(function(el,i){return i%2;})
-		                 .reduce(function(sum, el) {return sum + el; }, 0);
-		var bSum = angles.filter(function(el,i){return !(i%2);})
-		                 .reduce(function(sum, el) { return sum + el; }, 0);
-		return [aSum, bSum];
+		return this.junction().kawasaki();
 	}
 
 	kawasakiRating():number{
@@ -146,15 +158,13 @@ class CreaseNode extends PlanarNode{
 		return this.graph.creasePointToPoint(this, point);
 	}
 
-	/*
 	findFlatFoldable():number[]{ // angles for the rays to cast from this node
 		var that = this;
-		return this.junction().interiorAngles().map(function(el){
+		return this.junction().joints.map(function(el){
 			return that.graph.findFlatFoldable(el);
 		});
 	}
 
-	*/
 }
 
 class Crease extends PlanarEdge{
@@ -217,6 +227,7 @@ class CreasePattern extends PlanarGraph{
 
 	symmetryLine:[XY, XY] = undefined;
 
+	// When subclassed (ie. PlanarGraph) types are overwritten
 	nodeType = CreaseNode;
 	edgeType = Crease;
 
@@ -233,7 +244,7 @@ class CreasePattern extends PlanarGraph{
 	/** This will deep-copy the contents of this graph and return it as a new object
 	 * @returns {CreasePattern} 
 	 */
-	duplicate():CreasePattern{
+	copy():CreasePattern{
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
 		this.faceArrayDidChange();
@@ -324,7 +335,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	possibleFolds():CreasePattern{
-		var next = this.duplicate();
+		var next = this.copy();
 		next.nodes = [];
 		next.edges = [];
 		next.faces = [];
@@ -348,7 +359,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	possibleFolds1():CreasePattern{
-		var next = this.duplicate();
+		var next = this.copy();
 		next.nodes = [];
 		next.edges = [];
 		next.faces = [];
@@ -362,7 +373,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	possibleFolds2():CreasePattern{
-		var next = this.duplicate();
+		var next = this.copy();
 		next.nodes = [];
 		next.edges = [];
 		next.faces = [];
@@ -376,7 +387,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	possibleFolds3(edges?:Crease[]):CreasePattern{
-		var next = this.duplicate();
+		var next = this.copy();
 		next.nodes = [];
 		next.edges = [];
 		next.faces = [];
@@ -399,7 +410,7 @@ class CreasePattern extends PlanarGraph{
 		});
 		// prevent too much deviation from length
 		
-		var dup = this.duplicate();
+		var dup = this.copy();
 
 		var forces = [];
 		for(var i = 0; i < dup.nodes.length; i++){ forces.push(new XY(0,0)); }
@@ -472,7 +483,7 @@ class CreasePattern extends PlanarGraph{
 		// prevent too much deviation from length
 
 		var nodesAttempted:number = 0;
-		// var dup = this.duplicate();
+		// var dup = this.copy();
 		// var shuffleNodes = shuffle(this.nodes);
 		for(var i = 0; i < this.nodes.length; i++){
 			var rating = this.nodes[i].kawasakiRating();
@@ -1482,22 +1493,23 @@ class CreasePattern extends PlanarGraph{
 
 
 
-/*
+
 	findFlatFoldable(angle:PlanarJoint):number{
-		var interiorAngles = angle.node.interiorAngles();
-		if(interiorAngles.length != 3){ return; }
+		var junction = angle.node.junction();
+		// todo: allow searches for other number edges
+		if(junction.edges.length != 3){ return; }
 		// find this interior angle among the other interior angles
 		var foundIndex = undefined;
-		for(var i = 0; i < interiorAngles.length; i++){
-			if(angle.equivalent(interiorAngles[i])){ foundIndex = i; }
+		for(var i = 0; i < junction.joints.length; i++){
+			if(angle.equivalent(junction.joints[i])){ foundIndex = i; }
 		}
 		if(foundIndex === undefined){ return undefined; }
 		var sumEven = 0;
 		var sumOdd = 0;
-		for(var i = 0; i < interiorAngles.length-1; i++){
-			var index = (i+foundIndex+1) % interiorAngles.length;
-			if(i % 2 == 0){ sumEven += interiorAngles[index].angle(); } 
-			else { sumOdd += interiorAngles[index].angle(); }
+		for(var i = 0; i < junction.joints.length-1; i++){
+			var index = (i+foundIndex+1) % junction.joints.length;
+			if(i % 2 == 0){ sumEven += junction.joints[index].angle(); } 
+			else { sumOdd += junction.joints[index].angle(); }
 		}
 		var dEven = Math.PI - sumEven;
 		var dOdd = Math.PI - sumOdd;
@@ -1516,7 +1528,7 @@ class CreasePattern extends PlanarGraph{
 		return angle0 - dEven;
 	}
 
-	*/
+	
 
 
 
@@ -1629,7 +1641,7 @@ class CreasePattern extends PlanarGraph{
 
 
 	joinedPaths():XY[][]{
-		var cp = this.duplicate();
+		var cp = this.copy();
 		cp.clean();
 		cp.removeIsolatedNodes();
 		var paths = [];

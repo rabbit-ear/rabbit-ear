@@ -34,10 +34,8 @@ nearNodeSketch.onMouseDown = function(event){
 nearNodeSketch.onMouseUp = function(event){ }
 nearNodeSketch.onMouseMove = function(event) {
 	var nodes = nearNodeSketch.cp.getNearestNodes( event.point.x, event.point.y, 40 );
-
 	nearNodeSketch.edgeLayer.activate();
 	nearNodeSketch.edgeLayer.removeChildren();
-
 	if(nodes != undefined && nodes.length > 0){
 		for(var i = nodes.length-1; i >= 0 ; i--){
 			new paper.Path({

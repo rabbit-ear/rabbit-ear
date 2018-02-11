@@ -38,11 +38,8 @@ canvas[resize]{
 </body>
 
 <script src="../tools/drag-and-drop.js"></script>
-<script language="javascript" type="text/javascript" src="../src/3rdparty.js"></script>
-<script language="javascript" type="text/javascript" src="../src/graph.js"></script>
-<script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
-<script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script language="javascript" type="text/javascript" src="../creasepattern.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
 
 <script src="../lib/bootstrap/js/tether.min.js"></script>
@@ -69,13 +66,13 @@ var loadedCP = undefined;
 // project.load("../files/svg/crane-errors.svg", function(){
 // 	project.colorNodesFlatFoldable();
 // 	foldCP();
-// 	loadedCP = project.cp.duplicate();
+// 	loadedCP = project.cp.copy();
 // });
 
 // incoming file from upload-button or drag-to-upload
 function fileDidLoad(svg, mimeType){
 	project.load(svg, function(){
-		loadedCP = project.cp.duplicate();
+		loadedCP = project.cp.copy();
 		project.colorNodesFlatFoldable();
 		foldCP();
 	});
@@ -86,7 +83,7 @@ function fileDidLoad(svg, mimeType){
 <script>
 document.getElementById("reload-file").addEventListener("click", function(e){
 	e.preventDefault();
-	project.setCreasePattern( loadedCP.duplicate() );
+	project.setCreasePattern( loadedCP.copy() );
 	project.colorNodesFlatFoldable();
 	foldedState.cp = new CreasePattern();
 	foldedState.draw();
@@ -96,7 +93,7 @@ document.getElementById("reload-file").addEventListener("click", function(e){
 
 <script>
 function foldCP(){
-	foldedState.cp = project.cp.duplicate();
+	foldedState.cp = project.cp.copy();
 	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 	foldedState.draw();
 }

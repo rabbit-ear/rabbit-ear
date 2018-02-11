@@ -211,7 +211,7 @@ var Graph = (function () {
     /** Deep-copy the contents of this graph and return it as a new object
      * @returns {Graph}
      */
-    Graph.prototype.duplicate = function () {
+    Graph.prototype.copy = function () {
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
         var g = new Graph();

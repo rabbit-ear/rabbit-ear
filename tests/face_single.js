@@ -23,10 +23,11 @@ singleFace.reset = function(){
 		singleFace.cp.creasePerpendicularThroughPoint({nodes:[center, rayPoint]}, rayPoint);
 	}
 	singleFace.cp.clean();
+	singleFace.draw();
 	var faces = singleFace.cp.generateFaces();
 	singleFace.draw();
-	singleFace.boundaryLayer.visible = false;
-	if(singleFaceCallback != undefined){ singleFaceCallback(faces); }
+	// singleFace.boundaryLayer.visible = false;
+	// if(singleFaceCallback != undefined){ singleFaceCallback(faces); }
 }
 singleFace.reset();
 

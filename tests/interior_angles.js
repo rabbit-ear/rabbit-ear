@@ -3,7 +3,6 @@ var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
 var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
 var black = {hue:0, saturation:0, brightness:0 };
 
-
 var colors = [red,yellow,blue];
 
 
@@ -30,7 +29,7 @@ project.updateAngles = function(){
 	var radiuses = [0.35, 0.3, 0.25];
 	
 	centerNode.junction().joints
-		.sort(function(a,b){ return a.angle() < b.angle();})
+		.sort(function(a,b){ return a.angle() < b.angle(); })
 		.forEach(function(el){
 			var vectors = el.vectors().map(function(el){return el.normalize().scale(radiuses[i%3]);})
 			var arcCenter = el.bisect().scale(radiuses[i%3]);

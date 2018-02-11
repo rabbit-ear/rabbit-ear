@@ -247,8 +247,13 @@ var OrigamiPaper = (function(){
 		var paperWindowScale = 1.0 - this.padding*2;
 		var pixelScale = 1.0;
 		if(isRetina){ pixelScale = 0.5; }
+		// canvas size
+		var canvasWidth = this.canvas.width;
+		var canvasHeight = this.canvas.height;
+		var canvasAspect = canvasWidth / canvasHeight;
 		// crease pattern size
 		var cpBounds = this.cp.bounds();
+		if(cpBounds === undefined){ cpBounds = new Rect(0,0,canvasWidth/canvasHeight,1.0); }
 		// if(cpBounds.width !== undefined){ cpWidth = this.cp.width(); }
 		// if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
 		var cpWidth = cpBounds.size.width;
@@ -257,10 +262,6 @@ var OrigamiPaper = (function(){
 		var cpAspect = cpWidth / cpHeight;
 		this.cpMin = cpWidth;
 		if(cpHeight < cpWidth){ this.cpMin = cpHeight; }
-		// canvas size
-		var canvasWidth = this.canvas.width;
-		var canvasHeight = this.canvas.height;
-		var canvasAspect = canvasWidth / canvasHeight;
 		// cp to canvas ratio
 		var cpCanvasRatio = canvasHeight / cpHeight;
 		if(cpAspect > canvasAspect) { cpCanvasRatio = canvasWidth / cpWidth; }
@@ -501,7 +502,7 @@ var OrigamiFold = (function(){
 		// find a face near the middle
 		if(this.cp === undefined){ return; }
 
-		var centerFace = this.cp.getNearestFace(this.cp.width() * 0.5, this.cp.height()*0.5);
+		var centerFace = this.cp.getNearestFace(this.cp.bounds().size.width * 0.5, this.cp.bounds().size.height*0.5);
 		if(centerFace === undefined){ return; }
 		var foldTree = this.cp.adjacentFaceTree(centerFace);
 
@@ -537,8 +538,8 @@ var OrigamiFold = (function(){
 		// crease pattern size
 		var cpWidth = 1.0; 
 		var cpHeight = 1.0;
-		if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
-		if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
+		// if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
+		// if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
 		var cpBounds = this.cp.bounds();
 		var cpAspect = cpWidth / cpHeight;
 		this.cpMin = cpWidth;
@@ -568,7 +569,6 @@ var OrigamiFold = (function(){
 
 
 function paperPathToCP(paperPath){
-	console.time("paperPathToCP");
 	var svgLayer = paperPath;
 	var w = svgLayer.bounds.size.width;
 	var h = svgLayer.bounds.size.height;
@@ -614,7 +614,6 @@ function paperPathToCP(paperPath){
 	// cleanup
 	svgLayer.removeChildren();
 	svgLayer.remove();
-	console.timeEnd("paperPathToCP");
 	return cp;
 }
 
@@ -626,8 +625,9 @@ function loadSVG(path, callback, epsilon){
 	// var newScope = new paper.PaperScope();
 	paper.project.importSVG(path, function(e){
 		var cp = paperPathToCP(e);
-		var width = cp.width();
-		var height = cp.height();
+		var bounds = cp.bounds();
+		var width = bounds.size.width;
+		var height = bounds.size.height;
 		// todo: 
 		var eps = epsilon;
 		if(eps === undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; } EPSILON

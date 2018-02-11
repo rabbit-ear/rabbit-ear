@@ -50,7 +50,7 @@ jointTri.onFrame = function(event) {
 
 	if(this.startAngles === undefined || this.startAngles.length === 0 ){ return; }
 
-	// this.cp = this.cp.duplicate();
+	// this.cp = this.cp.copy();
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];

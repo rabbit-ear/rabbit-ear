@@ -44,7 +44,7 @@ wobble.onFrame = function(event) {
 	}
 
 	// wobble.cp.generateFaces();
-	// todo: wobble.cpForFaces = wobble.cp.duplicate()
+	// todo: wobble.cpForFaces = wobble.cp.copy()
 	// write the duplicate function that does a deep copy
 	// wobble.draw();
 	// for(var i = 0; i < wobble.edgeLayer.children.length; i++){

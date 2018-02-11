@@ -22,11 +22,8 @@ canvas[resize]{
 </body>
 
 <script src="../tools/drag-and-drop.js"></script>
-<script language="javascript" type="text/javascript" src="../src/3rdparty.js"></script>
-<script language="javascript" type="text/javascript" src="../src/graph.js"></script>
-<script language="javascript" type="text/javascript" src="../src/planarGraph.js"></script>
-<script language="javascript" type="text/javascript" src="../src/creasePattern.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script language="javascript" type="text/javascript" src="../creasepattern.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
 
 <script>
@@ -47,14 +44,14 @@ for(var i = 0; i < count; i++){
 	project.cp.creaseThroughPoints(topCenter, v);
 }
 
-resetCP = project.cp.duplicate();
+resetCP = project.cp.copy();
 
 project.draw();
 
 project.onFrame = function(event){
 	mouseVector = new XY(Math.cos(event.time), Math.sin(event.time));
 	if(lastMousePosition !== undefined && resetCP !== undefined && this.cp.contains(lastMousePosition)){
-		this.cp = resetCP.duplicate();
+		this.cp = resetCP.copy();
 		var creases = this.cp.creaseRayRepeat(new XY(lastMousePosition.x, lastMousePosition.y), mouseVector);
 		creases.forEach(function(el){ if(el !== undefined) el.valley(); })
 		// this.cp.clean();
@@ -68,7 +65,7 @@ project.onMouseMove = function(event){
 	lastMousePosition = event.point;
 	// console.log(event.point);
 	// if(resetCP !== undefined && this.cp.contains(event.point)){
-	// 	this.cp = resetCP.duplicate();
+	// 	this.cp = resetCP.copy();
 	// 	var creases = this.cp.creaseRayRepeat(new XY(event.point.x, event.point.y), mouseVector);
 	// 	creases.forEach(function(el){ if(el !== undefined) el.valley(); })
 	// 	// this.cp.clean();

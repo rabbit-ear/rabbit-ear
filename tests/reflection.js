@@ -25,7 +25,7 @@ do{
 		var iNext = (i+1)%3;
 		var angle1 = Math.atan2(testPoints[i].y - testPoints[iPrev].y, testPoints[i].x - testPoints[iPrev].x);
 		var angle2 = Math.atan2(testPoints[i].y - testPoints[iNext].y, testPoints[i].x - testPoints[iNext].x);
-		var interiorAngle = clockwiseAngleFrom(angle1, angle2);
+		var interiorAngle = clockwiseInteriorAngleRadians(angle1, angle2);
 		if(interiorAngle < 0.4 || interiorAngle > 5.8){
 			passed = false;
 		}
