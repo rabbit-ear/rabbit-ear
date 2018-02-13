@@ -645,30 +645,12 @@ var Rect = (function () {
 }());
 var Matrix = (function () {
     function Matrix(a, b, c, d, tx, ty) {
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        this.d = d;
-        this.tx = tx;
-        this.ty = ty;
-        if (a === undefined) {
-            this.a = 1;
-        }
-        if (b === undefined) {
-            this.b = 0;
-        }
-        if (c === undefined) {
-            this.c = 0;
-        }
-        if (d === undefined) {
-            this.d = 1;
-        }
-        if (tx === undefined) {
-            this.tx = 0;
-        }
-        if (ty === undefined) {
-            this.ty = 0;
-        }
+        this.a = (a !== undefined) ? a : 1;
+        this.b = (b !== undefined) ? b : 0;
+        this.c = (c !== undefined) ? c : 0;
+        this.d = (d !== undefined) ? d : 1;
+        this.tx = (tx !== undefined) ? tx : 0;
+        this.ty = (ty !== undefined) ? ty : 0;
     }
     Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; };
     Matrix.prototype.mult = function (mat) {
@@ -856,6 +838,9 @@ var PlanarJunction = (function () {
         this.node = node;
         this.joints = [];
         this.edges = [];
+        if (node === undefined) {
+            return;
+        }
         var adjEdges = this.node.adjacentEdges();
         if (adjEdges.length <= 1) {
             return;
@@ -869,8 +854,8 @@ var PlanarJunction = (function () {
             .map(function (el) { return el.edge; });
         this.joints = sortedEdges.map(function (el, i) {
             var nexti = (i + 1) % sortedEdges.length;
-            return new PlanarJoint(el, sortedEdges[nexti]);
-        });
+            return new this.node.jointType(el, sortedEdges[nexti]);
+        }, this);
         this.edges = this.joints.map(function (el) { return el.edges[0]; });
     }
     PlanarJunction.prototype.edgeAngles = function () {
@@ -970,8 +955,8 @@ var PlanarNode = (function (_super) {
     function PlanarNode() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.junctionType = PlanarJunction;
+        _this.jointType = PlanarJoint;
         _this.cache = {};
-        _this.junc = _this.junction();
         return _this;
     }
     PlanarNode.prototype.adjacentEdges = function () {
@@ -1897,21 +1882,94 @@ var FoldSequence = (function () {
     }
     return FoldSequence;
 }());
+var CreaseJoint = (function (_super) {
+    __extends(CreaseJoint, _super);
+    function CreaseJoint() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    CreaseJoint.prototype.creaseFlatFoldable = function () {
+        var junction = this.node.junction();
+        if (junction.edges.length != 3) {
+            return;
+        }
+        var foundIndex = undefined;
+        for (var i = 0; i < junction.joints.length; i++) {
+            if (this.equivalent(junction.joints[i])) {
+                foundIndex = i;
+            }
+        }
+        if (foundIndex === undefined) {
+            return undefined;
+        }
+        var sumEven = 0;
+        var sumOdd = 0;
+        for (var i = 0; i < junction.joints.length - 1; i++) {
+            var index = (i + foundIndex + 1) % junction.joints.length;
+            if (i % 2 == 0) {
+                sumEven += junction.joints[index].angle();
+            }
+            else {
+                sumOdd += junction.joints[index].angle();
+            }
+        }
+        var dEven = Math.PI - sumEven;
+        var dOdd = Math.PI - sumOdd;
+        var angle0 = this.edges[0].absoluteAngle(this.node);
+        var angle1 = this.edges[1].absoluteAngle(this.node);
+        return angle0 - dEven;
+    };
+    return CreaseJoint;
+}(PlanarJoint));
 var CreaseJunction = (function (_super) {
     __extends(CreaseJunction, _super);
     function CreaseJunction() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     CreaseJunction.prototype.kawasaki = function () {
-        var angles = this.interiorAngles();
-        if (angles.length % 2 != 0) {
+        if (this.joints.length % 2 != 0) {
             return undefined;
         }
-        var aSum = angles.filter(function (el, i) { return i % 2; })
-            .reduce(function (sum, el) { return sum + el; }, 0);
-        var bSum = angles.filter(function (el, i) { return !(i % 2); })
-            .reduce(function (sum, el) { return sum + el; }, 0);
-        return [aSum, bSum];
+        var sums = [0, 0];
+        this.joints.forEach(function (el, i) { sums[i % 2] += el.angle(); });
+        return sums;
+    };
+    CreaseJunction.prototype.kawasakiCreases = function () {
+        var sums = [0, 0];
+        this.joints.forEach(function (el, i) { sums[i % 2] += el.angle(); });
+        var sumsInv = sums.map(function (el) { return Math.PI - el; });
+        return this.joints.map(function (el, i) {
+            return { 'joint': el, 'kawasaki': sumsInv[i % 2] * el.angle() / (Math.PI * 2) };
+        });
+    };
+    CreaseJunction.prototype.creaseFlatFoldable = function (joint) {
+        if (this.edges.length != 3) {
+            return;
+        }
+        var foundIndex = undefined;
+        for (var i = 0; i < this.joints.length; i++) {
+            if (joint.equivalent(this.joints[i])) {
+                foundIndex = i;
+            }
+        }
+        if (foundIndex === undefined) {
+            return undefined;
+        }
+        var sumEven = 0;
+        var sumOdd = 0;
+        for (var i = 0; i < this.joints.length - 1; i++) {
+            var index = (i + foundIndex + 1) % this.joints.length;
+            if (i % 2 == 0) {
+                sumEven += this.joints[index].angle();
+            }
+            else {
+                sumOdd += this.joints[index].angle();
+            }
+        }
+        var dEven = Math.PI - sumEven;
+        var dOdd = Math.PI - sumOdd;
+        var angle0 = joint.edges[0].absoluteAngle(joint.node);
+        var angle1 = joint.edges[1].absoluteAngle(joint.node);
+        return angle0 - dEven;
     };
     return CreaseJunction;
 }(PlanarJunction));
@@ -1920,6 +1978,7 @@ var CreaseNode = (function (_super) {
     function CreaseNode() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.junctionType = CreaseJunction;
+        _this.jointType = CreaseJoint;
         return _this;
     }
     CreaseNode.prototype.isBoundary = function () {
@@ -1930,13 +1989,6 @@ var CreaseNode = (function (_super) {
             }
         }
         return false;
-    };
-    CreaseNode.prototype.junction = function () {
-        var junction = new this.junctionType(this);
-        if (junction.edges.length === 0) {
-            return undefined;
-        }
-        return junction;
     };
     CreaseNode.prototype.kawasaki = function () {
         return this.junction().kawasaki();
@@ -1981,7 +2033,7 @@ var CreaseNode = (function (_super) {
     CreaseNode.prototype.findFlatFoldable = function () {
         var that = this;
         return this.junction().joints.map(function (el) {
-            return that.graph.findFlatFoldable(el);
+            return el.creaseFlatFoldable();
         });
     };
     return CreaseNode;
@@ -3085,37 +3137,6 @@ var CreasePattern = (function (_super) {
             this.symmetryLine = [a, b];
         }
         return this;
-    };
-    CreasePattern.prototype.findFlatFoldable = function (angle) {
-        var junction = angle.node.junction();
-        if (junction.edges.length != 3) {
-            return;
-        }
-        var foundIndex = undefined;
-        for (var i = 0; i < junction.joints.length; i++) {
-            if (angle.equivalent(junction.joints[i])) {
-                foundIndex = i;
-            }
-        }
-        if (foundIndex === undefined) {
-            return undefined;
-        }
-        var sumEven = 0;
-        var sumOdd = 0;
-        for (var i = 0; i < junction.joints.length - 1; i++) {
-            var index = (i + foundIndex + 1) % junction.joints.length;
-            if (i % 2 == 0) {
-                sumEven += junction.joints[index].angle();
-            }
-            else {
-                sumOdd += junction.joints[index].angle();
-            }
-        }
-        var dEven = Math.PI - sumEven;
-        var dOdd = Math.PI - sumOdd;
-        var angle0 = angle.edges[0].absoluteAngle(angle.node);
-        var angle1 = angle.edges[1].absoluteAngle(angle.node);
-        return angle0 - dEven;
     };
     CreasePattern.prototype.trySnapVertex = function (newVertex, epsilon) {
         var closestDistance = undefined;

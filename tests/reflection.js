@@ -11,30 +11,29 @@ reflex.decorationLayer.activate();
 reflex.marks = [];
 for(var i = 0; i < 2; i++) reflex.marks.push(new reflex.scope.Shape.Circle(circleStyle));
 
-var testPoints = [];
+var rfxTestPoints = [];
 
-var passed = true;
+var rfxPassed = true;
 do{
-	passed = true;
-	testPoints[0] = new XY( (Math.random()*0.8) + 0.1, (Math.random()*0.8) + 0.1 );
-	testPoints[1] = new XY( (Math.random()*0.8) + 0.1, (Math.random()*0.8) + 0.1 );
-	testPoints[2] = new XY( (Math.random()*0.8) + 0.1, (Math.random()*0.8) + 0.1 );
+	rfxPassed = true;
+	rfxTestPoints[0] = new XY( (Math.random()*0.8) + 0.1, (Math.random()*0.8) + 0.1 );
+	rfxTestPoints[1] = new XY( (Math.random()*0.8) + 0.1, (Math.random()*0.8) + 0.1 );
+	rfxTestPoints[2] = new XY( (Math.random()*0.8) + 0.1, (Math.random()*0.8) + 0.1 );
 
 	for(var i = 0; i < 3; i++){
 		var iPrev = (i+2)%3;
 		var iNext = (i+1)%3;
-		var angle1 = Math.atan2(testPoints[i].y - testPoints[iPrev].y, testPoints[i].x - testPoints[iPrev].x);
-		var angle2 = Math.atan2(testPoints[i].y - testPoints[iNext].y, testPoints[i].x - testPoints[iNext].x);
+		var angle1 = Math.atan2(rfxTestPoints[i].y - rfxTestPoints[iPrev].y, rfxTestPoints[i].x - rfxTestPoints[iPrev].x);
+		var angle2 = Math.atan2(rfxTestPoints[i].y - rfxTestPoints[iNext].y, rfxTestPoints[i].x - rfxTestPoints[iNext].x);
 		var interiorAngle = clockwiseInteriorAngleRadians(angle1, angle2);
 		if(interiorAngle < 0.4 || interiorAngle > 5.8){
-			passed = false;
+			rfxPassed = false;
 		}
 	}
+}while(rfxPassed === false);
 
-}while(passed === false);
-
-// reflex.marks[0].position = testPoints[0];
-// reflex.marks[1].position = testPoints[1];
+// reflex.marks[0].position = rfxTestPoints[0];
+// reflex.marks[1].position = rfxTestPoints[1];
 
 reflex.marks[0].position = new XY(0.2, 0.2);
 reflex.marks[1].position = new XY(0.8, 0.8);
@@ -43,9 +42,9 @@ reflex.marks[1].position = new XY(0.8, 0.8);
 reflex.computeReflection = function(){
 	if(this.reflectionLine === undefined) return;
 	var m = this.reflectionLine.reflectionMatrix();
-	var p1t = testPoints[0].transform(m);
-	var p2t = testPoints[1].transform(m);
-	var p3t = testPoints[2].transform(m);
+	var p1t = rfxTestPoints[0].transform(m);
+	var p2t = rfxTestPoints[1].transform(m);
+	var p3t = rfxTestPoints[2].transform(m);
 	var reflection1 = this.cp.newCrease(p1t.x,p1t.y, p2t.x,p2t.y);
 	var reflection2 = this.cp.newCrease(p1t.x,p1t.y, p3t.x,p3t.y);
 	var reflection3 = this.cp.newCrease(p2t.x,p2t.y, p3t.x,p3t.y);
@@ -67,9 +66,9 @@ reflex.reset = function(){
 	this.reflectionLine = this.cp.creaseThroughPoints(this.marks[0].position, this.marks[1].
 		position);
 	if(this.reflectionLine !== undefined){ this.reflectionLine.valley(); }
-	this.testLine1 = this.cp.newCrease(testPoints[0].x,testPoints[0].y, testPoints[1].x,testPoints[1].y);
-	this.testLine2 = this.cp.newCrease(testPoints[0].x,testPoints[0].y, testPoints[2].x,testPoints[2].y);
-	this.testLine3 = this.cp.newCrease(testPoints[1].x,testPoints[1].y, testPoints[2].x,testPoints[2].y);
+	this.testLine1 = this.cp.newCrease(rfxTestPoints[0].x,rfxTestPoints[0].y, rfxTestPoints[1].x,rfxTestPoints[1].y);
+	this.testLine2 = this.cp.newCrease(rfxTestPoints[0].x,rfxTestPoints[0].y, rfxTestPoints[2].x,rfxTestPoints[2].y);
+	this.testLine3 = this.cp.newCrease(rfxTestPoints[1].x,rfxTestPoints[1].y, rfxTestPoints[2].x,rfxTestPoints[2].y);
 	if(this.testLine1 !== undefined){ this.testLine1.mountain(); }
 	if(this.testLine2 !== undefined){ this.testLine2.mountain(); }
 	if(this.testLine3 !== undefined){ this.testLine3.mountain(); }

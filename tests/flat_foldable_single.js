@@ -45,9 +45,10 @@ ffSingle.onMouseMove = function(event) {
 	var angle = undefined;
 	if(event.point.x >= 0 && event.point.x <= 1 && event.point.y >= 0 && event.point.y <= 1){
 		angle = this.cp.getNearestInteriorAngle(event.point.x, event.point.y);
+		console.log(angle);
 		if(angle == undefined || angle.edges == undefined) return;
 		if(angle.edges.length == 2){
-			solutionAngle = this.cp.findFlatFoldable(angle);
+			solutionAngle = angle.creaseFlatFoldable();
 			this.cp.creaseRay(new XY(angle.node.x, angle.node.y), 
 			                  new XY(Math.cos(solutionAngle), Math.sin(solutionAngle))).mountain();
 		}

@@ -10,10 +10,8 @@
 	<div class="centered">
 		<pre><code>cp.<v>nodes</v>[<n id="adjacent-face-node">0</n>].<f>adjacentFaces</f>()</code></pre>
 	</div>
-
-<!-- 	<div class="quote">
-		<p>This algorithm above, <b>adjacentFaces()</b>, is running in real time</p>
-	</div>
+<!--
+	<p class="quote">This algorithm above, <b>adjacentFaces()</b>, is running in real time</p
  -->
 	<div class="centered">
 		<canvas id="canvas-faces-random" resize></canvas>
@@ -24,22 +22,16 @@
 		<pre><code>cp.<f>generateFaces</f>()</code></pre>
 	</div>
 
-	<div class="quote">
-		<p>This algorithm, <b>generateFaces()</b>, calculates and stores all the faces, and ran once at the beginning</p>
-	</div>
-
-	<div class="explain">
-		<p>A face won't be created if there is a stray edge poking into the polygon.</p>
-	</div>
+	<p class="quote">This algorithm, <b>generateFaces()</b>, calculates and stores all the faces, and ran once at the beginning</p>
+	
+	<p class="explain">A face won't be created if there is a stray edge poking into the polygon.</p>
 </section>
 
 
 <h2>Face Finding Algorithm</h2>
 <section>
 
-	<div class="quote">
-		<p>Faces are found by walking down edges, and whenever reaching a node, always making the sharpest right turn, a face is found when you end up where you began.</li>
-	</div>
+	<p class="quote">Faces are found by walking down edges, and whenever reaching a node, always making the sharpest right turn, a face is found when you end up where you began.</li>
 
 	<div class="centered">
 		<canvas id="canvas-1" resize></canvas>
@@ -47,9 +39,7 @@
 		<!-- <canvas id="canvas-3" resize></canvas> -->
 	</div>
 
-	<div class="quote">
-		<p>To find the sharpest right turn, we need to sort adjacent edges by their angles.</p>
-	</div>
+	<p class="quote">To find the sharpest right turn, we need to sort adjacent edges by their angles.</p>
 
 	<div class="centered">
 		<canvas id="canvas-radial-rainbow" resize></canvas>
@@ -59,17 +49,11 @@
 		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<a href="library/planarAdjacent.php"><f>planarAdjacent</f>()</a></code></pre>
 	</div>
 
-	<div class="quote">
-		<p>After sorting the lines by angle, it's easy to find the next most right turn.</p>
-	</div>
+	<p class="quote">After sorting the lines by angle, it's easy to find the next most right turn.</p>
 
-	<div class="quote">
-		<p>Along the way it's important to sum up the angles visited along the walk. Interior angles are right turns.</p>
-	</div>
+	<p class="quote">Along the way it's important to sum up the angles visited along the walk. Interior angles are right turns.</p>
 
-	<div class="quote">
-		<p>Since we know we are making right turns, if there are 4 angles of 270 degrees, we just walked around the outside of a perimeter of a square.</p>
-	</div>
+	<p class="quote">Since we know we are making right turns, if there are 4 angles of 270 degrees, we just walked around the outside of a perimeter of a square.</p>
 
 	<!-- <div class="centered">
 		<canvas id="canvas-faces-radial" resize></canvas>

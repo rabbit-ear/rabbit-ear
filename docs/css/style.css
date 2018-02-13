@@ -48,36 +48,30 @@ canvas[resize].fill {
 }
 body{
 	font-family: 'Cormorant', Georgia, "Times New Roman", Times, serif;
-	margin:2em;
-	margin-top:3em;
+	margin:3em 1.5vw 2em 1.5vw;
 }
-a, a:hover, a:visited, a:active{
-	color:#38F;
-	text-decoration: none;
-}
-p a{
-	font-weight: bold;
-	text-decoration: none;
-}
-p a:hover{ text-decoration: underline; }
-h3 a:hover, h4 a:hover{ text-decoration: underline; }
-h2 a{ color:#000; }
-
 h1{font-size: 420%; font-weight: 300;}
 h2{font-size: 280%; font-weight: 300;}
 h3{font-size: 240%; font-weight: 300;}
 h4{font-size: 180%; font-weight: 300;}
 h5{font-size: 150%; font-weight: 300;}
-p, ol, ul  /* blockquote, pre, */ {
-/*	padding-top:0.5em;
-	padding-bottom:0.5em; */
-	font-size: 140%;
+p{
+	font-family: 'Lora', serif;
+	text-align: justify;
+	font-weight: 400;
 }
-
+p, ol, ul  /* blockquote, pre, */ {
+	margin: 1em 15vw 1em 15vw;
+	font-size: 140%;
+	line-height: 1.33em;
+}
 h1{
 	padding-top:1em;
 	padding-bottom:1em;
 	text-align: center;
+}
+h2, h3, h4, h5, h6{
+	margin: 0 15vw 0 15vw;
 }
 h2{
 	padding-top:.6em;
@@ -85,6 +79,10 @@ h2{
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
 	border-bottom-color: black;
+	text-transform: uppercase;
+}
+h3{
+	font-weight: 500;
 }
 ul{
 	list-style-type: square;
@@ -97,6 +95,18 @@ ol{
 b, strong{
 	font-weight: bold;
 }
+a, a:hover, a:visited, a:active{
+	color:#38F;
+	text-decoration: none;
+}
+h2 a{ color:#000; }
+h3 a:hover, h4 a:hover{ text-decoration: underline; }
+p a{
+	font-weight: bold;
+	text-decoration: none;
+}
+p a:hover{ text-decoration: underline; }
+
 .explain{
 	margin-top:2em;
 	margin-bottom:2em;
@@ -106,7 +116,7 @@ b, strong{
 	line-height: 2em;
 }
 .quote{
-	margin:2em 10vw 2em 10vw;
+	padding: 1em 5vw 1em 5vw;
 	text-align:center;
 	font-style: italic;
 	line-height: 1.5em;
@@ -149,6 +159,7 @@ b, strong{
 }
 .inline{ display:inline-block; }
 .centered{
+	margin: 0;
 	width: 100%;
 	text-align: center;
 	display:inline-block;
@@ -163,6 +174,16 @@ b, strong{
 	text-align: center;
 	display:inline-block;
 }
+@media only screen and (max-width: 600px) {
+	body{ margin: 3em 1.5em 0 1.5em; }
+	h2{ margin: 0 0 0 0; }
+	h3{ margin: 0 0 0 0; }
+	p{ margin: 1em 0 1em 0; }
+}
+
+/*
+@media (hover: none) {  }
+*/
 
 button:focus {outline:0;}
 

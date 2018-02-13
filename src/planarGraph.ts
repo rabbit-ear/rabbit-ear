@@ -170,6 +170,8 @@ class PlanarJoint{
 }
 
 class PlanarJunction{
+	// subclassed instances overrite this eg. CreaseJoint
+
 	node:PlanarNode;
 	// joints and edges are sorted clockwise
 	joints:PlanarJoint[];
@@ -180,6 +182,7 @@ class PlanarJunction{
 		this.node = node;
 		this.joints = [];
 		this.edges = [];
+		if(node === undefined){ return; }
 		var adjEdges = <PlanarEdge[]>this.node.adjacentEdges();
 		// Junctions by definition cannot be built on leaf nodes. there is only 1 edge.
 		if(adjEdges.length <= 1){ return; }
@@ -192,8 +195,8 @@ class PlanarJunction{
 			.map(function(el){ return el.edge });
 		this.joints = sortedEdges.map(function(el,i){
 			var nexti = (i+1)%sortedEdges.length;
-			return new PlanarJoint(el, sortedEdges[nexti]);
-		});
+			return new this.node.jointType(el, sortedEdges[nexti]);
+		},this);
 		this.edges = this.joints.map(function(el:PlanarJoint){return el.edges[0];});
 	}
 	edgeAngles():number[]{
@@ -291,7 +294,7 @@ class PlanarNode extends GraphNode{
 	y:number;
 
 	junctionType = PlanarJunction;
-	// jointType = PlanarJoint;
+	jointType = PlanarJoint;
 
 	// for speeding up algorithms, temporarily store information here
 	cache:object = {};

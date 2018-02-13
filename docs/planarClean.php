@@ -10,18 +10,14 @@
 		<pre><code>graph.<f>clean</f>()</code></pre>
 	</div>
 
-	<div class="quote">
-		<p>a planar graph is cleaned with operations that utilize x y location</p>
-	</div>
+	<p class="quote">a planar graph is cleaned with operations that utilize x y location</p>
 
 </section>
 
 <h2>Duplicate Nodes in Space</h2>
 <section id="duplicate-nodes">
 
-	<div class="quote">
-		<p>When two nodes occupy the same space they will be merged into one</p>
-	</div>
+	<p class="quote">When two nodes occupy the same space they will be merged into one</p>
 
 	<div id="divP5_merge" class="centered p5sketch"></div>
 
@@ -40,9 +36,9 @@
 		<pre><code>graph.<f>cleanDuplicateNodes</f>(<n>epsilon</n>)</code></pre>
 	</div>
 
-	<div class="explain">
-		<p><b>Epsilon</b> is the radius around a point where merging occurs. It's a fraction of the size of the canvas. A larger number will merge across a further distance.</p>
-	</div>
+	
+	<p class="explain"><b>Epsilon</b> is the radius around a point where merging occurs. It's a fraction of the size of the canvas. A larger number will merge across a further distance.</p>
+	
 
 </section>
 
@@ -50,9 +46,7 @@
 
 <section id="intersections">
 
-	<div class="quote">
-		<p>Fragmenting edges will chop them at their edge crossings</p>
-	</div>
+	<p class="quote">Fragmenting edges will chop them at their edge crossings</p>
 
 	<div class="centered">
 		<pre><code><span id="span-merge-result"></span>graph.<f>fragment</f>()</code></pre>
@@ -66,26 +60,20 @@
 		<pre><code>graph.<f>getEdgeIntersections</f>()</code></pre>
 	</div>
 
-	<div class="quote">
-		<p>This will give you the crossing locations without fragmenting. It returns an <a href="library/EdgeIntersection">EdgeIntersection</a> object.</p>
-	</div>
+	<p class="quote">This will give you the crossing locations without fragmenting. It returns an <a href="library/EdgeIntersection">EdgeIntersection</a> object.</p>
 
 	<div class="centered">
 		<canvas id="canvas-crane-1" resize></canvas><canvas id="canvas-crane-2" resize></canvas>
 	</div>
 
-	<div class="quote">
-		<p>The SVG on the right has been <a href="library/fragment">fragmented</a></p>
-	</div>
+	<p class="quote">The SVG on the right has been <a href="library/fragment">fragmented</a></p>
 
 </section>
 
 <h2>Collinear Planar Graph Edges</h2>
 <section id="collinear-nodes">
 
-	<div class="quote">
-		<p>Collinear nodes can be removed, the two edges on either side merged into one.</p>
-	</div>
+	<p class="quote">Collinear nodes can be removed, the two edges on either side merged into one.</p>
 
 	<div class="centered">
 		<canvas id="canvas-mouse-delete-edge" resize></canvas>
@@ -95,9 +83,7 @@
 		<pre><code>graph.<f>removeEdge</f>(<arg>edge</arg>)</code></pre>
 	</div>
 
-	<div class="quote">
-		<p>Removing edges will remove their nodes, and so will nodes left behind between 2 collinear lines be removed as well.</p>
-	</div>
+	<p class="quote">Removing edges will remove their nodes, and so will nodes left behind between 2 collinear lines be removed as well.</p>
 
 </section>
 
@@ -106,9 +92,8 @@
 
 	<div class="centered p5sketch" id="intersections-div"></div>
 	
-	<div class="quote">
-		<p>Collinear lines at certain angles is a good place to test the robustness of the intersection algorithm</p>
-	</div>
+		<p class="quote">Collinear lines at certain angles is a good place to test the robustness of the intersection algorithm</p>
+
 
 </section>
 

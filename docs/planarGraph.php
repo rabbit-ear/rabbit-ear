@@ -18,62 +18,20 @@
 		<pre><code><key>var</key> planarGraph<key> = new</key> PlanarGraph()<br><span id="span-intersection-results"></span>planarGraph.<a href="library/getEdgeIntersections.php"><f>getEdgeIntersections</f></a>()<c> // <a href="library/edgeIntersection.php">EdgeIntersection</a></c></code></pre>
 	</div>
 
-	<div class="quote">
-		<p>Because a planar graph's nodes are in 2D space, it's now possible for faces to be made at edge intersections.</p>
-	</div>
+	<p>A graph becomes a planar graph when nodes and edges are given a location in 2D space, ushering in a new emerging set of rules and ways of orienting the graph.</p>
 
-	<div class="centered">
-		<canvas id="canvas-face-single" resize></canvas>
-	</div>
+	<p>Positions are mapped to the Euclidean plane and are described in terms of X and Y. Two adjacent edges create an interior angle between them. Nodes and edges can be <strong>near in proximity</strong> to each other. Edges can enclose a space to create a <strong>face</strong>.</p>
 
-	<div class="centered">
-		<pre><code><span id="span-generate-face-result"></span>planarGraph.<a href="library/generateFaces.php"><f>generateFaces</f></a>()</code></pre>
-	</div>
-</section>
-
-
-<h2>Planar Nodes</h2>
-<section id="nodes">
-
-	<div class="quote">
-		<p>Adjacent nodes create a fan shape from the parent node and can be sorted clockwise.</p>
-	</div>
-
-	<div class="centered">
-		<canvas id="canvas-radial-rainbow" resize></canvas>
-	</div>
-	
-	<div class="centered">
-		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<a href="library/planarAdjacent.php"><f>planarAdjacent</f>()</a></code></pre>
-	</div>
-
-	<div class="quote">
-		<p>Notice the angle value. Computers render +Y axis downwards. Angles increase clockwise.</p>
-	</div>
-
-	<div class="quote">
-		<p>Does this library use degrees or radians? I haven't made up my mind.</p>
-	</div>
-
-
-</section>
-
-
-<h2>Planar Edges</h2>
-<section id="edges">
-
-	<div class="quote">
-		<p></p>
-	</div>
+	<p>Edges can now cross each other, something mathematicians have decided is not allowed. 2 crossing edges should be resolved into 4 edges with a new node sitting at their intersection.</p>
 
 </section>
 
 <div class="nav">
 	<div class="nav-back">
-		<p><a href="/docs/graph.php">⇦ Back: Graphs</a></p>
+		<a href="/docs/graph.php">⇦ Back: Graphs</a>
 	</div>
 	<div class="nav-next">
-		<p><a href="planarClean.php">Next: Clean ⇒</a></p>
+		<a href="planarClean.php">Next: Clean ⇒</a>
 	</div>
 </div>
 

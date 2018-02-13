@@ -77,17 +77,108 @@ class FoldSequence{
 // 	return array;
 // }
 
+class CreaseJoint extends PlanarJoint{
+
+	// constructor(edge1:Crease, edge2:Crease, autoSortBySmaller?:boolean){
+	// 	super(edge1, edge2, autoSortBySmaller);
+	// }
+
+	creaseFlatFoldable():number{
+		var junction = this.node.junction();
+		// todo: allow searches for other number edges
+		if(junction.edges.length != 3){ return; }
+		// find this interior angle among the other interior angles
+		var foundIndex = undefined;
+		for(var i = 0; i < junction.joints.length; i++){
+			if(this.equivalent(junction.joints[i])){ foundIndex = i; }
+		}
+		if(foundIndex === undefined){ return undefined; }
+		var sumEven = 0;
+		var sumOdd = 0;
+		for(var i = 0; i < junction.joints.length-1; i++){
+			var index = (i+foundIndex+1) % junction.joints.length;
+			if(i % 2 == 0){ sumEven += junction.joints[index].angle(); } 
+			else { sumOdd += junction.joints[index].angle(); }
+		}
+		var dEven = Math.PI - sumEven;
+		var dOdd = Math.PI - sumOdd;
+		var angle0 = this.edges[0].absoluteAngle(this.node);
+		var angle1 = this.edges[1].absoluteAngle(this.node);
+		// this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
+		// console.log(clockwiseInteriorAngleRadians(angle0, angle1) + " " + clockwiseInteriorAngleRadians(angle1, angle0));
+		// if(clockwiseInteriorAngleRadians(angle0, angle1) < clockwiseInteriorAngleRadians(angle1, angle0)){
+			// return angle1 - dOdd;
+			// return angle1 - dEven;
+		// } else{
+			// return angle0 - dOdd;
+		// }
+
+		// return angle0 + dEven;
+		return angle0 - dEven;
+	}		
+}
 
 class CreaseJunction extends PlanarJunction{
+
+	node:CreaseNode;
+	// joints and edges are sorted clockwise
+	joints:CreaseJoint[];
+	edges:Crease[];
+
 	kawasaki():[number,number]{
-		var angles = this.interiorAngles();
 		// only computes if number of interior angles are even
-		if(angles.length % 2 != 0){ return undefined; }
-		var aSum = angles.filter(function(el,i){return i%2;})
-		                 .reduce(function(sum, el) {return sum + el; }, 0);
-		var bSum = angles.filter(function(el,i){return !(i%2);})
-		                 .reduce(function(sum, el) { return sum + el; }, 0);
-		return [aSum, bSum];
+		if(this.joints.length % 2 != 0){ return undefined; }
+		var sums:[number, number] = [0,0];
+		this.joints.forEach(function(el,i){ sums[i%2] += el.angle(); });
+		return sums;
+	}
+	kawasakiCreases():{}[]{
+		// this analyzes almost valid crease arrangements and tells you where angles need to be
+		// this hands back an array of angles, the spaces between edges, clockwise.
+		// each angle object contains:
+		//  - details on the root data (nodes, edges, their angles)
+		//  - results from the kawasaki algorithm:
+		//     which is the amount in radians to add to each angle to make flat foldable 
+		var sums = [0,0];
+		this.joints.forEach(function(el,i){ sums[i%2] += el.angle(); });
+		var sumsInv = sums.map(function(el){ return Math.PI - el; });
+		return this.joints.map(function(el,i){
+			return {'joint':el, 'kawasaki': sumsInv[i%2] * el.angle()/(Math.PI*2) };
+		});
+	}
+	creaseFlatFoldable(joint:PlanarJoint):number{
+		// joint must be one of the Joints in this Junction
+		
+		// todo: allow searches for other number edges
+		if(this.edges.length != 3){ return; }
+		// find this interior angle among the other interior angles
+		var foundIndex = undefined;
+		for(var i = 0; i < this.joints.length; i++){
+			if(joint.equivalent(this.joints[i])){ foundIndex = i; }
+		}
+		if(foundIndex === undefined){ return undefined; }
+		var sumEven = 0;
+		var sumOdd = 0;
+		for(var i = 0; i < this.joints.length-1; i++){
+			var index = (i+foundIndex+1) % this.joints.length;
+			if(i % 2 == 0){ sumEven += this.joints[index].angle(); } 
+			else { sumOdd += this.joints[index].angle(); }
+		}
+		var dEven = Math.PI - sumEven;
+		var dOdd = Math.PI - sumOdd;
+		var angle0 = joint.edges[0].absoluteAngle(joint.node);
+		var angle1 = joint.edges[1].absoluteAngle(joint.node);
+		// this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
+		// console.log(clockwiseInteriorAngleRadians(angle0, angle1) + " " + clockwiseInteriorAngleRadians(angle1, angle0));
+		// if(clockwiseInteriorAngleRadians(angle0, angle1) < clockwiseInteriorAngleRadians(angle1, angle0)){
+			// return angle1 - dOdd;
+			// return angle1 - dEven;
+		// } else{
+			// return angle0 - dOdd;
+		// }
+
+		// return angle0 + dEven;
+		return angle0 - dEven;
 	}
 }
 
@@ -96,7 +187,7 @@ class CreaseNode extends PlanarNode{
 	graph:CreasePattern;
 
 	junctionType = CreaseJunction;
-	// jointType = PlanarJoint;
+	jointType = CreaseJoint;
 
 	isBoundary():boolean{
 		for(var i = 0; i < this.graph.boundary.edges.length; i++){
@@ -107,17 +198,17 @@ class CreaseNode extends PlanarNode{
 	}
 
 	// to subclass PlanarJunction into CreaseJunction
-	junction():CreaseJunction{
-		//todo: check cache for junction object
-		// store this new one if doesn't exist yet
-		var junction = new this.junctionType(this);
-		if (junction.edges.length === 0){ return undefined; }
-		return junction;
-	}
+	// junction():CreaseJunction{
+	// 	//todo: check cache for junction object
+	// 	// store this new one if doesn't exist yet
+	// 	var junction = new this.junctionType(this);
+	// 	if (junction.edges.length === 0){ return undefined; }
+	// 	return junction;
+	// }
 
 
 	kawasaki():[number,number]{
-		return this.junction().kawasaki();
+		return (<CreaseJunction>this.junction()).kawasaki();
 	}
 
 	kawasakiRating():number{
@@ -160,8 +251,8 @@ class CreaseNode extends PlanarNode{
 
 	findFlatFoldable():number[]{ // angles for the rays to cast from this node
 		var that = this;
-		return this.junction().joints.map(function(el){
-			return that.graph.findFlatFoldable(el);
+		return this.junction().joints.map(function(el:CreaseJoint){
+			return el.creaseFlatFoldable();
 		});
 	}
 
@@ -1492,7 +1583,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 
-
+/*
 
 	findFlatFoldable(angle:PlanarJoint):number{
 		var junction = angle.node.junction();
@@ -1527,7 +1618,7 @@ class CreasePattern extends PlanarGraph{
 		// return angle0 + dEven;
 		return angle0 - dEven;
 	}
-
+*/
 	
 
 

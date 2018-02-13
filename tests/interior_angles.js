@@ -6,29 +6,29 @@ var black = {hue:0, saturation:0, brightness:0 };
 var colors = [red,yellow,blue];
 
 
-var project = new OrigamiPaper("canvas", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
-project.style.mountain.strokeWidth = 0.02;
-project.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
-project.cp.edges = project.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-project.style.selectedNode.fillColor = yellow;
-project.style.selectedNode.radius = 0.04;
+var projectInAngles = new OrigamiPaper("canvas-interior-angles", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
+projectInAngles.style.mountain.strokeWidth = 0.02;
+projectInAngles.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
+projectInAngles.cp.edges = projectInAngles.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
+projectInAngles.style.selectedNode.fillColor = yellow;
+projectInAngles.style.selectedNode.radius = 0.04;
 
 
-var validNodes = [];
-var centerNode = undefined;
-var draggingNode = undefined;
-project.arcLayer = new project.scope.Layer();
-project.arcLayer.sendToBack();
-project.backgroundLayer.sendToBack();
+projectInAngles.validNodes = [];
+projectInAngles.centerNode = undefined;
+projectInAngles.draggingNode = undefined;
+projectInAngles.arcLayer = new projectInAngles.scope.Layer();
+projectInAngles.arcLayer.sendToBack();
+projectInAngles.backgroundLayer.sendToBack();
 
-project.updateAngles = function(){
+projectInAngles.updateAngles = function(){
 	this.arcLayer.activate();
 	this.arcLayer.removeChildren();
 
 	var i = 0;
 	var radiuses = [0.35, 0.3, 0.25];
 	
-	centerNode.junction().joints
+	this.centerNode.junction().joints
 		.sort(function(a,b){ return a.angle() < b.angle(); })
 		.forEach(function(el){
 			var vectors = el.vectors().map(function(el){return el.normalize().scale(radiuses[i%3]);})
@@ -44,7 +44,7 @@ project.updateAngles = function(){
 		},this);
 }
 
-project.reset = function(){
+projectInAngles.reset = function(){
 	this.selectNearestNode = true;
 	var creases = [
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
@@ -52,33 +52,33 @@ project.reset = function(){
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain()
 	];
 	this.cp.clean();
-	validNodes = [
+	this.validNodes = [
 		creases[0].uncommonNodeWithEdge(creases[1]),
 		creases[1].uncommonNodeWithEdge(creases[0]),
 		creases[2].uncommonNodeWithEdge(creases[0])
 	];
-	centerNode = creases[0].commonNodeWithEdge(creases[1]);
+	this.centerNode = creases[0].commonNodeWithEdge(creases[1]);
 	this.draw();
 	this.updateAngles();
 }
-project.reset();
+projectInAngles.reset();
 
-project.onFrame = function(event) { }
-project.onResize = function(event) { }
-project.onMouseDown = function(event){
-	if(validNodes.includes(this.nearestNode)){
-		draggingNode = this.nearestNode;
+projectInAngles.onFrame = function(event) { }
+projectInAngles.onResize = function(event) { }
+projectInAngles.onMouseDown = function(event){
+	if(this.validNodes.includes(this.nearestNode)){
+		this.draggingNode = this.nearestNode;
 	}
 }
-project.onMouseUp = function(event){
-	draggingNode = undefined;
+projectInAngles.onMouseUp = function(event){
+	this.draggingNode = undefined;
 }
-project.onMouseMove = function(event){
-	if(draggingNode !== undefined){
-		draggingNode.x = event.point.x;
-		draggingNode.y = event.point.y;
+projectInAngles.onMouseMove = function(event){
+	if(this.draggingNode !== undefined){
+		this.draggingNode.x = event.point.x;
+		this.draggingNode.y = event.point.y;
 	}
 	this.update();
 	this.updateAngles();
 }
-project.onMouseDidBeginDrag = function(event){ }
+projectInAngles.onMouseDidBeginDrag = function(event){ }

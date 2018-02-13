@@ -54,6 +54,8 @@ class GraphNode{
 
 	/** Get an array of edges that contain this node
 	 * @returns {GraphEdge[]} array of adjacent edges
+	 * @example
+	 * var adjacent = node.adjacentEdges()
 	 */
 	adjacentEdges():GraphEdge[]{
 		return this.graph.edges.filter(function(el:GraphEdge){
@@ -62,6 +64,8 @@ class GraphNode{
 	}
 	/** Get an array of nodes that share an edge in common with this node
 	 * @returns {GraphNode[]} array of adjacent nodes
+	 * @example
+	 * var adjacent = node.adjacentNodes()
 	 */
 	adjacentNodes():GraphNode[]{
 		var checked = []; // the last step, to remove duplicate nodes
@@ -76,13 +80,18 @@ class GraphNode{
 			},this);
 	}
 	/** Test if a node is connected to another node by an edge
+	 * @param {GraphNode} node test adjacency between this and the supplied parameter
 	 * @returns {boolean} true or false, adjacent or not
+	 * @example
+	 * var isAdjacent = node.isAdjacentToNode(anotherNode);
 	 */
 	isAdjacentToNode(node:GraphNode):boolean{
 		return (this.graph.getEdgeConnectingNodes(this, node) !== undefined);
 	}
 	/** The degree of a node is the number of adjacent edges, circular edges are counted twice
 	 * @returns {number} number of adjacent edges
+	 * @example
+	 * var degree = node.degree();
 	 */
 	degree():number{
 		return this.graph.edges.map(function(el){
@@ -108,6 +117,8 @@ class GraphEdge{
 
 	/** Get an array of edges that share a node in common with this edge
 	 * @returns {GraphEdge[]} array of adjacent edges
+	 * @example
+	 * var adjacent = edge.adjacentEdges()
 	 */
 	adjacentEdges():GraphEdge[]{
 		return this.graph.edges
@@ -119,24 +130,38 @@ class GraphEdge{
 	}
 	/** Get the two nodes of this edge
 	 * @returns {GraphNode[]} the two nodes of this edge
+	 * @example
+	 * var adjacent = edge.adjacentNodes()
 	 */
 	adjacentNodes():GraphNode[]{
 		return [this.nodes[0], this.nodes[1]];
 	}
 	/** Test if an edge is connected to another edge by a common node
+	 * @param {GraphEdge} edge test adjacency between this and supplied parameter
 	 * @returns {boolean} true or false, adjacent or not
+	 * @example
+	 * var isAdjacent = edge.isAdjacentToEdge(anotherEdge)
 	 */
 	isAdjacentToEdge(edge:GraphEdge):boolean{
 		return( (this.nodes[0] === edge.nodes[0]) || (this.nodes[1] === edge.nodes[1]) ||
 		        (this.nodes[0] === edge.nodes[1]) || (this.nodes[1] === edge.nodes[0]) );
 	}
 	/** Test if an edge contains the same nodes as another edge
+	 * @param {GraphEdge} edge test similarity between this and supplied parameter
 	 * @returns {boolean} true or false, similar or not
+	 * @example
+	 * var isSimilar = edge.isSimilarToEdge(anotherEdge)
 	 */
 	isSimilarToEdge(edge:GraphEdge):boolean{
 		return( (this.nodes[0] === edge.nodes[0] && this.nodes[1] === edge.nodes[1] ) ||
 		        (this.nodes[0] === edge.nodes[1] && this.nodes[1] === edge.nodes[0] ) );
 	}
+	/** A convenience function, supply one of the edge's incident nodes and get back the other node
+	 * @param {GraphNode} node must be one of the edge's 2 nodes
+	 * @returns {GraphNode} the node that is the other node
+	 * @example
+	 * var node2 = edge.otherNode(node1)
+	 */
 	otherNode(node:GraphNode):GraphNode{
 		if(this.nodes[0] === node){ return this.nodes[1]; }
 		if(this.nodes[1] === node){ return this.nodes[0]; }
@@ -144,12 +169,16 @@ class GraphEdge{
 	}
 	/** Test if an edge points both at both ends to the same node
 	 * @returns {boolean} true or false, circular or not
+	 * @example
+	 * var isCircular = edge.isCircular()
 	 */
 	isCircular():boolean{ return this.nodes[0] === this.nodes[1]; }
 	// do we need to test for invalid edges?
 		// && this.nodes[0] !== undefined;
 	/** If this is a edge with duplicate edge(s), returns an array of duplicates not including self
 	 * @returns {GraphEdge[]} array of duplicate GraphEdge, empty array if none
+	 * @example
+	 * var array = edge.duplicateEdges()
 	 */
 	duplicateEdges():GraphEdge[]{
 		return this.graph.edges.filter(function(el){
@@ -157,7 +186,10 @@ class GraphEdge{
 		}, this);
 	}
 	/** For adjacent edges, get the node they share in common
+	 * @param {GraphEdge} otherEdge an adjacent edge
 	 * @returns {GraphNode} the node in common, undefined if not adjacent
+	 * @example
+	 * var sharedNode = edge1.commonNodeWithEdge(edge2)
 	 */
 	commonNodeWithEdge(otherEdge:GraphEdge):GraphNode{
 		// only for adjacent edges
@@ -169,7 +201,10 @@ class GraphEdge{
 		return undefined;
 	}
 	/** For adjacent edges, get this edge's node that is not shared in common with the other edge
-	 * @returns {GraphNode} the node not in common, undefined if not adjacent
+	 * @param {GraphEdge} otherEdge an adjacent edge
+	 * @returns {GraphNode} the node on this edge not shared by the other edge, undefined if not adjacent
+	 * @example
+	 * var notSharedNode = edge1.uncommonNodeWithEdge(edge2)
 	 */
 	uncommonNodeWithEdge(otherEdge:GraphEdge):GraphNode{
 		// only for adjacent edges
@@ -198,6 +233,8 @@ class Graph{
 
 	/** Deep-copy the contents of this graph and return it as a new object
 	 * @returns {Graph} 
+	 * @example
+	 * var copiedGraph = graph.copy()
 	 */
 	copy():Graph{
 		this.nodeArrayDidChange();
@@ -224,22 +261,33 @@ class Graph{
 
 	/** Create a node and add it to the graph
 	 * @returns {GraphNode} pointer to the node
+	 * @example
+	 * var node = graph.newNode()
 	 */
 	newNode():GraphNode {
 		return this.addNode(new this.nodeType(this));
 	}
 
 	/** Create an edge and add it to the graph
-	 * @param {GraphNode} two nodes that the edge connects
+	 * @param {GraphNode} node1 the first node that the edge connects
+	 * @param {GraphNode} node2 the second node that the edge connects
 	 * @returns {GraphEdge} if successful, pointer to the edge
+	 * @example
+	 * var node1 = graph.newNode()
+	 * var node2 = graph.newNode()
+	 * graph.newEdge(node1, node2)
 	 */
 	newEdge(node1:GraphNode, node2:GraphNode):GraphEdge {
 		return this.addEdge(new this.edgeType(this, node1, node2));
 	}
 
 	/** Add an already-initialized node to the graph
-	 * @param {GraphNode} must be already initialized
+	 * @param {GraphNode} node must be already initialized
 	 * @returns {GraphNode} pointer to the node
+	 * @example
+	 * // it's preferred to simply use graph.newNode()
+	 * var node = new GraphNode(graph)
+	 * graph.addNode(node)
 	 */
 	addNode(node:GraphNode):GraphNode{
 		if(node == undefined){ throw "addNode() requires an argument: 1 GraphNode"; }
@@ -250,8 +298,12 @@ class Graph{
 	}
 
 	/** Add an already-initialized edge to the graph
-	 * @param {GraphEdge} must be initialized, and two nodes must be already be a part of this graph
+	 * @param {GraphEdge} edge must be initialized, and two nodes must be already be a part of this graph
 	 * @returns {GraphEdge} if successful, pointer to the edge
+	 * @example
+	 * // it's preferred to simply use graph.newEdge(node1, node2)
+	 * var edge = new GraphEdge(graph, node1, node2)
+	 * graph.addEdge(edge)
 	 */
 	addEdge(edge:GraphEdge):GraphEdge{
 		if(edge.nodes[0] === undefined ||
@@ -265,6 +317,10 @@ class Graph{
 	}
 
 	/** Add already-initialized node objects from an array to the graph
+	 * @param {GraphNode[]} nodes array of GraphNode
+	 * @example <caption>Initalize 2 nodes and add them to the graph.</caption>
+	 * var n = [new GraphNode(graph), new GraphNode(graph)];
+	 * graph.addNodes(n);
 	 * @returns {number} number of nodes added to the graph
 	 */
 	addNodes(nodes:GraphNode[]):number{
@@ -314,7 +370,10 @@ class Graph{
 	// REMOVE PARTS (TARGETS KNOWN)
 	///////////////////////////////////////////////
 
-	/** Removes all nodes and edges, returning the graph to it's original state */
+	/** Removes all nodes and edges, returning the graph to it's original state 
+	 * @example 
+	 * graph.clear()
+	 */
 	clear():Graph{
 		this.nodes = [];
 		this.edges = [];
@@ -323,6 +382,9 @@ class Graph{
 
 	/** Remove an edge
 	 * @returns {GraphClean} number of edges removed
+	 * @example 
+	 * var clean = graph.removeEdge(edge)
+	 * // clean.edges should equal 1
 	 */
 	removeEdge(edge:GraphEdge):GraphClean{
 		var edgesLength = this.edges.length;
@@ -332,7 +394,12 @@ class Graph{
 	}
 
 	/** Searches and removes any edges connecting the two nodes supplied in the arguments
+	 * @param {GraphNode} node1 first node
+	 * @param {GraphNode} node2 second node
 	 * @returns {GraphClean} number of edges removed. in the case of an unclean graph, there may be more than one
+	 * @example 
+	 * var clean = graph.removeEdgeBetween(node1, node2)
+	 * // clean.edges should be >= 1
 	 */
 	removeEdgeBetween(node1:GraphNode, node2:GraphNode):GraphClean{
 		var edgesLength = this.edges.length;
@@ -345,7 +412,12 @@ class Graph{
 	}
 
 	/** Remove a node and any edges that connect to it
+	 * @param {GraphNode} node the node that will be removed
 	 * @returns {GraphClean} number of nodes and edges removed
+	 * @example 
+	 * var clean = graph.removeNode(node)
+	 * // clean.node will be 1
+	 * // clean.edges will be >= 0
 	 */
 	removeNode(node:GraphNode):GraphClean{
 		var nodesLength = this.nodes.length;
@@ -359,7 +431,13 @@ class Graph{
 	}
 
 	/** Remove the second node and replaces all mention of it with the first in every edge
-	 * @returns {GraphClean} returns a pointer to the remaining node
+	 * @param {GraphNode} node1 first node to merge, this node will persist
+	 * @param {GraphNode} node2 second node to merge, this node will be removed
+	 * @returns {GraphClean} 1 removed node, newly duplicate and circular edges will be removed
+	 * @example 
+	 * var clean = graph.mergeNodes(node1, node2)
+	 * // clean.node will be 1
+	 * // clean.edges will be >= 0
 	 */
 	mergeNodes(node1:GraphNode, node2:GraphNode):GraphClean{
 		if(node1 === node2) { return undefined; }
@@ -379,6 +457,9 @@ class Graph{
 
 	/** Removes any node that isn't a part of an edge
 	 * @returns {GraphClean} the number of nodes removed
+	 * @example 
+	 * var clean = graph.removeIsolatedNodes()
+	 * // clean.node will be >= 0
 	 */
 	removeIsolatedNodes():GraphClean{
 		// this function relies on .index values. it would be nice if it didn't
@@ -400,6 +481,9 @@ class Graph{
 
 	/** Remove all edges that contain the same node at both ends
 	 * @returns {GraphClean} the number of edges removed
+	 * @example 
+	 * var clean = graph.cleanCircularEdges()
+	 * // clean.edges will be >= 0
 	 */
 	cleanCircularEdges():GraphClean{
 		var edgesLength = this.edges.length;
@@ -410,6 +494,9 @@ class Graph{
 
 	/** Remove edges that are similar to another edge
 	 * @returns {GraphClean} the number of edges removed
+	 * @example 
+	 * var clean = graph.cleanDuplicateEdges()
+	 * // clean.edges will be >= 0
 	 */
 	cleanDuplicateEdges():GraphClean{
 		var count = 0;
@@ -427,6 +514,9 @@ class Graph{
 
 	/** Graph specific clean function: removes circular and duplicate edges, refreshes .index. Only modifies edges array.
 	 * @returns {GraphClean} the number of edges removed
+	 * @example 
+	 * var clean = graph.cleanGraph()
+	 * // clean.edges will be >= 0
 	 */
 	cleanGraph():GraphClean{
 		this.edgeArrayDidChange();
@@ -438,6 +528,9 @@ class Graph{
 
 	/** Clean calls cleanGraph(), gets overwritten when subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
 	 * @returns {GraphClean} the number of edges removed
+	 * @example 
+	 * var clean = graph.clean()
+	 * // clean.edges will be >= 0
 	 */
 	clean():GraphClean{
 		return this.cleanGraph();
@@ -449,6 +542,8 @@ class Graph{
 	
 	/** Searches for an edge that contains the 2 nodes supplied in the function call. Will return first edge found, if graph isn't clean it will miss any subsequent duplicate edges.
 	 * @returns {GraphEdge} edge, if exists. undefined, if no edge connects the nodes (not adjacent)
+	 * @example 
+	 * var edge = graph.getEdgeConnectingNodes(node1, node2)
 	 */
 	getEdgeConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge{
 		// for this to work, graph must be cleaned. no duplicate edges
@@ -464,6 +559,8 @@ class Graph{
 
 	/** Searches for all edges that contains the 2 nodes supplied in the function call. This is suitable for unclean graphs, graphs with duplicate edges.
 	 * @returns {GraphEdge[]} array of edges, if any exist. empty array if no edge connects the nodes (not adjacent)
+	 * @example 
+	 * var array = graph.getEdgesConnectingNodes(node1, node2)
 	 */
 	getEdgesConnectingNodes(node1:GraphNode, node2:GraphNode):GraphEdge[]{
 		return this.edges.filter(function(el){

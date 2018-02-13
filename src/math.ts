@@ -295,13 +295,12 @@ class Matrix{
 	a:number; c:number; tx:number;
 	b:number; d:number; ty:number;
 	constructor(a?:number, b?:number, c?:number, d?:number, tx?:number, ty?:number){
-		this.a=a; this.b=b; this.c=c; this.d=d; this.tx=tx; this.ty=ty;
-		if(a === undefined){ this.a = 1; }
-		if(b === undefined){ this.b = 0; }
-		if(c === undefined){ this.c = 0; }
-		if(d === undefined){ this.d = 1; }
-		if(tx === undefined){ this.tx = 0; }
-		if(ty === undefined){ this.ty = 0; }
+		this.a = (a !== undefined) ? a : 1;
+		this.b = (b !== undefined) ? b : 0;
+		this.c = (c !== undefined) ? c : 0;
+		this.d = (d !== undefined) ? d : 1;
+		this.tx = (tx !== undefined) ? tx : 0;
+		this.ty = (ty !== undefined) ? ty : 0;
 	}
 	/** Sets this to be the identity matrix */
 	identity(){ this.a=1; this.b=0; this.c=0; this.d=1; this.tx=0; this.ty=0; }
@@ -334,6 +333,7 @@ class Matrix{
 	rotation(angle, origin?:XY):Matrix{
 		this.a = Math.cos(angle);   this.c = -Math.sin(angle);
 		this.b = Math.sin(angle);   this.d =  Math.cos(angle);
+		// todo, if origin is undefined, should we set tx and ty to 0, or leave as is?
 		if(origin != undefined){ this.tx = origin.x; this.ty = origin.y; }
 		return this;
 	}

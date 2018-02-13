@@ -12,6 +12,7 @@
 <script language="javascript" type="text/javascript" src="../lib/katex/katex.min.js"></script>
 <link rel="stylesheet" href="../lib/katex/katex.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700">
 <link rel="stylesheet" href="../lib/font-awesome/css/font-awesome.min.css" />
 <link rel="stylesheet" href="css/style.css" />
 <link rel="stylesheet" href="css/nav.css" />
@@ -43,11 +44,10 @@
 		<li class="dropdown">
 			<a href="planarGraph.php" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
+			<a href="planarMath.php">A. MATH</a>
 			<a href="planarClean.php">B. CLEAN</a>
 			<a href="face.php">C. FACE</a>
-			<a href="reflection.php">D. REFLECTION</a>
-			<a href="neighbors.php">E. NEIGHBOR</a>
-			<a href="epsilon.php">F. EPSILON</a>
+			<a href="neighbors.php">D. NEIGHBOR</a>
 			</div>
 		</li>
 		<li class="dropdown">
