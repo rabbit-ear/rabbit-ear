@@ -1010,7 +1010,7 @@ class CreasePattern extends PlanarGraph{
 			vNodes.push({position:xyEdges[i][0],halfEdges:[],quarterPoints:[],sites:[]});
 			vNodes.push({position:xyEdges[i][1],halfEdges:[],quarterPoints:[],sites:[]});
 		}
-		vNodes = arrayRemoveDuplicates(vNodes, function(a,b){return a.position.equivalent(b.position);});
+		vNodes = vNodes.removeDuplicates(function(a,b){return a.position.equivalent(b.position);});
 		xyEdges.forEach(function(el, i){
 			for(var n = 0; n < vNodes.length; n++){
 				if(el[0].equivalent(vNodes[n].position)){ vNodes[n].halfEdges.push(i); }
@@ -1033,18 +1033,19 @@ class CreasePattern extends PlanarGraph{
 				var endpoints = [ new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
 				for(var n = 0; n < vNodes.length; n++){
 					if(vNodes[n].position.equivalent(endpoints[0])){ 
-						if(!arrayContainsObject(vNodes[n].sites, site)){
+						if(!vNodes[n].sites.contains(site)){
 							vNodes[n].sites.push(site);
 						}
-						if(arrayContains(vNodes[n].quarterPoints, midpoints[0], function(a,b){return a.equivalent(b);}) === undefined){
+
+						if(!vNodes[n].quarterPoints.contains(midpoints[0], function(a,b){return a.equivalent(b);})){
 							vNodes[n].quarterPoints.push(midpoints[0]);
 						}
 					}
 					if(vNodes[n].position.equivalent(endpoints[1])){ 
-						if(!arrayContainsObject(vNodes[n].sites, site)){
+						if(!vNodes[n].sites.contains(site)){
 							vNodes[n].sites.push(site);
 						}
-						if(arrayContains(vNodes[n].quarterPoints, midpoints[1], function(a,b){ return a.equivalent(b); }) === undefined){
+						if(!vNodes[n].contains(quarterPoints, midpoints[1], function(a,b){ return a.equivalent(b); })){
 							vNodes[n].quarterPoints.push(midpoints[1]);
 						}
 					}
@@ -1069,7 +1070,7 @@ class CreasePattern extends PlanarGraph{
 			this.newCrease(el[0].x, el[0].y, el[1].x, el[1].y).mountain();
 		}, this);
 		v.quarterEdges = quarterEdges;
-		quarterPoints = arrayRemoveDuplicates(quarterPoints, function(a,b){ return a.equivalent(b);});
+		quarterPoints = quarterPoints.removeDuplicates(function(a,b){ return a.equivalent(b);});
 		v.quarterPoints = quarterPoints;
 		v.nodes = vNodes;
 
@@ -1206,7 +1207,7 @@ class CreasePattern extends PlanarGraph{
 						}
 					}
 				}
-				rabbitEarCenters = arrayRemoveDuplicates(rabbitEarCenters, function(a,b){return a.equivalent(b)});
+				rabbitEarCenters = rabbitEarCenters.removeDuplicates(function(a,b){return a.equivalent(b)});
 
 				this.fragment();
 

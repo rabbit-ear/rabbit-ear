@@ -74,7 +74,7 @@ project.reset();
 project.onFrame = function(event) { }
 project.onResize = function(event) { }
 project.onMouseDown = function(event){
-	if(validNodes.includes(this.nearestNode)){
+	if(validNodes.contains(this.nearestNode)){
 		draggingNode = this.nearestNode;
 	}
 }

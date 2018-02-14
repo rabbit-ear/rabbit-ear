@@ -137,8 +137,8 @@ function lineSegmentIntersectionAlgorithm(p:XY, p2:XY, q:XY, q2:XY):XY {
 	if (Math.abs(uNumerator) < EPSILON_HIGH && Math.abs(denominator) < EPSILON_HIGH) {
 		// collinear
 		// Do they overlap? (Are all the point differences in either direction the same sign)
-		if(!allEqual([(q.x - p.x) < 0, (q.x - p2.x) < 0, (q2.x - p.x) < 0, (q2.x - p2.x) < 0]) ||
-		   !allEqual([(q.y - p.y) < 0, (q.y - p2.y) < 0, (q2.y - p.y) < 0, (q2.y - p2.y) < 0])){
+		if(![(q.x - p.x) < 0, (q.x - p2.x) < 0, (q2.x - p.x) < 0, (q2.x - p2.x) < 0].allEqual() ||
+		   ![(q.y - p.y) < 0, (q.y - p2.y) < 0, (q2.y - p.y) < 0, (q2.y - p2.y) < 0].allEqual()){
 			return undefined;
 		}		
 		// Do they touch? (Are any of the points equal?)
@@ -220,7 +220,7 @@ function convexHull(points:XY[]):XY[]{
 		// (OPTION 2) include all collinear points along the hull
 		// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
 		// if the point is already in the convex hull, we've made a loop. we're done
-		if(arrayContainsObject(hull, angles[0].node)){ return hull; }
+		if(hull.contains(angles[0].node)){ return hull; }
 		// add point to hull, prepare to loop again
 		hull.push(angles[0].node);
 		// update walking direction with the angle to the new point
@@ -346,4 +346,46 @@ class Matrix{
 		m.b = this.b;   m.d = this.d;   m.ty = this.ty;
 		return m;
 	}
+}
+
+
+/////////////////////////////// ARRAYS /////////////////////////////// 
+// this will return the index of the object in the array, or undefined if not found
+interface Array<T> {
+	allEqual():boolean;
+	removeDuplicates(compFunction:(a: T, b: T) => boolean): Array<T>;
+	contains(object: T, compFunction?:(a: T, b: T) => boolean): boolean;
+	flatMap<T, U>(mapFunc: (x: T) => U[]) : U[];	
+}
+Array.prototype.flatMap = function<T, U>(mapFunc: (x: T) => U[]) : U[] {
+	return this.reduce((cumulus: U[], next: T) => [...mapFunc(next), ...cumulus], <U[]> []);
+}
+Array.prototype.removeDuplicates = function(compFunction:(a, b) => boolean): any[]{
+	if(this.length <= 1) return this;
+	for(var i = 0; i < this.length-1; i++){
+		for(var j = this.length-1; j > i; j--){
+			if(compFunction(this[i], this[j])){
+				this.splice(j,1);
+			}
+		}
+	}
+	return this;
+}
+/** all values in an array are equivalent based on !== comparison */
+Array.prototype.allEqual = function():boolean {
+	if(this.length <= 1){ return true; }
+	for(var i = 1; i < this.length; i++){ if(this[i] !== this[0]) return false; }
+	return true;
+}
+/** does an array contain an object, based on reference comparison */
+Array.prototype.contains = function(object, compFunction?:(a, b) => boolean):boolean{
+	if(compFunction !== undefined){
+		// comp function was supplied
+		for(var i = 0; i < this.length; i++){
+			if(compFunction(this[i], object) === true){ return true; }
+		}
+		return false;
+	}
+	for(var i = 0; i < this.length; i++) { if(this[i] === object){ return true; } }
+	return false;
 }

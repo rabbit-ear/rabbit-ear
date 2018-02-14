@@ -66,7 +66,7 @@ projectInAngles.reset();
 projectInAngles.onFrame = function(event) { }
 projectInAngles.onResize = function(event) { }
 projectInAngles.onMouseDown = function(event){
-	if(this.validNodes.includes(this.nearestNode)){
+	if(this.validNodes.contains(this.nearestNode)){
 		this.draggingNode = this.nearestNode;
 	}
 }

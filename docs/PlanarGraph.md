@@ -277,7 +277,7 @@ generateFaces():PlanarFace[]
 ```
 
 ```
-findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):AdjacentNodes[]
+walkClockwiseCircut(node1:PlanarNode, node2:PlanarNode):AdjacentNodes[]
 ```
 
 ```

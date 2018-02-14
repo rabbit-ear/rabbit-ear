@@ -491,8 +491,8 @@ function lineSegmentIntersectionAlgorithm(p, p2, q, q2) {
         return q2;
     }
     if (Math.abs(uNumerator) < EPSILON_HIGH && Math.abs(denominator) < EPSILON_HIGH) {
-        if (!allEqual([(q.x - p.x) < 0, (q.x - p2.x) < 0, (q2.x - p.x) < 0, (q2.x - p2.x) < 0]) ||
-            !allEqual([(q.y - p.y) < 0, (q.y - p2.y) < 0, (q2.y - p.y) < 0, (q2.y - p2.y) < 0])) {
+        if (![(q.x - p.x) < 0, (q.x - p2.x) < 0, (q2.x - p.x) < 0, (q2.x - p2.x) < 0].allEqual() ||
+            ![(q.y - p.y) < 0, (q.y - p2.y) < 0, (q2.y - p.y) < 0, (q2.y - p2.y) < 0].allEqual()) {
             return undefined;
         }
         if (p.equivalent(q)) {
@@ -593,7 +593,7 @@ function convexHull(points) {
             return el;
         })
             .sort(function (a, b) { return (a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0; });
-        if (arrayContainsObject(hull, angles[0].node)) {
+        if (hull.contains(angles[0].node)) {
             return hull;
         }
         hull.push(angles[0].node);
@@ -696,44 +696,47 @@ var Matrix = (function () {
     };
     return Matrix;
 }());
-function flatMap(array, mapFunc) {
-    return array.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
-}
-function allEqual(args) {
-    for (var i = 1; i < args.length; i++) {
-        if (args[i] !== args[0])
+Array.prototype.flatMap = function (mapFunc) {
+    return this.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
+};
+Array.prototype.removeDuplicates = function (compFunction) {
+    if (this.length <= 1)
+        return this;
+    for (var i = 0; i < this.length - 1; i++) {
+        for (var j = this.length - 1; j > i; j--) {
+            if (compFunction(this[i], this[j])) {
+                this.splice(j, 1);
+            }
+        }
+    }
+    return this;
+};
+Array.prototype.allEqual = function () {
+    if (this.length <= 1) {
+        return true;
+    }
+    for (var i = 1; i < this.length; i++) {
+        if (this[i] !== this[0])
             return false;
     }
     return true;
-}
-function arrayContainsObject(array, object) {
-    for (var i = 0; i < array.length; i++) {
-        if (array[i] === object) {
+};
+Array.prototype.contains = function (object, compFunction) {
+    if (compFunction !== undefined) {
+        for (var i = 0; i < this.length; i++) {
+            if (compFunction(this[i], object) === true) {
+                return true;
+            }
+        }
+        return false;
+    }
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] === object) {
             return true;
         }
     }
     return false;
-}
-function arrayRemoveDuplicates(array, compFunction) {
-    if (array.length <= 1)
-        return array;
-    for (var i = 0; i < array.length - 1; i++) {
-        for (var j = array.length - 1; j > i; j--) {
-            if (compFunction(array[i], array[j])) {
-                array.splice(j, 1);
-            }
-        }
-    }
-    return array;
-}
-function arrayContains(array, object, compFunction) {
-    for (var i = 0; i < array.length; i++) {
-        if (compFunction(array[i], object) === true) {
-            return i;
-        }
-    }
-    return undefined;
-}
+};
 function findClockwiseCircut(node1, node2) {
     if (node1 === undefined || node2 === undefined) {
         return undefined;
@@ -760,7 +763,7 @@ function findClockwiseCircut(node1, node2) {
         if (travelingNode === node1) {
             return pairs;
         }
-    } while (!arrayContainsObject(visitedList, travelingNode));
+    } while (!visitedList.contains(travelingNode));
     return undefined;
 }
 var EdgeIntersection = (function (_super) {
@@ -1180,7 +1183,7 @@ var PlanarFace = (function () {
                 }
             }
         }
-        return arrayRemoveDuplicates(edges, function (a, b) { return a === b; });
+        return edges.removeDuplicates(function (a, b) { return a === b; });
     };
     PlanarFace.prototype.uncommonEdges = function (face) {
         var edges = this.edges.slice(0);
@@ -1719,7 +1722,7 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.nodeTangents = function () {
     };
     PlanarGraph.prototype.generatePlanarJoints = function () {
-        return flatMap(this.nodes, function (el) { return el.junction().interiorAngles(); });
+        return this.nodes.flatMap(function (el) { return el.junction().interiorAngles(); });
     };
     PlanarGraph.prototype.faceArrayDidChange = function () { for (var i = 0; i < this.faces.length; i++) {
         this.faces[i].index = i;
@@ -2661,7 +2664,7 @@ var CreasePattern = (function (_super) {
             vNodes.push({ position: xyEdges[i][0], halfEdges: [], quarterPoints: [], sites: [] });
             vNodes.push({ position: xyEdges[i][1], halfEdges: [], quarterPoints: [], sites: [] });
         }
-        vNodes = arrayRemoveDuplicates(vNodes, function (a, b) { return a.position.equivalent(b.position); });
+        vNodes = vNodes.removeDuplicates(function (a, b) { return a.position.equivalent(b.position); });
         xyEdges.forEach(function (el, i) {
             for (var n = 0; n < vNodes.length; n++) {
                 if (el[0].equivalent(vNodes[n].position)) {
@@ -2685,18 +2688,18 @@ var CreasePattern = (function (_super) {
                 var endpoints = [new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
                 for (var n = 0; n < vNodes.length; n++) {
                     if (vNodes[n].position.equivalent(endpoints[0])) {
-                        if (!arrayContainsObject(vNodes[n].sites, site)) {
+                        if (!vNodes[n].sites.contains(site)) {
                             vNodes[n].sites.push(site);
                         }
-                        if (arrayContains(vNodes[n].quarterPoints, midpoints[0], function (a, b) { return a.equivalent(b); }) === undefined) {
+                        if (!vNodes[n].quarterPoints.contains(midpoints[0], function (a, b) { return a.equivalent(b); })) {
                             vNodes[n].quarterPoints.push(midpoints[0]);
                         }
                     }
                     if (vNodes[n].position.equivalent(endpoints[1])) {
-                        if (!arrayContainsObject(vNodes[n].sites, site)) {
+                        if (!vNodes[n].sites.contains(site)) {
                             vNodes[n].sites.push(site);
                         }
-                        if (arrayContains(vNodes[n].quarterPoints, midpoints[1], function (a, b) { return a.equivalent(b); }) === undefined) {
+                        if (!vNodes[n].contains(quarterPoints, midpoints[1], function (a, b) { return a.equivalent(b); })) {
                             vNodes[n].quarterPoints.push(midpoints[1]);
                         }
                     }
@@ -2720,7 +2723,7 @@ var CreasePattern = (function (_super) {
             this.newCrease(el[0].x, el[0].y, el[1].x, el[1].y).mountain();
         }, this);
         v.quarterEdges = quarterEdges;
-        quarterPoints = arrayRemoveDuplicates(quarterPoints, function (a, b) { return a.equivalent(b); });
+        quarterPoints = quarterPoints.removeDuplicates(function (a, b) { return a.equivalent(b); });
         v.quarterPoints = quarterPoints;
         v.nodes = vNodes;
         this.clean();
@@ -2815,7 +2818,7 @@ var CreasePattern = (function (_super) {
                         }
                     }
                 }
-                rabbitEarCenters = arrayRemoveDuplicates(rabbitEarCenters, function (a, b) { return a.equivalent(b); });
+                rabbitEarCenters = rabbitEarCenters.removeDuplicates(function (a, b) { return a.equivalent(b); });
                 this.fragment();
                 triangleMidpoints.forEach(function (tm) {
                     var tmCreases = this.edges.filter(function (cr) {

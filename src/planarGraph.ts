@@ -7,90 +7,66 @@
 
 "use strict";
 
-// DEPENDENCIES:
-// rbush.js
+//////////////////////////////////////////////////////////////////////////
+// DEPENDENCIES
 interface rbushObject{
-	insert(data:object):object;
 	load(data:object[]);
+	insert(data:object):object;
 	search(data:object):object[];
-}
-declare function rbush():rbushObject;
-//////////////////////////////////////////////////////////////////////
+} declare function rbush():rbushObject;
+//////////////////////////////////////////////////////////////////////////
+// PLANAR GRAPH
 
-/////////////////////////////// ARRAYS /////////////////////////////// 
-function flatMap<T, U>(array: T[], mapFunc: (x: T) => U[]) : U[] {
-	return array.reduce((cumulus: U[], next: T) => [...mapFunc(next), ...cumulus], <U[]> []);
-}
-/** all values in an array are equivalent based on !== comparison */
-function allEqual(args:boolean[]):boolean {
-	for(var i = 1; i < args.length; i++){ if(args[i] !== args[0]) return false;}
-	return true;
-}
-/** does an array contain an object, based on reference comparison */
-function arrayContainsObject(array, object):boolean{
-	for(var i = 0; i < array.length; i++) { if(array[i] === object){ return true; } }
-	return false;
-}
-function arrayRemoveDuplicates(array, compFunction):any[]{
-	if(array.length <= 1) return array;
-	for(var i = 0; i < array.length-1; i++){
-		for(var j = array.length-1; j > i; j--){
-			if(compFunction(array[i], array[j])){
-				array.splice(j,1);
-			}
-		}
+class PlanarClean extends GraphClean{
+	edges:{total:number, duplicate:number, circular:number};
+	nodes:{
+		total:number;
+		fragment:XY[];  // nodes added at intersection of 2 lines, from fragment()
+		collinear:XY[]; // nodes removed due to being collinear
+		duplicate:XY[]; // nodes removed due to occupying the same space
+		isolated:number;  // nodes removed for being unattached to any edge
 	}
-	return array;
-}
-// this will return the index of the object in the array, or undefined if not found
-function arrayContains(array, object, compFunction):number{
-	for(var i = 0; i < array.length; i++){
-		if(compFunction(array[i], object) === true){
-			return i;
+	constructor(numNodes?:number, numEdges?:number){
+		super();
+		this.edges = {total:0,duplicate:0, circular:0};
+		this.nodes = {
+			total:0,
+			isolated:0,
+			fragment:[],
+			collinear:[],
+			duplicate:[]
 		}
+		if(numNodes !== undefined){ this.nodes.total += numNodes; }
+		if(numEdges !== undefined){ this.edges.total += numEdges; }
 	}
-	return undefined;
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-//                            PLANAR GRAPH PARTS
-/////////////////////////////////////////////////////////////////////////////////
-
-// class NearestEdgeObject {
-// 	edge:PlanarEdge; 
-// 	pointOnEdge:XY;
-// 	distance:number;
-// 	constructor(edge:PlanarEdge, pointOnEdge:XY, distance:number){
-// 		this.edge = edge;
-// 		this.pointOnEdge = pointOnEdge;
-// 		this.distance = distance;
-// 	}
-// }
-
-/** walk from node1 to node2, continue always making right-most inner angle turn. 
- */
-function findClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarEdge[]{
-	if(node1 === undefined || node2 === undefined){ return undefined; }
-	var incidentEdge = <PlanarEdge>node1.graph.getEdgeConnectingNodes(node1, node2);
-	if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
-	var pairs:PlanarEdge[] = [];
-	var lastNode = node1;
-	var travelingNode = node2;
-	var visitedList = [lastNode];
-	var nextWalk = incidentEdge;
-	pairs.push(nextWalk);
-	do{
-		visitedList.push(travelingNode);
-		var travelingNodeJunction:PlanarJunction = travelingNode.junction();
-		if(travelingNodeJunction !== undefined){ // just don't go down cul de sacs
-			nextWalk = travelingNodeJunction.clockwiseEdge(nextWalk);
+	fragmentedNodes(nodes):PlanarClean{
+		this.nodes.fragment = nodes; this.nodes.total += nodes.length; return this;
+	}
+	collinearNodes(nodes):PlanarClean{
+		this.nodes.collinear = nodes; this.nodes.total += nodes.length; return this;
+	}
+	duplicateNodes(nodes):PlanarClean{
+		this.nodes.duplicate = nodes; this.nodes.total += nodes.length; return this;
+	}
+	join(report:GraphClean):PlanarClean{
+		this.nodes.total += report.nodes.total;
+		this.edges.total += report.edges.total;
+		this.nodes.isolated += report.nodes.isolated;
+		this.edges.duplicate += report.edges.duplicate;
+		this.edges.circular += report.edges.circular;
+		// if we are merging 2 planar clean reports, type cast this variable and check properties
+		var planarReport = <PlanarClean>report;
+		if(planarReport.nodes.fragment !== undefined){ 
+			this.nodes.fragment = this.nodes.fragment.concat(planarReport.nodes.fragment); 
 		}
-		pairs.push(nextWalk);
-		lastNode = travelingNode;
-		travelingNode = <PlanarNode>nextWalk.otherNode(lastNode);
-		if(travelingNode === node1){ return pairs; }
-	} while(!arrayContainsObject(visitedList, travelingNode));
-	return undefined;
+		if(planarReport.nodes.collinear !== undefined){ 
+			this.nodes.collinear = this.nodes.collinear.concat(planarReport.nodes.collinear);
+		}
+		if(planarReport.nodes.duplicate !== undefined){ 
+			this.nodes.duplicate = this.nodes.duplicate.concat(planarReport.nodes.duplicate);
+		}
+		return this;
+	}
 }
 
 class EdgeIntersection extends XY{
@@ -227,63 +203,11 @@ class PlanarJunction{
 	faces():PlanarFace[]{
 		var adjacentFaces = [];
 		for(var n = 0; n < this.edges.length; n++){
-			var circuit = findClockwiseCircut(this.node, <PlanarNode>this.edges[n].otherNode(this.node));
+			var circuit = this.node.graph.walkClockwiseCircut(this.node, <PlanarNode>this.edges[n].otherNode(this.node));
 			var face = new PlanarFace(this.node.graph).makeFromCircuit( circuit );
 			if(face !== undefined){ adjacentFaces.push(face); }
 		}
 		return adjacentFaces;
-	}
-}
-
-class PlanarClean extends GraphClean{
-	edges:{total:number, duplicate:number, circular:number};
-	nodes:{
-		total:number;
-		fragment:XY[];  // nodes added at intersection of 2 lines, from fragment()
-		collinear:XY[]; // nodes removed due to being collinear
-		duplicate:XY[]; // nodes removed due to occupying the same space
-		isolated:number;  // nodes removed for being unattached to any edge
-	}
-	constructor(numNodes?:number, numEdges?:number){
-		super();
-		this.edges = {total:0,duplicate:0, circular:0};
-		this.nodes = {
-			total:0,
-			isolated:0,
-			fragment:[],
-			collinear:[],
-			duplicate:[]
-		}
-		if(numNodes !== undefined){ this.nodes.total += numNodes; }
-		if(numEdges !== undefined){ this.edges.total += numEdges; }
-	}
-	fragmentedNodes(nodes):PlanarClean{
-		this.nodes.fragment = nodes; this.nodes.total += nodes.length; return this;
-	}
-	collinearNodes(nodes):PlanarClean{
-		this.nodes.collinear = nodes; this.nodes.total += nodes.length; return this;
-	}
-	duplicateNodes(nodes):PlanarClean{
-		this.nodes.duplicate = nodes; this.nodes.total += nodes.length; return this;
-	}
-	join(report:GraphClean):PlanarClean{
-		this.nodes.total += report.nodes.total;
-		this.edges.total += report.edges.total;
-		this.nodes.isolated += report.nodes.isolated;
-		this.edges.duplicate += report.edges.duplicate;
-		this.edges.circular += report.edges.circular;
-		// if we are merging 2 planar clean reports, type cast this variable and check properties
-		var planarReport = <PlanarClean>report;
-		if(planarReport.nodes.fragment !== undefined){ 
-			this.nodes.fragment = this.nodes.fragment.concat(planarReport.nodes.fragment); 
-		}
-		if(planarReport.nodes.collinear !== undefined){ 
-			this.nodes.collinear = this.nodes.collinear.concat(planarReport.nodes.collinear);
-		}
-		if(planarReport.nodes.duplicate !== undefined){ 
-			this.nodes.duplicate = this.nodes.duplicate.concat(planarReport.nodes.duplicate);
-		}
-		return this;
 	}
 }
 
@@ -449,8 +373,8 @@ class PlanarEdge extends GraphEdge{
 
 	adjacentFaces():PlanarFace[]{
 		return [
-			new PlanarFace(this.graph).makeFromCircuit( findClockwiseCircut(this.nodes[0], this.nodes[1]) ),
-			new PlanarFace(this.graph).makeFromCircuit( findClockwiseCircut(this.nodes[1], this.nodes[0]) )]
+			new PlanarFace(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[0], this.nodes[1]) ),
+			new PlanarFace(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[1], this.nodes[0]) )]
 			.filter(function(el){ return el !== undefined });
 	}
 	transform(matrix){
@@ -529,7 +453,7 @@ class PlanarFace{
 				if(this.edges[i] === face.edges[j]){ edges.push(this.edges[i]); }
 			}
 		}
-		return arrayRemoveDuplicates(edges, function(a,b){return a === b; });
+		return edges.removeDuplicates(function(a,b){return a === b; });
 	}
 	uncommonEdges(face:PlanarFace):PlanarEdge[]{
 		var edges = this.edges.slice(0);
@@ -589,7 +513,6 @@ class PlanarGraph extends Graph{
 	newPlanarNode(x:number, y:number):PlanarNode{
 		return (<PlanarNode>this.newNode()).position(x, y);
 	}
-
 	/** Create two new nodes each with x,y locations and an edge between them
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
@@ -598,7 +521,6 @@ class PlanarGraph extends Graph{
 		var b = (<PlanarNode>this.newNode()).position(x2, y2);
 		return <PlanarEdge>this.newEdge(a, b);
 	}
-
 	/** Create one node with an x,y location and an edge between it and an existing node
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
@@ -606,14 +528,12 @@ class PlanarGraph extends Graph{
 		var newNode = (<PlanarNode>this.newNode()).position(x, y);
 		return <PlanarEdge>this.newEdge(node, newNode);
 	}
-
 	/** Create one node with an x,y location and an edge between it and an existing node
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
 	newPlanarEdgeBetweenNodes(a:PlanarNode, b:PlanarNode):PlanarEdge{
 		return <PlanarEdge>this.newEdge(a, b);
 	}
-
 	/** Create one node with an angle and distance away from an existing node and make an edge between them
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
@@ -624,7 +544,7 @@ class PlanarGraph extends Graph{
 	}
 
 	///////////////////////////////////////////////
-	// REMOVE PARTS
+	// REMOVE PARTS (TARGETS KNOWN)
 	///////////////////////////////////////////////
 
 	/** Removes all nodes, edges, and faces, returning the graph to it's original state */
@@ -695,11 +615,8 @@ class PlanarGraph extends Graph{
 	}
 
 	///////////////////////////////////////////////
-	// REMOVE PARTS
+	// REMOVE PARTS (SEARCH REQUIRED TO LOCATE)
 	///////////////////////////////////////////////
-	//
-	// REQUIRES SEARCH BEFORE REMOVE
-	//
 
 	/** Removes all isolated nodes and performs cleanNodeIfUseless() on every node
 	 * @returns {number} how many nodes were removed
@@ -804,8 +721,9 @@ class PlanarGraph extends Graph{
 		return report;
 	}
 
-	///////////////////////////////////////////////////////////////
-	// fragment, EDGE INTERSECTION
+	///////////////////////////////////////////////
+	// FRAGMENT, EDGE INTERSECTION
+	///////////////////////////////////////////////
 
 	/** Fragment looks at every edge and one by one removes 2 crossing edges and replaces them with a node at their intersection and 4 edges connecting their original endpoints to the intersection.
 	 * @returns {XY[]} array of XY locations of all the intersection locations
@@ -888,6 +806,31 @@ class PlanarGraph extends Graph{
 		// console.timeEnd("fragmentEdge");
 		report.join(this.cleanGraph());
 		return report;
+	}
+
+	/** walk from node1 to node2, continue always making right-most inner angle turn. */
+	walkClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarEdge[]{
+		if(node1 === undefined || node2 === undefined){ return undefined; }
+		var incidentEdge = <PlanarEdge>node1.graph.getEdgeConnectingNodes(node1, node2);
+		if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
+		var pairs:PlanarEdge[] = [];
+		var lastNode = node1;
+		var travelingNode = node2;
+		var visitedList:PlanarNode[] = [lastNode];
+		var nextWalk = incidentEdge;
+		pairs.push(nextWalk);
+		do{
+			visitedList.push(travelingNode);
+			var travelingNodeJunction:PlanarJunction = travelingNode.junction();
+			if(travelingNodeJunction !== undefined){ // just don't go down cul de sacs
+				nextWalk = travelingNodeJunction.clockwiseEdge(nextWalk);
+			}
+			pairs.push(nextWalk);
+			lastNode = travelingNode;
+			travelingNode = <PlanarNode>nextWalk.otherNode(lastNode);
+			if(travelingNode === node1){ return pairs; }
+		} while(!visitedList.contains(travelingNode));
+		return undefined;
 	}
 
 	///////////////////////////////////////////////
@@ -1146,11 +1089,12 @@ class PlanarGraph extends Graph{
 	// INTERIOR ANGLES
 
 	generatePlanarJoints(){
-		return flatMap(this.nodes, function(el){ return el.junction().interiorAngles(); });
+		return this.nodes.flatMap(function(el:PlanarNode){ return el.junction().interiorAngles(); });
 	}
 
-	///////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////
 	// FACE
+	///////////////////////////////////////////////
 
 	faceArrayDidChange(){for(var i=0; i<this.faces.length; i++){this.faces[i].index=i;}}
 

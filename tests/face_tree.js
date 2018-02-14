@@ -55,7 +55,7 @@ faceTree.refreshFaces = function(){
 	// 	for(var i = 0; i < edges.length; i++){ 
 	// 		faces = faces.concat(edges[i].adjacentFaces());
 	// 	}
-	// 	arrayRemoveDuplicates(faces, function(a,b){ return a.equivalent(b); });
+	// 	faces.removeDuplicates(function(a,b){ return a.equivalent(b); });
 	// }
 	// this.makeFaces(faces);
 }

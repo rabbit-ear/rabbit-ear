@@ -53,7 +53,7 @@ nodeFaces.refreshFaces = function(){
 		for(var i = 0; i < nodes.length; i++){ 
 			faces = faces.concat(nodes[i].adjacentFaces());
 		}
-		arrayRemoveDuplicates(faces, function(a,b){ return a.equivalent(b); });
+		faces.removeDuplicates(function(a,b){ return a.equivalent(b); });
 	}
 	this.makeFaces(faces);
 }

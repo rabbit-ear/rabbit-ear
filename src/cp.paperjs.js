@@ -346,6 +346,11 @@ var OrigamiPaper = (function(){
 		this.style.mark.strokeWidth = strokeWeight*0.66666;
 	}
 	OrigamiPaper.prototype.defaultStyleTemplate = function(){
+
+var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
+var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
+var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
+
 		if(this.style === undefined){ this.style = {}; }
 		var strokeWidth = 0.01;
 		var circleRadius = 0.015;
@@ -369,14 +374,14 @@ var OrigamiPaper = (function(){
 			},
 			mountain: {
 				// strokeColor: { hue:0, saturation:0.9, brightness:1.0 },
-				strokeColor: { gray:0.66 },
+				strokeColor: red,
 				// dashArray: [this.style.strokeWidth*2, this.style.strokeWidth*1.5, this.style.strokeWidth*.1, this.style.strokeWidth*1.5],
 				dashArray: undefined,
 				strokeWidth: strokeWidth,
 				strokeCap : 'round'
 			},
 			valley: {
-				strokeColor: { hue:220, saturation:0.6, brightness:1 },
+				strokeColor: { hue:220, saturation:0.6, brightness:0.666 },
 				dashArray: [strokeWidth*2, strokeWidth*2],
 				// dashArray: undefined,
 				strokeWidth: strokeWidth,

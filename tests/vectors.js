@@ -72,7 +72,7 @@ projectVectors.reset();
 projectVectors.onFrame = function(event) { }
 projectVectors.onResize = function(event) { }
 projectVectors.onMouseDown = function(event){
-	if(this.validNodes.includes(this.nearestNode)){
+	if(this.validNodes.contains(this.nearestNode)){
 		this.draggingNode = this.nearestNode;
 	}
 }
