@@ -89,23 +89,14 @@ class PlanarJoint{
 	edges:[PlanarEdge, PlanarEdge];
 	endNodes:[PlanarNode, PlanarNode];
 	// angle clockwise from edge 0 to edge 1 is in index 0. edge 1 to 0 is in index 1
-	// angle:number;// this should be a function
-	// set autoSortBySmaller to "discover" the clockwise orientation- setting the smaller interior angle 
-	constructor(edge1:PlanarEdge, edge2:PlanarEdge, autoSortBySmaller?:boolean){
+	constructor(edge1:PlanarEdge, edge2:PlanarEdge){
 		this.node = <PlanarNode>edge1.commonNodeWithEdge(edge2);
 		if(this.node === undefined){ return; }
 		if(edge1 === edge2){ return; }
-		// make sure we are storing clockwise from A->B the smaller interior angle
-		var a = edge1, b = edge2;
-		if(autoSortBySmaller !== undefined && autoSortBySmaller === true){
-			var interior1 = clockwiseInteriorAngleRadians(a.absoluteAngle(),b.absoluteAngle());
-			var interior2 = clockwiseInteriorAngleRadians(b.absoluteAngle(),a.absoluteAngle());
-			if(interior2 < interior1){ b = edge1; a = edge2; }
-		}
-		this.edges = [a, b];
+		this.edges = [edge1, edge2];
 		this.endNodes = [
-			(a.nodes[0] === this.node) ? a.nodes[1] : a.nodes[0],
-			(b.nodes[0] === this.node) ? b.nodes[1] : b.nodes[0]
+			(edge1.nodes[0] === this.node) ? edge1.nodes[1] : edge1.nodes[0],
+			(edge2.nodes[0] === this.node) ? edge2.nodes[1] : edge2.nodes[0]
 		];
 	}
 	vectors():[XY,XY]{
@@ -159,21 +150,15 @@ class PlanarJunction{
 		this.joints = [];
 		this.edges = [];
 		if(node === undefined){ return; }
-		var adjEdges = <PlanarEdge[]>this.node.adjacentEdges();
+		// these are coming in already sorted now
+		this.edges = this.node.adjacentEdges();
 		// Junctions by definition cannot be built on leaf nodes. there is only 1 edge.
-		if(adjEdges.length <= 1){ return; }
-		var sortedEdges = adjEdges
-			.map(function(el){
-				var otherNode = <PlanarNode>el.otherNode(this.node);
-				return {'edge':el, 'angle':Math.atan2(otherNode.y-this.node.y, otherNode.x-this.node.x)};
-			},this)
-			.sort(function(a,b){return (a.angle < b.angle)?1:(a.angle > b.angle)?-1:0})
-			.map(function(el){ return el.edge });
-		this.joints = sortedEdges.map(function(el,i){
-			var nexti = (i+1)%sortedEdges.length;
-			return new this.node.jointType(el, sortedEdges[nexti]);
+		if(this.edges.length <= 1){ return; }
+		this.joints = this.edges.map(function(el,i){
+			var nexti = (i+1)%this.edges.length;
+			return new this.node.jointType(el, this.edges[nexti]);
 		},this);
-		this.edges = this.joints.map(function(el:PlanarJoint){return el.edges[0];});
+		// this.edges = this.joints.map(function(el:PlanarJoint){return el.edges[0];});
 	}
 	edgeAngles():number[]{
 		return this.edges.map(function(el){return el.absoluteAngle(this.node);},this);
@@ -224,6 +209,7 @@ class PlanarNode extends GraphNode{
 	cache:object = {};
 
 	// is this a good design decision? a nodes adjacent edges are always sorted by angle
+	// TODO: are these increaseing in the right direction?
 	adjacentEdges():PlanarEdge[]{
 		return this.graph.edges
 		.filter(function(el:PlanarEdge){
@@ -233,7 +219,7 @@ class PlanarNode extends GraphNode{
 				var other = <PlanarNode>el.otherNode(this);
 				return {'edge':el, 'angle':Math.atan2(other.y-this.y, other.x-this.x)};
 			},this)
-		.sort(function(a,b){return (a.angle < b.angle)?1:(a.angle > b.angle)?-1:0})
+		.sort(function(a,b){return a.angle-b.angle;})
 		.map(function(el){ return el.edge });
 	}
 
@@ -242,6 +228,7 @@ class PlanarNode extends GraphNode{
 		if(junction === undefined){ return []; }
 		return junction.faces();
 	}
+	interiorAngles():number[]{ return this.junction().interiorAngles(); }
 
 	/** Adjacent nodes and edges sorted clockwise around this node */
 	junction():PlanarJunction{
@@ -251,23 +238,6 @@ class PlanarNode extends GraphNode{
 		if (junction.edges.length === 0){ return undefined; }
 		return junction;
 	}
-
-	interiorAngles():number[]{
-		return this.junction().interiorAngles();
-	}
-
-	/** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
-	 * @returns {AdjacentNodes} AdjacentNodes object containing the clockwise node and the edge connecting the two.
-	 */
-	// adjacentNodeClockwiseFrom(node:PlanarNode):AdjacentNodes{
-	// 	var adjacentNodes:AdjacentNodes[] = this.planarAdjacent();
-	// 	for(var i = 0; i < adjacentNodes.length; i++){
-	// 		if(adjacentNodes[i].node === node){
-	// 			return adjacentNodes[ ((i+1)%adjacentNodes.length) ];
-	// 		}
-	// 	}
-	// 	return undefined;
-	// }
 
 // implements XY
 	values():[number, number]{ return [this.x, this.y]; }
@@ -315,19 +285,17 @@ class PlanarEdge extends GraphEdge{
 	graph:PlanarGraph;
 	nodes:[PlanarNode,PlanarNode];
 
+	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
-
-	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
-
-	// form a vector by placing one of the nodes at the origin
+	/** form a vector by placing one of the nodes at the origin */
 	vector(originNode:PlanarNode):XY{
 		var otherNode = <PlanarNode>this.otherNode(originNode);
 		return new XY(otherNode.x - originNode.x, otherNode.y - originNode.y);
 	}
 
 	intersection(edge:PlanarEdge):EdgeIntersection{
-		// todo: should intersecting adjacent edges return the point in common they have with each other?
+		// todo: should intersecting adjacent edges return the point in common they have with each other or register no intersection?
 		if(this.isAdjacentToEdge(edge)){ return undefined; }
 		var intersect = lineSegmentIntersectionAlgorithm(this.nodes[0], this.nodes[1], edge.nodes[0], edge.nodes[1]);
 		if(intersect == undefined){ return undefined; }
