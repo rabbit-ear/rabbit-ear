@@ -2,8 +2,11 @@
 var project = new OrigamiPaper("canvas-face-matrix");
 // project.setPadding(0.05);
 
-// project.style.valley.strokeColor = project.style.mountain.strokeColor;
-project.style.mountain.strokeColor = project.style.valley.strokeColor;
+var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
+var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
+
+project.style.valley.strokeColor = blue;
+project.style.mountain.strokeColor = blue;
 project.faceLayer.visible = false;
 project.treeLineLayer = new project.scope.Layer();
 
@@ -44,7 +47,7 @@ project.makeFacePathLines = function(startingFace){
 			c1.y /= thisFace.nodes.length;
 			c2.x /= parents[0].nodes.length;
 			c2.y /= parents[0].nodes.length;
-			var path = new paper.Path({segments: [c1,c2], closed: false, strokeWidth:0.01, strokeColor:{ red:1.0, green:0.0, blue:0.6 } });
+			var path = new paper.Path({segments: [c1,c2], closed: false, strokeWidth:0.01, strokeColor:red });
 		}
 	}
 }

@@ -26,11 +26,20 @@ canvas[resize] {
 	</div>
 	<canvas id="canvas" resize></canvas>
 <script>
-// load on start:
-// $.getScript("interior_angles.js", function(arg){});
-// $.getScript("flat_foldable_single.js", function(arg){});
-$.getScript("face_matrix.js", function(arg){});
-// $.getScript("two_colorable.js", function(arg){});
+
+// load a file in url bar using hash mark:
+//     _tests.html#axiom1
+// or  _tests.html#axiom1.js
+//
+var loadOnBoot = "two_colorable.js";
+if(window.location.hash != undefined && window.location.hash != ""){
+	loadOnBoot = window.location.hash.substr(1);
+	if(loadOnBoot.length > 3 && loadOnBoot.substr(loadOnBoot.length-3) != '.js'){
+		loadOnBoot += ".js";
+	}
+}
+
+$.getScript(loadOnBoot, function(arg){});
 // all files
 var filenames = [
 	"axiom1.js",
