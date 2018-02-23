@@ -58,13 +58,15 @@ project.reset = function(){
 	var creases = [
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
+		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain()
 	];
 	this.cp.clean();
 	validNodes = [
 		creases[0].uncommonNodeWithEdge(creases[1]),
 		creases[1].uncommonNodeWithEdge(creases[0]),
-		creases[2].uncommonNodeWithEdge(creases[0])
+		creases[2].uncommonNodeWithEdge(creases[0]),
+		creases[3].uncommonNodeWithEdge(creases[0])
 	];
 	this.draw();
 	this.updateAngles();

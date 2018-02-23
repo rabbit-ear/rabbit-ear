@@ -120,31 +120,35 @@ class CreaseJoint extends PlanarJoint{
 
 class CreaseJunction extends PlanarJunction{
 
-	node:CreaseNode;
+	origin:CreaseNode;
 	// joints and edges are sorted clockwise
 	joints:CreaseJoint[];
 	edges:Crease[];
 
-	kawasaki():[number,number]{
+	alternateAngleSum():[number,number]{
 		// only computes if number of interior angles are even
 		if(this.joints.length % 2 != 0){ return undefined; }
 		var sums:[number, number] = [0,0];
 		this.joints.forEach(function(el,i){ sums[i%2] += el.angle(); });
 		return sums;
 	}
-	kawasakiCreases():{}[]{
-		// this analyzes almost valid crease arrangements and tells you where angles need to be
-		// this hands back an array of angles, the spaces between edges, clockwise.
-		// each angle object contains:
-		//  - details on the root data (nodes, edges, their angles)
-		//  - results from the kawasaki algorithm:
-		//     which is the amount in radians to add to each angle to make flat foldable 
-		var sums = [0,0];
-		this.joints.forEach(function(el,i){ sums[i%2] += el.angle(); });
-		var sumsInv = sums.map(function(el){ return Math.PI - el; });
-		return this.joints.map(function(el,i){
-			return {'joint':el, 'kawasaki': sumsInv[i%2] * el.angle()/(Math.PI*2) };
+	kawasaki():boolean{
+		var alternating = this.alternateAngleSum();
+		return epsilonEqual(alternating[0],alternating[1]);
+	}
+	// 0.0 is equivalent to 100% valid
+	// pi is equivalent to 100% wrong
+	kawasakiRating():number{
+		var alternating = this.alternateAngleSum();
+		return Math.abs(alternating[0] - alternating[1]);
+	}
+	kawasakiSolution():[{'difference':number,'joints':CreaseJoint[]},
+	                    {'difference':number,'joints':CreaseJoint[]}]{
+		var alternating = this.alternateAngleSum().map(function(el){
+			return {'difference':(Math.PI - el), 'joints':[]};
 		});
+		this.joints.forEach(function(el,i){ alternating[i%2].joints.push(el); });
+		return alternating;
 	}
 	creaseFlatFoldable(joint:PlanarJoint):number{
 		// joint must be one of the Joints in this Junction
@@ -207,8 +211,8 @@ class CreaseNode extends PlanarNode{
 	// }
 
 
-	kawasaki():[number,number]{
-		return (<CreaseJunction>this.junction()).kawasaki();
+	alternateAngleSum():[number,number]{
+		return (<CreaseJunction>this.junction()).alternateAngleSum();
 	}
 
 	kawasakiRating():number{
@@ -216,7 +220,7 @@ class CreaseNode extends PlanarNode{
 		// for each node: 0.0 to 1.0
 		// 0.0 is 100% success on all nodes flat foldable.
 		// 1.0 is as far from wrong as possible - 180 degrees apart from each other
-		var sums = this.kawasaki();
+		var sums = this.alternateAngleSum();
 		if(sums !== undefined){
 			var diff = Math.abs(sums[0] - sums[1]) / Math.PI;
 			return diff;
@@ -227,7 +231,7 @@ class CreaseNode extends PlanarNode{
 	flatFoldable(epsilon?:number):boolean{
 		if(epsilon === undefined){ epsilon = EPSILON_LOW; }
 		if(this.isBoundary()){ return true; }
-		var sums = this.kawasaki();
+		var sums = this.alternateAngleSum();
 		if(sums == undefined){ return false; } // not an even number of interior angles
 		if(epsilonEqual(sums[0], Math.PI, epsilon) && 
 		   epsilonEqual(sums[1], Math.PI, epsilon) ){ return true; }
@@ -2025,6 +2029,7 @@ class CreasePattern extends PlanarGraph{
 		this.newPlanarEdge(.75, .75, 1, 1);
 		this.fragment();
 		this.clean();
+		this.generateFaces();
 		return this;
 	}
 

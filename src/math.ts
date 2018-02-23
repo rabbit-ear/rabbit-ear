@@ -81,7 +81,7 @@ function interiorAngles(a:XY, b:XY):number[]{
 function bisect(a:XY, b:XY):XY[]{
 	a = a.normalize();
 	b = b.normalize();
-	return [ new XY(a.x + b.x, a.y + b.y).normalize(),
+	return [ (a.add(b)).normalize(),
 	         new XY(-a.x + -b.x, -a.y + -b.y).normalize() ];
 }
 function linesParallel(p0:XY, p1:XY, p2:XY, p3:XY, epsilon?:number):boolean {
@@ -245,7 +245,7 @@ class XY{
 	// translated(dx:number, dy:number):XY{ this.x += dx; this.y += dy; return this;}
 	normalize():XY { var m = this.magnitude(); return new XY(this.x/m, this.y/m);}
 	rotate90():XY { return new XY(-this.y, this.x); }
-	rotate(origin:XY, angle:number){
+	rotate(angle:number, origin?:XY){
 		// TODO: needs testing
 		return this.transform( new Matrix().rotation(angle, origin) );
 		// var dx = this.x-origin.x;
@@ -277,6 +277,7 @@ class XY{
 		return this.transform( new Matrix().reflection(a,b) );
 	}
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
+	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
 	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }
 }
 

@@ -2,7 +2,8 @@
 var project = new OrigamiPaper("canvas-face-matrix");
 // project.setPadding(0.05);
 
-project.style.valley.strokeColor = project.style.mountain.strokeColor;
+// project.style.valley.strokeColor = project.style.mountain.strokeColor;
+project.style.mountain.strokeColor = project.style.valley.strokeColor;
 project.faceLayer.visible = false;
 project.treeLineLayer = new project.scope.Layer();
 

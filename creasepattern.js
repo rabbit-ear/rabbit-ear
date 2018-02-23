@@ -426,7 +426,7 @@ function interiorAngles(a, b) {
 function bisect(a, b) {
     a = a.normalize();
     b = b.normalize();
-    return [new XY(a.x + b.x, a.y + b.y).normalize(),
+    return [(a.add(b)).normalize(),
         new XY(-a.x + -b.x, -a.y + -b.y).normalize()];
 }
 function linesParallel(p0, p1, p2, p3, epsilon) {
@@ -609,7 +609,7 @@ var XY = (function () {
     XY.prototype.values = function () { return [this.x, this.y]; };
     XY.prototype.normalize = function () { var m = this.magnitude(); return new XY(this.x / m, this.y / m); };
     XY.prototype.rotate90 = function () { return new XY(-this.y, this.x); };
-    XY.prototype.rotate = function (origin, angle) {
+    XY.prototype.rotate = function (angle, origin) {
         return this.transform(new Matrix().rotation(angle, origin));
     };
     XY.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
@@ -633,6 +633,7 @@ var XY = (function () {
         return this.transform(new Matrix().reflection(a, b));
     };
     XY.prototype.scale = function (magnitude) { return new XY(this.x * magnitude, this.y * magnitude); };
+    XY.prototype.add = function (point) { return new XY(this.x + point.x, this.y + point.y); };
     XY.prototype.subtract = function (sub) { return new XY(this.x - sub.x, this.y - sub.y); };
     return XY;
 }());
@@ -846,6 +847,20 @@ var PlanarJoint = (function () {
         }
         return results;
     };
+    PlanarJoint.prototype.getEdgeVectorsForNewAngle = function (angle, lockedEdge) {
+        var vectors = this.vectors();
+        var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
+        var rotateNodes = [-angleChange * 0.5, angleChange * 0.5];
+        return vectors.map(function (el, i) { return el.rotate(rotateNodes[i]); }, this);
+    };
+    PlanarJoint.prototype.getEndNodesChangeForNewAngle = function (angle, lockedEdge) {
+        var vectors = this.vectors();
+        var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
+        var rotateNodes = [-angleChange * 0.5, angleChange * 0.5];
+        return vectors.map(function (el, i) {
+            return this.endNodes[i].subtract(el.rotate(rotateNodes[i]).add(this.node));
+        }, this);
+    };
     PlanarJoint.prototype.equivalent = function (a) {
         return ((a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
             (a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0])));
@@ -855,26 +870,29 @@ var PlanarJoint = (function () {
 }());
 var PlanarJunction = (function () {
     function PlanarJunction(node) {
-        this.node = node;
+        this.origin = node;
         this.joints = [];
         this.edges = [];
         if (node === undefined) {
             return;
         }
-        this.edges = this.node.adjacentEdges();
+        this.edges = this.origin.adjacentEdges();
         if (this.edges.length <= 1) {
             return;
         }
         this.joints = this.edges.map(function (el, i) {
             var nexti = (i + 1) % this.edges.length;
-            return new this.node.jointType(el, this.edges[nexti]);
+            return new this.origin.jointType(el, this.edges[nexti]);
         }, this);
     }
+    PlanarJunction.prototype.edgeVectorsNormalized = function () {
+        return this.edges.map(function (el) { return el.vector(this.origin).normalize(); }, this);
+    };
     PlanarJunction.prototype.edgeAngles = function () {
-        return this.edges.map(function (el) { return el.absoluteAngle(this.node); }, this);
+        return this.edges.map(function (el) { return el.absoluteAngle(this.origin); }, this);
     };
     PlanarJunction.prototype.interiorAngles = function () {
-        var absoluteAngles = this.edges.map(function (el) { return el.absoluteAngle(this.node); }, this);
+        var absoluteAngles = this.edges.map(function (el) { return el.absoluteAngle(this.origin); }, this);
         return absoluteAngles.map(function (el, i) {
             var nextI = (i + 1) % this.edges.length;
             return clockwiseInteriorAngleRadians(el, absoluteAngles[nextI]);
@@ -882,8 +900,8 @@ var PlanarJunction = (function () {
     };
     PlanarJunction.prototype.clockwiseNode = function (fromNode) {
         for (var i = 0; i < this.edges.length; i++) {
-            if (this.edges[i].otherNode(this.node) === fromNode) {
-                return this.edges[(i + 1) % this.edges.length].otherNode(this.node);
+            if (this.edges[i].otherNode(this.origin) === fromNode) {
+                return this.edges[(i + 1) % this.edges.length].otherNode(this.origin);
             }
         }
     };
@@ -897,8 +915,8 @@ var PlanarJunction = (function () {
     PlanarJunction.prototype.faces = function () {
         var adjacentFaces = [];
         for (var n = 0; n < this.edges.length; n++) {
-            var circuit = this.node.graph.walkClockwiseCircut(this.node, this.edges[n].otherNode(this.node));
-            var face = new PlanarFace(this.node.graph).makeFromCircuit(circuit);
+            var circuit = this.origin.graph.walkClockwiseCircut(this.origin, this.edges[n].otherNode(this.origin));
+            var face = new PlanarFace(this.origin.graph).makeFromCircuit(circuit);
             if (face !== undefined) {
                 adjacentFaces.push(face);
             }
@@ -925,7 +943,7 @@ var PlanarNode = (function (_super) {
             var other = el.otherNode(this);
             return { 'edge': el, 'angle': Math.atan2(other.y - this.y, other.x - this.x) };
         }, this)
-            .sort(function (a, b) { return a.angle - b.angle; })
+            .sort(function (a, b) { return b.angle - a.angle; })
             .map(function (el) { return el.edge; });
     };
     PlanarNode.prototype.adjacentFaces = function () {
@@ -943,12 +961,13 @@ var PlanarNode = (function (_super) {
         }
         return junction;
     };
+    PlanarNode.prototype.xy = function () { return new XY(this.x, this.y); };
     PlanarNode.prototype.values = function () { return [this.x, this.y]; };
     PlanarNode.prototype.position = function (x, y) { this.x = x; this.y = y; return this; };
     PlanarNode.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
     PlanarNode.prototype.normalize = function () { var m = this.magnitude(); this.x /= m; this.y /= m; return this; };
     PlanarNode.prototype.rotate90 = function () { var x = this.x; this.x = -this.y; this.y = x; return this; };
-    PlanarNode.prototype.rotate = function (origin, angle) {
+    PlanarNode.prototype.rotate = function (angle, origin) {
         var dx = this.x - origin.x;
         var dy = this.y - origin.y;
         var radius = Math.sqrt(Math.pow(dy, 2) + Math.pow(dx, 2));
@@ -980,6 +999,7 @@ var PlanarNode = (function (_super) {
     PlanarNode.prototype.reflect = function (a, b) { return this.transform(new Matrix().reflection(a, b)); };
     PlanarNode.prototype.distanceTo = function (a) { return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2)); };
     PlanarNode.prototype.scale = function (magnitude) { this.x *= magnitude; this.y *= magnitude; return this; };
+    PlanarNode.prototype.add = function (point) { this.x += point.x; this.y += point.y; return this; };
     PlanarNode.prototype.subtract = function (sub) { this.x -= sub.x; this.y -= sub.y; return this; };
     return PlanarNode;
 }(GraphNode));
@@ -1909,7 +1929,7 @@ var CreaseJunction = (function (_super) {
     function CreaseJunction() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    CreaseJunction.prototype.kawasaki = function () {
+    CreaseJunction.prototype.alternateAngleSum = function () {
         if (this.joints.length % 2 != 0) {
             return undefined;
         }
@@ -1917,13 +1937,20 @@ var CreaseJunction = (function (_super) {
         this.joints.forEach(function (el, i) { sums[i % 2] += el.angle(); });
         return sums;
     };
-    CreaseJunction.prototype.kawasakiCreases = function () {
-        var sums = [0, 0];
-        this.joints.forEach(function (el, i) { sums[i % 2] += el.angle(); });
-        var sumsInv = sums.map(function (el) { return Math.PI - el; });
-        return this.joints.map(function (el, i) {
-            return { 'joint': el, 'kawasaki': sumsInv[i % 2] * el.angle() / (Math.PI * 2) };
+    CreaseJunction.prototype.kawasaki = function () {
+        var alternating = this.alternateAngleSum();
+        return epsilonEqual(alternating[0], alternating[1]);
+    };
+    CreaseJunction.prototype.kawasakiRating = function () {
+        var alternating = this.alternateAngleSum();
+        return Math.abs(alternating[0] - alternating[1]);
+    };
+    CreaseJunction.prototype.kawasakiSolution = function () {
+        var alternating = this.alternateAngleSum().map(function (el) {
+            return { 'difference': (Math.PI - el), 'joints': [] };
         });
+        this.joints.forEach(function (el, i) { alternating[i % 2].joints.push(el); });
+        return alternating;
     };
     CreaseJunction.prototype.creaseFlatFoldable = function (joint) {
         if (this.edges.length != 3) {
@@ -1974,14 +2001,14 @@ var CreaseNode = (function (_super) {
         }
         return false;
     };
-    CreaseNode.prototype.kawasaki = function () {
-        return this.junction().kawasaki();
+    CreaseNode.prototype.alternateAngleSum = function () {
+        return this.junction().alternateAngleSum();
     };
     CreaseNode.prototype.kawasakiRating = function () {
         if (this.isBoundary()) {
             return 0;
         }
-        var sums = this.kawasaki();
+        var sums = this.alternateAngleSum();
         if (sums !== undefined) {
             var diff = Math.abs(sums[0] - sums[1]) / Math.PI;
             return diff;
@@ -1995,7 +2022,7 @@ var CreaseNode = (function (_super) {
         if (this.isBoundary()) {
             return true;
         }
-        var sums = this.kawasaki();
+        var sums = this.alternateAngleSum();
         if (sums == undefined) {
             return false;
         }
@@ -3445,6 +3472,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(.75, .75, 1, 1);
         this.fragment();
         this.clean();
+        this.generateFaces();
         return this;
     };
     return CreasePattern;

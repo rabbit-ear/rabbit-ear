@@ -128,6 +128,23 @@ class PlanarJoint{
 		}
 		return results;
 	}
+	getEdgeVectorsForNewAngle(angle:number, lockedEdge?:PlanarEdge):[XY,XY]{
+		// todo, implement locked edge
+		var vectors = this.vectors();
+		var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
+		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
+		return vectors.map(function(el:XY,i){ return el.rotate(rotateNodes[i]); },this);
+	}
+	getEndNodesChangeForNewAngle(angle:number, lockedEdge?:PlanarEdge):[XY,XY]{
+		// todo, implement locked edge
+		var vectors = this.vectors();
+		var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
+		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
+		return vectors.map(function(el:XY, i){
+			// rotate the nodes, subtract the new position from the original position
+			return this.endNodes[i].subtract(el.rotate(rotateNodes[i]).add(this.node));
+		}, this);
+	}
 	equivalent(a:PlanarJoint):boolean{
 		return( (a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
 			(a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0])));
@@ -139,32 +156,39 @@ class PlanarJoint{
 class PlanarJunction{
 	// subclassed instances overrite this eg. CreaseJoint
 
-	node:PlanarNode;
+	origin:PlanarNode;
 	// joints and edges are sorted clockwise
 	joints:PlanarJoint[];
 	edges:PlanarEdge[];
 	// Planar Junction is invalid if the node is either isolated or a leaf node
 	//  javascript constructors can't return null. if invalid: edges = [], joints = []
 	constructor(node:PlanarNode){
-		this.node = node;
+		this.origin = node;
 		this.joints = [];
 		this.edges = [];
 		if(node === undefined){ return; }
 		// these are coming in already sorted now
-		this.edges = this.node.adjacentEdges();
+		this.edges = this.origin.adjacentEdges();
 		// Junctions by definition cannot be built on leaf nodes. there is only 1 edge.
 		if(this.edges.length <= 1){ return; }
 		this.joints = this.edges.map(function(el,i){
 			var nexti = (i+1)%this.edges.length;
-			return new this.node.jointType(el, this.edges[nexti]);
+			return new this.origin.jointType(el, this.edges[nexti]);
 		},this);
 		// this.edges = this.joints.map(function(el:PlanarJoint){return el.edges[0];});
 	}
-	edgeAngles():number[]{
-		return this.edges.map(function(el){return el.absoluteAngle(this.node);},this);
+	edgeVectorsNormalized():XY[]{
+		return this.edges.map(function(el){return el.vector(this.origin).normalize();},this);
 	}
+	edgeAngles():number[]{
+		return this.edges.map(function(el){return el.absoluteAngle(this.origin);},this);
+	}
+	/** get an array of numbers measuring the angle in radians between each edge.
+	 * array indices are related to edges indices: interiorAngle()[i] is the angle between edges[i] and edges[i+1].
+	 * @returns {number[]} angles in radians. sum of all numbers in array equals 2 PI
+	 */
 	interiorAngles():number[]{
-		var absoluteAngles = this.edges.map(function(el){return el.absoluteAngle(this.node);},this);
+		var absoluteAngles = this.edges.map(function(el){return el.absoluteAngle(this.origin);},this);
 		return absoluteAngles.map(function(el,i){
 			var nextI = (i+1)%this.edges.length;
 			return clockwiseInteriorAngleRadians(el, absoluteAngles[nextI]);
@@ -175,8 +199,8 @@ class PlanarJunction{
 	 */
 	clockwiseNode(fromNode:PlanarNode):PlanarNode{
 		for(var i = 0; i < this.edges.length; i++){
-			if(this.edges[i].otherNode(this.node) === fromNode){
-				return <PlanarNode>this.edges[ (i+1)%this.edges.length ].otherNode(this.node);
+			if(this.edges[i].otherNode(this.origin) === fromNode){
+				return <PlanarNode>this.edges[ (i+1)%this.edges.length ].otherNode(this.origin);
 			}
 		}
 	}
@@ -188,8 +212,8 @@ class PlanarJunction{
 	faces():PlanarFace[]{
 		var adjacentFaces = [];
 		for(var n = 0; n < this.edges.length; n++){
-			var circuit = this.node.graph.walkClockwiseCircut(this.node, <PlanarNode>this.edges[n].otherNode(this.node));
-			var face = new PlanarFace(this.node.graph).makeFromCircuit( circuit );
+			var circuit = this.origin.graph.walkClockwiseCircut(this.origin, <PlanarNode>this.edges[n].otherNode(this.origin));
+			var face = new PlanarFace(this.origin.graph).makeFromCircuit( circuit );
 			if(face !== undefined){ adjacentFaces.push(face); }
 		}
 		return adjacentFaces;
@@ -219,7 +243,8 @@ class PlanarNode extends GraphNode{
 				var other = <PlanarNode>el.otherNode(this);
 				return {'edge':el, 'angle':Math.atan2(other.y-this.y, other.x-this.x)};
 			},this)
-		.sort(function(a,b){return a.angle-b.angle;})
+		// .sort(function(a,b){return a.angle-b.angle;})
+		.sort(function(a,b){return b.angle-a.angle;})
 		.map(function(el){ return el.edge });
 	}
 
@@ -238,15 +263,16 @@ class PlanarNode extends GraphNode{
 		if (junction.edges.length === 0){ return undefined; }
 		return junction;
 	}
-
-// implements XY
+	// copy into an XY instance
+	xy():XY{ return new XY(this.x, this.y); }
+	// implements XY
 	values():[number, number]{ return [this.x, this.y]; }
-// todo: probably need to break apart XY and this. this modifies the x and y in place. XY returns a new one and doesn't modify the current one in place
+	// todo: probably need to break apart XY and this. this modifies the x and y in place. XY returns a new one and doesn't modify the current one in place
 	position(x:number, y:number):PlanarNode{ this.x = x; this.y = y; return this; }
 	translate(dx:number, dy:number):PlanarNode{ this.x += dx; this.y += dy; return this;}
 	normalize():PlanarNode { var m = this.magnitude(); this.x /= m; this.y /= m; return this; }
 	rotate90():PlanarNode { var x = this.x; this.x = -this.y; this.y = x; return this; }
-	rotate(origin:XY, angle:number):PlanarNode{
+	rotate(angle:number, origin:XY):PlanarNode{
 		var dx = this.x-origin.x;
 		var dy = this.y-origin.y;
 		var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
@@ -277,6 +303,7 @@ class PlanarNode extends GraphNode{
 	reflect(a:XY,b:XY):XY{ return this.transform( new Matrix().reflection(a,b) ); }
 	distanceTo(a:XY):number{ return Math.sqrt( Math.pow(this.x-a.x,2) + Math.pow(this.y-a.y,2) ); }
 	scale(magnitude:number):PlanarNode{ this.x*=magnitude; this.y*=magnitude; return this; }
+	add(point:XY):PlanarNode{ this.x+=point.x; this.y+=point.y; return this; }
 	subtract(sub:XY):PlanarNode{ this.x-=sub.x; this.y-=sub.y; return this; }
 }
 
