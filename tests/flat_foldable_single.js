@@ -47,9 +47,8 @@ ffSingle.onMouseMove = function(event) {
 		angle = this.cp.getNearestInteriorAngle(event.point.x, event.point.y);
 		if(angle == undefined || angle.edges == undefined) return;
 		if(angle.edges.length == 2){
-			solutionAngle = angle.creaseFlatFoldable();
-			this.cp.creaseRay(new XY(angle.node.x, angle.node.y), 
-			                  new XY(Math.cos(solutionAngle), Math.sin(solutionAngle))).mountain();
+			solutionAngle = angle.kawasakiSubsect();
+			this.cp.creaseRay(new XY(angle.node.x, angle.node.y), solutionAngle).mountain();
 		}
 	}
 	this.cp.clean();

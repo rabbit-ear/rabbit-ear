@@ -116,13 +116,13 @@
 
 <script>
 	
-var crane1CP = new OrigamiPaper("canvas-crane-1", cp);
+var crane1CP = new OrigamiPaper("canvas-crane-1", cp).blackAndWhite();
 crane1CP.loadUnclean("/files/svg/crane-errors.svg", function(){ 
 	crane1CP.setPadding(0.05);
 	crane1CP.selectNearestEdge = true;
 });
 
-var crane2CP = new OrigamiPaper("canvas-crane-2", cp);
+var crane2CP = new OrigamiPaper("canvas-crane-2", cp).blackAndWhite();
 crane2CP.load("/files/svg/crane-errors.svg", function(){ 
 	crane2CP.setPadding(0.05);
 	crane2CP.selectNearestEdge = true;

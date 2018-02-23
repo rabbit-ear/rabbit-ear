@@ -344,7 +344,8 @@ var OrigamiPaper = (function(){
 		this.style.valley.dashArray = [strokeWeight*2, strokeWeight*2];
 		this.style.border.strokeWidth = strokeWeight;
 		this.style.mark.strokeWidth = strokeWeight*0.66666;
-	}
+	};
+
 	OrigamiPaper.prototype.defaultStyleTemplate = function(){
 
 var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
@@ -402,6 +403,12 @@ var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
 				// fillColor: { gray:0.0, alpha:0.2 }
 			}
 		}
+	};
+	OrigamiPaper.prototype.blackAndWhite = function(){
+		this.style.mountain.strokeColor = { gray:0.0 };
+		this.style.valley.strokeColor = { gray:0.0 };
+		this.style.face.fillColor = { gray:0.0, alpha:0.2 };
+		return this;
 	};
 	return OrigamiPaper;
 }());
