@@ -163,6 +163,7 @@ class PlanarNode extends GraphNode{
 	scale(magnitude:number):PlanarNode{ this.x*=magnitude; this.y*=magnitude; return this; }
 	add(point:XY):PlanarNode{ this.x+=point.x; this.y+=point.y; return this; }
 	subtract(sub:XY):PlanarNode{ this.x-=sub.x; this.y-=sub.y; return this; }
+	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 }
 
 class PlanarEdge extends GraphEdge{

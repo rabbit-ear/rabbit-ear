@@ -635,6 +635,7 @@ var XY = (function () {
     XY.prototype.scale = function (magnitude) { return new XY(this.x * magnitude, this.y * magnitude); };
     XY.prototype.add = function (point) { return new XY(this.x + point.x, this.y + point.y); };
     XY.prototype.subtract = function (sub) { return new XY(this.x - sub.x, this.y - sub.y); };
+    XY.prototype.midpoint = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
     return XY;
 }());
 var Rect = (function () {
@@ -878,6 +879,7 @@ var PlanarNode = (function (_super) {
     PlanarNode.prototype.scale = function (magnitude) { this.x *= magnitude; this.y *= magnitude; return this; };
     PlanarNode.prototype.add = function (point) { this.x += point.x; this.y += point.y; return this; };
     PlanarNode.prototype.subtract = function (sub) { this.x -= sub.x; this.y -= sub.y; return this; };
+    PlanarNode.prototype.midpoint = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
     return PlanarNode;
 }(GraphNode));
 var PlanarEdge = (function (_super) {
@@ -1928,6 +1930,9 @@ var CreaseJunction = (function (_super) {
     function CreaseJunction() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    CreaseJunction.prototype.flatFoldable = function (epsilon) {
+        return this.kawasaki() && this.maekawa();
+    };
     CreaseJunction.prototype.alternateAngleSum = function () {
         if (this.joints.length % 2 != 0) {
             return undefined;
@@ -1935,6 +1940,9 @@ var CreaseJunction = (function (_super) {
         var sums = [0, 0];
         this.joints.forEach(function (el, i) { sums[i % 2] += el.angle(); });
         return sums;
+    };
+    CreaseJunction.prototype.maekawa = function () {
+        return true;
     };
     CreaseJunction.prototype.kawasaki = function () {
         var alternating = this.alternateAngleSum();
@@ -2003,35 +2011,10 @@ var CreaseNode = (function (_super) {
         return this.junction().alternateAngleSum();
     };
     CreaseNode.prototype.kawasakiRating = function () {
-        if (this.isBoundary()) {
-            return 0;
-        }
-        var sums = this.alternateAngleSum();
-        if (sums !== undefined) {
-            var diff = Math.abs(sums[0] - sums[1]) / Math.PI;
-            return diff;
-        }
-        return 0;
+        return this.junction().kawasakiRating();
     };
     CreaseNode.prototype.flatFoldable = function (epsilon) {
-        if (epsilon === undefined) {
-            epsilon = EPSILON_LOW;
-        }
-        if (this.isBoundary()) {
-            return true;
-        }
-        var sums = this.alternateAngleSum();
-        if (sums == undefined) {
-            return false;
-        }
-        if (epsilonEqual(sums[0], Math.PI, epsilon) &&
-            epsilonEqual(sums[1], Math.PI, epsilon)) {
-            return true;
-        }
-        return false;
-    };
-    CreaseNode.prototype.maekawa = function () {
-        return false;
+        return this.junction().flatFoldable(epsilon);
     };
     CreaseNode.prototype.creaseLineThrough = function (point) {
         return this.graph.creaseThroughPoints(this, point);

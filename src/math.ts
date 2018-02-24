@@ -279,6 +279,7 @@ class XY{
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
 	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
 	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }
+	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 }
 
 class Rect{

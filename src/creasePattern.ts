@@ -61,12 +61,8 @@ class FoldSequence{
 
 class CreaseJoint extends PlanarJoint{
 
-	// constructor(edge1:Crease, edge2:Crease, autoSortBySmaller?:boolean){
-	// 	super(edge1, edge2, autoSortBySmaller);
-	// }
-
 	/** This will search for an angle which if an additional crease is made will satisfy Kawasaki's theorem
-	 *
+	 * 
 	 */
 	kawasakiSubsect():XY{
 		var junction = this.node.junction();
