@@ -37,9 +37,11 @@ project.updateAngles = function(){
 			var arc = new this.scope.Path.Arc(arcPts[0], arcPts[1], arcPts[2]);
 			arc.add(new this.scope.Point(0.0, 0.0));
 			arc.fillColor = ([red,blue])[j%2];
+			if(Math.abs(difference) < 0.015){ arc.fillColor = yellow; }
 			arc.closed = true;
 		}
 	},this);
+
 }
 
 project.reset = function(){
