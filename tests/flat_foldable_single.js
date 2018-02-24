@@ -44,7 +44,7 @@ ffSingle.onMouseMove = function(event) {
 	var solutionAngle = undefined;
 	var angle = undefined;
 	if(event.point.x >= 0 && event.point.x <= 1 && event.point.y >= 0 && event.point.y <= 1){
-		angle = this.cp.getNearestInteriorAngle(event.point.x, event.point.y);
+		angle = this.cp.getNearestInteriorAngle(event.point);
 		if(angle == undefined || angle.edges == undefined) return;
 		if(angle.edges.length == 2){
 			solutionAngle = angle.kawasakiSubsect();
@@ -53,12 +53,7 @@ ffSingle.onMouseMove = function(event) {
 	}
 	this.cp.clean();
 	this.draw();
-	// for(var i = 0; i < this.edges.length; i++){ this.edges[i].strokeWidth = 0.01; }
-	// if(angle != undefined && angle.edges != undefined){
-	// 	for(var i = 0; i < angle.edges.length; i++){
-	// 		this.edges[ angle.edges[i].index ].strokeWidth = 0.01333;
-	// 	}
-	// }
+
 	if(flat_foldable_single_callback != undefined){
 		flat_foldable_single_callback({'flatFoldable':this.cp.getNearestNode(0.5, 0.5).flatFoldable(), 'solution':solutionAngle, 'angle':angle});
 	}

@@ -59,24 +59,6 @@ class FoldSequence{
 	// sheet of paper, the fold won't execute the same way, different node indices will get applied.
 }
 
-// function shuffle(a) {
-// 	var array = [];
-// 	for(var i = 0; i < a.length; i++){ array.push(a); }
-
-// 	var currentIndex = array.length, temporaryValue, randomIndex;
-// 	// While there remain elements to shuffle...
-// 	while (0 !== currentIndex) {
-// 		// Pick a remaining element...
-// 		randomIndex = Math.floor(Math.random() * currentIndex);
-// 		currentIndex -= 1;
-// 		// And swap it with the current element.
-// 		temporaryValue = array[currentIndex];
-// 		array[currentIndex] = array[randomIndex];
-// 		array[randomIndex] = temporaryValue;
-// 	}
-// 	return array;
-// }
-
 class CreaseJoint extends PlanarJoint{
 
 	// constructor(edge1:Crease, edge2:Crease, autoSortBySmaller?:boolean){
@@ -120,12 +102,22 @@ class CreaseJunction extends PlanarJunction{
 	joints:CreaseJoint[];
 	edges:Crease[];
 
+	flatFoldable(epsilon?:number):boolean{
+		// todo: this should check (at least)
+		// - kawasaki's theorem
+		// - maekawa's theorem
+		return this.kawasaki() && this.maekawa();
+	}
+
 	alternateAngleSum():[number,number]{
 		// only computes if number of interior angles are even
 		if(this.joints.length % 2 != 0){ return undefined; }
 		var sums:[number, number] = [0,0];
 		this.joints.forEach(function(el,i){ sums[i%2] += el.angle(); });
 		return sums;
+	}
+	maekawa():boolean{
+		return true;
 	}
 	kawasaki():boolean{
 		var alternating = this.alternateAngleSum();
@@ -187,45 +179,14 @@ class CreaseNode extends PlanarNode{
 		return false;
 	}
 
-	// to subclass PlanarJunction into CreaseJunction
-	// junction():CreaseJunction{
-	// 	//todo: check cache for junction object
-	// 	// store this new one if doesn't exist yet
-	// 	var junction = new this.junctionType(this);
-	// 	if (junction.edges.length === 0){ return undefined; }
-	// 	return junction;
-	// }
-
-
 	alternateAngleSum():[number,number]{
 		return (<CreaseJunction>this.junction()).alternateAngleSum();
 	}
-
 	kawasakiRating():number{
-		if(this.isBoundary()){return 0;}
-		// for each node: 0.0 to 1.0
-		// 0.0 is 100% success on all nodes flat foldable.
-		// 1.0 is as far from wrong as possible - 180 degrees apart from each other
-		var sums = this.alternateAngleSum();
-		if(sums !== undefined){
-			var diff = Math.abs(sums[0] - sums[1]) / Math.PI;
-			return diff;
-		}
-		return 0;
+		return (<CreaseJunction>this.junction()).kawasakiRating();
 	}
-
 	flatFoldable(epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_LOW; }
-		if(this.isBoundary()){ return true; }
-		var sums = this.alternateAngleSum();
-		if(sums == undefined){ return false; } // not an even number of interior angles
-		if(epsilonEqual(sums[0], Math.PI, epsilon) && 
-		   epsilonEqual(sums[1], Math.PI, epsilon) ){ return true; }
-		return false;
-	}
-
-	maekawa():boolean{
-		return false;
+		return (<CreaseJunction>this.junction()).flatFoldable(epsilon);
 	}
 
 	//////////////////////////////
