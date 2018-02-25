@@ -249,6 +249,33 @@ class Crease extends PlanarEdge{
 	}
 }
 
+// class RabbitEar{
+// 	face:CreaseFace;
+// 	edges:Crease[];
+
+// }
+
+class CreaseFace extends PlanarFace{
+
+	// rabbitEar():RabbitEar{
+	rabbitEar():Crease[]{
+		if(this.joints.length !== 3){ return []; }
+		var rays = this.joints.map(function(el){
+			return { node: el.node, vector: el.bisect() };
+		});
+		var incenter = rays.map(function(el,i){
+			// calculate intersection of each pairs of rays
+			var nextI = (i+1)%rays.length;
+			return rayRayIntersection(rays[i].node, rays[i].vector, rays[nextI].node, rays[nextI].vector);})
+			// average each point (sum, then divide by total)
+			.reduce(function(prev, current){ return prev.add(current);})
+			.scale(1.0/rays.length);
+		return this.nodes.map(function(el){
+			return (<CreasePattern>this.graph).crease(el, incenter)
+		}, this);
+	}
+}
+
 class CreasePattern extends PlanarGraph{
 
 	nodes:CreaseNode[];
@@ -260,8 +287,9 @@ class CreasePattern extends PlanarGraph{
 	// When subclassed (ie. PlanarGraph) types are overwritten
 	nodeType = CreaseNode;
 	edgeType = Crease;
+	faceType = CreaseFace;
 
-	landmarkNodes():XY[]{ return this.nodes.map(function(el){ return new XY(el.x, el.y); }); }
+	landmarkNodes():XY[]{return this.nodes.map(function(el){return new XY(el.x, el.y);});}
 
 	didChange:(event:object)=>void;
 

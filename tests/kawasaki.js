@@ -10,7 +10,7 @@ project.cp.edges = project.cp.edges.filter(function(el){ return el.orientation !
 project.style.selectedNode.fillColor = yellow;
 project.style.selectedNode.radius = 0.04;
 
-var validNodes = [];
+project.validNodes = [];
 var draggingNode = undefined;
 project.arcLayer = new project.scope.Layer();
 project.arcLayer.sendToBack();
@@ -45,20 +45,19 @@ project.updateAngles = function(){
 }
 
 project.reset = function(){
+
+	var numNodes = 8;
+
 	this.selectNearestNode = true;
-	var creases = [
-		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
-		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
-		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
-		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain()
-	];
+	var creases = [];
+	for(var i = 0; i < numNodes; i++){
+		creases.push(this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain());
+	}
 	this.cp.clean();
-	validNodes = [
-		creases[0].uncommonNodeWithEdge(creases[1]),
-		creases[1].uncommonNodeWithEdge(creases[0]),
-		creases[2].uncommonNodeWithEdge(creases[0]),
-		creases[3].uncommonNodeWithEdge(creases[0])
-	];
+	this.validNodes = [creases[0].uncommonNodeWithEdge(creases[1])];
+	for(var i = 1; i < numNodes; i++){
+		this.validNodes.push(creases[i].uncommonNodeWithEdge(creases[0]));
+	}
 	this.centerNode = creases[0].commonNodeWithEdge(creases[1]);
 	this.draw();
 	this.updateAngles();
@@ -68,7 +67,7 @@ project.reset();
 project.onFrame = function(event) { }
 project.onResize = function(event) { }
 project.onMouseDown = function(event){
-	if(validNodes.contains(this.nearestNode)){
+	if(this.validNodes.contains(this.nearestNode)){
 		draggingNode = this.nearestNode;
 	}
 }

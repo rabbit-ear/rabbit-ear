@@ -98,6 +98,12 @@ function minDistBetweenPointLine(a:XY, b:XY, point:XY):XY{
 	if(u < 0 || u > 1.0){return undefined;}
 	return new XY(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
 }
+function rayRayIntersection(aOrigin:XY, aVector:XY, bOrigin:XY, bVector:XY):XY{
+	var u = (aOrigin.y*bVector.x + bVector.y*bOrigin.x - bOrigin.y*bVector.x - bVector.y*aOrigin.x) / (aVector.x*bVector.y - aVector.y*bVector.x);
+	var v = (aOrigin.x + aVector.x*u - bOrigin.x) / bVector.x;
+	if(u < -EPSILON || v < -EPSILON){ return undefined; }
+	return new XY(aOrigin.x + aVector.x * u, aOrigin.y + aVector.y * u);
+}
 function rayLineSegmentIntersection(rayOrigin:XY, rayDirection:XY, point1:XY, point2:XY){
 	var v1 = new XY(rayOrigin.x - point1.x, rayOrigin.y - point1.y);
 	var vLineSeg = new XY(point2.x - point1.x, point2.y - point1.y);
@@ -273,9 +279,7 @@ class XY{
 		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
 	}
 	/** reflects this point about a line that passes through 'a' and 'b' */
-	reflect(a:XY,b:XY):XY{
-		return this.transform( new Matrix().reflection(a,b) );
-	}
+	reflect(a:XY,b:XY):XY{ return this.transform( new Matrix().reflection(a,b) ); }
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
 	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
 	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }

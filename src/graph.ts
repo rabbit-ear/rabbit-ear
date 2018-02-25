@@ -569,16 +569,6 @@ class Graph{
 		});
 	}
 
-	log(verbose?:boolean){
-		console.log('#Nodes: ' + this.nodes.length);
-		console.log('#Edges: ' + this.edges.length);
-		if(verbose != undefined && verbose == true){
-			for(var i = 0; i < this.edges.length; i++){
-				console.log(i + ': ' + this.edges[i].nodes[0] + ' ' + this.edges[i].nodes[1]);
-			}
-		}
-	}
-
 	nodeArrayDidChange(){for(var i=0;i<this.nodes.length;i++){this.nodes[i].index=i;}}
 	edgeArrayDidChange(){for(var i=0;i<this.edges.length;i++){this.edges[i].index=i;}}
 //	nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
