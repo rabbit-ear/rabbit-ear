@@ -1057,6 +1057,7 @@ class PlanarGraph extends Graph{
 
 	generateFaces():PlanarFace[]{
 		this.faces = [];
+		this.clean();
 		for(var i = 0; i < this.nodes.length; i++){
 			var adjacentFaces = this.nodes[i].adjacentFaces();
 			for(var af = 0; af < adjacentFaces.length; af++){

@@ -14,7 +14,7 @@
 	<p class="quote">A <b>graph</b> is a collection of <b>nodes</b> and <b>edges</b></p>
 
 	<div class="centered">
-		<pre><code><key>var</key> graph<key> = new</key> Graph()</code></pre>
+		<pre><code><key>let</key> graph<key> = new</key> Graph()</code></pre>
 	</div>
 
 	<p class="quote">This creates an empty graph with no nodes or edges</p>
@@ -25,28 +25,28 @@
 <h2><a href="#nodes-and-edges">&sect;</a> Nodes and Edges</h2>
 
 <section id="nodes-and-edges">
-	<p class="quote">The graph holds onto all its nodes and edges in arrays.<br>The types are <a href="library/GraphNode.php">Graph Node</a> and <a href="library/GraphEdge.php">Graph Edge</a>.</p>
+	<p class="quote">The graph holds onto all its nodes and edges in arrays.<br>The types are <a href="library/GraphNode.html">Graph Node</a> and <a href="library/GraphEdge.html">Graph Edge</a>.</p>
 
 	<div class="centered">
 		<pre><code>graph.<v>nodes</v> <key>=</key> [] <c> // array of GraphNode</c><br>graph.<v>edges</v> <key>=</key> [] <c> // array of GraphEdge</c></code></pre>
 	</div>
 
-	<p class="quote">This makes a new node. You can store a reference to it.</p>
+	<p class="quote">This operation makes a new node and returns a reference to it.</p>
 
 	<div class="centered">
-		<pre><code><key>var</key> node <op>=</op> graph.<v>newNode</v>()</code> <c> // node is a GraphNode</c></pre>
+		<pre><code><key>let</key> node <op>=</op> graph.<v>newNode</v>()</code> <c> // node is a GraphNode</c></pre>
 	</div>
 
 	<p class="quote">A new edge needs to know the 2 nodes its connecting.</p>
 
 	<div class="centered">
-		<pre><code><key>var</key> edge <op>=</op> graph.<v>newEdge</v>(<arg>node1</arg>, <arg>node2</arg>) <c> // edge is a GraphEdge</c></code></pre>
+		<pre><code><key>let</key> edge <op>=</op> graph.<v>newEdge</v>(<arg>node1</arg>, <arg>node2</arg>) <c> // edge is a GraphEdge</c></code></pre>
 	</div>
 
-	<p class="quote">Use the array to get any node or edge after it's been created</p>
+	<p class="quote">You can always grab a node or an edge again</p>
 
 	<div class="centered">
-		<pre><code>graph.<v>newNode</v>()<br><key>var</key> node <op>=</op> graph.<v>nodes</v>[<n>0</n>]  <c>// the first node</c></code></pre>
+		<pre><code>graph.<v>newNode</v>()<br><key>let</key> node <op>=</op> graph.<v>nodes</v>[<n>0</n>]  <c>// the first node</c></code></pre>
 	</div>
 
 </section>
@@ -86,13 +86,8 @@
 		<pre><code><span id="spanEdgesAdjacentToNodeResult"></span>graph.<v>nodes</v>[<n><span id="spanEdgesAdjacentToNodeInput" class="token argument"></span></n>].<f>adjacentEdges</f>()<br><span id="spanEdgesAdjacentToEdgeResult"></span>graph.<v>edges</v>[<n><span id="spanEdgesAdjacentToEdgeInput" class="token argument"></span></n>].<f>adjacentEdges</f>()</code></pre>
 	</div>
 
-	<div class="explain">
-		<p>Ways that edges can be invalid:</p>
-		<ol>
-			<li>CIRCULAR an edge cannot connect a node to the same node</li>
-			<li>DUPLICATE the same 2 nodes cannot have more than 1 edge between them</li>
-		</ol>
-	</div>
+		<p class="explain"><b>Invalid edges</b><br><b>Circular:</b> an edge cannot connect the same node at both ends<br><b>Duplicate:</b> the same 2 nodes cannot have more than 1 edge between them
+		</p>
 
 </section>
 
@@ -157,14 +152,14 @@
 
 </section>
 
-<div class="nav">
+<!-- <div class="nav">
 	<div class="nav-back">
 		<p><a href="/docs/">⇦ Back: Welcome</a></p>
 	</div>
 	<div class="nav-next">
 		<p><a href="planarGraph.php">Next: Planar Graphs ⇨</a></p>
 	</div>
-</div>
+</div> -->
 
 <section id="tests">
 	<div class="tests">

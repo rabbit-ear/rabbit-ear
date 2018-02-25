@@ -1721,6 +1721,7 @@ var PlanarGraph = (function (_super) {
     } };
     PlanarGraph.prototype.generateFaces = function () {
         this.faces = [];
+        this.clean();
         for (var i = 0; i < this.nodes.length; i++) {
             var adjacentFaces = this.nodes[i].adjacentFaces();
             for (var af = 0; af < adjacentFaces.length; af++) {
@@ -1988,6 +1989,9 @@ var CreaseNode = (function (_super) {
         return this.junction().kawasakiRating();
     };
     CreaseNode.prototype.flatFoldable = function (epsilon) {
+        if (this.isBoundary()) {
+            return true;
+        }
         return this.junction().flatFoldable(epsilon);
     };
     CreaseNode.prototype.creaseLineThrough = function (point) {

@@ -17,7 +17,7 @@ deleteEdge.reset = function(){
 	this.cp.fragment();
 	this.draw();
 	this.style.nodes.visible = true;
-	this.style.nodes.fillColor = { hue:25, saturation:0.7, brightness:1.0 };
+	this.style.nodes.fillColor = { hue:220, saturation:0.6, brightness:0.8 };
 	this.update();
 	if(mouse_delete_edge_callback != undefined){
 		// mouse_delete_edge_callback(intersections);

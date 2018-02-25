@@ -3,7 +3,7 @@ var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
 var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
 var black = {hue:0, saturation:0, brightness:0 };
 
-var project = new OrigamiPaper("canvas", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
+var project = new OrigamiPaper("canvas-kawasaki", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
 project.style.mountain.strokeWidth = 0.02;
 project.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
 project.cp.edges = project.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
@@ -51,7 +51,9 @@ project.reset = function(){
 	this.selectNearestNode = true;
 	var creases = [];
 	for(var i = 0; i < numNodes; i++){
-		creases.push(this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain());
+		var r = Math.random()*0.5 + 0.5;
+		var a = Math.random()*Math.PI*2;
+		creases.push(this.cp.crease(new XY(0.0, 0.0), new XY(r*Math.cos(a), r*Math.sin(a))).mountain());
 	}
 	this.cp.clean();
 	this.validNodes = [creases[0].uncommonNodeWithEdge(creases[1])];

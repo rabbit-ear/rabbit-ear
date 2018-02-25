@@ -182,6 +182,7 @@ class CreaseNode extends PlanarNode{
 		return (<CreaseJunction>this.junction()).kawasakiRating();
 	}
 	flatFoldable(epsilon?:number):boolean{
+		if(this.isBoundary()){ return true; }
 		return (<CreaseJunction>this.junction()).flatFoldable(epsilon);
 	}
 

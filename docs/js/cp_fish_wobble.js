@@ -1,5 +1,5 @@
 
-var fishSwim = new OrigamiPaper("canvas-fish-base-wobble");
+var fishSwim = new OrigamiPaper("canvas-fish-base-wobble").blackAndWhite();
 fishSwim.setPadding(0.05);
 
 fishSwim.reset = function(){

@@ -7,17 +7,21 @@
 <section id="intro">
 
 	<div class="centered">
-		<pre><code>graph.<f>clean</f>()</code></pre>
+		<canvas id="canvas-intersections" resize class="panorama"></canvas>
 	</div>
 
-	<p class="quote">a planar graph is cleaned with operations that utilize x y location</p>
+	<p>Cleaning a planar graph will ensure there are no duplicate or circular edges, just like a regular graph, but also perform additional 2D-related operations, like resolve 2 crossed edges.</p>
+
+	<div class="centered">
+		<pre><code>graph.<f>clean</f>()</code></pre>
+	</div>
 
 </section>
 
 <h2>Duplicate Nodes in Space</h2>
 <section id="duplicate-nodes">
 
-	<p class="quote">When two nodes occupy the same space they will be merged into one</p>
+	<p>When two nodes occupy the same space they will be merged into one.</p>
 
 	<div id="divP5_merge" class="centered p5sketch"></div>
 
@@ -25,6 +29,7 @@
 		<pre><code><span id="div-node-count"></span> nodes, <span id="div-edge-count"></span> edges</code></pre>
 	</div>
 
+	<p>The process by which 2 nodes are said to occupy the same space is heavily dependent on the epsilon (ε) value which declares two numbers to be the same. A larger epsilon will merge points across a greater distance.</p>
 
 	<div class="centered">
 		<canvas id="canvas1" resize></canvas>
@@ -32,13 +37,13 @@
 		<!-- <canvas id="canvas3" resize></canvas> -->
 	</div>
 
+	<p class="quote">Both graphs have been cleaned, the one on the right was given a larger epsilon.</p>
+
 	<div class="centered">
 		<pre><code>graph.<f>cleanDuplicateNodes</f>(<n>epsilon</n>)</code></pre>
 	</div>
 
-	
-	<p class="explain"><b>Epsilon</b> is the radius around a point where merging occurs. It's a fraction of the size of the canvas. A larger number will merge across a further distance.</p>
-	
+	<p class="explain"><a href="planarMath.php#epsilon">Epsilon (ε)</a> is the tiny space deep in the floating point number past the decimal point.</p>	
 
 </section>
 
@@ -46,27 +51,17 @@
 
 <section id="intersections">
 
-	<p class="quote">Fragmenting edges will chop them at their edge crossings</p>
-
-	<div class="centered">
-		<pre><code><span id="span-merge-result"></span>graph.<f>fragment</f>()</code></pre>
-	</div>
-
-	<div class="centered">
-		<canvas id="canvas-intersections" resize class="panorama"></canvas>
-	</div>
-
-	<div class="centered">
-		<pre><code>graph.<f>getEdgeIntersections</f>()</code></pre>
-	</div>
-
-	<p class="quote">This will give you the crossing locations without fragmenting. It returns an <a href="library/EdgeIntersection">EdgeIntersection</a> object.</p>
+	<p>Fragmenting edges will chop them at their edge crossings.</p>
 
 	<div class="centered">
 		<canvas id="canvas-crane-1" resize></canvas><canvas id="canvas-crane-2" resize></canvas>
 	</div>
 
-	<p class="quote">The SVG on the right has been <a href="library/fragment">fragmented</a></p>
+	<p class="quote">The graph on the right has been <a href="library/fragment">fragmented</a></p>
+
+	<div class="centered">
+		<pre><code>graph.<f>fragment</f>()</code></pre>
+	</div>
 
 </section>
 
@@ -139,12 +134,6 @@ crane2CP.load("/files/svg/crane-errors.svg", function(){
 	p5b.callback = function(nodecount, edgecount, mergeInfo){
 		$("#div-node-count").html(nodecount);
 		$("#div-edge-count").html(edgecount);
-		// if(mergeInfo != undefined){
-		// 	var xString = (mergeInfo.x).toFixed(2);
-		// 	var yString = (mergeInfo.y).toFixed(2);
-		// 	var string = "{x:" + xString + ", y:" + yString + ", nodes:[" + mergeInfo.nodes[0] +"," + mergeInfo.nodes[1] + "]}";
-		// 	$("#span-merge-result").html(string);
-		// }
 	}
 </script>
 
@@ -171,8 +160,8 @@ crane2CP.load("/files/svg/crane-errors.svg", function(){
 	// var paper3 = new OrigamiPaper("canvas3", cp[2]);
 	paper1.style.nodes.visible = true;
 	paper2.style.nodes.visible = true;
-	paper1.style.nodes.fillColor = { hue:25, saturation:0.7, brightness:1.0 };
-	paper2.style.nodes.fillColor = { hue:25, saturation:0.7, brightness:1.0 };
+	paper1.style.nodes.fillColor = { gray:0 };
+	paper2.style.nodes.fillColor = { gray:0 };
 	// paper3.style.nodes.visible = true;
 	paper1.update();
 	paper2.update();
@@ -181,12 +170,12 @@ crane2CP.load("/files/svg/crane-errors.svg", function(){
 
 
 <script>
-	edge_intersections_callback = function(event){
-		if(event !== undefined){
-			document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
-		}
-	}
-	intersectionSketch.reset();
+	// edge_intersections_callback = function(event){
+	// 	if(event !== undefined){
+	// 		document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
+	// 	}
+	// }
+	// intersectionSketch.reset();
 </script>
 
 <?php include 'footer.php';?>

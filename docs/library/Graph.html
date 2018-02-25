@@ -1,0 +1,379 @@
+<h1 id="graph">Graph</h1>
+
+<p>A graph contains unlimited nodes and edges and can perform operations on them</p>
+
+<h3 id="add">ADD</h3>
+
+<ul>
+<li><a href="#copy">copy</a></li>
+
+<li><a href="#newnode">newNode</a></li>
+
+<li><a href="#newedge">newEdge</a></li>
+
+<li><a href="#addnode">addNode</a></li>
+
+<li><a href="#addedge">addEdge</a></li>
+
+<li><a href="#addnodes">addNodes</a></li>
+
+<li><a href="#addedges">addEdges</a></li>
+
+<li><a href="#copynode">copyNode</a></li>
+
+<li><a href="#copyedge">copyEdge</a></li>
+</ul>
+
+<h3 id="remove">REMOVE</h3>
+
+<ul>
+<li><a href="#clear">clear</a></li>
+
+<li><a href="#removeedge">removeEdge</a></li>
+
+<li><a href="#removeedgebetween">removeEdgeBetween</a></li>
+
+<li><a href="#removenode">removeNode</a></li>
+
+<li><a href="#mergenodes">mergeNodes</a></li>
+
+<li><a href="#removeisolatednodes">removeIsolatedNodes</a></li>
+
+<li><a href="#cleancircularedges">cleanCircularEdges</a></li>
+
+<li><a href="#cleanduplicateedges">cleanDuplicateEdges</a></li>
+
+<li><a href="#cleangraph">cleanGraph</a></li>
+
+<li><a href="#clean">clean</a></li>
+</ul>
+
+<h3 id="querylocate">QUERY / LOCATE</h3>
+
+<ul>
+<li><a href="#getedgeconnectingnodes">getEdgeConnectingNodes</a></li>
+
+<li><a href="#getedgesconnectingnodes">getEdgesConnectingNodes</a></li>
+</ul>
+
+<h2 id="copy">copy</h2>
+
+<p>Deep-copy the contents of this graph and return it as a new object</p>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var copiedGraph = graph.copy()
+</code></pre>
+
+<p>Returns <strong><a href="#graph">Graph</a></strong> </p>
+
+<h2 id="newnode">newNode</h2>
+
+<p>Create a node and add it to the graph</p>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var node = graph.newNode()
+</code></pre>
+
+<p>Returns <strong><a href="#graphnode">GraphNode</a></strong> pointer to the node</p>
+
+<h2 id="newedge">newEdge</h2>
+
+<p>Create an edge and add it to the graph</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>node1</code> <strong><a href="#graphnode">GraphNode</a></strong> the first node that the edge connects</li>
+
+<li><code>node2</code> <strong><a href="#graphnode">GraphNode</a></strong> the second node that the edge connects</li>
+</ul>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var node1 = graph.newNode()
+var node2 = graph.newNode()
+graph.newEdge(node1, node2)
+</code></pre>
+
+<p>Returns <strong><a href="#graphedge">GraphEdge</a></strong> if successful, pointer to the edge</p>
+
+<h2 id="addnode">addNode</h2>
+
+<p>Add an already-initialized node to the graph</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>node</code> <strong><a href="#graphnode">GraphNode</a></strong> must be already initialized</li>
+</ul>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">// it's preferred to simply use graph.newNode()
+var node = new GraphNode(graph)
+graph.addNode(node)
+</code></pre>
+
+<p>Returns <strong><a href="#graphnode">GraphNode</a></strong> pointer to the node</p>
+
+<h2 id="addedge">addEdge</h2>
+
+<p>Add an already-initialized edge to the graph</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>edge</code> <strong><a href="#graphedge">GraphEdge</a></strong> must be initialized, and two nodes must be already be a part of this graph</li>
+</ul>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">// it's preferred to simply use graph.newEdge(node1, node2)
+var edge = new GraphEdge(graph, node1, node2)
+graph.addEdge(edge)
+</code></pre>
+
+<p>Returns <strong><a href="#graphedge">GraphEdge</a></strong> if successful, pointer to the edge</p>
+
+<h2 id="addnodes">addNodes</h2>
+
+<p>Add already-initialized node objects from an array to the graph</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>nodes</code> <strong><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&lt;<a href="#graphnode">GraphNode</a>></strong> array of GraphNode</li>
+</ul>
+
+<p><strong>Examples</strong></p>
+
+<p><em>Initalize 2 nodes and add them to the graph.</em></p>
+
+<pre><code class="javascript language-javascript">var n = [new GraphNode(graph), new GraphNode(graph)];
+graph.addNodes(n);
+</code></pre>
+
+<p>Returns <strong><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></strong> number of nodes added to the graph</p>
+
+<h2 id="addedges">addEdges</h2>
+
+<p>Add already-initialized edge objects from an array to the graph, cleaning out any duplicate and circular edges</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>edges</code>  </li>
+</ul>
+
+<p>Returns <strong><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></strong> number of edges added to the graph</p>
+
+<h2 id="copynode">copyNode</h2>
+
+<p>Copies the contents of an existing node into a new node and adds it to the graph</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>node</code>  </li>
+</ul>
+
+<p>Returns <strong><a href="#graphnode">GraphNode</a></strong> pointer to the node</p>
+
+<h2 id="copyedge">copyEdge</h2>
+
+<p>Copies the contents of an existing edge into a new edge and adds it to the graph</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>edge</code>  </li>
+</ul>
+
+<p>Returns <strong><a href="#graphedge">GraphEdge</a></strong> pointer to the edge</p>
+
+<h2 id="clear">clear</h2>
+
+<p>Removes all nodes and edges, returning the graph to it's original state</p>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">graph.clear()
+</code></pre>
+
+<h2 id="removeedge">removeEdge</h2>
+
+<p>Remove an edge</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>edge</code>  </li>
+</ul>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var clean = graph.removeEdge(edge)
+// clean.edges should equal 1
+</code></pre>
+
+<p>Returns <strong><a href="#graphclean">GraphClean</a></strong> number of edges removed</p>
+
+<h2 id="removeedgebetween">removeEdgeBetween</h2>
+
+<p>Searches and removes any edges connecting the two nodes supplied in the arguments</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>node1</code> <strong><a href="#graphnode">GraphNode</a></strong> first node</li>
+
+<li><code>node2</code> <strong><a href="#graphnode">GraphNode</a></strong> second node</li>
+</ul>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var clean = graph.removeEdgeBetween(node1, node2)
+// clean.edges should be &gt;= 1
+</code></pre>
+
+<p>Returns <strong><a href="#graphclean">GraphClean</a></strong> number of edges removed. in the case of an unclean graph, there may be more than one</p>
+
+<h2 id="removenode">removeNode</h2>
+
+<p>Remove a node and any edges that connect to it</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>node</code> <strong><a href="#graphnode">GraphNode</a></strong> the node that will be removed</li>
+</ul>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var clean = graph.removeNode(node)
+// clean.node will be 1
+// clean.edges will be &gt;= 0
+</code></pre>
+
+<p>Returns <strong><a href="#graphclean">GraphClean</a></strong> number of nodes and edges removed</p>
+
+<h2 id="mergenodes">mergeNodes</h2>
+
+<p>Remove the second node and replaces all mention of it with the first in every edge</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>node1</code> <strong><a href="#graphnode">GraphNode</a></strong> first node to merge, this node will persist</li>
+
+<li><code>node2</code> <strong><a href="#graphnode">GraphNode</a></strong> second node to merge, this node will be removed</li>
+</ul>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var clean = graph.mergeNodes(node1, node2)
+// clean.node will be 1
+// clean.edges will be &gt;= 0
+</code></pre>
+
+<p>Returns <strong><a href="#graphclean">GraphClean</a></strong> 1 removed node, newly duplicate and circular edges will be removed</p>
+
+<h2 id="removeisolatednodes">removeIsolatedNodes</h2>
+
+<p>Removes any node that isn't a part of an edge</p>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var clean = graph.removeIsolatedNodes()
+// clean.node will be &gt;= 0
+</code></pre>
+
+<p>Returns <strong><a href="#graphclean">GraphClean</a></strong> the number of nodes removed</p>
+
+<h2 id="cleancircularedges">cleanCircularEdges</h2>
+
+<p>Remove all edges that contain the same node at both ends</p>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var clean = graph.cleanCircularEdges()
+// clean.edges will be &gt;= 0
+</code></pre>
+
+<p>Returns <strong><a href="#graphclean">GraphClean</a></strong> the number of edges removed</p>
+
+<h2 id="cleanduplicateedges">cleanDuplicateEdges</h2>
+
+<p>Remove edges that are similar to another edge</p>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var clean = graph.cleanDuplicateEdges()
+// clean.edges will be &gt;= 0
+</code></pre>
+
+<p>Returns <strong><a href="#graphclean">GraphClean</a></strong> the number of edges removed</p>
+
+<h2 id="cleangraph">cleanGraph</h2>
+
+<p>Graph specific clean function: removes circular and duplicate edges, refreshes .index. Only modifies edges array.</p>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var clean = graph.cleanGraph()
+// clean.edges will be &gt;= 0
+</code></pre>
+
+<p>Returns <strong><a href="#graphclean">GraphClean</a></strong> the number of edges removed</p>
+
+<h2 id="clean">clean</h2>
+
+<p>Clean calls cleanGraph(), gets overwritten when subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.</p>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var clean = graph.clean()
+// clean.edges will be &gt;= 0
+</code></pre>
+
+<p>Returns <strong><a href="#graphclean">GraphClean</a></strong> the number of edges removed</p>
+
+<h2 id="getedgeconnectingnodes">getEdgeConnectingNodes</h2>
+
+<p>Searches for an edge that contains the 2 nodes supplied in the function call. Will return first edge found, if graph isn't clean it will miss any subsequent duplicate edges.</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>node1</code>  </li>
+
+<li><code>node2</code>  </li>
+</ul>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var edge = graph.getEdgeConnectingNodes(node1, node2)
+</code></pre>
+
+<p>Returns <strong><a href="#graphedge">GraphEdge</a></strong> edge, if exists. undefined, if no edge connects the nodes (not adjacent)</p>
+
+<h2 id="getedgesconnectingnodes">getEdgesConnectingNodes</h2>
+
+<p>Searches for all edges that contains the 2 nodes supplied in the function call. This is suitable for unclean graphs, graphs with duplicate edges.</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>node1</code>  </li>
+
+<li><code>node2</code>  </li>
+</ul>
+
+<p><strong>Examples</strong></p>
+
+<pre><code class="javascript language-javascript">var array = graph.getEdgesConnectingNodes(node1, node2)
+</code></pre>
+
+<p>Returns <strong><a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&lt;<a href="#graphedge">GraphEdge</a>></strong> array of edges, if any exist. empty array if no edge connects the nodes (not adjacent)</p>
