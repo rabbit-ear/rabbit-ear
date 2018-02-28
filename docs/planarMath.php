@@ -2,6 +2,8 @@
 
 <h1>EUCLIDEAN MATH</h1>
 
+
+
 	<div class="centered">
 		<canvas id="canvas-interior-angles" resize></canvas>
 	</div>
@@ -11,10 +13,13 @@
 	</div>
 
 <section id="junction">
+<h2>JUNCTIONS &amp; JOINTS</h2>
 
-<h2>JUNCTION</h2>
+	<p>In preparation for origami calculations, there is a lot to be done with the area around a node. A <strong>junction</strong> is the area including one node, its adjacent edges, and the interior angles they form.</p>
 
-	<p>A <strong>junction</strong> is the area around a node including its adjacent edges and the interior angles they form.</p>
+	<p>Junctions are comprised of <b>joints</b>, defined as one neighbor pair of adjacent edges (having been sorted rotationally around the node), and the 1 interior angle they form.</p>
+
+	<p class="quote">Below is one junction, containing 2 joints, each joint bisected.</p>
 
 	<div class="centered">
 		<canvas id="canvas-vectors" resize></canvas>
@@ -35,7 +40,7 @@
 
 	<p>A matrix for 2D transformations needs 6 numbers: 4 for rotation, scaling, and reflection operations, and 2 for translation.</p>
 
-<h3>Reflection</h3>
+<h3 id="reflection">Reflection</h3>
 
 	<p>A 2x2 matrix is sufficient to represent a reflection line that goes through the origin. For all lines, an additional 1x2 column is required.</p>
 

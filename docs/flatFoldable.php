@@ -9,15 +9,14 @@
 
 	<p>The crease pattern on the left's folded form has been simulated by this library.</p>
 
-
 <section id="flat-foldable">
 <h2>Locally Flat Foldable</h2>
 
-	<p class="quote">Global flat-foldability is an np-hard problem. Local flat-foldability is easy.</p>
+	<p class="quote">Global flat-foldability is an np-hard problem.</p>
 
-	<p>Local flat foldability can be predicted using a number of operations, including Kawasaki's theorem, Maekawa's theorem, and graph 2-colorability.</p>
+	<p>Local flat foldability concerns the area around 1 intersection of edges, and can be determined using a number of operations including Kawasaki's theorem and Maekawa's theorem.</p>
 
-	<p class="quote">The following crease pattern has minor errors throughout.</p>
+	<p>The following crease pattern has minor errors throughout:</p>
 
 	<div class="centered">
 		<canvas id="canvas-flat-foldable-nodes-wiggle" class="large" resize></canvas>
@@ -26,7 +25,6 @@
 	<div class="centered">
 		<pre><code><span id="ff-result"></span>cp.<v>nodes</v>[<n id="node-index">index</n>].<f>flatFoldable</f>();</code></pre>
 	</div>
-
 
 </section>
 
@@ -40,7 +38,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code>180 == 180</code></pre>
+		<pre><code><span id="kawasaki-result"></span></code></pre>
 	</div>
 
 	<p>Kawasaki's Theorem can also be used to discover a 4th additional crease necessary to make a 3-fold unit flat foldable.</p>
@@ -67,16 +65,27 @@
 <section id="twocolorable">
 <h2>2 Colorability</h2>
 
+	<p>For a crease pattern to be flat-foldable the graph must be 2-colorable, or a bipartite graph.</p>
+
+	<div class="centered">
+		<canvas id="canvas-two-colorable" resize></canvas>
+	</div>
+
+	<p>This implies that each vertex must have an even number of edges connecting it unless it is a boundary vertex. It also says there will be an even number of boundary vertices.</p>
+
 </section>
 
 <section id="folding">
 <h2>Folding Algorithm</h2>
+	
+	<p>To simulate the folded state, faces are reflected across neighboring crease lines using a <a href="planarMath.php#reflection">reflection matrix</a>.
 
 	<div class="centered">
 		<canvas id="canvas-one-crease" resize></canvas>
 		<canvas id="canvas-one-crease-folded" resize></canvas>
 	</div>
 
+	<p>To calculate more complex crease patterns, one face is selected to be fixed, then the following data structure is calculated- a tree map of the neighbor relationships to each face.</p>
 
 	<div class="centered">
 		<canvas id="canvas-face-matrix" resize></canvas>
@@ -88,6 +97,7 @@
 <script type="text/javascript" src="../tests/flat_foldable_nodes_wiggle.js"></script>
 <script type="text/javascript" src="../tests/flat_foldable_single.js"></script>
 <script type="text/javascript" src="../tests/face_matrix.js"></script>
+<script type="text/javascript" src="../tests/two_colorable.js"></script>
 
 <script>
 var unfoldedCrane = new OrigamiPaper("canvas-unfolded-crane").blackAndWhite();
@@ -102,6 +112,30 @@ foldedCrane.load("../files/svg/crane.svg", function(){
 });
 </script>
 
+<script>
+kawasakiCallback = function(event){
+	if(event !== undefined){
+		var string = "";
+		var sums = [0,0];
+		event[0].angles.forEach(function(el, i){ 
+			var deg = el*180 / Math.PI;
+			sums[0] += deg;
+			string += "<n>" + parseInt(deg) + "</n>&deg;";
+			if(i < event[0].angles.length-1){ string += " + "; }
+		});
+		string += " = " + sums[0].toFixed(1) + "&deg; <c>// red</c><br>";
+		event[1].angles.forEach(function(el, i){
+			var deg = el*180 / Math.PI;
+			sums[1] += deg;
+			string += "<n>" + parseInt(deg) + "</n>&deg;";
+			if(i < event[0].angles.length-1){ string += " + "; }
+		});
+		string += " = " + sums[1].toFixed(1) + "&deg; <c>// blue</c>";
+	}
+	document.getElementById("kawasaki-result").innerHTML = string;
+}	
+
+</script>
 
 <script>
 
@@ -124,23 +158,6 @@ var redoOneCrease = function(){
 	oneCreaseFolded.update();
 }
 redoOneCrease();
-
-</script>
-
-<script>
-// var offSquaresFolded = new OrigamiFold("canvas-off-squares-folded");
-// offSquaresFolded.load("../files/svg/off-squares.svg", function(){
-// 	offSquaresFolded.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-// 	offSquaresFolded.update();
-// 	offSquaresFolded.customZoom = 2;
-// 	offSquaresFolded.buildViewMatrix();
-// });
-
-// var offSquares = new OrigamiPaper("canvas-off-squares");
-// offSquares.load("../files/svg/off-squares.svg", function(){
-// 	offSquares.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-// 	offSquares.update();
-// });
 
 </script>
 

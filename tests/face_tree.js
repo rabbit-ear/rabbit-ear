@@ -42,7 +42,7 @@ faceTree.onMouseMove = function(event) {
 faceTree.refreshFaces = function(){
 	// var faces = [];
 	// if(this.nearestEdge === undefined) return;
-	// if(!this.mouseDown){
+	// if(!this.mouse.pressed){
 	// 	faces = this.nearestEdge.adjacentFaces();
 	// } else {
 	// 	var edges = [];

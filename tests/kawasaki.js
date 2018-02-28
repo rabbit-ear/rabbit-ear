@@ -1,3 +1,5 @@
+var kawasakiCallback = undefined;
+
 var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
 var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
 var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
@@ -41,6 +43,13 @@ project.updateAngles = function(){
 			arc.closed = true;
 		}
 	},this);
+
+	if(kawasakiCallback != undefined){
+		var event = kawasakis.map(function(el){
+			el['angles'] = el.joints.map(function(joint){ return joint.angle(); });
+		});
+		kawasakiCallback(kawasakis);
+	}
 
 }
 

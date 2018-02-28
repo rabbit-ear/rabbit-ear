@@ -57,7 +57,7 @@ project.onMouseUp = function(event){
 		this.mouseDragLayer.activate();
 		this.mouseDragLayer.clear();
 		// crease the line
-		var edge = this.allPossibleFolds.getNearestEdgeFrom2Nodes(this.mouseDownLocation, event.point);
+		var edge = this.allPossibleFolds.getNearestEdgeFrom2Nodes(this.mouse.pressedLocation, event.point);
 		if(edge !== undefined){
 			var crease = this.cp.crease(edge.nodes[0], edge.nodes[1]);
 			if(crease !== undefined){
@@ -101,17 +101,17 @@ project.onMouseDidBeginDrag = function(event){
 	this.targetCreaseSourceLayer.removeChildren();	
 }
 project.onMouseMove = function(event) {
-	if(this.mouseDown){
+	if(this.mouse.pressed){
 		this.mouseDragLayer.activate();
 		this.mouseDragLayer.clear();
-		var dragPath = new paper.Path({segments: [this.mouseDownLocation, event.point], closed: false });
+		var dragPath = new paper.Path({segments: [this.mouse.pressedLocation, event.point], closed: false });
 		switch(this.inputMode){
 			case "add-valley": Object.assign(dragPath, this.style.valley); break;
 			case "add-mountain": Object.assign(dragPath, this.style.mountain); break;
 			case "add-mark": Object.assign(dragPath, this.style.mark); break;
 		}
 		dragPath.strokeColor.alpha = 0.333;
-		var edge = this.allPossibleFolds.getNearestEdgeFrom2Nodes(this.mouseDownLocation, event.point);
+		var edge = this.allPossibleFolds.getNearestEdgeFrom2Nodes(this.mouse.pressedLocation, event.point);
 		if(edge !== undefined){
 			var newPath = new paper.Path({segments: edge.nodes, closed: false });	
 			switch(this.inputMode){

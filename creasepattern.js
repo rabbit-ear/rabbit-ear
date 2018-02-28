@@ -2366,6 +2366,9 @@ var CreasePattern = (function (_super) {
         if (intersections.length) {
             var newCrease = this.crease(origin, intersections[0].point);
             newCrease.newMadeBy.type = MadeByType.ray;
+            console.log("made a new crease");
+            console.log(newCrease);
+            console.log(origin);
             if (origin.equivalent(newCrease.nodes[0])) {
                 newCrease.newMadeBy.rayOrigin = newCrease.nodes[0];
                 newCrease.newMadeBy.endPoints = [newCrease.nodes[1]];

@@ -285,6 +285,9 @@ class CreasePattern extends PlanarGraph{
 
 	symmetryLine:[XY, XY] = undefined;
 
+	// this will 
+	foldSequence:FoldSequence;
+
 	// When subclassed (ie. PlanarGraph) types are overwritten
 	nodeType = CreaseNode;
 	edgeType = Crease;
@@ -711,6 +714,9 @@ class CreasePattern extends PlanarGraph{
 		if(intersections.length){
 			var newCrease = this.crease(origin, intersections[0].point);
 			newCrease.newMadeBy.type = MadeByType.ray
+			console.log("made a new crease");
+			console.log(newCrease);
+			console.log(origin);
 			if(origin.equivalent(newCrease.nodes[0])){ 
 				newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[0]; 
 				newCrease.newMadeBy.endPoints = [<CreaseNode>newCrease.nodes[1]];

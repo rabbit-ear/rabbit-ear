@@ -40,7 +40,7 @@ nodeFaces.onMouseMove = function(event) {
 nodeFaces.refreshFaces = function(){
 	var faces = [];
 	if(this.nearestNode === undefined) return;
-	if(!this.mouseDown){
+	if(!this.mouse.pressed){
 		faces = nodeFaces.nearestNode.adjacentFaces();
 	} else {
 		var nodes = [];

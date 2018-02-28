@@ -3,8 +3,8 @@
 // reimplement methods for interaction
 
 // documentation
-// this.mouseDown - mouse pressed state
-// this.mouseDidDrag - mouse did drag during being pressed
+// this.mouse.isPressed - mouse pressed state
+// this.mouse.isDragging - mouse did drag during being pressed
 
 try {
 	var cp = new CreasePattern();
@@ -63,8 +63,12 @@ var OrigamiPaper = (function(){
 		this.nodeLayer = new this.scope.Layer();
 
 		// user interaction
-		this.mouseDown = false;
-		this.mouseDownLocation = new XY(0,0);
+		this.mouse = {
+			position: new XY(0,0),
+			pressed: new XY(0,0),
+			isPressed: false,
+			isDragging: false
+		};
 		// user interaction layers
 		this.mouseDragLayer = new this.scope.Layer();
 				
@@ -80,23 +84,26 @@ var OrigamiPaper = (function(){
 		}
 		this.scope.view.onMouseDown = function(event){
 			paper = that.scope;
-			that.mouseDown = true;
-			that.mouseDidDrag = false;
-			that.mouseDownLocation = event.point;
+			that.mouse.isPressed = true;
+			that.mouse.isDragging = false;
+			that.mouse.pressed.x = event.point.x;
+			that.mouse.pressed.y = event.point.y;
 			that.onMouseDown(event);
 		}
 		this.scope.view.onMouseUp = function(event){
 			paper = that.scope;
-			that.mouseDown = false;
+			that.mouse.isPressed = false;
 			that.onMouseUp(event);
 		}
 		this.scope.view.onMouseMove = function(event){
 			paper = that.scope;
-			if(that.mouseDown){ 
-				if(that.mouseDidDrag === false){
+			that.mouse.position.x = event.point.x;
+			that.mouse.position.y = event.point.y;
+			if(that.mouse.isPressed){ 
+				if(that.mouse.isDragging === false){
 					that.onMouseDidBeginDrag(event);
 				}
-				that.mouseDidDrag = true;
+				that.mouse.isDragging = true;
 			}
 			if(that.selectNearestNode){ that.highlightNearestNode(event.point); }
 			if(that.selectNearestEdge){ that.highlightNearestEdge(event.point); }
@@ -459,12 +466,12 @@ var OrigamiFold = (function(){
 		}
 		this.scope.view.onMouseDown = function(event){
 			paper = that.scope; 
-			that.mouseDown = true; 
+			that.mouse.isPressed = true; 
 			that.onMouseDown(event);
 		}
 		this.scope.view.onMouseUp = function(event){
 			paper = that.scope;
-			that.mouseDown = false;
+			that.mouse.isPressed = false;
 			that.onMouseUp(event);
 		}
 		this.scope.view.onMouseMove = function(event){

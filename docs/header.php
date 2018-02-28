@@ -32,11 +32,7 @@
 			</div>
 		</li>
 		<li class="dropdown">
-			<a href="/docs/" class="dropbtn">HELLO</a>
-			<div class="dropdown-content">
-			<a href="https://github.com/robbykraft/Origami"><i class="fa fa-github "></i>&nbsp;&nbsp;CODE</a>
-			<a href="types.php">LIBRARY</a>
-			</div>
+			<a href="/docs/" class="">HELLO</a>
 		</li>
 		<li class="dropdown">
 			<a href="graph.php" class="">I. GRAPH</a>
