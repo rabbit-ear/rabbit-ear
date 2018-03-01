@@ -1,6 +1,6 @@
 var mouse_select_callback;
 
-var mouseSelect = new OrigamiPaper("canvas-mouse-select");
+var mouseSelect = new OrigamiPaper("canvas-mouse-select").blackAndWhite();
 mouseSelect.setPadding(0.05);
 
 mouseSelect.selectNearestNode = true;

@@ -56,6 +56,26 @@
 
 </section>
 
+<section id="epsilon">
+
+<h2>INTERSECTIONS</h2>
+
+<h3 id="reflection">Lines and Segments</h3>
+
+	<div class="centered">
+		<canvas id="canvas-intersect-lines" resize></canvas>
+		<canvas id="canvas-intersect-segments" resize></canvas>
+	</div>
+
+<h3 id="reflection">Rays and Segments</h3>
+
+	<div class="centered">
+		<canvas id="canvas-intersect-rays" resize></canvas>
+		<canvas id="canvas-intersect-ray-segment" resize></canvas>
+	</div>
+
+
+</section>
 
 <section id="epsilon">
 
@@ -73,6 +93,11 @@
 
 <script type="text/javascript" src="../tests/vectors.js"></script>
 <script type="text/javascript" src="../tests/interior_angles.js"></script>
+<script type="text/javascript" src="../tests/intersect_segments.js"></script>
+<script type="text/javascript" src="../tests/intersect_lines.js"></script>
+<script type="text/javascript" src="../tests/intersect_rays.js"></script>
+<script type="text/javascript" src="../tests/intersect_ray_segment.js"></script>
+
 <script src="../tests/reflection.js"></script>
 
 <script>

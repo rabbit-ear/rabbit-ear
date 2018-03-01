@@ -101,8 +101,6 @@ function minDistBetweenPointLine(a:XY, b:XY, point:XY):XY{
 function rayRayIntersection(aOrigin:XY, aVector:XY, bOrigin:XY, bVector:XY):XY{
 	var u = (aOrigin.y*bVector.x + bVector.y*bOrigin.x - bOrigin.y*bVector.x - bVector.y*aOrigin.x) / (aVector.x*bVector.y - aVector.y*bVector.x);
 	var v = (aOrigin.x + aVector.x*u - bOrigin.x) / bVector.x;
-	console.log(u);
-	console.log(v);
 	// divide by zero causes v to be infinity or -infinity
 	if(epsilonEqual(bVector.x, 0, EPSILON_HIGH)){ v = 0; }
 	if(u < -EPSILON || v < -EPSILON){ return undefined; }

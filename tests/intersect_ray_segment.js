@@ -3,7 +3,7 @@ var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
 var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
 var black = {hue:0, saturation:0, brightness:0 };
 
-var project = new OrigamiPaper("canvas-intersect-rays");
+var project = new OrigamiPaper("canvas-intersect-ray-segment");
 var strokeWidth = 0.01;
 project.style.valley = { strokeColor: blue, strokeWidth: strokeWidth }
 
@@ -31,12 +31,12 @@ project.reset = function(){
 
 	this.cp.clear();
 	this.cp.creaseRay(xys[0], ray0).valley();
-	this.cp.creaseRay(xys[2], ray1).valley();
+	this.cp.crease(xys[2],xys[3]).valley();
 	this.draw();
 
 	this.rayLayer.activate();
 	this.rayLayer.removeChildren();
-	var intersection = rayRayIntersection(xys[0], ray0, xys[2], ray1);
+	var intersection = rayLineSegmentIntersection(xys[0], ray0, xys[2], xys[3]);
 	if(intersection !== undefined){
 
 		var interRadius = 0.04;

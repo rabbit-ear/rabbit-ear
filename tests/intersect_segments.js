@@ -3,7 +3,7 @@ var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
 var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
 var black = {hue:0, saturation:0, brightness:0 };
 
-var project = new OrigamiPaper("canvas-intersect-rays");
+var project = new OrigamiPaper("canvas-intersect-segments");
 var strokeWidth = 0.01;
 project.style.valley = { strokeColor: blue, strokeWidth: strokeWidth }
 
@@ -17,12 +17,10 @@ for(var i = 0; i < 4; i++){
 project.handle = [];
 project.marks[0].position = [0.1, 0.5];
 project.marks[1].position = [0.4, 0.5];
-project.marks[2].position = [0.5, 0.7];  //[0.2118009640404385, 0.8910193519031978];
-project.marks[3].position = [0.5, 0.3];  //[0.2118009640404385, 0.4530776777716162];
+project.marks[2].position = [0.5, 0.7];
+project.marks[3].position = [0.5, 0.3];
 
-project.rayLayer = new project.scope.Layer();
-// project.edgeLayer.bringToFront();
-// project.boundaryLayer.bringToFront();
+project.segmentLayer = new project.scope.Layer();
 
 project.reset = function(){
 	var xys = this.marks.map(function(el){ return new XY(el.position.x, el.position.y); });
@@ -30,13 +28,13 @@ project.reset = function(){
 	var ray1 = xys[3].subtract(xys[2]);
 
 	this.cp.clear();
-	this.cp.creaseRay(xys[0], ray0).valley();
-	this.cp.creaseRay(xys[2], ray1).valley();
+	this.cp.crease(xys[0], xys[1]).valley();
+	this.cp.crease(xys[2], xys[3]).valley();
 	this.draw();
 
-	this.rayLayer.activate();
-	this.rayLayer.removeChildren();
-	var intersection = rayRayIntersection(xys[0], ray0, xys[2], ray1);
+	this.segmentLayer.activate();
+	this.segmentLayer.removeChildren();
+	var intersection = lineSegmentIntersectionAlgorithm(xys[0], xys[1], xys[2], xys[3]);
 	if(intersection !== undefined){
 
 		var interRadius = 0.04;
