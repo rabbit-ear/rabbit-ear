@@ -1,8 +1,19 @@
-var project = new OrigamiPaper("canvas-intersect-rays");
-project.style.mountain.strokeColor = {hue:0.04*360, saturation:0.87, brightness:0.90 };
-project.style.valley.strokeColor = {gray:0.0};
+var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
+var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
+var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
+var black = {hue:0, saturation:0, brightness:0 };
 
-project.circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
+var project = new OrigamiPaper("canvas-intersect-rays");
+var strokeWidth = 0.01;
+project.style.valley = {
+				strokeColor: blue,
+				// dashArray: [strokeWidth*0.2, strokeWidth*1.8],
+				// dashArray: undefined,
+				strokeWidth: strokeWidth,
+				// strokeCap : 'square'
+			}
+
+project.circleStyle = { radius: 0.03, strokeWidth: null, fillColor: blue };
 project.marks = [];
 project.circleLayer = new project.scope.Layer();
 project.circleLayer.activate();
@@ -16,6 +27,8 @@ project.marks[2].position = [0.2118009640404385, 0.8910193519031978];//[0.5, 0.9
 project.marks[3].position = [0.2118009640404385, 0.4530776777716162];//[0.5, 0.7];
 
 project.rayLayer = new project.scope.Layer();
+project.edgeLayer.bringToFront();
+project.boundaryLayer.bringToFront();
 
 project.reset = function(){
 	var xys = this.marks.map(function(el){ return new XY(el.position.x, el.position.y); });
@@ -23,7 +36,7 @@ project.reset = function(){
 	var ray1 = xys[3].subtract(xys[2]);
 
 	this.cp.clear();
-	this.cp.creaseRay(xys[0], ray0).mountain();
+	this.cp.creaseRay(xys[0], ray0).valley();
 	this.cp.creaseRay(xys[2], ray1).valley();
 	this.draw();
 
@@ -32,48 +45,45 @@ project.reset = function(){
 	var intersection = rayRayIntersection(xys[0], ray0, xys[2], ray1);
 	if(intersection !== undefined){
 
-		console.log(ray0, ray1);
+		var interRadius = 0.05;
+
+		// console.log(ray0, ray1);
 		var fourPoints = [
-			intersection.add(ray0.normalize().scale(0.1)),
-			intersection.add(ray1.normalize().scale(0.1)),
-			intersection.subtract(ray0.normalize().scale(0.1)),
-			intersection.subtract(ray1.normalize().scale(0.1))
+			intersection.add(ray0.normalize().scale(interRadius)),
+			intersection.add(ray1.normalize().scale(interRadius)),
+			intersection.subtract(ray0.normalize().scale(interRadius)),
+			intersection.subtract(ray1.normalize().scale(interRadius))
 		];
 		var arcPoints = [];
 		fourPoints.forEach(function(el, i){
 			var nextI = (i+1)%fourPoints.length;
 			var b = bisect(el.subtract(intersection), fourPoints[nextI].subtract(intersection))[0];
-			var arcMidPoint = b.normalize().scale(0.1).add(intersection);
+			var arcMidPoint = b.normalize().scale(interRadius).add(intersection);
 			var thesePoints = [ fourPoints[i],
 			                 arcMidPoint,
 			                 fourPoints[nextI] ];
-			for(var p = 0; p < 3; p++){
-				thesePoints[p] = thesePoints[p].add(arcMidPoint.subtract(intersection).normalize().scale(0.02));
-			}
 			arcPoints.push(thesePoints);
 		});
-		var arcColors = [
-			{hue:0.12*360, saturation:0.88, brightness:0.93 },
-			{hue:0.53*360, saturation:0.82, brightness:0.28 }
-		];
+		var arcColors = [yellow, red];
 		for(var i = 0; i < 4; i++){
 			var smallArc = new this.scope.Path.Arc(arcPoints[i][0], arcPoints[i][1], arcPoints[i][2]);
-			smallArc.add(intersection.add(arcPoints[i][1].subtract(intersection).normalize().scale(0.02)));
-			smallArc.closed = true;
-			// smallArc.strokeColor = arcColors[i%2];
-			// smallArc.strokeWidth = 0.01;
-			smallArc.fillColor = arcColors[i%2];
-
+			// smallArc.add(intersection);
+			smallArc.closed = false;
+			smallArc.strokeWidth = 0.02;
+			smallArc.strokeColor = arcColors[i%2];
 		}
-
-		// var smallArc = new this.scope.Path.Arc(eightPoints[0], eightPoints[1], eightPoints[2]);
-		// smallArc.add(new this.scope.Point(intersection.x, intersection.y));
-		// smallArc.closed = true;
-		// smallArc.fillColor = {hue:0.53*360, saturation:0.82, brightness:0.28 };
-
 	}
 
-
+	var fullLine0 = this.cp.clipLineInBoundary(xys[0], xys[1]);
+	var fullLine1 = this.cp.clipLineInBoundary(xys[2], xys[3]);
+	var path0 = new this.scope.Path({segments: fullLine0, closed: false });
+	Object.assign(path0, this.style.mountain);
+	path0.strokeColor = { gray:1.0 };
+	path0.strokeWidth = path0.strokeWidth * 2.0;
+	var path1 = new this.scope.Path({segments: fullLine1, closed: false });
+	Object.assign(path1, this.style.mountain);
+	path1.strokeColor = { gray:1.0 };
+	path1.strokeWidth = path1.strokeWidth * 2.0;
 
 }
 project.reset();
