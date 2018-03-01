@@ -23,7 +23,7 @@ axiom2.onResize = function(event) { }
 axiom2.onMouseMove = function(event) {
 	if(axiom2.selectedNode != undefined){
 		axiom2.selectedNode.position = event.point;
-		axiom2.reset();		
+		axiom2.reset();
 	}
 }
 axiom2.onMouseDown = function(event){
