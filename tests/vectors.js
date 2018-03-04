@@ -1,14 +1,9 @@
-var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
-var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
-var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
-var black = {hue:0, saturation:0, brightness:0 };
-
-
 var projectVectors = new OrigamiPaper("canvas-vectors", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
+
 projectVectors.style.mountain.strokeWidth = 0.02;
 projectVectors.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
 projectVectors.cp.edges = projectVectors.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-projectVectors.style.selectedNode.fillColor = yellow;
+projectVectors.style.selectedNode.fillColor = projectVectors.styles.byrne.yellow;
 projectVectors.style.selectedNode.radius = 0.04;
 
 
@@ -45,12 +40,12 @@ projectVectors.updateAngles = function(){
 
 	Object.assign(smallLine, this.style.mountain);
 	Object.assign(largeLine, this.style.mountain);
-	Object.assign(smallLine, {strokeColor:yellow});
-	Object.assign(largeLine, {strokeColor:blue});
+	Object.assign(smallLine, {strokeColor:this.styles.byrne.yellow});
+	Object.assign(largeLine, {strokeColor:this.styles.byrne.blue});
 	Object.assign(smallArc, this.style.mountain);
 	Object.assign(largeArc, this.style.mountain);
-	Object.assign(smallArc, {strokeColor:null, fillColor:blue});
-	Object.assign(largeArc, {strokeColor:null, fillColor:red});
+	Object.assign(smallArc, {strokeColor:null, fillColor:this.styles.byrne.blue});
+	Object.assign(largeArc, {strokeColor:null, fillColor:this.styles.byrne.red});
 }
 
 projectVectors.reset = function(){

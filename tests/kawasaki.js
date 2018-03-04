@@ -1,24 +1,20 @@
 var kawasakiCallback = undefined;
 
-var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
-var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
-var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
-var black = {hue:0, saturation:0, brightness:0 };
+var projectKawasaki = new OrigamiPaper("canvas-kawasaki", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
 
-var project = new OrigamiPaper("canvas-kawasaki", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
-project.style.mountain.strokeWidth = 0.02;
-project.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
-project.cp.edges = project.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-project.style.selectedNode.fillColor = yellow;
-project.style.selectedNode.radius = 0.04;
+projectKawasaki.style.mountain.strokeWidth = 0.02;
+projectKawasaki.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
+projectKawasaki.cp.edges = projectKawasaki.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
+projectKawasaki.style.selectedNode.fillColor = projectKawasaki.styles.byrne.yellow;
+projectKawasaki.style.selectedNode.radius = 0.04;
 
-project.validNodes = [];
+projectKawasaki.validNodes = [];
 var draggingNode = undefined;
-project.arcLayer = new project.scope.Layer();
-project.arcLayer.sendToBack();
-project.backgroundLayer.sendToBack();
+projectKawasaki.arcLayer = new projectKawasaki.scope.Layer();
+projectKawasaki.arcLayer.sendToBack();
+projectKawasaki.backgroundLayer.sendToBack();
 
-project.updateAngles = function(){
+projectKawasaki.updateAngles = function(){
 	this.arcLayer.activate();
 	this.arcLayer.removeChildren();
 	var rating = this.centerNode.kawasakiRating();
@@ -38,8 +34,8 @@ project.updateAngles = function(){
 			for(var p = 0; p < 3; p++){ arcPts[p] = arcPts[p].normalize().scale(arcRadius); }
 			var arc = new this.scope.Path.Arc(arcPts[0], arcPts[1], arcPts[2]);
 			arc.add(new this.scope.Point(0.0, 0.0));
-			arc.fillColor = ([red,blue])[j%2];
-			if(Math.abs(difference) < 0.015){ arc.fillColor = yellow; }
+			arc.fillColor = ([this.styles.byrne.red,this.styles.byrne.darkBlue])[j%2];
+			if(Math.abs(difference) < 0.015){ arc.fillColor = this.styles.byrne.yellow; }
 			arc.closed = true;
 		}
 	},this);
@@ -50,10 +46,9 @@ project.updateAngles = function(){
 		});
 		kawasakiCallback(kawasakis);
 	}
-
 }
 
-project.reset = function(){
+projectKawasaki.reset = function(){
 
 	var numNodes = 8;
 
@@ -73,19 +68,19 @@ project.reset = function(){
 	this.draw();
 	this.updateAngles();
 }
-project.reset();
+projectKawasaki.reset();
 
-project.onFrame = function(event) { }
-project.onResize = function(event) { }
-project.onMouseDown = function(event){
+projectKawasaki.onFrame = function(event) { }
+projectKawasaki.onResize = function(event) { }
+projectKawasaki.onMouseDown = function(event){
 	if(this.validNodes.contains(this.nearestNode)){
 		draggingNode = this.nearestNode;
 	}
 }
-project.onMouseUp = function(event){
+projectKawasaki.onMouseUp = function(event){
 	draggingNode = undefined;
 }
-project.onMouseMove = function(event){
+projectKawasaki.onMouseMove = function(event){
 	if(draggingNode !== undefined){
 		draggingNode.x = event.point.x;
 		draggingNode.y = event.point.y;
@@ -93,4 +88,4 @@ project.onMouseMove = function(event){
 	this.update();
 	this.updateAngles();
 }
-project.onMouseDidBeginDrag = function(event){ }
+projectKawasaki.onMouseDidBeginDrag = function(event){ }

@@ -55,7 +55,7 @@ axiom5.onMouseMove = function(event) {
 }
 axiom5.onMouseDown = function(event){
 	for(var i = 0; i < axiom5.marks.length; i++){
-		if(pointsSimilar(event.point, axiom5.marks[i].position)){ axiom5.selectedNode = axiom5.marks[i];return;}
+		if(pointsSimilar(event.point, axiom5.marks[i].position, 0.05)){ axiom5.selectedNode = axiom5.marks[i];return;}
 	}
 	axiom5.selectedNode = undefined;
 }

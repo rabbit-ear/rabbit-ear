@@ -1,34 +1,27 @@
-var project = new OrigamiPaper("canvas-intersect-lines");
+var intersectLines = new OrigamiPaper("canvas-intersect-lines");
 
-var strokeWidth = 0.01;
+intersectLines.style.circleStyle = { radius: 0.015, strokeWidth: null, fillColor: {gray:0.0} };
+intersectLines.style.valley.strokeColor = {gray:0.0};
+intersectLines.style.valley.dashArray = null;
 
-var black = {hue:0, saturation:0, brightness:0 };
-var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
-var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
-var darkBlue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
-var blue = {hue:0.57*360, saturation:0.74, brightness:0.61};
-var circleStyle = { radius: 0.015, strokeWidth: null, fillColor: black };
-
-project.style.valley = { strokeColor: black, strokeWidth: strokeWidth }
-
-project.handleLayer = new project.scope.Layer();
-project.handleLayer.activate();
-project.marks = [];
+intersectLines.handleLayer = new intersectLines.scope.Layer();
+intersectLines.handleLayer.activate();
+intersectLines.marks = [];
 for(var i = 0; i < 4; i++){ 
-	project.marks.push(new project.scope.Shape.Circle(circleStyle));
+	intersectLines.marks.push(new intersectLines.scope.Shape.Circle(intersectLines.style.circleStyle));
 }
-project.marks[0].position = [0.1, 0.5];
-project.marks[1].position = [0.4, 0.5];
-project.marks[2].position = [0.5, 0.7];
-project.marks[3].position = [0.5, 0.3];
+intersectLines.marks[0].position = [0.25, 0.3];
+intersectLines.marks[1].position = [0.425, 0.7];
+intersectLines.marks[2].position = [0.5, 0.7];
+intersectLines.marks[3].position = [0.5, 0.3];
 
-project.intersectionLayer = new project.scope.Layer();
-project.handleLayer.moveBelow(project.edgeLayer);
-project.intersectionLayer.moveBelow(project.edgeLayer);
-project.selectedLayer = new project.scope.Layer();
-project.selectedLayer.activate();
+intersectLines.intersectionLayer = new intersectLines.scope.Layer();
+intersectLines.handleLayer.moveBelow(intersectLines.edgeLayer);
+intersectLines.intersectionLayer.moveBelow(intersectLines.edgeLayer);
+intersectLines.selectedLayer = new intersectLines.scope.Layer();
+intersectLines.selectedLayer.activate();
 
-project.reset = function(){
+intersectLines.reset = function(){
 	var xys = this.marks.map(function(el){ return new XY(el.position.x, el.position.y); });
 	var ray0 = xys[1].subtract(xys[0]);
 	var ray1 = xys[3].subtract(xys[2]);
@@ -61,42 +54,34 @@ project.reset = function(){
 			                    fourPoints[nextI] ];
 			arcPoints.push(thesePoints);
 		});
-	
-		var fillColors = [blue, red];
-		var arcColors = [yellow, red];
+		var fillColors = [this.styles.byrne.blue, this.styles.byrne.red];
 		for(var i = 0; i < 4; i++){
 			var fillArc = new this.scope.Path.Arc(arcPoints[i][0], arcPoints[i][1], arcPoints[i][2]);
 			fillArc.add(intersection);
 			fillArc.closed = true;
 			fillArc.strokeWidth = null;
 			fillArc.fillColor = fillColors[i%2];
-
-			if(isValidPoint(arcPoints[i][1])){
-				// var smallArc = new this.scope.Path.Arc(arcPoints[i][0], arcPoints[i][1], arcPoints[i][2]);
-				// smallArc.strokeWidth = 0.02;
-				// smallArc.strokeColor = red;//arcColors[i%2];
-			}
 		}
 	}
 }
-project.reset();
+intersectLines.reset();
 
-project.onFrame = function(event) { }
-project.onResize = function(event) { }
-project.onMouseDown = function(event){
+intersectLines.onFrame = function(event) { }
+intersectLines.onResize = function(event) { }
+intersectLines.onMouseDown = function(event){
 	this.selectedNode = undefined;
 	this.marks.forEach(function(el){
-		if(pointsSimilar(event.point, el.position)){this.selectedNode = el;}
+		if(pointsSimilar(event.point, el.position, 0.05)){this.selectedNode = el;}
 	},this);
 }
-project.onMouseUp = function(event){
+intersectLines.onMouseUp = function(event){
 	this.selectedNode = undefined;
 }
-project.onMouseMove = function(event) {
+intersectLines.onMouseMove = function(event) {
 	var selectedNodePosition = undefined;
 	if(this.selectedNode === undefined){
 		for(var i = 0; i < this.marks.length; i++){
-			if(pointsSimilar(event.point, this.marks[i].position)){
+			if(pointsSimilar(event.point, this.marks[i].position, 0.05)){
 				selectedNodePosition = this.marks[i].position;
 				break;
 			}
@@ -109,9 +94,8 @@ project.onMouseMove = function(event) {
 	this.selectedLayer.activate();
 	this.selectedLayer.removeChildren();
 	if(selectedNodePosition !== undefined){
-		var circle = new project.scope.Shape.Circle(circleStyle);
-		circle.strokeWidth = null;
-		circle.fillColor = yellow;
+		var circle = new this.scope.Shape.Circle(this.style.circleStyle);
+		circle.fillColor = this.styles.byrne.yellow;
 		circle.position = selectedNodePosition;		
 	}
 }

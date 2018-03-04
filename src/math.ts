@@ -13,6 +13,10 @@ var EPSILON_COLLINEAR = EPSILON_LOW;//Math.PI * 0.001; // what decides 2 similar
 //////////////////////////// TYPE CHECKING //////////////////////////// 
 function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
 function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
+function pointsSimilar(a:any, b:any, epsilon?:number){
+	if(epsilon === undefined){epsilon = EPSILON_HIGH;}
+	return epsilonEqual(a.x,b.x,epsilon) && epsilonEqual(a.y,b.y,epsilon);
+}
 /////////////////////////////// NUMBERS ///////////////////////////////
 /** map a number from one range into another */
 function map(input:number, fl1:number, ceil1:number, fl2:number, ceil2:number):number{

@@ -15,7 +15,7 @@ mirror.reset = function(){
 	var rad = [0.1 + Math.random()*0.66, 0.1 + Math.random()*0.66];
 	var freq = [0.2 + Math.random(), 0.2 + Math.random()];
 	var phase = [Math.random()*Math.PI*2, Math.random()*Math.PI*2];
-	console.log( Math.pow(Math.random(),2) );
+
 	var count = map(Math.pow(Math.random(),4), 0, 1, 2, 5);
 	for(var i = 0; i < count; i++){
 		var a = {x: centers[0].x + rad[0]*Math.cos(freq[0]*i+phase[0]), 

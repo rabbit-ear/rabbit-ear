@@ -30,7 +30,7 @@ axiom4.onMouseMove = function(event) {
 }
 axiom4.onMouseDown = function(event){
 	for(var i = 0; i < axiom4.marks.length; i++){
-		if(pointsSimilar(event.point, axiom4.marks[i].position)){ axiom4.selectedNode = axiom4.marks[i];return;}
+		if(pointsSimilar(event.point, axiom4.marks[i].position, 0.05)){ axiom4.selectedNode = axiom4.marks[i];return;}
 	}
 	axiom4.selectedNode = undefined;
 }

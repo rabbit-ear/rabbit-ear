@@ -1,19 +1,16 @@
 var interiorAnglesCallback = undefined;
 
-
-var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
-var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
-var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
-var black = {hue:0, saturation:0, brightness:0 };
-
-var colors = [red,yellow,blue];
-
-
 var projectInAngles = new OrigamiPaper("canvas-interior-angles", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
+
+projectInAngles.style.myColors = [
+	projectInAngles.styles.byrne.red,
+	projectInAngles.styles.byrne.yellow,
+	projectInAngles.styles.byrne.darkBlue ];
+	
 projectInAngles.style.mountain.strokeWidth = 0.02;
 projectInAngles.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
 projectInAngles.cp.edges = projectInAngles.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-projectInAngles.style.selectedNode.fillColor = yellow;
+projectInAngles.style.selectedNode.fillColor = projectInAngles.styles.byrne.yellow;
 projectInAngles.style.selectedNode.radius = 0.04;
 
 
@@ -44,7 +41,7 @@ projectInAngles.updateAngles = function(){
 			arc.add(new this.scope.Point(0.0, 0.0));
 			arc.closed = true;
 			Object.assign(arc, this.style.mountain);
-			Object.assign(arc, {strokeColor:null, fillColor:colors[i%3]});
+			Object.assign(arc, {strokeColor:null, fillColor:this.style.myColors[i%3]});
 			i++;
 			eventData.interiorAngles.push(el.angle());
 			eventData.edgeAngles.push(el.edges[0].absoluteAngle(el.node));

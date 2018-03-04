@@ -3,13 +3,12 @@ var reflexMatrixCallback = undefined;
 var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
 
 var reflex = new OrigamiPaper("canvas-reflection");
-// reflex.setPadding(0.0);
 
 reflex.selectedNode = undefined;
 reflex.decorationLayer = new reflex.scope.Layer();
 reflex.decorationLayer.activate();
 reflex.marks = [];
-for(var i = 0; i < 2; i++) reflex.marks.push(new reflex.scope.Shape.Circle(circleStyle));
+for(var i = 0; i < 2; i++) {reflex.marks.push(new reflex.scope.Shape.Circle(circleStyle));}
 
 var rfxTestPoints = [];
 
@@ -19,7 +18,6 @@ do{
 	rfxTestPoints[0] = new XY( (Math.random()*0.8) + 0.1, (Math.random()*0.8) + 0.1 );
 	rfxTestPoints[1] = new XY( (Math.random()*0.8) + 0.1, (Math.random()*0.8) + 0.1 );
 	rfxTestPoints[2] = new XY( (Math.random()*0.8) + 0.1, (Math.random()*0.8) + 0.1 );
-
 	for(var i = 0; i < 3; i++){
 		var iPrev = (i+2)%3;
 		var iNext = (i+1)%3;
@@ -37,7 +35,6 @@ do{
 
 reflex.marks[0].position = new XY(0.2, 0.2);
 reflex.marks[1].position = new XY(0.8, 0.8);
-
 
 reflex.computeReflection = function(){
 	paper = this.scope;
@@ -81,18 +78,18 @@ reflex.reset();
 reflex.onFrame = function(event) { }
 reflex.onResize = function(event) { }
 reflex.onMouseMove = function(event) {
-	if(reflex.selectedNode != undefined){
-		reflex.selectedNode.position = event.point;
-		reflex.reset();
+	if(this.selectedNode != undefined){
+		this.selectedNode.position = event.point;
+		this.reset();
 	}
 	this.computeReflection();
 }
 reflex.onMouseDown = function(event){
-	for(var i = 0; i < reflex.marks.length; i++){
-		if(pointsSimilar(event.point, reflex.marks[i].position)){ reflex.selectedNode = reflex.marks[i];return;}
+	for(var i = 0; i < this.marks.length; i++){
+		if(pointsSimilar(event.point, this.marks[i].position,0.05)){ this.selectedNode = this.marks[i];return;}
 	}
-	reflex.selectedNode = undefined;
+	this.selectedNode = undefined;
 }
 reflex.onMouseUp = function(event){ 
-	reflex.selectedNode = undefined;
+	this.selectedNode = undefined;
 }

@@ -36,7 +36,7 @@ axiom1.onMouseMove = function(event) {
 }
 axiom1.onMouseDown = function(event){
 	for(var i = 0; i < axiom1.marks.length; i++){
-		if(pointsSimilar(event.point, axiom1.marks[i].position)){
+		if(pointsSimilar(event.point, axiom1.marks[i].position,0.05)){
 			axiom1.selectedNode = axiom1.marks[i];
 			return;
 		}

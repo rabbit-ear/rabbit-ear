@@ -362,6 +362,12 @@ var EPSILON_UI = 0.05;
 var EPSILON_COLLINEAR = EPSILON_LOW;
 function isValidPoint(point) { return (point !== undefined && !isNaN(point.x) && !isNaN(point.y)); }
 function isValidNumber(n) { return (n !== undefined && !isNaN(n) && !isNaN(n)); }
+function pointsSimilar(a, b, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    return epsilonEqual(a.x, b.x, epsilon) && epsilonEqual(a.y, b.y, epsilon);
+}
 function map(input, fl1, ceil1, fl2, ceil2) {
     return ((input - fl1) / (ceil1 - fl1)) * (ceil2 - fl2) + fl2;
 }
@@ -439,8 +445,6 @@ function minDistBetweenPointLine(a, b, point) {
 function rayRayIntersection(aOrigin, aVector, bOrigin, bVector) {
     var u = (aOrigin.y * bVector.x + bVector.y * bOrigin.x - bOrigin.y * bVector.x - bVector.y * aOrigin.x) / (aVector.x * bVector.y - aVector.y * bVector.x);
     var v = (aOrigin.x + aVector.x * u - bOrigin.x) / bVector.x;
-    console.log(u);
-    console.log(v);
     if (epsilonEqual(bVector.x, 0, EPSILON_HIGH)) {
         v = 0;
     }

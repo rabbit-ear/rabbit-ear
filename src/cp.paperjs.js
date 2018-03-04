@@ -1,10 +1,5 @@
 // OrigamiPaper
 // render and style a crease pattern into an HTML canvas using PaperJS
-// reimplement methods for interaction
-
-// documentation
-// this.mouse.isPressed - mouse pressed state
-// this.mouse.isDragging - mouse did drag during being pressed
 
 try {
 	var cp = new CreasePattern();
@@ -15,17 +10,9 @@ try {
 
 var EPSILON_FILE_IMPORT = 0.005;
 
-function pointsSimilar(p1, p2, epsilon){
-	if(epsilon == undefined) epsilon = 0.02;
-	if( Math.abs(p1.x-p2.x) < epsilon && Math.abs(p1.y-p2.y) < epsilon ) return true;
-	return false;
-}
-
-
 ///////////////////////////////////////////////
 //  RENDER FLAT ORIGAMI CREASE PATTERN
 ///////////////////////////////////////////////
-
 
 var OrigamiPaper = (function(){
 
@@ -121,8 +108,6 @@ var OrigamiPaper = (function(){
 	}
 	OrigamiPaper.prototype.setCreasePattern = function(creasePattern){
 		this.cp = creasePattern;
-		// var width = this.cp.width();
-		// var height = this.cp.height();
 		this.draw();
 	}
 
@@ -334,6 +319,19 @@ var OrigamiPaper = (function(){
 	///////////////////////////////////////////////////
 	// STYLE
 	///////////////////////////////////////////////////
+
+	OrigamiPaper.prototype.styles = {
+		'byrne':{
+			'black':{hue:0, saturation:0, brightness:0 },
+			'red':{hue:14.4, saturation:0.87, brightness:0.90 },
+			'yellow':{hue:43.2, saturation:0.88, brightness:0.93 },
+			'darkBlue':{hue:190.8, saturation:0.82, brightness:0.28 },
+			'blue':{hue:205.2, saturation:0.74, brightness:0.61}
+		},
+		'lang':{
+
+		}
+	}
 
 
 	OrigamiPaper.prototype.styleForCrease = function(orientation){
