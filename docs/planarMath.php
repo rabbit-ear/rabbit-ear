@@ -9,7 +9,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code></code></pre>
+		<pre><code><span id="interiorAngleSpan"></span></code></pre>
 	</div>
 
 <section id="junction">
@@ -107,14 +107,34 @@ katex.render("\\begin{Bmatrix} tx \\\\ ty \\end{Bmatrix}", document.getElementBy
 </script>
 
 <script>
-reflexMatrixCallback = function(el){
-	if(el !== undefined){
-		var a = el.a.toFixed(2);
-		var b = el.b.toFixed(2);
-		var c = el.c.toFixed(2);
-		var d = el.d.toFixed(2);
-		var tx = el.tx.toFixed(2);
-		var ty = el.ty.toFixed(2);
+interiorAnglesCallback = function(event){
+	// console.log(event);
+	var string = "edges <key>=</key> ";
+	if(event !== undefined){
+		event.edgeAngles.forEach(function(el, i){
+			string += "<n>" + (el*180/Math.PI).toFixed(1) + "</n>&deg;"
+			if(i !== event.edgeAngles.length-1){ string += ", "; }
+		});
+		string += "<br>interior angles <key>=</key> ";
+		event.interiorAngles.forEach(function(el, i){
+			string += "<n>" + (el*180/Math.PI).toFixed(1) + "</n>&deg;"
+			if(i !== event.edgeAngles.length-1){ string += ", "; }
+		});
+	}
+	document.getElementById("interiorAngleSpan").innerHTML = string;
+}
+projectInAngles.onMouseMove();
+</script>
+
+<script>
+reflexMatrixCallback = function(event){
+	if(event !== undefined){
+		var a = event.a.toFixed(2);
+		var b = event.b.toFixed(2);
+		var c = event.c.toFixed(2);
+		var d = event.d.toFixed(2);
+		var tx = event.tx.toFixed(2);
+		var ty = event.ty.toFixed(2);
 		if(a == "-0.00") a = "0.00";
 		if(b == "-0.00") b = "0.00";
 		if(c == "-0.00") c = "0.00";

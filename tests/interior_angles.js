@@ -1,3 +1,6 @@
+var interiorAnglesCallback = undefined;
+
+
 var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
 var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
 var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
@@ -27,6 +30,8 @@ projectInAngles.updateAngles = function(){
 
 	var i = 0;
 	var radiuses = [0.35, 0.3, 0.25];
+
+	var eventData = {edgeAngles:[], interiorAngles:[]};
 	
 	this.centerNode.junction().joints
 		.sort(function(a,b){ return a.angle() < b.angle(); })
@@ -41,10 +46,20 @@ projectInAngles.updateAngles = function(){
 			Object.assign(arc, this.style.mountain);
 			Object.assign(arc, {strokeColor:null, fillColor:colors[i%3]});
 			i++;
+			eventData.interiorAngles.push(el.angle());
+			eventData.edgeAngles.push(el.edges[0].absoluteAngle(el.node));
 		},this);
+
+	eventData.edgeAngles.forEach(function(el,i){if(el < 0){eventData.edgeAngles[i]+=Math.PI*2;}});
+	eventData.interiorAngles.forEach(function(el,i){if(el < 0){interiorAngles[i]+=Math.PI*2;}});
+	eventData.edgeAngles.sort();
+	eventData.interiorAngles.sort();
+	if(interiorAnglesCallback !== undefined){
+		interiorAnglesCallback(eventData);
+	}
 }
 
-projectInAngles.reset = function(){
+projectInAngles.reset = function(){	
 	this.selectNearestNode = true;
 	var creases = [
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
@@ -74,6 +89,7 @@ projectInAngles.onMouseUp = function(event){
 	this.draggingNode = undefined;
 }
 projectInAngles.onMouseMove = function(event){
+	paper = this.scope;
 	if(this.draggingNode !== undefined){
 		this.draggingNode.x = event.point.x;
 		this.draggingNode.y = event.point.y;

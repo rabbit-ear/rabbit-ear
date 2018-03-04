@@ -40,6 +40,7 @@ reflex.marks[1].position = new XY(0.8, 0.8);
 
 
 reflex.computeReflection = function(){
+	paper = this.scope;
 	if(this.reflectionLine === undefined) return;
 	var m = this.reflectionLine.reflectionMatrix();
 	var p1t = rfxTestPoints[0].transform(m);

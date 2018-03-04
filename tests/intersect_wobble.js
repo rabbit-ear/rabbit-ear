@@ -1,6 +1,7 @@
 var wobble_intersections_callback = undefined;
 
 var wobble = new OrigamiPaper("canvas-intersection-wobble", new PlanarGraph());
+wobble.setBounds(-10,-5,20,10);
 
 wobble.intersections = [];
 wobble.faceLayer = new wobble.scope.Layer();

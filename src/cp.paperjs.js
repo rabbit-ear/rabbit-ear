@@ -55,6 +55,8 @@ var OrigamiPaper = (function(){
 		this.padding = 0.0075; // padding inside the canvas
 		this.buildViewMatrix();
 
+		this.bounds = undefined;
+
 		// the order of the following sets the z index order too
 		this.backgroundLayer = new this.scope.Layer();
 		this.faceLayer = new this.scope.Layer();
@@ -244,7 +246,10 @@ var OrigamiPaper = (function(){
 		this.updatePositions();
 		this.updateStyles();
 	};
-
+	OrigamiPaper.prototype.setBounds = function(x,y,width,height){
+		this.bounds = new Rect(x,y,width,height);
+		this.buildViewMatrix();
+	}
 	OrigamiPaper.prototype.setPadding = function(padding){
 		this.buildViewMatrix(padding);
 	}
@@ -260,6 +265,7 @@ var OrigamiPaper = (function(){
 		var canvasAspect = canvasWidth / canvasHeight;
 		// crease pattern size
 		var cpBounds = this.cp.bounds();
+		if(cpBounds === undefined){ cpBounds = this.bounds; console.log("using this one"); console.log(cpBounds);}
 		if(cpBounds === undefined){ cpBounds = new Rect(0,0,canvasWidth/canvasHeight,1.0); }
 		// if(cpBounds.width !== undefined){ cpWidth = this.cp.width(); }
 		// if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
