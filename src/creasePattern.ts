@@ -6,6 +6,29 @@
 
 "use strict";
 
+//////////////////////////////////////////////////////////////////////////
+// DEPENDENCIES
+interface d3VoronoiObject{
+	'edges':{
+		0:[number,number],
+		1:[number,number],
+		'left'?:{0:number,1:number,'data':[number,number],'index':number,'length':number},
+		'right'?:{0:number,1:number,'data':[number,number],'index':number,'length':number},
+		'length':number
+	}[],
+	'cells':{
+		'halfedges':number[],  // integer type, variable length
+		'site':{
+			0:number,
+			1:number,
+			'data':[number,number],
+			'length':number   // integer type
+		}
+	}[]
+}
+//////////////////////////////////////////////////////////////////////////
+// PLANAR GRAPH
+
 enum CreaseDirection{
 	mark,
 	border,
@@ -714,9 +737,9 @@ class CreasePattern extends PlanarGraph{
 		if(intersections.length){
 			var newCrease = this.crease(origin, intersections[0].point);
 			newCrease.newMadeBy.type = MadeByType.ray
-			console.log("made a new crease");
-			console.log(newCrease);
-			console.log(origin);
+			// console.log("made a new crease");
+			// console.log(newCrease);
+			// console.log(origin);
 			if(origin.equivalent(newCrease.nodes[0])){ 
 				newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[0]; 
 				newCrease.newMadeBy.endPoints = [<CreaseNode>newCrease.nodes[1]];
@@ -964,7 +987,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	// use D3 voronoi calculation and pass in as argument 'v'
-	voronoiGussets(v, interp){
+	voronoiGussets(v:d3VoronoiObject, interp?:number){
 		if(interp === undefined){ interp = 0.5; }
 		// draw classical voronoi graph edges
 		v.edges.filter(function(el){ return el !== undefined; })
@@ -995,9 +1018,10 @@ class CreasePattern extends PlanarGraph{
 		// build our list of quarter edges and points
 		var quarterEdges = [];
 		var quarterPoints = [];
-		for(var i = 0; i < v.cells.length; i++){
-			var site = v.cells[i].site;
-			var edges = v.cells[i].halfedges.map(function(el){ return v.edges[el]; });
+		var vMore = (<any>Object).assign({}, v);
+		for(var i = 0; i < vMore.cells.length; i++){
+			var site = vMore.cells[i].site;
+			var edges = vMore.cells[i].halfedges.map(function(el){ return vMore.edges[el]; });
 			// voronoi cells shrunk by interp amount
 			var theseQuarterEdgeIndices = [];
 			edges.forEach(function(el){
@@ -1006,11 +1030,10 @@ class CreasePattern extends PlanarGraph{
 				});
 				var endpoints = [ new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
 				for(var n = 0; n < vNodes.length; n++){
-					if(vNodes[n].position.equivalent(endpoints[0])){ 
+					if(vNodes[n].position.equivalent(endpoints[0])){
 						if(!vNodes[n].sites.contains(site)){
 							vNodes[n].sites.push(site);
 						}
-
 						if(!vNodes[n].quarterPoints.contains(midpoints[0], function(a,b){return a.equivalent(b);})){
 							vNodes[n].quarterPoints.push(midpoints[0]);
 						}
@@ -1019,7 +1042,7 @@ class CreasePattern extends PlanarGraph{
 						if(!vNodes[n].sites.contains(site)){
 							vNodes[n].sites.push(site);
 						}
-						if(!vNodes[n].contains(quarterPoints, midpoints[1], function(a,b){ return a.equivalent(b); })){
+						if(!vNodes[n].quarterPoints.contains(midpoints[1], function(a,b){ return a.equivalent(b); })){
 							vNodes[n].quarterPoints.push(midpoints[1]);
 						}
 					}
@@ -1038,20 +1061,20 @@ class CreasePattern extends PlanarGraph{
 				quarterEdges.push([midpoints[0], midpoints[1]]);
 				midpoints.forEach(function(el){quarterPoints.push(el);});
 			});
-			v.cells[i].quarterEdges = theseQuarterEdgeIndices;
+			vMore.cells[i].quarterEdges = theseQuarterEdgeIndices;
 		}
 		quarterEdges.forEach(function(el){
 			this.newCrease(el[0].x, el[0].y, el[1].x, el[1].y).mountain();
 		}, this);
-		v.quarterEdges = quarterEdges;
+		vMore.quarterEdges = quarterEdges;
 		quarterPoints = quarterPoints.removeDuplicates(function(a,b){ return a.equivalent(b);});
-		v.quarterPoints = quarterPoints;
-		v.nodes = vNodes;
+		vMore.quarterPoints = quarterPoints;
+		vMore.nodes = vNodes;
 
 		this.clean();
 
 		// draw the inner rabbit ear joints
-		v.nodes.forEach(function(el){
+		vMore.nodes.forEach(function(el){
 
 			if(el.quarterPoints.length === 3){
 
@@ -1098,7 +1121,7 @@ class CreasePattern extends PlanarGraph{
 					// 	0.5 * smallerInteriorAngleVector(a, b),
 					// 	0.5 * smallerInteriorAngleVector(b, a)
 					// 	];
-					var interiors = interiorAngles(a,b).forEach(function(el){return el*0.5;});
+					var interiors = interiorAngles(a,b).map(function(el){return el*0.5;});
 					triangle[i].bisectAngles = bisects;
 					triangle[i].interiorAngles = interiors;
 				}
@@ -1171,12 +1194,13 @@ class CreasePattern extends PlanarGraph{
 						for(var ba = 0; ba < triangle[i].bisectAngles.length; ba++){
 							var dir = new XY(Math.cos(triangle[i].bisectAngles[ba]), Math.sin(triangle[i].bisectAngles[ba]));
 							var crease = this.creaseRayUntilIntersection(triangle[i].point, dir);
-							if(crease.nodes[0].equivalent(triangle[i].point)){
-								rabbitEarCenters.push(new XY( crease.nodes[1].x, crease.nodes[1].y ));
-							} else if(crease.nodes[1].equivalent(triangle[i].point)){
-								rabbitEarCenters.push(new XY( crease.nodes[0].x, crease.nodes[0].y ));
+							if(crease !== undefined){
+								if(crease.nodes[0].equivalent(triangle[i].point)){
+									rabbitEarCenters.push(new XY( crease.nodes[1].x, crease.nodes[1].y ));
+								} else if(crease.nodes[1].equivalent(triangle[i].point)){
+									rabbitEarCenters.push(new XY( crease.nodes[0].x, crease.nodes[0].y ));
+								}
 							}
-
 							if(crease !== undefined){ crease.valley(); }
 						}
 					}
@@ -1264,7 +1288,7 @@ class CreasePattern extends PlanarGraph{
 
 
 	// // use D3 voronoi calculation and pass in as argument 'v'
-	voronoiSimple(v, interp){
+	voronoiSimple(v:d3VoronoiObject, interp?:number){
 		if(interp === undefined){ interp = 0.5; }
 		// protection against null data inside array
 		var vEdges = v.edges.filter(function(el){ return el !== undefined; });
@@ -1291,7 +1315,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	// use D3 voronoi calculation and pass in as argument 'v'
-	voronoi(v, interp){
+	voronoi(v:d3VoronoiObject, interp?:number){
 		if(interp === undefined){ interp = 0.5; }
 		// protection against null data inside array
 		var vEdges = v.edges.filter(function(el){ return el !== undefined; });

@@ -2375,9 +2375,6 @@ var CreasePattern = (function (_super) {
         if (intersections.length) {
             var newCrease = this.crease(origin, intersections[0].point);
             newCrease.newMadeBy.type = MadeByType.ray;
-            console.log("made a new crease");
-            console.log(newCrease);
-            console.log(origin);
             if (origin.equivalent(newCrease.nodes[0])) {
                 newCrease.newMadeBy.rayOrigin = newCrease.nodes[0];
                 newCrease.newMadeBy.endPoints = [newCrease.nodes[1]];
@@ -2675,9 +2672,10 @@ var CreasePattern = (function (_super) {
         });
         var quarterEdges = [];
         var quarterPoints = [];
-        for (var i = 0; i < v.cells.length; i++) {
-            var site = v.cells[i].site;
-            var edges = v.cells[i].halfedges.map(function (el) { return v.edges[el]; });
+        var vMore = Object.assign({}, v);
+        for (var i = 0; i < vMore.cells.length; i++) {
+            var site = vMore.cells[i].site;
+            var edges = vMore.cells[i].halfedges.map(function (el) { return vMore.edges[el]; });
             var theseQuarterEdgeIndices = [];
             edges.forEach(function (el) {
                 var midpoints = [el[0], el[1]].map(function (mapEl) {
@@ -2697,7 +2695,7 @@ var CreasePattern = (function (_super) {
                         if (!vNodes[n].sites.contains(site)) {
                             vNodes[n].sites.push(site);
                         }
-                        if (!vNodes[n].contains(quarterPoints, midpoints[1], function (a, b) { return a.equivalent(b); })) {
+                        if (!vNodes[n].quarterPoints.contains(midpoints[1], function (a, b) { return a.equivalent(b); })) {
                             vNodes[n].quarterPoints.push(midpoints[1]);
                         }
                     }
@@ -2715,17 +2713,17 @@ var CreasePattern = (function (_super) {
                 quarterEdges.push([midpoints[0], midpoints[1]]);
                 midpoints.forEach(function (el) { quarterPoints.push(el); });
             });
-            v.cells[i].quarterEdges = theseQuarterEdgeIndices;
+            vMore.cells[i].quarterEdges = theseQuarterEdgeIndices;
         }
         quarterEdges.forEach(function (el) {
             this.newCrease(el[0].x, el[0].y, el[1].x, el[1].y).mountain();
         }, this);
-        v.quarterEdges = quarterEdges;
+        vMore.quarterEdges = quarterEdges;
         quarterPoints = quarterPoints.removeDuplicates(function (a, b) { return a.equivalent(b); });
-        v.quarterPoints = quarterPoints;
-        v.nodes = vNodes;
+        vMore.quarterPoints = quarterPoints;
+        vMore.nodes = vNodes;
         this.clean();
-        v.nodes.forEach(function (el) {
+        vMore.nodes.forEach(function (el) {
             if (el.quarterPoints.length === 3) {
                 var triangle = [];
                 for (var i = 0; i < el.quarterPoints.length; i++) {
@@ -2760,7 +2758,7 @@ var CreasePattern = (function (_super) {
                     ];
                     var a = new XY(prevThird.y - triangle[i].point.y, prevThird.x - triangle[i].point.x);
                     var b = new XY(triangle[prevI].point.y - triangle[i].point.y, triangle[prevI].point.x - triangle[i].point.x);
-                    var interiors = interiorAngles(a, b).forEach(function (el) { return el * 0.5; });
+                    var interiors = interiorAngles(a, b).map(function (el) { return el * 0.5; });
                     triangle[i].bisectAngles = bisects;
                     triangle[i].interiorAngles = interiors;
                 }
@@ -2804,11 +2802,13 @@ var CreasePattern = (function (_super) {
                         for (var ba = 0; ba < triangle[i].bisectAngles.length; ba++) {
                             var dir = new XY(Math.cos(triangle[i].bisectAngles[ba]), Math.sin(triangle[i].bisectAngles[ba]));
                             var crease = this.creaseRayUntilIntersection(triangle[i].point, dir);
-                            if (crease.nodes[0].equivalent(triangle[i].point)) {
-                                rabbitEarCenters.push(new XY(crease.nodes[1].x, crease.nodes[1].y));
-                            }
-                            else if (crease.nodes[1].equivalent(triangle[i].point)) {
-                                rabbitEarCenters.push(new XY(crease.nodes[0].x, crease.nodes[0].y));
+                            if (crease !== undefined) {
+                                if (crease.nodes[0].equivalent(triangle[i].point)) {
+                                    rabbitEarCenters.push(new XY(crease.nodes[1].x, crease.nodes[1].y));
+                                }
+                                else if (crease.nodes[1].equivalent(triangle[i].point)) {
+                                    rabbitEarCenters.push(new XY(crease.nodes[0].x, crease.nodes[0].y));
+                                }
                             }
                             if (crease !== undefined) {
                                 crease.valley();

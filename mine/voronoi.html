@@ -21,6 +21,7 @@ canvas[resize]{
 	<input type="file" id="files" style="display:none;">
 	<div style="text-align:center;">
 		<a href="#" class="btn btn-lg btn-secondary" id="crease-button">Crease</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="crease-joints-button">w/Joints</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
 	</div>
 </body>
@@ -39,16 +40,11 @@ canvas[resize]{
 var showCreases = true;
 document.getElementById("crease-button").addEventListener("click", function(e){
 	e.preventDefault();
-	// var checked = $(this).prop('checked');
-	// showCreases = checked;
-	// console.log($(this).prop('checked'));
-	// project.makeVoronoi(touchNodes, 0.5, !showCreases);
-
-	// var scale = 600 / project.cpMin;
-	// var svgBlob = project.cp.svg(scale);
-	// download(svgBlob, "creasepattern.svg");
 	var v = project.makeVoronoi(touchNodes, 0.5, true);
-
+});
+document.getElementById("crease-joints-button").addEventListener("click", function(e){
+	e.preventDefault();
+	var v = project.makeVoronoiWithJoints(touchNodes, 0.5);
 });
 
 </script>
@@ -83,8 +79,36 @@ var touchNodes = new PlanarGraph();
 var touchNodesCircles = [];
 var touchNodesLayer
 
+
+touchNodes.newPlanarNode(0.69655, 0.20830);
+touchNodes.newPlanarNode(0.69853, 0.85211);
+touchNodes.newPlanarNode(0.53213, 0.50544);
+touchNodes.newPlanarNode(0.21518, 0.17066);
+touchNodes.newPlanarNode(0.21320, 0.82041);
+
+
 var dragOn = false;
 var selectedNode = undefined;
+
+project.makeVoronoiWithJoints = function(input, interpolation){
+	var nodes = input.nodes.map(function(el){return el.values();});
+	var v = voronoiAlgorithm( nodes );
+	this.cp.clear();
+	this.cp.nodes = [];
+	this.cp.edges = [];
+	this.cp.voronoiGussets(v, interpolation);
+	this.updateWeights(0.005, 0.0025);
+	this.draw();
+	touchNodesLayer.activate();
+	touchNodesLayer.removeChildren();
+	touchNodesCircles = [];
+	for(var i = 0; i < touchNodes.nodes.length; i++){
+		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.0025, fillColor:this.style.valley.strokeColor});
+		touchNodesCircles.push(nodeCircle);
+		nodeCircle.position = touchNodes.nodes[i];
+	}
+	return v;	
+}
 
 project.makeVoronoi = function(input, interpolation, gussets){
 	var nodes = input.nodes.map(function(el){return el.values();});
@@ -115,17 +139,6 @@ project.makeVoronoi = function(input, interpolation, gussets){
 	return v;
 }
 
-// project.setup = function(){
-// 
-// }
-
-// project.draw = function(){
-// }
-
-// project.setup();
-// var drawLoop = setInterval(project.draw, 1000/60);
-
-
 
 project.reset = function(){
 	this.cp.clear();
@@ -138,49 +151,6 @@ project.reset = function(){
 	if(touchNodesLayer !== undefined){ touchNodesLayer.removeChildren(); }
 	touchNodesLayer = new this.scope.Layer();
 
-	// var numdots = Math.PI*20;
-	// add to voronoi
-	// for(var i = -10; i < numdots+10; i++){
-	// 	var freq = Math.PI*2 * (i/numdots)  * 0.5;  //0.5
-	// 	var freq2 = Math.PI*2 * (i/numdots) * 3;  //4
-	// 	var x = (i/numdots) + Math.cos(freq2)*0.2;
-	// 	var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.2;
-	// 	if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
-	// 		touchNodes.newPlanarNode(x, y);
-	// 	}
-	// }
-
-	// simple example
-
-	// touchNodes.newPlanarNode(0.6, 0.15);
-	// touchNodes.newPlanarNode(0.6, 0.85);
-	// touchNodes.newPlanarNode(0.8, 0.5);
-
-	// medium example
-
-	// touchNodes.newPlanarNode(0.8895643, 0.64559477);
-	// touchNodes.newPlanarNode(0.63182229, 0.93481682);
-	// touchNodes.newPlanarNode(0.90136937, 0.31899028);
-	// touchNodes.newPlanarNode(0.79905953, 0.0179632);
-
-	// challenging example
-
-	// touchNodes.newPlanarNode(0.867921, 0.712489);
-	// touchNodes.newPlanarNode(0.781352, 0.891531);
-	// touchNodes.newPlanarNode(0.885629, 0.517707);
-	// touchNodes.newPlanarNode(0.836441, 0.303250);
-	// touchNodes.newPlanarNode(0.742002, 0.128143);
-	// touchNodes.newPlanarNode(0.657399, 0.017963);
-
-	// for(var i = 0; i < numdots+30; i++){
-	// 	var freq = Math.PI*2 * (i/numdots * .5);  //0.5
-	// 	var freq2 = Math.PI*2 * (i/numdots * Math.PI);  //4
-	// 	var x = (i/numdots) + Math.cos(freq2)*0.1;
-	// 	var y = map(Math.cos(freq), -1, 1, .1, .9) + Math.sin(freq2)*0.1;
-	// 	if(x <= 1 && x >= 0 && y >= 0 && y <= 1){
-	// 		touchNodes.newPlanarNode(x, y);
-	// 	}
-	// }
 	var v = this.makeVoronoi(touchNodes, 0.5, false);
 }
 project.reset();
