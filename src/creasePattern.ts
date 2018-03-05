@@ -65,10 +65,80 @@ class VoronoiGraph{
 	junctions:VoronoiJunction[];
 	cells:VoronoiCell[];
 
-	constructor(){
+	constructor(v:d3VoronoiObject, epsilon?:number){
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		this.edges = [];
 		this.junctions = [];
 		this.cells = [];
+
+		this.edges = v.edges.map(function(el){
+			var edge = new VoronoiEdge()
+			edge.endPoints = [new XY(el[0][0],el[0][1]), new XY(el[1][0],el[1][1])];
+			edge.cache = {'left': el.left, 'right': el.right}
+			return edge;
+		});
+
+		this.cells = v.cells.map(function(c){
+			var cell = new VoronoiCell();
+			cell.site = new XY(c.site[0], c.site[1]);
+			// use halfedge indices to make an array of VoronoiEdge
+			cell.edges = c.halfedges.map(function(hf){ return this.edges[hf]; },this);
+			// turn the edges into a circuit of points
+			cell.points = cell.edges.map(function(el,i){
+				var a = el.endPoints[0];
+				var b = el.endPoints[1];
+				var nextA = cell.edges[(i+1)%cell.edges.length].endPoints[0];
+				var nextB = cell.edges[(i+1)%cell.edges.length].endPoints[1];
+				if(a.equivalent(nextA,epsilon) || a.equivalent(nextB,epsilon)){
+					return b;
+				}
+				return a;
+			},this);
+			return cell;
+		},this);
+		// locate each of the neighbor cells for every edge
+		this.edges.forEach(function(el){
+			var thisCells:[VoronoiCell, VoronoiCell] = [undefined, undefined];
+			if(el.cache['left'] !== undefined){
+				var leftSite = new XY(el.cache['left'][0], el.cache['left'][1]);
+				for(var i = 0; i < this.cells.length; i++){
+					if(leftSite.equivalent(this.cells[i].site,epsilon)){
+						thisCells[0] = this.cells[i];
+						break;
+					}
+				}
+			}
+			if(el.cache['right'] !== undefined){
+				var rightSite = new XY(el.cache['right'][0], el.cache['right'][1]);
+				for(var i = 0; i < this.cells.length; i++){
+					if(rightSite.equivalent(this.cells[i].site,epsilon)){
+						thisCells[1] = this.cells[i];
+						break;
+					}
+				}
+			}
+			el.cells = thisCells;
+			el.cache = {};
+		},this);
+
+		var nodes:XY[] = [];
+		var compFunc = function(a:XY,b:XY){ return a.equivalent(b,epsilon); };
+		this.edges.forEach(function(el){
+			if(!nodes.contains(el.endPoints[0],compFunc)){nodes.push(el.endPoints[0]);}
+			if(!nodes.contains(el.endPoints[1],compFunc)){nodes.push(el.endPoints[1]);}
+		},this);
+		this.junctions = nodes.map(function(el){
+			var junction = new VoronoiJunction();
+			junction.position = el;
+			junction.cells = this.cells.filter(function(cell){ 
+				return cell.points.contains(el,compFunc)
+			},this);
+			junction.edges = this.edges.filter(function(edge){ 
+				return edge.endPoints.contains(el,compFunc);
+			},this);
+			return junction;
+		},this);
+		return this;
 	}
 
 	edgeExists(points:[XY,XY], epsilon?:number):VoronoiEdge{
@@ -1370,144 +1440,66 @@ class CreasePattern extends PlanarGraph{
 		}
 	}
 
-	voronoiGood(v:d3VoronoiObject, interp?:number, epsilon?:number){
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+	creaseVoronoi(v:VoronoiGraph, interp?:number){
 		if(interp === undefined){ interp = 0.5; }
-		// remove any null entries in the array
-
-		var graph = new VoronoiGraph();
-		graph.edges = v.edges.map(function(el){
-			var edge = new VoronoiEdge()
-			edge.endPoints = [new XY(el[0][0],el[0][1]), new XY(el[1][0],el[1][1])];
-			edge.cache = {'left': el.left, 'right': el.right}
-			return edge;
-		});
-
-		graph.cells = v.cells.map(function(c){
-			var cell = new VoronoiCell();
-			cell.site = new XY(c.site[0], c.site[1]);
-			// use halfedge indices to make an array of VoronoiEdge
-			cell.edges = c.halfedges.map(function(hf){ return graph.edges[hf]; });
-			// 
-			cell.points = cell.edges.map(function(el,i){
-				var a = el.endPoints[0];
-				var b = el.endPoints[1];
-				var nextA = cell.edges[(i+1)%cell.edges.length].endPoints[0];
-				var nextB = cell.edges[(i+1)%cell.edges.length].endPoints[1];
-				if(a.equivalent(nextA,epsilon) || a.equivalent(nextB,epsilon)){
-					return b;
-				}
-				return a;
-			});
-			// var circuit = c.halfedges.map(function(hf){ 
-			// 	return [new XY(v.edges[hf][0][0], v.edges[hf][0][1]),
-			// 	        new XY(v.edges[hf][1][0], v.edges[hf][1][1]) ];
-			// })
-			// .reduce(function(a,b){ return a.concat(b); })
-			// .map(function(el){
-			// 	var vector = el.subtract(cell.site);
-			// 	return {'point':el, 'angle':Math.atan2(vector.y, vector.x)}; 
-			// })
-			// // todo make sure this is sorting clockwise not counter
-			// .sort(function(a,b){ return a.angle - b.angle; })
-			// .map(function(el){ return el.point; });
-			// cell.points = circuit.filter(function(el,i){
-			// 	var nextI = (i+1)%circuit.length;
-			// 	return !el.equivalent(circuit[nextI], epsilon);
-			// })
-			return cell;
-		});
-
-		return graph;
-
-
-		// var circuits = v.cells.map(function(c){
-		// 	// var cell = new VoronoiCell();
-		// 	var cellSite = new XY(c.site[0], c.site[1]);
-		// 	var outline = c.halfedges.map(function(hf){ 
-		// 		return [new XY(v.edges[hf][0][0], v.edges[hf][0][1]),
-		// 		        new XY(v.edges[hf][1][0], v.edges[hf][1][1]) ];
-		// 	})
-		// 	.reduce(function(a,b){ return a.concat(b); })
-		// 	.map(function(el){
-		// 		var vector = el.subtract(cellSite);
-		// 		return {'point':el, 'angle':Math.atan2(vector.y, vector.x)}; 
-		// 	})
-		// 	// todo make sure this is sorting clockwise not counter
-		// 	.sort(function(a,b){ return a.angle - b.angle; })
-		// 	.map(function(el){ return el.point; });
-		// 	var circuit = outline.filter(function(el,i){
-		// 		var nextI = (i+1)%outline.length;
-		// 		return !el.equivalent(outline[nextI], epsilon);
-		// 	})
-		// 	return {'site':cellSite, 'circuit':circuit};
-		// });
-		// var g = new VoronoiGraph();
-		// circuits.forEach(function(el){
-		// 	el.circuit.forEach(function(pt){
-		// 		g.newPlanarNode(pt.x, pt.y);
-		// 	});
-		// });
-		// g.clean();
-		// circuits.forEach(function(el){
-		// 	el.circuit.forEach(function(pt,i){
-		// 		var nextI = (i+1)%el.circuit.length;
-		// 		var nextPt = el.circuit[nextI];
-		// 	});
-		// });
-		// g.clean();
-		// for(var i = 0; i < circuit.length; i++){
-		// 	var nextI = (i+1)%circuit.length;
-		// 	g.newPlanarEdge(circuit[i].x,circuit[i].y,circuit[nextI].x,circuit[nextI].y);
-		// }
-
-		// g.generateFaces();
-		// return g;
+		v.cells.forEach(function(cell){
+			cell.edges.forEach(function(edge){
+				var scaled:XY[] = edge.endPoints.map(function(el){
+					return cell.site.lerp(el,interp);
+				});
+				this.crease(scaled[0], scaled[1]).mountain();
+			},this);
+		},this);
+		v.junctions.forEach(function(j){
+			j.cells.forEach(function(cell){
+				var scaled:XY = cell.site.lerp(j.position,interp);
+				this.crease(j.position, scaled).mountain();
+			},this);
+		},this);
 	}
-
 
 	// use D3 voronoi calculation and pass in as argument 'v'
-	voronoi(v:d3VoronoiObject, interp?:number){
-		if(interp === undefined){ interp = 0.5; }
-		// protection against null data inside array
-		var vEdges = v.edges.filter(function(el){ return el !== undefined; });
-		for(var e = 0; e < vEdges.length; e++){
-			var endpts = [ new XY(vEdges[e][0][0], vEdges[e][0][1]), 
-			               new XY(vEdges[e][1][0], vEdges[e][1][1]) ];
-			// traditional voronoi diagram lines
-			this.newCrease(endpts[0].x, endpts[0].y, endpts[1].x, endpts[1].y).valley();
-			// for each edge, find the left and right cell center nodes
-			var sideNodes = [];
-			if(vEdges[e].left !== undefined){sideNodes.push(new XY(vEdges[e].left[0],vEdges[e].left[1]));}
-			if(vEdges[e].right !== undefined){sideNodes.push(new XY(vEdges[e].right[0],vEdges[e].right[1]));}
-			var midpts = sideNodes.map(function(el){
-				return [endpts[0].lerp(el, interp), endpts[1].lerp(el, interp)];
-			});
-			var arteries:[Crease,Crease][] = [];
-			for(var m = 0; m < midpts.length; m++){
-				// interpolate from the cell edge endpoints to the node
-				this.newCrease(midpts[m][0].x, midpts[m][0].y, midpts[m][1].x, midpts[m][1].y).mountain();
-				// connect smaller voronoi cells to the large voronoi cell endpoints
-				var a=this.newCrease(endpts[0].x, endpts[0].y, midpts[m][0].x, midpts[m][0].y).mountain();
-				var b=this.newCrease(endpts[1].x, endpts[1].y, midpts[m][1].x, midpts[m][1].y).mountain();
-				arteries.push([a,b]);
-			}
-			if(midpts.length == 2){
-				var c:Crease[] = [];
-				var a = this.crease(midpts[0][0], midpts[1][0]);
-				var b = this.crease(midpts[0][1], midpts[1][1]);
-				if(a !== undefined){ a.mark(); }
-				if(b !== undefined){ b.mark(); }
-				c.push(this.creaseAngleBisectorSmaller(arteries[0][0], a));
-				c.push(this.creaseAngleBisectorSmaller(a, arteries[1][0]));
-				c.push(this.creaseAngleBisectorSmaller(b, arteries[0][1]));
-				c.push(this.creaseAngleBisectorSmaller(arteries[1][1], b));
-				for(var i = 0; i < c.length; i++){
-					if(c[i] !== undefined){ c[i].noCrossing(); }
-				}
-			}
-		}
-	}
+	// voronoi(v:d3VoronoiObject, interp?:number){
+	// 	if(interp === undefined){ interp = 0.5; }
+	// 	// protection against null data inside array
+	// 	var vEdges = v.edges.filter(function(el){ return el !== undefined; });
+	// 	for(var e = 0; e < vEdges.length; e++){
+	// 		var endpts = [ new XY(vEdges[e][0][0], vEdges[e][0][1]), 
+	// 		               new XY(vEdges[e][1][0], vEdges[e][1][1]) ];
+	// 		// traditional voronoi diagram lines
+	// 		this.newCrease(endpts[0].x, endpts[0].y, endpts[1].x, endpts[1].y).valley();
+	// 		// for each edge, find the left and right cell center nodes
+	// 		var sideNodes = [];
+	// 		if(vEdges[e].left !== undefined){sideNodes.push(new XY(vEdges[e].left[0],vEdges[e].left[1]));}
+	// 		if(vEdges[e].right !== undefined){sideNodes.push(new XY(vEdges[e].right[0],vEdges[e].right[1]));}
+	// 		var midpts = sideNodes.map(function(el){
+	// 			return [endpts[0].lerp(el, interp), endpts[1].lerp(el, interp)];
+	// 		});
+	// 		var arteries:[Crease,Crease][] = [];
+	// 		for(var m = 0; m < midpts.length; m++){
+	// 			// interpolate from the cell edge endpoints to the node
+	// 			this.newCrease(midpts[m][0].x, midpts[m][0].y, midpts[m][1].x, midpts[m][1].y).mountain();
+	// 			// connect smaller voronoi cells to the large voronoi cell endpoints
+	// 			var a=this.newCrease(endpts[0].x, endpts[0].y, midpts[m][0].x, midpts[m][0].y).mountain();
+	// 			var b=this.newCrease(endpts[1].x, endpts[1].y, midpts[m][1].x, midpts[m][1].y).mountain();
+	// 			arteries.push([a,b]);
+	// 		}
+	// 		if(midpts.length == 2){
+	// 			var c:Crease[] = [];
+	// 			var a = this.crease(midpts[0][0], midpts[1][0]);
+	// 			var b = this.crease(midpts[0][1], midpts[1][1]);
+	// 			if(a !== undefined){ a.mark(); }
+	// 			if(b !== undefined){ b.mark(); }
+	// 			c.push(this.creaseAngleBisectorSmaller(arteries[0][0], a));
+	// 			c.push(this.creaseAngleBisectorSmaller(a, arteries[1][0]));
+	// 			c.push(this.creaseAngleBisectorSmaller(b, arteries[0][1]));
+	// 			c.push(this.creaseAngleBisectorSmaller(arteries[1][1], b));
+	// 			for(var i = 0; i < c.length; i++){
+	// 				if(c[i] !== undefined){ c[i].noCrossing(); }
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 
 	/////////////////////////////////////////////////////////////////////

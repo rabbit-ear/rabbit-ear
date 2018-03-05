@@ -1847,10 +1847,80 @@ var VoronoiJunction = (function () {
     return VoronoiJunction;
 }());
 var VoronoiGraph = (function () {
-    function VoronoiGraph() {
+    function VoronoiGraph(v, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
         this.edges = [];
         this.junctions = [];
         this.cells = [];
+        this.edges = v.edges.map(function (el) {
+            var edge = new VoronoiEdge();
+            edge.endPoints = [new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
+            edge.cache = { 'left': el.left, 'right': el.right };
+            return edge;
+        });
+        this.cells = v.cells.map(function (c) {
+            var cell = new VoronoiCell();
+            cell.site = new XY(c.site[0], c.site[1]);
+            cell.edges = c.halfedges.map(function (hf) { return this.edges[hf]; }, this);
+            cell.points = cell.edges.map(function (el, i) {
+                var a = el.endPoints[0];
+                var b = el.endPoints[1];
+                var nextA = cell.edges[(i + 1) % cell.edges.length].endPoints[0];
+                var nextB = cell.edges[(i + 1) % cell.edges.length].endPoints[1];
+                if (a.equivalent(nextA, epsilon) || a.equivalent(nextB, epsilon)) {
+                    return b;
+                }
+                return a;
+            }, this);
+            return cell;
+        }, this);
+        this.edges.forEach(function (el) {
+            var thisCells = [undefined, undefined];
+            if (el.cache['left'] !== undefined) {
+                var leftSite = new XY(el.cache['left'][0], el.cache['left'][1]);
+                for (var i = 0; i < this.cells.length; i++) {
+                    if (leftSite.equivalent(this.cells[i].site, epsilon)) {
+                        thisCells[0] = this.cells[i];
+                        break;
+                    }
+                }
+            }
+            if (el.cache['right'] !== undefined) {
+                var rightSite = new XY(el.cache['right'][0], el.cache['right'][1]);
+                for (var i = 0; i < this.cells.length; i++) {
+                    if (rightSite.equivalent(this.cells[i].site, epsilon)) {
+                        thisCells[1] = this.cells[i];
+                        break;
+                    }
+                }
+            }
+            el.cells = thisCells;
+            el.cache = {};
+        }, this);
+        var nodes = [];
+        var compFunc = function (a, b) { return a.equivalent(b, epsilon); };
+        this.edges.forEach(function (el) {
+            if (!nodes.contains(el.endPoints[0], compFunc)) {
+                nodes.push(el.endPoints[0]);
+            }
+            if (!nodes.contains(el.endPoints[1], compFunc)) {
+                nodes.push(el.endPoints[1]);
+            }
+        }, this);
+        this.junctions = nodes.map(function (el) {
+            var junction = new VoronoiJunction();
+            junction.position = el;
+            junction.cells = this.cells.filter(function (cell) {
+                return cell.points.contains(el, compFunc);
+            }, this);
+            junction.edges = this.edges.filter(function (edge) {
+                return edge.endPoints.contains(el, compFunc);
+            }, this);
+            return junction;
+        }, this);
+        return this;
     }
     VoronoiGraph.prototype.edgeExists = function (points, epsilon) {
         if (epsilon === undefined) {
@@ -2924,85 +2994,24 @@ var CreasePattern = (function (_super) {
             }
         }
     };
-    CreasePattern.prototype.voronoiGood = function (v, interp, epsilon) {
-        if (epsilon === undefined) {
-            epsilon = EPSILON_HIGH;
-        }
+    CreasePattern.prototype.creaseVoronoi = function (v, interp) {
         if (interp === undefined) {
             interp = 0.5;
         }
-        var graph = new VoronoiGraph();
-        graph.edges = v.edges.map(function (el) {
-            var edge = new VoronoiEdge();
-            edge.endPoints = [new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
-            edge.cache = { 'left': el.left, 'right': el.right };
-            return edge;
-        });
-        graph.cells = v.cells.map(function (c) {
-            var cell = new VoronoiCell();
-            cell.site = new XY(c.site[0], c.site[1]);
-            cell.edges = c.halfedges.map(function (hf) { return graph.edges[hf]; });
-            cell.points = cell.edges.map(function (el, i) {
-                var a = el.endPoints[0];
-                var b = el.endPoints[1];
-                var nextA = cell.edges[(i + 1) % cell.edges.length].endPoints[0];
-                var nextB = cell.edges[(i + 1) % cell.edges.length].endPoints[1];
-                if (a.equivalent(nextA, epsilon) || a.equivalent(nextB, epsilon)) {
-                    return b;
-                }
-                return a;
-            });
-            return cell;
-        });
-        return graph;
-    };
-    CreasePattern.prototype.voronoi = function (v, interp) {
-        if (interp === undefined) {
-            interp = 0.5;
-        }
-        var vEdges = v.edges.filter(function (el) { return el !== undefined; });
-        for (var e = 0; e < vEdges.length; e++) {
-            var endpts = [new XY(vEdges[e][0][0], vEdges[e][0][1]),
-                new XY(vEdges[e][1][0], vEdges[e][1][1])];
-            this.newCrease(endpts[0].x, endpts[0].y, endpts[1].x, endpts[1].y).valley();
-            var sideNodes = [];
-            if (vEdges[e].left !== undefined) {
-                sideNodes.push(new XY(vEdges[e].left[0], vEdges[e].left[1]));
-            }
-            if (vEdges[e].right !== undefined) {
-                sideNodes.push(new XY(vEdges[e].right[0], vEdges[e].right[1]));
-            }
-            var midpts = sideNodes.map(function (el) {
-                return [endpts[0].lerp(el, interp), endpts[1].lerp(el, interp)];
-            });
-            var arteries = [];
-            for (var m = 0; m < midpts.length; m++) {
-                this.newCrease(midpts[m][0].x, midpts[m][0].y, midpts[m][1].x, midpts[m][1].y).mountain();
-                var a = this.newCrease(endpts[0].x, endpts[0].y, midpts[m][0].x, midpts[m][0].y).mountain();
-                var b = this.newCrease(endpts[1].x, endpts[1].y, midpts[m][1].x, midpts[m][1].y).mountain();
-                arteries.push([a, b]);
-            }
-            if (midpts.length == 2) {
-                var c = [];
-                var a = this.crease(midpts[0][0], midpts[1][0]);
-                var b = this.crease(midpts[0][1], midpts[1][1]);
-                if (a !== undefined) {
-                    a.mark();
-                }
-                if (b !== undefined) {
-                    b.mark();
-                }
-                c.push(this.creaseAngleBisectorSmaller(arteries[0][0], a));
-                c.push(this.creaseAngleBisectorSmaller(a, arteries[1][0]));
-                c.push(this.creaseAngleBisectorSmaller(b, arteries[0][1]));
-                c.push(this.creaseAngleBisectorSmaller(arteries[1][1], b));
-                for (var i = 0; i < c.length; i++) {
-                    if (c[i] !== undefined) {
-                        c[i].noCrossing();
-                    }
-                }
-            }
-        }
+        v.cells.forEach(function (cell) {
+            cell.edges.forEach(function (edge) {
+                var scaled = edge.endPoints.map(function (el) {
+                    return cell.site.lerp(el, interp);
+                });
+                this.crease(scaled[0], scaled[1]).mountain();
+            }, this);
+        }, this);
+        v.junctions.forEach(function (j) {
+            j.cells.forEach(function (cell) {
+                var scaled = cell.site.lerp(j.position, interp);
+                this.crease(j.position, scaled).mountain();
+            }, this);
+        }, this);
     };
     CreasePattern.prototype.boundaryLineIntersection = function (origin, direction) {
         var opposite = new XY(-direction.x, -direction.y);
