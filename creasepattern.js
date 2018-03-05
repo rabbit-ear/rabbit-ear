@@ -1914,10 +1914,26 @@ var VoronoiGraph = (function () {
             junction.position = el;
             junction.cells = this.cells.filter(function (cell) {
                 return cell.points.contains(el, compFunc);
-            }, this);
+            }, this).sort(function (a, b) {
+                var vecA = a.site.subtract(el);
+                var vecB = b.site.subtract(el);
+                return Math.atan2(vecA.y, vecA.x) - Math.atan2(vecB.y, vecB.x);
+            });
             junction.edges = this.edges.filter(function (edge) {
                 return edge.endPoints.contains(el, compFunc);
-            }, this);
+            }, this).sort(function (a, b) {
+                var otherA = a.endPoints[0];
+                if (otherA.equivalent(el)) {
+                    otherA = a.endPoints[1];
+                }
+                var otherB = b.endPoints[0];
+                if (otherB.equivalent(el)) {
+                    otherB = b.endPoints[1];
+                }
+                var vecA = otherA.subtract(el);
+                var vecB = otherB.subtract(el);
+                return Math.atan2(vecA.y, vecA.x) - Math.atan2(vecB.y, vecB.x);
+            });
             return junction;
         }, this);
         return this;
@@ -3007,9 +3023,26 @@ var CreasePattern = (function (_super) {
             }, this);
         }, this);
         v.junctions.forEach(function (j) {
-            j.cells.forEach(function (cell) {
-                var scaled = cell.site.lerp(j.position, interp);
-                this.crease(j.position, scaled).mountain();
+            var endPoints = j.cells.map(function (cell) {
+                return cell.site.lerp(j.position, interp);
+            }, this);
+            endPoints.forEach(function (pt) {
+                this.crease(j.position, pt).mountain();
+            }, this);
+            endPoints.forEach(function (pt, i) {
+                var nextPt = endPoints[(i + 1) % endPoints.length];
+                this.crease(pt, nextPt).mountain();
+            }, this);
+            endPoints.forEach(function (pt, i) {
+                var prevPt = endPoints[(i + endPoints.length - 1) % endPoints.length];
+                var nextPt = endPoints[(i + 1) % endPoints.length];
+                var prevVec = prevPt.subtract(pt);
+                var nextVec = nextPt.subtract(pt);
+                var jVec = j.position.subtract(pt);
+                var rabbitA = bisect(jVec, prevVec)[0];
+                var rabbitB = bisect(jVec, nextVec)[0];
+                this.creaseRayUntilIntersection(pt, rabbitA);
+                this.creaseRayUntilIntersection(pt, rabbitB);
             }, this);
         }, this);
     };
