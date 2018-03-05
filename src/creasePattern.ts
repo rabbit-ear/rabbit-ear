@@ -33,6 +33,7 @@ class VoronoiEdge{
 	endPoints:[XY, XY];
 	junctions:[VoronoiJunction, VoronoiJunction];
 	cells:[VoronoiCell,VoronoiCell];
+	isBoundary:boolean;
 
 	cache:object = {};
 }
@@ -129,6 +130,8 @@ class VoronoiGraph{
 				}
 			}
 			el.cells = thisCells;
+			el.isBoundary = false;
+			if(el.cells[0] === undefined || el.cells[1] === undefined){el.isBoundary = true;}
 			el.cache = {};
 		},this);
 
@@ -1453,6 +1456,10 @@ class CreasePattern extends PlanarGraph{
 
 	creaseVoronoi(v:VoronoiGraph, interp?:number){
 		if(interp === undefined){ interp = 0.5; }
+		v.edges.filter(function(el){return !el.isBoundary; })
+			.forEach(function(edge){
+				this.crease(edge.endPoints[0], edge.endPoints[1]).valley();
+			},this);
 		v.cells.forEach(function(cell){
 			cell.edges.forEach(function(edge){
 				var scaled:XY[] = edge.endPoints.map(function(el){
@@ -1486,50 +1493,6 @@ class CreasePattern extends PlanarGraph{
 			},this);
 		},this);
 	}
-
-	// use D3 voronoi calculation and pass in as argument 'v'
-	// voronoi(v:d3VoronoiObject, interp?:number){
-	// 	if(interp === undefined){ interp = 0.5; }
-	// 	// protection against null data inside array
-	// 	var vEdges = v.edges.filter(function(el){ return el !== undefined; });
-	// 	for(var e = 0; e < vEdges.length; e++){
-	// 		var endpts = [ new XY(vEdges[e][0][0], vEdges[e][0][1]), 
-	// 		               new XY(vEdges[e][1][0], vEdges[e][1][1]) ];
-	// 		// traditional voronoi diagram lines
-	// 		this.newCrease(endpts[0].x, endpts[0].y, endpts[1].x, endpts[1].y).valley();
-	// 		// for each edge, find the left and right cell center nodes
-	// 		var sideNodes = [];
-	// 		if(vEdges[e].left !== undefined){sideNodes.push(new XY(vEdges[e].left[0],vEdges[e].left[1]));}
-	// 		if(vEdges[e].right !== undefined){sideNodes.push(new XY(vEdges[e].right[0],vEdges[e].right[1]));}
-	// 		var midpts = sideNodes.map(function(el){
-	// 			return [endpts[0].lerp(el, interp), endpts[1].lerp(el, interp)];
-	// 		});
-	// 		var arteries:[Crease,Crease][] = [];
-	// 		for(var m = 0; m < midpts.length; m++){
-	// 			// interpolate from the cell edge endpoints to the node
-	// 			this.newCrease(midpts[m][0].x, midpts[m][0].y, midpts[m][1].x, midpts[m][1].y).mountain();
-	// 			// connect smaller voronoi cells to the large voronoi cell endpoints
-	// 			var a=this.newCrease(endpts[0].x, endpts[0].y, midpts[m][0].x, midpts[m][0].y).mountain();
-	// 			var b=this.newCrease(endpts[1].x, endpts[1].y, midpts[m][1].x, midpts[m][1].y).mountain();
-	// 			arteries.push([a,b]);
-	// 		}
-	// 		if(midpts.length == 2){
-	// 			var c:Crease[] = [];
-	// 			var a = this.crease(midpts[0][0], midpts[1][0]);
-	// 			var b = this.crease(midpts[0][1], midpts[1][1]);
-	// 			if(a !== undefined){ a.mark(); }
-	// 			if(b !== undefined){ b.mark(); }
-	// 			c.push(this.creaseAngleBisectorSmaller(arteries[0][0], a));
-	// 			c.push(this.creaseAngleBisectorSmaller(a, arteries[1][0]));
-	// 			c.push(this.creaseAngleBisectorSmaller(b, arteries[0][1]));
-	// 			c.push(this.creaseAngleBisectorSmaller(arteries[1][1], b));
-	// 			for(var i = 0; i < c.length; i++){
-	// 				if(c[i] !== undefined){ c[i].noCrossing(); }
-	// 			}
-	// 		}
-	// 	}
-	// }
-
 
 	/////////////////////////////////////////////////////////////////////
 	

@@ -1897,6 +1897,10 @@ var VoronoiGraph = (function () {
                 }
             }
             el.cells = thisCells;
+            el.isBoundary = false;
+            if (el.cells[0] === undefined || el.cells[1] === undefined) {
+                el.isBoundary = true;
+            }
             el.cache = {};
         }, this);
         var nodes = [];
@@ -3014,6 +3018,10 @@ var CreasePattern = (function (_super) {
         if (interp === undefined) {
             interp = 0.5;
         }
+        v.edges.filter(function (el) { return !el.isBoundary; })
+            .forEach(function (edge) {
+            this.crease(edge.endPoints[0], edge.endPoints[1]).valley();
+        }, this);
         v.cells.forEach(function (cell) {
             cell.edges.forEach(function (edge) {
                 var scaled = edge.endPoints.map(function (el) {

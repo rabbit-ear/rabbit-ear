@@ -92,11 +92,12 @@ var selectedNode = undefined;
 
 project.makeVoronoiWithJoints = function(input, interpolation){
 	var nodes = input.nodes.map(function(el){return el.values();});
-	var v = voronoiAlgorithm( nodes );
+	var d3Voronoi = voronoiAlgorithm( nodes );
+	var v = new VoronoiGraph(d3Voronoi);
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.voronoiGussets(v, interpolation);
+	this.cp.creaseVoronoi(v, interpolation)
 	this.updateWeights(0.005, 0.0025);
 	this.draw();
 	touchNodesLayer.activate();
