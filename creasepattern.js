@@ -1826,6 +1826,50 @@ var PlanarGraph = (function (_super) {
     };
     return PlanarGraph;
 }(Graph));
+var VoronoiEdge = (function () {
+    function VoronoiEdge() {
+        this.cache = {};
+    }
+    return VoronoiEdge;
+}());
+var VoronoiCell = (function () {
+    function VoronoiCell() {
+        this.points = [];
+        this.edges = [];
+    }
+    return VoronoiCell;
+}());
+var VoronoiJunction = (function () {
+    function VoronoiJunction() {
+        this.edges = [];
+        this.cells = [];
+    }
+    return VoronoiJunction;
+}());
+var VoronoiGraph = (function () {
+    function VoronoiGraph() {
+        this.edges = [];
+        this.junctions = [];
+        this.cells = [];
+    }
+    VoronoiGraph.prototype.edgeExists = function (points, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        this.edges.forEach(function (el) {
+            if (el.endPoints[0].equivalent(points[0], epsilon) &&
+                el.endPoints[1].equivalent(points[1], epsilon)) {
+                return el;
+            }
+            if (el.endPoints[1].equivalent(points[0], epsilon) &&
+                el.endPoints[0].equivalent(points[1], epsilon)) {
+                return el;
+            }
+        });
+        return undefined;
+    };
+    return VoronoiGraph;
+}());
 var CreaseDirection;
 (function (CreaseDirection) {
     CreaseDirection[CreaseDirection["mark"] = 0] = "mark";
@@ -2879,6 +2923,38 @@ var CreasePattern = (function (_super) {
                 this.newCrease(endpts[1].x, endpts[1].y, midpts[m][1].x, midpts[m][1].y).mountain();
             }
         }
+    };
+    CreasePattern.prototype.voronoiGood = function (v, interp, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        if (interp === undefined) {
+            interp = 0.5;
+        }
+        var graph = new VoronoiGraph();
+        graph.edges = v.edges.map(function (el) {
+            var edge = new VoronoiEdge();
+            edge.endPoints = [new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
+            edge.cache = { 'left': el.left, 'right': el.right };
+            return edge;
+        });
+        graph.cells = v.cells.map(function (c) {
+            var cell = new VoronoiCell();
+            cell.site = new XY(c.site[0], c.site[1]);
+            cell.edges = c.halfedges.map(function (hf) { return graph.edges[hf]; });
+            cell.points = cell.edges.map(function (el, i) {
+                var a = el.endPoints[0];
+                var b = el.endPoints[1];
+                var nextA = cell.edges[(i + 1) % cell.edges.length].endPoints[0];
+                var nextB = cell.edges[(i + 1) % cell.edges.length].endPoints[1];
+                if (a.equivalent(nextA, epsilon) || a.equivalent(nextB, epsilon)) {
+                    return b;
+                }
+                return a;
+            });
+            return cell;
+        });
+        return graph;
     };
     CreasePattern.prototype.voronoi = function (v, interp) {
         if (interp === undefined) {

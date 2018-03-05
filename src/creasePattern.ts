@@ -27,7 +27,63 @@ interface d3VoronoiObject{
 	}[]
 }
 //////////////////////////////////////////////////////////////////////////
-// PLANAR GRAPH
+// CREASE PATTERN
+
+class VoronoiEdge{
+	endPoints:[XY, XY];
+	junctions:[VoronoiJunction, VoronoiJunction];
+	cells:[VoronoiCell,VoronoiCell];
+
+	cache:object = {};
+}
+
+class VoronoiCell{
+	site:XY;
+	points:XY[];
+	edges:VoronoiEdge[];
+
+	constructor(){
+		this.points = [];
+		this.edges = [];
+	}
+}
+
+class VoronoiJunction{
+	position:XY;
+	edges:VoronoiEdge[];
+	cells:VoronoiCell[];
+	isBoundary:boolean;
+
+	constructor(){
+		this.edges = [];
+		this.cells = [];
+	}
+}
+
+class VoronoiGraph{
+	edges:VoronoiEdge[];
+	junctions:VoronoiJunction[];
+	cells:VoronoiCell[];
+
+	constructor(){
+		this.edges = [];
+		this.junctions = [];
+		this.cells = [];
+	}
+
+	edgeExists(points:[XY,XY], epsilon?:number):VoronoiEdge{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		this.edges.forEach(function(el){
+			if(el.endPoints[0].equivalent(points[0], epsilon) &&
+			   el.endPoints[1].equivalent(points[1], epsilon)){ return el; }
+			if(el.endPoints[1].equivalent(points[0], epsilon) &&
+			   el.endPoints[0].equivalent(points[1], epsilon)){ return el; }
+		});
+		return undefined;
+	}
+}
+
+
 
 enum CreaseDirection{
 	mark,
@@ -1290,7 +1346,7 @@ class CreasePattern extends PlanarGraph{
 	// // use D3 voronoi calculation and pass in as argument 'v'
 	voronoiSimple(v:d3VoronoiObject, interp?:number){
 		if(interp === undefined){ interp = 0.5; }
-		// protection against null data inside array
+		// remove any null entries in the array
 		var vEdges = v.edges.filter(function(el){ return el !== undefined; });
 		for(var e = 0; e < vEdges.length; e++){
 			var endpts = [ new XY(vEdges[e][0][0], vEdges[e][0][1]), 
@@ -1313,6 +1369,102 @@ class CreasePattern extends PlanarGraph{
 			}
 		}
 	}
+
+	voronoiGood(v:d3VoronoiObject, interp?:number, epsilon?:number){
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		if(interp === undefined){ interp = 0.5; }
+		// remove any null entries in the array
+
+		var graph = new VoronoiGraph();
+		graph.edges = v.edges.map(function(el){
+			var edge = new VoronoiEdge()
+			edge.endPoints = [new XY(el[0][0],el[0][1]), new XY(el[1][0],el[1][1])];
+			edge.cache = {'left': el.left, 'right': el.right}
+			return edge;
+		});
+
+		graph.cells = v.cells.map(function(c){
+			var cell = new VoronoiCell();
+			cell.site = new XY(c.site[0], c.site[1]);
+			// use halfedge indices to make an array of VoronoiEdge
+			cell.edges = c.halfedges.map(function(hf){ return graph.edges[hf]; });
+			// 
+			cell.points = cell.edges.map(function(el,i){
+				var a = el.endPoints[0];
+				var b = el.endPoints[1];
+				var nextA = cell.edges[(i+1)%cell.edges.length].endPoints[0];
+				var nextB = cell.edges[(i+1)%cell.edges.length].endPoints[1];
+				if(a.equivalent(nextA,epsilon) || a.equivalent(nextB,epsilon)){
+					return b;
+				}
+				return a;
+			});
+			// var circuit = c.halfedges.map(function(hf){ 
+			// 	return [new XY(v.edges[hf][0][0], v.edges[hf][0][1]),
+			// 	        new XY(v.edges[hf][1][0], v.edges[hf][1][1]) ];
+			// })
+			// .reduce(function(a,b){ return a.concat(b); })
+			// .map(function(el){
+			// 	var vector = el.subtract(cell.site);
+			// 	return {'point':el, 'angle':Math.atan2(vector.y, vector.x)}; 
+			// })
+			// // todo make sure this is sorting clockwise not counter
+			// .sort(function(a,b){ return a.angle - b.angle; })
+			// .map(function(el){ return el.point; });
+			// cell.points = circuit.filter(function(el,i){
+			// 	var nextI = (i+1)%circuit.length;
+			// 	return !el.equivalent(circuit[nextI], epsilon);
+			// })
+			return cell;
+		});
+
+		return graph;
+
+
+		// var circuits = v.cells.map(function(c){
+		// 	// var cell = new VoronoiCell();
+		// 	var cellSite = new XY(c.site[0], c.site[1]);
+		// 	var outline = c.halfedges.map(function(hf){ 
+		// 		return [new XY(v.edges[hf][0][0], v.edges[hf][0][1]),
+		// 		        new XY(v.edges[hf][1][0], v.edges[hf][1][1]) ];
+		// 	})
+		// 	.reduce(function(a,b){ return a.concat(b); })
+		// 	.map(function(el){
+		// 		var vector = el.subtract(cellSite);
+		// 		return {'point':el, 'angle':Math.atan2(vector.y, vector.x)}; 
+		// 	})
+		// 	// todo make sure this is sorting clockwise not counter
+		// 	.sort(function(a,b){ return a.angle - b.angle; })
+		// 	.map(function(el){ return el.point; });
+		// 	var circuit = outline.filter(function(el,i){
+		// 		var nextI = (i+1)%outline.length;
+		// 		return !el.equivalent(outline[nextI], epsilon);
+		// 	})
+		// 	return {'site':cellSite, 'circuit':circuit};
+		// });
+		// var g = new VoronoiGraph();
+		// circuits.forEach(function(el){
+		// 	el.circuit.forEach(function(pt){
+		// 		g.newPlanarNode(pt.x, pt.y);
+		// 	});
+		// });
+		// g.clean();
+		// circuits.forEach(function(el){
+		// 	el.circuit.forEach(function(pt,i){
+		// 		var nextI = (i+1)%el.circuit.length;
+		// 		var nextPt = el.circuit[nextI];
+		// 	});
+		// });
+		// g.clean();
+		// for(var i = 0; i < circuit.length; i++){
+		// 	var nextI = (i+1)%circuit.length;
+		// 	g.newPlanarEdge(circuit[i].x,circuit[i].y,circuit[nextI].x,circuit[nextI].y);
+		// }
+
+		// g.generateFaces();
+		// return g;
+	}
+
 
 	// use D3 voronoi calculation and pass in as argument 'v'
 	voronoi(v:d3VoronoiObject, interp?:number){
