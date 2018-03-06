@@ -245,63 +245,6 @@ function convexHull(points:XY[]):XY[]{
 //                                GEOMETRY
 /////////////////////////////////////////////////////////////////////////////////
 
-class XY{
-	x:number;
-	y:number;
-	constructor(x:number, y:number){
-		this.x = x;
-		this.y = y;
-	}
-	values():[number, number]{ return [this.x, this.y]; }
-	// position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
-	// translated(dx:number, dy:number):XY{ this.x += dx; this.y += dy; return this;}
-	normalize():XY { var m = this.magnitude(); return new XY(this.x/m, this.y/m);}
-	rotate90():XY { return new XY(-this.y, this.x); }
-	rotate(angle:number, origin?:XY){
-		// TODO: needs testing
-		return this.transform( new Matrix().rotation(angle, origin) );
-		// var dx = this.x-origin.x;
-		// var dy = this.y-origin.y;
-		// var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
-		// var currentAngle = Math.atan2(dy, dx);
-		// return new XY(origin.x + radius*Math.cos(currentAngle + angle),
-		// 			  origin.y + radius*Math.sin(currentAngle + angle));
-	}
-	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
-	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
-	magnitude():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
-	distanceTo(a:XY):number{return Math.sqrt(Math.pow(this.x-a.x,2)+Math.pow(this.y-a.y,2));}
-	equivalent(point:XY, epsilon?:number):boolean{
-		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
-		// rect bounding box, cheaper than radius calculation
-		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
-	}
-	transform(matrix):XY{
-		return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx,
-					  this.x * matrix.b + this.y * matrix.d + matrix.ty);
-	}
-	lerp(point:XY, pct:number):XY{
-		var inv = 1.0 - pct;
-		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
-	}
-	/** reflects this point about a line that passes through 'a' and 'b' */
-	reflect(a:XY,b:XY):XY{ return this.transform( new Matrix().reflection(a,b) ); }
-	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
-	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
-	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }
-	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
-}
-
-class Rect{
-	// didChange:(event:object)=>void;
-	topLeft:{x:number,y:number};
-	size:{width:number, height:number};
-	constructor(x:number,y:number,width:number,height:number){
-		this.topLeft = {'x':x, 'y':y};
-		this.size = {'width':width, 'height':height};
-	}
-}
-
 /** This is a 2x3 matrix: 2x2 for scale and rotation and 2x1 for translation */
 class Matrix{
 	a:number; c:number; tx:number;
@@ -360,6 +303,151 @@ class Matrix{
 	}
 }
 
+class XY{
+	x:number;
+	y:number;
+	constructor(x:number, y:number){
+		this.x = x;
+		this.y = y;
+	}
+	values():[number, number]{ return [this.x, this.y]; }
+	// position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
+	// translated(dx:number, dy:number):XY{ this.x += dx; this.y += dy; return this;}
+	normalize():XY { var m = this.magnitude(); return new XY(this.x/m, this.y/m);}
+	rotate90():XY { return new XY(-this.y, this.x); }
+	rotate(angle:number, origin?:XY){
+		// TODO: needs testing
+		return this.transform( new Matrix().rotation(angle, origin) );
+		// var dx = this.x-origin.x;
+		// var dy = this.y-origin.y;
+		// var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
+		// var currentAngle = Math.atan2(dy, dx);
+		// return new XY(origin.x + radius*Math.cos(currentAngle + angle),
+		// 			  origin.y + radius*Math.sin(currentAngle + angle));
+	}
+	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
+	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
+	magnitude():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
+	distanceTo(a:XY):number{return Math.sqrt(Math.pow(this.x-a.x,2)+Math.pow(this.y-a.y,2));}
+	equivalent(point:XY, epsilon?:number):boolean{
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
+		// rect bounding box, cheaper than radius calculation
+		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
+	}
+	transform(matrix):XY{
+		return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx,
+					  this.x * matrix.b + this.y * matrix.d + matrix.ty);
+	}
+	lerp(point:XY, pct:number):XY{
+		var inv = 1.0 - pct;
+		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
+	}
+	/** reflects this point about a line that passes through 'a' and 'b' */
+	reflect(a:XY,b:XY):XY{ return this.transform( new Matrix().reflection(a,b) ); }
+	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
+	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
+	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }
+	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
+}
+
+class Rect{
+	// didChange:(event:object)=>void;
+	topLeft:{x:number,y:number};
+	size:{width:number, height:number};
+	constructor(x:number,y:number,width:number,height:number){
+		this.topLeft = {'x':x, 'y':y};
+		this.size = {'width':width, 'height':height};
+	}
+}
+
+class Triangle{
+	points:[XY,XY,XY];
+	circumcenter:XY;
+	joints:[Joint,Joint,Joint];
+	constructor(points:[XY,XY,XY], circumcenter:XY){
+		this.points = points;
+		this.circumcenter = circumcenter;
+		this.joints = this.points.map(function(el,i){
+			var prevI = (i+this.points.length-1)%this.points.length;
+			var nextI = (i+1)%this.points.length;
+			return new Joint(el, [this.points[prevI], this.points[nextI]]);
+		},this);
+	}
+	angles():[number,number,number]{
+		return this.joints.map(function(el){return el.angle();});
+	}
+	acute():boolean{
+		var a = this.angles();
+		for(var i = 0; i < a.length; i++){if(a[i] > Math.PI*0.5){return false;}}
+		return true;
+	}
+	obtuse():boolean{
+		var a = this.angles();
+		for(var i = 0; i < a.length; i++){if(a[i] > Math.PI*0.5){return true;}}
+		return false;
+	}
+	right():boolean{
+		var a = this.angles();
+		for(var i = 0; i < a.length; i++){if(epsilonEqual(a[i],Math.PI*0.5)){return true;}}
+		return false;
+	}
+}
+
+/** a Joint is defined by 3 nodes (one common, 2 endpoints) 
+ *  clockwise order is required
+ *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
+ */
+class Joint{
+	// the node in common with the edges
+	origin:XY;
+	// the indices of these 2 nodes directly correlate to 2 edges' indices
+	endPoints:[XY,XY];
+	// angle clockwise from edge 0 to edge 1 is in index 0. edge 1 to 0 is in index 1
+	constructor(origin:XY, endpoints:[XY,XY]){
+		this.origin = origin;
+		this.endPoints = endpoints;
+	}
+	vectors():[XY,XY]{
+		return [this.endPoints[0].subtract(this.origin), this.endPoints[1].subtract(this.origin)];
+	}
+	angle():number{
+		return clockwiseInteriorAngle(this.endPoints[0].subtract(this.origin), this.endPoints[1].subtract(this.origin));
+	}
+	bisect():XY{
+		var vectors = this.vectors();
+		var angles = vectors.map(function(el){ return Math.atan2(el.y, el.x); });
+		while(angles[0] < 0){ angles[0] += Math.PI*2; }
+		while(angles[1] < 0){ angles[1] += Math.PI*2; }
+		var interior = clockwiseInteriorAngleRadians(angles[0], angles[1]);
+		var bisected = angles[0] - interior*0.5;
+		return new XY(Math.cos(bisected), Math.sin(bisected));
+	}
+	// todo: needs testing
+	subsectAngle(divisions:number):number[]{
+		if(divisions === undefined || divisions < 1){ throw "subsetAngle() requires a parameter greater than 1"; }
+		var angles = this.vectors().map(function(el){ return Math.atan2(el.y, el.x); });
+		var interiorA = clockwiseInteriorAngleRadians(angles[0], angles[1]);
+		var results:number[] = [];
+		for(var i = 1; i < divisions; i++){
+			results.push( angles[0] - interiorA * (1.0/divisions) * i );
+		}
+		return results;
+	}
+	getEdgeVectorsForNewAngle(angle:number, lockedEdge?:PlanarEdge):[XY,XY]{
+		// todo, implement locked edge
+		var vectors = this.vectors();
+		var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
+		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
+		return vectors.map(function(el:XY,i){ return el.rotate(rotateNodes[i]); },this);
+	}
+	equivalent(a:Joint):boolean{
+		return a.origin.equivalent(this.origin) && 
+		       a.endPoints[0].equivalent(this.endPoints[0]) && 
+		       a.endPoints[1].equivalent(this.endPoints[1]);
+	}
+	// (private function)
+	sortByClockwise(){}
+}
 
 /////////////////////////////// ARRAYS /////////////////////////////// 
 // this will return the index of the object in the array, or undefined if not found

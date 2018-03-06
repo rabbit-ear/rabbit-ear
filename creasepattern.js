@@ -609,48 +609,6 @@ function convexHull(points) {
     } while (infiniteLoop < INFINITE_LOOP);
     return [];
 }
-var XY = (function () {
-    function XY(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    XY.prototype.values = function () { return [this.x, this.y]; };
-    XY.prototype.normalize = function () { var m = this.magnitude(); return new XY(this.x / m, this.y / m); };
-    XY.prototype.rotate90 = function () { return new XY(-this.y, this.x); };
-    XY.prototype.rotate = function (angle, origin) {
-        return this.transform(new Matrix().rotation(angle, origin));
-    };
-    XY.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
-    XY.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
-    XY.prototype.magnitude = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
-    XY.prototype.distanceTo = function (a) { return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2)); };
-    XY.prototype.equivalent = function (point, epsilon) {
-        if (epsilon == undefined) {
-            epsilon = EPSILON_HIGH;
-        }
-        return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon));
-    };
-    XY.prototype.transform = function (matrix) {
-        return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx, this.x * matrix.b + this.y * matrix.d + matrix.ty);
-    };
-    XY.prototype.lerp = function (point, pct) {
-        var inv = 1.0 - pct;
-        return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
-    };
-    XY.prototype.reflect = function (a, b) { return this.transform(new Matrix().reflection(a, b)); };
-    XY.prototype.scale = function (magnitude) { return new XY(this.x * magnitude, this.y * magnitude); };
-    XY.prototype.add = function (point) { return new XY(this.x + point.x, this.y + point.y); };
-    XY.prototype.subtract = function (sub) { return new XY(this.x - sub.x, this.y - sub.y); };
-    XY.prototype.midpoint = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
-    return XY;
-}());
-var Rect = (function () {
-    function Rect(x, y, width, height) {
-        this.topLeft = { 'x': x, 'y': y };
-        this.size = { 'width': width, 'height': height };
-    }
-    return Rect;
-}());
 var Matrix = (function () {
     function Matrix(a, b, c, d, tx, ty) {
         this.a = (a !== undefined) ? a : 1;
@@ -703,6 +661,140 @@ var Matrix = (function () {
         return m;
     };
     return Matrix;
+}());
+var XY = (function () {
+    function XY(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    XY.prototype.values = function () { return [this.x, this.y]; };
+    XY.prototype.normalize = function () { var m = this.magnitude(); return new XY(this.x / m, this.y / m); };
+    XY.prototype.rotate90 = function () { return new XY(-this.y, this.x); };
+    XY.prototype.rotate = function (angle, origin) {
+        return this.transform(new Matrix().rotation(angle, origin));
+    };
+    XY.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
+    XY.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
+    XY.prototype.magnitude = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    XY.prototype.distanceTo = function (a) { return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2)); };
+    XY.prototype.equivalent = function (point, epsilon) {
+        if (epsilon == undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon));
+    };
+    XY.prototype.transform = function (matrix) {
+        return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx, this.x * matrix.b + this.y * matrix.d + matrix.ty);
+    };
+    XY.prototype.lerp = function (point, pct) {
+        var inv = 1.0 - pct;
+        return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
+    };
+    XY.prototype.reflect = function (a, b) { return this.transform(new Matrix().reflection(a, b)); };
+    XY.prototype.scale = function (magnitude) { return new XY(this.x * magnitude, this.y * magnitude); };
+    XY.prototype.add = function (point) { return new XY(this.x + point.x, this.y + point.y); };
+    XY.prototype.subtract = function (sub) { return new XY(this.x - sub.x, this.y - sub.y); };
+    XY.prototype.midpoint = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
+    return XY;
+}());
+var Rect = (function () {
+    function Rect(x, y, width, height) {
+        this.topLeft = { 'x': x, 'y': y };
+        this.size = { 'width': width, 'height': height };
+    }
+    return Rect;
+}());
+var Triangle = (function () {
+    function Triangle(points, circumcenter) {
+        this.points = points;
+        this.circumcenter = circumcenter;
+        this.joints = this.points.map(function (el, i) {
+            var prevI = (i + this.points.length - 1) % this.points.length;
+            var nextI = (i + 1) % this.points.length;
+            return new Joint(el, [this.points[prevI], this.points[nextI]]);
+        }, this);
+    }
+    Triangle.prototype.angles = function () {
+        return this.joints.map(function (el) { return el.angle(); });
+    };
+    Triangle.prototype.acute = function () {
+        var a = this.angles();
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] > Math.PI * 0.5) {
+                return false;
+            }
+        }
+        return true;
+    };
+    Triangle.prototype.obtuse = function () {
+        var a = this.angles();
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] > Math.PI * 0.5) {
+                return true;
+            }
+        }
+        return false;
+    };
+    Triangle.prototype.right = function () {
+        var a = this.angles();
+        for (var i = 0; i < a.length; i++) {
+            if (epsilonEqual(a[i], Math.PI * 0.5)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    return Triangle;
+}());
+var Joint = (function () {
+    function Joint(origin, endpoints) {
+        this.origin = origin;
+        this.endPoints = endpoints;
+    }
+    Joint.prototype.vectors = function () {
+        return [this.endPoints[0].subtract(this.origin), this.endPoints[1].subtract(this.origin)];
+    };
+    Joint.prototype.angle = function () {
+        return clockwiseInteriorAngle(this.endPoints[0].subtract(this.origin), this.endPoints[1].subtract(this.origin));
+    };
+    Joint.prototype.bisect = function () {
+        var vectors = this.vectors();
+        var angles = vectors.map(function (el) { return Math.atan2(el.y, el.x); });
+        while (angles[0] < 0) {
+            angles[0] += Math.PI * 2;
+        }
+        while (angles[1] < 0) {
+            angles[1] += Math.PI * 2;
+        }
+        var interior = clockwiseInteriorAngleRadians(angles[0], angles[1]);
+        var bisected = angles[0] - interior * 0.5;
+        return new XY(Math.cos(bisected), Math.sin(bisected));
+    };
+    Joint.prototype.subsectAngle = function (divisions) {
+        if (divisions === undefined || divisions < 1) {
+            throw "subsetAngle() requires a parameter greater than 1";
+        }
+        var angles = this.vectors().map(function (el) { return Math.atan2(el.y, el.x); });
+        var interiorA = clockwiseInteriorAngleRadians(angles[0], angles[1]);
+        var results = [];
+        for (var i = 1; i < divisions; i++) {
+            results.push(angles[0] - interiorA * (1.0 / divisions) * i);
+        }
+        return results;
+    };
+    Joint.prototype.getEdgeVectorsForNewAngle = function (angle, lockedEdge) {
+        var vectors = this.vectors();
+        var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
+        var rotateNodes = [-angleChange * 0.5, angleChange * 0.5];
+        return vectors.map(function (el, i) { return el.rotate(rotateNodes[i]); }, this);
+    };
+    Joint.prototype.equivalent = function (a) {
+        return a.origin.equivalent(this.origin) &&
+            a.endPoints[0].equivalent(this.endPoints[0]) &&
+            a.endPoints[1].equivalent(this.endPoints[1]);
+    };
+    Joint.prototype.sortByClockwise = function () { };
+    return Joint;
 }());
 Array.prototype.flatMap = function (mapFunc) {
     return this.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
@@ -3018,40 +3110,53 @@ var CreasePattern = (function (_super) {
         if (interp === undefined) {
             interp = 0.5;
         }
-        v.edges.filter(function (el) { return !el.isBoundary; })
-            .forEach(function (edge) {
-            this.crease(edge.endPoints[0], edge.endPoints[1]).valley();
-        }, this);
-        v.cells.forEach(function (cell) {
-            cell.edges.forEach(function (edge) {
-                var scaled = edge.endPoints.map(function (el) {
+        var edges = v.edges.filter(function (el) { return !el.isBoundary; });
+        var cells = v.cells.map(function (cell) {
+            return cell.edges.map(function (edge) {
+                return edge.endPoints.map(function (el) {
                     return cell.site.lerp(el, interp);
                 });
-                this.crease(scaled[0], scaled[1]).mountain();
             }, this);
         }, this);
-        v.junctions.forEach(function (j) {
+        var triangles = v.junctions.map(function (j) {
             var endPoints = j.cells.map(function (cell) {
                 return cell.site.lerp(j.position, interp);
             }, this);
-            endPoints.forEach(function (pt) {
-                this.crease(j.position, pt).mountain();
+            return new Triangle(endPoints, j.position);
+        }, this);
+        edges.forEach(function (edge) {
+            this.crease(edge.endPoints[0], edge.endPoints[1]).valley();
+        }, this);
+        cells.forEach(function (cell) {
+            cell.forEach(function (edge) {
+                this.crease(edge[0], edge[1]).mountain();
             }, this);
-            endPoints.forEach(function (pt, i) {
-                var nextPt = endPoints[(i + 1) % endPoints.length];
-                this.crease(pt, nextPt).mountain();
-            }, this);
-            endPoints.forEach(function (pt, i) {
-                var prevPt = endPoints[(i + endPoints.length - 1) % endPoints.length];
-                var nextPt = endPoints[(i + 1) % endPoints.length];
-                var prevVec = prevPt.subtract(pt);
-                var nextVec = nextPt.subtract(pt);
-                var jVec = j.position.subtract(pt);
-                var rabbitA = bisect(jVec, prevVec)[0];
-                var rabbitB = bisect(jVec, nextVec)[0];
-                this.creaseRayUntilIntersection(pt, rabbitA);
-                this.creaseRayUntilIntersection(pt, rabbitB);
-            }, this);
+        }, this);
+        triangles.forEach(function (t) {
+            this.creaseTriangleRabbitEar(t);
+        }, this);
+    };
+    CreasePattern.prototype.creaseTriangleRabbitEar = function (t) {
+        if (t.obtuse()) {
+            return;
+        }
+        t.points.forEach(function (pt) {
+            this.crease(t.circumcenter, pt).mountain();
+        }, this);
+        t.points.forEach(function (pt, i) {
+            var nextPt = t.points[(i + 1) % t.points.length];
+            this.crease(pt, nextPt).mountain();
+        }, this);
+        t.points.forEach(function (pt, i) {
+            var prevPt = t.points[(i + t.points.length - 1) % t.points.length];
+            var nextPt = t.points[(i + 1) % t.points.length];
+            var prevVec = prevPt.subtract(pt);
+            var nextVec = nextPt.subtract(pt);
+            var jVec = t.circumcenter.subtract(pt);
+            var rabbitA = bisect(jVec, prevVec)[0];
+            var rabbitB = bisect(jVec, nextVec)[0];
+            this.creaseRayUntilIntersection(pt, rabbitA);
+            this.creaseRayUntilIntersection(pt, rabbitB);
         }, this);
     };
     CreasePattern.prototype.boundaryLineIntersection = function (origin, direction) {
