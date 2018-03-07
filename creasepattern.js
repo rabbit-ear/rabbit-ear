@@ -3133,31 +3133,55 @@ var CreasePattern = (function (_super) {
             }, this);
         }, this);
         triangles.forEach(function (t) {
-            this.creaseTriangleRabbitEar(t);
+            this.creaseVoronoiTriangleJoint(t);
         }, this);
     };
-    CreasePattern.prototype.creaseTriangleRabbitEar = function (t) {
-        if (t.obtuse()) {
-            return;
+    CreasePattern.prototype.creaseVoronoiIsosceles = function (vertex, base, angleLess) {
+        var baseMidPoint = base[0].midpoint(base[1]);
+        var leftJoint = new Joint(base[0], [vertex, base[1]]);
+        var bisection = leftJoint.bisect();
+        if (angleLess !== undefined) {
+            var bisectAngle = Math.atan2(bisection.y, bisection.x);
+            bisectAngle -= angleLess;
+            bisection = new XY(Math.cos(bisectAngle), Math.sin(bisectAngle));
         }
+        var intersection = rayLineSegmentIntersection(leftJoint.origin, bisection, vertex, baseMidPoint);
+        this.crease(base[0], base[1]).mountain();
+        this.crease(base[0], intersection).valley();
+        this.crease(base[1], intersection).valley();
+    };
+    CreasePattern.prototype.creaseVoronoiTriangleJoint = function (t) {
         t.points.forEach(function (pt) {
             this.crease(t.circumcenter, pt).mountain();
         }, this);
-        t.points.forEach(function (pt, i) {
+        if (t.obtuse()) {
+            var obtuse = t.angles().map(function (el, i) {
+                if (el > Math.PI * 0.5) {
+                    return i;
+                }
+                return undefined;
+            }).filter(function (el) { return el !== undefined; })[0];
+            var missingTri = [t.points[(obtuse + 2) % t.points.length],
+                t.points[(obtuse + 1) % t.points.length],
+                t.circumcenter];
+            var missingJoint = new Joint(missingTri[1], [missingTri[0], missingTri[2]]);
+            var angle = missingJoint.angle();
+            var aI = (obtuse + 2) % t.points.length;
+            var bI = (obtuse + 3) % t.points.length;
+            var cI = (obtuse + 4) % t.points.length;
+            this.creaseVoronoiIsosceles(t.circumcenter, [t.points[aI], t.points[bI]], angle * 0.5);
+            this.creaseVoronoiIsosceles(t.circumcenter, [t.points[bI], t.points[cI]], angle * 0.5);
+            return;
+        }
+        var outlineEdges = t.points.map(function (pt, i) {
             var nextPt = t.points[(i + 1) % t.points.length];
-            this.crease(pt, nextPt).mountain();
-        }, this);
-        t.points.forEach(function (pt, i) {
-            var prevPt = t.points[(i + t.points.length - 1) % t.points.length];
-            var nextPt = t.points[(i + 1) % t.points.length];
-            var prevVec = prevPt.subtract(pt);
-            var nextVec = nextPt.subtract(pt);
-            var jVec = t.circumcenter.subtract(pt);
-            var rabbitA = bisect(jVec, prevVec)[0];
-            var rabbitB = bisect(jVec, nextVec)[0];
-            this.creaseRayUntilIntersection(pt, rabbitA);
-            this.creaseRayUntilIntersection(pt, rabbitB);
-        }, this);
+            return [pt, nextPt];
+        });
+        if (t.points.length == 3) {
+            this.creaseVoronoiIsosceles(t.circumcenter, [t.points[0], t.points[1]]);
+            this.creaseVoronoiIsosceles(t.circumcenter, [t.points[1], t.points[2]]);
+            this.creaseVoronoiIsosceles(t.circumcenter, [t.points[2], t.points[0]]);
+        }
     };
     CreasePattern.prototype.boundaryLineIntersection = function (origin, direction) {
         var opposite = new XY(-direction.x, -direction.y);

@@ -1482,32 +1482,87 @@ class CreasePattern extends PlanarGraph{
 			this.crease(edge[0], edge[1]).mountain();
 		},this)},this);
 		triangles.forEach(function(t){
-			this.creaseTriangleRabbitEar(t);
+			this.creaseVoronoiTriangleJoint(t);
 		},this);
 	}
 
+	creaseVoronoiIsosceles(vertex:XY, base:[XY,XY], angleLess?:number){
+		// pct moves it away from being a uniaxial base
+		var baseMidPoint = base[0].midpoint(base[1]);
+		var leftJoint = new Joint(base[0], [vertex, base[1]]);
+		// var rightJoint = new Joint(base[0], [base[1], vertex]);
+		var bisection = leftJoint.bisect();
+		if(angleLess !== undefined){
+			var bisectAngle = Math.atan2(bisection.y, bisection.x);
+			bisectAngle -= angleLess;
+			bisection = new XY(Math.cos(bisectAngle), Math.sin(bisectAngle));
+		}
+		var intersection = rayLineSegmentIntersection(leftJoint.origin, bisection, vertex, baseMidPoint);
 
-	creaseTriangleRabbitEar(t:Triangle){
-		if(t.obtuse()){ return; }
+		this.crease(base[0], base[1]).mountain();
+		this.crease(base[0], intersection).valley();
+		this.crease(base[1], intersection).valley();
+		// this.crease(vertex, base[0]).mountain();
+		// this.crease(vertex, base[1]).mountain();
+	}
+
+	creaseVoronoiTriangleJoint(t:Triangle){
+		// crease circumcenter ribs
 		t.points.forEach(function(pt){
 			this.crease(t.circumcenter, pt).mountain();
 		},this);
-		t.points.forEach(function(pt,i){
-			var nextPt = t.points[(i+1)%t.points.length];
-			this.crease(pt, nextPt).mountain();
-		},this);
-		t.points.forEach(function(pt,i){
-			var prevPt = t.points[(i+t.points.length-1)%t.points.length];
-			var nextPt = t.points[(i+1)%t.points.length];
-			var prevVec = prevPt.subtract(pt);
-			var nextVec = nextPt.subtract(pt);
-			var jVec = t.circumcenter.subtract(pt);
-			var rabbitA = bisect(jVec, prevVec)[0];
-			var rabbitB = bisect(jVec, nextVec)[0];
-			this.creaseRayUntilIntersection(pt, rabbitA);
-			this.creaseRayUntilIntersection(pt, rabbitB);
-		},this);
 
+		if(t.obtuse()){
+			var obtuse = t.angles().map(function(el,i){
+				if(el>Math.PI*0.5){return i;}
+				return undefined;
+			}).filter(function(el){return el !== undefined})[0];
+
+			var missingTri = [ t.points[(obtuse+2)%t.points.length],
+			                   t.points[(obtuse+1)%t.points.length],
+			                   t.circumcenter ];
+	
+			var missingJoint = new Joint(missingTri[1], [missingTri[0], missingTri[2]]);
+			// the interior angle of the hidden triangle
+			var angle = missingJoint.angle();
+
+			var aI = (obtuse+2)%t.points.length;
+			var bI = (obtuse+3)%t.points.length;
+			var cI = (obtuse+4)%t.points.length;
+			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[aI],t.points[bI]], angle*0.5);
+			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[bI],t.points[cI]], angle*0.5);
+			return;
+		}
+		var outlineEdges:XY[][] = t.points.map(function(pt,i){
+			var nextPt = t.points[(i+1)%t.points.length];
+			return [pt, nextPt];
+		});
+
+		if(t.points.length == 3){
+			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[0],t.points[1]]);
+			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[1],t.points[2]]);
+			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[2],t.points[0]]);
+		}
+
+		// // crease outline
+		// outlineEdges.forEach(function(el){
+		// 	this.crease(el[0], el[1]).mountain();
+		// },this);
+		// t.points.forEach(function(pt,i){
+		// 	var nextPt = t.points[(i+1)%t.points.length];
+		// 	this.crease(pt, nextPt).mountain();
+		// },this);
+		// t.points.forEach(function(pt,i){
+		// 	var prevPt = t.points[(i+t.points.length-1)%t.points.length];
+		// 	var nextPt = t.points[(i+1)%t.points.length];
+		// 	var prevVec = prevPt.subtract(pt);
+		// 	var nextVec = nextPt.subtract(pt);
+		// 	var jVec = t.circumcenter.subtract(pt);
+		// 	var rabbitA = bisect(jVec, prevVec)[0];
+		// 	var rabbitB = bisect(jVec, nextVec)[0];
+		// 	this.creaseRayUntilIntersection(pt, rabbitA);
+		// 	this.creaseRayUntilIntersection(pt, rabbitB);
+		// },this);
 	}
 
 	/////////////////////////////////////////////////////////////////////

@@ -150,7 +150,9 @@ project.reset = function(){
 	if(touchNodesLayer !== undefined){ touchNodesLayer.removeChildren(); }
 	touchNodesLayer = new this.scope.Layer();
 
+	// var v = project.makeVoronoiWithJoints(touchNodes, 0.5);
 	var v = this.makeVoronoi(touchNodes, 0.5, false);
+
 }
 project.reset();
 
@@ -204,7 +206,8 @@ project.onMouseMove = function(event) {
 			dragOn = false;
 			touchNodes.nodes.splice(selectedNode,1);
 		}
-		var v = this.makeVoronoi(touchNodes, 0.5, false);
+		// var v = this.makeVoronoi(touchNodes, 0.5, false);
+		var v = this.makeVoronoiWithJoints(touchNodes, 0.5);
 	} else{
 		selectedNode = undefined;
 		for(var i = 0; i < touchNodes.nodes.length; i++){
