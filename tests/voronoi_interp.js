@@ -26,12 +26,13 @@ voronoiInterp.reset();
 voronoiInterp.redraw = function(){
 
 	var nodes = input.nodes.map(function(el){return el.values();});
-	var v = voronoiAlgorithm( nodes );
+	var d3Voronoi = voronoiAlgorithm( nodes );
+	var v = new VoronoiGraph(d3Voronoi);	
 
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.voronoi(v, vInterpolation);
+	this.cp.creaseVoronoi(v, vInterpolation);
 	// var delaunay = voronoi.triangles( nodes );
 	// for(var i = 0; i < delaunay.length; i++){
 	// 	var triangle = delaunay[i];

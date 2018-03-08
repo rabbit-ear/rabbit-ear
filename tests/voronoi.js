@@ -25,11 +25,13 @@ voronoiSketch.reset();
 
 voronoiSketch.redraw = function(){
 	var nodes = input.nodes.map(function(el){return el.values();});
-	var v = voronoiAlgorithm( nodes );
+	var d3Voronoi = voronoiAlgorithm( nodes );
+	var v = new VoronoiGraph(d3Voronoi);
+
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.voronoi(v, vInterpolation);
+	this.cp.creaseVoronoi(v, vInterpolation);
 
 	this.updateWeights(0.0025, 0.00125);
 	this.draw();
@@ -51,11 +53,23 @@ voronoiSketch.onResize = function(){
 
 voronoiSketch.onMouseDown = function(event){
 	if(selectedNode === undefined){
-		if(this.cp.pointInside(event.point)){ input.newPlanarNode(event.point.x, event.point.y); }
+		if(this.cp.pointInside(event.point)){ 
+			input.newPlanarNode(event.point.x, event.point.y);
+			this.redraw();
+			selectedNode = undefined;
+			for(var i = 0; i < input.nodes.length; i++){
+				if(nodeCircles[i] !== undefined){
+					var d = input.nodes[i].distanceTo(event.point);
+					if(d < 0.01){ nodeCircles[i].radius = 0.005; selectedNode = i;}
+					else        { nodeCircles[i].radius = 0.0025; }
+				}
+			}
+			dragOn = true;
+		}
 	} else{
+		this.redraw();
 		dragOn = true;
 	}
-	this.redraw();
 }
 voronoiSketch.onMouseUp = function(event){ 
 	dragOn = false;
@@ -65,10 +79,10 @@ voronoiSketch.onMouseMove = function(event) {
 	if(dragOn){
 		input.nodes[selectedNode].x = mouse.x;
 		input.nodes[selectedNode].y = mouse.y;
-		// var nodeCircle = nodeCircles[selectedNode];
-		// if(nodeCircle !== undefined){
-		// 	nodeCircle.position = event.point;
-		// }
+		if(!this.cp.contains(mouse.x, mouse.y)){
+			dragOn = false;
+			input.nodes.splice(selectedNode,1);
+		}
 		this.redraw();
 	} else{
 		selectedNode = undefined;

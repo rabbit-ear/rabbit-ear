@@ -1175,7 +1175,6 @@ class CreasePattern extends PlanarGraph{
 			var diffAngle = bisectAngle - baseAngle;
 			var doubleVector = new XY(Math.cos(baseAngle + diffAngle*2), Math.sin(baseAngle + diffAngle*2));
 			var doubleIntersection = rayLineSegmentIntersection(leftJoint.origin, doubleVector, vertex, baseMidPoint);
-			console.log(doubleIntersection);
 			this.crease(base[0], doubleIntersection).mountain();
 			this.crease(base[1], doubleIntersection).mountain();
 		}

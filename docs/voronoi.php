@@ -1,17 +1,16 @@
 <?php include 'header.php';?>
 
-<!-- <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
- -->
-
-<!-- <h3 class="centered" style="padding-top:2em;">CHAPTER V.</h3> -->
 <h1>VORONOI</h1>
 
 <section id="intro">
 
-	<div class="quote">
-		<p>The Voronoi algorithm has a special place in origami, it's an implementation of origami axiom #2.</p>
+	<div class="centered">
+		<canvas id="canvas-voronoi-many" resize class="panorama"></canvas>
 	</div>
+
+	<p>The Voronoi algorithm continues to appear in origami algorithms and research. The algorithm itself is an implementation of <a href="axioms.php">origami axiom #2</a>.</p>
+
+	<p>Gussets are inserted between neighboring cells and run parallel to the cell edges. This algorithm explores a global crease pattern where every gusset's thickness is relative to the space between the neighbor cell sites.</p>
 
 	<div class="centered">
 		<canvas id="canvas-voronoi-interpolate" resize></canvas>
@@ -21,9 +20,15 @@
 		<pre><code><v>cp</v>.<f>creaseVoronoi</f>(<n id="interp-value"></n>)</code></pre>
 	</div>
 
-	<div class="quote">
-		<p>By hand, it's easy to crease the line at the midpoint (0.5), with a computer we can parameterize this value.</p>
+	<p>It's easy to crease a gusset by hand that sits halfway between cells. With a computer we can parameterize this value to be anywhere between 0.0 and 1.0.</p>
+	
+
+	<div class="centered">
+		<canvas id="canvas-voronoi-animate-1" resize></canvas>
 	</div>
+
+	<p>A gusset joint is the area around where 3 points come together. The joint is treated differently if the triangle formed by the 3 voronoi sites is acute or obtuse.</p>
+
 
 	<div class="centered">
 		<canvas id="canvas-voronoi-edit" resize></canvas>
@@ -33,6 +38,8 @@
 </section>
 
 <script src="../lib/d3.min.js"></script>
+<script src="../tests/voronoi_many.js"></script>
+<script src="../tests/voronoi_anim1.js"></script>
 <script src="../tests/voronoi_interp.js"></script>
 <script src="../tests/voronoi_edit.js"></script>
 

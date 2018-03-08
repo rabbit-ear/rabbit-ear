@@ -18,11 +18,13 @@ var simpleVoronoi = false;
 voronoiEditor.redraw = function(){
 	paper = this.scope;
 	var nodes = inputEditor.nodes.map(function(el){return el.values();});
-	var v = voronoiAlgorithm( nodes );
+	var d3Voronoi = voronoiAlgorithm( nodes );
+	var v = new VoronoiGraph(d3Voronoi);	
+
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.voronoi(v, vInterpolation);
+	this.cp.creaseVoronoi(v, vInterpolation);
 
 	if(simpleVoronoi === true){
 		for(var i = this.cp.edges.length-1; i >= 0; i--){
