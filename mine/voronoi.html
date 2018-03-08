@@ -20,8 +20,7 @@ canvas[resize]{
 	<canvas id="canvas" resize></canvas>
 	<input type="file" id="files" style="display:none;">
 	<div style="text-align:center;">
-		<a href="#" class="btn btn-lg btn-secondary" id="crease-button">Crease</a>
-		<a href="#" class="btn btn-lg btn-secondary" id="crease-joints-button">w/Joints</a>
+		<!-- <a href="#" class="btn btn-lg btn-secondary" id="voronoi-button">Voronoi Only</a> -->
 		<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
 	</div>
 </body>
@@ -37,16 +36,10 @@ canvas[resize]{
 <script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
 
 <script>
-var showCreases = true;
-document.getElementById("crease-button").addEventListener("click", function(e){
-	e.preventDefault();
-	var v = project.makeVoronoi(touchNodes, 0.5, true);
-});
-document.getElementById("crease-joints-button").addEventListener("click", function(e){
-	e.preventDefault();
-	var v = project.makeVoronoiWithJoints(touchNodes, 0.5);
-});
-
+// document.getElementById("voronoi-button").addEventListener("click", function(e){
+// 	e.preventDefault();
+// 	// project.drawVoronoi();
+// });
 </script>
 
 <!-- download svg blob -->
@@ -79,51 +72,37 @@ var touchNodes = new PlanarGraph();
 var touchNodesCircles = [];
 var touchNodesLayer
 
-touchNodes.newPlanarNode(0.599944, 0.149394);
-touchNodes.newPlanarNode(0.653850, 0.806533);
-touchNodes.newPlanarNode(0.481864, 0.539570);
-touchNodes.newPlanarNode(0.196933, 0.259773);
-touchNodes.newPlanarNode(0.261107, 0.760328);
+// touchNodes.newPlanarNode(0.599944, 0.149394);
+// touchNodes.newPlanarNode(0.653850, 0.806533);
+// touchNodes.newPlanarNode(0.481864, 0.539570);
+// touchNodes.newPlanarNode(0.196933, 0.259773);
+// touchNodes.newPlanarNode(0.261107, 0.760328);
+
+touchNodes.newPlanarNode(0.426255, 0.023926);
+touchNodes.newPlanarNode(0.309947, 0.536469);
+touchNodes.newPlanarNode(0.268550, 0.355108);
+touchNodes.newPlanarNode(0.536649, 0.830195);
+
 
 var dragOn = false;
 var selectedNode = undefined;
 
-project.makeVoronoiWithJoints = function(input, interpolation){
-	var nodes = input.nodes.map(function(el){return el.values();});
+var interpolation = 0.5;
+
+project.drawVoronoi = function(complex, showGussets){
+	var nodes = touchNodes.nodes.map(function(el){return el.values();});
 	var d3Voronoi = voronoiAlgorithm( nodes );
 	var v = new VoronoiGraph(d3Voronoi);
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	this.cp.creaseVoronoi(v, interpolation)
-	this.updateWeights(0.005, 0.0025);
-	this.draw();
-	touchNodesLayer.activate();
-	touchNodesLayer.removeChildren();
-	touchNodesCircles = [];
-	for(var i = 0; i < touchNodes.nodes.length; i++){
-		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.0025, fillColor:this.style.valley.strokeColor});
-		touchNodesCircles.push(nodeCircle);
-		nodeCircle.position = touchNodes.nodes[i];
+	if(showGussets == false){
+		this.cp.creaseVoronoi(v, interpolation);
 	}
-	return v;	
-}
-
-project.makeVoronoi = function(input, interpolation, gussets){
-	var nodes = input.nodes.map(function(el){return el.values();});
-	var v = voronoiAlgorithm( nodes );
-	this.cp.clear();
-	this.cp.nodes = [];
-	this.cp.edges = [];
-	this.cp.voronoiSimple(v, interpolation);
-	if(gussets === false){
-		for(var i = this.cp.edges.length-1; i >= 0; i--){
-			// if(this.cp.edges[i].orientation !== CreaseDirection.valley){
-			if(this.cp.edges[i].orientation === CreaseDirection.mark || 
-			   this.cp.edges[i].orientation === CreaseDirection.mountain){
-				this.cp.removeEdge(this.cp.edges[i]);
-			}
-		}
+	else if(complex == false){
+		this.cp.creaseVoronoi(v, interpolation);
+	} else{
+		this.cp.creaseVoronoi(v, interpolation);
 	}
 	this.updateWeights(0.005, 0.0025);
 	this.draw();
@@ -138,7 +117,6 @@ project.makeVoronoi = function(input, interpolation, gussets){
 	return v;
 }
 
-
 project.reset = function(){
 	this.cp.clear();
 	this.cp.rectangle(1.3,1);
@@ -150,9 +128,7 @@ project.reset = function(){
 	if(touchNodesLayer !== undefined){ touchNodesLayer.removeChildren(); }
 	touchNodesLayer = new this.scope.Layer();
 
-	// var v = project.makeVoronoiWithJoints(touchNodes, 0.5);
-	var v = this.makeVoronoi(touchNodes, 0.5, false);
-
+	this.drawVoronoi();
 }
 project.reset();
 
@@ -163,17 +139,10 @@ project.onResize = function(){
 }
 
 project.onMouseDown = function(event){
-	// mouse change
-	// numdots = Math.floor(event.point.x * 10 + 1);
-	// console.log(numdots);
-	// this.reset();
-
-	var v;
-
 	if(selectedNode === undefined){
 		if(this.cp.pointInside(event.point)){ 
 			touchNodes.newPlanarNode(event.point.x, event.point.y); 
-			v = this.makeVoronoi(touchNodes, 0.5, false);
+			this.drawVoronoi();
 			selectedNode = undefined;
 			for(var i = 0; i < touchNodes.nodes.length; i++){
 				if(touchNodesCircles[i] !== undefined){
@@ -185,7 +154,7 @@ project.onMouseDown = function(event){
 			dragOn = true;
 		}
 	} else{
-		v = this.makeVoronoi(touchNodes, 0.5, false);
+		this.drawVoronoi();
 		dragOn = true;
 	}
 }
@@ -193,21 +162,15 @@ project.onMouseUp = function(event){
 	dragOn = false;
 }
 project.onMouseMove = function(event) {
-
 	var mouse = event.point;
 	if(dragOn){
 		touchNodes.nodes[selectedNode].x = mouse.x;
 		touchNodes.nodes[selectedNode].y = mouse.y;
-		// var nodeCircle = touchNodesCircles[selectedNode];
-		// if(nodeCircle !== undefined){
-		// 	nodeCircle.position = event.point;
-		// }
 		if(!this.cp.contains(mouse.x, mouse.y)){
 			dragOn = false;
 			touchNodes.nodes.splice(selectedNode,1);
 		}
-		// var v = this.makeVoronoi(touchNodes, 0.5, false);
-		var v = this.makeVoronoiWithJoints(touchNodes, 0.5);
+		this.drawVoronoi();
 	} else{
 		selectedNode = undefined;
 		for(var i = 0; i < touchNodes.nodes.length; i++){

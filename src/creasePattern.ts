@@ -1128,332 +1128,6 @@ class CreasePattern extends PlanarGraph{
 		throw "axiom 7: two crease lines cannot be parallel"
 	}
 
-	// use D3 voronoi calculation and pass in as argument 'v'
-	voronoiGussets(v:d3VoronoiObject, interp?:number){
-		if(interp === undefined){ interp = 0.5; }
-		// draw classical voronoi graph edges
-		v.edges.filter(function(el){ return el !== undefined; })
-			.map(function(el){
-				return [new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])]; 
-			}).forEach(function(el){
-				this.newCrease(el[0].x, el[0].y, el[1].x, el[1].y).valley();
-			},this);
-
-		// D3 gives list of edges and cells, we need to make our own list of nodes
-		var xyEdges = v.edges.filter(function(el){ return el !== undefined; })
-		                     .map(function(el){ 
-			return [new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
-		});
-		var vNodes = [];
-		for(var i = 0; i < xyEdges.length; i++){
-			vNodes.push({position:xyEdges[i][0],halfEdges:[],quarterPoints:[],sites:[]});
-			vNodes.push({position:xyEdges[i][1],halfEdges:[],quarterPoints:[],sites:[]});
-		}
-		vNodes = vNodes.removeDuplicates(function(a,b){return a.position.equivalent(b.position);});
-		xyEdges.forEach(function(el, i){
-			for(var n = 0; n < vNodes.length; n++){
-				if(el[0].equivalent(vNodes[n].position)){ vNodes[n].halfEdges.push(i); }
-				if(el[1].equivalent(vNodes[n].position)){ vNodes[n].halfEdges.push(i); }
-			}
-		});
-
-		// build our list of quarter edges and points
-		var quarterEdges = [];
-		var quarterPoints = [];
-		var vMore = (<any>Object).assign({}, v);
-		for(var i = 0; i < vMore.cells.length; i++){
-			var site = vMore.cells[i].site;
-			var edges = vMore.cells[i].halfedges.map(function(el){ return vMore.edges[el]; });
-			// voronoi cells shrunk by interp amount
-			var theseQuarterEdgeIndices = [];
-			edges.forEach(function(el){
-				var midpoints = [el[0], el[1]].map(function(mapEl){
-					return new XY(mapEl[0], mapEl[1]).lerp(new XY(site[0], site[1]), interp);
-				});
-				var endpoints = [ new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
-				for(var n = 0; n < vNodes.length; n++){
-					if(vNodes[n].position.equivalent(endpoints[0])){
-						if(!vNodes[n].sites.contains(site)){
-							vNodes[n].sites.push(site);
-						}
-						if(!vNodes[n].quarterPoints.contains(midpoints[0], function(a,b){return a.equivalent(b);})){
-							vNodes[n].quarterPoints.push(midpoints[0]);
-						}
-					}
-					if(vNodes[n].position.equivalent(endpoints[1])){ 
-						if(!vNodes[n].sites.contains(site)){
-							vNodes[n].sites.push(site);
-						}
-						if(!vNodes[n].quarterPoints.contains(midpoints[1], function(a,b){ return a.equivalent(b); })){
-							vNodes[n].quarterPoints.push(midpoints[1]);
-						}
-					}
-				}
-				for(var n = 0; n < vNodes.length; n++){
-					// sort v nodes
-					vNodes[n].quarterPoints = vNodes[n].quarterPoints.sort(function(a,b){
-						var aV = new XY(a.x - vNodes[n].position.x, a.y - vNodes[n].position.y);
-						var bV = new XY(b.x - vNodes[n].position.x, b.y - vNodes[n].position.y);
-						var aT = Math.atan2(aV.y, aV.x);
-						var bT = Math.atan2(bV.y, bV.x);
-						return (aT < bT)?-1:(aT > bT)?1:0
-					});
-				}
-				theseQuarterEdgeIndices.push(quarterEdges.length);
-				quarterEdges.push([midpoints[0], midpoints[1]]);
-				midpoints.forEach(function(el){quarterPoints.push(el);});
-			});
-			vMore.cells[i].quarterEdges = theseQuarterEdgeIndices;
-		}
-		quarterEdges.forEach(function(el){
-			this.newCrease(el[0].x, el[0].y, el[1].x, el[1].y).mountain();
-		}, this);
-		vMore.quarterEdges = quarterEdges;
-		quarterPoints = quarterPoints.removeDuplicates(function(a,b){ return a.equivalent(b);});
-		vMore.quarterPoints = quarterPoints;
-		vMore.nodes = vNodes;
-
-		this.clean();
-
-		// draw the inner rabbit ear joints
-		vMore.nodes.forEach(function(el){
-
-			if(el.quarterPoints.length === 3){
-
-				var triangle = [];  // nodes and their opposite edges
-				// gather the interior angles of the triangle
-				// determine if it is acute or obtuse (opposite face requires to be hidden)
-				for(var i = 0; i < el.quarterPoints.length; i++){
-					var nextI = (i+1)%el.quarterPoints.length;
-					var prevI = (i+el.quarterPoints.length-1)%el.quarterPoints.length;
-					var a = new XY(el.quarterPoints[prevI].x - el.quarterPoints[i].x, 
-					               el.quarterPoints[prevI].y - el.quarterPoints[i].y);
-					var b = new XY(el.quarterPoints[nextI].x - el.quarterPoints[i].x, 
-					               el.quarterPoints[nextI].y - el.quarterPoints[i].y);
-					// smallest of the 2 interior angles
-					var interiorAngle = interiorAngles(a, b)[0];
-					var acuteAngle = true;
-					if(interiorAngle > Math.PI*0.5){ acuteAngle = false; }
-					triangle.push({
-						point:el.quarterPoints[i], 
-						interiorAngle:interiorAngle,
-						oppositeEdgeVisible: acuteAngle
-						});
-				}
-				// calculate the rabbit ear folds based on 
-				for(var i = 0; i < triangle.length; i++){
-					var nextI = (i+1)%triangle.length;
-					var prevI = (i+2)%triangle.length;
-					var prevThird = el.position;
-					var nextThird = el.position;
-					if(triangle[prevI].oppositeEdgeVisible === false || 
-					   triangle[nextI].oppositeEdgeVisible === false ){
-						nextThird = triangle[prevI].point;
-						prevThird = triangle[nextI].point;
-					}
-					var bisects = [
-						bisect(prevThird.subtract(triangle[i].point), 
-						       triangle[prevI].point.subtract(triangle[i].point) )[0],
-						bisect(triangle[nextI].point.subtract(triangle[i].point),
-						       nextThird.subtract(triangle[i].point) )[0],
-						];
-					var a = new XY(prevThird.y-triangle[i].point.y, prevThird.x-triangle[i].point.x)
-					var b = new XY(triangle[prevI].point.y-triangle[i].point.y, triangle[prevI].point.x-triangle[i].point.x);
-					// var interiors = [
-					// 	0.5 * smallerInteriorAngleVector(a, b),
-					// 	0.5 * smallerInteriorAngleVector(b, a)
-					// 	];
-					var interiors = interiorAngles(a,b).map(function(el){return el*0.5;});
-					triangle[i].bisectAngles = bisects;
-					triangle[i].interiorAngles = interiors;
-				}
-				for(var i = 0; i < triangle.length; i++){
-					var nextI = (i+1)%triangle.length;
-					var prevI = (i+2)%triangle.length;
-					if(triangle[i].oppositeEdgeVisible === false){
-						var nextAbs = Math.atan2(triangle[nextI].point.y - triangle[i].point.y,
-						                         triangle[nextI].point.x - triangle[i].point.x);
-						var prevAbs = Math.atan2(triangle[prevI].point.y - triangle[i].point.y,
-						                         triangle[prevI].point.x - triangle[i].point.x);
-						triangle[i].bisectAngles = [
-							nextAbs + triangle[nextI].interiorAngles[0],
-							prevAbs - triangle[prevI].interiorAngles[0]
-							];
-					}
-				}
-				var triangleMidpoints = []
-				var hiddenOppositeAngles = [];
-				for(var i = 0; i < triangle.length; i++){
-					var nextI = (i+1)%triangle.length;
-					var prevI = (i+2)%triangle.length;
-					if(triangle[i].oppositeEdgeVisible){
-						this.newCrease(el.quarterPoints[prevI].x, el.quarterPoints[prevI].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y).mountain();
-						triangleMidpoints.push(new XY(
-							(el.quarterPoints[prevI].x + el.quarterPoints[nextI].x)*0.5, 
-							(el.quarterPoints[prevI].y + el.quarterPoints[nextI].y)*0.5
-							));
-					} else{
-						var startNode = new XY(
-							(el.quarterPoints[prevI].x + el.quarterPoints[nextI].x)*0.5, 
-							(el.quarterPoints[prevI].y + el.quarterPoints[nextI].y)*0.5
-							)
-						var endNode = el.position;
-						var angle = Math.atan2(endNode.y-startNode.y, endNode.x-startNode.x);
-						while(angle < 0) angle += Math.PI*2;
-						while(angle >= Math.PI*2) angle -= Math.PI*2;
-						hiddenOppositeAngles.push(angle);
-					}
-					// else{
-					// 	triangleMidpoints.push(new XY(el.position.x, el.position.y));						
-					// }
-				}
-
-				// this.fragment();
-				// var centerNodes = this.nodes.filter(function(fn){ return fn.equivalent(el.position,0.0001); });
-				// if(centerNodes.length > 0){
-					// var centerEdges = centerNodes[0].adjacentEdges();
-				// 	centerEdges.forEach(function(ce){
-				// 		var absAng = ce.absoluteAngle();
-				// 		var absAng2 = absAng + Math.PI;
-				// 		while(absAng2 > Math.PI*2) absAng2 -= Math.PI*2;
-				// 		if(arrayContains(hiddenOppositeAngles, absAng, function(a,b){return epsilonEqual(a,b,0.1);}) === undefined && 
-				// 		   arrayContains(hiddenOppositeAngles, absAng2, function(a,b){return epsilonEqual(a,b,0.1);}) === undefined ){
-				// 			this.removeEdge(ce);
-				// 		}
-				// 	},this);
-				// }
-
-				// triangleMidpoints.forEach(function(tm){
-				// 	// var newCrease = this.newCrease( el.position.x, el.position.y, tm.x, tm.y );
-				// 	// if(newCrease !== undefined){ newCrease.mountain(); }
-				// },this);
-
-				var rabbitEarCenters = [];
-				for(var i = 0; i < triangle.length; i++){
-					var nextI = (i+1)%triangle.length;
-					var prevI = (i+2)%triangle.length;
-					if(triangle[i].bisectAngles !== undefined){
-						for(var ba = 0; ba < triangle[i].bisectAngles.length; ba++){
-							var dir = new XY(Math.cos(triangle[i].bisectAngles[ba]), Math.sin(triangle[i].bisectAngles[ba]));
-							var crease = this.creaseRayUntilIntersection(triangle[i].point, dir);
-							if(crease !== undefined){
-								if(crease.nodes[0].equivalent(triangle[i].point)){
-									rabbitEarCenters.push(new XY( crease.nodes[1].x, crease.nodes[1].y ));
-								} else if(crease.nodes[1].equivalent(triangle[i].point)){
-									rabbitEarCenters.push(new XY( crease.nodes[0].x, crease.nodes[0].y ));
-								}
-							}
-							if(crease !== undefined){ crease.valley(); }
-						}
-					}
-				}
-				rabbitEarCenters = rabbitEarCenters.removeDuplicates(function(a,b){return a.equivalent(b)});
-
-				this.fragment();
-
-				triangleMidpoints.forEach(function(tm){
-					var tmCreases = this.edges.filter(function(cr){
-						return cr.nodes[0].equivalent(tm, 0.0001) || cr.nodes[1].equivalent(tm, 0.0001);
-					});
-					tmCreases.forEach(function(cr){
-						for(var i = 0; i < rabbitEarCenters.length; i++){
-							if(cr.nodes[0].equivalent(rabbitEarCenters[i], 0.0001) || 
-							   cr.nodes[1].equivalent(rabbitEarCenters[i], 0.0001) ){
-								cr.mountain();
-							}
-						}
-					});
-				},this);
-
-				// for(var i = 0 ; i < centerEdges.length; i++){
-				// 	this.crease(centerEdges[i].x, centerEdges[i].y, rabbitEarCenters[i].x, rabbitEarCenters[i].y);
-				// }
-
-				// this.fragment();
-				// var centerNodes = this.nodes.filter(function(fn){ return fn.equivalent(el.position,0.0001); });
-				// if(centerNodes.length > 0){
-				// 	var centerEdges = centerNodes[0].adjacentEdges();
-				// 	centerEdges.forEach(function(ce){
-				// 		if(ce.orientation !== CreaseDirection.valley){
-				// 			this.removeEdge(ce);
-				// 		}
-				// 	},this);
-				// }
-
-				// rabbitEarCenters.forEach(function(re){
-				// 	var newCrease = this.newCrease( el.position.x, el.position.y, re.x, re.y );
-				// 	if(newCrease !== undefined){ newCrease.valley(); }
-				// },this);
-
-
-
-				// console.log(triangle);
-				el.triangle = triangle;
-
-			} else{
-				// triangle boundary line
-				for(var i = 0; i < el.quarterPoints.length; i++){
-					var nextI = (i+1)%el.quarterPoints.length;
-					var prevI = (i+el.quarterPoints.length-1)%el.quarterPoints.length;
-					var nextNextI = (i+2)%el.quarterPoints.length;
-					
-
-					var a1 = new XY(el.quarterPoints[prevI].x - el.quarterPoints[i].x, 
-					                el.quarterPoints[prevI].y - el.quarterPoints[i].y);
-					var b1 = new XY(el.quarterPoints[nextI].x - el.quarterPoints[i].x, 
-					                el.quarterPoints[nextI].y - el.quarterPoints[i].y);
-					var interiorAngle1 = interiorAngles(a1,b1)[0];
-					// var interiorAngle1 = smallerInteriorAngleVector(el.quarterPoints[i], el.quarterPoints[prevI], el.quarterPoints[nextI]);
-					var a2 = new XY(el.quarterPoints[i].x - el.quarterPoints[nextI].x, 
-					                el.quarterPoints[i].y - el.quarterPoints[nextI].y);
-					var b2 = new XY(el.quarterPoints[nextNextI].x - el.quarterPoints[nextI].x, 
-					                el.quarterPoints[nextNextI].y - el.quarterPoints[nextI].y);
-					var interiorAngle2 = interiorAngles(a2, b2)[0];
-					// var interiorAngle2 = smallerInteriorAngleVector(el.quarterPoints[nextI], el.quarterPoints[i], el.quarterPoints[nextNextI]);
-					if(interiorAngle1 + interiorAngle2 > Math.PI*0.5){
-						this.newCrease(el.quarterPoints[i].x, el.quarterPoints[i].y, el.quarterPoints[nextI].x, el.quarterPoints[nextI].y).mountain();
-					}
-				}
-			}
-
-			// site - quarterpoint ribs
-			el.quarterPoints.forEach(function(qp){
-				this.newCrease(el.position.x, el.position.y, qp.x, qp.y).mountain();
-			}, this);
-
-
-			// this.fragment();
-		}, this);
-	}
-
-
-	// // use D3 voronoi calculation and pass in as argument 'v'
-	voronoiSimple(v:d3VoronoiObject, interp?:number){
-		if(interp === undefined){ interp = 0.5; }
-		// remove any null entries in the array
-		var vEdges = v.edges.filter(function(el){ return el !== undefined; });
-		for(var e = 0; e < vEdges.length; e++){
-			var endpts = [ new XY(vEdges[e][0][0], vEdges[e][0][1]), 
-			               new XY(vEdges[e][1][0], vEdges[e][1][1]) ];
-			// traditional voronoi diagram lines
-			this.newCrease(endpts[0].x, endpts[0].y, endpts[1].x, endpts[1].y).valley();
-			// for each edge, find the left and right cell center nodes
-			var sideNodes = [];
-			if(vEdges[e].left !== undefined){sideNodes.push(new XY(vEdges[e].left[0],vEdges[e].left[1]));}
-			if(vEdges[e].right !== undefined){sideNodes.push(new XY(vEdges[e].right[0],vEdges[e].right[1]));}
-			var midpts = sideNodes.map(function(el){
-				return [endpts[0].lerp(el, interp), endpts[1].lerp(el, interp)];
-			});
-			for(var m = 0; m < midpts.length; m++){
-				// interpolate from the cell edge endpoints to the node
-				this.newCrease(midpts[m][0].x, midpts[m][0].y, midpts[m][1].x, midpts[m][1].y).mountain();
-				// connect smaller voronoi cells to the large voronoi cell endpoints
-				this.newCrease(endpts[0].x, endpts[0].y, midpts[m][0].x, midpts[m][0].y).mountain();
-				this.newCrease(endpts[1].x, endpts[1].y, midpts[m][1].x, midpts[m][1].y).mountain();
-			}
-		}
-	}
-
 	creaseVoronoi(v:VoronoiGraph, interp?:number){
 		if(interp === undefined){ interp = 0.5; }
 
@@ -1496,6 +1170,14 @@ class CreasePattern extends PlanarGraph{
 			var bisectAngle = Math.atan2(bisection.y, bisection.x);
 			bisectAngle -= angleLess;
 			bisection = new XY(Math.cos(bisectAngle), Math.sin(bisectAngle));
+			var baseAngle = Math.atan2(base[1].y-base[0].y, base[1].x - base[0].x);
+			// var baseAngle = Math.atan2(base[0].y-base[1].y, base[0].x - base[1].x);
+			var diffAngle = bisectAngle - baseAngle;
+			var doubleVector = new XY(Math.cos(baseAngle + diffAngle*2), Math.sin(baseAngle + diffAngle*2));
+			var doubleIntersection = rayLineSegmentIntersection(leftJoint.origin, doubleVector, vertex, baseMidPoint);
+			console.log(doubleIntersection);
+			this.crease(base[0], doubleIntersection).mountain();
+			this.crease(base[1], doubleIntersection).mountain();
 		}
 		var intersection = rayLineSegmentIntersection(leftJoint.origin, bisection, vertex, baseMidPoint);
 
@@ -1508,15 +1190,18 @@ class CreasePattern extends PlanarGraph{
 
 	creaseVoronoiTriangleJoint(t:Triangle){
 		// crease circumcenter ribs
-		t.points.forEach(function(pt){
-			this.crease(t.circumcenter, pt).mountain();
-		},this);
+		// t.points.forEach(function(pt){
+		// 	this.crease(t.circumcenter, pt).mountain();
+		// },this);
 
 		if(t.obtuse()){
-			var obtuse = t.angles().map(function(el,i){
+			// locate the obtuse angle
+			var obtuse:number = t.angles().map(function(el,i){
 				if(el>Math.PI*0.5){return i;}
 				return undefined;
 			}).filter(function(el){return el !== undefined})[0];
+			// crease the one joint line that will always be present
+			this.crease(t.circumcenter, t.points[obtuse]).mountain();
 
 			var missingTri = [ t.points[(obtuse+2)%t.points.length],
 			                   t.points[(obtuse+1)%t.points.length],
@@ -1532,37 +1217,21 @@ class CreasePattern extends PlanarGraph{
 			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[aI],t.points[bI]], angle*0.5);
 			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[bI],t.points[cI]], angle*0.5);
 			return;
+		} else{
+			t.points.forEach(function(pt){
+				this.crease(t.circumcenter, pt).mountain();
+			},this);
 		}
+
 		var outlineEdges:XY[][] = t.points.map(function(pt,i){
 			var nextPt = t.points[(i+1)%t.points.length];
 			return [pt, nextPt];
 		});
-
 		if(t.points.length == 3){
 			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[0],t.points[1]]);
 			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[1],t.points[2]]);
 			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[2],t.points[0]]);
 		}
-
-		// // crease outline
-		// outlineEdges.forEach(function(el){
-		// 	this.crease(el[0], el[1]).mountain();
-		// },this);
-		// t.points.forEach(function(pt,i){
-		// 	var nextPt = t.points[(i+1)%t.points.length];
-		// 	this.crease(pt, nextPt).mountain();
-		// },this);
-		// t.points.forEach(function(pt,i){
-		// 	var prevPt = t.points[(i+t.points.length-1)%t.points.length];
-		// 	var nextPt = t.points[(i+1)%t.points.length];
-		// 	var prevVec = prevPt.subtract(pt);
-		// 	var nextVec = nextPt.subtract(pt);
-		// 	var jVec = t.circumcenter.subtract(pt);
-		// 	var rabbitA = bisect(jVec, prevVec)[0];
-		// 	var rabbitB = bisect(jVec, nextVec)[0];
-		// 	this.creaseRayUntilIntersection(pt, rabbitA);
-		// 	this.creaseRayUntilIntersection(pt, rabbitB);
-		// },this);
 	}
 
 	/////////////////////////////////////////////////////////////////////
