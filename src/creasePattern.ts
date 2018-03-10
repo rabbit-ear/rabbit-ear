@@ -1128,7 +1128,7 @@ class CreasePattern extends PlanarGraph{
 		throw "axiom 7: two crease lines cannot be parallel"
 	}
 
-	creaseVoronoi(v:VoronoiGraph, interp?:number){
+	creaseVoronoi(v:VoronoiGraph, interp?:number):Triangle[]{
 		if(interp === undefined){ interp = 0.5; }
 
 		// original voronoi graph edges
@@ -1158,6 +1158,7 @@ class CreasePattern extends PlanarGraph{
 		triangles.forEach(function(t){
 			this.creaseVoronoiTriangleJoint(t);
 		},this);
+		return triangles;
 	}
 
 	creaseVoronoiIsosceles(vertex:XY, base:[XY,XY], angleLess?:number){

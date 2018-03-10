@@ -8,9 +8,11 @@
 		<canvas id="canvas-voronoi-many" resize class="panorama"></canvas>
 	</div>
 
-	<p>The Voronoi algorithm continues to appear in origami algorithms and research. The algorithm itself is an implementation of <a href="axioms.php">origami axiom #2</a>.</p>
+	<p>The Voronoi algorithm repeatedly appears in origami algorithms and research. The algorithm itself is an implementation of <a href="axioms.php">origami axiom #2</a>.</p>
 
-	<p>Gussets are inserted between neighboring cells and run parallel to the cell edges. This algorithm explores a global crease pattern where every gusset's thickness is relative to the space between the neighbor cell sites.</p>
+<h2>Gussets</h2>
+
+	<p>Gussets are channels inserted between cells that run parallel to the cell edges. This specific implementation explores a global crease pattern where every gusset's thickness is relative to the distance between the Voronoi sites.</p>
 
 	<div class="centered">
 		<canvas id="canvas-voronoi-interpolate" resize></canvas>
@@ -22,26 +24,29 @@
 
 	<p>It's easy to crease a gusset by hand that sits halfway between cells. With a computer we can parameterize this value to be anywhere between 0.0 and 1.0.</p>
 	
+<h2>Gusset Joints</h2>
 
 	<div class="centered">
+		<canvas id="canvas-voronoi-animate-2" resize></canvas>
 		<canvas id="canvas-voronoi-animate-1" resize></canvas>
 	</div>
 
-	<p>A gusset joint is the area around where 3 points come together. The joint is treated differently if the triangle formed by the 3 voronoi sites is acute or obtuse.</p>
+	<p>A gusset joint is the area around where 3 points come together. If the 3 Voronoi sites form an acute or right triangle, the joint is a triangle; if the 3 sites form an obtuse triangle the joint is a quadrilateral.</p>
 
 
-	<div class="centered">
+<!-- 	<div class="centered">
 		<canvas id="canvas-voronoi-edit" resize></canvas>
-	</div>
+	</div> -->
 
 
 </section>
 
 <script src="../lib/d3.min.js"></script>
 <script src="../tests/voronoi_many.js"></script>
+<script src="../tests/voronoi_anim2.js"></script>
 <script src="../tests/voronoi_anim1.js"></script>
 <script src="../tests/voronoi_interp.js"></script>
-<script src="../tests/voronoi_edit.js"></script>
+<!-- <script src="../tests/voronoi_edit.js"></script> -->
 
 <script type="text/javascript">
 

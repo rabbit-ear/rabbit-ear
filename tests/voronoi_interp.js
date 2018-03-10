@@ -27,28 +27,14 @@ voronoiInterp.redraw = function(){
 
 	var nodes = input.nodes.map(function(el){return el.values();});
 	var d3Voronoi = voronoiAlgorithm( nodes );
-	var v = new VoronoiGraph(d3Voronoi);	
+	var v = new VoronoiGraph(d3Voronoi);
 
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
 	this.cp.creaseVoronoi(v, vInterpolation);
-	// var delaunay = voronoi.triangles( nodes );
-	// for(var i = 0; i < delaunay.length; i++){
-	// 	var triangle = delaunay[i];
-	// 	for(var j = 0; j < triangle.length; j++){
-	// 		var nextJ = (j+1)%3;
-	// 		this.cp.crease(triangle[j][0], triangle[j][1], triangle[nextJ][0], triangle[nextJ][1]).mark();
-	// 	}
-	// }
-	// console.log(v);
-	// console.log(delaunay);
-
-	// this.cp.clean();
-	// // this.cp.generateFaces();
 	this.updateWeights(0.005, 0.0025);
 	this.draw();
-	// this.update();
 
 	for(var i = 0; i < nodes.length; i++){
 		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.01, fillColor:this.style.valley.strokeColor});

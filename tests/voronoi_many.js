@@ -1,29 +1,40 @@
-var voronoiSketch = new OrigamiPaper("canvas-voronoi");
-// var aspect = voronoiSketch.canvas.width / voronoiSketch.canvas.height;
-// voronoiSketch.cp.rectangle(aspect, 1.0);
+var voronoiMany = new OrigamiPaper("canvas-voronoi-many");
+var aspect = voronoiMany.canvas.width / voronoiMany.canvas.height;
+voronoiMany.cp.rectangle(aspect, 1.0);
 
-voronoiSketch.updateWeights(0.005, 0.0025);
-voronoiSketch.setPadding(0.05);
-voronoiSketch.updateWeights(0.005, 0.0025);
+voronoiMany.updateWeights(0.005, 0.0025);
+voronoiMany.setPadding(0.05);
+voronoiMany.updateWeights(0.005, 0.0025);
 
-voronoiSketch.input = new PlanarGraph();
-voronoiSketch.voronoiAlgorithm; // global D3 algorithm implementation
-voronoiSketch.vInterpolation = 0.5;
-voronoiSketch.nodeCircles = [];
+voronoiMany.input = new PlanarGraph();
+voronoiMany.voronoiAlgorithm; // global D3 algorithm implementation
+voronoiMany.vInterpolation = 0.5;
+voronoiMany.nodeCircles = [];
 
-voronoiSketch.dragOn = false;
-voronoiSketch.selectedNode = undefined;
+voronoiMany.dragOn = false;
+voronoiMany.selectedNode = undefined;
 
-voronoiSketch.reset = function(){
+voronoiMany.reset = function(){
 	this.cp.clear();
 	this.draw();
 	var bounds = this.cp.bounds();
 	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
 	this.voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
-voronoiSketch.reset();
+voronoiMany.reset();
 
-voronoiSketch.redraw = function(){
+voronoiMany.fillWithPoints = function(){
+	var bounds = this.cp.bounds();
+	for(var i = 0; i < 30; i++){
+		var randX = Math.random() * bounds.size.width;
+		var randY = Math.random() * bounds.size.height;
+		voronoiMany.input.newPlanarNode(randX, randY);
+	}
+}
+voronoiMany.fillWithPoints();
+
+
+voronoiMany.redraw = function(){
 	var nodes = this.input.nodes.map(function(el){return el.values();});
 	var d3Voronoi = this.voronoiAlgorithm( nodes );
 	var v = new VoronoiGraph(d3Voronoi);
@@ -42,15 +53,15 @@ voronoiSketch.redraw = function(){
 		nodeCircle.position = nodes[i];
 	}
 }
-voronoiSketch.redraw();
+voronoiMany.redraw();
 
-voronoiSketch.onResize = function(){
+voronoiMany.onResize = function(){
 	var bounds = this.cp.bounds();
 	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
 	this.voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 
-voronoiSketch.onMouseDown = function(event){
+voronoiMany.onMouseDown = function(event){
 	if(this.selectedNode === undefined){
 		if(this.cp.pointInside(event.point)){ 
 			this.input.newPlanarNode(event.point.x, event.point.y);
@@ -70,10 +81,10 @@ voronoiSketch.onMouseDown = function(event){
 		this.dragOn = true;
 	}
 }
-voronoiSketch.onMouseUp = function(event){ 
+voronoiMany.onMouseUp = function(event){ 
 	this.dragOn = false;
 }
-voronoiSketch.onMouseMove = function(event) { 
+voronoiMany.onMouseMove = function(event) { 
 	var mouse = event.point;
 	if(this.dragOn){
 		this.input.nodes[this.selectedNode].x = mouse.x;
@@ -94,4 +105,4 @@ voronoiSketch.onMouseMove = function(event) {
 		}
 	}
 }
-voronoiSketch.onFrame = function(event){ }
+voronoiMany.onFrame = function(event){ }

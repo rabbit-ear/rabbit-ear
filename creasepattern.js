@@ -2895,6 +2895,7 @@ var CreasePattern = (function (_super) {
         triangles.forEach(function (t) {
             this.creaseVoronoiTriangleJoint(t);
         }, this);
+        return triangles;
     };
     CreasePattern.prototype.creaseVoronoiIsosceles = function (vertex, base, angleLess) {
         var baseMidPoint = base[0].midpoint(base[1]);
