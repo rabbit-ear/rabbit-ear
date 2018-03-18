@@ -78,7 +78,7 @@ class EdgeIntersection extends XY{
 	}
 }
 
-class PlanarNode extends GraphNode{
+class PlanarNode extends GraphNode implements XY{
 
 	graph:PlanarGraph;
 	x:number;
@@ -165,7 +165,7 @@ class PlanarNode extends GraphNode{
 	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 }
 
-class PlanarEdge extends GraphEdge{
+class PlanarEdge extends GraphEdge implements Edge{
 
 	graph:PlanarGraph;
 	nodes:[PlanarNode,PlanarNode];

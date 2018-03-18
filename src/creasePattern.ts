@@ -878,13 +878,14 @@ class CreasePattern extends PlanarGraph{
 		return newCrease;
 	}
 
-	creaseRayUntilIntersection(origin:XY, direction:XY):Crease{
+	creaseRayUntilIntersection(origin:XY, direction:XY, epsilon?:number):Crease{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		if(!isValidPoint(origin) || !isValidPoint(direction)){ return undefined; }
 		var nearestIntersection = undefined;
 		var intersections = this.edges
 			.map(function(el){ return {edge:el, point:rayLineSegmentIntersection(origin, direction, el.nodes[0], el.nodes[1])}; })
 			.filter(function(el){ return el.point !== undefined; })
-			.filter(function(el){ return !el.point.equivalent(origin) })
+			.filter(function(el){ return !el.point.equivalent(origin, epsilon) })
 			.sort(function(a,b){
 				var da = Math.sqrt(Math.pow(origin.x-a.point.x,2) + Math.pow(origin.y-a.point.y,2));
 				var db = Math.sqrt(Math.pow(origin.x-b.point.x,2) + Math.pow(origin.y-b.point.y,2));
@@ -896,11 +897,11 @@ class CreasePattern extends PlanarGraph{
 			// console.log("made a new crease");
 			// console.log(newCrease);
 			// console.log(origin);
-			if(origin.equivalent(newCrease.nodes[0])){ 
+			if(origin.equivalent(newCrease.nodes[0], epsilon)){ 
 				newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[0]; 
 				newCrease.newMadeBy.endPoints = [<CreaseNode>newCrease.nodes[1]];
 			}
-			if(origin.equivalent(newCrease.nodes[1])){ 
+			if(origin.equivalent(newCrease.nodes[1], epsilon)){ 
 				newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[1]; 
 				newCrease.newMadeBy.endPoints = [<CreaseNode>newCrease.nodes[0]];
 			}
@@ -909,6 +910,36 @@ class CreasePattern extends PlanarGraph{
 		} else{
 			return this.creaseRay(origin, direction);
 		}
+	}
+
+	creaseRayRepeatWithTarget(origin:XY, direction:XY, target:XY):Crease[]{
+		var creases:Crease[] = [];
+		creases.push(this.creaseRayUntilIntersection(origin, direction, EPSILON_LOW));
+		var i = 0; 
+		while( i < 100 && creases[creases.length-1] !== undefined && creases[creases.length-1].newMadeBy.intersections.length){
+			var last = creases[creases.length-1];
+			// console.log(last.newMadeBy.intersections[0].reflectionMatrix());
+			var reflectionMatrix = last.newMadeBy.intersections[0].reflectionMatrix();
+			var reflectedPoint = new XY(last.newMadeBy.rayOrigin.x, last.newMadeBy.rayOrigin.y).transform(reflectionMatrix);
+			var newStart = last.newMadeBy.endPoints[0];
+			if(newStart.equivalent(target, EPSILON_LOW)){ break; }
+			var newDirection = new XY(reflectedPoint.x - newStart.x, 
+			                          reflectedPoint.y - newStart.y );
+			// var newStart = new XY(last.newMadeBy.endPoints[0].x + newDirection.x * 0.001,
+			//                       last.newMadeBy.endPoints[0].y + newDirection.y * 0.001);
+			var newCrease = this.creaseRayUntilIntersection(newStart, newDirection, EPSILON_LOW);
+			creases.push(newCrease);
+			var newIntersection = newCrease.newMadeBy.endPoints[0];
+			if(newIntersection !== undefined){
+				var duplicates = creases.filter(function(el,i){ return i < creases.length-1; })
+					.map(function(el){ 
+					return newIntersection.equivalent(el.nodes[0], EPSILON_LOW) || newIntersection.equivalent(el.nodes[1], EPSILON_LOW) })
+				       .reduce(function(prev, cur){ return prev || cur });
+				if(duplicates) i = 100;
+			}
+			i++;
+		}
+		return creases.filter(function(el){ return el != undefined; });
 	}
 
 	creaseRayRepeat(origin:XY, direction:XY):Crease[]{
@@ -1171,11 +1202,16 @@ class CreasePattern extends PlanarGraph{
 		},this)},this);
 		// find overlapped molecules
 		var sortedMolecules = this.buildMoleculeOverlapArray(molecules);
-		console.log(sortedMolecules);
+		// console.log(sortedMolecules);
 
-		molecules.forEach(function(t){
-			this.creaseVoronoiTriangleJoint(t);
-		},this);
+		sortedMolecules.forEach(function(arr){
+			arr.forEach(function(m){
+				this.creaseVoronoiTriangleJoint(m);
+			}, this);
+		}, this);
+		// molecules.forEach(function(t){
+		// 	this.creaseVoronoiTriangleJoint(t);
+		// },this);
 		return molecules;
 	}
 
@@ -1222,16 +1258,20 @@ class CreasePattern extends PlanarGraph{
 			var diffAngle = bisectAngle - baseAngle;
 			var doubleVector = new XY(Math.cos(baseAngle + diffAngle*2), Math.sin(baseAngle + diffAngle*2));
 			var doubleIntersection = rayLineSegmentIntersection(leftJoint.origin, doubleVector, vertex, baseMidPoint);
-			this.crease(base[0], doubleIntersection).mountain();
-			this.crease(base[1], doubleIntersection).mountain();
+			// this.crease(base[0], doubleIntersection).mountain();
+			// this.crease(base[1], doubleIntersection).mountain();
+			var mountains = this.creaseRayRepeatWithTarget(base[0], doubleIntersection.subtract(base[0]), base[1]);
+			mountains.forEach(function(el){el.mountain();});
 		}
 		var intersection = rayLineSegmentIntersection(leftJoint.origin, bisection, vertex, baseMidPoint);
 
-		this.crease(base[0], base[1]).mountain();
-		this.crease(base[0], intersection).valley();
-		this.crease(base[1], intersection).valley();
-		// this.crease(vertex, base[0]).mountain();
-		// this.crease(vertex, base[1]).mountain();
+		// this.crease(base[0], base[1]).mountain();
+		// this.crease(base[0], intersection).valley();
+		// this.crease(base[1], intersection).valley();
+		var mountains = this.creaseRayRepeatWithTarget(base[0], base[1].subtract(base[0]), base[1]);
+		var valleys = this.creaseRayRepeatWithTarget(base[0], intersection.subtract(base[0]), base[1]);
+		mountains.forEach(function(el){el.mountain();});
+		valleys.forEach(function(el){el.valley();});
 	}
 
 	creaseVoronoiTriangleJoint(t:Triangle){

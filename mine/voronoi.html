@@ -92,12 +92,12 @@ var touchNodesLayer
 // touchNodes.newPlanarNode(0.27214622270434996, 0.7228368430205118);
 // touchNodes.newPlanarNode(0.6984427919609809, 0.8950778811039989);
 
-// setTimeout(function(){
-// 	for(var i = 0; i < 10; i++){
-// 		touchNodes.newPlanarNode(Math.random()*2, Math.random());
-// 	}
-// 	project.reset();
-// }, 100);
+setTimeout(function(){
+	for(var i = 0; i < 10; i++){
+		touchNodes.newPlanarNode(Math.random()*1.33, Math.random());
+	}
+	project.reset();
+}, 100);
 
 var dragOn = false;
 var selectedNode = undefined;
@@ -140,7 +140,7 @@ project.drawVoronoi = function(complex, showGussets){
 
 project.reset = function(){
 	this.cp.clear();
-	this.cp.rectangle(2, 1);
+	this.cp.rectangle(1.33, 1);
 	this.draw();
 	var bounds = this.cp.bounds();
 	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];

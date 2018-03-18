@@ -338,6 +338,11 @@ class XY{
 	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 }
 
+class Edge{
+	nodes:[XY,XY];
+	length():number{ return Math.sqrt( Math.pow(this.nodes[0].x-this.nodes[1].x,2) + Math.pow(this.nodes[0].y-this.nodes[1].y,2) ); }
+}
+
 
 class Rect{
 	// didChange:(event:object)=>void;
