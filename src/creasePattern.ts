@@ -29,12 +29,35 @@ interface d3VoronoiObject{
 //////////////////////////////////////////////////////////////////////////
 // CREASE PATTERN
 
+class VoronoiMolecule extends Triangle{
+	// points:[XY,XY,XY];
+	// circumcenter:XY;
+	// joints:[Joint,Joint,Joint];
+	overlaped:VoronoiMolecule[];
+	hull:XY[];
+	constructor(points:[XY,XY,XY], circumcenter:XY){
+		super(points, circumcenter);
+		this.overlaped = [];
+		this.hull = convexHull([points[0], points[1], points[2], circumcenter].filter(function(el){return el !== undefined;}));
+	}
+	pointInside(p:XY):boolean{
+		var found = true;
+		for(var i = 0; i < this.hull.length; i++){
+			var p0 = this.hull[i];
+			var p1 = this.hull[(i+1)%this.hull.length];
+			var cross = (p.y - p0.y) * (p1.x - p0.x) - 
+			            (p.x - p0.x) * (p1.y - p0.y);
+			if (cross < 0) return false;
+		}
+		return true;
+	}
+}
+
 class VoronoiEdge{
 	endPoints:[XY, XY];
 	junctions:[VoronoiJunction, VoronoiJunction];
 	cells:[VoronoiCell,VoronoiCell];
 	isBoundary:boolean;
-
 	cache:object = {};
 }
 
@@ -42,11 +65,7 @@ class VoronoiCell{
 	site:XY;
 	points:XY[];
 	edges:VoronoiEdge[];
-
-	constructor(){
-		this.points = [];
-		this.edges = [];
-	}
+	constructor(){ this.points = []; this.edges = []; }
 }
 
 class VoronoiJunction{
@@ -54,11 +73,7 @@ class VoronoiJunction{
 	edges:VoronoiEdge[];
 	cells:VoronoiCell[];
 	isBoundary:boolean;
-
-	constructor(){
-		this.edges = [];
-		this.cells = [];
-	}
+	constructor(){ this.edges = []; this.cells = []; }
 }
 
 class VoronoiGraph{
@@ -166,7 +181,6 @@ class VoronoiGraph{
 		},this);
 		return this;
 	}
-
 }
 
 
@@ -230,7 +244,7 @@ class CreaseJoint extends PlanarJoint{
 	 * 
 	 */
 	kawasakiSubsect():XY{
-		var junction = this.node.junction();
+		var junction = this.origin.junction();
 		// todo: allow searches for other number edges
 		if(junction.edges.length != 3){ return; }
 		// find this interior angle among the other interior angles
@@ -249,8 +263,8 @@ class CreaseJoint extends PlanarJoint{
 		}
 		var dEven = Math.PI - sumEven;
 		// var dOdd = Math.PI - sumOdd;
-		var angle0 = this.edges[0].absoluteAngle(this.node);
-		// var angle1 = this.edges[1].absoluteAngle(this.node);
+		var angle0 = this.edges[0].absoluteAngle(this.origin);
+		// var angle1 = this.edges[1].absoluteAngle(this.origin);
 		var newA = angle0 - dEven;
 		return new XY(Math.cos(newA), Math.sin(newA));
 	}		
@@ -318,8 +332,8 @@ class CreaseJunction extends PlanarJunction{
 		}
 		var dEven = Math.PI - sumEven;
 		// var dOdd = Math.PI - sumOdd;
-		var angle0 = joint.edges[0].absoluteAngle(joint.node);
-		// var angle1 = joint.edges[1].absoluteAngle(joint.node);
+		var angle0 = joint.edges[0].absoluteAngle(joint.origin);
+		// var angle1 = joint.edges[1].absoluteAngle(joint.origin);
 		var newA = angle0 - dEven;
 		return new XY(Math.cos(newA), Math.sin(newA));
 	}
@@ -427,7 +441,7 @@ class CreaseFace extends PlanarFace{
 	rabbitEar():Crease[]{
 		if(this.joints.length !== 3){ return []; }
 		var rays = this.joints.map(function(el){
-			return { node: el.node, vector: el.bisect() };
+			return { node: el.origin, vector: el.bisect() };
 		});
 		var incenter = rays.map(function(el,i){
 			// calculate intersection of each pairs of rays
@@ -1128,7 +1142,7 @@ class CreasePattern extends PlanarGraph{
 		throw "axiom 7: two crease lines cannot be parallel"
 	}
 
-	creaseVoronoi(v:VoronoiGraph, interp?:number):Triangle[]{
+	creaseVoronoi(v:VoronoiGraph, interp?:number):VoronoiMolecule[]{
 		if(interp === undefined){ interp = 0.5; }
 
 		// original voronoi graph edges
@@ -1141,12 +1155,12 @@ class CreasePattern extends PlanarGraph{
 				});
 			},this);
 		},this);
-		// junction triangles
-		var triangles:Triangle[] = v.junctions.map(function(j){
+		// junction molecules
+		var molecules:VoronoiMolecule[] = v.junctions.map(function(j){
 			var endPoints:XY[] = j.cells.map(function(cell){
 				return cell.site.lerp(j.position,interp);
 			},this);
-			return new Triangle(<[XY,XY,XY]>endPoints, j.position);
+			return new VoronoiMolecule(<[XY,XY,XY]>endPoints, j.position);
 		},this);
 
 		edges.forEach(function(edge){
@@ -1155,10 +1169,42 @@ class CreasePattern extends PlanarGraph{
 		cells.forEach(function(cell){ cell.forEach(function(edge){
 			this.crease(edge[0], edge[1]).mountain();
 		},this)},this);
-		triangles.forEach(function(t){
+		// find overlapped molecules
+		var sortedMolecules = this.buildMoleculeOverlapArray(molecules);
+		console.log(sortedMolecules);
+
+		molecules.forEach(function(t){
 			this.creaseVoronoiTriangleJoint(t);
 		},this);
-		return triangles;
+		return molecules;
+	}
+
+	buildMoleculeOverlapArray(molecules:VoronoiMolecule[]):VoronoiMolecule[][]{
+		for(var i = 0; i < molecules.length; i++){
+			for(var j = 0; j < molecules.length; j++){
+				if(i !== j && 
+				 molecules[i].points.length == 3 &&
+				 molecules[j].points.length == 3 && 
+				 molecules[i].pointInside(molecules[j].circumcenter)){
+					molecules[i].overlaped.push(molecules[j]);
+				}
+			}
+		}
+		// not correct
+		var array = [];
+		var mutableMolecules = molecules.slice();
+		var rowIndex = 0;
+		while(mutableMolecules.length > 0){
+			array.push([]);
+			for(var i = mutableMolecules.length-1; i >= 0; i--){
+				if(mutableMolecules[i].overlaped.length <= rowIndex){
+					array[rowIndex].push(mutableMolecules[i]);
+					mutableMolecules.splice(i, 1);
+				}
+			}
+			rowIndex++;
+		}
+		return array;
 	}
 
 	creaseVoronoiIsosceles(vertex:XY, base:[XY,XY], angleLess?:number){
@@ -1194,7 +1240,7 @@ class CreasePattern extends PlanarGraph{
 		// 	this.crease(t.circumcenter, pt).mountain();
 		// },this);
 
-		if(t.obtuse()){
+		if(t.isObtuse()){
 			// locate the obtuse angle
 			var obtuse:number = t.angles().map(function(el,i){
 				if(el>Math.PI*0.5){return i;}

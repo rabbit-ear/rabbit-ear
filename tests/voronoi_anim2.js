@@ -29,7 +29,7 @@ voronoiAnim2.reset = function(){
 voronoiAnim2.reset();
 
 voronoiAnim2.redraw = function(){
-	var nodes = vA1Input.nodes.map(function(el){return el.values();});
+	var nodes = vA1Input.nodes.map(function(el){return [el.x, el.y];});
 	var d3Voronoi = voronoiAlgorithm( nodes );
 	var v = new VoronoiGraph(d3Voronoi);
 
@@ -46,7 +46,7 @@ voronoiAnim2.redraw = function(){
 	triangles.forEach(function(t){
 		if(t.points.length > 2){
 			var points = [];
-			if(t.obtuse()){
+			if(t.isObtuse()){
 				// locate the obtuse angle
 				var obtuse = t.angles().map(function(el,i){
 					if(el>Math.PI*0.5){return i;}

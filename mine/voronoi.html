@@ -72,25 +72,40 @@ var touchNodes = new PlanarGraph();
 var touchNodesCircles = [];
 var touchNodesLayer
 
+// four kinds of joints
 // touchNodes.newPlanarNode(0.599944, 0.149394);
 // touchNodes.newPlanarNode(0.653850, 0.806533);
 // touchNodes.newPlanarNode(0.481864, 0.539570);
 // touchNodes.newPlanarNode(0.196933, 0.259773);
 // touchNodes.newPlanarNode(0.261107, 0.760328);
 
-touchNodes.newPlanarNode(0.426255, 0.023926);
-touchNodes.newPlanarNode(0.309947, 0.536469);
-touchNodes.newPlanarNode(0.268550, 0.355108);
-touchNodes.newPlanarNode(0.536649, 0.830195);
+// one overlapping
+// touchNodes.newPlanarNode(0.426255, 0.023926);
+// touchNodes.newPlanarNode(0.309947, 0.536469);
+// touchNodes.newPlanarNode(0.268550, 0.355108);
+// touchNodes.newPlanarNode(0.536649, 0.830195);
 
+// two overlapping
+// touchNodes.newPlanarNode(0.21748332891029512, 0.03981581339672393);
+// touchNodes.newPlanarNode(0.18134616579052865, 0.611234705228031);
+// touchNodes.newPlanarNode(0.1022961214660395, 0.3176202548799286);
+// touchNodes.newPlanarNode(0.27214622270434996, 0.7228368430205118);
+// touchNodes.newPlanarNode(0.6984427919609809, 0.8950778811039989);
+
+// setTimeout(function(){
+// 	for(var i = 0; i < 10; i++){
+// 		touchNodes.newPlanarNode(Math.random()*2, Math.random());
+// 	}
+// 	project.reset();
+// }, 100);
 
 var dragOn = false;
 var selectedNode = undefined;
 
-var interpolation = 0.5;
+var interpolation = 0.66;
 
 project.drawVoronoi = function(complex, showGussets){
-	var nodes = touchNodes.nodes.map(function(el){return el.values();});
+	var nodes = touchNodes.nodes.map(function(el){return [el.x, el.y];});
 	var d3Voronoi = voronoiAlgorithm( nodes );
 	var v = new VoronoiGraph(d3Voronoi);
 	this.cp.clear();
@@ -105,6 +120,12 @@ project.drawVoronoi = function(complex, showGussets){
 		this.cp.creaseVoronoi(v, interpolation);
 	}
 	this.updateWeights(0.005, 0.0025);
+	for(var i = 0; i < touchNodes.nodes.length; i++){
+		var position = new XY(touchNodes.nodes[i].x, touchNodes.nodes[i].y);
+		this.cp.crease(position.add(new XY(-0.01, 0.00)), position.add(new XY(0.01, 0.00)) );
+		this.cp.crease(position.add(new XY(0.00, -0.01)), position.add(new XY(0.00, 0.01)) );
+	}
+
 	this.draw();
 	touchNodesLayer.activate();
 	touchNodesLayer.removeChildren();
@@ -119,7 +140,7 @@ project.drawVoronoi = function(complex, showGussets){
 
 project.reset = function(){
 	this.cp.clear();
-	this.cp.rectangle(1.3,1);
+	this.cp.rectangle(2, 1);
 	this.draw();
 	var bounds = this.cp.bounds();
 	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];

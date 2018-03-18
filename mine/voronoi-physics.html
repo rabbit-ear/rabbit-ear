@@ -196,7 +196,7 @@ for (var i = 0; i < 3; i += 1) {
 
 
 project.makeVoronoi = function(input, interpolation, hideCreaseMarks){
-	var nodes = input.nodes.map(function(el){return el.values();});
+	var nodes = input.nodes.map(function(el){return [el.x, el.y];});
 	var v = voronoiAlgorithm( nodes );
 	this.cp.clear();
 	this.cp.nodes = [];

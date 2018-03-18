@@ -25,7 +25,7 @@ voronoiInterp.reset();
 
 voronoiInterp.redraw = function(){
 
-	var nodes = input.nodes.map(function(el){return el.values();});
+	var nodes = input.nodes.map(function(el){return [el.x, el.y];});
 	var d3Voronoi = voronoiAlgorithm( nodes );
 	var v = new VoronoiGraph(d3Voronoi);
 

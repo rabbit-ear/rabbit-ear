@@ -306,24 +306,12 @@ class Matrix{
 class XY{
 	x:number;
 	y:number;
-	constructor(x:number, y:number){
-		this.x = x;
-		this.y = y;
-	}
-	values():[number, number]{ return [this.x, this.y]; }
+	constructor(x:number, y:number){ this.x = x; this.y = y; }
 	// position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
-	// translated(dx:number, dy:number):XY{ this.x += dx; this.y += dy; return this;}
 	normalize():XY { var m = this.magnitude(); return new XY(this.x/m, this.y/m);}
 	rotate90():XY { return new XY(-this.y, this.x); }
 	rotate(angle:number, origin?:XY){
-		// TODO: needs testing
 		return this.transform( new Matrix().rotation(angle, origin) );
-		// var dx = this.x-origin.x;
-		// var dy = this.y-origin.y;
-		// var radius = Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
-		// var currentAngle = Math.atan2(dy, dx);
-		// return new XY(origin.x + radius*Math.cos(currentAngle + angle),
-		// 			  origin.y + radius*Math.sin(currentAngle + angle));
 	}
 	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
@@ -350,6 +338,7 @@ class XY{
 	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 }
 
+
 class Rect{
 	// didChange:(event:object)=>void;
 	topLeft:{x:number,y:number};
@@ -364,29 +353,32 @@ class Triangle{
 	points:[XY,XY,XY];
 	circumcenter:XY;
 	joints:[Joint,Joint,Joint];
-	constructor(points:[XY,XY,XY], circumcenter:XY){
+	constructor(points:[XY,XY,XY], circumcenter?:XY){
 		this.points = points;
-		this.circumcenter = circumcenter;
 		this.joints = this.points.map(function(el,i){
 			var prevI = (i+this.points.length-1)%this.points.length;
 			var nextI = (i+1)%this.points.length;
 			return new Joint(el, [this.points[prevI], this.points[nextI]]);
 		},this);
+		this.circumcenter = circumcenter;
+		if(circumcenter === undefined){
+			// calculate circumcenter
+		}
 	}
 	angles():[number,number,number]{
 		return this.joints.map(function(el){return el.angle();});
 	}
-	acute():boolean{
+	isAcute():boolean{
 		var a = this.angles();
 		for(var i = 0; i < a.length; i++){if(a[i] > Math.PI*0.5){return false;}}
 		return true;
 	}
-	obtuse():boolean{
+	isObtuse():boolean{
 		var a = this.angles();
 		for(var i = 0; i < a.length; i++){if(a[i] > Math.PI*0.5){return true;}}
 		return false;
 	}
-	right():boolean{
+	isRight():boolean{
 		var a = this.angles();
 		for(var i = 0; i < a.length; i++){if(epsilonEqual(a[i],Math.PI*0.5)){return true;}}
 		return false;
@@ -394,15 +386,15 @@ class Triangle{
 }
 
 /** a Joint is defined by 3 nodes (one common, 2 endpoints) 
- *  clockwise order is required
- *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
+ *  clockwise order is enforced
+ *  the interior angle is measured clockwise from endpoint 0 to 1
  */
 class Joint{
 	// the node in common with the edges
 	origin:XY;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
 	endPoints:[XY,XY];
-	// angle clockwise from edge 0 to edge 1 is in index 0. edge 1 to 0 is in index 1
+	// angle clockwise from endpoint 0 to 1
 	constructor(origin:XY, endpoints:[XY,XY]){
 		this.origin = origin;
 		this.endPoints = endpoints;
@@ -450,7 +442,6 @@ class Joint{
 }
 
 /////////////////////////////// ARRAYS /////////////////////////////// 
-// this will return the index of the object in the array, or undefined if not found
 interface Array<T> {
 	allEqual():boolean;
 	removeDuplicates(compFunction:(a: T, b: T) => boolean): Array<T>;

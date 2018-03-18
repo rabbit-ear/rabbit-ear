@@ -17,7 +17,7 @@ var simpleVoronoi = false;
 
 voronoiEditor.redraw = function(){
 	paper = this.scope;
-	var nodes = inputEditor.nodes.map(function(el){return el.values();});
+	var nodes = inputEditor.nodes.map(function(el){return [el.x, el.y];});
 	var d3Voronoi = voronoiAlgorithm( nodes );
 	var v = new VoronoiGraph(d3Voronoi);	
 

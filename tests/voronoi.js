@@ -24,7 +24,7 @@ voronoiSketch.reset = function(){
 voronoiSketch.reset();
 
 voronoiSketch.redraw = function(){
-	var nodes = this.input.nodes.map(function(el){return el.values();});
+	var nodes = this.input.nodes.map(function(el){return [el.x, el.y];});
 	var d3Voronoi = this.voronoiAlgorithm( nodes );
 	var v = new VoronoiGraph(d3Voronoi);
 	this.cp.clear();

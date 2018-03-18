@@ -124,7 +124,6 @@ class PlanarNode extends GraphNode{
 	// copy into an XY instance
 	xy():XY{ return new XY(this.x, this.y); }
 	// implements XY
-	values():[number, number]{ return [this.x, this.y]; }
 	// todo: probably need to break apart XY and this. this modifies the x and y in place. XY returns a new one and doesn't modify the current one in place
 	position(x:number, y:number):PlanarNode{ this.x = x; this.y = y; return this; }
 	translate(dx:number, dy:number):PlanarNode{ this.x += dx; this.y += dy; return this;}
@@ -260,9 +259,13 @@ class PlanarFace{
 		this.nodes = circut.map(function(el,i){
 			return <PlanarNode>el.uncommonNodeWithEdge( circut[ (i+1)%circut.length ] );
 		});
+		var jointType = this.nodes[0].jointType;
 		this.joints = this.edges.map(function(el,i){
 			var nexti = (i+1)%this.edges.length;
-			return new this.nodes[0].jointType(el, this.edges[nexti]);
+			var origin = el.commonNodeWithEdge(this.edges[nexti]);
+			var endPoints = [ el.uncommonNodeWithEdge(this.edges[nexti]),
+			                  this.edges[nexti].uncommonNodeWithEdge(el) ];
+			return new jointType(el, this.edges[nexti]);
 		},this);
 		this.angles = this.joints.map(function(el:PlanarJoint){ return el.angle(); });
 		var angleSum = this.angles.reduce(function(sum,value){ return sum + value; }, 0);
@@ -341,25 +344,37 @@ class PlanarFace{
  *  clockwise order is required
  *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
  */
-class PlanarJoint{
+class PlanarJoint extends Joint{
 	// the node in common with the edges
-	node:PlanarNode;
+	origin:PlanarNode;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
 	edges:[PlanarEdge, PlanarEdge];
-	endNodes:[PlanarNode, PlanarNode];
+	endPoints:[PlanarNode, PlanarNode];
 	// angle clockwise from edge 0 to edge 1 is in index 0. edge 1 to 0 is in index 1
+	// constructor(origin:PlanarNode, endPoints?:[PlanarNode,PlanarNode], edges?:[PlanarEdge, PlanarEdge]){
 	constructor(edge1:PlanarEdge, edge2:PlanarEdge){
-		this.node = <PlanarNode>edge1.commonNodeWithEdge(edge2);
-		if(this.node === undefined){ return; }
+		super(<PlanarNode>edge1.commonNodeWithEdge(edge2), undefined);
+		if(this.origin === undefined){ return; }
 		if(edge1 === edge2){ return; }
 		this.edges = [edge1, edge2];
-		this.endNodes = [
-			(edge1.nodes[0] === this.node) ? edge1.nodes[1] : edge1.nodes[0],
-			(edge2.nodes[0] === this.node) ? edge2.nodes[1] : edge2.nodes[0]
+		this.endPoints = [
+			(edge1.nodes[0] === this.origin) ? edge1.nodes[1] : edge1.nodes[0],
+			(edge2.nodes[0] === this.origin) ? edge2.nodes[1] : edge2.nodes[0]
 		];
 	}
+	makeWithEdges(edge1:PlanarEdge, edge2:PlanarEdge):PlanarJoint{
+		this.origin = <PlanarNode>edge1.commonNodeWithEdge(edge2);
+		if(this.origin === undefined){ return; }
+		if(edge1 === edge2){ return; }
+		this.edges = [edge1, edge2];
+		this.endPoints = [
+			(edge1.nodes[0] === this.origin) ? edge1.nodes[1] : edge1.nodes[0],
+			(edge2.nodes[0] === this.origin) ? edge2.nodes[1] : edge2.nodes[0]
+		];
+		return this;
+	}
 	vectors():[XY,XY]{
-		return this.edges.map(function(el){return el.vector(this.node)},this);
+		return this.edges.map(function(el){return el.vector(this.origin)},this);
 	}
 	angle():number{
 		var vectors = this.vectors();
@@ -368,8 +383,8 @@ class PlanarJoint{
 	bisect():XY{
 		// var vectors = this.vectors();
 		// return bisect(vectors[0], vectors[1])[0];
-		var absolute1 = this.edges[0].absoluteAngle(this.node);
-		var absolute2 = this.edges[1].absoluteAngle(this.node);
+		var absolute1 = this.edges[0].absoluteAngle(this.origin);
+		var absolute2 = this.edges[1].absoluteAngle(this.origin);
 		while(absolute1 < 0){ absolute1 += Math.PI*2; }
 		var interior = clockwiseInteriorAngleRadians(absolute1, absolute2);
 		var bisected = absolute1 - interior*0.5;
@@ -378,8 +393,8 @@ class PlanarJoint{
 	// todo: needs testing
 	subsectAngle(divisions:number):number[]{
 		if(divisions === undefined || divisions < 1){ throw "subsetAngle() requires a parameter greater than 1"; }
-		var angleA = this.edges[0].absoluteAngle(this.node);
-		var angleB = this.edges[1].absoluteAngle(this.node);
+		var angleA = this.edges[0].absoluteAngle(this.origin);
+		var angleB = this.edges[1].absoluteAngle(this.origin);
 		var interiorA = clockwiseInteriorAngleRadians(angleA, angleB);
 		var results:number[] = [];
 		for(var i = 1; i < divisions; i++){
@@ -401,7 +416,7 @@ class PlanarJoint{
 		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
 		return vectors.map(function(el:XY, i){
 			// rotate the nodes, subtract the new position from the original position
-			return this.endNodes[i].subtract(el.rotate(rotateNodes[i]).add(this.node));
+			return this.endPoints[i].subtract(el.rotate(rotateNodes[i]).add(this.origin));
 		}, this);
 	}
 	equivalent(a:PlanarJoint):boolean{
@@ -431,8 +446,12 @@ class PlanarJunction{
 		// Junctions by definition cannot be built on leaf nodes. there is only 1 edge.
 		if(this.edges.length <= 1){ return; }
 		this.joints = this.edges.map(function(el,i){
-			var nexti = (i+1)%this.edges.length;
-			return new this.origin.jointType(el, this.edges[nexti]);
+			var nextEl = this.edges[(i+1)%this.edges.length];
+			var origin = <PlanarNode>el.commonNodeWithEdge(nextEl);
+			var nextN = <PlanarNode>nextEl.uncommonNodeWithEdge(el);
+			var prevN = <PlanarNode>el.uncommonNodeWithEdge(nextEl);
+			// return new this.origin.jointType(origin, [nextN, prevN]);
+			return new this.origin.jointType(el, nextEl);
 		},this);
 		// this.edges = this.joints.map(function(el:PlanarJoint){return el.edges[0];});
 	}
@@ -1037,7 +1056,7 @@ class PlanarGraph extends Graph{
 		if(joints == undefined || joints.length === 0){ return undefined; }
 		// cross product on each edge pair
 		var anglesInside = joints.filter(function(el:PlanarJoint){ 
-			var pts = el.endNodes;
+			var pts = el.endPoints;
 			var cross0 = (y - node.y) * (pts[1].x - node.x) - 
 						 (x - node.x) * (pts[1].y - node.y);
 			var cross1 = (y - pts[0].y) * (node.x - pts[0].x) - 

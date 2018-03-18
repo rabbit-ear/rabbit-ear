@@ -97,7 +97,7 @@ var simpleVoronoi = false;
 // var drawLoop = setInterval(project.draw, 1000/60);
 
 project.redraw = function(){
-	var nodes = input.nodes.map(function(el){return el.values();});
+	var nodes = input.nodes.map(function(el){return [el.x, el.y];});
 	var v = voronoiAlgorithm( nodes );
 	this.cp.clear();
 	this.cp.nodes = [];
