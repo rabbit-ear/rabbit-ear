@@ -92,12 +92,12 @@ var touchNodesLayer
 // touchNodes.newPlanarNode(0.27214622270434996, 0.7228368430205118);
 // touchNodes.newPlanarNode(0.6984427919609809, 0.8950778811039989);
 
-// setTimeout(function(){
-// 	for(var i = 0; i < 10; i++){
-// 		touchNodes.newPlanarNode(Math.random()*1.33, Math.random());
-// 	}
-// 	project.reset();
-// }, 100);
+setTimeout(function(){
+	for(var i = 0; i < 3; i++){
+		touchNodes.newPlanarNode(Math.random()*1.33, Math.random());
+	}
+	project.reset();
+}, 100);
 
 var dragOn = false;
 var selectedNode = undefined;

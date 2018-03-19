@@ -344,6 +344,7 @@ class Edge{
 	length():number{ return Math.sqrt( Math.pow(this.nodes[0].x-this.nodes[1].x,2) + Math.pow(this.nodes[0].y-this.nodes[1].y,2) ); }
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
+	reflectionMatrix():Matrix{ return new Matrix().reflection(this.nodes[0], this.nodes[1]); }
 }
 
 class Rect{
@@ -394,6 +395,17 @@ class Triangle{
 		var a = this.angles();
 		for(var i = 0; i < a.length; i++){if(epsilonEqual(a[i],Math.PI*0.5)){return true;}}
 		return false;
+	}
+	pointInside(p:XY):boolean{
+		var found = true;
+		for(var i = 0; i < this.points.length; i++){
+			var p0 = this.points[i];
+			var p1 = this.points[(i+1)%this.points.length];
+			var cross = (p.y - p0.y) * (p1.x - p0.x) - 
+			            (p.x - p0.x) * (p1.y - p0.y);
+			if (cross < 0) return false;
+		}
+		return true;
 	}
 }
 
