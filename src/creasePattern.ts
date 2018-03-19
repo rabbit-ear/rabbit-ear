@@ -35,10 +35,27 @@ class VoronoiMolecule extends Triangle{
 	// joints:[Joint,Joint,Joint];
 	overlaped:VoronoiMolecule[];
 	hull:XY[];
+	units:VoronoiMoleculeTriangle[];
 	constructor(points:[XY,XY,XY], circumcenter:XY){
 		super(points, circumcenter);
 		this.overlaped = [];
 		this.hull = convexHull([points[0], points[1], points[2], circumcenter].filter(function(el){return el !== undefined;}));
+		this.units = this.points.map(function(el,i){
+			var nextEl = this.points[ (i+1)%this.points.length ];
+			return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
+		},this);//.filter(function(el){return el !== undefined; });
+		var eclipsed:VoronoiMoleculeTriangle = undefined;
+		this.units = this.units.filter(function(el){
+			// update molecule crimp angle
+			var cross = (el.vertex.y - el.base[0].y) * (el.base[1].x - el.base[0].x) -
+			            (el.vertex.x - el.base[0].x) * (el.base[1].y - el.base[0].y);
+			if(cross < 0){ eclipsed = el; return false;}
+			return true;
+		},this);
+		if(eclipsed !== undefined){
+			var angle = clockwiseInteriorAngle(eclipsed.vertex.subtract(eclipsed.base[1]), eclipsed.base[0].subtract(eclipsed.base[1]));
+			this.units.forEach(function(el){ el.crimpAngle -= angle; });
+		}
 	}
 	pointInside(p:XY):boolean{
 		var found = true;
@@ -50,6 +67,61 @@ class VoronoiMolecule extends Triangle{
 			if (cross < 0) return false;
 		}
 		return true;
+	}
+	generateCreases():Edge[]{
+		var isObtuse = this.isObtuse();
+		var edges = [];
+		var outerEdges = this.units.map(function(el,i){
+			var nextEl = this.units[ (i+1)%this.units.length ];
+			if(el.base[1].equivalent(nextEl.base[0])){ edges.push(new Edge(el.base[1], el.vertex)) }
+		},this);
+		this.units.forEach(function(el,i){
+			var baseAngle = Math.atan2(el.base[1].y-el.base[0].y,el.base[1].x-el.base[0].x);
+			var crimpVector = new XY(Math.cos(baseAngle+el.crimpAngle*0.5),Math.sin(baseAngle+el.crimpAngle*0.5));
+			var bisectMid = rayLineSegmentIntersection(el.base[0], crimpVector, el.vertex, el.base[0].midpoint(el.base[1]));
+			// base edge
+			edges.push( new Edge(el.base[0], el.base[1]) );
+			// crimp edge
+			edges.push( new Edge(el.base[0], bisectMid) );
+			edges.push( new Edge(el.base[1], bisectMid) );
+			if(isObtuse){
+				var crimpVector = new XY(Math.cos(baseAngle+el.crimpAngle),Math.sin(baseAngle+el.crimpAngle));
+				var midIntersect = rayLineSegmentIntersection(el.base[0], crimpVector, el.vertex, el.base[0].midpoint(el.base[1]));
+				// crimp outer edge
+				edges.push( new Edge(el.base[0], midIntersect) );
+				edges.push( new Edge(el.base[1], midIntersect) );
+			}
+		},this);
+
+		if(!isObtuse){
+			this.units.forEach(function(el){
+				edges.push( new Edge(el.base[0], el.vertex) );
+			});
+		}
+
+		return edges;
+	}
+}
+
+/** Isosceles Triangle units that comprise a VoronoiMolecule
+ *
+ */
+class VoronoiMoleculeTriangle {
+	base:[XY,XY];
+	vertex:XY;
+	// the crimp angle is measured against the base side.
+	crimpAngle:number;
+	constructor(vertex:XY, base:[XY,XY], crimpAngle?:number){
+		this.vertex = vertex;
+		this.base = base;
+		this.crimpAngle = crimpAngle;
+		if(this.crimpAngle === undefined){
+			var vec1 = base[1].subtract(base[0]);
+			var vec2 = vertex.subtract(base[0]);
+			var a1 = clockwiseInteriorAngle(vec1, vec2);
+			var a2 = clockwiseInteriorAngle(vec2, vec1);
+			this.crimpAngle = (a1<a2) ? a1 : a2;
+		}
 	}
 }
 
@@ -1206,7 +1278,11 @@ class CreasePattern extends PlanarGraph{
 
 		sortedMolecules.forEach(function(arr){
 			arr.forEach(function(m){
-				this.creaseVoronoiTriangleJoint(m);
+				var edges = m.generateCreases();
+				edges.forEach(function(el){
+					this.crease(el.nodes[0], el.nodes[1]);
+				},this);
+				// this.creaseVoronoiTriangleJoint(m);
 			}, this);
 		}, this);
 		// molecules.forEach(function(t){

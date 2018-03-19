@@ -697,8 +697,13 @@ var XY = (function () {
     return XY;
 }());
 var Edge = (function () {
-    function Edge() {
+    function Edge(a, b) {
+        this.nodes = [a, b];
     }
+    Edge.prototype.length = function () { return Math.sqrt(Math.pow(this.nodes[0].x - this.nodes[1].x, 2) + Math.pow(this.nodes[0].y - this.nodes[1].y, 2)); };
+    Edge.prototype.midpoint = function () {
+        return new XY(0.5 * (this.nodes[0].x + this.nodes[1].x), 0.5 * (this.nodes[0].y + this.nodes[1].y));
+    };
     return Edge;
 }());
 var Rect = (function () {
@@ -711,6 +716,10 @@ var Rect = (function () {
 var Triangle = (function () {
     function Triangle(points, circumcenter) {
         this.points = points;
+        this.edges = this.points.map(function (el, i) {
+            var nextEl = this.points[(i + 1) % this.points.length];
+            return new Edge(el, nextEl);
+        }, this);
         this.joints = this.points.map(function (el, i) {
             var prevI = (i + this.points.length - 1) % this.points.length;
             var nextI = (i + 1) % this.points.length;
@@ -752,6 +761,13 @@ var Triangle = (function () {
     };
     return Triangle;
 }());
+var IsoscelesTriangle = (function (_super) {
+    __extends(IsoscelesTriangle, _super);
+    function IsoscelesTriangle() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return IsoscelesTriangle;
+}(Triangle));
 var Joint = (function () {
     function Joint(origin, endpoints) {
         this.origin = origin;
@@ -1953,6 +1969,24 @@ var VoronoiMolecule = (function (_super) {
         var _this = _super.call(this, points, circumcenter) || this;
         _this.overlaped = [];
         _this.hull = convexHull([points[0], points[1], points[2], circumcenter].filter(function (el) { return el !== undefined; }));
+        _this.units = _this.points.map(function (el, i) {
+            var nextEl = this.points[(i + 1) % this.points.length];
+            return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
+        }, _this);
+        var eclipsed = undefined;
+        _this.units = _this.units.filter(function (el) {
+            var cross = (el.vertex.y - el.base[0].y) * (el.base[1].x - el.base[0].x) -
+                (el.vertex.x - el.base[0].x) * (el.base[1].y - el.base[0].y);
+            if (cross < 0) {
+                eclipsed = el;
+                return false;
+            }
+            return true;
+        }, _this);
+        if (eclipsed !== undefined) {
+            var angle = clockwiseInteriorAngle(eclipsed.vertex.subtract(eclipsed.base[1]), eclipsed.base[0].subtract(eclipsed.base[1]));
+            _this.units.forEach(function (el) { el.crimpAngle -= angle; });
+        }
         return _this;
     }
     VoronoiMolecule.prototype.pointInside = function (p) {
@@ -1967,8 +2001,53 @@ var VoronoiMolecule = (function (_super) {
         }
         return true;
     };
+    VoronoiMolecule.prototype.generateCreases = function () {
+        var isObtuse = this.isObtuse();
+        var edges = [];
+        var outerEdges = this.units.map(function (el, i) {
+            var nextEl = this.units[(i + 1) % this.units.length];
+            if (el.base[1].equivalent(nextEl.base[0])) {
+                edges.push(new Edge(el.base[1], el.vertex));
+            }
+        }, this);
+        this.units.forEach(function (el, i) {
+            var baseAngle = Math.atan2(el.base[1].y - el.base[0].y, el.base[1].x - el.base[0].x);
+            var crimpVector = new XY(Math.cos(baseAngle + el.crimpAngle * 0.5), Math.sin(baseAngle + el.crimpAngle * 0.5));
+            var bisectMid = rayLineSegmentIntersection(el.base[0], crimpVector, el.vertex, el.base[0].midpoint(el.base[1]));
+            edges.push(new Edge(el.base[0], el.base[1]));
+            edges.push(new Edge(el.base[0], bisectMid));
+            edges.push(new Edge(el.base[1], bisectMid));
+            if (isObtuse) {
+                var crimpVector = new XY(Math.cos(baseAngle + el.crimpAngle), Math.sin(baseAngle + el.crimpAngle));
+                var midIntersect = rayLineSegmentIntersection(el.base[0], crimpVector, el.vertex, el.base[0].midpoint(el.base[1]));
+                edges.push(new Edge(el.base[0], midIntersect));
+                edges.push(new Edge(el.base[1], midIntersect));
+            }
+        }, this);
+        if (!isObtuse) {
+            this.units.forEach(function (el) {
+                edges.push(new Edge(el.base[0], el.vertex));
+            });
+        }
+        return edges;
+    };
     return VoronoiMolecule;
 }(Triangle));
+var VoronoiMoleculeTriangle = (function () {
+    function VoronoiMoleculeTriangle(vertex, base, crimpAngle) {
+        this.vertex = vertex;
+        this.base = base;
+        this.crimpAngle = crimpAngle;
+        if (this.crimpAngle === undefined) {
+            var vec1 = base[1].subtract(base[0]);
+            var vec2 = vertex.subtract(base[0]);
+            var a1 = clockwiseInteriorAngle(vec1, vec2);
+            var a2 = clockwiseInteriorAngle(vec2, vec1);
+            this.crimpAngle = (a1 < a2) ? a1 : a2;
+        }
+    }
+    return VoronoiMoleculeTriangle;
+}());
 var VoronoiEdge = (function () {
     function VoronoiEdge() {
         this.cache = {};
@@ -2978,7 +3057,10 @@ var CreasePattern = (function (_super) {
         var sortedMolecules = this.buildMoleculeOverlapArray(molecules);
         sortedMolecules.forEach(function (arr) {
             arr.forEach(function (m) {
-                this.creaseVoronoiTriangleJoint(m);
+                var edges = m.generateCreases();
+                edges.forEach(function (el) {
+                    this.crease(el.nodes[0], el.nodes[1]);
+                }, this);
             }, this);
         }, this);
         return molecules;

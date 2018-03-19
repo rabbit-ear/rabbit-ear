@@ -340,9 +340,11 @@ class XY{
 
 class Edge{
 	nodes:[XY,XY];
+	constructor(a:XY, b:XY){ this.nodes = [a, b]; }
 	length():number{ return Math.sqrt( Math.pow(this.nodes[0].x-this.nodes[1].x,2) + Math.pow(this.nodes[0].y-this.nodes[1].y,2) ); }
+	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
+								   0.5*(this.nodes[0].y + this.nodes[1].y));}
 }
-
 
 class Rect{
 	// didChange:(event:object)=>void;
@@ -356,10 +358,15 @@ class Rect{
 
 class Triangle{
 	points:[XY,XY,XY];
+	edges:[Edge, Edge, Edge];
 	circumcenter:XY;
 	joints:[Joint,Joint,Joint];
 	constructor(points:[XY,XY,XY], circumcenter?:XY){
 		this.points = points;
+		this.edges = this.points.map(function(el,i){
+			var nextEl = this.points[ (i+1)%this.points.length ];
+			return new Edge(el, nextEl);
+		},this);
 		this.joints = this.points.map(function(el,i){
 			var prevI = (i+this.points.length-1)%this.points.length;
 			var nextI = (i+1)%this.points.length;
@@ -388,6 +395,10 @@ class Triangle{
 		for(var i = 0; i < a.length; i++){if(epsilonEqual(a[i],Math.PI*0.5)){return true;}}
 		return false;
 	}
+}
+
+class IsoscelesTriangle extends Triangle{
+
 }
 
 /** a Joint is defined by 3 nodes (one common, 2 endpoints) 
