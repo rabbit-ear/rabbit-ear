@@ -705,6 +705,16 @@ var Edge = (function () {
         return new XY(0.5 * (this.nodes[0].x + this.nodes[1].x), 0.5 * (this.nodes[0].y + this.nodes[1].y));
     };
     Edge.prototype.reflectionMatrix = function () { return new Matrix().reflection(this.nodes[0], this.nodes[1]); };
+    Edge.prototype.equivalent = function (e, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        if ((this.nodes[0].equivalent(e.nodes[0], epsilon) && this.nodes[1].equivalent(e.nodes[1], epsilon)) ||
+            (this.nodes[0].equivalent(e.nodes[1], epsilon) && this.nodes[1].equivalent(e.nodes[0], epsilon))) {
+            return true;
+        }
+        return false;
+    };
     return Edge;
 }());
 var Rect = (function () {
@@ -1023,6 +1033,7 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.midpoint = function () {
         return new XY(0.5 * (this.nodes[0].x + this.nodes[1].x), 0.5 * (this.nodes[0].y + this.nodes[1].y));
     };
+    PlanarEdge.prototype.equivalent = function (e) { return this.isSimilarToEdge(e); };
     PlanarEdge.prototype.vector = function (originNode) {
         var otherNode = this.otherNode(originNode);
         return new XY(otherNode.x - originNode.x, otherNode.y - originNode.y);
@@ -1978,13 +1989,13 @@ var PlanarGraph = (function (_super) {
 }(Graph));
 function rayIntersection(origin, direction, segments) {
     return segments
-        .map(function (edge) {
-        var intersect = rayLineSegmentIntersection(origin, direction, edge.nodes[0], edge.nodes[1]);
+        .map(function (reflection) {
+        var intersect = rayLineSegmentIntersection(origin, direction, reflection.nodes[0], reflection.nodes[1]);
         var distance = Infinity;
         if (intersect != undefined) {
             distance = origin.distanceTo(intersect);
         }
-        return { intersect: intersect, edge: edge, distance: distance };
+        return { intersect: intersect, reflection: reflection, distance: distance };
     })
         .sort(function (a, b) {
         return a.distance - b.distance;
@@ -1992,28 +2003,36 @@ function rayIntersection(origin, direction, segments) {
         .shift();
 }
 function reflectRayRepeat(origin, direction, segments, target) {
-    var edges = [{ intersect: origin, edge: undefined }];
-    edges.push(rayIntersection(origin, direction, segments));
+    var reflections = [{ intersect: origin, reflection: undefined }];
+    var firstIntersection = rayIntersection(origin, direction, segments.filter(function (el) {
+        return !(el.nodes[0].equivalent(origin) || el.nodes[1].equivalent(origin));
+    }));
+    if (target !== undefined && firstIntersection !== undefined) {
+        var targetDistance = origin.distanceTo(target);
+        if (targetDistance < firstIntersection['distance']) {
+            return [new Edge(origin, target)];
+        }
+    }
+    reflections.push(firstIntersection);
     var i = 0;
-    while (i < 100 && edges[edges.length - 1] !== undefined && edges[edges.length - 1]["intersect"] !== undefined) {
-        var prev = edges[edges.length - 1];
-        var prevPrev = edges[edges.length - 2];
-        var reflectionMatrix = prev["edge"].reflectionMatrix();
-        var reflectedPoint = prevPrev["intersect"].transform(reflectionMatrix);
-        var reflectedVector = reflectedPoint.subtract(prev.intersect);
-        if (epsilonEqual(reflectedVector.add(prev.intersect).cross(target), 0, EPSILON_HIGH)) {
-            edges.push({ intersect: target, edge: undefined });
+    while (i < 100 && reflections[reflections.length - 1] !== undefined && reflections[reflections.length - 1].intersect !== undefined) {
+        var newOrigin = reflections[reflections.length - 1].intersect;
+        var lineOfReflection = reflections[reflections.length - 1].reflection;
+        var reflectedPoint = reflections[reflections.length - 2].intersect.reflect(lineOfReflection.nodes[0], lineOfReflection.nodes[1]);
+        var newVector = reflectedPoint.subtract(newOrigin);
+        if (target !== undefined && epsilonEqual(newVector.cross(target.subtract(newOrigin)), 0, EPSILON_HIGH)) {
+            reflections.push({ intersect: target, reflection: lineOfReflection });
             break;
         }
-        edges.push(rayIntersection(prev.intersect, reflectedVector, segments));
-        i += 1;
+        reflections.push(rayIntersection(newOrigin, newVector, segments.filter(function (el) { return !el.equivalent(lineOfReflection); })));
+        i++;
     }
-    if (i == 100) {
-    }
-    edges = edges.filter(function (el) { return el !== undefined; });
+    reflections = reflections.filter(function (el) {
+        return (el !== undefined) && (el.intersect !== undefined);
+    });
     var result = [];
-    for (var i = 0; i < edges.length - 1; i++) {
-        result.push(new Edge(edges[i].intersect, edges[i + 1].intersect));
+    for (var i = 0; i < reflections.length - 1; i++) {
+        result.push(new Edge(reflections[i].intersect, reflections[i + 1].intersect));
     }
     return result;
 }
@@ -2112,14 +2131,26 @@ var VoronoiMoleculeTriangle = (function () {
         if (this.overlapped.length > 0) {
             symmetryLine.nodes[1] = this.overlapped[0].circumcenter;
         }
-        return [
-            symmetryLine,
-            new Edge(this.base[0], this.base[1]),
-            new Edge(this.base[0], crimps[0]),
-            new Edge(this.base[1], crimps[0]),
-            new Edge(this.base[0], crimps[1]),
-            new Edge(this.base[1], crimps[1])
-        ];
+        var overlappingEdges = this.overlapped.flatMap(function (el) {
+            return el.generateCreases();
+        });
+        if (overlappingEdges.length) {
+            console.log("overlappingEdges");
+            console.log(overlappingEdges);
+            for (var i = 0; i < overlappingEdges.length - 1; i++) {
+                for (var j = i + 1; j < overlappingEdges.length; j++) {
+                    if (overlappingEdges[i].equivalent(overlappingEdges[j])) {
+                        console.log("+++ FUCK EDGES ARE SILMILAR");
+                    }
+                }
+            }
+        }
+        var edges = [symmetryLine]
+            .concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]));
+        crimps.filter(function (el) { return el !== undefined; }).forEach(function (crimp) {
+            edges = edges.concat(reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]));
+        }, this);
+        return edges;
     };
     VoronoiMoleculeTriangle.prototype.pointInside = function (p) {
         var found = true;
@@ -3190,63 +3221,6 @@ var CreasePattern = (function (_super) {
             rowIndex++;
         }
         return array;
-    };
-    CreasePattern.prototype.creaseVoronoiIsosceles = function (vertex, base, angleLess) {
-        var baseMidPoint = base[0].midpoint(base[1]);
-        var leftJoint = new Joint(base[0], [vertex, base[1]]);
-        var bisection = leftJoint.bisect();
-        if (angleLess !== undefined) {
-            var bisectAngle = Math.atan2(bisection.y, bisection.x);
-            bisectAngle -= angleLess;
-            bisection = new XY(Math.cos(bisectAngle), Math.sin(bisectAngle));
-            var baseAngle = Math.atan2(base[1].y - base[0].y, base[1].x - base[0].x);
-            var diffAngle = bisectAngle - baseAngle;
-            var doubleVector = new XY(Math.cos(baseAngle + diffAngle * 2), Math.sin(baseAngle + diffAngle * 2));
-            var doubleIntersection = rayLineSegmentIntersection(leftJoint.origin, doubleVector, vertex, baseMidPoint);
-            var mountains = this.creaseRayRepeatWithTarget(base[0], doubleIntersection.subtract(base[0]), base[1]);
-            mountains.forEach(function (el) { el.mountain(); });
-        }
-        var intersection = rayLineSegmentIntersection(leftJoint.origin, bisection, vertex, baseMidPoint);
-        var mountains = this.creaseRayRepeatWithTarget(base[0], base[1].subtract(base[0]), base[1]);
-        var valleys = this.creaseRayRepeatWithTarget(base[0], intersection.subtract(base[0]), base[1]);
-        mountains.forEach(function (el) { el.mountain(); });
-        valleys.forEach(function (el) { el.valley(); });
-    };
-    CreasePattern.prototype.creaseVoronoiTriangleJoint = function (t) {
-        if (t.isObtuse()) {
-            var obtuse = t.angles().map(function (el, i) {
-                if (el > Math.PI * 0.5) {
-                    return i;
-                }
-                return undefined;
-            }).filter(function (el) { return el !== undefined; })[0];
-            this.crease(t.circumcenter, t.points[obtuse]).mountain();
-            var missingTri = [t.points[(obtuse + 2) % t.points.length],
-                t.points[(obtuse + 1) % t.points.length],
-                t.circumcenter];
-            var missingJoint = new Joint(missingTri[1], [missingTri[0], missingTri[2]]);
-            var angle = missingJoint.angle();
-            var aI = (obtuse + 2) % t.points.length;
-            var bI = (obtuse + 3) % t.points.length;
-            var cI = (obtuse + 4) % t.points.length;
-            this.creaseVoronoiIsosceles(t.circumcenter, [t.points[aI], t.points[bI]], angle * 0.5);
-            this.creaseVoronoiIsosceles(t.circumcenter, [t.points[bI], t.points[cI]], angle * 0.5);
-            return;
-        }
-        else {
-            t.points.forEach(function (pt) {
-                this.crease(t.circumcenter, pt).mountain();
-            }, this);
-        }
-        var outlineEdges = t.points.map(function (pt, i) {
-            var nextPt = t.points[(i + 1) % t.points.length];
-            return [pt, nextPt];
-        });
-        if (t.points.length == 3) {
-            this.creaseVoronoiIsosceles(t.circumcenter, [t.points[0], t.points[1]]);
-            this.creaseVoronoiIsosceles(t.circumcenter, [t.points[1], t.points[2]]);
-            this.creaseVoronoiIsosceles(t.circumcenter, [t.points[2], t.points[0]]);
-        }
     };
     CreasePattern.prototype.boundaryLineIntersection = function (origin, direction) {
         var opposite = new XY(-direction.x, -direction.y);

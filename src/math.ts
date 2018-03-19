@@ -345,6 +345,14 @@ class Edge{
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
 	reflectionMatrix():Matrix{ return new Matrix().reflection(this.nodes[0], this.nodes[1]); }
+	equivalent(e:Edge, epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		if((this.nodes[0].equivalent(e.nodes[0],epsilon) && this.nodes[1].equivalent(e.nodes[1], epsilon)) ||
+		   (this.nodes[0].equivalent(e.nodes[1],epsilon) && this.nodes[1].equivalent(e.nodes[0], epsilon)) ){
+			return true;
+		}
+		return false;
+	}
 }
 
 class Rect{

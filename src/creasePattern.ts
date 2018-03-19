@@ -29,45 +29,53 @@ interface d3VoronoiObject{
 //////////////////////////////////////////////////////////////////////////
 // CREASE PATTERN
 
-function rayIntersection(origin:XY, direction:XY, segments:Edge[]):{intersect:XY,edge:Edge}{
+function rayIntersection(origin:XY, direction:XY, segments:Edge[]):{intersect:XY,reflection:Edge}{
 	return segments
-		.map(function(edge){
-			var intersect = rayLineSegmentIntersection(origin, direction, edge.nodes[0], edge.nodes[1]);
+		.map(function(reflection){
+			var intersect = rayLineSegmentIntersection(origin, direction, reflection.nodes[0], reflection.nodes[1]);
 			var distance = Infinity;
 			if(intersect != undefined){ distance = origin.distanceTo(intersect); }
-			return {intersect:intersect, edge:edge, distance:distance};})
+			return {intersect:intersect, reflection:reflection, distance:distance};})
 		.sort(function(a,b){
 			return a.distance - b.distance; })
+		// .map(function(el){
+		// 	return {intersect:el.intersect, reflection:el.reflection}
+		// })
 		// return the first element, or undefined
 		.shift();
 }
 
 function reflectRayRepeat(origin:XY, direction:XY, segments:Edge[], target?:XY):Edge[]{
-	var edges:{intersect:XY,edge:Edge}[] = [{intersect:origin, edge:undefined}];
-	edges.push(rayIntersection(origin, direction, segments));
+	var reflections:{intersect:XY,reflection:Edge}[] = [{intersect:origin, reflection:undefined}];
+	var firstIntersection = rayIntersection(origin, direction, segments.filter(function(el){
+		return !(el.nodes[0].equivalent(origin) || el.nodes[1].equivalent(origin));
+	}));
+	if(target !== undefined && firstIntersection !== undefined){
+		var targetDistance = origin.distanceTo(target);
+		if(targetDistance < firstIntersection['distance']){
+			return [new Edge(origin, target)];
+		}
+	}
+	reflections.push(firstIntersection);
 	var i = 0;
-	while(i < 100 && edges[edges.length-1] !== undefined && edges[edges.length-1]["intersect"] !== undefined){
-		var prev = edges[edges.length-1];
-		var prevPrev = edges[edges.length-2];
-		// calculate reflected point
-		var reflectionMatrix = prev["edge"].reflectionMatrix();
-		var reflectedPoint = prevPrev["intersect"].transform(reflectionMatrix);
-		var reflectedVector = reflectedPoint.subtract(prev.intersect);
-		// exit if target is directly in front of us
-		if(epsilonEqual(reflectedVector.add(prev.intersect).cross(target), 0, EPSILON_HIGH)){
-			edges.push({intersect:target,edge:undefined});
+	while(i < 100 && reflections[reflections.length-1] !== undefined && reflections[reflections.length-1].intersect !== undefined){
+		var newOrigin:XY = reflections[reflections.length-1].intersect;
+		var lineOfReflection:Edge = reflections[reflections.length-1].reflection
+		var reflectedPoint = reflections[reflections.length-2].intersect.reflect(lineOfReflection.nodes[0], lineOfReflection.nodes[1]);
+		var newVector = reflectedPoint.subtract(newOrigin);
+		if(target !== undefined && epsilonEqual(newVector.cross(target.subtract(newOrigin)), 0, EPSILON_HIGH)){
+			reflections.push({intersect:target, reflection: lineOfReflection});
 			break;
 		}
-		edges.push(rayIntersection(prev.intersect, reflectedVector, segments));
-		i+=1;
+		reflections.push(rayIntersection(newOrigin, newVector, segments.filter(function(el){return !el.equivalent(lineOfReflection) })));
+		i++;
 	}
-	if(i == 100){
-		// check for closest out of the 100
-	}
-	edges = edges.filter(function(el){return el !== undefined;});
+	reflections = reflections.filter(function(el){
+		return (el !== undefined) && (el.intersect !== undefined);
+	});
 	var result = [];
-	for(var i = 0; i < edges.length-1; i++){
-		result.push( new Edge(edges[i].intersect, edges[i+1].intersect) );
+	for(var i = 0; i < reflections.length-1; i++){
+		result.push( new Edge(reflections[i].intersect, reflections[i+1].intersect) );
 	}
 	return result;
 }
@@ -111,9 +119,6 @@ class VoronoiMolecule extends Triangle{
 		}
 		return true;
 	}
-	// getSymmetryLine():Edge{
-
-	// }
 
 	generateCreases():Edge[]{
 		var isObtuse = this.isObtuse();
@@ -125,6 +130,7 @@ class VoronoiMolecule extends Triangle{
 
 		var creases = this.units.map(function(el){return el.generateCrimpCreaseLines();});
 		creases.forEach(function(el){ edges = edges.concat(el); },this);
+
 		if(isObtuse){
 			// obtuse angles, outer edges only creased if shared between 2 units
 			this.units.forEach(function(el,i){
@@ -136,30 +142,6 @@ class VoronoiMolecule extends Triangle{
 				edges.push( new Edge(el.base[0], el.vertex) );
 			},this);
 		}
-		// this.units.forEach(function(el){
-		// 	edges.push( new Edge(this.circumcenter, el.base[0].midpoint(el.base[1])));
-		// },this);
-		// if(this.overlaped !== undefined){
-		// 	var vertices = this.overlaped
-		// 		.map(function(el){return el.circumcenter})
-		// 		.sort(function(a,b){return a.distanceTo(this.circumcenter)-b.distanceTo(this.circumcenter); })
-		// 	edges.push( new Edge(this.circumcenter, vertices[0]) );
-		// } else{
-		// 	edges.push( new Edge(this.circumcenter, el) );
-		// }
-
-		// if(this.overlaped !== undefined){
-		// 	var possibleIntersects = [];
-		// 	var creases = this.overlaped.map(function(el){return el.generateCreases(); },this);
-		// 	console.log(creases);
-		// 	creases.forEach(function(el){possibleIntersects = possibleIntersects.concat(el)},this);
-		// 	var vertices = this.overlaped
-		// 		.map(function(el){return el.circumcenter})
-		// 		.sort(function(a,b){return a.distanceTo(this.circumcenter)-b.distanceTo(this.circumcenter); })
-		// 	var centerEdge = new Edge(this.circumcenter, vertices[0]);
-		// 	edges.push( centerEdge );
-		// 	possibleIntersects.push( centerEdge );
-		// }
 		return edges;
 	}
 }
@@ -202,15 +184,36 @@ class VoronoiMoleculeTriangle {
 		if(this.overlapped.length > 0){
 			symmetryLine.nodes[1] = this.overlapped[0].circumcenter;
 		}
+		var overlappingEdges = this.overlapped.flatMap(function(el:VoronoiMolecule){
+			return el.generateCreases();
+		});
+		if(overlappingEdges.length){
+			console.log("overlappingEdges");
+			console.log(overlappingEdges);
+			for(var i = 0; i < overlappingEdges.length-1; i++){
+				for(var j = i+1; j < overlappingEdges.length; j++){
+					if(overlappingEdges[i].equivalent(overlappingEdges[j])){
+						console.log("+++ FUCK EDGES ARE SILMILAR");
+					}
+				}
+			}
+		}
 
-		return [
-			symmetryLine,
-			new Edge(this.base[0], this.base[1]),
-			new Edge(this.base[0], crimps[0]),
-			new Edge(this.base[1], crimps[0]),
-			new Edge(this.base[0], crimps[1]),
-			new Edge(this.base[1], crimps[1])
-		];
+		var edges = [symmetryLine]
+			.concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );
+		crimps.filter(function(el){return el!==undefined;}).forEach(function(crimp){
+			edges = edges.concat( reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]) );
+		},this);
+		return edges;
+
+		// return [
+		// 	symmetryLine,
+		// 	// new Edge(this.base[0], this.base[1]),
+		// 	new Edge(this.base[0], crimps[0]),
+		// 	new Edge(this.base[1], crimps[0]),
+		// 	new Edge(this.base[0], crimps[1]),
+		// 	new Edge(this.base[1], crimps[1])
+		// ].concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );;
 	}
 	pointInside(p:XY):boolean{
 		var found = true;
@@ -1373,6 +1376,7 @@ class CreasePattern extends PlanarGraph{
 		cells.forEach(function(cell){ cell.forEach(function(edge){
 			this.crease(edge[0], edge[1]).mountain();
 		},this)},this);
+
 		// find overlapped molecules
 		var sortedMolecules = this.buildMoleculeOverlapArray(molecules);
 		// console.log(sortedMolecules);
@@ -1383,12 +1387,8 @@ class CreasePattern extends PlanarGraph{
 				edges.forEach(function(el){
 					this.crease(el.nodes[0], el.nodes[1]);
 				},this);
-				// this.creaseVoronoiTriangleJoint(m);
 			}, this);
 		}, this);
-		// molecules.forEach(function(t){
-		// 	this.creaseVoronoiTriangleJoint(t);
-		// },this);
 		return molecules;
 	}
 
@@ -1430,83 +1430,6 @@ class CreasePattern extends PlanarGraph{
 			rowIndex++;
 		}
 		return array;
-	}
-
-	creaseVoronoiIsosceles(vertex:XY, base:[XY,XY], angleLess?:number){
-		// pct moves it away from being a uniaxial base
-		var baseMidPoint = base[0].midpoint(base[1]);
-		var leftJoint = new Joint(base[0], [vertex, base[1]]);
-		// var rightJoint = new Joint(base[0], [base[1], vertex]);
-		var bisection = leftJoint.bisect();
-		if(angleLess !== undefined){
-			var bisectAngle = Math.atan2(bisection.y, bisection.x);
-			bisectAngle -= angleLess;
-			bisection = new XY(Math.cos(bisectAngle), Math.sin(bisectAngle));
-			var baseAngle = Math.atan2(base[1].y-base[0].y, base[1].x - base[0].x);
-			// var baseAngle = Math.atan2(base[0].y-base[1].y, base[0].x - base[1].x);
-			var diffAngle = bisectAngle - baseAngle;
-			var doubleVector = new XY(Math.cos(baseAngle + diffAngle*2), Math.sin(baseAngle + diffAngle*2));
-			var doubleIntersection = rayLineSegmentIntersection(leftJoint.origin, doubleVector, vertex, baseMidPoint);
-			// this.crease(base[0], doubleIntersection).mountain();
-			// this.crease(base[1], doubleIntersection).mountain();
-			var mountains = this.creaseRayRepeatWithTarget(base[0], doubleIntersection.subtract(base[0]), base[1]);
-			mountains.forEach(function(el){el.mountain();});
-		}
-		var intersection = rayLineSegmentIntersection(leftJoint.origin, bisection, vertex, baseMidPoint);
-
-		// this.crease(base[0], base[1]).mountain();
-		// this.crease(base[0], intersection).valley();
-		// this.crease(base[1], intersection).valley();
-		var mountains = this.creaseRayRepeatWithTarget(base[0], base[1].subtract(base[0]), base[1]);
-		var valleys = this.creaseRayRepeatWithTarget(base[0], intersection.subtract(base[0]), base[1]);
-		mountains.forEach(function(el){el.mountain();});
-		valleys.forEach(function(el){el.valley();});
-	}
-
-	creaseVoronoiTriangleJoint(t:Triangle){
-		// crease circumcenter ribs
-		// t.points.forEach(function(pt){
-		// 	this.crease(t.circumcenter, pt).mountain();
-		// },this);
-
-		if(t.isObtuse()){
-			// locate the obtuse angle
-			var obtuse:number = t.angles().map(function(el,i){
-				if(el>Math.PI*0.5){return i;}
-				return undefined;
-			}).filter(function(el){return el !== undefined})[0];
-			// crease the one joint line that will always be present
-			this.crease(t.circumcenter, t.points[obtuse]).mountain();
-
-			var missingTri = [ t.points[(obtuse+2)%t.points.length],
-			                   t.points[(obtuse+1)%t.points.length],
-			                   t.circumcenter ];
-	
-			var missingJoint = new Joint(missingTri[1], [missingTri[0], missingTri[2]]);
-			// the interior angle of the hidden triangle
-			var angle = missingJoint.angle();
-
-			var aI = (obtuse+2)%t.points.length;
-			var bI = (obtuse+3)%t.points.length;
-			var cI = (obtuse+4)%t.points.length;
-			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[aI],t.points[bI]], angle*0.5);
-			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[bI],t.points[cI]], angle*0.5);
-			return;
-		} else{
-			t.points.forEach(function(pt){
-				this.crease(t.circumcenter, pt).mountain();
-			},this);
-		}
-
-		var outlineEdges:XY[][] = t.points.map(function(pt,i){
-			var nextPt = t.points[(i+1)%t.points.length];
-			return [pt, nextPt];
-		});
-		if(t.points.length == 3){
-			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[0],t.points[1]]);
-			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[1],t.points[2]]);
-			this.creaseVoronoiIsosceles(t.circumcenter, [t.points[2],t.points[0]]);
-		}
 	}
 
 	/////////////////////////////////////////////////////////////////////

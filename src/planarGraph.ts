@@ -173,6 +173,8 @@ class PlanarEdge extends GraphEdge implements Edge{
 	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
+	equivalent(e:PlanarEdge):boolean{ return this.isSimilarToEdge(e); }
+
 	/** form a vector by placing one of the nodes at the origin */
 	vector(originNode:PlanarNode):XY{
 		var otherNode = <PlanarNode>this.otherNode(originNode);
