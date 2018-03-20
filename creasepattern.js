@@ -2004,9 +2004,7 @@ function rayIntersection(origin, direction, segments) {
 }
 function reflectRayRepeat(origin, direction, segments, target) {
     var reflections = [{ intersect: origin, reflection: undefined }];
-    var firstIntersection = rayIntersection(origin, direction, segments.filter(function (el) {
-        return !(el.nodes[0].equivalent(origin) || el.nodes[1].equivalent(origin));
-    }));
+    var firstIntersection = rayIntersection(origin, direction, segments);
     if (target !== undefined && firstIntersection !== undefined) {
         var targetDistance = origin.distanceTo(target);
         if (targetDistance < firstIntersection['distance']) {
@@ -2094,9 +2092,6 @@ var VoronoiMolecule = (function (_super) {
             }, this);
         }
         else {
-            this.units.forEach(function (el) {
-                edges.push(new Edge(el.base[0], el.vertex));
-            }, this);
         }
         return edges;
     };
@@ -2131,23 +2126,16 @@ var VoronoiMoleculeTriangle = (function () {
         if (this.overlapped.length > 0) {
             symmetryLine.nodes[1] = this.overlapped[0].circumcenter;
         }
-        var overlappingEdges = this.overlapped.flatMap(function (el) {
+        var overlappingEdges = [symmetryLine]
+            .concat(this.overlapped.flatMap(function (el) {
             return el.generateCreases();
-        });
-        if (overlappingEdges.length) {
-            console.log("overlappingEdges");
-            console.log(overlappingEdges);
-            for (var i = 0; i < overlappingEdges.length - 1; i++) {
-                for (var j = i + 1; j < overlappingEdges.length; j++) {
-                    if (overlappingEdges[i].equivalent(overlappingEdges[j])) {
-                        console.log("+++ FUCK EDGES ARE SILMILAR");
-                    }
-                }
-            }
-        }
+        }));
         var edges = [symmetryLine]
             .concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]));
-        crimps.filter(function (el) { return el !== undefined; }).forEach(function (crimp) {
+        crimps.filter(function (el) {
+            return el !== undefined && !el.equivalent(this.vertex);
+        }, this)
+            .forEach(function (crimp) {
             edges = edges.concat(reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]));
         }, this);
         return edges;

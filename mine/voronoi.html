@@ -64,9 +64,7 @@ function download(text, filename){
 var voronoiAlgorithm; // global D3 algorithm implementation
 
 var project = new OrigamiPaper("canvas");
-project.updateWeights(0.005, 0.0025);
 project.setPadding();
-project.updateWeights(0.005, 0.0025);
 
 var touchNodes = new PlanarGraph();
 var touchNodesCircles = [];
@@ -93,7 +91,7 @@ var touchNodesLayer
 // touchNodes.newPlanarNode(0.6984427919609809, 0.8950778811039989);
 
 // setTimeout(function(){
-// 	for(var i = 0; i < 3; i++){
+// 	for(var i = 0; i < 10; i++){
 // 		touchNodes.newPlanarNode(Math.random()*1.33, Math.random());
 // 	}
 // 	project.reset();
@@ -119,7 +117,7 @@ project.drawVoronoi = function(complex, showGussets){
 	} else{
 		this.cp.creaseVoronoi(v, interpolation);
 	}
-	this.updateWeights(0.005, 0.0025);
+	this.updateWeights(0.0025, 0.00125);
 	for(var i = 0; i < touchNodes.nodes.length; i++){
 		var position = new XY(touchNodes.nodes[i].x, touchNodes.nodes[i].y);
 		this.cp.crease(position.add(new XY(-0.01, 0.00)), position.add(new XY(0.01, 0.00)) );
