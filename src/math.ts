@@ -310,6 +310,7 @@ class XY{
 	// position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
 	normalize():XY { var m = this.magnitude(); return new XY(this.x/m, this.y/m);}
 	rotate90():XY { return new XY(-this.y, this.x); }
+	rotate270():XY { return new XY(this.y, -this.x); }
 	rotate(angle:number, origin?:XY){
 		return this.transform( new Matrix().rotation(angle, origin) );
 	}
@@ -335,7 +336,9 @@ class XY{
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
 	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
 	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }
+	multiply(m:XY):XY{ return new XY(this.x*m.x, this.y*m.y); }
 	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
+	abs():XY{ return new XY(Math.abs(this.x), Math.abs(this.y)); }
 }
 
 class Edge{

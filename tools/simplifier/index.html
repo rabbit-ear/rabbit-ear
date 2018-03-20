@@ -45,7 +45,7 @@ function fileDidLoad(svg){
 	project.load(svg, function(){
 		project.cp.setMinRectBoundary();
 		project.draw();
-		var scale = 600 / cp.width();
+		var scale = 600 / cp.bounds().size.width;
 		if(isNaN(scale) || scale === undefined){ scale = 1.0; }
 		var svgMin = project.cp.svgMin(scale);
 		download(svgMin, "creasepattern.svg");

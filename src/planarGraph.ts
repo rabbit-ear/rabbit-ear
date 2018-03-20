@@ -129,6 +129,7 @@ class PlanarNode extends GraphNode implements XY{
 	translate(dx:number, dy:number):PlanarNode{ this.x += dx; this.y += dy; return this;}
 	normalize():PlanarNode { var m = this.magnitude(); this.x /= m; this.y /= m; return this; }
 	rotate90():PlanarNode { var x = this.x; this.x = -this.y; this.y = x; return this; }
+	rotate270():PlanarNode { var x = this.x; this.x = this.y; this.y = -x; return this; }
 	rotate(angle:number, origin:XY):PlanarNode{
 		var dx = this.x-origin.x;
 		var dy = this.y-origin.y;
@@ -162,7 +163,9 @@ class PlanarNode extends GraphNode implements XY{
 	scale(magnitude:number):PlanarNode{ this.x*=magnitude; this.y*=magnitude; return this; }
 	add(point:XY):PlanarNode{ this.x+=point.x; this.y+=point.y; return this; }
 	subtract(sub:XY):PlanarNode{ this.x-=sub.x; this.y-=sub.y; return this; }
+	multiply(m:XY):PlanarNode{ this.x*=m.x; this.y*=m.y; return this; }
 	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
+	abs():PlanarNode{ this.x = Math.abs(this.x), this.y = Math.abs(this.y); return this; }
 }
 
 class PlanarEdge extends GraphEdge implements Edge{

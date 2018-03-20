@@ -669,6 +669,7 @@ var XY = (function () {
     }
     XY.prototype.normalize = function () { var m = this.magnitude(); return new XY(this.x / m, this.y / m); };
     XY.prototype.rotate90 = function () { return new XY(-this.y, this.x); };
+    XY.prototype.rotate270 = function () { return new XY(this.y, -this.x); };
     XY.prototype.rotate = function (angle, origin) {
         return this.transform(new Matrix().rotation(angle, origin));
     };
@@ -693,7 +694,9 @@ var XY = (function () {
     XY.prototype.scale = function (magnitude) { return new XY(this.x * magnitude, this.y * magnitude); };
     XY.prototype.add = function (point) { return new XY(this.x + point.x, this.y + point.y); };
     XY.prototype.subtract = function (sub) { return new XY(this.x - sub.x, this.y - sub.y); };
+    XY.prototype.multiply = function (m) { return new XY(this.x * m.x, this.y * m.y); };
     XY.prototype.midpoint = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
+    XY.prototype.abs = function () { return new XY(Math.abs(this.x), Math.abs(this.y)); };
     return XY;
 }());
 var Edge = (function () {
@@ -987,6 +990,7 @@ var PlanarNode = (function (_super) {
     PlanarNode.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
     PlanarNode.prototype.normalize = function () { var m = this.magnitude(); this.x /= m; this.y /= m; return this; };
     PlanarNode.prototype.rotate90 = function () { var x = this.x; this.x = -this.y; this.y = x; return this; };
+    PlanarNode.prototype.rotate270 = function () { var x = this.x; this.x = this.y; this.y = -x; return this; };
     PlanarNode.prototype.rotate = function (angle, origin) {
         var dx = this.x - origin.x;
         var dy = this.y - origin.y;
@@ -1021,7 +1025,9 @@ var PlanarNode = (function (_super) {
     PlanarNode.prototype.scale = function (magnitude) { this.x *= magnitude; this.y *= magnitude; return this; };
     PlanarNode.prototype.add = function (point) { this.x += point.x; this.y += point.y; return this; };
     PlanarNode.prototype.subtract = function (sub) { this.x -= sub.x; this.y -= sub.y; return this; };
+    PlanarNode.prototype.multiply = function (m) { this.x *= m.x; this.y *= m.y; return this; };
     PlanarNode.prototype.midpoint = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
+    PlanarNode.prototype.abs = function () { this.x = Math.abs(this.x), this.y = Math.abs(this.y); return this; };
     return PlanarNode;
 }(GraphNode));
 var PlanarEdge = (function (_super) {
@@ -2036,14 +2042,27 @@ function reflectRayRepeat(origin, direction, segments, target) {
 }
 var VoronoiMolecule = (function (_super) {
     __extends(VoronoiMolecule, _super);
-    function VoronoiMolecule(points, circumcenter) {
+    function VoronoiMolecule(points, circumcenter, edgeNormal) {
         var _this = _super.call(this, points, circumcenter) || this;
+        _this.isEdge = false;
+        _this.isCorner = false;
         _this.overlaped = [];
         _this.hull = convexHull([points[0], points[1], points[2], circumcenter].filter(function (el) { return el !== undefined; }));
         _this.units = _this.points.map(function (el, i) {
             var nextEl = this.points[(i + 1) % this.points.length];
             return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
         }, _this);
+        switch (_this.points.length) {
+            case 1:
+                _this.isCorner = true;
+                _this.addCornerMolecules();
+                break;
+            case 2:
+                _this.isEdge = true;
+                _this.units.pop();
+                _this.addEdgeMolecules(edgeNormal);
+                break;
+        }
         var eclipsed = undefined;
         _this.units = _this.units.filter(function (el) {
             var cross = (el.vertex.y - el.base[0].y) * (el.base[1].x - el.base[0].x) -
@@ -2060,17 +2079,21 @@ var VoronoiMolecule = (function (_super) {
         }
         return _this;
     }
-    VoronoiMolecule.prototype.pointInside = function (p) {
-        var found = true;
-        for (var i = 0; i < this.hull.length; i++) {
-            var p0 = this.hull[i];
-            var p1 = this.hull[(i + 1) % this.hull.length];
-            var cross = (p.y - p0.y) * (p1.x - p0.x) -
-                (p.x - p0.x) * (p1.y - p0.y);
-            if (cross < 0)
-                return false;
+    VoronoiMolecule.prototype.addEdgeMolecules = function (normal) {
+        this.edgeNormal = normal.normalize().abs();
+        if (this.units.length < 1) {
+            return;
         }
-        return true;
+        var base = this.units[0].base;
+        var reflected = base.map(function (b) {
+            var diff = this.circumcenter.subtract(b);
+            var change = diff.multiply(this.edgeNormal).scale(2);
+            return b.add(change);
+        }, this);
+        this.units = this.units.concat([new VoronoiMoleculeTriangle(this.circumcenter, [base[1], reflected[1]]),
+            new VoronoiMoleculeTriangle(this.circumcenter, [reflected[0], base[0]])]);
+    };
+    VoronoiMolecule.prototype.addCornerMolecules = function () {
     };
     VoronoiMolecule.prototype.generateCreases = function () {
         var isObtuse = this.isObtuse();
@@ -2091,9 +2114,19 @@ var VoronoiMolecule = (function (_super) {
                 }
             }, this);
         }
-        else {
-        }
         return edges;
+    };
+    VoronoiMolecule.prototype.pointInside = function (p) {
+        var found = true;
+        for (var i = 0; i < this.hull.length; i++) {
+            var p0 = this.hull[i];
+            var p1 = this.hull[(i + 1) % this.hull.length];
+            var cross = (p.y - p0.y) * (p1.x - p0.x) -
+                (p.x - p0.x) * (p1.y - p0.y);
+            if (cross < 0)
+                return false;
+        }
+        return true;
     };
     return VoronoiMolecule;
 }(Triangle));
@@ -2172,6 +2205,8 @@ var VoronoiJunction = (function () {
     function VoronoiJunction() {
         this.edges = [];
         this.cells = [];
+        this.isEdge = false;
+        this.isCorner = false;
     }
     return VoronoiJunction;
 }());
@@ -2180,6 +2215,12 @@ var VoronoiGraph = (function () {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
+        var allPoints = v.edges.flatMap(function (e) { return [new XY(e[0][0], e[0][1]), new XY(e[1][0], e[1][1])]; });
+        var hull = convexHull(allPoints);
+        var hullEdges = hull.map(function (el, i) {
+            var nextEl = hull[(i + 1) % hull.length];
+            return new Edge(el, nextEl);
+        });
         this.edges = [];
         this.junctions = [];
         this.cells = [];
@@ -2252,6 +2293,19 @@ var VoronoiGraph = (function () {
                 var vecB = b.site.subtract(el);
                 return Math.atan2(vecA.y, vecA.x) - Math.atan2(vecB.y, vecB.x);
             });
+            switch (junction.cells.length) {
+                case 1:
+                    junction.isCorner = true;
+                    break;
+                case 2:
+                    junction.isEdge = true;
+                    hullEdges.forEach(function (edge) {
+                        if (onSegment(junction.position, edge.nodes[0], edge.nodes[1])) {
+                            junction.edgeNormal = edge.nodes[1].subtract(edge.nodes[0]).rotate90();
+                        }
+                    });
+                    break;
+            }
             junction.edges = this.edges.filter(function (edge) {
                 return edge.endPoints.contains(el, compFunc);
             }, this).sort(function (a, b) {
@@ -3151,7 +3205,8 @@ var CreasePattern = (function (_super) {
             var endPoints = j.cells.map(function (cell) {
                 return cell.site.lerp(j.position, interp);
             }, this);
-            return new VoronoiMolecule(endPoints, j.position);
+            var molecule = new VoronoiMolecule(endPoints, j.position, j.isEdge ? j.edgeNormal : undefined);
+            return molecule;
         }, this);
         edges.forEach(function (edge) {
             this.crease(edge.endPoints[0], edge.endPoints[1]).valley();

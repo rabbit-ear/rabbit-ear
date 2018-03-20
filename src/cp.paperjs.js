@@ -8,7 +8,8 @@ try {
 	throw "cp.paper.js requires the crease pattern js library github.com/robbykraft/Origami, and to be included before this file"
 }
 
-var EPSILON_FILE_IMPORT = 0.005;
+// var EPSILON_FILE_IMPORT = 0.005;
+var EPSILON_FILE_IMPORT = 0.00005;
 
 ///////////////////////////////////////////////
 //  RENDER FLAT ORIGAMI CREASE PATTERN
