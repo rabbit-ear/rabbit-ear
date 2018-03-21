@@ -372,17 +372,17 @@ class Triangle{
 	points:[XY,XY,XY];
 	edges:[Edge, Edge, Edge];
 	circumcenter:XY;
-	joints:[Joint,Joint,Joint];
+	sectors:[Sector,Sector,Sector];
 	constructor(points:[XY,XY,XY], circumcenter?:XY){
 		this.points = points;
 		this.edges = this.points.map(function(el,i){
 			var nextEl = this.points[ (i+1)%this.points.length ];
 			return new Edge(el, nextEl);
 		},this);
-		this.joints = this.points.map(function(el,i){
+		this.sectors = this.points.map(function(el,i){
 			var prevI = (i+this.points.length-1)%this.points.length;
 			var nextI = (i+1)%this.points.length;
-			return new Joint(el, [this.points[prevI], this.points[nextI]]);
+			return new Sector(el, [this.points[prevI], this.points[nextI]]);
 		},this);
 		this.circumcenter = circumcenter;
 		if(circumcenter === undefined){
@@ -390,7 +390,11 @@ class Triangle{
 		}
 	}
 	angles():[number,number,number]{
-		return this.joints.map(function(el){return el.angle();});
+		return this.points.map(function(p,i){
+			var prevP = this.points[(i+this.points.length-1)%this.points.length];
+			var nextP = this.points[(i+1)%this.points.length];
+			return clockwiseInteriorAngle(nextP.subtract(p), prevP.subtract(p));
+		},this);
 	}
 	isAcute():boolean{
 		var a = this.angles();
@@ -424,11 +428,11 @@ class IsoscelesTriangle extends Triangle{
 
 }
 
-/** a Joint is defined by 3 nodes (one common, 2 endpoints) 
+/** a Sector is defined by 3 nodes (one common, 2 endpoints) 
  *  clockwise order is enforced
  *  the interior angle is measured clockwise from endpoint 0 to 1
  */
-class Joint{
+class Sector{
 	// the node in common with the edges
 	origin:XY;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
@@ -471,7 +475,7 @@ class Joint{
 		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
 		return vectors.map(function(el:XY,i){ return el.rotate(rotateNodes[i]); },this);
 	}
-	equivalent(a:Joint):boolean{
+	equivalent(a:Sector):boolean{
 		return a.origin.equivalent(this.origin) && 
 		       a.endPoints[0].equivalent(this.endPoints[0]) && 
 		       a.endPoints[1].equivalent(this.endPoints[1]);

@@ -52,7 +52,7 @@ function reflectRayRepeat(origin:XY, direction:XY, segments:Edge[], target?:XY):
 	// }));
 	var firstIntersection = rayIntersection(origin, direction, segments);
 
-	if(target !== undefined && firstIntersection !== undefined){
+	if(target !== undefined && firstIntersection !== undefined && epsilonEqual(direction.cross(target.subtract(origin)), 0, EPSILON_HIGH)){
 		var targetDistance = origin.distanceTo(target);
 		if(targetDistance < firstIntersection['distance']){
 			return [new Edge(origin, target)];
@@ -146,7 +146,6 @@ class VoronoiMolecule extends Triangle{
 
 
 	generateCreases():Edge[]{
-		var isObtuse = this.isObtuse();
 		var edges:Edge[] = [];
 		var outerEdges = this.units.map(function(el,i){
 			var nextEl = this.units[ (i+1)%this.units.length ];
@@ -158,7 +157,7 @@ class VoronoiMolecule extends Triangle{
 		var creases = this.units.map(function(el){return el.generateCrimpCreaseLines();});
 		creases.forEach(function(el){ edges = edges.concat(el); },this);
 
-		if(isObtuse){
+		if(this.isObtuse()){
 			// obtuse angles, outer edges only creased if shared between 2 units
 			this.units.forEach(function(el,i){
 				var nextEl = this.units[ (i+1)%this.units.length ];
@@ -199,8 +198,6 @@ class VoronoiMoleculeTriangle {
 			var vec2 = vertex.subtract(base[0]);
 			var a1 = clockwiseInteriorAngle(vec1, vec2);
 			var a2 = clockwiseInteriorAngle(vec2, vec1);
-			// console.log(vec1.x + " " + vec1.y + "  --  " + vec2.x + " " + vec2.y );
-			// console.log(a1 + " " + a2);
 			this.crimpAngle = (a1<a2) ? a1 : a2;
 		}
 	}
@@ -212,11 +209,11 @@ class VoronoiMoleculeTriangle {
 		var symmetryLine = new Edge(this.vertex, this.base[0].midpoint(this.base[1]));
 		var crimpPos = rayLineSegmentIntersection(this.base[0], crimpVector, symmetryLine.nodes[0], symmetryLine.nodes[1]);
 		var bisectPos = rayLineSegmentIntersection(this.base[0], bisectVector, symmetryLine.nodes[0], symmetryLine.nodes[1]);
-		// console.log(baseAngle + " " + this.crimpAngle);
 		return [crimpPos, bisectPos];
 	}
 	generateCrimpCreaseLines():Edge[]{
-		var crimps = this.crimpLocations();
+		var crimps:[XY,XY] = this.crimpLocations();
+
 		var symmetryLine = new Edge(this.vertex, this.base[0].midpoint(this.base[1]));
 		if(this.overlapped.length > 0){
 			symmetryLine.nodes[1] = this.overlapped[0].circumcenter;
@@ -228,22 +225,30 @@ class VoronoiMoleculeTriangle {
 
 		var edges = [symmetryLine]
 			.concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );
-		// console.log(crimps);
-		crimps.filter(function(el){
-				return el!==undefined && !el.equivalent(this.vertex);},this)
-			.forEach(function(crimp){
-				edges = edges.concat( reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]) );},this);
+		// crimps.filter(function(el){
+		// 		return el!==undefined && !el.equivalent(this.vertex);},this)
+		// 	.forEach(function(crimp:XY){
+		// 		edges = edges.concat( reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]) );
+		// 	},this);
+		// return edges;
 
+		if(crimps[0] !== undefined){
+			var newEdges = reflectRayRepeat(this.base[0], crimps[0].subtract(this.base[0]), overlappingEdges, this.base[1]);
+			edges = edges.concat( newEdges );
+		}
+		edges = edges.concat([
+			new Edge(this.base[0], crimps[1]), 
+			new Edge(this.base[1], crimps[1])]);
 		return edges;
 
 		// return [
 		// 	symmetryLine,
-		// 	// new Edge(this.base[0], this.base[1]),
+		// 	new Edge(this.base[0], this.base[1]),
 		// 	new Edge(this.base[0], crimps[0]),
 		// 	new Edge(this.base[1], crimps[0]),
-		// 	new Edge(this.base[0], crimps[1]),
-		// 	new Edge(this.base[1], crimps[1])
-		// ].concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );;
+		//	new Edge(this.base[0], crimps[1]),
+		//	new Edge(this.base[1], crimps[1])
+		// ]//.concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );;
 	}
 	pointInside(p:XY):boolean{
 		var found = true;
@@ -463,7 +468,7 @@ class FoldSequence{
 	// sheet of paper, the fold won't execute the same way, different node indices will get applied.
 }
 
-class CreaseJoint extends PlanarJoint{
+class CreaseSector extends PlanarSector{
 
 	/** This will search for an angle which if an additional crease is made will satisfy Kawasaki's theorem
 	 * 
@@ -499,7 +504,7 @@ class CreaseJunction extends PlanarJunction{
 
 	origin:CreaseNode;
 	// joints and edges are sorted clockwise
-	joints:CreaseJoint[];
+	joints:CreaseSector[];
 	edges:Crease[];
 
 	flatFoldable(epsilon?:number):boolean{
@@ -529,15 +534,15 @@ class CreaseJunction extends PlanarJunction{
 		var alternating = this.alternateAngleSum();
 		return Math.abs(alternating[0] - alternating[1]);
 	}
-	kawasakiSolution():[{'difference':number,'joints':CreaseJoint[]},
-	                    {'difference':number,'joints':CreaseJoint[]}]{
+	kawasakiSolution():[{'difference':number,'joints':CreaseSector[]},
+	                    {'difference':number,'joints':CreaseSector[]}]{
 		var alternating = this.alternateAngleSum().map(function(el){
 			return {'difference':(Math.PI - el), 'joints':[]};
 		});
 		this.joints.forEach(function(el,i){ alternating[i%2].joints.push(el); });
 		return alternating;
 	}
-	kawasakiSubsect(joint:PlanarJoint):XY{
+	kawasakiSubsect(joint:PlanarSector):XY{
 		// joint must be one of the Joints in this Junction
 		
 		// todo: allow searches for other number edges
@@ -569,7 +574,7 @@ class CreaseNode extends PlanarNode{
 	graph:CreasePattern;
 
 	junctionType = CreaseJunction;
-	jointType = CreaseJoint;
+	sectorType = CreaseSector;
 
 	isBoundary():boolean{
 		for(var i = 0; i < this.graph.boundary.edges.length; i++){
@@ -1708,7 +1713,7 @@ class CreasePattern extends PlanarGraph{
 
 /*
 
-	findFlatFoldable(angle:PlanarJoint):number{
+	findFlatFoldable(angle:PlanarSector):number{
 		var junction = angle.node.junction();
 		// todo: allow searches for other number edges
 		if(junction.edges.length != 3){ return; }

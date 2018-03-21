@@ -734,17 +734,21 @@ var Triangle = (function () {
             var nextEl = this.points[(i + 1) % this.points.length];
             return new Edge(el, nextEl);
         }, this);
-        this.joints = this.points.map(function (el, i) {
+        this.sectors = this.points.map(function (el, i) {
             var prevI = (i + this.points.length - 1) % this.points.length;
             var nextI = (i + 1) % this.points.length;
-            return new Joint(el, [this.points[prevI], this.points[nextI]]);
+            return new Sector(el, [this.points[prevI], this.points[nextI]]);
         }, this);
         this.circumcenter = circumcenter;
         if (circumcenter === undefined) {
         }
     }
     Triangle.prototype.angles = function () {
-        return this.joints.map(function (el) { return el.angle(); });
+        return this.points.map(function (p, i) {
+            var prevP = this.points[(i + this.points.length - 1) % this.points.length];
+            var nextP = this.points[(i + 1) % this.points.length];
+            return clockwiseInteriorAngle(nextP.subtract(p), prevP.subtract(p));
+        }, this);
     };
     Triangle.prototype.isAcute = function () {
         var a = this.angles();
@@ -794,18 +798,18 @@ var IsoscelesTriangle = (function (_super) {
     }
     return IsoscelesTriangle;
 }(Triangle));
-var Joint = (function () {
-    function Joint(origin, endpoints) {
+var Sector = (function () {
+    function Sector(origin, endpoints) {
         this.origin = origin;
         this.endPoints = endpoints;
     }
-    Joint.prototype.vectors = function () {
+    Sector.prototype.vectors = function () {
         return [this.endPoints[0].subtract(this.origin), this.endPoints[1].subtract(this.origin)];
     };
-    Joint.prototype.angle = function () {
+    Sector.prototype.angle = function () {
         return clockwiseInteriorAngle(this.endPoints[0].subtract(this.origin), this.endPoints[1].subtract(this.origin));
     };
-    Joint.prototype.bisect = function () {
+    Sector.prototype.bisect = function () {
         var vectors = this.vectors();
         var angles = vectors.map(function (el) { return Math.atan2(el.y, el.x); });
         while (angles[0] < 0) {
@@ -818,7 +822,7 @@ var Joint = (function () {
         var bisected = angles[0] - interior * 0.5;
         return new XY(Math.cos(bisected), Math.sin(bisected));
     };
-    Joint.prototype.subsectAngle = function (divisions) {
+    Sector.prototype.subsectAngle = function (divisions) {
         if (divisions === undefined || divisions < 1) {
             throw "subsetAngle() requires a parameter greater than 1";
         }
@@ -830,19 +834,19 @@ var Joint = (function () {
         }
         return results;
     };
-    Joint.prototype.getEdgeVectorsForNewAngle = function (angle, lockedEdge) {
+    Sector.prototype.getEdgeVectorsForNewAngle = function (angle, lockedEdge) {
         var vectors = this.vectors();
         var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
         var rotateNodes = [-angleChange * 0.5, angleChange * 0.5];
         return vectors.map(function (el, i) { return el.rotate(rotateNodes[i]); }, this);
     };
-    Joint.prototype.equivalent = function (a) {
+    Sector.prototype.equivalent = function (a) {
         return a.origin.equivalent(this.origin) &&
             a.endPoints[0].equivalent(this.endPoints[0]) &&
             a.endPoints[1].equivalent(this.endPoints[1]);
     };
-    Joint.prototype.sortByClockwise = function () { };
-    return Joint;
+    Sector.prototype.sortByClockwise = function () { };
+    return Sector;
 }());
 Array.prototype.flatMap = function (mapFunc) {
     return this.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
@@ -954,7 +958,7 @@ var PlanarNode = (function (_super) {
     function PlanarNode() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.junctionType = PlanarJunction;
-        _this.jointType = PlanarJoint;
+        _this.sectorType = PlanarSector;
         _this.cache = {};
         return _this;
     }
@@ -1133,13 +1137,13 @@ var PlanarFace = (function () {
         this.nodes = circut.map(function (el, i) {
             return el.uncommonNodeWithEdge(circut[(i + 1) % circut.length]);
         });
-        var jointType = this.nodes[0].jointType;
+        var sectorType = this.nodes[0].sectorType;
         this.joints = this.edges.map(function (el, i) {
             var nexti = (i + 1) % this.edges.length;
             var origin = el.commonNodeWithEdge(this.edges[nexti]);
             var endPoints = [el.uncommonNodeWithEdge(this.edges[nexti]),
                 this.edges[nexti].uncommonNodeWithEdge(el)];
-            return new jointType(el, this.edges[nexti]);
+            return new sectorType(el, this.edges[nexti]);
         }, this);
         this.angles = this.joints.map(function (el) { return el.angle(); });
         var angleSum = this.angles.reduce(function (sum, value) { return sum + value; }, 0);
@@ -1222,9 +1226,9 @@ var PlanarFace = (function () {
     };
     return PlanarFace;
 }());
-var PlanarJoint = (function (_super) {
-    __extends(PlanarJoint, _super);
-    function PlanarJoint(edge1, edge2) {
+var PlanarSector = (function (_super) {
+    __extends(PlanarSector, _super);
+    function PlanarSector(edge1, edge2) {
         var _this = _super.call(this, edge1.commonNodeWithEdge(edge2), undefined) || this;
         if (_this.origin === undefined) {
             return _this;
@@ -1239,7 +1243,7 @@ var PlanarJoint = (function (_super) {
         ];
         return _this;
     }
-    PlanarJoint.prototype.makeWithEdges = function (edge1, edge2) {
+    PlanarSector.prototype.makeWithEdges = function (edge1, edge2) {
         this.origin = edge1.commonNodeWithEdge(edge2);
         if (this.origin === undefined) {
             return;
@@ -1254,14 +1258,14 @@ var PlanarJoint = (function (_super) {
         ];
         return this;
     };
-    PlanarJoint.prototype.vectors = function () {
+    PlanarSector.prototype.vectors = function () {
         return this.edges.map(function (el) { return el.vector(this.origin); }, this);
     };
-    PlanarJoint.prototype.angle = function () {
+    PlanarSector.prototype.angle = function () {
         var vectors = this.vectors();
         return clockwiseInteriorAngle(vectors[0], vectors[1]);
     };
-    PlanarJoint.prototype.bisect = function () {
+    PlanarSector.prototype.bisect = function () {
         var absolute1 = this.edges[0].absoluteAngle(this.origin);
         var absolute2 = this.edges[1].absoluteAngle(this.origin);
         while (absolute1 < 0) {
@@ -1271,7 +1275,7 @@ var PlanarJoint = (function (_super) {
         var bisected = absolute1 - interior * 0.5;
         return new XY(Math.cos(bisected), Math.sin(bisected));
     };
-    PlanarJoint.prototype.subsectAngle = function (divisions) {
+    PlanarSector.prototype.subsectAngle = function (divisions) {
         if (divisions === undefined || divisions < 1) {
             throw "subsetAngle() requires a parameter greater than 1";
         }
@@ -1284,13 +1288,13 @@ var PlanarJoint = (function (_super) {
         }
         return results;
     };
-    PlanarJoint.prototype.getEdgeVectorsForNewAngle = function (angle, lockedEdge) {
+    PlanarSector.prototype.getEdgeVectorsForNewAngle = function (angle, lockedEdge) {
         var vectors = this.vectors();
         var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
         var rotateNodes = [-angleChange * 0.5, angleChange * 0.5];
         return vectors.map(function (el, i) { return el.rotate(rotateNodes[i]); }, this);
     };
-    PlanarJoint.prototype.getEndNodesChangeForNewAngle = function (angle, lockedEdge) {
+    PlanarSector.prototype.getEndNodesChangeForNewAngle = function (angle, lockedEdge) {
         var vectors = this.vectors();
         var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
         var rotateNodes = [-angleChange * 0.5, angleChange * 0.5];
@@ -1298,13 +1302,13 @@ var PlanarJoint = (function (_super) {
             return this.endPoints[i].subtract(el.rotate(rotateNodes[i]).add(this.origin));
         }, this);
     };
-    PlanarJoint.prototype.equivalent = function (a) {
+    PlanarSector.prototype.equivalent = function (a) {
         return ((a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
             (a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0])));
     };
-    PlanarJoint.prototype.sortByClockwise = function () { };
-    return PlanarJoint;
-}(Joint));
+    PlanarSector.prototype.sortByClockwise = function () { };
+    return PlanarSector;
+}(Sector));
 var PlanarJunction = (function () {
     function PlanarJunction(node) {
         this.origin = node;
@@ -1322,7 +1326,7 @@ var PlanarJunction = (function () {
             var origin = el.commonNodeWithEdge(nextEl);
             var nextN = nextEl.uncommonNodeWithEdge(el);
             var prevN = el.uncommonNodeWithEdge(nextEl);
-            return new this.origin.jointType(el, nextEl);
+            return new this.origin.sectorType(el, nextEl);
         }, this);
     }
     PlanarJunction.prototype.edgeVectorsNormalized = function () {
@@ -2011,7 +2015,7 @@ function rayIntersection(origin, direction, segments) {
 function reflectRayRepeat(origin, direction, segments, target) {
     var reflections = [{ intersect: origin, reflection: undefined }];
     var firstIntersection = rayIntersection(origin, direction, segments);
-    if (target !== undefined && firstIntersection !== undefined) {
+    if (target !== undefined && firstIntersection !== undefined && epsilonEqual(direction.cross(target.subtract(origin)), 0, EPSILON_HIGH)) {
         var targetDistance = origin.distanceTo(target);
         if (targetDistance < firstIntersection['distance']) {
             return [new Edge(origin, target)];
@@ -2096,7 +2100,6 @@ var VoronoiMolecule = (function (_super) {
     VoronoiMolecule.prototype.addCornerMolecules = function () {
     };
     VoronoiMolecule.prototype.generateCreases = function () {
-        var isObtuse = this.isObtuse();
         var edges = [];
         var outerEdges = this.units.map(function (el, i) {
             var nextEl = this.units[(i + 1) % this.units.length];
@@ -2106,7 +2109,7 @@ var VoronoiMolecule = (function (_super) {
         }, this);
         var creases = this.units.map(function (el) { return el.generateCrimpCreaseLines(); });
         creases.forEach(function (el) { edges = edges.concat(el); }, this);
-        if (isObtuse) {
+        if (this.isObtuse()) {
             this.units.forEach(function (el, i) {
                 var nextEl = this.units[(i + 1) % this.units.length];
                 if (el.base[0].equivalent(el.base[1])) {
@@ -2165,12 +2168,15 @@ var VoronoiMoleculeTriangle = (function () {
         }));
         var edges = [symmetryLine]
             .concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]));
-        crimps.filter(function (el) {
-            return el !== undefined && !el.equivalent(this.vertex);
-        }, this)
-            .forEach(function (crimp) {
-            edges = edges.concat(reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]));
-        }, this);
+        if (crimps[0] !== undefined) {
+            var newEdges = reflectRayRepeat(this.base[0], crimps[0].subtract(this.base[0]), overlappingEdges, this.base[1]);
+            console.log(newEdges);
+            edges = edges.concat(newEdges);
+        }
+        edges = edges.concat([
+            new Edge(this.base[0], crimps[1]),
+            new Edge(this.base[1], crimps[1])
+        ]);
         return edges;
     };
     VoronoiMoleculeTriangle.prototype.pointInside = function (p) {
@@ -2389,12 +2395,12 @@ var FoldSequence = (function () {
     }
     return FoldSequence;
 }());
-var CreaseJoint = (function (_super) {
-    __extends(CreaseJoint, _super);
-    function CreaseJoint() {
+var CreaseSector = (function (_super) {
+    __extends(CreaseSector, _super);
+    function CreaseSector() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    CreaseJoint.prototype.kawasakiSubsect = function () {
+    CreaseSector.prototype.kawasakiSubsect = function () {
         var junction = this.origin.junction();
         if (junction.edges.length != 3) {
             return;
@@ -2424,8 +2430,8 @@ var CreaseJoint = (function (_super) {
         var newA = angle0 - dEven;
         return new XY(Math.cos(newA), Math.sin(newA));
     };
-    return CreaseJoint;
-}(PlanarJoint));
+    return CreaseSector;
+}(PlanarSector));
 var CreaseJunction = (function (_super) {
     __extends(CreaseJunction, _super);
     function CreaseJunction() {
@@ -2496,7 +2502,7 @@ var CreaseNode = (function (_super) {
     function CreaseNode() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.junctionType = CreaseJunction;
-        _this.jointType = CreaseJoint;
+        _this.sectorType = CreaseSector;
         return _this;
     }
     CreaseNode.prototype.isBoundary = function () {

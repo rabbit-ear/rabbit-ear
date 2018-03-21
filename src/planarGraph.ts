@@ -85,7 +85,7 @@ class PlanarNode extends GraphNode implements XY{
 	y:number;
 
 	junctionType = PlanarJunction;
-	jointType = PlanarJoint;
+	sectorType = PlanarSector;
 
 	// for speeding up algorithms, temporarily store information here
 	cache:object = {};
@@ -240,7 +240,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 		this.nodes[1].transform(matrix);
 	}
 	// returns the matrix representation form of this edge as the line of reflection
-	reflectionMatrix():Matrix{ return new Matrix().reflection(this.nodes[0], this.nodes[1]); }
+	reflectionMatrix():Matrix{return new Matrix().reflection(this.nodes[0], this.nodes[1]);}
 }
 
 class PlanarFace{
@@ -248,7 +248,7 @@ class PlanarFace{
 	graph:PlanarGraph;
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
-	joints:PlanarJoint[];
+	joints:PlanarSector[];
 	angles:number[];
 	index:number;
 
@@ -264,15 +264,15 @@ class PlanarFace{
 		this.nodes = circut.map(function(el,i){
 			return <PlanarNode>el.uncommonNodeWithEdge( circut[ (i+1)%circut.length ] );
 		});
-		var jointType = this.nodes[0].jointType;
+		var sectorType = this.nodes[0].sectorType;
 		this.joints = this.edges.map(function(el,i){
 			var nexti = (i+1)%this.edges.length;
 			var origin = el.commonNodeWithEdge(this.edges[nexti]);
 			var endPoints = [ el.uncommonNodeWithEdge(this.edges[nexti]),
 			                  this.edges[nexti].uncommonNodeWithEdge(el) ];
-			return new jointType(el, this.edges[nexti]);
+			return new sectorType(el, this.edges[nexti]);
 		},this);
-		this.angles = this.joints.map(function(el:PlanarJoint){ return el.angle(); });
+		this.angles = this.joints.map(function(el:PlanarSector){ return el.angle(); });
 		var angleSum = this.angles.reduce(function(sum,value){ return sum + value; }, 0);
 		// sum of interior angles rule, (n-2) * PI
 		if(this.nodes.length > 2 && epsilonEqual(angleSum/(this.nodes.length-2), Math.PI, EPSILON)){
@@ -345,11 +345,11 @@ class PlanarFace{
 }
 
 
-/** a PlanarJoint is defined by 2 unique edges and 3 nodes (one common, 2 endpoints) 
+/** a PlanarSector is defined by 2 unique edges and 3 nodes (one common, 2 endpoints) 
  *  clockwise order is required
  *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
  */
-class PlanarJoint extends Joint{
+class PlanarSector extends Sector{
 	// the node in common with the edges
 	origin:PlanarNode;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
@@ -367,7 +367,7 @@ class PlanarJoint extends Joint{
 			(edge2.nodes[0] === this.origin) ? edge2.nodes[1] : edge2.nodes[0]
 		];
 	}
-	makeWithEdges(edge1:PlanarEdge, edge2:PlanarEdge):PlanarJoint{
+	makeWithEdges(edge1:PlanarEdge, edge2:PlanarEdge):PlanarSector{
 		this.origin = <PlanarNode>edge1.commonNodeWithEdge(edge2);
 		if(this.origin === undefined){ return; }
 		if(edge1 === edge2){ return; }
@@ -424,7 +424,7 @@ class PlanarJoint extends Joint{
 			return this.endPoints[i].subtract(el.rotate(rotateNodes[i]).add(this.origin));
 		}, this);
 	}
-	equivalent(a:PlanarJoint):boolean{
+	equivalent(a:PlanarSector):boolean{
 		return( (a.edges[0].isSimilarToEdge(this.edges[0]) && a.edges[1].isSimilarToEdge(this.edges[1])) ||
 			(a.edges[0].isSimilarToEdge(this.edges[1]) && a.edges[1].isSimilarToEdge(this.edges[0])));
 	}
@@ -437,7 +437,7 @@ class PlanarJunction{
 
 	origin:PlanarNode;
 	// joints and edges are sorted clockwise
-	joints:PlanarJoint[];
+	joints:PlanarSector[];
 	edges:PlanarEdge[];
 	// Planar Junction is invalid if the node is either isolated or a leaf node
 	//  javascript constructors can't return null. if invalid: edges = [], joints = []
@@ -455,10 +455,10 @@ class PlanarJunction{
 			var origin = <PlanarNode>el.commonNodeWithEdge(nextEl);
 			var nextN = <PlanarNode>nextEl.uncommonNodeWithEdge(el);
 			var prevN = <PlanarNode>el.uncommonNodeWithEdge(nextEl);
-			// return new this.origin.jointType(origin, [nextN, prevN]);
-			return new this.origin.jointType(el, nextEl);
+			// return new this.origin.sectorType(origin, [nextN, prevN]);
+			return new this.origin.sectorType(el, nextEl);
 		},this);
-		// this.edges = this.joints.map(function(el:PlanarJoint){return el.edges[0];});
+		// this.edges = this.joints.map(function(el:PlanarSector){return el.edges[0];});
 	}
 	edgeVectorsNormalized():XY[]{
 		return this.edges.map(function(el){return el.vector(this.origin).normalize();},this);
@@ -1043,7 +1043,7 @@ class PlanarGraph extends Graph{
 		return sortedFaces[0];
 	}
 
-	getNearestInteriorAngle(x:any, y:any):PlanarJoint{
+	getNearestInteriorAngle(x:any, y:any):PlanarSector{
 		// input x is an xy point
 		if(isValidPoint(x)){ y = x.y; x = x.x; }
 		if(typeof(x) !== 'number' || typeof(y) !== 'number'){ return; }
@@ -1060,7 +1060,7 @@ class PlanarGraph extends Graph{
 		}
 		if(joints == undefined || joints.length === 0){ return undefined; }
 		// cross product on each edge pair
-		var anglesInside = joints.filter(function(el:PlanarJoint){ 
+		var anglesInside = joints.filter(function(el:PlanarSector){ 
 			var pts = el.endPoints;
 			var cross0 = (y - node.y) * (pts[1].x - node.x) - 
 						 (x - node.x) * (pts[1].y - node.y);

@@ -59,7 +59,7 @@ voronoiAnim2.redraw = function(){
 				                   t.points[(obtuse+1)%t.points.length],
 				                   t.circumcenter ];
 		
-				var missingJoint = new Joint(missingTri[1], [missingTri[0], missingTri[2]]);
+				var missingJoint = new Sector(missingTri[1], [missingTri[0], missingTri[2]]);
 				// the interior angle of the hidden triangle
 				var angle = missingJoint.angle();
 
