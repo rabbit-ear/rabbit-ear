@@ -2063,7 +2063,14 @@ var VoronoiMolecule = (function (_super) {
                 break;
             case 2:
                 _this.isEdge = true;
-                _this.units.pop();
+                _this.units = _this.units.filter(function (el) {
+                    var cross = (el.vertex.y - el.base[0].y) * (el.base[1].x - el.base[0].x) -
+                        (el.vertex.x - el.base[0].x) * (el.base[1].y - el.base[0].y);
+                    if (cross < 0) {
+                        return false;
+                    }
+                    return true;
+                }, _this);
                 _this.addEdgeMolecules(edgeNormal);
                 break;
         }
@@ -2168,15 +2175,12 @@ var VoronoiMoleculeTriangle = (function () {
         }));
         var edges = [symmetryLine]
             .concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]));
-        if (crimps[0] !== undefined) {
-            var newEdges = reflectRayRepeat(this.base[0], crimps[0].subtract(this.base[0]), overlappingEdges, this.base[1]);
-            console.log(newEdges);
-            edges = edges.concat(newEdges);
-        }
-        edges = edges.concat([
-            new Edge(this.base[0], crimps[1]),
-            new Edge(this.base[1], crimps[1])
-        ]);
+        crimps.filter(function (el) {
+            return el !== undefined && !el.equivalent(this.vertex);
+        }, this)
+            .forEach(function (crimp) {
+            edges = edges.concat(reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]));
+        }, this);
         return edges;
     };
     VoronoiMoleculeTriangle.prototype.pointInside = function (p) {

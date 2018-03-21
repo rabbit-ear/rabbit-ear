@@ -106,7 +106,15 @@ class VoronoiMolecule extends Triangle{
 			case 1: this.isCorner = true; this.addCornerMolecules(); break;
 			case 2:
 				this.isEdge = true;
-				this.units.pop();
+				// this.units.pop();
+				// there are two reflected triangles built around the same base line. remove the counter-clockwise wound one
+				this.units = this.units.filter(function(el){
+					// update molecule crimp angle
+					var cross = (el.vertex.y-el.base[0].y)*(el.base[1].x-el.base[0].x) -
+					            (el.vertex.x-el.base[0].x)*(el.base[1].y-el.base[0].y);
+					if(cross < 0){ return false;}
+					return true;
+				},this);
 				this.addEdgeMolecules(edgeNormal);
 			break;
 		}
@@ -225,21 +233,21 @@ class VoronoiMoleculeTriangle {
 
 		var edges = [symmetryLine]
 			.concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );
-		// crimps.filter(function(el){
-		// 		return el!==undefined && !el.equivalent(this.vertex);},this)
-		// 	.forEach(function(crimp:XY){
-		// 		edges = edges.concat( reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]) );
-		// 	},this);
-		// return edges;
-
-		if(crimps[0] !== undefined){
-			var newEdges = reflectRayRepeat(this.base[0], crimps[0].subtract(this.base[0]), overlappingEdges, this.base[1]);
-			edges = edges.concat( newEdges );
-		}
-		edges = edges.concat([
-			new Edge(this.base[0], crimps[1]), 
-			new Edge(this.base[1], crimps[1])]);
+		crimps.filter(function(el){
+				return el!==undefined && !el.equivalent(this.vertex);},this)
+			.forEach(function(crimp:XY){
+				edges = edges.concat( reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]) );
+			},this);
 		return edges;
+
+		// if(crimps[0] !== undefined){
+		// 	var newEdges = reflectRayRepeat(this.base[0], crimps[0].subtract(this.base[0]), overlappingEdges, this.base[1]);
+		// 	edges = edges.concat( newEdges );
+		// }
+		// edges = edges.concat([
+		// 	new Edge(this.base[0], crimps[1]), 
+		// 	new Edge(this.base[1], crimps[1])]);
+		// return edges;
 
 		// return [
 		// 	symmetryLine,
