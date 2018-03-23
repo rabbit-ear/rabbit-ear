@@ -26,9 +26,13 @@ intersectRaySeg.reset = function(){
 	var ray0 = xys[1].subtract(xys[0]);
 	var ray1 = xys[3].subtract(xys[2]);
 
+	// console.log(ray0);
+
+	// console.log(this.cp.boundary);
+
 	this.cp.clear();
-	this.cp.creaseRay(xys[0], ray0).valley();
-	this.cp.crease(xys[2],xys[3]).valley();
+	this.cp.creaseRay(xys[0], ray0);//.valley();
+	this.cp.crease(xys[2],xys[3]);//.valley();
 	this.draw();
 
 	this.intersectionLayer.activate();

@@ -21,14 +21,24 @@ intersectRays.intersectionLayer.moveBelow(intersectRays.edgeLayer);
 intersectRays.selectedLayer = new intersectRays.scope.Layer();
 intersectRays.selectedLayer.activate();
 
+//1.7 - 2.1
+setTimeout(function(){
+	console.time("okay");
+	for(var i = 0; i < 10000; i++){
+		{};
+	}
+	console.timeEnd("okay");
+},500);
+
 intersectRays.reset = function(){
 	var xys = this.marks.map(function(el){return new XY(el.position.x, el.position.y);});
 	var ray0 = xys[1].subtract(xys[0]);
 	var ray1 = xys[3].subtract(xys[2]);
 
+
 	this.cp.clear();
-	this.cp.creaseRay(xys[0], ray0).valley();
-	this.cp.creaseRay(xys[2], ray1).valley();
+	// this.cp.creaseRay(xys[0], ray0);//.valley();
+	// this.cp.creaseRay(xys[2], ray1);//.valley();
 	this.draw();
 
 	this.intersectionLayer.activate();

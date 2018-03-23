@@ -1107,7 +1107,7 @@ class CreasePattern extends PlanarGraph{
 		return this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
 	}
 
-	creaseRay(origin:XY,direction:XY):Crease{
+	creaseRay(origin:XY, direction:XY):Crease{
 		var endpoints = this.clipRayInBoundary(origin, direction);
 		if(endpoints === undefined) { return; }//throw "creaseRay does not appear to be inside the boundary"; }
 		var newCrease = this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
@@ -1258,7 +1258,27 @@ class CreasePattern extends PlanarGraph{
 		return <Crease>this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
 	}
 
-	clipLineSegmentInBoundary(a:XY, b:XY):[XY, XY]{
+
+	clipLineInBoundary(line:Line):Edge{
+		// todo this only works for convex polygon shaped boundary
+		var vector = line.nodes[1].subtract(line.nodes[0]);
+		return this.boundaryLineIntersection(line.nodes[0], vector);
+	}
+
+	clipRayInBoundary(ray:Ray):Edge{
+		// todo this only works for convex polygon shaped boundary, needs to search for nearest point to origin
+		if(!this.pointInside(origin)){
+			var b = new XY(origin.x+direction.x, origin.y+direction.y);
+			return this.clipLineInBoundary(origin, b);
+		}
+		for(var i = 0; i < this.boundary.edges.length; i++){
+			var intersection = rayLineSegmentIntersection(origin, direction, this.boundary.edges[i].nodes[0].xy(), this.boundary.edges[i].nodes[1].xy());
+			if(intersection != undefined){ return [origin, intersection]; }
+		}
+		// return [undefined, undefined];
+	}
+
+	clipEdgeInBoundary(edge:Edge):Edge{
 		// todo this only works for convex polygon shaped boundary
 		var aInside = this.pointInside(a);
 		var bInside = this.pointInside(b);
@@ -1279,27 +1299,6 @@ class CreasePattern extends PlanarGraph{
 		if(intersection === undefined){ return undefined; }
 		if( aInside ){ return [inside, intersection]; }
 		else         { return [intersection, inside]; }
-	}
-
-	clipRayInBoundary(origin:XY, direction:XY):[XY, XY]{
-		// todo this only works for convex polygon shaped boundary, needs to search for nearest point to origin
-		if(!this.pointInside(origin)){
-			var b = new XY(origin.x+direction.x, origin.y+direction.y);
-			return this.clipLineInBoundary(origin, b);
-		}
-		for(var i = 0; i < this.boundary.edges.length; i++){
-			var intersection = rayLineSegmentIntersection(origin, direction, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
-			if(intersection != undefined){ return [origin, intersection]; }
-		}
-	}
-
-	clipLineInBoundary(a:XY, b:XY):[XY, XY]{
-		// todo this only works for convex polygon shaped boundary
-		var b_a = new XY(b.x - a.x, b.y - a.y);
-		var intersects = this.boundaryLineIntersection(a, b_a);
-		if(intersects.length === 2){ 
-			return [intersects[0], intersects[1]]; 
-		}
 	}
 
 	// AXIOM 1
@@ -1433,12 +1432,12 @@ class CreasePattern extends PlanarGraph{
 			return molecule;
 		},this);
 
-		edges.forEach(function(edge:VoronoiEdge){
-			this.crease(edge.endPoints[0], edge.endPoints[1]).valley();
-		},this);
-		cells.forEach(function(cell:[XY,XY][]){ cell.forEach(function(edge){
-			this.crease(edge[0], edge[1]).mountain();
-		},this)},this);
+		// edges.forEach(function(edge:VoronoiEdge){
+		// 	this.crease(edge.endPoints[0], edge.endPoints[1]).valley();
+		// },this);
+		// cells.forEach(function(cell:[XY,XY][]){ cell.forEach(function(edge){
+		// 	this.crease(edge[0], edge[1]).mountain();
+		// },this)},this);
 
 		// find overlapped molecules
 		var sortedMolecules = this.buildMoleculeOverlapArray(molecules);
@@ -1452,6 +1451,14 @@ class CreasePattern extends PlanarGraph{
 				},this);
 			}, this);
 		}, this);
+
+		edges.forEach(function(edge:VoronoiEdge){
+			this.crease(edge.endPoints[0], edge.endPoints[1]).valley();
+		},this);
+		cells.forEach(function(cell:[XY,XY][]){ cell.forEach(function(edge){
+			this.crease(edge[0], edge[1]).mountain();
+		},this)},this);
+
 		return molecules;
 	}
 

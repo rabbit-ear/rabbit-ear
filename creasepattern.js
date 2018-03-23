@@ -442,88 +442,81 @@ function minDistBetweenPointLine(a, b, point) {
     }
     return new XY(a.x + u * (b.x - a.x), a.y + u * (b.y - a.y));
 }
-function rayRayIntersection(aOrigin, aVector, bOrigin, bVector) {
-    var u = (aOrigin.y * bVector.x + bVector.y * bOrigin.x - bOrigin.y * bVector.x - bVector.y * aOrigin.x) / (aVector.x * bVector.y - aVector.y * bVector.x);
-    var v = (aOrigin.x + aVector.x * u - bOrigin.x) / bVector.x;
-    if (epsilonEqual(bVector.x, 0, EPSILON_HIGH)) {
-        v = 0;
-    }
-    if (u < -EPSILON || v < -EPSILON) {
-        return undefined;
-    }
-    return new XY(aOrigin.x + aVector.x * u, aOrigin.y + aVector.y * u);
+function determinantXY(a, b) {
+    return a.x * b.y - b.x * a.y;
 }
-function rayLineSegmentIntersection(rayOrigin, rayDirection, point1, point2) {
-    var v1 = new XY(rayOrigin.x - point1.x, rayOrigin.y - point1.y);
-    var vLineSeg = new XY(point2.x - point1.x, point2.y - point1.y);
-    var vRayPerp = new XY(-rayDirection.y, rayDirection.x);
-    var dot = vLineSeg.x * vRayPerp.x + vLineSeg.y * vRayPerp.y;
-    if (Math.abs(dot) < EPSILON) {
+function rayRayIntersection(aOrigin, aVector, bOrigin, bVector, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    var denominator0 = determinantXY(aVector, bVector);
+    var denominator2 = -denominator0;
+    if (epsilonEqual(denominator0, 0, epsilon)) {
         return undefined;
     }
-    var cross = (vLineSeg.x * v1.y - vLineSeg.y * v1.x);
-    var t1 = cross / dot;
-    var t2 = (v1.x * vRayPerp.x + v1.y * vRayPerp.y) / dot;
-    if (t1 >= 0.0 && (t2 >= 0.0 && t2 <= 1.0)) {
-        return new XY(rayOrigin.x + rayDirection.x * t1, rayOrigin.y + rayDirection.y * t1);
+    var numerator0 = determinantXY(bOrigin.subtract(aOrigin), bVector);
+    var numerator2 = determinantXY(aOrigin.subtract(bOrigin), aVector);
+    var t0 = numerator0 / denominator0;
+    var t2 = numerator2 / denominator2;
+    if (t0 >= 0 && t2 >= 0) {
+        return aOrigin.add(aVector.scale(t0));
     }
+    return undefined;
 }
-function lineIntersectionAlgorithm(p0, p1, p2, p3) {
-    var rise1 = (p1.y - p0.y);
-    var run1 = (p1.x - p0.x);
-    var rise2 = (p3.y - p2.y);
-    var run2 = (p3.x - p2.x);
-    var denom = run1 * rise2 - run2 * rise1;
-    if (denom == 0) {
+function rayLineSegmentIntersection(origin, vector, p2, p3, epsilon) {
+    var p0 = origin;
+    var p1 = origin.add(vector);
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    var vec0 = p1.subtract(p0);
+    var vec2 = p3.subtract(p2);
+    var denominator0 = determinantXY(vec0, vec2);
+    var denominator2 = -denominator0;
+    if (epsilonEqual(denominator0, 0, epsilon)) {
         return undefined;
     }
-    var s02 = { 'x': p0.x - p2.x, 'y': p0.y - p2.y };
-    var t = (run2 * s02.y - rise2 * s02.x) / denom;
-    return new XY(p0.x + (t * run1), p0.y + (t * rise1));
+    var numerator0 = determinantXY(p2.subtract(p0), vec2);
+    var numerator2 = determinantXY(p3.subtract(p1), vec0);
+    var t0 = numerator0 / denominator0;
+    var t2 = numerator2 / denominator2;
+    if (t0 >= 0 && t2 >= 0 && t2 <= 1) {
+        return p0.add(vec0.scale(t0));
+    }
+    return undefined;
 }
-function lineSegmentIntersectionAlgorithm(p, p2, q, q2) {
-    var r = new XY(p2.x - p.x, p2.y - p.y);
-    var s = new XY(q2.x - q.x, q2.y - q.y);
-    var uNumerator = (new XY(q.x - p.x, q.y - p.y)).cross(r);
-    var denominator = r.cross(s);
-    if (onSegment(p, q, q2)) {
-        return p;
+function lineIntersectionAlgorithm(p0, p1, p2, p3, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
     }
-    if (onSegment(p2, q, q2)) {
-        return p2;
-    }
-    if (onSegment(q, p, p2)) {
-        return q;
-    }
-    if (onSegment(q2, p, p2)) {
-        return q2;
-    }
-    if (Math.abs(uNumerator) < EPSILON_HIGH && Math.abs(denominator) < EPSILON_HIGH) {
-        if (![(q.x - p.x) < 0, (q.x - p2.x) < 0, (q2.x - p.x) < 0, (q2.x - p2.x) < 0].allEqual() ||
-            ![(q.y - p.y) < 0, (q.y - p2.y) < 0, (q2.y - p.y) < 0, (q2.y - p2.y) < 0].allEqual()) {
-            return undefined;
-        }
-        if (p.equivalent(q)) {
-            return new XY(p.x, p.y);
-        }
-        if (p.equivalent(q2)) {
-            return new XY(p.x, p.y);
-        }
-        if (p2.equivalent(q)) {
-            return new XY(p2.x, p2.y);
-        }
-        if (p2.equivalent(q2)) {
-            return new XY(p2.x, p2.y);
-        }
-    }
-    if (Math.abs(denominator) < EPSILON_HIGH) {
+    var vec0 = p1.subtract(p0);
+    var vec2 = p3.subtract(p2);
+    var denominator = determinantXY(vec0, vec2);
+    if (epsilonEqual(denominator, 0, epsilon)) {
         return undefined;
     }
-    var u = uNumerator / denominator;
-    var t = (new XY(q.x - p.x, q.y - p.y)).cross(s) / denominator;
-    if ((t >= 0) && (t <= 1) && (u >= 0) && (u <= 1)) {
-        return new XY(p.x + r.x * t, p.y + r.y * t);
+    var numerator = determinantXY(p2.subtract(p0), vec2);
+    return p0.add(vec0.scale(numerator / denominator));
+}
+function lineSegmentIntersectionAlgorithm(p0, p1, p2, p3, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
     }
+    var vec0 = p1.subtract(p0);
+    var vec2 = p3.subtract(p2);
+    var denominator0 = determinantXY(vec0, vec2);
+    var denominator2 = -denominator0;
+    if (epsilonEqual(denominator0, 0, epsilon)) {
+        return undefined;
+    }
+    var numerator0 = determinantXY(p2.subtract(p0), vec2);
+    var numerator2 = determinantXY(p3.subtract(p1), vec0);
+    var t0 = numerator0 / denominator0;
+    var t2 = numerator2 / denominator2;
+    if (t0 >= 0 && t0 <= 1 && t2 >= 0 && t2 <= 1) {
+        return p0.add(vec0.scale(t0));
+    }
+    return undefined;
 }
 function circleLineIntersectionAlgorithm(center, radius, p0, p1) {
     var r_squared = Math.pow(radius, 2);
@@ -719,6 +712,76 @@ var Edge = (function () {
         return false;
     };
     return Edge;
+}());
+var Line = (function () {
+    function Line() {
+    }
+    return Line;
+}());
+var Ray = (function () {
+    function Ray() {
+    }
+    Ray.prototype.normalize = function () { var m = this.magnitude(); return new XY(this.x / m, this.y / m); };
+    Ray.prototype.rotate90 = function () { return new XY(-this.y, this.x); };
+    Ray.prototype.rotate270 = function () { return new XY(this.y, -this.x); };
+    Ray.prototype.rotate = function (angle, origin) {
+        return this.transform(new Matrix().rotation(angle, origin));
+    };
+    Ray.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
+    Ray.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
+    Ray.prototype.magnitude = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    Ray.prototype.distanceTo = function (a) { return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2)); };
+    Ray.prototype.equivalent = function (point, epsilon) {
+        if (epsilon == undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon));
+    };
+    Ray.prototype.transform = function (matrix) {
+        return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx, this.x * matrix.b + this.y * matrix.d + matrix.ty);
+    };
+    Ray.prototype.lerp = function (point, pct) {
+        var inv = 1.0 - pct;
+        return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
+    };
+    Ray.prototype.reflect = function (a, b) { return this.transform(new Matrix().reflection(a, b)); };
+    Ray.prototype.scale = function (magnitude) { return new XY(this.x * magnitude, this.y * magnitude); };
+    Ray.prototype.add = function (point) { return new XY(this.x + point.x, this.y + point.y); };
+    Ray.prototype.subtract = function (sub) { return new XY(this.x - sub.x, this.y - sub.y); };
+    Ray.prototype.multiply = function (m) { return new XY(this.x * m.x, this.y * m.y); };
+    Ray.prototype.midpoint = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
+    Ray.prototype.abs = function () { return new XY(Math.abs(this.x), Math.abs(this.y)); };
+    Ray.prototype.normalize2 = function () { var m = this.magnitude(); return new XY(this.x / m, this.y / m); };
+    Ray.prototype.rotate902 = function () { return new XY(-this.y, this.x); };
+    Ray.prototype.rotate2702 = function () { return new XY(this.y, -this.x); };
+    Ray.prototype.rotate2 = function (angle, origin) {
+        return this.transform(new Matrix().rotation(angle, origin));
+    };
+    Ray.prototype.dot2 = function (point) { return this.x * point.x + this.y * point.y; };
+    Ray.prototype.cross2 = function (vector) { return this.x * vector.y - this.y * vector.x; };
+    Ray.prototype.magnitude2 = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    Ray.prototype.distanceTo2 = function (a) { return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2)); };
+    Ray.prototype.equivalent2 = function (point, epsilon) {
+        if (epsilon == undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon));
+    };
+    Ray.prototype.transform2 = function (matrix) {
+        return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx, this.x * matrix.b + this.y * matrix.d + matrix.ty);
+    };
+    Ray.prototype.lerp2 = function (point, pct) {
+        var inv = 1.0 - pct;
+        return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
+    };
+    Ray.prototype.reflect2 = function (a, b) { return this.transform(new Matrix().reflection(a, b)); };
+    Ray.prototype.scale2 = function (magnitude) { return new XY(this.x * magnitude, this.y * magnitude); };
+    Ray.prototype.add2 = function (point) { return new XY(this.x + point.x, this.y + point.y); };
+    Ray.prototype.subtract2 = function (sub) { return new XY(this.x - sub.x, this.y - sub.y); };
+    Ray.prototype.multiply2 = function (m) { return new XY(this.x * m.x, this.y * m.y); };
+    Ray.prototype.midpoint2 = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
+    Ray.prototype.abs2 = function () { return new XY(Math.abs(this.x), Math.abs(this.y)); };
+    return Ray;
 }());
 var Rect = (function () {
     function Rect(x, y, width, height) {
@@ -3078,7 +3141,7 @@ var CreasePattern = (function (_super) {
             return this.clipLineInBoundary(origin, b);
         }
         for (var i = 0; i < this.boundary.edges.length; i++) {
-            var intersection = rayLineSegmentIntersection(origin, direction, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
+            var intersection = rayLineSegmentIntersection(origin, direction, this.boundary.edges[i].nodes[0].xy(), this.boundary.edges[i].nodes[1].xy());
             if (intersection != undefined) {
                 return [origin, intersection];
             }
@@ -3218,14 +3281,6 @@ var CreasePattern = (function (_super) {
             var molecule = new VoronoiMolecule(endPoints, j.position, j.isEdge ? j.edgeNormal : undefined);
             return molecule;
         }, this);
-        edges.forEach(function (edge) {
-            this.crease(edge.endPoints[0], edge.endPoints[1]).valley();
-        }, this);
-        cells.forEach(function (cell) {
-            cell.forEach(function (edge) {
-                this.crease(edge[0], edge[1]).mountain();
-            }, this);
-        }, this);
         var sortedMolecules = this.buildMoleculeOverlapArray(molecules);
         sortedMolecules.forEach(function (arr) {
             arr.forEach(function (m) {
@@ -3233,6 +3288,14 @@ var CreasePattern = (function (_super) {
                 edges.forEach(function (el) {
                     this.crease(el.nodes[0], el.nodes[1]);
                 }, this);
+            }, this);
+        }, this);
+        edges.forEach(function (edge) {
+            this.crease(edge.endPoints[0], edge.endPoints[1]).valley();
+        }, this);
+        cells.forEach(function (cell) {
+            cell.forEach(function (edge) {
+                this.crease(edge[0], edge[1]).mountain();
             }, this);
         }, this);
         return molecules;
