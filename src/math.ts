@@ -93,20 +93,7 @@ function bisect(a:XY, b:XY):XY[]{
 	return [ (a.add(b)).normalize(),
 	         new XY(-a.x + -b.x, -a.y + -b.y).normalize() ];
 }
-// function linesParallel(a:Edge, b:Edge, epsilon?:number):boolean {
-// 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-// 	// p0-p1 is first line, p2-p3 is second line
-// 	var u = new XY(p1.x - p0.x, p1.y - p0.y);
-// 	var v = new XY(p3.x - p2.x, p3.y - p2.y);
-// 	return (Math.abs( u.dot( v.rotate90() ) ) < epsilon);
-// }
-function minDistBetweenPointLine(a:XY, b:XY, point:XY):XY{
-	// (a)-(b) define the line
-	var p = Math.sqrt(Math.pow(b.x-a.x,2) + Math.pow(b.y-a.y,2));
-	var u = ((point.x-a.x)*(b.x-a.x) + (point.y-a.y)*(b.y-a.y)) / (Math.pow(p,2));
-	if(u < 0 || u > 1.0){return undefined;}
-	return new XY(a.x + u*(b.x-a.x), a.y + u*(b.y-a.y));
-}
+
 
 function determinantXY(a:XY,b:XY):number{
 	return a.x * b.y - b.x * a.y;
@@ -313,7 +300,6 @@ class XY{
 /** 2D line, extending infinitely in both directions, represented by 2 collinear points
  */
 class Line{
-
 	nodes:[XY,XY];
 	constructor(a:any, b:any, c?:any, d?:any){
 		if(a instanceof XY){ this.nodes = [a,b]; }
@@ -343,6 +329,11 @@ class Line{
 	}
 	transform(matrix):Line{
 		return new Line(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
+	}
+	nearestPointNormalTo(point:XY):XY{
+		var p = this.nodes[0].distanceTo(this.nodes[1]);
+		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
+		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
 	}
 }
 
@@ -421,6 +412,12 @@ class Edge{
 	}
 	transform(matrix:Matrix):Edge{
 		return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
+	}
+	nearestPointNormalTo(point:XY):XY{
+		var p = this.nodes[0].distanceTo(this.nodes[1]);
+		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
+		if(u < 0 || u > 1.0){ return undefined; }
+		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
 	}
 }
 

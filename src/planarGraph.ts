@@ -247,6 +247,12 @@ class PlanarEdge extends GraphEdge implements Edge{
 		this.nodes[1].transform(matrix);
 		return this;
 	}
+	nearestPointNormalTo(point:XY):XY{
+		var p = this.nodes[0].distanceTo(this.nodes[1]);
+		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
+		if(u < 0 || u > 1.0){return undefined;}
+		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
+	}
 }
 
 class PlanarFace{
@@ -961,8 +967,8 @@ class PlanarGraph extends Graph{
 		if(typeof(x) !== 'number' || typeof(y) !== 'number'){ return; }
 		var minDist, nearestEdge, minLocation = new XY(undefined,undefined);
 		for(var i = 0; i < this.edges.length; i++){
-			var p = this.edges[i].nodes;
-			var pT = minDistBetweenPointLine(p[0], p[1], new XY(x, y));
+			var p = this.edges[i];
+			var pT = p.nearestPointNormalTo(new XY(x,y));
 			if(pT != undefined){
 				var thisDist = Math.sqrt(Math.pow(x-pT.x,2) + Math.pow(y-pT.y,2));
 				if(minDist == undefined || thisDist < minDist){
@@ -994,7 +1000,7 @@ class PlanarGraph extends Graph{
 		if(typeof(x) !== 'number' || typeof(y) !== 'number'){ return; }
 		var minDist, nearestEdge, minLocation = {x:undefined, y:undefined};
 		var edges = this.edges.map(function(el){ 
-			var pT = minDistBetweenPointLine(el.nodes[0], el.nodes[1], new XY(x, y));
+			var pT = el.nearestPointNormalTo(new XY(x,y));
 			if(pT === undefined){return undefined;}
 			var distances = [
 				Math.sqrt(Math.pow(x-pT.x,2) + Math.pow(y-pT.y,2)), // perp dist

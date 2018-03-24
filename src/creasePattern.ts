@@ -648,7 +648,8 @@ class Crease extends PlanarEdge{
 		var intersection = undefined;
 		var shortest = Infinity;
 		for(var i = 0; i < this.graph.edges.length; i++){
-			var inter = rayLineSegmentIntersection(o, rayDirection, this.graph.edges[i].nodes[0], this.graph.edges[i].nodes[1]);
+			// var inter = rayLineSegmentIntersection(o, rayDirection, this.graph.edges[i].nodes[0], this.graph.edges[i].nodes[1]);
+			var inter = intersectionRayEdge(new Ray(o, rayDirection), this.graph.edges[i]);
 			if(inter !== undefined && !o.equivalent(inter)){
 				var d = Math.sqrt( Math.pow(o.x-inter.x,2) + Math.pow(o.y-inter.y,2) );
 				if(d < shortest){
@@ -1050,20 +1051,21 @@ class CreasePattern extends PlanarGraph{
 	 */
 	crease(a:any, b:any, c?:any, d?:any):Crease{
 		if(a instanceof Crease){ }
-		var endpoints = undefined;
+		var edge = undefined;
 		// input (a and b) are 2 xy points
-		// if(a.hasOwnProperty('x') && a.hasOwnProperty('y') && 
-		//    b.hasOwnProperty('x') && b.hasOwnProperty('y')){
-		if(isValidPoint(a) && isValidPoint(b)){
-			endpoints = this.clipLineSegmentInBoundary(a, b);
+		if(a instanceof Edge){
+			edge = this.boundary.clipEdge(a);
+		}
+		// input (a and b) are 2 xy points
+		else if(isValidPoint(a) && isValidPoint(b)){
+			edge = this.boundary.clipEdge(new Edge(a,b));
 		}
 		// input (a b and c d) are x and y of two points
-		if(typeof a==='number' && typeof b==='number' && typeof c==='number' && typeof d==='number'){
-			if(!isValidNumber(a) || !isValidNumber(b) || !isValidNumber(c) || !isValidNumber(d)){ return undefined; }
-			endpoints = this.clipLineSegmentInBoundary(new XY(a,b), new XY(c,d));
+		else if(isValidNumber(a)&&isValidNumber(b)&&isValidNumber(c)&&isValidNumber(d)){
+			edge = this.boundary.clipEdge(new Edge(a,b,c,d));
 		}
-		if(endpoints === undefined || endpoints.length < 2){ return; }//throw "crease(): coordinates lie outside boundary"; }
-		return this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
+		if(edge === undefined){ return; }//throw "crease(): coordinates lie outside boundary"; }
+		return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 	}
 
 	creaseRay(origin:XY, direction:XY):Crease{
@@ -1075,12 +1077,14 @@ class CreasePattern extends PlanarGraph{
 		return newCrease;
 	}
 
+	// creaseRayUntilMark
 	creaseRayUntilIntersection(origin:XY, direction:XY, epsilon?:number):Crease{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		if(!isValidPoint(origin) || !isValidPoint(direction)){ return undefined; }
 		var nearestIntersection = undefined;
 		var intersections = this.edges
-			.map(function(el){ return {edge:el, point:rayLineSegmentIntersection(origin, direction, el.nodes[0], el.nodes[1])}; })
+			// .map(function(el){ return {edge:el, point:rayLineSegmentIntersection(origin, direction, el.nodes[0], el.nodes[1])}; })
+			.map(function(el){ return {edge:el, point:intersectionRayEdge(new Ray(origin, direction), el)}; })
 			.filter(function(el){ return el.point !== undefined; })
 			.filter(function(el){ return !el.point.equivalent(origin, epsilon) })
 			.sort(function(a,b){
@@ -1209,7 +1213,6 @@ class CreasePattern extends PlanarGraph{
 		return this.creaseRay(aCommon, new XY(Math.cos(clockwiseAngle), Math.sin(clockwiseAngle)));
 	}
 
-
 	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
 		if(this.symmetryLine === undefined){ return undefined; }
 		var ra = new XY(ax, ay).reflect(this.symmetryLine[0], this.symmetryLine[1]);
@@ -1218,64 +1221,24 @@ class CreasePattern extends PlanarGraph{
 	}
 
 
-	clipLineInBoundary(line:Line):Edge{
-		// todo this only works for convex polygon shaped boundary
-		var vector = line.nodes[1].subtract(line.nodes[0]);
-		return this.boundaryLineIntersection(line.nodes[0], vector);
-	}
-
-	clipRayInBoundary(ray:Ray):Edge{
-		// todo this only works for convex polygon shaped boundary, needs to search for nearest point to origin
-		if(!this.pointInside(origin)){
-			var b = new XY(origin.x+direction.x, origin.y+direction.y);
-			return this.clipLineInBoundary(origin, b);
-		}
-		for(var i = 0; i < this.boundary.edges.length; i++){
-			var intersection = rayLineSegmentIntersection(origin, direction, this.boundary.edges[i].nodes[0].xy(), this.boundary.edges[i].nodes[1].xy());
-			if(intersection != undefined){ return [origin, intersection]; }
-		}
-		// return [undefined, undefined];
-	}
-
-	clipEdgeInBoundary(edge:Edge):Edge{
-		// todo this only works for convex polygon shaped boundary
-		var aInside = this.pointInside(a);
-		var bInside = this.pointInside(b);
-		if(aInside && bInside){ return [a, b]; }
-		// if both are outside, it's still possible the line crosses into the boundary
-		// if(!aInside && !bInside) { return this.clipLineInBoundary(a, b); }
-		// maybe we don't want this feature
-
-		var inside = a;
-		var outside = b;
-		if(bInside){ outside = a; inside = b; }
-
-		var intersection = undefined;
-		for(var i = 0; i < this.boundary.edges.length; i++){
-			intersection = lineSegmentIntersectionAlgorithm(inside, outside, this.boundary.edges[i].nodes[0], this.boundary.edges[i].nodes[1]);
-			if(intersection !== undefined){ break; }
-		}
-		if(intersection === undefined){ return undefined; }
-		if( aInside ){ return [inside, intersection]; }
-		else         { return [intersection, inside]; }
-	}
-
 	// AXIOM 1
 	creaseThroughPoints(a:XY, b:XY):Crease{
-		var endPoints = this.clipLineInBoundary(a,b);
-		if(endPoints === undefined){ return; }//throw "creaseThroughPoints(): crease line doesn't cross inside boundary"; }
-		var newCrease = this.newCrease(endPoints[0].x, endPoints[0].y, endPoints[1].x, endPoints[1].y);
+		var edge = this.boundary.clipLine(new Line(a,b));
+		// var endPoints = this.clipLineInBoundary(a,b);
+		if(edge === undefined){ return; }//throw "creaseThroughPoints(): crease line doesn't cross inside boundary"; }
+		var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 		newCrease.madeBy = new Fold(this.creaseThroughPoints, [new XY(a.x,a.y), new XY(b.x,b.y)]);
 		return newCrease;
 	}
 	// AXIOM 2
 	creasePointToPoint(a:XY, b:XY):Crease{
-		var midpoint = new XY((a.x + b.x)*0.5, (a.y + b.y)*0.5);
-		var ab = new XY(b.x - a.x, b.y - a.y);
-		var perp1 = new XY(-ab.y, ab.x);
-		var intersects = this.boundaryLineIntersection(midpoint, perp1);
-		if(intersects.length >= 2){
-			var newCrease = this.newCrease(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y);
+		var midpoint = a.midpoint(b);
+		var ab = b.subtract(a);
+		var perp1 = ab.rotate90();
+		var edge = this.boundary.clipLine(new Line(midpoint, perp1));
+		// var intersects = this.boundaryLineIntersection(midpoint, perp1);
+		if(edge !== undefined){
+			var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 			newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(a.x,a.y), new XY(b.x,b.y)]);
 			return newCrease
 		}
@@ -1284,11 +1247,16 @@ class CreasePattern extends PlanarGraph{
 	}
 	// AXIOM 3
 	creaseEdgeToEdge(a:Crease, b:Crease):Crease[]{
-		if ( linesParallel(a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]) ) {
+
+		if ( a.parallel(b) ) {
 			var u = new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
-			var perp:XY = new XY(u.x, u.y).rotate90();
-			var intersect1 = lineIntersectionAlgorithm(u, new XY(u.x+perp.x, u.y+perp.y), a.nodes[0], a.nodes[1]);
-			var intersect2 = lineIntersectionAlgorithm(u, new XY(u.x+perp.x, u.y+perp.y), b.nodes[0], b.nodes[1]);
+			var perp:XY = u.rotate90();
+			var u_perp:XY = u.add(perp);
+			var perpEdge = new Line(u, u_perp);
+			// var intersect1 = lineIntersectionAlgorithm(u, new XY(u.x+perp.x, u.y+perp.y), a.nodes[0], a.nodes[1]);
+			// var intersect2 = lineIntersectionAlgorithm(u, new XY(u.x+perp.x, u.y+perp.y), b.nodes[0], b.nodes[1]);
+			var intersect1:XY = intersectionLineEdge(perpEdge, a);
+			var intersect2:XY = intersectionLineEdge(perpEdge, b);
 			var midpoint = new XY((intersect1.x + intersect2.x)*0.5, (intersect1.y + intersect2.y)*0.5);
 			var crease = this.creaseThroughPoints(midpoint, new XY(midpoint.x+u.x, midpoint.y+u.y));
 			if(crease !== undefined){
@@ -1302,19 +1270,22 @@ class CreasePattern extends PlanarGraph{
 		}
 		else {
 			var creases:Crease[] = [];
-			var intersection = lineIntersectionAlgorithm(a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]);
+			// var intersection = lineIntersectionAlgorithm(a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]);
+			var intersection:XY = intersectionLineLine(a, b);
 			var u = new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
 			var v = new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y);
 			var uMag = u.magnitude();
 			var vMag = v.magnitude();
 			var dir = new XY( (u.x*vMag + v.x*uMag), (u.y*vMag + v.y*uMag) );
-			var intersects = this.boundaryLineIntersection(intersection, dir);
-			if(intersects.length >= 2){
+			// var intersects = this.boundaryLineIntersection(intersection, dir);
+			var intersects = this.boundary.clipLine(new Line(intersection, intersection.add(dir)));
+			if(intersects !== undefined){
 				creases.push(this.newCrease(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y));
 			}
 			var dir90 = dir.rotate90();
-			var intersects90 = this.boundaryLineIntersection(intersection, dir90);
-			if(intersects90.length >= 2){
+			// var intersects90 = this.boundaryLineIntersection(intersection, dir90);
+			var intersects90 = this.boundary.clipLine(new Line(intersection, intersection.add(dir90)));
+			if(intersects90 !== undefined){
 				if(Math.abs(u.cross(dir)) < Math.abs(u.cross(dir90)))
 					creases.push(this.newCrease(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
 				else creases.unshift(this.newCrease(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
@@ -1359,7 +1330,8 @@ class CreasePattern extends PlanarGraph{
 		var endPts = perpendicularTo.nodes;
 		var align = new XY(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
 		var pointParallel = new XY(point.x+align.x, point.y+align.y);
-		var intersection = lineIntersectionAlgorithm(point, pointParallel, ontoLine.nodes[0], ontoLine.nodes[1]);
+		// var intersection = lineIntersectionAlgorithm(point, pointParallel, ontoLine.nodes[0], ontoLine.nodes[1]);
+		var intersection = intersectionLineLine(new Line(point, pointParallel), ontoLine);
 		if(intersection != undefined){
 			var midPoint = new XY((intersection.x + point.x)*0.5, (intersection.y + point.y)*0.5);
 			var perp = new XY(-align.y, align.x);
@@ -1461,59 +1433,25 @@ class CreasePattern extends PlanarGraph{
 		return array;
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	
-	boundaryLineIntersection(origin:XY, direction:XY):XY[]{
-		var opposite = new XY(-direction.x, -direction.y);
-		var intersects:XY[] = [];
-		for(var i = 0; i < this.boundary.edges.length; i++){
-			var endpts = this.boundary.edges[i].nodes;
-			var test1 = rayLineSegmentIntersection(origin, direction, endpts[0], endpts[1]);
-			var test2 = rayLineSegmentIntersection(origin, opposite, endpts[0], endpts[1]);
-			if(test1 != undefined){ 
-				test1.x = wholeNumberify(test1.x);
-				test1.y = wholeNumberify(test1.y);
-				intersects.push(test1); 
-			}
-			if(test2 != undefined){ 
-				test2.x = wholeNumberify(test2.x);
-				test2.y = wholeNumberify(test2.y);
-				intersects.push(test2); 
-			}
-		}
-		// todo, need remove duplicate points from array function
-		for(var i = 0; i < intersects.length-1; i++){
-			for(var j = intersects.length-1; j > i; j--){
-				if( intersects[i].equivalent(intersects[j]) ){
-					intersects.splice(j,1);
-				}
-			}
-		}
-		return intersects;		
-	}
-	boundaryRayIntersection(origin:XY, direction:XY):XY[]{
-		var intersects:XY[] = [];
-		for(var i = 0; i < this.boundary.edges.length; i++){
-			var endpts = this.boundary.edges[i].nodes;
-			var test = rayLineSegmentIntersection(origin, direction, endpts[0], endpts[1]);
-			if(test != undefined){ intersects.push(test); }
-		}
-		// todo, need remove duplicate points from array function
-		for(var i = 0; i < intersects.length-1; i++){
-			for(var j = intersects.length-1; j > i; j--){
-				if( intersects[i].equivalent(intersects[j]) ){
-					intersects.splice(j,1);
-				}
-			}
-		}
-		return intersects;
-	}
 
 	//////////////////////////////////////////////
 	// BOUNDARY
 
 	bounds():Rect{
-		return this.boundary.bounds();
+		// return this.boundary.bounds();
+		var boundaryNodes = this.boundary.edges.map(function(el){return el.nodes[0];});
+		if(boundaryNodes === undefined || boundaryNodes.length === 0){ return undefined; }
+		var minX = Infinity;
+		var maxX = -Infinity;
+		var minY = Infinity;
+		var maxY = -Infinity;
+		boundaryNodes.forEach(function(el){
+			if(el.x > maxX){ maxX = el.x; }
+			if(el.x < minX){ minX = el.x; }
+			if(el.y > maxY){ maxY = el.y; }
+			if(el.y < minY){ minY = el.y; }
+		});
+		return new Rect(minX, minY, maxX-minX, maxY-minY);
 	}
 
 	square(width?:number):CreasePattern{
@@ -1539,8 +1477,8 @@ class CreasePattern extends PlanarGraph{
 	noBoundary():CreasePattern{
 		// TODO: make sure paper edges are winding clockwise!!
 		// clear old data
-		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
-		else                           { this.boundary.clear(); }
+		// if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
+		// else                           { this.boundary.clear(); }
 		// 1: collect the nodes that are attached to border edges
 		// var edgeNodes = this.edges
 		// 	.filter(function(el){ return el.orientation !== CreaseDirection.border; })
@@ -1555,32 +1493,28 @@ class CreasePattern extends PlanarGraph{
 		// this.cleanUnusedNodes();
 		// todo: test that this is the right way to remove last item:
 		// if( points[0].equivalent(points[points.length-1]) ){ points.pop(); }
-		return this;		
+		this.boundary = new ConvexPolygon();
+		return this;
 	}
 
-	setBoundary(points:XY[]):CreasePattern{
-		// TODO: make sure paper edges are winding clockwise!!
-		// todo: test that this is the right way to remove last item:
+	setBoundary(points:XY[], alreadyClockwiseSorted?:boolean):CreasePattern{
 		if( points[0].equivalent(points[points.length-1]) ){ points.pop(); }
-		// clear old data
-		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
-		else                           { this.boundary.clear(); }
+		if(alreadyClockwiseSorted !== undefined && alreadyClockwiseSorted === true){
+			this.boundary.edges = this.boundary.edgesFromPoints(points);
+		} else{
+			this.boundary.convexHull(points);
+		}
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
 		// todo: if an edge gets removed, it will leave behind its nodes. we might need the following:
 		this.cleanAllUselessNodes();
-		for(var i = 0; i < points.length; i++){
-			var nextI = (i+1) % points.length;
-			(<Crease>this.newPlanarEdge(points[i].x, points[i].y, points[nextI].x, points[nextI].y)).border();
-			this.boundary.newPlanarEdge(points[i].x, points[i].y, points[nextI].x, points[nextI].y);
-		}
+		this.boundary.edges.forEach(function(el){
+			(<Crease>this.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y)).border();
+		},this);
 		this.cleanDuplicateNodes();
-		this.boundary.cleanDuplicateNodes();
-		this.boundary.generateFaces();
 		return this;
 	}
 
 	setMinRectBoundary():CreasePattern{
-		this.boundary = new PlanarGraph();
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
 		var xMin = Infinity;
 		var xMax = 0;
@@ -1763,14 +1697,14 @@ class CreasePattern extends PlanarGraph{
 		}
 	}
 
-	contains(a:any, b:any):boolean{
-		var point;
-		if(isValidPoint(a)){ point = new XY(a.x, a.y); }
-		else if(isValidNumber(a) && isValidNumber(b)){ point = new XY(a,b);}
-		if(this.boundary.faces.length > 0){
-			return this.boundary.faces[0].contains(point);
-		}
-	}
+	// contains(a:any, b:any):boolean{
+	// 	var point;
+	// 	if(isValidPoint(a)){ point = new XY(a.x, a.y); }
+	// 	else if(isValidNumber(a) && isValidNumber(b)){ point = new XY(a,b);}
+	// 	if(this.boundary.faces.length > 0){
+	// 		return this.boundary.faces[0].contains(point);
+	// 	}
+	// }
 
 /*
 	kawasaki(nodeIndex){

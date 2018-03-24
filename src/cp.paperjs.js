@@ -633,8 +633,9 @@ function paperPathToCP(paperPath){
 	recurseAndAdd(svgLayer.children);
 	// cp is filled
 	// find the convex hull of the CP, set it to the boundary
-	var hull = convexHull(cp.nodes);
-	cp.setBoundary(hull);
+	cp.setBoundary(cp.nodes);
+	// var hull = convexHull(cp.nodes);
+	// cp.setBoundary(hull);
 	// cleanup
 	svgLayer.removeChildren();
 	svgLayer.remove();
