@@ -2,8 +2,6 @@
 
 <h1>EUCLIDEAN MATH</h1>
 
-
-
 	<div class="centered">
 		<canvas id="canvas-interior-angles" resize></canvas>
 	</div>
@@ -76,6 +74,31 @@
 
 
 </section>
+
+<section id="types">
+
+<h2>TYPES</h2>
+
+<h3>Points</h3>
+	<p>A point is represented by its components: x and y. There is only one data structure in this library, and it takes its name from these components.</p>
+	<div class="centered">
+		<pre><code><key>let</key> point <key>=</key> <key>new</key> <v>XY</v>(<n>0.5</n>, <n>0.666</n>)</code></pre>
+	</div>
+
+<h3>Lines</h3>
+	<p><b>Mathematical lines</b> extend infinitely in both directions, <b>rays</b> extend infinitely in one direction, and line segments, or <b>edges</b> are bound by two endpoints.</p>
+	<div class="centered">
+		<pre><code><key>let</key> segment <key>=</key> <key>new</key> <v>Edge</v>(<n>0.0</n>, <n>0.0</n>, <n>1.0</n>, <n>1.0</n>)</code></pre>
+	</div>
+	<div class="centered">
+		<pre><code><key>let</key> ray <key>=</key> <key>new</key> <v>Ray</v>(<n>0.0</n>, <n>0.0</n>, <n>1.0</n>, <n>1.0</n>)</code></pre>
+	</div>
+	<div class="centered">
+		<pre><code><key>let</key> line <key>=</key> <key>new</key> <v>Line</v>(<n>0.0</n>, <n>0.0</n>, <n>1.0</n>, <n>1.0</n>)</code></pre>
+	</div>
+	
+</section>
+
 
 <section id="epsilon">
 

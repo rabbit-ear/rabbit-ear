@@ -25,13 +25,14 @@ intersectRays.selectedLayer.activate();
 setTimeout(function(){
 	console.time("okay");
 	for(var i = 0; i < 10000; i++){
-		{};
+		var t = new XY(0,0);
+		isValidPoint(t);
 	}
 	console.timeEnd("okay");
 },500);
 
 intersectRays.reset = function(){
-	var xys = this.marks.map(function(el){return new XY(el.position.x, el.position.y);});
+/*	var xys = this.marks.map(function(el){return new XY(el.position.x, el.position.y);});
 	var ray0 = xys[1].subtract(xys[0]);
 	var ray1 = xys[3].subtract(xys[2]);
 
@@ -72,7 +73,7 @@ intersectRays.reset = function(){
 			fillArc.strokeWidth = null;
 			fillArc.fillColor = fillColors[i%2];
 		}
-	}
+	}*/
 }
 intersectRays.reset();
 

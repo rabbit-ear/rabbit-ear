@@ -398,7 +398,7 @@ class VoronoiGraph{
 				case 2: 
 					junction.isEdge = true;
 					hullEdges.forEach(function(edge){
-						if(onSegment(junction.position, edge.nodes[0], edge.nodes[1])){
+						if(onSegment(junction.position, edge)){
 							junction.edgeNormal = edge.nodes[1].subtract(edge.nodes[0]).rotate90();
 						}
 					});
@@ -587,7 +587,7 @@ class CreaseNode extends PlanarNode{
 	isBoundary():boolean{
 		for(var i = 0; i < this.graph.boundary.edges.length; i++){
 			var thisPt = new XY(this.x, this.y);
-			if(onSegment(thisPt, this.graph.boundary.edges[i].nodes[0], this.graph.boundary.edges[i].nodes[1])){ return true; }
+			if(onSegment(thisPt, this.graph.boundary.edges[i])){ return true; }
 		}
 		return false;
 	}
