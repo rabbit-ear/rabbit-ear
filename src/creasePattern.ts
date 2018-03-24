@@ -29,12 +29,13 @@ interface d3VoronoiObject{
 //////////////////////////////////////////////////////////////////////////
 // CREASE PATTERN
 
-function rayIntersection(origin:XY, direction:XY, segments:Edge[]):{intersect:XY,reflection:Edge}{
+function rayIntersection(ray:Ray, segments:Edge[]):{intersect:XY,reflection:Edge}{
 	return segments
 		.map(function(reflection){
-			var intersect = rayLineSegmentIntersection(origin, direction, reflection.nodes[0], reflection.nodes[1]);
+			// var intersect = rayLineSegmentIntersection(origin, direction, reflection.nodes[0], reflection.nodes[1]);
+			var intersect = intersectionRayEdge(ray, reflection);
 			var distance = Infinity;
-			if(intersect != undefined){ distance = origin.distanceTo(intersect); }
+			if(intersect !== undefined){ distance = ray.origin.distanceTo(intersect); }
 			return {intersect:intersect, reflection:reflection, distance:distance};})
 		.sort(function(a,b){
 			return a.distance - b.distance; })
@@ -45,17 +46,17 @@ function rayIntersection(origin:XY, direction:XY, segments:Edge[]):{intersect:XY
 		.shift();
 }
 
-function reflectRayRepeat(origin:XY, direction:XY, segments:Edge[], target?:XY):Edge[]{
-	var reflections:{intersect:XY,reflection:Edge}[] = [{intersect:origin, reflection:undefined}];
+function reflectRayRepeat(ray:Ray, segments:Edge[], target?:XY):Edge[]{
+	var reflections:{intersect:XY,reflection:Edge}[] = [{intersect:ray.origin, reflection:undefined}];
 	// var firstIntersection = rayIntersection(origin, direction, segments.filter(function(el){
 	// 	return !(el.nodes[0].equivalent(origin) || el.nodes[1].equivalent(origin));
 	// }));
-	var firstIntersection = rayIntersection(origin, direction, segments);
+	var firstIntersection = rayIntersection(ray, segments);
 
-	if(target !== undefined && firstIntersection !== undefined && epsilonEqual(direction.cross(target.subtract(origin)), 0, EPSILON_HIGH)){
-		var targetDistance = origin.distanceTo(target);
+	if(target !== undefined && firstIntersection !== undefined && epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)){
+		var targetDistance = ray.origin.distanceTo(target);
 		if(targetDistance < firstIntersection['distance']){
-			return [new Edge(origin, target)];
+			return [new Edge(ray.origin, target)];
 		}
 	}
 	reflections.push(firstIntersection);
@@ -69,7 +70,7 @@ function reflectRayRepeat(origin:XY, direction:XY, segments:Edge[], target?:XY):
 			reflections.push({intersect:target, reflection: lineOfReflection});
 			break;
 		}
-		reflections.push(rayIntersection(newOrigin, newVector, segments.filter(function(el){return !el.equivalent(lineOfReflection) })));
+		reflections.push(rayIntersection(new Ray(newOrigin, newVector), segments.filter(function(el){return !el.equivalent(lineOfReflection) })));
 		i++;
 	}
 	reflections = reflections.filter(function(el){
@@ -87,7 +88,7 @@ class VoronoiMolecule extends Triangle{
 	// circumcenter:XY;
 	// joints:[Joint,Joint,Joint];
 	overlaped:VoronoiMolecule[];
-	hull:XY[];
+	hull:ConvexPolygon;
 	units:VoronoiMoleculeTriangle[];
 	isEdge:boolean;
 	edgeNormal:XY; // if isEdge is true, normal to edge, pointing (in/out) from hull?
@@ -96,7 +97,7 @@ class VoronoiMolecule extends Triangle{
 		super(points, circumcenter);
 		this.isEdge = false;  this.isCorner = false;
 		this.overlaped = [];
-		this.hull = convexHull([points[0], points[1], points[2], circumcenter].filter(function(el){return el !== undefined;}));
+		this.hull = new ConvexPolygon().convexHull([points[0], points[1], points[2], circumcenter].filter(function(el){return el !== undefined;}));
 		this.units = this.points.map(function(el,i){
 			var nextEl = this.points[ (i+1)%this.points.length ];
 			return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
@@ -174,17 +175,17 @@ class VoronoiMolecule extends Triangle{
 		}
 		return edges;
 	}
-	pointInside(p:XY):boolean{
-		var found = true;
-		for(var i = 0; i < this.hull.length; i++){
-			var p0 = this.hull[i];
-			var p1 = this.hull[(i+1)%this.hull.length];
-			var cross = (p.y - p0.y) * (p1.x - p0.x) - 
-			            (p.x - p0.x) * (p1.y - p0.y);
-			if (cross < 0) return false;
-		}
-		return true;
-	}
+	// pointInside(p:XY):boolean{
+	// 	var found = true;
+	// 	for(var i = 0; i < this.hull.length; i++){
+	// 		var p0 = this.hull[i];
+	// 		var p1 = this.hull[(i+1)%this.hull.length];
+	// 		var cross = (p.y - p0.y) * (p1.x - p0.x) - 
+	// 		            (p.x - p0.x) * (p1.y - p0.y);
+	// 		if (cross < 0) return false;
+	// 	}
+	// 	return true;
+	// }
 }
 
 /** Isosceles Triangle units that comprise a VoronoiMolecule
@@ -215,8 +216,10 @@ class VoronoiMoleculeTriangle {
 		var crimpVector = new XY(Math.cos(baseAngle+this.crimpAngle),Math.sin(baseAngle+this.crimpAngle));
 		var bisectVector = new XY(Math.cos(baseAngle+this.crimpAngle*0.5),Math.sin(baseAngle+this.crimpAngle*0.5));
 		var symmetryLine = new Edge(this.vertex, this.base[0].midpoint(this.base[1]));
-		var crimpPos = rayLineSegmentIntersection(this.base[0], crimpVector, symmetryLine.nodes[0], symmetryLine.nodes[1]);
-		var bisectPos = rayLineSegmentIntersection(this.base[0], bisectVector, symmetryLine.nodes[0], symmetryLine.nodes[1]);
+		// var crimpPos = rayLineSegmentIntersection(this.base[0], crimpVector, symmetryLine.nodes[0], symmetryLine.nodes[1]);
+		// var bisectPos = rayLineSegmentIntersection(this.base[0], bisectVector, symmetryLine.nodes[0], symmetryLine.nodes[1]);
+		var crimpPos = intersectionRayEdge(new Ray(this.base[0], crimpVector), symmetryLine);
+		var bisectPos = intersectionRayEdge(new Ray(this.base[0], bisectVector), symmetryLine);
 		return [crimpPos, bisectPos];
 	}
 	generateCrimpCreaseLines():Edge[]{
@@ -232,11 +235,13 @@ class VoronoiMoleculeTriangle {
 			}))
 
 		var edges = [symmetryLine]
-			.concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );
+			// .concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );
+			.concat(reflectRayRepeat(new Ray(this.base[0], this.base[1].subtract(this.base[0])), overlappingEdges, this.base[1]));
 		crimps.filter(function(el){
 				return el!==undefined && !el.equivalent(this.vertex);},this)
 			.forEach(function(crimp:XY){
-				edges = edges.concat( reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]) );
+				// edges = edges.concat( reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]) );
+				edges = edges.concat( reflectRayRepeat(new Ray(this.base[0], crimp.subtract(this.base[0])), overlappingEdges, this.base[1]) );
 			},this);
 		return edges;
 
@@ -316,11 +321,8 @@ class VoronoiGraph{
 	constructor(v:d3VoronoiObject, epsilon?:number){
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var allPoints = v.edges.flatMap(function(e){return [new XY(e[0][0],e[0][1]),new XY(e[1][0],e[1][1])]})
-		var hull = convexHull(allPoints);
-		var hullEdges = hull.map(function(el,i){
-			var nextEl = hull[ (i+1)%hull.length ];
-			return new Edge(el, nextEl);
-		});
+		var hull = new ConvexPolygon().convexHull(allPoints);
+
 		this.edges = [];
 		this.junctions = [];
 		this.cells = [];
@@ -397,14 +399,14 @@ class VoronoiGraph{
 				case 1: junction.isCorner = true; break;
 				case 2: 
 					junction.isEdge = true;
-					hullEdges.forEach(function(edge){
-						if(onSegment(junction.position, edge)){
+					hull.edges.forEach(function(edge:Edge){
+						if(edge.collinear(junction.position)){
 							junction.edgeNormal = edge.nodes[1].subtract(edge.nodes[0]).rotate90();
 						}
 					});
 				break;
 			}
-			junction.edges = this.edges.filter(function(edge){ 
+			junction.edges = this.edges.filter(function(edge){
 				return edge.endPoints.contains(el,compFunc);
 			},this).sort(function(a:VoronoiEdge,b:VoronoiEdge){
 				var otherA = a.endPoints[0];
@@ -587,7 +589,8 @@ class CreaseNode extends PlanarNode{
 	isBoundary():boolean{
 		for(var i = 0; i < this.graph.boundary.edges.length; i++){
 			var thisPt = new XY(this.x, this.y);
-			if(onSegment(thisPt, this.graph.boundary.edges[i])){ return true; }
+			if(this.graph.boundary.edges[i].collinear(thisPt)){ return true; }
+			// if(onSegment(thisPt, this.graph.boundary.edges[i])){ return true; }
 		}
 		return false;
 	}
@@ -678,13 +681,16 @@ class CreaseFace extends PlanarFace{
 	// rabbitEar():RabbitEar{
 	rabbitEar():Crease[]{
 		if(this.joints.length !== 3){ return []; }
-		var rays = this.joints.map(function(el){
-			return { node: el.origin, vector: el.bisect() };
+		var rays:Ray[] = this.joints.map(function(el){
+			// return { node: el.origin, vector: el.bisect() };
+			return new Ray(el.origin, el.bisect());
 		});
-		var incenter = rays.map(function(el,i){
-			// calculate intersection of each pairs of rays
-			var nextI = (i+1)%rays.length;
-			return rayRayIntersection(rays[i].node, rays[i].vector, rays[nextI].node, rays[nextI].vector);})
+		// calculate intersection of each pairs of rays
+		var incenter = rays
+			.map(function(el,i){
+				var nextEl = rays[(i+1)%rays.length];
+				return intersectionRayRay(el, nextEl);
+			})
 			// average each point (sum, then divide by total)
 			.reduce(function(prev, current){ return prev.add(current);})
 			.scale(1.0/rays.length);
@@ -698,7 +704,11 @@ class CreasePattern extends PlanarGraph{
 
 	nodes:CreaseNode[];
 	edges:Crease[];
-	boundary:PlanarGraph;
+	// boundary:PlanarGraph;
+	// for now our crease patterns outlines are limited to convex shapes,
+	//   this can be easily switched out if all member functions are implemented
+	//   for a concave polygon class
+	boundary:ConvexPolygon;
 
 	symmetryLine:[XY, XY] = undefined;
 
@@ -716,7 +726,7 @@ class CreasePattern extends PlanarGraph{
 
 	constructor(){
 		super();
-		if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
+		if(this.boundary === undefined){ this.boundary = new ConvexPolygon(); }
 		this.square();
 	}
 
@@ -728,8 +738,8 @@ class CreasePattern extends PlanarGraph{
 		this.edgeArrayDidChange();
 		this.faceArrayDidChange();
 		var g = new CreasePattern();
-		g.boundary = undefined;
 		g.clear();
+		g.boundary = this.boundary.copy();
 		for(var i = 0; i < this.nodes.length; i++){
 			var n = g.addNode(new CreaseNode(g));
 			(<any>Object).assign(n, this.nodes[i]);
@@ -769,47 +779,6 @@ class CreasePattern extends PlanarGraph{
 				}
 			}
 		}
-		// boundary
-		this.boundary.nodeArrayDidChange();
-		this.boundary.edgeArrayDidChange();
-		var b = new PlanarGraph();
-		if(this.boundary !== undefined){
-			if(this.boundary.nodes !== undefined){
-				for(var i = 0; i < this.boundary.nodes.length; i++){
-					var bn = b.addNode(new PlanarNode(b));
-					(<any>Object).assign(bn, this.boundary.nodes[i]);
-					bn.graph = b; bn.index = i;
-				}
-			}
-			if(this.boundary.edges !== undefined){
-				for(var i = 0; i < this.boundary.edges.length; i++){
-					var index = [this.boundary.edges[i].nodes[0].index, this.boundary.edges[i].nodes[1].index];
-					var be = b.addEdge(new PlanarEdge(b, b.nodes[index[0]], b.nodes[index[1]]));
-					(<any>Object).assign(be, this.boundary.edges[i]);
-					be.graph = b; be.index = i;
-					be.nodes = [b.nodes[index[0]], b.nodes[index[1]]];
-				}
-			}
-			if(this.boundary.faces !== undefined){
-				for(var i = 0; i < this.boundary.faces.length; i++){
-					var bf = new PlanarFace(b);
-					bf.graph = b;  // redundant
-					(<any>Object).assign(bf, this.boundary.faces[i]);
-					bf.nodes = [];
-					bf.edges = [];
-					bf.angles = [];
-					if(this.boundary.faces[i] !== undefined){
-						for(var j=0;j<this.boundary.faces[i].nodes.length;j++){
-							bf.nodes.push(b.nodes[this.boundary.faces[i].nodes[j].index]);
-						}
-						for(var j=0;j<this.boundary.faces[i].edges.length;j++){bf.edges.push(b.edges[this.boundary.faces[i].edges[j].index]);}
-						for(var j=0;j<this.boundary.faces[i].angles.length;j++){bf.angles.push(this.boundary.faces[i].angles[j]); }
-						b.faces.push(bf);
-					}
-				}
-			}
-		}
-		g.boundary = b;
 		return g;
 	}
 
@@ -1066,16 +1035,6 @@ class CreasePattern extends PlanarGraph{
 		return;
 	}
 
-	pointInside(p:XY):boolean{
-		for(var i = 0; i < this.boundary.edges.length; i++){
-			var endpts = this.boundary.edges[i].nodes;
-			var cross = (p.y - endpts[0].y) * (endpts[1].x - endpts[0].x) - 
-			            (p.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
-			if (cross < 0) return false;
-		}
-		return true;
-	}
-
 	newCrease(a_x:number, a_y:number, b_x:number, b_y:number):Crease{
 		// use this.crease() instead
 		// this is a private function and expects you have checked boundary intersect conditions
@@ -1108,9 +1067,9 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	creaseRay(origin:XY, direction:XY):Crease{
-		var endpoints = this.clipRayInBoundary(origin, direction);
-		if(endpoints === undefined) { return; }//throw "creaseRay does not appear to be inside the boundary"; }
-		var newCrease = this.newCrease(endpoints[0].x, endpoints[0].y, endpoints[1].x, endpoints[1].y);
+		var edge = this.boundary.clipRay(new Ray(origin, direction));
+		if(edge === undefined) { return; }//throw "creaseRay does not appear to be inside the boundary"; }
+		var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 		if(origin.equivalent(newCrease.nodes[0])){ newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[0]; }
 		if(origin.equivalent(newCrease.nodes[1])){ newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[1]; }
 		return newCrease;

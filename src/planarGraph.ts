@@ -235,6 +235,12 @@ class PlanarEdge extends GraphEdge implements Edge{
 		var v = edge.nodes[1].subtract(edge.nodes[0]);
 		return epsilonEqual(u.cross(v), 0, epsilon);
 	}
+	collinear(point:XY, epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		var p0 = new Edge(point, this.nodes[0]).length();
+		var p1 = new Edge(point, this.nodes[1]).length();
+		return epsilonEqual(this.length() - p0 - p1, 0, epsilon);
+	}
 	equivalent(e:PlanarEdge):boolean{ return this.isSimilarToEdge(e); }
 	transform(matrix):PlanarEdge{
 		this.nodes[0].transform(matrix);

@@ -386,17 +386,6 @@ function wholeNumberify(num, epsilon) {
     }
     return num;
 }
-function onSegment(point, edge, epsilon) {
-    if (epsilon === undefined) {
-        epsilon = EPSILON_HIGH;
-    }
-    var a = edge.nodes[0];
-    var b = edge.nodes[1];
-    var a_b = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
-    var p_a = Math.sqrt(Math.pow(point.x - a.x, 2) + Math.pow(point.y - a.y, 2));
-    var p_b = Math.sqrt(Math.pow(point.x - b.x, 2) + Math.pow(point.y - b.y, 2));
-    return (Math.abs(a_b - (p_a + p_b)) < epsilon);
-}
 function clockwiseInteriorAngleRadians(a, b) {
     while (a < 0) {
         a += Math.PI * 2;
@@ -567,64 +556,6 @@ function circleLineIntersectionAlgorithm(center, radius, p0, p1) {
     }
     return intersections;
 }
-function convexHull(points) {
-    if (points === undefined || points.length === 0) {
-        return [];
-    }
-    var INFINITE_LOOP = 10000;
-    var sorted = points.sort(function (a, b) {
-        if (a.x - b.x < -EPSILON_HIGH) {
-            return -1;
-        }
-        if (a.x - b.x > EPSILON_HIGH) {
-            return 1;
-        }
-        if (a.y - b.y < -EPSILON_HIGH) {
-            return -1;
-        }
-        if (a.y - b.y > EPSILON_HIGH) {
-            return 1;
-        }
-        return 0;
-    });
-    var hull = [];
-    hull.push(sorted[0]);
-    var ang = 0;
-    var infiniteLoop = 0;
-    do {
-        infiniteLoop++;
-        var h = hull.length - 1;
-        var angles = sorted
-            .filter(function (el) {
-            return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH));
-        })
-            .map(function (el) {
-            var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
-            while (angle < ang) {
-                angle += Math.PI * 2;
-            }
-            return { node: el, angle: angle, distance: undefined };
-        })
-            .sort(function (a, b) { return (a.angle < b.angle) ? -1 : (a.angle > b.angle) ? 1 : 0; });
-        if (angles.length === 0) {
-            return [];
-        }
-        var rightTurn = angles[0];
-        angles = angles.filter(function (el) { return epsilonEqual(rightTurn.angle, el.angle, EPSILON_LOW); })
-            .map(function (el) {
-            var distance = Math.sqrt(Math.pow(hull[h].x - el.node.x, 2) + Math.pow(hull[h].y - el.node.y, 2));
-            el.distance = distance;
-            return el;
-        })
-            .sort(function (a, b) { return (a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0; });
-        if (hull.contains(angles[0].node)) {
-            return hull;
-        }
-        hull.push(angles[0].node);
-        ang = Math.atan2(hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
-    } while (infiniteLoop < INFINITE_LOOP);
-    return [];
-}
 var Matrix = (function () {
     function Matrix(a, b, c, d, tx, ty) {
         this.a = (a !== undefined) ? a : 1;
@@ -737,6 +668,17 @@ var Line = (function () {
         var v = line.nodes[1].subtract(line.nodes[0]);
         return epsilonEqual(u.cross(v), 0, epsilon);
     };
+    Line.prototype.collinear = function (point, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        if (point.equivalent(this.nodes[0], epsilon)) {
+            return true;
+        }
+        var u = this.nodes[1].subtract(this.nodes[0]);
+        var v = point.subtract(this.nodes[0]);
+        return epsilonEqual(u.cross(v), 0, epsilon);
+    };
     Line.prototype.equivalent = function (line, epsilon) {
         return undefined;
     };
@@ -761,6 +703,7 @@ var Ray = (function () {
         var v = line.nodes[1].subtract(line.nodes[0]);
         return epsilonEqual(this.direction.cross(v), 0, epsilon);
     };
+    Ray.prototype.collinear = function (point) { return undefined; };
     Ray.prototype.equivalent = function (ray, epsilon) {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
@@ -794,6 +737,14 @@ var Edge = (function () {
         var u = this.nodes[1].subtract(this.nodes[0]);
         var v = line.nodes[1].subtract(line.nodes[0]);
         return epsilonEqual(u.cross(v), 0, epsilon);
+    };
+    Edge.prototype.collinear = function (point, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var p0 = new Edge(point, this.nodes[0]).length();
+        var p1 = new Edge(point, this.nodes[1]).length();
+        return epsilonEqual(this.length() - p0 - p1, 0, epsilon);
     };
     Edge.prototype.equivalent = function (e, epsilon) {
         if (epsilon === undefined) {
@@ -887,6 +838,128 @@ var IsoscelesTriangle = (function (_super) {
     }
     return IsoscelesTriangle;
 }(Triangle));
+var ConvexPolygon = (function () {
+    function ConvexPolygon() {
+    }
+    ConvexPolygon.prototype.contains = function (p) {
+        var found = true;
+        for (var i = 0; i < this.edges.length; i++) {
+            var a = this.edges[i].nodes[1].subtract(this.edges[i].nodes[0]);
+            var b = p.subtract(this.edges[i].nodes[0]);
+            if (a.cross(b) < 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+    ConvexPolygon.prototype.clipEdge = function (edge) {
+        var intersections = this.edges
+            .map(function (el) { return intersectionEdgeEdge(edge, el); })
+            .filter(function (el) { return el !== undefined; });
+        switch (intersections.length) {
+            case 0:
+                if (this.contains(edge.nodes[0])) {
+                    return edge;
+                }
+                return undefined;
+            case 1:
+                if (this.contains(edge.nodes[0])) {
+                    return new Edge(edge.nodes[0], intersections[0]);
+                }
+                return new Edge(edge.nodes[1], intersections[0]);
+            case 2: return new Edge(intersections[0], intersections[1]);
+        }
+    };
+    ConvexPolygon.prototype.clipLine = function (line) {
+        var intersections = this.edges
+            .map(function (el) { return intersectionLineEdge(line, el); })
+            .filter(function (el) { return el !== undefined; });
+        switch (intersections.length) {
+            case 0: return undefined;
+            case 1: return new Edge(intersections[0], intersections[0]);
+            case 2: return new Edge(intersections[0], intersections[1]);
+        }
+    };
+    ConvexPolygon.prototype.clipRay = function (ray) {
+        var intersections = this.edges
+            .map(function (el) { return intersectionRayEdge(ray, el); })
+            .filter(function (el) { return el !== undefined; });
+        switch (intersections.length) {
+            case 0: return undefined;
+            case 1: return new Edge(ray.origin, intersections[0]);
+            case 2: return new Edge(intersections[0], intersections[1]);
+        }
+    };
+    ConvexPolygon.prototype.convexHull = function (points) {
+        if (points === undefined || points.length === 0) {
+            this.edges = [];
+            return undefined;
+        }
+        var INFINITE_LOOP = 10000;
+        var sorted = points.sort(function (a, b) {
+            if (a.x - b.x < -EPSILON_HIGH) {
+                return -1;
+            }
+            if (a.x - b.x > EPSILON_HIGH) {
+                return 1;
+            }
+            if (a.y - b.y < -EPSILON_HIGH) {
+                return -1;
+            }
+            if (a.y - b.y > EPSILON_HIGH) {
+                return 1;
+            }
+            return 0;
+        });
+        var hull = [];
+        hull.push(sorted[0]);
+        var ang = 0;
+        var infiniteLoop = 0;
+        do {
+            infiniteLoop++;
+            var h = hull.length - 1;
+            var angles = sorted
+                .filter(function (el) {
+                return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH));
+            })
+                .map(function (el) {
+                var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
+                while (angle < ang) {
+                    angle += Math.PI * 2;
+                }
+                return { node: el, angle: angle, distance: undefined };
+            })
+                .sort(function (a, b) { return (a.angle < b.angle) ? -1 : (a.angle > b.angle) ? 1 : 0; });
+            if (angles.length === 0) {
+                this.edges = [];
+                return undefined;
+            }
+            var rightTurn = angles[0];
+            angles = angles.filter(function (el) { return epsilonEqual(rightTurn.angle, el.angle, EPSILON_LOW); })
+                .map(function (el) {
+                var distance = Math.sqrt(Math.pow(hull[h].x - el.node.x, 2) + Math.pow(hull[h].y - el.node.y, 2));
+                el.distance = distance;
+                return el;
+            })
+                .sort(function (a, b) { return (a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0; });
+            if (hull.contains(angles[0].node)) {
+                this.edges = this.edgesFromPoints(hull);
+                return this;
+            }
+            hull.push(angles[0].node);
+            ang = Math.atan2(hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
+        } while (infiniteLoop < INFINITE_LOOP);
+        this.edges = [];
+        return undefined;
+    };
+    ConvexPolygon.prototype.edgesFromPoints = function (points) {
+        return points.map(function (el, i) {
+            var nextEl = points[(i + 1) % points.length];
+            return new Edge(el, nextEl);
+        }, this);
+    };
+    return ConvexPolygon;
+}());
 var Sector = (function () {
     function Sector(origin, endpoints) {
         this.origin = origin;
@@ -1193,6 +1266,14 @@ var PlanarEdge = (function (_super) {
         var u = this.nodes[1].subtract(this.nodes[0]);
         var v = edge.nodes[1].subtract(edge.nodes[0]);
         return epsilonEqual(u.cross(v), 0, epsilon);
+    };
+    PlanarEdge.prototype.collinear = function (point, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var p0 = new Edge(point, this.nodes[0]).length();
+        var p1 = new Edge(point, this.nodes[1]).length();
+        return epsilonEqual(this.length() - p0 - p1, 0, epsilon);
     };
     PlanarEdge.prototype.equivalent = function (e) { return this.isSimilarToEdge(e); };
     PlanarEdge.prototype.transform = function (matrix) {
@@ -2079,13 +2160,13 @@ var PlanarGraph = (function (_super) {
     };
     return PlanarGraph;
 }(Graph));
-function rayIntersection(origin, direction, segments) {
+function rayIntersection(ray, segments) {
     return segments
         .map(function (reflection) {
-        var intersect = rayLineSegmentIntersection(origin, direction, reflection.nodes[0], reflection.nodes[1]);
+        var intersect = intersectionRayEdge(ray, reflection);
         var distance = Infinity;
-        if (intersect != undefined) {
-            distance = origin.distanceTo(intersect);
+        if (intersect !== undefined) {
+            distance = ray.origin.distanceTo(intersect);
         }
         return { intersect: intersect, reflection: reflection, distance: distance };
     })
@@ -2094,13 +2175,13 @@ function rayIntersection(origin, direction, segments) {
     })
         .shift();
 }
-function reflectRayRepeat(origin, direction, segments, target) {
-    var reflections = [{ intersect: origin, reflection: undefined }];
-    var firstIntersection = rayIntersection(origin, direction, segments);
-    if (target !== undefined && firstIntersection !== undefined && epsilonEqual(direction.cross(target.subtract(origin)), 0, EPSILON_HIGH)) {
-        var targetDistance = origin.distanceTo(target);
+function reflectRayRepeat(ray, segments, target) {
+    var reflections = [{ intersect: ray.origin, reflection: undefined }];
+    var firstIntersection = rayIntersection(ray, segments);
+    if (target !== undefined && firstIntersection !== undefined && epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)) {
+        var targetDistance = ray.origin.distanceTo(target);
         if (targetDistance < firstIntersection['distance']) {
-            return [new Edge(origin, target)];
+            return [new Edge(ray.origin, target)];
         }
     }
     reflections.push(firstIntersection);
@@ -2114,7 +2195,7 @@ function reflectRayRepeat(origin, direction, segments, target) {
             reflections.push({ intersect: target, reflection: lineOfReflection });
             break;
         }
-        reflections.push(rayIntersection(newOrigin, newVector, segments.filter(function (el) { return !el.equivalent(lineOfReflection); })));
+        reflections.push(rayIntersection(new Ray(newOrigin, newVector), segments.filter(function (el) { return !el.equivalent(lineOfReflection); })));
         i++;
     }
     reflections = reflections.filter(function (el) {
@@ -2133,7 +2214,7 @@ var VoronoiMolecule = (function (_super) {
         _this.isEdge = false;
         _this.isCorner = false;
         _this.overlaped = [];
-        _this.hull = convexHull([points[0], points[1], points[2], circumcenter].filter(function (el) { return el !== undefined; }));
+        _this.hull = new ConvexPolygon().convexHull([points[0], points[1], points[2], circumcenter].filter(function (el) { return el !== undefined; }));
         _this.units = _this.points.map(function (el, i) {
             var nextEl = this.points[(i + 1) % this.points.length];
             return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
@@ -2208,18 +2289,6 @@ var VoronoiMolecule = (function (_super) {
         }
         return edges;
     };
-    VoronoiMolecule.prototype.pointInside = function (p) {
-        var found = true;
-        for (var i = 0; i < this.hull.length; i++) {
-            var p0 = this.hull[i];
-            var p1 = this.hull[(i + 1) % this.hull.length];
-            var cross = (p.y - p0.y) * (p1.x - p0.x) -
-                (p.x - p0.x) * (p1.y - p0.y);
-            if (cross < 0)
-                return false;
-        }
-        return true;
-    };
     return VoronoiMolecule;
 }(Triangle));
 var VoronoiMoleculeTriangle = (function () {
@@ -2241,8 +2310,8 @@ var VoronoiMoleculeTriangle = (function () {
         var crimpVector = new XY(Math.cos(baseAngle + this.crimpAngle), Math.sin(baseAngle + this.crimpAngle));
         var bisectVector = new XY(Math.cos(baseAngle + this.crimpAngle * 0.5), Math.sin(baseAngle + this.crimpAngle * 0.5));
         var symmetryLine = new Edge(this.vertex, this.base[0].midpoint(this.base[1]));
-        var crimpPos = rayLineSegmentIntersection(this.base[0], crimpVector, symmetryLine.nodes[0], symmetryLine.nodes[1]);
-        var bisectPos = rayLineSegmentIntersection(this.base[0], bisectVector, symmetryLine.nodes[0], symmetryLine.nodes[1]);
+        var crimpPos = intersectionRayEdge(new Ray(this.base[0], crimpVector), symmetryLine);
+        var bisectPos = intersectionRayEdge(new Ray(this.base[0], bisectVector), symmetryLine);
         return [crimpPos, bisectPos];
     };
     VoronoiMoleculeTriangle.prototype.generateCrimpCreaseLines = function () {
@@ -2256,12 +2325,12 @@ var VoronoiMoleculeTriangle = (function () {
             return el.generateCreases();
         }));
         var edges = [symmetryLine]
-            .concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]));
+            .concat(reflectRayRepeat(new Ray(this.base[0], this.base[1].subtract(this.base[0])), overlappingEdges, this.base[1]));
         crimps.filter(function (el) {
             return el !== undefined && !el.equivalent(this.vertex);
         }, this)
             .forEach(function (crimp) {
-            edges = edges.concat(reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]));
+            edges = edges.concat(reflectRayRepeat(new Ray(this.base[0], crimp.subtract(this.base[0])), overlappingEdges, this.base[1]));
         }, this);
         return edges;
     };
@@ -2308,11 +2377,7 @@ var VoronoiGraph = (function () {
             epsilon = EPSILON_HIGH;
         }
         var allPoints = v.edges.flatMap(function (e) { return [new XY(e[0][0], e[0][1]), new XY(e[1][0], e[1][1])]; });
-        var hull = convexHull(allPoints);
-        var hullEdges = hull.map(function (el, i) {
-            var nextEl = hull[(i + 1) % hull.length];
-            return new Edge(el, nextEl);
-        });
+        var hull = new ConvexPolygon().convexHull(allPoints);
         this.edges = [];
         this.junctions = [];
         this.cells = [];
@@ -2391,8 +2456,8 @@ var VoronoiGraph = (function () {
                     break;
                 case 2:
                     junction.isEdge = true;
-                    hullEdges.forEach(function (edge) {
-                        if (onSegment(junction.position, edge)) {
+                    hull.edges.forEach(function (edge) {
+                        if (edge.collinear(junction.position)) {
                             junction.edgeNormal = edge.nodes[1].subtract(edge.nodes[0]).rotate90();
                         }
                     });
@@ -2594,7 +2659,7 @@ var CreaseNode = (function (_super) {
     CreaseNode.prototype.isBoundary = function () {
         for (var i = 0; i < this.graph.boundary.edges.length; i++) {
             var thisPt = new XY(this.x, this.y);
-            if (onSegment(thisPt, this.graph.boundary.edges[i])) {
+            if (this.graph.boundary.edges[i].collinear(thisPt)) {
                 return true;
             }
         }
@@ -2674,11 +2739,12 @@ var CreaseFace = (function (_super) {
             return [];
         }
         var rays = this.joints.map(function (el) {
-            return { node: el.origin, vector: el.bisect() };
+            return new Ray(el.origin, el.bisect());
         });
-        var incenter = rays.map(function (el, i) {
-            var nextI = (i + 1) % rays.length;
-            return rayRayIntersection(rays[i].node, rays[i].vector, rays[nextI].node, rays[nextI].vector);
+        var incenter = rays
+            .map(function (el, i) {
+            var nextEl = rays[(i + 1) % rays.length];
+            return intersectionRayRay(el, nextEl);
         })
             .reduce(function (prev, current) { return prev.add(current); })
             .scale(1.0 / rays.length);

@@ -38,17 +38,17 @@ function wholeNumberify(num:number, epsilon?:number):number{
 //                            2D ALGORITHMS
 /////////////////////////////////////////////////////////////////////////////////
 /** if points are all collinear, checks if point lies on line segment 'ab' */
-function onSegment(point:XY, edge:Edge, epsilon?:number):boolean{
-	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-	// todo, move this into a class function
-	// and rewrite it
-	var a = edge.nodes[0];
-	var b = edge.nodes[1];
-	var a_b = Math.sqrt( Math.pow(a.x - b.x,  2) + Math.pow(a.y - b.y,  2) );
-	var p_a = Math.sqrt( Math.pow(point.x-a.x,2) + Math.pow(point.y-a.y,2) );
-	var p_b = Math.sqrt( Math.pow(point.x-b.x,2) + Math.pow(point.y-b.y,2) );
-	return (Math.abs(a_b - (p_a+p_b)) < epsilon);
-}
+// function onSegment(point:XY, edge:Edge, epsilon?:number):boolean{
+// 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+// 	// todo, move this into a class function
+// 	// and rewrite it
+// 	var a = edge.nodes[0];
+// 	var b = edge.nodes[1];
+// 	var a_b = Math.sqrt( Math.pow(a.x - b.x,  2) + Math.pow(a.y - b.y,  2) );
+// 	var p_a = Math.sqrt( Math.pow(point.x-a.x,2) + Math.pow(point.y-a.y,2) );
+// 	var p_b = Math.sqrt( Math.pow(point.x-b.x,2) + Math.pow(point.y-b.y,2) );
+// 	return (Math.abs(a_b - (p_a+p_b)) < epsilon);
+// }
 /** There are 2 interior angles between 2 absolute angle measurements, from A to B, return the clockwise one
  * @param {number} angle in radians
  * @param {number} angle in radians
@@ -209,57 +209,6 @@ function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY)
 	if(!isNaN(x2)){ intersections.push( new XY(x2 + center.x, y2 + center.y) ); }
 	return intersections;
 }
-function convexHull(points:XY[]):XY[]{
-	// validate input
-	if(points === undefined || points.length === 0){ return []; }
-	// # points in the convex hull before escaping function
-	var INFINITE_LOOP = 10000;
-	// sort points by x and y
-	var sorted = points.sort(function(a,b){
-			if(a.x-b.x < -EPSILON_HIGH){ return -1; }  if(a.x-b.x > EPSILON_HIGH){ return 1; }
-			if(a.y-b.y < -EPSILON_HIGH){ return -1; }  if(a.y-b.y > EPSILON_HIGH){ return 1; }
-			return 0;});
-	var hull = [];
-	hull.push(sorted[0]);
-	// the current direction the perimeter walker is facing
-	var ang = 0;  
-	var infiniteLoop = 0;
-	do{
-		infiniteLoop++;
-		var h = hull.length-1;
-		var angles = sorted
-			// remove all points in the same location from this search
-			.filter(function(el){ 
-				return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH)) })
-			// sort by angle, setting lowest values next to "ang"
-			.map(function(el){
-				var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
-				while(angle < ang){ angle += Math.PI*2; }
-				return {node:el, angle:angle, distance:undefined}; })  // distance to be set later
-			.sort(function(a,b){return (a.angle < b.angle)?-1:(a.angle > b.angle)?1:0});
-		if(angles.length === 0){ return []; }
-		// narrowest-most right turn
-		var rightTurn = angles[0];
-		// collect all other points that are collinear along the same ray
-		angles = angles.filter(function(el){ return epsilonEqual(rightTurn.angle, el.angle, EPSILON_LOW); })
-		// sort collinear points by their distances from the connecting point
-		.map(function(el){ 
-			var distance = Math.sqrt(Math.pow(hull[h].x-el.node.x, 2) + Math.pow(hull[h].y-el.node.y, 2));
-			el.distance = distance;
-			return el;})
-		// (OPTION 1) exclude all collinear points along the hull 
-		.sort(function(a,b){return (a.distance < b.distance)?1:(a.distance > b.distance)?-1:0});
-		// (OPTION 2) include all collinear points along the hull
-		// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
-		// if the point is already in the convex hull, we've made a loop. we're done
-		if(hull.contains(angles[0].node)){ return hull; }
-		// add point to hull, prepare to loop again
-		hull.push(angles[0].node);
-		// update walking direction with the angle to the new point
-		ang = Math.atan2( hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
-	}while(infiniteLoop < INFINITE_LOOP);
-	return [];
-}
 
 /////////////////////////////////////////////////////////////////////////////////
 //                                GEOMETRY
@@ -381,6 +330,13 @@ class Line{
 		var v = line.nodes[1].subtract(line.nodes[0]);
 		return epsilonEqual(u.cross(v), 0, epsilon);
 	}
+	collinear(point:XY, epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		if(point.equivalent(this.nodes[0], epsilon)){ return true; }
+		var u = this.nodes[1].subtract(this.nodes[0]);
+		var v = point.subtract(this.nodes[0]);
+		return epsilonEqual(u.cross(v), 0, epsilon);
+	}
 	equivalent(line:Line, epsilon?:number):boolean{
 		// if lines are parallel and share a point in common
 		return undefined;
@@ -418,6 +374,7 @@ class Ray{
 		var v = line.nodes[1].subtract(line.nodes[0]);
 		return epsilonEqual(this.direction.cross(v), 0, epsilon);
 	}
+	collinear(point:XY):boolean{ return undefined; }
 	equivalent(ray:Ray, epsilon?:number):boolean{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		return (this.origin.equivalent(ray.origin, epsilon) &&
@@ -449,6 +406,12 @@ class Edge{
 		var v = line.nodes[1].subtract(line.nodes[0]);
 		return epsilonEqual(u.cross(v), 0, epsilon);
 	}
+	collinear(point:XY, epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		var p0 = new Edge(point, this.nodes[0]).length();
+		var p1 = new Edge(point, this.nodes[1]).length();
+		return epsilonEqual(this.length() - p0 - p1, 0, epsilon);
+	}
 	equivalent(e:Edge, epsilon?:number):boolean{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		return ((this.nodes[0].equivalent(e.nodes[0],epsilon) &&
@@ -456,7 +419,7 @@ class Edge{
 		        (this.nodes[0].equivalent(e.nodes[1],epsilon) &&
 		         this.nodes[1].equivalent(e.nodes[0],epsilon)) );
 	}
-	transform(matrix):Edge{
+	transform(matrix:Matrix):Edge{
 		return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
 	}
 }
@@ -531,6 +494,125 @@ class IsoscelesTriangle extends Triangle{
 
 }
 
+
+class ConvexPolygon{
+	edges:Edge[];
+	contains(p:XY):boolean{
+		var found = true;
+		for(var i = 0; i < this.edges.length; i++){
+			var a = this.edges[i].nodes[1].subtract(this.edges[i].nodes[0]);
+			var b = p.subtract(this.edges[i].nodes[0]);
+			if (a.cross(b) < 0){ return false; }
+		}
+		return true;
+	}
+	clipEdge(edge:Edge):Edge{
+		var intersections = this.edges
+			.map(function(el){ return intersectionEdgeEdge(edge, el); })
+			.filter(function(el){return el !== undefined; });
+		switch(intersections.length){
+			case 0:
+				if(this.contains(edge.nodes[0])){ return edge; } // completely inside
+				return undefined;  // completely outside
+			case 1:
+				if(this.contains(edge.nodes[0])){
+					return new Edge(edge.nodes[0], intersections[0]);
+				}
+				return new Edge(edge.nodes[1], intersections[0]);
+			case 2: return new Edge(intersections[0], intersections[1]);
+		}
+	}
+	clipLine(line:Line):Edge{
+		var intersections = this.edges
+			.map(function(el){ return intersectionLineEdge(line, el); })
+			.filter(function(el){return el !== undefined; });
+		switch(intersections.length){
+			case 0: return undefined;
+			case 1: return new Edge(intersections[0], intersections[0]); // degenerate edge
+			case 2: return new Edge(intersections[0], intersections[1]);
+		}
+	}
+	clipRay(ray:Ray):Edge{
+		var intersections = this.edges
+			.map(function(el){ return intersectionRayEdge(ray, el); })
+			.filter(function(el){return el !== undefined; });
+		switch(intersections.length){
+			case 0: return undefined;
+			case 1: return new Edge(ray.origin, intersections[0]);
+			case 2: return new Edge(intersections[0], intersections[1]);
+		}
+	}
+	convexHull(points:XY[]):ConvexPolygon{
+		// validate input
+		if(points === undefined || points.length === 0){ this.edges = []; return undefined; }
+		// # points in the convex hull before escaping function
+		var INFINITE_LOOP = 10000;
+		// sort points by x and y
+		var sorted = points.sort(function(a,b){
+				if(a.x-b.x < -EPSILON_HIGH){ return -1; }  if(a.x-b.x > EPSILON_HIGH){ return 1; }
+				if(a.y-b.y < -EPSILON_HIGH){ return -1; }  if(a.y-b.y > EPSILON_HIGH){ return 1; }
+				return 0;});
+		var hull = [];
+		hull.push(sorted[0]);
+		// the current direction the perimeter walker is facing
+		var ang = 0;  
+		var infiniteLoop = 0;
+		do{
+			infiniteLoop++;
+			var h = hull.length-1;
+			var angles = sorted
+				// remove all points in the same location from this search
+				.filter(function(el){ 
+					return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH)) })
+				// sort by angle, setting lowest values next to "ang"
+				.map(function(el){
+					var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
+					while(angle < ang){ angle += Math.PI*2; }
+					return {node:el, angle:angle, distance:undefined}; })  // distance to be set later
+				.sort(function(a,b){return (a.angle < b.angle)?-1:(a.angle > b.angle)?1:0});
+			if(angles.length === 0){ this.edges = []; return undefined; }
+			// narrowest-most right turn
+			var rightTurn = angles[0];
+			// collect all other points that are collinear along the same ray
+			angles = angles.filter(function(el){ return epsilonEqual(rightTurn.angle, el.angle, EPSILON_LOW); })
+			// sort collinear points by their distances from the connecting point
+			.map(function(el){ 
+				var distance = Math.sqrt(Math.pow(hull[h].x-el.node.x, 2) + Math.pow(hull[h].y-el.node.y, 2));
+				el.distance = distance;
+				return el;})
+			// (OPTION 1) exclude all collinear points along the hull 
+			.sort(function(a,b){return (a.distance < b.distance)?1:(a.distance > b.distance)?-1:0});
+			// (OPTION 2) include all collinear points along the hull
+			// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
+			// if the point is already in the convex hull, we've made a loop. we're done
+			if(hull.contains(angles[0].node)){
+				this.edges = this.edgesFromPoints(hull);
+				return this;
+			}
+			// add point to hull, prepare to loop again
+			hull.push(angles[0].node);
+			// update walking direction with the angle to the new point
+			ang = Math.atan2( hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
+		}while(infiniteLoop < INFINITE_LOOP);
+		this.edges = [];
+		return undefined;
+	}
+	edgesFromPoints(points:XY[]):Edge[]{
+		return points.map(function(el,i){
+			var nextEl = points[ (i+1)%points.length ];
+			return new Edge(el, nextEl);
+		},this);
+	}
+	/** deep copy this object and all its contents */
+	copy():ConvexPolygon{
+		var p = new ConvexPolygon();
+		p.edges = this.edges.map(function(e:Edge){
+			return new Edge(e.nodes[0].x, e.nodes[0].y, e.nodes[1].x, e.nodes[1].y);
+		});
+		return p;
+	}	
+}
+
 /** a Sector is defined by 3 nodes (one common, 2 endpoints) 
  *  clockwise order is enforced
  *  the interior angle is measured clockwise from endpoint 0 to 1
@@ -571,7 +653,7 @@ class Sector{
 		}
 		return results;
 	}
-	getEdgeVectorsForNewAngle(angle:number, lockedEdge?:PlanarEdge):[XY,XY]{
+	getEdgeVectorsForNewAngle(angle:number, lockedEdge?:Edge):[XY,XY]{
 		// todo, implement locked edge
 		var vectors = this.vectors();
 		var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
