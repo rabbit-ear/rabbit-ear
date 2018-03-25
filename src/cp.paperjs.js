@@ -251,7 +251,7 @@ var OrigamiPaper = (function(){
 		var canvasAspect = canvasWidth / canvasHeight;
 		// crease pattern size
 		var cpBounds = this.cp.bounds();
-		if(cpBounds === undefined){ cpBounds = this.bounds; console.log("using this one"); console.log(cpBounds);}
+		if(cpBounds === undefined){ cpBounds = this.bounds; console.log("crease pattern: using the bounds of the canvas for the crease pattern"); console.log(cpBounds);}
 		if(cpBounds === undefined){ cpBounds = new Rect(0,0,canvasWidth/canvasHeight,1.0); }
 		// if(cpBounds.width !== undefined){ cpWidth = this.cp.width(); }
 		// if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }

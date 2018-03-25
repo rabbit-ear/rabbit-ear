@@ -427,44 +427,44 @@ function intersectionLineLine(a, b, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    var vec0 = a.nodes[1].subtract(a.nodes[0]);
-    var vec2 = b.nodes[1].subtract(b.nodes[0]);
+    var vec0 = new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
+    var vec2 = new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y);
     var denominator = determinantXY(vec0, vec2);
     if (epsilonEqual(denominator, 0, epsilon)) {
         return undefined;
     }
-    var numerator = determinantXY(b.nodes[0].subtract(a.nodes[0]), vec2);
-    return a.nodes[0].add(vec0.scale(numerator / denominator));
+    var numerator = determinantXY(new XY(b.nodes[0].x, b.nodes[0].y).subtract(a.nodes[0]), vec2);
+    return new XY(a.nodes[0].x, a.nodes[0].y).add(vec0.scale(numerator / denominator));
 }
 function intersectionLineRay(line, ray, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    var lineVector = line.nodes[1].subtract(line.nodes[0]);
+    var lineVector = new XY(line.nodes[1].x, line.nodes[1].y).subtract(line.nodes[0]);
     var denominator0 = determinantXY(ray.direction, lineVector);
     if (epsilonEqual(denominator0, 0, epsilon)) {
         return undefined;
     }
-    var numerator0 = determinantXY(line.nodes[0].subtract(ray.origin), lineVector);
+    var numerator0 = determinantXY(new XY(line.nodes[0].x, line.nodes[0].y).subtract(ray.origin), lineVector);
     var t0 = numerator0 / denominator0;
     if (t0 >= 0) {
-        return ray.origin.add(ray.direction.scale(t0));
+        return new XY(ray.origin.x, ray.origin.y).add(ray.direction.scale(t0));
     }
 }
 function intersectionLineEdge(line, edge, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    var vec0 = edge.nodes[1].subtract(edge.nodes[0]);
-    var vec2 = line.nodes[1].subtract(line.nodes[0]);
+    var vec0 = new XY(edge.nodes[1].x - edge.nodes[0].x, edge.nodes[1].y - edge.nodes[0].y);
+    var vec2 = new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y);
     var denominator0 = determinantXY(vec0, vec2);
     if (epsilonEqual(denominator0, 0, epsilon)) {
         return undefined;
     }
-    var numerator0 = determinantXY(line.nodes[0].subtract(edge.nodes[0]), vec2);
+    var numerator0 = determinantXY(new XY(line.nodes[0].x, line.nodes[0].y).subtract(edge.nodes[0]), vec2);
     var t0 = numerator0 / denominator0;
     if (t0 >= 0 && t0 <= 1) {
-        return edge.nodes[0].add(vec0.scale(t0));
+        return new XY(edge.nodes[0].x, edge.nodes[0].y).add(vec0.scale(t0));
     }
 }
 function intersectionRayRay(a, b, epsilon) {
@@ -476,50 +476,50 @@ function intersectionRayRay(a, b, epsilon) {
     if (epsilonEqual(denominator0, 0, epsilon)) {
         return undefined;
     }
-    var numerator0 = determinantXY(b.origin.subtract(a.origin), b.direction);
-    var numerator2 = determinantXY(a.origin.subtract(b.origin), a.direction);
+    var numerator0 = determinantXY(new XY(b.origin.x, b.origin.y).subtract(a.origin), b.direction);
+    var numerator2 = determinantXY(new XY(a.origin.x, a.origin.y).subtract(b.origin), a.direction);
     var t0 = numerator0 / denominator0;
     var t2 = numerator2 / denominator2;
     if (t0 >= 0 && t2 >= 0) {
-        return a.origin.add(a.direction.scale(t0));
+        return new XY(a.origin.x, a.origin.y).add(a.direction.scale(t0));
     }
 }
 function intersectionRayEdge(ray, edge, epsilon) {
-    var p1 = ray.origin.add(ray.direction);
+    var p1 = new XY(ray.origin.x, ray.origin.y).add(ray.direction);
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    var vec2 = edge.nodes[1].subtract(edge.nodes[0]);
+    var vec2 = new XY(edge.nodes[1].x, edge.nodes[1].y).subtract(edge.nodes[0]);
     var denominator0 = determinantXY(ray.direction, vec2);
     var denominator2 = -denominator0;
     if (epsilonEqual(denominator0, 0, epsilon)) {
         return undefined;
     }
-    var numerator0 = determinantXY(edge.nodes[0].subtract(ray.origin), vec2);
-    var numerator2 = determinantXY(edge.nodes[1].subtract(p1), ray.direction);
+    var numerator0 = determinantXY(new XY(edge.nodes[0].x, edge.nodes[0].y).subtract(ray.origin), vec2);
+    var numerator2 = determinantXY(new XY(edge.nodes[1].x, edge.nodes[1].y).subtract(p1), ray.direction);
     var t0 = numerator0 / denominator0;
     var t2 = numerator2 / denominator2;
     if (t0 >= 0 && t2 >= 0 && t2 <= 1) {
-        return ray.origin.add(ray.direction.scale(t0));
+        return new XY(ray.origin.x, ray.origin.y).add(ray.direction.scale(t0));
     }
 }
 function intersectionEdgeEdge(a, b, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    var vec0 = a.nodes[1].subtract(a.nodes[0]);
-    var vec2 = b.nodes[1].subtract(b.nodes[0]);
+    var vec0 = new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
+    var vec2 = new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y);
     var denominator0 = determinantXY(vec0, vec2);
     var denominator2 = -denominator0;
     if (epsilonEqual(denominator0, 0, epsilon)) {
         return undefined;
     }
-    var numerator0 = determinantXY(b.nodes[0].subtract(a.nodes[0]), vec2);
-    var numerator2 = determinantXY(b.nodes[1].subtract(a.nodes[1]), vec0);
+    var numerator0 = determinantXY(new XY(b.nodes[0].x, b.nodes[0].y).subtract(a.nodes[0]), vec2);
+    var numerator2 = determinantXY(new XY(b.nodes[1].x, b.nodes[1].y).subtract(a.nodes[1]), vec0);
     var t0 = numerator0 / denominator0;
     var t2 = numerator2 / denominator2;
     if (t0 >= 0 && t0 <= 1 && t2 >= 0 && t2 <= 1) {
-        return a.nodes[0].add(vec0.scale(t0));
+        return new XY(a.nodes[0].x, a.nodes[0].y).add(vec0.scale(t0));
     }
 }
 function circleLineIntersectionAlgorithm(center, radius, p0, p1) {
@@ -643,6 +643,9 @@ var Line = (function () {
         if (a instanceof XY) {
             this.nodes = [a, b];
         }
+        else if (a.x !== undefined) {
+            this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];
+        }
         else {
             this.nodes = [new XY(a, b), new XY(c, d)];
         }
@@ -714,6 +717,9 @@ var Edge = (function () {
     function Edge(a, b, c, d) {
         if (a instanceof XY) {
             this.nodes = [a, b];
+        }
+        else if (a.x !== undefined) {
+            this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];
         }
         else {
             this.nodes = [new XY(a, b), new XY(c, d)];
@@ -872,7 +878,12 @@ var ConvexPolygon = (function () {
                     return new Edge(edge.nodes[0], intersections[0]);
                 }
                 return new Edge(edge.nodes[1], intersections[0]);
-            case 2: return new Edge(intersections[0], intersections[1]);
+            default:
+                for (var i = 1; i < intersections.length; i++) {
+                    if (!intersections[0].equivalent(intersections[i])) {
+                        return new Edge(intersections[0], intersections[i]);
+                    }
+                }
         }
     };
     ConvexPolygon.prototype.clipLine = function (line) {
@@ -882,7 +893,12 @@ var ConvexPolygon = (function () {
         switch (intersections.length) {
             case 0: return undefined;
             case 1: return new Edge(intersections[0], intersections[0]);
-            case 2: return new Edge(intersections[0], intersections[1]);
+            default:
+                for (var i = 1; i < intersections.length; i++) {
+                    if (!intersections[0].equivalent(intersections[i])) {
+                        return new Edge(intersections[0], intersections[i]);
+                    }
+                }
         }
     };
     ConvexPolygon.prototype.clipRay = function (ray) {
@@ -892,7 +908,12 @@ var ConvexPolygon = (function () {
         switch (intersections.length) {
             case 0: return undefined;
             case 1: return new Edge(ray.origin, intersections[0]);
-            case 2: return new Edge(intersections[0], intersections[1]);
+            default:
+                for (var i = 1; i < intersections.length; i++) {
+                    if (!intersections[0].equivalent(intersections[i])) {
+                        return new Edge(intersections[0], intersections[i]);
+                    }
+                }
         }
     };
     ConvexPolygon.prototype.convexHull = function (points) {
@@ -1206,7 +1227,7 @@ var PlanarEdge = (function (_super) {
     }
     PlanarEdge.prototype.vector = function (originNode) {
         var otherNode = this.otherNode(originNode);
-        return otherNode.subtract(originNode);
+        return new XY(otherNode.x, otherNode.y).subtract(originNode);
     };
     PlanarEdge.prototype.intersection = function (edge) {
         if (this.isAdjacentToEdge(edge)) {
@@ -1217,6 +1238,7 @@ var PlanarEdge = (function (_super) {
             !(intersect.equivalent(this.nodes[0]) || intersect.equivalent(this.nodes[1]))) {
             return { 'edge': edge, 'point': intersect };
         }
+        return undefined;
     };
     PlanarEdge.prototype.crossingEdges = function () {
         var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
@@ -1272,6 +1294,7 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.intersectEdge = function (edge) { return intersectionEdgeEdge(this, edge); };
     PlanarEdge.prototype.reflectionMatrix = function () { return new Matrix().reflection(this.nodes[0], this.nodes[1]); };
     PlanarEdge.prototype.parallel = function (edge, epsilon) {
+        console.log("parallel");
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
@@ -1280,6 +1303,7 @@ var PlanarEdge = (function (_super) {
         return epsilonEqual(u.cross(v), 0, epsilon);
     };
     PlanarEdge.prototype.collinear = function (point, epsilon) {
+        console.log("collinear");
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
@@ -1289,11 +1313,13 @@ var PlanarEdge = (function (_super) {
     };
     PlanarEdge.prototype.equivalent = function (e) { return this.isSimilarToEdge(e); };
     PlanarEdge.prototype.transform = function (matrix) {
+        console.log("transform");
         this.nodes[0].transform(matrix);
         this.nodes[1].transform(matrix);
         return this;
     };
     PlanarEdge.prototype.nearestPointNormalTo = function (point) {
+        console.log("nearestPointNormalTo");
         var p = this.nodes[0].distanceTo(this.nodes[1]);
         var u = ((point.x - this.nodes[0].x) * (this.nodes[1].x - this.nodes[0].x) + (point.y - this.nodes[0].y) * (this.nodes[1].y - this.nodes[0].y)) / (Math.pow(p, 2));
         if (u < 0 || u > 1.0) {
@@ -2087,18 +2113,6 @@ var PlanarGraph = (function (_super) {
         this.clean();
         for (var i = 0; i < this.nodes.length; i++) {
             var adjacentFaces = this.nodes[i].adjacentFaces();
-            for (var af = 0; af < adjacentFaces.length; af++) {
-                var duplicate = false;
-                for (var tf = 0; tf < this.faces.length; tf++) {
-                    if (this.faces[tf].equivalent(adjacentFaces[af])) {
-                        duplicate = true;
-                        break;
-                    }
-                }
-                if (!duplicate) {
-                    this.faces.push(adjacentFaces[af]);
-                }
-            }
         }
         this.faceArrayDidChange();
         return this.faces;
@@ -3165,10 +3179,10 @@ var CreasePattern = (function (_super) {
         return newCrease;
     };
     CreasePattern.prototype.creasePointToPoint = function (a, b) {
-        var midpoint = a.midpoint(b);
-        var ab = b.subtract(a);
+        var midpoint = new XY((a.x + b.x) * 0.5, (a.y + b.y) * 0.5);
+        var ab = new XY(b.x - a.x, b.y - a.y);
         var perp1 = ab.rotate90();
-        var edge = this.boundary.clipLine(new Line(midpoint, perp1));
+        var edge = this.boundary.clipLine(new Line(midpoint, midpoint.add(perp1)));
         if (edge !== undefined) {
             var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
             newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(a.x, a.y), new XY(b.x, b.y)]);
@@ -3830,7 +3844,6 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(.75, .75, 1, 1);
         this.fragment();
         this.clean();
-        this.generateFaces();
         return this;
     };
     return CreasePattern;

@@ -22,14 +22,14 @@ intersectRays.selectedLayer = new intersectRays.scope.Layer();
 intersectRays.selectedLayer.activate();
 
 //1.7 - 2.1
-setTimeout(function(){
-	console.time("okay");
-	for(var i = 0; i < 10000; i++){
-		var t = new XY(0,0);
-		isValidPoint(t);
-	}
-	console.timeEnd("okay");
-},500);
+// setTimeout(function(){
+// 	console.time("okay");
+// 	for(var i = 0; i < 10000; i++){
+// 		var t = new XY(0,0);
+// 		isValidPoint(t);
+// 	}
+// 	console.timeEnd("okay");
+// },500);
 
 intersectRays.reset = function(){
 /*	var xys = this.marks.map(function(el){return new XY(el.position.x, el.position.y);});

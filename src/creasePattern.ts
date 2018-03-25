@@ -1232,10 +1232,10 @@ class CreasePattern extends PlanarGraph{
 	}
 	// AXIOM 2
 	creasePointToPoint(a:XY, b:XY):Crease{
-		var midpoint = a.midpoint(b);
-		var ab = b.subtract(a);
+		var midpoint = new XY( (a.x+b.x)*0.5, (a.y+b.y)*0.5 );
+		var ab = new XY(b.x-a.x,b.y-a.y);
 		var perp1 = ab.rotate90();
-		var edge = this.boundary.clipLine(new Line(midpoint, perp1));
+		var edge = this.boundary.clipLine(new Line(midpoint, midpoint.add(perp1)));
 		// var intersects = this.boundaryLineIntersection(midpoint, perp1);
 		if(edge !== undefined){
 			var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
@@ -2060,7 +2060,7 @@ class CreasePattern extends PlanarGraph{
 		this.newPlanarEdge(.75, .75, 1, 1);
 		this.fragment();
 		this.clean();
-		this.generateFaces();
+		// this.generateFaces();
 		return this;
 	}
 

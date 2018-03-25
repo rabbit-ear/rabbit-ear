@@ -61,8 +61,7 @@ reflex.computeReflection = function(){
 reflex.reset = function(){
 	paper = this.scope; 
 	this.cp.clear();
-	this.reflectionLine = this.cp.creaseThroughPoints(this.marks[0].position, this.marks[1].
-		position);
+	this.reflectionLine = this.cp.creaseThroughPoints(this.marks[0].position, this.marks[1].position);
 	if(this.reflectionLine !== undefined){ this.reflectionLine.valley(); }
 	this.testLine1 = this.cp.newCrease(rfxTestPoints[0].x,rfxTestPoints[0].y, rfxTestPoints[1].x,rfxTestPoints[1].y);
 	this.testLine2 = this.cp.newCrease(rfxTestPoints[0].x,rfxTestPoints[0].y, rfxTestPoints[2].x,rfxTestPoints[2].y);
@@ -74,6 +73,7 @@ reflex.reset = function(){
 	// this.draw();
 }
 reflex.reset();
+reflex.draw();
 
 reflex.onFrame = function(event) { }
 reflex.onResize = function(event) { }
