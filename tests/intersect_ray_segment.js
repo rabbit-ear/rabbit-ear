@@ -23,30 +23,30 @@ intersectRaySeg.selectedLayer.activate();
 
 intersectRaySeg.reset = function(){
 	var xys = this.marks.map(function(el){ return new XY(el.position.x, el.position.y); });
-	var ray0 = xys[1].subtract(xys[0]);
-	var ray1 = xys[3].subtract(xys[2]);
+	var ray0 = new Ray(xys[0], xys[1].subtract(xys[0]));
+	var vec1 = xys[3].subtract(xys[2]);
 
 	// console.log(ray0);
 
 	// console.log(this.cp.boundary);
 
 	this.cp.clear();
-	this.cp.creaseRay(xys[0], ray0);//.valley();
-	this.cp.crease(xys[2],xys[3]);//.valley();
+	this.cp.creaseRay(ray0.origin, ray0.direction).valley();
+	this.cp.crease(xys[2],xys[3]).valley();
 	this.draw();
 
 	this.intersectionLayer.activate();
 	this.intersectionLayer.removeChildren();
-	var intersection = rayLineSegmentIntersection(xys[0], ray0, xys[2], xys[3]);
+	var intersection = intersectionRayEdge(ray0, new Edge(xys[2], xys[3]));
 	if(intersection !== undefined){
 
 		var interRadius = 0.04;
 
 		var fourPoints = [
-			intersection.add(ray0.normalize().scale(interRadius)),
-			intersection.add(ray1.normalize().scale(interRadius)),
-			intersection.subtract(ray0.normalize().scale(interRadius)),
-			intersection.subtract(ray1.normalize().scale(interRadius))
+			intersection.add(ray0.direction.normalize().scale(interRadius)),
+			intersection.add(vec1.normalize().scale(interRadius)),
+			intersection.subtract(ray0.direction.normalize().scale(interRadius)),
+			intersection.subtract(vec1.normalize().scale(interRadius))
 		];
 		var arcPoints = [];
 		fourPoints.forEach(function(el, i){

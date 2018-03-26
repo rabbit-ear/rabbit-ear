@@ -32,28 +32,28 @@ intersectRays.selectedLayer.activate();
 // },500);
 
 intersectRays.reset = function(){
-/*	var xys = this.marks.map(function(el){return new XY(el.position.x, el.position.y);});
-	var ray0 = xys[1].subtract(xys[0]);
-	var ray1 = xys[3].subtract(xys[2]);
+	var xys = this.marks.map(function(el){return new XY(el.position.x, el.position.y);});
+	var ray0 = new Ray(xys[0], xys[1].subtract(xys[0]));
+	var ray1 = new Ray(xys[2], xys[3].subtract(xys[2]));
 
 
 	this.cp.clear();
-	// this.cp.creaseRay(xys[0], ray0);//.valley();
-	// this.cp.creaseRay(xys[2], ray1);//.valley();
+	this.cp.creaseRay(ray0.origin, ray0.direction).valley();
+	this.cp.creaseRay(ray1.origin, ray1.direction).valley();
 	this.draw();
 
 	this.intersectionLayer.activate();
 	this.intersectionLayer.removeChildren();
-	var intersection = rayRayIntersection(xys[0], ray0, xys[2], ray1);
+	var intersection = intersectionRayRay(ray0, ray1);
 	if(intersection !== undefined){
 
 		var interRadius = 0.04;
 
 		var fourPoints = [
-			intersection.add(ray0.normalize().scale(interRadius)),
-			intersection.add(ray1.normalize().scale(interRadius)),
-			intersection.subtract(ray0.normalize().scale(interRadius)),
-			intersection.subtract(ray1.normalize().scale(interRadius))
+			intersection.add(ray0.direction.normalize().scale(interRadius)),
+			intersection.add(ray1.direction.normalize().scale(interRadius)),
+			intersection.subtract(ray0.direction.normalize().scale(interRadius)),
+			intersection.subtract(ray1.direction.normalize().scale(interRadius))
 		];
 		var arcPoints = [];
 		fourPoints.forEach(function(el, i){
@@ -73,7 +73,7 @@ intersectRays.reset = function(){
 			fillArc.strokeWidth = null;
 			fillArc.fillColor = fillColors[i%2];
 		}
-	}*/
+	}
 }
 intersectRays.reset();
 

@@ -97,82 +97,69 @@ function bisect(a:XY, b:XY):XY[]{
 function determinantXY(a:XY,b:XY):number{
 	return a.x * b.y - b.x * a.y;
 }
+function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFunction:(t0,t1) => boolean, epsilon:number):XY{
+	var denominator0 = determinantXY(aVec, bVec);
+	var denominator1 = -denominator0;
+	if(epsilonEqual(denominator0, 0, epsilon)){ return undefined; } // parallel
+	var numerator0 = determinantXY(bOrigin.subtract(aOrigin), bVec);
+	var numerator1 = determinantXY(aOrigin.subtract(bOrigin), aVec);
+	var t0 = numerator0 / denominator0;
+	var t1 = numerator1 / denominator1;
+	if(compFunction(t0,t1)){ return aOrigin.add(aVec.scale(t0)); }
+}
 function intersectionLineLine(a:Line, b:Line, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-	var vec0 = new XY(a.nodes[1].x-a.nodes[0].x, a.nodes[1].y-a.nodes[0].y);
-	var vec2 = new XY(b.nodes[1].x-b.nodes[0].x, b.nodes[1].y-b.nodes[0].y);
-	var denominator = determinantXY(vec0, vec2);
-	if(epsilonEqual(denominator, 0, epsilon)){ return undefined; } // parallel
-	var numerator = determinantXY(new XY(b.nodes[0].x, b.nodes[0].y).subtract(a.nodes[0]), vec2);
-	return new XY(a.nodes[0].x, a.nodes[0].y).add(vec0.scale(numerator/denominator));
+	return intersect_vec_func(
+		new XY(a.nodes[0].x, a.nodes[0].y),
+		new XY(a.nodes[1].x-a.nodes[0].x, a.nodes[1].y-a.nodes[0].y),
+		new XY(b.nodes[0].x, b.nodes[0].y),
+		new XY(b.nodes[1].x-b.nodes[0].x, b.nodes[1].y-b.nodes[0].y),
+		function(t0,t1){return true;}, epsilon);
 }
 function intersectionLineRay(line:Line, ray:Ray, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-	var lineVector = new XY(line.nodes[1].x,line.nodes[1].y).subtract(line.nodes[0]);
-	var denominator0 = determinantXY(ray.direction, lineVector);
-	if(epsilonEqual(denominator0, 0, epsilon)){ return undefined; } // parallel
-	var numerator0 = determinantXY(new XY(line.nodes[0].x,line.nodes[0].y).subtract(ray.origin), lineVector);
-	var t0 = numerator0 / denominator0;
-	if(t0 >= 0){
-		return new XY(ray.origin.x,ray.origin.y).add(ray.direction.scale(t0));
-	}
+	return intersect_vec_func(
+		new XY(line.nodes[0].x, line.nodes[0].y),
+		new XY(line.nodes[1].x-line.nodes[0].x, line.nodes[1].y-line.nodes[0].y),
+		new XY(ray.origin.x, ray.origin.y),
+		new XY(ray.direction.y, ray.direction.y),
+		function(t0,t1){return t1 >= 0;}, epsilon);
 }
 function intersectionLineEdge(line:Line, edge:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-	var vec0 = new XY(edge.nodes[1].x-edge.nodes[0].x, edge.nodes[1].y-edge.nodes[0].y);
-	var vec2 = new XY(line.nodes[1].x-line.nodes[0].x, line.nodes[1].y-line.nodes[0].y);
-	var denominator0 = determinantXY(vec0, vec2);
-	if(epsilonEqual(denominator0, 0, epsilon)){ return undefined; } // parallel
-	var numerator0 = determinantXY(new XY(line.nodes[0].x, line.nodes[0].y).subtract(edge.nodes[0]), vec2);
-	var t0 = numerator0 / denominator0;
-	if(t0 >= 0 && t0 <= 1){
-		return new XY(edge.nodes[0].x, edge.nodes[0].y).add(vec0.scale(t0));
-	}
+	return intersect_vec_func(
+		new XY(line.nodes[0].x, line.nodes[0].y),
+		new XY(line.nodes[1].x-line.nodes[0].x, line.nodes[1].y-line.nodes[0].y),
+		new XY(edge.nodes[0].x, edge.nodes[0].y),
+		new XY(edge.nodes[1].x-edge.nodes[0].x, edge.nodes[1].y-edge.nodes[0].y),
+		function(t0,t1){return t1 >= 0 && t1 <= 1;}, epsilon);
 }
 function intersectionRayRay(a:Ray, b:Ray, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-	var denominator0 = determinantXY(a.direction, b.direction);
-	var denominator2 = -denominator0;
-	// lines are parallel
-	if(epsilonEqual(denominator0, 0, epsilon)){ return undefined; }
-	var numerator0 = determinantXY(new XY(b.origin.x, b.origin.y).subtract(a.origin), b.direction);
-	var numerator2 = determinantXY(new XY(a.origin.x, a.origin.y).subtract(b.origin), a.direction);
-	var t0 = numerator0 / denominator0;
-	var t2 = numerator2 / denominator2;
-	if(t0 >= 0 && t2 >= 0){
-		return new XY(a.origin.x, a.origin.y).add(a.direction.scale(t0));
-	}
+	return intersect_vec_func(
+		new XY(a.origin.x, a.origin.y),
+		new XY(a.direction.x, a.direction.y),
+		new XY(b.origin.x, b.origin.y),
+		new XY(b.direction.x, b.direction.y),
+		function(t0,t1){return t0 >= 0 && t1 >= 0;}, epsilon);
 }
 function intersectionRayEdge(ray:Ray, edge:Edge, epsilon?:number):XY{
-	// todo get rid of p1
-	var p1 = new XY(ray.origin.x, ray.origin.y).add(ray.direction);
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-	var vec2 = new XY(edge.nodes[1].x,edge.nodes[1].y).subtract(edge.nodes[0]);
-	var denominator0 = determinantXY(ray.direction, vec2);
-	var denominator2 = -denominator0;
-	if(epsilonEqual(denominator0, 0, epsilon)){ return undefined; } // parallel
-	var numerator0 = determinantXY(new XY(edge.nodes[0].x,edge.nodes[0].y).subtract(ray.origin), vec2);
-	var numerator2 = determinantXY(new XY(edge.nodes[1].x,edge.nodes[1].y).subtract(p1), ray.direction);
-	var t0 = numerator0 / denominator0;
-	var t2 = numerator2 / denominator2;
-	if(t0 >= 0 && t2 >= 0 && t2 <= 1){
-		return new XY(ray.origin.x, ray.origin.y).add(ray.direction.scale(t0));
-	}
+	return intersect_vec_func(
+		new XY(ray.origin.x, ray.origin.y),
+		new XY(ray.direction.x, ray.direction.y),
+		new XY(edge.nodes[0].x, edge.nodes[0].y),
+		new XY(edge.nodes[1].x-edge.nodes[0].x, edge.nodes[1].y-edge.nodes[0].y),
+		function(t0,t1){return t0 >= 0 && t1 >= 0 && t1 <= 1;}, epsilon);
 }
 function intersectionEdgeEdge(a:Edge, b:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-	var vec0 = new XY(a.nodes[1].x-a.nodes[0].x, a.nodes[1].y-a.nodes[0].y);
-	var vec2 = new XY(b.nodes[1].x-b.nodes[0].x, b.nodes[1].y-b.nodes[0].y);
-	var denominator0 = determinantXY(vec0, vec2);
-	var denominator2 = -denominator0;
-	if(epsilonEqual(denominator0, 0, epsilon)){ return undefined; } // parallel
-	var numerator0 = determinantXY(new XY(b.nodes[0].x,b.nodes[0].y).subtract(a.nodes[0]), vec2);
-	var numerator2 = determinantXY(new XY(b.nodes[1].x,b.nodes[1].y).subtract(a.nodes[1]), vec0);
-	var t0 = numerator0 / denominator0;
-	var t2 = numerator2 / denominator2;
-	if(t0 >= 0 && t0 <= 1 && t2 >= 0 && t2 <= 1){
-		return new XY(a.nodes[0].x, a.nodes[0].y).add(vec0.scale(t0));
-	}
+	return intersect_vec_func(
+		new XY(a.nodes[0].x, a.nodes[0].y),
+		new XY(a.nodes[1].x-a.nodes[0].x, a.nodes[1].y-a.nodes[0].y),
+		new XY(b.nodes[0].x, b.nodes[0].y),
+		new XY(b.nodes[1].x-b.nodes[0].x, b.nodes[1].y-b.nodes[0].y),
+		function(t0,t1){return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1;}, epsilon);
 }
 
 function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY):XY[]{

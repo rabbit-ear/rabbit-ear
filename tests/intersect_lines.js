@@ -33,7 +33,7 @@ intersectLines.reset = function(){
 
 	this.intersectionLayer.activate();
 	this.intersectionLayer.removeChildren();
-	var intersection = lineIntersectionAlgorithm(xys[0], xys[1], xys[2], xys[3]);
+	var intersection = intersectionLineLine(new Line(xys[0], xys[1]), new Line(xys[2], xys[3]));
 	if(intersection !== undefined){
 
 		var interRadius = 0.04;
