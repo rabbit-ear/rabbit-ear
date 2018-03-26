@@ -46,7 +46,14 @@ canvas[resize].fill {
 	max-width: 90vw;
 	max-height: 90vh;
 }
-body{
+canvas[resize].third {
+	width: 20vw;
+	height: 20vw;
+/*	max-width: calc(30vw);
+	max-height: 30vw;
+*/
+	/* 15vw */
+}body{
 	font-family: 'Cormorant', Georgia, "Times New Roman", Times, serif;
 	margin:3em 1.5vw 2em 1.5vw;
 }

@@ -122,7 +122,7 @@ function intersectionLineRay(line:Line, ray:Ray, epsilon?:number):XY{
 		new XY(line.nodes[0].x, line.nodes[0].y),
 		new XY(line.nodes[1].x-line.nodes[0].x, line.nodes[1].y-line.nodes[0].y),
 		new XY(ray.origin.x, ray.origin.y),
-		new XY(ray.direction.y, ray.direction.y),
+		new XY(ray.direction.x, ray.direction.y),
 		function(t0,t1){return t1 >= 0;}, epsilon);
 }
 function intersectionLineEdge(line:Line, edge:Edge, epsilon?:number):XY{
@@ -293,6 +293,13 @@ class Line{
 		else{ this.nodes = [new XY(a,b), new XY(c,d)]; }
 	}
 	length(){return Infinity;}
+	vector(originNode?:XY):XY{
+		if(originNode === undefined){ return this.nodes[1].subtract(this.nodes[0]); }
+		if(this.nodes[0].equivalent(originNode)){
+			return this.nodes[1].subtract(this.nodes[0]);
+		}
+		return this.nodes[0].subtract(this.nodes[1]);
+	}
 	intersectLine(line:Line):XY{return intersectionLineLine(this,line);}
 	intersectRay(ray:Ray):XY{return intersectionLineRay(this,ray);}
 	intersectEdge(edge:Edge):XY{return intersectionLineEdge(this,edge);}
@@ -343,6 +350,8 @@ class Ray{
 	origin:XY;
 	direction:XY;
 	constructor(origin:XY, direction:XY){this.origin=origin;this.direction=direction;}
+	length(){return Infinity;}
+	vector(){return this.direction;}
 	intersectLine(line:Line):XY{return intersectionLineRay(line,this);}
 	intersectRay(ray:Ray):XY{return intersectionRayRay(this,ray);}
 	intersectEdge(edge:Edge):XY{return intersectionRayEdge(this,edge);}
@@ -373,6 +382,13 @@ class Edge{
 		else{ this.nodes = [new XY(a,b), new XY(c,d)]; }
 	}
 	length():number{ return Math.sqrt( Math.pow(this.nodes[0].x-this.nodes[1].x,2) + Math.pow(this.nodes[0].y-this.nodes[1].y,2) ); }
+	vector(originNode?:XY):XY{
+		if(originNode === undefined){ return this.nodes[1].subtract(this.nodes[0]); }
+		if(this.nodes[0].equivalent(originNode)){
+			return this.nodes[1].subtract(this.nodes[0]);
+		}
+		return this.nodes[0].subtract(this.nodes[1]);
+	}
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
 	intersectLine(line:Line):XY{return intersectionLineEdge(line,this);}

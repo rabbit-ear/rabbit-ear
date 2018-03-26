@@ -58,18 +58,20 @@
 
 <h2>INTERSECTIONS</h2>
 
-<h3 id="reflection">Lines and Segments</h3>
+<h3 id="reflection">Lines, Rays, Segments</h3>
+
+	<p class="quote">The number of potential intersection points is less than or equal to the number of lines.</p>
 
 	<div class="centered">
-		<canvas id="canvas-intersect-lines" resize></canvas>
-		<canvas id="canvas-intersect-segments" resize></canvas>
+		<canvas id="canvas-intersect-all" resize></canvas>
 	</div>
 
-<h3 id="reflection">Rays and Segments</h3>
+	<p>Pairs of lines, rays, and segments</p>
 
 	<div class="centered">
-		<canvas id="canvas-intersect-rays" resize></canvas>
-		<canvas id="canvas-intersect-ray-segment" resize></canvas>
+		<canvas id="canvas-intersect-lines" class="third" resize></canvas>
+		<canvas id="canvas-intersect-rays" class="third" resize></canvas>
+		<canvas id="canvas-intersect-segments" class="third" resize></canvas>
 	</div>
 
 
@@ -119,7 +121,7 @@
 <script type="text/javascript" src="../tests/intersect_segments.js"></script>
 <script type="text/javascript" src="../tests/intersect_lines.js"></script>
 <script type="text/javascript" src="../tests/intersect_rays.js"></script>
-<script type="text/javascript" src="../tests/intersect_ray_segment.js"></script>
+<script type="text/javascript" src="../tests/intersect_all.js"></script>
 
 <script src="../tests/reflection.js"></script>
 

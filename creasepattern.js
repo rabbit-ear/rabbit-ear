@@ -447,7 +447,7 @@ function intersectionLineRay(line, ray, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    return intersect_vec_func(new XY(line.nodes[0].x, line.nodes[0].y), new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y), new XY(ray.origin.x, ray.origin.y), new XY(ray.direction.y, ray.direction.y), function (t0, t1) { return t1 >= 0; }, epsilon);
+    return intersect_vec_func(new XY(line.nodes[0].x, line.nodes[0].y), new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y), new XY(ray.origin.x, ray.origin.y), new XY(ray.direction.x, ray.direction.y), function (t0, t1) { return t1 >= 0; }, epsilon);
 }
 function intersectionLineEdge(line, edge, epsilon) {
     if (epsilon === undefined) {
@@ -602,6 +602,15 @@ var Line = (function () {
         }
     }
     Line.prototype.length = function () { return Infinity; };
+    Line.prototype.vector = function (originNode) {
+        if (originNode === undefined) {
+            return this.nodes[1].subtract(this.nodes[0]);
+        }
+        if (this.nodes[0].equivalent(originNode)) {
+            return this.nodes[1].subtract(this.nodes[0]);
+        }
+        return this.nodes[0].subtract(this.nodes[1]);
+    };
     Line.prototype.intersectLine = function (line) { return intersectionLineLine(this, line); };
     Line.prototype.intersectRay = function (ray) { return intersectionLineRay(this, ray); };
     Line.prototype.intersectEdge = function (edge) { return intersectionLineEdge(this, edge); };
@@ -643,6 +652,8 @@ var Ray = (function () {
         this.origin = origin;
         this.direction = direction;
     }
+    Ray.prototype.length = function () { return Infinity; };
+    Ray.prototype.vector = function () { return this.direction; };
     Ray.prototype.intersectLine = function (line) { return intersectionLineRay(line, this); };
     Ray.prototype.intersectRay = function (ray) { return intersectionRayRay(this, ray); };
     Ray.prototype.intersectEdge = function (edge) { return intersectionRayEdge(this, edge); };
@@ -677,6 +688,15 @@ var Edge = (function () {
         }
     }
     Edge.prototype.length = function () { return Math.sqrt(Math.pow(this.nodes[0].x - this.nodes[1].x, 2) + Math.pow(this.nodes[0].y - this.nodes[1].y, 2)); };
+    Edge.prototype.vector = function (originNode) {
+        if (originNode === undefined) {
+            return this.nodes[1].subtract(this.nodes[0]);
+        }
+        if (this.nodes[0].equivalent(originNode)) {
+            return this.nodes[1].subtract(this.nodes[0]);
+        }
+        return this.nodes[0].subtract(this.nodes[1]);
+    };
     Edge.prototype.midpoint = function () {
         return new XY(0.5 * (this.nodes[0].x + this.nodes[1].x), 0.5 * (this.nodes[0].y + this.nodes[1].y));
     };

@@ -11,7 +11,7 @@ for(var i = 0; i < 4; i++){
 	intersectLines.marks.push(new intersectLines.scope.Shape.Circle(intersectLines.style.circleStyle));
 }
 intersectLines.marks[0].position = [0.25, 0.3];
-intersectLines.marks[1].position = [0.425, 0.7];
+intersectLines.marks[1].position = [0.75, 0.7];
 intersectLines.marks[2].position = [0.5, 0.7];
 intersectLines.marks[3].position = [0.5, 0.3];
 
