@@ -99,7 +99,7 @@ mouse_select_callback = function(e){
 // distance
 // edge
 // location
-			$("#spanNearestEdgeIndex").html('<v>edge' + e.nearest.edge.index + '</v>, (<n>' + e.nearest.x.toFixed(2) + '</n>,<n>' + e.nearest.y.toFixed(2) + '</n>)  ← ');
+			$("#spanNearestEdgeIndex").html('<v>edge' + e.nearest.edge.index + '</v>, (<n>' + e.nearest.point.x.toFixed(2) + '</n>,<n>' + e.nearest.point.y.toFixed(2) + '</n>)  ← ');
 		} else{
 			$("#spanNearest2MouseX").html(' x');
 			$("#spanNearest2MouseY").html(' y ');

@@ -30,7 +30,7 @@ projectInAngles.updateAngles = function(){
 
 	var eventData = {edgeAngles:[], interiorAngles:[]};
 	
-	this.centerNode.junction().joints
+	this.centerNode.junction().sectors
 		.sort(function(a,b){ return a.angle() < b.angle(); })
 		.forEach(function(el){
 			var vectors = el.vectors().map(function(el){return el.normalize().scale(radiuses[i%3]);})

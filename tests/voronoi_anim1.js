@@ -80,7 +80,7 @@ voronoiAnim1.onMouseMove = function(event) {
 	if(dragOn){
 		vA1Input.nodes[selectedNode].x = mouse.x;
 		vA1Input.nodes[selectedNode].y = mouse.y;
-		if(!this.cp.contains(mouse.x, mouse.y)){
+		if(!this.cp.boundary.contains(mouse.x, mouse.y)){
 			dragOn = false;
 			vA1Input.nodes.splice(selectedNode,1);
 		}

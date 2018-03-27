@@ -14,23 +14,28 @@
 	
 	<p>This is a planar graph javascript library for creating origami crease patterns.</p>
 
+<h2>Creative Code</h2>
+
+	<p>This is less like a finished application, more like a code library with templates and examples to bring origami design in an accessible place.</p>
+
 <h2>Graphs</h2>
 	
-	<p>Origami crease patterns are modeled on planar graphs, which themselves are graphs, abstract models of nodes and edges.</p>
+	<p>Origami crease patterns are modeled on planar graphs, which themselves are graphs; an abstract model of nodes and edges. Crease lines exist on the Euclidean plane under the familiar X and Y axes, and every component is exposed and made available to the designer.</p>
 
 	<div id="sketch_intersections" class="centered p5sketch"></div>
 
 	<div class="centered">
 		<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>getEdgeIntersections</f></a>();</code></pre>
 	</div>
-	<p>These docs serve as a diary of the making of this code and contain visual interactive animated examples of functions. The early sections explain the abstract fundamentals and geometry, and the later pages relate more toward origami.</p>
+
+	<p>This library includes functions for generation and manipulation that encompass typical Euclidean geometry like casting rays and reflection matrices, to origami-specific operations like generating rabbit-ear creases for aribtrary triangles or simulating the folded state of the crease pattern.</p>
 
 <h2>About</h2>
 	<p>This is <a href="http://github.com/robbykraft/Origami/">open source</a></p>
 	<p>These docs make heavy use of <a href="http://paperjs.org/">paper.js</a>, <a href="http://d3js.org/">d3.js</a>, and <a href="http://p5js.org/">p5.js</a>. Thank you to their developers.</p>
 	<p>This libary is available under the MIT open source license.</p>
 
-	<p class="explain">This library is still under construction</p>
+	<p class="explain">This library is under construction</p>
 
 </section>
 

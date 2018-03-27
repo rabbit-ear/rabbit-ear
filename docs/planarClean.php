@@ -85,10 +85,11 @@
 <h2>Intersection of Two Edges</h2>
 <section id="parallel">
 
-	<div class="centered p5sketch" id="intersections-div"></div>
-	
-		<p class="quote">Collinear lines at certain angles is a good place to test the robustness of the intersection algorithm</p>
+	<p>Mathematically speaking, parallel lines have zero points of intersection and collinear lines have infinite. However in this library collinear lines will register to have zero points of intersection.</p>
 
+	<div class="centered p5sketch" id="intersections-div"></div>
+
+	<p class="quote">The epsilon has been increased to magnify the moment that the lines become parallel.</p>
 
 </section>
 

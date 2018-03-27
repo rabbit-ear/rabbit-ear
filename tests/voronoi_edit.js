@@ -127,7 +127,7 @@ voronoiEditor.onMouseMove = function(event) {
 		// if(nodeCircle !== undefined){
 		// 	nodeCircle.position = event.point;
 		// }
-		if(!this.cp.contains(mouse.x, mouse.y)){
+		if(!this.cp.boundary.contains(mouse.x, mouse.y)){
 			dragOn = false;
 			inputEditor.nodes.splice(selectedNode,1);
 		}

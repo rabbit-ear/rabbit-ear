@@ -29,64 +29,10 @@ interface d3VoronoiObject{
 //////////////////////////////////////////////////////////////////////////
 // CREASE PATTERN
 
-function rayIntersection(ray:Ray, segments:Edge[]):{intersect:XY,reflection:Edge}{
-	return segments
-		.map(function(reflection){
-			// var intersect = rayLineSegmentIntersection(origin, direction, reflection.nodes[0], reflection.nodes[1]);
-			var intersect = intersectionRayEdge(ray, reflection);
-			var distance = Infinity;
-			if(intersect !== undefined){ distance = ray.origin.distanceTo(intersect); }
-			return {intersect:intersect, reflection:reflection, distance:distance};})
-		.sort(function(a,b){
-			return a.distance - b.distance; })
-		// .map(function(el){
-		// 	return {intersect:el.intersect, reflection:el.reflection}
-		// })
-		// return the first element, or undefined
-		.shift();
-}
-
-function reflectRayRepeat(ray:Ray, segments:Edge[], target?:XY):Edge[]{
-	var reflections:{intersect:XY,reflection:Edge}[] = [{intersect:ray.origin, reflection:undefined}];
-	// var firstIntersection = rayIntersection(origin, direction, segments.filter(function(el){
-	// 	return !(el.nodes[0].equivalent(origin) || el.nodes[1].equivalent(origin));
-	// }));
-	var firstIntersection = rayIntersection(ray, segments);
-
-	if(target !== undefined && firstIntersection !== undefined && epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)){
-		var targetDistance = ray.origin.distanceTo(target);
-		if(targetDistance < firstIntersection['distance']){
-			return [new Edge(ray.origin, target)];
-		}
-	}
-	reflections.push(firstIntersection);
-	var i = 0;
-	while(i < 100 && reflections[reflections.length-1] !== undefined && reflections[reflections.length-1].intersect !== undefined){
-		var newOrigin:XY = reflections[reflections.length-1].intersect;
-		var lineOfReflection:Edge = reflections[reflections.length-1].reflection
-		var reflectedPoint = reflections[reflections.length-2].intersect.reflect(lineOfReflection.nodes[0], lineOfReflection.nodes[1]);
-		var newVector = reflectedPoint.subtract(newOrigin);
-		if(target !== undefined && epsilonEqual(newVector.cross(target.subtract(newOrigin)), 0, EPSILON_HIGH)){
-			reflections.push({intersect:target, reflection: lineOfReflection});
-			break;
-		}
-		reflections.push(rayIntersection(new Ray(newOrigin, newVector), segments.filter(function(el){return !el.equivalent(lineOfReflection) })));
-		i++;
-	}
-	reflections = reflections.filter(function(el){
-		return (el !== undefined) && (el.intersect !== undefined);
-	});
-	var result = [];
-	for(var i = 0; i < reflections.length-1; i++){
-		result.push( new Edge(reflections[i].intersect, reflections[i+1].intersect) );
-	}
-	return result;
-}
-
 class VoronoiMolecule extends Triangle{
 	// points:[XY,XY,XY];
 	// circumcenter:XY;
-	// joints:[Joint,Joint,Joint];
+	// sectors:[Sector,Sector,Sector];
 	overlaped:VoronoiMolecule[];
 	hull:ConvexPolygon;
 	units:VoronoiMoleculeTriangle[];
@@ -489,17 +435,17 @@ class CreaseSector extends PlanarSector{
 		if(junction.edges.length != 3){ return; }
 		// find this interior angle among the other interior angles
 		var foundIndex = undefined;
-		for(var i = 0; i < junction.joints.length; i++){
-			if(this.equivalent(junction.joints[i])){ foundIndex = i; }
+		for(var i = 0; i < junction.sectors.length; i++){
+			if(this.equivalent(junction.sectors[i])){ foundIndex = i; }
 		}
 		if(foundIndex === undefined){ return undefined; }
 		var sumEven = 0;
 		var sumOdd = 0;
-		// iterate over joints not including this one, add them to their sums
-		for(var i = 0; i < junction.joints.length-1; i++){
-			var index = (i+foundIndex+1) % junction.joints.length;
-			if(i % 2 == 0){ sumEven += junction.joints[index].angle(); } 
-			else { sumOdd += junction.joints[index].angle(); }
+		// iterate over sectors not including this one, add them to their sums
+		for(var i = 0; i < junction.sectors.length-1; i++){
+			var index = (i+foundIndex+1) % junction.sectors.length;
+			if(i % 2 == 0){ sumEven += junction.sectors[index].angle(); } 
+			else { sumOdd += junction.sectors[index].angle(); }
 		}
 		var dEven = Math.PI - sumEven;
 		// var dOdd = Math.PI - sumOdd;
@@ -513,8 +459,8 @@ class CreaseSector extends PlanarSector{
 class CreaseJunction extends PlanarJunction{
 
 	origin:CreaseNode;
-	// joints and edges are sorted clockwise
-	joints:CreaseSector[];
+	// sectors and edges are sorted clockwise
+	sectors:CreaseSector[];
 	edges:Crease[];
 
 	flatFoldable(epsilon?:number):boolean{
@@ -526,9 +472,9 @@ class CreaseJunction extends PlanarJunction{
 
 	alternateAngleSum():[number,number]{
 		// only computes if number of interior angles are even
-		if(this.joints.length % 2 != 0){ return undefined; }
+		if(this.sectors.length % 2 != 0){ return undefined; }
 		var sums:[number, number] = [0,0];
-		this.joints.forEach(function(el,i){ sums[i%2] += el.angle(); });
+		this.sectors.forEach(function(el,i){ sums[i%2] += el.angle(); });
 		return sums;
 	}
 	maekawa():boolean{
@@ -544,12 +490,12 @@ class CreaseJunction extends PlanarJunction{
 		var alternating = this.alternateAngleSum();
 		return Math.abs(alternating[0] - alternating[1]);
 	}
-	kawasakiSolution():[{'difference':number,'joints':CreaseSector[]},
-	                    {'difference':number,'joints':CreaseSector[]}]{
+	kawasakiSolution():[{'difference':number,'sectors':CreaseSector[]},
+	                    {'difference':number,'sectors':CreaseSector[]}]{
 		var alternating = this.alternateAngleSum().map(function(el){
-			return {'difference':(Math.PI - el), 'joints':[]};
+			return {'difference':(Math.PI - el), 'sectors':[]};
 		});
-		this.joints.forEach(function(el,i){ alternating[i%2].joints.push(el); });
+		this.sectors.forEach(function(el,i){ alternating[i%2].sectors.push(el); });
 		return alternating;
 	}
 	kawasakiSubsect(joint:PlanarSector):XY{
@@ -559,16 +505,16 @@ class CreaseJunction extends PlanarJunction{
 		if(this.edges.length != 3){ return; }
 		// find this interior angle among the other interior angles
 		var foundIndex = undefined;
-		for(var i = 0; i < this.joints.length; i++){
-			if(joint.equivalent(this.joints[i])){ foundIndex = i; }
+		for(var i = 0; i < this.sectors.length; i++){
+			if(joint.equivalent(this.sectors[i])){ foundIndex = i; }
 		}
 		if(foundIndex === undefined){ return undefined; }
 		var sumEven = 0;
 		var sumOdd = 0;
-		for(var i = 0; i < this.joints.length-1; i++){
-			var index = (i+foundIndex+1) % this.joints.length;
-			if(i % 2 == 0){ sumEven += this.joints[index].angle(); } 
-			else { sumOdd += this.joints[index].angle(); }
+		for(var i = 0; i < this.sectors.length-1; i++){
+			var index = (i+foundIndex+1) % this.sectors.length;
+			if(i % 2 == 0){ sumEven += this.sectors[index].angle(); } 
+			else { sumOdd += this.sectors[index].angle(); }
 		}
 		var dEven = Math.PI - sumEven;
 		// var dOdd = Math.PI - sumOdd;
@@ -681,8 +627,8 @@ class CreaseFace extends PlanarFace{
 
 	// rabbitEar():RabbitEar{
 	rabbitEar():Crease[]{
-		if(this.joints.length !== 3){ return []; }
-		var rays:Ray[] = this.joints.map(function(el){
+		if(this.sectors.length !== 3){ return []; }
+		var rays:Ray[] = this.sectors.map(function(el){
 			// return { node: el.origin, vector: el.bisect() };
 			return new Ray(el.origin, el.bisect());
 		});
@@ -1627,16 +1573,16 @@ class CreasePattern extends PlanarGraph{
 		if(junction.edges.length != 3){ return; }
 		// find this interior angle among the other interior angles
 		var foundIndex = undefined;
-		for(var i = 0; i < junction.joints.length; i++){
-			if(angle.equivalent(junction.joints[i])){ foundIndex = i; }
+		for(var i = 0; i < junction.sectors.length; i++){
+			if(angle.equivalent(junction.sectors[i])){ foundIndex = i; }
 		}
 		if(foundIndex === undefined){ return undefined; }
 		var sumEven = 0;
 		var sumOdd = 0;
-		for(var i = 0; i < junction.joints.length-1; i++){
-			var index = (i+foundIndex+1) % junction.joints.length;
-			if(i % 2 == 0){ sumEven += junction.joints[index].angle(); } 
-			else { sumOdd += junction.joints[index].angle(); }
+		for(var i = 0; i < junction.sectors.length-1; i++){
+			var index = (i+foundIndex+1) % junction.sectors.length;
+			if(i % 2 == 0){ sumEven += junction.sectors[index].angle(); } 
+			else { sumOdd += junction.sectors[index].angle(); }
 		}
 		var dEven = Math.PI - sumEven;
 		var dOdd = Math.PI - sumOdd;
@@ -1863,14 +1809,15 @@ class CreasePattern extends PlanarGraph{
 		var heightScaled = ((height)*scale).toFixed(2);
 		var strokeWidth = ((width)*scale * 0.0025).toFixed(1);
 		var dashW = ((width)*scale * 0.0025 * 3).toFixed(1);
+		var dashWOff = ((width)*scale * 0.0025 * 3 * 0.5).toFixed(1);
 		if(strokeWidth === "0" || strokeWidth === "0.0"){ strokeWidth = "0.5"; }
 		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +widthScaled+ "px\" height=\"" +heightScaled+ "px\" viewBox=\"0 0 " +widthScaled+ " " +heightScaled+ "\">\n<g>\n";
 
 		//////// RECT BORDER
 		blob += "<line stroke=\"#000000\" stroke-width=\"" + strokeWidth + "\" x1=\"0\" y1=\"0\" x2=\"" +widthScaled+ "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +widthScaled+ "\" y1=\"0\" x2=\"" +widthScaled+ "\" y2=\"" +heightScaled+ "\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +widthScaled+ "\" y1=\"" +heightScaled+ "\" x2=\"0\" y2=\"" +heightScaled+ "\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" +heightScaled+ "\" x2=\"0\" y2=\"0\"/>\n";
 		////////
-		var valleyStyle = "stroke=\"#4030FF\" stroke-dasharray=\"" + dashW + "," + dashW + "\" ";
-		var mountainStyle = "stroke=\"#FF1030\" ";
+		var valleyStyle = "stroke=\"#4379FF\" stroke-dasharray=\"" + dashW + "," + dashWOff + "\" ";
+		var mountainStyle = "stroke=\"#EE1032\" ";
 		var noStyle = "stroke=\"#000000\" ";
 
 		for(var i = 0; i < this.edges.length; i++){

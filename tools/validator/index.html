@@ -131,47 +131,59 @@ function setInputFile(svg){
 function fileDidLoad(svg){
 	setInputFile(svg);
 
-	loadSVG(svg, function(cp){
+	project1.load(svg, function(){
+		project1.cp = project1.cp.copy();
+		project1.draw();
+
+		foldedState.cp = project1.cp.copy();
+		foldedState.draw();
+		foldedState.update();
+		showAndScrollResults();
+
+	}, valid_epsilon);
+
+	// loadSVG(svg, function(cp){
 
 		// project1 = new OrigamiPaper("canvas-1", cp.copy());
-		project1.cp = new CreasePattern();
-		project1.draw();
+		// project1.cp = new CreasePattern();
+		// project1.draw();
 		
-		project1.cp = cp.copy();
-		project1.style.nodes.visible = true;
-		project1.style.nodes.radius = 0.015 * project1.cpMin;
-		project1.draw();
-		project1.setPadding(0.05);
-		project1.colorNodesFlatFoldable = function(){
-			var ffTestPassed = true;
-			for(var i = 0; i < project1.cp.nodes.length; i++){
-				var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
-				if( !project1.cp.nodes[i].flatFoldable(0.01) ){
-					ffTestPassed = false;
-					color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
-				} else{
-					project1.cp.nodes[i].visible = false;
-				}
-				project1.nodes[i].fillColor = color;
-			}
-			setJumbotron(ffTestPassed);
-			if(ffTestPassed){ document.getElementById("canvas-2").style.display = "inline-block"; }
-			else            { document.getElementById("canvas-2").style.display = "none"; }
-		}
-		project1.colorNodesFlatFoldable();
+		// project1.cp = cp.copy();
+		// project1.style.nodes.visible = true;
+		// project1.style.nodes.radius = 0.015 * project1.cpMin;
+		// project1.draw();
+		// project1.setPadding(0.05);
+		// project1.colorNodesFlatFoldable = function(){
+		// 	var ffTestPassed = true;
+		// 	for(var i = 0; i < project1.cp.nodes.length; i++){
+		// 		var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
+		// 		if( !project1.cp.nodes[i].flatFoldable(0.01) ){
+		// 			ffTestPassed = false;
+		// 			color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
+		// 		} else{
+		// 			project1.cp.nodes[i].visible = false;
+		// 		}
+		// 		project1.nodes[i].fillColor = color;
+		// 	}
+		// 	setJumbotron(ffTestPassed);
+		// 	if(ffTestPassed){ document.getElementById("canvas-2").style.display = "inline-block"; }
+		// 	else            { document.getElementById("canvas-2").style.display = "none"; }
+		// }
+		// // todo: this is breaking, fix it and uncomment it
+		// project1.colorNodesFlatFoldable();
 
-		foldedState.cp = cp.copy();
-		foldedState.draw();
-		// foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-		foldedState.update();
+	// 	foldedState.cp = cp.copy();
+	// 	foldedState.draw();
+	// 	// foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+	// 	foldedState.update();
 
-		// project2 = new OrigamiFold("canvas-2", cp.copy());
-		// project2.epsilon = EPSILON;
-		// project2.draw();
-		// project2.buildViewMatrix(0.05);
+	// 	// project2 = new OrigamiFold("canvas-2", cp.copy());
+	// 	// project2.epsilon = EPSILON;
+	// 	// project2.draw();
+	// 	// project2.buildViewMatrix(0.05);
 
-		showAndScrollResults();
-	}, valid_epsilon);
+	// 	showAndScrollResults();
+	// }, valid_epsilon);
 }
 
 </script>

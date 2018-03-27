@@ -23,29 +23,29 @@ projectKawasaki.updateAngles = function(){
 	var kawasakis = this.centerNode.junction().kawasakiSolution();
 
 	kawasakis.forEach(function(el, j){
-		var joints = el.joints;
+		var sectors = el.sectors;
 		var difference = el.difference;
-		for(var i = 0; i < joints.length; i++){
-			var a = joints[i].endNodes[0].xy();
-			var c = joints[i].endNodes[1].xy();
-			var b = joints[i].bisect();
-	// 		var arcPts = [a,b,c];
-	// 		var arcRadius = 0.35 + difference*0.1;
-	// 		for(var p = 0; p < 3; p++){ arcPts[p] = arcPts[p].normalize().scale(arcRadius); }
-	// 		var arc = new this.scope.Path.Arc(arcPts[0], arcPts[1], arcPts[2]);
-	// 		arc.add(new this.scope.Point(0.0, 0.0));
-	// 		arc.fillColor = ([this.styles.byrne.red,this.styles.byrne.darkBlue])[j%2];
-	// 		if(Math.abs(difference) < 0.015){ arc.fillColor = this.styles.byrne.yellow; }
-	// 		arc.closed = true;
+		for(var i = 0; i < sectors.length; i++){
+			var a = sectors[i].endPoints[0].xy();
+			var c = sectors[i].endPoints[1].xy();
+			var b = sectors[i].bisect();
+			var arcPts = [a,b,c];
+			var arcRadius = 0.35 + difference*0.1;
+			for(var p = 0; p < 3; p++){ arcPts[p] = arcPts[p].normalize().scale(arcRadius); }
+			var arc = new this.scope.Path.Arc(arcPts[0], arcPts[1], arcPts[2]);
+			arc.add(new this.scope.Point(0.0, 0.0));
+			arc.fillColor = ([this.styles.byrne.red,this.styles.byrne.darkBlue])[j%2];
+			if(Math.abs(difference) < 0.015){ arc.fillColor = this.styles.byrne.yellow; }
+			arc.closed = true;
 		}
 	},this);
 
-	// if(kawasakiCallback != undefined){
-	// 	var event = kawasakis.map(function(el){
-	// 		el['angles'] = el.joints.map(function(joint){ return joint.angle(); });
-	// 	});
-	// 	kawasakiCallback(kawasakis);
-	// }
+	if(kawasakiCallback != undefined){
+		var event = kawasakis.map(function(el){
+			el['angles'] = el.sectors.map(function(joint){ return joint.angle(); });
+		});
+		kawasakiCallback(kawasakis);
+	}
 }
 
 projectKawasaki.reset = function(){

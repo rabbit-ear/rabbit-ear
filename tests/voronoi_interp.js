@@ -49,7 +49,7 @@ voronoiInterp.onResize = function(){
 }
 
 voronoiInterp.onMouseDown = function(event){
-	if(this.cp.pointInside(event.point)){ input.newPlanarNode(event.point.x, event.point.y); }
+	if(this.cp.boundary.contains(event.point)){ input.newPlanarNode(event.point.x, event.point.y); }
 	if(input.nodes.length < 2) return;
 	this.redraw();
 }

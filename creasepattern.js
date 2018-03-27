@@ -359,7 +359,6 @@ var EPSILON_LOW = 0.003;
 var EPSILON = 0.00001;
 var EPSILON_HIGH = 0.00000001;
 var EPSILON_UI = 0.05;
-var EPSILON_COLLINEAR = EPSILON_LOW;
 function isValidPoint(point) { return (point !== undefined && !isNaN(point.x) && !isNaN(point.y)); }
 function isValidNumber(n) { return (n !== undefined && !isNaN(n) && !isNaN(n)); }
 function pointsSimilar(a, b, epsilon) {
@@ -498,6 +497,53 @@ function circleLineIntersectionAlgorithm(center, radius, p0, p1) {
         intersections.push(new XY(x2 + center.x, y2 + center.y));
     }
     return intersections;
+}
+function reflectRayRepeat(ray, segments, target) {
+    function nearestIntersect(ray, segments) {
+        return segments
+            .map(function (reflection) {
+            var intersect = intersectionRayEdge(ray, reflection);
+            var distance = Infinity;
+            if (intersect !== undefined) {
+                distance = ray.origin.distanceTo(intersect);
+            }
+            return { intersect: intersect, reflection: reflection, distance: distance };
+        })
+            .sort(function (a, b) {
+            return a.distance - b.distance;
+        })
+            .shift();
+    }
+    var reflections = [{ intersect: ray.origin, reflection: undefined }];
+    var firstIntersection = nearestIntersect(ray, segments);
+    if (target !== undefined && firstIntersection !== undefined && epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)) {
+        var targetDistance = ray.origin.distanceTo(target);
+        if (targetDistance < firstIntersection['distance']) {
+            return [new Edge(ray.origin, target)];
+        }
+    }
+    reflections.push(firstIntersection);
+    var i = 0;
+    while (i < 100 && reflections[reflections.length - 1] !== undefined && reflections[reflections.length - 1].intersect !== undefined) {
+        var newOrigin = reflections[reflections.length - 1].intersect;
+        var lineOfReflection = reflections[reflections.length - 1].reflection;
+        var reflectedPoint = reflections[reflections.length - 2].intersect.reflect(lineOfReflection.nodes[0], lineOfReflection.nodes[1]);
+        var newVector = reflectedPoint.subtract(newOrigin);
+        if (target !== undefined && epsilonEqual(newVector.cross(target.subtract(newOrigin)), 0, EPSILON_HIGH)) {
+            reflections.push({ intersect: target, reflection: lineOfReflection });
+            break;
+        }
+        reflections.push(nearestIntersect(new Ray(newOrigin, newVector), segments.filter(function (el) { return !el.equivalent(lineOfReflection); })));
+        i++;
+    }
+    reflections = reflections.filter(function (el) {
+        return (el !== undefined) && (el.intersect !== undefined);
+    });
+    var result = [];
+    for (var i = 0; i < reflections.length - 1; i++) {
+        result.push(new Edge(reflections[i].intersect, reflections[i + 1].intersect));
+    }
+    return result;
 }
 var Matrix = (function () {
     function Matrix(a, b, c, d, tx, ty) {
@@ -1200,13 +1246,13 @@ var PlanarEdge = (function (_super) {
         var otherNode = this.otherNode(originNode);
         return new XY(otherNode.x, otherNode.y).subtract(originNode);
     };
-    PlanarEdge.prototype.intersection = function (edge) {
+    PlanarEdge.prototype.intersection = function (edge, epsilon) {
         if (this.isAdjacentToEdge(edge)) {
             return undefined;
         }
-        var intersect = intersectionEdgeEdge(this, edge);
+        var intersect = intersectionEdgeEdge(this, edge, epsilon);
         if (intersect !== undefined &&
-            !(intersect.equivalent(this.nodes[0]) || intersect.equivalent(this.nodes[1]))) {
+            !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))) {
             return { 'edge': edge, 'point': intersect };
         }
         return undefined;
@@ -1265,7 +1311,6 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.intersectEdge = function (edge) { return intersectionEdgeEdge(this, edge); };
     PlanarEdge.prototype.reflectionMatrix = function () { return new Matrix().reflection(this.nodes[0], this.nodes[1]); };
     PlanarEdge.prototype.parallel = function (edge, epsilon) {
-        console.log("parallel");
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
@@ -1274,7 +1319,6 @@ var PlanarEdge = (function (_super) {
         return epsilonEqual(u.cross(v), 0, epsilon);
     };
     PlanarEdge.prototype.collinear = function (point, epsilon) {
-        console.log("collinear");
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
@@ -1284,13 +1328,11 @@ var PlanarEdge = (function (_super) {
     };
     PlanarEdge.prototype.equivalent = function (e) { return this.isSimilarToEdge(e); };
     PlanarEdge.prototype.transform = function (matrix) {
-        console.log("transform");
         this.nodes[0].transform(matrix);
         this.nodes[1].transform(matrix);
         return this;
     };
     PlanarEdge.prototype.nearestPointNormalTo = function (point) {
-        console.log("nearestPointNormalTo");
         var p = this.nodes[0].distanceTo(this.nodes[1]);
         var u = ((point.x - this.nodes[0].x) * (this.nodes[1].x - this.nodes[0].x) + (point.y - this.nodes[0].y) * (this.nodes[1].y - this.nodes[0].y)) / (Math.pow(p, 2));
         if (u < 0 || u > 1.0) {
@@ -1316,14 +1358,14 @@ var PlanarFace = (function () {
             return el.uncommonNodeWithEdge(circut[(i + 1) % circut.length]);
         });
         var sectorType = this.nodes[0].sectorType;
-        this.joints = this.edges.map(function (el, i) {
+        this.sectors = this.edges.map(function (el, i) {
             var nexti = (i + 1) % this.edges.length;
             var origin = el.commonNodeWithEdge(this.edges[nexti]);
             var endPoints = [el.uncommonNodeWithEdge(this.edges[nexti]),
                 this.edges[nexti].uncommonNodeWithEdge(el)];
             return new sectorType(el, this.edges[nexti]);
         }, this);
-        this.angles = this.joints.map(function (el) { return el.angle(); });
+        this.angles = this.sectors.map(function (el) { return el.angle(); });
         var angleSum = this.angles.reduce(function (sum, value) { return sum + value; }, 0);
         if (this.nodes.length > 2 && epsilonEqual(angleSum / (this.nodes.length - 2), Math.PI, EPSILON)) {
             return this;
@@ -1492,7 +1534,7 @@ var PlanarSector = (function (_super) {
 var PlanarJunction = (function () {
     function PlanarJunction(node) {
         this.origin = node;
-        this.joints = [];
+        this.sectors = [];
         this.edges = [];
         if (node === undefined) {
             return;
@@ -1501,7 +1543,7 @@ var PlanarJunction = (function () {
         if (this.edges.length <= 1) {
             return;
         }
-        this.joints = this.edges.map(function (el, i) {
+        this.sectors = this.edges.map(function (el, i) {
             var nextEl = this.edges[(i + 1) % this.edges.length];
             var origin = el.commonNodeWithEdge(nextEl);
             var nextN = nextEl.uncommonNodeWithEdge(el);
@@ -1647,7 +1689,7 @@ var PlanarGraph = (function (_super) {
             case 0: return this.removeNode(node);
             case 2:
                 var angleDiff = edges[0].absoluteAngle(node) - edges[1].absoluteAngle(node);
-                if (epsilonEqual(Math.abs(angleDiff), Math.PI, EPSILON_COLLINEAR)) {
+                if (epsilonEqual(Math.abs(angleDiff), Math.PI, EPSILON_HIGH)) {
                     var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]),
                         edges[1].uncommonNodeWithEdge(edges[0])];
                     edges[0].nodes = [farNodes[0], farNodes[1]];
@@ -1675,7 +1717,7 @@ var PlanarGraph = (function (_super) {
                     break;
                 case 2:
                     var angleDiff = edges[0].absoluteAngle(this.nodes[i]) - edges[1].absoluteAngle(this.nodes[i]);
-                    if (epsilonEqual(Math.abs(angleDiff), Math.PI, EPSILON_COLLINEAR)) {
+                    if (epsilonEqual(Math.abs(angleDiff), Math.PI, EPSILON_HIGH)) {
                         var farNodes = [edges[0].uncommonNodeWithEdge(edges[1]),
                             edges[1].uncommonNodeWithEdge(edges[0])];
                         edges[0].nodes = [farNodes[0], farNodes[1]];
@@ -1865,15 +1907,15 @@ var PlanarGraph = (function (_super) {
         });
         return new Rect(minX, minY, maxX - minX, maxY - minY);
     };
-    PlanarGraph.prototype.getEdgeIntersections = function () {
+    PlanarGraph.prototype.getEdgeIntersections = function (epsilon) {
         var intersections = [];
         for (var i = 0; i < this.edges.length - 1; i++) {
             for (var j = i + 1; j < this.edges.length; j++) {
-                var intersection = this.edges[i].intersection(this.edges[j]);
+                var intersection = this.edges[i].intersection(this.edges[j], epsilon);
                 if (intersection != undefined) {
                     var copy = false;
                     for (var k = 0; k < intersections.length; k++) {
-                        if (intersection.point.equivalent(intersections[k])) {
+                        if (intersection.point.equivalent(intersections[k], epsilon)) {
                             copy = true;
                         }
                     }
@@ -2047,21 +2089,21 @@ var PlanarGraph = (function (_super) {
             return;
         }
         var nodes = this.getNearestNodes(x, y, 5);
-        var node, joints;
+        var node, sectors;
         for (var i = 0; i < nodes.length; i++) {
             node = nodes[i];
             var nodeJunction = node.junction();
             if (nodeJunction !== undefined) {
-                joints = nodeJunction.joints;
-                if (joints !== undefined && joints.length > 0) {
+                sectors = nodeJunction.sectors;
+                if (sectors !== undefined && sectors.length > 0) {
                     break;
                 }
             }
         }
-        if (joints == undefined || joints.length === 0) {
+        if (sectors == undefined || sectors.length === 0) {
             return undefined;
         }
-        var anglesInside = joints.filter(function (el) {
+        var anglesInside = sectors.filter(function (el) {
             var pts = el.endPoints;
             var cross0 = (y - node.y) * (pts[1].x - node.x) -
                 (x - node.x) * (pts[1].y - node.y);
@@ -2084,6 +2126,18 @@ var PlanarGraph = (function (_super) {
         this.clean();
         for (var i = 0; i < this.nodes.length; i++) {
             var adjacentFaces = this.nodes[i].adjacentFaces();
+            for (var af = 0; af < adjacentFaces.length; af++) {
+                var duplicate = false;
+                for (var tf = 0; tf < this.faces.length; tf++) {
+                    if (this.faces[tf].equivalent(adjacentFaces[af])) {
+                        duplicate = true;
+                        break;
+                    }
+                }
+                if (!duplicate) {
+                    this.faces.push(adjacentFaces[af]);
+                }
+            }
         }
         this.faceArrayDidChange();
         return this.faces;
@@ -2165,53 +2219,6 @@ var PlanarGraph = (function (_super) {
     };
     return PlanarGraph;
 }(Graph));
-function rayIntersection(ray, segments) {
-    return segments
-        .map(function (reflection) {
-        var intersect = intersectionRayEdge(ray, reflection);
-        var distance = Infinity;
-        if (intersect !== undefined) {
-            distance = ray.origin.distanceTo(intersect);
-        }
-        return { intersect: intersect, reflection: reflection, distance: distance };
-    })
-        .sort(function (a, b) {
-        return a.distance - b.distance;
-    })
-        .shift();
-}
-function reflectRayRepeat(ray, segments, target) {
-    var reflections = [{ intersect: ray.origin, reflection: undefined }];
-    var firstIntersection = rayIntersection(ray, segments);
-    if (target !== undefined && firstIntersection !== undefined && epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)) {
-        var targetDistance = ray.origin.distanceTo(target);
-        if (targetDistance < firstIntersection['distance']) {
-            return [new Edge(ray.origin, target)];
-        }
-    }
-    reflections.push(firstIntersection);
-    var i = 0;
-    while (i < 100 && reflections[reflections.length - 1] !== undefined && reflections[reflections.length - 1].intersect !== undefined) {
-        var newOrigin = reflections[reflections.length - 1].intersect;
-        var lineOfReflection = reflections[reflections.length - 1].reflection;
-        var reflectedPoint = reflections[reflections.length - 2].intersect.reflect(lineOfReflection.nodes[0], lineOfReflection.nodes[1]);
-        var newVector = reflectedPoint.subtract(newOrigin);
-        if (target !== undefined && epsilonEqual(newVector.cross(target.subtract(newOrigin)), 0, EPSILON_HIGH)) {
-            reflections.push({ intersect: target, reflection: lineOfReflection });
-            break;
-        }
-        reflections.push(rayIntersection(new Ray(newOrigin, newVector), segments.filter(function (el) { return !el.equivalent(lineOfReflection); })));
-        i++;
-    }
-    reflections = reflections.filter(function (el) {
-        return (el !== undefined) && (el.intersect !== undefined);
-    });
-    var result = [];
-    for (var i = 0; i < reflections.length - 1; i++) {
-        result.push(new Edge(reflections[i].intersect, reflections[i + 1].intersect));
-    }
-    return result;
-}
 var VoronoiMolecule = (function (_super) {
     __extends(VoronoiMolecule, _super);
     function VoronoiMolecule(points, circumcenter, edgeNormal) {
@@ -2562,8 +2569,8 @@ var CreaseSector = (function (_super) {
             return;
         }
         var foundIndex = undefined;
-        for (var i = 0; i < junction.joints.length; i++) {
-            if (this.equivalent(junction.joints[i])) {
+        for (var i = 0; i < junction.sectors.length; i++) {
+            if (this.equivalent(junction.sectors[i])) {
                 foundIndex = i;
             }
         }
@@ -2572,13 +2579,13 @@ var CreaseSector = (function (_super) {
         }
         var sumEven = 0;
         var sumOdd = 0;
-        for (var i = 0; i < junction.joints.length - 1; i++) {
-            var index = (i + foundIndex + 1) % junction.joints.length;
+        for (var i = 0; i < junction.sectors.length - 1; i++) {
+            var index = (i + foundIndex + 1) % junction.sectors.length;
             if (i % 2 == 0) {
-                sumEven += junction.joints[index].angle();
+                sumEven += junction.sectors[index].angle();
             }
             else {
-                sumOdd += junction.joints[index].angle();
+                sumOdd += junction.sectors[index].angle();
             }
         }
         var dEven = Math.PI - sumEven;
@@ -2597,11 +2604,11 @@ var CreaseJunction = (function (_super) {
         return this.kawasaki() && this.maekawa();
     };
     CreaseJunction.prototype.alternateAngleSum = function () {
-        if (this.joints.length % 2 != 0) {
+        if (this.sectors.length % 2 != 0) {
             return undefined;
         }
         var sums = [0, 0];
-        this.joints.forEach(function (el, i) { sums[i % 2] += el.angle(); });
+        this.sectors.forEach(function (el, i) { sums[i % 2] += el.angle(); });
         return sums;
     };
     CreaseJunction.prototype.maekawa = function () {
@@ -2617,9 +2624,9 @@ var CreaseJunction = (function (_super) {
     };
     CreaseJunction.prototype.kawasakiSolution = function () {
         var alternating = this.alternateAngleSum().map(function (el) {
-            return { 'difference': (Math.PI - el), 'joints': [] };
+            return { 'difference': (Math.PI - el), 'sectors': [] };
         });
-        this.joints.forEach(function (el, i) { alternating[i % 2].joints.push(el); });
+        this.sectors.forEach(function (el, i) { alternating[i % 2].sectors.push(el); });
         return alternating;
     };
     CreaseJunction.prototype.kawasakiSubsect = function (joint) {
@@ -2627,8 +2634,8 @@ var CreaseJunction = (function (_super) {
             return;
         }
         var foundIndex = undefined;
-        for (var i = 0; i < this.joints.length; i++) {
-            if (joint.equivalent(this.joints[i])) {
+        for (var i = 0; i < this.sectors.length; i++) {
+            if (joint.equivalent(this.sectors[i])) {
                 foundIndex = i;
             }
         }
@@ -2637,13 +2644,13 @@ var CreaseJunction = (function (_super) {
         }
         var sumEven = 0;
         var sumOdd = 0;
-        for (var i = 0; i < this.joints.length - 1; i++) {
-            var index = (i + foundIndex + 1) % this.joints.length;
+        for (var i = 0; i < this.sectors.length - 1; i++) {
+            var index = (i + foundIndex + 1) % this.sectors.length;
             if (i % 2 == 0) {
-                sumEven += this.joints[index].angle();
+                sumEven += this.sectors[index].angle();
             }
             else {
-                sumOdd += this.joints[index].angle();
+                sumOdd += this.sectors[index].angle();
             }
         }
         var dEven = Math.PI - sumEven;
@@ -2740,10 +2747,10 @@ var CreaseFace = (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     CreaseFace.prototype.rabbitEar = function () {
-        if (this.joints.length !== 3) {
+        if (this.sectors.length !== 3) {
             return [];
         }
-        var rays = this.joints.map(function (el) {
+        var rays = this.sectors.map(function (el) {
             return new Ray(el.origin, el.bisect());
         });
         var incenter = rays
@@ -2794,31 +2801,6 @@ var CreasePattern = (function (_super) {
             e.graph = g;
             e.index = i;
             e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
-        }
-        for (var i = 0; i < this.faces.length; i++) {
-            var f = new PlanarFace(g);
-            g.faces.push(f);
-            f.graph = g;
-            f.index = i;
-            if (this.faces[i] !== undefined) {
-                if (this.faces[i].nodes !== undefined) {
-                    for (var j = 0; j < this.faces[i].nodes.length; j++) {
-                        var nIndex = this.faces[i].nodes[j].index;
-                        f.nodes.push(g.nodes[nIndex]);
-                    }
-                }
-                if (this.faces[i].edges !== undefined) {
-                    for (var j = 0; j < this.faces[i].edges.length; j++) {
-                        var eIndex = this.faces[i].edges[j].index;
-                        f.edges.push(g.edges[eIndex]);
-                    }
-                }
-                if (this.faces[i].angles !== undefined) {
-                    for (var j = 0; j < this.faces[i].angles.length; j++) {
-                        f.angles.push(this.faces[i].angles[j]);
-                    }
-                }
-            }
         }
         return g;
     };
@@ -3624,13 +3606,14 @@ var CreasePattern = (function (_super) {
         var heightScaled = ((height) * scale).toFixed(2);
         var strokeWidth = ((width) * scale * 0.0025).toFixed(1);
         var dashW = ((width) * scale * 0.0025 * 3).toFixed(1);
+        var dashWOff = ((width) * scale * 0.0025 * 3 * 0.5).toFixed(1);
         if (strokeWidth === "0" || strokeWidth === "0.0") {
             strokeWidth = "0.5";
         }
         blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" + widthScaled + "px\" height=\"" + heightScaled + "px\" viewBox=\"0 0 " + widthScaled + " " + heightScaled + "\">\n<g>\n";
         blob += "<line stroke=\"#000000\" stroke-width=\"" + strokeWidth + "\" x1=\"0\" y1=\"0\" x2=\"" + widthScaled + "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" + widthScaled + "\" y1=\"0\" x2=\"" + widthScaled + "\" y2=\"" + heightScaled + "\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" + widthScaled + "\" y1=\"" + heightScaled + "\" x2=\"0\" y2=\"" + heightScaled + "\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" + heightScaled + "\" x2=\"0\" y2=\"0\"/>\n";
-        var valleyStyle = "stroke=\"#4030FF\" stroke-dasharray=\"" + dashW + "," + dashW + "\" ";
-        var mountainStyle = "stroke=\"#FF1030\" ";
+        var valleyStyle = "stroke=\"#4379FF\" stroke-dasharray=\"" + dashW + "," + dashWOff + "\" ";
+        var mountainStyle = "stroke=\"#EE1032\" ";
         var noStyle = "stroke=\"#000000\" ";
         for (var i = 0; i < this.edges.length; i++) {
             var a = this.edges[i].nodes[0];

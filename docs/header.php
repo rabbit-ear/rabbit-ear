@@ -33,6 +33,9 @@
 		</li>
 		<li class="dropdown">
 			<a href="/docs/" class="">HELLO</a>
+			<div class="dropdown-content">
+			<a href="installation.php">GETTING STARTED</a>
+			</div>
 		</li>
 		<li class="dropdown">
 			<a href="graph.php" class="">I. GRAPH</a>

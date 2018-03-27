@@ -39,12 +39,12 @@ var _05_parallels = function(p) {
 		// drawCoordinateFrame(p);
 
 		for(var i = 0; i < 4; i++){
-			g[i].nodes[2].x = g[i].nodes[0].x + 0.04*Math.sin(count*0.01);
+			g[i].nodes[2].x = g[i].nodes[0].x + 0.04*Math.sin(count*0.02);
 			g[i].nodes[2].y = g[i].nodes[0].y;
-			g[i].nodes[3].x = g[i].nodes[1].x - 0.04*Math.sin(count*0.01);
+			g[i].nodes[3].x = g[i].nodes[1].x - 0.04*Math.sin(count*0.02);
 			g[i].nodes[3].y = g[i].nodes[1].y;
 
-			var intersections = g[i].getEdgeIntersections();
+			var intersections = g[i].getEdgeIntersections(0.01);
 
 			p.fill(0, 0, 0);
 			p.stroke(0, 0, 0);

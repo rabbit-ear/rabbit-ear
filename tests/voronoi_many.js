@@ -63,7 +63,7 @@ voronoiMany.onResize = function(){
 
 voronoiMany.onMouseDown = function(event){
 	if(this.selectedNode === undefined){
-		if(this.cp.pointInside(event.point)){ 
+		if(this.cp.boundary.contains(event.point)){ 
 			this.input.newPlanarNode(event.point.x, event.point.y);
 			this.redraw();
 			this.selectedNode = undefined;

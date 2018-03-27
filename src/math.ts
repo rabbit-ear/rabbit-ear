@@ -8,7 +8,6 @@ var EPSILON_LOW  = 0.003;
 var EPSILON      = 0.00001;
 var EPSILON_HIGH = 0.00000001;
 var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a screen
-var EPSILON_COLLINEAR = EPSILON_LOW;//Math.PI * 0.001; // what decides 2 similar angles
 
 //////////////////////////// TYPE CHECKING //////////////////////////// 
 function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
@@ -182,6 +181,57 @@ function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY)
 	if(!isNaN(x2)){ intersections.push( new XY(x2 + center.x, y2 + center.y) ); }
 	return intersections;
 }
+
+function reflectRayRepeat(ray:Ray, segments:Edge[], target?:XY):Edge[]{
+	function nearestIntersect(ray:Ray, segments:Edge[]):{intersect:XY,reflection:Edge,distance:number}{
+		return segments
+			.map(function(reflection){
+				var intersect = intersectionRayEdge(ray, reflection);
+				var distance = Infinity;
+				if(intersect !== undefined){ distance = ray.origin.distanceTo(intersect); }
+				return {intersect:intersect, reflection:reflection, distance:distance};})
+			.sort(function(a,b){
+				return a.distance - b.distance; })
+			// return the first element, or undefined
+			.shift();
+	}
+
+	var reflections:{intersect:XY,reflection:Edge}[] = [{intersect:ray.origin, reflection:undefined}];
+	// var firstIntersection = nearestIntersect(origin, direction, segments.filter(function(el){
+	// 	return !(el.nodes[0].equivalent(origin) || el.nodes[1].equivalent(origin));
+	// }));
+	var firstIntersection = nearestIntersect(ray, segments);
+
+	if(target !== undefined && firstIntersection !== undefined && epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)){
+		var targetDistance = ray.origin.distanceTo(target);
+		if(targetDistance < firstIntersection['distance']){
+			return [new Edge(ray.origin, target)];
+		}
+	}
+	reflections.push(firstIntersection);
+	var i = 0;
+	while(i < 100 && reflections[reflections.length-1] !== undefined && reflections[reflections.length-1].intersect !== undefined){
+		var newOrigin:XY = reflections[reflections.length-1].intersect;
+		var lineOfReflection:Edge = reflections[reflections.length-1].reflection
+		var reflectedPoint = reflections[reflections.length-2].intersect.reflect(lineOfReflection.nodes[0], lineOfReflection.nodes[1]);
+		var newVector = reflectedPoint.subtract(newOrigin);
+		if(target !== undefined && epsilonEqual(newVector.cross(target.subtract(newOrigin)), 0, EPSILON_HIGH)){
+			reflections.push({intersect:target, reflection: lineOfReflection});
+			break;
+		}
+		reflections.push(nearestIntersect(new Ray(newOrigin, newVector), segments.filter(function(el){return !el.equivalent(lineOfReflection) })));
+		i++;
+	}
+	reflections = reflections.filter(function(el){
+		return (el !== undefined) && (el.intersect !== undefined);
+	});
+	var result = [];
+	for(var i = 0; i < reflections.length-1; i++){
+		result.push( new Edge(reflections[i].intersect, reflections[i+1].intersect) );
+	}
+	return result;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //                                GEOMETRY

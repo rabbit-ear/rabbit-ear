@@ -26,7 +26,7 @@
 
 	<p>Positions are mapped to the Euclidean plane and are described in terms of X and Y. Two adjacent edges create an interior angle between them. It's now possible for nodes and edges to be <strong>near in proximity</strong> to each other. Edges can enclose a space to create a <strong>face</strong>.</p>
 
-	<p>Furthermore, edges can now cross each other, something mathematicians decided should not be allowed. 2 crossing edges should be resolved into 4 edges with a new node sitting at their intersection.</p>
+	<p>It's now possible for edges to cross each other, something traditionally not allowed in mathematics. Two crossing edges should be resolved into four edges with a new node sitting at their intersection.</p>
 
 </section>
 

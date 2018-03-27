@@ -41,8 +41,8 @@ var p5_nearest_edge = function(p) {
 
 			p.stroke(0, 0, 0);
 			p.fill(0, 0, 0);
-			p.line(mouseXScaled, mouseYScaled, closestEdge.x, closestEdge.y);
-			p.ellipse(closestEdge.x, closestEdge.y, .02, .02);
+			p.line(mouseXScaled, mouseYScaled, closestEdge.point.x, closestEdge.point.y);
+			p.ellipse(closestEdge.point.x, closestEdge.point.y, .02, .02);
 		}
 	}
 
