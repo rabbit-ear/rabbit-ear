@@ -2786,8 +2786,10 @@ var CreasePattern = (function (_super) {
         this.edgeArrayDidChange();
         this.faceArrayDidChange();
         var g = new CreasePattern();
-        g.clear();
-        g.boundary = this.boundary.copy();
+        g.nodes = [];
+        g.edges = [];
+        g.faces = [];
+        g.boundary = undefined;
         for (var i = 0; i < this.nodes.length; i++) {
             var n = g.addNode(new CreaseNode(g));
             Object.assign(n, this.nodes[i]);
@@ -2802,6 +2804,32 @@ var CreasePattern = (function (_super) {
             e.index = i;
             e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
         }
+        for (var i = 0; i < this.faces.length; i++) {
+            var f = new PlanarFace(g);
+            g.faces.push(f);
+            f.graph = g;
+            f.index = i;
+            if (this.faces[i] !== undefined) {
+                if (this.faces[i].nodes !== undefined) {
+                    for (var j = 0; j < this.faces[i].nodes.length; j++) {
+                        var nIndex = this.faces[i].nodes[j].index;
+                        f.nodes.push(g.nodes[nIndex]);
+                    }
+                }
+                if (this.faces[i].edges !== undefined) {
+                    for (var j = 0; j < this.faces[i].edges.length; j++) {
+                        var eIndex = this.faces[i].edges[j].index;
+                        f.edges.push(g.edges[eIndex]);
+                    }
+                }
+                if (this.faces[i].angles !== undefined) {
+                    for (var j = 0; j < this.faces[i].angles.length; j++) {
+                        f.angles.push(this.faces[i].angles[j]);
+                    }
+                }
+            }
+        }
+        g.boundary = this.boundary.copy();
         return g;
     };
     CreasePattern.prototype.possibleFolds = function () {

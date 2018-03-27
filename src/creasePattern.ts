@@ -685,8 +685,8 @@ class CreasePattern extends PlanarGraph{
 		this.edgeArrayDidChange();
 		this.faceArrayDidChange();
 		var g = new CreasePattern();
-		g.clear();
-		g.boundary = this.boundary.copy();
+		g.nodes = []; g.edges = []; g.faces = [];
+		g.boundary = undefined;
 		for(var i = 0; i < this.nodes.length; i++){
 			var n = g.addNode(new CreaseNode(g));
 			(<any>Object).assign(n, this.nodes[i]);
@@ -726,6 +726,7 @@ class CreasePattern extends PlanarGraph{
 				}
 			}
 		}
+		g.boundary = this.boundary.copy();
 		return g;
 	}
 
