@@ -10,10 +10,12 @@
 		<pre><code><span id="interiorAngleSpan"></span></code></pre>
 	</div>
 
+	<p>This library includes a suite of geometry tools that exist and can be leveraged independently of the rest of the Planar Graph and origami related code.</p>
+
 <section id="junction">
 <h2>JUNCTIONS &amp; SECTORS</h2>
 
-	<p>In preparation for origami calculations, there is much to be said about one node and its adjacent edges.</p>
+	<p>In preparation for origami operations, there is much to be done with one node and its adjacent edges.</p>
 
 	<p class="quote"><strong>Junction</strong>: the area including one node, its adjacent edges, and the interior angles they form.</p>
 
@@ -132,7 +134,7 @@
 		<canvas id="canvas-convex-polygon" resize></canvas>
 	</div>
 
-	<p>A <b>ConvexPolygon</b> is defined by a set of joined <b>edges</b>, contains the classic convex hull algorithm, and can clip <b>lines</b>, <b>rays</b>, and <b>edges</b> into a new edge which fits within its boundary.</p>
+	<p>A <b>ConvexPolygon</b> object is defined its <b>edges</b>, it contains the classic convex hull algorithm, and can clip <b>lines</b>, <b>rays</b>, and <b>edges</b> into a new edge which fits within its boundary.</p>
 	
 	<div class="centered">
 		<pre><code><key>let</key> polygon <key>=</key> <key>new</key> <v>ConvexPolygon</v>()</code></pre>

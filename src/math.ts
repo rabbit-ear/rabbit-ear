@@ -36,18 +36,6 @@ function wholeNumberify(num:number, epsilon?:number):number{
 /////////////////////////////////////////////////////////////////////////////////
 //                            2D ALGORITHMS
 /////////////////////////////////////////////////////////////////////////////////
-/** if points are all collinear, checks if point lies on line segment 'ab' */
-// function onSegment(point:XY, edge:Edge, epsilon?:number):boolean{
-// 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-// 	// todo, move this into a class function
-// 	// and rewrite it
-// 	var a = edge.nodes[0];
-// 	var b = edge.nodes[1];
-// 	var a_b = Math.sqrt( Math.pow(a.x - b.x,  2) + Math.pow(a.y - b.y,  2) );
-// 	var p_a = Math.sqrt( Math.pow(point.x-a.x,2) + Math.pow(point.y-a.y,2) );
-// 	var p_b = Math.sqrt( Math.pow(point.x-b.x,2) + Math.pow(point.y-b.y,2) );
-// 	return (Math.abs(a_b - (p_a+p_b)) < epsilon);
-// }
 /** There are 2 interior angles between 2 absolute angle measurements, from A to B, return the clockwise one
  * @param {number} angle in radians
  * @param {number} angle in radians
