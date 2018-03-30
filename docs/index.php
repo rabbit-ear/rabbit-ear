@@ -14,13 +14,9 @@
 	
 	<p>This is a planar graph javascript library for creating origami crease patterns.</p>
 
-<h2>Creative Code</h2>
-
-	<p>This is less like a finished application, more like a code library with templates and examples to bring origami design in an accessible place.</p>
-
 <h2>Graphs</h2>
 	
-	<p>Origami crease patterns are modeled on planar graphs, which themselves are graphs; an abstract model of nodes and edges. Crease lines exist on the Euclidean plane under the familiar X and Y axes, and every component is exposed and made available to the designer.</p>
+	<p>Origami crease patterns are modeled on planar graphs, which themselves are graphs; an abstract model of nodes and edges. The crease lines exist on the Euclidean plane using the familiar X and Y axes, and every component is accessible and available to be sculpted.</p>
 
 	<div id="sketch_intersections" class="centered p5sketch"></div>
 
@@ -28,7 +24,7 @@
 		<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>getEdgeIntersections</f></a>();</code></pre>
 	</div>
 
-	<p>This library includes functions for generation and manipulation that encompass typical Euclidean geometry like casting rays and reflection matrices, to origami-specific operations like generating rabbit-ear creases for aribtrary triangles or simulating the folded state of the crease pattern.</p>
+	<p>This library includes tools from typical mathematical functions to origami-specific operations like generating rabbit-ear creases or simulating a crease pattern's folded form.</p>
 
 <h2>About</h2>
 	<p>This is <a href="http://github.com/robbykraft/Origami/">open source</a></p>

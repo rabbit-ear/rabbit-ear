@@ -140,6 +140,10 @@
 		<pre><code><key>let</key> polygon <key>=</key> <key>new</key> <v>ConvexPolygon</v>()</code></pre>
 	</div>
 
+	<div class="centered">
+		<canvas id="canvas-polygon-clip" resize></canvas>
+	</div>
+
 </section>
 
 
@@ -164,6 +168,7 @@
 <script type="text/javascript" src="../tests/intersect_lines.js"></script>
 <script type="text/javascript" src="../tests/intersect_rays.js"></script>
 <script type="text/javascript" src="../tests/intersect_all.js"></script>
+<script type="text/javascript" src="../tests/polygon_clip.js"></script>
 
 <script src="../tests/reflection.js"></script>
 

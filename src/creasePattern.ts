@@ -498,15 +498,15 @@ class CreaseJunction extends PlanarJunction{
 		this.sectors.forEach(function(el,i){ alternating[i%2].sectors.push(el); });
 		return alternating;
 	}
-	kawasakiSubsect(joint:PlanarSector):XY{
-		// joint must be one of the Joints in this Junction
+	kawasakiSubsect(sector:PlanarSector):XY{
+		// sector must be one of the Joints in this Junction
 		
 		// todo: allow searches for other number edges
 		if(this.edges.length != 3){ return; }
 		// find this interior angle among the other interior angles
 		var foundIndex = undefined;
 		for(var i = 0; i < this.sectors.length; i++){
-			if(joint.equivalent(this.sectors[i])){ foundIndex = i; }
+			if(sector.equivalent(this.sectors[i])){ foundIndex = i; }
 		}
 		if(foundIndex === undefined){ return undefined; }
 		var sumEven = 0;
@@ -518,8 +518,8 @@ class CreaseJunction extends PlanarJunction{
 		}
 		var dEven = Math.PI - sumEven;
 		// var dOdd = Math.PI - sumOdd;
-		var angle0 = joint.edges[0].absoluteAngle(joint.origin);
-		// var angle1 = joint.edges[1].absoluteAngle(joint.origin);
+		var angle0 = sector.edges[0].absoluteAngle(sector.origin);
+		// var angle1 = sector.edges[1].absoluteAngle(sector.origin);
 		var newA = angle0 - dEven;
 		return new XY(Math.cos(newA), Math.sin(newA));
 	}

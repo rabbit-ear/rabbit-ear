@@ -30,11 +30,11 @@ do{
 	}
 }while(rfxPassed === false);
 
-// reflex.marks[0].position = rfxTestPoints[0];
-// reflex.marks[1].position = rfxTestPoints[1];
+reflex.marks[0].position = rfxTestPoints[0];
+reflex.marks[1].position = rfxTestPoints[1];
 
-reflex.marks[0].position = new XY(0.2, 0.2);
-reflex.marks[1].position = new XY(0.8, 0.8);
+// reflex.marks[0].position = new XY(0.2, 0.2);
+// reflex.marks[1].position = new XY(0.8, 0.8);
 
 reflex.computeReflection = function(){
 	paper = this.scope;
