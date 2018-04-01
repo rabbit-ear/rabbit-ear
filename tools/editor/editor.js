@@ -57,7 +57,7 @@ project.onMouseUp = function(event){
 		this.mouseDragLayer.activate();
 		this.mouseDragLayer.clear();
 		// crease the line
-		var edge = this.allPossibleFolds.getNearestEdgeFrom2Nodes(this.mouse.pressedLocation, event.point);
+		var edge = this.allPossibleFolds.getNearestEdgeConnectingPoints(this.mouse.pressedLocation, event.point);
 		if(edge !== undefined){
 			var crease = this.cp.crease(edge.nodes[0], edge.nodes[1]);
 			if(crease !== undefined){
@@ -111,7 +111,7 @@ project.onMouseMove = function(event) {
 			case "add-mark": Object.assign(dragPath, this.style.mark); break;
 		}
 		dragPath.strokeColor.alpha = 0.333;
-		var edge = this.allPossibleFolds.getNearestEdgeFrom2Nodes(this.mouse.pressedLocation, event.point);
+		var edge = this.allPossibleFolds.getNearestEdgeConnectingPoints(this.mouse.pressedLocation, event.point);
 		if(edge !== undefined){
 			var newPath = new paper.Path({segments: edge.nodes, closed: false });	
 			switch(this.inputMode){

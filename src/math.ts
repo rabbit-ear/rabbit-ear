@@ -170,57 +170,6 @@ function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY)
 	return intersections;
 }
 
-function reflectRayRepeat(ray:Ray, segments:Edge[], target?:XY):Edge[]{
-	function nearestIntersect(ray:Ray, segments:Edge[]):{intersect:XY,reflection:Edge,distance:number}{
-		return segments
-			.map(function(reflection){
-				var intersect = intersectionRayEdge(ray, reflection);
-				var distance = Infinity;
-				if(intersect !== undefined){ distance = ray.origin.distanceTo(intersect); }
-				return {intersect:intersect, reflection:reflection, distance:distance};})
-			.sort(function(a,b){
-				return a.distance - b.distance; })
-			// return the first element, or undefined
-			.shift();
-	}
-
-	var reflections:{intersect:XY,reflection:Edge}[] = [{intersect:ray.origin, reflection:undefined}];
-	// var firstIntersection = nearestIntersect(origin, direction, segments.filter(function(el){
-	// 	return !(el.nodes[0].equivalent(origin) || el.nodes[1].equivalent(origin));
-	// }));
-	var firstIntersection = nearestIntersect(ray, segments);
-
-	if(target !== undefined && firstIntersection !== undefined && epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)){
-		var targetDistance = ray.origin.distanceTo(target);
-		if(targetDistance < firstIntersection['distance']){
-			return [new Edge(ray.origin, target)];
-		}
-	}
-	reflections.push(firstIntersection);
-	var i = 0;
-	while(i < 100 && reflections[reflections.length-1] !== undefined && reflections[reflections.length-1].intersect !== undefined){
-		var newOrigin:XY = reflections[reflections.length-1].intersect;
-		var lineOfReflection:Edge = reflections[reflections.length-1].reflection
-		var reflectedPoint = reflections[reflections.length-2].intersect.reflect(lineOfReflection.nodes[0], lineOfReflection.nodes[1]);
-		var newVector = reflectedPoint.subtract(newOrigin);
-		if(target !== undefined && epsilonEqual(newVector.cross(target.subtract(newOrigin)), 0, EPSILON_HIGH)){
-			reflections.push({intersect:target, reflection: lineOfReflection});
-			break;
-		}
-		reflections.push(nearestIntersect(new Ray(newOrigin, newVector), segments.filter(function(el){return !el.equivalent(lineOfReflection) })));
-		i++;
-	}
-	reflections = reflections.filter(function(el){
-		return (el !== undefined) && (el.intersect !== undefined);
-	});
-	var result = [];
-	for(var i = 0; i < reflections.length-1; i++){
-		result.push( new Edge(reflections[i].intersect, reflections[i+1].intersect) );
-	}
-	return result;
-}
-
-
 /////////////////////////////////////////////////////////////////////////////////
 //                                GEOMETRY
 /////////////////////////////////////////////////////////////////////////////////
@@ -384,6 +333,54 @@ class Line{
 // 	constructor(scalar:number, normal:XY){this.d=scalar; this.u=normal;}
 // }
 
+class Polyline{
+	nodes:XY[];
+
+	edges():Edge[]{
+		var result = [];
+		for(var i = 0; i < this.nodes.length-1; i++){
+			result.push( new Edge(this.nodes[i], this.nodes[i+1]) );
+		}
+		return result;
+	}
+
+	rayReflectRepeat(ray:Ray, intersectable:Edge[], target?:XY):Polyline{
+		const REFLECT_LIMIT = 100;
+		var clips:{edge:Edge,intersection:Edge}[] = [];
+		var firstClips:{edge:Edge,intersection:Edge}[] = ray.clipWithEdgesWithIntersections(intersectable);
+		// special case: original ray directed toward target
+		if(target !== undefined &&
+		   epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)){
+			if(firstClips.length === 0 || 
+			   ray.origin.distanceTo(target) < firstClips[0].edge.length()){
+				this.nodes = [ray.origin, target];
+				return this;
+			}
+		}
+		clips.push( firstClips[0] );
+		var i = 0;
+		while(i < REFLECT_LIMIT){
+			// build new ray, reflected across edge
+			var prevClip:{edge:Edge,intersection:Edge} = clips[clips.length-1];
+			var reflection:Matrix = new Matrix().reflection(prevClip.intersection.nodes[0], prevClip.intersection.nodes[1]);
+			var newRay = new Ray(prevClip.edge.nodes[1], prevClip.edge.nodes[0].transform(reflection).subtract(prevClip.edge.nodes[1]));
+			// get next edge intersections
+			var newClips:{edge:Edge,intersection:Edge}[] = newRay.clipWithEdgesWithIntersections(intersectable);
+			if(target !== undefined &&
+			   epsilonEqual(newRay.direction.cross(target.subtract(newRay.origin)), 0, EPSILON_HIGH)){
+				clips.push({edge:new Edge(newRay.origin, target), intersection:undefined});
+				break;
+			}
+			if(newClips.length === 0 || newClips[0] === undefined){ break; }
+			clips.push( newClips[0] );
+			i++;
+		}
+		this.nodes = clips.map(function(el){ return el.edge.nodes[0]; });
+		this.nodes.push( clips[clips.length-1].edge.nodes[1] );
+		return this;
+	}
+}
+
 class Ray{
 	origin:XY;
 	direction:XY;
@@ -405,6 +402,39 @@ class Ray{
 		return (this.origin.equivalent(ray.origin, epsilon) &&
 		        this.direction.normalize().equivalent(ray.direction.normalize(), epsilon));
 	}
+	/** this returns undefined if ray and edge don't intersect
+	 * edge.nodes[0] is always the ray.origin
+	 */
+	clipWithEdge(edge:Edge, epsilon?:number):Edge{
+		var intersect = intersectionRayEdge(this, edge, epsilon);
+		if(intersect === undefined){ return undefined; }
+		return new Edge(this.origin, intersect);
+	}
+	/** this returns array of edges, sorted by shortest to longest */
+	clipWithEdges(edges:Edge[], epsilon?:number):Edge[]{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return edges
+			.map(function(edge:Edge){ return this.clipWithEdge(edge); }, this)
+			.filter(function(edge){ return edge !== undefined; })
+			.map(function(edge){ return {edge:edge, length:edge.length()}; })
+			.filter(function(el){ return el.length > epsilon})
+			.sort(function(a,b){ return a.length - b.length; })
+			.map(function(el){ return el.edge })
+	}
+	clipWithEdgesWithIntersections(edges:Edge[], epsilon?:number):{edge:Edge,intersection:Edge}[]{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return edges
+			.map(function(edge:Edge){ return {'edge':this.clipWithEdge(edge), 'intersection':edge } },this)
+			.filter(function(el){ return el.edge !== undefined; })
+			.map(function(el){ return {
+				'edge':el.edge, 
+				'intersection':el.intersection, 
+				'length':el.edge.length()}; })
+			.filter(function(el){ return el.length > epsilon; })
+			.sort(function(a,b){ return a.length - b.length; })
+			.map(function(el){ return {edge:el.edge,intersection:el.intersection}; })
+	}
+
 	// transform(matrix):Ray{
 	// 	return new Line(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
 	// }
@@ -451,6 +481,10 @@ class Edge{
 		         this.nodes[1].equivalent(e.nodes[1],epsilon)) ||
 		        (this.nodes[0].equivalent(e.nodes[1],epsilon) &&
 		         this.nodes[1].equivalent(e.nodes[0],epsilon)) );
+	}
+	degenrate(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return this.nodes[0].equivalent(this.nodes[1], epsilon);
 	}
 	transform(matrix:Matrix):Edge{
 		return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
@@ -528,10 +562,9 @@ class Triangle{
 		return true;
 	}
 }
+class IsoscelesTriangle extends Triangle{}
 
-class IsoscelesTriangle extends Triangle{
 
-}
 
 
 class ConvexPolygon{
@@ -548,7 +581,11 @@ class ConvexPolygon{
 	clipEdge(edge:Edge):Edge{
 		var intersections = this.edges
 			.map(function(el){ return intersectionEdgeEdge(edge, el); })
-			.filter(function(el){return el !== undefined; });
+			.filter(function(el){return el !== undefined; })
+			// filter out intersections equivalent to the edge points themselves
+			.filter(function(el){ 
+				return !el.equivalent(edge.nodes[0]) &&
+				       !el.equivalent(edge.nodes[1]); });
 		switch(intersections.length){
 			case 0:
 				if(this.contains(edge.nodes[0])){ return edge; } // completely inside

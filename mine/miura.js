@@ -26,8 +26,8 @@ miura.reset = function(){
 	for(var i = 1; i < numZigzags; i+=2){
 		var step = bounds.size.height/numZigzags*i;
 		var angle = Math.sin(i/numZigzags*Math.PI*param1)*Math.PI*param2;
-		var reflections = reflectRayRepeat(new Ray(new XY(0.0001,step), new XY(Math.cos(angle), Math.sin(angle))), this.cp.edges);
-		reflections.forEach(function(el){
+		var polyline = new Polyline().rayReflectRepeat(new Ray(new XY(0.0001,step), new XY(Math.cos(angle), Math.sin(angle))), this.cp.edges);
+		polyline.edges().forEach(function(el){
 			if(i%2 == 0){ this.cp.crease(el).mountain(); }
 			else        { this.cp.crease(el).valley(); }
 
@@ -36,8 +36,8 @@ miura.reset = function(){
 	for(var i = 2; i < numZigzags; i+=2){
 		var step = bounds.size.height/numZigzags*i;
 		var angle = Math.sin(i/numZigzags*Math.PI*param1)*Math.PI*param2;
-		var reflections = reflectRayRepeat(new Ray(new XY(0.0001,step), new XY(Math.cos(angle), Math.sin(angle))), this.cp.edges);
-		reflections.forEach(function(el){
+		var polyline = new Polyline().rayReflectRepeat(new Ray(new XY(0.0001,step), new XY(Math.cos(angle), Math.sin(angle))), this.cp.edges);
+		polyline.edges().forEach(function(el){
 			if(i%2 == 0){ this.cp.crease(el).mountain(); }
 			else        { this.cp.crease(el).valley(); }
 

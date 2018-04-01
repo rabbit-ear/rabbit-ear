@@ -243,6 +243,10 @@ class PlanarEdge extends GraphEdge implements Edge{
 		return epsilonEqual(this.length() - p0 - p1, 0, epsilon);
 	}
 	equivalent(e:PlanarEdge):boolean{ return this.isSimilarToEdge(e); }
+	degenrate(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return this.nodes[0].equivalent(this.nodes[1], epsilon);
+	}
 	transform(matrix):PlanarEdge{
 		this.nodes[0].transform(matrix);
 		this.nodes[1].transform(matrix);
@@ -477,6 +481,17 @@ class PlanarJunction{
 	}
 	edgeAngles():number[]{
 		return this.edges.map(function(el){return el.absoluteAngle(this.origin);},this);
+	}
+	sectorWithEdges(a:PlanarEdge, b:PlanarEdge):Sector{
+		var found = undefined;
+		this.sectors.forEach(function(el){
+			if( (el.edges[0].equivalent(a) && el.edges[1].equivalent(b) ) ||
+				(el.edges[1].equivalent(a) && el.edges[0].equivalent(b) ) ){
+				found = el;
+				return found; // this just breaks out of the loop
+			}
+		},this);
+		return found;
 	}
 	/** get an array of numbers measuring the angle in radians between each edge.
 	 * array indices are related to edges indices: interiorAngle()[i] is the angle between edges[i] and edges[i+1].
@@ -1013,7 +1028,7 @@ class PlanarGraph extends Graph{
 		});
 		return edges.filter(function(el){return el != undefined; });
 	}
-	getNearestEdgeFrom2Nodes(a:XY, b:XY):PlanarEdge{
+	getNearestEdgeConnectingPoints(a:XY, b:XY):PlanarEdge{
 		var aNear = this.getNearestNode(a.x, a.y);
 		var bNear = this.getNearestNode(b.x, b.y);
 		var edge = <PlanarEdge>this.getEdgeConnectingNodes(aNear, bNear);

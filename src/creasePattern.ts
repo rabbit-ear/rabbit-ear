@@ -181,18 +181,18 @@ class VoronoiMoleculeTriangle {
 			}))
 
 		var edges = [symmetryLine]
-			// .concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );
-			.concat(reflectRayRepeat(new Ray(this.base[0], this.base[1].subtract(this.base[0])), overlappingEdges, this.base[1]));
+			// .concat(rayReflectRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );
+			.concat(new Polyline().rayReflectRepeat(new Ray(this.base[0], this.base[1].subtract(this.base[0])), overlappingEdges, this.base[1]).edges());
 		crimps.filter(function(el){
 				return el!==undefined && !el.equivalent(this.vertex);},this)
 			.forEach(function(crimp:XY){
-				// edges = edges.concat( reflectRayRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]) );
-				edges = edges.concat( reflectRayRepeat(new Ray(this.base[0], crimp.subtract(this.base[0])), overlappingEdges, this.base[1]) );
+				// edges = edges.concat( rayReflectRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]) );
+				edges = edges.concat( new Polyline().rayReflectRepeat(new Ray(this.base[0], crimp.subtract(this.base[0])), overlappingEdges, this.base[1]).edges() );
 			},this);
 		return edges;
 
 		// if(crimps[0] !== undefined){
-		// 	var newEdges = reflectRayRepeat(this.base[0], crimps[0].subtract(this.base[0]), overlappingEdges, this.base[1]);
+		// 	var newEdges = rayReflectRepeat(this.base[0], crimps[0].subtract(this.base[0]), overlappingEdges, this.base[1]);
 		// 	edges = edges.concat( newEdges );
 		// }
 		// edges = edges.concat([
@@ -207,7 +207,7 @@ class VoronoiMoleculeTriangle {
 		// 	new Edge(this.base[1], crimps[0]),
 		//	new Edge(this.base[0], crimps[1]),
 		//	new Edge(this.base[1], crimps[1])
-		// ]//.concat(reflectRayRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );;
+		// ]//.concat(rayReflectRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );;
 	}
 	pointInside(p:XY):boolean{
 		var found = true;
@@ -426,10 +426,8 @@ class FoldSequence{
 
 class CreaseSector extends PlanarSector{
 
-	/** This will search for an angle which if an additional crease is made will satisfy Kawasaki's theorem
-	 * 
-	 */
-	kawasakiSubsect():XY{
+	/** This will search for an angle which if an additional crease is made will satisfy Kawasaki's theorem */
+	kawasakiFourth():XY{
 		var junction = this.origin.junction();
 		// todo: allow searches for other number edges
 		if(junction.edges.length != 3){ return; }
@@ -498,7 +496,7 @@ class CreaseJunction extends PlanarJunction{
 		this.sectors.forEach(function(el,i){ alternating[i%2].sectors.push(el); });
 		return alternating;
 	}
-	kawasakiSubsect(sector:PlanarSector):XY{
+	kawasakiFourth(sector:PlanarSector):XY{
 		// sector must be one of the Joints in this Junction
 		
 		// todo: allow searches for other number edges
@@ -550,6 +548,14 @@ class CreaseNode extends PlanarNode{
 	flatFoldable(epsilon?:number):boolean{
 		if(this.isBoundary()){ return true; }
 		return (<CreaseJunction>this.junction()).flatFoldable(epsilon);
+	}
+
+	kawasakiFourth(a:Crease, b:Crease):XY{
+		var junction = <CreaseJunction>this.junction();
+		var sector = <CreaseSector>junction.sectorWithEdges(a,b);
+		if(sector !== undefined){
+			return junction.kawasakiFourth(sector);
+		}
 	}
 
 	//////////////////////////////

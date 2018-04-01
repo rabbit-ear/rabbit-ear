@@ -24,7 +24,7 @@
 		<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>getEdgeIntersections</f></a>();</code></pre>
 	</div>
 
-	<p>This library includes tools from typical mathematical functions to origami-specific operations like generating rabbit-ear creases or simulating a crease pattern's folded form.</p>
+	<p>This library includes tools covering traditional geometry to origami-specific operations like generating rabbit-ear creases or simulating a crease pattern's folded form.</p>
 
 <h2>About</h2>
 	<p>This is <a href="http://github.com/robbykraft/Origami/">open source</a></p>
