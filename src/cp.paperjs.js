@@ -59,13 +59,22 @@ var OrigamiPaper = (function(){
 			isPressed: false,
 			isDragging: false
 		};
-		// user interaction layers
-		this.mouseDragLayer = new this.scope.Layer();
-				
+		// user interaction
+		this.nearestNode = undefined;
+		this.nearestEdge = undefined;
+		this.nearestFace = undefined;
 		// setting these true causes this to highlight parts
 		this.selectNearestNode = false;
 		this.selectNearestEdge = false;
 		this.selectNearestFace = false;
+
+		// this.selected = { nodes:[], edges:[], faces:[] };
+		// this runs on paper.js objects
+		this.selectable = [];
+		this.selected = undefined;
+		this.selectableRadius = 0.03;
+		// UI layer
+		this.interactionLayer = new this.scope.Layer();
 
 		var that = this;
 		this.scope.view.onFrame = function(event){
@@ -78,11 +87,20 @@ var OrigamiPaper = (function(){
 			that.mouse.isDragging = false;
 			that.mouse.pressed.x = event.point.x;
 			that.mouse.pressed.y = event.point.y;
+			if(that.selectable.length > 0){
+				for(var i = 0; i < that.selectable.length; i++){
+					if( (that.selectable[i].position !== undefined) &&
+					    (pointsSimilar(event.point, that.selectable[i].position, that.selectableRadius)) ){
+						that.selected = that.selectable[i];
+					}
+				}
+			}
 			that.onMouseDown(event);
 		}
 		this.scope.view.onMouseUp = function(event){
 			paper = that.scope;
 			that.mouse.isPressed = false;
+			that.selected = undefined;
 			that.onMouseUp(event);
 		}
 		this.scope.view.onMouseMove = function(event){
@@ -98,6 +116,7 @@ var OrigamiPaper = (function(){
 			if(that.selectNearestNode){ that.highlightNearestNode(event.point); }
 			if(that.selectNearestEdge){ that.highlightNearestEdge(event.point); }
 			if(that.selectNearestFace){ that.highlightNearestFace(event.point); }
+			if(that.selected !== undefined){ that.selected.position = event.point; }
 			that.onMouseMove(event);
 		}
 		this.scope.view.onResize = function(event){
@@ -110,6 +129,29 @@ var OrigamiPaper = (function(){
 	OrigamiPaper.prototype.setCreasePattern = function(creasePattern){
 		this.cp = creasePattern;
 		this.draw();
+	}
+
+	OrigamiPaper.prototype.didUpdate = function(){
+		if(OrigamiPaper.prototype.refresh !== undefined){
+			OrigamiPaper.prototype.refresh();
+		}
+		OrigamiPaper.prototype.draw();
+	}
+
+	OrigamiPaper.prototype.makeControlPoints = function(count, style){
+		if(this.controlPointsLayer === undefined){this.controlPointsLayer = new this.scope.Layer();}
+		this.controlPointsLayer.activate();
+		if(style === undefined){
+			style = {radius:0.015, strokeWidth:0.01, strokeColor:{gray:0.0}, fillColor:{gray:1.0}}
+		}
+		if(count === undefined || count <= 0){ return; }
+		var controlPoints = [];
+		for(var i = 0; i < count; i++){
+			var controlPoint = new this.scope.Shape.Circle(style);
+			controlPoints.push(controlPoint);
+			this.selectable.push(controlPoint);
+		}
+		return controlPoints;
 	}
 
 	OrigamiPaper.prototype.draw = function(){
@@ -130,7 +172,8 @@ var OrigamiPaper = (function(){
 		this.nearestNode = undefined;
 		this.nearestEdge = undefined;
 		this.nearestFace = undefined;
-		this.selected = { nodes:[], edges:[], faces:[] };
+		// this.selected = { nodes:[], edges:[], faces:[] };
+		// this.selected = undefined;
 
 		// draw paper
 		if(this.cp.boundary !== undefined){
@@ -213,14 +256,20 @@ var OrigamiPaper = (function(){
 			}
 		}
 		// update user-selected
-		if(this.selected !== undefined){
-			for(var i = 0; i < this.selected.nodes.length; i++){
-				Object.assign(this.nodes[this.selected.nodes[i].index], this.style.selectedNode);
-			}
-			for(var i = 0; i < this.selected.edges.length; i++){
-				Object.assign(this.edges[this.selected.edges[i].index], this.style.selectedEdge);
-			}
+		if(this.nearestNode !== undefined){
+			Object.assign(this.nodes[this.nearestNode.index], this.style.selectedNode);
 		}
+		if(this.nearestEdge !== undefined){
+			Object.assign(this.edges[this.nearestEdge.index], this.style.selectedEdge);
+		}
+		// if(this.selected !== undefined){
+			// for(var i = 0; i < this.selected.nodes.length; i++){
+			// 	Object.assign(this.nodes[this.selected.nodes[i].index], this.style.selectedNode);
+			// }
+			// for(var i = 0; i < this.selected.edges.length; i++){
+			// 	Object.assign(this.edges[this.selected.edges[i].index], this.style.selectedEdge);
+			// }
+		// }
 	};
 
 	OrigamiPaper.prototype.update = function () {
@@ -295,11 +344,7 @@ var OrigamiPaper = (function(){
 		var node = this.cp.getNearestNode( position );
 		if(node === undefined) return;
 		if(this.nearestNode !== node){
-			// first, undo the last selected node
-			this.selected.nodes = this.selected.nodes.filter(function(el){ return el.index !== this.nearestNode.index; },this);
-			// set newest nearest to a style
 			this.nearestNode = node;
-			this.selected.nodes.push(this.nodes[this.nearestNode.index]);
 			this.update();
 		}
 	};
@@ -308,11 +353,7 @@ var OrigamiPaper = (function(){
 		var edge = this.cp.getNearestEdge( position.x, position.y ).edge;
 		if(edge === undefined) return;
 		if(this.nearestEdge !== edge){
-			// first, undo the last selected node
-			this.selected.edges = this.selected.edges.filter(function(el){ return el.index !== this.nearestEdge.index; },this);
-			// set newest nearest to a style
 			this.nearestEdge = edge;
-			this.selected.edges.push(this.edges[this.nearestEdge.index]);
 			this.update();
 		}
 	};
@@ -350,7 +391,7 @@ var OrigamiPaper = (function(){
 		var strokeWeight = this.cpMin * strokeFraction;
 		var circleRadius = this.cpMin * circleFraction;
 		this.style.nodes.radius = circleRadius;
-		this.style.selectedNode.radius = circleRadius / 0.75;
+		// this.style.selectedNode.radius = circleRadius / 0.75;
 		this.style.mountain.strokeWidth = strokeWeight;
 		this.style.valley.strokeWidth = strokeWeight;
 		this.style.valley.dashArray = [strokeWeight*2, strokeWeight*2];

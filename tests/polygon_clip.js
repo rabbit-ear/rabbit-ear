@@ -25,7 +25,7 @@ polygonClip.resetBoundary = function(){
 	var points = [];
 	for(var i = 0; i < 10; i++){ points.push(new XY(Math.random(), Math.random()));}
 	this.cp.setBoundary(points);
-	this.draw();	
+	this.draw();
 }
 polygonClip.resetBoundary();
 

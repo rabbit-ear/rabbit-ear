@@ -6,8 +6,8 @@ project.reset = function(){
 }
 project.reset();
 
-project.onFrame = function(event) { }
-project.onResize = function(event) { }
+project.onFrame = function(event){ }
+project.onResize = function(event){ }
 project.onMouseDown = function(event){ }
 project.onMouseUp = function(event){ }
-project.onMouseMove = function(event) { }
+project.onMouseMove = function(event){ }

@@ -87,7 +87,7 @@ function determinantXY(a:XY,b:XY):number{
 function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFunction:(t0,t1) => boolean, epsilon:number):XY{
 	var denominator0 = determinantXY(aVec, bVec);
 	var denominator1 = -denominator0;
-	if(epsilonEqual(denominator0, 0, epsilon)){ return undefined; } // parallel
+	if(epsilonEqual(denominator0, 0, epsilon)){ return undefined; } /* parallel */
 	var numerator0 = determinantXY(bOrigin.subtract(aOrigin), bVec);
 	var numerator1 = determinantXY(aOrigin.subtract(bOrigin), aVec);
 	var t0 = numerator0 / denominator0;
@@ -573,7 +573,7 @@ class ConvexPolygon{
 		var found = true;
 		for(var i = 0; i < this.edges.length; i++){
 			var a = this.edges[i].nodes[1].subtract(this.edges[i].nodes[0]);
-			var b = p.subtract(this.edges[i].nodes[0]);
+			var b = new XY(p.x-this.edges[i].nodes[0].x,p.y-this.edges[i].nodes[0].y);
 			if (a.cross(b) < 0){ return false; }
 		}
 		return true;

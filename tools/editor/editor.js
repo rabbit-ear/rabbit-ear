@@ -14,6 +14,8 @@ project.targetCreaseSourceLayer = new project.scope.Layer();
 project.possibleCreasesLayer = new project.scope.Layer();
 project.possibleCreasesLayer.visible = false;
 
+project.mouseDragLayer = new project.scope.Layer();
+
 project.inputMode = "add-valley";
 // "add-mountain";
 // "add-mark";

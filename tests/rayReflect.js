@@ -2,16 +2,22 @@ var rayReflect = new OrigamiPaper("canvas-ray-reflect");
 rayReflect.lineLayer = new rayReflect.scope.Layer();
 // rayReflect.cp.setSymmetryLine(new XY(0.5, 0.0), new XY(0.5, 1.0));
 
+// rayReflect.reset = function(){
+	// this.lineLayer.removeChildren();
+	// for(var i = 0; i < 7; i++){
+	// 	var startX = new XY(Math.random(), 0);
+	// 	var endX = new XY(Math.random(), 1);
+	// 	var ray = new Ray(startX, endX.subtract(startX));
+	// 	new Polyline().rayReflectRepeat(ray, this.cp.edges).edges().forEach(function(e){ this.cp.crease(e); },this);
+	// }
+	// this.cp.clean();
+	// this.draw();
+// }
 rayReflect.reset = function(){
-	this.lineLayer.removeChildren();
-	for(var i = 0; i < 7; i++){
-		var startX = new XY(Math.random(), 0);
-		var endX = new XY(Math.random(), 1);
-		var ray = new Ray(startX, endX.subtract(startX));
-		new Polyline().rayReflectRepeat(ray, this.cp.edges).edges().forEach(function(e){ this.cp.crease(e); },this);
-	}
-	this.cp.clean();
-	this.draw();
+	loadSVG("/files/svg/waves2.svg", function(e){ 
+		rayReflect.cp = e;
+		rayReflect.draw();
+	});	
 }
 rayReflect.reset();
 

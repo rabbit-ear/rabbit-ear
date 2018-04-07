@@ -27,13 +27,15 @@ deleteEdge.reset();
 
 deleteEdge.onFrame = function(event) { }
 deleteEdge.onResize = function(event) { }
-deleteEdge.onMouseDown = function(event){ 
+deleteEdge.onMouseDown = function(event){
+	console.log(this.nearestEdge);
 	if(this.nearestEdge != undefined){
 		this.cp.removeEdge(this.nearestEdge);
 		this.cp.edgeArrayDidChange();
 		this.nearestEdge = undefined;
 		this.draw();
-		this.selected.edges = [];
+		this.selectedEdge = undefined;
+		// this.selected.edges = [];
 		// this.nodeLayer.visible = true;
 	}
 }

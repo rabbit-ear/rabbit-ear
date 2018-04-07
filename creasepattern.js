@@ -915,7 +915,7 @@ var ConvexPolygon = (function () {
         var found = true;
         for (var i = 0; i < this.edges.length; i++) {
             var a = this.edges[i].nodes[1].subtract(this.edges[i].nodes[0]);
-            var b = p.subtract(this.edges[i].nodes[0]);
+            var b = new XY(p.x - this.edges[i].nodes[0].x, p.y - this.edges[i].nodes[0].y);
             if (a.cross(b) < 0) {
                 return false;
             }
@@ -3054,10 +3054,10 @@ var CreasePattern = (function (_super) {
             return;
         }
         var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-        if (origin.equivalent(newCrease.nodes[0])) {
+        if (pointsSimilar(origin, newCrease.nodes[0])) {
             newCrease.newMadeBy.rayOrigin = newCrease.nodes[0];
         }
-        if (origin.equivalent(newCrease.nodes[1])) {
+        if (pointsSimilar(origin, newCrease.nodes[1])) {
             newCrease.newMadeBy.rayOrigin = newCrease.nodes[1];
         }
         return newCrease;
@@ -3128,27 +3128,11 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.creaseRayRepeat = function (origin, direction) {
         var creases = [];
-        creases.push(this.creaseRayUntilIntersection(origin, direction));
-        var i = 0;
-        while (i < 100 && creases[creases.length - 1] !== undefined && creases[creases.length - 1].newMadeBy.intersections.length) {
-            var last = creases[creases.length - 1];
-            var reflectionMatrix = last.newMadeBy.intersections[0].reflectionMatrix();
-            var reflectedPoint = new XY(last.newMadeBy.rayOrigin.x, last.newMadeBy.rayOrigin.y).transform(reflectionMatrix);
-            var newStart = last.newMadeBy.endPoints[0];
-            var newDirection = new XY(reflectedPoint.x - newStart.x, reflectedPoint.y - newStart.y);
-            var newCrease = this.creaseRayUntilIntersection(newStart, newDirection);
-            creases.push(newCrease);
-            var newIntersection = newCrease.newMadeBy.endPoints[0];
-            if (newIntersection !== undefined) {
-                var duplicates = creases.filter(function (el, i) { return i < creases.length - 1; })
-                    .map(function (el) {
-                    return newIntersection.equivalent(el.nodes[0], EPSILON_LOW) || newIntersection.equivalent(el.nodes[1], EPSILON_LOW);
-                })
-                    .reduce(function (prev, cur) { return prev || cur; });
-                if (duplicates)
-                    i = 100;
-            }
-            i++;
+        var polyline = new Polyline().rayReflectRepeat(new Ray(origin, direction), this.edges);
+        if (polyline !== undefined) {
+            polyline.edges().forEach(function (edge) {
+                creases.push(this.crease(edge.nodes[0], edge.nodes[1]));
+            }, this);
         }
         return creases.filter(function (el) { return el != undefined; });
     };
