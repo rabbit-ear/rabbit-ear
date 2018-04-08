@@ -36,42 +36,16 @@ voronoiAnim2.redraw = function(){
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	var triangles = this.cp.creaseVoronoi(v, this.vInterp);
+	var molecules = this.cp.creaseVoronoi(v, this.vInterp);
 
 	this.draw();
 
 	this.topLayer.activate();
 	this.topLayer.removeChildren();
 
-	triangles.forEach(function(t){
-		if(t.points.length > 2){
-			var points = [];
-			if(t.isObtuse()){
-				// locate the obtuse angle
-				var obtuse = t.angles().map(function(el,i){
-					if(el>Math.PI*0.5){return i;}
-					return undefined;
-				}).filter(function(el){return el !== undefined})[0];
-				// crease the one joint line that will always be present
-				// this.crease(t.circumcenter, t.points[obtuse]).mountain();
-
-				var missingTri = [ t.points[(obtuse+2)%t.points.length],
-				                   t.points[(obtuse+1)%t.points.length],
-				                   t.circumcenter ];
-		
-				var missingJoint = new Sector(missingTri[1], [missingTri[0], missingTri[2]]);
-				// the interior angle of the hidden triangle
-				var angle = missingJoint.angle();
-
-				var aI = (obtuse+2)%t.points.length;
-				var bI = (obtuse+3)%t.points.length;
-				var cI = (obtuse+4)%t.points.length;
-				// this.creaseVoronoiIsosceles(t.circumcenter, [t.points[aI],t.points[bI]], angle*0.5);
-				// this.creaseVoronoiIsosceles(t.circumcenter, [t.points[bI],t.points[cI]], angle*0.5);
-				points = [t.circumcenter, t.points[aI], t.points[bI], t.points[cI] ];
-			} else{
-				points = t.points;
-			}
+	molecules.forEach(function(m){
+		if(m.points.length > 2){
+			var points = m.hull.edges.map(function(el){return el.nodes[0];});
 			var face = new this.scope.Path({segments:points,closed:true});
 			face.fillColor = {gray:0.8};
 			face.strokeColor = {gray:0.0};

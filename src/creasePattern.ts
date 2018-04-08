@@ -7,369 +7,7 @@
 "use strict";
 
 //////////////////////////////////////////////////////////////////////////
-// DEPENDENCIES
-interface d3VoronoiObject{
-	'edges':{
-		0:[number,number],
-		1:[number,number],
-		'left'?:{0:number,1:number,'data':[number,number],'index':number,'length':number},
-		'right'?:{0:number,1:number,'data':[number,number],'index':number,'length':number},
-		'length':number
-	}[],
-	'cells':{
-		'halfedges':number[],  // integer type, variable length
-		'site':{
-			0:number,
-			1:number,
-			'data':[number,number],
-			'length':number   // integer type
-		}
-	}[]
-}
-//////////////////////////////////////////////////////////////////////////
 // CREASE PATTERN
-
-class VoronoiMolecule extends Triangle{
-	// points:[XY,XY,XY];
-	// circumcenter:XY;
-	// sectors:[Sector,Sector,Sector];
-	overlaped:VoronoiMolecule[];
-	hull:ConvexPolygon;
-	units:VoronoiMoleculeTriangle[];
-	isEdge:boolean;
-	edgeNormal:XY; // if isEdge is true, normal to edge, pointing (in/out) from hull?
-	isCorner:boolean;
-	constructor(points:[XY,XY,XY], circumcenter:XY, edgeNormal?:XY){
-		super(points, circumcenter);
-		this.isEdge = false;  this.isCorner = false;
-		this.overlaped = [];
-		this.hull = new ConvexPolygon().convexHull([points[0], points[1], points[2], circumcenter].filter(function(el){return el !== undefined;}));
-		this.units = this.points.map(function(el,i){
-			var nextEl = this.points[ (i+1)%this.points.length ];
-			return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
-		},this);//.filter(function(el){return el !== undefined; });
-		// handle edge and corner cases
-		switch(this.points.length){
-			case 1: this.isCorner = true; this.addCornerMolecules(); break;
-			case 2:
-				this.isEdge = true;
-				// this.units.pop();
-				// there are two reflected triangles built around the same base line. remove the counter-clockwise wound one
-				this.units = this.units.filter(function(el){
-					// update molecule crimp angle
-					var cross = (el.vertex.y-el.base[0].y)*(el.base[1].x-el.base[0].x) -
-					            (el.vertex.x-el.base[0].x)*(el.base[1].y-el.base[0].y);
-					if(cross < 0){ return false;}
-					return true;
-				},this);
-				this.addEdgeMolecules(edgeNormal);
-			break;
-		}
-		// obtuse case: look for the eclipsed molecule, adjust the remaining crimp angles accordingly
-		var eclipsed:VoronoiMoleculeTriangle = undefined;
-		this.units = this.units.filter(function(el){
-			// update molecule crimp angle
-			var cross = (el.vertex.y - el.base[0].y) * (el.base[1].x - el.base[0].x) -
-			            (el.vertex.x - el.base[0].x) * (el.base[1].y - el.base[0].y);
-			if(cross < 0){ eclipsed = el; return false;}
-			return true;
-		},this);
-		if(eclipsed !== undefined){
-			var angle = clockwiseInteriorAngle(eclipsed.vertex.subtract(eclipsed.base[1]), eclipsed.base[0].subtract(eclipsed.base[1]));
-			this.units.forEach(function(el){ el.crimpAngle -= angle; });
-		}
-	}
-
-	addEdgeMolecules(normal:XY){
-		this.edgeNormal = normal.normalize().abs();
-		if(this.units.length < 1){ return; }
-		var base = this.units[0].base;
-		var reflected = base.map(function(b){
-			var diff = this.circumcenter.subtract(b);
-			var change = diff.multiply(this.edgeNormal).scale(2);
-			return b.add(change);
-		},this);
-		this.units = this.units.concat(
-			[new VoronoiMoleculeTriangle(this.circumcenter, [base[1], reflected[1]]),
-			 new VoronoiMoleculeTriangle(this.circumcenter, [reflected[0], base[0]])]
-		);
-	}
-
-	addCornerMolecules(){
-
-	}
-
-
-	generateCreases():Edge[]{
-		var edges:Edge[] = [];
-		var outerEdges = this.units.map(function(el,i){
-			var nextEl = this.units[ (i+1)%this.units.length ];
-			if(el.base[1].equivalent(nextEl.base[0])){ 
-				edges.push(new Edge(el.base[1], el.vertex))
-			}
-		},this);
-
-		var creases = this.units.map(function(el){return el.generateCrimpCreaseLines();});
-		creases.forEach(function(el){ edges = edges.concat(el); },this);
-
-		if(this.isObtuse()){
-			// obtuse angles, outer edges only creased if shared between 2 units
-			this.units.forEach(function(el,i){
-				var nextEl = this.units[ (i+1)%this.units.length ];
-				if(el.base[0].equivalent(el.base[1])){ edges.push( new Edge(el.base[0], el.vertex)); }
-			},this);
-		}
-		return edges;
-	}
-	// pointInside(p:XY):boolean{
-	// 	var found = true;
-	// 	for(var i = 0; i < this.hull.length; i++){
-	// 		var p0 = this.hull[i];
-	// 		var p1 = this.hull[(i+1)%this.hull.length];
-	// 		var cross = (p.y - p0.y) * (p1.x - p0.x) - 
-	// 		            (p.x - p0.x) * (p1.y - p0.y);
-	// 		if (cross < 0) return false;
-	// 	}
-	// 	return true;
-	// }
-}
-
-/** Isosceles Triangle units that comprise a VoronoiMolecule
- *
- */
-class VoronoiMoleculeTriangle {
-	base:[XY,XY];
-	vertex:XY;
-	// the crimp angle is measured against the base side.
-	crimpAngle:number;
-	overlapped:VoronoiMolecule[];
-	constructor(vertex:XY, base:[XY,XY], crimpAngle?:number){
-		this.vertex = vertex;
-		this.base = base;
-		this.crimpAngle = crimpAngle;
-		this.overlapped = [];
-		if(this.crimpAngle === undefined){
-			var vec1 = base[1].subtract(base[0]);
-			var vec2 = vertex.subtract(base[0]);
-			var a1 = clockwiseInteriorAngle(vec1, vec2);
-			var a2 = clockwiseInteriorAngle(vec2, vec1);
-			this.crimpAngle = (a1<a2) ? a1 : a2;
-		}
-	}
-	crimpLocations():[XY,XY]{
-		// first is the top of the outer triangle, the second the angle bisection
-		var baseAngle = Math.atan2(this.base[1].y-this.base[0].y,this.base[1].x-this.base[0].x);
-		var crimpVector = new XY(Math.cos(baseAngle+this.crimpAngle),Math.sin(baseAngle+this.crimpAngle));
-		var bisectVector = new XY(Math.cos(baseAngle+this.crimpAngle*0.5),Math.sin(baseAngle+this.crimpAngle*0.5));
-		var symmetryLine = new Edge(this.vertex, this.base[0].midpoint(this.base[1]));
-		// var crimpPos = rayLineSegmentIntersection(this.base[0], crimpVector, symmetryLine.nodes[0], symmetryLine.nodes[1]);
-		// var bisectPos = rayLineSegmentIntersection(this.base[0], bisectVector, symmetryLine.nodes[0], symmetryLine.nodes[1]);
-		var crimpPos = intersectionRayEdge(new Ray(this.base[0], crimpVector), symmetryLine);
-		var bisectPos = intersectionRayEdge(new Ray(this.base[0], bisectVector), symmetryLine);
-		return [crimpPos, bisectPos];
-	}
-	generateCrimpCreaseLines():Edge[]{
-		var crimps:[XY,XY] = this.crimpLocations();
-
-		var symmetryLine = new Edge(this.vertex, this.base[0].midpoint(this.base[1]));
-		if(this.overlapped.length > 0){
-			symmetryLine.nodes[1] = this.overlapped[0].circumcenter;
-		}
-		var overlappingEdges = [symmetryLine]
-			.concat(this.overlapped.flatMap(function(el:VoronoiMolecule){
-				return el.generateCreases();
-			}))
-
-		var edges = [symmetryLine]
-			// .concat(rayReflectRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );
-			.concat(new Polyline().rayReflectRepeat(new Ray(this.base[0], this.base[1].subtract(this.base[0])), overlappingEdges, this.base[1]).edges());
-		crimps.filter(function(el){
-				return el!==undefined && !el.equivalent(this.vertex);},this)
-			.forEach(function(crimp:XY){
-				// edges = edges.concat( rayReflectRepeat(this.base[0], crimp.subtract(this.base[0]), overlappingEdges, this.base[1]) );
-				edges = edges.concat( new Polyline().rayReflectRepeat(new Ray(this.base[0], crimp.subtract(this.base[0])), overlappingEdges, this.base[1]).edges() );
-			},this);
-		return edges;
-
-		// if(crimps[0] !== undefined){
-		// 	var newEdges = rayReflectRepeat(this.base[0], crimps[0].subtract(this.base[0]), overlappingEdges, this.base[1]);
-		// 	edges = edges.concat( newEdges );
-		// }
-		// edges = edges.concat([
-		// 	new Edge(this.base[0], crimps[1]), 
-		// 	new Edge(this.base[1], crimps[1])]);
-		// return edges;
-
-		// return [
-		// 	symmetryLine,
-		// 	new Edge(this.base[0], this.base[1]),
-		// 	new Edge(this.base[0], crimps[0]),
-		// 	new Edge(this.base[1], crimps[0]),
-		//	new Edge(this.base[0], crimps[1]),
-		//	new Edge(this.base[1], crimps[1])
-		// ]//.concat(rayReflectRepeat(this.base[0], this.base[1].subtract(this.base[0]), overlappingEdges, this.base[1]) );;
-	}
-	pointInside(p:XY):boolean{
-		var found = true;
-		var points = [this.vertex, this.base[0], this.base[1]];
-		for(var i = 0; i < points.length; i++){
-			var p0 = points[i];
-			var p1 = points[(i+1)%points.length];
-			var cross = (p.y - p0.y) * (p1.x - p0.x) - 
-			            (p.x - p0.x) * (p1.y - p0.y);
-			if (cross < 0) return false;
-		}
-		return true;
-	}
-}
-
-class VoronoiEdge{
-	endPoints:[XY, XY];
-	junctions:[VoronoiJunction, VoronoiJunction];
-	cells:[VoronoiCell,VoronoiCell];
-	isBoundary:boolean;
-	cache:object = {};
-}
-
-class VoronoiCell{
-	site:XY;
-	points:XY[];
-	edges:VoronoiEdge[];
-	constructor(){ this.points = []; this.edges = []; }
-}
-
-class VoronoiJunction{
-	position:XY;
-	edges:VoronoiEdge[];
-	cells:VoronoiCell[];
-	isEdge:boolean;
-	isCorner:boolean;
-	edgeNormal:XY;// normal to the edge, if there is an edge
-	constructor(){ this.edges = []; this.cells = []; this.isEdge = false; this.isCorner = false; }
-}
-
-class VoronoiGraph{
-	edges:VoronoiEdge[];
-	junctions:VoronoiJunction[];
-	cells:VoronoiCell[];
-
-	edgeExists(points:[XY,XY], epsilon?:number):VoronoiEdge{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		this.edges.forEach(function(el){
-			if(el.endPoints[0].equivalent(points[0], epsilon) &&
-			   el.endPoints[1].equivalent(points[1], epsilon)){ return el; }
-			if(el.endPoints[1].equivalent(points[0], epsilon) &&
-			   el.endPoints[0].equivalent(points[1], epsilon)){ return el; }
-		});
-		return undefined;
-	}
-
-	constructor(v:d3VoronoiObject, epsilon?:number){
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var allPoints = v.edges.flatMap(function(e){return [new XY(e[0][0],e[0][1]),new XY(e[1][0],e[1][1])]})
-		var hull = new ConvexPolygon().convexHull(allPoints);
-
-		this.edges = [];
-		this.junctions = [];
-		this.cells = [];
-
-		this.edges = v.edges.map(function(el){
-			var edge = new VoronoiEdge()
-			edge.endPoints = [new XY(el[0][0],el[0][1]), new XY(el[1][0],el[1][1])];
-			edge.cache = {'left': el.left, 'right': el.right}
-			return edge;
-		});
-
-		this.cells = v.cells.map(function(c){
-			var cell = new VoronoiCell();
-			cell.site = new XY(c.site[0], c.site[1]);
-			// use halfedge indices to make an array of VoronoiEdge
-			cell.edges = c.halfedges.map(function(hf){ return this.edges[hf]; },this);
-			// turn the edges into a circuit of points
-			cell.points = cell.edges.map(function(el,i){
-				var a = el.endPoints[0];
-				var b = el.endPoints[1];
-				var nextA = cell.edges[(i+1)%cell.edges.length].endPoints[0];
-				var nextB = cell.edges[(i+1)%cell.edges.length].endPoints[1];
-				if(a.equivalent(nextA,epsilon) || a.equivalent(nextB,epsilon)){
-					return b;
-				}
-				return a;
-			},this);
-			return cell;
-		},this);
-		// locate each of the neighbor cells for every edge
-		this.edges.forEach(function(el){
-			var thisCells:[VoronoiCell, VoronoiCell] = [undefined, undefined];
-			if(el.cache['left'] !== undefined){
-				var leftSite = new XY(el.cache['left'][0], el.cache['left'][1]);
-				for(var i = 0; i < this.cells.length; i++){
-					if(leftSite.equivalent(this.cells[i].site,epsilon)){
-						thisCells[0] = this.cells[i];
-						break;
-					}
-				}
-			}
-			if(el.cache['right'] !== undefined){
-				var rightSite = new XY(el.cache['right'][0], el.cache['right'][1]);
-				for(var i = 0; i < this.cells.length; i++){
-					if(rightSite.equivalent(this.cells[i].site,epsilon)){
-						thisCells[1] = this.cells[i];
-						break;
-					}
-				}
-			}
-			el.cells = thisCells;
-			el.isBoundary = false;
-			if(el.cells[0] === undefined || el.cells[1] === undefined){el.isBoundary = true;}
-			el.cache = {};
-		},this);
-
-		var nodes:XY[] = [];
-		var compFunc = function(a:XY,b:XY){ return a.equivalent(b,epsilon); };
-		this.edges.forEach(function(el){
-			if(!nodes.contains(el.endPoints[0],compFunc)){nodes.push(el.endPoints[0]);}
-			if(!nodes.contains(el.endPoints[1],compFunc)){nodes.push(el.endPoints[1]);}
-		},this);
-		this.junctions = nodes.map(function(el){
-			var junction = new VoronoiJunction();
-			junction.position = el;
-			junction.cells = this.cells.filter(function(cell){ 
-				return cell.points.contains(el,compFunc)
-			},this).sort(function(a:VoronoiCell,b:VoronoiCell){
-				var vecA = a.site.subtract(el);
-				var vecB = b.site.subtract(el);
-				return Math.atan2(vecA.y,vecA.x) - Math.atan2(vecB.y,vecB.x);
-			});
-			switch(junction.cells.length){
-				case 1: junction.isCorner = true; break;
-				case 2: 
-					junction.isEdge = true;
-					hull.edges.forEach(function(edge:Edge){
-						if(edge.collinear(junction.position)){
-							junction.edgeNormal = edge.nodes[1].subtract(edge.nodes[0]).rotate90();
-						}
-					});
-				break;
-			}
-			junction.edges = this.edges.filter(function(edge){
-				return edge.endPoints.contains(el,compFunc);
-			},this).sort(function(a:VoronoiEdge,b:VoronoiEdge){
-				var otherA = a.endPoints[0];
-				if(otherA.equivalent(el)){ otherA = a.endPoints[1];}
-				var otherB = b.endPoints[0];
-				if(otherB.equivalent(el)){ otherB = b.endPoints[1];}
-				var vecA = otherA.subtract(el);
-				var vecB = otherB.subtract(el);
-				return Math.atan2(vecA.y,vecA.x) - Math.atan2(vecB.y,vecB.x);
-			});
-			return junction;
-		},this);
-		return this;
-	}
-}
-
-
 
 enum CreaseDirection{
 	mark,
@@ -522,7 +160,6 @@ class CreaseJunction extends PlanarJunction{
 		return new XY(Math.cos(newA), Math.sin(newA));
 	}
 }
-
 
 class CreaseNode extends PlanarNode{
 	graph:CreasePattern;
@@ -716,23 +353,270 @@ class CreasePattern extends PlanarGraph{
 				for(var j=0;j<this.faces[i].nodes.length;j++){
 					var nIndex = this.faces[i].nodes[j].index;
 					f.nodes.push(g.nodes[nIndex]);
-				}
-				}
+				} }
 				if(this.faces[i].edges !== undefined){
 				for(var j=0;j<this.faces[i].edges.length;j++){
 					var eIndex = this.faces[i].edges[j].index;
 					f.edges.push(g.edges[eIndex]);
-				}
-				}
+				} }
 				if(this.faces[i].angles !== undefined){
 				for(var j=0;j<this.faces[i].angles.length;j++){
 					f.angles.push(this.faces[i].angles[j]); 
-				}
-				}
+				} }
 			}
 		}
 		g.boundary = this.boundary.copy();
 		return g;
+	}
+
+	
+	///////////////////////////////////////////////////////////////
+	// ADD PARTS
+
+	fold(param1, param2, param3, param4){
+		// detects parameters, make deductions
+	}
+
+	foldInHalf():Crease{
+		var crease:Crease;
+		// var bounds = this.boundingBox();
+		// var centroid = new XY(bounds.origin.x + bounds.size.width*0.5,
+		//                       bounds.origin.y + bounds.size.height*0.5);
+
+		// // var edges = [this.boundary.]
+
+		// var validCreases = this.possibleFolds3().edges.filter(function(el){ 
+		// 	return onSegment(centroid, el.nodes[0], el.nodes[1]);
+		// }).sort(function(a,b){ 
+		// 	var aSum = a.nodes[0].index + a.nodes[1].index;
+		// 	var bSum = b.nodes[0].index + b.nodes[1].index;
+		// 	return (aSum>bSum)?1:(aSum<bSum)?-1:0;
+		// });
+		// // console.log(validCreases);
+		// var edgeCount = this.edges.length;
+		// var i = 0;
+		// do{
+		// 	// console.log("new round");
+		// 	// console.log(this.edges.length);
+		// 	crease = this.creaseThroughPoints(validCreases[i].nodes[0], validCreases[i].nodes[1]);
+		// 	// console.log(this.edges.length);
+		// 	this.clean();
+		// 	i++;
+		// }while( edgeCount === this.edges.length && i < validCreases.length );
+		// if(edgeCount !== this.edges.length) return crease;
+		var bounds = this.bounds();
+
+		if(epsilonEqual(bounds.size.width, bounds.size.height)){
+				this.clean();
+			var edgeCount = this.edges.length;
+			var edgeMidpoints = this.edges.map(function(el){return el.midpoint();});
+			var arrayOfPointsAndMidpoints = this.nodes.map(function(el){return new XY(el.x, el.y);}).concat(edgeMidpoints);
+			// console.log(arrayOfPointsAndMidpoints);
+			var centroid = new XY(bounds.topLeft.x + bounds.size.width*0.5,
+			                      bounds.topLeft.y + bounds.size.height*0.5);
+			var i = 0;
+			do{
+				// console.log("new round");
+				// console.log(this.edges.length);
+				crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
+				// console.log(this.edges.length);
+				this.clean();
+				i++;
+			}while( edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length );
+			if(edgeCount !== this.edges.length) return crease;
+		}
+		return;
+	}
+
+	newCrease(a_x:number, a_y:number, b_x:number, b_y:number):Crease{
+		// use this.crease() instead
+		// this is a private function and expects all boundary intersection conditions satisfied
+		this.creaseSymmetry(a_x, a_y, b_x, b_y);
+		var newCrease = <Crease>this.newPlanarEdge(a_x, a_y, b_x, b_y);
+		if(this.didChange !== undefined){ this.didChange(undefined); }
+		return newCrease;
+	}
+
+	/** Create a crease that is a line segment, and will crop if it extends beyond boundary
+	 * @arg 4 numbers, 2 XY points, or 1 Edge
+	 * @returns {Crease} pointer to the Crease
+	 */
+	crease(a:any, b?:any, c?:any, d?:any):Crease{
+		var edge;
+		// input is 1 edge, 2 XY, or 4 numbers
+		if(a instanceof Edge || a instanceof Crease){ edge = this.boundary.clipEdge(a); }
+		else if(isValidPoint(a) && isValidPoint(b)){ edge = this.boundary.clipEdge(new Edge(a,b)); }
+		else if(isValidNumber(a)&&isValidNumber(b)&&isValidNumber(c)&&isValidNumber(d)){
+			edge = this.boundary.clipEdge(new Edge(a,b,c,d));
+		}
+		if(edge === undefined){ return; }
+		return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+	}
+
+	creaseRay(a:any, b?:any, c?:any, d?:any):Crease{
+		var ray;
+		if(a instanceof Ray){ ray = a; }
+		else if(isValidPoint(a) && isValidPoint(b)){ ray = new Ray(a, b); }
+		else if(isValidNumber(a)&&isValidNumber(b)&&isValidNumber(c)&&isValidNumber(d)){
+			ray = new Ray(new XY(a,b), new XY(c,d));
+		}
+		var edge = this.boundary.clipRay(ray);
+		if(edge === undefined) { return; }
+		var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+		// if(pointsSimilar(origin, newCrease.nodes[0])){ newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[0]; }
+		// if(pointsSimilar(origin, newCrease.nodes[1])){ newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[1]; }
+		return newCrease;
+	}
+
+	// creaseRayUntilMark
+	creaseRayUntilIntersection(ray:Ray, target?:XY):Crease{
+		var clips = ray.clipWithEdgesWithIntersections(this.edges);
+		if(clips.length > 0){
+			// if target exists, and target is closer than shortest edge, return crease to target
+			if(target !== undefined){
+				var targetEdge = new Edge(ray.origin.x, ray.origin.y, target.x, target.y);
+				if(clips[0].edge.length() > targetEdge.length()){ return this.crease(targetEdge); }
+			}
+			// return crease to edge
+			return this.crease(clips[0].edge);
+		}
+		return undefined;
+	}
+
+	creaseRayRepeat(ray:Ray, target?:XY):Crease[]{
+		return new Polyline()
+			.rayReflectRepeat(ray, this.edges, target)
+			.edges()
+			.map(function(edge:Edge){
+				return this.crease(edge);
+			},this)
+			.filter(function(el){ return el != undefined; });
+	}
+
+	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
+		if(this.symmetryLine === undefined){ return undefined; }
+		var ra = new XY(ax, ay).reflect(this.symmetryLine[0], this.symmetryLine[1]);
+		var rb = new XY(bx, by).reflect(this.symmetryLine[0], this.symmetryLine[1]);
+		return <Crease>this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
+	}
+
+	// AXIOM 1
+	creaseThroughPoints(a:XY, b:XY):Crease{
+		var edge = this.boundary.clipLine(new Line(a.x, a.y, b.x, b.y));
+		if(edge === undefined){ return; }
+		var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+		newCrease.madeBy = new Fold(this.creaseThroughPoints, [new XY(a.x,a.y), new XY(b.x,b.y)]);
+		return newCrease;
+	}
+	// AXIOM 2
+	creasePointToPoint(a:XY, b:XY):Crease{
+		var midpoint = new XY( (a.x+b.x)*0.5, (a.y+b.y)*0.5 );
+		var ab = new XY(b.x-a.x,b.y-a.y);
+		var perp1 = ab.rotate90();
+		var edge = this.boundary.clipLine(new Line(midpoint, midpoint.add(perp1)));
+		if(edge !== undefined){
+			var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+			newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(a.x,a.y), new XY(b.x,b.y)]);
+			return newCrease
+		}
+		return;
+	}
+	// AXIOM 3
+	creaseEdgeToEdge(one:Crease, two:Crease):Crease[]{
+		var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
+		var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
+		if( a.parallel(b) ){
+			var u = a.nodes[0].subtract(a.nodes[1]);
+			var midpoint = a.nodes[0].midpoint(b.nodes[1]);
+			var clip = this.boundary.clipLine( new Line(midpoint, midpoint.add(u)) );
+			return [ this.newCrease(clip.nodes[0].x, clip.nodes[0].y, clip.nodes[1].x, clip.nodes[1].y) ];
+		} else{
+			var intersection:XY = intersectionLineLine(a, b);
+			var u = a.nodes[1].subtract(a.nodes[0]);
+			var v = b.nodes[1].subtract(b.nodes[0]);
+			var vectors = bisect(u,v);
+			vectors[1] = vectors[0].rotate90();
+			return vectors
+				.map(function(el){ return this.boundary.clipLine(new Line(intersection,el.add(intersection)));},this)
+				.filter(function(el){ return el !== undefined; })
+				.map(function(el){
+					return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y);
+				}, this)
+				.sort(function(a,b){
+					return Math.abs(u.cross(vectors[0])) - Math.abs(u.cross(vectors[1]))
+				});
+		}
+	}
+	// AXIOM 4
+	creasePerpendicularThroughPoint(line:Crease, point:XY):Crease{
+		var ab = new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y);
+		var perp = new XY(-ab.y, ab.x);
+		var point2 = new XY(point.x + perp.x, point.y + perp.y);
+		var crease = this.creaseThroughPoints(point, point2);
+		if(crease !== undefined){ crease.madeBy = new Fold(this.creasePerpendicularThroughPoint, [new XY(line.nodes[0].x, line.nodes[0].y), new XY(line.nodes[1].x, line.nodes[1].y), new XY(point.x, point.y)]); }
+		return crease
+	}
+	// AXIOM 5
+	creasePointToLine(origin:XY, point:XY, line:Crease):Crease[]{
+		var radius = Math.sqrt( Math.pow(origin.x-point.x,2) + Math.pow(origin.y-point.y,2) );
+		var intersections = circleLineIntersectionAlgorithm(origin, radius, line.nodes[0], line.nodes[1]);
+		// return (radius*radius) * dr_squared > (D*D)  // check if there are any intersections
+		var creases = [];
+		for(var i = 0; i < intersections.length; i++){
+			creases.push( this.creasePointToPoint(point, intersections[i]) );
+		}
+		return creases;
+	}
+	// AXIOM 7
+	creasePerpendicularPointOntoLine(point:XY, ontoLine:Crease, perpendicularTo:Crease):Crease{
+		var endPts = perpendicularTo.nodes;
+		var align = new XY(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
+		var pointParallel = new XY(point.x+align.x, point.y+align.y);
+		var intersection = intersectionLineLine(new Line(point, pointParallel), ontoLine);
+		if(intersection != undefined){
+			var midPoint = new XY((intersection.x + point.x)*0.5, (intersection.y + point.y)*0.5);
+			var perp = new XY(-align.y, align.x);
+			var midPoint2 = new XY(midPoint.x + perp.x, midPoint.y + perp.y);
+			return this.creaseThroughPoints(midPoint, midPoint2);
+		}
+		throw "axiom 7: two crease lines cannot be parallel"
+	}
+
+	creaseVoronoi(v:VoronoiGraph, interp?:number):VoronoiMolecule[]{
+		if(interp === undefined){ interp = 0.5; }
+
+		// original voronoi graph edges
+		var edges = v.edges.filter(function(el){return !el.isBoundary; });
+		// shrunk voronoi cell outlines
+		var cells:[XY,XY][][] = v.cells.map(function(cell:VoronoiCell){
+			return cell.edges.map(function(edge:VoronoiEdge){
+				return edge.endPoints.map(function(el:XY){
+					return cell.site.lerp(el,interp);
+				});
+			},this);
+		},this);
+		// junction molecules
+		// var molecules:VoronoiMolecule[] = v.generateMolecules(interp);
+		// find overlapped molecules
+		var sortedMolecules = v.generateSortedMolecules(interp);
+		sortedMolecules.forEach(function(arr){
+			arr.forEach(function(m){
+				var edges = m.generateCreases();
+				edges.forEach(function(el){
+					this.crease(el.nodes[0], el.nodes[1]);
+				},this);
+			}, this);
+		}, this);
+
+		edges.forEach(function(edge:VoronoiEdge){
+			var c = this.crease(edge.endPoints[0], edge.endPoints[1]);
+			if(c !== undefined){ c.valley(); }
+		},this);
+		cells.forEach(function(cell:[XY,XY][]){ cell.forEach(function(edge){
+			this.crease(edge[0], edge[1]).mountain();
+		},this)},this);
+
+		return sortedMolecules.reduce(function(prev, current){ return prev.concat(current); });
 	}
 
 	possibleFolds():CreasePattern{
@@ -929,382 +813,6 @@ class CreasePattern extends PlanarGraph{
 		return this.nodes.map(function(el){return el.flatFoldable()})
 		                 .reduce(function(prev,cur){return prev && cur;});
 	}
-	
-	///////////////////////////////////////////////////////////////
-	// ADD PARTS
-
-	fold(param1, param2, param3, param4){
-		// detects which parameters are there
-	}
-
-	foldInHalf():Crease{
-		var crease:Crease;
-		// var bounds = this.boundingBox();
-		// var centroid = new XY(bounds.origin.x + bounds.size.width*0.5,
-		//                       bounds.origin.y + bounds.size.height*0.5);
-
-		// // var edges = [this.boundary.]
-
-		// var validCreases = this.possibleFolds3().edges.filter(function(el){ 
-		// 	return onSegment(centroid, el.nodes[0], el.nodes[1]);
-		// }).sort(function(a,b){ 
-		// 	var aSum = a.nodes[0].index + a.nodes[1].index;
-		// 	var bSum = b.nodes[0].index + b.nodes[1].index;
-		// 	return (aSum>bSum)?1:(aSum<bSum)?-1:0;
-		// });
-		// // console.log(validCreases);
-		// var edgeCount = this.edges.length;
-		// var i = 0;
-		// do{
-		// 	// console.log("new round");
-		// 	// console.log(this.edges.length);
-		// 	crease = this.creaseThroughPoints(validCreases[i].nodes[0], validCreases[i].nodes[1]);
-		// 	// console.log(this.edges.length);
-		// 	this.clean();
-		// 	i++;
-		// }while( edgeCount === this.edges.length && i < validCreases.length );
-		// if(edgeCount !== this.edges.length) return crease;
-		var bounds = this.bounds();
-
-		if(epsilonEqual(bounds.size.width, bounds.size.height)){
-				this.clean();
-			var edgeCount = this.edges.length;
-			var edgeMidpoints = this.edges.map(function(el){return el.midpoint();});
-			var arrayOfPointsAndMidpoints = this.nodes.map(function(el){return new XY(el.x, el.y);}).concat(edgeMidpoints);
-			// console.log(arrayOfPointsAndMidpoints);
-			var centroid = new XY(bounds.topLeft.x + bounds.size.width*0.5,
-			                      bounds.topLeft.y + bounds.size.height*0.5);
-			var i = 0;
-			do{
-				// console.log("new round");
-				// console.log(this.edges.length);
-				crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
-				// console.log(this.edges.length);
-				this.clean();
-				i++;
-			}while( edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length );
-			if(edgeCount !== this.edges.length) return crease;
-		}
-		return;
-	}
-
-	newCrease(a_x:number, a_y:number, b_x:number, b_y:number):Crease{
-		// use this.crease() instead
-		// this is a private function and expects all boundary intersection conditions satisfied
-		this.creaseSymmetry(a_x, a_y, b_x, b_y);
-		var newCrease = <Crease>this.newPlanarEdge(a_x, a_y, b_x, b_y);
-		if(this.didChange !== undefined){ this.didChange(undefined); }
-		return newCrease;
-	}
-
-	/** Create a crease that is a line segment, and will crop if it extends beyond boundary
-	 * @arg 4 numbers, 2 XY points, or 1 Edge
-	 * @returns {Crease} pointer to the Crease
-	 */
-	crease(a:any, b?:any, c?:any, d?:any):Crease{
-		var edge;
-		// input is 1 edge, 2 XY, or 4 numbers
-		if(a instanceof Edge || a instanceof Crease){ edge = this.boundary.clipEdge(a); }
-		else if(isValidPoint(a) && isValidPoint(b)){ edge = this.boundary.clipEdge(new Edge(a,b)); }
-		else if(isValidNumber(a)&&isValidNumber(b)&&isValidNumber(c)&&isValidNumber(d)){
-			edge = this.boundary.clipEdge(new Edge(a,b,c,d));
-		}
-		if(edge === undefined){ return; }
-		return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-	}
-
-	creaseRay(a:any, b?:any, c?:any, d?:any):Crease{
-		var ray;
-		if(a instanceof Ray){ ray = a; }
-		else if(isValidPoint(a) && isValidPoint(b)){ ray = new Ray(a, b); }
-		else if(isValidNumber(a)&&isValidNumber(b)&&isValidNumber(c)&&isValidNumber(d)){
-			ray = new Ray(new XY(a,b), new XY(c,d));
-		}
-		var edge = this.boundary.clipRay(ray);
-		if(edge === undefined) { return; }
-		var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-		// if(pointsSimilar(origin, newCrease.nodes[0])){ newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[0]; }
-		// if(pointsSimilar(origin, newCrease.nodes[1])){ newCrease.newMadeBy.rayOrigin = <CreaseNode>newCrease.nodes[1]; }
-		return newCrease;
-	}
-
-	// creaseRayUntilMark
-	creaseRayUntilIntersection(ray:Ray, target?:XY):Crease{
-		var clips = ray.clipWithEdgesWithIntersections(this.edges);
-		if(clips.length > 0){
-			// if target exists, and target is closer than shortest edge, return crease to target
-			if(target !== undefined){
-				var targetEdge = new Edge(ray.origin.x, ray.origin.y, target.x, target.y);
-				if(clips[0].edge.length() > targetEdge.length()){ return this.crease(targetEdge); }
-			}
-			// return crease to edge
-			return this.crease(clips[0].edge);
-		}
-		return undefined;
-	}
-
-	creaseRayRepeat(ray:Ray, target?:XY):Crease[]{
-		return new Polyline()
-			.rayReflectRepeat(ray, this.edges, target)
-			.edges()
-			.map(function(edge:Edge){
-				return this.crease(edge);
-			},this)
-			.filter(function(el){ return el != undefined; });
-	}
-
-	creaseAngleBisector(a:Crease, b:Crease):Crease{
-		var aCommon, bCommon;
-		if(a.nodes[0].equivalent(b.nodes[0])){ aCommon = a.nodes[0]; bCommon = b.nodes[0]; }
-		if(a.nodes[0].equivalent(b.nodes[1])){ aCommon = a.nodes[0]; bCommon = b.nodes[1]; }
-		if(a.nodes[1].equivalent(b.nodes[0])){ aCommon = a.nodes[1]; bCommon = b.nodes[0]; }
-		if(a.nodes[1].equivalent(b.nodes[1])){ aCommon = a.nodes[1]; bCommon = b.nodes[1]; }
-		// var commonNode = <PlanarNode>a.commonNodeWithEdge(b);
-		// console.log(commonNode);
-		if(aCommon === undefined) return undefined;
-		var aAngle = a.absoluteAngle(aCommon);
-		var bAngle = b.absoluteAngle(bCommon);
-		var clockwise = clockwiseInteriorAngleRadians(bAngle, aAngle);
-		var newAngle = bAngle - clockwise*0.5 + Math.PI;
-		return this.creaseRay(aCommon, new XY(Math.cos(newAngle), Math.sin(newAngle)));
-	}
-
-	creaseAngleBisectorSmaller(a:Crease, b:Crease):Crease{
-		var aCommon, bCommon;
-		if(a.nodes[0].equivalent(b.nodes[0])){ aCommon = a.nodes[0]; bCommon = b.nodes[0]; }
-		if(a.nodes[0].equivalent(b.nodes[1])){ aCommon = a.nodes[0]; bCommon = b.nodes[1]; }
-		if(a.nodes[1].equivalent(b.nodes[0])){ aCommon = a.nodes[1]; bCommon = b.nodes[0]; }
-		if(a.nodes[1].equivalent(b.nodes[1])){ aCommon = a.nodes[1]; bCommon = b.nodes[1]; }
-		// var commonNode = <PlanarNode>a.commonNodeWithEdge(b);
-		// console.log(commonNode);
-		if(aCommon === undefined) return undefined;
-		var aAngle = a.absoluteAngle(aCommon);
-		var bAngle = b.absoluteAngle(bCommon);
-		var clockwise = clockwiseInteriorAngleRadians(bAngle, aAngle);
-		var counter = clockwiseInteriorAngleRadians(aAngle, bAngle);
-		var clockwiseAngle = bAngle - clockwise*0.5 + Math.PI;
-		var correctedAngle = bAngle - clockwise*0.5;
-		if(clockwise < counter){
-			return this.creaseRay(aCommon, new XY(Math.cos(correctedAngle), Math.sin(correctedAngle)));
-		}
-		return this.creaseRay(aCommon, new XY(Math.cos(clockwiseAngle), Math.sin(clockwiseAngle)));
-	}
-
-	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
-		if(this.symmetryLine === undefined){ return undefined; }
-		var ra = new XY(ax, ay).reflect(this.symmetryLine[0], this.symmetryLine[1]);
-		var rb = new XY(bx, by).reflect(this.symmetryLine[0], this.symmetryLine[1]);
-		return <Crease>this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
-	}
-
-	// AXIOM 1
-	creaseThroughPoints(a:XY, b:XY):Crease{
-		var edge = this.boundary.clipLine(new Line(a,b));
-		// var endPoints = this.clipLineInBoundary(a,b);
-		if(edge === undefined){ return; }//throw "creaseThroughPoints(): crease line doesn't cross inside boundary"; }
-		var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-		newCrease.madeBy = new Fold(this.creaseThroughPoints, [new XY(a.x,a.y), new XY(b.x,b.y)]);
-		return newCrease;
-	}
-	// AXIOM 2
-	creasePointToPoint(a:XY, b:XY):Crease{
-		var midpoint = new XY( (a.x+b.x)*0.5, (a.y+b.y)*0.5 );
-		var ab = new XY(b.x-a.x,b.y-a.y);
-		var perp1 = ab.rotate90();
-		var edge = this.boundary.clipLine(new Line(midpoint, midpoint.add(perp1)));
-		// var intersects = this.boundaryLineIntersection(midpoint, perp1);
-		if(edge !== undefined){
-			var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-			newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(a.x,a.y), new XY(b.x,b.y)]);
-			return newCrease
-		}
-		return;
-		// throw "points have no perpendicular bisector inside of the boundaries";
-	}
-	// AXIOM 3
-	creaseEdgeToEdge(one:Crease, two:Crease):Crease[]{
-		var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
-		var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
-		if ( a.parallel(b) ) {
-			var u = a.nodes[1].subtract(a.nodes[0]);
-			var perp:XY = u.rotate90();
-			var u_perp:XY = u.add(perp);
-			var perpEdge = new Line(u, u_perp);
-			// var intersect1 = lineIntersectionAlgorithm(u, new XY(u.x+perp.x, u.y+perp.y), a.nodes[0], a.nodes[1]);
-			// var intersect2 = lineIntersectionAlgorithm(u, new XY(u.x+perp.x, u.y+perp.y), b.nodes[0], b.nodes[1]);
-			var intersect1:XY = intersectionLineEdge(perpEdge, a);
-			var intersect2:XY = intersectionLineEdge(perpEdge, b);
-			if(intersect1 == undefined || intersect2 == undefined){ return;; }
-			var midpoint = intersect1.midpoint(intersect2);
-			var crease = this.creaseThroughPoints(midpoint, new XY(midpoint.x+u.x, midpoint.y+u.y));
-			if(crease !== undefined){
-				crease.madeBy = new Fold(this.creaseEdgeToEdge, [
-				new XY(a.nodes[0].x, a.nodes[0].y),
-				new XY(a.nodes[1].x, a.nodes[1].y),
-				new XY(b.nodes[0].x, b.nodes[0].y),
-				new XY(b.nodes[1].x, b.nodes[1].y)]);
-			}
-			return [crease];
-		}
-		else {
-			var creases:Crease[] = [];
-			// var intersection = lineIntersectionAlgorithm(a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]);
-			var intersection:XY = intersectionLineLine(a, b);
-			var u = new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
-			var v = new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y);
-			var uMag = u.magnitude();
-			var vMag = v.magnitude();
-			var dir = new XY( (u.x*vMag + v.x*uMag), (u.y*vMag + v.y*uMag) );
-			// var intersects = this.boundaryLineIntersection(intersection, dir);
-			var intersects = this.boundary.clipLine(new Line(intersection, intersection.add(dir)));
-
-			if(intersects !== undefined){
-				creases.push(this.newCrease(intersects.nodes[0].x, intersects.nodes[0].y, intersects.nodes[1].x, intersects.nodes[1].y));
-			}
-			var dir90 = dir.rotate90();
-			// var intersects90 = this.boundaryLineIntersection(intersection, dir90);
-			var intersects90 = this.boundary.clipLine(new Line(intersection, intersection.add(dir90)));
-			if(intersects90 !== undefined){
-				if(Math.abs(u.cross(dir)) < Math.abs(u.cross(dir90)))
-					creases.push(this.newCrease(intersects90.nodes[0].x, intersects90.nodes[0].y, intersects90.nodes[1].x, intersects90.nodes[1].y));
-				else creases.unshift(this.newCrease(intersects90.nodes[0].x, intersects90.nodes[0].y, intersects90.nodes[1].x, intersects90.nodes[1].y));
-			}
-			if(creases.length){
-				for(var i = 0; i < creases.length; i++){ 
-					if(creases[i] !== undefined){
-						creases[i].madeBy = new Fold(this.creaseEdgeToEdge, [
-						new XY(a.nodes[0].x, a.nodes[0].y),
-						new XY(a.nodes[1].x, a.nodes[1].y),
-						new XY(b.nodes[0].x, b.nodes[0].y),
-						new XY(b.nodes[1].x, b.nodes[1].y)]);}
-					}
-				return creases;
-			}
-			return;
-			// throw "lines have no inner edge inside of the boundaries";
-		};
-	}
-	// AXIOM 4
-	creasePerpendicularThroughPoint(line:Crease, point:XY):Crease{
-		var ab = new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y);
-		var perp = new XY(-ab.y, ab.x);
-		var point2 = new XY(point.x + perp.x, point.y + perp.y);
-		var crease = this.creaseThroughPoints(point, point2);
-		if(crease !== undefined){ crease.madeBy = new Fold(this.creasePerpendicularThroughPoint, [new XY(line.nodes[0].x, line.nodes[0].y), new XY(line.nodes[1].x, line.nodes[1].y), new XY(point.x, point.y)]); }
-		return crease
-	}
-	// AXIOM 5
-	creasePointToLine(origin:XY, point:XY, line:Crease):Crease[]{
-		var radius = Math.sqrt( Math.pow(origin.x-point.x,2) + Math.pow(origin.y-point.y,2) );
-		var intersections = circleLineIntersectionAlgorithm(origin, radius, line.nodes[0], line.nodes[1]);
-		// return (radius*radius) * dr_squared > (D*D)  // check if there are any intersections
-		var creases = [];
-		for(var i = 0; i < intersections.length; i++){
-			creases.push( this.creasePointToPoint(point, intersections[i]) );
-		}
-		return creases;
-	}
-	// AXIOM 7
-	creasePerpendicularPointOntoLine(point:XY, ontoLine:Crease, perpendicularTo:Crease):Crease{
-		var endPts = perpendicularTo.nodes;
-		var align = new XY(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
-		var pointParallel = new XY(point.x+align.x, point.y+align.y);
-		// var intersection = lineIntersectionAlgorithm(point, pointParallel, ontoLine.nodes[0], ontoLine.nodes[1]);
-		var intersection = intersectionLineLine(new Line(point, pointParallel), ontoLine);
-		if(intersection != undefined){
-			var midPoint = new XY((intersection.x + point.x)*0.5, (intersection.y + point.y)*0.5);
-			var perp = new XY(-align.y, align.x);
-			var midPoint2 = new XY(midPoint.x + perp.x, midPoint.y + perp.y);
-			return this.creaseThroughPoints(midPoint, midPoint2);
-		}
-		throw "axiom 7: two crease lines cannot be parallel"
-	}
-
-	creaseVoronoi(v:VoronoiGraph, interp?:number):VoronoiMolecule[]{
-		if(interp === undefined){ interp = 0.5; }
-
-		// original voronoi graph edges
-		var edges = v.edges.filter(function(el){return !el.isBoundary; });
-		// shrunk voronoi cell outlines
-		var cells:[XY,XY][][] = v.cells.map(function(cell:VoronoiCell){
-			return cell.edges.map(function(edge:VoronoiEdge){
-				return edge.endPoints.map(function(el:XY){
-					return cell.site.lerp(el,interp);
-				});
-			},this);
-		},this);
-		// junction molecules
-		var molecules:VoronoiMolecule[] = v.junctions.map(function(j:VoronoiJunction){
-			var endPoints:XY[] = j.cells.map(function(cell:VoronoiCell){
-				return cell.site.lerp(j.position,interp);
-			},this);
-			var molecule = new VoronoiMolecule(<[XY,XY,XY]>endPoints, j.position, j.isEdge?j.edgeNormal:undefined);
-			return molecule;
-		},this);
-
-		// find overlapped molecules
-		var sortedMolecules = this.buildMoleculeOverlapArray(molecules);
-		// console.log(sortedMolecules);
-
-		sortedMolecules.forEach(function(arr){
-			arr.forEach(function(m){
-				var edges = m.generateCreases();
-				edges.forEach(function(el){
-					this.crease(el.nodes[0], el.nodes[1]);
-				},this);
-			}, this);
-		}, this);
-
-		edges.forEach(function(edge:VoronoiEdge){
-			this.crease(edge.endPoints[0], edge.endPoints[1]).valley();
-		},this);
-		cells.forEach(function(cell:[XY,XY][]){ cell.forEach(function(edge){
-			this.crease(edge[0], edge[1]).mountain();
-		},this)},this);
-
-		return molecules;
-	}
-
-	buildMoleculeOverlapArray(molecules:VoronoiMolecule[]):VoronoiMolecule[][]{
-		for(var i = 0; i < molecules.length; i++){
-			for(var j = 0; j < molecules.length; j++){
-				if(i !== j){
-					molecules[j].units.forEach(function(unit){
-						if(unit.pointInside(molecules[i].circumcenter)){
-							unit.overlapped.push(molecules[i]);
-							molecules[j].overlaped.push(molecules[i]);
-						}
-					});
-				}
-			}
-		}
-		for(var i = 0; i < molecules.length; i++){
-			molecules[i].units.forEach(function(unit:VoronoiMoleculeTriangle){
-				unit.overlapped.sort(function(a:VoronoiMolecule,b:VoronoiMolecule){
-					return a.circumcenter.distanceTo(unit.vertex)-b.circumcenter.distanceTo(unit.vertex);
-				});
-			});
-			molecules[i].overlaped.sort(function(a:VoronoiMolecule,b:VoronoiMolecule){
-				return a.circumcenter.distanceTo(molecules[i].circumcenter)-b.circumcenter.distanceTo(molecules[i].circumcenter);
-			});
-		}
-		// not correct. could be better? maybe?
-		var array = [];
-		var mutableMolecules = molecules.slice();
-		var rowIndex = 0;
-		while(mutableMolecules.length > 0){
-			array.push([]);
-			for(var i = mutableMolecules.length-1; i >= 0; i--){
-				if(mutableMolecules[i].overlaped.length <= rowIndex){
-					array[rowIndex].push(mutableMolecules[i]);
-					mutableMolecules.splice(i, 1);
-				}
-			}
-			rowIndex++;
-		}
-		return array;
-	}
-
 
 	//////////////////////////////////////////////
 	// BOUNDARY
@@ -1760,24 +1268,6 @@ class CreasePattern extends PlanarGraph{
 		}
 		blob = blob + "</g>\n</svg>\n";
 		return blob;
-	}
-
-	appendUniquePoints(master, child){
-		var returned = master.slice(0);
-		for(var c = 0; c < child.length; c++){
-			var found = false;
-			var i = 0;
-			while (!found && i < master.length){
-				if(master[i].equivalent(child[c])){
-					found = true;
-				}
-				i += 1;
-			}
-			if(!found){
-				returned.push(child[c]);
-			}
-		}
-		return returned;
 	}
 
 	kiteBase():CreasePattern{
