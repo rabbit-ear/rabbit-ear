@@ -169,9 +169,9 @@ var OrigamiPaper = (function(){
 		this.faceLayer.removeChildren();
 
 		// user interaction
-		this.nearestNode = undefined;
-		this.nearestEdge = undefined;
-		this.nearestFace = undefined;
+		// this.nearestNode = undefined;
+		// this.nearestEdge = undefined;
+		// this.nearestFace = undefined;
 		// this.selected = { nodes:[], edges:[], faces:[] };
 		// this.selected = undefined;
 

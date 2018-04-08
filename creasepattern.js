@@ -3032,9 +3032,8 @@ var CreasePattern = (function (_super) {
         return newCrease;
     };
     CreasePattern.prototype.crease = function (a, b, c, d) {
-        if (a instanceof Crease) { }
-        var edge = undefined;
-        if (a instanceof Edge) {
+        var edge;
+        if (a instanceof Edge || a instanceof Crease) {
             edge = this.boundary.clipEdge(a);
         }
         else if (isValidPoint(a) && isValidPoint(b)) {
@@ -3048,96 +3047,45 @@ var CreasePattern = (function (_super) {
         }
         return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
     };
-    CreasePattern.prototype.creaseRay = function (origin, direction) {
-        var edge = this.boundary.clipRay(new Ray(origin, direction));
+    CreasePattern.prototype.creaseRay = function (a, b, c, d) {
+        var ray;
+        if (a instanceof Ray) {
+            ray = a;
+        }
+        else if (isValidPoint(a) && isValidPoint(b)) {
+            ray = new Ray(a, b);
+        }
+        else if (isValidNumber(a) && isValidNumber(b) && isValidNumber(c) && isValidNumber(d)) {
+            ray = new Ray(new XY(a, b), new XY(c, d));
+        }
+        var edge = this.boundary.clipRay(ray);
         if (edge === undefined) {
             return;
         }
         var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-        if (pointsSimilar(origin, newCrease.nodes[0])) {
-            newCrease.newMadeBy.rayOrigin = newCrease.nodes[0];
-        }
-        if (pointsSimilar(origin, newCrease.nodes[1])) {
-            newCrease.newMadeBy.rayOrigin = newCrease.nodes[1];
-        }
         return newCrease;
     };
-    CreasePattern.prototype.creaseRayUntilIntersection = function (origin, direction, epsilon) {
-        if (epsilon === undefined) {
-            epsilon = EPSILON_HIGH;
-        }
-        if (!isValidPoint(origin) || !isValidPoint(direction)) {
-            return undefined;
-        }
-        var nearestIntersection = undefined;
-        var intersections = this.edges
-            .map(function (el) { return { edge: el, point: intersectionRayEdge(new Ray(origin, direction), el) }; })
-            .filter(function (el) { return el.point !== undefined; })
-            .filter(function (el) { return !el.point.equivalent(origin, epsilon); })
-            .sort(function (a, b) {
-            var da = Math.sqrt(Math.pow(origin.x - a.point.x, 2) + Math.pow(origin.y - a.point.y, 2));
-            var db = Math.sqrt(Math.pow(origin.x - b.point.x, 2) + Math.pow(origin.y - b.point.y, 2));
-            return (da > db) ? 1 : (da < db) ? -1 : 0;
-        });
-        if (intersections.length) {
-            var newCrease = this.crease(origin, intersections[0].point);
-            newCrease.newMadeBy.type = MadeByType.ray;
-            if (origin.equivalent(newCrease.nodes[0], epsilon)) {
-                newCrease.newMadeBy.rayOrigin = newCrease.nodes[0];
-                newCrease.newMadeBy.endPoints = [newCrease.nodes[1]];
+    CreasePattern.prototype.creaseRayUntilIntersection = function (ray, target) {
+        var clips = ray.clipWithEdgesWithIntersections(this.edges);
+        if (clips.length > 0) {
+            if (target !== undefined) {
+                var targetEdge = new Edge(ray.origin.x, ray.origin.y, target.x, target.y);
+                if (clips[0].edge.length() > targetEdge.length()) {
+                    return this.crease(targetEdge);
+                }
             }
-            if (origin.equivalent(newCrease.nodes[1], epsilon)) {
-                newCrease.newMadeBy.rayOrigin = newCrease.nodes[1];
-                newCrease.newMadeBy.endPoints = [newCrease.nodes[0]];
-            }
-            newCrease.newMadeBy.intersections = [intersections[0].edge];
-            return newCrease;
+            return this.crease(clips[0].edge);
         }
-        else {
-            return this.creaseRay(origin, direction);
-        }
+        return undefined;
     };
-    CreasePattern.prototype.creaseRayRepeatWithTarget = function (origin, direction, target) {
-        var creases = [];
-        creases.push(this.creaseRayUntilIntersection(origin, direction, EPSILON_LOW));
-        var i = 0;
-        while (i < 100 && creases[creases.length - 1] !== undefined && creases[creases.length - 1].newMadeBy.intersections.length) {
-            var last = creases[creases.length - 1];
-            var reflectionMatrix = last.newMadeBy.intersections[0].reflectionMatrix();
-            var reflectedPoint = new XY(last.newMadeBy.rayOrigin.x, last.newMadeBy.rayOrigin.y).transform(reflectionMatrix);
-            var newStart = last.newMadeBy.endPoints[0];
-            if (newStart.equivalent(target, EPSILON_LOW)) {
-                break;
-            }
-            var newDirection = new XY(reflectedPoint.x - newStart.x, reflectedPoint.y - newStart.y);
-            var newCrease = this.creaseRayUntilIntersection(newStart, newDirection, EPSILON_LOW);
-            creases.push(newCrease);
-            var newIntersection = newCrease.newMadeBy.endPoints[0];
-            if (newIntersection !== undefined) {
-                var duplicates = creases.filter(function (el, i) { return i < creases.length - 1; })
-                    .map(function (el) {
-                    return newIntersection.equivalent(el.nodes[0], EPSILON_LOW) || newIntersection.equivalent(el.nodes[1], EPSILON_LOW);
-                })
-                    .reduce(function (prev, cur) { return prev || cur; });
-                if (duplicates)
-                    i = 100;
-            }
-            i++;
-        }
-        return creases.filter(function (el) { return el != undefined; });
-    };
-    CreasePattern.prototype.creaseRayRepeat = function (origin, direction) {
-        var creases = [];
-        var polyline = new Polyline().rayReflectRepeat(new Ray(origin, direction), this.edges);
-        if (polyline !== undefined) {
-            polyline.edges().forEach(function (edge) {
-                creases.push(this.crease(edge.nodes[0], edge.nodes[1]));
-            }, this);
-        }
-        return creases.filter(function (el) { return el != undefined; });
-    };
-    CreasePattern.prototype.creaseAngle = function (origin, radians) {
-        return this.creaseRay(origin, new XY(Math.cos(radians), Math.sin(radians)));
+    CreasePattern.prototype.creaseRayRepeat = function (ray, target) {
+        return new Polyline()
+            .rayReflectRepeat(ray, this.edges, target)
+            .edges()
+            .map(function (edge) {
+            return this.crease(edge);
+        }, this)
+            .filter(function (el) { return el != undefined; });
     };
     CreasePattern.prototype.creaseAngleBisector = function (a, b) {
         var aCommon, bCommon;
@@ -3225,15 +3173,21 @@ var CreasePattern = (function (_super) {
         }
         return;
     };
-    CreasePattern.prototype.creaseEdgeToEdge = function (a, b) {
+    CreasePattern.prototype.creaseEdgeToEdge = function (one, two) {
+        var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
+        var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
         if (a.parallel(b)) {
-            var u = new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y);
+            var u = a.nodes[1].subtract(a.nodes[0]);
             var perp = u.rotate90();
             var u_perp = u.add(perp);
             var perpEdge = new Line(u, u_perp);
             var intersect1 = intersectionLineEdge(perpEdge, a);
             var intersect2 = intersectionLineEdge(perpEdge, b);
-            var midpoint = new XY((intersect1.x + intersect2.x) * 0.5, (intersect1.y + intersect2.y) * 0.5);
+            if (intersect1 == undefined || intersect2 == undefined) {
+                return;
+                ;
+            }
+            var midpoint = intersect1.midpoint(intersect2);
             var crease = this.creaseThroughPoints(midpoint, new XY(midpoint.x + u.x, midpoint.y + u.y));
             if (crease !== undefined) {
                 crease.madeBy = new Fold(this.creaseEdgeToEdge, [
@@ -3255,15 +3209,15 @@ var CreasePattern = (function (_super) {
             var dir = new XY((u.x * vMag + v.x * uMag), (u.y * vMag + v.y * uMag));
             var intersects = this.boundary.clipLine(new Line(intersection, intersection.add(dir)));
             if (intersects !== undefined) {
-                creases.push(this.newCrease(intersects[0].x, intersects[0].y, intersects[1].x, intersects[1].y));
+                creases.push(this.newCrease(intersects.nodes[0].x, intersects.nodes[0].y, intersects.nodes[1].x, intersects.nodes[1].y));
             }
             var dir90 = dir.rotate90();
             var intersects90 = this.boundary.clipLine(new Line(intersection, intersection.add(dir90)));
             if (intersects90 !== undefined) {
                 if (Math.abs(u.cross(dir)) < Math.abs(u.cross(dir90)))
-                    creases.push(this.newCrease(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
+                    creases.push(this.newCrease(intersects90.nodes[0].x, intersects90.nodes[0].y, intersects90.nodes[1].x, intersects90.nodes[1].y));
                 else
-                    creases.unshift(this.newCrease(intersects90[0].x, intersects90[0].y, intersects90[1].x, intersects90[1].y));
+                    creases.unshift(this.newCrease(intersects90.nodes[0].x, intersects90.nodes[0].y, intersects90.nodes[1].x, intersects90.nodes[1].y));
             }
             if (creases.length) {
                 for (var i = 0; i < creases.length; i++) {
