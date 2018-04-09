@@ -820,6 +820,17 @@ var Edge = (function () {
     Edge.prototype.transform = function (matrix) {
         return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
     };
+    Edge.prototype.nearestPoint = function (point) {
+        var answer = this.nearestPointNormalTo(point);
+        if (answer !== undefined) {
+            return answer;
+        }
+        return this.nodes
+            .map(function (el) { return { point: el, distance: el.distanceTo(point) }; }, this)
+            .sort(function (a, b) { return a.distance - b.distance; })
+            .shift()
+            .point;
+    };
     Edge.prototype.nearestPointNormalTo = function (point) {
         var p = this.nodes[0].distanceTo(this.nodes[1]);
         var u = ((point.x - this.nodes[0].x) * (this.nodes[1].x - this.nodes[0].x) + (point.y - this.nodes[0].y) * (this.nodes[1].y - this.nodes[0].y)) / (Math.pow(p, 2));
@@ -1244,42 +1255,6 @@ var VoronoiMoleculeTriangle = (function () {
                 return false;
         }
         return true;
-    };
-    VoronoiMoleculeTriangle.prototype.angles = function () {
-        var points = [this.base[0], this.base[1], this.vertex];
-        return points.map(function (p, i) {
-            var prevP = points[(i + points.length - 1) % points.length];
-            var nextP = points[(i + 1) % points.length];
-            return clockwiseInteriorAngle(nextP.subtract(p), prevP.subtract(p));
-        }, this);
-    };
-    VoronoiMoleculeTriangle.prototype.isAcute = function () {
-        var a = this.angles();
-        for (var i = 0; i < a.length; i++) {
-            if (a[i] > Math.PI * 0.5) {
-                return false;
-            }
-        }
-        return true;
-    };
-    VoronoiMoleculeTriangle.prototype.isObtuse = function () {
-        var a = this.angles();
-        console.log(a);
-        for (var i = 0; i < a.length; i++) {
-            if (a[i] > Math.PI * 0.5) {
-                return true;
-            }
-        }
-        return false;
-    };
-    VoronoiMoleculeTriangle.prototype.isRight = function () {
-        var a = this.angles();
-        for (var i = 0; i < a.length; i++) {
-            if (epsilonEqual(a[i], Math.PI * 0.5)) {
-                return true;
-            }
-        }
-        return false;
     };
     return VoronoiMoleculeTriangle;
 }());
@@ -1759,6 +1734,17 @@ var PlanarEdge = (function (_super) {
         this.nodes[0].transform(matrix);
         this.nodes[1].transform(matrix);
         return this;
+    };
+    PlanarEdge.prototype.nearestPoint = function (point) {
+        var answer = this.nearestPointNormalTo(point);
+        if (answer !== undefined) {
+            return answer;
+        }
+        return this.nodes
+            .map(function (el) { return { point: el, distance: el.distanceTo(point) }; }, this)
+            .sort(function (a, b) { return a.distance - b.distance; })
+            .shift()
+            .point;
     };
     PlanarEdge.prototype.nearestPointNormalTo = function (point) {
         var p = this.nodes[0].distanceTo(this.nodes[1]);

@@ -18,6 +18,7 @@ creaseRay.reset = function(){
 creaseRay.reset();
 
 creaseRay.updateCreases = function(){
+	paper = this.scope;
 	this.cp.clear();
 	var vector = new XY(this.selectable[1].position.x-this.selectable[0].position.x, 
 	                    this.selectable[1].position.y-this.selectable[0].position.y );

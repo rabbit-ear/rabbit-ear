@@ -146,6 +146,15 @@
 
 </section>
 
+<section>
+<h3>Distance</h3>
+
+	<div class="centered">
+		<canvas id="canvas-point-normal" class="half" resize></canvas>
+		<canvas id="canvas-point-nearest" class="half" resize></canvas>
+	</div>
+
+</section>
 
 <section id="epsilon">
 
@@ -169,6 +178,8 @@
 <script type="text/javascript" src="../tests/intersect_rays.js"></script>
 <script type="text/javascript" src="../tests/intersect_all.js"></script>
 <script type="text/javascript" src="../tests/polygon_clip.js"></script>
+<script type="text/javascript" src="../tests/point_normal.js"></script>
+<script type="text/javascript" src="../tests/point_nearest.js"></script>
 
 <script src="../tests/reflection.js"></script>
 

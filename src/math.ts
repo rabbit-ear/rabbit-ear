@@ -489,6 +489,15 @@ class Edge{
 	transform(matrix:Matrix):Edge{
 		return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
 	}
+	nearestPoint(point:XY):XY{
+		var answer = this.nearestPointNormalTo(point);
+		if(answer !== undefined){ return answer; }
+		return this.nodes
+			.map(function(el){ return {point:el,distance:el.distanceTo(point)}; },this)
+			.sort(function(a,b){ return a.distance - b.distance; })
+			.shift()
+			.point;
+	}
 	nearestPointNormalTo(point:XY):XY{
 		var p = this.nodes[0].distanceTo(this.nodes[1]);
 		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
@@ -764,7 +773,7 @@ class Sector{
 }
 
 //////////////////////////////////////////////////////////////////////////
-// DEPENDENCIES
+// VORONOI DEPENDENCIES
 interface d3VoronoiObject{
 	'edges':{
 		0:[number,number],

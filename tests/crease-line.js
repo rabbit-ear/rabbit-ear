@@ -18,6 +18,7 @@ creaseLine.reset = function(){
 creaseLine.reset();
 
 creaseLine.updateCreases = function(){
+	paper = this.scope;
 	this.cp.clear();
 	this.cp.creaseThroughPoints(this.selectable[0].position, this.selectable[1].position).valley();
 	this.draw();

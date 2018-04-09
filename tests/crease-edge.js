@@ -18,6 +18,7 @@ creaseEdge.reset = function(){
 creaseEdge.reset();
 
 creaseEdge.updateCreases = function(){
+	paper = this.scope;
 	this.cp.clear();
 	this.cp.crease(this.selectable[0].position, this.selectable[1].position).valley();
 	this.draw();

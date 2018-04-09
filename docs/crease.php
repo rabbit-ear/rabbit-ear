@@ -5,28 +5,13 @@
 <section id="intro">
 
 	<div class="centered">
-		<canvas id="canvas-crease-edge" resize></canvas>
+		<canvas id="canvas-crease-edge" class="third" resize></canvas>
+		<canvas id="canvas-crease-line" class="third" resize></canvas>
+		<canvas id="canvas-crease-ray" class="third" resize></canvas>
 	</div>
 
 	<div class="centered">
-		<pre><code>cp.<f>crease</f>(<span id="edge-points"></span>)</code></pre>
-	</div>
-
-
-	<div class="centered">
-		<canvas id="canvas-crease-line" resize></canvas>
-	</div>
-
-	<div class="centered">
-		<pre><code>cp.<f>creaseThroughPoints</f>(<span id="line-points"></span>)</code></pre>
-	</div>
-
-	<div class="centered">
-		<canvas id="canvas-crease-ray" resize></canvas>
-	</div>
-
-	<div class="centered">
-		<pre><code>cp.<f>creaseRay</f>(<span id="ray-points"></span>)</code></pre>
+		<pre><code>cp.<f>crease</f>(<span id="edge-points"></span>)<br>cp.<f>creaseThroughPoints</f>(<span id="line-points"></span>)<br>cp.<f>creaseRay</f>(<span id="ray-points"></span>)</code></pre>
 	</div>
 
 	<p class="quote">Ray is unique among these, the second point should be a direction vector</p>
@@ -78,6 +63,10 @@ creaseRayCallback = function(event){
 		document.getElementById("ray-points").innerHTML = "<n>" + event.points[0].x.toFixed(2) + "</n>, <n>" + event.points[0].y.toFixed(2) + "</n>, <n>" + event.points[1].x.toFixed(2) + "</n>, <n>" + event.points[1].y.toFixed(2) + "</n>";
 	}
 }
+creaseEdge.updateCreases();
+creaseLine.updateCreases();
+creaseRay.updateCreases();
+
 </script>
 
 <?php include 'footer.php';?>
