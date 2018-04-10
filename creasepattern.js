@@ -694,9 +694,20 @@ var Polyline = (function () {
     return Polyline;
 }());
 var Ray = (function () {
-    function Ray(origin, direction) {
-        this.origin = origin;
-        this.direction = direction;
+    function Ray(a, b, c, d) {
+        if (a instanceof XY) {
+            this.origin = a;
+            this.direction = b;
+        }
+        else if (a.x !== undefined) {
+            this.origin = new XY(a.x, a.y);
+            this.direction = new XY(b.x, b.y);
+        }
+        else {
+            this.origin = new XY(a, b);
+            this.direction = new XY(c, d);
+        }
+        ;
     }
     Ray.prototype.length = function () { return Infinity; };
     Ray.prototype.vector = function () { return this.direction; };

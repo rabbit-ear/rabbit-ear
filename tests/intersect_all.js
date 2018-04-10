@@ -1,3 +1,5 @@
+var intersectAllCallback = undefined;
+
 var intersectAll = new OrigamiPaper("canvas-intersect-all");
 
 intersectAll.style.circleStyle = { radius: 0.015, strokeWidth: null, fillColor: {gray:0.0} };
@@ -10,12 +12,12 @@ intersectAll.marks = [];
 for(var i = 0; i < 6; i++){ 
 	intersectAll.marks.push(new intersectAll.scope.Shape.Circle(intersectAll.style.circleStyle));
 }
-intersectAll.marks[0].position = [0.35, 0.2];
-intersectAll.marks[1].position = [0.45, 0.4];
-intersectAll.marks[2].position = [0.65, 0.2];
-intersectAll.marks[3].position = [0.55, 0.4];
-intersectAll.marks[4].position = [0.2, 0.75];
-intersectAll.marks[5].position = [0.8, 0.75];
+intersectAll.marks[0].position = [0.9, 0.56];
+intersectAll.marks[1].position = [0.7, 0.53];
+intersectAll.marks[2].position = [0.9, 0.44];
+intersectAll.marks[3].position = [0.7, 0.47];
+intersectAll.marks[4].position = [0.15, 0.3];
+intersectAll.marks[5].position = [0.15, 0.7];
 
 intersectAll.intersectionLayer = new intersectAll.scope.Layer();
 intersectAll.handleLayer.moveBelow(intersectAll.edgeLayer);
@@ -24,6 +26,7 @@ intersectAll.selectedLayer = new intersectAll.scope.Layer();
 intersectAll.selectedLayer.activate();
 
 intersectAll.reset = function(){
+	paper = this.scope;
 	var xys = this.marks.map(function(el){ return new XY(el.position.x, el.position.y); });
 
 	var line = new Line(xys[0], xys[1]);
@@ -84,6 +87,14 @@ intersectAll.reset = function(){
 				fillArc.fillColor = fillColors[i%2];
 			}
 		} // intersction !== undefined
+	}
+	if(intersectAllCallback !== undefined){
+		var event = {
+			"edge": [this.marks[4].position, this.marks[5].position],
+			"ray": [this.marks[2].position, this.marks[3].position],
+			"line": [this.marks[0].position, this.marks[1].position]
+		};
+		intersectAllCallback(event);
 	}
 }
 intersectAll.reset();

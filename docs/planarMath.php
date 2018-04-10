@@ -12,6 +12,50 @@
 
 	<p>This library includes a suite of geometry tools that exist and can be leveraged independently of the rest of the Planar Graph and origami related code.</p>
 
+<section id="types">
+
+<h2>PRIMITIVES</h2>
+
+<h3>Points</h3>
+	<p>A point is represented by its components: x and y. There is only one data structure in this library, and it takes its name from these components: <b>XY</b>.</p>
+	<div class="centered">
+		<pre><code><key>let</key> point <key>=</key> <key>new</key> <v>XY</v>(<n>0.5</n>, <n>0.666</n>)</code></pre>
+	</div>
+
+<h3>Lines, Rays, Segments</h3>
+	<p><b>Mathematical lines</b> extend infinitely in both directions, <b>rays</b> extend infinitely in one direction, and line segments, or <b>edges</b> are bound by two endpoints.</p>
+
+	<div class="centered">
+		<canvas id="canvas-intersect-all" resize></canvas>
+	</div>
+
+	<div class="centered">
+		<pre><code><key>let</key> segment <key>=</key> <key>new</key> <v>Edge</v>(<span id="intersect-all-edge"></span>)<br><key>let</key> ray <key>=</key> <key>new</key> <v>Ray</v>(<span id="intersect-all-ray"></span>)<br><key>let</key> line <key>=</key> <key>new</key> <v>Line</v>(<span id="intersect-all-line"></span>)</code></pre>
+	</div>
+	
+	<p class="quote">Four arguments describe the two points: <b>(x1, y1, x2, y2)</b></p>
+
+
+<h3>Polygon</h3>
+
+	<p>A <b>ConvexPolygon</b> object is defined its <b>edges</b>, it contains the classic convex hull algorithm, and can clip <b>lines</b>, <b>rays</b>, and <b>edges</b> into a new edge which fits within its boundary.</p>
+
+	<div class="centered">
+		<canvas id="canvas-convex-polygon" resize></canvas>
+	</div>
+
+	<p class="quote">The convex hull algorithm performed on a collection of points</p>
+	
+	<div class="centered">
+		<pre><code><key>let</key> polygon <key>=</key> <key>new</key> <v>ConvexPolygon</v>()</code></pre>
+	</div>
+
+	<div class="centered">
+		<canvas id="canvas-polygon-clip" resize></canvas>
+	</div>
+
+</section>
+
 <section id="junction">
 <h2>JUNCTIONS &amp; SECTORS</h2>
 
@@ -82,72 +126,6 @@
 
 </section>
 
-<section id="epsilon">
-
-<h2>INTERSECTIONS</h2>
-
-<h3 id="reflection">Lines, Rays, Segments</h3>
-
-	<p class="quote">The number of potential intersection points is less than or equal to the number of lines.</p>
-
-	<div class="centered">
-		<canvas id="canvas-intersect-all" resize></canvas>
-	</div>
-
-	<p>Pairs of lines, rays, and segments</p>
-
-	<div class="centered">
-		<canvas id="canvas-intersect-lines" class="third" resize></canvas>
-		<canvas id="canvas-intersect-rays" class="third" resize></canvas>
-		<canvas id="canvas-intersect-segments" class="third" resize></canvas>
-	</div>
-
-
-</section>
-
-<section id="types">
-
-<h2>DATA TYPES</h2>
-
-<h3>Points</h3>
-	<p>A point is represented by its components: x and y. There is only one data structure in this library, and it takes its name from these components: <b>XY</b>.</p>
-	<div class="centered">
-		<pre><code><key>let</key> point <key>=</key> <key>new</key> <v>XY</v>(<n>0.5</n>, <n>0.666</n>)</code></pre>
-	</div>
-
-<h3>Lines</h3>
-	<p><b>Mathematical lines</b> extend infinitely in both directions, <b>rays</b> extend infinitely in one direction, and line segments, or <b>edges</b> are bound by two endpoints.</p>
-	<div class="centered">
-		<pre><code><key>let</key> segment <key>=</key> <key>new</key> <v>Edge</v>(<n>0</n>, <n>0</n>, <n>1</n>, <n>1</n>)</code></pre>
-	</div>
-	<div class="centered">
-		<pre><code><key>let</key> ray <key>=</key> <key>new</key> <v>Ray</v>(<n>0</n>, <n>0</n>, <n>1</n>, <n>1</n>)</code></pre>
-	</div>
-	<div class="centered">
-		<pre><code><key>let</key> line <key>=</key> <key>new</key> <v>Line</v>(<n>0</n>, <n>0</n>, <n>1</n>, <n>1</n>)</code></pre>
-	</div>
-	
-	<p class="quote">Four arguments describe the two points: <b>(x1, y1, x2, y2)</b></p>
-<h3>Polygon</h3>
-
-	<p>A <b>ConvexPolygon</b> object is defined its <b>edges</b>, it contains the classic convex hull algorithm, and can clip <b>lines</b>, <b>rays</b>, and <b>edges</b> into a new edge which fits within its boundary.</p>
-
-	<div class="centered">
-		<canvas id="canvas-convex-polygon" resize></canvas>
-	</div>
-
-	<p class="quote">A convex hull algorithm is performed on a set of points</p>
-	
-	<div class="centered">
-		<pre><code><key>let</key> polygon <key>=</key> <key>new</key> <v>ConvexPolygon</v>()</code></pre>
-	</div>
-
-	<div class="centered">
-		<canvas id="canvas-polygon-clip" resize></canvas>
-	</div>
-
-</section>
-
 <section>
 <h3>Distance</h3>
 
@@ -215,6 +193,20 @@ convexPoly.onMouseDown = function(event){
 katex.render("\\begin{bmatrix} a & c & tx \\\\ b & d & ty \\end{bmatrix}", document.getElementById("matrix-1"));
 katex.render("\\begin{Bmatrix} a & c \\\\ b & d \\end{Bmatrix}", document.getElementById("matrix-2"));
 katex.render("\\begin{Bmatrix} tx \\\\ ty \\end{Bmatrix}", document.getElementById("matrix-3"));
+</script>
+
+<script>
+intersectAllCallback = function(event){
+	if(event !== undefined){
+		var edge = event.edge;
+		var ray = event.ray;
+		var line = event.line;
+		document.getElementById("intersect-all-edge").innerHTML = "<n>" + edge[0].x.toFixed(2) + "</n>, <n>" + edge[0].y.toFixed(2) + "</n>, <n>" + edge[1].x.toFixed(2) + "</n>, <n>" + edge[1].y.toFixed(2) + "</n>";
+		document.getElementById("intersect-all-ray").innerHTML = "<n>" + ray[0].x.toFixed(2) + "</n>, <n>" + ray[0].y.toFixed(2) + "</n>, <n>" + ray[1].x.toFixed(2) + "</n>, <n>" + ray[1].y.toFixed(2) + "</n>";
+		document.getElementById("intersect-all-line").innerHTML = "<n>" + line[0].x.toFixed(2) + "</n>, <n>" + line[0].y.toFixed(2) + "</n>, <n>" + line[1].x.toFixed(2) + "</n>, <n>" + line[1].y.toFixed(2) + "</n>";
+	}
+}
+intersectAll.reset();
 </script>
 
 <script>

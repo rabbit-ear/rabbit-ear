@@ -386,7 +386,17 @@ class Polyline{
 class Ray{
 	origin:XY;
 	direction:XY;
-	constructor(origin:XY, direction:XY){this.origin=origin;this.direction=direction;}
+	constructor(a:any, b:any, c?:any, d?:any){
+		if(a instanceof XY){ this.origin = a; this.direction = b; }
+		else if(a.x !== undefined){
+			this.origin = new XY(a.x, a.y);
+			this.direction = new XY(b.x, b.y);
+		}
+		else{ 
+			this.origin = new XY(a, b);
+			this.direction = new XY(c, d);
+		};
+	}
 	length(){return Infinity;}
 	vector(){return this.direction;}
 	intersectLine(line:Line):XY{return intersectionLineRay(line,this);}

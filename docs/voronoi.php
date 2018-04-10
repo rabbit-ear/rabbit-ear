@@ -24,14 +24,14 @@
 
 	<p>It's easy to crease a gusset by hand that sits halfway between cells. With a computer we can parameterize this value to be anywhere between 0.0 and 1.0.</p>
 	
-<h2>Gusset Joints</h2>
+<h2>Molecules</h2>
 
 	<div class="centered">
 		<canvas id="canvas-voronoi-animate-2" resize></canvas>
 		<canvas id="canvas-voronoi-animate-1" resize></canvas>
 	</div>
 
-	<p>A gusset joint is the area around where 3 points come together. If the 3 Voronoi sites form an acute or right triangle, the joint is a triangle; if the 3 sites form an obtuse triangle the joint is a quadrilateral.</p>
+	<p>A molecule is the area around where 3 points come together. If the 3 Voronoi sites form an acute or right triangle the boundary of the molecule is a triangle; if the 3 sites form an obtuse triangle the boundary is a quadrilateral.</p>
 
 
 <!-- 	<div class="centered">

@@ -6,7 +6,11 @@ creaseEdgeToEdge.reset = function(){
 	this.cp.clear();
 	// reset boundary
 	var boundaryPoints = [];
-	for(var i = 0; i < 30; i++){ boundaryPoints.push(new XY(Math.random(), Math.random()));}
+	for(var i = 0; i < 50; i++){
+		var r = Math.random()*0.5;
+		var a = Math.random()*2*Math.PI;
+		boundaryPoints.push(new XY(0.5+r*Math.cos(a), 0.5+r*Math.sin(a)));
+	}
 	this.cp.setBoundary(boundaryPoints);
 	this.draw();
 }
