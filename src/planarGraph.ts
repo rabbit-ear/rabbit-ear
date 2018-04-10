@@ -540,7 +540,6 @@ class PlanarJunction{
 }
 
 
-
 class PlanarGraph extends Graph{
 
 	nodes:PlanarNode[];
@@ -1213,5 +1212,49 @@ class PlanarGraph extends Graph{
 			}
 		}
 		return false;
+	}
+
+	fewestPolylines():Polyline[]{
+		var cp = this.copy();
+		cp.clean();
+		cp.removeIsolatedNodes();
+		var paths:Polyline[] = [];
+		while(cp.edges.length > 0){
+			var node = cp.nodes[0];
+			var adj = <CreaseNode[]>node.adjacentNodes();
+			var polyline = new Polyline();
+			// var path = [];
+			if(adj.length === 0){
+				// this shouldn't ever happen
+				cp.removeIsolatedNodes();
+			}else{
+				var nextNode = adj[0];
+				var edge = cp.getEdgeConnectingNodes(node, nextNode);
+				polyline.nodes.push( new XY(node.x, node.y) );
+				// remove edge
+				cp.edges = cp.edges.filter(function(el){
+					return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
+					         (el.nodes[0] === nextNode && el.nodes[1] === node) );
+				});
+				cp.removeIsolatedNodes();
+				node = nextNode;
+				adj = [];
+				if(node !== undefined){ adj = <CreaseNode[]>node.adjacentNodes(); }
+				while(adj.length > 0){
+					nextNode = adj[0];
+					polyline.nodes.push( new XY(node.x, node.y) );
+					cp.edges = cp.edges.filter(function(el){
+						return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
+						         (el.nodes[0] === nextNode && el.nodes[1] === node) );
+					});
+					cp.removeIsolatedNodes();
+					node = nextNode;
+					adj = <CreaseNode[]>node.adjacentNodes();
+				}
+				polyline.nodes.push(new XY(node.x, node.y));
+			}
+			paths.push(polyline);
+		}
+		return paths;
 	}
 }

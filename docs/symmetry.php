@@ -38,7 +38,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code>cp.<v>setSymmetryLine</v>(<arg>point1</arg>, <arg>point2</arg>)</code></pre>
+		<pre><code>cp.<v>setSymmetryLine</v>(<arg>x1</arg>, <arg>y1</arg>, <arg>x2</arg>, <arg>y2</arg>)</code></pre>
 	</div>
 
 	<div class="quote">

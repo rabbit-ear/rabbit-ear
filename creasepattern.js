@@ -648,6 +648,7 @@ var Line = (function () {
 }());
 var Polyline = (function () {
     function Polyline() {
+        this.nodes = [];
     }
     Polyline.prototype.edges = function () {
         var result = [];
@@ -922,6 +923,25 @@ var IsoscelesTriangle = (function (_super) {
 var ConvexPolygon = (function () {
     function ConvexPolygon() {
     }
+    ConvexPolygon.prototype.center = function () {
+        var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;
+        var nodes = this.edges.map(function (el) { return el.nodes[0]; });
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].x > xMax) {
+                xMax = nodes[i].x;
+            }
+            if (nodes[i].x < xMin) {
+                xMin = nodes[i].x;
+            }
+            if (nodes[i].y > yMax) {
+                yMax = nodes[i].y;
+            }
+            if (nodes[i].y < yMin) {
+                yMin = nodes[i].y;
+            }
+        }
+        return new XY(xMin + (xMin + xMax) * 0.5, yMin + (yMin + yMax) * 0.5);
+    };
     ConvexPolygon.prototype.contains = function (p) {
         var found = true;
         for (var i = 0; i < this.edges.length; i++) {
@@ -990,6 +1010,12 @@ var ConvexPolygon = (function () {
                 }
         }
     };
+    ConvexPolygon.prototype.setEdgesFromPoints = function (points) {
+        return points.map(function (el, i) {
+            var nextEl = points[(i + 1) % points.length];
+            return new Edge(el, nextEl);
+        }, this);
+    };
     ConvexPolygon.prototype.convexHull = function (points) {
         if (points === undefined || points.length === 0) {
             this.edges = [];
@@ -1043,7 +1069,7 @@ var ConvexPolygon = (function () {
             })
                 .sort(function (a, b) { return (a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0; });
             if (hull.contains(angles[0].node)) {
-                this.edges = this.edgesFromPoints(hull);
+                this.edges = this.setEdgesFromPoints(hull);
                 return this;
             }
             hull.push(angles[0].node);
@@ -1052,11 +1078,25 @@ var ConvexPolygon = (function () {
         this.edges = [];
         return undefined;
     };
-    ConvexPolygon.prototype.edgesFromPoints = function (points) {
-        return points.map(function (el, i) {
-            var nextEl = points[(i + 1) % points.length];
-            return new Edge(el, nextEl);
-        }, this);
+    ConvexPolygon.prototype.minimumRect = function () {
+        var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        this.edges
+            .map(function (el) { return el.nodes[0]; })
+            .forEach(function (el) {
+            if (el.x > maxX) {
+                maxX = el.x;
+            }
+            if (el.x < minX) {
+                minX = el.x;
+            }
+            if (el.y > maxY) {
+                maxY = el.y;
+            }
+            if (el.y < minY) {
+                minY = el.y;
+            }
+        });
+        return new Rect(minX, minY, maxX - minX, maxY - minY);
     };
     ConvexPolygon.prototype.copy = function () {
         var p = new ConvexPolygon();
@@ -2642,6 +2682,49 @@ var PlanarGraph = (function (_super) {
         }
         return false;
     };
+    PlanarGraph.prototype.fewestPolylines = function () {
+        var cp = this.copy();
+        cp.clean();
+        cp.removeIsolatedNodes();
+        var paths = [];
+        while (cp.edges.length > 0) {
+            var node = cp.nodes[0];
+            var adj = node.adjacentNodes();
+            var polyline = new Polyline();
+            if (adj.length === 0) {
+                cp.removeIsolatedNodes();
+            }
+            else {
+                var nextNode = adj[0];
+                var edge = cp.getEdgeConnectingNodes(node, nextNode);
+                polyline.nodes.push(new XY(node.x, node.y));
+                cp.edges = cp.edges.filter(function (el) {
+                    return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
+                        (el.nodes[0] === nextNode && el.nodes[1] === node));
+                });
+                cp.removeIsolatedNodes();
+                node = nextNode;
+                adj = [];
+                if (node !== undefined) {
+                    adj = node.adjacentNodes();
+                }
+                while (adj.length > 0) {
+                    nextNode = adj[0];
+                    polyline.nodes.push(new XY(node.x, node.y));
+                    cp.edges = cp.edges.filter(function (el) {
+                        return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
+                            (el.nodes[0] === nextNode && el.nodes[1] === node));
+                    });
+                    cp.removeIsolatedNodes();
+                    node = nextNode;
+                    adj = node.adjacentNodes();
+                }
+                polyline.nodes.push(new XY(node.x, node.y));
+            }
+            paths.push(polyline);
+        }
+        return paths;
+    };
     return PlanarGraph;
 }(Graph));
 var CreaseDirection;
@@ -2828,12 +2911,8 @@ var CreaseNode = (function (_super) {
             return junction.kawasakiFourth(sector);
         }
     };
-    CreaseNode.prototype.creaseLineThrough = function (point) {
-        return this.graph.creaseThroughPoints(this, point);
-    };
-    CreaseNode.prototype.creaseToPoint = function (point) {
-        return this.graph.creasePointToPoint(this, point);
-    };
+    CreaseNode.prototype.creaseLineThrough = function (point) { return this.graph.creaseThroughPoints(this, point); };
+    CreaseNode.prototype.creaseToPoint = function (point) { return this.graph.creasePointToPoint(this, point); };
     return CreaseNode;
 }(PlanarNode));
 var Crease = (function (_super) {
@@ -2850,34 +2929,7 @@ var Crease = (function (_super) {
     Crease.prototype.mountain = function () { this.orientation = CreaseDirection.mountain; return this; };
     Crease.prototype.valley = function () { this.orientation = CreaseDirection.valley; return this; };
     Crease.prototype.border = function () { this.orientation = CreaseDirection.border; return this; };
-    Crease.prototype.noCrossing = function () {
-        var o = this.newMadeBy.rayOrigin;
-        if (o === undefined) {
-            o = this.nodes[0];
-        }
-        var angle = this.absoluteAngle(o);
-        var rayDirection = new XY(Math.cos(angle), Math.sin(angle));
-        var intersection = undefined;
-        var shortest = Infinity;
-        for (var i = 0; i < this.graph.edges.length; i++) {
-            var inter = intersectionRayEdge(new Ray(o, rayDirection), this.graph.edges[i]);
-            if (inter !== undefined && !o.equivalent(inter)) {
-                var d = Math.sqrt(Math.pow(o.x - inter.x, 2) + Math.pow(o.y - inter.y, 2));
-                if (d < shortest) {
-                    shortest = d;
-                    intersection = inter;
-                }
-            }
-        }
-        if (intersection !== undefined) {
-            var edge = this.graph.newCrease(o.x, o.y, intersection.x, intersection.y);
-            this.graph.removeEdge(this);
-            return edge;
-        }
-    };
-    Crease.prototype.creaseToEdge = function (edge) {
-        return this.graph.creaseEdgeToEdge(this, edge);
-    };
+    Crease.prototype.creaseToEdge = function (edge) { return this.graph.creaseEdgeToEdge(this, edge); };
     return Crease;
 }(PlanarEdge));
 var CreaseFace = (function (_super) {
@@ -2919,7 +2971,6 @@ var CreasePattern = (function (_super) {
         _this.square();
         return _this;
     }
-    CreasePattern.prototype.landmarkNodes = function () { return this.nodes.map(function (el) { return new XY(el.x, el.y); }); };
     CreasePattern.prototype.copy = function () {
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
@@ -3061,8 +3112,8 @@ var CreasePattern = (function (_super) {
         if (this.symmetryLine === undefined) {
             return undefined;
         }
-        var ra = new XY(ax, ay).reflect(this.symmetryLine[0], this.symmetryLine[1]);
-        var rb = new XY(bx, by).reflect(this.symmetryLine[0], this.symmetryLine[1]);
+        var ra = new XY(ax, ay).reflect(this.symmetryLine.nodes[0], this.symmetryLine.nodes[1]);
+        var rb = new XY(bx, by).reflect(this.symmetryLine.nodes[0], this.symmetryLine.nodes[1]);
         return this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
     };
     CreasePattern.prototype.creaseThroughPoints = function (a, b) {
@@ -3277,30 +3328,30 @@ var CreasePattern = (function (_super) {
         return this.nodes.map(function (el) { return el.flatFoldable(); })
             .reduce(function (prev, cur) { return prev && cur; });
     };
-    CreasePattern.prototype.bounds = function () {
-        var boundaryNodes = this.boundary.edges.map(function (el) { return el.nodes[0]; });
-        if (boundaryNodes === undefined || boundaryNodes.length === 0) {
-            return undefined;
-        }
-        var minX = Infinity;
-        var maxX = -Infinity;
-        var minY = Infinity;
-        var maxY = -Infinity;
-        boundaryNodes.forEach(function (el) {
-            if (el.x > maxX) {
-                maxX = el.x;
-            }
-            if (el.x < minX) {
-                minX = el.x;
-            }
-            if (el.y > maxY) {
-                maxY = el.y;
-            }
-            if (el.y < minY) {
-                minY = el.y;
-            }
-        });
-        return new Rect(minX, minY, maxX - minX, maxY - minY);
+    CreasePattern.prototype.bounds = function () { return this.boundary.minimumRect(); };
+    CreasePattern.prototype.bottomEdge = function () {
+        return this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { return (b.nodes[0].y + b.nodes[1].y) - (a.nodes[0].y + a.nodes[1].y); })
+            .shift();
+    };
+    CreasePattern.prototype.topEdge = function () {
+        return this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { return (a.nodes[0].y + a.nodes[1].y) - (b.nodes[0].y + b.nodes[1].y); })
+            .shift();
+    };
+    CreasePattern.prototype.rightEdge = function () {
+        return this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { return (b.nodes[0].x + b.nodes[1].x) - (a.nodes[0].x + a.nodes[1].x); })
+            .shift();
+    };
+    CreasePattern.prototype.leftEdge = function () {
+        return this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { return (a.nodes[0].x + a.nodes[1].x) - (b.nodes[0].x + b.nodes[1].x); })
+            .shift();
     };
     CreasePattern.prototype.square = function (width) {
         var w = 1.0;
@@ -3311,7 +3362,7 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.rectangle = function (width, height) {
         if (width === undefined || height === undefined) {
-            return undefined;
+            return this;
         }
         width = Math.abs(width);
         height = Math.abs(height);
@@ -3322,7 +3373,9 @@ var CreasePattern = (function (_super) {
         return this.setBoundary(points);
     };
     CreasePattern.prototype.noBoundary = function () {
-        this.boundary = new ConvexPolygon();
+        this.boundary.edges = [];
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        this.cleanAllUselessNodes();
         return this;
     };
     CreasePattern.prototype.setBoundary = function (points, alreadyClockwiseSorted) {
@@ -3330,7 +3383,7 @@ var CreasePattern = (function (_super) {
             points.pop();
         }
         if (alreadyClockwiseSorted !== undefined && alreadyClockwiseSorted === true) {
-            this.boundary.edges = this.boundary.edgesFromPoints(points);
+            this.boundary.edges = this.boundary.setEdgesFromPoints(points);
         }
         else {
             this.boundary.convexHull(points);
@@ -3350,14 +3403,18 @@ var CreasePattern = (function (_super) {
         var yMin = Infinity;
         var yMax = 0;
         for (var i = 0; i < this.nodes.length; i++) {
-            if (this.nodes[i].x > xMax)
+            if (this.nodes[i].x > xMax) {
                 xMax = this.nodes[i].x;
-            if (this.nodes[i].x < xMin)
+            }
+            if (this.nodes[i].x < xMin) {
                 xMin = this.nodes[i].x;
-            if (this.nodes[i].y > yMax)
+            }
+            if (this.nodes[i].y > yMax) {
                 yMax = this.nodes[i].y;
-            if (this.nodes[i].y < yMin)
+            }
+            if (this.nodes[i].y < yMin) {
                 yMin = this.nodes[i].y;
+            }
         }
         this.setBoundary([new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax)]);
         return this;
@@ -3377,154 +3434,38 @@ var CreasePattern = (function (_super) {
         this.cleanDuplicateNodes();
         return this;
     };
-    CreasePattern.prototype.bottomEdge = function () {
-        var boundaries = this.edges
-            .filter(function (el) { return el.orientation === CreaseDirection.border; })
-            .sort(function (a, b) { var ay = a.nodes[0].y + a.nodes[1].y; var by = b.nodes[0].y + b.nodes[1].y; return (ay < by) ? 1 : (ay > by) ? -1 : 0; });
-        if (boundaries.length > 0) {
-            return boundaries[0];
-        }
-        return undefined;
-    };
-    CreasePattern.prototype.topEdge = function () {
-        var boundaries = this.edges
-            .filter(function (el) { return el.orientation === CreaseDirection.border; })
-            .sort(function (a, b) { var ay = a.nodes[0].y + a.nodes[1].y; var by = b.nodes[0].y + b.nodes[1].y; return (ay > by) ? 1 : (ay < by) ? -1 : 0; });
-        if (boundaries.length > 0) {
-            return boundaries[0];
-        }
-        return undefined;
-    };
-    CreasePattern.prototype.rightEdge = function () {
-        var boundaries = this.edges
-            .filter(function (el) { return el.orientation === CreaseDirection.border; })
-            .sort(function (a, b) { var ax = a.nodes[0].x + a.nodes[1].x; var bx = b.nodes[0].x + b.nodes[1].x; return (ax < bx) ? 1 : (ax > bx) ? -1 : 0; });
-        if (boundaries.length > 0) {
-            return boundaries[0];
-        }
-        return undefined;
-    };
-    CreasePattern.prototype.leftEdge = function () {
-        var boundaries = this.edges
-            .filter(function (el) { return el.orientation === CreaseDirection.border; })
-            .sort(function (a, b) { var ax = a.nodes[0].x + a.nodes[1].x; var bx = b.nodes[0].x + b.nodes[1].x; return (ax > bx) ? 1 : (ax < bx) ? -1 : 0; });
-        if (boundaries.length > 0) {
-            return boundaries[0];
-        }
-        return undefined;
-    };
-    CreasePattern.prototype.topLeftCorner = function () {
-        var boundaries = this.edges
-            .filter(function (el) { return el.orientation === CreaseDirection.border; })
-            .sort(function (a, b) { var ay = a.nodes[0].y + a.nodes[1].y; var by = b.nodes[0].y + b.nodes[1].y; return (ay > by) ? 1 : (ay < by) ? -1 : 0; });
-        if (boundaries.length > 0) {
-            return boundaries[0].nodes.sort(function (a, b) { return (a.x > b.x) ? 1 : (a.x < b.x) ? -1 : 0; })[0];
-        }
-        return undefined;
-    };
-    CreasePattern.prototype.topRightCorner = function () {
-        var boundaries = this.edges
-            .filter(function (el) { return el.orientation === CreaseDirection.border; })
-            .sort(function (a, b) { var ay = a.nodes[0].y + a.nodes[1].y; var by = b.nodes[0].y + b.nodes[1].y; return (ay > by) ? 1 : (ay < by) ? -1 : 0; });
-        if (boundaries.length > 0) {
-            return boundaries[0].nodes.sort(function (a, b) { return (a.x > b.x) ? -1 : (a.x < b.x) ? 1 : 0; })[0];
-        }
-        return undefined;
-    };
     CreasePattern.prototype.bookSymmetry = function () {
-        var top = this.topEdge();
-        var bottom = this.bottomEdge();
-        var a = new XY((top.nodes[0].x + top.nodes[1].x) * 0.5, (top.nodes[0].y + top.nodes[1].y) * 0.5);
-        var b = new XY((bottom.nodes[0].x + bottom.nodes[1].x) * 0.5, (bottom.nodes[0].y + bottom.nodes[1].y) * 0.5);
-        return this.setSymmetryLine(a, b);
+        var center = this.boundary.center();
+        return this.setSymmetryLineBetweenPoints(center, center.add(new XY(0, 1)));
     };
     CreasePattern.prototype.diagonalSymmetry = function () {
-        var top = this.topEdge().nodes.sort(function (a, b) { return (a.x < b.x) ? 1 : (a.x > b.x) ? -1 : 0; });
-        var bottom = this.bottomEdge().nodes.sort(function (a, b) { return (a.x < b.x) ? -1 : (a.x > b.x) ? 1 : 0; });
-        return this.setSymmetryLine(top[0], bottom[0]);
+        var center = this.boundary.center();
+        return this.setSymmetryLineBetweenPoints(center, center.add(new XY(1, 1)));
     };
-    CreasePattern.prototype.noSymmetry = function () {
-        return this.setSymmetryLine();
-    };
-    CreasePattern.prototype.setSymmetryLine = function (a, b) {
+    CreasePattern.prototype.noSymmetry = function () { this.symmetryLine = undefined; return this; };
+    CreasePattern.prototype.setSymmetryLineBetweenPoints = function (a, b) {
         if (!isValidPoint(a) || !isValidPoint(b)) {
             this.symmetryLine = undefined;
         }
         else {
-            this.symmetryLine = [a, b];
+            this.symmetryLine = new Line(a, b);
         }
         return this;
     };
-    CreasePattern.prototype.trySnapVertex = function (newVertex, epsilon) {
-        var closestDistance = undefined;
-        var closestIndex = undefined;
-        for (var i = 0; i < this.landmarkNodes.length; i++) {
-            if (newVertex.equivalent(this.landmarkNodes[i], epsilon)) {
-                var thisDistance = Math.sqrt(Math.pow(newVertex.x - this.landmarkNodes[i].x, 2) +
-                    Math.pow(newVertex.y - this.landmarkNodes[i].y, 2));
-                if (closestIndex == undefined || (thisDistance < closestDistance)) {
-                    closestIndex = i;
-                    closestDistance = thisDistance;
-                }
-            }
+    CreasePattern.prototype.setSymmetryLine = function (a, b, c, d) {
+        if (a instanceof Line) {
+            this.symmetryLine = a;
         }
-        if (closestIndex != undefined) {
-            return this.landmarkNodes[closestIndex];
+        else if (a.nodes instanceof Array && isValidPoint(a) && isValidPoint(b)) {
+            this.symmetryLine = new Line(a.nodes[0].x, a.nodes[0].y, a.nodes[1].x, a.nodes[1].y);
         }
-        return newVertex;
-    };
-    CreasePattern.prototype.snapAll = function (epsilon) {
-        for (var i = 0; i < this.nodes.length; i++) {
-            for (var j = 0; j < this.landmarkNodes.length; j++) {
-                if (this.nodes[i] != undefined && this.nodes[i].equivalent(this.landmarkNodes[j], epsilon)) {
-                    this.nodes[i].x = this.landmarkNodes[j].x;
-                    this.nodes[i].y = this.landmarkNodes[j].y;
-                }
-            }
+        else if (isValidPoint(a) && isValidPoint(b)) {
+            this.symmetryLine = new Line(a, b);
         }
-    };
-    CreasePattern.prototype.joinedPaths = function () {
-        var cp = this.copy();
-        cp.clean();
-        cp.removeIsolatedNodes();
-        var paths = [];
-        while (cp.edges.length > 0) {
-            var node = cp.nodes[0];
-            var adj = node.adjacentNodes();
-            var path = [];
-            if (adj.length === 0) {
-                cp.removeIsolatedNodes();
-            }
-            else {
-                var nextNode = adj[0];
-                var edge = cp.getEdgeConnectingNodes(node, nextNode);
-                path.push(new XY(node.x, node.y));
-                cp.edges = cp.edges.filter(function (el) {
-                    return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
-                        (el.nodes[0] === nextNode && el.nodes[1] === node));
-                });
-                cp.removeIsolatedNodes();
-                node = nextNode;
-                adj = [];
-                if (node !== undefined) {
-                    adj = node.adjacentNodes();
-                }
-                while (adj.length > 0) {
-                    nextNode = adj[0];
-                    path.push(new XY(node.x, node.y));
-                    cp.edges = cp.edges.filter(function (el) {
-                        return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
-                            (el.nodes[0] === nextNode && el.nodes[1] === node));
-                    });
-                    cp.removeIsolatedNodes();
-                    node = nextNode;
-                    adj = node.adjacentNodes();
-                }
-                path.push(new XY(node.x, node.y));
-            }
-            paths.push(path);
+        else if (isValidNumber(a) && isValidNumber(b) && isValidNumber(c) && isValidNumber(d)) {
+            this.symmetryLine = new Line(a, b, c, d);
         }
-        return paths;
+        return this;
     };
     CreasePattern.prototype.svgMin = function (size) {
         if (size === undefined || size <= 0) {
@@ -3540,14 +3481,14 @@ var CreasePattern = (function (_super) {
         if (strokeWidth === "0" || strokeWidth === "0.0") {
             strokeWidth = "0.5";
         }
-        var paths = this.joinedPaths();
+        var polylines = this.fewestPolylines();
         var blob = "";
         blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" + ((width + padX * 2) * scale) + "px\" height=\"" + ((height + padY * 2) * scale) + "px\" viewBox=\"0 0 " + ((width + padX * 2) * scale) + " " + ((height + padY * 2) * scale) + "\">\n<g>\n";
-        for (var i = 0; i < paths.length; i++) {
-            if (paths[i].length >= 0) {
+        for (var i = 0; i < polylines.length; i++) {
+            if (polylines[i].nodes.length >= 0) {
                 blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
-                for (var j = 0; j < paths[i].length; j++) {
-                    var point = paths[i][j];
+                for (var j = 0; j < polylines[i].nodes.length; j++) {
+                    var point = polylines[i].nodes[j];
                     blob += (scale * point.x).toFixed(4) + "," + (scale * point.y).toFixed(4) + " ";
                 }
                 blob += "\"/>\n";

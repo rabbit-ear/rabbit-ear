@@ -171,11 +171,9 @@ class CreaseNode extends PlanarNode{
 		for(var i = 0; i < this.graph.boundary.edges.length; i++){
 			var thisPt = new XY(this.x, this.y);
 			if(this.graph.boundary.edges[i].collinear(thisPt)){ return true; }
-			// if(onSegment(thisPt, this.graph.boundary.edges[i])){ return true; }
 		}
 		return false;
 	}
-
 	alternateAngleSum():[number,number]{
 		return (<CreaseJunction>this.junction()).alternateAngleSum();
 	}
@@ -186,7 +184,6 @@ class CreaseNode extends PlanarNode{
 		if(this.isBoundary()){ return true; }
 		return (<CreaseJunction>this.junction()).flatFoldable(epsilon);
 	}
-
 	kawasakiFourth(a:Crease, b:Crease):XY{
 		var junction = <CreaseJunction>this.junction();
 		var sector = <CreaseSector>junction.sectorWithEdges(a,b);
@@ -194,17 +191,10 @@ class CreaseNode extends PlanarNode{
 			return junction.kawasakiFourth(sector);
 		}
 	}
-
-	//////////////////////////////
-	// FOLDS
 	// AXIOM 1
-	creaseLineThrough(point:XY):Crease{
-		return this.graph.creaseThroughPoints(this, point);
-	}
+	creaseLineThrough(point:XY):Crease{return this.graph.creaseThroughPoints(this, point);}
 	// AXIOM 2
-	creaseToPoint(point:XY):Crease{
-		return this.graph.creasePointToPoint(this, point);
-	}
+	creaseToPoint(point:XY):Crease{return this.graph.creasePointToPoint(this, point);}
 }
 
 class Crease extends PlanarEdge{
@@ -225,39 +215,8 @@ class Crease extends PlanarEdge{
 	mountain(){ this.orientation = CreaseDirection.mountain; return this;}
 	valley()  { this.orientation = CreaseDirection.valley; return this;}
 	border()  { this.orientation = CreaseDirection.border; return this;}
-
-	noCrossing():Crease{
-		// find this edge's first intersection
-		// remove this edge
-		// replace it with an edge that doesn't intersect other edges
-		var o = this.newMadeBy.rayOrigin;
-		if(o === undefined){ o = <CreaseNode>this.nodes[0]; }
-		var angle = this.absoluteAngle(o);
-		var rayDirection = new XY(Math.cos(angle), Math.sin(angle));
-		var intersection = undefined;
-		var shortest = Infinity;
-		for(var i = 0; i < this.graph.edges.length; i++){
-			// var inter = rayLineSegmentIntersection(o, rayDirection, this.graph.edges[i].nodes[0], this.graph.edges[i].nodes[1]);
-			var inter = intersectionRayEdge(new Ray(o, rayDirection), this.graph.edges[i]);
-			if(inter !== undefined && !o.equivalent(inter)){
-				var d = Math.sqrt( Math.pow(o.x-inter.x,2) + Math.pow(o.y-inter.y,2) );
-				if(d < shortest){
-					shortest = d;
-					intersection = inter;
-				}
-			}
-		}
-		if(intersection !== undefined){
-			var edge = this.graph.newCrease(o.x, o.y, intersection.x, intersection.y);
-			this.graph.removeEdge(this);
-			return edge;
-		}
-	}
-
 	// AXIOM 3
-	creaseToEdge(edge:Crease):Crease[]{
-		return this.graph.creaseEdgeToEdge(this, edge);
-	}
+	creaseToEdge(edge:Crease):Crease[]{return this.graph.creaseEdgeToEdge(this, edge);}
 }
 
 // class RabbitEar{
@@ -299,7 +258,7 @@ class CreasePattern extends PlanarGraph{
 	//   for a concave polygon class
 	boundary:ConvexPolygon;
 
-	symmetryLine:[XY, XY] = undefined;
+	symmetryLine:Line = undefined;
 
 	// this will 
 	foldSequence:FoldSequence;
@@ -308,8 +267,6 @@ class CreasePattern extends PlanarGraph{
 	nodeType = CreaseNode;
 	edgeType = Crease;
 	faceType = CreaseFace;
-
-	landmarkNodes():XY[]{return this.nodes.map(function(el){return new XY(el.x, el.y);});}
 
 	didChange:(event:object)=>void;
 
@@ -495,8 +452,8 @@ class CreasePattern extends PlanarGraph{
 
 	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
 		if(this.symmetryLine === undefined){ return undefined; }
-		var ra = new XY(ax, ay).reflect(this.symmetryLine[0], this.symmetryLine[1]);
-		var rb = new XY(bx, by).reflect(this.symmetryLine[0], this.symmetryLine[1]);
+		var ra = new XY(ax, ay).reflect(this.symmetryLine.nodes[0], this.symmetryLine.nodes[1]);
+		var rb = new XY(bx, by).reflect(this.symmetryLine.nodes[0], this.symmetryLine.nodes[1]);
 		return <Crease>this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
 	}
 
@@ -815,27 +772,37 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	//////////////////////////////////////////////
-	// BOUNDARY
+	// GET PARTS
+	bounds():Rect{ return this.boundary.minimumRect(); }
 
-	bounds():Rect{
-		// return this.boundary.bounds();
-		var boundaryNodes = this.boundary.edges.map(function(el){return el.nodes[0];});
-		if(boundaryNodes === undefined || boundaryNodes.length === 0){ return undefined; }
-		var minX = Infinity;
-		var maxX = -Infinity;
-		var minY = Infinity;
-		var maxY = -Infinity;
-		boundaryNodes.forEach(function(el){
-			if(el.x > maxX){ maxX = el.x; }
-			if(el.x < minX){ minX = el.x; }
-			if(el.y > maxY){ maxY = el.y; }
-			if(el.y < minY){ minY = el.y; }
-		});
-		return new Rect(minX, minY, maxX-minX, maxY-minY);
+	bottomEdge():Crease{
+		return this.edges
+			.filter(function(el){return el.orientation === CreaseDirection.border})
+			.sort(function(a,b){return (b.nodes[0].y+b.nodes[1].y)-(a.nodes[0].y+a.nodes[1].y);})
+			.shift();
+	}
+	topEdge():Crease{
+		return this.edges
+			.filter(function(el){return el.orientation === CreaseDirection.border})
+			.sort(function(a,b){ return (a.nodes[0].y+a.nodes[1].y)-(b.nodes[0].y+b.nodes[1].y);})
+			.shift();
+	}
+	rightEdge():Crease{
+		return this.edges
+			.filter(function(el){return el.orientation === CreaseDirection.border})
+			.sort(function(a,b){ return (b.nodes[0].x+b.nodes[1].x)-(a.nodes[0].x+a.nodes[1].x);})
+			.shift();
+	}
+	leftEdge():Crease{
+		return this.edges
+			.filter(function(el){return el.orientation === CreaseDirection.border})
+			.sort(function(a,b){return (a.nodes[0].x+a.nodes[1].x)-(b.nodes[0].x+b.nodes[1].x);})
+			.shift();
 	}
 
+	//////////////////////////////////////////////
+	// BOUNDARY
 	square(width?:number):CreasePattern{
-		// console.log("setting page size: square()");
 		var w = 1.0;
 		// todo: isReal() - check if is real number
 		if(width != undefined && width != 0){ w = Math.abs(width); }
@@ -843,10 +810,9 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	rectangle(width:number, height:number):CreasePattern{
-		// console.log("setting page size: rectangle(" + width + "," + height + ")");
-		// todo: should this return undefined if a rectangle has not been made? or return this?
-		if(width === undefined || height === undefined){ return undefined; }
-		width = Math.abs(width); height = Math.abs(height);
+		if(width === undefined || height === undefined){ return this; }
+		width = Math.abs(width);
+		height = Math.abs(height);
 		var points = [new XY(0,0), 
 		              new XY(width,0), 
 		              new XY(width,height), 
@@ -855,37 +821,21 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	noBoundary():CreasePattern{
-		// TODO: make sure paper edges are winding clockwise!!
 		// clear old data
-		// if(this.boundary === undefined){ this.boundary = new PlanarGraph(); }
-		// else                           { this.boundary.clear(); }
-		// 1: collect the nodes that are attached to border edges
-		// var edgeNodes = this.edges
-		// 	.filter(function(el){ return el.orientation !== CreaseDirection.border; })
-		// 	.map(function(el){ return el.nodes; });
-
-		// this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		// var edgeNodes = this.edges.map()
-
-		// 2: iterate over edge nodes and remove them if they are unused
-
-		// todo: if an edge gets removed, it will leave behind its nodes. we might need the following:
-		// this.cleanUnusedNodes();
-		// todo: test that this is the right way to remove last item:
-		// if( points[0].equivalent(points[points.length-1]) ){ points.pop(); }
-		this.boundary = new ConvexPolygon();
+		this.boundary.edges = [];
+		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+		this.cleanAllUselessNodes();
 		return this;
 	}
 
 	setBoundary(points:XY[], alreadyClockwiseSorted?:boolean):CreasePattern{
 		if( points[0].equivalent(points[points.length-1]) ){ points.pop(); }
 		if(alreadyClockwiseSorted !== undefined && alreadyClockwiseSorted === true){
-			this.boundary.edges = this.boundary.edgesFromPoints(points);
+			this.boundary.edges = this.boundary.setEdgesFromPoints(points);
 		} else{
 			this.boundary.convexHull(points);
 		}
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		// todo: if an edge gets removed, it will leave behind its nodes. we might need the following:
 		this.cleanAllUselessNodes();
 		this.boundary.edges.forEach(function(el){
 			(<Crease>this.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y)).border();
@@ -901,10 +851,10 @@ class CreasePattern extends PlanarGraph{
 		var yMin = Infinity;
 		var yMax = 0;
 		for(var i = 0; i < this.nodes.length; i++){ 
-			if(this.nodes[i].x > xMax) xMax = this.nodes[i].x;
-			if(this.nodes[i].x < xMin) xMin = this.nodes[i].x;
-			if(this.nodes[i].y > yMax) yMax = this.nodes[i].y;
-			if(this.nodes[i].y < yMin) yMin = this.nodes[i].y;
+			if(this.nodes[i].x > xMax){ xMax = this.nodes[i].x; }
+			if(this.nodes[i].x < xMin){ xMin = this.nodes[i].x; }
+			if(this.nodes[i].y > yMax){ yMax = this.nodes[i].y; }
+			if(this.nodes[i].y < yMin){ yMin = this.nodes[i].y; }
 		}
 		this.setBoundary( [new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax) ]);
 		return this;
@@ -927,267 +877,35 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 
-	bottomEdge():Crease{
-		var boundaries = this.edges
-			.filter(function(el){return el.orientation === CreaseDirection.border})
-			.sort(function(a,b){ var ay=a.nodes[0].y+a.nodes[1].y;  var by=b.nodes[0].y+b.nodes[1].y; return (ay<by)?1:(ay>by)?-1:0 });
-		if(boundaries.length>0){ return boundaries[0]; }
-		return undefined;
-	}
-	topEdge():Crease{
-		var boundaries = this.edges
-			.filter(function(el){return el.orientation === CreaseDirection.border})
-			.sort(function(a,b){ var ay=a.nodes[0].y+a.nodes[1].y;  var by=b.nodes[0].y+b.nodes[1].y; return (ay>by)?1:(ay<by)?-1:0 });
-		if(boundaries.length>0){ return boundaries[0]; }
-		return undefined;
-	}
-	rightEdge():Crease{
-		var boundaries = this.edges
-			.filter(function(el){return el.orientation === CreaseDirection.border})
-			.sort(function(a,b){ var ax=a.nodes[0].x+a.nodes[1].x;  var bx=b.nodes[0].x+b.nodes[1].x; return (ax<bx)?1:(ax>bx)?-1:0 });
-		if(boundaries.length>0){ return boundaries[0]; }
-		return undefined;
-	}
-	leftEdge():Crease{
-		var boundaries = this.edges
-			.filter(function(el){return el.orientation === CreaseDirection.border})
-			.sort(function(a,b){ var ax=a.nodes[0].x+a.nodes[1].x;  var bx=b.nodes[0].x+b.nodes[1].x; return (ax>bx)?1:(ax<bx)?-1:0 });
-		if(boundaries.length>0){ return boundaries[0]; }
-		return undefined;
-	}
-
-	topLeftCorner():CreaseNode{
-		var boundaries = this.edges
-			.filter(function(el){return el.orientation === CreaseDirection.border})
-			.sort(function(a,b){ var ay=a.nodes[0].y+a.nodes[1].y;  var by=b.nodes[0].y+b.nodes[1].y; return (ay>by)?1:(ay<by)?-1:0 });
-		if(boundaries.length>0){ return <CreaseNode>boundaries[0].nodes.sort(function(a,b){ return (a.x>b.x)?1:(a.x<b.x)?-1:0 })[0]; }
-		return undefined;
-	}
-	topRightCorner():CreaseNode{
-		var boundaries = this.edges
-			.filter(function(el){return el.orientation === CreaseDirection.border})
-			.sort(function(a,b){ var ay=a.nodes[0].y+a.nodes[1].y;  var by=b.nodes[0].y+b.nodes[1].y; return (ay>by)?1:(ay<by)?-1:0 });
-		if(boundaries.length>0){ return <CreaseNode>boundaries[0].nodes.sort(function(a,b){ return (a.x>b.x)?-1:(a.x<b.x)?1:0 })[0]; }
-		return undefined;
-	}
-
 	///////////////////////////////////////////////////////////////
 	// SYMMETRY
 
 	bookSymmetry():CreasePattern{
-		var top = this.topEdge();
-		var bottom = this.bottomEdge();
-		var a = new XY( (top.nodes[0].x+top.nodes[1].x)*0.5, (top.nodes[0].y+top.nodes[1].y)*0.5);
-		var b = new XY( (bottom.nodes[0].x+bottom.nodes[1].x)*0.5, (bottom.nodes[0].y+bottom.nodes[1].y)*0.5);
-		return this.setSymmetryLine(a, b);
+		var center = this.boundary.center();
+		return this.setSymmetryLineBetweenPoints(center, center.add(new XY(0, 1)));
 	}
 
 	diagonalSymmetry():CreasePattern{
-		var top = this.topEdge().nodes.sort(function(a,b){ return (a.x<b.x)?1:(a.x>b.x)?-1:0 });
-		var bottom = this.bottomEdge().nodes.sort(function(a,b){ return (a.x<b.x)?-1:(a.x>b.x)?1:0 });
-		return this.setSymmetryLine(top[0], bottom[0]);
+		var center = this.boundary.center();
+		return this.setSymmetryLineBetweenPoints(center, center.add(new XY(1, 1)));
 	}
+	
+	noSymmetry():CreasePattern{ this.symmetryLine = undefined; return this; }
 
-	noSymmetry():CreasePattern{
-		return this.setSymmetryLine();
-	}
-
-	setSymmetryLine(a?:XY, b?:XY):CreasePattern{
+	setSymmetryLineBetweenPoints(a:XY, b:XY):CreasePattern{
 		if(!isValidPoint(a) || !isValidPoint(b)){ this.symmetryLine = undefined; }
-		else { this.symmetryLine = [a, b]; }
+		else { this.symmetryLine = new Line(a, b); }
 		return this;
 	}
-
-
-/*
-
-	findFlatFoldable(angle:PlanarSector):number{
-		var junction = angle.node.junction();
-		// todo: allow searches for other number edges
-		if(junction.edges.length != 3){ return; }
-		// find this interior angle among the other interior angles
-		var foundIndex = undefined;
-		for(var i = 0; i < junction.sectors.length; i++){
-			if(angle.equivalent(junction.sectors[i])){ foundIndex = i; }
+	setSymmetryLine(a:any, b?:any, c?:any, d?:any):CreasePattern{
+		if(a instanceof Line){ this.symmetryLine = a; }
+		else if(a.nodes instanceof Array && isValidPoint(a) && isValidPoint(b)){
+			this.symmetryLine = new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);}
+		else if(isValidPoint(a) && isValidPoint(b)){ this.symmetryLine = new Line(a,b); }
+		else if(isValidNumber(a)&&isValidNumber(b)&&isValidNumber(c)&&isValidNumber(d)){
+			this.symmetryLine = new Line(a,b,c,d);
 		}
-		if(foundIndex === undefined){ return undefined; }
-		var sumEven = 0;
-		var sumOdd = 0;
-		for(var i = 0; i < junction.sectors.length-1; i++){
-			var index = (i+foundIndex+1) % junction.sectors.length;
-			if(i % 2 == 0){ sumEven += junction.sectors[index].angle(); } 
-			else { sumOdd += junction.sectors[index].angle(); }
-		}
-		var dEven = Math.PI - sumEven;
-		var dOdd = Math.PI - sumOdd;
-		var angle0 = angle.edges[0].absoluteAngle(angle.node);
-		var angle1 = angle.edges[1].absoluteAngle(angle.node);
-		// this following if isn't where the problem lies, it is on both cases, the problem is in the data incoming, first 2 lines, it's not sorted, or whatever.
-		// console.log(clockwiseInteriorAngleRadians(angle0, angle1) + " " + clockwiseInteriorAngleRadians(angle1, angle0));
-		// if(clockwiseInteriorAngleRadians(angle0, angle1) < clockwiseInteriorAngleRadians(angle1, angle0)){
-			// return angle1 - dOdd;
-			// return angle1 - dEven;
-		// } else{
-			// return angle0 - dOdd;
-		// }
-
-		// return angle0 + dEven;
-		return angle0 - dEven;
-	}
-*/
-	
-
-
-
-
-	// vertexLiesOnEdge(vIndex, intersect){  // uint, Vertex
-	// 	var v = this.nodes[vIndex];
-	// 	return this.vertexLiesOnEdge(v, intersect);
-	// }
-
-	trySnapVertex(newVertex:XY, epsilon:number){ // newVertex has {x:__, y:__}
-		// find the closest interesting point to the vertex
-		var closestDistance = undefined;
-		var closestIndex = undefined;
-		for(var i = 0; i < this.landmarkNodes.length; i++){
-			// we could improve this, this.verticesEquivalent could return the distance itself, saving calculations
-			if(newVertex.equivalent(this.landmarkNodes[i], epsilon)){
-				var thisDistance = Math.sqrt(Math.pow(newVertex.x-this.landmarkNodes[i].x,2) + 
-				                             Math.pow(newVertex.y-this.landmarkNodes[i].y,2));
-				if(closestIndex == undefined || (thisDistance < closestDistance)){
-					closestIndex = i;
-					closestDistance = thisDistance;
-				}
-			}
-		}
-		if(closestIndex != undefined){
-			return this.landmarkNodes[closestIndex];
-		}
-		return newVertex;
-	}
-
-	snapAll(epsilon:number){ // probably should not be used! it merges points that are simply near each other
-		for(var i = 0; i < this.nodes.length; i++){
-			for(var j = 0; j < this.landmarkNodes.length; j++){
-				if(this.nodes[i] != undefined && this.nodes[i].equivalent(this.landmarkNodes[j], epsilon)){
-					this.nodes[i].x = this.landmarkNodes[j].x;
-					this.nodes[i].y = this.landmarkNodes[j].y;
-				}				
-			}
-		}
-	}
-
-	// contains(a:any, b:any):boolean{
-	// 	var point;
-	// 	if(isValidPoint(a)){ point = new XY(a.x, a.y); }
-	// 	else if(isValidNumber(a) && isValidNumber(b)){ point = new XY(a,b);}
-	// 	if(this.boundary.faces.length > 0){
-	// 		return this.boundary.faces[0].contains(point);
-	// 	}
-	// }
-
-/*
-	kawasaki(nodeIndex){
-		// this hands back an array of angles, the spaces between edges, clockwise.
-		// each angle object contains:
-		//  - arc angle
-		//  - details on the root data (nodes, edges, their angles)
-		//  - results from the kawasaki algorithm:
-		//     which is the amount in radians to add to each angle to make flat foldable 
-		// var adjacentEdges = this.nodes[nodeIndex].adjacent.edges;
-		var thisNode = this.nodes[nodeIndex];
-		var adjacentEdges = thisNode.planarAdjacent();
-		// console.log(adjacentEdges);
-		var angles = [];
-		for(var i = 0; i < adjacentEdges.length; i++){
-			var nextI = (i+1)%adjacentEdges.length;
-			var angleDiff = adjacentEdges[nextI].angle - adjacentEdges[i].angle;
-			if(angleDiff < 0) angleDiff += Math.PI*2;
-			angles.push( {
-				"arc":angleDiff, 
-				"angles":[adjacentEdges[i].angle, adjacentEdges[nextI].angle], 
-				"nodes": [adjacentEdges[i].node, adjacentEdges[nextI].node], 
-				"edges": [adjacentEdges[i].edge, adjacentEdges[nextI].edge] } );
-		}
-		var sumEven = 0;
-		var sumOdd = 0;
-		for(var i = 0; i < angles.length; i++){
-			if(i % 2 == 0){ sumEven += angles[i].arc; } 
-			else { sumOdd += angles[i].arc; }
-		}
-		var dEven = Math.PI - sumEven;
-		var dOdd = Math.PI - sumOdd;
-		for(var i = 0; i < angles.length; i++){
-			if(i % 2 == 0){angles[i]["kawasaki"] = dEven * (angles[i].arc/(Math.PI*2)); }
-			else { angles[i]["kawasaki"] = dOdd * (angles[i].arc/(Math.PI*2)); }
-		}
-		return angles;
-	}
-
-	kawasakiDeviance(nodeIndex){
-		var kawasaki = kawasaki(nodeIndex);
-		var adjacentEdges = this.nodes[nodeIndex].planarAdjacent();
-		var angles = [];
-		for(var i = 0; i < adjacentEdges.length; i++){
-			var nextI = (i+1)%adjacentEdges.length;
-			var angleDiff = adjacentEdges[nextI].angle - adjacentEdges[i].angle;
-			if(angleDiff < 0) angleDiff += Math.PI*2;
-			angles.push( {"arc":angleDiff, "angles":[adjacentEdges[i].angle, adjacentEdges[nextI].angle], "nodes": [i, nextI] } );
-		}
-		return angles;
-	}
-
-*/
-
-	// cleanIntersections(){
-	// 	this.clean();
-	// 	var intersections = super.fragment();
-	// 	this.interestingPoints = this.interestingPoints.concat(intersections);
-	// 	return intersections;
-	// }
-
-
-	joinedPaths():XY[][]{
-		var cp = this.copy();
-		cp.clean();
-		cp.removeIsolatedNodes();
-		var paths = [];
-		while(cp.edges.length > 0){
-			var node = cp.nodes[0];
-			var adj = <CreaseNode[]>node.adjacentNodes();
-			var path = [];
-			if(adj.length === 0){
-				// this shouldn't ever happen
-				cp.removeIsolatedNodes();
-			}else{
-				var nextNode = adj[0];
-				var edge = cp.getEdgeConnectingNodes(node, nextNode);
-				path.push( new XY(node.x, node.y) );
-				// remove edge
-				cp.edges = cp.edges.filter(function(el){
-					return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
-					         (el.nodes[0] === nextNode && el.nodes[1] === node) );
-				});
-				cp.removeIsolatedNodes();
-				node = nextNode;
-				adj = [];
-				if(node !== undefined){ adj = <CreaseNode[]>node.adjacentNodes(); }
-				while(adj.length > 0){
-					nextNode = adj[0];
-					path.push( new XY(node.x, node.y) );
-					cp.edges = cp.edges.filter(function(el){
-						return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
-						         (el.nodes[0] === nextNode && el.nodes[1] === node) );
-					});
-					cp.removeIsolatedNodes();
-					node = nextNode;
-					adj = <CreaseNode[]>node.adjacentNodes();
-				}
-				path.push(new XY(node.x, node.y));
-			}
-			paths.push(path);
-		}
-		return paths;
+		return this;
 	}
 
 	svgMin(size:number):string{
@@ -1200,34 +918,26 @@ class CreasePattern extends PlanarGraph{
 		var scale = size / (width+padX*2);
 		var strokeWidth = (width*scale * 0.0025).toFixed(1);
 		if(strokeWidth === "0" || strokeWidth === "0.0"){ strokeWidth = "0.5"; }
-
-		var paths = this.joinedPaths();
-
+		var polylines = this.fewestPolylines();
 		var blob = "";
 		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +((width+padX*2)*scale)+ "px\" height=\"" +((height+padY*2)*scale)+ "px\" viewBox=\"0 0 " +((width+padX*2)*scale)+ " " +((height+padY*2)*scale)+ "\">\n<g>\n";
 
-		for(var i = 0; i < paths.length; i++){
-			if(paths[i].length >= 0){
+		for(var i = 0; i < polylines.length; i++){
+			if(polylines[i].nodes.length >= 0){
 				blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
-				for(var j = 0; j < paths[i].length; j++){
-					var point = paths[i][j];
+				for(var j = 0; j < polylines[i].nodes.length; j++){
+					var point = polylines[i].nodes[j];
 					blob += (scale*point.x).toFixed(4) + "," + (scale*point.y).toFixed(4) + " ";
 				}
 				blob += "\"/>\n";
 			}
 		}
-
-		//////// RECT BORDER
-		// blob += "<line stroke=\"#000000\" x1=\"0\" y1=\"0\" x2=\"" +scale+ "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +scale+ "\" y1=\"0\" x2=\"" +scale+ "\" y2=\"" +scale+ "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" +scale+ "\" y1=\"" +scale+ "\" x2=\"0\" y2=\"" +scale+ "\"/>\n" + "<line fill=\"none\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" +scale+ "\" x2=\"0\" y2=\"0\"/>\n";
-
 		blob = blob + "</g>\n</svg>\n";
 		return blob;
 	}
 
 	svg(size:number):string{
-		if(size === undefined || size <= 0){
-			size = 600;
-		}
+		if(size === undefined || size <= 0){ size = 600; }
 		var bounds = this.bounds();
 		var width = bounds.size.width;
 		var height = bounds.size.height;
@@ -1427,6 +1137,4 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 
-
 }
-

@@ -1,6 +1,5 @@
 var rayReflect = new OrigamiPaper("canvas-ray-reflect");
 rayReflect.lineLayer = new rayReflect.scope.Layer();
-// rayReflect.cp.setSymmetryLine(new XY(0.5, 0.0), new XY(0.5, 1.0));
 
 // rayReflect.reset = function(){
 	// this.lineLayer.removeChildren();

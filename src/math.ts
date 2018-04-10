@@ -336,6 +336,8 @@ class Line{
 class Polyline{
 	nodes:XY[];
 
+	constructor(){ this.nodes = []; }
+
 	edges():Edge[]{
 		var result = [];
 		for(var i = 0; i < this.nodes.length-1; i++){
@@ -574,10 +576,20 @@ class Triangle{
 class IsoscelesTriangle extends Triangle{}
 
 
-
-
 class ConvexPolygon{
 	edges:Edge[];
+	center():XY{
+		// this is not an average / means
+		var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;
+		var nodes = this.edges.map(function(el){return el.nodes[0];})
+		for(var i = 0; i < nodes.length; i++){ 
+			if(nodes[i].x > xMax){ xMax = nodes[i].x; }
+			if(nodes[i].x < xMin){ xMin = nodes[i].x; }
+			if(nodes[i].y > yMax){ yMax = nodes[i].y; }
+			if(nodes[i].y < yMin){ yMin = nodes[i].y; }
+		}
+		return new XY(xMin+(xMin+xMax)*0.5, yMin+(yMin+yMax)*0.5);
+	}
 	contains(p:XY):boolean{
 		var found = true;
 		for(var i = 0; i < this.edges.length; i++){
@@ -645,6 +657,12 @@ class ConvexPolygon{
 				}
 		}
 	}
+	setEdgesFromPoints(points:XY[]):Edge[]{
+		return points.map(function(el,i){
+			var nextEl = points[ (i+1)%points.length ];
+			return new Edge(el, nextEl);
+		},this);
+	}
 	convexHull(points:XY[]):ConvexPolygon{
 		// validate input
 		if(points === undefined || points.length === 0){ this.edges = []; return undefined; }
@@ -689,7 +707,7 @@ class ConvexPolygon{
 			// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
 			// if the point is already in the convex hull, we've made a loop. we're done
 			if(hull.contains(angles[0].node)){
-				this.edges = this.edgesFromPoints(hull);
+				this.edges = this.setEdgesFromPoints(hull);
 				return this;
 			}
 			// add point to hull, prepare to loop again
@@ -700,11 +718,17 @@ class ConvexPolygon{
 		this.edges = [];
 		return undefined;
 	}
-	edgesFromPoints(points:XY[]):Edge[]{
-		return points.map(function(el,i){
-			var nextEl = points[ (i+1)%points.length ];
-			return new Edge(el, nextEl);
-		},this);
+	minimumRect():Rect{
+		var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+		this.edges
+			.map(function(el){ return el.nodes[0]; })
+			.forEach(function(el){
+				if(el.x > maxX){ maxX = el.x; }
+				if(el.x < minX){ minX = el.x; }
+				if(el.y > maxY){ maxY = el.y; }
+				if(el.y < minY){ minY = el.y; }
+			});
+		return new Rect(minX, minY, maxX-minX, maxY-minY);
 	}
 	/** deep copy this object and all its contents */
 	copy():ConvexPolygon{
