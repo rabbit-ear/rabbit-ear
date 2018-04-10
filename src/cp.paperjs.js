@@ -287,6 +287,7 @@ var OrigamiPaper = (function(){
 	}
 	OrigamiPaper.prototype.setPadding = function(padding){
 		this.buildViewMatrix(padding);
+		return this;
 	}
 	OrigamiPaper.prototype.buildViewMatrix = function(padding){
 		paper = this.scope;

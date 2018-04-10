@@ -54,7 +54,7 @@ intersectSeg.reset = function(){
 			                    fourPoints[nextI] ];
 			arcPoints.push(thesePoints);
 		});
-		var fillColors = [this.styles.byrne.blue, this.styles.byrne.red];
+		var fillColors = [this.styles.byrne.yellow, this.styles.byrne.red];
 		for(var i = 0; i < 4; i++){
 			var fillArc = new this.scope.Path.Arc(arcPoints[i][0], arcPoints[i][1], arcPoints[i][2]);
 			fillArc.add(intersection);

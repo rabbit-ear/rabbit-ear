@@ -52,6 +52,7 @@
 		<li class="dropdown">
 			<a href="creasePattern.php" class="dropbtn">III. CREASE PATTERN</a>
 			<div class="dropdown-content">
+			<a href="crease.php">CREASE</a>
 			<a href="axioms.php">ORIGAMI AXIOMS</a>
 			<!-- <a href="importExport.php">IMPORT &amp; EXPORT</a> -->
 			<a href="flatFoldable.php">FLAT FOLDABLE</a>

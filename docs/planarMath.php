@@ -130,11 +130,13 @@
 	<p class="quote">Four arguments describe the two points: <b>(x1, y1, x2, y2)</b></p>
 <h3>Polygon</h3>
 
+	<p>A <b>ConvexPolygon</b> object is defined its <b>edges</b>, it contains the classic convex hull algorithm, and can clip <b>lines</b>, <b>rays</b>, and <b>edges</b> into a new edge which fits within its boundary.</p>
+
 	<div class="centered">
 		<canvas id="canvas-convex-polygon" resize></canvas>
 	</div>
 
-	<p>A <b>ConvexPolygon</b> object is defined its <b>edges</b>, it contains the classic convex hull algorithm, and can clip <b>lines</b>, <b>rays</b>, and <b>edges</b> into a new edge which fits within its boundary.</p>
+	<p class="quote">A convex hull algorithm is performed on a set of points</p>
 	
 	<div class="centered">
 		<pre><code><key>let</key> polygon <key>=</key> <key>new</key> <v>ConvexPolygon</v>()</code></pre>
@@ -149,10 +151,17 @@
 <section>
 <h3>Distance</h3>
 
+	<p>The nearest point on a line to another point can be located if you draw a normal vector that passes through the point.</p>
+
+	<p>In the case of line segments, the normal might lie beyond the endpoints. The shortest point is now one of the two endpoints.</p>
+
 	<div class="centered">
 		<canvas id="canvas-point-normal" class="half" resize></canvas>
 		<canvas id="canvas-point-nearest" class="half" resize></canvas>
 	</div>
+
+	<p>The sketch on the left determines the nearest point only using a normal vector and the sketch on the right includes the endpoints in the calculation.</p>
+
 
 </section>
 
@@ -184,12 +193,17 @@
 <script src="../tests/reflection.js"></script>
 
 <script>
-var convexPoly = new OrigamiPaper("canvas-convex-polygon");
+var convexPoly = new OrigamiPaper("canvas-convex-polygon").setPadding(0.05);
 convexPoly.reset = function(){
 	var points = [];
-	for(var i = 0; i < 10; i++){ points.push(new XY(Math.random(), Math.random()));}
+	for(var i = 0; i < 30; i++){ points.push(new XY(Math.random(), Math.random()));}
 	this.cp.setBoundary(points);
 	this.draw();
+	var style = {radius:0.015, strokeColor:null, fillColor:{gray:0.0}};
+	points.forEach(function(p){
+		var shape = new this.scope.Shape.Circle(style);
+		shape.position = p;
+	},this);
 }
 convexPoly.reset();
 convexPoly.onMouseDown = function(event){

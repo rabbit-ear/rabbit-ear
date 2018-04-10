@@ -57,7 +57,7 @@
 		<canvas id="canvas-crane-1" resize></canvas><canvas id="canvas-crane-2" resize></canvas>
 	</div>
 
-	<p class="quote">The graph on the right has been <a href="library/fragment">fragmented. Mouse over to see the difference.</a></p>
+	<p class="quote">The graph on the right has been <a href="library/fragment">fragmented</a>. The longer lines have been split at their crossings.</p>
 
 	<div class="centered">
 		<pre><code>graph.<f>fragment</f>()</code></pre>
