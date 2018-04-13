@@ -1177,6 +1177,11 @@ class VoronoiGraph{
 }
 
 /////////////////////////////// JAVASCRIPT /////////////////////////////// 
+function gimme1XY(a:any, b?:any):XY{
+	// input is 1 XY, or 2 numbers
+	if(isValidPoint(a)){ return a; }
+	else if(isValidNumber(b)){ return new XY(a, b); }
+}
 function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
 	// input is 2 XY, or 4 numbers
 	if(isValidPoint(b)){ return [a,b]; }
@@ -1195,10 +1200,18 @@ function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
 	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)) }
 }
 function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
-	// input is 1 line, 2 XY, or 4 numbers
+	// input is 1 line
 	if(a instanceof Line){ return a; }
+	// input is 2 XY
 	else if(isValidPoint(b) ){ return new Line(a,b); }
+	// input is 4 numbers
 	else if(isValidNumber(d)){ return new Line(a,b,c,d); }
+	// input is 1 line-like object with points in a nodes[] array
+	else if(a.nodes instanceof Array && 
+	        a.nodes.length > 0 &&
+	        isValidPoint(a.nodes[1])){
+		return new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);
+	}
 }
 
 /////////////////////////////// ARRAYS /////////////////////////////// 

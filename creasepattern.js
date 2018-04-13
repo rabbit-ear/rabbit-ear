@@ -1511,6 +1511,14 @@ var VoronoiGraph = (function () {
     };
     return VoronoiGraph;
 }());
+function gimme1XY(a, b) {
+    if (isValidPoint(a)) {
+        return a;
+    }
+    else if (isValidNumber(b)) {
+        return new XY(a, b);
+    }
+}
 function gimme2XY(a, b, c, d) {
     if (isValidPoint(b)) {
         return [a, b];
@@ -1550,6 +1558,11 @@ function gimme1Line(a, b, c, d) {
     }
     else if (isValidNumber(d)) {
         return new Line(a, b, c, d);
+    }
+    else if (a.nodes instanceof Array &&
+        a.nodes.length > 0 &&
+        isValidPoint(a.nodes[1])) {
+        return new Line(a.nodes[0].x, a.nodes[0].y, a.nodes[1].x, a.nodes[1].y);
     }
 }
 Array.prototype.flatMap = function (mapFunc) {
@@ -2447,18 +2460,15 @@ var PlanarGraph = (function (_super) {
         }
         return intersections;
     };
-    PlanarGraph.prototype.getNearestNode = function (x, y) {
-        if (isValidPoint(x)) {
-            y = x.y;
-            x = x.x;
-        }
-        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+    PlanarGraph.prototype.getNearestNode = function (a, b) {
+        var p = gimme1XY(a, b);
+        if (p === undefined) {
             return;
         }
         var node = undefined;
         var distance = Infinity;
         for (var i = 0; i < this.nodes.length; i++) {
-            var dist = Math.sqrt(Math.pow(this.nodes[i].x - x, 2) + Math.pow(this.nodes[i].y - y, 2));
+            var dist = Math.sqrt(Math.pow(this.nodes[i].x - p.x, 2) + Math.pow(this.nodes[i].y - p.y, 2));
             if (dist < distance) {
                 distance = dist;
                 node = this.nodes[i];
@@ -2466,17 +2476,14 @@ var PlanarGraph = (function (_super) {
         }
         return node;
     };
-    PlanarGraph.prototype.getNearestNodes = function (x, y, howMany) {
-        if (isValidPoint(x)) {
-            y = x.y;
-            x = x.x;
-        }
-        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+    PlanarGraph.prototype.getNearestNodes = function (a, b, howMany) {
+        var p = gimme1XY(a, b);
+        if (p === undefined) {
             return;
         }
         var distances = [];
         for (var i = 0; i < this.nodes.length; i++) {
-            var dist = Math.sqrt(Math.pow(this.nodes[i].x - x, 2) + Math.pow(this.nodes[i].y - y, 2));
+            var dist = Math.sqrt(Math.pow(this.nodes[i].x - p.x, 2) + Math.pow(this.nodes[i].y - p.y, 2));
             distances.push({ 'i': i, 'd': dist });
         }
         distances.sort(function (a, b) { return (a.d > b.d) ? 1 : ((b.d > a.d) ? -1 : 0); });
@@ -2485,20 +2492,17 @@ var PlanarGraph = (function (_super) {
         }
         return distances.slice(0, howMany).map(function (el) { return this.nodes[el.i]; }, this);
     };
-    PlanarGraph.prototype.getNearestEdge = function (x, y) {
-        if (isValidPoint(x)) {
-            y = x.y;
-            x = x.x;
-        }
-        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+    PlanarGraph.prototype.getNearestEdge = function (a, b) {
+        var input = gimme1XY(a, b);
+        if (input === undefined) {
             return;
         }
         var minDist, nearestEdge, minLocation = new XY(undefined, undefined);
         for (var i = 0; i < this.edges.length; i++) {
             var p = this.edges[i];
-            var pT = p.nearestPointNormalTo(new XY(x, y));
+            var pT = p.nearestPointNormalTo(input);
             if (pT != undefined) {
-                var thisDist = Math.sqrt(Math.pow(x - pT.x, 2) + Math.pow(y - pT.y, 2));
+                var thisDist = Math.sqrt(Math.pow(input.x - pT.x, 2) + Math.pow(input.y - pT.y, 2));
                 if (minDist == undefined || thisDist < minDist) {
                     minDist = thisDist;
                     nearestEdge = this.edges[i];
@@ -2507,7 +2511,7 @@ var PlanarGraph = (function (_super) {
             }
         }
         for (var i = 0; i < this.nodes.length; i++) {
-            var dist = Math.sqrt(Math.pow(this.nodes[i].x - x, 2) + Math.pow(this.nodes[i].y - y, 2));
+            var dist = Math.sqrt(Math.pow(this.nodes[i].x - input.x, 2) + Math.pow(this.nodes[i].y - input.y, 2));
             if (dist < minDist) {
                 var adjEdges = this.nodes[i].adjacentEdges();
                 if (adjEdges != undefined && adjEdges.length > 0) {
@@ -2519,24 +2523,21 @@ var PlanarGraph = (function (_super) {
         }
         return { 'edge': nearestEdge, 'point': minLocation };
     };
-    PlanarGraph.prototype.getNearestEdges = function (x, y, howMany) {
-        if (isValidPoint(x)) {
-            y = x.y;
-            x = x.x;
-        }
-        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+    PlanarGraph.prototype.getNearestEdges = function (a, b, howMany) {
+        var p = gimme1XY(a, b);
+        if (p === undefined) {
             return;
         }
         var minDist, nearestEdge, minLocation = { x: undefined, y: undefined };
         var edges = this.edges.map(function (el) {
-            var pT = el.nearestPointNormalTo(new XY(x, y));
+            var pT = el.nearestPointNormalTo(p);
             if (pT === undefined) {
                 return undefined;
             }
             var distances = [
-                Math.sqrt(Math.pow(x - pT.x, 2) + Math.pow(y - pT.y, 2)),
-                Math.sqrt(Math.pow(el.nodes[0].x - x, 2) + Math.pow(el.nodes[0].y - y, 2)),
-                Math.sqrt(Math.pow(el.nodes[1].x - x, 2) + Math.pow(el.nodes[1].y - y, 2)),
+                Math.sqrt(Math.pow(p.x - pT.x, 2) + Math.pow(p.y - pT.y, 2)),
+                Math.sqrt(Math.pow(el.nodes[0].x - p.x, 2) + Math.pow(el.nodes[0].y - p.y, 2)),
+                Math.sqrt(Math.pow(el.nodes[1].x - p.x, 2) + Math.pow(el.nodes[1].y - p.y, 2)),
             ].filter(function (el) { return el !== undefined; })
                 .sort(function (a, b) { return (a > b) ? 1 : (a < b) ? -1 : 0; });
             if (distances.length) {
@@ -2545,15 +2546,19 @@ var PlanarGraph = (function (_super) {
         });
         return edges.filter(function (el) { return el != undefined; });
     };
-    PlanarGraph.prototype.getNearestEdgeConnectingPoints = function (a, b) {
-        var aNear = this.getNearestNode(a.x, a.y);
-        var bNear = this.getNearestNode(b.x, b.y);
+    PlanarGraph.prototype.getNearestEdgeConnectingPoints = function (a, b, c, d) {
+        var p = gimme2XY(a, b, c, d);
+        if (p === undefined) {
+            return;
+        }
+        var aNear = this.getNearestNode(p[0].x, p[0].y);
+        var bNear = this.getNearestNode(p[1].x, p[1].y);
         var edge = this.getEdgeConnectingNodes(aNear, bNear);
         if (edge !== undefined)
             return edge;
         for (var cou = 3; cou < 20; cou += 3) {
-            var aNears = this.getNearestNodes(a.x, a.y, cou);
-            var bNears = this.getNearestNodes(b.x, b.y, cou);
+            var aNears = this.getNearestNodes(p[0].x, p[0].y, cou);
+            var bNears = this.getNearestNodes(p[1].x, p[1].y, cou);
             for (var i = 0; i < aNears.length; i++) {
                 for (var j = 0; j < bNears.length; j++) {
                     if (i !== j) {
@@ -2566,15 +2571,8 @@ var PlanarGraph = (function (_super) {
         }
         return undefined;
     };
-    PlanarGraph.prototype.getNearestFace = function (x, y) {
-        if (isValidPoint(x)) {
-            y = x.y;
-            x = x.x;
-        }
-        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
-            return;
-        }
-        var nearestNode = this.getNearestNode(x, y);
+    PlanarGraph.prototype.getNearestFace = function (a, b) {
+        var nearestNode = this.getNearestNode(a, b);
         if (nearestNode === undefined) {
             return;
         }
@@ -2600,15 +2598,12 @@ var PlanarGraph = (function (_super) {
         }
         return sortedFaces[0];
     };
-    PlanarGraph.prototype.getNearestInteriorAngle = function (x, y) {
-        if (isValidPoint(x)) {
-            y = x.y;
-            x = x.x;
-        }
-        if (typeof (x) !== 'number' || typeof (y) !== 'number') {
+    PlanarGraph.prototype.getNearestInteriorAngle = function (a, b) {
+        var p = gimme1XY(a, b);
+        if (p === undefined) {
             return;
         }
-        var nodes = this.getNearestNodes(x, y, 5);
+        var nodes = this.getNearestNodes(p.x, p.y, 5);
         var node, sectors;
         for (var i = 0; i < nodes.length; i++) {
             node = nodes[i];
@@ -2625,10 +2620,10 @@ var PlanarGraph = (function (_super) {
         }
         var anglesInside = sectors.filter(function (el) {
             var pts = el.endPoints;
-            var cross0 = (y - node.y) * (pts[1].x - node.x) -
-                (x - node.x) * (pts[1].y - node.y);
-            var cross1 = (y - pts[0].y) * (node.x - pts[0].x) -
-                (x - pts[0].x) * (node.y - pts[0].y);
+            var cross0 = (p.y - node.y) * (pts[1].x - node.x) -
+                (p.x - node.x) * (pts[1].y - node.y);
+            var cross1 = (p.y - pts[0].y) * (node.x - pts[0].x) -
+                (p.x - pts[0].x) * (node.y - pts[0].y);
             if (cross0 < 0 || cross1 < 0) {
                 return false;
             }
@@ -3143,7 +3138,8 @@ var CreasePattern = (function (_super) {
         }
         return undefined;
     };
-    CreasePattern.prototype.creaseLineRepeat = function (ray) {
+    CreasePattern.prototype.creaseLineRepeat = function (a, b, c, d) {
+        var ray = gimme1Ray(a, b, c, d);
         return this.creaseRayRepeat(ray)
             .concat(this.creaseRayRepeat(ray.flip()));
     };
@@ -3489,37 +3485,17 @@ var CreasePattern = (function (_super) {
         this.cleanDuplicateNodes();
         return this;
     };
+    CreasePattern.prototype.noSymmetry = function () { this.symmetryLine = undefined; return this; };
     CreasePattern.prototype.bookSymmetry = function () {
         var center = this.boundary.center();
-        return this.setSymmetryLineBetweenPoints(center, center.add(new XY(0, 1)));
+        return this.setSymmetryLine(center, center.add(new XY(0, 1)));
     };
     CreasePattern.prototype.diagonalSymmetry = function () {
         var center = this.boundary.center();
-        return this.setSymmetryLineBetweenPoints(center, center.add(new XY(1, 1)));
-    };
-    CreasePattern.prototype.noSymmetry = function () { this.symmetryLine = undefined; return this; };
-    CreasePattern.prototype.setSymmetryLineBetweenPoints = function (a, b) {
-        if (!isValidPoint(a) || !isValidPoint(b)) {
-            this.symmetryLine = undefined;
-        }
-        else {
-            this.symmetryLine = new Line(a, b);
-        }
-        return this;
+        return this.setSymmetryLine(center, center.add(new XY(1, 1)));
     };
     CreasePattern.prototype.setSymmetryLine = function (a, b, c, d) {
-        if (a instanceof Line) {
-            this.symmetryLine = a;
-        }
-        else if (a.nodes instanceof Array && isValidPoint(a) && isValidPoint(b)) {
-            this.symmetryLine = new Line(a.nodes[0].x, a.nodes[0].y, a.nodes[1].x, a.nodes[1].y);
-        }
-        else if (isValidPoint(a) && isValidPoint(b)) {
-            this.symmetryLine = new Line(a, b);
-        }
-        else if (isValidNumber(a) && isValidNumber(b) && isValidNumber(c) && isValidNumber(d)) {
-            this.symmetryLine = new Line(a, b, c, d);
-        }
+        this.symmetryLine = gimme1Line(a, b, c, d);
         return this;
     };
     CreasePattern.prototype.svgMin = function (size) {
@@ -3750,6 +3726,28 @@ var CreasePattern = (function (_super) {
     };
     return CreasePattern;
 }(PlanarGraph));
+Array.prototype.mountain = function () {
+    if (this.length <= 1) {
+        return;
+    }
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] instanceof Crease) {
+            this[i].mountain();
+        }
+    }
+    return this;
+};
+Array.prototype.valley = function () {
+    if (this.length <= 1) {
+        return;
+    }
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] instanceof Crease) {
+            this[i].valley();
+        }
+    }
+    return this;
+};
 !function (t) { if ("object" == typeof exports && "undefined" != typeof module)
     module.exports = t();
 else if ("function" == typeof define && define.amd)

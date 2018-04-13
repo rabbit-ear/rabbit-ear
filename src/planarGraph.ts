@@ -952,15 +952,14 @@ class PlanarGraph extends Graph{
 	 * @param {XY} either two numbers (x,y) or one XY point object (XY)
 	 * @returns {PlanarNode} nearest node to the point
 	 */
-	getNearestNode(x:any, y:any):PlanarNode{
-		// input x is an xy point
-		if(isValidPoint(x)){ y = x.y; x = x.x; }
-		if(typeof(x) !== 'number' || typeof(y) !== 'number'){ return; }
+	getNearestNode(a:any, b:any):PlanarNode{
+		var p = gimme1XY(a,b);
+		if(p === undefined){ return; }
 		// can be optimized with a k-d tree
 		var node = undefined;
 		var distance = Infinity;
 		for(var i = 0; i < this.nodes.length; i++){
-			var dist = Math.sqrt(Math.pow(this.nodes[i].x - x,2) + Math.pow(this.nodes[i].y - y,2));
+			var dist = Math.sqrt(Math.pow(this.nodes[i].x - p.x,2) + Math.pow(this.nodes[i].y - p.y,2));
 			if(dist < distance){
 				distance = dist;
 				node = this.nodes[i];
@@ -969,14 +968,13 @@ class PlanarGraph extends Graph{
 		return node;
 	}
 
-	getNearestNodes(x:any, y:any, howMany:number):PlanarNode[]{
-		// input x is an xy point
-		if(isValidPoint(x)){ y = x.y; x = x.x; }
-		if(typeof(x) !== 'number' || typeof(y) !== 'number'){ return; }
+	getNearestNodes(a:any, b:any, howMany:number):PlanarNode[]{
+		var p = gimme1XY(a,b);
+		if(p === undefined){ return; }
 		// can be optimized with a k-d tree
 		var distances = [];
 		for(var i = 0; i < this.nodes.length; i++){
-			var dist = Math.sqrt(Math.pow(this.nodes[i].x - x,2) + Math.pow(this.nodes[i].y - y,2));
+			var dist = Math.sqrt(Math.pow(this.nodes[i].x - p.x,2) + Math.pow(this.nodes[i].y - p.y,2));
 			distances.push( {'i':i, 'd':dist} );
 		}
 		distances.sort(function(a,b) {return (a.d > b.d) ? 1 : ((b.d > a.d) ? -1 : 0);} ); 
@@ -985,16 +983,15 @@ class PlanarGraph extends Graph{
 		return distances.slice(0, howMany).map(function(el){ return this.nodes[el.i]; }, this);
 	}
 
-	getNearestEdge(x:any, y:any):{'edge':PlanarEdge, 'point':XY}{
-		// input x is an xy point
-		if(isValidPoint(x)){ y = x.y; x = x.x; }
-		if(typeof(x) !== 'number' || typeof(y) !== 'number'){ return; }
+	getNearestEdge(a:any, b:any):{'edge':PlanarEdge, 'point':XY}{
+		var input = gimme1XY(a,b);
+		if(input === undefined){ return; }
 		var minDist, nearestEdge, minLocation = new XY(undefined,undefined);
 		for(var i = 0; i < this.edges.length; i++){
 			var p = this.edges[i];
-			var pT = p.nearestPointNormalTo(new XY(x,y));
+			var pT = p.nearestPointNormalTo(input);
 			if(pT != undefined){
-				var thisDist = Math.sqrt(Math.pow(x-pT.x,2) + Math.pow(y-pT.y,2));
+				var thisDist = Math.sqrt(Math.pow(input.x-pT.x,2) + Math.pow(input.y-pT.y,2));
 				if(minDist == undefined || thisDist < minDist){
 					minDist = thisDist;
 					nearestEdge = this.edges[i];
@@ -1005,7 +1002,7 @@ class PlanarGraph extends Graph{
 		// for (x,y) that is not orthogonal to the length of the edge (past the endpoint)
 		// check distance to node endpoints
 		for(var i = 0; i < this.nodes.length; i++){
-			var dist = Math.sqrt(Math.pow(this.nodes[i].x - x,2) + Math.pow(this.nodes[i].y - y,2));
+			var dist = Math.sqrt(Math.pow(this.nodes[i].x - input.x,2) + Math.pow(this.nodes[i].y - input.y,2));
 			if(dist < minDist){
 				var adjEdges = this.nodes[i].adjacentEdges();
 				if(adjEdges != undefined && adjEdges.length > 0){
@@ -1018,33 +1015,34 @@ class PlanarGraph extends Graph{
 		return {'edge':nearestEdge, 'point':minLocation};
 	}
 
-	getNearestEdges(x:any, y:any, howMany:number):any[]{
-		// input x is an xy point
-		if(isValidPoint(x)){ y = x.y; x = x.x; }
-		if(typeof(x) !== 'number' || typeof(y) !== 'number'){ return; }
+	getNearestEdges(a:any, b:any, howMany:number):any[]{
+		var p = gimme1XY(a,b);
+		if(p === undefined){ return; }
 		var minDist, nearestEdge, minLocation = {x:undefined, y:undefined};
 		var edges = this.edges.map(function(el){ 
-			var pT = el.nearestPointNormalTo(new XY(x,y));
+			var pT = el.nearestPointNormalTo(p);
 			if(pT === undefined){return undefined;}
 			var distances = [
-				Math.sqrt(Math.pow(x-pT.x,2) + Math.pow(y-pT.y,2)), // perp dist
-				Math.sqrt(Math.pow(el.nodes[0].x - x, 2) + Math.pow(el.nodes[0].y - y, 2)), // node 1 dist
-				Math.sqrt(Math.pow(el.nodes[1].x - x, 2) + Math.pow(el.nodes[1].y - y, 2)), // node 2 dist
+				Math.sqrt(Math.pow(p.x-pT.x,2) + Math.pow(p.y-pT.y,2)), // perp dist
+				Math.sqrt(Math.pow(el.nodes[0].x - p.x, 2) + Math.pow(el.nodes[0].y - p.y, 2)), // node 1 dist
+				Math.sqrt(Math.pow(el.nodes[1].x - p.x, 2) + Math.pow(el.nodes[1].y - p.y, 2)), // node 2 dist
 			].filter(function(el){return el !== undefined; })
 			 .sort(function(a,b){return (a > b)?1:(a < b)?-1:0});
 			if(distances.length){ return {'edge':el, 'distance':distances[0]}; }			
 		});
 		return edges.filter(function(el){return el != undefined; });
 	}
-	getNearestEdgeConnectingPoints(a:XY, b:XY):PlanarEdge{
-		var aNear = this.getNearestNode(a.x, a.y);
-		var bNear = this.getNearestNode(b.x, b.y);
+	getNearestEdgeConnectingPoints(a:any, b:any, c?:any, d?:any):PlanarEdge{
+		var p = gimme2XY(a,b,c,d);
+		if(p === undefined){ return; }
+		var aNear = this.getNearestNode(p[0].x, p[0].y);
+		var bNear = this.getNearestNode(p[1].x, p[1].y);
 		var edge = <PlanarEdge>this.getEdgeConnectingNodes(aNear, bNear);
 		if(edge !== undefined) return edge;
 		// check more
 		for(var cou = 3; cou < 20; cou+=3){
-			var aNears = this.getNearestNodes(a.x, a.y, cou);
-			var bNears = this.getNearestNodes(b.x, b.y, cou);
+			var aNears = this.getNearestNodes(p[0].x, p[0].y, cou);
+			var bNears = this.getNearestNodes(p[1].x, p[1].y, cou);
 			for(var i = 0; i < aNears.length; i++){
 				for(var j = 0; j < bNears.length; j++){
 					if(i !== j){
@@ -1057,11 +1055,8 @@ class PlanarGraph extends Graph{
 		return undefined;
 	}
 
-	getNearestFace(x:any, y:any):PlanarFace{
-		// input x is an xy point
-		if(isValidPoint(x)){ y = x.y; x = x.x; }
-		if(typeof(x) !== 'number' || typeof(y) !== 'number'){ return; }
-		var nearestNode = this.getNearestNode(x, y);
+	getNearestFace(a:any, b:any):PlanarFace{
+		var nearestNode = this.getNearestNode(a, b);
 		if(nearestNode === undefined){ return; }
 		var faces = nearestNode.adjacentFaces();
 		if(faces === undefined || faces.length == 0){ return; }
@@ -1078,12 +1073,11 @@ class PlanarGraph extends Graph{
 		return sortedFaces[0];
 	}
 
-	getNearestInteriorAngle(x:any, y:any):PlanarSector{
-		// input x is an xy point
-		if(isValidPoint(x)){ y = x.y; x = x.x; }
-		if(typeof(x) !== 'number' || typeof(y) !== 'number'){ return; }
+	getNearestInteriorAngle(a:any, b:any):PlanarSector{
+		var p = gimme1XY(a,b);
+		if(p === undefined){ return; }
 		// todo: 5 is an arbitrary number to speed up this algorithm
-		var nodes = this.getNearestNodes(x,y,5);
+		var nodes = this.getNearestNodes(p.x, p.y, 5);
 		var node, sectors;
 		for(var i = 0; i < nodes.length; i++){
 			node = nodes[i];
@@ -1097,10 +1091,10 @@ class PlanarGraph extends Graph{
 		// cross product on each edge pair
 		var anglesInside = sectors.filter(function(el:PlanarSector){ 
 			var pts = el.endPoints;
-			var cross0 = (y - node.y) * (pts[1].x - node.x) - 
-						 (x - node.x) * (pts[1].y - node.y);
-			var cross1 = (y - pts[0].y) * (node.x - pts[0].x) - 
-						 (x - pts[0].x) * (node.y - pts[0].y);
+			var cross0 = (p.y - node.y) * (pts[1].x - node.x) - 
+						 (p.x - node.x) * (pts[1].y - node.y);
+			var cross1 = (p.y - pts[0].y) * (node.x - pts[0].x) - 
+						 (p.x - pts[0].x) * (node.y - pts[0].y);
 			if (cross0 < 0 || cross1 < 0){ return false; }
 			return true;
 		});

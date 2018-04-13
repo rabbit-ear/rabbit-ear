@@ -385,8 +385,8 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	newCrease(a_x:number, a_y:number, b_x:number, b_y:number):Crease{
+		// this is a private function expecting all boundary conditions satisfied
 		// use this.crease() instead
-		// this is a private function and expects all boundary intersection conditions satisfied
 		this.creaseSymmetry(a_x, a_y, b_x, b_y);
 		var newCrease = <Crease>this.newPlanarEdge(a_x, a_y, b_x, b_y);
 		if(this.didChange !== undefined){ this.didChange(undefined); }
@@ -431,7 +431,8 @@ class CreasePattern extends PlanarGraph{
 		return undefined;
 	}
 
-	creaseLineRepeat(ray:Ray):Crease[]{
+	creaseLineRepeat(a:any, b?:any, c?:any, d?:any):Crease[]{
+		var ray = gimme1Ray(a,b,c,d);
 		return this.creaseRayRepeat(ray)
 		           .concat(this.creaseRayRepeat( ray.flip() ));
 	}
@@ -878,33 +879,18 @@ class CreasePattern extends PlanarGraph{
 
 	///////////////////////////////////////////////////////////////
 	// SYMMETRY
-
-	bookSymmetry():CreasePattern{
-		var center = this.boundary.center();
-		return this.setSymmetryLineBetweenPoints(center, center.add(new XY(0, 1)));
-	}
-
-	diagonalSymmetry():CreasePattern{
-		var center = this.boundary.center();
-		return this.setSymmetryLineBetweenPoints(center, center.add(new XY(1, 1)));
-	}
 	
 	noSymmetry():CreasePattern{ this.symmetryLine = undefined; return this; }
-
-	setSymmetryLineBetweenPoints(a:XY, b:XY):CreasePattern{
-		if(!isValidPoint(a) || !isValidPoint(b)){ this.symmetryLine = undefined; }
-		else { this.symmetryLine = new Line(a, b); }
-		return this;
+	bookSymmetry():CreasePattern{
+		var center = this.boundary.center();
+		return this.setSymmetryLine(center, center.add(new XY(0, 1)));
+	}
+	diagonalSymmetry():CreasePattern{
+		var center = this.boundary.center();
+		return this.setSymmetryLine(center, center.add(new XY(1, 1)));
 	}
 	setSymmetryLine(a:any, b?:any, c?:any, d?:any):CreasePattern{
-		if(a instanceof Line){ this.symmetryLine = a; }
-		// todo, what is this? this doesn't make sense..
-		else if(a.nodes instanceof Array && isValidPoint(a) && isValidPoint(b)){
-			this.symmetryLine = new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);}
-		else if(isValidPoint(a) && isValidPoint(b)){ this.symmetryLine = new Line(a,b); }
-		else if(isValidNumber(a)&&isValidNumber(b)&&isValidNumber(c)&&isValidNumber(d)){
-			this.symmetryLine = new Line(a,b,c,d);
-		}
+		this.symmetryLine = gimme1Line(a,b,c,d);
 		return this;
 	}
 
@@ -1138,3 +1124,27 @@ class CreasePattern extends PlanarGraph{
 	}
 
 }
+
+interface Array<T> {
+	mountain():Crease[];
+	valley():Crease[];
+}
+Array.prototype.mountain = function():Crease[] {
+	if(this.length <= 1){ return ; }
+	for(var i = 0; i < this.length; i++){
+		if( this[i] instanceof Crease){
+			this[i].mountain();
+		}
+	}
+	return this;
+}
+Array.prototype.valley = function():Crease[] {
+	if(this.length <= 1){ return ; }
+	for(var i = 0; i < this.length; i++){
+		if( this[i] instanceof Crease){
+			this[i].valley();
+		}
+	}
+	return this;
+}
+
