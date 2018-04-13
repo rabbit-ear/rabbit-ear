@@ -730,6 +730,9 @@ var Ray = (function () {
         return (this.origin.equivalent(ray.origin, epsilon) &&
             this.direction.normalize().equivalent(ray.direction.normalize(), epsilon));
     };
+    Ray.prototype.flip = function () {
+        return new Ray(this.origin, new XY(-this.direction.x, -this.direction.y));
+    };
     Ray.prototype.clipWithEdge = function (edge, epsilon) {
         var intersect = intersectionRayEdge(this, edge, epsilon);
         if (intersect === undefined) {
@@ -1508,6 +1511,47 @@ var VoronoiGraph = (function () {
     };
     return VoronoiGraph;
 }());
+function gimme2XY(a, b, c, d) {
+    if (isValidPoint(b)) {
+        return [a, b];
+    }
+    else if (isValidNumber(d)) {
+        return [new XY(a, b), new XY(c, d)];
+    }
+}
+function gimme1Edge(a, b, c, d) {
+    if (a instanceof Edge || a instanceof Crease) {
+        return a;
+    }
+    else if (isValidPoint(b)) {
+        return new Edge(a, b);
+    }
+    else if (isValidNumber(d)) {
+        return new Edge(a, b, c, d);
+    }
+}
+function gimme1Ray(a, b, c, d) {
+    if (a instanceof Ray) {
+        return a;
+    }
+    else if (isValidPoint(b)) {
+        return new Ray(a, b);
+    }
+    else if (isValidNumber(d)) {
+        return new Ray(new XY(a, b), new XY(c, d));
+    }
+}
+function gimme1Line(a, b, c, d) {
+    if (a instanceof Line) {
+        return a;
+    }
+    else if (isValidPoint(b)) {
+        return new Line(a, b);
+    }
+    else if (isValidNumber(d)) {
+        return new Line(a, b, c, d);
+    }
+}
 Array.prototype.flatMap = function (mapFunc) {
     return this.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
 };
@@ -3064,31 +3108,20 @@ var CreasePattern = (function (_super) {
         return newCrease;
     };
     CreasePattern.prototype.crease = function (a, b, c, d) {
-        var edge;
-        if (a instanceof Edge || a instanceof Crease) {
-            edge = this.boundary.clipEdge(a);
+        var e = gimme1Edge(a, b, c, d);
+        if (e === undefined) {
+            return;
         }
-        else if (isValidPoint(a) && isValidPoint(b)) {
-            edge = this.boundary.clipEdge(new Edge(a, b));
-        }
-        else if (isValidNumber(a) && isValidNumber(b) && isValidNumber(c) && isValidNumber(d)) {
-            edge = this.boundary.clipEdge(new Edge(a, b, c, d));
-        }
+        var edge = this.boundary.clipEdge(e);
         if (edge === undefined) {
             return;
         }
         return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
     };
     CreasePattern.prototype.creaseRay = function (a, b, c, d) {
-        var ray;
-        if (a instanceof Ray) {
-            ray = a;
-        }
-        else if (isValidPoint(a) && isValidPoint(b)) {
-            ray = new Ray(a, b);
-        }
-        else if (isValidNumber(a) && isValidNumber(b) && isValidNumber(c) && isValidNumber(d)) {
-            ray = new Ray(new XY(a, b), new XY(c, d));
+        var ray = gimme1Ray(a, b, c, d);
+        if (ray === undefined) {
+            return;
         }
         var edge = this.boundary.clipRay(ray);
         if (edge === undefined) {
@@ -3110,6 +3143,10 @@ var CreasePattern = (function (_super) {
         }
         return undefined;
     };
+    CreasePattern.prototype.creaseLineRepeat = function (ray) {
+        return this.creaseRayRepeat(ray)
+            .concat(this.creaseRayRepeat(ray.flip()));
+    };
     CreasePattern.prototype.creaseRayRepeat = function (ray, target) {
         return new Polyline()
             .rayReflectRepeat(ray, this.edges, target)
@@ -3127,8 +3164,12 @@ var CreasePattern = (function (_super) {
         var rb = new XY(bx, by).reflect(this.symmetryLine.nodes[0], this.symmetryLine.nodes[1]);
         return this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
     };
-    CreasePattern.prototype.creaseThroughPoints = function (a, b) {
-        var edge = this.boundary.clipLine(new Line(a.x, a.y, b.x, b.y));
+    CreasePattern.prototype.creaseThroughPoints = function (a, b, c, d) {
+        var line = gimme1Line(a, b, c, d);
+        if (line === undefined) {
+            return;
+        }
+        var edge = this.boundary.clipLine(line);
         if (edge === undefined) {
             return;
         }
@@ -3136,17 +3177,20 @@ var CreasePattern = (function (_super) {
         newCrease.madeBy = new Fold(this.creaseThroughPoints, [new XY(a.x, a.y), new XY(b.x, b.y)]);
         return newCrease;
     };
-    CreasePattern.prototype.creasePointToPoint = function (a, b) {
-        var midpoint = new XY((a.x + b.x) * 0.5, (a.y + b.y) * 0.5);
-        var ab = new XY(b.x - a.x, b.y - a.y);
-        var perp1 = ab.rotate90();
+    CreasePattern.prototype.creasePointToPoint = function (a, b, c, d) {
+        var p = gimme2XY(a, b, c, d);
+        if (p === undefined) {
+            return;
+        }
+        var midpoint = new XY((p[0].x + p[1].x) * 0.5, (p[0].y + p[1].y) * 0.5);
+        var v = new XY(p[1].x - p[0].x, p[1].y - p[0].y);
+        var perp1 = v.rotate90();
         var edge = this.boundary.clipLine(new Line(midpoint, midpoint.add(perp1)));
         if (edge !== undefined) {
             var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-            newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(a.x, a.y), new XY(b.x, b.y)]);
+            newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(p[0].x, p[0].y), new XY(p[1].x, p[1].y)]);
             return newCrease;
         }
-        return;
     };
     CreasePattern.prototype.creaseEdgeToEdge = function (one, two) {
         var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);

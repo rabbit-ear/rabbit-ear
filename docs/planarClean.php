@@ -68,7 +68,7 @@
 <h2>Collinear Planar Graph Edges</h2>
 <section id="collinear-nodes">
 
-	<p class="quote">Collinear nodes can be removed, the two edges on either side merged into one.</p>
+	<p class="quote">Collinear nodes can be removed, the two edges on either side merged into one, disappearing the point which once divided the edge.</p>
 
 	<div class="centered">
 		<canvas id="canvas-mouse-delete-edge" resize></canvas>

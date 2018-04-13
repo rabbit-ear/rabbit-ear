@@ -17,7 +17,7 @@
 <h2>PRIMITIVES</h2>
 
 <h3>Points</h3>
-	<p>A point is represented by its components: x and y. There is only one data structure in this library, and it takes its name from these components: <b>XY</b>.</p>
+	<p>A point is represented by its components in 2D space: x and y. We call this class object an <b>XY</b>.</p>
 	<div class="centered">
 		<pre><code><key>let</key> point <key>=</key> <key>new</key> <v>XY</v>(<n>0.5</n>, <n>0.666</n>)</code></pre>
 	</div>
@@ -33,8 +33,9 @@
 		<pre><code><key>let</key> segment <key>=</key> <key>new</key> <v>Edge</v>(<span id="intersect-all-edge"></span>)<br><key>let</key> ray <key>=</key> <key>new</key> <v>Ray</v>(<span id="intersect-all-ray"></span>)<br><key>let</key> line <key>=</key> <key>new</key> <v>Line</v>(<span id="intersect-all-line"></span>)</code></pre>
 	</div>
 	
-	<p class="quote">Four arguments describe the two points: <b>(x1, y1, x2, y2)</b></p>
+	<p class="quote">Four arguments describe two points <b>(x1, y1, x2, y2)</b>.</p>
 
+	<p><b>Edges</b> and <b>lines</b> are defined by two collinear points, <b>rays</b> however are defined by an <b>origin</b> and a <b>direction vector</b>.</p>
 
 <h3>Polygon</h3>
 

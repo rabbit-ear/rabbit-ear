@@ -414,6 +414,9 @@ class Ray{
 		return (this.origin.equivalent(ray.origin, epsilon) &&
 		        this.direction.normalize().equivalent(ray.direction.normalize(), epsilon));
 	}
+	flip(){
+		return new Ray(this.origin, new XY(-this.direction.x, -this.direction.y));
+	}
 	/** this returns undefined if ray and edge don't intersect
 	 * edge.nodes[0] is always the ray.origin
 	 */
@@ -1171,6 +1174,31 @@ class VoronoiGraph{
 		return array;
 	}		
 
+}
+
+/////////////////////////////// JAVASCRIPT /////////////////////////////// 
+function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
+	// input is 2 XY, or 4 numbers
+	if(isValidPoint(b)){ return [a,b]; }
+	else if(isValidNumber(d)){ return [new XY(a, b), new XY(c, d)]; }
+}
+function gimme1Edge(a:any, b?:any, c?:any, d?:any):Edge{
+	// input is 1 edge, 2 XY, or 4 numbers
+	if(a instanceof Edge || a instanceof Crease){ return a; }
+	else if(isValidPoint(b) ){ return new Edge(a,b); }
+	else if(isValidNumber(d)){ return new Edge(a,b,c,d); }
+}
+function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
+	// input is 1 ray, 2 XY, or 4 numbers
+	if(a instanceof Ray){ return a; }
+	else if(isValidPoint(b) ){ return new Ray(a,b); }
+	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)) }
+}
+function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
+	// input is 1 line, 2 XY, or 4 numbers
+	if(a instanceof Line){ return a; }
+	else if(isValidPoint(b) ){ return new Line(a,b); }
+	else if(isValidNumber(d)){ return new Line(a,b,c,d); }
 }
 
 /////////////////////////////// ARRAYS /////////////////////////////// 

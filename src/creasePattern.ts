@@ -398,24 +398,16 @@ class CreasePattern extends PlanarGraph{
 	 * @returns {Crease} pointer to the Crease
 	 */
 	crease(a:any, b?:any, c?:any, d?:any):Crease{
-		var edge;
-		// input is 1 edge, 2 XY, or 4 numbers
-		if(a instanceof Edge || a instanceof Crease){ edge = this.boundary.clipEdge(a); }
-		else if(isValidPoint(a) && isValidPoint(b)){ edge = this.boundary.clipEdge(new Edge(a,b)); }
-		else if(isValidNumber(a)&&isValidNumber(b)&&isValidNumber(c)&&isValidNumber(d)){
-			edge = this.boundary.clipEdge(new Edge(a,b,c,d));
-		}
+		var e = gimme1Edge(a,b,c,d);
+		if(e === undefined){ return; }
+		var edge = this.boundary.clipEdge(e);
 		if(edge === undefined){ return; }
 		return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 	}
 
 	creaseRay(a:any, b?:any, c?:any, d?:any):Crease{
-		var ray;
-		if(a instanceof Ray){ ray = a; }
-		else if(isValidPoint(a) && isValidPoint(b)){ ray = new Ray(a, b); }
-		else if(isValidNumber(a)&&isValidNumber(b)&&isValidNumber(c)&&isValidNumber(d)){
-			ray = new Ray(new XY(a,b), new XY(c,d));
-		}
+		var ray = gimme1Ray(a,b,c,d);
+		if(ray === undefined) { return; }
 		var edge = this.boundary.clipRay(ray);
 		if(edge === undefined) { return; }
 		var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
@@ -439,6 +431,11 @@ class CreasePattern extends PlanarGraph{
 		return undefined;
 	}
 
+	creaseLineRepeat(ray:Ray):Crease[]{
+		return this.creaseRayRepeat(ray)
+		           .concat(this.creaseRayRepeat( ray.flip() ));
+	}
+
 	creaseRayRepeat(ray:Ray, target?:XY):Crease[]{
 		return new Polyline()
 			.rayReflectRepeat(ray, this.edges, target)
@@ -457,25 +454,28 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	// AXIOM 1
-	creaseThroughPoints(a:XY, b:XY):Crease{
-		var edge = this.boundary.clipLine(new Line(a.x, a.y, b.x, b.y));
+	creaseThroughPoints(a:any, b?:any, c?:any, d?:any):Crease{
+		var line = gimme1Line(a,b,c,d);
+		if(line === undefined){ return; }
+		var edge = this.boundary.clipLine(line);
 		if(edge === undefined){ return; }
 		var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 		newCrease.madeBy = new Fold(this.creaseThroughPoints, [new XY(a.x,a.y), new XY(b.x,b.y)]);
 		return newCrease;
 	}
 	// AXIOM 2
-	creasePointToPoint(a:XY, b:XY):Crease{
-		var midpoint = new XY( (a.x+b.x)*0.5, (a.y+b.y)*0.5 );
-		var ab = new XY(b.x-a.x,b.y-a.y);
-		var perp1 = ab.rotate90();
+	creasePointToPoint(a:any, b:any, c?:any, d?:any):Crease{
+		var p = gimme2XY(a,b,c,d);
+		if(p === undefined){ return; }
+		var midpoint = new XY( (p[0].x+p[1].x)*0.5, (p[0].y+p[1].y)*0.5 );
+		var v = new XY(p[1].x-p[0].x,p[1].y-p[0].y);
+		var perp1 = v.rotate90();
 		var edge = this.boundary.clipLine(new Line(midpoint, midpoint.add(perp1)));
 		if(edge !== undefined){
 			var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-			newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(a.x,a.y), new XY(b.x,b.y)]);
+			newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(p[0].x,p[0].y), new XY(p[1].x,p[1].y)]);
 			return newCrease
 		}
-		return;
 	}
 	// AXIOM 3
 	creaseEdgeToEdge(one:Crease, two:Crease):Crease[]{
@@ -898,6 +898,7 @@ class CreasePattern extends PlanarGraph{
 	}
 	setSymmetryLine(a:any, b?:any, c?:any, d?:any):CreasePattern{
 		if(a instanceof Line){ this.symmetryLine = a; }
+		// todo, what is this? this doesn't make sense..
 		else if(a.nodes instanceof Array && isValidPoint(a) && isValidPoint(b)){
 			this.symmetryLine = new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);}
 		else if(isValidPoint(a) && isValidPoint(b)){ this.symmetryLine = new Line(a,b); }
