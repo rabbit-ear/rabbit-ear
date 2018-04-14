@@ -897,7 +897,7 @@ class CreasePattern extends PlanarGraph{
 	///////////////////////////////////////////////////////////////
 	// FILE FORMATS
 
-	foldFile():object{
+	exportFoldFile():object{
 		this.generateFaces();
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
@@ -927,13 +927,20 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	importFoldFile(file:object):boolean{
+		if(file === undefined || 
+		   file["vertices_coords"] === undefined ||
+		   file["edges_vertices"] === undefined){ return false; }
+
+		// if file is 3D, we need to alert the user
+		if(file["frame_attributes"] !== undefined && file["frame_attributes"].contains("3D")){
+			console.log("importFoldFile(): FOLD file marked as '3D', this library only supports 2D. attempting import anyway, expect a possible distortion due to orthogonal projection.");
+			// return false;
+		}
 
 		// file["file_spec"]
 		// file["file_creator"]
 		// file["file_author"]
 		// file["file_classes"]
-
-		if(file["vertices_coords"]===undefined || file["edges_vertices"]===undefined){return false;}
 
 		this.clear();
 		this.noBoundary();
@@ -955,15 +962,9 @@ class CreasePattern extends PlanarGraph{
 			},this);
 		this.edgeArrayDidChange();
 
+		var assignmentDictionary = { "B": CreaseDirection.border, "M": CreaseDirection.mountain, "V": CreaseDirection.valley, "F": CreaseDirection.mark, "U": CreaseDirection.mark };
 		file["edges_assignment"]
-			.map(function(assignment){
-				switch(assignment){
-					case "B": return CreaseDirection.border;
-					case "M": return CreaseDirection.mountain;
-					case "V": return CreaseDirection.valley;
-					case "F": return CreaseDirection.mark;
-					case "U": return CreaseDirection.mark;
-				} })
+			.map(function(assignment){ return assignmentDictionary[assignment]; })
 			.forEach(function(orientation, i){ this.edges[i].orientation = orientation; },this);
 
 		// file["faces_vertices"]
@@ -986,36 +987,7 @@ class CreasePattern extends PlanarGraph{
 		return true;
 	}
 
-	
-	svgMin(size:number):string{
-		if(size === undefined || size <= 0){ size = 600; }
-		var bounds = this.bounds();
-		var width = bounds.size.width;
-		var height = bounds.size.height;
-		var padX = bounds.topLeft.x;
-		var padY = bounds.topLeft.y;
-		var scale = size / (width+padX*2);
-		var strokeWidth = (width*scale * 0.0025).toFixed(1);
-		if(strokeWidth === "0" || strokeWidth === "0.0"){ strokeWidth = "0.5"; }
-		var polylines = this.fewestPolylines();
-		var blob = "";
-		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +((width+padX*2)*scale)+ "px\" height=\"" +((height+padY*2)*scale)+ "px\" viewBox=\"0 0 " +((width+padX*2)*scale)+ " " +((height+padY*2)*scale)+ "\">\n<g>\n";
-
-		for(var i = 0; i < polylines.length; i++){
-			if(polylines[i].nodes.length >= 0){
-				blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
-				for(var j = 0; j < polylines[i].nodes.length; j++){
-					var point = polylines[i].nodes[j];
-					blob += (scale*point.x).toFixed(4) + "," + (scale*point.y).toFixed(4) + " ";
-				}
-				blob += "\"/>\n";
-			}
-		}
-		blob = blob + "</g>\n</svg>\n";
-		return blob;
-	}
-
-	svg(size:number):string{
+	exportSVG(size:number):string{
 		if(size === undefined || size <= 0){ size = 600; }
 		var bounds = this.bounds();
 		var width = bounds.size.width;
@@ -1023,10 +995,7 @@ class CreasePattern extends PlanarGraph{
 		var orgX = bounds.topLeft.x;
 		var orgY = bounds.topLeft.y;
 		var scale = size / (width);
-		console.log(bounds);
-		console.log(width);
-		console.log(orgX);
-		console.log(scale);
+		console.log(bounds, width, orgX, scale);
 		var blob = "";
 		var widthScaled = ((width)*scale).toFixed(2);
 		var heightScaled = ((height)*scale).toFixed(2);
@@ -1054,6 +1023,34 @@ class CreasePattern extends PlanarGraph{
 			if(this.edges[i].orientation === CreaseDirection.mountain){ thisStyle = mountainStyle; }
 			if(this.edges[i].orientation === CreaseDirection.valley){ thisStyle = valleyStyle; }
 			blob += "<line " + thisStyle + "stroke-width=\"" + strokeWidth + "\" x1=\"" +x1+ "\" y1=\"" +y1+ "\" x2=\"" +x2+ "\" y2=\"" +y2+ "\"/>\n";
+		}
+		blob = blob + "</g>\n</svg>\n";
+		return blob;
+	}
+
+	exportSVGMin(size:number):string{
+		if(size === undefined || size <= 0){ size = 600; }
+		var bounds = this.bounds();
+		var width = bounds.size.width;
+		var height = bounds.size.height;
+		var padX = bounds.topLeft.x;
+		var padY = bounds.topLeft.y;
+		var scale = size / (width+padX*2);
+		var strokeWidth = (width*scale * 0.0025).toFixed(1);
+		if(strokeWidth === "0" || strokeWidth === "0.0"){ strokeWidth = "0.5"; }
+		var polylines = this.fewestPolylines();
+		var blob = "";
+		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +((width+padX*2)*scale)+ "px\" height=\"" +((height+padY*2)*scale)+ "px\" viewBox=\"0 0 " +((width+padX*2)*scale)+ " " +((height+padY*2)*scale)+ "\">\n<g>\n";
+
+		for(var i = 0; i < polylines.length; i++){
+			if(polylines[i].nodes.length >= 0){
+				blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
+				for(var j = 0; j < polylines[i].nodes.length; j++){
+					var point = polylines[i].nodes[j];
+					blob += (scale*point.x).toFixed(4) + "," + (scale*point.y).toFixed(4) + " ";
+				}
+				blob += "\"/>\n";
+			}
 		}
 		blob = blob + "</g>\n</svg>\n";
 		return blob;
@@ -1215,7 +1212,6 @@ class CreasePattern extends PlanarGraph{
 		// this.generateFaces();
 		return this;
 	}
-
 }
 
 interface Array<T> {

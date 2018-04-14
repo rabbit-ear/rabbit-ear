@@ -15,7 +15,7 @@ canvas[resize]{
 	width:100%;
 	height:86%;
 }
-#download-file, #open-file{ padding:0.5em; }
+#download-svg, #download-fold, #open-file{ padding:0.5em; }
 .toolbar{ text-align: center; }
 </style>
 </head>
@@ -24,7 +24,8 @@ canvas[resize]{
 	<input type="file" id="files" style="display:none;">
 	<div class="toolbar">
 		<a href="#" class="btn btn-lg btn-secondary" id="open-file">Open File</a>
-		<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="download-svg">Export .svg</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="download-fold">Export .fold</a>
 	</div>
 </body>
 
@@ -43,15 +44,23 @@ canvas[resize]{
 var project = new OrigamiPaper("canvas");
 
 // incoming file from upload-button or drag-to-upload
-function fileDidLoad(svg){
-	project.load(svg, function(){ });
+function fileDidLoad(file){
+	// try .fold file format first
+	try{
+		var foldFile = JSON.parse(file);
+		project.cp.importFoldFile(foldFile);
+		project.draw();
+	} catch(err){
+		// try .svg file format
+		project.load(file, function(){ });
+	}
 }
 </script>
 
 <!-- download svg blob -->
 <script>
-function download(text, filename){
-	var blob = new Blob([text], {type: "image/svg+xml"});
+function download(text, filename, mimeType){
+	var blob = new Blob([text], {type: mimeType});
 	var url = window.URL.createObjectURL(blob);
 	var a = document.createElement("a");
 	a.href = url;
@@ -62,12 +71,18 @@ function download(text, filename){
 
 <!-- button to download -->
 <script>
-document.getElementById("download-file").addEventListener("click", function(e){
+document.getElementById("download-svg").addEventListener("click", function(e){
 	e.preventDefault();
 	var scale = 600 / project.cpMin;
-	var svgBlob = project.cp.svg(scale);
-	download(svgBlob, "creasepattern.svg");
-});	
+	var svgBlob = project.cp.exportSVG(scale);
+	download(svgBlob, "creasepattern.svg", "image/svg+xml");
+});
+document.getElementById("download-fold").addEventListener("click", function(e){
+	e.preventDefault();
+	var foldObject = project.cp.exportFoldFile();
+	var foldFileBlob = JSON.stringify(foldObject);
+	download(foldFileBlob, "creasepattern.fold", "application/json");
+});
 </script>
 
 <!-- button to upload -->
