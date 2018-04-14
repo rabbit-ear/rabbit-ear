@@ -206,8 +206,9 @@ var OrigamiPaper = (function(){
 		this.faceLayer.activate();
 		for(var i = 0; i < this.cp.faces.length; i++){
 			var face = new this.scope.Path({segments:this.cp.faces[i].nodes,closed:true});
-			var color = 100 + 200 * i/this.cp.faces.length;
-			face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
+			// var color = 100 + 200 * i/this.cp.faces.length;
+			// face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
+			face.fillColor = { gray:(i/this.cp.faces.length)*0.33+0.66 };
 			this.faces.push( face );
 		}
 		this.buildViewMatrix();

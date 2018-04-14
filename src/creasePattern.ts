@@ -894,6 +894,99 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 
+	///////////////////////////////////////////////////////////////
+	// FILE FORMATS
+
+	foldFile():object{
+		this.generateFaces();
+		this.nodeArrayDidChange();
+		this.edgeArrayDidChange();
+
+		var file = {};
+		file["file_spec"] = 1;
+		file["file_creator"] = "creasepattern.js by Robby Kraft";
+		file["file_author"] = "";
+		file["file_classes"] = ["singleModel"];
+		file["vertices_coords"] = this.nodes.map(function(node){ return [node.x,node.y]; },this);
+		file["faces_vertices"] = this.faces.map(function(face){
+			return face.nodes.map(function(node){ return node.index; },this);
+		},this);
+		file["edges_vertices"] = this.edges.map(function(edge){
+			return edge.nodes.map(function(node){ return node.index; },this);
+		},this);
+		file["edges_assignment"] = this.edges.map(function(edge){
+			switch(edge.orientation){
+				case CreaseDirection.border: return "B";
+				case CreaseDirection.mountain: return "M";
+				case CreaseDirection.valley: return "V";
+				case CreaseDirection.mark: return "F";
+				default: return "U";
+			}
+		},this);
+		return file;
+	}
+
+	importFoldFile(file:object):boolean{
+
+		// file["file_spec"]
+		// file["file_creator"]
+		// file["file_author"]
+		// file["file_classes"]
+
+		if(file["vertices_coords"]===undefined || file["edges_vertices"]===undefined){return false;}
+
+		this.clear();
+		this.noBoundary();
+
+		file["vertices_coords"].forEach(function(el){
+			// if z value is found, it should alert the user
+			// this library only supports 2D
+			this.newPlanarNode( (el[0] || 0), (el[1] || 0));
+		},this);
+		this.nodeArrayDidChange();
+
+		file["edges_vertices"]
+			.map(function(el:[number, number]):[CreaseNode, CreaseNode]{
+				return el.map(function(index){ return this.nodes[index]; },this);
+			},this)
+			.filter(function(el){ return el[0] !== undefined && el[1] !== undefined; },this)
+			.forEach(function(nodes){
+				this.newPlanarEdgeBetweenNodes(nodes[0], nodes[1]);
+			},this);
+		this.edgeArrayDidChange();
+
+		file["edges_assignment"]
+			.map(function(assignment){
+				switch(assignment){
+					case "B": return CreaseDirection.border;
+					case "M": return CreaseDirection.mountain;
+					case "V": return CreaseDirection.valley;
+					case "F": return CreaseDirection.mark;
+					case "U": return CreaseDirection.mark;
+				} })
+			.forEach(function(orientation, i){ this.edges[i].orientation = orientation; },this);
+
+		// file["faces_vertices"]
+		// 	.forEach(function(faceNodeArray){
+		// 		var faceNodes = faceNodeArray.map(function(nodeIndex){
+		// 			return this.nodes[nodeIndex];
+		// 		},this);
+		// 		return new CreaseFace(this).makeFromNodes(faceNodes);
+		// 	},this)
+		// 	.filter(function(el){ return el !== undefined; });
+
+		var boundaryPoints = this.edges
+			.filter(function(el){ return el.orientation === CreaseDirection.border; },this)
+			.map(function(el){
+				return [el.nodes[0].xy(), el.nodes[1].xy()]
+			},this)
+		this.setBoundary([].concat.apply([],boundaryPoints));
+
+		this.clean();
+		return true;
+	}
+
+	
 	svgMin(size:number):string{
 		if(size === undefined || size <= 0){ size = 600; }
 		var bounds = this.bounds();

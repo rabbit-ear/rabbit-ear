@@ -306,6 +306,15 @@ class PlanarFace{
 		}
 		return undefined;
 	}
+	// this algorithm takes time, it hunts for a mapping of adjacent-nodes to edges,
+	//   then calls makeFromCircut()
+	makeFromNodes(nodes:CreaseNode[]):PlanarFace{
+		var edgeCircut = nodes.map(function(node,i){
+			var nextNode = this.nodes[ (i+1)%this.nodes.length ];
+			return <PlanarEdge>this.graph.getEdgeConnectingNodes(node, nextNode);
+		},this);
+		return this.makeFromCircuit(edgeCircut);
+	}
 	equivalent(face:PlanarFace):boolean{
 		// quick check, only verfies nodes
 		if(face.nodes.length != this.nodes.length) return false;
@@ -613,7 +622,7 @@ class PlanarGraph extends Graph{
 		var newNode = (<PlanarNode>this.newNode()).position(x, y);
 		return <PlanarEdge>this.newEdge(node, newNode);
 	}
-	/** Create one node with an x,y location and an edge between it and an existing node
+	/** Create one edge between two existing nodes
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
 	newPlanarEdgeBetweenNodes(a:PlanarNode, b:PlanarNode):PlanarEdge{

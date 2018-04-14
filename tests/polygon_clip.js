@@ -15,18 +15,14 @@ polygonClip.resetBoundary = function(){
 polygonClip.reset = function(){
 	this.resetBoundary();
 	this.cp.clear();
-
-	var polylineH = new Polyline();
-	for(var i = 0; i < 30; i++){ polylineH.nodes.push( new XY(i%2, i/30) ); }
-	polylineH.edges().forEach(function(e){
-		var crease = this.cp.crease(e);
-		if(crease !== undefined){ crease.valley(); }
-	},this);
-	var polylineV = new Polyline();
-	for(var i = 0; i < 30; i++){ polylineV.nodes.push( new XY(i/30, i%2) ); }
-	polylineV.edges().forEach(function(e){
-		var crease = this.cp.crease(e);
-		if(crease !== undefined){ crease.valley(); }
+	var poly = [ new Polyline(), new Polyline() ];
+	for(var i=0,y=0; y<1; i++,y+=Math.random()/10+0.001){poly[0].nodes.push(new XY(i%2, y));}
+	for(var i=0,x=0; x<1; i++,x+=Math.random()/10+0.001){poly[1].nodes.push(new XY(x, i%2));}
+	poly.forEach(function(p){
+		p.edges().forEach(function(e){
+			var crease = this.cp.crease(e);
+			if(crease !== undefined){ crease.valley(); }
+		},this);
 	},this);
 	this.cp.edges = this.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
 	this.draw();

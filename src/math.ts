@@ -1197,7 +1197,7 @@ function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
 	// input is 1 ray, 2 XY, or 4 numbers
 	if(a instanceof Ray){ return a; }
 	else if(isValidPoint(b) ){ return new Ray(a,b); }
-	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)) }
+	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)); }
 }
 function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
 	// input is 1 line
