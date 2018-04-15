@@ -38,16 +38,15 @@ var myCodeMirror = CodeMirror(document.getElementById("codeColumn"), {
 	lineNumbers: true,
 	theme: "mdn-like"
 }).on('change', (editor,event) => {
-    console.log(editor.getValue());
-
-    try{
-    	resetCP();
-    	eval(editor.getValue());
-    	project.draw();
-    }
-    catch(err){
-    	console.log("broken");
-    }
+	// console.log( editor.getValue() );
+	try{
+		resetCP();
+		eval(editor.getValue());
+		project.draw();
+	}
+	catch(err){
+		// console.log("broken");
+	}
 });
 
 </script>
@@ -64,7 +63,27 @@ function resetCP(){
 project.onFrame = function(event){ }
 project.onResize = function(event){ }
 project.onMouseMove = function(event){ }
-project.onMouseDown = function(event){ }
+project.onMouseDown = function(event){
+	var nearestEdge = this.cp.getNearestEdge(event.point) || {};
+	if(nearestEdge.edge !== undefined){
+		updateCodeMirror("cp.edges[" + nearestEdge.edge.index + "]");
+		// console.log( nearestEdge.edge.index );
+	}
+}
+
+function updateCodeMirror(data){
+	var cm = document.getElementsByClassName("CodeMirror")[0].CodeMirror;
+    var doc = cm.getDoc();
+    var cursor = doc.getCursor();
+    var line = doc.getLine(cursor.line);
+    var newline = '\n';
+    if(cursor.ch == 0){ newline = ''; }
+    var pos = { // create a new object to avoid mutation of the original selection
+        line: (doc.size+5),
+        ch: line.length - 1 // set the character position to the end of the line
+    }
+    doc.replaceRange(newline+data, pos);
+}
 
 </script>
 </body>

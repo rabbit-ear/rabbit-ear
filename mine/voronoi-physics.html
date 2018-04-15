@@ -58,7 +58,7 @@ $('#show-creases-button').change(function() {
 document.getElementById("download-file").addEventListener("click", function(e){
 	e.preventDefault();
 	var scale = 600 / project.cpMin;
-	var svgBlob = project.cp.svg(scale);
+	var svgBlob = project.cp.exportSVG(scale);
 	download(svgBlob, "creasepattern.svg");
 });
 function download(text, filename){

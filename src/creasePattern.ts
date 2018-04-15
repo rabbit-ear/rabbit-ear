@@ -802,6 +802,9 @@ class CreasePattern extends PlanarGraph{
 
 	//////////////////////////////////////////////
 	// BOUNDARY
+	contains(p:XY):boolean{ return this.boundary.contains(p); }
+
+
 	square(width?:number):CreasePattern{
 		var w = 1.0;
 		// todo: isReal() - check if is real number

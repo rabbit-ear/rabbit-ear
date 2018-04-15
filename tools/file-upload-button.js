@@ -2,7 +2,6 @@
 //
 // 1) implement the callback function is "fileDidLoad(blob, mimeType)"
 // 2) create an element: <a href="#" id="load-file">Open File</a>
-//    (make sure this .js file is included AFTER that element)
 
 // creates an input dialog button
 var fileDialogButton = document.createElement("input");

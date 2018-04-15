@@ -998,7 +998,7 @@ class PlanarGraph extends Graph{
 		var minDist, nearestEdge, minLocation = new XY(undefined,undefined);
 		for(var i = 0; i < this.edges.length; i++){
 			var p = this.edges[i];
-			var pT = p.nearestPointNormalTo(input);
+			var pT = p.nearestPoint(input);
 			if(pT != undefined){
 				var thisDist = Math.sqrt(Math.pow(input.x-pT.x,2) + Math.pow(input.y-pT.y,2));
 				if(minDist == undefined || thisDist < minDist){

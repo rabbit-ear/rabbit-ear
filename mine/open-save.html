@@ -15,21 +15,21 @@ canvas[resize]{
 	width:100%;
 	height:86%;
 }
-#download-svg, #download-fold, #open-file{ padding:0.5em; }
+#download-svg, #download-fold, #load-file{ padding:0.5em; }
 .toolbar{ text-align: center; }
 </style>
 </head>
 <body>
 	<canvas id="canvas" resize></canvas>
-	<input type="file" id="files" style="display:none;">
 	<div class="toolbar">
-		<a href="#" class="btn btn-lg btn-secondary" id="open-file">Open File</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="load-file">Open File</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="download-svg">Export .svg</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="download-fold">Export .fold</a>
 	</div>
 </body>
 
 <script src="../tools/drag-and-drop.js"></script>
+<script src="../tools/file-upload-button.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
 <script language="javascript" type="text/javascript" src="../creasepattern.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
@@ -44,9 +44,9 @@ canvas[resize]{
 var project = new OrigamiPaper("canvas");
 
 // incoming file from upload-button or drag-to-upload
-function fileDidLoad(file){
-	// try .fold file format first
+function fileDidLoad(file, mimeType){
 	try{
+		// try .fold file format first
 		var foldFile = JSON.parse(file);
 		project.cp.importFoldFile(foldFile);
 		project.draw();
@@ -54,6 +54,10 @@ function fileDidLoad(file){
 		// try .svg file format
 		project.load(file, function(){ });
 	}
+	// switch(mimeType){
+	// 	case "image/svg+xml": project.load(file, function(){ }); break;
+	// 	default: break;
+	// }
 }
 </script>
 
@@ -83,38 +87,6 @@ document.getElementById("download-fold").addEventListener("click", function(e){
 	var foldFileBlob = JSON.stringify(foldObject);
 	download(foldFileBlob, "creasepattern.fold", "application/json");
 });
-</script>
-
-<!-- button to upload -->
-<script>
-document.getElementById("open-file").addEventListener("click", function(e){
-	e.preventDefault();
-	document.getElementById("files").click()
-});
-document.addEventListener('change', function(){
-	var input = $(this),
-		numFiles = input.get(0).files ? input.get(0).files.length : 1,
-		label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-	input.trigger('fileselect', [numFiles, label]);
-	readBlob();
-}, false);
-function readBlob() {
-	var files = document.getElementById('files').files;
-	if (!files.length) {
-		// they selected cancel
-		return;
-	}
-	var file = files[0];
-	var reader = new FileReader();
-	reader.onloadend = function(evt) {
-		if (evt.target.readyState == FileReader.DONE){
-			//byte range: ['Read ', file.size, ' byte file'].join('');
-			fileDidLoad(evt.target.result);
-		}
-	};
-	var blob = file.slice(0, file.size);
-	reader.readAsBinaryString(blob);
-}
 </script>
 
 </html>

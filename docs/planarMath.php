@@ -55,6 +55,12 @@
 		<canvas id="canvas-polygon-clip" resize></canvas>
 	</div>
 
+	<div class="centered">
+		<pre><code><key>let</key> clipped <key>=</key> polygon.<f>clipEdge</f>( <key>new</key> <v>Edge</v>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
+	</div>
+
+	<p class="quote">Clipping functions return an edge with a new set of endpoints.</p>
+	
 </section>
 
 <section id="junction">
