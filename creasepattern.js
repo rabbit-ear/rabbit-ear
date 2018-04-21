@@ -579,6 +579,17 @@ var XY = (function () {
         var inv = 1.0 - pct;
         return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
     };
+    XY.prototype.angleLerp = function (point, pct) {
+        function shortAngleDist(a0, a1) {
+            var max = Math.PI * 2;
+            var da = (a1 - a0) % max;
+            return 2 * da % max - da;
+        }
+        var thisAngle = Math.atan2(this.y, this.x);
+        var pointAngle = Math.atan2(point.y, point.x);
+        var newAngle = thisAngle + shortAngleDist(thisAngle, pointAngle) * pct;
+        return new XY(Math.cos(newAngle), Math.sin(newAngle));
+    };
     XY.prototype.reflect = function (a, b) { return this.transform(new Matrix().reflection(a, b)); };
     XY.prototype.scale = function (magnitude) { return new XY(this.x * magnitude, this.y * magnitude); };
     XY.prototype.add = function (point) { return new XY(this.x + point.x, this.y + point.y); };
@@ -645,6 +656,14 @@ var Line = (function () {
         return new XY(this.nodes[0].x + u * (this.nodes[1].x - this.nodes[0].x), this.nodes[0].y + u * (this.nodes[1].y - this.nodes[0].y));
     };
     return Line;
+}());
+var VLine = (function () {
+    function VLine(point, vector) {
+        this.point = point;
+        this.vector = vector;
+    }
+    VLine.prototype.length = function () { return Infinity; };
+    return VLine;
 }());
 var Polyline = (function () {
     function Polyline() {
@@ -1037,19 +1056,10 @@ var ConvexPolygon = (function () {
         }
         var INFINITE_LOOP = 10000;
         var sorted = points.sort(function (a, b) {
-            if (a.x - b.x < -EPSILON_HIGH) {
-                return -1;
+            if (epsilonEqual(a.y, b.y, EPSILON_HIGH)) {
+                return a.x - b.x;
             }
-            if (a.x - b.x > EPSILON_HIGH) {
-                return 1;
-            }
-            if (a.y - b.y < -EPSILON_HIGH) {
-                return -1;
-            }
-            if (a.y - b.y > EPSILON_HIGH) {
-                return 1;
-            }
-            return 0;
+            return a.y - b.y;
         });
         var hull = [];
         hull.push(sorted[0]);
@@ -1733,6 +1743,17 @@ var PlanarNode = (function (_super) {
     PlanarNode.prototype.lerp = function (point, pct) {
         var inv = 1.0 - pct;
         return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
+    };
+    PlanarNode.prototype.angleLerp = function (point, pct) {
+        function shortAngleDist(a0, a1) {
+            var max = Math.PI * 2;
+            var da = (a1 - a0) % max;
+            return 2 * da % max - da;
+        }
+        var thisAngle = Math.atan2(this.y, this.x);
+        var pointAngle = Math.atan2(point.y, point.x);
+        var newAngle = thisAngle + shortAngleDist(thisAngle, pointAngle) * pct;
+        return new XY(Math.cos(newAngle), Math.sin(newAngle));
     };
     PlanarNode.prototype.reflect = function (a, b) { return this.transform(new Matrix().reflection(a, b)); };
     PlanarNode.prototype.scale = function (magnitude) { this.x *= magnitude; this.y *= magnitude; return this; };
@@ -3253,6 +3274,62 @@ var CreasePattern = (function (_super) {
             return this.creaseThroughPoints(midPoint, midPoint2);
         }
         throw "axiom 7: two crease lines cannot be parallel";
+    };
+    CreasePattern.prototype.pleat = function (one, two, count) {
+        var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
+        var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
+        var u, v;
+        if (a.parallel(b)) {
+            u = a.nodes[0].subtract(a.nodes[1]);
+            v = a.nodes[0].subtract(a.nodes[1]);
+            return Array.apply(null, Array(count - 1))
+                .map(function (el, i) { return (i + 1) / count; }, this)
+                .map(function (el) {
+                var origin = a.nodes[0].lerp(b.nodes[0], el);
+                var vector = u.angleLerp(v, el);
+                return this.boundary.clipLine(new Line(origin, origin.add(vector)));
+            }, this)
+                .filter(function (el) { return el !== undefined; }, this)
+                .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
+        }
+        else {
+            var intersection = intersectionLineLine(a, b);
+            if (a.nodes[0].equivalent(intersection), EPSILON) {
+                u = a.nodes[1].subtract(intersection);
+            }
+            else {
+                u = a.nodes[1].subtract(intersection);
+            }
+            if (b.nodes[0].equivalent(intersection), EPSILON) {
+                v = b.nodes[1].subtract(intersection);
+            }
+            else {
+                v = b.nodes[1].subtract(intersection);
+            }
+            return Array.apply(null, Array(count - 1))
+                .map(function (el, i) { return (i + 1) / count; }, this)
+                .map(function (el) {
+                var vector = u.angleLerp(v, el);
+                return this.boundary.clipLine(new Line(intersection, intersection.add(vector)));
+            }, this)
+                .filter(function (el) { return el !== undefined; }, this)
+                .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
+        }
+    };
+    CreasePattern.prototype.coolPleat = function (one, two, count) {
+        var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
+        var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
+        var u = a.nodes[0].subtract(a.nodes[1]);
+        var v = b.nodes[0].subtract(b.nodes[1]);
+        return Array.apply(null, Array(count - 1))
+            .map(function (el, i) { return (i + 1) / count; }, this)
+            .map(function (el) {
+            var origin = a.nodes[0].lerp(b.nodes[0], el);
+            var vector = u.lerp(v, el);
+            return this.boundary.clipLine(new Line(origin, origin.add(vector)));
+        }, this)
+            .filter(function (el) { return el !== undefined; }, this)
+            .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
     };
     CreasePattern.prototype.creaseVoronoi = function (v, interp) {
         if (interp === undefined) {

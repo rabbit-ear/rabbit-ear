@@ -148,6 +148,17 @@ class PlanarNode extends GraphNode implements XY{
 		var inv = 1.0 - pct;
 		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
 	}
+	angleLerp(point:XY, pct:number):XY{
+		function shortAngleDist(a0,a1) {
+			var max = Math.PI*2;
+			var da = (a1 - a0) % max;
+			return 2*da % max - da;
+		}
+		var thisAngle = Math.atan2(this.y, this.x);
+		var pointAngle = Math.atan2(point.y, point.x);
+		var newAngle = thisAngle + shortAngleDist(thisAngle, pointAngle)*pct;
+		return new XY( Math.cos(newAngle), Math.sin(newAngle) );
+	}
 	/** reflects about a line that passes through 'a' and 'b' */
 	reflect(a:XY,b:XY):XY{ return this.transform( new Matrix().reflection(a,b) ); }
 	scale(magnitude:number):PlanarNode{ this.x*=magnitude; this.y*=magnitude; return this; }

@@ -260,6 +260,17 @@ class XY{
 		var inv = 1.0 - pct;
 		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
 	}
+	angleLerp(point:XY, pct:number):XY{
+		function shortAngleDist(a0,a1) {
+			var max = Math.PI*2;
+			var da = (a1 - a0) % max;
+			return 2*da % max - da;
+		}
+		var thisAngle = Math.atan2(this.y, this.x);
+		var pointAngle = Math.atan2(point.y, point.x);
+		var newAngle = thisAngle + shortAngleDist(thisAngle, pointAngle)*pct;
+		return new XY( Math.cos(newAngle), Math.sin(newAngle) );
+	}
 	/** reflects this point about a line that passes through 'a' and 'b' */
 	reflect(a:XY,b:XY):XY{ return this.transform( new Matrix().reflection(a,b) ); }
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
@@ -318,14 +329,15 @@ class Line{
 	}
 }
 
-// /** 2D line, extending infinitely in both directions, represented by a point and a vector
-//  */
-// class LineVec{
-// 	origin:XY;
-// 	vector:XY;
-// 	constructor(origin:XY, vector:XY){this.origin=origin; this.vector=vector;}
-// }
-// /** 2D line, extending infinitely in both directions, represented by a scalar and a normal */
+/** 2D line, extending infinitely in both directions, represented by a point and a vector
+ */
+class VLine{
+	point:XY;
+	vector:XY;
+	constructor(point:XY, vector:XY){this.point=point; this.vector=vector;}
+	length(){return Infinity;}
+}
+/** 2D line, extending infinitely in both directions, represented by a scalar and a normal */
  
 // class LinePerp{
 // 	d:number; // the distance of the nearest point on the line to the origin
@@ -683,9 +695,15 @@ class ConvexPolygon{
 		var INFINITE_LOOP = 10000;
 		// sort points by x and y
 		var sorted = points.sort(function(a,b){
-				if(a.x-b.x < -EPSILON_HIGH){ return -1; }  if(a.x-b.x > EPSILON_HIGH){ return 1; }
-				if(a.y-b.y < -EPSILON_HIGH){ return -1; }  if(a.y-b.y > EPSILON_HIGH){ return 1; }
-				return 0;});
+			if(epsilonEqual(a.y, b.y, EPSILON_HIGH)){
+				return a.x - b.x;
+			}
+			return a.y - b.y;});
+				// if(a.x-b.x < -EPSILON_HIGH){ return -1; }  
+				// if(a.x-b.x > EPSILON_HIGH){ return 1; }
+				// if(a.y-b.y < -EPSILON_HIGH){ return -1; } 
+				// if(a.y-b.y > EPSILON_HIGH){ return 1; }
+				// return 0;});
 		var hull = [];
 		hull.push(sorted[0]);
 		// the current direction the perimeter walker is facing

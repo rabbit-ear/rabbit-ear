@@ -1,3 +1,7 @@
 # Origami Code
 
-This Crease Pattern class is built on top of a [Planar Graph](docs/PlanarGraph.md) class which is itself built on top of a [Graph](docs/Graph.md) class.
+This is a javascript library for creating origami crease patterns
+
+[Docs](http://origami.pw/docs/)
+
+[visual tests](http://origami.pw/tests/)

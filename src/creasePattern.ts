@@ -540,6 +540,55 @@ class CreasePattern extends PlanarGraph{
 		throw "axiom 7: two crease lines cannot be parallel"
 	}
 
+	pleat(one:Crease, two:Crease, count:number):Crease[]{
+		var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
+		var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
+		var u,v;
+		if( a.parallel(b) ){
+			u = a.nodes[0].subtract(a.nodes[1]);
+			v = a.nodes[0].subtract(a.nodes[1]);
+			return Array.apply(null, Array(count-1))
+				.map(function(el,i){ return (i+1)/count; },this)
+				.map(function(el){
+					var origin = a.nodes[0].lerp(b.nodes[0], el);
+					var vector = u.angleLerp(v, el);
+					return this.boundary.clipLine( new Line(origin, origin.add(vector)) ); 
+				},this)
+				.filter(function(el){ return el !== undefined; },this)
+				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
+		} else{
+			var intersection:XY = intersectionLineLine(a, b);
+			if(a.nodes[0].equivalent(intersection), EPSILON){ u = a.nodes[1].subtract(intersection); }
+			else { u = a.nodes[1].subtract(intersection); }
+			if(b.nodes[0].equivalent(intersection), EPSILON){ v = b.nodes[1].subtract(intersection); }
+			else { v = b.nodes[1].subtract(intersection); }
+			return Array.apply(null, Array(count-1))
+				.map(function(el,i){ return (i+1)/count; },this)
+				.map(function(el){
+					var vector = u.angleLerp(v, el);
+					return this.boundary.clipLine( new Line(intersection, intersection.add(vector)) ); 
+				},this)
+				.filter(function(el){ return el !== undefined; },this)
+				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
+		}
+	}
+
+	coolPleat(one:Crease, two:Crease, count:number):Crease[]{
+		var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
+		var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
+		var u = a.nodes[0].subtract(a.nodes[1]);
+		var v = b.nodes[0].subtract(b.nodes[1]);
+		return Array.apply(null, Array(count-1))
+			.map(function(el,i){ return (i+1)/count; },this)
+			.map(function(el){
+				var origin = a.nodes[0].lerp(b.nodes[0], el);
+				var vector = u.lerp(v, el);
+				return this.boundary.clipLine( new Line(origin, origin.add(vector)) ); 
+			},this)
+			.filter(function(el){ return el !== undefined; },this)
+			.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
+	}
+
 	creaseVoronoi(v:VoronoiGraph, interp?:number):VoronoiMolecule[]{
 		if(interp === undefined){ interp = 0.5; }
 
