@@ -1,71 +1,252 @@
+<!-- origami crease pattern editor -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-<style>
-html, body {
-	height:100%;
-	width:100%;
-	background-color: #EEE;
-	margin:0px;
-}
-canvas[resize]{
-	width:100%;
-	height:86%;
-}
-#download-svg, #download-fold, #load-file{ padding:0.5em; }
-.toolbar{ text-align: center; }
-</style>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="../../lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<canvas id="canvas" resize></canvas>
-	<div class="toolbar">
-		<a href="#" class="btn btn-lg btn-secondary" id="load-file">Open File</a>
-		<a href="#" class="btn btn-lg btn-secondary" id="download-svg">Export .svg</a>
-		<a href="#" class="btn btn-lg btn-secondary" id="download-fold">Export .fold</a>
+<!-- tooltip when you hover is the keyboard shortcut (K) in parenthesis -->
+	<div id="modal-tools" class="control-panel">
+		<div class="modal-content">
+			<div class="modal-header">
+				 <h4 class="modal-title">Tools</h4>
+			</div>
+			<div class="modal-body">
+				<h3 class="tools-title">Crease</h3>
+				<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
+					<label class="btn btn-sm btn-outline-secondary" id="radio-button-mountain-label">
+						<input type="radio" name="options" id="radio-button-mountain" autocomplete="off" checked>Mountain
+					</label>
+					<label class="btn btn-sm btn-outline-secondary active" id="radio-button-valley-label">
+						<input type="radio" name="options" id="radio-button-valley" autocomplete="off" checked>Valley
+					</label>
+					<label class="btn btn-sm btn-outline-secondary" id="radio-button-mark-label">
+						<input type="radio" name="options" id="radio-button-mark" autocomplete="off">Mark
+					</label>
+				</div>
+				<h3 class="tools-title">Geometry</h3>
+				<div class="col-md-4" style="text-align: center;">
+					<a href="#" class="btn btn-sm btn-outline-secondary" id="fragment-button">Fragment</a>
+				</div>
+				<h3 class="tools-title">Human</h3>
+				<div class="center">
+					<input type="text" class="input-med" readonly id="mouse-position-text">
+					&nbsp;&nbsp;Shift: <i class="fa fa-square-o fa-lg" id="i-shift-key-status"></i>
+				</div>
+				<h3 class="tools-title">Draw Line</h3>
+				<div class="center">
+					<input type="text" class="input-med" readonly id="div-draw-line-start">→<input type="text" class="input-med" readonly id="div-draw-line-end">
+				</div>
+				<h3 class="tools-title" id="div-snap-range-value">Snap Radius: </h3>
+				<input type="range" id="div-snap-range"></input>
+				<h3 class="tools-title">Clean, Intersections</h3>
+				<button class="btn btn-sm btn-outline-secondary" onclick="cleanIntersections()">Clean</button>
+				Intersections: <input type="text" class="input-sm" readonly id="div-intersections">
+				<h3 class="tools-title">Keys</h3>
+				<div class="tools-title"></div>
+			</div>
+			<div class="modal-footer">
+			</div>
+		</div>
 	</div>
-</body>
 
-<script src="../../tools/drag-and-drop.js"></script>
-<script src="../../tools/file-upload-button.js"></script>
+	<div id="modal-file" class="control-panel">
+		<div class="modal-content">
+			<div class="modal-header">
+				 <h4 class="modal-title">File / View</h4>
+			</div>
+			<div class="modal-body">
+				<h3 class="tools-title">File</h3>
+				<button class="btn btn-sm btn-outline-secondary" id="new-button">New</button>
+				<a href="#" class="btn btn-sm btn-outline-secondary" id="load-file">Open File</a>
+				<h3 class="tools-title">Export</h3>
+				<a href="#" class="btn btn-sm btn-outline-secondary disabled">.oripa</a>
+				<a href="#" class="btn btn-sm btn-primary" id="download-svg-file">.svg</a>
+				<h3 class="tools-title">Show / Hide</h3>
+				<div class="btn-group">
+					<a href="#" class="btn btn-sm btn-outline-secondary" id="show-possible-creases-button">Possible Creases</a>
+					<a href="#" class="btn btn-sm btn-outline-secondary" id="show-faces-button">Faces</a>
+				</div>
+			</div>
+			<h3 class="tools-title">Approximate Folding</h3>
+				<canvas class="folded" id="canvas-folded"></canvas>
+		</div>
+	</div>
+
+	<div>
+		<canvas id="canvas" resize></canvas>
+	</div>
+
+<script language="javascript" type="text/javascript" src="../../lib/jquery-3.1.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
 <script language="javascript" type="text/javascript" src="../../lib/paper-full.min.js"></script>
 <script language="javascript" type="text/javascript" src="../../creasepattern.js"></script>
 <script language="javascript" type="text/javascript" src="../../src/cp.paperjs.js"></script>
 
-<script src="../../lib/bootstrap/js/tether.min.js"></script>
-<script src="../../lib/jquery-3.2.1.slim.min.js"></script>
-<script src="../../lib/bootstrap/js/popper.min.js"></script>
-<script src="../../lib/bootstrap/js/bootstrap.min.js"></script>
-<script src="../../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
+<!-- drag and drop to upload file -->
+<script src="../drag-and-drop.js"></script>
+<!-- button to upload file -->
+<script src="../file-upload-button.js"></script>
 
+<script>
+function foldCP(){
+	foldedState.cp = project.cp.copy();
+	foldedState.cp.clean();
+	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+	foldedState.draw();
+}
+</script>
 
 <script src="editor.js"></script>
 
 <script>
-// incoming file from upload-button or drag-to-upload
-function fileDidLoad(file, mimeType){
-	try{
-		// try .fold file format first
-		var foldFile = JSON.parse(file);
-		project.cp.importFoldFile(foldFile);
-		project.draw();
-	} catch(err){
-		// try .svg file format
-		project.load(file, function(){ });
+$("#radio-target-type :input").change(function() {
+	switch(this.id){
+		case "radio-button-point":
+			$("#col-target-x2").css("display", "none");
+			$("#col-target-y2").css("display", "none");
+		break;
+		case "radio-button-line":
+			$("#col-target-x2").css("display", "block");
+			$("#col-target-y2").css("display", "block");
+		break;
 	}
-	// switch(mimeType){
-	// 	case "image/svg+xml": project.load(file, function(){ }); break;
-	// 	default: break;
-	// }
+});
+function setCreaseWithType(direction){
+	switch (direction){
+		case "mountain":
+			project.inputMode = "add-mountain";
+			$("#radio-button-mountain-label").addClass("active"); 
+			$("#radio-button-valley-label").removeClass("active");
+			$("#radio-button-mark-label").removeClass("active");
+		break;
+		case "valley":
+			project.inputMode = "add-valley";
+			$("#radio-button-valley-label").addClass("active"); 
+			$("#radio-button-mountain-label").removeClass("active"); 
+			$("#radio-button-mark-label").removeClass("active");
+		break;
+		case "mark":
+			project.inputMode = "add-mark";
+			$("#radio-button-mark-label").addClass("active");
+			$("#radio-button-mountain-label").removeClass("active");
+			$("#radio-button-valley-label").removeClass("active"); 
+		break;
+	}
+
 }
+$("#radio-input-mode :input").change(function() {
+		console.log(this.id);
+	switch(this.id){
+	case "radio-button-mountain":
+		setCreaseWithType("mountain");
+	break;
+	case "radio-button-valley":
+		setCreaseWithType("valley");
+	break;
+	// case "radio-button-mark":
+	// 	project.inputMode = "remove";
+	// 	$("#radio-button-mark-label").addClass("active");
+	// 	$("#radio-button-mountain-label").removeClass("active");
+	// 	$("#radio-button-valley-label").removeClass("active"); 
+	// break;
+	case "radio-button-mark":
+		setCreaseWithType("mark");
+	break;
+	}
+});
+document.getElementById("show-possible-creases-button").addEventListener("click", function(e){
+	project.showCreases = !project.showCreases;
+	if(project.showCreases){ $("#show-possible-creases-button").addClass("active"); }
+	else           { $("#show-possible-creases-button").removeClass("active"); }
+	project.possibleCreasesLayer.visible = project.showCreases;
+});
+document.getElementById("fragment-button").addEventListener("click", function(e){
+	project.cp.clean();
+	project.draw();
+});
+document.getElementById("new-button").addEventListener("click", function(e){
+	project.cp.clear();
+	project.reset();
+	project.draw();
+});
+$("#modal-tools").draggable({ handle: ".modal-header" });
+$("#modal-file").draggable({ handle: ".modal-header" });
+$("#show-snap-radius-button").click(function(){ });
+$("#show-nodes-button").click(function(){ });
+$("#find-faces-button").click(function(){ });
+$("#show-faces-button").click(function(){ });
+$("#show-clockwise-button").click(function(){ });
+$("#refresh-adjacency-button").click(function(){ });
 </script>
 
-<!-- download svg blob -->
 <script>
-function download(text, filename, mimeType){
-	var blob = new Blob([text], {type: mimeType});
+
+var slider_scale = 0.0025;
+var slider_start = 0.05;
+
+// $(document).on('change', 'input:radio[id^="mouse-mode-button"]', function (event) {
+// 	var mode_result = $('#mouse-mode-button input:radio:checked').val();
+// 	// p5window.mouseMode = mode_result;
+// });
+
+// $('#div-snap-range').val(slider_start/slider_scale);
+// 	$('#div-snap-range-value').html("Snap Radius: " + (slider_start*100).toFixed(1) + "%");
+
+// $(document).on('input', '#div-snap-range', function() {
+// 	var value = $('#div-snap-range').val() * slider_scale;
+// 	$('#div-snap-range-value').html("Snap Radius: " + (value*100).toFixed(1) + "%");
+// 	// p5window.snapRadius = value;
+// });
+
+document.onkeydown = function(e) {
+	var evtobj = window.event? event : e
+	console.log(evtobj);
+	// if (evtobj.keyCode == 90 && evtobj.ctrlKey) {
+	// if(shift and z) redo the undo
+	switch (evtobj.keyCode){
+		case 77:  // m
+			setCreaseWithType("mountain");
+		break;
+		case 86:  // v
+			setCreaseWithType("valley");
+		break;
+		case 90: 
+			// p5window.undo();
+		break;
+	}
+	if(evtobj.shiftKey){
+		//shift pressed
+		// p5window.shiftKeyDown = true;
+		$("#i-shift-key-status").removeClass("fa-square-o");
+		$("#i-shift-key-status").addClass("fa-check-square-o");
+	}
+};
+
+document.onkeyup = function(e) {
+	var evtobj = window.event? event : e
+	// if(evtobj.keyCode == 16){ }
+	if(evtobj.key == "Shift"){
+		// p5window.shiftKeyDown = false;
+		$("#i-shift-key-status").removeClass("fa-check-square-o");
+		$("#i-shift-key-status").addClass("fa-square-o");
+	}
+};
+</script>
+
+<!-- download svg file -->
+<script>
+document.getElementById("download-svg-file").addEventListener("click", function(e){
+	e.preventDefault();
+	var scale = 600 / project.cpMin;
+	var svgBlob = project.cp.exportSVG(scale);
+	download(svgBlob, "creasepattern.svg", "image/svg+xml");
+});
+function download(fileContents, filename, mimeType){
+	var blob = new Blob([fileContents], {type: mimeType});
 	var url = window.URL.createObjectURL(blob);
 	var a = document.createElement("a");
 	a.href = url;
@@ -74,20 +255,29 @@ function download(text, filename, mimeType){
 }
 </script>
 
-<!-- button to download -->
 <script>
-document.getElementById("download-svg").addEventListener("click", function(e){
-	e.preventDefault();
-	var scale = 600 / project.cpMin;
-	var svgBlob = project.cp.exportSVG(scale);
-	download(svgBlob, "creasepattern.svg", "image/svg+xml");
-});
-document.getElementById("download-fold").addEventListener("click", function(e){
-	e.preventDefault();
-	var foldObject = project.cp.exportFoldFile();
-	var foldFileBlob = JSON.stringify(foldObject);
-	download(foldFileBlob, "creasepattern.fold", "application/json");
-});
+function fileDidLoad(blob, mimeType){
+	switch (mimeType){
+		case "image/svg+xml":
+			project.loadUnclean(blob, function(){
+				project.cp.square();
+				for(var i = 0; i < project.cp.edges.length; i++){ 
+					if(project.cp.edges[i].orientation !== CreaseDirection.border)
+						project.cp.edges[i].valley(); 
+				}
+				project.draw();
+				project.recalculateFolds();
+			});
+		break;
+		case "text/plain": alert("Unclear what to import from this text file"); break;
+		case "image/png": alert("PNG import not supported. Try a vector file format."); break;
+		case "image/jpeg": alert("JPEG import not supported. Try a vector file format."); break;
+		case "opx": alert("ORIPA file support is coming"); break;
+		case "fold": alert("FOLD file support is coming"); break;
+		default: break;
+	}
+}
 </script>
 
+</body>
 </html>

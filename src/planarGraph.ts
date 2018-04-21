@@ -414,7 +414,7 @@ class PlanarSector extends Sector{
 		return this;
 	}
 	vectors():[XY,XY]{
-		return this.edges.map(function(el){return el.vector(this.origin)},this);
+		return <[XY,XY]>this.edges.map(function(el){return el.vector(this.origin)},this);
 	}
 	angle():number{
 		var vectors = this.vectors();
@@ -447,14 +447,14 @@ class PlanarSector extends Sector{
 		var vectors = this.vectors();
 		var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
 		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
-		return vectors.map(function(el:XY,i){ return el.rotate(rotateNodes[i]); },this);
+		return <[XY,XY]>vectors.map(function(el:XY,i){ return el.rotate(rotateNodes[i]); },this);
 	}
 	getEndNodesChangeForNewAngle(angle:number, lockedEdge?:PlanarEdge):[XY,XY]{
 		// todo, implement locked edge
 		var vectors = this.vectors();
 		var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
 		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
-		return vectors.map(function(el:XY, i){
+		return <[XY,XY]>vectors.map(function(el:XY, i){
 			// rotate the nodes, subtract the new position from the original position
 			return this.endPoints[i].subtract(el.rotate(rotateNodes[i]).add(this.origin));
 		}, this);

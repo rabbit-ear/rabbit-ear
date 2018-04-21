@@ -56,6 +56,27 @@ var cp = new CreasePattern();
 var project = new OrigamiPaper("canvas", cp);
 project.setPadding(0.05);
 
+//reflection
+// programmatically inspect object
+// inspecting an object and doing something with it
+function getAllMethods(object) {
+    return Object.getOwnPropertyNames(object).filter(function(property) {
+        return typeof object[property] == 'function';
+    });
+}
+console.log(getAllMethods(CreasePattern.prototype));
+
+// var boundCrease = cp.crease.bind(cp)
+// window.creaseRay = cp.creaseRay;
+window.crease = cp.crease.bind(cp);
+
+// console.log(window.cp);
+// function creaseRay(ray) {
+// 		cp.creaseRay(ray);
+// }
+
+// console.log(Object.getOwnPropertyNames(CreasePattern));
+
 function resetCP(){
 	project.cp.clear();
 }

@@ -538,11 +538,11 @@ class Triangle{
 	sectors:[Sector,Sector,Sector];
 	constructor(points:[XY,XY,XY], circumcenter?:XY){
 		this.points = points;
-		this.edges = this.points.map(function(el,i){
+		this.edges = <[Edge, Edge, Edge]>this.points.map(function(el,i){
 			var nextEl = this.points[ (i+1)%this.points.length ];
 			return new Edge(el, nextEl);
 		},this);
-		this.sectors = this.points.map(function(el,i){
+		this.sectors = <[Sector,Sector,Sector]>this.points.map(function(el,i){
 			var prevI = (i+this.points.length-1)%this.points.length;
 			var nextI = (i+1)%this.points.length;
 			return new Sector(el, [this.points[prevI], this.points[nextI]]);
@@ -553,7 +553,7 @@ class Triangle{
 		}
 	}
 	angles():[number,number,number]{
-		return this.points.map(function(p,i){
+		return <[number,number,number]>this.points.map(function(p,i){
 			var prevP = this.points[(i+this.points.length-1)%this.points.length];
 			var nextP = this.points[(i+1)%this.points.length];
 			return clockwiseInteriorAngle(nextP.subtract(p), prevP.subtract(p));
@@ -798,7 +798,7 @@ class Sector{
 		var vectors = this.vectors();
 		var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
 		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
-		return vectors.map(function(el:XY,i){ return el.rotate(rotateNodes[i]); },this);
+		return <[XY,XY]>vectors.map(function(el:XY,i){ return el.rotate(rotateNodes[i]); },this);
 	}
 	equivalent(a:Sector):boolean{
 		return a.origin.equivalent(this.origin) && 
@@ -850,7 +850,8 @@ class VoronoiMolecule extends Triangle{
 			return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
 		},this);//.filter(function(el){return el !== undefined; });
 		// handle edge and corner cases
-		switch(this.points.length){
+		var pointsLength = (<XY[]>this.points).length;
+		switch(pointsLength){
 			case 1: this.isCorner = true; this.addCornerMolecules(); break;
 			case 2:
 				this.isEdge = true;

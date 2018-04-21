@@ -127,9 +127,10 @@ class CreaseJunction extends PlanarJunction{
 	}
 	kawasakiSolution():[{'difference':number,'sectors':CreaseSector[]},
 	                    {'difference':number,'sectors':CreaseSector[]}]{
-		var alternating = this.alternateAngleSum().map(function(el){
-			return {'difference':(Math.PI - el), 'sectors':[]};
-		});
+		var alternating = <[{'difference':number,'sectors':CreaseSector[]},{'difference':number,'sectors':CreaseSector[]}]>
+			this.alternateAngleSum().map(function(el){
+				return {'difference':(Math.PI - el), 'sectors':[]};
+			});
 		this.sectors.forEach(function(el,i){ alternating[i%2].sectors.push(el); });
 		return alternating;
 	}
@@ -545,7 +546,7 @@ class CreasePattern extends PlanarGraph{
 		// original voronoi graph edges
 		var edges = v.edges.filter(function(el){return !el.isBoundary; });
 		// shrunk voronoi cell outlines
-		var cells:[XY,XY][][] = v.cells.map(function(cell:VoronoiCell){
+		var cells:[XY,XY][][] = <[XY,XY][][]>v.cells.map(function(cell:VoronoiCell){
 			return cell.edges.map(function(edge:VoronoiEdge){
 				return edge.endPoints.map(function(el:XY){
 					return cell.site.lerp(el,interp);
@@ -957,7 +958,7 @@ class CreasePattern extends PlanarGraph{
 
 		file["edges_vertices"]
 			.map(function(el:[number, number]):[CreaseNode, CreaseNode]{
-				return el.map(function(index){ return this.nodes[index]; },this);
+				return <[CreaseNode, CreaseNode]>el.map(function(index){ return this.nodes[index]; },this);
 			},this)
 			.filter(function(el){ return el[0] !== undefined && el[1] !== undefined; },this)
 			.forEach(function(nodes){

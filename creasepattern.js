@@ -1183,7 +1183,8 @@ var VoronoiMolecule = (function (_super) {
             var nextEl = this.points[(i + 1) % this.points.length];
             return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
         }, _this);
-        switch (_this.points.length) {
+        var pointsLength = _this.points.length;
+        switch (pointsLength) {
             case 1:
                 _this.isCorner = true;
                 _this.addCornerMolecules();

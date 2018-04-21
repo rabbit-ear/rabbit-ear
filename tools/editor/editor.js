@@ -1,4 +1,5 @@
-//var foldedState = new OrigamiFold("canvas-folded");
+var foldedState = new OrigamiFold("canvas-folded");
+
 
 var project = new OrigamiPaper("canvas");
 project.setPadding(0.05);
@@ -9,7 +10,7 @@ project.allPossibleFolds = new CreasePattern();
 
 project.showCreases = false;
 
-project.ghostCreaseLayer = new project.scope.Layer();
+project.targetCreaseSourceLayer = new project.scope.Layer();
 project.possibleCreasesLayer = new project.scope.Layer();
 project.possibleCreasesLayer.visible = false;
 
@@ -40,13 +41,13 @@ project.recalculateFolds = function(){
 	}
 	this.possibleCreasesLayer.sendToBack();
 	this.backgroundLayer.sendToBack();
-	this.ghostCreaseLayer.bringToFront();
+	this.targetCreaseSourceLayer.bringToFront();
 }
 
 project.reset = function(){
 	paper = this.scope;
 	this.recalculateFolds();
-	// foldCP();
+	foldCP();
 }
 project.reset();
 
@@ -58,7 +59,7 @@ project.onMouseUp = function(event){
 		this.mouseDragLayer.activate();
 		this.mouseDragLayer.clear();
 		// crease the line
-		var edge = this.allPossibleFolds.getNearestEdgeConnectingPoints(this.mouse.pressed, event.point);
+		var edge = this.allPossibleFolds.getNearestEdgeConnectingPoints(this.mouse.pressedLocation, event.point);
 		if(edge !== undefined){
 			var crease = this.cp.crease(edge.nodes[0], edge.nodes[1]);
 			if(crease !== undefined){
@@ -75,7 +76,7 @@ project.onMouseUp = function(event){
 			}
 			this.draw();
 			this.recalculateFolds();
-			// foldCP();
+			foldCP();
 		}
 	} else{
 		if(selectedEdge !== undefined){
@@ -94,37 +95,37 @@ project.onMouseUp = function(event){
 			}
 			this.draw();
 			this.recalculateFolds();
-			// foldCP();
+			foldCP();
 		}		
 	}
 }
 project.onMouseDidBeginDrag = function(event){
-	this.ghostCreaseLayer.removeChildren();	
+	this.targetCreaseSourceLayer.removeChildren();	
 }
 project.onMouseMove = function(event) {
-	if(this.mouse.isPressed){
+	if(this.mouse.pressed){
 		this.mouseDragLayer.activate();
 		this.mouseDragLayer.clear();
-		var dragPath = new paper.Path({segments: [this.mouse.pressed, event.point], closed: false });
+		var dragPath = new paper.Path({segments: [this.mouse.pressedLocation, event.point], closed: false });
 		switch(this.inputMode){
 			case "add-valley": Object.assign(dragPath, this.style.valley); break;
 			case "add-mountain": Object.assign(dragPath, this.style.mountain); break;
 			case "add-mark": Object.assign(dragPath, this.style.mark); break;
 		}
 		dragPath.strokeColor.alpha = 0.333;
-		// var edge = this.allPossibleFolds.getNearestEdgeConnectingPoints(this.mouse.pressed, event.point);
-		// if(edge !== undefined){
-		// 	var newPath = new paper.Path({segments: edge.nodes, closed: false });	
-		// 	switch(this.inputMode){
-		// 		case "add-valley": Object.assign(newPath, this.style.valley); break;
-		// 		case "add-mountain": Object.assign(newPath, this.style.mountain); break;
-		// 		case "add-mark": Object.assign(newPath, this.style.mark); break;
-		// 	}
-		// 	newPath.strokeColor.alpha = 0.666;
-		// }
+		var edge = this.allPossibleFolds.getNearestEdgeConnectingPoints(this.mouse.pressedLocation, event.point);
+		if(edge !== undefined){
+			var newPath = new paper.Path({segments: edge.nodes, closed: false });	
+			switch(this.inputMode){
+				case "add-valley": Object.assign(newPath, this.style.valley); break;
+				case "add-mountain": Object.assign(newPath, this.style.mountain); break;
+				case "add-mark": Object.assign(newPath, this.style.mark); break;
+			}
+			newPath.strokeColor.alpha = 0.666;
+		}
 	} else{
-		this.ghostCreaseLayer.removeChildren();
-		this.ghostCreaseLayer.activate();
+		this.targetCreaseSourceLayer.removeChildren();
+		this.targetCreaseSourceLayer.activate();
 		if(!this.cp.contains(event.point)){ return; }
 		switch(this.inputMode){
 			case "add-valley":
@@ -138,7 +139,7 @@ project.onMouseMove = function(event) {
 		}		
 		
 		if(selectedEdge != undefined){
-			this.ghostCreaseLayer.activate();
+			this.targetCreaseSourceLayer.activate();
 			var newPath = new paper.Path({segments: selectedEdge.edge.nodes, closed: false });
 			// Object.assign(newPath, this.style.mark);
 			// newPath.strokeColor = {hue:0, saturation:1, brightness:1};
@@ -175,6 +176,6 @@ project.onMouseMove = function(event) {
 
 	}
 
-	// var mouseString = event.point.x.toFixed(2) + " " + event.point.y.toFixed(2);
-	// var ta = document.getElementById('mouse-position-text').value = mouseString;
+	var mouseString = event.point.x.toFixed(2) + " " + event.point.y.toFixed(2);
+	var ta = document.getElementById('mouse-position-text').value = mouseString;
 }
