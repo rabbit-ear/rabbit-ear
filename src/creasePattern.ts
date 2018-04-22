@@ -546,7 +546,7 @@ class CreasePattern extends PlanarGraph{
 		var u,v;
 		if( a.parallel(b) ){
 			u = a.nodes[0].subtract(a.nodes[1]);
-			v = a.nodes[0].subtract(a.nodes[1]);
+			v = b.nodes[0].subtract(b.nodes[1]);
 			return Array.apply(null, Array(count-1))
 				.map(function(el,i){ return (i+1)/count; },this)
 				.map(function(el){
@@ -556,12 +556,35 @@ class CreasePattern extends PlanarGraph{
 				},this)
 				.filter(function(el){ return el !== undefined; },this)
 				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
-		} else{
+		} else if(a.nodes[0].equivalent(b.nodes[0]) || 
+		          a.nodes[0].equivalent(b.nodes[1]) || 
+		          a.nodes[1].equivalent(b.nodes[0]) || 
+		          a.nodes[1].equivalent(b.nodes[1])){
+			var c:XY, aUn:XY, bUn:XY;
+			if( a.nodes[0].equivalent(b.nodes[0]) ){ c = a.nodes[0]; aUn = a.nodes[1]; bUn = b.nodes[1]; }
+			if( a.nodes[0].equivalent(b.nodes[1]) ){ c = a.nodes[0]; aUn = a.nodes[1]; bUn = b.nodes[0]; }
+			if( a.nodes[1].equivalent(b.nodes[0]) ){ c = a.nodes[1]; aUn = a.nodes[0]; bUn = b.nodes[1]; }
+			if( a.nodes[1].equivalent(b.nodes[1]) ){ c = a.nodes[1]; aUn = a.nodes[0]; bUn = b.nodes[0]; }
+			u = aUn.subtract(c);
+			v = bUn.subtract(c);
+			return Array.apply(null, Array(count-1))
+				.map(function(el,i){ return (i+1)/count; },this)
+				.map(function(el){
+					var vector = u.angleLerp(v, el);
+					return this.boundary.clipLine( new Line(c, c.add(vector)) ); 
+				},this)
+				.filter(function(el){ return el !== undefined; },this)
+				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
+
+
+		}else{
 			var intersection:XY = intersectionLineLine(a, b);
-			if(a.nodes[0].equivalent(intersection), EPSILON){ u = a.nodes[1].subtract(intersection); }
-			else { u = a.nodes[1].subtract(intersection); }
-			if(b.nodes[0].equivalent(intersection), EPSILON){ v = b.nodes[1].subtract(intersection); }
-			else { v = b.nodes[1].subtract(intersection); }
+			if(a.nodes[0].equivalent(intersection), EPSILON_LOW){
+			       u = a.nodes[1].subtract(intersection); }
+			else { u = a.nodes[0].subtract(intersection); }
+			if(b.nodes[0].equivalent(intersection), EPSILON_LOW){
+				   v = b.nodes[1].subtract(intersection); }
+			else { v = b.nodes[0].subtract(intersection); }
 			return Array.apply(null, Array(count-1))
 				.map(function(el,i){ return (i+1)/count; },this)
 				.map(function(el){
