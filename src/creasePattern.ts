@@ -258,7 +258,7 @@ class CreasePattern extends PlanarGraph{
 	//   for a concave polygon class
 	boundary:ConvexPolygon;
 
-	symmetryLine:Line = undefined;
+	symmetryLine:VLine = undefined;
 
 	// this will 
 	foldSequence:FoldSequence;
@@ -450,16 +450,17 @@ class CreasePattern extends PlanarGraph{
 
 	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
 		if(this.symmetryLine === undefined){ return undefined; }
-		var ra = new XY(ax, ay).reflect(this.symmetryLine.nodes[0], this.symmetryLine.nodes[1]);
-		var rb = new XY(bx, by).reflect(this.symmetryLine.nodes[0], this.symmetryLine.nodes[1]);
+		var ra = new XY(ax, ay).reflectAcrossLine(this.symmetryLine);
+		var rb = new XY(bx, by).reflectAcrossLine(this.symmetryLine);
 		return <Crease>this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
 	}
 
 	// AXIOM 1
 	creaseThroughPoints(a:any, b?:any, c?:any, d?:any):Crease{
-		var line = gimme1Line(a,b,c,d);
-		if(line === undefined){ return; }
-		var edge = this.boundary.clipLine(line);
+		var inputEdge = gimme1Edge(a,b,c,d);
+		if(inputEdge === undefined){ return; }
+
+		var edge = this.boundary.clipLine( inputEdge.pointVectorForm() );
 		if(edge === undefined){ return; }
 		var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 		newCrease.madeBy = new Fold(this.creaseThroughPoints, [new XY(a.x,a.y), new XY(b.x,b.y)]);
@@ -472,7 +473,7 @@ class CreasePattern extends PlanarGraph{
 		var midpoint = new XY( (p[0].x+p[1].x)*0.5, (p[0].y+p[1].y)*0.5 );
 		var v = new XY(p[1].x-p[0].x,p[1].y-p[0].y);
 		var perp1 = v.rotate90();
-		var edge = this.boundary.clipLine(new Line(midpoint, midpoint.add(perp1)));
+		var edge = this.boundary.clipLine(new VLine(midpoint, perp1));
 		if(edge !== undefined){
 			var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 			newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(p[0].x,p[0].y), new XY(p[1].x,p[1].y)]);
@@ -486,16 +487,16 @@ class CreasePattern extends PlanarGraph{
 		if( a.parallel(b) ){
 			var u = a.nodes[0].subtract(a.nodes[1]);
 			var midpoint = a.nodes[0].midpoint(b.nodes[1]);
-			var clip = this.boundary.clipLine( new Line(midpoint, midpoint.add(u)) );
+			var clip = this.boundary.clipLine( new VLine(midpoint, u) );
 			return [ this.newCrease(clip.nodes[0].x, clip.nodes[0].y, clip.nodes[1].x, clip.nodes[1].y) ];
 		} else{
-			var intersection:XY = intersectionLineLine(a, b);
+			var intersection:XY = intersectionLineLine(a.pointVectorForm(), b.pointVectorForm());
 			var u = a.nodes[1].subtract(a.nodes[0]);
 			var v = b.nodes[1].subtract(b.nodes[0]);
 			var vectors = bisect(u,v);
 			vectors[1] = vectors[0].rotate90();
 			return vectors
-				.map(function(el){ return this.boundary.clipLine(new Line(intersection,el.add(intersection)));},this)
+				.map(function(el){ return this.boundary.clipLine(new VLine(intersection,el));},this)
 				.filter(function(el){ return el !== undefined; })
 				.map(function(el){
 					return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y);
@@ -529,8 +530,8 @@ class CreasePattern extends PlanarGraph{
 	creasePerpendicularPointOntoLine(point:XY, ontoLine:Crease, perpendicularTo:Crease):Crease{
 		var endPts = perpendicularTo.nodes;
 		var align = new XY(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
-		var pointParallel = new XY(point.x+align.x, point.y+align.y);
-		var intersection = intersectionLineLine(new Line(point, pointParallel), ontoLine);
+		// var pointParallel = new XY(point.x+align.x, point.y+align.y);
+		var intersection = intersectionLineLine(new VLine(point, align), ontoLine.pointVectorForm());
 		if(intersection != undefined){
 			var midPoint = new XY((intersection.x + point.x)*0.5, (intersection.y + point.y)*0.5);
 			var perp = new XY(-align.y, align.x);
@@ -552,7 +553,7 @@ class CreasePattern extends PlanarGraph{
 				.map(function(el,i){ return (i+1)/count; },this)
 				.map(function(el){
 					var origin = a.nodes[0].lerp(b.nodes[0], el);
-					return this.boundary.clipLine( new Line(origin, origin.add(u)) ); 
+					return this.boundary.clipLine( new VLine(origin, u) ); 
 				},this)
 				.filter(function(el){ return el !== undefined; },this)
 				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
@@ -571,14 +572,14 @@ class CreasePattern extends PlanarGraph{
 				.map(function(el,i){ return (i+1)/count; },this)
 				.map(function(el){
 					var vector = u.angleLerp(v, el);
-					return this.boundary.clipLine( new Line(c, c.add(vector)) ); 
+					return this.boundary.clipLine( new VLine(c, vector) ); 
 				},this)
 				.filter(function(el){ return el !== undefined; },this)
 				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
 
 
 		}else{
-			var intersection:XY = intersectionLineLine(a, b);
+			var intersection:XY = intersectionLineLine(a.pointVectorForm(), b.pointVectorForm());
 			if(a.nodes[0].equivalent(intersection), EPSILON_LOW){
 			       u = a.nodes[1].subtract(intersection); }
 			else { u = a.nodes[0].subtract(intersection); }
@@ -589,7 +590,7 @@ class CreasePattern extends PlanarGraph{
 				.map(function(el,i){ return (i+1)/count; },this)
 				.map(function(el){
 					var vector = u.angleLerp(v, el);
-					return this.boundary.clipLine( new Line(intersection, intersection.add(vector)) ); 
+					return this.boundary.clipLine( new VLine(intersection, vector) ); 
 				},this)
 				.filter(function(el){ return el !== undefined; },this)
 				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
@@ -606,7 +607,7 @@ class CreasePattern extends PlanarGraph{
 			.map(function(el){
 				var origin = a.nodes[0].lerp(b.nodes[0], el);
 				var vector = u.lerp(v, el);
-				return this.boundary.clipLine( new Line(origin, origin.add(vector)) ); 
+				return this.boundary.clipLine( new VLine(origin, vector) ); 
 			},this)
 			.filter(function(el){ return el !== undefined; },this)
 			.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
@@ -978,7 +979,8 @@ class CreasePattern extends PlanarGraph{
 		return this.setSymmetryLine(center, center.add(new XY(1, 1)));
 	}
 	setSymmetryLine(a:any, b?:any, c?:any, d?:any):CreasePattern{
-		this.symmetryLine = gimme1Line(a,b,c,d);
+		var edge = gimme1Edge(a,b,c,d);
+		this.symmetryLine = new VLine(edge.nodes[0], edge.nodes[1].subtract(edge.nodes[1]));
 		return this;
 	}
 

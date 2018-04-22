@@ -440,19 +440,19 @@ function intersectionLineLine(a, b, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    return intersect_vec_func(new XY(a.nodes[0].x, a.nodes[0].y), new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y), new XY(b.nodes[0].x, b.nodes[0].y), new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y), function (t0, t1) { return true; }, epsilon);
+    return intersect_vec_func(new XY(a.point.x, a.point.y), new XY(a.vector.x, a.vector.y), new XY(b.point.x, b.point.y), new XY(b.vector.x, b.vector.y), function (t0, t1) { return true; }, epsilon);
 }
 function intersectionLineRay(line, ray, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    return intersect_vec_func(new XY(line.nodes[0].x, line.nodes[0].y), new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y), new XY(ray.origin.x, ray.origin.y), new XY(ray.direction.x, ray.direction.y), function (t0, t1) { return t1 >= 0; }, epsilon);
+    return intersect_vec_func(new XY(line.point.x, line.point.y), new XY(line.vector.x, line.vector.y), new XY(ray.origin.x, ray.origin.y), new XY(ray.direction.x, ray.direction.y), function (t0, t1) { return t1 >= 0; }, epsilon);
 }
 function intersectionLineEdge(line, edge, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    return intersect_vec_func(new XY(line.nodes[0].x, line.nodes[0].y), new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y), new XY(edge.nodes[0].x, edge.nodes[0].y), new XY(edge.nodes[1].x - edge.nodes[0].x, edge.nodes[1].y - edge.nodes[0].y), function (t0, t1) { return t1 >= 0 && t1 <= 1; }, epsilon);
+    return intersect_vec_func(new XY(line.point.x, line.point.y), new XY(line.vector.x, line.vector.y), new XY(edge.nodes[0].x, edge.nodes[0].y), new XY(edge.nodes[1].x - edge.nodes[0].x, edge.nodes[1].y - edge.nodes[0].y), function (t0, t1) { return t1 >= 0 && t1 <= 1; }, epsilon);
 }
 function intersectionRayRay(a, b, epsilon) {
     if (epsilon === undefined) {
@@ -518,14 +518,23 @@ var Matrix = (function () {
         r.ty = this.b * mat.tx + this.d * mat.ty + this.ty;
         return r;
     };
-    Matrix.prototype.reflection = function (a, b) {
-        var angle = Math.atan2(b.y - a.y, b.x - a.x);
-        this.a = Math.cos(angle) * Math.cos(-angle) + Math.sin(angle) * Math.sin(-angle);
-        this.b = Math.cos(angle) * -Math.sin(-angle) + Math.sin(angle) * Math.cos(-angle);
-        this.c = Math.sin(angle) * Math.cos(-angle) + -Math.cos(angle) * Math.sin(-angle);
-        this.d = Math.sin(angle) * -Math.sin(-angle) + -Math.cos(angle) * Math.cos(-angle);
-        this.tx = a.x + this.a * -a.x + -a.y * this.c;
-        this.ty = a.y + this.b * -a.x + -a.y * this.d;
+    Matrix.prototype.reflectionAcrossEdge = function (edge) {
+        var origin = new XY(edge.nodes[0].x, edge.nodes[0].y);
+        var p2 = new XY(edge.nodes[1].x, edge.nodes[1].y);
+        return this.reflectionAcrossLine(new VLine(origin, p2.subtract(origin)));
+    };
+    Matrix.prototype.reflectionAcrossLine = function (line) {
+        var angle = Math.atan2(line.vector.y, line.vector.x);
+        var cosAngle = Math.cos(angle);
+        var sinAngle = Math.sin(angle);
+        var _cosAngle = Math.cos(-angle);
+        var _sinAngle = Math.sin(-angle);
+        this.a = cosAngle * _cosAngle + sinAngle * _sinAngle;
+        this.b = cosAngle * -_sinAngle + sinAngle * _cosAngle;
+        this.c = sinAngle * _cosAngle + -cosAngle * _sinAngle;
+        this.d = sinAngle * -_sinAngle + -cosAngle * _cosAngle;
+        this.tx = line.point.x + this.a * -line.point.x + -line.point.y * this.c;
+        this.ty = line.point.y + this.b * -line.point.x + -line.point.y * this.d;
         return this;
     };
     Matrix.prototype.rotation = function (angle, origin) {
@@ -533,7 +542,7 @@ var Matrix = (function () {
         this.c = -Math.sin(angle);
         this.b = Math.sin(angle);
         this.d = Math.cos(angle);
-        if (origin != undefined) {
+        if (origin !== undefined) {
             this.tx = origin.x;
             this.ty = origin.y;
         }
@@ -590,7 +599,8 @@ var XY = (function () {
         var newAngle = thisAngle + shortAngleDist(thisAngle, pointAngle) * pct;
         return new XY(Math.cos(newAngle), Math.sin(newAngle));
     };
-    XY.prototype.reflect = function (a, b) { return this.transform(new Matrix().reflection(a, b)); };
+    XY.prototype.reflectAcrossLine = function (line) { return this.transform(new Matrix().reflectionAcrossLine(line)); };
+    XY.prototype.reflectAcrossEdge = function (edge) { return this.transform(new Matrix().reflectionAcrossEdge(edge)); };
     XY.prototype.scale = function (magnitude) { return new XY(this.x * magnitude, this.y * magnitude); };
     XY.prototype.add = function (point) { return new XY(this.x + point.x, this.y + point.y); };
     XY.prototype.subtract = function (sub) { return new XY(this.x - sub.x, this.y - sub.y); };
@@ -599,118 +609,53 @@ var XY = (function () {
     XY.prototype.abs = function () { return new XY(Math.abs(this.x), Math.abs(this.y)); };
     return XY;
 }());
-var Line = (function () {
-    function Line(a, b, c, d) {
-        if (a instanceof XY) {
-            this.nodes = [a, b];
+var VLine = (function () {
+    function VLine(a, b, c, d) {
+        if (b instanceof XY) {
+            this.point = a;
+            this.vector = b;
         }
         else if (a.x !== undefined) {
-            this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];
+            this.point = new XY(a.x, a.y);
+            this.vector = new XY(b.x, b.y);
         }
         else {
-            this.nodes = [new XY(a, b), new XY(c, d)];
+            this.point = new XY(a, b);
+            this.vector = new XY(c, d);
         }
-    }
-    Line.prototype.length = function () { return Infinity; };
-    Line.prototype.vector = function (originNode) {
-        if (originNode === undefined) {
-            return this.nodes[1].subtract(this.nodes[0]);
-        }
-        if (this.nodes[0].equivalent(originNode)) {
-            return this.nodes[1].subtract(this.nodes[0]);
-        }
-        return this.nodes[0].subtract(this.nodes[1]);
-    };
-    Line.prototype.intersectLine = function (line) { return intersectionLineLine(this, line); };
-    Line.prototype.intersectRay = function (ray) { return intersectionLineRay(this, ray); };
-    Line.prototype.intersectEdge = function (edge) { return intersectionLineEdge(this, edge); };
-    Line.prototype.reflectionMatrix = function () { return new Matrix().reflection(this.nodes[0], this.nodes[1]); };
-    Line.prototype.parallel = function (line, epsilon) {
-        if (epsilon === undefined) {
-            epsilon = EPSILON_HIGH;
-        }
-        var u = this.nodes[1].subtract(this.nodes[0]);
-        var v = line.nodes[1].subtract(line.nodes[0]);
-        return epsilonEqual(u.cross(v), 0, epsilon);
-    };
-    Line.prototype.collinear = function (point, epsilon) {
-        if (epsilon === undefined) {
-            epsilon = EPSILON_HIGH;
-        }
-        if (point.equivalent(this.nodes[0], epsilon)) {
-            return true;
-        }
-        var u = this.nodes[1].subtract(this.nodes[0]);
-        var v = point.subtract(this.nodes[0]);
-        return epsilonEqual(u.cross(v), 0, epsilon);
-    };
-    Line.prototype.equivalent = function (line, epsilon) {
-        return undefined;
-    };
-    Line.prototype.transform = function (matrix) {
-        return new Line(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
-    };
-    Line.prototype.nearestPointNormalTo = function (point) {
-        var p = this.nodes[0].distanceTo(this.nodes[1]);
-        var u = ((point.x - this.nodes[0].x) * (this.nodes[1].x - this.nodes[0].x) + (point.y - this.nodes[0].y) * (this.nodes[1].y - this.nodes[0].y)) / (Math.pow(p, 2));
-        return new XY(this.nodes[0].x + u * (this.nodes[1].x - this.nodes[0].x), this.nodes[0].y + u * (this.nodes[1].y - this.nodes[0].y));
-    };
-    return Line;
-}());
-var VLine = (function () {
-    function VLine(point, vector) {
-        this.point = point;
-        this.vector = vector;
     }
     VLine.prototype.length = function () { return Infinity; };
+    VLine.prototype.intersectLine = function (line) { return intersectionLineLine(this, line); };
+    VLine.prototype.intersectRay = function (ray) { return intersectionLineRay(this, ray); };
+    VLine.prototype.intersectEdge = function (edge) { return intersectionLineEdge(this, edge); };
+    VLine.prototype.reflectionMatrix = function () { return new Matrix().reflectionAcrossLine(this); };
+    VLine.prototype.parallel = function (line, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        if (line.vector !== undefined) {
+            return epsilonEqual(this.vector.cross(line.vector), 0, epsilon);
+        }
+        else if (line.nodes !== undefined) {
+            var v = line.nodes[1].subtract(line.nodes[0]);
+            return epsilonEqual(this.vector.cross(v), 0, epsilon);
+        }
+    };
+    VLine.prototype.collinear = function (point, epsilon) {
+        return undefined;
+    };
+    VLine.prototype.equivalent = function (line, epsilon) {
+        return undefined;
+    };
+    VLine.prototype.transform = function (matrix) {
+        return new VLine(this.point.transform(matrix), this.vector.transform(matrix));
+    };
+    VLine.prototype.nearestPointNormalTo = function (point) {
+        var v = this.vector.normalize();
+        var u = ((point.x - this.point.x) * v.x + (point.y - this.point.y) * v.y);
+        return new XY(this.point.x + u * v.x, this.point.y + u * v.y);
+    };
     return VLine;
-}());
-var Polyline = (function () {
-    function Polyline() {
-        this.nodes = [];
-    }
-    Polyline.prototype.edges = function () {
-        var result = [];
-        for (var i = 0; i < this.nodes.length - 1; i++) {
-            result.push(new Edge(this.nodes[i], this.nodes[i + 1]));
-        }
-        return result;
-    };
-    Polyline.prototype.rayReflectRepeat = function (ray, intersectable, target) {
-        var REFLECT_LIMIT = 100;
-        var clips = [];
-        var firstClips = ray.clipWithEdgesWithIntersections(intersectable);
-        if (target !== undefined &&
-            epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)) {
-            if (firstClips.length === 0 ||
-                ray.origin.distanceTo(target) < firstClips[0].edge.length()) {
-                this.nodes = [ray.origin, target];
-                return this;
-            }
-        }
-        clips.push(firstClips[0]);
-        var i = 0;
-        while (i < REFLECT_LIMIT) {
-            var prevClip = clips[clips.length - 1];
-            var reflection = new Matrix().reflection(prevClip.intersection.nodes[0], prevClip.intersection.nodes[1]);
-            var newRay = new Ray(prevClip.edge.nodes[1], prevClip.edge.nodes[0].transform(reflection).subtract(prevClip.edge.nodes[1]));
-            var newClips = newRay.clipWithEdgesWithIntersections(intersectable);
-            if (target !== undefined &&
-                epsilonEqual(newRay.direction.cross(target.subtract(newRay.origin)), 0, EPSILON_HIGH)) {
-                clips.push({ edge: new Edge(newRay.origin, target), intersection: undefined });
-                break;
-            }
-            if (newClips.length === 0 || newClips[0] === undefined) {
-                break;
-            }
-            clips.push(newClips[0]);
-            i++;
-        }
-        this.nodes = clips.map(function (el) { return el.edge.nodes[0]; });
-        this.nodes.push(clips[clips.length - 1].edge.nodes[1]);
-        return this;
-    };
-    return Polyline;
 }());
 var Ray = (function () {
     function Ray(a, b, c, d) {
@@ -733,13 +678,21 @@ var Ray = (function () {
     Ray.prototype.intersectLine = function (line) { return intersectionLineRay(line, this); };
     Ray.prototype.intersectRay = function (ray) { return intersectionRayRay(this, ray); };
     Ray.prototype.intersectEdge = function (edge) { return intersectionRayEdge(this, edge); };
-    Ray.prototype.reflectionMatrix = function () { return new Matrix().reflection(this.origin, this.origin.add(this.direction)); };
+    Ray.prototype.reflectionMatrix = function () { return new Matrix().reflectionAcrossLine(new VLine(this.origin, this.direction)); };
     Ray.prototype.parallel = function (line, epsilon) {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
-        var v = line.nodes[1].subtract(line.nodes[0]);
-        return epsilonEqual(this.direction.cross(v), 0, epsilon);
+        if (line.vector !== undefined) {
+            return epsilonEqual(this.direction.cross(line.vector), 0, epsilon);
+        }
+        else if (line.direction !== undefined) {
+            return epsilonEqual(this.direction.cross(line.direction), 0, epsilon);
+        }
+        else if (line.nodes !== undefined) {
+            var v = line.nodes[1].subtract(line.nodes[0]);
+            return epsilonEqual(this.direction.cross(v), 0, epsilon);
+        }
     };
     Ray.prototype.collinear = function (point) { return undefined; };
     Ray.prototype.equivalent = function (ray, epsilon) {
@@ -813,20 +766,29 @@ var Edge = (function () {
         }
         return this.nodes[0].subtract(this.nodes[1]);
     };
+    Edge.prototype.pointVectorForm = function () { return new VLine(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); };
     Edge.prototype.midpoint = function () {
         return new XY(0.5 * (this.nodes[0].x + this.nodes[1].x), 0.5 * (this.nodes[0].y + this.nodes[1].y));
     };
     Edge.prototype.intersectLine = function (line) { return intersectionLineEdge(line, this); };
     Edge.prototype.intersectRay = function (ray) { return intersectionRayEdge(ray, this); };
     Edge.prototype.intersectEdge = function (edge) { return intersectionEdgeEdge(this, edge); };
-    Edge.prototype.reflectionMatrix = function () { return new Matrix().reflection(this.nodes[0], this.nodes[1]); };
+    Edge.prototype.reflectionMatrix = function () { return new Matrix().reflectionAcrossEdge(this); };
     Edge.prototype.parallel = function (line, epsilon) {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
         var u = this.nodes[1].subtract(this.nodes[0]);
-        var v = line.nodes[1].subtract(line.nodes[0]);
-        return epsilonEqual(u.cross(v), 0, epsilon);
+        if (line.vector !== undefined) {
+            return epsilonEqual(u.cross(line.vector), 0, epsilon);
+        }
+        else if (line.direction !== undefined) {
+            return epsilonEqual(u.cross(line.direction), 0, epsilon);
+        }
+        else if (line.nodes !== undefined) {
+            var v = line.nodes[1].subtract(line.nodes[0]);
+            return epsilonEqual(u.cross(v), 0, epsilon);
+        }
     };
     Edge.prototype.collinear = function (point, epsilon) {
         if (epsilon === undefined) {
@@ -874,6 +836,53 @@ var Edge = (function () {
         return new XY(this.nodes[0].x + u * (this.nodes[1].x - this.nodes[0].x), this.nodes[0].y + u * (this.nodes[1].y - this.nodes[0].y));
     };
     return Edge;
+}());
+var Polyline = (function () {
+    function Polyline() {
+        this.nodes = [];
+    }
+    Polyline.prototype.edges = function () {
+        var result = [];
+        for (var i = 0; i < this.nodes.length - 1; i++) {
+            result.push(new Edge(this.nodes[i], this.nodes[i + 1]));
+        }
+        return result;
+    };
+    Polyline.prototype.rayReflectRepeat = function (ray, intersectable, target) {
+        var REFLECT_LIMIT = 100;
+        var clips = [];
+        var firstClips = ray.clipWithEdgesWithIntersections(intersectable);
+        if (target !== undefined &&
+            epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)) {
+            if (firstClips.length === 0 ||
+                ray.origin.distanceTo(target) < firstClips[0].edge.length()) {
+                this.nodes = [ray.origin, target];
+                return this;
+            }
+        }
+        clips.push(firstClips[0]);
+        var i = 0;
+        while (i < REFLECT_LIMIT) {
+            var prevClip = clips[clips.length - 1];
+            var reflection = new Matrix().reflectionAcrossEdge(prevClip.intersection);
+            var newRay = new Ray(prevClip.edge.nodes[1], prevClip.edge.nodes[0].transform(reflection).subtract(prevClip.edge.nodes[1]));
+            var newClips = newRay.clipWithEdgesWithIntersections(intersectable);
+            if (target !== undefined &&
+                epsilonEqual(newRay.direction.cross(target.subtract(newRay.origin)), 0, EPSILON_HIGH)) {
+                clips.push({ edge: new Edge(newRay.origin, target), intersection: undefined });
+                break;
+            }
+            if (newClips.length === 0 || newClips[0] === undefined) {
+                break;
+            }
+            clips.push(newClips[0]);
+            i++;
+        }
+        this.nodes = clips.map(function (el) { return el.edge.nodes[0]; });
+        this.nodes.push(clips[clips.length - 1].edge.nodes[1]);
+        return this;
+    };
+    return Polyline;
 }());
 var Rect = (function () {
     function Rect(x, y, width, height) {
@@ -1561,19 +1570,19 @@ function gimme1Ray(a, b, c, d) {
     }
 }
 function gimme1Line(a, b, c, d) {
-    if (a instanceof Line) {
+    if (a instanceof VLine) {
         return a;
     }
     else if (isValidPoint(b)) {
-        return new Line(a, b);
+        return new VLine(a, b);
     }
     else if (isValidNumber(d)) {
-        return new Line(a, b, c, d);
+        return new VLine(a, b, c, d);
     }
     else if (a.nodes instanceof Array &&
         a.nodes.length > 0 &&
         isValidPoint(a.nodes[1])) {
-        return new Line(a.nodes[0].x, a.nodes[0].y, a.nodes[1].x, a.nodes[1].y);
+        return new VLine(a.nodes[0].x, a.nodes[0].y, a.nodes[1].x, a.nodes[1].y);
     }
 }
 Array.prototype.flatMap = function (mapFunc) {
@@ -1755,7 +1764,8 @@ var PlanarNode = (function (_super) {
         var newAngle = thisAngle + shortAngleDist(thisAngle, pointAngle) * pct;
         return new XY(Math.cos(newAngle), Math.sin(newAngle));
     };
-    PlanarNode.prototype.reflect = function (a, b) { return this.transform(new Matrix().reflection(a, b)); };
+    PlanarNode.prototype.reflectAcrossLine = function (line) { return this.transform(new Matrix().reflectionAcrossLine(line)); };
+    PlanarNode.prototype.reflectAcrossEdge = function (edge) { return this.transform(new Matrix().reflectionAcrossEdge(edge)); };
     PlanarNode.prototype.scale = function (magnitude) { this.x *= magnitude; this.y *= magnitude; return this; };
     PlanarNode.prototype.add = function (point) { this.x += point.x; this.y += point.y; return this; };
     PlanarNode.prototype.subtract = function (sub) { this.x -= sub.x; this.y -= sub.y; return this; };
@@ -1772,6 +1782,11 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.vector = function (originNode) {
         var otherNode = this.otherNode(originNode);
         return new XY(otherNode.x, otherNode.y).subtract(originNode);
+    };
+    PlanarEdge.prototype.pointVectorForm = function () {
+        var origin = new XY(this.nodes[0].x, this.nodes[0].y);
+        var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
+        return new VLine(origin, vector);
     };
     PlanarEdge.prototype.intersection = function (edge, epsilon) {
         if (this.isAdjacentToEdge(edge)) {
@@ -1836,7 +1851,7 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.intersectLine = function (line) { return intersectionLineEdge(line, this); };
     PlanarEdge.prototype.intersectRay = function (ray) { return intersectionRayEdge(ray, this); };
     PlanarEdge.prototype.intersectEdge = function (edge) { return intersectionEdgeEdge(this, edge); };
-    PlanarEdge.prototype.reflectionMatrix = function () { return new Matrix().reflection(this.nodes[0], this.nodes[1]); };
+    PlanarEdge.prototype.reflectionMatrix = function () { return new Matrix().reflectionAcrossEdge(this); };
     PlanarEdge.prototype.parallel = function (edge, epsilon) {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
@@ -3185,16 +3200,16 @@ var CreasePattern = (function (_super) {
         if (this.symmetryLine === undefined) {
             return undefined;
         }
-        var ra = new XY(ax, ay).reflect(this.symmetryLine.nodes[0], this.symmetryLine.nodes[1]);
-        var rb = new XY(bx, by).reflect(this.symmetryLine.nodes[0], this.symmetryLine.nodes[1]);
+        var ra = new XY(ax, ay).reflectAcrossLine(this.symmetryLine);
+        var rb = new XY(bx, by).reflectAcrossLine(this.symmetryLine);
         return this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
     };
     CreasePattern.prototype.creaseThroughPoints = function (a, b, c, d) {
-        var line = gimme1Line(a, b, c, d);
-        if (line === undefined) {
+        var inputEdge = gimme1Edge(a, b, c, d);
+        if (inputEdge === undefined) {
             return;
         }
-        var edge = this.boundary.clipLine(line);
+        var edge = this.boundary.clipLine(inputEdge.pointVectorForm());
         if (edge === undefined) {
             return;
         }
@@ -3210,7 +3225,7 @@ var CreasePattern = (function (_super) {
         var midpoint = new XY((p[0].x + p[1].x) * 0.5, (p[0].y + p[1].y) * 0.5);
         var v = new XY(p[1].x - p[0].x, p[1].y - p[0].y);
         var perp1 = v.rotate90();
-        var edge = this.boundary.clipLine(new Line(midpoint, midpoint.add(perp1)));
+        var edge = this.boundary.clipLine(new VLine(midpoint, perp1));
         if (edge !== undefined) {
             var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
             newCrease.madeBy = new Fold(this.creasePointToPoint, [new XY(p[0].x, p[0].y), new XY(p[1].x, p[1].y)]);
@@ -3223,17 +3238,17 @@ var CreasePattern = (function (_super) {
         if (a.parallel(b)) {
             var u = a.nodes[0].subtract(a.nodes[1]);
             var midpoint = a.nodes[0].midpoint(b.nodes[1]);
-            var clip = this.boundary.clipLine(new Line(midpoint, midpoint.add(u)));
+            var clip = this.boundary.clipLine(new VLine(midpoint, u));
             return [this.newCrease(clip.nodes[0].x, clip.nodes[0].y, clip.nodes[1].x, clip.nodes[1].y)];
         }
         else {
-            var intersection = intersectionLineLine(a, b);
+            var intersection = intersectionLineLine(a.pointVectorForm(), b.pointVectorForm());
             var u = a.nodes[1].subtract(a.nodes[0]);
             var v = b.nodes[1].subtract(b.nodes[0]);
             var vectors = bisect(u, v);
             vectors[1] = vectors[0].rotate90();
             return vectors
-                .map(function (el) { return this.boundary.clipLine(new Line(intersection, el.add(intersection))); }, this)
+                .map(function (el) { return this.boundary.clipLine(new VLine(intersection, el)); }, this)
                 .filter(function (el) { return el !== undefined; })
                 .map(function (el) {
                 return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y);
@@ -3265,8 +3280,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.creasePerpendicularPointOntoLine = function (point, ontoLine, perpendicularTo) {
         var endPts = perpendicularTo.nodes;
         var align = new XY(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
-        var pointParallel = new XY(point.x + align.x, point.y + align.y);
-        var intersection = intersectionLineLine(new Line(point, pointParallel), ontoLine);
+        var intersection = intersectionLineLine(new VLine(point, align), ontoLine.pointVectorForm());
         if (intersection != undefined) {
             var midPoint = new XY((intersection.x + point.x) * 0.5, (intersection.y + point.y) * 0.5);
             var perp = new XY(-align.y, align.x);
@@ -3287,7 +3301,7 @@ var CreasePattern = (function (_super) {
                 .map(function (el, i) { return (i + 1) / count; }, this)
                 .map(function (el) {
                 var origin = a.nodes[0].lerp(b.nodes[0], el);
-                return this.boundary.clipLine(new Line(origin, origin.add(u)));
+                return this.boundary.clipLine(new VLine(origin, u));
             }, this)
                 .filter(function (el) { return el !== undefined; }, this)
                 .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
@@ -3323,13 +3337,13 @@ var CreasePattern = (function (_super) {
                 .map(function (el, i) { return (i + 1) / count; }, this)
                 .map(function (el) {
                 var vector = u.angleLerp(v, el);
-                return this.boundary.clipLine(new Line(c, c.add(vector)));
+                return this.boundary.clipLine(new VLine(c, vector));
             }, this)
                 .filter(function (el) { return el !== undefined; }, this)
                 .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
         }
         else {
-            var intersection = intersectionLineLine(a, b);
+            var intersection = intersectionLineLine(a.pointVectorForm(), b.pointVectorForm());
             if (a.nodes[0].equivalent(intersection), EPSILON_LOW) {
                 u = a.nodes[1].subtract(intersection);
             }
@@ -3346,7 +3360,7 @@ var CreasePattern = (function (_super) {
                 .map(function (el, i) { return (i + 1) / count; }, this)
                 .map(function (el) {
                 var vector = u.angleLerp(v, el);
-                return this.boundary.clipLine(new Line(intersection, intersection.add(vector)));
+                return this.boundary.clipLine(new VLine(intersection, vector));
             }, this)
                 .filter(function (el) { return el !== undefined; }, this)
                 .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
@@ -3362,7 +3376,7 @@ var CreasePattern = (function (_super) {
             .map(function (el) {
             var origin = a.nodes[0].lerp(b.nodes[0], el);
             var vector = u.lerp(v, el);
-            return this.boundary.clipLine(new Line(origin, origin.add(vector)));
+            return this.boundary.clipLine(new VLine(origin, vector));
         }, this)
             .filter(function (el) { return el !== undefined; }, this)
             .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
@@ -3631,7 +3645,8 @@ var CreasePattern = (function (_super) {
         return this.setSymmetryLine(center, center.add(new XY(1, 1)));
     };
     CreasePattern.prototype.setSymmetryLine = function (a, b, c, d) {
-        this.symmetryLine = gimme1Line(a, b, c, d);
+        var edge = gimme1Edge(a, b, c, d);
+        this.symmetryLine = new VLine(edge.nodes[0], edge.nodes[1].subtract(edge.nodes[1]));
         return this;
     };
     CreasePattern.prototype.exportFoldFile = function () {

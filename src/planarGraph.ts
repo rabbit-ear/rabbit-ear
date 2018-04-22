@@ -160,7 +160,9 @@ class PlanarNode extends GraphNode implements XY{
 		return new XY( Math.cos(newAngle), Math.sin(newAngle) );
 	}
 	/** reflects about a line that passes through 'a' and 'b' */
-	reflect(a:XY,b:XY):XY{ return this.transform( new Matrix().reflection(a,b) ); }
+	// reflect(a:XY,b:XY):XY{ return this.transform( new Matrix().reflection(a,b) ); }
+	reflectAcrossLine(line:VLine):XY{ return this.transform( new Matrix().reflectionAcrossLine(line) ); }
+	reflectAcrossEdge(edge:Edge):XY{ return this.transform( new Matrix().reflectionAcrossEdge(edge) ); }
 	scale(magnitude:number):PlanarNode{ this.x*=magnitude; this.y*=magnitude; return this; }
 	add(point:XY):PlanarNode{ this.x+=point.x; this.y+=point.y; return this; }
 	subtract(sub:XY):PlanarNode{ this.x-=sub.x; this.y-=sub.y; return this; }
@@ -178,6 +180,11 @@ class PlanarEdge extends GraphEdge implements Edge{
 	vector(originNode:PlanarNode):XY{
 		var otherNode = <PlanarNode>this.otherNode(originNode);
 		return new XY(otherNode.x, otherNode.y).subtract(originNode);
+	}
+	pointVectorForm():VLine{
+		var origin = new XY(this.nodes[0].x, this.nodes[0].y);
+		var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
+		return new VLine(origin, vector);
 	}
 
 	intersection(edge:PlanarEdge, epsilon?:number):{edge:PlanarEdge, point:XY}{
@@ -236,11 +243,11 @@ class PlanarEdge extends GraphEdge implements Edge{
 	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
-	intersectLine(line:Line):XY{ return intersectionLineEdge(line,this); }
+	intersectLine(line:VLine):XY{ return intersectionLineEdge(line,this); }
 	intersectRay(ray:Ray):XY{ return intersectionRayEdge(ray,this); }
 	intersectEdge(edge:Edge):XY{ return intersectionEdgeEdge(this,edge); }
 	// returns the matrix representation form of this edge as the line of reflection
-	reflectionMatrix():Matrix{return new Matrix().reflection(this.nodes[0], this.nodes[1]);}
+	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossEdge(this);}
 	parallel(edge:PlanarEdge, epsilon?:number):boolean{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var u = this.nodes[1].subtract(this.nodes[0]);

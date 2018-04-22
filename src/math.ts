@@ -94,29 +94,29 @@ function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFuncti
 	var t1 = numerator1 / denominator1;
 	if(compFunction(t0,t1)){ return aOrigin.add(aVec.scale(t0)); }
 }
-function intersectionLineLine(a:Line, b:Line, epsilon?:number):XY{
+function intersectionLineLine(a:VLine, b:VLine, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
-		new XY(a.nodes[0].x, a.nodes[0].y),
-		new XY(a.nodes[1].x-a.nodes[0].x, a.nodes[1].y-a.nodes[0].y),
-		new XY(b.nodes[0].x, b.nodes[0].y),
-		new XY(b.nodes[1].x-b.nodes[0].x, b.nodes[1].y-b.nodes[0].y),
+		new XY(a.point.x, a.point.y),
+		new XY(a.vector.x, a.vector.y),
+		new XY(b.point.x, b.point.y),
+		new XY(b.vector.x, b.vector.y),
 		function(t0,t1){return true;}, epsilon);
 }
-function intersectionLineRay(line:Line, ray:Ray, epsilon?:number):XY{
+function intersectionLineRay(line:VLine, ray:Ray, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
-		new XY(line.nodes[0].x, line.nodes[0].y),
-		new XY(line.nodes[1].x-line.nodes[0].x, line.nodes[1].y-line.nodes[0].y),
+		new XY(line.point.x, line.point.y),
+		new XY(line.vector.x, line.vector.y),
 		new XY(ray.origin.x, ray.origin.y),
 		new XY(ray.direction.x, ray.direction.y),
 		function(t0,t1){return t1 >= 0;}, epsilon);
 }
-function intersectionLineEdge(line:Line, edge:Edge, epsilon?:number):XY{
+function intersectionLineEdge(line:VLine, edge:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
-		new XY(line.nodes[0].x, line.nodes[0].y),
-		new XY(line.nodes[1].x-line.nodes[0].x, line.nodes[1].y-line.nodes[0].y),
+		new XY(line.point.x, line.point.y),
+		new XY(line.vector.x, line.vector.y),
 		new XY(edge.nodes[0].x, edge.nodes[0].y),
 		new XY(edge.nodes[1].x-edge.nodes[0].x, edge.nodes[1].y-edge.nodes[0].y),
 		function(t0,t1){return t1 >= 0 && t1 <= 1;}, epsilon);
@@ -201,24 +201,34 @@ class Matrix{
 		r.ty = this.b * mat.tx + this.d * mat.ty + this.ty;
 		return r;
 	}
-	/** Calculates the matrix representation of a reflection across a line
+	/** Creates a transformation matrix representing a reflection across a line
 	 * @returns {Matrix} 
 	 */
-	reflection(a:XY, b:XY):Matrix{
-		var angle = Math.atan2(b.y-a.y, b.x-a.x);
-		this.a = Math.cos(angle) *  Math.cos(-angle) +  Math.sin(angle) * Math.sin(-angle);
-		this.b = Math.cos(angle) * -Math.sin(-angle) +  Math.sin(angle) * Math.cos(-angle);
-		this.c = Math.sin(angle) *  Math.cos(-angle) + -Math.cos(angle) * Math.sin(-angle);
-		this.d = Math.sin(angle) * -Math.sin(-angle) + -Math.cos(angle) * Math.cos(-angle);
-		this.tx = a.x + this.a * -a.x + -a.y * this.c;
-		this.ty = a.y + this.b * -a.x + -a.y * this.d;
+	reflectionAcrossEdge(edge:Edge):Matrix{
+		var origin = new XY(edge.nodes[0].x, edge.nodes[0].y);
+		var p2 = new XY(edge.nodes[1].x, edge.nodes[1].y);
+		return this.reflectionAcrossLine( new VLine(origin, p2.subtract(origin)) );
+	}
+	reflectionAcrossLine(line:VLine):Matrix{
+		var angle = Math.atan2(line.vector.y, line.vector.x);
+		var cosAngle = Math.cos(angle);
+		var sinAngle = Math.sin(angle);
+		var _cosAngle = Math.cos(-angle);
+		var _sinAngle = Math.sin(-angle);
+		this.a = cosAngle *  _cosAngle +  sinAngle * _sinAngle;
+		this.b = cosAngle * -_sinAngle +  sinAngle * _cosAngle;
+		this.c = sinAngle *  _cosAngle + -cosAngle * _sinAngle;
+		this.d = sinAngle * -_sinAngle + -cosAngle * _cosAngle;
+		this.tx = line.point.x + this.a * -line.point.x + -line.point.y * this.c;
+		this.ty = line.point.y + this.b * -line.point.x + -line.point.y * this.d;
 		return this;
 	}
+
 	rotation(angle, origin?:XY):Matrix{
 		this.a = Math.cos(angle);   this.c = -Math.sin(angle);
 		this.b = Math.sin(angle);   this.d =  Math.cos(angle);
 		// todo, if origin is undefined, should we set tx and ty to 0, or leave as is?
-		if(origin != undefined){ this.tx = origin.x; this.ty = origin.y; }
+		if(origin !== undefined){ this.tx = origin.x; this.ty = origin.y; }
 		return this;
 	}
 	/** Deep-copy the Matrix and return it as a new object
@@ -272,7 +282,8 @@ class XY{
 		return new XY( Math.cos(newAngle), Math.sin(newAngle) );
 	}
 	/** reflects this point about a line that passes through 'a' and 'b' */
-	reflect(a:XY,b:XY):XY{ return this.transform( new Matrix().reflection(a,b) ); }
+	reflectAcrossLine(line:VLine):XY{ return this.transform( new Matrix().reflectionAcrossLine(line) ); }
+	reflectAcrossEdge(edge:Edge):XY{ return this.transform( new Matrix().reflectionAcrossEdge(edge) ); }
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
 	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
 	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }
@@ -283,59 +294,99 @@ class XY{
 
 /** 2D line, extending infinitely in both directions, represented by 2 collinear points
  */
-class Line{
-	nodes:[XY,XY];
-	constructor(a:any, b:any, c?:any, d?:any){
-		if(a instanceof XY){this.nodes = [a,b];}
-		else if(a.x !== undefined){this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];}
-		else{ this.nodes = [new XY(a,b), new XY(c,d)]; }
-	}
-	length(){return Infinity;}
-	vector(originNode?:XY):XY{
-		if(originNode === undefined){ return this.nodes[1].subtract(this.nodes[0]); }
-		if(this.nodes[0].equivalent(originNode)){
-			return this.nodes[1].subtract(this.nodes[0]);
-		}
-		return this.nodes[0].subtract(this.nodes[1]);
-	}
-	intersectLine(line:Line):XY{return intersectionLineLine(this,line);}
-	intersectRay(ray:Ray):XY{return intersectionLineRay(this,ray);}
-	intersectEdge(edge:Edge):XY{return intersectionLineEdge(this,edge);}
-	reflectionMatrix():Matrix{return new Matrix().reflection(this.nodes[0], this.nodes[1]);}
-	parallel(line:Line, epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var u = this.nodes[1].subtract(this.nodes[0]);
-		var v = line.nodes[1].subtract(line.nodes[0]);
-		return epsilonEqual(u.cross(v), 0, epsilon);
-	}
-	collinear(point:XY, epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		if(point.equivalent(this.nodes[0], epsilon)){ return true; }
-		var u = this.nodes[1].subtract(this.nodes[0]);
-		var v = point.subtract(this.nodes[0]);
-		return epsilonEqual(u.cross(v), 0, epsilon);
-	}
-	equivalent(line:Line, epsilon?:number):boolean{
-		// if lines are parallel and share a point in common
-		return undefined;
-	}
-	transform(matrix):Line{
-		return new Line(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
-	}
-	nearestPointNormalTo(point:XY):XY{
-		var p = this.nodes[0].distanceTo(this.nodes[1]);
-		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
-		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
-	}
-}
+// class Line{
+// 	nodes:[XY,XY];
+// 	constructor(a:any, b:any, c?:any, d?:any){
+// 		if(a instanceof XY){this.nodes = [a,b];}
+// 		else if(a.x !== undefined){this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];}
+// 		else{ this.nodes = [new XY(a,b), new XY(c,d)]; }
+// 	}
+// 	length(){return Infinity;}
+// 	vector(originNode?:XY):XY{
+// 		if(originNode === undefined){ return this.nodes[1].subtract(this.nodes[0]); }
+// 		if(this.nodes[0].equivalent(originNode)){
+// 			return this.nodes[1].subtract(this.nodes[0]);
+// 		}
+// 		return this.nodes[0].subtract(this.nodes[1]);
+// 	}
+// 	intersectLine(line:Line):XY{return intersectionLineLine(this,line);}
+// 	intersectRay(ray:Ray):XY{return intersectionLineRay(this,ray);}
+// 	intersectEdge(edge:Edge):XY{return intersectionLineEdge(this,edge);}
+// 	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossLine(this);}
+// 	parallel(line:Line, epsilon?:number):boolean{
+// 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+// 		var u = this.nodes[1].subtract(this.nodes[0]);
+// 		var v = line.nodes[1].subtract(line.nodes[0]);
+// 		return epsilonEqual(u.cross(v), 0, epsilon);
+// 	}
+// 	collinear(point:XY, epsilon?:number):boolean{
+// 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+// 		if(point.equivalent(this.nodes[0], epsilon)){ return true; }
+// 		var u = this.nodes[1].subtract(this.nodes[0]);
+// 		var v = point.subtract(this.nodes[0]);
+// 		return epsilonEqual(u.cross(v), 0, epsilon);
+// 	}
+// 	equivalent(line:Line, epsilon?:number):boolean{
+// 		// if lines are parallel and share a point in common
+// 		return undefined;
+// 	}
+// 	transform(matrix):Line{
+// 		return new Line(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
+// 	}
+// 	nearestPointNormalTo(point:XY):XY{
+// 		var p = this.nodes[0].distanceTo(this.nodes[1]);
+// 		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
+// 		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
+// 	}
+// }
 
 /** 2D line, extending infinitely in both directions, represented by a point and a vector
  */
 class VLine{
 	point:XY;
 	vector:XY;
-	constructor(point:XY, vector:XY){this.point=point; this.vector=vector;}
+	constructor(a:any, b:any, c?:any, d?:any){
+		if(b instanceof XY){ this.point = a; this.vector = b; }
+		else if(a.x !== undefined){this.point = new XY(a.x, a.y); this.vector = new XY(b.x, b.y);}
+		else{ this.point = new XY(a,b); this.vector = new XY(c,d); }
+	}
 	length(){return Infinity;}
+	intersectLine(line:VLine):XY{return intersectionLineLine(this,line);}
+	intersectRay(ray:Ray):XY{return intersectionLineRay(this,ray);}
+	intersectEdge(edge:Edge):XY{return intersectionLineEdge(this,edge);}
+	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossLine(this);}
+	parallel(line:any, epsilon?:number):boolean{
+		// works for Edges (2 XY nodes), or Lines or Rays (point and vector)
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		if(line.vector !== undefined){
+			return epsilonEqual(this.vector.cross(line.vector), 0, epsilon);
+		} else if(line.nodes !== undefined){
+			var v = line.nodes[1].subtract(line.nodes[0]);
+			return epsilonEqual(this.vector.cross(v), 0, epsilon);
+		}
+	}
+	collinear(point:XY, epsilon?:number):boolean{
+		// if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		// if(point.equivalent(this.nodes[0], epsilon)){ return true; }
+		// var u = this.nodes[1].subtract(this.nodes[0]);
+		// var v = point.subtract(this.nodes[0]);
+		// return epsilonEqual(u.cross(v), 0, epsilon);
+		return undefined;
+	}
+	equivalent(line:VLine, epsilon?:number):boolean{
+		// if lines are parallel and share a point in common
+		return undefined;
+	}
+	transform(matrix):VLine{
+		// todo: who knows if this works
+		return new VLine(this.point.transform(matrix), this.vector.transform(matrix));
+	}
+	nearestPointNormalTo(point:XY):XY{
+		// todo, this is good. the other implementations in Edge, etc.. aren't as good as this one.
+		var v = this.vector.normalize();
+		var u = ((point.x-this.point.x)*v.x + (point.y-this.point.y)*v.y);
+		return new XY(this.point.x + u*v.x, this.point.y + u*v.y);
+	}
 }
 /** 2D line, extending infinitely in both directions, represented by a scalar and a normal */
  
@@ -344,56 +395,6 @@ class VLine{
 // 	u:XY;  // normal to the line
 // 	constructor(scalar:number, normal:XY){this.d=scalar; this.u=normal;}
 // }
-
-class Polyline{
-	nodes:XY[];
-
-	constructor(){ this.nodes = []; }
-
-	edges():Edge[]{
-		var result = [];
-		for(var i = 0; i < this.nodes.length-1; i++){
-			result.push( new Edge(this.nodes[i], this.nodes[i+1]) );
-		}
-		return result;
-	}
-
-	rayReflectRepeat(ray:Ray, intersectable:Edge[], target?:XY):Polyline{
-		const REFLECT_LIMIT = 100;
-		var clips:{edge:Edge,intersection:Edge}[] = [];
-		var firstClips:{edge:Edge,intersection:Edge}[] = ray.clipWithEdgesWithIntersections(intersectable);
-		// special case: original ray directed toward target
-		if(target !== undefined &&
-		   epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)){
-			if(firstClips.length === 0 || 
-			   ray.origin.distanceTo(target) < firstClips[0].edge.length()){
-				this.nodes = [ray.origin, target];
-				return this;
-			}
-		}
-		clips.push( firstClips[0] );
-		var i = 0;
-		while(i < REFLECT_LIMIT){
-			// build new ray, reflected across edge
-			var prevClip:{edge:Edge,intersection:Edge} = clips[clips.length-1];
-			var reflection:Matrix = new Matrix().reflection(prevClip.intersection.nodes[0], prevClip.intersection.nodes[1]);
-			var newRay = new Ray(prevClip.edge.nodes[1], prevClip.edge.nodes[0].transform(reflection).subtract(prevClip.edge.nodes[1]));
-			// get next edge intersections
-			var newClips:{edge:Edge,intersection:Edge}[] = newRay.clipWithEdgesWithIntersections(intersectable);
-			if(target !== undefined &&
-			   epsilonEqual(newRay.direction.cross(target.subtract(newRay.origin)), 0, EPSILON_HIGH)){
-				clips.push({edge:new Edge(newRay.origin, target), intersection:undefined});
-				break;
-			}
-			if(newClips.length === 0 || newClips[0] === undefined){ break; }
-			clips.push( newClips[0] );
-			i++;
-		}
-		this.nodes = clips.map(function(el){ return el.edge.nodes[0]; });
-		this.nodes.push( clips[clips.length-1].edge.nodes[1] );
-		return this;
-	}
-}
 
 class Ray{
 	origin:XY;
@@ -411,14 +412,21 @@ class Ray{
 	}
 	length(){return Infinity;}
 	vector(){return this.direction;}
-	intersectLine(line:Line):XY{return intersectionLineRay(line,this);}
+	intersectLine(line:VLine):XY{return intersectionLineRay(line,this);}
 	intersectRay(ray:Ray):XY{return intersectionRayRay(this,ray);}
 	intersectEdge(edge:Edge):XY{return intersectionRayEdge(this,edge);}
-	reflectionMatrix():Matrix{return new Matrix().reflection(this.origin, this.origin.add(this.direction));}
-	parallel(line:Line, epsilon?:number):boolean{
+	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossLine(new VLine(this.origin, this.direction));}
+	parallel(line:any, epsilon?:number):boolean{
+		// works for Edges (2 XY nodes), or Lines or Rays (point and vector)
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var v = line.nodes[1].subtract(line.nodes[0]);
-		return epsilonEqual(this.direction.cross(v), 0, epsilon);
+		if(line.vector !== undefined){
+			return epsilonEqual(this.direction.cross(line.vector), 0, epsilon);
+		} else if(line.direction !== undefined){
+			return epsilonEqual(this.direction.cross(line.direction), 0, epsilon);
+		} else if(line.nodes !== undefined){
+			var v = line.nodes[1].subtract(line.nodes[0]);
+			return epsilonEqual(this.direction.cross(v), 0, epsilon);
+		}
 	}
 	collinear(point:XY):boolean{ return undefined; }
 	equivalent(ray:Ray, epsilon?:number):boolean{
@@ -484,17 +492,25 @@ class Edge{
 		}
 		return this.nodes[0].subtract(this.nodes[1]);
 	}
+	pointVectorForm():VLine{ return new VLine(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
-	intersectLine(line:Line):XY{return intersectionLineEdge(line,this);}
+	intersectLine(line:VLine):XY{return intersectionLineEdge(line,this);}
 	intersectRay(ray:Ray):XY{return intersectionRayEdge(ray,this);}
 	intersectEdge(edge:Edge):XY{return intersectionEdgeEdge(this,edge);}
-	reflectionMatrix():Matrix{return new Matrix().reflection(this.nodes[0], this.nodes[1]);}
-	parallel(line:Line, epsilon?:number):boolean{
+	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossEdge(this);}
+	parallel(line:any, epsilon?:number):boolean{
+		// works for Edges (2 XY nodes), or Lines or Rays (point and vector)
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var u = this.nodes[1].subtract(this.nodes[0]);
-		var v = line.nodes[1].subtract(line.nodes[0]);
-		return epsilonEqual(u.cross(v), 0, epsilon);
+		if(line.vector !== undefined){
+			return epsilonEqual(u.cross(line.vector), 0, epsilon);
+		} else if(line.direction !== undefined){
+			return epsilonEqual(u.cross(line.direction), 0, epsilon);
+		} else if(line.nodes !== undefined){
+			var v = line.nodes[1].subtract(line.nodes[0]);
+			return epsilonEqual(u.cross(v), 0, epsilon);
+		}
 	}
 	collinear(point:XY, epsilon?:number):boolean{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
@@ -530,6 +546,56 @@ class Edge{
 		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
 		if(u < 0 || u > 1.0){ return undefined; }
 		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
+	}
+}
+
+class Polyline{
+	nodes:XY[];
+
+	constructor(){ this.nodes = []; }
+
+	edges():Edge[]{
+		var result = [];
+		for(var i = 0; i < this.nodes.length-1; i++){
+			result.push( new Edge(this.nodes[i], this.nodes[i+1]) );
+		}
+		return result;
+	}
+
+	rayReflectRepeat(ray:Ray, intersectable:Edge[], target?:XY):Polyline{
+		const REFLECT_LIMIT = 100;
+		var clips:{edge:Edge,intersection:Edge}[] = [];
+		var firstClips:{edge:Edge,intersection:Edge}[] = ray.clipWithEdgesWithIntersections(intersectable);
+		// special case: original ray directed toward target
+		if(target !== undefined &&
+		   epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)){
+			if(firstClips.length === 0 || 
+			   ray.origin.distanceTo(target) < firstClips[0].edge.length()){
+				this.nodes = [ray.origin, target];
+				return this;
+			}
+		}
+		clips.push( firstClips[0] );
+		var i = 0;
+		while(i < REFLECT_LIMIT){
+			// build new ray, reflected across edge
+			var prevClip:{edge:Edge,intersection:Edge} = clips[clips.length-1];
+			var reflection:Matrix = new Matrix().reflectionAcrossEdge(prevClip.intersection);
+			var newRay = new Ray(prevClip.edge.nodes[1], prevClip.edge.nodes[0].transform(reflection).subtract(prevClip.edge.nodes[1]));
+			// get next edge intersections
+			var newClips:{edge:Edge,intersection:Edge}[] = newRay.clipWithEdgesWithIntersections(intersectable);
+			if(target !== undefined &&
+			   epsilonEqual(newRay.direction.cross(target.subtract(newRay.origin)), 0, EPSILON_HIGH)){
+				clips.push({edge:new Edge(newRay.origin, target), intersection:undefined});
+				break;
+			}
+			if(newClips.length === 0 || newClips[0] === undefined){ break; }
+			clips.push( newClips[0] );
+			i++;
+		}
+		this.nodes = clips.map(function(el){ return el.edge.nodes[0]; });
+		this.nodes.push( clips[clips.length-1].edge.nodes[1] );
+		return this;
 	}
 }
 
@@ -650,7 +716,7 @@ class ConvexPolygon{
 				}
 		}
 	}
-	clipLine(line:Line):Edge{
+	clipLine(line:VLine):Edge{
 		var intersections = this.edges
 			.map(function(el){ return intersectionLineEdge(line, el); })
 			.filter(function(el){return el !== undefined; });
@@ -1218,18 +1284,18 @@ function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
 	else if(isValidPoint(b) ){ return new Ray(a,b); }
 	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)); }
 }
-function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
+function gimme1Line(a:any, b?:any, c?:any, d?:any):VLine{
 	// input is 1 line
-	if(a instanceof Line){ return a; }
+	if(a instanceof VLine){ return a; }
 	// input is 2 XY
-	else if(isValidPoint(b) ){ return new Line(a,b); }
+	else if(isValidPoint(b) ){ return new VLine(a,b); }
 	// input is 4 numbers
-	else if(isValidNumber(d)){ return new Line(a,b,c,d); }
+	else if(isValidNumber(d)){ return new VLine(a,b,c,d); }
 	// input is 1 line-like object with points in a nodes[] array
 	else if(a.nodes instanceof Array && 
 	        a.nodes.length > 0 &&
 	        isValidPoint(a.nodes[1])){
-		return new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);
+		return new VLine(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);
 	}
 }
 

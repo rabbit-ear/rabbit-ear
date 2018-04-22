@@ -1,6 +1,6 @@
 var drawRay = new OrigamiPaper("canvas-draw-ray");
 drawRay.lineLayer = new drawRay.scope.Layer();
-drawRay.cp.setSymmetryLine(new Line(0.5, 0.0, 0.5, 1.0));
+drawRay.cp.setSymmetryLine(0.5, 0.0, 0.5, 1.0);
 
 drawRay.reset = function(){
 	this.lineLayer.removeChildren();

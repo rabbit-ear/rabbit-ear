@@ -29,7 +29,7 @@ intersectAll.reset = function(){
 	paper = this.scope;
 	var xys = this.marks.map(function(el){ return new XY(el.position.x, el.position.y); });
 
-	var line = new Line(xys[0], xys[1]);
+	var line = new Line(xys[0], xys[1].subtract(xys[0]));
 	var ray = new Ray(xys[2], xys[3].subtract(xys[2]));
 	var edge = new Edge(xys[4], xys[5]);
 
