@@ -3280,14 +3280,14 @@ var CreasePattern = (function (_super) {
         var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
         var u, v;
         if (a.parallel(b)) {
+            console.log("Parallel");
             u = a.nodes[0].subtract(a.nodes[1]);
             v = b.nodes[0].subtract(b.nodes[1]);
             return Array.apply(null, Array(count - 1))
                 .map(function (el, i) { return (i + 1) / count; }, this)
                 .map(function (el) {
                 var origin = a.nodes[0].lerp(b.nodes[0], el);
-                var vector = u.angleLerp(v, el);
-                return this.boundary.clipLine(new Line(origin, origin.add(vector)));
+                return this.boundary.clipLine(new Line(origin, origin.add(u)));
             }, this)
                 .filter(function (el) { return el !== undefined; }, this)
                 .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
@@ -3543,6 +3543,20 @@ var CreasePattern = (function (_super) {
             new XY(width, 0),
             new XY(width, height),
             new XY(0, height)];
+        return this.setBoundary(points);
+    };
+    CreasePattern.prototype.hexagon = function (radius) {
+        if (radius === undefined) {
+            radius = 0.5;
+        }
+        var sqt = 0.8660254;
+        radius = Math.abs(radius);
+        var points = [new XY(radius * 0.5, radius * 0.8660254),
+            new XY(radius, 0),
+            new XY(radius * 0.5, -radius * 0.8660254),
+            new XY(-radius * 0.5, -radius * 0.8660254),
+            new XY(-radius, 0),
+            new XY(-radius * 0.5, radius * 0.8660254)];
         return this.setBoundary(points);
     };
     CreasePattern.prototype.noBoundary = function () {
