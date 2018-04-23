@@ -38,6 +38,11 @@
 		<canvas id="canvas-crease-edge-to-edge" resize></canvas>
 	</div>
 
+<h3>Pleats</h3>
+
+	<div class="centered">
+		<canvas id="canvas-pleat-edge" resize></canvas>
+	</div>
 </section>
 
 <script type="text/javascript" src="../tests/crease-edge.js"></script>
@@ -46,6 +51,7 @@
 <script type="text/javascript" src="../tests/crease-ray-repeat.js"></script>
 <script type="text/javascript" src="../tests/crease-ray-stop.js"></script>
 <script type="text/javascript" src="../tests/crease-edge-to-edge.js"></script>
+<script type="text/javascript" src="../tests/pleat_edge.js"></script>
 
 <script>
 creaseEdgeCallback = function(event){
