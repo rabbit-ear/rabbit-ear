@@ -546,7 +546,6 @@ class CreasePattern extends PlanarGraph{
 		var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
 		var u,v;
 		if( a.parallel(b) ){
-			console.log("Parallel");
 			u = a.nodes[0].subtract(a.nodes[1]);
 			v = b.nodes[0].subtract(b.nodes[1]);
 			return Array.apply(null, Array(count-1))

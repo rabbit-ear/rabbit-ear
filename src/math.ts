@@ -312,6 +312,8 @@ class LineType{
 	reflectionMatrix(){}
 	nearestPoint(point:XY){}
 	nearestPointNormalTo(point:XY){}
+	transform(matrix){}
+	degenrate(epsilon?:number){}
 	// clipWithEdge(edge:Edge, epsilon?:number){}
 	// clipWithEdges(edges:Edge[], epsilon?:number){}
 	// clipWithEdgesDetails(edges:Edge[], epsilon?:number){}
@@ -360,10 +362,13 @@ class Line implements LineType{
 		var u = ((point.x-this.point.x)*v.x + (point.y-this.point.y)*v.y);
 		return new XY(this.point.x + u*v.x, this.point.y + u*v.y);
 	}
-	// additional methods
 	transform(matrix):Line{
 		// todo: who knows if this works
 		return new Line(this.point.transform(matrix), this.direction.transform(matrix));
+	}
+	degenrate(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return epsilonEqual(this.direction.magnitude(), 0, epsilon);
 	}
 }
 
@@ -415,10 +420,16 @@ class Ray implements LineType{
 		if(u < 0){ return undefined; }
 		return new XY(this.origin.x + u*v.x, this.origin.y + u*v.y);
 	}
-	// additional methods
-	flip(){
-		return new Ray(this.origin, new XY(-this.direction.x, -this.direction.y));
+	transform(matrix):Ray{
+		// todo: who knows if this works
+		return new Ray(this.origin.transform(matrix), this.direction.transform(matrix));
 	}
+	degenrate(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return epsilonEqual(this.direction.magnitude(), 0, epsilon);
+	}
+	// additional methods
+	flip(){ return new Ray(this.origin, new XY(-this.direction.x, -this.direction.y)); }
 	/** this returns undefined if ray and edge don't intersect
 	 * edge.nodes[0] is always the ray.origin
 	 */
@@ -451,10 +462,6 @@ class Ray implements LineType{
 			.sort(function(a,b){ return a.length - b.length; })
 			.map(function(el){ return {edge:el.edge,intersection:el.intersection}; })
 	}
-
-	// transform(matrix):Ray{
-	// 	return new Line(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
-	// }
 }
 
 class Edge implements LineType{
@@ -519,17 +526,17 @@ class Edge implements LineType{
 		if(u < 0 || u > 1.0){ return undefined; }
 		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
 	}
-	// additional methods
-	pointVectorForm():Line{ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
-	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
-								   0.5*(this.nodes[0].y + this.nodes[1].y));}
+	transform(matrix:Matrix):Edge{
+		return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
+	}
 	degenrate(epsilon?:number):boolean{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		return this.nodes[0].equivalent(this.nodes[1], epsilon);
 	}
-	transform(matrix:Matrix):Edge{
-		return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
-	}
+	// additional methods
+	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
+								   0.5*(this.nodes[0].y + this.nodes[1].y));}
+	pointVectorForm():Line{ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
 }
 
 class Polyline{
@@ -563,8 +570,9 @@ class Polyline{
 		while(i < REFLECT_LIMIT){
 			// build new ray, reflected across edge
 			var prevClip:{edge:Edge,intersection:Edge} = clips[clips.length-1];
-			var v = prevClip.intersection.nodes[1].subtract(prevClip.intersection.nodes[0]);
-			var reflection:Matrix = new Matrix().reflection(v, prevClip.intersection.nodes[0]);
+			var n0 = new XY(prevClip.intersection.nodes[0].x, prevClip.intersection.nodes[0].y);
+			var n1 = new XY(prevClip.intersection.nodes[1].x, prevClip.intersection.nodes[1].y);
+			var reflection:Matrix = new Matrix().reflection(n1.subtract(n0), n0);
 			var newRay = new Ray(prevClip.edge.nodes[1], prevClip.edge.nodes[0].transform(reflection).subtract(prevClip.edge.nodes[1]));
 			// get next edge intersections
 			var newClips:{edge:Edge,intersection:Edge}[] = newRay.clipWithEdgesDetails(intersectable);

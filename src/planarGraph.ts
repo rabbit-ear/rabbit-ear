@@ -240,6 +240,15 @@ class PlanarEdge extends GraphEdge implements Edge{
 		if(u < 0 || u > 1.0){return undefined;}
 		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
 	}
+	transform(matrix):PlanarEdge{
+		this.nodes[0].transform(matrix);
+		this.nodes[1].transform(matrix);
+		return this;
+	}
+	degenrate(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return this.nodes[0].equivalent(this.nodes[1], epsilon);
+	}
 	// additional methods
 	pointVectorForm():Line{
 		var origin = new XY(this.nodes[0].x, this.nodes[0].y);
@@ -248,15 +257,6 @@ class PlanarEdge extends GraphEdge implements Edge{
 	}
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
-	degenrate(epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		return this.nodes[0].equivalent(this.nodes[1], epsilon);
-	}
-	transform(matrix):PlanarEdge{
-		this.nodes[0].transform(matrix);
-		this.nodes[1].transform(matrix);
-		return this;
-	}
 	// returns the matrix representation form of this edge as the line of reflection
 	crossingEdges():{edge:PlanarEdge, point:XY}[]{
 		// optimize by excluding all edges outside of the quad space occupied by this edge

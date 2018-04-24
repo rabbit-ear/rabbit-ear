@@ -34,7 +34,7 @@ intersectAll.reset = function(){
 	var edge = new Edge(xys[4], xys[5]);
 
 	this.cp.clear();
-	this.cp.creaseThroughPoints(line.origin, line.origin.add(line.direction)).valley();
+	this.cp.creaseThroughPoints(line.point, line.point.add(line.direction)).valley();
 	this.cp.creaseRay(ray.origin, ray.direction).valley();
 	this.cp.crease(edge.nodes[0], edge.nodes[1]).valley();
 	this.draw();
