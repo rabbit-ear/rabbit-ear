@@ -668,7 +668,7 @@ var Line = (function () {
         return epsilonEqual(x[0] * (y[1] - y[2]) + x[1] * (y[2] - y[0]) + x[2] * (y[0] - y[1]), 0, epsilon);
     };
     Line.prototype.equivalent = function (line, epsilon) {
-        return this.collinear(line.point) && this.parallel(line);
+        return this.collinear(line.point, epsilon) && this.parallel(line, epsilon);
     };
     Line.prototype.intersection = function (line) {
         if (line instanceof Line) {
@@ -727,7 +727,18 @@ var Ray = (function () {
         }
         return epsilonEqual(this.direction.cross(v), 0, epsilon);
     };
-    Ray.prototype.collinear = function (point) { return undefined; };
+    Ray.prototype.collinear = function (point, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var pOrigin = new XY(point.x - this.origin.x, point.y - this.origin.y);
+        var dot = pOrigin.dot(this.direction);
+        if (dot < -epsilon) {
+            return false;
+        }
+        var cross = pOrigin.cross(this.direction);
+        return epsilonEqual(cross, 0, epsilon);
+    };
     Ray.prototype.equivalent = function (ray, epsilon) {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
@@ -762,9 +773,16 @@ var Ray = (function () {
         }
         return new XY(this.origin.x + u * v.x, this.origin.y + u * v.y);
     };
-    Ray.prototype.flip = function () {
-        return new Ray(this.origin, new XY(-this.direction.x, -this.direction.y));
+    Ray.prototype.transform = function (matrix) {
+        return new Ray(this.origin.transform(matrix), this.direction.transform(matrix));
     };
+    Ray.prototype.degenrate = function (epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return epsilonEqual(this.direction.magnitude(), 0, epsilon);
+    };
+    Ray.prototype.flip = function () { return new Ray(this.origin, new XY(-this.direction.x, -this.direction.y)); };
     Ray.prototype.clipWithEdge = function (edge, epsilon) {
         var intersect = intersectionRayEdge(this, edge, epsilon);
         if (intersect === undefined) {
@@ -801,15 +819,6 @@ var Ray = (function () {
             .filter(function (el) { return el.length > epsilon; })
             .sort(function (a, b) { return a.length - b.length; })
             .map(function (el) { return { edge: el.edge, intersection: el.intersection }; });
-    };
-    Ray.prototype.transform = function (matrix) {
-        return new Ray(this.origin.transform(matrix), this.direction.transform(matrix));
-    };
-    Ray.prototype.degenrate = function (epsilon) {
-        if (epsilon === undefined) {
-            epsilon = EPSILON_HIGH;
-        }
-        return epsilonEqual(this.direction.magnitude(), 0, epsilon);
     };
     return Ray;
 }());
@@ -905,10 +914,10 @@ var Edge = (function () {
         }
         return this.nodes[0].equivalent(this.nodes[1], epsilon);
     };
-    Edge.prototype.pointVectorForm = function () { return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); };
     Edge.prototype.midpoint = function () {
         return new XY(0.5 * (this.nodes[0].x + this.nodes[1].x), 0.5 * (this.nodes[0].y + this.nodes[1].y));
     };
+    Edge.prototype.pointVectorForm = function () { return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); };
     return Edge;
 }());
 var Polyline = (function () {
@@ -3751,7 +3760,7 @@ var CreasePattern = (function (_super) {
         this.edgeArrayDidChange();
         var file = {};
         file["file_spec"] = 1;
-        file["file_creator"] = "creasepattern.js by Robby Kraft";
+        file["file_creator"] = "creasepattern.js by R.Kraft";
         file["file_author"] = "";
         file["file_classes"] = ["singleModel"];
         file["vertices_coords"] = this.nodes.map(function (node) { return [node.x, node.y]; }, this);

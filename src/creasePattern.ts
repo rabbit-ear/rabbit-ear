@@ -993,7 +993,7 @@ class CreasePattern extends PlanarGraph{
 
 		var file = {};
 		file["file_spec"] = 1;
-		file["file_creator"] = "creasepattern.js by Robby Kraft";
+		file["file_creator"] = "creasepattern.js by R.Kraft";
 		file["file_author"] = "";
 		file["file_classes"] = ["singleModel"];
 		file["vertices_coords"] = this.nodes.map(function(node){ return [node.x,node.y]; },this);

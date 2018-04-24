@@ -339,7 +339,6 @@ class Line implements LineType{
 		return (v !== undefined) ? epsilonEqual(this.direction.cross(v), 0, epsilon) : undefined;
 	}
 	collinear(point:XY, epsilon?:number):boolean{
-		// todo: test this
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var x = [ this.point.x, this.point.x + this.direction.x, point.x ];
 		var y = [ this.point.y, this.point.y + this.direction.y, point.y ];
@@ -347,7 +346,7 @@ class Line implements LineType{
 	}
 	equivalent(line:Line, epsilon?:number):boolean{
 		// if lines are parallel and share a point in common
-		return this.collinear(line.point) && this.parallel(line);
+		return this.collinear(line.point, epsilon) && this.parallel(line, epsilon);
 	}
 	intersection(line:LineType){
 		if(line instanceof Line){ return intersectionLineLine(this, line); }
@@ -357,7 +356,6 @@ class Line implements LineType{
 	reflectionMatrix():Matrix{ return new Matrix().reflection(this.direction, this.point); }
 	nearestPoint(point:XY):XY{ return this.nearestPointNormalTo(point); }
 	nearestPointNormalTo(point:XY):XY{
-		// todo, this is good. the other implementations in Edge, etc.. aren't as good as this one.
 		var v = this.direction.normalize();
 		var u = ((point.x-this.point.x)*v.x + (point.y-this.point.y)*v.y);
 		return new XY(this.point.x + u*v.x, this.point.y + u*v.y);
@@ -396,7 +394,14 @@ class Ray implements LineType{
 		if(v === undefined){ return undefined; }
 		return epsilonEqual(this.direction.cross(v), 0, epsilon);
 	}
-	collinear(point:XY):boolean{ return undefined; }
+	collinear(point:XY, epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		var pOrigin = new XY(point.x-this.origin.x, point.y-this.origin.y);
+		var dot = pOrigin.dot(this.direction);
+		if(dot < -epsilon){ return false; }  // point is behind the ray's origin
+		var cross = pOrigin.cross(this.direction);
+		return epsilonEqual(cross, 0, epsilon);
+	}
 	equivalent(ray:Ray, epsilon?:number):boolean{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		return (this.origin.equivalent(ray.origin, epsilon) &&

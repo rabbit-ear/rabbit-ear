@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<script type='text/javascript' src='../lib/fold.js'></script>
 <style>
 html, body {
 	height:100%;
@@ -25,6 +26,7 @@ canvas[resize]{
 		<a href="#" class="btn btn-lg btn-secondary" id="load-file">Open File</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="download-svg">Export .svg</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="download-fold">Export .fold</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="download-opx">Export .opx</a>
 	</div>
 </body>
 
@@ -41,6 +43,9 @@ canvas[resize]{
 <script src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
 
 <script>
+
+FOLD = require('fold');
+
 var project = new OrigamiPaper("canvas");
 
 // incoming file from upload-button or drag-to-upload
@@ -86,6 +91,13 @@ document.getElementById("download-fold").addEventListener("click", function(e){
 	var foldObject = project.cp.exportFoldFile();
 	var foldFileBlob = JSON.stringify(foldObject);
 	download(foldFileBlob, "creasepattern.fold", "application/json");
+});
+document.getElementById("download-opx").addEventListener("click", function(e){
+	e.preventDefault();
+	var foldObject = project.cp.exportFoldFile();
+	var foldFileBlob = JSON.stringify(foldObject);
+	var opxFile = FOLD.convert.convertFromTo(foldFileBlob, "fold", "opx");
+	download(opxFile, "creasepattern.opx", "text/xml");
 });
 </script>
 
