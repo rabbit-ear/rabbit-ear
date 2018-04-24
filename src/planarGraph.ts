@@ -160,9 +160,19 @@ class PlanarNode extends GraphNode implements XY{
 		return new XY( Math.cos(newAngle), Math.sin(newAngle) );
 	}
 	/** reflects about a line that passes through 'a' and 'b' */
-	// reflect(a:XY,b:XY):XY{ return this.transform( new Matrix().reflection(a,b) ); }
-	reflectAcrossLine(line:Line):XY{ return this.transform( new Matrix().reflectionAcrossLine(line) ); }
-	reflectAcrossEdge(edge:Edge):XY{ return this.transform( new Matrix().reflectionAcrossEdge(edge) ); }
+	reflect(line:any):XY{
+		var origin, vector;
+		if(line.direction !== undefined){
+			origin = line.point || line.origin;
+			vector = line.direction;
+		} else if(line.nodes !== undefined){
+			origin = new XY(line.nodes[0].x, line.nodes[0].y);
+			vector = new XY(line.nodes[1].x, line.nodes[1].y).subtract(origin);
+		} else{
+			return undefined;
+		}
+		return this.transform( new Matrix().reflection(vector, origin) );
+	}
 	scale(magnitude:number):PlanarNode{ this.x*=magnitude; this.y*=magnitude; return this; }
 	add(point:XY):PlanarNode{ this.x+=point.x; this.y+=point.y; return this; }
 	subtract(sub:XY):PlanarNode{ this.x-=sub.x; this.y-=sub.y; return this; }
@@ -175,29 +185,79 @@ class PlanarEdge extends GraphEdge implements Edge{
 
 	graph:PlanarGraph;
 	nodes:[PlanarNode,PlanarNode];
-
+	// implements Edge
+	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
 	/** form a vector by placing one of the nodes at the origin */
-	vector(originNode:PlanarNode):XY{
-		var otherNode = <PlanarNode>this.otherNode(originNode);
-		return new XY(otherNode.x, otherNode.y).subtract(originNode);
+	vector(originNode?:PlanarNode):XY{
+		var origin = originNode || this.nodes[0];
+		var otherNode = <PlanarNode>this.otherNode(origin);
+		return new XY(otherNode.x, otherNode.y).subtract(origin);
 	}
+	parallel(edge:PlanarEdge, epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		var u = this.nodes[1].subtract(this.nodes[0]);
+		var v = edge.nodes[1].subtract(edge.nodes[0]);
+		return epsilonEqual(u.cross(v), 0, epsilon);
+	}
+	collinear(point:XY, epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		var p0 = new Edge(point, this.nodes[0]).length();
+		var p1 = new Edge(point, this.nodes[1]).length();
+		return epsilonEqual(this.length() - p0 - p1, 0, epsilon);
+	}
+	equivalent(e:PlanarEdge, epsilon?:number):boolean{ return this.isSimilarToEdge(e); }
+	intersection(edge:Edge, epsilon?:number):{edge:PlanarEdge, point:XY}{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		// todo: should intersecting adjacent edges return the point in common they have with each other or register no intersection?
+		if(edge instanceof PlanarEdge && this.isAdjacentToEdge(edge)){ return undefined; }
+		var a = new Edge(this.nodes[0].x, this.nodes[0].y, this.nodes[1].x, this.nodes[1].y);
+		var b = new Edge(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+		var intersect = intersectionEdgeEdge(a, b, epsilon);
+		if(intersect !== undefined && 
+		 !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))){
+		 	var pe = <PlanarEdge>edge;
+			return {'edge':pe, 'point':intersect};
+		}
+		return undefined;//{'edge':edge, 'point':undefined};
+	}
+	reflectionMatrix():Matrix{
+		var origin = new XY(this.nodes[0].x, this.nodes[0].y);
+		var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
+		return new Matrix().reflection(vector, origin);
+	}
+	nearestPoint(point:XY):XY{
+		var answer = this.nearestPointNormalTo(point);
+		if(answer !== undefined){ return answer; }
+		return this.nodes
+			.map(function(el){ return {point:el,distance:el.distanceTo(point)}; },this)
+			.sort(function(a,b){ return a.distance - b.distance; })
+			.shift()
+			.point;
+	}
+	nearestPointNormalTo(point:XY):XY{
+		var p = this.nodes[0].distanceTo(this.nodes[1]);
+		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
+		if(u < 0 || u > 1.0){return undefined;}
+		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
+	}
+	// additional methods
 	pointVectorForm():Line{
 		var origin = new XY(this.nodes[0].x, this.nodes[0].y);
 		var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
 		return new Line(origin, vector);
 	}
-
-	intersection(edge:PlanarEdge, epsilon?:number):{edge:PlanarEdge, point:XY}{
-		// todo: should intersecting adjacent edges return the point in common they have with each other or register no intersection?
-		if(this.isAdjacentToEdge(edge)){ return undefined; }
-		var intersect = intersectionEdgeEdge(this, edge, epsilon);
-		if(intersect !== undefined && 
-		 !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))){
-			return {'edge':edge, 'point':intersect};
-		}
-		return undefined;//{'edge':edge, 'point':undefined};
+	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
+								   0.5*(this.nodes[0].y + this.nodes[1].y));}
+	degenrate(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return this.nodes[0].equivalent(this.nodes[1], epsilon);
 	}
-
+	transform(matrix):PlanarEdge{
+		this.nodes[0].transform(matrix);
+		this.nodes[1].transform(matrix);
+		return this;
+	}
+	// returns the matrix representation form of this edge as the line of reflection
 	crossingEdges():{edge:PlanarEdge, point:XY}[]{
 		// optimize by excluding all edges outside of the quad space occupied by this edge
 		var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
@@ -224,7 +284,6 @@ class PlanarEdge extends GraphEdge implements Edge{
 				if(a.point.y-b.point.y > EPSILON_HIGH){ return 1; }
 				return 0;});
 	}
-
 	absoluteAngle(startNode?:PlanarNode):number{  // startNode is one of this edge's 2 nodes
 		// if not specified it will pick one node
 		if(startNode === undefined){ startNode = this.nodes[1]; }
@@ -232,59 +291,12 @@ class PlanarEdge extends GraphEdge implements Edge{
 		var endNode = <PlanarNode>this.otherNode(startNode);
 		return Math.atan2(endNode.y-startNode.y, endNode.x-startNode.x);
 	}
-
 	adjacentFaces():PlanarFace[]{
 		return [
 			new this.graph.faceType(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[0], this.nodes[1]) ),
 			new this.graph.faceType(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[1], this.nodes[0]) )]
 			.filter(function(el){ return el !== undefined });
 	}	
-	// implements Edge
-	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
-	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
-								   0.5*(this.nodes[0].y + this.nodes[1].y));}
-	intersectLine(line:Line):XY{ return intersectionLineEdge(line,this); }
-	intersectRay(ray:Ray):XY{ return intersectionRayEdge(ray,this); }
-	intersectEdge(edge:Edge):XY{ return intersectionEdgeEdge(this,edge); }
-	// returns the matrix representation form of this edge as the line of reflection
-	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossEdge(this);}
-	parallel(edge:PlanarEdge, epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var u = this.nodes[1].subtract(this.nodes[0]);
-		var v = edge.nodes[1].subtract(edge.nodes[0]);
-		return epsilonEqual(u.cross(v), 0, epsilon);
-	}
-	collinear(point:XY, epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var p0 = new Edge(point, this.nodes[0]).length();
-		var p1 = new Edge(point, this.nodes[1]).length();
-		return epsilonEqual(this.length() - p0 - p1, 0, epsilon);
-	}
-	equivalent(e:PlanarEdge):boolean{ return this.isSimilarToEdge(e); }
-	degenrate(epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		return this.nodes[0].equivalent(this.nodes[1], epsilon);
-	}
-	transform(matrix):PlanarEdge{
-		this.nodes[0].transform(matrix);
-		this.nodes[1].transform(matrix);
-		return this;
-	}
-	nearestPoint(point:XY):XY{
-		var answer = this.nearestPointNormalTo(point);
-		if(answer !== undefined){ return answer; }
-		return this.nodes
-			.map(function(el){ return {point:el,distance:el.distanceTo(point)}; },this)
-			.sort(function(a,b){ return a.distance - b.distance; })
-			.shift()
-			.point;
-	}
-	nearestPointNormalTo(point:XY):XY{
-		var p = this.nodes[0].distanceTo(this.nodes[1]);
-		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
-		if(u < 0 || u > 1.0){return undefined;}
-		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
-	}
 }
 
 class PlanarFace{

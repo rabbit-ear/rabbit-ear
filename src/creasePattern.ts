@@ -450,8 +450,8 @@ class CreasePattern extends PlanarGraph{
 
 	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
 		if(this.symmetryLine === undefined){ return undefined; }
-		var ra = new XY(ax, ay).reflectAcrossLine(this.symmetryLine);
-		var rb = new XY(bx, by).reflectAcrossLine(this.symmetryLine);
+		var ra = new XY(ax, ay).reflect(this.symmetryLine);
+		var rb = new XY(bx, by).reflect(this.symmetryLine);
 		return <Crease>this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
 	}
 

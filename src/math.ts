@@ -204,13 +204,9 @@ class Matrix{
 	/** Creates a transformation matrix representing a reflection across a line
 	 * @returns {Matrix} 
 	 */
-	reflectionAcrossEdge(edge:Edge):Matrix{
-		var origin = new XY(edge.nodes[0].x, edge.nodes[0].y);
-		var p2 = new XY(edge.nodes[1].x, edge.nodes[1].y);
-		return this.reflectionAcrossLine( new Line(origin, p2.subtract(origin)) );
-	}
-	reflectionAcrossLine(line:Line):Matrix{
-		var angle = Math.atan2(line.direction.y, line.direction.x);
+	reflection(vector:XY, offset?:XY):Matrix{
+		// the line of reflection passes through offset, runs along vector
+		var angle = Math.atan2(vector.y, vector.x);
 		var cosAngle = Math.cos(angle);
 		var sinAngle = Math.sin(angle);
 		var _cosAngle = Math.cos(-angle);
@@ -219,8 +215,11 @@ class Matrix{
 		this.b = cosAngle * -_sinAngle +  sinAngle * _cosAngle;
 		this.c = sinAngle *  _cosAngle + -cosAngle * _sinAngle;
 		this.d = sinAngle * -_sinAngle + -cosAngle * _cosAngle;
-		this.tx = line.point.x + this.a * -line.point.x + -line.point.y * this.c;
-		this.ty = line.point.y + this.b * -line.point.x + -line.point.y * this.d;
+		// todo, if offset is undefined, should we set tx and ty to 0, or leave as is?
+		if(offset !== undefined){
+			this.tx = offset.x + this.a * -offset.x + -offset.y * this.c;
+			this.ty = offset.y + this.b * -offset.x + -offset.y * this.d;
+		}
 		return this;
 	}
 
@@ -282,8 +281,19 @@ class XY{
 		return new XY( Math.cos(newAngle), Math.sin(newAngle) );
 	}
 	/** reflects this point about a line that passes through 'a' and 'b' */
-	reflectAcrossLine(line:Line):XY{ return this.transform( new Matrix().reflectionAcrossLine(line) ); }
-	reflectAcrossEdge(edge:Edge):XY{ return this.transform( new Matrix().reflectionAcrossEdge(edge) ); }
+	reflect(line:any):XY{
+		var origin, vector;
+		if(line.direction !== undefined){
+			origin = line.point || line.origin;
+			vector = line.direction;
+		} else if(line.nodes !== undefined){
+			origin = new XY(line.nodes[0].x, line.nodes[0].y);
+			vector = new XY(line.nodes[1].x, line.nodes[1].y).subtract(origin);
+		} else{
+			return undefined;
+		}
+		return this.transform( new Matrix().reflection(vector, origin) );
+	}
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
 	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
 	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }
@@ -300,6 +310,8 @@ class LineType{
 	equivalent(line:any, epsilon?:number){}
 	intersection(line:LineType){}
 	reflectionMatrix(){}
+	nearestPoint(point:XY){}
+	nearestPointNormalTo(point:XY){}
 	// clipWithEdge(edge:Edge, epsilon?:number){}
 	// clipWithEdges(edges:Edge[], epsilon?:number){}
 	// clipWithEdgesDetails(edges:Edge[], epsilon?:number){}
@@ -315,43 +327,43 @@ class Line implements LineType{
 		else if(a.x !== undefined){this.point = new XY(a.x, a.y); this.direction = new XY(b.x, b.y);}
 		else{ this.point = new XY(a,b); this.direction = new XY(c,d); }
 	}
-	length(){ return Infinity; }
-	vector(){ return this.direction; }
+	// implements LineType
+	length():number{ return Infinity; }
+	vector():XY{ return this.direction; }
 	parallel(line:any, epsilon?:number):boolean{
 		// works for Edges (2 XY nodes), or Lines or Rays (point and vector)
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var v = (line.nodes !== undefined) ? line.nodes[1].subtract(line.nodes[0]) : line.direction;
-		if(v === undefined){ return undefined; }
-		return epsilonEqual(this.direction.cross(v), 0, epsilon);
+		return (v !== undefined) ? epsilonEqual(this.direction.cross(v), 0, epsilon) : undefined;
 	}
 	collinear(point:XY, epsilon?:number):boolean{
+		// todo: test this
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		// if(point.equivalent(this.nodes[0], epsilon)){ return true; }
-		// var u = this.nodes[1].subtract(this.nodes[0]);
-		// var v = point.subtract(this.nodes[0]);
-		// return epsilonEqual(u.cross(v), 0, epsilon);
-		// return !epsilonEqual(this.direction.cross(point.subtract(this.point)), 0, epsilon);
-		return undefined;
+		var x = [ this.point.x, this.point.x + this.direction.x, point.x ];
+		var y = [ this.point.y, this.point.y + this.direction.y, point.y ];
+		return epsilonEqual(x[0]*(y[1]-y[2]) + x[1]*(y[2]-y[0]) + x[2]*(y[0]-y[1]), 0, epsilon);
 	}
 	equivalent(line:Line, epsilon?:number):boolean{
 		// if lines are parallel and share a point in common
-		return undefined;
+		return this.collinear(line.point) && this.parallel(line);
 	}
 	intersection(line:LineType){
 		if(line instanceof Line){ return intersectionLineLine(this, line); }
 		if(line instanceof Ray){  return intersectionLineRay(this, line);  }
 		if(line instanceof Edge){ return intersectionLineEdge(this, line); }
 	}
-	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossLine(this);}
-	transform(matrix):Line{
-		// todo: who knows if this works
-		return new Line(this.point.transform(matrix), this.direction.transform(matrix));
-	}
+	reflectionMatrix():Matrix{ return new Matrix().reflection(this.direction, this.point); }
+	nearestPoint(point:XY):XY{ return this.nearestPointNormalTo(point); }
 	nearestPointNormalTo(point:XY):XY{
 		// todo, this is good. the other implementations in Edge, etc.. aren't as good as this one.
 		var v = this.direction.normalize();
 		var u = ((point.x-this.point.x)*v.x + (point.y-this.point.y)*v.y);
 		return new XY(this.point.x + u*v.x, this.point.y + u*v.y);
+	}
+	// additional methods
+	transform(matrix):Line{
+		// todo: who knows if this works
+		return new Line(this.point.transform(matrix), this.direction.transform(matrix));
 	}
 }
 
@@ -369,14 +381,9 @@ class Ray implements LineType{
 			this.direction = new XY(c, d);
 		};
 	}
-	length(){return Infinity;}
-	vector(){return this.direction;}
-	intersection(line:LineType){
-		if(line instanceof Ray){ return intersectionRayRay(this, line); }
-		if(line instanceof Line){ return intersectionLineRay(line, this); }
-		if(line instanceof Edge){ return intersectionRayEdge(this, line); }
-	}
-	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossLine(new Line(this.origin, this.direction));}
+	// implements LineType
+	length():number{return Infinity;}
+	vector():XY{return this.direction;}
 	parallel(line:any, epsilon?:number):boolean{
 		// works for Edges (2 XY nodes), or Lines or Rays (point and vector)
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
@@ -390,6 +397,25 @@ class Ray implements LineType{
 		return (this.origin.equivalent(ray.origin, epsilon) &&
 		        this.direction.normalize().equivalent(ray.direction.normalize(), epsilon));
 	}
+	intersection(line:LineType){
+		if(line instanceof Ray){ return intersectionRayRay(this, line); }
+		if(line instanceof Line){ return intersectionLineRay(line, this); }
+		if(line instanceof Edge){ return intersectionRayEdge(this, line); }
+	}
+	reflectionMatrix():Matrix{ return new Matrix().reflection(this.direction, this.origin); }
+	nearestPoint(point:XY):XY{
+		var answer = this.nearestPointNormalTo(point);
+		if(answer !== undefined){ return answer; }
+		return this.origin;
+	}
+	nearestPointNormalTo(point:XY):XY{
+		var v = this.direction.normalize();
+		var u = ((point.x-this.origin.x)*v.x + (point.y-this.origin.y)*v.y);
+		// todo: did I guess right? < 0, and not > 1.0
+		if(u < 0){ return undefined; }
+		return new XY(this.origin.x + u*v.x, this.origin.y + u*v.y);
+	}
+	// additional methods
 	flip(){
 		return new Ray(this.origin, new XY(-this.direction.x, -this.direction.y));
 	}
@@ -440,6 +466,7 @@ class Edge implements LineType{
 		else if(a.x !== undefined){this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];}
 		else{ this.nodes = [new XY(a,b), new XY(c,d)]; }
 	}
+	// implements LineType
 	length():number{ return Math.sqrt( Math.pow(this.nodes[0].x-this.nodes[1].x,2) + Math.pow(this.nodes[0].y-this.nodes[1].y,2) ); }
 	vector(originNode?:XY):XY{
 		if(originNode === undefined){ return this.nodes[1].subtract(this.nodes[0]); }
@@ -448,15 +475,6 @@ class Edge implements LineType{
 		}
 		return this.nodes[0].subtract(this.nodes[1]);
 	}
-	pointVectorForm():Line{ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
-	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
-								   0.5*(this.nodes[0].y + this.nodes[1].y));}
-	intersection(line:LineType){
-		if(line instanceof Line){ return intersectionLineEdge(line, this); }
-		if(line instanceof Ray){ return intersectionRayEdge(line, this); }
-		if(line instanceof Edge){ return intersectionEdgeEdge(this, line); }
-	}
-	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossEdge(this);}
 	parallel(line:any, epsilon?:number):boolean{
 		// works for Edges (2 XY nodes), or Lines or Rays (point and vector)
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
@@ -478,12 +496,13 @@ class Edge implements LineType{
 		        (this.nodes[0].equivalent(e.nodes[1],epsilon) &&
 		         this.nodes[1].equivalent(e.nodes[0],epsilon)) );
 	}
-	degenrate(epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		return this.nodes[0].equivalent(this.nodes[1], epsilon);
+	intersection(line:LineType):any{
+		if(line instanceof Line){ return intersectionLineEdge(line, this); }
+		if(line instanceof Ray){ return intersectionRayEdge(line, this); }
+		if(line instanceof Edge){ return intersectionEdgeEdge(this, line); }
 	}
-	transform(matrix:Matrix):Edge{
-		return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
+	reflectionMatrix():Matrix{
+		return new Matrix().reflection(this.nodes[1].subtract(this.nodes[0]), this.nodes[0]);
 	}
 	nearestPoint(point:XY):XY{
 		var answer = this.nearestPointNormalTo(point);
@@ -499,6 +518,17 @@ class Edge implements LineType{
 		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
 		if(u < 0 || u > 1.0){ return undefined; }
 		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
+	}
+	// additional methods
+	pointVectorForm():Line{ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
+	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
+								   0.5*(this.nodes[0].y + this.nodes[1].y));}
+	degenrate(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return this.nodes[0].equivalent(this.nodes[1], epsilon);
+	}
+	transform(matrix:Matrix):Edge{
+		return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
 	}
 }
 
@@ -533,7 +563,8 @@ class Polyline{
 		while(i < REFLECT_LIMIT){
 			// build new ray, reflected across edge
 			var prevClip:{edge:Edge,intersection:Edge} = clips[clips.length-1];
-			var reflection:Matrix = new Matrix().reflectionAcrossEdge(prevClip.intersection);
+			var v = prevClip.intersection.nodes[1].subtract(prevClip.intersection.nodes[0]);
+			var reflection:Matrix = new Matrix().reflection(v, prevClip.intersection.nodes[0]);
 			var newRay = new Ray(prevClip.edge.nodes[1], prevClip.edge.nodes[0].transform(reflection).subtract(prevClip.edge.nodes[1]));
 			// get next edge intersections
 			var newClips:{edge:Edge,intersection:Edge}[] = newRay.clipWithEdgesDetails(intersectable);
@@ -1260,58 +1291,58 @@ function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
 
 /** 2D line, extending infinitely in both directions, represented by 2 collinear points
  */
-class LineNodes{
-	nodes:[XY,XY];
-	constructor(a:any, b:any, c?:any, d?:any){
-		if(a instanceof XY){this.nodes = [a,b];}
-		else if(a.x !== undefined){this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];}
-		else{ this.nodes = [new XY(a,b), new XY(c,d)]; }
-	}
-	length(){return Infinity;}
-	vector(originNode?:XY):XY{
-		if(originNode === undefined){ return this.nodes[1].subtract(this.nodes[0]); }
-		if(this.nodes[0].equivalent(originNode)){
-			return this.nodes[1].subtract(this.nodes[0]);
-		}
-		return this.nodes[0].subtract(this.nodes[1]);
-	}
-	intersectLine(line:Line):XY{return intersectionLineLine(this,line);}
-	intersectRay(ray:Ray):XY{return intersectionLineRay(this,ray);}
-	intersectEdge(edge:Edge):XY{return intersectionLineEdge(this,edge);}
-	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossLine(this);}
-	parallel(line:Line, epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var u = this.nodes[1].subtract(this.nodes[0]);
-		var v = line.nodes[1].subtract(line.nodes[0]);
-		return epsilonEqual(u.cross(v), 0, epsilon);
-	}
-	collinear(point:XY, epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		if(point.equivalent(this.nodes[0], epsilon)){ return true; }
-		var u = this.nodes[1].subtract(this.nodes[0]);
-		var v = point.subtract(this.nodes[0]);
-		return epsilonEqual(u.cross(v), 0, epsilon);
-	}
-	equivalent(line:Line, epsilon?:number):boolean{
-		// if lines are parallel and share a point in common
-		return undefined;
-	}
-	transform(matrix):Line{
-		return new Line(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
-	}
-	nearestPointNormalTo(point:XY):XY{
-		var p = this.nodes[0].distanceTo(this.nodes[1]);
-		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
-		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
-	}
-}
+// class LineNodes{
+// 	nodes:[XY,XY];
+// 	constructor(a:any, b:any, c?:any, d?:any){
+// 		if(a instanceof XY){this.nodes = [a,b];}
+// 		else if(a.x !== undefined){this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];}
+// 		else{ this.nodes = [new XY(a,b), new XY(c,d)]; }
+// 	}
+// 	length(){return Infinity;}
+// 	vector(originNode?:XY):XY{
+// 		if(originNode === undefined){ return this.nodes[1].subtract(this.nodes[0]); }
+// 		if(this.nodes[0].equivalent(originNode)){
+// 			return this.nodes[1].subtract(this.nodes[0]);
+// 		}
+// 		return this.nodes[0].subtract(this.nodes[1]);
+// 	}
+// 	intersectLine(line:Line):XY{return intersectionLineLine(this,line);}
+// 	intersectRay(ray:Ray):XY{return intersectionLineRay(this,ray);}
+// 	intersectEdge(edge:Edge):XY{return intersectionLineEdge(this,edge);}
+// 	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossLine(this);}
+// 	parallel(line:Line, epsilon?:number):boolean{
+// 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+// 		var u = this.nodes[1].subtract(this.nodes[0]);
+// 		var v = line.nodes[1].subtract(line.nodes[0]);
+// 		return epsilonEqual(u.cross(v), 0, epsilon);
+// 	}
+// 	collinear(point:XY, epsilon?:number):boolean{
+// 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+// 		if(point.equivalent(this.nodes[0], epsilon)){ return true; }
+// 		var u = this.nodes[1].subtract(this.nodes[0]);
+// 		var v = point.subtract(this.nodes[0]);
+// 		return epsilonEqual(u.cross(v), 0, epsilon);
+// 	}
+// 	equivalent(line:Line, epsilon?:number):boolean{
+// 		// if lines are parallel and share a point in common
+// 		return undefined;
+// 	}
+// 	transform(matrix):Line{
+// 		return new Line(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
+// 	}
+// 	nearestPointNormalTo(point:XY):XY{
+// 		var p = this.nodes[0].distanceTo(this.nodes[1]);
+// 		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
+// 		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
+// 	}
+// }
 
 /** 2D line, extending infinitely in both directions, represented by a scalar and a normal */
-class LinePerp{
-	d:number; // the distance of the nearest point on the line to the origin
-	u:XY;  // normal to the line
-	constructor(scalar:number, normal:XY){this.d=scalar; this.u=normal;}
-}
+// class LinePerp{
+// 	d:number; // the distance of the nearest point on the line to the origin
+// 	u:XY;  // normal to the line
+// 	constructor(scalar:number, normal:XY){this.d=scalar; this.u=normal;}
+// }
 
 
 /////////////////////////////// ARRAYS /////////////////////////////// 
