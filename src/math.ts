@@ -1271,7 +1271,7 @@ function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
 }
 function gimme1Edge(a:any, b?:any, c?:any, d?:any):Edge{
 	// input is 1 edge, 2 XY, or 4 numbers
-	if(a instanceof Edge || a instanceof Crease){ return a; }
+	if(a instanceof Edge || a.nodes !== undefined){ return a; }
 	else if(isValidPoint(b) ){ return new Edge(a,b); }
 	else if(isValidNumber(d)){ return new Edge(a,b,c,d); }
 }

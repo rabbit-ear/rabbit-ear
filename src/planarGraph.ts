@@ -9,11 +9,11 @@
 
 //////////////////////////////////////////////////////////////////////////
 // DEPENDENCIES
-interface rbushObject{
-	load(data:object[]);
-	insert(data:object):object;
-	search(data:object):object[];
-} declare function rbush():rbushObject;
+// interface rbushObject{
+// 	load(data:object[]);
+// 	insert(data:object):object;
+// 	search(data:object):object[];
+// } declare function rbush():rbushObject;
 //////////////////////////////////////////////////////////////////////////
 // PLANAR GRAPH
 
@@ -338,7 +338,7 @@ class PlanarFace{
 	}
 	// this algorithm takes time, it hunts for a mapping of adjacent-nodes to edges,
 	//   then calls makeFromCircut()
-	makeFromNodes(nodes:CreaseNode[]):PlanarFace{
+	makeFromNodes(nodes:PlanarNode[]):PlanarFace{
 		var edgeCircut = nodes.map(function(node,i){
 			var nextNode = this.nodes[ (i+1)%this.nodes.length ];
 			return <PlanarEdge>this.graph.getEdgeConnectingNodes(node, nextNode);
@@ -1254,7 +1254,7 @@ class PlanarGraph extends Graph{
 		var paths:Polyline[] = [];
 		while(cp.edges.length > 0){
 			var node = cp.nodes[0];
-			var adj = <CreaseNode[]>node.adjacentNodes();
+			var adj = <PlanarNode[]>node.adjacentNodes();
 			var polyline = new Polyline();
 			// var path = [];
 			if(adj.length === 0){
@@ -1272,7 +1272,7 @@ class PlanarGraph extends Graph{
 				cp.removeIsolatedNodes();
 				node = nextNode;
 				adj = [];
-				if(node !== undefined){ adj = <CreaseNode[]>node.adjacentNodes(); }
+				if(node !== undefined){ adj = <PlanarNode[]>node.adjacentNodes(); }
 				while(adj.length > 0){
 					nextNode = adj[0];
 					polyline.nodes.push( new XY(node.x, node.y) );
@@ -1282,7 +1282,7 @@ class PlanarGraph extends Graph{
 					});
 					cp.removeIsolatedNodes();
 					node = nextNode;
-					adj = <CreaseNode[]>node.adjacentNodes();
+					adj = <PlanarNode[]>node.adjacentNodes();
 				}
 				polyline.nodes.push(new XY(node.x, node.y));
 			}

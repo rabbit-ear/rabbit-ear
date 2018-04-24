@@ -419,17 +419,17 @@ class CreasePattern extends PlanarGraph{
 
 	// creaseRayUntilMark
 	creaseRayUntilIntersection(ray:Ray, target?:XY):Crease{
-		var clips = ray.clipWithEdgesDetails(this.edges);
-		if(clips.length > 0){
-			// if target exists, and target is closer than shortest edge, return crease to target
-			if(target !== undefined){
-				var targetEdge = new Edge(ray.origin.x, ray.origin.y, target.x, target.y);
-				if(clips[0].edge.length() > targetEdge.length()){ return this.crease(targetEdge); }
-			}
-			// return crease to edge
-			return this.crease(clips[0].edge);
+		var clip = ray.clipWithEdgesDetails(this.edges).shift();
+		var targetEdge;
+		if(target !== undefined && ray.collinear(target)){
+			targetEdge = new Edge(ray.origin.x, ray.origin.y, target.x, target.y);
 		}
-		return undefined;
+		if(clip === undefined && targetEdge !== undefined){ return this.crease(targetEdge); }
+		if(clip !== undefined && targetEdge === undefined){ return this.crease(clip.edge); }
+		if(clip !== undefined && targetEdge !== undefined){
+			if(clip.edge.length() > targetEdge.length()){ return this.crease(targetEdge); }
+			else { return this.crease(clip.edge); }
+		}
 	}
 
 	creaseLineRepeat(a:any, b?:any, c?:any, d?:any):Crease[]{
@@ -1303,26 +1303,36 @@ class CreasePattern extends PlanarGraph{
 	}
 }
 
-interface Array<T> {
-	mountain():Crease[];
-	valley():Crease[];
-}
-Array.prototype.mountain = function():Crease[] {
-	if(this.length <= 1){ return ; }
-	for(var i = 0; i < this.length; i++){
-		if( this[i] instanceof Crease){
-			this[i].mountain();
-		}
-	}
-	return this;
-}
-Array.prototype.valley = function():Crease[] {
-	if(this.length <= 1){ return ; }
-	for(var i = 0; i < this.length; i++){
-		if( this[i] instanceof Crease){
-			this[i].valley();
-		}
-	}
-	return this;
-}
+// interface Array<T> {
+// 	mountain():Crease[];
+// 	valley():Crease[];
+// }
+// Array.prototype.mountain = function():Crease[] {
+// 	if(this.length <= 1){ return ; }
+// 	for(var i = 0; i < this.length; i++){
+// 		if( this[i] instanceof Crease){
+// 			this[i].mountain();
+// 		}
+// 	}
+// 	return this;
+// }
+// Array.prototype.valley = function():Crease[] {
+// 	if(this.length <= 1){ return ; }
+// 	for(var i = 0; i < this.length; i++){
+// 		if( this[i] instanceof Crease){
+// 			this[i].valley();
+// 		}
+// 	}
+// 	return this;
+// }
+
+
+
+
+
+export { CreasePattern };
+
+
+
+
 

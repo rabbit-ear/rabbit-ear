@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"removeComments": true,
+		"outDir": "./dist/",
+		"module": "es6",
+		"target": "es5",
+		"sourceMap":true,
+		"allowJs": true
+	}
+}

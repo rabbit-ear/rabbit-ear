@@ -1,0 +1,37 @@
+{
+  "name": "crease-pattern",
+  "version": "1.0.0",
+  "description": "a javascript library for describing an manipulating origami crease patterns",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack -p"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robbykraft/Origami.git"
+  },
+  "keywords": [
+    "origami",
+    "crease",
+    "pattern",
+    "fold"
+  ],
+  "author": "Robby Kraft",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/robbykraft/Origami/issues"
+  },
+  "homepage": "https://github.com/robbykraft/Origami#readme",
+  "dependencies": {
+    "@types/rbush": "^2.0.2",
+    "d3-voronoi": "^1.1.2",
+    "rbush": "^2.0.2"
+  },
+  "devDependencies": {
+    "ts-loader": "^4.2.0",
+    "typescript": "^2.8.3",
+    "webpack": "^4.6.0",
+    "webpack-cli": "^2.0.15"
+  }
+}
