@@ -4,31 +4,78 @@
 
 "use strict";
 
-var EPSILON_LOW  = 0.003;
-var EPSILON      = 0.00001;
-var EPSILON_HIGH = 0.00000001;
-var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a screen
+
+/////////////////////////////// ARRAYS /////////////////////////////// 
+// interface Array<T> {
+// 	allEqual():boolean;
+// 	removeDuplicates(compFunction:(a: T, b: T) => boolean): Array<T>;
+// 	contains(object: T, compFunction?:(a: T, b: T) => boolean): boolean;
+// 	flatMap<T, U>(mapFunc: (x: T) => U[]) : U[];	
+// }
+
+
+export var flatMap = function<T, U>(array:any[], mapFunc: (x: T) => U[]) : U[] {
+	return array.reduce((cumulus: U[], next: T) => [...mapFunc(next), ...cumulus], <U[]> []);
+}
+
+
+export var removeDuplicates = function(array:any[], compFunction:(a, b) => boolean): any[]{
+	if(array.length <= 1) return array;
+	for(var i = 0; i < array.length-1; i++){
+		for(var j = array.length-1; j > i; j--){
+			if(compFunction(array[i], array[j])){
+				array.splice(j,1);
+			}
+		}
+	}
+	return array;
+}
+/** all values in an array are equivalent based on !== comparison */
+export var allEqual = function(array:any[]):boolean {
+	if(array.length <= 1){ return true; }
+	for(var i = 1; i < array.length; i++){ if(array[i] !== array[0]) return false; }
+	return true;
+}
+/** does an array contain an object, based on reference comparison */
+export var contains = function(array:any[], object, compFunction?:(a, b) => boolean):boolean{
+	if(compFunction !== undefined){
+		// comp function was supplied
+		for(var i = 0; i < array.length; i++){
+			if(compFunction(array[i], object) === true){ return true; }
+		}
+		return false;
+	}
+	for(var i = 0; i < array.length; i++) { if(array[i] === object){ return true; } }
+	return false;
+}
+
+
+
+export var EPSILON_LOW  = 0.003;
+export var EPSILON      = 0.00001;
+export var EPSILON_HIGH = 0.00000001;
+export var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a screen
 
 //////////////////////////// TYPE CHECKING //////////////////////////// 
-function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
-function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
-function pointsSimilar(a:any, b:any, epsilon?:number){
+export function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
+export function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
+export function pointsSimilar(a:any, b:any, epsilon?:number){
 	if(epsilon === undefined){epsilon = EPSILON_HIGH;}
 	return epsilonEqual(a.x,b.x,epsilon) && epsilonEqual(a.y,b.y,epsilon);
 }
 /////////////////////////////// NUMBERS ///////////////////////////////
 /** map a number from one range into another */
-function map(input:number, fl1:number, ceil1:number, fl2:number, ceil2:number):number{
+export function map(input:number, fl1:number, ceil1:number, fl2:number, ceil2:number):number{
 	return ( (input - fl1) / (ceil1 - fl1) ) * (ceil2 - fl2) + fl2;
 }
 /** are 2 numbers similar to each other within an epsilon range. */
-function epsilonEqual(a:number, b:number, epsilon?:number):boolean{
+export function epsilonEqual(a:number, b:number, epsilon?:number):boolean{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return ( Math.abs(a - b) < epsilon );
 }
 // if number is within epsilon range of a whole number, remove the floating point noise.
 //  example: turns 0.999999989764 into 1.0
-function wholeNumberify(num:number, epsilon?:number):number{
+export function wholeNumberify(num:number, epsilon?:number):number{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	if(Math.abs(Math.round(num) - num) < epsilon){ num = Math.round(num); }
 	return num;
@@ -41,7 +88,7 @@ function wholeNumberify(num:number, epsilon?:number):number{
  * @param {number} angle in radians
  * @returns {number} clockwise interior angle (from a to b) in radians
  */
-function clockwiseInteriorAngleRadians(a:number, b:number):number{
+export function clockwiseInteriorAngleRadians(a:number, b:number):number{
 	// this is on average 50 to 100 times faster than clockwiseInteriorAngle
 	while(a < 0){ a += Math.PI*2; }
 	while(b < 0){ b += Math.PI*2; }
@@ -50,7 +97,7 @@ function clockwiseInteriorAngleRadians(a:number, b:number):number{
 	return Math.PI*2 - (b - a);
 }
 ///////////////
-function clockwiseInteriorAngle(a:XY, b:XY):number{
+export function clockwiseInteriorAngle(a:XY, b:XY):number{
 	// this is on average 50 to 100 slower faster than clockwiseInteriorAngleRadians
 	var dotProduct = b.x*a.x + b.y*a.y;
 	var determinant = b.x*a.y - b.y*a.x;
@@ -62,7 +109,7 @@ function clockwiseInteriorAngle(a:XY, b:XY):number{
  * @param {XY} vector
  * @returns {number[]} 2 angle measurements between vectors
  */
-function interiorAngles(a:XY, b:XY):number[]{
+export function interiorAngles(a:XY, b:XY):number[]{
 	var interior1 = clockwiseInteriorAngle(a, b);
 	// we don't need to run atan2 again..
 	// var interior2 = clockwiseInteriorAngle(b, a);
@@ -74,17 +121,17 @@ function interiorAngles(a:XY, b:XY):number[]{
  * @param {XY} vector
  * @returns {XY[]} 2 vector angle bisections, the smaller interior angle is always first
  */
-function bisect(a:XY, b:XY):XY[]{
+export function bisect(a:XY, b:XY):XY[]{
 	a = a.normalize();
 	b = b.normalize();
 	return [ (a.add(b)).normalize(),
 	         new XY(-a.x + -b.x, -a.y + -b.y).normalize() ];
 }
 
-function determinantXY(a:XY,b:XY):number{
+export function determinantXY(a:XY,b:XY):number{
 	return a.x * b.y - b.x * a.y;
 }
-function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFunction:(t0,t1) => boolean, epsilon:number):XY{
+export function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFunction:(t0,t1) => boolean, epsilon:number):XY{
 	var denominator0 = determinantXY(aVec, bVec);
 	var denominator1 = -denominator0;
 	if(epsilonEqual(denominator0, 0, epsilon)){ return undefined; } /* parallel */
@@ -94,7 +141,7 @@ function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFuncti
 	var t1 = numerator1 / denominator1;
 	if(compFunction(t0,t1)){ return aOrigin.add(aVec.scale(t0)); }
 }
-function intersectionLineLine(a:Line, b:Line, epsilon?:number):XY{
+export function intersectionLineLine(a:Line, b:Line, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(a.point.x, a.point.y),
@@ -103,7 +150,7 @@ function intersectionLineLine(a:Line, b:Line, epsilon?:number):XY{
 		new XY(b.direction.x, b.direction.y),
 		function(t0,t1){return true;}, epsilon);
 }
-function intersectionLineRay(line:Line, ray:Ray, epsilon?:number):XY{
+export function intersectionLineRay(line:Line, ray:Ray, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(line.point.x, line.point.y),
@@ -112,7 +159,7 @@ function intersectionLineRay(line:Line, ray:Ray, epsilon?:number):XY{
 		new XY(ray.direction.x, ray.direction.y),
 		function(t0,t1){return t1 >= 0;}, epsilon);
 }
-function intersectionLineEdge(line:Line, edge:Edge, epsilon?:number):XY{
+export function intersectionLineEdge(line:Line, edge:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(line.point.x, line.point.y),
@@ -121,7 +168,7 @@ function intersectionLineEdge(line:Line, edge:Edge, epsilon?:number):XY{
 		new XY(edge.nodes[1].x-edge.nodes[0].x, edge.nodes[1].y-edge.nodes[0].y),
 		function(t0,t1){return t1 >= 0 && t1 <= 1;}, epsilon);
 }
-function intersectionRayRay(a:Ray, b:Ray, epsilon?:number):XY{
+export function intersectionRayRay(a:Ray, b:Ray, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(a.origin.x, a.origin.y),
@@ -130,7 +177,7 @@ function intersectionRayRay(a:Ray, b:Ray, epsilon?:number):XY{
 		new XY(b.direction.x, b.direction.y),
 		function(t0,t1){return t0 >= 0 && t1 >= 0;}, epsilon);
 }
-function intersectionRayEdge(ray:Ray, edge:Edge, epsilon?:number):XY{
+export function intersectionRayEdge(ray:Ray, edge:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(ray.origin.x, ray.origin.y),
@@ -139,7 +186,7 @@ function intersectionRayEdge(ray:Ray, edge:Edge, epsilon?:number):XY{
 		new XY(edge.nodes[1].x-edge.nodes[0].x, edge.nodes[1].y-edge.nodes[0].y),
 		function(t0,t1){return t0 >= 0 && t1 >= 0 && t1 <= 1;}, epsilon);
 }
-function intersectionEdgeEdge(a:Edge, b:Edge, epsilon?:number):XY{
+export function intersectionEdgeEdge(a:Edge, b:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(a.nodes[0].x, a.nodes[0].y),
@@ -149,7 +196,7 @@ function intersectionEdgeEdge(a:Edge, b:Edge, epsilon?:number):XY{
 		function(t0,t1){return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1;}, epsilon);
 }
 
-function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY):XY[]{
+export function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY):XY[]{
 	var r_squared =  Math.pow(radius,2);
 	var x1 = p0.x - center.x;
 	var y1 = p0.y - center.y;
@@ -175,7 +222,7 @@ function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY)
 /////////////////////////////////////////////////////////////////////////////////
 
 /** This is a 2x3 matrix: 2x2 for scale and rotation and 2x1 for translation */
-class Matrix{
+export class Matrix{
 	a:number; c:number; tx:number;
 	b:number; d:number; ty:number;
 	constructor(a?:number, b?:number, c?:number, d?:number, tx?:number, ty?:number){
@@ -241,7 +288,7 @@ class Matrix{
 	}
 }
 
-class XY{
+export class XY{
 	x:number;
 	y:number;
 	constructor(x:number, y:number){ this.x = x; this.y = y; }
@@ -302,7 +349,7 @@ class XY{
 	abs():XY{ return new XY(Math.abs(this.x), Math.abs(this.y)); }
 }
 
-class LineType{
+export class LineType{
 	length(){}
 	vector(){}
 	parallel(line:any, epsilon?:number){}
@@ -321,7 +368,7 @@ class LineType{
 
 /** 2D line, extending infinitely in both directions, represented by a point and a vector
  */
-class Line implements LineType{
+export class Line implements LineType{
 	point:XY;
 	direction:XY;
 	constructor(a:any, b:any, c?:any, d?:any){
@@ -370,7 +417,7 @@ class Line implements LineType{
 	}
 }
 
-class Ray implements LineType{
+export class Ray implements LineType{
 	origin:XY;
 	direction:XY;
 	constructor(a:any, b:any, c?:any, d?:any){
@@ -469,7 +516,7 @@ class Ray implements LineType{
 	}
 }
 
-class Edge implements LineType{
+export class Edge implements LineType{
 	nodes:[XY,XY];
 	// a, b are points, or
 	// (a,b) point 1 and (c,d) point 2, each x,y
@@ -544,7 +591,7 @@ class Edge implements LineType{
 	pointVectorForm():Line{ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
 }
 
-class Polyline{
+export class Polyline{
 	nodes:XY[];
 
 	constructor(){ this.nodes = []; }
@@ -596,7 +643,7 @@ class Polyline{
 	}
 }
 
-class Rect{
+export class Rect{
 	// didChange:(event:object)=>void;
 	topLeft:{x:number,y:number};
 	size:{width:number, height:number};
@@ -606,7 +653,7 @@ class Rect{
 	}
 }
 
-class Triangle{
+export class Triangle{
 	points:[XY,XY,XY];
 	edges:[Edge, Edge, Edge];
 	circumcenter:XY;
@@ -661,10 +708,10 @@ class Triangle{
 		return true;
 	}
 }
-class IsoscelesTriangle extends Triangle{}
+export class IsoscelesTriangle extends Triangle{}
 
 
-class ConvexPolygon{
+export class ConvexPolygon{
 	edges:Edge[];
 	center():XY{
 		// this is not an average / means
@@ -800,7 +847,7 @@ class ConvexPolygon{
 			// (OPTION 2) include all collinear points along the hull
 			// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
 			// if the point is already in the convex hull, we've made a loop. we're done
-			if(hull.contains(angles[0].node)){
+			if(contains(hull, angles[0].node)){
 				this.edges = this.setEdgesFromPoints(hull);
 				return this;
 			}
@@ -838,7 +885,7 @@ class ConvexPolygon{
  *  clockwise order is enforced
  *  the interior angle is measured clockwise from endpoint 0 to 1
  */
-class Sector{
+export class Sector{
 	// the node in common with the edges
 	origin:XY;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
@@ -914,7 +961,7 @@ interface d3VoronoiObject{
 //                            VORONOI
 /////////////////////////////////////////////////////////////////////////////////
 
-class VoronoiMolecule extends Triangle{
+export class VoronoiMolecule extends Triangle{
 	overlaped:VoronoiMolecule[];
 	hull:ConvexPolygon;
 	units:VoronoiMoleculeTriangle[];
@@ -1001,7 +1048,7 @@ class VoronoiMolecule extends Triangle{
 	}
 }
 /** Isosceles Triangle units that comprise a VoronoiMolecule */
-class VoronoiMoleculeTriangle{
+export class VoronoiMoleculeTriangle{
 	base:[XY,XY];
 	vertex:XY;
 	// the crimp angle is measured against the base side.
@@ -1038,7 +1085,7 @@ class VoronoiMoleculeTriangle{
 			symmetryLine.nodes[1] = this.overlapped[0].circumcenter;
 		}
 		var overlappingEdges = [symmetryLine]
-			.concat(this.overlapped.flatMap(function(el:VoronoiMolecule){
+			.concat(flatMap(this.overlapped, function(el:VoronoiMolecule){
 				return el.generateCreases();
 			}))
 		var edges = [symmetryLine]
@@ -1066,20 +1113,20 @@ class VoronoiMoleculeTriangle{
 	}
 }
 
-class VoronoiEdge{
+export class VoronoiEdge{
 	endPoints:[XY, XY];
 	junctions:[VoronoiJunction, VoronoiJunction];
 	cells:[VoronoiCell,VoronoiCell];
 	isBoundary:boolean;
 	cache:object = {};
 }
-class VoronoiCell{
+export class VoronoiCell{
 	site:XY;
 	points:XY[];
 	edges:VoronoiEdge[];
 	constructor(){ this.points = []; this.edges = []; }
 }
-class VoronoiJunction{
+export class VoronoiJunction{
 	position:XY;
 	edges:VoronoiEdge[];
 	cells:VoronoiCell[];
@@ -1088,7 +1135,7 @@ class VoronoiJunction{
 	edgeNormal:XY;// normal to the edge, if there is an edge
 	constructor(){ this.edges = []; this.cells = []; this.isEdge = false; this.isCorner = false; }
 }
-class VoronoiGraph{
+export class VoronoiGraph{
 	edges:VoronoiEdge[];
 	junctions:VoronoiJunction[];
 	cells:VoronoiCell[];
@@ -1106,7 +1153,7 @@ class VoronoiGraph{
 	/** Build a VoronoiGraph object from the object generated by D3.js Voronoi */
 	constructor(v:d3VoronoiObject, epsilon?:number){
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var allPoints = v.edges.flatMap(function(e){return [new XY(e[0][0],e[0][1]),new XY(e[1][0],e[1][1])]})
+		var allPoints = flatMap(v.edges, function(e){return [new XY(e[0][0],e[0][1]),new XY(e[1][0],e[1][1])]})
 		var hull = new ConvexPolygon().convexHull(allPoints);
 		this.edges = [];
 		this.junctions = [];
@@ -1164,14 +1211,14 @@ class VoronoiGraph{
 		var nodes:XY[] = [];
 		var compFunc = function(a:XY,b:XY){ return a.equivalent(b,epsilon); };
 		this.edges.forEach(function(el){
-			if(!nodes.contains(el.endPoints[0],compFunc)){nodes.push(el.endPoints[0]);}
-			if(!nodes.contains(el.endPoints[1],compFunc)){nodes.push(el.endPoints[1]);}
+			if(!contains(nodes, el.endPoints[0],compFunc)){nodes.push(el.endPoints[0]);}
+			if(!contains(nodes, el.endPoints[1],compFunc)){nodes.push(el.endPoints[1]);}
 		},this);
 		this.junctions = nodes.map(function(el){
 			var junction = new VoronoiJunction();
 			junction.position = el;
 			junction.cells = this.cells.filter(function(cell){ 
-				return cell.points.contains(el,compFunc)
+				return contains(cell.points, el,compFunc)
 			},this).sort(function(a:VoronoiCell,b:VoronoiCell){
 				var vecA = a.site.subtract(el);
 				var vecB = b.site.subtract(el);
@@ -1189,7 +1236,7 @@ class VoronoiGraph{
 				break;
 			}
 			junction.edges = this.edges.filter(function(edge){
-				return edge.endPoints.contains(el,compFunc);
+				return contains(edge.endPoints, el,compFunc);
 			},this).sort(function(a:VoronoiEdge,b:VoronoiEdge){
 				var otherA = a.endPoints[0];
 				if(otherA.equivalent(el)){ otherA = a.endPoints[1];}
@@ -1259,29 +1306,29 @@ class VoronoiGraph{
 }
 
 /////////////////////////////// JAVASCRIPT /////////////////////////////// 
-function gimme1XY(a:any, b?:any):XY{
+export function gimme1XY(a:any, b?:any):XY{
 	// input is 1 XY, or 2 numbers
 	if(isValidPoint(a)){ return a; }
 	else if(isValidNumber(b)){ return new XY(a, b); }
 }
-function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
+export function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
 	// input is 2 XY, or 4 numbers
 	if(isValidPoint(b)){ return [a,b]; }
 	else if(isValidNumber(d)){ return [new XY(a, b), new XY(c, d)]; }
 }
-function gimme1Edge(a:any, b?:any, c?:any, d?:any):Edge{
+export function gimme1Edge(a:any, b?:any, c?:any, d?:any):Edge{
 	// input is 1 edge, 2 XY, or 4 numbers
 	if(a instanceof Edge || a.nodes !== undefined){ return a; }
 	else if(isValidPoint(b) ){ return new Edge(a,b); }
 	else if(isValidNumber(d)){ return new Edge(a,b,c,d); }
 }
-function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
+export function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
 	// input is 1 ray, 2 XY, or 4 numbers
 	if(a instanceof Ray){ return a; }
 	else if(isValidPoint(b) ){ return new Ray(a,b); }
 	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)); }
 }
-function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
+export function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
 	// input is 1 line
 	if(a instanceof Line){ return a; }
 	// input is 2 XY
@@ -1357,43 +1404,3 @@ function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
 // 	constructor(scalar:number, normal:XY){this.d=scalar; this.u=normal;}
 // }
 
-
-/////////////////////////////// ARRAYS /////////////////////////////// 
-interface Array<T> {
-	allEqual():boolean;
-	removeDuplicates(compFunction:(a: T, b: T) => boolean): Array<T>;
-	contains(object: T, compFunction?:(a: T, b: T) => boolean): boolean;
-	flatMap<T, U>(mapFunc: (x: T) => U[]) : U[];	
-}
-Array.prototype.flatMap = function<T, U>(mapFunc: (x: T) => U[]) : U[] {
-	return this.reduce((cumulus: U[], next: T) => [...mapFunc(next), ...cumulus], <U[]> []);
-}
-Array.prototype.removeDuplicates = function(compFunction:(a, b) => boolean): any[]{
-	if(this.length <= 1) return this;
-	for(var i = 0; i < this.length-1; i++){
-		for(var j = this.length-1; j > i; j--){
-			if(compFunction(this[i], this[j])){
-				this.splice(j,1);
-			}
-		}
-	}
-	return this;
-}
-/** all values in an array are equivalent based on !== comparison */
-Array.prototype.allEqual = function():boolean {
-	if(this.length <= 1){ return true; }
-	for(var i = 1; i < this.length; i++){ if(this[i] !== this[0]) return false; }
-	return true;
-}
-/** does an array contain an object, based on reference comparison */
-Array.prototype.contains = function(object, compFunction?:(a, b) => boolean):boolean{
-	if(compFunction !== undefined){
-		// comp function was supplied
-		for(var i = 0; i < this.length; i++){
-			if(compFunction(this[i], object) === true){ return true; }
-		}
-		return false;
-	}
-	for(var i = 0; i < this.length; i++) { if(this[i] === object){ return true; } }
-	return false;
-}

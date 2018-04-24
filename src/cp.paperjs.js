@@ -15,6 +15,10 @@ var EPSILON_FILE_IMPORT = 0.00005;
 //  RENDER FLAT ORIGAMI CREASE PATTERN
 ///////////////////////////////////////////////
 
+var OrigamiPaperStyle = (function(){
+	
+})
+
 var OrigamiPaper = (function(){
 
 	function OrigamiPaper(canvas, creasePattern) {

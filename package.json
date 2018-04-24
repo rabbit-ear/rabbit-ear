@@ -24,7 +24,6 @@
   },
   "homepage": "https://github.com/robbykraft/Origami#readme",
   "dependencies": {
-    "@types/rbush": "^2.0.2",
     "d3-voronoi": "^1.1.2",
     "rbush": "^2.0.2"
   },

@@ -7,17 +7,78 @@
 
 "use strict";
 
+import{
+	GraphClean,
+	GraphNode,
+	GraphEdge,
+	Graph,
+	Multigraph
+} from './graph'
+
+import{
+	EPSILON_LOW,
+	EPSILON,
+	EPSILON_HIGH,
+	EPSILON_UI,
+	isValidPoint,
+	isValidNumber,
+	pointsSimilar,
+	map,
+	epsilonEqual,
+	wholeNumberify,
+	clockwiseInteriorAngleRadians,
+	clockwiseInteriorAngle,
+	interiorAngles,
+	bisect,
+	determinantXY,
+	intersect_vec_func,
+	intersectionLineLine,
+	intersectionLineRay,
+	intersectionLineEdge,
+	intersectionRayRay,
+	intersectionRayEdge,
+	intersectionEdgeEdge,
+	circleLineIntersectionAlgorithm,
+	Matrix,
+	XY,
+	LineType,
+	Line,
+	Ray,
+	Edge,
+	Polyline,
+	Rect,
+	Triangle,
+	IsoscelesTriangle,
+	ConvexPolygon,
+	Sector,
+	VoronoiMolecule,
+	VoronoiMoleculeTriangle,
+	VoronoiEdge,
+	VoronoiCell,
+	VoronoiJunction,
+	VoronoiGraph,
+	gimme1XY,
+	gimme2XY,
+	gimme1Edge,
+	gimme1Ray,
+	gimme1Line,
+	flatMap,
+	removeDuplicates,
+	allEqual,
+	contains
+} from './math'
+
 //////////////////////////////////////////////////////////////////////////
 // DEPENDENCIES
-// interface rbushObject{
-// 	load(data:object[]);
-// 	insert(data:object):object;
-// 	search(data:object):object[];
-// } declare function rbush():rbushObject;
+interface rbushObject{
+	load(data:object[]);
+	insert(data:object):object;
+	search(data:object):object[];
+} declare function rbush():rbushObject;
 //////////////////////////////////////////////////////////////////////////
 // PLANAR GRAPH
 
-class PlanarClean extends GraphClean{
+export class PlanarClean extends GraphClean{
 	edges:{total:number, duplicate:number, circular:number};
 	nodes:{
 		total:number;
@@ -69,7 +130,7 @@ class PlanarClean extends GraphClean{
 	}
 }
 
-class PlanarNode extends GraphNode implements XY{
+export class PlanarNode extends GraphNode implements XY{
 
 	graph:PlanarGraph;
 	x:number;
@@ -181,7 +242,7 @@ class PlanarNode extends GraphNode implements XY{
 	abs():PlanarNode{ this.x = Math.abs(this.x), this.y = Math.abs(this.y); return this; }
 }
 
-class PlanarEdge extends GraphEdge implements Edge{
+export class PlanarEdge extends GraphEdge implements Edge{
 
 	graph:PlanarGraph;
 	nodes:[PlanarNode,PlanarNode];
@@ -299,7 +360,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 	}	
 }
 
-class PlanarFace{
+export class PlanarFace{
 	// this library is counting on the edges and nodes to be stored in clockwise winding
 	graph:PlanarGraph;
 	nodes:PlanarNode[];
@@ -375,7 +436,7 @@ class PlanarFace{
 				if(this.edges[i] === face.edges[j]){ edges.push(this.edges[i]); }
 			}
 		}
-		return edges.removeDuplicates(function(a,b){return a === b; });
+		return removeDuplicates(edges, function(a,b){return a === b; });
 	}
 	uncommonEdges(face:PlanarFace):PlanarEdge[]{
 		var edges = this.edges.slice(0);
@@ -414,7 +475,7 @@ class PlanarFace{
  *  clockwise order is required
  *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
  */
-class PlanarSector extends Sector{
+export class PlanarSector extends Sector{
 	// the node in common with the edges
 	origin:PlanarNode;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
@@ -497,7 +558,7 @@ class PlanarSector extends Sector{
 	}
 }
 
-class PlanarJunction{
+export class PlanarJunction{
 
 	origin:PlanarNode;
 	// sectors and edges are sorted clockwise
@@ -579,7 +640,7 @@ class PlanarJunction{
 }
 
 
-class PlanarGraph extends Graph{
+export class PlanarGraph extends Graph{
 
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
@@ -941,7 +1002,7 @@ class PlanarGraph extends Graph{
 			lastNode = travelingNode;
 			travelingNode = <PlanarNode>nextWalk.otherNode(lastNode);
 			if(travelingNode === node1){ return pairs; }
-		} while(!visitedList.contains(travelingNode));
+		} while(!contains(visitedList, travelingNode));
 		return undefined;
 	}
 

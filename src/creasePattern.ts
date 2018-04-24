@@ -6,6 +6,72 @@
 
 "use strict";
 
+
+import{
+	EPSILON_LOW,
+	EPSILON,
+	EPSILON_HIGH,
+	EPSILON_UI,
+	isValidPoint,
+	isValidNumber,
+	pointsSimilar,
+	map,
+	epsilonEqual,
+	wholeNumberify,
+	clockwiseInteriorAngleRadians,
+	clockwiseInteriorAngle,
+	interiorAngles,
+	bisect,
+	determinantXY,
+	intersect_vec_func,
+	intersectionLineLine,
+	intersectionLineRay,
+	intersectionLineEdge,
+	intersectionRayRay,
+	intersectionRayEdge,
+	intersectionEdgeEdge,
+	circleLineIntersectionAlgorithm,
+	Matrix,
+	XY,
+	LineType,
+	Line,
+	Ray,
+	Edge,
+	Polyline,
+	Rect,
+	Triangle,
+	IsoscelesTriangle,
+	ConvexPolygon,
+	Sector,
+	VoronoiMolecule,
+	VoronoiMoleculeTriangle,
+	VoronoiEdge,
+	VoronoiCell,
+	VoronoiJunction,
+	VoronoiGraph,
+	gimme1XY,
+	gimme2XY,
+	gimme1Edge,
+	gimme1Ray,
+	gimme1Line,
+	flatMap,
+	removeDuplicates,
+	allEqual,
+	contains
+} from './math'
+
+
+import {
+	PlanarClean,
+	PlanarNode,
+	PlanarEdge,
+	PlanarFace,
+	PlanarSector,
+	PlanarJunction,
+	PlanarGraph
+} from './planarGraph'
+
+
 //////////////////////////////////////////////////////////////////////////
 // CREASE PATTERN
 enum CreaseDirection{
