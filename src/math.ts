@@ -149,7 +149,7 @@ function intersectionEdgeEdge(a:Edge, b:Edge, epsilon?:number):XY{
 		function(t0,t1){return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1;}, epsilon);
 }
 
-function circleLineIntersectionAlgorithm(center:XY, radius:number, p0:XY, p1:XY):XY[]{
+function intersectionCircleLine(center:XY, radius:number, p0:XY, p1:XY):XY[]{
 	var r_squared =  Math.pow(radius,2);
 	var x1 = p0.x - center.x;
 	var y1 = p0.y - center.y;
@@ -664,6 +664,19 @@ class Triangle{
 }
 class IsoscelesTriangle extends Triangle{}
 
+class Circle{
+	center:XY;
+	radius:number;
+	constructor(center:XY, radius:number){
+		this.center = center;
+		this.radius = radius;
+	}
+	intersection(line:LineType){
+		if(line instanceof Line){return intersectionCircleLine(this.center,this.radius, line.point, line.point.add(line.direction));}
+		if(line instanceof Edge){return intersectionCircleLine(this.center,this.radius, line.nodes[0], line.nodes[1]);}
+		if(line instanceof Ray){return intersectionCircleLine(this.center,this.radius, line.origin, line.origin.add(line.direction));}
+	}
+}
 
 class ConvexPolygon{
 	edges:Edge[];
@@ -1360,3 +1373,44 @@ var contains = function(array:any[], object, compFunction?:(a, b) => boolean):bo
 	return false;
 }
 /////////////////////////////// ARRAYS /////////////////////////////// 
+
+
+
+
+/////////////////////////////// FUNCTION INPUT INTERFACE /////////////////////////////// 
+function gimme1XY(a:any, b?:any):XY{
+	// input is 1 XY, or 2 numbers
+	if(isValidPoint(a)){ return a; }
+	else if(isValidNumber(b)){ return new XY(a, b); }
+}
+function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
+	// input is 2 XY, or 4 numbers
+	if(isValidPoint(b)){ return [a,b]; }
+	else if(isValidNumber(d)){ return [new XY(a, b), new XY(c, d)]; }
+}
+function gimme1Edge(a:any, b?:any, c?:any, d?:any):Edge{
+	// input is 1 edge, 2 XY, or 4 numbers
+	if(a instanceof Edge || a.nodes !== undefined){ return a; }
+	else if(isValidPoint(b) ){ return new Edge(a,b); }
+	else if(isValidNumber(d)){ return new Edge(a,b,c,d); }
+}
+function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
+	// input is 1 ray, 2 XY, or 4 numbers
+	if(a instanceof Ray){ return a; }
+	else if(isValidPoint(b) ){ return new Ray(a,b); }
+	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)); }
+}
+function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
+	// input is 1 line
+	if(a instanceof Line){ return a; }
+	// input is 2 XY
+	else if(isValidPoint(b) ){ return new Line(a,b); }
+	// input is 4 numbers
+	else if(isValidNumber(d)){ return new Line(a,b,c,d); }
+	// input is 1 line-like object with points in a nodes[] array
+	else if(a.nodes instanceof Array && 
+	        a.nodes.length > 0 &&
+	        isValidPoint(a.nodes[1])){
+		return new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);
+	}
+}

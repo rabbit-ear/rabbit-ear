@@ -465,7 +465,7 @@ function intersectionEdgeEdge(a, b, epsilon) {
     }
     return intersect_vec_func(new XY(a.nodes[0].x, a.nodes[0].y), new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y), new XY(b.nodes[0].x, b.nodes[0].y), new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y), function (t0, t1) { return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1; }, epsilon);
 }
-function circleLineIntersectionAlgorithm(center, radius, p0, p1) {
+function intersectionCircleLine(center, radius, p0, p1) {
     var r_squared = Math.pow(radius, 2);
     var x1 = p0.x - center.x;
     var y1 = p0.y - center.y;
@@ -613,7 +613,7 @@ class LineType {
     parallel(line, epsilon) { }
     collinear(point) { }
     equivalent(line, epsilon) { }
-    intersection(line) { }
+    intersection(line, epsilon) { }
     reflectionMatrix() { }
     nearestPoint(point) { }
     nearestPointNormalTo(point) { }
@@ -655,15 +655,15 @@ class Line {
     equivalent(line, epsilon) {
         return this.collinear(line.point, epsilon) && this.parallel(line, epsilon);
     }
-    intersection(line) {
+    intersection(line, epsilon) {
         if (line instanceof Line) {
-            return intersectionLineLine(this, line);
+            return intersectionLineLine(this, line, epsilon);
         }
         if (line instanceof Ray) {
-            return intersectionLineRay(this, line);
+            return intersectionLineRay(this, line, epsilon);
         }
         if (line instanceof Edge) {
-            return intersectionLineEdge(this, line);
+            return intersectionLineEdge(this, line, epsilon);
         }
     }
     reflectionMatrix() { return new Matrix().reflection(this.direction, this.point); }
@@ -730,15 +730,15 @@ class Ray {
         return (this.origin.equivalent(ray.origin, epsilon) &&
             this.direction.normalize().equivalent(ray.direction.normalize(), epsilon));
     }
-    intersection(line) {
+    intersection(line, epsilon) {
         if (line instanceof Ray) {
-            return intersectionRayRay(this, line);
+            return intersectionRayRay(this, line, epsilon);
         }
         if (line instanceof Line) {
-            return intersectionLineRay(line, this);
+            return intersectionLineRay(line, this, epsilon);
         }
         if (line instanceof Edge) {
-            return intersectionRayEdge(this, line);
+            return intersectionRayEdge(this, line, epsilon);
         }
     }
     reflectionMatrix() { return new Matrix().reflection(this.direction, this.origin); }
@@ -858,15 +858,15 @@ class Edge {
             (this.nodes[0].equivalent(e.nodes[1], epsilon) &&
                 this.nodes[1].equivalent(e.nodes[0], epsilon)));
     }
-    intersection(line) {
+    intersection(line, epsilon) {
+        if (line instanceof Edge) {
+            return intersectionEdgeEdge(this, line, epsilon);
+        }
         if (line instanceof Line) {
-            return intersectionLineEdge(line, this);
+            return intersectionLineEdge(line, this, epsilon);
         }
         if (line instanceof Ray) {
-            return intersectionRayEdge(line, this);
-        }
-        if (line instanceof Edge) {
-            return intersectionEdgeEdge(this, line);
+            return intersectionRayEdge(line, this, epsilon);
         }
     }
     reflectionMatrix() {
@@ -1021,6 +1021,23 @@ class Triangle {
     }
 }
 class IsoscelesTriangle extends Triangle {
+}
+class Circle {
+    constructor(center, radius) {
+        this.center = center;
+        this.radius = radius;
+    }
+    intersection(line) {
+        if (line instanceof Line) {
+            return intersectionCircleLine(this.center, this.radius, line.point, line.point.add(line.direction));
+        }
+        if (line instanceof Edge) {
+            return intersectionCircleLine(this.center, this.radius, line.nodes[0], line.nodes[1]);
+        }
+        if (line instanceof Ray) {
+            return intersectionCircleLine(this.center, this.radius, line.origin, line.origin.add(line.direction));
+        }
+    }
 }
 class ConvexPolygon {
     center() {
@@ -1571,6 +1588,47 @@ class VoronoiGraph {
         return array;
     }
 }
+var flatMap = function (array, mapFunc) {
+    return array.reduce((cumulus, next) => [...mapFunc(next), ...cumulus], []);
+};
+var removeDuplicates = function (array, compFunction) {
+    if (array.length <= 1)
+        return array;
+    for (var i = 0; i < array.length - 1; i++) {
+        for (var j = array.length - 1; j > i; j--) {
+            if (compFunction(array[i], array[j])) {
+                array.splice(j, 1);
+            }
+        }
+    }
+    return array;
+};
+var allEqual = function (array) {
+    if (array.length <= 1) {
+        return true;
+    }
+    for (var i = 1; i < array.length; i++) {
+        if (array[i] !== array[0])
+            return false;
+    }
+    return true;
+};
+var contains = function (array, object, compFunction) {
+    if (compFunction !== undefined) {
+        for (var i = 0; i < array.length; i++) {
+            if (compFunction(array[i], object) === true) {
+                return true;
+            }
+        }
+        return false;
+    }
+    for (var i = 0; i < array.length; i++) {
+        if (array[i] === object) {
+            return true;
+        }
+    }
+    return false;
+};
 function gimme1XY(a, b) {
     if (isValidPoint(a)) {
         return a;
@@ -1625,47 +1683,6 @@ function gimme1Line(a, b, c, d) {
         return new Line(a.nodes[0].x, a.nodes[0].y, a.nodes[1].x, a.nodes[1].y);
     }
 }
-var flatMap = function (array, mapFunc) {
-    return array.reduce((cumulus, next) => [...mapFunc(next), ...cumulus], []);
-};
-var removeDuplicates = function (array, compFunction) {
-    if (array.length <= 1)
-        return array;
-    for (var i = 0; i < array.length - 1; i++) {
-        for (var j = array.length - 1; j > i; j--) {
-            if (compFunction(array[i], array[j])) {
-                array.splice(j, 1);
-            }
-        }
-    }
-    return array;
-};
-var allEqual = function (array) {
-    if (array.length <= 1) {
-        return true;
-    }
-    for (var i = 1; i < array.length; i++) {
-        if (array[i] !== array[0])
-            return false;
-    }
-    return true;
-};
-var contains = function (array, object, compFunction) {
-    if (compFunction !== undefined) {
-        for (var i = 0; i < array.length; i++) {
-            if (compFunction(array[i], object) === true) {
-                return true;
-            }
-        }
-        return false;
-    }
-    for (var i = 0; i < array.length; i++) {
-        if (array[i] === object) {
-            return true;
-        }
-    }
-    return false;
-};
 System.register("src/planarGraph", ["src/graph"], function (exports_2, context_2) {
     "use strict";
     var __moduleName = context_2 && context_2.id;
@@ -1855,7 +1872,7 @@ System.register("src/planarGraph", ["src/graph"], function (exports_2, context_2
                     }
                     var a = new Edge(this.nodes[0].x, this.nodes[0].y, this.nodes[1].x, this.nodes[1].y);
                     var b = new Edge(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-                    var intersect = intersectionEdgeEdge(a, b, epsilon);
+                    var intersect = a.intersection(b, epsilon);
                     if (intersect !== undefined &&
                         !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))) {
                         var pe = edge;
@@ -2433,9 +2450,9 @@ System.register("src/planarGraph", ["src/graph"], function (exports_2, context_2
                         thisReport = fragmentOneRound();
                         report.join(thisReport);
                         protection += 1;
-                    } while (thisReport.nodes.fragment.length != 0 && protection < 400);
-                    if (protection >= 400) {
-                        console.log("breaking loop, exceeded 400");
+                    } while (thisReport.nodes.fragment.length != 0 && protection < 5000);
+                    if (protection >= 5000) {
+                        throw ("exiting fragment(). potential infinite loop detected");
                     }
                     return report;
                 }
@@ -3289,7 +3306,7 @@ System.register("src/creasePattern", ["src/planarGraph"], function (exports_3, c
                 }
                 creasePointToLine(origin, point, line) {
                     var radius = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
-                    var intersections = circleLineIntersectionAlgorithm(origin, radius, line.nodes[0], line.nodes[1]);
+                    var intersections = intersectionCircleLine(origin, radius, line.nodes[0], line.nodes[1]);
                     var creases = [];
                     for (var i = 0; i < intersections.length; i++) {
                         creases.push(this.creasePointToPoint(point, intersections[i]));
@@ -3673,7 +3690,7 @@ System.register("src/creasePattern", ["src/planarGraph"], function (exports_3, c
                     this.edgeArrayDidChange();
                     var file = {};
                     file["file_spec"] = 1;
-                    file["file_creator"] = "creasepattern.js by R.Kraft";
+                    file["file_creator"] = "creasepattern.js by Robby Kraft";
                     file["file_author"] = "";
                     file["file_classes"] = ["singleModel"];
                     file["vertices_coords"] = this.nodes.map(function (node) { return [node.x, node.y]; }, this);
