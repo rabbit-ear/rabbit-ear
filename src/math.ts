@@ -308,7 +308,7 @@ abstract class LineType{
 	parallel(line:any, epsilon?:number){}
 	collinear(point:XY){}
 	equivalent(line:any, epsilon?:number){}
-	intersection(line:LineType){}
+	intersection(line:LineType, epsilon?:number){}
 	reflectionMatrix(){}
 	nearestPoint(point:XY){}
 	nearestPointNormalTo(point:XY){}
@@ -348,10 +348,10 @@ class Line implements LineType{
 		// if lines are parallel and share a point in common
 		return this.collinear(line.point, epsilon) && this.parallel(line, epsilon);
 	}
-	intersection(line:LineType){
-		if(line instanceof Line){ return intersectionLineLine(this, line); }
-		if(line instanceof Ray){  return intersectionLineRay(this, line);  }
-		if(line instanceof Edge){ return intersectionLineEdge(this, line); }
+	intersection(line:LineType, epsilon?:number){
+		if(line instanceof Line){ return intersectionLineLine(this, line, epsilon); }
+		if(line instanceof Ray){  return intersectionLineRay(this, line, epsilon);  }
+		if(line instanceof Edge){ return intersectionLineEdge(this, line, epsilon); }
 	}
 	reflectionMatrix():Matrix{ return new Matrix().reflection(this.direction, this.point); }
 	nearestPoint(point:XY):XY{ return this.nearestPointNormalTo(point); }
@@ -407,10 +407,10 @@ class Ray implements LineType{
 		return (this.origin.equivalent(ray.origin, epsilon) &&
 		        this.direction.normalize().equivalent(ray.direction.normalize(), epsilon));
 	}
-	intersection(line:LineType){
-		if(line instanceof Ray){ return intersectionRayRay(this, line); }
-		if(line instanceof Line){ return intersectionLineRay(line, this); }
-		if(line instanceof Edge){ return intersectionRayEdge(this, line); }
+	intersection(line:LineType, epsilon?:number){
+		if(line instanceof Ray){ return intersectionRayRay(this, line, epsilon); }
+		if(line instanceof Line){ return intersectionLineRay(line, this, epsilon); }
+		if(line instanceof Edge){ return intersectionRayEdge(this, line, epsilon); }
 	}
 	reflectionMatrix():Matrix{ return new Matrix().reflection(this.direction, this.origin); }
 	nearestPoint(point:XY):XY{
@@ -473,10 +473,11 @@ class Edge implements LineType{
 	nodes:[XY,XY];
 	// a, b are points, or
 	// (a,b) point 1 and (c,d) point 2, each x,y
-	constructor(a:any, b:any, c?:any, d?:any){
+	constructor(a:any, b?:any, c?:any, d?:any){
 		if(a instanceof XY){this.nodes = [a,b];}
 		else if(a.x !== undefined){this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];}
-		else{ this.nodes = [new XY(a,b), new XY(c,d)]; }
+		else if(isValidNumber(d)){ this.nodes = [new XY(a,b), new XY(c,d)]; }
+		else if(a.nodes !== undefined){this.nodes = [new XY(a.nodes[0].x, a.nodes[0].y), new XY(a.nodes[1].x, a.nodes[1].y)];}
 	}
 	// implements LineType
 	length():number{ return Math.sqrt( Math.pow(this.nodes[0].x-this.nodes[1].x,2) + Math.pow(this.nodes[0].y-this.nodes[1].y,2) ); }
@@ -508,10 +509,10 @@ class Edge implements LineType{
 		        (this.nodes[0].equivalent(e.nodes[1],epsilon) &&
 		         this.nodes[1].equivalent(e.nodes[0],epsilon)) );
 	}
-	intersection(line:LineType):any{
-		if(line instanceof Line){ return intersectionLineEdge(line, this); }
-		if(line instanceof Ray){ return intersectionRayEdge(line, this); }
-		if(line instanceof Edge){ return intersectionEdgeEdge(this, line); }
+	intersection(line:LineType, epsilon?:number):any{
+		if(line instanceof Edge){ return intersectionEdgeEdge(this, line, epsilon); }
+		if(line instanceof Line){ return intersectionLineEdge(line, this, epsilon); }
+		if(line instanceof Ray){ return intersectionRayEdge(line, this, epsilon); }
 	}
 	reflectionMatrix():Matrix{
 		return new Matrix().reflection(this.nodes[1].subtract(this.nodes[0]), this.nodes[0]);
@@ -1257,45 +1258,6 @@ class VoronoiGraph{
 	}		
 
 }
-
-/////////////////////////////// JAVASCRIPT /////////////////////////////// 
-function gimme1XY(a:any, b?:any):XY{
-	// input is 1 XY, or 2 numbers
-	if(isValidPoint(a)){ return a; }
-	else if(isValidNumber(b)){ return new XY(a, b); }
-}
-function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
-	// input is 2 XY, or 4 numbers
-	if(isValidPoint(b)){ return [a,b]; }
-	else if(isValidNumber(d)){ return [new XY(a, b), new XY(c, d)]; }
-}
-function gimme1Edge(a:any, b?:any, c?:any, d?:any):Edge{
-	// input is 1 edge, 2 XY, or 4 numbers
-	if(a instanceof Edge || a.nodes !== undefined){ return a; }
-	else if(isValidPoint(b) ){ return new Edge(a,b); }
-	else if(isValidNumber(d)){ return new Edge(a,b,c,d); }
-}
-function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
-	// input is 1 ray, 2 XY, or 4 numbers
-	if(a instanceof Ray){ return a; }
-	else if(isValidPoint(b) ){ return new Ray(a,b); }
-	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)); }
-}
-function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
-	// input is 1 line
-	if(a instanceof Line){ return a; }
-	// input is 2 XY
-	else if(isValidPoint(b) ){ return new Line(a,b); }
-	// input is 4 numbers
-	else if(isValidNumber(d)){ return new Line(a,b,c,d); }
-	// input is 1 line-like object with points in a nodes[] array
-	else if(a.nodes instanceof Array && 
-	        a.nodes.length > 0 &&
-	        isValidPoint(a.nodes[1])){
-		return new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);
-	}
-}
-
 
 //////////////////////////////////////////////////////////////////////
 ///////////////   we're not using these  /////////////////////////////

@@ -20,7 +20,7 @@
 "use strict";
 
 /** a survey of the objects removed from a graph after a function is performed */
-class GraphClean {
+export class GraphClean {
 	// "total" must be greater than or equal to the other members of each object
 	// "total" can include removed edges/nodes which don't count as "duplicate" or "circular"
 	edges:{total:number, duplicate:number, circular:number};
@@ -46,7 +46,7 @@ class GraphClean {
 	circularEdges(num:number):GraphClean{ this.edges.circular = num; this.edges.total += num; return this; }
 }
 /** Nodes are 1 of the 2 fundamental components in a graph */
-class GraphNode{
+export class GraphNode{
 	graph:Graph;  // pointer to the graph this node is a member. required for adjacent calculations
 	index:number; // the index of this node in the graph's node array
 
@@ -105,7 +105,7 @@ class GraphNode{
 	}
 }
 /** Edges are 1 of the 2 fundamental components in a graph. 1 edge connect 2 nodes. */
-class GraphEdge{
+export class GraphEdge{
 	graph:Graph;   // pointer to the graph this edge is a member. required for adjacent calculations
 	index:number;  // the index of this edge in the graph's edge array
 	nodes:[GraphNode,GraphNode]; // not optional. every edge must connect 2 nodes
@@ -219,7 +219,7 @@ class GraphEdge{
 }
 
 /** A graph contains unlimited nodes and edges and can perform operations on them */
-class Graph{
+export class Graph{
 	nodes:GraphNode[];
 	edges:GraphEdge[];
 	// todo: callback hooks for when certain properties of the data structure have been altered

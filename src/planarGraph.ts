@@ -5,6 +5,11 @@
 /// <reference path="graph.ts" />
 /// <reference path="math.ts" />
 
+// import * as _g from './graph'
+
+import { GraphClean, GraphNode, GraphEdge, Graph } from './graph'
+
+
 "use strict";
 
 //////////////////////////////////////////////////////////////////////////
@@ -17,7 +22,7 @@ interface rbushObject{
 //////////////////////////////////////////////////////////////////////////
 // PLANAR GRAPH
 
-class PlanarClean extends GraphClean{
+export class PlanarClean extends GraphClean{
 	edges:{total:number, duplicate:number, circular:number};
 	nodes:{
 		total:number;
@@ -69,7 +74,7 @@ class PlanarClean extends GraphClean{
 	}
 }
 
-class PlanarNode extends GraphNode implements XY{
+export class PlanarNode extends GraphNode implements XY{
 
 	graph:PlanarGraph;
 	x:number;
@@ -134,9 +139,7 @@ class PlanarNode extends GraphNode implements XY{
 	magnitude():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
 	distanceTo(a:XY):number{ return Math.sqrt( Math.pow(this.x-a.x,2) + Math.pow(this.y-a.y,2) ); }
 	equivalent(point:XY, epsilon?:number):boolean{
-		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
-		// rect bounding box, cheaper than radius calculation
-		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
+		return new XY(this.x, this.y).equivalent(point, epsilon);
 	}
 	transform(matrix):PlanarNode{
 		var xx = this.x; var yy = this.y;
@@ -181,7 +184,7 @@ class PlanarNode extends GraphNode implements XY{
 	abs():PlanarNode{ this.x = Math.abs(this.x), this.y = Math.abs(this.y); return this; }
 }
 
-class PlanarEdge extends GraphEdge implements Edge{
+export class PlanarEdge extends GraphEdge implements Edge{
 
 	graph:PlanarGraph;
 	nodes:[PlanarNode,PlanarNode];
@@ -194,16 +197,10 @@ class PlanarEdge extends GraphEdge implements Edge{
 		return new XY(otherNode.x, otherNode.y).subtract(origin);
 	}
 	parallel(edge:PlanarEdge, epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var u = this.nodes[1].subtract(this.nodes[0]);
-		var v = edge.nodes[1].subtract(edge.nodes[0]);
-		return epsilonEqual(u.cross(v), 0, epsilon);
+		return new Edge(this).parallel(new Edge(edge), epsilon);
 	}
 	collinear(point:XY, epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var p0 = new Edge(point, this.nodes[0]).length();
-		var p1 = new Edge(point, this.nodes[1]).length();
-		return epsilonEqual(this.length() - p0 - p1, 0, epsilon);
+		return new Edge(this).collinear(point, epsilon);
 	}
 	equivalent(e:PlanarEdge, epsilon?:number):boolean{ return this.isSimilarToEdge(e); }
 	intersection(edge:Edge, epsilon?:number):{edge:PlanarEdge, point:XY}{
@@ -212,7 +209,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 		if(edge instanceof PlanarEdge && this.isAdjacentToEdge(edge)){ return undefined; }
 		var a = new Edge(this.nodes[0].x, this.nodes[0].y, this.nodes[1].x, this.nodes[1].y);
 		var b = new Edge(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-		var intersect = intersectionEdgeEdge(a, b, epsilon);
+		var intersect = a.intersection(b,epsilon); //intersectionEdgeEdge(a, b, epsilon);
 		if(intersect !== undefined && 
 		 !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))){
 		 	var pe = <PlanarEdge>edge;
@@ -299,7 +296,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 	}	
 }
 
-class PlanarFace{
+export class PlanarFace{
 	// this library is counting on the edges and nodes to be stored in clockwise winding
 	graph:PlanarGraph;
 	nodes:PlanarNode[];
@@ -331,14 +328,14 @@ class PlanarFace{
 		this.angles = this.sectors.map(function(el:PlanarSector){ return el.angle(); });
 		var angleSum = this.angles.reduce(function(sum,value){ return sum + value; }, 0);
 		// sum of interior angles rule, (n-2) * PI
-		if(this.nodes.length > 2 && epsilonEqual(angleSum/(this.nodes.length-2), Math.PI, EPSILON)){
+		if(this.nodes.length > 2 && Math.abs(angleSum/(this.nodes.length-2) - Math.PI) < EPSILON){
 			return this;
 		}
 		return undefined;
 	}
 	// this algorithm takes time, it hunts for a mapping of adjacent-nodes to edges,
 	//   then calls makeFromCircut()
-	makeFromNodes(nodes:CreaseNode[]):PlanarFace{
+	makeFromNodes(nodes:PlanarNode[]):PlanarFace{
 		var edgeCircut = nodes.map(function(node,i){
 			var nextNode = this.nodes[ (i+1)%this.nodes.length ];
 			return <PlanarEdge>this.graph.getEdgeConnectingNodes(node, nextNode);
@@ -414,7 +411,7 @@ class PlanarFace{
  *  clockwise order is required
  *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
  */
-class PlanarSector extends Sector{
+export class PlanarSector extends Sector{
 	// the node in common with the edges
 	origin:PlanarNode;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
@@ -497,7 +494,7 @@ class PlanarSector extends Sector{
 	}
 }
 
-class PlanarJunction{
+export class PlanarJunction{
 
 	origin:PlanarNode;
 	// sectors and edges are sorted clockwise
@@ -579,7 +576,7 @@ class PlanarJunction{
 }
 
 
-class PlanarGraph extends Graph{
+export class PlanarGraph extends Graph{
 
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
@@ -876,8 +873,8 @@ class PlanarGraph extends Graph{
 			thisReport = fragmentOneRound();
 			report.join( thisReport );
 			protection += 1;
-		}while(thisReport.nodes.fragment.length != 0 && protection < 400);
-		if(protection >= 400){ console.log("breaking loop, exceeded 400"); }
+		}while(thisReport.nodes.fragment.length != 0 && protection < 5000);
+		if(protection >= 5000){ throw("exiting fragment(). potential infinite loop detected"); }
 		return report;
 	}
 
@@ -1254,7 +1251,7 @@ class PlanarGraph extends Graph{
 		var paths:Polyline[] = [];
 		while(cp.edges.length > 0){
 			var node = cp.nodes[0];
-			var adj = <CreaseNode[]>node.adjacentNodes();
+			var adj = <PlanarNode[]>node.adjacentNodes();
 			var polyline = new Polyline();
 			// var path = [];
 			if(adj.length === 0){
@@ -1272,7 +1269,7 @@ class PlanarGraph extends Graph{
 				cp.removeIsolatedNodes();
 				node = nextNode;
 				adj = [];
-				if(node !== undefined){ adj = <CreaseNode[]>node.adjacentNodes(); }
+				if(node !== undefined){ adj = <PlanarNode[]>node.adjacentNodes(); }
 				while(adj.length > 0){
 					nextNode = adj[0];
 					polyline.nodes.push( new XY(node.x, node.y) );
@@ -1282,12 +1279,53 @@ class PlanarGraph extends Graph{
 					});
 					cp.removeIsolatedNodes();
 					node = nextNode;
-					adj = <CreaseNode[]>node.adjacentNodes();
+					adj = <PlanarNode[]>node.adjacentNodes();
 				}
 				polyline.nodes.push(new XY(node.x, node.y));
 			}
 			paths.push(polyline);
 		}
 		return paths;
+	}
+}
+
+
+
+
+/////////////////////////////// FUNCTION INPUT INTERFACE /////////////////////////////// 
+function gimme1XY(a:any, b?:any):XY{
+	// input is 1 XY, or 2 numbers
+	if(isValidPoint(a)){ return a; }
+	else if(isValidNumber(b)){ return new XY(a, b); }
+}
+function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
+	// input is 2 XY, or 4 numbers
+	if(isValidPoint(b)){ return [a,b]; }
+	else if(isValidNumber(d)){ return [new XY(a, b), new XY(c, d)]; }
+}
+function gimme1Edge(a:any, b?:any, c?:any, d?:any):Edge{
+	// input is 1 edge, 2 XY, or 4 numbers
+	if(a instanceof Edge || a.nodes !== undefined){ return a; }
+	else if(isValidPoint(b) ){ return new Edge(a,b); }
+	else if(isValidNumber(d)){ return new Edge(a,b,c,d); }
+}
+function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
+	// input is 1 ray, 2 XY, or 4 numbers
+	if(a instanceof Ray){ return a; }
+	else if(isValidPoint(b) ){ return new Ray(a,b); }
+	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)); }
+}
+function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
+	// input is 1 line
+	if(a instanceof Line){ return a; }
+	// input is 2 XY
+	else if(isValidPoint(b) ){ return new Line(a,b); }
+	// input is 4 numbers
+	else if(isValidNumber(d)){ return new Line(a,b,c,d); }
+	// input is 1 line-like object with points in a nodes[] array
+	else if(a.nodes instanceof Array && 
+	        a.nodes.length > 0 &&
+	        isValidPoint(a.nodes[1])){
+		return new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);
 	}
 }

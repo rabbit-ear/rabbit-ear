@@ -4,6 +4,8 @@
 
 /// <reference path="planarGraph.ts" />
 
+import { PlanarClean, PlanarNode, PlanarEdge, PlanarFace, PlanarSector, PlanarJunction, PlanarGraph } from './planarGraph'
+
 "use strict";
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,9 +117,10 @@ class CreaseJunction extends PlanarJunction{
 	maekawa():boolean{
 		return true;
 	}
-	kawasaki():boolean{
+	kawasaki(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var alternating = this.alternateAngleSum();
-		return epsilonEqual(alternating[0],alternating[1]);
+		return Math.abs(alternating[0] - alternating[1]) < epsilon;
 	}
 	// 0.0 is equivalent to 100% valid
 	// pi is equivalent to 100% wrong
@@ -361,27 +364,27 @@ class CreasePattern extends PlanarGraph{
 		// 	i++;
 		// }while( edgeCount === this.edges.length && i < validCreases.length );
 		// if(edgeCount !== this.edges.length) return crease;
-		var bounds = this.bounds();
+		// var bounds = this.bounds();
 
-		if(epsilonEqual(bounds.size.width, bounds.size.height)){
-				this.clean();
-			var edgeCount = this.edges.length;
-			var edgeMidpoints = this.edges.map(function(el){return el.midpoint();});
-			var arrayOfPointsAndMidpoints = this.nodes.map(function(el){return new XY(el.x, el.y);}).concat(edgeMidpoints);
-			// console.log(arrayOfPointsAndMidpoints);
-			var centroid = new XY(bounds.topLeft.x + bounds.size.width*0.5,
-			                      bounds.topLeft.y + bounds.size.height*0.5);
-			var i = 0;
-			do{
-				// console.log("new round");
-				// console.log(this.edges.length);
-				crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
-				// console.log(this.edges.length);
-				this.clean();
-				i++;
-			}while( edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length );
-			if(edgeCount !== this.edges.length) return crease;
-		}
+		// if(epsilonEqual(bounds.size.width, bounds.size.height)){
+		// 		this.clean();
+		// 	var edgeCount = this.edges.length;
+		// 	var edgeMidpoints = this.edges.map(function(el){return el.midpoint();});
+		// 	var arrayOfPointsAndMidpoints = this.nodes.map(function(el){return new XY(el.x, el.y);}).concat(edgeMidpoints);
+		// 	// console.log(arrayOfPointsAndMidpoints);
+		// 	var centroid = new XY(bounds.topLeft.x + bounds.size.width*0.5,
+		// 	                      bounds.topLeft.y + bounds.size.height*0.5);
+		// 	var i = 0;
+		// 	do{
+		// 		// console.log("new round");
+		// 		// console.log(this.edges.length);
+		// 		crease = this.creaseThroughPoints(arrayOfPointsAndMidpoints[i], centroid);
+		// 		// console.log(this.edges.length);
+		// 		this.clean();
+		// 		i++;
+		// 	}while( edgeCount === this.edges.length && i < arrayOfPointsAndMidpoints.length );
+		// 	if(edgeCount !== this.edges.length) return crease;
+		// }
 		return;
 	}
 
@@ -993,7 +996,7 @@ class CreasePattern extends PlanarGraph{
 
 		var file = {};
 		file["file_spec"] = 1;
-		file["file_creator"] = "creasepattern.js by R.Kraft";
+		file["file_creator"] = "creasepattern.js by Robby Kraft";
 		file["file_author"] = "";
 		file["file_classes"] = ["singleModel"];
 		file["vertices_coords"] = this.nodes.map(function(node){ return [node.x,node.y]; },this);
@@ -1303,26 +1306,65 @@ class CreasePattern extends PlanarGraph{
 	}
 }
 
-interface Array<T> {
-	mountain():Crease[];
-	valley():Crease[];
+
+/////////////////////////////// FUNCTION INPUT INTERFACE /////////////////////////////// 
+function gimme1XY(a:any, b?:any):XY{
+	// input is 1 XY, or 2 numbers
+	if(isValidPoint(a)){ return a; }
+	else if(isValidNumber(b)){ return new XY(a, b); }
 }
-Array.prototype.mountain = function():Crease[] {
-	if(this.length <= 1){ return ; }
-	for(var i = 0; i < this.length; i++){
-		if( this[i] instanceof Crease){
-			this[i].mountain();
-		}
+function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
+	// input is 2 XY, or 4 numbers
+	if(isValidPoint(b)){ return [a,b]; }
+	else if(isValidNumber(d)){ return [new XY(a, b), new XY(c, d)]; }
+}
+function gimme1Edge(a:any, b?:any, c?:any, d?:any):Edge{
+	// input is 1 edge, 2 XY, or 4 numbers
+	if(a instanceof Edge || a.nodes !== undefined){ return a; }
+	else if(isValidPoint(b) ){ return new Edge(a,b); }
+	else if(isValidNumber(d)){ return new Edge(a,b,c,d); }
+}
+function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
+	// input is 1 ray, 2 XY, or 4 numbers
+	if(a instanceof Ray){ return a; }
+	else if(isValidPoint(b) ){ return new Ray(a,b); }
+	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)); }
+}
+function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
+	// input is 1 line
+	if(a instanceof Line){ return a; }
+	// input is 2 XY
+	else if(isValidPoint(b) ){ return new Line(a,b); }
+	// input is 4 numbers
+	else if(isValidNumber(d)){ return new Line(a,b,c,d); }
+	// input is 1 line-like object with points in a nodes[] array
+	else if(a.nodes instanceof Array && 
+	        a.nodes.length > 0 &&
+	        isValidPoint(a.nodes[1])){
+		return new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);
 	}
-	return this;
 }
-Array.prototype.valley = function():Crease[] {
-	if(this.length <= 1){ return ; }
-	for(var i = 0; i < this.length; i++){
-		if( this[i] instanceof Crease){
-			this[i].valley();
-		}
-	}
-	return this;
-}
+
+// interface Array<T> {
+// 	mountain():Crease[];
+// 	valley():Crease[];
+// }
+// Array.prototype.mountain = function():Crease[] {
+// 	if(this.length <= 1){ return ; }
+// 	for(var i = 0; i < this.length; i++){
+// 		if( this[i] instanceof Crease){
+// 			this[i].mountain();
+// 		}
+// 	}
+// 	return this;
+// }
+// Array.prototype.valley = function():Crease[] {
+// 	if(this.length <= 1){ return ; }
+// 	for(var i = 0; i < this.length; i++){
+// 		if( this[i] instanceof Crease){
+// 			this[i].valley();
+// 		}
+// 	}
+// 	return this;
+// }
 
