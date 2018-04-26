@@ -2,8 +2,8 @@
 // a planar graph data structure containing edges and vertices in 2D space
 // mit open source license, robby kraft
 
-/// <reference path="graph.ts"/>
-/// <reference path="math.ts"/>
+/// <reference path="graph.ts" />
+/// <reference path="math.ts" />
 
 "use strict";
 
@@ -375,7 +375,7 @@ class PlanarFace{
 				if(this.edges[i] === face.edges[j]){ edges.push(this.edges[i]); }
 			}
 		}
-		return edges.removeDuplicates(function(a,b){return a === b; });
+		return removeDuplicates(edges, function(a,b){return a === b; });
 	}
 	uncommonEdges(face:PlanarFace):PlanarEdge[]{
 		var edges = this.edges.slice(0);
@@ -941,7 +941,7 @@ class PlanarGraph extends Graph{
 			lastNode = travelingNode;
 			travelingNode = <PlanarNode>nextWalk.otherNode(lastNode);
 			if(travelingNode === node1){ return pairs; }
-		} while(!visitedList.contains(travelingNode));
+		} while(!contains(visitedList, travelingNode));
 		return undefined;
 	}
 

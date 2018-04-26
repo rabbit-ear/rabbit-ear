@@ -1186,7 +1186,7 @@ var ConvexPolygon = (function () {
                 return el;
             })
                 .sort(function (a, b) { return (a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0; });
-            if (hull.contains(angles[0].node)) {
+            if (contains(hull, angles[0].node)) {
                 this.edges = this.setEdgesFromPoints(hull);
                 return this;
             }
@@ -1389,7 +1389,7 @@ var VoronoiMoleculeTriangle = (function () {
             symmetryLine.nodes[1] = this.overlapped[0].circumcenter;
         }
         var overlappingEdges = [symmetryLine]
-            .concat(this.overlapped.flatMap(function (el) {
+            .concat(flatMap(this.overlapped, function (el) {
             return el.generateCreases();
         }));
         var edges = [symmetryLine]
@@ -1444,7 +1444,7 @@ var VoronoiGraph = (function () {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
-        var allPoints = v.edges.flatMap(function (e) { return [new XY(e[0][0], e[0][1]), new XY(e[1][0], e[1][1])]; });
+        var allPoints = flatMap(v.edges, function (e) { return [new XY(e[0][0], e[0][1]), new XY(e[1][0], e[1][1])]; });
         var hull = new ConvexPolygon().convexHull(allPoints);
         this.edges = [];
         this.junctions = [];
@@ -1501,10 +1501,10 @@ var VoronoiGraph = (function () {
         var nodes = [];
         var compFunc = function (a, b) { return a.equivalent(b, epsilon); };
         this.edges.forEach(function (el) {
-            if (!nodes.contains(el.endPoints[0], compFunc)) {
+            if (!contains(nodes, el.endPoints[0], compFunc)) {
                 nodes.push(el.endPoints[0]);
             }
-            if (!nodes.contains(el.endPoints[1], compFunc)) {
+            if (!contains(nodes, el.endPoints[1], compFunc)) {
                 nodes.push(el.endPoints[1]);
             }
         }, this);
@@ -1512,7 +1512,7 @@ var VoronoiGraph = (function () {
             var junction = new VoronoiJunction();
             junction.position = el;
             junction.cells = this.cells.filter(function (cell) {
-                return cell.points.contains(el, compFunc);
+                return contains(cell.points, el, compFunc);
             }, this).sort(function (a, b) {
                 var vecA = a.site.subtract(el);
                 var vecB = b.site.subtract(el);
@@ -1532,7 +1532,7 @@ var VoronoiGraph = (function () {
                     break;
             }
             junction.edges = this.edges.filter(function (edge) {
-                return edge.endPoints.contains(el, compFunc);
+                return contains(edge.endPoints, el, compFunc);
             }, this).sort(function (a, b) {
                 var otherA = a.endPoints[0];
                 if (otherA.equivalent(el)) {
@@ -1633,7 +1633,7 @@ function gimme2XY(a, b, c, d) {
     }
 }
 function gimme1Edge(a, b, c, d) {
-    if (a instanceof Edge || a instanceof Crease) {
+    if (a instanceof Edge || a.nodes !== undefined) {
         return a;
     }
     else if (isValidPoint(b)) {
@@ -1670,42 +1670,42 @@ function gimme1Line(a, b, c, d) {
         return new Line(a.nodes[0].x, a.nodes[0].y, a.nodes[1].x, a.nodes[1].y);
     }
 }
-Array.prototype.flatMap = function (mapFunc) {
-    return this.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
+var flatMap = function (array, mapFunc) {
+    return array.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
 };
-Array.prototype.removeDuplicates = function (compFunction) {
-    if (this.length <= 1)
-        return this;
-    for (var i = 0; i < this.length - 1; i++) {
-        for (var j = this.length - 1; j > i; j--) {
-            if (compFunction(this[i], this[j])) {
-                this.splice(j, 1);
+var removeDuplicates = function (array, compFunction) {
+    if (array.length <= 1)
+        return array;
+    for (var i = 0; i < array.length - 1; i++) {
+        for (var j = array.length - 1; j > i; j--) {
+            if (compFunction(array[i], array[j])) {
+                array.splice(j, 1);
             }
         }
     }
-    return this;
+    return array;
 };
-Array.prototype.allEqual = function () {
-    if (this.length <= 1) {
+var allEqual = function (array) {
+    if (array.length <= 1) {
         return true;
     }
-    for (var i = 1; i < this.length; i++) {
-        if (this[i] !== this[0])
+    for (var i = 1; i < array.length; i++) {
+        if (array[i] !== array[0])
             return false;
     }
     return true;
 };
-Array.prototype.contains = function (object, compFunction) {
+var contains = function (array, object, compFunction) {
     if (compFunction !== undefined) {
-        for (var i = 0; i < this.length; i++) {
-            if (compFunction(this[i], object) === true) {
+        for (var i = 0; i < array.length; i++) {
+            if (compFunction(array[i], object) === true) {
                 return true;
             }
         }
         return false;
     }
-    for (var i = 0; i < this.length; i++) {
-        if (this[i] === object) {
+    for (var i = 0; i < array.length; i++) {
+        if (array[i] === object) {
             return true;
         }
     }
@@ -2081,7 +2081,7 @@ var PlanarFace = (function () {
                 }
             }
         }
-        return edges.removeDuplicates(function (a, b) { return a === b; });
+        return removeDuplicates(edges, function (a, b) { return a === b; });
     };
     PlanarFace.prototype.uncommonEdges = function (face) {
         var edges = this.edges.slice(0);
@@ -2563,7 +2563,7 @@ var PlanarGraph = (function (_super) {
             if (travelingNode === node1) {
                 return pairs;
             }
-        } while (!visitedList.contains(travelingNode));
+        } while (!contains(visitedList, travelingNode));
         return undefined;
     };
     PlanarGraph.prototype.bounds = function () {

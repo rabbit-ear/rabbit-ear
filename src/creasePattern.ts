@@ -2,7 +2,7 @@
 // for the purposes of performing origami operations on a planar graph
 // mit open source license, robby kraft
 
-/// <reference path="planarGraph.ts"/>
+/// <reference path="planarGraph.ts" />
 
 "use strict";
 
