@@ -576,7 +576,7 @@ export class Graph{
 
 
 /** a multigraph is a graph which allows circular and duplicate edges */
-export class Multigraph extends Graph{
+class Multigraph extends Graph{
 	cleanGraph():GraphClean{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();

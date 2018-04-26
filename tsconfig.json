@@ -4,7 +4,13 @@
 		"outDir": "./dist/",
 		"module": "es6",
 		"target": "es5",
-		"sourceMap":true,
+		"sourceMap":false,
 		"allowJs": true
 	},
+	"files":[
+		"src/graph.ts",
+		"src/math.ts",
+		"src/planarGraph.ts",
+		"src/creasePattern.ts"
+	]
 }

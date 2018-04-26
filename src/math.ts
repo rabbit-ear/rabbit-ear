@@ -13,12 +13,9 @@
 // 	flatMap<T, U>(mapFunc: (x: T) => U[]) : U[];	
 // }
 
-
 export var flatMap = function<T, U>(array:any[], mapFunc: (x: T) => U[]) : U[] {
 	return array.reduce((cumulus: U[], next: T) => [...mapFunc(next), ...cumulus], <U[]> []);
 }
-
-
 export var removeDuplicates = function(array:any[], compFunction:(a, b) => boolean): any[]{
 	if(array.length <= 1) return array;
 	for(var i = 0; i < array.length-1; i++){
@@ -349,7 +346,7 @@ export class XY{
 	abs():XY{ return new XY(Math.abs(this.x), Math.abs(this.y)); }
 }
 
-export class LineType{
+export abstract class LineType{
 	length(){}
 	vector(){}
 	parallel(line:any, epsilon?:number){}

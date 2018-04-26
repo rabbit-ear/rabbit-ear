@@ -11,8 +11,7 @@ import{
 	GraphClean,
 	GraphNode,
 	GraphEdge,
-	Graph,
-	Multigraph
+	Graph
 } from './graph'
 
 import{
