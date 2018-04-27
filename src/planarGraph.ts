@@ -6,9 +6,7 @@
 /// <reference path="geometry.ts" />
 
 import * as M from './geometry'
-
 import { GraphClean, GraphNode, GraphEdge, Graph } from './graph'
-
 
 "use strict";
 
@@ -44,13 +42,13 @@ export class PlanarClean extends GraphClean{
 		if(numNodes !== undefined){ this.nodes.total += numNodes; }
 		if(numEdges !== undefined){ this.edges.total += numEdges; }
 	}
-	fragmentedNodes(nodes):PlanarClean{
+	fragmentedNodes(nodes:M.XY[]):PlanarClean{
 		this.nodes.fragment = nodes; this.nodes.total += nodes.length; return this;
 	}
-	collinearNodes(nodes):PlanarClean{
+	collinearNodes(nodes:M.XY[]):PlanarClean{
 		this.nodes.collinear = nodes; this.nodes.total += nodes.length; return this;
 	}
-	duplicateNodes(nodes):PlanarClean{
+	duplicateNodes(nodes:M.XY[]):PlanarClean{
 		this.nodes.duplicate = nodes; this.nodes.total += nodes.length; return this;
 	}
 	join(report:GraphClean):PlanarClean{
@@ -159,80 +157,23 @@ export class PlanarNode extends GraphNode implements M.XY{
 	multiply(m:M.XY):PlanarNode{ this.x*=m.x; this.y*=m.y; return this; }
 	midpoint(other:M.XY):M.XY{ return new M.XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 	abs():PlanarNode{ this.x = Math.abs(this.x), this.y = Math.abs(this.y); return this; }
-	similarX(p:M.XY, epsilon?:number):boolean{return new M.XY(this.x,this.y).similarX(new M.XY(p.x,p.y),epsilon);}
-	similarY(p:M.XY, epsilon?:number):boolean{return new M.XY(this.x,this.y).similarY(new M.XY(p.x,p.y),epsilon);}
+	commonX(p:M.XY, epsilon?:number):boolean{return new M.XY(this.x,this.y).commonX(new M.XY(p.x,p.y),epsilon);}
+	commonY(p:M.XY, epsilon?:number):boolean{return new M.XY(this.x,this.y).commonY(new M.XY(p.x,p.y),epsilon);}
 }
 
 export class PlanarEdge extends GraphEdge implements M.Edge{
 
 	graph:PlanarGraph;
 	nodes:[PlanarNode,PlanarNode];
-	// implements Edge
-	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
-	/** form a vector by placing one of the nodes at the origin */
-	vector(originNode?:PlanarNode):XY{
-		var origin = originNode || this.nodes[0];
-		var otherNode = <PlanarNode>this.otherNode(origin);
-		return new XY(otherNode.x, otherNode.y).subtract(origin);
+
+	adjacentFaces():PlanarFace[]{
+		return [
+			new this.graph.faceType(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[0], this.nodes[1]) ),
+			new this.graph.faceType(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[1], this.nodes[0]) )]
+			.filter(function(el){ return el !== undefined });
 	}
-	parallel(edge:PlanarEdge, epsilon?:number):boolean{
-		return new Edge(this).parallel(new Edge(edge), epsilon);
-	}
-	collinear(point:XY, epsilon?:number):boolean{
-		return new Edge(this).collinear(point, epsilon);
-	}
-	equivalent(e:PlanarEdge, epsilon?:number):boolean{ return this.isSimilarToEdge(e); }
-	intersection(edge:Edge, epsilon?:number):{edge:PlanarEdge, point:XY}{
-		// todo: should intersecting adjacent edges return the point in common they have with each other or register no intersection?
-		if(edge instanceof PlanarEdge && this.isAdjacentToEdge(edge)){ return undefined; }
-		var a = new Edge(this.nodes[0].x, this.nodes[0].y, this.nodes[1].x, this.nodes[1].y);
-		var b = new Edge(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-		var intersect = a.intersection(b,epsilon); //intersectionEdgeEdge(a, b, epsilon);
-		if(intersect !== undefined && 
-		 !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))){
-		 	var pe = <PlanarEdge>edge;
-			return {'edge':pe, 'point':intersect};
-		}
-		return undefined;//{'edge':edge, 'point':undefined};
-	}
-	reflectionMatrix():Matrix{
-		var origin = new XY(this.nodes[0].x, this.nodes[0].y);
-		var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
-		return new Matrix().reflection(vector, origin);
-	}
-	nearestPoint(point:XY):XY{
-		var answer = this.nearestPointNormalTo(point);
-		if(answer !== undefined){ return answer; }
-		return this.nodes
-			.map(function(el){ return {point:el,distance:el.distanceTo(point)}; },this)
-			.sort(function(a,b){ return a.distance - b.distance; })
-			.shift()
-			.point;
-	}
-	nearestPointNormalTo(point:XY):XY{
-		var p = this.nodes[0].distanceTo(this.nodes[1]);
-		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
-		if(u < 0 || u > 1.0){return undefined;}
-		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
-	}
-	transform(matrix):PlanarEdge{
-		this.nodes[0].transform(matrix);
-		this.nodes[1].transform(matrix);
-		return this;
-	}
-	degenrate(epsilon?:number):boolean{
-		return this.nodes[0].equivalent(this.nodes[1], epsilon);
-	}
-	// additional methods
-	pointVectorForm():Line{
-		var origin = new XY(this.nodes[0].x, this.nodes[0].y);
-		var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
-		return new Line(origin, vector);
-	}
-	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
-								   0.5*(this.nodes[0].y + this.nodes[1].y));}
 	// returns the matrix representation form of this edge as the line of reflection
-	crossingEdges():{edge:PlanarEdge, point:XY}[]{
+	crossingEdges():{edge:PlanarEdge, point:M.XY}[]{
 		// optimize by excluding all edges outside of the quad space occupied by this edge
 		var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
 		var maxX = (this.nodes[0].x > this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
@@ -249,7 +190,7 @@ export class PlanarEdge extends GraphEdge implements M.Edge{
 			.map(function(el){ return this.intersection(el) }, this)
 			.filter(function(el){ return el != undefined})
 			.sort(function(a,b){
-				if(a.similarX(b)){ return a.y-b.y; }
+				if(a.commonX(b)){ return a.y-b.y; }
 				return a.x-b.x;
 			});
 	}
@@ -260,12 +201,66 @@ export class PlanarEdge extends GraphEdge implements M.Edge{
 		var endNode = <PlanarNode>this.otherNode(startNode);
 		return Math.atan2(endNode.y-startNode.y, endNode.x-startNode.x);
 	}
-	adjacentFaces():PlanarFace[]{
-		return [
-			new this.graph.faceType(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[0], this.nodes[1]) ),
-			new this.graph.faceType(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[1], this.nodes[0]) )]
-			.filter(function(el){ return el !== undefined });
-	}	
+	// implements Edge (implements LineType)
+	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
+	vector(originNode?:PlanarNode):M.XY{
+		var origin = originNode || this.nodes[0];
+		var otherNode = <PlanarNode>this.otherNode(origin);
+		return new M.XY(otherNode.x, otherNode.y).subtract(origin);
+	}
+	parallel(edge:PlanarEdge, epsilon?:number):boolean{
+		return new M.Edge(this).parallel(new M.Edge(edge), epsilon);
+	}
+	collinear(point:M.XY, epsilon?:number):boolean{
+		return new M.Edge(this).collinear(point, epsilon);
+	}
+	equivalent(e:PlanarEdge, epsilon?:number):boolean{ return this.isSimilarToEdge(e); }
+	intersection(edge:M.Edge, epsilon?:number):{edge:PlanarEdge, point:M.XY}{
+		// todo: should intersecting adjacent edges return the point in common they have with each other or register no intersection?
+		if(edge instanceof PlanarEdge && this.isAdjacentToEdge(edge)){ return undefined; }
+		var a = new M.Edge(this.nodes[0].x, this.nodes[0].y, this.nodes[1].x, this.nodes[1].y);
+		var b = new M.Edge(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+		var intersect = a.intersection(b,epsilon); //intersectionEdgeEdge(a, b, epsilon);
+		if(intersect !== undefined && 
+		 !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))){
+		 	var pe = <PlanarEdge>edge;
+			return {'edge':pe, 'point':intersect};
+		}
+	}
+	reflectionMatrix(){
+		return new M.Edge(this.nodes[0], this.nodes[1]).reflectionMatrix();
+	}
+	nearestPoint(point:M.XY):M.XY{
+		var answer = this.nearestPointNormalTo(point);
+		if(answer !== undefined){ return answer; }
+		return this.nodes
+			.map(function(el){ return {point:el,distance:el.distanceTo(point)}; },this)
+			.sort(function(a,b){ return a.distance - b.distance; })
+			.shift()
+			.point;
+	}
+	nearestPointNormalTo(point:M.XY):M.XY{
+		var p = this.nodes[0].distanceTo(this.nodes[1]);
+		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
+		if(u < 0 || u > 1.0){return undefined;}
+		return new M.XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
+	}
+	transform(matrix):PlanarEdge{
+		this.nodes[0].transform(matrix);
+		this.nodes[1].transform(matrix);
+		return this;
+	}
+	degenrate(epsilon?:number):boolean{
+		return this.nodes[0].equivalent(this.nodes[1], epsilon);
+	}
+	// implements Edge (outside LineType)
+	midpoint():M.XY { return new M.XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
+	                                   0.5*(this.nodes[0].y + this.nodes[1].y));}
+	infiniteLine():M.Line{
+		var origin = new M.XY(this.nodes[0].x, this.nodes[0].y);
+		var vector = new M.XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
+		return new M.Line(origin, vector);
+	}
 }
 
 export class PlanarFace{
@@ -300,7 +295,7 @@ export class PlanarFace{
 		this.angles = this.sectors.map(function(el:PlanarSector){ return el.angle(); });
 		var angleSum = this.angles.reduce(function(sum,value){ return sum + value; }, 0);
 		// sum of interior angles rule, (n-2) * PI
-		if(this.nodes.length > 2 && Math.abs(angleSum/(this.nodes.length-2) - Math.PI) < EPSILON){
+		if(this.nodes.length > 2 && Math.abs(angleSum/(this.nodes.length-2)-Math.PI) < EPSILON){
 			return this;
 		}
 		return undefined;
@@ -336,6 +331,7 @@ export class PlanarFace{
 			}
 		}
 	}
+	/*
 	commonEdges(face:PlanarFace):PlanarEdge[]{
 		// faces will have only 1 edge in common if all faces are convex
 		var edges = [];
@@ -353,6 +349,7 @@ export class PlanarFace{
 		}
 		return edges;
 	}
+	*/
 	edgeAdjacentFaces():PlanarFace[]{
 		return this.edges.map(function(ed){
 			var allFaces = this.graph.faces.filter(function(el){return !this.equivalent(el);},this);
@@ -362,7 +359,7 @@ export class PlanarFace{
 			}
 		}, this).filter(function(el){return el !== undefined;});
 	}
-	contains(point:XY):boolean{
+	contains(point:M.XY):boolean{
 		for(var i = 0; i < this.edges.length; i++){
 			var endpts = this.edges[i].nodes;
 			var cross = (point.y - endpts[0].y) * (endpts[1].x - endpts[0].x) - 
@@ -383,7 +380,7 @@ export class PlanarFace{
  *  clockwise order is required
  *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
  */
-export class PlanarSector extends Sector{
+export class PlanarSector extends M.Sector{
 	// the node in common with the edges
 	origin:PlanarNode;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
@@ -412,58 +409,29 @@ export class PlanarSector extends Sector{
 		];
 		return this;
 	}
-	vectors():[XY,XY]{
-		return <[XY,XY]>this.edges.map(function(el){return el.vector(this.origin)},this);
-	}
-	angle():number{
-		var vectors = this.vectors();
-		return clockwiseInteriorAngle(vectors[0], vectors[1]);
-	}
-	bisect():XY{
-		// var vectors = this.vectors();
-		// return bisect(vectors[0], vectors[1])[0];
-		var absolute1 = this.edges[0].absoluteAngle(this.origin);
-		var absolute2 = this.edges[1].absoluteAngle(this.origin);
-		while(absolute1 < 0){ absolute1 += Math.PI*2; }
-		var interior = clockwiseInteriorAngleRadians(absolute1, absolute2);
-		var bisected = absolute1 - interior*0.5;
-		return new XY(Math.cos(bisected), Math.sin(bisected));
-	}
-	// todo: needs testing
-	subsectAngle(divisions:number):number[]{
-		if(divisions === undefined || divisions < 1){ throw "subsetAngle() requires a parameter greater than 1"; }
-		var angleA = this.edges[0].absoluteAngle(this.origin);
-		var angleB = this.edges[1].absoluteAngle(this.origin);
-		var interiorA = clockwiseInteriorAngleRadians(angleA, angleB);
-		var results:number[] = [];
-		for(var i = 1; i < divisions; i++){
-			results.push( angleA - interiorA * (1.0/divisions) * i );
-		}
-		return results;
-	}
-	getEdgeVectorsForNewAngle(angle:number, lockedEdge?:PlanarEdge):[XY,XY]{
-		// todo, implement locked edge
-		var vectors = this.vectors();
-		var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
-		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
-		return <[XY,XY]>vectors.map(function(el:XY,i){ return el.rotate(rotateNodes[i]); },this);
-	}
-	getEndNodesChangeForNewAngle(angle:number, lockedEdge?:PlanarEdge):[XY,XY]{
-		// todo, implement locked edge
-		var vectors = this.vectors();
-		var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
-		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
-		return <[XY,XY]>vectors.map(function(el:XY, i){
-			// rotate the nodes, subtract the new position from the original position
-			return this.endPoints[i].subtract(el.rotate(rotateNodes[i]).add(this.origin));
-		}, this);
-	}
 	equivalent(a:PlanarSector):boolean{
 		return( (a.edges[0].isSimilarToEdge(this.edges[0]) &&
 		         a.edges[1].isSimilarToEdge(this.edges[1])) ||
 		        (a.edges[0].isSimilarToEdge(this.edges[1]) &&
 		         a.edges[1].isSimilarToEdge(this.edges[0])));
 	}
+	// Available through Sector
+	// vectors():[M.XY,M.XY]{}
+	// angle():number{}
+	// bisect():M.XY{}
+	// subsectAngle(divisions:number):number[]{}
+	// getEdgeVectorsForNewAngle(angle:number, lockedEdge?:PlanarEdge):[XY,XY]{}
+
+	// getEndNodesChangeForNewAngle(angle:number, lockedEdge?:PlanarEdge):[XY,XY]{
+	// 	// todo, implement locked edge
+	// 	var vectors = this.vectors();
+	// 	var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
+	// 	var rotateNodes = [-angleChange*0.5, angleChange*0.5];
+	// 	return <[XY,XY]>vectors.map(function(el:XY, i){
+	// 		// rotate the nodes, subtract the new position from the original position
+	// 		return this.endPoints[i].subtract(el.rotate(rotateNodes[i]).add(this.origin));
+	// 	}, this);
+	// }
 }
 
 export class PlanarJunction{
@@ -493,13 +461,13 @@ export class PlanarJunction{
 		},this);
 		// this.edges = this.sectors.map(function(el:PlanarSector){return el.edges[0];});
 	}
-	edgeVectorsNormalized():XY[]{
+	edgeVectorsNormalized():M.XY[]{
 		return this.edges.map(function(el){return el.vector(this.origin).normalize();},this);
 	}
 	edgeAngles():number[]{
 		return this.edges.map(function(el){return el.absoluteAngle(this.origin);},this);
 	}
-	sectorWithEdges(a:PlanarEdge, b:PlanarEdge):Sector{
+	sectorWithEdges(a:PlanarEdge, b:PlanarEdge):M.Sector{
 		var found = undefined;
 		this.sectors.forEach(function(el){
 			if( (el.edges[0].equivalent(a) && el.edges[1].equivalent(b) ) ||
@@ -512,13 +480,11 @@ export class PlanarJunction{
 	}
 	/** get an array of numbers measuring the angle in radians between each edge.
 	 * array indices are related to edges indices: interiorAngle()[i] is the angle between edges[i] and edges[i+1].
-	 * @returns {number[]} angles in radians. sum of all numbers in array equals 2 PI
+	 * @returns {number[]} angles in radians. sum of all numbers in array equals 2 PI for non-zero curvature
 	 */
 	interiorAngles():number[]{
-		var absoluteAngles = this.edges.map(function(el){return el.absoluteAngle(this.origin);},this);
-		return absoluteAngles.map(function(el,i){
-			var nextI = (i+1)%this.edges.length;
-			return clockwiseInteriorAngleRadians(el, absoluteAngles[nextI]);
+		return this.sectors.map(function(el:PlanarSector){
+			return el.angle();
 		},this);
 	}
 	/** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
@@ -651,7 +617,7 @@ export class PlanarGraph extends Graph{
 	/** Removes an edge and also attempt to remove the two nodes left behind if they are otherwise unused
 	 * @returns {boolean} if the edge was removed
 	 */
-	removeEdge(edge:GraphEdge):PlanarClean{
+	removeEdge(edge:PlanarEdge):PlanarClean{
 		var len = this.edges.length;
 		var endNodes = [edge.nodes[0], edge.nodes[1]];
 		this.edges = this.edges.filter(function(el){ return el !== edge; });
@@ -669,7 +635,7 @@ export class PlanarGraph extends Graph{
 	/** Attempt to remove an edge if one is found that connects the 2 nodes supplied, and also attempt to remove the two nodes left behind if they are otherwise unused
 	 * @returns {number} how many edges were removed
 	 */
-	removeEdgeBetween(node1:GraphNode, node2:GraphNode):PlanarClean{
+	removeEdgeBetween(node1:PlanarNode, node2:PlanarNode):PlanarClean{
 		var len = this.edges.length;
 		this.edges = this.edges.filter(function(el){ 
 			return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
@@ -776,7 +742,7 @@ export class PlanarGraph extends Graph{
 				if(el.nodes[1] === nodeB){ el.nodes[1] = nodeA; }
 			});
 			that.nodes = that.nodes.filter(function(el){ return el !== nodeB; });
-			return new PlanarClean().duplicateNodes(new M.XY(nodeB.x, nodeB.y)).join(that.cleanGraph());
+			return new PlanarClean().duplicateNodes([new M.XY(nodeB.x, nodeB.y)]).join(that.cleanGraph());
 		}
 		var clean = new PlanarClean()
 		for(var i = 0; i < this.nodes.length; i++){
@@ -852,13 +818,13 @@ export class PlanarGraph extends Graph{
 	fragmentEdge(edge:PlanarEdge):PlanarClean{
 		var report = new PlanarClean();
 		// console.time("crossingEdge");
-		var intersections:{'edge':PlanarEdge, 'point':XY}[] = edge.crossingEdges();
+		var intersections:{'edge':PlanarEdge, 'point':M.XY}[] = edge.crossingEdges();
 		// console.timeEnd("crossingEdge");
 		if(intersections.length === 0) { return report; }
-		report.nodes.fragment = intersections.map(function(el){ return new XY(el.point.x, el.point.y);});
+		report.nodes.fragment = intersections.map(function(el){ return new M.XY(el.point.x, el.point.y);});
 		// console.time("fragmentEdge");
 		var endNodes = edge.nodes.sort(function(a,b){
-			if(a.similarX(b)){ return a.y-b.y; }
+			if(a.commonX(b)){ return a.y-b.y; }
 			return a.x-b.x;
 		});
 		// iterate through intersections, rebuild edges in order
@@ -904,8 +870,9 @@ export class PlanarGraph extends Graph{
 			pairs.push(nextWalk);
 			lastNode = travelingNode;
 			travelingNode = <PlanarNode>nextWalk.otherNode(lastNode);
-			if(travelingNode === node1){ return pairs; }
-		} while(!contains(visitedList, travelingNode));
+			if(travelingNode === node1){ return pairs; }		
+		// } while(!contains(visitedList, travelingNode));
+		} while( !(visitedList.filter(function(el){return el === travelingNode;}).length > 0) );
 		return undefined;
 	}
 
@@ -1202,7 +1169,7 @@ export class PlanarGraph extends Graph{
 
 	///////////////////////////////////////////////////////////////////////
 	// possibly useless. consider deleting
-	edgeExistsThroughPoints(a:XY, b:XY):boolean{
+	edgeExistsThroughPoints(a:M.XY, b:M.XY):boolean{
 		for(var i = 0; i < this.edges.length; i++){
 				console.log(a);
 				console.log(this.edges[i].nodes[0]);
@@ -1242,7 +1209,7 @@ export class PlanarGraph extends Graph{
 				if(node !== undefined){ adj = <PlanarNode[]>node.adjacentNodes(); }
 				while(adj.length > 0){
 					nextNode = adj[0];
-					polyline.nodes.push( new XY(node.x, node.y) );
+					polyline.nodes.push( new M.XY(node.x, node.y) );
 					cp.edges = cp.edges.filter(function(el){
 						return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
 						         (el.nodes[0] === nextNode && el.nodes[1] === node) );

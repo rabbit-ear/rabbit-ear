@@ -463,7 +463,7 @@ class CreasePattern extends PlanarGraph{
 		var inputEdge = gimme1Edge(a,b,c,d);
 		if(inputEdge === undefined){ return; }
 
-		var edge = this.boundary.clipLine( inputEdge.pointVectorForm() );
+		var edge = this.boundary.clipLine( inputEdge.infiniteLine() );
 		if(edge === undefined){ return; }
 		var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 		newCrease.madeBy = new Fold(this.creaseThroughPoints, [new XY(a.x,a.y), new XY(b.x,b.y)]);
@@ -493,7 +493,7 @@ class CreasePattern extends PlanarGraph{
 			var clip = this.boundary.clipLine( new Line(midpoint, u) );
 			return [ this.newCrease(clip.nodes[0].x, clip.nodes[0].y, clip.nodes[1].x, clip.nodes[1].y) ];
 		} else{
-			var intersection:XY = intersectionLineLine(a.pointVectorForm(), b.pointVectorForm());
+			var intersection:XY = intersectionLineLine(a.infiniteLine(), b.infiniteLine());
 			var u = a.nodes[1].subtract(a.nodes[0]);
 			var v = b.nodes[1].subtract(b.nodes[0]);
 			var vectors = bisectVectors(u,v);
@@ -534,7 +534,7 @@ class CreasePattern extends PlanarGraph{
 		var endPts = perpendicularTo.nodes;
 		var align = new XY(endPts[1].x - endPts[0].x, endPts[1].y - endPts[0].y);
 		// var pointParallel = new XY(point.x+align.x, point.y+align.y);
-		var intersection = intersectionLineLine(new Line(point, align), ontoLine.pointVectorForm());
+		var intersection = intersectionLineLine(new Line(point, align), ontoLine.infiniteLine());
 		if(intersection != undefined){
 			var midPoint = new XY((intersection.x + point.x)*0.5, (intersection.y + point.y)*0.5);
 			var perp = new XY(-align.y, align.x);
@@ -581,7 +581,7 @@ class CreasePattern extends PlanarGraph{
 
 
 		}else{
-			var intersection:XY = intersectionLineLine(a.pointVectorForm(), b.pointVectorForm());
+			var intersection:XY = intersectionLineLine(a.infiniteLine(), b.infiniteLine());
 			if(a.nodes[0].equivalent(intersection), EPSILON_LOW){
 			       u = a.nodes[1].subtract(intersection); }
 			else { u = a.nodes[0].subtract(intersection); }
