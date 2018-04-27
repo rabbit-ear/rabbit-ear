@@ -1,6 +1,6 @@
 // creasePattern.js
 // for the purposes of performing origami operations on a planar graph
-// mit open source license, robby kraft
+// MIT open source license, Robby Kraft
 
 /// <reference path="planarGraph.ts" />
 
@@ -496,7 +496,7 @@ class CreasePattern extends PlanarGraph{
 			var intersection:XY = intersectionLineLine(a.pointVectorForm(), b.pointVectorForm());
 			var u = a.nodes[1].subtract(a.nodes[0]);
 			var v = b.nodes[1].subtract(b.nodes[0]);
-			var vectors = bisect(u,v);
+			var vectors = bisectVectors(u,v);
 			vectors[1] = vectors[0].rotate90();
 			return vectors
 				.map(function(el){ return this.boundary.clipLine(new Line(intersection,el));},this)
@@ -521,7 +521,7 @@ class CreasePattern extends PlanarGraph{
 	// AXIOM 5
 	creasePointToLine(origin:XY, point:XY, line:Crease):Crease[]{
 		var radius = Math.sqrt( Math.pow(origin.x-point.x,2) + Math.pow(origin.y-point.y,2) );
-		var intersections = intersectionCircleLine(origin, radius, line.nodes[0], line.nodes[1]);
+		var intersections = new Circle(origin.x, origin.y, radius).intersection(new Edge(line));
 		// return (radius*radius) * dr_squared > (D*D)  // check if there are any intersections
 		var creases = [];
 		for(var i = 0; i < intersections.length; i++){
@@ -1071,7 +1071,10 @@ class CreasePattern extends PlanarGraph{
 		var boundaryPoints = this.edges
 			.filter(function(el){ return el.orientation === CreaseDirection.border; },this)
 			.map(function(el){
-				return [el.nodes[0].xy(), el.nodes[1].xy()]
+				return [
+					new XY(el.nodes[0].x, el.nodes[0].y), 
+					new XY(el.nodes[1].x, el.nodes[1].y)
+				]
 			},this)
 		this.setBoundary([].concat.apply([],boundaryPoints));
 

@@ -1,6 +1,6 @@
-// math.js
-// math, mostly geometry to accompany origami crease pattern library
-// mit open source license, robby kraft
+// Euclidean plane geometry
+// primitives and algorithms for intersections, hulls, transformations
+// MIT open source license, Robby Kraft
 
 "use strict";
 
@@ -74,17 +74,14 @@ function interiorAngles(a:XY, b:XY):number[]{
  * @param {XY} vector
  * @returns {XY[]} 2 vector angle bisections, the smaller interior angle is always first
  */
-function bisect(a:XY, b:XY):XY[]{
+export function bisectVectors(a:XY, b:XY):XY[]{
 	a = a.normalize();
 	b = b.normalize();
 	return [ (a.add(b)).normalize(),
 	         new XY(-a.x + -b.x, -a.y + -b.y).normalize() ];
 }
-
-function determinantXY(a:XY,b:XY):number{
-	return a.x * b.y - b.x * a.y;
-}
 function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFunction:(t0,t1) => boolean, epsilon:number):XY{
+	function determinantXY(a:XY,b:XY):number{ return a.x * b.y - b.x * a.y; }
 	var denominator0 = determinantXY(aVec, bVec);
 	var denominator1 = -denominator0;
 	if(epsilonEqual(denominator0, 0, epsilon)){ return undefined; } /* parallel */
@@ -241,17 +238,12 @@ class Matrix{
 	}
 }
 
-class XY{
+export class XY{
 	x:number;
 	y:number;
 	constructor(x:number, y:number){ this.x = x; this.y = y; }
 	// position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
 	normalize():XY { var m = this.magnitude(); return new XY(this.x/m, this.y/m);}
-	rotate90():XY { return new XY(-this.y, this.x); }
-	rotate270():XY { return new XY(this.y, -this.x); }
-	rotate(angle:number, origin?:XY){
-		return this.transform( new Matrix().rotation(angle, origin) );
-	}
 	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
 	magnitude():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
@@ -264,6 +256,11 @@ class XY{
 	transform(matrix):XY{
 		return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx,
 					  this.x * matrix.b + this.y * matrix.d + matrix.ty);
+	}
+	rotate90():XY { return new XY(-this.y, this.x); }
+	rotate270():XY { return new XY(this.y, -this.x); }
+	rotate(angle:number, origin?:XY){
+		return this.transform( new Matrix().rotation(angle, origin) );
 	}
 	lerp(point:XY, pct:number):XY{
 		var inv = 1.0 - pct;
@@ -300,6 +297,8 @@ class XY{
 	multiply(m:XY):XY{ return new XY(this.x*m.x, this.y*m.y); }
 	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 	abs():XY{ return new XY(Math.abs(this.x), Math.abs(this.y)); }
+	similarX(point:XY, epsilon?:number):boolean{return epsilonEqual(this.y, point.y, epsilon);}
+	similarY(point:XY, epsilon?:number):boolean{return epsilonEqual(this.x, point.x, epsilon);}
 }
 
 abstract class LineType{
@@ -321,7 +320,7 @@ abstract class LineType{
 
 /** 2D line, extending infinitely in both directions, represented by a point and a vector
  */
-class Line implements LineType{
+export class Line implements LineType{
 	point:XY;
 	direction:XY;
 	constructor(a:any, b:any, c?:any, d?:any){
@@ -370,7 +369,7 @@ class Line implements LineType{
 	}
 }
 
-class Ray implements LineType{
+export class Ray implements LineType{
 	origin:XY;
 	direction:XY;
 	constructor(a:any, b:any, c?:any, d?:any){
@@ -469,7 +468,7 @@ class Ray implements LineType{
 	}
 }
 
-class Edge implements LineType{
+export class Edge implements LineType{
 	nodes:[XY,XY];
 	// a, b are points, or
 	// (a,b) point 1 and (c,d) point 2, each x,y
@@ -545,7 +544,7 @@ class Edge implements LineType{
 	pointVectorForm():Line{ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
 }
 
-class Polyline{
+export class Polyline{
 	nodes:XY[];
 
 	constructor(){ this.nodes = []; }
@@ -597,7 +596,7 @@ class Polyline{
 	}
 }
 
-class Rect{
+export class Rect{
 	// didChange:(event:object)=>void;
 	topLeft:{x:number,y:number};
 	size:{width:number, height:number};
@@ -607,7 +606,7 @@ class Rect{
 	}
 }
 
-class Triangle{
+export class Triangle{
 	points:[XY,XY,XY];
 	edges:[Edge, Edge, Edge];
 	circumcenter:XY;
@@ -664,12 +663,17 @@ class Triangle{
 }
 class IsoscelesTriangle extends Triangle{}
 
-class Circle{
+export class Circle{
 	center:XY;
 	radius:number;
-	constructor(center:XY, radius:number){
-		this.center = center;
-		this.radius = radius;
+	constructor(a:any, b:any, c?:any){
+		if(c !== undefined){
+			this.center = new XY(a, b);
+			this.radius = c;
+		} else{
+			this.center = a;
+			this.radius = b;
+		}
 	}
 	intersection(line:LineType){
 		if(line instanceof Line){return intersectionCircleLine(this.center,this.radius, line.point, line.point.add(line.direction));}
@@ -678,7 +682,7 @@ class Circle{
 	}
 }
 
-class ConvexPolygon{
+export class ConvexPolygon{
 	edges:Edge[];
 	center():XY{
 		// this is not an average / means
@@ -852,7 +856,7 @@ class ConvexPolygon{
  *  clockwise order is enforced
  *  the interior angle is measured clockwise from endpoint 0 to 1
  */
-class Sector{
+export class Sector{
 	// the node in common with the edges
 	origin:XY;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
@@ -879,7 +883,7 @@ class Sector{
 	}
 	// todo: needs testing
 	subsectAngle(divisions:number):number[]{
-		if(divisions === undefined || divisions < 1){ throw "subsetAngle() requires a parameter greater than 1"; }
+		if(divisions === undefined || divisions < 1){ throw "subsetAngle() invalid argument"; }
 		var angles = this.vectors().map(function(el){ return Math.atan2(el.y, el.x); });
 		var interiorA = clockwiseInteriorAngleRadians(angles[0], angles[1]);
 		var results:number[] = [];
@@ -1102,7 +1106,7 @@ class VoronoiJunction{
 	edgeNormal:XY;// normal to the edge, if there is an edge
 	constructor(){ this.edges = []; this.cells = []; this.isEdge = false; this.isCorner = false; }
 }
-class VoronoiGraph{
+export class VoronoiGraph{
 	edges:VoronoiEdge[];
 	junctions:VoronoiJunction[];
 	cells:VoronoiCell[];
