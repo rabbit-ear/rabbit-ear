@@ -279,6 +279,8 @@ export class PlanarFace{
 		this.angles = [];
 	}
 	makeFromCircuit(circut:PlanarEdge[]):PlanarFace{
+		var SUM_ANGLE_EPSILON = 0.00001;
+		// todo: console log below, see how close to epsilon we normally get. hardcode this epsilon value, it shouldn't need to be adjusted unless porting to a new language.
 		if(circut == undefined || circut.length < 3){ return undefined; }
 		this.edges = circut;
 		this.nodes = circut.map(function(el,i){
@@ -295,7 +297,8 @@ export class PlanarFace{
 		this.angles = this.sectors.map(function(el:PlanarSector){ return el.angle(); });
 		var angleSum = this.angles.reduce(function(sum,value){ return sum + value; }, 0);
 		// sum of interior angles rule, (n-2) * PI
-		if(this.nodes.length > 2 && Math.abs(angleSum/(this.nodes.length-2)-Math.PI) < EPSILON){
+		// console.log( Math.abs(angleSum/(this.nodes.length-2)-Math.PI) );
+		if(this.nodes.length > 2 && Math.abs(angleSum/(this.nodes.length-2)-Math.PI) < SUM_ANGLE_EPSILON){
 			return this;
 		}
 		return undefined;
@@ -372,6 +375,33 @@ export class PlanarFace{
 		for(var i = 0; i < this.nodes.length; i++){
 			this.nodes[i].transform(matrix);
 		}
+	}
+	adjacencyTree():M.Tree<PlanarFace>{
+		// todo: if generateFaces() hasn't been called, call it. better if we set a flag.
+		if(this.graph.faces.length === 0){
+			this.graph.generateFaces();
+		} else{ this.graph.faceArrayDidChange(); }
+		// just make sure we call this.graph.faceArrayDidChange();
+		// this will keep track of faces still needing to be visited
+		// var visited = Array.apply(undefined, Array(this.graph.faces.length))
+		function recurseSearch(thisNode:M.Tree<PlanarFace>, visited:PlanarFace[]):M.Tree<PlanarFace>{
+			visited.push(thisNode.obj);
+			thisNode.children = thisNode.obj.edgeAdjacentFaces()
+				// only relevant faces
+				.filter(function(childFace:PlanarFace){
+					// check if childFace is already in "visited" array
+					return visited.filter(function(el){return el===childFace;},this).length==0;
+				},this).map(function(childFace:PlanarFace){
+					var childNode = new M.Tree<PlanarFace>(childFace);
+					childNode.parent = thisNode;
+					return childNode;
+				},this);
+			thisNode.children.forEach(function(childNode:M.Tree<PlanarFace>){
+				recurseSearch(childNode, visited);
+			},this);
+			return thisNode;
+		}
+		return recurseSearch(new M.Tree<PlanarFace>(this), []);
 	}
 }
 
@@ -716,6 +746,7 @@ export class PlanarGraph extends Graph{
 	 * @returns {PlanarClean} how many nodes were removed
 	 */
 	cleanDuplicateNodes(epsilon?:number):PlanarClean{
+		var EPSILON_HIGH = 0.00000001;
 		if (epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		var tree = rbush();
 		// cache each node's adjacent edges
@@ -1098,17 +1129,31 @@ export class PlanarGraph extends Graph{
 		return this.faces;
 	}
 
+
+// [
+// 	[CreaseFace]
+// 	[CreaseFace, CreaseFace, CreaseFace]
+// 	[CreaseFace, CreaseFace, CreaseFace, CreaseFace, CreaseFace]
+// 	[CreaseFace, CreaseFace, CreaseFace, CreaseFace, CreaseFace, CreaseFace, CreaseFace]
+// 	[CreaseFace, CreaseFace, CreaseFace, CreaseFace, CreaseFace]
+// 	[CreaseFace, CreaseFace]
+// 	[CreaseFace]
+// ]
+
+
 	adjacentFaceTree(start:PlanarFace):any{
 		this.faceArrayDidChange();
 		// this will keep track of faces still needing to be visited
 		var faceRanks = [];
 		for(var i = 0; i < this.faces.length; i++){ faceRanks.push(undefined); }
 		function allFacesRanked():boolean{
+			// return faceRanks.filter(function(el){return el === undefined}).length == 0;
 			for(var i = 0; i < faceRanks.length; i++){
 				if(faceRanks[i] === undefined){ return false; }
 			}
 			return true;
 		}
+		// degree
 
 		var rank = [];
 		var rankI = 0;
@@ -1166,6 +1211,75 @@ export class PlanarGraph extends Graph{
 		}
 		return {rank:rank, faces:faceRanks};
 	}
+	// adjacentFaceTree(start:PlanarFace):any{
+	// 	this.faceArrayDidChange();
+	// 	// this will keep track of faces still needing to be visited
+	// 	var faceRanks = [];
+	// 	for(var i = 0; i < this.faces.length; i++){ faceRanks.push(undefined); }
+	// 	function allFacesRanked():boolean{
+	// 		// return faceRanks.filter(function(el){return el === undefined}).length == 0;
+	// 		for(var i = 0; i < faceRanks.length; i++){
+	// 			if(faceRanks[i] === undefined){ return false; }
+	// 		}
+	// 		return true;
+	// 	}
+
+	// 	var rank = [];
+	// 	var rankI = 0;
+	// 	rank.push([start]);
+	// 	// rank 0 is an array of 1 face, the start face
+	// 	faceRanks[start.index] = {rank:0, parents:[], face:start};
+
+	// 	// loop
+	// 	var safety = 0;
+	// 	while(!allFacesRanked() && safety < this.faces.length+1){
+	// 		rankI += 1;
+	// 		rank[rankI] = [];
+	// 		for(var p = 0; p < rank[rankI-1].length; p++){
+	// 			var adjacent:PlanarFace[] = rank[rankI-1][p].edgeAdjacentFaces();
+	// 			for(var i = 0; i < adjacent.length; i++){
+	// 				// add a face if it hasn't already been found
+	// 				if(faceRanks[adjacent[i].index] === undefined){
+	// 					rank[rankI].push(adjacent[i]);
+	// 					var parentArray = faceRanks[ rank[rankI-1][p].index ].parents.slice();
+	// 					// add nearest parent to beginning of array
+	// 					parentArray.unshift( rank[rankI-1][p] );
+	// 					// OR, add them to the beginning
+	// 					// parentArray.push( rank[rankI-1][p] );
+	// 					faceRanks[adjacent[i].index] = {rank:rankI, parents:parentArray, face:adjacent[i]};
+	// 				}
+	// 			}
+	// 		}
+	// 		safety++;
+	// 	}
+	// 	for(var i = 0; i < faceRanks.length; i++){
+	// 		if(faceRanks[i] !== undefined && faceRanks[i].parents !== undefined && faceRanks[i].parents.length > 0){
+	// 			var parent = <PlanarFace>faceRanks[i].parents[0];
+	// 			var edge = <PlanarEdge>parent.commonEdge(faceRanks[i].face);
+	// 			var m = edge.reflectionMatrix();
+	// 			faceRanks[i].matrix = m;
+	// 		}
+	// 	}
+	// 	for(var i = 0; i < rank.length; i++){
+	// 		for(var j = 0; j < rank[i].length; j++){
+	// 			var parents = <PlanarFace[]>faceRanks[ rank[i][j].index ].parents;
+	// 			var matrix = faceRanks[ rank[i][j].index ].matrix;
+	// 			if(parents !== undefined && m !== undefined && parents.length > 0){
+	// 				var parentGlobal = faceRanks[ parents[0].index ].global;
+	// 				if(parentGlobal !== undefined){
+	// 					// faceRanks[ rank[i][j].index ].global = matrix.mult(parentGlobal.copy());
+	// 					faceRanks[ rank[i][j].index ].global = parentGlobal.copy().mult(matrix);
+	// 				} else{
+	// 					faceRanks[ rank[i][j].index ].global = matrix.copy();
+	// 				}
+	// 			} else{
+	// 				faceRanks[ rank[i][j].index ].matrix = new Matrix();
+	// 				faceRanks[ rank[i][j].index ].global = new Matrix();
+	// 			}
+	// 		}
+	// 	}
+	// 	return {rank:rank, faces:faceRanks};
+	// }
 
 	///////////////////////////////////////////////////////////////////////
 	// possibly useless. consider deleting

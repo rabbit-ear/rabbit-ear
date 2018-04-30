@@ -9,6 +9,24 @@ var EPSILON      = 0.00001;
 var EPSILON_HIGH = 0.00000001;
 var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a screen
 
+////////////////////////////   DATA TYPES   ///////////////////////////
+
+export class Tree<T>{
+	obj:T;
+	parent:Tree<T>;
+	children:Tree<T>[];
+	constructor(thisObject:T){
+		this.obj = thisObject;
+		this.parent = undefined;
+		this.children = [];
+	}
+	// constructor(thisObject:T, parentNode:Tree<T>, childNodes:Tree<T>[]){
+	// 	this.obj = thisObject;
+	// 	this.parent = parentNode;
+	// 	this.children = childNodes;
+	// }
+}
+
 //////////////////////////// TYPE CHECKING //////////////////////////// 
 function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
 function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
@@ -74,7 +92,7 @@ function interiorAngles(a:XY, b:XY):number[]{
  * @param {XY} vector
  * @returns {XY[]} 2 vector angle bisections, the smaller interior angle is always first
  */
-export function bisectVectors(a:XY, b:XY):XY[]{
+function bisectVectors(a:XY, b:XY):XY[]{
 	a = a.normalize();
 	b = b.normalize();
 	return [ (a.add(b)).normalize(),
