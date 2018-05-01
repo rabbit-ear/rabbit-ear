@@ -386,7 +386,7 @@ export class PlanarFace{
 // 	[CreaseFace, CreaseFace]
 // 	[CreaseFace]
 // ]
-	adjacencyTree():M.Tree<PlanarFace>{
+	adjacencyTree():any{//:M.Tree<PlanarFace>{
 		// todo: if generateFaces() hasn't been called, call it. better if we set a flag.
 		if(this.graph.faces.length === 0){
 			this.graph.generateFaces();
@@ -413,9 +413,8 @@ export class PlanarFace{
 			list[ list.length ] = totalRoundAdjacent;
 		} while(list[list.length-1].length > 0);
 
-		var root = new M.Tree<PlanarFace>(list[0][0].face);
-
-		return root;
+		// var root = new M.Tree<PlanarFace>(list[0][0].face);
+		return list;
 
 		// list.forEach(function(smList:{"face":PlanarFace,"parent":PlanarFace}[]){
 		// 	smList.forEach()

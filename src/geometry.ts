@@ -20,11 +20,6 @@ export class Tree<T>{
 		this.parent = undefined;
 		this.children = [];
 	}
-	// constructor(thisObject:T, parentNode:Tree<T>, childNodes:Tree<T>[]){
-	// 	this.obj = thisObject;
-	// 	this.parent = parentNode;
-	// 	this.children = childNodes;
-	// }
 }
 
 //////////////////////////// TYPE CHECKING //////////////////////////// 
@@ -310,7 +305,11 @@ export class XY{
 		return this.transform( new Matrix().reflection(vector, origin) );
 	}
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
-	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
+	// todo, outfit all these constructors with flexible parameters like add()
+	add(a:any, b?:any):XY{
+		var point = gimme1XY(a,b);
+		return new XY(this.x+point.x, this.y+point.y);
+	}
 	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }
 	multiply(m:XY):XY{ return new XY(this.x*m.x, this.y*m.y); }
 	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
@@ -384,6 +383,20 @@ export class Line implements LineType{
 	degenrate(epsilon?:number):boolean{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		return epsilonEqual(this.direction.magnitude(), 0, epsilon);
+	}
+	bisect(line:Line):Line[]{
+		if( this.parallel(line) ){
+			return [new Line( this.point.midpoint(line.point) , this.direction)];
+		} else{
+			var intersection:XY = intersectionLineLine(this, line);
+			var vectors = bisectVectors(this.direction, line.direction);
+			vectors[1] = vectors[0].rotate90();
+			var sorted = vectors.sort(function(a,b){
+				return Math.abs(this.direction.cross(vectors[0])) - Math.abs(this.direction.cross(vectors[1]))
+			}).map(function(el){
+				return new Line(intersection, el);
+			},this);
+		}
 	}
 }
 
@@ -491,7 +504,7 @@ export class Edge implements LineType{
 	// a, b are points, or
 	// (a,b) point 1 and (c,d) point 2, each x,y
 	constructor(a:any, b?:any, c?:any, d?:any){
-		if(a instanceof XY){this.nodes = [a,b];}
+		if((a instanceof XY) && (b instanceof XY)){this.nodes = [a,b];}
 		else if(a.x !== undefined){this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];}
 		else if(isValidNumber(d)){ this.nodes = [new XY(a,b), new XY(c,d)]; }
 		else if(a.nodes !== undefined){this.nodes = [new XY(a.nodes[0].x, a.nodes[0].y), new XY(a.nodes[1].x, a.nodes[1].y)];}
@@ -722,6 +735,12 @@ export class ConvexPolygon{
 			if (a.cross(b) < 0){ return false; }
 		}
 		return true;
+	}
+	liesOnEdge(p:XY):boolean{
+		for(var i = 0; i < this.edges.length; i++){
+			if(this.edges[i].collinear(p)){ return true; }
+		}
+		return false;
 	}
 	clipEdge(edge:Edge):Edge{
 		var intersections = this.edges
