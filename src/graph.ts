@@ -1,6 +1,6 @@
 // graph.js
 // a mathematical undirected graph with edges and nodes
-// mit open source license, robby kraft
+// MIT open source license, Robby Kraft
 //
 //  "adjacent": 2 nodes are adjacent when they are connected by an edge
 //              edges are adjacent when they are both connected to the same node

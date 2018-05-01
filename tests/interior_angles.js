@@ -78,7 +78,7 @@ projectInAngles.reset();
 projectInAngles.onFrame = function(event) { }
 projectInAngles.onResize = function(event) { }
 projectInAngles.onMouseDown = function(event){
-	if(this.validNodes.contains(this.nearestNode)){
+	if(this.validNodes.filter(function(e){return e===this.nearestNode;}).length > 0){
 		this.draggingNode = this.nearestNode;
 	}
 }

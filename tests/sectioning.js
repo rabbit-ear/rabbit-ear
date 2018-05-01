@@ -15,7 +15,7 @@ project.updateAngles = function(){
 	this.arcLayer.activate();
 	this.arcLayer.removeChildren();
 	var nodes = validNodes.map(function(el){return new XY(el.x, el.y);});
-	var bisections = bisect(nodes[0], nodes[1]);
+	var bisections = bisectVectors(nodes[0], nodes[1]);
 	var small = bisections[0];
 	var large = bisections[1];
 	// bisect smaller angle
@@ -56,7 +56,7 @@ project.reset();
 project.onFrame = function(event) { }
 project.onResize = function(event) { }
 project.onMouseDown = function(event){
-	if(validNodes.contains(this.nearestNode)){
+	if(validNodes.filter(function(e){return e===this.nearestNode;}).length > 0){
 		draggingNode = this.nearestNode;
 	}
 }

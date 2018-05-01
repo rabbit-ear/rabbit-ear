@@ -58,7 +58,7 @@ intersectRays.reset = function(){
 		var arcPoints = [];
 		fourPoints.forEach(function(el, i){
 			var nextI = (i+1)%fourPoints.length;
-			var b = bisect(el.subtract(intersection), fourPoints[nextI].subtract(intersection))[0];
+			var b = bisectVectors(el.subtract(intersection), fourPoints[nextI].subtract(intersection))[0];
 			var arcMidPoint = b.normalize().scale(interRadius).add(intersection);
 			var thesePoints = [ fourPoints[i],
 			                    arcMidPoint,

@@ -19,7 +19,7 @@ projectVectors.updateAngles = function(){
 	this.arcLayer.activate();
 	this.arcLayer.removeChildren();
 	var nodes = this.validNodes.map(function(el){return new XY(el.x, el.y);});
-	var bisections = bisect(nodes[0], nodes[1]);
+	var bisections = bisectVectors(nodes[0], nodes[1]);
 	var small = bisections[0];
 	var large = bisections[1];
 	// bisect smaller angle
@@ -67,7 +67,7 @@ projectVectors.reset();
 projectVectors.onFrame = function(event) { }
 projectVectors.onResize = function(event) { }
 projectVectors.onMouseDown = function(event){
-	if(this.validNodes.contains(this.nearestNode)){
+	if (this.validNodes.filter(function(e){return e===this.nearestNode;}).length > 0){
 		this.draggingNode = this.nearestNode;
 	}
 }

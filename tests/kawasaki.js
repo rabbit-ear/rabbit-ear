@@ -26,8 +26,8 @@ projectKawasaki.updateAngles = function(){
 		var sectors = el.sectors;
 		var difference = el.difference;
 		for(var i = 0; i < sectors.length; i++){
-			var a = sectors[i].endPoints[0].xy();
-			var c = sectors[i].endPoints[1].xy();
+			var a = new XY(sectors[i].endPoints[0].x, sectors[i].endPoints[0].y);
+			var c = new XY(sectors[i].endPoints[1].x, sectors[i].endPoints[1].y);
 			var b = sectors[i].bisect();
 			var arcPts = [a,b,c];
 			var arcRadius = 0.35 + difference*0.1;
@@ -73,7 +73,7 @@ projectKawasaki.reset();
 projectKawasaki.onFrame = function(event) { }
 projectKawasaki.onResize = function(event) { }
 projectKawasaki.onMouseDown = function(event){
-	if(this.validNodes.contains(this.nearestNode)){
+	if(this.validNodes.filter(function(e){return e===this.nearestNode;}).length > 0){
 		draggingNode = this.nearestNode;
 	}
 }

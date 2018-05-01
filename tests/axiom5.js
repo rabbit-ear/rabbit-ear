@@ -28,7 +28,9 @@ axiom5.reset = function(){
 	}
 	// algorithm helper visuals
 	var radius = Math.sqrt( Math.pow(axiom5.marks[3].position.x - axiom5.marks[2].position.x,2) + Math.pow(axiom5.marks[3].position.y - axiom5.marks[2].position.y,2));
-	var markers = circleLineIntersectionAlgorithm(axiom5.marks[2].position, radius, axiom5.marks[0].position, axiom5.marks[1].position);
+	var circle = new Circle(axiom5.marks[2].position, radius);
+	var line = new Edge(axiom5.marks[0].position, axiom5.marks[1].position);
+	var markers = circle.intersection(line);
 	if(markers.length >= 2){
 		var circle1 = new axiom5.scope.Shape.Circle({
 			center: [markers[0].x, markers[0].y], radius: 0.02, strokeWidth:0.01,

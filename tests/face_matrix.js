@@ -1,34 +1,34 @@
 
-var project = new OrigamiPaper("canvas-face-matrix");
-// project.setPadding(0.05);
+var adjFaceMatrix = new OrigamiPaper("canvas-face-matrix");
+// adjFaceMatrix.setPadding(0.05);
 
 var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
 var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
 
-project.style.valley.strokeColor = blue;
-project.style.mountain.strokeColor = blue;
-project.faceLayer.visible = false;
-project.treeLineLayer = new project.scope.Layer();
+adjFaceMatrix.style.valley.strokeColor = blue;
+adjFaceMatrix.style.mountain.strokeColor = blue;
+adjFaceMatrix.faceLayer.visible = false;
+adjFaceMatrix.treeLineLayer = new adjFaceMatrix.scope.Layer();
 
-project.reset = function(){
+adjFaceMatrix.reset = function(){
 	this.load("../files/svg/crane.svg", function(){
-		project.cp.generateFaces();
-		project.makeFacePathLines();
+		adjFaceMatrix.cp.generateFaces();
+		adjFaceMatrix.makeFacePathLines();
 	});
 }
-project.reset();
+adjFaceMatrix.reset();
 
-project.makeFacePathLines = function(startingFace){
+adjFaceMatrix.makeFacePathLines = function(startingFace){
 	if(startingFace === undefined){
-		var bounds = project.cp.bounds();
-		startingFace = project.cp.getNearestFace(bounds.size.width * 0.5, bounds.size.height*0.5);
+		var bounds = adjFaceMatrix.cp.bounds();
+		startingFace = adjFaceMatrix.cp.getNearestFace(bounds.size.width * 0.5, bounds.size.height*0.5);
 	}
 	if(startingFace === undefined){ return; }
-	var tree = project.cp.adjacentFaceTree(startingFace);
+	var tree = adjFaceMatrix.cp.adjacentFaceTree(startingFace);
 	// console.log(tree);
-	project.draw();
-	project.treeLineLayer.activate();
-	project.treeLineLayer.removeChildren();
+	adjFaceMatrix.draw();
+	adjFaceMatrix.treeLineLayer.activate();
+	adjFaceMatrix.treeLineLayer.removeChildren();
 	for(var i = 0; i < tree.faces.length; i++){
 		parents = tree.faces[i].parents
 		if(parents.length > 0){
@@ -52,13 +52,13 @@ project.makeFacePathLines = function(startingFace){
 	}
 }
 
-project.onFrame = function(event) { }
-project.onResize = function(event) { }
-project.onMouseDown = function(event){ }
-project.onMouseUp = function(event){ }
-project.onMouseMove = function(event) {
+adjFaceMatrix.onFrame = function(event) { }
+adjFaceMatrix.onResize = function(event) { }
+adjFaceMatrix.onMouseDown = function(event){ }
+adjFaceMatrix.onMouseUp = function(event){ }
+adjFaceMatrix.onMouseMove = function(event) {
 	if(event === undefined) return;
-	var startingFace = project.cp.getNearestFace(event.point.x, event.point.y);
+	var startingFace = adjFaceMatrix.cp.getNearestFace(event.point.x, event.point.y);
 	if(startingFace !== undefined){
 		this.makeFacePathLines(startingFace);
 	}
