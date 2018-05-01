@@ -33,7 +33,7 @@ pleat_edge.reset = function(){
 	while(index1 === index0){
 		index1 = parseInt(Math.random()*this.cp.boundary.edges.length);
 	}
-	var creases = this.cp.pleat(this.cp.boundary.edges[index0], this.cp.boundary.edges[index1], choice.i)
+	var creases = this.cp.pleat(choice.i, this.cp.boundary.edges[index0], this.cp.boundary.edges[index1])
 	if(creases !== undefined){
 		creases.forEach(function(el,i){
 			if(i%2==0){ el.valley(); }

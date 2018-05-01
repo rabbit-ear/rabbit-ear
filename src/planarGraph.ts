@@ -256,6 +256,7 @@ export class PlanarEdge extends GraphEdge implements M.Edge{
 	// implements Edge (outside LineType)
 	midpoint():M.XY { return new M.XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 	                                   0.5*(this.nodes[0].y + this.nodes[1].y));}
+	perpendicularBisector():M.Line{ return new M.Line(this.midpoint(), this.vector().rotate90()); }
 	infiniteLine():M.Line{
 		var origin = new M.XY(this.nodes[0].x, this.nodes[0].y);
 		var vector = new M.XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);

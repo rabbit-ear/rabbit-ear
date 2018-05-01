@@ -305,12 +305,13 @@ export class XY{
 		return this.transform( new Matrix().reflection(vector, origin) );
 	}
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
+	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
 	// todo, outfit all these constructors with flexible parameters like add()
-	add(a:any, b?:any):XY{
-		var point = gimme1XY(a,b);
-		return new XY(this.x+point.x, this.y+point.y);
-	}
-	subtract(sub:XY):XY{ return new XY(this.x-sub.x, this.y-sub.y); }
+	// add(a:any, b?:any):XY{
+	// 	var point = gimme1XY(a,b);
+	// 	return new XY(this.x+point.x, this.y+point.y);
+	// }
+	subtract(point:XY):XY{ return new XY(this.x-point.x, this.y-point.y); }
 	multiply(m:XY):XY{ return new XY(this.x*m.x, this.y*m.y); }
 	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 	abs():XY{ return new XY(Math.abs(this.x), Math.abs(this.y)); }
@@ -572,6 +573,7 @@ export class Edge implements LineType{
 	// additional methods
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
+	perpendicularBisector():Line{ return new Line(this.midpoint(), this.vector().rotate90()); }
 	infiniteLine():Line{ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
 }
 
@@ -1428,40 +1430,40 @@ var flatMap = function<T, U>(array:any[], mapFunc: (x: T) => U[]) : U[] {
 
 
 
-/////////////////////////////// FUNCTION INPUT INTERFACE /////////////////////////////// 
-function gimme1XY(a:any, b?:any):XY{
-	// input is 1 XY, or 2 numbers
-	if(isValidPoint(a)){ return a; }
-	else if(isValidNumber(b)){ return new XY(a, b); }
-}
-function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
-	// input is 2 XY, or 4 numbers
-	if(isValidPoint(b)){ return [a,b]; }
-	else if(isValidNumber(d)){ return [new XY(a, b), new XY(c, d)]; }
-}
-function gimme1Edge(a:any, b?:any, c?:any, d?:any):Edge{
-	// input is 1 edge, 2 XY, or 4 numbers
-	if(a instanceof Edge || a.nodes !== undefined){ return a; }
-	else if(isValidPoint(b) ){ return new Edge(a,b); }
-	else if(isValidNumber(d)){ return new Edge(a,b,c,d); }
-}
-function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
-	// input is 1 ray, 2 XY, or 4 numbers
-	if(a instanceof Ray){ return a; }
-	else if(isValidPoint(b) ){ return new Ray(a,b); }
-	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)); }
-}
-function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
-	// input is 1 line
-	if(a instanceof Line){ return a; }
-	// input is 2 XY
-	else if(isValidPoint(b) ){ return new Line(a,b); }
-	// input is 4 numbers
-	else if(isValidNumber(d)){ return new Line(a,b,c,d); }
-	// input is 1 line-like object with points in a nodes[] array
-	else if(a.nodes instanceof Array && 
-	        a.nodes.length > 0 &&
-	        isValidPoint(a.nodes[1])){
-		return new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);
-	}
-}
+// /////////////////////////////// FUNCTION INPUT INTERFACE /////////////////////////////// 
+// function gimme1XY(a:any, b?:any):XY{
+// 	// input is 1 XY, or 2 numbers
+// 	if(isValidPoint(a)){ return a; }
+// 	else if(isValidNumber(b)){ return new XY(a, b); }
+// }
+// function gimme2XY(a:any, b:any, c?:any, d?:any):[XY,XY]{
+// 	// input is 2 XY, or 4 numbers
+// 	if(isValidPoint(b)){ return [a,b]; }
+// 	else if(isValidNumber(d)){ return [new XY(a, b), new XY(c, d)]; }
+// }
+// function gimme1Edge(a:any, b?:any, c?:any, d?:any):Edge{
+// 	// input is 1 edge, 2 XY, or 4 numbers
+// 	if(a instanceof Edge || a.nodes !== undefined){ return a; }
+// 	else if(isValidPoint(b) ){ return new Edge(a,b); }
+// 	else if(isValidNumber(d)){ return new Edge(a,b,c,d); }
+// }
+// function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
+// 	// input is 1 ray, 2 XY, or 4 numbers
+// 	if(a instanceof Ray){ return a; }
+// 	else if(isValidPoint(b) ){ return new Ray(a,b); }
+// 	else if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)); }
+// }
+// function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
+// 	// input is 1 line
+// 	if(a instanceof Line){ return a; }
+// 	// input is 2 XY
+// 	else if(isValidPoint(b) ){ return new Line(a,b); }
+// 	// input is 4 numbers
+// 	else if(isValidNumber(d)){ return new Line(a,b,c,d); }
+// 	// input is 1 line-like object with points in a nodes[] array
+// 	else if(a.nodes instanceof Array && 
+// 	        a.nodes.length > 0 &&
+// 	        isValidPoint(a.nodes[1])){
+// 		return new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);
+// 	}
+// }
