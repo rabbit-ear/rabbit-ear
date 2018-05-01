@@ -305,12 +305,13 @@ export class XY{
 		return this.transform( new Matrix().reflection(vector, origin) );
 	}
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
-	add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
+	// add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
 	// todo, outfit all these constructors with flexible parameters like add()
-	// add(a:any, b?:any):XY{
-	// 	var point = gimme1XY(a,b);
-	// 	return new XY(this.x+point.x, this.y+point.y);
-	// }
+	add(a:any, b?:any):XY{
+		// var point = gimme1XY(a,b);
+		if(isValidPoint(a)){ return new XY(this.x+a.x, this.y+a.y); }
+		else if(isValidNumber(b)){ return new XY(this.x+a, this.y+b); }
+	}
 	subtract(point:XY):XY{ return new XY(this.x-point.x, this.y-point.y); }
 	multiply(m:XY):XY{ return new XY(this.x*m.x, this.y*m.y); }
 	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }

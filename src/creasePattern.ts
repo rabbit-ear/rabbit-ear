@@ -21,38 +21,39 @@ function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN
 /////////////////////////////// FUNCTION INPUT INTERFACE /////////////////////////////// 
 function gimme1XY(a:any, b?:any):M.XY{
 	// input is 1 XY, or 2 numbers
-	if(a instanceof M.XY){ return a; }
+	// if(a instanceof M.XY){ return a; }
 	if(isValidPoint(a)){ return new M.XY(a.x, a.y); }
-	else if(isValidNumber(b)){ return new M.XY(a, b); }
+	if(isValidNumber(b)){ return new M.XY(a, b); }
+	if(a.constructor === Array){ return new M.XY(a[0], a[1]); }
 }
 function gimme2XY(a:any, b:any, c?:any, d?:any):[M.XY,M.XY]{
 	// input is 2 XY, or 4 numbers
 	if(a instanceof M.XY && b instanceof M.XY){ return [a,b]; }
 	if(isValidPoint(b)){ return [new M.XY(a.x,a.y), new M.XY(b.x,b.y)]; }
-	else if(isValidNumber(d)){ return [new M.XY(a, b), new M.XY(c, d)]; }
+	if(isValidNumber(d)){ return [new M.XY(a, b), new M.XY(c, d)]; }
 }
 function gimme1Edge(a:any, b?:any, c?:any, d?:any):M.Edge{
 	// input is 1 edge, 2 XY, or 4 numbers
 	if(a instanceof M.Edge){ return a; }
-	else if(a.nodes !== undefined){ return new M.Edge(a.nodes[0], a.nodes[1]); }
-	else if(isValidPoint(b) ){ return new M.Edge(a,b); }
-	else if(isValidNumber(d)){ return new M.Edge(a,b,c,d); }
+	if(a.nodes !== undefined){ return new M.Edge(a.nodes[0], a.nodes[1]); }
+	if(isValidPoint(b) ){ return new M.Edge(a,b); }
+	if(isValidNumber(d)){ return new M.Edge(a,b,c,d); }
 }
 function gimme1Ray(a:any, b?:any, c?:any, d?:any):M.Ray{
 	// input is 1 ray, 2 XY, or 4 numbers
 	if(a instanceof M.Ray){ return a; }
-	else if(isValidPoint(b) ){ return new M.Ray(a,b); }
-	else if(isValidNumber(d)){ return new M.Ray(new M.XY(a,b), new M.XY(c,d)); }
+	if(isValidPoint(b) ){ return new M.Ray(a,b); }
+	if(isValidNumber(d)){ return new M.Ray(new M.XY(a,b), new M.XY(c,d)); }
 }
 function gimme1Line(a:any, b?:any, c?:any, d?:any):M.Line{
 	// input is 1 line
 	if(a instanceof M.Line){ return a; }
 	// input is 2 XY
-	else if(isValidPoint(b) ){ return new M.Line(a,b); }
+	if(isValidPoint(b) ){ return new M.Line(a,b); }
 	// input is 4 numbers
-	else if(isValidNumber(d)){ return new M.Line(a,b,c,d); }
+	if(isValidNumber(d)){ return new M.Line(a,b,c,d); }
 	// input is 1 line-like object with points in a nodes[] array
-	else if(a.nodes instanceof Array && 
+	if(a.nodes instanceof Array && 
 	        a.nodes.length > 0 &&
 	        isValidPoint(a.nodes[1])){
 		return new M.Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);
@@ -122,7 +123,7 @@ export class CPVector extends M.XY{ }
 class CreaseSector extends PlanarSector{
 
 	/** This will search for an angle which if an additional crease is made will satisfy Kawasaki's theorem */
-	kawasakiFourth():XY{
+	kawasakiFourth():M.XY{
 		var junction = this.origin.junction();
 		// todo: allow searches for other number edges
 		if(junction.edges.length != 3){ return; }
@@ -145,7 +146,7 @@ class CreaseSector extends PlanarSector{
 		var angle0 = this.edges[0].absoluteAngle(this.origin);
 		// var angle1 = this.edges[1].absoluteAngle(this.origin);
 		var newA = angle0 - dEven;
-		return new XY(Math.cos(newA), Math.sin(newA));
+		return new M.XY(Math.cos(newA), Math.sin(newA));
 	}		
 }
 
@@ -174,7 +175,8 @@ class CreaseJunction extends PlanarJunction{
 		return true;
 	}
 	kawasaki(epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		// if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		if(epsilon === undefined){ epsilon = 0.00000001; }
 		var alternating = this.alternateAngleSum();
 		return Math.abs(alternating[0] - alternating[1]) < epsilon;
 	}
@@ -193,7 +195,7 @@ class CreaseJunction extends PlanarJunction{
 		this.sectors.forEach(function(el,i){ alternating[i%2].sectors.push(el); });
 		return alternating;
 	}
-	kawasakiFourth(sector:PlanarSector):XY{
+	kawasakiFourth(sector:PlanarSector):M.XY{
 		// sector must be one of the Joints in this Junction
 		
 		// todo: allow searches for other number edges
@@ -216,7 +218,7 @@ class CreaseJunction extends PlanarJunction{
 		var angle0 = sector.edges[0].absoluteAngle(sector.origin);
 		// var angle1 = sector.edges[1].absoluteAngle(sector.origin);
 		var newA = angle0 - dEven;
-		return new XY(Math.cos(newA), Math.sin(newA));
+		return new M.XY(Math.cos(newA), Math.sin(newA));
 	}
 }
 
@@ -239,7 +241,7 @@ class CreaseNode extends PlanarNode{
 		if(this.isBoundary()){ return true; }
 		return (<CreaseJunction>this.junction()).flatFoldable(epsilon);
 	}
-	kawasakiFourth(a:Crease, b:Crease):XY{
+	kawasakiFourth(a:Crease, b:Crease):M.XY{
 		var junction = <CreaseJunction>this.junction();
 		var sector = <CreaseSector>junction.sectorWithEdges(a,b);
 		if(sector !== undefined){
@@ -458,8 +460,9 @@ class CreasePattern extends PlanarGraph{
 
 	creaseSymmetry(ax:number, ay:number, bx:number, by:number):Crease{
 		if(this.symmetryLine === undefined){ return undefined; }
-		var ra = new XY(ax, ay).reflect(this.symmetryLine);
-		var rb = new XY(bx, by).reflect(this.symmetryLine);
+		// todo, improve this whole situation
+		var ra = new M.XY(ax, ay).reflect(this.symmetryLine);
+		var rb = new M.XY(bx, by).reflect(this.symmetryLine);
 		return <Crease>this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
 	}
 
@@ -487,12 +490,12 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	// creaseRayUntilMark
-	creaseRayUntilIntersection(ray:Ray, target?:XY):Crease{
+	creaseRayUntilIntersection(ray:M.Ray, target?:M.XY):Crease{
 		var clips = ray.clipWithEdgesDetails(this.edges);
 		if(clips.length > 0){
 			// if target exists, and target is closer than shortest edge, return crease to target
 			if(target !== undefined){
-				var targetEdge = new Edge(ray.origin.x, ray.origin.y, target.x, target.y);
+				var targetEdge = new M.Edge(ray.origin.x, ray.origin.y, target.x, target.y);
 				if(clips[0].edge.length() > targetEdge.length()){ return this.crease(targetEdge); }
 			}
 			// return crease to edge
@@ -605,7 +608,7 @@ class CreasePattern extends PlanarGraph{
 				.map(function(el,i){ return (i+1)/count; },this)
 				.map(function(el){
 					var vector = u.angleLerp(v, el);
-					return this.boundary.clipLine( new Line(c, vector) ); 
+					return this.boundary.clipLine( new M.Line(c, vector) ); 
 				},this)
 				.filter(function(el){ return el !== undefined; },this)
 				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
@@ -686,71 +689,43 @@ class CreasePattern extends PlanarGraph{
 		return sortedMolecules.reduce(function(prev, current){ return prev.concat(current); });
 	}
 
-	possibleFolds():CreasePattern{
-		var next = this.copy();
-		next.nodes = [];
-		next.edges = [];
-		next.faces = [];
-		console.time("edge2edge");
-		for(var i = 0; i < this.edges.length-1; i++){
-			for(var j = i+1; j < this.edges.length; j++){
-				next.creaseEdgeToEdge(this.edges[i], this.edges[j]);
-			}
-		}
-		console.timeEnd("edge2edge");
-		console.time("creasepoints");
-		for(var i = 0; i < this.nodes.length-1; i++){
-			for(var j = i+1; j < this.nodes.length; j++){
-				next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
-				next.creasePointToPoint(this.nodes[i], this.nodes[j]);
-			}
-		}
-		console.timeEnd("creasepoints");
-		next.cleanDuplicateNodes();
-		return next;
+	availableAxiomFolds(cp?:CreasePattern):CreasePattern{
+		if(cp === undefined){ cp = this; }
+		this.availableAxiom1Folds(cp);
+		this.availableAxiom2Folds(cp);
+		this.availableAxiom3Folds(cp);
+		return cp;
 	}
 
-	possibleFolds1():CreasePattern{
-		var next = this.copy();
-		next.nodes = [];
-		next.edges = [];
-		next.faces = [];
-		for(var i = 0; i < this.nodes.length-1; i++){
-			for(var j = i+1; j < this.nodes.length; j++){
-				next.creaseThroughPoints(this.nodes[i], this.nodes[j]);
+	availableAxiom1Folds(cp?:CreasePattern):CreasePattern{
+		if(cp === undefined){ cp = this; }
+		for(var n0 = 0; n0 < this.nodes.length-1; n0++){
+			for(var n1 = n0+1; n1 < this.nodes.length; n1++){
+				this.creaseThroughPoints(this.nodes[n0], this.nodes[n1]);
 			}
 		}
-		// next.cleanDuplicateNodes();
-		return next;
+		// this.cleanDuplicateNodes();
+		return this;
 	}
-
-	possibleFolds2():CreasePattern{
-		var next = this.copy();
-		next.nodes = [];
-		next.edges = [];
-		next.faces = [];
-		for(var i = 0; i < this.nodes.length-1; i++){
-			for(var j = i+1; j < this.nodes.length; j++){
-				next.creasePointToPoint(this.nodes[i], this.nodes[j]);
+	availableAxiom2Folds(cp?:CreasePattern):CreasePattern{
+		if(cp === undefined){ cp = this; }
+		for(var n0 = 0; n0 < this.nodes.length-1; n0++){
+			for(var n1 = n0+1; n1 < this.nodes.length; n1++){
+				this.creasePointToPoint(this.nodes[n0], this.nodes[n1]);
 			}
 		}
-		// next.cleanDuplicateNodes();
-		return next;
+		// this.cleanDuplicateNodes();
+		return this;
 	}
-
-	possibleFolds3(edges?:Crease[]):CreasePattern{
-		var next = this.copy();
-		next.nodes = [];
-		next.edges = [];
-		next.faces = [];
-		if(edges === undefined){ edges = this.edges; }
-		for(var i = 0; i < edges.length-1; i++){
-			for(var j = i+1; j < edges.length; j++){
-				next.creaseEdgeToEdge(edges[i], edges[j]);
+	availableAxiom3Folds(cp?:CreasePattern):CreasePattern{
+		if(cp === undefined){ cp = this; }
+		for(var n0 = 0; n0 < this.nodes.length-1; n0++){
+			for(var n1 = n0+1; n1 < this.nodes.length; n1++){
+				this.creasePointToPoint(this.nodes[n0], this.nodes[n1]);
 			}
 		}
-		// next.cleanDuplicateNodes();
-		return next;
+		// this.cleanDuplicateNodes();
+		return this;
 	}
 
 	// precision is an epsilon value: 0.00001
@@ -827,7 +802,8 @@ class CreasePattern extends PlanarGraph{
 */
 
 	// number of nodes tried to wiggle (ignores those correct within epsilon range)
-	wiggle():number{
+	wiggle(epsilon?:number):number{
+		if(epsilon === undefined){ epsilon = 0.00001; }
 
 		var lengths = this.edges.forEach(function(crease, i){
 			return crease.length();
@@ -839,7 +815,7 @@ class CreasePattern extends PlanarGraph{
 		// var shuffleNodes = shuffle(this.nodes);
 		for(var i = 0; i < this.nodes.length; i++){
 			var rating = this.nodes[i].kawasakiRating();
-			if(rating > EPSILON){
+			if(rating > epsilon){
 				nodesAttempted++;
 				// guess some numbers.
 				var guesses = []; // {xy:__(XY)__, rating:__(number)__};
@@ -847,7 +823,7 @@ class CreasePattern extends PlanarGraph{
 					// maybe store angle so that we can keep track of it between rounds
 					var randomAngle = Math.random()*Math.PI*20; // wrap around to make sure it's random
 					var radius = Math.random() * rating;
-					var move = new XY( 0.05*radius * Math.cos(randomAngle), 
+					var move = new M.XY( 0.05*radius * Math.cos(randomAngle), 
 					                   0.05*radius * Math.sin(randomAngle));
 					this.nodes[i].x += move.x;
 					this.nodes[i].y += move.y;
@@ -912,36 +888,35 @@ class CreasePattern extends PlanarGraph{
 
 	//////////////////////////////////////////////
 	// BOUNDARY
-	contains(p:XY):boolean{ return this.boundary.contains(p); }
-
+	contains(a:any):boolean{
+		var p = gimme1XY(a);
+		if(p === undefined){ return false; }
+		return this.boundary.contains(p);
+	}
 
 	square(width?:number):CreasePattern{
 		var w = 1.0;
 		// todo: isReal() - check if is real number
 		if(width != undefined && width != 0){ w = Math.abs(width); }
-		return this.setBoundary([new XY(0,0), new XY(w,0), new XY(w,w), new XY(0,w)]);
+		return this.setBoundary([[0,0], [w,0], [w,w], [0,w]]);
 	}
 
 	rectangle(width:number, height:number):CreasePattern{
 		if(width === undefined || height === undefined){ return this; }
 		width = Math.abs(width);
 		height = Math.abs(height);
-		var points = [new XY(0,0), 
-		              new XY(width,0), 
-		              new XY(width,height), 
-		              new XY(0,height)];
-		return this.setBoundary(points);
+		return this.setBoundary( [[0,0], [width,0], [width,height], [0,height]] );
 	}
 	hexagon(radius?:number):CreasePattern{
 		if(radius === undefined){ radius = 0.5; }
-		var sqt = 0.8660254;
+		var sqt3_4 = 0.8660254;
 		radius = Math.abs(radius);
-		var points = [new XY(radius*0.5,radius*0.8660254),
-		              new XY(radius,0),
-		              new XY(radius*0.5, -radius*0.8660254),
-		              new XY(-radius*0.5, -radius*0.8660254),
-		              new XY(-radius,0),
-		              new XY(-radius*0.5, radius*0.8660254) ];
+		var points = [[radius*0.5,  radius*sqt3_4],
+		              [radius,      0.0],
+		              [radius*0.5,  -radius*sqt3_4],
+		              [-radius*0.5, -radius*sqt3_4],
+		              [-radius,     0.0],
+		              [-radius*0.5, radius*sqt3_4] ];
 		return this.setBoundary(points);
 	}
 
@@ -955,8 +930,9 @@ class CreasePattern extends PlanarGraph{
 
 	setBoundary(pointArray:any[], alreadyClockwiseSorted?:boolean):CreasePattern{
 		var points = pointArray.map(function(p){ return gimme1XY(p); },this);
-
+		// check if the first point is duplicated again at the end of the array
 		if( points[0].equivalent(points[points.length-1]) ){ points.pop(); }
+		// perform convex hull if points are not already sorted clockwise
 		if(alreadyClockwiseSorted !== undefined && alreadyClockwiseSorted === true){
 			this.boundary.edges = this.boundary.setEdgesFromPoints(points);
 		} else{
@@ -1018,7 +994,7 @@ class CreasePattern extends PlanarGraph{
 	}
 	setSymmetryLine(a:any, b?:any, c?:any, d?:any):CreasePattern{
 		var edge = gimme1Edge(a,b,c,d);
-		this.symmetryLine = new Line(edge.nodes[0], edge.nodes[1].subtract(edge.nodes[1]));
+		this.symmetryLine = new M.Line(edge.nodes[0], edge.nodes[1].subtract(edge.nodes[1]));
 		return this;
 	}
 
@@ -1108,8 +1084,8 @@ class CreasePattern extends PlanarGraph{
 			.filter(function(el){ return el.orientation === CreaseDirection.border; },this)
 			.map(function(el){
 				return [
-					new XY(el.nodes[0].x, el.nodes[0].y), 
-					new XY(el.nodes[1].x, el.nodes[1].y)
+					new M.XY(el.nodes[0].x, el.nodes[0].y), 
+					new M.XY(el.nodes[1].x, el.nodes[1].y)
 				]
 			},this)
 		this.setBoundary([].concat.apply([],boundaryPoints));
