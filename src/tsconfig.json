@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"removeComments": true,
-		"outFile": "../creasePattern.js",
+		"outFile": "../dist/creasepattern.js",
 		"module": "system",
 		"target": "ES6",
 		"allowJs": true
