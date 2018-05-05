@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"removeComments": true,
+		"outFile": "../creasePattern.js",
+		"module": "system",
+		"target": "ES6",
+		"allowJs": true
+	},
+	"include": [
+		"../lib/rbush.min.js"
+	],
+	"files":[
+		"graph.ts",
+		"geometry.ts",
+		"planarGraph.ts",
+		"creasePattern.ts"
+	]
+}

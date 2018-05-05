@@ -118,7 +118,6 @@ class FoldSequence{
 // export class CPPoint extends M.XY{ }
 // export class CPVector extends M.XY{ }
 
-
 class CreaseSector extends PlanarSector{
 
 	/** This will search for an angle which if an additional crease is made will satisfy Kawasaki's theorem */

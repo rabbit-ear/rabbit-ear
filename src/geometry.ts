@@ -93,7 +93,11 @@ function bisectVectors(a:XY, b:XY):XY[]{
 	return [ (a.add(b)).normalize(),
 	         new XY(-a.x + -b.x, -a.y + -b.y).normalize() ];
 }
+<<<<<<< HEAD:src/geometry.ts
 function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFunction:(t0:number,t1:number) => boolean, epsilon:number):XY{
+=======
+function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFunction:(t0,t1) => boolean, epsilon:number):XY{
+>>>>>>> master:src/geometry.ts
 	function determinantXY(a:XY,b:XY):number{ return a.x * b.y - b.x * a.y; }
 	var denominator0 = determinantXY(aVec, bVec);
 	var denominator1 = -denominator0;
