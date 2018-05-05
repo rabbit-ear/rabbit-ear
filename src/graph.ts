@@ -68,7 +68,7 @@ export class GraphNode{
 	 * var adjacent = node.adjacentNodes()
 	 */
 	adjacentNodes():GraphNode[]{
-		var checked = []; // the last step, to remove duplicate nodes
+		var checked:GraphNode[] = []; // the last step, to remove duplicate nodes
 		return this.adjacentEdges()
 			.filter(function(el:GraphEdge){ return !el.isCircular(); })
 			.map(function(el:GraphEdge){
