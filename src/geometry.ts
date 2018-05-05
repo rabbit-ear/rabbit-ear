@@ -93,7 +93,7 @@ function bisectVectors(a:XY, b:XY):XY[]{
 	return [ (a.add(b)).normalize(),
 	         new XY(-a.x + -b.x, -a.y + -b.y).normalize() ];
 }
-function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFunction:(t0,t1) => boolean, epsilon:number):XY{
+function intersect_vec_func(aOrigin:XY, aVec:XY, bOrigin:XY, bVec:XY, compFunction:(t0:number,t1:number) => boolean, epsilon:number):XY{
 	function determinantXY(a:XY,b:XY):number{ return a.x * b.y - b.x * a.y; }
 	var denominator0 = determinantXY(aVec, bVec);
 	var denominator1 = -denominator0;
@@ -169,7 +169,7 @@ function intersectionCircleLine(center:XY, radius:number, p0:XY, p1:XY):XY[]{
 	var dy = y2 - y1;
 	var dr_squared = dx*dx + dy*dy;
 	var D = x1*y2 - x2*y1;
-	function sgn(x){ if(x < 0){return -1;} return 1; }
+	function sgn(x:number){ if(x < 0){return -1;} return 1; }
 	var x1 = (D*dy + sgn(dy)*dx*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
 	var x2 = (D*dy - sgn(dy)*dx*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
 	var y1 = (-D*dx + Math.abs(dy)*Math.sqrt(r_squared*dr_squared - (D*D)))/(dr_squared);
@@ -233,7 +233,7 @@ class Matrix{
 		return this;
 	}
 
-	rotation(angle, origin?:XY):Matrix{
+	rotation(angle:number, origin?:XY):Matrix{
 		this.a = Math.cos(angle);   this.c = -Math.sin(angle);
 		this.b = Math.sin(angle);   this.d =  Math.cos(angle);
 		// todo, if origin is undefined, should we set tx and ty to 0, or leave as is?
@@ -266,7 +266,7 @@ export class XY{
 		// rect bounding box, cheaper than radius calculation
 		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
 	}
-	transform(matrix):XY{
+	transform(matrix:Matrix):XY{
 		return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx,
 					  this.x * matrix.b + this.y * matrix.d + matrix.ty);
 	}
@@ -280,7 +280,7 @@ export class XY{
 		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
 	}
 	angleLerp(point:XY, pct:number):XY{
-		function shortAngleDist(a0,a1) {
+		function shortAngleDist(a0:number,a1:number) {
 			var max = Math.PI*2;
 			var da = (a1 - a0) % max;
 			return 2*da % max - da;
@@ -330,7 +330,7 @@ abstract class LineType{
 	reflectionMatrix(){}
 	nearestPoint(point:XY){}
 	nearestPointNormalTo(point:XY){}
-	transform(matrix){}
+	transform(matrix:Matrix){}
 	degenrate(epsilon?:number){}
 	// clipWithEdge(edge:Edge, epsilon?:number){}
 	// clipWithEdges(edges:Edge[], epsilon?:number){}
@@ -378,7 +378,7 @@ export class Line implements LineType{
 		var u = ((point.x-this.point.x)*v.x + (point.y-this.point.y)*v.y);
 		return new XY(this.point.x + u*v.x, this.point.y + u*v.y);
 	}
-	transform(matrix):Line{
+	transform(matrix:Matrix):Line{
 		// todo: who knows if this works
 		return new Line(this.point.transform(matrix), this.direction.transform(matrix));
 	}
@@ -457,7 +457,7 @@ export class Ray implements LineType{
 		if(u < 0){ return undefined; }
 		return new XY(this.origin.x + u*v.x, this.origin.y + u*v.y);
 	}
-	transform(matrix):Ray{
+	transform(matrix:Matrix):Ray{
 		// todo: who knows if this works
 		return new Ray(this.origin.transform(matrix), this.direction.transform(matrix));
 	}
@@ -825,7 +825,7 @@ export class ConvexPolygon{
 				// if(a.y-b.y < -EPSILON_HIGH){ return -1; } 
 				// if(a.y-b.y > EPSILON_HIGH){ return 1; }
 				// return 0;});
-		var hull = [];
+		var hull:XY[] = [];
 		hull.push(sorted[0]);
 		// the current direction the perimeter walker is facing
 		var ang = 0;  

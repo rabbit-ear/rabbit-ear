@@ -14,7 +14,6 @@ import { PlanarClean, PlanarNode, PlanarEdge, PlanarFace, PlanarSector, PlanarJu
 
 "use strict";
 
-
 //////////////////////////// TYPE CHECKING //////////////////////////// 
 function isValidPoint(point:M.XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
 function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
@@ -116,8 +115,8 @@ class FoldSequence{
 	// sheet of paper, the fold won't execute the same way, different node indices will get applied.
 }
 
-export class CPPoint extends M.XY{ }
-export class CPVector extends M.XY{ }
+// export class CPPoint extends M.XY{ }
+// export class CPVector extends M.XY{ }
 
 
 class CreaseSector extends PlanarSector{
@@ -306,7 +305,7 @@ class CreaseFace extends PlanarFace{
 	}
 }
 
-class CreasePattern extends PlanarGraph{
+export class CreasePattern extends PlanarGraph{
 
 	nodes:CreaseNode[];
 	edges:Crease[];
@@ -387,9 +386,9 @@ class CreasePattern extends PlanarGraph{
 	///////////////////////////////////////////////////////////////
 	// PUBLIC - ADD PARTS
 
-	creaseThroughLayers(point:CPPoint, vector:CPVector):Crease[]{
-		return this.creaseRayRepeat(new M.Ray(point.x, point.y, vector.x, vector.y));
-	}
+	// creaseThroughLayers(point:CPPoint, vector:CPVector):Crease[]{
+	// 	return this.creaseRayRepeat(new M.Ray(point.x, point.y, vector.x, vector.y));
+	// }
 	
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS

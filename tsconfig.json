@@ -6,11 +6,5 @@
 		"target": "es5",
 		"sourceMap":false,
 		"allowJs": true
-	},
-	"files":[
-		"src/graph.ts",
-		"src/math.ts",
-		"src/planarGraph.ts",
-		"src/creasePattern.ts"
-	]
+	}
 }
