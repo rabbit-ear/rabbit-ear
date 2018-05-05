@@ -2,18 +2,16 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<script language="javascript" type="text/javascript" src="../lib/jquery-3.1.1.min.js"></script>
-<script language="javascript" type="text/javascript" src="../lib/jquery-ui.min.js"></script>
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
 
-<script language="javascript" type="text/javascript" src="../creasepattern.js"></script>
+<script language="javascript" type="text/javascript" src="../dist/creasepattern.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
 
-<script language="javascript" type="text/javascript" src="../lib/katex/katex.min.js"></script>
-<link rel="stylesheet" href="../lib/katex/katex.min.css">
+<script language="javascript" type="text/javascript" src="lib/katex/katex.min.js"></script>
+<link rel="stylesheet" href="lib/katex/katex.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700">
-<link rel="stylesheet" href="../lib/font-awesome/css/font-awesome.min.css" />
+<link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css" />
 <link rel="stylesheet" href="css/style.css" />
 <link rel="stylesheet" href="css/nav.css" />
 </head>

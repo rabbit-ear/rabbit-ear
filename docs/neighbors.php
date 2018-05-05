@@ -82,28 +82,28 @@ mouse_select_callback = function(e){
 
 	p5a.callback = function(e){
 		if(e.x != undefined && e.y != undefined && e.node != undefined){
-			$("#spanNearest1MouseX").html((e.x).toFixed(2));
-			$("#spanNearest1MouseY").html((e.y).toFixed(2));
-			$("#spanNearestNodeIndex").html('<v>node' + e.node.index + '</v>  ← ');
+			document.getElementById("spanNearest1MouseX").innerHTML = (e.x).toFixed(2);
+			document.getElementById("spanNearest1MouseY").innerHTML = (e.y).toFixed(2);
+			document.getElementById("spanNearestNodeIndex").innerHTML = '<v>node' + e.node.index + '</v>  ← ';
 		} else{
-			$("#spanNearest1MouseX").html(' x');
-			$("#spanNearest1MouseY").html(' y ');
-			$("#spanNearestNodeIndex").html('');
+			document.getElementById("spanNearest1MouseX").innerHTML = ' x';
+			document.getElementById("spanNearest1MouseY").innerHTML = ' y ';
+			document.getElementById("spanNearestNodeIndex").innerHTML = '';
 		}
 		// console.log(e);
 	}
 	p5b.callback = function(e){
 		if(e.x != undefined && e.y != undefined){
-			$("#spanNearest2MouseX").html((e.x).toFixed(2));
-			$("#spanNearest2MouseY").html((e.y).toFixed(2));
+			document.getElementById("spanNearest2MouseX").innerHTML = (e.x).toFixed(2);
+			document.getElementById("spanNearest2MouseY").innerHTML = (e.y).toFixed(2);
 // distance
 // edge
 // location
-			$("#spanNearestEdgeIndex").html('<v>edge' + e.nearest.edge.index + '</v>, (<n>' + e.nearest.point.x.toFixed(2) + '</n>,<n>' + e.nearest.point.y.toFixed(2) + '</n>)  ← ');
+			document.getElementById("spanNearestEdgeIndex").innerHTML = '<v>edge' + e.nearest.edge.index + '</v>, (<n>' + e.nearest.point.x.toFixed(2) + '</n>,<n>' + e.nearest.point.y.toFixed(2) + '</n>)  ← ';
 		} else{
-			$("#spanNearest2MouseX").html(' x');
-			$("#spanNearest2MouseY").html(' y ');
-			$("#spanNearestEdgeIndex").html('');
+			document.getElementById("spanNearest2MouseX").innerHTML = ' x';
+			document.getElementById("spanNearest2MouseY").innerHTML = ' y ';
+			document.getElementById("spanNearestEdgeIndex").innerHTML = '';
 		}
 		// console.log(e);
 	}

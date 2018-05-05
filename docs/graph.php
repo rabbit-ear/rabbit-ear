@@ -179,30 +179,30 @@
 <script language="javascript" type="text/javascript" src="../tests/graph_removeNode.js"></script>
 <script language="javascript" type="text/javascript" src="../tests/graph_removeEdge.js"></script>
 <script>
-	$(".accordion-title").html("MORE");
+	// $(".accordion-title").html("MORE");
 	function updateNodesAdjacentToNode(input, output){
 		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }
-		$("#spanNodesAdjacentToNodeInput").html(input);
-		$("#spanNodesAdjacentToNodeResult").html(outString);
+		document.getElementById("spanNodesAdjacentToNodeInput").innerHTML = input;
+		document.getElementById("spanNodesAdjacentToNodeResult").innerHTML = outString;
 	}
 	function updateNodesAdjacentToEdge(input, output){
 		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }
-		$("#spanNodesAdjacentToEdgeInput").html(input);
-		$("#spanNodesAdjacentToEdgeResult").html(outString);
+		document.getElementById("spanNodesAdjacentToEdgeInput").innerHTML = input;
+		document.getElementById("spanNodesAdjacentToEdgeResult").innerHTML = outString;
 	}
 	function updateEdgesAdjacentToNode(input, output){
 		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }
-		$("#spanEdgesAdjacentToNodeInput").html(input);
-		$("#spanEdgesAdjacentToNodeResult").html(outString);
+		document.getElementById("spanEdgesAdjacentToNodeInput").innerHTML = input;
+		document.getElementById("spanEdgesAdjacentToNodeResult").innerHTML = outString;
 	}
 	function updateEdgesAdjacentToEdge(input, output){
 		var outString = '[<span class="token argument">' + output + '</span>] ← ';
 		if(input == undefined) { input = ''; outString = ''; }
-		$("#spanEdgesAdjacentToEdgeInput").html(input);
-		$("#spanEdgesAdjacentToEdgeResult").html(outString);
+		document.getElementById("spanEdgesAdjacentToEdgeInput").innerHTML = input;
+		document.getElementById("spanEdgesAdjacentToEdgeResult").innerHTML = outString;
 	}
 	var svg = d3.select("div#container")
 		.append("svg")

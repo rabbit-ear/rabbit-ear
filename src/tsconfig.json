@@ -2,8 +2,8 @@
 	"compilerOptions": {
 		"removeComments": true,
 		"outFile": "../dist/creasepattern.js",
-		"module": "system",
-		"target": "ES6",
+		"module": "amd",
+		"target": "ES5",
 		"allowJs": true
 	},
 	"include": [

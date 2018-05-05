@@ -133,8 +133,8 @@ crane2CP.load("/files/svg/crane-errors.svg", function(){
 <script>
 	var p5b = new p5(_11_merge_duplicates, 'divP5_merge');
 	p5b.callback = function(nodecount, edgecount, mergeInfo){
-		$("#div-node-count").html(nodecount);
-		$("#div-edge-count").html(edgecount);
+		document.getElementById("div-node-count").innerHTML = nodecount;
+		document.getElementById("div-edge-count").innerHTML = edgecount;
 	}
 </script>
 
