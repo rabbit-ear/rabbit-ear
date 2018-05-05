@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
 
-<script language="javascript" type="text/javascript" src="../dist/creasepattern.js"></script>
+<script language="javascript" type="text/javascript" src="../dist/cp.js"></script>
 <script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
 
 <script language="javascript" type="text/javascript" src="lib/katex/katex.min.js"></script>
