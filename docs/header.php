@@ -23,10 +23,6 @@
 			<a href="javascript:void(0)" class="link-fa dropbtn"><i class="fa fa-pencil-square-o fa-2x left-pad"></i></a>
 			<div class="dropdown-content">
 			<a href="../tools/validator/index.html">Crease Pattern Validator</a>
-			<a href="../tools/editor/index.html">Crease Pattern Editor</a>
-			<a href="../tools/simplifier/index.html">Path Simplify</a>
-			<a href="../mine/reference-finder.html">Reference Finder</a>
-			<a href="../mine/wiggle.html">Wiggle</a>
 			</div>
 		</li>
 		<li class="dropdown">
