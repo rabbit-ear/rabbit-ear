@@ -1,6 +1,6 @@
 <?php include 'header.php';?>
-<script language="javascript" type="text/javascript" src="../lib/d3.min.js"></script>
-<script language="javascript" type="text/javascript" src="../src/cp.d3js.js"></script>
+<script type="text/javascript" src="../lib/d3.min.js"></script>
+<script type="text/javascript" src="js/cp.d3js.js"></script>
 
 
 <h3 class="centered" style="padding-top:2em;">CHAPTER I.</h3>
@@ -173,11 +173,11 @@
 	
 </section>
 
-<script language="javascript" type="text/javascript" src="../tests/graph_simple.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/graph_adjacentNode.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/graph_adjacentEdge.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/graph_removeNode.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/graph_removeEdge.js"></script>
+<script type="text/javascript" src="../tests/graph_simple.js"></script>
+<script type="text/javascript" src="../tests/graph_adjacentNode.js"></script>
+<script type="text/javascript" src="../tests/graph_adjacentEdge.js"></script>
+<script type="text/javascript" src="../tests/graph_removeNode.js"></script>
+<script type="text/javascript" src="../tests/graph_removeEdge.js"></script>
 <script>
 	// $(".accordion-title").html("MORE");
 	function updateNodesAdjacentToNode(input, output){

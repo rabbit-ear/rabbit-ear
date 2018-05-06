@@ -2,12 +2,12 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<script language="javascript" type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../lib/paper-full.min.js"></script>
 
-<script language="javascript" type="text/javascript" src="../dist/cp.js"></script>
-<script language="javascript" type="text/javascript" src="../src/cp.paperjs.js"></script>
+<script type="text/javascript" src="../dist/cp.js"></script>
+<script type="text/javascript" src="../dist/cp.paperjs.js"></script>
 
-<script language="javascript" type="text/javascript" src="lib/katex/katex.min.js"></script>
+<script type="text/javascript" src="lib/katex/katex.min.js"></script>
 <link rel="stylesheet" href="lib/katex/katex.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700">

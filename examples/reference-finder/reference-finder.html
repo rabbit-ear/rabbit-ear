@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<style>
+html, body {
+	height:100%;  width:100%;
+	margin:0px;
+	background-color: #EEE;
+}
+canvas[resize]{
+	width:100%;
+	height:86%;
+}
+.col-md-3, .col-md-2{
+	text-align: center;
+	padding-bottom:.5em;
+}
+</style>
+</head>
+<body>
+	<canvas id="canvas" resize></canvas>
+	<input type="file" id="files" style="display:none;">
+	<div class="container">
+		<div class="row justify-content-md-center">
+			<div class="col-md-3">
+				<div class="btn-group" id="radio-target-type" data-toggle="buttons">
+					<label class="btn btn-outline-secondary active">
+						<input type="radio" name="options" id="radio-button-point" autocomplete="off" checked> Point
+					</label>
+					<label class="btn btn-outline-secondary">
+						<input type="radio" name="options" id="radio-button-line" autocomplete="off"> Line
+					</label>
+				</div>
+			</div>
+			<div class="col-md-2">
+				<input type="number" class="form-control" id="target-x1" placeholder="x">
+				<input type="number" class="form-control" id="target-x2" placeholder="x" style="display:none;">
+			</div>
+			<div class="col-md-2">
+				<input type="number" class="form-control" id="target-y1" placeholder="y">
+				<input type="number" class="form-control" id="target-y2" placeholder="y" style="display:none;">
+			</div>
+			<div class="col-md-2">
+				<div class="btn-group">
+					<a href="#" class="btn btn-md btn-outline-secondary" aria-pressed="false" id="axiom-1">Axiom 1</a>
+					<a href="#" class="btn btn-md btn-outline-secondary" aria-pressed="false" id="axiom-2">2</a>
+					<a href="#" class="btn btn-md btn-outline-secondary" aria-pressed="false" id="axiom-3">3</a>
+				</div>
+
+			</div>
+			<div class="col-md-3">
+				<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
+					<label class="btn btn-outline-secondary active">
+						<input type="radio" name="options" id="radio-button-add" autocomplete="off" checked> Crease
+					</label>
+					<label class="btn btn-outline-secondary">
+						<input type="radio" name="options" id="radio-button-remove" autocomplete="off"> Remove Crease
+					</label>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript" src="../lib/jquery-3.2.1.slim.min.js"></script>
+<script type="text/javascript" src="../tools/drag-and-drop.js"></script>
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../dist/cp.js"></script>
+<script type="text/javascript" src="../../dist/cp.paperjs.js"></script>
+<script type="text/javascript" src="reference-finder.js"></script>
+
+</html>

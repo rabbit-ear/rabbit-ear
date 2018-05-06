@@ -51,12 +51,12 @@
 <script type="text/javascript" src="../tests/mouse-select.js"></script>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/15_nearest_node.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/15_nearest_edge.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/nearest_nodes.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/nearest_angle.js"></script>
+<script type="text/javascript" src="../lib/p5.min.js"></script>
+<script type="text/javascript" src="../src/cp.p5js.js"></script>
+<script type="text/javascript" src="../tests/15_nearest_node.js"></script>
+<script type="text/javascript" src="../tests/15_nearest_edge.js"></script>
+<script type="text/javascript" src="../tests/nearest_nodes.js"></script>
+<script type="text/javascript" src="../tests/nearest_angle.js"></script>
 <script>
 
 nearAngleCallback = function(point){

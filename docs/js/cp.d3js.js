@@ -1,7 +1,3 @@
-function d3VoronoiToCP(){
-	
-}
-
 
 function graphToD3(graph){
 	

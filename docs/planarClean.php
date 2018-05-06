@@ -1,6 +1,6 @@
 <?php include 'header.php';?>
-<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
+<script type="text/javascript" src="../lib/p5.min.js"></script>
+<script type="text/javascript" src="../src/cp.p5js.js"></script>
 
 <h1>CLEAN</h1>
 
@@ -105,10 +105,10 @@
 </div>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="../tests/mouse_delete_edge.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/intersections.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/05_parallels_scale.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/11_merge_duplicates.js"></script>
+<script type="text/javascript" src="../tests/mouse_delete_edge.js"></script>
+<script type="text/javascript" src="../tests/intersections.js"></script>
+<script type="text/javascript" src="../tests/05_parallels_scale.js"></script>
+<script type="text/javascript" src="../tests/11_merge_duplicates.js"></script>
 
 <script>
 	

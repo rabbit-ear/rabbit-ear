@@ -1,7 +1,7 @@
 <?php include 'header.php';?>
 
-<!-- <script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
+<!-- <script type="text/javascript" src="../lib/p5.min.js"></script>
+<script type="text/javascript" src="../src/cp.p5js.js"></script>
  -->
 
 <style>

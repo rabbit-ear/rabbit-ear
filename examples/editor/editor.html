@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<style>
+html, body {
+	height:100%;  width:100%;
+	margin:0px;
+	background-color: #EEE;
+}
+canvas[resize]{
+	width:100%;
+	height:86%;
+}
+.btn{ padding:0.5em; }
+.toolbar{ text-align: center; }
+</style>
+</head>
+<body>
+	<canvas id="canvas" resize></canvas>
+	<div class="toolbar">
+		<a href="#" class="btn btn-lg btn-secondary" id="load-file">Open File</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="download-svg">Export .svg</a>
+		<a href="#" class="btn btn-lg btn-secondary" id="download-fold">Export .fold</a>
+	</div>
+</body>
+
+<script type="text/javascript" src="../tools/drag-and-drop.js"></script>
+<script type="text/javascript" src="../tools/file-upload-button.js"></script>
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../dist/cp.js"></script>
+<script type="text/javascript" src="../../dist/cp.paperjs.js"></script>
+<script type="text/javascript" src="editor.js"></script>
+
+</html>

@@ -1,6 +1,6 @@
 <?php include 'header.php';?>
-<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
+<script type="text/javascript" src="../lib/p5.min.js"></script>
+<script type="text/javascript" src="../src/cp.p5js.js"></script>
 
 <h1>ORIGAMI</h1>
 
@@ -38,8 +38,8 @@
 </section>
 
 <!-- include .js sketches -->
-<script language="javascript" type="text/javascript" src="js/cp_fish_wobble.js"></script>
-<script language="javascript" type="text/javascript" src="../tests/04_intersections.js"></script>
+<script type="text/javascript" src="js/cp_fish_wobble.js"></script>
+<script type="text/javascript" src="../tests/04_intersections.js"></script>
 <script>
 var p5intersections = new p5(_04_intersections, 'sketch_intersections');
 p5intersections.callback = function(e){

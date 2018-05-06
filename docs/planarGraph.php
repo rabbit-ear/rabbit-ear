@@ -1,7 +1,7 @@
 <?php include 'header.php';?>
 
-<script language="javascript" type="text/javascript" src="../lib/p5.min.js"></script>
-<script language="javascript" type="text/javascript" src="../src/cp.p5js.js"></script>
+<script type="text/javascript" src="../lib/p5.min.js"></script>
+<script type="text/javascript" src="../src/cp.p5js.js"></script>
 
 <h3 class="centered" style="padding-top:2em;">CHAPTER II.</h3>
 <h1>PLANAR GRAPHS</h1>
@@ -40,7 +40,7 @@
 </div> -->
 
 <canvas id="p5-empty-canvas" style="display:none;"></canvas>
-<script language="javascript" type="text/javascript" src="../tests/intersect_wobble.js"></script>
+<script type="text/javascript" src="../tests/intersect_wobble.js"></script>
 
 <script>
 var p5js = new p5(function(p, canvasName) { 
