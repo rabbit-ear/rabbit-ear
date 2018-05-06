@@ -30,7 +30,7 @@ export class PlanarClean extends GraphClean{
 		isolated:number;  // nodes removed for being unattached to any edge
 	}
 	constructor(numNodes?:number, numEdges?:number){
-		super();
+		super(numNodes, numEdges);
 		this.edges = {total:0,duplicate:0, circular:0};
 		this.nodes = {
 			total:0,

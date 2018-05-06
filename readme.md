@@ -50,13 +50,13 @@ There are also functions for checking local flat-foldability, Kawasaki-Justin's 
 
 # Paper.js
 
-If you additionally include the popular vector graphics library [Paper.js](http://paperjs.org/) and include `cp.paperjs.js` in the `/dist/` folder, one line is all you need to visualize your crease patter in HTML canvas. A lot of effort was spent hooking together these two libraries. After you initialize your crease pattern, throw it onto a canvas with one line:
+If you include the popular vector graphics library [Paper.js](http://paperjs.org/), also include `cp.paperjs.js` in the `/dist/` folder. One line of code is all you need to visualize your crease patter in HTML canvas. A lot of effort was spent hooking together these two libraries. After you initialize your crease pattern, throw it onto a canvas:
 
 ```Javascript
 new OrigamiPaper("canvas-name", cp);
 ```
 
-This OrigamiPaper object is interactive and includes built-in functions, modeled after the experience using creative coding platforms such as Processing or openFrameworks:
+This OrigamiPaper object is interactive and includes built-in functions, modeled after the experience using creative coding platforms like Processing and openFrameworks:
 
 ```javascript
 var project = new OrigamiPaper("canvas");
@@ -69,8 +69,6 @@ project.onMouseMove = function(event){ }
 ```
 
 > If you don't initialize a crease pattern before creating the OrigamiPaper object, it will initialize a CreasePattern for you, located at `project.cp`
-
-
 
 # License
 
