@@ -1,3 +1,15 @@
+$("#radio-input-mode :input").change(function() {
+	switch(this.id){
+	case "radio-button-add":
+		project.inputMode = "add-valley";
+	break;
+	case "radio-button-remove":
+		project.inputMode = "remove";
+	break;
+	}
+});
+
+
 // incoming file from upload-button or drag-to-upload
 function fileDidLoad(file, mimeType){
 	try{
@@ -28,20 +40,6 @@ document.getElementById("download-svg").addEventListener("click", function(e){
 	var svgBlob = project.cp.exportSVG(scale);
 	download(svgBlob, "creasepattern.svg", "image/svg+xml");
 });
-document.getElementById("download-fold").addEventListener("click", function(e){
-	e.preventDefault();
-	var foldObject = project.cp.exportFoldFile();
-	var foldFileBlob = JSON.stringify(foldObject);
-	download(foldFileBlob, "creasepattern.fold", "application/json");
-});
-document.getElementById("download-opx").addEventListener("click", function(e){
-	e.preventDefault();
-	var foldObject = project.cp.exportFoldFile();
-	var foldFileBlob = JSON.stringify(foldObject);
-	var opxFile = FOLD.convert.convertFromTo(foldFileBlob, "fold", "opx");
-	download(opxFile, "creasepattern.opx", "text/xml");
-});
-
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -193,8 +191,11 @@ project.onMouseMove = function(event) {
 				case "add-valley": Object.assign(newPath, this.style.valley); break;
 				case "add-mountain": Object.assign(newPath, this.style.mountain); break;
 				case "add-mark": Object.assign(newPath, this.style.mark); break;
+				case "remove": Object.assign(newPath, this.style.mountain); break;
 			}
-			newPath.strokeColor.alpha = 0.666;
+			if(newPath.strokeColor !== null){
+				newPath.strokeColor.alpha = 0.666;
+			}
 
 			if(selectedEdge.edge === undefined || selectedEdge.edge.madeBy === undefined || selectedEdge.edge.madeBy.args === undefined){ return; }
 			var args = selectedEdge.edge.madeBy.args;

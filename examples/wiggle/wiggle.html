@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<style>
+html, body {
+	height:100%;  width:100%;
+	margin:0px;
+	background-color: #F3F3F3;
+}
+canvas[resize]{
+	width:45vmax;
+	height:45vmax;
+}
+.center{ text-align: center; }
+</style>
+</head>
+<body>
+	<div class="center">
+		<canvas id="canvas-1" resize></canvas><canvas id="canvas-2" resize></canvas>
+	</div>
+
+	<div class="center">
+		<a href="#" class="btn btn-lg btn-outline-secondary" id="wiggle-button">Wiggle</a>
+		<!-- <a href="#" class="btn btn-lg btn-outline-secondary" id="fold-button">Fold</a> -->
+		<div class="btn-group">
+			<a href="#" class="btn btn-lg btn-outline-secondary" id="load-file">Open</a>
+			<a href="#" class="btn btn-lg btn-outline-secondary" id="reload-file">Reset</a>
+			<a href="#" class="btn btn-lg btn-outline-secondary" id="download-file">Download</a>
+		</div>
+	</div>
+</body>
+
+<script type="text/javascript" src="../tools/drag-and-drop.js"></script>
+<script type="text/javascript" src="../tools/file-upload-button.js"></script>
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../dist/cp.js"></script>
+<script type="text/javascript" src="../../dist/cp.paperjs.js"></script>
+<script type="text/javascript" src="../lib/jquery-3.2.1.slim.min.js"></script>
+
+<script>
+var foldedState = new OrigamiFold("canvas-2");
+var project = new OrigamiPaper("canvas-1");
+</script>
+
+<script src="wiggle.js"></script>
+
+<script>
+project.setPadding(0.05);
+
+var loadedCP = undefined;
+
+// load crane base by default
+// project.load("../files/svg/crane-errors.svg", function(){
+// 	project.colorNodesFlatFoldable();
+// 	foldCP();
+// 	loadedCP = project.cp.copy();
+// });
+
+// incoming file from upload-button or drag-to-upload
+function fileDidLoad(svg, mimeType){
+	project.load(svg, function(){
+		loadedCP = project.cp.copy();
+		project.colorNodesFlatFoldable();
+		foldCP();
+	});
+}
+</script>
+
+<!-- reload the last opened file -->
+<script>
+document.getElementById("reload-file").addEventListener("click", function(e){
+	e.preventDefault();
+	project.setCreasePattern( loadedCP.copy() );
+	project.colorNodesFlatFoldable();
+	foldedState.cp = new CreasePattern();
+	foldedState.draw();
+	foldCP();
+});	
+</script>
+
+<script>
+function foldCP(){
+	foldedState.cp = project.cp.copy();
+	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
+	foldedState.draw();
+}
+</script>
+
+<!-- download svg blob -->
+<script>
+function download(text, filename){
+	var blob = new Blob([text], {type: "image/svg+xml"});
+	var url = window.URL.createObjectURL(blob);
+	var a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
+}
+</script>
+
+<script>
+var wiggleLoop = undefined;
+var wiggleCount = 0;
+function startWiggle(){
+	$("#wiggle-button").addClass("active");	
+	// project.cp.wiggle();
+	wiggleLoop = setInterval(function(){
+		var wiggleCount = project.cp.wiggle();
+		// if (wiggleCount < 5){ 
+		// 	console.log("programmatically stopping wiggle");
+		// 	stopWiggle();
+		// }
+		foldCP();
+		project.update();
+		project.colorNodesFlatFoldable();
+	}, 3);
+}
+function stopWiggle(){
+	$("#wiggle-button").removeClass("active");	
+	clearInterval(wiggleLoop);
+	wiggleLoop = undefined;
+}
+</script>
+
+<!-- button to wiggle crease pattern -->
+<script>
+document.getElementById("wiggle-button").addEventListener("click", function(e){
+	e.preventDefault();
+	if(wiggleLoop === undefined){ startWiggle(); } 
+	else{ stopWiggle(); }
+
+	// var sumRating = 0;
+	// for(var i = 0; i < project.cp.nodes.length; i++){
+	// 	var rating = project.cp.nodes[i].kawasakiRating();
+	// 	sumRating += rating;
+	// 	console.log(rating);
+	// }
+	// console.log("+++++++++++++++++++");
+	// console.log(sumRating);
+});
+</script>
+
+<!-- button to fold -->
+<script>
+// document.getElementById("fold-button").addEventListener("click", function(e){
+// 	e.preventDefault();
+// 	foldCP();
+// });
+</script>
+
+<!-- button to download -->
+<script>
+document.getElementById("download-file").addEventListener("click", function(e){
+	e.preventDefault();
+	var scale = 600 / project.cpMin;
+	var svgBlob = project.cp.exportSVG(scale);
+	download(svgBlob, "creasepattern.svg");
+});
+</script>
+
+</html>

@@ -20,13 +20,36 @@ canvas[resize]{
 </head>
 <body>
 	<canvas id="canvas" resize></canvas>
-	<div class="toolbar">
+
+	<div class="container">
+		<div class="row">
+			<div class="col-md-4" style="text-align: center;">
+				<a href="#" class="btn btn-lg btn-outline-secondary" id="load-file">Open</a>
+				<a href="#" class="btn btn-lg btn-outline-secondary" id="download-svg">Download</a>
+			</div>
+			<div class="col-md-4" style="text-align: center;">
+				<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
+					<label class="btn btn-outline-secondary active">
+						<input type="radio" name="options" id="radio-button-add" autocomplete="off" checked> Crease
+					</label>
+					<label class="btn btn-outline-secondary">
+						<input type="radio" name="options" id="radio-button-remove" autocomplete="off"> Remove Crease
+					</label>
+				</div>
+			</div>
+			<div class="col-md-4" style="text-align: center;">
+				<a href="#" class="btn btn-lg btn-outline-secondary" id="fragment-button">Fragment</a>
+			</div>
+		</div>
+	</div>	
+<!-- 	<div class="toolbar">
 		<a href="#" class="btn btn-lg btn-secondary" id="load-file">Open File</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="download-svg">Export .svg</a>
 		<a href="#" class="btn btn-lg btn-secondary" id="download-fold">Export .fold</a>
-	</div>
+	</div> -->
 </body>
 
+<script type="text/javascript" src="../lib/jquery-3.2.1.slim.min.js"></script>
 <script type="text/javascript" src="../tools/drag-and-drop.js"></script>
 <script type="text/javascript" src="../tools/file-upload-button.js"></script>
 <script type="text/javascript" src="../../lib/paper-full.min.js"></script>

@@ -502,7 +502,7 @@ var OrigamiFold = (function(){
 		this.style = { face:{ fillColor:{ gray:1.0, alpha:0.1 } } };
 		this.buildViewMatrix();
 
-		this.customZoom = 0.6;
+		this.customZoom = 0.8;
 
 		// the order of the following sets the z index order too
 		this.foldedLayer = new this.scope.Layer();
