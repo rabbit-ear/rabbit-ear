@@ -1,1 +1,3814 @@
-"use strict";var __extends=this&&this.__extends||function(){var e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var n in t)t.hasOwnProperty(n)&&(e[n]=t[n])};return function(t,n){function i(){this.constructor=t}e(t,n),t.prototype=null===n?Object.create(n):(i.prototype=n.prototype,new i)}}(),GraphClean=function(){function e(e,t){this.nodes={total:0,isolated:0},this.edges={total:0,duplicate:0,circular:0},void 0!==e&&(this.nodes.total=e),void 0!==t&&(this.edges.total=t)}return e.prototype.join=function(e){return this.nodes.total+=e.nodes.total,this.edges.total+=e.edges.total,this.nodes.isolated+=e.nodes.isolated,this.edges.duplicate+=e.edges.duplicate,this.edges.circular+=e.edges.circular,this},e.prototype.isolatedNodes=function(e){return this.nodes.isolated=e,this.nodes.total+=e,this},e.prototype.duplicateEdges=function(e){return this.edges.duplicate=e,this.edges.total+=e,this},e.prototype.circularEdges=function(e){return this.edges.circular=e,this.edges.total+=e,this},e}(),GraphNode=function(){function e(e){this.graph=e}return e.prototype.adjacentEdges=function(){return this.graph.edges.filter(function(e){return e.nodes[0]===this||e.nodes[1]===this},this)},e.prototype.adjacentNodes=function(){var e=[];return this.adjacentEdges().filter(function(e){return!e.isCircular()}).map(function(e){return e.nodes[0]===this?e.nodes[1]:e.nodes[0]},this).filter(function(t){return!(e.indexOf(t)>=0)&&e.push(t)},this)},e.prototype.isAdjacentToNode=function(e){return void 0!==this.graph.getEdgeConnectingNodes(this,e)},e.prototype.degree=function(){return this.graph.edges.map(function(e){var t=0;return e.nodes[0]===this&&(t+=1),e.nodes[1]===this&&(t+=1),t},this).reduce(function(e,t){return e+t})},e}(),GraphEdge=function(){function e(e,t,n){this.graph=e,this.nodes=[t,n]}return e.prototype.adjacentEdges=function(){return this.graph.edges.filter(function(e){return e!==this&&(e.nodes[0]===this.nodes[0]||e.nodes[0]===this.nodes[1]||e.nodes[1]===this.nodes[0]||e.nodes[1]===this.nodes[1])},this)},e.prototype.adjacentNodes=function(){return[this.nodes[0],this.nodes[1]]},e.prototype.isAdjacentToEdge=function(e){return this.nodes[0]===e.nodes[0]||this.nodes[1]===e.nodes[1]||this.nodes[0]===e.nodes[1]||this.nodes[1]===e.nodes[0]},e.prototype.isSimilarToEdge=function(e){return this.nodes[0]===e.nodes[0]&&this.nodes[1]===e.nodes[1]||this.nodes[0]===e.nodes[1]&&this.nodes[1]===e.nodes[0]},e.prototype.otherNode=function(e){return this.nodes[0]===e?this.nodes[1]:this.nodes[1]===e?this.nodes[0]:void 0},e.prototype.isCircular=function(){return this.nodes[0]===this.nodes[1]},e.prototype.duplicateEdges=function(){return this.graph.edges.filter(function(e){return this.isSimilarToEdge(e)},this)},e.prototype.commonNodeWithEdge=function(e){if(this!==e)return this.nodes[0]===e.nodes[0]||this.nodes[0]===e.nodes[1]?this.nodes[0]:this.nodes[1]===e.nodes[0]||this.nodes[1]===e.nodes[1]?this.nodes[1]:void 0},e.prototype.uncommonNodeWithEdge=function(e){if(this!==e)return this.nodes[0]===e.nodes[0]||this.nodes[0]===e.nodes[1]?this.nodes[1]:this.nodes[1]===e.nodes[0]||this.nodes[1]===e.nodes[1]?this.nodes[0]:void 0},e}(),Graph=function(){function e(){this.nodeType=GraphNode,this.edgeType=GraphEdge,this.clear()}return e.prototype.copy=function(){this.nodeArrayDidChange(),this.edgeArrayDidChange();for(var t=new e,n=0;n<this.nodes.length;n++){var i=t.addNode(new GraphNode(t));Object.assign(i,this.nodes[n]),i.graph=t,i.index=n}for(n=0;n<this.edges.length;n++){var o=[this.edges[n].nodes[0].index,this.edges[n].nodes[1].index],r=t.addEdge(new GraphEdge(t,t.nodes[o[0]],t.nodes[o[1]]));Object.assign(r,this.edges[n]),r.graph=t,r.index=n,r.nodes=[t.nodes[o[0]],t.nodes[o[1]]]}return t},e.prototype.newNode=function(){return this.addNode(new this.nodeType(this))},e.prototype.newEdge=function(e,t){return this.addEdge(new this.edgeType(this,e,t))},e.prototype.addNode=function(e){if(void 0==e)throw"addNode() requires an argument: 1 GraphNode";return e.graph=this,e.index=this.nodes.length,this.nodes.push(e),e},e.prototype.addEdge=function(e){if(void 0!==e.nodes[0]&&void 0!==e.nodes[1]&&e.nodes[0].graph===this&&e.nodes[1].graph===this)return e.graph=this,e.index=this.edges.length,this.edges.push(e),e},e.prototype.addNodes=function(e){if(void 0===e||e.length<=0)throw"addNodes() must contain array of GraphNodes";var t=this.nodes.length,n=e.filter(function(e){return e instanceof GraphNode});this.nodes=this.nodes.concat(n);for(var i=t;i<this.nodes.length;i++)this.nodes[i].graph=this,this.nodes[i].index=i;return this.nodes.length-t},e.prototype.addEdges=function(e){if(void 0==e||e.length<=0)throw"addEdges() must contain array of GraphEdges";var t=this.edges.length,n=e.filter(function(e){return e instanceof GraphEdge});this.edges=this.edges.concat(n);for(var i=t;i<this.edges.length;i++)this.edges[i].graph=this;return this.cleanGraph(),this.edges.length-t},e.prototype.copyNode=function(e){var t=Object.assign(this.newNode(),e);return this.addNode(t)},e.prototype.copyEdge=function(e){var t=Object.assign(this.newEdge(e.nodes[0],e.nodes[1]),e);return this.addEdge(t)},e.prototype.clear=function(){return this.nodes=[],this.edges=[],this},e.prototype.removeEdge=function(e){var t=this.edges.length;return this.edges=this.edges.filter(function(t){return t!==e}),this.edgeArrayDidChange(),new GraphClean(void 0,t-this.edges.length)},e.prototype.removeEdgeBetween=function(e,t){var n=this.edges.length;return this.edges=this.edges.filter(function(n){return!(n.nodes[0]===e&&n.nodes[1]===t||n.nodes[0]===t&&n.nodes[1]===e)}),this.edgeArrayDidChange(),new GraphClean(void 0,n-this.edges.length)},e.prototype.removeNode=function(e){var t=this.nodes.length,n=this.edges.length;return this.nodes=this.nodes.filter(function(t){return t!==e}),this.edges=this.edges.filter(function(t){return t.nodes[0]!==e&&t.nodes[1]!==e}),this.edges.length!=n&&this.edgeArrayDidChange(),this.nodes.length!=t&&this.nodeArrayDidChange(),new GraphClean(t-this.nodes.length,n-this.edges.length)},e.prototype.mergeNodes=function(e,t){if(e!==t){this.edges=this.edges.map(function(n){return n.nodes[0]===t&&(n.nodes[0]=e),n.nodes[1]===t&&(n.nodes[1]=e),n});var n=this.nodes.length;return this.nodes=this.nodes.filter(function(e){return e!==t}),new GraphClean(n-this.nodes.length).join(this.cleanGraph())}},e.prototype.removeIsolatedNodes=function(){this.nodeArrayDidChange();for(var e=[],t=0;t<this.nodes.length;t++)e[t]=!1;for(t=0;t<this.edges.length;t++)e[this.edges[t].nodes[0].index]=!0,e[this.edges[t].nodes[1].index]=!0;var n=this.nodes.length;this.nodes=this.nodes.filter(function(t,n){return e[n]});var i=n-this.nodes.length;return i>0&&this.nodeArrayDidChange(),(new GraphClean).isolatedNodes(i)},e.prototype.cleanCircularEdges=function(){var e=this.edges.length;return this.edges=this.edges.filter(function(e){return!(e.nodes[0]===e.nodes[1])}),this.edges.length!=e&&this.edgeArrayDidChange(),(new GraphClean).circularEdges(e-this.edges.length)},e.prototype.cleanDuplicateEdges=function(){for(var e=0,t=0;t<this.edges.length-1;t++)for(var n=this.edges.length-1;n>t;n--)this.edges[t].isSimilarToEdge(this.edges[n])&&(this.edges.splice(n,1),e+=1);return e>0&&this.edgeArrayDidChange(),(new GraphClean).duplicateEdges(e)},e.prototype.cleanGraph=function(){return this.edgeArrayDidChange(),this.nodeArrayDidChange(),this.cleanDuplicateEdges().join(this.cleanCircularEdges())},e.prototype.clean=function(){return this.cleanGraph()},e.prototype.getEdgeConnectingNodes=function(e,t){for(var n=0;n<this.edges.length;n++)if(this.edges[n].nodes[0]===e&&this.edges[n].nodes[1]===t||this.edges[n].nodes[0]===t&&this.edges[n].nodes[1]===e)return this.edges[n]},e.prototype.getEdgesConnectingNodes=function(e,t){return this.edges.filter(function(n){return n.nodes[0]===e&&n.nodes[1]===t||n.nodes[0]===t&&n.nodes[1]===e})},e.prototype.nodeArrayDidChange=function(){for(var e=0;e<this.nodes.length;e++)this.nodes[e].index=e},e.prototype.edgeArrayDidChange=function(){for(var e=0;e<this.edges.length;e++)this.edges[e].index=e},e}(),Multigraph=function(e){function t(){return null!==e&&e.apply(this,arguments)||this}return __extends(t,e),t.prototype.cleanGraph=function(){return this.edgeArrayDidChange(),this.nodeArrayDidChange(),new GraphClean},t}(Graph),EPSILON_LOW=.003,EPSILON=1e-5,EPSILON_HIGH=1e-8,EPSILON_UI=.05;function isValidPoint(e){return void 0!==e&&!isNaN(e.x)&&!isNaN(e.y)}function isValidNumber(e){return void 0!==e&&!isNaN(e)&&!isNaN(e)}function pointsSimilar(e,t,n){return void 0===n&&(n=EPSILON_HIGH),epsilonEqual(e.x,t.x,n)&&epsilonEqual(e.y,t.y,n)}function map(e,t,n,i,o){return(e-t)/(n-t)*(o-i)+i}function epsilonEqual(e,t,n){return void 0===n&&(n=EPSILON_HIGH),Math.abs(e-t)<n}function wholeNumberify(e,t){return void 0===t&&(t=EPSILON_HIGH),Math.abs(Math.round(e)-e)<t&&(e=Math.round(e)),e}function clockwiseInteriorAngleRadians(e,t){for(;e<0;)e+=2*Math.PI;for(;t<0;)t+=2*Math.PI;var n=e-t;return n>=0?n:2*Math.PI-(t-e)}function clockwiseInteriorAngle(e,t){var n=t.x*e.x+t.y*e.y,i=t.x*e.y-t.y*e.x,o=Math.atan2(i,n);return o<0&&(o+=2*Math.PI),o}function interiorAngles(e,t){var n=clockwiseInteriorAngle(e,t),i=2*Math.PI-n;return n<i?[n,i]:[i,n]}function bisect(e,t){return e=e.normalize(),t=t.normalize(),[e.add(t).normalize(),new XY(-e.x-t.x,-e.y-t.y).normalize()]}function determinantXY(e,t){return e.x*t.y-t.x*e.y}function intersect_vec_func(e,t,n,i,o,r){var s=determinantXY(t,i),a=-s;if(!epsilonEqual(s,0,r)){var h=determinantXY(n.subtract(e),i)/s;return o(h,determinantXY(e.subtract(n),t)/a)?e.add(t.scale(h)):void 0}}function intersectionLineLine(e,t,n){return void 0===n&&(n=EPSILON_HIGH),intersect_vec_func(new XY(e.point.x,e.point.y),new XY(e.direction.x,e.direction.y),new XY(t.point.x,t.point.y),new XY(t.direction.x,t.direction.y),function(e,t){return!0},n)}function intersectionLineRay(e,t,n){return void 0===n&&(n=EPSILON_HIGH),intersect_vec_func(new XY(e.point.x,e.point.y),new XY(e.direction.x,e.direction.y),new XY(t.origin.x,t.origin.y),new XY(t.direction.x,t.direction.y),function(e,t){return t>=0},n)}function intersectionLineEdge(e,t,n){return void 0===n&&(n=EPSILON_HIGH),intersect_vec_func(new XY(e.point.x,e.point.y),new XY(e.direction.x,e.direction.y),new XY(t.nodes[0].x,t.nodes[0].y),new XY(t.nodes[1].x-t.nodes[0].x,t.nodes[1].y-t.nodes[0].y),function(e,t){return t>=0&&t<=1},n)}function intersectionRayRay(e,t,n){return void 0===n&&(n=EPSILON_HIGH),intersect_vec_func(new XY(e.origin.x,e.origin.y),new XY(e.direction.x,e.direction.y),new XY(t.origin.x,t.origin.y),new XY(t.direction.x,t.direction.y),function(e,t){return e>=0&&t>=0},n)}function intersectionRayEdge(e,t,n){return void 0===n&&(n=EPSILON_HIGH),intersect_vec_func(new XY(e.origin.x,e.origin.y),new XY(e.direction.x,e.direction.y),new XY(t.nodes[0].x,t.nodes[0].y),new XY(t.nodes[1].x-t.nodes[0].x,t.nodes[1].y-t.nodes[0].y),function(e,t){return e>=0&&t>=0&&t<=1},n)}function intersectionEdgeEdge(e,t,n){return void 0===n&&(n=EPSILON_HIGH),intersect_vec_func(new XY(e.nodes[0].x,e.nodes[0].y),new XY(e.nodes[1].x-e.nodes[0].x,e.nodes[1].y-e.nodes[0].y),new XY(t.nodes[0].x,t.nodes[0].y),new XY(t.nodes[1].x-t.nodes[0].x,t.nodes[1].y-t.nodes[0].y),function(e,t){return e>=0&&e<=1&&t>=0&&t<=1},n)}function circleLineIntersectionAlgorithm(e,t,n,i){var o=Math.pow(t,2),r=n.x-e.x,s=n.y-e.y,a=(l=i.x-e.x)-r,h=(g=i.y-e.y)-s,d=a*a+h*h,u=r*g-l*s;function c(e){return e<0?-1:1}r=(u*h+c(h)*a*Math.sqrt(o*d-u*u))/d;var l=(u*h-c(h)*a*Math.sqrt(o*d-u*u))/d,g=(s=(-u*a+Math.abs(h)*Math.sqrt(o*d-u*u))/d,(-u*a-Math.abs(h)*Math.sqrt(o*d-u*u))/d),p=[];return isNaN(r)||p.push(new XY(r+e.x,s+e.y)),isNaN(l)||p.push(new XY(l+e.x,g+e.y)),p}var Matrix=function(){function e(e,t,n,i,o,r){this.a=void 0!==e?e:1,this.b=void 0!==t?t:0,this.c=void 0!==n?n:0,this.d=void 0!==i?i:1,this.tx=void 0!==o?o:0,this.ty=void 0!==r?r:0}return e.prototype.identity=function(){this.a=1,this.b=0,this.c=0,this.d=1,this.tx=0,this.ty=0},e.prototype.mult=function(t){var n=new e;return n.a=this.a*t.a+this.c*t.b,n.c=this.a*t.c+this.c*t.d,n.tx=this.a*t.tx+this.c*t.ty+this.tx,n.b=this.b*t.a+this.d*t.b,n.d=this.b*t.c+this.d*t.d,n.ty=this.b*t.tx+this.d*t.ty+this.ty,n},e.prototype.reflection=function(e,t){var n=Math.atan2(e.y,e.x),i=Math.cos(n),o=Math.sin(n),r=Math.cos(-n),s=Math.sin(-n);return this.a=i*r+o*s,this.b=i*-s+o*r,this.c=o*r+-i*s,this.d=o*-s+-i*r,void 0!==t&&(this.tx=t.x+this.a*-t.x+-t.y*this.c,this.ty=t.y+this.b*-t.x+-t.y*this.d),this},e.prototype.rotation=function(e,t){return this.a=Math.cos(e),this.c=-Math.sin(e),this.b=Math.sin(e),this.d=Math.cos(e),void 0!==t&&(this.tx=t.x,this.ty=t.y),this},e.prototype.copy=function(){var t=new e;return t.a=this.a,t.c=this.c,t.tx=this.tx,t.b=this.b,t.d=this.d,t.ty=this.ty,t},e}(),XY=function(){function e(e,t){this.x=e,this.y=t}return e.prototype.normalize=function(){var t=this.magnitude();return new e(this.x/t,this.y/t)},e.prototype.rotate90=function(){return new e(-this.y,this.x)},e.prototype.rotate270=function(){return new e(this.y,-this.x)},e.prototype.rotate=function(e,t){return this.transform((new Matrix).rotation(e,t))},e.prototype.dot=function(e){return this.x*e.x+this.y*e.y},e.prototype.cross=function(e){return this.x*e.y-this.y*e.x},e.prototype.magnitude=function(){return Math.sqrt(this.x*this.x+this.y*this.y)},e.prototype.distanceTo=function(e){return Math.sqrt(Math.pow(this.x-e.x,2)+Math.pow(this.y-e.y,2))},e.prototype.equivalent=function(e,t){return void 0==t&&(t=EPSILON_HIGH),epsilonEqual(this.x,e.x,t)&&epsilonEqual(this.y,e.y,t)},e.prototype.transform=function(t){return new e(this.x*t.a+this.y*t.c+t.tx,this.x*t.b+this.y*t.d+t.ty)},e.prototype.lerp=function(t,n){var i=1-n;return new e(this.x*n+t.x*i,this.y*n+t.y*i)},e.prototype.angleLerp=function(t,n){var i,o,r,s,a=Math.atan2(this.y,this.x),h=Math.atan2(t.y,t.x),d=a+(i=a,o=h,r=2*Math.PI,(2*(s=(o-i)%r)%r-s)*n);return new e(Math.cos(d),Math.sin(d))},e.prototype.reflect=function(t){var n,i;if(void 0!==t.direction)n=t.point||t.origin,i=t.direction;else{if(void 0===t.nodes)return;n=new e(t.nodes[0].x,t.nodes[0].y),i=new e(t.nodes[1].x,t.nodes[1].y).subtract(n)}return this.transform((new Matrix).reflection(i,n))},e.prototype.scale=function(t){return new e(this.x*t,this.y*t)},e.prototype.add=function(t){return new e(this.x+t.x,this.y+t.y)},e.prototype.subtract=function(t){return new e(this.x-t.x,this.y-t.y)},e.prototype.multiply=function(t){return new e(this.x*t.x,this.y*t.y)},e.prototype.midpoint=function(t){return new e(.5*(this.x+t.x),.5*(this.y+t.y))},e.prototype.abs=function(){return new e(Math.abs(this.x),Math.abs(this.y))},e}(),LineType=function(){function e(){}return e.prototype.length=function(){},e.prototype.vector=function(){},e.prototype.parallel=function(e,t){},e.prototype.collinear=function(e){},e.prototype.equivalent=function(e,t){},e.prototype.intersection=function(e){},e.prototype.reflectionMatrix=function(){},e.prototype.nearestPoint=function(e){},e.prototype.nearestPointNormalTo=function(e){},e.prototype.transform=function(e){},e.prototype.degenrate=function(e){},e}(),Line=function(){function e(e,t,n,i){t instanceof XY?(this.point=e,this.direction=t):void 0!==e.x?(this.point=new XY(e.x,e.y),this.direction=new XY(t.x,t.y)):(this.point=new XY(e,t),this.direction=new XY(n,i))}return e.prototype.length=function(){return 1/0},e.prototype.vector=function(){return this.direction},e.prototype.parallel=function(e,t){void 0===t&&(t=EPSILON_HIGH);var n=void 0!==e.nodes?e.nodes[1].subtract(e.nodes[0]):e.direction;return void 0!==n?epsilonEqual(this.direction.cross(n),0,t):void 0},e.prototype.collinear=function(e,t){void 0===t&&(t=EPSILON_HIGH);var n=[this.point.x,this.point.x+this.direction.x,e.x],i=[this.point.y,this.point.y+this.direction.y,e.y];return epsilonEqual(n[0]*(i[1]-i[2])+n[1]*(i[2]-i[0])+n[2]*(i[0]-i[1]),0,t)},e.prototype.equivalent=function(e,t){return this.collinear(e.point,t)&&this.parallel(e,t)},e.prototype.intersection=function(t){return t instanceof e?intersectionLineLine(this,t):t instanceof Ray?intersectionLineRay(this,t):t instanceof Edge?intersectionLineEdge(this,t):void 0},e.prototype.reflectionMatrix=function(){return(new Matrix).reflection(this.direction,this.point)},e.prototype.nearestPoint=function(e){return this.nearestPointNormalTo(e)},e.prototype.nearestPointNormalTo=function(e){var t=this.direction.normalize(),n=(e.x-this.point.x)*t.x+(e.y-this.point.y)*t.y;return new XY(this.point.x+n*t.x,this.point.y+n*t.y)},e.prototype.transform=function(t){return new e(this.point.transform(t),this.direction.transform(t))},e.prototype.degenrate=function(e){return void 0===e&&(e=EPSILON_HIGH),epsilonEqual(this.direction.magnitude(),0,e)},e}(),Ray=function(){function e(e,t,n,i){e instanceof XY?(this.origin=e,this.direction=t):void 0!==e.x?(this.origin=new XY(e.x,e.y),this.direction=new XY(t.x,t.y)):(this.origin=new XY(e,t),this.direction=new XY(n,i))}return e.prototype.length=function(){return 1/0},e.prototype.vector=function(){return this.direction},e.prototype.parallel=function(e,t){void 0===t&&(t=EPSILON_HIGH);var n=void 0!==e.nodes?e.nodes[1].subtract(e.nodes[0]):e.direction;if(void 0!==n)return epsilonEqual(this.direction.cross(n),0,t)},e.prototype.collinear=function(e,t){void 0===t&&(t=EPSILON_HIGH);var n=new XY(e.x-this.origin.x,e.y-this.origin.y);return!(n.dot(this.direction)<-t)&&epsilonEqual(n.cross(this.direction),0,t)},e.prototype.equivalent=function(e,t){return void 0===t&&(t=EPSILON_HIGH),this.origin.equivalent(e.origin,t)&&this.direction.normalize().equivalent(e.direction.normalize(),t)},e.prototype.intersection=function(t){return t instanceof e?intersectionRayRay(this,t):t instanceof Line?intersectionLineRay(t,this):t instanceof Edge?intersectionRayEdge(this,t):void 0},e.prototype.reflectionMatrix=function(){return(new Matrix).reflection(this.direction,this.origin)},e.prototype.nearestPoint=function(e){var t=this.nearestPointNormalTo(e);return void 0!==t?t:this.origin},e.prototype.nearestPointNormalTo=function(e){var t=this.direction.normalize(),n=(e.x-this.origin.x)*t.x+(e.y-this.origin.y)*t.y;if(!(n<0))return new XY(this.origin.x+n*t.x,this.origin.y+n*t.y)},e.prototype.transform=function(t){return new e(this.origin.transform(t),this.direction.transform(t))},e.prototype.degenrate=function(e){return void 0===e&&(e=EPSILON_HIGH),epsilonEqual(this.direction.magnitude(),0,e)},e.prototype.flip=function(){return new e(this.origin,new XY(-this.direction.x,-this.direction.y))},e.prototype.clipWithEdge=function(e,t){var n=intersectionRayEdge(this,e,t);if(void 0!==n)return new Edge(this.origin,n)},e.prototype.clipWithEdges=function(e,t){return void 0===t&&(t=EPSILON_HIGH),e.map(function(e){return this.clipWithEdge(e)},this).filter(function(e){return void 0!==e}).map(function(e){return{edge:e,length:e.length()}}).filter(function(e){return e.length>t}).sort(function(e,t){return e.length-t.length}).map(function(e){return e.edge})},e.prototype.clipWithEdgesDetails=function(e,t){return void 0===t&&(t=EPSILON_HIGH),e.map(function(e){return{edge:this.clipWithEdge(e),intersection:e}},this).filter(function(e){return void 0!==e.edge}).map(function(e){return{edge:e.edge,intersection:e.intersection,length:e.edge.length()}}).filter(function(e){return e.length>t}).sort(function(e,t){return e.length-t.length}).map(function(e){return{edge:e.edge,intersection:e.intersection}})},e}(),Edge=function(){function e(e,t,n,i){e instanceof XY?this.nodes=[e,t]:void 0!==e.x?this.nodes=[new XY(e.x,e.y),new XY(t.x,t.y)]:this.nodes=[new XY(e,t),new XY(n,i)]}return e.prototype.length=function(){return Math.sqrt(Math.pow(this.nodes[0].x-this.nodes[1].x,2)+Math.pow(this.nodes[0].y-this.nodes[1].y,2))},e.prototype.vector=function(e){return void 0===e?this.nodes[1].subtract(this.nodes[0]):this.nodes[0].equivalent(e)?this.nodes[1].subtract(this.nodes[0]):this.nodes[0].subtract(this.nodes[1])},e.prototype.parallel=function(e,t){void 0===t&&(t=EPSILON_HIGH);var n=void 0!==e.nodes?e.nodes[1].subtract(e.nodes[0]):e.direction;if(void 0!==n)return epsilonEqual(this.nodes[1].subtract(this.nodes[0]).cross(n),0,t)},e.prototype.collinear=function(t,n){void 0===n&&(n=EPSILON_HIGH);var i=new e(t,this.nodes[0]).length(),o=new e(t,this.nodes[1]).length();return epsilonEqual(this.length()-i-o,0,n)},e.prototype.equivalent=function(e,t){return void 0===t&&(t=EPSILON_HIGH),this.nodes[0].equivalent(e.nodes[0],t)&&this.nodes[1].equivalent(e.nodes[1],t)||this.nodes[0].equivalent(e.nodes[1],t)&&this.nodes[1].equivalent(e.nodes[0],t)},e.prototype.intersection=function(t){return t instanceof Line?intersectionLineEdge(t,this):t instanceof Ray?intersectionRayEdge(t,this):t instanceof e?intersectionEdgeEdge(this,t):void 0},e.prototype.reflectionMatrix=function(){return(new Matrix).reflection(this.nodes[1].subtract(this.nodes[0]),this.nodes[0])},e.prototype.nearestPoint=function(e){var t=this.nearestPointNormalTo(e);return void 0!==t?t:this.nodes.map(function(t){return{point:t,distance:t.distanceTo(e)}},this).sort(function(e,t){return e.distance-t.distance}).shift().point},e.prototype.nearestPointNormalTo=function(e){var t=this.nodes[0].distanceTo(this.nodes[1]),n=((e.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x)+(e.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y))/Math.pow(t,2);if(!(n<0||n>1))return new XY(this.nodes[0].x+n*(this.nodes[1].x-this.nodes[0].x),this.nodes[0].y+n*(this.nodes[1].y-this.nodes[0].y))},e.prototype.transform=function(t){return new e(this.nodes[0].transform(t),this.nodes[1].transform(t))},e.prototype.degenrate=function(e){return void 0===e&&(e=EPSILON_HIGH),this.nodes[0].equivalent(this.nodes[1],e)},e.prototype.midpoint=function(){return new XY(.5*(this.nodes[0].x+this.nodes[1].x),.5*(this.nodes[0].y+this.nodes[1].y))},e.prototype.pointVectorForm=function(){return new Line(this.nodes[0],this.nodes[1].subtract(this.nodes[0]))},e}(),Polyline=function(){function e(){this.nodes=[]}return e.prototype.edges=function(){for(var e=[],t=0;t<this.nodes.length-1;t++)e.push(new Edge(this.nodes[t],this.nodes[t+1]));return e},e.prototype.rayReflectRepeat=function(e,t,n){var i=[],o=e.clipWithEdgesDetails(t);if(void 0!==n&&epsilonEqual(e.direction.cross(n.subtract(e.origin)),0,EPSILON_HIGH)&&(0===o.length||e.origin.distanceTo(n)<o[0].edge.length()))return this.nodes=[e.origin,n],this;i.push(o[0]);for(var r=0;r<100;){var s=i[i.length-1],a=new XY(s.intersection.nodes[0].x,s.intersection.nodes[0].y),h=new XY(s.intersection.nodes[1].x,s.intersection.nodes[1].y),d=(new Matrix).reflection(h.subtract(a),a),u=new Ray(s.edge.nodes[1],s.edge.nodes[0].transform(d).subtract(s.edge.nodes[1])),c=u.clipWithEdgesDetails(t);if(void 0!==n&&epsilonEqual(u.direction.cross(n.subtract(u.origin)),0,EPSILON_HIGH)){i.push({edge:new Edge(u.origin,n),intersection:void 0});break}if(0===c.length||void 0===c[0])break;i.push(c[0]),r++}return this.nodes=i.map(function(e){return e.edge.nodes[0]}),this.nodes.push(i[i.length-1].edge.nodes[1]),this},e}(),Rect=function(){return function(e,t,n,i){this.topLeft={x:e,y:t},this.size={width:n,height:i}}}(),Triangle=function(){function e(e,t){this.points=e,this.edges=this.points.map(function(e,t){var n=this.points[(t+1)%this.points.length];return new Edge(e,n)},this),this.sectors=this.points.map(function(e,t){var n=(t+this.points.length-1)%this.points.length,i=(t+1)%this.points.length;return new Sector(e,[this.points[n],this.points[i]])},this),this.circumcenter=t}return e.prototype.angles=function(){return this.points.map(function(e,t){var n=this.points[(t+this.points.length-1)%this.points.length];return clockwiseInteriorAngle(this.points[(t+1)%this.points.length].subtract(e),n.subtract(e))},this)},e.prototype.isAcute=function(){for(var e=this.angles(),t=0;t<e.length;t++)if(e[t]>.5*Math.PI)return!1;return!0},e.prototype.isObtuse=function(){for(var e=this.angles(),t=0;t<e.length;t++)if(e[t]>.5*Math.PI)return!0;return!1},e.prototype.isRight=function(){for(var e=this.angles(),t=0;t<e.length;t++)if(epsilonEqual(e[t],.5*Math.PI))return!0;return!1},e.prototype.pointInside=function(e){for(var t=0;t<this.points.length;t++){var n=this.points[t],i=this.points[(t+1)%this.points.length];if((e.y-n.y)*(i.x-n.x)-(e.x-n.x)*(i.y-n.y)<0)return!1}return!0},e}(),IsoscelesTriangle=function(e){function t(){return null!==e&&e.apply(this,arguments)||this}return __extends(t,e),t}(Triangle),ConvexPolygon=function(){function e(){}return e.prototype.center=function(){for(var e=1/0,t=0,n=1/0,i=0,o=this.edges.map(function(e){return e.nodes[0]}),r=0;r<o.length;r++)o[r].x>t&&(t=o[r].x),o[r].x<e&&(e=o[r].x),o[r].y>i&&(i=o[r].y),o[r].y<n&&(n=o[r].y);return new XY(e+.5*(e+t),n+.5*(n+i))},e.prototype.contains=function(e){for(var t=0;t<this.edges.length;t++){var n=this.edges[t].nodes[1].subtract(this.edges[t].nodes[0]),i=new XY(e.x-this.edges[t].nodes[0].x,e.y-this.edges[t].nodes[0].y);if(n.cross(i)<0)return!1}return!0},e.prototype.clipEdge=function(e){var t=this.edges.map(function(t){return intersectionEdgeEdge(e,t)}).filter(function(e){return void 0!==e}).filter(function(t){return!t.equivalent(e.nodes[0])&&!t.equivalent(e.nodes[1])});switch(t.length){case 0:return this.contains(e.nodes[0])?e:void 0;case 1:return this.contains(e.nodes[0])?new Edge(e.nodes[0],t[0]):new Edge(e.nodes[1],t[0]);default:for(var n=1;n<t.length;n++)if(!t[0].equivalent(t[n]))return new Edge(t[0],t[n])}},e.prototype.clipLine=function(e){var t=this.edges.map(function(t){return intersectionLineEdge(e,t)}).filter(function(e){return void 0!==e});switch(t.length){case 0:return;case 1:return new Edge(t[0],t[0]);default:for(var n=1;n<t.length;n++)if(!t[0].equivalent(t[n]))return new Edge(t[0],t[n])}},e.prototype.clipRay=function(e){var t=this.edges.map(function(t){return intersectionRayEdge(e,t)}).filter(function(e){return void 0!==e});switch(t.length){case 0:return;case 1:return new Edge(e.origin,t[0]);default:for(var n=1;n<t.length;n++)if(!t[0].equivalent(t[n]))return new Edge(t[0],t[n])}},e.prototype.setEdgesFromPoints=function(e){return e.map(function(t,n){var i=e[(n+1)%e.length];return new Edge(t,i)},this)},e.prototype.convexHull=function(e){if(void 0!==e&&0!==e.length){var t=e.sort(function(e,t){return epsilonEqual(e.y,t.y,EPSILON_HIGH)?e.x-t.x:e.y-t.y}),n=[];n.push(t[0]);var i=0,o=0;do{o++;var r=n.length-1,s=t.filter(function(e){return!(epsilonEqual(e.x,n[r].x,EPSILON_HIGH)&&epsilonEqual(e.y,n[r].y,EPSILON_HIGH))}).map(function(e){for(var t=Math.atan2(n[r].y-e.y,n[r].x-e.x);t<i;)t+=2*Math.PI;return{node:e,angle:t,distance:void 0}}).sort(function(e,t){return e.angle<t.angle?-1:e.angle>t.angle?1:0});if(0===s.length)return void(this.edges=[]);var a=s[0];if(s=s.filter(function(e){return epsilonEqual(a.angle,e.angle,EPSILON_LOW)}).map(function(e){var t=Math.sqrt(Math.pow(n[r].x-e.node.x,2)+Math.pow(n[r].y-e.node.y,2));return e.distance=t,e}).sort(function(e,t){return e.distance<t.distance?1:e.distance>t.distance?-1:0}),n.contains(s[0].node))return this.edges=this.setEdgesFromPoints(n),this;n.push(s[0].node),i=Math.atan2(n[r].y-s[0].node.y,n[r].x-s[0].node.x)}while(o<1e4);this.edges=[]}else this.edges=[]},e.prototype.minimumRect=function(){var e=1/0,t=-1/0,n=1/0,i=-1/0;return this.edges.map(function(e){return e.nodes[0]}).forEach(function(o){o.x>t&&(t=o.x),o.x<e&&(e=o.x),o.y>i&&(i=o.y),o.y<n&&(n=o.y)}),new Rect(e,n,t-e,i-n)},e.prototype.copy=function(){var t=new e;return t.edges=this.edges.map(function(e){return new Edge(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y)}),t},e}(),Sector=function(){function e(e,t){this.origin=e,this.endPoints=t}return e.prototype.vectors=function(){return[this.endPoints[0].subtract(this.origin),this.endPoints[1].subtract(this.origin)]},e.prototype.angle=function(){return clockwiseInteriorAngle(this.endPoints[0].subtract(this.origin),this.endPoints[1].subtract(this.origin))},e.prototype.bisect=function(){for(var e=this.vectors().map(function(e){return Math.atan2(e.y,e.x)});e[0]<0;)e[0]+=2*Math.PI;for(;e[1]<0;)e[1]+=2*Math.PI;var t=clockwiseInteriorAngleRadians(e[0],e[1]),n=e[0]-.5*t;return new XY(Math.cos(n),Math.sin(n))},e.prototype.subsectAngle=function(e){if(void 0===e||e<1)throw"subsetAngle() requires a parameter greater than 1";for(var t=this.vectors().map(function(e){return Math.atan2(e.y,e.x)}),n=clockwiseInteriorAngleRadians(t[0],t[1]),i=[],o=1;o<e;o++)i.push(t[0]-n*(1/e)*o);return i},e.prototype.getEdgeVectorsForNewAngle=function(e,t){var n=this.vectors(),i=e-clockwiseInteriorAngle(n[0],n[1]),o=[.5*-i,.5*i];return n.map(function(e,t){return e.rotate(o[t])},this)},e.prototype.equivalent=function(e){return e.origin.equivalent(this.origin)&&e.endPoints[0].equivalent(this.endPoints[0])&&e.endPoints[1].equivalent(this.endPoints[1])},e.prototype.sortByClockwise=function(){},e}(),VoronoiMolecule=function(e){function t(t,n,i){var o=e.call(this,t,n)||this;switch(o.isEdge=!1,o.isCorner=!1,o.overlaped=[],o.hull=(new ConvexPolygon).convexHull([t[0],t[1],t[2],n].filter(function(e){return void 0!==e})),o.units=o.points.map(function(e,t){var i=this.points[(t+1)%this.points.length];return new VoronoiMoleculeTriangle(n,[e,i])},o),o.points.length){case 1:o.isCorner=!0,o.addCornerMolecules();break;case 2:o.isEdge=!0,o.units=o.units.filter(function(e){return!((e.vertex.y-e.base[0].y)*(e.base[1].x-e.base[0].x)-(e.vertex.x-e.base[0].x)*(e.base[1].y-e.base[0].y)<0)},o),o.addEdgeMolecules(i)}var r=void 0;if(o.units=o.units.filter(function(e){return!((e.vertex.y-e.base[0].y)*(e.base[1].x-e.base[0].x)-(e.vertex.x-e.base[0].x)*(e.base[1].y-e.base[0].y)<0)||(r=e,!1)},o),void 0!==r){var s=clockwiseInteriorAngle(r.vertex.subtract(r.base[1]),r.base[0].subtract(r.base[1]));o.units.forEach(function(e){e.crimpAngle-=s})}return o}return __extends(t,e),t.prototype.addEdgeMolecules=function(e){if(this.edgeNormal=e.normalize().abs(),!(this.units.length<1)){var t=this.units[0].base,n=t.map(function(e){var t=this.circumcenter.subtract(e).multiply(this.edgeNormal).scale(2);return e.add(t)},this);this.units=this.units.concat([new VoronoiMoleculeTriangle(this.circumcenter,[t[1],n[1]]),new VoronoiMoleculeTriangle(this.circumcenter,[n[0],t[0]])])}},t.prototype.addCornerMolecules=function(){},t.prototype.generateCreases=function(){var e=[];this.units.map(function(t,n){var i=this.units[(n+1)%this.units.length];t.base[1].equivalent(i.base[0])&&e.push(new Edge(t.base[1],t.vertex))},this);return this.units.map(function(e){return e.generateCrimpCreaseLines()}).forEach(function(t){e=e.concat(t)},this),this.isObtuse()&&this.units.forEach(function(t,n){this.units[(n+1)%this.units.length];t.base[0].equivalent(t.base[1])&&e.push(new Edge(t.base[0],t.vertex))},this),e},t}(Triangle),VoronoiMoleculeTriangle=function(){function e(e,t,n){if(this.vertex=e,this.base=t,this.crimpAngle=n,this.overlapped=[],void 0===this.crimpAngle){var i=t[1].subtract(t[0]),o=e.subtract(t[0]),r=clockwiseInteriorAngle(i,o),s=clockwiseInteriorAngle(o,i);this.crimpAngle=r<s?r:s}}return e.prototype.crimpLocations=function(){var e=Math.atan2(this.base[1].y-this.base[0].y,this.base[1].x-this.base[0].x),t=new XY(Math.cos(e+this.crimpAngle),Math.sin(e+this.crimpAngle)),n=new XY(Math.cos(e+.5*this.crimpAngle),Math.sin(e+.5*this.crimpAngle)),i=new Edge(this.vertex,this.base[0].midpoint(this.base[1]));return[intersectionRayEdge(new Ray(this.base[0],t),i),intersectionRayEdge(new Ray(this.base[0],n),i)]},e.prototype.generateCrimpCreaseLines=function(){var e=this.crimpLocations(),t=new Edge(this.vertex,this.base[0].midpoint(this.base[1]));this.overlapped.length>0&&(t.nodes[1]=this.overlapped[0].circumcenter);var n=[t].concat(this.overlapped.flatMap(function(e){return e.generateCreases()})),i=[t].concat((new Polyline).rayReflectRepeat(new Ray(this.base[0],this.base[1].subtract(this.base[0])),n,this.base[1]).edges());return e.filter(function(e){return void 0!==e&&!e.equivalent(this.vertex)},this).forEach(function(e){i=i.concat((new Polyline).rayReflectRepeat(new Ray(this.base[0],e.subtract(this.base[0])),n,this.base[1]).edges())},this),i},e.prototype.pointInside=function(e){for(var t=[this.vertex,this.base[0],this.base[1]],n=0;n<t.length;n++){var i=t[n],o=t[(n+1)%t.length];if((e.y-i.y)*(o.x-i.x)-(e.x-i.x)*(o.y-i.y)<0)return!1}return!0},e}(),VoronoiEdge=function(){return function(){this.cache={}}}(),VoronoiCell=function(){return function(){this.points=[],this.edges=[]}}(),VoronoiJunction=function(){return function(){this.edges=[],this.cells=[],this.isEdge=!1,this.isCorner=!1}}(),VoronoiGraph=function(){function e(e,t){void 0===t&&(t=EPSILON_HIGH);var n=e.edges.flatMap(function(e){return[new XY(e[0][0],e[0][1]),new XY(e[1][0],e[1][1])]}),i=(new ConvexPolygon).convexHull(n);this.edges=[],this.junctions=[],this.cells=[],this.edges=e.edges.map(function(e){var t=new VoronoiEdge;return t.endPoints=[new XY(e[0][0],e[0][1]),new XY(e[1][0],e[1][1])],t.cache={left:e.left,right:e.right},t}),this.cells=e.cells.map(function(e){var n=new VoronoiCell;return n.site=new XY(e.site[0],e.site[1]),n.edges=e.halfedges.map(function(e){return this.edges[e]},this),n.points=n.edges.map(function(e,i){var o=e.endPoints[0],r=e.endPoints[1],s=n.edges[(i+1)%n.edges.length].endPoints[0],a=n.edges[(i+1)%n.edges.length].endPoints[1];return o.equivalent(s,t)||o.equivalent(a,t)?r:o},this),n},this),this.edges.forEach(function(e){var n=[void 0,void 0];if(void 0!==e.cache.left)for(var i=new XY(e.cache.left[0],e.cache.left[1]),o=0;o<this.cells.length;o++)if(i.equivalent(this.cells[o].site,t)){n[0]=this.cells[o];break}if(void 0!==e.cache.right){var r=new XY(e.cache.right[0],e.cache.right[1]);for(o=0;o<this.cells.length;o++)if(r.equivalent(this.cells[o].site,t)){n[1]=this.cells[o];break}}e.cells=n,e.isBoundary=!1,void 0!==e.cells[0]&&void 0!==e.cells[1]||(e.isBoundary=!0),e.cache={}},this);var o=[],r=function(e,n){return e.equivalent(n,t)};return this.edges.forEach(function(e){o.contains(e.endPoints[0],r)||o.push(e.endPoints[0]),o.contains(e.endPoints[1],r)||o.push(e.endPoints[1])},this),this.junctions=o.map(function(e){var t=new VoronoiJunction;switch(t.position=e,t.cells=this.cells.filter(function(t){return t.points.contains(e,r)},this).sort(function(t,n){var i=t.site.subtract(e),o=n.site.subtract(e);return Math.atan2(i.y,i.x)-Math.atan2(o.y,o.x)}),t.cells.length){case 1:t.isCorner=!0;break;case 2:t.isEdge=!0,i.edges.forEach(function(e){e.collinear(t.position)&&(t.edgeNormal=e.nodes[1].subtract(e.nodes[0]).rotate90())})}return t.edges=this.edges.filter(function(t){return t.endPoints.contains(e,r)},this).sort(function(t,n){var i=t.endPoints[0];i.equivalent(e)&&(i=t.endPoints[1]);var o=n.endPoints[0];o.equivalent(e)&&(o=n.endPoints[1]);var r=i.subtract(e),s=o.subtract(e);return Math.atan2(r.y,r.x)-Math.atan2(s.y,s.x)}),t},this),this}return e.prototype.edgeExists=function(e,t){void 0===t&&(t=EPSILON_HIGH),this.edges.forEach(function(n){return n.endPoints[0].equivalent(e[0],t)&&n.endPoints[1].equivalent(e[1],t)?n:n.endPoints[1].equivalent(e[0],t)&&n.endPoints[0].equivalent(e[1],t)?n:void 0})},e.prototype.generateMolecules=function(e){return this.junctions.map(function(t){var n=t.cells.map(function(n){return n.site.lerp(t.position,e)},this);return new VoronoiMolecule(n,t.position,t.isEdge?t.edgeNormal:void 0)},this)},e.prototype.generateSortedMolecules=function(e){for(var t=this.generateMolecules(e),n=0;n<t.length;n++)for(var i=0;i<t.length;i++)n!==i&&t[i].units.forEach(function(e){e.pointInside(t[n].circumcenter)&&(e.overlapped.push(t[n]),t[i].overlaped.push(t[n]))});for(n=0;n<t.length;n++)t[n].units.forEach(function(e){e.overlapped.sort(function(t,n){return t.circumcenter.distanceTo(e.vertex)-n.circumcenter.distanceTo(e.vertex)})}),t[n].overlaped.sort(function(e,i){return e.circumcenter.distanceTo(t[n].circumcenter)-i.circumcenter.distanceTo(t[n].circumcenter)});for(var o=[],r=t.slice(),s=0;r.length>0;){o.push([]);for(n=r.length-1;n>=0;n--)r[n].overlaped.length<=s&&(o[s].push(r[n]),r.splice(n,1));s++}return o},e}();function gimme1XY(e,t){return isValidPoint(e)?e:isValidNumber(t)?new XY(e,t):void 0}function gimme2XY(e,t,n,i){return isValidPoint(t)?[e,t]:isValidNumber(i)?[new XY(e,t),new XY(n,i)]:void 0}function gimme1Edge(e,t,n,i){return e instanceof Edge||e instanceof Crease?e:isValidPoint(t)?new Edge(e,t):isValidNumber(i)?new Edge(e,t,n,i):void 0}function gimme1Ray(e,t,n,i){return e instanceof Ray?e:isValidPoint(t)?new Ray(e,t):isValidNumber(i)?new Ray(new XY(e,t),new XY(n,i)):void 0}function gimme1Line(e,t,n,i){return e instanceof Line?e:isValidPoint(t)?new Line(e,t):isValidNumber(i)?new Line(e,t,n,i):e.nodes instanceof Array&&e.nodes.length>0&&isValidPoint(e.nodes[1])?new Line(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y):void 0}Array.prototype.flatMap=function(e){return this.reduce(function(t,n){return e(n).concat(t)},[])},Array.prototype.removeDuplicates=function(e){if(this.length<=1)return this;for(var t=0;t<this.length-1;t++)for(var n=this.length-1;n>t;n--)e(this[t],this[n])&&this.splice(n,1);return this},Array.prototype.allEqual=function(){if(this.length<=1)return!0;for(var e=1;e<this.length;e++)if(this[e]!==this[0])return!1;return!0},Array.prototype.contains=function(e,t){if(void 0!==t){for(var n=0;n<this.length;n++)if(!0===t(this[n],e))return!0;return!1}for(n=0;n<this.length;n++)if(this[n]===e)return!0;return!1};var CreaseDirection,PlanarClean=function(e){function t(t,n){var i=e.call(this)||this;return i.edges={total:0,duplicate:0,circular:0},i.nodes={total:0,isolated:0,fragment:[],collinear:[],duplicate:[]},void 0!==t&&(i.nodes.total+=t),void 0!==n&&(i.edges.total+=n),i}return __extends(t,e),t.prototype.fragmentedNodes=function(e){return this.nodes.fragment=e,this.nodes.total+=e.length,this},t.prototype.collinearNodes=function(e){return this.nodes.collinear=e,this.nodes.total+=e.length,this},t.prototype.duplicateNodes=function(e){return this.nodes.duplicate=e,this.nodes.total+=e.length,this},t.prototype.join=function(e){this.nodes.total+=e.nodes.total,this.edges.total+=e.edges.total,this.nodes.isolated+=e.nodes.isolated,this.edges.duplicate+=e.edges.duplicate,this.edges.circular+=e.edges.circular;var t=e;return void 0!==t.nodes.fragment&&(this.nodes.fragment=this.nodes.fragment.concat(t.nodes.fragment)),void 0!==t.nodes.collinear&&(this.nodes.collinear=this.nodes.collinear.concat(t.nodes.collinear)),void 0!==t.nodes.duplicate&&(this.nodes.duplicate=this.nodes.duplicate.concat(t.nodes.duplicate)),this},t}(GraphClean),PlanarNode=function(e){function t(){var t=null!==e&&e.apply(this,arguments)||this;return t.junctionType=PlanarJunction,t.sectorType=PlanarSector,t.cache={},t}return __extends(t,e),t.prototype.adjacentEdges=function(){return this.graph.edges.filter(function(e){return e.nodes[0]===this||e.nodes[1]===this},this).map(function(e){var t=e.otherNode(this);return{edge:e,angle:Math.atan2(t.y-this.y,t.x-this.x)}},this).sort(function(e,t){return t.angle-e.angle}).map(function(e){return e.edge})},t.prototype.adjacentFaces=function(){var e=this.junction();return void 0===e?[]:e.faces()},t.prototype.interiorAngles=function(){return this.junction().interiorAngles()},t.prototype.junction=function(){var e=new this.junctionType(this);if(0!==e.edges.length)return e},t.prototype.xy=function(){return new XY(this.x,this.y)},t.prototype.position=function(e,t){return this.x=e,this.y=t,this},t.prototype.translate=function(e,t){return this.x+=e,this.y+=t,this},t.prototype.normalize=function(){var e=this.magnitude();return this.x/=e,this.y/=e,this},t.prototype.rotate90=function(){var e=this.x;return this.x=-this.y,this.y=e,this},t.prototype.rotate270=function(){var e=this.x;return this.x=this.y,this.y=-e,this},t.prototype.rotate=function(e,t){var n=this.x-t.x,i=this.y-t.y,o=Math.sqrt(Math.pow(i,2)+Math.pow(n,2)),r=Math.atan2(i,n);return this.x=t.x+o*Math.cos(r+e),this.y=t.y+o*Math.sin(r+e),this},t.prototype.dot=function(e){return this.x*e.x+this.y*e.y},t.prototype.cross=function(e){return this.x*e.y-this.y*e.x},t.prototype.magnitude=function(){return Math.sqrt(this.x*this.x+this.y*this.y)},t.prototype.distanceTo=function(e){return Math.sqrt(Math.pow(this.x-e.x,2)+Math.pow(this.y-e.y,2))},t.prototype.equivalent=function(e,t){return void 0==t&&(t=EPSILON_HIGH),epsilonEqual(this.x,e.x,t)&&epsilonEqual(this.y,e.y,t)},t.prototype.transform=function(e){var t=this.x,n=this.y;return this.x=t*e.a+n*e.c+e.tx,this.y=t*e.b+n*e.d+e.ty,this},t.prototype.lerp=function(e,t){var n=1-t;return new XY(this.x*t+e.x*n,this.y*t+e.y*n)},t.prototype.angleLerp=function(e,t){var n,i,o,r,s=Math.atan2(this.y,this.x),a=Math.atan2(e.y,e.x),h=s+(n=s,i=a,o=2*Math.PI,(2*(r=(i-n)%o)%o-r)*t);return new XY(Math.cos(h),Math.sin(h))},t.prototype.reflect=function(e){var t,n;if(void 0!==e.direction)t=e.point||e.origin,n=e.direction;else{if(void 0===e.nodes)return;t=new XY(e.nodes[0].x,e.nodes[0].y),n=new XY(e.nodes[1].x,e.nodes[1].y).subtract(t)}return this.transform((new Matrix).reflection(n,t))},t.prototype.scale=function(e){return this.x*=e,this.y*=e,this},t.prototype.add=function(e){return this.x+=e.x,this.y+=e.y,this},t.prototype.subtract=function(e){return this.x-=e.x,this.y-=e.y,this},t.prototype.multiply=function(e){return this.x*=e.x,this.y*=e.y,this},t.prototype.midpoint=function(e){return new XY(.5*(this.x+e.x),.5*(this.y+e.y))},t.prototype.abs=function(){return this.x=Math.abs(this.x),this.y=Math.abs(this.y),this},t}(GraphNode),PlanarEdge=function(e){function t(){return null!==e&&e.apply(this,arguments)||this}return __extends(t,e),t.prototype.length=function(){return this.nodes[0].distanceTo(this.nodes[1])},t.prototype.vector=function(e){var t=e||this.nodes[0],n=this.otherNode(t);return new XY(n.x,n.y).subtract(t)},t.prototype.parallel=function(e,t){void 0===t&&(t=EPSILON_HIGH);var n=this.nodes[1].subtract(this.nodes[0]),i=e.nodes[1].subtract(e.nodes[0]);return epsilonEqual(n.cross(i),0,t)},t.prototype.collinear=function(e,t){void 0===t&&(t=EPSILON_HIGH);var n=new Edge(e,this.nodes[0]).length(),i=new Edge(e,this.nodes[1]).length();return epsilonEqual(this.length()-n-i,0,t)},t.prototype.equivalent=function(e,t){return this.isSimilarToEdge(e)},t.prototype.intersection=function(e,n){if(void 0===n&&(n=EPSILON_HIGH),!(e instanceof t&&this.isAdjacentToEdge(e))){var i=intersectionEdgeEdge(new Edge(this.nodes[0].x,this.nodes[0].y,this.nodes[1].x,this.nodes[1].y),new Edge(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y),n);if(void 0!==i&&!i.equivalent(this.nodes[0],n)&&!i.equivalent(this.nodes[1],n))return{edge:e,point:i}}},t.prototype.reflectionMatrix=function(){var e=new XY(this.nodes[0].x,this.nodes[0].y),t=new XY(this.nodes[1].x,this.nodes[1].y).subtract(e);return(new Matrix).reflection(t,e)},t.prototype.nearestPoint=function(e){var t=this.nearestPointNormalTo(e);return void 0!==t?t:this.nodes.map(function(t){return{point:t,distance:t.distanceTo(e)}},this).sort(function(e,t){return e.distance-t.distance}).shift().point},t.prototype.nearestPointNormalTo=function(e){var t=this.nodes[0].distanceTo(this.nodes[1]),n=((e.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x)+(e.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y))/Math.pow(t,2);if(!(n<0||n>1))return new XY(this.nodes[0].x+n*(this.nodes[1].x-this.nodes[0].x),this.nodes[0].y+n*(this.nodes[1].y-this.nodes[0].y))},t.prototype.transform=function(e){return this.nodes[0].transform(e),this.nodes[1].transform(e),this},t.prototype.degenrate=function(e){return void 0===e&&(e=EPSILON_HIGH),this.nodes[0].equivalent(this.nodes[1],e)},t.prototype.pointVectorForm=function(){var e=new XY(this.nodes[0].x,this.nodes[0].y),t=new XY(this.nodes[1].x,this.nodes[1].y).subtract(e);return new Line(e,t)},t.prototype.midpoint=function(){return new XY(.5*(this.nodes[0].x+this.nodes[1].x),.5*(this.nodes[0].y+this.nodes[1].y))},t.prototype.crossingEdges=function(){var e=this.nodes[0].x<this.nodes[1].x?this.nodes[0].x:this.nodes[1].x,t=this.nodes[0].x>this.nodes[1].x?this.nodes[0].x:this.nodes[1].x,n=this.nodes[0].y<this.nodes[1].y?this.nodes[0].y:this.nodes[1].y,i=this.nodes[0].y>this.nodes[1].y?this.nodes[0].y:this.nodes[1].y;return this.graph.edges.filter(function(o){return!(o.nodes[0].x<e&&o.nodes[1].x<e||o.nodes[0].x>t&&o.nodes[1].x>t||o.nodes[0].y<n&&o.nodes[1].y<n||o.nodes[0].y>i&&o.nodes[1].y>i)},this).filter(function(e){return this!==e},this).map(function(e){return this.intersection(e)},this).filter(function(e){return void 0!=e}).sort(function(e,t){return e.point.x-t.point.x<-EPSILON_HIGH?-1:e.point.x-t.point.x>EPSILON_HIGH?1:e.point.y-t.point.y<-EPSILON_HIGH?-1:e.point.y-t.point.y>EPSILON_HIGH?1:0})},t.prototype.absoluteAngle=function(e){void 0===e&&(e=this.nodes[1]);var t=this.otherNode(e);return Math.atan2(t.y-e.y,t.x-e.x)},t.prototype.adjacentFaces=function(){return[new this.graph.faceType(this.graph).makeFromCircuit(this.graph.walkClockwiseCircut(this.nodes[0],this.nodes[1])),new this.graph.faceType(this.graph).makeFromCircuit(this.graph.walkClockwiseCircut(this.nodes[1],this.nodes[0]))].filter(function(e){return void 0!==e})},t}(GraphEdge),PlanarFace=function(){function e(e){this.graph=e,this.nodes=[],this.edges=[],this.angles=[]}return e.prototype.makeFromCircuit=function(e){if(!(void 0==e||e.length<3)){this.edges=e,this.nodes=e.map(function(t,n){return t.uncommonNodeWithEdge(e[(n+1)%e.length])});var t=this.nodes[0].sectorType;this.sectors=this.edges.map(function(e,n){var i=(n+1)%this.edges.length;e.commonNodeWithEdge(this.edges[i]),e.uncommonNodeWithEdge(this.edges[i]),this.edges[i].uncommonNodeWithEdge(e);return new t(e,this.edges[i])},this),this.angles=this.sectors.map(function(e){return e.angle()});var n=this.angles.reduce(function(e,t){return e+t},0);return this.nodes.length>2&&epsilonEqual(n/(this.nodes.length-2),Math.PI,EPSILON)?this:void 0}},e.prototype.makeFromNodes=function(e){var t=e.map(function(e,t){var n=this.nodes[(t+1)%this.nodes.length];return this.graph.getEdgeConnectingNodes(e,n)},this);return this.makeFromCircuit(t)},e.prototype.equivalent=function(e){if(e.nodes.length!=this.nodes.length)return!1;for(var t=void 0,n=0;n<this.nodes.length;n++)if(this.nodes[0]===e.nodes[n]){t=n;break}if(void 0==t)return!1;for(n=0;n<this.nodes.length;n++){var i=(t+n)%this.nodes.length;if(this.nodes[n]!==e.nodes[i])return!1}return!0},e.prototype.commonEdge=function(e){for(var t=0;t<this.edges.length;t++)for(var n=0;n<e.edges.length;n++)if(this.edges[t]===e.edges[n])return this.edges[t]},e.prototype.commonEdges=function(e){for(var t=[],n=0;n<this.edges.length;n++)for(var i=0;i<e.edges.length;i++)this.edges[n]===e.edges[i]&&t.push(this.edges[n]);return t.removeDuplicates(function(e,t){return e===t})},e.prototype.uncommonEdges=function(e){for(var t=this.edges.slice(0),n=0;n<e.edges.length;n++)t=t.filter(function(t){return t!==e.edges[n]});return t},e.prototype.edgeAdjacentFaces=function(){return this.edges.map(function(e){for(var t=this.graph.faces.filter(function(e){return!this.equivalent(e)},this),n=0;n<t.length;n++){if(t[n].edges.filter(function(t){return e===t}).length>0)return t[n]}},this).filter(function(e){return void 0!==e})},e.prototype.contains=function(e){for(var t=0;t<this.edges.length;t++){var n=this.edges[t].nodes;if((e.y-n[0].y)*(n[1].x-n[0].x)-(e.x-n[0].x)*(n[1].y-n[0].y)<0)return!1}return!0},e.prototype.transform=function(e){for(var t=0;t<this.nodes.length;t++)this.nodes[t].transform(e)},e}(),PlanarSector=function(e){function t(t,n){var i=e.call(this,t.commonNodeWithEdge(n),void 0)||this;return void 0===i.origin?i:t===n?i:(i.edges=[t,n],i.endPoints=[t.nodes[0]===i.origin?t.nodes[1]:t.nodes[0],n.nodes[0]===i.origin?n.nodes[1]:n.nodes[0]],i)}return __extends(t,e),t.prototype.makeWithEdges=function(e,t){if(this.origin=e.commonNodeWithEdge(t),void 0!==this.origin&&e!==t)return this.edges=[e,t],this.endPoints=[e.nodes[0]===this.origin?e.nodes[1]:e.nodes[0],t.nodes[0]===this.origin?t.nodes[1]:t.nodes[0]],this},t.prototype.vectors=function(){return this.edges.map(function(e){return e.vector(this.origin)},this)},t.prototype.angle=function(){var e=this.vectors();return clockwiseInteriorAngle(e[0],e[1])},t.prototype.bisect=function(){for(var e=this.edges[0].absoluteAngle(this.origin),t=this.edges[1].absoluteAngle(this.origin);e<0;)e+=2*Math.PI;var n=e-.5*clockwiseInteriorAngleRadians(e,t);return new XY(Math.cos(n),Math.sin(n))},t.prototype.subsectAngle=function(e){if(void 0===e||e<1)throw"subsetAngle() requires a parameter greater than 1";for(var t=this.edges[0].absoluteAngle(this.origin),n=clockwiseInteriorAngleRadians(t,this.edges[1].absoluteAngle(this.origin)),i=[],o=1;o<e;o++)i.push(t-n*(1/e)*o);return i},t.prototype.getEdgeVectorsForNewAngle=function(e,t){var n=this.vectors(),i=e-clockwiseInteriorAngle(n[0],n[1]),o=[.5*-i,.5*i];return n.map(function(e,t){return e.rotate(o[t])},this)},t.prototype.getEndNodesChangeForNewAngle=function(e,t){var n=this.vectors(),i=e-clockwiseInteriorAngle(n[0],n[1]),o=[.5*-i,.5*i];return n.map(function(e,t){return this.endPoints[t].subtract(e.rotate(o[t]).add(this.origin))},this)},t.prototype.equivalent=function(e){return e.edges[0].isSimilarToEdge(this.edges[0])&&e.edges[1].isSimilarToEdge(this.edges[1])||e.edges[0].isSimilarToEdge(this.edges[1])&&e.edges[1].isSimilarToEdge(this.edges[0])},t}(Sector),PlanarJunction=function(){function e(e){this.origin=e,this.sectors=[],this.edges=[],void 0!==e&&(this.edges=this.origin.adjacentEdges(),this.edges.length<=1||(this.sectors=this.edges.map(function(e,t){var n=this.edges[(t+1)%this.edges.length];e.commonNodeWithEdge(n),n.uncommonNodeWithEdge(e),e.uncommonNodeWithEdge(n);return new this.origin.sectorType(e,n)},this)))}return e.prototype.edgeVectorsNormalized=function(){return this.edges.map(function(e){return e.vector(this.origin).normalize()},this)},e.prototype.edgeAngles=function(){return this.edges.map(function(e){return e.absoluteAngle(this.origin)},this)},e.prototype.sectorWithEdges=function(e,t){var n=void 0;return this.sectors.forEach(function(i){if(i.edges[0].equivalent(e)&&i.edges[1].equivalent(t)||i.edges[1].equivalent(e)&&i.edges[0].equivalent(t))return n=i},this),n},e.prototype.interiorAngles=function(){var e=this.edges.map(function(e){return e.absoluteAngle(this.origin)},this);return e.map(function(t,n){var i=(n+1)%this.edges.length;return clockwiseInteriorAngleRadians(t,e[i])},this)},e.prototype.clockwiseNode=function(e){for(var t=0;t<this.edges.length;t++)if(this.edges[t].otherNode(this.origin)===e)return this.edges[(t+1)%this.edges.length].otherNode(this.origin)},e.prototype.clockwiseEdge=function(e){var t=this.edges.indexOf(e);if(-1!==t)return this.edges[(t+1)%this.edges.length]},e.prototype.faces=function(){for(var e=[],t=0;t<this.edges.length;t++){var n=this.origin.graph.walkClockwiseCircut(this.origin,this.edges[t].otherNode(this.origin)),i=new this.origin.graph.faceType(this.origin.graph).makeFromCircuit(n);void 0!==i&&e.push(i)}return e},e}(),PlanarGraph=function(e){function t(){var t=e.call(this)||this;return t.nodeType=PlanarNode,t.edgeType=PlanarEdge,t.faceType=PlanarFace,t.properties={optimization:0},t.clear(),t}return __extends(t,e),t.prototype.copy=function(){this.nodeArrayDidChange(),this.edgeArrayDidChange();for(var e=new t,n=0;n<this.nodes.length;n++){var i=e.addNode(new PlanarNode(e));Object.assign(i,this.nodes[n]),i.graph=e,i.index=n}for(n=0;n<this.edges.length;n++){var o=[this.edges[n].nodes[0].index,this.edges[n].nodes[1].index],r=e.addEdge(new PlanarEdge(e,e.nodes[o[0]],e.nodes[o[1]]));Object.assign(r,this.edges[n]),r.graph=e,r.index=n,r.nodes=[e.nodes[o[0]],e.nodes[o[1]]]}for(n=0;n<this.faces.length;n++){var s=new PlanarFace(e);Object.assign(s,this.faces[n]);for(var a=0;a<this.faces[n].nodes.length;a++)s.nodes.push(s.nodes[this.faces[n].nodes[a].index]);for(a=0;a<this.faces[n].edges.length;a++)s.edges.push(s.edges[this.faces[n].edges[a].index]);for(a=0;a<this.faces[n].angles.length;a++)s.angles.push(this.faces[n].angles[a]);s.graph=e,e.faces.push(s)}return e},t.prototype.newPlanarNode=function(e,t){return this.newNode().position(e,t)},t.prototype.newPlanarEdge=function(e,t,n,i){var o=this.newNode().position(e,t),r=this.newNode().position(n,i);return this.newEdge(o,r)},t.prototype.newPlanarEdgeFromNode=function(e,t,n){var i=this.newNode().position(t,n);return this.newEdge(e,i)},t.prototype.newPlanarEdgeBetweenNodes=function(e,t){return this.newEdge(e,t)},t.prototype.newPlanarEdgeRadiallyFromNode=function(e,t,n){var i=this.copyNode(e).translate(Math.cos(t)*n,Math.sin(t)*n);return this.newEdge(e,i)},t.prototype.clear=function(){return this.nodes=[],this.edges=[],this.faces=[],this},t.prototype.removeEdge=function(e){var t=this.edges.length,n=[e.nodes[0],e.nodes[1]];return this.edges=this.edges.filter(function(t){return t!==e}),this.edgeArrayDidChange(),this.cleanNodeIfUseless(n[0]),this.cleanNodeIfUseless(n[1]),new PlanarClean(void 0,t-this.edges.length)},t.prototype.removeEdgeBetween=function(e,t){var n=this.edges.length;return this.edges=this.edges.filter(function(n){return!(n.nodes[0]===e&&n.nodes[1]===t||n.nodes[0]===t&&n.nodes[1]===e)}),this.edgeArrayDidChange(),new PlanarClean(void 0,n-this.edges.length).join(this.cleanNodeIfUseless(e)).join(this.cleanNodeIfUseless(t))},t.prototype.cleanNodeIfUseless=function(e){var t=e.adjacentEdges();switch(t.length){case 0:return this.removeNode(e);case 2:var n=t[0].absoluteAngle(e)-t[1].absoluteAngle(e);if(epsilonEqual(Math.abs(n),Math.PI,EPSILON_HIGH)){var i=[t[0].uncommonNodeWithEdge(t[1]),t[1].uncommonNodeWithEdge(t[0])];return t[0].nodes=[i[0],i[1]],this.removeEdge(t[1]),this.removeNode(e),new PlanarClean(1,1)}}return new PlanarClean},t.prototype.cleanAllUselessNodes=function(){this.nodes.forEach(function(e){e.cache.adjacentEdges=[]}),this.edges.forEach(function(e){e.nodes[0].cache.adjacentEdges.push(e),e.nodes[1].cache.adjacentEdges.push(e)});var e=(new PlanarClean).join(this.removeIsolatedNodes());this.nodeArrayDidChange(),this.edgeArrayDidChange();for(var t=this.nodes.length-1;t>=0;t--){var n=this.nodes[t].cache.adjacentEdges;switch(n.length){case 0:e.join(this.removeNode(this.nodes[t]));break;case 2:var i=n[0].absoluteAngle(this.nodes[t])-n[1].absoluteAngle(this.nodes[t]);if(epsilonEqual(Math.abs(i),Math.PI,EPSILON_HIGH)){var o=[n[0].uncommonNodeWithEdge(n[1]),n[1].uncommonNodeWithEdge(n[0])];n[0].nodes=[o[0],o[1]],this.edges.splice(n[1].index,1),this.edgeArrayDidChange(),this.nodes.splice(this.nodes[t].index,1),this.nodeArrayDidChange(),e.join(new PlanarClean(1,1))}}}return this.nodes.forEach(function(e){e.cache.adjacentEdges=void 0}),e},t.prototype.cleanDuplicateNodes=function(e){void 0===e&&(e=EPSILON_HIGH);var t=rbush(),n=this.nodes.map(function(t){return{minX:t.x-e,minY:t.y-e,maxX:t.x+e,maxY:t.y+e,node:t}});t.load(n);var i=this;function o(e,t){return i.edges.forEach(function(n){n.nodes[0]===t&&(n.nodes[0]=e),n.nodes[1]===t&&(n.nodes[1]=e)}),i.nodes=i.nodes.filter(function(e){return e!==t}),(new PlanarClean).duplicateNodes(new XY(t.x,t.y)).join(i.cleanGraph())}for(var r=new PlanarClean,s=0;s<this.nodes.length;s++)for(var a=t.search({minX:this.nodes[s].x-e,minY:this.nodes[s].y-e,maxX:this.nodes[s].x+e,maxY:this.nodes[s].y+e}),h=0;h<a.length;h++)this.nodes[s]!==a[h].node&&r.join(o(this.nodes[s],a[h].node));return r},t.prototype.clean=function(e){var t=new PlanarClean;return t.join(this.cleanDuplicateNodes(e)),t.join(this.fragment()),t.join(this.cleanDuplicateNodes(e)),t.join(this.cleanGraph()),t.join(this.cleanAllUselessNodes()),t},t.prototype.fragment=function(){var e=this;function t(){for(var t=new PlanarClean,n=0;n<e.edges.length;n++){var i=e.fragmentEdge(e.edges[n]);t.join(i),i.nodes.fragment.length>0&&(t.join(e.cleanGraph()),t.join(e.cleanAllUselessNodes()),t.join(e.cleanDuplicateNodes()))}return t}var n,i=0,o=new PlanarClean;do{n=t(),o.join(n),i+=1}while(0!=n.nodes.fragment.length&&i<400);return i>=400&&console.log("breaking loop, exceeded 400"),o},t.prototype.fragmentEdge=function(e){var t=new PlanarClean,n=e.crossingEdges();if(0===n.length)return t;t.nodes.fragment=n.map(function(e){return new XY(e.point.x,e.point.y)});for(var i=e.nodes.sort(function(e,t){return e.x-t.x<-EPSILON_HIGH?-1:e.x-t.x>EPSILON_HIGH?1:e.y-t.y<-EPSILON_HIGH?-1:e.y-t.y>EPSILON_HIGH?1:0}),o=[],r=0;r<n.length;r++)if(void 0!=n[r]){var s=this.newNode().position(n[r].point.x,n[r].point.y);this.copyEdge(n[r].edge).nodes=[s,n[r].edge.nodes[1]],n[r].edge.nodes[1]=s,o.push(s)}this.copyEdge(e).nodes=[i[0],o[0]];for(r=0;r<o.length-1;r++)this.copyEdge(e).nodes=[o[r],o[r+1]];return this.copyEdge(e).nodes=[o[o.length-1],i[1]],this.removeEdge(e),t.join(this.cleanGraph()),t},t.prototype.walkClockwiseCircut=function(e,t){if(void 0!==e&&void 0!==t){var n=e.graph.getEdgeConnectingNodes(e,t);if(void 0!=n){var i=[],o=e,r=t,s=[o],a=n;i.push(a);do{s.push(r);var h=r.junction();if(void 0!==h&&(a=h.clockwiseEdge(a)),i.push(a),o=r,(r=a.otherNode(o))===e)return i}while(!s.contains(r))}}},t.prototype.bounds=function(){if(void 0!==this.nodes&&0!==this.nodes.length){var e=1/0,t=-1/0,n=1/0,i=-1/0;return this.nodes.forEach(function(o){o.x>t&&(t=o.x),o.x<e&&(e=o.x),o.y>i&&(i=o.y),o.y<n&&(n=o.y)}),new Rect(e,n,t-e,i-n)}},t.prototype.getEdgeIntersections=function(e){for(var t=[],n=0;n<this.edges.length-1;n++)for(var i=n+1;i<this.edges.length;i++){var o=this.edges[n].intersection(this.edges[i],e);if(void 0!=o){for(var r=!1,s=0;s<t.length;s++)o.point.equivalent(t[s],e)&&(r=!0);r||t.push(o.point)}}return t},t.prototype.getNearestNode=function(e,t){var n=gimme1XY(e,t);if(void 0!==n){for(var i=void 0,o=1/0,r=0;r<this.nodes.length;r++){var s=Math.sqrt(Math.pow(this.nodes[r].x-n.x,2)+Math.pow(this.nodes[r].y-n.y,2));s<o&&(o=s,i=this.nodes[r])}return i}},t.prototype.getNearestNodes=function(e,t,n){var i=gimme1XY(e,t);if(void 0!==i){for(var o=[],r=0;r<this.nodes.length;r++){var s=Math.sqrt(Math.pow(this.nodes[r].x-i.x,2)+Math.pow(this.nodes[r].y-i.y,2));o.push({i:r,d:s})}return o.sort(function(e,t){return e.d>t.d?1:t.d>e.d?-1:0}),n>o.length&&(n=o.length),o.slice(0,n).map(function(e){return this.nodes[e.i]},this)}},t.prototype.getNearestEdge=function(e,t){var n=gimme1XY(e,t);if(void 0!==n){for(var i,o,r=new XY(void 0,void 0),s=0;s<this.edges.length;s++){var a=this.edges[s].nearestPoint(n);if(void 0!=a){var h=Math.sqrt(Math.pow(n.x-a.x,2)+Math.pow(n.y-a.y,2));(void 0==i||h<i)&&(i=h,o=this.edges[s],r=a)}}for(s=0;s<this.nodes.length;s++){var d=Math.sqrt(Math.pow(this.nodes[s].x-n.x,2)+Math.pow(this.nodes[s].y-n.y,2));if(d<i){var u=this.nodes[s].adjacentEdges();void 0!=u&&u.length>0&&(i=d,o=u[0],r=this.nodes[s].xy())}}return{edge:o,point:r}}},t.prototype.getNearestEdges=function(e,t,n){var i=gimme1XY(e,t);if(void 0!==i){return this.edges.map(function(e){var t=e.nearestPointNormalTo(i);if(void 0!==t){var n=[Math.sqrt(Math.pow(i.x-t.x,2)+Math.pow(i.y-t.y,2)),Math.sqrt(Math.pow(e.nodes[0].x-i.x,2)+Math.pow(e.nodes[0].y-i.y,2)),Math.sqrt(Math.pow(e.nodes[1].x-i.x,2)+Math.pow(e.nodes[1].y-i.y,2))].filter(function(e){return void 0!==e}).sort(function(e,t){return e>t?1:e<t?-1:0});return n.length?{edge:e,distance:n[0]}:void 0}}).filter(function(e){return void 0!=e})}},t.prototype.getNearestEdgeConnectingPoints=function(e,t,n,i){var o=gimme2XY(e,t,n,i);if(void 0!==o){var r=this.getNearestNode(o[0].x,o[0].y),s=this.getNearestNode(o[1].x,o[1].y);if(void 0!==(l=this.getEdgeConnectingNodes(r,s)))return l;for(var a=3;a<20;a+=3)for(var h=this.getNearestNodes(o[0].x,o[0].y,a),d=this.getNearestNodes(o[1].x,o[1].y,a),u=0;u<h.length;u++)for(var c=0;c<d.length;c++){var l;if(u!==c)if(void 0!==(l=this.getEdgeConnectingNodes(h[u],d[c])))return l}}},t.prototype.getNearestFace=function(e,t){var n=this.getNearestNode(e,t);if(void 0!==n){var i=n.adjacentFaces();if(void 0!==i&&0!=i.length){var o=i.sort(function(e,t){for(var n=0,i=0,o=0;o<e.nodes.length;o++)n+=e.nodes[o].y;n/=e.nodes.length;for(o=0;o<t.nodes.length;o++)i+=t.nodes[o].y;return n<(i/=e.nodes.length)?1:n>i?-1:0});if(!(o.length<=1))return o[0]}}},t.prototype.getNearestInteriorAngle=function(e,t){var n=gimme1XY(e,t);if(void 0!==n){for(var i,o,r=this.getNearestNodes(n.x,n.y,5),s=0;s<r.length;s++){var a=(i=r[s]).junction();if(void 0!==a&&void 0!==(o=a.sectors)&&o.length>0)break}if(void 0!=o&&0!==o.length){var h=o.filter(function(e){var t=e.endPoints,o=(n.y-i.y)*(t[1].x-i.x)-(n.x-i.x)*(t[1].y-i.y),r=(n.y-t[0].y)*(i.x-t[0].x)-(n.x-t[0].x)*(i.y-t[0].y);return!(o<0||r<0)});return h.length>0?h[0]:void 0}}},t.prototype.faceArrayDidChange=function(){for(var e=0;e<this.faces.length;e++)this.faces[e].index=e},t.prototype.generateFaces=function(){this.faces=[],this.clean();for(var e=0;e<this.nodes.length;e++)for(var t=this.nodes[e].adjacentFaces(),n=0;n<t.length;n++){for(var i=!1,o=0;o<this.faces.length;o++)if(this.faces[o].equivalent(t[n])){i=!0;break}i||this.faces.push(t[n])}return this.faceArrayDidChange(),this.faces},t.prototype.adjacentFaceTree=function(e){this.faceArrayDidChange();for(var t=[],n=0;n<this.faces.length;n++)t.push(void 0);function i(){for(var e=0;e<t.length;e++)if(void 0===t[e])return!1;return!0}var o=[],r=0;o.push([e]),t[e.index]={rank:0,parents:[],face:e};for(var s=0;!i()&&s<this.faces.length+1;){o[r+=1]=[];for(var a=0;a<o[r-1].length;a++){var h=o[r-1][a].edgeAdjacentFaces();for(n=0;n<h.length;n++)if(void 0===t[h[n].index]){o[r].push(h[n]);var d=t[o[r-1][a].index].parents.slice();d.unshift(o[r-1][a]),t[h[n].index]={rank:r,parents:d,face:h[n]}}}s++}for(n=0;n<t.length;n++)if(void 0!==t[n]&&void 0!==t[n].parents&&t[n].parents.length>0){var u=t[n].parents[0].commonEdge(t[n].face).reflectionMatrix();t[n].matrix=u}for(n=0;n<o.length;n++)for(var c=0;c<o[n].length;c++){var l=t[o[n][c].index].parents,g=t[o[n][c].index].matrix;if(void 0!==l&&void 0!==u&&l.length>0){var p=t[l[0].index].global;t[o[n][c].index].global=void 0!==p?p.copy().mult(g):g.copy()}else t[o[n][c].index].matrix=new Matrix,t[o[n][c].index].global=new Matrix}return{rank:o,faces:t}},t.prototype.edgeExistsThroughPoints=function(e,t){for(var n=0;n<this.edges.length;n++)if(console.log(e),console.log(this.edges[n].nodes[0]),e.equivalent(this.edges[n].nodes[0])&&t.equivalent(this.edges[n].nodes[1])||e.equivalent(this.edges[n].nodes[1])&&t.equivalent(this.edges[n].nodes[0]))return!0;return!1},t.prototype.fewestPolylines=function(){var e=this.copy();e.clean(),e.removeIsolatedNodes();for(var t=[];e.edges.length>0;){var n=e.nodes[0],i=n.adjacentNodes(),o=new Polyline;if(0===i.length)e.removeIsolatedNodes();else{var r=i[0];e.getEdgeConnectingNodes(n,r);for(o.nodes.push(new XY(n.x,n.y)),e.edges=e.edges.filter(function(e){return!(e.nodes[0]===n&&e.nodes[1]===r||e.nodes[0]===r&&e.nodes[1]===n)}),e.removeIsolatedNodes(),i=[],void 0!==(n=r)&&(i=n.adjacentNodes());i.length>0;)r=i[0],o.nodes.push(new XY(n.x,n.y)),e.edges=e.edges.filter(function(e){return!(e.nodes[0]===n&&e.nodes[1]===r||e.nodes[0]===r&&e.nodes[1]===n)}),e.removeIsolatedNodes(),i=(n=r).adjacentNodes();o.nodes.push(new XY(n.x,n.y))}t.push(o)}return t},t}(Graph);!function(e){e[e.mark=0]="mark",e[e.border=1]="border",e[e.mountain=2]="mountain",e[e.valley=3]="valley"}(CreaseDirection||(CreaseDirection={}));var MadeByType,Fold=function(){return function(e,t){this.func=void 0,this.args=[],this.func=e,this.args=t}}();!function(e){e[e.ray=0]="ray",e[e.doubleRay=1]="doubleRay",e[e.endpoints=2]="endpoints",e[e.axiom1=3]="axiom1",e[e.axiom2=4]="axiom2",e[e.axiom3=5]="axiom3",e[e.axiom4=6]="axiom4",e[e.axiom5=7]="axiom5",e[e.axiom6=8]="axiom6",e[e.axiom7=9]="axiom7"}(MadeByType||(MadeByType={}));var ChangeType,MadeBy=function(){return function(){this.endPoints=[],this.intersections=[]}}();!function(e){e[e.position=0]="position",e[e.newLine=1]="newLine"}(ChangeType||(ChangeType={}));var FoldSequence=function(){return function(){}}(),CreaseSector=function(e){function t(){return null!==e&&e.apply(this,arguments)||this}return __extends(t,e),t.prototype.kawasakiFourth=function(){var e=this.origin.junction();if(3==e.edges.length){for(var t=void 0,n=0;n<e.sectors.length;n++)this.equivalent(e.sectors[n])&&(t=n);if(void 0!==t){var i=0;for(n=0;n<e.sectors.length-1;n++){var o=(n+t+1)%e.sectors.length;n%2==0?i+=e.sectors[o].angle():e.sectors[o].angle()}var r=Math.PI-i,s=this.edges[0].absoluteAngle(this.origin)-r;return new XY(Math.cos(s),Math.sin(s))}}},t}(PlanarSector),CreaseJunction=function(e){function t(){return null!==e&&e.apply(this,arguments)||this}return __extends(t,e),t.prototype.flatFoldable=function(e){return this.kawasaki()&&this.maekawa()},t.prototype.alternateAngleSum=function(){if(this.sectors.length%2==0){var e=[0,0];return this.sectors.forEach(function(t,n){e[n%2]+=t.angle()}),e}},t.prototype.maekawa=function(){return!0},t.prototype.kawasaki=function(){var e=this.alternateAngleSum();return epsilonEqual(e[0],e[1])},t.prototype.kawasakiRating=function(){var e=this.alternateAngleSum();return Math.abs(e[0]-e[1])},t.prototype.kawasakiSolution=function(){var e=this.alternateAngleSum().map(function(e){return{difference:Math.PI-e,sectors:[]}});return this.sectors.forEach(function(t,n){e[n%2].sectors.push(t)}),e},t.prototype.kawasakiFourth=function(e){if(3==this.edges.length){for(var t=void 0,n=0;n<this.sectors.length;n++)e.equivalent(this.sectors[n])&&(t=n);if(void 0!==t){var i=0;for(n=0;n<this.sectors.length-1;n++){var o=(n+t+1)%this.sectors.length;n%2==0?i+=this.sectors[o].angle():this.sectors[o].angle()}var r=Math.PI-i,s=e.edges[0].absoluteAngle(e.origin)-r;return new XY(Math.cos(s),Math.sin(s))}}},t}(PlanarJunction),CreaseNode=function(e){function t(){var t=null!==e&&e.apply(this,arguments)||this;return t.junctionType=CreaseJunction,t.sectorType=CreaseSector,t}return __extends(t,e),t.prototype.isBoundary=function(){for(var e=0;e<this.graph.boundary.edges.length;e++){var t=new XY(this.x,this.y);if(this.graph.boundary.edges[e].collinear(t))return!0}return!1},t.prototype.alternateAngleSum=function(){return this.junction().alternateAngleSum()},t.prototype.kawasakiRating=function(){return this.junction().kawasakiRating()},t.prototype.flatFoldable=function(e){return!!this.isBoundary()||this.junction().flatFoldable(e)},t.prototype.kawasakiFourth=function(e,t){var n=this.junction(),i=n.sectorWithEdges(e,t);if(void 0!==i)return n.kawasakiFourth(i)},t.prototype.creaseLineThrough=function(e){return this.graph.creaseThroughPoints(this,e)},t.prototype.creaseToPoint=function(e){return this.graph.creasePointToPoint(this,e)},t}(PlanarNode),Crease=function(e){function t(t,n,i){var o=e.call(this,t,n,i)||this;return o.orientation=CreaseDirection.mark,o.newMadeBy=new MadeBy,o.newMadeBy.endPoints=[n,i],o}return __extends(t,e),t.prototype.mark=function(){return this.orientation=CreaseDirection.mark,this},t.prototype.mountain=function(){return this.orientation=CreaseDirection.mountain,this},t.prototype.valley=function(){return this.orientation=CreaseDirection.valley,this},t.prototype.border=function(){return this.orientation=CreaseDirection.border,this},t.prototype.creaseToEdge=function(e){return this.graph.creaseEdgeToEdge(this,e)},t}(PlanarEdge),CreaseFace=function(e){function t(){return null!==e&&e.apply(this,arguments)||this}return __extends(t,e),t.prototype.rabbitEar=function(){if(3!==this.sectors.length)return[];var e=this.sectors.map(function(e){return new Ray(e.origin,e.bisect())}),t=e.map(function(t,n){return intersectionRayRay(t,e[(n+1)%e.length])}).reduce(function(e,t){return e.add(t)}).scale(1/e.length);return this.nodes.map(function(e){return this.graph.crease(e,t)},this)},t}(PlanarFace),CreasePattern=function(e){function t(){var t=e.call(this)||this;return t.symmetryLine=void 0,t.nodeType=CreaseNode,t.edgeType=Crease,t.faceType=CreaseFace,void 0===t.boundary&&(t.boundary=new ConvexPolygon),t.square(),t}return __extends(t,e),t.prototype.copy=function(){this.nodeArrayDidChange(),this.edgeArrayDidChange(),this.faceArrayDidChange();var e=new t;e.nodes=[],e.edges=[],e.faces=[],e.boundary=void 0;for(var n=0;n<this.nodes.length;n++){var i=e.addNode(new CreaseNode(e));Object.assign(i,this.nodes[n]),i.graph=e,i.index=n}for(n=0;n<this.edges.length;n++){var o=[this.edges[n].nodes[0].index,this.edges[n].nodes[1].index],r=e.addEdge(new Crease(e,e.nodes[o[0]],e.nodes[o[1]]));Object.assign(r,this.edges[n]),r.graph=e,r.index=n,r.nodes=[e.nodes[o[0]],e.nodes[o[1]]]}for(n=0;n<this.faces.length;n++){var s=new PlanarFace(e);if(e.faces.push(s),s.graph=e,s.index=n,void 0!==this.faces[n]){if(void 0!==this.faces[n].nodes)for(var a=0;a<this.faces[n].nodes.length;a++){var h=this.faces[n].nodes[a].index;s.nodes.push(e.nodes[h])}if(void 0!==this.faces[n].edges)for(a=0;a<this.faces[n].edges.length;a++){var d=this.faces[n].edges[a].index;s.edges.push(e.edges[d])}if(void 0!==this.faces[n].angles)for(a=0;a<this.faces[n].angles.length;a++)s.angles.push(this.faces[n].angles[a])}}return e.boundary=this.boundary.copy(),e},t.prototype.fold=function(e,t,n,i){},t.prototype.foldInHalf=function(){var e,t=this.bounds();if(epsilonEqual(t.size.width,t.size.height)){this.clean();var n=this.edges.length,i=this.edges.map(function(e){return e.midpoint()}),o=this.nodes.map(function(e){return new XY(e.x,e.y)}).concat(i),r=new XY(t.topLeft.x+.5*t.size.width,t.topLeft.y+.5*t.size.height),s=0;do{e=this.creaseThroughPoints(o[s],r),this.clean(),s++}while(n===this.edges.length&&s<o.length);if(n!==this.edges.length)return e}},t.prototype.newCrease=function(e,t,n,i){this.creaseSymmetry(e,t,n,i);var o=this.newPlanarEdge(e,t,n,i);return void 0!==this.didChange&&this.didChange(void 0),o},t.prototype.crease=function(e,t,n,i){var o=gimme1Edge(e,t,n,i);if(void 0!==o){var r=this.boundary.clipEdge(o);if(void 0!==r)return this.newCrease(r.nodes[0].x,r.nodes[0].y,r.nodes[1].x,r.nodes[1].y)}},t.prototype.creaseRay=function(e,t,n,i){var o=gimme1Ray(e,t,n,i);if(void 0!==o){var r=this.boundary.clipRay(o);if(void 0!==r)return this.newCrease(r.nodes[0].x,r.nodes[0].y,r.nodes[1].x,r.nodes[1].y)}},t.prototype.creaseRayUntilIntersection=function(e,t){var n=e.clipWithEdgesDetails(this.edges);if(n.length>0){if(void 0!==t){var i=new Edge(e.origin.x,e.origin.y,t.x,t.y);if(n[0].edge.length()>i.length())return this.crease(i)}return this.crease(n[0].edge)}},t.prototype.creaseLineRepeat=function(e,t,n,i){var o=gimme1Ray(e,t,n,i);return this.creaseRayRepeat(o).concat(this.creaseRayRepeat(o.flip()))},t.prototype.creaseRayRepeat=function(e,t){return(new Polyline).rayReflectRepeat(e,this.edges,t).edges().map(function(e){return this.crease(e)},this).filter(function(e){return void 0!=e})},t.prototype.creaseSymmetry=function(e,t,n,i){if(void 0!==this.symmetryLine){var o=new XY(e,t).reflect(this.symmetryLine),r=new XY(n,i).reflect(this.symmetryLine);return this.newPlanarEdge(o.x,o.y,r.x,r.y)}},t.prototype.creaseThroughPoints=function(e,t,n,i){var o=gimme1Edge(e,t,n,i);if(void 0!==o){var r=this.boundary.clipLine(o.pointVectorForm());if(void 0!==r){var s=this.newCrease(r.nodes[0].x,r.nodes[0].y,r.nodes[1].x,r.nodes[1].y);return s.madeBy=new Fold(this.creaseThroughPoints,[new XY(e.x,e.y),new XY(t.x,t.y)]),s}}},t.prototype.creasePointToPoint=function(e,t,n,i){var o=gimme2XY(e,t,n,i);if(void 0!==o){var r=new XY(.5*(o[0].x+o[1].x),.5*(o[0].y+o[1].y)),s=new XY(o[1].x-o[0].x,o[1].y-o[0].y).rotate90(),a=this.boundary.clipLine(new Line(r,s));if(void 0!==a){var h=this.newCrease(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);return h.madeBy=new Fold(this.creasePointToPoint,[new XY(o[0].x,o[0].y),new XY(o[1].x,o[1].y)]),h}}},t.prototype.creaseEdgeToEdge=function(e,t){var n=new Edge(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y),i=new Edge(t.nodes[0].x,t.nodes[0].y,t.nodes[1].x,t.nodes[1].y);if(n.parallel(i)){var o=n.nodes[0].subtract(n.nodes[1]),r=n.nodes[0].midpoint(i.nodes[1]),s=this.boundary.clipLine(new Line(r,o));return[this.newCrease(s.nodes[0].x,s.nodes[0].y,s.nodes[1].x,s.nodes[1].y)]}var a=intersectionLineLine(n.pointVectorForm(),i.pointVectorForm()),h=(o=n.nodes[1].subtract(n.nodes[0]),i.nodes[1].subtract(i.nodes[0])),d=bisect(o,h);return d[1]=d[0].rotate90(),d.map(function(e){return this.boundary.clipLine(new Line(a,e))},this).filter(function(e){return void 0!==e}).map(function(e){return this.newCrease(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y)},this).sort(function(e,t){return Math.abs(o.cross(d[0]))-Math.abs(o.cross(d[1]))})},t.prototype.creasePerpendicularThroughPoint=function(e,t){var n=new XY(e.nodes[1].x-e.nodes[0].x,e.nodes[1].y-e.nodes[0].y),i=new XY(-n.y,n.x),o=new XY(t.x+i.x,t.y+i.y),r=this.creaseThroughPoints(t,o);return void 0!==r&&(r.madeBy=new Fold(this.creasePerpendicularThroughPoint,[new XY(e.nodes[0].x,e.nodes[0].y),new XY(e.nodes[1].x,e.nodes[1].y),new XY(t.x,t.y)])),r},t.prototype.creasePointToLine=function(e,t,n){for(var i=circleLineIntersectionAlgorithm(e,Math.sqrt(Math.pow(e.x-t.x,2)+Math.pow(e.y-t.y,2)),n.nodes[0],n.nodes[1]),o=[],r=0;r<i.length;r++)o.push(this.creasePointToPoint(t,i[r]));return o},t.prototype.creasePerpendicularPointOntoLine=function(e,t,n){var i=n.nodes,o=new XY(i[1].x-i[0].x,i[1].y-i[0].y),r=intersectionLineLine(new Line(e,o),t.pointVectorForm());if(void 0!=r){var s=new XY(.5*(r.x+e.x),.5*(r.y+e.y)),a=new XY(-o.y,o.x),h=new XY(s.x+a.x,s.y+a.y);return this.creaseThroughPoints(s,h)}throw"axiom 7: two crease lines cannot be parallel"},t.prototype.pleat=function(e,t,n){var i,o,r,s,a,h=new Edge(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y),d=new Edge(t.nodes[0].x,t.nodes[0].y,t.nodes[1].x,t.nodes[1].y);if(h.parallel(d))return i=h.nodes[0].subtract(h.nodes[1]),o=d.nodes[0].subtract(d.nodes[1]),Array.apply(null,Array(n-1)).map(function(e,t){return(t+1)/n},this).map(function(e){var t=h.nodes[0].lerp(d.nodes[0],e);return this.boundary.clipLine(new Line(t,i))},this).filter(function(e){return void 0!==e},this).map(function(e){return this.newCrease(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y)},this);if(h.nodes[0].equivalent(d.nodes[0])||h.nodes[0].equivalent(d.nodes[1])||h.nodes[1].equivalent(d.nodes[0])||h.nodes[1].equivalent(d.nodes[1]))return h.nodes[0].equivalent(d.nodes[0])&&(r=h.nodes[0],s=h.nodes[1],a=d.nodes[1]),h.nodes[0].equivalent(d.nodes[1])&&(r=h.nodes[0],s=h.nodes[1],a=d.nodes[0]),h.nodes[1].equivalent(d.nodes[0])&&(r=h.nodes[1],s=h.nodes[0],a=d.nodes[1]),h.nodes[1].equivalent(d.nodes[1])&&(r=h.nodes[1],s=h.nodes[0],a=d.nodes[0]),i=s.subtract(r),o=a.subtract(r),Array.apply(null,Array(n-1)).map(function(e,t){return(t+1)/n},this).map(function(e){var t=i.angleLerp(o,e);return this.boundary.clipLine(new Line(r,t))},this).filter(function(e){return void 0!==e},this).map(function(e){return this.newCrease(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y)},this);var u=intersectionLineLine(h.pointVectorForm(),d.pointVectorForm());return h.nodes[0].equivalent(u),i=EPSILON_LOW?h.nodes[1].subtract(u):h.nodes[0].subtract(u),d.nodes[0].equivalent(u),o=EPSILON_LOW?d.nodes[1].subtract(u):d.nodes[0].subtract(u),Array.apply(null,Array(n-1)).map(function(e,t){return(t+1)/n},this).map(function(e){var t=i.angleLerp(o,e);return this.boundary.clipLine(new Line(u,t))},this).filter(function(e){return void 0!==e},this).map(function(e){return this.newCrease(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y)},this)},t.prototype.coolPleat=function(e,t,n){var i=new Edge(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y),o=new Edge(t.nodes[0].x,t.nodes[0].y,t.nodes[1].x,t.nodes[1].y),r=i.nodes[0].subtract(i.nodes[1]),s=o.nodes[0].subtract(o.nodes[1]);return Array.apply(null,Array(n-1)).map(function(e,t){return(t+1)/n},this).map(function(e){var t=i.nodes[0].lerp(o.nodes[0],e),n=r.lerp(s,e);return this.boundary.clipLine(new Line(t,n))},this).filter(function(e){return void 0!==e},this).map(function(e){return this.newCrease(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y)},this)},t.prototype.creaseVoronoi=function(e,t){void 0===t&&(t=.5);var n=e.edges.filter(function(e){return!e.isBoundary}),i=e.cells.map(function(e){return e.edges.map(function(n){return n.endPoints.map(function(n){return e.site.lerp(n,t)})},this)},this),o=e.generateSortedMolecules(t);return o.forEach(function(e){e.forEach(function(e){e.generateCreases().forEach(function(e){this.crease(e.nodes[0],e.nodes[1])},this)},this)},this),n.forEach(function(e){var t=this.crease(e.endPoints[0],e.endPoints[1]);void 0!==t&&t.valley()},this),i.forEach(function(e){e.forEach(function(e){this.crease(e[0],e[1]).mountain()},this)},this),o.reduce(function(e,t){return e.concat(t)})},t.prototype.possibleFolds=function(){var e=this.copy();e.nodes=[],e.edges=[],e.faces=[],console.time("edge2edge");for(var t=0;t<this.edges.length-1;t++)for(var n=t+1;n<this.edges.length;n++)e.creaseEdgeToEdge(this.edges[t],this.edges[n]);console.timeEnd("edge2edge"),console.time("creasepoints");for(t=0;t<this.nodes.length-1;t++)for(n=t+1;n<this.nodes.length;n++)e.creaseThroughPoints(this.nodes[t],this.nodes[n]),e.creasePointToPoint(this.nodes[t],this.nodes[n]);return console.timeEnd("creasepoints"),e.cleanDuplicateNodes(),e},t.prototype.possibleFolds1=function(){var e=this.copy();e.nodes=[],e.edges=[],e.faces=[];for(var t=0;t<this.nodes.length-1;t++)for(var n=t+1;n<this.nodes.length;n++)e.creaseThroughPoints(this.nodes[t],this.nodes[n]);return e},t.prototype.possibleFolds2=function(){var e=this.copy();e.nodes=[],e.edges=[],e.faces=[];for(var t=0;t<this.nodes.length-1;t++)for(var n=t+1;n<this.nodes.length;n++)e.creasePointToPoint(this.nodes[t],this.nodes[n]);return e},t.prototype.possibleFolds3=function(e){var t=this.copy();t.nodes=[],t.edges=[],t.faces=[],void 0===e&&(e=this.edges);for(var n=0;n<e.length-1;n++)for(var i=n+1;i<e.length;i++)t.creaseEdgeToEdge(e[n],e[i]);return t},t.prototype.wiggle=function(){this.edges.forEach(function(e,t){return e.length()});for(var e=0,t=0;t<this.nodes.length;t++){var n=this.nodes[t].kawasakiRating();if(n>EPSILON){e++;for(var i=[],o=0;o<12;o++){var r=Math.random()*Math.PI*20,s=Math.random()*n,a=new XY(.05*s*Math.cos(r),.05*s*Math.sin(r));this.nodes[t].x+=a.x,this.nodes[t].y+=a.y;for(var h=this.nodes[t].kawasakiRating(),d=this.nodes[t].adjacentNodes(),u=0,c=0;c<d.length;c++)u+=this.nodes[t].kawasakiRating();i.push({xy:a,rating:h+u}),this.nodes[t].x-=a.x,this.nodes[t].y-=a.y}var l=i.sort(function(e,t){return e.rating-t.rating});this.nodes[t].x+=l[0].xy.x,this.nodes[t].y+=l[0].xy.y}}return e},t.prototype.flatFoldable=function(){return this.nodes.map(function(e){return e.flatFoldable()}).reduce(function(e,t){return e&&t})},t.prototype.bounds=function(){return this.boundary.minimumRect()},t.prototype.bottomEdge=function(){return this.edges.filter(function(e){return e.orientation===CreaseDirection.border}).sort(function(e,t){return t.nodes[0].y+t.nodes[1].y-(e.nodes[0].y+e.nodes[1].y)}).shift()},t.prototype.topEdge=function(){return this.edges.filter(function(e){return e.orientation===CreaseDirection.border}).sort(function(e,t){return e.nodes[0].y+e.nodes[1].y-(t.nodes[0].y+t.nodes[1].y)}).shift()},t.prototype.rightEdge=function(){return this.edges.filter(function(e){return e.orientation===CreaseDirection.border}).sort(function(e,t){return t.nodes[0].x+t.nodes[1].x-(e.nodes[0].x+e.nodes[1].x)}).shift()},t.prototype.leftEdge=function(){return this.edges.filter(function(e){return e.orientation===CreaseDirection.border}).sort(function(e,t){return e.nodes[0].x+e.nodes[1].x-(t.nodes[0].x+t.nodes[1].x)}).shift()},t.prototype.contains=function(e){return this.boundary.contains(e)},t.prototype.square=function(e){var t=1;return void 0!=e&&0!=e&&(t=Math.abs(e)),this.setBoundary([new XY(0,0),new XY(t,0),new XY(t,t),new XY(0,t)])},t.prototype.rectangle=function(e,t){if(void 0===e||void 0===t)return this;e=Math.abs(e),t=Math.abs(t);var n=[new XY(0,0),new XY(e,0),new XY(e,t),new XY(0,t)];return this.setBoundary(n)},t.prototype.hexagon=function(e){void 0===e&&(e=.5);e=Math.abs(e);var t=[new XY(.5*e,.8660254*e),new XY(e,0),new XY(.5*e,.8660254*-e),new XY(.5*-e,.8660254*-e),new XY(-e,0),new XY(.5*-e,.8660254*e)];return this.setBoundary(t)},t.prototype.noBoundary=function(){return this.boundary.edges=[],this.edges=this.edges.filter(function(e){return e.orientation!==CreaseDirection.border}),this.cleanAllUselessNodes(),this},t.prototype.setBoundary=function(e,t){return e[0].equivalent(e[e.length-1])&&e.pop(),void 0!==t&&!0===t?this.boundary.edges=this.boundary.setEdgesFromPoints(e):this.boundary.convexHull(e),this.edges=this.edges.filter(function(e){return e.orientation!==CreaseDirection.border}),this.cleanAllUselessNodes(),this.boundary.edges.forEach(function(e){this.newPlanarEdge(e.nodes[0].x,e.nodes[0].y,e.nodes[1].x,e.nodes[1].y).border()},this),this.cleanDuplicateNodes(),this},t.prototype.setMinRectBoundary=function(){this.edges=this.edges.filter(function(e){return e.orientation!==CreaseDirection.border});for(var e=1/0,t=0,n=1/0,i=0,o=0;o<this.nodes.length;o++)this.nodes[o].x>t&&(t=this.nodes[o].x),this.nodes[o].x<e&&(e=this.nodes[o].x),this.nodes[o].y>i&&(i=this.nodes[o].y),this.nodes[o].y<n&&(n=this.nodes[o].y);return this.setBoundary([new XY(e,n),new XY(t,n),new XY(t,i),new XY(e,i)]),this},t.prototype.clear=function(){if(this.nodes=[],this.edges=[],this.faces=[],this.symmetryLine=void 0,void 0===this.boundary)return this;for(var e=0;e<this.boundary.edges.length;e++){var t=this.boundary.edges[e].nodes;this.newPlanarEdge(t[0].x,t[0].y,t[1].x,t[1].y).border()}return this.cleanDuplicateNodes(),this},t.prototype.noSymmetry=function(){return this.symmetryLine=void 0,this},t.prototype.bookSymmetry=function(){var e=this.boundary.center();return this.setSymmetryLine(e,e.add(new XY(0,1)))},t.prototype.diagonalSymmetry=function(){var e=this.boundary.center();return this.setSymmetryLine(e,e.add(new XY(1,1)))},t.prototype.setSymmetryLine=function(e,t,n,i){var o=gimme1Edge(e,t,n,i);return this.symmetryLine=new Line(o.nodes[0],o.nodes[1].subtract(o.nodes[1])),this},t.prototype.exportFoldFile=function(){this.generateFaces(),this.nodeArrayDidChange(),this.edgeArrayDidChange();var e={file_spec:1,file_creator:"crease pattern javascript library by Robby Kraft",file_author:"",file_classes:["singleModel"]};return e.vertices_coords=this.nodes.map(function(e){return[e.x,e.y]},this),e.faces_vertices=this.faces.map(function(e){return e.nodes.map(function(e){return e.index},this)},this),e.edges_vertices=this.edges.map(function(e){return e.nodes.map(function(e){return e.index},this)},this),e.edges_assignment=this.edges.map(function(e){switch(e.orientation){case CreaseDirection.border:return"B";case CreaseDirection.mountain:return"M";case CreaseDirection.valley:return"V";case CreaseDirection.mark:return"F";default:return"U"}},this),e},t.prototype.importFoldFile=function(e){if(void 0===e||void 0===e.vertices_coords||void 0===e.edges_vertices)return!1;void 0!==e.frame_attributes&&e.frame_attributes.contains("3D")&&console.log("importFoldFile(): FOLD file marked as '3D', this library only supports 2D. attempting import anyway, expect a possible distortion due to orthogonal projection."),this.clear(),this.noBoundary(),e.vertices_coords.forEach(function(e){this.newPlanarNode(e[0]||0,e[1]||0)},this),this.nodeArrayDidChange(),e.edges_vertices.map(function(e){return e.map(function(e){return this.nodes[e]},this)},this).filter(function(e){return void 0!==e[0]&&void 0!==e[1]},this).forEach(function(e){this.newPlanarEdgeBetweenNodes(e[0],e[1])},this),this.edgeArrayDidChange();var t={B:CreaseDirection.border,M:CreaseDirection.mountain,V:CreaseDirection.valley,F:CreaseDirection.mark,U:CreaseDirection.mark};e.edges_assignment.map(function(e){return t[e]}).forEach(function(e,t){this.edges[t].orientation=e},this);var n=this.edges.filter(function(e){return e.orientation===CreaseDirection.border},this).map(function(e){return[e.nodes[0].xy(),e.nodes[1].xy()]},this);return this.setBoundary([].concat.apply([],n)),this.clean(),!0},t.prototype.exportSVG=function(e){(void 0===e||e<=0)&&(e=600);var t=this.bounds(),n=t.size.width,i=t.size.height,o=t.topLeft.x,r=t.topLeft.y,s=e/n;console.log(t,n,o,s);var a="",h=(n*s).toFixed(2),d=(i*s).toFixed(2),u=(n*s*.0025).toFixed(1),c=(n*s*.0025*3).toFixed(1),l=(n*s*.0025*3*.5).toFixed(1);"0"!==u&&"0.0"!==u||(u="0.5"),a=a+'<?xml version="1.0" encoding="utf-8"?>\n<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="'+h+'px" height="'+d+'px" viewBox="0 0 '+h+" "+d+'">\n<g>\n',a+='<line stroke="#000000" stroke-width="'+u+'" x1="0" y1="0" x2="'+h+'" y2="0"/>\n<line fill="none" stroke-width="'+u+'" stroke="#000000" stroke-miterlimit="10" x1="'+h+'" y1="0" x2="'+h+'" y2="'+d+'"/>\n<line fill="none" stroke-width="'+u+'" stroke="#000000" stroke-miterlimit="10" x1="'+h+'" y1="'+d+'" x2="0" y2="'+d+'"/>\n<line fill="none" stroke-width="'+u+'" stroke="#000000" stroke-miterlimit="10" x1="0" y1="'+d+'" x2="0" y2="0"/>\n';for(var g='stroke="#4379FF" stroke-dasharray="'+c+","+l+'" ',p=0;p<this.edges.length;p++){var f=this.edges[p].nodes[0],y=this.edges[p].nodes[1],v=((f.x-o)*s).toFixed(4),x=((f.y-r)*s).toFixed(4),m=((y.x-o)*s).toFixed(4),w=((y.y-r)*s).toFixed(4),E='stroke="#000000" ';this.edges[p].orientation===CreaseDirection.mountain&&(E='stroke="#EE1032" '),this.edges[p].orientation===CreaseDirection.valley&&(E=g),a+="<line "+E+'stroke-width="'+u+'" x1="'+v+'" y1="'+x+'" x2="'+m+'" y2="'+w+'"/>\n'}return a+="</g>\n</svg>\n"},t.prototype.exportSVGMin=function(e){(void 0===e||e<=0)&&(e=600);var t=this.bounds(),n=t.size.width,i=t.size.height,o=t.topLeft.x,r=t.topLeft.y,s=e/(n+2*o),a=(n*s*.0025).toFixed(1);"0"!==a&&"0.0"!==a||(a="0.5");var h=this.fewestPolylines(),d="";d=d+'<?xml version="1.0" encoding="utf-8"?>\n<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="'+(n+2*o)*s+'px" height="'+(i+2*r)*s+'px" viewBox="0 0 '+(n+2*o)*s+" "+(i+2*r)*s+'">\n<g>\n';for(var u=0;u<h.length;u++)if(h[u].nodes.length>=0){d+='<polyline fill="none" stroke-width="'+a+'" stroke="#000000" points="';for(var c=0;c<h[u].nodes.length;c++){var l=h[u].nodes[c];d+=(s*l.x).toFixed(4)+","+(s*l.y).toFixed(4)+" "}d+='"/>\n'}return d+="</g>\n</svg>\n"},t.prototype.kiteBase=function(){return this.clear(),this.newPlanarEdge(0,0,.41421,0).border(),this.newPlanarEdge(.41421,0,1,0).border(),this.newPlanarEdge(1,0,1,.58578).border(),this.newPlanarEdge(1,.58578,1,1).border(),this.newPlanarEdge(1,1,0,1).border(),this.newPlanarEdge(0,1,0,0).border(),this.newPlanarEdge(1,0,0,1).mountain(),this.newPlanarEdge(0,1,1,.58578).valley(),this.newPlanarEdge(0,1,.41421,0).valley(),this.clean(),this},t.prototype.fishBase=function(){return this.clear(),this.newPlanarEdge(0,0,.29289,0).border(),this.newPlanarEdge(.29289,0,1,0).border(),this.newPlanarEdge(1,0,1,.70711).border(),this.newPlanarEdge(1,.70711,1,1).border(),this.newPlanarEdge(1,1,0,1).border(),this.newPlanarEdge(0,1,0,0).border(),this.newPlanarEdge(1,0,0,1).mountain(),this.newPlanarEdge(0,1,.70711,.70711).valley(),this.newPlanarEdge(0,1,.29289,.29289).valley(),this.newPlanarEdge(1,0,.29289,.29289).valley(),this.newPlanarEdge(1,0,.70711,.70711).valley(),this.newPlanarEdge(.29289,.29289,0,0).valley(),this.newPlanarEdge(.70711,.70711,1,1).valley(),this.newPlanarEdge(.70711,.70711,1,.70711).mountain(),this.newPlanarEdge(.29289,.29289,.29289,0).mountain(),this.clean(),this.generateFaces(),this},t.prototype.birdBase=function(){return this.clear(),this.newPlanarEdge(0,0,.5,0).border(),this.newPlanarEdge(.5,0,1,0).border(),this.newPlanarEdge(1,0,1,.5).border(),this.newPlanarEdge(1,.5,1,1).border(),this.newPlanarEdge(1,1,.5,1).border(),this.newPlanarEdge(.5,1,0,1).border(),this.newPlanarEdge(0,1,0,.5).border(),this.newPlanarEdge(0,.5,0,0).border(),this.newPlanarEdge(0,1,.5,.7929).mountain(),this.newPlanarEdge(0,1,.2071,.5).mountain(),this.newPlanarEdge(1,0,.5,.2071).mountain(),this.newPlanarEdge(1,0,.7929,.5).mountain(),this.newPlanarEdge(1,1,.7929,.5).mountain(),this.newPlanarEdge(1,1,.5,.7929).mountain(),this.newPlanarEdge(0,0,.2071,.5).mountain(),this.newPlanarEdge(0,0,.5,.2071).mountain(),this.newPlanarEdge(0,0,.35354,.35354).valley(),this.newPlanarEdge(.35354,.64645,0,1).valley(),this.newPlanarEdge(1,0,.64645,.35354).mountain(),this.newPlanarEdge(.64645,.64645,1,1).valley(),this.newPlanarEdge(.5,.5,.35354,.64645).valley(),this.newPlanarEdge(.64645,.35354,.5,.5).mountain(),this.newPlanarEdge(.5,.5,.64645,.64645).valley(),this.newPlanarEdge(.35354,.35354,.5,.5).valley(),this.newPlanarEdge(.35354,.35354,.2071,.5).mark(),this.newPlanarEdge(.5,.2071,.35354,.35354).mark(),this.newPlanarEdge(.35354,.64645,.5,.7929).mark(),this.newPlanarEdge(.2071,.5,.35354,.64645).mark(),this.newPlanarEdge(.64645,.64645,.7929,.5).mark(),this.newPlanarEdge(.5,.7929,.64645,.64645).mark(),this.newPlanarEdge(.64645,.35354,.5,.2071).mark(),this.newPlanarEdge(.7929,.5,.64645,.35354).mark(),this.newPlanarEdge(.5,.5,.5,.7929).mountain(),this.newPlanarEdge(.5,.2071,.5,.5).mountain(),this.newPlanarEdge(.5,.5,.7929,.5).mountain(),this.newPlanarEdge(.2071,.5,.5,.5).mountain(),this.newPlanarEdge(.5,.2071,.5,0).valley(),this.newPlanarEdge(.7929,.5,1,.5).valley(),this.newPlanarEdge(.5,.7929,.5,1).valley(),this.newPlanarEdge(.2071,.5,0,.5).valley(),this.clean(),this},t.prototype.frogBase=function(){return this.newPlanarEdge(0,0,.14646,.35353),this.newPlanarEdge(0,0,.35353,.14646),this.newPlanarEdge(.14646,.35353,.5,.5),this.newPlanarEdge(.5,.5,.35353,.14646),this.newPlanarEdge(.14646,.35353,.14646,.5),this.newPlanarEdge(0,.5,.14646,.5),this.newPlanarEdge(.5,.5,.5,.14646),this.newPlanarEdge(.5,.14646,.5,0),this.newPlanarEdge(.5,0,.35353,.14646),this.newPlanarEdge(.35353,.14646,.5,.14646),this.newPlanarEdge(.14646,.35353,0,.5),this.newPlanarEdge(.14646,.35353,.25,.25),this.newPlanarEdge(.25,.25,.35353,.14646),this.newPlanarEdge(0,1,.35353,.85353),this.newPlanarEdge(0,1,.14646,.64646),this.newPlanarEdge(.35353,.85353,.5,.5),this.newPlanarEdge(.5,.5,.14646,.64646),this.newPlanarEdge(.35353,.85353,.5,.85353),this.newPlanarEdge(.5,1,.5,.85353),this.newPlanarEdge(.5,.5,.5,.85353),this.newPlanarEdge(.5,.5,.14646,.5),this.newPlanarEdge(0,.5,.14646,.64646),this.newPlanarEdge(.14646,.64646,.14646,.5),this.newPlanarEdge(.35353,.85353,.5,1),this.newPlanarEdge(.35353,.85353,.25,.75),this.newPlanarEdge(.25,.75,.14646,.64646),this.newPlanarEdge(1,0,.85353,.35353),this.newPlanarEdge(1,0,.64646,.14646),this.newPlanarEdge(.85353,.35353,.5,.5),this.newPlanarEdge(.5,.5,.64646,.14646),this.newPlanarEdge(.85353,.35353,.85353,.5),this.newPlanarEdge(1,.5,.85353,.5),this.newPlanarEdge(.5,0,.64646,.14646),this.newPlanarEdge(.64646,.14646,.5,.14646),this.newPlanarEdge(.85353,.35353,1,.5),this.newPlanarEdge(.85353,.35353,.75,.25),this.newPlanarEdge(.75,.25,.64646,.14646),this.newPlanarEdge(1,1,.64646,.85353),this.newPlanarEdge(1,1,.85353,.64646),this.newPlanarEdge(.64646,.85353,.5,.5),this.newPlanarEdge(.5,.5,.85353,.64646),this.newPlanarEdge(.64646,.85353,.5,.85353),this.newPlanarEdge(.5,.5,.85353,.5),this.newPlanarEdge(1,.5,.85353,.64646),this.newPlanarEdge(.85353,.64646,.85353,.5),this.newPlanarEdge(.64646,.85353,.5,1),this.newPlanarEdge(.64646,.85353,.75,.75),this.newPlanarEdge(.75,.75,.85353,.64646),this.newPlanarEdge(.35353,.14646,.35353,0),this.newPlanarEdge(.64646,.14646,.64646,0),this.newPlanarEdge(.85353,.35353,1,.35353),this.newPlanarEdge(.85353,.64646,1,.64646),this.newPlanarEdge(.64646,.85353,.64646,1),this.newPlanarEdge(.35353,.85353,.35353,1),this.newPlanarEdge(.14646,.64646,0,.64646),this.newPlanarEdge(.14646,.35353,0,.35353),this.newPlanarEdge(.5,.5,.25,.25),this.newPlanarEdge(.5,.5,.75,.25),this.newPlanarEdge(.5,.5,.75,.75),this.newPlanarEdge(.5,.5,.25,.75),this.newPlanarEdge(.25,.75,0,1),this.newPlanarEdge(.25,.25,0,0),this.newPlanarEdge(.75,.25,1,0),this.newPlanarEdge(.75,.75,1,1),this.fragment(),this.clean(),this},t}(PlanarGraph);Array.prototype.mountain=function(){if(!(this.length<=1)){for(var e=0;e<this.length;e++)this[e]instanceof Crease&&this[e].mountain();return this}},Array.prototype.valley=function(){if(!(this.length<=1)){for(var e=0;e<this.length;e++)this[e]instanceof Crease&&this[e].valley();return this}},function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).rbush=e()}}(function(){return function e(t,n,i){function o(s,a){if(!n[s]){if(!t[s]){var h="function"==typeof require&&require;if(!a&&h)return h(s,!0);if(r)return r(s,!0);var d=new Error("Cannot find module '"+s+"'");throw d.code="MODULE_NOT_FOUND",d}var u=n[s]={exports:{}};t[s][0].call(u.exports,function(e){var n=t[s][1][e];return o(n||e)},u,u.exports,e,t,n,i)}return n[s].exports}for(var r="function"==typeof require&&require,s=0;s<i.length;s++)o(i[s]);return o}({1:[function(e,t,n){function i(e,t){return this instanceof i?(this._maxEntries=Math.max(4,e||9),this._minEntries=Math.max(2,Math.ceil(.4*this._maxEntries)),t&&this._initFormat(t),void this.clear()):new i(e,t)}function o(e,t,n){if(!n)return t.indexOf(e);for(var i=0;i<t.length;i++)if(n(e,t[i]))return i;return-1}function r(e,t){s(e,0,e.children.length,t,e)}function s(e,t,n,i,o){o||(o=p(null)),o.minX=1/0,o.minY=1/0,o.maxX=-1/0,o.maxY=-1/0;for(var r,s=t;s<n;s++)r=e.children[s],a(o,e.leaf?i(r):r);return o}function a(e,t){return e.minX=Math.min(e.minX,t.minX),e.minY=Math.min(e.minY,t.minY),e.maxX=Math.max(e.maxX,t.maxX),e.maxY=Math.max(e.maxY,t.maxY),e}function h(e,t){return e.minX-t.minX}function d(e,t){return e.minY-t.minY}function u(e){return(e.maxX-e.minX)*(e.maxY-e.minY)}function c(e){return e.maxX-e.minX+(e.maxY-e.minY)}function l(e,t){return e.minX<=t.minX&&e.minY<=t.minY&&t.maxX<=e.maxX&&t.maxY<=e.maxY}function g(e,t){return t.minX<=e.maxX&&t.minY<=e.maxY&&t.maxX>=e.minX&&t.maxY>=e.minY}function p(e){return{children:e,height:1,leaf:!0,minX:1/0,minY:1/0,maxX:-1/0,maxY:-1/0}}function f(e,t,n,i,o){for(var r,s=[t,n];s.length;)n=s.pop(),t=s.pop(),n-t<=i||(r=t+Math.ceil((n-t)/i/2)*i,y(e,r,t,n,o),s.push(t,r,r,n))}t.exports=i;var y=e("quickselect");i.prototype={all:function(){return this._all(this.data,[])},search:function(e){var t=this.data,n=[],i=this.toBBox;if(!g(e,t))return n;for(var o,r,s,a,h=[];t;){for(o=0,r=t.children.length;o<r;o++)s=t.children[o],a=t.leaf?i(s):s,g(e,a)&&(t.leaf?n.push(s):l(e,a)?this._all(s,n):h.push(s));t=h.pop()}return n},collides:function(e){var t=this.data,n=this.toBBox;if(!g(e,t))return!1;for(var i,o,r,s,a=[];t;){for(i=0,o=t.children.length;i<o;i++)if(r=t.children[i],s=t.leaf?n(r):r,g(e,s)){if(t.leaf||l(e,s))return!0;a.push(r)}t=a.pop()}return!1},load:function(e){if(!e||!e.length)return this;if(e.length<this._minEntries){for(var t=0,n=e.length;t<n;t++)this.insert(e[t]);return this}var i=this._build(e.slice(),0,e.length-1,0);if(this.data.children.length)if(this.data.height===i.height)this._splitRoot(this.data,i);else{if(this.data.height<i.height){var o=this.data;this.data=i,i=o}this._insert(i,this.data.height-i.height-1,!0)}else this.data=i;return this},insert:function(e){return e&&this._insert(e,this.data.height-1),this},clear:function(){return this.data=p([]),this},remove:function(e,t){if(!e)return this;for(var n,i,r,s,a=this.data,h=this.toBBox(e),d=[],u=[];a||d.length;){if(a||(a=d.pop(),i=d[d.length-1],n=u.pop(),s=!0),a.leaf&&-1!==(r=o(e,a.children,t)))return a.children.splice(r,1),d.push(a),this._condense(d),this;s||a.leaf||!l(a,h)?i?(n++,a=i.children[n],s=!1):a=null:(d.push(a),u.push(n),n=0,i=a,a=a.children[0])}return this},toBBox:function(e){return e},compareMinX:h,compareMinY:d,toJSON:function(){return this.data},fromJSON:function(e){return this.data=e,this},_all:function(e,t){for(var n=[];e;)e.leaf?t.push.apply(t,e.children):n.push.apply(n,e.children),e=n.pop();return t},_build:function(e,t,n,i){var o,s=n-t+1,a=this._maxEntries;if(s<=a)return o=p(e.slice(t,n+1)),r(o,this.toBBox),o;i||(i=Math.ceil(Math.log(s)/Math.log(a)),a=Math.ceil(s/Math.pow(a,i-1))),(o=p([])).leaf=!1,o.height=i;var h,d,u,c,l=Math.ceil(s/a),g=l*Math.ceil(Math.sqrt(a));for(f(e,t,n,g,this.compareMinX),h=t;h<=n;h+=g)for(u=Math.min(h+g-1,n),f(e,h,u,l,this.compareMinY),d=h;d<=u;d+=l)c=Math.min(d+l-1,u),o.children.push(this._build(e,d,c,i-1));return r(o,this.toBBox),o},_chooseSubtree:function(e,t,n,i){for(var o,r,s,a,h,d,c,l;i.push(t),!t.leaf&&i.length-1!==n;){for(c=l=1/0,o=0,r=t.children.length;o<r;o++)s=t.children[o],h=u(s),g=e,p=s,d=(Math.max(p.maxX,g.maxX)-Math.min(p.minX,g.minX))*(Math.max(p.maxY,g.maxY)-Math.min(p.minY,g.minY))-h,d<l?(l=d,c=h<c?h:c,a=s):d===l&&h<c&&(c=h,a=s);t=a||t.children[0]}var g,p;return t},_insert:function(e,t,n){var i=this.toBBox,o=n?e:i(e),r=[],s=this._chooseSubtree(o,this.data,t,r);for(s.children.push(e),a(s,o);t>=0&&r[t].children.length>this._maxEntries;)this._split(r,t),t--;this._adjustParentBBoxes(o,r,t)},_split:function(e,t){var n=e[t],i=n.children.length,o=this._minEntries;this._chooseSplitAxis(n,o,i);var s=this._chooseSplitIndex(n,o,i),a=p(n.children.splice(s,n.children.length-s));a.height=n.height,a.leaf=n.leaf,r(n,this.toBBox),r(a,this.toBBox),t?e[t-1].children.push(a):this._splitRoot(n,a)},_splitRoot:function(e,t){this.data=p([e,t]),this.data.height=e.height+1,this.data.leaf=!1,r(this.data,this.toBBox)},_chooseSplitIndex:function(e,t,n){var i,o,r,a,h,d,c,l,g,p,f,y,v,x;for(d=c=1/0,i=t;i<=n-t;i++)o=s(e,0,i,this.toBBox),r=s(e,i,n,this.toBBox),g=o,p=r,void 0,void 0,void 0,void 0,f=Math.max(g.minX,p.minX),y=Math.max(g.minY,p.minY),v=Math.min(g.maxX,p.maxX),x=Math.min(g.maxY,p.maxY),a=Math.max(0,v-f)*Math.max(0,x-y),h=u(o)+u(r),a<d?(d=a,l=i,c=h<c?h:c):a===d&&h<c&&(c=h,l=i);return l},_chooseSplitAxis:function(e,t,n){var i=e.leaf?this.compareMinX:h,o=e.leaf?this.compareMinY:d;this._allDistMargin(e,t,n,i)<this._allDistMargin(e,t,n,o)&&e.children.sort(i)},_allDistMargin:function(e,t,n,i){e.children.sort(i);var o,r,h=this.toBBox,d=s(e,0,t,h),u=s(e,n-t,n,h),l=c(d)+c(u);for(o=t;o<n-t;o++)r=e.children[o],a(d,e.leaf?h(r):r),l+=c(d);for(o=n-t-1;o>=t;o--)r=e.children[o],a(u,e.leaf?h(r):r),l+=c(u);return l},_adjustParentBBoxes:function(e,t,n){for(var i=n;i>=0;i--)a(t[i],e)},_condense:function(e){for(var t,n=e.length-1;n>=0;n--)0===e[n].children.length?n>0?(t=e[n-1].children,t.splice(t.indexOf(e[n]),1)):this.clear():r(e[n],this.toBBox)},_initFormat:function(e){var t=["return a"," - b",";"];this.compareMinX=new Function("a","b",t.join(e[0])),this.compareMinY=new Function("a","b",t.join(e[1])),this.toBBox=new Function("a","return {minX: a"+e[0]+", minY: a"+e[1]+", maxX: a"+e[2]+", maxY: a"+e[3]+"};")}}},{quickselect:2}],2:[function(e,t,n){function i(e,t,n){var i=e[t];e[t]=e[n],e[n]=i}t.exports=function e(t,n,o,r,s){for(;r>o;){if(r-o>600){var a=r-o+1,h=n-o+1,d=Math.log(a),u=.5*Math.exp(2*d/3),c=.5*Math.sqrt(d*u*(a-u)/a)*(h-a/2<0?-1:1);e(t,n,Math.max(o,Math.floor(n-h*u/a+c)),Math.min(r,Math.floor(n+(a-h)*u/a+c)),s)}var l=t[n],g=o,p=r;for(i(t,o,n),s(t[r],l)>0&&i(t,o,r);g<p;){for(i(t,g,p),g++,p--;s(t[g],l)<0;)g++;for(;s(t[p],l)>0;)p--}0===s(t[o],l)?i(t,o,p):i(t,++p,r),p<=n&&(o=p+1),n<=p&&(r=p-1)}}},{}]},{},[1])(1)});
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var GraphClean = (function () {
+    function GraphClean(numNodes, numEdges) {
+        this.nodes = { total: 0, isolated: 0 };
+        this.edges = { total: 0, duplicate: 0, circular: 0 };
+        if (numNodes !== undefined) {
+            this.nodes.total = numNodes;
+        }
+        if (numEdges !== undefined) {
+            this.edges.total = numEdges;
+        }
+    }
+    GraphClean.prototype.join = function (report) {
+        this.nodes.total += report.nodes.total;
+        this.edges.total += report.edges.total;
+        this.nodes.isolated += report.nodes.isolated;
+        this.edges.duplicate += report.edges.duplicate;
+        this.edges.circular += report.edges.circular;
+        return this;
+    };
+    GraphClean.prototype.isolatedNodes = function (num) { this.nodes.isolated = num; this.nodes.total += num; return this; };
+    GraphClean.prototype.duplicateEdges = function (num) { this.edges.duplicate = num; this.edges.total += num; return this; };
+    GraphClean.prototype.circularEdges = function (num) { this.edges.circular = num; this.edges.total += num; return this; };
+    return GraphClean;
+}());
+var GraphNode = (function () {
+    function GraphNode(graph) {
+        this.graph = graph;
+    }
+    GraphNode.prototype.adjacentEdges = function () {
+        return this.graph.edges.filter(function (el) {
+            return el.nodes[0] === this || el.nodes[1] === this;
+        }, this);
+    };
+    GraphNode.prototype.adjacentNodes = function () {
+        var checked = [];
+        return this.adjacentEdges()
+            .filter(function (el) { return !el.isCircular(); })
+            .map(function (el) {
+            if (el.nodes[0] === this) {
+                return el.nodes[1];
+            }
+            return el.nodes[0];
+        }, this)
+            .filter(function (el) {
+            return checked.indexOf(el) >= 0 ? false : checked.push(el);
+        }, this);
+    };
+    GraphNode.prototype.isAdjacentToNode = function (node) {
+        return (this.graph.getEdgeConnectingNodes(this, node) !== undefined);
+    };
+    GraphNode.prototype.degree = function () {
+        return this.graph.edges.map(function (el) {
+            var sum = 0;
+            if (el.nodes[0] === this) {
+                sum += 1;
+            }
+            if (el.nodes[1] === this) {
+                sum += 1;
+            }
+            return sum;
+        }, this).reduce(function (a, b) { return a + b; });
+    };
+    return GraphNode;
+}());
+var GraphEdge = (function () {
+    function GraphEdge(graph, node1, node2) {
+        this.graph = graph;
+        this.nodes = [node1, node2];
+    }
+    GraphEdge.prototype.adjacentEdges = function () {
+        return this.graph.edges
+            .filter(function (el) {
+            return el !== this &&
+                (el.nodes[0] === this.nodes[0] ||
+                    el.nodes[0] === this.nodes[1] ||
+                    el.nodes[1] === this.nodes[0] ||
+                    el.nodes[1] === this.nodes[1]);
+        }, this);
+    };
+    GraphEdge.prototype.adjacentNodes = function () {
+        return [this.nodes[0], this.nodes[1]];
+    };
+    GraphEdge.prototype.isAdjacentToEdge = function (edge) {
+        return ((this.nodes[0] === edge.nodes[0]) || (this.nodes[1] === edge.nodes[1]) ||
+            (this.nodes[0] === edge.nodes[1]) || (this.nodes[1] === edge.nodes[0]));
+    };
+    GraphEdge.prototype.isSimilarToEdge = function (edge) {
+        return ((this.nodes[0] === edge.nodes[0] && this.nodes[1] === edge.nodes[1]) ||
+            (this.nodes[0] === edge.nodes[1] && this.nodes[1] === edge.nodes[0]));
+    };
+    GraphEdge.prototype.otherNode = function (node) {
+        if (this.nodes[0] === node) {
+            return this.nodes[1];
+        }
+        if (this.nodes[1] === node) {
+            return this.nodes[0];
+        }
+        return undefined;
+    };
+    GraphEdge.prototype.isCircular = function () { return this.nodes[0] === this.nodes[1]; };
+    GraphEdge.prototype.duplicateEdges = function () {
+        return this.graph.edges.filter(function (el) {
+            return this.isSimilarToEdge(el);
+        }, this);
+    };
+    GraphEdge.prototype.commonNodeWithEdge = function (otherEdge) {
+        if (this === otherEdge)
+            return undefined;
+        if (this.nodes[0] === otherEdge.nodes[0] || this.nodes[0] === otherEdge.nodes[1])
+            return this.nodes[0];
+        if (this.nodes[1] === otherEdge.nodes[0] || this.nodes[1] === otherEdge.nodes[1])
+            return this.nodes[1];
+        return undefined;
+    };
+    GraphEdge.prototype.uncommonNodeWithEdge = function (otherEdge) {
+        if (this === otherEdge)
+            return undefined;
+        if (this.nodes[0] === otherEdge.nodes[0] || this.nodes[0] === otherEdge.nodes[1])
+            return this.nodes[1];
+        if (this.nodes[1] === otherEdge.nodes[0] || this.nodes[1] === otherEdge.nodes[1])
+            return this.nodes[0];
+        return undefined;
+    };
+    return GraphEdge;
+}());
+var Graph = (function () {
+    function Graph() {
+        this.nodeType = GraphNode;
+        this.edgeType = GraphEdge;
+        this.clear();
+    }
+    Graph.prototype.copy = function () {
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        var g = new Graph();
+        for (var i = 0; i < this.nodes.length; i++) {
+            var n = g.addNode(new GraphNode(g));
+            Object.assign(n, this.nodes[i]);
+            n.graph = g;
+            n.index = i;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+            var e = g.addEdge(new GraphEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
+            Object.assign(e, this.edges[i]);
+            e.graph = g;
+            e.index = i;
+            e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+        }
+        return g;
+    };
+    Graph.prototype.newNode = function () {
+        return this.addNode(new this.nodeType(this));
+    };
+    Graph.prototype.newEdge = function (node1, node2) {
+        return this.addEdge(new this.edgeType(this, node1, node2));
+    };
+    Graph.prototype.addNode = function (node) {
+        if (node == undefined) {
+            throw "addNode() requires an argument: 1 GraphNode";
+        }
+        node.graph = this;
+        node.index = this.nodes.length;
+        this.nodes.push(node);
+        return node;
+    };
+    Graph.prototype.addEdge = function (edge) {
+        if (edge.nodes[0] === undefined ||
+            edge.nodes[1] === undefined ||
+            edge.nodes[0].graph !== this ||
+            edge.nodes[1].graph !== this) {
+            return undefined;
+        }
+        edge.graph = this;
+        edge.index = this.edges.length;
+        this.edges.push(edge);
+        return edge;
+    };
+    Graph.prototype.addNodes = function (nodes) {
+        if (nodes === undefined || nodes.length <= 0) {
+            throw "addNodes() must contain array of GraphNodes";
+        }
+        var len = this.nodes.length;
+        var checkedNodes = nodes.filter(function (el) { return (el instanceof GraphNode); });
+        this.nodes = this.nodes.concat(checkedNodes);
+        for (var i = len; i < this.nodes.length; i++) {
+            this.nodes[i].graph = this;
+            this.nodes[i].index = i;
+        }
+        return this.nodes.length - len;
+    };
+    Graph.prototype.addEdges = function (edges) {
+        if (edges == undefined || edges.length <= 0) {
+            throw "addEdges() must contain array of GraphEdges";
+        }
+        var len = this.edges.length;
+        var checkedEdges = edges.filter(function (el) { return (el instanceof GraphEdge); });
+        this.edges = this.edges.concat(checkedEdges);
+        for (var i = len; i < this.edges.length; i++) {
+            this.edges[i].graph = this;
+        }
+        this.cleanGraph();
+        return this.edges.length - len;
+    };
+    Graph.prototype.copyNode = function (node) {
+        var nodeClone = Object.assign(this.newNode(), node);
+        return this.addNode(nodeClone);
+    };
+    Graph.prototype.copyEdge = function (edge) {
+        var edgeClone = Object.assign(this.newEdge(edge.nodes[0], edge.nodes[1]), edge);
+        return this.addEdge(edgeClone);
+    };
+    Graph.prototype.clear = function () {
+        this.nodes = [];
+        this.edges = [];
+        return this;
+    };
+    Graph.prototype.removeEdge = function (edge) {
+        var edgesLength = this.edges.length;
+        this.edges = this.edges.filter(function (el) { return el !== edge; });
+        this.edgeArrayDidChange();
+        return new GraphClean(undefined, edgesLength - this.edges.length);
+    };
+    Graph.prototype.removeEdgeBetween = function (node1, node2) {
+        var edgesLength = this.edges.length;
+        this.edges = this.edges.filter(function (el) {
+            return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
+                (el.nodes[0] === node2 && el.nodes[1] === node1));
+        });
+        this.edgeArrayDidChange();
+        return new GraphClean(undefined, edgesLength - this.edges.length);
+    };
+    Graph.prototype.removeNode = function (node) {
+        var nodesLength = this.nodes.length;
+        var edgesLength = this.edges.length;
+        this.nodes = this.nodes.filter(function (el) { return el !== node; });
+        this.edges = this.edges.filter(function (el) { return el.nodes[0] !== node && el.nodes[1] !== node; });
+        if (this.edges.length != edgesLength) {
+            this.edgeArrayDidChange();
+        }
+        if (this.nodes.length != nodesLength) {
+            this.nodeArrayDidChange();
+        }
+        return new GraphClean(nodesLength - this.nodes.length, edgesLength - this.edges.length);
+    };
+    Graph.prototype.mergeNodes = function (node1, node2) {
+        if (node1 === node2) {
+            return undefined;
+        }
+        this.edges = this.edges.map(function (el) {
+            if (el.nodes[0] === node2) {
+                el.nodes[0] = node1;
+            }
+            if (el.nodes[1] === node2) {
+                el.nodes[1] = node1;
+            }
+            return el;
+        });
+        var nodesLength = this.nodes.length;
+        this.nodes = this.nodes.filter(function (el) { return el !== node2; });
+        return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
+    };
+    Graph.prototype.removeIsolatedNodes = function () {
+        this.nodeArrayDidChange();
+        var nodeDegree = [];
+        for (var i = 0; i < this.nodes.length; i++) {
+            nodeDegree[i] = false;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            nodeDegree[this.edges[i].nodes[0].index] = true;
+            nodeDegree[this.edges[i].nodes[1].index] = true;
+        }
+        var nodeLength = this.nodes.length;
+        this.nodes = this.nodes.filter(function (el, i) { return nodeDegree[i]; });
+        var isolatedCount = nodeLength - this.nodes.length;
+        if (isolatedCount > 0) {
+            this.nodeArrayDidChange();
+        }
+        return new GraphClean().isolatedNodes(isolatedCount);
+    };
+    Graph.prototype.cleanCircularEdges = function () {
+        var edgesLength = this.edges.length;
+        this.edges = this.edges.filter(function (el) { return !(el.nodes[0] === el.nodes[1]); });
+        if (this.edges.length != edgesLength) {
+            this.edgeArrayDidChange();
+        }
+        return new GraphClean().circularEdges(edgesLength - this.edges.length);
+    };
+    Graph.prototype.cleanDuplicateEdges = function () {
+        var count = 0;
+        for (var i = 0; i < this.edges.length - 1; i++) {
+            for (var j = this.edges.length - 1; j > i; j--) {
+                if (this.edges[i].isSimilarToEdge(this.edges[j])) {
+                    this.edges.splice(j, 1);
+                    count += 1;
+                }
+            }
+        }
+        if (count > 0) {
+            this.edgeArrayDidChange();
+        }
+        return new GraphClean().duplicateEdges(count);
+    };
+    Graph.prototype.cleanGraph = function () {
+        this.edgeArrayDidChange();
+        this.nodeArrayDidChange();
+        return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
+    };
+    Graph.prototype.clean = function () {
+        return this.cleanGraph();
+    };
+    Graph.prototype.getEdgeConnectingNodes = function (node1, node2) {
+        for (var i = 0; i < this.edges.length; i++) {
+            if ((this.edges[i].nodes[0] === node1 && this.edges[i].nodes[1] === node2) ||
+                (this.edges[i].nodes[0] === node2 && this.edges[i].nodes[1] === node1)) {
+                return this.edges[i];
+            }
+        }
+        return undefined;
+    };
+    Graph.prototype.getEdgesConnectingNodes = function (node1, node2) {
+        return this.edges.filter(function (el) {
+            return (el.nodes[0] === node1 && el.nodes[1] === node2) ||
+                (el.nodes[0] === node2 && el.nodes[1] === node1);
+        });
+    };
+    Graph.prototype.nodeArrayDidChange = function () { for (var i = 0; i < this.nodes.length; i++) {
+        this.nodes[i].index = i;
+    } };
+    Graph.prototype.edgeArrayDidChange = function () { for (var i = 0; i < this.edges.length; i++) {
+        this.edges[i].index = i;
+    } };
+    return Graph;
+}());
+var Multigraph = (function (_super) {
+    __extends(Multigraph, _super);
+    function Multigraph() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Multigraph.prototype.cleanGraph = function () {
+        this.edgeArrayDidChange();
+        this.nodeArrayDidChange();
+        return new GraphClean();
+    };
+    return Multigraph;
+}(Graph));
+var EPSILON_LOW = 0.003;
+var EPSILON = 0.00001;
+var EPSILON_HIGH = 0.00000001;
+var EPSILON_UI = 0.05;
+var Tree = (function () {
+    function Tree(thisObject) {
+        this.obj = thisObject;
+        this.parent = undefined;
+        this.children = [];
+    }
+    return Tree;
+}());
+function isValidPoint(point) { return (point !== undefined && !isNaN(point.x) && !isNaN(point.y)); }
+function isValidNumber(n) { return (n !== undefined && !isNaN(n) && !isNaN(n)); }
+function pointsSimilar(a, b, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    return epsilonEqual(a.x, b.x, epsilon) && epsilonEqual(a.y, b.y, epsilon);
+}
+function map(input, fl1, ceil1, fl2, ceil2) {
+    return ((input - fl1) / (ceil1 - fl1)) * (ceil2 - fl2) + fl2;
+}
+function epsilonEqual(a, b, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    return (Math.abs(a - b) < epsilon);
+}
+function wholeNumberify(num, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    if (Math.abs(Math.round(num) - num) < epsilon) {
+        num = Math.round(num);
+    }
+    return num;
+}
+function clockwiseInteriorAngleRadians(a, b) {
+    while (a < 0) {
+        a += Math.PI * 2;
+    }
+    while (b < 0) {
+        b += Math.PI * 2;
+    }
+    var a_b = a - b;
+    if (a_b >= 0)
+        return a_b;
+    return Math.PI * 2 - (b - a);
+}
+function clockwiseInteriorAngle(a, b) {
+    var dotProduct = b.x * a.x + b.y * a.y;
+    var determinant = b.x * a.y - b.y * a.x;
+    var angle = Math.atan2(determinant, dotProduct);
+    if (angle < 0) {
+        angle += Math.PI * 2;
+    }
+    return angle;
+}
+function interiorAngles(a, b) {
+    var interior1 = clockwiseInteriorAngle(a, b);
+    var interior2 = Math.PI * 2 - interior1;
+    if (interior1 < interior2)
+        return [interior1, interior2];
+    return [interior2, interior1];
+}
+function bisectVectors(a, b) {
+    a = a.normalize();
+    b = b.normalize();
+    return [(a.add(b)).normalize(),
+        new XY(-a.x + -b.x, -a.y + -b.y).normalize()];
+}
+function intersect_vec_func(aOrigin, aVec, bOrigin, bVec, compFunction, epsilon) {
+    function determinantXY(a, b) { return a.x * b.y - b.x * a.y; }
+    var denominator0 = determinantXY(aVec, bVec);
+    var denominator1 = -denominator0;
+    if (epsilonEqual(denominator0, 0, epsilon)) {
+        return undefined;
+    }
+    var numerator0 = determinantXY(bOrigin.subtract(aOrigin), bVec);
+    var numerator1 = determinantXY(aOrigin.subtract(bOrigin), aVec);
+    var t0 = numerator0 / denominator0;
+    var t1 = numerator1 / denominator1;
+    if (compFunction(t0, t1)) {
+        return aOrigin.add(aVec.scale(t0));
+    }
+}
+function intersectionLineLine(a, b, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    return intersect_vec_func(new XY(a.point.x, a.point.y), new XY(a.direction.x, a.direction.y), new XY(b.point.x, b.point.y), new XY(b.direction.x, b.direction.y), function (t0, t1) { return true; }, epsilon);
+}
+function intersectionLineRay(line, ray, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    return intersect_vec_func(new XY(line.point.x, line.point.y), new XY(line.direction.x, line.direction.y), new XY(ray.origin.x, ray.origin.y), new XY(ray.direction.x, ray.direction.y), function (t0, t1) { return t1 >= 0; }, epsilon);
+}
+function intersectionLineEdge(line, edge, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    return intersect_vec_func(new XY(line.point.x, line.point.y), new XY(line.direction.x, line.direction.y), new XY(edge.nodes[0].x, edge.nodes[0].y), new XY(edge.nodes[1].x - edge.nodes[0].x, edge.nodes[1].y - edge.nodes[0].y), function (t0, t1) { return t1 >= 0 && t1 <= 1; }, epsilon);
+}
+function intersectionRayRay(a, b, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    return intersect_vec_func(new XY(a.origin.x, a.origin.y), new XY(a.direction.x, a.direction.y), new XY(b.origin.x, b.origin.y), new XY(b.direction.x, b.direction.y), function (t0, t1) { return t0 >= 0 && t1 >= 0; }, epsilon);
+}
+function intersectionRayEdge(ray, edge, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    return intersect_vec_func(new XY(ray.origin.x, ray.origin.y), new XY(ray.direction.x, ray.direction.y), new XY(edge.nodes[0].x, edge.nodes[0].y), new XY(edge.nodes[1].x - edge.nodes[0].x, edge.nodes[1].y - edge.nodes[0].y), function (t0, t1) { return t0 >= 0 && t1 >= 0 && t1 <= 1; }, epsilon);
+}
+function intersectionEdgeEdge(a, b, epsilon) {
+    if (epsilon === undefined) {
+        epsilon = EPSILON_HIGH;
+    }
+    return intersect_vec_func(new XY(a.nodes[0].x, a.nodes[0].y), new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y), new XY(b.nodes[0].x, b.nodes[0].y), new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y), function (t0, t1) { return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1; }, epsilon);
+}
+function intersectionCircleLine(center, radius, p0, p1) {
+    var r_squared = Math.pow(radius, 2);
+    var x1 = p0.x - center.x;
+    var y1 = p0.y - center.y;
+    var x2 = p1.x - center.x;
+    var y2 = p1.y - center.y;
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var dr_squared = dx * dx + dy * dy;
+    var D = x1 * y2 - x2 * y1;
+    function sgn(x) { if (x < 0) {
+        return -1;
+    } return 1; }
+    var x1 = (D * dy + sgn(dy) * dx * Math.sqrt(r_squared * dr_squared - (D * D))) / (dr_squared);
+    var x2 = (D * dy - sgn(dy) * dx * Math.sqrt(r_squared * dr_squared - (D * D))) / (dr_squared);
+    var y1 = (-D * dx + Math.abs(dy) * Math.sqrt(r_squared * dr_squared - (D * D))) / (dr_squared);
+    var y2 = (-D * dx - Math.abs(dy) * Math.sqrt(r_squared * dr_squared - (D * D))) / (dr_squared);
+    var intersections = [];
+    if (!isNaN(x1)) {
+        intersections.push(new XY(x1 + center.x, y1 + center.y));
+    }
+    if (!isNaN(x2)) {
+        intersections.push(new XY(x2 + center.x, y2 + center.y));
+    }
+    return intersections;
+}
+var Matrix = (function () {
+    function Matrix(a, b, c, d, tx, ty) {
+        this.a = (a !== undefined) ? a : 1;
+        this.b = (b !== undefined) ? b : 0;
+        this.c = (c !== undefined) ? c : 0;
+        this.d = (d !== undefined) ? d : 1;
+        this.tx = (tx !== undefined) ? tx : 0;
+        this.ty = (ty !== undefined) ? ty : 0;
+    }
+    Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; };
+    Matrix.prototype.mult = function (mat) {
+        var r = new Matrix();
+        r.a = this.a * mat.a + this.c * mat.b;
+        r.c = this.a * mat.c + this.c * mat.d;
+        r.tx = this.a * mat.tx + this.c * mat.ty + this.tx;
+        r.b = this.b * mat.a + this.d * mat.b;
+        r.d = this.b * mat.c + this.d * mat.d;
+        r.ty = this.b * mat.tx + this.d * mat.ty + this.ty;
+        return r;
+    };
+    Matrix.prototype.reflection = function (vector, offset) {
+        var angle = Math.atan2(vector.y, vector.x);
+        var cosAngle = Math.cos(angle);
+        var sinAngle = Math.sin(angle);
+        var _cosAngle = Math.cos(-angle);
+        var _sinAngle = Math.sin(-angle);
+        this.a = cosAngle * _cosAngle + sinAngle * _sinAngle;
+        this.b = cosAngle * -_sinAngle + sinAngle * _cosAngle;
+        this.c = sinAngle * _cosAngle + -cosAngle * _sinAngle;
+        this.d = sinAngle * -_sinAngle + -cosAngle * _cosAngle;
+        if (offset !== undefined) {
+            this.tx = offset.x + this.a * -offset.x + -offset.y * this.c;
+            this.ty = offset.y + this.b * -offset.x + -offset.y * this.d;
+        }
+        return this;
+    };
+    Matrix.prototype.rotation = function (angle, origin) {
+        this.a = Math.cos(angle);
+        this.c = -Math.sin(angle);
+        this.b = Math.sin(angle);
+        this.d = Math.cos(angle);
+        if (origin !== undefined) {
+            this.tx = origin.x;
+            this.ty = origin.y;
+        }
+        return this;
+    };
+    Matrix.prototype.copy = function () {
+        var m = new Matrix();
+        m.a = this.a;
+        m.c = this.c;
+        m.tx = this.tx;
+        m.b = this.b;
+        m.d = this.d;
+        m.ty = this.ty;
+        return m;
+    };
+    return Matrix;
+}());
+var XY = (function () {
+    function XY(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    XY.prototype.normalize = function () { var m = this.magnitude(); return new XY(this.x / m, this.y / m); };
+    XY.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
+    XY.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
+    XY.prototype.magnitude = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    XY.prototype.distanceTo = function (a) { return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2)); };
+    XY.prototype.equivalent = function (point, epsilon) {
+        if (epsilon == undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon));
+    };
+    XY.prototype.transform = function (matrix) {
+        return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx, this.x * matrix.b + this.y * matrix.d + matrix.ty);
+    };
+    XY.prototype.rotate90 = function () { return new XY(-this.y, this.x); };
+    XY.prototype.rotate270 = function () { return new XY(this.y, -this.x); };
+    XY.prototype.rotate = function (angle, origin) {
+        return this.transform(new Matrix().rotation(angle, origin));
+    };
+    XY.prototype.lerp = function (point, pct) {
+        var inv = 1.0 - pct;
+        return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
+    };
+    XY.prototype.angleLerp = function (point, pct) {
+        function shortAngleDist(a0, a1) {
+            var max = Math.PI * 2;
+            var da = (a1 - a0) % max;
+            return 2 * da % max - da;
+        }
+        var thisAngle = Math.atan2(this.y, this.x);
+        var pointAngle = Math.atan2(point.y, point.x);
+        var newAngle = thisAngle + shortAngleDist(thisAngle, pointAngle) * pct;
+        return new XY(Math.cos(newAngle), Math.sin(newAngle));
+    };
+    XY.prototype.reflect = function (line) {
+        var origin, vector;
+        if (line.direction !== undefined) {
+            origin = line.point || line.origin;
+            vector = line.direction;
+        }
+        else if (line.nodes !== undefined) {
+            origin = new XY(line.nodes[0].x, line.nodes[0].y);
+            vector = new XY(line.nodes[1].x, line.nodes[1].y).subtract(origin);
+        }
+        else {
+            return undefined;
+        }
+        return this.transform(new Matrix().reflection(vector, origin));
+    };
+    XY.prototype.scale = function (magnitude) { return new XY(this.x * magnitude, this.y * magnitude); };
+    XY.prototype.add = function (a, b) {
+        if (isValidPoint(a)) {
+            return new XY(this.x + a.x, this.y + a.y);
+        }
+        else if (isValidNumber(b)) {
+            return new XY(this.x + a, this.y + b);
+        }
+    };
+    XY.prototype.subtract = function (point) { return new XY(this.x - point.x, this.y - point.y); };
+    XY.prototype.multiply = function (m) { return new XY(this.x * m.x, this.y * m.y); };
+    XY.prototype.midpoint = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
+    XY.prototype.abs = function () { return new XY(Math.abs(this.x), Math.abs(this.y)); };
+    XY.prototype.commonX = function (point, epsilon) { return epsilonEqual(this.y, point.y, epsilon); };
+    XY.prototype.commonY = function (point, epsilon) { return epsilonEqual(this.x, point.x, epsilon); };
+    return XY;
+}());
+var LineType = (function () {
+    function LineType() {
+    }
+    LineType.prototype.length = function () { };
+    LineType.prototype.vector = function () { };
+    LineType.prototype.parallel = function (line, epsilon) { };
+    LineType.prototype.collinear = function (point) { };
+    LineType.prototype.equivalent = function (line, epsilon) { };
+    LineType.prototype.intersection = function (line, epsilon) { };
+    LineType.prototype.reflectionMatrix = function () { };
+    LineType.prototype.nearestPoint = function (point) { };
+    LineType.prototype.nearestPointNormalTo = function (point) { };
+    LineType.prototype.transform = function (matrix) { };
+    LineType.prototype.degenrate = function (epsilon) { };
+    return LineType;
+}());
+var Line = (function () {
+    function Line(a, b, c, d) {
+        if (b instanceof XY) {
+            this.point = a;
+            this.direction = b;
+        }
+        else if (a.x !== undefined) {
+            this.point = new XY(a.x, a.y);
+            this.direction = new XY(b.x, b.y);
+        }
+        else {
+            this.point = new XY(a, b);
+            this.direction = new XY(c, d);
+        }
+    }
+    Line.prototype.length = function () { return Infinity; };
+    Line.prototype.vector = function () { return this.direction; };
+    Line.prototype.parallel = function (line, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var v = (line.nodes !== undefined) ? line.nodes[1].subtract(line.nodes[0]) : line.direction;
+        return (v !== undefined) ? epsilonEqual(this.direction.cross(v), 0, epsilon) : undefined;
+    };
+    Line.prototype.collinear = function (point, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var x = [this.point.x, this.point.x + this.direction.x, point.x];
+        var y = [this.point.y, this.point.y + this.direction.y, point.y];
+        return epsilonEqual(x[0] * (y[1] - y[2]) + x[1] * (y[2] - y[0]) + x[2] * (y[0] - y[1]), 0, epsilon);
+    };
+    Line.prototype.equivalent = function (line, epsilon) {
+        return this.collinear(line.point, epsilon) && this.parallel(line, epsilon);
+    };
+    Line.prototype.intersection = function (line, epsilon) {
+        if (line instanceof Line) {
+            return intersectionLineLine(this, line, epsilon);
+        }
+        if (line instanceof Ray) {
+            return intersectionLineRay(this, line, epsilon);
+        }
+        if (line instanceof Edge) {
+            return intersectionLineEdge(this, line, epsilon);
+        }
+    };
+    Line.prototype.reflectionMatrix = function () { return new Matrix().reflection(this.direction, this.point); };
+    Line.prototype.nearestPoint = function (point) { return this.nearestPointNormalTo(point); };
+    Line.prototype.nearestPointNormalTo = function (point) {
+        var v = this.direction.normalize();
+        var u = ((point.x - this.point.x) * v.x + (point.y - this.point.y) * v.y);
+        return new XY(this.point.x + u * v.x, this.point.y + u * v.y);
+    };
+    Line.prototype.transform = function (matrix) {
+        return new Line(this.point.transform(matrix), this.direction.transform(matrix));
+    };
+    Line.prototype.degenrate = function (epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return epsilonEqual(this.direction.magnitude(), 0, epsilon);
+    };
+    Line.prototype.bisect = function (line) {
+        if (this.parallel(line)) {
+            return [new Line(this.point.midpoint(line.point), this.direction)];
+        }
+        else {
+            var intersection = intersectionLineLine(this, line);
+            var vectors = bisectVectors(this.direction, line.direction);
+            vectors[1] = vectors[0].rotate90();
+            var sorted = vectors.sort(function (a, b) {
+                return Math.abs(this.direction.cross(vectors[0])) - Math.abs(this.direction.cross(vectors[1]));
+            }).map(function (el) {
+                return new Line(intersection, el);
+            }, this);
+        }
+    };
+    return Line;
+}());
+var Ray = (function () {
+    function Ray(a, b, c, d) {
+        if (a instanceof XY) {
+            this.origin = a;
+            this.direction = b;
+        }
+        else if (a.x !== undefined) {
+            this.origin = new XY(a.x, a.y);
+            this.direction = new XY(b.x, b.y);
+        }
+        else {
+            this.origin = new XY(a, b);
+            this.direction = new XY(c, d);
+        }
+        ;
+    }
+    Ray.prototype.length = function () { return Infinity; };
+    Ray.prototype.vector = function () { return this.direction; };
+    Ray.prototype.parallel = function (line, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var v = (line.nodes !== undefined) ? line.nodes[1].subtract(line.nodes[0]) : line.direction;
+        if (v === undefined) {
+            return undefined;
+        }
+        return epsilonEqual(this.direction.cross(v), 0, epsilon);
+    };
+    Ray.prototype.collinear = function (point, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var pOrigin = new XY(point.x - this.origin.x, point.y - this.origin.y);
+        var dot = pOrigin.dot(this.direction);
+        if (dot < -epsilon) {
+            return false;
+        }
+        var cross = pOrigin.cross(this.direction);
+        return epsilonEqual(cross, 0, epsilon);
+    };
+    Ray.prototype.equivalent = function (ray, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return (this.origin.equivalent(ray.origin, epsilon) &&
+            this.direction.normalize().equivalent(ray.direction.normalize(), epsilon));
+    };
+    Ray.prototype.intersection = function (line, epsilon) {
+        if (line instanceof Ray) {
+            return intersectionRayRay(this, line, epsilon);
+        }
+        if (line instanceof Line) {
+            return intersectionLineRay(line, this, epsilon);
+        }
+        if (line instanceof Edge) {
+            return intersectionRayEdge(this, line, epsilon);
+        }
+    };
+    Ray.prototype.reflectionMatrix = function () { return new Matrix().reflection(this.direction, this.origin); };
+    Ray.prototype.nearestPoint = function (point) {
+        var answer = this.nearestPointNormalTo(point);
+        if (answer !== undefined) {
+            return answer;
+        }
+        return this.origin;
+    };
+    Ray.prototype.nearestPointNormalTo = function (point) {
+        var v = this.direction.normalize();
+        var u = ((point.x - this.origin.x) * v.x + (point.y - this.origin.y) * v.y);
+        if (u < 0) {
+            return undefined;
+        }
+        return new XY(this.origin.x + u * v.x, this.origin.y + u * v.y);
+    };
+    Ray.prototype.transform = function (matrix) {
+        return new Ray(this.origin.transform(matrix), this.direction.transform(matrix));
+    };
+    Ray.prototype.degenrate = function (epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return epsilonEqual(this.direction.magnitude(), 0, epsilon);
+    };
+    Ray.prototype.flip = function () { return new Ray(this.origin, new XY(-this.direction.x, -this.direction.y)); };
+    Ray.prototype.clipWithEdge = function (edge, epsilon) {
+        var intersect = intersectionRayEdge(this, edge, epsilon);
+        if (intersect === undefined) {
+            return undefined;
+        }
+        return new Edge(this.origin, intersect);
+    };
+    Ray.prototype.clipWithEdges = function (edges, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return edges
+            .map(function (edge) { return this.clipWithEdge(edge); }, this)
+            .filter(function (edge) { return edge !== undefined; })
+            .map(function (edge) { return { edge: edge, length: edge.length() }; })
+            .filter(function (el) { return el.length > epsilon; })
+            .sort(function (a, b) { return a.length - b.length; })
+            .map(function (el) { return el.edge; });
+    };
+    Ray.prototype.clipWithEdgesDetails = function (edges, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return edges
+            .map(function (edge) { return { 'edge': this.clipWithEdge(edge), 'intersection': edge }; }, this)
+            .filter(function (el) { return el.edge !== undefined; })
+            .map(function (el) {
+            return {
+                'edge': el.edge,
+                'intersection': el.intersection,
+                'length': el.edge.length()
+            };
+        })
+            .filter(function (el) { return el.length > epsilon; })
+            .sort(function (a, b) { return a.length - b.length; })
+            .map(function (el) { return { edge: el.edge, intersection: el.intersection }; });
+    };
+    return Ray;
+}());
+var Edge = (function () {
+    function Edge(a, b, c, d) {
+        if ((a instanceof XY) && (b instanceof XY)) {
+            this.nodes = [a, b];
+        }
+        else if (a.x !== undefined) {
+            this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];
+        }
+        else if (isValidNumber(d)) {
+            this.nodes = [new XY(a, b), new XY(c, d)];
+        }
+        else if (a.nodes !== undefined) {
+            this.nodes = [new XY(a.nodes[0].x, a.nodes[0].y), new XY(a.nodes[1].x, a.nodes[1].y)];
+        }
+    }
+    Edge.prototype.length = function () { return Math.sqrt(Math.pow(this.nodes[0].x - this.nodes[1].x, 2) + Math.pow(this.nodes[0].y - this.nodes[1].y, 2)); };
+    Edge.prototype.vector = function (originNode) {
+        if (originNode === undefined) {
+            return this.nodes[1].subtract(this.nodes[0]);
+        }
+        if (this.nodes[0].equivalent(originNode)) {
+            return this.nodes[1].subtract(this.nodes[0]);
+        }
+        return this.nodes[0].subtract(this.nodes[1]);
+    };
+    Edge.prototype.parallel = function (line, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var v = (line.nodes !== undefined) ? line.nodes[1].subtract(line.nodes[0]) : line.direction;
+        if (v === undefined) {
+            return undefined;
+        }
+        var u = this.nodes[1].subtract(this.nodes[0]);
+        return epsilonEqual(u.cross(v), 0, epsilon);
+    };
+    Edge.prototype.collinear = function (point, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var p0 = new Edge(point, this.nodes[0]).length();
+        var p1 = new Edge(point, this.nodes[1]).length();
+        return epsilonEqual(this.length() - p0 - p1, 0, epsilon);
+    };
+    Edge.prototype.equivalent = function (e, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return ((this.nodes[0].equivalent(e.nodes[0], epsilon) &&
+            this.nodes[1].equivalent(e.nodes[1], epsilon)) ||
+            (this.nodes[0].equivalent(e.nodes[1], epsilon) &&
+                this.nodes[1].equivalent(e.nodes[0], epsilon)));
+    };
+    Edge.prototype.intersection = function (line, epsilon) {
+        if (line instanceof Edge) {
+            return intersectionEdgeEdge(this, line, epsilon);
+        }
+        if (line instanceof Line) {
+            return intersectionLineEdge(line, this, epsilon);
+        }
+        if (line instanceof Ray) {
+            return intersectionRayEdge(line, this, epsilon);
+        }
+    };
+    Edge.prototype.reflectionMatrix = function () {
+        return new Matrix().reflection(this.nodes[1].subtract(this.nodes[0]), this.nodes[0]);
+    };
+    Edge.prototype.nearestPoint = function (point) {
+        var answer = this.nearestPointNormalTo(point);
+        if (answer !== undefined) {
+            return answer;
+        }
+        return this.nodes
+            .map(function (el) { return { point: el, distance: el.distanceTo(point) }; }, this)
+            .sort(function (a, b) { return a.distance - b.distance; })
+            .shift()
+            .point;
+    };
+    Edge.prototype.nearestPointNormalTo = function (point) {
+        var p = this.nodes[0].distanceTo(this.nodes[1]);
+        var u = ((point.x - this.nodes[0].x) * (this.nodes[1].x - this.nodes[0].x) + (point.y - this.nodes[0].y) * (this.nodes[1].y - this.nodes[0].y)) / (Math.pow(p, 2));
+        if (u < 0 || u > 1.0) {
+            return undefined;
+        }
+        return new XY(this.nodes[0].x + u * (this.nodes[1].x - this.nodes[0].x), this.nodes[0].y + u * (this.nodes[1].y - this.nodes[0].y));
+    };
+    Edge.prototype.transform = function (matrix) {
+        return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
+    };
+    Edge.prototype.degenrate = function (epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        return this.nodes[0].equivalent(this.nodes[1], epsilon);
+    };
+    Edge.prototype.midpoint = function () {
+        return new XY(0.5 * (this.nodes[0].x + this.nodes[1].x), 0.5 * (this.nodes[0].y + this.nodes[1].y));
+    };
+    Edge.prototype.perpendicularBisector = function () { return new Line(this.midpoint(), this.vector().rotate90()); };
+    Edge.prototype.infiniteLine = function () { return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); };
+    return Edge;
+}());
+var Polyline = (function () {
+    function Polyline() {
+        this.nodes = [];
+    }
+    Polyline.prototype.edges = function () {
+        var result = [];
+        for (var i = 0; i < this.nodes.length - 1; i++) {
+            result.push(new Edge(this.nodes[i], this.nodes[i + 1]));
+        }
+        return result;
+    };
+    Polyline.prototype.rayReflectRepeat = function (ray, intersectable, target) {
+        var REFLECT_LIMIT = 100;
+        var clips = [];
+        var firstClips = ray.clipWithEdgesDetails(intersectable);
+        if (target !== undefined &&
+            epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)) {
+            if (firstClips.length === 0 ||
+                ray.origin.distanceTo(target) < firstClips[0].edge.length()) {
+                this.nodes = [ray.origin, target];
+                return this;
+            }
+        }
+        clips.push(firstClips[0]);
+        var i = 0;
+        while (i < REFLECT_LIMIT) {
+            var prevClip = clips[clips.length - 1];
+            var n0 = new XY(prevClip.intersection.nodes[0].x, prevClip.intersection.nodes[0].y);
+            var n1 = new XY(prevClip.intersection.nodes[1].x, prevClip.intersection.nodes[1].y);
+            var reflection = new Matrix().reflection(n1.subtract(n0), n0);
+            var newRay = new Ray(prevClip.edge.nodes[1], prevClip.edge.nodes[0].transform(reflection).subtract(prevClip.edge.nodes[1]));
+            var newClips = newRay.clipWithEdgesDetails(intersectable);
+            if (target !== undefined &&
+                epsilonEqual(newRay.direction.cross(target.subtract(newRay.origin)), 0, EPSILON_HIGH)) {
+                clips.push({ edge: new Edge(newRay.origin, target), intersection: undefined });
+                break;
+            }
+            if (newClips.length === 0 || newClips[0] === undefined) {
+                break;
+            }
+            clips.push(newClips[0]);
+            i++;
+        }
+        this.nodes = clips.map(function (el) { return el.edge.nodes[0]; });
+        this.nodes.push(clips[clips.length - 1].edge.nodes[1]);
+        return this;
+    };
+    return Polyline;
+}());
+var Rect = (function () {
+    function Rect(x, y, width, height) {
+        this.topLeft = { 'x': x, 'y': y };
+        this.size = { 'width': width, 'height': height };
+    }
+    return Rect;
+}());
+var Triangle = (function () {
+    function Triangle(points, circumcenter) {
+        this.points = points;
+        this.edges = this.points.map(function (el, i) {
+            var nextEl = this.points[(i + 1) % this.points.length];
+            return new Edge(el, nextEl);
+        }, this);
+        this.sectors = this.points.map(function (el, i) {
+            var prevI = (i + this.points.length - 1) % this.points.length;
+            var nextI = (i + 1) % this.points.length;
+            return new Sector(el, [this.points[prevI], this.points[nextI]]);
+        }, this);
+        this.circumcenter = circumcenter;
+        if (circumcenter === undefined) {
+        }
+    }
+    Triangle.prototype.angles = function () {
+        return this.points.map(function (p, i) {
+            var prevP = this.points[(i + this.points.length - 1) % this.points.length];
+            var nextP = this.points[(i + 1) % this.points.length];
+            return clockwiseInteriorAngle(nextP.subtract(p), prevP.subtract(p));
+        }, this);
+    };
+    Triangle.prototype.isAcute = function () {
+        var a = this.angles();
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] > Math.PI * 0.5) {
+                return false;
+            }
+        }
+        return true;
+    };
+    Triangle.prototype.isObtuse = function () {
+        var a = this.angles();
+        for (var i = 0; i < a.length; i++) {
+            if (a[i] > Math.PI * 0.5) {
+                return true;
+            }
+        }
+        return false;
+    };
+    Triangle.prototype.isRight = function () {
+        var a = this.angles();
+        for (var i = 0; i < a.length; i++) {
+            if (epsilonEqual(a[i], Math.PI * 0.5)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    Triangle.prototype.pointInside = function (p) {
+        var found = true;
+        for (var i = 0; i < this.points.length; i++) {
+            var p0 = this.points[i];
+            var p1 = this.points[(i + 1) % this.points.length];
+            var cross = (p.y - p0.y) * (p1.x - p0.x) -
+                (p.x - p0.x) * (p1.y - p0.y);
+            if (cross < 0)
+                return false;
+        }
+        return true;
+    };
+    return Triangle;
+}());
+var IsoscelesTriangle = (function (_super) {
+    __extends(IsoscelesTriangle, _super);
+    function IsoscelesTriangle() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return IsoscelesTriangle;
+}(Triangle));
+var Circle = (function () {
+    function Circle(a, b, c) {
+        if (c !== undefined) {
+            this.center = new XY(a, b);
+            this.radius = c;
+        }
+        else {
+            this.center = a;
+            this.radius = b;
+        }
+    }
+    Circle.prototype.intersection = function (line) {
+        if (line instanceof Line) {
+            return intersectionCircleLine(this.center, this.radius, line.point, line.point.add(line.direction));
+        }
+        if (line instanceof Edge) {
+            return intersectionCircleLine(this.center, this.radius, line.nodes[0], line.nodes[1]);
+        }
+        if (line instanceof Ray) {
+            return intersectionCircleLine(this.center, this.radius, line.origin, line.origin.add(line.direction));
+        }
+    };
+    return Circle;
+}());
+var ConvexPolygon = (function () {
+    function ConvexPolygon() {
+    }
+    ConvexPolygon.prototype.center = function () {
+        var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;
+        var nodes = this.edges.map(function (el) { return el.nodes[0]; });
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].x > xMax) {
+                xMax = nodes[i].x;
+            }
+            if (nodes[i].x < xMin) {
+                xMin = nodes[i].x;
+            }
+            if (nodes[i].y > yMax) {
+                yMax = nodes[i].y;
+            }
+            if (nodes[i].y < yMin) {
+                yMin = nodes[i].y;
+            }
+        }
+        return new XY(xMin + (xMin + xMax) * 0.5, yMin + (yMin + yMax) * 0.5);
+    };
+    ConvexPolygon.prototype.contains = function (p) {
+        var found = true;
+        for (var i = 0; i < this.edges.length; i++) {
+            var a = this.edges[i].nodes[1].subtract(this.edges[i].nodes[0]);
+            var b = new XY(p.x - this.edges[i].nodes[0].x, p.y - this.edges[i].nodes[0].y);
+            if (a.cross(b) < 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+    ConvexPolygon.prototype.liesOnEdge = function (p) {
+        for (var i = 0; i < this.edges.length; i++) {
+            if (this.edges[i].collinear(p)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    ConvexPolygon.prototype.clipEdge = function (edge) {
+        var intersections = this.edges
+            .map(function (el) { return intersectionEdgeEdge(edge, el); })
+            .filter(function (el) { return el !== undefined; })
+            .filter(function (el) {
+            return !el.equivalent(edge.nodes[0]) &&
+                !el.equivalent(edge.nodes[1]);
+        });
+        switch (intersections.length) {
+            case 0:
+                if (this.contains(edge.nodes[0])) {
+                    return edge;
+                }
+                return undefined;
+            case 1:
+                if (this.contains(edge.nodes[0])) {
+                    return new Edge(edge.nodes[0], intersections[0]);
+                }
+                return new Edge(edge.nodes[1], intersections[0]);
+            default:
+                for (var i = 1; i < intersections.length; i++) {
+                    if (!intersections[0].equivalent(intersections[i])) {
+                        return new Edge(intersections[0], intersections[i]);
+                    }
+                }
+        }
+    };
+    ConvexPolygon.prototype.clipLine = function (line) {
+        var intersections = this.edges
+            .map(function (el) { return intersectionLineEdge(line, el); })
+            .filter(function (el) { return el !== undefined; });
+        switch (intersections.length) {
+            case 0: return undefined;
+            case 1: return new Edge(intersections[0], intersections[0]);
+            default:
+                for (var i = 1; i < intersections.length; i++) {
+                    if (!intersections[0].equivalent(intersections[i])) {
+                        return new Edge(intersections[0], intersections[i]);
+                    }
+                }
+        }
+    };
+    ConvexPolygon.prototype.clipRay = function (ray) {
+        var intersections = this.edges
+            .map(function (el) { return intersectionRayEdge(ray, el); })
+            .filter(function (el) { return el !== undefined; });
+        switch (intersections.length) {
+            case 0: return undefined;
+            case 1: return new Edge(ray.origin, intersections[0]);
+            default:
+                for (var i = 1; i < intersections.length; i++) {
+                    if (!intersections[0].equivalent(intersections[i])) {
+                        return new Edge(intersections[0], intersections[i]);
+                    }
+                }
+        }
+    };
+    ConvexPolygon.prototype.setEdgesFromPoints = function (points) {
+        return points.map(function (el, i) {
+            var nextEl = points[(i + 1) % points.length];
+            return new Edge(el, nextEl);
+        }, this);
+    };
+    ConvexPolygon.prototype.convexHull = function (points) {
+        if (points === undefined || points.length === 0) {
+            this.edges = [];
+            return undefined;
+        }
+        var INFINITE_LOOP = 10000;
+        var sorted = points.sort(function (a, b) {
+            if (epsilonEqual(a.y, b.y, EPSILON_HIGH)) {
+                return a.x - b.x;
+            }
+            return a.y - b.y;
+        });
+        var hull = [];
+        hull.push(sorted[0]);
+        var ang = 0;
+        var infiniteLoop = 0;
+        do {
+            infiniteLoop++;
+            var h = hull.length - 1;
+            var angles = sorted
+                .filter(function (el) {
+                return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH));
+            })
+                .map(function (el) {
+                var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
+                while (angle < ang) {
+                    angle += Math.PI * 2;
+                }
+                return { node: el, angle: angle, distance: undefined };
+            })
+                .sort(function (a, b) { return (a.angle < b.angle) ? -1 : (a.angle > b.angle) ? 1 : 0; });
+            if (angles.length === 0) {
+                this.edges = [];
+                return undefined;
+            }
+            var rightTurn = angles[0];
+            angles = angles.filter(function (el) { return epsilonEqual(rightTurn.angle, el.angle, EPSILON_LOW); })
+                .map(function (el) {
+                var distance = Math.sqrt(Math.pow(hull[h].x - el.node.x, 2) + Math.pow(hull[h].y - el.node.y, 2));
+                el.distance = distance;
+                return el;
+            })
+                .sort(function (a, b) { return (a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0; });
+            if (hull.filter(function (el) { return el === angles[0].node; }).length > 0) {
+                this.edges = this.setEdgesFromPoints(hull);
+                return this;
+            }
+            hull.push(angles[0].node);
+            ang = Math.atan2(hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
+        } while (infiniteLoop < INFINITE_LOOP);
+        this.edges = [];
+        return undefined;
+    };
+    ConvexPolygon.prototype.minimumRect = function () {
+        var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        this.edges
+            .map(function (el) { return el.nodes[0]; })
+            .forEach(function (el) {
+            if (el.x > maxX) {
+                maxX = el.x;
+            }
+            if (el.x < minX) {
+                minX = el.x;
+            }
+            if (el.y > maxY) {
+                maxY = el.y;
+            }
+            if (el.y < minY) {
+                minY = el.y;
+            }
+        });
+        return new Rect(minX, minY, maxX - minX, maxY - minY);
+    };
+    ConvexPolygon.prototype.copy = function () {
+        var p = new ConvexPolygon();
+        p.edges = this.edges.map(function (e) {
+            return new Edge(e.nodes[0].x, e.nodes[0].y, e.nodes[1].x, e.nodes[1].y);
+        });
+        return p;
+    };
+    return ConvexPolygon;
+}());
+var Sector = (function () {
+    function Sector(origin, endpoints) {
+        this.origin = origin;
+        this.endPoints = endpoints;
+    }
+    Sector.prototype.vectors = function () {
+        return this.endPoints.map(function (el) {
+            return new XY(el.x - this.origin.x, el.y - this.origin.y);
+        }, this);
+    };
+    Sector.prototype.angle = function () {
+        var vectors = this.vectors();
+        return clockwiseInteriorAngle(vectors[0], vectors[1]);
+    };
+    Sector.prototype.bisect = function () {
+        var vectors = this.vectors();
+        var angles = vectors.map(function (el) { return Math.atan2(el.y, el.x); });
+        while (angles[0] < 0) {
+            angles[0] += Math.PI * 2;
+        }
+        while (angles[1] < 0) {
+            angles[1] += Math.PI * 2;
+        }
+        var interior = clockwiseInteriorAngleRadians(angles[0], angles[1]);
+        var bisected = angles[0] - interior * 0.5;
+        return new XY(Math.cos(bisected), Math.sin(bisected));
+    };
+    Sector.prototype.subsectAngle = function (divisions) {
+        if (divisions === undefined || divisions < 1) {
+            throw "subsetAngle() invalid argument";
+        }
+        var angles = this.vectors().map(function (el) { return Math.atan2(el.y, el.x); });
+        var interiorA = clockwiseInteriorAngleRadians(angles[0], angles[1]);
+        var results = [];
+        for (var i = 1; i < divisions; i++) {
+            results.push(angles[0] - interiorA * (1.0 / divisions) * i);
+        }
+        return results;
+    };
+    Sector.prototype.getEdgeVectorsForNewAngle = function (angle, lockedEdge) {
+        var vectors = this.vectors();
+        var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
+        var rotateNodes = [-angleChange * 0.5, angleChange * 0.5];
+        return vectors.map(function (el, i) { return el.rotate(rotateNodes[i]); }, this);
+    };
+    Sector.prototype.equivalent = function (a) {
+        return a.origin.equivalent(this.origin) &&
+            a.endPoints[0].equivalent(this.endPoints[0]) &&
+            a.endPoints[1].equivalent(this.endPoints[1]);
+    };
+    Sector.prototype.sortByClockwise = function () { };
+    return Sector;
+}());
+var VoronoiMolecule = (function (_super) {
+    __extends(VoronoiMolecule, _super);
+    function VoronoiMolecule(points, circumcenter, edgeNormal) {
+        var _this = _super.call(this, points, circumcenter) || this;
+        _this.isEdge = false;
+        _this.isCorner = false;
+        _this.overlaped = [];
+        _this.hull = new ConvexPolygon().convexHull([points[0], points[1], points[2], circumcenter].filter(function (el) { return el !== undefined; }));
+        _this.units = _this.points.map(function (el, i) {
+            var nextEl = this.points[(i + 1) % this.points.length];
+            return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
+        }, _this);
+        var pointsLength = _this.points.length;
+        switch (pointsLength) {
+            case 1:
+                _this.isCorner = true;
+                _this.addCornerMolecules();
+                break;
+            case 2:
+                _this.isEdge = true;
+                _this.units = _this.units.filter(function (el) {
+                    var cross = (el.vertex.y - el.base[0].y) * (el.base[1].x - el.base[0].x) -
+                        (el.vertex.x - el.base[0].x) * (el.base[1].y - el.base[0].y);
+                    if (cross < 0) {
+                        return false;
+                    }
+                    return true;
+                }, _this);
+                _this.addEdgeMolecules(edgeNormal);
+                break;
+        }
+        var eclipsed = undefined;
+        _this.units = _this.units.filter(function (el) {
+            var cross = (el.vertex.y - el.base[0].y) * (el.base[1].x - el.base[0].x) -
+                (el.vertex.x - el.base[0].x) * (el.base[1].y - el.base[0].y);
+            if (cross < 0) {
+                eclipsed = el;
+                return false;
+            }
+            return true;
+        }, _this);
+        if (eclipsed !== undefined) {
+            var angle = clockwiseInteriorAngle(eclipsed.vertex.subtract(eclipsed.base[1]), eclipsed.base[0].subtract(eclipsed.base[1]));
+            _this.units.forEach(function (el) { el.crimpAngle -= angle; });
+        }
+        return _this;
+    }
+    VoronoiMolecule.prototype.addEdgeMolecules = function (normal) {
+        this.edgeNormal = normal.normalize().abs();
+        if (this.units.length < 1) {
+            return;
+        }
+        var base = this.units[0].base;
+        var reflected = base.map(function (b) {
+            var diff = this.circumcenter.subtract(b);
+            var change = diff.multiply(this.edgeNormal).scale(2);
+            return b.add(change);
+        }, this);
+        this.units = this.units.concat([new VoronoiMoleculeTriangle(this.circumcenter, [base[1], reflected[1]]),
+            new VoronoiMoleculeTriangle(this.circumcenter, [reflected[0], base[0]])]);
+    };
+    VoronoiMolecule.prototype.addCornerMolecules = function () { };
+    VoronoiMolecule.prototype.generateCreases = function () {
+        var edges = [];
+        var outerEdges = this.units.map(function (el, i) {
+            var nextEl = this.units[(i + 1) % this.units.length];
+            if (el.base[1].equivalent(nextEl.base[0])) {
+                edges.push(new Edge(el.base[1], el.vertex));
+            }
+        }, this);
+        var creases = this.units.map(function (el) { return el.generateCrimpCreaseLines(); });
+        creases.forEach(function (el) { edges = edges.concat(el); }, this);
+        if (this.isObtuse()) {
+            this.units.forEach(function (el, i) {
+                var nextEl = this.units[(i + 1) % this.units.length];
+                if (el.base[0].equivalent(el.base[1])) {
+                    edges.push(new Edge(el.base[0], el.vertex));
+                }
+            }, this);
+        }
+        return edges;
+    };
+    return VoronoiMolecule;
+}(Triangle));
+var VoronoiMoleculeTriangle = (function () {
+    function VoronoiMoleculeTriangle(vertex, base, crimpAngle) {
+        this.vertex = vertex;
+        this.base = base;
+        this.crimpAngle = crimpAngle;
+        this.overlapped = [];
+        if (this.crimpAngle === undefined) {
+            var vec1 = base[1].subtract(base[0]);
+            var vec2 = vertex.subtract(base[0]);
+            var a1 = clockwiseInteriorAngle(vec1, vec2);
+            var a2 = clockwiseInteriorAngle(vec2, vec1);
+            this.crimpAngle = (a1 < a2) ? a1 : a2;
+        }
+    }
+    VoronoiMoleculeTriangle.prototype.crimpLocations = function () {
+        var baseAngle = Math.atan2(this.base[1].y - this.base[0].y, this.base[1].x - this.base[0].x);
+        var crimpVector = new XY(Math.cos(baseAngle + this.crimpAngle), Math.sin(baseAngle + this.crimpAngle));
+        var bisectVector = new XY(Math.cos(baseAngle + this.crimpAngle * 0.5), Math.sin(baseAngle + this.crimpAngle * 0.5));
+        var symmetryLine = new Edge(this.vertex, this.base[0].midpoint(this.base[1]));
+        var crimpPos = intersectionRayEdge(new Ray(this.base[0], crimpVector), symmetryLine);
+        var bisectPos = intersectionRayEdge(new Ray(this.base[0], bisectVector), symmetryLine);
+        return [crimpPos, bisectPos];
+    };
+    VoronoiMoleculeTriangle.prototype.generateCrimpCreaseLines = function () {
+        var crimps = this.crimpLocations();
+        var symmetryLine = new Edge(this.vertex, this.base[0].midpoint(this.base[1]));
+        if (this.overlapped.length > 0) {
+            symmetryLine.nodes[1] = this.overlapped[0].circumcenter;
+        }
+        var overlappingEdges = [symmetryLine]
+            .concat(flatMap(this.overlapped, function (el) {
+            return el.generateCreases();
+        }));
+        var edges = [symmetryLine]
+            .concat(new Polyline().rayReflectRepeat(new Ray(this.base[0], this.base[1].subtract(this.base[0])), overlappingEdges, this.base[1]).edges());
+        crimps.filter(function (el) {
+            return el !== undefined && !el.equivalent(this.vertex);
+        }, this)
+            .forEach(function (crimp) {
+            edges = edges.concat(new Polyline().rayReflectRepeat(new Ray(this.base[0], crimp.subtract(this.base[0])), overlappingEdges, this.base[1]).edges());
+        }, this);
+        return edges;
+    };
+    VoronoiMoleculeTriangle.prototype.pointInside = function (p) {
+        var found = true;
+        var points = [this.vertex, this.base[0], this.base[1]];
+        for (var i = 0; i < points.length; i++) {
+            var p0 = points[i];
+            var p1 = points[(i + 1) % points.length];
+            var cross = (p.y - p0.y) * (p1.x - p0.x) -
+                (p.x - p0.x) * (p1.y - p0.y);
+            if (cross < 0)
+                return false;
+        }
+        return true;
+    };
+    return VoronoiMoleculeTriangle;
+}());
+var VoronoiEdge = (function () {
+    function VoronoiEdge() {
+        this.cache = {};
+    }
+    return VoronoiEdge;
+}());
+var VoronoiCell = (function () {
+    function VoronoiCell() {
+        this.points = [];
+        this.edges = [];
+    }
+    return VoronoiCell;
+}());
+var VoronoiJunction = (function () {
+    function VoronoiJunction() {
+        this.edges = [];
+        this.cells = [];
+        this.isEdge = false;
+        this.isCorner = false;
+    }
+    return VoronoiJunction;
+}());
+var VoronoiGraph = (function () {
+    function VoronoiGraph(v, epsilon) {
+        var containsXY = function (a, object) {
+            return (a.filter(function (e) {
+                return e.equivalent(object, epsilon);
+            }).length > 0);
+        };
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var allPoints = flatMap(v.edges, function (e) { return [new XY(e[0][0], e[0][1]), new XY(e[1][0], e[1][1])]; });
+        var hull = new ConvexPolygon().convexHull(allPoints);
+        this.edges = [];
+        this.junctions = [];
+        this.cells = [];
+        this.edges = v.edges.map(function (el) {
+            var edge = new VoronoiEdge();
+            edge.endPoints = [new XY(el[0][0], el[0][1]), new XY(el[1][0], el[1][1])];
+            edge.cache = { 'left': el.left, 'right': el.right };
+            return edge;
+        });
+        this.cells = v.cells.map(function (c) {
+            var cell = new VoronoiCell();
+            cell.site = new XY(c.site[0], c.site[1]);
+            cell.edges = c.halfedges.map(function (hf) { return this.edges[hf]; }, this);
+            cell.points = cell.edges.map(function (el, i) {
+                var a = el.endPoints[0];
+                var b = el.endPoints[1];
+                var nextA = cell.edges[(i + 1) % cell.edges.length].endPoints[0];
+                var nextB = cell.edges[(i + 1) % cell.edges.length].endPoints[1];
+                if (a.equivalent(nextA, epsilon) || a.equivalent(nextB, epsilon)) {
+                    return b;
+                }
+                return a;
+            }, this);
+            return cell;
+        }, this);
+        this.edges.forEach(function (el) {
+            var thisCells = [undefined, undefined];
+            if (el.cache['left'] !== undefined) {
+                var leftSite = new XY(el.cache['left'][0], el.cache['left'][1]);
+                for (var i = 0; i < this.cells.length; i++) {
+                    if (leftSite.equivalent(this.cells[i].site, epsilon)) {
+                        thisCells[0] = this.cells[i];
+                        break;
+                    }
+                }
+            }
+            if (el.cache['right'] !== undefined) {
+                var rightSite = new XY(el.cache['right'][0], el.cache['right'][1]);
+                for (var i = 0; i < this.cells.length; i++) {
+                    if (rightSite.equivalent(this.cells[i].site, epsilon)) {
+                        thisCells[1] = this.cells[i];
+                        break;
+                    }
+                }
+            }
+            el.cells = thisCells;
+            el.isBoundary = false;
+            if (el.cells[0] === undefined || el.cells[1] === undefined) {
+                el.isBoundary = true;
+            }
+            el.cache = {};
+        }, this);
+        var nodes = [];
+        this.edges.forEach(function (el) {
+            if (!containsXY(nodes, el.endPoints[0])) {
+                nodes.push(el.endPoints[0]);
+            }
+            if (!containsXY(nodes, el.endPoints[1])) {
+                nodes.push(el.endPoints[1]);
+            }
+        }, this);
+        this.junctions = nodes.map(function (el) {
+            var junction = new VoronoiJunction();
+            junction.position = el;
+            junction.cells = this.cells.filter(function (cell) {
+                return containsXY(cell.points, el);
+            }, this).sort(function (a, b) {
+                var vecA = a.site.subtract(el);
+                var vecB = b.site.subtract(el);
+                return Math.atan2(vecA.y, vecA.x) - Math.atan2(vecB.y, vecB.x);
+            });
+            switch (junction.cells.length) {
+                case 1:
+                    junction.isCorner = true;
+                    break;
+                case 2:
+                    junction.isEdge = true;
+                    hull.edges.forEach(function (edge) {
+                        if (edge.collinear(junction.position)) {
+                            junction.edgeNormal = edge.nodes[1].subtract(edge.nodes[0]).rotate90();
+                        }
+                    });
+                    break;
+            }
+            junction.edges = this.edges.filter(function (edge) {
+                return containsXY(edge.endPoints, el);
+            }, this).sort(function (a, b) {
+                var otherA = a.endPoints[0];
+                if (otherA.equivalent(el)) {
+                    otherA = a.endPoints[1];
+                }
+                var otherB = b.endPoints[0];
+                if (otherB.equivalent(el)) {
+                    otherB = b.endPoints[1];
+                }
+                var vecA = otherA.subtract(el);
+                var vecB = otherB.subtract(el);
+                return Math.atan2(vecA.y, vecA.x) - Math.atan2(vecB.y, vecB.x);
+            });
+            return junction;
+        }, this);
+        return this;
+    }
+    VoronoiGraph.prototype.edgeExists = function (points, epsilon) {
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        this.edges.forEach(function (el) {
+            if (el.endPoints[0].equivalent(points[0], epsilon) &&
+                el.endPoints[1].equivalent(points[1], epsilon)) {
+                return el;
+            }
+            if (el.endPoints[1].equivalent(points[0], epsilon) &&
+                el.endPoints[0].equivalent(points[1], epsilon)) {
+                return el;
+            }
+        });
+        return undefined;
+    };
+    VoronoiGraph.prototype.generateMolecules = function (interp) {
+        return this.junctions.map(function (j) {
+            var endPoints = j.cells.map(function (cell) {
+                return cell.site.lerp(j.position, interp);
+            }, this);
+            var molecule = new VoronoiMolecule(endPoints, j.position, j.isEdge ? j.edgeNormal : undefined);
+            return molecule;
+        }, this);
+    };
+    VoronoiGraph.prototype.generateSortedMolecules = function (interp) {
+        var molecules = this.generateMolecules(interp);
+        for (var i = 0; i < molecules.length; i++) {
+            for (var j = 0; j < molecules.length; j++) {
+                if (i !== j) {
+                    molecules[j].units.forEach(function (unit) {
+                        if (unit.pointInside(molecules[i].circumcenter)) {
+                            unit.overlapped.push(molecules[i]);
+                            molecules[j].overlaped.push(molecules[i]);
+                        }
+                    });
+                }
+            }
+        }
+        for (var i = 0; i < molecules.length; i++) {
+            molecules[i].units.forEach(function (unit) {
+                unit.overlapped.sort(function (a, b) {
+                    return a.circumcenter.distanceTo(unit.vertex) - b.circumcenter.distanceTo(unit.vertex);
+                });
+            });
+            molecules[i].overlaped.sort(function (a, b) {
+                return a.circumcenter.distanceTo(molecules[i].circumcenter) - b.circumcenter.distanceTo(molecules[i].circumcenter);
+            });
+        }
+        var array = [];
+        var mutableMolecules = molecules.slice();
+        var rowIndex = 0;
+        while (mutableMolecules.length > 0) {
+            array.push([]);
+            for (var i = mutableMolecules.length - 1; i >= 0; i--) {
+                if (mutableMolecules[i].overlaped.length <= rowIndex) {
+                    array[rowIndex].push(mutableMolecules[i]);
+                    mutableMolecules.splice(i, 1);
+                }
+            }
+            rowIndex++;
+        }
+        return array;
+    };
+    return VoronoiGraph;
+}());
+var flatMap = function (array, mapFunc) {
+    return array.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
+};
+var PlanarClean = (function (_super) {
+    __extends(PlanarClean, _super);
+    function PlanarClean(numNodes, numEdges) {
+        var _this = _super.call(this, numNodes, numEdges) || this;
+        _this.edges = { total: 0, duplicate: 0, circular: 0 };
+        _this.nodes = {
+            total: 0,
+            isolated: 0,
+            fragment: [],
+            collinear: [],
+            duplicate: []
+        };
+        if (numNodes !== undefined) {
+            _this.nodes.total += numNodes;
+        }
+        if (numEdges !== undefined) {
+            _this.edges.total += numEdges;
+        }
+        return _this;
+    }
+    PlanarClean.prototype.fragmentedNodes = function (nodes) {
+        this.nodes.fragment = nodes;
+        this.nodes.total += nodes.length;
+        return this;
+    };
+    PlanarClean.prototype.collinearNodes = function (nodes) {
+        this.nodes.collinear = nodes;
+        this.nodes.total += nodes.length;
+        return this;
+    };
+    PlanarClean.prototype.duplicateNodes = function (nodes) {
+        this.nodes.duplicate = nodes;
+        this.nodes.total += nodes.length;
+        return this;
+    };
+    PlanarClean.prototype.join = function (report) {
+        this.nodes.total += report.nodes.total;
+        this.edges.total += report.edges.total;
+        this.nodes.isolated += report.nodes.isolated;
+        this.edges.duplicate += report.edges.duplicate;
+        this.edges.circular += report.edges.circular;
+        var planarReport = report;
+        if (planarReport.nodes.fragment !== undefined) {
+            this.nodes.fragment = this.nodes.fragment.concat(planarReport.nodes.fragment);
+        }
+        if (planarReport.nodes.collinear !== undefined) {
+            this.nodes.collinear = this.nodes.collinear.concat(planarReport.nodes.collinear);
+        }
+        if (planarReport.nodes.duplicate !== undefined) {
+            this.nodes.duplicate = this.nodes.duplicate.concat(planarReport.nodes.duplicate);
+        }
+        return this;
+    };
+    return PlanarClean;
+}(GraphClean));
+var PlanarNode = (function (_super) {
+    __extends(PlanarNode, _super);
+    function PlanarNode() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.junctionType = PlanarJunction;
+        _this.sectorType = PlanarSector;
+        _this.cache = {};
+        return _this;
+    }
+    PlanarNode.prototype.adjacentEdges = function () {
+        return this.graph.edges
+            .filter(function (el) {
+            return el.nodes[0] === this || el.nodes[1] === this;
+        }, this)
+            .map(function (el) {
+            var other = el.otherNode(this);
+            return { 'edge': el, 'angle': Math.atan2(other.y - this.y, other.x - this.x) };
+        }, this)
+            .sort(function (a, b) { return b.angle - a.angle; })
+            .map(function (el) { return el.edge; });
+    };
+    PlanarNode.prototype.adjacentFaces = function () {
+        var junction = this.junction();
+        if (junction === undefined) {
+            return [];
+        }
+        return junction.faces();
+    };
+    PlanarNode.prototype.interiorAngles = function () { return this.junction().interiorAngles(); };
+    PlanarNode.prototype.junction = function () {
+        var junction = new this.junctionType(this);
+        if (junction.edges.length === 0) {
+            return undefined;
+        }
+        return junction;
+    };
+    PlanarNode.prototype.position = function (x, y) { this.x = x; this.y = y; return this; };
+    PlanarNode.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
+    PlanarNode.prototype.normalize = function () { var m = this.magnitude(); this.x /= m; this.y /= m; return this; };
+    PlanarNode.prototype.dot = function (point) { return this.x * point.x + this.y * point.y; };
+    PlanarNode.prototype.cross = function (vector) { return this.x * vector.y - this.y * vector.x; };
+    PlanarNode.prototype.magnitude = function () { return Math.sqrt(this.x * this.x + this.y * this.y); };
+    PlanarNode.prototype.distanceTo = function (a) { return Math.sqrt(Math.pow(this.x - a.x, 2) + Math.pow(this.y - a.y, 2)); };
+    PlanarNode.prototype.equivalent = function (point, epsilon) {
+        return new XY(this.x, this.y).equivalent(point, epsilon);
+    };
+    PlanarNode.prototype.transform = function (matrix) {
+        var xx = this.x;
+        var yy = this.y;
+        this.x = xx * matrix.a + yy * matrix.c + matrix.tx;
+        this.y = xx * matrix.b + yy * matrix.d + matrix.ty;
+        return this;
+    };
+    PlanarNode.prototype.rotate90 = function () { var x = this.x; this.x = -this.y; this.y = x; return this; };
+    PlanarNode.prototype.rotate270 = function () { var x = this.x; this.x = this.y; this.y = -x; return this; };
+    PlanarNode.prototype.rotate = function (angle, origin) {
+        var rotated = new XY(this.x, this.y).rotate(angle, origin);
+        return this.position(rotated.x, rotated.y);
+    };
+    PlanarNode.prototype.lerp = function (point, pct) {
+        var translated = new XY(this.x, this.y).lerp(point, pct);
+        return this.position(translated.x, translated.y);
+    };
+    PlanarNode.prototype.angleLerp = function (point, pct) {
+        var translated = new XY(this.x, this.y).angleLerp(point, pct);
+        return this.position(translated.x, translated.y);
+    };
+    PlanarNode.prototype.reflect = function (line) {
+        var reflected = new XY(this.x, this.y).reflect(line);
+        return this.position(reflected.x, reflected.y);
+    };
+    PlanarNode.prototype.scale = function (magnitude) { this.x *= magnitude; this.y *= magnitude; return this; };
+    PlanarNode.prototype.add = function (point) { this.x += point.x; this.y += point.y; return this; };
+    PlanarNode.prototype.subtract = function (sub) { this.x -= sub.x; this.y -= sub.y; return this; };
+    PlanarNode.prototype.multiply = function (m) { this.x *= m.x; this.y *= m.y; return this; };
+    PlanarNode.prototype.midpoint = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
+    PlanarNode.prototype.abs = function () { this.x = Math.abs(this.x), this.y = Math.abs(this.y); return this; };
+    PlanarNode.prototype.commonX = function (p, epsilon) { return new XY(this.x, this.y).commonX(new XY(p.x, p.y), epsilon); };
+    PlanarNode.prototype.commonY = function (p, epsilon) { return new XY(this.x, this.y).commonY(new XY(p.x, p.y), epsilon); };
+    return PlanarNode;
+}(GraphNode));
+var PlanarEdge = (function (_super) {
+    __extends(PlanarEdge, _super);
+    function PlanarEdge() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    PlanarEdge.prototype.adjacentFaces = function () {
+        return [
+            new this.graph.faceType(this.graph).makeFromCircuit(this.graph.walkClockwiseCircut(this.nodes[0], this.nodes[1])),
+            new this.graph.faceType(this.graph).makeFromCircuit(this.graph.walkClockwiseCircut(this.nodes[1], this.nodes[0]))
+        ]
+            .filter(function (el) { return el !== undefined; });
+    };
+    PlanarEdge.prototype.crossingEdges = function () {
+        var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
+        var maxX = (this.nodes[0].x > this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
+        var minY = (this.nodes[0].y < this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
+        var maxY = (this.nodes[0].y > this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
+        return this.graph.edges
+            .filter(function (el) {
+            return !((el.nodes[0].x < minX && el.nodes[1].x < minX) ||
+                (el.nodes[0].x > maxX && el.nodes[1].x > maxX) ||
+                (el.nodes[0].y < minY && el.nodes[1].y < minY) ||
+                (el.nodes[0].y > maxY && el.nodes[1].y > maxY));
+        }, this)
+            .filter(function (el) { return this !== el; }, this)
+            .map(function (el) { return this.intersection(el); }, this)
+            .filter(function (el) { return el != undefined; })
+            .sort(function (a, b) {
+            if (a.commonX(b)) {
+                return a.y - b.y;
+            }
+            return a.x - b.x;
+        });
+    };
+    PlanarEdge.prototype.absoluteAngle = function (startNode) {
+        if (startNode === undefined) {
+            startNode = this.nodes[1];
+        }
+        var endNode = this.otherNode(startNode);
+        return Math.atan2(endNode.y - startNode.y, endNode.x - startNode.x);
+    };
+    PlanarEdge.prototype.length = function () { return this.nodes[0].distanceTo(this.nodes[1]); };
+    PlanarEdge.prototype.vector = function (originNode) {
+        var origin = originNode || this.nodes[0];
+        var otherNode = this.otherNode(origin);
+        return new XY(otherNode.x, otherNode.y).subtract(origin);
+    };
+    PlanarEdge.prototype.parallel = function (edge, epsilon) {
+        return new Edge(this).parallel(new Edge(edge), epsilon);
+    };
+    PlanarEdge.prototype.collinear = function (point, epsilon) {
+        return new Edge(this).collinear(point, epsilon);
+    };
+    PlanarEdge.prototype.equivalent = function (e, epsilon) { return this.isSimilarToEdge(e); };
+    PlanarEdge.prototype.intersection = function (edge, epsilon) {
+        if (edge instanceof PlanarEdge && this.isAdjacentToEdge(edge)) {
+            return undefined;
+        }
+        var a = new Edge(this.nodes[0].x, this.nodes[0].y, this.nodes[1].x, this.nodes[1].y);
+        var b = new Edge(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+        var intersect = a.intersection(b, epsilon);
+        if (intersect !== undefined &&
+            !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))) {
+            var pe = edge;
+            return { 'edge': pe, 'point': intersect };
+        }
+    };
+    PlanarEdge.prototype.reflectionMatrix = function () {
+        return new Edge(this.nodes[0], this.nodes[1]).reflectionMatrix();
+    };
+    PlanarEdge.prototype.nearestPoint = function (point) {
+        var answer = this.nearestPointNormalTo(point);
+        if (answer !== undefined) {
+            return answer;
+        }
+        return this.nodes
+            .map(function (el) { return { point: el, distance: el.distanceTo(point) }; }, this)
+            .sort(function (a, b) { return a.distance - b.distance; })
+            .shift()
+            .point;
+    };
+    PlanarEdge.prototype.nearestPointNormalTo = function (point) {
+        var p = this.nodes[0].distanceTo(this.nodes[1]);
+        var u = ((point.x - this.nodes[0].x) * (this.nodes[1].x - this.nodes[0].x) + (point.y - this.nodes[0].y) * (this.nodes[1].y - this.nodes[0].y)) / (Math.pow(p, 2));
+        if (u < 0 || u > 1.0) {
+            return undefined;
+        }
+        return new XY(this.nodes[0].x + u * (this.nodes[1].x - this.nodes[0].x), this.nodes[0].y + u * (this.nodes[1].y - this.nodes[0].y));
+    };
+    PlanarEdge.prototype.transform = function (matrix) {
+        this.nodes[0].transform(matrix);
+        this.nodes[1].transform(matrix);
+        return this;
+    };
+    PlanarEdge.prototype.degenrate = function (epsilon) {
+        return this.nodes[0].equivalent(this.nodes[1], epsilon);
+    };
+    PlanarEdge.prototype.midpoint = function () {
+        return new XY(0.5 * (this.nodes[0].x + this.nodes[1].x), 0.5 * (this.nodes[0].y + this.nodes[1].y));
+    };
+    PlanarEdge.prototype.perpendicularBisector = function () { return new Line(this.midpoint(), this.vector().rotate90()); };
+    PlanarEdge.prototype.infiniteLine = function () {
+        var origin = new XY(this.nodes[0].x, this.nodes[0].y);
+        var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
+        return new Line(origin, vector);
+    };
+    return PlanarEdge;
+}(GraphEdge));
+var PlanarFace = (function () {
+    function PlanarFace(graph) {
+        this.graph = graph;
+        this.nodes = [];
+        this.edges = [];
+        this.angles = [];
+    }
+    PlanarFace.prototype.makeFromCircuit = function (circut) {
+        var SUM_ANGLE_EPSILON = 0.00001;
+        if (circut == undefined || circut.length < 3) {
+            return undefined;
+        }
+        this.edges = circut;
+        this.nodes = circut.map(function (el, i) {
+            return el.uncommonNodeWithEdge(circut[(i + 1) % circut.length]);
+        });
+        var sectorType = this.nodes[0].sectorType;
+        this.sectors = this.edges.map(function (el, i) {
+            var nexti = (i + 1) % this.edges.length;
+            var origin = el.commonNodeWithEdge(this.edges[nexti]);
+            var endPoints = [el.uncommonNodeWithEdge(this.edges[nexti]),
+                this.edges[nexti].uncommonNodeWithEdge(el)];
+            return new sectorType(el, this.edges[nexti]);
+        }, this);
+        this.angles = this.sectors.map(function (el) { return el.angle(); });
+        var angleSum = this.angles.reduce(function (sum, value) { return sum + value; }, 0);
+        if (this.nodes.length > 2 && Math.abs(angleSum / (this.nodes.length - 2) - Math.PI) < SUM_ANGLE_EPSILON) {
+            return this;
+        }
+        return undefined;
+    };
+    PlanarFace.prototype.makeFromNodes = function (nodes) {
+        var edgeCircut = nodes.map(function (node, i) {
+            var nextNode = this.nodes[(i + 1) % this.nodes.length];
+            return this.graph.getEdgeConnectingNodes(node, nextNode);
+        }, this);
+        return this.makeFromCircuit(edgeCircut);
+    };
+    PlanarFace.prototype.equivalent = function (face) {
+        if (face.nodes.length != this.nodes.length)
+            return false;
+        var iFace = undefined;
+        for (var i = 0; i < this.nodes.length; i++) {
+            if (this.nodes[0] === face.nodes[i]) {
+                iFace = i;
+                break;
+            }
+        }
+        if (iFace == undefined)
+            return false;
+        for (var i = 0; i < this.nodes.length; i++) {
+            var iFaceMod = (iFace + i) % this.nodes.length;
+            if (this.nodes[i] !== face.nodes[iFaceMod])
+                return false;
+        }
+        return true;
+    };
+    PlanarFace.prototype.commonEdge = function (face) {
+        for (var i = 0; i < this.edges.length; i++) {
+            for (var j = 0; j < face.edges.length; j++) {
+                if (this.edges[i] === face.edges[j]) {
+                    return this.edges[i];
+                }
+            }
+        }
+    };
+    PlanarFace.prototype.edgeAdjacentFaces = function () {
+        return this.edges.map(function (ed) {
+            var allFaces = this.graph.faces.filter(function (el) { return !this.equivalent(el); }, this);
+            for (var i = 0; i < allFaces.length; i++) {
+                var adjArray = allFaces[i].edges.filter(function (ef) { return ed === ef; });
+                if (adjArray.length > 0) {
+                    return allFaces[i];
+                }
+            }
+        }, this).filter(function (el) { return el !== undefined; });
+    };
+    PlanarFace.prototype.contains = function (point) {
+        for (var i = 0; i < this.edges.length; i++) {
+            var endpts = this.edges[i].nodes;
+            var cross = (point.y - endpts[0].y) * (endpts[1].x - endpts[0].x) -
+                (point.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
+            if (cross < 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+    PlanarFace.prototype.transform = function (matrix) {
+        for (var i = 0; i < this.nodes.length; i++) {
+            this.nodes[i].transform(matrix);
+        }
+    };
+    PlanarFace.prototype.adjacencyTree = function () {
+        if (this.graph.faces.length === 0) {
+            this.graph.generateFaces();
+        }
+        else {
+            this.graph.faceArrayDidChange();
+        }
+        var current = this;
+        var visited = [];
+        var list = [[{ "face": current, "parent": undefined }]];
+        do {
+            var totalRoundAdjacent = [];
+            list[list.length - 1].forEach(function (current) {
+                totalRoundAdjacent.concat(current.face.edgeAdjacentFaces()
+                    .filter(function (face) {
+                    return visited.filter(function (el) { return el === face; }, this).length == 0;
+                }, this)
+                    .map(function (face) {
+                    visited.push(face);
+                    return { "face": face, "parent": current };
+                }, this));
+            });
+            list[list.length] = totalRoundAdjacent;
+        } while (list[list.length - 1].length > 0);
+        return list;
+    };
+    return PlanarFace;
+}());
+var PlanarSector = (function (_super) {
+    __extends(PlanarSector, _super);
+    function PlanarSector(edge1, edge2) {
+        var _this = _super.call(this, edge1.commonNodeWithEdge(edge2), undefined) || this;
+        if (_this.origin === undefined) {
+            return _this;
+        }
+        if (edge1 === edge2) {
+            return _this;
+        }
+        _this.edges = [edge1, edge2];
+        _this.endPoints = [
+            (edge1.nodes[0] === _this.origin) ? edge1.nodes[1] : edge1.nodes[0],
+            (edge2.nodes[0] === _this.origin) ? edge2.nodes[1] : edge2.nodes[0]
+        ];
+        return _this;
+    }
+    PlanarSector.prototype.makeWithEdges = function (edge1, edge2) {
+        this.origin = edge1.commonNodeWithEdge(edge2);
+        if (this.origin === undefined) {
+            return;
+        }
+        if (edge1 === edge2) {
+            return;
+        }
+        this.edges = [edge1, edge2];
+        this.endPoints = [
+            (edge1.nodes[0] === this.origin) ? edge1.nodes[1] : edge1.nodes[0],
+            (edge2.nodes[0] === this.origin) ? edge2.nodes[1] : edge2.nodes[0]
+        ];
+        return this;
+    };
+    PlanarSector.prototype.equivalent = function (a) {
+        return ((a.edges[0].isSimilarToEdge(this.edges[0]) &&
+            a.edges[1].isSimilarToEdge(this.edges[1])) ||
+            (a.edges[0].isSimilarToEdge(this.edges[1]) &&
+                a.edges[1].isSimilarToEdge(this.edges[0])));
+    };
+    return PlanarSector;
+}(Sector));
+var PlanarJunction = (function () {
+    function PlanarJunction(node) {
+        this.origin = node;
+        this.sectors = [];
+        this.edges = [];
+        if (node === undefined) {
+            return;
+        }
+        this.edges = this.origin.adjacentEdges();
+        if (this.edges.length <= 1) {
+            return;
+        }
+        this.sectors = this.edges.map(function (el, i) {
+            var nextEl = this.edges[(i + 1) % this.edges.length];
+            var origin = el.commonNodeWithEdge(nextEl);
+            var nextN = nextEl.uncommonNodeWithEdge(el);
+            var prevN = el.uncommonNodeWithEdge(nextEl);
+            return new this.origin.sectorType(el, nextEl);
+        }, this);
+    }
+    PlanarJunction.prototype.edgeVectorsNormalized = function () {
+        return this.edges.map(function (el) { return el.vector(this.origin).normalize(); }, this);
+    };
+    PlanarJunction.prototype.edgeAngles = function () {
+        return this.edges.map(function (el) { return el.absoluteAngle(this.origin); }, this);
+    };
+    PlanarJunction.prototype.sectorWithEdges = function (a, b) {
+        var found = undefined;
+        this.sectors.forEach(function (el) {
+            if ((el.edges[0].equivalent(a) && el.edges[1].equivalent(b)) ||
+                (el.edges[1].equivalent(a) && el.edges[0].equivalent(b))) {
+                found = el;
+                return found;
+            }
+        }, this);
+        return found;
+    };
+    PlanarJunction.prototype.interiorAngles = function () {
+        return this.sectors.map(function (el) {
+            return el.angle();
+        }, this);
+    };
+    PlanarJunction.prototype.clockwiseNode = function (fromNode) {
+        for (var i = 0; i < this.edges.length; i++) {
+            if (this.edges[i].otherNode(this.origin) === fromNode) {
+                return this.edges[(i + 1) % this.edges.length].otherNode(this.origin);
+            }
+        }
+    };
+    PlanarJunction.prototype.clockwiseEdge = function (fromEdge) {
+        var index = this.edges.indexOf(fromEdge);
+        if (index === -1) {
+            return undefined;
+        }
+        return this.edges[(index + 1) % this.edges.length];
+    };
+    PlanarJunction.prototype.faces = function () {
+        var adjacentFaces = [];
+        for (var n = 0; n < this.edges.length; n++) {
+            var circuit = this.origin.graph.walkClockwiseCircut(this.origin, this.edges[n].otherNode(this.origin));
+            var face = new this.origin.graph.faceType(this.origin.graph).makeFromCircuit(circuit);
+            if (face !== undefined) {
+                adjacentFaces.push(face);
+            }
+        }
+        return adjacentFaces;
+    };
+    return PlanarJunction;
+}());
+var PlanarGraph = (function (_super) {
+    __extends(PlanarGraph, _super);
+    function PlanarGraph() {
+        var _this = _super.call(this) || this;
+        _this.nodeType = PlanarNode;
+        _this.edgeType = PlanarEdge;
+        _this.faceType = PlanarFace;
+        _this.properties = { "optimization": 0 };
+        _this.clear();
+        return _this;
+    }
+    PlanarGraph.prototype.copy = function () {
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        var g = new PlanarGraph();
+        for (var i = 0; i < this.nodes.length; i++) {
+            var n = g.addNode(new PlanarNode(g));
+            Object.assign(n, this.nodes[i]);
+            n.graph = g;
+            n.index = i;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+            var e = g.addEdge(new PlanarEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
+            Object.assign(e, this.edges[i]);
+            e.graph = g;
+            e.index = i;
+            e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+        }
+        for (var i = 0; i < this.faces.length; i++) {
+            var f = new PlanarFace(g);
+            Object.assign(f, this.faces[i]);
+            for (var j = 0; j < this.faces[i].nodes.length; j++) {
+                f.nodes.push(f.nodes[this.faces[i].nodes[j].index]);
+            }
+            for (var j = 0; j < this.faces[i].edges.length; j++) {
+                f.edges.push(f.edges[this.faces[i].edges[j].index]);
+            }
+            for (var j = 0; j < this.faces[i].angles.length; j++) {
+                f.angles.push(this.faces[i].angles[j]);
+            }
+            f.graph = g;
+            g.faces.push(f);
+        }
+        return g;
+    };
+    PlanarGraph.prototype.newPlanarNode = function (x, y) {
+        return this.newNode().position(x, y);
+    };
+    PlanarGraph.prototype.newPlanarEdge = function (x1, y1, x2, y2) {
+        var a = this.newNode().position(x1, y1);
+        var b = this.newNode().position(x2, y2);
+        return this.newEdge(a, b);
+    };
+    PlanarGraph.prototype.newPlanarEdgeFromNode = function (node, x, y) {
+        var newNode = this.newNode().position(x, y);
+        return this.newEdge(node, newNode);
+    };
+    PlanarGraph.prototype.newPlanarEdgeBetweenNodes = function (a, b) {
+        return this.newEdge(a, b);
+    };
+    PlanarGraph.prototype.newPlanarEdgeRadiallyFromNode = function (node, angle, length) {
+        var newNode = this.copyNode(node)
+            .translate(Math.cos(angle) * length, Math.sin(angle) * length);
+        return this.newEdge(node, newNode);
+    };
+    PlanarGraph.prototype.clear = function () {
+        this.nodes = [];
+        this.edges = [];
+        this.faces = [];
+        return this;
+    };
+    PlanarGraph.prototype.removeEdge = function (edge) {
+        var len = this.edges.length;
+        var endNodes = [edge.nodes[0], edge.nodes[1]];
+        this.edges = this.edges.filter(function (el) { return el !== edge; });
+        this.edgeArrayDidChange();
+        this.cleanNodeIfUseless(endNodes[0]);
+        this.cleanNodeIfUseless(endNodes[1]);
+        return new PlanarClean(undefined, len - this.edges.length);
+    };
+    PlanarGraph.prototype.removeEdgeBetween = function (node1, node2) {
+        var len = this.edges.length;
+        this.edges = this.edges.filter(function (el) {
+            return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
+                (el.nodes[0] === node2 && el.nodes[1] === node1));
+        });
+        this.edgeArrayDidChange();
+        return new PlanarClean(undefined, len - this.edges.length)
+            .join(this.cleanNodeIfUseless(node1))
+            .join(this.cleanNodeIfUseless(node2));
+    };
+    PlanarGraph.prototype.cleanNodeIfUseless = function (node) {
+        var edges = node.adjacentEdges();
+        switch (edges.length) {
+            case 0: return this.removeNode(node);
+            case 2:
+                var farNodes = [(edges[0].uncommonNodeWithEdge(edges[1])),
+                    (edges[1].uncommonNodeWithEdge(edges[0]))];
+                var span = new Edge(farNodes[0], farNodes[1]);
+                if (span.collinear(node)) {
+                    edges[0].nodes = [farNodes[0], farNodes[1]];
+                    this.removeEdge(edges[1]);
+                    this.removeNode(node);
+                    return new PlanarClean(1, 1);
+                }
+        }
+        return new PlanarClean();
+    };
+    PlanarGraph.prototype.cleanAllUselessNodes = function () {
+        this.nodes.forEach(function (el) { el.cache['adjacentEdges'] = []; });
+        this.edges.forEach(function (el) {
+            el.nodes[0].cache['adjacentEdges'].push(el);
+            el.nodes[1].cache['adjacentEdges'].push(el);
+        });
+        var report = new PlanarClean().join(this.removeIsolatedNodes());
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        for (var i = this.nodes.length - 1; i >= 0; i--) {
+            var edges = this.nodes[i].cache['adjacentEdges'];
+            switch (edges.length) {
+                case 0:
+                    report.join(this.removeNode(this.nodes[i]));
+                    break;
+                case 2:
+                    var farNodes = [(edges[0].uncommonNodeWithEdge(edges[1])),
+                        (edges[1].uncommonNodeWithEdge(edges[0]))];
+                    var span = new Edge(farNodes[0], farNodes[1]);
+                    if (span.collinear(this.nodes[i])) {
+                        edges[0].nodes = [farNodes[0], farNodes[1]];
+                        this.edges.splice(edges[1].index, 1);
+                        this.edgeArrayDidChange();
+                        this.nodes.splice(this.nodes[i].index, 1);
+                        this.nodeArrayDidChange();
+                        report.join(new PlanarClean(1, 1));
+                    }
+                    break;
+            }
+        }
+        this.nodes.forEach(function (el) { el.cache['adjacentEdges'] = undefined; });
+        return report;
+    };
+    PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
+        var EPSILON_HIGH = 0.00000001;
+        if (epsilon === undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var tree = rbush();
+        var nodes = this.nodes.map(function (el) {
+            return {
+                minX: el.x - epsilon,
+                minY: el.y - epsilon,
+                maxX: el.x + epsilon,
+                maxY: el.y + epsilon,
+                node: el
+            };
+        });
+        tree.load(nodes);
+        var that = this;
+        function merge2Nodes(nodeA, nodeB) {
+            that.edges.forEach(function (el) {
+                if (el.nodes[0] === nodeB) {
+                    el.nodes[0] = nodeA;
+                }
+                if (el.nodes[1] === nodeB) {
+                    el.nodes[1] = nodeA;
+                }
+            });
+            that.nodes = that.nodes.filter(function (el) { return el !== nodeB; });
+            return new PlanarClean().duplicateNodes([new XY(nodeB.x, nodeB.y)]).join(that.cleanGraph());
+        }
+        var clean = new PlanarClean();
+        for (var i = 0; i < this.nodes.length; i++) {
+            var result = tree.search({
+                minX: this.nodes[i].x - epsilon,
+                minY: this.nodes[i].y - epsilon,
+                maxX: this.nodes[i].x + epsilon,
+                maxY: this.nodes[i].y + epsilon
+            });
+            for (var r = 0; r < result.length; r++) {
+                if (this.nodes[i] !== result[r]['node']) {
+                    clean.join(merge2Nodes(this.nodes[i], result[r]['node']));
+                }
+            }
+        }
+        return clean;
+    };
+    PlanarGraph.prototype.clean = function (epsilon) {
+        var report = new PlanarClean();
+        report.join(this.cleanDuplicateNodes(epsilon));
+        report.join(this.fragment());
+        report.join(this.cleanDuplicateNodes(epsilon));
+        report.join(this.cleanGraph());
+        report.join(this.cleanAllUselessNodes());
+        return report;
+    };
+    PlanarGraph.prototype.fragment = function () {
+        var that = this;
+        function fragmentOneRound() {
+            var roundReport = new PlanarClean();
+            for (var i = 0; i < that.edges.length; i++) {
+                var fragmentReport = that.fragmentEdge(that.edges[i]);
+                roundReport.join(fragmentReport);
+                if (fragmentReport.nodes.fragment.length > 0) {
+                    roundReport.join(that.cleanGraph());
+                    roundReport.join(that.cleanAllUselessNodes());
+                    roundReport.join(that.cleanDuplicateNodes());
+                }
+            }
+            return roundReport;
+        }
+        var protection = 0;
+        var report = new PlanarClean();
+        var thisReport;
+        do {
+            thisReport = fragmentOneRound();
+            report.join(thisReport);
+            protection += 1;
+        } while (thisReport.nodes.fragment.length != 0 && protection < 5000);
+        if (protection >= 5000) {
+            throw ("exiting fragment(). potential infinite loop detected");
+        }
+        return report;
+    };
+    PlanarGraph.prototype.fragmentEdge = function (edge) {
+        var report = new PlanarClean();
+        var intersections = edge.crossingEdges();
+        if (intersections.length === 0) {
+            return report;
+        }
+        report.nodes.fragment = intersections.map(function (el) { return new XY(el.point.x, el.point.y); });
+        var endNodes = edge.nodes.sort(function (a, b) {
+            if (a.commonX(b)) {
+                return a.y - b.y;
+            }
+            return a.x - b.x;
+        });
+        var newLineNodes = [];
+        for (var i = 0; i < intersections.length; i++) {
+            if (intersections[i] != undefined) {
+                var newNode = this.newNode().position(intersections[i].point.x, intersections[i].point.y);
+                this.copyEdge(intersections[i].edge).nodes = [newNode, intersections[i].edge.nodes[1]];
+                intersections[i].edge.nodes[1] = newNode;
+                newLineNodes.push(newNode);
+            }
+        }
+        this.copyEdge(edge).nodes = [endNodes[0], newLineNodes[0]];
+        for (var i = 0; i < newLineNodes.length - 1; i++) {
+            this.copyEdge(edge).nodes = [newLineNodes[i], newLineNodes[i + 1]];
+        }
+        this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length - 1], endNodes[1]];
+        this.removeEdge(edge);
+        report.join(this.cleanGraph());
+        return report;
+    };
+    PlanarGraph.prototype.walkClockwiseCircut = function (node1, node2) {
+        if (node1 === undefined || node2 === undefined) {
+            return undefined;
+        }
+        var incidentEdge = node1.graph.getEdgeConnectingNodes(node1, node2);
+        if (incidentEdge == undefined) {
+            return undefined;
+        }
+        var pairs = [];
+        var lastNode = node1;
+        var travelingNode = node2;
+        var visitedList = [lastNode];
+        var nextWalk = incidentEdge;
+        pairs.push(nextWalk);
+        do {
+            visitedList.push(travelingNode);
+            var travelingNodeJunction = travelingNode.junction();
+            if (travelingNodeJunction !== undefined) {
+                nextWalk = travelingNodeJunction.clockwiseEdge(nextWalk);
+            }
+            pairs.push(nextWalk);
+            lastNode = travelingNode;
+            travelingNode = nextWalk.otherNode(lastNode);
+            if (travelingNode === node1) {
+                return pairs;
+            }
+        } while (!(visitedList.filter(function (el) { return el === travelingNode; }).length > 0));
+        return undefined;
+    };
+    PlanarGraph.prototype.bounds = function () {
+        if (this.nodes === undefined || this.nodes.length === 0) {
+            return undefined;
+        }
+        var minX = Infinity;
+        var maxX = -Infinity;
+        var minY = Infinity;
+        var maxY = -Infinity;
+        this.nodes.forEach(function (el) {
+            if (el.x > maxX) {
+                maxX = el.x;
+            }
+            if (el.x < minX) {
+                minX = el.x;
+            }
+            if (el.y > maxY) {
+                maxY = el.y;
+            }
+            if (el.y < minY) {
+                minY = el.y;
+            }
+        });
+        return new Rect(minX, minY, maxX - minX, maxY - minY);
+    };
+    PlanarGraph.prototype.getEdgeIntersections = function (epsilon) {
+        var intersections = [];
+        for (var i = 0; i < this.edges.length - 1; i++) {
+            for (var j = i + 1; j < this.edges.length; j++) {
+                var intersection = this.edges[i].intersection(this.edges[j], epsilon);
+                if (intersection != undefined) {
+                    var copy = false;
+                    for (var k = 0; k < intersections.length; k++) {
+                        if (intersection.point.equivalent(intersections[k], epsilon)) {
+                            copy = true;
+                        }
+                    }
+                    if (!copy) {
+                        intersections.push(intersection.point);
+                    }
+                }
+            }
+        }
+        return intersections;
+    };
+    PlanarGraph.prototype.faceArrayDidChange = function () { for (var i = 0; i < this.faces.length; i++) {
+        this.faces[i].index = i;
+    } };
+    PlanarGraph.prototype.generateFaces = function () {
+        this.faces = [];
+        this.clean();
+        for (var i = 0; i < this.nodes.length; i++) {
+            var adjacentFaces = this.nodes[i].adjacentFaces();
+            for (var af = 0; af < adjacentFaces.length; af++) {
+                var duplicate = false;
+                for (var tf = 0; tf < this.faces.length; tf++) {
+                    if (this.faces[tf].equivalent(adjacentFaces[af])) {
+                        duplicate = true;
+                        break;
+                    }
+                }
+                if (!duplicate) {
+                    this.faces.push(adjacentFaces[af]);
+                }
+            }
+        }
+        this.faceArrayDidChange();
+        return this.faces;
+    };
+    PlanarGraph.prototype.edgeExistsThroughPoints = function (a, b) {
+        for (var i = 0; i < this.edges.length; i++) {
+            console.log(a);
+            console.log(this.edges[i].nodes[0]);
+            if ((a.equivalent(this.edges[i].nodes[0]) && b.equivalent(this.edges[i].nodes[1])) ||
+                (a.equivalent(this.edges[i].nodes[1]) && b.equivalent(this.edges[i].nodes[0]))) {
+                return true;
+            }
+        }
+        return false;
+    };
+    PlanarGraph.prototype.fewestPolylines = function () {
+        var cp = this.copy();
+        cp.clean();
+        cp.removeIsolatedNodes();
+        var paths = [];
+        while (cp.edges.length > 0) {
+            var node = cp.nodes[0];
+            var adj = node.adjacentNodes();
+            var polyline = new Polyline();
+            if (adj.length === 0) {
+                cp.removeIsolatedNodes();
+            }
+            else {
+                var nextNode = adj[0];
+                var edge = cp.getEdgeConnectingNodes(node, nextNode);
+                polyline.nodes.push(new XY(node.x, node.y));
+                cp.edges = cp.edges.filter(function (el) {
+                    return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
+                        (el.nodes[0] === nextNode && el.nodes[1] === node));
+                });
+                cp.removeIsolatedNodes();
+                node = nextNode;
+                adj = [];
+                if (node !== undefined) {
+                    adj = node.adjacentNodes();
+                }
+                while (adj.length > 0) {
+                    nextNode = adj[0];
+                    polyline.nodes.push(new XY(node.x, node.y));
+                    cp.edges = cp.edges.filter(function (el) {
+                        return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
+                            (el.nodes[0] === nextNode && el.nodes[1] === node));
+                    });
+                    cp.removeIsolatedNodes();
+                    node = nextNode;
+                    adj = node.adjacentNodes();
+                }
+                polyline.nodes.push(new XY(node.x, node.y));
+            }
+            paths.push(polyline);
+        }
+        return paths;
+    };
+    return PlanarGraph;
+}(Graph));
+function gimme1XY(a, b) {
+    if (isValidPoint(a)) {
+        return new XY(a.x, a.y);
+    }
+    if (isValidNumber(b)) {
+        return new XY(a, b);
+    }
+    if (a.constructor === Array) {
+        return new XY(a[0], a[1]);
+    }
+}
+function gimme2XY(a, b, c, d) {
+    if (a instanceof XY && b instanceof XY) {
+        return [a, b];
+    }
+    if (isValidPoint(b)) {
+        return [new XY(a.x, a.y), new XY(b.x, b.y)];
+    }
+    if (isValidNumber(d)) {
+        return [new XY(a, b), new XY(c, d)];
+    }
+}
+function gimme1Edge(a, b, c, d) {
+    if (a instanceof Edge) {
+        return a;
+    }
+    if (a.nodes !== undefined) {
+        return new Edge(a.nodes[0], a.nodes[1]);
+    }
+    if (isValidPoint(b)) {
+        return new Edge(a, b);
+    }
+    if (isValidNumber(d)) {
+        return new Edge(a, b, c, d);
+    }
+}
+function gimme1Ray(a, b, c, d) {
+    if (a instanceof Ray) {
+        return a;
+    }
+    if (isValidPoint(b)) {
+        return new Ray(a, b);
+    }
+    if (isValidNumber(d)) {
+        return new Ray(new XY(a, b), new XY(c, d));
+    }
+}
+function gimme1Line(a, b, c, d) {
+    if (a instanceof Line) {
+        return a;
+    }
+    if (isValidPoint(b)) {
+        return new Line(a, b);
+    }
+    if (isValidNumber(d)) {
+        return new Line(a, b, c, d);
+    }
+    if (a.nodes instanceof Array &&
+        a.nodes.length > 0 &&
+        isValidPoint(a.nodes[1])) {
+        return new Line(a.nodes[0].x, a.nodes[0].y, a.nodes[1].x, a.nodes[1].y);
+    }
+}
+var CreaseDirection;
+(function (CreaseDirection) {
+    CreaseDirection[CreaseDirection["mark"] = 0] = "mark";
+    CreaseDirection[CreaseDirection["border"] = 1] = "border";
+    CreaseDirection[CreaseDirection["mountain"] = 2] = "mountain";
+    CreaseDirection[CreaseDirection["valley"] = 3] = "valley";
+})(CreaseDirection || (CreaseDirection = {}));
+var Fold = (function () {
+    function Fold(foldFunction, argumentArray) {
+        this.func = undefined;
+        this.args = [];
+        this.func = foldFunction;
+        this.args = argumentArray;
+    }
+    return Fold;
+}());
+var MadeByType;
+(function (MadeByType) {
+    MadeByType[MadeByType["ray"] = 0] = "ray";
+    MadeByType[MadeByType["doubleRay"] = 1] = "doubleRay";
+    MadeByType[MadeByType["endpoints"] = 2] = "endpoints";
+    MadeByType[MadeByType["axiom1"] = 3] = "axiom1";
+    MadeByType[MadeByType["axiom2"] = 4] = "axiom2";
+    MadeByType[MadeByType["axiom3"] = 5] = "axiom3";
+    MadeByType[MadeByType["axiom4"] = 6] = "axiom4";
+    MadeByType[MadeByType["axiom5"] = 7] = "axiom5";
+    MadeByType[MadeByType["axiom6"] = 8] = "axiom6";
+    MadeByType[MadeByType["axiom7"] = 9] = "axiom7";
+})(MadeByType || (MadeByType = {}));
+var MadeBy = (function () {
+    function MadeBy() {
+        this.endPoints = [];
+        this.intersections = [];
+    }
+    return MadeBy;
+}());
+var ChangeType;
+(function (ChangeType) {
+    ChangeType[ChangeType["position"] = 0] = "position";
+    ChangeType[ChangeType["newLine"] = 1] = "newLine";
+})(ChangeType || (ChangeType = {}));
+var FoldSequence = (function () {
+    function FoldSequence() {
+    }
+    return FoldSequence;
+}());
+var CreaseSector = (function (_super) {
+    __extends(CreaseSector, _super);
+    function CreaseSector() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    CreaseSector.prototype.kawasakiFourth = function () {
+        var junction = this.origin.junction();
+        if (junction.edges.length != 3) {
+            return;
+        }
+        var foundIndex = undefined;
+        for (var i = 0; i < junction.sectors.length; i++) {
+            if (this.equivalent(junction.sectors[i])) {
+                foundIndex = i;
+            }
+        }
+        if (foundIndex === undefined) {
+            return undefined;
+        }
+        var sumEven = 0;
+        var sumOdd = 0;
+        for (var i = 0; i < junction.sectors.length - 1; i++) {
+            var index = (i + foundIndex + 1) % junction.sectors.length;
+            if (i % 2 == 0) {
+                sumEven += junction.sectors[index].angle();
+            }
+            else {
+                sumOdd += junction.sectors[index].angle();
+            }
+        }
+        var dEven = Math.PI - sumEven;
+        var angle0 = this.edges[0].absoluteAngle(this.origin);
+        var newA = angle0 - dEven;
+        return new XY(Math.cos(newA), Math.sin(newA));
+    };
+    return CreaseSector;
+}(PlanarSector));
+var CreaseJunction = (function (_super) {
+    __extends(CreaseJunction, _super);
+    function CreaseJunction() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    CreaseJunction.prototype.flatFoldable = function (epsilon) {
+        return this.kawasaki() && this.maekawa();
+    };
+    CreaseJunction.prototype.alternateAngleSum = function () {
+        if (this.sectors.length % 2 != 0) {
+            return undefined;
+        }
+        var sums = [0, 0];
+        this.sectors.forEach(function (el, i) { sums[i % 2] += el.angle(); });
+        return sums;
+    };
+    CreaseJunction.prototype.maekawa = function () {
+        return true;
+    };
+    CreaseJunction.prototype.kawasaki = function (epsilon) {
+        if (epsilon === undefined) {
+            epsilon = 0.00000001;
+        }
+        var alternating = this.alternateAngleSum();
+        return Math.abs(alternating[0] - alternating[1]) < epsilon;
+    };
+    CreaseJunction.prototype.kawasakiRating = function () {
+        var alternating = this.alternateAngleSum();
+        return Math.abs(alternating[0] - alternating[1]);
+    };
+    CreaseJunction.prototype.kawasakiSolution = function () {
+        var alternating = this.alternateAngleSum().map(function (el) {
+            return { 'difference': (Math.PI - el), 'sectors': [] };
+        });
+        this.sectors.forEach(function (el, i) { alternating[i % 2].sectors.push(el); });
+        return alternating;
+    };
+    CreaseJunction.prototype.kawasakiFourth = function (sector) {
+        if (this.edges.length != 3) {
+            return;
+        }
+        var foundIndex = undefined;
+        for (var i = 0; i < this.sectors.length; i++) {
+            if (sector.equivalent(this.sectors[i])) {
+                foundIndex = i;
+            }
+        }
+        if (foundIndex === undefined) {
+            return undefined;
+        }
+        var sumEven = 0;
+        var sumOdd = 0;
+        for (var i = 0; i < this.sectors.length - 1; i++) {
+            var index = (i + foundIndex + 1) % this.sectors.length;
+            if (i % 2 == 0) {
+                sumEven += this.sectors[index].angle();
+            }
+            else {
+                sumOdd += this.sectors[index].angle();
+            }
+        }
+        var dEven = Math.PI - sumEven;
+        var angle0 = sector.edges[0].absoluteAngle(sector.origin);
+        var newA = angle0 - dEven;
+        return new XY(Math.cos(newA), Math.sin(newA));
+    };
+    return CreaseJunction;
+}(PlanarJunction));
+var CreaseNode = (function (_super) {
+    __extends(CreaseNode, _super);
+    function CreaseNode() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.junctionType = CreaseJunction;
+        _this.sectorType = CreaseSector;
+        return _this;
+    }
+    CreaseNode.prototype.isBoundary = function () {
+        return this.graph.boundary.liesOnEdge(this);
+    };
+    CreaseNode.prototype.alternateAngleSum = function () {
+        return this.junction().alternateAngleSum();
+    };
+    CreaseNode.prototype.kawasakiRating = function () {
+        return this.junction().kawasakiRating();
+    };
+    CreaseNode.prototype.flatFoldable = function (epsilon) {
+        if (this.isBoundary()) {
+            return true;
+        }
+        return this.junction().flatFoldable(epsilon);
+    };
+    CreaseNode.prototype.kawasakiFourth = function (a, b) {
+        var junction = this.junction();
+        var sector = junction.sectorWithEdges(a, b);
+        if (sector !== undefined) {
+            return junction.kawasakiFourth(sector);
+        }
+    };
+    return CreaseNode;
+}(PlanarNode));
+var Crease = (function (_super) {
+    __extends(Crease, _super);
+    function Crease(graph, node1, node2) {
+        var _this = _super.call(this, graph, node1, node2) || this;
+        _this.orientation = CreaseDirection.mark;
+        _this.newMadeBy = new MadeBy();
+        _this.newMadeBy.endPoints = [node1, node2];
+        return _this;
+    }
+    ;
+    Crease.prototype.mark = function () { this.orientation = CreaseDirection.mark; return this; };
+    Crease.prototype.mountain = function () { this.orientation = CreaseDirection.mountain; return this; };
+    Crease.prototype.valley = function () { this.orientation = CreaseDirection.valley; return this; };
+    Crease.prototype.border = function () { this.orientation = CreaseDirection.border; return this; };
+    Crease.prototype.creaseToEdge = function (edge) { return this.graph.creaseEdgeToEdge(this, edge); };
+    return Crease;
+}(PlanarEdge));
+var CreaseFace = (function (_super) {
+    __extends(CreaseFace, _super);
+    function CreaseFace() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    CreaseFace.prototype.rabbitEar = function () {
+        if (this.sectors.length !== 3) {
+            return [];
+        }
+        var rays = this.sectors.map(function (el) {
+            return new Ray(el.origin, el.bisect());
+        });
+        var incenter = rays
+            .map(function (el, i) {
+            var nextEl = rays[(i + 1) % rays.length];
+            return el.intersection(nextEl);
+        })
+            .reduce(function (prev, current) { return prev.add(current); })
+            .scale(1.0 / rays.length);
+        return this.nodes.map(function (el) {
+            return this.graph.crease(el, incenter);
+        }, this);
+    };
+    return CreaseFace;
+}(PlanarFace));
+var CreasePattern = (function (_super) {
+    __extends(CreasePattern, _super);
+    function CreasePattern() {
+        var _this = _super.call(this) || this;
+        _this.symmetryLine = undefined;
+        _this.nodeType = CreaseNode;
+        _this.edgeType = Crease;
+        _this.faceType = CreaseFace;
+        if (_this.boundary === undefined) {
+            _this.boundary = new ConvexPolygon();
+        }
+        _this.square();
+        return _this;
+    }
+    CreasePattern.prototype.copy = function () {
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        this.faceArrayDidChange();
+        var g = new CreasePattern();
+        g.nodes = [];
+        g.edges = [];
+        g.faces = [];
+        g.boundary = undefined;
+        for (var i = 0; i < this.nodes.length; i++) {
+            var n = g.addNode(new CreaseNode(g));
+            Object.assign(n, this.nodes[i]);
+            n.graph = g;
+            n.index = i;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+            var e = g.addEdge(new Crease(g, g.nodes[index[0]], g.nodes[index[1]]));
+            Object.assign(e, this.edges[i]);
+            e.graph = g;
+            e.index = i;
+            e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+        }
+        for (var i = 0; i < this.faces.length; i++) {
+            var f = new PlanarFace(g);
+            g.faces.push(f);
+            f.graph = g;
+            f.index = i;
+            if (this.faces[i] !== undefined) {
+                if (this.faces[i].nodes !== undefined) {
+                    for (var j = 0; j < this.faces[i].nodes.length; j++) {
+                        var nIndex = this.faces[i].nodes[j].index;
+                        f.nodes.push(g.nodes[nIndex]);
+                    }
+                }
+                if (this.faces[i].edges !== undefined) {
+                    for (var j = 0; j < this.faces[i].edges.length; j++) {
+                        var eIndex = this.faces[i].edges[j].index;
+                        f.edges.push(g.edges[eIndex]);
+                    }
+                }
+                if (this.faces[i].angles !== undefined) {
+                    for (var j = 0; j < this.faces[i].angles.length; j++) {
+                        f.angles.push(this.faces[i].angles[j]);
+                    }
+                }
+            }
+        }
+        g.boundary = this.boundary.copy();
+        return g;
+    };
+    CreasePattern.prototype.fold = function (param1, param2, param3, param4) {
+    };
+    CreasePattern.prototype.foldInHalf = function () {
+        var crease;
+        return;
+    };
+    CreasePattern.prototype.newCrease = function (a_x, a_y, b_x, b_y) {
+        this.creaseSymmetry(a_x, a_y, b_x, b_y);
+        var newCrease = this.newPlanarEdge(a_x, a_y, b_x, b_y);
+        if (this.didChange !== undefined) {
+            this.didChange(undefined);
+        }
+        return newCrease;
+    };
+    CreasePattern.prototype.creaseSymmetry = function (ax, ay, bx, by) {
+        if (this.symmetryLine === undefined) {
+            return undefined;
+        }
+        var ra = new XY(ax, ay).reflect(this.symmetryLine);
+        var rb = new XY(bx, by).reflect(this.symmetryLine);
+        return this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
+    };
+    CreasePattern.prototype.crease = function (a, b, c, d) {
+        var e = gimme1Edge(a, b, c, d);
+        if (e === undefined) {
+            return;
+        }
+        var edge = this.boundary.clipEdge(e);
+        if (edge === undefined) {
+            return;
+        }
+        return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+    };
+    CreasePattern.prototype.creaseRay = function (a, b, c, d) {
+        var ray = gimme1Ray(a, b, c, d);
+        if (ray === undefined) {
+            return;
+        }
+        var edge = this.boundary.clipRay(ray);
+        if (edge === undefined) {
+            return;
+        }
+        var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+        return newCrease;
+    };
+    CreasePattern.prototype.creaseRayUntilIntersection = function (ray, target) {
+        var clips = ray.clipWithEdgesDetails(this.edges);
+        if (clips.length > 0) {
+            if (target !== undefined) {
+                var targetEdge = new Edge(ray.origin.x, ray.origin.y, target.x, target.y);
+                if (clips[0].edge.length() > targetEdge.length()) {
+                    return this.crease(targetEdge);
+                }
+            }
+            return this.crease(clips[0].edge);
+        }
+        return undefined;
+    };
+    CreasePattern.prototype.creaseLineRepeat = function (a, b, c, d) {
+        var ray = gimme1Ray(a, b, c, d);
+        return this.creaseRayRepeat(ray)
+            .concat(this.creaseRayRepeat(ray.flip()));
+    };
+    CreasePattern.prototype.creaseRayRepeat = function (ray, target) {
+        return new Polyline()
+            .rayReflectRepeat(ray, this.edges, target)
+            .edges()
+            .map(function (edge) {
+            return this.crease(edge);
+        }, this)
+            .filter(function (el) { return el != undefined; });
+    };
+    CreasePattern.prototype.creaseThroughPoints = function (a, b, c, d) {
+        var inputEdge = gimme1Edge(a, b, c, d);
+        if (inputEdge === undefined) {
+            return;
+        }
+        var edge = this.boundary.clipLine(inputEdge.infiniteLine());
+        if (edge === undefined) {
+            return;
+        }
+        var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+        return newCrease;
+    };
+    CreasePattern.prototype.creasePointToPoint = function (a, b, c, d) {
+        var e = gimme1Edge(a, b, c, d);
+        if (e === undefined) {
+            return;
+        }
+        var edge = this.boundary.clipLine(e.perpendicularBisector());
+        if (edge === undefined) {
+            return;
+        }
+        var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+        return newCrease;
+    };
+    CreasePattern.prototype.creaseEdgeToEdge = function (one, two) {
+        var a = gimme1Line(one);
+        var b = gimme1Line(two);
+        return a.bisect(b).map(function (line) {
+            var clip = this.boundary.clipLine(line);
+            return this.newCrease(clip.nodes[0].x, clip.nodes[0].y, clip.nodes[1].x, clip.nodes[1].y);
+        }, this);
+    };
+    CreasePattern.prototype.creasePerpendicularThroughPoint = function (line, point) {
+        var edge = this.boundary.clipLine(new Line(point, line.vector().rotate90()));
+        if (edge === undefined) {
+            return;
+        }
+        var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+        return newCrease;
+    };
+    CreasePattern.prototype.creasePointToLine = function (origin, point, line) {
+        var radius = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
+        var intersections = new Circle(origin.x, origin.y, radius).intersection(new Edge(line));
+        var creases = [];
+        for (var i = 0; i < intersections.length; i++) {
+            creases.push(this.creasePointToPoint(point, intersections[i]));
+        }
+        return creases;
+    };
+    CreasePattern.prototype.creasePerpendicularPointOntoLine = function (point, ontoLine, perp) {
+        var newLine = new Line(point, new XY(perp.nodes[1].x - perp.nodes[0].x, perp.nodes[1].y - perp.nodes[0].y));
+        var intersection = newLine.intersection(ontoLine.infiniteLine());
+        if (intersection === undefined) {
+            return;
+        }
+        var edge = this.boundary.clipLine(new Edge(point, intersection).perpendicularBisector());
+        if (edge === undefined) {
+            return;
+        }
+        return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+    };
+    CreasePattern.prototype.pleat = function (one, two, count) {
+        var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
+        var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
+        var u, v;
+        if (a.parallel(b)) {
+            u = a.nodes[0].subtract(a.nodes[1]);
+            v = b.nodes[0].subtract(b.nodes[1]);
+            return Array.apply(null, Array(count - 1))
+                .map(function (el, i) { return (i + 1) / count; }, this)
+                .map(function (el) {
+                var origin = a.nodes[0].lerp(b.nodes[0], el);
+                return this.boundary.clipLine(new Line(origin, u));
+            }, this)
+                .filter(function (el) { return el !== undefined; }, this)
+                .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
+        }
+        else if (a.nodes[0].equivalent(b.nodes[0]) ||
+            a.nodes[0].equivalent(b.nodes[1]) ||
+            a.nodes[1].equivalent(b.nodes[0]) ||
+            a.nodes[1].equivalent(b.nodes[1])) {
+            var c, aUn, bUn;
+            if (a.nodes[0].equivalent(b.nodes[0])) {
+                c = a.nodes[0];
+                aUn = a.nodes[1];
+                bUn = b.nodes[1];
+            }
+            if (a.nodes[0].equivalent(b.nodes[1])) {
+                c = a.nodes[0];
+                aUn = a.nodes[1];
+                bUn = b.nodes[0];
+            }
+            if (a.nodes[1].equivalent(b.nodes[0])) {
+                c = a.nodes[1];
+                aUn = a.nodes[0];
+                bUn = b.nodes[1];
+            }
+            if (a.nodes[1].equivalent(b.nodes[1])) {
+                c = a.nodes[1];
+                aUn = a.nodes[0];
+                bUn = b.nodes[0];
+            }
+            u = aUn.subtract(c);
+            v = bUn.subtract(c);
+            return Array.apply(null, Array(count - 1))
+                .map(function (el, i) { return (i + 1) / count; }, this)
+                .map(function (el) {
+                var vector = u.angleLerp(v, el);
+                return this.boundary.clipLine(new Line(c, vector));
+            }, this)
+                .filter(function (el) { return el !== undefined; }, this)
+                .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
+        }
+        else {
+            var intersection = a.infiniteLine().intersection(b.infiniteLine());
+            if (a.nodes[0].equivalent(intersection)) {
+                u = a.nodes[1].subtract(intersection);
+            }
+            else {
+                u = a.nodes[0].subtract(intersection);
+            }
+            if (b.nodes[0].equivalent(intersection)) {
+                v = b.nodes[1].subtract(intersection);
+            }
+            else {
+                v = b.nodes[0].subtract(intersection);
+            }
+            return Array.apply(null, Array(count - 1))
+                .map(function (el, i) { return (i + 1) / count; }, this)
+                .map(function (el) {
+                var vector = u.angleLerp(v, el);
+                return this.boundary.clipLine(new Line(intersection, vector));
+            }, this)
+                .filter(function (el) { return el !== undefined; }, this)
+                .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
+        }
+    };
+    CreasePattern.prototype.coolPleat = function (one, two, count) {
+        var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
+        var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
+        var u = a.nodes[0].subtract(a.nodes[1]);
+        var v = b.nodes[0].subtract(b.nodes[1]);
+        return Array.apply(null, Array(count - 1))
+            .map(function (el, i) { return (i + 1) / count; }, this)
+            .map(function (el) {
+            var origin = a.nodes[0].lerp(b.nodes[0], el);
+            var vector = u.lerp(v, el);
+            return this.boundary.clipLine(new Line(origin, vector));
+        }, this)
+            .filter(function (el) { return el !== undefined; }, this)
+            .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
+    };
+    CreasePattern.prototype.creaseVoronoi = function (v, interp) {
+        if (interp === undefined) {
+            interp = 0.5;
+        }
+        var edges = v.edges.filter(function (el) { return !el.isBoundary; });
+        var cells = v.cells.map(function (cell) {
+            return cell.edges.map(function (edge) {
+                return edge.endPoints.map(function (el) {
+                    return cell.site.lerp(el, interp);
+                });
+            }, this);
+        }, this);
+        var sortedMolecules = v.generateSortedMolecules(interp);
+        sortedMolecules.forEach(function (arr) {
+            arr.forEach(function (m) {
+                var edges = m.generateCreases();
+                edges.forEach(function (el) {
+                    this.crease(el.nodes[0], el.nodes[1]);
+                }, this);
+            }, this);
+        }, this);
+        edges.forEach(function (edge) {
+            var c = this.crease(edge.endPoints[0], edge.endPoints[1]);
+            if (c !== undefined) {
+                c.valley();
+            }
+        }, this);
+        cells.forEach(function (cell) {
+            cell.forEach(function (edge) {
+                this.crease(edge[0], edge[1]).mountain();
+            }, this);
+        }, this);
+        return sortedMolecules.reduce(function (prev, current) { return prev.concat(current); });
+    };
+    CreasePattern.prototype.availableAxiomFolds = function (cp) {
+        if (cp === undefined) {
+            cp = this;
+        }
+        this.availableAxiom1Folds(cp);
+        this.availableAxiom2Folds(cp);
+        this.availableAxiom3Folds(cp);
+        return cp;
+    };
+    CreasePattern.prototype.availableAxiom1Folds = function (cp) {
+        if (cp === undefined) {
+            cp = this;
+        }
+        for (var n0 = 0; n0 < this.nodes.length - 1; n0++) {
+            for (var n1 = n0 + 1; n1 < this.nodes.length; n1++) {
+                this.creaseThroughPoints(this.nodes[n0], this.nodes[n1]);
+            }
+        }
+        return this;
+    };
+    CreasePattern.prototype.availableAxiom2Folds = function (cp) {
+        if (cp === undefined) {
+            cp = this;
+        }
+        for (var n0 = 0; n0 < this.nodes.length - 1; n0++) {
+            for (var n1 = n0 + 1; n1 < this.nodes.length; n1++) {
+                this.creasePointToPoint(this.nodes[n0], this.nodes[n1]);
+            }
+        }
+        return this;
+    };
+    CreasePattern.prototype.availableAxiom3Folds = function (cp) {
+        if (cp === undefined) {
+            cp = this;
+        }
+        for (var n0 = 0; n0 < this.nodes.length - 1; n0++) {
+            for (var n1 = n0 + 1; n1 < this.nodes.length; n1++) {
+                this.creasePointToPoint(this.nodes[n0], this.nodes[n1]);
+            }
+        }
+        return this;
+    };
+    CreasePattern.prototype.wiggle = function (epsilon) {
+        if (epsilon === undefined) {
+            epsilon = 0.00001;
+        }
+        var lengths = this.edges.forEach(function (crease, i) {
+            return crease.length();
+        });
+        var nodesAttempted = 0;
+        for (var i = 0; i < this.nodes.length; i++) {
+            var rating = this.nodes[i].kawasakiRating();
+            if (rating > epsilon) {
+                nodesAttempted++;
+                var guesses = [];
+                for (var n = 0; n < 12; n++) {
+                    var randomAngle = Math.random() * Math.PI * 20;
+                    var radius = Math.random() * rating;
+                    var move = new XY(0.05 * radius * Math.cos(randomAngle), 0.05 * radius * Math.sin(randomAngle));
+                    this.nodes[i].x += move.x;
+                    this.nodes[i].y += move.y;
+                    var newRating = this.nodes[i].kawasakiRating();
+                    var adjNodes = this.nodes[i].adjacentNodes();
+                    var adjRating = 0;
+                    for (var adj = 0; adj < adjNodes.length; adj++) {
+                        adjRating += this.nodes[i].kawasakiRating();
+                    }
+                    guesses.push({ xy: move, rating: newRating + adjRating });
+                    this.nodes[i].x -= move.x;
+                    this.nodes[i].y -= move.y;
+                }
+                var sortedGuesses = guesses.sort(function (a, b) { return a.rating - b.rating; });
+                this.nodes[i].x += sortedGuesses[0].xy.x;
+                this.nodes[i].y += sortedGuesses[0].xy.y;
+            }
+        }
+        return nodesAttempted;
+    };
+    CreasePattern.prototype.flatFoldable = function () {
+        return this.nodes.map(function (el) { return el.flatFoldable(); })
+            .reduce(function (prev, cur) { return prev && cur; });
+    };
+    CreasePattern.prototype.bounds = function () { return this.boundary.minimumRect(); };
+    CreasePattern.prototype.bottomEdge = function () {
+        return this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { return (b.nodes[0].y + b.nodes[1].y) - (a.nodes[0].y + a.nodes[1].y); })
+            .shift();
+    };
+    CreasePattern.prototype.topEdge = function () {
+        return this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { return (a.nodes[0].y + a.nodes[1].y) - (b.nodes[0].y + b.nodes[1].y); })
+            .shift();
+    };
+    CreasePattern.prototype.rightEdge = function () {
+        return this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { return (b.nodes[0].x + b.nodes[1].x) - (a.nodes[0].x + a.nodes[1].x); })
+            .shift();
+    };
+    CreasePattern.prototype.leftEdge = function () {
+        return this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; })
+            .sort(function (a, b) { return (a.nodes[0].x + a.nodes[1].x) - (b.nodes[0].x + b.nodes[1].x); })
+            .shift();
+    };
+    CreasePattern.prototype.contains = function (a) {
+        var p = gimme1XY(a);
+        if (p === undefined) {
+            return false;
+        }
+        return this.boundary.contains(p);
+    };
+    CreasePattern.prototype.square = function (width) {
+        var w = 1.0;
+        if (width != undefined && width != 0) {
+            w = Math.abs(width);
+        }
+        return this.setBoundary([[0, 0], [w, 0], [w, w], [0, w]]);
+    };
+    CreasePattern.prototype.rectangle = function (width, height) {
+        if (width === undefined || height === undefined) {
+            return this;
+        }
+        width = Math.abs(width);
+        height = Math.abs(height);
+        return this.setBoundary([[0, 0], [width, 0], [width, height], [0, height]]);
+    };
+    CreasePattern.prototype.hexagon = function (radius) {
+        if (radius === undefined) {
+            radius = 0.5;
+        }
+        var sqt3_4 = 0.8660254;
+        radius = Math.abs(radius);
+        var points = [[radius * 0.5, radius * sqt3_4],
+            [radius, 0.0],
+            [radius * 0.5, -radius * sqt3_4],
+            [-radius * 0.5, -radius * sqt3_4],
+            [-radius, 0.0],
+            [-radius * 0.5, radius * sqt3_4]];
+        return this.setBoundary(points);
+    };
+    CreasePattern.prototype.noBoundary = function () {
+        this.boundary.edges = [];
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        this.cleanAllUselessNodes();
+        return this;
+    };
+    CreasePattern.prototype.setBoundary = function (pointArray, alreadyClockwiseSorted) {
+        var points = pointArray.map(function (p) { return gimme1XY(p); }, this);
+        if (points[0].equivalent(points[points.length - 1])) {
+            points.pop();
+        }
+        if (alreadyClockwiseSorted !== undefined && alreadyClockwiseSorted === true) {
+            this.boundary.edges = this.boundary.setEdgesFromPoints(points);
+        }
+        else {
+            this.boundary.convexHull(points);
+        }
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        this.cleanAllUselessNodes();
+        this.boundary.edges.forEach(function (el) {
+            this.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
+        }, this);
+        this.cleanDuplicateNodes();
+        return this;
+    };
+    CreasePattern.prototype.setMinRectBoundary = function () {
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        var xMin = Infinity;
+        var xMax = 0;
+        var yMin = Infinity;
+        var yMax = 0;
+        for (var i = 0; i < this.nodes.length; i++) {
+            if (this.nodes[i].x > xMax) {
+                xMax = this.nodes[i].x;
+            }
+            if (this.nodes[i].x < xMin) {
+                xMin = this.nodes[i].x;
+            }
+            if (this.nodes[i].y > yMax) {
+                yMax = this.nodes[i].y;
+            }
+            if (this.nodes[i].y < yMin) {
+                yMin = this.nodes[i].y;
+            }
+        }
+        this.setBoundary([new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax)]);
+        return this;
+    };
+    CreasePattern.prototype.clear = function () {
+        this.nodes = [];
+        this.edges = [];
+        this.faces = [];
+        this.symmetryLine = undefined;
+        if (this.boundary === undefined) {
+            return this;
+        }
+        for (var i = 0; i < this.boundary.edges.length; i++) {
+            var nodes = this.boundary.edges[i].nodes;
+            this.newPlanarEdge(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y).border();
+        }
+        this.cleanDuplicateNodes();
+        return this;
+    };
+    CreasePattern.prototype.noSymmetry = function () { this.symmetryLine = undefined; return this; };
+    CreasePattern.prototype.bookSymmetry = function () {
+        var center = this.boundary.center();
+        return this.setSymmetryLine(center, center.add(0, 1));
+    };
+    CreasePattern.prototype.diagonalSymmetry = function () {
+        var center = this.boundary.center();
+        return this.setSymmetryLine(center, center.add(0.7071, 0.7071));
+    };
+    CreasePattern.prototype.setSymmetryLine = function (a, b, c, d) {
+        var edge = gimme1Edge(a, b, c, d);
+        this.symmetryLine = new Line(edge.nodes[0], edge.nodes[1].subtract(edge.nodes[1]));
+        return this;
+    };
+    CreasePattern.prototype.exportFoldFile = function () {
+        this.generateFaces();
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        var file = {};
+        file["file_spec"] = 1;
+        file["file_creator"] = "crease pattern javascript library by Robby Kraft";
+        file["file_author"] = "";
+        file["file_classes"] = ["singleModel"];
+        file["vertices_coords"] = this.nodes.map(function (node) { return [node.x, node.y]; }, this);
+        file["faces_vertices"] = this.faces.map(function (face) {
+            return face.nodes.map(function (node) { return node.index; }, this);
+        }, this);
+        file["edges_vertices"] = this.edges.map(function (edge) {
+            return edge.nodes.map(function (node) { return node.index; }, this);
+        }, this);
+        file["edges_assignment"] = this.edges.map(function (edge) {
+            switch (edge.orientation) {
+                case CreaseDirection.border: return "B";
+                case CreaseDirection.mountain: return "M";
+                case CreaseDirection.valley: return "V";
+                case CreaseDirection.mark: return "F";
+                default: return "U";
+            }
+        }, this);
+        return file;
+    };
+    CreasePattern.prototype.importFoldFile = function (file) {
+        if (file === undefined ||
+            file["vertices_coords"] === undefined ||
+            file["edges_vertices"] === undefined) {
+            return false;
+        }
+        if (file["frame_attributes"] !== undefined && file["frame_attributes"].contains("3D")) {
+            console.log("importFoldFile(): FOLD file marked as '3D', this library only supports 2D. attempting import anyway, expect a possible distortion due to orthogonal projection.");
+        }
+        this.clear();
+        this.noBoundary();
+        file["vertices_coords"].forEach(function (el) {
+            this.newPlanarNode((el[0] || 0), (el[1] || 0));
+        }, this);
+        this.nodeArrayDidChange();
+        file["edges_vertices"]
+            .map(function (el) {
+            return el.map(function (index) { return this.nodes[index]; }, this);
+        }, this)
+            .filter(function (el) { return el[0] !== undefined && el[1] !== undefined; }, this)
+            .forEach(function (nodes) {
+            this.newPlanarEdgeBetweenNodes(nodes[0], nodes[1]);
+        }, this);
+        this.edgeArrayDidChange();
+        var assignmentDictionary = { "B": CreaseDirection.border, "M": CreaseDirection.mountain, "V": CreaseDirection.valley, "F": CreaseDirection.mark, "U": CreaseDirection.mark };
+        file["edges_assignment"]
+            .map(function (assignment) { return assignmentDictionary[assignment]; })
+            .forEach(function (orientation, i) { this.edges[i].orientation = orientation; }, this);
+        var boundaryPoints = this.edges
+            .filter(function (el) { return el.orientation === CreaseDirection.border; }, this)
+            .map(function (el) {
+            return [
+                new XY(el.nodes[0].x, el.nodes[0].y),
+                new XY(el.nodes[1].x, el.nodes[1].y)
+            ];
+        }, this);
+        this.setBoundary([].concat.apply([], boundaryPoints));
+        this.clean();
+        return true;
+    };
+    CreasePattern.prototype.exportSVG = function (size) {
+        if (size === undefined || size <= 0) {
+            size = 600;
+        }
+        var bounds = this.bounds();
+        var width = bounds.size.width;
+        var height = bounds.size.height;
+        var orgX = bounds.topLeft.x;
+        var orgY = bounds.topLeft.y;
+        var scale = size / (width);
+        console.log(bounds, width, orgX, scale);
+        var blob = "";
+        var widthScaled = ((width) * scale).toFixed(2);
+        var heightScaled = ((height) * scale).toFixed(2);
+        var strokeWidth = ((width) * scale * 0.0025).toFixed(1);
+        var dashW = ((width) * scale * 0.0025 * 3).toFixed(1);
+        var dashWOff = ((width) * scale * 0.0025 * 3 * 0.5).toFixed(1);
+        if (strokeWidth === "0" || strokeWidth === "0.0") {
+            strokeWidth = "0.5";
+        }
+        blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" + widthScaled + "px\" height=\"" + heightScaled + "px\" viewBox=\"0 0 " + widthScaled + " " + heightScaled + "\">\n<g>\n";
+        blob += "<line stroke=\"#000000\" stroke-width=\"" + strokeWidth + "\" x1=\"0\" y1=\"0\" x2=\"" + widthScaled + "\" y2=\"0\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" + widthScaled + "\" y1=\"0\" x2=\"" + widthScaled + "\" y2=\"" + heightScaled + "\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"" + widthScaled + "\" y1=\"" + heightScaled + "\" x2=\"0\" y2=\"" + heightScaled + "\"/>\n" + "<line fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" stroke-miterlimit=\"10\" x1=\"0\" y1=\"" + heightScaled + "\" x2=\"0\" y2=\"0\"/>\n";
+        var valleyStyle = "stroke=\"#4379FF\" stroke-dasharray=\"" + dashW + "," + dashWOff + "\" ";
+        var mountainStyle = "stroke=\"#EE1032\" ";
+        var noStyle = "stroke=\"#000000\" ";
+        for (var i = 0; i < this.edges.length; i++) {
+            var a = this.edges[i].nodes[0];
+            var b = this.edges[i].nodes[1];
+            var x1 = ((a.x - orgX) * scale).toFixed(4);
+            var y1 = ((a.y - orgY) * scale).toFixed(4);
+            var x2 = ((b.x - orgX) * scale).toFixed(4);
+            var y2 = ((b.y - orgY) * scale).toFixed(4);
+            var thisStyle = noStyle;
+            if (this.edges[i].orientation === CreaseDirection.mountain) {
+                thisStyle = mountainStyle;
+            }
+            if (this.edges[i].orientation === CreaseDirection.valley) {
+                thisStyle = valleyStyle;
+            }
+            blob += "<line " + thisStyle + "stroke-width=\"" + strokeWidth + "\" x1=\"" + x1 + "\" y1=\"" + y1 + "\" x2=\"" + x2 + "\" y2=\"" + y2 + "\"/>\n";
+        }
+        blob = blob + "</g>\n</svg>\n";
+        return blob;
+    };
+    CreasePattern.prototype.exportSVGMin = function (size) {
+        if (size === undefined || size <= 0) {
+            size = 600;
+        }
+        var bounds = this.bounds();
+        var width = bounds.size.width;
+        var height = bounds.size.height;
+        var padX = bounds.topLeft.x;
+        var padY = bounds.topLeft.y;
+        var scale = size / (width + padX * 2);
+        var strokeWidth = (width * scale * 0.0025).toFixed(1);
+        if (strokeWidth === "0" || strokeWidth === "0.0") {
+            strokeWidth = "0.5";
+        }
+        var polylines = this.fewestPolylines();
+        var blob = "";
+        blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" + ((width + padX * 2) * scale) + "px\" height=\"" + ((height + padY * 2) * scale) + "px\" viewBox=\"0 0 " + ((width + padX * 2) * scale) + " " + ((height + padY * 2) * scale) + "\">\n<g>\n";
+        for (var i = 0; i < polylines.length; i++) {
+            if (polylines[i].nodes.length >= 0) {
+                blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
+                for (var j = 0; j < polylines[i].nodes.length; j++) {
+                    var point = polylines[i].nodes[j];
+                    blob += (scale * point.x).toFixed(4) + "," + (scale * point.y).toFixed(4) + " ";
+                }
+                blob += "\"/>\n";
+            }
+        }
+        blob = blob + "</g>\n</svg>\n";
+        return blob;
+    };
+    CreasePattern.prototype.kiteBase = function () {
+        this.clear();
+        this.newPlanarEdge(0.0, 0.0, 0.41421, 0.0).border();
+        this.newPlanarEdge(0.41421, 0.0, 1.0, 0.0).border();
+        this.newPlanarEdge(1.0, 0.0, 1.0, 0.58578).border();
+        this.newPlanarEdge(1.0, 0.58578, 1.0, 1.0).border();
+        this.newPlanarEdge(1.0, 1.0, 0.0, 1.0).border();
+        this.newPlanarEdge(0.0, 1.0, 0.0, 0.0).border();
+        this.newPlanarEdge(1, 0, 0, 1).mountain();
+        this.newPlanarEdge(0, 1, 1, 0.58578).valley();
+        this.newPlanarEdge(0, 1, 0.41421, 0).valley();
+        this.clean();
+        return this;
+    };
+    CreasePattern.prototype.fishBase = function () {
+        this.clear();
+        this.newPlanarEdge(0.0, 0.0, 0.29289, 0.0).border();
+        this.newPlanarEdge(0.29289, 0.0, 1.0, 0.0).border();
+        this.newPlanarEdge(1.0, 0.0, 1.0, 0.70711).border();
+        this.newPlanarEdge(1.0, 0.70711, 1.0, 1.0).border();
+        this.newPlanarEdge(1.0, 1.0, 0.0, 1.0).border();
+        this.newPlanarEdge(0.0, 1.0, 0.0, 0.0).border();
+        this.newPlanarEdge(1, 0, 0, 1).mountain();
+        this.newPlanarEdge(0, 1, 0.70711, 0.70711).valley();
+        this.newPlanarEdge(0, 1, 0.29289, 0.29289).valley();
+        this.newPlanarEdge(1, 0, 0.29289, 0.29289).valley();
+        this.newPlanarEdge(1, 0, 0.70711, 0.70711).valley();
+        this.newPlanarEdge(0.29289, 0.29289, 0, 0).valley();
+        this.newPlanarEdge(0.70711, 0.70711, 1, 1).valley();
+        this.newPlanarEdge(0.70711, 0.70711, 1, 0.70711).mountain();
+        this.newPlanarEdge(0.29289, 0.29289, 0.29289, 0).mountain();
+        this.clean();
+        this.generateFaces();
+        return this;
+    };
+    CreasePattern.prototype.birdBase = function () {
+        this.clear();
+        this.newPlanarEdge(0.0, 0.0, 0.5, 0.0).border();
+        this.newPlanarEdge(0.5, 0.0, 1.0, 0.0).border();
+        this.newPlanarEdge(1.0, 0.0, 1.0, 0.5).border();
+        this.newPlanarEdge(1.0, 0.5, 1.0, 1.0).border();
+        this.newPlanarEdge(1.0, 1.0, 0.5, 1.0).border();
+        this.newPlanarEdge(0.5, 1.0, 0.0, 1.0).border();
+        this.newPlanarEdge(0.0, 1.0, 0.0, 0.5).border();
+        this.newPlanarEdge(0.0, 0.5, 0.0, 0.0).border();
+        this.newPlanarEdge(0, 1, 0.5, .79290).mountain();
+        this.newPlanarEdge(0, 1, .20710, 0.5).mountain();
+        this.newPlanarEdge(1, 0, 0.5, .20710).mountain();
+        this.newPlanarEdge(1, 0, .79290, 0.5).mountain();
+        this.newPlanarEdge(1, 1, .79290, 0.5).mountain();
+        this.newPlanarEdge(1, 1, 0.5, .79290).mountain();
+        this.newPlanarEdge(0, 0, .20710, 0.5).mountain();
+        this.newPlanarEdge(0, 0, 0.5, .20710).mountain();
+        this.newPlanarEdge(0, 0, .35354, .35354).valley();
+        this.newPlanarEdge(.35354, .64645, 0, 1).valley();
+        this.newPlanarEdge(1, 0, .64645, .35354).mountain();
+        this.newPlanarEdge(.64645, .64645, 1, 1).valley();
+        this.newPlanarEdge(0.5, 0.5, .35354, .64645).valley();
+        this.newPlanarEdge(.64645, .35354, 0.5, 0.5).mountain();
+        this.newPlanarEdge(0.5, 0.5, .64645, .64645).valley();
+        this.newPlanarEdge(.35354, .35354, 0.5, 0.5).valley();
+        this.newPlanarEdge(.35354, .35354, .20710, 0.5).mark();
+        this.newPlanarEdge(0.5, .20710, .35354, .35354).mark();
+        this.newPlanarEdge(.35354, .64645, 0.5, .79290).mark();
+        this.newPlanarEdge(.20710, 0.5, .35354, .64645).mark();
+        this.newPlanarEdge(.64645, .64645, .79290, 0.5).mark();
+        this.newPlanarEdge(0.5, .79290, .64645, .64645).mark();
+        this.newPlanarEdge(.64645, .35354, 0.5, .20710).mark();
+        this.newPlanarEdge(.79290, 0.5, .64645, .35354).mark();
+        this.newPlanarEdge(0.5, 0.5, 0.5, .79290).mountain();
+        this.newPlanarEdge(0.5, .20710, 0.5, 0.5).mountain();
+        this.newPlanarEdge(0.5, 0.5, .79290, 0.5).mountain();
+        this.newPlanarEdge(.20710, 0.5, 0.5, 0.5).mountain();
+        this.newPlanarEdge(0.5, .20710, 0.5, 0).valley();
+        this.newPlanarEdge(.79290, 0.5, 1, 0.5).valley();
+        this.newPlanarEdge(0.5, .79290, 0.5, 1).valley();
+        this.newPlanarEdge(.20710, 0.5, 0, 0.5).valley();
+        this.clean();
+        return this;
+    };
+    CreasePattern.prototype.frogBase = function () {
+        this.newPlanarEdge(0, 0, .14646, .35353);
+        this.newPlanarEdge(0, 0, .35353, .14646);
+        this.newPlanarEdge(.14646, .35353, 0.5, 0.5);
+        this.newPlanarEdge(0.5, 0.5, .35353, .14646);
+        this.newPlanarEdge(.14646, .35353, .14646, 0.5);
+        this.newPlanarEdge(0, 0.5, .14646, 0.5);
+        this.newPlanarEdge(0.5, 0.5, 0.5, .14646);
+        this.newPlanarEdge(0.5, .14646, 0.5, 0);
+        this.newPlanarEdge(0.5, 0, .35353, .14646);
+        this.newPlanarEdge(.35353, .14646, 0.5, .14646);
+        this.newPlanarEdge(.14646, .35353, 0, 0.5);
+        this.newPlanarEdge(.14646, .35353, .25, .25);
+        this.newPlanarEdge(.25, .25, .35353, .14646);
+        this.newPlanarEdge(0, 1, .35353, .85353);
+        this.newPlanarEdge(0, 1, .14646, .64646);
+        this.newPlanarEdge(.35353, .85353, 0.5, 0.5);
+        this.newPlanarEdge(0.5, 0.5, .14646, .64646);
+        this.newPlanarEdge(.35353, .85353, 0.5, .85353);
+        this.newPlanarEdge(0.5, 1, 0.5, .85353);
+        this.newPlanarEdge(0.5, 0.5, 0.5, .85353);
+        this.newPlanarEdge(0.5, 0.5, .14646, 0.5);
+        this.newPlanarEdge(0, 0.5, .14646, .64646);
+        this.newPlanarEdge(.14646, .64646, .14646, 0.5);
+        this.newPlanarEdge(.35353, .85353, 0.5, 1);
+        this.newPlanarEdge(.35353, .85353, .25, .75);
+        this.newPlanarEdge(.25, .75, .14646, .64646);
+        this.newPlanarEdge(1, 0, .85353, .35353);
+        this.newPlanarEdge(1, 0, .64646, .14646);
+        this.newPlanarEdge(.85353, .35353, 0.5, 0.5);
+        this.newPlanarEdge(0.5, 0.5, .64646, .14646);
+        this.newPlanarEdge(.85353, .35353, .85353, 0.5);
+        this.newPlanarEdge(1, 0.5, .85353, 0.5);
+        this.newPlanarEdge(0.5, 0, .64646, .14646);
+        this.newPlanarEdge(.64646, .14646, 0.5, .14646);
+        this.newPlanarEdge(.85353, .35353, 1, 0.5);
+        this.newPlanarEdge(.85353, .35353, .75, .25);
+        this.newPlanarEdge(.75, .25, .64646, .14646);
+        this.newPlanarEdge(1, 1, .64646, .85353);
+        this.newPlanarEdge(1, 1, .85353, .64646);
+        this.newPlanarEdge(.64646, .85353, 0.5, 0.5);
+        this.newPlanarEdge(0.5, 0.5, .85353, .64646);
+        this.newPlanarEdge(.64646, .85353, 0.5, .85353);
+        this.newPlanarEdge(0.5, 0.5, .85353, 0.5);
+        this.newPlanarEdge(1, 0.5, .85353, .64646);
+        this.newPlanarEdge(.85353, .64646, .85353, 0.5);
+        this.newPlanarEdge(.64646, .85353, 0.5, 1);
+        this.newPlanarEdge(.64646, .85353, .75, .75);
+        this.newPlanarEdge(.75, .75, .85353, .64646);
+        this.newPlanarEdge(.35353, .14646, .35353, 0);
+        this.newPlanarEdge(.64646, .14646, .64646, 0);
+        this.newPlanarEdge(.85353, .35353, 1, .35353);
+        this.newPlanarEdge(.85353, .64646, 1, .64646);
+        this.newPlanarEdge(.64646, .85353, .64646, 1);
+        this.newPlanarEdge(.35353, .85353, .35353, 1);
+        this.newPlanarEdge(.14646, .64646, 0, .64646);
+        this.newPlanarEdge(.14646, .35353, 0, .35353);
+        this.newPlanarEdge(0.5, 0.5, .25, .25);
+        this.newPlanarEdge(0.5, 0.5, .75, .25);
+        this.newPlanarEdge(0.5, 0.5, .75, .75);
+        this.newPlanarEdge(0.5, 0.5, .25, .75);
+        this.newPlanarEdge(.25, .75, 0, 1);
+        this.newPlanarEdge(.25, .25, 0, 0);
+        this.newPlanarEdge(.75, .25, 1, 0);
+        this.newPlanarEdge(.75, .75, 1, 1);
+        this.fragment();
+        this.clean();
+        return this;
+    };
+    return CreasePattern;
+}(PlanarGraph));
+!function (t) { if ("object" == typeof exports && "undefined" != typeof module)
+    module.exports = t();
+else if ("function" == typeof define && define.amd)
+    define([], t);
+else {
+    var i;
+    i = "undefined" != typeof window ? window : "undefined" != typeof global ? global : "undefined" != typeof self ? self : this, i.rbush = t();
+} }(function () { return function t(i, n, e) { function r(h, o) { if (!n[h]) {
+    if (!i[h]) {
+        var s = "function" == typeof require && require;
+        if (!o && s)
+            return s(h, !0);
+        if (a)
+            return a(h, !0);
+        var l = new Error("Cannot find module '" + h + "'");
+        throw l.code = "MODULE_NOT_FOUND", l;
+    }
+    var f = n[h] = { exports: {} };
+    i[h][0].call(f.exports, function (t) { var n = i[h][1][t]; return r(n ? n : t); }, f, f.exports, t, i, n, e);
+} return n[h].exports; } for (var a = "function" == typeof require && require, h = 0; h < e.length; h++)
+    r(e[h]); return r; }({ 1: [function (t, i, n) {
+            "use strict";
+            function e(t, i) { return this instanceof e ? (this._maxEntries = Math.max(4, t || 9), this._minEntries = Math.max(2, Math.ceil(.4 * this._maxEntries)), i && this._initFormat(i), void this.clear()) : new e(t, i); }
+            function r(t, i, n) { if (!n)
+                return i.indexOf(t); for (var e = 0; e < i.length; e++)
+                if (n(t, i[e]))
+                    return e; return -1; }
+            function a(t, i) { h(t, 0, t.children.length, i, t); }
+            function h(t, i, n, e, r) { r || (r = p(null)), r.minX = 1 / 0, r.minY = 1 / 0, r.maxX = -(1 / 0), r.maxY = -(1 / 0); for (var a, h = i; h < n; h++)
+                a = t.children[h], o(r, t.leaf ? e(a) : a); return r; }
+            function o(t, i) { return t.minX = Math.min(t.minX, i.minX), t.minY = Math.min(t.minY, i.minY), t.maxX = Math.max(t.maxX, i.maxX), t.maxY = Math.max(t.maxY, i.maxY), t; }
+            function s(t, i) { return t.minX - i.minX; }
+            function l(t, i) { return t.minY - i.minY; }
+            function f(t) { return (t.maxX - t.minX) * (t.maxY - t.minY); }
+            function u(t) { return t.maxX - t.minX + (t.maxY - t.minY); }
+            function c(t, i) { return (Math.max(i.maxX, t.maxX) - Math.min(i.minX, t.minX)) * (Math.max(i.maxY, t.maxY) - Math.min(i.minY, t.minY)); }
+            function m(t, i) { var n = Math.max(t.minX, i.minX), e = Math.max(t.minY, i.minY), r = Math.min(t.maxX, i.maxX), a = Math.min(t.maxY, i.maxY); return Math.max(0, r - n) * Math.max(0, a - e); }
+            function d(t, i) { return t.minX <= i.minX && t.minY <= i.minY && i.maxX <= t.maxX && i.maxY <= t.maxY; }
+            function x(t, i) { return i.minX <= t.maxX && i.minY <= t.maxY && i.maxX >= t.minX && i.maxY >= t.minY; }
+            function p(t) { return { children: t, height: 1, leaf: !0, minX: 1 / 0, minY: 1 / 0, maxX: -(1 / 0), maxY: -(1 / 0) }; }
+            function M(t, i, n, e, r) { for (var a, h = [i, n]; h.length;)
+                n = h.pop(), i = h.pop(), n - i <= e || (a = i + Math.ceil((n - i) / e / 2) * e, g(t, a, i, n, r), h.push(i, a, a, n)); }
+            i.exports = e;
+            var g = t("quickselect");
+            e.prototype = { all: function () { return this._all(this.data, []); }, search: function (t) { var i = this.data, n = [], e = this.toBBox; if (!x(t, i))
+                    return n; for (var r, a, h, o, s = []; i;) {
+                    for (r = 0, a = i.children.length; r < a; r++)
+                        h = i.children[r], o = i.leaf ? e(h) : h, x(t, o) && (i.leaf ? n.push(h) : d(t, o) ? this._all(h, n) : s.push(h));
+                    i = s.pop();
+                } return n; }, collides: function (t) { var i = this.data, n = this.toBBox; if (!x(t, i))
+                    return !1; for (var e, r, a, h, o = []; i;) {
+                    for (e = 0, r = i.children.length; e < r; e++)
+                        if (a = i.children[e], h = i.leaf ? n(a) : a, x(t, h)) {
+                            if (i.leaf || d(t, h))
+                                return !0;
+                            o.push(a);
+                        }
+                    i = o.pop();
+                } return !1; }, load: function (t) { if (!t || !t.length)
+                    return this; if (t.length < this._minEntries) {
+                    for (var i = 0, n = t.length; i < n; i++)
+                        this.insert(t[i]);
+                    return this;
+                } var e = this._build(t.slice(), 0, t.length - 1, 0); if (this.data.children.length)
+                    if (this.data.height === e.height)
+                        this._splitRoot(this.data, e);
+                    else {
+                        if (this.data.height < e.height) {
+                            var r = this.data;
+                            this.data = e, e = r;
+                        }
+                        this._insert(e, this.data.height - e.height - 1, !0);
+                    }
+                else
+                    this.data = e; return this; }, insert: function (t) { return t && this._insert(t, this.data.height - 1), this; }, clear: function () { return this.data = p([]), this; }, remove: function (t, i) { if (!t)
+                    return this; for (var n, e, a, h, o = this.data, s = this.toBBox(t), l = [], f = []; o || l.length;) {
+                    if (o || (o = l.pop(), e = l[l.length - 1], n = f.pop(), h = !0), o.leaf && (a = r(t, o.children, i), a !== -1))
+                        return o.children.splice(a, 1), l.push(o), this._condense(l), this;
+                    h || o.leaf || !d(o, s) ? e ? (n++, o = e.children[n], h = !1) : o = null : (l.push(o), f.push(n), n = 0, e = o, o = o.children[0]);
+                } return this; }, toBBox: function (t) { return t; }, compareMinX: s, compareMinY: l, toJSON: function () { return this.data; }, fromJSON: function (t) { return this.data = t, this; }, _all: function (t, i) { for (var n = []; t;)
+                    t.leaf ? i.push.apply(i, t.children) : n.push.apply(n, t.children), t = n.pop(); return i; }, _build: function (t, i, n, e) { var r, h = n - i + 1, o = this._maxEntries; if (h <= o)
+                    return r = p(t.slice(i, n + 1)), a(r, this.toBBox), r; e || (e = Math.ceil(Math.log(h) / Math.log(o)), o = Math.ceil(h / Math.pow(o, e - 1))), r = p([]), r.leaf = !1, r.height = e; var s, l, f, u, c = Math.ceil(h / o), m = c * Math.ceil(Math.sqrt(o)); for (M(t, i, n, m, this.compareMinX), s = i; s <= n; s += m)
+                    for (f = Math.min(s + m - 1, n), M(t, s, f, c, this.compareMinY), l = s; l <= f; l += c)
+                        u = Math.min(l + c - 1, f), r.children.push(this._build(t, l, u, e - 1)); return a(r, this.toBBox), r; }, _chooseSubtree: function (t, i, n, e) { for (var r, a, h, o, s, l, u, m;;) {
+                    if (e.push(i), i.leaf || e.length - 1 === n)
+                        break;
+                    for (u = m = 1 / 0, r = 0, a = i.children.length; r < a; r++)
+                        h = i.children[r], s = f(h), l = c(t, h) - s, l < m ? (m = l, u = s < u ? s : u, o = h) : l === m && s < u && (u = s, o = h);
+                    i = o || i.children[0];
+                } return i; }, _insert: function (t, i, n) { var e = this.toBBox, r = n ? t : e(t), a = [], h = this._chooseSubtree(r, this.data, i, a); for (h.children.push(t), o(h, r); i >= 0 && a[i].children.length > this._maxEntries;)
+                    this._split(a, i), i--; this._adjustParentBBoxes(r, a, i); }, _split: function (t, i) { var n = t[i], e = n.children.length, r = this._minEntries; this._chooseSplitAxis(n, r, e); var h = this._chooseSplitIndex(n, r, e), o = p(n.children.splice(h, n.children.length - h)); o.height = n.height, o.leaf = n.leaf, a(n, this.toBBox), a(o, this.toBBox), i ? t[i - 1].children.push(o) : this._splitRoot(n, o); }, _splitRoot: function (t, i) { this.data = p([t, i]), this.data.height = t.height + 1, this.data.leaf = !1, a(this.data, this.toBBox); }, _chooseSplitIndex: function (t, i, n) { var e, r, a, o, s, l, u, c; for (l = u = 1 / 0, e = i; e <= n - i; e++)
+                    r = h(t, 0, e, this.toBBox), a = h(t, e, n, this.toBBox), o = m(r, a), s = f(r) + f(a), o < l ? (l = o, c = e, u = s < u ? s : u) : o === l && s < u && (u = s, c = e); return c; }, _chooseSplitAxis: function (t, i, n) { var e = t.leaf ? this.compareMinX : s, r = t.leaf ? this.compareMinY : l, a = this._allDistMargin(t, i, n, e), h = this._allDistMargin(t, i, n, r); a < h && t.children.sort(e); }, _allDistMargin: function (t, i, n, e) { t.children.sort(e); var r, a, s = this.toBBox, l = h(t, 0, i, s), f = h(t, n - i, n, s), c = u(l) + u(f); for (r = i; r < n - i; r++)
+                    a = t.children[r], o(l, t.leaf ? s(a) : a), c += u(l); for (r = n - i - 1; r >= i; r--)
+                    a = t.children[r], o(f, t.leaf ? s(a) : a), c += u(f); return c; }, _adjustParentBBoxes: function (t, i, n) { for (var e = n; e >= 0; e--)
+                    o(i[e], t); }, _condense: function (t) { for (var i, n = t.length - 1; n >= 0; n--)
+                    0 === t[n].children.length ? n > 0 ? (i = t[n - 1].children, i.splice(i.indexOf(t[n]), 1)) : this.clear() : a(t[n], this.toBBox); }, _initFormat: function (t) { var i = ["return a", " - b", ";"]; this.compareMinX = new Function("a", "b", i.join(t[0])), this.compareMinY = new Function("a", "b", i.join(t[1])), this.toBBox = new Function("a", "return {minX: a" + t[0] + ", minY: a" + t[1] + ", maxX: a" + t[2] + ", maxY: a" + t[3] + "};"); } };
+        }, { quickselect: 2 }], 2: [function (t, i, n) {
+            "use strict";
+            function e(t, i, n, a, h) { for (; a > n;) {
+                if (a - n > 600) {
+                    var o = a - n + 1, s = i - n + 1, l = Math.log(o), f = .5 * Math.exp(2 * l / 3), u = .5 * Math.sqrt(l * f * (o - f) / o) * (s - o / 2 < 0 ? -1 : 1), c = Math.max(n, Math.floor(i - s * f / o + u)), m = Math.min(a, Math.floor(i + (o - s) * f / o + u));
+                    e(t, i, c, m, h);
+                }
+                var d = t[i], x = n, p = a;
+                for (r(t, n, i), h(t[a], d) > 0 && r(t, n, a); x < p;) {
+                    for (r(t, x, p), x++, p--; h(t[x], d) < 0;)
+                        x++;
+                    for (; h(t[p], d) > 0;)
+                        p--;
+                }
+                0 === h(t[n], d) ? r(t, n, p) : (p++, r(t, p, a)), p <= i && (n = p + 1), i <= p && (a = p - 1);
+            } }
+            function r(t, i, n) { var e = t[i]; t[i] = t[n], t[n] = e; }
+            i.exports = e;
+        }, {}] }, {}, [1])(1); });

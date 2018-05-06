@@ -11,7 +11,7 @@ var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a scree
 
 ////////////////////////////   DATA TYPES   ///////////////////////////
 
-export class Tree<T>{
+class Tree<T>{
 	obj:T;
 	parent:Tree<T>;
 	children:Tree<T>[];
@@ -251,7 +251,7 @@ class Matrix{
 	}
 }
 
-export class XY{
+class XY{
 	x:number;
 	y:number;
 	constructor(x:number, y:number){ this.x = x; this.y = y; }
@@ -339,7 +339,7 @@ abstract class LineType{
 
 /** 2D line, extending infinitely in both directions, represented by a point and a vector
  */
-export class Line implements LineType{
+class Line implements LineType{
 	point:XY;
 	direction:XY;
 	constructor(a:any, b:any, c?:any, d?:any){
@@ -402,7 +402,7 @@ export class Line implements LineType{
 	}
 }
 
-export class Ray implements LineType{
+class Ray implements LineType{
 	origin:XY;
 	direction:XY;
 	constructor(a:any, b:any, c?:any, d?:any){
@@ -501,7 +501,7 @@ export class Ray implements LineType{
 	}
 }
 
-export class Edge implements LineType{
+class Edge implements LineType{
 	nodes:[XY,XY];
 	// a, b are points, or
 	// (a,b) point 1 and (c,d) point 2, each x,y
@@ -578,7 +578,7 @@ export class Edge implements LineType{
 	infiniteLine():Line{ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
 }
 
-export class Polyline{
+class Polyline{
 	nodes:XY[];
 
 	constructor(){ this.nodes = []; }
@@ -630,7 +630,7 @@ export class Polyline{
 	}
 }
 
-export class Rect{
+class Rect{
 	// didChange:(event:object)=>void;
 	topLeft:{x:number,y:number};
 	size:{width:number, height:number};
@@ -640,7 +640,7 @@ export class Rect{
 	}
 }
 
-export class Triangle{
+class Triangle{
 	points:[XY,XY,XY];
 	edges:[Edge, Edge, Edge];
 	circumcenter:XY;
@@ -697,7 +697,7 @@ export class Triangle{
 }
 class IsoscelesTriangle extends Triangle{}
 
-export class Circle{
+class Circle{
 	center:XY;
 	radius:number;
 	constructor(a:any, b:any, c?:any){
@@ -716,7 +716,7 @@ export class Circle{
 	}
 }
 
-export class ConvexPolygon{
+class ConvexPolygon{
 	edges:Edge[];
 	center():XY{
 		// this is not an average / means
@@ -897,7 +897,7 @@ export class ConvexPolygon{
  *  clockwise order is enforced
  *  the interior angle is measured clockwise from endpoint 0 to 1
  */
-export class Sector{
+class Sector{
 	// the node in common with the edges
 	origin:XY;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
@@ -1150,7 +1150,7 @@ class VoronoiJunction{
 	edgeNormal:XY;// normal to the edge, if there is an edge
 	constructor(){ this.edges = []; this.cells = []; this.isEdge = false; this.isCorner = false; }
 }
-export class VoronoiGraph{
+class VoronoiGraph{
 	edges:VoronoiEdge[];
 	junctions:VoronoiJunction[];
 	cells:VoronoiCell[];

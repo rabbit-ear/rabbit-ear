@@ -1,16 +1,16 @@
 {
 	"compilerOptions": {
 		"removeComments": true,
-		"outDir": "./dist/",
-		"module": "es6",
-		"target": "es5",
-		"allowJs": true,
-		"sourceMap":false
+		"outFile": "dist/cp.js",
+		"allowJs": true
 	},
+	"include": [
+		"lib/rbush.min.js"
+	],
 	"files":[
-		"./src/graph.ts",
-		"./src/geometry.ts",
-		"./src/planarGraph.ts",
-		"./src/creasePattern.ts"
+		"src/graph.ts",
+		"src/geometry.ts",
+		"src/planarGraph.ts",
+		"src/creasePattern.ts"
 	]
 }
