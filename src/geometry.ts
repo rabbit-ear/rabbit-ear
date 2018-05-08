@@ -271,6 +271,7 @@ class XY{
 					  this.x * matrix.b + this.y * matrix.d + matrix.ty);
 	}
 	rotate90():XY { return new XY(-this.y, this.x); }
+	rotate180():XY { return new XY(-this.x, -this.y); }
 	rotate270():XY { return new XY(this.y, -this.x); }
 	rotate(angle:number, origin?:XY){
 		return this.transform( new Matrix().rotation(angle, origin) );
@@ -392,13 +393,11 @@ class Line implements LineType{
 		} else{
 			var intersection:XY = intersectionLineLine(this, line);
 			var vectors = bisectVectors(this.direction, line.direction);
-			vectors[1] = vectors[0].rotate90();
-			return vectors.sort(function(a:XY,b:XY){
-				return Math.abs(a.cross(vectors[0])) - Math.abs(b.cross(vectors[1]))
-			}).map(function(el){
-				return new Line(intersection, el);
-			},this);
-
+			vectors[1] = vectors[1].rotate90();
+			if(Math.abs(this.direction.cross(vectors[1])) < Math.abs(this.direction.cross(vectors[0]))){
+				var swap = vectors[0];    vectors[0] = vectors[1];    vectors[1] = swap;
+			}
+			return vectors.map(function(el:XY){ return new Line(intersection, el); },this);
 		}
 	}
 }

@@ -175,10 +175,10 @@ project.onMouseMove = function(event) {
 			case "add-valley":
 			case "add-mountain":
 			case "add-mark":
-				selectedEdge = this.allPossibleFolds.getNearestEdge(event.point.x, event.point.y);
+				selectedEdge = this.allPossibleFolds.nearest(event.point.x, event.point.y).edge;
 			break;
 			case "remove":
-				selectedEdge = this.cp.getNearestEdge(event.point.x, event.point.y);
+				selectedEdge = this.cp.nearest(event.point.x, event.point.y).edge;
 			break;
 		}		
 		

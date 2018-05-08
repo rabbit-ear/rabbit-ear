@@ -63,7 +63,7 @@ function mouse_node_move_stay(){
 			nodeCircle.position.y = movingNode.y;
 			if(cp != undefined){ makeFlatFoldableIndicators(); }
 		} else{
-			var nNode = cp.getNearestNode( event.point.x, event.point.y );
+			var nNode = cp.nearest( event.point.x, event.point.y ).node;
 			if(nearestNode !== nNode){
 				nearestNode = nNode;
 				nodeCircle.position.x = nearestNode.x;
@@ -77,7 +77,7 @@ function mouse_node_move_stay(){
 	}
 	scope.view.onMouseDown = function(event){
 		paper = scope;
-		movingNode = cp.getNearestNode( event.point.x, event.point.y );
+		movingNode = cp.nearest( event.point.x, event.point.y ).node;
 		movingNodeOriginalLocation = new XY(movingNode.x, movingNode.y);
 	}
 	scope.view.onMouseUp = function(event){

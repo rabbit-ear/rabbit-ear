@@ -197,10 +197,10 @@ project.onMouseMove = function(event) {
 	if(!this.cp.contains(event.point)){ return; }
 	switch(this.inputMode){
 	case "add":
-		selectedEdge = this.nextSet.getNearestEdge(event.point.x, event.point.y);
+		selectedEdge = this.nextSet.nearest(event.point.x, event.point.y).edge;
 	break;
 	case "remove":
-		selectedEdge = this.cp.getNearestEdge(event.point.x, event.point.y);
+		selectedEdge = this.cp.nearest(event.point.x, event.point.y).edge;
 	break;
 	}
 	if(selectedEdge != undefined){

@@ -9,13 +9,14 @@ randomFaces.selectNearestEdge = true;
 
 randomFaces.reset = function(){
 	paper = this.scope; 
-	randomFaces.cp.clear();
+	this.cp.clear();
 	for(var i = 0; i < 10; i++){
-		randomFaces.cp.creaseThroughPoints(new XY(Math.random(), Math.random()), new XY(Math.random(), Math.random()) );
+		this.cp.creaseThroughPoints(new XY(Math.random(), Math.random()), new XY(Math.random(), Math.random()) );
 	}
-	var intersections = randomFaces.cp.fragment();
-	randomFaces.cp.generateFaces();
-	randomFaces.draw();
+	this.cp.clean();
+	var intersections = this.cp.fragment();
+	this.cp.generateFaces();
+	this.draw();
 	if(faces_random_callback != undefined){
 		faces_random_callback(intersections);
 	}

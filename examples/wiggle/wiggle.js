@@ -40,7 +40,7 @@ project.reset();
 project.onFrame = function(event) { }
 project.onResize = function(event) { }
 project.onMouseDown = function(event){ 
-	this.movingNode = this.cp.getNearestNode( event.point.x, event.point.y );
+	this.movingNode = this.cp.nearest( event.point.x, event.point.y ).node;
 	this.mNodeOriginalLocation = new XY(this.movingNode.x, this.movingNode.y);
 	if(this.cp != undefined){ this.colorNodesFlatFoldable(); }
 }
@@ -62,7 +62,7 @@ project.onMouseMove = function(event) {
 		this.movingNode.y = event.point.y;
 		this.update();
 	} else{
-		var nNode = this.cp.getNearestNode( event.point.x, event.point.y );
+		var nNode = this.cp.nearest( event.point.x, event.point.y ).node;
 		if(nearestNode !== nNode){
 			nearestNode = nNode;
 		}

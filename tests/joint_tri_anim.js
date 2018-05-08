@@ -28,7 +28,7 @@ jointTri.reset = function(){
 			this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle), Math.sin(angle))).mountain();
 		}
 		this.cp.clean();
-		centerNode = this.cp.getNearestNode(0.5, 0.5);
+		centerNode = this.cp.nearest(0.5, 0.5).node;
 		interiorAngles = centerNode.interiorAngles();
 		var tooSmall = false;
 		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i] < Math.PI*0.5) tooSmall = true; }
@@ -62,7 +62,7 @@ jointTri.onFrame = function(event) {
 
 	///////////////////////////////////////	
 
-	centerNode = this.cp.getNearestNode(0.5, 0.5);
+	centerNode = this.cp.nearest(0.5, 0.5).node;
 	var sectors = centerNode.junction().sectors;
 	interiorAngles = centerNode.junction().interiorAngles();
 	var angles = [];

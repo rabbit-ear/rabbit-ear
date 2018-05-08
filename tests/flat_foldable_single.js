@@ -23,7 +23,7 @@ ffSingle.reset = function(){
 			this.masterCP.creaseRay(center, new XY(Math.cos(angle), Math.sin(angle))).valley();
 		}
 		this.masterCP.clean();
-		var centerNode = this.masterCP.getNearestNode(0.5, 0.5);
+		var centerNode = this.masterCP.nearest(0.5, 0.5).node;
 		interiorAngles = centerNode.junction().interiorAngles();
 		var tooSmall = false;
 		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i] < Math.PI*0.5) tooSmall = true; }
@@ -44,7 +44,7 @@ ffSingle.onMouseMove = function(event) {
 	var solutionAngle = undefined;
 	var angle = undefined;
 	if(event.point.x >= 0 && event.point.x <= 1 && event.point.y >= 0 && event.point.y <= 1){
-		angle = this.cp.getNearestInteriorAngle(event.point);
+		angle = this.cp.nearest(event.point).sector;
 		if(angle == undefined || angle.edges == undefined) return;
 		if(angle.edges.length == 2){
 			solutionAngle = angle.kawasakiFourth();
@@ -55,6 +55,6 @@ ffSingle.onMouseMove = function(event) {
 	this.draw();
 
 	if(flat_foldable_single_callback != undefined){
-		flat_foldable_single_callback({'flatFoldable':this.cp.getNearestNode(0.5, 0.5).flatFoldable(), 'solution':solutionAngle, 'angle':angle});
+		flat_foldable_single_callback({'flatFoldable':this.cp.nearest(0.5, 0.5).node.flatFoldable(), 'solution':solutionAngle, 'angle':angle});
 	}
 }

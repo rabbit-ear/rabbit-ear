@@ -17,7 +17,7 @@ jointTri.reset = function(){
 		// 	this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle), Math.sin(angle))).mountain();
 		// }
 		// this.cp.clean();
-		// centerNode = this.cp.getNearestNode(0.5, 0.5);
+		// centerNode = this.cp.nearest(0.5, 0.5).node;
 		// interiorAngles = centerNode.interiorAngles();
 		// var tooSmall = false;
 		// for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i].angle() < Math.PI*0.5) tooSmall = true; }
@@ -39,7 +39,7 @@ jointTri.reset = function(){
 
 
 	this.cp.clean();
-	centerNode = this.cp.getNearestNode(0.5, 0.5);
+	centerNode = this.cp.nearest(0.5, 0.5).node;
 	interiorAngles = centerNode.interiorAngles();
 
 

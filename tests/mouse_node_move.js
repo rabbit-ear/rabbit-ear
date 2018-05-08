@@ -40,7 +40,7 @@ function mouse_node_move(){
 			nodeCircle.position.x = movingNode.x;
 			nodeCircle.position.y = movingNode.y;
 		} else{
-			var nNode = cp.getNearestNode( event.point.x, event.point.y );
+			var nNode = cp.nearest( event.point.x, event.point.y ).node;
 			if(nearestNode !== nNode){
 				nearestNode = nNode;
 				nodeCircle.position.x = nearestNode.x;
@@ -51,7 +51,7 @@ function mouse_node_move(){
 	}
 	scope.view.onMouseDown = function(event){
 		paper = scope;
-		movingNode = cp.getNearestNode( event.point.x, event.point.y );
+		movingNode = cp.nearest( event.point.x, event.point.y ).node;
 		movingNodeOriginalLocation = new XY(movingNode.x, movingNode.y);
 	}
 	scope.view.onMouseUp = function(event){

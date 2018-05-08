@@ -44,7 +44,7 @@ possible2.onMouseMove = function(event) {
 	this.nextSetLayer.removeChildren();
 	this.nextSetLayer.activate();
 	if(!this.cp.pointInside(event.point)){ return; }
-	selectedEdge = this.nextSet.getNearestEdge(event.point.x, event.point.y);
+	selectedEdge = this.nextSet.nearest(event.point.x, event.point.y).edge;
 	if(selectedEdge != undefined){
 		console.log(selectedEdge.edge.madeBy);
 		// console.log(selectedEdge.edge.nodes);

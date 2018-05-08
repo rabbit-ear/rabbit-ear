@@ -44,7 +44,7 @@ possible.onMouseMove = function(event) {
 	this.nextSetLayer.removeChildren();
 	this.nextSetLayer.activate();
 	if(!this.cp.pointInside(event.point)){ return; }
-	selectedEdge = this.nextSet.getNearestEdge(event.point.x, event.point.y);
+	selectedEdge = this.nextSet.nearest(event.point.x, event.point.y).edge;
 	if(selectedEdge != undefined){
 		var newPath = new paper.Path({segments: selectedEdge.edge.nodes, closed: false });
 		Object.assign(newPath, this.style.mark);

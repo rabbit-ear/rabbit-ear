@@ -536,12 +536,22 @@ class CreasePattern extends PlanarGraph{
 	}
 	// AXIOM 3
 	creaseEdgeToEdge(one:Crease, two:Crease):Crease[]{
-		var a:Line = gimme1Line(one);
-		var b:Line = gimme1Line(two);
-		return a.bisect(b).map(function(line:Line){
-			var clip = this.boundary.clipLine( line );
-			return this.newCrease(clip.nodes[0].x, clip.nodes[0].y, clip.nodes[1].x, clip.nodes[1].y);
-		},this);
+		var a:Line = gimme1Edge(one).infiniteLine();
+		var b:Line = gimme1Edge(two).infiniteLine();
+		// var lines:Line[] = a.bisect(b);
+		// return [
+		// 	this.crease(lines[0].point, lines[0].point.add(lines[0].direction.scale(0.2))),
+		// 	this.crease(lines[1].point, lines[1].point.add(lines[1].direction.scale(0.2)))
+		// ]
+
+		return a.bisect(b)
+			.map(function(line:Line){
+				return this.boundary.clipLine( line );
+			},this)
+			.filter(function(edge:Edge){ return edge !== undefined; },this)
+			.map(function(edge:Edge){
+				return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+			},this);
 	}
 	// AXIOM 4
 	creasePerpendicularThroughPoint(line:Crease, point:XY):Crease{

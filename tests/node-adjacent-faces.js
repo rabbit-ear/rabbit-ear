@@ -16,6 +16,7 @@ nodeFaces.reset = function(){
 	this.cp.clear();
 	this.cp.birdBase();
 	this.cp.clean();
+	this.cp.generateFaces();
 	this.draw();
 }
 nodeFaces.reset();
@@ -40,9 +41,15 @@ nodeFaces.onMouseMove = function(event) {
 
 nodeFaces.refreshFaces = function(){
 	var faces = [];
-	if(this.nearestNode === undefined) return;
-	// if(!this.mouse.isPressed){
-		faces = this.nearestNode.adjacentFaces();
+	var nearest = this.cp.nearest(this.mouse.position);
+	// faces = nearest.node.adjacentFaces();
+	// this.makeFaces(faces);
+	// console.log(nearest);
+	if(nearest.face === undefined){return;}
+	this.makeFaces( [nearest.face] )
+	// if(this.nearestNode === undefined) return;
+	// // if(!this.mouse.isPressed){
+	// faces = this.nearestNode.adjacentFaces();
 	// } 
 	// else {
 	// 	var nodes = [];
@@ -57,7 +64,7 @@ nodeFaces.refreshFaces = function(){
 	// 	}
 	// 	faces.removeDuplicates(function(a,b){ return a.equivalent(b); });
 	// }
-	this.makeFaces(faces);
+	// this.makeFaces(faces);
 }
 
 nodeFaces.makeFaces = function(faces){

@@ -84,7 +84,7 @@ class PlanarNode extends GraphNode implements XY{
 	// is this a good design decision? a nodes adjacent edges are always sorted by angle
 	// TODO: are these increaseing in the right direction?
 	adjacentEdges():PlanarEdge[]{
-		return this.graph.edges
+		var adjacent = this.graph.edges
 		.filter(function(el:PlanarEdge){
 				return el.nodes[0] === this || el.nodes[1] === this;
 			},this)
@@ -95,7 +95,15 @@ class PlanarNode extends GraphNode implements XY{
 		// .sort(function(a,b){return a.angle-b.angle;})
 		.sort(function(a,b){return b.angle-a.angle;})
 		.map(function(el){ return el.edge });
+
+		for(var i = 0; i < adjacent.length; i++){
+			var el = adjacent[ i ];
+			var nextEl = adjacent[ (i+1)%adjacent.length ];
+			if(el === nextEl){ adjacent.splice(i,1); }
+		}
+		return adjacent;
 	}
+
 	adjacentFaces():PlanarFace[]{
 		var junction = this.junction();
 		if(junction === undefined){ return []; }
@@ -130,6 +138,7 @@ class PlanarNode extends GraphNode implements XY{
 		return this;
 	}
 	rotate90():PlanarNode { var x = this.x; this.x = -this.y; this.y = x; return this; }
+	rotate180():PlanarNode { this.x = -this.x; this.y = -this.y; return this; }
 	rotate270():PlanarNode { var x = this.x; this.x = this.y; this.y = -x; return this; }
 	rotate(angle:number, origin?:XY):PlanarNode{
 		var rotated = new XY(this.x, this.y).rotate(angle, origin);
@@ -177,18 +186,18 @@ class PlanarEdge extends GraphEdge implements Edge{
 		var minY = (this.nodes[0].y < this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
 		var maxY = (this.nodes[0].y > this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
 		return this.graph.edges
-			.filter(function(el){ return !(
+			.filter(function(el:PlanarEdge){ return !(
 				(el.nodes[0].x < minX && el.nodes[1].x < minX) ||
 				(el.nodes[0].x > maxX && el.nodes[1].x > maxX) ||
 				(el.nodes[0].y < minY && el.nodes[1].y < minY) ||
 				(el.nodes[0].y > maxY && el.nodes[1].y > maxY)
 				)},this)
-			.filter(function(el){ return this !== el}, this)
-			.map(function(el){ return this.intersection(el) }, this)
-			.filter(function(el){ return el != undefined})
-			.sort(function(a,b){
-				if(a.commonX(b)){ return a.y-b.y; }
-				return a.x-b.x;
+			.filter(function(el:PlanarEdge){ return this !== el}, this)
+			.map(function(el:PlanarEdge){ return this.intersection(el) }, this)
+			.filter(function(el:{edge:PlanarEdge, point:XY}){ return el != undefined})
+			.sort(function(a:{edge:PlanarEdge, point:XY},b:{edge:PlanarEdge, point:XY}){
+				if(a.point.commonX(b.point)){ return a.point.y-b.point.y; }
+				return a.point.x-b.point.x;
 			});
 	}
 	absoluteAngle(startNode?:PlanarNode):number{  // startNode is one of this edge's 2 nodes
@@ -361,13 +370,14 @@ class PlanarFace{
 		}, this).filter(function(el){return el !== undefined;});
 	}
 	contains(point:XY):boolean{
-		for(var i = 0; i < this.edges.length; i++){
-			var endpts = this.edges[i].nodes;
-			var cross = (point.y - endpts[0].y) * (endpts[1].x - endpts[0].x) - 
-						(point.x - endpts[0].x) * (endpts[1].y - endpts[0].y);
-			if (cross < 0){ return false; }
-		}
-		return true;
+		var answer = this.nodes.map(function(el,i){
+			var nextEl = this.nodes[ (i+1)%this.nodes.length ];
+			var cross = (point.y - el.y) * (nextEl.x - el.x) - 
+						(point.x - el.x) * (nextEl.y - el.y);
+			return cross > 0;
+		},this).reduce(function(prev, current){ return prev && current; },true);
+		console.log(answer);
+		return answer;
 	}
 	transform(matrix){
 		for(var i = 0; i < this.nodes.length; i++){
@@ -710,7 +720,10 @@ class PlanarGraph extends Graph{
 			case 0: return <PlanarClean>this.removeNode(node);
 			case 2:
 				var farNodes = [<PlanarNode>(edges[0].uncommonNodeWithEdge(edges[1])), 
-								<PlanarNode>(edges[1].uncommonNodeWithEdge(edges[0]))]
+								<PlanarNode>(edges[1].uncommonNodeWithEdge(edges[0]))];
+				console.log("++++++++++++++++++++++");
+				console.log(farNodes);
+				if(farNodes[0] === undefined || farNodes[1] === undefined){ return; }
 				var span = new Edge(farNodes[0], farNodes[1]);
 				if(span.collinear(node)){
 					edges[0].nodes = [farNodes[0], farNodes[1]];
@@ -935,53 +948,6 @@ class PlanarGraph extends Graph{
 	// GET PARTS
 	///////////////////////////////////////////////
 
-	nearest(a:any,b:any){
-		var point = gimme1XY(a,b);
-		var face = this.faceContainingPoint(point);
-		if(face !== undefined){
-			var node:PlanarNode = face.nodes.sort(function(a:PlanarNode, b:PlanarNode){
-				return a.distanceTo(point) - b.distanceTo(point);
-			})[0];
-			var edge:PlanarEdge = face.edges.sort(function(a:PlanarEdge, b:PlanarEdge){
-				return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
-			})[0];
-			var junction = node.junction();
-			var sector = face.sectors.filter(function(el){ return el.origin === node; },this).shift();
-		} else{
-			var edge = this.edges
-				.map(function(edge:PlanarEdge){
-					return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
-				},this)
-				.sort(function(a,b){
-					return a.distance - b.distance;
-				})[0].edge;
-			var node = (edge !== undefined) ? edge.nodes
-				.sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);})
-				[0] : undefined;
-			var junction = (node !== undefined) ? node.junction() : undefined;
-			var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
-				return el.contains(point);
-			},this).shift() : undefined;
-		}
-		return {
-			'node':node,
-			'edge':edge,
-			'face':face,
-			'junction':junction,
-			'sector':sector
-		};
-	}
-
-	faceContainingPoint(point:XY):PlanarFace{
-		if(this.faces.length == 0){  this.generateFaces();  }
-		for(var f = 0; f < this.faces.length; f++){
-			if(this.faces[f].contains(point)){
-				return this.faces[f];
-			}
-		}
-	}
-
-
 	bounds():Rect{
 		if(this.nodes === undefined || this.nodes.length === 0){ return undefined; }
 		var minX = Infinity;
@@ -1020,94 +986,84 @@ class PlanarGraph extends Graph{
 		return intersections;
 	}
 
-
-
-	/** Add an already-initialized edge to the graph
-	 * @param {XY} either two numbers (x,y) or one XY point object (XY)
-	 * @returns {PlanarNode} nearest node to the point
-	 */
-	/*
-	getNearestNode(a:any, b:any):PlanarNode{
-		var p = gimme1XY(a,b);
-		if(p === undefined){ return; }
-		// can be optimized with a k-d tree
-		var node = undefined;
-		var distance = Infinity;
-		for(var i = 0; i < this.nodes.length; i++){
-			var dist = Math.sqrt(Math.pow(this.nodes[i].x - p.x,2) + Math.pow(this.nodes[i].y - p.y,2));
-			if(dist < distance){
-				distance = dist;
-				node = this.nodes[i];
-			}
+	nearest(a:any,b:any){
+		var point = gimme1XY(a,b);
+		var face = this.faceContainingPoint(point);
+		if(face !== undefined){
+			var node:PlanarNode = face.nodes.sort(function(a:PlanarNode, b:PlanarNode){
+				return a.distanceTo(point) - b.distanceTo(point);
+			})[0];
+			var edge:PlanarEdge = face.edges.sort(function(a:PlanarEdge, b:PlanarEdge){
+				return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
+			})[0];
+			var junction = node.junction();
+			var sector = face.sectors.filter(function(el){ return el.origin === node; },this).shift();
+		} else{
+			var edge = this.edges
+				.map(function(edge:PlanarEdge){
+					return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
+				},this)
+				.sort(function(a,b){
+					return a.distance - b.distance;
+				})[0].edge;
+			var node = (edge !== undefined) ? edge.nodes
+				.sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);})
+				[0] : undefined;
+			var junction = (node !== undefined) ? node.junction() : undefined;
+			var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
+				return el.contains(point);
+			},this).shift() : undefined;
 		}
-		return node;
+		return {
+			'node':node,
+			'edge':edge,
+			'face':face,
+			'junction':junction,
+			'sector':sector
+		};
 	}
 
-	getNearestNodes(a:any, b:any, howMany:number):PlanarNode[]{
-		var p = gimme1XY(a,b);
-		if(p === undefined){ return; }
-		// can be optimized with a k-d tree
-		var distances = [];
-		for(var i = 0; i < this.nodes.length; i++){
-			var dist = Math.sqrt(Math.pow(this.nodes[i].x - p.x,2) + Math.pow(this.nodes[i].y - p.y,2));
-			distances.push( {'i':i, 'd':dist} );
-		}
-		distances.sort(function(a,b) {return (a.d > b.d) ? 1 : ((b.d > a.d) ? -1 : 0);} ); 
-		// cap howMany at the number of total nodes
-		if(howMany > distances.length){ howMany = distances.length; }
-		return distances.slice(0, howMany).map(function(el){ return this.nodes[el.i]; }, this);
-	}
+	// facesContainingPoint(point:XY):PlanarFace[]{
+	// 	var array = [];
+	// 	if(this.faces.length == 0){  this.generateFaces();  }
+	// 	for(var f = 0; f < this.faces.length; f++){
+	// 		if(this.faces[f].contains(point)){
+	// 			array.push(this.faces[f]);
+	// 		}
+	// 	}
+	// 	return array;
+	// }
 
-	getNearestEdge(a:any, b:any):{'edge':PlanarEdge, 'point':XY}{
-		var input = gimme1XY(a,b);
-		if(input === undefined){ return; }
-		var minDist, nearestEdge, minLocation = new XY(undefined,undefined);
-		for(var i = 0; i < this.edges.length; i++){
-			var p = this.edges[i];
-			var pT = p.nearestPoint(input);
-			if(pT != undefined){
-				var thisDist = Math.sqrt(Math.pow(input.x-pT.x,2) + Math.pow(input.y-pT.y,2));
-				if(minDist == undefined || thisDist < minDist){
-					minDist = thisDist;
-					nearestEdge = this.edges[i];
-					minLocation = pT;
-				}
+	faceContainingPoint(point:XY):PlanarFace{
+		if(this.faces.length == 0){  this.generateFaces();  }
+		for(var f = 0; f < this.faces.length; f++){
+			if(this.faces[f].contains(point)){
+				return this.faces[f];
 			}
 		}
-		// for (x,y) that is not orthogonal to the length of the edge (past the endpoint)
-		// check distance to node endpoints
-		for(var i = 0; i < this.nodes.length; i++){
-			var dist = Math.sqrt(Math.pow(this.nodes[i].x - input.x,2) + Math.pow(this.nodes[i].y - input.y,2));
-			if(dist < minDist){
-				var adjEdges = this.nodes[i].adjacentEdges();
-				if(adjEdges != undefined && adjEdges.length > 0){
-					minDist = dist;
-					nearestEdge = adjEdges[0];
-					minLocation = new XY(this.nodes[i].x, this.nodes[i].y);
-				}
-			}
-		}
-		return {'edge':nearestEdge, 'point':minLocation};
 	}
 
 
-	getNearestEdges(a:any, b:any, howMany:number):any[]{
-		var p = gimme1XY(a,b);
-		if(p === undefined){ return; }
-		var minDist, nearestEdge, minLocation = {x:undefined, y:undefined};
-		var edges = this.edges.map(function(el){ 
-			var pT = el.nearestPointNormalTo(p);
-			if(pT === undefined){return undefined;}
-			var distances = [
-				Math.sqrt(Math.pow(p.x-pT.x,2) + Math.pow(p.y-pT.y,2)), // perp dist
-				Math.sqrt(Math.pow(el.nodes[0].x - p.x, 2) + Math.pow(el.nodes[0].y - p.y, 2)), // node 1 dist
-				Math.sqrt(Math.pow(el.nodes[1].x - p.x, 2) + Math.pow(el.nodes[1].y - p.y, 2)), // node 2 dist
-			].filter(function(el){return el !== undefined; })
-			 .sort(function(a,b){return (a > b)?1:(a < b)?-1:0});
-			if(distances.length){ return {'edge':el, 'distance':distances[0]}; }			
+/*
+	getNearestFace(a:any, b:any):PlanarFace{
+		var nearestNode = this.getNearestNode(a, b);
+		if(nearestNode === undefined){ return; }
+		var faces = nearestNode.adjacentFaces();
+		if(faces === undefined || faces.length == 0){ return; }
+		var sortedFaces = faces.sort(function(a,b){
+			var avgA = 0;
+			var avgB = 0;
+			for(var i = 0; i < a.nodes.length; i++){ avgA += a.nodes[i].y; }
+			avgA /= (a.nodes.length);
+			for(var i = 0; i < b.nodes.length; i++){ avgB += b.nodes[i].y; }
+			avgB /= (a.nodes.length);
+			return (avgA < avgB) ? 1 : ((avgA > avgB) ? -1 : 0);
 		});
-		return edges.filter(function(el){return el != undefined; });
+		if(sortedFaces.length <= 1){ return; }
+		return sortedFaces[0];
 	}
+
+
 	getNearestEdgeConnectingPoints(a:any, b:any, c?:any, d?:any):PlanarEdge{
 		var p = gimme2XY(a,b,c,d);
 		if(p === undefined){ return; }
@@ -1130,54 +1086,7 @@ class PlanarGraph extends Graph{
 		}
 		return undefined;
 	}
-
-	getNearestFace(a:any, b:any):PlanarFace{
-		var nearestNode = this.getNearestNode(a, b);
-		if(nearestNode === undefined){ return; }
-		var faces = nearestNode.adjacentFaces();
-		if(faces === undefined || faces.length == 0){ return; }
-		var sortedFaces = faces.sort(function(a,b){
-			var avgA = 0;
-			var avgB = 0;
-			for(var i = 0; i < a.nodes.length; i++){ avgA += a.nodes[i].y; }
-			avgA /= (a.nodes.length);
-			for(var i = 0; i < b.nodes.length; i++){ avgB += b.nodes[i].y; }
-			avgB /= (a.nodes.length);
-			return (avgA < avgB) ? 1 : ((avgA > avgB) ? -1 : 0);
-		});
-		if(sortedFaces.length <= 1){ return; }
-		return sortedFaces[0];
-	}
-
-	getNearestInteriorAngle(a:any, b:any):PlanarSector{
-		var p = gimme1XY(a,b);
-		if(p === undefined){ return; }
-		// todo: 5 is an arbitrary number to speed up this algorithm
-		var nodes = this.getNearestNodes(p.x, p.y, 5);
-		var node, sectors;
-		for(var i = 0; i < nodes.length; i++){
-			node = nodes[i];
-			var nodeJunction = node.junction();
-			if(nodeJunction !== undefined){
-				sectors = nodeJunction.sectors;
-				if(sectors !== undefined && sectors.length > 0){ break; }
-			}
-		}
-		if(sectors == undefined || sectors.length === 0){ return undefined; }
-		// cross product on each edge pair
-		var anglesInside = sectors.filter(function(el:PlanarSector){ 
-			var pts = el.endPoints;
-			var cross0 = (p.y - node.y) * (pts[1].x - node.x) - 
-						 (p.x - node.x) * (pts[1].y - node.y);
-			var cross1 = (p.y - pts[0].y) * (node.x - pts[0].x) - 
-						 (p.x - pts[0].x) * (node.y - pts[0].y);
-			if (cross0 < 0 || cross1 < 0){ return false; }
-			return true;
-		});
-		if(anglesInside.length > 0) return anglesInside[0];
-		return undefined;
-	}
-	*/
+*/
 
 	///////////////////////////////////////////////
 	// FACE

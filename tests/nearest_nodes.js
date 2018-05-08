@@ -33,7 +33,7 @@ nearNodeSketch.onMouseDown = function(event){
 }
 nearNodeSketch.onMouseUp = function(event){ }
 nearNodeSketch.onMouseMove = function(event) {
-	var nodes = nearNodeSketch.cp.getNearestNodes( event.point.x, event.point.y, 40 );
+	var nodes = nearNodeSketch.cp.nearest( event.point.x, event.point.y, 40 ).node;
 	nearNodeSketch.edgeLayer.activate();
 	nearNodeSketch.edgeLayer.removeChildren();
 	if(nodes != undefined && nodes.length > 0){
