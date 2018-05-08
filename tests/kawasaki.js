@@ -73,7 +73,7 @@ projectKawasaki.reset();
 projectKawasaki.onFrame = function(event) { }
 projectKawasaki.onResize = function(event) { }
 projectKawasaki.onMouseDown = function(event){
-	if(this.validNodes.filter(function(e){return e===this.nearestNode;}).length > 0){
+	if(this.validNodes.filter(function(e){return e===this.nearestNode;},this).length > 0){
 		draggingNode = this.nearestNode;
 	}
 }

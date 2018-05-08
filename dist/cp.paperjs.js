@@ -343,7 +343,7 @@ var OrigamiPaper = (function(){
 	OrigamiPaper.prototype.onMouseDidBeginDrag = function(event){ }
 
 	OrigamiPaper.prototype.highlightNearestNode = function(position){
-		var node = this.cp.getNearestNode( position );
+		var node = this.cp.nearest( position ).node;
 		if(node === undefined) return;
 		if(this.nearestNode !== node){
 			this.nearestNode = node;
@@ -352,7 +352,7 @@ var OrigamiPaper = (function(){
 	};
 
 	OrigamiPaper.prototype.highlightNearestEdge = function(position){
-		var edge = this.cp.getNearestEdge( position.x, position.y ).edge;
+		var edge = this.cp.nearest( position ).edge;
 		if(edge === undefined) return;
 		if(this.nearestEdge !== edge){
 			this.nearestEdge = edge;

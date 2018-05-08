@@ -67,7 +67,7 @@ projectVectors.reset();
 projectVectors.onFrame = function(event) { }
 projectVectors.onResize = function(event) { }
 projectVectors.onMouseDown = function(event){
-	if (this.validNodes.filter(function(e){return e===this.nearestNode;}).length > 0){
+	if(this.validNodes.filter(function(e){return e===this.nearestNode;},this).length > 0){
 		this.draggingNode = this.nearestNode;
 	}
 }

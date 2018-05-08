@@ -388,16 +388,17 @@ class Line implements LineType{
 	}
 	bisect(line:Line):Line[]{
 		if( this.parallel(line) ){
-			return [new Line( this.point.midpoint(line.point) , this.direction)];
+			return [new Line( this.point.midpoint(line.point), this.direction)];
 		} else{
 			var intersection:XY = intersectionLineLine(this, line);
 			var vectors = bisectVectors(this.direction, line.direction);
 			vectors[1] = vectors[0].rotate90();
-			var sorted = vectors.sort(function(a,b){
-				return Math.abs(this.direction.cross(vectors[0])) - Math.abs(this.direction.cross(vectors[1]))
+			return vectors.sort(function(a:XY,b:XY){
+				return Math.abs(a.cross(vectors[0])) - Math.abs(b.cross(vectors[1]))
 			}).map(function(el){
 				return new Line(intersection, el);
 			},this);
+
 		}
 	}
 }
@@ -947,6 +948,13 @@ class Sector{
 		return a.origin.equivalent(this.origin) && 
 		       a.endPoints[0].equivalent(this.endPoints[0]) && 
 		       a.endPoints[1].equivalent(this.endPoints[1]);
+	}
+	contains(point:XY):boolean{
+		var cross0 = (point.y - this.endPoints[0].y) * (this.origin.x - this.endPoints[0].x) - 
+		             (point.x - this.endPoints[0].x) * (this.origin.y - this.endPoints[0].y);
+		var cross1 = (point.y - this.origin.y) * (this.endPoints[1].x - this.origin.x) - 
+		             (point.x - this.origin.x) * (this.endPoints[1].y - this.origin.y);
+		return cross0 < 0 && cross1 < 0;
 	}
 	// (private function)
 	sortByClockwise(){}

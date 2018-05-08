@@ -460,6 +460,15 @@ class PlanarSector extends Sector{
 		        (a.edges[0].isSimilarToEdge(this.edges[1]) &&
 		         a.edges[1].isSimilarToEdge(this.edges[0])));
 	}
+	/** a sector contains a point if it is between the two edges in clockwise order */
+	contains(point:XY):boolean{
+		var cross0 = (point.y - this.endPoints[0].y) * (this.origin.x - this.endPoints[0].x) - 
+		             (point.x - this.endPoints[0].x) * (this.origin.y - this.endPoints[0].y);
+		var cross1 = (point.y - this.origin.y) * (this.endPoints[1].x - this.origin.x) - 
+		             (point.x - this.origin.x) * (this.endPoints[1].y - this.origin.y);
+		return cross0 < 0 && cross1 < 0;
+	}
+
 	// Available through Sector
 	// vectors():[XY,XY]{}
 	// angle():number{}
@@ -926,6 +935,53 @@ class PlanarGraph extends Graph{
 	// GET PARTS
 	///////////////////////////////////////////////
 
+	nearest(a:any,b:any){
+		var point = gimme1XY(a,b);
+		var face = this.faceContainingPoint(point);
+		if(face !== undefined){
+			var node:PlanarNode = face.nodes.sort(function(a:PlanarNode, b:PlanarNode){
+				return a.distanceTo(point) - b.distanceTo(point);
+			})[0];
+			var edge:PlanarEdge = face.edges.sort(function(a:PlanarEdge, b:PlanarEdge){
+				return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
+			})[0];
+			var junction = node.junction();
+			var sector = face.sectors.filter(function(el){ return el.origin === node; },this).shift();
+		} else{
+			var edge = this.edges
+				.map(function(edge:PlanarEdge){
+					return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
+				},this)
+				.sort(function(a,b){
+					return a.distance - b.distance;
+				})[0].edge;
+			var node = (edge !== undefined) ? edge.nodes
+				.sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);})
+				[0] : undefined;
+			var junction = (node !== undefined) ? node.junction() : undefined;
+			var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
+				return el.contains(point);
+			},this).shift() : undefined;
+		}
+		return {
+			'node':node,
+			'edge':edge,
+			'face':face,
+			'junction':junction,
+			'sector':sector
+		};
+	}
+
+	faceContainingPoint(point:XY):PlanarFace{
+		if(this.faces.length == 0){  this.generateFaces();  }
+		for(var f = 0; f < this.faces.length; f++){
+			if(this.faces[f].contains(point)){
+				return this.faces[f];
+			}
+		}
+	}
+
+
 	bounds():Rect{
 		if(this.nodes === undefined || this.nodes.length === 0){ return undefined; }
 		var minX = Infinity;
@@ -963,6 +1019,8 @@ class PlanarGraph extends Graph{
 		}
 		return intersections;
 	}
+
+
 
 	/** Add an already-initialized edge to the graph
 	 * @param {XY} either two numbers (x,y) or one XY point object (XY)

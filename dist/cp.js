@@ -720,8 +720,8 @@ var Line = (function () {
             var intersection = intersectionLineLine(this, line);
             var vectors = bisectVectors(this.direction, line.direction);
             vectors[1] = vectors[0].rotate90();
-            var sorted = vectors.sort(function (a, b) {
-                return Math.abs(this.direction.cross(vectors[0])) - Math.abs(this.direction.cross(vectors[1]));
+            return vectors.sort(function (a, b) {
+                return Math.abs(a.cross(vectors[0])) - Math.abs(b.cross(vectors[1]));
             }).map(function (el) {
                 return new Line(intersection, el);
             }, this);
@@ -1340,6 +1340,13 @@ var Sector = (function () {
         return a.origin.equivalent(this.origin) &&
             a.endPoints[0].equivalent(this.endPoints[0]) &&
             a.endPoints[1].equivalent(this.endPoints[1]);
+    };
+    Sector.prototype.contains = function (point) {
+        var cross0 = (point.y - this.endPoints[0].y) * (this.origin.x - this.endPoints[0].x) -
+            (point.x - this.endPoints[0].x) * (this.origin.y - this.endPoints[0].y);
+        var cross1 = (point.y - this.origin.y) * (this.endPoints[1].x - this.origin.x) -
+            (point.x - this.origin.x) * (this.endPoints[1].y - this.origin.y);
+        return cross0 < 0 && cross1 < 0;
     };
     Sector.prototype.sortByClockwise = function () { };
     return Sector;
@@ -2095,6 +2102,13 @@ var PlanarSector = (function (_super) {
             (a.edges[0].isSimilarToEdge(this.edges[1]) &&
                 a.edges[1].isSimilarToEdge(this.edges[0])));
     };
+    PlanarSector.prototype.contains = function (point) {
+        var cross0 = (point.y - this.endPoints[0].y) * (this.origin.x - this.endPoints[0].x) -
+            (point.x - this.endPoints[0].x) * (this.origin.y - this.endPoints[0].y);
+        var cross1 = (point.y - this.origin.y) * (this.endPoints[1].x - this.origin.x) -
+            (point.x - this.origin.x) * (this.endPoints[1].y - this.origin.y);
+        return cross0 < 0 && cross1 < 0;
+    };
     return PlanarSector;
 }(Sector));
 var PlanarJunction = (function () {
@@ -2449,6 +2463,52 @@ var PlanarGraph = (function (_super) {
             }
         } while (!(visitedList.filter(function (el) { return el === travelingNode; }).length > 0));
         return undefined;
+    };
+    PlanarGraph.prototype.nearest = function (a, b) {
+        var point = gimme1XY(a, b);
+        var face = this.faceContainingPoint(point);
+        if (face !== undefined) {
+            var node = face.nodes.sort(function (a, b) {
+                return a.distanceTo(point) - b.distanceTo(point);
+            })[0];
+            var edge = face.edges.sort(function (a, b) {
+                return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
+            })[0];
+            var junction = node.junction();
+            var sector = face.sectors.filter(function (el) { return el.origin === node; }, this).shift();
+        }
+        else {
+            var edge = this.edges
+                .map(function (edge) {
+                return { edge: edge, distance: edge.nearestPoint(point).distanceTo(point) };
+            }, this)
+                .sort(function (a, b) {
+                return a.distance - b.distance;
+            })[0].edge;
+            var node = (edge !== undefined) ? edge.nodes
+                .sort(function (a, b) { return a.distanceTo(point) - b.distanceTo(point); })[0] : undefined;
+            var junction = (node !== undefined) ? node.junction() : undefined;
+            var sector = (junction !== undefined) ? junction.sectors.filter(function (el) {
+                return el.contains(point);
+            }, this).shift() : undefined;
+        }
+        return {
+            'node': node,
+            'edge': edge,
+            'face': face,
+            'junction': junction,
+            'sector': sector
+        };
+    };
+    PlanarGraph.prototype.faceContainingPoint = function (point) {
+        if (this.faces.length == 0) {
+            this.generateFaces();
+        }
+        for (var f = 0; f < this.faces.length; f++) {
+            if (this.faces[f].contains(point)) {
+                return this.faces[f];
+            }
+        }
     };
     PlanarGraph.prototype.bounds = function () {
         if (this.nodes === undefined || this.nodes.length === 0) {
@@ -3185,47 +3245,52 @@ var CreasePattern = (function (_super) {
         }, this);
         return sortedMolecules.reduce(function (prev, current) { return prev.concat(current); });
     };
-    CreasePattern.prototype.availableAxiomFolds = function (cp) {
-        if (cp === undefined) {
-            cp = this;
-        }
-        this.availableAxiom1Folds(cp);
-        this.availableAxiom2Folds(cp);
-        this.availableAxiom3Folds(cp);
-        return cp;
+    CreasePattern.prototype.availableAxiomFolds = function () {
+        var edges = [];
+        edges = edges.concat(this.availableAxiom1Folds());
+        edges = edges.concat(this.availableAxiom2Folds());
+        edges = edges.concat(this.availableAxiom3Folds());
+        return edges;
     };
-    CreasePattern.prototype.availableAxiom1Folds = function (cp) {
-        if (cp === undefined) {
-            cp = this;
-        }
+    CreasePattern.prototype.availableAxiom1Folds = function () {
+        var edges = [];
         for (var n0 = 0; n0 < this.nodes.length - 1; n0++) {
             for (var n1 = n0 + 1; n1 < this.nodes.length; n1++) {
-                this.creaseThroughPoints(this.nodes[n0], this.nodes[n1]);
+                var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
+                var edge = this.boundary.clipLine(inputEdge.infiniteLine());
+                if (edge !== undefined) {
+                    edges.push(edge);
+                }
             }
         }
-        return this;
+        return edges;
     };
-    CreasePattern.prototype.availableAxiom2Folds = function (cp) {
-        if (cp === undefined) {
-            cp = this;
-        }
+    CreasePattern.prototype.availableAxiom2Folds = function () {
+        var edges = [];
         for (var n0 = 0; n0 < this.nodes.length - 1; n0++) {
             for (var n1 = n0 + 1; n1 < this.nodes.length; n1++) {
-                this.creasePointToPoint(this.nodes[n0], this.nodes[n1]);
+                var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
+                var edge = this.boundary.clipLine(inputEdge.perpendicularBisector());
+                if (edge !== undefined) {
+                    edges.push(edge);
+                }
             }
         }
-        return this;
+        return edges;
     };
-    CreasePattern.prototype.availableAxiom3Folds = function (cp) {
-        if (cp === undefined) {
-            cp = this;
-        }
-        for (var n0 = 0; n0 < this.nodes.length - 1; n0++) {
-            for (var n1 = n0 + 1; n1 < this.nodes.length; n1++) {
-                this.creasePointToPoint(this.nodes[n0], this.nodes[n1]);
+    CreasePattern.prototype.availableAxiom3Folds = function () {
+        var edges = [];
+        for (var e0 = 0; e0 < this.edges.length - 1; e0++) {
+            for (var e1 = e0 + 1; e1 < this.edges.length; e1++) {
+                var a = this.edges[e0].infiniteLine();
+                var b = this.edges[e1].infiniteLine();
+                var pair = a.bisect(b).map(function (line) {
+                    return this.boundary.clipLine(line);
+                }, this).filter(function (el) { return el !== undefined; }, this);
+                edges = edges.concat(pair);
             }
         }
-        return this;
+        return edges;
     };
     CreasePattern.prototype.wiggle = function (epsilon) {
         if (epsilon === undefined) {

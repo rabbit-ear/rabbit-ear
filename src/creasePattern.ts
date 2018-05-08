@@ -683,43 +683,52 @@ class CreasePattern extends PlanarGraph{
 		return sortedMolecules.reduce(function(prev, current){ return prev.concat(current); });
 	}
 
-	availableAxiomFolds(cp?:CreasePattern):CreasePattern{
-		if(cp === undefined){ cp = this; }
-		this.availableAxiom1Folds(cp);
-		this.availableAxiom2Folds(cp);
-		this.availableAxiom3Folds(cp);
-		return cp;
+	availableAxiomFolds():Edge[]{
+		var edges = [];
+		edges = edges.concat(this.availableAxiom1Folds());
+		edges = edges.concat(this.availableAxiom2Folds());
+		edges = edges.concat(this.availableAxiom3Folds());
+		return edges;
 	}
 
-	availableAxiom1Folds(cp?:CreasePattern):CreasePattern{
-		if(cp === undefined){ cp = this; }
+	availableAxiom1Folds():Edge[]{
+		var edges = [];
 		for(var n0 = 0; n0 < this.nodes.length-1; n0++){
 			for(var n1 = n0+1; n1 < this.nodes.length; n1++){
-				this.creaseThroughPoints(this.nodes[n0], this.nodes[n1]);
+				var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
+				var edge = this.boundary.clipLine( inputEdge.infiniteLine() );
+				if(edge !== undefined){ edges.push(edge); }
 			}
 		}
 		// this.cleanDuplicateNodes();
-		return this;
+		return edges;
 	}
-	availableAxiom2Folds(cp?:CreasePattern):CreasePattern{
-		if(cp === undefined){ cp = this; }
+	availableAxiom2Folds():Edge[]{
+		var edges = [];
 		for(var n0 = 0; n0 < this.nodes.length-1; n0++){
 			for(var n1 = n0+1; n1 < this.nodes.length; n1++){
-				this.creasePointToPoint(this.nodes[n0], this.nodes[n1]);
+				var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
+				var edge = this.boundary.clipLine( inputEdge.perpendicularBisector() );
+				if(edge !== undefined){ edges.push(edge); }
 			}
 		}
 		// this.cleanDuplicateNodes();
-		return this;
+		return edges;
 	}
-	availableAxiom3Folds(cp?:CreasePattern):CreasePattern{
-		if(cp === undefined){ cp = this; }
-		for(var n0 = 0; n0 < this.nodes.length-1; n0++){
-			for(var n1 = n0+1; n1 < this.nodes.length; n1++){
-				this.creasePointToPoint(this.nodes[n0], this.nodes[n1]);
+	availableAxiom3Folds():Edge[]{
+		var edges = [];
+		for(var e0 = 0; e0 < this.edges.length-1; e0++){
+			for(var e1 = e0+1; e1 < this.edges.length; e1++){
+				var a:Line = this.edges[e0].infiniteLine();
+				var b:Line = this.edges[e1].infiniteLine();
+				var pair = a.bisect(b).map(function(line:Line){
+					return this.boundary.clipLine( line );
+				},this).filter(function(el){ return el !== undefined; },this);
+				edges = edges.concat(pair);
 			}
 		}
 		// this.cleanDuplicateNodes();
-		return this;
+		return edges;
 	}
 
 	// precision is an epsilon value: 0.00001

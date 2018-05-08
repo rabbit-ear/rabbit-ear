@@ -48,7 +48,7 @@ project.onFrame = function(event){ }
 project.onResize = function(event){ }
 project.onMouseMove = function(event){ }
 project.onMouseDown = function(event){
-	var nearestEdge = this.cp.getNearestEdge(event.point) || {};
+	var nearestEdge = this.cp.nearest(event.point).edge || {};
 	if(nearestEdge.edge !== undefined){
 		updateCodeMirror("cp.edges[" + nearestEdge.edge.index + "]");
 		// console.log( nearestEdge.edge.index );
