@@ -2,7 +2,7 @@
 var mirror = new OrigamiPaper("canvas-mirror");
 mirror.setPadding(0.05);
 
-// mirror.selectNearestEdge = true;
+// mirror.select.edge = true;
 mirror.style.mark.strokeColor = {gray:0};
 
 mirror.reset = function(){

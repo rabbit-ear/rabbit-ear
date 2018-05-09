@@ -39,7 +39,7 @@ project.updateAngles = function(){
 }
 
 project.reset = function(){
-	this.selectNearestNode = true;
+	this.select.node = true;
 	var creases = [
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random(), Math.random())).mountain(),
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random(), Math.random())).mountain()
@@ -56,8 +56,8 @@ project.reset();
 project.onFrame = function(event) { }
 project.onResize = function(event) { }
 project.onMouseDown = function(event){
-	if(validNodes.filter(function(e){return e===this.nearestNode;}).length > 0){
-		draggingNode = this.nearestNode;
+	if(validNodes.filter(function(e){return e===this.nearest.node;}).length > 0){
+		draggingNode = this.nearest.node;
 	}
 }
 project.onMouseUp = function(event){

@@ -3,8 +3,8 @@ var mouse_select_callback;
 var mouseSelect = new OrigamiPaper("canvas-mouse-select").blackAndWhite();
 mouseSelect.setPadding(0.05);
 
-mouseSelect.selectNearestNode = true;
-mouseSelect.selectNearestEdge = true;
+mouseSelect.select.node = true;
+mouseSelect.select.edge = true;
 
 mouseSelect.reset = function(){
 	paper = this.scope; 

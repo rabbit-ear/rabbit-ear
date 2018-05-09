@@ -6,11 +6,11 @@ ffMoveNode.setPadding(0.05);
 
 ffMoveNode.ffCircleAlpha = 0.7;
 
-nearestNode = undefined;
+nearest.node = undefined;
 ffMoveNode.movingNode = undefined;
 ffMoveNode.mNodeOriginalLocation = undefined;
 ffMoveNode.nNode = undefined;
-ffMoveNode.selectNearestNode = true;
+ffMoveNode.select.node = true;
 ffMoveNode.style.selectedNode = { 
 	fillColor: undefined, 
 	strokeWidth: 0.005,
@@ -82,12 +82,12 @@ ffMoveNode.onMouseMove = function(event) {
 		this.update();
 	} else{
 		var nNode = this.cp.nearest( event.point.x, event.point.y ).node;
-		if(nearestNode !== nNode){
-			nearestNode = nNode;
+		if(nearest.node !== nNode){
+			nearest.node = nNode;
 		}
 	}
 	if(this.cp != undefined){ this.colorNodesFlatFoldable(); }
 	if(flat_foldable_nodes_wiggle_callback != undefined){
-		flat_foldable_nodes_wiggle_callback({'point':event.point, 'node':nearestNode.index, 'valid':nearestNode.flatFoldable()});
+		flat_foldable_nodes_wiggle_callback({'point':event.point, 'node':nearest.node.index, 'valid':nearest.node.flatFoldable()});
 	}
 }

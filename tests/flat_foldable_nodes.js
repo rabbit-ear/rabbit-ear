@@ -21,7 +21,7 @@ ffSketch.colorNodesFlatFoldable = function(){
 	}
 }
 
-ffSketch.selectNearestEdge = true;
+ffSketch.select.edge = true;
 
 ffSketch.reset = function(){
 	paper = this.scope; 

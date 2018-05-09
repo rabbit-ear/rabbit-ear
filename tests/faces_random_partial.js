@@ -4,7 +4,7 @@ faces_random_partial_callback = undefined;
 var partialFaces = new OrigamiPaper("canvas-faces-random-partial");
 partialFaces.setPadding(0.05);
 
-partialFaces.selectNearestEdge = true;
+partialFaces.select.edge = true;
 
 partialFaces.reset = function(){
 	paper = this.scope; 

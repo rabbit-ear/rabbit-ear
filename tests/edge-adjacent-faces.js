@@ -4,7 +4,7 @@ var edge_adjacent_faces_callback = undefined;
 
 var edgeFaces = new OrigamiPaper("canvas-edge-adjacent-faces");
 edgeFaces.setPadding(0.05);
-edgeFaces.selectNearestEdge = true;
+edgeFaces.select.edge = true;
 edgeFaces.edgeLayer.bringToFront();
 edgeFaces.boundaryLayer.bringToFront();
 
@@ -24,27 +24,27 @@ edgeFaces.onMouseDown = function(event){
 }
 edgeFaces.onMouseUp = function(event){ 
 	this.refreshFaces();
-	this.nearestEdge = undefined;
+	this.nearest.edge = undefined;
 	this.selected.edges = [];
 	this.update();
 }
 edgeFaces.onMouseMove = function(event) {
 	this.refreshFaces();
 	if(edge_adjacent_faces_callback != undefined){
-		edge_adjacent_faces_callback({'edge':edgeFaces.nearestEdge});
+		edge_adjacent_faces_callback({'edge':edgeFaces.nearest.edge});
 	}
 }
 
 edgeFaces.refreshFaces = function(){
 	var faces = [];
-	if(this.nearestEdge === undefined) return;
+	if(this.nearest.edge === undefined) return;
 	if(!this.mouse.pressed){
-		faces = this.nearestEdge.adjacentFaces();
+		faces = this.nearest.edge.adjacentFaces();
 	} else {
 		var edges = [];
-		if(this.nearestEdge != undefined) {
-			edges.push(this.nearestEdge);
-			edges = edges.concat(this.nearestEdge.adjacentEdges());
+		if(this.nearest.edge != undefined) {
+			edges.push(this.nearest.edge);
+			edges = edges.concat(this.nearest.edge.adjacentEdges());
 		}
 		this.selected.edges = edges;
 		this.update();

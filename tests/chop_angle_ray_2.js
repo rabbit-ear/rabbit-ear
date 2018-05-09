@@ -2,7 +2,7 @@
 var chopRays2 = new OrigamiPaper("canvas-chop-angle-ray-2");
 chopRays2.setPadding(0.05);
 
-chopRays2.selectNearestEdge = true;
+chopRays2.select.edge = true;
 
 chopRays2.reset = function(){
 	paper = this.scope; 

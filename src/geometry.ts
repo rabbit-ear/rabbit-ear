@@ -731,7 +731,7 @@ class ConvexPolygon{
 			if(nodes[i].y > yMax){ yMax = nodes[i].y; }
 			if(nodes[i].y < yMin){ yMin = nodes[i].y; }
 		}
-		return new XY(xMin+(xMin+xMax)*0.5, yMin+(yMin+yMax)*0.5);
+		return new XY(xMin+(xMax-xMin)*0.5, yMin+(yMax-yMin)*0.5);
 	}
 	contains(p:XY):boolean{
 		var found = true;

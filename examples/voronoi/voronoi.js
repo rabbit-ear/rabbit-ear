@@ -137,7 +137,7 @@ project.onResize = function(){
 
 project.onMouseDown = function(event){
 	if(selectedNode === undefined){
-		if(this.cp.pointInside(event.point)){ 
+		if(this.cp.contains(event.point)){ 
 			touchNodes.newPlanarNode(event.point.x, event.point.y); 
 			this.drawVoronoi();
 			selectedNode = undefined;

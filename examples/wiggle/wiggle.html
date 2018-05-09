@@ -73,7 +73,8 @@ function fileDidLoad(svg, mimeType){
 <script>
 document.getElementById("reload-file").addEventListener("click", function(e){
 	e.preventDefault();
-	project.setCreasePattern( loadedCP.copy() );
+	project.cp = loadedCP.copy();
+	project.draw();
 	project.colorNodesFlatFoldable();
 	foldedState.cp = new CreasePattern();
 	foldedState.draw();

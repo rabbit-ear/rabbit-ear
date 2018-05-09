@@ -49,7 +49,7 @@ projectVectors.updateAngles = function(){
 }
 
 projectVectors.reset = function(){
-	this.selectNearestNode = true;
+	this.select.node = true;
 	var creases = [
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain()
@@ -67,8 +67,8 @@ projectVectors.reset();
 projectVectors.onFrame = function(event) { }
 projectVectors.onResize = function(event) { }
 projectVectors.onMouseDown = function(event){
-	if(this.validNodes.filter(function(e){return e===this.nearestNode;},this).length > 0){
-		this.draggingNode = this.nearestNode;
+	if(this.validNodes.filter(function(e){return e===this.nearest.node;},this).length > 0){
+		this.draggingNode = this.nearest.node;
 	}
 }
 projectVectors.onMouseUp = function(event){

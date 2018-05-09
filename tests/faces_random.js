@@ -5,7 +5,7 @@ var randomFaces = new OrigamiPaper("canvas-faces-random");
 randomFaces.setPadding(0.05);
 randomFaces.style.mark.strokeColor = {gray:0.0, alpha:1.0};
 
-randomFaces.selectNearestEdge = true;
+randomFaces.select.edge = true;
 
 randomFaces.reset = function(){
 	paper = this.scope; 

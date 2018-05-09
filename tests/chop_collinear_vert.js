@@ -2,8 +2,8 @@
 var chopVert = new OrigamiPaper("canvas-chop-collinear-vert");
 chopVert.setPadding(0.05);
 
-chopVert.selectNearestNode = true;
-chopVert.selectNearestEdge = true;
+chopVert.select.node = true;
+chopVert.select.edge = true;
 
 chopVert.reset = function(){
 	paper = this.scope; 

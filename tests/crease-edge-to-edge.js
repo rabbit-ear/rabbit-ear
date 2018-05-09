@@ -1,6 +1,6 @@
 var creaseEdgeToEdgeCallback = undefined;
 var creaseEdgeToEdge = new OrigamiPaper("canvas-crease-edge-to-edge");
-creaseEdgeToEdge.selectNearestEdge = true;
+creaseEdgeToEdge.select.edge = true;
 
 creaseEdgeToEdge.reset = function(){
 	this.cp.clear();
@@ -24,7 +24,10 @@ creaseEdgeToEdge.updateCreases = function(){
 
 	var nearest = this.cp.boundary.edges
 		.map(function(edge){ return {edge:edge, point:edge.nearestPoint(this.mouse.position)}; },this)
-		.map(function(el){ el.distance = this.mouse.position.distanceTo(el.point); return el; },this)
+		.map(function(el){ 
+			el.distance = Math.sqrt( Math.pow(this.mouse.position.x-el.point.x,2) + Math.pow(this.mouse.position.y-el.point.y,2));
+			return el; 
+		},this)
 		.sort(function(a,b){ return a.distance - b.distance; },this)
 		.map(function(el){ return el.edge},this)
 		.shift();

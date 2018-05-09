@@ -15,7 +15,7 @@ noCross.load("/files/svg/water_strider_marks.svg", function(e){
 	});
 });
 
-noCross.selectNearestEdge = true;
+noCross.select.edge = true;
 
 noCross.reset = function(){
 

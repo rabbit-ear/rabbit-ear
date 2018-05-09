@@ -42,7 +42,7 @@ oneSector.updateAngles = function(){
 }
 
 oneSector.reset = function(){
-	this.selectNearestNode = true;
+	this.select.node = true;
 	var angles = [Math.random()*Math.PI*2, Math.random()*Math.PI*2];
 	var creases = [
 		this.cp.crease(new XY(0.0, 0.0), new XY(0.8*Math.cos(angles[0]), 0.8*Math.sin(angles[0]))).mountain(),
@@ -62,8 +62,8 @@ oneSector.reset();
 oneSector.onFrame = function(event) { }
 oneSector.onResize = function(event) { }
 oneSector.onMouseDown = function(event){
-	if(this.validNodes.filter(function(e){return e===this.nearestNode;},this).length > 0){
-		this.draggingNode = this.nearestNode;
+	if(this.validNodes.filter(function(e){return e===this.nearest.node;},this).length > 0){
+		this.draggingNode = this.nearest.node;
 	}
 }
 oneSector.onMouseUp = function(event){

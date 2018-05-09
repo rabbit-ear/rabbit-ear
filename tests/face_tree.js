@@ -4,7 +4,7 @@ var face_tree_callback = undefined;
 
 var faceTree = new OrigamiPaper("canvas-face-tree");
 faceTree.setPadding(0.05);
-// faceTree.selectNearestEdge = true;
+// faceTree.select.edge = true;
 // faceTree.edgeLayer.bringToFront();
 // faceTree.boundaryLayer.bringToFront();
 
@@ -28,27 +28,27 @@ faceTree.onMouseDown = function(event){
 }
 faceTree.onMouseUp = function(event){ 
 	// this.refreshFaces();
-	// this.nearestEdge = undefined;
+	// this.nearest.edge = undefined;
 	// this.selected.edges = [];
 	// this.update();
 }
 faceTree.onMouseMove = function(event) {
 	// this.refreshFaces();
 	// if(face_tree_callback != undefined){
-	// 	face_tree_callback({'edge':faceTree.nearestEdge});
+	// 	face_tree_callback({'edge':faceTree.nearest.edge});
 	// }
 }
 
 faceTree.refreshFaces = function(){
 	// var faces = [];
-	// if(this.nearestEdge === undefined) return;
+	// if(this.nearest.edge === undefined) return;
 	// if(!this.mouse.pressed){
-	// 	faces = this.nearestEdge.adjacentFaces();
+	// 	faces = this.nearest.edge.adjacentFaces();
 	// } else {
 	// 	var edges = [];
-	// 	if(this.nearestEdge != undefined) {
-	// 		edges.push(this.nearestEdge);
-	// 		edges = edges.concat(this.nearestEdge.adjacentEdges());
+	// 	if(this.nearest.edge != undefined) {
+	// 		edges.push(this.nearest.edge);
+	// 		edges = edges.concat(this.nearest.edge.adjacentEdges());
 	// 	}
 	// 	this.selected.edges = edges;
 	// 	this.update();

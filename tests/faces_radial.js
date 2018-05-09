@@ -3,8 +3,8 @@
 var radialFaces = new OrigamiPaper("canvas-faces-radial");
 radialFaces.setPadding(0.05);
 
-radialFaces.selectNearestNode = true;
-radialFaces.selectNearestEdge = true;
+radialFaces.select.node = true;
+radialFaces.select.edge = true;
 
 radialFaces.reset = function(){
 	paper = this.scope; 

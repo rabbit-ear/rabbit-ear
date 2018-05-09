@@ -10,7 +10,7 @@ function mouse_node_move_stay(){
 	var cp;
 	var paperCP;
 	
-	var nearestNode = undefined;
+	var nearest.node = undefined;
 	var movingNode = undefined;
 	var movingNodeOriginalLocation = undefined;
 	
@@ -64,12 +64,12 @@ function mouse_node_move_stay(){
 			if(cp != undefined){ makeFlatFoldableIndicators(); }
 		} else{
 			var nNode = cp.nearest( event.point.x, event.point.y ).node;
-			if(nearestNode !== nNode){
-				nearestNode = nNode;
-				nodeCircle.position.x = nearestNode.x;
-				nodeCircle.position.y = nearestNode.y;
+			if(nearest.node !== nNode){
+				nearest.node = nNode;
+				nodeCircle.position.x = nearest.node.x;
+				nodeCircle.position.y = nearest.node.y;
 				if(mouse_node_move_stay_callback != undefined){
-					mouse_node_move_stay_callback({'point':event.point, 'node':nearestNode.index, 'valid':nearestNode.flatFoldable()});					
+					mouse_node_move_stay_callback({'point':event.point, 'node':nearest.node.index, 'valid':nearest.node.flatFoldable()});					
 				}
 			}
 		}

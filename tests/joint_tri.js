@@ -1,7 +1,7 @@
 
 var jointTri = new OrigamiPaper("canvas-joint-triangle");
 jointTri.setPadding(0.05);
-// jointTri.selectNearestEdge = true;
+// jointTri.select.edge = true;
 
 jointTri.reset = function(){
 	paper = this.scope; 

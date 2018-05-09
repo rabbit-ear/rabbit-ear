@@ -2051,6 +2051,24 @@ var PlanarFace = (function () {
             this.nodes[i].transform(matrix);
         }
     };
+    PlanarFace.prototype.center = function () {
+        var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;
+        for (var i = 0; i < this.nodes.length; i++) {
+            if (this.nodes[i].x > xMax) {
+                xMax = this.nodes[i].x;
+            }
+            if (this.nodes[i].x < xMin) {
+                xMin = this.nodes[i].x;
+            }
+            if (this.nodes[i].y > yMax) {
+                yMax = this.nodes[i].y;
+            }
+            if (this.nodes[i].y < yMin) {
+                yMin = this.nodes[i].y;
+            }
+        }
+        return new XY(xMin + (xMax - xMin) * 0.5, yMin + (yMax - yMin) * 0.5);
+    };
     PlanarFace.prototype.adjacencyTree = function () {
         if (this.graph.faces.length === 0) {
             this.graph.generateFaces();
@@ -2912,7 +2930,6 @@ var Crease = (function (_super) {
     Crease.prototype.mountain = function () { this.orientation = CreaseDirection.mountain; return this; };
     Crease.prototype.valley = function () { this.orientation = CreaseDirection.valley; return this; };
     Crease.prototype.border = function () { this.orientation = CreaseDirection.border; return this; };
-    Crease.prototype.creaseToEdge = function (edge) { return this.graph.creaseEdgeToEdge(this, edge); };
     return Crease;
 }(PlanarEdge));
 var CreaseFace = (function (_super) {

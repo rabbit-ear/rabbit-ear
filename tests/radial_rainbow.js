@@ -25,7 +25,7 @@ radialRay.reset = function(){
 	}
 	this.cp.cleanDuplicateNodes();
 	this.draw();
-	this.selectNearestEdge = true;
+	this.select.edge = true;
 	this.style.selectedEdge = { gray:0.0 };
 	this.style.mark.strokeColor = { gray:0.0 };
 	this.centerNode = this.cp.nearest(0.5, 0.5).node;
@@ -44,7 +44,7 @@ radialRay.onMouseUp = function(event){ }
 radialRay.onMouseMove = function(event) {
 	for(var i = 0; i < radialRay.adjacentEdges.length; i++){
 		var edgeIndex = radialRay.adjacentEdges[i].index;
-		if(radialRay.adjacentEdges[i] === radialRay.nearestEdge){
+		if(radialRay.adjacentEdges[i] === radialRay.nearest.edge){
 			radialRay.edges[edgeIndex].strokeColor = radialRay.colorForAngle(radialRay.adjacentEdges[i].absoluteAngle());
 			radialRay.edges[edgeIndex].strokeWidth = 0.02;//radialRay.lineWeight*1.5;
 			radialRay.edges[edgeIndex].bringToFront();

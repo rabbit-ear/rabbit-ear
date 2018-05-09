@@ -48,10 +48,10 @@ project.onFrame = function(event){ }
 project.onResize = function(event){ }
 project.onMouseMove = function(event){ }
 project.onMouseDown = function(event){
-	var nearestEdge = this.cp.nearest(event.point).edge || {};
-	if(nearestEdge.edge !== undefined){
-		updateCodeMirror("cp.edges[" + nearestEdge.edge.index + "]");
-		// console.log( nearestEdge.edge.index );
+	var nearest.edge = this.cp.nearest(event.point).edge || {};
+	if(nearest.edge.edge !== undefined){
+		updateCodeMirror("cp.edges[" + nearest.edge.edge.index + "]");
+		// console.log( nearest.edge.edge.index );
 	}
 }
 

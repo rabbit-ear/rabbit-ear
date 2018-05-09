@@ -1,10 +1,10 @@
 var callbackReport;
 
-nearestNode = undefined;
+nearest.node = undefined;
 project.movingNode = undefined;
 project.mNodeOriginalLocation = undefined;
 project.nNode = undefined;
-project.selectNearestNode = true;
+project.select.node = true;
 project.style.valley.strokeColor = {gray:0.0, alpha:1.0};
 project.style.mountain.strokeColor = {gray:0.0, alpha:1.0};
 project.style.selectedNode = {
@@ -63,8 +63,8 @@ project.onMouseMove = function(event) {
 		this.update();
 	} else{
 		var nNode = this.cp.nearest( event.point.x, event.point.y ).node;
-		if(nearestNode !== nNode){
-			nearestNode = nNode;
+		if(nearest.node !== nNode){
+			nearest.node = nNode;
 		}
 	}
 	if(this.cp != undefined){ 
@@ -72,6 +72,6 @@ project.onMouseMove = function(event) {
 		this.colorNodesFlatFoldable(); 
 	}
 	if(callbackReport != undefined){
-		callbackReport({'point':event.point, 'node':nearestNode.index, 'valid':nearestNode.flatFoldable()});
+		callbackReport({'point':event.point, 'node':nearest.node.index, 'valid':nearest.node.flatFoldable()});
 	}
 }

@@ -13,7 +13,7 @@ function mouse_node_move(){
 	var paperCP = new OrigamiPaper(scope, cp);
 	// for(var i = 0; i < paperCP.edges.length; i++){ paperCP.edges[i].strokeWidth = paperCP.lineWeight*1.5; }
 
-	var nearestNode = undefined;
+	var nearest.node = undefined;
 	var movingNode = undefined;
 	var movingNodeOriginalLocation = undefined;
 
@@ -41,10 +41,10 @@ function mouse_node_move(){
 			nodeCircle.position.y = movingNode.y;
 		} else{
 			var nNode = cp.nearest( event.point.x, event.point.y ).node;
-			if(nearestNode !== nNode){
-				nearestNode = nNode;
-				nodeCircle.position.x = nearestNode.x;
-				nodeCircle.position.y = nearestNode.y;
+			if(nearest.node !== nNode){
+				nearest.node = nNode;
+				nodeCircle.position.x = nearest.node.x;
+				nodeCircle.position.y = nearest.node.y;
 			}
 		}
 		paperCP.draw();

@@ -2,8 +2,8 @@
 var chopHoriz = new OrigamiPaper("canvas-chop-collinear-horiz");
 chopHoriz.setPadding(0.05);
 
-chopHoriz.selectNearestNode = true;
-chopHoriz.selectNearestEdge = true;
+chopHoriz.select.node = true;
+chopHoriz.select.edge = true;
 
 chopHoriz.reset = function(){
 	paper = this.scope; 

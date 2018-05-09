@@ -6,7 +6,7 @@ loadSVGSketch.load("/files/svg/crane.svg", function(){
 	loadSVGSketch.draw();
 });
 
-loadSVGSketch.selectNearestEdge = true;
+loadSVGSketch.select.edge = true;
 
 loadSVGSketch.reset = function(){
 	paper = this.scope; 

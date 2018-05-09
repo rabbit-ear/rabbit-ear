@@ -385,6 +385,20 @@ class PlanarFace{
 		}
 	}
 
+	// todo: figure out what kind of center this is. give it a better name
+	center():XY{
+		// this is not an average / means
+		var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;
+		for(var i = 0; i < this.nodes.length; i++){ 
+			if(this.nodes[i].x > xMax){ xMax = this.nodes[i].x; }
+			if(this.nodes[i].x < xMin){ xMin = this.nodes[i].x; }
+			if(this.nodes[i].y > yMax){ yMax = this.nodes[i].y; }
+			if(this.nodes[i].y < yMin){ yMin = this.nodes[i].y; }
+		}
+		return new XY(xMin+(xMax-xMin)*0.5, yMin+(yMax-yMin)*0.5);
+	}
+
+
 // [
 // 	[CreaseFace]
 // 	[CreaseFace, CreaseFace, CreaseFace]
@@ -1045,9 +1059,9 @@ class PlanarGraph extends Graph{
 
 /*
 	getNearestFace(a:any, b:any):PlanarFace{
-		var nearestNode = this.getNearestNode(a, b);
-		if(nearestNode === undefined){ return; }
-		var faces = nearestNode.adjacentFaces();
+		var nearest.node = this.getNearestNode(a, b);
+		if(nearest.node === undefined){ return; }
+		var faces = nearest.node.adjacentFaces();
 		if(faces === undefined || faces.length == 0){ return; }
 		var sortedFaces = faces.sort(function(a,b){
 			var avgA = 0;

@@ -2,7 +2,7 @@
 var edgeAngle = new OrigamiPaper("canvas-edge-by-angle");
 edgeAngle.setPadding(0.05);
 
-edgeAngle.selectNearestEdge = true;
+edgeAngle.select.edge = true;
 
 edgeAngle.reset = function(){
 	paper = this.scope; 

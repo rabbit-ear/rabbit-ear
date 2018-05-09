@@ -52,7 +52,7 @@ projectKawasaki.reset = function(){
 
 	var numNodes = 8;
 
-	this.selectNearestNode = true;
+	this.select.node = true;
 	var creases = [];
 	for(var i = 0; i < numNodes; i++){
 		var r = Math.random()*0.5 + 0.5;
@@ -73,8 +73,8 @@ projectKawasaki.reset();
 projectKawasaki.onFrame = function(event) { }
 projectKawasaki.onResize = function(event) { }
 projectKawasaki.onMouseDown = function(event){
-	if(this.validNodes.filter(function(e){return e===this.nearestNode;},this).length > 0){
-		draggingNode = this.nearestNode;
+	if(this.validNodes.filter(function(e){return e===this.nearest.node;},this).length > 0){
+		draggingNode = this.nearest.node;
 	}
 }
 projectKawasaki.onMouseUp = function(event){

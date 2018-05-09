@@ -2,8 +2,8 @@
 var chop_sketch = new OrigamiPaper("canvas-chop");
 chop_sketch.setPadding(0.05);
 
-chop_sketch.selectNearestNode = true;
-chop_sketch.selectNearestEdge = true;
+chop_sketch.select.node = true;
+chop_sketch.select.edge = true;
 
 chop_sketch.reset = function(){
 	paper = this.scope; 

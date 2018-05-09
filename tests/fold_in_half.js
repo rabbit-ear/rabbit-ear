@@ -2,7 +2,7 @@
 var foldHalf = new OrigamiPaper("canvas-fold-in-half");
 foldHalf.setPadding(0.05);
 
-// foldHalf.selectNearestEdge = true;
+// foldHalf.select.edge = true;
 foldHalf.style.mark.strokeColor = {gray:0};
 
 foldHalf.reset = function(){

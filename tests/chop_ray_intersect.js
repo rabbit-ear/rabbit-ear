@@ -2,7 +2,7 @@
 var rayIntersect = new OrigamiPaper("canvas-chop-ray-intersect");
 rayIntersect.setPadding(0.05);
 
-rayIntersect.selectNearestEdge = true;
+rayIntersect.select.edge = true;
 
 rayIntersect.reset = function(){
 	paper = this.scope; 

@@ -5,7 +5,7 @@ var node_adjacent_faces_callback = undefined;
 var nodeFaces = new OrigamiPaper("canvas-node-adjacent-faces").blackAndWhite();
 nodeFaces.setPadding(0.05);
 nodeFaces.style.selectedNode.fillColor = { hue:220, saturation:0.6, brightness:1 };
-nodeFaces.selectNearestNode = true;
+nodeFaces.select.node = true;
 nodeFaces.edgeLayer.bringToFront();
 nodeFaces.boundaryLayer.bringToFront();
 nodeFaces.nodeLayer.bringToFront();
@@ -28,14 +28,14 @@ nodeFaces.onMouseDown = function(event){
 }
 nodeFaces.onMouseUp = function(event){
 	this.refreshFaces();
-	this.nearestNode = undefined;
+	this.nearest.node = undefined;
 	this.selected.nodes = [];
 	this.update();
 }
 nodeFaces.onMouseMove = function(event) {
 	this.refreshFaces();
 	if(node_adjacent_faces_callback != undefined){
-		node_adjacent_faces_callback({'node':nodeFaces.nearestNode});
+		node_adjacent_faces_callback({'node':nodeFaces.nearest.node});
 	}
 }
 
@@ -47,15 +47,15 @@ nodeFaces.refreshFaces = function(){
 	// console.log(nearest);
 	if(nearest.face === undefined){return;}
 	this.makeFaces( [nearest.face] )
-	// if(this.nearestNode === undefined) return;
+	// if(this.nearest.node === undefined) return;
 	// // if(!this.mouse.isPressed){
-	// faces = this.nearestNode.adjacentFaces();
+	// faces = this.nearest.node.adjacentFaces();
 	// } 
 	// else {
 	// 	var nodes = [];
-	// 	if(this.nearestNode != undefined) {
-	// 		nodes.push(this.nearestNode);
-	// 		nodes = nodes.concat(this.nearestNode.adjacentNodes());
+	// 	if(this.nearest.node != undefined) {
+	// 		nodes.push(this.nearest.node);
+	// 		nodes = nodes.concat(this.nearest.node.adjacentNodes());
 	// 	}
 	// 	this.selected.nodes = nodes;
 	// 	this.update();

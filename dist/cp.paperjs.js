@@ -4,11 +4,7 @@
 try { var cp = new CreasePattern(); }
 catch(err) { throw "cp.paper.js requires the crease pattern js library github.com/robbykraft/Origami, and to be included before this file\n" + err.message; }
 
-
-var EPSILON_FILE_IMPORT = 0.00005;
-
 var OrigamiPaper = (function(){
-
 	function OrigamiPaper(canvas, creasePattern) {
 		if(canvas === undefined) { throw "OrigamiPaper() requires an HTML canvas, please specify one in the constructor"; }
 		if(typeof canvas === "string"){ 
@@ -25,13 +21,13 @@ var OrigamiPaper = (function(){
 		// PAPER JS
 		this.scope = new paper.PaperScope();
 		this.scope.setup(this.canvas);
+		this.loader = new PaperJSLoader();
 
 		// properties
 		this.style = this.defaultStyleTemplate();
-		this.cpMin = 1.0; // thickness of lines based on this
+		// the minimum width/height of the crease pattern, used to base thickness of lines
+		this.cpMin = 1.0;
 		this.padding = 0.0075; // padding inside the canvas
-		this.buildViewMatrix();
-
 		this.bounds = undefined;
 
 		// the order of the following sets the z index order too
@@ -40,7 +36,6 @@ var OrigamiPaper = (function(){
 		this.edgeLayer = new this.scope.Layer();
 		this.boundaryLayer = new this.scope.Layer();
 		this.nodeLayer = new this.scope.Layer();
-
 		// user interaction
 		this.mouse = {
 			position: {'x':0,'y':0},
@@ -48,22 +43,20 @@ var OrigamiPaper = (function(){
 			isPressed: false,
 			isDragging: false
 		};
-		// user interaction
-		this.nearestNode = undefined;
-		this.nearestEdge = undefined;
-		this.nearestFace = undefined;
-		// setting these true causes this to highlight parts
-		this.selectNearestNode = false;
-		this.selectNearestEdge = false;
-		this.selectNearestFace = false;
-
-		// this.selected = { nodes:[], edges:[], faces:[] };
-		// this runs on paper.js objects
+		this.show = {
+			boundary:true,
+			nodes:true,
+			edges:true,
+			faces:true,
+		}
+		// user select and move
 		this.selectable = [];
+		this.selectRadius = 0.03;
 		this.selected = undefined;
-		this.selectableRadius = 0.03;
-		// UI layer
-		this.interactionLayer = new this.scope.Layer();
+		this.select = {};
+
+		this.buildViewMatrix();
+		this.draw();
 
 		var that = this;
 		this.scope.view.onFrame = function(event){
@@ -76,14 +69,7 @@ var OrigamiPaper = (function(){
 			that.mouse.isDragging = false;
 			that.mouse.pressed.x = event.point.x;
 			that.mouse.pressed.y = event.point.y;
-			if(that.selectable.length > 0){
-				for(var i = 0; i < that.selectable.length; i++){
-					if( (that.selectable[i].position !== undefined) &&
-					    (pointsSimilar(event.point, that.selectable[i].position, that.selectableRadius)) ){
-						that.selected = that.selectable[i];
-					}
-				}
-			}
+			that.attemptToSelect();
 			that.onMouseDown(event);
 		}
 		this.scope.view.onMouseUp = function(event){
@@ -98,19 +84,11 @@ var OrigamiPaper = (function(){
 			that.mouse.position.y = event.point.y;
 			if(that.mouse.isPressed){ 
 				if(that.mouse.isDragging === false){
+					that.mouse.isDragging = true;
 					that.onMouseDidBeginDrag(event);
 				}
-				that.mouse.isDragging = true;
 			}
-			if(that.selectNearestNode || that.selectNearestEdge || that.selectNearestFace){
-				var nearest = that.cp.nearest( event.point );
-				if(that.selectNearestNode){ that.nearestNode = nearest.node; }
-				if(that.selectNearestEdge){ that.nearestEdge = nearest.edge; }
-				if(that.selectNearestFace){ that.nearestFace = nearest.face; }
-				that.update();
-
-			}
-			if(that.selected !== undefined){ that.selected.position = event.point; }
+			that.updateSelected();
 			that.onMouseMove(event);
 		}
 		this.scope.view.onResize = function(event){
@@ -118,18 +96,41 @@ var OrigamiPaper = (function(){
 			that.buildViewMatrix(); 
 			that.onResize(event); 
 		}
-		this.draw();
-	}
-	OrigamiPaper.prototype.setCreasePattern = function(creasePattern){
-		this.cp = creasePattern;
-		this.draw();
 	}
 
-	OrigamiPaper.prototype.didUpdate = function(){
-		if(OrigamiPaper.prototype.refresh !== undefined){
-			OrigamiPaper.prototype.refresh();
+	// OrigamiPaper.prototype.setup = function(event){ }
+	// OrigamiPaper.prototype.update = function(event){ }
+	// OrigamiPaper.prototype.draw = function(event){ }
+	OrigamiPaper.prototype.onResize = function(event){ }
+	OrigamiPaper.prototype.onFrame = function(event){ }
+	OrigamiPaper.prototype.onMouseDown = function(event){ }
+	OrigamiPaper.prototype.onMouseUp = function(event){ }
+	OrigamiPaper.prototype.onMouseMove = function(event){ }
+	OrigamiPaper.prototype.onMouseDidBeginDrag = function(event){ }
+
+	// OrigamiPaper.prototype.didUpdate = function(){
+	// 	if(OrigamiPaper.prototype.refresh !== undefined){
+	// 		OrigamiPaper.prototype.refresh();
+	// 	}
+	// 	OrigamiPaper.prototype.draw();
+	// }
+	OrigamiPaper.prototype.attemptToSelect = function(){
+		function pointsSimilar(a, b, epsilon){
+			function epsilonEqual(a, b, epsilon){return ( Math.abs(a-b) < epsilon );}
+			return epsilonEqual(a.x,b.x,epsilon) && epsilonEqual(a.y,b.y,epsilon);
 		}
-		OrigamiPaper.prototype.draw();
+		for(var i = 0; i < this.selectable.length; i++){
+			if( (this.selectable[i].position !== undefined) &&
+			    (pointsSimilar(this.mouse.position, this.selectable[i].position, this.selectRadius)) ){
+				this.selected = this.selectable[i];
+			}
+		}
+	}
+	OrigamiPaper.prototype.updateSelected = function(){
+		if(this.mouse.isDragging && this.selected !== undefined){
+			this.selected.position.x = this.mouse.position.x;
+			this.selected.position.y = this.mouse.position.y;
+		}
 	}
 
 	OrigamiPaper.prototype.makeControlPoints = function(count, style){
@@ -163,11 +164,10 @@ var OrigamiPaper = (function(){
 		this.faceLayer.removeChildren();
 
 		// draw paper
-		if(this.cp.boundary !== undefined){
-			var boundarySegments = [];
-			for(var i = 0; i < this.cp.boundary.edges.length; i++){
-				boundarySegments = boundarySegments.concat(this.cp.boundary.edges[i].nodes.map(function(el){return [el.x, el.y];}));
-			}
+		if(this.show.boundary && this.cp.boundary !== undefined){
+			var boundarySegments = this.cp.boundary.edges.map(function(edge){
+				return edge.nodes.map(function(node){ return [node.x, node.y]; },this)
+			},this).reduce((x,y) => x.concat(y), []);
 			// paper color
 			this.backgroundLayer.activate();
 			var paperBackground = new this.scope.Path({segments: boundarySegments, closed: true });
@@ -178,27 +178,33 @@ var OrigamiPaper = (function(){
 			var boundaryPath = new this.scope.Path({segments: boundarySegments, closed: true });
 			Object.assign(boundaryPath, this.styleForCrease(CreaseDirection.border));
 		}
-		this.nodeLayer.activate();
-		for(var i = 0; i < this.cp.nodes.length; i++){
-			var circle = new this.scope.Shape.Circle({ center: [this.cp.nodes[i].x, this.cp.nodes[i].y] });
-			Object.assign(circle, this.style.nodes);
-			this.nodes.push( circle );
+		if(this.show.nodes){
+			this.nodeLayer.activate();
+			for(var i = 0; i < this.cp.nodes.length; i++){
+				var circle = new this.scope.Shape.Circle({ center: [this.cp.nodes[i].x, this.cp.nodes[i].y] });
+				Object.assign(circle, this.style.nodes);
+				this.nodes.push( circle );
+			}
 		}
-		this.edgeLayer.activate();
-		for(var i = 0; i < this.cp.edges.length; i++){
-			var nodes = this.cp.edges[i].nodes.map(function(el){ return [el.x, el.y]; })
-			var path = new this.scope.Path({segments: nodes, closed: false });
-			Object.assign(path, this.styleForCrease(this.cp.edges[i].orientation));
-			this.edges.push( path );
+		if(this.show.edges){
+			this.edgeLayer.activate();
+			for(var i = 0; i < this.cp.edges.length; i++){
+				var nodes = this.cp.edges[i].nodes.map(function(el){ return [el.x, el.y]; })
+				var path = new this.scope.Path({segments: nodes, closed: false });
+				Object.assign(path, this.styleForCrease(this.cp.edges[i].orientation));
+				this.edges.push( path );
+			}
 		}
-		this.faceLayer.activate();
-		for(var i = 0; i < this.cp.faces.length; i++){
-			var nodes = this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y]; });
-			var face = new this.scope.Path({segments:nodes, closed:true});
-			// var color = 100 + 200 * i/this.cp.faces.length;
-			// face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
-			face.fillColor = { gray:(i/this.cp.faces.length)*0.33+0.66 };
-			this.faces.push( face );
+		if(this.show.faces){
+			this.faceLayer.activate();
+			for(var i = 0; i < this.cp.faces.length; i++){
+				var nodes = this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y]; });
+				var face = new this.scope.Path({segments:nodes, closed:true});
+				face.scale(0.6, this.cp.faces[i].center());
+				// face.fillColor = { gray:(i/this.cp.faces.length)*0.33+0.66 };
+				face.fillColor = { gray:0.85 };
+				this.faces.push( face );
+			}
 		}
 		this.buildViewMatrix();
 	}
@@ -206,8 +212,8 @@ var OrigamiPaper = (function(){
 	OrigamiPaper.prototype.load = function(svg, callback, epsilon){
 		var that = this;
 		this.scope.project.importSVG(svg, function(e){
-			var cp = paperPathToCP(e);
-			if(epsilon === undefined){ epsilon = EPSILON_FILE_IMPORT; }
+			var cp = this.loader.paperPathToCP(e);
+			if(epsilon === undefined){ epsilon = 0.00005; }
 			cp.clean(epsilon);
 			that.setCreasePattern( cp );
 			if(callback != undefined){
@@ -216,19 +222,22 @@ var OrigamiPaper = (function(){
 		});
 	}
 
-	OrigamiPaper.prototype.loadUnclean = function(svg, callback){
+	OrigamiPaper.prototype.loadRaw = function(svg, callback){
 		var that = this;
 		this.scope.project.importSVG(svg, function(e){
-			that.setCreasePattern( paperPathToCP(e) );
+			that.setCreasePattern( this.loader.paperPathToCP(e) );
 			if(callback != undefined){
 				callback(this.cp);
 			}
 		});
 	}
 	OrigamiPaper.prototype.updatePositions = function () {
-		for(var i = 0; i < this.nodes.length; i++){ this.nodes[i].position = [this.cp.nodes[i].x, this.cp.nodes[i].y]; }
-		for(var i = 0; i < this.cp.edges.length; i++){ this.edges[i].segments = this.cp.edges[i].nodes.map(function(el){ return [el.x, el.y]; }); }
-		for(var i = 0; i < this.cp.faces.length; i++){ this.faces[i].segments = this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y]; }); }
+		for(var i=0;i<this.nodes.length;i++){
+			this.nodes[i].position=[this.cp.nodes[i].x, this.cp.nodes[i].y];}
+		for(var i=0;i<this.cp.edges.length;i++){
+			this.edges[i].segments=this.cp.edges[i].nodes.map(function(el){ return [el.x, el.y];});}
+		for(var i=0;i<this.cp.faces.length;i++){
+			this.faces[i].segments=this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y];});}
 	};
 
 
@@ -239,27 +248,9 @@ var OrigamiPaper = (function(){
 			Object.assign(this.edges[i], this.styleForCrease(this.cp.edges[i].orientation)); }
 		for(var i = 0; i < this.cp.faces.length; i++){ 
 			Object.assign(this.faces[i], this.style.face); }
-
-		if(this.boundaryLayer !== undefined){
-			for(var i = 0; i < this.boundaryLayer.children.length; i++){
-				Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
-			}
+		for(var i = 0; i < this.boundaryLayer.children.length; i++){
+			Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
 		}
-		// update user-selected
-		if(this.nearestNode !== undefined){
-			Object.assign(this.nodes[this.nearestNode.index], this.style.selectedNode);
-		}
-		if(this.nearestEdge !== undefined){
-			Object.assign(this.edges[this.nearestEdge.index], this.style.selectedEdge);
-		}
-		// if(this.selected !== undefined){
-			// for(var i = 0; i < this.selected.nodes.length; i++){
-			// 	Object.assign(this.nodes[this.selected.nodes[i].index], this.style.selectedNode);
-			// }
-			// for(var i = 0; i < this.selected.edges.length; i++){
-			// 	Object.assign(this.edges[this.selected.edges[i].index], this.style.selectedEdge);
-			// }
-		// }
 	};
 
 	OrigamiPaper.prototype.update = function () {
@@ -282,21 +273,12 @@ var OrigamiPaper = (function(){
 		this.buildViewMatrix(padding);
 		return this;
 	}
-	var isRetina = function(){
-		var mediaQuery = "(-webkit-min-device-pixel-ratio: 1.5),\
-				(min--moz-device-pixel-ratio: 1.5),\
-				(-o-min-device-pixel-ratio: 3/2),\
-				(min-resolution: 1.5dppx)";
-		if (window.devicePixelRatio > 1){ return true; }
-		if (window.matchMedia && window.matchMedia(mediaQuery).matches){ return true; }
-		return false;
-	}();
 	OrigamiPaper.prototype.buildViewMatrix = function(padding){
 		paper = this.scope;
 		if(padding !== undefined && !isNaN(padding)){ this.padding = padding; }
 		var paperWindowScale = 1.0 - this.padding*2;
 		var pixelScale = 1.0;
-		if(isRetina){ pixelScale = 0.5; }
+		if(this.loader.isRetina){ pixelScale = 0.5; }
 		// canvas size
 		var canvasWidth = this.canvas.width;
 		var canvasHeight = this.canvas.height;
@@ -328,21 +310,6 @@ var OrigamiPaper = (function(){
 	};
 
 	///////////////////////////////////////////////////
-	// USER INTERACTION
-	///////////////////////////////////////////////////
-
-	// OrigamiPaper.prototype.setup = function(event){ }
-	// OrigamiPaper.prototype.update = function(event){ }
-	// OrigamiPaper.prototype.draw = function(event){ }
-	OrigamiPaper.prototype.onResize = function(event){ }
-	OrigamiPaper.prototype.onFrame = function(event){ }
-	OrigamiPaper.prototype.onMouseDown = function(event){ }
-	OrigamiPaper.prototype.onMouseUp = function(event){ }
-	OrigamiPaper.prototype.onMouseMove = function(event){ }
-	OrigamiPaper.prototype.onMouseDidBeginDrag = function(event){ }
-
-
-	///////////////////////////////////////////////////
 	// STYLE
 	///////////////////////////////////////////////////
 
@@ -358,7 +325,6 @@ var OrigamiPaper = (function(){
 
 		}
 	}
-
 
 	OrigamiPaper.prototype.styleForCrease = function(orientation){
 		if   (orientation === CreaseDirection.mountain){ return this.style.mountain; }
@@ -450,8 +416,6 @@ var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
 	return OrigamiPaper;
 }());
 
-
-
 ///////////////////////////////////////////////
 //  RENDER SIMULATED FLAT-FOLDING OF ORIGAMI 
 ///////////////////////////////////////////////
@@ -465,55 +429,37 @@ var OrigamiFold = (function(){
 	OrigamiFold.prototype.onMouseMove = function(event){ }
 
 	function OrigamiFold(canvas, creasePattern) {
-		if(canvas === undefined) { throw "OrigamiFold() needs to be initialized with an HTML canvas"; }
-		if(typeof canvas === "string"){
+		if(canvas === undefined) { throw "OrigamiFold() requires an HTML canvas, please specify one in the constructor"; }
+		if(typeof canvas === "string"){ 
 			this.canvas = document.getElementById(canvas);
-			if(this.canvas === null){
-				this.canvas = document.getElementById("canvas");
-			}
+			// if canvas string isn't found, try the generic case id="canvas"
+			if(this.canvas === null){ this.canvas = document.getElementById("canvas"); }
 		}
 		else{ this.canvas = canvas; }
 
-		// data model
+		// CREASE PATTERN
 		this.cp = creasePattern;
 		if(this.cp === undefined){ this.cp = new CreasePattern(); }
 		
 		// PAPER JS
 		this.scope = new paper.PaperScope();
-		this.scope.setup(canvas);
-		this.style = { face:{ fillColor:{ gray:1.0, alpha:0.1 } } };
-		this.buildViewMatrix();
+		this.scope.setup(this.canvas);
+		this.loader = new PaperJSLoader();
 
 		this.customZoom = 0.8;
-
+		this.style = { face:{ fillColor:{ gray:1.0, alpha:0.1 } } };
 		// the order of the following sets the z index order too
 		this.foldedLayer = new this.scope.Layer();
+
+		this.buildViewMatrix();
+		this.draw();
 				
 		var that = this;
-		this.scope.view.onFrame = function(event){
-			paper = that.scope; 
-			that.onFrame(event); 
-		}
-		this.scope.view.onMouseDown = function(event){
-			paper = that.scope; 
-			that.mouse.isPressed = true; 
-			that.onMouseDown(event);
-		}
-		this.scope.view.onMouseUp = function(event){
-			paper = that.scope;
-			that.mouse.isPressed = false;
-			that.onMouseUp(event);
-		}
-		this.scope.view.onMouseMove = function(event){
-			paper = that.scope;
-			that.onMouseMove(event);
-		}
 		this.scope.view.onResize = function(event){
 			paper = that.scope; 
 			that.buildViewMatrix(); 
 			that.onResize(event); 
 		}
-		this.draw();
 	}
 	OrigamiFold.prototype.draw = function(){
 		this.foldedLayer.removeChildren();
@@ -534,8 +480,8 @@ var OrigamiFold = (function(){
 	OrigamiFold.prototype.load = function(svg, callback, epsilon){
 		var that = this;
 		this.scope.project.importSVG(svg, function(e){
-			var cp = paperPathToCP(e);
-			if(epsilon === undefined){ epsilon = EPSILON_FILE_IMPORT; }
+			var cp = this.loader.paperPathToCP(e);
+			if(epsilon === undefined){ epsilon = 0.00005; }
 			cp.clean(epsilon);
 			that.cp = cp;
 			that.draw();
@@ -550,8 +496,7 @@ var OrigamiFold = (function(){
 		paper = this.scope;
 		// find a face near the middle
 		if(this.cp === undefined){ return; }
-
-		var centerFace = this.cp.getNearestFace(this.cp.bounds().size.width * 0.5, this.cp.bounds().size.height*0.5);
+		var centerFace = this.cp.nearest(this.cp.bounds().size.width * 0.5, this.cp.bounds().size.height*0.5).face;
 		if(centerFace === undefined){ return; }
 		var foldTree = this.cp.adjacentFaceTree(centerFace);
 
@@ -575,17 +520,6 @@ var OrigamiFold = (function(){
 		// this.cp.faces = [];
 	};
 
-
-	var isRetina = function(){
-		var mediaQuery = "(-webkit-min-device-pixel-ratio: 1.5),\
-				(min--moz-device-pixel-ratio: 1.5),\
-				(-o-min-device-pixel-ratio: 3/2),\
-				(min-resolution: 1.5dppx)";
-		if (window.devicePixelRatio > 1){ return true; }
-		if (window.matchMedia && window.matchMedia(mediaQuery).matches){ return true; }
-		return false;
-	}();
-
 	OrigamiFold.prototype.buildViewMatrix = function(padding){
 		paper = this.scope;
 		// store padding for future calls
@@ -594,7 +528,7 @@ var OrigamiFold = (function(){
 		var paperWindowScale = 1.0 - .015;
 		if(this.padding !== undefined){ paperWindowScale = 1.0 - this.padding*2; }
 		var pixelScale = 1.0;
-		if(isRetina){ pixelScale = 0.5; }
+		if(this.loader.isRetina){ pixelScale = 0.5; }
 		// crease pattern size
 		var cpWidth = 1.0; 
 		var cpHeight = 1.0;
@@ -628,53 +562,67 @@ var OrigamiFold = (function(){
 
 
 
-function paperPathToCP(paperPath){
-	var svgLayer = paperPath;
-	var w = svgLayer.bounds.size.width;
-	var h = svgLayer.bounds.size.height;
-	// re-sizing down to 1 x aspect size
-	var min = h; if(w < h){ min = w; }
-	var mat = new paper.Matrix(1/min, 0, 0, 1/min, 0, 0);
-	// var mat = new paper.Matrix(1,0,0,1,0,0);
-	svgLayer.matrix = mat;
-	var cp = new CreasePattern();//.rectangle(w,h);
-	// erase boundary, to be set later by convex hull
-	cp.nodes = [];
-	cp.edges = [];
-	// cp.boundary = new PlanarGraph();
-	function recurseAndAdd(childrenArray){
-		for(var i = 0; i < childrenArray.length; i++){
-			if(childrenArray[i].segments !== undefined){ // found a line
-				var numSegments = childrenArray[i].segments.length-1;
-				if(childrenArray[i].closed === true){
-					numSegments = childrenArray[i].segments.length;
-				}
-				for(var j = 0; j < numSegments; j++){
-					var next = (j+1)%childrenArray[i].segments.length;
-					var crease = cp.newCrease(childrenArray[i].segments[j].point.x,
-								 childrenArray[i].segments[j].point.y, 
-								 childrenArray[i].segments[next].point.x,
-								 childrenArray[i].segments[next].point.y);
-					var color = childrenArray[i].strokeColor;
-					if(color !== undefined && crease !== undefined){
-						if(color.red > color.blue){crease.mountain();}
-						if(color.red < color.blue){crease.valley();}
+var PaperJSLoader = (function(){
+	function PaperJSLoader(){}
+
+	PaperJSLoader.prototype.isRetina = function(){
+		var mediaQuery = "(-webkit-min-device-pixel-ratio: 1.5),\
+				(min--moz-device-pixel-ratio: 1.5),\
+				(-o-min-device-pixel-ratio: 3/2),\
+				(min-resolution: 1.5dppx)";
+		if (window.devicePixelRatio > 1){ return true; }
+		if (window.matchMedia && window.matchMedia(mediaQuery).matches){ return true; }
+		return false;
+	}();
+
+	PaperJSLoader.prototype.paperPathToCP = function(paperPath){
+		var svgLayer = paperPath;
+		var w = svgLayer.bounds.size.width;
+		var h = svgLayer.bounds.size.height;
+		// re-sizing down to 1 x aspect size
+		var min = h; if(w < h){ min = w; }
+		var mat = new paper.Matrix(1/min, 0, 0, 1/min, 0, 0);
+		// var mat = new paper.Matrix(1,0,0,1,0,0);
+		svgLayer.matrix = mat;
+		var cp = new CreasePattern();//.rectangle(w,h);
+		// erase boundary, to be set later by convex hull
+		cp.nodes = [];
+		cp.edges = [];
+		// cp.boundary = new PlanarGraph();
+		function recurseAndAdd(childrenArray){
+			for(var i = 0; i < childrenArray.length; i++){
+				if(childrenArray[i].segments !== undefined){ // found a line
+					var numSegments = childrenArray[i].segments.length-1;
+					if(childrenArray[i].closed === true){
+						numSegments = childrenArray[i].segments.length;
 					}
+					for(var j = 0; j < numSegments; j++){
+						var next = (j+1)%childrenArray[i].segments.length;
+						var crease = cp.newCrease(childrenArray[i].segments[j].point.x,
+									 childrenArray[i].segments[j].point.y, 
+									 childrenArray[i].segments[next].point.x,
+									 childrenArray[i].segments[next].point.y);
+						var color = childrenArray[i].strokeColor;
+						if(color !== undefined && crease !== undefined){
+							if(color.red > color.blue){crease.mountain();}
+							if(color.red < color.blue){crease.valley();}
+						}
+					}
+				} else if (childrenArray[i].children !== undefined){
+					recurseAndAdd(childrenArray[i].children);
 				}
-			} else if (childrenArray[i].children !== undefined){
-				recurseAndAdd(childrenArray[i].children);
 			}
 		}
-	}
-	recurseAndAdd(svgLayer.children);
-	// cp is filled
-	// find the convex hull of the CP, set it to the boundary
-	cp.setBoundary(cp.nodes);
-	// var hull = convexHull(cp.nodes);
-	// cp.setBoundary(hull);
-	// cleanup
-	svgLayer.removeChildren();
-	svgLayer.remove();
-	return cp;
-}
-
+		recurseAndAdd(svgLayer.children);
+		// cp is filled
+		// find the convex hull of the CP, set it to the boundary
+		cp.setBoundary(cp.nodes);
+		// var hull = convexHull(cp.nodes);
+		// cp.setBoundary(hull);
+		// cleanup
+		svgLayer.removeChildren();
+		svgLayer.remove();
+		return cp;
+	};
+	return PaperJSLoader;
+}());

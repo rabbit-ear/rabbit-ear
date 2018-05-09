@@ -3,7 +3,7 @@ mouse_delete_edge_callback = undefined;
 var deleteEdge = new OrigamiPaper("canvas-mouse-delete-edge");
 deleteEdge.setPadding(0.05);
 
-deleteEdge.selectNearestEdge = true;
+deleteEdge.select.edge = true;
 
 deleteEdge.reset = function(){
 	paper = this.scope; 
@@ -28,11 +28,11 @@ deleteEdge.reset();
 deleteEdge.onFrame = function(event) { }
 deleteEdge.onResize = function(event) { }
 deleteEdge.onMouseDown = function(event){
-	console.log(this.nearestEdge);
-	if(this.nearestEdge != undefined){
-		this.cp.removeEdge(this.nearestEdge);
+	console.log(this.nearest.edge);
+	if(this.nearest.edge != undefined){
+		this.cp.removeEdge(this.nearest.edge);
 		this.cp.edgeArrayDidChange();
-		this.nearestEdge = undefined;
+		this.nearest.edge = undefined;
 		this.draw();
 		this.selectedEdge = undefined;
 		// this.selected.edges = [];

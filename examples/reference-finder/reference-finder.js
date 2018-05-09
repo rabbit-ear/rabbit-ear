@@ -240,7 +240,7 @@ function fileDidLoad(file, mimeType){
 		project.draw();
 	} catch(err){
 		// try .svg file format
-		project.loadUnclean(file, function(){
+		project.loadRaw(file, function(){
 			project.cp.square();
 			for(var i = 0; i < project.cp.edges.length; i++){ 
 				if(project.cp.edges[i].orientation !== CreaseDirection.border)

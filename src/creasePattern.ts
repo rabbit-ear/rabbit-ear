@@ -608,8 +608,6 @@ class CreasePattern extends PlanarGraph{
 				},this)
 				.filter(function(el){ return el !== undefined; },this)
 				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
-
-
 		}else{
 			var intersection:XY = a.infiniteLine().intersection( b.infiniteLine() );
 			// var intersection:XY = intersectionLineLine(a.infiniteLine(), b.infiniteLine());

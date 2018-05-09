@@ -1,7 +1,7 @@
 
 var jointTri = new OrigamiPaper("canvas-joint-triangle-animated");
 jointTri.setPadding(0.05);
-// jointTri.selectNearestEdge = true;
+// jointTri.select.edge = true;
 
 var AMP = 0.1;
 

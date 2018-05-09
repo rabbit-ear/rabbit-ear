@@ -2,7 +2,7 @@
 var chopMV = new OrigamiPaper("canvas-chop-mountain-valley");
 chopMV.setPadding(0.05);
 
-chopMV.selectNearestEdge = true;
+chopMV.select.edge = true;
 
 chopMV.reset = function(){
 	paper = this.scope; 

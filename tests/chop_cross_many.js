@@ -2,8 +2,8 @@
 var chopCross = new OrigamiPaper("canvas-chop-cross-many");
 chopCross.setPadding(0.05);
 
-chopCross.selectNearestNode = true;
-chopCross.selectNearestEdge = true;
+chopCross.select.node = true;
+chopCross.select.edge = true;
 
 chopCross.reset = function(){
 	paper = this.scope; 
