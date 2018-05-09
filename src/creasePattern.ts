@@ -538,16 +538,8 @@ class CreasePattern extends PlanarGraph{
 	creaseEdgeToEdge(one:Crease, two:Crease):Crease[]{
 		var a:Line = gimme1Edge(one).infiniteLine();
 		var b:Line = gimme1Edge(two).infiniteLine();
-		// var lines:Line[] = a.bisect(b);
-		// return [
-		// 	this.crease(lines[0].point, lines[0].point.add(lines[0].direction.scale(0.2))),
-		// 	this.crease(lines[1].point, lines[1].point.add(lines[1].direction.scale(0.2)))
-		// ]
-
 		return a.bisect(b)
-			.map(function(line:Line){
-				return this.boundary.clipLine( line );
-			},this)
+			.map(function(line:Line){ return this.boundary.clipLine( line ); },this)
 			.filter(function(edge:Edge){ return edge !== undefined; },this)
 			.map(function(edge:Edge){
 				return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);

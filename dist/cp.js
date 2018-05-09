@@ -1063,7 +1063,6 @@ var Triangle = (function () {
         return false;
     };
     Triangle.prototype.pointInside = function (p) {
-        var found = true;
         for (var i = 0; i < this.points.length; i++) {
             var p0 = this.points[i];
             var p1 = this.points[(i + 1) % this.points.length];
@@ -1106,6 +1105,11 @@ var Circle = (function () {
         }
     };
     return Circle;
+}());
+var Polygon = (function () {
+    function Polygon() {
+    }
+    return Polygon;
 }());
 var ConvexPolygon = (function () {
     function ConvexPolygon() {
@@ -1481,7 +1485,6 @@ var VoronoiMoleculeTriangle = (function () {
         return edges;
     };
     VoronoiMoleculeTriangle.prototype.pointInside = function (p) {
-        var found = true;
         var points = [this.vertex, this.base[0], this.base[1]];
         for (var i = 0; i < points.length; i++) {
             var p0 = points[i];
@@ -2032,14 +2035,16 @@ var PlanarFace = (function () {
         }, this).filter(function (el) { return el !== undefined; });
     };
     PlanarFace.prototype.contains = function (point) {
-        var answer = this.nodes.map(function (el, i) {
-            var nextEl = this.nodes[(i + 1) % this.nodes.length];
-            var cross = (point.y - el.y) * (nextEl.x - el.x) -
-                (point.x - el.x) * (nextEl.y - el.y);
-            return cross > 0;
-        }, this).reduce(function (prev, current) { return prev && current; }, true);
-        console.log(answer);
-        return answer;
+        for (var i = 0; i < this.nodes.length; i++) {
+            var thisNode = this.nodes[i];
+            var nextNode = this.nodes[(i + 1) % this.nodes.length];
+            var a = new XY(nextNode.x - thisNode.x, nextNode.y - thisNode.y);
+            var b = new XY(point.x - thisNode.x, point.y - thisNode.y);
+            if (a.cross(b) < 0) {
+                return false;
+            }
+        }
+        return true;
     };
     PlanarFace.prototype.transform = function (matrix) {
         for (var i = 0; i < this.nodes.length; i++) {
@@ -2527,10 +2532,10 @@ var PlanarGraph = (function (_super) {
         var point = gimme1XY(a, b);
         var face = this.faceContainingPoint(point);
         if (face !== undefined) {
-            var node = face.nodes.sort(function (a, b) {
+            var node = face.nodes.slice().sort(function (a, b) {
                 return a.distanceTo(point) - b.distanceTo(point);
             })[0];
-            var edge = face.edges.sort(function (a, b) {
+            var edge = face.edges.slice().sort(function (a, b) {
                 return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
             })[0];
             var junction = node.junction();
@@ -2545,7 +2550,7 @@ var PlanarGraph = (function (_super) {
                 return a.distance - b.distance;
             })[0].edge;
             var node = (edge !== undefined) ? edge.nodes
-                .sort(function (a, b) { return a.distanceTo(point) - b.distanceTo(point); })[0] : undefined;
+                .slice().sort(function (a, b) { return a.distanceTo(point) - b.distanceTo(point); })[0] : undefined;
             var junction = (node !== undefined) ? node.junction() : undefined;
             var sector = (junction !== undefined) ? junction.sectors.filter(function (el) {
                 return el.contains(point);
@@ -2573,6 +2578,7 @@ var PlanarGraph = (function (_super) {
         this.faces[i].index = i;
     } };
     PlanarGraph.prototype.generateFaces = function () {
+        console.log("calling generateFaces()");
         this.faces = [];
         this.clean();
         for (var i = 0; i < this.nodes.length; i++) {
@@ -3102,9 +3108,7 @@ var CreasePattern = (function (_super) {
         var a = gimme1Edge(one).infiniteLine();
         var b = gimme1Edge(two).infiniteLine();
         return a.bisect(b)
-            .map(function (line) {
-            return this.boundary.clipLine(line);
-        }, this)
+            .map(function (line) { return this.boundary.clipLine(line); }, this)
             .filter(function (edge) { return edge !== undefined; }, this)
             .map(function (edge) {
             return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);

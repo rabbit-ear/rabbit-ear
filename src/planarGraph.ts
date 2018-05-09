@@ -370,14 +370,14 @@ class PlanarFace{
 		}, this).filter(function(el){return el !== undefined;});
 	}
 	contains(point:XY):boolean{
-		var answer = this.nodes.map(function(el,i){
-			var nextEl = this.nodes[ (i+1)%this.nodes.length ];
-			var cross = (point.y - el.y) * (nextEl.x - el.x) - 
-						(point.x - el.x) * (nextEl.y - el.y);
-			return cross > 0;
-		},this).reduce(function(prev, current){ return prev && current; },true);
-		console.log(answer);
-		return answer;
+		for(var i = 0; i < this.nodes.length; i++){
+			var thisNode = this.nodes[ i ];
+			var nextNode = this.nodes[ (i+1)%this.nodes.length ];
+			var a = new XY(nextNode.x - thisNode.x, nextNode.y - thisNode.y);
+			var b = new XY(point.x - thisNode.x, point.y - thisNode.y);
+			if (a.cross(b) < 0){ return false; }
+		}
+		return true;
 	}
 	transform(matrix){
 		for(var i = 0; i < this.nodes.length; i++){
@@ -990,10 +990,10 @@ class PlanarGraph extends Graph{
 		var point = gimme1XY(a,b);
 		var face = this.faceContainingPoint(point);
 		if(face !== undefined){
-			var node:PlanarNode = face.nodes.sort(function(a:PlanarNode, b:PlanarNode){
+			var node:PlanarNode = face.nodes.slice().sort(function(a:PlanarNode, b:PlanarNode){
 				return a.distanceTo(point) - b.distanceTo(point);
 			})[0];
-			var edge:PlanarEdge = face.edges.sort(function(a:PlanarEdge, b:PlanarEdge){
+			var edge:PlanarEdge = face.edges.slice().sort(function(a:PlanarEdge, b:PlanarEdge){
 				return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
 			})[0];
 			var junction = node.junction();
@@ -1007,7 +1007,7 @@ class PlanarGraph extends Graph{
 					return a.distance - b.distance;
 				})[0].edge;
 			var node = (edge !== undefined) ? edge.nodes
-				.sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);})
+				.slice().sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);})
 				[0] : undefined;
 			var junction = (node !== undefined) ? node.junction() : undefined;
 			var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
@@ -1023,6 +1023,16 @@ class PlanarGraph extends Graph{
 		};
 	}
 
+	faceContainingPoint(point:XY):PlanarFace{
+		if(this.faces.length == 0){  this.generateFaces();  }
+		for(var f = 0; f < this.faces.length; f++){
+			if(this.faces[f].contains(point)){
+				return this.faces[f];
+			}
+		}
+	}
+
+
 	// facesContainingPoint(point:XY):PlanarFace[]{
 	// 	var array = [];
 	// 	if(this.faces.length == 0){  this.generateFaces();  }
@@ -1033,15 +1043,6 @@ class PlanarGraph extends Graph{
 	// 	}
 	// 	return array;
 	// }
-
-	faceContainingPoint(point:XY):PlanarFace{
-		if(this.faces.length == 0){  this.generateFaces();  }
-		for(var f = 0; f < this.faces.length; f++){
-			if(this.faces[f].contains(point)){
-				return this.faces[f];
-			}
-		}
-	}
 
 
 /*
@@ -1095,6 +1096,7 @@ class PlanarGraph extends Graph{
 	faceArrayDidChange(){for(var i=0; i<this.faces.length; i++){this.faces[i].index=i;}}
 
 	generateFaces():PlanarFace[]{
+		console.log("calling generateFaces()");
 		this.faces = [];
 		this.clean();
 		for(var i = 0; i < this.nodes.length; i++){

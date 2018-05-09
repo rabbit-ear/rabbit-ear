@@ -168,18 +168,11 @@ var OrigamiPaper = (function(){
 		this.edgeLayer.removeChildren();
 		this.faceLayer.removeChildren();
 
-		// user interaction
-		// this.nearestNode = undefined;
-		// this.nearestEdge = undefined;
-		// this.nearestFace = undefined;
-		// this.selected = { nodes:[], edges:[], faces:[] };
-		// this.selected = undefined;
-
 		// draw paper
 		if(this.cp.boundary !== undefined){
 			var boundarySegments = [];
 			for(var i = 0; i < this.cp.boundary.edges.length; i++){
-				boundarySegments = boundarySegments.concat(this.cp.boundary.edges[i].nodes);
+				boundarySegments = boundarySegments.concat(this.cp.boundary.edges[i].nodes.map(function(el){return [el.x, el.y];}));
 			}
 			// paper color
 			this.backgroundLayer.activate();
@@ -199,13 +192,15 @@ var OrigamiPaper = (function(){
 		}
 		this.edgeLayer.activate();
 		for(var i = 0; i < this.cp.edges.length; i++){
-			var path = new this.scope.Path({segments: this.cp.edges[i].nodes, closed: false });
+			var nodes = this.cp.edges[i].nodes.map(function(el){ return [el.x, el.y]; })
+			var path = new this.scope.Path({segments: nodes, closed: false });
 			Object.assign(path, this.styleForCrease(this.cp.edges[i].orientation));
 			this.edges.push( path );
 		}
 		this.faceLayer.activate();
 		for(var i = 0; i < this.cp.faces.length; i++){
-			var face = new this.scope.Path({segments:this.cp.faces[i].nodes,closed:true});
+			var nodes = this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y]; });
+			var face = new this.scope.Path({segments:nodes, closed:true});
 			// var color = 100 + 200 * i/this.cp.faces.length;
 			// face.fillColor = { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 };
 			face.fillColor = { gray:(i/this.cp.faces.length)*0.33+0.66 };
@@ -236,12 +231,12 @@ var OrigamiPaper = (function(){
 			}
 		});
 	}
-
 	OrigamiPaper.prototype.updatePositions = function () {
-		for(var i = 0; i < this.nodes.length; i++){ this.nodes[i].position = this.cp.nodes[i]; }
-		for(var i = 0; i < this.cp.edges.length; i++){ this.edges[i].segments = this.cp.edges[i].nodes; }
-		for(var i = 0; i < this.cp.faces.length; i++){ this.faces[i].segments = this.cp.faces[i].nodes; }
+		for(var i = 0; i < this.nodes.length; i++){ this.nodes[i].position = [this.cp.nodes[i].x, this.cp.nodes[i].y]; }
+		for(var i = 0; i < this.cp.edges.length; i++){ this.edges[i].segments = this.cp.edges[i].nodes.map(function(el){ return [el.x, el.y]; }); }
+		for(var i = 0; i < this.cp.faces.length; i++){ this.faces[i].segments = this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y]; }); }
 	};
+
 
 	OrigamiPaper.prototype.updateStyles = function () {
 		for(var i = 0; i < this.nodes.length; i++){ 

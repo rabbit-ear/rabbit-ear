@@ -10,7 +10,7 @@ randomFaces.selectNearestEdge = true;
 randomFaces.reset = function(){
 	paper = this.scope; 
 	this.cp.clear();
-	for(var i = 0; i < 10; i++){
+	for(var i = 0; i < 3; i++){
 		this.cp.creaseThroughPoints(new XY(Math.random(), Math.random()), new XY(Math.random(), Math.random()) );
 	}
 	this.cp.clean();
@@ -29,4 +29,6 @@ randomFaces.onMouseDown = function(event){
 	randomFaces.reset();
 }
 randomFaces.onMouseUp = function(event){ }
-randomFaces.onMouseMove = function(event) { }
+randomFaces.onMouseMove = function(event) {
+	this.cp.nearest(event.point);
+}

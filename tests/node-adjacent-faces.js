@@ -74,7 +74,7 @@ nodeFaces.makeFaces = function(faces){
 		var color = 100 + 200 * i/faces.length;
 		new this.scope.Path({
 				fillColor: { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 },
-				segments: faces[i].nodes,
+				segments: faces[i].nodes.map(function(el){return [el.x,el.y];}),
 				closed: true
 		});
 	}

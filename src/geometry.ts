@@ -684,7 +684,6 @@ class Triangle{
 		return false;
 	}
 	pointInside(p:XY):boolean{
-		var found = true;
 		for(var i = 0; i < this.points.length; i++){
 			var p0 = this.points[i];
 			var p1 = this.points[(i+1)%this.points.length];
@@ -714,6 +713,10 @@ class Circle{
 		if(line instanceof Edge){return intersectionCircleLine(this.center,this.radius, line.nodes[0], line.nodes[1]);}
 		if(line instanceof Ray){return intersectionCircleLine(this.center,this.radius, line.origin, line.origin.add(line.direction));}
 	}
+}
+
+class Polygon{
+
 }
 
 class ConvexPolygon{
@@ -816,15 +819,9 @@ class ConvexPolygon{
 		var INFINITE_LOOP = 10000;
 		// sort points by x and y
 		var sorted = points.sort(function(a,b){
-			if(epsilonEqual(a.y, b.y, EPSILON_HIGH)){
-				return a.x - b.x;
-			}
-			return a.y - b.y;});
-				// if(a.x-b.x < -EPSILON_HIGH){ return -1; }  
-				// if(a.x-b.x > EPSILON_HIGH){ return 1; }
-				// if(a.y-b.y < -EPSILON_HIGH){ return -1; } 
-				// if(a.y-b.y > EPSILON_HIGH){ return 1; }
-				// return 0;});
+			if(epsilonEqual(a.y, b.y, EPSILON_HIGH)){ return a.x - b.x; }
+			return a.y - b.y;
+		});
 		var hull:XY[] = [];
 		hull.push(sorted[0]);
 		// the current direction the perimeter walker is facing
@@ -1122,7 +1119,6 @@ class VoronoiMoleculeTriangle{
 		return edges;
 	}
 	pointInside(p:XY):boolean{
-		var found = true;
 		var points = [this.vertex, this.base[0], this.base[1]];
 		for(var i = 0; i < points.length; i++){
 			var p0 = points[i];
