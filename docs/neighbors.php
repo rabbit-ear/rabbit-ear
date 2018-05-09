@@ -52,7 +52,7 @@
 
 <!-- include .js sketches -->
 <script type="text/javascript" src="../lib/p5.min.js"></script>
-<script type="text/javascript" src="../src/cp.p5js.js"></script>
+<script type="text/javascript" src="../dist/cp.p5js.js"></script>
 <script type="text/javascript" src="../tests/15_nearest_node.js"></script>
 <script type="text/javascript" src="../tests/15_nearest_edge.js"></script>
 <script type="text/javascript" src="../tests/nearest_nodes.js"></script>

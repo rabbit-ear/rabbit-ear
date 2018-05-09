@@ -2,8 +2,7 @@
 var loadSVGSketch = new OrigamiPaper("canvas-load-svg");
 loadSVGSketch.setPadding(0.05);
 
-loadSVG("/files/svg/crane.svg", function(e){ 
-	loadSVGSketch.cp = e;
+loadSVGSketch.load("/files/svg/crane.svg", function(){ 
 	loadSVGSketch.draw();
 });
 

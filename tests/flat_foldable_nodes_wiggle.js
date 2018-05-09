@@ -26,8 +26,7 @@ ffMoveNode.style.nodes = {
 };
 
 // loadSVG("/files/svg/sea-turtle-errors.svg", function(e){ 
-loadSVG("/files/svg/crane-errors.svg", function(e){ 
-	ffMoveNode.cp = e;
+ffMoveNode.load("/files/svg/crane-errors.svg", function(){ 
 	ffMoveNode.draw();
 	if(ffMoveNode.nodeLayer != undefined && ffMoveNode.nodeLayer.moveToFront != undefined){
 		ffMoveNode.nodeLayer.moveToFront();

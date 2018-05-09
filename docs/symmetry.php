@@ -1,9 +1,5 @@
 <?php include 'header.php';?>
 
-<!-- <script type="text/javascript" src="../lib/p5.min.js"></script>
-<script type="text/javascript" src="../src/cp.p5js.js"></script>
- -->
-
 <!-- <h3 class="centered" style="padding-top:2em;">CHAPTER V.</h3> -->
 <h1>SYMMETRY</h1>
 

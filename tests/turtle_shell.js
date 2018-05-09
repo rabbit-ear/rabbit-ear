@@ -19,9 +19,7 @@ turtleShell.makeFlatFoldableIndicators = function(){
 }
 
 turtleShell.reset = function(){
-	loadSVG("/files/svg/turtle-shell.svg", function(e){ 
-		// shellTrace = e;
-		turtleShell.cp = e;
+	turtleShell.load("/files/svg/turtle-shell.svg", function(){ 
 		turtleShell.draw();
 		// paperCP = new OrigamiPaper(scope, shellTrace);
 		// nodeLayer.bringToFront();

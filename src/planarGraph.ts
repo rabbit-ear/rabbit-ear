@@ -721,8 +721,6 @@ class PlanarGraph extends Graph{
 			case 2:
 				var farNodes = [<PlanarNode>(edges[0].uncommonNodeWithEdge(edges[1])), 
 								<PlanarNode>(edges[1].uncommonNodeWithEdge(edges[0]))];
-				console.log("++++++++++++++++++++++");
-				console.log(farNodes);
 				if(farNodes[0] === undefined || farNodes[1] === undefined){ return; }
 				var span = new Edge(farNodes[0], farNodes[1]);
 				if(span.collinear(node)){
@@ -1096,7 +1094,6 @@ class PlanarGraph extends Graph{
 	faceArrayDidChange(){for(var i=0; i<this.faces.length; i++){this.faces[i].index=i;}}
 
 	generateFaces():PlanarFace[]{
-		console.log("calling generateFaces()");
 		this.faces = [];
 		this.clean();
 		for(var i = 0; i < this.nodes.length; i++){

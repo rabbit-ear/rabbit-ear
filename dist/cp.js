@@ -2294,8 +2294,6 @@ var PlanarGraph = (function (_super) {
             case 2:
                 var farNodes = [(edges[0].uncommonNodeWithEdge(edges[1])),
                     (edges[1].uncommonNodeWithEdge(edges[0]))];
-                console.log("++++++++++++++++++++++");
-                console.log(farNodes);
                 if (farNodes[0] === undefined || farNodes[1] === undefined) {
                     return;
                 }
@@ -2578,7 +2576,6 @@ var PlanarGraph = (function (_super) {
         this.faces[i].index = i;
     } };
     PlanarGraph.prototype.generateFaces = function () {
-        console.log("calling generateFaces()");
         this.faces = [];
         this.clean();
         for (var i = 0; i < this.nodes.length; i++) {

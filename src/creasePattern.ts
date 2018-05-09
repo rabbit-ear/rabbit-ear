@@ -267,7 +267,7 @@ class Crease extends PlanarEdge{
 	valley()  { this.orientation = CreaseDirection.valley; return this;}
 	border()  { this.orientation = CreaseDirection.border; return this;}
 	// AXIOM 3
-	creaseToEdge(edge:Crease):Crease[]{return this.graph.creaseEdgeToEdge(this, edge);}
+	// creaseToEdge(edge:Crease):Crease[]{return this.graph.creaseEdgeToEdge(this, edge);}
 }
 
 // class RabbitEar{

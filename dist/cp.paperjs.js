@@ -1,45 +1,34 @@
 // OrigamiPaper
 // render and style a crease pattern into an HTML canvas using PaperJS
 
-try {
-	var cp = new CreasePattern();
-} catch(err) {
-	console.log(err.message);
-	throw "cp.paper.js requires the crease pattern js library github.com/robbykraft/Origami, and to be included before this file"
-}
+try { var cp = new CreasePattern(); }
+catch(err) { throw "cp.paper.js requires the crease pattern js library github.com/robbykraft/Origami, and to be included before this file\n" + err.message; }
 
-// var EPSILON_FILE_IMPORT = 0.005;
+
 var EPSILON_FILE_IMPORT = 0.00005;
-
-///////////////////////////////////////////////
-//  RENDER FLAT ORIGAMI CREASE PATTERN
-///////////////////////////////////////////////
 
 var OrigamiPaper = (function(){
 
 	function OrigamiPaper(canvas, creasePattern) {
-		if(canvas === undefined) { throw "OrigamiPaper() needs to be initialized with an HTML canvas"; }
+		if(canvas === undefined) { throw "OrigamiPaper() requires an HTML canvas, please specify one in the constructor"; }
 		if(typeof canvas === "string"){ 
 			this.canvas = document.getElementById(canvas);
 			// if canvas string isn't found, try the generic case id="canvas"
-			if(this.canvas === null){
-				this.canvas = document.getElementById("canvas");
-			}
+			if(this.canvas === null){ this.canvas = document.getElementById("canvas"); }
 		}
 		else{ this.canvas = canvas; }
 
-		this.epsilon = EPSILON;
-
-		// data model
+		// CREASE PATTERN
 		this.cp = creasePattern;
-		// this needs some updating
 		if(this.cp === undefined){ this.cp = new CreasePattern(); }
 		
 		// PAPER JS
 		this.scope = new paper.PaperScope();
 		this.scope.setup(this.canvas);
-		this.cpMin = 1.0; // thickness of lines based on this
+
+		// properties
 		this.style = this.defaultStyleTemplate();
+		this.cpMin = 1.0; // thickness of lines based on this
 		this.padding = 0.0075; // padding inside the canvas
 		this.buildViewMatrix();
 
@@ -54,8 +43,8 @@ var OrigamiPaper = (function(){
 
 		// user interaction
 		this.mouse = {
-			position: new XY(0,0),
-			pressed: new XY(0,0),
+			position: {'x':0,'y':0},
+			pressed: {'x':0,'y':0},
 			isPressed: false,
 			isDragging: false
 		};
@@ -113,9 +102,14 @@ var OrigamiPaper = (function(){
 				}
 				that.mouse.isDragging = true;
 			}
-			if(that.selectNearestNode){ that.highlightNearestNode(event.point); }
-			if(that.selectNearestEdge){ that.highlightNearestEdge(event.point); }
-			if(that.selectNearestFace){ that.highlightNearestFace(event.point); }
+			if(that.selectNearestNode || that.selectNearestEdge || that.selectNearestFace){
+				var nearest = that.cp.nearest( event.point );
+				if(that.selectNearestNode){ that.nearestNode = nearest.node; }
+				if(that.selectNearestEdge){ that.nearestEdge = nearest.edge; }
+				if(that.selectNearestFace){ that.nearestFace = nearest.face; }
+				that.update();
+
+			}
 			if(that.selected !== undefined){ that.selected.position = event.point; }
 			that.onMouseMove(event);
 		}
@@ -278,13 +272,25 @@ var OrigamiPaper = (function(){
 		this.updateStyles();
 	};
 	OrigamiPaper.prototype.setBounds = function(x,y,width,height){
-		this.bounds = new Rect(x,y,width,height);
+		this.bounds = {
+			'topLeft':{'x':x,'y':y},
+			'size':{'width':width, 'height':height}
+		}
 		this.buildViewMatrix();
 	}
 	OrigamiPaper.prototype.setPadding = function(padding){
 		this.buildViewMatrix(padding);
 		return this;
 	}
+	var isRetina = function(){
+		var mediaQuery = "(-webkit-min-device-pixel-ratio: 1.5),\
+				(min--moz-device-pixel-ratio: 1.5),\
+				(-o-min-device-pixel-ratio: 3/2),\
+				(min-resolution: 1.5dppx)";
+		if (window.devicePixelRatio > 1){ return true; }
+		if (window.matchMedia && window.matchMedia(mediaQuery).matches){ return true; }
+		return false;
+	}();
 	OrigamiPaper.prototype.buildViewMatrix = function(padding){
 		paper = this.scope;
 		if(padding !== undefined && !isNaN(padding)){ this.padding = padding; }
@@ -297,16 +303,14 @@ var OrigamiPaper = (function(){
 		var canvasAspect = canvasWidth / canvasHeight;
 		// crease pattern size
 		var cpBounds = this.cp.bounds();
-		if(cpBounds === undefined){ cpBounds = this.bounds; console.log("crease pattern: using the bounds of the canvas for the crease pattern"); console.log(cpBounds);}
-		if(cpBounds === undefined){ cpBounds = new Rect(0,0,canvasWidth/canvasHeight,1.0); }
-		// if(cpBounds.width !== undefined){ cpWidth = this.cp.width(); }
-		// if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
+		if(cpBounds === undefined){ cpBounds = this.bounds; }
+		if(cpBounds === undefined){ cpBounds = {'topLeft':{'x':0,'y':0},'size':{'width':canvasWidth/canvasHeight, 'height':1.0}} };
 		var cpWidth = cpBounds.size.width;
 		var cpHeight = cpBounds.size.height;
 
 		var cpAspect = cpWidth / cpHeight;
-		this.cpMin = cpWidth;
-		if(cpHeight < cpWidth){ this.cpMin = cpHeight; }
+		if(cpWidth < cpHeight){ this.cpMin = cpWidth; }
+		else                  { this.cpMin = cpHeight; }
 		// cp to canvas ratio
 		var cpCanvasRatio = canvasHeight / cpHeight;
 		if(cpAspect > canvasAspect) { cpCanvasRatio = canvasWidth / cpWidth; }
@@ -337,23 +341,6 @@ var OrigamiPaper = (function(){
 	OrigamiPaper.prototype.onMouseMove = function(event){ }
 	OrigamiPaper.prototype.onMouseDidBeginDrag = function(event){ }
 
-	OrigamiPaper.prototype.highlightNearestNode = function(position){
-		var node = this.cp.nearest( position ).node;
-		if(node === undefined) return;
-		if(this.nearestNode !== node){
-			this.nearestNode = node;
-			this.update();
-		}
-	};
-
-	OrigamiPaper.prototype.highlightNearestEdge = function(position){
-		var edge = this.cp.nearest( position ).edge;
-		if(edge === undefined) return;
-		if(this.nearestEdge !== edge){
-			this.nearestEdge = edge;
-			this.update();
-		}
-	};
 
 	///////////////////////////////////////////////////
 	// STYLE
@@ -588,6 +575,17 @@ var OrigamiFold = (function(){
 		// this.cp.faces = [];
 	};
 
+
+	var isRetina = function(){
+		var mediaQuery = "(-webkit-min-device-pixel-ratio: 1.5),\
+				(min--moz-device-pixel-ratio: 1.5),\
+				(-o-min-device-pixel-ratio: 3/2),\
+				(min-resolution: 1.5dppx)";
+		if (window.devicePixelRatio > 1){ return true; }
+		if (window.matchMedia && window.matchMedia(mediaQuery).matches){ return true; }
+		return false;
+	}();
+
 	OrigamiFold.prototype.buildViewMatrix = function(padding){
 		paper = this.scope;
 		// store padding for future calls
@@ -680,49 +678,3 @@ function paperPathToCP(paperPath){
 	return cp;
 }
 
-
-// callback returns the crease pattern as an argument
-function loadSVG(path, callback, epsilon){
-	// console.log("load svg epsilon");
-	// console.log(epsilon);
-	// var newScope = new paper.PaperScope();
-	paper.project.importSVG(path, function(e){
-		var cp = paperPathToCP(e);
-		var bounds = cp.bounds();
-		var width = bounds.size.width;
-		var height = bounds.size.height;
-		// todo: 
-		var eps = epsilon;
-		if(eps === undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; } EPSILON
-		cp.cleanDuplicateNodes(eps);
-		cp.fragment();
-		cp.cleanDuplicateNodes(eps);
-		if(callback != undefined){
-			callback(cp);
-		}
-	});
-}
-
-function loadSVGUnclean(path, callback, epsilon){
-	// var newScope = new paper.PaperScope();
-	paper.project.importSVG(path, function(e){
-		var cp = paperPathToCP(e);
-		var eps = EPSILON_FILE_IMPORT;
-		if(eps !== undefined){ eps = EPSILON_FILE_IMPORT; } //EPSILON_FILE_IMPORT; }
-		if(callback != undefined){
-			callback(cp);
-		}
-	});
-}
-
-var isRetina = function(){
-	var mediaQuery = "(-webkit-min-device-pixel-ratio: 1.5),\
-			(min--moz-device-pixel-ratio: 1.5),\
-			(-o-min-device-pixel-ratio: 3/2),\
-			(min-resolution: 1.5dppx)";
-	if (window.devicePixelRatio > 1)
-		return true;
-	if (window.matchMedia && window.matchMedia(mediaQuery).matches)
-		return true;
-	return false;
-}();

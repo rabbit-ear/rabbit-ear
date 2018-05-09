@@ -38,5 +38,4 @@ function fillGraph(graph, numNodes){
 	}
 	edgeString += '[' + graph.edges[graph.edges.length-1].nodes[0].index + ',' + graph.edges[graph.edges.length-1].nodes[1].index + ']';
 	var graphString = '{nodes: [' + nodeString + '],<br>&nbsp;edges: [ ' + edgeString + ' ]}';
-	$("#spanGraphContents").html(graphString);
 }

@@ -24,7 +24,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>var</key> cp<key> = new</key> CreasePattern().<v>loadSVG</v>(<str>"crane.svg"</str>)</code></pre>
+		<pre><code>origamiPaper.<v>load</v>(<str>"crane.svg"</str>)</code></pre>
 	</div>
 
 <h2>Creases</h2>

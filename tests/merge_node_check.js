@@ -3,8 +3,7 @@ mergeNodeCheck.setPadding(0.05);
 
 mergeNodeCheck.reset = function(){
 	paper = this.scope; 
-	loadSVG("/files/svg/sea-turtle-base.svg", function(e){ 
-		mergeNodeCheck.cp = e;
+	mergeNodeCheck.load("/files/svg/sea-turtle-base.svg", function(){ 
 		mergeNodeCheck.draw();
 		mergeNodeCheck.nodeLayer.visible = true;
 		mergeNodeCheck.nodeLayer.bringToFront();

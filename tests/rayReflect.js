@@ -13,10 +13,9 @@ rayReflect.lineLayer = new rayReflect.scope.Layer();
 	// this.draw();
 // }
 rayReflect.reset = function(){
-	loadSVG("/files/svg/waves2.svg", function(e){ 
-		rayReflect.cp = e;
+	rayReflect.load("/files/svg/waves2.svg", function(){
 		rayReflect.draw();
-	});	
+	});
 }
 rayReflect.reset();
 

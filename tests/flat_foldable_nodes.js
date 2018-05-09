@@ -3,8 +3,7 @@ var flat_foldable_nodes_callback;
 var ffSketch = new OrigamiPaper("canvas-flat-foldable-nodes");
 ffSketch.setPadding(0.05);
 
-loadSVG("/files/svg/sea-turtle-errors.svg", function(e){ 
-	ffSketch.cp = e;
+ffSketch.load("/files/svg/sea-turtle-errors.svg", function(){ 
 	ffSketch.draw();
 	ffSketch.nodeLayer.visible = true;
 	ffSketch.colorNodesFlatFoldable();

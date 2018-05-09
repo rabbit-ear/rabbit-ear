@@ -167,9 +167,6 @@
 <script type="text/javascript" src="../tests/one_sector.js"></script>
 <script type="text/javascript" src="../tests/vectors.js"></script>
 <script type="text/javascript" src="../tests/interior_angles.js"></script>
-<script type="text/javascript" src="../tests/intersect_segments.js"></script>
-<script type="text/javascript" src="../tests/intersect_lines.js"></script>
-<script type="text/javascript" src="../tests/intersect_rays.js"></script>
 <script type="text/javascript" src="../tests/intersect_all.js"></script>
 <script type="text/javascript" src="../tests/polygon_clip.js"></script>
 <script type="text/javascript" src="../tests/point_normal.js"></script>

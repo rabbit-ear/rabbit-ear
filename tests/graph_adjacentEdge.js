@@ -28,7 +28,6 @@ function fillGraph(graph, numNodes){
 		}
 	}
 	graph.clean();
-	console.log(graph);
 }
 
 function didTouchNode02(index, circles, links){
