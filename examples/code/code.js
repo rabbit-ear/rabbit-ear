@@ -9,11 +9,18 @@ var myCodeMirror = CodeMirror(document.getElementById("codeColumn"), {
 		resetCP();
 		eval(editor.getValue());
 		project.draw();
+		// success
+		consoleDiv.innerHTML = "";
 	}
 	catch(err){
-		// console.log("broken");
+		consoleDiv.innerHTML = err;
+		console.log(err);
 	}
 });
+
+var consoleDiv = document.createElement("div");
+consoleDiv.id = "code-console";
+document.getElementById("codeColumn").appendChild(consoleDiv)
 
 var cp = new CreasePattern();
 var project = new OrigamiPaper("canvas", cp);
@@ -48,14 +55,25 @@ project.onFrame = function(event){ }
 project.onResize = function(event){ }
 project.onMouseMove = function(event){ }
 project.onMouseDown = function(event){
-	var nearest.edge = this.cp.nearest(event.point).edge || {};
-	if(nearest.edge.edge !== undefined){
-		updateCodeMirror("cp.edges[" + nearest.edge.edge.index + "]");
-		// console.log( nearest.edge.edge.index );
+	var nearest = this.cp.nearest(event.point);
+	console.log(nearest);
+	var keys = Object.keys(nearest);
+	var consoleString = "";
+	for(var i = 0; i < keys.length; i++){
+		if(nearest[keys[i]] !== undefined){
+			var cpObject = "cp." + keys[i] + "s[" + nearest[keys[i]].index + "]";
+			consoleString += keys[i] + ": <a href='#' onclick='injectCode(\"" + cpObject + "\")'>" + cpObject + "</a><br>";
+		}
 	}
+	consoleDiv.innerHTML = consoleString;
+	// var nearestEdge = this.cp.nearest(event.point).edge || {};
+	// if(nearestEdge !== undefined){
+	// 	updateCodeMirror("cp.edges[" + nearestEdge.edge.index + "]");
+	// 	// console.log( nearest.edge.edge.index );
+	// }
 }
 
-function updateCodeMirror(data){
+function injectCode(string){
 	var cm = document.getElementsByClassName("CodeMirror")[0].CodeMirror;
 	var doc = cm.getDoc();
 	var cursor = doc.getCursor();
@@ -66,5 +84,6 @@ function updateCodeMirror(data){
 		line: (doc.size+5),
 		ch: line.length - 1 // set the character position to the end of the line
 	}
-	doc.replaceRange(newline+data, pos);
+	doc.replaceRange(newline+string, pos);
+
 }
