@@ -397,6 +397,26 @@ class PlanarFace{
 		}
 		return new XY(xMin+(xMax-xMin)*0.5, yMin+(yMax-yMin)*0.5);
 	}
+	signedArea():number{
+		return 0.5 * this.nodes.map(function(el,i){
+			var nextEl = this.nodes[ (i+1)%this.nodes.length ];
+			return el.x*nextEl.y - nextEl.x*el.y;
+		},this)
+		.reduce(function(prev, cur){
+			return prev + cur;
+		},0);
+	}
+	centroid():XY{
+		return this.nodes.map(function(el,i){
+			var nextEl = this.nodes[ (i+1)%this.nodes.length ];
+			var mag = el.x*nextEl.y - nextEl.x*el.y;
+			return new XY((el.x+nextEl.x)*mag, (el.y+nextEl.y)*mag);
+		},this)
+		.reduce(function(prev:XY,current:XY){
+			return prev.add(current);
+		},new XY(0,0))
+		.scale(1/(6 * this.signedArea()));
+	}
 
 
 // [

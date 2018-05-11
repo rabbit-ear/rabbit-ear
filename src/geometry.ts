@@ -721,6 +721,37 @@ class Polygon{
 
 class ConvexPolygon{
 	edges:Edge[];
+	nodes():XY[]{
+		return this.edges.map(function(el,i){
+			var nextEl = this.edges[ (i+1)%this.edges.length ];
+			if(el.nodes[0].equivalent(nextEl.nodes[0]) || el.nodes[0].equivalent(nextEl.nodes[1])){
+				return el.nodes[1];
+			}
+			return el.nodes[0];
+		},this);
+	}
+	signedArea(nodes?:XY[]):number{
+		if(nodes === undefined){ nodes = this.nodes(); }
+		return 0.5 * nodes.map(function(el,i){
+			var nextEl = nodes[ (i+1)%nodes.length ];
+			return el.x*nextEl.y - nextEl.x*el.y;
+		},this)
+		.reduce(function(prev, cur){
+			return prev + cur;
+		},0);
+	}
+	centroid():XY{
+		var nodes = this.nodes();
+		return nodes.map(function(el,i){
+			var nextEl = nodes[ (i+1)%nodes.length ];
+			var mag = el.x*nextEl.y - nextEl.x*el.y;
+			return new XY((el.x+nextEl.x)*mag, (el.y+nextEl.y)*mag);
+		},this)
+		.reduce(function(prev:XY,current:XY){
+			return prev.add(current);
+		},new XY(0,0))
+		.scale(1/(6 * this.signedArea(nodes)));
+	}
 	center():XY{
 		// this is not an average / means
 		var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;

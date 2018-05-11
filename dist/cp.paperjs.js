@@ -200,7 +200,7 @@ var OrigamiPaper = (function(){
 			for(var i = 0; i < this.cp.faces.length; i++){
 				var nodes = this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y]; });
 				var face = new this.scope.Path({segments:nodes, closed:true});
-				face.scale(0.6, this.cp.faces[i].center());
+				face.scale(0.6, this.cp.faces[i].centroid());
 				// face.fillColor = { gray:(i/this.cp.faces.length)*0.33+0.66 };
 				face.fillColor = { gray:0.85 };
 				this.faces.push( face );

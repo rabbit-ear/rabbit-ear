@@ -1114,6 +1114,39 @@ var Polygon = (function () {
 var ConvexPolygon = (function () {
     function ConvexPolygon() {
     }
+    ConvexPolygon.prototype.nodes = function () {
+        return this.edges.map(function (el, i) {
+            var nextEl = this.edges[(i + 1) % this.edges.length];
+            if (el.nodes[0].equivalent(nextEl.nodes[0]) || el.nodes[0].equivalent(nextEl.nodes[1])) {
+                return el.nodes[1];
+            }
+            return el.nodes[0];
+        }, this);
+    };
+    ConvexPolygon.prototype.signedArea = function (nodes) {
+        if (nodes === undefined) {
+            nodes = this.nodes();
+        }
+        return 0.5 * nodes.map(function (el, i) {
+            var nextEl = nodes[(i + 1) % nodes.length];
+            return el.x * nextEl.y - nextEl.x * el.y;
+        }, this)
+            .reduce(function (prev, cur) {
+            return prev + cur;
+        }, 0);
+    };
+    ConvexPolygon.prototype.centroid = function () {
+        var nodes = this.nodes();
+        return nodes.map(function (el, i) {
+            var nextEl = nodes[(i + 1) % nodes.length];
+            var mag = el.x * nextEl.y - nextEl.x * el.y;
+            return new XY((el.x + nextEl.x) * mag, (el.y + nextEl.y) * mag);
+        }, this)
+            .reduce(function (prev, current) {
+            return prev.add(current);
+        }, new XY(0, 0))
+            .scale(1 / (6 * this.signedArea(nodes)));
+    };
     ConvexPolygon.prototype.center = function () {
         var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;
         var nodes = this.edges.map(function (el) { return el.nodes[0]; });
@@ -1131,7 +1164,7 @@ var ConvexPolygon = (function () {
                 yMin = nodes[i].y;
             }
         }
-        return new XY(xMin + (xMin + xMax) * 0.5, yMin + (yMin + yMax) * 0.5);
+        return new XY(xMin + (xMax - xMin) * 0.5, yMin + (yMax - yMin) * 0.5);
     };
     ConvexPolygon.prototype.contains = function (p) {
         var found = true;
@@ -2068,6 +2101,26 @@ var PlanarFace = (function () {
             }
         }
         return new XY(xMin + (xMax - xMin) * 0.5, yMin + (yMax - yMin) * 0.5);
+    };
+    PlanarFace.prototype.signedArea = function () {
+        return 0.5 * this.nodes.map(function (el, i) {
+            var nextEl = this.nodes[(i + 1) % this.nodes.length];
+            return el.x * nextEl.y - nextEl.x * el.y;
+        }, this)
+            .reduce(function (prev, cur) {
+            return prev + cur;
+        }, 0);
+    };
+    PlanarFace.prototype.centroid = function () {
+        return this.nodes.map(function (el, i) {
+            var nextEl = this.nodes[(i + 1) % this.nodes.length];
+            var mag = el.x * nextEl.y - nextEl.x * el.y;
+            return new XY((el.x + nextEl.x) * mag, (el.y + nextEl.y) * mag);
+        }, this)
+            .reduce(function (prev, current) {
+            return prev.add(current);
+        }, new XY(0, 0))
+            .scale(1 / (6 * this.signedArea()));
     };
     PlanarFace.prototype.adjacencyTree = function () {
         if (this.graph.faces.length === 0) {
