@@ -1,81 +1,37 @@
 // a node's adjacent faces
-
 var node_adjacent_faces_callback = undefined;
 
-var nodeFaces = new OrigamiPaper("canvas-node-adjacent-faces").blackAndWhite();
-nodeFaces.setPadding(0.05);
-nodeFaces.style.selectedNode.fillColor = { hue:220, saturation:0.6, brightness:1 };
-nodeFaces.select.node = true;
-nodeFaces.edgeLayer.bringToFront();
-nodeFaces.boundaryLayer.bringToFront();
-nodeFaces.nodeLayer.bringToFront();
-nodeFaces.selected = {};
+var nodeFaces = new OrigamiPaper("canvas-node-adjacent-faces").blackAndWhite().setPadding(0.05);
+nodeFaces.style.node.radius = 0.02;
+nodeFaces.style.node.fillColor = {hue:0, saturation:1, brightness:1};
 
 nodeFaces.reset = function(){
 	paper = this.scope; 
 	this.cp.clear();
 	this.cp.birdBase();
-	this.cp.clean();
-	this.cp.generateFaces();
 	this.draw();
 }
 nodeFaces.reset();
 
-nodeFaces.onFrame = function(event) { }
-nodeFaces.onResize = function(event) { }
-nodeFaces.onMouseDown = function(event){
-	this.refreshFaces();
-}
-nodeFaces.onMouseUp = function(event){
-	this.refreshFaces();
-	this.nearest.node = undefined;
-	this.selected.nodes = [];
-	this.update();
-}
-nodeFaces.onMouseMove = function(event) {
-	this.refreshFaces();
+nodeFaces.onFrame = function(event){ }
+nodeFaces.onResize = function(event){ }
+nodeFaces.onMouseDown = function(event){ }
+nodeFaces.onMouseUp = function(event){ }
+nodeFaces.onMouseMove = function(event){
+	var nearest = this.cp.nearest(event.point);
+	if(nearest.face === undefined){ return; }
+	var adjacent = nearest.node.adjacentFaces();
+	this.highlightParts(nearest.node, adjacent);
 	if(node_adjacent_faces_callback != undefined){
-		node_adjacent_faces_callback({'node':nodeFaces.nearest.node});
+		node_adjacent_faces_callback({'node':nearest.node});
 	}
 }
+nodeFaces.highlightParts = function(node, faces){
+	// this.nodes.forEach(function(el){ el.visible = false; },this);
+	// this.nodes[node.index].visible = true;
 
-nodeFaces.refreshFaces = function(){
-	var faces = [];
-	var nearest = this.cp.nearest(this.mouse.position);
-	// faces = nearest.node.adjacentFaces();
-	// this.makeFaces(faces);
-	// console.log(nearest);
-	if(nearest.face === undefined){return;}
-	this.makeFaces( [nearest.face] )
-	// if(this.nearest.node === undefined) return;
-	// // if(!this.mouse.isPressed){
-	// faces = this.nearest.node.adjacentFaces();
-	// } 
-	// else {
-	// 	var nodes = [];
-	// 	if(this.nearest.node != undefined) {
-	// 		nodes.push(this.nearest.node);
-	// 		nodes = nodes.concat(this.nearest.node.adjacentNodes());
-	// 	}
-	// 	this.selected.nodes = nodes;
-	// 	this.update();
-	// 	for(var i = 0; i < nodes.length; i++){ 
-	// 		faces = faces.concat(nodes[i].adjacentFaces());
-	// 	}
-	// 	faces.removeDuplicates(function(a,b){ return a.equivalent(b); });
-	// }
-	// this.makeFaces(faces);
-}
-
-nodeFaces.makeFaces = function(faces){
-	this.faceLayer.activate();
-	this.faceLayer.removeChildren();
+	this.faces.forEach(function(el){ el.fillColor = this.style.face.fillColor; },this);
 	for(var i = 0; i < faces.length; i++){
-		var color = 100 + 200 * i/faces.length;
-		new this.scope.Path({
-				fillColor: { hue:color, saturation:1.0, brightness:1.0, alpha:0.2 },
-				segments: faces[i].nodes.map(function(el){return [el.x,el.y];}),
-				closed: true
-		});
+		this.faces[ faces[i].index ].fillColor = {hue:i/faces.length*36, saturation:0.9, brightness:0.9};
 	}
 }

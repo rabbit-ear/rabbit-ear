@@ -1,5 +1,5 @@
 var project = new OrigamiPaper("canvas");
-project.updateWeights(0.002, 0.001);
+project.thinLines();
 project.cp.rectangle(1,0.5);
 
 

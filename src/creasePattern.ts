@@ -304,6 +304,8 @@ class CreasePattern extends PlanarGraph{
 
 	nodes:CreaseNode[];
 	edges:Crease[];
+	// faces:CreaseFace[];
+	junctions:CreaseJunction[];
 	// for now our crease patterns outlines are limited to convex shapes,
 	//   this can be easily switched out if all member functions are implemented
 	//   for a concave polygon class
@@ -378,6 +380,19 @@ class CreasePattern extends PlanarGraph{
 	}
 
 
+
+
+	generateJunctions():CreaseJunction[]{
+		this.junctions = [];
+		this.clean();
+		for(var i = 0; i < this.nodes.length; i++){
+			this.junctions[i] = <CreaseJunction>this.nodes[i].junction();
+			if(this.junctions[i] !== undefined){ this.junctions[i].index = i; }
+		}
+		return this.junctions;
+	}
+
+
 	///////////////////////////////////////////////////////////////
 	// PUBLIC - ADD PARTS
 
@@ -427,8 +442,8 @@ class CreasePattern extends PlanarGraph{
 		// 	var edgeMidpoints = this.edges.map(function(el){return el.midpoint();});
 		// 	var arrayOfPointsAndMidpoints = this.nodes.map(function(el){return new XY(el.x, el.y);}).concat(edgeMidpoints);
 		// 	// console.log(arrayOfPointsAndMidpoints);
-		// 	var centroid = new XY(bounds.topLeft.x + bounds.size.width*0.5,
-		// 	                      bounds.topLeft.y + bounds.size.height*0.5);
+		// 	var centroid = new XY(bounds.origin.x + bounds.size.width*0.5,
+		// 	                      bounds.origin.y + bounds.size.height*0.5);
 		// 	var i = 0;
 		// 	do{
 		// 		// console.log("new round");
@@ -973,6 +988,7 @@ class CreasePattern extends PlanarGraph{
 		this.nodes = [];
 		this.edges = [];
 		this.faces = [];
+		this.junctions = [];
 		this.symmetryLine = undefined;
 		if(this.boundary === undefined){ return this; }
 		for(var i = 0; i < this.boundary.edges.length; i++){
@@ -1102,8 +1118,8 @@ class CreasePattern extends PlanarGraph{
 		var bounds = this.bounds();
 		var width = bounds.size.width;
 		var height = bounds.size.height;
-		var orgX = bounds.topLeft.x;
-		var orgY = bounds.topLeft.y;
+		var orgX = bounds.origin.x;
+		var orgY = bounds.origin.y;
 		var scale = size / (width);
 		console.log(bounds, width, orgX, scale);
 		var blob = "";
@@ -1143,8 +1159,8 @@ class CreasePattern extends PlanarGraph{
 		var bounds = this.bounds();
 		var width = bounds.size.width;
 		var height = bounds.size.height;
-		var padX = bounds.topLeft.x;
-		var padY = bounds.topLeft.y;
+		var padX = bounds.origin.x;
+		var padY = bounds.origin.y;
 		var scale = size / (width+padX*2);
 		var strokeWidth = (width*scale * 0.0025).toFixed(1);
 		if(strokeWidth === "0" || strokeWidth === "0.0"){ strokeWidth = "0.5"; }
@@ -1177,7 +1193,7 @@ class CreasePattern extends PlanarGraph{
 		(<Crease>this.newPlanarEdge(1, 0, 0, 1)).mountain();
 		(<Crease>this.newPlanarEdge(0, 1, 1, 0.58578)).valley();
 		(<Crease>this.newPlanarEdge(0, 1, 0.41421, 0)).valley();
-		this.clean();
+		this.generateFaces();
 		return this;
 	}
 	fishBase():CreasePattern{
@@ -1197,7 +1213,6 @@ class CreasePattern extends PlanarGraph{
 		(<Crease>this.newPlanarEdge(0.70711,0.70711, 1,1)).valley();
 		(<Crease>this.newPlanarEdge(0.70711,0.70711, 1,0.70711)).mountain();
 		(<Crease>this.newPlanarEdge(0.29289,0.29289, 0.29289,0)).mountain();
-		this.clean();
 		this.generateFaces();
 		return this;
 	}
@@ -1249,10 +1264,11 @@ class CreasePattern extends PlanarGraph{
 		(<Crease>this.newPlanarEdge(.79290, 0.5, 1, 0.5)).valley();
 		(<Crease>this.newPlanarEdge(0.5, .79290, 0.5, 1)).valley();
 		(<Crease>this.newPlanarEdge(.20710, 0.5, 0, 0.5)).valley();
-		this.clean();
+		this.generateFaces();
 		return this;
 	}
 	frogBase():CreasePattern{
+		this.clear();
 		this.newPlanarEdge(0, 0, .14646, .35353);
 		this.newPlanarEdge(0, 0, .35353, .14646);
 		this.newPlanarEdge(.14646, .35353, 0.5, 0.5);
@@ -1317,9 +1333,7 @@ class CreasePattern extends PlanarGraph{
 		this.newPlanarEdge(.25, .25, 0, 0);
 		this.newPlanarEdge(.75, .25, 1, 0);
 		this.newPlanarEdge(.75, .75, 1, 1);
-		this.fragment();
-		this.clean();
-		// this.generateFaces();
+		this.generateFaces();
 		return this;
 	}
 }

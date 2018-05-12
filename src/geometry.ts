@@ -632,10 +632,10 @@ class Polyline{
 
 class Rect{
 	// didChange:(event:object)=>void;
-	topLeft:{x:number,y:number};
+	origin:{x:number,y:number};
 	size:{width:number, height:number};
 	constructor(x:number,y:number,width:number,height:number){
-		this.topLeft = {'x':x, 'y':y};
+		this.origin = {'x':x, 'y':y};
 		this.size = {'width':width, 'height':height};
 	}
 }
@@ -901,14 +901,12 @@ class ConvexPolygon{
 	}
 	minimumRect():Rect{
 		var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-		this.edges
-			.map(function(el){ return el.nodes[0]; })
-			.forEach(function(el){
-				if(el.x > maxX){ maxX = el.x; }
-				if(el.x < minX){ minX = el.x; }
-				if(el.y > maxY){ maxY = el.y; }
-				if(el.y < minY){ minY = el.y; }
-			});
+		this.nodes().forEach(function(el){
+			if(el.x > maxX){ maxX = el.x; }
+			if(el.x < minX){ minX = el.x; }
+			if(el.y > maxY){ maxY = el.y; }
+			if(el.y < minY){ minY = el.y; }
+		});
 		return new Rect(minX, minY, maxX-minX, maxY-minY);
 	}
 	/** deep copy this object and all its contents */

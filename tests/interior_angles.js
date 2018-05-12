@@ -10,8 +10,8 @@ projectInAngles.style.myColors = [
 projectInAngles.style.mountain.strokeWidth = 0.02;
 projectInAngles.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
 projectInAngles.cp.edges = projectInAngles.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-projectInAngles.style.selectedNode.fillColor = projectInAngles.styles.byrne.yellow;
-projectInAngles.style.selectedNode.radius = 0.04;
+projectInAngles.style.selected.node.fillColor = projectInAngles.styles.byrne.yellow;
+projectInAngles.style.selected.node.radius = 0.04;
 
 
 projectInAngles.validNodes = [];
@@ -78,8 +78,9 @@ projectInAngles.reset();
 projectInAngles.onFrame = function(event) { }
 projectInAngles.onResize = function(event) { }
 projectInAngles.onMouseDown = function(event){
-	if(this.validNodes.filter(function(e){return e===this.nearest.node;},this).length > 0){
-		this.draggingNode = this.nearest.node;
+	var nearest = this.cp.nearest(event.point);
+	if(this.validNodes.filter(function(e){return e===nearest.node;},this).length > 0){
+		this.draggingNode = nearest.node;
 	}
 }
 projectInAngles.onMouseUp = function(event){

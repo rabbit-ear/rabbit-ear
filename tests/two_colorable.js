@@ -1,4 +1,6 @@
-var twoColorable = new OrigamiPaper("canvas-two-colorable");
+var twoColorable = new OrigamiPaper("canvas-two-colorable").setPadding(0);
+// twoColorable.style.sector.scale = 0.25;
+// twoColorable.style.face.fillColor = {gray:1.0}
 
 twoColorable.load("../files/svg/crane.svg", function(){
 	twoColorable.reset();

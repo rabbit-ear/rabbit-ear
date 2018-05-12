@@ -21,6 +21,7 @@ var voronoiAlgorithm; // global D3 algorithm implementation
 
 var project = new OrigamiPaper("canvas-voronoi");
 project.setPadding();
+project.thinLines();
 
 var touchNodes = new PlanarGraph();
 var touchNodesCircles = [];
@@ -95,7 +96,6 @@ project.drawVoronoi = function(complex, showGussets){
 	} else{
 		this.cp.creaseVoronoi(v, interpolation);
 	}
-	this.updateWeights(0.0025, 0.00125);
 	for(var i = 0; i < touchNodes.nodes.length; i++){
 		var position = new XY(touchNodes.nodes[i].x, touchNodes.nodes[i].y);
 		this.cp.crease(position.add(new XY(-0.01, 0.00)), position.add(new XY(0.01, 0.00)) );
@@ -119,7 +119,7 @@ project.reset = function(){
 	this.cp.rectangle(1.33, 1);
 	this.draw();
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 
 	if(touchNodesLayer !== undefined){ touchNodesLayer.removeChildren(); }
@@ -131,7 +131,7 @@ project.reset();
 
 project.onResize = function(){
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 

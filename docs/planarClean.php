@@ -159,11 +159,11 @@ crane2CP.load("/files/svg/crane-errors.svg", function(){
 	var paper1 = new OrigamiPaper("canvas1", cp[0]);
 	var paper2 = new OrigamiPaper("canvas2", cp[1]);
 	// var paper3 = new OrigamiPaper("canvas3", cp[2]);
-	paper1.style.nodes.visible = true;
-	paper2.style.nodes.visible = true;
-	paper1.style.nodes.fillColor = { gray:0 };
-	paper2.style.nodes.fillColor = { gray:0 };
-	// paper3.style.nodes.visible = true;
+	paper1.style.node.visible = true;
+	paper2.style.node.visible = true;
+	paper1.style.node.fillColor = { gray:0 };
+	paper2.style.node.fillColor = { gray:0 };
+	// paper3.style.node.visible = true;
 	paper1.update();
 	paper2.update();
 	// paper3.update();

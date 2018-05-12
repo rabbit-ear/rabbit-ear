@@ -3,8 +3,8 @@ var projectVectors = new OrigamiPaper("canvas-vectors", new CreasePattern().setB
 projectVectors.style.mountain.strokeWidth = 0.02;
 projectVectors.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
 projectVectors.cp.edges = projectVectors.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-projectVectors.style.selectedNode.fillColor = projectVectors.styles.byrne.yellow;
-projectVectors.style.selectedNode.radius = 0.04;
+projectVectors.style.selected.node.fillColor = projectVectors.styles.byrne.yellow;
+projectVectors.style.selected.node.radius = 0.04;
 
 
 projectVectors.validNodes = [];
@@ -67,8 +67,9 @@ projectVectors.reset();
 projectVectors.onFrame = function(event) { }
 projectVectors.onResize = function(event) { }
 projectVectors.onMouseDown = function(event){
-	if(this.validNodes.filter(function(e){return e===this.nearest.node;},this).length > 0){
-		this.draggingNode = this.nearest.node;
+	var nearest = this.cp.nearest(event.point);
+	if(this.validNodes.filter(function(e){return e===nearest.node;},this).length > 0){
+		this.draggingNode = nearest.node;
 	}
 }
 projectVectors.onMouseUp = function(event){

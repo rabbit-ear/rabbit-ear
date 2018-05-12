@@ -11,13 +11,13 @@ ffMoveNode.movingNode = undefined;
 ffMoveNode.mNodeOriginalLocation = undefined;
 ffMoveNode.nNode = undefined;
 ffMoveNode.select.node = true;
-ffMoveNode.style.selectedNode = { 
+ffMoveNode.style.selected.node = { 
 	fillColor: undefined, 
 	strokeWidth: 0.005,
 	radius: 0.02,
 	strokeColor: { gray:0 }
 }
-ffMoveNode.style.nodes = { 
+ffMoveNode.style.node = { 
 	visible: true,
 	fillColor: undefined,
 	strokeColor: undefined,
@@ -32,9 +32,9 @@ ffMoveNode.load("/files/svg/crane-errors.svg", function(){
 		ffMoveNode.nodeLayer.moveToFront();
 	}
 	if(ffMoveNode.cpMin !== 0){
-		ffMoveNode.style.selectedNode.strokeWidth = 0.005*ffMoveNode.cpMin;
-		ffMoveNode.style.selectedNode.radius = 0.02*ffMoveNode.cpMin;
-		ffMoveNode.style.nodes.radius = 0.02 * ffMoveNode.cpMin;
+		ffMoveNode.style.selected.node.strokeWidth = 0.005*ffMoveNode.cpMin;
+		ffMoveNode.style.selected.node.radius = 0.02*ffMoveNode.cpMin;
+		ffMoveNode.style.node.radius = 0.02 * ffMoveNode.cpMin;
 	}
 	ffMoveNode.setPadding();
 	ffMoveNode.update();

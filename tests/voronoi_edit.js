@@ -36,7 +36,6 @@ voronoiEditor.redraw = function(){
 		}
 	}
 
-	// this.updateWeights(0.005, 0.0025);
 	this.draw();
 
 	nodeCircles = [];
@@ -55,7 +54,7 @@ voronoiEditor.reset = function(){
 	// this.cp.rectangle(1.333333,1);
 	this.draw();
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 
 	// add to voronoi
@@ -84,7 +83,7 @@ voronoiEditor.reset();
 
 voronoiEditor.onResize = function(){
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 

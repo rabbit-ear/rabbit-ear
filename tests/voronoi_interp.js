@@ -2,7 +2,7 @@ var voronoiInterpCallback = undefined;
 
 var voronoiInterp = new OrigamiPaper("canvas-voronoi-interpolate");
 voronoiInterp.setPadding(0.05);
-
+voronoiInterp.mediumLines();
 // keep track of voronoi nodes in a separate graph
 var input = new PlanarGraph();
 var voronoiAlgorithm; // global D3 algorithm implementation
@@ -13,7 +13,7 @@ voronoiInterp.reset = function(){
 	this.cp.clear();
 	this.draw();
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 	for(var i = 0; i < 4; i++){
 		var x = map(Math.random(), 0, 1, 0.1, 0.9);
@@ -33,7 +33,6 @@ voronoiInterp.redraw = function(){
 	this.cp.nodes = [];
 	this.cp.edges = [];
 	this.cp.creaseVoronoi(v, vInterpolation);
-	this.updateWeights(0.005, 0.0025);
 	this.draw();
 
 	for(var i = 0; i < nodes.length; i++){
@@ -44,7 +43,7 @@ voronoiInterp.redraw = function(){
 
 voronoiInterp.onResize = function(){
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 

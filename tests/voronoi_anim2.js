@@ -1,7 +1,8 @@
 
 var voronoiAnim2 = new OrigamiPaper("canvas-voronoi-animate-2");
 voronoiAnim2.setPadding(0.05);
-voronoiAnim2.updateWeights(0.0075, 0.005);
+voronoiAnim2.mediumLines();
+voronoiAnim2.style.mountain.strokeColor = {gray:0.0};
 
 var vA1Input = new PlanarGraph();
 var voronoiAlgorithm; // global D3 algorithm implementation
@@ -23,7 +24,7 @@ voronoiAnim2.reset = function(){
 	this.cp.clear();
 	this.draw();
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 voronoiAnim2.reset();
@@ -66,7 +67,7 @@ voronoiAnim2.redraw = function(){
 
 voronoiAnim2.onResize = function(){
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 

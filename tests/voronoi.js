@@ -2,9 +2,8 @@ var voronoiSketch = new OrigamiPaper("canvas-voronoi");
 // var aspect = voronoiSketch.canvas.width / voronoiSketch.canvas.height;
 // voronoiSketch.cp.rectangle(aspect, 1.0);
 
-voronoiSketch.updateWeights(0.005, 0.0025);
 voronoiSketch.setPadding(0.05);
-voronoiSketch.updateWeights(0.005, 0.0025);
+voronoiSketch.thinLines();
 
 voronoiSketch.input = new PlanarGraph();
 voronoiSketch.voronoiAlgorithm; // global D3 algorithm implementation
@@ -18,7 +17,7 @@ voronoiSketch.reset = function(){
 	this.cp.clear();
 	this.draw();
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	this.voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 voronoiSketch.reset();
@@ -32,7 +31,6 @@ voronoiSketch.redraw = function(){
 	this.cp.edges = [];
 	this.cp.creaseVoronoi(v, this.vInterpolation);
 
-	this.updateWeights(0.0025, 0.00125);
 	this.draw();
 
 	this.nodeCircles = [];
@@ -46,7 +44,7 @@ voronoiSketch.redraw();
 
 voronoiSketch.onResize = function(){
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	this.voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 

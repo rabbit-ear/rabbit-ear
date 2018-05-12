@@ -5,8 +5,8 @@ var projectKawasaki = new OrigamiPaper("canvas-kawasaki", new CreasePattern().se
 projectKawasaki.style.mountain.strokeWidth = 0.02;
 projectKawasaki.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
 projectKawasaki.cp.edges = projectKawasaki.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-projectKawasaki.style.selectedNode.fillColor = projectKawasaki.styles.byrne.yellow;
-projectKawasaki.style.selectedNode.radius = 0.04;
+projectKawasaki.style.selected.node.fillColor = projectKawasaki.styles.byrne.yellow;
+projectKawasaki.style.selected.node.radius = 0.04;
 
 projectKawasaki.validNodes = [];
 var draggingNode = undefined;
@@ -73,8 +73,9 @@ projectKawasaki.reset();
 projectKawasaki.onFrame = function(event) { }
 projectKawasaki.onResize = function(event) { }
 projectKawasaki.onMouseDown = function(event){
-	if(this.validNodes.filter(function(e){return e===this.nearest.node;},this).length > 0){
-		draggingNode = this.nearest.node;
+	var nearest = this.cp.nearest(event.point);
+	if(this.validNodes.filter(function(e){return e===nearest.node;},this).length > 0){
+		draggingNode = nearest.node;
 	}
 }
 projectKawasaki.onMouseUp = function(event){

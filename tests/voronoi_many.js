@@ -2,9 +2,10 @@ var voronoiMany = new OrigamiPaper("canvas-voronoi-many");
 var aspect = voronoiMany.canvas.width / voronoiMany.canvas.height;
 voronoiMany.cp.rectangle(aspect, 1.0);
 
-voronoiMany.updateWeights(0.005, 0.0025);
-voronoiMany.setPadding(0.05);
-voronoiMany.updateWeights(0.005, 0.0025);
+voronoiMany.setPadding(0.001);
+voronoiMany.mediumLines();
+voronoiMany.style.mountain.strokeColor = { gray:0.0 }
+voronoiMany.style.mountain.strokeWidth = voronoiMany.style.valley.strokeWidth*1.3
 
 voronoiMany.input = new PlanarGraph();
 voronoiMany.voronoiAlgorithm; // global D3 algorithm implementation
@@ -18,7 +19,7 @@ voronoiMany.reset = function(){
 	this.cp.clear();
 	this.draw();
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	this.voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 voronoiMany.reset();
@@ -43,7 +44,6 @@ voronoiMany.redraw = function(){
 	this.cp.edges = [];
 	this.cp.creaseVoronoi(v, this.vInterpolation);
 
-	this.updateWeights(0.0025, 0.00125);
 	this.draw();
 
 	this.nodeCircles = [];
@@ -57,7 +57,7 @@ voronoiMany.redraw();
 
 voronoiMany.onResize = function(){
 	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.topLeft.x, bounds.topLeft.y],[bounds.size.width, bounds.size.height]];
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	this.voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 

@@ -97,8 +97,8 @@ function fileDidLoad(file, mimeType){
 		// project1.draw();
 		
 		// project1.cp = cp.copy();
-		// project1.style.nodes.visible = true;
-		// project1.style.nodes.radius = 0.015 * project1.cpMin;
+		// project1.style.node.visible = true;
+		// project1.style.node.radius = 0.015 * project1.cpMin;
 		// project1.draw();
 		// project1.setPadding(0.05);
 		// project1.colorNodesFlatFoldable = function(){

@@ -16,8 +16,8 @@ deleteEdge.reset = function(){
 	}
 	this.cp.fragment();
 	this.draw();
-	this.style.nodes.visible = true;
-	this.style.nodes.fillColor = { hue:220, saturation:0.6, brightness:0.8 };
+	this.style.node.visible = true;
+	this.style.node.fillColor = { hue:220, saturation:0.6, brightness:0.8 };
 	this.update();
 	if(mouse_delete_edge_callback != undefined){
 		// mouse_delete_edge_callback(intersections);
@@ -28,13 +28,12 @@ deleteEdge.reset();
 deleteEdge.onFrame = function(event) { }
 deleteEdge.onResize = function(event) { }
 deleteEdge.onMouseDown = function(event){
-	console.log(this.nearest.edge);
-	if(this.nearest.edge != undefined){
-		this.cp.removeEdge(this.nearest.edge);
+	var nearest = this.cp.nearest(event.point);
+	if(nearest.edge != undefined){
+		this.cp.removeEdge(nearest.edge);
 		this.cp.edgeArrayDidChange();
-		this.nearest.edge = undefined;
 		this.draw();
-		this.selectedEdge = undefined;
+		this.selected = undefined;
 		// this.selected.edges = [];
 		// this.nodeLayer.visible = true;
 	}

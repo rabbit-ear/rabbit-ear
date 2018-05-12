@@ -6,8 +6,8 @@ oneSector.style.mountain.strokeColor = oneSector.styles.byrne.yellow;
 oneSector.style.valley.dashArray = null;
 oneSector.style.valley.strokeColor = oneSector.styles.byrne.red;
 oneSector.cp.edges = oneSector.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-oneSector.style.selectedNode.fillColor = oneSector.styles.byrne.yellow;
-oneSector.style.selectedNode.radius = 0.04;
+oneSector.style.selected.node.fillColor = oneSector.styles.byrne.yellow;
+oneSector.style.selected.node.radius = 0.04;
 
 
 oneSector.validNodes = [];
@@ -62,8 +62,9 @@ oneSector.reset();
 oneSector.onFrame = function(event) { }
 oneSector.onResize = function(event) { }
 oneSector.onMouseDown = function(event){
-	if(this.validNodes.filter(function(e){return e===this.nearest.node;},this).length > 0){
-		this.draggingNode = this.nearest.node;
+	var nearest = this.cp.nearest(event.point);
+	if(this.validNodes.filter(function(e){return e === nearest.node;},this).length > 0){
+		this.draggingNode = nearest.node;
 	}
 }
 oneSector.onMouseUp = function(event){

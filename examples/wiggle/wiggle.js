@@ -7,13 +7,13 @@ project.nNode = undefined;
 project.select.node = true;
 project.style.valley.strokeColor = {gray:0.0, alpha:1.0};
 project.style.mountain.strokeColor = {gray:0.0, alpha:1.0};
-project.style.selectedNode = {
+project.style.selected.node = {
 	fillColor: undefined, 
 	strokeWidth: 0.005,
 	radius: 0.02,
 	strokeColor: { gray:0 }
 }
-project.style.nodes = {
+project.style.node = {
 	visible: true,
 	fillColor: undefined,
 	strokeColor: undefined,

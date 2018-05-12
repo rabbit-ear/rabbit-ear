@@ -81,6 +81,8 @@ class PlanarNode extends GraphNode implements XY{
 	// for speeding up algorithms, temporarily store information here
 	cache:object = {};
 
+	copy():XY{ return new XY(this.x, this.y); }
+
 	// is this a good design decision? a nodes adjacent edges are always sorted by angle
 	// TODO: are these increaseing in the right direction?
 	adjacentEdges():PlanarEdge[]{
@@ -105,6 +107,11 @@ class PlanarNode extends GraphNode implements XY{
 	}
 
 	adjacentFaces():PlanarFace[]{
+		if(this.graph.faces.length > 0){
+			return this.graph.faces.filter(function(el){
+				return el.nodes.filter(function(n){return n === this;},this).length > 0;
+			},this);
+		}
 		var junction = this.junction();
 		if(junction === undefined){ return []; }
 		return junction.faces();
@@ -538,6 +545,8 @@ class PlanarJunction{
 	// sectors and edges are sorted clockwise
 	sectors:PlanarSector[];
 	edges:PlanarEdge[];
+
+	index:number;
 	// Planar Junction is invalid if the node is either isolated or a leaf node
 	//  javascript constructors can't return null. if invalid: edges = [], sectors = []
 	constructor(node:PlanarNode){
@@ -617,6 +626,8 @@ class PlanarGraph extends Graph{
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
 	faces:PlanarFace[];
+
+	junctions:PlanarJunction[];
 
 	// When subclassed, base types are overwritten
 	nodeType = PlanarNode;
@@ -709,6 +720,7 @@ class PlanarGraph extends Graph{
 		this.nodes = [];
 		this.edges = [];
 		this.faces = [];
+		this.junctions = [];
 		return this;
 	}
 
@@ -1121,6 +1133,17 @@ class PlanarGraph extends Graph{
 	}
 */
 
+
+	generateJunctions():PlanarJunction[]{
+		this.junctions = [];
+		this.clean();
+		for(var i = 0; i < this.nodes.length; i++){
+			this.junctions[i] = this.nodes[i].junction();
+			if(this.junctions[i] !== undefined){ this.junctions[i].index = i; }
+		}
+		return this.junctions;
+	}
+
 	///////////////////////////////////////////////
 	// FACE
 	///////////////////////////////////////////////
@@ -1130,8 +1153,9 @@ class PlanarGraph extends Graph{
 	generateFaces():PlanarFace[]{
 		this.faces = [];
 		this.clean();
-		for(var i = 0; i < this.nodes.length; i++){
-			var adjacentFaces = this.nodes[i].adjacentFaces();
+		this.generateJunctions();
+		for(var i = 0; i < this.junctions.length; i++){
+			var adjacentFaces = (this.junctions[i] != undefined) ? this.junctions[i].faces() : [];
 			for(var af = 0; af < adjacentFaces.length; af++){
 				var duplicate = false;
 				for(var tf = 0; tf < this.faces.length; tf++){

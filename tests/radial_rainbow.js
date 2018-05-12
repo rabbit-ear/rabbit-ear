@@ -42,9 +42,10 @@ radialRay.onResize = function(event) { }
 radialRay.onMouseDown = function(event){ radialRay.reset(); }
 radialRay.onMouseUp = function(event){ }
 radialRay.onMouseMove = function(event) {
+	var nearest = this.cp.nearest(event.point);
 	for(var i = 0; i < radialRay.adjacentEdges.length; i++){
 		var edgeIndex = radialRay.adjacentEdges[i].index;
-		if(radialRay.adjacentEdges[i] === radialRay.nearest.edge){
+		if(radialRay.adjacentEdges[i] === nearest.edge){
 			radialRay.edges[edgeIndex].strokeColor = radialRay.colorForAngle(radialRay.adjacentEdges[i].absoluteAngle());
 			radialRay.edges[edgeIndex].strokeWidth = 0.02;//radialRay.lineWeight*1.5;
 			radialRay.edges[edgeIndex].bringToFront();

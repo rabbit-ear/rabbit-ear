@@ -1007,7 +1007,7 @@ var Polyline = (function () {
 }());
 var Rect = (function () {
     function Rect(x, y, width, height) {
-        this.topLeft = { 'x': x, 'y': y };
+        this.origin = { 'x': x, 'y': y };
         this.size = { 'width': width, 'height': height };
     }
     return Rect;
@@ -1303,9 +1303,7 @@ var ConvexPolygon = (function () {
     };
     ConvexPolygon.prototype.minimumRect = function () {
         var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        this.edges
-            .map(function (el) { return el.nodes[0]; })
-            .forEach(function (el) {
+        this.nodes().forEach(function (el) {
             if (el.x > maxX) {
                 maxX = el.x;
             }
@@ -1801,6 +1799,7 @@ var PlanarNode = (function (_super) {
         _this.cache = {};
         return _this;
     }
+    PlanarNode.prototype.copy = function () { return new XY(this.x, this.y); };
     PlanarNode.prototype.adjacentEdges = function () {
         var adjacent = this.graph.edges
             .filter(function (el) {
@@ -1822,6 +1821,11 @@ var PlanarNode = (function (_super) {
         return adjacent;
     };
     PlanarNode.prototype.adjacentFaces = function () {
+        if (this.graph.faces.length > 0) {
+            return this.graph.faces.filter(function (el) {
+                return el.nodes.filter(function (n) { return n === this; }, this).length > 0;
+            }, this);
+        }
         var junction = this.junction();
         if (junction === undefined) {
             return [];
@@ -2336,6 +2340,7 @@ var PlanarGraph = (function (_super) {
         this.nodes = [];
         this.edges = [];
         this.faces = [];
+        this.junctions = [];
         return this;
     };
     PlanarGraph.prototype.removeEdge = function (edge) {
@@ -2643,14 +2648,26 @@ var PlanarGraph = (function (_super) {
             }
         }
     };
+    PlanarGraph.prototype.generateJunctions = function () {
+        this.junctions = [];
+        this.clean();
+        for (var i = 0; i < this.nodes.length; i++) {
+            this.junctions[i] = this.nodes[i].junction();
+            if (this.junctions[i] !== undefined) {
+                this.junctions[i].index = i;
+            }
+        }
+        return this.junctions;
+    };
     PlanarGraph.prototype.faceArrayDidChange = function () { for (var i = 0; i < this.faces.length; i++) {
         this.faces[i].index = i;
     } };
     PlanarGraph.prototype.generateFaces = function () {
         this.faces = [];
         this.clean();
-        for (var i = 0; i < this.nodes.length; i++) {
-            var adjacentFaces = this.nodes[i].adjacentFaces();
+        this.generateJunctions();
+        for (var i = 0; i < this.junctions.length; i++) {
+            var adjacentFaces = (this.junctions[i] != undefined) ? this.junctions[i].faces() : [];
             for (var af = 0; af < adjacentFaces.length; af++) {
                 var duplicate = false;
                 for (var tf = 0; tf < this.faces.length; tf++) {
@@ -3074,6 +3091,17 @@ var CreasePattern = (function (_super) {
         }
         g.boundary = this.boundary.copy();
         return g;
+    };
+    CreasePattern.prototype.generateJunctions = function () {
+        this.junctions = [];
+        this.clean();
+        for (var i = 0; i < this.nodes.length; i++) {
+            this.junctions[i] = this.nodes[i].junction();
+            if (this.junctions[i] !== undefined) {
+                this.junctions[i].index = i;
+            }
+        }
+        return this.junctions;
     };
     CreasePattern.prototype.fold = function (param1, param2, param3, param4) {
     };
@@ -3535,6 +3563,7 @@ var CreasePattern = (function (_super) {
         this.nodes = [];
         this.edges = [];
         this.faces = [];
+        this.junctions = [];
         this.symmetryLine = undefined;
         if (this.boundary === undefined) {
             return this;
@@ -3634,8 +3663,8 @@ var CreasePattern = (function (_super) {
         var bounds = this.bounds();
         var width = bounds.size.width;
         var height = bounds.size.height;
-        var orgX = bounds.topLeft.x;
-        var orgY = bounds.topLeft.y;
+        var orgX = bounds.origin.x;
+        var orgY = bounds.origin.y;
         var scale = size / (width);
         console.log(bounds, width, orgX, scale);
         var blob = "";
@@ -3678,8 +3707,8 @@ var CreasePattern = (function (_super) {
         var bounds = this.bounds();
         var width = bounds.size.width;
         var height = bounds.size.height;
-        var padX = bounds.topLeft.x;
-        var padY = bounds.topLeft.y;
+        var padX = bounds.origin.x;
+        var padY = bounds.origin.y;
         var scale = size / (width + padX * 2);
         var strokeWidth = (width * scale * 0.0025).toFixed(1);
         if (strokeWidth === "0" || strokeWidth === "0.0") {
@@ -3712,7 +3741,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(1, 0, 0, 1).mountain();
         this.newPlanarEdge(0, 1, 1, 0.58578).valley();
         this.newPlanarEdge(0, 1, 0.41421, 0).valley();
-        this.clean();
+        this.generateFaces();
         return this;
     };
     CreasePattern.prototype.fishBase = function () {
@@ -3732,7 +3761,6 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(0.70711, 0.70711, 1, 1).valley();
         this.newPlanarEdge(0.70711, 0.70711, 1, 0.70711).mountain();
         this.newPlanarEdge(0.29289, 0.29289, 0.29289, 0).mountain();
-        this.clean();
         this.generateFaces();
         return this;
     };
@@ -3778,10 +3806,11 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(.79290, 0.5, 1, 0.5).valley();
         this.newPlanarEdge(0.5, .79290, 0.5, 1).valley();
         this.newPlanarEdge(.20710, 0.5, 0, 0.5).valley();
-        this.clean();
+        this.generateFaces();
         return this;
     };
     CreasePattern.prototype.frogBase = function () {
+        this.clear();
         this.newPlanarEdge(0, 0, .14646, .35353);
         this.newPlanarEdge(0, 0, .35353, .14646);
         this.newPlanarEdge(.14646, .35353, 0.5, 0.5);
@@ -3846,8 +3875,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(.25, .25, 0, 0);
         this.newPlanarEdge(.75, .25, 1, 0);
         this.newPlanarEdge(.75, .75, 1, 1);
-        this.fragment();
-        this.clean();
+        this.generateFaces();
         return this;
     };
     return CreasePattern;

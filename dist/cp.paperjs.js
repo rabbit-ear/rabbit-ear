@@ -2,11 +2,11 @@
 // render and style a crease pattern into an HTML canvas using PaperJS
 
 try { var cp = new CreasePattern(); }
-catch(err) { throw "cp.paper.js requires the crease pattern js library github.com/robbykraft/Origami, and to be included before this file\n" + err.message; }
+catch(err) { throw "cp.paper.js requires the crease pattern js library github.com/robbykraft/Origami, and to be included before this file\n'var cp = new CreasePattern()' resulted in: " + err.message; }
 
 var OrigamiPaper = (function(){
 	function OrigamiPaper(canvas, creasePattern) {
-		if(canvas === undefined) { throw "OrigamiPaper() requires an HTML canvas, please specify one in the constructor"; }
+		if(canvas === undefined){throw "OrigamiPaper() requires an HTML canvas in the constructor";}
 		if(typeof canvas === "string"){ 
 			this.canvas = document.getElementById(canvas);
 			// if canvas string isn't found, try the generic case id="canvas"
@@ -17,24 +17,21 @@ var OrigamiPaper = (function(){
 		// CREASE PATTERN
 		this.cp = creasePattern;
 		if(this.cp === undefined){ this.cp = new CreasePattern(); }
-		
+
 		// PAPER JS
 		this.scope = new paper.PaperScope();
 		this.scope.setup(this.canvas);
 		this.loader = new PaperJSLoader();
 
-		// properties
-		this.style = this.defaultStyleTemplate();
-		// the minimum width/height of the crease pattern, used to base thickness of lines
-		this.cpMin = 1.0;
 		this.padding = 0.0075; // padding inside the canvas
-		this.bounds = undefined;
-
-		// the order of the following sets the z index order too
+		this.bounds = undefined;  // undefined defaults to size of CP itself
+		this.style = this.defaultStyleTemplate();
 		this.backgroundLayer = new this.scope.Layer();
 		this.faceLayer = new this.scope.Layer();
 		this.edgeLayer = new this.scope.Layer();
 		this.boundaryLayer = new this.scope.Layer();
+		this.junctionLayer = new this.scope.Layer();
+		this.sectorLayer = new this.scope.Layer();
 		this.nodeLayer = new this.scope.Layer();
 		// user interaction
 		this.mouse = {
@@ -48,6 +45,8 @@ var OrigamiPaper = (function(){
 			nodes:true,
 			edges:true,
 			faces:true,
+			junctions:true,
+			sectors:true,
 		}
 		// user select and move
 		this.selectable = [];
@@ -69,7 +68,7 @@ var OrigamiPaper = (function(){
 			that.mouse.isDragging = false;
 			that.mouse.pressed.x = event.point.x;
 			that.mouse.pressed.y = event.point.y;
-			that.attemptToSelect();
+			that.attemptSelection();
 			that.onMouseDown(event);
 		}
 		this.scope.view.onMouseUp = function(event){
@@ -98,23 +97,20 @@ var OrigamiPaper = (function(){
 		}
 	}
 
-	// OrigamiPaper.prototype.setup = function(event){ }
-	// OrigamiPaper.prototype.update = function(event){ }
-	// OrigamiPaper.prototype.draw = function(event){ }
-	OrigamiPaper.prototype.onResize = function(event){ }
-	OrigamiPaper.prototype.onFrame = function(event){ }
-	OrigamiPaper.prototype.onMouseDown = function(event){ }
-	OrigamiPaper.prototype.onMouseUp = function(event){ }
-	OrigamiPaper.prototype.onMouseMove = function(event){ }
-	OrigamiPaper.prototype.onMouseDidBeginDrag = function(event){ }
+	OrigamiPaper.prototype.setBounds = function(x,y,width,height){
+		this.bounds = { 'origin': {'x':x,'y':y},
+		                  'size': {'width':width, 'height':height} };
+		this.setLineWeights( (width+height)*0.5 );
+		this.buildViewMatrix();
+		return this;
+	}
+	OrigamiPaper.prototype.setPadding = function(padding){
+		this.padding = padding;
+		this.buildViewMatrix();
+		return this;
+	}
 
-	// OrigamiPaper.prototype.didUpdate = function(){
-	// 	if(OrigamiPaper.prototype.refresh !== undefined){
-	// 		OrigamiPaper.prototype.refresh();
-	// 	}
-	// 	OrigamiPaper.prototype.draw();
-	// }
-	OrigamiPaper.prototype.attemptToSelect = function(){
+	OrigamiPaper.prototype.attemptSelection = function(){
 		function pointsSimilar(a, b, epsilon){
 			function epsilonEqual(a, b, epsilon){return ( Math.abs(a-b) < epsilon );}
 			return epsilonEqual(a.x,b.x,epsilon) && epsilonEqual(a.y,b.y,epsilon);
@@ -126,13 +122,6 @@ var OrigamiPaper = (function(){
 			}
 		}
 	}
-	OrigamiPaper.prototype.updateSelected = function(){
-		if(this.mouse.isDragging && this.selected !== undefined){
-			this.selected.position.x = this.mouse.position.x;
-			this.selected.position.y = this.mouse.position.y;
-		}
-	}
-
 	OrigamiPaper.prototype.makeControlPoints = function(count, style){
 		if(this.controlPointsLayer === undefined){this.controlPointsLayer = new this.scope.Layer();}
 		this.controlPointsLayer.activate();
@@ -156,12 +145,9 @@ var OrigamiPaper = (function(){
 		this.nodes = [];
 		this.edges = [];
 		this.faces = [];
+		this.sectors = [];
 
-		this.backgroundLayer.removeChildren();
-		this.boundaryLayer.removeChildren();
-		this.nodeLayer.removeChildren();
-		this.edgeLayer.removeChildren();
-		this.faceLayer.removeChildren();
+		[this.backgroundLayer, this.boundaryLayer, this.nodeLayer, this.edgeLayer, this.faceLayer, this.sectorLayer].forEach(function(el){el.removeChildren();},this);
 
 		// draw paper
 		if(this.show.boundary && this.cp.boundary !== undefined){
@@ -182,7 +168,7 @@ var OrigamiPaper = (function(){
 			this.nodeLayer.activate();
 			for(var i = 0; i < this.cp.nodes.length; i++){
 				var circle = new this.scope.Shape.Circle({ center: [this.cp.nodes[i].x, this.cp.nodes[i].y] });
-				Object.assign(circle, this.style.nodes);
+				Object.assign(circle, this.style.node);
 				this.nodes.push( circle );
 			}
 		}
@@ -200,38 +186,58 @@ var OrigamiPaper = (function(){
 			for(var i = 0; i < this.cp.faces.length; i++){
 				var nodes = this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y]; });
 				var face = new this.scope.Path({segments:nodes, closed:true});
-				face.scale(0.6, this.cp.faces[i].centroid());
-				// face.fillColor = { gray:(i/this.cp.faces.length)*0.33+0.66 };
-				face.fillColor = { gray:0.85 };
+				face.scale(this.style.face.scale, this.cp.faces[i].centroid());
+				Object.assign(face, this.style.face);
 				this.faces.push( face );
+			}
+		}
+		// if(this.show.junctions){
+		// 	this.junctionLayer.activate();
+		// 	for(var i = 0; i < this.cp.junctions.length; i++){
+		// 		var nodes = this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y]; });
+		// 		var face = new this.scope.Path({segments:nodes, closed:true});
+		// 		face.scale(this.style.face.scale, this.cp.faces[i].centroid());
+		// 		Object.assign(face, this.style.face);
+		// 		this.faces.push( face );
+		// 	}
+		// }
+		if(this.show.sectors){
+			this.sectorLayer.activate();
+			for(var j = 0; j < this.cp.junctions.length; j++){
+				var junction = this.cp.junctions[j];
+				var shortest = this.style.sector.scale * junction.sectors
+					.map(function(el){ return el.edges[0].length(); },this)
+					.sort(function(a,b){return a-b;})
+					.shift();
+				console.log(junction.sectors);
+				for(var s = 0; s < junction.sectors.length; s++){
+					var origin = junction.sectors[s].origin;
+					var a = junction.sectors[s].endPoints[0].copy().subtract(origin).normalize().scale(shortest).add(origin);
+					var c = junction.sectors[s].endPoints[1].copy().subtract(origin).normalize().scale(shortest).add(origin);
+					var b = junction.sectors[s].bisect().scale(shortest).add(origin);
+					var sector = new this.scope.Path.Arc(a, b, c);
+					sector.add(origin);
+					sector.fillColor = ([this.styles.byrne.red,this.styles.byrne.darkBlue])[s%2];
+					sector.closed = true;
+					// Object.assign(sector, this.style.sector);
+					this.sectors.push( sector );
+				}
 			}
 		}
 		this.buildViewMatrix();
 	}
-
-	OrigamiPaper.prototype.load = function(svg, callback, epsilon){
-		var that = this;
-		this.scope.project.importSVG(svg, function(e){
-			var cp = this.loader.paperPathToCP(e);
-			if(epsilon === undefined){ epsilon = 0.00005; }
-			cp.clean(epsilon);
-			that.setCreasePattern( cp );
-			if(callback != undefined){
-				callback(this.cp);
-			}
-		});
-	}
-
-	OrigamiPaper.prototype.loadRaw = function(svg, callback){
-		var that = this;
-		this.scope.project.importSVG(svg, function(e){
-			that.setCreasePattern( this.loader.paperPathToCP(e) );
-			if(callback != undefined){
-				callback(this.cp);
-			}
-		});
+	OrigamiPaper.prototype.update = function () {
+		this.updatePositions();
+		this.updateStyles();
+	};
+	OrigamiPaper.prototype.updateSelected = function(){
+		if(this.mouse.isDragging && this.selected !== undefined){
+			this.selected.position.x = this.mouse.position.x;
+			this.selected.position.y = this.mouse.position.y;
+		}
 	}
 	OrigamiPaper.prototype.updatePositions = function () {
+		paper = this.scope;
 		for(var i=0;i<this.nodes.length;i++){
 			this.nodes[i].position=[this.cp.nodes[i].x, this.cp.nodes[i].y];}
 		for(var i=0;i<this.cp.edges.length;i++){
@@ -239,11 +245,10 @@ var OrigamiPaper = (function(){
 		for(var i=0;i<this.cp.faces.length;i++){
 			this.faces[i].segments=this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y];});}
 	};
-
-
 	OrigamiPaper.prototype.updateStyles = function () {
+		paper = this.scope;
 		for(var i = 0; i < this.nodes.length; i++){ 
-			Object.assign(this.nodes[i], this.style.nodes); }
+			Object.assign(this.nodes[i], this.style.node); }
 		for(var i = 0; i < this.cp.edges.length; i++){ 
 			Object.assign(this.edges[i], this.styleForCrease(this.cp.edges[i].orientation)); }
 		for(var i = 0; i < this.cp.faces.length; i++){ 
@@ -252,67 +257,79 @@ var OrigamiPaper = (function(){
 			Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
 		}
 	};
-
-	OrigamiPaper.prototype.update = function () {
+	OrigamiPaper.prototype.buildViewMatrix = function(){
 		paper = this.scope;
-		if(this.cp === undefined){ return; }
-		if(this.nodes!==undefined&&this.cp.nodes!=undefined&&this.cp.nodes.length!==this.nodes.length){return;}
-		if(this.edges!==undefined&&this.cp.edges!=undefined&&this.cp.edges.length!==this.edges.length){return;}
-		if(this.faces!==undefined&&this.cp.faces!=undefined&&this.cp.faces.length!==this.faces.length){return;}
-		this.updatePositions();
-		this.updateStyles();
-	};
-	OrigamiPaper.prototype.setBounds = function(x,y,width,height){
-		this.bounds = {
-			'topLeft':{'x':x,'y':y},
-			'size':{'width':width, 'height':height}
+		var pixelScale = this.loader.isRetina ? 0.5 : 1.0;
+		var cpBounds = this.bounds || this.cp.bounds();
+		if(cpBounds === undefined){ cpBounds = {'origin':{'x':0,'y':0},'size':{'width':this.canvas.width/this.canvas.height, 'height':1.0}} };
+		// Aspect fit crease pattern in canvas
+		var cpCanvasRatio = this.canvas.height / cpBounds.size.height;
+		var cpAspect = cpBounds.size.width / cpBounds.size.height;
+		var canvasAspect = this.canvas.width / this.canvas.height;
+		if(cpAspect > canvasAspect ) { 
+			cpCanvasRatio = this.canvas.width / cpBounds.size.width;
 		}
-		this.buildViewMatrix();
-	}
-	OrigamiPaper.prototype.setPadding = function(padding){
-		this.buildViewMatrix(padding);
-		return this;
-	}
-	OrigamiPaper.prototype.buildViewMatrix = function(padding){
-		paper = this.scope;
-		if(padding !== undefined && !isNaN(padding)){ this.padding = padding; }
-		var paperWindowScale = 1.0 - this.padding*2;
-		var pixelScale = 1.0;
-		if(this.loader.isRetina){ pixelScale = 0.5; }
-		// canvas size
-		var canvasWidth = this.canvas.width;
-		var canvasHeight = this.canvas.height;
-		var canvasAspect = canvasWidth / canvasHeight;
-		// crease pattern size
-		var cpBounds = this.cp.bounds();
-		if(cpBounds === undefined){ cpBounds = this.bounds; }
-		if(cpBounds === undefined){ cpBounds = {'topLeft':{'x':0,'y':0},'size':{'width':canvasWidth/canvasHeight, 'height':1.0}} };
-		var cpWidth = cpBounds.size.width;
-		var cpHeight = cpBounds.size.height;
-
-		var cpAspect = cpWidth / cpHeight;
-		if(cpWidth < cpHeight){ this.cpMin = cpWidth; }
-		else                  { this.cpMin = cpHeight; }
-		// cp to canvas ratio
-		var cpCanvasRatio = canvasHeight / cpHeight;
-		if(cpAspect > canvasAspect) { cpCanvasRatio = canvasWidth / cpWidth; }
 		// matrix
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
-		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale); 
+		mat.translate(this.canvas.width * 0.5 * pixelScale, this.canvas.height * 0.5 * pixelScale); 
+		var paperWindowScale = 1.0 - this.padding*2;
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
-		// mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
-		mat.translate(-cpWidth*0.5 - cpBounds.topLeft.x, -cpHeight*0.5 - cpBounds.topLeft.y);
+		mat.translate(-cpBounds.size.width*0.5 - cpBounds.origin.x,
+		              -cpBounds.size.height*0.5 - cpBounds.origin.y);
 		this.scope.view.matrix = mat;
-		// don't call this!
-		// this.updateWeights();
 		return mat;
 	};
-
+	///////////////////////////////////////////////////
+	// FILE IN OUT
+	///////////////////////////////////////////////////
+	OrigamiPaper.prototype.load = function(svg, callback, epsilon){
+		var that = this;
+		this.scope.project.importSVG(svg, function(e){
+			var cp = that.loader.paperPathToCP(e);
+			if(epsilon === undefined){ epsilon = 0.00005; }
+			cp.clean(epsilon);
+			that.cp = cp;
+			that.draw();
+			if(callback != undefined){
+				callback(that.cp);
+			}
+		});
+	}
+	OrigamiPaper.prototype.loadRaw = function(svg, callback){
+		var that = this;
+		this.scope.project.importSVG(svg, function(e){
+			that.cp = that.loader.paperPathToCP(e);
+			that.draw();
+			if(callback != undefined){
+				callback(that.cp);
+			}
+		});
+	}
 	///////////////////////////////////////////////////
 	// STYLE
 	///////////////////////////////////////////////////
-
+	OrigamiPaper.prototype.thickLines = function(){ return this.setLineWeights(1.0); }
+	OrigamiPaper.prototype.mediumLines = function(){ return this.setLineWeights(0.5); }
+	OrigamiPaper.prototype.thinLines = function(){ return this.setLineWeights(0.2); }
+	OrigamiPaper.prototype.setLineWeights = function(scale){
+		if(scale === undefined){ scale = 1.0; }
+		var weight = scale * 0.01;
+		this.style.node.radius = weight*1.5;
+		[this.style.valley, this.style.mountain, this.style.border, this.style.mark].forEach(function(el){
+			el.strokeWidth = weight;
+			if(el.dashArray != undefined){ el.dashArray = [weight*1.5, weight*2]; }
+		},this);
+		this.style.mark.strokeWidth = weight*0.6666666;
+		this.updateStyles();
+		return this;
+	};
+	OrigamiPaper.prototype.blackAndWhite = function(){
+		[this.style.valley, this.style.mountain, this.style.border, this.style.mark].forEach(function(el){ el.strokeColor = { gray:0.0 }; },this);
+		this.style.backgroundColor = { gray:1.0 };
+		this.style.face.fillColor = { gray:0.0, alpha:1.0 };
+		return this;
+	};
 	OrigamiPaper.prototype.styles = {
 		'byrne':{
 			'black':{hue:0, saturation:0, brightness:0 },
@@ -322,10 +339,66 @@ var OrigamiPaper = (function(){
 			'blue':{hue:205.2, saturation:0.74, brightness:0.61}
 		},
 		'lang':{
-
+			'red':{hue:4, saturation:.76, brightness:.94},
+			'brown':{hue:25, saturation:.36, brightness:.74},
+			'green':{hue:120, saturation:.53, brightness:.72},
+			'blue':{hue:230, saturation:.43, brightness:.72},
+			'gray':{gray:.83},
+			'darkBlue':{hue:234, saturation:.5, brightness:.38},
+			'pink':{hue:341, saturation:.66, brightness:.93},
 		}
-	}
-
+	};
+	OrigamiPaper.prototype.defaultStyleTemplate = function(scale){
+		if(scale === undefined){ scale = 1.0 }
+		// "scale" should roughly relate to the width of the crease pattern
+		return {
+			backgroundColor: { gray:1.0, alpha:1.0 },
+			mountain: {
+				strokeColor: this.styles.byrne.red,
+				dashArray: undefined,
+				strokeWidth: scale*0.01,
+				strokeCap : 'round'
+			},
+			valley: {
+				strokeColor: { hue:220, saturation:0.6, brightness:0.666 },
+				dashArray: [scale*0.015, scale*0.02],
+				strokeWidth: scale*0.01,
+				strokeCap : 'round'
+			},
+			border: {
+				strokeColor: { gray:0.0, alpha:1.0 },
+				dashArray: undefined,
+				strokeWidth: scale*0.01
+			},
+			mark: {
+				strokeColor: { gray:0.75, alpha:1.0 },
+				dashArray: undefined,
+				strokeWidth: scale * 0.00666666666,
+				strokeCap : 'round'
+			},
+			face: {
+				'scale': 0.666,
+				fillColor: { gray:0.0, alpha:1.0 }
+			},
+			node: {
+				radius: scale*0.015,
+				visible: false,
+				fillColor: { hue:25, saturation:0.7, brightness:1.0 }
+			},
+			sector: {
+				'scale': 0.25
+			},
+			selected: {
+				node: {
+					radius: scale*0.02,
+					fillColor: { hue:0, saturation:0.8, brightness:1 },
+					visible: true
+				},
+				edge: {strokeColor: { hue:0, saturation:0.8, brightness:1 } },
+				face: { fillColor: { hue:0, saturation:0.8, brightness:1 } }
+			}
+		}
+	};
 	OrigamiPaper.prototype.styleForCrease = function(orientation){
 		if   (orientation === CreaseDirection.mountain){ return this.style.mountain; }
 		else if(orientation === CreaseDirection.valley){ return this.style.valley; }
@@ -333,86 +406,16 @@ var OrigamiPaper = (function(){
 		return this.style.mark;
 	};
 
-	// todo get rid of this
-	OrigamiPaper.prototype.updateWeights = function(strokeFraction, circleFraction){
-		if(this.style === undefined){ return; }
-		if(strokeFraction === undefined){ strokeFraction = 0.01; }
-		if(circleFraction === undefined){ circleFraction = 0.015; }
-		var strokeWeight = this.cpMin * strokeFraction;
-		var circleRadius = this.cpMin * circleFraction;
-		this.style.nodes.radius = circleRadius;
-		// this.style.selectedNode.radius = circleRadius / 0.75;
-		this.style.mountain.strokeWidth = strokeWeight;
-		this.style.valley.strokeWidth = strokeWeight;
-		this.style.valley.dashArray = [strokeWeight*2, strokeWeight*2];
-		this.style.border.strokeWidth = strokeWeight;
-		this.style.mark.strokeWidth = strokeWeight*0.66666;
-	};
+	// OrigamiPaper.prototype.setup = function(event){ }
+	// OrigamiPaper.prototype.update = function(event){ }
+	// OrigamiPaper.prototype.draw = function(event){ }
+	OrigamiPaper.prototype.onResize = function(event){ }
+	OrigamiPaper.prototype.onFrame = function(event){ }
+	OrigamiPaper.prototype.onMouseDown = function(event){ }
+	OrigamiPaper.prototype.onMouseUp = function(event){ }
+	OrigamiPaper.prototype.onMouseMove = function(event){ }
+	OrigamiPaper.prototype.onMouseDidBeginDrag = function(event){ }
 
-	OrigamiPaper.prototype.defaultStyleTemplate = function(){
-
-var red = {hue:0.04*360, saturation:0.87, brightness:0.90 };
-var yellow = {hue:0.12*360, saturation:0.88, brightness:0.93 };
-var blue = {hue:0.53*360, saturation:0.82, brightness:0.28 };
-
-		if(this.style === undefined){ this.style = {}; }
-		var strokeWidth = 0.01;
-		var circleRadius = 0.015;
-		return {
-			backgroundColor: { gray:1.0, alpha:1.0 },
-			selectedNode: {
-				radius: circleRadius / 0.75, 
-				fillColor: { hue:0, saturation:0.8, brightness:1 },
-				visible: true
-			},
-			selectedEdge: {
-				strokeColor: { hue:0, saturation:0.8, brightness:1 }
-			},
-			selectedFace: {
-				fillColor: { hue:0, saturation:0.8, brightness:1 }
-			},
-			nodes: {
-				radius: circleRadius, 
-				visible: false,
-				// fillColor: { hue:25, saturation:0.7, brightness:1.0 }//{ hue:20, saturation:0.6, brightness:1 }
-			},
-			mountain: {
-				// strokeColor: { hue:0, saturation:0.9, brightness:1.0 },
-				strokeColor: red,
-				// dashArray: [this.style.strokeWidth*2, this.style.strokeWidth*1.5, this.style.strokeWidth*.1, this.style.strokeWidth*1.5],
-				dashArray: undefined,
-				strokeWidth: strokeWidth,
-				strokeCap : 'round'
-			},
-			valley: {
-				strokeColor: { hue:220, saturation:0.6, brightness:0.666 },
-				dashArray: [strokeWidth*2, strokeWidth*2],
-				// dashArray: undefined,
-				strokeWidth: strokeWidth,
-				strokeCap : 'round'
-			},
-			border: {
-				strokeColor: { gray:0.0, alpha:1.0 },
-				dashArray: undefined,
-				strokeWidth: strokeWidth
-			},
-			mark: {
-				strokeColor: { gray:0.75, alpha:1.0 },
-				dashArray: undefined,
-				strokeWidth: strokeWidth*0.66666,
-				strokeCap : 'round'
-			},
-			face: {
-				// fillColor: { gray:0.0, alpha:0.2 }
-			}
-		}
-	};
-	OrigamiPaper.prototype.blackAndWhite = function(){
-		this.style.mountain.strokeColor = { gray:0.0 };
-		this.style.valley.strokeColor = { gray:0.0 };
-		this.style.face.fillColor = { gray:0.0, alpha:0.2 };
-		return this;
-	};
 	return OrigamiPaper;
 }());
 
@@ -551,7 +554,7 @@ var OrigamiFold = (function(){
 		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale);
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
-		mat.translate(-cpBounds.topLeft.x-cpWidth*0.5, -cpBounds.topLeft.y-cpHeight*0.5);
+		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
 		mat.translate((1.0-this.customZoom), (1.0-this.customZoom));  // scale a bit - translate to center
 		this.scope.view.matrix = mat;
 		return mat;
