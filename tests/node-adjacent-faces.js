@@ -4,6 +4,7 @@ var node_adjacent_faces_callback = undefined;
 var nodeFaces = new OrigamiPaper("canvas-node-adjacent-faces").blackAndWhite().setPadding(0.05);
 nodeFaces.style.node.radius = 0.02;
 nodeFaces.style.node.fillColor = {hue:0, saturation:1, brightness:1};
+nodeFaces.show.sectors = false;
 
 nodeFaces.reset = function(){
 	paper = this.scope; 

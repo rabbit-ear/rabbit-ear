@@ -974,6 +974,7 @@ class Sector{
 		       a.endPoints[0].equivalent(this.endPoints[0]) && 
 		       a.endPoints[1].equivalent(this.endPoints[1]);
 	}
+	/** a sector contains a point if it is between the two edges in clockwise order */
 	contains(point:XY):boolean{
 		var cross0 = (point.y - this.endPoints[0].y) * (this.origin.x - this.endPoints[0].x) - 
 		             (point.x - this.endPoints[0].x) * (this.origin.y - this.endPoints[0].y);

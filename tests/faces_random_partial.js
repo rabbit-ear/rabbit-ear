@@ -1,10 +1,7 @@
 // generate faces
-faces_random_partial_callback = undefined;
-
 var partialFaces = new OrigamiPaper("canvas-faces-random-partial");
 partialFaces.setPadding(0.05);
-
-partialFaces.select.edge = true;
+partialFaces.show.sectors = false;
 
 partialFaces.reset = function(){
 	paper = this.scope; 
@@ -13,12 +10,8 @@ partialFaces.reset = function(){
 		var angle = Math.random()*Math.PI*2;
 		partialFaces.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
-	var intersections = partialFaces.cp.fragment();
 	partialFaces.cp.flatten();
 	partialFaces.draw();
-	if(faces_random_callback != undefined){
-		faces_random_callback(intersections);
-	}
 }
 partialFaces.reset();
 
@@ -28,4 +21,10 @@ partialFaces.onMouseDown = function(event){
 	partialFaces.reset();
 }
 partialFaces.onMouseUp = function(event){ }
-partialFaces.onMouseMove = function(event) { }
+partialFaces.onMouseMove = function(event){
+	var nearest = this.cp.nearest(event.point);
+	this.updateStyles();
+	if(nearest.face !== undefined){
+		this.faces[nearest.face.index].fillColor = this.styles.byrne.red;
+	}	
+}

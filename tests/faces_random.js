@@ -1,11 +1,8 @@
 // generate faces
-faces_random_callback = undefined;
-
 var randomFaces = new OrigamiPaper("canvas-faces-random");
 randomFaces.setPadding(0.05);
 randomFaces.style.mark.strokeColor = {gray:0.0, alpha:1.0};
-
-randomFaces.select.edge = true;
+randomFaces.show.sectors = false;
 
 randomFaces.reset = function(){
 	paper = this.scope; 
@@ -13,13 +10,8 @@ randomFaces.reset = function(){
 	for(var i = 0; i < 3; i++){
 		this.cp.creaseThroughPoints(new XY(Math.random(), Math.random()), new XY(Math.random(), Math.random()) );
 	}
-	this.cp.clean();
-	var intersections = this.cp.fragment();
 	this.cp.flatten();
 	this.draw();
-	if(faces_random_callback != undefined){
-		faces_random_callback(intersections);
-	}
 }
 randomFaces.reset();
 
@@ -30,5 +22,9 @@ randomFaces.onMouseDown = function(event){
 }
 randomFaces.onMouseUp = function(event){ }
 randomFaces.onMouseMove = function(event) {
-	this.cp.nearest(event.point);
+	var nearest = this.cp.nearest(event.point);
+	this.updateStyles();
+	if(nearest.face !== undefined){
+		this.faces[nearest.face.index].fillColor = this.styles.byrne.red;
+	}
 }

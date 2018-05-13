@@ -1166,7 +1166,7 @@ class CreasePattern extends PlanarGraph{
 		var scale = size / (width+padX*2);
 		var strokeWidth = (width*scale * 0.0025).toFixed(1);
 		if(strokeWidth === "0" || strokeWidth === "0.0"){ strokeWidth = "0.5"; }
-		var polylines = this.fewestPolylines();
+		var polylines = this.polylines();
 		var blob = "";
 		blob = blob + "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +((width+padX*2)*scale)+ "px\" height=\"" +((height+padY*2)*scale)+ "px\" viewBox=\"0 0 " +((width+padX*2)*scale)+ " " +((height+padY*2)*scale)+ "\">\n<g>\n";
 

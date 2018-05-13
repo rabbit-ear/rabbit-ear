@@ -215,6 +215,8 @@ var OrigamiPaper = (function(){
 					var a = junction.sectors[s].endPoints[0].copy().subtract(origin).normalize().scale(shortest).add(origin);
 					var c = junction.sectors[s].endPoints[1].copy().subtract(origin).normalize().scale(shortest).add(origin);
 					var b = junction.sectors[s].bisect().scale(shortest).add(origin);
+					// todo: there is a bug here with degenerate points
+					// console.log(a, b, c);
 					var sector = new this.scope.Path.Arc(a, b, c);
 					sector.add(origin);
 					sector.closed = true;
@@ -290,7 +292,8 @@ var OrigamiPaper = (function(){
 		this.scope.project.importSVG(svg, function(e){
 			var cp = that.loader.paperPathToCP(e);
 			if(epsilon === undefined){ epsilon = 0.00005; }
-			cp.clean(epsilon);
+			// cp.clean(epsilon);
+			cp.flatten(epsilon);
 			that.cp = cp;
 			that.draw();
 			if(callback != undefined){
@@ -358,7 +361,7 @@ var OrigamiPaper = (function(){
 			boundary: {
 				fillColor: null,
 				strokeWidth: scale*0.01,
-				strokeColor: {gray:0.5}
+				strokeColor: {gray:0.0}
 			},
 			mountain: {
 				strokeColor: this.styles.byrne.red,

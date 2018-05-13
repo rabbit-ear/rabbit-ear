@@ -164,10 +164,10 @@
 <section id="tests">
 	<div class="tests">
 		<ul>
-			<li><a href="../tests/html/graph_stress.html">10,000 edges</a></li>
-			<li><a href="../tests/html/graph_remove.html">remove a node</a></li>
-			<li><a href="../tests/html/graph_clean.html">clean, step by step</a></li>
-			<li><a href="../tests/html/graph_in_common.html">common and uncommon nodes</a></li>
+			<li><a href="../tests/graph_stress.html">10,000 edges</a></li>
+			<li><a href="../tests/graph_remove.html">remove a node</a></li>
+			<li><a href="../tests/graph_clean.html">clean, step by step</a></li>
+			<li><a href="../tests/graph_in_common.html">common and uncommon nodes</a></li>
 		</ul>
 	</div>
 	
