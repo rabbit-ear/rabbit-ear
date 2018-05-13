@@ -162,7 +162,8 @@ var OrigamiPaper = (function(){
 			// boundary color
 			this.boundaryLayer.activate();
 			var boundaryPath = new this.scope.Path({segments: boundarySegments, closed: true });
-			Object.assign(boundaryPath, this.styleForCrease(CreaseDirection.border));
+			Object.assign(boundaryPath, this.style.boundary);
+			// Object.assign(boundaryPath, this.styleForCrease(CreaseDirection.border));
 		}
 		if(this.show.nodes){
 			this.nodeLayer.activate();
@@ -254,7 +255,8 @@ var OrigamiPaper = (function(){
 		for(var i = 0; i < this.cp.faces.length; i++){ 
 			Object.assign(this.faces[i], this.style.face); }
 		for(var i = 0; i < this.boundaryLayer.children.length; i++){
-			Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
+			Object.assign(this.boundaryLayer.children[i], this.style.boundary);
+			// Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
 		}
 	};
 	OrigamiPaper.prototype.buildViewMatrix = function(){
@@ -353,6 +355,11 @@ var OrigamiPaper = (function(){
 		// "scale" should roughly relate to the width of the crease pattern
 		return {
 			backgroundColor: { gray:1.0, alpha:1.0 },
+			boundary: {
+				fillColor: null,
+				strokeWidth: scale*0.01,
+				strokeColor: {gray:0.5}
+			},
 			mountain: {
 				strokeColor: this.styles.byrne.red,
 				dashArray: undefined,
@@ -468,7 +475,7 @@ var OrigamiFold = (function(){
 	OrigamiFold.prototype.draw = function(){
 		this.foldedLayer.removeChildren();
 		if(this.cp === undefined){ return; }
-		this.cp.generateFaces();
+		this.cp.flatten();
 		this.fold();
 		this.buildViewMatrix();
 	}

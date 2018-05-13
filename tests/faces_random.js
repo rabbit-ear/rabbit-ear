@@ -15,7 +15,7 @@ randomFaces.reset = function(){
 	}
 	this.cp.clean();
 	var intersections = this.cp.fragment();
-	this.cp.generateFaces();
+	this.cp.flatten();
 	this.draw();
 	if(faces_random_callback != undefined){
 		faces_random_callback(intersections);

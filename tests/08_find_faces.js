@@ -48,7 +48,7 @@ var test08 = function(p) {
 	function reset(){
 		g.clear();
 		g.birdBase();
-		g.generateFaces();
+		g.flatten();
 	}
 
 	p.setup = function(){

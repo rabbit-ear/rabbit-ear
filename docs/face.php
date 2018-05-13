@@ -19,10 +19,10 @@
 	</div>
 
 	<div class="centered">
-		<pre><code>cp.<f>generateFaces</f>()</code></pre>
+		<pre><code>cp.<f>flatten</f>()</code></pre>
 	</div>
 
-	<p class="quote">This algorithm, <b>generateFaces()</b>, calculates and stores all the faces, and ran once at the beginning</p>
+	<p class="quote">This algorithm, <b>flatten()</b>, calculates and stores all the faces, and ran once at the beginning</p>
 	
 	<p class="explain">A face won't be created if there is a stray edge poking into the polygon.</p>
 </section>
@@ -87,13 +87,13 @@ radial_rainbow_callback = function(event){
 <script>
 var cp1 = new CreasePattern();
 cp1.fishBase();
-cp1.generateFaces();
+cp1.flatten();
 var cp2 = new CreasePattern();
 cp2.birdBase();
-cp2.generateFaces();
+cp2.flatten();
 // var cp3 = new CreasePattern();
 // cp3.frogBase();
-// cp3.generateFaces();
+// cp3.flatten();
 
 new OrigamiPaper("canvas-1", cp1);
 new OrigamiPaper("canvas-2", cp2);

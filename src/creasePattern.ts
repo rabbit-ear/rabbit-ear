@@ -278,7 +278,7 @@ class CreaseFace extends PlanarFace{
 	// rabbitEar():RabbitEar{
 	rabbitEar():Crease[]{
 		if(this.sectors.length !== 3){ return []; }
-		var rays:Ray[] = this.sectors.map(function(el){
+		var rays:Ray[] = this.sectors().map(function(el){
 			// return { node: el.origin, vector: el.bisect() };
 			return new Ray(el.origin, el.bisect());
 		});
@@ -318,8 +318,8 @@ class CreasePattern extends PlanarGraph{
 	nodeType = CreaseNode;
 	edgeType = Crease;
 	faceType = CreaseFace;
-	junctionType = CreaseJunction;
 	sectorType = CreaseSector;
+	junctionType = CreaseJunction;
 
 
 	didChange:(event:object)=>void;
@@ -1023,7 +1023,7 @@ class CreasePattern extends PlanarGraph{
 	// FILE FORMATS
 
 	exportFoldFile():object{
-		this.generateFaces();
+		this.flatten();
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
 
@@ -1195,7 +1195,7 @@ class CreasePattern extends PlanarGraph{
 		(<Crease>this.newPlanarEdge(1, 0, 0, 1)).mountain();
 		(<Crease>this.newPlanarEdge(0, 1, 1, 0.58578)).valley();
 		(<Crease>this.newPlanarEdge(0, 1, 0.41421, 0)).valley();
-		this.generateFaces();
+		this.flatten();
 		return this;
 	}
 	fishBase():CreasePattern{
@@ -1215,7 +1215,7 @@ class CreasePattern extends PlanarGraph{
 		(<Crease>this.newPlanarEdge(0.70711,0.70711, 1,1)).valley();
 		(<Crease>this.newPlanarEdge(0.70711,0.70711, 1,0.70711)).mountain();
 		(<Crease>this.newPlanarEdge(0.29289,0.29289, 0.29289,0)).mountain();
-		this.generateFaces();
+		this.flatten();
 		return this;
 	}
 	birdBase():CreasePattern{
@@ -1266,7 +1266,7 @@ class CreasePattern extends PlanarGraph{
 		(<Crease>this.newPlanarEdge(.79290, 0.5, 1, 0.5)).valley();
 		(<Crease>this.newPlanarEdge(0.5, .79290, 0.5, 1)).valley();
 		(<Crease>this.newPlanarEdge(.20710, 0.5, 0, 0.5)).valley();
-		this.generateFaces();
+		this.flatten();
 		return this;
 	}
 	frogBase():CreasePattern{
@@ -1335,7 +1335,7 @@ class CreasePattern extends PlanarGraph{
 		this.newPlanarEdge(.25, .25, 0, 0);
 		this.newPlanarEdge(.75, .25, 1, 0);
 		this.newPlanarEdge(.75, .75, 1, 1);
-		this.generateFaces();
+		this.flatten();
 		return this;
 	}
 }

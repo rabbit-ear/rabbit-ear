@@ -1794,8 +1794,6 @@ var PlanarNode = (function (_super) {
     __extends(PlanarNode, _super);
     function PlanarNode() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.junctionType = PlanarJunction;
-        _this.sectorType = PlanarSector;
         _this.cache = {};
         return _this;
     }
@@ -1821,24 +1819,21 @@ var PlanarNode = (function (_super) {
         return adjacent;
     };
     PlanarNode.prototype.adjacentFaces = function () {
-        if (this.graph.faces.length > 0) {
-            return this.graph.faces.filter(function (el) {
-                return el.nodes.filter(function (n) { return n === this; }, this).length > 0;
-            }, this);
+        if (this.graph.dirty) {
+            this.graph.flatten();
         }
-        var junction = this.junction();
-        if (junction === undefined) {
-            return [];
-        }
-        return junction.faces();
+        return this.graph.faces.filter(function (face) {
+            return face.nodes.filter(function (n) { return n === this; }, this).length > 0;
+        }, this);
     };
     PlanarNode.prototype.interiorAngles = function () { return this.junction().interiorAngles(); };
     PlanarNode.prototype.junction = function () {
-        var junction = new this.junctionType(this);
-        if (junction.edges.length === 0) {
-            return undefined;
+        if (this.graph.dirty) {
+            this.graph.flatten();
         }
-        return junction;
+        return this.graph.junctions.filter(function (j) {
+            return j.origin === this;
+        }, this).shift();
     };
     PlanarNode.prototype.position = function (x, y) { this.x = x; this.y = y; return this; };
     PlanarNode.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
@@ -1892,11 +1887,12 @@ var PlanarEdge = (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     PlanarEdge.prototype.adjacentFaces = function () {
-        return [
-            new this.graph.faceType(this.graph).makeFromCircuit(this.graph.walkClockwiseCircut(this.nodes[0], this.nodes[1])),
-            new this.graph.faceType(this.graph).makeFromCircuit(this.graph.walkClockwiseCircut(this.nodes[1], this.nodes[0]))
-        ]
-            .filter(function (el) { return el !== undefined; });
+        if (this.graph.dirty) {
+            this.graph.flatten();
+        }
+        return this.graph.faces.filter(function (face) {
+            return face.edges.filter(function (edge) { return edge === this; }, this).length > 0;
+        }, this);
     };
     PlanarEdge.prototype.crossingEdges = function () {
         var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
@@ -2001,24 +1997,28 @@ var PlanarFace = (function () {
         this.edges = [];
         this.angles = [];
     }
-    PlanarFace.prototype.makeFromCircuit = function (circut) {
+    PlanarFace.prototype.sectors = function () {
+        return this.graph.sectors.filter(function (sector) {
+            return this.nodes.filter(function (node) { return node === sector.origin; }, this).length > 0;
+        }, this);
+    };
+    PlanarFace.prototype.makeFromCircuit = function (circuit) {
         var SUM_ANGLE_EPSILON = 0.00001;
-        if (circut == undefined || circut.length < 3) {
+        if (circuit == undefined || circuit.length < 3) {
             return undefined;
         }
-        this.edges = circut;
-        this.nodes = circut.map(function (el, i) {
-            return el.uncommonNodeWithEdge(circut[(i + 1) % circut.length]);
+        this.edges = circuit;
+        this.nodes = circuit.map(function (el, i) {
+            return el.uncommonNodeWithEdge(circuit[(i + 1) % circuit.length]);
         });
-        var sectorType = this.nodes[0].sectorType;
-        this.sectors = this.edges.map(function (el, i) {
+        var sectors = this.edges.map(function (el, i) {
             var nexti = (i + 1) % this.edges.length;
             var origin = el.commonNodeWithEdge(this.edges[nexti]);
             var endPoints = [el.uncommonNodeWithEdge(this.edges[nexti]),
                 this.edges[nexti].uncommonNodeWithEdge(el)];
-            return new sectorType(el, this.edges[nexti]);
+            return new this.graph.sectorType(el, this.edges[nexti]);
         }, this);
-        this.angles = this.sectors.map(function (el) { return el.angle(); });
+        this.angles = sectors.map(function (el) { return el.angle(); });
         var angleSum = this.angles.reduce(function (sum, value) { return sum + value; }, 0);
         if (this.nodes.length > 2 && Math.abs(angleSum / (this.nodes.length - 2) - Math.PI) < SUM_ANGLE_EPSILON) {
             return this;
@@ -2218,7 +2218,7 @@ var PlanarJunction = (function () {
             var origin = el.commonNodeWithEdge(nextEl);
             var nextN = nextEl.uncommonNodeWithEdge(el);
             var prevN = el.uncommonNodeWithEdge(nextEl);
-            return new this.origin.sectorType(el, nextEl);
+            return new this.origin.graph.sectorType(el, nextEl);
         }, this);
     }
     PlanarJunction.prototype.edgeVectorsNormalized = function () {
@@ -2258,15 +2258,12 @@ var PlanarJunction = (function () {
         return this.edges[(index + 1) % this.edges.length];
     };
     PlanarJunction.prototype.faces = function () {
-        var adjacentFaces = [];
-        for (var n = 0; n < this.edges.length; n++) {
-            var circuit = this.origin.graph.walkClockwiseCircut(this.origin, this.edges[n].otherNode(this.origin));
-            var face = new this.origin.graph.faceType(this.origin.graph).makeFromCircuit(circuit);
-            if (face !== undefined) {
-                adjacentFaces.push(face);
-            }
+        if (this.origin.graph.dirty) {
+            this.origin.graph.flatten();
         }
-        return adjacentFaces;
+        return this.origin.graph.faces.filter(function (face) {
+            return face.nodes.filter(function (node) { return node === this.origin; }, this).length > 0;
+        }, this);
     };
     return PlanarJunction;
 }());
@@ -2277,6 +2274,8 @@ var PlanarGraph = (function (_super) {
         _this.nodeType = PlanarNode;
         _this.edgeType = PlanarEdge;
         _this.faceType = PlanarFace;
+        _this.sectorType = PlanarSector;
+        _this.junctionType = PlanarJunction;
         _this.properties = { "optimization": 0 };
         _this.clear();
         return _this;
@@ -2284,6 +2283,7 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.copy = function () {
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
+        this.faceArrayDidChange();
         var g = new PlanarGraph();
         for (var i = 0; i < this.nodes.length; i++) {
             var n = g.addNode(new PlanarNode(g));
@@ -2312,36 +2312,132 @@ var PlanarGraph = (function (_super) {
                 f.angles.push(this.faces[i].angles[j]);
             }
             f.graph = g;
+            f.index = i;
             g.faces.push(f);
         }
         return g;
     };
     PlanarGraph.prototype.newPlanarNode = function (x, y) {
+        this.dirty = true;
         return this.newNode().position(x, y);
     };
     PlanarGraph.prototype.newPlanarEdge = function (x1, y1, x2, y2) {
+        this.dirty = true;
         var a = this.newNode().position(x1, y1);
         var b = this.newNode().position(x2, y2);
         return this.newEdge(a, b);
     };
     PlanarGraph.prototype.newPlanarEdgeFromNode = function (node, x, y) {
+        this.dirty = true;
         var newNode = this.newNode().position(x, y);
         return this.newEdge(node, newNode);
     };
     PlanarGraph.prototype.newPlanarEdgeBetweenNodes = function (a, b) {
+        this.dirty = true;
         return this.newEdge(a, b);
     };
     PlanarGraph.prototype.newPlanarEdgeRadiallyFromNode = function (node, angle, length) {
+        this.dirty = true;
         var newNode = this.copyNode(node)
             .translate(Math.cos(angle) * length, Math.sin(angle) * length);
         return this.newEdge(node, newNode);
+    };
+    PlanarGraph.prototype.bounds = function () {
+        if (this.nodes === undefined || this.nodes.length === 0) {
+            return undefined;
+        }
+        var minX = Infinity;
+        var maxX = -Infinity;
+        var minY = Infinity;
+        var maxY = -Infinity;
+        this.nodes.forEach(function (el) {
+            if (el.x > maxX) {
+                maxX = el.x;
+            }
+            if (el.x < minX) {
+                minX = el.x;
+            }
+            if (el.y > maxY) {
+                maxY = el.y;
+            }
+            if (el.y < minY) {
+                minY = el.y;
+            }
+        });
+        return new Rect(minX, minY, maxX - minX, maxY - minY);
+    };
+    PlanarGraph.prototype.getEdgeIntersections = function (epsilon) {
+        var intersections = [];
+        for (var i = 0; i < this.edges.length - 1; i++) {
+            for (var j = i + 1; j < this.edges.length; j++) {
+                var intersection = this.edges[i].intersection(this.edges[j], epsilon);
+                if (intersection != undefined) {
+                    var copy = false;
+                    for (var k = 0; k < intersections.length; k++) {
+                        if (intersection.point.equivalent(intersections[k], epsilon)) {
+                            copy = true;
+                        }
+                    }
+                    if (!copy) {
+                        intersections.push(intersection.point);
+                    }
+                }
+            }
+        }
+        return intersections;
+    };
+    PlanarGraph.prototype.nearest = function (a, b) {
+        var point = gimme1XY(a, b);
+        var face = this.faceContainingPoint(point);
+        if (face !== undefined) {
+            var node = face.nodes.slice().sort(function (a, b) {
+                return a.distanceTo(point) - b.distanceTo(point);
+            })[0];
+            var edge = face.edges.slice().sort(function (a, b) {
+                return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
+            })[0];
+            var junction = node.junction();
+            var sector = face.sectors().filter(function (el) { return el.origin === node; }, this).shift();
+        }
+        else {
+            var edge = this.edges
+                .map(function (edge) {
+                return { edge: edge, distance: edge.nearestPoint(point).distanceTo(point) };
+            }, this)
+                .sort(function (a, b) {
+                return a.distance - b.distance;
+            })[0].edge;
+            var node = (edge !== undefined) ? edge.nodes
+                .slice().sort(function (a, b) { return a.distanceTo(point) - b.distanceTo(point); })[0] : undefined;
+            var junction = (node !== undefined) ? node.junction() : undefined;
+            var sector = (junction !== undefined) ? junction.sectors.filter(function (el) {
+                return el.contains(point);
+            }, this).shift() : undefined;
+        }
+        return {
+            'node': node,
+            'edge': edge,
+            'face': face,
+            'junction': junction,
+            'sector': sector
+        };
+    };
+    PlanarGraph.prototype.faceContainingPoint = function (point) {
+        if (this.faces.length == 0) {
+            this.generateFaces();
+        }
+        for (var f = 0; f < this.faces.length; f++) {
+            if (this.faces[f].contains(point)) {
+                return this.faces[f];
+            }
+        }
     };
     PlanarGraph.prototype.clear = function () {
         this.nodes = [];
         this.edges = [];
         this.faces = [];
-        this.junctions = [];
         this.sectors = [];
+        this.junctions = [];
         return this;
     };
     PlanarGraph.prototype.removeEdge = function (edge) {
@@ -2385,16 +2481,16 @@ var PlanarGraph = (function (_super) {
         return new PlanarClean();
     };
     PlanarGraph.prototype.cleanAllUselessNodes = function () {
-        this.nodes.forEach(function (el) { el.cache['adjacentEdges'] = []; });
+        this.nodes.forEach(function (el) { el.cache['adjE'] = []; });
         this.edges.forEach(function (el) {
-            el.nodes[0].cache['adjacentEdges'].push(el);
-            el.nodes[1].cache['adjacentEdges'].push(el);
+            el.nodes[0].cache['adjE'].push(el);
+            el.nodes[1].cache['adjE'].push(el);
         });
         var report = new PlanarClean().join(this.removeIsolatedNodes());
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
         for (var i = this.nodes.length - 1; i >= 0; i--) {
-            var edges = this.nodes[i].cache['adjacentEdges'];
+            var edges = this.nodes[i].cache['adjE'];
             switch (edges.length) {
                 case 0:
                     report.join(this.removeNode(this.nodes[i]));
@@ -2414,7 +2510,7 @@ var PlanarGraph = (function (_super) {
                     break;
             }
         }
-        this.nodes.forEach(function (el) { el.cache['adjacentEdges'] = undefined; });
+        this.nodes.forEach(function (el) { el.cache['adjE'] = undefined; });
         return report;
     };
     PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
@@ -2469,6 +2565,13 @@ var PlanarGraph = (function (_super) {
         report.join(this.cleanDuplicateNodes(epsilon));
         report.join(this.cleanGraph());
         report.join(this.cleanAllUselessNodes());
+        return report;
+    };
+    PlanarGraph.prototype.flatten = function (epsilon) {
+        this.dirty = false;
+        var report = this.clean(epsilon);
+        this.generateJunctions();
+        this.generateFaces();
         return report;
     };
     PlanarGraph.prototype.fragment = function () {
@@ -2530,6 +2633,72 @@ var PlanarGraph = (function (_super) {
         report.join(this.cleanGraph());
         return report;
     };
+    PlanarGraph.prototype.generateJunctions = function () {
+        this.clean();
+        this.junctions = this.nodes
+            .map(function (el) {
+            return new this.junctionType(el);
+        }, this)
+            .filter(function (el) { return el !== undefined; }, this)
+            .filter(function (el) { return el.edges.length > 0; }, this);
+        this.sectors = this.junctions.map(function (el) {
+            return el.sectors;
+        }, this).reduce(function (prev, curr) {
+            return prev.concat(curr);
+        }, []);
+        this.junctionArrayDidChange();
+        this.sectorArrayDidChange();
+        return this.junctions;
+    };
+    PlanarGraph.prototype.generateFaces = function () {
+        var faces = this.edges
+            .map(function (edge) {
+            return [this.walkClockwiseCircut(edge.nodes[0], edge.nodes[1]),
+                this.walkClockwiseCircut(edge.nodes[1], edge.nodes[0])];
+        }, this)
+            .reduce(function (prev, curr) {
+            return prev.concat(curr);
+        }, [])
+            .filter(function (el) { return el != undefined; }, this)
+            .map(function (el) {
+            return new this.faceType(this).makeFromCircuit(el);
+        }, this)
+            .filter(function (el) { return el != undefined; }, this);
+        var uniqueFaces = [];
+        for (var i = 0; i < faces.length; i++) {
+            var found = false;
+            for (var j = 0; j < uniqueFaces.length; j++) {
+                if (faces[i].equivalent(uniqueFaces[j])) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                uniqueFaces.push(faces[i]);
+            }
+        }
+        this.faces = uniqueFaces;
+        this.faceArrayDidChange();
+        return this.faces;
+    };
+    PlanarGraph.prototype.faceFromCircuit = function (circuit) {
+        var SUM_ANGLE_EPSILON = 0.00001;
+        var face = new this.faceType(this);
+        face.edges = circuit;
+        face.nodes = circuit.map(function (el, i) {
+            return el.uncommonNodeWithEdge(circuit[(i + 1) % circuit.length]);
+        });
+        var angleSum = face.nodes
+            .map(function (el, i) {
+            var el1 = face.nodes[(i + 1) % face.nodes.length];
+            var el2 = face.nodes[(i + 2) % face.nodes.length];
+            return clockwiseInteriorAngle(new XY(el2.x - el1.x, el2.y - el1.y), new XY(el.x - el1.x, el.y - el1.y));
+        }, this)
+            .reduce(function (sum, value) { return sum + value; }, 0);
+        if (face.nodes.length > 2 && Math.abs(angleSum / (face.nodes.length - 2) - Math.PI) < SUM_ANGLE_EPSILON) {
+            return face;
+        }
+    };
     PlanarGraph.prototype.walkClockwiseCircut = function (node1, node2) {
         if (node1 === undefined || node2 === undefined) {
             return undefined;
@@ -2558,143 +2727,6 @@ var PlanarGraph = (function (_super) {
             }
         } while (!(visitedList.filter(function (el) { return el === travelingNode; }).length > 0));
         return undefined;
-    };
-    PlanarGraph.prototype.bounds = function () {
-        if (this.nodes === undefined || this.nodes.length === 0) {
-            return undefined;
-        }
-        var minX = Infinity;
-        var maxX = -Infinity;
-        var minY = Infinity;
-        var maxY = -Infinity;
-        this.nodes.forEach(function (el) {
-            if (el.x > maxX) {
-                maxX = el.x;
-            }
-            if (el.x < minX) {
-                minX = el.x;
-            }
-            if (el.y > maxY) {
-                maxY = el.y;
-            }
-            if (el.y < minY) {
-                minY = el.y;
-            }
-        });
-        return new Rect(minX, minY, maxX - minX, maxY - minY);
-    };
-    PlanarGraph.prototype.getEdgeIntersections = function (epsilon) {
-        var intersections = [];
-        for (var i = 0; i < this.edges.length - 1; i++) {
-            for (var j = i + 1; j < this.edges.length; j++) {
-                var intersection = this.edges[i].intersection(this.edges[j], epsilon);
-                if (intersection != undefined) {
-                    var copy = false;
-                    for (var k = 0; k < intersections.length; k++) {
-                        if (intersection.point.equivalent(intersections[k], epsilon)) {
-                            copy = true;
-                        }
-                    }
-                    if (!copy) {
-                        intersections.push(intersection.point);
-                    }
-                }
-            }
-        }
-        return intersections;
-    };
-    PlanarGraph.prototype.nearest = function (a, b) {
-        var point = gimme1XY(a, b);
-        var face = this.faceContainingPoint(point);
-        if (face !== undefined) {
-            var node = face.nodes.slice().sort(function (a, b) {
-                return a.distanceTo(point) - b.distanceTo(point);
-            })[0];
-            var edge = face.edges.slice().sort(function (a, b) {
-                return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
-            })[0];
-            var junction = node.junction();
-            var sector = face.sectors.filter(function (el) { return el.origin === node; }, this).shift();
-        }
-        else {
-            var edge = this.edges
-                .map(function (edge) {
-                return { edge: edge, distance: edge.nearestPoint(point).distanceTo(point) };
-            }, this)
-                .sort(function (a, b) {
-                return a.distance - b.distance;
-            })[0].edge;
-            var node = (edge !== undefined) ? edge.nodes
-                .slice().sort(function (a, b) { return a.distanceTo(point) - b.distanceTo(point); })[0] : undefined;
-            var junction = (node !== undefined) ? node.junction() : undefined;
-            var sector = (junction !== undefined) ? junction.sectors.filter(function (el) {
-                return el.contains(point);
-            }, this).shift() : undefined;
-        }
-        return {
-            'node': node,
-            'edge': edge,
-            'face': face,
-            'junction': junction,
-            'sector': sector
-        };
-    };
-    PlanarGraph.prototype.faceContainingPoint = function (point) {
-        if (this.faces.length == 0) {
-            this.generateFaces();
-        }
-        for (var f = 0; f < this.faces.length; f++) {
-            if (this.faces[f].contains(point)) {
-                return this.faces[f];
-            }
-        }
-    };
-    PlanarGraph.prototype.flatten = function () {
-        this.generateJunctions();
-        this.generateFaces();
-        this.dirty = false;
-    };
-    PlanarGraph.prototype.sectorArrayDidChange = function () { for (var i = 0; i < this.sectors.length; i++) {
-        this.sectors[i].index = i;
-    } };
-    PlanarGraph.prototype.generateJunctions = function () {
-        this.junctions = [];
-        this.sectors = [];
-        this.clean();
-        for (var i = 0; i < this.nodes.length; i++) {
-            this.junctions[i] = this.nodes[i].junction();
-            if (this.junctions[i] !== undefined) {
-                this.junctions[i].index = i;
-                this.sectors = this.sectors.concat(this.junctions[i].sectors);
-            }
-        }
-        this.sectorArrayDidChange();
-        return this.junctions;
-    };
-    PlanarGraph.prototype.faceArrayDidChange = function () { for (var i = 0; i < this.faces.length; i++) {
-        this.faces[i].index = i;
-    } };
-    PlanarGraph.prototype.generateFaces = function () {
-        this.faces = [];
-        this.clean();
-        this.generateJunctions();
-        for (var i = 0; i < this.junctions.length; i++) {
-            var adjacentFaces = (this.junctions[i] != undefined) ? this.junctions[i].faces() : [];
-            for (var af = 0; af < adjacentFaces.length; af++) {
-                var duplicate = false;
-                for (var tf = 0; tf < this.faces.length; tf++) {
-                    if (this.faces[tf].equivalent(adjacentFaces[af])) {
-                        duplicate = true;
-                        break;
-                    }
-                }
-                if (!duplicate) {
-                    this.faces.push(adjacentFaces[af]);
-                }
-            }
-        }
-        this.faceArrayDidChange();
-        return this.faces;
     };
     PlanarGraph.prototype.edgeExistsThroughPoints = function (a, b) {
         for (var i = 0; i < this.edges.length; i++) {
@@ -2750,6 +2782,15 @@ var PlanarGraph = (function (_super) {
         }
         return paths;
     };
+    PlanarGraph.prototype.faceArrayDidChange = function () { for (var i = 0; i < this.faces.length; i++) {
+        this.faces[i].index = i;
+    } };
+    PlanarGraph.prototype.sectorArrayDidChange = function () { for (var i = 0; i < this.sectors.length; i++) {
+        this.sectors[i].index = i;
+    } };
+    PlanarGraph.prototype.junctionArrayDidChange = function () { for (var i = 0; i < this.junctions.length; i++) {
+        this.junctions[i].index = i;
+    } };
     return PlanarGraph;
 }(Graph));
 function gimme1XY(a, b) {
@@ -2969,10 +3010,7 @@ var CreaseJunction = (function (_super) {
 var CreaseNode = (function (_super) {
     __extends(CreaseNode, _super);
     function CreaseNode() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.junctionType = CreaseJunction;
-        _this.sectorType = CreaseSector;
-        return _this;
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     CreaseNode.prototype.isBoundary = function () {
         return this.graph.boundary.liesOnEdge(this);
@@ -3023,7 +3061,7 @@ var CreaseFace = (function (_super) {
         if (this.sectors.length !== 3) {
             return [];
         }
-        var rays = this.sectors.map(function (el) {
+        var rays = this.sectors().map(function (el) {
             return new Ray(el.origin, el.bisect());
         });
         var incenter = rays
@@ -3047,6 +3085,8 @@ var CreasePattern = (function (_super) {
         _this.nodeType = CreaseNode;
         _this.edgeType = Crease;
         _this.faceType = CreaseFace;
+        _this.sectorType = CreaseSector;
+        _this.junctionType = CreaseJunction;
         if (_this.boundary === undefined) {
             _this.boundary = new ConvexPolygon();
         }
@@ -3592,7 +3632,7 @@ var CreasePattern = (function (_super) {
         return this;
     };
     CreasePattern.prototype.exportFoldFile = function () {
-        this.generateFaces();
+        this.flatten();
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
         var file = {};
@@ -3743,7 +3783,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(1, 0, 0, 1).mountain();
         this.newPlanarEdge(0, 1, 1, 0.58578).valley();
         this.newPlanarEdge(0, 1, 0.41421, 0).valley();
-        this.generateFaces();
+        this.flatten();
         return this;
     };
     CreasePattern.prototype.fishBase = function () {
@@ -3763,7 +3803,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(0.70711, 0.70711, 1, 1).valley();
         this.newPlanarEdge(0.70711, 0.70711, 1, 0.70711).mountain();
         this.newPlanarEdge(0.29289, 0.29289, 0.29289, 0).mountain();
-        this.generateFaces();
+        this.flatten();
         return this;
     };
     CreasePattern.prototype.birdBase = function () {
@@ -3808,7 +3848,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(.79290, 0.5, 1, 0.5).valley();
         this.newPlanarEdge(0.5, .79290, 0.5, 1).valley();
         this.newPlanarEdge(.20710, 0.5, 0, 0.5).valley();
-        this.generateFaces();
+        this.flatten();
         return this;
     };
     CreasePattern.prototype.frogBase = function () {
@@ -3877,7 +3917,7 @@ var CreasePattern = (function (_super) {
         this.newPlanarEdge(.25, .25, 0, 0);
         this.newPlanarEdge(.75, .25, 1, 0);
         this.newPlanarEdge(.75, .75, 1, 1);
-        this.generateFaces();
+        this.flatten();
         return this;
     };
     return CreasePattern;

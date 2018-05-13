@@ -9,7 +9,7 @@ function node_adjacent_faces(){
 
 	var cp = new CreasePattern();
 	cp.birdBase();
-	cp.generateFaces();
+	cp.flatten();
 	var paperCP = new OrigamiPaper(scope, cp);
 
 	scope.view.onFrame = function(event){ }

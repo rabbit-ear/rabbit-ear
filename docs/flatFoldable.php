@@ -148,7 +148,7 @@ var redoOneCrease = function(){
 	var offCenter = new XY(0.5 + 0.1 * Math.cos(angle), 0.5 + 0.1 * Math.sin(angle));
 	oneCrease.cp.creaseThroughPoints(new XY(0.5, 0.5), offCenter).valley();
 	oneCrease.cp.clean();
-	oneCrease.cp.generateFaces();
+	oneCrease.cp.flatten();
 	oneCrease.faceLayer.visible = false;
 	oneCrease.draw();
 

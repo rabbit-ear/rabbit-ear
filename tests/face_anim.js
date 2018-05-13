@@ -39,7 +39,7 @@ faceAnim.onFrame = function(event) {
 		this.cp.nodes[i].y=this.positions[i].y+mag* Math.sin(this.angles[i])*Math.sin(event.time);
 	}
 	this.cp.clean();
-	this.cp.generateFaces();
+	this.cp.flatten();
 	this.draw();
 }
 faceAnim.onResize = function(event) { }

@@ -16,7 +16,7 @@ radialFaces.reset = function(){
 	}
 	radialFaces.cp.clean();
 	radialFaces.cp.fragment();
-	radialFaces.cp.generateFaces();
+	radialFaces.cp.flatten();
 	radialFaces.draw();
 }
 radialFaces.reset();

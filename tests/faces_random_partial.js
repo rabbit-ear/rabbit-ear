@@ -14,7 +14,7 @@ partialFaces.reset = function(){
 		partialFaces.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
 	var intersections = partialFaces.cp.fragment();
-	partialFaces.cp.generateFaces();
+	partialFaces.cp.flatten();
 	partialFaces.draw();
 	if(faces_random_callback != undefined){
 		faces_random_callback(intersections);

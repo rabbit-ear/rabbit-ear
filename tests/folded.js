@@ -6,7 +6,7 @@ foldedState.load("/files/svg/fish-base-tanaka.svg", function(){
 // loadSVG("/files/svg/crane.svg", function(cp){ 
 	// foldedState = new OrigamiPaper("canvas-folded", cp);
 	// foldedState.cp = new CreasePattern().birdBase();;
-	foldedState.cp.generateFaces();
+	foldedState.cp.flatten();
 	foldedState.draw();
 	foldedState.setPadding(0.05);
 	foldedState.fold();

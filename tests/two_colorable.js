@@ -8,7 +8,7 @@ twoColorable.load("../files/svg/crane.svg", function(){
 
 twoColorable.reset = function(){
 	// this.cp.frogBase();
-	this.cp.generateFaces();
+	this.cp.flatten();
 	this.draw();
 	for(var i = 0; i < this.boundaryLayer.children.length; i++){
 		this.boundaryLayer.children[i].strokeColor = null;

@@ -13,7 +13,7 @@ faceTree.reset = function(){
 	this.cp.clear();
 	this.cp.birdBase();
 	this.cp.clean();
-	this.cp.generateFaces();
+	this.cp.flatten();
 
 	console.log(this.cp.adjacentFaceTree(this.cp.faces[0]));
 

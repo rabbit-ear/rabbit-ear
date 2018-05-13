@@ -12,7 +12,7 @@ adjFaceMatrix.treeLineLayer = new adjFaceMatrix.scope.Layer();
 
 adjFaceMatrix.reset = function(){
 	this.load("../files/svg/crane.svg", function(){
-		adjFaceMatrix.cp.generateFaces();
+		adjFaceMatrix.cp.flatten();
 		adjFaceMatrix.makeFacePathLines();
 	});
 }
