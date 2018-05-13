@@ -15,7 +15,7 @@ faceTree.reset = function(){
 	this.cp.clean();
 	this.cp.flatten();
 
-	console.log(this.cp.adjacentFaceTree(this.cp.faces[0]));
+	console.log(this.cp.faces[0].adjacentFaceTree());
 
 	this.draw();
 }

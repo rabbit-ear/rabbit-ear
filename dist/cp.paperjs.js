@@ -512,7 +512,7 @@ var OrigamiFold = (function(){
 		if(this.cp === undefined){ return; }
 		var centerFace = this.cp.nearest(this.cp.bounds().size.width * 0.5, this.cp.bounds().size.height*0.5).face;
 		if(centerFace === undefined){ return; }
-		var foldTree = this.cp.adjacentFaceTree(centerFace);
+		var foldTree = centerFace.adjacentFaceTree();
 
 		this.foldedLayer.removeChildren();
 		this.foldedLayer.activate();

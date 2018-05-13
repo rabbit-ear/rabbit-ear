@@ -24,7 +24,7 @@ twoColorable.reset = function(){
 
 	var colors = [yellow, blue];
 
-	var adjFaceTree = this.cp.adjacentFaceTree(this.cp.faces[0]);
+	var adjFaceTree = this.cp.faces[0].adjacentFaceTree();
 	var faceRank = adjFaceTree.rank;
 	for(var i = 0; i < faceRank.length; i++){
 		// var color = { hue:0, saturation:1.0, brightness:i%2, alpha:1.0 };

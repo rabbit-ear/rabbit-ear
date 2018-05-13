@@ -19,7 +19,7 @@ foldedState.fold = function(){
 	// console.log(rani);
 	// var answer = this.cp.adjacentFaceTree(this.cp.faces[rani]);
 	// crane
-	var answer = this.cp.adjacentFaceTree(this.cp.faces[33]);
+	var answer = this.cp.faces[33].adjacentFaceTree();
 	// turtle
 	// var answer = this.cp.adjacentFaceTree(this.cp.faces[16]);
 	// crane 2

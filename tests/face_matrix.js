@@ -24,7 +24,7 @@ adjFaceMatrix.makeFacePathLines = function(startingFace){
 		startingFace = adjFaceMatrix.cp.getNearestFace(bounds.size.width * 0.5, bounds.size.height*0.5);
 	}
 	if(startingFace === undefined){ return; }
-	var tree = adjFaceMatrix.cp.adjacentFaceTree(startingFace);
+	var tree = startingFace.adjacentFaceTree();
 	// console.log(tree);
 	adjFaceMatrix.draw();
 	adjFaceMatrix.treeLineLayer.activate();

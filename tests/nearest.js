@@ -13,6 +13,7 @@ nearestSketch.reset();
 nearestSketch.onMouseDown = function(event){ }
 nearestSketch.onMouseMove = function(event){
 	var nearest = this.cp.nearest(event.point);
+	console.log(nearest.face);
 
 	this.updateStyles();
 
