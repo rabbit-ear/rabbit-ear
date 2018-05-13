@@ -75,8 +75,8 @@ class PlanarNode extends GraphNode implements XY{
 	x:number;
 	y:number;
 
-	junctionType = PlanarJunction;
-	sectorType = PlanarSector;
+	// junctionType = PlanarJunction;
+	// sectorType = PlanarSector;
 
 	// for speeding up algorithms, temporarily store information here
 	cache:object = {};
@@ -107,20 +107,26 @@ class PlanarNode extends GraphNode implements XY{
 	}
 
 	adjacentFaces():PlanarFace[]{
+		if(this.graph.dirty){
+
+		}
 		if(this.graph.faces.length > 0){
 			return this.graph.faces.filter(function(el){
 				return el.nodes.filter(function(n){return n === this;},this).length > 0;
 			},this);
 		}
-		var junction = this.junction();
-		if(junction === undefined){ return []; }
-		return junction.faces();
+		// var junction = this.junction();
+		// if(junction === undefined){ return []; }
+		// return junction.faces();
 	}
 	interiorAngles():number[]{ return this.junction().interiorAngles(); }
 
 	/** Adjacent nodes and edges sorted clockwise around this node */
 	junction():PlanarJunction{
-		//todo: check cache for junction object
+		if(this.graph.dirty){
+			
+		}
+
 		// store this new one if doesn't exist yet
 		var junction = new this.junctionType(this);
 		if (junction.edges.length === 0){ return undefined; }
@@ -282,7 +288,7 @@ class PlanarFace{
 	graph:PlanarGraph;
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
-	sectors:PlanarSector[];
+	// sectors:PlanarSector[];
 	angles:number[];
 	index:number;
 
@@ -291,6 +297,11 @@ class PlanarFace{
 		this.nodes = [];
 		this.edges = [];
 		this.angles = [];
+	}
+	sectors():PlanarSector[]{
+		return this.graph.sectors.filter(function(sector){
+			return this.nodes.filter(function(node){ return node === sector.origin; },this).length > 0;
+		},this);
 	}
 	makeFromCircuit(circut:PlanarEdge[]):PlanarFace{
 		var SUM_ANGLE_EPSILON = 0.00001;
@@ -301,14 +312,14 @@ class PlanarFace{
 			return <PlanarNode>el.uncommonNodeWithEdge( circut[ (i+1)%circut.length ] );
 		});
 		var sectorType = this.nodes[0].sectorType;
-		this.sectors = this.edges.map(function(el,i){
+		var sectors = this.edges.map(function(el,i){
 			var nexti = (i+1)%this.edges.length;
 			var origin = el.commonNodeWithEdge(this.edges[nexti]);
 			var endPoints = [ el.uncommonNodeWithEdge(this.edges[nexti]),
 			                  this.edges[nexti].uncommonNodeWithEdge(el) ];
 			return new sectorType(el, this.edges[nexti]);
 		},this);
-		this.angles = this.sectors.map(function(el:PlanarSector){ return el.angle(); });
+		this.angles = sectors.map(function(el:PlanarSector){ return el.angle(); });
 		var angleSum = this.angles.reduce(function(sum,value){ return sum + value; }, 0);
 		// sum of interior angles rule, (n-2) * PI
 		// console.log( Math.abs(angleSum/(this.nodes.length-2)-Math.PI) );
@@ -482,6 +493,8 @@ class PlanarSector extends Sector{
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
 	edges:[PlanarEdge, PlanarEdge];
 	endPoints:[PlanarNode, PlanarNode];
+
+	index:number;
 	// angle clockwise from edge 0 to edge 1 is in index 0. edge 1 to 0 is in index 1
 	// constructor(origin:PlanarNode, endPoints?:[PlanarNode,PlanarNode], edges?:[PlanarEdge, PlanarEdge]){
 	constructor(edge1:PlanarEdge, edge2:PlanarEdge){
@@ -627,15 +640,21 @@ class PlanarGraph extends Graph{
 	edges:PlanarEdge[];
 	faces:PlanarFace[];
 
-	junctions:PlanarJunction[];
+	junctions:PlanarJunction[];  // 1:1 map to nodes array indices
+	sectors:PlanarSector[];
 
-	// When subclassed, base types are overwritten
+	// when subclassed, base types are overwritten
 	nodeType = PlanarNode;
 	edgeType = PlanarEdge;
 	faceType = PlanarFace;
+	junctionType = PlanarJunction;
+	sectorType = PlanarSector;
 
+	// if nodes have been moved, re-require call to flatten()
+	dirty:boolean;
+
+	// not using these yet
 	properties = {"optimization":0}; // we need something to be able to set to skip over functions
-
 	didChange:(event:object)=>void;
 
 	constructor(){ super(); this.clear(); }
@@ -721,6 +740,7 @@ class PlanarGraph extends Graph{
 		this.edges = [];
 		this.faces = [];
 		this.junctions = [];
+		this.sectors = [];
 		return this;
 	}
 
@@ -1133,14 +1153,27 @@ class PlanarGraph extends Graph{
 	}
 */
 
+	flatten(){
+		this.generateJunctions();
+		this.generateFaces();
+
+		this.dirty = false;
+	}
+
+	sectorArrayDidChange(){for(var i=0;i<this.sectors.length;i++){this.sectors[i].index=i;}}
 
 	generateJunctions():PlanarJunction[]{
 		this.junctions = [];
+		this.sectors = [];
 		this.clean();
 		for(var i = 0; i < this.nodes.length; i++){
 			this.junctions[i] = this.nodes[i].junction();
-			if(this.junctions[i] !== undefined){ this.junctions[i].index = i; }
+			if(this.junctions[i] !== undefined){ 
+				this.junctions[i].index = i;
+				this.sectors = this.sectors.concat(this.junctions[i].sectors);
+			}
 		}
+		this.sectorArrayDidChange();
 		return this.junctions;
 	}
 

@@ -2341,6 +2341,7 @@ var PlanarGraph = (function (_super) {
         this.edges = [];
         this.faces = [];
         this.junctions = [];
+        this.sectors = [];
         return this;
     };
     PlanarGraph.prototype.removeEdge = function (edge) {
@@ -2648,15 +2649,26 @@ var PlanarGraph = (function (_super) {
             }
         }
     };
+    PlanarGraph.prototype.flatten = function () {
+        this.generateJunctions();
+        this.generateFaces();
+        this.dirty = false;
+    };
+    PlanarGraph.prototype.sectorArrayDidChange = function () { for (var i = 0; i < this.sectors.length; i++) {
+        this.sectors[i].index = i;
+    } };
     PlanarGraph.prototype.generateJunctions = function () {
         this.junctions = [];
+        this.sectors = [];
         this.clean();
         for (var i = 0; i < this.nodes.length; i++) {
             this.junctions[i] = this.nodes[i].junction();
             if (this.junctions[i] !== undefined) {
                 this.junctions[i].index = i;
+                this.sectors = this.sectors.concat(this.junctions[i].sectors);
             }
         }
+        this.sectorArrayDidChange();
         return this.junctions;
     };
     PlanarGraph.prototype.faceArrayDidChange = function () { for (var i = 0; i < this.faces.length; i++) {
@@ -3091,17 +3103,6 @@ var CreasePattern = (function (_super) {
         }
         g.boundary = this.boundary.copy();
         return g;
-    };
-    CreasePattern.prototype.generateJunctions = function () {
-        this.junctions = [];
-        this.clean();
-        for (var i = 0; i < this.nodes.length; i++) {
-            this.junctions[i] = this.nodes[i].junction();
-            if (this.junctions[i] !== undefined) {
-                this.junctions[i].index = i;
-            }
-        }
-        return this.junctions;
     };
     CreasePattern.prototype.fold = function (param1, param2, param3, param4) {
     };
@@ -3564,6 +3565,7 @@ var CreasePattern = (function (_super) {
         this.edges = [];
         this.faces = [];
         this.junctions = [];
+        this.sectors = [];
         this.symmetryLine = undefined;
         if (this.boundary === undefined) {
             return this;

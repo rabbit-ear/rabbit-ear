@@ -209,7 +209,6 @@ var OrigamiPaper = (function(){
 					.map(function(el){ return el.edges[0].length(); },this)
 					.sort(function(a,b){return a-b;})
 					.shift();
-				console.log(junction.sectors);
 				for(var s = 0; s < junction.sectors.length; s++){
 					var origin = junction.sectors[s].origin;
 					var a = junction.sectors[s].endPoints[0].copy().subtract(origin).normalize().scale(shortest).add(origin);
@@ -217,10 +216,11 @@ var OrigamiPaper = (function(){
 					var b = junction.sectors[s].bisect().scale(shortest).add(origin);
 					var sector = new this.scope.Path.Arc(a, b, c);
 					sector.add(origin);
-					sector.fillColor = ([this.styles.byrne.red,this.styles.byrne.darkBlue])[s%2];
 					sector.closed = true;
-					// Object.assign(sector, this.style.sector);
-					this.sectors.push( sector );
+					Object.assign(sector, this.style.sector);
+					sector.fillColor = this.style.sector.fillColors[s%2];
+					// this.sectors.push( sector );
+					this.sectors[junction.sectors[s].index] = sector;
 				}
 			}
 		}
@@ -386,7 +386,8 @@ var OrigamiPaper = (function(){
 				fillColor: { hue:25, saturation:0.7, brightness:1.0 }
 			},
 			sector: {
-				'scale': 0.25
+				'scale': 0.25,
+				fillColors: [this.styles.byrne.red,this.styles.byrne.darkBlue],
 			},
 			selected: {
 				node: {

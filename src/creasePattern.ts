@@ -219,9 +219,6 @@ class CreaseJunction extends PlanarJunction{
 class CreaseNode extends PlanarNode{
 	graph:CreasePattern;
 
-	junctionType = CreaseJunction;
-	sectorType = CreaseSector;
-
 	isBoundary():boolean{
 		return this.graph.boundary.liesOnEdge(this);
 	}
@@ -306,6 +303,7 @@ class CreasePattern extends PlanarGraph{
 	edges:Crease[];
 	// faces:CreaseFace[];
 	junctions:CreaseJunction[];
+	sectors:CreaseSector[];
 	// for now our crease patterns outlines are limited to convex shapes,
 	//   this can be easily switched out if all member functions are implemented
 	//   for a concave polygon class
@@ -313,13 +311,16 @@ class CreasePattern extends PlanarGraph{
 
 	symmetryLine:Line = undefined;
 
-	// this will 
+	// this will store the global fold sequence
 	foldSequence:FoldSequence;
 
-	// When subclassed (ie. PlanarGraph) types are overwritten
+	// when subclassed, base types are overwritten
 	nodeType = CreaseNode;
 	edgeType = Crease;
 	faceType = CreaseFace;
+	junctionType = CreaseJunction;
+	sectorType = CreaseSector;
+
 
 	didChange:(event:object)=>void;
 
@@ -382,15 +383,15 @@ class CreasePattern extends PlanarGraph{
 
 
 
-	generateJunctions():CreaseJunction[]{
-		this.junctions = [];
-		this.clean();
-		for(var i = 0; i < this.nodes.length; i++){
-			this.junctions[i] = <CreaseJunction>this.nodes[i].junction();
-			if(this.junctions[i] !== undefined){ this.junctions[i].index = i; }
-		}
-		return this.junctions;
-	}
+	// generateJunctions():CreaseJunction[]{
+	// 	this.junctions = [];
+	// 	this.clean();
+	// 	for(var i = 0; i < this.nodes.length; i++){
+	// 		this.junctions[i] = <CreaseJunction>this.nodes[i].junction();
+	// 		if(this.junctions[i] !== undefined){ this.junctions[i].index = i; }
+	// 	}
+	// 	return this.junctions;
+	// }
 
 
 	///////////////////////////////////////////////////////////////
@@ -989,6 +990,7 @@ class CreasePattern extends PlanarGraph{
 		this.edges = [];
 		this.faces = [];
 		this.junctions = [];
+		this.sectors = [];
 		this.symmetryLine = undefined;
 		if(this.boundary === undefined){ return this; }
 		for(var i = 0; i < this.boundary.edges.length; i++){
