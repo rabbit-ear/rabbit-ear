@@ -186,10 +186,11 @@ class PlanarEdge extends GraphEdge implements Edge{
 	nodes:[PlanarNode,PlanarNode];
 
 	adjacentFaces():PlanarFace[]{
-		return [
-			new this.graph.faceType(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[0], this.nodes[1]) ),
-			new this.graph.faceType(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[1], this.nodes[0]) )]
-			.filter(function(el){ return el !== undefined });
+
+		// return [
+		// 	new this.graph.faceType(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[0], this.nodes[1]) ),
+		// 	new this.graph.faceType(this.graph).makeFromCircuit( this.graph.walkClockwiseCircut(this.nodes[1], this.nodes[0]) )]
+		// 	.filter(function(el){ return el !== undefined });
 	}
 	// returns the matrix representation form of this edge as the line of reflection
 	crossingEdges():{edge:PlanarEdge, point:XY}[]{
@@ -303,21 +304,20 @@ class PlanarFace{
 			return this.nodes.filter(function(node){ return node === sector.origin; },this).length > 0;
 		},this);
 	}
-	makeFromCircuit(circut:PlanarEdge[]):PlanarFace{
+	makeFromCircuit(circuit:PlanarEdge[]):PlanarFace{
 		var SUM_ANGLE_EPSILON = 0.00001;
 		// todo: console log below, see how close to epsilon we normally get. hardcode this epsilon value, it shouldn't need to be adjusted unless porting to a new language.
-		if(circut == undefined || circut.length < 3){ return undefined; }
-		this.edges = circut;
-		this.nodes = circut.map(function(el,i){
-			return <PlanarNode>el.uncommonNodeWithEdge( circut[ (i+1)%circut.length ] );
+		if(circuit == undefined || circuit.length < 3){ return undefined; }
+		this.edges = circuit;
+		this.nodes = circuit.map(function(el,i){
+			return <PlanarNode>el.uncommonNodeWithEdge( circuit[ (i+1)%circuit.length ] );
 		});
-		var sectorType = this.nodes[0].sectorType;
 		var sectors = this.edges.map(function(el,i){
 			var nexti = (i+1)%this.edges.length;
 			var origin = el.commonNodeWithEdge(this.edges[nexti]);
 			var endPoints = [ el.uncommonNodeWithEdge(this.edges[nexti]),
 			                  this.edges[nexti].uncommonNodeWithEdge(el) ];
-			return new sectorType(el, this.edges[nexti]);
+			return new this.graph.sectorType(el, this.edges[nexti]);
 		},this);
 		this.angles = sectors.map(function(el:PlanarSector){ return el.angle(); });
 		var angleSum = this.angles.reduce(function(sum,value){ return sum + value; }, 0);
@@ -982,32 +982,6 @@ class PlanarGraph extends Graph{
 		return report;
 	}
 
-	/** walk from node1 to node2, continue always making right-most inner angle turn. */
-	walkClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarEdge[]{
-		if(node1 === undefined || node2 === undefined){ return undefined; }
-		var incidentEdge = <PlanarEdge>node1.graph.getEdgeConnectingNodes(node1, node2);
-		if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
-		var pairs:PlanarEdge[] = [];
-		var lastNode = node1;
-		var travelingNode = node2;
-		var visitedList:PlanarNode[] = [lastNode];
-		var nextWalk = incidentEdge;
-		pairs.push(nextWalk);
-		do{
-			visitedList.push(travelingNode);
-			var travelingNodeJunction:PlanarJunction = travelingNode.junction();
-			if(travelingNodeJunction !== undefined){ // just don't go down cul de sacs
-				nextWalk = travelingNodeJunction.clockwiseEdge(nextWalk);
-			}
-			pairs.push(nextWalk);
-			lastNode = travelingNode;
-			travelingNode = <PlanarNode>nextWalk.otherNode(lastNode);
-			if(travelingNode === node1){ return pairs; }		
-		// } while(!contains(visitedList, travelingNode));
-		} while( !(visitedList.filter(function(el){return el === travelingNode;}).length > 0) );
-		return undefined;
-	}
-
 	///////////////////////////////////////////////
 	// GET PARTS
 	///////////////////////////////////////////////
@@ -1154,7 +1128,9 @@ class PlanarGraph extends Graph{
 */
 
 	flatten(){
+		// 1. generate junctions and sectors
 		this.generateJunctions();
+
 		this.generateFaces();
 
 		this.dirty = false;
@@ -1183,23 +1159,87 @@ class PlanarGraph extends Graph{
 
 	faceArrayDidChange(){for(var i=0; i<this.faces.length; i++){this.faces[i].index=i;}}
 
+	// generateFaces():PlanarFace[]{
+	// 	this.faces = [];
+	// 	this.clean();
+	// 	this.generateJunctions();
+	// 	for(var i = 0; i < this.junctions.length; i++){
+	// 		var adjacentFaces = (this.junctions[i] != undefined) ? this.junctions[i].faces() : [];
+	// 		for(var af = 0; af < adjacentFaces.length; af++){
+	// 			var duplicate = false;
+	// 			for(var tf = 0; tf < this.faces.length; tf++){
+	// 				if(this.faces[tf].equivalent(adjacentFaces[af])){ duplicate = true; break; }
+	// 			}
+	// 			if(!duplicate){ this.faces.push(adjacentFaces[af]); }
+	// 		}
+	// 	}
+	// 	this.faceArrayDidChange();
+	// 	return this.faces;
+	// }
+
 	generateFaces():PlanarFace[]{
-		this.faces = [];
-		this.clean();
-		this.generateJunctions();
-		for(var i = 0; i < this.junctions.length; i++){
-			var adjacentFaces = (this.junctions[i] != undefined) ? this.junctions[i].faces() : [];
-			for(var af = 0; af < adjacentFaces.length; af++){
-				var duplicate = false;
-				for(var tf = 0; tf < this.faces.length; tf++){
-					if(this.faces[tf].equivalent(adjacentFaces[af])){ duplicate = true; break; }
-				}
-				if(!duplicate){ this.faces.push(adjacentFaces[af]); }
-			}
-		}
-		this.faceArrayDidChange();
-		return this.faces;
+		var faces = this.edges
+			.map(function(edge){
+				return [this.walkClockwiseCircut(edge.nodes[0], edge.nodes[1]),
+				        this.walkClockwiseCircut(edge.nodes[1], edge.nodes[0])];
+			},this)
+			.reduce(function(prev, curr){
+				return prev.concat(curr);
+			},[])
+			.filter(function(el){ return el != undefined; },this)
+			.map(function(el){
+				return new this.faceType(this).makeFromCircuit(el);
+			},this);
+		var uniqueFaces = [];
+		// todo: iterate over faces and add them to unique faces only if they aren't repeating.
+		return uniqueFaces;
 	}
+
+	faceFromCircuit(circuit:PlanarEdge[]):PlanarFace{
+		var SUM_ANGLE_EPSILON = 0.00001;
+		var face = new this.faceType(this);
+		face.edges = circuit;
+		face.nodes = circuit.map(function(el,i){
+			return <PlanarNode>el.uncommonNodeWithEdge( circuit[ (i+1)%circuit.length ] );
+		});
+		var angleSum = face.nodes
+			.map(function(el,i){
+				var el1 = face.nodes[ (i+1)%face.nodes.length ];
+				var el2 = face.nodes[ (i+2)%face.nodes.length ];
+				return clockwiseInteriorAngle(new XY(el2.x-el1.x, el2.y-el1.y), new XY(el.x-el1.x, el.y-el1.y));
+			},this)
+			.reduce(function(sum,value){ return sum + value; }, 0);
+		if(face.nodes.length > 2 && Math.abs(angleSum/(face.nodes.length-2)-Math.PI) < SUM_ANGLE_EPSILON){
+			return face;
+		}
+	}
+
+	/** walk from node1 to node2, continue always making right-most inner angle turn. */
+	walkClockwiseCircut(node1:PlanarNode, node2:PlanarNode):PlanarEdge[]{
+		if(node1 === undefined || node2 === undefined){ return undefined; }
+		var incidentEdge = <PlanarEdge>node1.graph.getEdgeConnectingNodes(node1, node2);
+		if(incidentEdge == undefined) { return undefined; }  // nodes are not adjacent
+		var pairs:PlanarEdge[] = [];
+		var lastNode = node1;
+		var travelingNode = node2;
+		var visitedList:PlanarNode[] = [lastNode];
+		var nextWalk = incidentEdge;
+		pairs.push(nextWalk);
+		do{
+			visitedList.push(travelingNode);
+			var travelingNodeJunction:PlanarJunction = travelingNode.junction();
+			if(travelingNodeJunction !== undefined){ // just don't go down cul de sacs
+				nextWalk = travelingNodeJunction.clockwiseEdge(nextWalk);
+			}
+			pairs.push(nextWalk);
+			lastNode = travelingNode;
+			travelingNode = <PlanarNode>nextWalk.otherNode(lastNode);
+			if(travelingNode === node1){ return pairs; }		
+		// } while(!contains(visitedList, travelingNode));
+		} while( !(visitedList.filter(function(el){return el === travelingNode;}).length > 0) );
+		return undefined;
+	}
+
 
 	// adjacentFaceTree(start:PlanarFace):any{
 	// 	this.faceArrayDidChange();
