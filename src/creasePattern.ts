@@ -753,7 +753,7 @@ class CreasePattern extends PlanarGraph{
 	////////////////////////////////////////////////////////////////
 
 	// TODO: this should export a FOLD file format as a .json
-	fold(face?:PlanarFace){
+	fold(face?:PlanarFace):XY[][]{
 		if(face == undefined){
 			var bounds = this.bounds();
 			face = this.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
@@ -761,17 +761,16 @@ class CreasePattern extends PlanarGraph{
 		if(face === undefined){ return; }
 		var tree = face.adjacentFaceTree();
 		var faces:{'face':PlanarFace, 'matrix':Matrix}[] = [];
+		tree['matrix'] = new Matrix();
+		faces.push({'face':tree.obj, 'matrix':tree['matrix']});
 		function recurse(node){
 			node.children.forEach(function(child){
 				var local = child.obj.commonEdges(child.parent.obj).shift().reflectionMatrix();
-				console.log(local);
 				child['matrix'] = child.parent['matrix'].mult(local);
 				faces.push({'face':child.obj, 'matrix':child['matrix']});
 				recurse(child);
 			},this);
 		}
-		tree['matrix'] = new Matrix();
-		faces.push({'face':tree.obj, 'matrix':tree['matrix']});
 		recurse(tree);
 		return faces.map(function(el:{'face':PlanarFace, 'matrix':Matrix}){
 			return el.face.nodes.map(function(node:CreaseNode){

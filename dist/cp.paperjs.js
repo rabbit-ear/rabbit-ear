@@ -441,6 +441,7 @@ var OrigamiFold = (function(){
 	OrigamiFold.prototype.onMouseDown = function(event){ }
 	OrigamiFold.prototype.onMouseUp = function(event){ }
 	OrigamiFold.prototype.onMouseMove = function(event){ }
+	OrigamiFold.prototype.onMouseDidBeginDrag = function(event){ }
 
 	function OrigamiFold(canvas, creasePattern) {
 		if(canvas === undefined) { throw "OrigamiFold() requires an HTML canvas, please specify one in the constructor"; }
@@ -454,35 +455,101 @@ var OrigamiFold = (function(){
 		// CREASE PATTERN
 		this.cp = creasePattern;
 		if(this.cp === undefined){ this.cp = new CreasePattern(); }
+		this.foldedCP = undefined;
 		
 		// PAPER JS
 		this.scope = new paper.PaperScope();
 		this.scope.setup(this.canvas);
 		this.loader = new PaperJSLoader();
-
-		this.customZoom = 0.5;
-		this.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-		// the order of the following sets the z index order too
 		this.foldedLayer = new this.scope.Layer();
-
+		this.mouseZoom = true;
+		this.zoom = 1.0;
+		this.rotation = 0;
+		this.bounds = {'origin':{'x':0,'y':0},'size':{'width':1.0, 'height':1.0}};
+		this.mouse = {
+			position: {'x':0,'y':0},
+			pressed: {'x':0,'y':0},
+			isPressed: false,
+			isDragging: false
+		};
+		this.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 		this.buildViewMatrix();
 		this.draw();
-				
+
 		var that = this;
-		this.scope.view.onResize = function(event){
-			paper = that.scope; 
-			that.buildViewMatrix(); 
-			that.onResize(event); 
+		this.scope.view.onFrame = function(event){
+			paper = that.scope;
+			that.onFrame(event);
 		}
+		this.scope.view.onMouseDown = function(event){
+			paper = that.scope;
+			that.mouse.isPressed = true;
+			that.mouse.isDragging = false;
+			that.mouse.pressed.x = that.mouse.position.x
+			that.mouse.pressed.y = that.mouse.position.y
+			that.zoomOnMousePress = that.zoom;
+			that.rotationOnMousePress = that.rotation;
+			that.onMouseDown(event);
+		}
+		this.scope.view.onMouseUp = function(event){
+			paper = that.scope;
+			that.mouse.isPressed = false;
+			that.onMouseUp(event);
+		}
+		this.scope.view.onMouseMove = function(event){
+			paper = that.scope;
+			var mouseScaled = that.scope.view.matrix.transform(event.point);
+			that.mouse.position.x = mouseScaled.x;
+			that.mouse.position.y = mouseScaled.y;
+			if(that.mouse.isPressed){ 
+				if(that.mouse.isDragging === false){
+					that.mouse.isDragging = true;
+					that.onMouseDidBeginDrag(event);
+				}
+				if(that.mouseZoom){
+					that.zoom = that.zoomOnMousePress + 0.01 * (that.mouse.pressed.y - that.mouse.position.y);
+					that.rotation = that.rotationOnMousePress + (that.mouse.pressed.x - that.mouse.position.x);
+					if(that.zoom < 0.1){ that.zoom = 0.1; }
+					if(that.zoom > 100){ that.zoom = 100; }
+					that.buildViewMatrix();
+				}
+			}
+			that.onMouseMove(event);
+		}
+		this.scope.view.onResize = function(event){
+			paper = that.scope;
+			that.buildViewMatrix();
+			that.onResize(event);
+		}
+	}
+	OrigamiFold.prototype.getBounds = function(){
+		if(this.foldedCP === undefined || this.foldedCP.length === 0){ 
+			this.bounds = {'origin':{'x':0,'y':0},'size':{'width':1.0, 'height':1.0}};
+		}
+		var minX = Infinity;
+		var minY = Infinity;
+		var maxX = -Infinity;
+		var maxY = -Infinity;
+		this.foldedCP.forEach(function(points){
+			points.forEach(function(el){
+				if(el.x > maxX){ maxX = el.x; }
+				if(el.x < minX){ minX = el.x; }
+				if(el.y > maxY){ maxY = el.y; }
+				if(el.y < minY){ minY = el.y; }
+			},this);
+		},this);
+		this.bounds = {'origin':{'x':minX,'y':minY},'size':{'width':maxX-minX, 'height':maxY-minY}};
 	}
 	OrigamiFold.prototype.draw = function(){
 		paper = this.scope;
 		if(this.cp === undefined){ return; }
 		this.cp.flatten();
+		this.foldedCP = this.cp.fold();
+		this.getBounds();
+		this.faces = [];
 		this.foldedLayer.removeChildren();
 		this.foldedLayer.activate();
-		this.faces = [];
-		this.cp.fold().forEach(function(nodes){
+		this.foldedCP.forEach(function(nodes){
 			var faceShape = new this.scope.Path({segments:nodes,closed:true});
 			faceShape.fillColor = this.style.face.fillColor;
 			this.faces.push( faceShape );
@@ -512,25 +579,24 @@ var OrigamiFold = (function(){
 	OrigamiFold.prototype.buildViewMatrix = function(){
 		paper = this.scope;
 		var pixelScale = this.loader.isRetina ? 0.5 : 1.0;
-		var cpBounds = this.bounds || this.cp.bounds();
-		if(cpBounds === undefined){ cpBounds = {'origin':{'x':0,'y':0},'size':{'width':this.canvas.width/this.canvas.height, 'height':1.0}} };
 		// Aspect fit crease pattern in canvas
-		var cpCanvasRatio = this.canvas.height / cpBounds.size.height;
-		var cpAspect = cpBounds.size.width / cpBounds.size.height;
+		var cpCanvasRatio = this.canvas.height / this.bounds.size.height;
+		var cpAspect = this.bounds.size.width / this.bounds.size.height;
 		var canvasAspect = this.canvas.width / this.canvas.height;
 		if(cpAspect > canvasAspect ) { 
-			cpCanvasRatio = this.canvas.width / cpBounds.size.width;
+			cpCanvasRatio = this.canvas.width / this.bounds.size.width;
 		}
 		// matrix
 		var paperWindowScale = 1.0;
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
-		mat.scale(this.customZoom, this.customZoom);  // scale a bit
-		mat.translate(this.canvas.width * 0.5 * pixelScale, this.canvas.height * 0.5 * pixelScale); 
+		mat.translate(this.canvas.width * 0.5 * pixelScale, 
+		              this.canvas.height * 0.5 * pixelScale);
+		mat.scale(this.zoom, this.zoom);
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
-		mat.translate(-cpBounds.size.width*0.5 - cpBounds.origin.x,
-		              -cpBounds.size.height*0.5 - cpBounds.origin.y);
-		mat.translate((1.0-this.customZoom), (1.0-this.customZoom));  // scale a bit - translate to center
+		mat.rotate(this.rotation);
+		mat.translate(-this.bounds.size.width*0.5 - this.bounds.origin.x,
+		              -this.bounds.size.height*0.5 - this.bounds.origin.y);
 		this.scope.view.matrix = mat;
 		return mat;
 	};

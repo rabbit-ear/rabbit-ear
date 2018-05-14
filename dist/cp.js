@@ -3445,7 +3445,6 @@ var CreasePattern = (function (_super) {
         function recurse(node) {
             node.children.forEach(function (child) {
                 var local = child.obj.commonEdges(child.parent.obj).shift().reflectionMatrix();
-                console.log(local);
                 child['matrix'] = child.parent['matrix'].mult(local);
                 faces.push({ 'face': child.obj, 'matrix': child['matrix'] });
                 recurse(child);

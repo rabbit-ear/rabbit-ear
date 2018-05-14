@@ -143,6 +143,7 @@ var oneCrease = new OrigamiPaper("canvas-one-crease");
 oneCrease.onMouseDown = function(){ redoOneCrease(); }
 
 var redoOneCrease = function(){
+	paper = oneCrease.scope;
 	oneCrease.cp.clear();
 	var angle = Math.random()*Math.PI*2;
 	var offCenter = new XY(0.5 + 0.1 * Math.cos(angle), 0.5 + 0.1 * Math.sin(angle));
@@ -153,6 +154,7 @@ var redoOneCrease = function(){
 	oneCrease.draw();
 
 	var oneCreaseFolded = new OrigamiFold("canvas-one-crease-folded", oneCrease.cp.copy());
+	paper = oneCreaseFolded.scope;
 	oneCreaseFolded.onMouseDown = redoOneCrease
 	oneCreaseFolded.style = { face:{ fillColor:{ gray:0.0, alpha:0.4 } } };
 	oneCreaseFolded.update();

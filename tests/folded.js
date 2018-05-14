@@ -1,8 +1,8 @@
 
 var foldedState = new OrigamiFold("canvas-folded", cp);
 
-// foldedState.load("/files/svg/fish-base-tanaka.svg", function(){ 
-foldedState.load("/files/svg/crane.svg", function(){ 
+foldedState.load("/files/svg/fish-base-tanaka.svg", function(){ 
+// foldedState.load("/files/svg/crane.svg", function(){ 
 	foldedState.cp.flatten();
 	foldedState.draw();
 });
