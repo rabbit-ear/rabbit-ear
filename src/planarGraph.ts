@@ -17,6 +17,7 @@ interface rbushObject{
 //////////////////////////////////////////////////////////////////////////
 // PLANAR GRAPH
 
+/** a survey of the objects removed from a planar graph after a cleaning-type function is performed */
 class PlanarClean extends GraphClean{
 	edges:{total:number, duplicate:number, circular:number};
 	nodes:{
@@ -36,8 +37,8 @@ class PlanarClean extends GraphClean{
 			collinear:[],
 			duplicate:[]
 		}
-		if(numNodes !== undefined){ this.nodes.total += numNodes; }
-		if(numEdges !== undefined){ this.edges.total += numEdges; }
+		if(numNodes != undefined){ this.nodes.total += numNodes; }
+		if(numEdges != undefined){ this.edges.total += numEdges; }
 	}
 	fragmentedNodes(nodes:XY[]):PlanarClean{
 		this.nodes.fragment = nodes; this.nodes.total += nodes.length; return this;
@@ -56,13 +57,13 @@ class PlanarClean extends GraphClean{
 		this.edges.circular += report.edges.circular;
 		// if we are merging 2 planar clean reports, type cast this variable and check properties
 		var planarReport = <PlanarClean>report;
-		if(planarReport.nodes.fragment !== undefined){ 
+		if(planarReport.nodes.fragment != undefined){ 
 			this.nodes.fragment = this.nodes.fragment.concat(planarReport.nodes.fragment); 
 		}
-		if(planarReport.nodes.collinear !== undefined){ 
+		if(planarReport.nodes.collinear != undefined){ 
 			this.nodes.collinear = this.nodes.collinear.concat(planarReport.nodes.collinear);
 		}
-		if(planarReport.nodes.duplicate !== undefined){ 
+		if(planarReport.nodes.duplicate != undefined){ 
 			this.nodes.duplicate = this.nodes.duplicate.concat(planarReport.nodes.duplicate);
 		}
 		return this;
@@ -79,9 +80,14 @@ class PlanarNode extends GraphNode implements XY{
 	cache:object = {};
 
 	copy():XY{ return new XY(this.x, this.y); }
-	// is this a good design decision? a nodes adjacent edges are always sorted by angle
-	// TODO: are these increaseing in the right direction?
+
+	/** Returns an array of edges that contain this node, sorted counter-clockwise
+	 * @returns {PlanarEdge[]} array of adjacent edges
+	 * @example
+	 * var adjacent = node.adjacentEdges()
+	 */
 	adjacentEdges():PlanarEdge[]{
+		// TODO: are these increasing in the right direction?
 		var adjacent = this.graph.edges
 		.filter(function(el:PlanarEdge){
 				return el.nodes[0] === this || el.nodes[1] === this;
@@ -93,13 +99,19 @@ class PlanarNode extends GraphNode implements XY{
 		// .sort(function(a,b){return a.angle-b.angle;})
 		.sort(function(a,b){return b.angle-a.angle;})
 		.map(function(el){ return el.edge });
-		for(var i = 0; i < adjacent.length; i++){
-			var el = adjacent[ i ];
-			var nextEl = adjacent[ (i+1)%adjacent.length ];
-			if(el === nextEl){ adjacent.splice(i,1); }
-		}
+		//WTF why did I write this? is it useful for something? why would edges be duplicated
+		// for(var i = 0; i < adjacent.length; i++){
+		// 	var el = adjacent[ i ];
+		// 	var nextEl = adjacent[ (i+1)%adjacent.length ];
+		// 	if(el === nextEl){ adjacent.splice(i,1); }
+		// }
 		return adjacent;
 	}
+	/** Returns an array of faces containing this node
+	 * @returns {PlanarFace[]} array of adjacent faces
+	 * @example
+	 * var adjacent = node.adjacentFaces()
+	 */
 	adjacentFaces():PlanarFace[]{
 		if(this.graph.dirty){ this.graph.flatten(); }
 		return this.graph.faces.filter(function(face){
@@ -167,12 +179,22 @@ class PlanarEdge extends GraphEdge implements Edge{
 	graph:PlanarGraph;
 	nodes:[PlanarNode,PlanarNode];
 
+	/** Returns an array of faces that contain this edge
+	 * @returns {PlanarFace[]} array of adjacent faces
+	 * @example
+	 * var adjacent = edge.adjacentFace()
+	 */
 	adjacentFaces():PlanarFace[]{
 		if(this.graph.dirty){ this.graph.flatten(); }
 		return this.graph.faces.filter(function(face){
 			return face.edges.filter(function(edge){return edge === this;},this).length > 0;
 		},this);
 	}
+	/** Returns an array of edges that cross this edge. These are edges which are considered "invalid"
+	 * @returns {{edge:PlanarEdge, point:XY}[]} array of objects containing the crossing edge and point of intersection
+	 * @example
+	 * var edges = edge.crossingEdges()
+	 */
 	crossingEdges():{edge:PlanarEdge, point:XY}[]{
 		// optimize by excluding all edges outside of the quad space occupied by this edge
 		var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
@@ -193,13 +215,6 @@ class PlanarEdge extends GraphEdge implements Edge{
 				if(a.point.commonX(b.point)){ return a.point.y-b.point.y; }
 				return a.point.x-b.point.x;
 			});
-	}
-	absoluteAngle(startNode?:PlanarNode):number{  // startNode is one of this edge's 2 nodes
-		// if not specified it will pick one node
-		if(startNode === undefined){ startNode = this.nodes[1]; }
-		// measure edge as if it were a ray
-		var endNode = <PlanarNode>this.otherNode(startNode);
-		return Math.atan2(endNode.y-startNode.y, endNode.x-startNode.x);
 	}
 	// implements Edge (implements LineType)
 	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
@@ -228,9 +243,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 		}
 	}
 	// returns the matrix representation form of this edge as the line of reflection
-	reflectionMatrix():Matrix{
-		return new Edge(this.nodes[0], this.nodes[1]).reflectionMatrix();
-	}
+	reflectionMatrix():Matrix{ return new Edge(this.nodes[0], this.nodes[1]).reflectionMatrix(); }
 	nearestPoint(point:XY):XY{
 		var answer = this.nearestPointNormalTo(point);
 		if(answer !== undefined){ return answer; }
@@ -256,7 +269,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 	}
 	// implements Edge (outside LineType)
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
-	                                   0.5*(this.nodes[0].y + this.nodes[1].y));}
+	                               0.5*(this.nodes[0].y + this.nodes[1].y));}
 	perpendicularBisector():Line{ return new Line(this.midpoint(), this.vector().rotate90()); }
 	infiniteLine():Line{
 		var origin = new XY(this.nodes[0].x, this.nodes[0].y);
@@ -270,7 +283,7 @@ class PlanarFace{
 	graph:PlanarGraph;
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
-	// sectors:PlanarSector[];
+
 	angles:number[];
 	index:number;
 
@@ -285,13 +298,16 @@ class PlanarFace{
 			return this.nodes.filter(function(node){ return node === sector.origin; },this).length > 0;
 		},this);
 	}
+	/** This compares two faces by checking their nodes are the same, and in the same order.
+	 * @returns {boolean} whether two faces are equivalent or not
+	 * @example
+	 * var equivalent = face.equivalent(anotherFace)
+	 */
 	equivalent(face:PlanarFace):boolean{
-		// quick check, only verfies nodes
+		// quick check, if number of nodes differs, can't be equivalent
 		if(face.nodes.length != this.nodes.length){return false;}
 		var iFace = undefined;
-		for(var i = 0; i < this.nodes.length; i++){
-			if(this.nodes[0] === face.nodes[i]){ iFace = i; break; }
-		}
+		face.nodes.forEach(function(n,i){ if(n === this.nodes[0]){ iFace = i; return; }},this);
 		if(iFace == undefined){return false;}
 		for(var i = 0; i < this.nodes.length; i++){
 			var iFaceMod = (iFace + i) % this.nodes.length;
@@ -299,17 +315,31 @@ class PlanarFace{
 		}
 		return true;
 	}
+	/** Returns an array of edges that are shared among both faces.
+	 * @returns {PlanarEdge[]} array of edges in common
+	 * @example
+	 * var edges = face.commonEdges(anotherFace)
+	 */
 	commonEdges(face:PlanarFace):PlanarEdge[]{
 		return this.edges.filter(function(edge){
 			return face.edges.filter(function(fe){ return fe === edge; },this).length > 0;
 		},this);
 	}
+	/** Returns an array of edges in this face which are not shared by the other face.
+	 * @returns {PlanarEdge[]} array of edges not in common
+	 * @example
+	 * var edges = face.uncommonEdges(anotherFace)
+	 */
 	uncommonEdges(face:PlanarFace):PlanarEdge[]{
 		return this.edges.filter(function(edge){
 			return face.edges.filter(function(fe){ return fe === edge; },this).length == 0;
 		},this);
 	}
-
+	/** Returns an array of adjacent faces which share one or more edges in common with this face.
+	 * @returns {PlanarFace[]} array of adjacent faces
+	 * @example
+	 * var faces = face.edgeAdjacentFaces()
+	 */
 	edgeAdjacentFaces():PlanarFace[]{
 		var allFaces = this.graph.faces.filter(function(el){return !this.equivalent(el);},this);
 		return this.edges.map(function(ed){
@@ -319,6 +349,25 @@ class PlanarFace{
 			}
 		}, this).filter(function(el){return el !== undefined;});
 	}
+	/** Returns an array of adjacent faces which share one or more nodes in common with this face.
+	 * @returns {PlanarFace[]} array of adjacent faces
+	 * @example
+	 * var faces = face.nodeAdjacentFaces()
+	 */
+	nodeAdjacentFaces():PlanarFace[]{
+		var allFaces = this.graph.faces.filter(function(el){return !this.equivalent(el);},this);
+		return this.nodes.map(function(node){
+			for(var i = 0; i < allFaces.length; i++){
+				var adjArray = allFaces[i].nodes.filter(function(nf){return node === nf;});
+				if(adjArray.length > 0){ return allFaces[i]; }
+			}
+		}, this).filter(function(el){return el !== undefined;});
+	}
+	/** Tests whether or not a point is contained inside a face. This is counting on the face to be convex.
+	 * @returns {boolean} whether the point is inside the face or not
+	 * @example
+	 * var isInside = face.contains( {x:0.5, y:0.5} )
+	 */
 	contains(point:XY):boolean{
 		for(var i = 0; i < this.nodes.length; i++){
 			var thisNode = this.nodes[ i ];
@@ -329,35 +378,43 @@ class PlanarFace{
 		}
 		return true;
 	}
-	transform(matrix){
-		for(var i = 0; i < this.nodes.length; i++){
-			this.nodes[i].transform(matrix);
-		}
-	}
-
+	/** Apply a matrix transform to this face by transforming the location of its points.
+	 * @example
+	 * face.transform(matrix)
+	 */
+	transform(matrix){ this.nodes.forEach(function(node){node.transform(matrix);},this); }
+	/** Calculates the signed area of a face. This requires the face be non-intersecting.
+	 * @returns {number} the area of the face
+	 * @example
+	 * var area = face.signedArea()
+	 */
 	signedArea():number{
 		return 0.5 * this.nodes.map(function(el,i){
 			var nextEl = this.nodes[ (i+1)%this.nodes.length ];
 			return el.x*nextEl.y - nextEl.x*el.y;
 		},this)
-		.reduce(function(prev, cur){
-			return prev + cur;
-		},0);
+		.reduce(function(prev, cur){ return prev + cur; },0);
 	}
+	/** Calculates the centroid or the center of mass of the polygon.
+	 * @returns {XY} the location of the centroid
+	 * @example
+	 * var centroid = face.centroid()
+	 */
 	centroid():XY{
 		return this.nodes.map(function(el,i){
 			var nextEl = this.nodes[ (i+1)%this.nodes.length ];
 			var mag = el.x*nextEl.y - nextEl.x*el.y;
 			return new XY((el.x+nextEl.x)*mag, (el.y+nextEl.y)*mag);
 		},this)
-		.reduce(function(prev:XY,current:XY){
-			return prev.add(current);
-		},new XY(0,0))
+		.reduce(function(prev:XY,current:XY){ return prev.add(current); },new XY(0,0))
 		.scale(1/(6 * this.signedArea()));
 	}
-	// todo: figure out what kind of center this is. give it a better name
+	/** Calculates the center of the bounding box made by the edges of the polygon.
+	 * @returns {XY} the location of the center of the bounding box
+	 * @example
+	 * var boundsCenter = face.center()
+	 */
 	center():XY{
-		// this is not an average / means
 		var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;
 		for(var i = 0; i < this.nodes.length; i++){ 
 			if(this.nodes[i].x > xMax){ xMax = this.nodes[i].x; }
@@ -501,11 +558,33 @@ class PlanarJunction{
 		},this);
 		// this.edges = this.sectors.map(function(el:PlanarSector){return el.edges[0];});
 	}
+
+	/** Returns an array of nodes, the endpoints of the junctions edges, sorted clockwise.
+	 * @returns {PlanarNode[]} array of nodes
+	 * @example
+	 * var endNodes = junction.nodes()
+	 */
+	nodes():PlanarNode[]{
+		return this.edges.map(function(edge){return <PlanarNode>edge.otherNode(this.origin);},this);
+	}
+	/** Returns an array of faces that encircle this junction, or, contain this junction's origin node. These are not sorted in any particular way.
+	 * @returns {PlanarFace[]} array of faces
+	 * @example
+	 * var faces = junction.faces()
+	 */
 	faces():PlanarFace[]{
 		if(this.origin.graph.dirty){ this.origin.graph.flatten(); }
 		return this.origin.graph.faces.filter(function(face){
 			return face.nodes.filter(function(node){return node === this.origin;},this).length > 0;
 		},this);
+	}
+	edgeAngles():number[]{
+		return this.nodes()
+			.map(function(node){return new XY(node.x,node.y).subtract(this.origin);})
+			.map(function(vec){return Math.atan2(vec.y, vec.x);},this);
+	}
+	edgeVectorsNormalized():XY[]{
+		return this.edges.map(function(el){return el.vector(this.origin).normalize();},this);
 	}
 	sectorWithEdges(a:PlanarEdge, b:PlanarEdge):Sector{
 		var found = undefined;
@@ -517,12 +596,6 @@ class PlanarJunction{
 			}
 		},this);
 		return found;
-	}
-	edgeVectorsNormalized():XY[]{
-		return this.edges.map(function(el){return el.vector(this.origin).normalize();},this);
-	}
-	edgeAngles():number[]{
-		return this.edges.map(function(el){return el.absoluteAngle(this.origin);},this);
 	}
 	/** get an array of numbers measuring the angle in radians between each edge.
 	 * array indices are related to edges indices: interiorAngle()[i] is the angle between edges[i] and edges[i+1].
@@ -661,7 +734,7 @@ class PlanarGraph extends Graph{
 	}
 
 	/** Locate the nearest node, edge, face, junction, sector to a supplied point
-	 * @returns {XY[]} array of XY locations of all the intersection locations
+	 * @returns {{'node':PlanarNode,'edge':PlanarEdge,'face':PlanarFace,'junction':PlanarJunction,'sector':PlanarSector}} object with keys node, edge, face, junction, sector with their objects, or undefined if not found
 	 */
 	nearest(a:any,b:any):{'node':PlanarNode,'edge':PlanarEdge,'face':PlanarFace,'junction':PlanarJunction,'sector':PlanarSector}{
 		var point = gimme1XY(a,b);
@@ -676,13 +749,14 @@ class PlanarGraph extends Graph{
 			var junction = node.junction();
 			var sector = face.sectors().filter(function(el){ return el.origin === node; },this).shift();
 		} else{
-			var edge = this.edges
+			var edgeArray = this.edges
 				.map(function(edge:PlanarEdge){
 					return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
 				},this)
 				.sort(function(a,b){
 					return a.distance - b.distance;
-				})[0].edge;
+				})[0];
+			var edge = (edgeArray != undefined) ? edgeArray.edge : undefined;
 			var node = (edge !== undefined) ? edge.nodes
 				.slice().sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);})
 				[0] : undefined;
@@ -779,15 +853,14 @@ class PlanarGraph extends Graph{
 		var len = this.edges.length;
 		var endNodes = [edge.nodes[0], edge.nodes[1]];
 		this.edges = this.edges.filter(function(el){ return el !== edge; });
-		this.edgeArrayDidChange();
-		this.cleanNodeIfUseless(endNodes[0]);
-		this.cleanNodeIfUseless(endNodes[1]);
+		return new PlanarClean(0, len - this.edges.length)
+			.join(this.cleanNodeIfUseless(endNodes[0]))
+			.join(this.cleanNodeIfUseless(endNodes[1]))
 		// todo: this is hitting the same node repeatedly from different sides, so keeping track of nodes is not working
 		// var report = new PlanarCleanReport();
 		// var a = this.cleanNodeIfUseless(endNodes[0]);
 		// var b = this.cleanNodeIfUseless(endNodes[1]);
 		// console.log(a +  " " + b)
-		return new PlanarClean(undefined, len - this.edges.length);
 	}
 
 	/** Attempt to remove an edge if one is found that connects the 2 nodes supplied, and also attempt to remove the two nodes left behind if they are otherwise unused
@@ -800,7 +873,7 @@ class PlanarGraph extends Graph{
 					 (el.nodes[0] === node2 && el.nodes[1] === node1) );
 		});
 		this.edgeArrayDidChange();
-		return new PlanarClean(undefined, len - this.edges.length)
+		return new PlanarClean(0, len - this.edges.length)
 			.join(this.cleanNodeIfUseless(node1))
 			.join(this.cleanNodeIfUseless(node2));
 	}
@@ -811,23 +884,27 @@ class PlanarGraph extends Graph{
 	cleanNodeIfUseless(node:PlanarNode):PlanarClean{
 		var edges = node.adjacentEdges();
 		switch (edges.length){
-			case 0: return <PlanarClean>this.removeNode(node);
+			case 0:
+				// return <PlanarClean>this.removeNode(node);
+				this.nodes = this.nodes.filter(function(el){ return el !== node; });
+				this.nodeArrayDidChange();
+				return new PlanarClean(1, 0);
 			case 2:
 				var farNodes = [<PlanarNode>(edges[0].uncommonNodeWithEdge(edges[1])), 
 								<PlanarNode>(edges[1].uncommonNodeWithEdge(edges[0]))];
-				if(farNodes[0] === undefined || farNodes[1] === undefined){ return; }
-				var span = new Edge(farNodes[0], farNodes[1]);
+				if(farNodes[0] === undefined || farNodes[1] === undefined){ return new PlanarClean(); }
+				var span = new Edge(farNodes[0].x, farNodes[0].y, farNodes[1].x, farNodes[1].y);
 				if(span.collinear(node)){
 					edges[0].nodes = [farNodes[0], farNodes[1]];
-					this.removeEdge(edges[1]);
-					// this.newEdge(farNodes[0], farNodes[1]);
-					this.removeNode(node);
-					// console.log("Collinear " + (nodeLen - this.nodes.length));
+					this.edges = this.edges.filter(function(el){ return el !== edges[1]; });
+					// this.removeNode(node);
+					this.nodes = this.nodes.filter(function(el){ return el !== node; });
+					this.nodeArrayDidChange();
+					this.edgeArrayDidChange();
 					return new PlanarClean(1, 1);
 				}
-			// return below, no break
+			default: return new PlanarClean();
 		}
-		return new PlanarClean();
 	}
 
 	///////////////////////////////////////////////
@@ -854,7 +931,7 @@ class PlanarGraph extends Graph{
 				case 2:
 					var farNodes = [<PlanarNode>(edges[0].uncommonNodeWithEdge(edges[1])), 
 									<PlanarNode>(edges[1].uncommonNodeWithEdge(edges[0]))]
-					var span = new Edge(farNodes[0], farNodes[1]);
+					var span = new Edge(farNodes[0].x, farNodes[0].y, farNodes[1].x, farNodes[1].y);
 					if(span.collinear(this.nodes[i])){
 						edges[0].nodes = [farNodes[0], farNodes[1]];
 						this.edges.splice(edges[1].index, 1);

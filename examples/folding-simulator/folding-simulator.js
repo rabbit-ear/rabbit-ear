@@ -1,4 +1,3 @@
-
 /////////////////////////////////////////////////////////////////
 function download(text, filename){
 	var blob = new Blob([text], {type: "image/svg+xml"});
@@ -14,7 +13,6 @@ document.getElementById("download-file").addEventListener("click", function(e){
 	var svgBlob = project.cp.exportSVG(scale);
 	download(svgBlob, "creasepattern.svg");
 });	
-
 ////////////////////////////////////////////////////////////////////
 var foldedState = new OrigamiFold("canvas-2");
 var project = new OrigamiPaper("canvas-1");
@@ -25,7 +23,6 @@ function updateFoldedState(cp){
 	foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 	foldedState.update();
 }
-
 // incoming file from upload-button or drag-to-upload
 function fileDidLoad(file){
 	try{

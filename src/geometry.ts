@@ -987,7 +987,7 @@ class Sector{
 }
 
 //////////////////////////////////////////////////////////////////////////
-// VORONOI DEPENDENCIES
+// D3.js VORONOI DEPENDENCY
 interface d3VoronoiObject{
 	'edges':{
 		0:[number,number],
@@ -1360,57 +1360,8 @@ class VoronoiGraph{
 }
 
 //////////////////////////////////////////////////////////////////////
-///////////////   we're not using these  /////////////////////////////
+///////////////   we're not using these anymore   ////////////////////
 //////////////////////////////////////////////////////////////////////
-
-
-/** 2D line, extending infinitely in both directions, represented by 2 collinear points
- */
-// class LineNodes{
-// 	nodes:[XY,XY];
-// 	constructor(a:any, b:any, c?:any, d?:any){
-// 		if(a instanceof XY){this.nodes = [a,b];}
-// 		else if(a.x !== undefined){this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];}
-// 		else{ this.nodes = [new XY(a,b), new XY(c,d)]; }
-// 	}
-// 	length(){return Infinity;}
-// 	vector(originNode?:XY):XY{
-// 		if(originNode === undefined){ return this.nodes[1].subtract(this.nodes[0]); }
-// 		if(this.nodes[0].equivalent(originNode)){
-// 			return this.nodes[1].subtract(this.nodes[0]);
-// 		}
-// 		return this.nodes[0].subtract(this.nodes[1]);
-// 	}
-// 	intersectLine(line:Line):XY{return intersectionLineLine(this,line);}
-// 	intersectRay(ray:Ray):XY{return intersectionLineRay(this,ray);}
-// 	intersectEdge(edge:Edge):XY{return intersectionLineEdge(this,edge);}
-// 	reflectionMatrix():Matrix{return new Matrix().reflectionAcrossLine(this);}
-// 	parallel(line:Line, epsilon?:number):boolean{
-// 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-// 		var u = this.nodes[1].subtract(this.nodes[0]);
-// 		var v = line.nodes[1].subtract(line.nodes[0]);
-// 		return epsilonEqual(u.cross(v), 0, epsilon);
-// 	}
-// 	collinear(point:XY, epsilon?:number):boolean{
-// 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-// 		if(point.equivalent(this.nodes[0], epsilon)){ return true; }
-// 		var u = this.nodes[1].subtract(this.nodes[0]);
-// 		var v = point.subtract(this.nodes[0]);
-// 		return epsilonEqual(u.cross(v), 0, epsilon);
-// 	}
-// 	equivalent(line:Line, epsilon?:number):boolean{
-// 		// if lines are parallel and share a point in common
-// 		return undefined;
-// 	}
-// 	transform(matrix):Line{
-// 		return new Line(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
-// 	}
-// 	nearestPointNormalTo(point:XY):XY{
-// 		var p = this.nodes[0].distanceTo(this.nodes[1]);
-// 		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
-// 		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
-// 	}
-// }
 
 /** 2D line, extending infinitely in both directions, represented by a scalar and a normal */
 // class LinePerp{

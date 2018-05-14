@@ -44,7 +44,8 @@ projectInAngles.updateAngles = function(){
 			Object.assign(arc, {strokeColor:null, fillColor:this.style.myColors[i%3]});
 			i++;
 			eventData.interiorAngles.push(el.angle());
-			eventData.edgeAngles.push(el.edges[0].absoluteAngle(el.node));
+			var vec = el.edges[0].vector(el.node);
+			eventData.edgeAngles.push(Math.atan2(vec.y, vec.x));
 		},this);
 
 	eventData.edgeAngles.forEach(function(el,i){if(el < 0){eventData.edgeAngles[i]+=Math.PI*2;}});

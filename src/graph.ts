@@ -29,8 +29,8 @@ class GraphClean {
 	constructor(numNodes?:number, numEdges?:number){
 		this.nodes = {total:0, isolated:0};
 		this.edges = {total:0, duplicate:0, circular:0};
-		if(numNodes !== undefined){ this.nodes.total = numNodes; }
-		if(numEdges !== undefined){ this.edges.total = numEdges; }
+		if(numNodes != undefined){ this.nodes.total = numNodes; }
+		if(numEdges != undefined){ this.edges.total = numEdges; }
 	}
 	join(report:GraphClean):GraphClean{
 		this.nodes.total += report.nodes.total;

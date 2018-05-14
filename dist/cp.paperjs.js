@@ -45,8 +45,8 @@ var OrigamiPaper = (function(){
 			nodes:true,
 			edges:true,
 			faces:true,
-			junctions:true,
-			sectors:true,
+			junctions:false,
+			sectors:false,
 		}
 		// user select and move
 		this.selectable = [];
@@ -254,8 +254,9 @@ var OrigamiPaper = (function(){
 			Object.assign(this.nodes[i], this.style.node); }
 		for(var i = 0; i < this.cp.edges.length; i++){ 
 			Object.assign(this.edges[i], this.styleForCrease(this.cp.edges[i].orientation)); }
-		for(var i = 0; i < this.cp.faces.length; i++){ 
-			Object.assign(this.faces[i], this.style.face); }
+		if(this.show.faces){ 
+			for(var i = 0; i < this.cp.faces.length; i++){ Object.assign(this.faces[i], this.style.face); }
+		}
 		for(var i = 0; i < this.boundaryLayer.children.length; i++){
 			Object.assign(this.boundaryLayer.children[i], this.style.boundary);
 			// Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
@@ -455,7 +456,7 @@ var OrigamiFold = (function(){
 		// CREASE PATTERN
 		this.cp = creasePattern;
 		if(this.cp === undefined){ this.cp = new CreasePattern(); }
-		this.foldedCP = undefined;
+		this.foldedCP = [];
 		
 		// PAPER JS
 		this.scope = new paper.PaperScope();
@@ -473,7 +474,7 @@ var OrigamiFold = (function(){
 			isDragging: false
 		};
 		this.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-		this.buildViewMatrix();
+
 		this.draw();
 
 		var that = this;
@@ -509,7 +510,7 @@ var OrigamiFold = (function(){
 				if(that.mouseZoom){
 					that.zoom = that.zoomOnMousePress + 0.01 * (that.mouse.pressed.y - that.mouse.position.y);
 					that.rotation = that.rotationOnMousePress + (that.mouse.pressed.x - that.mouse.position.x);
-					if(that.zoom < 0.1){ that.zoom = 0.1; }
+					if(that.zoom < 0.02){ that.zoom = 0.02; }
 					if(that.zoom > 100){ that.zoom = 100; }
 					that.buildViewMatrix();
 				}
@@ -525,6 +526,7 @@ var OrigamiFold = (function(){
 	OrigamiFold.prototype.getBounds = function(){
 		if(this.foldedCP === undefined || this.foldedCP.length === 0){ 
 			this.bounds = {'origin':{'x':0,'y':0},'size':{'width':1.0, 'height':1.0}};
+			return;
 		}
 		var minX = Infinity;
 		var minY = Infinity;
@@ -542,8 +544,6 @@ var OrigamiFold = (function(){
 	}
 	OrigamiFold.prototype.draw = function(){
 		paper = this.scope;
-		if(this.cp === undefined){ return; }
-		this.cp.flatten();
 		this.foldedCP = this.cp.fold();
 		this.getBounds();
 		this.faces = [];
@@ -564,12 +564,11 @@ var OrigamiFold = (function(){
 		}
 	};
 	OrigamiFold.prototype.load = function(svg, callback, epsilon){
+		if(epsilon === undefined){ epsilon = 0.00005; }
 		var that = this;
 		this.scope.project.importSVG(svg, function(e){
 			var cp = that.loader.paperPathToCP(e);
-			if(epsilon === undefined){ epsilon = 0.00005; }
-			cp.flatten(epsilon);
-			that.cp = cp;
+			that.cp = cp.flatten();
 			that.draw();
 			if(callback != undefined){
 				callback(that.cp);

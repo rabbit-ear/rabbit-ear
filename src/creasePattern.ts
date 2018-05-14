@@ -137,7 +137,8 @@ class CreaseSector extends PlanarSector{
 		}
 		var dEven = Math.PI - sumEven;
 		// var dOdd = Math.PI - sumOdd;
-		var angle0 = this.edges[0].absoluteAngle(this.origin);
+		var vec0 = this.edges[0].vector(this.origin);
+		var angle0 = Math.atan2(vec0.y, vec0.x);
 		// var angle1 = this.edges[1].absoluteAngle(this.origin);
 		var newA = angle0 - dEven;
 		return new XY(Math.cos(newA), Math.sin(newA));
@@ -209,7 +210,8 @@ class CreaseJunction extends PlanarJunction{
 		}
 		var dEven = Math.PI - sumEven;
 		// var dOdd = Math.PI - sumOdd;
-		var angle0 = sector.edges[0].absoluteAngle(sector.origin);
+		var vec0 = sector.edges[0].vector(sector.origin);
+		var angle0 = Math.atan2(vec0.y, vec0.x);
 		// var angle1 = sector.edges[1].absoluteAngle(sector.origin);
 		var newA = angle0 - dEven;
 		return new XY(Math.cos(newA), Math.sin(newA));
@@ -403,10 +405,6 @@ class CreasePattern extends PlanarGraph{
 	
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS
-
-	// fold(param1, param2, param3, param4){
-	// 	// detects parameters, make deductions
-	// }
 
 	foldInHalf():Crease{
 		var crease:Crease;
@@ -1083,7 +1081,7 @@ class CreasePattern extends PlanarGraph{
 		return file;
 	}
 
-	importFoldFile(file:object):boolean{
+	importFoldFile(file:object, epsilon?:number):boolean{
 		if(file === undefined || 
 		   file["vertices_coords"] === undefined ||
 		   file["edges_vertices"] === undefined){ return false; }
@@ -1142,8 +1140,7 @@ class CreasePattern extends PlanarGraph{
 				]
 			},this)
 		this.setBoundary([].concat.apply([],boundaryPoints));
-
-		this.clean();
+		this.clean(epsilon);
 		return true;
 	}
 

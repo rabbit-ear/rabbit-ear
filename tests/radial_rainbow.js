@@ -46,11 +46,13 @@ radialRay.onMouseMove = function(event) {
 	for(var i = 0; i < radialRay.adjacentEdges.length; i++){
 		var edgeIndex = radialRay.adjacentEdges[i].index;
 		if(radialRay.adjacentEdges[i] === nearest.edge){
-			radialRay.edges[edgeIndex].strokeColor = radialRay.colorForAngle(radialRay.adjacentEdges[i].absoluteAngle());
+			var vec = radialRay.adjacentEdges[i].vector(this.centerNode);
+			var angle = Math.atan2(vec.y, vec.x);
+			radialRay.edges[edgeIndex].strokeColor = radialRay.colorForAngle(angle);
 			radialRay.edges[edgeIndex].strokeWidth = 0.02;//radialRay.lineWeight*1.5;
 			radialRay.edges[edgeIndex].bringToFront();
 			if(radial_rainbow_callback != undefined){
-				radial_rainbow_callback({node:this.centerNode,angle:radialRay.adjacentEdges[i].absoluteAngle(this.centerNode),edge:radialRay.adjacentEdges[i]});
+				radial_rainbow_callback({node:this.centerNode, angle:angle, edge:radialRay.adjacentEdges[i]});
 			}
 		}
 		else{
