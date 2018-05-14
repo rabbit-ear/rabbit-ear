@@ -274,9 +274,9 @@ var OrigamiPaper = (function(){
 			cpCanvasRatio = this.canvas.width / cpBounds.size.width;
 		}
 		// matrix
+		var paperWindowScale = 1.0 - this.padding*2;
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
 		mat.translate(this.canvas.width * 0.5 * pixelScale, this.canvas.height * 0.5 * pixelScale); 
-		var paperWindowScale = 1.0 - this.padding*2;
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
 		mat.translate(-cpBounds.size.width*0.5 - cpBounds.origin.x,
@@ -536,36 +536,25 @@ var OrigamiFold = (function(){
 
 	OrigamiFold.prototype.buildViewMatrix = function(padding){
 		paper = this.scope;
-		// store padding for future calls
-		if(padding !== undefined){ this.padding = padding; }
-		// use stored padding if we can
-		var paperWindowScale = 1.0 - .015;
-		if(this.padding !== undefined){ paperWindowScale = 1.0 - this.padding*2; }
-		var pixelScale = 1.0;
-		if(this.loader.isRetina){ pixelScale = 0.5; }
-		// crease pattern size
-		var cpWidth = 1.0; 
-		var cpHeight = 1.0;
-		// if(this.cp.width !== undefined){ cpWidth = this.cp.width(); }
-		// if(this.cp.height !== undefined){ cpHeight = this.cp.height(); }
-		var cpBounds = this.cp.bounds();
-		var cpAspect = cpWidth / cpHeight;
-		this.cpMin = cpWidth;
-		if(cpHeight < cpWidth){ this.cpMin = cpHeight; }
-		// canvas size
-		var canvasWidth = this.canvas.width;
-		var canvasHeight = this.canvas.height;
-		var canvasAspect = canvasWidth / canvasHeight;
-		// cp to canvas ratio
-		var cpCanvasRatio = canvasHeight / cpHeight;
-		if(cpAspect > canvasAspect) { cpCanvasRatio = canvasWidth / cpWidth; }
+		var pixelScale = this.loader.isRetina ? 0.5 : 1.0;
+		var cpBounds = this.bounds || this.cp.bounds();
+		if(cpBounds === undefined){ cpBounds = {'origin':{'x':0,'y':0},'size':{'width':this.canvas.width/this.canvas.height, 'height':1.0}} };
+		// Aspect fit crease pattern in canvas
+		var cpCanvasRatio = this.canvas.height / cpBounds.size.height;
+		var cpAspect = cpBounds.size.width / cpBounds.size.height;
+		var canvasAspect = this.canvas.width / this.canvas.height;
+		if(cpAspect > canvasAspect ) { 
+			cpCanvasRatio = this.canvas.width / cpBounds.size.width;
+		}
 		// matrix
+		var paperWindowScale = 1.0 - this.padding*2;
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
 		mat.scale(this.customZoom, this.customZoom);  // scale a bit
-		mat.translate(canvasWidth * 0.5 * pixelScale, canvasHeight * 0.5 * pixelScale);
+		mat.translate(this.canvas.width * 0.5 * pixelScale, this.canvas.height * 0.5 * pixelScale); 
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);
-		mat.translate(-cpBounds.origin.x-cpWidth*0.5, -cpBounds.origin.y-cpHeight*0.5);
+		mat.translate(-cpBounds.size.width*0.5 - cpBounds.origin.x,
+		              -cpBounds.size.height*0.5 - cpBounds.origin.y);
 		mat.translate((1.0-this.customZoom), (1.0-this.customZoom));  // scale a bit - translate to center
 		this.scope.view.matrix = mat;
 		return mat;

@@ -228,7 +228,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 		}
 	}
 	// returns the matrix representation form of this edge as the line of reflection
-	reflectionMatrix(){
+	reflectionMatrix():Matrix{
 		return new Edge(this.nodes[0], this.nodes[1]).reflectionMatrix();
 	}
 	nearestPoint(point:XY):XY{
@@ -368,16 +368,14 @@ class PlanarFace{
 		return new XY(xMin+(xMax-xMin)*0.5, yMin+(yMax-yMin)*0.5);
 	}
 
-// [
-// 	[CreaseFace]
-// 	[CreaseFace, CreaseFace, CreaseFace]
-// 	[CreaseFace, CreaseFace, CreaseFace, CreaseFace, CreaseFace]
-// 	[CreaseFace, CreaseFace, CreaseFace, CreaseFace, CreaseFace, CreaseFace, CreaseFace]
-// 	[CreaseFace, CreaseFace, CreaseFace, CreaseFace, CreaseFace]
-// 	[CreaseFace, CreaseFace]
-// 	[CreaseFace]
-// ]
-	adjacentFaceTree():any{//:Tree<PlanarFace>{
+	// [
+	// 	[CreaseFace]
+	// 	[CreaseFace, CreaseFace]
+	// 	[CreaseFace, CreaseFace, CreaseFace, CreaseFace]
+	// 	[CreaseFace, CreaseFace]
+	// 	[CreaseFace]
+	// ]
+	adjacentFaceArray():{"face":PlanarFace, "parent":PlanarFace}[][]{
 		if(this.graph.dirty){ this.graph.generateFaces(); } 
 		else{ this.graph.faceArrayDidChange(); }
 		var current = this;
@@ -399,9 +397,37 @@ class PlanarFace{
 			list[ list.length ] = totalRoundAdjacent;
 		} while(list[list.length-1].length > 0);
 		if(list.length > 0 && list[ list.length-1 ].length == 0){ list.pop(); }
-		// var root = new Tree<PlanarFace>(list[0][0].face);
 		return list;
 	}
+
+	adjacentFaceTree():Tree<PlanarFace>{
+		var array = this.adjacentFaceArray();
+		array[0][0]["tree"] = new Tree<PlanarFace>(array[0][0].face);
+		for(var r = 1; r < array.length; r++){
+			for(var c = 0; c < array[r].length; c++){
+				var newNode = new Tree<PlanarFace>(array[r][c].face);
+				newNode.parent = array[r][c]["parent"]["tree"];
+				newNode.parent.children.push(newNode);
+				array[r][c]["tree"] = newNode
+			}
+		}
+		return array[0][0]["tree"];
+	}
+
+	adjacentFaceMatrices(){
+		var array = this.adjacentFaceArray();
+		array[0][0]["matrix"] = new Matrix();
+		for(var r = 1; r < array.length; r++){
+			for(var c = 0; c < array[r].length; c++){
+				var localMatrix = array[r][c].face.commonEdges(array[r][c]['parent']['face']).shift().reflectionMatrix();
+				var pObj = array[r][c]["parent"];
+				array[r][c]["local"] = localMatrix;
+				array[r][c]["matrix"] = pObj["matrix"].mult(localMatrix);
+			}
+		}
+		return array;
+	}
+
 }
 
 /** a PlanarSector is defined by 2 unique edges and 3 nodes (one common, 2 endpoints) 
