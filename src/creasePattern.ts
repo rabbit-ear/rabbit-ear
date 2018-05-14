@@ -404,9 +404,9 @@ class CreasePattern extends PlanarGraph{
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS
 
-	fold(param1, param2, param3, param4){
-		// detects parameters, make deductions
-	}
+	// fold(param1, param2, param3, param4){
+	// 	// detects parameters, make deductions
+	// }
 
 	foldInHalf():Crease{
 		var crease:Crease;
@@ -745,6 +745,39 @@ class CreasePattern extends PlanarGraph{
 		}
 		// this.cleanDuplicateNodes();
 		return edges;
+	}
+
+
+	////////////////////////////////////////////////////////////////
+	///
+	////////////////////////////////////////////////////////////////
+
+	// TODO: this should export a FOLD file format as a .json
+	fold(face?:PlanarFace){
+		if(face == undefined){
+			var bounds = this.bounds();
+			face = this.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
+		}
+		if(face === undefined){ return; }
+		var tree = face.adjacentFaceTree();
+		var faces:{'face':PlanarFace, 'matrix':Matrix}[] = [];
+		function recurse(node){
+			node.children.forEach(function(child){
+				var local = child.obj.commonEdges(child.parent.obj).shift().reflectionMatrix();
+				console.log(local);
+				child['matrix'] = child.parent['matrix'].mult(local);
+				faces.push({'face':child.obj, 'matrix':child['matrix']});
+				recurse(child);
+			},this);
+		}
+		tree['matrix'] = new Matrix();
+		faces.push({'face':tree.obj, 'matrix':tree['matrix']});
+		recurse(tree);
+		return faces.map(function(el:{'face':PlanarFace, 'matrix':Matrix}){
+			return el.face.nodes.map(function(node:CreaseNode){
+				return node.copy().transform(el.matrix);
+			});
+		},this);
 	}
 
 	// precision is an epsilon value: 0.00001

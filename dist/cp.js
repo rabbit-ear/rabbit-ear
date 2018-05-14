@@ -2142,19 +2142,6 @@ var PlanarFace = (function () {
         }
         return array[0][0]["tree"];
     };
-    PlanarFace.prototype.adjacentFaceMatrices = function () {
-        var array = this.adjacentFaceArray();
-        array[0][0]["matrix"] = new Matrix();
-        for (var r = 1; r < array.length; r++) {
-            for (var c = 0; c < array[r].length; c++) {
-                var localMatrix = array[r][c].face.commonEdges(array[r][c]['parent']['face']).shift().reflectionMatrix();
-                var pObj = array[r][c]["parent"];
-                array[r][c]["local"] = localMatrix;
-                array[r][c]["matrix"] = pObj["matrix"].mult(localMatrix);
-            }
-        }
-        return array;
-    };
     return PlanarFace;
 }());
 var PlanarSector = (function (_super) {
@@ -3140,8 +3127,6 @@ var CreasePattern = (function (_super) {
         g.boundary = this.boundary.copy();
         return g;
     };
-    CreasePattern.prototype.fold = function (param1, param2, param3, param4) {
-    };
     CreasePattern.prototype.foldInHalf = function () {
         var crease;
         return;
@@ -3446,6 +3431,34 @@ var CreasePattern = (function (_super) {
             }
         }
         return edges;
+    };
+    CreasePattern.prototype.fold = function (face) {
+        if (face == undefined) {
+            var bounds = this.bounds();
+            face = this.nearest(bounds.size.width * 0.5, bounds.size.height * 0.5).face;
+        }
+        if (face === undefined) {
+            return;
+        }
+        var tree = face.adjacentFaceTree();
+        var faces = [];
+        function recurse(node) {
+            node.children.forEach(function (child) {
+                var local = child.obj.commonEdges(child.parent.obj).shift().reflectionMatrix();
+                console.log(local);
+                child['matrix'] = child.parent['matrix'].mult(local);
+                faces.push({ 'face': child.obj, 'matrix': child['matrix'] });
+                recurse(child);
+            }, this);
+        }
+        tree['matrix'] = new Matrix();
+        faces.push({ 'face': tree.obj, 'matrix': tree['matrix'] });
+        recurse(tree);
+        return faces.map(function (el) {
+            return el.face.nodes.map(function (node) {
+                return node.copy().transform(el.matrix);
+            });
+        }, this);
     };
     CreasePattern.prototype.wiggle = function (epsilon) {
         if (epsilon === undefined) {

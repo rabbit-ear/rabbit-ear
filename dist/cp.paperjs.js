@@ -460,8 +460,8 @@ var OrigamiFold = (function(){
 		this.scope.setup(this.canvas);
 		this.loader = new PaperJSLoader();
 
-		this.customZoom = 0.8;
-		this.style = { face:{ fillColor:{ gray:1.0, alpha:0.1 } } };
+		this.customZoom = 0.5;
+		this.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
 		// the order of the following sets the z index order too
 		this.foldedLayer = new this.scope.Layer();
 
@@ -476,13 +476,19 @@ var OrigamiFold = (function(){
 		}
 	}
 	OrigamiFold.prototype.draw = function(){
-		this.foldedLayer.removeChildren();
+		paper = this.scope;
 		if(this.cp === undefined){ return; }
 		this.cp.flatten();
-		this.fold();
+		this.foldedLayer.removeChildren();
+		this.foldedLayer.activate();
+		this.faces = [];
+		this.cp.fold().forEach(function(nodes){
+			var faceShape = new this.scope.Path({segments:nodes,closed:true});
+			faceShape.fillColor = this.style.face.fillColor;
+			this.faces.push( faceShape );
+		},this);
 		this.buildViewMatrix();
 	}
-
 	OrigamiFold.prototype.update = function () {
 		paper = this.scope;
 		if(this.faces === undefined){ return; }
@@ -490,51 +496,20 @@ var OrigamiFold = (function(){
 			this.faces[i].fillColor = this.style.face.fillColor;
 		}
 	};
-
 	OrigamiFold.prototype.load = function(svg, callback, epsilon){
 		var that = this;
 		this.scope.project.importSVG(svg, function(e){
-			var cp = this.loader.paperPathToCP(e);
+			var cp = that.loader.paperPathToCP(e);
 			if(epsilon === undefined){ epsilon = 0.00005; }
-			cp.clean(epsilon);
+			cp.flatten(epsilon);
 			that.cp = cp;
 			that.draw();
-			// that.setCreasePattern( cp );
 			if(callback != undefined){
-				callback(this.cp);
+				callback(that.cp);
 			}
 		});
 	}
-
-	OrigamiFold.prototype.fold = function(){
-		paper = this.scope;
-		// find a face near the middle
-		if(this.cp === undefined){ return; }
-		var centerFace = this.cp.nearest(this.cp.bounds().size.width * 0.5, this.cp.bounds().size.height*0.5).face;
-		if(centerFace === undefined){ return; }
-		var foldTree = centerFace.adjacentFaceTree();
-
-		this.foldedLayer.removeChildren();
-		this.foldedLayer.activate();
-		this.faces = [];
-
-		for(var i = 0; i < foldTree.faces.length; i++){
-			if(foldTree.faces[i] !== undefined){
-				var face = foldTree.faces[i].face;
-				var matrix = foldTree.faces[i].global;
-				var segments = [];
-				for(var p = 0; p < face.nodes.length; p++){
-					segments.push( new XY(face.nodes[p].x, face.nodes[p].y ).transform(matrix) );
-				}
-				var faceShape = new this.scope.Path({segments:segments,closed:true});
-				faceShape.fillColor = this.style.face.fillColor;
-				this.faces.push( faceShape );
-			}
-		}
-		// this.cp.faces = [];
-	};
-
-	OrigamiFold.prototype.buildViewMatrix = function(padding){
+	OrigamiFold.prototype.buildViewMatrix = function(){
 		paper = this.scope;
 		var pixelScale = this.loader.isRetina ? 0.5 : 1.0;
 		var cpBounds = this.bounds || this.cp.bounds();
@@ -547,7 +522,7 @@ var OrigamiFold = (function(){
 			cpCanvasRatio = this.canvas.width / cpBounds.size.width;
 		}
 		// matrix
-		var paperWindowScale = 1.0 - this.padding*2;
+		var paperWindowScale = 1.0;
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
 		mat.scale(this.customZoom, this.customZoom);  // scale a bit
 		mat.translate(this.canvas.width * 0.5 * pixelScale, this.canvas.height * 0.5 * pixelScale); 
@@ -562,7 +537,6 @@ var OrigamiFold = (function(){
 
 	return OrigamiFold;
 }());
-
 
 
 var PaperJSLoader = (function(){

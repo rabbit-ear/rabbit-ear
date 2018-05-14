@@ -13,10 +13,7 @@ nearestSketch.reset();
 nearestSketch.onMouseDown = function(event){ }
 nearestSketch.onMouseMove = function(event){
 	var nearest = this.cp.nearest(event.point);
-	console.log(nearest.face);
-
 	this.updateStyles();
-
 	if(nearest.node !== undefined){ this.nodes[nearest.node.index].visible = true; }
 	if(nearest.edge !== undefined){
 		this.edges[nearest.edge.index].strokeColor = {hue:43.2, saturation:0.88, brightness:0.93 };
@@ -24,5 +21,4 @@ nearestSketch.onMouseMove = function(event){
 	}
 	if(nearest.face !== undefined){ this.faces[nearest.face.index].fillColor.alpha = 1.0}
 	if(nearest.sector !== undefined){ this.sectors[nearest.sector.index].fillColor.alpha = 1.0; }
-
 }

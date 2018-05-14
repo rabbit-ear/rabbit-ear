@@ -414,19 +414,19 @@ class PlanarFace{
 		return array[0][0]["tree"];
 	}
 
-	adjacentFaceMatrices(){
-		var array = this.adjacentFaceArray();
-		array[0][0]["matrix"] = new Matrix();
-		for(var r = 1; r < array.length; r++){
-			for(var c = 0; c < array[r].length; c++){
-				var localMatrix = array[r][c].face.commonEdges(array[r][c]['parent']['face']).shift().reflectionMatrix();
-				var pObj = array[r][c]["parent"];
-				array[r][c]["local"] = localMatrix;
-				array[r][c]["matrix"] = pObj["matrix"].mult(localMatrix);
-			}
-		}
-		return array;
-	}
+	// adjacentFaceMatrices(){
+	// 	var array = this.adjacentFaceArray();
+	// 	array[0][0]["matrix"] = new Matrix();
+	// 	for(var r = 1; r < array.length; r++){
+	// 		for(var c = 0; c < array[r].length; c++){
+	// 			var localMatrix = array[r][c].face.commonEdges(array[r][c]['parent']['face']).shift().reflectionMatrix();
+	// 			var pObj = array[r][c]["parent"];
+	// 			array[r][c]["local"] = localMatrix;
+	// 			array[r][c]["matrix"] = pObj["matrix"].mult(localMatrix);
+	// 		}
+	// 	}
+	// 	return array;
+	// }
 
 }
 
