@@ -456,7 +456,7 @@ var OrigamiFold = (function(){
 		// CREASE PATTERN
 		this.cp = creasePattern;
 		if(this.cp === undefined){ this.cp = new CreasePattern(); }
-		this.foldedCP = [];
+		this.foldedCP = cp.fold();
 		
 		// PAPER JS
 		this.scope = new paper.PaperScope();
@@ -568,7 +568,8 @@ var OrigamiFold = (function(){
 		var that = this;
 		this.scope.project.importSVG(svg, function(e){
 			var cp = that.loader.paperPathToCP(e);
-			that.cp = cp.flatten();
+			that.cp = cp;
+			// that.cp.flatten();
 			that.draw();
 			if(callback != undefined){
 				callback(that.cp);

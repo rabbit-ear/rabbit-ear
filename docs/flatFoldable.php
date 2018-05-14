@@ -7,7 +7,7 @@
 		<canvas id="canvas-folded-crane" resize></canvas>
 	</div>
 
-	<p>The crease pattern on the left's folded form has been simulated by this library.</p>
+	<p class="quote">This crane crease pattern has been virtually folded.</p>
 
 <section id="flat-foldable">
 <h2>Locally Flat Foldable</h2>
@@ -101,14 +101,13 @@
 
 <script>
 var unfoldedCrane = new OrigamiPaper("canvas-unfolded-crane").blackAndWhite();
+unfoldedCrane.show.faces = false;
 unfoldedCrane.load("../files/svg/crane.svg", function(){
-	unfoldedCrane.draw();
-});
-
-var foldedCrane = new OrigamiFold("canvas-folded-crane");
-foldedCrane.load("../files/svg/crane.svg", function(){
-	foldedCrane.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-	foldedCrane.update();
+	var foldedCrane = new OrigamiFold("canvas-folded-crane", unfoldedCrane.cp.copy());
+	foldedCrane.style.face.fillColor = { gray:0.0, alpha:0.1 };
+	foldedCrane.rotation = 135;
+	foldedCrane.zoom = 0.666;
+	foldedCrane.draw();
 });
 </script>
 

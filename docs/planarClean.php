@@ -112,17 +112,38 @@
 
 <script>
 	
-var crane1CP = new OrigamiPaper("canvas-crane-1", cp).blackAndWhite();
-crane1CP.loadRaw("/files/svg/crane-errors.svg", function(){ 
-	crane1CP.setPadding(0.05);
-	crane1CP.select.edge = true;
-});
+var crane1CP = new OrigamiPaper("canvas-crane-1", cp).blackAndWhite().setPadding(0.05);
+crane1CP.loadRaw("/files/svg/crane-errors.svg");
+crane1CP.onMouseMove = function(event){
+	var point = {x:event.point.x, y:event.point.y};
+	var edgeArray = this.cp.edges
+		.map(function(edge){
+			return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
+		})
+		.sort(function(a,b){
+			return a.distance - b.distance;
+		})[0];
+	var edge = (edgeArray != undefined) ? edgeArray.edge : undefined;
 
-var crane2CP = new OrigamiPaper("canvas-crane-2", cp).blackAndWhite();
-crane2CP.load("/files/svg/crane-errors.svg", function(){ 
-	crane2CP.setPadding(0.05);
-	crane2CP.select.edge = true;
-});
+	if(edge != undefined){
+		this.updateStyles();
+		this.edges[ edge.index ].strokeColor = this.styles.byrne.red;
+		this.edges[ edge.index ].strokeWidth = this.style.mountain.strokeWidth*2;
+	}
+
+}
+
+var crane2CP = new OrigamiPaper("canvas-crane-2", cp).blackAndWhite().setPadding(0.05);
+crane2CP.load("/files/svg/crane-errors.svg");
+crane2CP.show.faces = false;
+crane2CP.onMouseMove = function(event){
+	var nearest = this.cp.nearest(event.point);
+	this.updateStyles();
+	if(nearest.edge){ 
+		this.edges[ nearest.edge.index ].strokeColor = this.styles.byrne.red;
+		this.edges[ nearest.edge.index ].strokeWidth = this.style.mountain.strokeWidth*2;
+	}
+}
 
 </script>
 

@@ -35,7 +35,7 @@ deleteEdge.onMouseDown = function(event){
 	var nearest = this.cp.nearest(event.point);
 	if(nearest.edge != undefined){
 		var report = this.cp.removeEdge(nearest.edge);
-		// this.cp.flatten();
+		this.cp.flatten();
 		this.draw();
 		this.selectNearestEdge(event.point);
 	}

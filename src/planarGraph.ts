@@ -798,7 +798,6 @@ class PlanarGraph extends Graph{
 	}
 
 	private faceContainingPoint(point:XY):PlanarFace{
-		if(this.faces.length == 0){  this.generateFaces();  }
 		for(var f = 0; f < this.faces.length; f++){
 			if(this.faces[f].contains(point)){
 				return this.faces[f];

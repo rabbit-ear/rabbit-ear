@@ -2362,9 +2362,6 @@ var PlanarGraph = (function (_super) {
         return intersections;
     };
     PlanarGraph.prototype.faceContainingPoint = function (point) {
-        if (this.faces.length == 0) {
-            this.generateFaces();
-        }
         for (var f = 0; f < this.faces.length; f++) {
             if (this.faces[f].contains(point)) {
                 return this.faces[f];
@@ -3430,6 +3427,7 @@ var CreasePattern = (function (_super) {
         return edges;
     };
     CreasePattern.prototype.fold = function (face) {
+        this.flatten();
         if (face == undefined) {
             var bounds = this.bounds();
             face = this.nearest(bounds.size.width * 0.5, bounds.size.height * 0.5).face;
