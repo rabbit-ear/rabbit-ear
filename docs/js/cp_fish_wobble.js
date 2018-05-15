@@ -43,6 +43,9 @@ fishSwim.reset = function(){
 	// var a1 = this.cp.edgeConnectingPoints(new XY(0,0), new XY(this.b,this.b));
 	// var b0 = this.cp.edgeConnectingPoints(new XY(0,1), new XY(this.a,this.a));
 	// var b1 = this.cp.edgeConnectingPoints(new XY(1,1), new XY(this.a,this.a));
+	// console.log(a0);
+	// console.log(a0);
+	// console.log(a0);
 	// this.kc = [[a0,a1],[b0,b1]];
 	// this.cp.newCrease(this.b, this.b, this.b, 0);
 	// this.cp.newCrease(this.a, this.a, 1, this.a);

@@ -50,6 +50,9 @@ class GraphNode{
 	graph:Graph;  // pointer to the graph this node is a member. required for adjacent calculations
 	index:number; // the index of this node in the graph's node array
 
+	// for speeding up algorithms, temporarily store information here
+	cache:object = {};
+
 	constructor(graph:Graph){ this.graph = graph; }
 
 	/** Get an array of edges that contain this node
@@ -222,38 +225,13 @@ class GraphEdge{
 class Graph{
 	nodes:GraphNode[];
 	edges:GraphEdge[];
-	// todo: callback hooks for when certain properties of the data structure have been altered
-	didChange:(event:object)=>void;
-	
-	// When subclassed (ie. PlanarGraph) types are overwritten
+	// for Javascript reasons, member types are overwritten when Graph is subclassed
 	nodeType = GraphNode;
 	edgeType = GraphEdge;
+	// todo: callback hooks for when certain properties of the data structure have been altered
+	didChange:(event:object)=>void;
 
 	constructor(){ this.clear(); }
-
-	/** Deep-copy the contents of this graph and return it as a new object
-	 * @returns {Graph} 
-	 * @example
-	 * var copiedGraph = graph.copy()
-	 */
-	copy():Graph{
-		this.nodeArrayDidChange();
-		this.edgeArrayDidChange();
-		var g = new Graph();
-		for(var i = 0; i < this.nodes.length; i++){
-			var n = g.addNode(new GraphNode(g));
-			(<any>Object).assign(n, this.nodes[i]);
-			n.graph = g; n.index = i;
-		}
-		for(var i = 0; i < this.edges.length; i++){
-			var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
-			var e = g.addEdge(new GraphEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
-			(<any>Object).assign(e, this.edges[i]);
-			e.graph = g; e.index = i;
-			e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
-		}
-		return g;
-	}
 
 	///////////////////////////////////////////////
 	// ADD PARTS
@@ -568,6 +546,76 @@ class Graph{
 			       (el.nodes[0] === node2 && el.nodes[1] === node1 );
 		});
 	}
+
+	///////////////////////////////////////////////
+	// COPY
+	///////////////////////////////////////////////
+
+	/** Deep-copy the contents of this graph and return it as a new object
+	 * @returns {Graph} 
+	 * @example
+	 * var copiedGraph = graph.copy()
+	 */
+	copy():Graph{
+		this.nodeArrayDidChange();
+		this.edgeArrayDidChange();
+		var g = new Graph();
+		for(var i = 0; i < this.nodes.length; i++){
+			var n = g.addNode(new GraphNode(g));
+			(<any>Object).assign(n, this.nodes[i]);
+			n.graph = g; n.index = i;
+		}
+		for(var i = 0; i < this.edges.length; i++){
+			var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+			var e = g.addEdge(new GraphEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
+			(<any>Object).assign(e, this.edges[i]);
+			e.graph = g; e.index = i;
+			e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+		}
+		return g;
+	}
+
+	/** Convert this graph into an array of connected graphs, attempting one Hamilton path if possible. Edges are arranged in each graph.edges with connected edges next to one another.
+	 * @returns {Graph[]} 
+	 */
+	connectedGraphs():Graph[]{
+		var cp = this.copy();
+		cp.clean();
+		cp.removeIsolatedNodes();
+		// cache every node's adjacent edge #
+		cp.nodes.forEach(function(node){ node.cache['adj'] = node.adjacentEdges().length; },this);
+		var graphs:Graph[] = [];
+		while(cp.edges.length > 0){
+			var graph = new Graph();
+			// create a duplicate set of nodes in the new emptry graph, remove unused nodes at the end
+			cp.nodes.forEach(function(node){graph.addNode(<GraphNode>(<any>Object).assign(new cp.nodeType(graph),node));},this);
+			// select the node with most adjacentEdges
+			var node = cp.nodes.slice().sort(function(a,b){return b.cache['adj'] - a.cache['adj'];})[0];
+			var adj:GraphEdge[] = node.adjacentEdges();
+			while(adj.length > 0){
+				// approach 1
+				// var nextEdge = adj[0];
+				// approach 2
+				var nextEdge = adj.sort(function(a,b){return b.otherNode(node).cache['adj'] - a.otherNode(node).cache['adj'];})[0];
+				var nextNode = nextEdge.otherNode(node);
+				// create new edge on other graph with pointers to its nodes
+				var newEdge = <GraphEdge>(<any>Object).assign(new cp.edgeType(graph,undefined,undefined), nextEdge);
+				newEdge.nodes = [graph.nodes[node.index], graph.nodes[nextNode.index] ];
+				graph.addEdge( newEdge );
+				// update this graph with 
+				node.cache['adj'] -= 1;
+				nextNode.cache['adj'] -= 1;
+				cp.edges = cp.edges.filter(function(el){ return el !== nextEdge; });
+				// prepare loop for next iteration. increment objects
+				node = nextNode;
+				adj = node.adjacentEdges();
+			}
+			// remove unused nodes
+			graph.removeIsolatedNodes();
+			graphs.push(graph);
+		}
+		return graphs;
+	}	
 
 	nodeArrayDidChange(){for(var i=0;i<this.nodes.length;i++){this.nodes[i].index=i;}}
 	edgeArrayDidChange(){for(var i=0;i<this.edges.length;i++){this.edges[i].index=i;}}

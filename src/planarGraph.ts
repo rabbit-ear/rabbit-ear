@@ -1274,47 +1274,24 @@ class PlanarGraph extends Graph{
 	 * @returns {PlanarGraph} 
 	 */
 	polylines():Polyline[]{
-		var cp = this.copy();
-		cp.clean();
-		cp.removeIsolatedNodes();
-		var paths:Polyline[] = [];
-		while(cp.edges.length > 0){
-			var node = cp.nodes[0];
-			var adj = <PlanarNode[]>node.adjacentNodes();
-			var polyline = new Polyline();
-			// var path = [];
-			if(adj.length === 0){
-				// this shouldn't ever happen
-				cp.removeIsolatedNodes();
-			}else{
-				var nextNode = adj[0];
-				var edge = cp.getEdgeConnectingNodes(node, nextNode);
-				polyline.nodes.push( new XY(node.x, node.y) );
-				// remove edge
-				cp.edges = cp.edges.filter(function(el){
-					return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
-					         (el.nodes[0] === nextNode && el.nodes[1] === node) );
-				});
-				cp.removeIsolatedNodes();
-				node = nextNode;
-				adj = [];
-				if(node !== undefined){ adj = <PlanarNode[]>node.adjacentNodes(); }
-				while(adj.length > 0){
-					nextNode = adj[0];
-					polyline.nodes.push( new XY(node.x, node.y) );
-					cp.edges = cp.edges.filter(function(el){
-						return !((el.nodes[0] === node && el.nodes[1] === nextNode) ||
-						         (el.nodes[0] === nextNode && el.nodes[1] === node) );
-					});
-					cp.removeIsolatedNodes();
-					node = nextNode;
-					adj = <PlanarNode[]>node.adjacentNodes();
-				}
-				polyline.nodes.push(new XY(node.x, node.y));
+		return this.connectedGraphs().map(function(graph){
+			if(graph.edges.length == 0){ return undefined; }
+			if(graph.edges.length == 1){ return graph.edges[0].nodes.map(function(n:PlanarNode){return n.copy();},this); }
+			var nodes = [graph.edges[0].uncommonNodeWithEdge(graph.edges[1])];
+			for(var i = 0; i < graph.edges.length-1; i++){
+				var edge = graph.edges[ i ];
+				var nextEdge = graph.edges[ (i+1) ];
+				nodes.push(edge.commonNodeWithEdge(nextEdge));
 			}
-			paths.push(polyline);
-		}
-		return paths;
+			nodes.push(graph.edges[ graph.edges.length-1 ].uncommonNodeWithEdge(graph.edges[ graph.edges.length-2 ]));
+			return nodes.map(function(el:PlanarNode){return el.copy();},this);
+		},this)
+		.filter(function(el){return el != undefined;},this)
+		.map(function(line){
+			var p = new Polyline();
+			p.nodes = line;
+			return p;
+		},this);
 	}
 
 	faceArrayDidChange(){for(var i=0; i<this.faces.length; i++){this.faces[i].index=i;}}
