@@ -93,9 +93,7 @@ jointTri.reset = function(){
 
 	jointTri.draw();
 
-
-	var scale = 600 / this.cpMin;
-	var svgBlob = this.cp.exportSVG(scale);
+	var svgBlob = this.cp.exportSVG();
 	download(svgBlob, "creasepattern.svg");
 
 }

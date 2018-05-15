@@ -44,7 +44,7 @@ var OrigamiPaper = (function(){
 			boundary:true,
 			nodes:true,
 			edges:true,
-			faces:true,
+			faces:false,
 			junctions:false,
 			sectors:false,
 		}

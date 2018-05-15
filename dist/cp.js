@@ -2196,11 +2196,7 @@ var PlanarJunction = (function () {
             return;
         }
         this.sectors = this.edges.map(function (el, i) {
-            var nextEl = this.edges[(i + 1) % this.edges.length];
-            var origin = el.commonNodeWithEdge(nextEl);
-            var nextN = nextEl.uncommonNodeWithEdge(el);
-            var prevN = el.uncommonNodeWithEdge(nextEl);
-            return new this.origin.graph.sectorType(el, nextEl);
+            return new this.origin.graph.sectorType(el, this.edges[(i + 1) % this.edges.length]);
         }, this);
     }
     PlanarJunction.prototype.nodes = function () {
@@ -2263,7 +2259,6 @@ var PlanarGraph = (function (_super) {
         _this.faceType = PlanarFace;
         _this.sectorType = PlanarSector;
         _this.junctionType = PlanarJunction;
-        _this.properties = { "optimization": 0 };
         _this.clear();
         return _this;
     }
@@ -2519,10 +2514,8 @@ var PlanarGraph = (function (_super) {
         var tree = rbush();
         var nodes = this.nodes.map(function (el) {
             return {
-                minX: el.x - epsilon,
-                minY: el.y - epsilon,
-                maxX: el.x + epsilon,
-                maxY: el.y + epsilon,
+                minX: el.x - epsilon, minY: el.y - epsilon,
+                maxX: el.x + epsilon, maxY: el.y + epsilon,
                 node: el
             };
         });
@@ -3569,6 +3562,7 @@ var CreasePattern = (function (_super) {
         this.boundary.edges = [];
         this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
         this.cleanAllUselessNodes();
+        this.flatten();
         return this;
     };
     CreasePattern.prototype.setBoundary = function (pointArray, alreadyClockwiseSorted) {
@@ -3588,6 +3582,7 @@ var CreasePattern = (function (_super) {
             this.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
         }, this);
         this.cleanDuplicateNodes();
+        this.flatten();
         return this;
     };
     CreasePattern.prototype.setMinRectBoundary = function () {
@@ -3611,6 +3606,7 @@ var CreasePattern = (function (_super) {
             }
         }
         this.setBoundary([new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax)]);
+        this.flatten();
         return this;
     };
     CreasePattern.prototype.clear = function () {
@@ -3628,6 +3624,7 @@ var CreasePattern = (function (_super) {
             this.newPlanarEdge(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y).border();
         }
         this.cleanDuplicateNodes();
+        this.flatten();
         return this;
     };
     CreasePattern.prototype.noSymmetry = function () { this.symmetryLine = undefined; return this; };

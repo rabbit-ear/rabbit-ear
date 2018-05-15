@@ -361,8 +361,8 @@ class Graph{
 	/** Remove an edge
 	 * @returns {GraphClean} number of edges removed
 	 * @example 
-	 * var clean = graph.removeEdge(edge)
-	 * // clean.edges should equal 1
+	 * var result = graph.removeEdge(edge)
+	 * // result.edges should equal 1
 	 */
 	removeEdge(edge:GraphEdge):GraphClean{
 		var edgesLength = this.edges.length;
@@ -376,8 +376,8 @@ class Graph{
 	 * @param {GraphNode} node2 second node
 	 * @returns {GraphClean} number of edges removed. in the case of an unclean graph, there may be more than one
 	 * @example 
-	 * var clean = graph.removeEdgeBetween(node1, node2)
-	 * // clean.edges should be >= 1
+	 * var result = graph.removeEdgeBetween(node1, node2)
+	 * // result.edges should be >= 1
 	 */
 	removeEdgeBetween(node1:GraphNode, node2:GraphNode):GraphClean{
 		var edgesLength = this.edges.length;
@@ -393,9 +393,9 @@ class Graph{
 	 * @param {GraphNode} node the node that will be removed
 	 * @returns {GraphClean} number of nodes and edges removed
 	 * @example 
-	 * var clean = graph.removeNode(node)
-	 * // clean.node will be 1
-	 * // clean.edges will be >= 0
+	 * var result = graph.removeNode(node)
+	 * // result.node will be 1
+	 * // result.edges will be >= 0
 	 */
 	removeNode(node:GraphNode):GraphClean{
 		var nodesLength = this.nodes.length;
@@ -413,9 +413,9 @@ class Graph{
 	 * @param {GraphNode} node2 second node to merge, this node will be removed
 	 * @returns {GraphClean} 1 removed node, newly duplicate and circular edges will be removed
 	 * @example 
-	 * var clean = graph.mergeNodes(node1, node2)
-	 * // clean.node will be 1
-	 * // clean.edges will be >= 0
+	 * var result = graph.mergeNodes(node1, node2)
+	 * // result.node will be 1
+	 * // result.edges will be >= 0
 	 */
 	mergeNodes(node1:GraphNode, node2:GraphNode):GraphClean{
 		if(node1 === node2) { return undefined; }
@@ -436,8 +436,8 @@ class Graph{
 	/** Removes any node that isn't a part of an edge
 	 * @returns {GraphClean} the number of nodes removed
 	 * @example 
-	 * var clean = graph.removeIsolatedNodes()
-	 * // clean.node will be >= 0
+	 * var result = graph.removeIsolatedNodes()
+	 * // result.node will be >= 0
 	 */
 	removeIsolatedNodes():GraphClean{
 		// this function relies on .index values. it would be nice if it didn't
@@ -460,8 +460,8 @@ class Graph{
 	/** Remove all edges that contain the same node at both ends
 	 * @returns {GraphClean} the number of edges removed
 	 * @example 
-	 * var clean = graph.cleanCircularEdges()
-	 * // clean.edges will be >= 0
+	 * var result = graph.cleanCircularEdges()
+	 * // result.edges will be >= 0
 	 */
 	cleanCircularEdges():GraphClean{
 		var edgesLength = this.edges.length;
@@ -473,8 +473,8 @@ class Graph{
 	/** Remove edges that are similar to another edge
 	 * @returns {GraphClean} the number of edges removed
 	 * @example 
-	 * var clean = graph.cleanDuplicateEdges()
-	 * // clean.edges will be >= 0
+	 * var result = graph.cleanDuplicateEdges()
+	 * // result.edges will be >= 0
 	 */
 	cleanDuplicateEdges():GraphClean{
 		var count = 0;
@@ -493,8 +493,8 @@ class Graph{
 	/** Graph specific clean function: removes circular and duplicate edges, refreshes .index. Only modifies edges array.
 	 * @returns {GraphClean} the number of edges removed
 	 * @example 
-	 * var clean = graph.cleanGraph()
-	 * // clean.edges will be >= 0
+	 * var result = graph.cleanGraph()
+	 * // result.edges will be >= 0
 	 */
 	cleanGraph():GraphClean{
 		this.edgeArrayDidChange();
@@ -507,8 +507,8 @@ class Graph{
 	/** Clean calls cleanGraph(), gets overwritten when subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
 	 * @returns {GraphClean} the number of edges removed
 	 * @example 
-	 * var clean = graph.clean()
-	 * // clean.edges will be >= 0
+	 * var result = graph.clean()
+	 * // result.edges will be >= 0
 	 */
 	clean():GraphClean{
 		return this.cleanGraph();
@@ -622,7 +622,6 @@ class Graph{
 //	nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
 }
 
-
 /** a multigraph is a graph which allows circular and duplicate edges */
 class Multigraph extends Graph{
 	cleanGraph():GraphClean{
@@ -631,4 +630,3 @@ class Multigraph extends Graph{
 		return new GraphClean();
 	}
 }
-

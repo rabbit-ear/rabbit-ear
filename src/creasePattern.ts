@@ -383,8 +383,6 @@ class CreasePattern extends PlanarGraph{
 	}
 
 
-
-
 	// generateJunctions():CreaseJunction[]{
 	// 	this.junctions = [];
 	// 	this.clean();
@@ -975,6 +973,7 @@ class CreasePattern extends PlanarGraph{
 		this.boundary.edges = [];
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
 		this.cleanAllUselessNodes();
+		this.flatten();
 		return this;
 	}
 
@@ -994,6 +993,7 @@ class CreasePattern extends PlanarGraph{
 			(<Crease>this.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y)).border();
 		},this);
 		this.cleanDuplicateNodes();
+		this.flatten();
 		return this;
 	}
 
@@ -1010,6 +1010,7 @@ class CreasePattern extends PlanarGraph{
 			if(this.nodes[i].y < yMin){ yMin = this.nodes[i].y; }
 		}
 		this.setBoundary( [new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax) ]);
+		this.flatten();
 		return this;
 	}
 
@@ -1029,6 +1030,7 @@ class CreasePattern extends PlanarGraph{
 			(<Crease>this.newPlanarEdge(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y)).border();
 		}
 		this.cleanDuplicateNodes();
+		this.flatten();
 		return this;
 	}
 

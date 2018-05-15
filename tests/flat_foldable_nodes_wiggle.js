@@ -31,11 +31,11 @@ ffMoveNode.load("/files/svg/crane-errors.svg", function(){
 	if(ffMoveNode.nodeLayer != undefined && ffMoveNode.nodeLayer.moveToFront != undefined){
 		ffMoveNode.nodeLayer.moveToFront();
 	}
-	if(ffMoveNode.cpMin !== 0){
-		ffMoveNode.style.selected.node.strokeWidth = 0.005*ffMoveNode.cpMin;
-		ffMoveNode.style.selected.node.radius = 0.02*ffMoveNode.cpMin;
-		ffMoveNode.style.node.radius = 0.02 * ffMoveNode.cpMin;
-	}
+	// if(ffMoveNode.cpMin !== 0){
+	// 	ffMoveNode.style.selected.node.strokeWidth = 0.005*ffMoveNode.cpMin;
+	// 	ffMoveNode.style.selected.node.radius = 0.02*ffMoveNode.cpMin;
+	// 	ffMoveNode.style.node.radius = 0.02 * ffMoveNode.cpMin;
+	// }
 	ffMoveNode.setPadding();
 	ffMoveNode.update();
 	ffMoveNode.colorNodesFlatFoldable();

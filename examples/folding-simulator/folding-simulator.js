@@ -9,8 +9,7 @@ function download(text, filename){
 }
 document.getElementById("download-file").addEventListener("click", function(e){
 	e.preventDefault();
-	var scale = 600 / project.cpMin;
-	var svgBlob = project.cp.exportSVG(scale);
+	var svgBlob = project.cp.exportSVG();
 	download(svgBlob, "creasepattern.svg");
 });	
 ////////////////////////////////////////////////////////////////////

@@ -471,20 +471,6 @@ class PlanarFace{
 		return array[0][0]["tree"];
 	}
 
-	// adjacentFaceMatrices(){
-	// 	var array = this.adjacentFaceArray();
-	// 	array[0][0]["matrix"] = new Matrix();
-	// 	for(var r = 1; r < array.length; r++){
-	// 		for(var c = 0; c < array[r].length; c++){
-	// 			var localMatrix = array[r][c].face.commonEdges(array[r][c]['parent']['face']).shift().reflectionMatrix();
-	// 			var pObj = array[r][c]["parent"];
-	// 			array[r][c]["local"] = localMatrix;
-	// 			array[r][c]["matrix"] = pObj["matrix"].mult(localMatrix);
-	// 		}
-	// 	}
-	// 	return array;
-	// }
-
 }
 
 /** a PlanarSector is defined by 2 unique edges and 3 nodes (one common, 2 endpoints) 
@@ -517,16 +503,6 @@ class PlanarSector extends Sector{
 		        (a.edges[0].isSimilarToEdge(this.edges[1]) &&
 		         a.edges[1].isSimilarToEdge(this.edges[0])));
 	}
-	// getEndNodesChangeForNewAngle(angle:number, lockedEdge?:PlanarEdge):[XY,XY]{
-	// 	// todo, implement locked edge
-	// 	var vectors = this.vectors();
-	// 	var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
-	// 	var rotateNodes = [-angleChange*0.5, angleChange*0.5];
-	// 	return <[XY,XY]>vectors.map(function(el:XY, i){
-	// 		// rotate the nodes, subtract the new position from the original position
-	// 		return this.endPoints[i].subtract(el.rotate(rotateNodes[i]).add(this.origin));
-	// 	}, this);
-	// }
 }
 
 class PlanarJunction{
@@ -549,14 +525,8 @@ class PlanarJunction{
 		// Junctions by definition cannot be built on leaf nodes. there is only 1 edge.
 		if(this.edges.length <= 1){ return; }
 		this.sectors = this.edges.map(function(el,i){
-			var nextEl = this.edges[(i+1)%this.edges.length];
-			var origin = <PlanarNode>el.commonNodeWithEdge(nextEl);
-			var nextN = <PlanarNode>nextEl.uncommonNodeWithEdge(el);
-			var prevN = <PlanarNode>el.uncommonNodeWithEdge(nextEl);
-			// return new this.origin.sectorType(origin, [nextN, prevN]);
-			return new this.origin.graph.sectorType(el, nextEl);
+			return new this.origin.graph.sectorType(el, this.edges[(i+1)%this.edges.length]);
 		},this);
-		// this.edges = this.sectors.map(function(el:PlanarSector){return el.edges[0];});
 	}
 
 	/** Returns an array of nodes, the endpoints of the junctions edges, sorted clockwise.
@@ -628,22 +598,17 @@ class PlanarGraph extends Graph{
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
 	faces:PlanarFace[];
-
 	junctions:PlanarJunction[];  // 1:1 map to nodes array indices
 	sectors:PlanarSector[];
-
 	// when subclassed, base types are overwritten
 	nodeType = PlanarNode;
 	edgeType = PlanarEdge;
 	faceType = PlanarFace;
 	sectorType = PlanarSector;
 	junctionType = PlanarJunction;
-
-	// if nodes have been moved, re-require call to flatten()
+	// if nodes have been moved, it's possible for edges to overlap. re-require call to flatten()
 	dirty:boolean;
-
 	// not using these yet
-	properties = {"optimization":0}; // we need something to be able to set to skip over functions
 	didChange:(event:object)=>void;
 
 	constructor(){ super(); this.clear(); }
@@ -718,6 +683,9 @@ class PlanarGraph extends Graph{
 	// GET PARTS
 	///////////////////////////////////////////////
 
+	/** Create a rectangle bounding box around all the nodes, defined by rectangle dimensions and the location of one corner
+	 * @returns {origin:{x:number,y:number},size:{width:number,height:number}} Rect type describing the bounds of the nodes
+	 */
 	bounds():Rect{
 		if(this.nodes === undefined || this.nodes.length === 0){ return undefined; }
 		var minX = Infinity;
@@ -774,8 +742,8 @@ class PlanarGraph extends Graph{
 		};
 	}
 
-	/** Without changing the graph, this function collects the XY locations of every point that two edges cross each other.
-	 * @returns {XY[]} array of XY locations of all the intersection locations
+	/** Without changing the graph, this function collects the point location of every intersection between crossing edges.
+	 * @returns {XY[]} array of XY, the location of intersections
 	 */
 	getEdgeIntersections(epsilon?:number):XY[]{
 		// todo should this make new XYs instead of returning EdgeIntersection objects?
@@ -805,6 +773,9 @@ class PlanarGraph extends Graph{
 		}
 	}
 
+	/** Get the nearest edge connecting two points supplied as arguments
+	 * @returns {XY[]} array of XY, the location of intersections
+	 */
 	edgeConnectingPoints(a:any, b:any, c?:any, d?:any):PlanarEdge{
 		var p = gimme2XY(a,b,c,d);
 		if(p === undefined){ return; }
@@ -963,10 +934,8 @@ class PlanarGraph extends Graph{
 		// console.time("map");
 		var nodes = this.nodes.map(function(el){
 			return {
-				minX: el.x - epsilon,
-				minY: el.y - epsilon,
-				maxX: el.x + epsilon,
-				maxY: el.y + epsilon,
+				minX: el.x - epsilon,  minY: el.y - epsilon,
+				maxX: el.x + epsilon,  maxY: el.y + epsilon,
 				node: el
 			};
 		});
@@ -1160,76 +1129,9 @@ class PlanarGraph extends Graph{
 		return undefined;
 	}
 
-	// adjacentFaceTree(start:PlanarFace):any{
-	// 	this.faceArrayDidChange();
-	// 	// this will keep track of faces still needing to be visited
-	// 	var faceRanks = [];
-	// 	for(var i = 0; i < this.faces.length; i++){ faceRanks.push(undefined); }
-	// 	function allFacesRanked():boolean{
-	// 		// return faceRanks.filter(function(el){return el === undefined}).length == 0;
-	// 		for(var i = 0; i < faceRanks.length; i++){
-	// 			if(faceRanks[i] === undefined){ return false; }
-	// 		}
-	// 		return true;
-	// 	}
-
-	// 	var rank = [];
-	// 	var rankI = 0;
-	// 	rank.push([start]);
-	// 	// rank 0 is an array of 1 face, the start face
-	// 	faceRanks[start.index] = {rank:0, parents:[], face:start};
-
-	// 	// loop
-	// 	var safety = 0;
-	// 	while(!allFacesRanked() && safety < this.faces.length+1){
-	// 		rankI += 1;
-	// 		rank[rankI] = [];
-	// 		for(var p = 0; p < rank[rankI-1].length; p++){
-	// 			var adjacent:PlanarFace[] = rank[rankI-1][p].edgeAdjacentFaces();
-	// 			for(var i = 0; i < adjacent.length; i++){
-	// 				// add a face if it hasn't already been found
-	// 				if(faceRanks[adjacent[i].index] === undefined){
-	// 					rank[rankI].push(adjacent[i]);
-	// 					var parentArray = faceRanks[ rank[rankI-1][p].index ].parents.slice();
-	// 					// add nearest parent to beginning of array
-	// 					parentArray.unshift( rank[rankI-1][p] );
-	// 					// OR, add them to the beginning
-	// 					// parentArray.push( rank[rankI-1][p] );
-	// 					faceRanks[adjacent[i].index] = {rank:rankI, parents:parentArray, face:adjacent[i]};
-	// 				}
-	// 			}
-	// 		}
-	// 		safety++;
-	// 	}
-	// 	for(var i = 0; i < faceRanks.length; i++){
-	// 		if(faceRanks[i] !== undefined && faceRanks[i].parents !== undefined && faceRanks[i].parents.length > 0){
-	// 			var parent = <PlanarFace>faceRanks[i].parents[0];
-	// 			var edge = <PlanarEdge>parent.commonEdges(faceRanks[i].face).shift();
-	// 			var m = edge.reflectionMatrix();
-	// 			faceRanks[i].matrix = m;
-	// 		}
-	// 	}
-	// 	for(var i = 0; i < rank.length; i++){
-	// 		for(var j = 0; j < rank[i].length; j++){
-	// 			var parents = <PlanarFace[]>faceRanks[ rank[i][j].index ].parents;
-	// 			var matrix = faceRanks[ rank[i][j].index ].matrix;
-	// 			if(parents !== undefined && m !== undefined && parents.length > 0){
-	// 				var parentGlobal = faceRanks[ parents[0].index ].global;
-	// 				if(parentGlobal !== undefined){
-	// 					// faceRanks[ rank[i][j].index ].global = matrix.mult(parentGlobal.copy());
-	// 					faceRanks[ rank[i][j].index ].global = parentGlobal.copy().mult(matrix);
-	// 				} else{
-	// 					faceRanks[ rank[i][j].index ].global = matrix.copy();
-	// 				}
-	// 			} else{
-	// 				faceRanks[ rank[i][j].index ].matrix = new Matrix();
-	// 				faceRanks[ rank[i][j].index ].global = new Matrix();
-	// 			}
-	// 		}
-	// 	}
-	// 	return {rank:rank, faces:faceRanks};
-	// }
-
+	///////////////////////////////////////////////
+	// COPY
+	///////////////////////////////////////////////
 
 	/** Deep-copy the contents of this planar graph and return it as a new object
 	 * @returns {PlanarGraph} 

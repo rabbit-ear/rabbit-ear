@@ -1,10 +1,10 @@
 
 FOLD = require('fold');
 
-var project = new OrigamiPaper("canvas").setPadding(0.02)
+var project = new OrigamiPaper("canvas").setPadding(0.02);
 project.style.boundary.strokeColor = {gray:0.0, alpha:0.0};
-// project.show.edges = false;
 project.style.face.scale = 0.7;
+project.show.faces = false;
 
 project.onMouseMove = function(event){
 	var yellow = {hue:43.2, saturation:0.88, brightness:0.93 };
@@ -15,8 +15,8 @@ project.onMouseMove = function(event){
 		this.edges[nearest.edge.index].strokeColor = yellow;
 		this.edges[nearest.edge.index].strokeWidth = this.style.mountain.strokeWidth*1.3333;
 	}
-	if(nearest.face !== undefined){ this.faces[nearest.face.index].fillColor = yellow}
-	if(nearest.sector !== undefined){ this.sectors[nearest.sector.index].fillColor.alpha = 1.0; }
+	// if(nearest.face !== undefined){ this.faces[nearest.face.index].fillColor = yellow}
+	// if(nearest.sector !== undefined){ this.sectors[nearest.sector.index].fillColor.alpha = 1.0; }
 }
 
 // incoming file from upload-button or drag-to-upload
@@ -49,8 +49,7 @@ function download(text, filename, mimeType){
 // button to download
 document.getElementById("download-svg").addEventListener("click", function(e){
 	e.preventDefault();
-	var scale = 600 / project.cpMin;
-	var svgBlob = project.cp.exportSVG(scale);
+	var svgBlob = project.cp.exportSVG();
 	download(svgBlob, "creasepattern.svg", "image/svg+xml");
 });
 document.getElementById("download-fold").addEventListener("click", function(e){
