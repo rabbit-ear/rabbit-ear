@@ -10,8 +10,8 @@ adjFaceMatrix.style.mountain.strokeColor = blue;
 adjFaceMatrix.treeLineLayer = new adjFaceMatrix.scope.Layer();
 
 adjFaceMatrix.reset = function(){
-	this.load("../files/svg/crane.svg", function(){
-		adjFaceMatrix.cp.flatten();
+	// this.load("../files/svg/crane.svg", function(){
+	this.load("../files/svg/butterfly-tanaka.svg", function(){
 		adjFaceMatrix.makeFacePathLines();
 	});
 }
@@ -23,12 +23,25 @@ adjFaceMatrix.makeFacePathLines = function(startingFace){
 		startingFace = this.cp.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
 	}
 	if(startingFace === undefined){ return; }
-	var tree = startingFace.adjacentFaceTree();
 
 	this.draw();
 	this.treeLineLayer.activate();
 	this.treeLineLayer.removeChildren();
 
+	// using array
+	// var arrays = startingFace.adjacentFaceArray();
+	// arrays.forEach(function(array){
+	// 	array.forEach(function(obj){
+	// 		if(obj.parent !== undefined){
+	// 			var face = obj.face
+	// 			var parent = obj.parent.face;
+	// 			var path = new adjFaceMatrix.scope.Path({segments: [parent.centroid(),face.centroid()], closed: false, strokeWidth:0.01, strokeColor:red });
+	// 		}
+	// 	},this);
+	// },this);
+
+	// using tree
+	var tree = startingFace.adjacentFaceTree();
 	function recurseAndDraw(tree){
 		var parent = tree.parent.obj;
 		var face = tree.obj;

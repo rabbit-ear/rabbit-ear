@@ -294,6 +294,7 @@ var OrigamiPaper = (function(){
 			var cp = that.loader.paperPathToCP(e);
 			if(epsilon === undefined){ epsilon = 0.00005; }
 			// cp.clean(epsilon);
+			console.log("calling load with " + epsilon);
 			cp.flatten(epsilon);
 			that.cp = cp;
 			that.draw();

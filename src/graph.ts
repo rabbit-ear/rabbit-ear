@@ -596,7 +596,11 @@ class Graph{
 				// approach 1
 				// var nextEdge = adj[0];
 				// approach 2
-				var nextEdge = adj.sort(function(a,b){return b.otherNode(node).cache['adj'] - a.otherNode(node).cache['adj'];})[0];
+				// var nextEdge = adj.sort(function(a,b){return b.otherNode(node).cache['adj'] - a.otherNode(node).cache['adj'];})[0];
+				// approach 3, prioritize nodes with even number of adjacencies
+				var smartList = adj.filter(function(el){return el.otherNode(node).cache['adj'] % 2 == 0;},this)
+				if(smartList.length == 0){ smartList = adj; }
+				var nextEdge = smartList.sort(function(a,b){return b.otherNode(node).cache['adj'] - a.otherNode(node).cache['adj'];})[0];
 				var nextNode = nextEdge.otherNode(node);
 				// create new edge on other graph with pointers to its nodes
 				var newEdge = <GraphEdge>(<any>Object).assign(new cp.edgeType(graph,undefined,undefined), nextEdge);

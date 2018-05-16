@@ -348,7 +348,11 @@ var Graph = (function () {
             var node = cp.nodes.slice().sort(function (a, b) { return b.cache['adj'] - a.cache['adj']; })[0];
             var adj = node.adjacentEdges();
             while (adj.length > 0) {
-                var nextEdge = adj.sort(function (a, b) { return b.otherNode(node).cache['adj'] - a.otherNode(node).cache['adj']; })[0];
+                var smartList = adj.filter(function (el) { return el.otherNode(node).cache['adj'] % 2 == 0; }, this);
+                if (smartList.length == 0) {
+                    smartList = adj;
+                }
+                var nextEdge = smartList.sort(function (a, b) { return b.otherNode(node).cache['adj'] - a.otherNode(node).cache['adj']; })[0];
                 var nextNode = nextEdge.otherNode(node);
                 var newEdge = Object.assign(new cp.edgeType(graph, undefined, undefined), nextEdge);
                 newEdge.nodes = [graph.nodes[node.index], graph.nodes[nextNode.index]];
