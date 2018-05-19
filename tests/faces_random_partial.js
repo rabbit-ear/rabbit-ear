@@ -1,6 +1,7 @@
 // generate faces
 var partialFaces = new OrigamiPaper("canvas-faces-random-partial");
 partialFaces.setPadding(0.05);
+partialFaces.show.faces = true;
 partialFaces.show.sectors = false;
 
 partialFaces.reset = function(){

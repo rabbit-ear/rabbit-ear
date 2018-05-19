@@ -28,10 +28,10 @@ var OrigamiPaper = (function(){
 		this.style = this.defaultStyleTemplate();
 		this.backgroundLayer = new this.scope.Layer();
 		this.faceLayer = new this.scope.Layer();
-		this.edgeLayer = new this.scope.Layer();
-		this.boundaryLayer = new this.scope.Layer();
 		this.junctionLayer = new this.scope.Layer();
 		this.sectorLayer = new this.scope.Layer();
+		this.edgeLayer = new this.scope.Layer();
+		this.boundaryLayer = new this.scope.Layer();
 		this.nodeLayer = new this.scope.Layer();
 		// user interaction
 		this.mouse = {
@@ -241,26 +241,32 @@ var OrigamiPaper = (function(){
 	}
 	OrigamiPaper.prototype.updatePositions = function () {
 		paper = this.scope;
-		for(var i=0;i<this.nodes.length;i++){
-			this.nodes[i].position=[this.cp.nodes[i].x, this.cp.nodes[i].y];}
-		for(var i=0;i<this.cp.edges.length;i++){
-			this.edges[i].segments=this.cp.edges[i].nodes.map(function(el){ return [el.x, el.y];});}
-		for(var i=0;i<this.cp.faces.length;i++){
-			this.faces[i].segments=this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y];});}
+		if(this.show.nodes){ for(var i=0;i<this.nodes.length;i++){
+			this.nodes[i].position=[this.cp.nodes[i].x, this.cp.nodes[i].y];} }
+		if(this.show.edges){ for(var i=0;i<this.cp.edges.length;i++){
+			this.edges[i].segments=this.cp.edges[i].nodes.map(function(el){ return [el.x, el.y];});} }
+		if(this.show.faces){ for(var i=0;i<this.cp.faces.length;i++){
+			this.faces[i].segments=this.cp.faces[i].nodes.map(function(el){ return [el.x, el.y];});} }
 	};
 	OrigamiPaper.prototype.updateStyles = function () {
 		paper = this.scope;
-		for(var i = 0; i < this.nodes.length; i++){ 
-			Object.assign(this.nodes[i], this.style.node); }
-		for(var i = 0; i < this.cp.edges.length; i++){ 
-			Object.assign(this.edges[i], this.styleForCrease(this.cp.edges[i].orientation)); }
-		if(this.show.faces){ 
-			for(var i = 0; i < this.cp.faces.length; i++){ Object.assign(this.faces[i], this.style.face); }
+		if(this.show.nodes){for(var i=0;i<this.nodes.length;i++){Object.assign(this.nodes[i], this.style.node); } }
+		if(this.show.edges){for(var i=0;i<this.cp.edges.length;i++){ 
+			Object.assign(this.edges[i], this.styleForCrease(this.cp.edges[i].orientation));} }
+		if(this.show.faces){for(var i=0;i<this.faces.length;i++){Object.assign(this.faces[i],this.style.face);} }
+		if(this.show.sectors){
+			for(var j = 0; j < this.cp.junctions.length; j++){
+				for(var s = 0; s < this.cp.junctions[j].sectors.length; s++){
+					var sector = this.sectors[ this.cp.junctions[j].sectors[s].index ];
+					Object.assign(sector, this.style.sector);
+					sector.fillColor = this.style.sector.fillColors[s%2];
+				}
+			}
 		}
-		for(var i = 0; i < this.boundaryLayer.children.length; i++){
+		if(this.show.boundary){for(var i=0;i<this.boundaryLayer.children.length;i++){
 			Object.assign(this.boundaryLayer.children[i], this.style.boundary);
 			// Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
-		}
+		} }
 	};
 	OrigamiPaper.prototype.buildViewMatrix = function(){
 		paper = this.scope;
@@ -293,8 +299,6 @@ var OrigamiPaper = (function(){
 		this.scope.project.importSVG(svg, function(e){
 			var cp = that.loader.paperPathToCP(e);
 			if(epsilon === undefined){ epsilon = 0.00005; }
-			// cp.clean(epsilon);
-			console.log("calling load with " + epsilon);
 			cp.flatten(epsilon);
 			that.cp = cp;
 			that.draw();
@@ -658,11 +662,16 @@ var PaperJSLoader = (function(){
 			}
 		}
 		recurseAndAdd(svgLayer.children);
-		// cp is filled
+		// cp is populated
 		// find the convex hull of the CP, set it to the boundary
-		cp.setBoundary(cp.nodes);
-		// var hull = convexHull(cp.nodes);
-		// cp.setBoundary(hull);
+		// cp.setBoundary(cp.nodes);
+		// bypassing calling cp.setBoundary() directly to avoid flattening
+		var points = cp.nodes.map(function(p){ return gimme1XY(p); },this);
+		cp.boundary.convexHull(points);
+		cp.boundary.edges.forEach(function(el){
+			cp.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
+		},this);
+		cp.cleanDuplicateNodes();
 		// cleanup
 		svgLayer.removeChildren();
 		svgLayer.remove();

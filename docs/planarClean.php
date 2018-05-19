@@ -112,7 +112,7 @@
 
 <script>
 	
-var crane1CP = new OrigamiPaper("canvas-crane-1", cp).blackAndWhite().setPadding(0.05);
+var crane1CP = new OrigamiPaper("canvas-crane-1").blackAndWhite().setPadding(0.05);
 crane1CP.loadRaw("/files/svg/crane-errors.svg");
 crane1CP.onMouseMove = function(event){
 	var point = {x:event.point.x, y:event.point.y};
@@ -133,7 +133,7 @@ crane1CP.onMouseMove = function(event){
 
 }
 
-var crane2CP = new OrigamiPaper("canvas-crane-2", cp).blackAndWhite().setPadding(0.05);
+var crane2CP = new OrigamiPaper("canvas-crane-2").blackAndWhite().setPadding(0.05);
 crane2CP.load("/files/svg/crane-errors.svg");
 crane2CP.show.faces = false;
 crane2CP.onMouseMove = function(event){

@@ -1,7 +1,7 @@
 var wobble_intersections_callback = undefined;
 
 var wobble = new OrigamiPaper("canvas-intersection-wobble", new PlanarGraph());
-wobble.setBounds(-10,-5,20,10);
+wobble.setBounds(-1,-0.5,2,1);
 
 wobble.intersections = [];
 wobble.faceLayer = new wobble.scope.Layer();
@@ -20,7 +20,7 @@ wobble.reset = function(){
 	this.cp.clear();
 	this.cp.newNode();
 	for(var i = 0; i < numLines; i++){
-		this.cp.newPlanarEdgeFromNode(this.cp.nodes[i], Math.random(), Math.random());
+		this.cp.newPlanarEdgeFromNode(this.cp.nodes[i], Math.random()-0.5, Math.random()-0.5);
 	}
 	this.draw();
 	for(var i = 0; i < this.edgeLayer.children.length; i++){
@@ -39,8 +39,8 @@ wobble.onFrame = function(event) {
 	var scale = 0.666;
 	var xscale = 1.5;
 	for(var i = 0; i < this.cp.nodes.length; i++){
-		var xnoise = p5js.noise(i*31.111+p5js.millis()*0.0002 / xscale);
-		var ynoise = p5js.noise(i*44.22+10+p5js.millis()*0.0002);
+		var xnoise = p5js.noise(i*31.111+p5js.millis()*0.0002 / xscale) - 0.5;
+		var ynoise = p5js.noise(i*44.22+10+p5js.millis()*0.0002) - 0.5;
 
 		this.cp.nodes[i].x = xnoise;
 		this.cp.nodes[i].y = ynoise;

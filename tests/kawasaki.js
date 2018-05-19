@@ -17,10 +17,11 @@ projectKawasaki.backgroundLayer.sendToBack();
 projectKawasaki.updateAngles = function(){
 	this.arcLayer.activate();
 	this.arcLayer.removeChildren();
+	this.cp.flatten();
 	var rating = this.centerNode.kawasakiRating();
 
 	var junction = this.centerNode.junction();
-	var kawasakis = this.centerNode.junction().kawasakiSolution();
+	var kawasakis = junction.kawasakiSolution();
 
 	kawasakis.forEach(function(el, j){
 		var sectors = el.sectors;

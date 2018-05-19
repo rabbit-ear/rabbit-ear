@@ -2,6 +2,7 @@
 var randomFaces = new OrigamiPaper("canvas-faces-random");
 randomFaces.setPadding(0.05);
 randomFaces.style.mark.strokeColor = {gray:0.0, alpha:1.0};
+randomFaces.show.faces = true;
 randomFaces.show.sectors = false;
 
 randomFaces.reset = function(){

@@ -24,6 +24,7 @@ radialRay.reset = function(){
 		angle+= Math.random()*0.2 + 0.05;
 	}
 	this.cp.cleanDuplicateNodes();
+	this.cp.flatten();
 	this.draw();
 	this.select.edge = true;
 	this.style.selectedEdge = { gray:0.0 };

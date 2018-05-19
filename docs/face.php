@@ -67,7 +67,7 @@
 	</ul>
 </div>
  -->
-<script type="text/javascript" src="../tests/node-adjacent-faces.js"></script>
+<script type="text/javascript" src="../tests/node_adjacent_faces.js"></script>
 <!-- <script type="text/javascript" src="../tests/faces_radial.js"></script> -->
 <script type="text/javascript" src="../tests/faces_random.js"></script>
 <script type="text/javascript" src="../tests/faces_random_partial.js"></script>

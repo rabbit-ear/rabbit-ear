@@ -1416,7 +1416,7 @@ var Sector = (function () {
             (point.x - this.endPoints[0].x) * (this.origin.y - this.endPoints[0].y);
         var cross1 = (point.y - this.origin.y) * (this.endPoints[1].x - this.origin.x) -
             (point.x - this.origin.x) * (this.endPoints[1].y - this.origin.y);
-        return cross0 < 0 && cross1 < 0;
+        return cross0 > 0 && cross1 > 0;
     };
     Sector.prototype.sortByClockwise = function () { };
     return Sector;
@@ -1535,9 +1535,9 @@ var VoronoiMoleculeTriangle = (function () {
             symmetryLine.nodes[1] = this.overlapped[0].circumcenter;
         }
         var overlappingEdges = [symmetryLine]
-            .concat(flatMap(this.overlapped, function (el) {
-            return el.generateCreases();
-        }));
+            .concat(this.overlapped
+            .map(function (el) { return el.generateCreases(); })
+            .reduce(function (prev, curr) { return prev.concat(curr); }, []));
         var edges = [symmetryLine]
             .concat(new Polyline().rayReflectRepeat(new Ray(this.base[0], this.base[1].subtract(this.base[0])), overlappingEdges, this.base[1]).edges());
         crimps.filter(function (el) {
@@ -1594,7 +1594,9 @@ var VoronoiGraph = (function () {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
-        var allPoints = flatMap(v.edges, function (e) { return [new XY(e[0][0], e[0][1]), new XY(e[1][0], e[1][1])]; });
+        var allPoints = v.edges
+            .map(function (e) { return [new XY(e[0][0], e[0][1]), new XY(e[1][0], e[1][1])]; })
+            .reduce(function (prev, curr) { return prev.concat(curr); }, []);
         var hull = new ConvexPolygon().convexHull(allPoints);
         this.edges = [];
         this.junctions = [];
@@ -1765,9 +1767,6 @@ var VoronoiGraph = (function () {
     };
     return VoronoiGraph;
 }());
-var flatMap = function (array, mapFunc) {
-    return array.reduce(function (cumulus, next) { return mapFunc(next).concat(cumulus); }, []);
-};
 var PlanarClean = (function (_super) {
     __extends(PlanarClean, _super);
     function PlanarClean(numNodes, numEdges) {
@@ -2342,6 +2341,13 @@ var PlanarGraph = (function (_super) {
                 return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
             })[0];
             var junction = node.junction();
+            if (junction === undefined) {
+                junction = this.junctions.slice()
+                    .map(function (el) { return { 'junction': el, 'distance': point.distanceTo(el.origin) }; }, this)
+                    .sort(function (a, b) { return a['distance'] - b['distance']; })
+                    .map(function (el) { return el['junction']; }, this)
+                    .shift();
+            }
             var sector = face.sectors().filter(function (el) { return el.origin === node; }, this).shift();
         }
         else {
@@ -2356,6 +2362,13 @@ var PlanarGraph = (function (_super) {
             var node = (edge !== undefined) ? edge.nodes
                 .slice().sort(function (a, b) { return a.distanceTo(point) - b.distanceTo(point); })[0] : undefined;
             var junction = (node !== undefined) ? node.junction() : undefined;
+            if (junction === undefined) {
+                junction = this.junctions.slice()
+                    .map(function (el) { return { 'junction': el, 'distance': point.distanceTo(el.origin) }; }, this)
+                    .sort(function (a, b) { return a['distance'] - b['distance']; })
+                    .map(function (el) { return el['junction']; }, this)
+                    .shift();
+            }
             var sector = (junction !== undefined) ? junction.sectors.filter(function (el) {
                 return el.contains(point);
             }, this).shift() : undefined;
@@ -2557,7 +2570,7 @@ var PlanarGraph = (function (_super) {
         this.junctions = this.nodes
             .map(function (el) { return new this.junctionType(el); }, this)
             .filter(function (el) { return el !== undefined; }, this)
-            .filter(function (el) { return el.edges.length > 0; }, this);
+            .filter(function (el) { return el.edges.length > 1; }, this);
         this.sectors = this.junctions
             .map(function (el) { return el.sectors; }, this)
             .reduce(function (prev, curr) { return prev.concat(curr); }, [])
@@ -3077,57 +3090,6 @@ var CreasePattern = (function (_super) {
         _this.square();
         return _this;
     }
-    CreasePattern.prototype.copy = function () {
-        this.nodeArrayDidChange();
-        this.edgeArrayDidChange();
-        this.faceArrayDidChange();
-        var g = new CreasePattern();
-        g.nodes = [];
-        g.edges = [];
-        g.faces = [];
-        g.boundary = undefined;
-        for (var i = 0; i < this.nodes.length; i++) {
-            var n = g.addNode(new CreaseNode(g));
-            Object.assign(n, this.nodes[i]);
-            n.graph = g;
-            n.index = i;
-        }
-        for (var i = 0; i < this.edges.length; i++) {
-            var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
-            var e = g.addEdge(new Crease(g, g.nodes[index[0]], g.nodes[index[1]]));
-            Object.assign(e, this.edges[i]);
-            e.graph = g;
-            e.index = i;
-            e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
-        }
-        for (var i = 0; i < this.faces.length; i++) {
-            var f = new PlanarFace(g);
-            g.faces.push(f);
-            f.graph = g;
-            f.index = i;
-            if (this.faces[i] !== undefined) {
-                if (this.faces[i].nodes !== undefined) {
-                    for (var j = 0; j < this.faces[i].nodes.length; j++) {
-                        var nIndex = this.faces[i].nodes[j].index;
-                        f.nodes.push(g.nodes[nIndex]);
-                    }
-                }
-                if (this.faces[i].edges !== undefined) {
-                    for (var j = 0; j < this.faces[i].edges.length; j++) {
-                        var eIndex = this.faces[i].edges[j].index;
-                        f.edges.push(g.edges[eIndex]);
-                    }
-                }
-                if (this.faces[i].angles !== undefined) {
-                    for (var j = 0; j < this.faces[i].angles.length; j++) {
-                        f.angles.push(this.faces[i].angles[j]);
-                    }
-                }
-            }
-        }
-        g.boundary = this.boundary.copy();
-        return g;
-    };
     CreasePattern.prototype.foldInHalf = function () {
         var crease;
         return;
@@ -3867,72 +3829,62 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.frogBase = function () {
         this.clear();
-        this.newPlanarEdge(0, 0, .14646, .35353);
-        this.newPlanarEdge(0, 0, .35353, .14646);
-        this.newPlanarEdge(.14646, .35353, 0.5, 0.5);
-        this.newPlanarEdge(0.5, 0.5, .35353, .14646);
-        this.newPlanarEdge(.14646, .35353, .14646, 0.5);
-        this.newPlanarEdge(0, 0.5, .14646, 0.5);
-        this.newPlanarEdge(0.5, 0.5, 0.5, .14646);
-        this.newPlanarEdge(0.5, .14646, 0.5, 0);
-        this.newPlanarEdge(0.5, 0, .35353, .14646);
-        this.newPlanarEdge(.35353, .14646, 0.5, .14646);
-        this.newPlanarEdge(.14646, .35353, 0, 0.5);
-        this.newPlanarEdge(.14646, .35353, .25, .25);
-        this.newPlanarEdge(.25, .25, .35353, .14646);
-        this.newPlanarEdge(0, 1, .35353, .85353);
-        this.newPlanarEdge(0, 1, .14646, .64646);
-        this.newPlanarEdge(.35353, .85353, 0.5, 0.5);
-        this.newPlanarEdge(0.5, 0.5, .14646, .64646);
-        this.newPlanarEdge(.35353, .85353, 0.5, .85353);
-        this.newPlanarEdge(0.5, 1, 0.5, .85353);
-        this.newPlanarEdge(0.5, 0.5, 0.5, .85353);
-        this.newPlanarEdge(0.5, 0.5, .14646, 0.5);
-        this.newPlanarEdge(0, 0.5, .14646, .64646);
-        this.newPlanarEdge(.14646, .64646, .14646, 0.5);
-        this.newPlanarEdge(.35353, .85353, 0.5, 1);
-        this.newPlanarEdge(.35353, .85353, .25, .75);
-        this.newPlanarEdge(.25, .75, .14646, .64646);
-        this.newPlanarEdge(1, 0, .85353, .35353);
-        this.newPlanarEdge(1, 0, .64646, .14646);
-        this.newPlanarEdge(.85353, .35353, 0.5, 0.5);
-        this.newPlanarEdge(0.5, 0.5, .64646, .14646);
-        this.newPlanarEdge(.85353, .35353, .85353, 0.5);
-        this.newPlanarEdge(1, 0.5, .85353, 0.5);
-        this.newPlanarEdge(0.5, 0, .64646, .14646);
-        this.newPlanarEdge(.64646, .14646, 0.5, .14646);
-        this.newPlanarEdge(.85353, .35353, 1, 0.5);
-        this.newPlanarEdge(.85353, .35353, .75, .25);
-        this.newPlanarEdge(.75, .25, .64646, .14646);
-        this.newPlanarEdge(1, 1, .64646, .85353);
-        this.newPlanarEdge(1, 1, .85353, .64646);
-        this.newPlanarEdge(.64646, .85353, 0.5, 0.5);
-        this.newPlanarEdge(0.5, 0.5, .85353, .64646);
-        this.newPlanarEdge(.64646, .85353, 0.5, .85353);
-        this.newPlanarEdge(0.5, 0.5, .85353, 0.5);
-        this.newPlanarEdge(1, 0.5, .85353, .64646);
-        this.newPlanarEdge(.85353, .64646, .85353, 0.5);
-        this.newPlanarEdge(.64646, .85353, 0.5, 1);
-        this.newPlanarEdge(.64646, .85353, .75, .75);
-        this.newPlanarEdge(.75, .75, .85353, .64646);
-        this.newPlanarEdge(.35353, .14646, .35353, 0);
-        this.newPlanarEdge(.64646, .14646, .64646, 0);
-        this.newPlanarEdge(.85353, .35353, 1, .35353);
-        this.newPlanarEdge(.85353, .64646, 1, .64646);
-        this.newPlanarEdge(.64646, .85353, .64646, 1);
-        this.newPlanarEdge(.35353, .85353, .35353, 1);
-        this.newPlanarEdge(.14646, .64646, 0, .64646);
-        this.newPlanarEdge(.14646, .35353, 0, .35353);
-        this.newPlanarEdge(0.5, 0.5, .25, .25);
-        this.newPlanarEdge(0.5, 0.5, .75, .25);
-        this.newPlanarEdge(0.5, 0.5, .75, .75);
-        this.newPlanarEdge(0.5, 0.5, .25, .75);
-        this.newPlanarEdge(.25, .75, 0, 1);
-        this.newPlanarEdge(.25, .25, 0, 0);
-        this.newPlanarEdge(.75, .25, 1, 0);
-        this.newPlanarEdge(.75, .75, 1, 1);
+        [[0, 0, .14646, .35353], [0, 0, .35353, .14646], [.14646, .35353, 0.5, 0.5], [0.5, 0.5, .35353, .14646], [.14646, .35353, .14646, 0.5], [0, 0.5, .14646, 0.5], [0.5, 0.5, 0.5, .14646], [0.5, .14646, 0.5, 0], [0.5, 0, .35353, .14646], [.35353, .14646, 0.5, .14646], [.14646, .35353, 0, 0.5], [.14646, .35353, .25, .25], [.25, .25, .35353, .14646], [0, 1, .35353, .85353], [0, 1, .14646, .64646], [.35353, .85353, 0.5, 0.5], [0.5, 0.5, .14646, .64646], [.35353, .85353, 0.5, .85353], [0.5, 1, 0.5, .85353], [0.5, 0.5, 0.5, .85353], [0.5, 0.5, .14646, 0.5], [0, 0.5, .14646, .64646], [.14646, .64646, .14646, 0.5], [.35353, .85353, 0.5, 1], [.35353, .85353, .25, .75], [.25, .75, .14646, .64646], [1, 0, .85353, .35353], [1, 0, .64646, .14646], [.85353, .35353, 0.5, 0.5], [0.5, 0.5, .64646, .14646], [.85353, .35353, .85353, 0.5], [1, 0.5, .85353, 0.5], [0.5, 0, .64646, .14646], [.64646, .14646, 0.5, .14646], [.85353, .35353, 1, 0.5], [.85353, .35353, .75, .25], [.75, .25, .64646, .14646], [1, 1, .64646, .85353], [1, 1, .85353, .64646], [.64646, .85353, 0.5, 0.5], [0.5, 0.5, .85353, .64646], [.64646, .85353, 0.5, .85353], [0.5, 0.5, .85353, 0.5], [1, 0.5, .85353, .64646], [.85353, .64646, .85353, 0.5], [.64646, .85353, 0.5, 1], [.64646, .85353, .75, .75], [.75, .75, .85353, .64646], [.35353, .14646, .35353, 0], [.64646, .14646, .64646, 0], [.85353, .35353, 1, .35353], [.85353, .64646, 1, .64646], [.64646, .85353, .64646, 1], [.35353, .85353, .35353, 1], [.14646, .64646, 0, .64646], [.14646, .35353, 0, .35353], [0.5, 0.5, .25, .25], [0.5, 0.5, .75, .25], [0.5, 0.5, .75, .75], [0.5, 0.5, .25, .75], [.25, .75, 0, 1], [.25, .25, 0, 0], [.75, .25, 1, 0], [.75, .75, 1, 1]].forEach(function (el) {
+            this.newPlanarEdge(el[0], el[1], el[2], el[3]);
+        }, this);
         this.flatten();
         return this;
+    };
+    CreasePattern.prototype.copy = function () {
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        this.faceArrayDidChange();
+        var g = new CreasePattern();
+        g.nodes = [];
+        g.edges = [];
+        g.faces = [];
+        g.boundary = undefined;
+        for (var i = 0; i < this.nodes.length; i++) {
+            var n = g.addNode(new CreaseNode(g));
+            Object.assign(n, this.nodes[i]);
+            n.graph = g;
+            n.index = i;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+            var e = g.addEdge(new Crease(g, g.nodes[index[0]], g.nodes[index[1]]));
+            Object.assign(e, this.edges[i]);
+            e.graph = g;
+            e.index = i;
+            e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+        }
+        for (var i = 0; i < this.faces.length; i++) {
+            var f = new PlanarFace(g);
+            g.faces.push(f);
+            f.graph = g;
+            f.index = i;
+            if (this.faces[i] !== undefined) {
+                if (this.faces[i].nodes !== undefined) {
+                    for (var j = 0; j < this.faces[i].nodes.length; j++) {
+                        var nIndex = this.faces[i].nodes[j].index;
+                        f.nodes.push(g.nodes[nIndex]);
+                    }
+                }
+                if (this.faces[i].edges !== undefined) {
+                    for (var j = 0; j < this.faces[i].edges.length; j++) {
+                        var eIndex = this.faces[i].edges[j].index;
+                        f.edges.push(g.edges[eIndex]);
+                    }
+                }
+                if (this.faces[i].angles !== undefined) {
+                    for (var j = 0; j < this.faces[i].angles.length; j++) {
+                        f.angles.push(this.faces[i].angles[j]);
+                    }
+                }
+            }
+        }
+        g.boundary = this.boundary.copy();
+        return g;
     };
     return CreasePattern;
 }(PlanarGraph));

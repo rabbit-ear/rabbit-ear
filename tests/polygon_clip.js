@@ -9,12 +9,11 @@ polygonClip.resetBoundary = function(){
 	var points = [];
 	for(var i = 0; i < 10; i++){ points.push(new XY(Math.random(), Math.random()));}
 	this.cp.setBoundary(points);
-	this.draw();
 }
 
 polygonClip.reset = function(){
-	this.resetBoundary();
 	this.cp.clear();
+	this.resetBoundary();
 	var poly = [ new Polyline(), new Polyline() ];
 	for(var i=0,y=0; y<1; i++,y+=Math.random()/10+0.001){poly[0].nodes.push(new XY(i%2, y));}
 	for(var i=0,x=0; x<1; i++,x+=Math.random()/10+0.001){poly[1].nodes.push(new XY(x, i%2));}

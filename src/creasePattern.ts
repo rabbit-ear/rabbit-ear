@@ -332,55 +332,6 @@ class CreasePattern extends PlanarGraph{
 		this.square();
 	}
 
-	/** This will deep-copy the contents of this graph and return it as a new object
-	 * @returns {CreasePattern} 
-	 */
-	copy():CreasePattern{
-		this.nodeArrayDidChange();
-		this.edgeArrayDidChange();
-		this.faceArrayDidChange();
-		var g = new CreasePattern();
-		g.nodes = []; g.edges = []; g.faces = [];
-		g.boundary = undefined;
-		for(var i = 0; i < this.nodes.length; i++){
-			var n = g.addNode(new CreaseNode(g));
-			(<any>Object).assign(n, this.nodes[i]);
-			n.graph = g; n.index = i;
-		}
-		for(var i = 0; i < this.edges.length; i++){
-			var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
-			var e = g.addEdge(new Crease(g, g.nodes[index[0]], g.nodes[index[1]]));
-			(<any>Object).assign(e, this.edges[i]);
-			e.graph = g; e.index = i;
-			e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
-			// e.orientation = this.edges[i].orientation;
-		}
-		for(var i = 0; i < this.faces.length; i++){
-			var f = new PlanarFace(g);
-			g.faces.push(f);
-			f.graph = g; 
-			f.index = i;
-			// (<any>Object).assign(f, this.faces[i]);
-			if(this.faces[i] !== undefined){
-				if(this.faces[i].nodes !== undefined){
-				for(var j=0;j<this.faces[i].nodes.length;j++){
-					var nIndex = this.faces[i].nodes[j].index;
-					f.nodes.push(g.nodes[nIndex]);
-				} }
-				if(this.faces[i].edges !== undefined){
-				for(var j=0;j<this.faces[i].edges.length;j++){
-					var eIndex = this.faces[i].edges[j].index;
-					f.edges.push(g.edges[eIndex]);
-				} }
-				if(this.faces[i].angles !== undefined){
-				for(var j=0;j<this.faces[i].angles.length;j++){
-					f.angles.push(this.faces[i].angles[j]); 
-				} }
-			}
-		}
-		g.boundary = this.boundary.copy();
-		return g;
-	}
 
 
 	// generateJunctions():CreaseJunction[]{
@@ -1095,10 +1046,12 @@ class CreasePattern extends PlanarGraph{
 			// return false;
 		}
 
-		// file["file_spec"]
-		// file["file_creator"]
-		// file["file_author"]
-		// file["file_classes"]
+// file["file_spec"]
+// file["file_creator"]
+// file["file_author"]
+// file["file_title"]
+// file["file_description"]
+// file["file_classes"]
 
 		this.clear();
 		this.noBoundary();
@@ -1303,73 +1256,64 @@ class CreasePattern extends PlanarGraph{
 	}
 	frogBase():CreasePattern{
 		this.clear();
-		this.newPlanarEdge(0, 0, .14646, .35353);
-		this.newPlanarEdge(0, 0, .35353, .14646);
-		this.newPlanarEdge(.14646, .35353, 0.5, 0.5);
-		this.newPlanarEdge(0.5, 0.5, .35353, .14646);
-		this.newPlanarEdge(.14646, .35353, .14646, 0.5);
-		this.newPlanarEdge(0, 0.5, .14646, 0.5);
-		this.newPlanarEdge(0.5, 0.5, 0.5, .14646);
-		this.newPlanarEdge(0.5, .14646, 0.5, 0);
-		this.newPlanarEdge(0.5, 0, .35353, .14646);
-		this.newPlanarEdge(.35353, .14646, 0.5, .14646);
-		this.newPlanarEdge(.14646, .35353, 0, 0.5);
-		this.newPlanarEdge(.14646, .35353, .25, .25);
-		this.newPlanarEdge(.25, .25, .35353, .14646);
-		this.newPlanarEdge(0, 1, .35353, .85353);
-		this.newPlanarEdge(0, 1, .14646, .64646);
-		this.newPlanarEdge(.35353, .85353, 0.5, 0.5);
-		this.newPlanarEdge(0.5, 0.5, .14646, .64646);
-		this.newPlanarEdge(.35353, .85353, 0.5, .85353);
-		this.newPlanarEdge(0.5, 1, 0.5, .85353);
-		this.newPlanarEdge(0.5, 0.5, 0.5, .85353);
-		this.newPlanarEdge(0.5, 0.5, .14646, 0.5);
-		this.newPlanarEdge(0, 0.5, .14646, .64646);
-		this.newPlanarEdge(.14646, .64646, .14646, 0.5);
-		this.newPlanarEdge(.35353, .85353, 0.5, 1);
-		this.newPlanarEdge(.35353, .85353, .25, .75);
-		this.newPlanarEdge(.25, .75, .14646, .64646);
-		this.newPlanarEdge(1, 0, .85353, .35353);
-		this.newPlanarEdge(1, 0, .64646, .14646);
-		this.newPlanarEdge(.85353, .35353, 0.5, 0.5);
-		this.newPlanarEdge(0.5, 0.5, .64646, .14646);
-		this.newPlanarEdge(.85353, .35353, .85353, 0.5);
-		this.newPlanarEdge(1, 0.5, .85353, 0.5);
-		this.newPlanarEdge(0.5, 0, .64646, .14646);
-		this.newPlanarEdge(.64646, .14646, 0.5, .14646);
-		this.newPlanarEdge(.85353, .35353, 1, 0.5);
-		this.newPlanarEdge(.85353, .35353, .75, .25);
-		this.newPlanarEdge(.75, .25, .64646, .14646);
-		this.newPlanarEdge(1, 1, .64646, .85353);
-		this.newPlanarEdge(1, 1, .85353, .64646);
-		this.newPlanarEdge(.64646, .85353, 0.5, 0.5);
-		this.newPlanarEdge(0.5, 0.5, .85353, .64646);
-		this.newPlanarEdge(.64646, .85353, 0.5, .85353);
-		this.newPlanarEdge(0.5, 0.5, .85353, 0.5);
-		this.newPlanarEdge(1, 0.5, .85353, .64646);
-		this.newPlanarEdge(.85353, .64646, .85353, 0.5);
-		this.newPlanarEdge(.64646, .85353, 0.5, 1);
-		this.newPlanarEdge(.64646, .85353, .75, .75);
-		this.newPlanarEdge(.75, .75, .85353, .64646);
-		this.newPlanarEdge(.35353, .14646, .35353, 0);
-		this.newPlanarEdge(.64646, .14646, .64646, 0);
-		this.newPlanarEdge(.85353, .35353, 1, .35353);
-		this.newPlanarEdge(.85353, .64646, 1, .64646);
-		this.newPlanarEdge(.64646, .85353, .64646, 1);
-		this.newPlanarEdge(.35353, .85353, .35353, 1);
-		this.newPlanarEdge(.14646, .64646, 0, .64646);
-		this.newPlanarEdge(.14646, .35353, 0, .35353);
-		this.newPlanarEdge(0.5, 0.5, .25, .25);
-		this.newPlanarEdge(0.5, 0.5, .75, .25);
-		this.newPlanarEdge(0.5, 0.5, .75, .75);
-		this.newPlanarEdge(0.5, 0.5, .25, .75);
-		this.newPlanarEdge(.25, .75, 0, 1);
-		this.newPlanarEdge(.25, .25, 0, 0);
-		this.newPlanarEdge(.75, .25, 1, 0);
-		this.newPlanarEdge(.75, .75, 1, 1);
+		[[0,0,.14646,.35353],[0,0,.35353,.14646],[.14646,.35353,0.5,0.5],[0.5,0.5,.35353,.14646],[.14646,.35353,.14646,0.5],[0,0.5,.14646,0.5],[0.5,0.5,0.5,.14646],[0.5,.14646,0.5,0],[0.5,0,.35353,.14646],[.35353,.14646,0.5,.14646],[.14646,.35353,0,0.5],[.14646,.35353,.25,.25],[.25,.25,.35353,.14646],[0,1,.35353,.85353],[0,1,.14646,.64646],[.35353,.85353,0.5,0.5],[0.5,0.5,.14646,.64646],[.35353,.85353,0.5,.85353],[0.5,1,0.5,.85353],[0.5,0.5,0.5,.85353],[0.5,0.5,.14646,0.5],[0,0.5,.14646,.64646],[.14646,.64646,.14646,0.5],[.35353,.85353,0.5,1],[.35353,.85353,.25,.75],[.25,.75,.14646,.64646],[1,0,.85353,.35353],[1,0,.64646,.14646],[.85353,.35353,0.5,0.5],[0.5,0.5,.64646,.14646],[.85353,.35353,.85353,0.5],[1,0.5,.85353,0.5],[0.5,0,.64646,.14646],[.64646,.14646,0.5,.14646],[.85353,.35353,1,0.5],[.85353,.35353,.75,.25],[.75,.25,.64646,.14646],[1,1,.64646,.85353],[1,1,.85353,.64646],[.64646,.85353,0.5,0.5],[0.5,0.5,.85353,.64646],[.64646,.85353,0.5,.85353],[0.5,0.5,.85353,0.5],[1,0.5,.85353,.64646],[.85353,.64646,.85353,0.5],[.64646,.85353,0.5,1],[.64646,.85353,.75,.75],[.75,.75,.85353,.64646],[.35353,.14646,.35353,0],[.64646,.14646,.64646,0],[.85353,.35353,1,.35353],[.85353,.64646,1,.64646],[.64646,.85353,.64646,1],[.35353,.85353,.35353,1],[.14646,.64646,0,.64646],[.14646,.35353,0,.35353],[0.5,0.5,.25,.25],[0.5,0.5,.75,.25],[0.5,0.5,.75,.75],[0.5,0.5,.25,.75],[.25,.75,0,1],[.25,.25,0,0],[.75,.25,1,0],[.75,.75,1,1]].forEach(function(el:[number,number,number,number]){
+			this.newPlanarEdge(el[0], el[1], el[2], el[3]);
+		},this);
 		this.flatten();
 		return this;
 	}
+
+
+	/** This will deep-copy the contents of this graph and return it as a new object
+	 * @returns {CreasePattern} 
+	 */
+	copy():CreasePattern{
+		this.nodeArrayDidChange();
+		this.edgeArrayDidChange();
+		this.faceArrayDidChange();
+		var g = new CreasePattern();
+		g.nodes = []; g.edges = []; g.faces = [];
+		g.boundary = undefined;
+		for(var i = 0; i < this.nodes.length; i++){
+			var n = g.addNode(new CreaseNode(g));
+			(<any>Object).assign(n, this.nodes[i]);
+			n.graph = g; n.index = i;
+		}
+		for(var i = 0; i < this.edges.length; i++){
+			var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+			var e = g.addEdge(new Crease(g, g.nodes[index[0]], g.nodes[index[1]]));
+			(<any>Object).assign(e, this.edges[i]);
+			e.graph = g; e.index = i;
+			e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+			// e.orientation = this.edges[i].orientation;
+		}
+		for(var i = 0; i < this.faces.length; i++){
+			var f = new PlanarFace(g);
+			g.faces.push(f);
+			f.graph = g; 
+			f.index = i;
+			// (<any>Object).assign(f, this.faces[i]);
+			if(this.faces[i] !== undefined){
+				if(this.faces[i].nodes !== undefined){
+				for(var j=0;j<this.faces[i].nodes.length;j++){
+					var nIndex = this.faces[i].nodes[j].index;
+					f.nodes.push(g.nodes[nIndex]);
+				} }
+				if(this.faces[i].edges !== undefined){
+				for(var j=0;j<this.faces[i].edges.length;j++){
+					var eIndex = this.faces[i].edges[j].index;
+					f.edges.push(g.edges[eIndex]);
+				} }
+				if(this.faces[i].angles !== undefined){
+				for(var j=0;j<this.faces[i].angles.length;j++){
+					f.angles.push(this.faces[i].angles[j]); 
+				} }
+			}
+		}
+		g.boundary = this.boundary.copy();
+		return g;
+	}
+
 }
 
 // interface Array<T> {

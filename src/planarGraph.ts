@@ -715,6 +715,13 @@ class PlanarGraph extends Graph{
 				return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
 			})[0];
 			var junction = node.junction();
+			if(junction === undefined){
+				junction = this.junctions.slice()
+					.map(function(el){ return {'junction':el, 'distance':point.distanceTo(el.origin)};},this)
+					.sort(function(a,b){return a['distance']-b['distance'];})
+					.map(function(el){ return el['junction']; },this)
+					.shift()
+			}
 			var sector = face.sectors().filter(function(el){ return el.origin === node; },this).shift();
 		} else{
 			var edgeArray = this.edges
@@ -729,6 +736,13 @@ class PlanarGraph extends Graph{
 				.slice().sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);})
 				[0] : undefined;
 			var junction = (node !== undefined) ? node.junction() : undefined;
+			if(junction === undefined){
+				junction = this.junctions.slice()
+					.map(function(el){ return {'junction':el, 'distance':point.distanceTo(el.origin)};},this)
+					.sort(function(a,b){return a['distance']-b['distance'];})
+					.map(function(el){ return el['junction']; },this)
+					.shift()
+			}
 			var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
 				return el.contains(point);
 			},this).shift() : undefined;
@@ -974,7 +988,7 @@ class PlanarGraph extends Graph{
 		this.junctions = this.nodes
 			.map(function(el){ return new this.junctionType(el); },this)
 			.filter(function(el){ return el !== undefined; },this)
-			.filter(function(el){ return el.edges.length > 0; },this);
+			.filter(function(el){ return el.edges.length > 1; },this);
 		this.sectors = this.junctions
 			.map(function(el){ return el.sectors },this)
 			.reduce(function(prev, curr){ return prev.concat(curr); },[])
@@ -1196,7 +1210,7 @@ class PlanarGraph extends Graph{
 		},this);
 	}
 
-	faceArrayDidChange(){for(var i=0; i<this.faces.length; i++){this.faces[i].index=i;}}
+	faceArrayDidChange(){for(var i=0;i<this.faces.length; i++){this.faces[i].index=i;}}
 	sectorArrayDidChange(){for(var i=0;i<this.sectors.length;i++){this.sectors[i].index=i;}}
 	junctionArrayDidChange(){for(var i=0;i<this.junctions.length;i++){this.junctions[i].index=i;}}
 
