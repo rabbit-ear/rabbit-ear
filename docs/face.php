@@ -14,8 +14,8 @@
 	<p class="quote">This algorithm above, <b>adjacentFaces()</b>, is running in real time</p
  -->
 	<div class="centered">
-		<canvas id="canvas-faces-random" resize></canvas>
-		<canvas id="canvas-faces-random-partial" resize></canvas>
+		<canvas id="canvas-faces-convex" resize></canvas>
+		<canvas id="canvas-faces-non-convex" resize></canvas>
 	</div>
 
 	<div class="centered">
@@ -39,15 +39,17 @@
 		<!-- <canvas id="canvas-3" resize></canvas> -->
 	</div>
 
-	<p class="quote">To find the sharpest right turn, we need to sort adjacent edges by their angles.</p>
+	<p>To find the sharpest right turn, we need to sort adjacent edges by their angles.</p>
 
 	<div class="centered">
 		<canvas id="canvas-radial-rainbow" resize></canvas>
 	</div>
 	
 	<div class="centered">
-		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<a href="library/planarAdjacent.php"><f>planarAdjacent</f>()</a></code></pre>
+		<pre><code><span id="edge-angle-div"></span>cp.<v>nodes</v>[<n>0</n>].<f>adjacentEdges</f>()</code></pre>
 	</div>
+
+	<p class="quote">In the planar graph, a node's adjacent edges will come <b>sorted radially around the node</b>.</p>
 
 	<p class="quote">After sorting the lines by angle, it's easy to find the next most right turn.</p>
 
@@ -69,8 +71,8 @@
  -->
 <script type="text/javascript" src="../tests/node_adjacent_faces.js"></script>
 <!-- <script type="text/javascript" src="../tests/faces_radial.js"></script> -->
-<script type="text/javascript" src="../tests/faces_random.js"></script>
-<script type="text/javascript" src="../tests/faces_random_partial.js"></script>
+<script type="text/javascript" src="../tests/faces_convex.js"></script>
+<script type="text/javascript" src="../tests/faces_non_convex.js"></script>
 <script type="text/javascript" src="../tests/radial_rainbow.js"></script>
 <script>
 radial_rainbow_callback = function(event){

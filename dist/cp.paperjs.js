@@ -395,7 +395,8 @@ var OrigamiPaper = (function(){
 			},
 			face: {
 				'scale': 0.666,
-				fillColor: { gray:0.0, alpha:1.0 }
+				fillColor: { gray:0.0, alpha:1.0 },
+				strokeWidth: null
 			},
 			node: {
 				radius: scale*0.01,
