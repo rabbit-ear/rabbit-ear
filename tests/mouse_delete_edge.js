@@ -3,7 +3,7 @@ mouse_delete_edge_callback = undefined;
 var deleteEdge = new OrigamiPaper("canvas-mouse-delete-edge");
 deleteEdge.setPadding(0.05);
 deleteEdge.show.faces = false;
-deleteEdge.style.node.visible = true;
+deleteEdge.show.nodes = true;
 deleteEdge.style.node.fillColor = { hue:220, saturation:0.6, brightness:0.8 };
 
 deleteEdge.reset = function(){

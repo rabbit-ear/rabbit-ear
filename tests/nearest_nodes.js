@@ -1,41 +1,39 @@
+var nearestNodesCallback = undefined;
 
 var nearNodeSketch = new OrigamiPaper("canvas-nearest-nodes", new PlanarGraph());
-nearNodeSketch.setPadding(0.0);
-
-nearNodeSketch.edgeLayer = new paper.Layer();
-nearNodeSketch.edgeLayer.activate();
-nearNodeSketch.edgeLayer.removeChildren();
+nearNodeSketch.show.nodes = false;
+nearNodeSketch.style.node.radius = 0.004;
+nearNodeSketch.pathLinesLayer = new paper.Layer();
+nearNodeSketch.pathLinesLayer.activate();
+nearNodeSketch.pathLinesLayer.removeChildren();
 
 nearNodeSketch.reset = function(){
 	paper = this.scope; 
 	var NUM_NODES = 300;
-	var aspect = nearNodeSketch.canvas.width / nearNodeSketch.canvas.height;
-	nearNodeSketch.cp.clear();
+	var aspect = this.canvas.width / this.canvas.height;
+	this.cp.clear();
 	for(var i = 0; i < NUM_NODES; i++){
-		nearNodeSketch.cp.newPlanarNode(Math.random()*aspect - (Math.random()*aspect*0.5), Math.random());
+		this.cp.newPlanarNode(Math.random()*aspect - (Math.random()*aspect*0.5), Math.random());
 	}
-	nearNodeSketch.draw();
-	nearNodeSketch.nodeLayer.visible = true;
-	for(var i = 0; i < nearNodeSketch.nodeLayer.children.length; i++){
-		nearNodeSketch.nodeLayer.children[i].radius = 0.004;
-		// nearNodeSketch.nodeLayer.children[i].fillColor = { hue:220, saturation:0.6, brightness: 1.0 };
-		nearNodeSketch.nodeLayer.children[i].fillColor = { gray:0.0 };
-	}
+	this.draw();
 }
 nearNodeSketch.reset();
 
 nearNodeSketch.onFrame = function(event) { }
 nearNodeSketch.onResize = function(event) { }
 nearNodeSketch.onMouseDown = function(event){
-	nearNodeSketch.edgeLayer.activate();
-	nearNodeSketch.edgeLayer.removeChildren();
-	nearNodeSketch.reset();
+	nearNodeSketch.show.nodes = true;
+	this.draw();
 }
-nearNodeSketch.onMouseUp = function(event){ }
+nearNodeSketch.onMouseUp = function(event){
+	nearNodeSketch.show.nodes = false;
+	this.draw();
+}
 nearNodeSketch.onMouseMove = function(event) {
-	var nodes = nearNodeSketch.cp.nearest( event.point.x, event.point.y, 40 ).node;
-	nearNodeSketch.edgeLayer.activate();
-	nearNodeSketch.edgeLayer.removeChildren();
+	var nodeCount = 30;
+	var nodes = this.cp.nearestNodes(nodeCount , event.point.x, event.point.y );
+	this.pathLinesLayer.activate();
+	this.pathLinesLayer.removeChildren();
 	if(nodes != undefined && nodes.length > 0){
 		for(var i = nodes.length-1; i >= 0 ; i--){
 			new paper.Path({
@@ -45,5 +43,8 @@ nearNodeSketch.onMouseMove = function(event) {
 				closed: false
 			});
 		}
+	}
+	if(nearestNodesCallback != undefined){
+		nearestNodesCallback( {count:nodeCount,point:event.point} );
 	}
 }

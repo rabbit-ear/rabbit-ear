@@ -42,7 +42,7 @@ var OrigamiPaper = (function(){
 		};
 		this.show = {
 			boundary:true,
-			nodes:true,
+			nodes:false,
 			edges:true,
 			faces:false,
 			junctions:false,
@@ -139,6 +139,7 @@ var OrigamiPaper = (function(){
 	}
 
 	OrigamiPaper.prototype.draw = function(){
+		paper = this.scope;
 		if(this.cp === undefined){ return; }
 
 		// on-screen drawn elements
@@ -398,8 +399,7 @@ var OrigamiPaper = (function(){
 			},
 			node: {
 				radius: scale*0.015,
-				visible: false,
-				fillColor: { hue:25, saturation:0.7, brightness:1.0 }
+				fillColor: { gray:0.0 }
 			},
 			sector: {
 				'scale': 0.25,
@@ -409,7 +409,6 @@ var OrigamiPaper = (function(){
 				node: {
 					radius: scale*0.02,
 					fillColor: { hue:0, saturation:0.8, brightness:1 },
-					visible: true
 				},
 				edge: {strokeColor: { hue:0, saturation:0.8, brightness:1 } },
 				face: { fillColor: { hue:0, saturation:0.8, brightness:1 } }

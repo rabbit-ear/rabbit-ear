@@ -216,13 +216,13 @@ intersectAll.reset();
 <script>
 interiorAnglesCallback = function(event){
 	// console.log(event);
-	var string = "edges <key>=</key> ";
+	var string = "edge vectors <key>=</key> ";
 	if(event !== undefined){
 		event.edgeAngles.forEach(function(el, i){
 			string += "<n>" + (el*180/Math.PI).toFixed(1) + "</n>&deg;"
 			if(i !== event.edgeAngles.length-1){ string += ", "; }
 		});
-		string += "<br>interior angles <key>=</key> ";
+		string += "<br>sector angles <key>=</key> ";
 		event.interiorAngles.forEach(function(el, i){
 			string += "<n>" + (el*180/Math.PI).toFixed(1) + "</n>&deg;"
 			if(i !== event.edgeAngles.length-1){ string += ", "; }

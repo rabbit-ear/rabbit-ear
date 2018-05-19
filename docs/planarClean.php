@@ -180,13 +180,15 @@ crane2CP.onMouseMove = function(event){
 	var paper1 = new OrigamiPaper("canvas1", cp[0]);
 	var paper2 = new OrigamiPaper("canvas2", cp[1]);
 	// var paper3 = new OrigamiPaper("canvas3", cp[2]);
-	paper1.style.node.visible = true;
-	paper2.style.node.visible = true;
+	// paper1.style.node.visible = true;
+	// paper2.style.node.visible = true;
+	paper1.show.nodes = true;
+	paper2.show.nodes = true;
 	paper1.style.node.fillColor = { gray:0 };
 	paper2.style.node.fillColor = { gray:0 };
 	// paper3.style.node.visible = true;
-	paper1.update();
-	paper2.update();
+	paper1.draw();
+	paper2.draw();
 	// paper3.update();
 </script>
 
