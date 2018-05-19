@@ -7,18 +7,6 @@ nearNodeSketch.pathLinesLayer = new paper.Layer();
 nearNodeSketch.pathLinesLayer.activate();
 nearNodeSketch.pathLinesLayer.removeChildren();
 
-nearNodeSketch.reset = function(){
-	paper = this.scope; 
-	var NUM_NODES = 300;
-	var aspect = this.canvas.width / this.canvas.height;
-	this.cp.clear();
-	for(var i = 0; i < NUM_NODES; i++){
-		this.cp.newPlanarNode(Math.random()*aspect - (Math.random()*aspect*0.5), Math.random());
-	}
-	this.draw();
-}
-nearNodeSketch.reset();
-
 nearNodeSketch.onFrame = function(event) { }
 nearNodeSketch.onResize = function(event) { }
 nearNodeSketch.onMouseDown = function(event){
@@ -31,7 +19,7 @@ nearNodeSketch.onMouseUp = function(event){
 }
 nearNodeSketch.onMouseMove = function(event) {
 	var nodeCount = 30;
-	var nodes = this.cp.nearestNodes(nodeCount , event.point.x, event.point.y );
+	var nodes = this.cp.nearestNodes(nodeCount, event.point.x, event.point.y );
 	this.pathLinesLayer.activate();
 	this.pathLinesLayer.removeChildren();
 	if(nodes != undefined && nodes.length > 0){
@@ -48,3 +36,16 @@ nearNodeSketch.onMouseMove = function(event) {
 		nearestNodesCallback( {count:nodeCount,point:event.point} );
 	}
 }
+
+nearNodeSketch.reset = function(){
+	paper = this.scope; 
+	var NUM_NODES = 300;
+	var aspect = this.canvas.width / this.canvas.height;
+	this.cp.clear();
+	for(var i = 0; i < NUM_NODES; i++){
+		this.cp.newPlanarNode(Math.random()*aspect, Math.random());
+	}
+	this.draw();
+	this.onMouseMove({point:{x:this.cp.bounds().size.width*0.5, y:this.cp.bounds().size.height*0.5}});
+}
+nearNodeSketch.reset();

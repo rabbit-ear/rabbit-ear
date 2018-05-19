@@ -388,9 +388,9 @@ var OrigamiPaper = (function(){
 				strokeWidth: scale*0.01
 			},
 			mark: {
-				strokeColor: { gray:0.75, alpha:1.0 },
+				strokeColor: { gray:0.0, alpha:1.0 },
 				dashArray: undefined,
-				strokeWidth: scale * 0.00666666666,
+				strokeWidth: scale * 0.00333333333,
 				strokeCap : 'round'
 			},
 			face: {
@@ -398,7 +398,7 @@ var OrigamiPaper = (function(){
 				fillColor: { gray:0.0, alpha:1.0 }
 			},
 			node: {
-				radius: scale*0.015,
+				radius: scale*0.01,
 				fillColor: { gray:0.0 }
 			},
 			sector: {

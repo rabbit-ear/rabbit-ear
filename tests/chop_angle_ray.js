@@ -26,8 +26,14 @@ chopRays.reset = function(){
 }
 chopRays.reset();
 
-chopRays.onFrame = function(event) { }
-chopRays.onResize = function(event) { }
+chopRays.onFrame = function(event){ }
+chopRays.onResize = function(event){ }
 chopRays.onMouseDown = function(event){ chopRays.reset(); }
 chopRays.onMouseUp = function(event){ }
-chopRays.onMouseMove = function(event) { }
+chopRays.onMouseMove = function(event){
+	this.update();
+	// this.cp.nodes.filter(function(node){ return node.degree() < 2; },this)
+	//              .forEach(function(node){this.nodes[node.index].fillColor = {alpha:0.0};},this)
+	var nearest = this.cp.nearest(event.point);
+	if(nearest.edge){ this.edges[ nearest.edge.index ].strokeColor = this.styles.byrne.yellow; }	
+}

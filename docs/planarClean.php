@@ -7,7 +7,7 @@
 <section id="intro">
 
 	<div class="centered">
-		<canvas id="canvas-intersections" resize class="panorama"></canvas>
+		<canvas id="canvas-fragment" resize class="panorama"></canvas>
 	</div>
 
 	<p>Cleaning a planar graph will ensure there are no duplicate or circular edges, just like a regular graph, but also perform additional 2D-related operations, like resolve 2 crossed edges.</p>
@@ -106,9 +106,9 @@
 
 <!-- include .js sketches -->
 <script type="text/javascript" src="../tests/mouse_delete_edge.js"></script>
-<script type="text/javascript" src="../tests/intersections.js"></script>
-<script type="text/javascript" src="../tests/05_parallels_scale.js"></script>
-<script type="text/javascript" src="../tests/11_merge_duplicates.js"></script>
+<script type="text/javascript" src="../tests/fragment.js"></script>
+<script type="text/javascript" src="../tests/p5js_parallels_scale.js"></script>
+<script type="text/javascript" src="../tests/p5js_merge_duplicates.js"></script>
 
 <script>
 	
@@ -194,7 +194,7 @@ crane2CP.onMouseMove = function(event){
 
 
 <script>
-	// edge_intersections_callback = function(event){
+	// fragment_sketch_callback = function(event){
 	// 	if(event !== undefined){
 	// 		document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
 	// 	}

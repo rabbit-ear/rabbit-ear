@@ -1,3 +1,4 @@
+// requires perlin.js
 var wobble_intersections_callback = undefined;
 
 var wobble = new OrigamiPaper("canvas-intersection-wobble", new PlanarGraph());
@@ -34,13 +35,14 @@ wobble.reset();
 
 wobble.onFrame = function(event) { 
 	paper = this.scope;
-
 	var centerX = (this.canvas.width / this.canvas.height);
 	var scale = 0.666;
 	var xscale = 1.5;
 	for(var i = 0; i < this.cp.nodes.length; i++){
-		var xnoise = p5js.noise(i*31.111+p5js.millis()*0.0002 / xscale) - 0.5;
-		var ynoise = p5js.noise(i*44.22+10+p5js.millis()*0.0002) - 0.5;
+		// var xnoise = p5js.noise(i*31.111+p5js.millis()*0.0002 / xscale) - 0.5;
+		// var ynoise = p5js.noise(i*44.22+10+p5js.millis()*0.0002) - 0.5;
+		var xnoise = noise.perlin2(i*31.111+event.time*0.25 / xscale, 0);
+		var ynoise = noise.perlin2(i*44.22+10+event.time*0.25, 0);
 
 		this.cp.nodes[i].x = xnoise;
 		this.cp.nodes[i].y = ynoise;
@@ -68,11 +70,6 @@ wobble.onFrame = function(event) {
 		face.fillColor = yellow;
 		this.faces.push( face );
 	}
-
-	// this.draw();
-	// for(var i = 0; i < this.edgeLayer.children.length; i++){
-	// 	this.edgeLayer.children[i].strokeColor = {gray:0.0};
-	// }
 
 	this.intersections = this.cp.getEdgeIntersections();
 

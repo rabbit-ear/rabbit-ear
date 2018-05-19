@@ -1,7 +1,5 @@
 <?php include 'header.php';?>
-
-<script type="text/javascript" src="../lib/p5.min.js"></script>
-<script type="text/javascript" src="../dist/cp.p5js.js"></script>
+<script type="text/javascript" src="../lib/perlin.js"></script>
 
 <h3 class="centered" style="padding-top:2em;">CHAPTER II.</h3>
 <h1>PLANAR GRAPHS</h1>
@@ -17,10 +15,6 @@
 	<div class="centered">
 		<pre><code><key>let</key> planarGraph<key> = new</key> PlanarGraph()</code></pre>
 	</div>
-
-<!-- 	<div class="centered">
-		<pre><code><span id="span-intersection-results"></span>planarGraph.<a href="library/getEdgeIntersections.php"><f>getEdgeIntersections</f></a>()<c> // <a href="library/edgeIntersection.php">EdgeIntersection</a></c></code></pre>
-	</div> -->
 
 	<p>The simple application of a 2D position to every node ushers in a new set of rules and ways of orienting oneself to the graph.</p>
 
@@ -39,19 +33,11 @@
 	</div>
 </div> -->
 
-<canvas id="p5-empty-canvas" style="display:none;"></canvas>
 <script type="text/javascript" src="../tests/intersect_wobble.js"></script>
 
 <script>
-var p5js = new p5(function(p, canvasName) { 
-	noise = function(d){ return p.noise(d); }
-	millis = function(){ return p.millis(); }
-}, 'p5-empty-canvas');
-
 // wobble_intersections_callback = function(e){
 // 	document.getElementById("span-intersection-results").innerHTML = "<v>Array</v>(<n>" + e.length + "</n>) ← ";
 // }
-
 </script>
-
 <?php include 'footer.php';?>

@@ -30,11 +30,11 @@
 <br>	// this.draw();
 <br>}
 <br>project.reset();
-<br>project.onFrame = function(event) { }
-<br>project.onResize = function(event) { }
+<br>project.onFrame = function(event){ }
+<br>project.onResize = function(event){ }
 <br>project.onMouseDown = function(event){ }
 <br>project.onMouseUp = function(event){ }
-<br>project.onMouseMove = function(event) { }</code></pre>
+<br>project.onMouseMove = function(event){ }</code></pre>
 </div>
 
 </section>

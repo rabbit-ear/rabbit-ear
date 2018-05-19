@@ -94,8 +94,8 @@ project.reset = function(){
 }
 project.reset();
 
-project.onFrame = function(event) { }
-project.onResize = function(event) { }
+project.onFrame = function(event){ }
+project.onResize = function(event){ }
 project.onMouseDown = function(event){ }
 project.onMouseUp = function(event){ 
 	if(this.mouseDidDrag){
@@ -145,7 +145,7 @@ project.onMouseUp = function(event){
 project.onMouseDidBeginDrag = function(event){
 	this.ghostCreaseLayer.removeChildren();	
 }
-project.onMouseMove = function(event) {
+project.onMouseMove = function(event){
 	if(this.mouse.isPressed){
 		this.mouseDragLayer.activate();
 		this.mouseDragLayer.clear();
