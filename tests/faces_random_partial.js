@@ -6,13 +6,13 @@ partialFaces.show.sectors = false;
 
 partialFaces.reset = function(){
 	paper = this.scope; 
-	partialFaces.cp.clear();
+	this.cp.clear();
 	for(var i = 0; i < 30; i++){
 		var angle = Math.random()*Math.PI*2;
-		partialFaces.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
+		this.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
-	partialFaces.cp.flatten();
-	partialFaces.draw();
+	this.cp.flatten();
+	this.draw();
 }
 partialFaces.reset();
 

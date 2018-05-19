@@ -23,7 +23,8 @@ creaseRay.updateCreases = function(){
 	this.cp.clear();
 	var vector = new XY(this.selectable[1].position.x-this.selectable[0].position.x, 
 	                    this.selectable[1].position.y-this.selectable[0].position.y );
-	this.cp.creaseRay(this.selectable[0].position, vector).valley();
+	var crease = this.cp.creaseRay(this.selectable[0].position, vector);
+	if(crease != undefined){ crease.valley(); }
 	this.draw();
 	if(creaseRayCallback !== undefined){
 		creaseRayCallback({'points':[this.selectable[0].position, vector]});

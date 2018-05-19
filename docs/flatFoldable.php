@@ -88,7 +88,7 @@
 	<p>To calculate more complex crease patterns, one face is selected to be fixed, then the following data structure is calculated- a tree map of the neighbor relationships to each face.</p>
 
 	<div class="centered">
-		<canvas id="canvas-face-matrix" resize></canvas>
+		<canvas id="canvas-face-tree" resize></canvas>
 	</div>
 
 </section>
@@ -96,7 +96,7 @@
 <script type="text/javascript" src="../tests/kawasaki.js"></script>
 <script type="text/javascript" src="../tests/flat_foldable_nodes_wiggle.js"></script>
 <script type="text/javascript" src="../tests/flat_foldable_single.js"></script>
-<script type="text/javascript" src="../tests/face_matrix.js"></script>
+<script type="text/javascript" src="../tests/face_tree.js"></script>
 <script type="text/javascript" src="../tests/two_colorable.js"></script>
 
 <script>

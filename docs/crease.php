@@ -45,12 +45,12 @@
 	</div>
 </section>
 
-<script type="text/javascript" src="../tests/crease-edge.js"></script>
-<script type="text/javascript" src="../tests/crease-line.js"></script>
-<script type="text/javascript" src="../tests/crease-ray.js"></script>
-<script type="text/javascript" src="../tests/crease-ray-repeat.js"></script>
-<script type="text/javascript" src="../tests/crease-ray-stop.js"></script>
-<script type="text/javascript" src="../tests/crease-edge-to-edge.js"></script>
+<script type="text/javascript" src="../tests/crease_edge.js"></script>
+<script type="text/javascript" src="../tests/crease_line.js"></script>
+<script type="text/javascript" src="../tests/crease_ray.js"></script>
+<script type="text/javascript" src="../tests/crease_ray_repeat.js"></script>
+<script type="text/javascript" src="../tests/crease_ray_stop.js"></script>
+<script type="text/javascript" src="../tests/crease_edge_to_edge.js"></script>
 <script type="text/javascript" src="../tests/pleat_edge.js"></script>
 
 <script>
