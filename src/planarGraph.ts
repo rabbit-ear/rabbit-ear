@@ -118,12 +118,15 @@ class PlanarNode extends GraphNode implements XY{
 			return face.nodes.filter(function(n){return n === this;},this).length > 0;
 		},this);
 	}
-	/** Adjacent nodes and edges sorted clockwise around this node */
 	junction():PlanarJunction{
 		if(this.graph.dirty){ this.graph.flatten(); }
 		return this.graph.junctions.slice().filter(function(junction){
 			return junction.origin === this;
 		},this).shift();
+	}
+	sectors():PlanarSector[]{
+		if(this.graph.dirty){ this.graph.flatten(); }
+		return this.graph.sectors.filter(function(el){return el.origin === this;},this);
 	}
 	interiorAngles():number[]{ return this.junction().interiorAngles(); }
 	// implements XY
@@ -368,7 +371,7 @@ class PlanarFace{
 	 * @example
 	 * var isInside = face.contains( {x:0.5, y:0.5} )
 	 */
-	contains(point:XY):boolean{
+	containsIfConvex(point:XY):boolean{
 		for(var i = 0; i < this.nodes.length; i++){
 			var thisNode = this.nodes[ i ];
 			var nextNode = this.nodes[ (i+1)%this.nodes.length ];
@@ -377,6 +380,17 @@ class PlanarFace{
 			if (a.cross(b) < 0){ return false; }
 		}
 		return true;
+	}
+	contains(point:XY):boolean{
+    	var isInside = false;
+		// http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+		for(var i = 0, j = this.nodes.length - 1; i < this.nodes.length; j = i++) {
+			if( (this.nodes[i].y > point.y) != (this.nodes[j].y > point.y) &&
+			point.x < (this.nodes[j].x - this.nodes[i].x) * (point.y - this.nodes[i].y) / (this.nodes[j].y - this.nodes[i].y) + this.nodes[i].x ) {
+				isInside = !isInside;
+			}
+		}
+		return isInside;
 	}
 	/** Apply a matrix transform to this face by transforming the location of its points.
 	 * @example

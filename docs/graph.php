@@ -173,11 +173,11 @@
 	
 </section>
 
-<script type="text/javascript" src="../tests/graph_simple.js"></script>
-<script type="text/javascript" src="../tests/graph_adjacentNode.js"></script>
-<script type="text/javascript" src="../tests/graph_adjacentEdge.js"></script>
-<script type="text/javascript" src="../tests/graph_removeNode.js"></script>
-<script type="text/javascript" src="../tests/graph_removeEdge.js"></script>
+<script type="text/javascript" src="../tests/d3_graph_simple.js"></script>
+<script type="text/javascript" src="../tests/d3_graph_adjNode.js"></script>
+<script type="text/javascript" src="../tests/d3_graph_adjEdge.js"></script>
+<script type="text/javascript" src="../tests/d3_graph_removeNode.js"></script>
+<script type="text/javascript" src="../tests/d3_graph_removeEdge.js"></script>
 <script>
 	// $(".accordion-title").html("MORE");
 	function updateNodesAdjacentToNode(input, output){

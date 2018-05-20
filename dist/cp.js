@@ -1859,6 +1859,12 @@ var PlanarNode = (function (_super) {
             return junction.origin === this;
         }, this).shift();
     };
+    PlanarNode.prototype.sectors = function () {
+        if (this.graph.dirty) {
+            this.graph.flatten();
+        }
+        return this.graph.sectors.filter(function (el) { return el.origin === this; }, this);
+    };
     PlanarNode.prototype.interiorAngles = function () { return this.junction().interiorAngles(); };
     PlanarNode.prototype.position = function (x, y) { this.x = x; this.y = y; return this; };
     PlanarNode.prototype.translate = function (dx, dy) { this.x += dx; this.y += dy; return this; };
@@ -2070,7 +2076,7 @@ var PlanarFace = (function () {
             }
         }, this).filter(function (el) { return el !== undefined; });
     };
-    PlanarFace.prototype.contains = function (point) {
+    PlanarFace.prototype.containsIfConvex = function (point) {
         for (var i = 0; i < this.nodes.length; i++) {
             var thisNode = this.nodes[i];
             var nextNode = this.nodes[(i + 1) % this.nodes.length];
@@ -2081,6 +2087,16 @@ var PlanarFace = (function () {
             }
         }
         return true;
+    };
+    PlanarFace.prototype.contains = function (point) {
+        var isInside = false;
+        for (var i = 0, j = this.nodes.length - 1; i < this.nodes.length; j = i++) {
+            if ((this.nodes[i].y > point.y) != (this.nodes[j].y > point.y) &&
+                point.x < (this.nodes[j].x - this.nodes[i].x) * (point.y - this.nodes[i].y) / (this.nodes[j].y - this.nodes[i].y) + this.nodes[i].x) {
+                isInside = !isInside;
+            }
+        }
+        return isInside;
     };
     PlanarFace.prototype.transform = function (matrix) { this.nodes.forEach(function (node) { node.transform(matrix); }, this); };
     PlanarFace.prototype.signedArea = function () {
