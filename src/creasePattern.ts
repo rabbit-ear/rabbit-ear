@@ -156,7 +156,7 @@ class CreaseJunction extends PlanarJunction{
 		// todo: this should check (at least)
 		// - kawasaki's theorem
 		// - maekawa's theorem
-		return this.kawasaki() && this.maekawa();
+		return this.kawasaki(epsilon) && this.maekawa();
 	}
 
 	alternateAngleSum():[number,number]{
@@ -170,9 +170,11 @@ class CreaseJunction extends PlanarJunction{
 		return true;
 	}
 	kawasaki(epsilon?:number):boolean{
-		// if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		if(epsilon === undefined){ epsilon = 0.00000001; }
+		// todo: adjust this epsilon
+		if(epsilon === undefined){ epsilon = 0.0001; }
+		if(this.origin.isBoundary()){ return true; }
 		var alternating = this.alternateAngleSum();
+		if(alternating == undefined){ return true; }
 		return Math.abs(alternating[0] - alternating[1]) < epsilon;
 	}
 	// 0.0 is equivalent to 100% valid

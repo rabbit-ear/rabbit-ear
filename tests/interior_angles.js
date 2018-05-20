@@ -1,6 +1,7 @@
 var interiorAnglesCallback = undefined;
 
-var projectInAngles = new OrigamiPaper("canvas-interior-angles", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
+var projectInAngles = new OrigamiPaper("canvas-interior-angles", new CreasePattern().setBoundary([[-1,-1],[1,-1],[1,1],[-1,1]]));
+projectInAngles.show.boundary = false;
 
 projectInAngles.style.myColors = [
 	projectInAngles.styles.byrne.red,
@@ -9,10 +10,10 @@ projectInAngles.style.myColors = [
 	
 projectInAngles.style.mountain.strokeWidth = 0.02;
 projectInAngles.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
-projectInAngles.cp.edges = projectInAngles.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-projectInAngles.style.selected.node.fillColor = projectInAngles.styles.byrne.yellow;
-projectInAngles.style.selected.node.radius = 0.04;
-
+// projectInAngles.cp.edges = projectInAngles.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
+projectInAngles.style.selectedNode = {radius:0.04, fillColor: projectInAngles.styles.byrne.yellow};
+// projectInAngles.style.selected.node.fillColor = projectInAngles.styles.byrne.yellow;
+// projectInAngles.style.selected.node.radius = 0.04;
 
 projectInAngles.validNodes = [];
 projectInAngles.centerNode = undefined;
@@ -29,6 +30,7 @@ projectInAngles.updateAngles = function(){
 	var radiuses = [0.35, 0.3, 0.25];
 
 	var eventData = {edgeAngles:[], interiorAngles:[]};
+	this.cp.flatten();
 	
 	this.centerNode.junction().sectors
 		.sort(function(a,b){ return a.angle() < b.angle(); })

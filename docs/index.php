@@ -26,7 +26,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>getEdgeIntersections</f></a>();</code></pre>
+		<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>fragment</f></a>();</code></pre>
 	</div>
 
 	<p>The aim of this library is for origami designs to be created entirely in code, making every component accessible and available to be sculpted. The library includes tools ranging from traditional geometry to origami-specific operations.</p>
@@ -45,7 +45,7 @@
 <script type="text/javascript" src="../tests/intersect_wobble.js"></script>
 <script>
 wobble_intersections_callback = function(e){
-	document.getElementById("span-intersection-results").innerHTML = "<v>Array</v>(<n>" + e.length + "</n>) ← ";
+	document.getElementById("span-intersection-results").innerHTML = "{<str>fragment</str>: <v>Array</v>(<n>" + e.length + "</n>)} ← ";
 }</script>
 
 <?php include 'footer.php';?>

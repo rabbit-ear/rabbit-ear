@@ -10,28 +10,11 @@
 	<p class="quote">This crane crease pattern has been virtually folded.</p>
 
 <section id="flat-foldable">
-<h2>Locally Flat Foldable</h2>
+<h2>Local Flat-Foldability</h2>
 
-	<p class="quote">Global flat-foldability is an np-hard problem.</p>
+<h3>Kawasaki's Theorem</h3>
 
-	<p>Local flat foldability concerns the area around 1 intersection of edges, and can be determined using a number of operations including Kawasaki's theorem and Maekawa's theorem.</p>
-
-	<p>The following crease pattern has minor errors throughout:</p>
-
-	<div class="centered">
-		<canvas id="canvas-flat-foldable-nodes-wiggle" class="large" resize></canvas>
-	</div>
-
-	<div class="centered">
-		<pre><code><span id="ff-result"></span>cp.<v>nodes</v>[<n id="node-index">index</n>].<f>flatFoldable</f>();</code></pre>
-	</div>
-
-</section>
-
-<section id="kawasaki">
-<h2>Kawasaki's Theorem</h2>
-
-	<p>The sum of alternating angles around a node must equal 180 degrees.</p>
+	<p>The sum of alternating angles around a node must equal 180 degrees. This is one determining factor for local flat-foldability.</p>
 
 	<div class="centered">
 		<canvas id="canvas-kawasaki" resize></canvas>
@@ -39,6 +22,16 @@
 
 	<div class="centered">
 		<pre><code><span id="kawasaki-result"></span></code></pre>
+	</div>
+
+	<p>Notice the error indicators below. Move nodes around to see how other nodes are affected.</p>
+
+	<div class="centered">
+		<canvas id="canvas-flat-foldable-adjust" class="large" resize></canvas>
+	</div>
+
+	<div class="centered">
+		<pre><code><span id="ff-result"></span>cp.<v>nodes</v>[<n id="node-index">index</n>].<f>flatFoldable</f>();</code></pre>
 	</div>
 
 	<p>Kawasaki's Theorem can also be used to discover a 4th additional crease necessary to make a 3-fold unit flat foldable.</p>
@@ -53,17 +46,11 @@
 		<pre><code><span id="ff-single-angle"></span>cp.<f>findFlatFoldable</f>(<span id="edge-function"></span>);<br><c>// crease an edge from the center with that angle</c><br><span id="ff-single-result"><n>false</n> ← </span>cp.<v>nodes</v>[<n id="node-index">0</n>].<f>flatFoldable</f>();</code></pre>
 	</div>
 
-</section>
-
-<section id="maekawa">
-<h2>Maekawa's Theorem</h2>
+<h3>Maekawa's Theorem</h3>
 
 	<p>When considering the adjacent edges around a node the number of mountain and valley creases must differ by ±2.</p>
 
-</section>
-
-<section id="twocolorable">
-<h2>2 Colorability</h2>
+<h3>2 Colorability</h3>
 
 	<p>For a crease pattern to be flat-foldable the graph must be 2-colorable, or a bipartite graph.</p>
 
@@ -94,7 +81,7 @@
 </section>
 
 <script type="text/javascript" src="../tests/kawasaki.js"></script>
-<script type="text/javascript" src="../tests/flat_foldable_nodes_wiggle.js"></script>
+<script type="text/javascript" src="../tests/flat_foldable_adjust.js"></script>
 <script type="text/javascript" src="../tests/flat_foldable_single.js"></script>
 <script type="text/javascript" src="../tests/face_tree.js"></script>
 <script type="text/javascript" src="../tests/two_colorable.js"></script>
@@ -105,8 +92,8 @@ unfoldedCrane.show.faces = false;
 unfoldedCrane.load("../files/svg/crane.svg", function(){
 	var foldedCrane = new OrigamiFold("canvas-folded-crane", unfoldedCrane.cp.copy());
 	foldedCrane.style.face.fillColor = { gray:0.0, alpha:0.1 };
-	foldedCrane.rotation = 135;
-	foldedCrane.zoom = 0.666;
+	// foldedCrane.rotation = 135;
+	// foldedCrane.zoom = 0.666;
 	foldedCrane.draw();
 });
 </script>

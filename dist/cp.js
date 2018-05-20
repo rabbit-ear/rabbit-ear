@@ -2956,7 +2956,7 @@ var CreaseJunction = (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     CreaseJunction.prototype.flatFoldable = function (epsilon) {
-        return this.kawasaki() && this.maekawa();
+        return this.kawasaki(epsilon) && this.maekawa();
     };
     CreaseJunction.prototype.alternateAngleSum = function () {
         if (this.sectors.length % 2 != 0) {
@@ -2973,7 +2973,13 @@ var CreaseJunction = (function (_super) {
         if (epsilon === undefined) {
             epsilon = 0.00000001;
         }
+        if (this.origin.isBoundary()) {
+            return true;
+        }
         var alternating = this.alternateAngleSum();
+        if (alternating == undefined) {
+            return true;
+        }
         return Math.abs(alternating[0] - alternating[1]) < epsilon;
     };
     CreaseJunction.prototype.kawasakiRating = function () {
