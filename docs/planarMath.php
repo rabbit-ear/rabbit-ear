@@ -210,7 +210,7 @@ intersectAllCallback = function(event){
 		document.getElementById("intersect-all-line").innerHTML = "<n>" + line[0].x.toFixed(2) + "</n>, <n>" + line[0].y.toFixed(2) + "</n>, <n>" + line[1].x.toFixed(2) + "</n>, <n>" + line[1].y.toFixed(2) + "</n>";
 	}
 }
-intersectAll.reset();
+intersectAll.redraw();
 </script>
 
 <script>

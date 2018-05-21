@@ -1,9 +1,9 @@
 
-var jointTri = new OrigamiPaper("canvas-joint-triangle");
-jointTri.setPadding(0.05);
-// jointTri.select.edge = true;
+var twistTriangle = new OrigamiPaper("canvas-twist-triangle");
+twistTriangle.setPadding(0.05);
+// twistTriangle.select.edge = true;
 
-jointTri.reset = function(){
+twistTriangle.reset = function(){
 	paper = this.scope; 
 	var sectors;
 	var centerNode;
@@ -80,22 +80,23 @@ jointTri.reset = function(){
 	// for(var i = 0; i < newAdj.length; i++){
 	// 	if(newAdj[i].orientation === undefined){ newAdj[i].valley(); }
 	// }
+	
 	// remove extra marks
-	for(var i = jointTri.cp.edges.length-1; i >= 0; i--){
-		if(jointTri.cp.edges[i] !== undefined && jointTri.cp.edges[i].orientation === CreaseDirection.mark){ 
-			jointTri.cp.removeEdge(jointTri.cp.edges[i]); 
-		}
-	}
+	// for(var i = twistTriangle.cp.edges.length-1; i >= 0; i--){
+	// 	if(twistTriangle.cp.edges[i] !== undefined && twistTriangle.cp.edges[i].orientation === CreaseDirection.mark){ 
+	// 		twistTriangle.cp.removeEdge(twistTriangle.cp.edges[i]); 
+	// 	}
+	// }
 
-	jointTri.draw();
+	twistTriangle.draw();
 }
 
-jointTri.reset();
+twistTriangle.reset();
 
-jointTri.onFrame = function(event) { }
-jointTri.onResize = function(event) { }
-jointTri.onMouseDown = function(event){ 
-	jointTri.reset();
+twistTriangle.onFrame = function(event) { }
+twistTriangle.onResize = function(event) { }
+twistTriangle.onMouseDown = function(event){ 
+	twistTriangle.reset();
 }
-jointTri.onMouseUp = function(event){ }
-jointTri.onMouseMove = function(event) { }
+twistTriangle.onMouseUp = function(event){ }
+twistTriangle.onMouseMove = function(event) { }

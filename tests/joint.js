@@ -48,20 +48,20 @@ sJoint.reset = function(){
 		if(newAdj[i].orientation === undefined){ newAdj[i].valley(); }
 	}
 	// remove extra marks
-	for(var i = this.cp.edges.length-1; i >= 0; i--){
-		if(this.cp.edges[i].orientation === CreaseDirection.mark){ 
-			this.cp.removeEdge(this.cp.edges[i]); 
-		}
-	}
+	// for(var i = this.cp.edges.length-1; i >= 0; i--){
+	// 	if(this.cp.edges[i].orientation === CreaseDirection.mark){ 
+	// 		this.cp.removeEdge(this.cp.edges[i]); 
+	// 	}
+	// }
 
 	this.draw();
 }
 sJoint.reset();
 
-sJoint.onFrame = function(event) { }
-sJoint.onResize = function(event) { }
+sJoint.onFrame = function(event){ }
+sJoint.onResize = function(event){ }
 sJoint.onMouseDown = function(event){ 
 	sJoint.reset();
 }
 sJoint.onMouseUp = function(event){ }
-sJoint.onMouseMove = function(event) { }
+sJoint.onMouseMove = function(event){ }

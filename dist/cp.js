@@ -3686,11 +3686,13 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.noSymmetry = function () { this.symmetryLine = undefined; return this; };
     CreasePattern.prototype.bookSymmetry = function () {
         var center = this.boundary.center();
-        return this.setSymmetryLine(center, center.add(0, 1));
+        this.symmetryLine = new Line(center, new XY(0, 1));
+        return this;
     };
     CreasePattern.prototype.diagonalSymmetry = function () {
         var center = this.boundary.center();
-        return this.setSymmetryLine(center, center.add(0.7071, 0.7071));
+        this.symmetryLine = new Line(center, new XY(0.7071, 0.7071));
+        return this;
     };
     CreasePattern.prototype.setSymmetryLine = function (a, b, c, d) {
         var edge = gimme1Edge(a, b, c, d);

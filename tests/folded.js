@@ -1,17 +1,10 @@
+// var filepath = "/files/svg/crane.svg";
+var filepath = "/files/svg/fish-base-tanaka.svg";
 
-var foldedState = new OrigamiFold("canvas-folded", cp);
+var foldedState = new OrigamiFold("canvas-folded").load(filepath);
 
-foldedState.load("/files/svg/fish-base-tanaka.svg", function(){ 
-// foldedState.load("/files/svg/crane.svg", function(){ 
-	foldedState.cp.flatten();
-	foldedState.draw();
-});
-
-// foldedState.cp.birdBase();
-// foldedState.draw();
-
-foldedState.onFrame = function(event) { }
-foldedState.onResize = function(event) { }
+foldedState.onFrame = function(event){ }
+foldedState.onResize = function(event){ }
 foldedState.onMouseDown = function(event){ }
 foldedState.onMouseUp = function(event){ }
-foldedState.onMouseMove = function(event) { }
+foldedState.onMouseMove = function(event){ }

@@ -25,13 +25,10 @@ projectInAngles.backgroundLayer.sendToBack();
 projectInAngles.updateAngles = function(){
 	this.arcLayer.activate();
 	this.arcLayer.removeChildren();
-
 	var i = 0;
 	var radiuses = [0.35, 0.3, 0.25];
-
 	var eventData = {edgeAngles:[], interiorAngles:[]};
 	this.cp.flatten();
-	
 	this.centerNode.junction().sectors
 		.sort(function(a,b){ return a.angle() < b.angle(); })
 		.forEach(function(el){
@@ -78,8 +75,8 @@ projectInAngles.reset = function(){
 }
 projectInAngles.reset();
 
-projectInAngles.onFrame = function(event) { }
-projectInAngles.onResize = function(event) { }
+projectInAngles.onFrame = function(event){ }
+projectInAngles.onResize = function(event){ }
 projectInAngles.onMouseDown = function(event){
 	var nearest = this.cp.nearest(event.point);
 	if(this.validNodes.filter(function(e){return e===nearest.node;},this).length > 0){

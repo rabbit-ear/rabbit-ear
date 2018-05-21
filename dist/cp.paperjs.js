@@ -123,6 +123,7 @@ var OrigamiPaper = (function(){
 		}
 	}
 	OrigamiPaper.prototype.makeControlPoints = function(count, style){
+		paper = this.scope;
 		if(this.controlPointsLayer === undefined){this.controlPointsLayer = new this.scope.Layer();}
 		this.controlPointsLayer.activate();
 		if(style === undefined){
@@ -307,6 +308,7 @@ var OrigamiPaper = (function(){
 				callback(that.cp);
 			}
 		});
+		return this;
 	}
 	OrigamiPaper.prototype.loadRaw = function(svg, callback){
 		var that = this;
@@ -317,6 +319,7 @@ var OrigamiPaper = (function(){
 				callback(that.cp);
 			}
 		});
+		return this;
 	}
 	///////////////////////////////////////////////////
 	// STYLE
@@ -580,6 +583,7 @@ var OrigamiFold = (function(){
 				callback(that.cp);
 			}
 		});
+		return this;
 	}
 	OrigamiFold.prototype.buildViewMatrix = function(){
 		paper = this.scope;

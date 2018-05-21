@@ -1,8 +1,8 @@
-var singleFace = new OrigamiPaper("canvas-face-single");
-singleFace.show.faces = true;
-singleFace.show.boundary = false;
+var facesPolygon = new OrigamiPaper("canvas-faces-polygon");
+facesPolygon.show.faces = true;
+facesPolygon.show.boundary = false;
 
-singleFace.reset = function(){
+facesPolygon.reset = function(){
 	paper = this.scope; 
 	this.cp.clear();
 	this.cp.nodes = [];
@@ -22,10 +22,10 @@ singleFace.reset = function(){
 	this.cp.flatten();
 	this.draw();
 }
-singleFace.reset();
+facesPolygon.reset();
 
-singleFace.onFrame = function(event){ }
-singleFace.onResize = function(event){ }
-singleFace.onMouseDown = function(event){ this.reset(); }
-singleFace.onMouseUp = function(event){ }
-singleFace.onMouseMove = function(event){ }
+facesPolygon.onFrame = function(event){ }
+facesPolygon.onResize = function(event){ }
+facesPolygon.onMouseDown = function(event){ this.reset(); }
+facesPolygon.onMouseUp = function(event){ }
+facesPolygon.onMouseMove = function(event){ }
