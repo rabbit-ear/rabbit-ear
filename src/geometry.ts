@@ -348,6 +348,7 @@ class Line implements LineType{
 		else if(a.x !== undefined){this.point = new XY(a.x, a.y); this.direction = new XY(b.x, b.y);}
 		else{ this.point = new XY(a,b); this.direction = new XY(c,d); }
 	}
+	rays():[Ray,Ray]{var a = new Ray(this.point, this.direction);return [a,a.flip()];}
 	// implements LineType
 	length():number{ return Infinity; }
 	vector():XY{ return this.direction; }
@@ -485,6 +486,15 @@ class Ray implements LineType{
 			.filter(function(el){ return el.length > epsilon})
 			.sort(function(a,b){ return a.length - b.length; })
 			.map(function(el){ return el.edge })
+	}
+	intersectionsWithEdges(edges:Edge[], epsilon?:number):XY[]{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return edges
+			.map(function(edge:Edge){ return intersectionRayEdge(this, edge, epsilon); }, this)
+			.filter(function(point){ return point !== undefined; },this)
+			.map(function(point){ return {point:point, length:point.distanceTo(this.origin)}; },this)
+			.sort(function(a,b){ return a.length - b.length; })
+			.map(function(el){ return el.point },this);
 	}
 	clipWithEdgesDetails(edges:Edge[], epsilon?:number):{edge:Edge,intersection:Edge}[]{
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }

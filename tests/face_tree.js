@@ -23,6 +23,7 @@ adjFaceMatrix.reset = function(){
 	this.load("../files/svg/crane.svg", function(){
 	// this.load("../files/svg/butterfly-tanaka.svg", function(){
 		adjFaceMatrix.colorFaces();
+		adjFaceMatrix.makeFacePathLines();
 	});
 }
 adjFaceMatrix.reset();
@@ -84,20 +85,19 @@ adjFaceMatrix.makeFacePathLines = function(startingFace){
 	tree.children.forEach(function(tree){ recurseAndDraw(tree, 0); });
 }
 
-adjFaceMatrix.onFrame = function(event) { }
-adjFaceMatrix.onResize = function(event) { }
+adjFaceMatrix.onFrame = function(event){ }
+adjFaceMatrix.onResize = function(event){ }
 adjFaceMatrix.onMouseDown = function(event){
 	this.onMouseMove(event);
 }
-adjFaceMatrix.onMouseUp = function(event){
-	this.treeLineLayer.removeChildren();
-}
+adjFaceMatrix.onMouseUp = function(event){ }
 adjFaceMatrix.onMouseMove = function(event) {
 	if(event === undefined) return;
 	var startingFace = this.cp.nearest(event.point.x, event.point.y).face;
 	if(startingFace !== undefined){
 		this.colorFaces(startingFace);
-		if(this.mouse.isPressed){
+		this.treeLineLayer.removeChildren();
+		if(!this.mouse.isPressed){
 			this.makeFacePathLines(startingFace);
 		}
 	}

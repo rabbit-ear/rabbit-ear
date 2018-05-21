@@ -5,7 +5,7 @@ jointTri.setPadding(0.05);
 
 jointTri.reset = function(){
 	paper = this.scope; 
-	var interiorAngles;
+	var sectors;
 	var centerNode;
 	// make 3 fan lines with a good sized interior angle between them
 	// do{
@@ -18,9 +18,9 @@ jointTri.reset = function(){
 		// }
 		// this.cp.clean();
 		// centerNode = this.cp.nearest(0.5, 0.5).node;
-		// interiorAngles = centerNode.interiorAngles();
+		// sectors = centerNode.sectors();
 		// var tooSmall = false;
-		// for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i].angle() < Math.PI*0.5) tooSmall = true; }
+		// for(var i = 0; i < sectors.length; i++){ if(sectors[i].angle() < Math.PI*0.5) tooSmall = true; }
 	// } while(tooSmall);
 
 	// manual input
@@ -40,31 +40,27 @@ jointTri.reset = function(){
 
 	this.cp.clean();
 	centerNode = this.cp.nearest(0.5, 0.5).node;
-	interiorAngles = centerNode.interiorAngles();
+	sectors = centerNode.junction().sectors;
 
-
-	var angles = interiorAngles.map(function(el){ return cp.findFlatFoldable(el); });
+	var vectors = sectors.map(function(el){ return centerNode.junction().kawasakiFourth(el); });
 
 	var newTriNodes = [];
 
-	for(var i = 0; i < angles.length; i++){
-		var ray = this.cp.creaseRay(centerNode, new XY(Math.cos(angles[i]), Math.sin(angles[i])) );
+	for(var i = 0; i < vectors.length; i++){
+		var ray = this.cp.creaseRay(centerNode, vectors[i]);
 		this.cp.clean();
 		// 2 crease lines for every original fan line
-		var commonNode = interiorAngles[i].edges[0].commonNodeWithEdge(interiorAngles[i].edges[1]);
+		var commonNode = sectors[i].edges[0].commonNodeWithEdge(sectors[i].edges[1]);
 		var center = new XY(commonNode.x, commonNode.y);
-		var angle1 = interiorAngles[i].edges[0].absoluteAngle(commonNode);
-		var angle2 = interiorAngles[i].edges[1].absoluteAngle(commonNode);
-		var dir = ray.absoluteAngle(commonNode);
+		var vec1 = sectors[i].edges[0].vector(commonNode);
+		var vec2 = vec1.rotate180();
+		var dir = ray.vector(commonNode);
 		var l = 0.2;
 		var newSpot = new XY(center.x+l*Math.cos(dir),center.y+l*Math.sin(dir));
-		this.cp.creaseRayUntilIntersection(newSpot,
-		                                       new XY(Math.cos(angle1), Math.sin(angle1)) ).valley();
-		var e = this.cp.creaseRayUntilIntersection(newSpot,
-		                                               new XY(Math.cos(angle1+Math.PI), 
-		                                                           Math.sin(angle1+Math.PI)) ).valley();
-		if( newSpot.equivalent(e.nodes[0]) ){ newTriNodes.push(e.nodes[1]); }
-		if( newSpot.equivalent(e.nodes[1]) ){ newTriNodes.push(e.nodes[0]); }
+		this.cp.creaseRayUntilIntersection(new Ray(newSpot, vec1));//.valley();
+		var e = this.cp.creaseRayUntilIntersection(new Ray(newSpot, vec2));//.valley();
+		// if( newSpot.equivalent(e.nodes[0]) ){ newTriNodes.push(e.nodes[1]); }
+		// if( newSpot.equivalent(e.nodes[1]) ){ newTriNodes.push(e.nodes[0]); }
 	}
 	this.cp.clean();
 
@@ -92,10 +88,6 @@ jointTri.reset = function(){
 	}
 
 	jointTri.draw();
-
-	var svgBlob = this.cp.exportSVG();
-	download(svgBlob, "creasepattern.svg");
-
 }
 
 jointTri.reset();
@@ -107,13 +99,3 @@ jointTri.onMouseDown = function(event){
 }
 jointTri.onMouseUp = function(event){ }
 jointTri.onMouseMove = function(event) { }
-
-
-function download(text, filename){
-	var blob = new Blob([text], {type: "image/svg+xml"});
-	var url = window.URL.createObjectURL(blob);
-	var a = document.createElement("a");
-	a.href = url;
-	a.download = filename;
-	a.click();
-}
