@@ -223,7 +223,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
 	vector(originNode?:PlanarNode):XY{
 		var origin = originNode || this.nodes[0];
-		var otherNode = <PlanarNode>this.otherNode(origin);
+		var otherNode = <PlanarNode>this.otherNode(origin) || this.nodes[1];
 		return new XY(otherNode.x, otherNode.y).subtract(origin);
 	}
 	parallel(edge:PlanarEdge, epsilon?:number):boolean{

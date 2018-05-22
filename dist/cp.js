@@ -1962,7 +1962,7 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.length = function () { return this.nodes[0].distanceTo(this.nodes[1]); };
     PlanarEdge.prototype.vector = function (originNode) {
         var origin = originNode || this.nodes[0];
-        var otherNode = this.otherNode(origin);
+        var otherNode = this.otherNode(origin) || this.nodes[1];
         return new XY(otherNode.x, otherNode.y).subtract(origin);
     };
     PlanarEdge.prototype.parallel = function (edge, epsilon) {
@@ -3162,7 +3162,7 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.creaseAndStop = function (a, b, c, d) {
         if (a instanceof Line) {
-            var endpoints = a.rays().map(function (ray) { return ray.intersectionsWithEdges(this.edges).shift(); }, this);
+            var endpoints = a.rays().map(function (ray) { return ray.intersectionsWithEdges(this.edges).shift(); }, this).filter(function (el) { return el != undefined; }, this);
             if (endpoints.length < 2) {
                 return this.creaseLine(a);
             }

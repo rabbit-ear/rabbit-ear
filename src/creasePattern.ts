@@ -382,7 +382,7 @@ class CreasePattern extends PlanarGraph{
 	 */
 	creaseAndStop(a:any, b?:any, c?:any, d?:any):Crease{
 		if(a instanceof Line){
-			var endpoints = a.rays().map(function(ray){return ray.intersectionsWithEdges(this.edges).shift()},this)
+			var endpoints = a.rays().map(function(ray){return ray.intersectionsWithEdges(this.edges).shift()},this).filter(function(el){return el!=undefined;},this);
 			// todo: split this out into length == 0 (below), and length == 1 (redo it with 1 ray)
 			if(endpoints.length < 2){ return this.creaseLine(a); }
 			return this.creaseEdge(endpoints[0], endpoints[1]);
