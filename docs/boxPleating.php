@@ -10,7 +10,7 @@
 	</div>
 
 	<div class="centered">
-		<canvas id="canvas-no-crossing" resize class="panorama"></canvas>
+		<canvas id="canvas-box-pleat-ray" resize class="panorama"></canvas>
 	</div>
 
 	<div class="quote">
@@ -27,6 +27,6 @@
 
 </section>
 
-<script src="../tests/no_crossing.js"></script>
+<script src="../tests/box_pleat_ray.js"></script>
 
 <?php include 'footer.php';?>

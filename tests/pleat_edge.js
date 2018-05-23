@@ -1,7 +1,7 @@
 var pleat_edge = new OrigamiPaper("canvas-pleat-edge");
 pleat_edge.style.mark.strokeColor = {gray:0.0};
 pleat_edge.edgeHighlightLayer = new pleat_edge.scope.Layer();
-pleat_edge.edgeHighlightColor = pleat_edge.styles.byrne.yellow;//{gray:0.6};
+pleat_edge.edgeHighlightColor = pleat_edge.styles.byrne.yellow;
 
 pleat_edge.resetBoundary = function(radius){
 	if (radius === undefined){ radius = 0.5; }
@@ -12,11 +12,11 @@ pleat_edge.resetBoundary = function(radius){
 		points.push(new XY(r*Math.cos(angle), r*Math.sin(angle)));
 	}
 	this.cp.setBoundary(points);
-	// this.draw();
 	// this.cp.setBoundary([ new XY(0,0), new XY(0,1.5), new XY(1.5,1.5), new XY(1.5,0) ])
 	// this.cp.hexagon();
 }
 pleat_edge.reset = function(){
+	paper = this.scope;
 	var choices = [
 		{r:0.5, i:3},
 		{r:0.5, i:4},

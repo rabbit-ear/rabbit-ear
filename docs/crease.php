@@ -81,7 +81,6 @@ creaseRay.updateCreases();
 creaseStopCallback = function(event){
 	document.getElementById('stop-ray-points').innerHTML = "<n>" + event.points[2].x.toFixed(2) + "</n>, <n>" + event.points[2].y.toFixed(2) + "</n>, <n>" + event.points[3].x.toFixed(2) + "</n>, <n>" + event.points[3].y.toFixed(2) + "</n>"
 	document.getElementById('stop-line-points').innerHTML = "<n>" + event.points[4].x.toFixed(2) + "</n>, <n>" + event.points[4].y.toFixed(2) + "</n>, <n>" + event.points[5].x.toFixed(2) + "</n>, <n>" + event.points[5].y.toFixed(2) + "</n>"
-	console.log(event);
 }
 creaseStop.updateCreases();
 </script>

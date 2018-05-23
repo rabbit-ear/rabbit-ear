@@ -71,11 +71,11 @@
 	<p class="quote">Collinear nodes can be removed, the two edges on either side merged into one, disappearing the point which once divided the edge.</p>
 
 	<div class="centered">
-		<canvas id="canvas-mouse-delete-edge" resize></canvas>
+		<canvas id="canvas-remove-edge" resize></canvas>
 	</div>
 
 	<div class="centered">
-		<pre><code>graph.<f>removeEdge</f>(<arg>edge</arg>)</code></pre>
+		<pre><code><span id="delete-edge-response"></span>graph.<f>removeEdge</f>(<arg>edge</arg>)<span id="delete-edge-comment"></span></code></pre>
 	</div>
 
 	<p class="quote">Removing edges will remove their nodes, and so will nodes left behind between 2 collinear lines be removed as well.</p>
@@ -105,7 +105,7 @@
 </div>
 
 <!-- include .js sketches -->
-<script type="text/javascript" src="../tests/mouse_delete_edge.js"></script>
+<script type="text/javascript" src="../tests/remove_edge.js"></script>
 <script type="text/javascript" src="../tests/fragment.js"></script>
 <script type="text/javascript" src="../tests/p5js_parallels_scale.js"></script>
 <script type="text/javascript" src="../tests/p5js_merge_duplicates.js"></script>
@@ -145,6 +145,19 @@ crane2CP.onMouseMove = function(event){
 	}
 }
 
+</script>
+
+<script>
+remove_edge_callback = function(report){
+	if(report != undefined){
+		var nodecount = report.nodes.total;
+		var edgecount = report.edges.total;
+		// var str = "{edges:<n>" + edgecount + "</n>, nodes:<n>" + nodecount + "</n>} ⬅︎ ";
+		// document.getElementById("delete-edge-response").innerHTML = str;
+		var str = "<br><c>// just removed " + edgecount + " edge and " + nodecount + " node" + (nodecount==1 ? "" : "s") + "</c>";
+		document.getElementById("delete-edge-comment").innerHTML = str;
+	}
+}
 </script>
 
 <script>

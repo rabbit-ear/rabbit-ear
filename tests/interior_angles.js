@@ -2,19 +2,18 @@ var interiorAnglesCallback = undefined;
 
 var projectInAngles = new OrigamiPaper("canvas-interior-angles", new CreasePattern().setBoundary([[-1,-1],[1,-1],[1,1],[-1,1]]));
 projectInAngles.show.boundary = false;
+projectInAngles.show.nodes = true;
+
+projectInAngles.style.mountain.strokeWidth = 0.02;
+projectInAngles.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
+projectInAngles.style.node.radius = 0.03;
+projectInAngles.style.node.fillColor = Object.assign({alpha:0.0}, projectInAngles.styles.byrne.yellow);
 
 projectInAngles.style.myColors = [
 	projectInAngles.styles.byrne.red,
 	projectInAngles.styles.byrne.yellow,
 	projectInAngles.styles.byrne.darkBlue ];
 	
-projectInAngles.style.mountain.strokeWidth = 0.02;
-projectInAngles.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
-// projectInAngles.cp.edges = projectInAngles.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-projectInAngles.style.selectedNode = {radius:0.04, fillColor: projectInAngles.styles.byrne.yellow};
-// projectInAngles.style.selected.node.fillColor = projectInAngles.styles.byrne.yellow;
-// projectInAngles.style.selected.node.radius = 0.04;
-
 projectInAngles.validNodes = [];
 projectInAngles.centerNode = undefined;
 projectInAngles.draggingNode = undefined;
@@ -81,21 +80,24 @@ projectInAngles.reset();
 projectInAngles.onFrame = function(event){ }
 projectInAngles.onResize = function(event){ }
 projectInAngles.onMouseDown = function(event){
-	var nearest = this.cp.nearest(event.point);
-	if(this.validNodes.filter(function(e){return e===nearest.node;},this).length > 0){
-		this.draggingNode = nearest.node;
+	// var nearest = this.cp.nearest(event.point);
+	if(this.validNodes.filter(function(e){return e===this.nearestNode;},this).length > 0){
+		this.draggingNode = this.nearestNode;
 	}
 }
 projectInAngles.onMouseUp = function(event){
 	this.draggingNode = undefined;
 }
 projectInAngles.onMouseMove = function(event){
-	paper = this.scope;
+	this.nearestNode = this.cp.nearest(event.point).node;
 	if(this.draggingNode !== undefined){
 		this.draggingNode.x = event.point.x;
 		this.draggingNode.y = event.point.y;
 	}
 	this.update();
 	this.updateAngles();
+	if(this.nearestNode != undefined && this.nearestNode !== this.centerNode){
+		this.nodes[ this.nearestNode.index ].fillColor.alpha = 1.0;
+	}
 }
 projectInAngles.onMouseDidBeginDrag = function(event){ }

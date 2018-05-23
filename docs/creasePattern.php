@@ -42,12 +42,12 @@
 	</div>
 
 	<div class="centered">
-		<canvas id="canvas-joint-triangle-animated" resize></canvas>
+		<canvas id="canvas-twist-triangle" resize></canvas>
 	</div>
 
 </section>
 
-<script type="text/javascript" src="../tests/joint_tri_anim.js"></script>
+<script type="text/javascript" src="../tests/twist_triangle.js"></script>
 
 <script>
 	new OrigamiPaper("canvas-1", new CreasePattern().birdBase());

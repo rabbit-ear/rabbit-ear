@@ -1,12 +1,14 @@
 var pointNearest = new OrigamiPaper("canvas-point-nearest");
 
 pointNearest.markLayer = new pointNearest.scope.Layer();
+pointNearest.style.mark.strokeWidth = 0.00666;
 
 pointNearest.onFrame = function(event){ }
 pointNearest.onResize = function(event){ }
 pointNearest.onMouseDown = function(event){ this.reset(); }
 pointNearest.onMouseUp = function(event){ }
 pointNearest.onMouseMove = function(event){
+	paper = this.scope;
 	this.markLayer.activate();
 	this.markLayer.removeChildren();
 	this.cp.edges

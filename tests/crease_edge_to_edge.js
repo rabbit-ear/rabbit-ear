@@ -20,6 +20,7 @@ creaseEdgeToEdge.edgeHighlights = [];
 creaseEdgeToEdge.edgeHighlightLayer = new creaseEdgeToEdge.scope.Layer();
 
 creaseEdgeToEdge.updateCreases = function(){
+	paper = this.scope;
 	this.cp.clear();
 
 	var nearest = this.cp.boundary.edges
@@ -46,8 +47,8 @@ creaseEdgeToEdge.updateCreases = function(){
 	this.edgeHighlightLayer.removeChildren();
 	this.edgeHighlightLayer.activate();
 
-	new this.scope.Path({segments: boundary0.nodes, closed: false, strokeWidth:0.015, strokeColor:{red:1.0, green:0.0, blue:0.0} });
-	new this.scope.Path({segments: nearest.nodes, closed: false, strokeWidth:0.015, strokeColor:{red:1.0, green:0.0, blue:0.0} });
+	new this.scope.Path({segments: boundary0.nodes, closed: false, strokeWidth:0.015, strokeColor:this.styles.byrne.yellow });
+	new this.scope.Path({segments: nearest.nodes, closed: false, strokeWidth:0.015, strokeColor:this.styles.byrne.yellow });
 
 	if(creaseEdgeToEdgeCallback !== undefined){
 		// creaseEdgeToEdgeCallback({'points':[this.selectable[0].position, this.selectable[1].position]});

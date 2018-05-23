@@ -1,12 +1,14 @@
 var pointNormal = new OrigamiPaper("canvas-point-normal");
 
 pointNormal.markLayer = new pointNormal.scope.Layer();
+pointNormal.style.mark.strokeWidth = 0.00666;
 
 pointNormal.onFrame = function(event){ }
 pointNormal.onResize = function(event){ }
 pointNormal.onMouseDown = function(event){ this.reset(); }
 pointNormal.onMouseUp = function(event){ }
 pointNormal.onMouseMove = function(event){
+	paper = this.scope;
 	this.markLayer.activate();
 	this.markLayer.removeChildren();
 	this.cp.edges
