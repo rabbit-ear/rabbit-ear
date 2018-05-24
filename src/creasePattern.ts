@@ -714,7 +714,8 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	// precision is an epsilon value: 0.00001
-/*	wiggle(precision):XY[]{
+	/*
+	wiggle(precision):XY[]{
 		if (precision === undefined){ precision = EPSILON; }
 
 		var lengths = this.edges.forEach(function(crease, i){
@@ -784,7 +785,7 @@ class CreasePattern extends PlanarGraph{
 		return forces;
 		// return dup;
 	}
-*/
+	*/
 
 	// number of nodes tried to wiggle (ignores those correct within epsilon range)
 	wiggle(epsilon?:number):number{
@@ -1034,12 +1035,12 @@ class CreasePattern extends PlanarGraph{
 			// return false;
 		}
 
-// file["file_spec"]
-// file["file_creator"]
-// file["file_author"]
-// file["file_title"]
-// file["file_description"]
-// file["file_classes"]
+	// file["file_spec"]
+	// file["file_creator"]
+	// file["file_author"]
+	// file["file_title"]
+	// file["file_description"]
+	// file["file_classes"]
 
 		this.clear();
 		this.noBoundary();

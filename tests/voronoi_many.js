@@ -1,21 +1,21 @@
-var voronoiMany = new OrigamiPaper("canvas-voronoi-many");
+
+var voronoiMany = new OrigamiPaper("canvas-voronoi-many").setPadding(0.001).mediumLines();
 var aspect = voronoiMany.canvas.width / voronoiMany.canvas.height;
 voronoiMany.cp.rectangle(aspect, 1.0);
-
-voronoiMany.setPadding(0.001);
-voronoiMany.mediumLines();
+voronoiMany.voronoiAlgorithm; // global D3 algorithm implementation
+voronoiMany.input = new PlanarGraph();
+voronoiMany.topLayer = new voronoiMany.scope.Layer()
 voronoiMany.style.mountain.strokeColor = { gray:0.0 }
 voronoiMany.style.mountain.strokeWidth = voronoiMany.style.valley.strokeWidth*1.3
 
-voronoiMany.input = new PlanarGraph();
-voronoiMany.voronoiAlgorithm; // global D3 algorithm implementation
 voronoiMany.vInterpolation = 0.5;
-voronoiMany.nodeCircles = [];
-
-voronoiMany.dragOn = false;
-voronoiMany.selectedNode = undefined;
+voronoiMany.selectRadius = 0.05;
 
 voronoiMany.reset = function(){
+	this.input.clear();
+	this.input.newPlanarNode(Math.random(), Math.random());
+	this.input.newPlanarNode(Math.random(), Math.random());
+	this.input.newPlanarNode(Math.random(), Math.random());
 	this.cp.clear();
 	this.draw();
 	var bounds = this.cp.bounds();
@@ -23,6 +23,19 @@ voronoiMany.reset = function(){
 	this.voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
 voronoiMany.reset();
+
+voronoiMany.drawSites = function(){
+	this.topLayer.activate();
+	this.topLayer.removeChildren();
+	this.input.nodes.forEach(function(node){
+		new this.scope.Shape.Circle({
+			radius: (this.nearestNode === node) ? 0.005 : 0.0025,
+			fillColor:this.style.valley.strokeColor,
+			position:{x:node.x,y:node.y}
+		});
+	},this);
+}
+
 
 voronoiMany.fillWithPoints = function(){
 	var bounds = this.cp.bounds();
@@ -34,24 +47,17 @@ voronoiMany.fillWithPoints = function(){
 }
 voronoiMany.fillWithPoints();
 
-
 voronoiMany.redraw = function(){
+	paper = this.scope;
+
 	var nodes = this.input.nodes.map(function(el){return [el.x, el.y];});
 	var d3Voronoi = this.voronoiAlgorithm( nodes );
 	var v = new VoronoiGraph(d3Voronoi);
+
 	this.cp.clear();
-	this.cp.nodes = [];
-	this.cp.edges = [];
 	this.cp.creaseVoronoi(v, this.vInterpolation);
-
 	this.draw();
-
-	this.nodeCircles = [];
-	for(var i = 0; i < nodes.length; i++){
-		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.0025, fillColor:this.style.valley.strokeColor});
-		this.nodeCircles.push(nodeCircle);
-		nodeCircle.position = nodes[i];
-	}
+	this.drawSites();
 }
 voronoiMany.redraw();
 
@@ -60,49 +66,26 @@ voronoiMany.onResize = function(){
 	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	this.voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 }
-
 voronoiMany.onMouseDown = function(event){
-	if(this.selectedNode === undefined){
-		if(this.cp.boundary.contains(event.point)){ 
-			this.input.newPlanarNode(event.point.x, event.point.y);
-			this.redraw();
-			this.selectedNode = undefined;
-			for(var i = 0; i < this.input.nodes.length; i++){
-				if(this.nodeCircles[i] !== undefined){
-					var d = this.input.nodes[i].distanceTo(event.point);
-					if(d < 0.01){ this.nodeCircles[i].radius = 0.005; this.selectedNode = i;}
-					else        { this.nodeCircles[i].radius = 0.0025; }
-				}
-			}
-			this.dragOn = true;
-		}
-	} else{
+	if(this.nearestNode == undefined && this.cp.boundary.contains(event.point)){ 
+		this.nearestNode = this.input.newPlanarNode(event.point.x, event.point.y);
 		this.redraw();
-		this.dragOn = true;
 	}
 }
 voronoiMany.onMouseUp = function(event){ 
 	this.dragOn = false;
 }
-voronoiMany.onMouseMove = function(event) { 
-	var mouse = event.point;
-	if(this.dragOn){
-		this.input.nodes[this.selectedNode].x = mouse.x;
-		this.input.nodes[this.selectedNode].y = mouse.y;
-		if(!this.cp.contains(mouse.x, mouse.y)){
-			this.dragOn = false;
-			this.input.nodes.splice(this.selectedNode,1);
-		}
+voronoiMany.onMouseMove = function(event){
+	if(this.mouse.isPressed){
+		this.nearestNode.x = event.point.x;
+		this.nearestNode.y = event.point.y;
 		this.redraw();
 	} else{
-		this.selectedNode = undefined;
-		for(var i = 0; i < this.input.nodes.length; i++){
-			if(this.nodeCircles[i] !== undefined){
-				var d = this.input.nodes[i].distanceTo(event.point);
-				if(d < 0.01){ this.nodeCircles[i].radius = 0.005; this.selectedNode = i;}
-				else        { this.nodeCircles[i].radius = 0.0025; }
-			}
+		this.nearestNode = this.input.nearestNodes(1, event.point).shift();
+		if(this.nearestNode != undefined && Math.sqrt(Math.pow(this.nearestNode.x-event.point.x,2) + Math.pow(this.nearestNode.y-event.point.y,2)) > this.selectRadius){
+			this.nearestNode = undefined;
 		}
 	}
+	this.drawSites();
 }
 voronoiMany.onFrame = function(event){ }

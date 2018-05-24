@@ -7,17 +7,13 @@
 
 "use strict";
 
-//////////////////////////////////////////////////////////////////////////
-// DEPENDENCIES
 interface rbushObject{
 	load(data:object[]);
 	insert(data:object):object;
 	search(data:object):object[];
 } declare function rbush():rbushObject;
-//////////////////////////////////////////////////////////////////////////
-// PLANAR GRAPH
 
-/** a survey of the objects removed from a planar graph after a cleaning-type function is performed */
+/** A survey of the objects removed from a planar graph after a function is performed */
 class PlanarClean extends GraphClean{
 	edges:{total:number, duplicate:number, circular:number};
 	nodes:{
@@ -69,7 +65,7 @@ class PlanarClean extends GraphClean{
 		return this;
 	}
 }
-
+/** Planar nodes mark the endpoints of planar edges in 2D space */
 class PlanarNode extends GraphNode implements XY{
 
 	graph:PlanarGraph;
@@ -176,7 +172,7 @@ class PlanarNode extends GraphNode implements XY{
 	commonX(p:XY, epsilon?:number):boolean{return new XY(this.x,this.y).commonX(new XY(p.x,p.y),epsilon);}
 	commonY(p:XY, epsilon?:number):boolean{return new XY(this.x,this.y).commonY(new XY(p.x,p.y),epsilon);}
 }
-
+/** Planar edges are straight lines connecting two planar nodes */
 class PlanarEdge extends GraphEdge implements Edge{
 
 	graph:PlanarGraph;
@@ -280,7 +276,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 		return new Line(origin, vector);
 	}
 }
-
+/** Planar faces are counter-clockwise sequences of nodes already connected by edges */
 class PlanarFace{
 	// this library is counting on the edges and nodes to be stored in clockwise winding
 	graph:PlanarGraph;
@@ -484,13 +480,8 @@ class PlanarFace{
 		}
 		return array[0][0]["tree"];
 	}
-
 }
-
-/** a PlanarSector is defined by 2 unique edges and 3 nodes (one common, 2 endpoints) 
- *  clockwise order is required
- *  the interior angle is measured clockwise from the 1st edge (edge[0]) to the 2nd
- */
+/** a PlanarSector is the interior angle space made by two adjacent edges, counter-clockwise around their shared node, from edge[0] to edge[1] */
 class PlanarSector extends Sector{
 	// the node in common with the edges
 	origin:PlanarNode;
@@ -606,7 +597,7 @@ class PlanarJunction{
 		return this.edges[ (index+1)%this.edges.length ];
 	}
 }
-
+/** A planar graph is a set of nodes in 2D space, edges connecting them */
 class PlanarGraph extends Graph{
 
 	nodes:PlanarNode[];
@@ -1055,7 +1046,7 @@ class PlanarGraph extends Graph{
 	/** Fragment looks at every edge and one by one removes 2 crossing edges and replaces them with a node at their intersection and 4 edges connecting their original endpoints to the intersection.
 	 * @returns {XY[]} array of XY locations of all the intersection locations
 	 */
-// new idea
+	// new idea
 		// build a N x N matrix of edge to edge relationships, but only use the top triangle
 		// fill matrix with approximations
 	fragment():PlanarClean{
@@ -1243,5 +1234,4 @@ class PlanarGraph extends Graph{
 	faceArrayDidChange(){for(var i=0;i<this.faces.length; i++){this.faces[i].index=i;}}
 	sectorArrayDidChange(){for(var i=0;i<this.sectors.length;i++){this.sectors[i].index=i;}}
 	junctionArrayDidChange(){for(var i=0;i<this.junctions.length;i++){this.junctions[i].index=i;}}
-
 }

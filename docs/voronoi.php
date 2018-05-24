@@ -15,7 +15,7 @@
 	<p>Gussets are channels inserted between cells that run parallel to the cell edges. This specific implementation explores a global crease pattern where every gusset's thickness is relative to the distance between the Voronoi sites.</p>
 
 	<div class="centered">
-		<canvas id="canvas-voronoi-interpolate" resize></canvas>
+		<canvas id="canvas-voronoi-scale" resize></canvas>
 	</div>
 
 	<div class="centered">
@@ -27,8 +27,8 @@
 <h2>Molecules</h2>
 
 	<div class="centered">
-		<canvas id="canvas-voronoi-animate-2" resize></canvas>
-		<canvas id="canvas-voronoi-animate-1" resize></canvas>
+		<canvas id="canvas-voronoi-obtuse-cover" resize></canvas>
+		<canvas id="canvas-voronoi-obtuse" resize></canvas>
 	</div>
 
 	<p>A molecule is the area around where 3 points come together. If the 3 Voronoi sites form an acute or right triangle the boundary of the molecule is a triangle; if the 3 sites form an obtuse triangle the boundary is a quadrilateral.</p>
@@ -43,14 +43,13 @@
 
 <script src="../lib/d3.min.js"></script>
 <script src="../tests/voronoi_many.js"></script>
-<script src="../tests/voronoi_anim2.js"></script>
-<script src="../tests/voronoi_anim1.js"></script>
-<script src="../tests/voronoi_interp.js"></script>
-<!-- <script src="../tests/voronoi_edit.js"></script> -->
+<script src="../tests/voronoi_obtuse_cover.js"></script>
+<script src="../tests/voronoi_obtuse.js"></script>
+<script src="../tests/voronoi_scale.js"></script>
 
 <script type="text/javascript">
 
-voronoiInterpCallback = function(e){
+voronoiScaleCallback = function(e){
 	if(e !== undefined){
 		document.getElementById("interp-value").innerHTML = e.toFixed(2);
 	}

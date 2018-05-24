@@ -19,7 +19,7 @@
 
 "use strict";
 
-/** a survey of the objects removed from a graph after a function is performed */
+/** A survey of the objects removed from a graph after a function is performed */
 class GraphClean {
 	// "total" must be greater than or equal to the other members of each object
 	// "total" can include removed edges/nodes which don't count as "duplicate" or "circular"
@@ -220,8 +220,7 @@ class GraphEdge{
 		return undefined;
 	}
 }
-
-/** A graph contains unlimited nodes and edges and can perform operations on them */
+/** A graph is a set of nodes and edges connecting them */
 class Graph{
 	nodes:GraphNode[];
 	edges:GraphEdge[];
@@ -623,10 +622,8 @@ class Graph{
 
 	nodeArrayDidChange(){for(var i=0;i<this.nodes.length;i++){this.nodes[i].index=i;}}
 	edgeArrayDidChange(){for(var i=0;i<this.edges.length;i++){this.edges[i].index=i;}}
-//	nodeArrayDidChange(){this.nodes=this.nodes.map(function(el,i){el.index=i;return el;});}	
 }
-
-/** a multigraph is a graph which allows circular and duplicate edges */
+/** A multigraph is a graph which allows circular and duplicate edges */
 class Multigraph extends Graph{
 	cleanGraph():GraphClean{
 		this.edgeArrayDidChange();
