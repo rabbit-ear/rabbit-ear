@@ -29,7 +29,7 @@
 		<a href="/docs/graph.php">⇦ Back: Graphs</a>
 	</div>
 	<div class="nav-next">
-		<a href="planarClean.php">Next: Clean ⇒</a>
+		<a href="clean.php">Next: Clean ⇒</a>
 	</div>
 </div> -->
 

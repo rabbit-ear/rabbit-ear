@@ -40,6 +40,6 @@ radialRay.onMouseMove = function(event){
 	this.edges[ nearestEdge.index ].strokeWidth = 0.01;//this.lineWeight*1.5;
 	this.edges[ nearestEdge.index ].bringToFront();
 	if(radial_rainbow_callback != undefined){
-		radial_rainbow_callback({node:this.centerNode, angle:angle, edge:this.adjacentEdges[i]});
+		radial_rainbow_callback({node:this.centerNode, angle:angle, edge:nearestEdge});
 	}
 }

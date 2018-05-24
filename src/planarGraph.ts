@@ -277,7 +277,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 	}
 }
 /** Planar faces are counter-clockwise sequences of nodes already connected by edges */
-class PlanarFace{
+class PlanarFace extends Polygon{
 	// this library is counting on the edges and nodes to be stored in clockwise winding
 	graph:PlanarGraph;
 	nodes:PlanarNode[];
@@ -287,32 +287,21 @@ class PlanarFace{
 	index:number;
 
 	constructor(graph:PlanarGraph){
+		super()
 		this.graph = graph;
 		this.nodes = [];
 		this.edges = [];
 		this.angles = [];
 	}
 	sectors():PlanarSector[]{
-		return this.graph.sectors.filter(function(sector){
+		if(this.graph.dirty){ }
+		var options = this.graph.sectors.filter(function(sector){
 			return this.nodes.filter(function(node){ return node === sector.origin; },this).length > 0;
 		},this);
-	}
-	/** This compares two faces by checking their nodes are the same, and in the same order.
-	 * @returns {boolean} whether two faces are equivalent or not
-	 * @example
-	 * var equivalent = face.equivalent(anotherFace)
-	 */
-	equivalent(face:PlanarFace):boolean{
-		// quick check, if number of nodes differs, can't be equivalent
-		if(face.nodes.length != this.nodes.length){return false;}
-		var iFace = undefined;
-		face.nodes.forEach(function(n,i){ if(n === this.nodes[0]){ iFace = i; return; }},this);
-		if(iFace == undefined){return false;}
-		for(var i = 0; i < this.nodes.length; i++){
-			var iFaceMod = (iFace + i) % this.nodes.length;
-			if(this.nodes[i] !== face.nodes[iFaceMod]){return false;}
-		}
-		return true;
+		return this.edges.map(function(el,i){
+			var nextEl = this.edges[(i+1)%this.edges.length];
+			return options.filter(function(sector){return sector.edges[0] === el && sector.edges[1] === nextEl},this).shift();
+		},this);
 	}
 	/** Returns an array of edges that are shared among both faces.
 	 * @returns {PlanarEdge[]} array of edges in common
@@ -362,79 +351,6 @@ class PlanarFace{
 			}
 		}, this).filter(function(el){return el !== undefined;});
 	}
-	/** Tests whether or not a point is contained inside a face. This is counting on the face to be convex.
-	 * @returns {boolean} whether the point is inside the face or not
-	 * @example
-	 * var isInside = face.contains( {x:0.5, y:0.5} )
-	 */
-	containsIfConvex(point:XY):boolean{
-		for(var i = 0; i < this.nodes.length; i++){
-			var thisNode = this.nodes[ i ];
-			var nextNode = this.nodes[ (i+1)%this.nodes.length ];
-			var a = new XY(nextNode.x - thisNode.x, nextNode.y - thisNode.y);
-			var b = new XY(point.x - thisNode.x, point.y - thisNode.y);
-			if (a.cross(b) < 0){ return false; }
-		}
-		return true;
-	}
-	contains(point:XY):boolean{
-    	var isInside = false;
-		// http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-		for(var i = 0, j = this.nodes.length - 1; i < this.nodes.length; j = i++) {
-			if( (this.nodes[i].y > point.y) != (this.nodes[j].y > point.y) &&
-			point.x < (this.nodes[j].x - this.nodes[i].x) * (point.y - this.nodes[i].y) / (this.nodes[j].y - this.nodes[i].y) + this.nodes[i].x ) {
-				isInside = !isInside;
-			}
-		}
-		return isInside;
-	}
-	/** Apply a matrix transform to this face by transforming the location of its points.
-	 * @example
-	 * face.transform(matrix)
-	 */
-	transform(matrix){ this.nodes.forEach(function(node){node.transform(matrix);},this); }
-	/** Calculates the signed area of a face. This requires the face be non-intersecting.
-	 * @returns {number} the area of the face
-	 * @example
-	 * var area = face.signedArea()
-	 */
-	signedArea():number{
-		return 0.5 * this.nodes.map(function(el,i){
-			var nextEl = this.nodes[ (i+1)%this.nodes.length ];
-			return el.x*nextEl.y - nextEl.x*el.y;
-		},this)
-		.reduce(function(prev, cur){ return prev + cur; },0);
-	}
-	/** Calculates the centroid or the center of mass of the polygon.
-	 * @returns {XY} the location of the centroid
-	 * @example
-	 * var centroid = face.centroid()
-	 */
-	centroid():XY{
-		return this.nodes.map(function(el,i){
-			var nextEl = this.nodes[ (i+1)%this.nodes.length ];
-			var mag = el.x*nextEl.y - nextEl.x*el.y;
-			return new XY((el.x+nextEl.x)*mag, (el.y+nextEl.y)*mag);
-		},this)
-		.reduce(function(prev:XY,current:XY){ return prev.add(current); },new XY(0,0))
-		.scale(1/(6 * this.signedArea()));
-	}
-	/** Calculates the center of the bounding box made by the edges of the polygon.
-	 * @returns {XY} the location of the center of the bounding box
-	 * @example
-	 * var boundsCenter = face.center()
-	 */
-	center():XY{
-		var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;
-		for(var i = 0; i < this.nodes.length; i++){ 
-			if(this.nodes[i].x > xMax){ xMax = this.nodes[i].x; }
-			if(this.nodes[i].x < xMin){ xMin = this.nodes[i].x; }
-			if(this.nodes[i].y > yMax){ yMax = this.nodes[i].y; }
-			if(this.nodes[i].y < yMin){ yMin = this.nodes[i].y; }
-		}
-		return new XY(xMin+(xMax-xMin)*0.5, yMin+(yMax-yMin)*0.5);
-	}
-
 	// [
 	// 	[CreaseFace]
 	// 	[CreaseFace, CreaseFace]
@@ -466,7 +382,6 @@ class PlanarFace{
 		if(list.length > 0 && list[ list.length-1 ].length == 0){ list.pop(); }
 		return list;
 	}
-
 	adjacentFaceTree():Tree<PlanarFace>{
 		var array = this.adjacentFaceArray();
 		array[0][0]["tree"] = new Tree<PlanarFace>(array[0][0].face);
@@ -509,7 +424,7 @@ class PlanarSector extends Sector{
 		         a.edges[1].isSimilarToEdge(this.edges[0])));
 	}
 }
-
+/** Planar junctions mark intersections between edges */
 class PlanarJunction{
 
 	origin:PlanarNode;

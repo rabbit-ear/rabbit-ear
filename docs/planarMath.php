@@ -63,27 +63,6 @@
 	
 </section>
 
-<section id="junction">
-<h2>JUNCTIONS &amp; SECTORS</h2>
-
-	<p>In preparation for origami operations, there is much to be done with one node and its adjacent edges.</p>
-
-	<p class="quote"><strong>Junction</strong>: the area including one node, its adjacent edges, and the interior angles they form.</p>
-
-	<p>Junctions themselves are made up of <b>sectors</b>, the number of sectors is equal to the number of edges, or interior angles.</p>
-
-	<p class="quote"><strong>Sector</strong>: two adjacent ordered edges and the space that creates an angle between them.</p>
-
-	<p>The angle between two vectors can be the smaller or the larger which is why it's important to order the vectors, and consider the clockwise space between them.</p>
-	
-	<div class="centered">
-		<canvas id="canvas-one-sector" resize></canvas>
-	</div>
-
-	<p class="quote">If all that isn't confusing enough, computers render +Y down and clockwise appears counter-clockwise. FML</p>
-
-</section>
-
 <section id="angles">
 
 <h2>ANGLES</h2>
@@ -164,7 +143,6 @@
 
 
 
-<script type="text/javascript" src="../tests/one_sector.js"></script>
 <script type="text/javascript" src="../tests/vectors.js"></script>
 <script type="text/javascript" src="../tests/interior_angles.js"></script>
 <script type="text/javascript" src="../tests/intersect_all.js"></script>
@@ -230,7 +208,8 @@ interiorAnglesCallback = function(event){
 	}
 	document.getElementById("interiorAngleSpan").innerHTML = string;
 }
-projectInAngles.onMouseMove();
+projectInAngles.update();
+projectInAngles.updateAngles();
 </script>
 
 <script>

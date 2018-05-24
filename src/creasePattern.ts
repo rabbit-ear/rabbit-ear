@@ -274,18 +274,15 @@ class Crease extends PlanarEdge{
 // class RabbitEar{
 // 	face:CreaseFace;
 // 	edges:Crease[];
-
 // }
 
 class CreaseFace extends PlanarFace{
 
 	// rabbitEar():RabbitEar{
 	rabbitEar():Crease[]{
-		if(this.sectors.length !== 3){ return []; }
-		var rays:Ray[] = this.sectors().map(function(el){
-			// return { node: el.origin, vector: el.bisect() };
-			return new Ray(el.origin, el.bisect());
-		});
+		var sectors = this.sectors();
+		if(sectors.length !== 3){ return []; }
+		var rays:Ray[] = sectors.map(function(el){ return new Ray(el.origin, el.bisect()); });
 		// calculate intersection of each pairs of rays
 		var incenter = rays
 			.map(function(el:Ray, i){

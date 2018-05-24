@@ -10,7 +10,6 @@ var EPSILON_HIGH = 0.00000001;
 var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a screen
 
 ////////////////////////////   DATA TYPES   ///////////////////////////
-
 class Tree<T>{
 	obj:T;
 	parent:Tree<T>;
@@ -21,7 +20,6 @@ class Tree<T>{
 		this.children = [];
 	}
 }
-
 //////////////////////////// TYPE CHECKING //////////////////////////// 
 function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
 function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
@@ -31,9 +29,9 @@ function pointsSimilar(a:any, b:any, epsilon?:number){
 }
 /////////////////////////////// NUMBERS ///////////////////////////////
 /** map a number from one range into another */
-function map(input:number, fl1:number, ceil1:number, fl2:number, ceil2:number):number{
-	return ( (input - fl1) / (ceil1 - fl1) ) * (ceil2 - fl2) + fl2;
-}
+// function map(input:number, fl1:number, ceil1:number, fl2:number, ceil2:number):number{
+// 	return ( (input - fl1) / (ceil1 - fl1) ) * (ceil2 - fl2) + fl2;
+// }
 /** are 2 numbers similar to each other within an epsilon range. */
 function epsilonEqual(a:number, b:number, epsilon?:number):boolean{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
@@ -158,7 +156,6 @@ function intersectionEdgeEdge(a:Edge, b:Edge, epsilon?:number):XY{
 		new XY(b.nodes[1].x-b.nodes[0].x, b.nodes[1].y-b.nodes[0].y),
 		function(t0,t1){return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1;}, epsilon);
 }
-
 function intersectionCircleLine(center:XY, radius:number, p0:XY, p1:XY):XY[]{
 	var r_squared =  Math.pow(radius,2);
 	var x1 = p0.x - center.x;
@@ -250,7 +247,7 @@ class Matrix{
 		return m;
 	}
 }
-
+/** The base type for all vector representations, contains numbers x and y */
 class XY{
 	x:number;
 	y:number;
@@ -320,7 +317,7 @@ class XY{
 	commonX(point:XY, epsilon?:number):boolean{return epsilonEqual(this.y, point.y, epsilon);}
 	commonY(point:XY, epsilon?:number):boolean{return epsilonEqual(this.x, point.x, epsilon);}
 }
-
+/** All line types (lines, rays, edges) must implement these functions */
 abstract class LineType{
 	length(){}
 	vector(){}
@@ -337,9 +334,7 @@ abstract class LineType{
 	// clipWithEdges(edges:Edge[], epsilon?:number){}
 	// clipWithEdgesDetails(edges:Edge[], epsilon?:number){}
 }
-
-/** 2D line, extending infinitely in both directions, represented by a point and a vector
- */
+/** 2D line, extending infinitely in both directions, represented by a point and a vector */
 class Line implements LineType{
 	point:XY;
 	direction:XY;
@@ -402,7 +397,7 @@ class Line implements LineType{
 		}
 	}
 }
-
+/** 2D line, extending infinitely in one direction, represented by a point and a vector */
 class Ray implements LineType{
 	origin:XY;
 	direction:XY;
@@ -510,7 +505,7 @@ class Ray implements LineType{
 			.map(function(el){ return {edge:el.edge,intersection:el.intersection}; })
 	}
 }
-
+/** 2D finite line, bounded and defined by two endpoints */
 class Edge implements LineType{
 	nodes:[XY,XY];
 	// a, b are points, or
@@ -587,7 +582,7 @@ class Edge implements LineType{
 	perpendicularBisector():Line{ return new Line(this.midpoint(), this.vector().rotate90()); }
 	infiniteLine():Line{ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
 }
-
+/** A path of node-adjacent edges defined by a set of nodes. */
 class Polyline{
 	nodes:XY[];
 
@@ -639,7 +634,7 @@ class Polyline{
 		return this;
 	}
 }
-
+/** A rectilinear space defined by width and height and one corner of the rectangle */
 class Rect{
 	origin:{x:number,y:number};
 	size:{width:number, height:number};
@@ -648,7 +643,7 @@ class Rect{
 		this.size = {'width':width, 'height':height};
 	}
 }
-
+/** A verbose representation of a triangle containing points, edges, sectors (interior angles), and its circumcenter */
 class Triangle{
 	points:[XY,XY,XY];
 	edges:[Edge, Edge, Edge];
@@ -667,7 +662,7 @@ class Triangle{
 		},this);
 		this.circumcenter = circumcenter;
 		if(circumcenter === undefined){
-			// calculate circumcenter
+			// TODO: calculate circumcenter
 		}
 	}
 	angles():[number,number,number]{
@@ -703,9 +698,7 @@ class Triangle{
 		return true;
 	}
 }
-
-class IsoscelesTriangle extends Triangle{ }
-
+/** A circle defined by its center point and radius length */
 class Circle{
 	center:XY;
 	radius:number;
@@ -724,9 +717,93 @@ class Circle{
 		if(line instanceof Ray){return intersectionCircleLine(this.center,this.radius, line.origin, line.origin.add(line.direction));}
 	}
 }
-
-class Polygon{ }
-
+/** The boundary of a polygon defined by a sequence of nodes */
+class Polygon{
+	nodes:XY[];
+	// edges:Edge[];
+	// todo: needs a proper initializer
+	constructor(){ }
+	/** This compares two polygons by checking their nodes are the same, and in the same order.
+	 * @returns {boolean} whether two polygons are equivalent or not
+	 * @example
+	 * var equivalent = polygon.equivalent(anotherPolygon)
+	 */
+	equivalent(polygon:Polygon):boolean{
+		// quick check, if number of nodes differs, can't be equivalent
+		if(polygon.nodes.length != this.nodes.length){return false;}
+		var iFace = undefined;
+		polygon.nodes.forEach(function(n,i){ if(n === this.nodes[0]){ iFace = i; return; }},this);
+		if(iFace == undefined){return false;}
+		for(var i = 0; i < this.nodes.length; i++){
+			var iFaceMod = (iFace + i) % this.nodes.length;
+			if(this.nodes[i] !== polygon.nodes[iFaceMod]){return false;}
+		}
+		return true;
+	}
+	/** Tests whether or not a point is contained inside a polygon. This is counting on the polygon to be convex.
+	 * @returns {boolean} whether the point is inside the polygon or not
+	 * @example
+	 * var isInside = polygon.contains( {x:0.5, y:0.5} )
+	 */
+	contains(point:XY):boolean{
+    	var isInside = false;
+		// http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+		for(var i = 0, j = this.nodes.length - 1; i < this.nodes.length; j = i++) {
+			if( (this.nodes[i].y > point.y) != (this.nodes[j].y > point.y) &&
+			point.x < (this.nodes[j].x - this.nodes[i].x) * (point.y - this.nodes[i].y) / (this.nodes[j].y - this.nodes[i].y) + this.nodes[i].x ) {
+				isInside = !isInside;
+			}
+		}
+		return isInside;
+	}
+	/** Calculates the signed area of a polygon. This requires the polygon be non-intersecting.
+	 * @returns {number} the area of the polygon
+	 * @example
+	 * var area = polygon.signedArea()
+	 */
+	signedArea():number{
+		return 0.5 * this.nodes.map(function(el,i){
+			var nextEl = this.nodes[ (i+1)%this.nodes.length ];
+			return el.x*nextEl.y - nextEl.x*el.y;
+		},this)
+		.reduce(function(prev, cur){ return prev + cur; },0);
+	}
+	/** Calculates the centroid or the center of mass of the polygon.
+	 * @returns {XY} the location of the centroid
+	 * @example
+	 * var centroid = polygon.centroid()
+	 */
+	centroid():XY{
+		return this.nodes.map(function(el,i){
+			var nextEl = this.nodes[ (i+1)%this.nodes.length ];
+			var mag = el.x*nextEl.y - nextEl.x*el.y;
+			return new XY((el.x+nextEl.x)*mag, (el.y+nextEl.y)*mag);
+		},this)
+		.reduce(function(prev:XY,current:XY){ return prev.add(current); },new XY(0,0))
+		.scale(1/(6 * this.signedArea()));
+	}
+	/** Calculates the center of the bounding box made by the edges of the polygon.
+	 * @returns {XY} the location of the center of the bounding box
+	 * @example
+	 * var boundsCenter = polygon.center()
+	 */
+	center():XY{
+		var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;
+		for(var i = 0; i < this.nodes.length; i++){ 
+			if(this.nodes[i].x > xMax){ xMax = this.nodes[i].x; }
+			if(this.nodes[i].x < xMin){ xMin = this.nodes[i].x; }
+			if(this.nodes[i].y > yMax){ yMax = this.nodes[i].y; }
+			if(this.nodes[i].y < yMin){ yMin = this.nodes[i].y; }
+		}
+		return new XY(xMin+(xMax-xMin)*0.5, yMin+(yMax-yMin)*0.5);
+	}
+	/** Apply a matrix transform to this polygon by transforming the location of its points.
+	 * @example
+	 * polygon.transform(matrix)
+	 */
+	transform(matrix){ this.nodes.forEach(function(node){node.transform(matrix);},this); }
+}
+/** An ordered set of node-adjacent edges defining the boundary of a convex space */
 class ConvexPolygon{
 	edges:Edge[];
 	nodes():XY[]{
@@ -777,10 +854,21 @@ class ConvexPolygon{
 		for(var i = 0; i < this.edges.length; i++){
 			var a = this.edges[i].nodes[1].subtract(this.edges[i].nodes[0]);
 			var b = new XY(p.x-this.edges[i].nodes[0].x,p.y-this.edges[i].nodes[0].y);
-			if (a.cross(b) < 0){ return false; }
+			if(a.cross(b) < 0){ return false; }
 		}
 		return true;
 	}
+	// contains implemention which iterates over points instead of edges
+	// contains(point:XY):boolean{
+	// 	for(var i = 0; i < this.nodes.length; i++){
+	// 		var thisNode = this.nodes[ i ];
+	// 		var nextNode = this.nodes[ (i+1)%this.nodes.length ];
+	// 		var a = new XY(nextNode.x - thisNode.x, nextNode.y - thisNode.y);
+	// 		var b = new XY(point.x - thisNode.x, point.y - thisNode.y);
+	// 		if(a.cross(b) < 0){ return false; }
+	// 	}
+	// 	return true;
+	// }
 	liesOnEdge(p:XY):boolean{
 		for(var i = 0; i < this.edges.length; i++){
 			if(this.edges[i].collinear(p)){ return true; }
@@ -926,11 +1014,7 @@ class ConvexPolygon{
 		return p;
 	}	
 }
-
-/** a Sector is defined by 3 nodes (one common, 2 endpoints) 
- *  clockwise order is enforced
- *  the interior angle is measured clockwise from endpoint 0 to 1
- */
+/** a Sector is defined by three nodes connecting two adjacent edges (one common node) */
 class Sector{
 	// the node in common with the edges
 	origin:XY;
@@ -946,6 +1030,7 @@ class Sector{
 			return new XY(el.x-this.origin.x, el.y-this.origin.y);
 		},this);
 	}
+	/** the interior angle is measured clockwise from endpoint 0 to 1  */
 	angle():number{
 		var vectors = this.vectors();
 		return clockwiseInteriorAngle(vectors[0], vectors[1]);
@@ -993,6 +1078,9 @@ class Sector{
 	// (private function)
 	sortByClockwise(){}
 }
+// unimplemented classes. may be useful
+// subclass of Triangle
+class IsoscelesTriangle extends Triangle{ }
 
 //////////////////////////////////////////////////////////////////////////
 // D3.js VORONOI DEPENDENCY
