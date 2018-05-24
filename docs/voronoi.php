@@ -5,7 +5,7 @@
 <section id="intro">
 
 	<div class="centered">
-		<canvas id="canvas-voronoi-many" resize class="panorama"></canvas>
+		<canvas id="canvas-voronoi" resize class="panorama"></canvas>
 	</div>
 
 	<p>The Voronoi algorithm repeatedly appears in origami algorithms and research. The algorithm itself is an implementation of <a href="axioms.php">origami axiom #2</a>.</p>
@@ -42,19 +42,21 @@
 </section>
 
 <script src="../lib/d3.min.js"></script>
-<script src="../tests/voronoi_many.js"></script>
+<script src="../tests/voronoi.js"></script>
 <script src="../tests/voronoi_obtuse_cover.js"></script>
 <script src="../tests/voronoi_obtuse.js"></script>
 <script src="../tests/voronoi_scale.js"></script>
 
-<script type="text/javascript">
+<script>
+voronoiSketch.reset(30);
+</script>
 
+<script type="text/javascript">
 voronoiScaleCallback = function(e){
 	if(e !== undefined){
 		document.getElementById("interp-value").innerHTML = e.toFixed(2);
 	}
 }
-
 </script>
 
 <?php include 'footer.php';?>

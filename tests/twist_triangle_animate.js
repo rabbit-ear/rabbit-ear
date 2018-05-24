@@ -1,134 +1,87 @@
 
-var jointTri = new OrigamiPaper("canvas-joint-triangle-animated");
-jointTri.setPadding(0.05);
-// jointTri.select.edge = true;
+var twistTriAnim = new OrigamiPaper("canvas-twist-triangle-animated");
 
-var AMP = 0.1;
-
-jointTri.style.mark.strokeWidth = 0.002;
-
-jointTri.startAngles = [];
-
-jointTri.reset = function(){
-	paper = this.scope; 
-	var interiorAngles;
-	var centerNode;
+twistTriAnim.threeValidVectors = function(){
 	// make 3 fan lines with a good sized interior angle between them
-
-	this.cp = new CreasePattern();
-
-	do{
-		this.startAngles = [];
-		this.cp.clear();
-		this.cp.nodes = [];
-		this.cp.edges = [];
-		for(var i = 0; i < 3; i++){
-			var angle = Math.random()*Math.PI*2;
-			this.startAngles.push(angle);
-			this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle), Math.sin(angle))).mountain();
-		}
-		this.cp.clean();
-		centerNode = this.cp.nearest(0.5, 0.5).node;
-		interiorAngles = centerNode.interiorAngles();
-		var tooSmall = false;
-		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i] < Math.PI*0.5) tooSmall = true; }
-	} while(tooSmall);
-
-	this.freq = [];
-	this.amp = [];
-	this.offs = [];
-	for(var i = 0; i < 3; i++){
-		this.freq.push(Math.random());
-		this.amp.push(Math.random() * AMP);
-		this.offs.push(Math.random()*Math.PI*2);
-	}
-
-}
-jointTri.reset();
-
-jointTri.onFrame = function(event) {
-
-	if(this.startAngles === undefined || this.startAngles.length === 0 ){ return; }
-
-	// this.cp = this.cp.copy();
-	this.cp.clear();
-	this.cp.nodes = [];
-	this.cp.edges = [];
-	for(var i = 0; i < 3; i++){
-		var angle = this.startAngles[i] + Math.cos(event.time*this.freq[i]+this.offs[i])*this.amp[i];
-		this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle), Math.sin(angle)));//.mountain());
-	}
-	this.cp.clean();
-
-	///////////////////////////////////////	
-
-	centerNode = this.cp.nearest(0.5, 0.5).node;
-	var sectors = centerNode.junction().sectors;
-	interiorAngles = centerNode.junction().interiorAngles();
 	var angles = [];
-	for(var i = 0; i < sectors.length; i++){
-		angles.push(cp.findFlatFoldable(sectors[i]));
-	}
+	do{
+		angles = [Math.random()*Math.PI*2];
+		angles.push(angles[0] - Math.PI*0.5 - Math.random()*Math.PI*0.5);
+		angles.push(angles[1] - Math.PI*0.5 - Math.random()*Math.PI*0.5);
+	}while(!angles
+		.map(function(angle,i){
+			var nextAngle = angles[ (i+1)%angles.length ];
+			return clockwiseInteriorAngleRadians(angle, nextAngle);
+		},this)
+		.map(function(interior){ return interior > Math.PI*0.6; })
+		.reduce(function(prev, curr){return prev && curr;},true)
+	);
+	return angles.map(function(angle){return new XY(Math.cos(angle), Math.sin(angle));},this);
+}
 
-	var newTriNodes = [];
+twistTriAnim.reset = function(){
+	this.cp.clear();
+	var vectors = this.threeValidVectors();
 
-	for(var i = 0; i < angles.length; i++){
-		var ray = this.cp.creaseRay(centerNode, new XY(Math.cos(angles[i]), Math.sin(angles[i])) );
-		this.cp.clean();
-		// 2 crease lines for every original fan line
-		var commonNode = sectors[i].edges[0].commonNodeWithEdge(sectors[i].edges[1]);
-		var center = new XY(commonNode.x, commonNode.y);
-		var angle1 = sectors[i].edges[0].absoluteAngle(commonNode);
-		var angle2 = sectors[i].edges[1].absoluteAngle(commonNode);
-		var dir = ray.absoluteAngle(commonNode);
-		var l = 0.2;
-		var newSpot = new XY(center.x+l*Math.cos(dir),center.y+l*Math.sin(dir));
-		this.cp.creaseRayUntilIntersection(newSpot,
-		                                       new XY(Math.cos(angle1), Math.sin(angle1)) ).valley();
-		var e = this.cp.creaseRayUntilIntersection(newSpot, new XY(Math.cos(angle1+Math.PI), 
-		                                                                Math.sin(angle1+Math.PI)) ).valley();
-		if( newSpot.equivalent(e.nodes[0]) ){ newTriNodes.push(e.nodes[1]); }
-		if( newSpot.equivalent(e.nodes[1]) ){ newTriNodes.push(e.nodes[0]); }
-	}
+	// crease vectors
+	vectors.map(function(vector){ return new Ray(new XY(0.5, 0.5), vector); },this)
+		.map(function(ray){ return this.cp.crease(ray); },this)
+		.filter(function(crease){return crease != undefined;},this)
+		.forEach(function(crease){ crease.mountain(); },this);
 	this.cp.clean();
 
-	// var newAdj = centerNode.adjacentEdges();
-	// for(var i = newAdj.length-1; i >= 0; i--){
-	// 	this.cp.removeEdge(newAdj[i]);
-	// }
+	var centerNode = this.cp.nearest(0.5, 0.5).node;
+	var sectors = centerNode.junction().sectors;
 
-	for(var i = 0; i < newTriNodes.length; i++){
-		var nextI = (i+1)%newTriNodes.length;
-		this.cp.crease(newTriNodes[i], newTriNodes[nextI]).mountain();
-	}
+	var kawasakis = sectors
+		.map(function(sector){ return centerNode.junction().kawasakiFourth(sector); })
+		.map(function(vector){ return new Ray(0.5, 0.5, vector.x, vector.y)},this);
+
+	var pleats = kawasakis
+		.map(function(ray){ return ray.origin.add(ray.direction.scale(0.2)); },this)
+		.map(function(el,i){return new Line(el, sectors[i].edges[0].vector(centerNode));},this);
+
+	var newTriNodes = pleats
+		.map(function(el){ return new Ray(el.point, el.direction.rotate180());},this)
+		.map(function(ray){ return ray.intersectionsWithEdges(this.cp.edges).shift(); },this)
+		.filter(function(el){return el!=undefined},this);
+
+	// crease triangle squash
+	newTriNodes.map(function(el,i){
+			var nextEl = newTriNodes[ (i+1)%newTriNodes.length ];
+			return this.cp.crease(el, nextEl);
+		},this)
+		.filter(function(el){return el!=undefined;},this)
+		.forEach(function(el){el.mountain();},this);
+	
+	// crease pleats
+	pleats.map(function(el){ return this.cp.creaseAndStop(el); },this)
+		.filter(function(el){return el!=undefined},this)
+		.forEach(function(el){el.valley();},this);
+
+	// remove center creases that were removed by squash
+	this.cp.clean();
+	var squashedLines = [0,1,2].map(function(el){
+			var edge = this.cp.nearest(0.5, 0.5).edge;
+			var nodes = edge.nodes.map(function(el){return {x:el.x, y:el.y};})
+			this.cp.removeEdge(edge);
+			return nodes;
+		},this);
 
 	this.cp.clean();
 
-	// set the fan angle bisectors to valley
-	// for(var i = 0; i < newAdj.length; i++){
-	// 	if(newAdj[i].orientation === undefined){ newAdj[i].valley(); }
-	// }
-	// remove extra marks
-	// for(var i = jointTri.cp.edges.length-1; i >= 0; i--){
-	// 	if(jointTri.cp.edges[i].orientation === CreaseDirection.mark){ 
-	// 		jointTri.cp.removeEdge(jointTri.cp.edges[i]); 
-	// 	}
-	// }
+	// draw detail linework
+	// squashedLines.map(function(el){ return this.cp.crease(el[0], el[1]); },this)
+	// 	.filter(function(el){return el!=undefined},this)
+	// 	.forEach(function(el){el.mark();},this);
+	// kawasakis.forEach(function(el){ this.cp.crease(el); },this);
 
-	jointTri.draw();
+	this.draw();
 }
-jointTri.onResize = function(event) { }
-jointTri.onMouseDown = function(event){ 
-	jointTri.reset();
+twistTriAnim.reset();
 
-	// this.freq = [];
-	// this.amp = [];
-
-	// for(var i = 0; i < 3; i++){
-	// 	this.freq.push(Math.random());
-	// 	this.amp.push(Math.random() * AMP);
-	// }
-
-}
-jointTri.onMouseUp = function(event){ }
-jointTri.onMouseMove = function(event) { }
+twistTriAnim.onFrame = function(event){ }
+twistTriAnim.onResize = function(event){ }
+twistTriAnim.onMouseDown = function(event){ twistTriAnim.reset(); }
+twistTriAnim.onMouseUp = function(event){ }
+twistTriAnim.onMouseMove = function(event){ }

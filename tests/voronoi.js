@@ -1,25 +1,14 @@
-var voronoiSketch = new OrigamiPaper("canvas-voronoi").setPadding(0.005).mediumLines();
+var voronoiSketch = new OrigamiPaper("canvas-voronoi").setPadding(0.01).mediumLines();
 var aspect = voronoiSketch.canvas.width / voronoiSketch.canvas.height;
 voronoiSketch.cp.rectangle(aspect, 1.0);
 voronoiSketch.voronoiAlgorithm; // global D3 algorithm implementation
 voronoiSketch.input = new PlanarGraph();
 voronoiSketch.topLayer = new voronoiSketch.scope.Layer()
+voronoiSketch.style.mountain.strokeColor = {gray:0.0}
+voronoiSketch.style.mountain.strokeWidth = 0.0075;
 
 voronoiSketch.vInterpolation = 0.5;
 voronoiSketch.selectRadius = 0.05;
-
-voronoiSketch.reset = function(){
-	this.input.clear();
-	this.input.newPlanarNode(Math.random(), Math.random());
-	this.input.newPlanarNode(Math.random(), Math.random());
-	this.input.newPlanarNode(Math.random(), Math.random());
-	this.cp.clear();
-	this.draw();
-	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
-	this.voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
-}
-voronoiSketch.reset();
 
 voronoiSketch.drawSites = function(){
 	this.topLayer.activate();
@@ -34,8 +23,6 @@ voronoiSketch.drawSites = function(){
 }
 
 voronoiSketch.redraw = function(){
-	paper = this.scope;
-
 	var nodes = this.input.nodes.map(function(el){return [el.x, el.y];});
 	var d3Voronoi = this.voronoiAlgorithm( nodes );
 	var v = new VoronoiGraph(d3Voronoi);
@@ -45,7 +32,21 @@ voronoiSketch.redraw = function(){
 	this.draw();
 	this.drawSites();
 }
-voronoiSketch.redraw();
+
+voronoiSketch.reset = function(count){
+	var bounds = this.cp.bounds();
+	this.input.clear();
+	if(count == undefined){ count = 3; }
+	for(var i = 0; i < count; i++){
+		this.input.newPlanarNode(Math.random()*bounds.size.width, Math.random()*bounds.size.height);
+	}
+	this.cp.clear();
+	this.draw();
+	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
+	this.voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
+	this.redraw();
+}
+voronoiSketch.reset();
 
 voronoiSketch.onResize = function(){
 	var bounds = this.cp.bounds();
@@ -58,13 +59,15 @@ voronoiSketch.onMouseDown = function(event){
 		this.redraw();
 	}
 }
-voronoiSketch.onMouseUp = function(event){ 
-	this.dragOn = false;
-}
+voronoiSketch.onMouseUp = function(event){ }
 voronoiSketch.onMouseMove = function(event){
 	if(this.mouse.isPressed){
-		this.nearestNode.x = event.point.x;
-		this.nearestNode.y = event.point.y;
+		if(!this.cp.boundary.contains(event.point)){
+			this.input.removeNode(this.nearestNode);
+		} else{
+			this.nearestNode.x = event.point.x;
+			this.nearestNode.y = event.point.y;
+		}
 		this.redraw();
 	} else{
 		this.nearestNode = this.input.nearestNodes(1, event.point).shift();

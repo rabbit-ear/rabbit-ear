@@ -4,6 +4,8 @@ var voronoiScale = new OrigamiPaper("canvas-voronoi-scale").mediumLines();
 voronoiScale.voronoiAlgorithm; // global D3 algorithm implementation
 voronoiScale.input = new PlanarGraph();
 voronoiScale.vInterpolation = 0.5;
+voronoiScale.style.mountain.strokeColor = {gray:0.0}
+voronoiScale.style.mountain.strokeWidth = 0.0075;
 
 voronoiScale.reset = function(){
 	this.input.clear();

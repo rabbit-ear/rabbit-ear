@@ -1,26 +1,23 @@
 
-var sequence3 = new OrigamiPaper("canvas-sequence-folding-3");
-sequence3.setPadding(0.1);
-
-sequence3.reset = function(){ }
-sequence3.reset();
+var sequence3 = new OrigamiPaper("canvas-sequence-folding-3").setPadding(0.1);
 
 sequence3.onFrame = function(event) { 
 	var mag = 0.1;
 	var paperCorners = [
-		new XY(0.0 + mag*Math.cos(event.time*1.75+4), 0.0),
-		new XY(0.0, 1.0),
-		new XY(1.0 + mag*Math.sin(event.time*1.5+2), 1.0),
-		new XY(1.0, 0.0 + mag*Math.cos(event.time*0.888888+5))
+		[0.0 + mag*Math.cos(event.time*1.75+4), 0.0],
+		[0.0, 1.0],
+		[1.0 + mag*Math.sin(event.time*1.5+2), 1.0],
+		[1.0, 0.0 + mag*Math.cos(event.time*0.888888+5)]
 	];
-	sequence3.cp.clear();
-	sequence3.cp.polygon(paperCorners);
-	var firstFold = sequence3.cp.creaseThroughPoints(sequence3.cp.topEdge().nodes[0], sequence3.cp.bottomEdge().nodes[0]).valley();
-	sequence3.cp.creaseThroughPoints(sequence3.cp.topEdge().nodes[1], sequence3.cp.bottomEdge().nodes[1]).valley().creaseToEdge(firstFold).forEach(function(el){el.mountain();});
-	sequence3.cp.clean();
-	// console.log(sequence3.cp.nodes[8].flatFoldable());
-	// console.log(sequence3.cp.nodes[8].x + " " + sequence3.cp.nodes[8].y);
-	sequence3.draw();
+	this.cp.clear();
+	this.cp.setBoundary(paperCorners);
+	var firstFold = this.cp.creaseThroughPoints(this.cp.topEdge().nodes[0], this.cp.bottomEdge().nodes[0]).valley();
+	this.cp.creaseThroughPoints(this.cp.topEdge().nodes[1], this.cp.bottomEdge().nodes[1]).valley().creaseToEdge(firstFold).forEach(function(el){el.mountain();});
+	this.cp.clean();
+	var centerNode = this.cp.nearestNodes(1, 0.5, 0.5).shift();
+	// console.log(centerNode.flatFoldable());
+	// console.log(centerNode.x + " " + centerNode.y);
+	this.draw();
 }
 sequence3.onResize = function(event) { }
 sequence3.onMouseDown = function(event){ }
