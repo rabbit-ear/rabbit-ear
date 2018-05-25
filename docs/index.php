@@ -45,7 +45,7 @@
 <script type="text/javascript" src="../tests/intersect_wobble.js"></script>
 <script>
 wobble_intersections_callback = function(e){
-	document.getElementById("span-intersection-results").innerHTML = "{<str>fragment</str>: <v>Array</v>(<n>" + e.length + "</n>)} ← ";
+	document.getElementById("span-intersection-results").innerHTML = "{<str>'fragment'</str>: <v>Array</v>(<n>" + e.length + "</n>)} ← ";
 }</script>
 
 <?php include 'footer.php';?>

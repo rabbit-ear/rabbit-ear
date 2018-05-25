@@ -1,54 +1,32 @@
-var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
+var axiom3 = new OrigamiPaper("canvas-axiom-3").setPadding(0.05);
+axiom3.circleStyle = {radius: 0.02, strokeWidth: 0.01, strokeColor:axiom3.styles.byrne.blue};
+axiom3.style.valley.strokeColor = axiom3.styles.byrne.red;
 
-var axiom3 = new OrigamiPaper("canvas-axiom-3");
-axiom3.setPadding(0.05);
-
-axiom3.selectedNode = undefined;
-axiom3.decorationLayer = new axiom3.scope.Layer();
-axiom3.decorationLayer.activate();
-axiom3.marks = [];
-for(var i = 0; i < 4; i++) axiom3.marks.push(new axiom3.scope.Shape.Circle(circleStyle));
-// axiom3.marks[0].position = [0.5, 0.0];
-// axiom3.marks[1].position = [0.0, 0.5];
-// axiom3.marks[2].position = [1.0, 0.5];
-// axiom3.marks[3].position = [0.5, 1.0];
-
-// parallel lines is pretty good
-// axiom3.marks[0].position = [0.0, 0.0];
-// axiom3.marks[1].position = [1.0, 1.0];
-// axiom3.marks[2].position = [0.5, 0.0];
-// axiom3.marks[3].position = [1.0, 0.5];
-
-axiom3.marks[0].position = [0.0, 0.0];
-axiom3.marks[1].position = [1.0, 1.0];
-axiom3.marks[2].position = [0.3333, 1.0];
-axiom3.marks[3].position = [1.0, 0.3333];
-
-axiom3.reset = function(){
-	axiom3.cp.clear();
-	var edgeA = axiom3.cp.creaseThroughPoints(axiom3.marks[0].position, axiom3.marks[1].position).mark();
-	var edgeB = axiom3.cp.creaseThroughPoints(axiom3.marks[2].position, axiom3.marks[3].position).mark();
-	var edges = axiom3.cp.creaseEdgeToEdge(edgeA, edgeB);
+axiom3.redraw = function(){
+	this.cp.clear();
+	var a = this.cp.creaseThroughPoints(this.selectable[0].position, this.selectable[1].position).mark();
+	var b = this.cp.creaseThroughPoints(this.selectable[2].position, this.selectable[3].position).mark();
+	var edges = this.cp.creaseEdgeToEdge(a, b);
 	edges.forEach(function(el){el.valley();});
-	axiom3.draw();
+	this.draw();
 	if(edges.length >= 2){
-		axiom3.edges[edges[1].index].strokeColor = { hue:20, saturation:0.6, brightness:1 };
+		this.edges[edges[1].index].strokeColor = this.styles.byrne.yellow;
 	}
+}
+axiom3.reset = function(){
+	this.makeControlPoints(4, this.circleStyle);
+	[[0.0, 0.0],
+	 [1.0, 1.0],
+	 [0.3333, 1.0],
+	 [1.0, 0.3333] ].forEach(function(el,i){this.selectable[i].position = el;},this);
+	this.redraw();
 }
 axiom3.reset();
 
-axiom3.onFrame = function(event) { }
-axiom3.onResize = function(event) { }
-axiom3.onMouseMove = function(event) {
-	if(axiom3.selectedNode != undefined){
-		axiom3.selectedNode.position = event.point;
-		axiom3.reset();		
-	}
+axiom3.onFrame = function(event){ }
+axiom3.onResize = function(event){ }
+axiom3.onMouseMove = function(event){
+	if(this.mouse.isPressed){ this.redraw(); }
 }
-axiom3.onMouseDown = function(event){
-	for(var i = 0; i < axiom3.marks.length; i++){
-		if(pointsSimilar(event.point, axiom3.marks[i].position, 0.05)){ axiom3.selectedNode = axiom3.marks[i];return;}
-	}
-	axiom3.selectedNode = undefined;
-}
-axiom3.onMouseUp = function(event){ axiom3.selectedNode = undefined; }
+axiom3.onMouseDown = function(event){ }
+axiom3.onMouseUp = function(event){ }

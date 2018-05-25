@@ -111,9 +111,6 @@ class FoldSequence{
 	// sheet of paper, the fold won't execute the same way, different node indices will get applied.
 }
 
-// export class CPPoint extends XY{ }
-// export class CPVector extends XY{ }
-
 class CreaseSector extends PlanarSector{
 
 	/** This will search for an angle which if an additional crease is made will satisfy Kawasaki's theorem */
@@ -144,7 +141,6 @@ class CreaseSector extends PlanarSector{
 		return new XY(Math.cos(newA), Math.sin(newA));
 	}		
 }
-
 class CreaseJunction extends PlanarJunction{
 
 	origin:CreaseNode;
@@ -219,7 +215,6 @@ class CreaseJunction extends PlanarJunction{
 		return new XY(Math.cos(newA), Math.sin(newA));
 	}
 }
-
 class CreaseNode extends PlanarNode{
 	graph:CreasePattern;
 
@@ -248,7 +243,6 @@ class CreaseNode extends PlanarNode{
 	// AXIOM 2
 	// creaseToPoint(point:XY):Crease{return this.graph.creasePointToPoint(this, point);}
 }
-
 class Crease extends PlanarEdge{
 
 	graph:CreasePattern;
@@ -292,8 +286,10 @@ class CreaseFace extends PlanarFace{
 			// average each point (sum, then divide by total)
 			.reduce(function(prev, current){ return prev.add(current);})
 			.scale(1.0/rays.length);
+		var incenterNode = <CreaseNode>(<CreasePattern>this.graph).newPlanarNode(incenter.x, incenter.y);
+
 		return this.nodes.map(function(el){
-			return (<CreasePattern>this.graph).crease(el, incenter)
+			return (<CreasePattern>this.graph).newCreaseBetweenNodes(<CreaseNode>el, incenterNode);
 		}, this);
 	}
 }
@@ -341,6 +337,12 @@ class CreasePattern extends PlanarGraph{
 	// ADD PARTS
 
 	foldInHalf():Crease{ return; }
+
+	// private
+	newCreaseBetweenNodes(a:CreaseNode, b:CreaseNode):Crease{
+		this.dirty = true;
+		return <Crease>this.newEdge(a, b);
+	}
 
 	private newCrease(a_x:number, a_y:number, b_x:number, b_y:number):Crease{
 		// this is a private function expecting all boundary conditions satisfied
@@ -1094,7 +1096,7 @@ class CreasePattern extends PlanarGraph{
 		var orgX = bounds.origin.x;
 		var orgY = bounds.origin.y;
 		var scale = size / (width);
-		console.log(bounds, width, orgX, scale);
+		// console.log(bounds, width, orgX, scale);
 		var blob = "";
 		var widthScaled = ((width)*scale).toFixed(2);
 		var heightScaled = ((height)*scale).toFixed(2);
@@ -1301,27 +1303,3 @@ class CreasePattern extends PlanarGraph{
 	}
 
 }
-
-// interface Array<T> {
-// 	mountain():Crease[];
-// 	valley():Crease[];
-// }
-// Array.prototype.mountain = function():Crease[] {
-// 	if(this.length <= 1){ return ; }
-// 	for(var i = 0; i < this.length; i++){
-// 		if( this[i] instanceof Crease){
-// 			this[i].mountain();
-// 		}
-// 	}
-// 	return this;
-// }
-// Array.prototype.valley = function():Crease[] {
-// 	if(this.length <= 1){ return ; }
-// 	for(var i = 0; i < this.length; i++){
-// 		if( this[i] instanceof Crease){
-// 			this[i].valley();
-// 		}
-// 	}
-// 	return this;
-// }
-

@@ -2101,10 +2101,8 @@ var PlanarFace = (function (_super) {
         var options = this.graph.sectors.filter(function (sector) {
             return this.nodes.filter(function (node) { return node === sector.origin; }, this).length > 0;
         }, this);
-        console.log(options);
         return this.edges.map(function (el, i) {
             var nextEl = this.edges[(i + 1) % this.edges.length];
-            console.log(el.index, nextEl.index);
             return options.filter(function (sector) { return sector.edges[0] === el && sector.edges[1] === nextEl; }, this).shift();
         }, this);
     };
@@ -3085,13 +3083,10 @@ var CreaseFace = (function (_super) {
     }
     CreaseFace.prototype.rabbitEar = function () {
         var sectors = this.sectors();
-        console.log(sectors);
         if (sectors.length !== 3) {
             return [];
         }
-        var rays = sectors.map(function (el) {
-            return new Ray(el.origin, el.bisect());
-        });
+        var rays = sectors.map(function (el) { return new Ray(el.origin, el.bisect()); });
         var incenter = rays
             .map(function (el, i) {
             var nextEl = rays[(i + 1) % rays.length];
@@ -3774,7 +3769,6 @@ var CreasePattern = (function (_super) {
         var orgX = bounds.origin.x;
         var orgY = bounds.origin.y;
         var scale = size / (width);
-        console.log(bounds, width, orgX, scale);
         var blob = "";
         var widthScaled = ((width) * scale).toFixed(2);
         var heightScaled = ((height) * scale).toFixed(2);
