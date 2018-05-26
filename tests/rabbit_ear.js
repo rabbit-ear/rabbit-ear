@@ -6,7 +6,6 @@ rabbitEarProject.style.sector.fillColors = [{alpha:0.0}, {alpha:0.0}];
 rabbitEarProject.programModes = Object.freeze({"rabbitEar":1, "kawasaki":2});
 rabbitEarProject.lastRabbitEarNode = undefined;
 rabbitEarProject.style.face.scale = 1.0;
-// rabbitEarProject.style.face.fillColor = rabbitEarProject.styles.byrne.yellow;
 
 rabbitEarProject.reset = function(){
 	this.cp.clear();
