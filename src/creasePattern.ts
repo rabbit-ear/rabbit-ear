@@ -55,6 +55,65 @@ function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
 	}
 }
 
+class CPPoint extends XY{
+	cp:CreasePattern;
+	constructor(cp:CreasePattern, point:XY){
+		super(point.x, point.y);
+		this.cp = cp;
+	}
+	nearest(){ return this.cp.nearest(this); }
+}
+abstract class CreaseLineType{
+	cp:CreasePattern;
+	crease(){ }
+	// creaseAndRepeat(){ }
+	// creaseAndStop(){ }
+}
+class CPLine extends Line implements CreaseLineType{
+	cp:CreasePattern;
+	constructor(cp:CreasePattern, line:Line){
+		super(line.point, line.direction);
+		this.cp = cp;
+	}
+	crease(){ return this.cp.crease(this); }
+	// creaseAndRepeat(){ this.cp.creaseRayRepeat(this); }
+	// creaseAndStop(){ this.cp.creaseAndStop(this); }
+}
+class CPRay extends Ray implements CreaseLineType{
+	cp:CreasePattern;
+	constructor(cp:CreasePattern, ray:Ray){
+		super(ray.origin, ray.direction);
+		this.cp = cp;
+	}
+	crease(){ return this.cp.crease(this); }
+	creaseAndRepeat(){ this.cp.creaseRayRepeat(this); }
+	creaseAndStop(){ this.cp.creaseAndStop(this); }
+}
+class CPEdge extends Edge implements CreaseLineType{
+	cp:CreasePattern;
+	constructor(cp:CreasePattern, edge:Edge){
+		super(edge.nodes[0], edge.nodes[1]);
+		this.cp = cp;
+	}
+	crease(){ return this.cp.crease(this); }
+	// creaseAndRepeat(){ this.cp.creaseRayRepeat(this); }
+	// creaseAndStop(){ this.cp.creaseAndStop(this); }
+}
+class CPPolyline extends Polyline{
+	cp:CreasePattern;
+	constructor(cp:CreasePattern, polyline:Polyline){
+		super();
+		this.cp = cp;
+		this.nodes = polyline.nodes.map(function(p){return new XY(p.x,p.y);},this);
+	}
+	crease(){ return this.cp.creasePolyline(this); }
+}
+// class CPVoronoiMolecule extends VoronoiMolecule{ }
+// class CPVoronoiMoleculeTriangle extends VoronoiMoleculeTriangle{ }
+// class CPVoronoiEdge extends VoronoiEdge{ }
+// class CPVoronoiCell extends VoronoiCell{ }
+// class CPVoronoiJunction extends VoronoiJunction{ }
+// class CPVoronoiGraph extends VoronoiGraph{ }
 
 //////////////////////////////////////////////////////////////////////////
 // CREASE PATTERN
@@ -111,7 +170,20 @@ class FoldSequence{
 	// sheet of paper, the fold won't execute the same way, different node indices will get applied.
 }
 
+
 class CreaseSector extends PlanarSector{
+
+
+	bisect(){
+		var vectors = this.vectors();
+		var angles = vectors.map(function(el){ return Math.atan2(el.y, el.x); });
+		while(angles[0] < 0){ angles[0] += Math.PI*2; }
+		while(angles[1] < 0){ angles[1] += Math.PI*2; }
+		var interior = clockwiseInteriorAngleRadians(angles[0], angles[1]);
+		var bisected = angles[0] - interior*0.5;
+		var ray = new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(bisected), Math.sin(bisected)));
+		return new CPRay(<CreasePattern>this.origin.graph, ray);
+	}
 
 	/** This will search for an angle which if an additional crease is made will satisfy Kawasaki's theorem */
 	kawasakiFourth():XY{
@@ -139,7 +211,7 @@ class CreaseSector extends PlanarSector{
 		// var angle1 = this.edges[1].absoluteAngle(this.origin);
 		var newA = angle0 - dEven;
 		return new XY(Math.cos(newA), Math.sin(newA));
-	}		
+	}
 }
 class CreaseJunction extends PlanarJunction{
 
@@ -332,6 +404,11 @@ class CreasePattern extends PlanarGraph{
 	// creaseThroughLayers(point:CPPoint, vector:CPVector):Crease[]{
 	// 	return this.creaseRayRepeat(new Ray(point.x, point.y, vector.x, vector.y));
 	// }
+
+	point(a:any, b?:any):CPPoint{ return new CPPoint(this, gimme1XY(a,b)); }
+	line(a:any, b?:any, c?:any, d?:any):CPLine{ return new CPLine(this, gimme1Line(a,b,c,d)); }
+	ray(a:any, b?:any, c?:any, d?:any):CPRay{ return new CPRay(this, gimme1Ray(a,b,c,d)); }
+	edge(a:any, b?:any, c?:any, d?:any):CPEdge{ return new CPEdge(this, gimme1Edge(a,b,c,d)); }
 	
 	///////////////////////////////////////////////////////////////
 	// ADD PARTS
@@ -460,6 +537,14 @@ class CreasePattern extends PlanarGraph{
 		return new Polyline()
 			.rayReflectRepeat(ray, this.edges, target)
 			.edges()
+			.map(function(edge:Edge){
+				return this.crease(edge);
+			},this)
+			.filter(function(el){ return el != undefined; });
+	}
+
+	creasePolyline(polyline:Polyline):Crease[]{
+		return polyline.edges()
 			.map(function(edge:Edge){
 				return this.crease(edge);
 			},this)
@@ -998,6 +1083,13 @@ class CreasePattern extends PlanarGraph{
 	///////////////////////////////////////////////////////////////
 	// FILE FORMATS
 
+	export(fileType):any{
+		switch(fileType.toLowerCase()){
+			case "fold": return this.exportFoldFile();
+			case "svg": return this.exportSVG();
+		}
+	}
+
 	exportFoldFile():object{
 		this.flatten();
 		this.nodeArrayDidChange();
@@ -1092,20 +1184,30 @@ class CreasePattern extends PlanarGraph{
 		return true;
 	}
 
-	exportSVG(size:number):string{
+	strNum(num:number, decimalPlaces?:number){
+		if(decimalPlaces == undefined){
+			return (Math.floor(num)==num) ? num.toString() : num.toString();
+		}
+		return (Math.floor(num)==num) ? num.toString() : num.toFixed(decimalPlaces);
+	}
+
+	exportSVG(size?:number):string{
 		if(size === undefined || size <= 0){ size = 600; }
 		var bounds = this.bounds();
 		var width = bounds.size.width;
 		var height = bounds.size.height;
 		var scale = size / (width);
 		var origins = [bounds.origin.x, bounds.origin.y];
-		var widthScaled = ((width)*scale).toFixed(2);
-		var heightScaled = ((height)*scale).toFixed(2);
-		var strokeWidth = ((width)*scale * 0.0025).toFixed(1);
-		var dashW = ((width)*scale * 0.0025 * 3).toFixed(1);
-		var dashWOff = ((width)*scale * 0.0025 * 3 * 0.5).toFixed(1);		
-		if(strokeWidth === "0" || strokeWidth === "0.0"){ strokeWidth = "0.5"; }
-		var valleyStyle = "stroke=\"#4379FF\" stroke-dasharray=\"" + dashW + "," + dashWOff + "\" ";
+		var widthScaled = this.strNum(width*scale);
+		var heightScaled = this.strNum(height*scale);
+		var dashW = this.strNum(width * scale * 0.0025 * 4);
+		// var dashWOff = ((width)*scale * 0.0025 * 6 * 0.5).toFixed(1);
+		var dashWOff = dashW;
+		var strokeWidthNum = width * scale * 0.0025 * 2
+		var strokeWidth = strokeWidthNum < 0.5 ? 0.5 : this.strNum(strokeWidthNum);
+		if(strokeWidth == 0){ strokeWidth = 0.5; }
+
+		var valleyStyle = "stroke=\"#4379FF\" stroke-linecap=\"round\" stroke-dasharray=\"" + dashW + "," + dashWOff + "\" ";
 		var mountainStyle = "stroke=\"#EE1032\" ";
 		var noStyle = "stroke=\"#000000\" ";
 
@@ -1316,5 +1418,6 @@ class CreasePattern extends PlanarGraph{
 		g.boundary = this.boundary.copy();
 		return g;
 	}
-
 }
+
+

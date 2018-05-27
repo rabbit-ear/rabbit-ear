@@ -2871,6 +2871,65 @@ function gimme1Line(a, b, c, d) {
         return new Line(a.nodes[0].x, a.nodes[0].y, a.nodes[1].x, a.nodes[1].y);
     }
 }
+var CPPoint = (function (_super) {
+    __extends(CPPoint, _super);
+    function CPPoint(cp, point) {
+        var _this = _super.call(this, point.x, point.y) || this;
+        _this.cp = cp;
+        return _this;
+    }
+    CPPoint.prototype.nearest = function () { return this.cp.nearest(this); };
+    return CPPoint;
+}(XY));
+var CreaseLineType = (function () {
+    function CreaseLineType() {
+    }
+    CreaseLineType.prototype.crease = function () { };
+    return CreaseLineType;
+}());
+var CPLine = (function (_super) {
+    __extends(CPLine, _super);
+    function CPLine(cp, line) {
+        var _this = _super.call(this, line.point, line.direction) || this;
+        _this.cp = cp;
+        return _this;
+    }
+    CPLine.prototype.crease = function () { return this.cp.crease(this); };
+    return CPLine;
+}(Line));
+var CPRay = (function (_super) {
+    __extends(CPRay, _super);
+    function CPRay(cp, ray) {
+        var _this = _super.call(this, ray.origin, ray.direction) || this;
+        _this.cp = cp;
+        return _this;
+    }
+    CPRay.prototype.crease = function () { return this.cp.crease(this); };
+    CPRay.prototype.creaseAndRepeat = function () { this.cp.creaseRayRepeat(this); };
+    CPRay.prototype.creaseAndStop = function () { this.cp.creaseAndStop(this); };
+    return CPRay;
+}(Ray));
+var CPEdge = (function (_super) {
+    __extends(CPEdge, _super);
+    function CPEdge(cp, edge) {
+        var _this = _super.call(this, edge.nodes[0], edge.nodes[1]) || this;
+        _this.cp = cp;
+        return _this;
+    }
+    CPEdge.prototype.crease = function () { return this.cp.crease(this); };
+    return CPEdge;
+}(Edge));
+var CPPolyline = (function (_super) {
+    __extends(CPPolyline, _super);
+    function CPPolyline(cp, polyline) {
+        var _this = _super.call(this) || this;
+        _this.cp = cp;
+        _this.nodes = polyline.nodes.map(function (p) { return new XY(p.x, p.y); }, _this);
+        return _this;
+    }
+    CPPolyline.prototype.crease = function () { return this.cp.creasePolyline(this); };
+    return CPPolyline;
+}(Polyline));
 var CreaseDirection;
 (function (CreaseDirection) {
     CreaseDirection[CreaseDirection["mark"] = 0] = "mark";
@@ -2922,6 +2981,20 @@ var CreaseSector = (function (_super) {
     function CreaseSector() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    CreaseSector.prototype.bisect = function () {
+        var vectors = this.vectors();
+        var angles = vectors.map(function (el) { return Math.atan2(el.y, el.x); });
+        while (angles[0] < 0) {
+            angles[0] += Math.PI * 2;
+        }
+        while (angles[1] < 0) {
+            angles[1] += Math.PI * 2;
+        }
+        var interior = clockwiseInteriorAngleRadians(angles[0], angles[1]);
+        var bisected = angles[0] - interior * 0.5;
+        var ray = new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(bisected), Math.sin(bisected)));
+        return new CPRay(this.origin.graph, ray);
+    };
     CreaseSector.prototype.kawasakiFourth = function () {
         var junction = this.origin.junction();
         if (junction.edges.length != 3) {
@@ -3117,6 +3190,10 @@ var CreasePattern = (function (_super) {
         _this.square();
         return _this;
     }
+    CreasePattern.prototype.point = function (a, b) { return new CPPoint(this, gimme1XY(a, b)); };
+    CreasePattern.prototype.line = function (a, b, c, d) { return new CPLine(this, gimme1Line(a, b, c, d)); };
+    CreasePattern.prototype.ray = function (a, b, c, d) { return new CPRay(this, gimme1Ray(a, b, c, d)); };
+    CreasePattern.prototype.edge = function (a, b, c, d) { return new CPEdge(this, gimme1Edge(a, b, c, d)); };
     CreasePattern.prototype.foldInHalf = function () { return; };
     CreasePattern.prototype.newCreaseBetweenNodes = function (a, b) {
         this.dirty = true;
@@ -3246,6 +3323,13 @@ var CreasePattern = (function (_super) {
         return new Polyline()
             .rayReflectRepeat(ray, this.edges, target)
             .edges()
+            .map(function (edge) {
+            return this.crease(edge);
+        }, this)
+            .filter(function (el) { return el != undefined; });
+    };
+    CreasePattern.prototype.creasePolyline = function (polyline) {
+        return polyline.edges()
             .map(function (edge) {
             return this.crease(edge);
         }, this)
@@ -3700,6 +3784,12 @@ var CreasePattern = (function (_super) {
         this.symmetryLine = new Line(edge.nodes[0], edge.nodes[1].subtract(edge.nodes[1]));
         return this;
     };
+    CreasePattern.prototype["export"] = function (fileType) {
+        switch (fileType.toLowerCase()) {
+            case "fold": return this.exportFoldFile();
+            case "svg": return this.exportSVG();
+        }
+    };
     CreasePattern.prototype.exportFoldFile = function () {
         this.flatten();
         this.nodeArrayDidChange();
@@ -3767,6 +3857,12 @@ var CreasePattern = (function (_super) {
         this.clean(epsilon);
         return true;
     };
+    CreasePattern.prototype.strNum = function (num, decimalPlaces) {
+        if (decimalPlaces == undefined) {
+            return (Math.floor(num) == num) ? num.toString() : num.toString();
+        }
+        return (Math.floor(num) == num) ? num.toString() : num.toFixed(decimalPlaces);
+    };
     CreasePattern.prototype.exportSVG = function (size) {
         if (size === undefined || size <= 0) {
             size = 600;
@@ -3776,15 +3872,16 @@ var CreasePattern = (function (_super) {
         var height = bounds.size.height;
         var scale = size / (width);
         var origins = [bounds.origin.x, bounds.origin.y];
-        var widthScaled = ((width) * scale).toFixed(2);
-        var heightScaled = ((height) * scale).toFixed(2);
-        var strokeWidth = ((width) * scale * 0.0025).toFixed(1);
-        var dashW = ((width) * scale * 0.0025 * 3).toFixed(1);
-        var dashWOff = ((width) * scale * 0.0025 * 3 * 0.5).toFixed(1);
-        if (strokeWidth === "0" || strokeWidth === "0.0") {
-            strokeWidth = "0.5";
+        var widthScaled = this.strNum(width * scale);
+        var heightScaled = this.strNum(height * scale);
+        var dashW = this.strNum(width * scale * 0.0025 * 4);
+        var dashWOff = dashW;
+        var strokeWidthNum = width * scale * 0.0025 * 2;
+        var strokeWidth = strokeWidthNum < 0.5 ? 0.5 : this.strNum(strokeWidthNum);
+        if (strokeWidth == 0) {
+            strokeWidth = 0.5;
         }
-        var valleyStyle = "stroke=\"#4379FF\" stroke-dasharray=\"" + dashW + "," + dashWOff + "\" ";
+        var valleyStyle = "stroke=\"#4379FF\" stroke-linecap=\"round\" stroke-dasharray=\"" + dashW + "," + dashWOff + "\" ";
         var mountainStyle = "stroke=\"#EE1032\" ";
         var noStyle = "stroke=\"#000000\" ";
         var blob = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- generated by the crease pattern Javascript library by Robby Kraft  -->\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" + widthScaled + "px\" height=\"" + heightScaled + "px\" viewBox=\"0 0 " + widthScaled + " " + heightScaled + "\">\n";

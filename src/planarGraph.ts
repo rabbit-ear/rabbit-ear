@@ -624,7 +624,7 @@ class PlanarGraph extends Graph{
 	/** Locate the nearest node, edge, face, junction, sector to a supplied point
 	 * @returns {{'node':PlanarNode,'edge':PlanarEdge,'face':PlanarFace,'junction':PlanarJunction,'sector':PlanarSector}} object with keys node, edge, face, junction, sector with their objects, or undefined if not found
 	 */
-	nearest(a:any,b:any):{'node':PlanarNode,'edge':PlanarEdge,'face':PlanarFace,'junction':PlanarJunction,'sector':PlanarSector}{
+	nearest(a:any,b?:any):{'node':PlanarNode,'edge':PlanarEdge,'face':PlanarFace,'junction':PlanarJunction,'sector':PlanarSector}{
 		var point = gimme1XY(a,b);
 		var face = this.faceContainingPoint(point);
 		// if(face !== undefined){
