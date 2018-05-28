@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.0.2/css/bootstrap-slider.min.css">
+<style>
+html, body {
+	height:100%;  width:100%;
+	margin:0px;
+	background-color: #FFF;
+}
+canvas[resize]{
+	width:24vmax;
+	height:24vmax;
+}
+/*.btn{ padding:0.5em; }*/
+.row-div{
+	text-align: center;
+}
+#epsilon-value{
+	width:150px;
+}
+</style>
+</head>
+<body>
+	<div class="row-div">
+		<canvas id="canvas-1" resize></canvas>
+		<canvas id="canvas-2" resize></canvas>
+		<canvas id="canvas-3" resize></canvas>
+	</div>
+
+	<div class="row-div">
+		<canvas id="canvas-4" resize></canvas>
+		<canvas id="canvas-5" resize></canvas>
+		<canvas id="canvas-folded-state" resize></canvas>
+	</div>
+
+	<div class="row">
+		<div class="col-md-1"></div>
+		<div class="col-md-6">
+			<a href="#" class="btn btn-lg btn-secondary" id="load-file">Open File</a>
+			<a href="#" class="btn btn-lg btn-secondary" id="download-svg">Export .svg</a>
+			<a href="#" class="btn btn-lg btn-secondary" id="download-fold">Export .fold</a>
+		</div>
+		<div class="col-md-2">
+			<input id="epsilon-slider" data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="1000" data-slider-step="1" data-slider-value="400"/>
+		</div>
+		<div class="col-md-1"></div>
+		<div class="col-md-2">
+			<input type="text" class="form-control" id="epsilon-value">
+		</div>
+	</div>
+</body>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.0.2/bootstrap-slider.min.js"></script>
+<script type="text/javascript" src="../tools/drag-and-drop.js"></script>
+<script type="text/javascript" src="../tools/file-upload-button.js"></script>
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type='text/javascript' src='../../lib/fold.js'></script>
+<script type="text/javascript" src="../../dist/cp.js"></script>
+<script type="text/javascript" src="../../dist/cp.paperjs.js"></script>
+
+<script type="text/javascript" src="file-check.js"></script>
+</html>
