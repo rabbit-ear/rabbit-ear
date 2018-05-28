@@ -300,7 +300,8 @@ var OrigamiPaper = (function(){
 		var that = this;
 		this.scope.project.importSVG(svg, function(e){
 			var cp = that.loader.paperPathToCP(e);
-			if(epsilon === undefined){ epsilon = 0.00005; }
+			if(epsilon === undefined){ epsilon = 0.01; }
+			console.log("trying with this " + epsilon);
 			cp.flatten(epsilon);
 			that.cp = cp;
 			that.draw();

@@ -118,7 +118,7 @@ function intersectionLineRay(line:Line, ray:Ray, epsilon?:number):XY{
 		new XY(line.direction.x, line.direction.y),
 		new XY(ray.origin.x, ray.origin.y),
 		new XY(ray.direction.x, ray.direction.y),
-		function(t0,t1){return t1 >= 0;}, epsilon);
+		function(t0,t1){return t1 >= -epsilon;}, epsilon);
 }
 function intersectionLineEdge(line:Line, edge:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
@@ -127,7 +127,7 @@ function intersectionLineEdge(line:Line, edge:Edge, epsilon?:number):XY{
 		new XY(line.direction.x, line.direction.y),
 		new XY(edge.nodes[0].x, edge.nodes[0].y),
 		new XY(edge.nodes[1].x-edge.nodes[0].x, edge.nodes[1].y-edge.nodes[0].y),
-		function(t0,t1){return t1 >= 0 && t1 <= 1;}, epsilon);
+		function(t0,t1){return t1 >= -epsilon && t1 <= 1+epsilon;}, epsilon);
 }
 function intersectionRayRay(a:Ray, b:Ray, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
@@ -136,7 +136,7 @@ function intersectionRayRay(a:Ray, b:Ray, epsilon?:number):XY{
 		new XY(a.direction.x, a.direction.y),
 		new XY(b.origin.x, b.origin.y),
 		new XY(b.direction.x, b.direction.y),
-		function(t0,t1){return t0 >= 0 && t1 >= 0;}, epsilon);
+		function(t0,t1){return t0 >= -epsilon && t1 >= -epsilon;}, epsilon);
 }
 function intersectionRayEdge(ray:Ray, edge:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
@@ -145,16 +145,17 @@ function intersectionRayEdge(ray:Ray, edge:Edge, epsilon?:number):XY{
 		new XY(ray.direction.x, ray.direction.y),
 		new XY(edge.nodes[0].x, edge.nodes[0].y),
 		new XY(edge.nodes[1].x-edge.nodes[0].x, edge.nodes[1].y-edge.nodes[0].y),
-		function(t0,t1){return t0 >= 0 && t1 >= 0 && t1 <= 1;}, epsilon);
+		function(t0,t1){return t0 >= -epsilon && t1 >= -epsilon && t1 <= 1+epsilon;}, epsilon);
 }
 function intersectionEdgeEdge(a:Edge, b:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+	console.log("intersectionEdgeEdge " + epsilon);
 	return intersect_vec_func(
 		new XY(a.nodes[0].x, a.nodes[0].y),
 		new XY(a.nodes[1].x-a.nodes[0].x, a.nodes[1].y-a.nodes[0].y),
 		new XY(b.nodes[0].x, b.nodes[0].y),
 		new XY(b.nodes[1].x-b.nodes[0].x, b.nodes[1].y-b.nodes[0].y),
-		function(t0,t1){return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1;}, epsilon);
+		function(t0,t1){return t0 >= -epsilon && t0 <= 1+epsilon && t1 >= -epsilon && t1 <= 1+epsilon;}, epsilon);
 }
 function intersectionCircleLine(center:XY, radius:number, p0:XY, p1:XY):XY[]{
 	var r_squared =  Math.pow(radius,2);

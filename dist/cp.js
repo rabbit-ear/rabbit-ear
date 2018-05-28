@@ -482,31 +482,32 @@ function intersectionLineRay(line, ray, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    return intersect_vec_func(new XY(line.point.x, line.point.y), new XY(line.direction.x, line.direction.y), new XY(ray.origin.x, ray.origin.y), new XY(ray.direction.x, ray.direction.y), function (t0, t1) { return t1 >= 0; }, epsilon);
+    return intersect_vec_func(new XY(line.point.x, line.point.y), new XY(line.direction.x, line.direction.y), new XY(ray.origin.x, ray.origin.y), new XY(ray.direction.x, ray.direction.y), function (t0, t1) { return t1 >= -epsilon; }, epsilon);
 }
 function intersectionLineEdge(line, edge, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    return intersect_vec_func(new XY(line.point.x, line.point.y), new XY(line.direction.x, line.direction.y), new XY(edge.nodes[0].x, edge.nodes[0].y), new XY(edge.nodes[1].x - edge.nodes[0].x, edge.nodes[1].y - edge.nodes[0].y), function (t0, t1) { return t1 >= 0 && t1 <= 1; }, epsilon);
+    return intersect_vec_func(new XY(line.point.x, line.point.y), new XY(line.direction.x, line.direction.y), new XY(edge.nodes[0].x, edge.nodes[0].y), new XY(edge.nodes[1].x - edge.nodes[0].x, edge.nodes[1].y - edge.nodes[0].y), function (t0, t1) { return t1 >= -epsilon && t1 <= 1 + epsilon; }, epsilon);
 }
 function intersectionRayRay(a, b, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    return intersect_vec_func(new XY(a.origin.x, a.origin.y), new XY(a.direction.x, a.direction.y), new XY(b.origin.x, b.origin.y), new XY(b.direction.x, b.direction.y), function (t0, t1) { return t0 >= 0 && t1 >= 0; }, epsilon);
+    return intersect_vec_func(new XY(a.origin.x, a.origin.y), new XY(a.direction.x, a.direction.y), new XY(b.origin.x, b.origin.y), new XY(b.direction.x, b.direction.y), function (t0, t1) { return t0 >= -epsilon && t1 >= -epsilon; }, epsilon);
 }
 function intersectionRayEdge(ray, edge, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    return intersect_vec_func(new XY(ray.origin.x, ray.origin.y), new XY(ray.direction.x, ray.direction.y), new XY(edge.nodes[0].x, edge.nodes[0].y), new XY(edge.nodes[1].x - edge.nodes[0].x, edge.nodes[1].y - edge.nodes[0].y), function (t0, t1) { return t0 >= 0 && t1 >= 0 && t1 <= 1; }, epsilon);
+    return intersect_vec_func(new XY(ray.origin.x, ray.origin.y), new XY(ray.direction.x, ray.direction.y), new XY(edge.nodes[0].x, edge.nodes[0].y), new XY(edge.nodes[1].x - edge.nodes[0].x, edge.nodes[1].y - edge.nodes[0].y), function (t0, t1) { return t0 >= -epsilon && t1 >= -epsilon && t1 <= 1 + epsilon; }, epsilon);
 }
 function intersectionEdgeEdge(a, b, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    return intersect_vec_func(new XY(a.nodes[0].x, a.nodes[0].y), new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y), new XY(b.nodes[0].x, b.nodes[0].y), new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y), function (t0, t1) { return t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1; }, epsilon);
+    console.log("intersectionEdgeEdge " + epsilon);
+    return intersect_vec_func(new XY(a.nodes[0].x, a.nodes[0].y), new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y), new XY(b.nodes[0].x, b.nodes[0].y), new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y), function (t0, t1) { return t0 >= -epsilon && t0 <= 1 + epsilon && t1 >= -epsilon && t1 <= 1 + epsilon; }, epsilon);
 }
 function intersectionCircleLine(center, radius, p0, p1) {
     var r_squared = Math.pow(radius, 2);
@@ -1999,7 +2000,7 @@ var PlanarEdge = (function (_super) {
             return face.edges.filter(function (edge) { return edge === this; }, this).length > 0;
         }, this);
     };
-    PlanarEdge.prototype.crossingEdges = function () {
+    PlanarEdge.prototype.crossingEdges = function (epsilon) {
         var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
         var maxX = (this.nodes[0].x > this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
         var minY = (this.nodes[0].y < this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
@@ -2012,7 +2013,7 @@ var PlanarEdge = (function (_super) {
                 (el.nodes[0].y > maxY && el.nodes[1].y > maxY));
         }, this)
             .filter(function (el) { return this !== el; }, this)
-            .map(function (el) { return this.intersection(el); }, this)
+            .map(function (el) { return this.intersection(el, epsilon); }, this)
             .filter(function (el) { return el != undefined; })
             .sort(function (a, b) {
             if (a.point.commonX(b.point)) {
@@ -2289,7 +2290,7 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.clean = function (epsilon) {
         var report = new PlanarClean();
         report.join(this.cleanDuplicateNodes(epsilon));
-        report.join(this.fragment());
+        report.join(this.fragment(epsilon));
         report.join(this.cleanDuplicateNodes(epsilon));
         report.join(this.cleanGraph());
         report.join(this.cleanAllUselessNodes());
@@ -2551,6 +2552,7 @@ var PlanarGraph = (function (_super) {
             epsilon = EPSILON_HIGH;
         }
         var tree = rbush();
+        console.log("cleanDuplicateNodes " + epsilon);
         var nodes = this.nodes.map(function (el) {
             return {
                 minX: el.x - epsilon, minY: el.y - epsilon,
@@ -2628,17 +2630,17 @@ var PlanarGraph = (function (_super) {
         this.faceArrayDidChange();
         return this.faces;
     };
-    PlanarGraph.prototype.fragment = function () {
+    PlanarGraph.prototype.fragment = function (epsilon) {
         var that = this;
         function fragmentOneRound() {
             var roundReport = new PlanarClean();
             for (var i = 0; i < that.edges.length; i++) {
-                var fragmentReport = that.fragmentEdge(that.edges[i]);
+                var fragmentReport = that.fragmentEdge(that.edges[i], epsilon);
                 roundReport.join(fragmentReport);
                 if (fragmentReport.nodes.fragment.length > 0) {
                     roundReport.join(that.cleanGraph());
                     roundReport.join(that.cleanAllUselessNodes());
-                    roundReport.join(that.cleanDuplicateNodes());
+                    roundReport.join(that.cleanDuplicateNodes(epsilon));
                 }
             }
             return roundReport;
@@ -2656,9 +2658,9 @@ var PlanarGraph = (function (_super) {
         }
         return report;
     };
-    PlanarGraph.prototype.fragmentEdge = function (edge) {
+    PlanarGraph.prototype.fragmentEdge = function (edge, epsilon) {
         var report = new PlanarClean();
-        var intersections = edge.crossingEdges();
+        var intersections = edge.crossingEdges(epsilon);
         if (intersections.length === 0) {
             return report;
         }

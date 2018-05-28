@@ -194,7 +194,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 	 * @example
 	 * var edges = edge.crossingEdges()
 	 */
-	crossingEdges():{edge:PlanarEdge, point:XY}[]{
+	crossingEdges(epsilon?:number):{edge:PlanarEdge, point:XY}[]{
 		// optimize by excluding all edges outside of the quad space occupied by this edge
 		var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
 		var maxX = (this.nodes[0].x > this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
@@ -208,7 +208,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 				(el.nodes[0].y > maxY && el.nodes[1].y > maxY)
 				)},this)
 			.filter(function(el:PlanarEdge){ return this !== el}, this)
-			.map(function(el:PlanarEdge){ return this.intersection(el) }, this)
+			.map(function(el:PlanarEdge){ return this.intersection(el, epsilon) }, this)
 			.filter(function(el:{edge:PlanarEdge, point:XY}){ return el != undefined})
 			.sort(function(a:{edge:PlanarEdge, point:XY},b:{edge:PlanarEdge, point:XY}){
 				if(a.point.commonX(b.point)){ return a.point.y-b.point.y; }
@@ -234,7 +234,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 		if(edge instanceof PlanarEdge && this.isAdjacentToEdge(edge)){ return undefined; }
 		var a = new Edge(this.nodes[0].x, this.nodes[0].y, this.nodes[1].x, this.nodes[1].y);
 		var b = new Edge(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-		var intersect = a.intersection(b,epsilon); //intersectionEdgeEdge(a, b, epsilon);
+		var intersect = a.intersection(b, epsilon);
 		if(intersect !== undefined && 
 		 !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))){
 		 	var pe = <PlanarEdge>edge;
@@ -539,7 +539,7 @@ class PlanarGraph extends Graph{
 	clean(epsilon?:number):PlanarClean{
 		var report = new PlanarClean();
 		report.join( this.cleanDuplicateNodes(epsilon) );
-		report.join( this.fragment() );
+		report.join( this.fragment(epsilon) );
 		report.join( this.cleanDuplicateNodes(epsilon) );
 		report.join( this.cleanGraph() );
 		report.join( this.cleanAllUselessNodes() );
@@ -884,6 +884,7 @@ class PlanarGraph extends Graph{
 		// 	el.nodes[1].cache['edges'].push(el);
 		// });
 		// console.time("map");
+		console.log("cleanDuplicateNodes " + epsilon);
 		var nodes = this.nodes.map(function(el){
 			return {
 				minX: el.x - epsilon,  minY: el.y - epsilon,
@@ -966,17 +967,17 @@ class PlanarGraph extends Graph{
 	// new idea
 		// build a N x N matrix of edge to edge relationships, but only use the top triangle
 		// fill matrix with approximations
-	fragment():PlanarClean{
+	fragment(epsilon?:number):PlanarClean{
 		var that = this;
 		function fragmentOneRound():PlanarClean{
 			var roundReport = new PlanarClean();
 			for(var i = 0; i < that.edges.length; i++){
-				var fragmentReport = that.fragmentEdge(that.edges[i]);
+				var fragmentReport = that.fragmentEdge(that.edges[i], epsilon);
 				roundReport.join(fragmentReport);
 				if(fragmentReport.nodes.fragment.length > 0){
 					roundReport.join( that.cleanGraph() );
 					roundReport.join( that.cleanAllUselessNodes() );
-					roundReport.join( that.cleanDuplicateNodes() );
+					roundReport.join( that.cleanDuplicateNodes(epsilon) );
 				}
 			}
 			return roundReport;
@@ -997,10 +998,10 @@ class PlanarGraph extends Graph{
 	/** This function targets a single edge and performs the fragment operation on all crossing edges.
 	 * @returns {XY[]} array of XY locations of all the intersection locations
 	 */
-	private fragmentEdge(edge:PlanarEdge):PlanarClean{
+	private fragmentEdge(edge:PlanarEdge, epsilon?:number):PlanarClean{
 		var report = new PlanarClean();
 		// console.time("crossingEdge");
-		var intersections:{'edge':PlanarEdge, 'point':XY}[] = edge.crossingEdges();
+		var intersections:{'edge':PlanarEdge, 'point':XY}[] = edge.crossingEdges(epsilon);
 		// console.timeEnd("crossingEdge");
 		if(intersections.length === 0) { return report; }
 		report.nodes.fragment = intersections.map(function(el){ return new XY(el.point.x, el.point.y);});

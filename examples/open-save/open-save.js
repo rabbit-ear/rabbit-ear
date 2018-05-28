@@ -14,9 +14,16 @@ project.onMouseMove = function(event){
 	if(nearest.edge !== undefined){
 		this.edges[nearest.edge.index].strokeColor = yellow;
 		this.edges[nearest.edge.index].strokeWidth = this.style.mountain.strokeWidth*1.3333;
+		this.edges[nearest.edge.index].bringToFront();
 	}
 	// if(nearest.face !== undefined){ this.faces[nearest.face.index].fillColor = yellow}
 	// if(nearest.sector !== undefined){ this.sectors[nearest.sector.index].fillColor.alpha = 1.0; }
+}
+project.onMouseDown = function(event){
+	var nearest = this.cp.nearest(event.point);
+	if(nearest.edge){
+		console.log(nearest.edge);
+	}
 }
 
 // incoming file from upload-button or drag-to-upload
