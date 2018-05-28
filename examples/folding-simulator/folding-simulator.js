@@ -14,7 +14,8 @@ document.getElementById("download-file").addEventListener("click", function(e){
 });	
 ////////////////////////////////////////////////////////////////////
 var foldedState = new OrigamiFold("canvas-2");
-var project = new OrigamiPaper("canvas-1");
+var project = new OrigamiPaper("canvas-1").mediumLines();
+project.show.faces = true;
 
 function updateFoldedState(cp){
 	foldedState.cp = cp.copy();
@@ -33,6 +34,7 @@ function fileDidLoad(file){
 	} catch(err){
 		// try .svg file format
 		project.load(file, function(){
+			project.cp.clean(0.0001);
 			updateFoldedState(project.cp);
 		});
 	}

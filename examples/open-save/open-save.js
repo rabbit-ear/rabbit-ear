@@ -10,7 +10,7 @@ project.onMouseMove = function(event){
 	var yellow = {hue:43.2, saturation:0.88, brightness:0.93 };
 	var nearest = this.cp.nearest(event.point);
 	this.updateStyles();
-	if(nearest.node !== undefined){ this.nodes[nearest.node.index].visible = true; }
+	// if(nearest.node !== undefined){ this.nodes[nearest.node.index].visible = true; }
 	if(nearest.edge !== undefined){
 		this.edges[nearest.edge.index].strokeColor = yellow;
 		this.edges[nearest.edge.index].strokeWidth = this.style.mountain.strokeWidth*1.3333;

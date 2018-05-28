@@ -543,6 +543,8 @@ class PlanarGraph extends Graph{
 		report.join( this.cleanDuplicateNodes(epsilon) );
 		report.join( this.cleanGraph() );
 		report.join( this.cleanAllUselessNodes() );
+		this.nodeArrayDidChange();
+		this.edgeArrayDidChange();
 		return report;
 	}
 
