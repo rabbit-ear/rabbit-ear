@@ -126,26 +126,34 @@ kawasakiCallback = function(event){
 <script>
 
 var oneCrease = new OrigamiPaper("canvas-one-crease");
-oneCrease.onMouseDown = function(){ redoOneCrease(); }
+var oneCreaseFolded = new OrigamiFold("canvas-one-crease-folded");
+oneCreaseFolded.style = { face:{ fillColor:{ gray:0.0, alpha:0.4 } } };
+oneCrease.cp.setBoundary([ [0,0], [0,1.618], [1,1.618], [1,0] ]);
 
-var redoOneCrease = function(){
-	paper = oneCrease.scope;
-	oneCrease.cp.clear();
-	var angle = Math.random()*Math.PI*2;
-	var offCenter = new XY(0.5 + 0.1 * Math.cos(angle), 0.5 + 0.1 * Math.sin(angle));
-	oneCrease.cp.creaseThroughPoints(new XY(0.5, 0.5), offCenter).valley();
-	oneCrease.cp.clean();
-	oneCrease.cp.flatten();
-	oneCrease.faceLayer.visible = false;
-	oneCrease.draw();
+oneCrease.reset = function(){
+	// paper = this.scope;
+	// do{
+		this.cp.clear();
+		var a1 = Math.random()*Math.PI*2;
+		var ray1 = new XY(0.1 * Math.cos(a1), 0.1 * Math.sin(a1));
+		var pt1 = new XY(0.5, 1.618/3);
+		var pt2 = new XY(0.5, 1.618*2/3);
+		this.cp.creaseThroughPoints(pt1, pt1.add(ray1)).valley();
+		this.cp.creaseThroughPoints(pt2, pt2.add(ray1)).mountain();
+		this.cp.clean();
+		this.cp.flatten();
+	// } while(this.cp.edges.filter(function(edge){return edge.orientation == CreaseDirection.valley},this).length != 2);
+	this.draw();
 
-	var oneCreaseFolded = new OrigamiFold("canvas-one-crease-folded", oneCrease.cp.copy());
-	paper = oneCreaseFolded.scope;
-	oneCreaseFolded.onMouseDown = redoOneCrease
-	oneCreaseFolded.style = { face:{ fillColor:{ gray:0.0, alpha:0.4 } } };
-	oneCreaseFolded.update();
+	oneCreaseFolded.cp = this.cp.copy()
+	oneCreaseFolded.draw();
+	// oneCreaseFolded.update();
 }
-redoOneCrease();
+oneCrease.reset();
+
+oneCrease.onMouseDown = function(){ this.reset(); }
+oneCreaseFolded.onMouseDown = function(){ oneCrease.reset() };
+
 
 </script>
 

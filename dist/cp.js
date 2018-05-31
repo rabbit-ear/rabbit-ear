@@ -506,7 +506,6 @@ function intersectionEdgeEdge(a, b, epsilon) {
     if (epsilon === undefined) {
         epsilon = EPSILON_HIGH;
     }
-    console.log("intersectionEdgeEdge " + epsilon);
     return intersect_vec_func(new XY(a.nodes[0].x, a.nodes[0].y), new XY(a.nodes[1].x - a.nodes[0].x, a.nodes[1].y - a.nodes[0].y), new XY(b.nodes[0].x, b.nodes[0].y), new XY(b.nodes[1].x - b.nodes[0].x, b.nodes[1].y - b.nodes[0].y), function (t0, t1) { return t0 >= -epsilon && t0 <= 1 + epsilon && t1 >= -epsilon && t1 <= 1 + epsilon; }, epsilon);
 }
 function intersectionCircleLine(center, radius, p0, p1) {
@@ -1053,6 +1052,15 @@ var Rect = (function () {
         this.origin = { 'x': x, 'y': y };
         this.size = { 'width': width, 'height': height };
     }
+    Rect.prototype.contains = function (point, epsilon) {
+        if (epsilon == undefined) {
+            epsilon = 0;
+        }
+        return point.x > this.origin.x - epsilon &&
+            point.y > this.origin.y - epsilon &&
+            point.x < this.origin.x + this.size.width + epsilon &&
+            point.y < this.origin.y + this.size.height + epsilon;
+    };
     return Rect;
 }());
 var Triangle = (function () {
@@ -1990,7 +1998,9 @@ var PlanarNode = (function (_super) {
 var PlanarEdge = (function (_super) {
     __extends(PlanarEdge, _super);
     function PlanarEdge() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.cache = {};
+        return _this;
     }
     PlanarEdge.prototype.adjacentFaces = function () {
         if (this.graph.dirty) {
@@ -2084,6 +2094,15 @@ var PlanarEdge = (function (_super) {
         var origin = new XY(this.nodes[0].x, this.nodes[0].y);
         var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
         return new Line(origin, vector);
+    };
+    PlanarEdge.prototype.boundingBox = function (epsilon) {
+        if (epsilon == undefined) {
+            epsilon = 0;
+        }
+        var xs = this.nodes[0].x < this.nodes[1].x ? [this.nodes[0].x, this.nodes[1].x] : [this.nodes[1].x, this.nodes[0].x];
+        var ys = this.nodes[0].y < this.nodes[1].y ? [this.nodes[0].y, this.nodes[1].y] : [this.nodes[1].y, this.nodes[0].y];
+        var eps2 = epsilon * 2;
+        return new Rect(xs[0] - epsilon, ys[0] - epsilon, xs[1] - xs[0] + eps2, ys[1] - ys[0] + eps2);
     };
     return PlanarEdge;
 }(GraphEdge));
@@ -2552,7 +2571,6 @@ var PlanarGraph = (function (_super) {
             epsilon = EPSILON_HIGH;
         }
         var tree = rbush();
-        console.log("cleanDuplicateNodes " + epsilon);
         var nodes = this.nodes.map(function (el) {
             return {
                 minX: el.x - epsilon, minY: el.y - epsilon,
@@ -2658,6 +2676,53 @@ var PlanarGraph = (function (_super) {
         }
         return report;
     };
+    PlanarGraph.prototype.fragmentOverlappingEdges = function (epsilon) {
+        if (epsilon == undefined) {
+            epsilon = 0.00000001;
+        }
+        var tree = rbush();
+        var edges = this.edges.map(function (edge) {
+            var box = edge.boundingBox(epsilon);
+            edge.cache["box"] = box;
+            return {
+                minX: box.origin.x, minY: box.origin.y,
+                maxX: box.origin.x + box.size.width, maxY: box.origin.y + box.size.height,
+                edge: edge
+            };
+        }, this);
+        tree.load(edges);
+        this.edges.slice().forEach(function (edge) {
+            var box = edge.cache["box"];
+            if (box == undefined) {
+                box = edge.boundingBox(epsilon);
+            }
+            var result = tree.search({
+                minX: box.origin.x,
+                minY: box.origin.y,
+                maxX: box.origin.x + box.size.width,
+                maxY: box.origin.y + box.size.height
+            }).filter(function (el) { return edge.parallel(el['edge']); }, this);
+            for (var r = 0; r < result.length; r++) {
+                if (edge !== result[r]['edge']) {
+                    this.fragmentTwoOverlappingEdges(edge, result[r]['edge'], epsilon);
+                }
+            }
+        }, this);
+    };
+    PlanarGraph.prototype.fragmentTwoOverlappingEdges = function (a, b, epsilon) {
+        if (epsilon == undefined) {
+            epsilon = 0.00000001;
+        }
+        var a0b0 = a.nodes[0].equivalent(b.nodes[0], epsilon);
+        var a0b1 = a.nodes[0].equivalent(b.nodes[1], epsilon);
+        var a1b0 = a.nodes[1].equivalent(b.nodes[0], epsilon);
+        var a1b1 = a.nodes[1].equivalent(b.nodes[1], epsilon);
+        if ((a0b0 || a0b1) && (a1b0 || a1b1)) {
+            console.log("collinear parallel edges are similar ", a, b);
+            console.log("collinear parallel edges are similar ", a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]);
+            return;
+        }
+    };
     PlanarGraph.prototype.fragmentEdge = function (edge, epsilon) {
         var report = new PlanarClean();
         var intersections = edge.crossingEdges(epsilon);
@@ -2665,7 +2730,7 @@ var PlanarGraph = (function (_super) {
             return report;
         }
         report.nodes.fragment = intersections.map(function (el) { return new XY(el.point.x, el.point.y); });
-        var endNodes = edge.nodes.sort(function (a, b) {
+        var endNodes = edge.nodes.slice().sort(function (a, b) {
             if (a.commonX(b)) {
                 return a.y - b.y;
             }

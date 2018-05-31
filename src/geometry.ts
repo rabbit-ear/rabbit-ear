@@ -149,7 +149,6 @@ function intersectionRayEdge(ray:Ray, edge:Edge, epsilon?:number):XY{
 }
 function intersectionEdgeEdge(a:Edge, b:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-	console.log("intersectionEdgeEdge " + epsilon);
 	return intersect_vec_func(
 		new XY(a.nodes[0].x, a.nodes[0].y),
 		new XY(a.nodes[1].x-a.nodes[0].x, a.nodes[1].y-a.nodes[0].y),
@@ -642,6 +641,13 @@ class Rect{
 	constructor(x:number,y:number,width:number,height:number){
 		this.origin = {'x':x, 'y':y};
 		this.size = {'width':width, 'height':height};
+	}
+	contains(point:XY, epsilon?:number):boolean{
+		if(epsilon == undefined){ epsilon = 0; }
+		return point.x > this.origin.x - epsilon && 
+		       point.y > this.origin.y - epsilon &&
+		       point.x < this.origin.x + this.size.width + epsilon &&
+		       point.y < this.origin.y + this.size.height + epsilon;
 	}
 }
 /** A verbose representation of a triangle containing points, edges, sectors (interior angles), and its circumcenter */

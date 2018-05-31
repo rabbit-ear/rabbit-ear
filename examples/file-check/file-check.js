@@ -43,6 +43,7 @@ panel3.show.faces = false;
 panel4.show.faces = true;
 panel4.style.face.fillColor = {gray:0.9};
 panel4.style.face.scale = 1.0;
+panel4.show.edges = false;
 panel5.show.faces = true;
 var foldedState = new OrigamiFold("canvas-folded-state");
 
@@ -62,14 +63,24 @@ panel3.onMouseMove = function(event){
 	}
 }
 panel4.onMouseMove = function(event){
-	var nearest = this.cp.nearest(event.point);
-	this.updateStyles();
-	if(nearest.face !== undefined){
-		this.faces[nearest.face.index].fillColor = this.styles.byrne.red;
-		nearest.face.edgeAdjacentFaces().forEach(function(face){
-			this.faces[face.index].fillColor = this.styles.byrne.yellow;
-		},this);
+	// var nearest = this.cp.nearest(event.point);
+	// this.updateStyles();
+	// if(nearest.face !== undefined){
+	// 	this.faces[nearest.face.index].fillColor = this.styles.byrne.red;
+	// 	nearest.face.edgeAdjacentFaces().forEach(function(face){
+	// 		this.faces[face.index].fillColor = this.styles.byrne.yellow;
+	// 	},this);
+	// }
+}
+panel4.reset = function(){
+	var colors = [this.styles.byrne.yellow, this.styles.byrne.darkBlue];
+	var tree = this.cp.faces[0].adjacentFaceTree();
+	function recurse(tree, level){
+		var face = tree.obj;
+		panel4.faces[ face.index ].fillColor = colors[ level%2 ];
+		tree.children.forEach(function(child){ recurse(child, level + 1); });
 	}
+	recurse(tree, 0);
 }
 
 function updateEpsilon(newEpsilon){
@@ -80,6 +91,7 @@ function updateEpsilon(newEpsilon){
 		panel.cp = cp.copy();
 		panel.draw();
 	},this);
+	panel4.reset();
 	foldedState.cp = cp.copy();
 	foldedState.draw();
 }
@@ -106,9 +118,9 @@ function fileDidLoad(file){
 			panel3.cp = panel2.cp.copy();
 			panel4.cp = panel2.cp.copy();
 			panel5.cp = panel2.cp.copy();
-			panel4.cp.clean(0.001);
 			panel4.cp.flatten();
 			[panel3, panel4, panel5].forEach(function(el){el.draw();},);
+			panel4.reset();
 			updateFoldedState(panel2.cp);
 		});
 	// }

@@ -178,6 +178,9 @@ class PlanarEdge extends GraphEdge implements Edge{
 	graph:PlanarGraph;
 	nodes:[PlanarNode,PlanarNode];
 
+	// for speeding up algorithms, temporarily store information here
+	cache:object = {};
+
 	/** Returns an array of faces that contain this edge
 	 * @returns {PlanarFace[]} array of adjacent faces
 	 * @example
@@ -195,7 +198,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 	 * var edges = edge.crossingEdges()
 	 */
 	crossingEdges(epsilon?:number):{edge:PlanarEdge, point:XY}[]{
-		// optimize by excluding all edges outside of the quad space occupied by this edge
+		// speed up by excluding all edges outside of the quad space containing this edge
 		var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
 		var maxX = (this.nodes[0].x > this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
 		var minY = (this.nodes[0].y < this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
@@ -274,6 +277,13 @@ class PlanarEdge extends GraphEdge implements Edge{
 		var origin = new XY(this.nodes[0].x, this.nodes[0].y);
 		var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
 		return new Line(origin, vector);
+	}
+	boundingBox(epsilon?:number):Rect{
+		if(epsilon == undefined){ epsilon = 0; }
+		var xs = this.nodes[0].x<this.nodes[1].x?[this.nodes[0].x,this.nodes[1].x]:[this.nodes[1].x,this.nodes[0].x];
+		var ys = this.nodes[0].y<this.nodes[1].y?[this.nodes[0].y,this.nodes[1].y]:[this.nodes[1].y,this.nodes[0].y];
+		var eps2 = epsilon*2;
+		return new Rect(xs[0]-epsilon, ys[0]-epsilon, xs[1]-xs[0]+eps2, ys[1]-ys[0]+eps2);
 	}
 }
 /** Planar faces are counter-clockwise sequences of nodes already connected by edges */
@@ -884,7 +894,6 @@ class PlanarGraph extends Graph{
 		// 	el.nodes[1].cache['edges'].push(el);
 		// });
 		// console.time("map");
-		console.log("cleanDuplicateNodes " + epsilon);
 		var nodes = this.nodes.map(function(el){
 			return {
 				minX: el.x - epsilon,  minY: el.y - epsilon,
@@ -992,7 +1001,95 @@ class PlanarGraph extends Graph{
 			protection += 1;
 		}while(thisReport.nodes.fragment.length != 0 && protection < 5000);
 		if(protection >= 5000){ throw("exiting fragment(). potential infinite loop detected"); }
+		// this.fragmentOverlappingEdges(epsilon);
 		return report;
+	}
+
+	private fragmentOverlappingEdges(epsilon?:number){
+		if(epsilon == undefined){ epsilon = 0.00000001; }
+		var tree = rbush();
+		var edges = this.edges.map(function(edge){
+			var box:Rect = edge.boundingBox(epsilon);
+			edge.cache["box"] = box;
+			return {
+				minX: box.origin.x,  minY: box.origin.y,
+				maxX: box.origin.x+box.size.width,  maxY: box.origin.y+box.size.height,
+				edge: edge
+			};
+		},this);
+		tree.load(edges);
+		this.edges.slice().forEach(function(edge){
+			var box = edge.cache["box"];
+			if(box == undefined){ box = edge.boundingBox(epsilon); }
+			var result = tree.search({
+				minX: box.origin.x,
+				minY: box.origin.y,
+				maxX: box.origin.x + box.size.width,
+				maxY: box.origin.y + box.size.height
+			}).filter(function(el){ return edge.parallel(el['edge']); },this);
+			for(var r = 0; r < result.length; r++){
+				if(edge !== result[r]['edge']){
+					// clean.join to report
+					this.fragmentTwoOverlappingEdges(edge, result[r]['edge'], epsilon)
+				}
+			}
+		},this);
+	}
+	private fragmentTwoOverlappingEdges(a:PlanarEdge, b:PlanarEdge, epsilon?:number){
+		// console.log("found two collinear overlapping edges");
+		// console.log(a.nodes[0].x.toFixed(3),a.nodes[0].y.toFixed(3),a.nodes[1].x.toFixed(3),a.nodes[1].y.toFixed(3));
+		// console.log(b.nodes[0].x.toFixed(3),b.nodes[0].y.toFixed(3),b.nodes[1].x.toFixed(3),b.nodes[1].y.toFixed(3));
+		if(epsilon == undefined){ epsilon = 0.00000001; }
+		var a0b0 = a.nodes[0].equivalent(b.nodes[0], epsilon);
+		var a0b1 = a.nodes[0].equivalent(b.nodes[1], epsilon);
+		var a1b0 = a.nodes[1].equivalent(b.nodes[0], epsilon);
+		var a1b1 = a.nodes[1].equivalent(b.nodes[1], epsilon);
+		// they are actually the same edge. something probably should have caught this sooner...
+		if( (a0b0 || a0b1) && (a1b0 || a1b1)){
+			console.log("collinear parallel edges are similar ", a, b);
+			console.log("collinear parallel edges are similar ", a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]);
+			// this.removeEdge(a);
+			return;
+		}
+		// if(a.cache['box'] == undefined){ a.cache['box'] = a.boundingBox(epsilon); }
+		// if(b.cache['box'] == undefined){ b.cache['box'] = b.boundingBox(epsilon); }
+		// // the two edges share a point in common
+		// if(a0b0 || a0b1 || a1b0 || a1b1){
+		// 	var aCommon = (a0b0 || a0b1) ? 0 : 1;
+		// 	var bCommon = (a0b0 || a1b0) ? 0 : 1;
+		// 	var aUncommon = (a0b0 || a0b1) ? 1 : 0;
+		// 	var bUncommon = (a0b0 || a1b0) ? 1 : 0;
+		// 	console.log("collinear edges point in common ", a.nodes[aCommon].x.toFixed(3),a.nodes[aCommon].y.toFixed(3));
+		// 	if(b.collinear(a.nodes[aUncommon], epsilon)){
+		// 		console.log("a's node is along b");
+		// 		b.nodes[bCommon] = a.nodes[aUncommon];
+		// 		if(b.nodes[0].equivalent(b.nodes[1], epsilon)){ console.log("created degenerate edge"); this.removeEdge(b); }
+		// 	}
+		// 	if(a.collinear(b.nodes[aUncommon], epsilon)){
+		// 		console.log("b's node is along a");
+		// 		a.nodes[aCommon] = b.nodes[bUncommon];
+		// 		if(a.nodes[0].equivalent(a.nodes[1], epsilon)){ console.log("created degenerate edge"); this.removeEdge(a); }
+		// 	}
+		// 	// if(b.cache['box'].contains(a.nodes[aUncommon])){
+		// 	// 	console.log("b box contains a");
+		// 	// 	var rm = b.nodes[bCommon]; b.nodes[bCommon] = a.nodes[aUncommon]; this.cleanNodeIfUseless(rm); b.cache['box'] = b.boundingBox(epsilon); return;
+		// 	// }
+		// 	// if(a.cache['box'].contains(b.nodes[bUncommon])){
+		// 	// 	console.log("a box contains b");
+		// 	// 	var rm = a.nodes[aCommon]; a.nodes[aCommon] = b.nodes[bUncommon]; this.cleanNodeIfUseless(rm); a.cache['box'] = a.boundingBox(epsilon); return;
+		// 	// }
+		// }
+		// var a0InB = b.cache['box'].contains(a.nodes[0], epsilon);
+		// var a1InB = b.cache['box'].contains(a.nodes[1], epsilon);
+		// var b0InA = a.cache['box'].contains(b.nodes[0], epsilon);
+		// var b1InA = a.cache['box'].contains(b.nodes[1], epsilon);
+		// if(!a0InB && !a1InB && !b0InA && !b1InA){ console.log("collinear parallel edges are not overlapping"); return; }
+		// if(a0InB && a1InB){
+			// a is completely inside of b
+			// var a0b0dist = a.nodes[0].distanceTo(b.nodes[0]);
+			// var a0b1dist = a.nodes[0].distanceTo(b.nodes[1]);
+			// if(a0b0dist < a0b1dist){  }
+		// }
 	}
 
 	/** This function targets a single edge and performs the fragment operation on all crossing edges.
@@ -1000,13 +1097,10 @@ class PlanarGraph extends Graph{
 	 */
 	private fragmentEdge(edge:PlanarEdge, epsilon?:number):PlanarClean{
 		var report = new PlanarClean();
-		// console.time("crossingEdge");
 		var intersections:{'edge':PlanarEdge, 'point':XY}[] = edge.crossingEdges(epsilon);
-		// console.timeEnd("crossingEdge");
 		if(intersections.length === 0) { return report; }
 		report.nodes.fragment = intersections.map(function(el){ return new XY(el.point.x, el.point.y);});
-		// console.time("fragmentEdge");
-		var endNodes = edge.nodes.sort(function(a,b){
+		var endNodes = edge.nodes.slice().sort(function(a,b){
 			if(a.commonX(b)){ return a.y-b.y; }
 			return a.x-b.x;
 		});
@@ -1028,7 +1122,6 @@ class PlanarGraph extends Graph{
 		}
 		this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length-1], endNodes[1]];
 		this.removeEdge(edge);
-		// console.timeEnd("fragmentEdge");
 		report.join(this.cleanGraph());
 		return report;
 	}

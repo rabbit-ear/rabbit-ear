@@ -300,7 +300,7 @@ var OrigamiPaper = (function(){
 		var that = this;
 		this.scope.project.importSVG(svg, function(e){
 			var cp = that.loader.paperPathToCP(e);
-			if(epsilon === undefined){ epsilon = 0.01; }
+			if(epsilon === undefined){ epsilon = 0.0001; }
 			console.log("trying with this " + epsilon);
 			cp.flatten(epsilon);
 			that.cp = cp;
@@ -558,11 +558,13 @@ var OrigamiFold = (function(){
 		this.faces = [];
 		this.foldedLayer.removeChildren();
 		this.foldedLayer.activate();
-		this.foldedCP.forEach(function(nodes){
-			var faceShape = new this.scope.Path({segments:nodes,closed:true});
-			faceShape.fillColor = this.style.face.fillColor;
-			this.faces.push( faceShape );
-		},this);
+		if(this.foldedCP != undefined){
+			this.foldedCP.forEach(function(nodes){
+				var faceShape = new this.scope.Path({segments:nodes,closed:true});
+				faceShape.fillColor = this.style.face.fillColor;
+				this.faces.push( faceShape );
+			},this);
+		}
 		this.buildViewMatrix();
 	}
 	OrigamiFold.prototype.update = function () {
@@ -644,6 +646,17 @@ var PaperJSLoader = (function(){
 		// cp.boundary = new PlanarGraph();
 		function recurseAndAdd(childrenArray){
 			for(var i = 0; i < childrenArray.length; i++){
+				if(childrenArray[i].shape == "rectangle"){ // found a rectangle
+					var left = childrenArray[i].strokeBounds.left;
+					var top = childrenArray[i].strokeBounds.top;
+					var width = childrenArray[i].strokeBounds.width;
+					var height = childrenArray[i].strokeBounds.height;
+					var rectArray = [ [left, top], [left+width, top], [left+width, top+height], [left, top+height] ];
+					rectArray.forEach(function(el,i){
+						var nextEl = rectArray[ (i+1)%rectArray.length ];
+						cp.newCrease(el[0], el[1], nextEl[0], nextEl[1]);
+					},this);
+				}
 				if(childrenArray[i].segments !== undefined){ // found a line
 					var numSegments = childrenArray[i].segments.length-1;
 					if(childrenArray[i].closed === true){
@@ -667,6 +680,7 @@ var PaperJSLoader = (function(){
 			}
 		}
 		recurseAndAdd(svgLayer.children);
+		// console.log(svgLayer.children);
 		// cp is populated
 		// find the convex hull of the CP, set it to the boundary
 		// cp.setBoundary(cp.nodes);
