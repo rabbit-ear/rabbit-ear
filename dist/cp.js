@@ -2712,13 +2712,11 @@ var PlanarGraph = (function (_super) {
     };
     PlanarGraph.prototype.fragmentEdge = function (edge, epsilon) {
         var report = new PlanarClean();
-        console.log("fragmentEdge: " + this.edges.length);
         var intersections = edge.crossingEdges(epsilon);
         if (intersections.length == 0) {
             return report;
         }
-        console.log(intersections);
-        console.log(intersections[0].edge.nodes);
+        var edgesLength = this.edges.length;
         report.nodes.fragment = intersections.map(function (el) { return new XY(el.point.x, el.point.y); });
         var endNodes = edge.nodes.slice().sort(function (a, b) {
             if (a.commonX(b)) {
@@ -2726,7 +2724,6 @@ var PlanarGraph = (function (_super) {
             }
             return a.x - b.x;
         });
-        console.log("step 1 (created 0) " + this.edges.length);
         var newLineNodes = intersections.map(function (el) {
             return this.newNode().position(el.point.x, el.point.y);
         }, this);
@@ -2740,27 +2737,16 @@ var PlanarGraph = (function (_super) {
             }
             for (var i = 0; i < crossings.length - 1; i++) {
                 this.copyEdge(el.edge).nodes = [crossings[i], crossings[i + 1]];
-                console.log("adding edge inside the loop " + this.edges.length);
-                console.log(this.edges.map(function (ffff) { return ffff.nodes; }, this));
             }
-            console.log("A " + this.edges.length);
             this.edges = this.edges.filter(function (filt) { return filt !== el.edge; }, this);
-            console.log("B " + this.edges.length);
         }, this);
-        console.log("step 2 (created 2) " + this.edges.length);
         this.copyEdge(edge).nodes = [endNodes[0], newLineNodes[0]];
-        console.log("step 3 (created 2) " + this.edges.length);
         for (var i = 0; i < newLineNodes.length - 1; i++) {
             this.copyEdge(edge).nodes = [newLineNodes[i], newLineNodes[i + 1]];
         }
-        console.log("step 4 (created 0) " + this.edges.length);
         this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length - 1], endNodes[1]];
-        console.log("step 5 (created 2) " + this.edges.length);
-        this.removeEdge(edge);
-        console.log("step 6 (removed 1) " + this.edges.length);
-        console.log("before cleaning: " + this.edges.length);
-        report.join(this.cleanGraph());
-        console.log("after cleaning: " + this.edges.length);
+        this.edges = this.edges.filter(function (filt) { return filt !== edge; }, this);
+        report.edges.total += edgesLength - this.edges.length;
         return report;
     };
     PlanarGraph.prototype.faceFromCircuit = function (circuit) {

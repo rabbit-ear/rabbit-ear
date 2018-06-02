@@ -1095,26 +1095,15 @@ class PlanarGraph extends Graph{
 	 */
 	private fragmentEdge(edge:PlanarEdge, epsilon?:number):PlanarClean{
 		var report = new PlanarClean();
-		console.log("fragmentEdge: " + this.edges.length);
 		var intersections:{'edge':PlanarEdge, 'point':XY}[] = edge.crossingEdges(epsilon);
 		if(intersections.length == 0){ return report; }
-		console.log(intersections);
-		console.log(intersections[0].edge.nodes);
+		var edgesLength = this.edges.length;
 		report.nodes.fragment = intersections.map(function(el){ return new XY(el.point.x, el.point.y);});
 		var endNodes = edge.nodes.slice().sort(function(a,b){
 			if(a.commonX(b)){ return a.y-b.y; }
 			return a.x-b.x;
 		});
-		console.log("step 1 (created 0) " + this.edges.length);
 		// iterate through intersections, rebuild edges in order
-		// var newLineNodes = [];
-		// todo, add endNodes into this array
-		// for(var i = 0; i < intersections.length; i++){
-			// var newNode = (<PlanarNode>this.newNode()).position(intersections[i].point.x, intersections[i].point.y);
-			// this.copyEdge(intersections[i].edge).nodes = [newNode, intersections[i].edge.nodes[1]];
-			// intersections[i].edge.nodes[1] = newNode;
-			// newLineNodes.push(newNode);
-		// }
 		var newLineNodes = intersections.map(function(el){
 			return (<PlanarNode>this.newNode()).position(el.point.x, el.point.y);
 		},this);
@@ -1127,22 +1116,14 @@ class PlanarGraph extends Graph{
 			}
 			this.edges = this.edges.filter(function(filt){ return filt !== el.edge; },this);
 		},this);
-
-		console.log("step 2 (created 2) " + this.edges.length);
 		// replace the original edge with smaller collinear pieces of itself
 		this.copyEdge(edge).nodes = [endNodes[0], newLineNodes[0]];
-		console.log("step 3 (created 2) " + this.edges.length);
 		for(var i = 0; i < newLineNodes.length-1; i++){
 			this.copyEdge(edge).nodes = [newLineNodes[i], newLineNodes[i+1]];
 		}
-		console.log("step 4 (created 0) " + this.edges.length);
 		this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length-1], endNodes[1]];
-		console.log("step 5 (created 2) " + this.edges.length);
-		this.removeEdge(edge);
-		console.log("step 6 (removed 1) " + this.edges.length);
-		console.log("before cleaning: " + this.edges.length);
-		report.join(this.cleanGraph());
-		console.log("after cleaning: " + this.edges.length);
+		this.edges = this.edges.filter(function(filt){ return filt !== edge; },this);
+		report.edges.total += edgesLength - this.edges.length;
 		return report;
 	}
 
