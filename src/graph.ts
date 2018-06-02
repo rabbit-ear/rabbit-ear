@@ -419,7 +419,8 @@ class Graph{
 	mergeNodes(node1:GraphNode, node2:GraphNode):GraphClean{
 		if(node1 === node2) { return undefined; }
 		this.edges.forEach(function(edge){
-			edge.nodes.forEach(function(n){ if(n===node2) n=node1; },this);
+			if(edge.nodes[0]===node2){edge.nodes[0]=node1;}
+			if(edge.nodes[1]===node2){edge.nodes[1]=node1;}
 		},this);
 		// this potentially created circular edges
 		var nodesLength = this.nodes.length;

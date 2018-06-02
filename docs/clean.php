@@ -185,24 +185,16 @@ remove_edge_callback = function(report){
 			cp[i].crease(j, 0.5 + 0.45*Math.sin(j*freq-Math.PI*0.5), (j+inc), 0.5 + 0.45*Math.sin((j+inc)*freq-Math.PI*0.5));
 		}
 	}
-
 	cp[0].cleanDuplicateNodes(0.01);
-	// cp[1].cleanDuplicateNodes(0.025);
 	cp[1].cleanDuplicateNodes(0.05);
-	// cp[2].cleanDuplicateNodes(0.066);
 	var paper1 = new OrigamiPaper("canvas1", cp[0]);
 	var paper2 = new OrigamiPaper("canvas2", cp[1]);
-	// var paper3 = new OrigamiPaper("canvas3", cp[2]);
-	// paper1.style.node.visible = true;
-	// paper2.style.node.visible = true;
 	paper1.show.nodes = true;
 	paper2.show.nodes = true;
 	paper1.style.node.fillColor = { gray:0 };
 	paper2.style.node.fillColor = { gray:0 };
-	// paper3.style.node.visible = true;
 	paper1.draw();
 	paper2.draw();
-	// paper3.update();
 </script>
 
 

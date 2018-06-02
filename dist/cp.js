@@ -240,8 +240,12 @@ var Graph = (function () {
             return undefined;
         }
         this.edges.forEach(function (edge) {
-            edge.nodes.forEach(function (n) { if (n === node2)
-                n = node1; }, this);
+            if (edge.nodes[0] === node2) {
+                edge.nodes[0] = node1;
+            }
+            if (edge.nodes[1] === node2) {
+                edge.nodes[1] = node1;
+            }
         }, this);
         var nodesLength = this.nodes.length;
         this.nodes = this.nodes.filter(function (el) { return el !== node2; });
@@ -2588,12 +2592,23 @@ var PlanarGraph = (function (_super) {
         });
         tree.load(nodes);
         var clean = new PlanarClean();
+        this.nodeArrayDidChange();
+        var remainList = [];
+        var removeList = [];
+        var mergeList = [];
         this.nodes.forEach(function (node) {
             tree.search({ minX: node.x - epsilon, minY: node.y - epsilon, maxX: node.x + epsilon, maxY: node.y + epsilon })
                 .filter(function (r) { return node !== r['node']; }, this)
+                .filter(function (r) { return remainList.indexOf(r['node']) == -1; }, this)
+                .filter(function (r) { return removeList.indexOf(node) == -1; }, this)
                 .forEach(function (r) {
-                clean.join(this.mergePlanarNodes(node, r['node']));
+                remainList.push(node);
+                removeList.push(r['node']);
+                mergeList.push({ 'remain': node, 'remove': r['node'] });
             }, this);
+        }, this);
+        mergeList.forEach(function (el) {
+            clean.join(this.mergePlanarNodes(el['remain'], el['remove']));
         }, this);
         return clean;
     };

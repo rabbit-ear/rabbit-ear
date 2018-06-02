@@ -901,20 +901,33 @@ class PlanarGraph extends Graph{
 	 * @returns {PlanarClean} how many nodes were removed
 	 */
 	cleanDuplicateNodes(epsilon?:number):PlanarClean{
+		// return new PlanarClean()
 		var EPSILON_HIGH = 0.00000001;
 		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		var tree = rbush();
 		var nodes = this.nodes.map(function(el){
-			return {minX:el.x-epsilon,minY:el.y-epsilon,maxX:el.x+epsilon,maxY:el.y+epsilon,node:el};
+			return {minX:el.x-epsilon, minY:el.y-epsilon, maxX:el.x+epsilon, maxY:el.y+epsilon,node:el};
 		});
 		tree.load(nodes);
 		var clean = new PlanarClean()
+		// var removeList:{'remain':PlanarNode, 'remove':PlanarNode[]}[] = [];
+		this.nodeArrayDidChange();
+		var remainList = [];
+		var removeList = [];
+		var mergeList:{'remain':PlanarNode, 'remove':PlanarNode}[] = []
 		this.nodes.forEach(function(node){
 			tree.search({minX:node.x-epsilon, minY:node.y-epsilon, maxX:node.x+epsilon, maxY:node.y+epsilon})
 				.filter(function(r){ return node !== r['node']; },this)
+				.filter(function(r){ return remainList.indexOf(r['node']) == -1; },this)
+				.filter(function(r){ return removeList.indexOf(node) == -1; },this)
 				.forEach(function(r){
-					clean.join(this.mergePlanarNodes(node, r['node']));
+					remainList.push(node);
+					removeList.push(r['node']);
+					mergeList.push({'remain':node, 'remove':r['node']});
 				},this);
+		},this);
+		mergeList.forEach(function(el){
+			clean.join(this.mergePlanarNodes(el['remain'], el['remove']));
 		},this);
 		return clean;
 	}
