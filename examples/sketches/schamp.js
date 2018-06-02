@@ -2,7 +2,7 @@ var schamp = new OrigamiPaper("canvas");
 
 function bisectRepeat(a, b, limit, iterations){
 	if(iterations === undefined){ iterations = 0; }
-	var c = bisect(a, b)[0];
+	var c = bisectVectors(a, b)[0];
 	// if(iterations > limit) return [c];
 	if(iterations > limit) return [a, b];
 	var results1 = bisectRepeat(a, c, limit, iterations+1);

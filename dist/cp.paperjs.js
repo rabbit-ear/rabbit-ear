@@ -216,7 +216,7 @@ var OrigamiPaper = (function(){
 					var origin = junction.sectors[s].origin;
 					var a = junction.sectors[s].endPoints[0].copy().subtract(origin).normalize().scale(shortest).add(origin);
 					var c = junction.sectors[s].endPoints[1].copy().subtract(origin).normalize().scale(shortest).add(origin);
-					var b = junction.sectors[s].bisect().scale(shortest).add(origin);
+					var b = junction.sectors[s].bisect().direction.scale(shortest).add(origin);
 					// todo: there is a bug here with degenerate points
 					// console.log(a, b, c);
 					var sector = new this.scope.Path.Arc(a, b, c);

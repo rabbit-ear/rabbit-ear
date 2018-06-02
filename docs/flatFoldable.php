@@ -43,7 +43,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><span id="ff-single-angle"></span>cp.<f>findFlatFoldable</f>(<span id="edge-function"></span>);<br><c>// crease an edge from the center with that angle</c><br><span id="ff-single-result"><n>false</n> ← </span>cp.<v>nodes</v>[<n id="node-index">0</n>].<f>flatFoldable</f>();</code></pre>
+		<pre><code>cp.sectors[<span id="ff-single-sector"></span>].<f>kawasakiFourth</f>();</code></pre>
 	</div>
 
 <h3>Maekawa's Theorem</h3>
@@ -119,7 +119,10 @@ kawasakiCallback = function(event){
 		string += " = " + sums[1].toFixed(1) + "&deg; <c>// blue</c>";
 	}
 	document.getElementById("kawasaki-result").innerHTML = string;
-}	
+}
+projectKawasaki.update();
+projectKawasaki.drawSectors();
+
 
 </script>
 
@@ -160,22 +163,27 @@ oneCreaseFolded.onMouseDown = function(){ oneCrease.reset() };
 <script>
 flat_foldable_single_callback = function(e){
 	if(e != undefined){
-		if(e.solution != undefined){
-			var deg = e.solution * 180 / Math.PI;
-			var angleString = "<n>" + deg.toFixed(2) + "°</n> ← ";
-			document.getElementById("ff-single-angle").innerHTML = angleString;
+		if(e.sector != undefined){
+			document.getElementById("ff-single-sector").innerHTML = "<n>" + e.sector.index + "</n>";
 		} else{
-			document.getElementById("ff-single-angle").innerHTML = "";
+			document.getElementById("ff-single-sector").innerHTML = "<n></n>";			
 		}
-		if(e.flatFoldable != undefined){
-			document.getElementById("ff-single-result").innerHTML = "<n>" + e.flatFoldable + "</n> ← ";
-			document.getElementById("ff-single-result").innerHTML = "<n>" + e.flatFoldable + "</n> ← ";
-		}
-		var edgeFunctionString = "";
-		if(e.angle != undefined && e.angle.edges != undefined && e.angle.edges.length > 1){
-			edgeFunctionString = " <key>new</key> <f>InteriorAngle</f>(<arg>edge"+ e.angle.edges[0].index + "</arg>, <arg>edge" + e.angle.edges[1].index + "</arg>) ";
-		}
-		document.getElementById("edge-function").innerHTML = edgeFunctionString;
+		// if(e.solution != undefined){
+		// 	var deg = e.solution * 180 / Math.PI;
+		// 	var angleString = "<n>" + deg.toFixed(2) + "°</n> ← ";
+		// 	document.getElementById("ff-single-angle").innerHTML = angleString;
+		// } else{
+		// 	document.getElementById("ff-single-angle").innerHTML = "";
+		// }
+		// if(e.flatFoldable != undefined){
+		// 	document.getElementById("ff-single-result").innerHTML = "<n>" + e.flatFoldable + "</n> ← ";
+		// 	document.getElementById("ff-single-result").innerHTML = "<n>" + e.flatFoldable + "</n> ← ";
+		// }
+		// var edgeFunctionString = "";
+		// if(e.angle != undefined && e.angle.edges != undefined && e.angle.edges.length > 1){
+		// 	edgeFunctionString = " <key>new</key> <f>InteriorAngle</f>(<arg>edge"+ e.angle.edges[0].index + "</arg>, <arg>edge" + e.angle.edges[1].index + "</arg>) ";
+		// }
+		// document.getElementById("edge-function").innerHTML = edgeFunctionString;
 	}
 }
 

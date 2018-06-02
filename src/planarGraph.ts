@@ -18,10 +18,10 @@ class PlanarClean extends GraphClean{
 	edges:{total:number, duplicate:number, circular:number};
 	nodes:{
 		total:number;
+		isolated:number;// nodes removed for being unattached to any edge
 		fragment:XY[];  // nodes added at intersection of 2 lines, from fragment()
 		collinear:XY[]; // nodes removed due to being collinear
 		duplicate:XY[]; // nodes removed due to occupying the same space
-		isolated:number;  // nodes removed for being unattached to any edge
 	}
 	constructor(numNodes?:number, numEdges?:number){
 		super(numNodes, numEdges);
@@ -704,6 +704,19 @@ class PlanarGraph extends Graph{
 		return sortedNodes.slice(0, quantity);
 	}
 
+	nearestEdges(quantity:number, a:any, b:any){
+		var point = gimme1XY(a,b);
+		var sortedEdges = this.edges
+			.map(function(edge:PlanarEdge){
+				return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
+			},this)
+			.sort(function(a,b){
+				return a.distance - b.distance;
+			});
+		if(quantity > sortedEdges.length){ return sortedEdges; }
+		return sortedEdges.slice(0, quantity);
+	}
+
 	/** Without changing the graph, this function collects the point location of every intersection between crossing edges.
 	 * @returns {XY[]} array of XY, the location of intersections
 	 */
@@ -879,52 +892,30 @@ class PlanarGraph extends Graph{
 		return report;
 	}
 
+	mergePlanarNodes(node1:PlanarNode, node2:PlanarNode):PlanarClean{
+		return new PlanarClean(-1).join(this.mergeNodes(node1, node2)).duplicateNodes([new XY(node2.x, node2.y)]);
+	}
+
 	/** Removes all nodes that lie within an epsilon distance to an existing node.
 	 * remap any compromised edges to the persisting node so no edge data gets lost
 	 * @returns {PlanarClean} how many nodes were removed
 	 */
 	cleanDuplicateNodes(epsilon?:number):PlanarClean{
 		var EPSILON_HIGH = 0.00000001;
-		if (epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		var tree = rbush();
-		// cache each node's adjacent edges
-		// this.nodes.forEach(function(el){ el.cache = {'edges':[]}; });
-		// this.edges.forEach(function(el){ 
-		// 	el.nodes[0].cache['edges'].push(el);
-		// 	el.nodes[1].cache['edges'].push(el);
-		// });
-		// console.time("map");
 		var nodes = this.nodes.map(function(el){
-			return {
-				minX: el.x - epsilon,  minY: el.y - epsilon,
-				maxX: el.x + epsilon,  maxY: el.y + epsilon,
-				node: el
-			};
+			return {minX:el.x-epsilon,minY:el.y-epsilon,maxX:el.x+epsilon,maxY:el.y+epsilon,node:el};
 		});
 		tree.load(nodes);
-		var that = this;
-		function merge2Nodes(nodeA, nodeB):PlanarClean{
-			that.edges.forEach(function(el){
-				if(el.nodes[0] === nodeB){ el.nodes[0] = nodeA; }
-				if(el.nodes[1] === nodeB){ el.nodes[1] = nodeA; }
-			});
-			that.nodes = that.nodes.filter(function(el){ return el !== nodeB; });
-			return new PlanarClean().duplicateNodes([new XY(nodeB.x, nodeB.y)]).join(that.cleanGraph());
-		}
 		var clean = new PlanarClean()
-		for(var i = 0; i < this.nodes.length; i++){
-			var result = tree.search({
-				minX: this.nodes[i].x - epsilon,
-				minY: this.nodes[i].y - epsilon,
-				maxX: this.nodes[i].x + epsilon,
-				maxY: this.nodes[i].y + epsilon
-			});
-			for(var r = 0; r < result.length; r++){
-				if(this.nodes[i] !== result[r]['node']){
-					clean.join(merge2Nodes(this.nodes[i], result[r]['node']));
-				}
-			}
-		}
+		this.nodes.forEach(function(node){
+			tree.search({minX:node.x-epsilon, minY:node.y-epsilon, maxX:node.x+epsilon, maxY:node.y+epsilon})
+				.filter(function(r){ return node !== r['node']; },this)
+				.forEach(function(r){
+					clean.join(this.mergePlanarNodes(node, r['node']));
+				},this);
+		},this);
 		return clean;
 	}
 

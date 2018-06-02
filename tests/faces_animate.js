@@ -1,7 +1,7 @@
 
 var faceAnim = new OrigamiPaper("canvas-faces-animate", new PlanarGraph());
 faceAnim.show.faces = true;
-faceAnim.style.face.fillColor = faceAnim.styles.byrne.darkBlue;
+faceAnim.style.face.fillColor = faceAnim.styles.byrne.yellow;
 
 faceAnim.reset = function(){
 	this.NUM_LINES = 30;
@@ -26,7 +26,7 @@ faceAnim.reset = function(){
 faceAnim.reset();
 
 faceAnim.onFrame = function(event) { 
-	var spd = 0.7;
+	var spd = 0.3;
 	var mag = .3;
 	var off = 6.28/this.NUM_LINES;
 	this.cp = this.g.copy();

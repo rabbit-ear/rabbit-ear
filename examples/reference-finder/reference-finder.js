@@ -97,7 +97,8 @@ project.style.valley.strokeWidth = 0.005;
 project.style.valley.dashArray = [0.005 * 2, 0.005 * 2];
 project.update();
 
-project.nextSet = new CreasePattern();
+project.nextSet = [];
+project.nextSetCP = new CreasePattern();
 project.nextSetLayer = new project.scope.Layer();
 project.selectedNextLayer = new project.scope.Layer();
 
@@ -116,17 +117,20 @@ project.recalculateFolds = function(){
 	}
 
 	if(!axiom1Pressed && !axiom2Pressed && !axiom3Pressed){
-		this.nextSet = this.cp.possibleFolds();
+		this.nextSet = this.cp.availableAxiomFolds();
 	} else{
-		if(axiom1Pressed){ this.nextSet = this.cp.possibleFolds1(); }
-		else if(axiom2Pressed){ this.nextSet = this.cp.possibleFolds2(); }
-		else if(axiom3Pressed){ this.nextSet = this.cp.possibleFolds3(); }
+		if(axiom1Pressed){ this.nextSet = this.cp.availableAxiom1Folds(); }
+		else if(axiom2Pressed){ this.nextSet = this.cp.availableAxiom2Folds(); }
+		else if(axiom3Pressed){ this.nextSet = this.cp.availableAxiom3Folds(); }
 	}
+	this.nextSet.forEach(function(edge){
+		this.nextSetCP.crease(edge);
+	},this);
 
 	this.selectedNextLayer.removeChildren();
 	this.selectedNextLayer.activate();
-	for(var i = 0; i < this.nextSet.edges.length; i++){
-		var newPath = new this.scope.Path({segments: this.nextSet.edges[i].nodes, closed: false });
+	for(var i = 0; i < this.nextSet.length; i++){
+		var newPath = new this.scope.Path({segments: this.nextSet[i].nodes, closed: false });
 		Object.assign(newPath, this.style.mark);
 		newPath.strokeColor = { gray:0.82, alpha:1.0 },
 		newPath.strokeWidth = 0.001;
@@ -175,14 +179,14 @@ project.onMouseDown = function(event){
 	if(selectedEdge !== undefined){
 		switch(this.inputMode){
 		case "add":
-			var crease = this.cp.crease(selectedEdge.edge.nodes[0], selectedEdge.edge.nodes[1]);
+			var crease = this.cp.crease(selectedEdge.nodes[0], selectedEdge.nodes[1]);
 			if(crease !== undefined){ 
 				crease.valley(); 
 			}
 		break;
 		case "remove":
-			if(selectedEdge.edge.orientation !== CreaseDirection.border){
-				this.cp.removeEdge(selectedEdge.edge);
+			if(selectedEdge.orientation !== CreaseDirection.border){
+				this.cp.removeEdge(selectedEdge);
 			}
 		break;
 		}
@@ -197,18 +201,17 @@ project.onMouseMove = function(event) {
 	if(!this.cp.contains(event.point)){ return; }
 	switch(this.inputMode){
 	case "add":
-		selectedEdge = this.nextSet.nearest(event.point.x, event.point.y).edge;
+		selectedEdge = this.nextSetCP.nearestEdges(1, event.point.x, event.point.y).shift().edge;
+		console.log(selectedEdge);
 	break;
 	case "remove":
 		selectedEdge = this.cp.nearest(event.point.x, event.point.y).edge;
 	break;
 	}
 	if(selectedEdge != undefined){
-		var newPath = new paper.Path({segments: selectedEdge.edge.nodes, closed: false });
-		Object.assign(newPath, this.style.mark);
-		newPath.strokeColor = {hue:0, saturation:1, brightness:1};
-		if(selectedEdge.edge === undefined || selectedEdge.edge.madeBy === undefined || selectedEdge.edge.madeBy.args === undefined){ return; }
-		var args = selectedEdge.edge.madeBy.args;
+		var newPath = new this.scope.Path({segments: selectedEdge.nodes, closed: false, strokeColor:{hue:0, saturation:1, brightness:1}, strokeWidth:0.01 });
+		if(selectedEdge === undefined || selectedEdge.madeBy === undefined || selectedEdge.madeBy.args === undefined){ return; }
+		var args = selectedEdge.madeBy.args;
 		if(args.length === 2){
 			var points = [[args[0].x, args[0].y],
 			              [args[1].x, args[1].y] ];

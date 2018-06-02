@@ -44,24 +44,24 @@ ffSingle.onMouseUp = function(event){ }
 ffSingle.onMouseMove = function(event) {
 	this.rebuild();
 	var solutionAngle = undefined;
-	var angle = undefined;
+	var sector = undefined;
 	if(event.point.x >= 0 && event.point.x <= 1 && event.point.y >= 0 && event.point.y <= 1){
-		// angle = this.cp.nearest(event.point).sector;
-		angle = this.centerNode.junction().sectors.filter(function(sector){
+		// sector = this.cp.nearest(event.point).sector;
+		sector = this.centerNode.junction().sectors.filter(function(sector){
 			return sector.contains(event.point);
 		},this).shift();
 
-		// console.log(angle);
-		if(angle == undefined || angle.edges == undefined) return;
-		if(angle.edges.length == 2){
-			solutionAngle = angle.kawasakiFourth();
-			this.cp.creaseRay(new XY(angle.origin.x, angle.origin.y), solutionAngle).mountain();
+		// console.log(sector);
+		if(sector == undefined || sector.edges == undefined) return;
+		if(sector.edges.length == 2){
+			solutionAngle = sector.kawasakiFourth();
+			this.cp.creaseRay(new XY(sector.origin.x, sector.origin.y), solutionAngle).mountain();
 		}
 	}
 	this.cp.clean();
 	this.draw();
 
 	if(flat_foldable_single_callback != undefined){
-		// flat_foldable_single_callback({'flatFoldable':this.cp.nearest(0.5, 0.5).node.flatFoldable(), 'solution':solutionAngle, 'angle':angle});
+		flat_foldable_single_callback({'solution':solutionAngle, 'sector':sector});
 	}
 }

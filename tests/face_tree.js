@@ -1,7 +1,7 @@
 
 var adjFaceMatrix = new OrigamiPaper("canvas-face-tree");
 
-var edgeStyle = { strokeColor: {gray:1.0}, strokeWidth: 0.002, dashArray: null };
+var edgeStyle = { strokeColor: adjFaceMatrix.styles.byrne.yellow, strokeWidth: 0.0033, dashArray: [0.01, 0.01] };
 Object.assign(adjFaceMatrix.style.valley, edgeStyle);
 Object.assign(adjFaceMatrix.style.mountain, edgeStyle);
 Object.assign(adjFaceMatrix.style.mark, edgeStyle);
@@ -9,6 +9,7 @@ Object.assign(adjFaceMatrix.style.border, edgeStyle);
 adjFaceMatrix.style.backgroundColor = adjFaceMatrix.styles.byrne.darkBlue;
 adjFaceMatrix.style.boundary.strokeColor = {gray:0.0, alpha:0.0}
 adjFaceMatrix.show.faces = true;
+// adjFaceMatrix.show.edges = false;
 // one: cool black face boundary effect
 // adjFaceMatrix.style.face.fillColor = {gray:0.0};
 // adjFaceMatrix.style.face.scale = 0.7;
@@ -79,7 +80,7 @@ adjFaceMatrix.makeFacePathLines = function(startingFace){
 	function recurseAndDraw(tree, depth){
 		var parent = tree.parent.obj;
 		var face = tree.obj;
-		var path = new adjFaceMatrix.scope.Path({segments: [parent.centroid(),face.centroid()], closed: false, strokeWidth:0.006, strokeColor:{hue:43.2, saturation:0.88, brightness:0.93 } });
+		var path = new adjFaceMatrix.scope.Path({segments: [parent.centroid(),face.centroid()], closed: false, strokeWidth:0.006, strokeColor:{gray:1.0} });
 		tree.children.forEach(function(child){ recurseAndDraw(child, depth+1); });
 	}
 	tree.children.forEach(function(tree){ recurseAndDraw(tree, 0); });

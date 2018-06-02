@@ -91,6 +91,7 @@ class CPRay extends Ray implements CreaseLineType{
 }
 class CPEdge extends Edge implements CreaseLineType{
 	cp:CreasePattern;
+	madeBy:Fold;
 	constructor(cp:CreasePattern, edge:Edge){
 		super(edge.nodes[0], edge.nodes[1]);
 		this.cp = cp;
@@ -727,32 +728,42 @@ class CreasePattern extends PlanarGraph{
 		edges = edges.concat(this.availableAxiom3Folds());
 		return edges;
 	}
-
-	availableAxiom1Folds():Edge[]{
+	// availableAxiom1Folds():Edge[]{
+	availableAxiom1Folds():Crease[]{
 		var edges = [];
 		for(var n0 = 0; n0 < this.nodes.length-1; n0++){
 			for(var n1 = n0+1; n1 < this.nodes.length; n1++){
 				var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
 				var edge = this.boundary.clipLine( inputEdge.infiniteLine() );
-				if(edge !== undefined){ edges.push(edge); }
+				if(edge !== undefined){
+					var e = new CPEdge(this, edge);
+					e.madeBy = new Fold(this.creaseThroughPoints, [new XY(this.nodes[n0].x,this.nodes[n0].y), new XY(this.nodes[n1].x,this.nodes[n1].y)]);
+					edges.push(e);
+				}
 			}
 		}
 		// this.cleanDuplicateNodes();
 		return edges;
 	}
-	availableAxiom2Folds():Edge[]{
+	// availableAxiom2Folds():Edge[]{
+	availableAxiom2Folds():Crease[]{
 		var edges = [];
 		for(var n0 = 0; n0 < this.nodes.length-1; n0++){
 			for(var n1 = n0+1; n1 < this.nodes.length; n1++){
 				var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
 				var edge = this.boundary.clipLine( inputEdge.perpendicularBisector() );
-				if(edge !== undefined){ edges.push(edge); }
+				if(edge !== undefined){
+					var e = new CPEdge(this, edge);
+					e.madeBy = new Fold(this.creasePointToPoint, [new XY(this.nodes[n0].x,this.nodes[n0].y), new XY(this.nodes[n1].x,this.nodes[n1].y)]);
+					edges.push(edge);
+				}
 			}
 		}
 		// this.cleanDuplicateNodes();
 		return edges;
 	}
-	availableAxiom3Folds():Edge[]{
+	// availableAxiom3Folds():Edge[]{
+	availableAxiom3Folds():Crease[]{
 		var edges = [];
 		for(var e0 = 0; e0 < this.edges.length-1; e0++){
 			for(var e1 = e0+1; e1 < this.edges.length; e1++){
@@ -761,6 +772,11 @@ class CreasePattern extends PlanarGraph{
 				var pair = a.bisect(b).map(function(line:Line){
 					return this.boundary.clipLine( line );
 				},this).filter(function(el){ return el !== undefined; },this);
+				var p = pair.map(function(edge){
+					var e = new CPEdge(this, edge);
+					e.madeBy = new Fold(this.creaseEdgeToEdge, [this.edges[e0].nodes[0].copy(), this.edges[e0].nodes[1].copy(), this.edges[e1].nodes[0].copy(), this.edges[e1].nodes[1].copy()]);
+					return e					
+				},this);
 				edges = edges.concat(pair);
 			}
 		}

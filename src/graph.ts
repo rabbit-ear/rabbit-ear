@@ -418,11 +418,10 @@ class Graph{
 	 */
 	mergeNodes(node1:GraphNode, node2:GraphNode):GraphClean{
 		if(node1 === node2) { return undefined; }
-		this.edges = this.edges.map(function(el){
-			if(el.nodes[0] === node2){ el.nodes[0] = node1; }
-			if(el.nodes[1] === node2){ el.nodes[1] = node1; }
-			return el;
-		});
+		this.edges.forEach(function(edge){
+			edge.nodes.forEach(function(n){ if(n===node2) n=node1; },this);
+		},this);
+		// this potentially created circular edges
 		var nodesLength = this.nodes.length;
 		this.nodes = this.nodes.filter(function(el){ return el !== node2; });
 		return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
@@ -464,7 +463,7 @@ class Graph{
 	 */
 	cleanCircularEdges():GraphClean{
 		var edgesLength = this.edges.length;
-		this.edges = this.edges.filter(function(el){ return !(el.nodes[0] === el.nodes[1]); });
+		this.edges = this.edges.filter(function(el){ return el.nodes[0] !== el.nodes[1]; });
 		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
 		return new GraphClean().circularEdges(edgesLength - this.edges.length);
 	}

@@ -35,7 +35,7 @@ projectKawasaki.drawSectors = function(){
 		return el.sectors.map(function(sector){
 			var a = new XY(sector.endPoints[0].x, sector.endPoints[0].y);
 			var c = new XY(sector.endPoints[1].x, sector.endPoints[1].y);
-			var b = sector.bisect();
+			var b = sector.bisect().direction;
 			var arcPts = [a,b,c];
 			var arcRadius = 0.35 + el.difference*0.1;
 			for(var p = 0; p < 3; p++){ arcPts[p] = arcPts[p].normalize().scale(arcRadius); }

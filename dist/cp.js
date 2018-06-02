@@ -239,15 +239,10 @@ var Graph = (function () {
         if (node1 === node2) {
             return undefined;
         }
-        this.edges = this.edges.map(function (el) {
-            if (el.nodes[0] === node2) {
-                el.nodes[0] = node1;
-            }
-            if (el.nodes[1] === node2) {
-                el.nodes[1] = node1;
-            }
-            return el;
-        });
+        this.edges.forEach(function (edge) {
+            edge.nodes.forEach(function (n) { if (n === node2)
+                n = node1; }, this);
+        }, this);
         var nodesLength = this.nodes.length;
         this.nodes = this.nodes.filter(function (el) { return el !== node2; });
         return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
@@ -272,7 +267,7 @@ var Graph = (function () {
     };
     Graph.prototype.cleanCircularEdges = function () {
         var edgesLength = this.edges.length;
-        this.edges = this.edges.filter(function (el) { return !(el.nodes[0] === el.nodes[1]); });
+        this.edges = this.edges.filter(function (el) { return el.nodes[0] !== el.nodes[1]; });
         if (this.edges.length != edgesLength) {
             this.edgeArrayDidChange();
         }
@@ -2423,6 +2418,20 @@ var PlanarGraph = (function (_super) {
         }
         return sortedNodes.slice(0, quantity);
     };
+    PlanarGraph.prototype.nearestEdges = function (quantity, a, b) {
+        var point = gimme1XY(a, b);
+        var sortedEdges = this.edges
+            .map(function (edge) {
+            return { edge: edge, distance: edge.nearestPoint(point).distanceTo(point) };
+        }, this)
+            .sort(function (a, b) {
+            return a.distance - b.distance;
+        });
+        if (quantity > sortedEdges.length) {
+            return sortedEdges;
+        }
+        return sortedEdges.slice(0, quantity);
+    };
     PlanarGraph.prototype.getEdgeIntersections = function (epsilon) {
         var intersections = [];
         for (var i = 0; i < this.edges.length - 1; i++) {
@@ -2565,47 +2574,27 @@ var PlanarGraph = (function (_super) {
         this.nodes.forEach(function (el) { el.cache['adjE'] = undefined; });
         return report;
     };
+    PlanarGraph.prototype.mergePlanarNodes = function (node1, node2) {
+        return new PlanarClean(-1).join(this.mergeNodes(node1, node2)).duplicateNodes([new XY(node2.x, node2.y)]);
+    };
     PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
         var EPSILON_HIGH = 0.00000001;
-        if (epsilon === undefined) {
+        if (epsilon == undefined) {
             epsilon = EPSILON_HIGH;
         }
         var tree = rbush();
         var nodes = this.nodes.map(function (el) {
-            return {
-                minX: el.x - epsilon, minY: el.y - epsilon,
-                maxX: el.x + epsilon, maxY: el.y + epsilon,
-                node: el
-            };
+            return { minX: el.x - epsilon, minY: el.y - epsilon, maxX: el.x + epsilon, maxY: el.y + epsilon, node: el };
         });
         tree.load(nodes);
-        var that = this;
-        function merge2Nodes(nodeA, nodeB) {
-            that.edges.forEach(function (el) {
-                if (el.nodes[0] === nodeB) {
-                    el.nodes[0] = nodeA;
-                }
-                if (el.nodes[1] === nodeB) {
-                    el.nodes[1] = nodeA;
-                }
-            });
-            that.nodes = that.nodes.filter(function (el) { return el !== nodeB; });
-            return new PlanarClean().duplicateNodes([new XY(nodeB.x, nodeB.y)]).join(that.cleanGraph());
-        }
         var clean = new PlanarClean();
-        for (var i = 0; i < this.nodes.length; i++) {
-            var result = tree.search({
-                minX: this.nodes[i].x - epsilon,
-                minY: this.nodes[i].y - epsilon,
-                maxX: this.nodes[i].x + epsilon,
-                maxY: this.nodes[i].y + epsilon
-            });
-            for (var r = 0; r < result.length; r++) {
-                if (this.nodes[i] !== result[r]['node']) {
-                    clean.join(merge2Nodes(this.nodes[i], result[r]['node']));
-                }
-            }
-        }
+        this.nodes.forEach(function (node) {
+            tree.search({ minX: node.x - epsilon, minY: node.y - epsilon, maxX: node.x + epsilon, maxY: node.y + epsilon })
+                .filter(function (r) { return node !== r['node']; }, this)
+                .forEach(function (r) {
+                clean.join(this.mergePlanarNodes(node, r['node']));
+            }, this);
+        }, this);
         return clean;
     };
     PlanarGraph.prototype.generateJunctions = function () {
@@ -3606,7 +3595,9 @@ var CreasePattern = (function (_super) {
                 var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
                 var edge = this.boundary.clipLine(inputEdge.infiniteLine());
                 if (edge !== undefined) {
-                    edges.push(edge);
+                    var e = new CPEdge(this, edge);
+                    e.madeBy = new Fold(this.creaseThroughPoints, [new XY(this.nodes[n0].x, this.nodes[n0].y), new XY(this.nodes[n1].x, this.nodes[n1].y)]);
+                    edges.push(e);
                 }
             }
         }
@@ -3619,6 +3610,8 @@ var CreasePattern = (function (_super) {
                 var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
                 var edge = this.boundary.clipLine(inputEdge.perpendicularBisector());
                 if (edge !== undefined) {
+                    var e = new CPEdge(this, edge);
+                    e.madeBy = new Fold(this.creasePointToPoint, [new XY(this.nodes[n0].x, this.nodes[n0].y), new XY(this.nodes[n1].x, this.nodes[n1].y)]);
                     edges.push(edge);
                 }
             }
@@ -3634,6 +3627,11 @@ var CreasePattern = (function (_super) {
                 var pair = a.bisect(b).map(function (line) {
                     return this.boundary.clipLine(line);
                 }, this).filter(function (el) { return el !== undefined; }, this);
+                var p = pair.map(function (edge) {
+                    var e = new CPEdge(this, edge);
+                    e.madeBy = new Fold(this.creaseEdgeToEdge, [this.edges[e0].nodes[0].copy(), this.edges[e0].nodes[1].copy(), this.edges[e1].nodes[0].copy(), this.edges[e1].nodes[1].copy()]);
+                    return e;
+                }, this);
                 edges = edges.concat(pair);
             }
         }

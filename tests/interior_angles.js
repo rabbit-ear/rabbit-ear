@@ -32,7 +32,7 @@ projectInAngles.updateAngles = function(){
 		.sort(function(a,b){ return a.angle() < b.angle(); })
 		.forEach(function(el){
 			var vectors = el.vectors().map(function(el){return el.normalize().scale(radiuses[i%3]);})
-			var arcCenter = el.bisect().scale(radiuses[i%3]);
+			var arcCenter = el.bisect().direction.scale(radiuses[i%3]);
 			var dot = new this.scope.Path.Circle(arcCenter.normalize().scale(0.9), 0.04);
 			dot.style.fillColor = { gray:0.0, alpha:1.0 };
 			var arc = new this.scope.Path.Arc(vectors[0], arcCenter, vectors[1]);
