@@ -195,12 +195,10 @@ var Graph = (function () {
         return this.edges.length - len;
     };
     Graph.prototype.copyNode = function (node) {
-        var nodeClone = Object.assign(this.newNode(), node);
-        return this.addNode(nodeClone);
+        return Object.assign(this.newNode(), node);
     };
     Graph.prototype.copyEdge = function (edge) {
-        var edgeClone = Object.assign(this.newEdge(edge.nodes[0], edge.nodes[1]), edge);
-        return this.addEdge(edgeClone);
+        return Object.assign(this.newEdge(edge.nodes[0], edge.nodes[1]), edge);
     };
     Graph.prototype.clear = function () {
         this.nodes = [];
@@ -2741,7 +2739,7 @@ var PlanarGraph = (function (_super) {
                 crossings = [el.edge.nodes[0], newLineNodes[i]];
             }
             for (var i = 0; i < crossings.length - 1; i++) {
-                this.newEdge(crossings[i], crossings[i + 1]);
+                this.copyEdge(el.edge).nodes = [crossings[i], crossings[i + 1]];
                 console.log("adding edge inside the loop " + this.edges.length);
                 console.log(this.edges.map(function (ffff) { return ffff.nodes; }, this));
             }
