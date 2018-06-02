@@ -1123,8 +1123,8 @@ class PlanarGraph extends Graph{
 			if     (el.edge.nodes[0].equivalent(newLineNodes[i],epsilon)){crossings = [newLineNodes[i], el.edge.nodes[1]];}
 			else if(el.edge.nodes[1].equivalent(newLineNodes[i],epsilon)){crossings = [el.edge.nodes[0], newLineNodes[i]];}
 			for(var i = 0; i < crossings.length-1; i++){
-				this.newEdge(crossings[i], crossings[i+1]);
-				// this.copyEdge(el.edge).nodes = [crossings[i], crossings[i+1]];
+				// this.newEdge(crossings[i], crossings[i+1]);
+				this.copyEdge(el.edge).nodes = [crossings[i], crossings[i+1]];
 				console.log("adding edge inside the loop " + this.edges.length);
 				console.log(this.edges.map(function(ffff){return ffff.nodes;},this));
 			}
