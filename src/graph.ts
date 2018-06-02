@@ -331,16 +331,14 @@ class Graph{
 	 * @returns {GraphNode} pointer to the node
 	 */
 	copyNode(node:GraphNode):GraphNode {
-		var nodeClone = <GraphNode>(<any>Object).assign(this.newNode(), node);
-		return this.addNode(nodeClone);
+		return <GraphNode>(<any>Object).assign(this.newNode(), node);
 	}
 
 	/** Copies the contents of an existing edge into a new edge and adds it to the graph
 	 * @returns {GraphEdge} pointer to the edge
 	 */
 	copyEdge(edge:GraphEdge):GraphEdge {
-		var edgeClone = (<any>Object).assign(this.newEdge(edge.nodes[0], edge.nodes[1]), edge);
-		return this.addEdge(edgeClone);
+		return (<any>Object).assign(this.newEdge(edge.nodes[0], edge.nodes[1]), edge);
 	}
 
 	///////////////////////////////////////////////

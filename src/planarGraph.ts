@@ -1097,7 +1097,7 @@ class PlanarGraph extends Graph{
 		var report = new PlanarClean();
 		console.log("fragmentEdge: " + this.edges.length);
 		var intersections:{'edge':PlanarEdge, 'point':XY}[] = edge.crossingEdges(epsilon);
-		if(intersections.length === 0) { return report; }
+		if(intersections.length == 0){ return report; }
 		console.log(intersections);
 		console.log(intersections[0].edge.nodes);
 		report.nodes.fragment = intersections.map(function(el){ return new XY(el.point.x, el.point.y);});
@@ -1107,16 +1107,32 @@ class PlanarGraph extends Graph{
 		});
 		console.log("step 1 (created 0) " + this.edges.length);
 		// iterate through intersections, rebuild edges in order
-		var newLineNodes = [];
+		// var newLineNodes = [];
 		// todo, add endNodes into this array
-		for(var i = 0; i < intersections.length; i++){
-			if(intersections[i] != undefined){
-				var newNode = (<PlanarNode>this.newNode()).position(intersections[i].point.x, intersections[i].point.y);
-				this.copyEdge(intersections[i].edge).nodes = [newNode, intersections[i].edge.nodes[1]];
-				intersections[i].edge.nodes[1] = newNode;
-				newLineNodes.push(newNode);
+		// for(var i = 0; i < intersections.length; i++){
+			// var newNode = (<PlanarNode>this.newNode()).position(intersections[i].point.x, intersections[i].point.y);
+			// this.copyEdge(intersections[i].edge).nodes = [newNode, intersections[i].edge.nodes[1]];
+			// intersections[i].edge.nodes[1] = newNode;
+			// newLineNodes.push(newNode);
+		// }
+		var newLineNodes = intersections.map(function(el){
+			return (<PlanarNode>this.newNode()).position(el.point.x, el.point.y);
+		},this);
+		intersections.forEach(function(el,i){
+			var crossings = [el.edge.nodes[0], newLineNodes[i], el.edge.nodes[1]];
+			if     (el.edge.nodes[0].equivalent(newLineNodes[i],epsilon)){crossings = [newLineNodes[i], el.edge.nodes[1]];}
+			else if(el.edge.nodes[1].equivalent(newLineNodes[i],epsilon)){crossings = [el.edge.nodes[0], newLineNodes[i]];}
+			for(var i = 0; i < crossings.length-1; i++){
+				this.newEdge(crossings[i], crossings[i+1]);
+				// this.copyEdge(el.edge).nodes = [crossings[i], crossings[i+1]];
+				console.log("adding edge inside the loop " + this.edges.length);
+				console.log(this.edges.map(function(ffff){return ffff.nodes;},this));
 			}
-		}
+			console.log("A " + this.edges.length);
+			this.edges = this.edges.filter(function(filt){ return filt !== el.edge; },this);
+			console.log("B " + this.edges.length);
+		},this);
+
 		console.log("step 2 (created 2) " + this.edges.length);
 		// replace the original edge with smaller collinear pieces of itself
 		this.copyEdge(edge).nodes = [endNodes[0], newLineNodes[0]];
