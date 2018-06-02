@@ -13,7 +13,7 @@
 	<p>Cleaning a planar graph will ensure there are no duplicate or circular edges, just like a regular graph, but also perform additional 2D-related operations, like resolve 2 crossed edges.</p>
 
 	<div class="centered">
-		<pre><code>graph.<f>clean</f>()</code></pre>
+		<pre><code><span id="span-merge-result"></span>graph.<f>clean</f>()</code></pre>
 	</div>
 
 </section>
@@ -199,12 +199,12 @@ remove_edge_callback = function(report){
 
 
 <script>
-	// fragment_sketch_callback = function(event){
-	// 	if(event !== undefined){
-	// 		document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
-	// 	}
-	// }
-	// intersectionSketch.reset();
+	fragment_sketch_callback = function(event){
+		if(event !== undefined){
+			document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
+		}
+	}
+	intersectionSketch.reset();
 </script>
 
 <?php include 'footer.php';?>

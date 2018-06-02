@@ -198,21 +198,19 @@ class PlanarEdge extends GraphEdge implements Edge{
 	 * var edges = edge.crossingEdges()
 	 */
 	crossingEdges(epsilon?:number):{edge:PlanarEdge, point:XY}[]{
-		// speed up by excluding all edges outside of the quad space containing this edge
-		var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
-		var maxX = (this.nodes[0].x > this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
-		var minY = (this.nodes[0].y < this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
-		var maxY = (this.nodes[0].y > this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
+		// var EPSILON_HIGH = 0.000000001;
+		// var myXs = this.nodes.map(function(n){return n.x;}).sort(function(a,b){return a-b});
+		// var myYs = this.nodes.map(function(n){return n.y;}).sort(function(a,b){return a-b});
+		// myXs[0] -= EPSILON_HIGH; myXs[1] += EPSILON_HIGH; myYs[0] -= EPSILON_HIGH; myYs[1] += EPSILON_HIGH;
 		return this.graph.edges
-			.filter(function(el:PlanarEdge){ return !(
-				(el.nodes[0].x < minX && el.nodes[1].x < minX) ||
-				(el.nodes[0].x > maxX && el.nodes[1].x > maxX) ||
-				(el.nodes[0].y < minY && el.nodes[1].y < minY) ||
-				(el.nodes[0].y > maxY && el.nodes[1].y > maxY)
-				)},this)
+			// filter edges outside of this edge's rectilinear bounding box
+			// .filter(function(e){
+			// 	return e.nodes.map(function(n){ return n.x>myXs[0] && n.x<myXs[1] && n.y>myYs[0] && n.y<myYs[1]; },this)
+			// 	              .reduce(function(prev,curr){ return prev || curr; },false);
+			// },this)
 			.filter(function(el:PlanarEdge){ return this !== el}, this)
-			.map(function(el:PlanarEdge){ return this.intersection(el, epsilon) }, this)
-			.filter(function(el:{edge:PlanarEdge, point:XY}){ return el != undefined})
+			.map(function(el:PlanarEdge){ return {edge:el, point:this.intersection(el, epsilon)} }, this)
+			.filter(function(el:{edge:PlanarEdge, point:XY}){ return el.point != undefined})
 			.sort(function(a:{edge:PlanarEdge, point:XY},b:{edge:PlanarEdge, point:XY}){
 				if(a.point.commonX(b.point)){ return a.point.y-b.point.y; }
 				return a.point.x-b.point.x;
@@ -232,16 +230,16 @@ class PlanarEdge extends GraphEdge implements Edge{
 		return new Edge(this).collinear(point, epsilon);
 	}
 	equivalent(e:PlanarEdge, epsilon?:number):boolean{ return this.isSimilarToEdge(e); }
-	intersection(edge:Edge, epsilon?:number):{edge:PlanarEdge, point:XY}{
+	intersection(edge:Edge, epsilon?:number):XY{
 		// todo: should intersecting adjacent edges return the point in common they have with each other or register no intersection?
 		if(edge instanceof PlanarEdge && this.isAdjacentToEdge(edge)){ return undefined; }
 		var a = new Edge(this.nodes[0].x, this.nodes[0].y, this.nodes[1].x, this.nodes[1].y);
 		var b = new Edge(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 		var intersect = a.intersection(b, epsilon);
+		// todo, maybe we can get rid of this stuff
 		if(intersect !== undefined && 
 		 !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))){
-		 	var pe = <PlanarEdge>edge;
-			return {'edge':pe, 'point':intersect};
+			return intersect;
 		}
 	}
 	// returns the matrix representation form of this edge as the line of reflection
@@ -731,9 +729,9 @@ class PlanarGraph extends Graph{
 				if(intersection != undefined){
 					var copy = false;
 					for(var k = 0; k < intersections.length; k++){
-						if(intersection.point.equivalent(intersections[k], epsilon)){ copy = true; break;}
+						if(intersection.equivalent(intersections[k], epsilon)){ copy = true; break;}
 					}
-					if(!copy){ intersections.push(intersection.point); }
+					if(!copy){ intersections.push(intersection); }
 				}
 			}
 		}
@@ -893,7 +891,7 @@ class PlanarGraph extends Graph{
 	}
 
 	mergePlanarNodes(node1:PlanarNode, node2:PlanarNode):PlanarClean{
-		return new PlanarClean(-1).join(this.mergeNodes(node1, node2)).duplicateNodes([new XY(node2.x, node2.y)]);
+		return new PlanarClean(-1).join(this.mergeNodes(node1, node2)).duplicateNodes([new XY(node2.x, node2.y)]);;
 	}
 
 	/** Removes all nodes that lie within an epsilon distance to an existing node.
@@ -901,19 +899,16 @@ class PlanarGraph extends Graph{
 	 * @returns {PlanarClean} how many nodes were removed
 	 */
 	cleanDuplicateNodes(epsilon?:number):PlanarClean{
-		// return new PlanarClean()
 		var EPSILON_HIGH = 0.00000001;
 		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		var tree = rbush();
-		var nodes = this.nodes.map(function(el){
+		tree.load(this.nodes.map(function(el){
 			return {minX:el.x-epsilon, minY:el.y-epsilon, maxX:el.x+epsilon, maxY:el.y+epsilon,node:el};
-		});
-		tree.load(nodes);
-		var clean = new PlanarClean()
-		// var removeList:{'remain':PlanarNode, 'remove':PlanarNode[]}[] = [];
-		this.nodeArrayDidChange();
-		var remainList = [];
-		var removeList = [];
+		}));
+		// iterate over nodes. if a node is too close to another, before removing it, make sure:
+		// - it is not in "remainList" (it needs to stay, another node is counting on being replaced for it)
+		// - the node it's attempting to be replaced by is not in "removeList"
+		var remainList = [], removeList = [];
 		var mergeList:{'remain':PlanarNode, 'remove':PlanarNode}[] = []
 		this.nodes.forEach(function(node){
 			tree.search({minX:node.x-epsilon, minY:node.y-epsilon, maxX:node.x+epsilon, maxY:node.y+epsilon})
@@ -926,10 +921,9 @@ class PlanarGraph extends Graph{
 					mergeList.push({'remain':node, 'remove':r['node']});
 				},this);
 		},this);
-		mergeList.forEach(function(el){
-			clean.join(this.mergePlanarNodes(el['remain'], el['remove']));
-		},this);
-		return clean;
+		return mergeList
+			.map(function(el){ return this.mergePlanarNodes(el['remain'], el['remove']); },this)
+			.reduce(function(prev,curr){ return prev.join(curr); },new PlanarClean());
 	}
 
 	///////////////////////////////////////////////
@@ -1101,13 +1095,17 @@ class PlanarGraph extends Graph{
 	 */
 	private fragmentEdge(edge:PlanarEdge, epsilon?:number):PlanarClean{
 		var report = new PlanarClean();
+		console.log("fragmentEdge: " + this.edges.length);
 		var intersections:{'edge':PlanarEdge, 'point':XY}[] = edge.crossingEdges(epsilon);
 		if(intersections.length === 0) { return report; }
+		console.log(intersections);
+		console.log(intersections[0].edge.nodes);
 		report.nodes.fragment = intersections.map(function(el){ return new XY(el.point.x, el.point.y);});
 		var endNodes = edge.nodes.slice().sort(function(a,b){
 			if(a.commonX(b)){ return a.y-b.y; }
 			return a.x-b.x;
 		});
+		console.log("step 1 (created 0) " + this.edges.length);
 		// iterate through intersections, rebuild edges in order
 		var newLineNodes = [];
 		// todo, add endNodes into this array
@@ -1119,14 +1117,21 @@ class PlanarGraph extends Graph{
 				newLineNodes.push(newNode);
 			}
 		}
+		console.log("step 2 (created 2) " + this.edges.length);
 		// replace the original edge with smaller collinear pieces of itself
 		this.copyEdge(edge).nodes = [endNodes[0], newLineNodes[0]];
+		console.log("step 3 (created 2) " + this.edges.length);
 		for(var i = 0; i < newLineNodes.length-1; i++){
 			this.copyEdge(edge).nodes = [newLineNodes[i], newLineNodes[i+1]];
 		}
+		console.log("step 4 (created 0) " + this.edges.length);
 		this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length-1], endNodes[1]];
+		console.log("step 5 (created 2) " + this.edges.length);
 		this.removeEdge(edge);
+		console.log("step 6 (removed 1) " + this.edges.length);
+		console.log("before cleaning: " + this.edges.length);
 		report.join(this.cleanGraph());
+		console.log("after cleaning: " + this.edges.length);
 		return report;
 	}
 

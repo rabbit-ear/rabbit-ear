@@ -1,5 +1,6 @@
 
 var fragmentCollinear = new OrigamiPaper("canvas-fragment-collinear").setPadding(0.025);
+fragmentCollinear.show.boundary = false;
 
 fragmentCollinear.fillHorizontal = function(numLines){
 	if(numLines == undefined){ numLines = 20; }
@@ -63,6 +64,8 @@ fragmentCollinear.fillDoubleCrossing = function(numLines){
 
 fragmentCollinear.reset = function(){
 	this.cp.clear();
+	this.cp.nodes = [];
+	this.cp.edges = [];
 	var select = parseInt(Math.random()*5);
 	switch(select){
 		case 0: this.fillVertical(); break;

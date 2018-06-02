@@ -2010,20 +2010,17 @@ var PlanarEdge = (function (_super) {
         }, this);
     };
     PlanarEdge.prototype.crossingEdges = function (epsilon) {
-        var minX = (this.nodes[0].x < this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
-        var maxX = (this.nodes[0].x > this.nodes[1].x) ? this.nodes[0].x : this.nodes[1].x;
-        var minY = (this.nodes[0].y < this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
-        var maxY = (this.nodes[0].y > this.nodes[1].y) ? this.nodes[0].y : this.nodes[1].y;
+        var EPSILON_HIGH = 0.000000001;
+        var myXs = this.nodes.map(function (n) { return n.x; }).sort(function (a, b) { return a - b; });
+        var myYs = this.nodes.map(function (n) { return n.y; }).sort(function (a, b) { return a - b; });
+        myXs[0] -= EPSILON_HIGH;
+        myXs[1] += EPSILON_HIGH;
+        myYs[0] -= EPSILON_HIGH;
+        myYs[1] += EPSILON_HIGH;
         return this.graph.edges
-            .filter(function (el) {
-            return !((el.nodes[0].x < minX && el.nodes[1].x < minX) ||
-                (el.nodes[0].x > maxX && el.nodes[1].x > maxX) ||
-                (el.nodes[0].y < minY && el.nodes[1].y < minY) ||
-                (el.nodes[0].y > maxY && el.nodes[1].y > maxY));
-        }, this)
             .filter(function (el) { return this !== el; }, this)
-            .map(function (el) { return this.intersection(el, epsilon); }, this)
-            .filter(function (el) { return el != undefined; })
+            .map(function (el) { return { edge: el, point: this.intersection(el, epsilon) }; }, this)
+            .filter(function (el) { return el.point != undefined; })
             .sort(function (a, b) {
             if (a.point.commonX(b.point)) {
                 return a.point.y - b.point.y;
@@ -2053,8 +2050,7 @@ var PlanarEdge = (function (_super) {
         var intersect = a.intersection(b, epsilon);
         if (intersect !== undefined &&
             !(intersect.equivalent(this.nodes[0], epsilon) || intersect.equivalent(this.nodes[1], epsilon))) {
-            var pe = edge;
-            return { 'edge': pe, 'point': intersect };
+            return intersect;
         }
     };
     PlanarEdge.prototype.reflectionMatrix = function () { return new Edge(this.nodes[0], this.nodes[1]).reflectionMatrix(); };
@@ -2444,13 +2440,13 @@ var PlanarGraph = (function (_super) {
                 if (intersection != undefined) {
                     var copy = false;
                     for (var k = 0; k < intersections.length; k++) {
-                        if (intersection.point.equivalent(intersections[k], epsilon)) {
+                        if (intersection.equivalent(intersections[k], epsilon)) {
                             copy = true;
                             break;
                         }
                     }
                     if (!copy) {
-                        intersections.push(intersection.point);
+                        intersections.push(intersection);
                     }
                 }
             }
@@ -2580,6 +2576,7 @@ var PlanarGraph = (function (_super) {
     };
     PlanarGraph.prototype.mergePlanarNodes = function (node1, node2) {
         return new PlanarClean(-1).join(this.mergeNodes(node1, node2)).duplicateNodes([new XY(node2.x, node2.y)]);
+        ;
     };
     PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
         var EPSILON_HIGH = 0.00000001;
@@ -2587,14 +2584,10 @@ var PlanarGraph = (function (_super) {
             epsilon = EPSILON_HIGH;
         }
         var tree = rbush();
-        var nodes = this.nodes.map(function (el) {
+        tree.load(this.nodes.map(function (el) {
             return { minX: el.x - epsilon, minY: el.y - epsilon, maxX: el.x + epsilon, maxY: el.y + epsilon, node: el };
-        });
-        tree.load(nodes);
-        var clean = new PlanarClean();
-        this.nodeArrayDidChange();
-        var remainList = [];
-        var removeList = [];
+        }));
+        var remainList = [], removeList = [];
         var mergeList = [];
         this.nodes.forEach(function (node) {
             tree.search({ minX: node.x - epsilon, minY: node.y - epsilon, maxX: node.x + epsilon, maxY: node.y + epsilon })
@@ -2607,10 +2600,9 @@ var PlanarGraph = (function (_super) {
                 mergeList.push({ 'remain': node, 'remove': r['node'] });
             }, this);
         }, this);
-        mergeList.forEach(function (el) {
-            clean.join(this.mergePlanarNodes(el['remain'], el['remove']));
-        }, this);
-        return clean;
+        return mergeList
+            .map(function (el) { return this.mergePlanarNodes(el['remain'], el['remove']); }, this)
+            .reduce(function (prev, curr) { return prev.join(curr); }, new PlanarClean());
     };
     PlanarGraph.prototype.generateJunctions = function () {
         this.junctions = this.nodes
@@ -2729,10 +2721,13 @@ var PlanarGraph = (function (_super) {
     };
     PlanarGraph.prototype.fragmentEdge = function (edge, epsilon) {
         var report = new PlanarClean();
+        console.log("fragmentEdge: " + this.edges.length);
         var intersections = edge.crossingEdges(epsilon);
         if (intersections.length === 0) {
             return report;
         }
+        console.log(intersections);
+        console.log(intersections[0].edge.nodes);
         report.nodes.fragment = intersections.map(function (el) { return new XY(el.point.x, el.point.y); });
         var endNodes = edge.nodes.slice().sort(function (a, b) {
             if (a.commonX(b)) {
@@ -2740,6 +2735,7 @@ var PlanarGraph = (function (_super) {
             }
             return a.x - b.x;
         });
+        console.log("step 1 (created 0) " + this.edges.length);
         var newLineNodes = [];
         for (var i = 0; i < intersections.length; i++) {
             if (intersections[i] != undefined) {
@@ -2749,13 +2745,20 @@ var PlanarGraph = (function (_super) {
                 newLineNodes.push(newNode);
             }
         }
+        console.log("step 2 (created 2) " + this.edges.length);
         this.copyEdge(edge).nodes = [endNodes[0], newLineNodes[0]];
+        console.log("step 3 (created 2) " + this.edges.length);
         for (var i = 0; i < newLineNodes.length - 1; i++) {
             this.copyEdge(edge).nodes = [newLineNodes[i], newLineNodes[i + 1]];
         }
+        console.log("step 4 (created 0) " + this.edges.length);
         this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length - 1], endNodes[1]];
+        console.log("step 5 (created 2) " + this.edges.length);
         this.removeEdge(edge);
+        console.log("step 6 (removed 1) " + this.edges.length);
+        console.log("before cleaning: " + this.edges.length);
         report.join(this.cleanGraph());
+        console.log("after cleaning: " + this.edges.length);
         return report;
     };
     PlanarGraph.prototype.faceFromCircuit = function (circuit) {
