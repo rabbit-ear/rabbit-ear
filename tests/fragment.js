@@ -24,8 +24,8 @@ fragmentSketch.reset = function(numLines){
 	this.cp.nodes.filter(function(node){ return node.degree() < 2; },this)
 	             .forEach(function(node){this.nodes[node.index].fillColor = {alpha:0.0};},this)
 	if(fragment_sketch_callback != undefined){ fragment_sketch_callback(intersections); }
-	console.log(report);
-	console.log(intersections);
+	// console.log(report);
+	// console.log(intersections);
 }
 fragmentSketch.reset();
 

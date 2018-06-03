@@ -198,16 +198,17 @@ class PlanarEdge extends GraphEdge implements Edge{
 	 * var edges = edge.crossingEdges()
 	 */
 	crossingEdges(epsilon?:number):{edge:PlanarEdge, point:XY}[]{
-		// var EPSILON_HIGH = 0.000000001;
-		// var myXs = this.nodes.map(function(n){return n.x;}).sort(function(a,b){return a-b});
-		// var myYs = this.nodes.map(function(n){return n.y;}).sort(function(a,b){return a-b});
-		// myXs[0] -= EPSILON_HIGH; myXs[1] += EPSILON_HIGH; myYs[0] -= EPSILON_HIGH; myYs[1] += EPSILON_HIGH;
+		var EPSILON_HIGH = 0.000000001;
+		var myXs = this.nodes.map(function(n){return n.x;}).sort(function(a,b){return a-b});
+		var myYs = this.nodes.map(function(n){return n.y;}).sort(function(a,b){return a-b});
+		myXs[0] -= EPSILON_HIGH; myXs[1] += EPSILON_HIGH; myYs[0] -= EPSILON_HIGH; myYs[1] += EPSILON_HIGH;
 		return this.graph.edges
-			// filter edges outside of this edge's rectilinear bounding box
-			// .filter(function(e){
-			// 	return e.nodes.map(function(n){ return n.x>myXs[0] && n.x<myXs[1] && n.y>myYs[0] && n.y<myYs[1]; },this)
-			// 	              .reduce(function(prev,curr){ return prev || curr; },false);
-			// },this)
+			.filter(function(el:PlanarEdge){ return !(
+				(el.nodes[0].x < myXs[0] && el.nodes[1].x < myXs[0]) ||
+				(el.nodes[0].x > myXs[1] && el.nodes[1].x > myXs[1]) ||
+				(el.nodes[0].y < myYs[0] && el.nodes[1].y < myYs[0]) ||
+				(el.nodes[0].y > myYs[1] && el.nodes[1].y > myYs[1])
+				)},this)
 			.filter(function(el:PlanarEdge){ return this !== el}, this)
 			.map(function(el:PlanarEdge){ return {edge:el, point:this.intersection(el, epsilon)} }, this)
 			.filter(function(el:{edge:PlanarEdge, point:XY}){ return el.point != undefined})
@@ -215,9 +216,6 @@ class PlanarEdge extends GraphEdge implements Edge{
 				if(a.point.commonX(b.point)){ return a.point.y-b.point.y; }
 				return a.point.x-b.point.x;
 			});
-		// console.log("matching crossing edge");
-		// a.forEach(function(el){ console.log(this); console.log(el); },this);
-		// return a;
 	}
 	// implements Edge (implements LineType)
 	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }
@@ -548,6 +546,7 @@ class PlanarGraph extends Graph{
 	 * @returns {object} 'edges' the number of edges removed, and 'nodes' an XY location for every duplicate node merging
 	 */
 	clean(epsilon?:number):PlanarClean{
+		// console.time("clean");
 		var report = new PlanarClean();
 		report.join( this.cleanDuplicateNodes(epsilon) );
 		report.join( this.fragment(epsilon) );
@@ -556,14 +555,17 @@ class PlanarGraph extends Graph{
 		report.join( this.cleanAllUselessNodes() );
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
+		// console.timeEnd("clean");
 		return report;
 	}
 
 	flatten(epsilon?:number):PlanarClean{
+		// console.time("flatten");
 		this.dirty = false;
 		var report = this.clean(epsilon);
 		this.generateJunctions();
 		this.generateFaces();
+		// console.timeEnd("flatten");
 		return report;
 	}
 
@@ -876,6 +878,7 @@ class PlanarGraph extends Graph{
 	 * @returns {PlanarClean} how many nodes were removed
 	 */
 	cleanAllUselessNodes():PlanarClean{
+		// console.time("cleanAllUselessNodes");
 		// console.log("cleanAllUselessNodes");
 		// prepare adjacency information
 		this.nodes.forEach(function(el){ el.cache['adjE'] = []; });
@@ -906,7 +909,7 @@ class PlanarGraph extends Graph{
 			}
 		}
 		this.nodes.forEach(function(el){ el.cache['adjE'] = undefined; });
-		// console.log("cleanAllUselessNodes success");
+		// console.timeEnd("cleanAllUselessNodes");
 		return report;
 	}
 
@@ -919,6 +922,7 @@ class PlanarGraph extends Graph{
 	 * @returns {PlanarClean} how many nodes were removed
 	 */
 	cleanDuplicateNodes(epsilon?:number):PlanarClean{
+		// console.time("cleanDuplicateNodes");
 		var EPSILON_HIGH = 0.00000001;
 		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		var tree = rbush();
@@ -941,6 +945,7 @@ class PlanarGraph extends Graph{
 					mergeList.push({'remain':node, 'remove':r['node']});
 				},this);
 		},this);
+		// console.timeEnd("cleanDuplicateNodes");
 		return mergeList
 			.map(function(el){ return this.mergePlanarNodes(el['remain'], el['remove']); },this)
 			.reduce(function(prev,curr){ return prev.join(curr); },new PlanarClean());
@@ -965,6 +970,7 @@ class PlanarGraph extends Graph{
 	}
 
 	generateFaces():PlanarFace[]{
+		// console.time("generateFaces");
 		var faces:PlanarFace[] = this.edges
 			.map(function(edge){
 				return [this.walkClockwiseCircut(edge.nodes[0], edge.nodes[1]),
@@ -985,6 +991,7 @@ class PlanarGraph extends Graph{
 		}
 		this.faces = uniqueFaces;
 		this.faceArrayDidChange();
+		// console.timeEnd("generateFaces");
 		return this.faces;
 	}
 
@@ -995,6 +1002,7 @@ class PlanarGraph extends Graph{
 		// build a N x N matrix of edge to edge relationships, but only use the top triangle
 		// fill matrix with approximations
 	fragment(epsilon?:number):PlanarClean{
+		// console.time("fragment");
 		//todo: remove protection, or bake it into the class itself
 		var protection = 0;
 		var report = new PlanarClean();
@@ -1017,6 +1025,7 @@ class PlanarGraph extends Graph{
 		this.removeIsolatedNodes();
 		this.cleanDuplicateNodes();
 		this.cleanGraph();
+		// console.timeEnd("fragment");
 		return report;
 	}
 
