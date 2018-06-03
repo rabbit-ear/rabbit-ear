@@ -2640,12 +2640,13 @@ var PlanarGraph = (function (_super) {
         function fragmentOneRound() {
             var roundReport = new PlanarClean();
             for (var i = 0; i < that.edges.length; i++) {
-                var fragmentReport = that.fragmentEdge(that.edges[i], epsilon);
+                var fragmentReport = that.fragmentCrossingEdges(that.edges[i], epsilon);
                 roundReport.join(fragmentReport);
                 if (fragmentReport.nodes.fragment.length > 0) {
                     roundReport.join(that.cleanGraph());
                     roundReport.join(that.cleanAllUselessNodes());
                     roundReport.join(that.cleanDuplicateNodes(epsilon));
+                    console.log(that.edges[i]);
                 }
             }
             return roundReport;
@@ -2657,9 +2658,9 @@ var PlanarGraph = (function (_super) {
             thisReport = fragmentOneRound();
             report.join(thisReport);
             protection += 1;
-        } while (thisReport.nodes.fragment.length != 0 && protection < 5000);
-        if (protection >= 5000) {
-            throw ("exiting fragment(). potential infinite loop detected");
+        } while (thisReport.nodes.fragment.length != 0 && protection < 500);
+        if (protection >= 500) {
+            console.log("exiting fragment(). potential infinite loop detected");
         }
         return report;
     };
@@ -2710,7 +2711,31 @@ var PlanarGraph = (function (_super) {
             return;
         }
     };
-    PlanarGraph.prototype.fragmentEdge = function (edge, epsilon) {
+    PlanarGraph.prototype.rebuildEdge = function (oldEdge, oldEndpts, innerpoints, epsilon) {
+        var removeNodes = [];
+        var endinnerpts = [innerpoints[0], innerpoints[innerpoints.length - 1]];
+        var equiv = oldEndpts.map(function (n, i) { return n.equivalent(endinnerpts[i], epsilon); }, this);
+        if (equiv[0]) {
+            removeNodes.push(oldEndpts[0]);
+        }
+        else {
+            innerpoints.unshift(oldEndpts[0]);
+        }
+        if (equiv[1]) {
+            removeNodes.push(oldEndpts[1]);
+        }
+        else {
+            innerpoints.push(oldEndpts[1]);
+        }
+        if (innerpoints.length > 1) {
+            for (var i = 0; i < innerpoints.length - 1; i++) {
+                this.copyEdge(oldEdge).nodes = [innerpoints[i], innerpoints[i + 1]];
+            }
+        }
+        this.edges = this.edges.filter(function (e) { return e !== oldEdge; }, this);
+        return removeNodes;
+    };
+    PlanarGraph.prototype.fragmentCrossingEdges = function (edge, epsilon) {
         var report = new PlanarClean();
         var intersections = edge.crossingEdges(epsilon);
         if (intersections.length == 0) {
@@ -2727,25 +2752,12 @@ var PlanarGraph = (function (_super) {
         var newLineNodes = intersections.map(function (el) {
             return this.newNode().position(el.point.x, el.point.y);
         }, this);
+        var rmNodes = [];
         intersections.forEach(function (el, i) {
-            var crossings = [el.edge.nodes[0], newLineNodes[i], el.edge.nodes[1]];
-            if (el.edge.nodes[0].equivalent(newLineNodes[i], epsilon)) {
-                crossings = [newLineNodes[i], el.edge.nodes[1]];
-            }
-            else if (el.edge.nodes[1].equivalent(newLineNodes[i], epsilon)) {
-                crossings = [el.edge.nodes[0], newLineNodes[i]];
-            }
-            for (var i = 0; i < crossings.length - 1; i++) {
-                this.copyEdge(el.edge).nodes = [crossings[i], crossings[i + 1]];
-            }
-            this.edges = this.edges.filter(function (filt) { return filt !== el.edge; }, this);
+            rmNodes = rmNodes.concat(this.rebuildEdge(el.edge, el.edge.nodes, [newLineNodes[i]], epsilon));
         }, this);
-        this.copyEdge(edge).nodes = [endNodes[0], newLineNodes[0]];
-        for (var i = 0; i < newLineNodes.length - 1; i++) {
-            this.copyEdge(edge).nodes = [newLineNodes[i], newLineNodes[i + 1]];
-        }
-        this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length - 1], endNodes[1]];
-        this.edges = this.edges.filter(function (filt) { return filt !== edge; }, this);
+        rmNodes.forEach(function (node) { console.log("rmNode"); this.cleanNodeIfUseless(node); }, this);
+        this.rebuildEdge(edge, endNodes, newLineNodes, epsilon);
         report.edges.total += edgesLength - this.edges.length;
         return report;
     };

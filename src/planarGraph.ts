@@ -979,12 +979,13 @@ class PlanarGraph extends Graph{
 		function fragmentOneRound():PlanarClean{
 			var roundReport = new PlanarClean();
 			for(var i = 0; i < that.edges.length; i++){
-				var fragmentReport = that.fragmentEdge(that.edges[i], epsilon);
+				var fragmentReport = that.fragmentCrossingEdges(that.edges[i], epsilon);
 				roundReport.join(fragmentReport);
 				if(fragmentReport.nodes.fragment.length > 0){
 					roundReport.join( that.cleanGraph() );
 					roundReport.join( that.cleanAllUselessNodes() );
 					roundReport.join( that.cleanDuplicateNodes(epsilon) );
+					console.log(that.edges[i]);
 				}
 			}
 			return roundReport;
@@ -997,8 +998,8 @@ class PlanarGraph extends Graph{
 			thisReport = fragmentOneRound();
 			report.join( thisReport );
 			protection += 1;
-		}while(thisReport.nodes.fragment.length != 0 && protection < 5000);
-		if(protection >= 5000){ throw("exiting fragment(). potential infinite loop detected"); }
+		}while(thisReport.nodes.fragment.length != 0 && protection < 500);
+		if(protection >= 500){ console.log("exiting fragment(). potential infinite loop detected"); }
 		// this.fragmentOverlappingEdges(epsilon);
 		return report;
 	}
@@ -1090,16 +1091,32 @@ class PlanarGraph extends Graph{
 		// }
 	}
 
+	private rebuildEdge(oldEdge:PlanarEdge, oldEndpts:[PlanarNode,PlanarNode], innerpoints:PlanarNode[], epsilon?:number):PlanarNode[]{
+		var removeNodes = [];
+		var endinnerpts = [ innerpoints[0], innerpoints[innerpoints.length-1] ];
+		var equiv = oldEndpts.map(function(n,i){return n.equivalent(endinnerpts[i],epsilon);},this);
+		if(equiv[0]){ removeNodes.push(oldEndpts[0]) } else{ innerpoints.unshift(oldEndpts[0]); }
+		if(equiv[1]){ removeNodes.push(oldEndpts[1]) } else{ innerpoints.push(oldEndpts[1]); }
+		if(innerpoints.length > 1){
+			for(var i = 0; i < innerpoints.length-1; i++){
+				this.copyEdge(oldEdge).nodes = [innerpoints[i], innerpoints[i+1]];
+			}
+		}
+		this.edges = this.edges.filter(function(e){ return e !== oldEdge; },this);
+		return removeNodes;
+	}
+
 	/** This function targets a single edge and performs the fragment operation on all crossing edges.
 	 * @returns {XY[]} array of XY locations of all the intersection locations
 	 */
-	private fragmentEdge(edge:PlanarEdge, epsilon?:number):PlanarClean{
+	private fragmentCrossingEdges(edge:PlanarEdge, epsilon?:number):PlanarClean{
 		var report = new PlanarClean();
 		var intersections:{'edge':PlanarEdge, 'point':XY}[] = edge.crossingEdges(epsilon);
 		if(intersections.length == 0){ return report; }
 		var edgesLength = this.edges.length;
 		report.nodes.fragment = intersections.map(function(el){ return new XY(el.point.x, el.point.y);});
-		var endNodes = edge.nodes.slice().sort(function(a,b){
+		// important: endNodes are sorted in the same order as edge.crossingEdges
+		var endNodes = <[PlanarNode, PlanarNode]>edge.nodes.slice().sort(function(a,b){
 			if(a.commonX(b)){ return a.y-b.y; }
 			return a.x-b.x;
 		});
@@ -1107,22 +1124,11 @@ class PlanarGraph extends Graph{
 		var newLineNodes = intersections.map(function(el){
 			return (<PlanarNode>this.newNode()).position(el.point.x, el.point.y);
 		},this);
-		intersections.forEach(function(el,i){
-			var crossings = [el.edge.nodes[0], newLineNodes[i], el.edge.nodes[1]];
-			if     (el.edge.nodes[0].equivalent(newLineNodes[i],epsilon)){crossings = [newLineNodes[i], el.edge.nodes[1]];}
-			else if(el.edge.nodes[1].equivalent(newLineNodes[i],epsilon)){crossings = [el.edge.nodes[0], newLineNodes[i]];}
-			for(var i = 0; i < crossings.length-1; i++){
-				this.copyEdge(el.edge).nodes = [crossings[i], crossings[i+1]];
-			}
-			this.edges = this.edges.filter(function(filt){ return filt !== el.edge; },this);
-		},this);
-		// replace the original edge with smaller collinear pieces of itself
-		this.copyEdge(edge).nodes = [endNodes[0], newLineNodes[0]];
-		for(var i = 0; i < newLineNodes.length-1; i++){
-			this.copyEdge(edge).nodes = [newLineNodes[i], newLineNodes[i+1]];
-		}
-		this.copyEdge(edge).nodes = [newLineNodes[newLineNodes.length-1], endNodes[1]];
-		this.edges = this.edges.filter(function(filt){ return filt !== edge; },this);
+		intersections
+			.map(function(el,i){ return this.rebuildEdge(el.edge, el.edge.nodes, [newLineNodes[i]], epsilon);},this)
+			.reduce(function(prev,curr){ return prev.concat(curr); },[])
+			.forEach(function(node){ this.cleanNodeIfUseless(node); },this);
+		this.rebuildEdge(edge, endNodes, newLineNodes, epsilon);
 		report.edges.total += edgesLength - this.edges.length;
 		return report;
 	}

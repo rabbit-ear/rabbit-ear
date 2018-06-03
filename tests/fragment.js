@@ -5,7 +5,7 @@ var fragmentSketch = new OrigamiPaper("canvas-fragment").setPadding(0.025);
 fragmentSketch.show.nodes = true;
 fragmentSketch.show.boundary = false;
 fragmentSketch.style.node.fillColor = fragmentSketch.styles.byrne.blue;
-fragmentSketch.numLines = 1;
+fragmentSketch.numLines = 5;
 // fragmentSketch.numLines = 30;
 fragmentSketch.selectEdges = true;
 
@@ -41,7 +41,7 @@ fragmentSketch.reset();
 // 	this.cp.fragment();
 // 	this.cp.crease(new XY(Math.random()*0.5, Math.random()*.2+0.4), new XY(Math.random()*0.5+0.5, Math.random()*0.2+0.4));
 // 	this.cp.crease(new XY(Math.random()*0.2+0.4, Math.random()*0.5), new XY(Math.random()*0.2+0.4, Math.random()*0.5+0.5));
-// 	this.cp.crease(new XY(Math.random()*0.2+0.4, Math.random()*0.5), new XY(Math.random()*0.2+0.4, Math.random()*0.5+0.5));
+// 	// this.cp.crease(new XY(Math.random()*0.2+0.4, Math.random()*0.5), new XY(Math.random()*0.2+0.4, Math.random()*0.5+0.5));
 // 	console.log("++++++++++++++++++++++");
 // 	var report = this.cp.fragment();
 // 	console.log(report);
