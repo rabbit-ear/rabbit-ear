@@ -1,3 +1,4 @@
+var STARTING_EPSILON = 0.00079792266;
 var sliderUpdateTimer;
 var slider = new Slider('#epsilon-slider').on("slide",sliderUpdate);
 function sliderUpdate(value){
@@ -8,8 +9,9 @@ function sliderUpdate(value){
 	// updateEpsilon(v);
 	if(sliderUpdateTimer != undefined){ clearTimeout(sliderUpdateTimer); }
 	sliderUpdateTimer = setTimeout(updateEpsilon.bind(null, epsilon), 200);
+	console.log()
 }
-sliderUpdate(400);
+sliderUpdate(700);
 /////////////////////////////////////////////////////////////////
 function download(text, filename){
 	var blob = new Blob([text], {type: "image/svg+xml"});
@@ -122,6 +124,6 @@ function fileDidLoad(file){
 			[panel3, panel4, panel5].forEach(function(el){el.draw();},);
 			panel4.reset();
 			updateFoldedState(panel2.cp);
-		});
+		},STARTING_EPSILON);
 	// }
 }

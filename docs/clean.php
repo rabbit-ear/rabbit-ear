@@ -204,7 +204,7 @@ remove_edge_callback = function(report){
 			document.getElementById("span-merge-result").innerHTML = "<v>Array</v>(<n>" + event.length + "</n>) ← ";
 		}
 	}
-	intersectionSketch.reset();
+	fragmentSketch.reset();
 </script>
 
 <?php include 'footer.php';?>

@@ -2507,6 +2507,22 @@ var PlanarGraph = (function (_super) {
             .join(this.cleanNodeIfUseless(node1))
             .join(this.cleanNodeIfUseless(node2));
     };
+    PlanarGraph.prototype.cleanNodeIfIsolated = function (node) {
+        var found = false;
+        for (var i = 0; i < this.edges.length; i++) {
+            if (this.edges[i].nodes[0] === node || this.edges[i].nodes[1] === node) {
+                found = true;
+                break;
+            }
+        }
+        if (found == false) {
+            this.nodes = this.nodes.filter(function (el) { return el !== node; });
+            this.nodeArrayDidChange();
+            console.log("removing isolated node");
+            return new PlanarClean(1, 0);
+        }
+        return new PlanarClean();
+    };
     PlanarGraph.prototype.cleanNodeIfUseless = function (node) {
         var edges = node.adjacentEdges();
         switch (edges.length) {
@@ -2636,93 +2652,40 @@ var PlanarGraph = (function (_super) {
         return this.faces;
     };
     PlanarGraph.prototype.fragment = function (epsilon) {
-        var that = this;
-        function fragmentOneRound() {
-            var roundReport = new PlanarClean();
-            for (var i = 0; i < that.edges.length; i++) {
-                var fragmentReport = that.fragmentCrossingEdges(that.edges[i], epsilon);
-                roundReport.join(fragmentReport);
-                if (fragmentReport.nodes.fragment.length > 0) {
-                    roundReport.join(that.cleanGraph());
-                    roundReport.join(that.cleanAllUselessNodes());
-                    roundReport.join(that.cleanDuplicateNodes(epsilon));
-                    console.log(that.edges[i]);
-                }
-            }
-            return roundReport;
-        }
         var protection = 0;
         var report = new PlanarClean();
-        var thisReport;
+        var roundReport;
         do {
-            thisReport = fragmentOneRound();
-            report.join(thisReport);
+            roundReport = this.edges
+                .map(function (edge) { return this.fragmentCrossingEdges(edge, epsilon); }, this)
+                .reduce(function (prev, curr) { return prev.join(curr); }, new PlanarClean());
+            if (roundReport.nodes.fragment.length > 0) {
+                this.cleanDuplicateNodes(epsilon);
+                this.cleanGraph();
+            }
+            report.join(roundReport);
             protection += 1;
-        } while (thisReport.nodes.fragment.length != 0 && protection < 500);
+        } while (roundReport.nodes.fragment.length != 0 && protection < 500);
         if (protection >= 500) {
             console.log("exiting fragment(). potential infinite loop detected");
         }
+        this.removeIsolatedNodes();
+        this.cleanDuplicateNodes();
+        this.cleanGraph();
         return report;
     };
-    PlanarGraph.prototype.fragmentOverlappingEdges = function (epsilon) {
-        if (epsilon == undefined) {
-            epsilon = 0.00000001;
-        }
-        var tree = rbush();
-        var edges = this.edges.map(function (edge) {
-            var box = edge.boundingBox(epsilon);
-            edge.cache["box"] = box;
-            return {
-                minX: box.origin.x, minY: box.origin.y,
-                maxX: box.origin.x + box.size.width, maxY: box.origin.y + box.size.height,
-                edge: edge
-            };
-        }, this);
-        tree.load(edges);
-        this.edges.slice().forEach(function (edge) {
-            var box = edge.cache["box"];
-            if (box == undefined) {
-                box = edge.boundingBox(epsilon);
-            }
-            var result = tree.search({
-                minX: box.origin.x,
-                minY: box.origin.y,
-                maxX: box.origin.x + box.size.width,
-                maxY: box.origin.y + box.size.height
-            }).filter(function (el) { return edge.parallel(el['edge']); }, this);
-            for (var r = 0; r < result.length; r++) {
-                if (edge !== result[r]['edge']) {
-                    this.fragmentTwoOverlappingEdges(edge, result[r]['edge'], epsilon);
-                }
-            }
-        }, this);
-    };
-    PlanarGraph.prototype.fragmentTwoOverlappingEdges = function (a, b, epsilon) {
-        if (epsilon == undefined) {
-            epsilon = 0.00000001;
-        }
-        var a0b0 = a.nodes[0].equivalent(b.nodes[0], epsilon);
-        var a0b1 = a.nodes[0].equivalent(b.nodes[1], epsilon);
-        var a1b0 = a.nodes[1].equivalent(b.nodes[0], epsilon);
-        var a1b1 = a.nodes[1].equivalent(b.nodes[1], epsilon);
-        if ((a0b0 || a0b1) && (a1b0 || a1b1)) {
-            console.log("collinear parallel edges are similar ", a, b);
-            console.log("collinear parallel edges are similar ", a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]);
-            return;
-        }
-    };
     PlanarGraph.prototype.rebuildEdge = function (oldEdge, oldEndpts, innerpoints, epsilon) {
-        var removeNodes = [];
+        var isolatedNodes = [];
         var endinnerpts = [innerpoints[0], innerpoints[innerpoints.length - 1]];
         var equiv = oldEndpts.map(function (n, i) { return n.equivalent(endinnerpts[i], epsilon); }, this);
         if (equiv[0]) {
-            removeNodes.push(oldEndpts[0]);
+            isolatedNodes.push(oldEndpts[0]);
         }
         else {
             innerpoints.unshift(oldEndpts[0]);
         }
         if (equiv[1]) {
-            removeNodes.push(oldEndpts[1]);
+            isolatedNodes.push(oldEndpts[1]);
         }
         else {
             innerpoints.push(oldEndpts[1]);
@@ -2733,7 +2696,7 @@ var PlanarGraph = (function (_super) {
             }
         }
         this.edges = this.edges.filter(function (e) { return e !== oldEdge; }, this);
-        return removeNodes;
+        return isolatedNodes;
     };
     PlanarGraph.prototype.fragmentCrossingEdges = function (edge, epsilon) {
         var report = new PlanarClean();
@@ -2743,21 +2706,19 @@ var PlanarGraph = (function (_super) {
         }
         var edgesLength = this.edges.length;
         report.nodes.fragment = intersections.map(function (el) { return new XY(el.point.x, el.point.y); });
-        var endNodes = edge.nodes.slice().sort(function (a, b) {
+        var newLineNodes = intersections.map(function (el) {
+            return this.newNode().position(el.point.x, el.point.y);
+        }, this);
+        var isolated = intersections
+            .map(function (el, i) { return this.rebuildEdge(el.edge, el.edge.nodes, [newLineNodes[i]], epsilon); }, this)
+            .reduce(function (prev, curr) { return prev.concat(curr); }, []);
+        var sortedEndpts = edge.nodes.slice().sort(function (a, b) {
             if (a.commonX(b)) {
                 return a.y - b.y;
             }
             return a.x - b.x;
         });
-        var newLineNodes = intersections.map(function (el) {
-            return this.newNode().position(el.point.x, el.point.y);
-        }, this);
-        var rmNodes = [];
-        intersections.forEach(function (el, i) {
-            rmNodes = rmNodes.concat(this.rebuildEdge(el.edge, el.edge.nodes, [newLineNodes[i]], epsilon));
-        }, this);
-        rmNodes.forEach(function (node) { console.log("rmNode"); this.cleanNodeIfUseless(node); }, this);
-        this.rebuildEdge(edge, endNodes, newLineNodes, epsilon);
+        isolated = isolated.concat(this.rebuildEdge(edge, sortedEndpts, newLineNodes, epsilon));
         report.edges.total += edgesLength - this.edges.length;
         return report;
     };

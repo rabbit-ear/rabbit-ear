@@ -5,10 +5,14 @@ fragmentCollinear.show.boundary = false;
 fragmentCollinear.fillHorizontal = function(numLines){
 	if(numLines == undefined){ numLines = 20; }
 	this.cp.crease(0.0, 0.5, 1.0, 0.5);
-	for(var i = 0; i < numLines; i++){
+	[5,3,7,9,4,2,1,6,8,0].forEach(function(i){
 		var x = .1 + .8*(i/(numLines-1));
 		this.cp.crease( x, Math.random(), x, 0.5 );
-	}
+	},this);
+	// for(var i = 0; i < numLines; i++){
+	// 	var x = .1 + .8*(i/(numLines-1));
+	// 	this.cp.crease( x, Math.random(), x, 0.5 );
+	// }
 }
 fragmentCollinear.fillVertical = function(numLines){
 	if(numLines == undefined){ numLines = 20; }
@@ -66,7 +70,7 @@ fragmentCollinear.reset = function(){
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
-	var select = parseInt(Math.random()*5);
+	var select = 4;//parseInt(Math.random()*5);
 	switch(select){
 		case 0: this.fillVertical(); break;
 		case 1: this.fillHorizontal(); break;

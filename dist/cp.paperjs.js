@@ -300,8 +300,8 @@ var OrigamiPaper = (function(){
 		var that = this;
 		this.scope.project.importSVG(svg, function(e){
 			var cp = that.loader.paperPathToCP(e);
-			if(epsilon === undefined){ epsilon = 0.0001; }
-			console.log("trying with this " + epsilon);
+			if(epsilon === undefined){ epsilon = 0.01; }
+			console.log("loading svg with epsilon " + epsilon);
 			cp.flatten(epsilon);
 			that.cp = cp;
 			that.draw();
@@ -646,7 +646,7 @@ var PaperJSLoader = (function(){
 		// cp.boundary = new PlanarGraph();
 		function recurseAndAdd(childrenArray){
 			for(var i = 0; i < childrenArray.length; i++){
-				if(childrenArray[i].shape == "rectangle"){ // found a rectangle
+				if(childrenArray[i].shape == "rectangle" && childrenArray[i].strokeColor != null){ // found a rectangle
 					var left = childrenArray[i].strokeBounds.left;
 					var top = childrenArray[i].strokeBounds.top;
 					var width = childrenArray[i].strokeBounds.width;
