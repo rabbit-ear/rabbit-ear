@@ -34,8 +34,7 @@ function fileDidLoad(file){
 	} catch(err){
 		// try .svg file format
 		project.load(file, function(){
-			project.cp.clean(0.0001);
 			updateFoldedState(project.cp);
-		});
+		},0.0001);
 	}
 }

@@ -1,6 +1,6 @@
 // drag-and-drop to upload a file
 //
-// 1) implement the callback function is "fileDidLoad(blob, mimeType)"
+// 1) implement the callback function "fileDidLoad(blob, mimeType, fileExtension)"
 
 // creates a div for the drop zone
 var dropZone = document.createElement("div");
@@ -43,6 +43,7 @@ function handleDrop(e) {
 		//attach event handlers here...  
 		reader.readAsDataURL(file);
 		addEventHandler(reader, 'loadend', function (e, file) {
+			var extension = file.name.substr((file.name.lastIndexOf('.') + 1));
 			// mime type
 			var colonIndex = this.result.indexOf(':');
 			var semicolonIndex = this.result.indexOf(';');
@@ -50,7 +51,7 @@ function handleDrop(e) {
 			// strip type header block from base 64 contents
 			var b64 = this.result.split(',')[1];
 			var decoded = window.atob(b64);
-			fileDidLoad(decoded, mimeType);
+			fileDidLoad(decoded, mimeType, extension);
 		}.bindToEventHandler(file));
 	}
 	return true;

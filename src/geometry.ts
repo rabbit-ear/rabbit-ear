@@ -314,8 +314,8 @@ class XY{
 	multiply(m:XY):XY{ return new XY(this.x*m.x, this.y*m.y); }
 	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 	abs():XY{ return new XY(Math.abs(this.x), Math.abs(this.y)); }
-	commonX(point:XY, epsilon?:number):boolean{return epsilonEqual(this.y, point.y, epsilon);}
-	commonY(point:XY, epsilon?:number):boolean{return epsilonEqual(this.x, point.x, epsilon);}
+	commonX(point:XY, epsilon?:number):boolean{return epsilonEqual(this.x, point.x, epsilon);}
+	commonY(point:XY, epsilon?:number):boolean{return epsilonEqual(this.y, point.y, epsilon);}
 }
 /** All line types (lines, rays, edges) must implement these functions */
 abstract class LineType{

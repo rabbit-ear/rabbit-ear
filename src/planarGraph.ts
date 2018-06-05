@@ -202,6 +202,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 		var myXs = this.nodes.map(function(n){return n.x;}).sort(function(a,b){return a-b});
 		var myYs = this.nodes.map(function(n){return n.y;}).sort(function(a,b){return a-b});
 		myXs[0] -= EPSILON_HIGH; myXs[1] += EPSILON_HIGH; myYs[0] -= EPSILON_HIGH; myYs[1] += EPSILON_HIGH;
+		// myXs[0] += EPSILON_HIGH; myXs[1] -= EPSILON_HIGH; myYs[0] += EPSILON_HIGH; myYs[1] -= EPSILON_HIGH;
 		return this.graph.edges
 			.filter(function(el:PlanarEdge){ return !(
 				(el.nodes[0].x < myXs[0] && el.nodes[1].x < myXs[0]) ||
@@ -548,6 +549,8 @@ class PlanarGraph extends Graph{
 	clean(epsilon?:number):PlanarClean{
 		// console.time("clean");
 		var report = new PlanarClean();
+		report.join( this.cleanDuplicateNodes(epsilon) );
+		this.fragmentCollinearNodes(epsilon);
 		report.join( this.cleanDuplicateNodes(epsilon) );
 		report.join( this.fragment(epsilon) );
 		report.join( this.cleanDuplicateNodes(epsilon) );
@@ -1029,34 +1032,12 @@ class PlanarGraph extends Graph{
 		return report;
 	}
 
-	/** This rebuilds an edge by inserting collinear points between its endpoints and constructs many edges between them.
-	 *  This is taking for granted that sorting has already happened. 1) innerpoints are sorted and 2) oldEndpts are sorted so that the first can be added to the beginning of innerpoints and the second to the end, and the product is a fully-sorted array
-	 * @returns {PlanarNode[]} array of locally-isolated nodes, created by edge-removal. further checks should be done before removing to ensure they are not still being used by other edges.
-	 */
-	private rebuildEdge(oldEdge:PlanarEdge, oldEndpts:[PlanarNode,PlanarNode], innerpoints:PlanarNode[], epsilon?:number):PlanarNode[]{
-		// console.log("rebuild ", oldEndpts[0].x, oldEndpts[1].x, innerpoints[0].x, innerpoints.length);
-		var isolatedNodes = [];
-		var endinnerpts = [ innerpoints[0], innerpoints[innerpoints.length-1] ];
-		var equiv = oldEndpts.map(function(n,i){return n.equivalent(endinnerpts[i],epsilon);},this);
-		if(equiv[0]){ isolatedNodes.push(oldEndpts[0]) } else{ innerpoints.unshift(oldEndpts[0]); }
-		if(equiv[1]){ isolatedNodes.push(oldEndpts[1]) } else{ innerpoints.push(oldEndpts[1]); }
-		if(innerpoints.length > 1){
-			for(var i = 0; i < innerpoints.length-1; i++){
-				// console.log("RBE creating edge " + this.edges.length + " ", innerpoints[i].x.toFixed(2), innerpoints[i].y.toFixed(2), innerpoints[i+1].x.toFixed(2), innerpoints[i+1].y.toFixed(2) );
-				this.copyEdge(oldEdge).nodes = [innerpoints[i], innerpoints[i+1]];
-			}
-		}
-		// console.log("RBE removing edge " + this.edges.length + " ", oldEdge.nodes[0].x.toFixed(2), oldEdge.nodes[0].y.toFixed(2), oldEdge.nodes[1].x.toFixed(2), oldEdge.nodes[1].y.toFixed(2) );
-		this.edges = this.edges.filter(function(e){ return e !== oldEdge; },this);
-		return isolatedNodes;
-	}
-
 	/** This function targets a single edge and performs the fragment operation on all crossing edges.
 	 * @returns {XY[]} array of XY locations of all the intersection locations
 	 */
 	private fragmentCrossingEdges(edge:PlanarEdge, epsilon?:number):PlanarClean{
 		var report = new PlanarClean();
-		var intersections:{'edge':PlanarEdge, 'point':XY}[] = edge.crossingEdges(epsilon);
+		var intersections:{'edge':PlanarEdge, 'point':XY}[] = this.edgeCrossingEdges(edge, epsilon);
 		if(intersections.length == 0){ return report; }
 		var edgesLength = this.edges.length;
 		report.nodes.fragment = intersections.map(function(el){ return new XY(el.point.x, el.point.y);});
@@ -1066,106 +1047,108 @@ class PlanarGraph extends Graph{
 		},this);
 		var isolated = intersections
 			.map(function(el,i){ return this.rebuildEdge(el.edge, el.edge.nodes, [newLineNodes[i]], epsilon);},this)
+			.map(function(el){ return el.nodes })
 			.reduce(function(prev,curr){ return prev.concat(curr); },[]);
 			// .forEach(function(node){ this.cleanNodeIfIsolated(node); },this);
 		// important: sortedEndpts are sorted in the same order as edge.crossingEdges
 		var sortedEndpts = edge.nodes.slice().sort(function(a,b){
-			if(a.commonX(b)){ return a.y-b.y; } return a.x-b.x;
+			if(a.commonX(b,epsilon)){ return a.y-b.y; } return a.x-b.x;
 		});
-		isolated = isolated.concat(this.rebuildEdge(edge, <[PlanarNode, PlanarNode]>sortedEndpts, newLineNodes, epsilon))
+		isolated = isolated.concat(this.rebuildEdge(edge, <[PlanarNode, PlanarNode]>sortedEndpts, newLineNodes, epsilon).nodes)
 		// isolated.forEach(function(node){ this.cleanNodeIfIsolated(node); },this);
 		report.edges.total += edgesLength - this.edges.length;
 		// console.log(report);
 		return report;
 	}
 
-/*
-	private fragmentOverlappingEdges(epsilon?:number){
-		if(epsilon == undefined){ epsilon = 0.00000001; }
+	/** Returns an array of edges that cross this edge. These are edges which are considered "invalid"
+	 * @returns {{edge:PlanarEdge, point:XY}[]} array of objects containing the crossing edge and point of intersection
+	 * @example
+	 * var edges = edge.crossingEdges()
+	 */
+	edgeCrossingEdges(edge:PlanarEdge, epsilon?:number):{edge:PlanarEdge, point:XY}[]{
+		var EPSILON_HIGH = 0.000000001;
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
+		var myXs = edge.nodes.map(function(n){return n.x;}).sort(function(a,b){return a-b});
+		var myYs = edge.nodes.map(function(n){return n.y;}).sort(function(a,b){return a-b});
+		myXs[0] -= epsilon; myXs[1] += epsilon; myYs[0] -= epsilon; myYs[1] += epsilon;
+		return this.edges
+			.filter(function(el:PlanarEdge){ return !(
+				(el.nodes[0].x < myXs[0] && el.nodes[1].x < myXs[0]) ||
+				(el.nodes[0].x > myXs[1] && el.nodes[1].x > myXs[1]) ||
+				(el.nodes[0].y < myYs[0] && el.nodes[1].y < myYs[0]) ||
+				(el.nodes[0].y > myYs[1] && el.nodes[1].y > myYs[1])
+				)},this)
+			.filter(function(el:PlanarEdge){ return edge !== el}, this)
+			.map(function(el:PlanarEdge){ return {edge:el, point:edge.intersection(el, epsilon)} }, this)
+			.filter(function(el:{edge:PlanarEdge, point:XY}){ return el.point != undefined})
+			.sort(function(a:{edge:PlanarEdge, point:XY},b:{edge:PlanarEdge, point:XY}){
+				if(a.point.commonX(b.point,epsilon)){ return a.point.y-b.point.y; }
+				return a.point.x-b.point.x;
+			});
+	}
+
+	/** This rebuilds an edge by inserting collinear points between its endpoints and constructs many edges between them.
+	 *  This is taking for granted that sorting has already happened. 1) innerpoints are sorted and 2) oldEndpts are sorted so that the first can be added to the beginning of innerpoints and the second to the end, and the product is a fully-sorted array
+	 * @returns {PlanarNode[]} array of locally-isolated nodes, created by edge-removal. further checks should be done before removing to ensure they are not still being used by other edges.
+	 */
+	private rebuildEdge(oldEdge:PlanarEdge, oldEndpts:[PlanarNode,PlanarNode], innerpoints:PlanarNode[], epsilon?:number):{edges:PlanarEdge[], nodes:PlanarNode[]}{
+		var isolatedNodes = [];
+		var endinnerpts = [ innerpoints[0], innerpoints[innerpoints.length-1] ];
+		var equiv = oldEndpts.map(function(n,i){return n.equivalent(endinnerpts[i],epsilon);},this);
+		if(equiv[0]){ isolatedNodes.push(oldEndpts[0]) } else{ innerpoints.unshift(oldEndpts[0]); }
+		if(equiv[1]){ isolatedNodes.push(oldEndpts[1]) } else{ innerpoints.push(oldEndpts[1]); }
+		var newEdges = [];
+		if(innerpoints.length > 1){
+			for(var i = 0; i < innerpoints.length-1; i++){
+				var e = this.copyEdge(oldEdge);
+				e.nodes = [innerpoints[i], innerpoints[i+1]];
+				newEdges.push(e);
+			}
+		}
+		this.edges = this.edges.filter(function(e){ return e !== oldEdge; },this);
+		return {edges: newEdges, nodes:isolatedNodes};
+	}
+
+	private fragmentCollinearNodes(epsilon?:number){
+		var EPSILON_HIGH = 0.000000001;
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		var tree = rbush();
-		var edges = this.edges.map(function(edge){
-			var box:Rect = edge.boundingBox(epsilon);
-			edge.cache["box"] = box;
-			return {
-				minX: box.origin.x,  minY: box.origin.y,
-				maxX: box.origin.x+box.size.width,  maxY: box.origin.y+box.size.height,
-				edge: edge
-			};
+		var treeNodes = this.nodes.map(function(n){
+			return {minX:n.x-epsilon, minY:n.y-epsilon, maxX:n.x+epsilon, maxY:n.y+epsilon, node:n};
 		},this);
-		tree.load(edges);
+		tree.load(treeNodes);
+		this.edges.forEach(function(edge){ edge.cache['box'] = edge.boundingBox(epsilon); },this);
 		this.edges.slice().forEach(function(edge){
-			var box = edge.cache["box"];
+			// var box = edge.boundingBox(epsilon);
+			var box = edge.cache['box'];
 			if(box == undefined){ box = edge.boundingBox(epsilon); }
 			var result = tree.search({
 				minX: box.origin.x,
 				minY: box.origin.y,
 				maxX: box.origin.x + box.size.width,
 				maxY: box.origin.y + box.size.height
-			}).filter(function(el){ return edge.parallel(el['edge']); },this);
-			for(var r = 0; r < result.length; r++){
-				if(edge !== result[r]['edge']){
-					// clean.join to report
-					this.fragmentTwoOverlappingEdges(edge, result[r]['edge'], epsilon)
-				}
+			}).filter(function(found){
+				return !edge.nodes[0].equivalent(found['node'], epsilon) && 
+				       !edge.nodes[1].equivalent(found['node'], epsilon);
+			}).filter(function(found){ return edge.collinear(found['node'], epsilon); })
+			if(result.length){
+				var sortedEdgePts = edge.nodes.slice().sort(function(a,b){
+					if(a.commonX(b,epsilon)){ return a.y-b.y; }
+					return a.x-b.x;
+				});
+				var sortedResult = result
+					.map(function(found){ return found['node']; },this)
+					.sort(function(a,b){
+						if(a.commonX(b,epsilon)){ return a.y-b.y; }
+						return a.x-b.x;
+					});
+				this.rebuildEdge(edge, sortedEdgePts, sortedResult, epsilon)
+					.edges
+					.forEach(function(e){ e.cache['box'] = e.boundingBox(epsilon); });
 			}
 		},this);
 	}
-	private fragmentTwoOverlappingEdges(a:PlanarEdge, b:PlanarEdge, epsilon?:number){
-		// console.log("found two collinear overlapping edges");
-		// console.log(a.nodes[0].x.toFixed(3),a.nodes[0].y.toFixed(3),a.nodes[1].x.toFixed(3),a.nodes[1].y.toFixed(3));
-		// console.log(b.nodes[0].x.toFixed(3),b.nodes[0].y.toFixed(3),b.nodes[1].x.toFixed(3),b.nodes[1].y.toFixed(3));
-		if(epsilon == undefined){ epsilon = 0.00000001; }
-		var a0b0 = a.nodes[0].equivalent(b.nodes[0], epsilon);
-		var a0b1 = a.nodes[0].equivalent(b.nodes[1], epsilon);
-		var a1b0 = a.nodes[1].equivalent(b.nodes[0], epsilon);
-		var a1b1 = a.nodes[1].equivalent(b.nodes[1], epsilon);
-		// they are actually the same edge. something probably should have caught this sooner...
-		if( (a0b0 || a0b1) && (a1b0 || a1b1)){
-			console.log("collinear parallel edges are similar ", a, b);
-			console.log("collinear parallel edges are similar ", a.nodes[0], a.nodes[1], b.nodes[0], b.nodes[1]);
-			// this.removeEdge(a);
-			return;
-		}
-		// if(a.cache['box'] == undefined){ a.cache['box'] = a.boundingBox(epsilon); }
-		// if(b.cache['box'] == undefined){ b.cache['box'] = b.boundingBox(epsilon); }
-		// // the two edges share a point in common
-		// if(a0b0 || a0b1 || a1b0 || a1b1){
-		// 	var aCommon = (a0b0 || a0b1) ? 0 : 1;
-		// 	var bCommon = (a0b0 || a1b0) ? 0 : 1;
-		// 	var aUncommon = (a0b0 || a0b1) ? 1 : 0;
-		// 	var bUncommon = (a0b0 || a1b0) ? 1 : 0;
-		// 	console.log("collinear edges point in common ", a.nodes[aCommon].x.toFixed(3),a.nodes[aCommon].y.toFixed(3));
-		// 	if(b.collinear(a.nodes[aUncommon], epsilon)){
-		// 		console.log("a's node is along b");
-		// 		b.nodes[bCommon] = a.nodes[aUncommon];
-		// 		if(b.nodes[0].equivalent(b.nodes[1], epsilon)){ console.log("created degenerate edge"); this.removeEdge(b); }
-		// 	}
-		// 	if(a.collinear(b.nodes[aUncommon], epsilon)){
-		// 		console.log("b's node is along a");
-		// 		a.nodes[aCommon] = b.nodes[bUncommon];
-		// 		if(a.nodes[0].equivalent(a.nodes[1], epsilon)){ console.log("created degenerate edge"); this.removeEdge(a); }
-		// 	}
-		// 	// if(b.cache['box'].contains(a.nodes[aUncommon])){
-		// 	// 	console.log("b box contains a");
-		// 	// 	var rm = b.nodes[bCommon]; b.nodes[bCommon] = a.nodes[aUncommon]; this.cleanNodeIfUseless(rm); b.cache['box'] = b.boundingBox(epsilon); return;
-		// 	// }
-		// 	// if(a.cache['box'].contains(b.nodes[bUncommon])){
-		// 	// 	console.log("a box contains b");
-		// 	// 	var rm = a.nodes[aCommon]; a.nodes[aCommon] = b.nodes[bUncommon]; this.cleanNodeIfUseless(rm); a.cache['box'] = a.boundingBox(epsilon); return;
-		// 	// }
-		// }
-		// var a0InB = b.cache['box'].contains(a.nodes[0], epsilon);
-		// var a1InB = b.cache['box'].contains(a.nodes[1], epsilon);
-		// var b0InA = a.cache['box'].contains(b.nodes[0], epsilon);
-		// var b1InA = a.cache['box'].contains(b.nodes[1], epsilon);
-		// if(!a0InB && !a1InB && !b0InA && !b1InA){ console.log("collinear parallel edges are not overlapping"); return; }
-		// if(a0InB && a1InB){
-			// a is completely inside of b
-			// var a0b0dist = a.nodes[0].distanceTo(b.nodes[0]);
-			// var a0b1dist = a.nodes[0].distanceTo(b.nodes[1]);
-			// if(a0b0dist < a0b1dist){  }
-		// }
-	}*/
 
 	/** face constructor, requires result from walkClockwiseCircut()*/
 	private faceFromCircuit(circuit:PlanarEdge[]):PlanarFace{

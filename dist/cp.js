@@ -658,8 +658,8 @@ var XY = (function () {
     XY.prototype.multiply = function (m) { return new XY(this.x * m.x, this.y * m.y); };
     XY.prototype.midpoint = function (other) { return new XY((this.x + other.x) * 0.5, (this.y + other.y) * 0.5); };
     XY.prototype.abs = function () { return new XY(Math.abs(this.x), Math.abs(this.y)); };
-    XY.prototype.commonX = function (point, epsilon) { return epsilonEqual(this.y, point.y, epsilon); };
-    XY.prototype.commonY = function (point, epsilon) { return epsilonEqual(this.x, point.x, epsilon); };
+    XY.prototype.commonX = function (point, epsilon) { return epsilonEqual(this.x, point.x, epsilon); };
+    XY.prototype.commonY = function (point, epsilon) { return epsilonEqual(this.y, point.y, epsilon); };
     return XY;
 }());
 var LineType = (function () {
@@ -2308,6 +2308,8 @@ var PlanarGraph = (function (_super) {
     PlanarGraph.prototype.clean = function (epsilon) {
         var report = new PlanarClean();
         report.join(this.cleanDuplicateNodes(epsilon));
+        this.fragmentCollinearNodes(epsilon);
+        report.join(this.cleanDuplicateNodes(epsilon));
         report.join(this.fragment(epsilon));
         report.join(this.cleanDuplicateNodes(epsilon));
         report.join(this.cleanGraph());
@@ -2687,6 +2689,59 @@ var PlanarGraph = (function (_super) {
         this.cleanGraph();
         return report;
     };
+    PlanarGraph.prototype.fragmentCrossingEdges = function (edge, epsilon) {
+        var report = new PlanarClean();
+        var intersections = this.edgeCrossingEdges(edge, epsilon);
+        if (intersections.length == 0) {
+            return report;
+        }
+        var edgesLength = this.edges.length;
+        report.nodes.fragment = intersections.map(function (el) { return new XY(el.point.x, el.point.y); });
+        var newLineNodes = intersections.map(function (el) {
+            return this.newNode().position(el.point.x, el.point.y);
+        }, this);
+        var isolated = intersections
+            .map(function (el, i) { return this.rebuildEdge(el.edge, el.edge.nodes, [newLineNodes[i]], epsilon); }, this)
+            .map(function (el) { return el.nodes; })
+            .reduce(function (prev, curr) { return prev.concat(curr); }, []);
+        var sortedEndpts = edge.nodes.slice().sort(function (a, b) {
+            if (a.commonX(b, epsilon)) {
+                return a.y - b.y;
+            }
+            return a.x - b.x;
+        });
+        isolated = isolated.concat(this.rebuildEdge(edge, sortedEndpts, newLineNodes, epsilon).nodes);
+        report.edges.total += edgesLength - this.edges.length;
+        return report;
+    };
+    PlanarGraph.prototype.edgeCrossingEdges = function (edge, epsilon) {
+        var EPSILON_HIGH = 0.000000001;
+        if (epsilon == undefined) {
+            epsilon = EPSILON_HIGH;
+        }
+        var myXs = edge.nodes.map(function (n) { return n.x; }).sort(function (a, b) { return a - b; });
+        var myYs = edge.nodes.map(function (n) { return n.y; }).sort(function (a, b) { return a - b; });
+        myXs[0] -= epsilon;
+        myXs[1] += epsilon;
+        myYs[0] -= epsilon;
+        myYs[1] += epsilon;
+        return this.edges
+            .filter(function (el) {
+            return !((el.nodes[0].x < myXs[0] && el.nodes[1].x < myXs[0]) ||
+                (el.nodes[0].x > myXs[1] && el.nodes[1].x > myXs[1]) ||
+                (el.nodes[0].y < myYs[0] && el.nodes[1].y < myYs[0]) ||
+                (el.nodes[0].y > myYs[1] && el.nodes[1].y > myYs[1]));
+        }, this)
+            .filter(function (el) { return edge !== el; }, this)
+            .map(function (el) { return { edge: el, point: edge.intersection(el, epsilon) }; }, this)
+            .filter(function (el) { return el.point != undefined; })
+            .sort(function (a, b) {
+            if (a.point.commonX(b.point, epsilon)) {
+                return a.point.y - b.point.y;
+            }
+            return a.point.x - b.point.x;
+        });
+    };
     PlanarGraph.prototype.rebuildEdge = function (oldEdge, oldEndpts, innerpoints, epsilon) {
         var isolatedNodes = [];
         var endinnerpts = [innerpoints[0], innerpoints[innerpoints.length - 1]];
@@ -2703,37 +2758,62 @@ var PlanarGraph = (function (_super) {
         else {
             innerpoints.push(oldEndpts[1]);
         }
+        var newEdges = [];
         if (innerpoints.length > 1) {
             for (var i = 0; i < innerpoints.length - 1; i++) {
-                this.copyEdge(oldEdge).nodes = [innerpoints[i], innerpoints[i + 1]];
+                var e = this.copyEdge(oldEdge);
+                e.nodes = [innerpoints[i], innerpoints[i + 1]];
+                newEdges.push(e);
             }
         }
         this.edges = this.edges.filter(function (e) { return e !== oldEdge; }, this);
-        return isolatedNodes;
+        return { edges: newEdges, nodes: isolatedNodes };
     };
-    PlanarGraph.prototype.fragmentCrossingEdges = function (edge, epsilon) {
-        var report = new PlanarClean();
-        var intersections = edge.crossingEdges(epsilon);
-        if (intersections.length == 0) {
-            return report;
+    PlanarGraph.prototype.fragmentCollinearNodes = function (epsilon) {
+        var EPSILON_HIGH = 0.000000001;
+        if (epsilon == undefined) {
+            epsilon = EPSILON_HIGH;
         }
-        var edgesLength = this.edges.length;
-        report.nodes.fragment = intersections.map(function (el) { return new XY(el.point.x, el.point.y); });
-        var newLineNodes = intersections.map(function (el) {
-            return this.newNode().position(el.point.x, el.point.y);
+        var tree = rbush();
+        var treeNodes = this.nodes.map(function (n) {
+            return { minX: n.x - epsilon, minY: n.y - epsilon, maxX: n.x + epsilon, maxY: n.y + epsilon, node: n };
         }, this);
-        var isolated = intersections
-            .map(function (el, i) { return this.rebuildEdge(el.edge, el.edge.nodes, [newLineNodes[i]], epsilon); }, this)
-            .reduce(function (prev, curr) { return prev.concat(curr); }, []);
-        var sortedEndpts = edge.nodes.slice().sort(function (a, b) {
-            if (a.commonX(b)) {
-                return a.y - b.y;
+        tree.load(treeNodes);
+        this.edges.forEach(function (edge) { edge.cache['box'] = edge.boundingBox(epsilon); }, this);
+        this.edges.slice().forEach(function (edge) {
+            var box = edge.cache['box'];
+            if (box == undefined) {
+                box = edge.boundingBox(epsilon);
             }
-            return a.x - b.x;
-        });
-        isolated = isolated.concat(this.rebuildEdge(edge, sortedEndpts, newLineNodes, epsilon));
-        report.edges.total += edgesLength - this.edges.length;
-        return report;
+            var result = tree.search({
+                minX: box.origin.x,
+                minY: box.origin.y,
+                maxX: box.origin.x + box.size.width,
+                maxY: box.origin.y + box.size.height
+            }).filter(function (found) {
+                return !edge.nodes[0].equivalent(found['node'], epsilon) &&
+                    !edge.nodes[1].equivalent(found['node'], epsilon);
+            }).filter(function (found) { return edge.collinear(found['node'], epsilon); });
+            if (result.length) {
+                var sortedEdgePts = edge.nodes.slice().sort(function (a, b) {
+                    if (a.commonX(b, epsilon)) {
+                        return a.y - b.y;
+                    }
+                    return a.x - b.x;
+                });
+                var sortedResult = result
+                    .map(function (found) { return found['node']; }, this)
+                    .sort(function (a, b) {
+                    if (a.commonX(b, epsilon)) {
+                        return a.y - b.y;
+                    }
+                    return a.x - b.x;
+                });
+                this.rebuildEdge(edge, sortedEdgePts, sortedResult, epsilon)
+                    .edges
+                    .forEach(function (e) { e.cache['box'] = e.boundingBox(epsilon); });
+            }
+        }, this);
     };
     PlanarGraph.prototype.faceFromCircuit = function (circuit) {
         var SUM_ANGLE_EPSILON = 0.00001;
@@ -3880,7 +3960,7 @@ var CreasePattern = (function (_super) {
         if (file === undefined ||
             file["vertices_coords"] === undefined ||
             file["edges_vertices"] === undefined) {
-            return false;
+            return undefined;
         }
         if (file["frame_attributes"] !== undefined && file["frame_attributes"].contains("3D")) {
             console.log("importFoldFile(): FOLD file marked as '3D', this library only supports 2D. attempting import anyway, expect a possible distortion due to orthogonal projection.");
@@ -3914,7 +3994,7 @@ var CreasePattern = (function (_super) {
         }, this);
         this.setBoundary([].concat.apply([], boundaryPoints));
         this.clean(epsilon);
-        return true;
+        return this;
     };
     CreasePattern.prototype.strNum = function (num, decimalPlaces) {
         if (Math.floor(num) == num || decimalPlaces == undefined) {

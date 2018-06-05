@@ -1135,10 +1135,10 @@ class CreasePattern extends PlanarGraph{
 		return file;
 	}
 
-	importFoldFile(file:object, epsilon?:number):boolean{
+	importFoldFile(file:object, epsilon?:number):CreasePattern{
 		if(file === undefined || 
 		   file["vertices_coords"] === undefined ||
-		   file["edges_vertices"] === undefined){ return false; }
+		   file["edges_vertices"] === undefined){ return undefined; }
 
 		// if file is 3D, we need to alert the user
 		if(file["frame_attributes"] !== undefined && file["frame_attributes"].contains("3D")){
@@ -1197,7 +1197,7 @@ class CreasePattern extends PlanarGraph{
 			},this)
 		this.setBoundary([].concat.apply([],boundaryPoints));
 		this.clean(epsilon);
-		return true;
+		return this;
 	}
 
 	strNum(num:number, decimalPlaces?:number){

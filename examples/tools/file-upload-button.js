@@ -1,6 +1,6 @@
 // file upload button manager
 //
-// 1) implement the callback function is "fileDidLoad(blob, mimeType)"
+// 1) implement the callback function "fileDidLoad(blob, mimeType, fileExtension)"
 // 2) create an element: <a href="#" id="load-file">Open File</a>
 
 // creates an input dialog button
@@ -14,10 +14,6 @@ document.getElementById("load-file").addEventListener("click", function(e){
 	e.preventDefault();
 	document.getElementById("files").click()
 });
-function getMimeOrExtension(file){
-	if(file.type !== undefined && file.type !== ""){ return file.type; }
-	if(file.name !== undefined){ return file.name.substr((file.name.lastIndexOf('.') + 1)); }
-}
 document.getElementById("files").onchange = function(){
 	var files = document.getElementById('files').files;
 	// if they selected cancel
@@ -26,8 +22,9 @@ document.getElementById("files").onchange = function(){
 	var reader = new FileReader();
 	reader.onloadend = function(evt) {
 		if (evt.target.readyState == FileReader.DONE){
+			console.log(evt.target);
 			//byte range: ['Read ', file.size, ' byte file'].join('');
-			fileDidLoad(evt.target.result, getMimeOrExtension(file));
+			fileDidLoad( evt.target.result, file.type, file.name.substr((file.name.lastIndexOf('.') + 1)) );
 		}
 	};
 	var blob = file.slice(0, file.size);
