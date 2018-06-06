@@ -14,6 +14,14 @@ canvas[resize]{
 	width:80vmin;
 	height:80vmin;
 }
+canvas#canvas-folded{
+	margin:10px;
+	width:20vmin;
+	height:20vmin;
+	min-width:170px;
+	min-height:170px;
+}
+
 .btn{ padding:0.5em; }
 .toolbar{ text-align: center; }
 .col-md-4{ text-align: center; }
@@ -74,4 +82,8 @@ canvas[resize]{
 	top: 80px;
 	right: 10px;
 	display:none;
+}
+#modal-fold-window{
+	top: 80px;
+	right: 10px;
 }

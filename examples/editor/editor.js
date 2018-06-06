@@ -1,6 +1,8 @@
 var mouseMoveCallback = undefined;
 
-var project = new OrigamiPaper("canvas");
+var foldedProject = new OrigamiFold("canvas-folded");
+
+var project = new OrigamiPaper("canvas").setPadding(0.025);
 
 project.show.nodes = true;
 project.show.faces = true;
@@ -16,8 +18,15 @@ project.style.sector.scale = 0.5;
 //
 project.inputMode = "add";
 
-project.reset = function(){
+project.updateCreasePattern = function(){
+	this.cp.flatten();
 	this.draw();
+	foldedProject.cp = this.cp.copy();
+	foldedProject.draw();
+}
+
+project.reset = function(){
+	this.updateCreasePattern();
 }
 project.reset();
 
@@ -26,7 +35,8 @@ project.onMouseDown = function(event){
 		case 'add':
 			var nearest = this.cp.nearest(event.point);
 			if(nearest.sector !== undefined){
-				nearest.sector.bisect().crease().mountain();
+				var cs = nearest.sector.bisect().creaseAndRepeat();
+				cs.forEach(function(c){c.mountain()},this);
 			}
 		break;
 		case 'remove':
@@ -45,8 +55,7 @@ project.onMouseDown = function(event){
 			}
 		break;
 	}
-	this.cp.flatten();
-	this.draw();
+	this.updateCreasePattern();
 }
 project.onMouseMove = function(event){
 	var nearest = this.cp.nearest(event.point);
@@ -86,6 +95,8 @@ document.getElementById("radio-input-mode").onchange = function(event){
 }
 // modal stuff
 $("#modal-what-is-this").draggable({ handle: ".modal-header" });
+$("#modal-fold-window").draggable({ handle: ".modal-header" });
+
 function whatIsThisDidPress(){
 	document.getElementById("modal-what-is-this").style.display = 'block';
 }
@@ -93,7 +104,7 @@ function whatIsThisDidPress(){
 // IMPORT / EXPORT
 creasePatternDidUpload = function(cp){
 	project.cp = cp;
-	project.draw();
+	project.updateCreasePattern();
 }
 document.getElementById("download-svg").addEventListener("click", function(e){
 	e.preventDefault();

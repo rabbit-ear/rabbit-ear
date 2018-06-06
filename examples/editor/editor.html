@@ -53,7 +53,6 @@
 		<div class="dropdown-content">
 		<a href="crease.php">CREASE</a>
 		<a href="axioms.php">ORIGAMI AXIOMS</a>
-		<!-- <a href="importExport.php">IMPORT &amp; EXPORT</a> -->
 		<a href="flatFoldable.php">FLAT FOLDABLE</a>
 		<a href="boxPleating.php">BOX PLEATING</a>
 		<a href="voronoi.php">VORONOI</a>
@@ -96,10 +95,18 @@
 	</div>
 </div>
 
+<div id="modal-fold-window" class="control-panel">
+	<div class="modal-content">
+		<div class="modal-header"><h4 class="modal-title">FOLDED</h4></div>
+		<div class="modal-body">
+			<canvas id="canvas-folded"></canvas>
+		</div>
+	</div>
+</div>
 </body>
 
-<script type="text/javascript" src="../lib/jquery-3.2.1.slim.min.js"></script>
-<script type="text/javascript" src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
+<script type="text/javascript" src="../lib/jquery/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="../lib/jquery/jquery-ui.min.js"></script>
 <script type="text/javascript" src="../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script type="text/javascript" src="../tools/drag-and-drop.js"></script>
 <script type="text/javascript" src="../tools/file-upload-button.js"></script>

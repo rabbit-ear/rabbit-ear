@@ -86,8 +86,8 @@ class CPRay extends Ray implements CreaseLineType{
 		this.cp = cp;
 	}
 	crease(){ return this.cp.crease(this); }
-	creaseAndRepeat(){ this.cp.creaseRayRepeat(this); }
-	creaseAndStop(){ this.cp.creaseAndStop(this); }
+	creaseAndRepeat(){ return this.cp.creaseRayRepeat(this); }
+	creaseAndStop(){ return this.cp.creaseAndStop(this); }
 }
 class CPEdge extends Edge implements CreaseLineType{
 	cp:CreasePattern;

@@ -16,7 +16,7 @@ A crease pattern is initialized like so
 var cp = new CreasePattern();
 ```
 
-By default, this initializes a unit-square 2D surface bounded between 0 and 1, cartesian X and Y. The dimensions of course can be changed. Add a straight crease:
+This creates a square piece of paper able to be creased with mountain, valley, or un-creased mark lines. Mathematically speaking, a unit-square 2D surface bounded between 0 and 1, cartesian X and Y, containing nodes and edges of a planar graph. Add a straight crease line:
 
 ```javascript
 cp.crease(0,0,1,1);
@@ -24,7 +24,7 @@ cp.crease( {x:0,y:0}, {x:1,y:1} );
 cp.crease( [[0,0], [1,1]] );
 ```
 
-These three lines are all valid ways of marking the same crease between the x,y coordinate 0,0 and 1,1; the bottom left corner to the top right. Make it a valley crease:
+Three ways of making the same crease: a line segment between the x,y coordinate 0,0 and 1,1; the bottom left corner to the top right. Now, make it a valley crease:
 
 ```javascript
 cp.crease(0,0,1,1).valley();

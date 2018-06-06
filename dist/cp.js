@@ -3035,8 +3035,8 @@ var CPRay = (function (_super) {
         return _this;
     }
     CPRay.prototype.crease = function () { return this.cp.crease(this); };
-    CPRay.prototype.creaseAndRepeat = function () { this.cp.creaseRayRepeat(this); };
-    CPRay.prototype.creaseAndStop = function () { this.cp.creaseAndStop(this); };
+    CPRay.prototype.creaseAndRepeat = function () { return this.cp.creaseRayRepeat(this); };
+    CPRay.prototype.creaseAndStop = function () { return this.cp.creaseAndStop(this); };
     return CPRay;
 }(Ray));
 var CPEdge = (function (_super) {
