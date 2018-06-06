@@ -4,61 +4,102 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-<style>
-html, body {
-	height:100%;  width:100%;
-	margin:0px;
-	background-color: #EEE;
-}
-canvas[resize]{
-	width:100%;
-	height:86%;
-}
-.btn{ padding:0.5em; }
-.toolbar{ text-align: center; }
-.col-md-4{ text-align: center; }
-</style>
+<link href="nav.css" rel="stylesheet">
+<link href="style.css" rel="stylesheet">
 </head>
 <body>
-	<canvas id="canvas" resize></canvas>
 
-	<div class="container">
-		<div class="row">
-			<div class="col-md-4">
-				<a href="#" class="btn btn-lg btn-outline-secondary" id="load-file">Open</a>
-				<a href="#" class="btn btn-lg btn-outline-secondary" id="download-svg">Download</a>
-			</div>
-			<div class="col-md-4">
-				<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
-					<label class="btn btn-lg btn-outline-secondary active">
-						<input type="radio" name="options" id="radio-button-add-crease" autocomplete="off" checked> Crease
-					</label>
-					<label class="btn btn-lg btn-outline-secondary">
-						<input type="radio" name="options" id="radio-button-remove-crease" autocomplete="off"> Remove Crease
-					</label>
-				</div>
-			</div>
-			<div class="col-md-4">
-				<div class="input-group">
-					<div class="input-group-prepend">
-						<!-- <span class="input-group-text" id="">Node, Edge, Face</span> -->
-					</div>
-					<input type="text" class="form-control">
-					<input type="text" class="form-control">
-					<input type="text" class="form-control">
-				</div>
-				<!-- <a href="#" class="btn btn-lg btn-outline-secondary" id="fragment-button">Fragment</a> -->
-			</div>
+<nav>
+	<ul>
+	<li></a></li>
+	<li class="dropdown">
+		<a href="javascript:void(0)" class="link-fa dropbtn"><i class="fa fa-pencil-square-o fa-2x left-pad"></i></a>
+		<div class="dropdown-content">
+		<a href="../tools/validator/index.html">Crease Pattern Validator</a>
 		</div>
-	</div>	
-<!-- 	<div class="toolbar">
-		<a href="#" class="btn btn-lg btn-secondary" id="load-file">Open File</a>
-		<a href="#" class="btn btn-lg btn-secondary" id="download-svg">Export .svg</a>
-		<a href="#" class="btn btn-lg btn-secondary" id="download-fold">Export .fold</a>
-	</div> -->
+	</li>
+	<li class="dropdown">
+		<a href="/docs/" class="">HELLO</a>
+		<div class="dropdown-content">
+		<a href="#" onclick="whatIsThisDidPress()">WHAT IS THIS</a>
+		<a href="">HELP</a>
+		</div>
+	</li>
+	<li class="dropdown">
+		<a href="/docs/" class="">CREASE PATTERN</a>
+		<div class="dropdown-content">
+		<a href="#" id="load-file">OPEN</a>
+		<a href="#" id="download-fold">SAVE .FOLD</a>
+		<a href="#" id="download-svg">SAVE .SVG</a>
+		</div>
+	</li>
+	<li class="dropdown">
+		<a href="planarGraph.php" class="dropbtn">FOLDED</a>
+		<div class="dropdown-content">
+		<a href="">FOLD IT</a>
+		<a href="">EXPORT .FOLD</a>
+		<a href="">EXPORT .SVG</a>
+		</div>
+	</li>
+	<li class="dropdown">
+		<a href="planarGraph.php" class="dropbtn">VIEW</a>
+		<div class="dropdown-content">
+		<a href="">POSSIBLE CREASES</a>
+		<a href="">ANOTHER</a>
+		</div>
+	</li>
+	<li class="dropdown">
+		<a href="creasePattern.php" class="dropbtn">III. CREASE PATTERN</a>
+		<div class="dropdown-content">
+		<a href="crease.php">CREASE</a>
+		<a href="axioms.php">ORIGAMI AXIOMS</a>
+		<!-- <a href="importExport.php">IMPORT &amp; EXPORT</a> -->
+		<a href="flatFoldable.php">FLAT FOLDABLE</a>
+		<a href="boxPleating.php">BOX PLEATING</a>
+		<a href="voronoi.php">VORONOI</a>
+		<a href="symmetry.php">SYMMETRY</a>
+		<a href="paper.php">PAPER</a>
+		</div>
+	</li>
+	</ul>
+</nav>
+
+<div class="sidenav">
+	<a href="#">bisect sector</a>
+	<a href="#">crease between points</a>
+	<a href="#">crease point to point</a>
+	<a href="#">edge to edge</a>
+	<a href="#">pleat between edges</a>
+	<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
+		<label class="btn btn-xs btn-outline-secondary active">
+			<input type="radio" name="options" id="radio-button-add-crease" autocomplete="off" checked> Crease
+		</label>
+		<label class="btn btn-xs btn-outline-secondary">
+			<input type="radio" name="options" id="radio-button-remove-crease" autocomplete="off"> Remove
+		</label>
+		<label class="btn btn-xs btn-outline-secondary">
+			<input type="radio" name="options" id="radio-button-flip-crease" autocomplete="off"> Flip
+		</label>
+	</div>
+</div>
+
+<div id="canvas-container">
+	<canvas id="canvas" resize></canvas>
+</div>
+
+<div id="modal-what-is-this" class="control-panel">
+	<div class="modal-content">
+		<div class="modal-header"><h4 class="modal-title">What is this?</h4></div>
+		<div class="modal-body">
+			<p>This is a tool for creating origami crease patterns.</p>
+		</div>
+	</div>
+</div>
+
 </body>
 
 <script type="text/javascript" src="../lib/jquery-3.2.1.slim.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
 <script type="text/javascript" src="../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script type="text/javascript" src="../tools/drag-and-drop.js"></script>
 <script type="text/javascript" src="../tools/file-upload-button.js"></script>

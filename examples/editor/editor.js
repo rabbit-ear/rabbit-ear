@@ -1,7 +1,6 @@
-////////////////////////////////////////////////////////////////////////
 var mouseMoveCallback = undefined;
 
-var project = new OrigamiPaper("canvas").blackAndWhite();
+var project = new OrigamiPaper("canvas");
 
 project.show.nodes = true;
 project.show.faces = true;
@@ -36,6 +35,15 @@ project.onMouseDown = function(event){
 				this.cp.removeEdge(nearest.edge);
 			}
 		break;
+		case 'flip-m-v':
+			var nearest = this.cp.nearest(event.point);
+			if(nearest.edge !== undefined){
+				switch(nearest.edge.orientation){
+					case CreaseDirection.mountain: nearest.edge.orientation = CreaseDirection.valley; break;
+					case CreaseDirection.valley:   nearest.edge.orientation = CreaseDirection.mountain; break;
+				}
+			}
+		break;
 	}
 	this.cp.flatten();
 	this.draw();
@@ -60,20 +68,26 @@ project.onMouseMove = function(event){
 				this.edges[nearest.edge.index].strokeWidth = this.style.mountain.strokeWidth*1.3333;
 			}
 		break;
+		case 'flip-m-v':
+			if(nearest.edge !== undefined){
+				// this.edges[nearest.edge.index].strokeColor = {hue:43.2, saturation:0.88, brightness:0.93 };
+				this.edges[nearest.edge.index].strokeWidth = this.style.mountain.strokeWidth*1.3333;
+			}
+		break;
 	}
 }
 
 document.getElementById("radio-input-mode").onchange = function(event){
 	switch(event.target.id){
-		case "radio-button-add-crease":
-			project.inputMode = "add";
-			console.log("add");
-		break;
-		case "radio-button-remove-crease":
-			project.inputMode = "remove";
-			console.log("remove");
-		break;
+		case "radio-button-add-crease":    project.inputMode = "add";      break;
+		case "radio-button-remove-crease": project.inputMode = "remove";   break;
+		case "radio-button-flip-crease":   project.inputMode = "flip-m-v"; break;
 	}
+}
+// modal stuff
+$("#modal-what-is-this").draggable({ handle: ".modal-header" });
+function whatIsThisDidPress(){
+	document.getElementById("modal-what-is-this").style.display = 'block';
 }
 
 // IMPORT / EXPORT
@@ -85,11 +99,7 @@ document.getElementById("download-svg").addEventListener("click", function(e){
 	e.preventDefault();
 	downloadCreasePattern(project.cp, "creasepattern", "svg");
 });
-// document.getElementById("download-fold").addEventListener("click", function(e){
-// 	e.preventDefault();
-// 	downloadCreasePattern(project.cp, "creasepattern", "fold");
-// });
-// document.getElementById("download-opx").addEventListener("click", function(e){
-// 	e.preventDefault();
-// 	downloadCreasePattern(project.cp, "creasepattern", "opx");
-// });
+document.getElementById("download-fold").addEventListener("click", function(e){
+	e.preventDefault();
+	downloadCreasePattern(project.cp, "creasepattern", "fold");
+});

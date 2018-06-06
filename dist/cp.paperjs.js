@@ -551,9 +551,9 @@ var OrigamiFold = (function(){
 		},this);
 		this.bounds = {'origin':{'x':minX,'y':minY},'size':{'width':maxX-minX, 'height':maxY-minY}};
 	}
-	OrigamiFold.prototype.draw = function(){
+	OrigamiFold.prototype.draw = function(groundFace){
 		paper = this.scope;
-		this.foldedCP = this.cp.fold();
+		this.foldedCP = this.cp.fold(groundFace);
 		this.getBounds();
 		this.faces = [];
 		this.foldedLayer.removeChildren();

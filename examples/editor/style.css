@@ -1,0 +1,77 @@
+html, body {
+	height:100%; width:100%;
+	margin:0px;
+	background-color: #fff;
+}
+#canvas-container{
+	width:100%;
+	height:100%;
+	display:flex;
+	justify-content: center;
+	align-items: center;
+}
+canvas[resize]{
+	width:80vmin;
+	height:80vmin;
+}
+.btn{ padding:0.5em; }
+.toolbar{ text-align: center; }
+.col-md-4{ text-align: center; }
+
+/* sidebar stuff */
+
+.sidenav {
+    width: 200px;
+    position: fixed;
+    z-index: 2;
+    top: 120px;
+    left: 10px;
+    background: #eee;
+    overflow-x: hidden;
+    padding: 8px 0;
+}
+
+.sidenav a {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 17px;
+    color: #2196F3;
+    display: block;
+}
+
+.sidenav a:hover {
+    color: #064579;
+}
+
+@media screen and (max-height: 450px) {
+    .sidenav {padding-top: 15px;}
+    .sidenav a {font-size: 18px;}
+}
+
+/* modal stuff */
+
+.modal-header{
+	background-color: #333;
+	color:#FFF;
+    overflow: hidden;
+    border-radius: 5px 5px 0px 0px;
+    font-family: sans-serif;
+}
+.modal-content{
+    margin-right: 0;
+    margin-left: 0;
+}
+.modal-body{ padding:0px 15px 15px 15px; }
+.control-panel{
+	position: fixed;
+	z-index: 10;
+	display: block;
+	-webkit-overflow-scrolling: touch;
+	outline: 0;
+	width: 220px;
+}
+#modal-what-is-this{
+	top: 80px;
+	right: 10px;
+	display:none;
+}
