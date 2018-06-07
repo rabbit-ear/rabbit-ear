@@ -171,10 +171,7 @@ class FoldSequence{
 	// sheet of paper, the fold won't execute the same way, different node indices will get applied.
 }
 
-
 class CreaseSector extends PlanarSector{
-
-
 	bisect(){
 		var vectors = this.vectors();
 		var angles = vectors.map(function(el){ return Math.atan2(el.y, el.x); });
@@ -484,7 +481,17 @@ class CreasePattern extends PlanarGraph{
 		return this.creaseEdge(e);
 	}
 
-	creaseAndReflect(a:any, b?:any, c?:any, d?:any):Crease{
+	creaseAndReflect(a:any, b?:any, c?:any, d?:any):Crease[]{
+		if(a instanceof Line){
+			return a.rays().map(function(ray){
+				return this.creaseRayRepeat(ray);
+			},this).reduce(function(prev,curr){
+				return prev.concat(curr);
+			},[]);
+		}
+		if(a instanceof Ray){
+			return this.creaseRayRepeat(a);
+		}
 		return undefined;
 	}
 

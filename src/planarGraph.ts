@@ -84,24 +84,17 @@ class PlanarNode extends GraphNode implements XY{
 	 */
 	adjacentEdges():PlanarEdge[]{
 		// TODO: are these increasing in the right direction?
-		var adjacent = this.graph.edges
-		.filter(function(el:PlanarEdge){
-				return el.nodes[0] === this || el.nodes[1] === this;
-			},this)
-		.map(function(el:PlanarEdge){
-				var other = <PlanarNode>el.otherNode(this);
-				return {'edge':el, 'angle':Math.atan2(other.y-this.y, other.x-this.x)};
-			},this)
-		// .sort(function(a,b){return a.angle-b.angle;})
-		.sort(function(a,b){return b.angle-a.angle;})
-		.map(function(el){ return el.edge });
-		//WTF why did I write this? is it useful for something? why would edges be duplicated
-		// for(var i = 0; i < adjacent.length; i++){
-		// 	var el = adjacent[ i ];
-		// 	var nextEl = adjacent[ (i+1)%adjacent.length ];
-		// 	if(el === nextEl){ adjacent.splice(i,1); }
-		// }
-		return adjacent;
+		return this.graph.edges
+			.filter(function(el:PlanarEdge){
+					return el.nodes[0] === this || el.nodes[1] === this;
+				},this)
+			.map(function(el:PlanarEdge){
+					var other = <PlanarNode>el.otherNode(this);
+					return {'edge':el, 'angle':Math.atan2(other.y-this.y, other.x-this.x)};
+				},this)
+			// .sort(function(a,b){return a.angle-b.angle;})
+			.sort(function(a,b){return b.angle-a.angle;})
+			.map(function(el){ return el.edge });
 	}
 	/** Returns an array of faces containing this node
 	 * @returns {PlanarFace[]} array of adjacent faces
@@ -191,32 +184,6 @@ class PlanarEdge extends GraphEdge implements Edge{
 		return this.graph.faces.filter(function(face){
 			return face.edges.filter(function(edge){return edge === this;},this).length > 0;
 		},this);
-	}
-	/** Returns an array of edges that cross this edge. These are edges which are considered "invalid"
-	 * @returns {{edge:PlanarEdge, point:XY}[]} array of objects containing the crossing edge and point of intersection
-	 * @example
-	 * var edges = edge.crossingEdges()
-	 */
-	crossingEdges(epsilon?:number):{edge:PlanarEdge, point:XY}[]{
-		var EPSILON_HIGH = 0.000000001;
-		var myXs = this.nodes.map(function(n){return n.x;}).sort(function(a,b){return a-b});
-		var myYs = this.nodes.map(function(n){return n.y;}).sort(function(a,b){return a-b});
-		myXs[0] -= EPSILON_HIGH; myXs[1] += EPSILON_HIGH; myYs[0] -= EPSILON_HIGH; myYs[1] += EPSILON_HIGH;
-		// myXs[0] += EPSILON_HIGH; myXs[1] -= EPSILON_HIGH; myYs[0] += EPSILON_HIGH; myYs[1] -= EPSILON_HIGH;
-		return this.graph.edges
-			.filter(function(el:PlanarEdge){ return !(
-				(el.nodes[0].x < myXs[0] && el.nodes[1].x < myXs[0]) ||
-				(el.nodes[0].x > myXs[1] && el.nodes[1].x > myXs[1]) ||
-				(el.nodes[0].y < myYs[0] && el.nodes[1].y < myYs[0]) ||
-				(el.nodes[0].y > myYs[1] && el.nodes[1].y > myYs[1])
-				)},this)
-			.filter(function(el:PlanarEdge){ return this !== el}, this)
-			.map(function(el:PlanarEdge){ return {edge:el, point:this.intersection(el, epsilon)} }, this)
-			.filter(function(el:{edge:PlanarEdge, point:XY}){ return el.point != undefined})
-			.sort(function(a:{edge:PlanarEdge, point:XY},b:{edge:PlanarEdge, point:XY}){
-				if(a.point.commonX(b.point)){ return a.point.y-b.point.y; }
-				return a.point.x-b.point.x;
-			});
 	}
 	// implements Edge (implements LineType)
 	length():number{ return this.nodes[0].distanceTo(this.nodes[1]); }

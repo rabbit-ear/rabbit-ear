@@ -49,10 +49,9 @@ var OrigamiPaper = (function(){
 			sectors:false,
 		}
 		// user select and move
-		this.selectable = [];
+		this.touchPoints = [];
 		this.selectRadius = 0.03;
 		this.selected = undefined;
-		this.select = {};
 
 		this.buildViewMatrix();
 		this.draw();
@@ -115,28 +114,26 @@ var OrigamiPaper = (function(){
 			function epsilonEqual(a, b, epsilon){return ( Math.abs(a-b) < epsilon );}
 			return epsilonEqual(a.x,b.x,epsilon) && epsilonEqual(a.y,b.y,epsilon);
 		}
-		for(var i = 0; i < this.selectable.length; i++){
-			if( (this.selectable[i].position !== undefined) &&
-			    (pointsSimilar(this.mouse.position, this.selectable[i].position, this.selectRadius)) ){
-				this.selected = this.selectable[i];
+		for(var i = 0; i < this.touchPoints.length; i++){
+			if( (this.touchPoints[i].position !== undefined) &&
+			    (pointsSimilar(this.mouse.position, this.touchPoints[i].position, this.selectRadius)) ){
+				this.selected = this.touchPoints[i];
 			}
 		}
 	}
-	OrigamiPaper.prototype.makeControlPoints = function(count, style){
+	OrigamiPaper.prototype.makeTouchPoint = function(location, style){
 		paper = this.scope;
-		if(this.controlPointsLayer === undefined){this.controlPointsLayer = new this.scope.Layer();}
-		this.controlPointsLayer.activate();
-		if(style === undefined){
-			style = {radius:0.015, strokeWidth:0.01, strokeColor:{gray:0.0}, fillColor:{gray:1.0}}
-		}
-		if(count === undefined || count <= 0){ return; }
-		var controlPoints = [];
-		for(var i = 0; i < count; i++){
-			var controlPoint = new this.scope.Shape.Circle(style);
-			controlPoints.push(controlPoint);
-			this.selectable.push(controlPoint);
-		}
-		return controlPoints;
+		var x,y;
+		if(location.x != undefined){ x = location.x; y = location.y; }
+		else if(Array.isArray(location) && location.length > 1){ x = location[0]; y = location[1]; }
+		if(this.touchPointsLayer === undefined){this.touchPointsLayer = new this.scope.Layer();}
+		this.touchPointsLayer.activate();
+		var circleStyle = {position:{x:x, y:y}, radius:0.015, strokeWidth:0.01, strokeColor:{gray:0.0}, fillColor:{gray:1.0}}
+		if(style != undefined){ Object.assign(circleStyle, style); }
+		
+		var touchPoint = new this.scope.Shape.Circle(circleStyle);
+		this.touchPoints.push(touchPoint);
+		return touchPoint;
 	}
 
 	OrigamiPaper.prototype.draw = function(){

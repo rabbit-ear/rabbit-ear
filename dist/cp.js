@@ -1911,7 +1911,7 @@ var PlanarNode = (function (_super) {
     }
     PlanarNode.prototype.copy = function () { return new XY(this.x, this.y); };
     PlanarNode.prototype.adjacentEdges = function () {
-        var adjacent = this.graph.edges
+        return this.graph.edges
             .filter(function (el) {
             return el.nodes[0] === this || el.nodes[1] === this;
         }, this)
@@ -1921,7 +1921,6 @@ var PlanarNode = (function (_super) {
         }, this)
             .sort(function (a, b) { return b.angle - a.angle; })
             .map(function (el) { return el.edge; });
-        return adjacent;
     };
     PlanarNode.prototype.adjacentFaces = function () {
         if (this.graph.dirty) {
@@ -2006,31 +2005,6 @@ var PlanarEdge = (function (_super) {
         return this.graph.faces.filter(function (face) {
             return face.edges.filter(function (edge) { return edge === this; }, this).length > 0;
         }, this);
-    };
-    PlanarEdge.prototype.crossingEdges = function (epsilon) {
-        var EPSILON_HIGH = 0.000000001;
-        var myXs = this.nodes.map(function (n) { return n.x; }).sort(function (a, b) { return a - b; });
-        var myYs = this.nodes.map(function (n) { return n.y; }).sort(function (a, b) { return a - b; });
-        myXs[0] -= EPSILON_HIGH;
-        myXs[1] += EPSILON_HIGH;
-        myYs[0] -= EPSILON_HIGH;
-        myYs[1] += EPSILON_HIGH;
-        return this.graph.edges
-            .filter(function (el) {
-            return !((el.nodes[0].x < myXs[0] && el.nodes[1].x < myXs[0]) ||
-                (el.nodes[0].x > myXs[1] && el.nodes[1].x > myXs[1]) ||
-                (el.nodes[0].y < myYs[0] && el.nodes[1].y < myYs[0]) ||
-                (el.nodes[0].y > myYs[1] && el.nodes[1].y > myYs[1]));
-        }, this)
-            .filter(function (el) { return this !== el; }, this)
-            .map(function (el) { return { edge: el, point: this.intersection(el, epsilon) }; }, this)
-            .filter(function (el) { return el.point != undefined; })
-            .sort(function (a, b) {
-            if (a.point.commonX(b.point)) {
-                return a.point.y - b.point.y;
-            }
-            return a.point.x - b.point.x;
-        });
     };
     PlanarEdge.prototype.length = function () { return this.nodes[0].distanceTo(this.nodes[1]); };
     PlanarEdge.prototype.vector = function (originNode) {
@@ -3395,6 +3369,16 @@ var CreasePattern = (function (_super) {
         return this.creaseEdge(e);
     };
     CreasePattern.prototype.creaseAndReflect = function (a, b, c, d) {
+        if (a instanceof Line) {
+            return a.rays().map(function (ray) {
+                return this.creaseRayRepeat(ray);
+            }, this).reduce(function (prev, curr) {
+                return prev.concat(curr);
+            }, []);
+        }
+        if (a instanceof Ray) {
+            return this.creaseRayRepeat(a);
+        }
         return undefined;
     };
     CreasePattern.prototype.creaseLine = function (a, b, c, d) {

@@ -4,15 +4,14 @@ axiom4.style.valley.strokeColor = axiom4.styles.byrne.red;
 
 axiom4.redraw = function(){
 	this.cp.clear();
-	var edge = this.cp.creaseThroughPoints(this.selectable[0].position, this.selectable[1].position).mark();
-	this.cp.creasePerpendicularThroughPoint(edge, this.selectable[2].position).valley();
+	var edge = this.cp.creaseThroughPoints(this.touchPoints[0].position, this.touchPoints[1].position).mark();
+	this.cp.creasePerpendicularThroughPoint(edge, this.touchPoints[2].position).valley();
 	this.draw();
 }
 axiom4.reset = function(){
-	this.makeControlPoints(3, this.circleStyle);
 	[[0.0, 0.0],
 	[1.0, 1.0],
-	[1.0, 0.5]].forEach(function(el,i){this.selectable[i].position = el;},this);
+	[1.0, 0.5]].forEach(function(point){ this.makeTouchPoint(point, this.circleStyle); },this);
 	this.redraw();
 }
 axiom4.reset();

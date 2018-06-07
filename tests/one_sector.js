@@ -11,7 +11,6 @@ oneSector.style.valley.strokeColor = oneSector.styles.byrne.blue;
 oneSector.edgeLayer.bringToFront();
 
 oneSector.reset = function(){
-	this.select.node = true;
 	var angles = [Math.random()*Math.PI*2, Math.random()*Math.PI*2];
 	var creases = [
 		this.cp.crease(new XY(0.0, 0.0), new XY(0.8*Math.cos(angles[0]), 0.8*Math.sin(angles[0]))).mountain(),

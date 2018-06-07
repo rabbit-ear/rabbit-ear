@@ -52,7 +52,7 @@ intersectAll.drawIntersections = function(line, ray, edge){
 }
 
 intersectAll.redraw = function(){
-	var points = this.selectable.map(function(el){ return new XY(el.position.x, el.position.y); });
+	var points = this.touchPoints.map(function(el){ return new XY(el.position.x, el.position.y); });
 	var line = new Line(points[0], points[1].subtract(points[0]));
 	var ray = new Ray(points[2], points[3].subtract(points[2]));
 	var edge = new Edge(points[4], points[5]);
@@ -66,19 +66,16 @@ intersectAll.redraw = function(){
 
 	if(intersectAllCallback !== undefined){
 		var event = {
-			"edge": [this.selectable[4].position, this.selectable[5].position],
-			"ray": [this.selectable[2].position, this.selectable[3].position],
-			"line": [this.selectable[0].position, this.selectable[1].position]
+			"edge": [this.touchPoints[4].position, this.touchPoints[5].position],
+			"ray": [this.touchPoints[2].position, this.touchPoints[3].position],
+			"line": [this.touchPoints[0].position, this.touchPoints[1].position]
 		};
 		intersectAllCallback(event);
 	}
 }
 
 intersectAll.setup = function(){
-	this.makeControlPoints(6);
-	[[0.9, 0.56],[0.7, 0.53],[0.9, 0.44],[0.7, 0.47],[0.15, 0.3],[0.15, 0.7]].forEach(function(el,i){
-		this.selectable[i].position = {x:el[0], y:el[1]}
-	},this);
+	[[0.9, 0.56],[0.7, 0.53],[0.9, 0.44],[0.7, 0.47],[0.15, 0.3],[0.15, 0.7]].forEach(function(point){ this.makeTouchPoint(point); },this);
 	this.redraw();
 }
 intersectAll.setup();

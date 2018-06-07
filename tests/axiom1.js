@@ -4,13 +4,12 @@ axiom1.style.valley.strokeColor = axiom1.styles.byrne.red;
 
 axiom1.redraw = function(){
 	this.cp.clear();
-	var crease = this.cp.creaseThroughPoints(this.selectable[0].position, this.selectable[1].position);
+	var crease = this.cp.creaseThroughPoints(this.touchPoints[0].position, this.touchPoints[1].position);
 	if(crease){ crease.valley(); }
 	this.draw();
 }
 axiom1.reset = function(){
-	this.makeControlPoints(2, this.circleStyle);
-	[[0.0, 0.0],[1.0, 1.0]].forEach(function(el,i){this.selectable[i].position = el;},this);
+	[[0.0, 0.0],[1.0, 1.0]].forEach(function(point){ this.makeTouchPoint(point, this.circleStyle); },this);
 	this.redraw();
 }
 axiom1.reset();

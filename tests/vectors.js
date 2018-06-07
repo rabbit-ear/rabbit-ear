@@ -49,7 +49,6 @@ projectVectors.updateAngles = function(){
 }
 
 projectVectors.reset = function(){
-	this.select.node = true;
 	var creases = [
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain()

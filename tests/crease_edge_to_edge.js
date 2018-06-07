@@ -51,7 +51,7 @@ creaseEdgeToEdge.updateCreases = function(){
 	new this.scope.Path({segments: nearest.nodes, closed: false, strokeWidth:0.015, strokeColor:this.styles.byrne.yellow });
 
 	if(creaseEdgeToEdgeCallback !== undefined){
-		// creaseEdgeToEdgeCallback({'points':[this.selectable[0].position, this.selectable[1].position]});
+		// creaseEdgeToEdgeCallback({'points':[this.touchPoints[0].position, this.touchPoints[1].position]});
 	}
 }
 creaseEdgeToEdge.updateCreases();
