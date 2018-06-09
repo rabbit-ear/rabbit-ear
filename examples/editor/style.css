@@ -5,14 +5,15 @@ html, body {
 }
 #canvas-container{
 	width:100%;
-	height:100%;
+	height:calc(100% - 52px);
+	margin-top:52px;
 	display:flex;
 	justify-content: center;
 	align-items: center;
 }
 canvas[resize]{
-	width:80vmin;
-	height:80vmin;
+	width:97vw;
+	height:97vh;
 }
 canvas#canvas-folded{
 	margin:10px;
@@ -29,18 +30,17 @@ canvas#canvas-folded{
 /* sidebar stuff */
 
 .sidenav {
-    width: 200px;
     position: fixed;
     z-index: 2;
     top: 120px;
     left: 10px;
     background: #eee;
     overflow-x: hidden;
-    padding: 8px 0;
+    padding: 8px;
 }
 
 .sidenav a {
-    padding: 6px 8px 6px 16px;
+    padding: 6px 0px;
     text-decoration: none;
     font-size: 17px;
     color: #2196F3;

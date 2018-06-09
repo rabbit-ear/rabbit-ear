@@ -13,71 +13,85 @@
 	<ul>
 	<li></a></li>
 	<li class="dropdown">
-		<a href="javascript:void(0)" class="link-fa dropbtn"><i class="fa fa-pencil-square-o fa-2x left-pad"></i></a>
+		<a href="#" class="">HELLO</a>
 		<div class="dropdown-content">
-		<a href="../tools/validator/index.html">Crease Pattern Validator</a>
+		<a href="#" id="what-is-this">WHAT IS THIS</a>
+		<a href="#">HELP</a>
 		</div>
 	</li>
 	<li class="dropdown">
-		<a href="/docs/" class="">HELLO</a>
+		<a href="#" class="">CREASE PATTERN</a>
 		<div class="dropdown-content">
-		<a href="#" onclick="whatIsThisDidPress()">WHAT IS THIS</a>
-		<a href="">HELP</a>
-		</div>
-	</li>
-	<li class="dropdown">
-		<a href="/docs/" class="">CREASE PATTERN</a>
-		<div class="dropdown-content">
+		<a href="#" id="new-file">NEW</a>
+		<a href="#" id="">BOUNDARY</a>
+		<a href="#" id="">---</a>
 		<a href="#" id="load-file">OPEN</a>
 		<a href="#" id="download-fold">SAVE .FOLD</a>
 		<a href="#" id="download-svg">SAVE .SVG</a>
 		</div>
 	</li>
 	<li class="dropdown">
-		<a href="planarGraph.php" class="dropbtn">FOLDED</a>
+		<a href="#" class="dropbtn">FOLDED</a>
 		<div class="dropdown-content">
-		<a href="">SAVE .FOLD</a>
-		<a href="">SAVE .SVG</a>
+		<a href="#">SAVE .FOLD</a>
+		<a href="#">SAVE .SVG</a>
 		</div>
 	</li>
 	<li class="dropdown">
-		<a href="planarGraph.php" class="dropbtn">VIEW</a>
+		<a href="#" class="dropbtn">VIEW</a>
 		<div class="dropdown-content">
-		<a href="">POSSIBLE CREASES</a>
-		<a href="">ANOTHER</a>
+		<a href="#">POSSIBLE CREASES</a>
+		<a href="#">ANOTHER</a>
+		<a href="#">---</a>
+		<a href="#">THICK LINES</a>
+		<a href="#">THIN LINES</a>
 		</div>
 	</li>
 	<li class="dropdown">
-		<a href="creasePattern.php" class="dropbtn">III. CREASE PATTERN</a>
+		<a href="#" class="dropbtn">FOLDABILITY</a>
 		<div class="dropdown-content">
-		<a href="crease.php">CREASE</a>
-		<a href="axioms.php">ORIGAMI AXIOMS</a>
-		<a href="flatFoldable.php">FLAT FOLDABLE</a>
-		<a href="boxPleating.php">BOX PLEATING</a>
-		<a href="voronoi.php">VORONOI</a>
-		<a href="symmetry.php">SYMMETRY</a>
-		<a href="paper.php">PAPER</a>
+		<a href="#">KAWASAKI-JUSTIN</a>
+		<a href="#">MAEKAWA</a>
+		<a href="#">MERGE POINTS</a>
 		</div>
 	</li>
 	</ul>
 </nav>
 
 <div class="sidenav">
-	<a href="#">bisect sector</a>
-	<a href="#" onclick="betweenPointsHandler()">crease between points</a>
-	<a href="#" onclick="pointToPointHandler()">crease point to point</a>
-	<a href="#" onclick="edgeToEdgeHandler()">edge to edge</a>
-	<a href="#">pleat between edges</a>
 	<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
-		<label class="btn btn-xs btn-outline-secondary active">
+		<label class="btn btn-sm btn-outline-secondary active">
 			<input type="radio" name="options" id="radio-button-add-crease" autocomplete="off" checked>Crease
 		</label>
-		<label class="btn btn-xs btn-outline-secondary">
+		<label class="btn btn-sm btn-outline-secondary">
 			<input type="radio" name="options" id="radio-button-remove-crease" autocomplete="off">Remove
 		</label>
-		<label class="btn btn-xs btn-outline-secondary">
+		<label class="btn btn-sm btn-outline-secondary">
 			<input type="radio" name="options" id="radio-button-flip-crease" autocomplete="off">Flip
 		</label>
+	</div>
+	<div id="add-crease-sub-menu">
+		<a href="#" id="mouse-mode-bisect-sector">bisect sector</a>
+		<a href="#" id="mouse-mode-between-points">crease between points</a>
+		<a href="#" id="mouse-mode-point-to-point">crease point to point</a>
+		<a href="#" id="mouse-mode-edge-to-edge">edge to edge</a>
+		<a href="#" id="mouse-mode-pleat">pleat between edges</a>
+		<a href="#" id="mouse-mode-rabbit-ear">rabbit ear</a>
+		<a href="#" id="mouse-mode-kawasaki-fourth">kawasaki-justin fourth</a>
+		<a href="#" id="mouse-mode-perpendicular-through-point">perpendicular through point</a>
+		<hr>
+		<h4>ray modifier</h4>
+		<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
+			<label class="btn btn-sm btn-outline-secondary active">
+				<input type="radio" name="options" id="radio-button-" autocomplete="off" checked>Reflect
+			</label>
+			<label class="btn btn-sm btn-outline-secondary">
+				<input type="radio" name="options" id="radio-button-" autocomplete="off">Stop
+			</label>
+			<label class="btn btn-sm btn-outline-secondary">
+				<input type="radio" name="options" id="radio-button-" autocomplete="off">None
+			</label>
+		</div>
 	</div>
 </div>
 
