@@ -172,7 +172,7 @@ class FoldSequence{
 }
 
 class CreaseSector extends PlanarSector{
-	bisect(){
+	bisect():CPRay{
 		var vectors = this.vectors();
 		var angles = vectors.map(function(el){ return Math.atan2(el.y, el.x); });
 		while(angles[0] < 0){ angles[0] += Math.PI*2; }
@@ -346,7 +346,7 @@ class CreaseFace extends PlanarFace{
 	rabbitEar():Crease[]{
 		var sectors = this.sectors();
 		if(sectors.length !== 3){ return []; }
-		var rays:Ray[] = sectors.map(function(el){ return new Ray(el.origin, el.bisect()); });
+		var rays:Ray[] = sectors.map(function(el){ return el.bisect(); });
 		// calculate intersection of each pairs of rays
 		var incenter = rays
 			.map(function(el:Ray, i){
@@ -762,7 +762,7 @@ class CreasePattern extends PlanarGraph{
 				if(edge !== undefined){
 					var e = new CPEdge(this, edge);
 					e.madeBy = new Fold(this.creasePointToPoint, [new XY(this.nodes[n0].x,this.nodes[n0].y), new XY(this.nodes[n1].x,this.nodes[n1].y)]);
-					edges.push(edge);
+					edges.push(e);
 				}
 			}
 		}
@@ -784,7 +784,7 @@ class CreasePattern extends PlanarGraph{
 					e.madeBy = new Fold(this.creaseEdgeToEdge, [this.edges[e0].nodes[0].copy(), this.edges[e0].nodes[1].copy(), this.edges[e1].nodes[0].copy(), this.edges[e1].nodes[1].copy()]);
 					return e					
 				},this);
-				edges = edges.concat(pair);
+				edges = edges.concat(p);
 			}
 		}
 		// this.cleanDuplicateNodes();

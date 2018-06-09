@@ -1042,14 +1042,14 @@ class Sector{
 		var vectors = this.vectors();
 		return clockwiseInteriorAngle(vectors[0], vectors[1]);
 	}
-	bisect():XY{
+	bisect():Ray{
 		var vectors = this.vectors();
 		var angles = vectors.map(function(el){ return Math.atan2(el.y, el.x); });
 		while(angles[0] < 0){ angles[0] += Math.PI*2; }
 		while(angles[1] < 0){ angles[1] += Math.PI*2; }
 		var interior = clockwiseInteriorAngleRadians(angles[0], angles[1]);
 		var bisected = angles[0] - interior*0.5;
-		return new XY(Math.cos(bisected), Math.sin(bisected));
+		return new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(bisected), Math.sin(bisected)));
 	}
 	// todo: needs testing
 	subsectAngle(divisions:number):number[]{

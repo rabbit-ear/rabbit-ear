@@ -9,7 +9,11 @@ var MouseMode = {
 	"addSectorBisector":3,
 	"addBetweenPoints":4,
 	"addPointToPoint":5,
-	"addEdgeToEdge":6
+	"addEdgeToEdge":6,
+	"addPleatBetweenEdges":7,
+	"addRabbitEar":8,
+	"addKawasakiFourth":9,
+	"addPerpendicular":10,
 }; Object.freeze(MouseMode);
 
 project.show.nodes = true;
@@ -38,7 +42,6 @@ project.updateCreasePattern = function(){
 	foldedProject.draw();
 }
 
-project.allPossibleCreases = [];  // read only please
 project.possibleCreases = [];  // read only please
 project.setPossibleCreases = function(edges){
 	this.possibleCreases = edges;
@@ -52,13 +55,24 @@ project.setPossibleCreases = function(edges){
 			return p
 		},this);
 }
+project.filterPossibleCreases = function(filterFunc){
+	var filteredEdges = this.possibleCreases.filter(filterFunc.bind(this));
+	paper = this.scope;
+	this.ghostMarksLayer.activate();
+	this.ghostMarksLayer.removeChildren();
+	var paths = filteredEdges.map(function(edge){ return edge.nodes.map(function(el){ return [el.x, el.y]; }); },this)
+		.map(function(endpointsArray){
+			var p = new this.scope.Path(Object.assign({segments: endpointsArray, closed: false }, project.style.mark));
+			p.strokeColor = this.styles.byrne.yellow
+			return p
+		},this);
+}
 
 project.reset = function(){
 	this.cp.clear();
 	this.selected = {};
 	this.nearest = {};
 	this.setPossibleCreases([]);
-	this.allPossibleCreases = [];
 	this.updateCreasePattern();
 }
 project.reset();
@@ -70,20 +84,16 @@ project.setMouseMode = function(newMode){
 	switch(newMode){
 		case MouseMode.addSectorBisector:
 		break;
-		case MouseMode.addBetweenPoints:
-			var edges = project.cp.availableAxiom1Folds();
-			project.setPossibleCreases(edges);
-			this.allPossibleCreases = edges;
+		case MouseMode.addBetweenPoints: this.setPossibleCreases( this.cp.availableAxiom1Folds() ); break;
+		case MouseMode.addPointToPoint: this.setPossibleCreases( this.cp.availableAxiom2Folds() ); break;
+		case MouseMode.addEdgeToEdge: this.setPossibleCreases( this.cp.availableAxiom3Folds() ); break;
+		case MouseMode.addPleatBetweenEdges:
 		break;
-		case MouseMode.addPointToPoint:
-			var edges = project.cp.availableAxiom2Folds();
-			project.setPossibleCreases(edges);
-			this.allPossibleCreases = edges;
+		case MouseMode.addRabbitEar:
 		break;
-		case MouseMode.addEdgeToEdge:
-			var edges = project.cp.availableAxiom3Folds();
-			project.setPossibleCreases(edges);
-			this.allPossibleCreases = edges;
+		case MouseMode.addKawasakiFourth:
+		break;
+		case MouseMode.addPerpendicular:
 		break;
 		case MouseMode.removeCrease:
 		break;
@@ -104,24 +114,54 @@ project.onMouseDown = function(event){
 			}
 		break;
 		case MouseMode.addBetweenPoints:
-			var edges = this.possibleCreases.filter(function(edge){
-				return edge.collinear(this.nearest.node);
-			},this);
+			var edges = this.possibleCreases.filter(function(edge){ return edge.collinear(this.nearest.node); },this);
 			if(this.selected.node != undefined){
 				var edge = edges[0];
 				if(edge){ this.cp.crease(edge).mountain(); }
-				// this.selected = {};
+				this.selected = {};
 				this.setMouseMode(MouseMode.addBetweenPoints);
 			}
 			else{
 				this.setPossibleCreases(edges);
-				this.allPossibleCreases = edges;
 				this.selected = this.nearest;
 			}
 		break;
 		case MouseMode.addPointToPoint:
+			var edges = this.possibleCreases.filter(function(edge){
+					return edge.madeBy.args.filter(function(point){ return point.equivalent(this.nearest.node,0.0001); },this).length > 0;
+				},this);
+			if(this.selected.node != undefined){
+				var edge = edges[0];
+				if(edge){ this.cp.crease(edge).mountain(); }
+				this.selected = {};
+				this.setMouseMode(MouseMode.addPointToPoint);
+			}
+			else{
+				this.setPossibleCreases(edges);
+				this.selected = this.nearest;
+			}
 		break;
 		case MouseMode.addEdgeToEdge:
+			var edges = this.possibleCreases.filter(function(edge){
+					return edge.madeBy.args.filter(function(point){ return point.equivalent(this.nearest.edge.nodes[0],0.0001); },this).length > 0;
+				},this);
+			if(this.selected.edge != undefined){
+				var edge = edges[0];
+				if(edge){ this.cp.crease(edge).mountain(); }
+				this.selected = {};
+				this.setMouseMode(MouseMode.addEdgeToEdge);
+			}
+			else{
+				this.setPossibleCreases(edges);
+				this.selected = this.nearest;
+			}
+		break;
+		case MouseMode.addRabbitEar:
+			if(this.nearest.face){
+				this.nearest.face.rabbitEar()
+					.filter(function(crease){ return crease != undefined; },this)
+					.forEach(function(crease){ crease.mountain(); },this);
+			}
 		break;
 		case MouseMode.removeCrease:
 			var nearest = this.cp.nearest(event.point);
@@ -147,7 +187,8 @@ project.onMouseDown = function(event){
 	this.updateCreasePattern();
 }
 project.onMouseMove = function(event){
-	var didUpdate = this.updateNearestToMouse(event.point);
+	// what changed from frame to frame. only update complex calculations if necessary
+	var didChange = this.updateNearestToMouse(event.point);
 	this.updateStyles();
 	switch(this.mouseMode){
 		case MouseMode.addSectorBisector:
@@ -161,25 +202,35 @@ project.onMouseMove = function(event){
 			if(mouseMoveCallback != undefined){ mouseMoveCallback(event.point); }
 		break;
 		case MouseMode.addBetweenPoints:
+			if(this.nearest.node != undefined){ this.nodes[this.nearest.node.index].fillColor.alpha = 1.0; }
 			if(this.selected.node){ this.nodes[this.selected.node.index].fillColor.alpha = 1.0; }
-			this.nodes[this.nearest.node.index].fillColor.alpha = 1.0;
-			if(didUpdate.node){
-				// if(this.selected.node != undefined){
-
-				// } else{
-					if(this.nearest.node){
-						var edges = this.allPossibleCreases.filter(function(edge){
-							return edge.collinear(this.nearest.node);
-						},this);
-						this.setPossibleCreases(edges);
-					} else{ this.setPossibleCreases([]); }
-				// } 
+			if(didChange.node){
+				if(this.nearest.node){
+					this.filterPossibleCreases(function(edge){ return edge.collinear(this.nearest.node); })
+				} else{ this.setPossibleCreases([]); }
 			}
 		break;
 		case MouseMode.addPointToPoint:
 			if(this.nearest.node != undefined){ this.nodes[this.nearest.node.index].fillColor.alpha = 1.0; }
+			if(this.selected.node){ this.nodes[this.selected.node.index].fillColor.alpha = 1.0; }
+			if(didChange.node){
+				if(this.nearest.node){
+					this.filterPossibleCreases(function(edge){
+						return edge.madeBy.args.filter(function(point){ return point.equivalent(this.nearest.node,0.0001); },this).length > 0;
+					})
+				} else{ this.setPossibleCreases([]); }
+			}
 		break;
 		case MouseMode.addEdgeToEdge:
+			if(this.nearest.edge != undefined){ this.edges[this.nearest.edge.index].strokeColor = this.styles.byrne.yellow; }
+			if(this.selected.edge){ this.edges[this.selected.edge.index].strokeColor = this.styles.byrne.yellow; }
+			if(didChange.edge){
+				if(this.nearest.edge){
+					this.filterPossibleCreases(function(edge){
+						return edge.madeBy.args.filter(function(point){ return point.equivalent(this.nearest.edge.nodes[0],0.0001); },this).length > 0;
+					})
+				} else{ this.setPossibleCreases([]); }
+			}
 		break;
 		case MouseMode.removeCrease:
 			if(this.nearest.edge != undefined){
@@ -192,6 +243,16 @@ project.onMouseMove = function(event){
 				// this.edges[this.nearest.edge.index].strokeColor = {hue:43.2, saturation:0.88, brightness:0.93 };
 				this.edges[this.nearest.edge.index].strokeWidth = this.style.mountain.strokeWidth*1.3333;
 			}
+		break;
+		case MouseMode.addRabbitEar:
+			if(this.nearest.node != undefined){ this.nodes[this.nearest.node.index].fillColor.alpha = 1.0; }
+			if(this.nearest.edge != undefined){
+				this.edges[this.nearest.edge.index].strokeColor = {hue:43.2, saturation:0.88, brightness:0.93 };
+				this.edges[this.nearest.edge.index].strokeWidth = this.style.mountain.strokeWidth*1.3333;
+			}
+			if(this.nearest.face != undefined){ this.faces[this.nearest.face.index].fillColor.alpha = 1.0}
+			if(this.nearest.sector != undefined){ this.sectors[this.nearest.sector.index].fillColor.alpha = 1.0; }
+			if(mouseMoveCallback != undefined){ mouseMoveCallback(event.point); }
 		break;
 	}
 }
@@ -245,6 +306,8 @@ document.getElementById("mouse-mode-point-to-point").addEventListener("click", p
 document.getElementById("mouse-mode-edge-to-edge").addEventListener("click", edgeToEdgeHandler);
 document.getElementById("mouse-mode-pleat").addEventListener("click", pleatHandler);
 document.getElementById("mouse-mode-rabbit-ear").addEventListener("click", rabbitEarHandler);
+document.getElementById("mouse-mode-kawasaki-fourth").addEventListener("click", kawasakiHandler);
+document.getElementById("mouse-mode-perpendicular").addEventListener("click", perpendicularHandler);
 
 document.getElementById("what-is-this").addEventListener("click", whatIsThisHandler);
 
@@ -256,7 +319,9 @@ function bisectSectorHandler(e){ e.preventDefault(); project.setMouseMode(MouseM
 function betweenPointsHandler(e){ e.preventDefault(); project.setMouseMode(MouseMode.addBetweenPoints); }
 function pointToPointHandler(e){ e.preventDefault(); project.setMouseMode(MouseMode.addPointToPoint); }
 function edgeToEdgeHandler(e){ e.preventDefault(); project.setMouseMode(MouseMode.addEdgeToEdge); }
-function pleatHandler(e){ e.preventDefault(); project.setMouseMode(MouseMode.pleat); }
-function rabbitEarHandler(e){ e.preventDefault(); project.setMouseMode(MouseMode.rabbitEar); }
+function pleatHandler(e){ e.preventDefault(); project.setMouseMode(MouseMode.addPleatBetweenEdges); }
+function rabbitEarHandler(e){ e.preventDefault(); project.setMouseMode(MouseMode.addRabbitEar); }
+function kawasakiHandler(e){ e.preventDefault(); project.setMouseMode(MouseMode.addKawasakiFourth); }
+function perpendicularHandler(e){ e.preventDefault(); project.setMouseMode(MouseMode.addPerpendicular); }
 
 function whatIsThisHandler(e){ e.preventDefault(); document.getElementById("modal-what-is-this").style.display = 'block'; }

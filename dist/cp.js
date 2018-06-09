@@ -400,7 +400,7 @@ var Tree = (function () {
 function isValidPoint(point) { return (point !== undefined && !isNaN(point.x) && !isNaN(point.y)); }
 function isValidNumber(n) { return (n !== undefined && !isNaN(n) && !isNaN(n)); }
 function pointsSimilar(a, b, epsilon) {
-    if (epsilon === undefined) {
+    if (epsilon == undefined) {
         epsilon = EPSILON_HIGH;
     }
     return epsilonEqual(a.x, b.x, epsilon) && epsilonEqual(a.y, b.y, epsilon);
@@ -1459,7 +1459,7 @@ var Sector = (function () {
         }
         var interior = clockwiseInteriorAngleRadians(angles[0], angles[1]);
         var bisected = angles[0] - interior * 0.5;
-        return new XY(Math.cos(bisected), Math.sin(bisected));
+        return new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(bisected), Math.sin(bisected)));
     };
     Sector.prototype.subsectAngle = function (divisions) {
         if (divisions === undefined || divisions < 1) {
@@ -3274,7 +3274,7 @@ var CreaseFace = (function (_super) {
         if (sectors.length !== 3) {
             return [];
         }
-        var rays = sectors.map(function (el) { return new Ray(el.origin, el.bisect()); });
+        var rays = sectors.map(function (el) { return el.bisect(); });
         var incenter = rays
             .map(function (el, i) {
             var nextEl = rays[(i + 1) % rays.length];
@@ -3679,7 +3679,7 @@ var CreasePattern = (function (_super) {
                 if (edge !== undefined) {
                     var e = new CPEdge(this, edge);
                     e.madeBy = new Fold(this.creasePointToPoint, [new XY(this.nodes[n0].x, this.nodes[n0].y), new XY(this.nodes[n1].x, this.nodes[n1].y)]);
-                    edges.push(edge);
+                    edges.push(e);
                 }
             }
         }
@@ -3699,7 +3699,7 @@ var CreasePattern = (function (_super) {
                     e.madeBy = new Fold(this.creaseEdgeToEdge, [this.edges[e0].nodes[0].copy(), this.edges[e0].nodes[1].copy(), this.edges[e1].nodes[0].copy(), this.edges[e1].nodes[1].copy()]);
                     return e;
                 }, this);
-                edges = edges.concat(pair);
+                edges = edges.concat(p);
             }
         }
         return edges;
