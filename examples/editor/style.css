@@ -12,8 +12,8 @@ html, body {
 	align-items: center;
 }
 canvas[resize]{
-	width:97vw;
-	height:97vh;
+	width:100%;
+	height:100%;
 }
 canvas#canvas-folded{
 	margin:10px;

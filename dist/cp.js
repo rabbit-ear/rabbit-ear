@@ -3139,7 +3139,7 @@ var CreaseSector = (function (_super) {
         var vec0 = this.edges[0].vector(this.origin);
         var angle0 = Math.atan2(vec0.y, vec0.x);
         var newA = angle0 - dEven;
-        return new XY(Math.cos(newA), Math.sin(newA));
+        return new CPRay(this.origin.graph, new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(newA), Math.sin(newA))));
     };
     return CreaseSector;
 }(PlanarSector));

@@ -166,7 +166,6 @@ project.onMouseDown = function(event){
 		case MouseMode.addKawasakiFourth:
 			if(this.nearest.face){
 				var ray = this.nearest.sector.kawasakiFourth();
-				console.log(ray);
 				if(ray){
 					ray.creaseAndRepeat()
 						.filter(function(crease){ return crease != undefined; },this)
@@ -262,6 +261,11 @@ project.onMouseMove = function(event){
 				this.edges[this.nearest.edge.index].strokeWidth = this.style.mountain.strokeWidth*1.3333;
 			}
 			if(this.nearest.face != undefined){ this.faces[this.nearest.face.index].fillColor.alpha = 1.0}
+			if(this.nearest.sector != undefined){ this.sectors[this.nearest.sector.index].fillColor.alpha = 1.0; }
+			if(mouseMoveCallback != undefined){ mouseMoveCallback(event.point); }
+		break;
+		case MouseMode.addKawasakiFourth:
+			if(this.nearest.node != undefined){ this.nodes[this.nearest.node.index].fillColor.alpha = 1.0; }
 			if(this.nearest.sector != undefined){ this.sectors[this.nearest.sector.index].fillColor.alpha = 1.0; }
 			if(mouseMoveCallback != undefined){ mouseMoveCallback(event.point); }
 		break;
