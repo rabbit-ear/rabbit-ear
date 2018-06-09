@@ -25,7 +25,7 @@ oneSector.updateAngles = function(){
 
 	var sector = new Sector(this.centerNode, this.validNodes);
 
-	var small = sector.bisect();
+	var small = sector.bisect().direction;
 	// bisect smaller angle
 	var arc1Pts = [ new XY(this.validNodes[0].x, this.validNodes[0].y), small, new XY(this.validNodes[1].x, this.validNodes[1].y) ];
 	for(var i = 0; i < 3; i++){ arc1Pts[i] = arc1Pts[i].normalize().scale(0.5); }

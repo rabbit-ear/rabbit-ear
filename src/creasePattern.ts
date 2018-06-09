@@ -184,7 +184,7 @@ class CreaseSector extends PlanarSector{
 	}
 
 	/** This will search for an angle which if an additional crease is made will satisfy Kawasaki's theorem */
-	kawasakiFourth():XY{
+	kawasakiFourth():CPRay{
 		var junction = this.origin.junction();
 		// todo: allow searches for other number edges
 		if(junction.edges.length != 3){ return; }
@@ -208,7 +208,7 @@ class CreaseSector extends PlanarSector{
 		var angle0 = Math.atan2(vec0.y, vec0.x);
 		// var angle1 = this.edges[1].absoluteAngle(this.origin);
 		var newA = angle0 - dEven;
-		return new XY(Math.cos(newA), Math.sin(newA));
+		return new CPRay(<CreasePattern>this.origin.graph, new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(newA), Math.sin(newA))));
 	}
 }
 class CreaseJunction extends PlanarJunction{

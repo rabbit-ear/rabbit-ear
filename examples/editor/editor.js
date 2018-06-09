@@ -163,6 +163,17 @@ project.onMouseDown = function(event){
 					.forEach(function(crease){ crease.mountain(); },this);
 			}
 		break;
+		case MouseMode.addKawasakiFourth:
+			if(this.nearest.face){
+				var ray = this.nearest.sector.kawasakiFourth();
+				console.log(ray);
+				if(ray){
+					ray.creaseAndRepeat()
+						.filter(function(crease){ return crease != undefined; },this)
+						.forEach(function(crease){ crease.mountain(); },this);
+				}
+			}
+		break;
 		case MouseMode.removeCrease:
 			var nearest = this.cp.nearest(event.point);
 			if(nearest.edge !== undefined){
