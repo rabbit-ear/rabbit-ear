@@ -24,7 +24,7 @@ class Tree<T>{
 function isValidPoint(point:XY):boolean{return(point!==undefined&&!isNaN(point.x)&&!isNaN(point.y));}
 function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
 function pointsSimilar(a:any, b:any, epsilon?:number){
-	if(epsilon === undefined){epsilon = EPSILON_HIGH;}
+	if(epsilon == undefined){epsilon = EPSILON_HIGH;}
 	return epsilonEqual(a.x,b.x,epsilon) && epsilonEqual(a.y,b.y,epsilon);
 }
 /////////////////////////////// NUMBERS ///////////////////////////////

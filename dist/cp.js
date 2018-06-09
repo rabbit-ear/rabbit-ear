@@ -2412,6 +2412,17 @@ var PlanarGraph = (function (_super) {
         }
         return sortedEdges.slice(0, quantity);
     };
+    PlanarGraph.prototype.nearestEdge = function (edges, a, b) {
+        var point = gimme1XY(a, b);
+        var sortedEdges = edges
+            .map(function (edge) {
+            return { edge: edge, distance: edge.nearestPoint(point).distanceTo(point) };
+        }, this)
+            .sort(function (a, b) {
+            return a.distance - b.distance;
+        });
+        return sortedEdges.slice(0);
+    };
     PlanarGraph.prototype.getEdgeIntersections = function (epsilon) {
         var intersections = [];
         for (var i = 0; i < this.edges.length - 1; i++) {

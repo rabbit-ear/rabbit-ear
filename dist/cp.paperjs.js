@@ -51,7 +51,7 @@ var OrigamiPaper = (function(){
 		// user select and move
 		this.touchPoints = [];
 		this.selectRadius = 0.03;
-		this.selected = undefined;
+		this.selectedTouchPoint = undefined;
 
 		this.buildViewMatrix();
 		this.draw();
@@ -73,7 +73,7 @@ var OrigamiPaper = (function(){
 		this.scope.view.onMouseUp = function(event){
 			paper = that.scope;
 			that.mouse.isPressed = false;
-			that.selected = undefined;
+			that.selectedTouchPoint = undefined;
 			that.onMouseUp(event);
 		}
 		this.scope.view.onMouseMove = function(event){
@@ -117,7 +117,7 @@ var OrigamiPaper = (function(){
 		for(var i = 0; i < this.touchPoints.length; i++){
 			if( (this.touchPoints[i].position !== undefined) &&
 			    (pointsSimilar(this.mouse.position, this.touchPoints[i].position, this.selectRadius)) ){
-				this.selected = this.touchPoints[i];
+				this.selectedTouchPoint = this.touchPoints[i];
 			}
 		}
 	}
@@ -233,9 +233,9 @@ var OrigamiPaper = (function(){
 		this.updateStyles();
 	};
 	OrigamiPaper.prototype.updateSelected = function(){
-		if(this.mouse.isDragging && this.selected !== undefined){
-			this.selected.position.x = this.mouse.position.x;
-			this.selected.position.y = this.mouse.position.y;
+		if(this.mouse.isDragging && this.selectedTouchPoint !== undefined){
+			this.selectedTouchPoint.position.x = this.mouse.position.x;
+			this.selectedTouchPoint.position.y = this.mouse.position.y;
 		}
 	}
 	OrigamiPaper.prototype.updatePositions = function () {

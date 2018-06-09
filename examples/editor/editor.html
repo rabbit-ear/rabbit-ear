@@ -36,9 +36,8 @@
 	<li class="dropdown">
 		<a href="planarGraph.php" class="dropbtn">FOLDED</a>
 		<div class="dropdown-content">
-		<a href="">FOLD IT</a>
-		<a href="">EXPORT .FOLD</a>
-		<a href="">EXPORT .SVG</a>
+		<a href="">SAVE .FOLD</a>
+		<a href="">SAVE .SVG</a>
 		</div>
 	</li>
 	<li class="dropdown">
@@ -65,19 +64,19 @@
 
 <div class="sidenav">
 	<a href="#">bisect sector</a>
-	<a href="#">crease between points</a>
-	<a href="#">crease point to point</a>
-	<a href="#">edge to edge</a>
+	<a href="#" onclick="betweenPointsHandler()">crease between points</a>
+	<a href="#" onclick="pointToPointHandler()">crease point to point</a>
+	<a href="#" onclick="edgeToEdgeHandler()">edge to edge</a>
 	<a href="#">pleat between edges</a>
 	<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
 		<label class="btn btn-xs btn-outline-secondary active">
-			<input type="radio" name="options" id="radio-button-add-crease" autocomplete="off" checked> Crease
+			<input type="radio" name="options" id="radio-button-add-crease" autocomplete="off" checked>Crease
 		</label>
 		<label class="btn btn-xs btn-outline-secondary">
-			<input type="radio" name="options" id="radio-button-remove-crease" autocomplete="off"> Remove
+			<input type="radio" name="options" id="radio-button-remove-crease" autocomplete="off">Remove
 		</label>
 		<label class="btn btn-xs btn-outline-secondary">
-			<input type="radio" name="options" id="radio-button-flip-crease" autocomplete="off"> Flip
+			<input type="radio" name="options" id="radio-button-flip-crease" autocomplete="off">Flip
 		</label>
 	</div>
 </div>

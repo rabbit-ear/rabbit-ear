@@ -689,6 +689,17 @@ class PlanarGraph extends Graph{
 		if(quantity > sortedEdges.length){ return sortedEdges; }
 		return sortedEdges.slice(0, quantity);
 	}
+	nearestEdge(edges:Edge[], a:any, b:any){
+		var point = gimme1XY(a,b);
+		var sortedEdges = edges
+			.map(function(edge:PlanarEdge){
+				return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
+			},this)
+			.sort(function(a,b){
+				return a.distance - b.distance;
+			});
+		return sortedEdges.slice(0);
+	}
 
 	/** Without changing the graph, this function collects the point location of every intersection between crossing edges.
 	 * @returns {XY[]} array of XY, the location of intersections
