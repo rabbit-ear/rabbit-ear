@@ -1,6 +1,6 @@
 var mouseMoveCallback = undefined;
 
-var foldedProject = new OrigamiFold("canvas-folded");
+var foldedProject = new OrigamiFold("canvas-folded").setPadding(0.1);
 var project = new OrigamiPaper("canvas").setPadding(0.1);
 
 var MouseMode = {
@@ -60,6 +60,7 @@ project.setPossibleCreases = function(edges){
 		.map(function(endpointsArray){
 			var p = new this.scope.Path(Object.assign({segments: endpointsArray, closed: false }, project.style.mark));
 			p.strokeColor = this.styles.byrne.yellow
+			p.strokeWidth = 0.0025;
 			return p
 		},this);
 }
@@ -72,6 +73,7 @@ project.filterPossibleCreases = function(filterFunc){
 		.map(function(endpointsArray){
 			var p = new this.scope.Path(Object.assign({segments: endpointsArray, closed: false }, project.style.mark));
 			p.strokeColor = this.styles.byrne.yellow
+			p.strokeWidth = 0.0025;
 			return p
 		},this);
 }
@@ -82,6 +84,7 @@ project.reset = function(){
 	this.nearest = {};
 	this.setPossibleCreases([]);
 	this.updateCreasePattern();
+	foldedProject.reset();
 }
 project.reset();
 
@@ -382,6 +385,18 @@ creasePatternDidUpload = function(cp){
 	project.updateCreasePattern();
 }
 
+function collapseToolbar(){
+	// [document.getElementById("radio-button-add-crease"),
+	//  document.getElementById("radio-button-remove-crease"),
+	//  document.getElementById("radio-button-flip-crease")].forEach(function(el){
+	// 	el.checked = false;
+	// },this);
+	document.getElementById("radio-input-mode").childNodes.forEach(function(el){
+		if(el.classList && el.classList.contains('active')){ el.classList.remove('active'); }
+	},this);
+	menus1.forEach(function(el){ el.style.display = "none"; },this);
+}
+
 var menus1 = [
 	document.getElementById("add-crease-sub-menu")
 ];
@@ -394,7 +409,6 @@ var menus2 = [
 // boot, hide all modifier panels
 menus2.forEach(function(el){ el.style.display = "none"; },this);
 menus2[0].style.display = "block";
-
 
 // DOM HOOKS
 document.getElementById("radio-input-mode").onchange = function(event){
@@ -433,6 +447,7 @@ document.getElementById("radio-input-modifier-perpendicular").onchange = functio
 	}
 }
 
+document.getElementById("foldability-kawasaki").addEventListener("click", collapseToolbar);
 
 document.getElementById("new-file").addEventListener("click", newFileHandler);
 document.getElementById("download-svg").addEventListener("click", downloadCPSVG);

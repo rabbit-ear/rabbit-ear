@@ -55,3 +55,8 @@ nav li.dropbtn a:hover{
 	display: block;
 	cursor: default;
 }
+.dropdown-separator{
+	height:1px;
+	background-color: #fff;
+	width:100%;
+}

@@ -392,7 +392,7 @@ class CreasePattern extends PlanarGraph{
 
 	constructor(){
 		super();
-		if(this.boundary === undefined){ this.boundary = new ConvexPolygon(); }
+		if(this.boundary == undefined){ this.boundary = new ConvexPolygon(); }
 		this.square();
 	}
 

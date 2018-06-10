@@ -472,6 +472,7 @@ var OrigamiFold = (function(){
 		this.foldedLayer = new this.scope.Layer();
 		this.mouseZoom = true;
 		this.zoom = 1.0;
+		this.padding = 0.0;
 		this.rotation = 0;
 		this.bounds = {'origin':{'x':0,'y':0},'size':{'width':1.0, 'height':1.0}};
 		this.mouse = {
@@ -530,6 +531,11 @@ var OrigamiFold = (function(){
 			that.onResize(event);
 		}
 	}
+	OrigamiFold.prototype.reset = function(){
+		this.zoom = 1.0;
+		this.rotation = 0;
+		this.buildViewMatrix();
+	}
 	OrigamiFold.prototype.getBounds = function(){
 		if(this.foldedCP === undefined || this.foldedCP.length === 0){ 
 			this.bounds = {'origin':{'x':0,'y':0},'size':{'width':1.0, 'height':1.0}};
@@ -586,6 +592,11 @@ var OrigamiFold = (function(){
 		});
 		return this;
 	}
+	OrigamiFold.prototype.setPadding = function(padding){
+		this.padding = padding;
+		this.buildViewMatrix();
+		return this;
+	}
 	OrigamiFold.prototype.buildViewMatrix = function(){
 		paper = this.scope;
 		var pixelScale = this.loader.isRetina ? 0.5 : 1.0;
@@ -597,10 +608,9 @@ var OrigamiFold = (function(){
 			cpCanvasRatio = this.canvas.width / this.bounds.size.width;
 		}
 		// matrix
-		var paperWindowScale = 1.0;
+		var paperWindowScale = 1.0 - this.padding*2;
 		var mat = new this.scope.Matrix(1, 0, 0, 1, 0, 0);
-		mat.translate(this.canvas.width * 0.5 * pixelScale, 
-		              this.canvas.height * 0.5 * pixelScale);
+		mat.translate(this.canvas.width * 0.5 * pixelScale, this.canvas.height * 0.5 * pixelScale);
 		mat.scale(this.zoom, this.zoom);
 		mat.scale(cpCanvasRatio*paperWindowScale*pixelScale, 
 				  cpCanvasRatio*paperWindowScale*pixelScale);

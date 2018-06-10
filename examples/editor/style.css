@@ -16,11 +16,11 @@ canvas[resize]{
 	height:100%;
 }
 canvas#canvas-folded{
-	margin:10px;
+	margin:0;
 	width:20vmin;
 	height:20vmin;
-	min-width:170px;
-	min-height:170px;
+	min-width:218px;
+	min-height:218px;
 }
 
 .btn{ padding:0.5em; }
@@ -77,6 +77,7 @@ ul{
 	margin-left: 0;
 }
 .modal-body{ padding:15px; }
+.modal-fold-body{ padding:0; }
 .control-panel{
 	position: fixed;
 	z-index: 2;
