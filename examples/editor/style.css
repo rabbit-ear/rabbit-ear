@@ -27,9 +27,13 @@ canvas#canvas-folded{
 .toolbar{ text-align: center; }
 .col-md-4{ text-align: center; }
 
+ul{
+	list-style: none;
+	padding:0;
+}
 /* sidebar stuff */
 
-.sidenav {
+/*.sidenav {
     position: fixed;
     z-index: 2;
     top: 120px;
@@ -50,10 +54,10 @@ canvas#canvas-folded{
 .sidenav a:hover {
     color: #064579;
 }
-
+*/
 @media screen and (max-height: 450px) {
-    .sidenav {padding-top: 15px;}
-    .sidenav a {font-size: 18px;}
+	.sidenav {padding-top: 15px;}
+	.sidenav a {font-size: 18px;}
 }
 
 /* modal stuff */
@@ -61,29 +65,66 @@ canvas#canvas-folded{
 .modal-header{
 	background-color: #333;
 	color:#FFF;
-    overflow: hidden;
-    border-radius: 5px 5px 0px 0px;
-    font-family: sans-serif;
+	overflow: hidden;
+	border-radius: 5px 5px 0px 0px;
+	font-family: sans-serif;
+}
+.crease-selector-group{
+	margin:auto;
 }
 .modal-content{
-    margin-right: 0;
-    margin-left: 0;
+	margin-right: 0;
+	margin-left: 0;
 }
-.modal-body{ padding:0px 15px 15px 15px; }
+.modal-body{ padding:15px; }
 .control-panel{
 	position: fixed;
-	z-index: 10;
+	z-index: 2;
 	display: block;
 	-webkit-overflow-scrolling: touch;
 	outline: 0;
 	width: 220px;
 }
 #modal-what-is-this{
-	top: 80px;
-	right: 10px;
+	top: 40%;
+	left: calc(50% - 109px);
 	display:none;
 }
 #modal-fold-window{
 	top: 80px;
-	right: 10px;
+	right: 20px;
 }
+#modal-crease-window{
+	top: 80px;
+	left: 20px;
+}
+/* style bootstrap */
+.btn-outline-light.active, .btn-outline-light:active, .show>.btn-outline-light.dropdown-toggle {
+	color: #FFF;
+	background-color: #FFF;
+	border-color: #FFF;
+}
+.btn-outline-light, .btn-outline-light:visited, .btn-outline-light:hover {
+	color: #FFF !important;
+}
+.btn-outline-light:hover, .btn-outline-light:active, .btn-outline-light.active {
+	color: #333 !important;
+}
+.btn-crease{
+	padding:0.1em 0.5em;
+	margin-bottom: 4px;
+}
+
+.btn-crease {
+	color: #000;
+	background-color: #fff;
+	border-color: #fff;
+}
+.btn-crease.active, .btn-crease:active {
+	color: #fff;
+	background-color: #000;
+	border-color: #000;
+}
+
+
+

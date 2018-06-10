@@ -214,9 +214,10 @@ var OrigamiPaper = (function(){
 					var a = junction.sectors[s].endPoints[0].copy().subtract(origin).normalize().scale(shortest).add(origin);
 					var c = junction.sectors[s].endPoints[1].copy().subtract(origin).normalize().scale(shortest).add(origin);
 					var b = junction.sectors[s].bisect().direction.scale(shortest).add(origin);
-					// todo: there is a bug here with degenerate points
-					// console.log(a, b, c);
-					var sector = new this.scope.Path.Arc(a, b, c);
+					// paper js has trouble creating arcs from 3 points similar until about the 5th decimal place
+					// make sure points aren't degenerate according to paper js
+					var degenerate = (Math.abs(a.x-b.x) < 0.001 && Math.abs(a.y-b.y) < 0.001) ? true : false;
+					var sector = degenerate ? new this.scope.Path.Arc() : new this.scope.Path.Arc(a, b, c)
 					sector.add(origin);
 					sector.closed = true;
 					Object.assign(sector, this.style.sector);

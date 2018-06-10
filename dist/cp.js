@@ -1998,6 +1998,7 @@ var PlanarEdge = (function (_super) {
         _this.cache = {};
         return _this;
     }
+    PlanarEdge.prototype.copy = function () { return new Edge(this.nodes[0].copy(), this.nodes[1].copy()); };
     PlanarEdge.prototype.adjacentFaces = function () {
         if (this.graph.dirty) {
             this.graph.flatten();
@@ -2065,7 +2066,7 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.perpendicularBisector = function () { return new Line(this.midpoint(), this.vector().rotate90()); };
     PlanarEdge.prototype.infiniteLine = function () {
         var origin = new XY(this.nodes[0].x, this.nodes[0].y);
-        var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
+        var vector = new XY(this.nodes[1].x - this.nodes[0].x, this.nodes[1].y - this.nodes[0].y);
         return new Line(origin, vector);
     };
     PlanarEdge.prototype.boundingBox = function (epsilon) {
@@ -3662,9 +3663,9 @@ var CreasePattern = (function (_super) {
                 var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
                 var edge = this.boundary.clipLine(inputEdge.infiniteLine());
                 if (edge !== undefined) {
-                    var e = new CPEdge(this, edge);
-                    e.madeBy = new Fold(this.creaseThroughPoints, [new XY(this.nodes[n0].x, this.nodes[n0].y), new XY(this.nodes[n1].x, this.nodes[n1].y)]);
-                    edges.push(e);
+                    var cpedge = new CPEdge(this, edge);
+                    cpedge.madeBy = new Fold(this.creaseThroughPoints, [new XY(this.nodes[n0].x, this.nodes[n0].y), new XY(this.nodes[n1].x, this.nodes[n1].y)]);
+                    edges.push(cpedge);
                 }
             }
         }
@@ -3677,9 +3678,9 @@ var CreasePattern = (function (_super) {
                 var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
                 var edge = this.boundary.clipLine(inputEdge.perpendicularBisector());
                 if (edge !== undefined) {
-                    var e = new CPEdge(this, edge);
-                    e.madeBy = new Fold(this.creasePointToPoint, [new XY(this.nodes[n0].x, this.nodes[n0].y), new XY(this.nodes[n1].x, this.nodes[n1].y)]);
-                    edges.push(e);
+                    var cpedge = new CPEdge(this, edge);
+                    cpedge.madeBy = new Fold(this.creasePointToPoint, [new XY(this.nodes[n0].x, this.nodes[n0].y), new XY(this.nodes[n1].x, this.nodes[n1].y)]);
+                    edges.push(cpedge);
                 }
             }
         }
@@ -3695,11 +3696,26 @@ var CreasePattern = (function (_super) {
                     return this.boundary.clipLine(line);
                 }, this).filter(function (el) { return el !== undefined; }, this);
                 var p = pair.map(function (edge) {
-                    var e = new CPEdge(this, edge);
-                    e.madeBy = new Fold(this.creaseEdgeToEdge, [this.edges[e0].nodes[0].copy(), this.edges[e0].nodes[1].copy(), this.edges[e1].nodes[0].copy(), this.edges[e1].nodes[1].copy()]);
-                    return e;
+                    var cpedge = new CPEdge(this, edge);
+                    cpedge.madeBy = new Fold(this.creaseEdgeToEdge, [this.edges[e0].copy(), this.edges[e1].copy()]);
+                    return cpedge;
                 }, this);
                 edges = edges.concat(p);
+            }
+        }
+        return edges;
+    };
+    CreasePattern.prototype.availableAxiom4Folds = function () {
+        var edges = [];
+        for (var e = 0; e < this.edges.length; e++) {
+            for (var n = 0; n < this.nodes.length; n++) {
+                var point = new XY(this.nodes[n].x, this.nodes[n].y);
+                var edge = this.boundary.clipLine(new Line(point, this.edges[e].vector().rotate90()));
+                if (edge != undefined) {
+                    var cpedge = new CPEdge(this, edge);
+                    cpedge.madeBy = new Fold(this.creasePerpendicularThroughPoint, [point, new Edge(this.edges[e].nodes[0].copy(), this.edges[e].nodes[1].copy())]);
+                    edges.push(cpedge);
+                }
             }
         }
         return edges;

@@ -174,6 +174,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 	// for speeding up algorithms, temporarily store information here
 	cache:object = {};
 
+	copy():Edge{ return new Edge(this.nodes[0].copy(), this.nodes[1].copy()); }
 	/** Returns an array of faces that contain this edge
 	 * @returns {PlanarFace[]} array of adjacent faces
 	 * @example
@@ -242,7 +243,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 	perpendicularBisector():Line{ return new Line(this.midpoint(), this.vector().rotate90()); }
 	infiniteLine():Line{
 		var origin = new XY(this.nodes[0].x, this.nodes[0].y);
-		var vector = new XY(this.nodes[1].x, this.nodes[1].y).subtract(origin);
+		var vector = new XY(this.nodes[1].x - this.nodes[0].x, this.nodes[1].y - this.nodes[0].y);
 		return new Line(origin, vector);
 	}
 	boundingBox(epsilon?:number):Rect{

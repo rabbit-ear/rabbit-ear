@@ -1,6 +1,5 @@
 var creaseEdgeToEdgeCallback = undefined;
 var creaseEdgeToEdge = new OrigamiPaper("canvas-crease-edge-to-edge");
-creaseEdgeToEdge.select.edge = true;
 
 creaseEdgeToEdge.reset = function(){
 	this.cp.clear();

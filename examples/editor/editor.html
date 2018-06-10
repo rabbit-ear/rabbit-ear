@@ -66,42 +66,101 @@
 	</ul>
 </nav>
 
-<div class="sidenav">
-	<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
-		<label class="btn btn-sm btn-outline-secondary active">
-			<input type="radio" name="options" id="radio-button-add-crease" autocomplete="off" checked>Crease
-		</label>
-		<label class="btn btn-sm btn-outline-secondary">
-			<input type="radio" name="options" id="radio-button-remove-crease" autocomplete="off">Remove
-		</label>
-		<label class="btn btn-sm btn-outline-secondary">
-			<input type="radio" name="options" id="radio-button-flip-crease" autocomplete="off">Flip
-		</label>
-	</div>
-	<div id="add-crease-sub-menu">
-		<a href="#" id="mouse-mode-bisect-sector">bisect sector</a>
-		<a href="#" id="mouse-mode-between-points">crease between points</a>
-		<a href="#" id="mouse-mode-point-to-point">crease point to point</a>
-		<a href="#" id="mouse-mode-edge-to-edge">edge to edge</a>
-		<a href="#" id="mouse-mode-pleat">pleat between edges</a>
-		<a href="#" id="mouse-mode-rabbit-ear">rabbit ear</a>
-		<a href="#" id="mouse-mode-kawasaki-fourth">kawasaki-justin fourth</a>
-		<a href="#" id="mouse-mode-perpendicular">perpendicular</a>
-		<hr>
-		<h4>ray modifier</h4>
-		<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
-			<label class="btn btn-sm btn-outline-secondary active">
-				<input type="radio" name="options" id="radio-button-" autocomplete="off" checked>Reflect
-			</label>
-			<label class="btn btn-sm btn-outline-secondary">
-				<input type="radio" name="options" id="radio-button-" autocomplete="off">Stop
-			</label>
-			<label class="btn btn-sm btn-outline-secondary">
-				<input type="radio" name="options" id="radio-button-" autocomplete="off">None
-			</label>
+<div id="modal-crease-window" class="control-panel">
+	<div class="modal-content">
+		<div class="modal-header">
+			<div class="btn-group crease-selector-group" id="radio-input-mode" data-toggle="buttons">
+				<label class="btn btn-md btn-outline-light active">
+					<input type="radio" id="radio-button-add-crease" autocomplete="off" checked>crease
+				</label>
+				<label class="btn btn-md btn-outline-light">
+					<input type="radio" id="radio-button-remove-crease" autocomplete="off">remove
+				</label>
+				<label class="btn btn-md btn-outline-light">
+					<input type="radio" id="radio-button-flip-crease" autocomplete="off">flip
+				</label>
+			</div>
+
+		</div>
+		<div class="modal-body sidenav">
+			<div id="add-crease-sub-menu">
+				<div id="radio-input-crease" data-toggle="buttons">
+				<label class="btn btn-outline-secondary btn-sm btn-crease active">
+					<input type="radio" id="radio-button-bisect-sector" autocomplete="off" checked>bisect sector
+				</label>
+				<label class="btn btn-outline-secondary btn-sm btn-crease">
+					<input type="radio" id="radio-button-between-points" autocomplete="off">between points
+				</label>
+				<label class="btn btn-outline-secondary btn-sm btn-crease">
+					<input type="radio" id="radio-button-point-to-point" autocomplete="off">point to point
+				</label>
+				<label class="btn btn-outline-secondary btn-sm btn-crease">
+					<input type="radio" id="radio-button-edge-to-edge" autocomplete="off">edge to edge
+				</label>
+				<label class="btn btn-outline-secondary btn-sm btn-crease">
+					<input type="radio" id="radio-button-pleat-between-edges" autocomplete="off">pleat between edges
+				</label>
+				<label class="btn btn-outline-secondary btn-sm btn-crease">
+					<input type="radio" id="radio-button-rabbit-ear" autocomplete="off">rabbit ear
+				</label>
+				<label class="btn btn-outline-secondary btn-sm btn-crease">
+					<input type="radio" id="radio-button-kawasaki" autocomplete="off">kawasaki-justin fourth
+				</label>
+				<label class="btn btn-outline-secondary btn-sm btn-crease">
+					<input type="radio" id="radio-button-perpendicular" autocomplete="off">perpendicular
+				</label>
+				</div>
+				<hr>
+				<div id="modifier-bisect">
+					<h4>ray modifier</h4>
+					<div class="btn-group" id="radio-input-mode" data-toggle="buttons">
+						<label class="btn btn-sm btn-outline-secondary active">
+							<input type="radio" name="options" id="radio-button-" autocomplete="off" checked>Reflect
+						</label>
+						<label class="btn btn-sm btn-outline-secondary">
+							<input type="radio" name="options" id="radio-button-" autocomplete="off">Stop
+						</label>
+						<label class="btn btn-sm btn-outline-secondary">
+							<input type="radio" name="options" id="radio-button-" autocomplete="off">None
+						</label>
+					</div>
+				</div>
+				<div id="modifier-between-points">
+					<h4>segment modifier</h4>
+					<div class="btn-group" id="radio-input-modifier-between-points" data-toggle="buttons">
+						<label class="btn btn-sm btn-outline-secondary active">
+							<input type="radio" name="options" id="radio-button-modifier-between-points-full" autocomplete="off" checked>full page
+						</label>
+						<label class="btn btn-sm btn-outline-secondary">
+							<input type="radio" name="options" id="radio-button-modifier-between-points-segment" autocomplete="off">segment
+						</label>
+					</div>
+				</div>
+				<div id="modifier-pleat">
+					<h4>pleat modifier</h4>
+					<div class="form-group row">
+						<label for="input-pleat-count" class="col-sm-4 col-form-label">Pleats</label>
+						<div class="col-sm-8">
+							<input type="" class="form-control" id="input-pleat-count" placeholder="#" value="8">
+						</div>
+					</div>
+				</div>
+				<div id="modifier-perpendicular">
+					<h4>perpendicular modifier</h4>
+					<div class="btn-group" id="radio-input-modifier-perpendicular" data-toggle="buttons">
+						<label class="btn btn-sm btn-outline-secondary active">
+							<input type="radio" name="options" id="radio-button-modifier-perpendicular-full" autocomplete="off" checked>full page
+						</label>
+						<label class="btn btn-sm btn-outline-secondary">
+							<input type="radio" name="options" id="radio-button-modifier-perpendicular-segment" autocomplete="off">segment
+						</label>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
+
 
 <div id="canvas-container">
 	<canvas id="canvas" resize></canvas>

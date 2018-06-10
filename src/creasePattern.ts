@@ -743,9 +743,9 @@ class CreasePattern extends PlanarGraph{
 				var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
 				var edge = this.boundary.clipLine( inputEdge.infiniteLine() );
 				if(edge !== undefined){
-					var e = new CPEdge(this, edge);
-					e.madeBy = new Fold(this.creaseThroughPoints, [new XY(this.nodes[n0].x,this.nodes[n0].y), new XY(this.nodes[n1].x,this.nodes[n1].y)]);
-					edges.push(e);
+					var cpedge = new CPEdge(this, edge);
+					cpedge.madeBy = new Fold(this.creaseThroughPoints, [new XY(this.nodes[n0].x,this.nodes[n0].y), new XY(this.nodes[n1].x,this.nodes[n1].y)]);
+					edges.push(cpedge);
 				}
 			}
 		}
@@ -760,9 +760,9 @@ class CreasePattern extends PlanarGraph{
 				var inputEdge = new Edge(this.nodes[n0], this.nodes[n1]);
 				var edge = this.boundary.clipLine( inputEdge.perpendicularBisector() );
 				if(edge !== undefined){
-					var e = new CPEdge(this, edge);
-					e.madeBy = new Fold(this.creasePointToPoint, [new XY(this.nodes[n0].x,this.nodes[n0].y), new XY(this.nodes[n1].x,this.nodes[n1].y)]);
-					edges.push(e);
+					var cpedge = new CPEdge(this, edge);
+					cpedge.madeBy = new Fold(this.creasePointToPoint, [new XY(this.nodes[n0].x,this.nodes[n0].y), new XY(this.nodes[n1].x,this.nodes[n1].y)]);
+					edges.push(cpedge);
 				}
 			}
 		}
@@ -780,14 +780,30 @@ class CreasePattern extends PlanarGraph{
 					return this.boundary.clipLine( line );
 				},this).filter(function(el){ return el !== undefined; },this);
 				var p = pair.map(function(edge){
-					var e = new CPEdge(this, edge);
-					e.madeBy = new Fold(this.creaseEdgeToEdge, [this.edges[e0].nodes[0].copy(), this.edges[e0].nodes[1].copy(), this.edges[e1].nodes[0].copy(), this.edges[e1].nodes[1].copy()]);
-					return e					
+					var cpedge = new CPEdge(this, edge);
+					cpedge.madeBy = new Fold(this.creaseEdgeToEdge, [this.edges[e0].copy(), this.edges[e1].copy()]);
+					return cpedge;
 				},this);
 				edges = edges.concat(p);
 			}
 		}
 		// this.cleanDuplicateNodes();
+		return edges;
+	}
+
+	availableAxiom4Folds():Crease[]{
+		var edges = [];
+		for(var e = 0; e < this.edges.length; e++){
+			for(var n = 0; n < this.nodes.length; n++){
+				var point = new XY(this.nodes[n].x, this.nodes[n].y);
+				var edge = this.boundary.clipLine( new Line(point, this.edges[e].vector().rotate90()) );
+				if(edge != undefined){
+					var cpedge = new CPEdge(this, edge);
+					cpedge.madeBy = new Fold(this.creasePerpendicularThroughPoint, [point, new Edge(this.edges[e].nodes[0].copy(), this.edges[e].nodes[1].copy())]);
+					edges.push(cpedge);
+				}
+			}
+		}
 		return edges;
 	}
 
