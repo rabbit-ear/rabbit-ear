@@ -952,7 +952,6 @@ class PlanarGraph extends Graph{
 	}
 
 	generateFaces():PlanarFace[]{
-		// console.time("generateFaces");
 		var faces:PlanarFace[] = this.edges
 			.map(function(edge){
 				return [this.walkClockwiseCircut(edge.nodes[0], edge.nodes[1]),
@@ -973,7 +972,6 @@ class PlanarGraph extends Graph{
 		}
 		this.faces = uniqueFaces;
 		this.faceArrayDidChange();
-		// console.timeEnd("generateFaces");
 		return this.faces;
 	}
 
@@ -984,12 +982,10 @@ class PlanarGraph extends Graph{
 		// build a N x N matrix of edge to edge relationships, but only use the top triangle
 		// fill matrix with approximations
 	fragment(epsilon?:number):PlanarClean{
-		// console.time("fragment");
 		//todo: remove protection, or bake it into the class itself
 		var protection = 0;
 		var report = new PlanarClean();
 		var roundReport:PlanarClean;
-		// console.time("mainloop");
 		do{
 			roundReport = this.edges
 				.map(function(edge){ return this.fragmentCrossingEdges(edge, epsilon); },this)
@@ -1002,12 +998,10 @@ class PlanarGraph extends Graph{
 			protection += 1;
 		}while(roundReport.nodes.fragment.length != 0 && protection < 500);
 		if(protection >= 500){ console.log("exiting fragment(). potential infinite loop detected"); }
-		// console.timeEnd("mainloop");
 		// this.fragmentOverlappingEdges(epsilon);
 		this.removeIsolatedNodes();
 		this.cleanDuplicateNodes();
 		this.cleanGraph();
-		// console.timeEnd("fragment");
 		return report;
 	}
 

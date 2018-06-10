@@ -922,7 +922,7 @@ var Edge = (function () {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
-        var v = (line.nodes !== undefined) ? line.nodes[1].subtract(line.nodes[0]) : line.direction;
+        var v = (line.nodes !== undefined) ? new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y) : line.direction;
         if (v === undefined) {
             return undefined;
         }
@@ -3172,7 +3172,7 @@ var CreaseJunction = (function (_super) {
         }
         var alternating = this.alternateAngleSum();
         if (alternating == undefined) {
-            return true;
+            return false;
         }
         return Math.abs(alternating[0] - alternating[1]) < epsilon;
     };
@@ -3300,7 +3300,7 @@ var CreasePattern = (function (_super) {
         _this.faceType = CreaseFace;
         _this.sectorType = CreaseSector;
         _this.junctionType = CreaseJunction;
-        if (_this.boundary === undefined) {
+        if (_this.boundary == undefined) {
             _this.boundary = new ConvexPolygon();
         }
         _this.square();

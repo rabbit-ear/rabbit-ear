@@ -14,6 +14,7 @@ var MouseMode = {
 	"addRabbitEar":8,
 	"addKawasakiFourth":9,
 	"addPerpendicular":10,
+	"inspectKawasaki":11
 }; Object.freeze(MouseMode);
 
 project.show.nodes = true;
@@ -374,6 +375,21 @@ project.updateNearestToMouse = function(point){
 	return nearestDidUpdate;
 }
 
+// special operations
+project.style.errorColors = [project.styles.byrne.blue, project.styles.byrne.yellow];
+
+project.colorNodesFlatFoldable = function(epsilon){
+	if(epsilon == undefined){ epsilon = 0.01; }
+	this.cp.junctions
+		.map(function(j){ return { 'junction':j, 'foldable':j.flatFoldable(epsilon) }; },this)
+		.filter(function(el){return !el.foldable; })
+		.forEach(function(el){
+			el.junction.sectors.forEach(function(sector, i){
+				this.sectors[ sector.index ].fillColor = this.style.errorColors[i%2];
+			},this);
+		},this);
+}
+
 // modal stuff
 $("#modal-what-is-this").draggable({ handle: ".modal-header" });
 $("#modal-fold-window").draggable({ handle: ".modal-header" });
@@ -447,7 +463,7 @@ document.getElementById("radio-input-modifier-perpendicular").onchange = functio
 	}
 }
 
-document.getElementById("foldability-kawasaki").addEventListener("click", collapseToolbar);
+document.getElementById("foldability-kawasaki").addEventListener("click", kawasakiHandler);
 
 document.getElementById("new-file").addEventListener("click", newFileHandler);
 document.getElementById("download-svg").addEventListener("click", downloadCPSVG);
@@ -460,3 +476,5 @@ function downloadCPSVG(e){ e.preventDefault(); downloadCreasePattern(project.cp,
 function downloadCPFOLD(e){ e.preventDefault(); downloadCreasePattern(project.cp, "creasepattern", "fold"); }
 
 function whatIsThisHandler(e){ e.preventDefault(); document.getElementById("modal-what-is-this").style.display = 'block'; }
+function kawasakiHandler(){ collapseToolbar(); project.colorNodesFlatFoldable(); project.mouseMode = MouseMode.inspectKawasaki; }
+

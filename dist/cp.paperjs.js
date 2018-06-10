@@ -301,6 +301,17 @@ var OrigamiPaper = (function(){
 			if(epsilon === undefined){ epsilon = 0.0001; }
 			console.log("loading svg with epsilon " + epsilon);
 			cp.flatten(epsilon);
+			// rebuild boundary
+			// TODO: this code only works for convex hull boundaries
+			cp.edges.forEach(function(edge){
+				console.log(cp.boundary.edges);
+				if( cp.boundary.edges.filter(function(b){ return b.parallel(edge); },this)
+					.filter(function(b){ return b.collinear(edge.nodes[0]); },this)
+					.length > 0){
+					edge.border();
+				}
+			},this);
+			// end boundary
 			that.cp = cp;
 			that.draw();
 			if(callback != undefined){
@@ -696,7 +707,7 @@ var PaperJSLoader = (function(){
 		var points = cp.nodes.map(function(p){ return gimme1XY(p); },this);
 		cp.boundary.convexHull(points);
 		cp.boundary.edges.forEach(function(el){
-			cp.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
+			cp.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
 		},this);
 		cp.cleanDuplicateNodes();
 		// cleanup

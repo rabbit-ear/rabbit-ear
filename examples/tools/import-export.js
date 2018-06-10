@@ -46,6 +46,17 @@ function loadSVGToCPUsingPaperJS(file, callback, epsilon){
 		if(epsilon == undefined){ epsilon = 0.0001; }
 		console.log("loading svg with epsilon " + epsilon);
 		cp.flatten(epsilon);
+		// reassign boundary property to edges along boundary
+		// TODO: this code only works for convex hull boundaries
+		cp.edges.forEach(function(edge){
+			console.log(cp.boundary.edges);
+			if( cp.boundary.edges.filter(function(b){ return b.parallel(edge); },this)
+				.filter(function(b){ return b.collinear(edge.nodes[0]); },this)
+				.length > 0){
+				edge.border();
+			}
+		},this);
+		// end boundary
 		if(callback != undefined){
 			callback(cp);
 		}

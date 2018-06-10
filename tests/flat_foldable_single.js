@@ -43,7 +43,7 @@ ffSingle.onMouseDown = function(event){
 ffSingle.onMouseUp = function(event){ }
 ffSingle.onMouseMove = function(event) {
 	this.rebuild();
-	var solutionAngle = undefined;
+	var kawasakiSolution = undefined;
 	var sector = undefined;
 	if(event.point.x >= 0 && event.point.x <= 1 && event.point.y >= 0 && event.point.y <= 1){
 		// sector = this.cp.nearest(event.point).sector;
@@ -51,17 +51,18 @@ ffSingle.onMouseMove = function(event) {
 			return sector.contains(event.point);
 		},this).shift();
 
-		// console.log(sector);
 		if(sector == undefined || sector.edges == undefined) return;
 		if(sector.edges.length == 2){
-			solutionAngle = sector.kawasakiFourth();
-			this.cp.creaseRay(new XY(sector.origin.x, sector.origin.y), solutionAngle).mountain();
+			kawasakiSolution = sector.kawasakiFourth();
+			if(kawasakiSolution){ 
+				this.cp.crease(kawasakiSolution).mountain();
+			}			
 		}
 	}
 	this.cp.clean();
 	this.draw();
 
 	if(flat_foldable_single_callback != undefined){
-		flat_foldable_single_callback({'solution':solutionAngle, 'sector':sector});
+		flat_foldable_single_callback({'solution':kawasakiSolution, 'sector':sector});
 	}
 }

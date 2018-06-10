@@ -240,7 +240,7 @@ class CreaseJunction extends PlanarJunction{
 		if(epsilon === undefined){ epsilon = 0.0001; }
 		if(this.origin.isBoundary()){ return true; }
 		var alternating = this.alternateAngleSum();
-		if(alternating == undefined){ return true; }
+		if(alternating == undefined){ return false; }
 		return Math.abs(alternating[0] - alternating[1]) < epsilon;
 	}
 	// 0.0 is equivalent to 100% valid

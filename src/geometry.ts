@@ -350,7 +350,9 @@ class Line implements LineType{
 	parallel(line:any, epsilon?:number):boolean{
 		// works for Edges (2 XY nodes), or Lines or Rays (point and vector)
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var v = (line.nodes !== undefined) ? line.nodes[1].subtract(line.nodes[0]) : line.direction;
+		var v = (line.nodes !== undefined)
+		        ? new XY(line.nodes[1].x-line.nodes[0].x, line.nodes[1].y-line.nodes[0].y)
+		        : line.direction;
 		return (v !== undefined) ? epsilonEqual(this.direction.cross(v), 0, epsilon) : undefined;
 	}
 	collinear(point:XY, epsilon?:number):boolean{
@@ -418,7 +420,9 @@ class Ray implements LineType{
 	parallel(line:any, epsilon?:number):boolean{
 		// works for Edges (2 XY nodes), or Lines or Rays (point and vector)
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var v = (line.nodes !== undefined) ? line.nodes[1].subtract(line.nodes[0]) : line.direction;
+		var v = (line.nodes !== undefined)
+		        ? new XY(line.nodes[1].x-line.nodes[0].x, line.nodes[1].y-line.nodes[0].y)
+		        : line.direction;
 		if(v === undefined){ return undefined; }
 		return epsilonEqual(this.direction.cross(v), 0, epsilon);
 	}
@@ -528,7 +532,9 @@ class Edge implements LineType{
 	parallel(line:any, epsilon?:number):boolean{
 		// works for Edges (2 XY nodes), or Lines or Rays (point and vector)
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		var v = (line.nodes !== undefined) ? line.nodes[1].subtract(line.nodes[0]) : line.direction;
+		var v = (line.nodes !== undefined)
+		        ? new XY(line.nodes[1].x-line.nodes[0].x, line.nodes[1].y-line.nodes[0].y)
+		        : line.direction;
 		if(v === undefined){ return undefined; }
 		var u = this.nodes[1].subtract(this.nodes[0]);
 		return epsilonEqual(u.cross(v), 0, epsilon);
