@@ -12,7 +12,7 @@ var MouseMode = {
 	"addEdgeToEdge":6,
 	"addPleatBetweenEdges":7,
 	"addRabbitEar":8,
-	"addKawasakiFourth":9,
+	"addKawasakiCollapse":9,
 	"addPerpendicular":10,
 	"inspectKawasaki":11
 }; Object.freeze(MouseMode);
@@ -134,7 +134,7 @@ project.setMouseMode = function(newMode){
 		case MouseMode.addEdgeToEdge: this.setPossibleCreases( this.cp.availableAxiom3Folds() ); break;
 		case MouseMode.addPleatBetweenEdges: break;
 		case MouseMode.addRabbitEar: break;
-		case MouseMode.addKawasakiFourth: break;
+		case MouseMode.addKawasakiCollapse: break;
 		case MouseMode.addPerpendicular: this.setPossibleCreases( this.cp.availableAxiom4Folds() ); break;
 		case MouseMode.removeCrease: break;
 		case MouseMode.flipCrease: break;
@@ -249,9 +249,9 @@ project.onMouseDown = function(event){
 					.forEach(function(crease){ crease.mountain(); },this);
 			}
 		break;
-		case MouseMode.addKawasakiFourth:
+		case MouseMode.addKawasakiCollapse:
 			if(this.nearest.face){
-				var ray = this.nearest.sector.kawasakiFourth();
+				var ray = this.nearest.sector.kawasakiCollapse();
 				if(ray){
 					ray.creaseAndRepeat()
 						.filter(function(crease){ return crease != undefined; },this)
@@ -392,7 +392,7 @@ project.onMouseMove = function(event){
 			if(this.nearest.sector != undefined){ this.sectors[this.nearest.sector.index].fillColor.alpha = 1.0; }
 			if(mouseMoveCallback != undefined){ mouseMoveCallback(event.point); }
 		break;
-		case MouseMode.addKawasakiFourth:
+		case MouseMode.addKawasakiCollapse:
 			if(this.nearest.node != undefined){ this.nodes[this.nearest.node.index].fillColor.alpha = 1.0; }
 			if(this.nearest.sector != undefined){ this.sectors[this.nearest.sector.index].fillColor.alpha = 1.0; }
 			if(mouseMoveCallback != undefined){ mouseMoveCallback(event.point); }
@@ -489,7 +489,7 @@ function setMouseModeFromActiveSelection(){
 		case "radio-button-edge-to-edge": project.setMouseMode(MouseMode.addEdgeToEdge); break;
 		case "radio-button-pleat-between-edges": project.setMouseMode(MouseMode.addPleatBetweenEdges); break;
 		case "radio-button-rabbit-ear": project.setMouseMode(MouseMode.addRabbitEar); break;
-		case "radio-button-kawasaki": project.setMouseMode(MouseMode.addKawasakiFourth); break;
+		case "radio-button-kawasaki": project.setMouseMode(MouseMode.addKawasakiCollapse); break;
 		case "radio-button-perpendicular": project.setMouseMode(MouseMode.addPerpendicular); break;
 	}
 }
@@ -512,7 +512,7 @@ document.getElementById("radio-input-crease").onchange = function(event){
 		case "radio-button-edge-to-edge": project.setMouseMode(MouseMode.addEdgeToEdge); break;
 		case "radio-button-pleat-between-edges": project.setMouseMode(MouseMode.addPleatBetweenEdges); menus2[2].style.display = "block"; break;
 		case "radio-button-rabbit-ear": project.setMouseMode(MouseMode.addRabbitEar); break;
-		case "radio-button-kawasaki": project.setMouseMode(MouseMode.addKawasakiFourth); break;
+		case "radio-button-kawasaki": project.setMouseMode(MouseMode.addKawasakiCollapse); break;
 		case "radio-button-perpendicular": project.setMouseMode(MouseMode.addPerpendicular); menus2[3].style.display = "block";  break;
 	}
 }

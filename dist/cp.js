@@ -3117,9 +3117,9 @@ var CreaseSector = (function (_super) {
         var ray = new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(bisected), Math.sin(bisected)));
         return new CPRay(this.origin.graph, ray);
     };
-    CreaseSector.prototype.kawasakiFourth = function () {
+    CreaseSector.prototype.kawasakiCollapse = function () {
         var junction = this.origin.junction();
-        if (junction.edges.length != 3) {
+        if (junction.edges.length % 2 == 0) {
             return;
         }
         var foundIndex = undefined;
@@ -3128,8 +3128,8 @@ var CreaseSector = (function (_super) {
                 foundIndex = i;
             }
         }
-        if (foundIndex === undefined) {
-            return undefined;
+        if (foundIndex == undefined) {
+            return;
         }
         var sumEven = 0;
         var sumOdd = 0;
@@ -3146,7 +3146,10 @@ var CreaseSector = (function (_super) {
         var vec0 = this.edges[0].vector(this.origin);
         var angle0 = Math.atan2(vec0.y, vec0.x);
         var newA = angle0 - dEven;
-        return new CPRay(this.origin.graph, new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(newA), Math.sin(newA))));
+        var solution = new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(newA), Math.sin(newA)));
+        if (this.contains(solution.origin.add(solution.direction))) {
+            return new CPRay(this.origin.graph, solution);
+        }
     };
     return CreaseSector;
 }(PlanarSector));
@@ -3193,8 +3196,8 @@ var CreaseJunction = (function (_super) {
         this.sectors.forEach(function (el, i) { alternating[i % 2].sectors.push(el); });
         return alternating;
     };
-    CreaseJunction.prototype.kawasakiFourth = function (sector) {
-        if (this.edges.length != 3) {
+    CreaseJunction.prototype.kawasakiCollapse = function (sector) {
+        if (this.edges.length % 2 == 0) {
             return;
         }
         var foundIndex = undefined;
@@ -3203,7 +3206,7 @@ var CreaseJunction = (function (_super) {
                 foundIndex = i;
             }
         }
-        if (foundIndex === undefined) {
+        if (foundIndex == undefined) {
             return undefined;
         }
         var sumEven = 0;
@@ -3221,7 +3224,10 @@ var CreaseJunction = (function (_super) {
         var vec0 = sector.edges[0].vector(sector.origin);
         var angle0 = Math.atan2(vec0.y, vec0.x);
         var newA = angle0 - dEven;
-        return new XY(Math.cos(newA), Math.sin(newA));
+        var solution = new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(newA), Math.sin(newA)));
+        if (sector.contains(solution.origin.add(solution.direction))) {
+            return new CPRay(this.origin.graph, solution);
+        }
     };
     return CreaseJunction;
 }(PlanarJunction));
@@ -3245,11 +3251,11 @@ var CreaseNode = (function (_super) {
         }
         return this.junction().flatFoldable(epsilon);
     };
-    CreaseNode.prototype.kawasakiFourth = function (a, b) {
+    CreaseNode.prototype.kawasakiCollapse = function (a, b) {
         var junction = this.junction();
         var sector = junction.sectorWithEdges(a, b);
         if (sector !== undefined) {
-            return junction.kawasakiFourth(sector);
+            return junction.kawasakiCollapse(sector);
         }
     };
     return CreaseNode;

@@ -182,18 +182,16 @@ class CreaseSector extends PlanarSector{
 		var ray = new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(bisected), Math.sin(bisected)));
 		return new CPRay(<CreasePattern>this.origin.graph, ray);
 	}
-
 	/** This will search for an angle which if an additional crease is made will satisfy Kawasaki's theorem */
-	kawasakiFourth():CPRay{
+	kawasakiCollapse():CPRay{
 		var junction = this.origin.junction();
-		// todo: allow searches for other number edges
-		if(junction.edges.length != 3){ return; }
+		if(junction.edges.length % 2 == 0){ return; }
 		// find this interior angle among the other interior angles
 		var foundIndex = undefined;
 		for(var i = 0; i < junction.sectors.length; i++){
 			if(this.equivalent(junction.sectors[i])){ foundIndex = i; }
 		}
-		if(foundIndex === undefined){ return undefined; }
+		if(foundIndex == undefined){ return; }
 		var sumEven = 0;
 		var sumOdd = 0;
 		// iterate over sectors not including this one, add them to their sums
@@ -208,8 +206,12 @@ class CreaseSector extends PlanarSector{
 		var angle0 = Math.atan2(vec0.y, vec0.x);
 		// var angle1 = this.edges[1].absoluteAngle(this.origin);
 		var newA = angle0 - dEven;
-		return new CPRay(<CreasePattern>this.origin.graph, new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(newA), Math.sin(newA))));
+		var solution = new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(newA), Math.sin(newA)));
+		if( this.contains( solution.origin.add(solution.direction) ) ){
+			return new CPRay(<CreasePattern>this.origin.graph, solution);
+		}
 	}
+
 }
 class CreaseJunction extends PlanarJunction{
 
@@ -258,11 +260,9 @@ class CreaseJunction extends PlanarJunction{
 		this.sectors.forEach(function(el,i){ alternating[i%2].sectors.push(el); });
 		return alternating;
 	}
-	kawasakiFourth(sector:PlanarSector):XY{
+	kawasakiCollapse(sector:PlanarSector):CPRay{
 		// sector must be one of the Joints in this Junction
-		
-		// todo: allow searches for other number edges
-		if(this.edges.length != 3){ return; }
+		if(this.edges.length % 2 == 0){ return; }
 		// find this interior angle among the other interior angles
 		var foundIndex = undefined;
 		for(var i = 0; i < this.sectors.length; i++){
@@ -282,7 +282,11 @@ class CreaseJunction extends PlanarJunction{
 		var angle0 = Math.atan2(vec0.y, vec0.x);
 		// var angle1 = sector.edges[1].absoluteAngle(sector.origin);
 		var newA = angle0 - dEven;
-		return new XY(Math.cos(newA), Math.sin(newA));
+		var solution = new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(newA), Math.sin(newA)));
+		if( sector.contains( solution.origin.add(solution.direction) ) ){
+			return new CPRay(<CreasePattern>this.origin.graph, solution);
+		}
+		// return new XY(Math.cos(newA), Math.sin(newA));
 	}
 }
 class CreaseNode extends PlanarNode{
@@ -301,11 +305,11 @@ class CreaseNode extends PlanarNode{
 		if(this.isBoundary()){ return true; }
 		return (<CreaseJunction>this.junction()).flatFoldable(epsilon);
 	}
-	kawasakiFourth(a:Crease, b:Crease):XY{
+	kawasakiCollapse(a:Crease, b:Crease):CPRay{
 		var junction = <CreaseJunction>this.junction();
 		var sector = <CreaseSector>junction.sectorWithEdges(a,b);
 		if(sector !== undefined){
-			return junction.kawasakiFourth(sector);
+			return junction.kawasakiCollapse(sector);
 		}
 	}
 	// AXIOM 1
