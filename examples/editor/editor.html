@@ -22,12 +22,12 @@
 	<li class="dropdown">
 		<a href="#" class="">CREASE PATTERN</a>
 		<div class="dropdown-content">
-		<a href="#" id="new-file">NEW</a>
+		<a href="#" id="menu-cp-new">NEW</a>
+		<a href="#" id="new-file">NEW SQUARE</a>
+		<div class="dropdown-separator"></div>
 		<a href="#" id="load-file">OPEN</a>
 		<a href="#" id="download-fold">SAVE .FOLD</a>
 		<a href="#" id="download-svg">SAVE .SVG</a>
-		<div class="dropdown-separator"></div>
-		<a href="#" id="menu-cp-boundary">BOUNDARY</a>
 		</div>
 	</li>
 	<li class="dropdown">
@@ -179,6 +179,34 @@
 		<div class="modal-header"><h4 class="modal-title">FLAT FOLDED</h4></div>
 		<div class="modal-fold-body">
 			<canvas id="canvas-folded"></canvas>
+		</div>
+	</div>
+</div>
+
+
+<div id="modal-new-crease-pattern-window" class="control-panel control-panel-large">
+	<div class="modal-content">
+		<div class="modal-header"><h4 class="modal-title">NEW CREASE PATTERN</h4></div>
+		<div class="modal-body">
+			<form>
+			<div class="form-group">
+				<label for="new-cp-polygon-shape">polygon</label>
+				<select class="form-control" id="new-cp-polygon-shape">
+				<option>square</option>
+				<option>equilateral triangle</option>
+				<option>right triangle</option>
+				<option>2:1 rectangle</option>
+				<option>hexagon</option>
+				<option>pentagon</option>
+				</select>
+			</div>
+			<div class="form-group">
+			<label for="exampleFormControlTextarea1">convex polygon, points:</label>
+			<textarea class="form-control" id="exampleFormControlTextarea1" rows="3" placeholder="[ [x,y], [x,y], [x,y] ]"></textarea>
+			</div>
+			</form>
+			<button type="button" id="new-cp-button-no" class="btn btn-secondary float-right">nevermind</button>
+			<button type="button" id="new-cp-button-yes" class="btn btn-primary float-right">yes</button>
 		</div>
 	</div>
 </div>

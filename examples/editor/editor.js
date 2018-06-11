@@ -442,6 +442,7 @@ project.colorNodesFlatFoldable = function(epsilon){
 $("#modal-what-is-this").draggable({ handle: ".modal-header" });
 $("#modal-fold-window").draggable({ handle: ".modal-header" });
 $("#modal-crease-window").draggable({ handle: ".modal-header" });
+$("#modal-new-crease-pattern-window").draggable({ handle: ".modal-header" });
 
 // IMPORT / EXPORT (called in import-export.js)
 creasePatternDidUpload = function(cp){
@@ -532,7 +533,7 @@ document.getElementById("radio-input-modifier-perpendicular").onchange = functio
 }
 
 document.getElementById("menu-foldability-kawasaki").addEventListener("click", kawasakiHandler);
-document.getElementById("menu-cp-boundary").addEventListener("click", cpBoundaryHandler)
+document.getElementById("menu-cp-new").addEventListener("click", newCreasePatternHandler)
 document.getElementById("menu-folded-save-fold").addEventListener("click", foldedSaveFoldHandler)
 document.getElementById("menu-folded-save-svg").addEventListener("click", foldedSaveSVGHandler)
 document.getElementById("menu-view-zoom").addEventListener("click", viewZoomHandler)
@@ -549,6 +550,9 @@ document.getElementById("download-fold").addEventListener("click", downloadCPFOL
 
 document.getElementById("what-is-this").addEventListener("click", whatIsThisHandler);
 
+document.getElementById("new-cp-button-no").addEventListener("click", newCPButtonNoHandler);
+document.getElementById("new-cp-button-yes").addEventListener("click", newCPButtonYesHandler);
+
 function newFileHandler(e){ e.preventDefault(); project.reset(); }
 function downloadCPSVG(e){ e.preventDefault(); downloadCreasePattern(project.cp, "creasepattern", "svg"); }
 function downloadCPFOLD(e){ e.preventDefault(); downloadCreasePattern(project.cp, "creasepattern", "fold"); }
@@ -559,7 +563,7 @@ function kawasakiHandler(){
 	project.setMouseMode(MouseMode.inspectKawasaki);
 	project.colorNodesFlatFoldable();
 }
-function cpBoundaryHandler(){ }
+function newCreasePatternHandler(){ document.getElementById("modal-new-crease-pattern-window").style.display = "block"; }
 function foldedSaveFoldHandler(){ }
 function foldedSaveSVGHandler(){ }
 function viewZoomHandler(){ }
@@ -569,5 +573,23 @@ function styleThinHandler(){ project.thinLines(); }
 function styleBWHandler(){ project.setBlackAndWhiteColors(); }
 function styleByrneHandler(){ project.setByrneColors(); }
 function styleSolidHandler(){ }
+
+function newCPButtonNoHandler(){ document.getElementById("modal-new-crease-pattern-window").style.display = "none"; }
+function newCPButtonYesHandler(){
+	// if(text field contains text)
+	project.reset();
+	switch(document.getElementById("new-cp-polygon-shape").value){
+		case "square": project.cp.square(); break;
+		case "equilateral triangle": project.cp.setBoundary([[0,0], [1,0], [0.5, -0.866]]); break;
+		case "right triangle": project.cp.setBoundary([[0,0], [1,0], [0.5, -0.5]]); break;
+		case "2:1 rectangle": project.cp.rectangle(2,1); break;
+		case "hexagon": project.cp.hexagon(); break;
+		case "pentagon": break;
+	}
+	project.updateCreasePattern();
+	document.getElementById("modal-new-crease-pattern-window").style.display = "none";
+}
+
+
 
 

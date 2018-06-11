@@ -86,11 +86,20 @@ ul{
 	outline: 0;
 	width: 220px;
 }
+.control-panel-large{
+	width: 380px;
+}
 #modal-what-is-this{
 	top: 40%;
 	left: calc(50% - 109px);
 	display:none;
 }
+#modal-new-crease-pattern-window{
+	top: 25%;
+	left: calc(50% - 190px);
+	display:none;
+}
+
 #modal-fold-window{
 	top: 80px;
 	right: 20px;
@@ -99,6 +108,7 @@ ul{
 	top: 80px;
 	left: 20px;
 }
+#new-cp-button-no, #new-cp-button-yes{ margin:0 4px; }
 /* style bootstrap */
 .btn-outline-light.active, .btn-outline-light:active, .show>.btn-outline-light.dropdown-toggle {
 	color: #FFF;
