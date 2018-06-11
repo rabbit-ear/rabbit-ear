@@ -700,7 +700,9 @@ var Line = (function () {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
-        var v = (line.nodes !== undefined) ? line.nodes[1].subtract(line.nodes[0]) : line.direction;
+        var v = (line.nodes !== undefined)
+            ? new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y)
+            : line.direction;
         return (v !== undefined) ? epsilonEqual(this.direction.cross(v), 0, epsilon) : undefined;
     };
     Line.prototype.collinear = function (point, epsilon) {
@@ -781,7 +783,9 @@ var Ray = (function () {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
-        var v = (line.nodes !== undefined) ? line.nodes[1].subtract(line.nodes[0]) : line.direction;
+        var v = (line.nodes !== undefined)
+            ? new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y)
+            : line.direction;
         if (v === undefined) {
             return undefined;
         }
@@ -922,7 +926,9 @@ var Edge = (function () {
         if (epsilon === undefined) {
             epsilon = EPSILON_HIGH;
         }
-        var v = (line.nodes !== undefined) ? new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y) : line.direction;
+        var v = (line.nodes !== undefined)
+            ? new XY(line.nodes[1].x - line.nodes[0].x, line.nodes[1].y - line.nodes[0].y)
+            : line.direction;
         if (v === undefined) {
             return undefined;
         }

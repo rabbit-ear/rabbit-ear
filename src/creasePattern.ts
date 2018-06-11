@@ -268,7 +268,7 @@ class CreaseJunction extends PlanarJunction{
 		for(var i = 0; i < this.sectors.length; i++){
 			if(sector.equivalent(this.sectors[i])){ foundIndex = i; }
 		}
-		if(foundIndex === undefined){ return undefined; }
+		if(foundIndex == undefined){ return undefined; }
 		var sumEven = 0;
 		var sumOdd = 0;
 		for(var i = 0; i < this.sectors.length-1; i++){

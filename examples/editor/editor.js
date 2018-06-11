@@ -17,19 +17,53 @@ var MouseMode = {
 	"inspectKawasaki":11
 }; Object.freeze(MouseMode);
 
-project.show.nodes = true;
-project.show.faces = true;
-project.show.sectors = true;
-project.style.face.fillColor = Object.assign({alpha:0.0}, project.styles.byrne.red);
-project.style.sector.fillColors = [
-	Object.assign({alpha:0.0}, project.styles.byrne.blue), 
-	Object.assign({alpha:0.0}, project.styles.byrne.blue) ];
-project.style.boundary.strokeColor = {gray:0.0, alpha:0.0};
-project.style.node.fillColor = Object.assign({alpha:0.0}, project.styles.byrne.red);
-project.style.node.radius = 0.015;
-project.style.sector.scale = 0.5;
+project.setEditorStyle = function(){
+	this.style = this.defaultStyleTemplate();
+	this.show.nodes = true;
+	this.show.faces = true;
+	this.show.sectors = true;
+	this.style.face.fillColor = Object.assign({alpha:0.0}, this.styles.byrne.red);
+	this.style.sector.fillColors = [
+		Object.assign({alpha:0.0}, this.styles.byrne.blue), 
+		Object.assign({alpha:0.0}, this.styles.byrne.blue) ];
+	this.style.boundary.strokeColor = {gray:0.0, alpha:0.0};
+	this.style.node.fillColor = Object.assign({alpha:0.0}, this.styles.byrne.red);
+	this.style.node.radius = 0.015;
+	this.style.sector.scale = 0.5;
+}
+project.setEditorStyle();
+
+project.setByrneColors = function(){
+	this.style.backgroundColor = { gray:1.0, alpha:1.0 };
+	this.style.boundary.strokeColor = {gray:0.0};
+	this.style.mountain.strokeColor = this.styles.byrne.red;
+	this.style.valley.strokeColor = { hue:220, saturation:0.6, brightness:0.666 };
+	this.style.border.strokeColor = { gray:0.0, alpha:1.0 };
+	this.style.mark.strokeColor = { gray:0.0, alpha:1.0 };
+	this.style.mountain.dashArray = null;
+	this.style.valley.dashArray = [0.015, 0.02];
+	this.style.border.dashArray = null;
+	this.style.mark.dashArray = null;
+	this.updateStyles();
+}
+
+project.setBlackAndWhiteColors = function(){
+	this.style.backgroundColor = { gray:1.0, alpha:1.0 };
+	this.style.boundary.strokeColor = { gray:0.0, alpha:1.0 };
+	this.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
+	this.style.valley.strokeColor = { gray:0.0, alpha:1.0 };
+	this.style.border.strokeColor = { gray:0.0, alpha:1.0 };
+	this.style.mark.strokeColor = { gray:0.0, alpha:1.0 };
+	this.style.mountain.dashArray = null;
+	this.style.valley.dashArray = [0.015, 0.02];
+	this.style.border.dashArray = null;
+	this.style.mark.dashArray = null;
+	this.updateStyles();
+}
+
 project.ghostMarksLayer = new project.scope.Layer();
 project.ghostMarksLayer.moveBelow(project.edgeLayer);
+project.boundaryLayer.moveBelow(project.edgeLayer);
 //
 project.mouseMode = MouseMode.addSectorBisector;
 // project.stage = new CreasePattern();
@@ -248,7 +282,10 @@ project.onMouseDown = function(event){
 project.onMouseMove = function(event){
 	// what changed from frame to frame. only update complex calculations if necessary
 	var didChange = this.updateNearestToMouse(event.point);
-	this.updateStyles();
+
+	if(this.mouseMode != MouseMode.inspectKawasaki){
+		this.updateStyles();
+	}
 	switch(this.mouseMode){
 		case MouseMode.addSectorBisector:
 			if(this.nearest.node != undefined){ this.nodes[this.nearest.node.index].fillColor.alpha = 1.0; }
@@ -380,14 +417,25 @@ project.style.errorColors = [project.styles.byrne.blue, project.styles.byrne.yel
 
 project.colorNodesFlatFoldable = function(epsilon){
 	if(epsilon == undefined){ epsilon = 0.01; }
-	this.cp.junctions
+	var problems = this.cp.junctions
 		.map(function(j){ return { 'junction':j, 'foldable':j.flatFoldable(epsilon) }; },this)
 		.filter(function(el){return !el.foldable; })
-		.forEach(function(el){
-			el.junction.sectors.forEach(function(sector, i){
-				this.sectors[ sector.index ].fillColor = this.style.errorColors[i%2];
+		.map(function(el){ return el.junction; },this);
+		problems
+			.filter(function(el){ return el.sectors.length % 2 == 1},this)
+			.forEach(function(el){
+				el.sectors.forEach(function(sector, i){
+					this.sectors[ sector.index ].fillColor = this.styles.byrne.red
+				},this);
 			},this);
-		},this);
+		problems
+			.filter(function(el){ return el.sectors.length % 2 == 0},this)
+			.forEach(function(el){
+				var howWrong = el.kawasakiRating() / Math.PI;  // between 0 and 1
+				el.sectors.forEach(function(sector, i){
+					this.sectors[ sector.index ].fillColor = {hue:205 + (90*howWrong * ((i%2)*2-1)), saturation:0.74, brightness:0.61}
+				},this);
+			},this);
 }
 
 // modal stuff
@@ -411,6 +459,9 @@ function collapseToolbar(){
 		if(el.classList && el.classList.contains('active')){ el.classList.remove('active'); }
 	},this);
 	menus1.forEach(function(el){ el.style.display = "none"; },this);
+	document.getElementById("radio-input-crease").childNodes.forEach(function(el){
+		if(el.classList && el.classList.contains('active')){ el.classList.remove('active'); }
+	},this);
 }
 
 var menus1 = [
@@ -426,11 +477,28 @@ var menus2 = [
 menus2.forEach(function(el){ el.style.display = "none"; },this);
 menus2[0].style.display = "block";
 
+function setMouseModeFromActiveSelection(){
+	var activeSelection = Array.prototype.slice.call(document.getElementById("radio-input-crease").childNodes).filter(function(el){ return el.classList && el.classList.contains('active') },this).shift();
+	if(activeSelection == undefined){ return; }
+	var activeInput = Array.prototype.slice.call(activeSelection.childNodes).filter(function(el){return el.tagName == "INPUT";},this).shift();
+	if(activeInput == undefined){ return; }
+	switch(activeInput.id){
+		case "radio-button-bisect-sector": project.setMouseMode(MouseMode.addSectorBisector); break;
+		case "radio-button-between-points": project.setMouseMode(MouseMode.addBetweenPoints); break;
+		case "radio-button-point-to-point": project.setMouseMode(MouseMode.addPointToPoint); break;
+		case "radio-button-edge-to-edge": project.setMouseMode(MouseMode.addEdgeToEdge); break;
+		case "radio-button-pleat-between-edges": project.setMouseMode(MouseMode.addPleatBetweenEdges); break;
+		case "radio-button-rabbit-ear": project.setMouseMode(MouseMode.addRabbitEar); break;
+		case "radio-button-kawasaki": project.setMouseMode(MouseMode.addKawasakiFourth); break;
+		case "radio-button-perpendicular": project.setMouseMode(MouseMode.addPerpendicular); break;
+	}
+}
+
 // DOM HOOKS
 document.getElementById("radio-input-mode").onchange = function(event){
 	menus1.forEach(function(el){ el.style.display = "none"; },this);
 	switch(event.target.id){
-		case "radio-button-add-crease": project.setMouseMode(MouseMode.addSectorBisector); menus1[0].style.display = "block"; break;
+		case "radio-button-add-crease": setMouseModeFromActiveSelection(); menus1[0].style.display = "block"; break;
 		case "radio-button-remove-crease": project.setMouseMode(MouseMode.removeCrease); break;
 		case "radio-button-flip-crease": project.setMouseMode(MouseMode.flipCrease); break;
 	}
@@ -463,7 +531,17 @@ document.getElementById("radio-input-modifier-perpendicular").onchange = functio
 	}
 }
 
-document.getElementById("foldability-kawasaki").addEventListener("click", kawasakiHandler);
+document.getElementById("menu-foldability-kawasaki").addEventListener("click", kawasakiHandler);
+document.getElementById("menu-cp-boundary").addEventListener("click", cpBoundaryHandler)
+document.getElementById("menu-folded-save-fold").addEventListener("click", foldedSaveFoldHandler)
+document.getElementById("menu-folded-save-svg").addEventListener("click", foldedSaveSVGHandler)
+document.getElementById("menu-view-zoom").addEventListener("click", viewZoomHandler)
+document.getElementById("menu-foldability-maekawa").addEventListener("click", foldabilityMaekawaHandler)
+document.getElementById("menu-style-thick").addEventListener("click", styleThickHandler)
+document.getElementById("menu-style-thin").addEventListener("click", styleThinHandler)
+document.getElementById("menu-style-bw").addEventListener("click", styleBWHandler)
+document.getElementById("menu-style-byrne").addEventListener("click", styleByrneHandler)
+document.getElementById("menu-style-solid").addEventListener("click", styleSolidHandler)
 
 document.getElementById("new-file").addEventListener("click", newFileHandler);
 document.getElementById("download-svg").addEventListener("click", downloadCPSVG);
@@ -476,5 +554,20 @@ function downloadCPSVG(e){ e.preventDefault(); downloadCreasePattern(project.cp,
 function downloadCPFOLD(e){ e.preventDefault(); downloadCreasePattern(project.cp, "creasepattern", "fold"); }
 
 function whatIsThisHandler(e){ e.preventDefault(); document.getElementById("modal-what-is-this").style.display = 'block'; }
-function kawasakiHandler(){ collapseToolbar(); project.colorNodesFlatFoldable(); project.mouseMode = MouseMode.inspectKawasaki; }
+function kawasakiHandler(){
+	collapseToolbar();
+	project.setMouseMode(MouseMode.inspectKawasaki);
+	project.colorNodesFlatFoldable();
+}
+function cpBoundaryHandler(){ }
+function foldedSaveFoldHandler(){ }
+function foldedSaveSVGHandler(){ }
+function viewZoomHandler(){ }
+function foldabilityMaekawaHandler(){ }
+function styleThickHandler(){ project.thickLines(); }
+function styleThinHandler(){ project.thinLines(); }
+function styleBWHandler(){ project.setBlackAndWhiteColors(); }
+function styleByrneHandler(){ project.setByrneColors(); }
+function styleSolidHandler(){ }
+
 
