@@ -37,11 +37,9 @@
 		<li class="dropdown">
 			<a href="planarGraph.php" class="dropbtn">II. PLANAR GRAPH</a>
 			<div class="dropdown-content">
-			<a href="planarMath.php">A. MATH</a>
-			<a href="clean.php">B. CLEAN</a>
-			<a href="neighbors.php">C. NEIGHBORS</a>
-			<a href="junction.php">D. JUNCTION</a>
-			<a href="face.php">E. FACE</a>
+			<a href="math.php">A. MATH</a>
+			<a href="epsilon.php">B. EPSILON</a>
+			<a href="space.php">C. SPACE</a>
 			</div>
 		</li>
 		<li class="dropdown">

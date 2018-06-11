@@ -400,7 +400,7 @@ var OrigamiPaper = (function(){
 				strokeWidth: scale*0.01
 			},
 			mark: {
-				strokeColor: { gray:0.0, alpha:1.0 },
+				strokeColor: { gray:0.666, alpha:1.0 },
 				dashArray: undefined,
 				strokeWidth: scale * 0.00333333333,
 				strokeCap : 'round'

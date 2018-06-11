@@ -2,6 +2,8 @@ var radial_rainbow_callback = undefined;
 
 var radialRay = new OrigamiPaper("canvas-radial-rainbow").setPadding(0.05);
 radialRay.show.boundary = false;
+radialRay.style.mark.strokeColor = {gray:0.0};
+radialRay.style.mark.strokeWidth = 0.0025;
 radialRay.centerNode;
 
 radialRay.colorForAngle = function(angle){
@@ -36,10 +38,12 @@ radialRay.onMouseMove = function(event){
 	if(nearestEdge == undefined){ return; }
 	var vec = nearestEdge.vector(this.centerNode);
 	var angle = Math.atan2(vec.y, vec.x);
-	this.edges[ nearestEdge.index ].strokeColor = this.colorForAngle(angle);
-	this.edges[ nearestEdge.index ].strokeWidth = 0.01;//this.lineWeight*1.5;
+	// this.edges[ nearestEdge.index ].strokeColor = this.colorForAngle(angle);
+	this.edges[ nearestEdge.index ].strokeColor = this.styles.byrne.red;
+	this.edges[ nearestEdge.index ].strokeWidth = 0.015;//this.lineWeight*1.5;
 	this.edges[ nearestEdge.index ].bringToFront();
+	var indexIn = this.adjacentEdges.indexOf(nearestEdge);
 	if(radial_rainbow_callback != undefined){
-		radial_rainbow_callback({node:this.centerNode, angle:angle, edge:nearestEdge});
+		radial_rainbow_callback({node:this.centerNode, angle:angle, edge:nearestEdge, index:indexIn});
 	}
 }

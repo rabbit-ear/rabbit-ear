@@ -65,7 +65,7 @@
 <section id="folding">
 <h2>Folding Algorithm</h2>
 	
-	<p>To simulate the folded state, faces are reflected across neighboring crease lines using a <a href="planarMath.php#reflection">reflection matrix</a>.
+	<p>To simulate the folded state, faces are reflected across neighboring crease lines using a <a href="math.php#reflection">reflection matrix</a>.
 
 	<div class="centered">
 		<canvas id="canvas-one-crease" resize></canvas>

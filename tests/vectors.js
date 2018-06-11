@@ -5,6 +5,7 @@ projectVectors.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
 projectVectors.cp.edges = projectVectors.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
 projectVectors.style.selected.node.fillColor = projectVectors.styles.byrne.yellow;
 projectVectors.style.selected.node.radius = 0.04;
+projectVectors.show.boundary = false;
 
 
 projectVectors.validNodes = [];

@@ -262,7 +262,8 @@ project.onMouseDown = function(event){
 		case MouseMode.removeCrease:
 			var nearest = this.cp.nearest(event.point);
 			if(nearest.edge !== undefined){
-				this.cp.removeEdge(nearest.edge);
+				nearest.edge.mark();
+				// this.cp.removeEdge(nearest.edge);
 			}
 		break;
 		case MouseMode.flipCrease:
@@ -271,6 +272,7 @@ project.onMouseDown = function(event){
 				switch(nearest.edge.orientation){
 					case CreaseDirection.mountain: nearest.edge.orientation = CreaseDirection.valley; break;
 					case CreaseDirection.valley:   nearest.edge.orientation = CreaseDirection.mountain; break;
+					case CreaseDirection.mark:     nearest.edge.orientation = CreaseDirection.mountain; break;
 				}
 			}
 		break;
@@ -496,12 +498,12 @@ function setMouseModeFromActiveSelection(){
 }
 
 // DOM HOOKS
-document.getElementById("radio-input-mode").onchange = function(event){
+document.getElementById("radio-input-mode").onchange = function(e){
 	menus1.forEach(function(el){ el.style.display = "none"; },this);
-	switch(event.target.id){
-		case "radio-button-add-crease": setMouseModeFromActiveSelection(); menus1[0].style.display = "block"; break;
-		case "radio-button-remove-crease": project.setMouseMode(MouseMode.removeCrease); break;
-		case "radio-button-flip-crease": project.setMouseMode(MouseMode.flipCrease); break;
+	switch(e.target.id){
+		case "radio-button-add-crease": e.preventDefault(); setMouseModeFromActiveSelection(); menus1[0].style.display = "block"; break;
+		case "radio-button-remove-crease": e.preventDefault(); project.setMouseMode(MouseMode.removeCrease); break;
+		case "radio-button-flip-crease": e.preventDefault(); project.setMouseMode(MouseMode.flipCrease); break;
 	}
 }
 document.getElementById("radio-input-crease").onchange = function(event){

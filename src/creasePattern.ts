@@ -817,8 +817,11 @@ class CreasePattern extends PlanarGraph{
 	////////////////////////////////////////////////////////////////
 
 	// TODO: this should export a FOLD file format as a .json
-	fold(face?:PlanarFace):XY[][]{
+	fold(selectedFace?:PlanarFace):XY[][]{
 		this.flatten();
+		var copyCP = this.copy();
+		copyCP.edges = copyCP.edges.filter(function(edge){ return edge.orientation != CreaseDirection.mark; },this);
+
 		if(face == undefined){
 			var bounds = this.bounds();
 			face = this.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
