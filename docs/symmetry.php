@@ -10,7 +10,7 @@
 	</div>
 
 	<div class="centered">
-		<canvas id="canvas-mirror-book" resize></canvas>
+		<canvas id="canvas-mirror" resize></canvas>
 	</div>
 
 	<div class="centered">
@@ -19,10 +19,6 @@
 
 	<div class="quote">
 		<p>After calling one of these functions, every crease will automatically be creased twice.</p>
-	</div>
-
-	<div class="centered">
-		<canvas id="canvas-mirror" resize></canvas>
 	</div>
 
 	<div class="quote">
@@ -48,7 +44,6 @@
 </section>
 
 <script src="../tests/mirror.js"></script>
-<script src="../tests/mirror-book.js"></script>
 <script src="../tests/reflection.js"></script>
 
 <?php include 'footer.php';?>

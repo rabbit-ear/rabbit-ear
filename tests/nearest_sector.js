@@ -30,9 +30,12 @@ nearSector.onMouseDown = function(event){  this.reset();  }
 nearSector.onMouseUp = function(event){ }
 nearSector.onMouseMove = function(event) {
 	this.updateStyles();
-	var sector = this.cp.nearest(event.point.x, event.point.y).sector;
+	var nearest = this.cp.nearest(event.point.x, event.point.y);
+	var junction = nearest.junction;
+	var sector = nearest.sector;
+	var indexIn = junction.sectors.indexOf(sector);
 	if(sector !== undefined){
 		this.sectors[ sector.index ].style.fillColor = this.styles.byrne.red;
 	}
-	if(nearSectorCallback != undefined){ nearSectorCallback(event.point); }
+	if(nearSectorCallback != undefined){ nearSectorCallback({point:event.point, index:indexIn}); }
 }

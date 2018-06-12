@@ -1,22 +1,22 @@
-var projectVectors = new OrigamiPaper("canvas-vectors", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
+var sectorBisect = new OrigamiPaper("canvas-sector-bisect", new CreasePattern().setBoundary([new XY(-1.0,-1.0),new XY(1.0,-1.0),new XY(1.0,1.0),new XY(-1.0,1.0)]));
 
-projectVectors.style.mountain.strokeWidth = 0.02;
-projectVectors.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
-projectVectors.cp.edges = projectVectors.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
-projectVectors.style.selected.node.fillColor = projectVectors.styles.byrne.yellow;
-projectVectors.style.selected.node.radius = 0.04;
-projectVectors.show.boundary = false;
+sectorBisect.style.mountain.strokeWidth = 0.02;
+sectorBisect.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
+sectorBisect.cp.edges = sectorBisect.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
+sectorBisect.style.selected.node.fillColor = sectorBisect.styles.byrne.yellow;
+sectorBisect.style.selected.node.radius = 0.04;
+sectorBisect.show.boundary = false;
 
 
-projectVectors.validNodes = [];
-projectVectors.draggingNode = undefined;
-projectVectors.arcLayer = new projectVectors.scope.Layer();
-projectVectors.arcLayer.sendToBack();
-projectVectors.backgroundLayer.sendToBack();
-// projectVectors.edgeLayer.bringToFront();
-// projectVectors.mouseDragLayer.bringToFront();
+sectorBisect.validNodes = [];
+sectorBisect.draggingNode = undefined;
+sectorBisect.arcLayer = new sectorBisect.scope.Layer();
+sectorBisect.arcLayer.sendToBack();
+sectorBisect.backgroundLayer.sendToBack();
+// sectorBisect.edgeLayer.bringToFront();
+// sectorBisect.mouseDragLayer.bringToFront();
 
-projectVectors.updateAngles = function(){
+sectorBisect.updateAngles = function(){
 	this.arcLayer.activate();
 	this.arcLayer.removeChildren();
 	var nodes = this.validNodes.map(function(el){return new XY(el.x, el.y);});
@@ -49,7 +49,7 @@ projectVectors.updateAngles = function(){
 	Object.assign(largeArc, {strokeColor:null, fillColor:this.styles.byrne.red});
 }
 
-projectVectors.reset = function(){
+sectorBisect.reset = function(){
 	var creases = [
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain(),
 		this.cp.crease(new XY(0.0, 0.0), new XY(Math.random()*2-1.0, Math.random()*2-1.0)).mountain()
@@ -62,20 +62,20 @@ projectVectors.reset = function(){
 	this.draw();
 	this.updateAngles();
 }
-projectVectors.reset();
+sectorBisect.reset();
 
-projectVectors.onFrame = function(event) { }
-projectVectors.onResize = function(event) { }
-projectVectors.onMouseDown = function(event){
+sectorBisect.onFrame = function(event) { }
+sectorBisect.onResize = function(event) { }
+sectorBisect.onMouseDown = function(event){
 	var nearest = this.cp.nearest(event.point);
 	if(this.validNodes.filter(function(e){return e===nearest.node;},this).length > 0){
 		this.draggingNode = nearest.node;
 	}
 }
-projectVectors.onMouseUp = function(event){
+sectorBisect.onMouseUp = function(event){
 	this.draggingNode = undefined;
 }
-projectVectors.onMouseMove = function(event){
+sectorBisect.onMouseMove = function(event){
 	if(this.draggingNode !== undefined){
 		this.draggingNode.x = event.point.x;
 		this.draggingNode.y = event.point.y;
@@ -83,4 +83,4 @@ projectVectors.onMouseMove = function(event){
 	this.update();
 	this.updateAngles();
 }
-projectVectors.onMouseDidBeginDrag = function(event){ }
+sectorBisect.onMouseDidBeginDrag = function(event){ }

@@ -7,11 +7,11 @@ possible.nextSetLayer = new possible.scope.Layer();
 possible.selectedNextLayer = new possible.scope.Layer();
 	
 possible.refresh = function(){
-	this.nextSet = this.cp.possibleFolds3();
+	this.nextSet = this.cp.availableAxiom3Folds();
 	this.selectedNextLayer.removeChildren();
 	this.selectedNextLayer.activate();
-	for(var i = 0; i < this.nextSet.edges.length; i++){
-		var newPath = new paper.Path({segments: this.nextSet.edges[i].nodes, closed: false });
+	for(var i = 0; i < this.nextSet.length; i++){
+		var newPath = new paper.Path({segments: this.nextSet[i].nodes, closed: false });
 		Object.assign(newPath, this.style.mark);
 		newPath.strokeWidth = 0.001;
 	}	
@@ -43,7 +43,7 @@ possible.onMouseUp = function(event){ }
 possible.onMouseMove = function(event) { 
 	this.nextSetLayer.removeChildren();
 	this.nextSetLayer.activate();
-	if(!this.cp.pointInside(event.point)){ return; }
+	if(!this.cp.boundary.contains(event.point)){ return; }
 	selectedEdge = this.nextSet.nearest(event.point.x, event.point.y).edge;
 	if(selectedEdge != undefined){
 		var newPath = new paper.Path({segments: selectedEdge.edge.nodes, closed: false });

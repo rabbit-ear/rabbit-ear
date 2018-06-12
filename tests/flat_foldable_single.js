@@ -53,7 +53,7 @@ ffSingle.onMouseMove = function(event) {
 
 		if(sector == undefined || sector.edges == undefined) return;
 		if(sector.edges.length == 2){
-			kawasakiSolution = sector.kawasakiFourth();
+			kawasakiSolution = sector.kawasakiCollapse();
 			if(kawasakiSolution){ 
 				this.cp.crease(kawasakiSolution).mountain();
 			}			

@@ -16,7 +16,7 @@
 		<pre><code><key>let</key> planarGraph<key> = new</key> PlanarGraph()</code></pre>
 	</div>
 
-	<p>This is essentially a union of a <a href="math.php">2D geometry library</a> and the <a href="graph.php">Graph</a> class.</p>
+	<p>A planar graph is a union of a <a href="math.php">2D geometry library</a> and the <a href="graph.php">Graph</a> class.</p>
 
 </section>
 
@@ -83,28 +83,28 @@
 		<pre><code>junction.<f>edges</f>[<n><span id="edge-angle-index"></span></n>]  <span id="edge-angle-div"></span></code></pre>
 	</div>
 
-	<p class="quote">Junction components are sorted.</p>
-
-	<p>Junctions themselves are made up of <b>sectors</b>, the number of sectors is equal to the number of edges.</p>
+	<p class="quote">Edges around a junction are sorted.</p>
 
 <h3 id="sector">Sector</h3>
-
-	<p class="quote"><strong>Sector</strong>: two adjacent ordered edges and the space that creates an angle between them.</p>
 
 	<div class="centered">
 		<canvas id="canvas-nearest-sector" resize></canvas>
 	</div>
 
 	<div class="centered">
-		<pre><code><key>let</key> sector <key>=</key> graph.<f>nearest</f>(<n id="sketch-nia-x">x</n>, <n id="sketch-nia-y">y</n>).sector</a></code></pre>
+		<pre><code>junction.<f>sectors</f>[<n id="sketch-nia-index"></n>]</code></pre>
 	</div>
+
+	<p>Junctions are made up of <b>sectors</b>, the number of sectors is equal to the number of edges.</p>
+
+	<div class="centered">
+		<canvas id="canvas-sector" resize></canvas>
+	</div>
+
+	<p class="quote"><strong>Sector</strong>: two adjacent ordered edges and the space that creates an angle between them.</p>
 
 	<p>The angle between two vectors can be the smaller or the larger which is why it's important to order the vectors, and consider the clockwise space between them.</p>
 	
-	<div class="centered">
-		<canvas id="canvas-one-sector" resize></canvas>
-	</div>
-
 </section>
 
 
@@ -121,9 +121,9 @@
 <script type="text/javascript" src="../tests/fragment.js"></script>
 <script type="text/javascript" src="../tests/faces_convex.js"></script>
 <script type="text/javascript" src="../tests/faces_non_convex.js"></script>
-<script type="text/javascript" src="../tests/nearest_sector.js"></script>
 <script type="text/javascript" src="../tests/radial_rainbow.js"></script>
-<script type="text/javascript" src="../tests/one_sector.js"></script>
+<script type="text/javascript" src="../tests/sector.js"></script>
+<script type="text/javascript" src="../tests/nearest_sector.js"></script>
 
 <script>
 // wobble_intersections_callback = function(e){
@@ -135,14 +135,9 @@ fragment_sketch_callback = function(event){
 	}
 }
 fragmentSketch.reset();
-nearSectorCallback = function(point){
-	if(point === undefined){
-		document.getElementById("sketch-nia-x").innerHTML = 'x';
-		document.getElementById("sketch-nia-y").innerHTML = 'y';
-	}
-	else{
-		document.getElementById("sketch-nia-x").innerHTML = (point.x).toFixed(2);
-		document.getElementById("sketch-nia-y").innerHTML = (point.y).toFixed(2);
+nearSectorCallback = function(event){
+	if(event.index != undefined){
+		document.getElementById("sketch-nia-index").innerHTML = event.index;
 	}
 }
 radial_rainbow_callback = function(event){

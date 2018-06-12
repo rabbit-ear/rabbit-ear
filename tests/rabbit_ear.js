@@ -43,8 +43,7 @@ rabbitEarProject.onMouseDown = function(event){
 			break;
 			case this.programModes.kawasaki:
 				if(this.nearest.sector && this.nearest.sector.origin === this.lastRabbitEarNode){ 
-					var dir = this.nearest.sector.kawasakiFourth();
-					this.cp.crease( new Ray(this.nearest.sector.origin, dir) );
+					this.nearest.sector.kawasakiCollapse().crease();
 					this.mode = (this.mode%2)+1;
 				}
 			break;
