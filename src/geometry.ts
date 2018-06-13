@@ -603,7 +603,7 @@ class Polyline{
 	}
 
 	rayReflectRepeat(ray:Ray, intersectable:Edge[], target?:XY):Polyline{
-		const REFLECT_LIMIT = 100;
+		const REFLECT_LIMIT = 666;
 		var clips:{edge:Edge,intersection:Edge}[] = [];
 		var firstClips:{edge:Edge,intersection:Edge}[] = ray.clipWithEdgesDetails(intersectable);
 		// special case: original ray directed toward target
@@ -620,6 +620,10 @@ class Polyline{
 		while(i < REFLECT_LIMIT){
 			// build new ray, reflected across edge
 			var prevClip:{edge:Edge,intersection:Edge} = clips[clips.length-1];
+			if(prevClip.edge.nodes[0].equivalent(prevClip.intersection.nodes[0]) ||
+			   prevClip.edge.nodes[0].equivalent(prevClip.intersection.nodes[1]) ||
+			   prevClip.edge.nodes[1].equivalent(prevClip.intersection.nodes[0]) ||
+			   prevClip.edge.nodes[1].equivalent(prevClip.intersection.nodes[1])){ break; }
 			var n0 = new XY(prevClip.intersection.nodes[0].x, prevClip.intersection.nodes[0].y);
 			var n1 = new XY(prevClip.intersection.nodes[1].x, prevClip.intersection.nodes[1].y);
 			var reflection:Matrix = new Matrix().reflection(n1.subtract(n0), n0);

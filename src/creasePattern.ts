@@ -419,7 +419,7 @@ class CreasePattern extends PlanarGraph{
 
 	// private
 	newCreaseBetweenNodes(a:CreaseNode, b:CreaseNode):Crease{
-		this.dirty = true;
+		this.unclean = true;
 		return <Crease>this.newEdge(a, b);
 	}
 
@@ -817,10 +817,10 @@ class CreasePattern extends PlanarGraph{
 	////////////////////////////////////////////////////////////////
 
 	// TODO: this should export a FOLD file format as a .json
-	fold(selectedFace?:PlanarFace):XY[][]{
+	fold(face?:PlanarFace):XY[][]{
 		this.flatten();
-		var copyCP = this.copy();
-		copyCP.edges = copyCP.edges.filter(function(edge){ return edge.orientation != CreaseDirection.mark; },this);
+		// var copyCP = this.copy();
+		// copyCP.edges = copyCP.edges.filter(function(edge){ return edge.orientation != CreaseDirection.mark; },this);
 
 		if(face == undefined){
 			var bounds = this.bounds();

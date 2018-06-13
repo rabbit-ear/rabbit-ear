@@ -1013,7 +1013,7 @@ var Polyline = (function () {
         return result;
     };
     Polyline.prototype.rayReflectRepeat = function (ray, intersectable, target) {
-        var REFLECT_LIMIT = 100;
+        var REFLECT_LIMIT = 666;
         var clips = [];
         var firstClips = ray.clipWithEdgesDetails(intersectable);
         if (target !== undefined &&
@@ -1028,6 +1028,12 @@ var Polyline = (function () {
         var i = 0;
         while (i < REFLECT_LIMIT) {
             var prevClip = clips[clips.length - 1];
+            if (prevClip.edge.nodes[0].equivalent(prevClip.intersection.nodes[0]) ||
+                prevClip.edge.nodes[0].equivalent(prevClip.intersection.nodes[1]) ||
+                prevClip.edge.nodes[1].equivalent(prevClip.intersection.nodes[0]) ||
+                prevClip.edge.nodes[1].equivalent(prevClip.intersection.nodes[1])) {
+                break;
+            }
             var n0 = new XY(prevClip.intersection.nodes[0].x, prevClip.intersection.nodes[0].y);
             var n1 = new XY(prevClip.intersection.nodes[1].x, prevClip.intersection.nodes[1].y);
             var reflection = new Matrix().reflection(n1.subtract(n0), n0);
@@ -1929,7 +1935,7 @@ var PlanarNode = (function (_super) {
             .map(function (el) { return el.edge; });
     };
     PlanarNode.prototype.adjacentFaces = function () {
-        if (this.graph.dirty) {
+        if (this.graph.unclean) {
             this.graph.flatten();
         }
         return this.graph.faces.filter(function (face) {
@@ -1937,7 +1943,7 @@ var PlanarNode = (function (_super) {
         }, this);
     };
     PlanarNode.prototype.junction = function () {
-        if (this.graph.dirty) {
+        if (this.graph.unclean) {
             this.graph.flatten();
         }
         return this.graph.junctions.slice().filter(function (junction) {
@@ -1945,7 +1951,7 @@ var PlanarNode = (function (_super) {
         }, this).shift();
     };
     PlanarNode.prototype.sectors = function () {
-        if (this.graph.dirty) {
+        if (this.graph.unclean) {
             this.graph.flatten();
         }
         return this.graph.sectors.filter(function (el) { return el.origin === this; }, this);
@@ -2006,7 +2012,7 @@ var PlanarEdge = (function (_super) {
     }
     PlanarEdge.prototype.copy = function () { return new Edge(this.nodes[0].copy(), this.nodes[1].copy()); };
     PlanarEdge.prototype.adjacentFaces = function () {
-        if (this.graph.dirty) {
+        if (this.graph.unclean) {
             this.graph.flatten();
         }
         return this.graph.faces.filter(function (face) {
@@ -2097,7 +2103,7 @@ var PlanarFace = (function (_super) {
         return _this;
     }
     PlanarFace.prototype.sectors = function () {
-        if (this.graph.dirty) { }
+        if (this.graph.unclean) { }
         var options = this.graph.sectors.filter(function (sector) {
             return this.nodes.filter(function (node) { return node === sector.origin; }, this).length > 0;
         }, this);
@@ -2139,7 +2145,7 @@ var PlanarFace = (function (_super) {
         }, this).filter(function (el) { return el !== undefined; });
     };
     PlanarFace.prototype.adjacentFaceArray = function () {
-        if (this.graph.dirty) {
+        if (this.graph.unclean) {
             this.graph.generateFaces();
         }
         else {
@@ -2227,7 +2233,7 @@ var PlanarJunction = (function () {
         return this.edges.map(function (edge) { return edge.otherNode(this.origin); }, this);
     };
     PlanarJunction.prototype.faces = function () {
-        if (this.origin.graph.dirty) {
+        if (this.origin.graph.unclean) {
             this.origin.graph.flatten();
         }
         return this.origin.graph.faces.filter(function (face) {
@@ -2300,33 +2306,33 @@ var PlanarGraph = (function (_super) {
         return report;
     };
     PlanarGraph.prototype.flatten = function (epsilon) {
-        this.dirty = false;
+        this.unclean = false;
         var report = this.clean(epsilon);
         this.generateJunctions();
         this.generateFaces();
         return report;
     };
     PlanarGraph.prototype.newPlanarNode = function (x, y) {
-        this.dirty = true;
+        this.unclean = true;
         return this.newNode().position(x, y);
     };
     PlanarGraph.prototype.newPlanarEdge = function (x1, y1, x2, y2) {
-        this.dirty = true;
+        this.unclean = true;
         var a = this.newNode().position(x1, y1);
         var b = this.newNode().position(x2, y2);
         return this.newEdge(a, b);
     };
     PlanarGraph.prototype.newPlanarEdgeFromNode = function (node, x, y) {
-        this.dirty = true;
+        this.unclean = true;
         var newNode = this.newNode().position(x, y);
         return this.newEdge(node, newNode);
     };
     PlanarGraph.prototype.newPlanarEdgeBetweenNodes = function (a, b) {
-        this.dirty = true;
+        this.unclean = true;
         return this.newEdge(a, b);
     };
     PlanarGraph.prototype.newPlanarEdgeRadiallyFromNode = function (node, angle, length) {
-        this.dirty = true;
+        this.unclean = true;
         var newNode = this.copyNode(node)
             .translate(Math.cos(angle) * length, Math.sin(angle) * length);
         return this.newEdge(node, newNode);
@@ -3324,7 +3330,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.edge = function (a, b, c, d) { return new CPEdge(this, gimme1Edge(a, b, c, d)); };
     CreasePattern.prototype.foldInHalf = function () { return; };
     CreasePattern.prototype.newCreaseBetweenNodes = function (a, b) {
-        this.dirty = true;
+        this.unclean = true;
         return this.newEdge(a, b);
     };
     CreasePattern.prototype.newCrease = function (a_x, a_y, b_x, b_y) {

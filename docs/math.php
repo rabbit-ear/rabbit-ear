@@ -108,7 +108,11 @@
 		<div id="matrix-1"></div>
 	</div>
 
-	<p class="quote">drag the blue circles to move the line of reflection</p>
+	<p class="quote">Any line type (Line, Ray, Edge) can be turned into a reflection matrix.</p>
+
+	<div class="centered">
+		<pre><code><key>let</key> matrix <key>=</key> edge.<v>reflectionMatrix</v>()</code></pre>
+	</div>
 
 </section>
 

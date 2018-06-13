@@ -38,7 +38,7 @@
 
 	<p>Nearly every math function in this library offers an optional argument allowing you to specify a level of precision.</p>
 
-	<p class="explain">For most generative applications an epsilon of 0.00000001 is sufficient for Javascript's 64 bit floats. 0.001 is more reasonable when dealing with imported files created in vector graphics applications with sometimes imprecise input.</p>
+	<p class="explain">For most applications an epsilon of 0.00000001 is sufficient for Javascript's 64 bit floats. 0.001 is more reasonable when importing SVG files made by hand, as points don't always lie on top.<br><br>These calculations relate to a unit-square-sized canvas.</p>
 
 </section>
 

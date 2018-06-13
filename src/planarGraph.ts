@@ -102,19 +102,19 @@ class PlanarNode extends GraphNode implements XY{
 	 * var adjacent = node.adjacentFaces()
 	 */
 	adjacentFaces():PlanarFace[]{
-		if(this.graph.dirty){ this.graph.flatten(); }
+		if(this.graph.unclean){ this.graph.flatten(); }
 		return this.graph.faces.filter(function(face){
 			return face.nodes.filter(function(n){return n === this;},this).length > 0;
 		},this);
 	}
 	junction():PlanarJunction{
-		if(this.graph.dirty){ this.graph.flatten(); }
+		if(this.graph.unclean){ this.graph.flatten(); }
 		return this.graph.junctions.slice().filter(function(junction){
 			return junction.origin === this;
 		},this).shift();
 	}
 	sectors():PlanarSector[]{
-		if(this.graph.dirty){ this.graph.flatten(); }
+		if(this.graph.unclean){ this.graph.flatten(); }
 		return this.graph.sectors.filter(function(el){return el.origin === this;},this);
 	}
 	interiorAngles():number[]{ return this.junction().interiorAngles(); }
@@ -181,7 +181,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 	 * var adjacent = edge.adjacentFace()
 	 */
 	adjacentFaces():PlanarFace[]{
-		if(this.graph.dirty){ this.graph.flatten(); }
+		if(this.graph.unclean){ this.graph.flatten(); }
 		return this.graph.faces.filter(function(face){
 			return face.edges.filter(function(edge){return edge === this;},this).length > 0;
 		},this);
@@ -272,7 +272,7 @@ class PlanarFace extends Polygon{
 		this.angles = [];
 	}
 	sectors():PlanarSector[]{
-		if(this.graph.dirty){ }
+		if(this.graph.unclean){ }
 		var options = this.graph.sectors.filter(function(sector){
 			return this.nodes.filter(function(node){ return node === sector.origin; },this).length > 0;
 		},this);
@@ -337,7 +337,7 @@ class PlanarFace extends Polygon{
 	// 	[CreaseFace]
 	// ]
 	adjacentFaceArray():{"face":PlanarFace, "parent":PlanarFace}[][]{
-		if(this.graph.dirty){ this.graph.generateFaces(); } 
+		if(this.graph.unclean){ this.graph.generateFaces(); } 
 		else{ this.graph.faceArrayDidChange(); }
 		var current = this;
 		var visited:PlanarFace[] = [current];
@@ -441,7 +441,7 @@ class PlanarJunction{
 	 * var faces = junction.faces()
 	 */
 	faces():PlanarFace[]{
-		if(this.origin.graph.dirty){ this.origin.graph.flatten(); }
+		if(this.origin.graph.unclean){ this.origin.graph.flatten(); }
 		return this.origin.graph.faces.filter(function(face){
 			return face.nodes.filter(function(node){return node === this.origin;},this).length > 0;
 		},this);
@@ -505,7 +505,7 @@ class PlanarGraph extends Graph{
 	sectorType = PlanarSector;
 	junctionType = PlanarJunction;
 	// if nodes have been moved, it's possible for edges to overlap. re-require call to flatten()
-	dirty:boolean;
+	unclean:boolean;
 	// not using these yet
 	didChange:(event:object)=>void;
 
@@ -532,7 +532,7 @@ class PlanarGraph extends Graph{
 
 	flatten(epsilon?:number):PlanarClean{
 		// console.time("flatten");
-		this.dirty = false;
+		this.unclean = false;
 		var report = this.clean(epsilon);
 		this.generateJunctions();
 		this.generateFaces();
@@ -548,14 +548,14 @@ class PlanarGraph extends Graph{
 	 * @returns {PlanarNode} pointer to the node
 	 */
 	newPlanarNode(x:number, y:number):PlanarNode{
-		this.dirty = true;
+		this.unclean = true;
 		return (<PlanarNode>this.newNode()).position(x, y);
 	}
 	/** Create two new nodes each with x,y locations and an edge between them
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
 	newPlanarEdge(x1:number, y1:number, x2:number, y2:number):PlanarEdge{
-		this.dirty = true;
+		this.unclean = true;
 		var a = (<PlanarNode>this.newNode()).position(x1, y1);
 		var b = (<PlanarNode>this.newNode()).position(x2, y2);
 		return <PlanarEdge>this.newEdge(a, b);
@@ -564,7 +564,7 @@ class PlanarGraph extends Graph{
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
 	newPlanarEdgeFromNode(node:PlanarNode, x:number, y:number):PlanarEdge{
-		this.dirty = true;
+		this.unclean = true;
 		var newNode = (<PlanarNode>this.newNode()).position(x, y);
 		return <PlanarEdge>this.newEdge(node, newNode);
 	}
@@ -572,14 +572,14 @@ class PlanarGraph extends Graph{
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
 	newPlanarEdgeBetweenNodes(a:PlanarNode, b:PlanarNode):PlanarEdge{
-		this.dirty = true;
+		this.unclean = true;
 		return <PlanarEdge>this.newEdge(a, b);
 	}
 	/** Create one node with an angle and distance away from an existing node and make an edge between them
 	 * @returns {PlanarEdge} pointer to the edge
 	 */
 	newPlanarEdgeRadiallyFromNode(node:PlanarNode, angle:number, length:number):PlanarEdge{
-		this.dirty = true;
+		this.unclean = true;
 		var newNode = (<PlanarNode>this.copyNode(node))
 					   .translate(Math.cos(angle)*length, Math.sin(angle)*length);
 		return <PlanarEdge>this.newEdge(node, newNode);

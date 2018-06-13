@@ -39,7 +39,7 @@
 			<div class="dropdown-content">
 			<a href="math.php">A. MATH</a>
 			<a href="epsilon.php">B. EPSILON</a>
-			<a href="space.php">C. SPACE</a>
+			<a href="space.php">C. 2D SPACE</a>
 			</div>
 		</li>
 		<li class="dropdown">
