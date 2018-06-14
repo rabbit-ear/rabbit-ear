@@ -109,6 +109,8 @@ ul{
 	left: 20px;
 }
 #new-cp-button-no, #new-cp-button-yes{ margin:0 4px; }
+#new-cp-input-polygon-points-div{ display:none; }
+#new-cp-input-polygon-sides{ display:none; }
 /* style bootstrap */
 .btn-outline-light.active, .btn-outline-light:active, .show>.btn-outline-light.dropdown-toggle {
 	color: #FFF;

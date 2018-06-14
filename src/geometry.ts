@@ -44,6 +44,11 @@ function wholeNumberify(num:number, epsilon?:number):number{
 	if(Math.abs(Math.round(num) - num) < epsilon){ num = Math.round(num); }
 	return num;
 }
+function formatFloat(num:number, epsilon?:number):number{
+	var fix = parseFloat((num).toFixed(15));
+	if(num.toString().length - fix.toString().length > 5){ return fix; }
+	return parseFloat((num).toFixed(14));
+}
 /////////////////////////////////////////////////////////////////////////////////
 //                            2D ALGORITHMS
 /////////////////////////////////////////////////////////////////////////////////
@@ -950,11 +955,25 @@ class ConvexPolygon{
 				}
 		}
 	}
-	setEdgesFromPoints(points:XY[]):Edge[]{
-		return points.map(function(el,i){
+	setEdgesFromPoints(points:XY[]):ConvexPolygon{
+		this.edges = points.map(function(el,i){
 			var nextEl = points[ (i+1)%points.length ];
 			return new Edge(el, nextEl);
 		},this);
+		return this;
+	}
+	regularPolygon(sides:number):ConvexPolygon{
+		var halfwedge = 2*Math.PI/sides * 0.5;
+		var radius = Math.cos(halfwedge);
+		var points = [];
+		for(var i = 0; i < sides; i++){
+			var a = 2 * Math.PI * i / sides + halfwedge;
+			var x = formatFloat(radius * Math.sin(a));
+			var y = formatFloat(radius * Math.cos(a));
+			points.push( new XY(x, y) ); // align point along Y
+		}
+		this.setEdgesFromPoints(points);
+		return this;
 	}
 	convexHull(points:XY[]):ConvexPolygon{
 		// validate input
@@ -1001,8 +1020,7 @@ class ConvexPolygon{
 			// if the point is already in the convex hull, we've made a loop. we're done
 			// if(contains(hull, angles[0].node)){
 			if(hull.filter(function(el){return el === angles[0].node; }).length > 0){
-				this.edges = this.setEdgesFromPoints(hull);
-				return this;
+				return this.setEdgesFromPoints(hull);
 			}
 			// add point to hull, prepare to loop again
 			hull.push(angles[0].node);

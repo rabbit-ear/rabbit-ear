@@ -29,6 +29,10 @@ project.onMouseDown = function(event){
 	}
 }
 
+project.onMouseUp = function(event){
+	this.selected = undefined;
+}
+
 project.onMouseMove = function(event){
 	this.redraw();
 }

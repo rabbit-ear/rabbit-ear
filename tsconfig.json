@@ -8,9 +8,9 @@
 		"lib/rbush.min.js"
 	],
 	"files":[
-		"src/graph.ts",
-		"src/geometry.ts",
+		"src/creasePattern.ts",
 		"src/planarGraph.ts",
-		"src/creasePattern.ts"
+		"src/graph.ts",
+		"src/geometry.ts"
 	]
 }

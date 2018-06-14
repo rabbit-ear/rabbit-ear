@@ -1013,33 +1013,22 @@ class CreasePattern extends PlanarGraph{
 		if(p === undefined){ return false; }
 		return this.boundary.contains(p);
 	}
-
 	square(width?:number):CreasePattern{
 		var w = 1.0;
 		// todo: isReal() - check if is real number
 		if(width != undefined && width != 0){ w = Math.abs(width); }
 		return this.setBoundary([[0,0], [w,0], [w,w], [0,w]]);
 	}
-
 	rectangle(width:number, height:number):CreasePattern{
 		if(width === undefined || height === undefined){ return this; }
 		width = Math.abs(width);
 		height = Math.abs(height);
 		return this.setBoundary( [[0,0], [width,0], [width,height], [0,height]] );
 	}
-	hexagon(radius?:number):CreasePattern{
-		if(radius === undefined){ radius = 0.5; }
-		var sqt3_4 = 0.8660254;
-		radius = Math.abs(radius);
-		var points = [[radius*0.5,  radius*sqt3_4],
-		              [radius,      0.0],
-		              [radius*0.5,  -radius*sqt3_4],
-		              [-radius*0.5, -radius*sqt3_4],
-		              [-radius,     0.0],
-		              [-radius*0.5, radius*sqt3_4] ];
-		return this.setBoundary(points);
+	polygon(sides:number):CreasePattern{
+		if(sides < 3){ return this; }
+		return this.setBoundary(new ConvexPolygon().regularPolygon(sides).nodes());
 	}
-
 	noBoundary():CreasePattern{
 		// clear old data
 		this.boundary.edges = [];
@@ -1048,20 +1037,24 @@ class CreasePattern extends PlanarGraph{
 		this.flatten();
 		return this;
 	}
-
 	setBoundary(pointArray:any[], alreadyClockwiseSorted?:boolean):CreasePattern{
 		var points = pointArray.map(function(p){ return gimme1XY(p); },this);
 		// check if the first point is duplicated again at the end of the array
+		console.log("setting boundary with points");
+		console.log(points);
 		if( points[0].equivalent(points[points.length-1]) ){ points.pop(); }
 		// perform convex hull if points are not already sorted clockwise
 		if(alreadyClockwiseSorted !== undefined && alreadyClockwiseSorted === true){
-			this.boundary.edges = this.boundary.setEdgesFromPoints(points);
+			this.boundary.setEdgesFromPoints(points);
 		} else{
 			this.boundary.convexHull(points);
 		}
+		console.log(this.boundary);
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
 		this.cleanAllUselessNodes();
 		this.boundary.edges.forEach(function(el){
+			console.log("creasing boundary edge ");
+			console.log(el);
 			(<Crease>this.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y)).border();
 		},this);
 		this.cleanDuplicateNodes();

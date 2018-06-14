@@ -262,8 +262,12 @@ project.onMouseDown = function(event){
 		case MouseMode.removeCrease:
 			var nearest = this.cp.nearest(event.point);
 			if(nearest.edge !== undefined){
-				nearest.edge.mark();
-				// this.cp.removeEdge(nearest.edge);
+				switch(nearest.edge.orientation){
+					case CreaseDirection.mark: this.cp.removeEdge(nearest.edge); break;
+					case CreaseDirection.mountain: 
+					case CreaseDirection.valley: nearest.edge.mark(); break;
+				}
+				
 			}
 		break;
 		case MouseMode.flipCrease:
@@ -546,7 +550,7 @@ document.getElementById("menu-style-bw").addEventListener("click", styleBWHandle
 document.getElementById("menu-style-byrne").addEventListener("click", styleByrneHandler)
 document.getElementById("menu-style-solid").addEventListener("click", styleSolidHandler)
 
-document.getElementById("new-file").addEventListener("click", newFileHandler);
+document.getElementById("clear-crease-pattern").addEventListener("click", clearCPHandler);
 document.getElementById("download-svg").addEventListener("click", downloadCPSVG);
 document.getElementById("download-fold").addEventListener("click", downloadCPFOLD);
 
@@ -554,8 +558,9 @@ document.getElementById("what-is-this").addEventListener("click", whatIsThisHand
 
 document.getElementById("new-cp-button-no").addEventListener("click", newCPButtonNoHandler);
 document.getElementById("new-cp-button-yes").addEventListener("click", newCPButtonYesHandler);
+document.getElementById("new-cp-polygon-shape").addEventListener("change", newCPPolygonShapeDidChange);
 
-function newFileHandler(e){ e.preventDefault(); project.reset(); }
+function clearCPHandler(e){ e.preventDefault(); project.reset(); }
 function downloadCPSVG(e){ e.preventDefault(); downloadCreasePattern(project.cp, "creasepattern", "svg"); }
 function downloadCPFOLD(e){ e.preventDefault(); downloadCreasePattern(project.cp, "creasepattern", "fold"); }
 
@@ -582,16 +587,28 @@ function newCPButtonYesHandler(){
 	project.reset();
 	switch(document.getElementById("new-cp-polygon-shape").value){
 		case "square": project.cp.square(); break;
-		case "equilateral triangle": project.cp.setBoundary([[0,0], [1,0], [0.5, -0.866]]); break;
-		case "right triangle": project.cp.setBoundary([[0,0], [1,0], [0.5, -0.5]]); break;
-		case "2:1 rectangle": project.cp.rectangle(2,1); break;
-		case "hexagon": project.cp.hexagon(); break;
-		case "pentagon": break;
+		case "rectangle": project.cp.rectangle(2,1); break;
+		case "regular polygon": 
+			var sides = document.getElementById("new-cp-polygon-sides-count").value;
+			if(sides > 2){ project.cp.polygon(sides); }
+		break;
+		// case "right triangle": project.cp.setBoundary([[0,0], [1,0], [0.5, -0.5]]); break;
+		case "convex polygon": break; // read all those points etc..
 	}
 	project.updateCreasePattern();
 	document.getElementById("modal-new-crease-pattern-window").style.display = "none";
 }
 
-
+function newCPPolygonShapeDidChange(e){
+	document.getElementById("new-cp-input-polygon-points-div").style.display = "none";
+	document.getElementById("new-cp-input-polygon-sides").style.display = "none";
+	switch(this.value){
+		case "square": break;
+		case "rectangle": break;
+		case "regular polygon": document.getElementById("new-cp-input-polygon-sides").style.display = "block"; break;
+		// case "right triangle": break;
+		case "convex polygon": document.getElementById("new-cp-input-polygon-points-div").style.display = "block"; break;
+	}
+}
 
 

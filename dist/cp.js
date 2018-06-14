@@ -420,6 +420,13 @@ function wholeNumberify(num, epsilon) {
     }
     return num;
 }
+function formatFloat(num, epsilon) {
+    var fix = parseFloat((num).toFixed(15));
+    if (num.toString().length - fix.toString().length > 5) {
+        return fix;
+    }
+    return parseFloat((num).toFixed(14));
+}
 function clockwiseInteriorAngleRadians(a, b) {
     while (a < 0) {
         a += Math.PI * 2;
@@ -1361,10 +1368,24 @@ var ConvexPolygon = (function () {
         }
     };
     ConvexPolygon.prototype.setEdgesFromPoints = function (points) {
-        return points.map(function (el, i) {
+        this.edges = points.map(function (el, i) {
             var nextEl = points[(i + 1) % points.length];
             return new Edge(el, nextEl);
         }, this);
+        return this;
+    };
+    ConvexPolygon.prototype.regularPolygon = function (sides) {
+        var halfwedge = 2 * Math.PI / sides * 0.5;
+        var radius = Math.cos(halfwedge);
+        var points = [];
+        for (var i = 0; i < sides; i++) {
+            var a = 2 * Math.PI * i / sides + halfwedge;
+            var x = formatFloat(radius * Math.sin(a));
+            var y = formatFloat(radius * Math.cos(a));
+            points.push(new XY(x, y));
+        }
+        this.setEdgesFromPoints(points);
+        return this;
     };
     ConvexPolygon.prototype.convexHull = function (points) {
         if (points === undefined || points.length === 0) {
@@ -1410,8 +1431,7 @@ var ConvexPolygon = (function () {
             })
                 .sort(function (a, b) { return (a.distance < b.distance) ? 1 : (a.distance > b.distance) ? -1 : 0; });
             if (hull.filter(function (el) { return el === angles[0].node; }).length > 0) {
-                this.edges = this.setEdgesFromPoints(hull);
-                return this;
+                return this.setEdgesFromPoints(hull);
             }
             hull.push(angles[0].node);
             ang = Math.atan2(hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
@@ -3853,19 +3873,11 @@ var CreasePattern = (function (_super) {
         height = Math.abs(height);
         return this.setBoundary([[0, 0], [width, 0], [width, height], [0, height]]);
     };
-    CreasePattern.prototype.hexagon = function (radius) {
-        if (radius === undefined) {
-            radius = 0.5;
+    CreasePattern.prototype.polygon = function (sides) {
+        if (sides < 3) {
+            return this;
         }
-        var sqt3_4 = 0.8660254;
-        radius = Math.abs(radius);
-        var points = [[radius * 0.5, radius * sqt3_4],
-            [radius, 0.0],
-            [radius * 0.5, -radius * sqt3_4],
-            [-radius * 0.5, -radius * sqt3_4],
-            [-radius, 0.0],
-            [-radius * 0.5, radius * sqt3_4]];
-        return this.setBoundary(points);
+        return this.setBoundary(new ConvexPolygon().regularPolygon(sides).nodes());
     };
     CreasePattern.prototype.noBoundary = function () {
         this.boundary.edges = [];
@@ -3876,18 +3888,23 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.setBoundary = function (pointArray, alreadyClockwiseSorted) {
         var points = pointArray.map(function (p) { return gimme1XY(p); }, this);
+        console.log("setting boundary with points");
+        console.log(points);
         if (points[0].equivalent(points[points.length - 1])) {
             points.pop();
         }
         if (alreadyClockwiseSorted !== undefined && alreadyClockwiseSorted === true) {
-            this.boundary.edges = this.boundary.setEdgesFromPoints(points);
+            this.boundary.setEdgesFromPoints(points);
         }
         else {
             this.boundary.convexHull(points);
         }
+        console.log(this.boundary);
         this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
         this.cleanAllUselessNodes();
         this.boundary.edges.forEach(function (el) {
+            console.log("creasing boundary edge ");
+            console.log(el);
             this.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
         }, this);
         this.cleanDuplicateNodes();

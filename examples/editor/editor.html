@@ -23,7 +23,7 @@
 		<a href="#" class="">CREASE PATTERN</a>
 		<div class="dropdown-content">
 		<a href="#" id="menu-cp-new">NEW</a>
-		<a href="#" id="new-file">NEW SQUARE</a>
+		<a href="#" id="clear-crease-pattern">CLEAR CREASES</a>
 		<div class="dropdown-separator"></div>
 		<a href="#" id="load-file">OPEN</a>
 		<a href="#" id="download-fold">SAVE .FOLD</a>
@@ -190,20 +190,24 @@
 		<div class="modal-body">
 			<form>
 			<div class="form-group">
-				<label for="new-cp-polygon-shape">polygon</label>
-				<select class="form-control" id="new-cp-polygon-shape">
+ 				<select class="form-control" id="new-cp-polygon-shape">
 				<option>square</option>
-				<option>equilateral triangle</option>
-				<option>right triangle</option>
-				<option>2:1 rectangle</option>
-				<option>hexagon</option>
-				<option>pentagon</option>
+				<option>rectangle</option>
+				<option>regular polygon</option>
+				<option>convex polygon</option>
 				</select>
 			</div>
-			<div class="form-group">
-			<label for="exampleFormControlTextarea1">convex polygon, points:</label>
-			<textarea class="form-control" id="exampleFormControlTextarea1" rows="3" placeholder="[ [x,y], [x,y], [x,y] ]"></textarea>
+			<div id="new-cp-input-polygon-points-div" class="form-group">
+				<label for="new-cp-polygon-points">convex polygon, points:</label>
+				<textarea class="form-control" id="new-cp-polygon-points" rows="3" placeholder="[ [x,y], [x,y], [x,y] ]"></textarea>
 			</div>
+			<div id="new-cp-input-polygon-sides" class="form-group row">
+				<label for="new-cp-polygon-sides-count" class="col-sm-4 col-form-label">sides</label>
+				<div class="col-sm-8">
+					<input type="" class="form-control" id="new-cp-polygon-sides-count" placeholder="#">
+				</div>
+			</div>
+
 			</form>
 			<button type="button" id="new-cp-button-no" class="btn btn-secondary float-right">nevermind</button>
 			<button type="button" id="new-cp-button-yes" class="btn btn-primary float-right">yes</button>
