@@ -177,8 +177,8 @@ class CreaseSector extends PlanarSector{
 		var angles = vectors.map(function(el){ return Math.atan2(el.y, el.x); });
 		while(angles[0] < 0){ angles[0] += Math.PI*2; }
 		while(angles[1] < 0){ angles[1] += Math.PI*2; }
-		var interior = clockwiseInteriorAngleRadians(angles[0], angles[1]);
-		var bisected = angles[0] - interior*0.5;
+		var interior = counterClockwiseInteriorAngleRadians(angles[0], angles[1]);
+		var bisected = angles[0] + interior*0.5;
 		var ray = new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(bisected), Math.sin(bisected)));
 		return new CPRay(<CreasePattern>this.origin.graph, ray);
 	}
@@ -205,7 +205,7 @@ class CreaseSector extends PlanarSector{
 		var vec0 = this.edges[0].vector(this.origin);
 		var angle0 = Math.atan2(vec0.y, vec0.x);
 		// var angle1 = this.edges[1].absoluteAngle(this.origin);
-		var newA = angle0 - dEven;
+		var newA = angle0 + dEven;
 		var solution = new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(newA), Math.sin(newA)));
 		if( this.contains( solution.origin.add(solution.direction) ) ){
 			return new CPRay(<CreasePattern>this.origin.graph, solution);
@@ -220,12 +220,7 @@ class CreaseJunction extends PlanarJunction{
 	sectors:CreaseSector[];
 	edges:Crease[];
 
-	flatFoldable(epsilon?:number):boolean{
-		// todo: this should check (at least)
-		// - kawasaki's theorem
-		// - maekawa's theorem
-		return this.kawasaki(epsilon) && this.maekawa();
-	}
+	flatFoldable(epsilon?:number):boolean{ return this.kawasaki(epsilon) && this.maekawa(); }
 
 	alternateAngleSum():[number,number]{
 		// only computes if number of interior angles are even
@@ -235,7 +230,10 @@ class CreaseJunction extends PlanarJunction{
 		return sums;
 	}
 	maekawa():boolean{
-		return true;
+		if(this.origin.isBoundary()){ return true; }
+		var m = this.edges.filter(function(edge){return edge.orientation===CreaseDirection.mountain;},this).length;
+		var v = this.edges.filter(function(edge){return edge.orientation===CreaseDirection.valley;},this).length;
+		return Math.abs(m-v)==2;
 	}
 	kawasaki(epsilon?:number):boolean{
 		// todo: adjust this epsilon
@@ -815,6 +813,40 @@ class CreasePattern extends PlanarGraph{
 	////////////////////////////////////////////////////////////////
 	///
 	////////////////////////////////////////////////////////////////
+
+	overlapRelationMatrix():boolean[][]{
+		// boolean relationship for entry matrix[A][B] can be read as:
+		//  is face A "on top of" face B?
+		this.flatten();
+		// if(face == undefined){
+		// 	var bounds = this.bounds();
+		// 	face = this.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
+		// }
+		// if(face === undefined){ return; }
+		// var tree = face.adjacentFaceTree();
+		// console.log(tree);
+
+		var matrix = Array.apply(null, Array(this.faces.length)).map(function(e){
+			return Array.apply(null, Array(this.faces.length))
+		},this);
+		var adj = this.faces.map(function(face){return face.edgeAdjacentFaces();},this);
+		adj.forEach(function(adjFaces, i){
+			var face = this.faces[i];
+			adjFaces.filter(function(adjFace){ return matrix[face.index][adjFace.index] == undefined; },this)
+				.forEach(function(adjFace){
+					// only works for convex faces
+					var thisEdge = face.commonEdges(adjFace).shift();
+					switch(thisEdge.orientation){
+						case CreaseDirection.mountain: matrix[face.index][adjFace.index] = true; break;
+						case CreaseDirection.valley: matrix[face.index][adjFace.index] = false; break;
+					}
+				},this);
+		},this);
+
+		console.log(matrix);
+
+		return undefined;
+	}
 
 	// TODO: this should export a FOLD file format as a .json
 	fold(face?:PlanarFace):XY[][]{

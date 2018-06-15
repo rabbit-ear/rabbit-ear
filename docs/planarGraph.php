@@ -76,14 +76,16 @@
 	<p class="quote"><strong>Junction</strong>: the area including one node, its adjacent edges, and the sectors formed between edges.</p>
 
 	<div class="centered">
-		<canvas id="canvas-radial-rainbow" resize></canvas>
+		<canvas id="canvas-edge-winding" resize></canvas>
 	</div>
 
 	<div class="centered">
-		<pre><code>junction.<f>edges</f>[<n><span id="edge-angle-index"></span></n>]  <span id="edge-angle-div"></span></code></pre>
+		<pre><code><key>let</key> a <key>=</key> junction.<f>edges</f>[<n><span id="edge-angle-index"></span></n>]  <span id="edge-angle-div"></span><br><span id="edge-angle-clockwise"></span></code></pre>
 	</div>
 
-	<p class="quote">Edges around a junction are sorted.</p>
+	<p class="quote">All radially-sorted components, like edges around a junction, are sorted counter-clockwise.</p>
+
+	<p class="explain">You might have noticed counter-clockwise appears clockwise. This library subscribes to the cartesian system, and this graphics library (like most) uses an inverted Y axis.</p>
 
 <h3 id="sector">Sector</h3>
 
@@ -121,7 +123,7 @@
 <script type="text/javascript" src="../tests/fragment.js"></script>
 <script type="text/javascript" src="../tests/faces_convex.js"></script>
 <script type="text/javascript" src="../tests/faces_non_convex.js"></script>
-<script type="text/javascript" src="../tests/radial_rainbow.js"></script>
+<script type="text/javascript" src="../tests/edge_winding.js"></script>
 <script type="text/javascript" src="../tests/sector.js"></script>
 <script type="text/javascript" src="../tests/nearest_sector.js"></script>
 
@@ -140,12 +142,15 @@ nearSectorCallback = function(event){
 		document.getElementById("sketch-nia-index").innerHTML = event.index;
 	}
 }
-radial_rainbow_callback = function(event){
+edge_winding_callback = function(event){
 	var angleDegrees = event.angle * 180 / Math.PI;
+	var nextAngleDegrees = event.nextAngle * 180 / Math.PI;
 	// if(angleDegrees < 0) angleDegrees += 360;
 	document.getElementById("edge-angle-index").innerHTML = event.index;
 	document.getElementById("edge-angle-div").innerHTML = 
-		"<c> // " + angleDegrees.toFixed(1) + "°</c>";
+		"<c> // " + angleDegrees.toFixed(1) + "° (red)</c>";
+	// document.getElementById("edge-angle-clockwise").innerHTML = "junction.edges[<n>" + event.nextIndex + "</n>] <key>=</key> junction.<v>clockwiseEdge</v>( a ) <c> // " + nextAngleDegrees.toFixed(1) + "° (black)</c>";
+	document.getElementById("edge-angle-clockwise").innerHTML = "junction.<v>clockwiseEdge</v>( a ) <c> // " + nextAngleDegrees.toFixed(1) + "° (black)</c>";
 }
 </script>
 <script>

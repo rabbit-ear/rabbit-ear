@@ -5,8 +5,12 @@ sectorProject.style.valley.strokeWidth = 0.03;
 sectorProject.style.mountain.strokeColor = sectorProject.styles.byrne.yellow;
 sectorProject.style.valley.dashArray = null;
 sectorProject.style.valley.strokeColor = sectorProject.styles.byrne.blue;
+sectorProject.style.node.radius = 0.03;
+sectorProject.style.node.fillColor = Object.assign({alpha:0.0}, sectorProject.styles.byrne.red);
+sectorProject.show.nodes = true;
 
 sectorProject.edgeLayer.bringToFront();
+sectorProject.nodeLayer.bringToFront();
 sectorProject.show.boundary = false;
 sectorProject.arcLayer = new sectorProject.scope.Layer();
 sectorProject.arcLayer.sendToBack();
@@ -28,6 +32,10 @@ sectorProject.updateSector = function(){
 	smallArc.closed = true;
 	Object.assign(smallArc, this.style.mountain);
 	Object.assign(smallArc, {strokeColor:null, fillColor:this.styles.byrne.red});
+
+	var dot = new this.scope.Path.Circle(mid.normalize().scale(0.9), 0.04);
+	dot.style.fillColor = { gray:0.0, alpha:1.0 };
+
 }
 
 sectorProject.reset = function(){
@@ -52,18 +60,21 @@ sectorProject.reset();
 sectorProject.onFrame = function(event) { }
 sectorProject.onResize = function(event) { }
 sectorProject.onMouseDown = function(event){
-	var nearest = this.cp.nearest(event.point);
-	if(this.validNodes.filter(function(e){return e === nearest.node;},this).length > 0){
-		this.draggingNode = nearest.node;
+	if(this.validNodes.filter(function(e){return e === this.nearestNode;},this).length > 0){
+		this.draggingNode = this.nearestNode;
 	}
 }
 sectorProject.onMouseUp = function(event){ this.draggingNode = undefined; }
 sectorProject.onMouseMove = function(event){
+	this.nearestNode = this.cp.nearest(event.point).node;
 	if(this.draggingNode !== undefined){
 		this.draggingNode.x = event.point.x;
 		this.draggingNode.y = event.point.y;
 	}
 	this.update();
 	this.updateSector();
+	if(this.nearestNode != undefined && this.nearestNode !== this.centerNode){
+		this.nodes[ this.nearestNode.index ].fillColor.alpha = 1.0;
+	}
 }
 sectorProject.onMouseDidBeginDrag = function(event){ }

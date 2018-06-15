@@ -52,7 +52,8 @@ function formatFloat(num:number, epsilon?:number):number{
 /////////////////////////////////////////////////////////////////////////////////
 //                            2D ALGORITHMS
 /////////////////////////////////////////////////////////////////////////////////
-/** There are 2 interior angles between 2 absolute angle measurements, from A to B, return the clockwise one
+/** There are 2 interior angles between 2 absolute angle measurements, from A to B return the clockwise one
+ *  This is in the cartesian coordinate system. example: angle PI/2 is along the +Y axis
  * @param {number} angle in radians
  * @param {number} angle in radians
  * @returns {number} clockwise interior angle (from a to b) in radians
@@ -65,11 +66,32 @@ function clockwiseInteriorAngleRadians(a:number, b:number):number{
 	if(a_b >= 0) return a_b;
 	return Math.PI*2 - (b - a);
 }
-///////////////
+function counterClockwiseInteriorAngleRadians(a:number, b:number):number{
+	// this is on average 50 to 100 times faster than clockwiseInteriorAngle
+	while(a < 0){ a += Math.PI*2; }
+	while(b < 0){ b += Math.PI*2; }
+	var b_a = b - a;
+	if(b_a >= 0) return b_a;
+	return Math.PI*2 - (a - b);
+}
+/** There are 2 interior angles between 2 vectors, from A to B return the clockwise one.
+ *  This is in the cartesian coordinate system. example: angle PI/2 is along the +Y axis
+ * @param {XY} vector
+ * @param {XY} vector
+ * @returns {number} clockwise interior angle (from a to b) in radians
+ */
 function clockwiseInteriorAngle(a:XY, b:XY):number{
 	// this is on average 50 to 100 slower faster than clockwiseInteriorAngleRadians
 	var dotProduct = b.x*a.x + b.y*a.y;
 	var determinant = b.x*a.y - b.y*a.x;
+	var angle = Math.atan2(determinant, dotProduct);
+	if(angle < 0){ angle += Math.PI*2; }
+	return angle;
+}
+function counterClockwiseInteriorAngle(a:XY, b:XY):number{
+	// this is on average 50 to 100 slower faster than clockwiseInteriorAngleRadians
+	var dotProduct = a.x*b.x + a.y*b.y;
+	var determinant = a.x*b.y - a.y*b.x;
 	var angle = Math.atan2(determinant, dotProduct);
 	if(angle < 0){ angle += Math.PI*2; }
 	return angle;
@@ -625,10 +647,10 @@ class Polyline{
 		while(i < REFLECT_LIMIT){
 			// build new ray, reflected across edge
 			var prevClip:{edge:Edge,intersection:Edge} = clips[clips.length-1];
-			if(prevClip.edge.nodes[0].equivalent(prevClip.intersection.nodes[0]) ||
-			   prevClip.edge.nodes[0].equivalent(prevClip.intersection.nodes[1]) ||
-			   prevClip.edge.nodes[1].equivalent(prevClip.intersection.nodes[0]) ||
-			   prevClip.edge.nodes[1].equivalent(prevClip.intersection.nodes[1])){ break; }
+			// if(prevClip.edge.nodes[0].equivalent(prevClip.intersection.nodes[0]) ||
+			//    prevClip.edge.nodes[0].equivalent(prevClip.intersection.nodes[1]) ||
+			//    prevClip.edge.nodes[1].equivalent(prevClip.intersection.nodes[0]) ||
+			//    prevClip.edge.nodes[1].equivalent(prevClip.intersection.nodes[1])){ break; }
 			var n0 = new XY(prevClip.intersection.nodes[0].x, prevClip.intersection.nodes[0].y);
 			var n1 = new XY(prevClip.intersection.nodes[1].x, prevClip.intersection.nodes[1].y);
 			var reflection:Matrix = new Matrix().reflection(n1.subtract(n0), n0);
@@ -1055,7 +1077,7 @@ class Sector{
 	origin:XY;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
 	endPoints:[XY,XY];
-	// angle clockwise from endpoint 0 to 1
+	// angle counter-clockwise from endpoint 0 to 1
 	constructor(origin:XY, endpoints:[XY,XY]){
 		this.origin = origin;
 		this.endPoints = endpoints;
@@ -1068,47 +1090,42 @@ class Sector{
 	/** the interior angle is measured clockwise from endpoint 0 to 1  */
 	angle():number{
 		var vectors = this.vectors();
-		return clockwiseInteriorAngle(vectors[0], vectors[1]);
+		return counterClockwiseInteriorAngle(vectors[0], vectors[1]);
 	}
 	bisect():Ray{
 		var vectors = this.vectors();
 		var angles = vectors.map(function(el){ return Math.atan2(el.y, el.x); });
 		while(angles[0] < 0){ angles[0] += Math.PI*2; }
 		while(angles[1] < 0){ angles[1] += Math.PI*2; }
-		var interior = clockwiseInteriorAngleRadians(angles[0], angles[1]);
-		var bisected = angles[0] - interior*0.5;
+		var interior = counterClockwiseInteriorAngleRadians(angles[0], angles[1]);
+		var bisected = angles[0] + interior*0.5;
 		return new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(bisected), Math.sin(bisected)));
 	}
-	// todo: needs testing
-	subsectAngle(divisions:number):number[]{
-		if(divisions === undefined || divisions < 1){ throw "subsetAngle() invalid argument"; }
+	subsect(divisions:number):Ray[]{
+		if(divisions == undefined || divisions < 2){ throw "subset() requires number parameter > 1"; }
 		var angles = this.vectors().map(function(el){ return Math.atan2(el.y, el.x); });
-		var interiorA = clockwiseInteriorAngleRadians(angles[0], angles[1]);
-		var results:number[] = [];
+		while(angles[0] < 0){ angles[0] += Math.PI*2; }
+		while(angles[1] < 0){ angles[1] += Math.PI*2; }
+		var interior = counterClockwiseInteriorAngleRadians(angles[0], angles[1]);
+		var rays = [];
 		for(var i = 1; i < divisions; i++){
-			results.push( angles[0] - interiorA * (1.0/divisions) * i );
+			var angle = angles[0] + interior * (i/divisions);
+			rays.push(new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(angle), Math.sin(angle))));
 		}
-		return results;
-	}
-	getEdgeVectorsForNewAngle(angle:number, lockedEdge?:Edge):[XY,XY]{
-		// todo, implement locked edge
-		var vectors = this.vectors();
-		var angleChange = angle - clockwiseInteriorAngle(vectors[0], vectors[1]);
-		var rotateNodes = [-angleChange*0.5, angleChange*0.5];
-		return <[XY,XY]>vectors.map(function(el:XY,i){ return el.rotate(rotateNodes[i]); },this);
+		return rays;
 	}
 	equivalent(a:Sector):boolean{
 		return a.origin.equivalent(this.origin) && 
 		       a.endPoints[0].equivalent(this.endPoints[0]) && 
 		       a.endPoints[1].equivalent(this.endPoints[1]);
 	}
-	/** a sector contains a point if it is between the two edges in clockwise order */
+	/** a sector contains a point if it is between the two edges in counter-clockwise order */
 	contains(point:XY):boolean{
 		var cross0 = (point.y - this.endPoints[0].y) * (this.origin.x - this.endPoints[0].x) - 
 		             (point.x - this.endPoints[0].x) * (this.origin.y - this.endPoints[0].y);
 		var cross1 = (point.y - this.origin.y) * (this.endPoints[1].x - this.origin.x) - 
 		             (point.x - this.origin.x) * (this.endPoints[1].y - this.origin.y);
-		return cross0 > 0 && cross1 > 0;
+		return cross0 < 0 && cross1 < 0;
 	}
 	// (private function)
 	sortByClockwise(){}

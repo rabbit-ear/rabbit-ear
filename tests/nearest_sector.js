@@ -36,6 +36,7 @@ nearSector.onMouseMove = function(event) {
 	var indexIn = junction.sectors.indexOf(sector);
 	if(sector !== undefined){
 		this.sectors[ sector.index ].style.fillColor = this.styles.byrne.red;
+		this.sectors[ sector.index ].bringToFront();
 	}
 	if(nearSectorCallback != undefined){ nearSectorCallback({point:event.point, index:indexIn}); }
 }
