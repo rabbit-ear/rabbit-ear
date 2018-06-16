@@ -28,7 +28,7 @@ voronoiObtuse.redraw = function(){
 	var v = new VoronoiGraph(d3Voronoi);
 
 	this.cp.clear();
-	this.cp.creaseVoronoi(v, this.vInterp);
+	creaseVoronoi(this.cp, v, this.vInterp);
 
 	this.draw();
 

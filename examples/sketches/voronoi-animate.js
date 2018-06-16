@@ -34,12 +34,12 @@ voronoiAnim.drawVoronoi = function(complex, showGussets){
 	this.cp.nodes = [];
 	this.cp.edges = [];
 	if(showGussets == false){
-		this.cp.creaseVoronoi(v, interpolation);
+		creaseVoronoi(this.cp, v, interpolation);
 	}
 	else if(complex == false){
-		this.cp.creaseVoronoi(v, interpolation);
+		creaseVoronoi(this.cp, v, interpolation);
 	} else{
-		this.cp.creaseVoronoi(v, interpolation);
+		creaseVoronoi(this.cp, v, interpolation);
 	}
 
 	this.draw();

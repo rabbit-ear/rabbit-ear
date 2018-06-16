@@ -126,7 +126,7 @@ class PlanarNode extends GraphNode implements XY{
 			.map(function(el){ return el.edge });
 	}
 	setPosition(x:number, y:number):PlanarNode{ this.x = x; this.y = y; return this; }
-	// IMPORTANT: these were take from XY implementation, where they return a modified COPY
+	// IMPORTANT: these were taken from XY implementation, where they return a modified COPY
 	// these functions MODIFY IN PLACE the x and the y values
 	transform(matrix:Matrix):PlanarNode{
 		var t = new XY(this.x*matrix.a+this.y*matrix.c+matrix.tx, this.x*matrix.b+this.y*matrix.d+matrix.ty);

@@ -88,12 +88,12 @@ project.drawVoronoi = function(complex, showGussets){
 	this.cp.nodes = [];
 	this.cp.edges = [];
 	if(showGussets == false){
-		this.cp.creaseVoronoi(v, interpolation);
+		creaseVoronoi(this.cp, v, interpolation);
 	}
 	else if(complex == false){
-		this.cp.creaseVoronoi(v, interpolation);
+		creaseVoronoi(this.cp, v, interpolation);
 	} else{
-		this.cp.creaseVoronoi(v, interpolation);
+		creaseVoronoi(this.cp, v, interpolation);
 	}
 	for(var i = 0; i < touchNodes.nodes.length; i++){
 		var position = new XY(touchNodes.nodes[i].x, touchNodes.nodes[i].y);

@@ -9,382 +9,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var GraphClean = (function () {
-    function GraphClean(numNodes, numEdges) {
-        this.nodes = { total: 0, isolated: 0 };
-        this.edges = { total: 0, duplicate: 0, circular: 0 };
-        if (numNodes != undefined) {
-            this.nodes.total = numNodes;
-        }
-        if (numEdges != undefined) {
-            this.edges.total = numEdges;
-        }
-    }
-    GraphClean.prototype.join = function (report) {
-        this.nodes.total += report.nodes.total;
-        this.edges.total += report.edges.total;
-        this.nodes.isolated += report.nodes.isolated;
-        this.edges.duplicate += report.edges.duplicate;
-        this.edges.circular += report.edges.circular;
-        return this;
-    };
-    GraphClean.prototype.isolatedNodes = function (num) { this.nodes.isolated = num; this.nodes.total += num; return this; };
-    GraphClean.prototype.duplicateEdges = function (num) { this.edges.duplicate = num; this.edges.total += num; return this; };
-    GraphClean.prototype.circularEdges = function (num) { this.edges.circular = num; this.edges.total += num; return this; };
-    return GraphClean;
-}());
-var GraphNode = (function () {
-    function GraphNode(graph) {
-        this.cache = {};
-        this.graph = graph;
-    }
-    GraphNode.prototype.adjacentEdges = function () {
-        return this.graph.edges.filter(function (el) {
-            return el.nodes[0] === this || el.nodes[1] === this;
-        }, this);
-    };
-    GraphNode.prototype.adjacentNodes = function () {
-        var checked = [];
-        return this.adjacentEdges()
-            .filter(function (el) { return !el.isCircular(); })
-            .map(function (el) {
-            if (el.nodes[0] === this) {
-                return el.nodes[1];
-            }
-            return el.nodes[0];
-        }, this)
-            .filter(function (el) {
-            return checked.indexOf(el) >= 0 ? false : checked.push(el);
-        }, this);
-    };
-    GraphNode.prototype.isAdjacentToNode = function (node) {
-        return (this.graph.getEdgeConnectingNodes(this, node) !== undefined);
-    };
-    GraphNode.prototype.degree = function () {
-        return this.graph.edges.map(function (el) {
-            var sum = 0;
-            if (el.nodes[0] === this) {
-                sum += 1;
-            }
-            if (el.nodes[1] === this) {
-                sum += 1;
-            }
-            return sum;
-        }, this).reduce(function (a, b) { return a + b; });
-    };
-    return GraphNode;
-}());
-var GraphEdge = (function () {
-    function GraphEdge(graph, node1, node2) {
-        this.graph = graph;
-        this.nodes = [node1, node2];
-    }
-    GraphEdge.prototype.adjacentEdges = function () {
-        return this.graph.edges
-            .filter(function (el) {
-            return el !== this &&
-                (el.nodes[0] === this.nodes[0] ||
-                    el.nodes[0] === this.nodes[1] ||
-                    el.nodes[1] === this.nodes[0] ||
-                    el.nodes[1] === this.nodes[1]);
-        }, this);
-    };
-    GraphEdge.prototype.adjacentNodes = function () {
-        return [this.nodes[0], this.nodes[1]];
-    };
-    GraphEdge.prototype.isAdjacentToEdge = function (edge) {
-        return ((this.nodes[0] === edge.nodes[0]) || (this.nodes[1] === edge.nodes[1]) ||
-            (this.nodes[0] === edge.nodes[1]) || (this.nodes[1] === edge.nodes[0]));
-    };
-    GraphEdge.prototype.isSimilarToEdge = function (edge) {
-        return ((this.nodes[0] === edge.nodes[0] && this.nodes[1] === edge.nodes[1]) ||
-            (this.nodes[0] === edge.nodes[1] && this.nodes[1] === edge.nodes[0]));
-    };
-    GraphEdge.prototype.otherNode = function (node) {
-        if (this.nodes[0] === node) {
-            return this.nodes[1];
-        }
-        if (this.nodes[1] === node) {
-            return this.nodes[0];
-        }
-        return undefined;
-    };
-    GraphEdge.prototype.isCircular = function () { return this.nodes[0] === this.nodes[1]; };
-    GraphEdge.prototype.duplicateEdges = function () {
-        return this.graph.edges.filter(function (el) {
-            return this.isSimilarToEdge(el);
-        }, this);
-    };
-    GraphEdge.prototype.commonNodeWithEdge = function (otherEdge) {
-        if (this === otherEdge)
-            return undefined;
-        if (this.nodes[0] === otherEdge.nodes[0] || this.nodes[0] === otherEdge.nodes[1])
-            return this.nodes[0];
-        if (this.nodes[1] === otherEdge.nodes[0] || this.nodes[1] === otherEdge.nodes[1])
-            return this.nodes[1];
-        return undefined;
-    };
-    GraphEdge.prototype.uncommonNodeWithEdge = function (otherEdge) {
-        if (this === otherEdge)
-            return undefined;
-        if (this.nodes[0] === otherEdge.nodes[0] || this.nodes[0] === otherEdge.nodes[1])
-            return this.nodes[1];
-        if (this.nodes[1] === otherEdge.nodes[0] || this.nodes[1] === otherEdge.nodes[1])
-            return this.nodes[0];
-        return undefined;
-    };
-    return GraphEdge;
-}());
-var Graph = (function () {
-    function Graph() {
-        this.nodeType = GraphNode;
-        this.edgeType = GraphEdge;
-        this.clear();
-    }
-    Graph.prototype.newNode = function () {
-        return this.addNode(new this.nodeType(this));
-    };
-    Graph.prototype.newEdge = function (node1, node2) {
-        return this.addEdge(new this.edgeType(this, node1, node2));
-    };
-    Graph.prototype.addNode = function (node) {
-        if (node == undefined) {
-            throw "addNode() requires an argument: 1 GraphNode";
-        }
-        node.graph = this;
-        node.index = this.nodes.length;
-        this.nodes.push(node);
-        return node;
-    };
-    Graph.prototype.addEdge = function (edge) {
-        if (edge.nodes[0] === undefined ||
-            edge.nodes[1] === undefined ||
-            edge.nodes[0].graph !== this ||
-            edge.nodes[1].graph !== this) {
-            return undefined;
-        }
-        edge.graph = this;
-        edge.index = this.edges.length;
-        this.edges.push(edge);
-        return edge;
-    };
-    Graph.prototype.addNodes = function (nodes) {
-        if (nodes === undefined || nodes.length <= 0) {
-            throw "addNodes() must contain array of GraphNodes";
-        }
-        var len = this.nodes.length;
-        var checkedNodes = nodes.filter(function (el) { return (el instanceof GraphNode); });
-        this.nodes = this.nodes.concat(checkedNodes);
-        for (var i = len; i < this.nodes.length; i++) {
-            this.nodes[i].graph = this;
-            this.nodes[i].index = i;
-        }
-        return this.nodes.length - len;
-    };
-    Graph.prototype.addEdges = function (edges) {
-        if (edges == undefined || edges.length <= 0) {
-            throw "addEdges() must contain array of GraphEdges";
-        }
-        var len = this.edges.length;
-        var checkedEdges = edges.filter(function (el) { return (el instanceof GraphEdge); });
-        this.edges = this.edges.concat(checkedEdges);
-        for (var i = len; i < this.edges.length; i++) {
-            this.edges[i].graph = this;
-        }
-        this.cleanGraph();
-        return this.edges.length - len;
-    };
-    Graph.prototype.copyNode = function (node) {
-        return Object.assign(this.newNode(), node);
-    };
-    Graph.prototype.copyEdge = function (edge) {
-        return Object.assign(this.newEdge(edge.nodes[0], edge.nodes[1]), edge);
-    };
-    Graph.prototype.clear = function () {
-        this.nodes = [];
-        this.edges = [];
-        return this;
-    };
-    Graph.prototype.removeEdge = function (edge) {
-        var edgesLength = this.edges.length;
-        this.edges = this.edges.filter(function (el) { return el !== edge; });
-        this.edgeArrayDidChange();
-        return new GraphClean(undefined, edgesLength - this.edges.length);
-    };
-    Graph.prototype.removeEdgeBetween = function (node1, node2) {
-        var edgesLength = this.edges.length;
-        this.edges = this.edges.filter(function (el) {
-            return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
-                (el.nodes[0] === node2 && el.nodes[1] === node1));
-        });
-        this.edgeArrayDidChange();
-        return new GraphClean(undefined, edgesLength - this.edges.length);
-    };
-    Graph.prototype.removeNode = function (node) {
-        var nodesLength = this.nodes.length;
-        var edgesLength = this.edges.length;
-        this.nodes = this.nodes.filter(function (el) { return el !== node; });
-        this.edges = this.edges.filter(function (el) { return el.nodes[0] !== node && el.nodes[1] !== node; });
-        if (this.edges.length != edgesLength) {
-            this.edgeArrayDidChange();
-        }
-        if (this.nodes.length != nodesLength) {
-            this.nodeArrayDidChange();
-        }
-        return new GraphClean(nodesLength - this.nodes.length, edgesLength - this.edges.length);
-    };
-    Graph.prototype.mergeNodes = function (node1, node2) {
-        if (node1 === node2) {
-            return undefined;
-        }
-        this.edges.forEach(function (edge) {
-            if (edge.nodes[0] === node2) {
-                edge.nodes[0] = node1;
-            }
-            if (edge.nodes[1] === node2) {
-                edge.nodes[1] = node1;
-            }
-        }, this);
-        var nodesLength = this.nodes.length;
-        this.nodes = this.nodes.filter(function (el) { return el !== node2; });
-        return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
-    };
-    Graph.prototype.removeIsolatedNodes = function () {
-        this.nodeArrayDidChange();
-        var nodeDegree = [];
-        for (var i = 0; i < this.nodes.length; i++) {
-            nodeDegree[i] = false;
-        }
-        for (var i = 0; i < this.edges.length; i++) {
-            nodeDegree[this.edges[i].nodes[0].index] = true;
-            nodeDegree[this.edges[i].nodes[1].index] = true;
-        }
-        var nodeLength = this.nodes.length;
-        this.nodes = this.nodes.filter(function (el, i) { return nodeDegree[i]; });
-        var isolatedCount = nodeLength - this.nodes.length;
-        if (isolatedCount > 0) {
-            this.nodeArrayDidChange();
-        }
-        return new GraphClean().isolatedNodes(isolatedCount);
-    };
-    Graph.prototype.cleanCircularEdges = function () {
-        var edgesLength = this.edges.length;
-        this.edges = this.edges.filter(function (el) { return el.nodes[0] !== el.nodes[1]; });
-        if (this.edges.length != edgesLength) {
-            this.edgeArrayDidChange();
-        }
-        return new GraphClean().circularEdges(edgesLength - this.edges.length);
-    };
-    Graph.prototype.cleanDuplicateEdges = function () {
-        var count = 0;
-        for (var i = 0; i < this.edges.length - 1; i++) {
-            for (var j = this.edges.length - 1; j > i; j--) {
-                if (this.edges[i].isSimilarToEdge(this.edges[j])) {
-                    this.edges.splice(j, 1);
-                    count += 1;
-                }
-            }
-        }
-        if (count > 0) {
-            this.edgeArrayDidChange();
-        }
-        return new GraphClean().duplicateEdges(count);
-    };
-    Graph.prototype.cleanGraph = function () {
-        this.edgeArrayDidChange();
-        this.nodeArrayDidChange();
-        return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
-    };
-    Graph.prototype.clean = function () {
-        return this.cleanGraph();
-    };
-    Graph.prototype.getEdgeConnectingNodes = function (node1, node2) {
-        for (var i = 0; i < this.edges.length; i++) {
-            if ((this.edges[i].nodes[0] === node1 && this.edges[i].nodes[1] === node2) ||
-                (this.edges[i].nodes[0] === node2 && this.edges[i].nodes[1] === node1)) {
-                return this.edges[i];
-            }
-        }
-        return undefined;
-    };
-    Graph.prototype.getEdgesConnectingNodes = function (node1, node2) {
-        return this.edges.filter(function (el) {
-            return (el.nodes[0] === node1 && el.nodes[1] === node2) ||
-                (el.nodes[0] === node2 && el.nodes[1] === node1);
-        });
-    };
-    Graph.prototype.copy = function () {
-        this.nodeArrayDidChange();
-        this.edgeArrayDidChange();
-        var g = new Graph();
-        for (var i = 0; i < this.nodes.length; i++) {
-            var n = g.addNode(new GraphNode(g));
-            Object.assign(n, this.nodes[i]);
-            n.graph = g;
-            n.index = i;
-        }
-        for (var i = 0; i < this.edges.length; i++) {
-            var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
-            var e = g.addEdge(new GraphEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
-            Object.assign(e, this.edges[i]);
-            e.graph = g;
-            e.index = i;
-            e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
-        }
-        return g;
-    };
-    Graph.prototype.connectedGraphs = function () {
-        var cp = this.copy();
-        cp.clean();
-        cp.removeIsolatedNodes();
-        cp.nodes.forEach(function (node) { node.cache['adj'] = node.adjacentEdges().length; }, this);
-        var graphs = [];
-        while (cp.edges.length > 0) {
-            var graph = new Graph();
-            cp.nodes.forEach(function (node) { graph.addNode(Object.assign(new cp.nodeType(graph), node)); }, this);
-            var node = cp.nodes.slice().sort(function (a, b) { return b.cache['adj'] - a.cache['adj']; })[0];
-            var adj = node.adjacentEdges();
-            while (adj.length > 0) {
-                var smartList = adj.filter(function (el) { return el.otherNode(node).cache['adj'] % 2 == 0; }, this);
-                if (smartList.length == 0) {
-                    smartList = adj;
-                }
-                var nextEdge = smartList.sort(function (a, b) { return b.otherNode(node).cache['adj'] - a.otherNode(node).cache['adj']; })[0];
-                var nextNode = nextEdge.otherNode(node);
-                var newEdge = Object.assign(new cp.edgeType(graph, undefined, undefined), nextEdge);
-                newEdge.nodes = [graph.nodes[node.index], graph.nodes[nextNode.index]];
-                graph.addEdge(newEdge);
-                node.cache['adj'] -= 1;
-                nextNode.cache['adj'] -= 1;
-                cp.edges = cp.edges.filter(function (el) { return el !== nextEdge; });
-                node = nextNode;
-                adj = node.adjacentEdges();
-            }
-            graph.removeIsolatedNodes();
-            graphs.push(graph);
-        }
-        return graphs;
-    };
-    Graph.prototype.nodeArrayDidChange = function () { for (var i = 0; i < this.nodes.length; i++) {
-        this.nodes[i].index = i;
-    } };
-    Graph.prototype.edgeArrayDidChange = function () { for (var i = 0; i < this.edges.length; i++) {
-        this.edges[i].index = i;
-    } };
-    return Graph;
-}());
-var Multigraph = (function (_super) {
-    __extends(Multigraph, _super);
-    function Multigraph() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    Multigraph.prototype.cleanGraph = function () {
-        this.edgeArrayDidChange();
-        this.nodeArrayDidChange();
-        return new GraphClean();
-    };
-    return Multigraph;
-}(Graph));
 var EPSILON_LOW = 0.003;
 var EPSILON = 0.00001;
 var EPSILON_HIGH = 0.00000001;
@@ -1890,6 +1514,416 @@ var VoronoiGraph = (function () {
     };
     return VoronoiGraph;
 }());
+function creaseVoronoi(cp, v, interp) {
+    if (interp === undefined) {
+        interp = 0.5;
+    }
+    var edges = v.edges.filter(function (el) { return !el.isBoundary; });
+    var cells = v.cells.map(function (cell) {
+        return cell.edges.map(function (edge) {
+            return edge.endPoints.map(function (el) {
+                return cell.site.lerp(el, interp);
+            });
+        }, this);
+    }, this);
+    var sortedMolecules = v.generateSortedMolecules(interp);
+    sortedMolecules.forEach(function (arr) {
+        arr.forEach(function (m) {
+            var edges = m.generateCreases();
+            edges.forEach(function (el) {
+                cp.crease(el.nodes[0], el.nodes[1]);
+            }, this);
+        }, this);
+    }, this);
+    edges.forEach(function (edge) {
+        var c = cp.crease(edge.endPoints[0], edge.endPoints[1]);
+        if (c !== undefined) {
+            c.valley();
+        }
+    }, this);
+    cells.forEach(function (cell) {
+        cell.forEach(function (edge) {
+            cp.crease(edge[0], edge[1]).mountain();
+        }, this);
+    }, this);
+    return sortedMolecules.reduce(function (prev, current) { return prev.concat(current); });
+}
+var GraphClean = (function () {
+    function GraphClean(numNodes, numEdges) {
+        this.nodes = { total: 0, isolated: 0 };
+        this.edges = { total: 0, duplicate: 0, circular: 0 };
+        if (numNodes != undefined) {
+            this.nodes.total = numNodes;
+        }
+        if (numEdges != undefined) {
+            this.edges.total = numEdges;
+        }
+    }
+    GraphClean.prototype.join = function (report) {
+        this.nodes.total += report.nodes.total;
+        this.edges.total += report.edges.total;
+        this.nodes.isolated += report.nodes.isolated;
+        this.edges.duplicate += report.edges.duplicate;
+        this.edges.circular += report.edges.circular;
+        return this;
+    };
+    GraphClean.prototype.isolatedNodes = function (num) { this.nodes.isolated = num; this.nodes.total += num; return this; };
+    GraphClean.prototype.duplicateEdges = function (num) { this.edges.duplicate = num; this.edges.total += num; return this; };
+    GraphClean.prototype.circularEdges = function (num) { this.edges.circular = num; this.edges.total += num; return this; };
+    return GraphClean;
+}());
+var GraphNode = (function () {
+    function GraphNode(graph) {
+        this.cache = {};
+        this.graph = graph;
+    }
+    GraphNode.prototype.adjacentEdges = function () {
+        return this.graph.edges.filter(function (el) {
+            return el.nodes[0] === this || el.nodes[1] === this;
+        }, this);
+    };
+    GraphNode.prototype.adjacentNodes = function () {
+        var checked = [];
+        return this.adjacentEdges()
+            .filter(function (el) { return !el.isCircular(); })
+            .map(function (el) {
+            if (el.nodes[0] === this) {
+                return el.nodes[1];
+            }
+            return el.nodes[0];
+        }, this)
+            .filter(function (el) {
+            return checked.indexOf(el) >= 0 ? false : checked.push(el);
+        }, this);
+    };
+    GraphNode.prototype.isAdjacentToNode = function (node) {
+        return (this.graph.getEdgeConnectingNodes(this, node) !== undefined);
+    };
+    GraphNode.prototype.degree = function () {
+        return this.graph.edges.map(function (el) {
+            var sum = 0;
+            if (el.nodes[0] === this) {
+                sum += 1;
+            }
+            if (el.nodes[1] === this) {
+                sum += 1;
+            }
+            return sum;
+        }, this).reduce(function (a, b) { return a + b; });
+    };
+    return GraphNode;
+}());
+var GraphEdge = (function () {
+    function GraphEdge(graph, node1, node2) {
+        this.graph = graph;
+        this.nodes = [node1, node2];
+    }
+    GraphEdge.prototype.adjacentEdges = function () {
+        return this.graph.edges
+            .filter(function (el) {
+            return el !== this &&
+                (el.nodes[0] === this.nodes[0] ||
+                    el.nodes[0] === this.nodes[1] ||
+                    el.nodes[1] === this.nodes[0] ||
+                    el.nodes[1] === this.nodes[1]);
+        }, this);
+    };
+    GraphEdge.prototype.adjacentNodes = function () {
+        return [this.nodes[0], this.nodes[1]];
+    };
+    GraphEdge.prototype.isAdjacentToEdge = function (edge) {
+        return ((this.nodes[0] === edge.nodes[0]) || (this.nodes[1] === edge.nodes[1]) ||
+            (this.nodes[0] === edge.nodes[1]) || (this.nodes[1] === edge.nodes[0]));
+    };
+    GraphEdge.prototype.isSimilarToEdge = function (edge) {
+        return ((this.nodes[0] === edge.nodes[0] && this.nodes[1] === edge.nodes[1]) ||
+            (this.nodes[0] === edge.nodes[1] && this.nodes[1] === edge.nodes[0]));
+    };
+    GraphEdge.prototype.otherNode = function (node) {
+        if (this.nodes[0] === node) {
+            return this.nodes[1];
+        }
+        if (this.nodes[1] === node) {
+            return this.nodes[0];
+        }
+        return undefined;
+    };
+    GraphEdge.prototype.isCircular = function () { return this.nodes[0] === this.nodes[1]; };
+    GraphEdge.prototype.duplicateEdges = function () {
+        return this.graph.edges.filter(function (el) {
+            return this.isSimilarToEdge(el);
+        }, this);
+    };
+    GraphEdge.prototype.commonNodeWithEdge = function (otherEdge) {
+        if (this === otherEdge)
+            return undefined;
+        if (this.nodes[0] === otherEdge.nodes[0] || this.nodes[0] === otherEdge.nodes[1])
+            return this.nodes[0];
+        if (this.nodes[1] === otherEdge.nodes[0] || this.nodes[1] === otherEdge.nodes[1])
+            return this.nodes[1];
+        return undefined;
+    };
+    GraphEdge.prototype.uncommonNodeWithEdge = function (otherEdge) {
+        if (this === otherEdge)
+            return undefined;
+        if (this.nodes[0] === otherEdge.nodes[0] || this.nodes[0] === otherEdge.nodes[1])
+            return this.nodes[1];
+        if (this.nodes[1] === otherEdge.nodes[0] || this.nodes[1] === otherEdge.nodes[1])
+            return this.nodes[0];
+        return undefined;
+    };
+    return GraphEdge;
+}());
+var Graph = (function () {
+    function Graph() {
+        this.nodeType = GraphNode;
+        this.edgeType = GraphEdge;
+        this.clear();
+    }
+    Graph.prototype.newNode = function () {
+        return this.addNode(new this.nodeType(this));
+    };
+    Graph.prototype.newEdge = function (node1, node2) {
+        return this.addEdge(new this.edgeType(this, node1, node2));
+    };
+    Graph.prototype.addNode = function (node) {
+        if (node == undefined) {
+            throw "addNode() requires an argument: 1 GraphNode";
+        }
+        node.graph = this;
+        node.index = this.nodes.length;
+        this.nodes.push(node);
+        return node;
+    };
+    Graph.prototype.addEdge = function (edge) {
+        if (edge.nodes[0] === undefined ||
+            edge.nodes[1] === undefined ||
+            edge.nodes[0].graph !== this ||
+            edge.nodes[1].graph !== this) {
+            return undefined;
+        }
+        edge.graph = this;
+        edge.index = this.edges.length;
+        this.edges.push(edge);
+        return edge;
+    };
+    Graph.prototype.addNodes = function (nodes) {
+        if (nodes === undefined || nodes.length <= 0) {
+            throw "addNodes() must contain array of GraphNodes";
+        }
+        var len = this.nodes.length;
+        var checkedNodes = nodes.filter(function (el) { return (el instanceof GraphNode); });
+        this.nodes = this.nodes.concat(checkedNodes);
+        for (var i = len; i < this.nodes.length; i++) {
+            this.nodes[i].graph = this;
+            this.nodes[i].index = i;
+        }
+        return this.nodes.length - len;
+    };
+    Graph.prototype.addEdges = function (edges) {
+        if (edges == undefined || edges.length <= 0) {
+            throw "addEdges() must contain array of GraphEdges";
+        }
+        var len = this.edges.length;
+        var checkedEdges = edges.filter(function (el) { return (el instanceof GraphEdge); });
+        this.edges = this.edges.concat(checkedEdges);
+        for (var i = len; i < this.edges.length; i++) {
+            this.edges[i].graph = this;
+        }
+        this.cleanGraph();
+        return this.edges.length - len;
+    };
+    Graph.prototype.copyNode = function (node) {
+        return Object.assign(this.newNode(), node);
+    };
+    Graph.prototype.copyEdge = function (edge) {
+        return Object.assign(this.newEdge(edge.nodes[0], edge.nodes[1]), edge);
+    };
+    Graph.prototype.clear = function () {
+        this.nodes = [];
+        this.edges = [];
+        return this;
+    };
+    Graph.prototype.removeEdge = function (edge) {
+        var edgesLength = this.edges.length;
+        this.edges = this.edges.filter(function (el) { return el !== edge; });
+        this.edgeArrayDidChange();
+        return new GraphClean(undefined, edgesLength - this.edges.length);
+    };
+    Graph.prototype.removeEdgeBetween = function (node1, node2) {
+        var edgesLength = this.edges.length;
+        this.edges = this.edges.filter(function (el) {
+            return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
+                (el.nodes[0] === node2 && el.nodes[1] === node1));
+        });
+        this.edgeArrayDidChange();
+        return new GraphClean(undefined, edgesLength - this.edges.length);
+    };
+    Graph.prototype.removeNode = function (node) {
+        var nodesLength = this.nodes.length;
+        var edgesLength = this.edges.length;
+        this.nodes = this.nodes.filter(function (el) { return el !== node; });
+        this.edges = this.edges.filter(function (el) { return el.nodes[0] !== node && el.nodes[1] !== node; });
+        if (this.edges.length != edgesLength) {
+            this.edgeArrayDidChange();
+        }
+        if (this.nodes.length != nodesLength) {
+            this.nodeArrayDidChange();
+        }
+        return new GraphClean(nodesLength - this.nodes.length, edgesLength - this.edges.length);
+    };
+    Graph.prototype.mergeNodes = function (node1, node2) {
+        if (node1 === node2) {
+            return undefined;
+        }
+        this.edges.forEach(function (edge) {
+            if (edge.nodes[0] === node2) {
+                edge.nodes[0] = node1;
+            }
+            if (edge.nodes[1] === node2) {
+                edge.nodes[1] = node1;
+            }
+        }, this);
+        var nodesLength = this.nodes.length;
+        this.nodes = this.nodes.filter(function (el) { return el !== node2; });
+        return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
+    };
+    Graph.prototype.removeIsolatedNodes = function () {
+        this.nodeArrayDidChange();
+        var nodeDegree = [];
+        for (var i = 0; i < this.nodes.length; i++) {
+            nodeDegree[i] = false;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            nodeDegree[this.edges[i].nodes[0].index] = true;
+            nodeDegree[this.edges[i].nodes[1].index] = true;
+        }
+        var nodeLength = this.nodes.length;
+        this.nodes = this.nodes.filter(function (el, i) { return nodeDegree[i]; });
+        var isolatedCount = nodeLength - this.nodes.length;
+        if (isolatedCount > 0) {
+            this.nodeArrayDidChange();
+        }
+        return new GraphClean().isolatedNodes(isolatedCount);
+    };
+    Graph.prototype.cleanCircularEdges = function () {
+        var edgesLength = this.edges.length;
+        this.edges = this.edges.filter(function (el) { return el.nodes[0] !== el.nodes[1]; });
+        if (this.edges.length != edgesLength) {
+            this.edgeArrayDidChange();
+        }
+        return new GraphClean().circularEdges(edgesLength - this.edges.length);
+    };
+    Graph.prototype.cleanDuplicateEdges = function () {
+        var count = 0;
+        for (var i = 0; i < this.edges.length - 1; i++) {
+            for (var j = this.edges.length - 1; j > i; j--) {
+                if (this.edges[i].isSimilarToEdge(this.edges[j])) {
+                    this.edges.splice(j, 1);
+                    count += 1;
+                }
+            }
+        }
+        if (count > 0) {
+            this.edgeArrayDidChange();
+        }
+        return new GraphClean().duplicateEdges(count);
+    };
+    Graph.prototype.cleanGraph = function () {
+        this.edgeArrayDidChange();
+        this.nodeArrayDidChange();
+        return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
+    };
+    Graph.prototype.clean = function () {
+        return this.cleanGraph();
+    };
+    Graph.prototype.getEdgeConnectingNodes = function (node1, node2) {
+        for (var i = 0; i < this.edges.length; i++) {
+            if ((this.edges[i].nodes[0] === node1 && this.edges[i].nodes[1] === node2) ||
+                (this.edges[i].nodes[0] === node2 && this.edges[i].nodes[1] === node1)) {
+                return this.edges[i];
+            }
+        }
+        return undefined;
+    };
+    Graph.prototype.getEdgesConnectingNodes = function (node1, node2) {
+        return this.edges.filter(function (el) {
+            return (el.nodes[0] === node1 && el.nodes[1] === node2) ||
+                (el.nodes[0] === node2 && el.nodes[1] === node1);
+        });
+    };
+    Graph.prototype.copy = function () {
+        this.nodeArrayDidChange();
+        this.edgeArrayDidChange();
+        var g = new Graph();
+        for (var i = 0; i < this.nodes.length; i++) {
+            var n = g.addNode(new GraphNode(g));
+            Object.assign(n, this.nodes[i]);
+            n.graph = g;
+            n.index = i;
+        }
+        for (var i = 0; i < this.edges.length; i++) {
+            var index = [this.edges[i].nodes[0].index, this.edges[i].nodes[1].index];
+            var e = g.addEdge(new GraphEdge(g, g.nodes[index[0]], g.nodes[index[1]]));
+            Object.assign(e, this.edges[i]);
+            e.graph = g;
+            e.index = i;
+            e.nodes = [g.nodes[index[0]], g.nodes[index[1]]];
+        }
+        return g;
+    };
+    Graph.prototype.connectedGraphs = function () {
+        var cp = this.copy();
+        cp.clean();
+        cp.removeIsolatedNodes();
+        cp.nodes.forEach(function (node) { node.cache['adj'] = node.adjacentEdges().length; }, this);
+        var graphs = [];
+        while (cp.edges.length > 0) {
+            var graph = new Graph();
+            cp.nodes.forEach(function (node) { graph.addNode(Object.assign(new cp.nodeType(graph), node)); }, this);
+            var node = cp.nodes.slice().sort(function (a, b) { return b.cache['adj'] - a.cache['adj']; })[0];
+            var adj = node.adjacentEdges();
+            while (adj.length > 0) {
+                var smartList = adj.filter(function (el) { return el.otherNode(node).cache['adj'] % 2 == 0; }, this);
+                if (smartList.length == 0) {
+                    smartList = adj;
+                }
+                var nextEdge = smartList.sort(function (a, b) { return b.otherNode(node).cache['adj'] - a.otherNode(node).cache['adj']; })[0];
+                var nextNode = nextEdge.otherNode(node);
+                var newEdge = Object.assign(new cp.edgeType(graph, undefined, undefined), nextEdge);
+                newEdge.nodes = [graph.nodes[node.index], graph.nodes[nextNode.index]];
+                graph.addEdge(newEdge);
+                node.cache['adj'] -= 1;
+                nextNode.cache['adj'] -= 1;
+                cp.edges = cp.edges.filter(function (el) { return el !== nextEdge; });
+                node = nextNode;
+                adj = node.adjacentEdges();
+            }
+            graph.removeIsolatedNodes();
+            graphs.push(graph);
+        }
+        return graphs;
+    };
+    Graph.prototype.nodeArrayDidChange = function () { for (var i = 0; i < this.nodes.length; i++) {
+        this.nodes[i].index = i;
+    } };
+    Graph.prototype.edgeArrayDidChange = function () { for (var i = 0; i < this.edges.length; i++) {
+        this.edges[i].index = i;
+    } };
+    return Graph;
+}());
+var Multigraph = (function (_super) {
+    __extends(Multigraph, _super);
+    function Multigraph() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Multigraph.prototype.cleanGraph = function () {
+        this.edgeArrayDidChange();
+        this.nodeArrayDidChange();
+        return new GraphClean();
+    };
+    return Multigraph;
+}(Graph));
 var PlanarClean = (function (_super) {
     __extends(PlanarClean, _super);
     function PlanarClean(numNodes, numEdges) {
@@ -3578,40 +3612,6 @@ var CreasePattern = (function (_super) {
         }, this)
             .filter(function (el) { return el !== undefined; }, this)
             .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
-    };
-    CreasePattern.prototype.creaseVoronoi = function (v, interp) {
-        if (interp === undefined) {
-            interp = 0.5;
-        }
-        var edges = v.edges.filter(function (el) { return !el.isBoundary; });
-        var cells = v.cells.map(function (cell) {
-            return cell.edges.map(function (edge) {
-                return edge.endPoints.map(function (el) {
-                    return cell.site.lerp(el, interp);
-                });
-            }, this);
-        }, this);
-        var sortedMolecules = v.generateSortedMolecules(interp);
-        sortedMolecules.forEach(function (arr) {
-            arr.forEach(function (m) {
-                var edges = m.generateCreases();
-                edges.forEach(function (el) {
-                    this.crease(el.nodes[0], el.nodes[1]);
-                }, this);
-            }, this);
-        }, this);
-        edges.forEach(function (edge) {
-            var c = this.crease(edge.endPoints[0], edge.endPoints[1]);
-            if (c !== undefined) {
-                c.valley();
-            }
-        }, this);
-        cells.forEach(function (cell) {
-            cell.forEach(function (edge) {
-                this.crease(edge[0], edge[1]).mountain();
-            }, this);
-        }, this);
-        return sortedMolecules.reduce(function (prev, current) { return prev.concat(current); });
     };
     CreasePattern.prototype.availableAxiomFolds = function () {
         var edges = [];

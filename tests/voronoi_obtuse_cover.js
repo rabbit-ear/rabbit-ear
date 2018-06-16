@@ -28,7 +28,7 @@ voronoiObtuseCover.redraw = function(){
 	var v = new VoronoiGraph(d3Voronoi);
 
 	this.cp.clear();
-	var molecules = this.cp.creaseVoronoi(v, this.vInterp);
+	var molecules = creaseVoronoi(this.cp, v, this.vInterp);
 
 	this.draw();
 

@@ -8,6 +8,7 @@
 		"lib/rbush.min.js"
 	],
 	"files":[
+		"src/voronoi.ts",
 		"src/creasePattern.ts",
 		"src/planarGraph.ts",
 		"src/graph.ts",

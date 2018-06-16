@@ -30,7 +30,7 @@ voronoiScale.redraw = function(){
 	var v = new VoronoiGraph(d3Voronoi);
 
 	this.cp.clear();
-	this.cp.creaseVoronoi(v, this.vInterpolation);
+	creaseVoronoi(this.cp, v, this.vInterpolation);
 	this.draw();
 
 	for(var i = 0; i < nodes.length; i++){

@@ -109,12 +109,6 @@ class CPPolyline extends Polyline{
 	}
 	crease(){ return this.cp.creasePolyline(this); }
 }
-// class CPVoronoiMolecule extends VoronoiMolecule{ }
-// class CPVoronoiMoleculeTriangle extends VoronoiMoleculeTriangle{ }
-// class CPVoronoiEdge extends VoronoiEdge{ }
-// class CPVoronoiCell extends VoronoiCell{ }
-// class CPVoronoiJunction extends VoronoiJunction{ }
-// class CPVoronoiGraph extends VoronoiGraph{ }
 
 //////////////////////////////////////////////////////////////////////////
 // CREASE PATTERN
@@ -653,44 +647,6 @@ class CreasePattern extends PlanarGraph{
 			},this)
 			.filter(function(el){ return el !== undefined; },this)
 			.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
-	}
-
-	// returns an array of VoronoiMolecule[]
-	creaseVoronoi(v:VoronoiGraph, interp?:number):any[]{
-		if(interp === undefined){ interp = 0.5; }
-
-		// original voronoi graph edges
-		var edges = v.edges.filter(function(el){return !el.isBoundary; });
-		// shrunk voronoi cell outlines
-		var cells:[XY,XY][][] = <[XY,XY][][]>v.cells.map(function(cell){
-			return cell.edges.map(function(edge){
-				return edge.endPoints.map(function(el:XY){
-					return cell.site.lerp(el,interp);
-				});
-			},this);
-		},this);
-		// junction molecules
-		// var molecules:VoronoiMolecule[] = v.generateMolecules(interp);
-		// find overlapped molecules
-		var sortedMolecules = v.generateSortedMolecules(interp);
-		sortedMolecules.forEach(function(arr){
-			arr.forEach(function(m){
-				var edges = m.generateCreases();
-				edges.forEach(function(el){
-					this.crease(el.nodes[0], el.nodes[1]);
-				},this);
-			}, this);
-		}, this);
-
-		edges.forEach(function(edge){
-			var c = this.crease(edge.endPoints[0], edge.endPoints[1]);
-			if(c !== undefined){ c.valley(); }
-		},this);
-		cells.forEach(function(cell:[XY,XY][]){ cell.forEach(function(edge){
-			this.crease(edge[0], edge[1]).mountain();
-		},this)},this);
-
-		return sortedMolecules.reduce(function(prev, current){ return prev.concat(current); });
 	}
 
 	availableAxiomFolds():Edge[]{
