@@ -277,65 +277,41 @@ class XY{
 	x:number;
 	y:number;
 	constructor(x:number, y:number){ this.x = x; this.y = y; }
-	// position(x:number, y:number):XY{ this.x = x; this.y = y; return this; }
+	equivalent(point:XY, epsilon?:number):boolean{
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
+		// rect bounding box for now, much cheaper than radius calculation
+		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
+	}
 	normalize():XY { var m = this.magnitude(); return new XY(this.x/m, this.y/m);}
 	dot(point:XY):number { return this.x * point.x + this.y * point.y; }
 	cross(vector:XY):number{ return this.x*vector.y - this.y*vector.x; }
 	magnitude():number { return Math.sqrt(this.x * this.x + this.y * this.y); }
 	distanceTo(a:XY):number{return Math.sqrt(Math.pow(this.x-a.x,2)+Math.pow(this.y-a.y,2));}
-	equivalent(point:XY, epsilon?:number):boolean{
-		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
-		// rect bounding box, cheaper than radius calculation
-		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
-	}
 	transform(matrix:Matrix):XY{
 		return new XY(this.x * matrix.a + this.y * matrix.c + matrix.tx,
 					  this.x * matrix.b + this.y * matrix.d + matrix.ty);
 	}
+	translate(dx:number, dy:number):XY{ return new XY(this.x+dx,this.y+dy);}
 	rotate90():XY { return new XY(-this.y, this.x); }
 	rotate180():XY { return new XY(-this.x, -this.y); }
 	rotate270():XY { return new XY(this.y, -this.x); }
 	rotate(angle:number, origin?:XY){ return this.transform( new Matrix().rotation(angle, origin) ); }
-	lerp(point:XY, pct:number):XY{
-		var inv = 1.0 - pct;
-		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
-	}
-	angleLerp(point:XY, pct:number):XY{
-		function shortAngleDist(a0:number,a1:number) {
-			var max = Math.PI*2;
-			var da = (a1 - a0) % max;
-			return 2*da % max - da;
-		}
-		var thisAngle = Math.atan2(this.y, this.x);
-		var pointAngle = Math.atan2(point.y, point.x);
-		var newAngle = thisAngle + shortAngleDist(thisAngle, pointAngle)*pct;
-		return new XY( Math.cos(newAngle), Math.sin(newAngle) );
-	}
+	lerp(point:XY, pct:number):XY{ var inv=1.0-pct; return new XY(this.x*pct+point.x*inv,this.y*pct+point.y*inv); }
+	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 	/** reflects this point about a line that passes through 'a' and 'b' */
 	reflect(line:any):XY{
-		var origin, vector;
-		if(line.direction !== undefined){
-			origin = line.point || line.origin;
-			vector = line.direction;
-		} else if(line.nodes !== undefined){
-			origin = new XY(line.nodes[0].x, line.nodes[0].y);
-			vector = new XY(line.nodes[1].x, line.nodes[1].y).subtract(origin);
-		} else{
-			return undefined;
-		}
+		var origin = (line.direction != undefined) ? (line.point || line.origin) : new XY(line.nodes[0].x, line.nodes[0].y);
+		var vector = (line.direction != undefined) ? line.direction : new XY(line.nodes[1].x, line.nodes[1].y).subtract(origin);
 		return this.transform( new Matrix().reflection(vector, origin) );
 	}
 	scale(magnitude:number):XY{ return new XY(this.x*magnitude, this.y*magnitude); }
-	// add(point:XY):XY{ return new XY(this.x+point.x, this.y+point.y); }
-	// todo, outfit all these constructors with flexible parameters like add()
 	add(a:any, b?:any):XY{
-		// var point = gimme1XY(a,b);
 		if(isValidPoint(a)){ return new XY(this.x+a.x, this.y+a.y); }
 		else if(isValidNumber(b)){ return new XY(this.x+a, this.y+b); }
 	}
+	// todo, outfit all these constructors with flexible parameters like add()
 	subtract(point:XY):XY{ return new XY(this.x-point.x, this.y-point.y); }
 	multiply(m:XY):XY{ return new XY(this.x*m.x, this.y*m.y); }
-	midpoint(other:XY):XY{ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 	abs():XY{ return new XY(Math.abs(this.x), Math.abs(this.y)); }
 	commonX(point:XY, epsilon?:number):boolean{return epsilonEqual(this.x, point.x, epsilon);}
 	commonY(point:XY, epsilon?:number):boolean{return epsilonEqual(this.y, point.y, epsilon);}
@@ -347,12 +323,12 @@ abstract class LineType{
 	parallel(line:any, epsilon?:number){}
 	collinear(point:XY){}
 	equivalent(line:any, epsilon?:number){}
+	degenrate(epsilon?:number){}
 	intersection(line:LineType, epsilon?:number){}
 	reflectionMatrix(){}
 	nearestPoint(point:XY){}
 	nearestPointNormalTo(point:XY){}
 	transform(matrix:Matrix){}
-	degenrate(epsilon?:number){}
 	// clipWithEdge(edge:Edge, epsilon?:number){}
 	// clipWithEdges(edges:Edge[], epsilon?:number){}
 	// clipWithEdgesDetails(edges:Edge[], epsilon?:number){}
@@ -388,6 +364,10 @@ class Line implements LineType{
 		// if lines are parallel and share a point in common
 		return this.collinear(line.point, epsilon) && this.parallel(line, epsilon);
 	}
+	degenrate(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return epsilonEqual(this.direction.magnitude(), 0, epsilon);
+	}
 	intersection(line:LineType, epsilon?:number){
 		if(line instanceof Line){ return intersectionLineLine(this, line, epsilon); }
 		if(line instanceof Ray){  return intersectionLineRay(this, line, epsilon);  }
@@ -403,10 +383,6 @@ class Line implements LineType{
 	transform(matrix:Matrix):Line{
 		// todo: who knows if this works
 		return new Line(this.point.transform(matrix), this.direction.transform(matrix));
-	}
-	degenrate(epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		return epsilonEqual(this.direction.magnitude(), 0, epsilon);
 	}
 	bisect(line:Line):Line[]{
 		if( this.parallel(line) ){
@@ -430,7 +406,8 @@ class Line implements LineType{
 			var intersection:XY = intersectionLineLine(this, line);
 			// creates an array of sectors [a, b], by first building array of array [[a1,a2], [b1,b2]]
 			// and filtering out the wrong-winding by sorting and locating smaller of the two.
-			[	[ new Sector(intersection, [intersection.add(this.direction), intersection.add(line.direction)]),
+			return [
+				[ new Sector(intersection, [intersection.add(this.direction), intersection.add(line.direction)]),
 				  new Sector(intersection, [intersection.add(this.direction), intersection.add(line.direction.rotate180())])
 				  ].sort(function(a,b){ return a.angle() - b.angle(); }).shift(),
 				[ new Sector(intersection, [intersection.add(line.direction), intersection.add(this.direction)]),
@@ -482,6 +459,10 @@ class Ray implements LineType{
 		return (this.origin.equivalent(ray.origin, epsilon) &&
 		        this.direction.normalize().equivalent(ray.direction.normalize(), epsilon));
 	}
+	degenrate(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return epsilonEqual(this.direction.magnitude(), 0, epsilon);
+	}
 	intersection(line:LineType, epsilon?:number){
 		if(line instanceof Ray){ return intersectionRayRay(this, line, epsilon); }
 		if(line instanceof Line){ return intersectionLineRay(line, this, epsilon); }
@@ -503,10 +484,6 @@ class Ray implements LineType{
 	transform(matrix:Matrix):Ray{
 		// todo: who knows if this works
 		return new Ray(this.origin.transform(matrix), this.direction.transform(matrix));
-	}
-	degenrate(epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		return epsilonEqual(this.direction.magnitude(), 0, epsilon);
 	}
 	// additional methods
 	flip(){ return new Ray(this.origin, new XY(-this.direction.x, -this.direction.y)); }
@@ -595,6 +572,10 @@ class Edge implements LineType{
 		        (this.nodes[0].equivalent(e.nodes[1],epsilon) &&
 		         this.nodes[1].equivalent(e.nodes[0],epsilon)) );
 	}
+	degenrate(epsilon?:number):boolean{
+		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
+		return this.nodes[0].equivalent(this.nodes[1], epsilon);
+	}
 	intersection(line:LineType, epsilon?:number):any{
 		if(line instanceof Edge){ return intersectionEdgeEdge(this, line, epsilon); }
 		if(line instanceof Line){ return intersectionLineEdge(line, this, epsilon); }
@@ -620,10 +601,6 @@ class Edge implements LineType{
 	}
 	transform(matrix:Matrix):Edge{
 		return new Edge(this.nodes[0].transform(matrix), this.nodes[1].transform(matrix));
-	}
-	degenrate(epsilon?:number):boolean{
-		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-		return this.nodes[0].equivalent(this.nodes[1], epsilon);
 	}
 	// additional methods
 	midpoint():XY { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),

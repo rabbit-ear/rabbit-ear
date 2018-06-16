@@ -620,10 +620,14 @@ class CreasePattern extends PlanarGraph{
 		if(edge === undefined){ return; }
 		return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 	}
-	
+
 	pleat(count:number, one:Crease, two:Crease):Crease[]{
 		var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
 		var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
+		console.log(a);
+		console.log(b);
+		console.log(a.infiniteLine());
+		console.log(b.infiniteLine());
 		return a.infiniteLine()
 			.subsect(b.infiniteLine(), count)
 			.map(function(line){
