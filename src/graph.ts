@@ -103,7 +103,7 @@ class GraphNode{
 			if(el.nodes[1] === this){ sum += 1; }
 			return sum;
 		}, this).reduce(function(a, b){ return a + b; });
-		// this implementation is insufficient because it doesn't count circular edges twice
+		// this implementation does not consider the invalid graph case where circular edges are counted twice.
 		// return this.adjacentEdges().length;
 	}
 }

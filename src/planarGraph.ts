@@ -259,7 +259,7 @@ class PlanarEdge extends GraphEdge implements Edge{
 }
 /** Planar faces are counter-clockwise sequences of nodes already connected by edges */
 class PlanarFace extends Polygon{
-	// this library is counting on the edges and nodes to be stored in clockwise winding
+	// this library is counting on the edges and nodes to be stored in counter-clockwise winding
 	graph:PlanarGraph;
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
@@ -386,7 +386,7 @@ class PlanarSector extends Sector{
 	endPoints:[PlanarNode, PlanarNode];
 
 	index:number;
-	// angle clockwise from edge 0 to edge 1 is in index 0. edge 1 to 0 is in index 1
+	// counter-clockwise angle from edge 0 to edge 1 is in index 0. edge 1 to 0 is in index 1
 	// constructor(origin:PlanarNode, endPoints?:[PlanarNode,PlanarNode], edges?:[PlanarEdge, PlanarEdge]){
 	constructor(edge1:PlanarEdge, edge2:PlanarEdge){
 		super(<PlanarNode>edge1.commonNodeWithEdge(edge2), undefined);
@@ -477,7 +477,7 @@ class PlanarJunction{
 			return el.angle();
 		},this);
 	}
-	/** Locates the most clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
+	/** Locates the nearest clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 4.
 	 * @returns {PlanarNode}
 	 */
 	clockwiseNode(fromNode:PlanarNode):PlanarNode{
@@ -487,6 +487,9 @@ class PlanarJunction{
 			}
 		}
 	}
+	/** Locates the nearest counter-clockwise adjacent node from the node supplied in the argument. If this was a clock centered at this node, if you pass in node for the number 3, it will return you the number 2.
+	 * @returns {PlanarNode}
+	 */
 	counterClockwiseNode(fromNode:PlanarNode):PlanarNode{
 		for(var i = 0; i < this.edges.length; i++){
 			if(this.edges[i].otherNode(this.origin) === fromNode){

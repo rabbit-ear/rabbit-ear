@@ -102,8 +102,6 @@ function counterClockwiseInteriorAngle(a:XY, b:XY):number{
  */
 function interiorAngles(a:XY, b:XY):number[]{
 	var interior1 = clockwiseInteriorAngle(a, b);
-	// we don't need to run atan2 again..
-	// var interior2 = clockwiseInteriorAngle(b, a);
 	var interior2 = Math.PI*2 - interior1;
 	if(interior1 < interior2) return [interior1, interior2];
 	return [interior2, interior1];
@@ -297,9 +295,7 @@ class XY{
 	rotate90():XY { return new XY(-this.y, this.x); }
 	rotate180():XY { return new XY(-this.x, -this.y); }
 	rotate270():XY { return new XY(this.y, -this.x); }
-	rotate(angle:number, origin?:XY){
-		return this.transform( new Matrix().rotation(angle, origin) );
-	}
+	rotate(angle:number, origin?:XY){ return this.transform( new Matrix().rotation(angle, origin) ); }
 	lerp(point:XY, pct:number):XY{
 		var inv = 1.0 - pct;
 		return new XY(this.x*pct + point.x*inv, this.y*pct + point.y*inv);
@@ -423,6 +419,26 @@ class Line implements LineType{
 				var swap = vectors[0];    vectors[0] = vectors[1];    vectors[1] = swap;
 			}
 			return vectors.map(function(el:XY){ return new Line(intersection, el); },this);
+		}
+	}
+	subsect(line:Line, count:number):Line[]{
+		var pcts = Array.apply(null, Array(count)).map(function(el,i){return i/count;});
+		pcts.shift();
+		if( this.parallel(line) ){
+			return pcts.map(function(pct){ return new Line( this.point.lerp(line.point, pct), this.direction); },this);
+		} else{
+			var intersection:XY = intersectionLineLine(this, line);
+			// creates an array of sectors [a, b], by first building array of array [[a1,a2], [b1,b2]]
+			// and filtering out the wrong-winding by sorting and locating smaller of the two.
+			[	[ new Sector(intersection, [intersection.add(this.direction), intersection.add(line.direction)]),
+				  new Sector(intersection, [intersection.add(this.direction), intersection.add(line.direction.rotate180())])
+				  ].sort(function(a,b){ return a.angle() - b.angle(); }).shift(),
+				[ new Sector(intersection, [intersection.add(line.direction), intersection.add(this.direction)]),
+				  new Sector(intersection, [intersection.add(line.direction), intersection.add(this.direction.rotate180())])
+				  ].sort(function(a,b){ return a.angle() - b.angle(); }).shift()
+			].map(function(sector){ return sector.subsect(count); },this)
+				.reduce(function(prev, curr){ return prev.concat(curr); },[])
+				.map(function(ray){ return new Line(ray.origin, ray.direction); },this);
 		}
 	}
 }

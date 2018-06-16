@@ -620,60 +620,19 @@ class CreasePattern extends PlanarGraph{
 		if(edge === undefined){ return; }
 		return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
 	}
-
+	
 	pleat(count:number, one:Crease, two:Crease):Crease[]{
 		var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
 		var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
-		var u,v;
-		if( a.parallel(b) ){
-			u = a.nodes[0].subtract(a.nodes[1]);
-			v = b.nodes[0].subtract(b.nodes[1]);
-			return Array.apply(null, Array(count-1))
-				.map(function(el,i){ return (i+1)/count; },this)
-				.map(function(el){
-					var origin = a.nodes[0].lerp(b.nodes[0], el);
-					return this.boundary.clipLine( new Line(origin, u) ); 
+		return a.infiniteLine()
+			.subsect(b.infiniteLine(), count)
+			.map(function(line){
+					return this.boundary.clipLine( line );
 				},this)
-				.filter(function(el){ return el !== undefined; },this)
-				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
-		} else if(a.nodes[0].equivalent(b.nodes[0]) || 
-		          a.nodes[0].equivalent(b.nodes[1]) || 
-		          a.nodes[1].equivalent(b.nodes[0]) || 
-		          a.nodes[1].equivalent(b.nodes[1])){
-			var c:XY, aUn:XY, bUn:XY;
-			if( a.nodes[0].equivalent(b.nodes[0]) ){ c = a.nodes[0]; aUn = a.nodes[1]; bUn = b.nodes[1]; }
-			if( a.nodes[0].equivalent(b.nodes[1]) ){ c = a.nodes[0]; aUn = a.nodes[1]; bUn = b.nodes[0]; }
-			if( a.nodes[1].equivalent(b.nodes[0]) ){ c = a.nodes[1]; aUn = a.nodes[0]; bUn = b.nodes[1]; }
-			if( a.nodes[1].equivalent(b.nodes[1]) ){ c = a.nodes[1]; aUn = a.nodes[0]; bUn = b.nodes[0]; }
-			u = aUn.subtract(c);
-			v = bUn.subtract(c);
-			return Array.apply(null, Array(count-1))
-				.map(function(el,i){ return (i+1)/count; },this)
-				.map(function(el){
-					var vector = u.angleLerp(v, el);
-					return this.boundary.clipLine( new Line(c, vector) ); 
-				},this)
-				.filter(function(el){ return el !== undefined; },this)
-				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
-		}else{
-			var intersection:XY = a.infiniteLine().intersection( b.infiniteLine() );
-			// var intersection:XY = intersectionLineLine(a.infiniteLine(), b.infiniteLine());
-			// these two .equivalent() calls used EPSILON_LOW. do we need that?
-			if(a.nodes[0].equivalent(intersection)){
-			       u = a.nodes[1].subtract(intersection); }
-			else { u = a.nodes[0].subtract(intersection); }
-			if(b.nodes[0].equivalent(intersection)){
-				   v = b.nodes[1].subtract(intersection); }
-			else { v = b.nodes[0].subtract(intersection); }
-			return Array.apply(null, Array(count-1))
-				.map(function(el,i){ return (i+1)/count; },this)
-				.map(function(el){
-					var vector = u.angleLerp(v, el);
-					return this.boundary.clipLine( new Line(intersection, vector) ); 
-				},this)
-				.filter(function(el){ return el !== undefined; },this)
-				.map(function(el){ return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y) },this);
-		}
+			.filter(function(el){ return el != undefined; },this)
+			.map(function(el){
+				return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y);
+			},this);
 	}
 
 	coolPleat(one:Crease, two:Crease, count:number):Crease[]{

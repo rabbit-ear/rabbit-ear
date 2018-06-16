@@ -640,9 +640,7 @@ var XY = (function () {
     XY.prototype.rotate90 = function () { return new XY(-this.y, this.x); };
     XY.prototype.rotate180 = function () { return new XY(-this.x, -this.y); };
     XY.prototype.rotate270 = function () { return new XY(this.y, -this.x); };
-    XY.prototype.rotate = function (angle, origin) {
-        return this.transform(new Matrix().rotation(angle, origin));
-    };
+    XY.prototype.rotate = function (angle, origin) { return this.transform(new Matrix().rotation(angle, origin)); };
     XY.prototype.lerp = function (point, pct) {
         var inv = 1.0 - pct;
         return new XY(this.x * pct + point.x * inv, this.y * pct + point.y * inv);
@@ -785,6 +783,25 @@ var Line = (function () {
                 vectors[1] = swap;
             }
             return vectors.map(function (el) { return new Line(intersection, el); }, this);
+        }
+    };
+    Line.prototype.subsect = function (line, count) {
+        var pcts = Array.apply(null, Array(count)).map(function (el, i) { return i / count; });
+        pcts.shift();
+        if (this.parallel(line)) {
+            return pcts.map(function (pct) { return new Line(this.point.lerp(line.point, pct), this.direction); }, this);
+        }
+        else {
+            var intersection = intersectionLineLine(this, line);
+            [[new Sector(intersection, [intersection.add(this.direction), intersection.add(line.direction)]),
+                    new Sector(intersection, [intersection.add(this.direction), intersection.add(line.direction.rotate180())])
+                ].sort(function (a, b) { return a.angle() - b.angle(); }).shift(),
+                [new Sector(intersection, [intersection.add(line.direction), intersection.add(this.direction)]),
+                    new Sector(intersection, [intersection.add(line.direction), intersection.add(this.direction.rotate180())])
+                ].sort(function (a, b) { return a.angle() - b.angle(); }).shift()
+            ].map(function (sector) { return sector.subsect(count); }, this)
+                .reduce(function (prev, curr) { return prev.concat(curr); }, [])
+                .map(function (ray) { return new Line(ray.origin, ray.direction); }, this);
         }
     };
     return Line;
@@ -3599,78 +3616,15 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.pleat = function (count, one, two) {
         var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
         var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
-        var u, v;
-        if (a.parallel(b)) {
-            u = a.nodes[0].subtract(a.nodes[1]);
-            v = b.nodes[0].subtract(b.nodes[1]);
-            return Array.apply(null, Array(count - 1))
-                .map(function (el, i) { return (i + 1) / count; }, this)
-                .map(function (el) {
-                var origin = a.nodes[0].lerp(b.nodes[0], el);
-                return this.boundary.clipLine(new Line(origin, u));
-            }, this)
-                .filter(function (el) { return el !== undefined; }, this)
-                .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
-        }
-        else if (a.nodes[0].equivalent(b.nodes[0]) ||
-            a.nodes[0].equivalent(b.nodes[1]) ||
-            a.nodes[1].equivalent(b.nodes[0]) ||
-            a.nodes[1].equivalent(b.nodes[1])) {
-            var c, aUn, bUn;
-            if (a.nodes[0].equivalent(b.nodes[0])) {
-                c = a.nodes[0];
-                aUn = a.nodes[1];
-                bUn = b.nodes[1];
-            }
-            if (a.nodes[0].equivalent(b.nodes[1])) {
-                c = a.nodes[0];
-                aUn = a.nodes[1];
-                bUn = b.nodes[0];
-            }
-            if (a.nodes[1].equivalent(b.nodes[0])) {
-                c = a.nodes[1];
-                aUn = a.nodes[0];
-                bUn = b.nodes[1];
-            }
-            if (a.nodes[1].equivalent(b.nodes[1])) {
-                c = a.nodes[1];
-                aUn = a.nodes[0];
-                bUn = b.nodes[0];
-            }
-            u = aUn.subtract(c);
-            v = bUn.subtract(c);
-            return Array.apply(null, Array(count - 1))
-                .map(function (el, i) { return (i + 1) / count; }, this)
-                .map(function (el) {
-                var vector = u.angleLerp(v, el);
-                return this.boundary.clipLine(new Line(c, vector));
-            }, this)
-                .filter(function (el) { return el !== undefined; }, this)
-                .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
-        }
-        else {
-            var intersection = a.infiniteLine().intersection(b.infiniteLine());
-            if (a.nodes[0].equivalent(intersection)) {
-                u = a.nodes[1].subtract(intersection);
-            }
-            else {
-                u = a.nodes[0].subtract(intersection);
-            }
-            if (b.nodes[0].equivalent(intersection)) {
-                v = b.nodes[1].subtract(intersection);
-            }
-            else {
-                v = b.nodes[0].subtract(intersection);
-            }
-            return Array.apply(null, Array(count - 1))
-                .map(function (el, i) { return (i + 1) / count; }, this)
-                .map(function (el) {
-                var vector = u.angleLerp(v, el);
-                return this.boundary.clipLine(new Line(intersection, vector));
-            }, this)
-                .filter(function (el) { return el !== undefined; }, this)
-                .map(function (el) { return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y); }, this);
-        }
+        return a.infiniteLine()
+            .subsect(b.infiniteLine(), count)
+            .map(function (line) {
+            return this.boundary.clipLine(line);
+        }, this)
+            .filter(function (el) { return el != undefined; }, this)
+            .map(function (el) {
+            return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y);
+        }, this);
     };
     CreasePattern.prototype.coolPleat = function (one, two, count) {
         var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);

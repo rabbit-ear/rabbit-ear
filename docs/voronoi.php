@@ -48,7 +48,7 @@
 <script src="../tests/voronoi_scale.js"></script>
 
 <script>
-voronoiSketch.reset(30);
+voronoiSketch.reset(20);
 </script>
 
 <script type="text/javascript">

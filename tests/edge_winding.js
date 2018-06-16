@@ -16,7 +16,7 @@ edgeWinding.reset = function(){
 	this.cp.nodes = [];
 	this.cp.edges = [];
 	var angle = 0;
-	while(angle < Math.PI*2){
+	while(angle < Math.PI*2 - 0.1){
 		var len = 0.4 + Math.random()*0.1;
 		this.cp.newPlanarEdge(0.5, 0.5, 0.5+len*Math.cos(angle), 0.5+len*Math.sin(angle) );
 		angle+= Math.random()*0.3 + 0.1;
@@ -48,7 +48,15 @@ edgeWinding.onMouseMove = function(event){
 	var nextIndexIn = this.adjacentEdges.indexOf(nextEdge);
 	var nextVec = nextEdge.vector(this.centerNode);
 	var nextAngle = Math.atan2(nextVec.y, nextVec.x);
+	var prevEdge = this.centerNode.junction().counterClockwiseEdge(nearestEdge);
+	if(prevEdge != undefined){ 
+		this.edges[ prevEdge.index ].strokeWidth = 0.015;
+		this.edges[ prevEdge.index ].strokeColor = this.styles.byrne.blue;
+	}
+	var prevIndexIn = this.adjacentEdges.indexOf(prevEdge);
+	var prevVec = prevEdge.vector(this.centerNode);
+	var prevAngle = Math.atan2(prevVec.y, prevVec.x);
 	if(edge_winding_callback != undefined){
-		edge_winding_callback({node:this.centerNode, angle:angle, edge:nearestEdge, index:indexIn, nextEdge:nextEdge, nextIndex:nextIndexIn, nextAngle:nextAngle});
+		edge_winding_callback({node:this.centerNode, angle:angle, edge:nearestEdge, index:indexIn, nextEdge:nextEdge, nextIndex:nextIndexIn, nextAngle:nextAngle, prevEdge:prevEdge, prevIndex:prevIndexIn, prevAngle:prevAngle,});
 	}
 }

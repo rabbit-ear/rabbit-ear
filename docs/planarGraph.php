@@ -62,7 +62,7 @@
 	
 	<p class="quote">This algorithm, <b>flatten()</b>, calculates and stores all the faces, and ran once at the beginning</p>
 
-	<p class="explain">The current state of the algorithm: a face won't be created if there is a stray edge poking into the polygon.</p>
+	<p class="explain">Faces containing leaf edges are currently considered invalid.</p>
 
 </section>
 
@@ -85,7 +85,7 @@
 
 	<p class="quote">All radially-sorted components, like edges around a junction, are sorted counter-clockwise.</p>
 
-	<p class="explain">You might have noticed counter-clockwise appears clockwise. This library subscribes to the cartesian system, and this graphics library (like most) uses an inverted Y axis.</p>
+	<p class="explain">This library is strictly in the cartesian system, however this graphics library uses an inverted Y axis. Counter-clockwise appears clockwise.</p>
 
 <h3 id="sector">Sector</h3>
 
@@ -105,7 +105,9 @@
 
 	<p class="quote"><strong>Sector</strong>: two adjacent ordered edges and the space that creates an angle between them.</p>
 
-	<p>The angle between two vectors can be the smaller or the larger which is why it's important to order the vectors, and consider the clockwise space between them.</p>
+	<p>This sector is defined as the counter-clockwise space from the blue to the yellow line.</p>
+
+	<p class="explain">Remember, all counter-clockwise winding appears clockwise in this inverted Y-axis graphics library.</p>
 	
 </section>
 
@@ -145,12 +147,13 @@ nearSectorCallback = function(event){
 edge_winding_callback = function(event){
 	var angleDegrees = event.angle * 180 / Math.PI;
 	var nextAngleDegrees = event.nextAngle * 180 / Math.PI;
+	var prevAngleDegrees = event.prevAngle * 180 / Math.PI;
 	// if(angleDegrees < 0) angleDegrees += 360;
 	document.getElementById("edge-angle-index").innerHTML = event.index;
 	document.getElementById("edge-angle-div").innerHTML = 
 		"<c> // " + angleDegrees.toFixed(1) + "° (red)</c>";
 	// document.getElementById("edge-angle-clockwise").innerHTML = "junction.edges[<n>" + event.nextIndex + "</n>] <key>=</key> junction.<v>clockwiseEdge</v>( a ) <c> // " + nextAngleDegrees.toFixed(1) + "° (black)</c>";
-	document.getElementById("edge-angle-clockwise").innerHTML = "junction.<v>clockwiseEdge</v>( a ) <c> // " + nextAngleDegrees.toFixed(1) + "° (black)</c>";
+	document.getElementById("edge-angle-clockwise").innerHTML = "junction.<v>clockwiseEdge</v>( a ) <c> // " + nextAngleDegrees.toFixed(1) + "° (black)</c><br>junction.<v>counterClockwiseEdge</v>( a ) <c> // " + prevAngleDegrees.toFixed(1) + "° (blue)</c>";
 }
 </script>
 <script>
