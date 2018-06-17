@@ -1088,7 +1088,8 @@ class CreasePattern extends PlanarGraph{
 		var copyCP = this.copy().removeAllMarks();
 		if(face == undefined){
 			var bounds = copyCP.bounds();
-			face = copyCP.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
+			face = copyCP.nearest(bounds.origin.x + bounds.size.width * 0.5,
+			                      bounds.origin.y + bounds.size.height*0.5).face;
 		}
 		if(face === undefined){ return; }
 		var tree = face.adjacentFaceTree();
@@ -1261,7 +1262,6 @@ class CreasePattern extends PlanarGraph{
 		var styles = [noStyle, valleyStyle, mountainStyle, noStyle];
 		var gNames = ["marks", "valley", "mountain", "boundary"];
 		var sortedCreases = orientationList.map(function(orient){ return this.edges.filter(function(e){return e.orientation==orient;},this)},this);
-
 		// add a category for anything that slipped by the crease orientation
 		sortedCreases.unshift( this.edges.filter(function(e){
 			// matching this crease's orientation against list of orientations comes up with no matches
@@ -1307,7 +1307,7 @@ class CreasePattern extends PlanarGraph{
 				blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
 				for(var j = 0; j < polylines[i].nodes.length; j++){
 					var point = polylines[i].nodes[j];
-					blob += (scale*point.x).toFixed(4) + "," + (scale*point.y).toFixed(4) + " ";
+					blob += this.strNum(scale*point.x, 12) + "," + this.strNum(scale*point.y, 12) + " ";
 				}
 				blob += "\"/>\n";
 			}

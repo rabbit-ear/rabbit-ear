@@ -24,25 +24,29 @@
 
 <section id="fragment">
 
-	<p class="quote">Edges are not allowed to cross each other. This is resolved by <b>fragmenting</b> edges into shorter edges with a new node at their intersection.</p>
+	<p>Edges are not allowed to cross each other. This is resolved by <b>fragmenting</b> edges into shorter edges with a new node at their intersection.</p>
+
+	<div class="centered">
+		<pre><code>graph.<f>clean</f>()</code></pre>
+	</div>
+
+	<p class="quote">In a planar graph, cleaning includes fragmenting.</p>
 
 	<div class="centered">
 		<canvas id="canvas-fragment" resize class="panorama"></canvas>
 	</div>
 
 	<div class="centered">
-		<pre><code><span id="span-merge-result"></span>graph.<f>clean</f>()</code></pre>
+		<pre><code><span id="span-merge-result"></span>graph.<f>fragment</f>()</code></pre>
 	</div>
+
+	<p class="quote">Fragment returns the location of intersections.</p>
 
 	<div class="centered">
 		<canvas id="canvas-crane-1" resize></canvas><canvas id="canvas-crane-2" resize></canvas>
 	</div>
 
 	<p class="quote">The graph on the right has been <a href="library/fragment">fragmented</a>. The longer lines have been split at their crossings.</p>
-
-	<div class="centered">
-		<pre><code>graph.<f>fragment</f>()</code></pre>
-	</div>
 
 </section>
 
@@ -60,7 +64,7 @@
 		<pre><code>cp.<f>flatten</f>()</code></pre>
 	</div>
 	
-	<p class="quote">This algorithm, <b>flatten()</b>, calculates and stores all the faces, and ran once at the beginning</p>
+	<p class="quote">This flatten operation calculates and stores all the faces.</p>
 
 	<p class="explain">Faces containing leaf edges are currently considered invalid.</p>
 

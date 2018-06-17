@@ -135,6 +135,13 @@ var OrigamiPaper = (function(){
 		this.touchPoints.push(touchPoint);
 		return touchPoint;
 	}
+	OrigamiPaper.prototype.get = function(component){
+		if(component instanceof GraphNode){ return this.nodes[ component.index ]; }
+		if(component instanceof GraphEdge){ return this.edges[ component.index ]; }
+		if(component instanceof PlanarFace){ return this.faces[ component.index ]; }
+		if(component instanceof PlanarSector){ return this.sectors[ component.index ]; }
+		if(component instanceof PlanarJunction){ return this.junctions[ component.index ]; }
+	}
 
 	OrigamiPaper.prototype.draw = function(){
 		paper = this.scope;
@@ -415,7 +422,7 @@ var OrigamiPaper = (function(){
 				fillColor: { gray:0.0 }
 			},
 			sector: {
-				'scale': 0.25,
+				'scale': 0.5,
 				fillColors: [this.styles.byrne.red,this.styles.byrne.darkBlue],
 			},
 			selected: {

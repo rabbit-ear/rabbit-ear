@@ -3935,7 +3935,7 @@ var CreasePattern = (function (_super) {
         var copyCP = this.copy().removeAllMarks();
         if (face == undefined) {
             var bounds = copyCP.bounds();
-            face = copyCP.nearest(bounds.size.width * 0.5, bounds.size.height * 0.5).face;
+            face = copyCP.nearest(bounds.origin.x + bounds.size.width * 0.5, bounds.origin.y + bounds.size.height * 0.5).face;
         }
         if (face === undefined) {
             return;
@@ -4132,7 +4132,7 @@ var CreasePattern = (function (_super) {
                 blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
                 for (var j = 0; j < polylines[i].nodes.length; j++) {
                     var point = polylines[i].nodes[j];
-                    blob += (scale * point.x).toFixed(4) + "," + (scale * point.y).toFixed(4) + " ";
+                    blob += this.strNum(scale * point.x, 12) + "," + this.strNum(scale * point.y, 12) + " ";
                 }
                 blob += "\"/>\n";
             }
