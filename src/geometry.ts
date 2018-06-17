@@ -982,7 +982,7 @@ class ConvexPolygon{
 		var radius = Math.cos(halfwedge);
 		var points = [];
 		for(var i = 0; i < sides; i++){
-			var a = 2 * Math.PI * i / sides + halfwedge;
+			var a = -2 * Math.PI * i / sides + halfwedge;
 			var x = formatFloat(radius * Math.sin(a));
 			var y = formatFloat(radius * Math.cos(a));
 			points.push( new XY(x, y) ); // align point along Y

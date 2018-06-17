@@ -1013,7 +1013,7 @@ var ConvexPolygon = (function () {
         var radius = Math.cos(halfwedge);
         var points = [];
         for (var i = 0; i < sides; i++) {
-            var a = 2 * Math.PI * i / sides + halfwedge;
+            var a = -2 * Math.PI * i / sides + halfwedge;
             var x = formatFloat(radius * Math.sin(a));
             var y = formatFloat(radius * Math.cos(a));
             points.push(new XY(x, y));
@@ -1788,6 +1788,15 @@ var Graph = (function () {
         this.nodes = this.nodes.filter(function (el) { return el !== node2; });
         return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
     };
+    Graph.prototype.removeNodeIfIsolated = function (node) {
+        if (this.edges.filter(function (edge) { return edge.nodes[0] === node || edge.nodes[1] === node; }, this).length === 0) {
+            return new GraphClean();
+        }
+        ;
+        this.nodes = this.nodes.filter(function (el) { return el !== node; });
+        this.nodeArrayDidChange();
+        return new GraphClean(1, 0);
+    };
     Graph.prototype.removeIsolatedNodes = function () {
         this.nodeArrayDidChange();
         var nodeDegree = [];
@@ -2339,7 +2348,7 @@ var PlanarGraph = (function (_super) {
         report.join(this.fragment(epsilon));
         report.join(this.cleanDuplicateNodes(epsilon));
         report.join(this.cleanGraph());
-        report.join(this.cleanAllUselessNodes());
+        report.join(this.cleanAllNodes());
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
         return report;
@@ -2383,8 +2392,8 @@ var PlanarGraph = (function (_super) {
         var endNodes = [edge.nodes[0], edge.nodes[1]];
         this.edges = this.edges.filter(function (el) { return el !== edge; });
         return new PlanarClean(0, len - this.edges.length)
-            .join(this.cleanNodeIfUseless(endNodes[0]))
-            .join(this.cleanNodeIfUseless(endNodes[1]));
+            .join(this.cleanNode(endNodes[0]))
+            .join(this.cleanNode(endNodes[1]));
     };
     PlanarGraph.prototype.removeEdgeBetween = function (node1, node2) {
         var len = this.edges.length;
@@ -2394,19 +2403,10 @@ var PlanarGraph = (function (_super) {
         });
         this.edgeArrayDidChange();
         return new PlanarClean(0, len - this.edges.length)
-            .join(this.cleanNodeIfUseless(node1))
-            .join(this.cleanNodeIfUseless(node2));
+            .join(this.cleanNode(node1))
+            .join(this.cleanNode(node2));
     };
-    PlanarGraph.prototype.removeNodeIfIsolated = function (node) {
-        if (this.edges.filter(function (edge) { return edge.nodes[0] === node || edge.nodes[1] === node; }, this).length === 0) {
-            return new PlanarClean();
-        }
-        ;
-        this.nodes = this.nodes.filter(function (el) { return el !== node; });
-        this.nodeArrayDidChange();
-        return new PlanarClean(1, 0);
-    };
-    PlanarGraph.prototype.cleanNodeIfUseless = function (node) {
+    PlanarGraph.prototype.cleanNode = function (node) {
         var edges = this.edges.filter(function (e) { return e.nodes[0] === node || e.nodes[1] === node; }, this);
         switch (edges.length) {
             case 0:
@@ -2431,7 +2431,7 @@ var PlanarGraph = (function (_super) {
             default: return new PlanarClean();
         }
     };
-    PlanarGraph.prototype.cleanAllUselessNodes = function () {
+    PlanarGraph.prototype.cleanAllNodes = function () {
         this.nodes.forEach(function (el) { el.cache['adjE'] = []; });
         this.edges.forEach(function (el) {
             el.nodes[0].cache['adjE'].push(el);
@@ -2464,10 +2464,6 @@ var PlanarGraph = (function (_super) {
         this.nodes.forEach(function (el) { el.cache['adjE'] = undefined; });
         return report;
     };
-    PlanarGraph.prototype.mergePlanarNodes = function (node1, node2) {
-        return new PlanarClean(-1).join(this.mergeNodes(node1, node2)).duplicateNodes([new XY(node2.x, node2.y)]);
-        ;
-    };
     PlanarGraph.prototype.cleanDuplicateNodes = function (epsilon) {
         var EPSILON_HIGH = 0.00000001;
         if (epsilon == undefined) {
@@ -2491,32 +2487,12 @@ var PlanarGraph = (function (_super) {
             }, this);
         }, this);
         return mergeList
-            .map(function (el) { return this.mergePlanarNodes(el['remain'], el['remove']); }, this)
+            .map(function (el) {
+            return new PlanarClean(-1)
+                .join(this.mergeNodes(el['remain'], el['remove']))
+                .duplicateNodes([new XY(el['remove'].x, el['remove'].y)]);
+        }, this)
             .reduce(function (prev, curr) { return prev.join(curr); }, new PlanarClean());
-    };
-    PlanarGraph.prototype.bounds = function () {
-        if (this.nodes === undefined || this.nodes.length === 0) {
-            return undefined;
-        }
-        var minX = Infinity;
-        var minY = Infinity;
-        var maxX = -Infinity;
-        var maxY = -Infinity;
-        this.nodes.forEach(function (el) {
-            if (el.x > maxX) {
-                maxX = el.x;
-            }
-            if (el.x < minX) {
-                minX = el.x;
-            }
-            if (el.y > maxY) {
-                maxY = el.y;
-            }
-            if (el.y < minY) {
-                minY = el.y;
-            }
-        });
-        return new Rect(minX, minY, maxX - minX, maxY - minY);
     };
     PlanarGraph.prototype.nearest = function (a, b) {
         var point = gimme1XY(a, b);
@@ -2568,60 +2544,27 @@ var PlanarGraph = (function (_super) {
         }
         return sortedNodes.slice(0, quantity);
     };
+    PlanarGraph.prototype.nearestEdge = function (edges, a, b) {
+        var point = gimme1XY(a, b);
+        edges.map(function (edge) {
+            return { edge: edge, distance: edge.nearestPoint(point).distanceTo(point) };
+        }, this)
+            .sort(function (a, b) { return a.distance - b.distance; })
+            .slice(0);
+    };
     PlanarGraph.prototype.nearestEdges = function (quantity, a, b) {
         var point = gimme1XY(a, b);
         var sortedEdges = this.edges
             .map(function (edge) {
             return { edge: edge, distance: edge.nearestPoint(point).distanceTo(point) };
         }, this)
-            .sort(function (a, b) {
-            return a.distance - b.distance;
-        });
+            .sort(function (a, b) { return a.distance - b.distance; });
         if (quantity > sortedEdges.length) {
             return sortedEdges;
         }
         return sortedEdges.slice(0, quantity);
     };
-    PlanarGraph.prototype.nearestEdge = function (edges, a, b) {
-        var point = gimme1XY(a, b);
-        var sortedEdges = edges
-            .map(function (edge) {
-            return { edge: edge, distance: edge.nearestPoint(point).distanceTo(point) };
-        }, this)
-            .sort(function (a, b) {
-            return a.distance - b.distance;
-        });
-        return sortedEdges.slice(0);
-    };
-    PlanarGraph.prototype.getEdgeIntersections = function (epsilon) {
-        var intersections = [];
-        for (var i = 0; i < this.edges.length - 1; i++) {
-            for (var j = i + 1; j < this.edges.length; j++) {
-                var intersection = this.edges[i].intersection(this.edges[j], epsilon);
-                if (intersection != undefined) {
-                    var copy = false;
-                    for (var k = 0; k < intersections.length; k++) {
-                        if (intersection.equivalent(intersections[k], epsilon)) {
-                            copy = true;
-                            break;
-                        }
-                    }
-                    if (!copy) {
-                        intersections.push(intersection);
-                    }
-                }
-            }
-        }
-        return intersections;
-    };
-    PlanarGraph.prototype.faceContainingPoint = function (point) {
-        for (var f = 0; f < this.faces.length; f++) {
-            if (this.faces[f].contains(point)) {
-                return this.faces[f];
-            }
-        }
-    };
-    PlanarGraph.prototype.edgeConnectingPoints = function (a, b, c, d) {
+    PlanarGraph.prototype.nearestEdgeConnectingPoints = function (a, b, c, d) {
         var p = gimme2XY(a, b, c, d);
         if (p === undefined) {
             return;
@@ -2649,6 +2592,55 @@ var PlanarGraph = (function (_super) {
                 }
             }
         }
+    };
+    PlanarGraph.prototype.faceContainingPoint = function (point) {
+        for (var f = 0; f < this.faces.length; f++) {
+            if (this.faces[f].contains(point)) {
+                return this.faces[f];
+            }
+        }
+    };
+    PlanarGraph.prototype.bounds = function () {
+        if (this.nodes === undefined || this.nodes.length === 0) {
+            return undefined;
+        }
+        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        this.nodes.forEach(function (el) {
+            if (el.x > maxX) {
+                maxX = el.x;
+            }
+            if (el.x < minX) {
+                minX = el.x;
+            }
+            if (el.y > maxY) {
+                maxY = el.y;
+            }
+            if (el.y < minY) {
+                minY = el.y;
+            }
+        });
+        return new Rect(minX, minY, maxX - minX, maxY - minY);
+    };
+    PlanarGraph.prototype.getEdgeIntersections = function (epsilon) {
+        var intersections = [];
+        for (var i = 0; i < this.edges.length - 1; i++) {
+            for (var j = i + 1; j < this.edges.length; j++) {
+                var intersection = this.edges[i].intersection(this.edges[j], epsilon);
+                if (intersection != undefined) {
+                    var copy = false;
+                    for (var k = 0; k < intersections.length; k++) {
+                        if (intersection.equivalent(intersections[k], epsilon)) {
+                            copy = true;
+                            break;
+                        }
+                    }
+                    if (!copy) {
+                        intersections.push(intersection);
+                    }
+                }
+            }
+        }
+        return intersections;
     };
     PlanarGraph.prototype.generateJunctions = function () {
         this.junctions = this.nodes
@@ -2894,6 +2886,8 @@ var PlanarGraph = (function (_super) {
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
         this.faceArrayDidChange();
+        this.sectorArrayDidChange();
+        this.junctionArrayDidChange();
         var g = new PlanarGraph();
         for (var i = 0; i < this.nodes.length; i++) {
             var n = g.addNode(new PlanarNode(g));
@@ -2922,6 +2916,19 @@ var PlanarGraph = (function (_super) {
             f.index = i;
             g.faces.push(f);
         }
+        g.sectors = this.sectors.map(function (sector, i) {
+            var gSecEdges = sector.edges.map(function (edge) { return g.edges[edge.index]; }, this);
+            return new PlanarSector(gSecEdges[0], gSecEdges[1]);
+        }, this);
+        g.sectorArrayDidChange();
+        g.junctions = this.junctions.map(function (junction, i) {
+            var j = new PlanarJunction(undefined);
+            j.origin = g.nodes[junction.origin.index];
+            j.sectors = junction.sectors.map(function (sector) { return g.sectors[sector.index]; }, this);
+            j.edges = junction.edges.map(function (edge) { return g.edges[edge.index]; }, this);
+            return j;
+        }, this);
+        g.junctionArrayDidChange();
         return g;
     };
     PlanarGraph.prototype.polylines = function () {
@@ -3587,7 +3594,7 @@ var CreasePattern = (function (_super) {
             return this.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y);
         }, this);
     };
-    CreasePattern.prototype.coolPleat = function (one, two, count) {
+    CreasePattern.prototype.glitchPleat = function (one, two, count) {
         var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
         var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
         var u = a.nodes[0].subtract(a.nodes[1]);
@@ -3769,7 +3776,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.noBoundary = function () {
         this.boundary.edges = [];
         this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        this.cleanAllUselessNodes();
+        this.cleanAllNodes();
         this.flatten();
         return this;
     };
@@ -3788,7 +3795,7 @@ var CreasePattern = (function (_super) {
         }
         console.log(this.boundary);
         this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        this.cleanAllUselessNodes();
+        this.cleanAllNodes();
         this.boundary.edges.forEach(function (el) {
             console.log("creasing boundary edge ");
             console.log(el);
@@ -3796,14 +3803,13 @@ var CreasePattern = (function (_super) {
         }, this);
         this.cleanDuplicateNodes();
         this.flatten();
+        this.clean();
         return this;
     };
     CreasePattern.prototype.setMinRectBoundary = function () {
         this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        var xMin = Infinity;
-        var xMax = 0;
-        var yMin = Infinity;
-        var yMax = 0;
+        var xMin = Infinity, yMin = Infinity;
+        var xMax = 0, yMax = 0;
         for (var i = 0; i < this.nodes.length; i++) {
             if (this.nodes[i].x > xMax) {
                 xMax = this.nodes[i].x;
@@ -3895,7 +3901,7 @@ var CreasePattern = (function (_super) {
         var copyCP = this.copy().removeAllMarks();
         if (face == undefined) {
             var bounds = copyCP.bounds();
-            face = copyCP.nearest(bounds.size.width * 0.5, bounds.size.height * 0.5).face;
+            face = copyCP.nearest(bounds.origin.x + bounds.size.width * 0.5, bounds.origin.y + bounds.size.height * 0.5).face;
         }
         if (face === undefined) {
             return;
@@ -3972,7 +3978,9 @@ var CreasePattern = (function (_super) {
         file["file_creator"] = "crease pattern Javascript library by Robby Kraft";
         file["file_author"] = "";
         file["file_classes"] = ["singleModel"];
-        file["vertices_coords"] = this.nodes.map(function (node) { return [node.x, node.y]; }, this);
+        file["vertices_coords"] = this.nodes.map(function (node) {
+            return [this.numStrNum(node.x, 12), this.numStrNum(node.y, 12)];
+        }, this);
         file["faces_vertices"] = this.faces.map(function (face) {
             return face.nodes.map(function (node) { return node.index; }, this);
         }, this);
@@ -4046,6 +4054,12 @@ var CreasePattern = (function (_super) {
             return num.toString();
         }
         return parseFloat(num.toFixed(decimalPlaces)).toString();
+    };
+    CreasePattern.prototype.numStrNum = function (num, decimalPlaces) {
+        if (Math.floor(num) == num || decimalPlaces == undefined) {
+            return num;
+        }
+        return parseFloat(num.toFixed(decimalPlaces));
     };
     CreasePattern.prototype.exportSVG = function (size) {
         if (size === undefined || size <= 0) {
@@ -4130,13 +4144,13 @@ var CreasePattern = (function (_super) {
         return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.4142135623730955, 0], [1, 0.5857864376269045]], "faces_vertices": [[2, 3, 5], [3, 0, 4], [3, 1, 5], [1, 3, 4]], "edges_vertices": [[2, 3], [3, 0], [3, 1], [3, 4], [0, 4], [4, 1], [3, 5], [1, 5], [5, 2]], "edges_assignment": ["B", "B", "V", "M", "B", "B", "M", "B", "B"] });
     };
     CreasePattern.prototype.fishBase = function () {
-        return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.29289321881345254, 0.29289321881345254], [0.7071067811865475, 0.7071067811865475], [0.29289321881345254, 0], [1, 0.7071067811865475]], "faces_vertices": [[2, 3, 5], [3, 0, 4], [3, 1, 5], [1, 3, 4], [4, 0, 6], [1, 4, 6], [5, 1, 7], [2, 5, 7]], "edges_vertices": [[2, 3], [3, 0], [3, 1], [0, 4], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 6], [0, 6], [6, 1], [5, 7], [1, 7], [7, 2]], "edges_assignment": ["B", "B", "V", "M", "M", "M", "M", "M", "M", "V", "B", "B", "V", "B", "B"] });
+        return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.292893218813, 0.292893218813], [0.707106781187, 0.707106781187], [0.292893218813, 0], [1, 0.707106781187]], "faces_vertices": [[2, 3, 5], [3, 0, 4], [3, 1, 5], [1, 3, 4], [4, 0, 6], [1, 4, 6], [5, 1, 7], [2, 5, 7]], "edges_vertices": [[2, 3], [3, 0], [3, 1], [0, 4], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 6], [0, 6], [6, 1], [5, 7], [1, 7], [7, 2]], "edges_assignment": ["B", "B", "V", "M", "M", "M", "M", "M", "M", "V", "B", "B", "V", "B", "B"] });
     };
     CreasePattern.prototype.birdBase = function () {
-        return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5], [0.20710678118654763, 0.5], [0.5, 0.20710678118654763], [0.7928932188134523, 0.5], [0.5, 0.7928932188134523], [0, 0.5], [0.5, 0], [1, 0.5], [0.5, 1], [0.35355339059327373, 0.6464466094067263], [0.6464466094067263, 0.6464466094067263], [0.6464466094067263, 0.35355339059327373], [0.35355339059327373, 0.35355339059327373]], "faces_vertices": [[3, 5, 13], [5, 3, 9], [0, 5, 9], [5, 0, 16], [4, 5, 16], [5, 4, 13], [0, 6, 16], [6, 0, 10], [1, 6, 10], [6, 1, 15], [4, 6, 15], [6, 4, 16], [1, 7, 15], [7, 1, 11], [2, 7, 11], [7, 2, 14], [4, 7, 14], [7, 4, 15], [2, 8, 14], [8, 2, 12], [3, 8, 12], [8, 3, 13], [4, 8, 13], [8, 4, 14]], "edges_vertices": [[3, 5], [0, 5], [4, 5], [0, 6], [1, 6], [4, 6], [1, 7], [2, 7], [4, 7], [2, 8], [3, 8], [4, 8], [5, 9], [0, 9], [9, 3], [6, 10], [0, 10], [10, 1], [7, 11], [1, 11], [11, 2], [8, 12], [3, 12], [12, 2], [5, 13], [13, 8], [13, 4], [3, 13], [8, 14], [14, 7], [4, 14], [14, 2], [7, 15], [15, 6], [4, 15], [15, 1], [6, 16], [16, 5], [0, 16], [16, 4]], "edges_assignment": ["M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "F", "F", "V", "V", "F", "F", "V", "V", "F", "F", "M", "M", "F", "F", "V", "V"] });
+        return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5], [0.207106781187, 0.5], [0.5, 0.207106781187], [0.792893218813, 0.5], [0.5, 0.792893218813], [0.353553390593, 0.646446609407], [0.646446609407, 0.646446609407], [0.646446609407, 0.353553390593], [0.353553390593, 0.353553390593], [0, 0.5], [0.5, 0], [1, 0.5], [0.5, 1]], "faces_vertices": [[3, 5, 9], [5, 3, 13], [0, 5, 13], [5, 0, 12], [4, 5, 12], [5, 4, 9], [0, 6, 12], [6, 0, 14], [1, 6, 14], [6, 1, 11], [4, 6, 11], [6, 4, 12], [1, 7, 11], [7, 1, 15], [2, 7, 15], [7, 2, 10], [4, 7, 10], [7, 4, 11], [2, 8, 10], [8, 2, 16], [3, 8, 16], [8, 3, 9], [4, 8, 9], [8, 4, 10]], "edges_vertices": [[3, 5], [0, 5], [4, 5], [0, 6], [1, 6], [4, 6], [1, 7], [2, 7], [4, 7], [2, 8], [3, 8], [4, 8], [5, 9], [9, 8], [9, 4], [3, 9], [8, 10], [10, 7], [4, 10], [10, 2], [7, 11], [11, 6], [4, 11], [11, 1], [6, 12], [12, 5], [0, 12], [12, 4], [5, 13], [0, 13], [13, 3], [6, 14], [0, 14], [14, 1], [7, 15], [1, 15], [15, 2], [8, 16], [3, 16], [16, 2]], "edges_assignment": ["M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "F", "F", "V", "V", "F", "F", "V", "V", "F", "F", "M", "M", "F", "F", "V", "V", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B"] });
     };
     CreasePattern.prototype.frogBase = function () {
-        return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5], [0, 0.5], [0.5, 0], [1, 0.5], [0.5, 1], [0.14644660940672627, 0.35355339059327373], [0.35355339059327373, 0.14644660940672627], [0.6464466094067262, 0.14644660940672627], [0.8535533905932737, 0.35355339059327373], [0.8535533905932736, 0.6464466094067262], [0.6464466094067262, 0.8535533905932737], [0.35355339059327373, 0.8535533905932736], [0.14644660940672627, 0.6464466094067262], [0, 0.35355339059327373], [0, 0.6464466094067262], [0.35355339059327373, 0], [0.6464466094067262, 0], [1, 0.35355339059327373], [1, 0.6464466094067262], [0.6464466094067262, 1], [0.35355339059327373, 1]], "faces_vertices": [[0, 4, 9], [4, 0, 10], [4, 2, 14], [2, 4, 13], [3, 4, 15], [4, 3, 16], [4, 1, 12], [1, 4, 11], [4, 5, 9], [5, 4, 16], [4, 6, 11], [6, 4, 10], [4, 7, 13], [7, 4, 12], [4, 8, 15], [8, 4, 14], [0, 9, 17], [9, 5, 17], [10, 0, 19], [6, 10, 19], [1, 11, 20], [11, 6, 20], [12, 1, 21], [7, 12, 21], [2, 13, 22], [13, 7, 22], [14, 2, 23], [8, 14, 23], [3, 15, 24], [15, 8, 24], [16, 3, 18], [5, 16, 18]], "edges_vertices": [[0, 4], [4, 2], [3, 4], [4, 1], [4, 5], [4, 6], [4, 7], [4, 8], [0, 9], [4, 9], [5, 9], [4, 10], [0, 10], [6, 10], [1, 11], [4, 11], [6, 11], [4, 12], [1, 12], [7, 12], [2, 13], [4, 13], [7, 13], [4, 14], [2, 14], [8, 14], [3, 15], [4, 15], [8, 15], [4, 16], [3, 16], [5, 16], [9, 17], [0, 17], [17, 5], [16, 18], [5, 18], [18, 3], [10, 19], [0, 19], [19, 6], [11, 20], [6, 20], [20, 1], [12, 21], [1, 21], [21, 7], [13, 22], [7, 22], [22, 2], [14, 23], [8, 23], [23, 2], [15, 24], [3, 24], [24, 8]], "edges_assignment": ["V", "V", "V", "M", "V", "V", "V", "V", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B"] });
+        return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5], [0, 0.5], [0.5, 0], [1, 0.5], [0.5, 1], [0.146446609407, 0.353553390593], [0.353553390593, 0.146446609407], [0.646446609407, 0.146446609407], [0.853553390593, 0.353553390593], [0.853553390593, 0.646446609407], [0.646446609407, 0.853553390593], [0.353553390593, 0.853553390593], [0.146446609407, 0.646446609407], [0, 0.353553390593], [0, 0.646446609407], [0.353553390593, 0], [0.646446609407, 0], [1, 0.353553390593], [1, 0.646446609407], [0.646446609407, 1], [0.353553390593, 1]], "faces_vertices": [[0, 4, 9], [4, 0, 10], [4, 2, 14], [2, 4, 13], [3, 4, 15], [4, 3, 16], [4, 1, 12], [1, 4, 11], [4, 5, 9], [5, 4, 16], [4, 6, 11], [6, 4, 10], [4, 7, 13], [7, 4, 12], [4, 8, 15], [8, 4, 14], [0, 9, 17], [9, 5, 17], [10, 0, 19], [6, 10, 19], [1, 11, 20], [11, 6, 20], [12, 1, 21], [7, 12, 21], [2, 13, 22], [13, 7, 22], [14, 2, 23], [8, 14, 23], [3, 15, 24], [15, 8, 24], [16, 3, 18], [5, 16, 18]], "edges_vertices": [[0, 4], [4, 2], [3, 4], [4, 1], [4, 5], [4, 6], [4, 7], [4, 8], [0, 9], [4, 9], [5, 9], [4, 10], [0, 10], [6, 10], [1, 11], [4, 11], [6, 11], [4, 12], [1, 12], [7, 12], [2, 13], [4, 13], [7, 13], [4, 14], [2, 14], [8, 14], [3, 15], [4, 15], [8, 15], [4, 16], [3, 16], [5, 16], [9, 17], [0, 17], [17, 5], [16, 18], [5, 18], [18, 3], [10, 19], [0, 19], [19, 6], [11, 20], [6, 20], [20, 1], [12, 21], [1, 21], [21, 7], [13, 22], [7, 22], [22, 2], [14, 23], [8, 23], [23, 2], [15, 24], [3, 24], [24, 8]], "edges_assignment": ["V", "V", "V", "M", "V", "V", "V", "V", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B"] });
     };
     CreasePattern.prototype.copy = function () {
         this.nodeArrayDidChange();

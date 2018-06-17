@@ -205,7 +205,6 @@ class CreaseSector extends PlanarSector{
 			return new CPRay(<CreasePattern>this.origin.graph, solution);
 		}
 	}
-
 }
 class CreaseJunction extends PlanarJunction{
 
@@ -635,7 +634,7 @@ class CreasePattern extends PlanarGraph{
 			},this);
 	}
 
-	coolPleat(one:Crease, two:Crease, count:number):Crease[]{
+	glitchPleat(one:Crease, two:Crease, count:number):Crease[]{
 		var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
 		var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
 		var u = a.nodes[0].subtract(a.nodes[1]);
@@ -916,7 +915,7 @@ class CreasePattern extends PlanarGraph{
 		// clear old data
 		this.boundary.edges = [];
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		this.cleanAllUselessNodes();
+		this.cleanAllNodes();
 		this.flatten();
 		return this;
 	}
@@ -934,7 +933,7 @@ class CreasePattern extends PlanarGraph{
 		}
 		console.log(this.boundary);
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		this.cleanAllUselessNodes();
+		this.cleanAllNodes();
 		this.boundary.edges.forEach(function(el){
 			console.log("creasing boundary edge ");
 			console.log(el);
@@ -942,15 +941,14 @@ class CreasePattern extends PlanarGraph{
 		},this);
 		this.cleanDuplicateNodes();
 		this.flatten();
+		this.clean();
 		return this;
 	}
 
 	setMinRectBoundary():CreasePattern{
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		var xMin = Infinity;
-		var xMax = 0;
-		var yMin = Infinity;
-		var yMax = 0;
+		var xMin = Infinity, yMin = Infinity;
+		var xMax = 0, yMax = 0;
 		for(var i = 0; i < this.nodes.length; i++){ 
 			if(this.nodes[i].x > xMax){ xMax = this.nodes[i].x; }
 			if(this.nodes[i].x < xMin){ xMin = this.nodes[i].x; }
@@ -1056,7 +1054,8 @@ class CreasePattern extends PlanarGraph{
 		var copyCP = this.copy().removeAllMarks();
 		if(face == undefined){
 			var bounds = copyCP.bounds();
-			face = copyCP.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
+			face = copyCP.nearest(bounds.origin.x + bounds.size.width * 0.5,
+			                      bounds.origin.y + bounds.size.height*0.5).face;
 		}
 		if(face === undefined){ return; }
 		var tree = face.adjacentFaceTree();
@@ -1137,7 +1136,9 @@ class CreasePattern extends PlanarGraph{
 		file["file_creator"] = "crease pattern Javascript library by Robby Kraft";
 		file["file_author"] = "";
 		file["file_classes"] = ["singleModel"];
-		file["vertices_coords"] = this.nodes.map(function(node){ return [node.x,node.y]; },this);
+		file["vertices_coords"] = this.nodes.map(function(node){
+			return [this.numStrNum(node.x, 12),this.numStrNum(node.y, 12)];
+		},this);
 		file["faces_vertices"] = this.faces.map(function(face){
 			return face.nodes.map(function(node){ return node.index; },this);
 		},this);
@@ -1224,9 +1225,14 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 
-	strNum(num:number, decimalPlaces?:number){
+	strNum(num:number, decimalPlaces?:number):string{
 		if(Math.floor(num) == num || decimalPlaces == undefined){ return num.toString(); }
 		return parseFloat(num.toFixed(decimalPlaces)).toString();
+	}
+
+	numStrNum(num:number, decimalPlaces?:number):number{
+		if(Math.floor(num) == num || decimalPlaces == undefined){ return num; }
+		return parseFloat(num.toFixed(decimalPlaces));
 	}
 
 	exportSVG(size?:number):string{
@@ -1314,15 +1320,14 @@ class CreasePattern extends PlanarGraph{
 		return this.importFoldFile({"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[0.4142135623730955,0],[1,0.5857864376269045]],"faces_vertices":[[2,3,5],[3,0,4],[3,1,5],[1,3,4]],"edges_vertices":[[2,3],[3,0],[3,1],[3,4],[0,4],[4,1],[3,5],[1,5],[5,2]],"edges_assignment":["B","B","V","M","B","B","M","B","B"]});
 	}
 	fishBase():CreasePattern{
-		return this.importFoldFile({"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[0.29289321881345254,0.29289321881345254],[0.7071067811865475,0.7071067811865475],[0.29289321881345254,0],[1,0.7071067811865475]],"faces_vertices":[[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],"edges_vertices":[[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],"edges_assignment":["B","B","V","M","M","M","M","M","M","V","B","B","V","B","B"]});
+		return this.importFoldFile({"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[0.292893218813,0.292893218813],[0.707106781187,0.707106781187],[0.292893218813,0],[1,0.707106781187]],"faces_vertices":[[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],"edges_vertices":[[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],"edges_assignment":["B","B","V","M","M","M","M","M","M","V","B","B","V","B","B"]});
 	}
 	birdBase():CreasePattern{
-		return this.importFoldFile({"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.20710678118654763,0.5],[0.5,0.20710678118654763],[0.7928932188134523,0.5],[0.5,0.7928932188134523],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.35355339059327373,0.6464466094067263],[0.6464466094067263,0.6464466094067263],[0.6464466094067263,0.35355339059327373],[0.35355339059327373,0.35355339059327373]],"faces_vertices":[[3,5,13],[5,3,9],[0,5,9],[5,0,16],[4,5,16],[5,4,13],[0,6,16],[6,0,10],[1,6,10],[6,1,15],[4,6,15],[6,4,16],[1,7,15],[7,1,11],[2,7,11],[7,2,14],[4,7,14],[7,4,15],[2,8,14],[8,2,12],[3,8,12],[8,3,13],[4,8,13],[8,4,14]],"edges_vertices":[[3,5],[0,5],[4,5],[0,6],[1,6],[4,6],[1,7],[2,7],[4,7],[2,8],[3,8],[4,8],[5,9],[0,9],[9,3],[6,10],[0,10],[10,1],[7,11],[1,11],[11,2],[8,12],[3,12],[12,2],[5,13],[13,8],[13,4],[3,13],[8,14],[14,7],[4,14],[14,2],[7,15],[15,6],[4,15],[15,1],[6,16],[16,5],[0,16],[16,4]],"edges_assignment":["M","M","M","M","M","M","M","M","M","M","M","M","V","B","B","V","B","B","V","B","B","V","B","B","F","F","V","V","F","F","V","V","F","F","M","M","F","F","V","V"]});
+		return this.importFoldFile({"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.207106781187,0.5],[0.5,0.207106781187],[0.792893218813,0.5],[0.5,0.792893218813],[0.353553390593,0.646446609407],[0.646446609407,0.646446609407],[0.646446609407,0.353553390593],[0.353553390593,0.353553390593],[0,0.5],[0.5,0],[1,0.5],[0.5,1]],"faces_vertices":[[3,5,9],[5,3,13],[0,5,13],[5,0,12],[4,5,12],[5,4,9],[0,6,12],[6,0,14],[1,6,14],[6,1,11],[4,6,11],[6,4,12],[1,7,11],[7,1,15],[2,7,15],[7,2,10],[4,7,10],[7,4,11],[2,8,10],[8,2,16],[3,8,16],[8,3,9],[4,8,9],[8,4,10]],"edges_vertices":[[3,5],[0,5],[4,5],[0,6],[1,6],[4,6],[1,7],[2,7],[4,7],[2,8],[3,8],[4,8],[5,9],[9,8],[9,4],[3,9],[8,10],[10,7],[4,10],[10,2],[7,11],[11,6],[4,11],[11,1],[6,12],[12,5],[0,12],[12,4],[5,13],[0,13],[13,3],[6,14],[0,14],[14,1],[7,15],[1,15],[15,2],[8,16],[3,16],[16,2]],"edges_assignment":["M","M","M","M","M","M","M","M","M","M","M","M","F","F","V","V","F","F","V","V","F","F","M","M","F","F","V","V","V","B","B","V","B","B","V","B","B","V","B","B"]});
 	}
 	frogBase():CreasePattern{
-		return this.importFoldFile({"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.14644660940672627,0.35355339059327373],[0.35355339059327373,0.14644660940672627],[0.6464466094067262,0.14644660940672627],[0.8535533905932737,0.35355339059327373],[0.8535533905932736,0.6464466094067262],[0.6464466094067262,0.8535533905932737],[0.35355339059327373,0.8535533905932736],[0.14644660940672627,0.6464466094067262],[0,0.35355339059327373],[0,0.6464466094067262],[0.35355339059327373,0],[0.6464466094067262,0],[1,0.35355339059327373],[1,0.6464466094067262],[0.6464466094067262,1],[0.35355339059327373,1]],"faces_vertices":[[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],"edges_vertices":[[0,4],[4,2],[3,4],[4,1],[4,5],[4,6],[4,7],[4,8],[0,9],[4,9],[5,9],[4,10],[0,10],[6,10],[1,11],[4,11],[6,11],[4,12],[1,12],[7,12],[2,13],[4,13],[7,13],[4,14],[2,14],[8,14],[3,15],[4,15],[8,15],[4,16],[3,16],[5,16],[9,17],[0,17],[17,5],[16,18],[5,18],[18,3],[10,19],[0,19],[19,6],[11,20],[6,20],[20,1],[12,21],[1,21],[21,7],[13,22],[7,22],[22,2],[14,23],[8,23],[23,2],[15,24],[3,24],[24,8]],"edges_assignment":["V","V","V","M","V","V","V","V","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","V","B","B","V","B","B","V","B","B","V","B","B","V","B","B","V","B","B","V","B","B","V","B","B"]})
+		return this.importFoldFile({"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609407,0.353553390593],[0.353553390593,0.146446609407],[0.646446609407,0.146446609407],[0.853553390593,0.353553390593],[0.853553390593,0.646446609407],[0.646446609407,0.853553390593],[0.353553390593,0.853553390593],[0.146446609407,0.646446609407],[0,0.353553390593],[0,0.646446609407],[0.353553390593,0],[0.646446609407,0],[1,0.353553390593],[1,0.646446609407],[0.646446609407,1],[0.353553390593,1]],"faces_vertices":[[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],"edges_vertices":[[0,4],[4,2],[3,4],[4,1],[4,5],[4,6],[4,7],[4,8],[0,9],[4,9],[5,9],[4,10],[0,10],[6,10],[1,11],[4,11],[6,11],[4,12],[1,12],[7,12],[2,13],[4,13],[7,13],[4,14],[2,14],[8,14],[3,15],[4,15],[8,15],[4,16],[3,16],[5,16],[9,17],[0,17],[17,5],[16,18],[5,18],[18,3],[10,19],[0,19],[19,6],[11,20],[6,20],[20,1],[12,21],[1,21],[21,7],[13,22],[7,22],[22,2],[14,23],[8,23],[23,2],[15,24],[3,24],[24,8]],"edges_assignment":["V","V","V","M","V","V","V","V","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","V","B","B","V","B","B","V","B","B","V","B","B","V","B","B","V","B","B","V","B","B","V","B","B"]});
 	}
-
 
 	/** This will deep-copy the contents of this graph and return it as a new object
 	 * @returns {CreasePattern} 

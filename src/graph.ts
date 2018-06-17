@@ -426,6 +426,16 @@ class Graph{
 		return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
 	}
 
+	/** Check if a node is isolated and remove it if so
+	 * @returns {GraphClean} the number of nodes removed
+	 */
+	removeNodeIfIsolated(node:GraphNode):GraphClean{
+		if(this.edges.filter(function(edge){return edge.nodes[0]===node||edge.nodes[1]===node;},this).length === 0){ return new GraphClean(); };
+		this.nodes = this.nodes.filter(function(el){ return el !== node; });
+		this.nodeArrayDidChange();
+		return new GraphClean(1, 0);
+	}
+
 	///////////////////////////////////////////////
 	// REMOVE PARTS (SEARCH REQUIRED TO LOCATE)
 	///////////////////////////////////////////////
