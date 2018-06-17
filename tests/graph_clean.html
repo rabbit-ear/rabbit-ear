@@ -39,7 +39,7 @@ for(var i = 0; i < graph.edges.length; i++){
 document.body.innerHTML += edgeString;
 
 //////////////////
-var cleanReport = graph.cleanDuplicateEdges();
+var cleanReport = graph.removeDuplicateEdges();
 
 document.body.innerHTML += "<hr>";
 document.body.innerHTML += "<h1>Clean Duplicate Edges</h1>";
@@ -58,7 +58,7 @@ for(var i = 0; i < graph.edges.length; i++){
 document.body.innerHTML += edgeString;
 
 //////////////////
-var cleanReport = graph.cleanCircularEdges();
+var cleanReport = graph.removeCircularEdges();
 
 document.body.innerHTML += "<hr>";
 document.body.innerHTML += "<h1>Clean Circular Edges</h1>";
@@ -98,7 +98,7 @@ for(var i = 0; i < graph.edges.length; i++){
 document.body.innerHTML += edgeString;
 
 document.body.innerHTML += "<hr>";
-document.body.innerHTML += "Calling graph.clean() subsequently calls cleanDuplicateEdges() and cleanCircularEdges(), but not removeIsolatedNodes(). It leaves the nodes alone.";
+document.body.innerHTML += "Calling graph.clean() subsequently calls removeDuplicateEdges() and removeCircularEdges(), but not removeIsolatedNodes(). It leaves the nodes alone.";
 
 </script>
 </html>

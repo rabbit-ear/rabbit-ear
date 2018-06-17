@@ -457,10 +457,10 @@ class Graph{
 	/** Remove all edges that contain the same node at both ends
 	 * @returns {GraphClean} the number of edges removed
 	 * @example 
-	 * var result = graph.cleanCircularEdges()
+	 * var result = graph.removeCircularEdges()
 	 * // result.edges will be >= 0
 	 */
-	cleanCircularEdges():GraphClean{
+	removeCircularEdges():GraphClean{
 		var edgesLength = this.edges.length;
 		this.edges = this.edges.filter(function(el){ return el.nodes[0] !== el.nodes[1]; });
 		if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
@@ -470,10 +470,10 @@ class Graph{
 	/** Remove edges that are similar to another edge
 	 * @returns {GraphClean} the number of edges removed
 	 * @example 
-	 * var result = graph.cleanDuplicateEdges()
+	 * var result = graph.removeDuplicateEdges()
 	 * // result.edges will be >= 0
 	 */
-	cleanDuplicateEdges():GraphClean{
+	removeDuplicateEdges():GraphClean{
 		var count = 0;
 		for(var i = 0; i < this.edges.length-1; i++){
 			for(var j = this.edges.length-1; j > i; j--){
@@ -497,8 +497,8 @@ class Graph{
 		this.edgeArrayDidChange();
 		this.nodeArrayDidChange();
 		// should we remove isolated nodes as a part of clean()?
-		// return this.cleanDuplicateEdges().join(this.cleanCircularEdges()).join(this.removeIsolatedNodes());
-		return this.cleanDuplicateEdges().join(this.cleanCircularEdges());
+		// return this.removeDuplicateEdges().join(this.removeCircularEdges()).join(this.removeIsolatedNodes());
+		return this.removeDuplicateEdges().join(this.removeCircularEdges());
 	}
 
 	/** Clean calls cleanGraph(), gets overwritten when subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.
@@ -507,9 +507,7 @@ class Graph{
 	 * var result = graph.clean()
 	 * // result.edges will be >= 0
 	 */
-	clean():GraphClean{
-		return this.cleanGraph();
-	}
+	clean():GraphClean{ return this.cleanGraph(); }
 
 	///////////////////////////////////////////////
 	// GET PARTS

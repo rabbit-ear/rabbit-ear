@@ -197,16 +197,12 @@ class PlanarFace extends Polygon{
 	graph:PlanarGraph;
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
-
-	angles:number[];
 	index:number;
-
 	constructor(graph:PlanarGraph){
 		super()
 		this.graph = graph;
 		this.nodes = [];
 		this.edges = [];
-		this.angles = [];
 	}
 	sectors():PlanarSector[]{
 		if(this.graph.unclean){ }
@@ -266,13 +262,17 @@ class PlanarFace extends Polygon{
 			}
 		}, this).filter(function(el){return el !== undefined;});
 	}
-	// [
-	// 	[CreaseFace]
-	// 	[CreaseFace, CreaseFace]
-	// 	[CreaseFace, CreaseFace, CreaseFace, CreaseFace]
-	// 	[CreaseFace, CreaseFace]
-	// 	[CreaseFace]
-	// ]
+	/** Assembles an array of arrays, beginning with one face, each subsequent array contains faces adjacent to the faces in the previous layer
+	 * @returns {PlanarFace[]} array of adjacent faces
+	 * @example
+	 * [
+	 * 	[CreaseFace]
+	 * 	[CreaseFace, CreaseFace]
+	 * 	[CreaseFace, CreaseFace, CreaseFace, CreaseFace]
+	 * 	[CreaseFace, CreaseFace]
+	 * 	[CreaseFace]
+	 * ]
+	 */
 	adjacentFaceArray():{"face":PlanarFace, "parent":PlanarFace}[][]{
 		if(this.graph.unclean){ this.graph.generateFaces(); } 
 		else{ this.graph.faceArrayDidChange(); }
@@ -318,7 +318,6 @@ class PlanarSector extends Sector{
 	// the indices of these 2 nodes directly correlate to 2 edges' indices
 	edges:[PlanarEdge, PlanarEdge];
 	endPoints:[PlanarNode, PlanarNode];
-
 	index:number;
 	// counter-clockwise angle from edge 0 to edge 1 is in index 0. edge 1 to 0 is in index 1
 	// constructor(origin:PlanarNode, endPoints?:[PlanarNode,PlanarNode], edges?:[PlanarEdge, PlanarEdge]){
@@ -341,7 +340,6 @@ class PlanarSector extends Sector{
 }
 /** Planar junctions mark intersections between edges */
 class PlanarJunction{
-
 	origin:PlanarNode;
 	// sectors and edges are sorted counter-clockwise
 	sectors:PlanarSector[];
@@ -363,7 +361,6 @@ class PlanarJunction{
 			return new this.origin.graph.sectorType(el, this.edges[(i+1)%this.edges.length]);
 		},this);
 	}
-
 	/** Returns an array of nodes, the endpoints of the junctions edges, sorted counter-clockwise.
 	 * @returns {PlanarNode[]} array of nodes
 	 * @example
@@ -444,7 +441,6 @@ class PlanarJunction{
 }
 /** A planar graph is a set of nodes in 2D space, edges connecting them */
 class PlanarGraph extends Graph{
-
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
 	faces:PlanarFace[];
@@ -456,7 +452,7 @@ class PlanarGraph extends Graph{
 	faceType = PlanarFace;
 	sectorType = PlanarSector;
 	junctionType = PlanarJunction;
-	// if nodes have been moved, it's possible for edges to overlap. re-require call to flatten()
+	// if nodes have been moved, it's possible for edges to overlap. this signals requiring a call to flatten()
 	unclean:boolean;
 	// not using these yet
 	didChange:(event:object)=>void;
@@ -467,7 +463,6 @@ class PlanarGraph extends Graph{
 	 * @returns {object} 'edges' the number of edges removed, and 'nodes' an XY location for every duplicate node merging
 	 */
 	clean(epsilon?:number):PlanarClean{
-		// console.time("clean");
 		var report = new PlanarClean();
 		report.join( this.cleanDuplicateNodes(epsilon) );
 		this.fragmentCollinearNodes(epsilon);
@@ -478,17 +473,14 @@ class PlanarGraph extends Graph{
 		report.join( this.cleanAllUselessNodes() );
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
-		// console.timeEnd("clean");
 		return report;
 	}
 
 	flatten(epsilon?:number):PlanarClean{
-		// console.time("flatten");
 		this.unclean = false;
 		var report = this.clean(epsilon);
 		this.generateJunctions();
 		this.generateFaces();
-		// console.timeEnd("flatten");
 		return report;
 	}
 
@@ -529,6 +521,160 @@ class PlanarGraph extends Graph{
 	}
 
 	///////////////////////////////////////////////
+	// REMOVE PARTS (TARGETS KNOWN)
+	///////////////////////////////////////////////
+
+	/** Removes all nodes, edges, and faces, returning the graph to it's original state */
+	clear():PlanarGraph{
+		this.nodes = [];
+		this.edges = [];
+		this.faces = [];
+		this.sectors = [];
+		this.junctions = [];
+		return this;
+	}
+	/** Removes an edge and also attempt to remove the two nodes left behind if they are otherwise unused
+	 * @returns {boolean} if the edge was removed
+	 */
+	removeEdge(edge:PlanarEdge):PlanarClean{
+		var len = this.edges.length;
+		var endNodes = [edge.nodes[0], edge.nodes[1]];
+		this.edges = this.edges.filter(function(el){ return el !== edge; });
+		return new PlanarClean(0, len - this.edges.length)
+			.join(this.cleanNodeIfUseless(endNodes[0]))
+			.join(this.cleanNodeIfUseless(endNodes[1]))
+	}
+	/** Attempt to remove an edge if one is found that connects the 2 nodes supplied, and also attempt to remove the two nodes left behind if they are otherwise unused
+	 * @returns {number} how many edges were removed
+	 */
+	removeEdgeBetween(node1:PlanarNode, node2:PlanarNode):PlanarClean{
+		var len = this.edges.length;
+		this.edges = this.edges.filter(function(el){ 
+			return !((el.nodes[0]===node1&&el.nodes[1]===node2) ||
+					 (el.nodes[0]===node2&&el.nodes[1]===node1) );
+		});
+		this.edgeArrayDidChange();
+		return new PlanarClean(0, len - this.edges.length)
+			.join(this.cleanNodeIfUseless(node1))
+			.join(this.cleanNodeIfUseless(node2));
+	}
+
+	removeNodeIfIsolated(node:PlanarNode):PlanarClean{
+		if(this.edges.filter(function(edge){return edge.nodes[0]===node||edge.nodes[1]===node;},this).length === 0){ return new PlanarClean(); };
+		this.nodes = this.nodes.filter(function(el){ return el !== node; });
+		this.nodeArrayDidChange();
+		return new PlanarClean(1, 0);
+	}
+
+	/** Remove a node if it is either unconnected to any edges, or is in the middle of 2 collinear edges
+	 * @returns {number} how many nodes were removed
+	 */
+	cleanNodeIfUseless(node:PlanarNode):PlanarClean{
+		var edges = this.edges.filter(function(e){return e.nodes[0]===node||e.nodes[1]===node;},this);
+		switch (edges.length){
+			case 0:  // remove isolated node
+				this.nodes = this.nodes.filter(function(el){ return el !== node; });
+				this.nodeArrayDidChange();
+				return new PlanarClean(1, 0);
+			case 2:  // remove collinear node between two edges. merge two edges into one
+				var farNodes = [<PlanarNode>(edges[0].uncommonNodeWithEdge(edges[1])), 
+								<PlanarNode>(edges[1].uncommonNodeWithEdge(edges[0]))];
+				if(farNodes[0] === undefined || farNodes[1] === undefined){ return new PlanarClean(); }
+				var span = new Edge(farNodes[0].x, farNodes[0].y, farNodes[1].x, farNodes[1].y);
+				if(span.collinear(node)){
+					edges[0].nodes = [farNodes[0], farNodes[1]];
+					this.edges = this.edges.filter(function(el){ return el !== edges[1]; });
+					this.nodes = this.nodes.filter(function(el){ return el !== node; });
+					this.nodeArrayDidChange();
+					this.edgeArrayDidChange();
+					return new PlanarClean(1, 1);
+				}
+			default: return new PlanarClean();
+		}
+	}
+
+	///////////////////////////////////////////////
+	// REMOVE PARTS (SEARCH REQUIRED TO LOCATE)
+	///////////////////////////////////////////////
+
+	/** Removes all isolated nodes and performs cleanNodeIfUseless() on every node
+	 * @returns {PlanarClean} how many nodes were removed
+	 */
+	cleanAllUselessNodes():PlanarClean{
+		// console.time("cleanAllUselessNodes");
+		// console.log("cleanAllUselessNodes");
+		// prepare adjacency information
+		this.nodes.forEach(function(el){ el.cache['adjE'] = []; });
+		this.edges.forEach(function(el){ 
+			el.nodes[0].cache['adjE'].push(el);
+			el.nodes[1].cache['adjE'].push(el);
+		});
+		var report = new PlanarClean().join( this.removeIsolatedNodes() );
+		this.nodeArrayDidChange();
+		this.edgeArrayDidChange();
+		for(var i = this.nodes.length-1; i >= 0; i--){
+			var edges = this.nodes[i].cache['adjE'];
+			switch (edges.length){
+				case 0: report.join(this.removeNode(this.nodes[i])); break;
+				case 2:
+					var farNodes = [<PlanarNode>(edges[0].uncommonNodeWithEdge(edges[1])), 
+									<PlanarNode>(edges[1].uncommonNodeWithEdge(edges[0]))]
+					var span = new Edge(farNodes[0].x, farNodes[0].y, farNodes[1].x, farNodes[1].y);
+					if(span.collinear(this.nodes[i])){
+						edges[0].nodes = [farNodes[0], farNodes[1]];
+						this.edges.splice(edges[1].index, 1);
+						this.edgeArrayDidChange();
+						this.nodes.splice(this.nodes[i].index, 1);
+						this.nodeArrayDidChange();
+						report.join( new PlanarClean(1, 1) );
+					}
+				break;
+			}
+		}
+		this.nodes.forEach(function(el){ el.cache['adjE'] = undefined; });
+		// console.timeEnd("cleanAllUselessNodes");
+		return report;
+	}
+
+	mergePlanarNodes(node1:PlanarNode, node2:PlanarNode):PlanarClean{
+		return new PlanarClean(-1).join(this.mergeNodes(node1, node2)).duplicateNodes([new XY(node2.x, node2.y)]);;
+	}
+
+	/** Removes all nodes that lie within an epsilon distance to an existing node.
+	 * remap any compromised edges to the persisting node so no edge data gets lost
+	 * @returns {PlanarClean} how many nodes were removed
+	 */
+	cleanDuplicateNodes(epsilon?:number):PlanarClean{
+		// console.time("cleanDuplicateNodes");
+		var EPSILON_HIGH = 0.00000001;
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
+		var tree = rbush();
+		tree.load(this.nodes.map(function(el){
+			return {minX:el.x-epsilon, minY:el.y-epsilon, maxX:el.x+epsilon, maxY:el.y+epsilon,node:el};
+		}));
+		// iterate over nodes. if a node is too close to another, before removing it, make sure:
+		// - it is not in "remainList" (it needs to stay, another node is counting on being replaced for it)
+		// - the node it's attempting to be replaced by is not in "removeList"
+		var remainList = [], removeList = [];
+		var mergeList:{'remain':PlanarNode, 'remove':PlanarNode}[] = []
+		this.nodes.forEach(function(node){
+			tree.search({minX:node.x-epsilon, minY:node.y-epsilon, maxX:node.x+epsilon, maxY:node.y+epsilon})
+				.filter(function(r){ return node !== r['node']; },this)
+				.filter(function(r){ return remainList.indexOf(r['node']) == -1; },this)
+				.filter(function(r){ return removeList.indexOf(node) == -1; },this)
+				.forEach(function(r){
+					remainList.push(node);
+					removeList.push(r['node']);
+					mergeList.push({'remain':node, 'remove':r['node']});
+				},this);
+		},this);
+		// console.timeEnd("cleanDuplicateNodes");
+		return mergeList
+			.map(function(el){ return this.mergePlanarNodes(el['remain'], el['remove']); },this)
+			.reduce(function(prev,curr){ return prev.join(curr); },new PlanarClean());
+	}
+
+	///////////////////////////////////////////////
 	// GET PARTS
 	///////////////////////////////////////////////
 
@@ -556,52 +702,34 @@ class PlanarGraph extends Graph{
 	nearest(a:any,b?:any):{'node':PlanarNode,'edge':PlanarEdge,'face':PlanarFace,'junction':PlanarJunction,'sector':PlanarSector}{
 		var point = gimme1XY(a,b);
 		var face = this.faceContainingPoint(point);
-		// if(face !== undefined){
-		// 	var node:PlanarNode = face.nodes.slice().sort(function(a:PlanarNode, b:PlanarNode){
-		// 		return a.distanceTo(point) - b.distanceTo(point);
-		// 	})[0];
-		// 	var edge:PlanarEdge = face.edges.slice().sort(function(a:PlanarEdge, b:PlanarEdge){
-		// 		return a.nearestPoint(point).distanceTo(point) - b.nearestPoint(point).distanceTo(point);
-		// 	})[0];
-		// 	var junction = node.junction();
-		// 	if(junction === undefined){
-		// 		junction = this.junctions
-		// 			.map(function(el){ return {'junction':el, 'distance':point.distanceTo(el.origin)};},this)
-		// 			.sort(function(a,b){return a['distance']-b['distance'];})
-		// 			.shift()
-		// 			.junction;
-		// 	}
-		// 	var sector = face.sectors().filter(function(el){ return el.origin === node; },this).shift();
-		// } else{
-			var edgeArray = this.edges
-				.map(function(edge:PlanarEdge){
-					return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
-				},this)
-				.sort(function(a,b){
-					return a.distance - b.distance;
-				})[0];
-			var edge = (edgeArray != undefined) ? edgeArray.edge : undefined;
-			var node = (edge !== undefined) ? edge.nodes
-				.slice().sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);}).shift() : undefined;
-			if(node == undefined){
-				var sortedNode = this.nodes
-				.map(function(el){ return {'node':el, 'distance':point.distanceTo(el)};},this)
-				.sort(function(a,b){ return a.distance - b.distance;})
+		var edgeArray = this.edges
+			.map(function(edge:PlanarEdge){
+				return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
+			},this)
+			.sort(function(a,b){
+				return a.distance - b.distance;
+			})[0];
+		var edge = (edgeArray != undefined) ? edgeArray.edge : undefined;
+		var node = (edge !== undefined) ? edge.nodes
+			.slice().sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);}).shift() : undefined;
+		if(node == undefined){
+			var sortedNode = this.nodes
+			.map(function(el){ return {'node':el, 'distance':point.distanceTo(el)};},this)
+			.sort(function(a,b){ return a.distance - b.distance;})
+			.shift();
+			node = (sortedNode != undefined) ? sortedNode['node'] : undefined;
+		}
+		var junction = (node != undefined) ? node.junction() : undefined;
+		if(junction === undefined){
+			var sortedJunction = this.junctions
+				.map(function(el){ return {'junction':el, 'distance':point.distanceTo(el.origin)};},this)
+				.sort(function(a,b){return a['distance']-b['distance'];})
 				.shift();
-				node = (sortedNode != undefined) ? sortedNode['node'] : undefined;
-			}
-			var junction = (node != undefined) ? node.junction() : undefined;
-			if(junction === undefined){
-				var sortedJunction = this.junctions
-					.map(function(el){ return {'junction':el, 'distance':point.distanceTo(el.origin)};},this)
-					.sort(function(a,b){return a['distance']-b['distance'];})
-					.shift();
-				junction = (sortedJunction !== undefined) ? sortedJunction['junction'] : undefined
-			}
-			var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
-				return el.contains(point);
-			},this).shift() : undefined;
-		// }
+			junction = (sortedJunction !== undefined) ? sortedJunction['junction'] : undefined
+		}
+		var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
+			return el.contains(point);
+		},this).shift() : undefined;
 		return {
 			'node':node,
 			'edge':edge,
@@ -705,176 +833,6 @@ class PlanarGraph extends Graph{
 			}
 		}
 	}
-	///////////////////////////////////////////////
-	// REMOVE PARTS (TARGETS KNOWN)
-	///////////////////////////////////////////////
-
-	/** Removes all nodes, edges, and faces, returning the graph to it's original state */
-	clear():PlanarGraph{
-		this.nodes = [];
-		this.edges = [];
-		this.faces = [];
-		this.sectors = [];
-		this.junctions = [];
-		return this;
-	}
-
-	/** Removes an edge and also attempt to remove the two nodes left behind if they are otherwise unused
-	 * @returns {boolean} if the edge was removed
-	 */
-	removeEdge(edge:PlanarEdge):PlanarClean{
-		var len = this.edges.length;
-		var endNodes = [edge.nodes[0], edge.nodes[1]];
-		this.edges = this.edges.filter(function(el){ return el !== edge; });
-		return new PlanarClean(0, len - this.edges.length)
-			.join(this.cleanNodeIfUseless(endNodes[0]))
-			.join(this.cleanNodeIfUseless(endNodes[1]))
-		// todo: this is hitting the same node repeatedly from different sides, so keeping track of nodes is not working
-		// var report = new PlanarCleanReport();
-		// var a = this.cleanNodeIfUseless(endNodes[0]);
-		// var b = this.cleanNodeIfUseless(endNodes[1]);
-		// console.log(a +  " " + b)
-	}
-
-	/** Attempt to remove an edge if one is found that connects the 2 nodes supplied, and also attempt to remove the two nodes left behind if they are otherwise unused
-	 * @returns {number} how many edges were removed
-	 */
-	removeEdgeBetween(node1:PlanarNode, node2:PlanarNode):PlanarClean{
-		var len = this.edges.length;
-		this.edges = this.edges.filter(function(el){ 
-			return !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
-					 (el.nodes[0] === node2 && el.nodes[1] === node1) );
-		});
-		this.edgeArrayDidChange();
-		return new PlanarClean(0, len - this.edges.length)
-			.join(this.cleanNodeIfUseless(node1))
-			.join(this.cleanNodeIfUseless(node2));
-	}
-
-	cleanNodeIfIsolated(node:PlanarNode):PlanarClean{
-		var found = false;
-		for(var i = 0; i < this.edges.length; i++){
-			if(this.edges[i].nodes[0]===node || this.edges[i].nodes[1]===node){ found = true; break; }
-		}
-		if(found == false){
-			this.nodes = this.nodes.filter(function(el){ return el !== node; });
-			this.nodeArrayDidChange();
-			console.log("removing isolated node");
-			return new PlanarClean(1, 0);
-		}
-		return new PlanarClean()
-	}
-
-
-	/** Remove a node if it is either unconnected to any edges, or is in the middle of 2 collinear edges
-	 * @returns {number} how many nodes were removed
-	 */
-	cleanNodeIfUseless(node:PlanarNode):PlanarClean{
-		var edges = node.adjacentEdges();
-		switch (edges.length){
-			case 0:
-				// return <PlanarClean>this.removeNode(node);
-				this.nodes = this.nodes.filter(function(el){ return el !== node; });
-				this.nodeArrayDidChange();
-				return new PlanarClean(1, 0);
-			case 2:
-				var farNodes = [<PlanarNode>(edges[0].uncommonNodeWithEdge(edges[1])), 
-								<PlanarNode>(edges[1].uncommonNodeWithEdge(edges[0]))];
-				if(farNodes[0] === undefined || farNodes[1] === undefined){ return new PlanarClean(); }
-				var span = new Edge(farNodes[0].x, farNodes[0].y, farNodes[1].x, farNodes[1].y);
-				if(span.collinear(node)){
-					edges[0].nodes = [farNodes[0], farNodes[1]];
-					this.edges = this.edges.filter(function(el){ return el !== edges[1]; });
-					// this.removeNode(node);
-					this.nodes = this.nodes.filter(function(el){ return el !== node; });
-					this.nodeArrayDidChange();
-					this.edgeArrayDidChange();
-					return new PlanarClean(1, 1);
-				}
-			default: return new PlanarClean();
-		}
-	}
-
-	///////////////////////////////////////////////
-	// REMOVE PARTS (SEARCH REQUIRED TO LOCATE)
-	///////////////////////////////////////////////
-
-	/** Removes all isolated nodes and performs cleanNodeIfUseless() on every node
-	 * @returns {PlanarClean} how many nodes were removed
-	 */
-	cleanAllUselessNodes():PlanarClean{
-		// console.time("cleanAllUselessNodes");
-		// console.log("cleanAllUselessNodes");
-		// prepare adjacency information
-		this.nodes.forEach(function(el){ el.cache['adjE'] = []; });
-		this.edges.forEach(function(el){ 
-			el.nodes[0].cache['adjE'].push(el);
-			el.nodes[1].cache['adjE'].push(el);
-		});
-		var report = new PlanarClean().join( this.removeIsolatedNodes() );
-		this.nodeArrayDidChange();
-		this.edgeArrayDidChange();
-		for(var i = this.nodes.length-1; i >= 0; i--){
-			var edges = this.nodes[i].cache['adjE'];
-			switch (edges.length){
-				case 0: report.join(this.removeNode(this.nodes[i])); break;
-				case 2:
-					var farNodes = [<PlanarNode>(edges[0].uncommonNodeWithEdge(edges[1])), 
-									<PlanarNode>(edges[1].uncommonNodeWithEdge(edges[0]))]
-					var span = new Edge(farNodes[0].x, farNodes[0].y, farNodes[1].x, farNodes[1].y);
-					if(span.collinear(this.nodes[i])){
-						edges[0].nodes = [farNodes[0], farNodes[1]];
-						this.edges.splice(edges[1].index, 1);
-						this.edgeArrayDidChange();
-						this.nodes.splice(this.nodes[i].index, 1);
-						this.nodeArrayDidChange();
-						report.join( new PlanarClean(1, 1) );
-					}
-				break;
-			}
-		}
-		this.nodes.forEach(function(el){ el.cache['adjE'] = undefined; });
-		// console.timeEnd("cleanAllUselessNodes");
-		return report;
-	}
-
-	mergePlanarNodes(node1:PlanarNode, node2:PlanarNode):PlanarClean{
-		return new PlanarClean(-1).join(this.mergeNodes(node1, node2)).duplicateNodes([new XY(node2.x, node2.y)]);;
-	}
-
-	/** Removes all nodes that lie within an epsilon distance to an existing node.
-	 * remap any compromised edges to the persisting node so no edge data gets lost
-	 * @returns {PlanarClean} how many nodes were removed
-	 */
-	cleanDuplicateNodes(epsilon?:number):PlanarClean{
-		// console.time("cleanDuplicateNodes");
-		var EPSILON_HIGH = 0.00000001;
-		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
-		var tree = rbush();
-		tree.load(this.nodes.map(function(el){
-			return {minX:el.x-epsilon, minY:el.y-epsilon, maxX:el.x+epsilon, maxY:el.y+epsilon,node:el};
-		}));
-		// iterate over nodes. if a node is too close to another, before removing it, make sure:
-		// - it is not in "remainList" (it needs to stay, another node is counting on being replaced for it)
-		// - the node it's attempting to be replaced by is not in "removeList"
-		var remainList = [], removeList = [];
-		var mergeList:{'remain':PlanarNode, 'remove':PlanarNode}[] = []
-		this.nodes.forEach(function(node){
-			tree.search({minX:node.x-epsilon, minY:node.y-epsilon, maxX:node.x+epsilon, maxY:node.y+epsilon})
-				.filter(function(r){ return node !== r['node']; },this)
-				.filter(function(r){ return remainList.indexOf(r['node']) == -1; },this)
-				.filter(function(r){ return removeList.indexOf(node) == -1; },this)
-				.forEach(function(r){
-					remainList.push(node);
-					removeList.push(r['node']);
-					mergeList.push({'remain':node, 'remove':r['node']});
-				},this);
-		},this);
-		// console.timeEnd("cleanDuplicateNodes");
-		return mergeList
-			.map(function(el){ return this.mergePlanarNodes(el['remain'], el['remove']); },this)
-			.reduce(function(prev,curr){ return prev.join(curr); },new PlanarClean());
-	}
 
 	///////////////////////////////////////////////
 	// FLATTEN, FRAGMENT, FACES
@@ -965,13 +923,13 @@ class PlanarGraph extends Graph{
 			.map(function(el,i){ return this.rebuildEdge(el.edge, el.edge.nodes, [newLineNodes[i]], epsilon);},this)
 			.map(function(el){ return el.nodes })
 			.reduce(function(prev,curr){ return prev.concat(curr); },[]);
-			// .forEach(function(node){ this.cleanNodeIfIsolated(node); },this);
+			// .forEach(function(node){ this.removeNodeIfIsolated(node); },this);
 		// important: sortedEndpts are sorted in the same order as edge.crossingEdges
 		var sortedEndpts = edge.nodes.slice().sort(function(a,b){
 			if(a.commonX(b,epsilon)){ return a.y-b.y; } return a.x-b.x;
 		});
 		isolated = isolated.concat(this.rebuildEdge(edge, <[PlanarNode, PlanarNode]>sortedEndpts, newLineNodes, epsilon).nodes)
-		// isolated.forEach(function(node){ this.cleanNodeIfIsolated(node); },this);
+		// isolated.forEach(function(node){ this.removeNodeIfIsolated(node); },this);
 		report.edges.total += edgesLength - this.edges.length;
 		// console.log(report);
 		return report;
@@ -1156,7 +1114,6 @@ class PlanarGraph extends Graph{
 			(<any>Object).assign(f, this.faces[i]);
 			for(var j=0;j<this.faces[i].nodes.length;j++){f.nodes.push(f.nodes[this.faces[i].nodes[j].index]);}
 			for(var j=0;j<this.faces[i].edges.length;j++){f.edges.push(f.edges[this.faces[i].edges[j].index]);}
-			for(var j=0;j<this.faces[i].angles.length;j++){f.angles.push(this.faces[i].angles[j]); }
 			f.graph = g;  f.index = i;
 			g.faces.push(f);
 		}

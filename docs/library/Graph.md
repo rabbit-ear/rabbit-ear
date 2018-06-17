@@ -23,8 +23,8 @@ A graph contains unlimited nodes and edges and can perform operations on them
 - [removeNode](#removenode)
 - [mergeNodes](#mergenodes)
 - [removeIsolatedNodes](#removeisolatednodes)
-- [cleanCircularEdges](#cleancircularedges)
-- [cleanDuplicateEdges](#cleanduplicateedges)
+- [removeCircularEdges](#cleancircularedges)
+- [removeDuplicateEdges](#cleanduplicateedges)
 - [cleanGraph](#cleangraph)
 - [clean](#clean)
 
@@ -256,27 +256,27 @@ var clean = graph.removeIsolatedNodes()
 
 Returns **[GraphClean](#graphclean)** the number of nodes removed
 
-## cleanCircularEdges
+## removeCircularEdges
 
 Remove all edges that contain the same node at both ends
 
 **Examples**
 
 ```javascript
-var clean = graph.cleanCircularEdges()
+var clean = graph.removeCircularEdges()
 // clean.edges will be >= 0
 ```
 
 Returns **[GraphClean](#graphclean)** the number of edges removed
 
-## cleanDuplicateEdges
+## removeDuplicateEdges
 
 Remove edges that are similar to another edge
 
 **Examples**
 
 ```javascript
-var clean = graph.cleanDuplicateEdges()
+var clean = graph.removeDuplicateEdges()
 // clean.edges will be >= 0
 ```
 

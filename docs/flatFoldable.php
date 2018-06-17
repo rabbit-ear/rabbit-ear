@@ -43,7 +43,7 @@
 	</div>
 
 	<div class="centered">
-		<pre><code>cp.sectors[<span id="ff-single-sector"></span>].<f>kawasakiFourth</f>();</code></pre>
+		<pre><code>cp.sectors[<span id="ff-single-sector"></span>].<f>kawasakiCollapse</f>();</code></pre>
 	</div>
 
 <h3>Maekawa's Theorem</h3>

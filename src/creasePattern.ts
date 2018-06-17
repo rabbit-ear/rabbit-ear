@@ -1168,12 +1168,12 @@ class CreasePattern extends PlanarGraph{
 			// return false;
 		}
 
-	// file["file_spec"]
-	// file["file_creator"]
-	// file["file_author"]
-	// file["file_title"]
-	// file["file_description"]
-	// file["file_classes"]
+		// file["file_spec"]
+		// file["file_creator"]
+		// file["file_author"]
+		// file["file_title"]
+		// file["file_description"]
+		// file["file_classes"]
 
 		this.clear();
 		this.noBoundary();
@@ -1363,10 +1363,6 @@ class CreasePattern extends PlanarGraph{
 				for(var j=0;j<this.faces[i].edges.length;j++){
 					var eIndex = this.faces[i].edges[j].index;
 					f.edges.push(g.edges[eIndex]);
-				} }
-				if(this.faces[i].angles !== undefined){
-				for(var j=0;j<this.faces[i].angles.length;j++){
-					f.angles.push(this.faces[i].angles[j]); 
 				} }
 			}
 		}

@@ -34,7 +34,7 @@ twistTriAnim.reset = function(){
 	var sectors = centerNode.junction().sectors;
 
 	var kawasakis = sectors
-		.map(function(sector){ return centerNode.junction().kawasakiFourth(sector); })
+		.map(function(sector){ return centerNode.junction().kawasakiCollapse(sector); })
 		.map(function(vector){ return new Ray(0.5, 0.5, vector.x, vector.y)},this);
 
 	var pleats = kawasakis

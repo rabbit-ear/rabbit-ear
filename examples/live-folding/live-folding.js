@@ -13,7 +13,7 @@ project.onMouseMove = function(event){
 		this.centerNode.x = event.point.x;
 		this.centerNode.y = event.point.y;
 		var junction = this.centerNode.junction();
-		var dir = junction.sectors[0].kawasakiFourth();
+		var dir = junction.sectors[0].kawasakiCollapse();
 		this.cp = this.template.copy();
 		this.cp.crease( new Ray(this.centerNode.x, this.centerNode.y, dir.x, dir.y) ).mountain();
 		this.cp.flatten();

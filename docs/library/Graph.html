@@ -39,9 +39,9 @@
 
 <li><a href="#removeisolatednodes">removeIsolatedNodes</a></li>
 
-<li><a href="#cleancircularedges">cleanCircularEdges</a></li>
+<li><a href="#cleancircularedges">removeCircularEdges</a></li>
 
-<li><a href="#cleanduplicateedges">cleanDuplicateEdges</a></li>
+<li><a href="#cleanduplicateedges">removeDuplicateEdges</a></li>
 
 <li><a href="#cleangraph">cleanGraph</a></li>
 
@@ -292,25 +292,25 @@ graph.addNodes(n);
 
 <p>Returns <strong><a href="#graphclean">GraphClean</a></strong> the number of nodes removed</p>
 
-<h2 id="cleancircularedges">cleanCircularEdges</h2>
+<h2 id="cleancircularedges">removeCircularEdges</h2>
 
 <p>Remove all edges that contain the same node at both ends</p>
 
 <p><strong>Examples</strong></p>
 
-<pre><code class="javascript language-javascript">var clean = graph.cleanCircularEdges()
+<pre><code class="javascript language-javascript">var clean = graph.removeCircularEdges()
 // clean.edges will be &gt;= 0
 </code></pre>
 
 <p>Returns <strong><a href="#graphclean">GraphClean</a></strong> the number of edges removed</p>
 
-<h2 id="cleanduplicateedges">cleanDuplicateEdges</h2>
+<h2 id="cleanduplicateedges">removeDuplicateEdges</h2>
 
 <p>Remove edges that are similar to another edge</p>
 
 <p><strong>Examples</strong></p>
 
-<pre><code class="javascript language-javascript">var clean = graph.cleanDuplicateEdges()
+<pre><code class="javascript language-javascript">var clean = graph.removeDuplicateEdges()
 // clean.edges will be &gt;= 0
 </code></pre>
 
