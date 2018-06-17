@@ -215,7 +215,7 @@ class PlanarFace extends Polygon{
 		},this);
 		return this.edges.map(function(el,i){
 			var nextEl = this.edges[(i+1)%this.edges.length];
-			return options.filter(function(sector){return sector.edges[0] === el && sector.edges[1] === nextEl},this).shift();
+			return options.filter(function(sector){return sector.edges[1] === el && sector.edges[0] === nextEl},this).shift();
 		},this);
 	}
 	/** Returns an array of edges that are shared among both faces.

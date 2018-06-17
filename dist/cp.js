@@ -2137,7 +2137,7 @@ var PlanarFace = (function (_super) {
         }, this);
         return this.edges.map(function (el, i) {
             var nextEl = this.edges[(i + 1) % this.edges.length];
-            return options.filter(function (sector) { return sector.edges[0] === el && sector.edges[1] === nextEl; }, this).shift();
+            return options.filter(function (sector) { return sector.edges[1] === el && sector.edges[0] === nextEl; }, this).shift();
         }, this);
     };
     PlanarFace.prototype.commonEdges = function (face) {
@@ -3332,7 +3332,9 @@ var CreaseFace = (function (_super) {
         if (sectors.length !== 3) {
             return [];
         }
+        console.log(sectors);
         var rays = sectors.map(function (el) { return el.bisect(); });
+        console.log(rays);
         var incenter = rays
             .map(function (el, i) {
             var nextEl = rays[(i + 1) % rays.length];
@@ -3980,6 +3982,17 @@ var CreasePattern = (function (_super) {
         file["edges_assignment"]
             .map(function (assignment) { return assignmentDictionary[assignment]; })
             .forEach(function (orientation, i) { this.edges[i].orientation = orientation; }, this);
+        this.faces = file["faces_vertices"]
+            .map(function (faceNodeArray, fi) {
+            var face = new CreaseFace(this);
+            face.nodes = faceNodeArray.map(function (nodeIndex) { return this.nodes[nodeIndex]; }, this);
+            face.edges = face.nodes.map(function (node, ei) {
+                var nextNode = face.nodes[(ei + 1) % face.nodes.length];
+                return this.getEdgeConnectingNodes(node, nextNode);
+            }, this);
+            face.index = fi;
+            return face;
+        }, this);
         var boundaryPoints = this.edges
             .filter(function (el) { return el.orientation === CreaseDirection.border; }, this)
             .map(function (el) {
@@ -4078,91 +4091,16 @@ var CreasePattern = (function (_super) {
         return blob;
     };
     CreasePattern.prototype.kiteBase = function () {
-        this.clear();
-        this.newPlanarEdge(0.0, 0.0, 0.41421, 0.0).border();
-        this.newPlanarEdge(0.41421, 0.0, 1.0, 0.0).border();
-        this.newPlanarEdge(1.0, 0.0, 1.0, 0.58578).border();
-        this.newPlanarEdge(1.0, 0.58578, 1.0, 1.0).border();
-        this.newPlanarEdge(1.0, 1.0, 0.0, 1.0).border();
-        this.newPlanarEdge(0.0, 1.0, 0.0, 0.0).border();
-        this.newPlanarEdge(1, 0, 0, 1).mountain();
-        this.newPlanarEdge(0, 1, 1, 0.58578).valley();
-        this.newPlanarEdge(0, 1, 0.41421, 0).valley();
-        this.flatten();
-        return this;
+        return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.4142135623730953, 0], [1, 0.5857864376269042]], "faces_vertices": [[2, 3, 5], [3, 0, 4], [3, 1, 5], [1, 3, 4]], "edges_vertices": [[2, 3], [3, 0], [3, 1], [3, 4], [0, 4], [4, 1], [3, 5], [1, 5], [5, 2]], "edges_assignment": ["B", "B", "V", "M", "B", "B", "M", "B", "B"] });
     };
     CreasePattern.prototype.fishBase = function () {
-        this.clear();
-        this.newPlanarEdge(0.0, 0.0, 0.29289, 0.0).border();
-        this.newPlanarEdge(0.29289, 0.0, 1.0, 0.0).border();
-        this.newPlanarEdge(1.0, 0.0, 1.0, 0.70711).border();
-        this.newPlanarEdge(1.0, 0.70711, 1.0, 1.0).border();
-        this.newPlanarEdge(1.0, 1.0, 0.0, 1.0).border();
-        this.newPlanarEdge(0.0, 1.0, 0.0, 0.0).border();
-        this.newPlanarEdge(1, 0, 0, 1).mountain();
-        this.newPlanarEdge(0, 1, 0.70711, 0.70711).valley();
-        this.newPlanarEdge(0, 1, 0.29289, 0.29289).valley();
-        this.newPlanarEdge(1, 0, 0.29289, 0.29289).valley();
-        this.newPlanarEdge(1, 0, 0.70711, 0.70711).valley();
-        this.newPlanarEdge(0.29289, 0.29289, 0, 0).valley();
-        this.newPlanarEdge(0.70711, 0.70711, 1, 1).valley();
-        this.newPlanarEdge(0.70711, 0.70711, 1, 0.70711).mountain();
-        this.newPlanarEdge(0.29289, 0.29289, 0.29289, 0).mountain();
-        this.flatten();
-        return this;
+        return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.29289321881345254, 0.29289321881345254], [0.7071067811865475, 0.7071067811865475], [0.29289321881345254, 0], [1, 0.7071067811865475]], "faces_vertices": [[2, 3, 5], [3, 0, 4], [3, 1, 5], [1, 3, 4], [4, 0, 6], [1, 4, 6], [5, 1, 7], [2, 5, 7]], "edges_vertices": [[2, 3], [3, 0], [3, 1], [0, 4], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 6], [0, 6], [6, 1], [5, 7], [1, 7], [7, 2]], "edges_assignment": ["B", "B", "V", "M", "M", "M", "M", "M", "M", "V", "B", "B", "V", "B", "B"] });
     };
     CreasePattern.prototype.birdBase = function () {
-        this.clear();
-        this.newPlanarEdge(0.0, 0.0, 0.5, 0.0).border();
-        this.newPlanarEdge(0.5, 0.0, 1.0, 0.0).border();
-        this.newPlanarEdge(1.0, 0.0, 1.0, 0.5).border();
-        this.newPlanarEdge(1.0, 0.5, 1.0, 1.0).border();
-        this.newPlanarEdge(1.0, 1.0, 0.5, 1.0).border();
-        this.newPlanarEdge(0.5, 1.0, 0.0, 1.0).border();
-        this.newPlanarEdge(0.0, 1.0, 0.0, 0.5).border();
-        this.newPlanarEdge(0.0, 0.5, 0.0, 0.0).border();
-        this.newPlanarEdge(0, 1, 0.5, .79290).mountain();
-        this.newPlanarEdge(0, 1, .20710, 0.5).mountain();
-        this.newPlanarEdge(1, 0, 0.5, .20710).mountain();
-        this.newPlanarEdge(1, 0, .79290, 0.5).mountain();
-        this.newPlanarEdge(1, 1, .79290, 0.5).mountain();
-        this.newPlanarEdge(1, 1, 0.5, .79290).mountain();
-        this.newPlanarEdge(0, 0, .20710, 0.5).mountain();
-        this.newPlanarEdge(0, 0, 0.5, .20710).mountain();
-        this.newPlanarEdge(0, 0, .35354, .35354).valley();
-        this.newPlanarEdge(.35354, .64645, 0, 1).valley();
-        this.newPlanarEdge(1, 0, .64645, .35354).mountain();
-        this.newPlanarEdge(.64645, .64645, 1, 1).valley();
-        this.newPlanarEdge(0.5, 0.5, .35354, .64645).valley();
-        this.newPlanarEdge(.64645, .35354, 0.5, 0.5).mountain();
-        this.newPlanarEdge(0.5, 0.5, .64645, .64645).valley();
-        this.newPlanarEdge(.35354, .35354, 0.5, 0.5).valley();
-        this.newPlanarEdge(.35354, .35354, .20710, 0.5).mark();
-        this.newPlanarEdge(0.5, .20710, .35354, .35354).mark();
-        this.newPlanarEdge(.35354, .64645, 0.5, .79290).mark();
-        this.newPlanarEdge(.20710, 0.5, .35354, .64645).mark();
-        this.newPlanarEdge(.64645, .64645, .79290, 0.5).mark();
-        this.newPlanarEdge(0.5, .79290, .64645, .64645).mark();
-        this.newPlanarEdge(.64645, .35354, 0.5, .20710).mark();
-        this.newPlanarEdge(.79290, 0.5, .64645, .35354).mark();
-        this.newPlanarEdge(0.5, 0.5, 0.5, .79290).mountain();
-        this.newPlanarEdge(0.5, .20710, 0.5, 0.5).mountain();
-        this.newPlanarEdge(0.5, 0.5, .79290, 0.5).mountain();
-        this.newPlanarEdge(.20710, 0.5, 0.5, 0.5).mountain();
-        this.newPlanarEdge(0.5, .20710, 0.5, 0).valley();
-        this.newPlanarEdge(.79290, 0.5, 1, 0.5).valley();
-        this.newPlanarEdge(0.5, .79290, 0.5, 1).valley();
-        this.newPlanarEdge(.20710, 0.5, 0, 0.5).valley();
-        this.flatten();
-        return this;
+        return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5], [0.20710678118654763, 0.5], [0.5, 0.20710678118654763], [0.7928932188134523, 0.5], [0.5, 0.7928932188134523], [0, 0.5], [0.5, 0], [1, 0.5], [0.5, 1], [0.35355339059327373, 0.6464466094067263], [0.6464466094067263, 0.6464466094067263], [0.6464466094067263, 0.35355339059327373], [0.35355339059327373, 0.35355339059327373]], "faces_vertices": [[3, 5, 13], [5, 3, 9], [0, 5, 9], [5, 0, 16], [4, 5, 16], [5, 4, 13], [0, 6, 16], [6, 0, 10], [1, 6, 10], [6, 1, 15], [4, 6, 15], [6, 4, 16], [1, 7, 15], [7, 1, 11], [2, 7, 11], [7, 2, 14], [4, 7, 14], [7, 4, 15], [2, 8, 14], [8, 2, 12], [3, 8, 12], [8, 3, 13], [4, 8, 13], [8, 4, 14]], "edges_vertices": [[3, 5], [0, 5], [4, 5], [0, 6], [1, 6], [4, 6], [1, 7], [2, 7], [4, 7], [2, 8], [3, 8], [4, 8], [5, 9], [0, 9], [9, 3], [6, 10], [0, 10], [10, 1], [7, 11], [1, 11], [11, 2], [8, 12], [3, 12], [12, 2], [5, 13], [13, 8], [13, 4], [3, 13], [8, 14], [14, 7], [4, 14], [14, 2], [7, 15], [15, 6], [4, 15], [15, 1], [6, 16], [16, 5], [0, 16], [16, 4]], "edges_assignment": ["M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "F", "F", "V", "V", "F", "F", "V", "V", "F", "F", "M", "M", "F", "F", "V", "V"] });
     };
     CreasePattern.prototype.frogBase = function () {
-        this.clear();
-        [[0, 0, .14646, .35353], [0, 0, .35353, .14646], [.14646, .35353, 0.5, 0.5], [0.5, 0.5, .35353, .14646], [.14646, .35353, .14646, 0.5], [0, 0.5, .14646, 0.5], [0.5, 0.5, 0.5, .14646], [0.5, .14646, 0.5, 0], [0.5, 0, .35353, .14646], [.35353, .14646, 0.5, .14646], [.14646, .35353, 0, 0.5], [.14646, .35353, .25, .25], [.25, .25, .35353, .14646], [0, 1, .35353, .85353], [0, 1, .14646, .64646], [.35353, .85353, 0.5, 0.5], [0.5, 0.5, .14646, .64646], [.35353, .85353, 0.5, .85353], [0.5, 1, 0.5, .85353], [0.5, 0.5, 0.5, .85353], [0.5, 0.5, .14646, 0.5], [0, 0.5, .14646, .64646], [.14646, .64646, .14646, 0.5], [.35353, .85353, 0.5, 1], [.35353, .85353, .25, .75], [.25, .75, .14646, .64646], [1, 0, .85353, .35353], [1, 0, .64646, .14646], [.85353, .35353, 0.5, 0.5], [0.5, 0.5, .64646, .14646], [.85353, .35353, .85353, 0.5], [1, 0.5, .85353, 0.5], [0.5, 0, .64646, .14646], [.64646, .14646, 0.5, .14646], [.85353, .35353, 1, 0.5], [.85353, .35353, .75, .25], [.75, .25, .64646, .14646], [1, 1, .64646, .85353], [1, 1, .85353, .64646], [.64646, .85353, 0.5, 0.5], [0.5, 0.5, .85353, .64646], [.64646, .85353, 0.5, .85353], [0.5, 0.5, .85353, 0.5], [1, 0.5, .85353, .64646], [.85353, .64646, .85353, 0.5], [.64646, .85353, 0.5, 1], [.64646, .85353, .75, .75], [.75, .75, .85353, .64646], [.35353, .14646, .35353, 0], [.64646, .14646, .64646, 0], [.85353, .35353, 1, .35353], [.85353, .64646, 1, .64646], [.64646, .85353, .64646, 1], [.35353, .85353, .35353, 1], [.14646, .64646, 0, .64646], [.14646, .35353, 0, .35353], [0.5, 0.5, .25, .25], [0.5, 0.5, .75, .25], [0.5, 0.5, .75, .75], [0.5, 0.5, .25, .75], [.25, .75, 0, 1], [.25, .25, 0, 0], [.75, .25, 1, 0], [.75, .75, 1, 1]].forEach(function (el) {
-            this.newPlanarEdge(el[0], el[1], el[2], el[3]);
-        }, this);
-        this.flatten();
-        return this;
+        return this.importFoldFile({ "vertices_coords": [[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0.5], [0, 0.5], [0.5, 0], [1, 0.5], [0.5, 1], [0.14644660940672627, 0.35355339059327373], [0.35355339059327373, 0.14644660940672627], [0.6464466094067262, 0.14644660940672627], [0.8535533905932737, 0.35355339059327373], [0.8535533905932736, 0.6464466094067262], [0.6464466094067262, 0.8535533905932737], [0.35355339059327373, 0.8535533905932736], [0.14644660940672627, 0.6464466094067262], [0, 0.35355339059327373], [0, 0.6464466094067262], [0.35355339059327373, 0], [0.6464466094067262, 0], [1, 0.35355339059327373], [1, 0.6464466094067262], [0.6464466094067262, 1], [0.35355339059327373, 1]], "faces_vertices": [[0, 4, 9], [4, 0, 10], [4, 2, 14], [2, 4, 13], [3, 4, 15], [4, 3, 16], [4, 1, 12], [1, 4, 11], [4, 5, 9], [5, 4, 16], [4, 6, 11], [6, 4, 10], [4, 7, 13], [7, 4, 12], [4, 8, 15], [8, 4, 14], [0, 9, 17], [9, 5, 17], [10, 0, 19], [6, 10, 19], [1, 11, 20], [11, 6, 20], [12, 1, 21], [7, 12, 21], [2, 13, 22], [13, 7, 22], [14, 2, 23], [8, 14, 23], [3, 15, 24], [15, 8, 24], [16, 3, 18], [5, 16, 18]], "edges_vertices": [[0, 4], [4, 2], [3, 4], [4, 1], [4, 5], [4, 6], [4, 7], [4, 8], [0, 9], [4, 9], [5, 9], [4, 10], [0, 10], [6, 10], [1, 11], [4, 11], [6, 11], [4, 12], [1, 12], [7, 12], [2, 13], [4, 13], [7, 13], [4, 14], [2, 14], [8, 14], [3, 15], [4, 15], [8, 15], [4, 16], [3, 16], [5, 16], [9, 17], [0, 17], [17, 5], [16, 18], [5, 18], [18, 3], [10, 19], [0, 19], [19, 6], [11, 20], [6, 20], [20, 1], [12, 21], [1, 21], [21, 7], [13, 22], [7, 22], [22, 2], [14, 23], [8, 23], [23, 2], [15, 24], [3, 24], [24, 8]], "edges_assignment": ["V", "V", "V", "M", "V", "V", "V", "V", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "M", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B", "V", "B", "B"] });
     };
     CreasePattern.prototype.copy = function () {
         this.nodeArrayDidChange();
