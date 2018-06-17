@@ -571,8 +571,17 @@ function kawasakiHandler(){
 	project.colorNodesFlatFoldable();
 }
 function newCreasePatternHandler(){ document.getElementById("modal-new-crease-pattern-window").style.display = "block"; }
-function foldedSaveFoldHandler(){ }
-function foldedSaveSVGHandler(){ }
+function foldedSaveFoldHandler(){
+	var filename = "folded.fold"
+	var foldObject = project.cp.fold();
+	var foldFileBlob = JSON.stringify(foldObject);
+	makeDownloadBlob(foldFileBlob, filename, "application/json");
+}
+function foldedSaveSVGHandler(){
+	var filename = "folded.svg"
+	var svgBlob = project.cp.foldSVG();
+	makeDownloadBlob(svgBlob, filename, "image/svg+xml");
+}
 function viewZoomHandler(){ }
 function foldabilityMaekawaHandler(){ }
 function styleThickHandler(){ project.thickLines(); }

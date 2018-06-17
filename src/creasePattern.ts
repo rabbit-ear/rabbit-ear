@@ -730,76 +730,6 @@ class CreasePattern extends PlanarGraph{
 		return edges;
 	}
 
-
-	////////////////////////////////////////////////////////////////
-	///
-	////////////////////////////////////////////////////////////////
-
-	overlapRelationMatrix():boolean[][]{
-		// boolean relationship for entry matrix[A][B] can be read as:
-		//  is face A "on top of" face B?
-		this.flatten();
-		// if(face == undefined){
-		// 	var bounds = this.bounds();
-		// 	face = this.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
-		// }
-		// if(face === undefined){ return; }
-		// var tree = face.adjacentFaceTree();
-		// console.log(tree);
-
-		var matrix = Array.apply(null, Array(this.faces.length)).map(function(e){
-			return Array.apply(null, Array(this.faces.length))
-		},this);
-		var adj = this.faces.map(function(face){return face.edgeAdjacentFaces();},this);
-		adj.forEach(function(adjFaces, i){
-			var face = this.faces[i];
-			adjFaces.filter(function(adjFace){ return matrix[face.index][adjFace.index] == undefined; },this)
-				.forEach(function(adjFace){
-					// only works for convex faces
-					var thisEdge = face.commonEdges(adjFace).shift();
-					switch(thisEdge.orientation){
-						case CreaseDirection.mountain: matrix[face.index][adjFace.index] = true; break;
-						case CreaseDirection.valley: matrix[face.index][adjFace.index] = false; break;
-					}
-				},this);
-		},this);
-
-		console.log(matrix);
-
-		return undefined;
-	}
-
-	// TODO: this should export a FOLD file format as a .json
-	fold(face?:PlanarFace):XY[][]{
-		this.flatten();
-		// var copyCP = this.copy();
-		// copyCP.edges = copyCP.edges.filter(function(edge){ return edge.orientation != CreaseDirection.mark; },this);
-
-		if(face == undefined){
-			var bounds = this.bounds();
-			face = this.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
-		}
-		if(face === undefined){ return; }
-		var tree = face.adjacentFaceTree();
-		var faces:{'face':PlanarFace, 'matrix':Matrix}[] = [];
-		tree['matrix'] = new Matrix();
-		faces.push({'face':tree.obj, 'matrix':tree['matrix']});
-		function recurse(node){
-			node.children.forEach(function(child){
-				var local = child.obj.commonEdges(child.parent.obj).shift().reflectionMatrix();
-				child['matrix'] = child.parent['matrix'].mult(local);
-				faces.push({'face':child.obj, 'matrix':child['matrix']});
-				recurse(child);
-			},this);
-		}
-		recurse(tree);
-		return faces.map(function(el:{'face':PlanarFace, 'matrix':Matrix}){
-			return el.face.nodes.map(function(node:CreaseNode){
-				return node.copy().transform(el.matrix);
-			});
-		},this);
-	}
-
 	// precision is an epsilon value: 0.00001
 	/*
 	wiggle(precision):XY[]{
@@ -1072,6 +1002,121 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 
+	////////////////////////////////////////////////////////////////
+	///
+	////////////////////////////////////////////////////////////////
+
+	overlapRelationMatrix():boolean[][]{
+		// boolean relationship for entry matrix[A][B] can be read as:
+		//  is face A "on top of" face B?
+		this.flatten();
+		// if(face == undefined){
+		// 	var bounds = this.bounds();
+		// 	face = this.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
+		// }
+		// if(face === undefined){ return; }
+		// var tree = face.adjacentFaceTree();
+		// console.log(tree);
+
+		var matrix = Array.apply(null, Array(this.faces.length)).map(function(e){
+			return Array.apply(null, Array(this.faces.length))
+		},this);
+		var adj = this.faces.map(function(face){return face.edgeAdjacentFaces();},this);
+		adj.forEach(function(adjFaces, i){
+			var face = this.faces[i];
+			adjFaces.filter(function(adjFace){ return matrix[face.index][adjFace.index] == undefined; },this)
+				.forEach(function(adjFace){
+					// only works for convex faces
+					var thisEdge = face.commonEdges(adjFace).shift();
+					switch(thisEdge.orientation){
+						case CreaseDirection.mountain: matrix[face.index][adjFace.index] = true; break;
+						case CreaseDirection.valley: matrix[face.index][adjFace.index] = false; break;
+					}
+				},this);
+		},this);
+
+		console.log(matrix);
+
+		return undefined;
+	}
+
+	removeAllMarks():CreasePattern{
+		for(var i = this.edges.length-1; i >= 0; i--){
+			if(this.edges[i].orientation === CreaseDirection.mark){
+				this.removeEdge(this.edges[i]);
+			}
+		}
+		this.flatten();
+		this.clean();
+		return this;
+	}
+
+	fold(face?:PlanarFace):object{
+		this.flatten();
+		var copyCP = this.copy().removeAllMarks();
+		if(face == undefined){
+			var bounds = copyCP.bounds();
+			face = copyCP.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
+		}
+		if(face === undefined){ return; }
+		var tree = face.adjacentFaceTree();
+		var faces:{'face':PlanarFace, 'matrix':Matrix}[] = [];
+		tree['matrix'] = new Matrix();
+		faces.push({'face':tree.obj, 'matrix':tree['matrix']});
+		function recurse(node){
+			node.children.forEach(function(child){
+				var local = child.obj.commonEdges(child.parent.obj).shift().reflectionMatrix();
+				child['matrix'] = child.parent['matrix'].mult(local);
+				faces.push({'face':child.obj, 'matrix':child['matrix']});
+				recurse(child);
+			},this);
+		}
+		recurse(tree);
+		var nodeTransformed = Array.apply(false, Array(copyCP.nodes.length))
+		faces.forEach(function(el:{'face':PlanarFace, 'matrix':Matrix}){
+			el.face.nodes
+				.filter(function(node){ return !nodeTransformed[node.index]; },this)
+				.forEach(function(node:PlanarNode){
+					node.transform(el.matrix);
+					nodeTransformed[node.index] = true;
+				},this);
+		},this);
+		return copyCP.exportFoldFile();
+	}
+
+	foldSVG(face?:PlanarFace):string{
+		this.flatten();
+		var copyCP = this.copy().removeAllMarks();
+		if(face == undefined){
+			var bounds = copyCP.bounds();
+			face = copyCP.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
+		}
+		if(face === undefined){ return; }
+		var tree = face.adjacentFaceTree();
+		var faces:{'face':PlanarFace, 'matrix':Matrix}[] = [];
+		tree['matrix'] = new Matrix();
+		faces.push({'face':tree.obj, 'matrix':tree['matrix']});
+		function recurse(node){
+			node.children.forEach(function(child){
+				var local = child.obj.commonEdges(child.parent.obj).shift().reflectionMatrix();
+				child['matrix'] = child.parent['matrix'].mult(local);
+				faces.push({'face':child.obj, 'matrix':child['matrix']});
+				recurse(child);
+			},this);
+		}
+		recurse(tree);
+		var nodeTransformed = Array.apply(false, Array(copyCP.nodes.length))
+		faces.forEach(function(el:{'face':PlanarFace, 'matrix':Matrix}){
+			el.face.nodes
+				.filter(function(node){ return !nodeTransformed[node.index]; },this)
+				.forEach(function(node:PlanarNode){
+					node.transform(el.matrix);
+					nodeTransformed[node.index] = true;
+				},this);
+		},this);
+		return copyCP.exportSVG();
+	}
+
 	///////////////////////////////////////////////////////////////
 	// FILE FORMATS
 
@@ -1083,7 +1128,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	exportFoldFile():object{
-		this.flatten();
+		// this.flatten();
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
 
@@ -1162,9 +1207,9 @@ class CreasePattern extends PlanarGraph{
 					var nextNode = face.nodes[ (ei+1)%face.nodes.length ];
 					return this.getEdgeConnectingNodes(node, nextNode);
 				},this);
-				face.index = fi;
 				return face;
 			},this)
+		this.faceArrayDidChange();
 
 		var boundaryPoints = this.edges
 			.filter(function(el){ return el.orientation === CreaseDirection.border; },this)
@@ -1266,7 +1311,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	kiteBase():CreasePattern{
-		return this.importFoldFile({"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[0.4142135623730953,0],[1,0.5857864376269042]],"faces_vertices":[[2,3,5],[3,0,4],[3,1,5],[1,3,4]],"edges_vertices":[[2,3],[3,0],[3,1],[3,4],[0,4],[4,1],[3,5],[1,5],[5,2]],"edges_assignment":["B","B","V","M","B","B","M","B","B"]});
+		return this.importFoldFile({"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[0.4142135623730955,0],[1,0.5857864376269045]],"faces_vertices":[[2,3,5],[3,0,4],[3,1,5],[1,3,4]],"edges_vertices":[[2,3],[3,0],[3,1],[3,4],[0,4],[4,1],[3,5],[1,5],[5,2]],"edges_assignment":["B","B","V","M","B","B","M","B","B"]});
 	}
 	fishBase():CreasePattern{
 		return this.importFoldFile({"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[0.29289321881345254,0.29289321881345254],[0.7071067811865475,0.7071067811865475],[0.29289321881345254,0],[1,0.7071067811865475]],"faces_vertices":[[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],"edges_vertices":[[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],"edges_assignment":["B","B","V","M","M","M","M","M","M","V","B","B","V","B","B"]});

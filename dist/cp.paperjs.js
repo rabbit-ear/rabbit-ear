@@ -555,16 +555,30 @@ var OrigamiFold = (function(){
 		var minY = Infinity;
 		var maxX = -Infinity;
 		var maxY = -Infinity;
-		this.foldedCP.forEach(function(points){
-			points.forEach(function(el){
-				if(el.x > maxX){ maxX = el.x; }
-				if(el.x < minX){ minX = el.x; }
-				if(el.y > maxY){ maxY = el.y; }
-				if(el.y < minY){ minY = el.y; }
-			},this);
+		this.foldedCP.vertices_coords.forEach(function(point){
+			if(point[0] > maxX){ maxX = point[0]; }
+			if(point[0] < minX){ minX = point[0]; }
+			if(point[1] > maxY){ maxY = point[1]; }
+			if(point[1] < minY){ minY = point[1]; }
 		},this);
 		this.bounds = {'origin':{'x':minX,'y':minY},'size':{'width':maxX-minX, 'height':maxY-minY}};
 	}
+	// OrigamiFold.prototype.draw = function(groundFace){
+	// 	paper = this.scope;
+	// 	this.foldedCP = this.cp.fold(groundFace);
+	// 	this.getBounds();
+	// 	this.faces = [];
+	// 	this.foldedLayer.removeChildren();
+	// 	this.foldedLayer.activate();
+	// 	if(this.foldedCP != undefined){
+	// 		this.foldedCP.forEach(function(nodes){
+	// 			var faceShape = new this.scope.Path({segments:nodes,closed:true});
+	// 			faceShape.fillColor = this.style.face.fillColor;
+	// 			this.faces.push( faceShape );
+	// 		},this);
+	// 	}
+	// 	this.buildViewMatrix();
+	// }
 	OrigamiFold.prototype.draw = function(groundFace){
 		paper = this.scope;
 		this.foldedCP = this.cp.fold(groundFace);
@@ -573,11 +587,17 @@ var OrigamiFold = (function(){
 		this.foldedLayer.removeChildren();
 		this.foldedLayer.activate();
 		if(this.foldedCP != undefined){
-			this.foldedCP.forEach(function(nodes){
-				var faceShape = new this.scope.Path({segments:nodes,closed:true});
-				faceShape.fillColor = this.style.face.fillColor;
-				this.faces.push( faceShape );
-			},this);
+			this.foldedCP.faces_vertices
+				.map(function(face){
+					return face.map(function(nodeIndex){
+						return this.foldedCP.vertices_coords[nodeIndex];
+					},this);
+				},this)
+				.forEach(function(faceNodes){
+					var faceShape = new this.scope.Path({segments:faceNodes,closed:true});
+					faceShape.fillColor = this.style.face.fillColor;
+					this.faces.push( faceShape );
+				},this);
 		}
 		this.buildViewMatrix();
 	}
