@@ -733,9 +733,9 @@ var PaperJSLoader = (function(){
 		// bypassing calling cp.setBoundary() directly to avoid flattening
 		var points = cp.nodes.map(function(p){ return gimme1XY(p); },this);
 		cp.boundary.convexHull(points);
-		cp.boundary.edges.forEach(function(el){
-			cp.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
-		},this);
+		// cp.boundary.edges.forEach(function(el){
+		// 	cp.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
+		// },this);
 		cp.cleanDuplicateNodes();
 		// cleanup
 		svgLayer.removeChildren();

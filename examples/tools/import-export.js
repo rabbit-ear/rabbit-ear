@@ -49,8 +49,9 @@ function loadSVGToCPUsingPaperJS(file, callback, epsilon){
 		// reassign boundary property to edges along boundary
 		// TODO: this code only works for convex hull boundaries
 		cp.edges.forEach(function(edge){
-			if( cp.boundary.edges.filter(function(b){ return b.parallel(edge); },this)
-				.filter(function(b){ return b.collinear(edge.nodes[0]); },this)
+			if( cp.boundary.edges
+				// .filter(function(b){ return b.parallel(edge); },this)
+				.filter(function(b){ return b.collinear(edge.nodes[0]) && b.collinear(edge.nodes[1]); },this)
 				.length > 0){
 				edge.border();
 			}

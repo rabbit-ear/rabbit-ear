@@ -2682,8 +2682,8 @@ var PlanarGraph = (function (_super) {
             }
             report.join(roundReport);
             protection += 1;
-        } while (roundReport.nodes.fragment.length != 0 && protection < 500);
-        if (protection >= 500) {
+        } while (roundReport.nodes.fragment.length != 0 && protection < 1000);
+        if (protection >= 1000) {
             console.log("exiting fragment(). potential infinite loop detected");
         }
         this.removeIsolatedNodes();
@@ -3313,9 +3313,7 @@ var CreaseFace = (function (_super) {
         if (sectors.length !== 3) {
             return [];
         }
-        console.log(sectors);
         var rays = sectors.map(function (el) { return el.bisect(); });
-        console.log(rays);
         var incenter = rays
             .map(function (el, i) {
             var nextEl = rays[(i + 1) % rays.length];
