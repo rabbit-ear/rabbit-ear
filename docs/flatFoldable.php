@@ -144,7 +144,6 @@ oneCrease.reset = function(){
 		this.cp.creaseThroughPoints(pt1, pt1.add(ray1)).valley();
 		this.cp.creaseThroughPoints(pt2, pt2.add(ray1)).mountain();
 		this.cp.clean();
-		this.cp.flatten();
 	// } while(this.cp.edges.filter(function(edge){return edge.orientation == CreaseDirection.valley},this).length != 2);
 	this.draw();
 

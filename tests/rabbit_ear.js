@@ -10,7 +10,7 @@ rabbitEarProject.style.face.scale = 1.0;
 rabbitEarProject.reset = function(){
 	this.cp.clear();
 	this.cp.crease(0,0,1,1);
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 	this.mode = this.programModes.rabbitEar;
 }
@@ -35,7 +35,7 @@ rabbitEarProject.onMouseDown = function(event){
 		switch(this.mode){
 			case this.programModes.rabbitEar:
 				var edges = this.nearest.face.rabbitEar();
-				this.cp.flatten();
+				this.cp.clean();
 				if(edges.length == 3){
 					this.lastRabbitEarNode = edges[0].commonNodeWithEdge(edges[1]);
 					this.mode = (this.mode%2)+1;
@@ -51,7 +51,7 @@ rabbitEarProject.onMouseDown = function(event){
 	}
 	this.nearest.face = undefined;
 	this.nearest.sector = undefined;
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 }
 

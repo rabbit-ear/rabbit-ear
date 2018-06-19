@@ -77,7 +77,7 @@ project.modifiers = {
 }
 
 project.updateCreasePattern = function(){
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 	foldedProject.cp = this.cp.copy();
 	foldedProject.draw();
@@ -159,7 +159,7 @@ project.onMouseDown = function(event){
 					case "full": this.cp.crease(edge).mountain(); break;
 					case "segment": this.cp.crease(this.selected.node, this.nearest.node).mountain(); break;
 				}
-				this.cp.flatten();
+				this.cp.clean();
 				this.setMouseMode(MouseMode.addBetweenPoints);
 			}
 			else{
@@ -172,7 +172,7 @@ project.onMouseDown = function(event){
 			if(this.selected.node != undefined){
 				var edge = this.possibleCreasesFiltered.shift();
 				if(edge){ this.cp.crease(edge).mountain(); }
-				this.cp.flatten();
+				this.cp.clean();
 				this.setMouseMode(MouseMode.addPointToPoint);
 			}
 			else{
@@ -190,7 +190,7 @@ project.onMouseDown = function(event){
 				.filter(function(edge){ return edge != undefined; })
 				.forEach(function(edge){ edge.mountain(); },this)
 				// if(edge){ this.cp.crease(edge).mountain(); }
-				this.cp.flatten();
+				this.cp.clean();
 				this.setMouseMode(MouseMode.addEdgeToEdge);
 			}
 			else{
@@ -213,7 +213,7 @@ project.onMouseDown = function(event){
 						this.cp.crease(this.selected.node, point2).mountain();
 					break;
 				}
-				this.cp.flatten();
+				this.cp.clean();
 				this.setMouseMode(MouseMode.addPerpendicular);
 			}
 			else{
@@ -233,7 +233,7 @@ project.onMouseDown = function(event){
 					this.cp.pleat(this.modifiers.pleatCount, this.selected.edge, this.nearest.edge)
 						.filter(function(crease){ return crease != undefined; },this)
 						.forEach(function(crease){ crease.mountain(); },this);
-					this.cp.flatten();
+					this.cp.clean();
 					this.updateCreasePattern();
 					this.setMouseMode(MouseMode.addPleatBetweenEdges);
 				}

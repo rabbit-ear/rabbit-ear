@@ -11,7 +11,6 @@ fishSwim.updateFishBase = function(point1, point2){
 	if(edge1.orientation == CreaseDirection.mountain){ this.cp.removeEdge(edge1); }
 	if(edge2.orientation == CreaseDirection.mountain){ this.cp.removeEdge(edge2); }
 	this.cp.clean();
-	this.cp.flatten();
 
 	// shift nodes a little
 	var junction1 = this.cp.nearest( {x:this.a, y:this.a} ).junction;

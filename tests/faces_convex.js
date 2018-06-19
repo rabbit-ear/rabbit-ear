@@ -7,7 +7,7 @@ facesConvex.reset = function(){
 	for(var i = 0; i < 4; i++){
 		this.cp.creaseThroughPoints(new XY(Math.random(),Math.random()),new XY(Math.random(),Math.random()));
 	}
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 }
 facesConvex.reset();

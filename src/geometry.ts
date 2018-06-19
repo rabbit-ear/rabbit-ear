@@ -44,11 +44,17 @@ function wholeNumberify(num:number, epsilon?:number):number{
 	if(Math.abs(Math.round(num) - num) < epsilon){ num = Math.round(num); }
 	return num;
 }
-function formatFloat(num:number, epsilon?:number):number{
-	var fix = parseFloat((num).toFixed(15));
-	if(num.toString().length - fix.toString().length > 5){ return fix; }
-	return parseFloat((num).toFixed(14));
+// function formatFloat(num:number, epsilon?:number):number{
+// 	var fix = parseFloat((num).toFixed(15));
+// 	if(num.toString().length - fix.toString().length > 5){ return fix; }
+// 	return parseFloat((num).toFixed(14));
+// }
+/** will clean up numbers like 15.00000000000032 to an epsilon range */
+function cleanNumber(num:number, decimalPlaces?:number):number{
+	if(Math.floor(num) == num || decimalPlaces == undefined){ return num; }
+	return parseFloat(num.toFixed(decimalPlaces));
 }
+
 /////////////////////////////////////////////////////////////////////////////////
 //                            2D ALGORITHMS
 /////////////////////////////////////////////////////////////////////////////////
@@ -757,9 +763,7 @@ class Circle{
 /** The boundary of a polygon defined by a sequence of nodes */
 class Polygon{
 	nodes:XY[];
-	// edges:Edge[];
-	// todo: needs a proper initializer
-	constructor(){ }
+	constructor(){ this.nodes = []; }
 	/** This compares two polygons by checking their nodes are the same, and in the same order.
 	 * @returns {boolean} whether two polygons are equivalent or not
 	 * @example
@@ -843,6 +847,7 @@ class Polygon{
 /** An ordered set of node-adjacent edges defining the boundary of a convex space */
 class ConvexPolygon{
 	edges:Edge[];
+	constructor(){ this.edges = []; }
 	nodes():XY[]{
 		return this.edges.map(function(el,i){
 			var nextEl = this.edges[ (i+1)%this.edges.length ];
@@ -983,8 +988,8 @@ class ConvexPolygon{
 		var points = [];
 		for(var i = 0; i < sides; i++){
 			var a = -2 * Math.PI * i / sides + halfwedge;
-			var x = formatFloat(radius * Math.sin(a));
-			var y = formatFloat(radius * Math.cos(a));
+			var x = cleanNumber(radius * Math.sin(a), 14);
+			var y = cleanNumber(radius * Math.cos(a), 14);
 			points.push( new XY(x, y) ); // align point along Y
 		}
 		this.setEdgesFromPoints(points);

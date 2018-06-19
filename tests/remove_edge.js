@@ -15,7 +15,7 @@ removeEdge.reset = function(){
 		var angle = Math.random()*Math.PI*2;
 		this.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 }
 removeEdge.reset();
@@ -35,7 +35,7 @@ removeEdge.onMouseDown = function(event){
 	if(nearest.edge != undefined){
 		var report = this.cp.removeEdge(nearest.edge);
 		if(remove_edge_callback != undefined){ remove_edge_callback(report); }
-		this.cp.flatten();
+		this.cp.clean();
 		this.draw();
 		this.selectNearestEdge(event.point);
 	}

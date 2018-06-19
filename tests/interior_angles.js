@@ -27,7 +27,7 @@ projectInAngles.updateAngles = function(){
 	var i = 0;
 	var radiuses = [0.35, 0.3, 0.25];
 	var eventData = {edgeAngles:[], interiorAngles:[]};
-	this.cp.flatten();
+	this.cp.clean();
 	this.centerNode.junction().sectors
 		.sort(function(a,b){ return a.angle() < b.angle(); })
 		.forEach(function(el){

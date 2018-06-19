@@ -60,8 +60,7 @@ wobble.onFrame = function(event) {
 	this.updatePositions();
 
 	this.cpForFaces = this.cp.copy();
-	this.cpForFaces.fragment();
-	this.cpForFaces.flatten();
+	this.cpForFaces.clean();
 
 	this.faceLayer.activate();
 	this.faceLayer.removeChildren();

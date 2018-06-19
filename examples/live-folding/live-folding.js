@@ -16,7 +16,7 @@ project.onMouseMove = function(event){
 		var dir = junction.sectors[0].kawasakiCollapse();
 		this.cp = this.template.copy();
 		this.cp.crease( new Ray(this.centerNode.x, this.centerNode.y, dir.x, dir.y) ).mountain();
-		this.cp.flatten();
+		this.cp.clean();
 		updateFoldedState(this.cp);
 		this.draw();
 	}
@@ -34,7 +34,7 @@ project.reset = function(){
 		return this.template.crease(this.centerpoint[0], this.centerpoint[1], el[0], el[1]);
 	},this).filter(function(el){ return el !== undefined; })
 		.forEach(function(crease){crease.valley();},this);
-	this.template.flatten();
+	this.template.clean();
 	var valleyCreases = this.template.edges.filter(function(el){return el.orientation==CreaseDirection.valley;});
 	this.centerNode = valleyCreases[0].commonNodeWithEdge(valleyCreases[1]);
 	this.cp = this.template.copy();

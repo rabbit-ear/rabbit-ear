@@ -17,7 +17,7 @@ projectKawasaki.backgroundLayer.sendToBack();
 
 projectKawasaki.drawSectors = function(){
 
-	this.cp.flatten();
+	this.cp.clean();
 	var kawasakis = this.centerNode.junction().kawasakiSolution();
 	kawasakis.forEach(function(el){
 		el['angles'] = el.sectors.map(function(sector){ return sector.angle(); });

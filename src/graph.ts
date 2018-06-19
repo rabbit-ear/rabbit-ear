@@ -230,7 +230,10 @@ class Graph{
 	// todo: callback hooks for when certain properties of the data structure have been altered
 	didChange:(event:object)=>void;
 
-	constructor(){ this.clear(); }
+	constructor(){
+		this.nodes = [];
+		this.edges = [];
+	}
 
 	///////////////////////////////////////////////
 	// ADD PARTS

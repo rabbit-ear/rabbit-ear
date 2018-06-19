@@ -9,7 +9,7 @@ twoColorable.load("../files/svg/crane.svg", function(){
 });
 
 twoColorable.reset = function(){
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 	var colors = [this.styles.byrne.yellow, this.styles.byrne.darkBlue];
 	var tree = this.cp.faces[0].adjacentFaceTree();

@@ -8,7 +8,7 @@ facesNonConvex.reset = function(){
 		var angle = Math.random()*Math.PI*2;
 		this.cp.creaseRay(new XY(Math.random(), Math.random()), new XY(Math.cos(angle), Math.sin(angle)));
 	}
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 }
 facesNonConvex.reset();

@@ -109,6 +109,10 @@ class CPPolyline extends Polyline{
 	}
 	crease(){ return this.cp.creasePolyline(this); }
 }
+// class RabbitEar{
+// 	face:CreaseFace;
+// 	edges:Crease[];
+// }
 
 //////////////////////////////////////////////////////////////////////////
 // CREASE PATTERN
@@ -329,15 +333,7 @@ class Crease extends PlanarEdge{
 	// AXIOM 3
 	creaseToEdge(edge:Crease):Crease[]{return this.graph.creaseEdgeToEdge(this, edge);}
 }
-
-// class RabbitEar{
-// 	face:CreaseFace;
-// 	edges:Crease[];
-// }
-
 class CreaseFace extends PlanarFace{
-
-	// rabbitEar():RabbitEar{
 	rabbitEar():Crease[]{
 		var sectors = this.sectors();
 		if(sectors.length !== 3){ return []; }
@@ -368,12 +364,10 @@ class CreasePattern extends PlanarGraph{
 	// faces:CreaseFace[];
 	junctions:CreaseJunction[];
 	sectors:CreaseSector[];
-	// for now our crease patterns outlines are limited to convex shapes,
-	//   this can be easily switched out if all member functions are implemented
-	//   for a concave polygon class
+	// for now boundaries are limited to convex polygons. an update simply requires switching this out.
 	boundary:ConvexPolygon;
 
-	symmetryLine:Line = undefined;
+	symmetryLine:Line;
 
 	// this will store the global fold sequence
 	foldSequence:FoldSequence;
@@ -389,8 +383,116 @@ class CreasePattern extends PlanarGraph{
 
 	constructor(){
 		super();
-		if(this.boundary == undefined){ this.boundary = new ConvexPolygon(); }
+		this.boundary = new ConvexPolygon();
+		this.symmetryLine = undefined;
 		this.square();
+	}
+
+	///////////////////////////////////////////////////////////////
+	// CLEAN  /  REMOVE PARTS
+
+	clear():CreasePattern{
+		this.nodes = [];
+		this.edges = [];
+		this.faces = [];
+		this.sectors = [];
+		this.junctions = [];
+		this.symmetryLine = undefined;
+		this.cleanBoundary();
+		this.clean();
+		return this;
+	}
+
+	cleanBoundary(){
+		// remove edges marked "border", remove any now-isolated nodes
+		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+		this.cleanAllNodes();
+		var boundaryNodes = this.boundary.nodes().map(function(node){ return this.newPlanarNode(node.x, node.y); },this);
+		boundaryNodes.forEach(function(node, i){
+			var nextNode = boundaryNodes[ (i+1)%boundaryNodes.length ];
+			(<Crease>this.newPlanarEdgeBetweenNodes(node, nextNode)).border();
+		},this);
+		this.cleanDuplicateNodes();
+	}
+
+	//////////////////////////////////////////////
+	// BOUNDARY
+	contains(a:any, b?:any):boolean{
+		var p = gimme1XY(a, b);
+		if(p == undefined){ return false; }
+		return this.boundary.contains(p);
+	}
+	square(width?:number):CreasePattern{
+		var w = 1.0;
+		// todo: isReal() - check if is real number
+		if(width != undefined && width != 0){ w = Math.abs(width); }
+		return this.setBoundary([[0,0], [w,0], [w,w], [0,w]]);
+	}
+	rectangle(width:number, height:number):CreasePattern{
+		if(width === undefined || height === undefined){ return this; }
+		width = Math.abs(width);
+		height = Math.abs(height);
+		return this.setBoundary( [[0,0], [width,0], [width,height], [0,height]] );
+	}
+	polygon(sides:number):CreasePattern{
+		if(sides < 3){ return this; }
+		return this.setBoundary(new ConvexPolygon().regularPolygon(sides).nodes());
+	}
+	noBoundary():CreasePattern{
+		// clear old data
+		this.boundary.edges = [];
+		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+		this.cleanAllNodes();
+		this.clean();
+		return this;
+	}
+	setBoundary(pointArray:any[], pointsSorted?:boolean):CreasePattern{
+		var points = pointArray.map(function(p){ return gimme1XY(p); },this);
+		// check if the first point is duplicated again at the end of the array
+		if( points[0].equivalent(points[points.length-1]) ){ points.pop(); }
+		if(pointsSorted === true){ this.boundary.setEdgesFromPoints(points); } 
+		else{ this.boundary.convexHull(points); }
+		this.cleanBoundary();
+		console.log("CreasePattern setBoundary() with points:");
+		console.log(points);
+		console.log(this.boundary);
+		this.clean();
+		return this;
+	}
+
+	setMinRectBoundary():CreasePattern{
+		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+		var xMin = Infinity, yMin = Infinity;
+		var xMax = 0, yMax = 0;
+		for(var i = 0; i < this.nodes.length; i++){ 
+			if(this.nodes[i].x > xMax){ xMax = this.nodes[i].x; }
+			if(this.nodes[i].x < xMin){ xMin = this.nodes[i].x; }
+			if(this.nodes[i].y > yMax){ yMax = this.nodes[i].y; }
+			if(this.nodes[i].y < yMin){ yMin = this.nodes[i].y; }
+		}
+		this.setBoundary( [new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax) ]);
+		this.clean();
+		return this;
+	}
+
+	///////////////////////////////////////////////////////////////
+	// SYMMETRY
+	
+	noSymmetry():CreasePattern{ this.symmetryLine = undefined; return this; }
+	bookSymmetry():CreasePattern{
+		var center = this.boundary.center();
+		this.symmetryLine = new Line(center, new XY(0, 1));
+		return this;
+	}
+	diagonalSymmetry():CreasePattern{
+		var center = this.boundary.center();
+		this.symmetryLine = new Line(center, new XY(0.7071, 0.7071));
+		return this;
+	}
+	setSymmetryLine(a:any, b?:any, c?:any, d?:any):CreasePattern{
+		var edge = gimme1Edge(a,b,c,d);
+		this.symmetryLine = new Line(edge.nodes[0], edge.nodes[1].subtract(edge.nodes[1]));
+		return this;
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -888,118 +990,6 @@ class CreasePattern extends PlanarGraph{
 			.shift();
 	}
 
-	//////////////////////////////////////////////
-	// BOUNDARY
-	contains(a:any):boolean{
-		var p = gimme1XY(a);
-		if(p === undefined){ return false; }
-		return this.boundary.contains(p);
-	}
-	square(width?:number):CreasePattern{
-		var w = 1.0;
-		// todo: isReal() - check if is real number
-		if(width != undefined && width != 0){ w = Math.abs(width); }
-		return this.setBoundary([[0,0], [w,0], [w,w], [0,w]]);
-	}
-	rectangle(width:number, height:number):CreasePattern{
-		if(width === undefined || height === undefined){ return this; }
-		width = Math.abs(width);
-		height = Math.abs(height);
-		return this.setBoundary( [[0,0], [width,0], [width,height], [0,height]] );
-	}
-	polygon(sides:number):CreasePattern{
-		if(sides < 3){ return this; }
-		return this.setBoundary(new ConvexPolygon().regularPolygon(sides).nodes());
-	}
-	noBoundary():CreasePattern{
-		// clear old data
-		this.boundary.edges = [];
-		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		this.cleanAllNodes();
-		this.flatten();
-		return this;
-	}
-	setBoundary(pointArray:any[], alreadyClockwiseSorted?:boolean):CreasePattern{
-		var points = pointArray.map(function(p){ return gimme1XY(p); },this);
-		// check if the first point is duplicated again at the end of the array
-		console.log("setting boundary with points");
-		console.log(points);
-		if( points[0].equivalent(points[points.length-1]) ){ points.pop(); }
-		// perform convex hull if points are not already sorted clockwise
-		if(alreadyClockwiseSorted !== undefined && alreadyClockwiseSorted === true){
-			this.boundary.setEdgesFromPoints(points);
-		} else{
-			this.boundary.convexHull(points);
-		}
-		console.log(this.boundary);
-		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		this.cleanAllNodes();
-		this.boundary.edges.forEach(function(el){
-			console.log("creasing boundary edge ");
-			console.log(el);
-			(<Crease>this.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y)).border();
-		},this);
-		this.cleanDuplicateNodes();
-		this.flatten();
-		this.clean();
-		return this;
-	}
-
-	setMinRectBoundary():CreasePattern{
-		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		var xMin = Infinity, yMin = Infinity;
-		var xMax = 0, yMax = 0;
-		for(var i = 0; i < this.nodes.length; i++){ 
-			if(this.nodes[i].x > xMax){ xMax = this.nodes[i].x; }
-			if(this.nodes[i].x < xMin){ xMin = this.nodes[i].x; }
-			if(this.nodes[i].y > yMax){ yMax = this.nodes[i].y; }
-			if(this.nodes[i].y < yMin){ yMin = this.nodes[i].y; }
-		}
-		this.setBoundary( [new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax) ]);
-		this.flatten();
-		return this;
-	}
-
-	///////////////////////////////////////////////////////////////
-	// CLEAN  /  REMOVE PARTS
-
-	clear():CreasePattern{
-		this.nodes = [];
-		this.edges = [];
-		this.faces = [];
-		this.junctions = [];
-		this.sectors = [];
-		this.symmetryLine = undefined;
-		if(this.boundary === undefined){ return this; }
-		for(var i = 0; i < this.boundary.edges.length; i++){
-			var nodes = this.boundary.edges[i].nodes;
-			(<Crease>this.newPlanarEdge(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y)).border();
-		}
-		this.cleanDuplicateNodes();
-		this.flatten();
-		return this;
-	}
-
-	///////////////////////////////////////////////////////////////
-	// SYMMETRY
-	
-	noSymmetry():CreasePattern{ this.symmetryLine = undefined; return this; }
-	bookSymmetry():CreasePattern{
-		var center = this.boundary.center();
-		this.symmetryLine = new Line(center, new XY(0, 1));
-		return this;
-	}
-	diagonalSymmetry():CreasePattern{
-		var center = this.boundary.center();
-		this.symmetryLine = new Line(center, new XY(0.7071, 0.7071));
-		return this;
-	}
-	setSymmetryLine(a:any, b?:any, c?:any, d?:any):CreasePattern{
-		var edge = gimme1Edge(a,b,c,d);
-		this.symmetryLine = new Line(edge.nodes[0], edge.nodes[1].subtract(edge.nodes[1]));
-		return this;
-	}
-
 	////////////////////////////////////////////////////////////////
 	///
 	////////////////////////////////////////////////////////////////
@@ -1007,7 +997,7 @@ class CreasePattern extends PlanarGraph{
 	overlapRelationMatrix():boolean[][]{
 		// boolean relationship for entry matrix[A][B] can be read as:
 		//  is face A "on top of" face B?
-		this.flatten();
+		this.clean();
 		// if(face == undefined){
 		// 	var bounds = this.bounds();
 		// 	face = this.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
@@ -1044,13 +1034,12 @@ class CreasePattern extends PlanarGraph{
 				this.removeEdge(this.edges[i]);
 			}
 		}
-		this.flatten();
 		this.clean();
 		return this;
 	}
 
 	fold(face?:PlanarFace):object{
-		this.flatten();
+		this.clean();
 		var copyCP = this.copy().removeAllMarks();
 		if(face == undefined){
 			var bounds = copyCP.bounds();
@@ -1084,7 +1073,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	foldSVG(face?:PlanarFace):string{
-		this.flatten();
+		this.clean();
 		var copyCP = this.copy().removeAllMarks();
 		if(face == undefined){
 			var bounds = copyCP.bounds();
@@ -1128,7 +1117,7 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	exportFoldFile():object{
-		// this.flatten();
+		// this.clean();
 		this.nodeArrayDidChange();
 		this.edgeArrayDidChange();
 
@@ -1138,7 +1127,7 @@ class CreasePattern extends PlanarGraph{
 		file["file_author"] = "";
 		file["file_classes"] = ["singleModel"];
 		file["vertices_coords"] = this.nodes.map(function(node){
-			return [this.numStrNum(node.x, 12),this.numStrNum(node.y, 12)];
+			return [cleanNumber(node.x, 12),cleanNumber(node.y, 12)];
 		},this);
 		file["faces_vertices"] = this.faces.map(function(face){
 			return face.nodes.map(function(node){ return node.index; },this);
@@ -1226,16 +1215,6 @@ class CreasePattern extends PlanarGraph{
 		return this;
 	}
 
-	strNum(num:number, decimalPlaces?:number):string{
-		if(Math.floor(num) == num || decimalPlaces == undefined){ return num.toString(); }
-		return parseFloat(num.toFixed(decimalPlaces)).toString();
-	}
-
-	numStrNum(num:number, decimalPlaces?:number):number{
-		if(Math.floor(num) == num || decimalPlaces == undefined){ return num; }
-		return parseFloat(num.toFixed(decimalPlaces));
-	}
-
 	exportSVG(size?:number):string{
 		if(size === undefined || size <= 0){ size = 600; }
 		var bounds = this.bounds();
@@ -1243,13 +1222,13 @@ class CreasePattern extends PlanarGraph{
 		var height = bounds.size.height;
 		var scale = size / (width);
 		var origins = [bounds.origin.x, bounds.origin.y];
-		var widthScaled = this.strNum(width*scale);
-		var heightScaled = this.strNum(height*scale);
-		var dashW = this.strNum(width * scale * 0.0025 * 4);
+		var widthScaled = cleanNumber(width*scale).toString();
+		var heightScaled = cleanNumber(height*scale).toString();
+		var dashW = cleanNumber(width * scale * 0.0025 * 4).toString();
 		// var dashWOff = ((width)*scale * 0.0025 * 6 * 0.5).toFixed(1);
 		var dashWOff = dashW;
 		var strokeWidthNum = width * scale * 0.0025 * 2
-		var strokeWidth = strokeWidthNum < 0.5 ? 0.5 : this.strNum(strokeWidthNum);
+		var strokeWidth = strokeWidthNum < 0.5 ? 0.5 : cleanNumber(strokeWidthNum).toString();
 		if(strokeWidth == 0){ strokeWidth = 0.5; }
 
 		var valleyStyle = "stroke=\"#4379FF\" stroke-linecap=\"round\" stroke-dasharray=\"" + dashW + "," + dashWOff + "\" ";
@@ -1279,7 +1258,7 @@ class CreasePattern extends PlanarGraph{
 					.map(function(el){ return [el.x, el.y]; },this)
 					.reduce(function(prev,curr){ return prev.concat(curr); },[])
  					.map(function(el,i){ return (el - origins[i%2]) * scale; },this)
-					.map(function(number){ return this.strNum(number, 12); },this);
+					.map(function(number){ return cleanNumber(number, 12).toString(); },this);
 				blob += "\t<line " + style + "stroke-width=\"" + strokeWidth + "\" x1=\"" +p[0]+ "\" y1=\"" +p[1]+ "\" x2=\"" +p[2]+ "\" y2=\"" +p[3]+ "\"/>\n";
 			},this);
 			blob += "</g>\n";
@@ -1307,7 +1286,7 @@ class CreasePattern extends PlanarGraph{
 				blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
 				for(var j = 0; j < polylines[i].nodes.length; j++){
 					var point = polylines[i].nodes[j];
-					blob += this.strNum(scale*point.x, 12) + "," + this.strNum(scale*point.y, 12) + " ";
+					blob += cleanNumber(scale*point.x, 12).toString() + "," + cleanNumber(scale*point.y, 12).toString() + " ";
 				}
 				blob += "\"/>\n";
 			}

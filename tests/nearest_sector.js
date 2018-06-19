@@ -19,7 +19,7 @@ nearSector.reset = function(){
 		this.cp.newPlanarEdge(0.5, 0.5, 0.5+len*Math.cos(angle), 0.5+len*Math.sin(angle) );
 		angle += Math.PI / 64 + Math.random() * Math.PI / 6;
 	}
-	this.cp.flatten();
+	this.cp.clean();
 	centerNode = this.cp.nearest(center).node;
 	this.draw();
 }

@@ -23,14 +23,12 @@ ffSingle.reset = function(){
 			this.masterCP.creaseRay(center, new XY(Math.cos(angle), Math.sin(angle))).valley();
 		}
 		this.masterCP.clean();
-		this.masterCP.flatten();
 		this.centerNode = this.masterCP.nearest(0.5, 0.5).node;
 		interiorAngles = this.centerNode.junction().interiorAngles();
 		var tooSmall = false;
 		for(var i = 0; i < interiorAngles.length; i++){ if(interiorAngles[i] < Math.PI*0.5) tooSmall = true; }
 	} while(tooSmall);
 	this.masterCP.clean();
-	this.masterCP.flatten();
 	this.rebuild();
 }
 ffSingle.reset();

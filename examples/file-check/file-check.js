@@ -88,7 +88,7 @@ panel4.reset = function(){
 function updateEpsilon(newEpsilon){
 	sliderUpdateTimer = undefined;
 	var cp = panel1.cp.copy();
-	cp.flatten(newEpsilon);
+	cp.clean(newEpsilon);
 	[panel2, panel3, panel4, panel5].forEach(function(panel){
 		panel.cp = cp.copy();
 		panel.draw();
@@ -120,7 +120,7 @@ function fileDidLoad(file){
 			panel3.cp = panel2.cp.copy();
 			panel4.cp = panel2.cp.copy();
 			panel5.cp = panel2.cp.copy();
-			panel4.cp.flatten();
+			panel4.cp.clean();
 			[panel3, panel4, panel5].forEach(function(el){el.draw();},);
 			panel4.reset();
 			updateFoldedState(panel2.cp);

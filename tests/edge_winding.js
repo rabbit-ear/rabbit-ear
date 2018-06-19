@@ -21,7 +21,7 @@ edgeWinding.reset = function(){
 		this.cp.newPlanarEdge(0.5, 0.5, 0.5+len*Math.cos(angle), 0.5+len*Math.sin(angle) );
 		angle+= Math.random()*0.3 + 0.1;
 	}
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 	this.centerNode = this.cp.nearest(0.5, 0.5).node;
 	this.adjacentEdges = this.centerNode.junction().edges;

@@ -141,6 +141,7 @@ var OrigamiPaper = (function(){
 		if(component instanceof PlanarFace){ return this.faces[ component.index ]; }
 		if(component instanceof PlanarSector){ return this.sectors[ component.index ]; }
 		if(component instanceof PlanarJunction){ return this.junctions[ component.index ]; }
+		return {};
 	}
 
 	OrigamiPaper.prototype.draw = function(){
@@ -307,7 +308,7 @@ var OrigamiPaper = (function(){
 			var cp = that.loader.paperPathToCP(e);
 			if(epsilon === undefined){ epsilon = 0.0001; }
 			console.log("loading svg with epsilon " + epsilon);
-			cp.flatten(epsilon);
+			cp.clean(epsilon);
 			// rebuild boundary
 			// TODO: this code only works for convex hull boundaries
 			cp.edges.forEach(function(edge){
@@ -621,7 +622,7 @@ var OrigamiFold = (function(){
 		this.scope.project.importSVG(svg, function(e){
 			var cp = that.loader.paperPathToCP(e);
 			that.cp = cp;
-			// that.cp.flatten();
+			// that.cp.clean();
 			that.draw();
 			if(callback != undefined){
 				callback(that.cp);

@@ -15,7 +15,7 @@ nearestSketch.style.node.radius = 0.015;
 
 nearestSketch.reset = function(){
 	this.cp.birdBase();
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 }
 nearestSketch.reset();

@@ -18,7 +18,7 @@ radialFaces.reset = function(){
 		this.cp.creaseRay(new XY(0.5, 0.5), new XY(Math.cos(angle), Math.sin(angle)));
 		angle+= Math.random()*0.5;
 	}
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 	this.updateRainbows();
 }

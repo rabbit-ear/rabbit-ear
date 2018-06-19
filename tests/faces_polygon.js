@@ -19,7 +19,7 @@ facesPolygon.reset = function(){
 		var rayPoint = new XY(center.x+Math.cos(angle) * r, center.y+Math.sin(angle) * r);
 		this.cp.creasePerpendicularThroughPoint(new Edge(center, rayPoint).infiniteLine(), rayPoint);
 	}
-	this.cp.flatten();
+	this.cp.clean();
 	this.draw();
 }
 facesPolygon.reset();

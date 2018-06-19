@@ -44,12 +44,11 @@ function wholeNumberify(num, epsilon) {
     }
     return num;
 }
-function formatFloat(num, epsilon) {
-    var fix = parseFloat((num).toFixed(15));
-    if (num.toString().length - fix.toString().length > 5) {
-        return fix;
+function cleanNumber(num, decimalPlaces) {
+    if (Math.floor(num) == num || decimalPlaces == undefined) {
+        return num;
     }
-    return parseFloat((num).toFixed(14));
+    return parseFloat(num.toFixed(decimalPlaces));
 }
 function clockwiseInteriorAngleRadians(a, b) {
     while (a < 0) {
@@ -802,6 +801,7 @@ var Circle = (function () {
 }());
 var Polygon = (function () {
     function Polygon() {
+        this.nodes = [];
     }
     Polygon.prototype.equivalent = function (polygon) {
         if (polygon.nodes.length != this.nodes.length) {
@@ -872,6 +872,7 @@ var Polygon = (function () {
 }());
 var ConvexPolygon = (function () {
     function ConvexPolygon() {
+        this.edges = [];
     }
     ConvexPolygon.prototype.nodes = function () {
         return this.edges.map(function (el, i) {
@@ -1014,8 +1015,8 @@ var ConvexPolygon = (function () {
         var points = [];
         for (var i = 0; i < sides; i++) {
             var a = -2 * Math.PI * i / sides + halfwedge;
-            var x = formatFloat(radius * Math.sin(a));
-            var y = formatFloat(radius * Math.cos(a));
+            var x = cleanNumber(radius * Math.sin(a), 14);
+            var y = cleanNumber(radius * Math.cos(a), 14);
             points.push(new XY(x, y));
         }
         this.setEdgesFromPoints(points);
@@ -1678,7 +1679,8 @@ var Graph = (function () {
     function Graph() {
         this.nodeType = GraphNode;
         this.edgeType = GraphEdge;
-        this.clear();
+        this.nodes = [];
+        this.edges = [];
     }
     Graph.prototype.newNode = function () {
         return this.addNode(new this.nodeType(this));
@@ -1996,7 +1998,7 @@ var PlanarNode = (function (_super) {
     PlanarNode.prototype.copy = function () { return new XY(this.x, this.y); };
     PlanarNode.prototype.junction = function () {
         if (this.graph.unclean) {
-            this.graph.flatten();
+            this.graph.clean();
         }
         return this.graph.junctions.slice().filter(function (junction) {
             return junction.origin === this;
@@ -2004,14 +2006,14 @@ var PlanarNode = (function (_super) {
     };
     PlanarNode.prototype.sectors = function () {
         if (this.graph.unclean) {
-            this.graph.flatten();
+            this.graph.clean();
         }
         return this.graph.sectors.filter(function (el) { return el.origin === this; }, this);
     };
     PlanarNode.prototype.interiorAngles = function () { return this.junction().interiorAngles(); };
     PlanarNode.prototype.adjacentFaces = function () {
         if (this.graph.unclean) {
-            this.graph.flatten();
+            this.graph.clean();
         }
         return this.graph.faces.filter(function (face) {
             return face.nodes.filter(function (n) { return n === this; }, this).length > 0;
@@ -2079,7 +2081,7 @@ var PlanarEdge = (function (_super) {
     PlanarEdge.prototype.copy = function () { return new Edge(this.nodes[0].copy(), this.nodes[1].copy()); };
     PlanarEdge.prototype.adjacentFaces = function () {
         if (this.graph.unclean) {
-            this.graph.flatten();
+            this.graph.clean();
         }
         return this.graph.faces.filter(function (face) {
             return face.edges.filter(function (edge) { return edge === this; }, this).length > 0;
@@ -2180,7 +2182,7 @@ var PlanarFace = (function (_super) {
     };
     PlanarFace.prototype.adjacentFaceArray = function () {
         if (this.graph.unclean) {
-            this.graph.generateFaces();
+            this.graph.clean();
         }
         else {
             this.graph.faceArrayDidChange();
@@ -2268,7 +2270,7 @@ var PlanarJunction = (function () {
     };
     PlanarJunction.prototype.faces = function () {
         if (this.origin.graph.unclean) {
-            this.origin.graph.flatten();
+            this.origin.graph.clean();
         }
         return this.origin.graph.faces.filter(function (face) {
             return face.nodes.filter(function (node) { return node === this.origin; }, this).length > 0;
@@ -2337,10 +2339,13 @@ var PlanarGraph = (function (_super) {
         _this.faceType = PlanarFace;
         _this.sectorType = PlanarSector;
         _this.junctionType = PlanarJunction;
-        _this.clear();
+        _this.faces = [];
+        _this.sectors = [];
+        _this.junctions = [];
         return _this;
     }
     PlanarGraph.prototype.clean = function (epsilon) {
+        this.unclean = false;
         var report = new PlanarClean();
         report.join(this.cleanDuplicateNodes(epsilon));
         this.fragmentCollinearNodes(epsilon);
@@ -2351,14 +2356,46 @@ var PlanarGraph = (function (_super) {
         report.join(this.cleanAllNodes());
         this.nodeArrayDidChange();
         this.edgeArrayDidChange();
-        return report;
-    };
-    PlanarGraph.prototype.flatten = function (epsilon) {
-        this.unclean = false;
-        var report = this.clean(epsilon);
-        this.generateJunctions();
+        this.generateJunctionsAndSectors();
         this.generateFaces();
         return report;
+    };
+    PlanarGraph.prototype.generateJunctionsAndSectors = function () {
+        this.junctions = this.nodes
+            .map(function (el) { return new this.junctionType(el); }, this)
+            .filter(function (el) { return el !== undefined && el.edges.length > 1; }, this);
+        this.sectors = this.junctions
+            .map(function (el) { return el.sectors; }, this)
+            .reduce(function (prev, curr) { return prev.concat(curr); }, [])
+            .filter(function (el) { return el !== undefined; }, this);
+        this.junctionArrayDidChange();
+        this.sectorArrayDidChange();
+    };
+    PlanarGraph.prototype.generateFaces = function () {
+        var faces = this.edges
+            .map(function (edge) {
+            return [this.counterClockwiseCircuit(edge.nodes[0], edge.nodes[1]),
+                this.counterClockwiseCircuit(edge.nodes[1], edge.nodes[0])];
+        }, this)
+            .reduce(function (prev, curr) { return prev.concat(curr); }, [])
+            .filter(function (el) { return el != undefined; }, this)
+            .map(function (el) { return this.faceFromCircuit(el); }, this)
+            .filter(function (el) { return el != undefined; }, this);
+        var uniqueFaces = [];
+        for (var i = 0; i < faces.length; i++) {
+            var found = false;
+            for (var j = 0; j < uniqueFaces.length; j++) {
+                if (faces[i].equivalent(uniqueFaces[j])) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                uniqueFaces.push(faces[i]);
+            }
+        }
+        this.faces = uniqueFaces;
+        this.faceArrayDidChange();
     };
     PlanarGraph.prototype.newPlanarNode = function (x, y) {
         this.unclean = true;
@@ -2533,6 +2570,13 @@ var PlanarGraph = (function (_super) {
             'sector': sector
         };
     };
+    PlanarGraph.prototype.faceContainingPoint = function (point) {
+        for (var f = 0; f < this.faces.length; f++) {
+            if (this.faces[f].contains(point)) {
+                return this.faces[f];
+            }
+        }
+    };
     PlanarGraph.prototype.nearestNodes = function (quantity, a, b) {
         var point = gimme1XY(a, b);
         var sortedNodes = this.nodes
@@ -2564,7 +2608,7 @@ var PlanarGraph = (function (_super) {
         }
         return sortedEdges.slice(0, quantity);
     };
-    PlanarGraph.prototype.nearestEdgeConnectingPoints = function (a, b, c, d) {
+    PlanarGraph.prototype.nearestEdgeWithPoints = function (a, b, c, d) {
         var p = gimme2XY(a, b, c, d);
         if (p === undefined) {
             return;
@@ -2590,13 +2634,6 @@ var PlanarGraph = (function (_super) {
                             return edge;
                     }
                 }
-            }
-        }
-    };
-    PlanarGraph.prototype.faceContainingPoint = function (point) {
-        for (var f = 0; f < this.faces.length; f++) {
-            if (this.faces[f].contains(point)) {
-                return this.faces[f];
             }
         }
     };
@@ -2641,46 +2678,6 @@ var PlanarGraph = (function (_super) {
             }
         }
         return intersections;
-    };
-    PlanarGraph.prototype.generateJunctions = function () {
-        this.junctions = this.nodes
-            .map(function (el) { return new this.junctionType(el); }, this)
-            .filter(function (el) { return el !== undefined; }, this)
-            .filter(function (el) { return el.edges.length > 1; }, this);
-        this.sectors = this.junctions
-            .map(function (el) { return el.sectors; }, this)
-            .reduce(function (prev, curr) { return prev.concat(curr); }, [])
-            .filter(function (el) { return el !== undefined; }, this);
-        this.junctionArrayDidChange();
-        this.sectorArrayDidChange();
-        return this.junctions;
-    };
-    PlanarGraph.prototype.generateFaces = function () {
-        var faces = this.edges
-            .map(function (edge) {
-            return [this.counterClockwiseCircuit(edge.nodes[0], edge.nodes[1]),
-                this.counterClockwiseCircuit(edge.nodes[1], edge.nodes[0])];
-        }, this)
-            .reduce(function (prev, curr) { return prev.concat(curr); }, [])
-            .filter(function (el) { return el != undefined; }, this)
-            .map(function (el) { return this.faceFromCircuit(el); }, this)
-            .filter(function (el) { return el != undefined; }, this);
-        var uniqueFaces = [];
-        for (var i = 0; i < faces.length; i++) {
-            var found = false;
-            for (var j = 0; j < uniqueFaces.length; j++) {
-                if (faces[i].equivalent(uniqueFaces[j])) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                uniqueFaces.push(faces[i]);
-            }
-        }
-        this.faces = uniqueFaces;
-        this.faceArrayDidChange();
-        return this.faces;
     };
     PlanarGraph.prototype.fragment = function (epsilon) {
         var protection = 0;
@@ -2918,17 +2915,18 @@ var PlanarGraph = (function (_super) {
         }
         g.sectors = this.sectors.map(function (sector, i) {
             var gSecEdges = sector.edges.map(function (edge) { return g.edges[edge.index]; }, this);
-            return new PlanarSector(gSecEdges[0], gSecEdges[1]);
+            var s = new PlanarSector(gSecEdges[0], gSecEdges[1]);
+            s.index = i;
+            return s;
         }, this);
-        g.sectorArrayDidChange();
         g.junctions = this.junctions.map(function (junction, i) {
             var j = new PlanarJunction(undefined);
             j.origin = g.nodes[junction.origin.index];
             j.sectors = junction.sectors.map(function (sector) { return g.sectors[sector.index]; }, this);
             j.edges = junction.edges.map(function (edge) { return g.edges[edge.index]; }, this);
+            j.index = i;
             return j;
         }, this);
-        g.junctionArrayDidChange();
         return g;
     };
     PlanarGraph.prototype.polylines = function () {
@@ -3347,18 +3345,128 @@ var CreasePattern = (function (_super) {
     __extends(CreasePattern, _super);
     function CreasePattern() {
         var _this = _super.call(this) || this;
-        _this.symmetryLine = undefined;
         _this.nodeType = CreaseNode;
         _this.edgeType = Crease;
         _this.faceType = CreaseFace;
         _this.sectorType = CreaseSector;
         _this.junctionType = CreaseJunction;
-        if (_this.boundary == undefined) {
-            _this.boundary = new ConvexPolygon();
-        }
+        _this.boundary = new ConvexPolygon();
+        _this.symmetryLine = undefined;
         _this.square();
         return _this;
     }
+    CreasePattern.prototype.clear = function () {
+        this.nodes = [];
+        this.edges = [];
+        this.faces = [];
+        this.sectors = [];
+        this.junctions = [];
+        this.symmetryLine = undefined;
+        this.cleanBoundary();
+        this.clean();
+        return this;
+    };
+    CreasePattern.prototype.cleanBoundary = function () {
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        this.cleanAllNodes();
+        var boundaryNodes = this.boundary.nodes().map(function (node) { return this.newPlanarNode(node.x, node.y); }, this);
+        boundaryNodes.forEach(function (node, i) {
+            var nextNode = boundaryNodes[(i + 1) % boundaryNodes.length];
+            this.newPlanarEdgeBetweenNodes(node, nextNode).border();
+        }, this);
+        this.cleanDuplicateNodes();
+    };
+    CreasePattern.prototype.contains = function (a, b) {
+        var p = gimme1XY(a, b);
+        if (p == undefined) {
+            return false;
+        }
+        return this.boundary.contains(p);
+    };
+    CreasePattern.prototype.square = function (width) {
+        var w = 1.0;
+        if (width != undefined && width != 0) {
+            w = Math.abs(width);
+        }
+        return this.setBoundary([[0, 0], [w, 0], [w, w], [0, w]]);
+    };
+    CreasePattern.prototype.rectangle = function (width, height) {
+        if (width === undefined || height === undefined) {
+            return this;
+        }
+        width = Math.abs(width);
+        height = Math.abs(height);
+        return this.setBoundary([[0, 0], [width, 0], [width, height], [0, height]]);
+    };
+    CreasePattern.prototype.polygon = function (sides) {
+        if (sides < 3) {
+            return this;
+        }
+        return this.setBoundary(new ConvexPolygon().regularPolygon(sides).nodes());
+    };
+    CreasePattern.prototype.noBoundary = function () {
+        this.boundary.edges = [];
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        this.cleanAllNodes();
+        this.clean();
+        return this;
+    };
+    CreasePattern.prototype.setBoundary = function (pointArray, pointsSorted) {
+        var points = pointArray.map(function (p) { return gimme1XY(p); }, this);
+        if (points[0].equivalent(points[points.length - 1])) {
+            points.pop();
+        }
+        if (pointsSorted === true) {
+            this.boundary.setEdgesFromPoints(points);
+        }
+        else {
+            this.boundary.convexHull(points);
+        }
+        this.cleanBoundary();
+        console.log("CreasePattern setBoundary() with points:");
+        console.log(points);
+        console.log(this.boundary);
+        this.clean();
+        return this;
+    };
+    CreasePattern.prototype.setMinRectBoundary = function () {
+        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
+        var xMin = Infinity, yMin = Infinity;
+        var xMax = 0, yMax = 0;
+        for (var i = 0; i < this.nodes.length; i++) {
+            if (this.nodes[i].x > xMax) {
+                xMax = this.nodes[i].x;
+            }
+            if (this.nodes[i].x < xMin) {
+                xMin = this.nodes[i].x;
+            }
+            if (this.nodes[i].y > yMax) {
+                yMax = this.nodes[i].y;
+            }
+            if (this.nodes[i].y < yMin) {
+                yMin = this.nodes[i].y;
+            }
+        }
+        this.setBoundary([new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax)]);
+        this.clean();
+        return this;
+    };
+    CreasePattern.prototype.noSymmetry = function () { this.symmetryLine = undefined; return this; };
+    CreasePattern.prototype.bookSymmetry = function () {
+        var center = this.boundary.center();
+        this.symmetryLine = new Line(center, new XY(0, 1));
+        return this;
+    };
+    CreasePattern.prototype.diagonalSymmetry = function () {
+        var center = this.boundary.center();
+        this.symmetryLine = new Line(center, new XY(0.7071, 0.7071));
+        return this;
+    };
+    CreasePattern.prototype.setSymmetryLine = function (a, b, c, d) {
+        var edge = gimme1Edge(a, b, c, d);
+        this.symmetryLine = new Line(edge.nodes[0], edge.nodes[1].subtract(edge.nodes[1]));
+        return this;
+    };
     CreasePattern.prototype.point = function (a, b) { return new CPPoint(this, gimme1XY(a, b)); };
     CreasePattern.prototype.line = function (a, b, c, d) { return new CPLine(this, gimme1Line(a, b, c, d)); };
     CreasePattern.prototype.ray = function (a, b, c, d) { return new CPRay(this, gimme1Ray(a, b, c, d)); };
@@ -3745,125 +3853,8 @@ var CreasePattern = (function (_super) {
             .sort(function (a, b) { return (a.nodes[0].x + a.nodes[1].x) - (b.nodes[0].x + b.nodes[1].x); })
             .shift();
     };
-    CreasePattern.prototype.contains = function (a) {
-        var p = gimme1XY(a);
-        if (p === undefined) {
-            return false;
-        }
-        return this.boundary.contains(p);
-    };
-    CreasePattern.prototype.square = function (width) {
-        var w = 1.0;
-        if (width != undefined && width != 0) {
-            w = Math.abs(width);
-        }
-        return this.setBoundary([[0, 0], [w, 0], [w, w], [0, w]]);
-    };
-    CreasePattern.prototype.rectangle = function (width, height) {
-        if (width === undefined || height === undefined) {
-            return this;
-        }
-        width = Math.abs(width);
-        height = Math.abs(height);
-        return this.setBoundary([[0, 0], [width, 0], [width, height], [0, height]]);
-    };
-    CreasePattern.prototype.polygon = function (sides) {
-        if (sides < 3) {
-            return this;
-        }
-        return this.setBoundary(new ConvexPolygon().regularPolygon(sides).nodes());
-    };
-    CreasePattern.prototype.noBoundary = function () {
-        this.boundary.edges = [];
-        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        this.cleanAllNodes();
-        this.flatten();
-        return this;
-    };
-    CreasePattern.prototype.setBoundary = function (pointArray, alreadyClockwiseSorted) {
-        var points = pointArray.map(function (p) { return gimme1XY(p); }, this);
-        console.log("setting boundary with points");
-        console.log(points);
-        if (points[0].equivalent(points[points.length - 1])) {
-            points.pop();
-        }
-        if (alreadyClockwiseSorted !== undefined && alreadyClockwiseSorted === true) {
-            this.boundary.setEdgesFromPoints(points);
-        }
-        else {
-            this.boundary.convexHull(points);
-        }
-        console.log(this.boundary);
-        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        this.cleanAllNodes();
-        this.boundary.edges.forEach(function (el) {
-            console.log("creasing boundary edge ");
-            console.log(el);
-            this.newPlanarEdge(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
-        }, this);
-        this.cleanDuplicateNodes();
-        this.flatten();
-        this.clean();
-        return this;
-    };
-    CreasePattern.prototype.setMinRectBoundary = function () {
-        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        var xMin = Infinity, yMin = Infinity;
-        var xMax = 0, yMax = 0;
-        for (var i = 0; i < this.nodes.length; i++) {
-            if (this.nodes[i].x > xMax) {
-                xMax = this.nodes[i].x;
-            }
-            if (this.nodes[i].x < xMin) {
-                xMin = this.nodes[i].x;
-            }
-            if (this.nodes[i].y > yMax) {
-                yMax = this.nodes[i].y;
-            }
-            if (this.nodes[i].y < yMin) {
-                yMin = this.nodes[i].y;
-            }
-        }
-        this.setBoundary([new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax)]);
-        this.flatten();
-        return this;
-    };
-    CreasePattern.prototype.clear = function () {
-        this.nodes = [];
-        this.edges = [];
-        this.faces = [];
-        this.junctions = [];
-        this.sectors = [];
-        this.symmetryLine = undefined;
-        if (this.boundary === undefined) {
-            return this;
-        }
-        for (var i = 0; i < this.boundary.edges.length; i++) {
-            var nodes = this.boundary.edges[i].nodes;
-            this.newPlanarEdge(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y).border();
-        }
-        this.cleanDuplicateNodes();
-        this.flatten();
-        return this;
-    };
-    CreasePattern.prototype.noSymmetry = function () { this.symmetryLine = undefined; return this; };
-    CreasePattern.prototype.bookSymmetry = function () {
-        var center = this.boundary.center();
-        this.symmetryLine = new Line(center, new XY(0, 1));
-        return this;
-    };
-    CreasePattern.prototype.diagonalSymmetry = function () {
-        var center = this.boundary.center();
-        this.symmetryLine = new Line(center, new XY(0.7071, 0.7071));
-        return this;
-    };
-    CreasePattern.prototype.setSymmetryLine = function (a, b, c, d) {
-        var edge = gimme1Edge(a, b, c, d);
-        this.symmetryLine = new Line(edge.nodes[0], edge.nodes[1].subtract(edge.nodes[1]));
-        return this;
-    };
     CreasePattern.prototype.overlapRelationMatrix = function () {
-        this.flatten();
+        this.clean();
         var matrix = Array.apply(null, Array(this.faces.length)).map(function (e) {
             return Array.apply(null, Array(this.faces.length));
         }, this);
@@ -3892,12 +3883,11 @@ var CreasePattern = (function (_super) {
                 this.removeEdge(this.edges[i]);
             }
         }
-        this.flatten();
         this.clean();
         return this;
     };
     CreasePattern.prototype.fold = function (face) {
-        this.flatten();
+        this.clean();
         var copyCP = this.copy().removeAllMarks();
         if (face == undefined) {
             var bounds = copyCP.bounds();
@@ -3931,7 +3921,7 @@ var CreasePattern = (function (_super) {
         return copyCP.exportFoldFile();
     };
     CreasePattern.prototype.foldSVG = function (face) {
-        this.flatten();
+        this.clean();
         var copyCP = this.copy().removeAllMarks();
         if (face == undefined) {
             var bounds = copyCP.bounds();
@@ -3979,7 +3969,7 @@ var CreasePattern = (function (_super) {
         file["file_author"] = "";
         file["file_classes"] = ["singleModel"];
         file["vertices_coords"] = this.nodes.map(function (node) {
-            return [this.numStrNum(node.x, 12), this.numStrNum(node.y, 12)];
+            return [cleanNumber(node.x, 12), cleanNumber(node.y, 12)];
         }, this);
         file["faces_vertices"] = this.faces.map(function (face) {
             return face.nodes.map(function (node) { return node.index; }, this);
@@ -4049,18 +4039,6 @@ var CreasePattern = (function (_super) {
         this.clean(epsilon);
         return this;
     };
-    CreasePattern.prototype.strNum = function (num, decimalPlaces) {
-        if (Math.floor(num) == num || decimalPlaces == undefined) {
-            return num.toString();
-        }
-        return parseFloat(num.toFixed(decimalPlaces)).toString();
-    };
-    CreasePattern.prototype.numStrNum = function (num, decimalPlaces) {
-        if (Math.floor(num) == num || decimalPlaces == undefined) {
-            return num;
-        }
-        return parseFloat(num.toFixed(decimalPlaces));
-    };
     CreasePattern.prototype.exportSVG = function (size) {
         if (size === undefined || size <= 0) {
             size = 600;
@@ -4070,12 +4048,12 @@ var CreasePattern = (function (_super) {
         var height = bounds.size.height;
         var scale = size / (width);
         var origins = [bounds.origin.x, bounds.origin.y];
-        var widthScaled = this.strNum(width * scale);
-        var heightScaled = this.strNum(height * scale);
-        var dashW = this.strNum(width * scale * 0.0025 * 4);
+        var widthScaled = cleanNumber(width * scale).toString();
+        var heightScaled = cleanNumber(height * scale).toString();
+        var dashW = cleanNumber(width * scale * 0.0025 * 4).toString();
         var dashWOff = dashW;
         var strokeWidthNum = width * scale * 0.0025 * 2;
-        var strokeWidth = strokeWidthNum < 0.5 ? 0.5 : this.strNum(strokeWidthNum);
+        var strokeWidth = strokeWidthNum < 0.5 ? 0.5 : cleanNumber(strokeWidthNum).toString();
         if (strokeWidth == 0) {
             strokeWidth = 0.5;
         }
@@ -4103,7 +4081,7 @@ var CreasePattern = (function (_super) {
                     .map(function (el) { return [el.x, el.y]; }, this)
                     .reduce(function (prev, curr) { return prev.concat(curr); }, [])
                     .map(function (el, i) { return (el - origins[i % 2]) * scale; }, this)
-                    .map(function (number) { return this.strNum(number, 12); }, this);
+                    .map(function (number) { return cleanNumber(number, 12).toString(); }, this);
                 blob += "\t<line " + style + "stroke-width=\"" + strokeWidth + "\" x1=\"" + p[0] + "\" y1=\"" + p[1] + "\" x2=\"" + p[2] + "\" y2=\"" + p[3] + "\"/>\n";
             }, this);
             blob += "</g>\n";
@@ -4132,7 +4110,7 @@ var CreasePattern = (function (_super) {
                 blob += "<polyline fill=\"none\" stroke-width=\"" + strokeWidth + "\" stroke=\"#000000\" points=\"";
                 for (var j = 0; j < polylines[i].nodes.length; j++) {
                     var point = polylines[i].nodes[j];
-                    blob += this.strNum(scale * point.x, 12) + "," + this.strNum(scale * point.y, 12) + " ";
+                    blob += cleanNumber(scale * point.x, 12).toString() + "," + cleanNumber(scale * point.y, 12).toString() + " ";
                 }
                 blob += "\"/>\n";
             }

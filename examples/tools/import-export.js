@@ -45,7 +45,7 @@ function loadSVGToCPUsingPaperJS(file, callback, epsilon){
 		var cp = new PaperJSLoader().paperPathToCP(e);
 		if(epsilon == undefined){ epsilon = 0.0001; }
 		console.log("loading svg with epsilon " + epsilon);
-		cp.flatten(epsilon);
+		cp.clean(epsilon);
 		// reassign boundary property to edges along boundary
 		// TODO: this code only works for convex hull boundaries
 		cp.edges.forEach(function(edge){
