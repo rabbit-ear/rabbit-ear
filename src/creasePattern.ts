@@ -337,9 +337,7 @@ class CreaseFace extends PlanarFace{
 	rabbitEar():Crease[]{
 		var sectors = this.sectors();
 		if(sectors.length !== 3){ return []; }
-		console.log(sectors);
 		var rays:Ray[] = sectors.map(function(el){ return el.bisect(); });
-		console.log(rays);
 		// calculate intersection of each pairs of rays
 		var incenter = rays
 			.map(function(el:Ray, i){
@@ -407,6 +405,7 @@ class CreasePattern extends PlanarGraph{
 		// remove edges marked "border", remove any now-isolated nodes
 		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
 		this.cleanAllNodes();
+		// based on boundary polygon, redraw crease lines to match, mark them as .border()
 		var boundaryNodes = this.boundary.nodes().map(function(node){ return this.newPlanarNode(node.x, node.y); },this);
 		boundaryNodes.forEach(function(node, i){
 			var nextNode = boundaryNodes[ (i+1)%boundaryNodes.length ];
@@ -423,26 +422,23 @@ class CreasePattern extends PlanarGraph{
 		return this.boundary.contains(p);
 	}
 	square(width?:number):CreasePattern{
-		var w = 1.0;
-		// todo: isReal() - check if is real number
-		if(width != undefined && width != 0){ w = Math.abs(width); }
-		return this.setBoundary([[0,0], [w,0], [w,w], [0,w]]);
+		if(width == undefined){ width = 1.0; }
+		else if(width < 0){ width = Math.abs(width); }
+		return this.setBoundary([[0,0], [width,0], [width,width], [0,width]], true);
 	}
 	rectangle(width:number, height:number):CreasePattern{
-		if(width === undefined || height === undefined){ return this; }
+		if(width == undefined || height == undefined){ return this; }
 		width = Math.abs(width);
 		height = Math.abs(height);
-		return this.setBoundary( [[0,0], [width,0], [width,height], [0,height]] );
+		return this.setBoundary([[0,0], [width,0], [width,height], [0,height]], true);
 	}
 	polygon(sides:number):CreasePattern{
 		if(sides < 3){ return this; }
 		return this.setBoundary(new ConvexPolygon().regularPolygon(sides).nodes());
 	}
 	noBoundary():CreasePattern{
-		// clear old data
 		this.boundary.edges = [];
-		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		this.cleanAllNodes();
+		this.cleanBoundary();
 		this.clean();
 		return this;
 	}
@@ -453,32 +449,26 @@ class CreasePattern extends PlanarGraph{
 		if(pointsSorted === true){ this.boundary.setEdgesFromPoints(points); } 
 		else{ this.boundary.convexHull(points); }
 		this.cleanBoundary();
-		console.log("CreasePattern setBoundary() with points:");
-		console.log(points);
-		console.log(this.boundary);
 		this.clean();
 		return this;
 	}
-
-	setMinRectBoundary():CreasePattern{
-		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
-		var xMin = Infinity, yMin = Infinity;
-		var xMax = 0, yMax = 0;
-		for(var i = 0; i < this.nodes.length; i++){ 
-			if(this.nodes[i].x > xMax){ xMax = this.nodes[i].x; }
-			if(this.nodes[i].x < xMin){ xMin = this.nodes[i].x; }
-			if(this.nodes[i].y > yMax){ yMax = this.nodes[i].y; }
-			if(this.nodes[i].y < yMin){ yMin = this.nodes[i].y; }
-		}
-		this.setBoundary( [new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax) ]);
-		this.clean();
-		return this;
+	setMinimumRectBoundary():CreasePattern{
+		var bounds = this.bounds();
+		return this.setBoundary( [
+			[bounds.origin.x, bounds.origin.y],
+			[bounds.origin.x+bounds.size.width, bounds.origin.y],
+			[bounds.origin.x+bounds.size.width, bounds.origin.y+bounds.size.height],
+			[bounds.origin.x, bounds.origin.y+bounds.size.height]
+		]);
 	}
 
 	///////////////////////////////////////////////////////////////
 	// SYMMETRY
 	
-	noSymmetry():CreasePattern{ this.symmetryLine = undefined; return this; }
+	noSymmetry():CreasePattern{
+		this.symmetryLine = undefined;
+		return this;
+	}
 	bookSymmetry():CreasePattern{
 		var center = this.boundary.center();
 		this.symmetryLine = new Line(center, new XY(0, 1));
@@ -496,23 +486,19 @@ class CreasePattern extends PlanarGraph{
 	}
 
 	///////////////////////////////////////////////////////////////
-	// PUBLIC - ADD PARTS
+	// ADD PARTS
 
 	// creaseThroughLayers(point:CPPoint, vector:CPVector):Crease[]{
 	// 	return this.creaseRayRepeat(new Ray(point.x, point.y, vector.x, vector.y));
 	// }
+
+	// foldInHalf():Crease{ return; }
 
 	point(a:any, b?:any):CPPoint{ return new CPPoint(this, gimme1XY(a,b)); }
 	line(a:any, b?:any, c?:any, d?:any):CPLine{ return new CPLine(this, gimme1Line(a,b,c,d)); }
 	ray(a:any, b?:any, c?:any, d?:any):CPRay{ return new CPRay(this, gimme1Ray(a,b,c,d)); }
 	edge(a:any, b?:any, c?:any, d?:any):CPEdge{ return new CPEdge(this, gimme1Edge(a,b,c,d)); }
 	
-	///////////////////////////////////////////////////////////////
-	// ADD PARTS
-
-	foldInHalf():Crease{ return; }
-
-	// private
 	newCreaseBetweenNodes(a:CreaseNode, b:CreaseNode):Crease{
 		this.unclean = true;
 		return <Crease>this.newEdge(a, b);
@@ -721,10 +707,6 @@ class CreasePattern extends PlanarGraph{
 	pleat(count:number, one:Crease, two:Crease):Crease[]{
 		var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
 		var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
-		console.log(a);
-		console.log(b);
-		console.log(a.infiniteLine());
-		console.log(b.infiniteLine());
 		return a.infiniteLine()
 			.subsect(b.infiniteLine(), count)
 			.map(function(line){
@@ -1166,8 +1148,8 @@ class CreasePattern extends PlanarGraph{
 		// file["file_description"]
 		// file["file_classes"]
 
-		this.clear();
 		this.noBoundary();
+		this.clear();
 
 		file["vertices_coords"].forEach(function(el){
 			// if z value is found, it should alert the user
@@ -1350,6 +1332,21 @@ class CreasePattern extends PlanarGraph{
 				} }
 			}
 		}
+		g.sectors = this.sectors.map(function(sector,i){
+			var gSecEdges = sector.edges.map(function(edge){ return g.edges[edge.index]; },this);
+			var s = new CreaseSector(gSecEdges[0], gSecEdges[1]);
+			s.index = i;
+			return s;
+		},this);
+		g.junctions = this.junctions.map(function(junction,i){
+			var j = new CreaseJunction(undefined);
+			// (<any>Object).assign(j, this.junctions[i]);
+			j.origin = g.nodes[ junction.origin.index ];
+			j.sectors = junction.sectors.map(function(sector){ return g.sectors[sector.index]; },this);
+			j.edges = junction.edges.map(function(edge){ return g.edges[edge.index]; },this);
+			j.index = i;
+			return j;
+		},this);
 		g.boundary = this.boundary.copy();
 		return g;
 	}

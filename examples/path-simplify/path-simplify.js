@@ -1,7 +1,7 @@
 var project = new OrigamiPaper("canvas");
 
 function makeMinimumPath(){
-	project.cp.setMinRectBoundary();
+	project.cp.setMinimumRectBoundary();
 	project.draw();
 	var scale = 600 / cp.bounds().size.width;
 	if(isNaN(scale) || scale === undefined){ scale = 1.0; }

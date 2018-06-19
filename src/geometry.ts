@@ -344,8 +344,8 @@ class Line implements LineType{
 	point:XY;
 	direction:XY;
 	constructor(a:any, b:any, c?:any, d?:any){
-		if(b instanceof XY){ this.point = a; this.direction = b; }
-		else if(a.x !== undefined){this.point = new XY(a.x, a.y); this.direction = new XY(b.x, b.y);}
+		// if(b instanceof XY){ this.point = a; this.direction = b; }
+		if(a.x !== undefined){this.point = new XY(a.x, a.y); this.direction = new XY(b.x, b.y);}
 		else{ this.point = new XY(a,b); this.direction = new XY(c,d); }
 	}
 	rays():[Ray,Ray]{var a = new Ray(this.point, this.direction);return [a,a.flip()];}
@@ -430,8 +430,8 @@ class Ray implements LineType{
 	origin:XY;
 	direction:XY;
 	constructor(a:any, b:any, c?:any, d?:any){
-		if(a instanceof XY){ this.origin = a; this.direction = b; }
-		else if(a.x !== undefined){
+		// if(a instanceof XY){ this.origin = a; this.direction = b; }
+		if(a.x !== undefined){
 			this.origin = new XY(a.x, a.y);
 			this.direction = new XY(b.x, b.y);
 		}
@@ -541,8 +541,8 @@ class Edge implements LineType{
 	// a, b are points, or
 	// (a,b) point 1 and (c,d) point 2, each x,y
 	constructor(a:any, b?:any, c?:any, d?:any){
-		if((a instanceof XY) && (b instanceof XY)){this.nodes = [a,b];}
-		else if(a.x !== undefined){this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];}
+		// if((a instanceof XY) && (b instanceof XY)){this.nodes = [a,b];}
+		if(a.x !== undefined){this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];}
 		else if(isValidNumber(d)){ this.nodes = [new XY(a,b), new XY(c,d)]; }
 		else if(a.nodes !== undefined){this.nodes = [new XY(a.nodes[0].x, a.nodes[0].y), new XY(a.nodes[1].x, a.nodes[1].y)];}
 	}
@@ -1001,7 +1001,7 @@ class ConvexPolygon{
 		// # points in the convex hull before escaping function
 		var INFINITE_LOOP = 10000;
 		// sort points by x and y
-		var sorted = points.sort(function(a,b){
+		var sorted = points.slice().sort(function(a,b){
 			if(epsilonEqual(a.y, b.y, EPSILON_HIGH)){ return a.x - b.x; }
 			return a.y - b.y;
 		});

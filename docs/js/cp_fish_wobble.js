@@ -7,9 +7,9 @@ fishSwim.b = Math.sqrt(0.5);
 fishSwim.updateFishBase = function(point1, point2){
 	// remove edges from last round
 	var edge1 = this.cp.nearest( {x:this.a, y:this.a*0.5} ).edge;
-	var edge2 = this.cp.nearest( {x:this.b+this.a*0.5, y:this.b} ).edge
-	if(edge1.orientation == CreaseDirection.mountain){ this.cp.removeEdge(edge1); }
-	if(edge2.orientation == CreaseDirection.mountain){ this.cp.removeEdge(edge2); }
+	var edge2 = this.cp.nearest( {x:this.b+this.a*0.5, y:this.b} ).edge;
+	if(edge1.orientation == CreaseDirection.valley){ this.cp.removeEdge(edge1); }
+	if(edge2.orientation == CreaseDirection.valley){ this.cp.removeEdge(edge2); }
 	this.cp.clean();
 
 	// shift nodes a little
@@ -23,8 +23,8 @@ fishSwim.updateFishBase = function(point1, point2){
 	// locate sectors
 	var sector1 = junction1.sectors.filter(function(sector){ return sector.contains({x:0.5, y:0.0}); },this).shift();
 	var sector2 = junction2.sectors.filter(function(sector){ return sector.contains({x:1.0, y:0.5}); },this).shift();
-	sector1.kawasakiCollapse().crease().mountain();
-	sector2.kawasakiCollapse().crease().mountain();
+	sector1.kawasakiCollapse().crease().valley();
+	sector2.kawasakiCollapse().crease().valley();
 	this.cp.clean();
 	this.draw();
 }

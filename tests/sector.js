@@ -5,8 +5,9 @@ sectorProject.style.valley.strokeWidth = 0.03;
 sectorProject.style.mountain.strokeColor = sectorProject.styles.byrne.yellow;
 sectorProject.style.valley.dashArray = null;
 sectorProject.style.valley.strokeColor = sectorProject.styles.byrne.blue;
-sectorProject.style.node.radius = 0.03;
-sectorProject.style.node.fillColor = Object.assign({alpha:0.0}, sectorProject.styles.byrne.red);
+sectorProject.style.node.radius = 0.04;
+// sectorProject.style.node.fillColor = Object.assign({alpha:0.0}, sectorProject.styles.byrne.red);
+sectorProject.style.node.fillColor = {gray:0.0, alpha:0.0};
 sectorProject.show.nodes = true;
 
 sectorProject.edgeLayer.bringToFront();

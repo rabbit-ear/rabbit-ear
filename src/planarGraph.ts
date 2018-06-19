@@ -858,8 +858,8 @@ class PlanarGraph extends Graph{
 			}
 			report.join( roundReport );
 			protection += 1;
-		}while(roundReport.nodes.fragment.length != 0 && protection < 500);
-		if(protection >= 500){ console.log("exiting fragment(). potential infinite loop detected"); }
+		}while(roundReport.nodes.fragment.length != 0 && protection < 1000);
+		if(protection >= 1000){ console.log("exiting fragment(). potential infinite loop detected"); }
 		// this.fragmentOverlappingEdges(epsilon);
 		this.removeIsolatedNodes();
 		this.cleanDuplicateNodes();
@@ -892,7 +892,6 @@ class PlanarGraph extends Graph{
 		isolated = isolated.concat(this.rebuildEdge(edge, <[PlanarNode, PlanarNode]>sortedEndpts, newLineNodes, epsilon).nodes)
 		// isolated.forEach(function(node){ this.removeNodeIfIsolated(node); },this);
 		report.edges.total += edgesLength - this.edges.length;
-		// console.log(report);
 		return report;
 	}
 

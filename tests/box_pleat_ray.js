@@ -3,10 +3,10 @@ var boxPleating = new OrigamiPaper("canvas-box-pleat-ray").setPadding(0.075);
 var resetCP, refCP;
 
 boxPleating.load("/files/svg/water_strider_marks.svg", function(e){
-	boxPleating.cp.setMinRectBoundary();
+	boxPleating.cp.setMinimumRectBoundary();
 	resetCP = boxPleating.cp.copy();
 	boxPleating.load("/files/svg/water_strider_lines.svg", function(e){
-		boxPleating.cp.setMinRectBoundary();
+		boxPleating.cp.setMinimumRectBoundary();
 		refCP = boxPleating.cp.copy();
 		boxPleating.draw();
 	});

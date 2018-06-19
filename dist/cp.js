@@ -306,11 +306,7 @@ var LineType = (function () {
 }());
 var Line = (function () {
     function Line(a, b, c, d) {
-        if (b instanceof XY) {
-            this.point = a;
-            this.direction = b;
-        }
-        else if (a.x !== undefined) {
+        if (a.x !== undefined) {
             this.point = new XY(a.x, a.y);
             this.direction = new XY(b.x, b.y);
         }
@@ -409,11 +405,7 @@ var Line = (function () {
 }());
 var Ray = (function () {
     function Ray(a, b, c, d) {
-        if (a instanceof XY) {
-            this.origin = a;
-            this.direction = b;
-        }
-        else if (a.x !== undefined) {
+        if (a.x !== undefined) {
             this.origin = new XY(a.x, a.y);
             this.direction = new XY(b.x, b.y);
         }
@@ -545,10 +537,7 @@ var Ray = (function () {
 }());
 var Edge = (function () {
     function Edge(a, b, c, d) {
-        if ((a instanceof XY) && (b instanceof XY)) {
-            this.nodes = [a, b];
-        }
-        else if (a.x !== undefined) {
+        if (a.x !== undefined) {
             this.nodes = [new XY(a.x, a.y), new XY(b.x, b.y)];
         }
         else if (isValidNumber(d)) {
@@ -1028,7 +1017,7 @@ var ConvexPolygon = (function () {
             return undefined;
         }
         var INFINITE_LOOP = 10000;
-        var sorted = points.sort(function (a, b) {
+        var sorted = points.slice().sort(function (a, b) {
             if (epsilonEqual(a.y, b.y, EPSILON_HIGH)) {
                 return a.x - b.x;
             }
@@ -3384,19 +3373,21 @@ var CreasePattern = (function (_super) {
         return this.boundary.contains(p);
     };
     CreasePattern.prototype.square = function (width) {
-        var w = 1.0;
-        if (width != undefined && width != 0) {
-            w = Math.abs(width);
+        if (width == undefined) {
+            width = 1.0;
         }
-        return this.setBoundary([[0, 0], [w, 0], [w, w], [0, w]]);
+        else if (width < 0) {
+            width = Math.abs(width);
+        }
+        return this.setBoundary([[0, 0], [width, 0], [width, width], [0, width]], true);
     };
     CreasePattern.prototype.rectangle = function (width, height) {
-        if (width === undefined || height === undefined) {
+        if (width == undefined || height == undefined) {
             return this;
         }
         width = Math.abs(width);
         height = Math.abs(height);
-        return this.setBoundary([[0, 0], [width, 0], [width, height], [0, height]]);
+        return this.setBoundary([[0, 0], [width, 0], [width, height], [0, height]], true);
     };
     CreasePattern.prototype.polygon = function (sides) {
         if (sides < 3) {
@@ -3406,8 +3397,7 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.noBoundary = function () {
         this.boundary.edges = [];
-        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        this.cleanAllNodes();
+        this.cleanBoundary();
         this.clean();
         return this;
     };
@@ -3423,35 +3413,22 @@ var CreasePattern = (function (_super) {
             this.boundary.convexHull(points);
         }
         this.cleanBoundary();
-        console.log("CreasePattern setBoundary() with points:");
-        console.log(points);
-        console.log(this.boundary);
         this.clean();
         return this;
     };
-    CreasePattern.prototype.setMinRectBoundary = function () {
-        this.edges = this.edges.filter(function (el) { return el.orientation !== CreaseDirection.border; });
-        var xMin = Infinity, yMin = Infinity;
-        var xMax = 0, yMax = 0;
-        for (var i = 0; i < this.nodes.length; i++) {
-            if (this.nodes[i].x > xMax) {
-                xMax = this.nodes[i].x;
-            }
-            if (this.nodes[i].x < xMin) {
-                xMin = this.nodes[i].x;
-            }
-            if (this.nodes[i].y > yMax) {
-                yMax = this.nodes[i].y;
-            }
-            if (this.nodes[i].y < yMin) {
-                yMin = this.nodes[i].y;
-            }
-        }
-        this.setBoundary([new XY(xMin, yMin), new XY(xMax, yMin), new XY(xMax, yMax), new XY(xMin, yMax)]);
-        this.clean();
+    CreasePattern.prototype.setMinimumRectBoundary = function () {
+        var bounds = this.bounds();
+        return this.setBoundary([
+            [bounds.origin.x, bounds.origin.y],
+            [bounds.origin.x + bounds.size.width, bounds.origin.y],
+            [bounds.origin.x + bounds.size.width, bounds.origin.y + bounds.size.height],
+            [bounds.origin.x, bounds.origin.y + bounds.size.height]
+        ]);
+    };
+    CreasePattern.prototype.noSymmetry = function () {
+        this.symmetryLine = undefined;
         return this;
     };
-    CreasePattern.prototype.noSymmetry = function () { this.symmetryLine = undefined; return this; };
     CreasePattern.prototype.bookSymmetry = function () {
         var center = this.boundary.center();
         this.symmetryLine = new Line(center, new XY(0, 1));
@@ -3471,7 +3448,6 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.line = function (a, b, c, d) { return new CPLine(this, gimme1Line(a, b, c, d)); };
     CreasePattern.prototype.ray = function (a, b, c, d) { return new CPRay(this, gimme1Ray(a, b, c, d)); };
     CreasePattern.prototype.edge = function (a, b, c, d) { return new CPEdge(this, gimme1Edge(a, b, c, d)); };
-    CreasePattern.prototype.foldInHalf = function () { return; };
     CreasePattern.prototype.newCreaseBetweenNodes = function (a, b) {
         this.unclean = true;
         return this.newEdge(a, b);
@@ -3688,10 +3664,6 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.pleat = function (count, one, two) {
         var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
         var b = new Edge(two.nodes[0].x, two.nodes[0].y, two.nodes[1].x, two.nodes[1].y);
-        console.log(a);
-        console.log(b);
-        console.log(a.infiniteLine());
-        console.log(b.infiniteLine());
         return a.infiniteLine()
             .subsect(b.infiniteLine(), count)
             .map(function (line) {
@@ -3997,8 +3969,8 @@ var CreasePattern = (function (_super) {
         if (file["frame_attributes"] !== undefined && file["frame_attributes"].contains("3D")) {
             console.log("importFoldFile(): FOLD file marked as '3D', this library only supports 2D. attempting import anyway, expect a possible distortion due to orthogonal projection.");
         }
-        this.clear();
         this.noBoundary();
+        this.clear();
         file["vertices_coords"].forEach(function (el) {
             this.newPlanarNode((el[0] || 0), (el[1] || 0));
         }, this);
@@ -4173,6 +4145,20 @@ var CreasePattern = (function (_super) {
                 }
             }
         }
+        g.sectors = this.sectors.map(function (sector, i) {
+            var gSecEdges = sector.edges.map(function (edge) { return g.edges[edge.index]; }, this);
+            var s = new CreaseSector(gSecEdges[0], gSecEdges[1]);
+            s.index = i;
+            return s;
+        }, this);
+        g.junctions = this.junctions.map(function (junction, i) {
+            var j = new CreaseJunction(undefined);
+            j.origin = g.nodes[junction.origin.index];
+            j.sectors = junction.sectors.map(function (sector) { return g.sectors[sector.index]; }, this);
+            j.edges = junction.edges.map(function (edge) { return g.edges[edge.index]; }, this);
+            j.index = i;
+            return j;
+        }, this);
         g.boundary = this.boundary.copy();
         return g;
     };

@@ -34,7 +34,7 @@ twistTriangle.reset = function(){
 	var sectors = centerNode.junction().sectors;
 
 	var kawasakis = sectors
-		.map(function(sector){ return centerNode.junction().kawasakiCollapse(sector); })
+		.map(function(sector){ return sector.kawasakiCollapse(); })
 
 	var pleats = kawasakis
 		.map(function(ray){ return ray.origin.add(ray.direction.scale(0.2)); },this)
