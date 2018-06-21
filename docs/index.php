@@ -1,7 +1,7 @@
 <?php include 'header.php';?>
 <script type="text/javascript" src="../lib/perlin.js"></script>
 
-<h1>ORIGAMI</h1>
+<h1>ORIGAMI CREASE PATTERNS</h1>
 
 <section id="intro">
 	
@@ -10,16 +10,24 @@
 	</div>
 
 	<div class="centered">
-		<pre><code><key>let</key> cp <op>=</op> <key>new</key> CreasePattern().<f>fishBase</f>()</code></pre>
+		<pre><code><f>let</f> cp <op>=</op> <key>new</key> CreasePattern().<f>fishBase</f>()</code></pre>
 	</div>
 	
 	<p class="quote">This is a javascript library for creating origami crease patterns.</p>
+
+<h2>Download</h2>
+
+<section id="intro">
+
+	<p>To install, download <a href="../rabbit-ear.zip">this .zip</a>, and check out the <a href="introduction.php">introduction</a>.</p>
+
+</section>
 
 <h2>Graphs</h2>
 
 	<p>Origami crease patterns leverage mathematical graphs. Crease lines are the graph's edges defined by their endpoints or edge nodes.</p>
 	
-	<p>More accurately, the graph is a planar graph, the crease lines exist on the Euclidean plane using the familiar X and Y coordinate system.</p>
+	<p>This type of graph is a planar graph, the crease lines exist on the Euclidean plane using the familiar X and Y coordinate system.</p>
 
 	<div class="centered">
 		<canvas id="canvas-intersection-wobble" class="panorama" resize></canvas>

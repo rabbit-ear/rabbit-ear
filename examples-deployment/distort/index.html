@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html,body{
+	margin:0;
+	text-align:center;
+	overflow:hidden;
+}
+canvas[resize]{
+	width:50vmax;
+	height:50vmax;
+	max-height:100vh;
+	max-width:100vw;
+}
+</style>
+</head>
+<body>
+	<canvas id="canvas-cp" resize></canvas><canvas id="canvas-folded" resize></canvas>
+
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../dist/cp.js"></script>
+<script type="text/javascript" src="../../dist/cp.paperjs.js"></script>
+<script type="text/javascript" src="sketch.js"></script>
+</body>
+</html>

@@ -3863,6 +3863,10 @@ var CreasePattern = (function (_super) {
             var bounds = copyCP.bounds();
             face = copyCP.nearest(bounds.origin.x + bounds.size.width * 0.5, bounds.origin.y + bounds.size.height * 0.5).face;
         }
+        else {
+            var centroid = face.centroid();
+            face = copyCP.nearest(centroid.x, centroid.y).face;
+        }
         if (face === undefined) {
             return;
         }

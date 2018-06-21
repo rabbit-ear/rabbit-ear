@@ -53,7 +53,8 @@ canvas[resize].third {
 	max-height: 30vw;
 */
 	/* 15vw */
-}body{
+}
+body{
 	font-family: 'Cormorant', Georgia, "Times New Roman", Times, serif;
 	margin:3em 1.5vw 2em 1.5vw;
 }

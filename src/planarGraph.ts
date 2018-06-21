@@ -444,8 +444,8 @@ class PlanarGraph extends Graph{
 	nodes:PlanarNode[];
 	edges:PlanarEdge[];
 	faces:PlanarFace[];
-	junctions:PlanarJunction[];  // 1:1 map to nodes array indices
 	sectors:PlanarSector[];
+	junctions:PlanarJunction[];  // 1:1 map to nodes array indices
 	// when subclassed, base types are overwritten
 	nodeType = PlanarNode;
 	edgeType = PlanarEdge;
@@ -592,7 +592,7 @@ class PlanarGraph extends Graph{
 			.join(this.cleanNode(node1))
 			.join(this.cleanNode(node2));
 	}
-	/** This will remove a node under one of two cases: isolated, or the node is collinear to only two edges
+	/** This will remove a node only if one of two cases: isolated, or the node is collinear to only two edges
 	 * @returns {PlanarClean} the number of nodes and edges removed
 	 */
 	cleanNode(node:PlanarNode):PlanarClean{

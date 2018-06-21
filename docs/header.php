@@ -20,15 +20,12 @@
 		<ul>
 		<li></a></li>
 		<li class="dropdown">
-			<a href="javascript:void(0)" class="link-fa dropbtn"><i class="fa fa-pencil-square-o fa-2x left-pad"></i></a>
-			<div class="dropdown-content">
-			<a href="../tools/validator/index.html">Crease Pattern Validator</a>
-			</div>
+			<a href="/" class="link-fa dropbtn"><i class="fa fa-home fa-2x left-pad"></i></a>
 		</li>
 		<li class="dropdown">
 			<a href="/docs/" class="">HELLO</a>
 			<div class="dropdown-content">
-			<a href="installation.php">DOWNLOAD</a>
+			<a href="introduction.php">INTRODUCTION</a>
 			</div>
 		</li>
 		<li class="dropdown">
