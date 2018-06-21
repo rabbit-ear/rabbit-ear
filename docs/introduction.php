@@ -1,7 +1,27 @@
 <?php include 'header.php';?>
+<!-- <link rel="stylesheet" type="text/css" href="css/buttons.css"> -->
 
+<style>
+.btn{
+	background-color: DodgerBlue;
+	border: none;
+	color: white;
+	padding: 12px 30px;
+	font-size: 16px;
+	cursor: pointer;
+	font-size: 20px;
+}
+.btn:hover{ background-color: black; }	
+</style>
 <!-- <h3 class="centered" style="padding-top:2em;">CHAPTER V.</h3> -->
 <h1>WELCOME</h1>
+
+<section>
+	<div class="centered">
+		<button class="btn btn-dark" id="download-button"><i class="fa fa-download"></i> Download</button>
+	</div>
+	<p class="quote">rabbit-ear.zip (700kb)</p>
+</section>
 
 <section id="first-app">
 <h2>YOUR FIRST APP</h2>
@@ -72,13 +92,27 @@ cp.<f>crease</f>( [[<n>0</n>,<n>0</n>], [<n>0.5</n>,<n>1</n>]] );</code></pre>
 </code></pre>
 </div>
 
-<p class="quote">Browsers make locally downloading a file difficult, so I built an example with a download button.</p>
+<p class="quote">This makes an SVG file, but browsers make downloading a file a little complicated.</p>
 
-<p>For now, you can copy and paste the SVG contents from the console into a file to see your result. Paste it into an empty file called <strong>folded.svg</strong>.</p>
+<p>Open the Javascript console to find your SVG file. Copy and paste it into an empty file called <strong>folded.svg</strong>.</p>
 
 	<div class="centered">
 		<img src="images/one-fold.svg">
 	</div>
+
+
+<p>Copying and pasting gets old fast. Don't worry about what this says, but to make your SVG automatically download, paste this at the very end of your sketch.</p>
+
+<div class="centered">
+<pre><code>
+<f>var</f> element <key>=</key> <f>document</f>.<f>createElement</f>(<str>'a'</str>);<br>
+element.<f>setAttribute</f>(<str>'href'</str>, <str>'data:text/plain;charset=utf-8,'</str> + <f>encodeURIComponent</f>(svg));<br>
+element.<f>setAttribute</f>(<str>'download'</str>, <str>'folded.svg'</str>);<br>
+<f>document</f>.<f>body</f>.<f>appendChild</f>(element);<br>
+element.<f>click</f>();<br>
+<f>document</f>.<f>body</f>.<f>removeChild</f>(element);<br>
+</code></pre>
+</div>
 
 </section>
 
@@ -121,4 +155,18 @@ cp.<f>crease</f>( [[<n>0</n>,<n>0</n>], [<n>0.5</n>,<n>1</n>]] );</code></pre>
 <p class="explain">Calling the draw() function is easy to forget. I'm working on a way to detect and automatically call this function.</p>
 
 </section>
+
+<script type="text/javascript">
+document.getElementById("download-button").onclick = function(e){
+	var zip_file_path = "../rabbit-ear.zip";
+	var zip_file_name = "rabbit-ear.zip";
+	var a = document.createElement("a");
+	document.body.appendChild(a);
+	a.style = "display: none";
+	a.href = zip_file_path;
+	a.download = zip_file_name;
+	a.click();
+	document.body.removeChild(a);	
+}
+</script>
 <?php include 'footer.php';?>

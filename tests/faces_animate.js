@@ -1,6 +1,7 @@
 
 var faceAnim = new OrigamiPaper("canvas-faces-animate", new PlanarGraph());
 faceAnim.show.faces = true;
+faceAnim.style.mark.strokeColor = {gray:0.0};
 faceAnim.style.face.fillColor = faceAnim.styles.byrne.yellow;
 
 faceAnim.reset = function(){

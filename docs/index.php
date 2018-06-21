@@ -1,7 +1,7 @@
 <?php include 'header.php';?>
 <script type="text/javascript" src="../lib/perlin.js"></script>
 
-<h1>ORIGAMI CREASE PATTERNS</h1>
+<h1>ORIGAMI &amp; CODE</h1>
 
 <section id="intro">
 	
@@ -19,15 +19,15 @@
 
 <section id="intro">
 
-	<p>To install, download <a href="../rabbit-ear.zip">this .zip</a>, and check out the <a href="introduction.php">introduction</a>.</p>
+	<p>Everything you need, including a guide to making your first sketch is on the <a href="introduction.php">introduction</a>.</p>
 
 </section>
 
 <h2>Graphs</h2>
 
-	<p>Origami crease patterns leverage mathematical graphs. Crease lines are the graph's edges defined by their endpoints or edge nodes.</p>
+	<p>Origami crease patterns leverage mathematical graphs. Crease lines are the graph's edges defined by their end nodes.</p>
 	
-	<p>This type of graph is a planar graph, the crease lines exist on the Euclidean plane using the familiar X and Y coordinate system.</p>
+	<p>This type of graph is a planar graph, the crease lines exist on the Euclidean plane in the typical X, Y coordinate system.</p>
 
 	<div class="centered">
 		<canvas id="canvas-intersection-wobble" class="panorama" resize></canvas>
