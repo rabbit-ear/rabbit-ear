@@ -83,12 +83,15 @@ cp.<f>crease</f>( {x:<n>0</n>,y:<n>0</n>}, {x:<n>0.5</n>,y:<n>1</n>} );<br>
 cp.<f>crease</f>( [[<n>0</n>,<n>0</n>], [<n>0.5</n>,<n>1</n>]] );</code></pre>
 </div>
 
-<p class="quote">Imagine what this looks like, point (0.5, 1) is along the bottom edge, halfway across (inverted Y axis). This is a line from the top left corner to the bottom edge, halfway across.</p>
+<p class="quote">Imagine what this looks like: a line from the top left corner to the midpoint of the bottom edge. Point (0.5, 1) is along the bottom edge due to an inverted Y axis.</p>
 
 <p>Now for the fun part, let's fold the crease pattern.</p>
 
+
+<p class="quote">notice the additional <strong>valley()</strong></p>
+
 <div class="centered">
-<pre><code><f>var</f> cp <key>=</key> <key>new</key> CreasePattern();<br>cp.<f>crease</f>(<n>0</n>, <n>0</n>, <n>0.5</n>, <n>1</n>);<br><f>var</f> svg <key>=</key> cp.<f>foldSVG</f>();<br><f>console.log</f>(svg);<br>
+<pre><code><f>var</f> cp <key>=</key> <key>new</key> CreasePattern();<br>cp.<f>crease</f>(<n>0</n>, <n>0</n>, <n>0.5</n>, <n>1</n>).<f>valley</f>();<br><f>var</f> svg <key>=</key> cp.<f>foldSVG</f>();<br><f>console.log</f>(svg);<br>
 </code></pre>
 </div>
 
@@ -101,7 +104,7 @@ cp.<f>crease</f>( [[<n>0</n>,<n>0</n>], [<n>0.5</n>,<n>1</n>]] );</code></pre>
 	</div>
 
 
-<p>Copying and pasting gets old fast. Don't worry about what this says, but to make your SVG automatically download, paste this at the very end of your sketch.</p>
+<p>Copying and pasting gets old fast. Don't worry about what the following does - to make your SVG automatically download paste this at the very end of your sketch.</p>
 
 <div class="centered">
 <pre><code>
@@ -155,6 +158,24 @@ element.<f>click</f>();<br>
 <p class="explain">Calling the draw() function is easy to forget. I'm working on a way to detect and automatically call this function.</p>
 
 </section>
+
+<section>
+
+	<p>Check out the examples folder</p>
+
+	<div class="centered">
+		<canvas id="canvas-folded-crane" resize></canvas>
+	</div>
+
+	<div class="centered">
+		<pre><code><key>new</key> OrigamiFold(<str>"folded-crane"</str>).<f>load</f>(<str>"crane.svg"</str>);</code></pre>
+	</div>
+
+</section>
+
+<script>
+new OrigamiFold("canvas-folded-crane").load("../files/svg/crane.svg");
+</script>
 
 <script type="text/javascript">
 document.getElementById("download-button").onclick = function(e){

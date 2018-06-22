@@ -19,7 +19,7 @@ document.getElementById("download-file").addEventListener("click", function(e){
 var voronoiAlgorithm; // global D3 algorithm implementation
 
 var project = new OrigamiPaper("canvas-voronoi");
-project.setPadding();
+// project.setPadding();
 project.thinLines();
 
 var touchNodes = new PlanarGraph();

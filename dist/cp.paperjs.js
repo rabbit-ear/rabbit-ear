@@ -104,8 +104,10 @@ var OrigamiPaper = (function(){
 		return this;
 	}
 	OrigamiPaper.prototype.setPadding = function(padding){
-		this.padding = padding;
-		this.buildViewMatrix();
+		if(padding != undefined){		if(padding != undefined){		if(padding != undefined){
+			this.padding = padding;
+			this.buildViewMatrix();
+		}
 		return this;
 	}
 
@@ -481,7 +483,7 @@ var OrigamiFold = (function(){
 		// CREASE PATTERN
 		this.cp = creasePattern;
 		if(this.cp === undefined){ this.cp = new CreasePattern(); }
-		this.foldedCP = cp.fold();
+		// this.foldedCP = cp.fold();
 		
 		// PAPER JS
 		this.scope = new paper.PaperScope();
@@ -555,7 +557,7 @@ var OrigamiFold = (function(){
 		this.buildViewMatrix();
 	}
 	OrigamiFold.prototype.getBounds = function(){
-		if(this.foldedCP === undefined || this.foldedCP.length === 0){ 
+		if(this.foldedCP === undefined){ 
 			this.bounds = {'origin':{'x':0,'y':0},'size':{'width':1.0, 'height':1.0}};
 			return;
 		}
@@ -617,11 +619,23 @@ var OrigamiFold = (function(){
 		}
 	};
 	OrigamiFold.prototype.load = function(svg, callback, epsilon){
-		if(epsilon === undefined){ epsilon = 0.00005; }
+		if(epsilon === undefined){ epsilon = 0.0001; }
 		var that = this;
 		this.scope.project.importSVG(svg, function(e){
 			var cp = that.loader.paperPathToCP(e);
+
+			cp.clean(epsilon);
+			cp.edges.forEach(function(edge){
+				if( cp.boundary.edges
+					.filter(function(b){ return b.parallel(edge); },this)
+					.filter(function(b){ return b.collinear(edge.nodes[0]); },this)
+					.length > 0){
+						edge.border();
+					}
+			},this);
+
 			that.cp = cp;
+			that.foldedCP = cp.fold();
 			// that.cp.clean();
 			that.draw();
 			if(callback != undefined){
@@ -631,8 +645,10 @@ var OrigamiFold = (function(){
 		return this;
 	}
 	OrigamiFold.prototype.setPadding = function(padding){
-		this.padding = padding;
-		this.buildViewMatrix();
+		if(padding != undefined){
+			this.padding = padding;
+			this.buildViewMatrix();
+		}
 		return this;
 	}
 	OrigamiFold.prototype.buildViewMatrix = function(){

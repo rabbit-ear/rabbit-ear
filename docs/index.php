@@ -1,7 +1,7 @@
 <?php include 'header.php';?>
 <script type="text/javascript" src="../lib/perlin.js"></script>
 
-<h1>ORIGAMI &amp; CODE</h1>
+<h1>CREASE PATTERNS</h1>
 
 <section id="intro">
 	

@@ -91,10 +91,6 @@ var unfoldedCrane = new OrigamiPaper("canvas-unfolded-crane").blackAndWhite();
 unfoldedCrane.show.faces = false;
 unfoldedCrane.load("../files/svg/crane.svg", function(){
 	var foldedCrane = new OrigamiFold("canvas-folded-crane", unfoldedCrane.cp.copy());
-	foldedCrane.style.face.fillColor = { gray:0.0, alpha:0.1 };
-	// foldedCrane.rotation = 135;
-	// foldedCrane.zoom = 0.666;
-	foldedCrane.draw();
 });
 </script>
 
