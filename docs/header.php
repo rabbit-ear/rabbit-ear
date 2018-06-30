@@ -2,6 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-121244028-1"></script>
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-121244028-1');
+</script>
 <script type="text/javascript" src="../lib/paper-full.min.js"></script>
 
 <script type="text/javascript" src="../dist/cp.js"></script>
@@ -25,7 +29,7 @@
 		<li class="dropdown">
 			<a href="/docs/" class="">HELLO</a>
 			<div class="dropdown-content">
-			<a href="introduction.php">INTRODUCTION</a>
+			<a href="introduction.php">START HERE</a>
 			</div>
 		</li>
 		<li class="dropdown">
@@ -46,10 +50,10 @@
 			<a href="axioms.php">ORIGAMI AXIOMS</a>
 			<!-- <a href="importExport.php">IMPORT &amp; EXPORT</a> -->
 			<a href="flatFoldable.php">FLAT FOLDABLE</a>
-			<a href="boxPleating.php">BOX PLEATING</a>
+			<!-- <a href="boxPleating.php">BOX PLEATING</a> -->
 			<a href="voronoi.php">VORONOI</a>
-			<a href="symmetry.php">SYMMETRY</a>
-			<a href="paper.php">PAPER</a>
+			<!-- <a href="symmetry.php">SYMMETRY</a> -->
+			<!-- <a href="paper.php">PAPER</a> -->
 			</div>
 		</li>
 		</ul>

@@ -37,19 +37,12 @@ function epsilonEqual(a:number, b:number, epsilon?:number):boolean{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return ( Math.abs(a - b) < epsilon );
 }
-// if number is within epsilon range of a whole number, remove the floating point noise.
-//  example: turns 0.999999989764 into 1.0
-function wholeNumberify(num:number, epsilon?:number):number{
-	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
-	if(Math.abs(Math.round(num) - num) < epsilon){ num = Math.round(num); }
-	return num;
-}
 // function formatFloat(num:number, epsilon?:number):number{
 // 	var fix = parseFloat((num).toFixed(15));
 // 	if(num.toString().length - fix.toString().length > 5){ return fix; }
 // 	return parseFloat((num).toFixed(14));
 // }
-/** will clean up numbers like 15.00000000000032 to an epsilon range */
+/** will clean up numbers like 15.00000000000032 up to an epsilon range */
 function cleanNumber(num:number, decimalPlaces?:number):number{
 	if(Math.floor(num) == num || decimalPlaces == undefined){ return num; }
 	return parseFloat(num.toFixed(decimalPlaces));

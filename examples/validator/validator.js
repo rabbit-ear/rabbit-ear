@@ -51,6 +51,7 @@ $('#epsilon-radio label').click(function(e) {
 
 var project1 = new OrigamiPaper("canvas-1");
 var foldedState = new OrigamiFold("canvas-2");
+foldedState.style.face.fillColor = {gray:1.0, alpha:0.2};
 
 var inputFile = undefined;
 // var valid_epsilon = 0.00001;
@@ -97,28 +98,30 @@ function fileDidLoad(file, mimeType){
 		// project1.draw();
 		
 		// project1.cp = cp.copy();
-		// project1.style.node.visible = true;
-		// project1.style.node.radius = 0.015 * project1.cpMin;
-		// project1.draw();
+		project1.show.nodes = true;
+		project1.style.node.radius = 0.015;;
+		project1.draw();
 		// project1.setPadding(0.05);
-		// project1.colorNodesFlatFoldable = function(){
-		// 	var ffTestPassed = true;
-		// 	for(var i = 0; i < project1.cp.nodes.length; i++){
-		// 		var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
-		// 		if( !project1.cp.nodes[i].flatFoldable(0.01) ){
-		// 			ffTestPassed = false;
-		// 			color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
-		// 		} else{
-		// 			project1.cp.nodes[i].visible = false;
-		// 		}
-		// 		project1.nodes[i].fillColor = color;
-		// 	}
-		// 	setJumbotron(ffTestPassed);
-		// 	if(ffTestPassed){ document.getElementById("canvas-2").style.display = "inline-block"; }
-		// 	else            { document.getElementById("canvas-2").style.display = "none"; }
-		// }
-		// // todo: this is breaking, fix it and uncomment it
-		// project1.colorNodesFlatFoldable();
+		project1.colorNodesFlatFoldable = function(){
+		project1.cp.clean();
+			var ffTestPassed = true;
+			for(var i = 0; i < project1.cp.junctions.length; i++){
+				console.log(project1.cp.junctions[i]);
+				var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
+				if( !project1.cp.junctions[i].flatFoldable(0.01) ){
+					ffTestPassed = false;
+					color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
+				} else{
+					project1.nodes[ project1.cp.junctions[i].origin.index ].fillColor = {alpha:0.0};
+				}
+				project1.nodes[ project1.cp.junctions[i].origin.index ].fillColor = color;
+			}
+			setJumbotron(ffTestPassed);
+			if(ffTestPassed){ document.getElementById("canvas-2").style.display = "inline-block"; }
+			else            { document.getElementById("canvas-2").style.display = "none"; }
+		}
+		// todo: this is breaking, fix it and uncomment it
+		project1.colorNodesFlatFoldable();
 
 	// 	foldedState.cp = cp.copy();
 	// 	foldedState.draw();

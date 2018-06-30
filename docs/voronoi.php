@@ -10,9 +10,7 @@
 
 	<p>The Voronoi algorithm repeatedly appears in origami algorithms and research. The algorithm itself is an implementation of <a href="axioms.php">origami axiom #2</a>.</p>
 
-<h2>Gussets</h2>
-
-	<p>Gussets are channels inserted between cells that run parallel to the cell edges. This specific implementation explores a global crease pattern where every gusset's thickness is relative to the distance between the Voronoi sites.</p>
+	<p>This is a great example of the reason this library was written in Javascript: for collaboration. This is the Voronoi algorithm from <a href="http://d3js.org/">D3</a>.</p>
 
 	<div class="centered">
 		<canvas id="canvas-voronoi-scale" resize></canvas>
@@ -22,7 +20,7 @@
 		<pre><code><v>cp</v>.<f>creaseVoronoi</f>(<n id="interp-value"></n>)</code></pre>
 	</div>
 
-	<p>It's easy to crease a gusset by hand that sits halfway between cells. With a computer we can parameterize this value to be anywhere between 0.0 and 1.0.</p>
+	<p>This was a personal exploration uncovering this particular Voronoi crease pattern, it folds into 3D channels with molecules resolving at their intersections.</p>
 	
 <h2>Molecules</h2>
 

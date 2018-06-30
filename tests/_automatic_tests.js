@@ -18,3 +18,14 @@ if(testClockwiseInteriorAngles()){
 } else{
 	document.body.innerHTML += "clockwiseInteriorAngle and clockwiseInteriorAngleRadians are not in sync";
 }
+
+
+function testFragmentOrder(){
+	var graph = new PlanarGraph();
+	graph.clear();
+	for(var i = 0; i < 40; i++){
+		graph.newPlanarEdge(Math.random(), Math.random(), Math.random(), Math.random());
+	}
+	var report = graph.fragment();
+	var intersections = report.nodes.fragment;
+}

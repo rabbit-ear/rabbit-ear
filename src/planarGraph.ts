@@ -837,13 +837,80 @@ class PlanarGraph extends Graph{
 	// FRAGMENT, FACES
 	///////////////////////////////////////////////
 
+	// getAllEdgeIntersections(epsilon?:number):{point:XY, edges:PlanarEdge[]}[]{
+
+	// }
+
+	fragment(epsilon?:number):PlanarClean{
+		// var intersections = this.getAllEdgeIntersections(epsilon);
+		// console.log(intersections);
+		this.edgeArrayDidChange();
+		var list:{point:XY, edges:PlanarEdge[]}[] = [];
+		// gather all intersections between edges, keep track of intersection <-> edge association
+		for(var i = 0; i < this.edges.length-1; i++){
+			for(var j = i+1; j < this.edges.length; j++){
+				var intersection = this.edges[i].intersection(this.edges[j], epsilon);
+				if(intersection != undefined){
+					list.push({point:intersection, edges:[this.edges[i], this.edges[j]]});
+				}
+			}
+		}
+		// merge points that are within the epsilon range, and gather their associated edges too
+		for(var i = 0; i < list.length-1; i++){
+			for(var j = list.length-1; j > i; j--){
+				if(list[i].point.equivalent(list[j].point, epsilon)){
+					list[i].point = list[i].point.lerp(list[j].point, 0.5);
+					list[i].edges = list[i].edges.concat(list[j].edges);
+					list.splice(j, 1);
+				}
+			}
+		}
+		// swap out intersection points with actual new nodes on the graph
+		var newList = list.map(function(el){
+			var newNode = (<PlanarNode>this.newNode()).setPosition(el.point.x, el.point.y);
+			return {node:newNode, edges:el.edges};
+		},this);
+
+		var edgesIntersections = Array.apply(null, Array(this.edges.length)).map(function(el){return [];});
+		for(var i = 0; i < newList.length; i++){
+			for(var j = 0; j < newList[i].edges.length; j++){
+				var index = newList[i].edges[j].index;
+				edgesIntersections[ index ].push(newList[i].node);
+			}
+		}
+		// sort points, prepare to rebuild edges
+		var EPSILON_HIGH = 0.000000001;
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
+		for(var i = 0; i < edgesIntersections.length; i++){
+			edgesIntersections[i].sort(function(a,b){
+				if(a.commonX(b,epsilon)){ return a.y-b.y; }
+				return a.x-b.x;
+			});
+		}
+		// rebuild edges
+		var rebuild = edgesIntersections.map(function(el, i){
+			var endpoints = this.edges[i].nodes.slice().sort(function(a,b){
+				if(a.commonX(b,epsilon)){ return a.y-b.y; }
+				return a.x-b.x;
+			});
+			return {edge:this.edges[i], endpoints:endpoints, innerPoints:el };
+		},this);
+		var rebuilt = rebuild
+			.filter(function(el){ return el.innerPoints.length != 0; },this)
+			.map(function(el){
+				return this.rebuildEdge(el.edge, el.endpoints, el.innerPoints, epsilon);
+			},this);
+
+		this.removeIsolatedNodes();
+		this.cleanDuplicateNodes();
+		this.cleanGraph();
+		return new PlanarClean();
+	}
+
 	/** Fragment looks at every edge and one by one removes 2 crossing edges and replaces them with a node at their intersection and 4 edges connecting their original endpoints to the intersection.
 	 * @returns {XY[]} array of XY locations of all the intersection locations
 	 */
-	// new idea
-		// build a N x N matrix of edge to edge relationships, but only use the top triangle
-		// fill matrix with approximations
-	fragment(epsilon?:number):PlanarClean{
+	fragmentOld(epsilon?:number):PlanarClean{
 		//todo: remove protection, or bake it into the class itself
 		var protection = 0;
 		var report = new PlanarClean();

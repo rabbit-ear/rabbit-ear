@@ -14,6 +14,7 @@ fragmentSketch.reset = function(numLines){
 	var aspect = this.canvas.width / this.canvas.height;
 	this.cp.rectangle(aspect, 1.0);
 	this.cp.clear();
+	this.cp.crease(0.499, 0.499, 0.5, 0.5);
 	for(var i = 0; i < this.numLines; i++){
 		var angle = Math.random()*Math.PI*2;
 		this.cp.creaseRay(new XY(Math.random() * aspect, Math.random()), new XY(Math.cos(angle), Math.sin(angle)));

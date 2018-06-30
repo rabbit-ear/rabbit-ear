@@ -40,7 +40,7 @@
 		<pre><code><span id="span-merge-result"></span>graph.<f>fragment</f>()</code></pre>
 	</div>
 
-	<p class="quote">Fragment returns the location of intersections.</p>
+	<p class="quote">Fragment chops edges and returns the location of intersections.</p>
 
 	<div class="centered">
 		<canvas id="canvas-crane-1" resize></canvas><canvas id="canvas-crane-2" resize></canvas>

@@ -124,7 +124,8 @@ project.recalculateFolds = function(){
 		else if(axiom3Pressed){ this.nextSet = this.cp.availableAxiom3Folds(); }
 	}
 	this.nextSet.forEach(function(edge){
-		this.nextSetCP.crease(edge);
+		var crease = this.nextSetCP.crease(edge);
+		if(crease){ crease.madeBy = edge.madeBy; }
 	},this);
 
 	this.selectedNextLayer.removeChildren();
@@ -202,35 +203,37 @@ project.onMouseMove = function(event) {
 	switch(this.inputMode){
 	case "add":
 		selectedEdge = this.nextSetCP.nearestEdges(1, event.point.x, event.point.y).shift().edge;
-		console.log(selectedEdge);
 	break;
 	case "remove":
 		selectedEdge = this.cp.nearest(event.point.x, event.point.y).edge;
 	break;
 	}
 	if(selectedEdge != undefined){
-		var newPath = new this.scope.Path({segments: selectedEdge.nodes, closed: false, strokeColor:{hue:0, saturation:1, brightness:1}, strokeWidth:0.01 });
+		var newPath = new this.scope.Path({segments: selectedEdge.nodes, closed: false, strokeColor:this.styles.byrne.yellow, strokeWidth:0.01 });
 		if(selectedEdge === undefined || selectedEdge.madeBy === undefined || selectedEdge.madeBy.args === undefined){ return; }
+		if(selectedEdge.madeBy == undefined){ return; }
 		var args = selectedEdge.madeBy.args;
-		if(args.length === 2){
+		if(args[0] instanceof XY){
 			var points = [[args[0].x, args[0].y],
 			              [args[1].x, args[1].y] ];
 			var circle0 = new paper.Path.Circle(points[0], 0.01);
 			var circle1 = new paper.Path.Circle(points[1], 0.01);
-			Object.assign(circle0, {strokeWidth:0.01,strokeColor:{gray:0.0},fillColor:undefined});
-			Object.assign(circle1, {strokeWidth:0.01,strokeColor:{gray:0.0},fillColor:undefined});
+			Object.assign(circle0, {strokeWidth:null,fillColor:this.styles.byrne.red});
+			Object.assign(circle1, {strokeWidth:null,fillColor:this.styles.byrne.red});
 		}
-		if(args.length === 4){
-			var seg1 = [[args[0].x, args[0].y],
-			            [args[1].x, args[1].y] ];
+		if(args[0] instanceof Edge){
+			var seg1 = [[args[0].nodes[0].x, args[0].nodes[0].y],
+			            [args[0].nodes[1].x, args[0].nodes[1].y] ];
 			var newPath1 = new paper.Path({segments: seg1, closed: false });
 			Object.assign(newPath1, this.style.mountain);
-			newPath1.strokeColor = { gray:0.0 };
-			var seg2 = [[args[2].x, args[2].y],
-			            [args[3].x, args[3].y] ];
+			newPath1.strokeColor = this.styles.byrne.red;
+			newPath1.strokeWidth = 0.01;
+			var seg2 = [[args[1].nodes[0].x, args[1].nodes[0].y],
+			            [args[1].nodes[1].x, args[1].nodes[1].y] ];
 			var newPath2 = new paper.Path({segments: seg2, closed: false });
 			Object.assign(newPath2, this.style.mountain);
-			newPath2.strokeColor = { gray:0.0 };
+			newPath2.strokeColor = this.styles.byrne.red;
+			newPath2.strokeWidth = 0.01;
 		}
 	}
 }

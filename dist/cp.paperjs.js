@@ -104,7 +104,7 @@ var OrigamiPaper = (function(){
 		return this;
 	}
 	OrigamiPaper.prototype.setPadding = function(padding){
-		if(padding != undefined){		if(padding != undefined){		if(padding != undefined){
+		if(padding != undefined){
 			this.padding = padding;
 			this.buildViewMatrix();
 		}

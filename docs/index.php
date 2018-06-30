@@ -37,15 +37,13 @@
 		<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>fragment</f></a>();</code></pre>
 	</div>
 
-	<p>The aim of this library is for origami designs to be created entirely in code, making every component accessible and available to be sculpted. The library includes tools ranging from traditional geometry to origami-specific operations.</p>
+	<p>The aim of this library is for origami designs to be able to be created entirely in code, making every component accessible, flexible, and parametric.</p>
 
 <h2>About</h2>
 
 	<p>This is <a href="http://github.com/robbykraft/Origami/">open source</a></p>
 	<p>These docs make heavy use of <a href="http://paperjs.org/">paper.js</a>, <a href="http://d3js.org/">d3.js</a>, and <a href="http://p5js.org/">p5.js</a>. Thank you to their developers.</p>
 	<p>This libary is available under the MIT open source license.</p>
-
-	<p class="explain">This library is under construction</p>
 
 </section>
 

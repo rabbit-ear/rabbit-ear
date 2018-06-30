@@ -20,13 +20,13 @@
 	<div class="centered">
 		<button class="btn btn-dark" id="download-button"><i class="fa fa-download"></i> Download</button>
 	</div>
-	<p class="quote">rabbit-ear.zip (700kb)</p>
+	<p class="quote">rabbit-ear-0.1.zip (327 kb)</p>
 </section>
 
 <section id="first-app">
 <h2>YOUR FIRST APP</h2>
 
-	<p>A typical new project workflow might begin by copying the "empty" folder in "my-designs".</p>
+	<p>A typical new project workflow might begin by copying the "empty" folder in "sketches".</p>
 	<div class="centered">
 		<img src="images/new-project.gif">
 	</div>
@@ -179,7 +179,7 @@ new OrigamiFold("canvas-folded-crane").load("../files/svg/crane.svg");
 
 <script type="text/javascript">
 document.getElementById("download-button").onclick = function(e){
-	var zip_file_path = "../rabbit-ear.zip";
+	var zip_file_path = "https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.1.zip";
 	var zip_file_name = "rabbit-ear.zip";
 	var a = document.createElement("a");
 	document.body.appendChild(a);

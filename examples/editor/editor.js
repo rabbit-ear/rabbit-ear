@@ -524,7 +524,7 @@ document.getElementById("radio-input-crease").onchange = function(event){
 	}
 }
 // modifiers
-document.getElementById("input-pleat-count").oninput = function(event){ project.modifiers.pleatCount = this.value; }
+document.getElementById("input-pleat-count").oninput = function(event){ project.modifiers.pleatCount = parseInt(this.value); }
 document.getElementById("radio-input-modifier-between-points").onchange = function(event){
 	switch(event.target.id){
 		case "radio-button-modifier-between-points-full": project.modifiers.betweenPoints = "full"; break;

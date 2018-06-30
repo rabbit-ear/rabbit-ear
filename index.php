@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<title>Rabbit Ear, origami and creative code</title>
+<meta name="description" content="an origami creative coding library. design crease patterns in code">
+<meta http-equiv="content-type" content="text/html;charset=UTF-8">
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-121244028-1"></script>
 <script>
 window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-121244028-1');
@@ -10,32 +13,11 @@ window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);
 <link rel="stylesheet" type="text/css" href="examples/lib/bootstrap/css/bootstrap.min.css">
 <link href="https://fonts.googleapis.com/css?family=Montserrat:600" rel="stylesheet">
 <style>
-/*html,body{
-	display:flex;
-	justify-content: center;
-	align-items: center;
-	height:100%;
-	margin:0;
-	background-color: hsl(205.5, 74%, 30%);
-	font-family: 'Montserrat';
-}
-.row{
-	z-index:2;
-	text-align: center;
-	display:inline-block;
-	width:100%;
-}
-canvas[resize]{
-	width:40vmax;
-	height:40vmax;
-	display:inline-block;
-}
-*/
 html, body {
 	height:100%;
 	width:100%;
 	margin:0px;
-	background-color: #FFF;
+	/*background-color: #FFF;*/
 	display:flex;
 	align-items: center;
 	justify-content: center;
@@ -80,27 +62,11 @@ p a, p a:hover, p a:visited, p a:active{
 .btn-outline-light:hover {
 	color: black;
 }
-/*.circle{
-	position: fixed;
-	width:100vmin;
-	height:100vmin;
-	border-radius:50vmin;
-	z-index: 1;
+@media (max-width: 600px), (hover:none){
+	html{
+		font-size: 66%;
+	}
 }
-.red-circle{
-	bottom:0;
-	left:0;
-	margin-left: -50vmin;
-	margin-bottom: -50vmin;
-	background-color: hsl(14.4, 87%, 45%);
-}
-.yellow-circle{
-	top:0;
-	right:0;
-	margin-right: -50vmin;
-	margin-top: -50vmin;
-	background-color: hsl(43.2, 88%, 46%);
-}*/
 
 </style>
 </head>
@@ -127,7 +93,6 @@ p a, p a:hover, p a:visited, p a:active{
 <script type="text/javascript" src="dist/cp.paperjs.js"></script>
 <script type="text/javascript" src="lib/d3.min.js"></script>
 <script type="text/javascript" src="lib/perlin.js"></script>
-<!-- <script type="text/javascript" src="tests/two_colorable.js"></script> -->
 <script>
 document.getElementById("download-button").onclick = function(){
 	// var zip_file_path = "rabbit-ear.zip";
@@ -139,13 +104,13 @@ document.getElementById("download-button").onclick = function(){
 	// a.download = zip_file_name;
 	// a.click();
 	// document.body.removeChild(a);
-	// window.location.href = "docs/introduction.php"
+	window.location.href = "docs/introduction.php"
 }
 document.getElementById("docs-button").onclick = function(){
 	window.location.href = "docs/"
 }
 document.getElementById("showcase-button").onclick = function(){
-	// window.location.href = "showcase.php"
+	window.location.href = "demo.php"
 }
 </script>
 <script>
@@ -163,18 +128,39 @@ function updateFoldedState(cp){
 	// folded.draw();
 }
 
+origami.updateCP = function(){
+	var junction = this.centerNode.junction();
+	var dir = junction.sectors[2].kawasakiCollapse();
+	this.cp = this.template.copy();
+	this.cp.crease( dir ).mountain();
+	this.cp.clean();
+	updateFoldedState(this.cp);
+	this.draw();
+}
+
 origami.onMouseMove = function(event){
 	if(this.mouse.isPressed){
 		this.centerNode.x = event.point.x;
 		this.centerNode.y = event.point.y;
-		var junction = this.centerNode.junction();
-		var dir = junction.sectors[2].kawasakiCollapse();
-		this.cp = this.template.copy();
-		this.cp.crease( dir ).mountain();
-		this.cp.clean();
-		updateFoldedState(this.cp);
-		this.draw();
+		this.updateCP();
 	}
+}
+
+origami.onFrame = function(event){
+	if(!this.mouse.isPressed){
+		var scale = .2;
+		var sp = 0.12345;
+		var sp2 = 0.22222;
+		var off = 11.111;
+		var point = new XY(Math.sin( 6.28 * Math.cos(off + sp*(event.time+6)) ),
+		                   Math.cos( 6.28 * Math.cos(off + sp2*(event.time+6)) ));
+		// var xnoise = noise.perlin2(11.111+event.time*0.5, 0)*0.5 + 0.5;
+		// var ynoise = noise.perlin2(44.22+event.time*0.7, 0)*0.5 + 0.5;
+		this.centerNode.x = 0.5 + point.x * scale;
+		this.centerNode.y = 0.5 + point.y * scale;
+		this.updateCP();
+	}
+
 }
 
 origami.reset = function(){

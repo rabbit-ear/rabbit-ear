@@ -1,4 +1,4 @@
-var ffSketch = new OrigamiPaper("canvas-flat-foldable").setPadding(0.05).mediumLines();
+var ffSketch = new OrigamiPaper("canvas-flat-foldable").setPadding(0.05).mediumLines().blackAndWhite();
 ffSketch.show.sectors = true;
 ffSketch.style.sector.fillColors = [{alpha:0.0}, {alpha:0.0}];
 ffSketch.errorColors = [ffSketch.styles.byrne.red, ffSketch.styles.byrne.yellow];
