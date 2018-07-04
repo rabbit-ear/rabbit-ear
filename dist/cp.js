@@ -642,6 +642,8 @@ var Polyline = (function () {
         var REFLECT_LIMIT = 666;
         var clips = [];
         var firstClips = ray.clipWithEdgesDetails(intersectable);
+        if (firstClips.length == 0)
+            return this;
         if (target !== undefined &&
             epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)) {
             if (firstClips.length === 0 ||
