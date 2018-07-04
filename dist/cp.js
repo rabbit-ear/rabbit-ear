@@ -182,7 +182,7 @@ var Matrix = (function () {
         this.tx = (tx !== undefined) ? tx : 0;
         this.ty = (ty !== undefined) ? ty : 0;
     }
-    Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; };
+    Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; return this;};
     Matrix.prototype.mult = function (mat) {
         var r = new Matrix();
         r.a = this.a * mat.a + this.c * mat.b;
