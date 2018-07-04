@@ -3903,7 +3903,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.removeAllMarks = function () {
         for (var i = this.edges.length - 1; i >= 0; i--) {
             if (this.edges[i].orientation === CreaseDirection.mark) {
-                this.removeEdge(this.edges[i]);
+                i -= this.removeEdge(this.edges[i]).edges.total - 1;
             }
         }
         this.clean();
