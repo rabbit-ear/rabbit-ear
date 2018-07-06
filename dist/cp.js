@@ -3700,7 +3700,7 @@ var CreasePattern = (function (_super) {
         }
         return creases;
     };
-   CreasePattern.prototype.creasePointsToLines = function (point1, point2, line1, line2) {
+    CreasePattern.prototype. creasePointsToLines = function (point1, point2, line1, line2) {
         var creases = [];
         
         var p1 = point1.x;
@@ -3732,7 +3732,7 @@ var CreasePattern = (function (_super) {
         // y = (-2(u-p)x + (m^2+1)u^2 + 2mhu + h^2-p^2-q^2)/(2mu + 2(h-q))
         
         //equation of perpendicular bisector between (p,q) and (k, v)
-        //y = (-2(k-p)x + (v^2 + k^2-p^2 -q^2))/2(v-q)
+        //y = (-2(k-p)x + (v^2 + k^2-p^2-q^2))/2(v-q)
         
         //if the two bisectors are the same line, then the gradients and intersections of both lines are equal
         
@@ -3771,7 +3771,8 @@ var CreasePattern = (function (_super) {
             var b0 = p1*(h2 - q2) - p2*(h1 - q1);
             var c0 = m2 - m1;
             var d0 = m1*p2 + (h2 - q2);
-            
+        
+            var z = m1*p1 + (h1 - q1);        
             //subsitute u1 into 2 and solve for u2:    
         }
         else if (m1 === undefined && m2 === undefined) {
@@ -3798,14 +3799,15 @@ var CreasePattern = (function (_super) {
             //rearrange 1 to express v1 in terms of v2
             //v1 = (a0v2+b0)/d0
             //where
-            //a0 = m2p1-(q1-h1)
-            //b0 = p2(q1-h1)-p1(q2-h2)
-            //d0= m1p2-(q2-h2)
+            //a0 =k1-p1
+            //b0 = q1(k2-p2)-q1(k1-p1)
+            //d0= k2-p2
             a0 = k1 - p1;
             b0 = q1*(k2 - p2) - q2*(k1 - p1);
             c0 = 0;
-            d0 = k2 - p2;
-            
+            d0 = k2 - p2;        
+        
+            z = a0;
             //subsitute v1 into 2 and solve for v2:    
         }
         else {
@@ -3838,11 +3840,11 @@ var CreasePattern = (function (_super) {
             //d2 = 2
             //e2 = -2q2
             
-            a1 = 1;
-            b1 = 0;
-            c1 = k1*k1 - p1*p1 - q1*q1;
-            d1 = 2;
-            e1 = -2*q1;
+            a1 = m1*m1 + 1;
+            b1 = 2*m1*h1;
+            c1 = h1*h1 - p1*p1 - q1*q1;
+            d1 = 2*m1;
+            e1 = 2*(h1 - q1);
             
             a2 = 1;
             b2 = 0;
@@ -3854,60 +3856,59 @@ var CreasePattern = (function (_super) {
             //u1 = (a0v2+b0)/(v2+d0)
             //where
             //a0 = p1
-            //b0 = p2(q1-h1)-p1(q2-h2)
+            //b0 = (h1-q1)(k2-p2) - p1q1
             //d0= -m1(k2-p2)-q2
-            a0 = k1 - p1;
+            a0 = p1;
             b0 = (h1 - q1)*(k2 - p2) - p1*q2;
             c0 = 1;
-            d0 = -m1 * (k2 - p2) - q2;    
+            d0 = -m1*(k2 - p2) - q2;
             
+            z = m1*p1 + (h1 - q1);
             //subsitute u1 into 2 and solve for v2:    
         }    
             
         //subsitute into 3:
-        //4: (a3x^2 + b2x + c1)/(d3x^2 + e3x + f3) = (a2x^2 + b2x + c2)/(d2x + e2)
+        //4: (a3x^2 + b3x + c3)/(d3x^2 + e3x + f3) = (a2x^2 + b2x + c2)/(d2x + e2)
         //where
         //a3 = a1a0^2+b1a0c0+c1c0^2
         //b3 = 2a1a0b0+b1(a0d0+b0c0)+2c1c0d0
         //c3 = a1b0^2+b1b0d0+c1d0^2
-        //d3 = d1a0c0+e1c0^2
-        //e3 = d1(a0d0+b0c0)+2e1c0d0
-        //f3 = d1b0d0+e1d0^2
+        //d3 =c0(d1a0+e1c0) = d2c0z
+        //e3 = d0(d1a0+e1c0)+c0(d1b+e1d) = (d2d0+e2c0)z
+        //f3 = d0(d1b0+e1d0) = e2d0z
         
         var a3 = a1*a0*a0 + b1*a0*c0 + c1*c0*c0;
         var b3 = 2*a1*a0*b0 + b1*(a0*d0 + b0*c0) + 2*c1*c0*d0;
         var c3 = a1*b0*b0 + b1*b0*d0 + c1*d0*d0;
-        var d3 = d1*a0*c0 + e1*c0*c0;
-        var e3 = d1*(a0*d0 + b0*c0) + 2*e1*c0*d0;
-        var f3 = d1*b0*d0 + e1*d0*d0;
+        var d3 = d2*c0*z
+        var e3 = (d2*d0 + e2*c0)*z;
+        var f3 = e2*d0*z;
         
         //rearrange to gain the following quartic
-        //5: ax^4+bx^3+cx^2+dx+e = 0
+        //5: (d2x+e2)(a4x^3+b4x^2+c4x+d) = 0
         //where
-        //a = a2d3
-        //b = a2e3+b2d3-a3d2
-        //c = a2f3+b2e3+c2d3-a3e2-b3d2
-        //d = b2f3 +c2e3-b3e2-c3d2
-        //e = c2f3-c3e2
+        //a4 = a2c0z
+        //b4 = (a2d0+b2c0)z-a3
+        //c4 = (b2d0+c2c0)z-b3
+        //d4 = c2d0z-c3
         
-        var a = a2*d3;
-        var b = a2*e3 + b2*d3 - a3*d2;
-        var c = a2*f3 + b2*e3 + c2*d3 - a3*e2 - b3*d2;
-        var d = b2*f3 + c2*e3 - b3*e2 - c3*d2;
-        var e = c2*f3 - c3*e2;
+        var a4 = a2*c0*z;
+        var b4 = (a2*d0 + b2*c0) * z - a3;
+        var c4 = (b2*d0 + c2*c0) * z - b3;
+        var d4 =  c2*d0*z - c3;
         
-        //console.log(a)
-        //console.log(b)
-        //console.log(c)
-        //console.log(d)
-        //console.log(e)
+        //console.log(a4)
+        //console.log(b4)
+        //console.log(c4)
+        //console.log(d4)
         
         //find the roots
-        var solution = quarticSolution(a,b,c,d,e);
+        var solution = getCubicSolution(a4,b4,c4,d4);
+
         var roots = [];
-        for (var i = 0; i < solution.length; ++i) {
-            if (solution[i].c == 0 && roots.indexOf(solution[i].r) == -1)
-                roots.push(solution[i].r)
+        for (var i = 0; i < solution.length; ++i) {    
+            if (solution[i].GetY() == 0 && roots.indexOf(solution[i].GetX()) == -1)
+                roots.push(solution[i].GetX())
         }
         
         if (roots != undefined && roots.length > 0) {
@@ -3931,24 +3932,12 @@ var CreasePattern = (function (_super) {
                     u2 = k2;
                 }
                 
-                var line = new Edge((u1 + p1) / 2, (v1 + q1) / 2, (u2 + p2) / 2, (v2 + q2) / 2).infiniteLine(); 
-
-                //at least one root always gives an invalid solution, so ignore any folds where the crease is not the perpendicular bisector of the pairs of points.
-                //Need to determine an algebraic way of determining which roots are invalid, as this equivalency depends on epsilon values,
-                //which could mean we are losing valid creases due to cumulative floating point errors
-                if (!line.equivalent(new Edge(p1,q1,u1,v1).perpendicularBisector()))
-                    continue;
-                
                 //axiom6.cp.newCrease(p1,q1,u1,v1)
                 //axiom6.cp.newCrease(p2,q2,u2,v2)
                 
-                creases.push(axiom6.cp.creaseLine(line));
+                creases.push(axiom6.cp.creaseThroughPoints((u1 + p1) / 2, (v1 + q1) / 2, (u2 + p2) / 2, (v2 + q2) / 2));
             }
-            
-            //if (roots.length != creases.length)
-            //    console.log("invalid roots: " + (roots.length - creases.length));
-        }
-        
+        }    
         return creases.filter(function (el) { return el != undefined; });
     }
     CreasePattern.prototype.creasePerpendicularPointOntoLine = function (point, ontoLine, perp) {

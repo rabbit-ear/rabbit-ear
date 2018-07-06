@@ -10,10 +10,14 @@ axiom6.decorationLayer = new axiom6.scope.Layer();
 axiom6.decorationLayer.activate();
 axiom6.marks = [];
 for(var i = 0; i < 6; i++) axiom6.marks.push(new axiom6.scope.Shape.Circle(circleStyle));
-axiom6.marks[0].position = [0.0, 0.0];
-axiom6.marks[1].position = [1.0, 1.0];
-axiom6.marks[2].position = [0.0, 0.75];
-axiom6.marks[3].position = [1.0, 0.5];
+//axiom6.marks[0].position = [0.0, 0.0];
+//axiom6.marks[1].position = [1.0, 1.0];
+axiom6.marks[0].position = [0.25, 0.0];
+axiom6.marks[1].position = [0.25, 1.0];
+//axiom6.marks[2].position = [0.0, 0.75];
+//axiom6.marks[3].position = [1.0, 0.5];
+axiom6.marks[2].position = [0.75, 0];
+axiom6.marks[3].position = [0.75, 1];
 axiom6.marks[4].position = [1.0, 0.25];
 axiom6.marks[5].position = [0.5, 0.0];
 
