@@ -3717,7 +3717,7 @@ var CreasePattern = (function (_super) {
         var p2 = point2.x;
         var q2 = point2.y;
         //find equation of line in form y = mx+h (or x = k)
-        if (line1.nodes[1].x != line1.nodes[0].x) {
+        if (line2.nodes[1].x != line2.nodes[0].x) {
             var m2 = (line2.nodes[1].y - line2.nodes[0].y) / (line2.nodes[1].x - line2.nodes[0].x);
             var h2 = line2.nodes[0].y - m2 * line2.nodes[0].x;
         }
@@ -3824,7 +3824,7 @@ var CreasePattern = (function (_super) {
                 var h1 = h2;
                 h2 = undefined;
                 var k2 = k1;
-                k1 = undefined;            
+                k1 = undefined; 
             }
             
             //1: (u1-p1)/(m1u1+(h1 -q1))  = (k2-p2)/(v2-q2)
