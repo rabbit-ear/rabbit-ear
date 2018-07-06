@@ -3897,11 +3897,6 @@ var CreasePattern = (function (_super) {
         var c4 = (b2*d0 + c2*c0) * z - b3;
         var d4 =  c2*d0*z - c3;
         
-        //console.log(a4)
-        //console.log(b4)
-        //console.log(c4)
-        //console.log(d4)
-        
         //find the roots
         var solution = getCubicSolution(a4,b4,c4,d4);
 
@@ -3932,34 +3927,21 @@ var CreasePattern = (function (_super) {
                     //v1 =  m1*u1 + h1;
                 }
                 
-                //console.log(u1)
-                //console.log(v1)
-                //console.log(u2)
-                //console.log(v2)
-                        
-                //console.log((u1 + p1) / 2)
-                //console.log((v1 + q1) / 2)
-                //console.log((u2 + p2) / 2)
-                //console.log((v2 + q2) / 2)
-                
-                //axiom6.cp.newCrease(p1,q1,u1,v1)
-                //axiom6.cp.newCrease(p2,q2,u2,v2)
-        
                 //The midpoints may be the same point, so cannot be used to determine the crease 
-                //creases.push(axiom6.cp.creaseThroughPoints((u1 + p1) / 2, (v1 + q1) / 2, (u2 + p2) / 2, (v2 + q2) / 2));
+                //creases.push(this.creaseThroughPoints((u1 + p1) / 2, (v1 + q1) / 2, (u2 + p2) / 2, (v2 + q2) / 2));
                 
                 if (v2 != q2) {
                     //F(x) = mx + h = -((u-p)/(v-q))x +(v^2 -q^2 + u^2 - p^2)/2(v-q)
                     var mF = -1*(u2 - p2)/(v2 - q2);
                     var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
                     
-                    creases.push(axiom6.cp.creaseThroughPoints(0, hF, 1, mF + hF));
+                    creases.push(this.creaseThroughPoints(0, hF, 1, mF + hF));
                 }
                 else {
                     //G(y) = k
                     var kG = (u2 + p2)/2;
                     
-                    creases.push(axiom6.cp.creaseThroughPoints(kG, 0, kG, 1));
+                    creases.push(this.creaseThroughPoints(kG, 0, kG, 1));
                 }
             }
         }    
