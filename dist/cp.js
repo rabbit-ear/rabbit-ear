@@ -3915,27 +3915,52 @@ var CreasePattern = (function (_super) {
             for (var i = 0; i <roots.length; ++i) {
                 if (m1 !== undefined && m2 !== undefined) {
                     var u2 = roots[i];
-                    var u1 = (a0*u2 + b0)/(c0*u2 + d0);
-                    var v1 = m1*u1 + h1;
                     var v2 = m2*u2 + h2;
+                    //var u1 = (a0*u2 + b0)/(c0*u2 + d0);
+                    //var v1 = m1*u1 + h1;
                 }
                 else if (m1 === undefined && m2 === undefined) {
                     v2 = roots[i];
-                    v1 = (a0*v2 + b0)/d0;
-                    u1 = k1;
                     u2 = k2;
+                    //v1 = (a0*v2 + b0)/d0;
+                    //u1 = k1;
                 }
                 else {
                     v2 = roots[i];
-                    u1 = (a0*v2 + b0)/(v2 + d0);
-                    v1 =  m1*u1 + h1;
                     u2 = k2;
+                    //u1 = (a0*v2 + b0)/(v2 + d0);
+                    //v1 =  m1*u1 + h1;
                 }
+                
+                //console.log(u1)
+                //console.log(v1)
+                //console.log(u2)
+                //console.log(v2)
+                        
+                //console.log((u1 + p1) / 2)
+                //console.log((v1 + q1) / 2)
+                //console.log((u2 + p2) / 2)
+                //console.log((v2 + q2) / 2)
                 
                 //axiom6.cp.newCrease(p1,q1,u1,v1)
                 //axiom6.cp.newCrease(p2,q2,u2,v2)
+        
+                //The midpoints may be the same point, so cannot be used to determine the crease 
+                //creases.push(axiom6.cp.creaseThroughPoints((u1 + p1) / 2, (v1 + q1) / 2, (u2 + p2) / 2, (v2 + q2) / 2));
                 
-                creases.push(axiom6.cp.creaseThroughPoints((u1 + p1) / 2, (v1 + q1) / 2, (u2 + p2) / 2, (v2 + q2) / 2));
+                if (v2 != q2) {
+                    //F(x) = mx + h = -((u-p)/(v-q))x +(v^2 -q^2 + u^2 - p^2)/2(v-q)
+                    var mF = -1*(u2 - p2)/(v2 - q2);
+                    var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
+                    
+                    creases.push(axiom6.cp.creaseThroughPoints(0, hF, 1, mF + hF));
+                }
+                else {
+                    //G(y) = k
+                    var kG = (u2 + p2)/2;
+                    
+                    creases.push(axiom6.cp.creaseThroughPoints(kG, 0, kG, 1));
+                }
             }
         }    
         return creases.filter(function (el) { return el != undefined; });
