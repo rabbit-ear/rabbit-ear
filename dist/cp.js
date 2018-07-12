@@ -182,7 +182,7 @@ var Matrix = (function () {
         this.tx = (tx !== undefined) ? tx : 0;
         this.ty = (ty !== undefined) ? ty : 0;
     }
-    Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; };
+    Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; return this;};
     Matrix.prototype.mult = function (mat) {
         var r = new Matrix();
         r.a = this.a * mat.a + this.c * mat.b;
@@ -642,6 +642,8 @@ var Polyline = (function () {
         var REFLECT_LIMIT = 666;
         var clips = [];
         var firstClips = ray.clipWithEdgesDetails(intersectable);
+        if (firstClips.length == 0)
+            return this;
         if (target !== undefined &&
             epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)) {
             if (firstClips.length === 0 ||
@@ -3903,7 +3905,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.removeAllMarks = function () {
         for (var i = this.edges.length - 1; i >= 0; i--) {
             if (this.edges[i].orientation === CreaseDirection.mark) {
-                this.removeEdge(this.edges[i]);
+                i -= this.removeEdge(this.edges[i]).edges.total - 1;
             }
         }
         this.clean();
