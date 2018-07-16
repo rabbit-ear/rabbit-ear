@@ -123,6 +123,11 @@ var OrigamiPaper = (function(){
 			}
 		}
 	}
+	OrigamiPaper.prototype.clearTouchPoints = function(){
+		this.touchPoints = [];
+		if(this.touchPointsLayer === undefined){return;}
+		this.touchPointsLayer.removeChildren();
+	}
 	OrigamiPaper.prototype.makeTouchPoint = function(location, style){
 		paper = this.scope;
 		var x,y;

@@ -218,7 +218,7 @@ class Matrix{
 		this.ty = (ty !== undefined) ? ty : 0;
 	}
 	/** Sets this to be the identity matrix */
-	identity(){ this.a=1; this.b=0; this.c=0; this.d=1; this.tx=0; this.ty=0; }
+	identity(){ this.a=1; this.b=0; this.c=0; this.d=1; this.tx=0; this.ty=0; return this;}
 	/** Returns a new matrix that is the sum of this and the argument. Will not change this or the argument
 	 * @returns {Matrix} 
 	 */
@@ -625,6 +625,7 @@ class Polyline{
 		const REFLECT_LIMIT = 666;
 		var clips:{edge:Edge,intersection:Edge}[] = [];
 		var firstClips:{edge:Edge,intersection:Edge}[] = ray.clipWithEdgesDetails(intersectable);
+		if (firstClips.length == 0){ return this; }
 		// special case: original ray directed toward target
 		if(target !== undefined &&
 		   epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)){

@@ -488,10 +488,13 @@ class Graph{
 	 */
 	removeDuplicateEdges():GraphClean{
 		var count = 0;
+		var spliceIndex = [];
 		for(var i = 0; i < this.edges.length-1; i++){
 			for(var j = this.edges.length-1; j > i; j--){
 				if(this.edges[i].isSimilarToEdge(this.edges[j])){
+					// console.log("duplicate edge found");
 					this.edges.splice(j, 1);
+					spliceIndex.push(j);
 					count += 1;
 				}
 			}
@@ -511,7 +514,10 @@ class Graph{
 		this.nodeArrayDidChange();
 		// should we remove isolated nodes as a part of clean()?
 		// return this.removeDuplicateEdges().join(this.removeCircularEdges()).join(this.removeIsolatedNodes());
-		return this.removeDuplicateEdges().join(this.removeCircularEdges());
+		// return this.removeDuplicateEdges().join(this.removeCircularEdges());
+		var dups = this.removeDuplicateEdges();
+		var circ = this.removeCircularEdges();
+		return dups.join(circ);
 	}
 
 	/** Clean calls cleanGraph(), gets overwritten when subclassed. Removes circular and duplicate edges, refreshes .index. Only modifies edges array.

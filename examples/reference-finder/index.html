@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=0.85">
+<link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+<link href="https://fonts.googleapis.com/css?family=Encode+Sans+Condensed" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-122312118-1"></script>
+<script>window.dataLayer=window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-122312118-1');</script>
+<style>
+html, body {
+	margin:0px;
+	padding:0px;
+	background-color:hsl(205, 74%, 30%);
+	color:white;
+	font-family: 'Encode Sans Condensed', sans-serif;
+}
+input, .card-body{
+	font-family: 'Roboto Mono', monospace;
+}
+h4{
+	margin: .5rem 0 0 0;
+	font-family: 'Encode Sans Condensed', sans-serif;
+}
+h1{
+	font-size: 300%;
+	margin: 0 0 1em 0;
+}
+h2{
+	font-size: 100%;
+	margin: 3em 0 0 0;
+}
+.diagram-row{
+	text-align: center;
+/*
+	display:flex;
+	flex-direction: row;
+	justify-content: space-around;
+*/
+}
+#solution-header{
+	font-size: 300%;
+	text-align: center;
+	color:white;
+	margin-bottom: 1em;
+}
+.instruction{
+	font-size: 130%;
+	text-align: center;
+	margin: 1em 2em 2em 2em;
+}
+
+canvas[resize]{
+	width:40vw;
+	height:40vw;
+	max-width: 350px;
+	max-height: 350px;
+	margin:auto;
+	/*flex:1;*/
+}
+.card canvas[resize]{
+	width:190px;
+	height:220px;
+	cursor:pointer;
+	flex:none;
+	margin:0;
+}
+.container-fluid{
+	max-width: 100%;
+	/*background-color:hsl(205, 74%, 20%);*/
+	background-color: hsl(14, 87%, 45%);
+	border-top: 5px solid hsl(43, 88%, 46%);
+	border-bottom: 5px solid hsl(43, 88%, 46%);
+	margin: 4em 0;
+}
+.card {
+	background-color:transparent;
+	display: inline-block;
+	border:none;
+	border-radius: 0;
+	text-align: center;
+}
+.card-body {
+	background-color: transparent;
+	color:hsl(43, 88%, 66%);
+	min-height: 200px;
+	min-width: 200px;
+	padding:5px;
+}
+.selected{
+	color:white;
+}
+.container-fluid {
+	overflow-x: scroll;
+	overflow-y: hidden;
+	white-space: nowrap;
+}
+#diagrams{
+/*	margin:auto;
+	max-width: 800px;*/
+}
+.footer a, .footer a:active, .footer a:hover, .footer a:visited{
+	color:hsl(205, 60%, 70%);
+	text-decoration: none;
+}
+.footer a{ text-decoration: underline; }
+.footer{
+	color:hsl(205, 60%, 70%);
+	margin: 3em 0;
+	text-align:center;
+}
+.loader {
+	margin:auto;
+	margin-top:5em;
+	margin-bottom:5em;
+	border: 8px solid #f3f3f3;
+	border-top: 8px solid hsl(205, 74%, 50%);
+	border-radius: 50%;
+	width: 80px;
+	height: 80px;
+	animation: spin 2s linear infinite;
+}
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+#input-x-2{ display:none; }
+#input-y-2{ display:none; }
+.alert-warning{
+	margin-top:1em;
+	color:white;
+	background-color: hsl(14, 87%, 45%);
+	border-color: hsl(14, 87%, 75%);
+}
+.alert .close{
+	color:white;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<div id="alert-div"></div>
+<h2>Robert J. Lang's</h2>
+<h1>Reference Finder</h1>
+	<div class="input-group mb-3">
+		<div class="input-group-prepend">
+			<button class="btn btn-light dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="find-type-select">point</button>
+			<div class="dropdown-menu">
+				<a class="dropdown-item" href="#" id="find-a-point-button">find a point</a>
+				<a class="dropdown-item" href="#" id="find-a-line-button">find a line</a>
+			</div>
+		</div>
+		<input type="text" class="form-control" aria-label="ref-finder-input-x" id="input-x-1" placeholder="x">
+		<input type="text" class="form-control" aria-label="ref-finder-input-y" id="input-y-1" placeholder="y">
+		<input type="text" class="form-control" aria-label="ref-finder-input-x" id="input-x-2" placeholder="x">
+		<input type="text" class="form-control" aria-label="ref-finder-input-y" id="input-y-2" placeholder="y">
+		<div class="input-group-append">
+			<button class="btn btn-success" type="button" id="go-button">go</button>
+		</div>
+	</div>
+</div>
+
+<div class="container-fluid">
+	<div id="carousel" class="d-flex flex-row flex-nowrap">
+	</div>
+</div>
+
+<h3 id="solution-header"></h3>
+
+<div id="diagrams"></div>
+
+<div class="footer">
+	Reference Finder is &copy; <a href="http://langorigami.com">Robert J. Lang</a><br>recoded by <a href="//robbykraft.com/">Robby Kraft</a> with <a href="//rabbitear.org">Rabbit Ear</a><br>there is an <a href="//reference-finder.herokuapp.com/">API</a> and the <a href="//github.com/robbykraft/ReferenceFinder">code is on Github</a></div>
+</div>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../dist/cp.js"></script>
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../dist/cp.paperjs.js"></script>
+<script type="text/javascript" src="sketch.js"></script>
+</html>

@@ -469,6 +469,7 @@ class PlanarGraph extends Graph{
 	 */
 	clean(epsilon?:number):PlanarClean{
 		this.unclean = false;
+		// console.time("clean");
 		var report = new PlanarClean();
 		report.join( this.cleanDuplicateNodes(epsilon) );
 		this.fragmentCollinearNodes(epsilon);
@@ -481,6 +482,26 @@ class PlanarGraph extends Graph{
 		this.edgeArrayDidChange();
 		this.generateJunctionsAndSectors();
 		this.generateFaces();
+		// console.timeEnd("clean");
+		return report;
+	}
+
+	cleanEdges(edges:PlanarEdge[], epsilon?:number):PlanarClean{
+		this.unclean = false;
+		// console.time("cleanEdges");
+		var report = new PlanarClean();
+		report.join( this.cleanDuplicateNodes(epsilon) );
+		edges.map(function(edge){ return this.fragmentOneEdge(edge, epsilon); },this)
+			.forEach(function(fragReport){ report.join(fragReport); },this);
+		// report.join( this.fragment(epsilon) );
+		report.join( this.cleanDuplicateNodes(epsilon) );
+		report.join( this.cleanGraph() );
+		report.join( this.cleanAllNodes() );
+		this.nodeArrayDidChange();
+		this.edgeArrayDidChange();
+		this.generateJunctionsAndSectors();
+		this.generateFaces();
+		// console.timeEnd("cleanEdges");
 		return report;
 	}
 
@@ -837,103 +858,108 @@ class PlanarGraph extends Graph{
 	// FRAGMENT, FACES
 	///////////////////////////////////////////////
 
-	// getAllEdgeIntersections(epsilon?:number):{point:XY, edges:PlanarEdge[]}[]{
-
-	// }
-
+	/** Fragment looks at every edge and one by one removes 2 crossing edges and replaces them with a node at their intersection and 4 edges connecting their original endpoints to the intersection.
+	 * @returns {XY[]} array of XY locations of all the intersection locations
+	 */
 	fragment(epsilon?:number):PlanarClean{
-		// var intersections = this.getAllEdgeIntersections(epsilon);
-		// console.log(intersections);
+		var sortFunction = function(a,b){ if(a.commonX(b,epsilon)){ return a.y-b.y; } return a.x-b.x; }
+		var EPSILON_HIGH = 0.000000001;
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		this.edgeArrayDidChange();
-		var list:{point:XY, edges:PlanarEdge[]}[] = [];
-		// gather all intersections between edges, keep track of intersection <-> edge association
+		// fill "crossings", an array of objects with intersections and the 2 edges that cross
+		var crossings:{point:XY, edges:PlanarEdge[]}[] = [];
 		for(var i = 0; i < this.edges.length-1; i++){
 			for(var j = i+1; j < this.edges.length; j++){
 				var intersection = this.edges[i].intersection(this.edges[j], epsilon);
 				if(intersection != undefined){
-					list.push({point:intersection, edges:[this.edges[i], this.edges[j]]});
+					crossings.push({point:intersection, edges:[this.edges[i], this.edges[j]]});
 				}
 			}
 		}
-		// merge points that are within the epsilon range, and gather their associated edges too
-		for(var i = 0; i < list.length-1; i++){
-			for(var j = list.length-1; j > i; j--){
-				if(list[i].point.equivalent(list[j].point, epsilon)){
-					list[i].point = list[i].point.lerp(list[j].point, 0.5);
-					list[i].edges = list[i].edges.concat(list[j].edges);
-					list.splice(j, 1);
+		// merge points that are within an epsilon range of each other, and merge their associated edges too
+		for(var i = 0; i < crossings.length-1; i++){
+			for(var j = crossings.length-1; j > i; j--){
+				if(crossings[i].point.equivalent(crossings[j].point, epsilon)){
+					crossings[i].point = crossings[i].point.lerp(crossings[j].point, 0.5);
+					crossings[i].edges = crossings[i].edges.concat(crossings[j].edges);
+					crossings.splice(j, 1);
 				}
 			}
 		}
 		// swap out intersection points with actual new nodes on the graph
-		var newList = list.map(function(el){
-			var newNode = (<PlanarNode>this.newNode()).setPosition(el.point.x, el.point.y);
-			return {node:newNode, edges:el.edges};
-		},this);
-
-		var edgesIntersections = Array.apply(null, Array(this.edges.length)).map(function(el){return [];});
-		for(var i = 0; i < newList.length; i++){
-			for(var j = 0; j < newList[i].edges.length; j++){
-				var index = newList[i].edges[j].index;
-				edgesIntersections[ index ].push(newList[i].node);
-			}
-		}
-		// sort points, prepare to rebuild edges
-		var EPSILON_HIGH = 0.000000001;
-		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
-		for(var i = 0; i < edgesIntersections.length; i++){
-			edgesIntersections[i].sort(function(a,b){
-				if(a.commonX(b,epsilon)){ return a.y-b.y; }
-				return a.x-b.x;
-			});
-		}
-		// rebuild edges
-		var rebuild = edgesIntersections.map(function(el, i){
-			var endpoints = this.edges[i].nodes.slice().sort(function(a,b){
-				if(a.commonX(b,epsilon)){ return a.y-b.y; }
-				return a.x-b.x;
-			});
-			return {edge:this.edges[i], endpoints:endpoints, innerPoints:el };
-		},this);
-		var rebuilt = rebuild
+		// refactor data in "crossings" into "edgesClips", one edge and all its associated crossings
+		var edgesClips = Array.apply(null, Array(this.edges.length)).map(function(el){return [];});
+		crossings.map(function(el){
+				return {node:(<PlanarNode>this.newNode()).setPosition(el.point.x, el.point.y), edges:el.edges};
+			},this).forEach(function(crossing){
+				crossing.edges.forEach(function(edge){
+					edgesClips[ edge.index ].push(crossing.node);
+				},this);
+			},this);
+		// prepare data, sort points, rebuild edges
+		var rebuild = edgesClips
+			.map(function(el, i){
+				el.sort(sortFunction);
+				var endpoints = this.edges[i].nodes.slice().sort(sortFunction);
+				return {edge:this.edges[i], endpoints:endpoints, innerPoints:el };
+			},this)
 			.filter(function(el){ return el.innerPoints.length != 0; },this)
 			.map(function(el){
 				return this.rebuildEdge(el.edge, el.endpoints, el.innerPoints, epsilon);
 			},this);
-
 		this.removeIsolatedNodes();
 		this.cleanDuplicateNodes();
-		this.cleanGraph();
+		// this.cleanGraph();
 		return new PlanarClean();
 	}
 
-	/** Fragment looks at every edge and one by one removes 2 crossing edges and replaces them with a node at their intersection and 4 edges connecting their original endpoints to the intersection.
-	 * @returns {XY[]} array of XY locations of all the intersection locations
-	 */
-	fragmentOld(epsilon?:number):PlanarClean{
-		//todo: remove protection, or bake it into the class itself
-		var protection = 0;
-		var report = new PlanarClean();
-		var roundReport:PlanarClean;
-		do{
-			roundReport = this.edges
-				.map(function(edge){ return this.fragmentCrossingEdges(edge, epsilon); },this)
-				.reduce(function(prev,curr){ return prev.join(curr); },new PlanarClean());
-			if(roundReport.nodes.fragment.length > 0){
-				this.cleanDuplicateNodes(epsilon);
-				this.cleanGraph();
+	fragmentOneEdge(oneEdge:PlanarEdge, epsilon?:number):PlanarClean{
+		var sortFunction = function(a,b){ if(a.commonX(b,epsilon)){ return a.y-b.y; } return a.x-b.x; }
+		var EPSILON_HIGH = 0.000000001;
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
+		this.edgeArrayDidChange();
+		// fill "crossings", an array of objects with intersections and the 2 edges that cross
+		var crossings:{point:XY, edges:PlanarEdge[]}[] = this.edges
+			.filter(function(edge){ return edge !== oneEdge; },this)
+			.map(function(edge){
+				return {point:oneEdge.intersection(edge, epsilon), edges:[oneEdge, edge]};
+			},this);
+		// merge points that are within an epsilon range of each other, and merge their associated edges too
+		for(var i = 0; i < crossings.length-1; i++){
+			for(var j = crossings.length-1; j > i; j--){
+				if(crossings[i].point.equivalent(crossings[j].point, epsilon)){
+					crossings[i].point = crossings[i].point.lerp(crossings[j].point, 0.5);
+					crossings[i].edges = crossings[i].edges.concat(crossings[j].edges);
+					crossings.splice(j, 1);
+				}
 			}
-			report.join( roundReport );
-			protection += 1;
-		}while(roundReport.nodes.fragment.length != 0 && protection < 1000);
-		if(protection >= 1000){ console.log("exiting fragment(). potential infinite loop detected"); }
-		// this.fragmentOverlappingEdges(epsilon);
+		}
+		// swap out intersection points with actual new nodes on the graph
+		// refactor data in "crossings" into "edgesClips", one edge and all its associated crossings
+		var edgesClips = Array.apply(null, Array(this.edges.length)).map(function(el){return [];});
+		crossings.map(function(el){
+				return {node:(<PlanarNode>this.newNode()).setPosition(el.point.x, el.point.y), edges:el.edges};
+			},this).forEach(function(crossing){
+				crossing.edges.forEach(function(edge){
+					edgesClips[ edge.index ].push(crossing.node);
+				},this);
+			},this);
+		// prepare data, sort points, rebuild edges
+		var rebuild = edgesClips
+			.map(function(el, i){
+				el.sort(sortFunction);
+				var endpoints = this.edges[i].nodes.slice().sort(sortFunction);
+				return {edge:this.edges[i], endpoints:endpoints, innerPoints:el };
+			},this)
+			.filter(function(el){ return el.innerPoints.length != 0; },this)
+			.map(function(el){
+				return this.rebuildEdge(el.edge, el.endpoints, el.innerPoints, epsilon);
+			},this);
 		this.removeIsolatedNodes();
 		this.cleanDuplicateNodes();
-		this.cleanGraph();
-		return report;
+		// this.cleanGraph();
+		return new PlanarClean();
 	}
-
 	/** This function targets a single edge and performs the fragment operation on all crossing edges.
 	 * @returns {XY[]} array of XY locations of all the intersection locations
 	 */
