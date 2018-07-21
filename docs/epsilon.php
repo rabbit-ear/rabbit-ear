@@ -1,7 +1,6 @@
 <?php include 'header.php';?>
 <script type="text/javascript" src="../lib/p5.min.js"></script>
-<script type="text/javascript" src="../dist/cp.p5js.js"></script>
-
+]
 
 <h1>EPSILON</h1>
 
@@ -82,6 +81,7 @@
 </div>
 
 <!-- include .js sketches -->
+<script type="text/javascript" src="../tests/_cp.p5.js"></script>
 <script type="text/javascript" src="../tests/remove_edge.js"></script>
 <script type="text/javascript" src="../tests/p5js_parallels_scale.js"></script>
 <script type="text/javascript" src="../tests/p5js_merge_duplicates.js"></script>

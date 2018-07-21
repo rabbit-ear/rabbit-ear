@@ -26,8 +26,8 @@
 	<button type="button" class="btn btn-outline-light" id="docs-button">documentation</button>
 </div>
 <script type="text/javascript" src="../lib/paper-full.min.js"></script>
-<script type="text/javascript" src="../dist/cp.js"></script>
-<script type="text/javascript" src="../dist/cp.paperjs.js"></script>
+<script type="text/javascript" src="../cp.js"></script>
+<script type="text/javascript" src="../cp.paperjs.js"></script>
 <script type="text/javascript" src="js/buttons.js"></script>
 <script type="text/javascript" src="js/kawasaki-collapse.js"></script>
 </body>

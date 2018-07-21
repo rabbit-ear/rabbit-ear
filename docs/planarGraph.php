@@ -162,7 +162,7 @@ edge_winding_callback = function(event){
 </script>
 <script>
 var crane1CP = new OrigamiPaper("canvas-crane-1").blackAndWhite().setPadding(0.05);
-crane1CP.loadRaw("/files/svg/crane-errors.svg");
+crane1CP.loadRaw("/files/errors/crane-errors.svg");
 crane1CP.onMouseMove = function(event){
 	var point = {x:event.point.x, y:event.point.y};
 	var edgeArray = this.cp.edges
@@ -183,7 +183,7 @@ crane1CP.onMouseMove = function(event){
 }
 
 var crane2CP = new OrigamiPaper("canvas-crane-2").blackAndWhite().setPadding(0.05);
-crane2CP.load("/files/svg/crane-errors.svg");
+crane2CP.load("/files/errors/crane-errors.svg");
 crane2CP.show.faces = false;
 crane2CP.onMouseMove = function(event){
 	var nearest = this.cp.nearest(event.point);

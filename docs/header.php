@@ -8,8 +8,8 @@ window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);
 </script>
 <script type="text/javascript" src="../lib/paper-full.min.js"></script>
 
-<script type="text/javascript" src="../dist/cp.js"></script>
-<script type="text/javascript" src="../dist/cp.paperjs.js"></script>
+<script type="text/javascript" src="../cp.js"></script>
+<script type="text/javascript" src="../cp.paperjs.js"></script>
 
 <script type="text/javascript" src="lib/katex/katex.min.js"></script>
 <link rel="stylesheet" href="lib/katex/katex.min.css">

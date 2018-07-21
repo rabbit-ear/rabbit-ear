@@ -8,7 +8,7 @@ Download this repo and check out the `/examples/` folder.
 
 # Usage
 
-Include `cp.js`, found in the `/dist/` folder
+Include `cp.js`, found in the root folder
 
 A crease pattern is initialized like so
 
@@ -50,7 +50,7 @@ There are also functions for checking local flat-foldability, Kawasaki-Justin's 
 
 # Paper.js
 
-If you include the popular vector graphics library [Paper.js](http://paperjs.org/), also include `cp.paperjs.js` in the `/dist/` folder. One line of code is all you need to visualize your crease patter in HTML canvas. A lot of effort was spent hooking together these two libraries. After you initialize your crease pattern, throw it onto a canvas:
+If you include the popular vector graphics library [Paper.js](http://paperjs.org/), also include `cp.paperjs.js` in the root folder. One line of code is all you need to visualize your crease patter in HTML canvas. A lot of effort was spent hooking together these two libraries. After you initialize your crease pattern, throw it onto a canvas:
 
 ```Javascript
 new OrigamiPaper("canvas-name", cp);

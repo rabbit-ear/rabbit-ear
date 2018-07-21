@@ -2,7 +2,7 @@ html, body {
 	background-color: hsl(205, 74%, 30%);
 	font-family: 'Montserrat';
 }
-h3{
+h2, h3{
 	color: white;
 	padding:.25em 1em;
 	font-size: 1.666em;

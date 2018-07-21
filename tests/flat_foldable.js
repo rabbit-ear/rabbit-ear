@@ -3,7 +3,7 @@ ffSketch.show.sectors = true;
 ffSketch.style.sector.fillColors = [{alpha:0.0}, {alpha:0.0}];
 ffSketch.errorColors = [ffSketch.styles.byrne.red, ffSketch.styles.byrne.yellow];
 
-ffSketch.load("/files/svg/sea-turtle-errors.svg", function(){ 
+ffSketch.load("/files/errors/sea-turtle-errors.svg", function(){ 
 	ffSketch.colorNodesFlatFoldable();
 });
 

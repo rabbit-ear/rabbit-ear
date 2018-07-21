@@ -14,7 +14,7 @@
 <link rel="stylesheet" type="text/css" href="css/byrne.css">
 <link rel="stylesheet" type="text/css" href="css/page.css">
 
-<h3>1. paper &nbsp;2. crease &nbsp;3. fold</h3>
+<h2>1. paper &nbsp;2. crease &nbsp;3. fold</h2>
 
 <div class="flex-grid demo">
 	<div class="column">
@@ -31,12 +31,12 @@
 	</div>
 </div>
 
-<h3>showcase</h3>
+<h2>showcase</h2>
 
 <div class="card-columns">
 	<div class="card">
-		<a href="showcase/miura/">
-		<img class="card-img-top" src="showcase/miura.svg">
+		<a href="examples/miura/">
+		<img class="card-img-top" src="images/miura.svg">
 		<div class="card-body">
 			<h5 class="card-title">code: Miura-Ori</h5>
 		</div>
@@ -50,13 +50,13 @@
 		<div class="card-body">
 			<h5 class="card-title">editor</h5>
 			<p class="card-text">for origami crease patterns</p>
-			<p class="card-text"><small class="text-muted">under development</small></p>
+			<p class="card-text"><small class="text-muted">an ambitious undertaking, in-development</small></p>
 		</div>
 	</a>
 	</div>
 	<div class="card text-center">
 		<div class="card-body">
-		<a href="showcase/voronoi/">
+		<a href="examples/voronoi/">
 			<h5 class="card-title">Voronoi</h5>
 			<p class="card-text">algorithm into origami crease pattern</p>
 		</a>
@@ -65,7 +65,7 @@
 	</div>
 	<div class="card text-center">
 		<div class="card-body">
-		<a href="showcase/fold/">
+		<a href="examples/folder/">
 			<h5 class="card-title">folding simulator</h5>
 			<p class="card-text">fold an .svg file.</p>
 		</a>
@@ -73,8 +73,8 @@
 		</div>
 	</div>
 	<div class="card">
-		<a href="showcase/schamp/">
-		<img class="card-img-top" src="showcase/schamp.svg">
+		<a href="examples/schamp/">
+		<img class="card-img-top" src="images/schamp.svg">
 		<div class="card-body">
 			<h5 class="card-title">code: angled pleats</h5>
 			<p class="card-text"><small class="text-muted">after Ray Schamp</small></p>
@@ -84,7 +84,7 @@
 
 	<div class="card text-center">
 		<div class="card-body">
-		<a href="showcase/code/">
+		<a href="examples/code/">
 			<h5 class="card-title">empty code canvas</h5>
 		</a>
 			<p class="card-text"><small class="text-muted">check out the <a href="docs/">documentation</a> for operations</small></p>
@@ -92,7 +92,7 @@
 	</div>
 
 	<div class="card">
-		<a href="showcase/validator/">
+		<a href="examples/validator/">
 	<div class="canvas-container card-img-top">
 		<canvas id="canvas-flat-foldable" resize></canvas>
 	</div>
@@ -115,9 +115,9 @@
 
 </div>
 
-<script type="text/javascript" src="../dist/cp.js"></script>
+<script type="text/javascript" src="../cp.js"></script>
 <script type="text/javascript" src="../lib/paper-full.min.js"></script>
-<script type="text/javascript" src="../dist/cp.paperjs.js"></script>
+<script type="text/javascript" src="../cp.paperjs.js"></script>
 <script type="text/javascript" src="js/demo-triptych.js"></script>
 <script type="text/javascript" src="../tests/nearest.js"></script>
 <script type="text/javascript" src="../tests/flat_foldable.js"></script>

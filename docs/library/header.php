@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 
-<script type="text/javascript" src="../../dist/cp.js"></script>
-<script type="text/javascript" src="../../dist/cp.paperjs.js"></script>
+<script type="text/javascript" src="../../cp.js"></script>
+<script type="text/javascript" src="../../cp.paperjs.js"></script>
 <script type="text/javascript" src="../../lib/paper-full.min.js"></script>
 
 <link href="https://fonts.googleapis.com/css?family=Cormorant:300,500,700" rel="stylesheet">
