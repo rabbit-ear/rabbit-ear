@@ -1,0 +1,37 @@
+html, body {
+	background-color: hsl(205, 74%, 30%);
+	font-family: 'Montserrat';
+}
+h3{
+	color: white;
+	padding:.25em 1em;
+	font-size: 1.666em;
+	line-height: 1.5;
+	background-color: hsla(43, 88%, 46%, 0.9);
+	margin: 2.5rem 5rem;
+	display:inline-block;
+	/*background-color: hsl(14.4, 87%, 45%);*/
+}
+h3 a, h3 a:hover, h3 a:visited, h3 a:active{
+	color:white;
+	text-decoration: none;
+	cursor: help;
+	border-bottom: 3px dashed white;
+	display: inline;
+}
+.btn-outline-light:hover {
+	color: black;
+}
+canvas[resize]{
+	height:100%;
+	width:100%;
+}
+canvas[resize].half{
+	width:40vmax;
+	height:40vmax;
+	margin:auto;
+}
+canvas[resize].third{
+	width:25vw;
+	height:25vw;
+}

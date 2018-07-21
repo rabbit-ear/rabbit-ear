@@ -323,21 +323,28 @@ var drawArrowAcross = function(crease, crossing){
 
 ////////////////////////////////////////////////////////////
 
+function getFloatFromElementById(domElementId){
+	var n;
+	try{      n = eval( document.getElementById(domElementId).value ); }
+	catch(e){ n = parseFloat( document.getElementById(domElementId).value ); }
+	return n;
+}
+
 document.getElementById("go-button").onclick = function(e){
 	var mode = document.getElementById("find-type-select").innerHTML;
 
 	var url = "";
 	switch(mode){
 		case 'point':
-			var x1 = parseFloat( document.getElementById("input-x-1").value );
-			var y1 = parseFloat( document.getElementById("input-y-1").value );
+			var x1 = getFloatFromElementById("input-x-1");
+			var y1 = getFloatFromElementById("input-y-1");
 			url = "https://reference-finder.herokuapp.com/point?x=" + x1 + "&y=" + y1 + "&count=" + NUMBER_OF_SOLUTIONS;
 		break;
 		case 'line':
-			var x1 = parseFloat( document.getElementById("input-x-1").value );
-			var y1 = parseFloat( document.getElementById("input-y-1").value );
-			var x2 = parseFloat( document.getElementById("input-x-2").value );
-			var y2 = parseFloat( document.getElementById("input-y-2").value );
+			var x1 = getFloatFromElementById("input-x-1");
+			var y1 = getFloatFromElementById("input-y-1");
+			var x2 = getFloatFromElementById("input-x-2");
+			var y2 = getFloatFromElementById("input-y-2");
 			url = "https://reference-finder.herokuapp.com/line?x1=" + x1 + "&y1=" + y1 + "&x2=" + x2 + "&y2=" + y2 + "&count=" + NUMBER_OF_SOLUTIONS;
 		break;
 	}

@@ -1012,7 +1012,6 @@ class CreasePattern extends PlanarGraph{
 
 	removeAllMarks():CreasePattern{
 		for(var i = this.edges.length-1; i >= 0; i--){
-
 			if(this.edges[i].orientation === CreaseDirection.mark){
 				// this.removeEdge(this.edges[i]);
 				i -= this.removeEdge(this.edges[i]).edges.total - 1; 
