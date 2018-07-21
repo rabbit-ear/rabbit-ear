@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"removeComments": true,
-		"outFile": "dist/cp.js",
+		"outFile": "cp.js",
 		"allowJs": true
 	},
 	"include": [

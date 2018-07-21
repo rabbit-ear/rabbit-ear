@@ -28,8 +28,6 @@
 <script type="text/javascript" src="../lib/paper-full.min.js"></script>
 <script type="text/javascript" src="../dist/cp.js"></script>
 <script type="text/javascript" src="../dist/cp.paperjs.js"></script>
-<script type="text/javascript" src="../lib/d3.min.js"></script>
-<script type="text/javascript" src="../lib/perlin.js"></script>
 <script type="text/javascript" src="js/buttons.js"></script>
 <script type="text/javascript" src="js/kawasaki-collapse.js"></script>
 </body>

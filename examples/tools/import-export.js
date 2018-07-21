@@ -90,6 +90,24 @@ function downloadCreasePattern(cp, filename, extension){
 	}
 }
 
+function downloadFolded(cp, filename, extension){
+	var supportedFileTypes = ['fold', 'svg'];
+	if(filename == "" || filename == undefined){ filename = "folded"; }
+	if(supportedFileTypes.indexOf(extension) == -1){ throw "downloadFolded does not support file format, or function is improperly called."; }
+	var fullname = [filename, extension].join('.');
+	switch(extension){
+		case 'fold':
+			var foldObject = cp.fold();
+			var foldFileBlob = JSON.stringify(foldObject);
+			makeDownloadBlob(foldFileBlob, fullname, "application/json");
+		break;
+		case 'svg':
+			var svgBlob = cp.foldSVG();
+			makeDownloadBlob(svgBlob, fullname, "image/svg+xml");
+		break;
+	}
+}
+
 function makeDownloadBlob(text, filename, mimeType){
 	var blob = new Blob([text], {type: mimeType});
 	var url = window.URL.createObjectURL(blob);

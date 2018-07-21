@@ -1,0 +1,9 @@
+html,body{
+	margin:0;
+	text-align:center;
+	overflow:hidden;
+}
+canvas[resize]{
+	width:100vw;
+	height:100vh;
+}

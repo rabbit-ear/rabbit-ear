@@ -89,3 +89,5 @@ function injectCode(string){
 	doc.replaceRange(newline+string, pos);
 
 }
+
+injectCode("//0 to 1, intensity of wave\nvar wave = 1;\n\nvar SIZE = 10;\nvar points = [];\nfor(var i = 0; i < SIZE; i++){\n	var inner = [];\n	for(var j = 0; j < SIZE; j++){ inner.push(j); }\n	points.push(inner);\n}\npoints = points.map(function(row,y){\n	return row.map(function(point,x){\n		return new XY(x/(SIZE-1) + Math.cos(y)*0.05 * wave, \n                      y/(SIZE-1) + (x%2)*0.07);\n	},this);\n},this);\npoints.forEach(function(row,j){\n	row.forEach(function(point,i){\n		// crease zig zag rows\n		if(i < row.length-1){\n			var nextHorizPoint = row[ (i+1)%row.length ];\n			var crease = cp.crease(point, nextHorizPoint);\n			if(crease != undefined){\n				if(j%2 == 0){ crease.mountain(); }\n				else { crease.valley(); }\n			}\n		}\n		// crease lines connecting between zig zag rows\n		if(j < points.length-1){\n			var nextRow = points[ (j+1)%points.length ];\n			var nextVertPoint = nextRow[ i ];\n			var crease = cp.crease(point, nextVertPoint);\n			if(crease != undefined){\n				if((i+j+1)%2 == 0){ crease.mountain(); }\n				else { crease.valley(); }\n			}\n		}\n	})\n},this);");

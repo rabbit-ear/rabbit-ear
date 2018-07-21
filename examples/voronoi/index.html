@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../lib/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="../lib/bootstrap/css/bootstrap-slider.min.css">
+<link rel="stylesheet" type="text/css" href="fullpage-toolbar.css">
+</head>
+<body>
+<canvas id="canvas-voronoi" resize></canvas>
+<input type="file" id="files">
+<div class="toolbar" data-toggle="buttons">
+	<label class="btn btn-lg btn-outline-secondary form-check-label" id="sites-checkbox">
+		<input type="checkbox" class="form-check-input" autocomplete="off"> Show
+	</label>
+	<a class="btn btn-lg btn-secondary" href="#" id="load-file">Upload</a>
+	<a class="btn btn-lg btn-secondary" href="#" id="download-sites">Download</a>
+		<p id="interp-value">0.5</p>
+	<input id="interp-slider" data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="1000" data-slider-step="1" data-slider-value="500"/>
+	<a href="#" class="btn btn-lg btn-secondary" id="download-file">Download CP</a>
+</div>
+<script type="text/javascript" src="../../lib/d3.min.js"></script>
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../cp.js"></script>
+<script type="text/javascript" src="../../cp.paperjs.js"></script>
+<script type="text/javascript" src="../tools/file-upload-button.js"></script>
+<script type="text/javascript" src="../tools/drag-and-drop.js"></script>
+<script type="text/javascript" src="../../examples/lib/bootstrap/js/bootstrap-slider.min.js"></script>
+<script type="text/javascript" src="voronoi.js"></script>
+</body>
+</html>
