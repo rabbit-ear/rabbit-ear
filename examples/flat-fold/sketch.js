@@ -11,18 +11,26 @@ function updateFoldedState(cp){
 	// folded.draw();
 }
 
+origami.updateCenter = function(point){
+	this.centerNode.x = point.x;
+	this.centerNode.y = point.y;
+	var junction = this.centerNode.junction();
+	var dir = junction.sectors[2].kawasakiCollapse();
+	this.cp = this.template.copy();
+	this.cp.crease( dir ).mountain();
+	this.cp.clean();
+	updateFoldedState(this.cp);
+	this.draw();
+}
+
 origami.onMouseMove = function(event){
 	if(this.mouse.isPressed){
-		this.centerNode.x = event.point.x;
-		this.centerNode.y = event.point.y;
-		var junction = this.centerNode.junction();
-		var dir = junction.sectors[2].kawasakiCollapse();
-		this.cp = this.template.copy();
-		this.cp.crease( dir ).mountain();
-		this.cp.clean();
-		updateFoldedState(this.cp);
-		this.draw();
+		this.updateCenter(event.point);
 	}
+}
+
+origami.onMouseDown = function(event){
+	this.updateCenter(event.point);
 }
 
 origami.reset = function(){
@@ -46,4 +54,3 @@ origami.reset = function(){
 	this.draw();
 }
 origami.reset();
-
