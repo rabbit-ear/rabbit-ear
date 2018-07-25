@@ -3828,10 +3828,9 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.creaseSymmetry = function (ax, ay, bx, by) {
         if (this.symmetryLine === undefined) {
             return undefined;
-        }
-        var p = new Plane(this.symmetryLine.point, this.symmetryLine.direction.cross(new Line().zAxis()))
-        var ra = new XY(ax, ay).reflect(p);
-        var rb = new XY(bx, by).reflect(p);
+        }        
+        var ra = new XY(ax, ay).reflect(this.symmetryLine);
+        var rb = new XY(bx, by).reflect(this.symmetryLine);
         return this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
     };
     CreasePattern.prototype.crease = function (a, b, c, d) {
