@@ -1,3 +1,13 @@
+var slider = new Slider('#interp-slider').on("slide",sliderUpdate);
+function sliderUpdate(value){
+	var v = parseFloat((value / 1000).toFixed(2));
+	if(v < 0.01){ v = 0.01; }
+	document.getElementById("interp-value").innerHTML = v;
+	interpolation = v;
+	project.drawVoronoi();
+}
+// sliderUpdate(500);
+
 ///////////////////////////////////////////////
 
 function download(text, filename, mimeType){
@@ -13,72 +23,58 @@ document.getElementById("download-file").addEventListener("click", function(e){
 	var svgBlob = project.cp.exportSVG();
 	download(svgBlob, "creasepattern.svg", "image/svg+xml");
 });
+document.getElementById("download-sites").addEventListener("click", function(e){
+	e.preventDefault();
+	var nodeArray = touchNodes.nodes.map(function(node){return [node.x, node.y]});
+	var jsonBlob = JSON.stringify(nodeArray);
+	download(jsonBlob, "sites.json", "application/json");
+});
 
+function fileDidLoad(blob, mimeType, fileExtension){
+	var points = JSON.parse(blob);
+	touchNodes.nodes = [];
+	points.forEach(function(point){
+		touchNodes.newPlanarNode(point[0], point[1]);
+	},this);
+	project.drawVoronoi();
+}
+
+document.getElementById("sites-checkbox").addEventListener("click", function(e){
+	console.log(e);
+	// document.getElementById("sites-checkbox").clas = "on";
+	// document.getElementById("sites-checkbox").checked = true;
+	if(e.target.classList && e.target.classList.contains('active')){
+		project.showSites = false;
+		e.target.classList.remove('active');
+	} else{
+		project.showSites = true;
+		e.target.classList.add('active');
+	}
+	project.drawVoronoi();
+});
+
+// $().button('toggle')
 /////////////////////////////////////////////
 
 var voronoiAlgorithm; // global D3 algorithm implementation
 
 var project = new OrigamiPaper("canvas-voronoi");
-// project.setPadding();
-project.thinLines();
+project.style.mountain.strokeColor = {gray:0.0}
+project.mediumLines();
+project.showSites = false;
 
 var touchNodes = new PlanarGraph();
 var touchNodesCircles = [];
 var touchNodesLayer
 
-// four kinds of joints
-// touchNodes.newPlanarNode(0.599944, 0.149394);
-// touchNodes.newPlanarNode(0.653850, 0.806533);
-// touchNodes.newPlanarNode(0.481864, 0.539570);
-// touchNodes.newPlanarNode(0.196933, 0.259773);
-// touchNodes.newPlanarNode(0.261107, 0.760328);
-
-// one overlapping
-// touchNodes.newPlanarNode(0.426255, 0.023926);
-// touchNodes.newPlanarNode(0.309947, 0.536469);
-// touchNodes.newPlanarNode(0.268550, 0.355108);
-// touchNodes.newPlanarNode(0.536649, 0.830195);
-
-// two overlapping
-// touchNodes.newPlanarNode(0.21748332891029512, 0.03981581339672393);
-// touchNodes.newPlanarNode(0.18134616579052865, 0.611234705228031);
-// touchNodes.newPlanarNode(0.1022961214660395, 0.3176202548799286);
-// touchNodes.newPlanarNode(0.27214622270434996, 0.7228368430205118);
-// touchNodes.newPlanarNode(0.6984427919609809, 0.8950778811039989);
-
-// setTimeout(function(){
-// 	for(var i = 0; i < 10; i++){
-// 		touchNodes.newPlanarNode(Math.random()*1.33, Math.random());
-// 	}
-// 	project.reset();
-// }, 100);
-
-// good one
-touchNodes.newPlanarNode(0.4428578875064548, 0.2515515847111665);
-touchNodes.newPlanarNode(0.9904930832719806, 0.6247723485875926);
-touchNodes.newPlanarNode(0.8598615021873204, 0.6588121242826661);
-touchNodes.newPlanarNode(0.7780196712686458, 0.5828161384296111);
-touchNodes.newPlanarNode(0.6883833802624785, 0.6354287440201876);
-touchNodes.newPlanarNode(0.7448932158968014, 0.49512846244531694);
-touchNodes.newPlanarNode(0.6513596948468875, 0.39964632637353);
-touchNodes.newPlanarNode(0.38829666689400505, 0.7542942603544531);
-touchNodes.newPlanarNode(0.3084034509972037, 0.31780449545485545);
-touchNodes.newPlanarNode(0.5656206338844666, 0.22621958942681486);
-touchNodes.newPlanarNode(0.34737575143466776, 0.24375712462367372);
-touchNodes.newPlanarNode(0.39803974200337106, 0.1424291434862671);
-touchNodes.newPlanarNode(0.19343516470668468, 0.3002669602579966);
-touchNodes.newPlanarNode(0.6338221596500287, 0.12099437824566185);
-touchNodes.newPlanarNode(0.7176126055905765, 0.05669008252384613);
-touchNodes.newPlanarNode(1.210612206124497, 0.6315315139764412);
-touchNodes.newPlanarNode(0.12718225396299573, 0.5379979929265274);
-touchNodes.newPlanarNode(0.1953837797285579, 0.7367567251575942);
-touchNodes.newPlanarNode(0.253842230384754, 0.7776776406169316);
-touchNodes.newPlanarNode(0.47988157292204564, 0.7971637908356636);
+for(var i = 0; i < 24; i++){
+	touchNodes.newPlanarNode(Math.random()*1.618, Math.random());
+}
 
 var dragOn = false;
 var selectedNode = undefined;
 
-var interpolation = 0.33;
+var interpolation = 0.5;
 
 project.drawVoronoi = function(complex, showGussets){
 	var nodes = touchNodes.nodes.map(function(el){return [el.x, el.y];});
@@ -95,12 +91,13 @@ project.drawVoronoi = function(complex, showGussets){
 	} else{
 		creaseVoronoi(this.cp, v, interpolation);
 	}
-	for(var i = 0; i < touchNodes.nodes.length; i++){
-		var position = new XY(touchNodes.nodes[i].x, touchNodes.nodes[i].y);
-		this.cp.crease(position.add(new XY(-0.01, 0.00)), position.add(new XY(0.01, 0.00)) );
-		this.cp.crease(position.add(new XY(0.00, -0.01)), position.add(new XY(0.00, 0.01)) );
+	if(this.showSites){
+		for(var i = 0; i < touchNodes.nodes.length; i++){
+			var position = new XY(touchNodes.nodes[i].x, touchNodes.nodes[i].y);
+			this.cp.crease(position.add(new XY(-0.01, 0.00)), position.add(new XY(0.01, 0.00)) );
+			this.cp.crease(position.add(new XY(0.00, -0.01)), position.add(new XY(0.00, 0.01)) );
+		}
 	}
-
 	this.draw();
 	touchNodesLayer.activate();
 	touchNodesLayer.removeChildren();
@@ -115,7 +112,7 @@ project.drawVoronoi = function(complex, showGussets){
 
 project.reset = function(){
 	this.cp.clear();
-	this.cp.rectangle(1.33, 1);
+	this.cp.rectangle(1.618, 1);
 	this.draw();
 	var bounds = this.cp.bounds();
 	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<div class="row canvases">
+		<canvas id="canvas-cp" class="half" resize></canvas><canvas id="canvas-fold" class="half" resize></canvas>
+	</div>
+	<div class="row toolbar">
+		<a href="#" class="btn btn-lg btn-primary" id="load-file">Open File</a>
+		<a href="#" class="btn btn-lg btn-outline-secondary" id="download-cp-svg">CP .svg</a>
+		<a href="#" class="btn btn-lg btn-outline-secondary" id="download-cp-opx">CP .opx</a>
+		<a href="#" class="btn btn-lg btn-outline-secondary" id="download-cp-fold">CP .fold</a>
+		<a href="#" class="btn btn-lg btn-outline-secondary" id="download-folded-fold">Folded .fold</a>
+		<a href="#" class="btn btn-lg btn-outline-secondary" id="download-folded-svg">Folded .svg</a>
+	</div>
+</body>
+<script type="text/javascript" src="../tools/drag-and-drop.js"></script>
+<script type="text/javascript" src="../tools/file-upload-button.js"></script>
+<script type='text/javascript' src='../../lib/fold.js'></script>
+<script type="text/javascript" src="../tools/import-export.js"></script>
+<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../cp.js"></script>
+<script type="text/javascript" src="../../cp.paperjs.js"></script>
+<script type="text/javascript" src="sketch.js"></script>
+</html>

@@ -1,0 +1,25 @@
+html,body{
+	height:100%;
+	width:100%;
+	margin:0px;
+	display:flex;
+	align-items: center;
+	justify-content: center;
+}
+.footer{
+	position: fixed;
+	right:15px;
+	bottom:15px;
+	text-align: right;
+}
+.fixed-top{ 
+	z-index:3;
+	position: fixed;
+	top:0px;
+	left:0px;
+}
+
+@media (max-width: 650px), (hover:none){
+	h3{ font-size: 1em; }
+	.btn{ font-size: 0.75rem; }
+}

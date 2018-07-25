@@ -10,7 +10,7 @@ ffAdjust.nearestNode = undefined;
 ffAdjust.movingNode = undefined;
 ffAdjust.mNodeOriginalLocation = undefined;
 
-ffAdjust.load("/files/svg/sea-turtle-errors.svg", function(){ 
+ffAdjust.load("/files/errors/sea-turtle-errors.svg", function(){ 
 	ffAdjust.colorNodesFlatFoldable();
 });
 
