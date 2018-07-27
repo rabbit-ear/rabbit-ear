@@ -499,28 +499,28 @@ class CreasePattern extends PlanarGraph{
 	ray(a:any, b?:any, c?:any, d?:any):CPRay{ return new CPRay(this, gimme1Ray(a,b,c,d)); }
 	edge(a:any, b?:any, c?:any, d?:any):CPEdge{ return new CPEdge(this, gimme1Edge(a,b,c,d)); }
 	//AXIOMS
-	axiom1(a:any, b:any, c:?any, d:?any):CPLine{
+	axiom1(a:any, b:any, c?:any, d?:any):CPLine{
 		var points:[XY,XY] = gimme2XY(a, b, c, d);
 		if(points === undefined){ return undefined; }
 		return new CPLine(this, new Line(points[0], points[1].subtract(points[0])));
 	}
-	axiom2(a:any, b:any, c:?any, d:?any):CPLine{
+	axiom2(a:any, b:any, c?:any, d?:any):CPLine{
 		var points:[XY,XY] = gimme2XY(a, b, c, d);
 		return new CPLine(this, new Line(points[1].midpoint(points[0]), points[1].subtract(points[0]).rotate90()));
 	}
-	axiom3(one:Crease, two:Crease):CPLine{
+	axiom3(one:Crease, two:Crease):CPLine[]{
 		return new Edge(one).infiniteLine().bisect(new Edge(two).infiniteLine())
-			.map(function (line) { return new CPLine(this, line); }, this);
+			.map(function (line:Line) { return new CPLine(this, line); }, this);
 	}
 	axiom4(line:Crease, point:XY):CPLine{ return new CPLine(this, new Line(point, new Edge(line).vector().rotate90())); }
-	axiom5(origin:XY, point:XY, line:CPLine){
+	axiom5(origin:XY, point:XY, line:Crease):CPLine[]{
 		var radius:number = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
 		var intersections:XY[] = new Circle(origin, radius).intersection(new Edge(line).infiniteLine());
 		var lines:CPLine[] = [];
 		for(var i:int = 0; i < intersections.length; i++){ lines.push(this.axiom2(point, intersections[i])); }
 		return lines;
 	}
-	axiom6(point1:XY, point2:XY, line1:Crease, line2:Crease):CPLine{
+	axiom6(point1:XY, point2:XY, line1:Crease, line2:Crease):CPLine[]{
 		var p1:number = point1.x;
 		var q1:number = point1.y;
 		//find equation of line in form y = mx+h (or x = k)
