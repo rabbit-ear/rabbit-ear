@@ -182,7 +182,7 @@ var Matrix = (function () {
         this.tx = (tx !== undefined) ? tx : 0;
         this.ty = (ty !== undefined) ? ty : 0;
     }
-    Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; return this;};
+    Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; return this; };
     Matrix.prototype.mult = function (mat) {
         var r = new Matrix();
         r.a = this.a * mat.a + this.c * mat.b;
@@ -642,8 +642,9 @@ var Polyline = (function () {
         var REFLECT_LIMIT = 666;
         var clips = [];
         var firstClips = ray.clipWithEdgesDetails(intersectable);
-        if (firstClips.length == 0)
+        if (firstClips.length == 0) {
             return this;
+        }
         if (target !== undefined &&
             epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)) {
             if (firstClips.length === 0 ||
@@ -3538,18 +3539,13 @@ var CreasePattern = (function (_super) {
     };
     CreasePattern.prototype.axiom2 = function (a, b, c, d) {
         var points = gimme2XY(a, b, c, d);
-        if (points === undefined) {
-            return undefined;
-        }
-       return new CPLine(this, new Line(points[1].midpoint(points[0]), points[1].subtract(points[0]).rotate90()));
+        return new CPLine(this, new Line(points[1].midpoint(points[0]), points[1].subtract(points[0]).rotate90()));
     };
     CreasePattern.prototype.axiom3 = function (one, two) {
         return new Edge(one).infiniteLine().bisect(new Edge(two).infiniteLine())
             .map(function (line) { return new CPLine(this, line); }, this);
     };
-    CreasePattern.prototype.axiom4 = function (line, point) {
-        return new CPLine(this, new Line(point, new Edge(line).vector().rotate90()));
-    };
+    CreasePattern.prototype.axiom4 = function (line, point) { return new CPLine(this, new Line(point, new Edge(line).vector().rotate90())); };
     CreasePattern.prototype.axiom5 = function (origin, point, line) {
         var radius = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
         var intersections = new Circle(origin, radius).intersection(new Edge(line).infiniteLine());
@@ -3562,7 +3558,6 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.axiom6 = function (point1, point2, line1, line2) {
         var p1 = point1.x;
         var q1 = point1.y;
-        //find equation of line in form y = mx+h (or x = k)
         if (line1.nodes[1].x - line1.nodes[0].x != 0) {
             var m1 = (line1.nodes[1].y - line1.nodes[0].y) / ((line1.nodes[1].x - line1.nodes[0].x));
             var h1 = line1.nodes[0].y - m1 * line1.nodes[0].x;
@@ -3570,10 +3565,8 @@ var CreasePattern = (function (_super) {
         else {
             var k1 = line1.nodes[0].x;
         }
-        
         var p2 = point2.x;
         var q2 = point2.y;
-        //find equation of line in form y = mx+h (or x = k)
         if (line2.nodes[1].x - line2.nodes[0].x != 0) {
             var m2 = (line2.nodes[1].y - line2.nodes[0].y) / (line2.nodes[1].x - line2.nodes[0].x);
             var h2 = line2.nodes[0].y - m2 * line2.nodes[0].x;
@@ -3581,231 +3574,116 @@ var CreasePattern = (function (_super) {
         else {
             var k2 = line2.nodes[0].x;
         }
-        
-       //equation of perpendicular bisector between (p,q) and (u, v) {passes through ((u+p)/2,(v+q)/2) with slope -(u-p)/(v-q)}
-        //y = (-2(u-p)x + (v^2 -q^2 + u^2 - p^2))/2(v-q)
-        
-        //equation of perpendicular bisector between (p,q) and (u, mu+h)
-        // y = (-2(u-p)x + (m^2+1)u^2 + 2mhu + h^2-p^2-q^2)/(2mu + 2(h-q))
-        
-        //equation of perpendicular bisector between (p,q) and (k, v)
-        //y = (-2(k-p)x + (v^2 + k^2-p^2-q^2))/2(v-q)
-        
-        //if the two bisectors are the same line, then the gradients and intersections of both lines are equal
-        
-        //case 1: m1 and m2 both defined
         if (m1 !== undefined && m2 !== undefined) {
-            //1: (u1-p1)/(m1u1+(h1 -q1)) = (u2-p2)/(m2u2+(h2-q2))
-            //and
-            //2: (a1u1^2+b1u1+ c1)/(d1u1+e1) = (a2u2^2+b2u2+c2)/(d2u2+e2)
-            //where
-            //an = mn^2+1
-            //bn = 2mnhn
-            //cn = hn^2-pn^2-qn^2
-            //dn = 2mn
-            //en = 2(hn-qn)
-            
-            var a1 = m1*m1 + 1;
-            var b1 = 2*m1*h1;
-            var c1 = h1*h1 - p1*p1 - q1*q1;
-            var d1 = 2*m1;
-            var e1 = 2*(h1 - q1);
-            
-            var a2 = m2*m2 + 1;
-            var b2 = 2*m2*h2;
-            var c2 =  h2*h2 - p2*p2 - q2*q2;
-            var d2 = 2*m2;
-            var e2 = 2*(h2 - q2);
-            
-            //rearrange 1 to express u1 in terms of u2
-            //u1 = (a0u2+b0)/(c0u2+d0)
-            //where
-            //a0 = m2p1-(q1-h1)
-            //b0 = p2(q1-h1)-p1(q2-h2)
-            //c0= m2-m1
-            //d0= m1p2-(q2-h2)
-            var a0 = m2*p1 + (h1 - q1);
-            var b0 = p1*(h2 - q2) - p2*(h1 - q1);
+            var a1 = m1 * m1 + 1;
+            var b1 = 2 * m1 * h1;
+            var c1 = h1 * h1 - p1 * p1 - q1 * q1;
+            var d1 = 2 * m1;
+            var e1 = 2 * (h1 - q1);
+            var a2 = m2 * m2 + 1;
+            var b2 = 2 * m2 * h2;
+            var c2 = h2 * h2 - p2 * p2 - q2 * q2;
+            var d2 = 2 * m2;
+            var e2 = 2 * (h2 - q2);
+            var a0 = m2 * p1 + (h1 - q1);
+            var b0 = p1 * (h2 - q2) - p2 * (h1 - q1);
             var c0 = m2 - m1;
-            var d0 = m1*p2 + (h2 - q2);
-        
-            var z = m1*p1 + (h1 - q1);        
-            //subsitute u1 into 2 and solve for u2:    
+            var d0 = m1 * p2 + (h2 - q2);
+            var z = m1 * p1 + (h1 - q1);
         }
         else if (m1 === undefined && m2 === undefined) {
-            //1: (k1-p1)/(v1 -q1)) = (k2-p2)/(v2-q2)
-            //and
-            //2: (v1^2+c1)/(d1v1+e1) = (v2^2+c2)/(d2u2+e2)
-            //where
-            //cn = kn^2-pn^2-qn^2
-            //dn = 2
-            //en = -2qn
-            
             a1 = 1;
             b1 = 0;
-            c1 = k1*k1 - p1*p1 - q1*q1;
+            c1 = k1 * k1 - p1 * p1 - q1 * q1;
             d1 = 2;
-            e1 = -2*q1;
-            
+            e1 = -2 * q1;
             a2 = 1;
             b2 = 0;
-            c2 = k2*k2 - p2*p2 - q2*q2;
+            c2 = k2 * k2 - p2 * p2 - q2 * q2;
             d2 = 2;
-            e2 = -2*q2;
-            
-            //rearrange 1 to express v1 in terms of v2
-            //v1 = (a0v2+b0)/d0
-            //where
-            //a0 =k1-p1
-            //b0 = q1(k2-p2)-q1(k1-p1)
-            //d0= k2-p2
+            e2 = -2 * q2;
             a0 = k1 - p1;
-            b0 = q1*(k2 - p2) - q2*(k1 - p1);
+            b0 = q1 * (k2 - p2) - q2 * (k1 - p1);
             c0 = 0;
-            d0 = k2 - p2;        
-        
+            d0 = k2 - p2;
             z = a0;
-            //subsitute v1 into 2 and solve for v2:    
         }
         else {
             if (m1 === undefined) {
-                //swap the order of the points and lines
                 var p3 = p1;
                 p1 = p2;
                 p2 = p3;
                 var q3 = q1;
                 q1 = q2;
                 q2 = q3;
-                var m1 = m2;
+                m1 = m2;
                 m2 = undefined;
-                var h1 = h2;
+                h1 = h2;
                 h2 = undefined;
-                var k2 = k1;
-                k1 = undefined; 
+                k2 = k1;
+                k1 = undefined;
             }
-            
-            //1: (u1-p1)/(m1u1+(h1 -q1))  = (k2-p2)/(v2-q2)
-            //and
-            //2: (a1u1^2+b1u1+ c1)/(d1u1+e1) =  (v2^2+c2)/(d2u2+e2)
-            //where
-            //a1 = m1^2+1
-            //b1 = 2m1h1
-            //c1 = h1^2-p1^2-q1^2
-            //d1 = 2m1
-            //e1 = 2(h1-q1)
-            //c2 = k2^2-p2^2-q2^2
-            //d2 = 2
-            //e2 = -2q2
-            
-            a1 = m1*m1 + 1;
-            b1 = 2*m1*h1;
-            c1 = h1*h1 - p1*p1 - q1*q1;
-            d1 = 2*m1;
-            e1 = 2*(h1 - q1);
-            
+            a1 = m1 * m1 + 1;
+            b1 = 2 * m1 * h1;
+            c1 = h1 * h1 - p1 * p1 - q1 * q1;
+            d1 = 2 * m1;
+            e1 = 2 * (h1 - q1);
             a2 = 1;
             b2 = 0;
-            c2 = k2*k2 - p2*p2 - q2*q2;
+            c2 = k2 * k2 - p2 * p2 - q2 * q2;
             d2 = 2;
-            e2 = -2*q2;
-            
-            //rearrange 1 to express u1 in terms of v2
-            //u1 = (a0v2+b0)/(v2+d0)
-            //where
-            //a0 = p1
-            //b0 = (h1-q1)(k2-p2) - p1q1
-            //d0= -m1(k2-p2)-q2
+            e2 = -2 * q2;
             a0 = p1;
-            b0 = (h1 - q1)*(k2 - p2) - p1*q2;
+            b0 = (h1 - q1) * (k2 - p2) - p1 * q2;
             c0 = 1;
-            d0 = -m1*(k2 - p2) - q2;
-            
-            z = m1*p1 + (h1 - q1);
-            //subsitute u1 into 2 and solve for v2:    
-        }    
-            
-        //subsitute into 3:
-        //4: (a3x^2 + b3x + c3)/(d3x^2 + e3x + f3) = (a2x^2 + b2x + c2)/(d2x + e2)
-        //where
-        //a3 = a1a0^2+b1a0c0+c1c0^2
-        //b3 = 2a1a0b0+b1(a0d0+b0c0)+2c1c0d0
-        //c3 = a1b0^2+b1b0d0+c1d0^2
-        //d3 =c0(d1a0+e1c0) = d2c0z
-        //e3 = d0(d1a0+e1c0)+c0(d1b+e1d) = (d2d0+e2c0)z
-        //f3 = d0(d1b0+e1d0) = e2d0z
-        
-        var a3 = a1*a0*a0 + b1*a0*c0 + c1*c0*c0;
-        var b3 = 2*a1*a0*b0 + b1*(a0*d0 + b0*c0) + 2*c1*c0*d0;
-        var c3 = a1*b0*b0 + b1*b0*d0 + c1*d0*d0;
-        var d3 = d2*c0*z
-        var e3 = (d2*d0 + e2*c0)*z;
-        var f3 = e2*d0*z;
-        
-        //rearrange to gain the following quartic
-        //5: (d2x+e2)(a4x^3+b4x^2+c4x+d) = 0
-        //where
-        //a4 = a2c0z
-        //b4 = (a2d0+b2c0)z-a3
-        //c4 = (b2d0+c2c0)z-b3
-        //d4 = c2d0z-c3
-        
-        var a4 = a2*c0*z;
-        var b4 = (a2*d0 + b2*c0) * z - a3;
-        var c4 = (b2*d0 + c2*c0) * z - b3;
-        var d4 =  c2*d0*z - c3;
-        
-        //find the roots
-        var solution = getCubicSolution(a4,b4,c4,d4);
-
-        var roots = [];
-        for (var i = 0; i < solution.length; ++i) {    
-            if (solution[i].GetY() == 0 && roots.indexOf(solution[i].GetX()) == -1)
-                roots.push(solution[i].GetX())
+            d0 = -m1 * (k2 - p2) - q2;
+            z = m1 * p1 + (h1 - q1);
         }
-        
-        var lines = [];        
+        var a3 = a1 * a0 * a0 + b1 * a0 * c0 + c1 * c0 * c0;
+        var b3 = 2 * a1 * a0 * b0 + b1 * (a0 * d0 + b0 * c0) + 2 * c1 * c0 * d0;
+        var c3 = a1 * b0 * b0 + b1 * b0 * d0 + c1 * d0 * d0;
+        var d3 = d2 * c0 * z;
+        var e3 = (d2 * d0 + e2 * c0) * z;
+        var f3 = e2 * d0 * z;
+        var a4 = a2 * c0 * z;
+        var b4 = (a2 * d0 + b2 * c0) * z - a3;
+        var c4 = (b2 * d0 + c2 * c0) * z - b3;
+        var d4 = c2 * d0 * z - c3;
+        var solution = getCubicSolution(a4, b4, c4, d4);
+        var roots = [];
+        for (var i = 0; i < solution.length; ++i) {
+            if (solution[i].GetY() == 0 && roots.indexOf(solution[i].GetX()) == -1)
+                roots.push(solution[i].GetX());
+        }
+        var lines = [];
         if (roots != undefined && roots.length > 0) {
-            for (var i = 0; i <roots.length; ++i) {
+            for (var i = 0; i < roots.length; ++i) {
                 if (m1 !== undefined && m2 !== undefined) {
                     var u2 = roots[i];
-                    var v2 = m2*u2 + h2;
-                    //var u1 = (a0*u2 + b0)/(c0*u2 + d0);
-                    //var v1 = m1*u1 + h1;
+                    var v2 = m2 * u2 + h2;
                 }
                 else if (m1 === undefined && m2 === undefined) {
                     v2 = roots[i];
                     u2 = k2;
-                    //v1 = (a0*v2 + b0)/d0;
-                    //u1 = k1;
                 }
                 else {
                     v2 = roots[i];
                     u2 = k2;
-                    //u1 = (a0*v2 + b0)/(v2 + d0);
-                    //v1 =  m1*u1 + h1;
                 }
-                
-                //The midpoints may be the same point, so cannot be used to determine the crease 
-                //lines.push(this.axiom1(new XY((u1 + p1) / 2, (v1 + q1) / 2), new XY((u2 + p2) / 2, (v2 + q2) / 2)));
-                
                 if (v2 != q2) {
-                    //F(x) = mx + h = -((u-p)/(v-q))x +(v^2 -q^2 + u^2 - p^2)/2(v-q)
-                    var mF = -1*(u2 - p2)/(v2 - q2);
-                    var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
-                    
+                    var mF = -1 * (u2 - p2) / (v2 - q2);
+                    var hF = (v2 * v2 - q2 * q2 + u2 * u2 - p2 * p2) / (2 * (v2 - q2));
                     lines.push(this.axiom1(new XY(0, hF), new XY(1, mF + hF)));
                 }
                 else {
-                    //G(y) = k
-                    var kG = (u2 + p2)/2;
-                    
+                    var kG = (u2 + p2) / 2;
                     lines.push(this.axiom1(new XY(kG, 0), new XY(kG, 1)));
                 }
             }
         }
         return lines;
-    }
-    CreasePattern.prototype.axiom7 = function (point, ontoLine, perp) {        
+    };
+    CreasePattern.prototype.axiom7 = function (point, ontoLine, perp) {
         var newLine = new Line(point, new Edge(perp).vector());
         var intersection = newLine.intersection(new Edge(ontoLine).infiniteLine());
         if (intersection === undefined) {
@@ -3813,6 +3691,7 @@ var CreasePattern = (function (_super) {
         }
         return this.axiom2(point, intersection);
     };
+    ;
     CreasePattern.prototype.newCreaseBetweenNodes = function (a, b) {
         this.unclean = true;
         return this.newEdge(a, b);
@@ -3828,7 +3707,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.creaseSymmetry = function (ax, ay, bx, by) {
         if (this.symmetryLine === undefined) {
             return undefined;
-        }        
+        }
         var ra = new XY(ax, ay).reflect(this.symmetryLine);
         var rb = new XY(bx, by).reflect(this.symmetryLine);
         return this.newPlanarEdge(ra.x, ra.y, rb.x, rb.y);
@@ -3966,7 +3845,7 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.creaseThroughPoints = function (a, b, c, d) {
         var l = this.axiom1(a, b, c, d);
         if (l === undefined) {
-            return;
+            return undefined;
         }
         var newCrease = l.crease();
         return newCrease;
@@ -3974,20 +3853,20 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.creasePointToPoint = function (a, b, c, d) {
         var l = this.axiom2(a, b, c, d);
         if (l === undefined) {
-            return;
+            return undefined;
         }
         var newCrease = l.crease();
         return newCrease;
     };
     CreasePattern.prototype.creaseEdgeToEdge = function (one, two) {
         return this.axiom3(one, two)
-            .map(function (line) { return line.crease() }, this)
+            .map(function (line) { return line.crease(); }, this)
             .filter(function (edge) { return edge !== undefined; }, this);
     };
     CreasePattern.prototype.creasePerpendicularThroughPoint = function (line, point) {
         var l = this.axiom4(line, point);
         if (l === undefined) {
-            return;
+            return undefined;
         }
         var newCrease = l.crease();
         return newCrease;
@@ -4001,11 +3880,11 @@ var CreasePattern = (function (_super) {
         return this.axiom6(point1, point2, line1, line2)
             .map(function (line) { return line.crease(); }, this)
             .filter(function (edge) { return edge !== undefined; }, this);
-    }
+    };
     CreasePattern.prototype.creasePerpendicularPointOntoLine = function (point, ontoLine, perp) {
         var l = this.axiom7(point, ontoLine, perp);
         if (l === undefined) {
-            return;
+            return undefined;
         }
         var newCrease = l.crease();
         return newCrease;
