@@ -2,39 +2,40 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title></title>
 <style>
-html, body {
-	margin: 0;
-	overflow: hidden;
-	height: 100%;
-	text-align:center;
+html,body{
+	height:100%;
+	margin:0px;
+	display:flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
-canvas[resize] {
-	width: 90vmin;
-	height: 90vmin;
-}
-canvas{
-	width: 90vmin;
-	height: 90vmin;
+canvas[resize]{
+	width:100vw;
+	height:100vh;
+	margin:auto;
 }
 .dropdown{
-	margin-bottom: 15px;
+	position:absolute;
+	top:0px;
+	z-index: 2;
 }
 </style>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<!-- <script type="text/javascript" src="jquery-3.3.1.min.js"></script> -->
 <script type="text/javascript" src="../lib/d3.min.js"></script>
 <script type="text/javascript" src="../lib/paper-full.min.js"></script>
-<script type="text/javascript" src="../cp.js"></script>
+<script type="text/javascript`" src="../cp.js"></script>
 <script type="text/javascript" src="../cp.paperjs.js"></script>
 </head>
 <body>
 	<div class="dropdown">
 		<select id="file-select"></select>
 	</div>
-	<canvas id="canvas" resize"></canvas>
-<script>
+	<canvas id="canvas" resize></canvas>
 
+<script>
 // load a file in url bar using hash mark:
 //     _tests.html#axiom1
 // or  _tests.html#axiom1.js
@@ -46,7 +47,6 @@ if(window.location.hash != undefined && window.location.hash != ""){
 		loadOnBoot += ".js";
 	}
 }
-
 $.getScript(loadOnBoot, function(arg){});
 // all files
 var filenames = [
@@ -67,8 +67,8 @@ for(var i = 0; i < filenames.length; i++){
 $("#file-select").change(function(event){
 	var url = $("#file-select").val();
 	$.getScript(url, function(arg){});
+	//todo: trigger DOM screen size change handler
 });
-
 </script>
 
 </body>

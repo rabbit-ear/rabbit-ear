@@ -3,7 +3,6 @@ function showAndScrollResults(){
 	// dropZone.style.display = "none";
 	document.getElementById("result-container").style.display = "block";
 	window.dispatchEvent(new Event('resize'));
-	// $('html, body').scrollTo('#result-container');
 	document.getElementById('result-container').scrollIntoView({behavior: "smooth"});	
 }
 
@@ -13,14 +12,12 @@ function setJumbotron(success){
 	var messageSuccess = "crease pattern is flat-foldable";
 	var messageFail = "crease pattern contains non-flat-foldable nodes";
 	if(success){
-		$("#jumbo-container").removeClass("fail");
-		$("#jumbo-container").addClass("success");
+		document.getElementById("jumbo-container").className = "jumbotron success";
 		document.getElementById("jumbo-title").innerHTML = titleSuccess;
 		document.getElementById("jumbo-message").innerHTML = messageSuccess;
 	}
 	else{
-		$("#jumbo-container").removeClass("success");
-		$("#jumbo-container").addClass("fail");
+		document.getElementById("jumbo-container").className = "jumbotron fail";
 		document.getElementById("jumbo-title").innerHTML = titleFail;
 		document.getElementById("jumbo-message").innerHTML = messageFail;
 	}
@@ -28,25 +25,31 @@ function setJumbotron(success){
 
 //////////////////////////// epsilon settings
 document.getElementById("settings").addEventListener("click", function(e){
-	$("#settings-div").toggle();
+	var settingsDiv = document.getElementById("settings-div");
+	if(settingsDiv.style.display == "none"){ settingsDiv.style.display = "inline-block"; }
+	else { settingsDiv.style.display = "none"; }
 });
 document.getElementById("recalculate").addEventListener("click", function(e){
 	if(inputFile !== undefined){
 		fileDidLoad(inputFile);
 	} else{
-		$("#recalculate").addClass("disabled");
+		document.getElementById("recalculate").className = "btn btn-sm btn-secondary disabled";
 	}
 });
-$('#epsilon-radio label').click(function(e) {
-    // $(this).addClass('active').siblings().removeClass('active');
-    console.log($(this));
-    console.log(e.target.innerText);
-    valid_epsilon = parseFloat(e.target.innerText);
-    // TODO: insert whatever you want to do with $(this) here
-    console.log(e);
-});
+document.getElementById("epsilon-radio-1").onclick = function(e){ setEpsilon(1, 0.0000001); }
+document.getElementById("epsilon-radio-2").onclick = function(e){ setEpsilon(2, 0.00001); }
+document.getElementById("epsilon-radio-3").onclick = function(e){ setEpsilon(3, 0.001); }
+document.getElementById("epsilon-radio-4").onclick = function(e){ setEpsilon(4, 0.04); }
 
-
+function setEpsilon(n, newEpsilon){
+	for(var i = 1; i <= 4; i++){
+		document.getElementById("epsilon-radio-"+i).checked = false;
+		document.getElementById("epsilon-radio-"+i).className = "btn btn-outline-secondary";
+	}
+	document.getElementById("epsilon-radio-"+n).checked = true;
+	document.getElementById("epsilon-radio-"+n).className = "btn btn-outline-secondary active";
+	valid_epsilon = newEpsilon;
+}
 /////////////////////////////////////////////////////////////////////
 
 var project1 = new OrigamiPaper("canvas-1");
@@ -61,7 +64,7 @@ document.getElementById("result-container").style.display = "none";
 
 function setInputFile(svg){
 	inputFile = svg;
-	$("#recalculate").removeClass("disabled");
+	document.getElementById("recalculate").className = "btn btn-sm btn-secondary";
 }
 
 function updateFold(cp){
@@ -106,7 +109,7 @@ function fileDidLoad(file, mimeType){
 		project1.cp.clean();
 			var ffTestPassed = true;
 			for(var i = 0; i < project1.cp.junctions.length; i++){
-				console.log(project1.cp.junctions[i]);
+				// console.log(project1.cp.junctions[i]);
 				var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
 				if( !project1.cp.junctions[i].flatFoldable(0.01) ){
 					ffTestPassed = false;

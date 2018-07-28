@@ -1,6 +1,6 @@
 var axiom6 = new OrigamiPaper("canvas-axiom-6").setPadding(0.05);
 axiom6.circleStyle = {radius: 0.02, strokeWidth: 0.01, strokeColor:axiom6.styles.byrne.blue};
-axiom6.axiomStrokeColors = [axiom6.style.valley.strokeColor,  axiom6.styles.byrne.red,  axiom6.styles.byrne.yellow, axiom6.styles.byrne.blue ]
+axiom6.axiomStrokeColors = [axiom6.styles.byrne.red, axiom6.styles.byrne.yellow, axiom6.styles.byrne.blue];
 
 axiom6.redraw = function(){
 	this.cp.clear();
@@ -9,25 +9,19 @@ axiom6.redraw = function(){
 	var newCreases = this.cp.creasePointsToLines(this.touchPoints[4].position, this.touchPoints[5].position, a, b);
 	newCreases.forEach(function(el){ el.valley(); });
 	this.draw();
-	
-	for (var i = 0; i < newCreases.length; ++i) {
-		this.edges[ newCreases[i].index ].strokeColor = this.axiomStrokeColors[i];
-		
+	newCreases.forEach(function(crease,i){
+		this.edges[ crease.index ].strokeColor = this.axiomStrokeColors[i];
 		// algorithm helper visuals
-		for (var j = 0; j <= 1; ++j) {
-			var perp = new Line(this.touchPoints[j + 4].position, newCreases[i].vector().rotate90());
+		[0,1].map(function(j){
+			var perp = new Line(this.touchPoints[j + 4].position, crease.vector().rotate90());
 			var line = new Edge(this.touchPoints[2 * j].position, this.touchPoints[2 * j + 1].position);
-			var marker = perp.intersection(line);
-			if (marker != undefined)
-			{
-				var circle = new this.scope.Shape.Circle({
-					center: [marker.x, marker.y], radius: 0.02, strokeWidth:0.01,
-					strokeColor: this.axiomStrokeColors[i]
-				});
-				circle.strokeColor.alpha = 0.5;
-			}
-		}
-	}
+			return {point: perp.intersection(line), color: Object.assign({alpha:0.5},this.axiomStrokeColors[i])};
+		},this)
+		.filter(function(el){ return el.point != undefined; },this)
+		.forEach(function(el){
+			new this.scope.Shape.Circle({center:[el.point.x, el.point.y], radius: 0.02, strokeWidth:0.01, strokeColor: el.color});
+		},this);
+	},this);
 }
 axiom6.reset = function(){
 	[[0.0, 0.0],

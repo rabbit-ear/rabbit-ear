@@ -1,6 +1,6 @@
 var axiom3 = new OrigamiPaper("canvas-axiom-3").setPadding(0.05);
 axiom3.circleStyle = {radius: 0.02, strokeWidth: 0.01, strokeColor:axiom3.styles.byrne.blue};
-axiom3.style.valley.strokeColor = axiom3.styles.byrne.red;
+axiom3.axiomStrokeColors = [axiom3.styles.byrne.red, axiom3.styles.byrne.yellow];
 
 axiom3.redraw = function(){
 	this.cp.clear();
@@ -9,9 +9,9 @@ axiom3.redraw = function(){
 	var edges = this.cp.creaseEdgeToEdge(a, b);
 	edges.forEach(function(el){el.valley();});
 	this.draw();
-	if(edges.length >= 2){
-		this.edges[edges[1].index].strokeColor = this.styles.byrne.yellow;
-	}
+	edges.forEach(function(c, i){
+		this.edges[ c.index ].strokeColor = this.axiomStrokeColors[i];
+	},this);
 }
 axiom3.reset = function(){
 	[[0.0, 0.0],

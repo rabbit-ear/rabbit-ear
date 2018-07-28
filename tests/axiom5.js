@@ -1,64 +1,43 @@
-var circleStyle = { radius: 0.02, strokeWidth: 0.01, strokeColor: { hue:220, saturation:0.6, brightness:1 } };
+var axiom5 = new OrigamiPaper("canvas-axiom-5").setPadding(0.05);
+axiom5.circleStyle = {radius: 0.02, strokeWidth: 0.01, strokeColor:axiom5.styles.byrne.blue};
+axiom5.axiomStrokeColors = [axiom5.styles.byrne.red, axiom5.styles.byrne.yellow];
 
-var axiom5 = new OrigamiPaper("canvas-axiom-5");
-axiom5.setPadding(0.05);
-
-axiom5.selectedNode = undefined;
-axiom5.decorationLayer = new axiom5.scope.Layer();
-axiom5.decorationLayer.activate();
-axiom5.marks = [];
-for(var i = 0; i < 4; i++) axiom5.marks.push(new axiom5.scope.Shape.Circle(circleStyle));
-// axiom5.marks[0].position = [0.0, 0.0];
-// axiom5.marks[1].position = [1.0, 1.0];
-// axiom5.marks[2].position = [0.7071, 1.0-0.7071];
-// axiom5.marks[3].position = [1.0, 0.0];
-axiom5.marks[0].position = [0.0, 0.0];
-axiom5.marks[1].position = [1.0, 1.0];
-axiom5.marks[2].position = [1.0, 0.25];
-axiom5.marks[3].position = [0.5, 0.0];
+axiom5.redraw = function(){
+	this.cp.clear();
+	var edge = this.cp.creaseThroughPoints(this.touchPoints[0].position, this.touchPoints[1].position).mark();
+	var newCreases = this.cp.creasePointToLine(this.touchPoints[2].position, this.touchPoints[3].position, edge);
+	newCreases.forEach(function(el){ el.valley(); });
+	this.draw();
+	newCreases.forEach(function(c, i){
+		this.edges[ c.index ].strokeColor = this.axiomStrokeColors[i];
+	},this);
+	// algorithm helper visuals
+	var radius = Math.sqrt( Math.pow(this.touchPoints[3].position.x - this.touchPoints[2].position.x,2) + Math.pow(this.touchPoints[3].position.y - this.touchPoints[2].position.y,2));
+	var circle = new Circle(this.touchPoints[2].position, radius);
+	var line = new Edge(this.touchPoints[0].position, this.touchPoints[1].position);
+	var markers = circle.intersection(line);
+	markers.forEach(function(m,i){
+		var circle = new this.scope.Shape.Circle({
+			center: [m.x, m.y], radius: 0.02, strokeWidth:0.01,
+			strokeColor: this.axiomStrokeColors[i]
+		})
+		circle.strokeColor.alpha = 0.5;
+	},this);
+}
 
 axiom5.reset = function(){
-	axiom5.cp.clear();
-	var edge = axiom5.cp.creaseThroughPoints(axiom5.marks[0].position, axiom5.marks[1].position).mark();
-	var newCreases = axiom5.cp.creasePointToLine(axiom5.marks[2].position, axiom5.marks[3].position, edge);
-	newCreases.forEach(function(el){ el.valley(); });
-	axiom5.draw();
-	if(newCreases.length >= 2){
-		axiom5.edges[ newCreases[1].index ].strokeColor = { hue:20, saturation:0.6, brightness:1 };
-	}
-	// algorithm helper visuals
-	var radius = Math.sqrt( Math.pow(axiom5.marks[3].position.x - axiom5.marks[2].position.x,2) + Math.pow(axiom5.marks[3].position.y - axiom5.marks[2].position.y,2));
-	var circle = new Circle(axiom5.marks[2].position, radius);
-	var line = new Edge(axiom5.marks[0].position, axiom5.marks[1].position);
-	var markers = circle.intersection(line);
-	if(markers.length >= 2){
-		var circle1 = new axiom5.scope.Shape.Circle({
-			center: [markers[0].x, markers[0].y], radius: 0.02, strokeWidth:0.01,
-			strokeColor: axiom5.style.valley.strokeColor//{ hue:130, saturation:0.8, brightness:0.7 }
-		});
-		var circle2 = new axiom5.scope.Shape.Circle({
-			center: [markers[1].x, markers[1].y], radius: 0.02, strokeWidth:0.01,
-			strokeColor: { hue:20, saturation:0.6, brightness:1 }
-		});
-		circle1.strokeColor.alpha = 0.5;
-		circle2.strokeColor.alpha = 0.5;
-	}
-
+	[[0.0, 0.0],
+	 [1.0, 1.0],
+	 [1.0, 0.25],
+	 [0.5, 0.0]].forEach(function(point){ this.makeTouchPoint(point, this.circleStyle); },this);
+	this.redraw();
 }
 axiom5.reset();
 
 axiom5.onFrame = function(event) { }
 axiom5.onResize = function(event) { }
 axiom5.onMouseMove = function(event) {
-	if(axiom5.selectedNode != undefined){
-		axiom5.selectedNode.position = event.point;
-		axiom5.reset();		
-	}
+	if(this.mouse.isPressed){ this.redraw(); }
 }
-axiom5.onMouseDown = function(event){
-	for(var i = 0; i < axiom5.marks.length; i++){
-		if(pointsSimilar(event.point, axiom5.marks[i].position, 0.05)){ axiom5.selectedNode = axiom5.marks[i];return;}
-	}
-	axiom5.selectedNode = undefined;
-}
-axiom5.onMouseUp = function(event){ axiom5.selectedNode = undefined; }
+axiom5.onMouseDown = function(event){ }
+axiom5.onMouseUp = function(event){ }

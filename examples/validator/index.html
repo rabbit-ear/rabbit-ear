@@ -39,16 +39,16 @@
 			<div id="settings-div" style="padding:1em; display:none">
 				<!-- <p>(ε) epsilon</p> -->
 				<div id="epsilon-radio" class="btn-group" data-toggle="buttons">
-				  <label class="btn btn-outline-secondary">
+				  <label class="btn btn-outline-secondary" id="epsilon-radio-1">
 				    <input type="radio" name="options" id="option1" autocomplete="off" >0.0000001
 				  </label>
-				  <label class="btn btn-outline-secondary active">
+				  <label class="btn btn-outline-secondary active" id="epsilon-radio-2">
 				    <input type="radio" name="options" id="option2" autocomplete="off" checked>0.00001
 				  </label>
-				  <label class="btn btn-outline-secondary">
+				  <label class="btn btn-outline-secondary" id="epsilon-radio-3">
 				    <input type="radio" name="options" id="option3" autocomplete="off">0.001
 				  </label>
-				  <label class="btn btn-outline-secondary">
+				  <label class="btn btn-outline-secondary" id="epsilon-radio-4">
 				    <input type="radio" name="options" id="option3" autocomplete="off">0.04
 				  </label>
 				</div>
@@ -77,12 +77,6 @@
 			<canvas id="canvas-1" resize></canvas><canvas id="canvas-2" resize></canvas>
 		</div>
 	</div>
-
-<script type="text/javascript" src="../lib/bootstrap/js/tether.min.js"></script>
-<script type="text/javascript" src="jquery-3.3.1.min.js"></script>
-<script type="text/javascript" src="../lib/bootstrap/js/popper.min.js"></script>
-<script type="text/javascript" src="../lib/bootstrap/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="../lib/bootstrap/js/ie10-viewport-bug-workaround.js"></script>
 
 <script type="text/javascript" src="../tools/drag-and-drop.js"></script>
 <script type="text/javascript" src="../tools/file-upload-button.js"></script>
