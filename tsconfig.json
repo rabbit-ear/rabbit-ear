@@ -12,6 +12,7 @@
 		"src/creasePattern.ts",
 		"src/planarGraph.ts",
 		"src/graph.ts",
+		"src/polynomial.ts",
 		"src/geometry.ts"
 	]
 }

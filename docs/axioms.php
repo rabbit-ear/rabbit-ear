@@ -64,9 +64,11 @@
 	<div class="explain">
 		<p>Given two points and two lines we can make a fold that places the first point onto the first line and the second point onto the second line</p>
 	</div>
-	<div class="centered"><p style="padding-top:6em;padding-bottom:6em;">oof. this one is hard</p></div>
 	<div class="centered">
-		<pre><code>cp.<f>creaseConnectingPoints</f>(point1, point2)</code></pre>
+		<canvas id="canvas-axiom-6" resize></canvas>
+	</div>
+	<div class="centered">
+		<pre><code>cp.<f>creasePointsToLines</f>(point1, point2, edge1, edge2)</code></pre>
 	</div>
 
 <h2>Axiom 7</h2>
@@ -87,6 +89,7 @@
 <script type="text/javascript" src="../tests/axiom3.js"></script>
 <script type="text/javascript" src="../tests/axiom4.js"></script>
 <script type="text/javascript" src="../tests/axiom5.js"></script>
+<script type="text/javascript" src="../tests/axiom6.js"></script>
 <script type="text/javascript" src="../tests/axiom7.js"></script>
 
 <?php include 'footer.php';?>

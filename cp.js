@@ -182,7 +182,7 @@ var Matrix = (function () {
         this.tx = (tx !== undefined) ? tx : 0;
         this.ty = (ty !== undefined) ? ty : 0;
     }
-    Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; return this;};
+    Matrix.prototype.identity = function () { this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.tx = 0; this.ty = 0; return this; };
     Matrix.prototype.mult = function (mat) {
         var r = new Matrix();
         r.a = this.a * mat.a + this.c * mat.b;
@@ -642,8 +642,9 @@ var Polyline = (function () {
         var REFLECT_LIMIT = 666;
         var clips = [];
         var firstClips = ray.clipWithEdgesDetails(intersectable);
-        if (firstClips.length == 0)
+        if (firstClips.length == 0) {
             return this;
+        }
         if (target !== undefined &&
             epsilonEqual(ray.direction.cross(target.subtract(ray.origin)), 0, EPSILON_HIGH)) {
             if (firstClips.length === 0 ||
@@ -3529,6 +3530,148 @@ var CreasePattern = (function (_super) {
     CreasePattern.prototype.line = function (a, b, c, d) { return new CPLine(this, gimme1Line(a, b, c, d)); };
     CreasePattern.prototype.ray = function (a, b, c, d) { return new CPRay(this, gimme1Ray(a, b, c, d)); };
     CreasePattern.prototype.edge = function (a, b, c, d) { return new CPEdge(this, gimme1Edge(a, b, c, d)); };
+    CreasePattern.prototype.axiom1 = function (a, b, c, d) {
+        var points = gimme2XY(a, b, c, d);
+        if (points === undefined) {
+            return undefined;
+        }
+        return new CPLine(this, new Line(points[0], points[1].subtract(points[0])));
+    };
+    CreasePattern.prototype.axiom2 = function (a, b, c, d) {
+        var points = gimme2XY(a, b, c, d);
+        return new CPLine(this, new Line(points[1].midpoint(points[0]), points[1].subtract(points[0]).rotate90()));
+    };
+    CreasePattern.prototype.axiom3 = function (one, two) {
+        return new Edge(one).infiniteLine().bisect(new Edge(two).infiniteLine())
+            .map(function (line) { return new CPLine(this, line); }, this);
+    };
+    CreasePattern.prototype.axiom4 = function (line, point) { return new CPLine(this, new Line(point, new Edge(line).vector().rotate90())); };
+    CreasePattern.prototype.axiom5 = function (origin, point, line) {
+        var radius = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
+        var intersections = new Circle(origin, radius).intersection(new Edge(line).infiniteLine());
+        var lines = [];
+        for (var i = 0; i < intersections.length; i++) {
+            lines.push(this.axiom2(point, intersections[i]));
+        }
+        return lines;
+    };
+    CreasePattern.prototype.axiom6 = function (point1, point2, line1, line2) {
+        var p1 = point1.x;
+        var q1 = point1.y;
+        if (line1.nodes[1].x - line1.nodes[0].x != 0) {
+            var m1 = (line1.nodes[1].y - line1.nodes[0].y) / ((line1.nodes[1].x - line1.nodes[0].x));
+            var h1 = line1.nodes[0].y - m1 * line1.nodes[0].x;
+        }
+        else {
+            var k1 = line1.nodes[0].x;
+        }
+        var p2 = point2.x;
+        var q2 = point2.y;
+        if (line2.nodes[1].x - line2.nodes[0].x != 0) {
+            var m2 = (line2.nodes[1].y - line2.nodes[0].y) / (line2.nodes[1].x - line2.nodes[0].x);
+            var h2 = line2.nodes[0].y - m2 * line2.nodes[0].x;
+        }
+        else {
+            var k2 = line2.nodes[0].x;
+        }
+        if (m1 !== undefined && m2 !== undefined) {
+            var a1 = m1 * m1 + 1;
+            var b1 = 2 * m1 * h1;
+            var c1 = h1 * h1 - p1 * p1 - q1 * q1;
+            var a2 = m2 * m2 + 1;
+            var b2 = 2 * m2 * h2;
+            var c2 = h2 * h2 - p2 * p2 - q2 * q2;
+            var a0 = m2 * p1 + (h1 - q1);
+            var b0 = p1 * (h2 - q2) - p2 * (h1 - q1);
+            var c0 = m2 - m1;
+            var d0 = m1 * p2 + (h2 - q2);
+            var z = m1 * p1 + (h1 - q1);
+        }
+        else if (m1 === undefined && m2 === undefined) {
+            a1 = 1;
+            b1 = 0;
+            c1 = k1 * k1 - p1 * p1 - q1 * q1;
+            a2 = 1;
+            b2 = 0;
+            c2 = k2 * k2 - p2 * p2 - q2 * q2;
+            a0 = k1 - p1;
+            b0 = q1 * (k2 - p2) - q2 * (k1 - p1);
+            c0 = 0;
+            d0 = k2 - p2;
+            z = a0;
+        }
+        else {
+            if (m1 === undefined) {
+                var p3 = p1;
+                p1 = p2;
+                p2 = p3;
+                var q3 = q1;
+                q1 = q2;
+                q2 = q3;
+                m1 = m2;
+                m2 = undefined;
+                h1 = h2;
+                h2 = undefined;
+                k2 = k1;
+                k1 = undefined;
+            }
+            a1 = m1 * m1 + 1;
+            b1 = 2 * m1 * h1;
+            c1 = h1 * h1 - p1 * p1 - q1 * q1;
+            a2 = 1;
+            b2 = 0;
+            c2 = k2 * k2 - p2 * p2 - q2 * q2;
+            a0 = p1;
+            b0 = (h1 - q1) * (k2 - p2) - p1 * q2;
+            c0 = 1;
+            d0 = -m1 * (k2 - p2) - q2;
+            z = m1 * p1 + (h1 - q1);
+        }
+        var a3 = a1 * a0 * a0 + b1 * a0 * c0 + c1 * c0 * c0;
+        var b3 = 2 * a1 * a0 * b0 + b1 * (a0 * d0 + b0 * c0) + 2 * c1 * c0 * d0;
+        var c3 = a1 * b0 * b0 + b1 * b0 * d0 + c1 * d0 * d0;
+        var a4 = a2 * c0 * z;
+        var b4 = (a2 * d0 + b2 * c0) * z - a3;
+        var c4 = (b2 * d0 + c2 * c0) * z - b3;
+        var d4 = c2 * d0 * z - c3;
+        var roots = new CubicEquation(a4, b4, c4, d4).realRoots();
+        var lines = [];
+        if (roots != undefined && roots.length > 0) {
+            for (var i = 0; i < roots.length; ++i) {
+                if (m1 !== undefined && m2 !== undefined) {
+                    var u2 = roots[i];
+                    var v2 = m2 * u2 + h2;
+                }
+                else if (m1 === undefined && m2 === undefined) {
+                    v2 = roots[i];
+                    u2 = k2;
+                }
+                else {
+                    v2 = roots[i];
+                    u2 = k2;
+                }
+                if (v2 != q2) {
+                    var mF = -1 * (u2 - p2) / (v2 - q2);
+                    var hF = (v2 * v2 - q2 * q2 + u2 * u2 - p2 * p2) / (2 * (v2 - q2));
+                    lines.push(this.axiom1(new XY(0, hF), new XY(1, mF + hF)));
+                }
+                else {
+                    var kG = (u2 + p2) / 2;
+                    lines.push(this.axiom1(new XY(kG, 0), new XY(kG, 1)));
+                }
+            }
+        }
+        return lines;
+    };
+    CreasePattern.prototype.axiom7 = function (point, ontoLine, perp) {
+        var newLine = new Line(point, new Edge(perp).vector());
+        var intersection = newLine.intersection(new Edge(ontoLine).infiniteLine());
+        if (intersection === undefined) {
+            return undefined;
+        }
+        return this.axiom2(point, intersection);
+    };
+    ;
     CreasePattern.prototype.newCreaseBetweenNodes = function (a, b) {
         this.unclean = true;
         return this.newEdge(a, b);
@@ -3680,67 +3823,51 @@ var CreasePattern = (function (_super) {
             .filter(function (el) { return el != undefined; });
     };
     CreasePattern.prototype.creaseThroughPoints = function (a, b, c, d) {
-        var inputEdge = gimme1Edge(a, b, c, d);
-        if (inputEdge === undefined) {
-            return;
+        var l = this.axiom1(a, b, c, d);
+        if (l === undefined) {
+            return undefined;
         }
-        var edge = this.boundary.clipLine(inputEdge.infiniteLine());
-        if (edge === undefined) {
-            return;
-        }
-        var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+        var newCrease = l.crease();
         return newCrease;
     };
     CreasePattern.prototype.creasePointToPoint = function (a, b, c, d) {
-        var e = gimme1Edge(a, b, c, d);
-        if (e === undefined) {
-            return;
+        var l = this.axiom2(a, b, c, d);
+        if (l === undefined) {
+            return undefined;
         }
-        var edge = this.boundary.clipLine(e.perpendicularBisector());
-        if (edge === undefined) {
-            return;
-        }
-        var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+        var newCrease = l.crease();
         return newCrease;
     };
     CreasePattern.prototype.creaseEdgeToEdge = function (one, two) {
-        var a = gimme1Edge(one).infiniteLine();
-        var b = gimme1Edge(two).infiniteLine();
-        return a.bisect(b)
-            .map(function (line) { return this.boundary.clipLine(line); }, this)
-            .filter(function (edge) { return edge !== undefined; }, this)
-            .map(function (edge) {
-            return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
-        }, this);
+        return this.axiom3(one, two)
+            .map(function (line) { return line.crease(); }, this)
+            .filter(function (edge) { return edge !== undefined; }, this);
     };
     CreasePattern.prototype.creasePerpendicularThroughPoint = function (line, point) {
-        var edge = this.boundary.clipLine(new Line(point, line.vector().rotate90()));
-        if (edge === undefined) {
-            return;
+        var l = this.axiom4(line, point);
+        if (l === undefined) {
+            return undefined;
         }
-        var newCrease = this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+        var newCrease = l.crease();
         return newCrease;
     };
     CreasePattern.prototype.creasePointToLine = function (origin, point, line) {
-        var radius = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
-        var intersections = new Circle(origin.x, origin.y, radius).intersection(new Edge(line));
-        var creases = [];
-        for (var i = 0; i < intersections.length; i++) {
-            creases.push(this.creasePointToPoint(point, intersections[i]));
-        }
-        return creases;
+        return this.axiom5(origin, point, line)
+            .map(function (line) { return line.crease(); }, this)
+            .filter(function (edge) { return edge !== undefined; }, this);
+    };
+    CreasePattern.prototype.creasePointsToLines = function (point1, point2, line1, line2) {
+        return this.axiom6(point1, point2, line1, line2)
+            .map(function (line) { return line.crease(); }, this)
+            .filter(function (edge) { return edge !== undefined; }, this);
     };
     CreasePattern.prototype.creasePerpendicularPointOntoLine = function (point, ontoLine, perp) {
-        var newLine = new Line(point, new XY(perp.nodes[1].x - perp.nodes[0].x, perp.nodes[1].y - perp.nodes[0].y));
-        var intersection = newLine.intersection(ontoLine.infiniteLine());
-        if (intersection === undefined) {
-            return;
+        var l = this.axiom7(point, ontoLine, perp);
+        if (l === undefined) {
+            return undefined;
         }
-        var edge = this.boundary.clipLine(new Edge(point, intersection).perpendicularBisector());
-        if (edge === undefined) {
-            return;
-        }
-        return this.newCrease(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y);
+        var newCrease = l.crease();
+        return newCrease;
     };
     CreasePattern.prototype.pleat = function (count, one, two) {
         var a = new Edge(one.nodes[0].x, one.nodes[0].y, one.nodes[1].x, one.nodes[1].y);
@@ -4249,6 +4376,196 @@ var CreasePattern = (function (_super) {
     };
     return CreasePattern;
 }(PlanarGraph));
+var ComplexNumber = (function () {
+    function ComplexNumber(a, b) {
+        if (a instanceof ComplexNumber) {
+            this.x = a.x;
+            this.y = a.y;
+            this.r = a.r;
+            this.phi = a.phi;
+        }
+        else {
+            this.x = isValidNumber(a) && Math.abs(a) > ComplexNumber.TOLERANCE ? a : 0;
+            this.y = isValidNumber(b) && Math.abs(b) > ComplexNumber.TOLERANCE ? b : 0;
+            this.r = Math.sqrt(this.x * this.x + this.y * this.y);
+            if (this.r == 0)
+                this.phi = 0;
+            else if (this.y >= 0)
+                this.phi = Math.acos(this.x / this.r);
+            else if (this.y < 0)
+                this.phi = Math.acos(-1 * this.x / this.r) + Math.PI;
+        }
+    }
+    ComplexNumber.prototype.fromRandPhi = function (r, phi) {
+        var c = new ComplexNumber();
+        c.r = r;
+        c.phi = phi;
+        c.x = r * Math.cos(phi);
+        c.y = r * Math.sin(phi);
+        if (Math.abs(c.x) < ComplexNumber.TOLERANCE)
+            c.x = 0;
+        if (Math.abs(c.y) < ComplexNumber.TOLERANCE)
+            c.y = 0;
+        return c;
+    };
+    ComplexNumber.prototype.add = function (a, b) {
+        var that = new ComplexNumber(a, b);
+        return new ComplexNumber(this.x + that.x, this.y + that.y);
+    };
+    ComplexNumber.prototype.subtract = function (a, b) {
+        var that = new ComplexNumber(a, b);
+        return new ComplexNumber(this.x - that.x, this.y - that.y);
+    };
+    ComplexNumber.prototype.multiply = function (a, b) {
+        var that = new ComplexNumber(a, b);
+        return new ComplexNumber(this.x * that.x - this.y * that.y, this.y * that.x + this.x * that.y);
+    };
+    ComplexNumber.prototype.divide = function (a, b) {
+        var that = new ComplexNumber(a, b);
+        var r = that.x * that.x + that.y * that.y;
+        return new ComplexNumber((this.x * that.x + this.y * that.y) / r, (this.y * that.x - this.x * that.y) / r);
+    };
+    ComplexNumber.prototype.sqrt = function (rank) {
+        if (!isValidNumber(rank))
+            rank = 0;
+        if (this.r == 0)
+            return new ComplexNumber();
+        return new ComplexNumber().fromRandPhi(Math.sqrt(this.r), (this.phi + 2 * Math.PI * rank) / 2);
+    };
+    ComplexNumber.prototype.cubrt = function (rank) {
+        if (!isValidNumber(rank))
+            rank = 0;
+        if (this.r == 0)
+            return new ComplexNumber();
+        return new ComplexNumber().fromRandPhi(Math.pow(this.r, 1 / 3), (this.phi + 2 * Math.PI * rank) / 3);
+    };
+    ComplexNumber.prototype.square = function () { return this.multiply(this); };
+    ComplexNumber.prototype.cube = function () { return this.square().multiply(this); };
+    ComplexNumber.prototype.equals = function (a, b) {
+        var that = new ComplexNumber(a, b);
+        return this.x == that.x && this.y == that.y;
+    };
+    ComplexNumber.prototype.isZero = function () { return this.x == 0 && this.y == 0; };
+    ComplexNumber.prototype.isReal = function () { return this.y == 0; };
+    ComplexNumber.prototype.isImaginary = function () { return this.x == 0 && this.y != 0; };
+    ComplexNumber.TOLERANCE = 1.E-10;
+    return ComplexNumber;
+}());
+var Polynomial = (function () {
+    function Polynomial() {
+    }
+    Polynomial.prototype.realRoots = function () {
+        return this.roots()
+            .filter(function (root) { return root.y == 0; })
+            .map(function (root) { return root.x; });
+    };
+    return Polynomial;
+}());
+var LinearEquation = (function (_super) {
+    __extends(LinearEquation, _super);
+    function LinearEquation(a, b) {
+        var _this = _super.call(this) || this;
+        _this.a = a instanceof ComplexNumber ? a : new ComplexNumber(a);
+        _this.b = b instanceof ComplexNumber ? b : new ComplexNumber(b);
+        return _this;
+    }
+    LinearEquation.prototype.order = function () { return 1; };
+    LinearEquation.prototype.parameters = function () { return [this.a, this.b]; };
+    LinearEquation.prototype.roots = function () {
+        if (!this.a.isZero()) {
+            return [this.b.multiply(-1).divide(this.a)];
+        }
+        return [];
+    };
+    return LinearEquation;
+}(Polynomial));
+var QuadraticEquation = (function (_super) {
+    __extends(QuadraticEquation, _super);
+    function QuadraticEquation(a, b, c) {
+        var _this = _super.call(this) || this;
+        _this.a = a instanceof ComplexNumber ? a : new ComplexNumber(a);
+        _this.b = b instanceof ComplexNumber ? b : new ComplexNumber(b);
+        _this.c = c instanceof ComplexNumber ? c : new ComplexNumber(c);
+        return _this;
+    }
+    QuadraticEquation.prototype.order = function () { return 2; };
+    QuadraticEquation.prototype.parameters = function () { return [this.a, this.b, this.c]; };
+    QuadraticEquation.prototype.roots = function () {
+        if (!this.a.isZero()) {
+            var bOver2A = this.b.divide(this.a.multiply(2));
+            var cOverA = this.c.divide(this.a);
+            var delta = bOver2A.square().subtract(cOverA);
+            var root1 = delta.sqrt().subtract(bOver2A);
+            var root2 = delta.sqrt(1).subtract(bOver2A);
+            var roots = [root1];
+            if (!root1.equals(root2))
+                roots.push(root2);
+            return roots;
+        }
+        else
+            return new LinearEquation(this.b, this.c).roots();
+    };
+    return QuadraticEquation;
+}(Polynomial));
+var DepressedCubicEquation = (function (_super) {
+    __extends(DepressedCubicEquation, _super);
+    function DepressedCubicEquation(m, n) {
+        var _this = _super.call(this) || this;
+        _this.m = m instanceof ComplexNumber ? m : new ComplexNumber(m);
+        _this.n = n instanceof ComplexNumber ? n : new ComplexNumber(n);
+        return _this;
+    }
+    DepressedCubicEquation.prototype.order = function () { return 3; };
+    DepressedCubicEquation.prototype.parameters = function () { return [new ComplexNumber(1), new ComplexNumber(), this.m, this.n]; };
+    DepressedCubicEquation.prototype.roots = function () {
+        var t1 = this.m.divide(3).cube();
+        var t2 = this.n.divide(2).square().add(t1);
+        var delta = t2.sqrt().subtract(this.n.divide(2));
+        if (delta.isZero())
+            delta = t2.sqrt(1).subtract(this.n.divide(2));
+        var delta0 = delta.cubrt();
+        var root1 = delta0.subtract(this.m.divide(delta0.multiply(3)));
+        var delta1 = delta.cubrt(1);
+        var root2 = delta1.subtract(this.m.divide(delta1.multiply(3)));
+        var delta2 = delta.cubrt(2);
+        var root3 = delta2.subtract(this.m.divide(delta2.multiply(3)));
+        var roots = [root1];
+        if (!root1.equals(root2))
+            roots.push(root2);
+        if (!root1.equals(root3) && !root2.equals(root3))
+            roots.push(root3);
+        return roots;
+    };
+    return DepressedCubicEquation;
+}(Polynomial));
+var CubicEquation = (function (_super) {
+    __extends(CubicEquation, _super);
+    function CubicEquation(a, b, c, d) {
+        var _this = _super.call(this) || this;
+        _this.a = a instanceof ComplexNumber ? a : new ComplexNumber(a);
+        _this.b = b instanceof ComplexNumber ? b : new ComplexNumber(b);
+        _this.c = c instanceof ComplexNumber ? c : new ComplexNumber(c);
+        _this.d = d instanceof ComplexNumber ? d : new ComplexNumber(d);
+        console.log(new QuadraticEquation(1, 3, 2).roots());
+        return _this;
+    }
+    CubicEquation.prototype.order = function () { return 3; };
+    CubicEquation.prototype.parameters = function () { return [this.a, this.b, this.c, this.d]; };
+    CubicEquation.prototype.roots = function () {
+        if (!this.a.isZero()) {
+            var b1 = this.b.divide(this.a);
+            var c1 = this.c.divide(this.a);
+            var d1 = this.d.divide(this.a);
+            var m = c1.subtract(b1.square().divide(3));
+            var n = d1.subtract(b1.multiply(c1).divide(3)).add(b1.cube().multiply(2 / 27));
+            return new DepressedCubicEquation(m, n).roots()
+                .map(function (root) { return root.subtract(b1.divide(3)); });
+        }
+        else
+            return new QuadraticEquation(this.b, this.c, this.d).roots();
+    };
+    return CubicEquation;
+}(Polynomial));
 !function (t) { if ("object" == typeof exports && "undefined" != typeof module)
     module.exports = t();
 else if ("function" == typeof define && define.amd)
