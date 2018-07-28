@@ -517,7 +517,7 @@ class CreasePattern extends PlanarGraph{
 		var radius:number = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
 		var intersections:XY[] = new Circle(origin, radius).intersection(new Edge(line).infiniteLine());
 		var lines:CPLine[] = [];
-		for(var i:int = 0; i < intersections.length; i++){ lines.push(this.axiom2(point, intersections[i])); }
+		for(var i:number = 0; i < intersections.length; i++){ lines.push(this.axiom2(point, intersections[i])); }
 		return lines;
 	}
 	axiom6(point1:XY, point2:XY, line1:Crease, line2:Crease):CPLine[]{
@@ -569,14 +569,14 @@ class CreasePattern extends PlanarGraph{
 			var a1:number = m1*m1 + 1;
 			var b1:number = 2*m1*h1;
 			var c1:number = h1*h1 - p1*p1 - q1*q1;
-			var d1:number = 2*m1;
-			var e1:number = 2*(h1 - q1);
+			//var d1:number = 2*m1;
+			//var e1:number = 2*(h1 - q1);
 
 			var a2:number = m2*m2 + 1;
 			var b2:number = 2*m2*h2;
 			var c2:number =  h2*h2 - p2*p2 - q2*q2;
-			var d2:number = 2*m2;
-			var e2:number = 2*(h2 - q2);
+			//var d2:number = 2*m2;
+			//var e2:number = 2*(h2 - q2);
 
 			//rearrange 1 to express u1 in terms of u2
 			//u1 = (a0u2+b0)/(c0u2+d0)
@@ -605,14 +605,14 @@ class CreasePattern extends PlanarGraph{
 			a1 = 1;
 			b1 = 0;
 			c1 = k1*k1 - p1*p1 - q1*q1;
-			d1 = 2;
-			e1 = -2*q1;
+			//d1 = 2;
+			//e1 = -2*q1;
 
 			a2 = 1;
 			b2 = 0;
 			c2 = k2*k2 - p2*p2 - q2*q2;
-			d2 = 2;
-			e2 = -2*q2;
+			//d2 = 2;
+			//e2 = -2*q2;
 
 			//rearrange 1 to express v1 in terms of v2
 			//v1 = (a0v2+b0)/d0
@@ -661,14 +661,14 @@ class CreasePattern extends PlanarGraph{
 			a1 = m1*m1 + 1;
 			b1 = 2*m1*h1;
 			c1 = h1*h1 - p1*p1 - q1*q1;
-			d1 = 2*m1;
-			e1 = 2*(h1 - q1);
+			//d1 = 2*m1;
+			//e1 = 2*(h1 - q1);
 
 			a2 = 1;
 			b2 = 0;
 			c2 = k2*k2 - p2*p2 - q2*q2;
-			d2 = 2;
-			e2 = -2*q2;
+			//d2 = 2;
+			//e2 = -2*q2;
 
 			//rearrange 1 to express u1 in terms of v2
 			//u1 = (a0v2+b0)/(v2+d0)
@@ -698,9 +698,9 @@ class CreasePattern extends PlanarGraph{
 		var a3:number = a1*a0*a0 + b1*a0*c0 + c1*c0*c0;
 		var b3:number = 2*a1*a0*b0 + b1*(a0*d0 + b0*c0) + 2*c1*c0*d0;
 		var c3:number = a1*b0*b0 + b1*b0*d0 + c1*d0*d0;
-		var d3:number = d2*c0*z
-		var e3:number = (d2*d0 + e2*c0)*z;
-		var f3:number = e2*d0*z;
+		//var d3:number = d2*c0*z
+		//var e3:number = (d2*d0 + e2*c0)*z;
+		//var f3:number = e2*d0*z;
 
 		//rearrange to gain the following quartic
 		//5: (d2x+e2)(a4x^3+b4x^2+c4x+d) = 0
@@ -716,17 +716,11 @@ class CreasePattern extends PlanarGraph{
 		var d4:number =  c2*d0*z - c3;
 
 		//find the roots
-		var solution = getCubicSolution(a4,b4,c4,d4);
-
-		var roots:number[] = [];
-		for (var i:int = 0; i < solution.length; ++i) {
-			if (solution[i].GetY() == 0 && roots.indexOf(solution[i].GetX()) == -1)
-				roots.push(solution[i].GetX())
-		}
+		var roots:number[] = new CubicEquation(a4,b4,c4,d4).realRoots();
 
 		var lines:CPLine[] = [];
 		if (roots != undefined && roots.length > 0) {
-			for (var i:int = 0; i < roots.length; ++i) {
+			for (var i:number = 0; i < roots.length; ++i) {
 				if (m1 !== undefined && m2 !== undefined) {
 					var u2:number = roots[i];
 					var v2:number = m2*u2 + h2;

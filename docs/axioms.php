@@ -84,7 +84,6 @@
 
 </section>
 
-<script src="../lib/cubicSolver.js"></script>
 <script type="text/javascript" src="../tests/axiom1.js"></script>
 <script type="text/javascript" src="../tests/axiom2.js"></script>
 <script type="text/javascript" src="../tests/axiom3.js"></script>
