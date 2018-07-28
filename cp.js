@@ -4546,7 +4546,6 @@ var CubicEquation = (function (_super) {
         _this.b = b instanceof ComplexNumber ? b : new ComplexNumber(b);
         _this.c = c instanceof ComplexNumber ? c : new ComplexNumber(c);
         _this.d = d instanceof ComplexNumber ? d : new ComplexNumber(d);
-        console.log(new QuadraticEquation(1, 3, 2).roots());
         return _this;
     }
     CubicEquation.prototype.order = function () { return 3; };
