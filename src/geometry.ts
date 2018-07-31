@@ -709,6 +709,12 @@ class Triangle{
 			return clockwiseInteriorAngle(nextP.subtract(p), prevP.subtract(p));
 		},this);
 	}
+	incenter():XY{
+		var sides = this.edges.map(function(e){return e.length();},this);
+		sides.push(sides.shift());
+		var perimeter = sides.reduce(function(prev,curr){return prev+curr;},0);
+		return sides.reduce(function(prev,curr,i){ return prev.add(this.points[i].scale(curr)); }.bind(this),new XY(0,0)).scale(1/perimeter);
+	}
 	isAcute():boolean{
 		var a = this.angles();
 		for(var i = 0; i < a.length; i++){if(a[i] > Math.PI*0.5){return false;}}

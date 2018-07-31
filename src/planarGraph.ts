@@ -385,6 +385,9 @@ class PlanarJunction{
 			.map(function(node){return new XY(node.x,node.y).subtract(this.origin);})
 			.map(function(vec){return Math.atan2(vec.y, vec.x);},this);
 	}
+	edgeVectors():XY[]{
+		return this.edges.map(function(el){return el.vector(this.origin);},this);
+	}
 	edgeVectorsNormalized():XY[]{
 		return this.edges.map(function(el){return el.vector(this.origin).normalize();},this);
 	}
