@@ -3103,7 +3103,7 @@ function gimme1Line(a, b, c, d) {
     if (isValidNumber(d)) {
         return new Line(a, b, c, d);
     }
-    if (a.nodes instanceof Array &&
+    if (a instanceof Edge && a.nodes instanceof Array &&
         a.nodes.length > 0 &&
         isValidPoint(a.nodes[1])) {
         return new Line(a.nodes[0].x, a.nodes[0].y, a.nodes[1].x, a.nodes[1].y);

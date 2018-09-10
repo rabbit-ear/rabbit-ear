@@ -2,7 +2,7 @@ html, body {
 	background-color: hsl(205, 74%, 30%);
 	font-family: 'Montserrat';
 }
-h2, h3{
+h1, h2, h3{
 	color: white;
 	padding:.25em 1em;
 	font-size: 1.666em;
@@ -11,6 +11,11 @@ h2, h3{
 	margin: 2.5rem 5rem;
 	display:inline-block;
 	/*background-color: hsl(14.4, 87%, 45%);*/
+}
+h1{
+	font-size: 1.866em;
+	background-color: hsl(43, 88%, 46%);
+	margin: -2rem 5rem 2rem 2rem;
 }
 h3 a, h3 a:hover, h3 a:visited, h3 a:active{
 	color:white;

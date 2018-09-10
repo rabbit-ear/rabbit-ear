@@ -11,8 +11,8 @@
 <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 <link href="https://fonts.googleapis.com/css?family=Montserrat:600" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="../docs/css/code.css">
-<link rel="stylesheet" type="text/css" href="css/byrne.css">
-<link rel="stylesheet" type="text/css" href="css/page.css">
+<link rel="stylesheet" type="text/css" href="css/byrne.css?version=0.1">
+<link rel="stylesheet" type="text/css" href="css/page.css?version=0.1">
 
 <h2>1. paper &nbsp;2. crease &nbsp;3. fold</h2>
 

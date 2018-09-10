@@ -40,15 +40,19 @@ function gimme1Ray(a:any, b?:any, c?:any, d?:any):Ray{
 	if(isValidPoint(b) ){ return new Ray(a,b); }
 	if(isValidNumber(d)){ return new Ray(new XY(a,b), new XY(c,d)); }
 }
-function gimme1Line(a:any, b?:any, c?:any, d?:any):Line{
+function gimme1Line(a:Line):Line;
+function gimme1Line(a:Edge):Line;
+function gimme1Line(a:XY, b:XY):Line;
+function gimme1Line(a:number, b:number, c:number, d:number):Line;
+function gimme1Line(a:Line|Edge|XY|number, b?:XY|number, c?:number, d?:number):Line{
 	// input is 1 line
 	if(a instanceof Line){ return a; }
 	// input is 2 XY
-	if(isValidPoint(b) ){ return new Line(a,b); }
+	if(isValidPoint(<any>b)){ return new Line(a,b); }
 	// input is 4 numbers
 	if(isValidNumber(d)){ return new Line(a,b,c,d); }
 	// input is 1 line-like object with points in a nodes[] array
-	if(a.nodes instanceof Array &&
+	if(a instanceof Edge && a.nodes instanceof Array &&
 	        a.nodes.length > 0 &&
 	        isValidPoint(a.nodes[1])){
 		return new Line(a.nodes[0].x,a.nodes[0].y,a.nodes[1].x,a.nodes[1].y);

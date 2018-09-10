@@ -271,8 +271,12 @@ class Matrix{
 		return m;
 	}
 }
+interface Point {
+	readonly x: number;
+	readonly y: number;
+}
 /** The base type for all vector representations, contains numbers x and y */
-class XY{
+class XY implements Point{
 	x:number;
 	y:number;
 	constructor(x:number, y:number){ this.x = x; this.y = y; }

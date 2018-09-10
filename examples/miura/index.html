@@ -2,22 +2,35 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=0.5, shrink-to-fit=no">
 <script src="../../lib/codemirror/lib/codemirror.js"></script>
 <link rel="stylesheet" href="../../lib/codemirror/lib/codemirror.css">
 <link rel="stylesheet" href="../../lib/codemirror/theme/idle.css">
-<link rel="stylesheet" type="text/css" href="code.css">
+<link rel="stylesheet" href="../lib/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="../lib/bootstrap/css/bootstrap-slider.min.css">
+<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<div class="row">
-	<div id="code-column">
-		<div id="code-container"></div>
+	<input type="file" id="files">
+	<div class="row canvases">
+		<canvas id="canvas-miura" resize class="half"></canvas><div id="code-column"><div id="code-container"></div></div>
 	</div>
-	<canvas id="canvas" resize></canvas>
-</div>
+
+	<div class="row toolbar input-group" data-toggle="buttons">
+		<span class="input-group-addon">columns, rows</span>
+		<input type="text" aria-label="First name" class="form-control" id="columns-input" value="12">
+		<input type="text" aria-label="Last name" class="form-control" id="rows-input" value="12">
+		<p id="interp-value">0.5</p>
+		<input id="interp-slider" data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="1000" data-slider-step="1" data-slider-value="500"/>
+		<a href="#" class="btn btn-md btn-secondary" id="download-file">download</a>
+
+	</div>
 <script type="text/javascript" src="../../lib/codemirror/mode/javascript.js"></script>
-<script type="text/javascript" src="../../cp.js"></script>
 <script type="text/javascript" src="../../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../../cp.js"></script>
 <script type="text/javascript" src="../../cp.paperjs.js"></script>
+<script type="text/javascript" src="../tools/drag-and-drop.js"></script>
+<script type="text/javascript" src="../../examples/lib/bootstrap/js/bootstrap-slider.min.js"></script>
 <script type="text/javascript" src="sketch.js"></script>
 </body>
 </html>

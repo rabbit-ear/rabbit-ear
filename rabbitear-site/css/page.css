@@ -17,6 +17,26 @@ pre{ min-width: 0; }
 }
 .text-muted a:hover{ text-decoration: none; }
 
+.container{
+	margin-top:3rem;
+	margin-bottom: 5rem;
+	background-color: white;
+	padding-bottom: 2rem;
+}
+.explain{
+	width:66vw;
+	min-width: 400px;
+	margin:auto;
+	margin-top:2em;
+	margin-bottom:2em;
+	padding:1em;
+	background-color: #FFFFAA;
+	box-shadow: 5px 5px 5px #CCC;
+	line-height: 2em;
+}
+
+.centered{ text-align: center; }
+
 @media (max-width: 650px), (hover:none){
 	h3{ font-size: 1em; }
 	.flex-grid { display:block; }

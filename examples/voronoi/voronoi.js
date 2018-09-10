@@ -67,8 +67,8 @@ var touchNodes = new PlanarGraph();
 var touchNodesCircles = [];
 var touchNodesLayer
 
-for(var i = 0; i < 24; i++){
-	touchNodes.newPlanarNode(Math.random()*1.618, Math.random());
+for(var i = 0; i < 3; i++){
+	touchNodes.newPlanarNode(Math.random()*1, Math.random());
 }
 
 var dragOn = false;
@@ -112,7 +112,7 @@ project.drawVoronoi = function(complex, showGussets){
 
 project.reset = function(){
 	this.cp.clear();
-	this.cp.rectangle(1.618, 1);
+	this.cp.rectangle(1, 1);
 	this.draw();
 	var bounds = this.cp.bounds();
 	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];

@@ -10,8 +10,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 <link href="https://fonts.googleapis.com/css?family=Montserrat:600" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="css/byrne.css">
-<link rel="stylesheet" type="text/css" href="css/fullscreen.css">
+<link rel="stylesheet" type="text/css" href="css/byrne.css?version=0.1">
+<link rel="stylesheet" type="text/css" href="css/fullscreen.css?version=0.1">
 </head>
 <body>
 <div class="row">
@@ -23,12 +23,13 @@
 <div class="footer">
 	<button type="button" class="btn btn-outline-light" id="showcase-button">demo</button>
 	<button type="button" class="btn btn-outline-light" id="download-button">download</button>
-	<button type="button" class="btn btn-outline-light" id="docs-button">documentation</button>
+	<button type="button" class="btn btn-outline-light" id="docs-button">docs</button>
+	<button type="button" class="btn btn-outline-light" id="blog-button">blog</button>
 </div>
 <script type="text/javascript" src="../lib/paper-full.min.js"></script>
-<script type="text/javascript" src="../cp.js"></script>
-<script type="text/javascript" src="../cp.paperjs.js"></script>
-<script type="text/javascript" src="js/buttons.js"></script>
-<script type="text/javascript" src="js/kawasaki-collapse.js"></script>
+<script type="text/javascript" src="../cp.js?1"></script>
+<script type="text/javascript" src="../cp.paperjs.js?1"></script>
+<script type="text/javascript" src="js/buttons.js?2"></script>
+<script type="text/javascript" src="js/kawasaki-collapse.js?1"></script>
 </body>
 </html>

@@ -6,74 +6,16 @@ var myCodeMirror = CodeMirror(document.getElementById("code-container"), {
 }).on('change', (editor,event) => {
 	// console.log( editor.getValue() );
 	try{
-		resetCP();
-		eval(editor.getValue());
-		origami.draw();
+		// eval(editor.getValue());
+		origami.reset();
 		// success
-		consoleDiv.innerHTML = "";
+		// consoleDiv.innerHTML = "";
 	}
 	catch(err){
-		consoleDiv.innerHTML = err;
-		console.log(err);
+		// consoleDiv.innerHTML = err;
+		// console.log(err);
 	}
 });
-
-// after code mirror sets up, trigger origami.redraw()
-
-var consoleDiv = document.createElement("div");
-consoleDiv.id = "code-console";
-document.getElementById("code-container").appendChild(consoleDiv)
-
-var cp = new CreasePattern();
-var origami = new OrigamiPaper("canvas", cp);
-origami.setPadding(0.05);
-
-//reflection
-// programmatically inspect object
-// inspecting an object and doing something with it
-function getAllMethods(object) {
-	return Object.getOwnPropertyNames(object).filter(function(property) {
-		return typeof object[property] == 'function';
-	});
-}
-console.log(getAllMethods(CreasePattern.prototype));
-
-// var boundCrease = cp.crease.bind(cp)
-// window.creaseRay = cp.creaseRay;
-window.crease = cp.crease.bind(cp);
-
-// console.log(window.cp);
-// function creaseRay(ray) {
-// 		cp.creaseRay(ray);
-// }
-
-// console.log(Object.getOwnPropertyNames(CreasePattern));
-
-function resetCP(){
-	origami.cp.clear();
-}
-
-origami.onFrame = function(event){ }
-origami.onResize = function(event){ }
-origami.onMouseMove = function(event){ }
-origami.onMouseDown = function(event){
-	var nearest = this.cp.nearest(event.point);
-	console.log(nearest);
-	var keys = Object.keys(nearest);
-	var consoleString = "";
-	for(var i = 0; i < keys.length; i++){
-		if(nearest[keys[i]] !== undefined){
-			var cpObject = "cp." + keys[i] + "s[" + nearest[keys[i]].index + "]";
-			consoleString += keys[i] + ": <a href='#' onclick='injectCode(\"" + cpObject + "\")'>" + cpObject + "</a><br>";
-		}
-	}
-	consoleDiv.innerHTML = consoleString;
-	// var nearestEdge = this.cp.nearest(event.point).edge || {};
-	// if(nearestEdge !== undefined){
-	// 	updateCodeMirror("cp.edges[" + nearestEdge.edge.index + "]");
-	// 	// console.log( nearest.edge.edge.index );
-	// }
-}
 
 function injectCode(string){
 	var cm = document.getElementsByClassName("CodeMirror")[0].CodeMirror;
@@ -87,7 +29,124 @@ function injectCode(string){
 		ch: line.length - 1 // set the character position to the end of the line
 	}
 	doc.replaceRange(newline+string, pos);
-
 }
 
-injectCode("//0 to 1, intensity of wave\nvar wave = 1;\n\nvar SIZE = 10;\nvar points = [];\nfor(var i = 0; i < SIZE; i++){\n	var inner = [];\n	for(var j = 0; j < SIZE; j++){ inner.push(j); }\n	points.push(inner);\n}\npoints = points.map(function(row,y){\n	return row.map(function(point,x){\n		return new XY(x/(SIZE-1) + Math.cos(y)*0.05 * wave, \n                      y/(SIZE-1) + (x%2)*0.07);\n	},this);\n},this);\npoints.forEach(function(row,j){\n	row.forEach(function(point,i){\n		// crease zig zag rows\n		if(i < row.length-1){\n			var nextHorizPoint = row[ (i+1)%row.length ];\n			var crease = cp.crease(point, nextHorizPoint);\n			if(crease != undefined){\n				if(j%2 == 0){ crease.mountain(); }\n				else { crease.valley(); }\n			}\n		}\n		// crease lines connecting between zig zag rows\n		if(j < points.length-1){\n			var nextRow = points[ (j+1)%points.length ];\n			var nextVertPoint = nextRow[ i ];\n			var crease = cp.crease(point, nextVertPoint);\n			if(crease != undefined){\n				if((i+j+1)%2 == 0){ crease.mountain(); }\n				else { crease.valley(); }\n			}\n		}\n	})\n},this);");
+injectCode("//use variables \"SLIDER\", \"ROWS\", \"COLUMNS\"\nvar points = [];\nfor(var r = -1; r < ROWS+1; r++){\n\tvar row = [];\n\tfor(var c = -1; c < COLUMNS+1; c++){\n\t\tvar point = {\n\t\t\tx:c/COLUMNS,\n\t\t\ty:r/ROWS + (c%2)*(1/ROWS*SLIDER)\n\t\t}\n\t\trow.push(point);\n\t}\n\tpoints.push(row);\n}\n//give back the points\npoints;");
+
+/////////////////////////////////////////////////
+
+var slider = new Slider('#interp-slider').on("slide",sliderUpdate);
+function sliderUpdate(value){
+	var v = parseFloat((value / 1000).toFixed(2));
+	if(v < 0){ v = 0; }
+	document.getElementById("interp-value").innerHTML = v;
+	SLIDER = v;
+	origami.reset();
+}
+
+///////////////////////////////////////////////
+
+document.getElementById("rows-input").oninput = function(e){
+	var newRows = parseInt(document.getElementById("rows-input").value);
+	if(!isNaN(newRows)){
+		ROWS = newRows;
+		origami.reset();
+	}
+}
+document.getElementById("columns-input").oninput = function(e){
+	var newCols = parseInt(document.getElementById("columns-input").value);
+	if(!isNaN(newCols)){
+		COLUMNS = newCols;
+		origami.reset();
+	}
+}
+
+function download(text, filename, mimeType){
+	var blob = new Blob([text], {type: mimeType});
+	var url = window.URL.createObjectURL(blob);
+	var a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
+}
+document.getElementById("download-file").addEventListener("click", function(e){
+	e.preventDefault();
+	var svgBlob = origami.cp.exportSVG();
+	download(svgBlob, "creasepattern.svg", "image/svg+xml");
+});
+
+function fileDidLoad(blob, mimeType, fileExtension){
+	var points = JSON.parse(blob);
+	touchNodes.nodes = [];
+	points.forEach(function(point){
+		touchNodes.newPlanarNode(point[0], point[1]);
+	},this);
+	origami.drawVoronoi();
+}
+
+// $().button('toggle')
+/////////////////////////////////////////////
+
+var origami = new OrigamiPaper("canvas-miura");
+origami.style.mountain.strokeColor = {gray:0.0}
+origami.mediumLines();
+
+var dragOn = false;
+var selectedNode = undefined;
+
+var SLIDER = 0.5;
+var ROWS = 12;
+var COLUMNS = 12;
+
+origami.reset = function(){
+	this.cp.clear();
+	// get points from code window
+
+	var points = eval(document.getElementsByClassName("CodeMirror")[0].CodeMirror.getValue());
+	if(points == undefined || points.constructor !== Array){ return; }
+	
+	// create points manually
+	// var points = [];
+	// for(var r = -1; r < ROWS+1; r++){
+	// 	var row = [];
+	// 	for(var c = -1; c < COLUMNS+1; c++){
+	// 		var point = {
+	// 			x:c/COLUMNS,
+	// 			y:r/ROWS + (c%2)*(1/ROWS*SLIDER)
+	// 		}
+	// 		row.push( point );
+	// 	}
+	// 	points.push(row);
+	// }
+
+	points.forEach(function(row,j){
+		row.forEach(function(point,i){
+			// crease zig zag rows
+			if(i < row.length-1){
+				var nextHorizPoint = row[ (i+1)%row.length ];
+				var crease = this.cp.crease(point, nextHorizPoint);
+				if(crease != undefined){
+					if(j%2 == 0){ crease.mountain(); }
+					else { crease.valley(); }
+				}
+			}
+			// crease lines connecting between zig zag rows
+			if(j < points.length-1){
+				var nextRow = points[ (j+1)%points.length ];
+				var nextVertPoint = nextRow[ i ];
+				var crease = this.cp.crease(point, nextVertPoint);
+				if(crease != undefined){
+					if((i+j)%2 == 0){ crease.mountain(); }
+					else { crease.valley(); }
+				}
+			}
+		},this)
+	},this);
+	this.draw();
+}
+origami.reset();
+
+origami.onMouseDown = function(event){ }
+origami.onMouseUp = function(event){ }
+origami.onMouseMove = function(event){ }
+origami.onFrame = function(event){ }

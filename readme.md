@@ -2,7 +2,7 @@
 
 This is a Javascript library for creating origami crease patterns.
 
-First time visitors, check out the [docs](http://origami.pw/docs/), there are a lot of interactive graphical examples.
+First time visitors, check out the [docs](https://rabbitear.org/docs/), there are a lot of interactive graphical examples.
 
 Download this repo and check out the `/examples/` folder.
 
