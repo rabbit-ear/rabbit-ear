@@ -44,8 +44,6 @@ canvas[resize].half{
 .blue { stroke: hsl(205.2, 0.74, 0.61); }
 */
 
-/* hsl(43, 88%, 46%); yellow  */ 
-
 .valley{
 	fill: none;
 	stroke: hsl(205, 74%, 30%);
@@ -69,4 +67,25 @@ canvas[resize].half{
 	stroke-width: 0.002;
 	stroke-linecap: round;
 	stroke-dasharray:0 0;
+}
+
+.boundary{
+	fill: none;
+	stroke: black;
+	stroke-width: 0.0075;
+	stroke-linecap: round;
+	stroke-dasharray:0 0;
+}
+
+.highlighted{
+	fill: none;
+	stroke: hsl(43, 88%, 46%);
+	stroke-width: 0.0075;
+	stroke-linecap: round;
+	stroke-dasharray:0 0;
+}
+
+.paper{
+	fill: hsl(43, 99%, 98%);
+	stroke: none;
 }
