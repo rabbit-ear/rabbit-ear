@@ -14,42 +14,6 @@ var CreaseTypeString = {
 	3 : "valley",
 }
 
-// function createCircle(svg){
-// 	var circle = document.createElementNS(svgNS,"circle");
-// 	circle.setAttributeNS(null,"id","mycircle");
-// 	circle.setAttributeNS(null,"cx",0);
-// 	circle.setAttributeNS(null,"cy",0);
-// 	circle.setAttributeNS(null,"r",0.5);
-// 	circle.setAttributeNS(null,"fill","none");
-// 	circle.setAttributeNS(null,"stroke","black");
-//     circle.setAttributeNS(null,'stroke-width', strokeWidth);
-// 	svg.appendChild(circle);
-// }
-
-// function preliminaryBase(svg){
-// 	var line1 = document.createElementNS(svgNS,"line");
-// 	line1.setAttributeNS(null, "x1", 0);
-// 	line1.setAttributeNS(null, "y1", 0);
-// 	line1.setAttributeNS(null, "x2", canvasSize);
-// 	line1.setAttributeNS(null, "y2", canvasSize);
-// 	line1.setAttributeNS(null, "fill", "none");
-// 	line1.setAttributeNS(null, "stroke", "black");
-//     line1.setAttributeNS(null, 'stroke-width', strokeWidth);
-
-// 	var line2 = document.createElementNS(svgNS,"line");
-// 	line2.setAttributeNS(null, "x1", 0);
-// 	line2.setAttributeNS(null, "y1", canvasSize);
-// 	line2.setAttributeNS(null, "x2", canvasSize);
-// 	line2.setAttributeNS(null, "y2", 0);
-// 	line2.setAttributeNS(null, "fill", "none");
-// 	line2.setAttributeNS(null, "stroke", "black");
-//     line2.setAttributeNS(null, 'stroke-width', strokeWidth);
-
-// 	svg.appendChild(line1);
-// 	svg.appendChild(line2);
-// }  
-
-
 var OrigamiPaper = (function(){
 
 	// function OrigamiPaper(svg, creasePattern) {
@@ -221,6 +185,122 @@ var OrigamiPaper = (function(){
 	OrigamiPaper.prototype.onMouseUp = function(event){ }
 	OrigamiPaper.prototype.onMouseMove = function(event){ }
 	OrigamiPaper.prototype.onMouseDidBeginDrag = function(event){ }
+
+
+	OrigamiPaper.prototype.importSVG = function(xml){
+		// console.log(xml);
+		var properties = ['x', 'y', 'width', 'height', 'viewBox'];
+		var svgProp = properties.map(function(prop){
+			return xml.attributes[prop].nodeValue;
+		},this);
+		console.log(svgProp);
+
+		//import all lines, rects, we have to skip curved lines or convert them into tiny straight lines.
+
+		var w = parseFloat(svgProp.width);
+		var h = parseFloat(svgProp.height);
+		// re-sizing down to 1 x aspect size
+		var min = h; if(w < h){ min = w; }
+		// var mat = new paper.Matrix(1/min, 0, 0, 1/min, 0, 0);
+		// svgLayer.matrix = mat;
+		var cp = new CreasePattern();//.rectangle(w,h);
+		// erase boundary, to be set later by convex hull
+		cp.nodes = [];
+		cp.edges = [];
+		// cp.boundary = new PlanarGraph();
+		function recurseAndAdd(childrenArray){
+			// console.log('childrenArray');
+			// console.log(childrenArray);
+			for(var i = 0; i < childrenArray.length; i++){
+
+				if(childrenArray[i].nodeName == 'line'){
+					var vals = ['x1', 'y1', 'x2', 'y2'].map(function(el){
+						return childrenArray[i].attributes[el].nodeValue;
+					},this);
+					cp.newCrease(vals[0], vals[1], vals[2], vals[3]);
+				}
+				if(childrenArray[i].shape == "rectangle" && childrenArray[i].strokeColor != null){ // found a rectangle
+					var left = childrenArray[i].strokeBounds.left;
+					var top = childrenArray[i].strokeBounds.top;
+					var width = childrenArray[i].strokeBounds.width;
+					var height = childrenArray[i].strokeBounds.height;
+					var rectArray = [ [left, top], [left+width, top], [left+width, top+height], [left, top+height] ];
+					rectArray.forEach(function(el,i){
+						var nextEl = rectArray[ (i+1)%rectArray.length ];
+						cp.newCrease(el[0], el[1], nextEl[0], nextEl[1]);
+					},this);
+				}
+				if(childrenArray[i].segments !== undefined){ // found a line
+					var numSegments = childrenArray[i].segments.length-1;
+					if(childrenArray[i].closed === true){
+						numSegments = childrenArray[i].segments.length;
+					}
+					for(var j = 0; j < numSegments; j++){
+						var next = (j+1)%childrenArray[i].segments.length;
+						var crease = cp.newCrease(childrenArray[i].segments[j].point.x,
+									 childrenArray[i].segments[j].point.y, 
+									 childrenArray[i].segments[next].point.x,
+									 childrenArray[i].segments[next].point.y);
+						var color = childrenArray[i].strokeColor;
+						if(color !== undefined && crease !== undefined){
+							if(color.red > color.blue){crease.mountain();}
+							if(color.red < color.blue){crease.valley();}
+						}
+					}
+				} else if (childrenArray[i].children !== undefined){
+					console.log("recursive call");
+					console.log(childrenArray[i].children)
+					recurseAndAdd(childrenArray[i].children);
+				}
+			}
+		}
+		recurseAndAdd(xml.children);
+		console.log(xml.children);
+		console.log(cp);
+		// cp is populated
+		// find the convex hull of the CP, set it to the boundary
+		// cp.setBoundary(cp.nodes);
+		// bypassing calling cp.setBoundary() directly to avoid flattening
+//		var points = cp.nodes.map(function(p){ return gimme1XY(p); },this);
+//		cp.boundary.convexHull(points);
+		// cp.boundary.edges.forEach(function(el){
+		// 	cp.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
+		// },this);
+//		cp.cleanDuplicateNodes();
+		// cleanup
+//		xml.removeChildren();
+//		xml.remove();
+		return cp;
+	}
+
+	OrigamiPaper.prototype.stringNumberToNumber = function(string){ return parseFloat(string); }
+
+	OrigamiPaper.prototype.load = function(path){
+		// figure out the file extension
+		var extension = 'svg';
+		var that = this;
+		switch(extension){
+			case 'fold':
+			fetch(path)
+				.then(function(response){ return response.json(); })
+				.then(function(data){
+
+				});
+			break;
+			case 'svg':
+			fetch(path)
+				.then(response => response.text())
+				.then(function(string){
+					var data = (new window.DOMParser()).parseFromString(string, "text/xml")
+					data.childNodes.forEach(function(el){ console.log(el); },this);
+					that.importSVG(data.childNodes[1]);
+					// var result = string.slice(0, string.indexOf("<svg"));
+					// console.log(result);
+				});
+			break;
+		}
+
+	}
 
 	return OrigamiPaper;
 }());

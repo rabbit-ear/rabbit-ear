@@ -26,3 +26,5 @@ origami.onMouseDown = function(point){
 origami.onFrame = function(event){
 	// console.log("on frame ", event);
 }
+
+origami.load("crane.svg");
