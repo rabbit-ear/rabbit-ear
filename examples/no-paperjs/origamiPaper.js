@@ -113,6 +113,15 @@ var OrigamiPaper = (function(){
 		svg.appendChild(this.boundaryLayer);
 		svg.appendChild(this.nodeLayer);
 
+		return svg;
+	}
+	OrigamiPaper.prototype.draw = function(){
+		[this.backgroundLayer, this.faceLayer, this.junctionLayer, this.sectorLayer, this.edgeLayer, this.boundaryLayer, this.nodeLayer].forEach(function(layer){
+			while (layer.lastChild) {
+				layer.removeChild(layer.lastChild);
+			}
+		},this);
+
 		var pointsString = this.cp.boundary.nodes().reduce(function(prev,curr){
 			return prev + curr.x + "," + curr.y + " ";
 		},"");
@@ -127,9 +136,6 @@ var OrigamiPaper = (function(){
 		boundaryPolygon.setAttributeNS(null, 'points', pointsString);
 		this.boundaryLayer.appendChild(boundaryPolygon);
 
-		return svg;
-	}
-	OrigamiPaper.prototype.draw = function(){
 		for(var i = 0; i < this.cp.edges.length; i++){
 			this.addEdge(this.cp.edges[i]);
 		}
@@ -145,7 +151,10 @@ var OrigamiPaper = (function(){
 		// 	}
 		// }
 		this.edgeLayer.childNodes.forEach(function(edge,i){
-			edge.setAttributeNS(null, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
+			if(this.cp.edges[i] != undefined){
+				// console.log( CreaseTypeString[this.cp.edges[i].orientation] );
+				edge.setAttributeNS(null, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
+			}
 		},this);
 	}
 
@@ -187,18 +196,18 @@ var OrigamiPaper = (function(){
 	OrigamiPaper.prototype.onMouseDidBeginDrag = function(event){ }
 
 
+
 	OrigamiPaper.prototype.importSVG = function(xml){
 		// console.log(xml);
 		var properties = ['x', 'y', 'width', 'height', 'viewBox'];
 		var svgProp = properties.map(function(prop){
 			return xml.attributes[prop].nodeValue;
 		},this);
-		console.log(svgProp);
 
 		//import all lines, rects, we have to skip curved lines or convert them into tiny straight lines.
 
-		var w = parseFloat(svgProp.width);
-		var h = parseFloat(svgProp.height);
+		var w = parseFloat(svgProp[2]);
+		var h = parseFloat(svgProp[3]);
 		// re-sizing down to 1 x aspect size
 		var min = h; if(w < h){ min = w; }
 		// var mat = new paper.Matrix(1/min, 0, 0, 1/min, 0, 0);
@@ -208,6 +217,27 @@ var OrigamiPaper = (function(){
 		cp.nodes = [];
 		cp.edges = [];
 		// cp.boundary = new PlanarGraph();
+
+
+		function parseColor(input) {
+			if (input.substr(0,1)=="#") {
+				var collen=(input.length-1)/3;
+				var fact=[17,1,0.062272][collen-1];
+				return [
+					Math.round(parseInt(input.substr(1,collen),16)*fact),
+					Math.round(parseInt(input.substr(1+collen,collen),16)*fact),
+					Math.round(parseInt(input.substr(1+2*collen,collen),16)*fact)
+					];
+			}
+			else return input.split("(")[1].split(")")[0].split(",").map(Math.round);
+		}
+		function styleCreaseWithColor(crease, hexString){
+			var colors = parseColor(hexString);
+			if(Math.abs(colors[2]-colors[1]) < 10 && Math.abs(colors[1] - colors[0]) < 10 ){ crease.mark(); }
+			else if(colors[0] > colors[2]){ crease.mountain(); }
+			else if(colors[2] > colors[0]){ crease.valley(); }
+		}
+
 		function recurseAndAdd(childrenArray){
 			// console.log('childrenArray');
 			// console.log(childrenArray);
@@ -217,56 +247,56 @@ var OrigamiPaper = (function(){
 					var vals = ['x1', 'y1', 'x2', 'y2'].map(function(el){
 						return childrenArray[i].attributes[el].nodeValue;
 					},this);
-					cp.newCrease(vals[0], vals[1], vals[2], vals[3]);
+					var crease = cp.newCrease(vals[0] / w, vals[1] / h, vals[2] / w, vals[3] / h);
+					styleCreaseWithColor(crease, childrenArray[i].attributes.stroke.nodeValue);
 				}
-				if(childrenArray[i].shape == "rectangle" && childrenArray[i].strokeColor != null){ // found a rectangle
-					var left = childrenArray[i].strokeBounds.left;
-					var top = childrenArray[i].strokeBounds.top;
-					var width = childrenArray[i].strokeBounds.width;
-					var height = childrenArray[i].strokeBounds.height;
-					var rectArray = [ [left, top], [left+width, top], [left+width, top+height], [left, top+height] ];
-					rectArray.forEach(function(el,i){
-						var nextEl = rectArray[ (i+1)%rectArray.length ];
-						cp.newCrease(el[0], el[1], nextEl[0], nextEl[1]);
-					},this);
-				}
-				if(childrenArray[i].segments !== undefined){ // found a line
-					var numSegments = childrenArray[i].segments.length-1;
-					if(childrenArray[i].closed === true){
-						numSegments = childrenArray[i].segments.length;
-					}
-					for(var j = 0; j < numSegments; j++){
-						var next = (j+1)%childrenArray[i].segments.length;
-						var crease = cp.newCrease(childrenArray[i].segments[j].point.x,
-									 childrenArray[i].segments[j].point.y, 
-									 childrenArray[i].segments[next].point.x,
-									 childrenArray[i].segments[next].point.y);
-						var color = childrenArray[i].strokeColor;
-						if(color !== undefined && crease !== undefined){
-							if(color.red > color.blue){crease.mountain();}
-							if(color.red < color.blue){crease.valley();}
-						}
-					}
-				} else if (childrenArray[i].children !== undefined){
-					console.log("recursive call");
-					console.log(childrenArray[i].children)
-					recurseAndAdd(childrenArray[i].children);
+				// if(childrenArray[i].shape == "rectangle" && childrenArray[i].strokeColor != null){ // found a rectangle
+				// 	var left = childrenArray[i].strokeBounds.left;
+				// 	var top = childrenArray[i].strokeBounds.top;
+				// 	var width = childrenArray[i].strokeBounds.width;
+				// 	var height = childrenArray[i].strokeBounds.height;
+				// 	var rectArray = [ [left, top], [left+width, top], [left+width, top+height], [left, top+height] ];
+				// 	rectArray.forEach(function(el,i){
+				// 		var nextEl = rectArray[ (i+1)%rectArray.length ];
+				// 		cp.newCrease(el[0], el[1], nextEl[0], nextEl[1]);
+				// 	},this);
+				// }
+				// if(childrenArray[i].segments !== undefined){ // found a line
+				// 	var numSegments = childrenArray[i].segments.length-1;
+				// 	if(childrenArray[i].closed === true){
+				// 		numSegments = childrenArray[i].segments.length;
+				// 	}
+				// 	for(var j = 0; j < numSegments; j++){
+				// 		var next = (j+1)%childrenArray[i].segments.length;
+				// 		var crease = cp.newCrease(childrenArray[i].segments[j].point.x,
+				// 					 childrenArray[i].segments[j].point.y, 
+				// 					 childrenArray[i].segments[next].point.x,
+				// 					 childrenArray[i].segments[next].point.y);
+				// 		var color = childrenArray[i].strokeColor;
+				// 		if(color !== undefined && crease !== undefined){
+				// 			if(color.red > color.blue){crease.mountain();}
+				// 			if(color.red < color.blue){crease.valley();}
+				// 		}
+				// 	}
+				// } 
+				else if (childrenArray[i].childNodes !== undefined && childrenArray[i].childNodes.length > 0){
+					recurseAndAdd(childrenArray[i].childNodes);
 				}
 			}
 		}
 		recurseAndAdd(xml.children);
-		console.log(xml.children);
-		console.log(cp);
 		// cp is populated
 		// find the convex hull of the CP, set it to the boundary
 		// cp.setBoundary(cp.nodes);
 		// bypassing calling cp.setBoundary() directly to avoid flattening
-//		var points = cp.nodes.map(function(p){ return gimme1XY(p); },this);
-//		cp.boundary.convexHull(points);
+		var points = cp.nodes.map(function(p){ return gimme1XY(p); },this);
+		cp.boundary.convexHull(points);
 		// cp.boundary.edges.forEach(function(el){
 		// 	cp.newCrease(el.nodes[0].x, el.nodes[0].y, el.nodes[1].x, el.nodes[1].y).border();
 		// },this);
-//		cp.cleanDuplicateNodes();
+		cp.cleanBoundary();
+		cp.cleanDuplicateNodes();
+		cp.clean();
 		// cleanup
 //		xml.removeChildren();
 //		xml.remove();
@@ -292,8 +322,15 @@ var OrigamiPaper = (function(){
 				.then(response => response.text())
 				.then(function(string){
 					var data = (new window.DOMParser()).parseFromString(string, "text/xml")
-					data.childNodes.forEach(function(el){ console.log(el); },this);
-					that.importSVG(data.childNodes[1]);
+					// data.childNodes.forEach(function(el){ console.log(el); },this);
+					that.cp = that.importSVG(data.childNodes[1]);
+					that.draw();
+					// that.cp.edges.forEach(function(el, i){
+					// 	console.log(i, el.orientation);
+					// });
+					// that.svg.childNodes.for
+					// console.log(that.cp);
+					// console.log(that.svg);
 					// var result = string.slice(0, string.indexOf("<svg"));
 					// console.log(result);
 				});

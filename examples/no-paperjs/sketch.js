@@ -1,8 +1,12 @@
 
-// var origami = new OrigamiPaper();
-var cp = new CreasePattern();
-cp.frogBase();
-var origami = new OrigamiPaper(cp);
+// var cp = new CreasePattern();
+// cp.frogBase();
+// var origami = new OrigamiPaper(cp);
+
+var origami = new OrigamiPaper();
+origami.load("crane.svg");
+
+
 
 // var svg = document.getElementById('mysvg');
 // var NS = svg.getAttribute('xmlns');
@@ -27,4 +31,3 @@ origami.onFrame = function(event){
 	// console.log("on frame ", event);
 }
 
-origami.load("crane.svg");
