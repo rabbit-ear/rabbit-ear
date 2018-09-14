@@ -47,16 +47,16 @@ canvas[resize].half{
 .valley{
 	fill: none;
 	stroke: hsl(205, 74%, 30%);
-	stroke-width: 0.0075;
+	stroke-width: 0.004;
 	stroke-linecap: round;
-	stroke-dasharray:0.01 0.015;
+	stroke-dasharray:0.00666 0.01;
 }
 
 
 .mountain{
 	fill: none;
 	stroke: hsl(14.4, 87%, 45%);
-	stroke-width: 0.0075;
+	stroke-width: 0.004;
 	stroke-linecap: round;
 	stroke-dasharray:0 0;
 }
@@ -87,5 +87,15 @@ canvas[resize].half{
 
 .paper{
 	fill: hsl(43, 99%, 98%);
+	stroke: none;
+}
+
+.node{
+	fill: hsl(43, 88%, 46%);
+	stroke: none;
+}
+
+.face{
+	fill: hsl(205, 74%, 61%);
 	stroke: none;
 }

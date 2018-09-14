@@ -4,9 +4,9 @@
 // var origami = new OrigamiPaper(cp);
 
 var origami = new OrigamiPaper();
-// origami.load("crane.svg");
-// origami.load("kraft-snowflake-i2.svg");
-origami.load("all-shapes.svg");
+origami.load("../../files/svg/crane.svg");
+// origami.load("all-shapes.svg");
+// origami.load("rects.svg");
 
 
 
@@ -30,6 +30,7 @@ origami.onMouseDown = function(point){
 
 
 origami.onFrame = function(event){
+	console.log(this.mouse);
 	// console.log("on frame ", event);
 }
 

@@ -73,6 +73,7 @@ var OrigamiPaper = (function(){
 		this.scope.view.onMouseUp = function(event){
 			paper = that.scope;
 			that.mouse.isPressed = false;
+			that.mouse.isDragging = false;
 			that.selectedTouchPoint = undefined;
 			that.onMouseUp(event);
 		}
