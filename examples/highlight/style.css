@@ -1,3 +1,10 @@
+:root{
+	--crease-width: 0.01;
+	--crease-width-half: 0.005;
+	--crease-width-double: 0.02;
+	--crease-width-oneandhalf: 0.015;
+}
+
 html,body{
 	height:100%;
 	margin:0px;
@@ -5,33 +12,54 @@ html,body{
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	background-color: #EEE;
 }
-canvas[resize]{
+svg{
 	width:100vw;
 	height:100vh;
 	margin:auto;
 }
-canvas[resize].half{
-	width:45vmax;
-	height:45vmax;
-	max-width:100vw;
-	max-height:calc(100vh - 70px);
+
+/* set some components transparent, to be revealed when cursor is near */
+.node{
+	fill: none;
+	stroke: none;
 }
-.row{
-	display: flex;
-	flex-wrap: wrap;
+.face{
+	fill: none;
+	stroke: none;
 }
-.canvases{
-	flex: 1 0 0;
+
+.valley{
+	stroke: hsl(205, 74%, 30%);
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke-dasharray:var(--crease-width-oneandhalf) var(--crease-width-double);
 }
-.toolbar{
-	flex: 0 0 70px;
-	width:100%;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
+.mountain{
+	stroke: hsl(14.4, 87%, 45%);
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
 }
-.btn{
-	margin:2px;
+.mark{
+	stroke: black;
+	stroke-width: var(--crease-width-half);
+	stroke-linecap: round;
 }
+.boundary{
+	/*fill: hsl(50, 99%, 98%);*/
+	fill: white;
+	stroke: black;
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+}
+
+.stroke-yellow{
+	stroke: hsl(43, 88%, 46%);
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+}
+.fill-red{ fill: hsl(14.4, 87%, 45%); }
+.fill-blue{ fill: hsl(205, 74%, 61%); }
+.fill-dark-blue{ fill: hsl(191, 82%, 14% ); }
+.fill-black{ fill: black; }

@@ -1,0 +1,52 @@
+html,body{
+	height:100%;
+	margin:0px;
+	display:flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background-color: #eee;
+}
+svg{
+	width:100vw;
+	height:100vh;
+	margin:auto;
+}
+
+.node{ fill: hsl(14.4, 87%, 45%); }
+.face{ fill: hsl(205, 74%, 61%); }
+
+.valley{
+	stroke: hsl(205, 74%, 30%);
+	stroke-width: 0.004;
+	stroke-linecap: round;
+	stroke-dasharray:0.00666 0.01;
+}
+.mountain{
+	stroke: hsl(14.4, 87%, 45%);
+	stroke-width: 0.004;
+	stroke-linecap: round;
+}
+.mark{
+	stroke: black;
+	stroke-width: 0.002;
+	stroke-linecap: round;
+}
+.boundary{
+	/*fill: hsl(43, 99%, 98%);*/
+	fill: white;
+	stroke: black;
+	stroke-width: 0.0075;
+	stroke-linecap: round;
+}
+
+.stroke-yellow{
+	stroke: hsl(43, 88%, 46%);
+	stroke-width: 0.01;
+	stroke-linecap: round;
+}
+
+.red { stroke: hsl(14, 87%, 45%); }
+.yellow { stroke: hsl(43, 88%, 46% ); }
+.darkBlue { stroke: hsl(191, 82%, 14% ); }
+.blue { stroke: hsl(205, 74%, 30%); }
