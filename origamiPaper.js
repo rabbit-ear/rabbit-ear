@@ -15,13 +15,25 @@ var CreaseTypeString = {
 
 var OrigamiPaper = (function(){
 
+	OrigamiPaper.prototype.onResize = function(event){ }
+	OrigamiPaper.prototype.onFrame = function(event){ }
+	OrigamiPaper.prototype.onMouseDown = function(event){ }
+	OrigamiPaper.prototype.onMouseUp = function(event){ }
+	OrigamiPaper.prototype.onMouseMove = function(event){ }
+	OrigamiPaper.prototype.onMouseDidBeginDrag = function(event){ }
+
 	// function OrigamiPaper(svg, creasePattern) {
-	function OrigamiPaper(creasePattern) {
-		this.cp = creasePattern;
+	function OrigamiPaper() {
+		// read arguments: CreasePattern() object, or a parent DOM node for the new SVG
+		var args = []; for(var i = 0; i < arguments.length; i++){ args.push(arguments[i]); }
+		this.cp = args.filter(function(arg){ return arg instanceof PlanarGraph },this).shift();
+		var parent = args.filter(function(arg){ return arg instanceof HTMLElement },this).shift();
+
 		if(this.cp == undefined){ this.cp = new CreasePattern(); }
+		if(parent == undefined){ parent = document.body; }
 
 		this.svg = this.createNewSVG();
-		document.body.appendChild(this.svg);
+		parent.appendChild(this.svg);
 
 		this.padding = 0.01;  // padding inside the canvas
 
@@ -42,6 +54,7 @@ var OrigamiPaper = (function(){
 		this.style = {
 			node:{ radius: 0.01 },
 			sector:{ scale: 0.5 },
+			face:{ scale:1.0 },
 			selected:{
 				node:{ radius: 0.02 },
 				edge:{ strokeColor:{ hue:0, saturation:0.8, brightness:1 } },
@@ -57,24 +70,24 @@ var OrigamiPaper = (function(){
 			that.mouse.isDragging = false;
 			that.mouse.pressed = that.convertDOMtoSVG(event);
 			// that.attemptSelection();
-			that.onMouseDown( Object.assign({}, that.mouse.pressed) );
+			that.onMouseDown( {point:Object.assign({}, that.mouse.pressed)} );
 		}
 		this.svg.onmouseup = function(event){
 			that.mouse.isPressed = false;
 			that.mouse.isDragging = false;
 			that.selectedTouchPoint = undefined;
-			that.onMouseUp( that.convertDOMtoSVG(event) );
+			that.onMouseUp( {point:that.convertDOMtoSVG(event)} );
 		}
 		this.svg.onmousemove = function(event){
 			that.mouse.position = that.convertDOMtoSVG(event);
 			if(that.mouse.isPressed){ 
 				if(that.mouse.isDragging === false){
 					that.mouse.isDragging = true;
-					that.onMouseDidBeginDrag( Object.assign({}, that.mouse.position) );
+					that.onMouseDidBeginDrag( {point:Object.assign({}, that.mouse.position)} );
 				}
 			}
 			// that.updateSelected();
-			that.onMouseMove( Object.assign({}, that.mouse.position) );
+			that.onMouseMove( {point:Object.assign({}, that.mouse.position)} );
 		}
 		this.svg.onResize = function(event){
 			that.onResize(event);
@@ -244,12 +257,11 @@ var OrigamiPaper = (function(){
 		this.edgesLayer.appendChild(line);
 	}
 	OrigamiPaper.prototype.addFace = function(face){
-		var pct = 0.0;
-		function lerp(a,b,pct){ var l = b-a; return a+l*pct; }
+		function lerp(a,b,pct){ var l = b-a; return a+l*(1-pct); }
 		var centroid = face.centroid();
 		var pointsString = face.nodes
 			// .map(function(el){ return [el.x, el.y]; })
-			.map(function(el){ return [lerp(el.x, centroid.x, pct), lerp(el.y, centroid.y, pct)]; })
+			.map(function(el){ return [lerp(el.x, centroid.x, this.style.face.scale), lerp(el.y, centroid.y, this.style.face.scale)]; },this)
 			.reduce(function(prev,curr){ return prev + curr[0] + "," + curr[1] + " "}, "");
 		var polygon = document.createElementNS(svgNS,"polygon");
 		polygon.setAttributeNS(null, 'points', pointsString);
@@ -273,13 +285,320 @@ var OrigamiPaper = (function(){
 	}
 	OrigamiPaper.prototype.addJunction = function(junction){ }
 
-	OrigamiPaper.prototype.importSVG = function(xml, cssStyle){
+	OrigamiPaper.prototype.load = function(path){  // callback
+		// figure out the file extension
+		var extension = 'svg';
+		var that = this;
+		switch(extension){
+			case 'fold':
+			fetch(path)
+				.then(function(response){ return response.json(); })
+				.then(function(data){
+
+				});
+			break;
+			case 'svg':
+			fetch(path)
+				.then(response => response.text())
+				.then(function(string){
+					var data = (new window.DOMParser()).parseFromString(string, "text/xml");
+					that.cp = new SVGLoader().convertToCreasePattern(data);
+					that.draw();
+					// if(callback != undefined){
+					// 	// callback(that.cp);
+					// }
+				});
+			break;
+		}
+	}
+
+	return OrigamiPaper;
+}());
+
+
+var OrigamiFold = (function(){
+
+	OrigamiFold.prototype.onResize = function(event){ }
+	OrigamiFold.prototype.onFrame = function(event){ }
+	OrigamiFold.prototype.onMouseDown = function(event){ }
+	OrigamiFold.prototype.onMouseUp = function(event){ }
+	OrigamiFold.prototype.onMouseMove = function(event){ }
+	OrigamiFold.prototype.onMouseDidBeginDrag = function(event){ }
+
+	function OrigamiFold() {
+		// read arguments: CreasePattern() object, or a parent DOM node for the new SVG
+		var args = []; for(var i = 0; i < arguments.length; i++){ args.push(arguments[i]); }
+		this.cp = args.filter(function(arg){ return arg instanceof PlanarGraph },this).shift();
+		var parent = args.filter(function(arg){ return arg instanceof HTMLElement },this).shift();
+
+		if(this.cp == undefined){ this.cp = new CreasePattern(); }
+		if(parent == undefined){ parent = document.body; }
+
+		this.svg = this.createNewSVG();
+		parent.appendChild(this.svg);
+
+		this.padding = 0.0;  // padding inside the canvas
+		this.mouseZoom = true;
+		this.zoom = 1.0;
+		this.rotation = 0;
+		this.bounds = {'origin':{'x':0,'y':0},'size':{'width':1.0, 'height':1.0}};
+		this.mouse = {
+			position: {'x':0,'y':0},  // the current position of the mouse
+			pressed: {'x':0,'y':0},   // the last location the mouse was pressed
+			isPressed: false,         // is the mouse button pressed (y/n)
+			isDragging: false         // is the mouse moving while pressed (y/n)
+		};
+		this.style = { };
+
+		this.draw();
+
+		var that = this;
+		this.svg.onmousedown = function(event){
+			that.mouse.isPressed = true;
+			that.mouse.isDragging = false;
+			that.mouse.pressed = that.convertDOMtoSVG(event);
+			that.zoomOnMousePress = that.zoom;
+			that.rotationOnMousePress = that.rotation;
+			// that.attemptSelection();
+			that.onMouseDown( {point:Object.assign({}, that.mouse.pressed)} );
+		}
+		this.svg.onmouseup = function(event){
+			that.mouse.isPressed = false;
+			that.mouse.isDragging = false;
+			that.selectedTouchPoint = undefined;
+			that.onMouseUp( {point:that.convertDOMtoSVG(event)} );
+		}
+		this.svg.onmousemove = function(event){
+			that.mouse.position = that.convertDOMtoSVG(event);
+			if(that.mouse.isPressed){ 
+				if(that.mouse.isDragging == false){
+					that.mouse.isDragging = true;
+					that.onMouseDidBeginDrag( {point:Object.assign({}, that.mouse.position)} );
+				}
+				if(that.mouseZoom){
+					that.zoom = that.zoomOnMousePress + 0.01 * (that.mouse.pressed.y - that.mouse.position.y);
+					that.rotation = that.rotationOnMousePress + (that.mouse.pressed.x - that.mouse.position.x);
+					if(that.zoom < 0.02){ that.zoom = 0.02; }
+					if(that.zoom > 100){ that.zoom = 100; }
+					that.setViewBox();
+				}
+			}
+			// that.updateSelected();
+			that.onMouseMove( {point:Object.assign({}, that.mouse.position)} );
+		}
+		this.svg.onResize = function(event){
+			that.onResize(event);
+		}
+	}
+	OrigamiFold.prototype.reset = function(){
+		this.zoom = 1.0;
+		this.rotation = 0;
+		this.setViewBox();
+	}
+	OrigamiFold.prototype.createNewSVG = function(){
+		var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		svg.setAttribute("viewBox", "0 0 1 1");
+
+		this.facesLayer = document.createElementNS(svgNS, 'g');
+		this.junctionsLayer = document.createElementNS(svgNS, 'g');
+		this.sectorsLayer = document.createElementNS(svgNS, 'g');
+		this.edgesLayer = document.createElementNS(svgNS, 'g');
+		this.boundaryLayer = document.createElementNS(svgNS, 'g');
+		this.nodesLayer = document.createElementNS(svgNS, 'g');
+
+		this.facesLayer.setAttributeNS(null, 'id', 'faces');
+		this.junctionsLayer.setAttributeNS(null, 'id', 'junctions');
+		this.sectorsLayer.setAttributeNS(null, 'id', 'sectors');
+		this.edgesLayer.setAttributeNS(null, 'id', 'creases');
+		this.boundaryLayer.setAttributeNS(null, 'id', 'boundary');
+		this.nodesLayer.setAttributeNS(null, 'id', 'nodes');
+
+		svg.appendChild(this.boundaryLayer);
+		svg.appendChild(this.facesLayer);
+		svg.appendChild(this.junctionsLayer);
+		svg.appendChild(this.sectorsLayer);
+		svg.appendChild(this.edgesLayer);
+		svg.appendChild(this.nodesLayer);
+
+		return svg;
+	}
+	OrigamiFold.prototype.convertDOMtoSVG = function(event){
+		var pt = this.svg.createSVGPoint();
+		pt.x = event.clientX;
+		pt.y = event.clientY;
+		var svgPoint = pt.matrixTransform(this.svg.getScreenCTM().inverse());
+		return { x: svgPoint.x, y: svgPoint.y };
+	}
+
+	OrigamiFold.prototype.getBounds = function(){
+		if(this.foldedCP === undefined){ 
+			this.bounds = {'origin':{'x':0,'y':0},'size':{'width':1.0, 'height':1.0}};
+			return;
+		}
+		var minX = Infinity;
+		var minY = Infinity;
+		var maxX = -Infinity;
+		var maxY = -Infinity;
+		this.foldedCP.vertices_coords.forEach(function(point){
+			if(point[0] > maxX){ maxX = point[0]; }
+			if(point[0] < minX){ minX = point[0]; }
+			if(point[1] > maxY){ maxY = point[1]; }
+			if(point[1] < minY){ minY = point[1]; }
+		},this);
+		this.bounds = {'origin':{'x':minX,'y':minY},'size':{'width':maxX-minX, 'height':maxY-minY}};
+	}
+
+	OrigamiFold.prototype.setPadding = function(padding){
+		if(padding != undefined){
+			this.padding = padding;
+			this.setViewBox();
+		}
+		return this;
+	}
+	OrigamiFold.prototype.setViewBox = function(){
+		// todo: need protections if cp is returning no bounds
+		this.getBounds();
+		this.svg.setAttribute("viewBox", (-this.padding+this.bounds.origin.x) + " " + (-this.padding+this.bounds.origin.y) + " " + (this.bounds.size.width+this.padding*2) + " " + (this.bounds.size.height+this.padding*2));
+	}
+
+	OrigamiFold.prototype.update = function(){
+		// this.edgesLayer.childNodes.forEach(function(edge,i){
+		// 	if(this.cp.edges[i] != undefined){
+		// 		edge.setAttributeNS(null, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
+		// 	}
+		// },this);
+		this.facesLayer.childNodes.forEach(function(face){ face.setAttributeNS(null, 'class', 'face'); },this);
+		// this.nodesLayer.childNodes.forEach(function(node){ node.setAttributeNS(null, 'class', 'node'); },this);
+		// this.sectorsLayer.childNodes.forEach(function(sector){ sector.setAttributeNS(null, 'class', 'sector'); },this);
+		// this.junctionsLayer.childNodes.forEach(function(junction){ junction.setAttributeNS(null, 'class', 'junction'); },this);
+	}
+
+
+
+	OrigamiFold.prototype.draw = function(groundFace){
+		this.setViewBox();
+
+		this.foldedCP = this.cp.fold(groundFace);
+		this.getBounds();
+		this.faces = [];
+
+		[this.boundaryLayer, this.facesLayer, this.junctionsLayer, this.sectorsLayer, this.edgesLayer, this.nodesLayer].forEach(function(layer){
+			while (layer.lastChild) {
+				layer.removeChild(layer.lastChild);
+			}
+		},this);
+
+		// var pointsString = this.cp.boundary.nodes().reduce(function(prev,curr){
+		// 	return prev + curr.x + "," + curr.y + " ";
+		// },"");
+		
+		// var boundaryPolygon = document.createElementNS(svgNS, "polygon");
+		// boundaryPolygon.setAttributeNS(null, 'class', 'boundary');
+		// boundaryPolygon.setAttributeNS(null, 'points', pointsString);
+		// this.boundaryLayer.appendChild(boundaryPolygon);
+
+		// this.cp.nodes.forEach(function(node){ this.addNode(node); },this);
+		// this.cp.edges.forEach(function(edge){ this.addEdge(edge); },this);
+		// this.cp.faces.forEach(function(face){ this.addFace(face); },this);
+		// this.cp.junctions.forEach(function(junction){ 
+		// 	this.addJunction(junction);
+		// 	var radius = this.style.sector.scale * junction.sectors
+		// 		.map(function(el){ return el.edges[0].length(); },this)
+		// 		.sort(function(a,b){return a-b;})
+		// 		.shift();
+		// 	junction.sectors.forEach(function(sector){ this.addSector(sector, radius); },this);
+		// },this);
+
+
+		if(this.foldedCP != undefined){
+
+			this.foldedCP.faces_vertices
+				.map(function(face){
+					return face.map(function(nodeIndex){
+						return this.foldedCP.vertices_coords[nodeIndex];
+					},this);
+				},this)
+				.forEach(function(faceNodes, i){
+					// var faceShape = new this.scope.Path({segments:faceNodes,closed:true});
+					// faceShape.fillColor = this.style.face.fillColor;
+					// this.faces.push( faceShape );
+					this.addFace(faceNodes);
+				},this);
+		}
+		this.setViewBox();
+	}
+	
+	OrigamiFold.prototype.addFace = function(vertices, index){
+		var pointsString = vertices
+			.reduce(function(prev,curr){ return prev + curr[0] + "," + curr[1] + " "}, "");
+		var polygon = document.createElementNS(svgNS,"polygon");
+		polygon.setAttributeNS(null, 'points', pointsString);
+		polygon.setAttributeNS(null, 'class', 'folded-face');
+		polygon.setAttributeNS(null, 'id', 'face-' + index);
+		this.facesLayer.appendChild(polygon);
+	}
+
+	OrigamiFold.prototype.load = function(path){ // (svg, callback, epsilon){}
+		// figure out the file extension
+		var extension = 'svg';
+		var that = this;
+		switch(extension){
+			case 'fold':
+			fetch(path)
+				.then(function(response){ return response.json(); })
+				.then(function(data){
+
+				});
+			break;
+			case 'svg':
+			fetch(path)
+				.then(response => response.text())
+				.then(function(string){
+					var data = (new window.DOMParser()).parseFromString(string, "text/xml");
+					that.cp = new SVGLoader().convertToCreasePattern(data);
+					// that.cp = new SVGLoader().convertToCreasePattern(data, epsilon);
+					that.foldedCP = cp.fold();
+					that.draw();
+					if(callback != undefined){
+						// callback(that.cp);
+					}
+				});
+			break;
+		}
+		return this;
+	}
+
+	return OrigamiFold;
+}());
+
+
+var SVGLoader = (function(){
+	function SVGLoader(){}
+
+	SVGLoader.prototype.parseCSSText = function (styleContent) {
+		styleElement = document.createElement("style");
+		styleElement.textContent = styleContent;
+		document.body.appendChild(styleElement);
+		var rules = styleElement.sheet.cssRules;
+		document.body.removeChild(styleElement);
+		return rules;
+	};
+
+	SVGLoader.prototype.convertToCreasePattern = function(data){
+		// console.log(data.childNodes);
+		// get CSS style header if it exists
+		var styleTag = data.getElementsByTagName('style')[0];
+		if(styleTag != undefined && styleTag.childNodes != undefined && styleTag.childNodes.length > 0){
+			cssStyle = this.parseCSSText( styleTag.childNodes[0].nodeValue );
+		}
+		var svg = data.getElementsByTagName('svg')[0];
+
 		var properties = ['x', 'y', 'width', 'height'];
 		var values = properties.map(function(prop){
-				return xml.attributes[prop] == undefined ? "" : xml.attributes[prop].nodeValue;
+				return svg.attributes[prop] == undefined ? "" : svg.attributes[prop].nodeValue;
 			},this)
 			.map(function(string){ return parseFloat(string); },this);
-		var viewBoxString = xml.attributes['viewBox'] == undefined ? "" :  xml.attributes['viewBox'].nodeValue;
+		var viewBoxString = svg.attributes['viewBox'] == undefined ? "" :  svg.attributes['viewBox'].nodeValue;
 		var viewBoxValues = viewBoxString.split(' ').map(function(el){ return parseFloat(el); },this);
 		var bounds = {'origin':{'x':values[0], 'y':values[1]}, 'size':{'width':values[2], 'height':values[3]} };
 		if(isNaN(bounds.size.width)){ bounds.size.width = viewBoxValues[2]; }
@@ -406,7 +725,7 @@ var OrigamiPaper = (function(){
 			},this);
 		}
 		var creases = { 'mountain':[], 'valley':[], 'mark':[] };
-		depthFirstAddElement(xml.children, creases);
+		depthFirstAddElement(svg.children, creases);
 
 		var cp = new CreasePattern();
 		// erase boundary, to be set later by convex hull
@@ -415,6 +734,17 @@ var OrigamiPaper = (function(){
 		creases.mark.forEach(function(p){ cp.newCrease(p[0], p[1], p[2], p[3]).mark(); },this);
 		creases.valley.forEach(function(p){ cp.newCrease(p[0], p[1], p[2], p[3]).valley(); },this);
 		creases.mountain.forEach(function(p){ cp.newCrease(p[0], p[1], p[2], p[3]).mountain(); },this);
+
+		// is there a better way to do this?
+		cp.edges.forEach(function(edge){
+			if( cp.boundary.edges
+				.filter(function(b){ return b.parallel(edge); },this)
+				.filter(function(b){ return b.collinear(edge.nodes[0]); },this)
+				.length > 0){
+					edge.border();
+				}
+		},this);
+
 		// find the convex hull of the CP, set it to the boundary
 		var points = cp.nodes.map(function(p){ return gimme1XY(p); },this);
 		cp.boundary.convexHull(points);
@@ -422,54 +752,6 @@ var OrigamiPaper = (function(){
 		return cp;
 	}
 
-	OrigamiPaper.prototype.parseCSSText = function (styleContent) {
-		styleElement = document.createElement("style");
-		styleElement.textContent = styleContent;
-		document.body.appendChild(styleElement);
-		var rules = styleElement.sheet.cssRules;
-		document.body.removeChild(styleElement);
-		return rules;
-	};
-
-	OrigamiPaper.prototype.stringNumberToNumber = function(string){ return parseFloat(string); }
-
-	OrigamiPaper.prototype.load = function(path){
-		// figure out the file extension
-		var extension = 'svg';
-		var that = this;
-		switch(extension){
-			case 'fold':
-			fetch(path)
-				.then(function(response){ return response.json(); })
-				.then(function(data){
-
-				});
-			break;
-			case 'svg':
-			fetch(path)
-				.then(response => response.text())
-				.then(function(string){
-					var cssStyle, data = (new window.DOMParser()).parseFromString(string, "text/xml");
-					// console.log(data.childNodes);
-					// get CSS style header if it exists
-					var styleTag = data.getElementsByTagName('style')[0];
-					if(styleTag != undefined && styleTag.childNodes != undefined && styleTag.childNodes.length > 0){
-						cssStyle = that.parseCSSText( styleTag.childNodes[0].nodeValue );
-					}
-					var svg = data.getElementsByTagName('svg')[0];
-					that.cp = that.importSVG(svg, cssStyle);
-					that.draw();
-				});
-			break;
-		}
-	}
-
-	OrigamiPaper.prototype.onResize = function(event){ }
-	OrigamiPaper.prototype.onFrame = function(event){ }
-	OrigamiPaper.prototype.onMouseDown = function(event){ }
-	OrigamiPaper.prototype.onMouseUp = function(event){ }
-	OrigamiPaper.prototype.onMouseMove = function(event){ }
-	OrigamiPaper.prototype.onMouseDidBeginDrag = function(event){ }
-
-	return OrigamiPaper;
+	return SVGLoader;
 }());
+

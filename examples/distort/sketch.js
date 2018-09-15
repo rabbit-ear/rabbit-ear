@@ -1,8 +1,9 @@
 // example
 // mouse press to drag nodes around
+var div = document.getElementsByClassName('row')[0];
 var cp = new CreasePattern().frogBase();
-var origami = new OrigamiPaper("canvas-cp", cp);
-var folded = new OrigamiFold("canvas-folded", cp);
+var origami = new OrigamiPaper(div, cp);
+var folded = new OrigamiFold(div, cp);
 
 // origami.load("../../files/svg/komatsu-minotaur.svg", function(cp){
 // 	folded.cp = cp;
@@ -10,16 +11,10 @@ var folded = new OrigamiFold("canvas-folded", cp);
 // 	origami.draw();
 // })
 
-origami.show.nodes = true;
-origami.show.boundary = false;
-origami.style.node.fillColor = {alpha:0.0};
-origami.style.node.radius = 0.02;
-origami.draw();
-
 origami.onMouseMove = function(event){
-	origami.update();
+	origami.draw();
 	origami.nearest = origami.cp.nearest(event.point);
-	origami.get(origami.nearest.node).fillColor = this.styles.byrne.yellow;
+	this.addClass(this.get(origami.nearest.node), 'fill-yellow');
 	if(origami.selected){
 		origami.selected.x = event.point.x;
 		origami.selected.y = event.point.y;

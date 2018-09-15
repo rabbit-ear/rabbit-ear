@@ -25,7 +25,7 @@ consoleDiv.id = "code-console";
 document.getElementById("code-container").appendChild(consoleDiv)
 
 var cp = new CreasePattern();
-var origami = new OrigamiPaper("canvas", cp);
+var origami = new OrigamiPaper(document.getElementsByClassName("row")[0], cp);
 origami.setPadding(0.05);
 
 //reflection

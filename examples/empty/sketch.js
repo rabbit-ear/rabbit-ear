@@ -1,5 +1,4 @@
-var origami = new OrigamiPaper("canvas-cp");
-
+var origami = new OrigamiPaper();
 
 // event handlers for touch input
 origami.onMouseDown = function(event){

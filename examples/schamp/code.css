@@ -1,3 +1,5 @@
+:root{ --crease-width: 0.01; }
+
 html, body {
 	height:100%;
 	width:100%;
@@ -5,6 +7,12 @@ html, body {
 	display:flex;
 	flex-direction: column;
 }
+svg{
+	flex:1;
+	width:45vw;
+	height:45vw;
+}
+/* code console */
 .CodeMirror {
 	border: 1px solid #666;
 	height: auto;
@@ -18,11 +26,6 @@ html, body {
 	display:flex;
 	flex-direction: row;
 }
-canvas[resize]{
-	flex:1;
-	width:45vw;
-	height:45vw;
-}
 #code-column{
 	flex:1;
 	width:100%;
@@ -30,4 +33,30 @@ canvas[resize]{
 }
 #code-console{
 	font-family: monospace;
+}
+/* crease pattern */
+.boundary{
+	fill: white;
+	stroke: black;
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+}
+.node  { fill: none; stroke: none; }
+.face  { fill: none; stroke: none; }
+.sector{ fill: none; stroke: none; }
+.mountain{
+	stroke: hsl(14.4, 87%, 45%);
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+}
+.valley{
+	stroke: hsl(205, 74%, 30%);
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2)
+}
+.mark{
+	stroke: #888;
+	stroke-width: calc( var(--crease-width) * 0.5);
+	stroke-linecap: round;
 }

@@ -22,7 +22,6 @@ document.getElementById("files").onchange = function(){
 	var reader = new FileReader();
 	reader.onloadend = function(evt) {
 		if (evt.target.readyState == FileReader.DONE){
-			console.log(evt.target);
 			//byte range: ['Read ', file.size, ' byte file'].join('');
 			fileDidLoad( evt.target.result, file.type, file.name.substr((file.name.lastIndexOf('.') + 1)) );
 		}
