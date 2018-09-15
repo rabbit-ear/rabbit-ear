@@ -214,22 +214,14 @@ var OrigamiPaper = (function(){
 		this.cp.nodes.forEach(function(node){ this.addNode(node); },this);
 		this.cp.edges.forEach(function(edge){ this.addEdge(edge); },this);
 		this.cp.faces.forEach(function(face){ this.addFace(face); },this);
-		// this.cp.junctions.forEach(function(junction){ this.addJunction(junction); },this);
-		// this.cp.sectors.forEach(function(sector){ this.addSector(sector); },this);
-		for(var j = 0; j < this.cp.junctions.length; j++){
-			var junction = this.cp.junctions[j];
-			var shortest = this.style.sector.scale * junction.sectors
+		this.cp.junctions.forEach(function(junction){ 
+			this.addJunction(junction);
+			var radius = this.style.sector.scale * junction.sectors
 				.map(function(el){ return el.edges[0].length(); },this)
 				.sort(function(a,b){return a-b;})
 				.shift();
-			console.log(shortest);
-			for(var s = 0; s < junction.sectors.length; s++){
-				var origin = junction.sectors[s].origin;
-				var startVec = junction.sectors[s].endPoints[0].copy().subtract(origin).normalize();
-				var endVec = junction.sectors[s].endPoints[1].copy().subtract(origin).normalize();
-				this.addSector(junction.sectors[s], shortest, Math.atan2(startVec.y, startVec.x), Math.atan2(endVec.y, endVec.x))
-			}
-		}
+			junction.sectors.forEach(function(sector){ this.addSector(sector, radius); },this);
+		},this);
 	}
 
 	OrigamiPaper.prototype.addNode = function(node){
@@ -265,9 +257,16 @@ var OrigamiPaper = (function(){
 		polygon.setAttributeNS(null, 'id', 'face-' + face.index);
 		this.facesLayer.appendChild(polygon);
 	}
-	OrigamiPaper.prototype.addSector = function(sector, radius, startAngle, endAngle){
+	OrigamiPaper.prototype.addSector = function(sector, radius){
+		var origin = sector.origin;
+		var v = sector.endPoints.map(function(vec){ return vec.subtract(origin).normalize().scale(radius); },this);
+		var arcVec = v[1].subtract(v[0]);
+		var arc = Math.atan2(v[0].x*v[1].y - v[0].y*v[1].x, v[0].x*v[1].x + v[0].y*v[1].y) > 0 ? 0 : 1;
+		var d = 'M ' + origin.x + ',' + origin.y + ' l ' + v[0].x + ',' + v[0].y + ' ';
+		d += ['a ', radius, radius, 0, arc, 1,  arcVec.x, arcVec.y].join(' ');
+		d += ' Z';
 		var path = document.createElementNS(svgNS,"path");
-		path.setAttribute('d', this.makeArc(sector.origin.x, sector.origin.y, radius, startAngle, endAngle));
+		path.setAttribute('d', d);
 		path.setAttributeNS(null, 'class', 'sector');
 		path.setAttributeNS(null, 'id', 'sector-' + sector.index);
 		this.sectorsLayer.appendChild(path);
@@ -421,27 +420,6 @@ var OrigamiPaper = (function(){
 		cp.boundary.convexHull(points);
 		cp.clean();
 		return cp;
-	}
-
-	OrigamiPaper.prototype.polarToCartesian = function(centerX, centerY, radius, angleInRadians) {
-		// var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
-		return {
-			x: centerX + (radius * Math.cos(angleInRadians)),
-			y: centerY + (radius * Math.sin(angleInRadians))
-		};
-	}
-
-	OrigamiPaper.prototype.makeArc = function(x, y, radius, startAngle, endAngle){
-		var start = this.polarToCartesian(x, y, radius, endAngle);
-		var end = this.polarToCartesian(x, y, radius, startAngle);
-		var arcSweep = endAngle - startAngle <= 180 ? "0" : "1";
-		var d = [
-			"M", start.x, start.y, 
-			"A", radius, radius, 0, arcSweep, 0, end.x, end.y,
-			"L", x,y,
-			"L", start.x, start.y
-		].join(" ");
-		return d;
 	}
 
 	OrigamiPaper.prototype.parseCSSText = function (styleContent) {

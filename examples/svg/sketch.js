@@ -15,13 +15,19 @@ origami.load("all-shapes.svg");
 
 origami.onMouseMove = function(point){
 	this.update();
-	var edge = this.cp.nearest(point).edge;
-	if (edge != undefined){
-		var svgEdge = document.getElementById("edge-" + edge.index);
+	var nearest = this.cp.nearest(point);
+	if (nearest.edge != undefined){
+		var svgEdge = document.getElementById("edge-" + nearest.edge.index);
 		if(svgEdge != undefined){
 			svgEdge.setAttributeNS(null, 'class', 'stroke-yellow');
 		}
 	}
+
+	this.addClass(this.get(nearest.node), 'fill-yellow');
+	// this.addClass(this.get(nearest.edge), 'stroke-yellow');
+	this.addClass(this.get(nearest.face), 'fill-red');
+	this.addClass(this.get(nearest.sector), 'fill-yellow');
+
 }
 
 origami.onMouseDown = function(point){

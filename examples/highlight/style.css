@@ -50,7 +50,6 @@ svg{
 	stroke-linecap: round;
 }
 .boundary{
-	/*fill: hsl(50, 99%, 98%);*/
 	fill: white;
 	stroke: black;
 	stroke-width: var(--crease-width);

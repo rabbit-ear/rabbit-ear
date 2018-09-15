@@ -14,10 +14,12 @@ svg{
 }
 
 .node{ fill: hsl(14.4, 87%, 45%); }
-.face{ fill: hsl(205, 74%, 61%); }
+.face{ fill: hsl(211, 78%, 55%); }
+/*.sector{ fill: hsl(211, 78%, 55%); }*/
+.sector{ fill: none; }
 
 .valley{
-	stroke: hsl(205, 74%, 30%);
+	stroke: hsl(211, 78%, 55%);
 	stroke-width: 0.004;
 	stroke-linecap: round;
 	stroke-dasharray:0.00666 0.01;
@@ -48,5 +50,11 @@ svg{
 
 .red { stroke: hsl(14, 87%, 45%); }
 .yellow { stroke: hsl(43, 88%, 46% ); }
-.darkBlue { stroke: hsl(191, 82%, 14% ); }
-.blue { stroke: hsl(205, 74%, 30%); }
+.dark-blue { stroke: hsl(191, 82%, 14% ); }
+.blue { stroke: hsl(211, 78%, 55%); }
+
+
+.fill-yellow{ fill: hsl(43, 88%, 46%); }
+.fill-red{ fill: hsl(14, 87%, 45%); }
+.fill-dark-blue { fill: hsl(191, 82%, 14% ); }
+.fill-blue { fill: hsl(211, 78%, 55%); }
