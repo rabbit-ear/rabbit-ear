@@ -1,6 +1,7 @@
-var folded = new OrigamiFold("canvas-2");
-var origami = new OrigamiPaper("canvas-1");
-folded.style = { face:{ fillColor:{ gray:0.0, alpha:0.2 } } };
+var div = document.getElementsByClassName('row')[0];
+var origami = new OrigamiPaper(div);
+var folded = new OrigamiFold(div);
+// folded.style = { face:{ fillColor:{ gray:0.0, alpha:0.2 } } };
 folded.mouseZoom = false;
 folded.rotation = 180;
 

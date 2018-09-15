@@ -13,7 +13,10 @@
 <body>
 	<input type="file" id="files">
 	<div class="row canvases">
-		<canvas id="canvas-miura" resize class="half"></canvas><div id="code-column"><div id="code-container"></div></div>
+		<div id="cp-container" class="half"></div>
+		<div id="code-column">
+			<div id="code-container"></div>
+		</div>
 	</div>
 
 	<div class="row toolbar input-group" data-toggle="buttons">
@@ -26,9 +29,8 @@
 
 	</div>
 <script type="text/javascript" src="../../lib/codemirror/mode/javascript.js"></script>
-<script type="text/javascript" src="../../lib/paper-full.min.js"></script>
 <script type="text/javascript" src="../../cp.js"></script>
-<script type="text/javascript" src="../../cp.paperjs.js"></script>
+<script type="text/javascript" src="../../origamiPaper.js"></script>
 <script type="text/javascript" src="../tools/drag-and-drop.js"></script>
 <script type="text/javascript" src="../../examples/lib/bootstrap/js/bootstrap-slider.min.js"></script>
 <script type="text/javascript" src="sketch.js"></script>

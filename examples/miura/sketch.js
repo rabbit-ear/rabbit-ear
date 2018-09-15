@@ -1,3 +1,4 @@
+
 var myCodeMirror = CodeMirror(document.getElementById("code-container"), {
 	value: "",
 	mode:  "javascript",
@@ -86,10 +87,10 @@ function fileDidLoad(blob, mimeType, fileExtension){
 
 // $().button('toggle')
 /////////////////////////////////////////////
-
-var origami = new OrigamiPaper("canvas-miura");
-origami.style.mountain.strokeColor = {gray:0.0}
-origami.mediumLines();
+var div = document.getElementById('cp-container');
+var origami = new OrigamiPaper(div);
+// origami.style.mountain.strokeColor = {gray:0.0}
+// origami.mediumLines();
 
 var dragOn = false;
 var selectedNode = undefined;

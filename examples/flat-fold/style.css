@@ -1,3 +1,5 @@
+:root{ --crease-width: 0.01; }
+
 html,body{
 	height:100%;
 	margin:0px;
@@ -6,12 +8,12 @@ html,body{
 	align-items: center;
 	justify-content: center;
 }
-canvas[resize]{
-	width:100vw;
+svg{
+/*	width:100vw;
 	height:100vh;
 	margin:auto;
 }
-canvas[resize].half{
+svg.half{*/
 	width:45vmax;
 	height:45vmax;
 	max-width:100vw;
@@ -35,3 +37,31 @@ canvas[resize].half{
 .btn{
 	margin:2px;
 }
+.boundary{
+	fill: white;
+	stroke: black;
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+}
+.node  { fill: none; stroke: none; }
+.face  { fill: none; stroke: none; }
+.sector{ fill: none; stroke: none; }
+.mountain{
+	stroke: hsl(14.4, 87%, 45%);
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+}
+.valley{
+	stroke: hsl(205, 74%, 30%);
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2)
+}
+.mark{
+	stroke: #888;
+	stroke-width: calc( var(--crease-width) * 0.5);
+	stroke-linecap: round;
+}
+.stroke-yellow{ stroke: hsl(43, 88%, 46%); }
+.fill-yellow{ fill: hsl(43, 88%, 46%); }
+.folded-face{ fill: rgba(0,0,0,0.05); }

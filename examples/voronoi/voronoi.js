@@ -58,14 +58,18 @@ document.getElementById("sites-checkbox").addEventListener("click", function(e){
 
 var voronoiAlgorithm; // global D3 algorithm implementation
 
-var project = new OrigamiPaper("canvas-voronoi");
-project.style.mountain.strokeColor = {gray:0.0}
-project.mediumLines();
+var div = document.getElementsByClassName('canvases')[0];
+var project = new OrigamiPaper(div);
+// project.style.mountain.strokeColor = {gray:0.0}
+// project.mediumLines();
 project.showSites = false;
 
 var touchNodes = new PlanarGraph();
 var touchNodesCircles = [];
-var touchNodesLayer
+
+touchNodesLayer = document.createElementNS(svgNS, 'g');
+touchNodesLayer.setAttributeNS(null, 'id', 'touch-nodes');
+project.svg.appendChild(touchNodesLayer);
 
 for(var i = 0; i < 3; i++){
 	touchNodes.newPlanarNode(Math.random()*1, Math.random());
@@ -99,13 +103,19 @@ project.drawVoronoi = function(complex, showGussets){
 		}
 	}
 	this.draw();
-	touchNodesLayer.activate();
-	touchNodesLayer.removeChildren();
+
+	while(touchNodesLayer.lastChild){ touchNodesLayer.removeChild(touchNodesLayer.lastChild); }
+
 	touchNodesCircles = [];
 	for(var i = 0; i < touchNodes.nodes.length; i++){
-		var nodeCircle = new this.scope.Shape.Circle({ radius: 0.0025, fillColor:this.style.valley.strokeColor});
-		touchNodesCircles.push(nodeCircle);
-		nodeCircle.position = touchNodes.nodes[i];
+		var dot = document.createElementNS(svgNS,"circle");
+		dot.setAttribute('cx', touchNodes.nodes[i].x);
+		dot.setAttribute('cy', touchNodes.nodes[i].y);
+		dot.setAttribute('r', 0.0025);
+		dot.setAttribute('class', 'touch-node');
+		dot.setAttribute('id', 'touch-node-' + i);
+		touchNodesLayer.appendChild(dot);
+		touchNodesCircles.push(dot);
 	}
 	return v;
 }
@@ -118,8 +128,7 @@ project.reset = function(){
 	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
 	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
 
-	if(touchNodesLayer !== undefined){ touchNodesLayer.removeChildren(); }
-	touchNodesLayer = new this.scope.Layer();
+	while(touchNodesLayer.lastChild){ touchNodesLayer.removeChild(touchNodesLayer.lastChild); }
 
 	this.drawVoronoi();
 }
@@ -140,8 +149,8 @@ project.onMouseDown = function(event){
 			for(var i = 0; i < touchNodes.nodes.length; i++){
 				if(touchNodesCircles[i] !== undefined){
 					var d = touchNodes.nodes[i].distanceTo(event.point);
-					if(d < 0.01){ touchNodesCircles[i].radius = 0.005; selectedNode = i;}
-					else        { touchNodesCircles[i].radius = 0.0025; }
+					if(d < 0.01){ touchNodesCircles[i].setAttribute('r', 0.005); selectedNode = i;}
+					else        { touchNodesCircles[i].setAttribute('r', 0.0025); }
 				}
 			}
 			dragOn = true;
@@ -169,8 +178,8 @@ project.onMouseMove = function(event) {
 		for(var i = 0; i < touchNodes.nodes.length; i++){
 			if(touchNodesCircles[i] !== undefined){
 				var d = touchNodes.nodes[i].distanceTo(event.point);
-				if(d < 0.01){ touchNodesCircles[i].radius = 0.005; selectedNode = i;}
-				else        { touchNodesCircles[i].radius = 0.0025; }
+				if(d < 0.01){ touchNodesCircles[i].setAttribute('r', 0.005); selectedNode = i; }
+				else        { touchNodesCircles[i].setAttribute('r', 0.0025); }
 			}
 		}
 	}
