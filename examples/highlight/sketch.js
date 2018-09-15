@@ -3,18 +3,19 @@
 var cp = new CreasePattern().frogBase();
 var origami = new OrigamiPaper(cp);
 
+// origami.load("../../files/svg/yoshizawa-bird.svg");
+
 origami.onMouseMove = function(event){
 	// update returns all components back to their original color
-	origami.update();
+	this.update();
 	// now we set the colors of the components we want
 
 	// get all the nearest components to the cursor
-	var nearest = origami.cp.nearest(event);
+	var nearest = this.cp.nearest(event);
 
 	// get() gives us the SVG element that corresponds to the crease pattern data component
-	origami.get(nearest.node).setAttribute('class', 'fill-dark-blue');
-	origami.get(nearest.edge).setAttribute('class', 'stroke-yellow');
-	origami.get(nearest.face).setAttribute('class', 'fill-red');
-	origami.get(nearest.sector).setAttribute('class', 'fill-blue');
-
+	this.addClass(this.get(nearest.node), 'fill-dark-blue');
+	this.addClass(this.get(nearest.edge), 'stroke-yellow');
+	this.addClass(this.get(nearest.face), 'fill-red');
+	this.addClass(this.get(nearest.sector), 'fill-blue');
 }

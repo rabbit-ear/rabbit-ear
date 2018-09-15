@@ -29,7 +29,10 @@ svg{
 	fill: none;
 	stroke: none;
 }
-
+.sector{
+	fill: none;
+	stroke: none;
+}
 .valley{
 	stroke: hsl(205, 74%, 30%);
 	stroke-width: var(--crease-width);
@@ -42,7 +45,7 @@ svg{
 	stroke-linecap: round;
 }
 .mark{
-	stroke: black;
+	stroke: #888;
 	stroke-width: var(--crease-width-half);
 	stroke-linecap: round;
 }
@@ -54,12 +57,8 @@ svg{
 	stroke-linecap: round;
 }
 
-.stroke-yellow{
-	stroke: hsl(43, 88%, 46%);
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
-}
+.stroke-yellow{ stroke: hsl(43, 88%, 46%); }
 .fill-red{ fill: hsl(14.4, 87%, 45%); }
-.fill-blue{ fill: hsl(205, 74%, 61%); }
+.fill-blue{ fill: hsl(205, 74%, 30%); }
 .fill-dark-blue{ fill: hsl(191, 82%, 14% ); }
 .fill-black{ fill: black; }
