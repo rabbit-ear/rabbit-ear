@@ -32,6 +32,7 @@ document.getElementById("download-sites").addEventListener("click", function(e){
 
 function fileDidLoad(blob, mimeType, fileExtension){
 	var points = JSON.parse(blob);
+	console.log(points);
 	touchNodes.nodes = [];
 	points.forEach(function(point){
 		touchNodes.newPlanarNode(point[0], point[1]);

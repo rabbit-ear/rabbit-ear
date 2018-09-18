@@ -1,8 +1,16 @@
-var folded = new OrigamiFold("canvas-2").setPadding(0.02);
-var origami = new OrigamiPaper("canvas-1").setPadding(0.02);
-folded.style = { face:{ fillColor:{ gray:1.0, alpha:0.66 } } };
+
+var origami = new OrigamiPaper("svgs").setPadding(0.02);
+var folded = new OrigamiFold("svgs").setPadding(0.02);
+// folded.style = { face:{ fillColor:{ gray:1.0, alpha:0.66 } } };
 folded.mouseZoom = false;
-origami.markLayer = new origami.scope.Layer();
+// origami.markLayer = new origami.scope.Layer();
+origami.markLayer = document.createElementNS(svgNS,'g');
+origami.touchPointsLayer = document.createElementNS(svgNS,'g');
+origami.arrowLayer = document.createElementNS(svgNS,'g');
+origami.svg.appendChild(origami.markLayer);
+origami.svg.appendChild(origami.touchPointsLayer);
+origami.svg.appendChild(origami.arrowLayer);
+origami.touchPoints = [];
 
 origami.convertLine = function(d, u){ return new Line(d*u.x, d*u.y, u.y, u.x); }
 
@@ -10,12 +18,48 @@ origami.axiom = undefined;
 origami.marks = [];
 origami.lines = [];
 
-var markColor = origami.styles.byrne.yellow;//{gray:0.8};
+// var markColor = origami.styles.byrne.yellow;//{gray:0.8};
+
+origami.makeTouchPoint = function(location, radius, className){
+	var x,y;
+	if(location.x != undefined){ x = location.x; y = location.y; }
+	else if(Array.isArray(location) && location.length > 1){ x = location[0]; y = location[1]; }
+	var dot = document.createElementNS(svgNS,'circle');
+	dot.setAttribute('cx', x);
+	dot.setAttribute('cy', y);
+	dot.setAttribute('r', radius);
+	dot.setAttribute('class', className);
+	dot.setAttribute('id', 'touch-point-' + this.touchPoints.length);
+	this.touchPointsLayer.appendChild(dot);
+	this.touchPoints.push(dot);
+}
+
+origami.newLine = function(x1, y1, x2, y2, className){
+	var line = document.createElementNS(svgNS,'line');
+	line.setAttribute('x1', x1);
+	line.setAttribute('y1', y1);
+	line.setAttribute('x2', x2);
+	line.setAttribute('y2', y2);
+	line.setAttribute('class', className);
+	return line;
+}
+
+
+origami.clearTouchPoints = function(){
+	this.touchPoints = [];
+	while(this.touchPointsLayer.lastChild) {
+		this.touchPointsLayer.removeChild(this.touchPointsLayer.lastChild);
+	}
+}
+
+origami.getPosition = function(svgElement){
+	var x = svgElement.getAttribute('cx') != undefined ? svgElement.getAttribute('cx') : svgElement.getAttribute('x');
+	var y = svgElement.getAttribute('cy') != undefined ? svgElement.getAttribute('cy') : svgElement.getAttribute('y');
+	return { 'x':parseFloat(x), 'y':parseFloat(y) };
+}
+
 
 origami.setAxiom = function(number, marks, lines){
-	var lineTouchPointStyles = {strokeColor:markColor, fillColor:markColor, radius:0.005};
-	var markTouchPointStyles = {strokeColor:this.styles.byrne.yellow, fillColor:this.styles.byrne.yellow, radius:0.015};
-	// var lineTouchPointStyles = {strokeColor:markColor, fillColor:{gray:1.0}};
 	origami.axiom = number;
 	origami.marks = marks;
 	origami.lines = lines;
@@ -26,58 +70,58 @@ origami.setAxiom = function(number, marks, lines){
 	switch(origami.axiom){
 		case 1:
 			if(marks.length < 2){ throw "axiom 1 is expecting two marks"; }
-			origami.makeTouchPoint(marks[0], markTouchPointStyles);
-			origami.makeTouchPoint(marks[1], markTouchPointStyles);
+			origami.makeTouchPoint(marks[0], 0.015, 'mark-touch-point');
+			origami.makeTouchPoint(marks[1], 0.015, 'mark-touch-point');
 			break;
 		case 2:
 			if(marks.length < 2){ throw "axiom 2 is expecting two marks"; }
-			origami.makeTouchPoint(marks[0], markTouchPointStyles);
-			origami.makeTouchPoint(marks[1], markTouchPointStyles);
+			origami.makeTouchPoint(marks[0], 0.015, 'mark-touch-point');
+			origami.makeTouchPoint(marks[1], 0.015, 'mark-touch-point');
 			break;
 		case 3:
 			if(lines.length < 2){ throw "axiom 3 is expecting two marks"; }
 			var edge0 = origami.cp.boundary.clipLine(lines[0]);
 			var edge1 = origami.cp.boundary.clipLine(lines[1]);
-			origami.makeTouchPoint(edge0.nodes[0], lineTouchPointStyles);
-			origami.makeTouchPoint(edge0.nodes[1], lineTouchPointStyles);
-			origami.makeTouchPoint(edge1.nodes[0], lineTouchPointStyles);
-			origami.makeTouchPoint(edge1.nodes[1], lineTouchPointStyles);
+			origami.makeTouchPoint(edge0.nodes[0], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge0.nodes[1], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge1.nodes[0], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge1.nodes[1], 0.015, 'line-touch-point');
 			break;
 		case 4:
 			if(marks.length < 1 && lines.length < 1){ throw "axiom 4 is expecting one mark and one line"; }
-			origami.makeTouchPoint(marks[0], markTouchPointStyles);
+			origami.makeTouchPoint(marks[0], 0.015, 'mark-touch-point');
 			var edge0 = origami.cp.boundary.clipLine(lines[0]);
-			origami.makeTouchPoint(edge0.nodes[0], lineTouchPointStyles);
-			origami.makeTouchPoint(edge0.nodes[1], lineTouchPointStyles);
+			origami.makeTouchPoint(edge0.nodes[0], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge0.nodes[1], 0.015, 'line-touch-point');
 			break;
 		case 5:
 			if(marks.length < 2 && lines.length < 1){ throw "axiom 5 is expecting two marks and one line"; }
-			origami.makeTouchPoint(marks[0], markTouchPointStyles);
-			origami.makeTouchPoint(marks[1], markTouchPointStyles);
+			origami.makeTouchPoint(marks[0], 0.015, 'mark-touch-point');
+			origami.makeTouchPoint(marks[1], 0.015, 'mark-touch-point');
 			var edge0 = origami.cp.boundary.clipLine(lines[0]);
-			origami.makeTouchPoint(edge0.nodes[0], lineTouchPointStyles);
-			origami.makeTouchPoint(edge0.nodes[1], lineTouchPointStyles);
+			origami.makeTouchPoint(edge0.nodes[0], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge0.nodes[1], 0.015, 'line-touch-point');
 			break;
 		case 6:
 			if(marks.length < 2 && lines.length < 2){ throw "axiom 6 is expecting two marks and two lines"; }
-			origami.makeTouchPoint(marks[0], markTouchPointStyles);
-			origami.makeTouchPoint(marks[1], markTouchPointStyles);
+			origami.makeTouchPoint(marks[0], 0.015, 'mark-touch-point');
+			origami.makeTouchPoint(marks[1], 0.015, 'mark-touch-point');
 			var edge0 = origami.cp.boundary.clipLine(lines[0]);
 			var edge1 = origami.cp.boundary.clipLine(lines[1]);
-			origami.makeTouchPoint(edge0.nodes[0], lineTouchPointStyles);
-			origami.makeTouchPoint(edge0.nodes[1], lineTouchPointStyles);
-			origami.makeTouchPoint(edge1.nodes[0], lineTouchPointStyles);
-			origami.makeTouchPoint(edge1.nodes[1], lineTouchPointStyles);
+			origami.makeTouchPoint(edge0.nodes[0], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge0.nodes[1], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge1.nodes[0], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge1.nodes[1], 0.015, 'line-touch-point');
 			break;
 		case 7:
 			if(marks.length < 1 && lines.length < 2){ throw "axiom 7 is expecting one mark and two lines"; }
-			origami.makeTouchPoint(marks[0], markTouchPointStyles);
+			origami.makeTouchPoint(marks[0], 0.015, 'mark-touch-point');
 			var edge0 = origami.cp.boundary.clipLine(lines[0]);
 			var edge1 = origami.cp.boundary.clipLine(lines[1]);
-			origami.makeTouchPoint(edge0.nodes[0], lineTouchPointStyles);
-			origami.makeTouchPoint(edge0.nodes[1], lineTouchPointStyles);
-			origami.makeTouchPoint(edge1.nodes[0], lineTouchPointStyles);
-			origami.makeTouchPoint(edge1.nodes[1], lineTouchPointStyles);
+			origami.makeTouchPoint(edge0.nodes[0], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge0.nodes[1], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge1.nodes[0], 0.015, 'line-touch-point');
+			origami.makeTouchPoint(edge1.nodes[1], 0.015, 'line-touch-point');
 			break;
 	}
 	this.redraw();
@@ -86,7 +130,10 @@ origami.setAxiom = function(number, marks, lines){
 origami.redraw = function(){
 	origami.cp.clear();
 	paper = this.scope;
-	this.markLayer.removeChildren();
+	while(this.markLayer.lastChild) {
+		this.markLayer.removeChild(this.markLayer.lastChild);
+	}
+
 	var crease;
 	switch(this.axiom){
 		case 1:
@@ -102,31 +149,24 @@ origami.redraw = function(){
 			crease = creases[0];
 			if(crease == undefined){ return; }
 			crease.valley();
-			this.markLayer.activate();
-			var path0 = new this.scope.Path(m0.nodes[0], m0.nodes[1]);
-			var path1 = new this.scope.Path(m1.nodes[0], m1.nodes[1]);
-			path0.strokeWidth = 0.01;
-			path1.strokeWidth = 0.01;
-			path0.strokeColor = markColor;
-			path1.strokeColor = markColor;
+			var path0 = this.newLine(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path1 = this.newLine(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
+			this.markLayer.appendChild(path0);
+			this.markLayer.appendChild(path1);
 			break;
 		case 4:
 			var m0 = this.cp.boundary.clipLine(this.lines[0]);
 			crease = this.cp.creasePerpendicularThroughPoint(m0, this.marks[0]).valley();
-			this.markLayer.activate();
-			var path0 = new this.scope.Path(m0.nodes[0], m0.nodes[1]);
-			path0.strokeWidth = 0.01;
-			path0.strokeColor = markColor;
+			var path0 = this.newLine(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			this.markLayer.appendChild(path0);
 			break;
 		case 5:
 			var m0 = this.cp.boundary.clipLine(this.lines[0]);
 			crease = this.cp.creasePointToLine(this.marks[0], this.marks[1], m0)[0];
 			if(crease == undefined){ return; }
 			crease.valley();
-			this.markLayer.activate();
-			var path0 = new this.scope.Path(m0.nodes[0], m0.nodes[1]);
-			path0.strokeWidth = 0.01;
-			path0.strokeColor = markColor;
+			var path0 = this.newLine(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			this.markLayer.appendChild(path0);
 			break;
 		case 6:
 			var m0 = this.cp.boundary.clipLine(this.lines[0]);
@@ -136,13 +176,10 @@ origami.redraw = function(){
 			crease = creases[0];
 			if(crease == undefined){ return; }
 			crease.valley();
-			this.markLayer.activate();
-			var path0 = new this.scope.Path(m0.nodes[0], m0.nodes[1]);
-			var path1 = new this.scope.Path(m1.nodes[0], m1.nodes[1]);
-			path0.strokeWidth = 0.01;
-			path1.strokeWidth = 0.01;
-			path0.strokeColor = markColor;
-			path1.strokeColor = markColor;
+			var path0 = this.newLine(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path1 = this.newLine(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
+			this.markLayer.appendChild(path0);
+			this.markLayer.appendChild(path1);
 			break;
 		case 7:
 			var m0 = this.cp.boundary.clipLine(this.lines[0]);
@@ -150,20 +187,14 @@ origami.redraw = function(){
 			crease = this.cp.creasePerpendicularPointOntoLine(this.marks[0], m0, m1);
 			if(crease == undefined){ return; }
 			crease.valley();
-			this.markLayer.activate();
-			var path0 = new this.scope.Path(m0.nodes[0], m0.nodes[1]);
-			var path1 = new this.scope.Path(m1.nodes[0], m1.nodes[1]);
-			path0.strokeWidth = 0.01;
-			path1.strokeWidth = 0.01;
-			path0.strokeColor = markColor;
-			path1.strokeColor = markColor;
+			var path0 = this.newLine(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path1 = this.newLine(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
+			this.markLayer.appendChild(path0);
+			this.markLayer.appendChild(path1);
 			break;
 
 		}
 
-		if(this.arrowLayer == undefined){ this.arrowLayer = new this.scope.Layer(); }
-		this.arrowLayer.activate();
-		this.arrowLayer.removeChildren();
 		switch(this.axiom){
 			case 2:
 				var intersect = crease.nearestPointNormalTo(new XY(this.marks[0].x, this.marks[0].y));
@@ -199,36 +230,55 @@ origami.updateFoldedState = function(cp){
 	folded.draw();
 }
 
+origami.onMouseDown = function(event){
+	function pointsSimilar(a, b, epsilon){
+		function epsilonEqual(a, b, epsilon){return ( Math.abs(a-b) < epsilon );}
+		return epsilonEqual(a.x,b.x,epsilon) && epsilonEqual(a.y,b.y,epsilon);
+	}
+	for(var i = 0; i < this.touchPoints.length; i++){
+		var tp = {x:parseFloat(this.touchPoints[i].getAttribute('cx')), y:parseFloat(this.touchPoints[i].getAttribute('cy'))};
+		if(pointsSimilar(this.mouse.position, tp, 0.03)){
+			this.selectedTouchPoint = this.touchPoints[i];
+		}
+	}
+}
+
 origami.onMouseMove = function(event){
 	if(this.mouse.isPressed){
+		if(this.mouse.isDragging && this.selectedTouchPoint !== undefined){
+			this.selectedTouchPoint.setAttribute('cx', this.mouse.position.x);
+			this.selectedTouchPoint.setAttribute('cy', this.mouse.position.y);
+		}
+
 		switch(this.axiom){
 			case 1:
-			case 2: this.marks = this.touchPoints.map(function(tp){return tp.position }); break;
+			case 2: this.marks = this.touchPoints.map(function(p){ return this.getPosition(p); },this); 
+				break;
 			case 3: this.lines = [
-				new Edge(this.touchPoints[0].position, this.touchPoints[1].position).infiniteLine(),
-				new Edge(this.touchPoints[2].position, this.touchPoints[3].position).infiniteLine()
+				new Edge(this.getPosition(this.touchPoints[0]), this.getPosition(this.touchPoints[1])).infiniteLine(),
+				new Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine()
 			]; break;
 			case 4: 
-				this.marks = [this.touchPoints[0].position];
+				this.marks = [this.getPosition(this.touchPoints[0])];
 				this.lines = [
-					new Edge(this.touchPoints[1].position, this.touchPoints[2].position).infiniteLine()
+					new Edge(this.getPosition(this.touchPoints[1]), this.getPosition(this.touchPoints[2])).infiniteLine()
 				]; break;
 			case 5: 
-				this.marks = [this.touchPoints[0].position, this.touchPoints[1].position];
+				this.marks = [this.getPosition(this.touchPoints[0]), this.getPosition(this.touchPoints[1])];
 				this.lines = [
-					new Edge(this.touchPoints[2].position, this.touchPoints[3].position).infiniteLine()
+					new Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine()
 				]; break;
 			case 6: 
-				this.marks = [this.touchPoints[0].position, this.touchPoints[1].position];
+				this.marks = [this.getPosition(this.touchPoints[0]), this.getPosition(this.touchPoints[1])];
 				this.lines = [
-					new Edge(this.touchPoints[2].position, this.touchPoints[3].position).infiniteLine(),
-					new Edge(this.touchPoints[4].position, this.touchPoints[5].position).infiniteLine()
+					new Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine(),
+					new Edge(this.getPosition(this.touchPoints[4]), this.getPosition(this.touchPoints[5])).infiniteLine()
 				]; break;
 			case 7: 
-				this.marks = [this.touchPoints[0].position];
+				this.marks = [this.getPosition(this.touchPoints[0])];
 				this.lines = [
-					new Edge(this.touchPoints[1].position, this.touchPoints[2].position).infiniteLine(),
-					new Edge(this.touchPoints[3].position, this.touchPoints[4].position).infiniteLine()
+					new Edge(this.getPosition(this.touchPoints[1]), this.getPosition(this.touchPoints[2])).infiniteLine(),
+					new Edge(this.getPosition(this.touchPoints[3]), this.getPosition(this.touchPoints[4])).infiniteLine()
 				]; break;
 		}
 		this.redraw();
@@ -276,6 +326,7 @@ origami.drawArrowAcross = function(crease, crossing){
 	// new this.scope.Path({segments:[crossing, crossing.add(toMiddleOfPage)], strokeColor:this.styles.byrne.blue, strokeWidth:0.005})
 
 	// curved arrow arc
+/*	
 	var color = this.styles.byrne.red;
 	new this.scope.Path.Arc({from:arcEnds[0], through:arcMid, to:arcEnds[1], strokeColor:color, strokeWidth:0.01});
 
@@ -291,7 +342,7 @@ origami.drawArrowAcross = function(crease, crossing){
 		arrowhead.fillColor = color;
 		arrowhead.strokeColor = null;
 	},this);
-
+*/
 }
 
 var selectAxiom = function(n){

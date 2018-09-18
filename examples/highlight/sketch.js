@@ -1,10 +1,7 @@
 // example
 // mouse hover over nodes, faces, edges, sectors to highlight them
-// var cp = new CreasePattern().frogBase();
-// var origami = new OrigamiPaper(cp);
-var origami = new OrigamiPaper();
-
-origami.load("../../files/svg/yoshizawa-bird.svg");
+var cp = new CreasePattern().frogBase();
+var origami = new OrigamiPaper(cp);
 
 origami.onMouseMove = function(event){
 	// update returns all components back to their original color

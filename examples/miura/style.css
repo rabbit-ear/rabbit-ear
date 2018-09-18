@@ -7,10 +7,13 @@ html,body{
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	background-color:hsl(205, 74%, 30%);
-	color:white;
 }
 svg{
+/*	width:100vw;
+	height:calc(100vh - 70px);
+	margin:auto;
+}
+.half{*/
 	width:45vmax;
 	height:45vmax;
 	max-width:100vw;
@@ -23,6 +26,28 @@ svg{
 .canvases{
 	flex: 1 0 0;
 }
+/* code mirror */
+.CodeMirror {
+	border: 2px solid #666;
+	height: auto;
+	overflow-y: auto;
+	overflow-x: scroll;
+	min-width: 30vw;
+	margin:1em;
+}
+#code-container{
+	margin:auto;
+}
+#code-column{
+	flex:1;
+	display:flex;
+	align-items: center;
+	justify-content: center;
+}
+#code-console{
+	font-family: monospace;
+}
+/* toolbar and input */
 .toolbar{
 	flex: 0 0 70px;
 	width:100%;
@@ -31,16 +56,25 @@ svg{
 	align-items: center;
 	justify-content: center;
 }
+input[type="text"]{
+	max-width:80px;
+}
 .btn{
 	margin:2px;
 }
-.btn-outline-light:hover{
-	color:hsl(205, 74%, 30%);
+#interp-value{
+	width:4rem;
+	display: inline-block;
+	text-align: center;
 }
-.btn-outline-light.active{
-	color:hsl(205, 74%, 30%);
+.slider.slider-horizontal{
+	width:200px;
+	margin:0 10px;
 }
-/* crease pattern */
+input#files{
+	display:none;
+}
+
 .boundary{
 	fill: white;
 	stroke: black;
@@ -64,20 +98,5 @@ svg{
 .mark{
 	stroke: #888;
 	stroke-width: calc( var(--crease-width) * 0.5);
-	stroke-linecap: round;
-}
-.folded-face{ fill: rgba(255,255,255,0.5); }
-
-.fill-yellow{ fill: hsl(43, 88%, 46%); }
-
-.mark-touch-point{
-	fill:hsl(43, 88%, 46%);
-}
-.line-touch-point{
-	fill:hsl(43, 88%, 46%);
-}
-.yellow-line{
-	stroke: hsl(43, 88%, 46%);
-	stroke-width: 0.01;
 	stroke-linecap: round;
 }
