@@ -198,7 +198,7 @@ class VoronoiJunction{
 	edgeNormal:M.XY;// normal to the edge, if there is an edge
 	constructor(){ this.edges = []; this.cells = []; this.isEdge = false; this.isCorner = false; }
 }
-class VoronoiGraph{
+export class VoronoiGraph{
 	edges:VoronoiEdge[];
 	junctions:VoronoiJunction[];
 	cells:VoronoiCell[];
@@ -374,7 +374,7 @@ class VoronoiGraph{
 	}
 }
 
-function creaseVoronoi(cp:CreasePattern, v:VoronoiGraph, interp?:number):any[]{
+export function creaseVoronoi(cp:CreasePattern, v:VoronoiGraph, interp?:number):any[]{
 
 	// returns an array of VoronoiMolecule[]
 	// creaseVoronoi(v:VoronoiGraph, interp?:number):any[]{
