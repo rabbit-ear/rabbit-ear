@@ -4,13 +4,13 @@
 
 "use strict";
 
-var EPSILON_LOW  = 0.003;
-var EPSILON      = 0.00001;
-var EPSILON_HIGH = 0.00000001;
-var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a screen
+export var EPSILON_LOW  = 0.003;
+export var EPSILON      = 0.00001;
+export var EPSILON_HIGH = 0.00000001;
+export var EPSILON_UI   = 0.05;  // user tap, based on precision of a finger on a screen
 
 ////////////////////////////   DATA TYPES   ///////////////////////////
-class Tree<T>{
+export class Tree<T>{
 	obj:T;
 	parent:Tree<T>;
 	children:Tree<T>[];
@@ -65,7 +65,7 @@ function clockwiseInteriorAngleRadians(a:number, b:number):number{
 	if(a_b >= 0) return a_b;
 	return Math.PI*2 - (b - a);
 }
-function counterClockwiseInteriorAngleRadians(a:number, b:number):number{
+export function counterClockwiseInteriorAngleRadians(a:number, b:number):number{
 	// this is on average 50 to 100 times faster than clockwiseInteriorAngle
 	while(a < 0){ a += Math.PI*2; }
 	while(b < 0){ b += Math.PI*2; }
@@ -79,7 +79,7 @@ function counterClockwiseInteriorAngleRadians(a:number, b:number):number{
  * @param {XY} vector
  * @returns {number} clockwise interior angle (from a to b) in radians
  */
-function clockwiseInteriorAngle(a:XY, b:XY):number{
+export function clockwiseInteriorAngle(a:XY, b:XY):number{
 	// this is on average 50 to 100 slower faster than clockwiseInteriorAngleRadians
 	var dotProduct = b.x*a.x + b.y*a.y;
 	var determinant = b.x*a.y - b.y*a.x;
@@ -162,7 +162,8 @@ function intersectionRayRay(a:Ray, b:Ray, epsilon?:number):XY{
 		new XY(b.direction.x, b.direction.y),
 		function(t0,t1){return t0 >= -epsilon && t1 >= -epsilon;}, epsilon);
 }
-function intersectionRayEdge(ray:Ray, edge:Edge, epsilon?:number):XY{
+// used by voronoi. should work around and remove export
+export function intersectionRayEdge(ray:Ray, edge:Edge, epsilon?:number):XY{
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(ray.origin.x, ray.origin.y),
@@ -206,7 +207,7 @@ function intersectionCircleLine(center:XY, radius:number, p0:XY, p1:XY):XY[]{
 /////////////////////////////////////////////////////////////////////////////////
 
 /** This is a 2x3 matrix: 2x2 for scale and rotation and 2x1 for translation */
-class Matrix{
+export class Matrix{
 	a:number; c:number; tx:number;
 	b:number; d:number; ty:number;
 	constructor(a?:number, b?:number, c?:number, d?:number, tx?:number, ty?:number){
@@ -276,7 +277,7 @@ interface Point {
 	readonly y: number;
 }
 /** The base type for all vector representations, contains numbers x and y */
-class XY implements Point{
+export class XY implements Point{
 	x:number;
 	y:number;
 	constructor(x:number, y:number){ this.x = x; this.y = y; }
@@ -337,7 +338,7 @@ abstract class LineType{
 	// clipWithEdgesDetails(edges:Edge[], epsilon?:number){}
 }
 /** 2D line, extending infinitely in both directions, represented by a point and a vector */
-class Line implements LineType{
+export class Line implements LineType{
 	point:XY;
 	direction:XY;
 	constructor(a:any, b:any, c?:any, d?:any){
@@ -423,7 +424,7 @@ class Line implements LineType{
 	}
 }
 /** 2D line, extending infinitely in one direction, represented by a point and a vector */
-class Ray implements LineType{
+export class Ray implements LineType{
 	origin:XY;
 	direction:XY;
 	constructor(a:any, b:any, c?:any, d?:any){
@@ -533,7 +534,7 @@ class Ray implements LineType{
 	}
 }
 /** 2D finite line, bounded and defined by two endpoints */
-class Edge implements LineType{
+export class Edge implements LineType{
 	nodes:[XY,XY];
 	// a, b are points, or
 	// (a,b) point 1 and (c,d) point 2, each x,y
@@ -612,7 +613,7 @@ class Edge implements LineType{
 	infiniteLine():Line{ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
 }
 /** A path of node-adjacent edges defined by a set of nodes. */
-class Polyline{
+export class Polyline{
 	nodes:XY[];
 
 	constructor(){ this.nodes = []; }
@@ -669,7 +670,7 @@ class Polyline{
 	}
 }
 /** A rectilinear space defined by width and height and one corner of the rectangle */
-class Rect{
+export class Rect{
 	origin:{x:number,y:number};
 	size:{width:number, height:number};
 	constructor(x:number,y:number,width:number,height:number){
@@ -685,7 +686,7 @@ class Rect{
 	}
 }
 /** A verbose representation of a triangle containing points, edges, sectors (interior angles), and its circumcenter */
-class Triangle{
+export class Triangle{
 	points:[XY,XY,XY];
 	edges:[Edge, Edge, Edge];
 	circumcenter:XY;
@@ -746,7 +747,7 @@ class Triangle{
 	}
 }
 /** A circle defined by its center point and radius length */
-class Circle{
+export class Circle{
 	center:XY;
 	radius:number;
 	constructor(a:any, b:any, c?:any){
@@ -765,7 +766,7 @@ class Circle{
 	}
 }
 /** The boundary of a polygon defined by a sequence of nodes */
-class Polygon{
+export class Polygon{
 	nodes:XY[];
 	constructor(){ this.nodes = []; }
 	/** This compares two polygons by checking their nodes are the same, and in the same order.
@@ -849,7 +850,7 @@ class Polygon{
 	transform(matrix){ this.nodes.forEach(function(node){node.transform(matrix);},this); }
 }
 /** An ordered set of node-adjacent edges defining the boundary of a convex space */
-class ConvexPolygon{
+export class ConvexPolygon{
 	edges:Edge[];
 	constructor(){ this.edges = []; }
 	nodes():XY[]{
@@ -1074,7 +1075,7 @@ class ConvexPolygon{
 	}	
 }
 /** a Sector is defined by three nodes connecting two adjacent edges (one common node) */
-class Sector{
+export class Sector{
 	// the node in common with the edges
 	origin:XY;
 	// the indices of these 2 nodes directly correlate to 2 edges' indices

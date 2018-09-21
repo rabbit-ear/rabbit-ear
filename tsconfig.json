@@ -1,8 +1,10 @@
 {
 	"compilerOptions": {
+		"allowJs": true,
 		"removeComments": true,
-		"outFile": "cp.js",
-		"allowJs": true
+		// "outFile": "cp.js",
+		"outDir": "src/compiled",
+		"module": "ES6"
 	},
 	"include": [
 		"lib/rbush.min.js"

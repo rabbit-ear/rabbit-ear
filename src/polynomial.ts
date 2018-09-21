@@ -5,6 +5,8 @@ Web Site:	http://www.scienceit.freeurl.com/sitepage.htm
 
 Converted to typescript by Martin Hunt (@Starwarigami)*/
 
+function isValidNumber(n:number):boolean{return(n!==undefined&&!isNaN(n)&&!isNaN(n));}
+
 class ComplexNumber
 {
 	x:number;
@@ -199,7 +201,7 @@ class DepressedCubicEquation extends Polynomial
 	}
 }
 
-class CubicEquation extends Polynomial
+export default class CubicEquation extends Polynomial
 {
 	a:ComplexNumber;
 	b:ComplexNumber;
