@@ -2,12 +2,13 @@ import SVGLoader from './SVGLoader.js'
 import {GraphNode, GraphEdge} from './compiled/src/graph.js'
 import {PlanarFace, PlanarSector, PlanarGraph} from './compiled/src/planarGraph.js'
 import CreasePattern from './compiled/src/CreasePattern.js'
+import SimpleSVG from './SimpleSVG.js'
 
 'use strict';
 
 var svgNS = 'http://www.w3.org/2000/svg';
 
-export default class OrigamiFold{
+export default class OrigamiFold extends SimpleSVG{
 
 	onResize(event){ }
 	onFrame(event){ }
@@ -17,6 +18,7 @@ export default class OrigamiFold{
 	onMouseDidBeginDrag(event){ }
 
 	constructor() {
+		super();
 		// read arguments:
 		//   a CreasePattern() object
 		//   a parent DOM node for the new SVG as an HTML element or as a id-string
@@ -31,8 +33,21 @@ export default class OrigamiFold{
 		if(this.cp == undefined){ this.cp = new CreasePattern(); }
 		if(parent == undefined){ parent = document.body; }
 
-		this.svg = this.createNewSVG();
+		this.svg = this.SVG();
 		parent.appendChild(this.svg);
+
+		this.facesLayer = this.group('faces');
+		this.junctionsLayer = this.group('junctions');
+		this.sectorsLayer = this.group('sectors');
+		this.edgesLayer = this.group('creases');
+		this.boundaryLayer = this.group('boundary');
+		this.nodesLayer = this.group('nodes');
+		this.svg.appendChild(this.boundaryLayer);
+		this.svg.appendChild(this.facesLayer);
+		this.svg.appendChild(this.junctionsLayer);
+		this.svg.appendChild(this.sectorsLayer);
+		this.svg.appendChild(this.edgesLayer);
+		this.svg.appendChild(this.nodesLayer);
 
 		this.padding = 0.0;  // padding inside the canvas
 		this.mouseZoom = true;
@@ -53,7 +68,7 @@ export default class OrigamiFold{
 		this.svg.onmousedown = function(event){
 			that.mouse.isPressed = true;
 			that.mouse.isDragging = false;
-			that.mouse.pressed = that.convertDOMtoSVG(event);
+			that.mouse.pressed = that.convertToViewbox(that.svg, event.clientX, event.clientY);
 			that.zoomOnMousePress = that.zoom;
 			that.rotationOnMousePress = that.rotation;
 			// that.attemptSelection();
@@ -63,10 +78,10 @@ export default class OrigamiFold{
 			that.mouse.isPressed = false;
 			that.mouse.isDragging = false;
 			that.selectedTouchPoint = undefined;
-			that.onMouseUp( {point:that.convertDOMtoSVG(event)} );
+			that.onMouseUp( {point:that.convertToViewbox(that.svg, event.clientX, event.clientY)} );
 		}
 		this.svg.onmousemove = function(event){
-			that.mouse.position = that.convertDOMtoSVG(event);
+			that.mouse.position = that.convertToViewbox(that.svg, event.clientX, event.clientY);
 			if(that.mouse.isPressed){ 
 				if(that.mouse.isDragging == false){
 					that.mouse.isDragging = true;
@@ -91,40 +106,6 @@ export default class OrigamiFold{
 		this.zoom = 1.0;
 		this.rotation = 0;
 		this.setViewBox();
-	}
-	createNewSVG(){
-		var svg = document.createElementNS(svgNS, 'svg');
-		svg.setAttribute("viewBox", "0 0 1 1");
-
-		this.facesLayer = document.createElementNS(svgNS, 'g');
-		this.junctionsLayer = document.createElementNS(svgNS, 'g');
-		this.sectorsLayer = document.createElementNS(svgNS, 'g');
-		this.edgesLayer = document.createElementNS(svgNS, 'g');
-		this.boundaryLayer = document.createElementNS(svgNS, 'g');
-		this.nodesLayer = document.createElementNS(svgNS, 'g');
-
-		this.facesLayer.setAttributeNS(null, 'id', 'faces');
-		this.junctionsLayer.setAttributeNS(null, 'id', 'junctions');
-		this.sectorsLayer.setAttributeNS(null, 'id', 'sectors');
-		this.edgesLayer.setAttributeNS(null, 'id', 'creases');
-		this.boundaryLayer.setAttributeNS(null, 'id', 'boundary');
-		this.nodesLayer.setAttributeNS(null, 'id', 'nodes');
-
-		svg.appendChild(this.boundaryLayer);
-		svg.appendChild(this.facesLayer);
-		svg.appendChild(this.junctionsLayer);
-		svg.appendChild(this.sectorsLayer);
-		svg.appendChild(this.edgesLayer);
-		svg.appendChild(this.nodesLayer);
-
-		return svg;
-	}
-	convertDOMtoSVG(event){
-		var pt = this.svg.createSVGPoint();
-		pt.x = event.clientX;
-		pt.y = event.clientY;
-		var svgPoint = pt.matrixTransform(this.svg.getScreenCTM().inverse());
-		return { x: svgPoint.x, y: svgPoint.y };
 	}
 
 	getBounds(){
@@ -159,18 +140,8 @@ export default class OrigamiFold{
 	}
 
 	update(){
-		// this.edgesLayer.childNodes.forEach(function(edge,i){
-		// 	if(this.cp.edges[i] != undefined){
-		// 		edge.setAttributeNS(null, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
-		// 	}
-		// },this);
 		this.facesLayer.childNodes.forEach(function(face){ face.setAttributeNS(null, 'class', 'face'); },this);
-		// this.nodesLayer.childNodes.forEach(function(node){ node.setAttributeNS(null, 'class', 'node'); },this);
-		// this.sectorsLayer.childNodes.forEach(function(sector){ sector.setAttributeNS(null, 'class', 'sector'); },this);
-		// this.junctionsLayer.childNodes.forEach(function(junction){ junction.setAttributeNS(null, 'class', 'junction'); },this);
 	}
-
-
 
 	draw(groundFace){
 		this.setViewBox();
@@ -185,53 +156,20 @@ export default class OrigamiFold{
 			}
 		},this);
 
-		// var pointsString = this.cp.boundary.nodes().reduce(function(prev,curr){
-		// 	return prev + curr.x + "," + curr.y + " ";
-		// },"");
-		
-		// var boundaryPolygon = document.createElementNS(svgNS, "polygon");
-		// boundaryPolygon.setAttributeNS(null, 'class', 'boundary');
-		// boundaryPolygon.setAttributeNS(null, 'points', pointsString);
-		// this.boundaryLayer.appendChild(boundaryPolygon);
-
-		// this.cp.nodes.forEach(function(node){ this.addNode(node); },this);
-		// this.cp.edges.forEach(function(edge){ this.addEdge(edge); },this);
-		// this.cp.faces.forEach(function(face){ this.addFace(face); },this);
-		// this.cp.junctions.forEach(function(junction){ 
-		// 	this.addJunction(junction);
-		// 	var radius = this.style.sector.scale * junction.sectors
-		// 		.map(function(el){ return el.edges[0].length(); },this)
-		// 		.sort(function(a,b){return a-b;})
-		// 		.shift();
-		// 	junction.sectors.forEach(function(sector){ this.addSector(sector, radius); },this);
-		// },this);
-
-
 		if(this.foldedCP != undefined){
-
 			this.foldedCP.faces_vertices
 				.map(function(face){
 					return face.map(function(nodeIndex){
 						return this.foldedCP.vertices_coords[nodeIndex];
 					},this);
 				},this)
-				.forEach(function(faceNodes, i){
-					// var faceShape = new this.scope.Path({segments:faceNodes,closed:true});
-					// faceShape.fillColor = this.style.face.fillColor;
-					// this.faces.push( faceShape );
-					this.addFace(faceNodes);
-				},this);
+				.forEach(function(faceNodes, i){ this.addFace(faceNodes); },this);
 		}
 		this.setViewBox();
 	}
 	
 	addFace(vertices, index){
-		var pointsString = vertices
-			.reduce(function(prev,curr){ return prev + curr[0] + "," + curr[1] + " "}, "");
-		var polygon = document.createElementNS(svgNS,"polygon");
-		polygon.setAttributeNS(null, 'points', pointsString);
-		polygon.setAttributeNS(null, 'class', 'folded-face');
-		polygon.setAttributeNS(null, 'id', 'face-' + index);
+		var polygon = this.polygon(vertices, 'folded-face', 'face-' + index);
 		this.facesLayer.appendChild(polygon);
 	}
 

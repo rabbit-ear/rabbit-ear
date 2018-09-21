@@ -7,6 +7,9 @@ import './compiled/src/polynomial.js';
 import './compiled/lib/rbush.min.js';
 
 import CreasePattern from './compiled/src/CreasePattern.js';
+
+import SimpleSVG from './SimpleSVG.js';
+
 import OrigamiPaper from './OrigamiPaper.js';
 import OrigamiFold from './OrigamiFold.js';
 

@@ -2,6 +2,7 @@ import SVGLoader from './SVGLoader.js'
 import {GraphNode, GraphEdge} from './compiled/src/graph.js'
 import {PlanarFace, PlanarSector, PlanarGraph} from './compiled/src/planarGraph.js'
 import CreasePattern from './compiled/src/CreasePattern.js'
+import SimpleSVG from './SimpleSVG.js'
 
 'use strict';
 
@@ -18,7 +19,7 @@ var CreaseTypeString = {
 	3 : "valley",
 }
 
-export default class OrigamiPaper{
+export default class OrigamiPaper extends SimpleSVG{
 
 	onResize(event){ }
 	onFrame(event){ }
@@ -28,6 +29,7 @@ export default class OrigamiPaper{
 	onMouseDidBeginDrag(event){ }
 
 	constructor() {
+		super();
 		// read arguments:
 		//   a CreasePattern() object
 		//   a parent DOM node for the new SVG as an HTML element or as a id-string
@@ -42,17 +44,23 @@ export default class OrigamiPaper{
 		if(this.cp == undefined){ this.cp = new CreasePattern(); }
 		if(parent == undefined){ parent = document.body; }
 
-		this.svg = this.createNewSVG();
+		this.svg = this.SVG();
 		parent.appendChild(this.svg);
 
-		this.padding = 0.01;  // padding inside the canvas
+		this.facesLayer = this.group('faces');
+		this.junctionsLayer = this.group('junctions');
+		this.sectorsLayer = this.group('sectors');
+		this.edgesLayer = this.group('creases');
+		this.boundaryLayer = this.group('boundary');
+		this.nodesLayer = this.group('nodes');
+		this.svg.appendChild(this.boundaryLayer);
+		this.svg.appendChild(this.facesLayer);
+		this.svg.appendChild(this.junctionsLayer);
+		this.svg.appendChild(this.sectorsLayer);
+		this.svg.appendChild(this.edgesLayer);
+		this.svg.appendChild(this.nodesLayer);
 
-		this.facesLayer;
-		this.junctionsLayer;
-		this.sectorsLayer;
-		this.edgesLayer;
-		this.boundaryLayer;
-		this.nodesLayer;
+		this.padding = 0.01;  // padding inside the canvas
 	
 		this.mouse = {
 			position: {'x':0,'y':0},  // the current position of the mouse
@@ -78,7 +86,7 @@ export default class OrigamiPaper{
 		this.svg.onmousedown = function(event){
 			that.mouse.isPressed = true;
 			that.mouse.isDragging = false;
-			that.mouse.pressed = that.convertDOMtoSVG(event);
+			that.mouse.pressed = that.convertToViewbox(that.svg, event.clientX, event.clientY);
 			// that.attemptSelection();
 			that.onMouseDown( {point:Object.assign({}, that.mouse.pressed)} );
 		}
@@ -86,10 +94,10 @@ export default class OrigamiPaper{
 			that.mouse.isPressed = false;
 			that.mouse.isDragging = false;
 			that.selectedTouchPoint = undefined;
-			that.onMouseUp( {point:that.convertDOMtoSVG(event)} );
+			that.onMouseUp( {point:that.convertToViewbox(that.svg, event.clientX, event.clientY)} );
 		}
 		this.svg.onmousemove = function(event){
-			that.mouse.position = that.convertDOMtoSVG(event);
+			that.mouse.position = that.convertToViewbox(that.svg, event.clientX, event.clientY);
 			if(that.mouse.isPressed){ 
 				if(that.mouse.isDragging === false){
 					that.mouse.isDragging = true;
@@ -108,42 +116,6 @@ export default class OrigamiPaper{
 			that.onFrame({'time':that.svg.getCurrentTime(),'frame':frameNum});
 			frameNum += 1;
 		}, 1000/60);
-	}
-	convertDOMtoSVG(event){
-		var pt = this.svg.createSVGPoint();
-		pt.x = event.clientX;
-		pt.y = event.clientY;
-		var svgPoint = pt.matrixTransform(this.svg.getScreenCTM().inverse());
-		return { x: svgPoint.x, y: svgPoint.y };
-	}
-	createNewSVG(){
-		var svg = document.createElementNS(svgNS, 'svg');
-		svg.setAttribute("viewBox", "0 0 1 1");
-		// svg.setAttribute("width", "100vmin");
-		// svg.setAttribute("height", "100vmin");
-
-		this.facesLayer = document.createElementNS(svgNS, 'g');
-		this.junctionsLayer = document.createElementNS(svgNS, 'g');
-		this.sectorsLayer = document.createElementNS(svgNS, 'g');
-		this.edgesLayer = document.createElementNS(svgNS, 'g');
-		this.boundaryLayer = document.createElementNS(svgNS, 'g');
-		this.nodesLayer = document.createElementNS(svgNS, 'g');
-
-		this.facesLayer.setAttributeNS(null, 'id', 'faces');
-		this.junctionsLayer.setAttributeNS(null, 'id', 'junctions');
-		this.sectorsLayer.setAttributeNS(null, 'id', 'sectors');
-		this.edgesLayer.setAttributeNS(null, 'id', 'creases');
-		this.boundaryLayer.setAttributeNS(null, 'id', 'boundary');
-		this.nodesLayer.setAttributeNS(null, 'id', 'nodes');
-
-		svg.appendChild(this.boundaryLayer);
-		svg.appendChild(this.facesLayer);
-		svg.appendChild(this.junctionsLayer);
-		svg.appendChild(this.sectorsLayer);
-		svg.appendChild(this.edgesLayer);
-		svg.appendChild(this.nodesLayer);
-
-		return svg;
 	}
 	setPadding(padding){
 		if(padding != undefined){
@@ -179,41 +151,24 @@ export default class OrigamiPaper{
 	hideFaces(){ origami.nodesLayer.setAttribute('display', 'none');}
 	hideSectors(){ origami.nodesLayer.setAttribute('display', 'none');}
 
-	addClass(xmlNode, newClass){
-		if(xmlNode == undefined){ return; }
-		var currentClass = xmlNode.getAttribute('class');
-		if(currentClass == undefined){ currentClass = "" }
-		var classes = currentClass.split(' ').filter(function(c){ return c != newClass; },this);
-		classes.push(newClass);
-		xmlNode.setAttribute('class', classes.join(' '));
-	}
-
-	removeClass(xmlNode, newClass){
-		if(xmlNode == undefined){ return; }
-		var currentClass = xmlNode.getAttribute('class');
-		if(currentClass == undefined){ currentClass = "" }
-		var classes = currentClass.split(' ').filter(function(c){ return c != newClass; },this);
-		xmlNode.setAttribute('class', classes.join(' '));
-	}
-
 	update(){
 		// better system, put everything inside of <g id="mountain">
 		// iterate over all child elements, look them up from their ids
 		// for(var i = 0; i < this.cp.edges.length; i++){
 		// 	var edge = document.getElementById("edge-" + i);
 		// 	if(edge != undefined){
-		// 		edge.setAttributeNS(null, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
+		// 		edge.setAttributeNS(svgNS, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
 		// 	}
 		// }
 		this.edgesLayer.childNodes.forEach(function(edge,i){
 			if(this.cp.edges[i] != undefined){
-				edge.setAttributeNS(null, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
+				edge.setAttributeNS(svgNS, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
 			}
 		},this);
-		this.facesLayer.childNodes.forEach(function(face){ face.setAttributeNS(null, 'class', 'face'); },this);
-		this.nodesLayer.childNodes.forEach(function(node){ node.setAttributeNS(null, 'class', 'node'); },this);
-		this.sectorsLayer.childNodes.forEach(function(sector){ sector.setAttributeNS(null, 'class', 'sector'); },this);
-		this.junctionsLayer.childNodes.forEach(function(junction){ junction.setAttributeNS(null, 'class', 'junction'); },this);
+		this.facesLayer.childNodes.forEach(function(face){ face.setAttributeNS(svgNS, 'class', 'face'); },this);
+		this.nodesLayer.childNodes.forEach(function(node){ node.setAttributeNS(svgNS, 'class', 'node'); },this);
+		this.sectorsLayer.childNodes.forEach(function(sector){ sector.setAttributeNS(svgNS, 'class', 'sector'); },this);
+		this.junctionsLayer.childNodes.forEach(function(junction){ junction.setAttributeNS(svgNS, 'class', 'junction'); },this);
 	}
 
 	draw(){
@@ -229,9 +184,9 @@ export default class OrigamiPaper{
 			return prev + curr.x + "," + curr.y + " ";
 		},"");
 		
-		var boundaryPolygon = document.createElementNS(svgNS, "polygon");
-		boundaryPolygon.setAttributeNS(null, 'class', 'boundary');
-		boundaryPolygon.setAttributeNS(null, 'points', pointsString);
+		var boundaryPolygon = document.createElementNS(svgNS, 'polygon');
+		boundaryPolygon.setAttributeNS(svgNS, 'class', 'boundary');
+		boundaryPolygon.setAttributeNS(svgNS, 'points', pointsString);
 		this.boundaryLayer.appendChild(boundaryPolygon);
 
 		this.cp.nodes.forEach(function(node){ this.addNode(node); },this);
@@ -248,35 +203,18 @@ export default class OrigamiPaper{
 	}
 
 	addNode(node){
-		var dot = document.createElementNS(svgNS,"circle");
-		dot.setAttributeNS(null, 'cx', node.x);
-		dot.setAttributeNS(null, 'cy', node.y);
-		dot.setAttributeNS(null, 'r', this.style.node.radius);
-		dot.setAttributeNS(null, 'class', 'node');
-		dot.setAttributeNS(null, 'id', 'node-' + node.index);
+		var dot = this.circle(node.x, node.y, this.style.node.radius, 'node', 'node-' + node.index);
 		this.nodesLayer.appendChild(dot);
 	}
 	addEdge(edge){
-		var line = document.createElementNS(svgNS,"line");
-		line.setAttributeNS(null, 'x1', edge.nodes[0].x);
-		line.setAttributeNS(null, 'y1', edge.nodes[0].y);
-		line.setAttributeNS(null, 'x2', edge.nodes[1].x);
-		line.setAttributeNS(null, 'y2', edge.nodes[1].y);
-		line.setAttributeNS(null, 'class', CreaseTypeString[edge.orientation]);
-		line.setAttributeNS(null, 'id', 'edge-' + edge.index);
+		var line = this.line(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y, CreaseTypeString[edge.orientation], 'edge-' + edge.index);
 		this.edgesLayer.appendChild(line);
 	}
 	addFace(face){
 		function lerp(a,b,pct){ var l = b-a; return a+l*(1-pct); }
 		var centroid = face.centroid();
-		var pointsString = face.nodes
-			// .map(function(el){ return [el.x, el.y]; })
-			.map(function(el){ return [lerp(el.x, centroid.x, this.style.face.scale), lerp(el.y, centroid.y, this.style.face.scale)]; },this)
-			.reduce(function(prev,curr){ return prev + curr[0] + "," + curr[1] + " "}, "");
-		var polygon = document.createElementNS(svgNS,"polygon");
-		polygon.setAttributeNS(null, 'points', pointsString);
-		polygon.setAttributeNS(null, 'class', 'face');
-		polygon.setAttributeNS(null, 'id', 'face-' + face.index);
+		var points = face.nodes.map(function(el){ return [lerp(el.x, centroid.x, this.style.face.scale), lerp(el.y, centroid.y, this.style.face.scale)]; },this);
+		var polygon = this.polygon(points, 'face', 'face-' + face.index);
 		this.facesLayer.appendChild(polygon);
 	}
 	addSector(sector, radius){
@@ -289,8 +227,8 @@ export default class OrigamiPaper{
 		d += ' Z';
 		var path = document.createElementNS(svgNS,"path");
 		path.setAttribute('d', d);
-		path.setAttributeNS(null, 'class', 'sector');
-		path.setAttributeNS(null, 'id', 'sector-' + sector.index);
+		path.setAttributeNS(svgNS, 'class', 'sector');
+		path.setAttributeNS(svgNS, 'id', 'sector-' + sector.index);
 		this.sectorsLayer.appendChild(path);
 	}
 	addJunction(junction){ }
