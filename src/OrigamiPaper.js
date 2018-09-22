@@ -1,8 +1,8 @@
-import SVGLoader from './SVGLoader.js'
+import FileImport from './SVGLoader.js'
 import {GraphNode, GraphEdge} from './compiled/src/graph.js'
 import {PlanarFace, PlanarSector, PlanarGraph} from './compiled/src/planarGraph.js'
 import CreasePattern from './compiled/src/CreasePattern.js'
-import SimpleSVG from './SimpleSVG.js'
+import * as SVG from './SimpleSVG.js'
 
 'use strict';
 
@@ -19,7 +19,7 @@ var CreaseTypeString = {
 	3 : "valley",
 }
 
-export default class OrigamiPaper extends SimpleSVG{
+export default class OrigamiPaper{
 
 	onResize(event){ }
 	onFrame(event){ }
@@ -29,7 +29,14 @@ export default class OrigamiPaper extends SimpleSVG{
 	onMouseDidBeginDrag(event){ }
 
 	constructor() {
-		super();
+		this.line = SVG.line;
+		this.circle = SVG.circle;
+		this.polygon = SVG.polygon;
+		this.group = SVG.group;
+		this.SVG = SVG.SVG;
+		this.addClass = SVG.addClass;
+		this.removeClass = SVG.removeClass;
+		this.convertToViewbox = SVG.convertToViewbox;
 		// read arguments:
 		//   a CreasePattern() object
 		//   a parent DOM node for the new SVG as an HTML element or as a id-string
@@ -47,12 +54,12 @@ export default class OrigamiPaper extends SimpleSVG{
 		this.svg = this.SVG();
 		parent.appendChild(this.svg);
 
-		this.facesLayer = this.group('faces');
-		this.junctionsLayer = this.group('junctions');
-		this.sectorsLayer = this.group('sectors');
-		this.edgesLayer = this.group('creases');
-		this.boundaryLayer = this.group('boundary');
-		this.nodesLayer = this.group('nodes');
+		this.facesLayer = this.group(null, 'faces');
+		this.junctionsLayer = this.group(null, 'junctions');
+		this.sectorsLayer = this.group(null, 'sectors');
+		this.edgesLayer = this.group(null, 'creases');
+		this.boundaryLayer = this.group(null, 'boundary');
+		this.nodesLayer = this.group(null, 'nodes');
 		this.svg.appendChild(this.boundaryLayer);
 		this.svg.appendChild(this.facesLayer);
 		this.svg.appendChild(this.junctionsLayer);
@@ -157,18 +164,18 @@ export default class OrigamiPaper extends SimpleSVG{
 		// for(var i = 0; i < this.cp.edges.length; i++){
 		// 	var edge = document.getElementById("edge-" + i);
 		// 	if(edge != undefined){
-		// 		edge.setAttributeNS(svgNS, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
+		// 		edge.setAttributeNS(null, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
 		// 	}
 		// }
 		this.edgesLayer.childNodes.forEach(function(edge,i){
 			if(this.cp.edges[i] != undefined){
-				edge.setAttributeNS(svgNS, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
+				edge.setAttributeNS(null, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
 			}
 		},this);
-		this.facesLayer.childNodes.forEach(function(face){ face.setAttributeNS(svgNS, 'class', 'face'); },this);
-		this.nodesLayer.childNodes.forEach(function(node){ node.setAttributeNS(svgNS, 'class', 'node'); },this);
-		this.sectorsLayer.childNodes.forEach(function(sector){ sector.setAttributeNS(svgNS, 'class', 'sector'); },this);
-		this.junctionsLayer.childNodes.forEach(function(junction){ junction.setAttributeNS(svgNS, 'class', 'junction'); },this);
+		this.facesLayer.childNodes.forEach(function(face){ face.setAttributeNS(null, 'class', 'face'); },this);
+		this.nodesLayer.childNodes.forEach(function(node){ node.setAttributeNS(null, 'class', 'node'); },this);
+		this.sectorsLayer.childNodes.forEach(function(sector){ sector.setAttributeNS(null, 'class', 'sector'); },this);
+		this.junctionsLayer.childNodes.forEach(function(junction){ junction.setAttributeNS(null, 'class', 'junction'); },this);
 	}
 
 	draw(){
@@ -185,8 +192,8 @@ export default class OrigamiPaper extends SimpleSVG{
 		},"");
 		
 		var boundaryPolygon = document.createElementNS(svgNS, 'polygon');
-		boundaryPolygon.setAttributeNS(svgNS, 'class', 'boundary');
-		boundaryPolygon.setAttributeNS(svgNS, 'points', pointsString);
+		boundaryPolygon.setAttributeNS(null, 'class', 'boundary');
+		boundaryPolygon.setAttributeNS(null, 'points', pointsString);
 		this.boundaryLayer.appendChild(boundaryPolygon);
 
 		this.cp.nodes.forEach(function(node){ this.addNode(node); },this);
@@ -207,15 +214,15 @@ export default class OrigamiPaper extends SimpleSVG{
 		this.nodesLayer.appendChild(dot);
 	}
 	addEdge(edge){
-		var line = this.line(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y, CreaseTypeString[edge.orientation], 'edge-' + edge.index);
-		this.edgesLayer.appendChild(line);
+		var creaseline = this.line(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y, CreaseTypeString[edge.orientation], 'edge-' + edge.index);
+		this.edgesLayer.appendChild(creaseline);
 	}
 	addFace(face){
 		function lerp(a,b,pct){ var l = b-a; return a+l*(1-pct); }
 		var centroid = face.centroid();
 		var points = face.nodes.map(function(el){ return [lerp(el.x, centroid.x, this.style.face.scale), lerp(el.y, centroid.y, this.style.face.scale)]; },this);
-		var polygon = this.polygon(points, 'face', 'face-' + face.index);
-		this.facesLayer.appendChild(polygon);
+		var poly = this.polygon(points, 'face', 'face-' + face.index);
+		this.facesLayer.appendChild(poly);
 	}
 	addSector(sector, radius){
 		var origin = sector.origin;
@@ -226,9 +233,9 @@ export default class OrigamiPaper extends SimpleSVG{
 		d += ['a ', radius, radius, 0, arc, 1,  arcVec.x, arcVec.y].join(' ');
 		d += ' Z';
 		var path = document.createElementNS(svgNS,"path");
-		path.setAttribute('d', d);
-		path.setAttributeNS(svgNS, 'class', 'sector');
-		path.setAttributeNS(svgNS, 'id', 'sector-' + sector.index);
+		path.setAttributeNS(null, 'd', d);
+		path.setAttributeNS(null, 'class', 'sector');
+		path.setAttributeNS(null, 'id', 'sector-' + sector.index);
 		this.sectorsLayer.appendChild(path);
 	}
 	addJunction(junction){ }
@@ -250,7 +257,7 @@ export default class OrigamiPaper extends SimpleSVG{
 				.then(response => response.text())
 				.then(function(string){
 					var data = (new window.DOMParser()).parseFromString(string, "text/xml");
-					that.cp = new SVGLoader().convertToCreasePattern(data);
+					that.cp = new FileImport(data);
 					that.draw();
 					// if(callback != undefined){
 					// 	// callback(that.cp);

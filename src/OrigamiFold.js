@@ -2,13 +2,13 @@ import SVGLoader from './SVGLoader.js'
 import {GraphNode, GraphEdge} from './compiled/src/graph.js'
 import {PlanarFace, PlanarSector, PlanarGraph} from './compiled/src/planarGraph.js'
 import CreasePattern from './compiled/src/CreasePattern.js'
-import SimpleSVG from './SimpleSVG.js'
+import * as SVG from './SimpleSVG.js'
 
 'use strict';
 
 var svgNS = 'http://www.w3.org/2000/svg';
 
-export default class OrigamiFold extends SimpleSVG{
+export default class OrigamiFold{
 
 	onResize(event){ }
 	onFrame(event){ }
@@ -18,7 +18,14 @@ export default class OrigamiFold extends SimpleSVG{
 	onMouseDidBeginDrag(event){ }
 
 	constructor() {
-		super();
+		this.line = SVG.line;
+		this.circle = SVG.circle;
+		this.polygon = SVG.polygon;
+		this.group = SVG.group;
+		this.SVG = SVG.SVG;
+		this.addClass = SVG.addClass;
+		this.removeClass = SVG.removeClass;
+		this.convertToViewbox = SVG.convertToViewbox;
 		// read arguments:
 		//   a CreasePattern() object
 		//   a parent DOM node for the new SVG as an HTML element or as a id-string
@@ -36,12 +43,12 @@ export default class OrigamiFold extends SimpleSVG{
 		this.svg = this.SVG();
 		parent.appendChild(this.svg);
 
-		this.facesLayer = this.group('faces');
-		this.junctionsLayer = this.group('junctions');
-		this.sectorsLayer = this.group('sectors');
-		this.edgesLayer = this.group('creases');
-		this.boundaryLayer = this.group('boundary');
-		this.nodesLayer = this.group('nodes');
+		this.facesLayer = group(null, 'faces');
+		this.junctionsLayer = group(null, 'junctions');
+		this.sectorsLayer = group(null, 'sectors');
+		this.edgesLayer = group(null, 'creases');
+		this.boundaryLayer = group(null, 'boundary');
+		this.nodesLayer = group(null, 'nodes');
 		this.svg.appendChild(this.boundaryLayer);
 		this.svg.appendChild(this.facesLayer);
 		this.svg.appendChild(this.junctionsLayer);
@@ -68,7 +75,7 @@ export default class OrigamiFold extends SimpleSVG{
 		this.svg.onmousedown = function(event){
 			that.mouse.isPressed = true;
 			that.mouse.isDragging = false;
-			that.mouse.pressed = that.convertToViewbox(that.svg, event.clientX, event.clientY);
+			that.mouse.pressed = convertToViewbox(that.svg, event.clientX, event.clientY);
 			that.zoomOnMousePress = that.zoom;
 			that.rotationOnMousePress = that.rotation;
 			// that.attemptSelection();
@@ -78,10 +85,10 @@ export default class OrigamiFold extends SimpleSVG{
 			that.mouse.isPressed = false;
 			that.mouse.isDragging = false;
 			that.selectedTouchPoint = undefined;
-			that.onMouseUp( {point:that.convertToViewbox(that.svg, event.clientX, event.clientY)} );
+			that.onMouseUp( {point:convertToViewbox(that.svg, event.clientX, event.clientY)} );
 		}
 		this.svg.onmousemove = function(event){
-			that.mouse.position = that.convertToViewbox(that.svg, event.clientX, event.clientY);
+			that.mouse.position = convertToViewbox(that.svg, event.clientX, event.clientY);
 			if(that.mouse.isPressed){ 
 				if(that.mouse.isDragging == false){
 					that.mouse.isDragging = true;
@@ -169,7 +176,7 @@ export default class OrigamiFold extends SimpleSVG{
 	}
 	
 	addFace(vertices, index){
-		var polygon = this.polygon(vertices, 'folded-face', 'face-' + index);
+		var polygon = polygon(vertices, 'folded-face', 'face-' + index);
 		this.facesLayer.appendChild(polygon);
 	}
 

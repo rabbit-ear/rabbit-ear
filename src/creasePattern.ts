@@ -1222,7 +1222,7 @@ export default class CreasePattern extends PlanarGraph{
 
 	//////////////////////////////////////////////
 	// GET PARTS
-	bounds():M.Rect{ return this.boundary.minimumRect(); }
+	// bounds():M.Rect{ return this.boundary.minimumRect(); }
 
 	bottomEdge():Crease{
 		return this.edges

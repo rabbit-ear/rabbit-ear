@@ -8,7 +8,7 @@ import './compiled/lib/rbush.min.js';
 
 import CreasePattern from './compiled/src/CreasePattern.js';
 
-import SimpleSVG from './SimpleSVG.js';
+import {line, circle, polygon, group, addClass, removeClass} from './SimpleSVG.js';
 
 import OrigamiPaper from './OrigamiPaper.js';
 import OrigamiFold from './OrigamiFold.js';
@@ -21,4 +21,7 @@ window.OrigamiFold = OrigamiFold;
 
 
 // export { CreasePattern, OrigamiPaper, OrigamiFold }
-export { CreasePattern, OrigamiPaper, OrigamiFold, VoronoiGraph, creaseVoronoi }
+export {
+	CreasePattern, OrigamiPaper, OrigamiFold, VoronoiGraph, creaseVoronoi,
+	line, circle, polygon, group, addClass, removeClass
+ }

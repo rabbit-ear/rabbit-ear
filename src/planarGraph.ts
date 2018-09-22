@@ -914,6 +914,29 @@ export class PlanarGraph extends Graph{
 	}
 
 	///////////////////////////////////////////////
+	//
+	///////////////////////////////////////////////
+
+	scaleToUnitHeight(){
+		var bounds = this.bounds();
+		var scale = 1 / (bounds.size.height - bounds.origin.y);
+		this.nodes.forEach(function(n){
+			n.x = (n.x - bounds.origin.x) * scale;
+			n.y = (n.y - bounds.origin.y) * scale;
+		},this);
+	}
+
+	scaleToUnitWidth(){
+		var bounds = this.bounds();
+		var scale = 1 / (bounds.size.width - bounds.origin.x);
+		this.nodes.forEach(function(n){
+			n.x = (n.x - bounds.origin.x) * scale;
+			n.y = (n.y - bounds.origin.y) * scale;
+		},this);
+	}
+
+
+	///////////////////////////////////////////////
 	// FRAGMENT, FACES
 	///////////////////////////////////////////////
 
