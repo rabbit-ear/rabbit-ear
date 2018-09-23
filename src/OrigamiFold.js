@@ -187,7 +187,7 @@ export default class OrigamiFold{
 		this.facesLayer.appendChild(polygon);
 	}
 
-	load(path){ // (svg, callback, epsilon){}
+	load(path, callback){ // (svg, callback, epsilon){}
 		// this.cp = new FileImport(path);
 		// this.draw();
 		// return;
@@ -209,7 +209,7 @@ export default class OrigamiFold{
 				.then(function(string){
 					that.cp = new FileImport(string);
 					that.draw();
-					// if(callback != undefined){ callback(that.cp); }
+					if(callback != undefined){ callback(that.cp); }
 				});
 			break;
 		}

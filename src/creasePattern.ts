@@ -915,6 +915,9 @@ export default class CreasePattern extends PlanarGraph{
 		if(a instanceof M.Ray){
 			return this.creaseRayRepeat(a);
 		}
+		if(isValidPoint(a) && isValidPoint(b)){
+			return this.creaseRayRepeat(new M.Ray(a, b));
+		}
 		return undefined;
 	}
 

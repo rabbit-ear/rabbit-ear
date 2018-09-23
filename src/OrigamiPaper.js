@@ -239,7 +239,7 @@ export default class OrigamiPaper{
 	}
 	addJunction(junction){ }
 
-	load(path){  // callback
+	load(path, callback){  // callback
 		this.cp = new FileImport(path);
 		this.draw();
 

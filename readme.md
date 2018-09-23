@@ -6,9 +6,15 @@ First time visitors, check out the [docs](https://rabbitear.org/docs/), there ar
 
 Download this repo and check out the `/examples/` folder.
 
+# Build
+
+build in 2 steps: `tsc` then `rollup -c`
+
+build requires you install typescript and rollup.
+
 # Usage
 
-Include `cp.js`, found in the root folder
+Include `RabbitEar.js` in your HTML file
 
 A crease pattern is initialized like so
 
@@ -47,28 +53,6 @@ creasePerpendicularPointOntoLine(...)
 ```
 
 There are also functions for checking local flat-foldability, Kawasaki-Justin's theorem, Maekawa's theorem, exposing the planar graph data structure. Everything is built on a custom geometry module giving the user complete control over the epsilon value for all adjacency or intersection calculations, useful for .svg file import. This library supports .fold, .oripa, and .svg file formats for import and export.
-
-# Paper.js
-
-If you include the popular vector graphics library [Paper.js](http://paperjs.org/), also include `cp.paperjs.js` in the root folder. One line of code is all you need to visualize your crease patter in HTML canvas. A lot of effort was spent hooking together these two libraries. After you initialize your crease pattern, throw it onto a canvas:
-
-```Javascript
-new OrigamiPaper("canvas-name", cp);
-```
-
-This OrigamiPaper object is interactive and includes built-in functions, modeled after the experience using creative coding platforms like Processing and openFrameworks:
-
-```javascript
-var project = new OrigamiPaper("canvas");
-
-project.animate = function(event){ }
-project.onResize = function(event){ }
-project.onMouseDown = function(event){ }
-project.onMouseUp = function(event){ }
-project.onMouseMove = function(event){ }
-```
-
-> If you don't initialize a crease pattern before creating the OrigamiPaper object, it will initialize a CreasePattern for you, located at `project.cp`
 
 # License
 

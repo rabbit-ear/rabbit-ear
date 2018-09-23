@@ -12,7 +12,7 @@
 <link rel="stylesheet" type="text/css" href="../docs/css/code.css">
 <link rel="stylesheet" type="text/css" href="css/byrne.css?version=0.1">
 <link rel="stylesheet" type="text/css" href="css/page.css?version=0.1">
-<link rel="stylesheet" type="text/css" href="css/crease.pattern.css?version=0.1">
+<link rel="stylesheet" type="text/css" href="css/cp-dark.css?version=0.1">
 
 <div class="container">
 
@@ -69,19 +69,20 @@
 </code></pre>
 </div>
 
-	<p>Open <strong>index.html</strong> you'll see an empty square piece paper. It assumes a square. You can change that later.</p>
+	<p>Open <strong>index.html</strong> you'll see an empty square piece paper. It assumes a square shape. You can change that later.</p>
 
 	<img src="images/empty-paper.svg">
+
+	<p>The origami paper comes from this one line of Javascript:</p>
+
 
 <div class="centered">
 <pre><code><f>var</f> origami <key>=</key> <key>new</key> OrigamiPaper();
 </code></pre>
 </div>
 
-	<p>This is the only line of Javascript needed to place an origami paper in the webpage.</p>
 
-
-	<p>Now let's crease the paper. To make a crease in Rabbit Ear we have to <em>add a crease onto the <strong>crease pattern object</strong> </em></p>
+	<p>Let's fold the paper. To make a crease in Rabbit Ear we <em>add a crease onto the <strong>crease pattern object</strong> </em></p>
 
 </section>
 
@@ -176,15 +177,14 @@
 		<button type="button" class="btn btn-dark" id="download-example-button">download .svg file</button>
 	</div>
 
-	<p>This code we wrote is the example <strong>flat-fold</strong> inside the <strong>/examples</strong> folder. Check out the other examples to get a quick sense about what is possible.</p>
-
-
-	<div class="centered">
-		<pre><code><key>new</key> OrigamiFold().<f>load</f>(<str>"crane.svg"</str>);</code></pre>
-	</div>
+	<p>This code we just wrote is called <strong>flat-fold</strong> inside the <strong>examples/</strong> folder. Check out the other examples to get a quick sense about what is possible.</p>
 
 	<div class="centered">
 		<div id="div-folded-crane" resize></div>
+	</div>
+
+	<div class="centered">
+		<pre><code><key>new</key> OrigamiFold().<f>load</f>(<str>"crane.svg"</str>);</code></pre>
 	</div>
 
 </section>
@@ -253,8 +253,22 @@ document.getElementById("download-example-button").onclick = function(event){
 
 <script>
 // folded crane
-var craneFold = new OrigamiFold("div-folded-crane").load("../files/svg/crane.svg");
+var craneFold = new OrigamiFold("div-folded-crane").load("../files/svg/crane.svg", function(){
+	craneFold.foldedCP.faces_vertices
+		.map(function(face){
+			return face.map(function(nodeIndex){
+				return craneFold.foldedCP.vertices_coords[nodeIndex];
+			},this);
+		},this)
+		.forEach(function(vertices, index){
+			var polygon = craneFold.polygon(vertices, 'folded-paper-color', 'face-' + index);
+			craneFold.colorLayer.appendChild(polygon);
+		},this);
+});
 craneFold.svg.setAttributeNS(null, 'id', 'folded-crane');
+craneFold.colorLayer = craneFold.group(undefined, "color-layer");
+craneFold.svg.appendChild(craneFold.colorLayer);
+craneFold.svg.appendChild(craneFold.facesLayer);
 </script>
 
 <script type="text/javascript">
