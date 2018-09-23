@@ -23,7 +23,7 @@ polygonClip.reset = function(){
 			if(crease !== undefined){ crease.valley(); }
 		},this);
 	},this);
-	this.cp.edges = this.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+	this.cp.edges = this.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.boundary; });
 	this.draw();
 }
 polygonClip.reset();

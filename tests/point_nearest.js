@@ -12,7 +12,7 @@ pointNearest.onMouseMove = function(event){
 	this.markLayer.activate();
 	this.markLayer.removeChildren();
 	this.cp.edges
-		.filter(function(el){return el.orientation !== CreaseDirection.border;})
+		.filter(function(el){return el.orientation !== CreaseDirection.boundary;})
 		.forEach(function(edge){
 			var nearest = edge.nearestPoint(event.point);
 			if(nearest !== undefined){

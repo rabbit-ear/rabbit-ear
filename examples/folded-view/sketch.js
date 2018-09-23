@@ -1,15 +1,10 @@
 // example
-// mouse press to drag nodes around
+// split screen: crease pattern and folded form
+
 var div = document.getElementsByClassName('row')[0];
 var cp = new CreasePattern().frogBase();
 var origami = new OrigamiPaper(div, cp);
 var folded = new OrigamiFold(div, cp);
-
-// origami.load("../../files/svg/komatsu-minotaur.svg", function(cp){
-// 	folded.cp = cp;
-// 	folded.draw();
-// 	origami.draw();
-// })
 
 origami.onMouseMove = function(event){
 	origami.draw();

@@ -77,7 +77,7 @@ touchNodesLayer.setAttributeNS(null, 'id', 'touch-nodes');
 project.svg.appendChild(touchNodesLayer);
 
 for(var i = 0; i < 3; i++){
-	touchNodes.push( [Math.random()*1, Math.random()] );
+	touchNodes.push( [Math.random(), Math.random()*0.8] );
 }
 
 var dragOn = false;
@@ -102,9 +102,10 @@ project.drawVoronoi = function(complex, showGussets){
 	}
 	if(this.showSites){
 		for(var i = 0; i < touchNodes.length; i++){
-			var position = new XY(touchNodes[i][0], touchNodes[i][1]);
-			this.cp.crease(position.add(new XY(-0.01, 0.00)), position.add(new XY(0.01, 0.00)) );
-			this.cp.crease(position.add(new XY(0.00, -0.01)), position.add(new XY(0.00, 0.01)) );
+			var x = touchNodes[i][0];
+			var y = touchNodes[i][1];
+			this.cp.crease(x-0.01, y+0.00, x+0.01, y+0.00);
+			this.cp.crease(x+0.00, y-0.01, x+0.00, y+0.01);
 		}
 	}
 	this.draw();
@@ -127,7 +128,7 @@ project.drawVoronoi = function(complex, showGussets){
 
 project.reset = function(){
 	this.cp.clear();
-	this.cp.rectangle(1, 1);
+	this.cp.rectangle(1, 0.8);
 	this.draw();
 	var bounds = this.cp.bounds();
 	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];

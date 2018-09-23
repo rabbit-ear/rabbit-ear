@@ -34,7 +34,7 @@
 	</div>
 
 	<div class="centered">
-	<pre><code><v>CreaseDirection</v>{<br>&nbsp;mark,<br>&nbsp;border,<br>&nbsp;mountain,<br>&nbsp;valley<br>}</code></pre>
+	<pre><code><v>CreaseDirection</v>{<br>&nbsp;mark,<br>&nbsp;boundary,<br>&nbsp;mountain,<br>&nbsp;valley<br>}</code></pre>
 	</div>
 
 	<div class="quote">

@@ -61,7 +61,7 @@ This OrigamiPaper object is interactive and includes built-in functions, modeled
 ```javascript
 var project = new OrigamiPaper("canvas");
 
-project.onFrame = function(event){ }
+project.animate = function(event){ }
 project.onResize = function(event){ }
 project.onMouseDown = function(event){ }
 project.onMouseUp = function(event){ }

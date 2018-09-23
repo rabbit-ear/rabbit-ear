@@ -15,7 +15,7 @@ mirror.reset = function(){
 		this.cp.crease(line);
 	}
 	this.cp.edges.forEach(function(edge){
-		if(edge.orientation != CreaseDirection.border){ edge.valley(); }
+		if(edge.orientation != CreaseDirection.boundary){ edge.valley(); }
 	},this);
 	this.cp.creaseThroughPoints(0,0,1,1);
 	this.draw();

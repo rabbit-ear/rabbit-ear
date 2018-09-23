@@ -1,4 +1,4 @@
-import SVGLoader from './SVGLoader.js'
+import FileImport from './SVGLoader.js'
 import {GraphNode, GraphEdge} from './compiled/src/graph.js'
 import {PlanarFace, PlanarSector, PlanarGraph} from './compiled/src/planarGraph.js'
 import CreasePattern from './compiled/src/CreasePattern.js'
@@ -11,13 +11,33 @@ var svgNS = 'http://www.w3.org/2000/svg';
 export default class OrigamiFold{
 
 	onResize(event){ }
-	onFrame(event){ }
+	animate(event){ }
 	onMouseDown(event){ }
 	onMouseUp(event){ }
 	onMouseMove(event){ }
 	onMouseDidBeginDrag(event){ }
 
 	constructor() {
+		//  from arguments, get a CreasePattern() object
+		var args = []; for(var i = 0; i < arguments.length; i++){ args.push(arguments[i]); }
+		this.cp = args.filter(function(arg){ return arg instanceof PlanarGraph },this).shift();
+		if(this.cp == undefined){ this.cp = new CreasePattern(); }
+		this.svg = SVG.SVG();
+
+		//  from arguments, get a parent DOM node for the new SVG as an HTML element or as a id-string
+		//  but wait until after the <body> has rendered
+		var that = this;
+		document.addEventListener("DOMContentLoaded", function(){
+			var parent = args.filter(function(arg){ return arg instanceof HTMLElement },this).shift();
+			if(parent == undefined){
+				var idString = args.filter(function(a){ return typeof a === 'string' || a instanceof String;},that).shift();
+				if(idString != undefined){ parent = document.getElementById(idString); }
+			}
+			if(parent == undefined){ parent = document.body; }
+			parent.appendChild(that.svg);
+		});
+
+		// create the OrigamiFold object
 		this.line = SVG.line;
 		this.circle = SVG.circle;
 		this.polygon = SVG.polygon;
@@ -26,29 +46,12 @@ export default class OrigamiFold{
 		this.addClass = SVG.addClass;
 		this.removeClass = SVG.removeClass;
 		this.convertToViewbox = SVG.convertToViewbox;
-		// read arguments:
-		//   a CreasePattern() object
-		//   a parent DOM node for the new SVG as an HTML element or as a id-string
-		var args = []; for(var i = 0; i < arguments.length; i++){ args.push(arguments[i]); }
-		this.cp = args.filter(function(arg){ return arg instanceof PlanarGraph },this).shift();
-		var parent = args.filter(function(arg){ return arg instanceof HTMLElement },this).shift();
-		if(parent == undefined){
-			var idString = args.filter(function(a){ return typeof a === 'string' || a instanceof String;},this).shift();
-			if(idString != undefined){ parent = document.getElementById(idString); }
-		}
-
-		if(this.cp == undefined){ this.cp = new CreasePattern(); }
-		if(parent == undefined){ parent = document.body; }
-
-		this.svg = this.SVG();
-		parent.appendChild(this.svg);
-
-		this.facesLayer = group(null, 'faces');
-		this.junctionsLayer = group(null, 'junctions');
-		this.sectorsLayer = group(null, 'sectors');
-		this.edgesLayer = group(null, 'creases');
-		this.boundaryLayer = group(null, 'boundary');
-		this.nodesLayer = group(null, 'nodes');
+		this.facesLayer = SVG.group(null, 'faces');
+		this.junctionsLayer = SVG.group(null, 'junctions');
+		this.sectorsLayer = SVG.group(null, 'sectors');
+		this.edgesLayer = SVG.group(null, 'creases');
+		this.boundaryLayer = SVG.group(null, 'boundary');
+		this.nodesLayer = SVG.group(null, 'nodes');
 		this.svg.appendChild(this.boundaryLayer);
 		this.svg.appendChild(this.facesLayer);
 		this.svg.appendChild(this.junctionsLayer);
@@ -56,6 +59,8 @@ export default class OrigamiFold{
 		this.svg.appendChild(this.edgesLayer);
 		this.svg.appendChild(this.nodesLayer);
 
+		// which face will lie flat, other faces fold around it
+		this.holdPoint = undefined; //{x:0.5, y:0.5}; 
 		this.padding = 0.0;  // padding inside the canvas
 		this.mouseZoom = true;
 		this.zoom = 1.0;
@@ -75,7 +80,7 @@ export default class OrigamiFold{
 		this.svg.onmousedown = function(event){
 			that.mouse.isPressed = true;
 			that.mouse.isDragging = false;
-			that.mouse.pressed = convertToViewbox(that.svg, event.clientX, event.clientY);
+			that.mouse.pressed = SVG.convertToViewbox(that.svg, event.clientX, event.clientY);
 			that.zoomOnMousePress = that.zoom;
 			that.rotationOnMousePress = that.rotation;
 			// that.attemptSelection();
@@ -85,10 +90,10 @@ export default class OrigamiFold{
 			that.mouse.isPressed = false;
 			that.mouse.isDragging = false;
 			that.selectedTouchPoint = undefined;
-			that.onMouseUp( {point:convertToViewbox(that.svg, event.clientX, event.clientY)} );
+			that.onMouseUp( {point:SVG.convertToViewbox(that.svg, event.clientX, event.clientY)} );
 		}
 		this.svg.onmousemove = function(event){
-			that.mouse.position = convertToViewbox(that.svg, event.clientX, event.clientY);
+			that.mouse.position = SVG.convertToViewbox(that.svg, event.clientX, event.clientY);
 			if(that.mouse.isPressed){ 
 				if(that.mouse.isDragging == false){
 					that.mouse.isDragging = true;
@@ -153,6 +158,8 @@ export default class OrigamiFold{
 	draw(groundFace){
 		this.setViewBox();
 
+		if(this.holdPoint != undefined){ groundFace = this.cp.nearest(this.holdPoint).face; }
+
 		this.foldedCP = this.cp.fold(groundFace);
 		this.getBounds();
 		this.faces = [];
@@ -176,11 +183,15 @@ export default class OrigamiFold{
 	}
 	
 	addFace(vertices, index){
-		var polygon = polygon(vertices, 'folded-face', 'face-' + index);
+		var polygon = SVG.polygon(vertices, 'folded-face', 'face-' + index);
 		this.facesLayer.appendChild(polygon);
 	}
 
 	load(path){ // (svg, callback, epsilon){}
+		// this.cp = new FileImport(path);
+		// this.draw();
+		// return;
+
 		// figure out the file extension
 		var extension = 'svg';
 		var that = this;
@@ -196,17 +207,13 @@ export default class OrigamiFold{
 			fetch(path)
 				.then(response => response.text())
 				.then(function(string){
-					var data = (new window.DOMParser()).parseFromString(string, "text/xml");
-					that.cp = new SVGLoader().convertToCreasePattern(data);
-					// that.cp = new SVGLoader().convertToCreasePattern(data, epsilon);
-					that.foldedCP = cp.fold();
+					that.cp = new FileImport(string);
 					that.draw();
-					if(callback != undefined){
-						// callback(that.cp);
-					}
+					// if(callback != undefined){ callback(that.cp); }
 				});
 			break;
 		}
 		return this;
 	}
+
 }

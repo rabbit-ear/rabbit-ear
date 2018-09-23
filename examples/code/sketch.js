@@ -53,7 +53,7 @@ function resetCP(){
 	origami.cp.clear();
 }
 
-origami.onFrame = function(event){ }
+origami.animate = function(event){ }
 origami.onResize = function(event){ }
 origami.onMouseMove = function(event){ }
 origami.onMouseDown = function(event){

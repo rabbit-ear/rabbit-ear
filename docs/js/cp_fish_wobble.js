@@ -36,7 +36,7 @@ fishSwim.reset = function(){
 }
 fishSwim.reset();
 
-fishSwim.onFrame = function(event) { 
+fishSwim.animate = function(event) { 
 	var scale = .02;
 	var sp = 1.5;
 	var point1 = new XY(this.a + Math.sin(sp*event.time*.8) * scale, this.a + Math.cos(sp*event.time*.895) * scale);

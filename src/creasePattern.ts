@@ -136,7 +136,7 @@ class CPPolyline extends M.Polyline{
 // CREASE PATTERN
 enum CreaseDirection{
 	mark,
-	border,
+	boundary,
 	mountain,
 	valley
 }
@@ -266,22 +266,30 @@ class CreaseJunction extends PlanarJunction{
 	}
 	kawasakiSolution():[{'difference':number,'sectors':CreaseSector[]},
 	                    {'difference':number,'sectors':CreaseSector[]}]{
-		var alternating = <[{'difference':number,'sectors':CreaseSector[]},{'difference':number,'sectors':CreaseSector[]}]>
-			this.alternateAngleSum().map(function(el){
+		var alternating = <[{'difference':number,'sectors':CreaseSector[]},{'difference':number,'sectors':CreaseSector[]}]>this.alternateAngleSum().map(function(el){
 				return {'difference':(Math.PI - el), 'sectors':[]};
 			});
 		this.sectors.forEach(function(el,i){ alternating[i%2].sectors.push(el); });
 		return alternating;
 	}
-	kawasakiCollapse(sector:PlanarSector):CPRay{
+	kawasakiCollapse(sector?:PlanarSector):CPRay{
 		// sector must be one of the Joints in this Junction
 		if(this.edges.length % 2 == 0){ return; }
 		// find this interior angle among the other interior angles
 		var foundIndex = undefined;
-		for(var i = 0; i < this.sectors.length; i++){
-			if(sector.equivalent(this.sectors[i])){ foundIndex = i; }
+		if(sector != undefined){
+			for(var i = 0; i < this.sectors.length; i++){
+				if(sector.equivalent(this.sectors[i])){ foundIndex = i; }
+			}
 		}
-		if(foundIndex == undefined){ return undefined; }
+		if(foundIndex == undefined){
+			//find best match for a sector
+			for(var i = 0; i < this.sectors.length; i++){
+				var ray = this.sectors[i].kawasakiCollapse();
+				if(ray != undefined){ return ray; }
+			}
+			return;
+		}
 		var sumEven = 0;
 		var sumOdd = 0;
 		for(var i = 0; i < this.sectors.length-1; i++){
@@ -347,10 +355,29 @@ class Crease extends PlanarEdge{
 	mark()    { this.orientation = CreaseDirection.mark; return this;}
 	mountain(){ this.orientation = CreaseDirection.mountain; return this;}
 	valley()  { this.orientation = CreaseDirection.valley; return this;}
-	border()  { this.orientation = CreaseDirection.border; return this;}
+	boundary(){ this.orientation = CreaseDirection.boundary; return this;}
 	// AXIOM 3
 	creaseToEdge(edge:Crease):Crease[]{return this.graph.creaseEdgeToEdge(this, edge);}
 }
+
+class NoCrease extends Crease{
+	graph:CreasePattern;
+	orientation:CreaseDirection;
+	// how it was made
+	newMadeBy:MadeBy;
+	madeBy:Fold;
+
+	constructor(){
+		super(undefined, undefined, undefined);
+		this.orientation = CreaseDirection.mark;
+		this.newMadeBy = new MadeBy();
+	};
+	mark()    { return this; }
+	mountain(){ return this; }
+	valley()  { return this; }
+	boundary(){ return this; }
+}
+
 class CreaseFace extends PlanarFace{
 	rabbitEar():Crease[]{
 		var sectors = this.sectors();
@@ -420,14 +447,14 @@ export default class CreasePattern extends PlanarGraph{
 	}
 
 	cleanBoundary(){
-		// remove edges marked "border", remove any now-isolated nodes
-		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.border; });
+		// remove edges marked "boundary", remove any now-isolated nodes
+		this.edges = this.edges.filter(function(el){ return el.orientation !== CreaseDirection.boundary; });
 		this.cleanAllNodes();
-		// based on boundary polygon, redraw crease lines to match, mark them as .border()
+		// based on boundary polygon, redraw crease lines to match, mark them as .boundary()
 		var boundaryNodes = this.boundary.nodes().map(function(node){ return this.newPlanarNode(node.x, node.y); },this);
 		boundaryNodes.forEach(function(node, i){
 			var nextNode = boundaryNodes[ (i+1)%boundaryNodes.length ];
-			(<Crease>this.newPlanarEdgeBetweenNodes(node, nextNode)).border();
+			(<Crease>this.newPlanarEdgeBetweenNodes(node, nextNode)).boundary();
 		},this);
 		this.cleanDuplicateNodes();
 	}
@@ -511,6 +538,31 @@ export default class CreasePattern extends PlanarGraph{
 	// }
 
 	// foldInHalf():Crease{ return; }
+
+	// kawasakiCollapse(a:any, b?:any, c?:any, d?:any):CPRay{
+	// 	if(isValidPoint(a)){
+	// 		var j:CreaseJunction = <CreaseJunction>this.nearest(a, b).junction;
+	// 		return j.kawasakiCollapse();
+	// 	}
+	// 	if(isValidNumber(a) && isValidNumber(b)){
+	// 		var j:CreaseJunction = <CreaseJunction>this.nearest(a, b).junction;
+	// 		return j.kawasakiCollapse();
+	// 	}
+	// }
+	kawasakiCollapse(a:any, b?:any, c?:any, d?:any):Crease{
+		if(isValidPoint(a)){
+			var j:CreaseJunction = <CreaseJunction>this.nearest(a, b).junction;
+			if(j == undefined){ return new NoCrease(); }
+			var k = j.kawasakiCollapse();
+			return k != undefined ? k.crease() : new NoCrease();
+		}
+		if(isValidNumber(a) && isValidNumber(b)){
+			var j:CreaseJunction = <CreaseJunction>this.nearest(a, b).junction;
+			if(j == undefined){ return new NoCrease(); }
+			var k = j.kawasakiCollapse();
+			return k != undefined ? k.crease() : new NoCrease();
+		}
+	}
 
 	point(a:any, b?:any):CPPoint{ return new CPPoint(this, gimme1XY(a,b)); }
 	line(a:any, b?:any, c?:any, d?:any):CPLine{ return new CPLine(this, gimme1Line(a,b,c,d)); }
@@ -1222,29 +1274,29 @@ export default class CreasePattern extends PlanarGraph{
 
 	//////////////////////////////////////////////
 	// GET PARTS
-	// bounds():M.Rect{ return this.boundary.minimumRect(); }
+	boundaryBounds():M.Rect{ return this.boundary.minimumRect(); }
 
 	bottomEdge():Crease{
 		return this.edges
-			.filter(function(el){return el.orientation === CreaseDirection.border})
+			.filter(function(el){return el.orientation === CreaseDirection.boundary})
 			.sort(function(a,b){return (b.nodes[0].y+b.nodes[1].y)-(a.nodes[0].y+a.nodes[1].y);})
 			.shift();
 	}
 	topEdge():Crease{
 		return this.edges
-			.filter(function(el){return el.orientation === CreaseDirection.border})
+			.filter(function(el){return el.orientation === CreaseDirection.boundary})
 			.sort(function(a,b){ return (a.nodes[0].y+a.nodes[1].y)-(b.nodes[0].y+b.nodes[1].y);})
 			.shift();
 	}
 	rightEdge():Crease{
 		return this.edges
-			.filter(function(el){return el.orientation === CreaseDirection.border})
+			.filter(function(el){return el.orientation === CreaseDirection.boundary})
 			.sort(function(a,b){ return (b.nodes[0].x+b.nodes[1].x)-(a.nodes[0].x+a.nodes[1].x);})
 			.shift();
 	}
 	leftEdge():Crease{
 		return this.edges
-			.filter(function(el){return el.orientation === CreaseDirection.border})
+			.filter(function(el){return el.orientation === CreaseDirection.boundary})
 			.sort(function(a,b){return (a.nodes[0].x+a.nodes[1].x)-(b.nodes[0].x+b.nodes[1].x);})
 			.shift();
 	}
@@ -1258,7 +1310,7 @@ export default class CreasePattern extends PlanarGraph{
 		//  is face A "on top of" face B?
 		this.clean();
 		// if(face == undefined){
-		// 	var bounds = this.bounds();
+		// 	var bounds = this.boundaryBounds();
 		// 	face = this.nearest(bounds.size.width * 0.5, bounds.size.height*0.5).face;
 		// }
 		// if(face === undefined){ return; }
@@ -1302,7 +1354,7 @@ export default class CreasePattern extends PlanarGraph{
 		this.clean();
 		var copyCP = this.copy().removeAllMarks();
 		if(face == undefined){
-			var bounds = copyCP.bounds();
+			var bounds = copyCP.boundaryBounds();
 			face = copyCP.nearest(bounds.origin.x + bounds.size.width * 0.5,
 			                      bounds.origin.y + bounds.size.height*0.5).face;
 		} else{
@@ -1339,7 +1391,7 @@ export default class CreasePattern extends PlanarGraph{
 		this.clean();
 		var copyCP = this.copy().removeAllMarks();
 		if(face == undefined){
-			var bounds = copyCP.bounds();
+			var bounds = copyCP.boundaryBounds();
 			face = copyCP.nearest(bounds.origin.x + bounds.size.width * 0.5,
 			                      bounds.origin.y + bounds.size.height*0.5).face;
 		}
@@ -1400,7 +1452,7 @@ export default class CreasePattern extends PlanarGraph{
 		},this);
 		file["edges_assignment"] = this.edges.map(function(edge){
 			switch(edge.orientation){
-				case CreaseDirection.border: return "B";
+				case CreaseDirection.boundary: return "B";
 				case CreaseDirection.mountain: return "M";
 				case CreaseDirection.valley: return "V";
 				case CreaseDirection.mark: return "F";
@@ -1448,7 +1500,7 @@ export default class CreasePattern extends PlanarGraph{
 			},this);
 		this.edgeArrayDidChange();
 
-		var assignmentDictionary = { "B": CreaseDirection.border, "M": CreaseDirection.mountain, "V": CreaseDirection.valley, "F": CreaseDirection.mark, "U": CreaseDirection.mark };
+		var assignmentDictionary = { "B": CreaseDirection.boundary, "M": CreaseDirection.mountain, "V": CreaseDirection.valley, "F": CreaseDirection.mark, "U": CreaseDirection.mark };
 		file["edges_assignment"]
 			.map(function(assignment){ return assignmentDictionary[assignment]; })
 			.forEach(function(orientation, i){ this.edges[i].orientation = orientation; },this);
@@ -1466,7 +1518,7 @@ export default class CreasePattern extends PlanarGraph{
 		this.faceArrayDidChange();
 
 		var boundaryPoints = this.edges
-			.filter(function(el){ return el.orientation === CreaseDirection.border; },this)
+			.filter(function(el){ return el.orientation === CreaseDirection.boundary; },this)
 			.map(function(el){
 				return [
 					new M.XY(el.nodes[0].x, el.nodes[0].y),
@@ -1480,7 +1532,7 @@ export default class CreasePattern extends PlanarGraph{
 
 	exportSVG(size?:number):string{
 		if(size === undefined || size <= 0){ size = 600; }
-		var bounds = this.bounds();
+		var bounds = this.boundaryBounds();
 		var width = bounds.size.width;
 		var height = bounds.size.height;
 		var scale = size / (width);
@@ -1500,7 +1552,7 @@ export default class CreasePattern extends PlanarGraph{
 
 		var blob = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- generated by Rabbit Ear https://rabbitear.org -->\n<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" x=\"0px\" y=\"0px\" width=\"" +widthScaled+ "px\" height=\"" +heightScaled+ "px\" viewBox=\"0 0 " +widthScaled+ " " +heightScaled+ "\">\n";
 
-		var orientationList = [CreaseDirection.mark, CreaseDirection.valley, CreaseDirection.mountain, CreaseDirection.border];
+		var orientationList = [CreaseDirection.mark, CreaseDirection.valley, CreaseDirection.mountain, CreaseDirection.boundary];
 		var styles = [noStyle, valleyStyle, mountainStyle, noStyle];
 		var gNames = ["marks", "valley", "mountain", "boundary"];
 		var sortedCreases = orientationList.map(function(orient){ return this.edges.filter(function(e){return e.orientation==orient;},this)},this);
@@ -1533,7 +1585,7 @@ export default class CreasePattern extends PlanarGraph{
 
 	exportSVGMin(size:number):string{
 		if(size === undefined || size <= 0){ size = 600; }
-		var bounds = this.bounds();
+		var bounds = this.boundaryBounds();
 		var width = bounds.size.width;
 		var height = bounds.size.height;
 		var padX = bounds.origin.x;
@@ -1631,4 +1683,240 @@ export default class CreasePattern extends PlanarGraph{
 		g.boundary = this.boundary.copy();
 		return g;
 	}
+
+	loadXML() {
+		var ret = {};
+		var callback, errorCallback;
+
+		for (var i = 1; i < arguments.length; i++) {
+			var arg = arguments[i];
+			if (typeof arg === 'function') {
+				if (typeof callback === 'undefined') {
+					callback = arg;
+				} else if (typeof errorCallback === 'undefined') {
+					errorCallback = arg;
+				}
+			}
+		}
+
+		var self = this;
+		this.httpDo(
+			arguments[0],
+			'GET',
+			'xml',
+			function(xml) {
+				for (var key in xml) {
+					ret[key] = xml[key];
+				}
+				if (typeof callback !== 'undefined') {
+					callback(ret);
+				}
+
+				// self._decrementPreload();
+			},
+			function(err) {
+				// Error handling
+				// error
+
+				if (errorCallback) {
+					errorCallback(err);
+				} else {
+					throw err;
+				}
+			}
+		);
+
+		return ret;
+	};
+
+
+
+		// _runIfPreloadsAreDone() {
+		// 	var context = this._isGlobal ? window : this;
+		// 	if (context._preloadCount === 0) {
+		// 		var loadingScreen = document.getElementById(context._loadingScreenId);
+		// 		if (loadingScreen) {
+		// 			loadingScreen.parentNode.removeChild(loadingScreen);
+		// 		}
+		// 		context._setup();
+		// 		context._runFrames();
+		// 		context._draw();
+		// 	}
+		// };
+
+		// _decrementPreload() {
+		// 	var context = this._isGlobal ? window : this;
+		// 	if (typeof context.preload === 'function') {
+		// 		context._setProperty('_preloadCount', context._preloadCount - 1);
+		// 		context._runIfPreloadsAreDone();
+		// 	}
+		// };
+
+
+	httpDo(_a:any, _b:any, _c:any, _d:any, _e:any) {
+		var type;
+		var callback;
+		var errorCallback;
+		var request;
+		var promise;
+		var jsonpOptions = {};
+		var cbCount = 0;
+		var contentType = 'text/plain';
+		// Trim the callbacks off the end to get an idea of how many arguments are passed
+		for (var i = arguments.length - 1; i > 0; i--) {
+			if (typeof arguments[i] === 'function') {
+				cbCount++;
+			} else {
+				break;
+			}
+		}
+		// The number of arguments minus callbacks
+		var argsCount = arguments.length - cbCount;
+		var path = arguments[0];
+		if (
+			argsCount === 2 &&
+			typeof path === 'string' &&
+			typeof arguments[1] === 'object'
+		) {
+			// Intended for more advanced use, pass in Request parameters directly
+			request = new Request(path, arguments[1]);
+			callback = arguments[2];
+			errorCallback = arguments[3];
+		} else {
+			// Provided with arguments
+			var method = 'GET';
+			var data;
+
+			for (var j = 1; j < arguments.length; j++) {
+				var a = arguments[j];
+				if (typeof a === 'string') {
+					if (a === 'GET' || a === 'POST' || a === 'PUT' || a === 'DELETE') {
+						method = a;
+					} else if (
+						a === 'json' ||
+						a === 'jsonp' ||
+						a === 'binary' ||
+						a === 'arrayBuffer' ||
+						a === 'xml' ||
+						a === 'text' ||
+						a === 'table'
+					) {
+						type = a;
+					} else {
+						data = a;
+					}
+				} else if (typeof a === 'number') {
+					data = a.toString();
+				} else if (typeof a === 'object') {
+					if (a.hasOwnProperty('jsonpCallback')) {
+						for (var attr in a) {
+							jsonpOptions[attr] = a[attr];
+						}
+					} else {
+						data = JSON.stringify(a);
+						contentType = 'application/json';
+					}
+				} else if (typeof a === 'function') {
+					if (!callback) {
+						callback = a;
+					} else {
+						errorCallback = a;
+					}
+				}
+			}
+
+			request = new Request(path, {
+				method: method,
+				mode: 'cors',
+				body: data,
+				headers: new Headers({
+					'Content-Type': contentType
+				})
+			});
+		}
+		// do some sort of smart type checking
+		if (!type) {
+			if (path.indexOf('json') !== -1) {
+				type = 'json';
+			} else if (path.indexOf('xml') !== -1) {
+				type = 'xml';
+			} else {
+				type = 'text';
+			}
+		}
+
+		if (type === 'jsonp') {
+			// promise = fetchJsonp(path, jsonpOptions);
+		} else {
+			promise = fetch(request);
+		}
+		promise = promise.then(function(res) {
+			if (!res.ok) {
+				var err = new Error(res.body);
+				err['status'] = res.status;
+				err['ok'] = false;
+				throw err;
+			} else {
+				var fileSize = res.headers.get('content-length');
+				if (fileSize && fileSize > 64000000) {
+					// error loading file
+				}
+				switch (type) {
+					case 'json':
+					case 'jsonp':
+						return res.json();
+					case 'binary':
+						return res.blob();
+					case 'arrayBuffer':
+						return res.arrayBuffer();
+					case 'xml':
+						return res.text().then(function(text) {
+							var parser = new DOMParser();
+							var xml = parser.parseFromString(text, 'text/xml');
+							return this.parseXML(xml.documentElement);
+						});
+					default:
+						return res.text();
+				}
+			}
+		});
+		promise.then(callback || function() {});
+		promise.catch(errorCallback || console.error);
+		return promise;
+	};
+
+
+	XML = function() {
+		this.name = null;
+		this.attributes = {};
+		this.children = [];
+		this.parent = null;
+		this.content = null;
+	};
+
+	parseXML(two) {
+		var one = new this.XML();
+		var children = two.childNodes;
+		if (children && children.length) {
+			for (var i = 0; i < children.length; i++) {
+				var node = this.parseXML(children[i]);
+				one.addChild(node);
+			}
+			one.setName(two.nodeName);
+			one._setCont(two.textContent);
+			one._setAttributes(two);
+			for (var j = 0; j < one.children.length; j++) {
+				one.children[j].parent = one;
+			}
+			return one;
+		} else {
+			one.setName(two.nodeName);
+			one._setCont(two.textContent);
+			one._setAttributes(two);
+			return one;
+		}
+	}
+
+
+
 }

@@ -1,14 +1,10 @@
 :root{ --crease-width: 0.01; }
 
-html,body{
-	margin:0;
-	display:flex;
-	justify-content: center;
-}
 svg{
-	width:100vw;
-	height:100vh;
+	width:40vmax;
+	height:40vmax;
 }
+
 .mountain, .valley, .boundary, .mark {
 	stroke:black;
 	stroke-linecap: round;
@@ -18,6 +14,9 @@ svg{
 	stroke: none;
 	fill: none;
 }
-.boundary{ fill:none; }
+.folded-face{
+	fill:rgba(255, 255, 255, 0.5);
+}
+.boundary{ fill:#FFFFFF; }
 .mark{ stroke-width: calc( var(--crease-width) * 0.25); }
 .valley{ stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2) }

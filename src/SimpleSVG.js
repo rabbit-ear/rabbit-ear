@@ -1,8 +1,9 @@
 /** Simple Geometry library for SVG
  *
- * there is a general rule for arguments across every function:
- * 1st comes the necessary attributes (x,y for lines),
- * Next is the class name string, followed by an ID string.
+ * arguments follows a general rule:
+ * 1st comes the necessary attributes for geometry (x,y for lines),
+ * next is the class name string, 
+ * and the last is always the ID string
  *
  */
 
@@ -75,6 +76,11 @@ export var removeClass = function(xmlNode, newClass){
 	if(currentClass == undefined){ currentClass = "" }
 	var classes = currentClass.split(' ').filter(function(c){ return c != newClass; },this);
 	xmlNode.setAttributeNS(null, 'class', classes.join(' '));
+}
+
+export var setID = function(xmlNode, newID){
+	if(xmlNode == undefined){ return; }
+	xmlNode.setAttributeNS(null, 'id', newID);
 }
 
 /**  Math toolbox  */

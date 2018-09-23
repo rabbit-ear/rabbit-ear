@@ -37,6 +37,19 @@ pre{ min-width: 0; }
 
 .centered{ text-align: center; }
 
+.btn{ cursor: pointer; }
+.btn-primary{
+	background-color: DodgerBlue;
+	border: none;
+	color: white;
+	padding: 12px 30px;
+	font-size: 16px;
+	font-size: 20px;
+}
+.btn-primary:hover{ background-color: black; }
+
+.btn-dark{ margin: 0.5rem 0 1.5rem 0; }
+
 @media (max-width: 650px), (hover:none){
 	h3{ font-size: 1em; }
 	.flex-grid { display:block; }
@@ -49,3 +62,4 @@ pre{ min-width: 0; }
 		margin:1em 0;
 	}
 }
+

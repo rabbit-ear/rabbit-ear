@@ -8,11 +8,8 @@ import * as SVG from './SimpleSVG.js'
 
 var svgNS = 'http://www.w3.org/2000/svg';
 
+// this is a replica of the CreaseDirection object
 var CreaseTypeString = {
-	// CreaseDirection.mark : "mark"
-	// CreaseDirection.border : "border",
-	// CreaseDirection.mountain : "mountain",
-	// CreaseDirection.valley : "valley",
 	0 : "mark",
 	1 : "boundary",
 	2 : "mountain",
@@ -22,13 +19,33 @@ var CreaseTypeString = {
 export default class OrigamiPaper{
 
 	onResize(event){ }
-	onFrame(event){ }
+	animate(event){ }
 	onMouseDown(event){ }
 	onMouseUp(event){ }
 	onMouseMove(event){ }
 	onMouseDidBeginDrag(event){ }
 
 	constructor() {
+		//  from arguments, get a CreasePattern() object
+		var args = []; for(var i = 0; i < arguments.length; i++){ args.push(arguments[i]); }
+		this.cp = args.filter(function(arg){ return arg instanceof PlanarGraph },this).shift();
+		if(this.cp == undefined){ this.cp = new CreasePattern(); }
+		this.svg = SVG.SVG();
+
+		//  from arguments, get a parent DOM node for the new SVG as an HTML element or as a id-string
+		//  but wait until after the <body> has rendered
+		var that = this;
+		document.addEventListener("DOMContentLoaded", function(){
+			var parent = args.filter(function(arg){ return arg instanceof HTMLElement },this).shift();
+			if(parent == undefined){
+				var idString = args.filter(function(a){ return typeof a === 'string' || a instanceof String;},that).shift();
+				if(idString != undefined){ parent = document.getElementById(idString); }
+			}
+			if(parent == undefined){ parent = document.body; }
+			parent.appendChild(that.svg);
+		});
+
+		// create the OrigamiPaper object
 		this.line = SVG.line;
 		this.circle = SVG.circle;
 		this.polygon = SVG.polygon;
@@ -37,23 +54,6 @@ export default class OrigamiPaper{
 		this.addClass = SVG.addClass;
 		this.removeClass = SVG.removeClass;
 		this.convertToViewbox = SVG.convertToViewbox;
-		// read arguments:
-		//   a CreasePattern() object
-		//   a parent DOM node for the new SVG as an HTML element or as a id-string
-		var args = []; for(var i = 0; i < arguments.length; i++){ args.push(arguments[i]); }
-		this.cp = args.filter(function(arg){ return arg instanceof PlanarGraph },this).shift();
-		var parent = args.filter(function(arg){ return arg instanceof HTMLElement },this).shift();
-		if(parent == undefined){
-			var idString = args.filter(function(a){ return typeof a === 'string' || a instanceof String;},this).shift();
-			if(idString != undefined){ parent = document.getElementById(idString); }
-		}
-
-		if(this.cp == undefined){ this.cp = new CreasePattern(); }
-		if(parent == undefined){ parent = document.body; }
-
-		this.svg = this.SVG();
-		parent.appendChild(this.svg);
-
 		this.facesLayer = this.group(null, 'faces');
 		this.junctionsLayer = this.group(null, 'junctions');
 		this.sectorsLayer = this.group(null, 'sectors');
@@ -89,7 +89,6 @@ export default class OrigamiPaper{
 
 		this.draw();
 
-		var that = this;
 		this.svg.onmousedown = function(event){
 			that.mouse.isPressed = true;
 			that.mouse.isDragging = false;
@@ -119,8 +118,8 @@ export default class OrigamiPaper{
 		}
 		// javascript get Date()
 		var frameNum = 0
-		this.onFrameTimer = setInterval(function(){
-			that.onFrame({'time':that.svg.getCurrentTime(),'frame':frameNum});
+		this.animateTimer = setInterval(function(){
+			that.animate({'time':that.svg.getCurrentTime(),'frame':frameNum});
 			frameNum += 1;
 		}, 1000/60);
 	}
@@ -133,7 +132,7 @@ export default class OrigamiPaper{
 	}
 	setViewBox(){
 		// todo: need protections if cp is returning no bounds
-		var bounds = this.cp.bounds();
+		var bounds = this.cp.boundaryBounds();
 		this.svg.setAttribute("viewBox", (-this.padding+bounds.origin.x) + " " + (-this.padding+bounds.origin.y) + " " + (bounds.size.width+this.padding*2) + " " + (bounds.size.height+this.padding*2));
 	}
 	get(component){
@@ -241,29 +240,31 @@ export default class OrigamiPaper{
 	addJunction(junction){ }
 
 	load(path){  // callback
-		// figure out the file extension
-		var extension = 'svg';
-		var that = this;
-		switch(extension){
-			case 'fold':
-			fetch(path)
-				.then(function(response){ return response.json(); })
-				.then(function(data){
+		this.cp = new FileImport(path);
+		this.draw();
 
-				});
-			break;
-			case 'svg':
-			fetch(path)
-				.then(response => response.text())
-				.then(function(string){
-					var data = (new window.DOMParser()).parseFromString(string, "text/xml");
-					that.cp = new FileImport(data);
-					that.draw();
-					// if(callback != undefined){
-					// 	// callback(that.cp);
-					// }
-				});
-			break;
-		}
+		// console.log("path");
+		// console.log(path);
+		// // figure out the file extension
+		// var extension = 'svg';
+		// var that = this;
+		// switch(extension){
+		// 	case 'fold':
+		// 	fetch(path)
+		// 		.then(function(response){ return response.json(); })
+		// 		.then(function(data){
+
+		// 		});
+		// 	break;
+		// 	case 'svg':
+		// 	fetch(path)
+		// 		.then(response => response.text())
+		// 		.then(function(string){
+		// 			that.cp = new FileImport(string);
+		// 			that.draw();
+		// 			// if(callback != undefined){ callback(that.cp); }
+		// 		});
+		// 	break;
+		// }
 	}
 }

@@ -2,7 +2,7 @@ var sectorBisect = new OrigamiPaper("canvas-sector-bisect", new CreasePattern().
 
 sectorBisect.style.mountain.strokeWidth = 0.02;
 sectorBisect.style.mountain.strokeColor = { gray:0.0, alpha:1.0 };
-sectorBisect.cp.edges = sectorBisect.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.border});
+sectorBisect.cp.edges = sectorBisect.cp.edges.filter(function(el){ return el.orientation !== CreaseDirection.boundary});
 sectorBisect.style.selected.node.fillColor = sectorBisect.styles.byrne.yellow;
 sectorBisect.style.selected.node.radius = 0.04;
 sectorBisect.show.boundary = false;

@@ -59,7 +59,7 @@ var OrigamiPaper = (function(){
 		var that = this;
 		this.scope.view.onFrame = function(event){
 			paper = that.scope;
-			that.onFrame(event);
+			that.animate(event);
 		}
 		this.scope.view.onMouseDown = function(event){
 			paper = that.scope;
@@ -178,7 +178,7 @@ var OrigamiPaper = (function(){
 			this.boundaryLayer.activate();
 			var boundaryPath = new this.scope.Path({segments: boundarySegments, closed: true });
 			Object.assign(boundaryPath, this.style.boundary);
-			// Object.assign(boundaryPath, this.styleForCrease(CreaseDirection.border));
+			// Object.assign(boundaryPath, this.styleForCrease(CreaseDirection.boundary));
 		}
 		if(this.show.nodes){
 			this.nodeLayer.activate();
@@ -281,7 +281,7 @@ var OrigamiPaper = (function(){
 		}
 		if(this.show.boundary){for(var i=0;i<this.boundaryLayer.children.length;i++){
 			Object.assign(this.boundaryLayer.children[i], this.style.boundary);
-			// Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.border));
+			// Object.assign(this.boundaryLayer.children[i], this.styleForCrease(CreaseDirection.boundary));
 		} }
 	};
 	OrigamiPaper.prototype.buildViewMatrix = function(){
@@ -447,7 +447,7 @@ var OrigamiPaper = (function(){
 	OrigamiPaper.prototype.styleForCrease = function(orientation){
 		if   (orientation === CreaseDirection.mountain){ return this.style.mountain; }
 		else if(orientation === CreaseDirection.valley){ return this.style.valley; }
-		else if(orientation === CreaseDirection.border){ return this.style.border; }
+		else if(orientation === CreaseDirection.boundary){ return this.style.boundary; }
 		return this.style.mark;
 	};
 
@@ -455,7 +455,7 @@ var OrigamiPaper = (function(){
 	// OrigamiPaper.prototype.update = function(event){ }
 	// OrigamiPaper.prototype.draw = function(event){ }
 	OrigamiPaper.prototype.onResize = function(event){ }
-	OrigamiPaper.prototype.onFrame = function(event){ }
+	OrigamiPaper.prototype.animate = function(event){ }
 	OrigamiPaper.prototype.onMouseDown = function(event){ }
 	OrigamiPaper.prototype.onMouseUp = function(event){ }
 	OrigamiPaper.prototype.onMouseMove = function(event){ }
@@ -471,7 +471,7 @@ var OrigamiPaper = (function(){
 var OrigamiFold = (function(){
 
 	OrigamiFold.prototype.onResize = function(event){ }
-	OrigamiFold.prototype.onFrame = function(event){ }
+	OrigamiFold.prototype.animate = function(event){ }
 	OrigamiFold.prototype.onMouseDown = function(event){ }
 	OrigamiFold.prototype.onMouseUp = function(event){ }
 	OrigamiFold.prototype.onMouseMove = function(event){ }
@@ -514,7 +514,7 @@ var OrigamiFold = (function(){
 		var that = this;
 		this.scope.view.onFrame = function(event){
 			paper = that.scope;
-			that.onFrame(event);
+			that.animate(event);
 		}
 		this.scope.view.onMouseDown = function(event){
 			paper = that.scope;

@@ -1,6 +1,7 @@
+
 var origami = new OrigamiPaper();
 
-// event handlers for touch input
+// these are optional event handlers
 origami.onMouseDown = function(event){
 }
 origami.onMouseUp = function(event){
@@ -9,6 +10,5 @@ origami.onMouseMove = function(event){
 }
 origami.onMouseDidBeginDrag = function(event){
 }
-// the animation function, this runs many times per second
-origami.onFrame = function(event){
+origami.animate = function(event){
 }
