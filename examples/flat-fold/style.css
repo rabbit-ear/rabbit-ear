@@ -64,4 +64,4 @@ svg.half{*/
 }
 .stroke-yellow{ stroke: hsl(43, 88%, 46%); }
 .fill-yellow{ fill: hsl(43, 88%, 46%); }
-.folded-face{ fill: rgba(0,0,0,0.05); }
+.folded-face{ fill: rgba(0,0,0,0.25); }

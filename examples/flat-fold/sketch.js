@@ -47,11 +47,29 @@ origami.reset = function(){
 	},this).filter(function(el){ return el !== undefined; })
 		.forEach(function(crease){crease.valley();},this);
 	this.template.clean();
-	var valleyCreases = this.template.edges.filter(function(el){return el.orientation==CreaseDirection.valley;});
+	var valleyCreases = this.template.edges.filter(function(el){return el.orientation == 3;});
 	this.centerNode = valleyCreases[0].commonNodeWithEdge(valleyCreases[1]);
 	this.cp = this.template.copy();
 	this.cp.crease(this.centerpoint[0], this.centerpoint[1], 1, 1).mountain();
 	updateFoldedState(this.cp);
 	this.draw();
+
+	this.cp.clear();
+	this.cp.crease(0, 0, this.centerNode.x, this.centerNode.y).mountain();
+	this.cp.crease(1, 1, this.centerNode.x, this.centerNode.y).mountain();
+	var cornerCrease = this.cp.crease(1, 0, this.centerNode.x, this.centerNode.y);
+	var kawasakiCrease = this.cp.kawasakiCollapse(this.centerNode);
+	var a = {x:0,y:0};
+	var b = {x:1,y:1};
+	var cross = (b.x - a.x)*(this.centerNode.y - a.y) > (b.y - a.y)*(this.centerNode.x - a.x);
+	// console.log(cross)
+	if((b.x - a.x)*(this.centerNode.y - a.y) > (b.y - a.y)*(this.centerNode.x - a.x)){ 
+		cornerCrease.valley(); kawasakiCrease.mountain();
+	} else{
+		kawasakiCrease.valley(); cornerCrease.mountain();
+	}	
+	updateFoldedState(this.cp);
+	this.draw();
+	
 }
 origami.reset();

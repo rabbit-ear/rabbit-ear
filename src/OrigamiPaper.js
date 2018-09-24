@@ -49,6 +49,7 @@ export default class OrigamiPaper{
 		this.line = SVG.line;
 		this.circle = SVG.circle;
 		this.polygon = SVG.polygon;
+		this.bezier = SVG.bezier;
 		this.group = SVG.group;
 		this.SVG = SVG.SVG;
 		this.addClass = SVG.addClass;

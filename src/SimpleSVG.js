@@ -44,6 +44,19 @@ export var polygon = function(pointArray, className, id){
 	return polygon;
 }
 
+// export var curve = function(fromX, fromY, midX, midY, toX, toY, className, id){
+
+// }
+
+export var bezier = function(fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY, className, id){
+	var d = 'M ' + fromX + ',' + fromY + ' C ' + c1X + ',' + c1Y + ' '  + c2X + ',' + c2Y + ' ' + toX + ',' + toY;
+	var path = document.createElementNS(svgNS,"path");
+	path.setAttributeNS(null, 'd', d);
+	if(className != undefined){ path.setAttributeNS(null, 'class', className); }
+	if(id != undefined){ path.setAttributeNS(null, 'id', id); }
+	return path;
+}
+
 /**  Geometry Container Types  */
 export var group = function(className, id){
 	var group = document.createElementNS(svgNS, 'g');

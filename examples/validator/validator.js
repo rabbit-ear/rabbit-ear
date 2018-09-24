@@ -69,7 +69,7 @@ function setInputFile(svg){
 function updateFold(cp){
 	foldedState.cp = cp.copy();
 	foldedState.draw();
-	foldedState.update();
+	// foldedState.update();
 }
 
 function fileDidLoad(file, mimeType){
@@ -121,6 +121,7 @@ function fileDidLoad(file, mimeType){
 			else            { document.getElementById("canvas-folded").style.display = "none"; }
 		}
 		project1.colorNodesFlatFoldable();
+		updateFold(project1.cp);
 		showAndScrollResults();
 	// }, valid_epsilon);
 }

@@ -69,6 +69,8 @@ svg{
 .folded-face{ fill: rgba(255,255,255,0.5); }
 
 .fill-yellow{ fill: hsl(43, 88%, 46%); }
+.arrow-path{ fill:none; stroke: hsl(14.4, 87%, 45%); stroke-width: var(--crease-width); }
+.arrowhead{ fill: hsl(14.4, 87%, 45%); stroke: none; }
 
 .mark-touch-point{
 	fill:hsl(43, 88%, 46%);
@@ -78,6 +80,11 @@ svg{
 }
 .yellow-line{
 	stroke: hsl(43, 88%, 46%);
+	stroke-width: 0.01;
+	stroke-linecap: round;
+}
+.blue-line{
+	stroke: hsl(205, 74%, 30%);
 	stroke-width: 0.01;
 	stroke-linecap: round;
 }

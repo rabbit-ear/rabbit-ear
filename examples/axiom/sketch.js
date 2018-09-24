@@ -275,7 +275,6 @@ origami.onMouseMove = function(event){
 // intersect is a point on the line, the point which the arrow should be cast perpendicularly across
 // when left undefined, intersect will be the midpoint of the line.
 origami.drawArrowAcross = function(crease, crossing){
-	return;
 	if(crossing == undefined){ crossing = crease.midpoint(); }
 
 	var creaseNormal = crease.vector().rotate90().normalize();
@@ -290,14 +289,14 @@ origami.drawArrowAcross = function(crease, crossing){
 		return crossing.add(newLength);
 	},this);
 
-	var toMiddleOfPage = {x:0.5 - crossing.x, y:0.5 - crossing.y};
+	var toMiddleOfPage = new G.XY(0.5 - crossing.x, 0.5 - crossing.y);
 	var arrowPerp = (toMiddleOfPage.cross(creaseNormal) < 0) ? creaseNormal.rotate90() : creaseNormal.rotate270();
 
 	var arrowheadWidth = 0.05;
 	var arrowheadLength = 0.075;
 
 	var arcBend = 0.1;
-	var arcMid = crossing.add(arrowPerp.scale(perpendicular.length() * arcBend + arrowheadLength*0.2));
+	// var arcMid = crossing.add(arrowPerp.scale(perpendicular.length() * arcBend + arrowheadLength*0.2));
 	var arcEnds = perpendicular.nodes
 		.map(function(n){
 			var bezierTarget = crossing.add(arrowPerp.scale(perpendicular.length() * arcBend * 2));
@@ -305,30 +304,41 @@ origami.drawArrowAcross = function(crease, crossing){
 			return n.add(nudge);
 		},this);
 
+	var controlTarget = crossing.add(arrowPerp.scale(perpendicular.length() * (arcBend*2) + arrowheadLength*0.2));
+	var controlPoints = arcEnds.map(function(p){
+		var distance = p.distanceTo(controlTarget);
+		var vector = controlTarget.subtract(p).normalize().scale(distance*0.666);
+		return p.add(vector);
+	},this);
+
+	// draw geometry
+	while(this.arrowLayer.lastChild) {
+		this.arrowLayer.removeChild(this.arrowLayer.lastChild);
+	}
 
 	// debug lines
-	// new this.scope.Path({segments:perpendicular.nodes, strokeColor:this.styles.byrne.red, strokeWidth:0.005});
-	// new this.scope.Path({segments:arcEnds, strokeColor:markColor, strokeWidth:0.005});
-	// new this.scope.Path({segments:[crossing, crossing.add(toMiddleOfPage)], strokeColor:this.styles.byrne.blue, strokeWidth:0.005})
+	// var dbl = perpendicular.nodes;
+	// this.arrowLayer.appendChild( this.line(dbl[0].x, dbl[0].y, dbl[1].x, dbl[1].y, 'yellow-line') );
+	// this.arrowLayer.appendChild( this.line(arcEnds[0].x, arcEnds[0].y, arcEnds[1].x, arcEnds[1].y, 'yellow-line') );
+	// this.arrowLayer.appendChild( this.line(crossing.x, crossing.y, crossing.add(toMiddleOfPage).x, crossing.add(toMiddleOfPage).y, 'blue-line') );
 
-	// curved arrow arc
-/*	
-	var color = this.styles.byrne.red;
-	new this.scope.Path.Arc({from:arcEnds[0], through:arcMid, to:arcEnds[1], strokeColor:color, strokeWidth:0.01});
+
+	var bez = this.bezier(arcEnds[0].x, arcEnds[0].y, controlPoints[0].x, controlPoints[0].y, controlPoints[1].x, controlPoints[1].y, arcEnds[1].x, arcEnds[1].y, 'arrow-path');
+	this.arrowLayer.appendChild(bez);
 
 	arcEnds.forEach(function(point, i){
 		// var tilt = vector.rotate( (i%2)*Math.PI ).rotate(0.35 * Math.pow(-1,i+1));
 		var arrowVector = perpendicular.nodes[i].subtract(point).normalize();
 		var arrowNormal = arrowVector.rotate90();
-		var arrowhead = new this.scope.Path({segments: [
+		var segments = [
 			point.add(arrowNormal.scale(-arrowheadWidth*0.375)), 
 			point.add(arrowNormal.scale(arrowheadWidth*0.375)), 
 			point.add(arrowVector.scale(arrowheadLength))
-			], closed: true });
-		arrowhead.fillColor = color;
-		arrowhead.strokeColor = null;
+		];
+		var arrowhead = this.polygon(segments, 'arrowhead');
+		this.arrowLayer.appendChild(arrowhead);
 	},this);
-*/
+
 }
 
 var selectAxiom = function(n){
@@ -342,8 +352,8 @@ var selectAxiom = function(n){
 		case 1: origami.setAxiom(1, [{x:0.5, y:0.0}, {x:0.0, y:0.5}], []); break;
 		case 2: origami.setAxiom(2, [{x:0.5, y:0.0}, {x:0.0, y:0.5}], []); break;
 		case 3: origami.setAxiom(3, [], [{point:{x:0.0, y:0.0}, direction:{x:1.0, y:0.0}}, {point:{x:0.0, y:0.0}, direction:{x:0.707, y:0.707}}]); break;
-		case 4: origami.setAxiom(4, [{x:1.0, y:0.25},], [{point:{x:0.0, y:0.0}, direction:{x:0.0, y:1.0}}]); break;
-		case 5: origami.setAxiom(5, [{x:0.666, y:0.125}, {x:1.0, y:1.0}], [{point:{x:0.0, y:0.0}, direction:{x:0.0, y:1.0}}]); break;
+		case 4: origami.setAxiom(4, [{x:1.0, y:0.25},], [{point:{x:0.333, y:0.333}, direction:{x:0.0, y:1.0}}]); break;
+		case 5: origami.setAxiom(5, [{x:0.666, y:0.125}, {x:1.0, y:1.0}], [{point:{x:0.333, y:0.0}, direction:{x:0.0, y:1.0}}]); break;
 		case 6: origami.setAxiom(6, [{x:0.0, y:0.5}, {x:0.5, y:1.0}], [{point:{x:0.0, y:1.0}, direction:{x:0.707, y:-0.707}}, {point:{x:0.0, y:0.0}, direction:{x:0.707, y:0.707}}]); break;
 		case 7: origami.setAxiom(7, [{x:1.0, y:0.5}], [{point:{x:1.0, y:0.0}, direction:{x:0.707, y:-0.35}}, {point:{x:0.0, y:0.0}, direction:{x:0.707, y:0.707}}]); break;
 	}
