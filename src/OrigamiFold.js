@@ -152,7 +152,7 @@ export default class OrigamiFold{
 	}
 
 	update(){
-		this.facesLayer.childNodes.forEach(function(face){ face.setAttributeNS(null, 'class', 'face'); },this);
+		this.facesLayer.childNodes.forEach(function(face){ face.setAttributeNS(null, 'class', 'folded-face'); },this);
 	}
 
 	draw(groundFace){

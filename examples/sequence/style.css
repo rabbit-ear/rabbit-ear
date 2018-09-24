@@ -17,16 +17,16 @@ h2{
 	background-color: hsl(43, 88%, 46%);
 }
 svg{
-	margin:auto;
 	width:40vw;
 	height:40vw;
 	max-height:60vh;
+	margin:auto;
 	padding: 0 3vw;
 }
 .row{
 	display: flex;
 	flex-wrap: wrap;
-	padding: 1rem 0 1rem 0;
+	margin: 1rem 0 1rem 0;
 }
 .mountain, .valley, .boundary, .mark {
 	stroke:black;

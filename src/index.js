@@ -1,7 +1,8 @@
 
 // import './graph.js';
 // import './planarGraph.js';
-import './compiled/src/geometry.js';
+// import './compiled/src/geometry.js';
+import * as geometry from './compiled/src/geometry.js'
 import {VoronoiGraph, creaseVoronoi} from './compiled/src/voronoi.js';
 import './compiled/src/polynomial.js';
 import './compiled/lib/rbush.min.js';
@@ -22,5 +23,6 @@ window.OrigamiFold = OrigamiFold;
 // export { CreasePattern, OrigamiPaper, OrigamiFold }
 export {
 	CreasePattern, OrigamiPaper, OrigamiFold, VoronoiGraph, creaseVoronoi,
-	line, circle, polygon, group, addClass, removeClass
+	line, circle, polygon, group, addClass, removeClass,
+	geometry
  }

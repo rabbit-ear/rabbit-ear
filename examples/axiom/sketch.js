@@ -1,18 +1,19 @@
+var G = RabbitEar.geometry;
 
 var origami = new OrigamiPaper("svgs").setPadding(0.02);
 var folded = new OrigamiFold("svgs").setPadding(0.02);
 // folded.style = { face:{ fillColor:{ gray:1.0, alpha:0.66 } } };
 folded.mouseZoom = false;
 // origami.markLayer = new origami.scope.Layer();
-origami.markLayer = document.createElementNS(svgNS,'g');
-origami.touchPointsLayer = document.createElementNS(svgNS,'g');
-origami.arrowLayer = document.createElementNS(svgNS,'g');
+origami.markLayer = origami.group();
+origami.touchPointsLayer = origami.group();
+origami.arrowLayer = origami.group();
 origami.svg.appendChild(origami.markLayer);
 origami.svg.appendChild(origami.touchPointsLayer);
 origami.svg.appendChild(origami.arrowLayer);
 origami.touchPoints = [];
 
-origami.convertLine = function(d, u){ return new Line(d*u.x, d*u.y, u.y, u.x); }
+origami.convertLine = function(d, u){ return {point:{x:d*u.x, y:d*u.y}, direction:{x:u.y, y:u.x}}; }
 
 origami.axiom = undefined;
 origami.marks = [];
@@ -24,26 +25,10 @@ origami.makeTouchPoint = function(location, radius, className){
 	var x,y;
 	if(location.x != undefined){ x = location.x; y = location.y; }
 	else if(Array.isArray(location) && location.length > 1){ x = location[0]; y = location[1]; }
-	var dot = document.createElementNS(svgNS,'circle');
-	dot.setAttribute('cx', x);
-	dot.setAttribute('cy', y);
-	dot.setAttribute('r', radius);
-	dot.setAttribute('class', className);
-	dot.setAttribute('id', 'touch-point-' + this.touchPoints.length);
+	var dot = this.circle(x, y, radius, className, 'touch-point-' + this.touchPoints.length);
 	this.touchPointsLayer.appendChild(dot);
 	this.touchPoints.push(dot);
 }
-
-origami.newLine = function(x1, y1, x2, y2, className){
-	var line = document.createElementNS(svgNS,'line');
-	line.setAttribute('x1', x1);
-	line.setAttribute('y1', y1);
-	line.setAttribute('x2', x2);
-	line.setAttribute('y2', y2);
-	line.setAttribute('class', className);
-	return line;
-}
-
 
 origami.clearTouchPoints = function(){
 	this.touchPoints = [];
@@ -129,7 +114,6 @@ origami.setAxiom = function(number, marks, lines){
 
 origami.redraw = function(){
 	origami.cp.clear();
-	paper = this.scope;
 	while(this.markLayer.lastChild) {
 		this.markLayer.removeChild(this.markLayer.lastChild);
 	}
@@ -149,15 +133,15 @@ origami.redraw = function(){
 			crease = creases[0];
 			if(crease == undefined){ return; }
 			crease.valley();
-			var path0 = this.newLine(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
-			var path1 = this.newLine(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
+			var path0 = this.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path1 = this.line(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
 			this.markLayer.appendChild(path0);
 			this.markLayer.appendChild(path1);
 			break;
 		case 4:
 			var m0 = this.cp.boundary.clipLine(this.lines[0]);
 			crease = this.cp.creasePerpendicularThroughPoint(m0, this.marks[0]).valley();
-			var path0 = this.newLine(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path0 = this.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
 			this.markLayer.appendChild(path0);
 			break;
 		case 5:
@@ -165,7 +149,7 @@ origami.redraw = function(){
 			crease = this.cp.creasePointToLine(this.marks[0], this.marks[1], m0)[0];
 			if(crease == undefined){ return; }
 			crease.valley();
-			var path0 = this.newLine(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path0 = this.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
 			this.markLayer.appendChild(path0);
 			break;
 		case 6:
@@ -176,8 +160,8 @@ origami.redraw = function(){
 			crease = creases[0];
 			if(crease == undefined){ return; }
 			crease.valley();
-			var path0 = this.newLine(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
-			var path1 = this.newLine(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
+			var path0 = this.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path1 = this.line(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
 			this.markLayer.appendChild(path0);
 			this.markLayer.appendChild(path1);
 			break;
@@ -187,8 +171,8 @@ origami.redraw = function(){
 			crease = this.cp.creasePerpendicularPointOntoLine(this.marks[0], m0, m1);
 			if(crease == undefined){ return; }
 			crease.valley();
-			var path0 = this.newLine(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
-			var path1 = this.newLine(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
+			var path0 = this.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path1 = this.line(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
 			this.markLayer.appendChild(path0);
 			this.markLayer.appendChild(path1);
 			break;
@@ -197,21 +181,21 @@ origami.redraw = function(){
 
 		switch(this.axiom){
 			case 2:
-				var intersect = crease.nearestPointNormalTo(new XY(this.marks[0].x, this.marks[0].y));
+				var intersect = crease.nearestPointNormalTo({x:this.marks[0].x, y:this.marks[0].y});
 				this.drawArrowAcross(crease, intersect);
 				break;
 			case 5:
-				var intersect = crease.nearestPointNormalTo(new XY(this.marks[0].x, this.marks[0].y));
+				var intersect = crease.nearestPointNormalTo({x:this.marks[0].x, y:this.marks[0].y});
 				this.drawArrowAcross(crease, intersect);
 				break;
 			case 6:
-				var intersect1 = crease.nearestPointNormalTo(new XY(this.marks[0].x, this.marks[0].y));
-				var intersect2 = crease.nearestPointNormalTo(new XY(this.marks[1].x, this.marks[1].y));
+				var intersect1 = crease.nearestPointNormalTo({x:this.marks[0].x, y:this.marks[0].y});
+				var intersect2 = crease.nearestPointNormalTo({x:this.marks[1].x, y:this.marks[1].y});
 				this.drawArrowAcross(crease, intersect1);
 				this.drawArrowAcross(crease, intersect2);
 				break;
 			case 7:
-				var intersect = crease.nearestPointNormalTo(new XY(this.marks[0].x, this.marks[0].y));
+				var intersect = crease.nearestPointNormalTo({x:this.marks[0].x, y:this.marks[0].y});
 				this.drawArrowAcross(crease, intersect);
 				break;
 			default:
@@ -255,45 +239,47 @@ origami.onMouseMove = function(event){
 			case 2: this.marks = this.touchPoints.map(function(p){ return this.getPosition(p); },this); 
 				break;
 			case 3: this.lines = [
-				new Edge(this.getPosition(this.touchPoints[0]), this.getPosition(this.touchPoints[1])).infiniteLine(),
-				new Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine()
+				new G.Edge(this.getPosition(this.touchPoints[0]), this.getPosition(this.touchPoints[1])).infiniteLine(),
+				new G.Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine()
 			]; break;
 			case 4: 
 				this.marks = [this.getPosition(this.touchPoints[0])];
 				this.lines = [
-					new Edge(this.getPosition(this.touchPoints[1]), this.getPosition(this.touchPoints[2])).infiniteLine()
+					new G.Edge(this.getPosition(this.touchPoints[1]), this.getPosition(this.touchPoints[2])).infiniteLine()
 				]; break;
 			case 5: 
 				this.marks = [this.getPosition(this.touchPoints[0]), this.getPosition(this.touchPoints[1])];
 				this.lines = [
-					new Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine()
+					new G.Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine()
 				]; break;
 			case 6: 
 				this.marks = [this.getPosition(this.touchPoints[0]), this.getPosition(this.touchPoints[1])];
 				this.lines = [
-					new Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine(),
-					new Edge(this.getPosition(this.touchPoints[4]), this.getPosition(this.touchPoints[5])).infiniteLine()
+					new G.Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine(),
+					new G.Edge(this.getPosition(this.touchPoints[4]), this.getPosition(this.touchPoints[5])).infiniteLine()
 				]; break;
 			case 7: 
 				this.marks = [this.getPosition(this.touchPoints[0])];
 				this.lines = [
-					new Edge(this.getPosition(this.touchPoints[1]), this.getPosition(this.touchPoints[2])).infiniteLine(),
-					new Edge(this.getPosition(this.touchPoints[3]), this.getPosition(this.touchPoints[4])).infiniteLine()
+					new G.Edge(this.getPosition(this.touchPoints[1]), this.getPosition(this.touchPoints[2])).infiniteLine(),
+					new G.Edge(this.getPosition(this.touchPoints[3]), this.getPosition(this.touchPoints[4])).infiniteLine()
 				]; break;
 		}
 		this.redraw();
 	}
 }
 
+	// {point:{x:, y:}, direction:{x:, y:}};
+
 
 // intersect is a point on the line, the point which the arrow should be cast perpendicularly across
 // when left undefined, intersect will be the midpoint of the line.
 origami.drawArrowAcross = function(crease, crossing){
-	paper = this.scope;
-
+	return;
 	if(crossing == undefined){ crossing = crease.midpoint(); }
+
 	var creaseNormal = crease.vector().rotate90().normalize();
-	var perpLine = new Line(crossing, creaseNormal);
+	var perpLine = {point:{x:crossing.x, y:crossing.y}, direction:{x:creaseNormal.x, y:creaseNormal.y}};
 	var perpendicular = this.cp.boundary.clipLine(perpLine);
 	var shortLength = perpendicular.nodes
 		.map(function(n){ return crossing.distanceTo(n); },this)
@@ -304,7 +290,7 @@ origami.drawArrowAcross = function(crease, crossing){
 		return crossing.add(newLength);
 	},this);
 
-	var toMiddleOfPage = new XY(0.5, 0.5).subtract(crossing);
+	var toMiddleOfPage = {x:0.5 - crossing.x, y:0.5 - crossing.y};
 	var arrowPerp = (toMiddleOfPage.cross(creaseNormal) < 0) ? creaseNormal.rotate90() : creaseNormal.rotate270();
 
 	var arrowheadWidth = 0.05;
@@ -355,11 +341,11 @@ var selectAxiom = function(n){
 	switch(n){
 		case 1: origami.setAxiom(1, [{x:0.5, y:0.0}, {x:0.0, y:0.5}], []); break;
 		case 2: origami.setAxiom(2, [{x:0.5, y:0.0}, {x:0.0, y:0.5}], []); break;
-		case 3: origami.setAxiom(3, [], [new Line(0.0, 0.0, 1.0, 0.0), new Line(0.0, 0.0, 0.707, 0.707)]); break;
-		case 4: origami.setAxiom(4, [new XY(1.0, 0.25),], [new Line(0.0, 0.0, 0.0, 1.0)]); break;
-		case 5: origami.setAxiom(5, [new XY(0.666, 0.125), new XY(1, 1)], [new Line(0.0, 0.0, 0.0, 1.0)]); break;
-		case 6: origami.setAxiom(6, [new XY(0.0, 0.5), new XY(0.5, 1.0)], [new Line(0.0, 1.0, 0.707, -0.707), new Line(0.0, 0.0, 0.707, 0.707)]); break;
-		case 7: origami.setAxiom(7, [new XY(1, 0.5)], [new Line(1, 0, 0.707, -0.35), new Line(0.0, 0.0, 0.707, 0.707)]); break;
+		case 3: origami.setAxiom(3, [], [{point:{x:0.0, y:0.0}, direction:{x:1.0, y:0.0}}, {point:{x:0.0, y:0.0}, direction:{x:0.707, y:0.707}}]); break;
+		case 4: origami.setAxiom(4, [{x:1.0, y:0.25},], [{point:{x:0.0, y:0.0}, direction:{x:0.0, y:1.0}}]); break;
+		case 5: origami.setAxiom(5, [{x:0.666, y:0.125}, {x:1.0, y:1.0}], [{point:{x:0.0, y:0.0}, direction:{x:0.0, y:1.0}}]); break;
+		case 6: origami.setAxiom(6, [{x:0.0, y:0.5}, {x:0.5, y:1.0}], [{point:{x:0.0, y:1.0}, direction:{x:0.707, y:-0.707}}, {point:{x:0.0, y:0.0}, direction:{x:0.707, y:0.707}}]); break;
+		case 7: origami.setAxiom(7, [{x:1.0, y:0.5}], [{point:{x:1.0, y:0.0}, direction:{x:0.707, y:-0.35}}, {point:{x:0.0, y:0.0}, direction:{x:0.707, y:0.707}}]); break;
 	}
 }
 

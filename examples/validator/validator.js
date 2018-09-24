@@ -12,12 +12,12 @@ function setJumbotron(success){
 	var messageSuccess = "crease pattern is flat-foldable";
 	var messageFail = "crease pattern contains non-flat-foldable nodes";
 	if(success){
-		document.getElementById("jumbo-container").className = "jumbotron success";
+		document.getElementById("jumbo-container").className = "jumbotron success-background";
 		document.getElementById("jumbo-title").innerHTML = titleSuccess;
 		document.getElementById("jumbo-message").innerHTML = messageSuccess;
 	}
 	else{
-		document.getElementById("jumbo-container").className = "jumbotron fail";
+		document.getElementById("jumbo-container").className = "jumbotron fail-background";
 		document.getElementById("jumbo-title").innerHTML = titleFail;
 		document.getElementById("jumbo-message").innerHTML = messageFail;
 	}
@@ -52,9 +52,8 @@ function setEpsilon(n, newEpsilon){
 }
 /////////////////////////////////////////////////////////////////////
 
-var project1 = new OrigamiPaper("canvas-1");
-var foldedState = new OrigamiFold("canvas-2");
-foldedState.style.face.fillColor = {gray:1.0, alpha:0.2};
+var project1 = new OrigamiPaper("canvas-cp");
+var foldedState = new OrigamiFold("canvas-folded");
 
 var inputFile = undefined;
 // var valid_epsilon = 0.00001;
@@ -101,41 +100,27 @@ function fileDidLoad(file, mimeType){
 		// project1.draw();
 		
 		// project1.cp = cp.copy();
-		project1.show.nodes = true;
-		project1.style.node.radius = 0.015;;
 		project1.draw();
 		// project1.setPadding(0.05);
 		project1.colorNodesFlatFoldable = function(){
 		project1.cp.clean();
 			var ffTestPassed = true;
 			for(var i = 0; i < project1.cp.junctions.length; i++){
-				// console.log(project1.cp.junctions[i]);
-				var color = { hue:130, saturation:0.8, brightness:0.7, alpha:0.5 }
+				var node = this.get(project1.cp.junctions[i].origin);
+				this.removeClass(node, "valid-node");
+				this.removeClass(node, "invalid-node");
 				if( !project1.cp.junctions[i].flatFoldable(0.01) ){
 					ffTestPassed = false;
-					color = { hue:0, saturation:0.8, brightness:1, alpha:0.5 } 
+					this.addClass(node, "invalid-node");
 				} else{
-					project1.nodes[ project1.cp.junctions[i].origin.index ].fillColor = {alpha:0.0};
+					this.addClass(node, "valid-node");
 				}
-				project1.nodes[ project1.cp.junctions[i].origin.index ].fillColor = color;
 			}
 			setJumbotron(ffTestPassed);
-			if(ffTestPassed){ document.getElementById("canvas-2").style.display = "inline-block"; }
-			else            { document.getElementById("canvas-2").style.display = "none"; }
+			if(ffTestPassed){ document.getElementById("canvas-folded").style.display = "inline"; }
+			else            { document.getElementById("canvas-folded").style.display = "none"; }
 		}
-		// todo: this is breaking, fix it and uncomment it
 		project1.colorNodesFlatFoldable();
-
-	// 	foldedState.cp = cp.copy();
-	// 	foldedState.draw();
-	// 	// foldedState.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-	// 	foldedState.update();
-
-	// 	// project2 = new OrigamiFold("canvas-2", cp.copy());
-	// 	// project2.epsilon = EPSILON;
-	// 	// project2.draw();
-	// 	// project2.buildViewMatrix(0.05);
-
-	// 	showAndScrollResults();
+		showAndScrollResults();
 	// }, valid_epsilon);
 }
