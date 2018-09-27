@@ -7,7 +7,7 @@ module.exports = {
   input: 'src/index.js',
   output: {
     name: 'RabbitEar',
-    file: 'RabbitEar.js',
+    file: 'rabbit-ear.js',
     format: 'umd'
   }
 };

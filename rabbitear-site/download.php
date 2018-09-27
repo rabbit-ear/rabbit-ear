@@ -45,7 +45,7 @@
 &lt;<key>meta</key> <v>charset</v>=<str>"UTF-8"</str>&gt;<br>
 &lt;<key>link</key> <v>rel</v>=<str>"stylesheet"</str> <v>type</v>=<str>"text/css"</str> <v>href</v>=<str>"style.css"</str>&gt;<br>
 <br>
-&lt;<key>script</key> <v>type</v>=<str>"text/javascript"</str> <v>src=</v><str>"../../RabbitEar.js"</str>&gt;&lt;/<key>script</key>&gt;<br>
+&lt;<key>script</key> <v>type</v>=<str>"text/javascript"</str> <v>src=</v><str>"../../rabbit-ear.js"</str>&gt;&lt;/<key>script</key>&gt;<br>
 &lt;<key>script</key> <v>type</v>=<str>"text/javascript"</str> <v>src=</v><str>"sketch.js"</str>&gt;&lt;/<key>script</key>&gt;<br>
 </code></pre>
 </div>
@@ -203,7 +203,7 @@
 </div>
 
 
-<script type="text/javascript" src="js/RabbitEar.js"></script>
+<script type="text/javascript" src="js/rabbit-ear.min.js"></script>
 <script>
 // flat fold example: kawasaki collapse, crease pattern and folded form
 var kawasakiPaper = new OrigamiPaper("kawasaki-collapse-example");
@@ -245,7 +245,7 @@ function download(text, filename){
 }
 document.getElementById("download-example-button").onclick = function(event){
 	var svg = kawasakiFolded.cp.foldSVG();
-	download(svg, "RabbitEar.js example.svg");
+	download(svg, "rabbit-ear.js example.svg");
 }
 
 

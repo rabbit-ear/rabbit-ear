@@ -26,7 +26,7 @@
 			<!-- <button type="button" class="btn btn-outline-light" id="docs-button">docs</button> -->
 			<button type="button" class="btn btn-outline-light" id="blog-button">blog</button>
 		</div>
-		<script type="text/javascript" src="js/RabbitEar.js?1"></script>
+		<script type="text/javascript" src="js/rabbit-ear.min.js?1"></script>
 		<script type="text/javascript" src="js/buttons.js?3"></script>
 		<script type="text/javascript" src="js/kawasaki-collapse.js?2"></script>
 	</body>
