@@ -60,8 +60,6 @@ document.getElementById("sites-checkbox").addEventListener("click", function(e){
 // $().button('toggle')
 /////////////////////////////////////////////
 
-var voronoiAlgorithm; // global D3 algorithm implementation
-
 var div = document.getElementsByClassName('canvases')[0];
 var project = new OrigamiPaper(div);
 // project.style.mountain.strokeColor = {gray:0.0}
@@ -76,7 +74,7 @@ touchNodesLayer = document.createElementNS(svgNS, 'g');
 touchNodesLayer.setAttributeNS(null, 'id', 'touch-nodes');
 project.svg.appendChild(touchNodesLayer);
 
-for(var i = 0; i < 3; i++){
+for(var i = 0; i < 6; i++){
 	touchNodes.push( [Math.random(), Math.random()*0.8] );
 }
 
@@ -86,9 +84,9 @@ var selectedNode = undefined;
 var interpolation = 0.5;
 
 project.drawVoronoi = function(complex, showGussets){
-	// var nodes = touchNodes.map(function(el){return [el.x, el.y];});
-	var d3Voronoi = voronoiAlgorithm( touchNodes );
-	var v = new RabbitEar.VoronoiGraph(d3Voronoi);
+	
+	// var v = new RabbitEar.VoronoiGraph(touchNodes, this.cp.bounds());
+	var v = new RabbitEar.VoronoiGraph(touchNodes, {origin:{x:0, y:0}, size:{width:1, height:0.8}});
 	this.cp.clear();
 	this.cp.nodes = [];
 	this.cp.edges = [];
@@ -130,20 +128,14 @@ project.reset = function(){
 	this.cp.clear();
 	this.cp.rectangle(1, 0.8);
 	this.draw();
-	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
-	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
-
+	var bounds = {origin:{x:0, y:0}, size:{width:1, height:0.8}};//this.cp.bounds();
 	while(touchNodesLayer.lastChild){ touchNodesLayer.removeChild(touchNodesLayer.lastChild); }
-
 	this.drawVoronoi();
 }
 project.reset();
 
 project.onResize = function(){
-	var bounds = this.cp.bounds();
-	var boundingBoxD3 = [[bounds.origin.x, bounds.origin.y],[bounds.size.width, bounds.size.height]];
-	voronoiAlgorithm = d3.voronoi().extent( boundingBoxD3 );
+	var bounds = {origin:{x:0, y:0}, size:{width:1, height:0.8}};//this.cp.bounds();
 }
 
 project.onMouseDown = function(event){

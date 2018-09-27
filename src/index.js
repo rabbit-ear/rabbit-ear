@@ -1,13 +1,14 @@
 
 // import './graph.js';
 // import './planarGraph.js';
-// import './compiled/src/geometry.js';
-import * as geometry from './compiled/src/geometry.js'
-import {VoronoiGraph, creaseVoronoi} from './compiled/src/voronoi.js';
-import './compiled/src/polynomial.js';
-import './compiled/lib/rbush.min.js';
+// import './geometry.js';
 
-import CreasePattern from './compiled/src/CreasePattern.js';
+import * as geometry from './geometry.js'
+
+import {VoronoiGraph, creaseVoronoi} from './voronoi.js';
+import './polynomial.js';
+
+import CreasePattern from './creasePattern.js';
 
 import {line, circle, polygon, group, addClass, removeClass} from './SimpleSVG.js';
 
@@ -19,10 +20,11 @@ window.CreasePattern = CreasePattern;
 window.OrigamiPaper = OrigamiPaper;
 window.OrigamiFold = OrigamiFold;
 
+// print this "// Rabbit Ear https://rabbitear.org v0.1.1 Copyright 2018 Robby Kraft";
 
 // export { CreasePattern, OrigamiPaper, OrigamiFold }
 export {
 	CreasePattern, OrigamiPaper, OrigamiFold, VoronoiGraph, creaseVoronoi,
 	line, circle, polygon, group, addClass, removeClass,
 	geometry
- }
+}

@@ -1,40 +1,16 @@
 
 import * as M from './geometry'
-import CreasePattern from './CreasePattern'
-
-//////////////////////////////////////////////////////////////////////////
-// D3.js VORONOI DEPENDENCY
-interface d3VoronoiObject{
-	'edges':{
-		0:[number,number],
-		1:[number,number],
-		'left'?:{0:number,1:number,'data':[number,number],'index':number,'length':number},
-		'right'?:{0:number,1:number,'data':[number,number],'index':number,'length':number},
-		'length':number
-	}[],
-	'cells':{
-		'halfedges':number[],  // integer type, variable length
-		'site':{
-			0:number,
-			1:number,
-			'data':[number,number],
-			'length':number   // integer type
-		}
-	}[]
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-//                            VORONOI
-/////////////////////////////////////////////////////////////////////////////////
+import CreasePattern from './creasePattern.js'
+import voronoi from '../lib/voronoi/voronoi.js'
 
 class VoronoiMolecule extends M.Triangle{
-	overlaped:VoronoiMolecule[];
-	hull:M.ConvexPolygon;
-	units:VoronoiMoleculeTriangle[];
-	isEdge:boolean;
-	edgeNormal:M.XY; // if isEdge is true, normal to edge, pointing (in/out) from hull?
-	isCorner:boolean;
-	constructor(points:[M.XY,M.XY,M.XY], circumcenter:M.XY, edgeNormal?:M.XY){
+	// overlaped;
+	// hull;
+	// units;
+	// isEdge;
+	// edgeNormal; // if isEdge is true, normal to edge, pointing (in/out) from hull?
+	// isCorner;
+	constructor(points, circumcenter, edgeNormal){
 		super(points, circumcenter);
 		this.isEdge = false;  this.isCorner = false;
 		this.overlaped = [];
@@ -44,7 +20,7 @@ class VoronoiMolecule extends M.Triangle{
 			return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
 		},this);//.filter(function(el){return el !== undefined; });
 		// handle edge and corner cases
-		var pointsLength = (<M.XY[]>this.points).length;
+		var pointsLength = this.points.length;
 		switch(pointsLength){
 			case 1: this.isCorner = true; this.addCornerMolecules(); break;
 			case 2:
@@ -62,7 +38,7 @@ class VoronoiMolecule extends M.Triangle{
 			break;
 		}
 		// obtuse case: look for the eclipsed molecule, adjust the remaining crimp angles accordingly
-		var eclipsed:VoronoiMoleculeTriangle = undefined;
+		var eclipsed = undefined;
 		this.units = this.units.filter(function(el){
 			// update molecule crimp angle
 			var cross = (el.vertex.y - el.base[0].y) * (el.base[1].x - el.base[0].x) -
@@ -75,7 +51,7 @@ class VoronoiMolecule extends M.Triangle{
 			this.units.forEach(function(el){ el.crimpAngle -= angle; });
 		}
 	}
-	addEdgeMolecules(normal:M.XY){
+	addEdgeMolecules(normal){
 		this.edgeNormal = normal.normalize().abs();
 		if(this.units.length < 1){ return; }
 		var base = this.units[0].base;
@@ -91,8 +67,8 @@ class VoronoiMolecule extends M.Triangle{
 	}
 	addCornerMolecules(){ }
 
-	generateCreases():M.Edge[]{
-		var edges:M.Edge[] = [];
+	generateCreases(){
+		var edges = [];
 		var outerEdges = this.units.map(function(el,i){
 			var nextEl = this.units[ (i+1)%this.units.length ];
 			if(el.base[1].equivalent(nextEl.base[0])){ 
@@ -115,12 +91,12 @@ class VoronoiMolecule extends M.Triangle{
 }
 /** Isosceles Triangle units that comprise a VoronoiMolecule */
 class VoronoiMoleculeTriangle{
-	base:[M.XY,M.XY];
-	vertex:M.XY;
+	// base;
+	// vertex;
 	// the crimp angle is measured against the base side.
-	crimpAngle:number;
-	overlapped:VoronoiMolecule[];
-	constructor(vertex:M.XY, base:[M.XY,M.XY], crimpAngle?:number){
+	// crimpAngle;
+	// overlapped;
+	constructor(vertex, base, crimpAngle){
 		this.vertex = vertex;
 		this.base = base;
 		this.crimpAngle = crimpAngle;
@@ -133,7 +109,7 @@ class VoronoiMoleculeTriangle{
 			this.crimpAngle = (a1<a2) ? a1 : a2;
 		}
 	}
-	crimpLocations():[M.XY,M.XY]{
+	crimpLocations(){
 		// first is the top of the outer triangle, the second the angle bisection
 		var baseAngle = Math.atan2(this.base[1].y-this.base[0].y,this.base[1].x-this.base[0].x);
 		var crimpVector = new M.XY(Math.cos(baseAngle+this.crimpAngle),Math.sin(baseAngle+this.crimpAngle));
@@ -143,8 +119,8 @@ class VoronoiMoleculeTriangle{
 		var bisectPos = M.intersectionRayEdge(new M.Ray(this.base[0], bisectVector), symmetryLine);
 		return [crimpPos, bisectPos];
 	}
-	generateCrimpCreaseLines():M.Edge[]{
-		var crimps:[M.XY,M.XY] = this.crimpLocations();
+	generateCrimpCreaseLines(){
+		var crimps = this.crimpLocations();
 
 		var symmetryLine = new M.Edge(this.vertex, this.base[0].midpoint(this.base[1]));
 		if(this.overlapped.length > 0){
@@ -152,19 +128,19 @@ class VoronoiMoleculeTriangle{
 		}
 		var overlappingEdges = [symmetryLine]
 			.concat( this.overlapped
-				.map(function(el:VoronoiMolecule){return el.generateCreases();})
+				.map(function(el){return el.generateCreases();})
 				.reduce(function(prev, curr){ return prev.concat(curr); },[])
 			)
 		var edges = [symmetryLine]
 			.concat(new M.Polyline().rayReflectRepeat(new M.Ray(this.base[0], this.base[1].subtract(this.base[0])), overlappingEdges, this.base[1]).edges());
 		crimps.filter(function(el){
 				return el!==undefined && !el.equivalent(this.vertex);},this)
-			.forEach(function(crimp:M.XY){
+			.forEach(function(crimp){
 				edges = edges.concat( new M.Polyline().rayReflectRepeat(new M.Ray(this.base[0], crimp.subtract(this.base[0])), overlappingEdges, this.base[1]).edges() );
 			},this);
 		return edges;
 	}
-	pointInside(p:M.XY):boolean{
+	pointInside(p){
 		var points = [this.vertex, this.base[0], this.base[1]];
 		for(var i = 0; i < points.length; i++){
 			var p0 = points[i];
@@ -177,33 +153,33 @@ class VoronoiMoleculeTriangle{
 	}
 }
 class VoronoiEdge{
-	endPoints:[M.XY, M.XY];
-	junctions:[VoronoiJunction, VoronoiJunction];
-	cells:[VoronoiCell,VoronoiCell];
-	isBoundary:boolean;
-	cache:object = {};
+	// endPoints;
+	// junctions;
+	// cells;
+	// isBoundary;
+	// cache = {};
 }
 class VoronoiCell{
-	site:M.XY;
-	points:M.XY[];
-	edges:VoronoiEdge[];
+	// site;
+	// points;
+	// edges;
 	constructor(){ this.points = []; this.edges = []; }
 }
 class VoronoiJunction{
-	position:M.XY;
-	edges:VoronoiEdge[];
-	cells:VoronoiCell[];
-	isEdge:boolean;
-	isCorner:boolean;
-	edgeNormal:M.XY;// normal to the edge, if there is an edge
+	// position;
+	// edges;
+	// cells;
+	// isEdge;
+	// isCorner;
+	// edgeNormal;// normal to the edge, if there is an edge
 	constructor(){ this.edges = []; this.cells = []; this.isEdge = false; this.isCorner = false; }
 }
 export class VoronoiGraph{
-	edges:VoronoiEdge[];
-	junctions:VoronoiJunction[];
-	cells:VoronoiCell[];
+	// edges;
+	// junctions;
+	// cells;
 
-	edgeExists(points:[M.XY,M.XY], epsilon?:number):VoronoiEdge{
+	edgeExists(points, epsilon){
 		if(epsilon === undefined){ epsilon = M.EPSILON_HIGH; }
 		this.edges.forEach(function(el){
 			if(el.endPoints[0].equivalent(points[0], epsilon) &&
@@ -214,9 +190,16 @@ export class VoronoiGraph{
 		return undefined;
 	}
 	/** Build a VoronoiGraph object from the object generated by D3.js Voronoi */
-	constructor(v:d3VoronoiObject, epsilon?:number){
-		var containsXY = function(a:M.XY[],object:M.XY):boolean{
-			return (a.filter(function(e:M.XY){
+	// constructor(v:d3VoronoiObject, epsilon){
+	constructor(points, bounds, epsilon){
+		// points
+		// var boundsArray = [bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height];
+		var boundsArray = [[bounds.origin.x, bounds.origin.y], [bounds.size.width, bounds.size.height]];
+		var voronoiAlgorithm = voronoi().extent( boundsArray );
+		var v = voronoiAlgorithm( points );
+
+		var containsXY = function(a,object){
+			return (a.filter(function(e){
 				return e.equivalent(object,epsilon);
 			}).length > 0);
 		}
@@ -255,7 +238,7 @@ export class VoronoiGraph{
 		},this);
 		// locate each of the neighbor cells for every edge
 		this.edges.forEach(function(el){
-			var thisCells:[VoronoiCell, VoronoiCell] = [undefined, undefined];
+			var thisCells = [undefined, undefined];
 			if(el.cache['left'] !== undefined){
 				var leftSite = new M.XY(el.cache['left'][0], el.cache['left'][1]);
 				for(var i = 0; i < this.cells.length; i++){
@@ -279,7 +262,7 @@ export class VoronoiGraph{
 			if(el.cells[0] === undefined || el.cells[1] === undefined){el.isBoundary = true;}
 			el.cache = {};
 		},this);
-		var nodes:M.XY[] = [];
+		var nodes = [];
 		this.edges.forEach(function(el){
 			if(!containsXY(nodes, el.endPoints[0])){nodes.push(el.endPoints[0]);}
 			if(!containsXY(nodes, el.endPoints[1])){nodes.push(el.endPoints[1]);}
@@ -289,7 +272,7 @@ export class VoronoiGraph{
 			junction.position = el;
 			junction.cells = this.cells.filter(function(cell){ 
 				return containsXY(cell.points, el)
-			},this).sort(function(a:VoronoiCell,b:VoronoiCell){
+			},this).sort(function(a,b){
 				var vecA = a.site.subtract(el);
 				var vecB = b.site.subtract(el);
 				return Math.atan2(vecA.y,vecA.x) - Math.atan2(vecB.y,vecB.x);
@@ -298,7 +281,7 @@ export class VoronoiGraph{
 				case 1: junction.isCorner = true; break;
 				case 2: 
 					junction.isEdge = true;
-					hull.edges.forEach(function(edge:M.Edge){
+					hull.edges.forEach(function(edge){
 						if(edge.collinear(junction.position)){
 							junction.edgeNormal = edge.nodes[1].subtract(edge.nodes[0]).rotate90();
 						}
@@ -307,7 +290,7 @@ export class VoronoiGraph{
 			}
 			junction.edges = this.edges.filter(function(edge){
 				return containsXY(edge.endPoints, el);
-			},this).sort(function(a:VoronoiEdge,b:VoronoiEdge){
+			},this).sort(function(a,b){
 				var otherA = a.endPoints[0];
 				if(otherA.equivalent(el)){ otherA = a.endPoints[1];}
 				var otherB = b.endPoints[0];
@@ -321,18 +304,18 @@ export class VoronoiGraph{
 		return this;
 	}
 
-	generateMolecules(interp:number):VoronoiMolecule[]{
-		return this.junctions.map(function(j:VoronoiJunction){
-			var endPoints:M.XY[] = j.cells.map(function(cell:VoronoiCell){
+	generateMolecules(interp){
+		return this.junctions.map(function(j){
+			var endPoints = j.cells.map(function(cell){
 				return cell.site.lerp(j.position,interp);
 			},this);
-			var molecule = new VoronoiMolecule(<[M.XY,M.XY,M.XY]>endPoints, j.position, j.isEdge?j.edgeNormal:undefined);
+			var molecule = new VoronoiMolecule(endPoints, j.position, j.isEdge?j.edgeNormal:undefined);
 			return molecule;
 		},this);		
 	}
 
 	/** sorts molecules based on overlap  */
-	generateSortedMolecules(interp:number):VoronoiMolecule[][]{
+	generateSortedMolecules(interp){
 		var molecules = this.generateMolecules(interp);
 		for(var i = 0; i < molecules.length; i++){
 			for(var j = 0; j < molecules.length; j++){
@@ -347,12 +330,12 @@ export class VoronoiGraph{
 			}
 		}
 		for(var i = 0; i < molecules.length; i++){
-			molecules[i].units.forEach(function(unit:VoronoiMoleculeTriangle){
-				unit.overlapped.sort(function(a:VoronoiMolecule,b:VoronoiMolecule){
+			molecules[i].units.forEach(function(unit){
+				unit.overlapped.sort(function(a,b){
 					return a.circumcenter.distanceTo(unit.vertex)-b.circumcenter.distanceTo(unit.vertex);
 				});
 			});
-			molecules[i].overlaped.sort(function(a:VoronoiMolecule,b:VoronoiMolecule){
+			molecules[i].overlaped.sort(function(a,b){
 				return a.circumcenter.distanceTo(molecules[i].circumcenter)-b.circumcenter.distanceTo(molecules[i].circumcenter);
 			});
 		}
@@ -374,24 +357,24 @@ export class VoronoiGraph{
 	}
 }
 
-export function creaseVoronoi(cp:CreasePattern, v:VoronoiGraph, interp?:number):any[]{
+export function creaseVoronoi(cp, v, interp){
 
 	// returns an array of VoronoiMolecule[]
-	// creaseVoronoi(v:VoronoiGraph, interp?:number):any[]{
+	// creaseVoronoi(v, interp){
 		if(interp === undefined){ interp = 0.5; }
 
 		// original voronoi graph edges
 		var edges = v.edges.filter(function(el){return !el.isBoundary; });
 		// shrunk voronoi cell outlines
-		var cells:[M.XY,M.XY][][] = <[M.XY,M.XY][][]>v.cells.map(function(cell){
+		var cells = v.cells.map(function(cell){
 			return cell.edges.map(function(edge){
-				return edge.endPoints.map(function(el:M.XY){
+				return edge.endPoints.map(function(el){
 					return cell.site.lerp(el,interp);
 				});
 			},this);
 		},this);
 		// junction molecules
-		// var molecules:VoronoiMolecule[] = v.generateMolecules(interp);
+		// var molecules = v.generateMolecules(interp);
 		// find overlapped molecules
 		var sortedMolecules = v.generateSortedMolecules(interp);
 		sortedMolecules.forEach(function(arr){
@@ -407,10 +390,11 @@ export function creaseVoronoi(cp:CreasePattern, v:VoronoiGraph, interp?:number):
 			var c = cp.crease(edge.endPoints[0], edge.endPoints[1]);
 			if(c !== undefined){ c.valley(); }
 		},this);
-		cells.forEach(function(cell:[M.XY,M.XY][]){ cell.forEach(function(edge){
-			cp.crease(edge[0], edge[1]).mountain();
+		cells.forEach(function(cell){ cell.forEach(function(edge){
+			var crease = cp.crease(edge[0], edge[1]);
+			if(crease != undefined){ crease.mountain(); }
 		},this)},this);
-
+		if(sortedMolecules.length == 0){ return []; }
 		return sortedMolecules.reduce(function(prev, current){ return prev.concat(current); });
 
 }

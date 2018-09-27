@@ -10,9 +10,9 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 		<link href="https://fonts.googleapis.com/css?family=Montserrat:600" rel="stylesheet">
-		<link rel="stylesheet" type="text/css" href="css/byrne.css?version=0.1">
-		<link rel="stylesheet" type="text/css" href="css/fullscreen.css?version=0.1">
-		<link rel="stylesheet" type="text/css" href="css/cp-light.css?version=0.1">
+		<link rel="stylesheet" type="text/css" href="css/byrne.css?version=0.2">
+		<link rel="stylesheet" type="text/css" href="css/fullscreen.css?version=0.2">
+		<link rel="stylesheet" type="text/css" href="css/cp-light.css?version=0.2">
 	</head>
 	<body>
 		<div class="row">
@@ -26,8 +26,8 @@
 			<!-- <button type="button" class="btn btn-outline-light" id="docs-button">docs</button> -->
 			<button type="button" class="btn btn-outline-light" id="blog-button">blog</button>
 		</div>
-		<script type="text/javascript" src="../RabbitEar.js?1"></script>
-		<script type="text/javascript" src="js/buttons.js?2"></script>
-		<script type="text/javascript" src="js/kawasaki-collapse.js?1"></script>
+		<script type="text/javascript" src="js/RabbitEar.js?1"></script>
+		<script type="text/javascript" src="js/buttons.js?3"></script>
+		<script type="text/javascript" src="js/kawasaki-collapse.js?2"></script>
 	</body>
 </html>

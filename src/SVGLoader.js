@@ -1,9 +1,9 @@
-import CreasePattern from './compiled/src/CreasePattern.js'
+import CreasePattern from './creasePattern.js'
 
 'use strict';
 
 /** 
- *  1 INPUT: an XML element tree, or a string that can be parsed into one
+ *  SVGLoader can take as input: an XML element tree, or a string that can be parsed into one
  */
 export default function(_){
 	// get the data
@@ -23,7 +23,9 @@ export default function(_){
 	if(styleTag != undefined && styleTag.childNodes != undefined && styleTag.childNodes.length > 0){
 		cssStyle = parseCSSText( styleTag.childNodes[0].nodeValue );
 	}
-	var svg = rootElement.getElementsByTagName('svg')[0];
+	var allSVGs = rootElement.getElementsByTagName('svg');
+	if(allSVGs == undefined || allSVGs.length == 0){ throw "error, the svg parser couldn't find an SVG element"; }
+	var svg = allSVGs[0];
 	// console.log(svg.SVGStyleElement);
 	// console.log(svg.nodeValue);
 

@@ -10,9 +10,9 @@
 <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 <link href="https://fonts.googleapis.com/css?family=Montserrat:600,900" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="../docs/css/code.css">
-<link rel="stylesheet" type="text/css" href="css/byrne.css?version=0.1">
-<link rel="stylesheet" type="text/css" href="css/page.css?version=0.1">
-<link rel="stylesheet" type="text/css" href="css/cp-dark.css?version=0.1">
+<link rel="stylesheet" type="text/css" href="css/byrne.css?version=0.2">
+<link rel="stylesheet" type="text/css" href="css/page.css?version=0.2">
+<link rel="stylesheet" type="text/css" href="css/cp-dark.css?version=0.2">
 
 <div class="container">
 
@@ -20,7 +20,7 @@
 
 	<div class="column">
 		<button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.1.zip</button>
-		<p>327 kb</p>
+		<p>381 kb</p>
 	</div>
 
 </div>
@@ -153,7 +153,7 @@
 <br>}</code></pre>
 </div>
 
-	<p class="explain">The <arg>this</arg> is the same as typing <strong>origami</strong> here. <arg>this</arg> can be used interchangeably with <strong>origami</strong> when you're inside an OrigamiPaper function.</p>
+	<p class="explain">The <strong><arg>this</arg>.cp</strong> is the same as typing <strong>origami.cp</strong> here. <strong><arg>this</arg></strong> can be used interchangeably with <strong>origami</strong> when you're inside an OrigamiPaper function.</p>
 
 	<p>Notice the three crease operations. The creases go from corners of the square to the mouse pointer. Then there is a fourth crease operation:</p>
 
@@ -203,7 +203,7 @@
 </div>
 
 
-<script type="text/javascript" src="../RabbitEar.js"></script>
+<script type="text/javascript" src="js/RabbitEar.js"></script>
 <script>
 // flat fold example: kawasaki collapse, crease pattern and folded form
 var kawasakiPaper = new OrigamiPaper("kawasaki-collapse-example");

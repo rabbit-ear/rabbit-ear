@@ -1,7 +1,7 @@
-import FileImport from './SVGLoader.js'
-import {GraphNode, GraphEdge} from './compiled/src/graph.js'
-import {PlanarFace, PlanarSector, PlanarGraph} from './compiled/src/planarGraph.js'
-import CreasePattern from './compiled/src/CreasePattern.js'
+import SVGLoader from './SVGLoader.js'
+import {GraphNode, GraphEdge} from './graph.js'
+import {PlanarFace, PlanarSector, PlanarGraph} from './planarGraph.js'
+import CreasePattern from './creasePattern.js'
 import * as SVG from './SimpleSVG.js'
 
 'use strict';
@@ -240,32 +240,60 @@ export default class OrigamiPaper{
 	}
 	addJunction(junction){ }
 
-	load(path, callback){  // callback
-		this.cp = new FileImport(path);
-		this.draw();
 
-		// console.log("path");
-		// console.log(path);
-		// // figure out the file extension
-		// var extension = 'svg';
-		// var that = this;
-		// switch(extension){
-		// 	case 'fold':
-		// 	fetch(path)
-		// 		.then(function(response){ return response.json(); })
-		// 		.then(function(data){
-
-		// 		});
-		// 	break;
-		// 	case 'svg':
-		// 	fetch(path)
-		// 		.then(response => response.text())
-		// 		.then(function(string){
-		// 			that.cp = new FileImport(string);
-		// 			that.draw();
-		// 			// if(callback != undefined){ callback(that.cp); }
-		// 		});
-		// 	break;
-		// }
+	load(input, callback){ // epsilon
+		// are they giving us a filename, or the data of an already loaded file?
+		var that = this;
+		if (typeof input === 'string' || input instanceof String){
+			var extension = input.substr((input.lastIndexOf('.') + 1));
+			// filename. we need to upload
+			switch(extension){
+				case 'fold':
+				fetch(input)
+					.then(function(response){ return response.json(); })
+					.then(function(data){
+						that.cp.importFoldFile(data);
+						that.draw();
+						if(callback != undefined){ callback(that.cp); }
+					});
+				return that;
+				case 'svg':
+				fetch(input)
+					.then(response => response.text())
+					.then(function(string){
+						that.cp = new SVGLoader(string);
+						that.draw();
+						if(callback != undefined){ callback(that.cp); }
+					});
+				return that;
+				case 'opx':
+				fetch(input)
+					.then(response => response.text())
+					.then(function(string){
+						var foldFile = FOLD.convert.convertFromTo(string, "opx", "fold");
+						that.cp.importFoldFile(foldFile);
+						that.draw();
+						if(callback != undefined){ callback(that.cp); }
+					});
+				return that;
+			}
+		}
+		try{
+			// try .fold file format first
+			var foldFile = JSON.parse(input);
+			this.cp.importFoldFile(foldFile);
+			return this;
+		} catch(err){
+			// try .svg file format
+			try {
+				this.cp = new SVGLoader(input);
+				this.draw();
+				return this;
+			}
+			catch(err) {
+				console.log("can't recognize file");
+			}
+		}
+		return this;
 	}
 }
