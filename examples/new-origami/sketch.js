@@ -24,10 +24,7 @@ var backupFolded = duplicate(origami.folded);
 
 var tempCP = new CreasePattern();
 
-function duplicate(foldFile){
-	console.log(foldFile);
-	return JSON.parse(JSON.stringify(foldFile));
-}
+function duplicate(foldFile){ return JSON.parse(JSON.stringify(foldFile)); }
 
 function update(){
 	if(foldLine){
