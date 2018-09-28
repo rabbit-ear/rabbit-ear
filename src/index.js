@@ -14,11 +14,13 @@ import {line, circle, polygon, group, addClass, removeClass} from './SimpleSVG.j
 
 import OrigamiPaper from './OrigamiPaper.js';
 import OrigamiFold from './OrigamiFold.js';
+import Origami from './Origami.js';
 
 // for convenience, bind these 3 to the window
 window.CreasePattern = CreasePattern;
 window.OrigamiPaper = OrigamiPaper;
 window.OrigamiFold = OrigamiFold;
+window.Origami = Origami;
 
 // print this "// Rabbit Ear https://rabbitear.org v0.1.1 Copyright 2018 Robby Kraft";
 
@@ -26,5 +28,6 @@ window.OrigamiFold = OrigamiFold;
 export {
 	CreasePattern, OrigamiPaper, OrigamiFold, VoronoiGraph, creaseVoronoi,
 	line, circle, polygon, group, addClass, removeClass,
-	Geometry
+	Geometry,
+	Origami
 }

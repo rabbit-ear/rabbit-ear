@@ -379,6 +379,7 @@ class NoCrease extends Crease{
 class CreaseFace extends PlanarFace{
 	constructor(graph){
 		super(graph);
+		this.coloring = 0;
 		this.cache = {};
 	}
 	rabbitEar(){
@@ -1432,19 +1433,19 @@ export default class CreasePattern extends PlanarGraph{
 		var tree = face.adjacentFaceTree();
 		var faces = [];
 		tree['matrix'] = new M.Matrix();
-		faces.push({'face':tree.obj, 'matrix':tree['matrix']});
-		function recurse(node){
+		faces.push({'face':tree.obj, 'matrix':tree['matrix'], 'level':0});
+		function recurse(node, level){
 			node.children.forEach(function(child){
 				var local = child.obj.commonEdges(child.parent.obj).shift().reflectionMatrix();
 				child['matrix'] = child.parent['matrix'].mult(local);
-				faces.push({'face':child.obj, 'matrix':child['matrix']});
-				recurse(child);
+				faces.push({'face':child.obj, 'matrix':child['matrix'], 'level':level});
+				recurse(child, level+1);
 			},this);
 		}
-		recurse(tree);
+		recurse(tree, 1);
 		var nodeTransformed = Array.apply(false, Array(copyCP.nodes.length))
 		faces.forEach(function(f){
-			f.face.cache = f.matrix;
+			f.face.cache = {matrix:f.matrix, coloring:f.level % 2};
 			f.face.nodes
 				.filter(function(node){ return !nodeTransformed[node.index]; },this)
 				.forEach(function(node){
@@ -1539,11 +1540,16 @@ export default class CreasePattern extends PlanarGraph{
 				default: return "U";
 			}
 		},this);
-		file["face_matrices"] = this.faces.map(function(face){
-			if(face.cache != undefined){
-				var m = face.cache
+		file["faces_matrices"] = this.faces.map(function(face){
+			if(face.cache != undefined && face.cache.matrix != undefined){
+				var m = face.cache.matrix;
 				return [m.a, m.b, m.c, m.d, m.tx, m.ty];
 			} else { return [1, 0, 0, 1, 0, 0]; }
+		});
+		file["faces_coloring"] = this.faces.map(function(face){
+			if(face.cache != undefined && face.cache.coloring != undefined){
+				return face.cache.coloring;
+			} else { return 0; }
 		});
 		return file;
 	}
@@ -1599,6 +1605,13 @@ export default class CreasePattern extends PlanarGraph{
 					var nextNode = face.nodes[ (ei+1)%face.nodes.length ];
 					return this.getEdgeConnectingNodes(node, nextNode);
 				},this);
+				if(file["faces_matrices"] != undefined && file["faces_matrices"][fi].length >= 6){
+					var m = file['faces_matrices'][fi];
+					face.matrix = new M.Matrix(m[0], m[1], m[2], m[3], m[4], m[5]);
+				}
+				if(file["faces_coloring"] != undefined){
+					face.coloring = file['faces_coloring'][fi];
+				}
 				return face;
 			},this)
 		this.faceArrayDidChange();
