@@ -63,8 +63,7 @@ export default function(_){
 	cp.scaleToUnitHeight();
 	// find the convex hull of the CP, set it to the boundary
 	var points = cp.nodes.map(function(p){ return {x:p.x, y:p.y}; },this);
-	cp.boundary.convexHull(points);
-	cp.clean();
+	cp.setBoundary(points);
 	return cp;
 }
 

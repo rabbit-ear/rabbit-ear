@@ -27,16 +27,16 @@ h3 a, h3 a:hover, h3 a:visited, h3 a:active{
 .btn-outline-light:hover {
 	color: black;
 }
-canvas[resize]{
+svg{
 	height:100%;
 	width:100%;
 }
-canvas[resize].half{
+svg.half{
 	width:40vmax;
 	height:40vmax;
 	margin:auto;
 }
-canvas[resize].third{
+svg.third{
 	width:25vw;
 	height:25vw;
 }

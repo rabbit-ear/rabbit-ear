@@ -14,7 +14,7 @@ class VoronoiMolecule extends M.Triangle{
 		super(points, circumcenter);
 		this.isEdge = false;  this.isCorner = false;
 		this.overlaped = [];
-		this.hull = new M.ConvexPolygon().convexHull([points[0], points[1], points[2], circumcenter].filter(function(el){return el !== undefined;}));
+		this.hull = M.ConvexPolygon.convexHull([points[0], points[1], points[2], circumcenter].filter(function(el){return el !== undefined;}));
 		this.units = this.points.map(function(el,i){
 			var nextEl = this.points[ (i+1)%this.points.length ];
 			return new VoronoiMoleculeTriangle(circumcenter, [el, nextEl]);
@@ -208,7 +208,7 @@ export class VoronoiGraph{
 		var allPoints = v.edges
 			.map(function(e){return [new M.XY(e[0][0],e[0][1]),new M.XY(e[1][0],e[1][1])]})
 			.reduce(function(prev, curr){ return prev.concat(curr); },[])
-		var hull = new M.ConvexPolygon().convexHull(allPoints);
+		var hull = M.ConvexPolygon.convexHull(allPoints);
 		this.edges = [];
 		this.junctions = [];
 		this.cells = [];

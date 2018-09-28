@@ -65,6 +65,7 @@ export default class OrigamiFold{
 		this.mouseZoom = true;
 		this.zoom = 1.0;
 		this.rotation = 0;
+		this.autoResize = true;
 		this.bounds = {'origin':{'x':0,'y':0},'size':{'width':1.0, 'height':1.0}};
 		this.mouse = {
 			position: {'x':0,'y':0},  // the current position of the mouse
@@ -104,7 +105,7 @@ export default class OrigamiFold{
 					that.rotation = that.rotationOnMousePress + (that.mouse.pressed.x - that.mouse.position.x);
 					if(that.zoom < 0.02){ that.zoom = 0.02; }
 					if(that.zoom > 100){ that.zoom = 100; }
-					that.setViewBox();
+					if(that.autoResize){ that.setViewBox(); }
 				}
 			}
 			// that.updateSelected();
@@ -148,7 +149,13 @@ export default class OrigamiFold{
 	setViewBox(){
 		// todo: need protections if cp is returning no bounds
 		this.getBounds();
-		this.svg.setAttribute("viewBox", (-this.padding+this.bounds.origin.x) + " " + (-this.padding+this.bounds.origin.y) + " " + (this.bounds.size.width+this.padding*2) + " " + (this.bounds.size.height+this.padding*2));
+		// todo: this is maybe not the best zoom operation
+		var d = (this.bounds.size.width / this.zoom) - this.bounds.size.width;
+		var oX = this.bounds.origin.x - d;
+		var oY = this.bounds.origin.y - d;
+		var width = this.bounds.size.width + d*2;
+		var height = this.bounds.size.height + d*2;
+		this.svg.setAttribute("viewBox", (-this.padding+oX) + " " + (-this.padding+oY) + " " + (this.padding*2+width) + " " + (this.padding*2+height));
 	}
 
 	update(){
@@ -156,10 +163,10 @@ export default class OrigamiFold{
 	}
 
 	draw(groundFace){
-		this.setViewBox();
+		if(this.autoResize){ this.setViewBox(); }
 
 		if(this.holdPoint != undefined){ groundFace = this.cp.nearest(this.holdPoint).face; }
-
+		
 		this.foldedCP = this.cp.fold(groundFace);
 		this.getBounds();
 		this.faces = [];
@@ -179,7 +186,7 @@ export default class OrigamiFold{
 				},this)
 				.forEach(function(faceNodes, i){ this.addFace(faceNodes); },this);
 		}
-		this.setViewBox();
+		if(this.autoResize){ this.setViewBox(); }
 	}
 	
 	addFace(vertices, index){

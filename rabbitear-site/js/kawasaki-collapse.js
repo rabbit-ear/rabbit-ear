@@ -73,7 +73,7 @@ origami.reset = function(){
 		.forEach(function(crease){crease.valley();},this);
 	this.template.clean();
 	// var valleyCreases = this.template.edges.filter(function(el){return el.orientation==CreaseDirection.valley;});
-	var valleyCreases = this.template.edges.filter(function(el){return el.orientation == 3;});
+	var valleyCreases = this.template.edges.filter(function(el){return el.orientation == "valley";});
 	this.centerNode = valleyCreases[0].commonNodeWithEdge(valleyCreases[1]);
 	this.cp = this.template.copy();
 	this.cp.crease(this.centerpoint[0], this.centerpoint[1], 1, 1).mountain();

@@ -126,7 +126,7 @@ function intersect_vec_func(aOrigin, aVec, bOrigin, bVec, compFunction, epsilon)
 	var t1 = numerator1 / denominator1;
 	if(compFunction(t0,t1)){ return aOrigin.add(aVec.scale(t0)); }
 }
-function intersectionLineLine(a, b, epsilon){
+export function intersectionLineLine(a, b, epsilon){
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(a.point.x, a.point.y),
@@ -135,7 +135,7 @@ function intersectionLineLine(a, b, epsilon){
 		new XY(b.direction.x, b.direction.y),
 		function(t0,t1){return true;}, epsilon);
 }
-function intersectionLineRay(line, ray, epsilon){
+export function intersectionLineRay(line, ray, epsilon){
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(line.point.x, line.point.y),
@@ -144,7 +144,7 @@ function intersectionLineRay(line, ray, epsilon){
 		new XY(ray.direction.x, ray.direction.y),
 		function(t0,t1){return t1 >= -epsilon;}, epsilon);
 }
-function intersectionLineEdge(line, edge, epsilon){
+export function intersectionLineEdge(line, edge, epsilon){
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(line.point.x, line.point.y),
@@ -153,7 +153,7 @@ function intersectionLineEdge(line, edge, epsilon){
 		new XY(edge.nodes[1].x-edge.nodes[0].x, edge.nodes[1].y-edge.nodes[0].y),
 		function(t0,t1){return t1 >= -epsilon && t1 <= 1+epsilon;}, epsilon);
 }
-function intersectionRayRay(a, b, epsilon){
+export function intersectionRayRay(a, b, epsilon){
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(a.origin.x, a.origin.y),
@@ -172,7 +172,7 @@ export function intersectionRayEdge(ray, edge, epsilon){
 		new XY(edge.nodes[1].x-edge.nodes[0].x, edge.nodes[1].y-edge.nodes[0].y),
 		function(t0,t1){return t0 >= -epsilon && t1 >= -epsilon && t1 <= 1+epsilon;}, epsilon);
 }
-function intersectionEdgeEdge(a, b, epsilon){
+export function intersectionEdgeEdge(a, b, epsilon){
 	if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 	return intersect_vec_func(
 		new XY(a.nodes[0].x, a.nodes[0].y),
@@ -181,7 +181,7 @@ function intersectionEdgeEdge(a, b, epsilon){
 		new XY(b.nodes[1].x-b.nodes[0].x, b.nodes[1].y-b.nodes[0].y),
 		function(t0,t1){return t0 >= -epsilon && t0 <= 1+epsilon && t1 >= -epsilon && t1 <= 1+epsilon;}, epsilon);
 }
-function intersectionCircleLine(center, radius, p0, p1){
+export function intersectionCircleLine(center, radius, p0, p1){
 	var r_squared =  Math.pow(radius,2);
 	var x1 = p0.x - center.x;
 	var y1 = p0.y - center.y;
@@ -233,6 +233,19 @@ export class Matrix{
 		r.ty = this.b * mat.tx + this.d * mat.ty + this.ty;
 		return r;
 	}
+	/** Creates an inverted copy of this matrix
+	 * @returns {Matrix}
+	 */
+	inverse(){
+		var determinant = this.a * this.d - this.b * this.c;
+		if (!determinant || isNaN(determinant) || !isFinite(this.tx) || !isFinite(this.ty)){ return undefined; }
+		return new Matrix(this.d / determinant, 
+		                 -this.b / determinant, 
+		                 -this.c / determinant, 
+		                  this.a / determinant, 
+		                 (this.c * this.ty - this.d * this.tx) / determinant, 
+		                 (this.b * this.tx - this.a * this.ty) / determinant);
+	}
 	/** Creates a transformation matrix representing a reflection across a line
 	 * @returns {Matrix} 
 	 */
@@ -278,11 +291,6 @@ export class XY {
 	// x;
 	// y;
 	constructor(x, y){ this.x = x; this.y = y; }
-	equivalent(point, epsilon){
-		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
-		// rect bounding box for now, much cheaper than radius calculation
-		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
-	}
 	normalize() { var m = this.magnitude(); return new XY(this.x/m, this.y/m);}
 	dot(point) { return this.x * point.x + this.y * point.y; }
 	cross(vector){ return this.x*vector.y - this.y*vector.x; }
@@ -298,7 +306,6 @@ export class XY {
 	rotate270() { return new XY(this.y, -this.x); }
 	rotate(angle, origin){ return this.transform( new Matrix().rotation(angle, origin) ); }
 	lerp(point, pct){ var inv=1.0-pct; return new XY(this.x*pct+point.x*inv,this.y*pct+point.y*inv); }
-	midpoint(other){ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
 	/** reflects this point about a line that passes through 'a' and 'b' */
 	reflect(line){
 		var origin = (line.direction != undefined) ? (line.point || line.origin) : new XY(line.nodes[0].x, line.nodes[0].y);
@@ -316,6 +323,12 @@ export class XY {
 	abs(){ return new XY(Math.abs(this.x), Math.abs(this.y)); }
 	commonX(point, epsilon){return epsilonEqual(this.x, point.x, epsilon);}
 	commonY(point, epsilon){return epsilonEqual(this.y, point.y, epsilon);}
+	midpoint(other){ return new XY((this.x+other.x)*0.5, (this.y+other.y)*0.5); }
+	equivalent(point, epsilon){
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
+		// rect bounding box for now, much cheaper than radius calculation
+		return (epsilonEqual(this.x, point.x, epsilon) && epsilonEqual(this.y, point.y, epsilon))
+	}
 }
 /** All line types (lines, rays, edges) must implement these functions */
 class LineType{
@@ -343,7 +356,7 @@ export class Line{
 		if(a.x !== undefined){this.point = new XY(a.x, a.y); this.direction = new XY(b.x, b.y);}
 		else{ this.point = new XY(a,b); this.direction = new XY(c,d); }
 	}
-	rays(){var a = new Ray(this.point, this.direction);return [a,a.flip()];}
+	rays(){var a = new Ray(this.point, this.direction); return [a,a.flip()];}
 	// implements LineType
 	length(){ return Infinity; }
 	vector(){ return this.direction; }
@@ -382,8 +395,12 @@ export class Line{
 		return new XY(this.point.x + u*v.x, this.point.y + u*v.y);
 	}
 	transform(matrix){
-		// todo: who knows if this works
-		return new Line(this.point.transform(matrix), this.direction.transform(matrix));
+		// todo: a little more elegant of a solution, please
+		var temp = this.point.add(this.direction.normalize());
+		if(temp == undefined){ return this; }
+		var p0 = this.point.transform(matrix);
+		var p1 = temp.transform(matrix);
+		return new Edge(p0.x, p0.y, p1.x, p1.y).infiniteLine();
 	}
 	bisect(line){
 		if( this.parallel(line) ){
@@ -475,11 +492,12 @@ export class Ray{
 		if(answer !== undefined){ return answer; }
 		return this.origin;
 	}
-	nearestPointNormalTo(point){
+	nearestPointNormalTo(point, epsilon){
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		var v = this.direction.normalize();
 		var u = ((point.x-this.origin.x)*v.x + (point.y-this.origin.y)*v.y);
 		// todo: did I guess right? < 0, and not > 1.0
-		if(u < 0){ return undefined; }
+		if(u < -epsilon){ return undefined; }
 		return new XY(this.origin.x + u*v.x, this.origin.y + u*v.y);
 	}
 	transform(matrix){
@@ -594,10 +612,11 @@ export class Edge{
 			.shift()
 			.point;
 	}
-	nearestPointNormalTo(point){
+	nearestPointNormalTo(point, epsilon){
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		var p = this.nodes[0].distanceTo(this.nodes[1]);
 		var u = ((point.x-this.nodes[0].x)*(this.nodes[1].x-this.nodes[0].x) + (point.y-this.nodes[0].y)*(this.nodes[1].y-this.nodes[0].y)) / (Math.pow(p,2));
-		if(u < 0 || u > 1.0){ return undefined; }
+		if(u < -epsilon || u > 1.0 + epsilon){ return undefined; }
 		return new XY(this.nodes[0].x + u*(this.nodes[1].x-this.nodes[0].x), this.nodes[0].y + u*(this.nodes[1].y-this.nodes[0].y));
 	}
 	transform(matrix){
@@ -607,7 +626,7 @@ export class Edge{
 	midpoint() { return new XY( 0.5*(this.nodes[0].x + this.nodes[1].x),
 								   0.5*(this.nodes[0].y + this.nodes[1].y));}
 	perpendicularBisector(){ return new Line(this.midpoint(), this.vector().rotate90()); }
-	infiniteLine(){ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0])); }
+	infiniteLine(){ return new Line(this.nodes[0], this.nodes[1].subtract(this.nodes[0]).normalize()); }
 }
 /** A path of node-adjacent edges defined by a set of nodes. */
 export class Polyline{
@@ -732,13 +751,14 @@ export class Triangle{
 		for(var i = 0; i < a.length; i++){if(epsilonEqual(a[i],Math.PI*0.5)){return true;}}
 		return false;
 	}
-	pointInside(p){
+	pointInside(p, epsilon){
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		for(var i = 0; i < this.points.length; i++){
 			var p0 = this.points[i];
 			var p1 = this.points[(i+1)%this.points.length];
 			var cross = (p.y - p0.y) * (p1.x - p0.x) - 
 			            (p.x - p0.x) * (p1.y - p0.y);
-			if (cross < 0) return false;
+			if(cross < -epsilon){ return false; }
 		}
 		return true;
 	}
@@ -846,7 +866,7 @@ export class Polygon{
 	 */
 	transform(matrix){ this.nodes.forEach(function(node){node.transform(matrix);},this); }
 }
-/** An ordered set of node-adjacent edges defining the boundary of a convex space */
+/** An ordered set of node-adjacent edges defining the boundary of a convex 2D space */
 export class ConvexPolygon{
 	// edges;
 	constructor(){ this.edges = []; }
@@ -859,6 +879,82 @@ export class ConvexPolygon{
 			return el.nodes[0];
 		},this);
 	}
+	static withPoints(points){
+		var poly = new ConvexPolygon();
+		poly.edges = points.map(function(el,i){
+			var nextEl = points[ (i+1)%points.length ];
+			return new Edge(el, nextEl);
+		},this);
+		return poly;
+	}
+	static regularPolygon(sides){
+		var halfwedge = 2*Math.PI/sides * 0.5;
+		var radius = Math.cos(halfwedge);
+		var points = [];
+		for(var i = 0; i < sides; i++){
+			var a = -2 * Math.PI * i / sides + halfwedge;
+			var x = cleanNumber(radius * Math.sin(a), 14);
+			var y = cleanNumber(radius * Math.cos(a), 14);
+			points.push( new XY(x, y) ); // align point along Y
+		}
+		this.setEdgesFromPoints(points);
+		return this;
+	}
+	static convexHull(points){
+		// validate input
+		if(points === undefined || points.length === 0){ return undefined; }
+		// # points in the convex hull before escaping function
+		var INFINITE_LOOP = 10000;
+		// sort points by x and y
+		var sorted = points.slice().sort(function(a,b){
+			if(epsilonEqual(a.y, b.y, EPSILON_HIGH)){ return a.x - b.x; }
+			return a.y - b.y;
+		});
+		var hull = [];
+		hull.push(sorted[0]);
+		// the current direction the perimeter walker is facing
+		var ang = 0;  
+		var infiniteLoop = 0;
+		do{
+			infiniteLoop++;
+			var h = hull.length-1;
+			var angles = sorted
+				// remove all points in the same location from this search
+				.filter(function(el){ 
+					return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH)) })
+				// sort by angle, setting lowest values next to "ang"
+				.map(function(el){
+					var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
+					while(angle < ang){ angle += Math.PI*2; }
+					return {node:el, angle:angle, distance:undefined}; })  // distance to be set later
+				.sort(function(a,b){return (a.angle < b.angle)?-1:(a.angle > b.angle)?1:0});
+			if(angles.length === 0){ return undefined; }
+			// narrowest-most right turn
+			var rightTurn = angles[0];
+			// collect all other points that are collinear along the same ray
+			angles = angles.filter(function(el){ return epsilonEqual(rightTurn.angle, el.angle, EPSILON_LOW); })
+			// sort collinear points by their distances from the connecting point
+			.map(function(el){ 
+				var distance = Math.sqrt(Math.pow(hull[h].x-el.node.x, 2) + Math.pow(hull[h].y-el.node.y, 2));
+				el.distance = distance;
+				return el;})
+			// (OPTION 1) exclude all collinear points along the hull 
+			.sort(function(a,b){return (a.distance < b.distance)?1:(a.distance > b.distance)?-1:0});
+			// (OPTION 2) include all collinear points along the hull
+			// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
+			// if the point is already in the convex hull, we've made a loop. we're done
+			// if(contains(hull, angles[0].node)){
+			if(hull.filter(function(el){return el === angles[0].node; }).length > 0){
+				return ConvexPolygon.withPoints(hull);
+			}
+			// add point to hull, prepare to loop again
+			hull.push(angles[0].node);
+			// update walking direction with the angle to the new point
+			ang = Math.atan2( hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
+		}while(infiniteLoop < INFINITE_LOOP);
+		return undefined;
+	}
+
 	signedArea(nodes){
 		if(nodes === undefined){ nodes = this.nodes(); }
 		return 0.5 * nodes.map(function(el,i){
@@ -893,12 +989,13 @@ export class ConvexPolygon{
 		}
 		return new XY(xMin+(xMax-xMin)*0.5, yMin+(yMax-yMin)*0.5);
 	}
-	contains(p){
+	contains(p, epsilon){
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		var found = true;
 		for(var i = 0; i < this.edges.length; i++){
 			var a = this.edges[i].nodes[1].subtract(this.edges[i].nodes[0]);
 			var b = new XY(p.x-this.edges[i].nodes[0].x,p.y-this.edges[i].nodes[0].y);
-			if(a.cross(b) < 0){ return false; }
+			if(a.cross(b) < -epsilon){ return false; }
 		}
 		return true;
 	}
@@ -909,7 +1006,7 @@ export class ConvexPolygon{
 	// 		var nextNode = this.nodes[ (i+1)%this.nodes.length ];
 	// 		var a = new XY(nextNode.x - thisNode.x, nextNode.y - thisNode.y);
 	// 		var b = new XY(point.x - thisNode.x, point.y - thisNode.y);
-	// 		if(a.cross(b) < 0){ return false; }
+	// 		if(a.cross(b) < -epsilon){ return false; }
 	// 	}
 	// 	return true;
 	// }
@@ -936,7 +1033,8 @@ export class ConvexPolygon{
 					return new Edge(edge.nodes[0], intersections[0]);
 				}
 				return new Edge(edge.nodes[1], intersections[0]);
-			// case 2: return new Edge(intersections[0], intersections[1]);
+			case 2: return new Edge(intersections[0], intersections[1]);
+			// default: throw "clipping edge in a convex polygon resulting in 3 or more points";
 			default:
 				for(var i = 1; i < intersections.length; i++){
 					if( !intersections[0].equivalent(intersections[i]) ){
@@ -952,7 +1050,8 @@ export class ConvexPolygon{
 		switch(intersections.length){
 			case 0: return undefined;
 			case 1: return new Edge(intersections[0], intersections[0]); // degenerate edge
-			// case 2: 
+			case 2: return new Edge(intersections[0], intersections[1]);
+			// default: throw "clipping line in a convex polygon resulting in 3 or more points";
 			default:
 				for(var i = 1; i < intersections.length; i++){
 					if( !intersections[0].equivalent(intersections[i]) ){
@@ -968,7 +1067,8 @@ export class ConvexPolygon{
 		switch(intersections.length){
 			case 0: return undefined;
 			case 1: return new Edge(ray.origin, intersections[0]);
-			// case 2: return new Edge(intersections[0], intersections[1]);
+			case 2: return new Edge(intersections[0], intersections[1]);
+			// default: throw "clipping ray in a convex polygon resulting in 3 or more points";
 			default:
 				for(var i = 1; i < intersections.length; i++){
 					if( !intersections[0].equivalent(intersections[i]) ){
@@ -976,81 +1076,6 @@ export class ConvexPolygon{
 					}
 				}
 		}
-	}
-	setEdgesFromPoints(points){
-		this.edges = points.map(function(el,i){
-			var nextEl = points[ (i+1)%points.length ];
-			return new Edge(el, nextEl);
-		},this);
-		return this;
-	}
-	regularPolygon(sides){
-		var halfwedge = 2*Math.PI/sides * 0.5;
-		var radius = Math.cos(halfwedge);
-		var points = [];
-		for(var i = 0; i < sides; i++){
-			var a = -2 * Math.PI * i / sides + halfwedge;
-			var x = cleanNumber(radius * Math.sin(a), 14);
-			var y = cleanNumber(radius * Math.cos(a), 14);
-			points.push( new XY(x, y) ); // align point along Y
-		}
-		this.setEdgesFromPoints(points);
-		return this;
-	}
-	convexHull(points){
-		// validate input
-		if(points === undefined || points.length === 0){ this.edges = []; return undefined; }
-		// # points in the convex hull before escaping function
-		var INFINITE_LOOP = 10000;
-		// sort points by x and y
-		var sorted = points.slice().sort(function(a,b){
-			if(epsilonEqual(a.y, b.y, EPSILON_HIGH)){ return a.x - b.x; }
-			return a.y - b.y;
-		});
-		var hull = [];
-		hull.push(sorted[0]);
-		// the current direction the perimeter walker is facing
-		var ang = 0;  
-		var infiniteLoop = 0;
-		do{
-			infiniteLoop++;
-			var h = hull.length-1;
-			var angles = sorted
-				// remove all points in the same location from this search
-				.filter(function(el){ 
-					return !(epsilonEqual(el.x, hull[h].x, EPSILON_HIGH) && epsilonEqual(el.y, hull[h].y, EPSILON_HIGH)) })
-				// sort by angle, setting lowest values next to "ang"
-				.map(function(el){
-					var angle = Math.atan2(hull[h].y - el.y, hull[h].x - el.x);
-					while(angle < ang){ angle += Math.PI*2; }
-					return {node:el, angle:angle, distance:undefined}; })  // distance to be set later
-				.sort(function(a,b){return (a.angle < b.angle)?-1:(a.angle > b.angle)?1:0});
-			if(angles.length === 0){ this.edges = []; return undefined; }
-			// narrowest-most right turn
-			var rightTurn = angles[0];
-			// collect all other points that are collinear along the same ray
-			angles = angles.filter(function(el){ return epsilonEqual(rightTurn.angle, el.angle, EPSILON_LOW); })
-			// sort collinear points by their distances from the connecting point
-			.map(function(el){ 
-				var distance = Math.sqrt(Math.pow(hull[h].x-el.node.x, 2) + Math.pow(hull[h].y-el.node.y, 2));
-				el.distance = distance;
-				return el;})
-			// (OPTION 1) exclude all collinear points along the hull 
-			.sort(function(a,b){return (a.distance < b.distance)?1:(a.distance > b.distance)?-1:0});
-			// (OPTION 2) include all collinear points along the hull
-			// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
-			// if the point is already in the convex hull, we've made a loop. we're done
-			// if(contains(hull, angles[0].node)){
-			if(hull.filter(function(el){return el === angles[0].node; }).length > 0){
-				return this.setEdgesFromPoints(hull);
-			}
-			// add point to hull, prepare to loop again
-			hull.push(angles[0].node);
-			// update walking direction with the angle to the new point
-			ang = Math.atan2( hull[h].y - angles[0].node.y, hull[h].x - angles[0].node.x);
-		}while(infiniteLoop < INFINITE_LOOP);
-		this.edges = [];
-		return undefined;
 	}
 	minimumRect(){
 		var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -1120,15 +1145,14 @@ export class Sector{
 		       a.endPoints[1].equivalent(this.endPoints[1]);
 	}
 	/** a sector contains a point if it is between the two edges in counter-clockwise order */
-	contains(point){
+	contains(point, epsilon){
+		if(epsilon == undefined){ epsilon = EPSILON_HIGH; }
 		var cross0 = (point.y - this.endPoints[0].y) * (this.origin.x - this.endPoints[0].x) - 
 		             (point.x - this.endPoints[0].x) * (this.origin.y - this.endPoints[0].y);
 		var cross1 = (point.y - this.origin.y) * (this.endPoints[1].x - this.origin.x) - 
 		             (point.x - this.origin.x) * (this.endPoints[1].y - this.origin.y);
-		return cross0 < 0 && cross1 < 0;
+		return cross0 < epsilon && cross1 < epsilon;
 	}
-	// (private function)
-	sortByClockwise(){}
 }
 // unimplemented classes. may be useful
 // subclass of Triangle

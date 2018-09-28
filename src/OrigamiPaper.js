@@ -169,7 +169,7 @@ export default class OrigamiPaper{
 		// }
 		this.edgesLayer.childNodes.forEach(function(edge,i){
 			if(this.cp.edges[i] != undefined){
-				edge.setAttributeNS(null, 'class', CreaseTypeString[this.cp.edges[i].orientation]);
+				edge.setAttributeNS(null, 'class', this.cp.edges[i].orientation);
 			}
 		},this);
 		this.facesLayer.childNodes.forEach(function(face){ face.setAttributeNS(null, 'class', 'face'); },this);
@@ -214,7 +214,7 @@ export default class OrigamiPaper{
 		this.nodesLayer.appendChild(dot);
 	}
 	addEdge(edge){
-		var creaseline = this.line(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y, CreaseTypeString[edge.orientation], 'edge-' + edge.index);
+		var creaseline = this.line(edge.nodes[0].x, edge.nodes[0].y, edge.nodes[1].x, edge.nodes[1].y, edge.orientation, 'edge-' + edge.index);
 		this.edgesLayer.appendChild(creaseline);
 	}
 	addFace(face){

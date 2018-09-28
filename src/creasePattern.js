@@ -139,10 +139,10 @@ class CPPolyline extends M.Polyline{
 // }
 
 const CreaseDirection = Object.freeze({
-	mark : 0,//Symbol("mark"),
-	boundary : 1,//Symbol("boundary"),
-	mountain : 2,//Symbol("mountain"),
-	valley : 3,//Symbol("valley")
+	mark : "mark",//Symbol("mark"),
+	boundary : "boundary",//Symbol("boundary"),
+	mountain : "mountain",//Symbol("mountain"),
+	valley : "valley",//Symbol("valley")
 });
 
 class Fold{
@@ -377,6 +377,10 @@ class NoCrease extends Crease{
 }
 
 class CreaseFace extends PlanarFace{
+	constructor(graph){
+		super(graph);
+		this.cache = {};
+	}
 	rabbitEar(){
 		var sectors = this.sectors();
 		if(sectors.length !== 3){ return []; }
@@ -396,6 +400,64 @@ class CreaseFace extends PlanarFace{
 			return (this.graph).newCreaseBetweenNodes(el, incenterNode);
 		}, this);
 	}
+	clipEdge(edge){
+		var intersections = this.edges
+			.map(function(el){ return M.intersectionEdgeEdge(edge, el); })
+			.filter(function(el){return el !== undefined; })
+			// filter out intersections equivalent to the edge points themselves
+			.filter(function(el){ 
+				return !el.equivalent(edge.nodes[0]) &&
+				       !el.equivalent(edge.nodes[1]); });
+		switch(intersections.length){
+			case 0:
+				if(this.contains(edge.nodes[0])){ return edge; } // completely inside
+				return undefined;  // completely outside
+			case 1:
+				if(this.contains(edge.nodes[0])){
+					return new M.Edge(edge.nodes[0], intersections[0]);
+				}
+				return new M.Edge(edge.nodes[1], intersections[0]);
+			// case 2: return new M.Edge(intersections[0], intersections[1]);
+			default:
+				for(var i = 1; i < intersections.length; i++){
+					if( !intersections[0].equivalent(intersections[i]) ){
+						return new M.Edge(intersections[0], intersections[i]);
+					}
+				}
+		}
+	}
+	clipLine(line){
+		var intersections = this.edges
+			.map(function(el){ return M.intersectionLineEdge(line, el); })
+			.filter(function(el){return el !== undefined; });
+		switch(intersections.length){
+			case 0: return undefined;
+			case 1: return new M.Edge(intersections[0], intersections[0]); // degenerate edge
+			// case 2: 
+			default:
+				for(var i = 1; i < intersections.length; i++){
+					if( !intersections[0].equivalent(intersections[i]) ){
+						return new M.Edge(intersections[0], intersections[i]);
+					}
+				}
+		}
+	}
+	clipRay(ray){
+		var intersections = this.edges
+			.map(function(el){ return M.intersectionRayEdge(ray, el); })
+			.filter(function(el){return el !== undefined; });
+		switch(intersections.length){
+			case 0: return undefined;
+			case 1: return new M.Edge(ray.origin, intersections[0]);
+			// case 2: return new Edge(intersections[0], intersections[1]);
+			default:
+				for(var i = 1; i < intersections.length; i++){
+					if( !intersections[0].equivalent(intersections[i]) ){
+						return new M.Edge(intersections[0], intersections[i]);
+					}
+				}
+		}
+	}	
 }
 
 export default class CreasePattern extends PlanarGraph{
@@ -419,13 +481,17 @@ export default class CreasePattern extends PlanarGraph{
 
 	constructor(){
 		super();
+		// bind types
 		this.nodeType = CreaseNode;
 		this.edgeType = Crease;
 		this.faceType = CreaseFace;
 		this.sectorType = CreaseSector;
 		this.junctionType = CreaseJunction;
-		this.boundary = new M.ConvexPolygon();
+		this.CreaseDirection = CreaseDirection;
+
+		// this data model
 		this.symmetryLine = undefined;
+		this.boundary = new M.ConvexPolygon();
 		this.square();
 	}
 
@@ -477,7 +543,7 @@ export default class CreasePattern extends PlanarGraph{
 	}
 	polygon(sides){
 		if(sides < 3){ return this; }
-		return this.setBoundary(new M.ConvexPolygon().regularPolygon(sides).nodes());
+		return this.setBoundary(M.ConvexPolygon.regularPolygon(sides).nodes());
 	}
 	noBoundary(){
 		this.boundary.edges = [];
@@ -489,8 +555,8 @@ export default class CreasePattern extends PlanarGraph{
 		var points = pointArray.map(function(p){ return gimme1XY(p); },this);
 		// check if the first point is duplicated again at the end of the array
 		if( points[0].equivalent(points[points.length-1]) ){ points.pop(); }
-		if(pointsSorted === true){ this.boundary.setEdgesFromPoints(points); }
-		else{ this.boundary.convexHull(points); }
+		if(pointsSorted === true){ this.boundary = M.ConvexPolygon.withPoints(points); }
+		else{ this.boundary = M.ConvexPolygon.convexHull(points); }
 		this.cleanBoundary();
 		this.clean();
 		return this;
@@ -539,23 +605,23 @@ export default class CreasePattern extends PlanarGraph{
 
 	// kawasakiCollapse(a, b, c, d){
 	// 	if(isValidPoint(a)){
-	// 		var jJunction = this.nearest(a, b).junction;
+	// 		var j = this.nearest(a, b).junction;
 	// 		return j.kawasakiCollapse();
 	// 	}
 	// 	if(isValidNumber(a) && isValidNumber(b)){
-	// 		var jJunction = this.nearest(a, b).junction;
+	// 		var j = this.nearest(a, b).junction;
 	// 		return j.kawasakiCollapse();
 	// 	}
 	// }
 	kawasakiCollapse(a, b, c, d){
 		if(isValidPoint(a)){
-			var jJunction = this.nearest(a, b).junction;
+			var j = this.nearest(a, b).junction;
 			if(j == undefined){ return new NoCrease(); }
 			var k = j.kawasakiCollapse();
 			return k != undefined ? k.crease() : new NoCrease();
 		}
 		if(isValidNumber(a) && isValidNumber(b)){
-			var jJunction = this.nearest(a, b).junction;
+			var j = this.nearest(a, b).junction;
 			if(j == undefined){ return new NoCrease(); }
 			var k = j.kawasakiCollapse();
 			return k != undefined ? k.crease() : new NoCrease();
@@ -1377,11 +1443,12 @@ export default class CreasePattern extends PlanarGraph{
 		}
 		recurse(tree);
 		var nodeTransformed = Array.apply(false, Array(copyCP.nodes.length))
-		faces.forEach(function(el){
-			el.face.nodes
+		faces.forEach(function(f){
+			f.face.cache = f.matrix;
+			f.face.nodes
 				.filter(function(node){ return !nodeTransformed[node.index]; },this)
 				.forEach(function(node){
-					node.transform(el.matrix);
+					node.transform(f.matrix);
 					nodeTransformed[node.index] = true;
 				},this);
 		},this);
@@ -1394,7 +1461,7 @@ export default class CreasePattern extends PlanarGraph{
 		if(face == undefined){
 			var bounds = copyCP.boundaryBounds();
 			face = copyCP.nearest(bounds.origin.x + bounds.size.width * 0.5,
-			                      bounds.origin.y + bounds.size.height*0.5).face;
+			                      bounds.origin.y + bounds.size.height * 0.5).face;
 		}
 		if(face === undefined){ return; }
 		var tree = face.adjacentFaceTree();
@@ -1472,6 +1539,12 @@ export default class CreasePattern extends PlanarGraph{
 				default: return "U";
 			}
 		},this);
+		file["face_matrices"] = this.faces.map(function(face){
+			if(face.cache != undefined){
+				var m = face.cache
+				return [m.a, m.b, m.c, m.d, m.tx, m.ty];
+			} else { return [1, 0, 0, 1, 0, 0]; }
+		});
 		return file;
 	}
 
@@ -1667,7 +1740,7 @@ export default class CreasePattern extends PlanarGraph{
 			// e.orientation = this.edges[i].orientation;
 		}
 		for(var i = 0; i < this.faces.length; i++){
-			var f = new PlanarFace(g);
+			var f = new CreaseFace(g);
 			g.faces.push(f);
 			f.graph = g;
 			f.index = i;

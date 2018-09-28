@@ -1,4 +1,4 @@
-var G = RabbitEar.geometry;
+var G = RabbitEar.Geometry;
 
 var origami = new OrigamiPaper("svgs").setPadding(0.02);
 var folded = new OrigamiFold("svgs").setPadding(0.02);
