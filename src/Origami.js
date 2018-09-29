@@ -40,6 +40,7 @@ class Fold{
 			"edges_foldAngle": [0,0,180,0,0,0,0],
 			"faces_vertices": [ [0,1,4,5], [2,3,5,4] ],
 			"faces_edges": [ [0,1,2,3], [5,6,2,4] ],
+      "faces_layer": [1,0],
 			"faceOrders": [ [0,1,1] ],
 			"faces_matrix": [
 				[0.55611381,-0.83110614,-0.83110614,-0.55611381,0.62607055,1.17221733],
@@ -172,12 +173,12 @@ export default class Origami{
     // console.log(this.unfolded);
 
     var nf = this.unfolded.faces_vertices.length;
-    var point = [0.5, 0.5];
-    var splitFaces = Array.from(Array(nf)).map(() => [undefined,[1,2,3,4]]);
+    var point = [0.6, 0.6];
+    var splitFaces = this.unfolded.faces_vertices.map((f) => [undefined, f])
     var faces_splitFaces_move = markMovingFaces(
         this.unfolded, 
         splitFaces,	// faces_splitFaces
-        this.unfolded.faces_vertices,  // newVertices_coords, 
+        this.unfolded.vertices_coords,  // newVertices_coords, 
         point
     );
     // point is place where user clicked
@@ -202,30 +203,43 @@ export default class Origami{
 }
 
 function markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
-  let faces_vertices = fold.faces_vertices;
-  let faces_layer    = fold.faces_layer;
+  let faces_vertices  = fold.faces_vertices;
+  let faces_layer     = fold.faces_layer;
+  let faces_matrix    = fold.faces_matrix;
 
   // get index of highest layer face which intersects point
-  let touched_face_index = faces_splitFaces.reduce(
+  let touched_face = faces_splitFaces.reduce(
     (touched, splitFaces, idx) => {
-      return Math.max(touched, splitFaces.reduce(
-        (touched, vertex_indices, side) => {
-          let points = vertex_indices
-            .map(vi => vertices_coords[vi])
-            .map(p  => ({x: p[0], y: p[1]}) );
+      return splitFaces.reduce(
+        (touched, vertices_index, side) => {
+          if (vertices_index == undefined) {
+            return touched;
+          }
+          let points = vertices_index
+            .map(vi => {
+              let [x, y] = vertices_coords[vi];
+              let xy = new RabbitEar.Geometry.XY(x, y);
+              let [a,b,c,d,e,f] = faces_matrix[idx];
+              let matrix = new RabbitEar.Geometry.Matrix(a,b,c,d,e,f);
+              return xy.transform(matrix);
+            })
           let polygon = RabbitEar.Geometry.ConvexPolygon.convexHull(points);
           let p = {x: point[0], y: point[1]};
           if (polygon.contains(p) && (
-              (touched === undefined) ||
+              (touched == undefined) ||
               (faces_layer[touched.idx] < faces_layer[idx]))) {
             touched = {idx: idx, side: side};
           }
           return touched;
-        }, touched));
+        }, touched);
     	}, undefined);
-  if (touched_face_index === undefined) {
+  if (touched_face === undefined) {
+    console.log("You didn't touch a face...");
     return undefined;
   }
+  console.log("You touched face " + touched_face.idx + "!");
+
+  return;
 
   // make faces_faces
   let nf = faces_vertices.length;
@@ -238,7 +252,7 @@ function markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
       if (v < u) {
         [u, v] = [v, u];
       }
-      let key = `${u},${v}`;
+      let key = u + "," + v;
       if (key in edgeMap) {
         idx2 = edgeMap[key];
         faces_faces[idx1].push(idx2);
