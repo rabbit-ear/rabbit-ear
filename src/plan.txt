@@ -2,25 +2,37 @@ loop through edges
 find intersections
 split edges
 
-1. vertices_intersections
-[ boolean, boolean, boolean, boolean, boolean, boolean]
+# 1. vertices_intersections
+# [ boolean, boolean, boolean, boolean, boolean, boolean]
+# 
+# 2. output edges_intersections
+# [ undefined, point, undefined, undefined, point, point]
+# (no point on endpoint exceptions), ignore them
+# 
+# possible cleaning step
+# if vertex and edge adjacent 
+# for each intersecting edge, if the endpoints of an edge are both intersecting, ignore edge interestion
+# 
+# for each intersecting vertex, if adjacent edge intersection is close to vertex, ignore edge intersection
+# 
+# Build new vertices_coords from original vertices + edge intersections. 
+#   1. appending the coordinates in order
+#   2. replaceing edges_interesctions with indices in vertices_coords
 
-2. output edges_intersections
-[ undefined, point, undefined, undefined, point, point]
-(no point on endpoint exceptions), ignore them
 
-possible cleaning step
-if vertex and edge adjacent 
-for each intersecting edge, if the endpoints of an edge are both intersecting, ignore edge interestion
+1. For each face, build convex polygon and clip line to polygon. 
+  Output faces_line, clipped edge per face or undefined
 
-for each intersecting vertex, if adjacent edge intersection is close to vertex, ignore edge intersection
+2. walk around each face with a clipped edge.
+    check clipped edge endpoints for intersection with edges and vertices in order
+    initialize new vertex set with old vertices
+    make dictionary 
+      from edges (in verted index sorted order) 
+      to vertex indices
+    add new vertices when necessary and translate faces_line to vertex index pairs
 
-Build new vertices_coords from original vertices + edge intersections. 
-  1. appending the coordinates in order
-  2. replaceing edges_interesctions with indices in vertices_coords
-
-
-3. walk around each face. for each edge and vertex, in order, was there an intersection? 2 or 0, 1 is treated as 0.
+Then once lines are filtered, can then cut faces, side 1 / side 2 based on
+orientation with respect to cut line
 
 gives you faces staying side and moving side:
 faces_pieces: tuples [side1, side2] w're not concerned which one is stay and move yet
