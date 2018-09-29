@@ -38,8 +38,12 @@ function makeFaceClipLines(foldFile, line){
 		// convex hull algorithm turns faces into a convex polygon object
 		return RabbitEar.Geometry.ConvexPolygon.convexHull(points);
 	},this).map(function(poly, i){
-		// clip line inside convex polygon. undefined = no intersection
+		// clip line inside convex polygon. or undefined if no intersection
 		return poly.clipLine( line.transform(matrices[i].inverse()) );
+	},this).map(function(edge){
+		// convert to [ [x,y], [x,y] ]. or undefined if no intersection
+		if(edge != undefined){return [[edge.nodes[0].x,edge.nodes[0].y],[edge.nodes[1].x,edge.nodes[1].y]];}
+		return undefined;
 	},this);
 }
 
