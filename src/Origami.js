@@ -150,18 +150,19 @@ function markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
   // get index of highest layer face which intersects point
   let touched_face_index = faces_splitFaces.reduce(
     (touched, splitFaces, idx) => {
-      touched = Math.max(touched, splitFaces.reduce(
+      return Math.max(touched, splitFaces.reduce(
         (touched, vertex_indices, side) => {
           let points = vertex_indices
             .map(vi => vertices_coords[vi])
             .map(p  => {x: p[0], y: p[1]});
           let polygon = RabbitEar.Geometry.ConvexPolygon.convexHull(points);
-          let p = {x: point[0], y: point[1]}
+          let p = {x: point[0], y: point[1]};
           if (polygon.contains(p) && (
               (touched === undefined) ||
               (faces_layer[touched.idx] < faces_layer[idx]))) {
             touched = {idx: idx, side: side};
           }
+          return touched;
         }
       }, touched));
     }, undefined);
