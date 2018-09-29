@@ -1,0 +1,70 @@
+loop through edges
+find intersections
+split edges
+
+1. vertices_intersections
+[ boolean, boolean, boolean, boolean, boolean, boolean]
+
+2. output edges_intersections
+[ undefined, point, undefined, undefined, point, point]
+(no point on endpoint exceptions), ignore them
+
+possible cleaning step
+if vertex and edge adjacent 
+for each intersecting edge, if the endpoints of an edge are both intersecting, ignore edge interestion
+
+for each intersecting vertex, if adjacent edge intersection is close to vertex, ignore edge intersection
+
+Build new vertices_coords from original vertices + edge intersections. 
+  1. appending the coordinates in order
+  2. replaceing edges_interesctions with indices in vertices_coords
+
+
+3. walk around each face. for each edge and vertex, in order, was there an intersection? 2 or 0, 1 is treated as 0.
+
+gives you faces staying side and moving side:
+faces_pieces: tuples [side1, side2] w're not concerned which one is stay and move yet
+faces_lines: array of cut line through a face - array: if there was a cut store edge segement, if not store undefined
+stay and move are arrays of vertex indices
+
+3.5. draw lines on crease pattern
+ - using faces_lines, draw these on crease pattern
+
+now user clicks on a face:
+-------
+we loop through faces, checking if user clicked in face. choose top most one f
+then check which side was click by checking click intersection with faces_pieces[f]
+NOW WE KNOW which side1 or side2 inside all of faces_pieces will be the one that moves
+
+
+4. build faces_vertices
+
+no folding yet, just cutting, all the layer orders are same
+
+def fold_vertices_pieces_to_faces_vertices(fold, vertices_coords, faces_pieces):
+new_fold.vertices_coords = vertices_coords
+new_fold.faces_vertices = []
+new_fold.faces_layer = []
+new_fold.faces_move = []
+for fi in len(faces_pieces):
+    pieces = fold.faces_pieces[fi]
+    for i in [0, 1]:
+        new_fold.faces_vertices.append(pieces[i])
+        new_fold.faces_layer.append(fold.faces_order[fi]) 
+        new_fold.faces_move.append(i == 1)
+
+last thing:
+
+WALKING EDGES
+Build new edges_vertices from edge intersections.
+ walk faces in vertex order, append unvisited edges, only using if index 0 is < index 1
+
+
+
+
+dictionary and edges_vertices
+store the dictionary "i,j" for key. 
+{string: index}
+walking:
+1. check if "i,j" or "j,i" is in the dictionary
+
