@@ -1561,7 +1561,8 @@ export default class CreasePattern extends PlanarGraph{
 
 		// this library only supports 2D
 		// if file is 3D, we need to alert the user
-		if(file["frame_attributes"] !== undefined && file["frame_attributes"].contains("3D")){
+		if(file["frame_attributes"] !== undefined && 
+			(file["frame_attributes"].includes("3D") || file["frame_attributes"].includes("3d")) ){
 			console.log("importFoldFile(): FOLD file marked as '3D', this library only supports 2D. attempting import anyway, expect a possible distortion due to orthogonal projection.");
 			// return false;
 		}

@@ -9,7 +9,7 @@ class Fold{
 			if(meta.author != undefined){ author = meta.author; }
 		}
 		return {
-			"file_spec":1,
+			"file_spec":1.1,
 			"file_creator":"Rabbit Ear",
 			"file_author":author,
 			"file_classes":["singleModel"],
@@ -24,22 +24,32 @@ class Fold{
 	}
 	static oneFold(){
 		return {
-			"file_spec":1,
-			"file_creator":"Rabbit Ear",
-			"file_author":"",
-			"file_classes":["singleModel"],
-			"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[1,0.21920709],[0,0.75329794]],
-			"faces_vertices":[[0,1,4,5],[2,3,5,4]],
-			"edges_vertices":[[0,1],[2,3],[4,5],[1,4],[4,2],[0,5],[5,3]],
-			"edges_assignment":["B","B","V","B","B","B","B"],
-			"faces_matrix":[
-				[0.55611381, -0.83110614, -0.83110614, -0.55611381, 0.62607055, 1.17221733],
+			"file_spec": 1.1,
+			"file_creator": "Rabbit Ear",
+			"file_author": "Robby Kraft",
+			"file_classes": ["singleModel"],
+			"frame_attributes": ["2D"],
+			"frame_title": "one valley crease",
+			"frame_classes": ["creasePattern"],
+			"vertices_coords": [ [0,0], [1,0], [1,1], [0,1], [1,0.21920709], [0,0.75329794] ],
+			"vertices_vertices": [ [1,3], [4,0], [3,4], [0,2], [2,5,1], [0,4,3] ],
+			"vertices_faces": [ [0], [0], [1], [1], [1,0], [0,1] ],
+			"edges_vertices": [ [0,1], [1,4], [4,5], [5,0], [4,2], [2,3], [3,5] ],
+			"edges_faces": [ [0], [0], [1,0], [0], [1], [1], [1] ],
+			"edges_assignment": ["B","B","V","B","B","B","B"],
+			"edges_foldAngle": [0,0,180,0,0,0,0],
+			"faces_vertices": [ [0,1,4,5], [2,3,5,4] ],
+			"faces_edges": [ [0,1,2,3], [5,6,2,4] ],
+			"faceOrders": [ [0,1,1] ],
+			"faces_matrix": [
+				[0.55611381,-0.83110614,-0.83110614,-0.55611381,0.62607055,1.17221733],
 				[1,0,0,1,0,0]
 			],
-			"faceOrders":[[0,1,1]],
-			"faces_coloring":[1,0]}
+			"faces_coloring": [1,0]
+		}
 	}
 }
+
 
 function makeFaceClipLines(foldFile, line){
 	
@@ -71,9 +81,8 @@ function makeFaceClipLines(foldFile, line){
 		if(edge != undefined){return [[edge.nodes[0].x,edge.nodes[0].y],[edge.nodes[1].x,edge.nodes[1].y]];}
 		return undefined;
 	},this);
-	// deep copy vertices array
-	let new_vertices_coords = JSON.parse(JSON.stringify(foldFile.vertices_coords));
 
+	// 
 	let edgeDictionary = {}
 	clipLines.map((clip, f) => {
 		if(clip != undefined){
@@ -89,7 +98,30 @@ function makeFaceClipLines(foldFile, line){
 			})
 		}
 	})
-	console.log(edgeDictionary);
+
+  //     make dictionary 
+  //       from edges (in verted index sorted order) 
+  //       to vertex indices
+  //     add new vertices when necessary and translate faces_line to vertex index pairs
+  //     (each clip line goes from [(x, y), (x, y)] to [v1, v2])
+
+	// deep copy vertices array
+	let new_vertices_coords = JSON.parse(JSON.stringify(foldFile.vertices_coords));
+
+	for(let key in edgeDictionary){
+		if(edgeDictionary.hasOwnProperty(key)){
+			let edges = key.split(' ').map( e => parseInt(e) )
+			let newVertex = edgeDictionary[key]
+			new_vertices_coords.push(newVertex)
+			edgeDictionary[key] = new_vertices_coords.length-1
+		}
+	}
+
+	// console.log(new_vertices_coords)
+	// console.log(edgeDictionary);
+
+	// console.log(clipLines);
+	// console.log(edgeDictionary);
 
 
 
@@ -111,7 +143,7 @@ export default class Origami{
 		var faces_clipLines = makeFaceClipLines(this.unfolded, line);
     // input is a fold format JSON and a Robby line
     // output is an faces_ array of pairs of [x, y] points, or undefined
-    return;
+
     // 2. walk around each face with a clipped edge.
     //     check clipped edge endpoints for intersection with edges and vertices in order
     //     initialize new vertex set with old vertices
@@ -120,13 +152,14 @@ export default class Origami{
     //       to vertex indices
     //     add new vertices when necessary and translate faces_line to vertex index pairs
     //     (each clip line goes from [(x, y), (x, y)] to [v1, v2])
+/*
     var output = cleanClipSegments(this.unfold, faces_clipLine);
     var faces_clipSegmentByIndex = output.faces_clipSegmentByIndex;
     var newVertices_coords      = output.newVertices_coords;
 
     //     walk around each face and build split faces side1, side2 using new vertices_coords
     var faces_splitFaces = splitFaces(this.unfold, faces_clipLine, newVertices_coords);
-
+*/
     // 3.5. draw lines on crease pattern
     //  - using faces_lines, draw these on crease pattern
     // 
@@ -136,21 +169,28 @@ export default class Origami{
     // then check which side was click by checking click intersection with faces_pieces[f]
     // NOW WE KNOW which side1 or side2 inside all of faces_pieces will be the one that moves
 
+    // console.log(this.unfolded);
+
+    var nf = this.unfolded.faces_vertices.length;
+    var point = [0.5, 0.5];
+    var splitFaces = Array.from(Array(nf)).map(() => [undefined,[1,2,3,4]]);
     var faces_splitFaces_move = markMovingFaces(
-        this.unfold, 
-        faces_splitFaces, 
-        newVertices_coords, 
+        this.unfolded, 
+        splitFaces,	// faces_splitFaces
+        this.unfolded.faces_vertices,  // newVertices_coords, 
         point
     );
     // point is place where user clicked
     // unfold must have faces_layer as a permutation of the face indices
 
-    var newUnfolded = foldMovingFaces(
-        this.unfold, 
-        faces_splitFaces, 
-        newVertices_coords, 
-        faces_splitFaces_move
-    );
+    
+    // var newUnfolded = foldMovingFaces(
+    //     this.unfolded, 
+    //     // faces_splitFaces, 
+    //     Array(n).fill(0, n, [undefined,[1,2,3,4]]),
+    //     newVertices_coords, 
+    //     Array(n).fill(0, n, [0,1])
+    // );
 
 		// var creasePattern = new CreasePattern().importFoldFile(this.unfolded);
 		// creasePattern.crease(line);
@@ -182,14 +222,14 @@ function markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
           }
           return touched;
         }, touched));
-    }, undefined);
-  if (touched === undefined) {
+    	}, undefined);
+  if (touched_face_index === undefined) {
     return undefined;
   }
 
   // make faces_faces
   let nf = faces_vertices.length;
-  let faces_faces = Array(nf).map(() => []);
+  let faces_faces = Array.from(Array(nf)).map(() => []);
   let edgeMap = {};
   faces_vertices.forEach((vertices, idx1) => {
     n = vertices.length;
@@ -209,7 +249,7 @@ function markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
     }); 
   });
 
-  let faces_splitFaces_move = Array(nf).map(() => Array(2).map(() => false));
+  let faces_splitFaces_move = Array.from(Array(nf)).map(() => Array(2).map(() => false));
   faces_splitFaces_move[touched.idx][touched.side] = true;
   
   // 
