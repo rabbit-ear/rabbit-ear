@@ -40,6 +40,7 @@ class Fold{
 			"edges_foldAngle": [0,0,180,0,0,0,0],
 			"faces_vertices": [ [0,1,4,5], [2,3,5,4] ],
 			"faces_edges": [ [0,1,2,3], [5,6,2,4] ],
+			"faces_layer": [1,0],
 			"faceOrders": [ [0,1,1] ],
 			"faces_matrix": [
 				[0.55611381,-0.83110614,-0.83110614,-0.55611381,0.62607055,1.17221733],
@@ -105,22 +106,44 @@ function makeFaceClipLines(foldFile, line){
   //     add new vertices when necessary and translate faces_line to vertex index pairs
   //     (each clip line goes from [(x, y), (x, y)] to [v1, v2])
 
-	// deep copy vertices array
+	// deep copy components
+	// these will depricate the data in the entries listed below:
 	let new_vertices_coords = JSON.parse(JSON.stringify(foldFile.vertices_coords));
+	//   "vertices_vertices"
+	//   "vertices_faces"
+	let new_edges_vertices = JSON.parse(JSON.stringify(foldFile.edges_vertices));
+	//   "edges_faces"
+	//   "edges_assignment"
+	//   "edges_foldAngle"
+	//   "edges_length"
+	let new_faces_vertices = [];
+	let new_faces_edges = [];
 
 	for(let key in edgeDictionary){
 		if(edgeDictionary.hasOwnProperty(key)){
 			let edges = key.split(' ').map( e => parseInt(e) )
 			let newVertex = edgeDictionary[key]
+			let newVertexIndex = new_vertices_coords.length
+			// add new vertices to vertex array
 			new_vertices_coords.push(newVertex)
-			edgeDictionary[key] = new_vertices_coords.length-1
+			edgeDictionary[key] = newVertexIndex
+			// add new edges to edge array. multi step.
+			// 1. filter out the edge which has a new point in between everything.
+			new_edges_vertices = new_edges_vertices.filter( el => !(el.includes(edges[0]) && el.includes(edges[1])) )
+			new_edges_vertices.push([edges[0], newVertexIndex])
+			new_edges_vertices.push([newVertexIndex, edges[1]])
 		}
 	}
 
-	// console.log(new_vertices_coords)
-	// console.log(edgeDictionary);
+	console.log(new_edges_vertices)
+
+
+	foldFile.faces_edges.forEach(faceEdgeIndices => {
+
+	})
 
 	// console.log(clipLines);
+	// console.log(new_vertices_coords)
 	// console.log(edgeDictionary);
 
 
@@ -143,7 +166,7 @@ export default class Origami{
 		var faces_clipLines = makeFaceClipLines(this.unfolded, line);
     // input is a fold format JSON and a Robby line
     // output is an faces_ array of pairs of [x, y] points, or undefined
-
+    return;
     // 2. walk around each face with a clipped edge.
     //     check clipped edge endpoints for intersection with edges and vertices in order
     //     initialize new vertex set with old vertices
@@ -183,7 +206,7 @@ export default class Origami{
     // point is place where user clicked
     // unfold must have faces_layer as a permutation of the face indices
 
-    
+
     // var newUnfolded = foldMovingFaces(
     //     this.unfolded, 
     //     // faces_splitFaces, 
