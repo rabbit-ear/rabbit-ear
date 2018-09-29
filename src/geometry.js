@@ -1102,7 +1102,7 @@ export class ConvexPolygon{
 			return new Edge(e.nodes[0].x, e.nodes[0].y, e.nodes[1].x, e.nodes[1].y);
 		});
 		return p;
-	}	
+	}
 }
 /** a Sector is defined by three nodes connecting two adjacent edges (one common node) */
 export class Sector{

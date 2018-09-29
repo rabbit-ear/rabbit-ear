@@ -25,27 +25,60 @@ class Fold{
 }
 
 function makeFaceClipLines(foldFile, line){
+	
 	// use each face's matrix to transform the input line
 	//   from folded coords to crease pattern coords
 	var matrices = foldFile["faces_matrix"].map(function(n){ 
 			return new Geometry.Matrix(n[0], n[1], n[2], n[3], n[4], n[5]);
 		},this);
-	return foldFile.faces_vertices.map(function(nodeArray){
+
+	var facesVertices = foldFile.faces_vertices.map( vIndices => {
 		// from face vertex indices, create faces with vertex geometry
-		var points = nodeArray
-			.map(function(n){ return foldFile.vertices_coords[n]; },this)
-			.map(function(p){ return {x:p[0], y:p[1]} })
+		return vIndices.map( vI => foldFile.vertices_coords[vI])
+	})
+	// generate one clip line per face, or none if there is no intersection
+	var facePolys = facesVertices.map(vertices => {
 		// convex hull algorithm turns faces into a convex polygon object
-		return RabbitEar.Geometry.ConvexPolygon.convexHull(points);
-	},this).map(function(poly, i){
-		// clip line inside convex polygon. or undefined if no intersection
+		var poly = new Geometry.ConvexPolygon();
+		poly.edges = vertices.map(function(el,i,verts){
+			var nextEl = verts[ (i+1)%verts.length ];
+			return new Geometry.Edge(el[0], el[1], nextEl[0], nextEl[1]);
+		},this);
+		return poly;
+		// return Geometry.ConvexPolygon.convexHull( vertices.map(v => {x:v[0], y:v[1]}) )
+	})
+	// for every face, we have one clipped crease edge or undefined if no intersection
+	var clipLines = facePolys.map(function(poly, i){
 		return poly.clipLine( line.transform(matrices[i].inverse()) );
 	},this).map(function(edge){
 		// convert to [ [x,y], [x,y] ]. or undefined if no intersection
 		if(edge != undefined){return [[edge.nodes[0].x,edge.nodes[0].y],[edge.nodes[1].x,edge.nodes[1].y]];}
 		return undefined;
 	},this);
+	// deep copy vertices array
+	var new_vertices_coords = JSON.parse(JSON.stringify(foldFile.vertices_coords));
+
+	var edgeDictionary = {}
+	clipLines.map((clip, f) => {
+		if(clip != undefined){
+			facePolys[f].edges.forEach((edge, eI) => {
+				var foundIndex = undefined;
+				if(edge.collinear( {x:clip[0][0], y:clip[0][1]} )){ foundIndex = 0; }
+				if(edge.collinear( {x:clip[1][0], y:clip[1][1]} )){ foundIndex = 1; }
+				if(foundIndex != undefined){
+					var fVI = foldFile.faces_vertices[f];
+					var key = [fVI[eI], fVI[(eI+1)%fVI.length]].sort(function(a,b){return a-b;}).join(" ");
+					edgeDictionary[key] = clip[foundIndex];
+				}
+			})
+		}
+	})
+	// console.log(edgeDictionary);
+
+
+
 }
+
 
 export default class Origami{
 
@@ -61,7 +94,7 @@ export default class Origami{
 		var faces_clipLines = makeFaceClipLines(this.unfolded, line);
     // input is a fold format JSON and a Robby line
     // output is an faces_ array of pairs of [x, y] points, or undefined
-
+    return;
     // 2. walk around each face with a clipped edge.
     //     check clipped edge endpoints for intersection with edges and vertices in order
     //     initialize new vertex set with old vertices
@@ -99,49 +132,4 @@ export default class Origami{
 	}
 
 
-
-
-
-
-	// creaseFolded(line){
-
-	// 	var matrices = this.folded["faces_matrices"].map(function(n){ 
-	// 		return new Geometry.Matrix(n[0], n[1], n[2], n[3], n[4], n[5]);
-	// 	},this);
-	// 	var coloring = this.folded["faces_coloring"];
-
-	// 	var faces = this.folded.faces_vertices.map(function(nodeArray){
-	// 		var points = nodeArray
-	// 			.map(function(n){ return this.folded.vertices_coords[n]; },this)
-	// 			.map(function(p){ return {x:p[0], y:p[1]} })
-	// 		return RabbitEar.Geometry.ConvexPolygon.convexHull(points);
-	// 	},this);
-
-	// 	var polygonClipLines = faces.map(function(f,i){
-	// 		return { edge: f.clipLine(line), 
-	// 		         transform: matrices[i],
-	// 		         coloring: coloring[i] };
-	// 		},this)
-	// 		.filter(function(el){ return el.edge != undefined; },this);
-
-	// 	var cpFoldLines = polygonClipLines.map(function(clip){
-	// 		return { edge: clip.edge.transform(clip.transform.inverse()),
-	// 		         mountain: (clip.coloring == 0) ? true : false }
-	// 	},this);
-
-	// 	// amend the crease pattern with new creases
-	// 	var cp = new CreasePattern().importFoldFile(this.unfolded);
-	// 	cpFoldLines.forEach(function(foldLine){
-	// 		var crease = cp.crease(foldLine.edge);
-	// 		if(crease != undefined){ 
-	// 			if(foldLine.mountain){ crease.mountain(); }
-	// 			else{ crease.valley(); }
-	// 		}
-	// 	});
-	// 	cp.clean();
-
-	// 	this.unfolded = cp.exportFoldFile();
-	// 	this.folded = cp.fold();
-	// 	// this.unfolded = cp.exportFoldFile();
-	// }
 }
