@@ -12,14 +12,14 @@ folded.svg.appendChild(folded.markLayer);
 folded.startPoint = undefined;
 folded.endPoint = undefined;
 foldLine = undefined;
+foldPoint = undefined;
 
 // setup for crease pattern
 paper.selectedLayer = paper.group();
 paper.svg.appendChild(paper.selectedLayer);
 paper.selectedEdge = undefined;
 
-var origami = new Origami();
-var oneFoldFoldFile = origami.oneFold;
+var oneFoldFoldFile = new Origami().oneFold;
 var backupCP = duplicate(oneFoldFoldFile);
 var backupFolded = duplicate(oneFoldFoldFile);
 //////
@@ -38,12 +38,19 @@ function updateCPandFold(){
 }
 updateCPandFold();
 
+var isDrawingLine = false;
+
 function update(){
 	if(foldLine){
 		oneFoldFoldFile = duplicate(backupCP);
-		origami.crease(oneFoldFoldFile, foldLine, undefined);
+		// console.log(foldLine, foldPoint);
+		Origami.crease(oneFoldFoldFile, foldLine, foldPoint);
 		updateCPandFold();
 	}
+}
+
+folded.onMouseDidBeginDrag = function(event){
+	isDrawingLine = true;
 }
 
 folded.onMouseDown = function(event){
@@ -61,11 +68,16 @@ folded.onMouseMove = function(event){
 	}
 }
 folded.onMouseUp = function(event){
+	if(	isDrawingLine == false){  
+		// we made a point
+		foldPoint = event.point;
+	}
 	this.startPoint = undefined;
 	this.endPoint = undefined;
 	update();
 	backupCP = duplicate(oneFoldFoldFile);
 	folded.setViewBox();
+	isDrawingLine = false;
 }
 
 function updateCreaseLine(point1, point2){

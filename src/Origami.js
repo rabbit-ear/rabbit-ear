@@ -13,7 +13,10 @@ var squareFoldFile = {
 	"faces_vertices": [[0,1,2,3]],
 	"faces_layer": [0],
 	"faces_matrix": [[1, 0, 0, 1, 0, 0]],
-	"faces_coloring": [0]
+	"file_frames": [{
+		"parent": 0,
+		"inherit": true
+	}]
 };
 
 var oneFoldFoldFile = {
@@ -24,22 +27,34 @@ var oneFoldFoldFile = {
 	"frame_attributes": ["2D"],
 	"frame_title": "one valley crease",
 	"frame_classes": ["creasePattern"],
-	"vertices_coords": [ [0,0], [1,0], [1,1], [0,1], [1,0.21920709], [0,0.75329794] ],
-	"vertices_vertices": [ [1,3], [4,0], [3,4], [0,2], [2,5,1], [0,4,3] ],
-	"vertices_faces": [ [0], [0], [1], [1], [1,0], [0,1] ],
-	"edges_vertices": [ [0,1], [1,4], [4,5], [5,0], [4,2], [2,3], [3,5] ],
-	"edges_faces": [ [0], [0], [1,0], [0], [1], [1], [1] ],
+	"vertices_coords": [[0,0], [1,0], [1,1], [0,1], [1,0.21920709], [0,0.75329794]],
+	"vertices_vertices": [[1,3], [4,0], [3,4], [0,2], [2,5,1], [0,4,3]],
+	"vertices_faces": [[0], [0], [1], [1], [1,0], [0,1]],
+	"edges_vertices": [[0,1], [1,4], [4,5], [5,0], [4,2], [2,3], [3,5]],
+	"edges_faces": [[0], [0], [1,0], [0], [1], [1], [1]],
 	"edges_assignment": ["B","B","V","B","B","B","B"],
-	"edges_foldAngle": [0,0,180,0,0,0,0],
-	"faces_vertices": [ [0,1,4,5], [2,3,5,4] ],
-	"faces_edges": [ [0,1,2,3], [5,6,2,4] ],
-	"faces_layer": [1,0],
-	"faceOrders": [ [0,1,1] ],
-	"faces_matrix": [
-		[0.55611381,-0.83110614,-0.83110614,-0.55611381,0.62607055,1.17221733],
-		[1,0,0,1,0,0]
-	],
-	"faces_coloring": [1,0]
+	"edges_foldAngle": [0, 0, 180, 0, 0, 0, 0],
+	"faces_vertices": [[0,1,4,5], [2,3,5,4]],
+	"faces_edges": [[0,1,2,3], [5,6,2,4]],
+	"faces_layer": [0,1],
+	"faces_matrix": [[1,0,0,1,0,0], [1,0,0,1,0,0]],
+	"file_frames": [{
+		"parent": 0,
+		"inherit": true,
+		"vertices_coords": [
+			[0.62607054921, 1.172217328213],
+			[1.182184360184, 0.341111180213],
+			[1, 1],
+			[0, 1],
+			[1, 0.21920709],
+			[0, 0.75329794]
+		],
+		"faces_layer": [1,0],
+		"faces_matrix": [
+			[0.55611381, -0.83110614, -0.83110614, -0.55611381, 0.62607055, 1.17221733],
+			[1, 0, 0, 1, 0, 0]
+		]
+	}]
 };
 
 
@@ -50,14 +65,14 @@ export default class Origami{
 		this.square = squareFoldFile;
 	}
 
-	crease(foldFile, line, point){
+	static crease(foldFile, line, point){
 
 		// 1. vertices_intersections
 		// [ boolean, boolean, boolean, boolean, boolean, boolean]
-		var faces_clipLines = this.makeFaceClipLines(foldFile, line);
+		var faces_clipLines = Origami.makeFaceClipLines(foldFile, line);
     // input is a fold format JSON and a Robby line
     // output is an faces_ array of pairs of [x, y] points, or undefined
-    return;
+
     // 2. walk around each face with a clipped edge.
     //     check clipped edge endpoints for intersection with edges and vertices in order
     //     initialize new vertex set with old vertices
@@ -87,10 +102,10 @@ export default class Origami{
 
 
     var nf = foldFile.faces_vertices.length;
-    var point = [0.6, 0.6];
+    // if (point == undefined) point = [0.6, 0.6];
     var splitFaces = foldFile.faces_vertices.map((f) => [undefined, f])
 
-    var faces_splitFaces_move = markMovingFaces(
+    var faces_splitFaces_move = Origami.markMovingFaces(
         foldFile, 
         splitFaces,	// faces_splitFaces
         foldFile.vertices_coords,  // newVertices_coords, 
@@ -117,7 +132,7 @@ export default class Origami{
 
 
 
-	makeFaceClipLines(foldFile, line){
+	static makeFaceClipLines(foldFile, line){
 		
 		// use each face's matrix to transform the input line
 		//   from folded coords to crease pattern coords
@@ -254,80 +269,83 @@ export default class Origami{
 
 
 
-}
 
-function markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
-  let faces_vertices  = fold.faces_vertices;
-  let faces_layer     = fold.faces_layer;
-  let faces_matrix    = fold.faces_matrix;
 
-  // get index of highest layer face which intersects point
-  let touched_face = faces_splitFaces.reduce(
-    (touched, splitFaces, idx) => {
-      return splitFaces.reduce(
-        (touched, vertices_index, side) => {
-          if (vertices_index == undefined) {
-            return touched;
-          }
-          let points = vertices_index
-            .map(vi => {
-              let [x, y] = vertices_coords[vi];
-              let xy = new RabbitEar.Geometry.XY(x, y);
-              let [a,b,c,d,e,f] = faces_matrix[idx];
-              let matrix = new RabbitEar.Geometry.Matrix(a,b,c,d,e,f);
-              return xy.transform(matrix);
-            })
-          let polygon = RabbitEar.Geometry.ConvexPolygon.convexHull(points);
-          let p = {x: point[0], y: point[1]};
-          if (polygon.contains(p) && (
-              (touched == undefined) ||
-              (faces_layer[touched.idx] < faces_layer[idx]))) {
-            touched = {idx: idx, side: side};
-          }
-          return touched;
-        }, touched);
-    	}, undefined);
-  if (touched_face === undefined) {
-    console.log("You didn't touch a face...");
-    return undefined;
-  }
-  console.log("You touched face " + touched_face.idx + "!");
+	static markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
+	  let faces_vertices  = fold.faces_vertices;
+	  let faces_layer     = fold.faces_layer;
+	  let faces_matrix    = fold.faces_matrix;
 
-  return;
+	  // get index of highest layer face which intersects point
+	  let touched_face = faces_splitFaces.reduce(
+	    (touched, splitFaces, idx) => {
+	      return splitFaces.reduce(
+	        (touched, vertices_index, side) => {
+	          if (vertices_index == undefined) {
+	            return touched;
+	          }
+	          let points = vertices_index
+	            .map(vi => {
+	              let [x, y] = vertices_coords[vi];
+	              let xy = new RabbitEar.Geometry.XY(x, y);
+	              let [a,b,c,d,e,f] = faces_matrix[idx];
+	              let matrix = new RabbitEar.Geometry.Matrix(a,b,c,d,e,f);
+	              return xy.transform(matrix);
+	            })
+	          let polygon = RabbitEar.Geometry.ConvexPolygon.convexHull(points);
+	          let p = {x: point[0], y: point[1]};
+	          if (polygon.contains(p) && (
+	              (touched == undefined) ||
+	              (faces_layer[touched.idx] < faces_layer[idx]))) {
+	            touched = {idx: idx, side: side};
+	          }
+	          return touched;
+	        }, touched);
+	    	}, undefined);
+	  if (touched_face === undefined) {
+	    console.log("You didn't touch a face...");
+	    return undefined;
+	  }
+	  console.log("You touched face " + touched_face.idx + "!");
 
-  // make faces_faces
-  let nf = faces_vertices.length;
-  let faces_faces = Array.from(Array(nf)).map(() => []);
-  let edgeMap = {};
-  faces_vertices.forEach((vertices, idx1) => {
-    n = vertices.length;
-    vertices.forEach((u, i, vs) => {
-      v = vs[(i + 1) % n];
-      if (v < u) {
-        [u, v] = [v, u];
-      }
-      let key = u + "," + v;
-      if (key in edgeMap) {
-        idx2 = edgeMap[key];
-        faces_faces[idx1].push(idx2);
-        faces_faces[idx2].push(idx1);
-      } else {
-        edgeMap[key] = idx1;
-      }
-    }); 
-  });
+	  return;
 
-  let faces_splitFaces_move = Array.from(Array(nf)).map(() => Array(2).map(() => false));
-  faces_splitFaces_move[touched.idx][touched.side] = true;
-  
-  // 
+	  // make faces_faces
+	  let nf = faces_vertices.length;
+	  let faces_faces = Array.from(Array(nf)).map(() => []);
+	  let edgeMap = {};
+	  faces_vertices.forEach((vertices, idx1) => {
+	    n = vertices.length;
+	    vertices.forEach((u, i, vs) => {
+	      v = vs[(i + 1) % n];
+	      if (v < u) {
+	        [u, v] = [v, u];
+	      }
+	      let key = u + "," + v;
+	      if (key in edgeMap) {
+	        idx2 = edgeMap[key];
+	        faces_faces[idx1].push(idx2);
+	        faces_faces[idx2].push(idx1);
+	      } else {
+	        edgeMap[key] = idx1;
+	      }
+	    }); 
+	  });
 
-  // for (var i = 0; i < faces.length; i++) {
-  //    vertices   = faces_vertices[i];
-  //    layer      = faces_layer[i];
-  //    splitFaces = faces_splitFaces[i];
-  //    move       = faces_splitFaces_move[i];
-  // }
-  return faces_splitFaces_move;
+	  let faces_splitFaces_move = Array.from(Array(nf)).map(() => Array(2).map(() => false));
+	  faces_splitFaces_move[touched.idx][touched.side] = true;
+	  
+	  // 
+
+	  // for (var i = 0; i < faces.length; i++) {
+	  //    vertices   = faces_vertices[i];
+	  //    layer      = faces_layer[i];
+	  //    splitFaces = faces_splitFaces[i];
+	  //    move       = faces_splitFaces_move[i];
+	  // }
+	  return faces_splitFaces_move;
+	}
+
+
 }
 
