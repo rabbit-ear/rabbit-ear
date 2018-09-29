@@ -337,7 +337,7 @@ class LineType{
 	parallel(line, epsilon){}
 	collinear(point){}
 	equivalent(line, epsilon){}
-	degenrate(epsilon){}
+	degenerate(epsilon){}
 	intersection(line, epsilon){}
 	reflectionMatrix(){}
 	nearestPoint(point){}
@@ -378,7 +378,7 @@ export class Line{
 		// if lines are parallel and share a point in common
 		return this.collinear(line.point, epsilon) && this.parallel(line, epsilon);
 	}
-	degenrate(epsilon){
+	degenerate(epsilon){
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		return epsilonEqual(this.direction.magnitude(), 0, epsilon);
 	}
@@ -477,7 +477,7 @@ export class Ray{
 		return (this.origin.equivalent(ray.origin, epsilon) &&
 		        this.direction.normalize().equivalent(ray.direction.normalize(), epsilon));
 	}
-	degenrate(epsilon){
+	degenerate(epsilon){
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		return epsilonEqual(this.direction.magnitude(), 0, epsilon);
 	}
@@ -591,7 +591,7 @@ export class Edge{
 		        (this.nodes[0].equivalent(e.nodes[1],epsilon) &&
 		         this.nodes[1].equivalent(e.nodes[0],epsilon)) );
 	}
-	degenrate(epsilon){
+	degenerate(epsilon){
 		if(epsilon === undefined){ epsilon = EPSILON_HIGH; }
 		return this.nodes[0].equivalent(this.nodes[1], epsilon);
 	}
@@ -900,7 +900,8 @@ export class ConvexPolygon{
 		this.setEdgesFromPoints(points);
 		return this;
 	}
-	static convexHull(points){
+	static convexHull(points, includeCollinear){
+		if(includeCollinear == undefined){ includeCollinear = false; }
 		// validate input
 		if(points === undefined || points.length === 0){ return undefined; }
 		// # points in the convex hull before escaping function
@@ -944,6 +945,13 @@ export class ConvexPolygon{
 			// .sort(function(a,b){return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
 			// if the point is already in the convex hull, we've made a loop. we're done
 			// if(contains(hull, angles[0].node)){
+			// if(includeCollinear){
+			// 	points.sort(function(a,b){return (a.distance - b.distance)});
+			// } else{
+			// 	points.sort(function(a,b){return b.distance - a.distance});
+			// }
+
+
 			if(hull.filter(function(el){return el === angles[0].node; }).length > 0){
 				return ConvexPolygon.withPoints(hull);
 			}

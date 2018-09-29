@@ -30,12 +30,10 @@ function update(){
 	if(foldLine){
 		origami.unfolded = duplicate(backupCP);
 		origami.folded = duplicate(backupFolded);
-		origami.creaseFolded(foldLine);
+		origami.creaseCP(foldLine);
 		paper.cp = new CreasePattern().importFoldFile(origami.unfolded);
 		folded.cp = new CreasePattern().importFoldFile(origami.unfolded);
 		paper.draw();
-
-		// paper.cp.importFoldFile(origami.unfolded);
 
 		var centerFace = folded.cp.nearest(0.5, 0.501).face;
 		folded.draw( centerFace );
