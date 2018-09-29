@@ -52,21 +52,43 @@ export default class Origami{
 
 		// 1. vertices_intersections
 		// [ boolean, boolean, boolean, boolean, boolean, boolean]
-		var newFaceClipLines = clipLineOnFaces(this.unfolded, line);
+		var faces_clipSegment = clipLineOnFaces(this.unfolded, line);
+    // input is a fold format JSON and a Robby line
+    // output is an faces_ array of pairs of [x, y] points, or undefined
 
-		// 2. output edges_intersections
-		// possible cleaning step
+    // 2. walk around each face with a clipped edge.
+    //     check clipped edge endpoints for intersection with edges and vertices in order
+    //     initialize new vertex set with old vertices
+    //     make dictionary 
+    //       from edges (in verted index sorted order) 
+    //       to vertex indices
+    //     add new vertices when necessary and translate faces_line to vertex index pairs
+    var output = cleanClipSegments(this.unfold, faces_clipLine);
+    var faces_clipSegmentByIndex = output.faces_clipSegmentByIndex;
+    var new_vertices_coords      = output.vertices_coords;
 
-		// 3. walk around each face. for each edge and vertex, in order, was there an intersection? 2 or 0, 1 is treated as 0.
+    //     (each clip line goes from [(x, y), (x, y)] to [v1, v2])
+    //     walk around each face and build split faces side1, side2 using new vertices_coords
+    var output = splitFaces(this.unfold, faces_clipLine);
+    var faces_splitFaces    = output.faces_splitFaces;
+    var new_vertices_coords = output.vertices_coords;
 
-		// 3.5. draw lines on crease pattern
-		//  - using faces_lines, draw these on crease pattern
+    // 3.5. draw lines on crease pattern
+    //  - using faces_lines, draw these on crease pattern
+    // 
+    // now user clicks on a face:
+    // -------
+    // we loop through faces, checking if user clicked in face. choose top most one f
+    // then check which side was click by checking click intersection with faces_pieces[f]
+    // NOW WE KNOW which side1 or side2 inside all of faces_pieces will be the one that moves
 
-		// 4. build faces_vertices
-
+    var faces_splitFaces_move = markMovingFaces(this.unfold, faces_splitFaces, new_vertices_coords, point);
+    // point is click
 
 		// var creasePattern = new CreasePattern().importFoldFile(this.unfolded);
 		// creasePattern.crease(line);
+		//
+
 
 	}
 
