@@ -1540,7 +1540,7 @@ export default class CreasePattern extends PlanarGraph{
 				default: return "U";
 			}
 		},this);
-		file["faces_matrices"] = this.faces.map(function(face){
+		file["faces_matrix"] = this.faces.map(function(face){
 			if(face.cache != undefined && face.cache.matrix != undefined){
 				var m = face.cache.matrix;
 				return [m.a, m.b, m.c, m.d, m.tx, m.ty];
@@ -1605,8 +1605,8 @@ export default class CreasePattern extends PlanarGraph{
 					var nextNode = face.nodes[ (ei+1)%face.nodes.length ];
 					return this.getEdgeConnectingNodes(node, nextNode);
 				},this);
-				if(file["faces_matrices"] != undefined && file["faces_matrices"][fi].length >= 6){
-					var m = file['faces_matrices'][fi];
+				if(file["faces_matrix"] != undefined && file["faces_matrix"][fi].length >= 6){
+					var m = file['faces_matrix'][fi];
 					face.matrix = new M.Matrix(m[0], m[1], m[2], m[3], m[4], m[5]);
 				}
 				if(file["faces_coloring"] != undefined){

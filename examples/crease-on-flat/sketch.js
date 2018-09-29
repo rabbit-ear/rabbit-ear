@@ -76,7 +76,7 @@ function updateCreaseLine(point1, point2){
 
 function creaseOnFoldedForm(line, cp, f){
 	// generate the geometry for a random crease line
-	var matrices = f["faces_matrices"].map(function(n){ 
+	var matrices = f["faces_matrix"].map(function(n){ 
 		return new RabbitEar.Geometry.Matrix(n[0], n[1], n[2], n[3], n[4], n[5]);
 	},this);
 	var coloring = f["faces_coloring"];
