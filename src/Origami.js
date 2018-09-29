@@ -22,33 +22,49 @@ class Fold{
 			"faces_coloring":[0]
 		};
 	}
+	static oneFold(){
+		return {
+			"file_spec":1,
+			"file_creator":"Rabbit Ear",
+			"file_author":"",
+			"file_classes":["singleModel"],
+			"vertices_coords":[[0,0],[1,0],[1,1],[0,1],[1,0.21920709],[0,0.75329794]],
+			"faces_vertices":[[0,1,4,5],[2,3,5,4]],
+			"edges_vertices":[[0,1],[2,3],[4,5],[1,4],[4,2],[0,5],[5,3]],
+			"edges_assignment":["B","B","V","B","B","B","B"],
+			"faces_matrix":[
+				[0.55611381, -0.83110614, -0.83110614, -0.55611381, 0.62607055, 1.17221733],
+				[1,0,0,1,0,0]
+			],
+			"faceOrders":[[0,1,1]],
+			"faces_coloring":[1,0]}
+	}
 }
 
 function makeFaceClipLines(foldFile, line){
 	
 	// use each face's matrix to transform the input line
 	//   from folded coords to crease pattern coords
-	var matrices = foldFile["faces_matrix"].map(function(n){ 
-			return new Geometry.Matrix(n[0], n[1], n[2], n[3], n[4], n[5]);
-		},this);
+	let matrices = foldFile["faces_matrix"].map(n => 
+		new Geometry.Matrix(n[0],n[1],n[2],n[3],n[4],n[5]) )
 
-	var facesVertices = foldFile.faces_vertices.map( vIndices => {
+	let facesVertices = foldFile.faces_vertices.map( vIndices => {
 		// from face vertex indices, create faces with vertex geometry
 		return vIndices.map( vI => foldFile.vertices_coords[vI])
 	})
 	// generate one clip line per face, or none if there is no intersection
-	var facePolys = facesVertices.map(vertices => {
+	let facePolys = facesVertices.map(vertices => {
 		// convex hull algorithm turns faces into a convex polygon object
-		var poly = new Geometry.ConvexPolygon();
-		poly.edges = vertices.map(function(el,i,verts){
-			var nextEl = verts[ (i+1)%verts.length ];
+		let poly = new Geometry.ConvexPolygon();
+		poly.edges = vertices.map((el,i,verts) => {
+			let nextEl = verts[ (i+1)%verts.length ];
 			return new Geometry.Edge(el[0], el[1], nextEl[0], nextEl[1]);
-		},this);
+		});
 		return poly;
 		// return Geometry.ConvexPolygon.convexHull( vertices.map(v => {x:v[0], y:v[1]}) )
 	})
 	// for every face, we have one clipped crease edge or undefined if no intersection
-	var clipLines = facePolys.map(function(poly, i){
+	let clipLines = facePolys.map(function(poly, i){
 		return poly.clipLine( line.transform(matrices[i].inverse()) );
 	},this).map(function(edge){
 		// convert to [ [x,y], [x,y] ]. or undefined if no intersection
@@ -56,24 +72,24 @@ function makeFaceClipLines(foldFile, line){
 		return undefined;
 	},this);
 	// deep copy vertices array
-	var new_vertices_coords = JSON.parse(JSON.stringify(foldFile.vertices_coords));
+	let new_vertices_coords = JSON.parse(JSON.stringify(foldFile.vertices_coords));
 
-	var edgeDictionary = {}
+	let edgeDictionary = {}
 	clipLines.map((clip, f) => {
 		if(clip != undefined){
 			facePolys[f].edges.forEach((edge, eI) => {
-				var foundIndex = undefined;
+				let foundIndex = undefined;
 				if(edge.collinear( {x:clip[0][0], y:clip[0][1]} )){ foundIndex = 0; }
 				if(edge.collinear( {x:clip[1][0], y:clip[1][1]} )){ foundIndex = 1; }
 				if(foundIndex != undefined){
-					var fVI = foldFile.faces_vertices[f];
-					var key = [fVI[eI], fVI[(eI+1)%fVI.length]].sort(function(a,b){return a-b;}).join(" ");
+					let fVI = foldFile.faces_vertices[f];
+					let key = [fVI[eI], fVI[(eI+1)%fVI.length]].sort(function(a,b){return a-b;}).join(" ");
 					edgeDictionary[key] = clip[foundIndex];
 				}
 			})
 		}
 	})
-	// console.log(edgeDictionary);
+	console.log(edgeDictionary);
 
 
 
@@ -82,8 +98,10 @@ function makeFaceClipLines(foldFile, line){
 export default class Origami{
 
 	constructor(){
-		this.unfolded = Fold.square();
-		this.folded = Fold.square();
+		// this.unfolded = Fold.square();
+		// this.folded = Fold.square();
+		this.unfolded = Fold.oneFold();
+		this.folded = Fold.oneFold();
 	}
 
 	crease(line){
@@ -154,7 +172,7 @@ function markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
         (touched, vertex_indices, side) => {
           let points = vertex_indices
             .map(vi => vertices_coords[vi])
-            .map(p  => {x: p[0], y: p[1]});
+            .map(p  => ({x: p[0], y: p[1]}) );
           let polygon = RabbitEar.Geometry.ConvexPolygon.convexHull(points);
           let p = {x: point[0], y: point[1]};
           if (polygon.contains(p) && (
@@ -163,8 +181,7 @@ function markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
             touched = {idx: idx, side: side};
           }
           return touched;
-        }
-      }, touched));
+        }, touched));
     }, undefined);
   if (touched === undefined) {
     return undefined;

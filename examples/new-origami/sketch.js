@@ -21,25 +21,30 @@ paper.selectedEdge = undefined;
 var origami = new Origami();
 var backupCP = duplicate(origami.unfolded);
 var backupFolded = duplicate(origami.folded);
+//////
 
 var tempCP = new CreasePattern();
+tempCP.setBoundary([ [-1,-1], [2,-1], [2,2], [-1,2] ]);
 
 function duplicate(foldFile){ return JSON.parse(JSON.stringify(foldFile)); }
+
+function updateCPandFold(){
+	paper.cp = new CreasePattern().importFoldFile(origami.unfolded);
+	folded.cp = new CreasePattern().importFoldFile(origami.unfolded);
+	paper.draw();
+	var centerFace = folded.cp.nearest(0.5, 0.501).face;
+	folded.draw( centerFace );
+}
+updateCPandFold();
 
 function update(){
 	if(foldLine){
 		origami.unfolded = duplicate(backupCP);
 		origami.folded = duplicate(backupFolded);
 		origami.crease(foldLine);
-		paper.cp = new CreasePattern().importFoldFile(origami.unfolded);
-		folded.cp = new CreasePattern().importFoldFile(origami.unfolded);
-		paper.draw();
-
-		var centerFace = folded.cp.nearest(0.5, 0.501).face;
-		folded.draw( centerFace );
+		updateCPandFold();
 	}
 }
-update();
 
 folded.onMouseDown = function(event){
 	this.startPoint = event.point;
