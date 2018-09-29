@@ -47,6 +47,13 @@ function makeFaceClipLines(foldFile, line){
 	},this);
 }
 
+// makeFaceClipLines = (fold, line) -> 
+//     for vertex_indices in faces_vertices
+//       points     = [fold.vertices_coords[i] for i in vertex_indices]
+//       convexHull = ConvexHull(points)
+//       clipLine   = convexHull.clipLine()
+//       [[x, y], [x, y]]
+
 export default class Origami{
 
 	constructor(){
@@ -109,50 +116,67 @@ export default class Origami{
 
 	}
 
-
-
-
-
-
-	// creaseFolded(line){
-
-	// 	var matrices = this.folded["faces_matrices"].map(function(n){ 
-	// 		return new Geometry.Matrix(n[0], n[1], n[2], n[3], n[4], n[5]);
-	// 	},this);
-	// 	var coloring = this.folded["faces_coloring"];
-
-	// 	var faces = this.folded.faces_vertices.map(function(nodeArray){
-	// 		var points = nodeArray
-	// 			.map(function(n){ return this.folded.vertices_coords[n]; },this)
-	// 			.map(function(p){ return {x:p[0], y:p[1]} })
-	// 		return RabbitEar.Geometry.ConvexPolygon.convexHull(points);
-	// 	},this);
-
-	// 	var polygonClipLines = faces.map(function(f,i){
-	// 		return { edge: f.clipLine(line), 
-	// 		         transform: matrices[i],
-	// 		         coloring: coloring[i] };
-	// 		},this)
-	// 		.filter(function(el){ return el.edge != undefined; },this);
-
-	// 	var cpFoldLines = polygonClipLines.map(function(clip){
-	// 		return { edge: clip.edge.transform(clip.transform.inverse()),
-	// 		         mountain: (clip.coloring == 0) ? true : false }
-	// 	},this);
-
-	// 	// amend the crease pattern with new creases
-	// 	var cp = new CreasePattern().importFoldFile(this.unfolded);
-	// 	cpFoldLines.forEach(function(foldLine){
-	// 		var crease = cp.crease(foldLine.edge);
-	// 		if(crease != undefined){ 
-	// 			if(foldLine.mountain){ crease.mountain(); }
-	// 			else{ crease.valley(); }
-	// 		}
-	// 	});
-	// 	cp.clean();
-
-	// 	this.unfolded = cp.exportFoldFile();
-	// 	this.folded = cp.fold();
-	// 	// this.unfolded = cp.exportFoldFile();
-	// }
 }
+
+function markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
+  let faces_vertices = fold.faces_vertices;
+  let faces_layer    = fold.faces_layer;
+
+  // get index of highest layer face which intersects point
+  let touched_face_index = faces_splitFaces.reduce(
+    (touched, splitFaces, idx) => {
+      touched = Math.max(touched, splitFaces.reduce(
+        (touched, vertex_indices, side) => {
+          let points = vertex_indices
+            .map(vi => vertices_coords[vi])
+            .map(p  => {x: p[0], y: p[1]});
+          let polygon = RabbitEar.Geometry.ConvexPolygon.convexHull(points);
+          let p = {x: point[0], y: point[1]}
+          if (polygon.contains(p) && (
+              (touched === undefined) ||
+              (faces_layer[touched.idx] < faces_layer[idx]))) {
+            touched = {idx: idx, side: side};
+          }
+        }
+      }, touched));
+    }, undefined);
+  if (touched === undefined) {
+    return undefined;
+  }
+
+  // make faces_faces
+  let nf = faces_vertices.length;
+  let faces_faces = Array(nf).map(() => []);
+  let edgeMap = {};
+  faces_vertices.forEach((vertices, idx1) => {
+    n = vertices.length;
+    vertices.forEach((u, i, vs) => {
+      v = vs[(i + 1) % n];
+      if (v < u) {
+        [u, v] = [v, u];
+      }
+      let key = `${u},${v}`;
+      if (key in edgeMap) {
+        idx2 = edgeMap[key];
+        faces_faces[idx1].push(idx2);
+        faces_faces[idx2].push(idx1);
+      } else {
+        edgeMap[key] = idx1;
+      }
+    }); 
+  });
+
+  let faces_splitFaces_move = Array(nf).map(() => Array(2).map(() => false));
+  faces_splitFaces_move[touched.idx][touched.side] = true;
+  
+  // 
+
+  // for (var i = 0; i < faces.length; i++) {
+  //    vertices   = faces_vertices[i];
+  //    layer      = faces_layer[i];
+  //    splitFaces = faces_splitFaces[i];
+  //    move       = faces_splitFaces_move[i];
+  // }
+  return faces_splitFaces_move;
+}
+
