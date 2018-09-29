@@ -102,15 +102,13 @@ export default class Origami{
     //       from edges (in verted index sorted order) 
     //       to vertex indices
     //     add new vertices when necessary and translate faces_line to vertex index pairs
+    //     (each clip line goes from [(x, y), (x, y)] to [v1, v2])
     var output = cleanClipSegments(this.unfold, faces_clipLine);
     var faces_clipSegmentByIndex = output.faces_clipSegmentByIndex;
-    var new_vertices_coords      = output.vertices_coords;
+    var newVertices_coords      = output.newVertices_coords;
 
-    //     (each clip line goes from [(x, y), (x, y)] to [v1, v2])
     //     walk around each face and build split faces side1, side2 using new vertices_coords
-    var output = splitFaces(this.unfold, faces_clipLine);
-    var faces_splitFaces    = output.faces_splitFaces;
-    var new_vertices_coords = output.vertices_coords;
+    var faces_splitFaces = splitFaces(this.unfold, faces_clipLine, newVertices_coords);
 
     // 3.5. draw lines on crease pattern
     //  - using faces_lines, draw these on crease pattern
@@ -121,8 +119,21 @@ export default class Origami{
     // then check which side was click by checking click intersection with faces_pieces[f]
     // NOW WE KNOW which side1 or side2 inside all of faces_pieces will be the one that moves
 
-    var faces_splitFaces_move = markMovingFaces(this.unfold, faces_splitFaces, new_vertices_coords, point);
-    // point is click
+    var faces_splitFaces_move = markMovingFaces(
+        this.unfold, 
+        faces_splitFaces, 
+        newVertices_coords, 
+        point
+    );
+    // point is place where user clicked
+    // unfold must have faces_layer as a permutation of the face indices
+
+    var newUnfolded = foldMovingFaces(
+        this.unfold, 
+        faces_splitFaces, 
+        newVertices_coords, 
+        faces_splitFaces_move
+    );
 
 		// var creasePattern = new CreasePattern().importFoldFile(this.unfolded);
 		// creasePattern.crease(line);
