@@ -27,6 +27,7 @@ function pointsSimilar(a, b, epsilon){
 	if(epsilon == undefined){epsilon = EPSILON_HIGH;}
 	return epsilonEqual(a.x,b.x,epsilon) && epsilonEqual(a.y,b.y,epsilon);
 }
+function isArray(a){ return (!!a) && (a.constructor === Array); }
 /////////////////////////////// NUMBERS ///////////////////////////////
 /** map a number from one range into another */
 // function map(input, fl1, ceil1, fl2, ceil2){
@@ -211,12 +212,23 @@ export class Matrix{
 	// a; c; tx;
 	// b; d; ty;
 	constructor(a, b, c, d, tx, ty){
-		this.a = (a !== undefined) ? a : 1;
-		this.b = (b !== undefined) ? b : 0;
-		this.c = (c !== undefined) ? c : 0;
-		this.d = (d !== undefined) ? d : 1;
-		this.tx = (tx !== undefined) ? tx : 0;
-		this.ty = (ty !== undefined) ? ty : 0;
+		if(isArray(a) && a.length >= 4){
+			this.a = a[0];
+			this.b = a[1];
+			this.c = a[2];
+			this.d = a[3];
+			if(a.length >= 6){
+				this.tx = a[4];
+				this.ty = a[5];
+			}
+		} else{
+			this.a = (a !== undefined) ? a : 1;
+			this.b = (b !== undefined) ? b : 0;
+			this.c = (c !== undefined) ? c : 0;
+			this.d = (d !== undefined) ? d : 1;
+			this.tx = (tx !== undefined) ? tx : 0;
+			this.ty = (ty !== undefined) ? ty : 0;
+		}
 	}
 	/** Sets this to be the identity matrix */
 	identity(){ this.a=1; this.b=0; this.c=0; this.d=1; this.tx=0; this.ty=0; return this;}
@@ -290,7 +302,13 @@ export class Matrix{
 export class XY {
 	// x;
 	// y;
-	constructor(x, y){ this.x = x; this.y = y; }
+	// constructor(x, y){ this.x = x; this.y = y; }
+	constructor(a,b){
+		if(isValidNumber(a)){ this.x = a; this.y = b; }
+		else if(isArray(a)){ this.x = a[0]; this.y = a[1]; }
+		else if(isValidPoint(a)){  this.x = a.x; this.y = a.y; }
+		else {this.x = 0; this.y = 0;}
+	}
 	normalize() { var m = this.magnitude(); return new XY(this.x/m, this.y/m);}
 	dot(point) { return this.x * point.x + this.y * point.y; }
 	cross(vector){ return this.x*vector.y - this.y*vector.x; }

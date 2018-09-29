@@ -41,7 +41,7 @@ function update(){
 	if(foldLine){
 		origami.unfolded = duplicate(backupCP);
 		origami.folded = duplicate(backupFolded);
-		origami.crease(foldLine, );
+		origami.crease(foldLine);
 		updateCPandFold();
 	}
 }
