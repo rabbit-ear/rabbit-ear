@@ -91,16 +91,16 @@ export default class Origami{
     var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
 		// console.log(faces_clipLines)
 
-		return;
+		// return;
 
-		var returnObject = {
-			"vertices_coords_flat": [[0,0], [1,0], [1,1], [0,1], [1,0.21920709], [0,0.75329794]],
-			"vertices_coords_fold": [[0,0], [1,0], [1,1], [0,1], [1,0.21920709], [0,0.75329794]],
-			"sides_faces_vertices": [
-				[[0,1,4,5], [2,3,5,4]],
-				[[null,1,4,5], [2,3,5,4]],
-			]
-		}
+		// var returnObject = {
+		// 	"vertices_coords_flat": [[0,0], [1,0], [1,1], [0,1], [1,0.21920709], [0,0.75329794]],
+		// 	"vertices_coords_fold": [[0,0], [1,0], [1,1], [0,1], [1,0.21920709], [0,0.75329794]],
+		// 	"sides_faces_vertices": [
+		// 		[[0,1,4,5], [2,3,5,4]],
+		// 		[[null,1,4,5], [2,3,5,4]],
+		// 	]
+		// }
 
     // 3.5. draw lines on crease pattern
     //  - using faces_lines, draw these on crease pattern
@@ -173,7 +173,7 @@ export default class Origami{
 			return undefined;
 		},this);
 
-		console.log(clippedFacesLine)
+		// console.log(clippedFacesLine)
 
 		// build result dictionary
 		let edgeCrossings = {}
