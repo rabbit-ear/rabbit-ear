@@ -38,7 +38,7 @@ function prepareFoldFile(foldFile){
 		keys.forEach(key => fold[key] = fold.file_frames[0][key] )
 	}
 	fold.file_frames = null;
-	return fold
+	return fold;
 }
 
 var tempCP = new CreasePattern();
@@ -48,7 +48,7 @@ function duplicate(foldFile){ return JSON.parse(JSON.stringify(foldFile)); }
 
 function updateCPandFold(){
 	paper.cp = new CreasePattern().importFoldFile(cpFoldFile);
-	folded.cp = new CreasePattern().importFoldFile(foldedFoldFile);
+	folded.cp = new CreasePattern().importFoldFile(cpFoldFile);
 	paper.draw();
 	var centerFace = folded.cp.nearest(0.5, 0.501).face;
 	folded.draw( centerFace );
@@ -69,6 +69,7 @@ function update(){
 
 folded.onMouseDidBeginDrag = function(event){
 	isDrawingLine = true;
+	foldPoint = undefined;
 }
 
 folded.onMouseDown = function(event){
