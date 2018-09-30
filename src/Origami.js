@@ -89,7 +89,7 @@ export default class Origami{
     // output is an faces_ array of pairs of [x, y] points, or undefined
 
     var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
-		console.log(faces_clipLines)
+		// console.log(faces_clipLines)
 
 		// return;
 
@@ -251,15 +251,16 @@ export default class Origami{
 			facesSubstitutions[i] = newFaces
 		})
 
-		var stay = [];
-		var move = [];
+		var leftSide = []; // "stay" side
+		var rightSide = [];
 		for(var i in facesSubstitutions){
 			if(facesSubstitutions[i] == undefined){
-				stay.push(new_faces_vertices[i]);
-				move.push(undefined);
+				leftSide.push(new_faces_vertices[i]);
+				rightSide.push(undefined);
 			} else{
-				stay.push(facesSubstitutions[i][0]);
-				move.push(facesSubstitutions[i][1]);
+				var sortedBySide = Origami.sortTwoFacesBySide(facesSubstitutions[i], new_vertices_coords, line)
+				leftSide.push(facesSubstitutions[i][0]);
+				rightSide.push(facesSubstitutions[i][1]);
 			}
 		}
 
@@ -273,8 +274,24 @@ export default class Origami{
 		return {
 			"vertices_coords_fold": new_vertices_coords,
 			"vertices_coords_flat": new_vertices_coords_cp,
-			"sides_faces_vertices": [stay, move]
+			"sides_faces_vertices": [leftSide, rightSide]
 		}
+	}
+	
+	static sortTwoFacesBySide(twoFaces, vertices_coords, line){
+		var result = [undefined, undefined];
+		twoFaces.forEach(face => {
+			if(face == undefined){ return; }
+			var crossSum = face.map(p => {
+				var fP = vertices_coords[p];
+				var a = [fP[0] - line.point.x, fP[1] - line.point.y];
+				var b = [line.direction.x, line.direction.y];
+				return a[0]*b[1] - a[1]*b[0];
+			}).reduce((prev,curr) => prev+curr);
+			var index = (crossSum < 0) ? 0 : 1;
+			result[index] = face;
+		})
+		return result
 	}
 
 	// points are in array syntax
