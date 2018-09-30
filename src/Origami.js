@@ -77,7 +77,7 @@ export default class Origami{
 			keys.forEach(key => fold[key] = fold.file_frames[0][key] )
 		}
 		fold.file_frames = null;
-		return fold
+		return fold;
 	}
 
 	static crease(foldFile, line, point){
@@ -116,12 +116,16 @@ export default class Origami{
     var nf = foldFile.faces_vertices.length;
     // if (point == undefined) point = [0.6, 0.6];
     if (point != undefined) {
-      var splitFaces = foldFile.faces_vertices.map((f) => [undefined, f])
+      console.log("Jason Code!");
+      var splitFaces = {
+        vertices_coords: foldFile.vertices_coords,
+        sides_faces_vertices: [Array(nf), foldFile.faces_vertices]
+      }
 
-      var faces_splitFaces_move = Origami.markMovingFaces(
+      var split_faces = Origami.split_folding_faces(
           foldFile, 
-          splitFaces,	// faces_splitFaces
-          foldFile.vertices_coords,  // newVertices_coords, 
+          splitFaces,	
+          foldFile.vertices_coords,  
           point
       );
     }
@@ -297,6 +301,7 @@ export default class Origami{
 	}
 
   static contains(points, point) {
+    points = points.map(p => ({x: p[0], y: p[1]}));
     let polygon = RabbitEar.Geometry.ConvexPolygon.convexHull(points);
     let p = {x: point[0], y: point[1]};
     return polygon.contains(p);
@@ -304,38 +309,48 @@ export default class Origami{
 
   static top_face_under_point(fold, point) {
 	  // get index of highest layer face which intersects point
-	  let top_face_idx = fold.faces_vertices.reduce(
-	    (top_face_idx, vertices_index, face_idx) => {
-        let points = vertices_index.map(i => vertices_coords[i]);
-        if (Origami.contains(points, point) && (
-            (top_face_idx == undefined) ||
-            (faces_layer[top_face_idx] < faces_layer[face_idx]))) {
-          top_face_idx = face_idx;
+	  let top_fi = fold.faces_vertices.reduce(
+	    (top_fi, vertices_index, fi) => {
+        let points = vertices_index.map(i => fold.vertices_coords[i]);
+        let face_contains_point = Origami.contains(points, point);
+        if (face_contains_point && (
+            (top_fi == undefined) ||
+            (fold.faces_layer[top_fi] < fold.faces_layer[fi]))) {
+          top_fi = fi;
         }
+        return top_fi;
       }, undefined);
-	  if (top_face_idx === undefined) {
+	  if (top_fi === undefined) {
 	    console.log("You didn't touch a face...");
 	    return undefined;
 	  }
-	  console.log("You touched face " + top_face_idx + "!");
-    return top_face_idx;
+	  console.log("You touched face " + top_fi + "!");
+    return top_fi;
   }
 
-	static splitFoldingFaces(fold, splitFaces, line, point) {
+	static split_folding_faces(fold, splitFaces, line, point) {
     // assumes point not on line
-    let top_face_idx = Origami.top_face_under_point(fold, point);
-    for (side of [0, 1]) {
+    
+    let vertices_coords = splitFaces.vertices_coords;
+    let sides_faces     = splitFaces.sides_faces_vertices;
+
+    let fi = Origami.top_face_under_point(fold, point);
+    console.log(fi);
+    for (var side of [0, 1]) {
+      let vertices_index = sides_faces[fi][side];
+      if (vertices_index !== undefined) {
         let points = vertices_index.map(i => vertices_coords[i]);
-       if (Origami.contains(points, point)) {
-       }
+        if (Origami.contains(points, point)) {
+          break;
+        }
+      }
     }
+    console.log(side);
+
+	  return;
 
 	  let faces_vertices         = fold.faces_vertices;
 	  let faces_layer            = fold.faces_layer;
-    let vertices_coords_folded = splitFaces.vertices_coords_flat;
-    let sides_faces_vertices   = splitFaces.sides_faces_vertices;
-
-	  return;
 
 	  // make faces_faces
 	  let nf = faces_vertices.length;
