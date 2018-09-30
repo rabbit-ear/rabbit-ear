@@ -19,10 +19,24 @@ paper.selectedLayer = paper.group();
 paper.svg.appendChild(paper.selectedLayer);
 paper.selectedEdge = undefined;
 
-var oneFoldFoldFile = new Origami().oneFold;
+var oneFoldFoldFile = prepareFoldFile(new Origami().oneFold);
 var backupCP = duplicate(oneFoldFoldFile);
 var backupFolded = duplicate(oneFoldFoldFile);
 //////
+
+
+function prepareFoldFile(foldFile){
+	let dontCopy = ["parent", "inherit"];
+	let fold = JSON.parse(JSON.stringify(foldFile));
+	if(fold.file_frames != undefined){
+		var thing = key => !dontCopy.includes(key);
+		let keys = Object.keys(fold.file_frames[0]).filter(key => !dontCopy.includes(key))
+		// console.log("copying over " + keys.join(' ') + " from frame[0] to main");
+		keys.forEach(key => fold[key] = fold.file_frames[0][key] )
+	}
+	fold.file_frames = null;
+	return fold
+}
 
 var tempCP = new CreasePattern();
 tempCP.setBoundary([ [-1,-1], [2,-1], [2,2], [-1,2] ]);
