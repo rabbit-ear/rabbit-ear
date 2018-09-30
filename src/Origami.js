@@ -89,8 +89,13 @@ export default class Origami{
     // output is an faces_ array of pairs of [x, y] points, or undefined
 
     var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
-		console.log(faces_clipLines)
+		// console.log(faces_clipLines)
 
+		// test reconstituteFaces with fake data
+		var fakeFacesMarks = [true, true];
+		var rebuiltArrays = Origami.reconstitute_faces(foldFile.faces_vertices, foldFile.faces_layer, faces_clipLines.sides_faces_vertices, fakeFacesMarks, 0);
+
+		// console.log(rebuiltArrays);
 		// return;
 
 		// var returnObject = {
@@ -292,18 +297,92 @@ export default class Origami{
 		return result
 	}
 
+
+// sides_faces_vertices: [
+// 	[
+// 		[6, 7, 5, 0],
+// 		[8, 3, 5, 7],
+// 		[9, 2, 5]
+// 	],
+// 	[
+// 		[6, 1, 4, 7],
+// 		[8, 7, 4, 2],
+// 		[5, 4, 8, 7, 3]
+// 	]
+// ]
+
+// sides_faces_vertices: [
+// 	[
+// 		[6, 7, 4, 5, 0],
+// 		[2, 3, 5, 4]
+// 	],[
+// 		[6, 1, 7],
+// 		undefined
+// 	]
+// ]
+
+	// layerOrder      - original fold file
+	// faces_vertices  - original fold file
+	// sides_faces_vertices - from clip_faces_.. function
+	// faces_mark      - boolean if a face in sides_faces_vertices should move
+	// whichSide       - which side of the sides_faces_vertices we're moving
+	static reconstitute_faces(faces_vertices, faces_layer, sides_faces_vertices, faces_mark, whichSideMoves){
+		// build a layer order array while the face array
+		// making the new extene dface array, put the layer order of the face it came from
+		// for extended layer array: 
+		//  - sort by values, giving them their original index
+		//  - give them new values that are N and higher, in order.
+		//  - unsort , based on original index
+		let new_faces_vertices = [];
+		let new_faces_vertices_end = [];
+		// i think we can wait to build this at the end all at once.
+		let new_faces_layer = faces_layer.slice(); // copy array
+		let new_faces_layer_end = [];
+		faces_mark.forEach((shouldMove,i) => {
+			if(!shouldMove){ 
+				// not folding this face, revert back to original joined face
+				new_faces_vertices.push(faces_vertices[i]);
+			}
+			else{
+				// yes, we are using this face
+				// staying face goes in the same place
+				let stayingFace = sides_faces_vertices[(whichSideMoves+1)%2][i];
+				new_faces_vertices.push(stayingFace);
+				// moving face goes at the end of the array (temporarily in new array)
+				let movingFace = sides_faces_vertices[whichSideMoves][i];
+				new_faces_vertices_end.push(movingFace);
+				new_faces_layer_end.push( new_faces_layer[i] )
+			}
+		})
+
+		var originalLayerMax = faces_layer.length
+		var new_faces_layer_end_sorted = new_faces_layer_end.map((value, i) => ({value, i}))
+		new_faces_layer_end_sorted.sort( (a,b) => a.value-b.value)
+		var shuffle_order = new_faces_layer_end_sorted.map(a => a.i)
+		new_faces_layer_end_sorted.forEach((a,i) => a.value = i + originalLayerMax)
+		new_faces_layer_end_sorted.sort( (a,b) => a.i-b.i)
+		new_faces_layer_end_sorted = new_faces_layer_end_sorted.map(a => a.value)
+
+		new_faces_vertices_end = new_faces_vertices_end.map((a,i) => ({'value':a, 'i':shuffle_order[i]}))
+		new_faces_vertices_end.sort( (a,b) => a.i-b.i)
+		new_faces_vertices_end = new_faces_vertices_end.map(a => a.value)
+
+		return {
+			'faces_vertices': new_faces_vertices.concat(new_faces_vertices_end),
+			'faces_layer': faces_layer.slice().concat(new_faces_layer_end_sorted)
+		}
+
+	}
+
 	// points are in array syntax
 	// point array is in counter-clockwise winding
 	static contains(pointArray, point, epsilon = 0.0000000001){
-		var side = pointArray.map( (p,i,arr) => {
+		return pointArray.map( (p,i,arr) => {
 			var nextP = arr[(i+1)%arr.length];
 			var a = [ nextP[0]-p[0], nextP[1]-p[1] ];
 			var b = [ point[0]-p[0], point[1]-p[1] ];
-			return a[0]*b[1]-a[1]*b[0] > -epsilon;
-		});
-		return side
-			.map(s => s == side[0])
-			.reduce((prev,curr) => {return prev && curr;}, true)
+			return a[0] * b[1] - a[1] * b[0] > -epsilon;
+		}).map((s,i,arr) => s == arr[0]).reduce((prev,curr) => prev && curr, true)
 	}
 	
 	static collinear(edgeP0, edgeP1, point, epsilon = 0.0000000001){
