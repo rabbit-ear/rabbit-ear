@@ -24,6 +24,8 @@ export default class OrigamiFold{
 		if(this.cp == undefined){ this.cp = new CreasePattern(); }
 		this.svg = SVG.SVG();
 
+		this.foldFile = {}
+
 		//  from arguments, get a parent DOM node for the new SVG as an HTML element or as a id-string
 		//  but wait until after the <body> has rendered
 		var that = this;
@@ -136,7 +138,8 @@ export default class OrigamiFold{
 			if(point[1] > maxY){ maxY = point[1]; }
 			if(point[1] < minY){ minY = point[1]; }
 		},this);
-		this.bounds = {'origin':{'x':minX,'y':minY},'size':{'width':maxX-minX, 'height':maxY-minY}};
+		// this.bounds = {'origin':{'x':minX,'y':minY},'size':{'width':maxX-minX, 'height':maxY-minY}};
+		this.bounds = {'origin':{'x':0,'y':0},'size':{'width':1.0, 'height':1.0}}
 	}
 
 	setPadding(padding){
@@ -163,34 +166,48 @@ export default class OrigamiFold{
 	}
 
 	draw(groundFace){
-		if(this.autoResize){ this.setViewBox(); }
+		// if(this.autoResize){ this.setViewBox(); }
 
-		if(this.holdPoint != undefined){ groundFace = this.cp.nearest(this.holdPoint).face; }
+		// if(this.holdPoint != undefined){ groundFace = this.cp.nearest(this.holdPoint).face; }
 		
-		this.foldedCP = this.cp.fold(groundFace);
-		this.getBounds();
-		this.faces = [];
+		// this.foldedCP = this.cp.fold(groundFace);
+		// this.getBounds();
+		// this.faces = [];
 
-		[this.boundaryLayer, this.facesLayer, this.junctionsLayer, this.sectorsLayer, this.edgesLayer, this.nodesLayer].forEach(function(layer){
-			while(layer.lastChild) {
-				layer.removeChild(layer.lastChild);
-			}
-		},this);
+		// [this.boundaryLayer, this.facesLayer, this.junctionsLayer, this.sectorsLayer, this.edgesLayer, this.nodesLayer].forEach(function(layer){
+		// 	while(layer.lastChild) {
+		// 		layer.removeChild(layer.lastChild);
+		// 	}
+		// },this);
 
-		if(this.foldedCP != undefined){
-			this.foldedCP.faces_vertices
-				.map(function(face){
-					return face.map(function(nodeIndex){
-						return this.foldedCP.vertices_coords[nodeIndex];
-					},this);
-				},this)
-				.forEach(function(faceNodes, i){ this.addFace(faceNodes); },this);
+		// if(this.foldedCP != undefined){
+		// 	this.foldedCP.faces_vertices
+		// 		.map(function(face){
+		// 			return face.map(function(nodeIndex){
+		// 				return this.foldedCP.vertices_coords[nodeIndex];
+		// 			},this);
+		// 		},this)
+		// 		.forEach(function(faceNodes, i){ this.addFace(faceNodes); },this);
+		// }
+		// if(this.autoResize){ this.setViewBox(); }
+
+		if(this.foldFile.vertices_coords == undefined){ return; }
+
+		var verts = this.foldFile.vertices_coords;
+		var faces = this.foldFile.faces_vertices.map(fv => fv.map(v => verts[v]))
+
+		this.setViewBox();
+
+		while(this.facesLayer.lastChild) {
+			this.facesLayer.removeChild(this.facesLayer.lastChild);
 		}
-		if(this.autoResize){ this.setViewBox(); }
+		
+		faces.forEach(f => this.addFace(f))
+
 	}
 	
 	addFace(vertices, index){
-		var polygon = SVG.polygon(vertices, 'folded-face', 'face-' + index);
+		var polygon = SVG.polygon(vertices, 'folded-face', 'face');
 		this.facesLayer.appendChild(polygon);
 	}
 
@@ -223,8 +240,8 @@ export default class OrigamiFold{
 				fetch(input)
 					.then(response => response.text())
 					.then(function(string){
-						var foldFile = FOLD.convert.convertFromTo(string, "opx", "fold");
-						that.cp.importFoldFile(foldFile);
+						var foldFileImport = FOLD.convert.convertFromTo(string, "opx", "fold");
+						that.cp.importFoldFile(foldFileImport);
 						that.draw();
 						if(callback != undefined){ callback(that.cp); }
 					});
@@ -233,8 +250,8 @@ export default class OrigamiFold{
 		}
 		try{
 			// try .fold file format first
-			var foldFile = JSON.parse(input);
-			this.cp.importFoldFile(foldFile);
+			var foldFileImport = JSON.parse(input);
+			this.cp.importFoldFile(foldFileImport);
 			return this;
 		} catch(err){
 			// try .svg file format
