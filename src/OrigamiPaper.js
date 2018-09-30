@@ -32,6 +32,8 @@ export default class OrigamiPaper{
 		if(this.cp == undefined){ this.cp = new CreasePattern(); }
 		this.svg = SVG.SVG();
 
+		this.foldFile = {}
+
 		//  from arguments, get a parent DOM node for the new SVG as an HTML element or as a id-string
 		//  but wait until after the <body> has rendered
 		var that = this;
@@ -270,8 +272,8 @@ export default class OrigamiPaper{
 				fetch(input)
 					.then(response => response.text())
 					.then(function(string){
-						var foldFile = FOLD.convert.convertFromTo(string, "opx", "fold");
-						that.cp.importFoldFile(foldFile);
+						var foldFileImport = FOLD.convert.convertFromTo(string, "opx", "fold");
+						that.cp.importFoldFile(foldFileImport);
 						that.draw();
 						if(callback != undefined){ callback(that.cp); }
 					});
@@ -280,8 +282,8 @@ export default class OrigamiPaper{
 		}
 		try{
 			// try .fold file format first
-			var foldFile = JSON.parse(input);
-			this.cp.importFoldFile(foldFile);
+			var foldFileImport = JSON.parse(input);
+			this.cp.importFoldFile(foldFileImport);
 			return this;
 		} catch(err){
 			// try .svg file format
