@@ -374,14 +374,14 @@ export default class Origami{
 
 		// clean isolated vertices
 		// (compiled_faces_vertices, compiled_faces_layer)
-		var cleanResult = Origami.clean_isolated_vertices(
-			{ vertices_coords: compiled_faces_vertices, 
-				faces_vertices: compiled_faces_layer
-			});
+		// var cleanResult = Origami.clean_isolated_vertices(
+		// 	{ vertices_coords: compiled_faces_vertices, 
+		// 		faces_vertices: compiled_faces_layer
+		// 	});
 
 		return {
-			'faces_vertices': cleanResult.compiled_faces_vertices,
-			'faces_layer': cleanResult.compiled_faces_layer
+			'faces_vertices': compiled_faces_vertices,
+			'faces_layer':    compiled_faces_layer
 		}
 	}
 
@@ -508,6 +508,54 @@ export default class Origami{
     return marked;
   }
 
+  static faces_vertices_to_edges (mesh) {
+    var edge, edgeMap, face, i, key, ref, v1, v2, vertices;
+    mesh.edges_vertices = [];
+    mesh.edges_faces = [];
+    mesh.faces_edges = [];
+    mesh.edges_assignment = [];
+    edgeMap = {};
+    ref = mesh.faces_vertices;
+    for (face in ref) {
+      vertices = ref[face];
+      face = parseInt(face);
+      mesh.faces_edges.push((function() {
+        var j, len, results;
+        results = [];
+        for (i = j = 0, len = vertices.length; j < len; i = ++j) {
+          v1 = vertices[i];
+          v1 = parseInt(v1);
+          v2 = vertices[(i + 1) % vertices.length];
+          if (v1 <= v2) {
+            key = v1 + "," + v2;
+          } else {
+            key = v2 + "," + v1;
+          }
+          if (key in edgeMap) {
+            edge = edgeMap[key];
+          } else {
+            edge = edgeMap[key] = mesh.edges_vertices.length;
+            if (v1 <= v2) {
+              mesh.edges_vertices.push([v1, v2]);
+            } else {
+              mesh.edges_vertices.push([v2, v1]);
+            }
+            mesh.edges_faces.push([null, null]);
+            mesh.edges_assignment.push('B');
+          }
+          if (v1 <= v2) {
+            mesh.edges_faces[edge][0] = face;
+          } else {
+            mesh.edges_faces[edge][1] = face;
+          }
+          results.push(edge);
+        }
+        return results;
+      })());
+    }
+    return mesh;
+  };
+
 	static split_folding_faces(fold, line, point) {
     // assumes point not on line
     point = [point.x, point.y];
@@ -544,10 +592,21 @@ export default class Origami{
       fold.faces_layer, 
       sides_faces, faces_mark, side);
 	  new_fold.vertices_coords = vertices_coords;
-    let faces_vertices;
-    ({vertices_coords, faces_vertices} = Origami.clean_isolated_vertices(new_fold));
-    new_fold.vertices_coords = vertices_coords;
-    new_fold.faces_vertices = faces_vertices;
+
+    Origami.faces_vertices_to_edges(new_fold);
+
+	  new_fold.file_classes = ["singleModel"];
+	  new_fold.frame_attributes = ["2D"];
+	  new_fold.frame_classes = ["foldedState"];
+    new_fold.file_frames = [{
+      "frame_classes": ["creasePattern"],
+      "parent": 0,
+      "inherit": true,
+      "vertices_coords": splitFaces.vertices_coords_flat
+    }];
+
+    // let faces_vertices;
+    // ({vertices_coords, faces_vertices} = Origami.clean_isolated_vertices(new_fold));
     console.log(new_fold);
     return new_fold;
 	}
