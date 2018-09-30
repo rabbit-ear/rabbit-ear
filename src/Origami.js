@@ -592,11 +592,10 @@ export default class Origami{
       fold.faces_layer, 
       sides_faces, faces_mark, side);
 	  new_fold.vertices_coords = vertices_coords;
-		var foldedArrays = Origami.reflect_across_fold(rebuiltArrays, foldFile.faces_vertices.length);
 
     var faces_layer;
-    ({vertices_coords, faces_layer} = reflect_across_fold(
-      new_fold, fold.faces_layer.length)
+    ({vertices_coords, faces_layer} = Origami.reflect_across_fold(
+      new_fold, fold.faces_layer.length, line));
 
 	  new_fold.vertices_coords = vertices_coords;
 	  new_fold.faces_layer = faces_layer;
