@@ -95,6 +95,8 @@ export default class Origami{
 		var fakeFacesMarks = [true, true];
 		var rebuiltArrays = Origami.reconstitute_faces(foldFile.faces_vertices, foldFile.faces_layer, faces_clipLines.sides_faces_vertices, fakeFacesMarks, 0);
 
+		var foldedArrays = Origami.reflect_across_fold(rebuiltArrays, foldFile.faces_vertices.length);
+
 		// console.log(rebuiltArrays);
 		// return;
 
@@ -366,12 +368,36 @@ export default class Origami{
 		new_faces_vertices_end = new_faces_vertices_end.map((a,i) => ({'value':a, 'i':shuffle_order[i]}))
 		new_faces_vertices_end.sort( (a,b) => a.i-b.i)
 		new_faces_vertices_end = new_faces_vertices_end.map(a => a.value)
+	
+		var compiled_faces_vertices = new_faces_vertices.concat(new_faces_vertices_end);
+		var compiled_faces_layer = faces_layer.slice().concat(new_faces_layer_end_sorted);
+
+		// clean isolated vertices
+		// (compiled_faces_vertices, compiled_faces_layer)
+		var cleanResult = Origami.clean_isolated_vertices(
+			{ vertices_coords: compiled_faces_vertices, 
+				faces_vertices: compiled_faces_layer
+			});
 
 		return {
-			'faces_vertices': new_faces_vertices.concat(new_faces_vertices_end),
-			'faces_layer': faces_layer.slice().concat(new_faces_layer_end_sorted)
+			'faces_vertices': cleanResult.compiled_faces_vertices,
+			'faces_layer': cleanResult.compiled_faces_layer
 		}
+	}
 
+	static reflect_across_fold(arrs, arrayIndex){
+		// { 'faces_vertices': compiled_faces_vertices,
+		//   'faces_layer': compiled_faces_layer }
+		var top_vertices = arrs.faces_vertices.slice(0, arrayIndex);
+		var top_layer = arrs.faces_layer.slice(0, arrayIndex);
+		var bottom_vertices = arrs.faces_vertices.slice(arrayIndex, arrs.faces_vertices.length-arrayIndex);
+		var bottom_layer = arrs.faces_layer.slice(arrayIndex, arrs.faces_layer.length-arrayIndex);
+		bottom_vertices.reverse();
+		bottom_layer.reverse();
+		return {
+			'faces_vertices': bottom_vertices.concat(top_vertices),
+			'faces_layer': bottom_layer.concat(top_layer)
+		}
 	}
 
 	// points are in array syntax
@@ -509,7 +535,6 @@ export default class Origami{
 		}
 		return {vertices_coords, faces_vertices}
 	}
-
 
 
 }
