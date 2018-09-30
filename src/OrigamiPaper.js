@@ -276,12 +276,10 @@ export default class OrigamiPaper{
 		faces.forEach(f => this.addFace(f))
 	}
 	addEdge(edge, orientation){
-		console.log("adding " + orientation + " edge with ", edge);
 		var creaseline = this.line(edge[0][0], edge[0][1], edge[1][0], edge[1][1], orientation, 'edge');
 		this.edgesLayer.appendChild(creaseline);
 	}
 	addFace(points){
-		console.log(points);
 		var poly = this.polygon(points, 'face', 'face');
 		this.facesLayer.appendChild(poly);
 	}

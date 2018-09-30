@@ -64,8 +64,15 @@ function update(){
 	if(foldLine){
 		foldedFoldFile = duplicate(backupFolded);
 		// console.log(foldLine, foldPoint);
-		Origami.crease(foldedFoldFile, foldLine, foldPoint);
-		updateCPandFold();
+		var result = Origami.crease(foldedFoldFile, foldLine, foldPoint);
+		console.log(result);
+		if(result == undefined){ return;}
+		folded.foldFile = result;
+		folded.draw();
+		paper.foldFile = prepareFoldFile(JSON.parse(JSON.stringify(result)))
+		paper.draw();
+
+		// updateCPandFold();
 	}
 }
 

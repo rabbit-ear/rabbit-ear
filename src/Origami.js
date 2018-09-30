@@ -88,14 +88,14 @@ export default class Origami{
     // input is a fold format JSON and a Robby line
     // output is an faces_ array of pairs of [x, y] points, or undefined
 
-    var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
+    // var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
 		// console.log(faces_clipLines)
 
 		// test reconstituteFaces with fake data
-		var fakeFacesMarks = [true, true];
-		var rebuiltArrays = Origami.reconstitute_faces(foldFile.faces_vertices, foldFile.faces_layer, faces_clipLines.sides_faces_vertices, fakeFacesMarks, 0);
+		// var fakeFacesMarks = [true, true];
+		// var rebuiltArrays = Origami.reconstitute_faces(foldFile.faces_vertices, foldFile.faces_layer, faces_clipLines.sides_faces_vertices, fakeFacesMarks, 0);
 
-		var foldedArrays = Origami.reflect_across_fold(rebuiltArrays, foldFile.faces_vertices.length, line);
+		// var foldedArrays = Origami.reflect_across_fold(rebuiltArrays, foldFile.faces_vertices.length);
 
 		// console.log(rebuiltArrays);
 		// return;
@@ -123,12 +123,15 @@ export default class Origami{
     // if (point == undefined) point = [0.6, 0.6];
     if (point != undefined) {
       // console.log("Jason Code!");
-      var split_faces = Origami.split_folding_faces(
+      return Origami.split_folding_faces(
           foldFile, 
           line,
           point
       );
+
     }
+
+
     // point is place where user clicked
     // unfold must have faces_layer as a permutation of the face indices
 
@@ -386,30 +389,28 @@ export default class Origami{
 	}
 
 	static reflect_across_fold(arrs, arrayIndex, line){
-		// { 'faces_vertices': compiled_faces_vertices,
-		//   'faces_layer': compiled_faces_layer }
-	  //   'vertices_coords'
-
-	  // var edge = new Geometry.Edge(line[0][0], line[0][1], line[1][0], line[1][1]);
 	  var matrix = line.reflectionMatrix();
-	  console.log("----------------");
-	  console.log(matrix);
 
-		var top_vertices = arrs.faces_vertices.slice(0, arrayIndex);
 		var top_layer = arrs.faces_layer.slice(0, arrayIndex);
-		var bottom_vertices = arrs.faces_vertices.slice(arrayIndex, arrs.faces_vertices.length-arrayIndex);
 		var bottom_layer = arrs.faces_layer.slice(arrayIndex, arrs.faces_layer.length-arrayIndex);
-		bottom_vertices.reverse();
 		bottom_layer.reverse();
 
+		var boolArray = arrs.vertices_coords.map(() => false)
 
-	  var vertices = arrs.vertices_coords.slice();
-	  bottom_vertices.forEach(verts => console.log(verts));
-
+		for(var i = arrayIndex; i < arrs.faces_vertices.length; i++){
+			for(var f = 0; f < arrs.faces_vertices[i].length; f++){
+				if(!boolArray[ arrs.faces_vertices[i][f] ]){
+					var vert = arrs.vertices_coords[ arrs.faces_vertices[i][f] ];
+					var transformed = new Geometry.XY(vert[0], vert[1]).transform(matrix);
+					arrs.vertices_coords[ arrs.faces_vertices[i][f] ] = [transformed.x, transformed.y];
+					boolArray[ arrs.faces_vertices[i][f] ] = true;
+				}
+			}
+		}
 
 		return {
-			'faces_vertices': bottom_vertices.concat(top_vertices),
-			'faces_layer': bottom_layer.concat(top_layer)
+			'faces_layer': top_layer.concat(bottom_layer),
+			'vertices_coords': arrs.vertices_coords
 		}
 	}
 
@@ -597,12 +598,18 @@ export default class Origami{
       fold.faces_layer,
       touched
     );
-    
     let new_fold = Origami.reconstitute_faces(
       fold.faces_vertices, 
       fold.faces_layer, 
       sides_faces, faces_mark, side);
 	  new_fold.vertices_coords = vertices_coords;
+
+    var faces_layer;
+    ({vertices_coords, faces_layer} = Origami.reflect_across_fold(
+      new_fold, fold.faces_layer.length, line));
+
+	  new_fold.vertices_coords = vertices_coords;
+	  new_fold.faces_layer = faces_layer;
 
     Origami.faces_vertices_to_edges(new_fold);
 
