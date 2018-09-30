@@ -77,7 +77,7 @@ export default class Origami{
 			keys.forEach(key => fold[key] = fold.file_frames[0][key] )
 		}
 		fold.file_frames = null;
-		return fold
+		return fold;
 	}
 
 	static crease(foldFile, line, point){
@@ -116,12 +116,16 @@ export default class Origami{
     var nf = foldFile.faces_vertices.length;
     // if (point == undefined) point = [0.6, 0.6];
     if (point != undefined) {
-      var splitFaces = foldFile.faces_vertices.map((f) => [undefined, f])
+      // console.log("Jason Code!");
+      var splitFaces = {
+        vertices_coords: foldFile.vertices_coords,
+        sides_faces_vertices: [Array(nf), foldFile.faces_vertices]
+      }
 
-      var faces_splitFaces_move = Origami.markMovingFaces(
+      var split_faces = Origami.split_folding_faces(
           foldFile, 
-          splitFaces,	// faces_splitFaces
-          foldFile.vertices_coords,  // newVertices_coords, 
+          splitFaces,	
+          foldFile.vertices_coords,  
           point
       );
     }
@@ -282,45 +286,59 @@ export default class Origami{
 		}
 	}
 
+  static contains(points, point) {
+    points = points.map(p => ({x: p[0], y: p[1]}));
+    point  = {x: point[0], y: point[1]};
+    return RabbitEar.Geometry.ConvexPolygon
+      .convexHull(points).contains(point);
+  }
 
-	static markMovingFaces(fold, faces_splitFaces, vertices_coords, point) {
-	  let faces_vertices  = fold.faces_vertices;
-	  let faces_layer     = fold.faces_layer;
-	  let faces_matrix    = fold.faces_matrix;
-
+  static top_face_under_point(fold, point) {
 	  // get index of highest layer face which intersects point
-	  let touched_face = faces_splitFaces.reduce(
-	    (touched, splitFaces, idx) => {
-	      return splitFaces.reduce(
-	        (touched, vertices_index, side) => {
-	          if (vertices_index == undefined) {
-	            return touched;
-	          }
-	          let points = vertices_index
-	            .map(vi => {
-	              let [x, y] = vertices_coords[vi];
-	              let xy = new RabbitEar.Geometry.XY(x, y);
-	              let [a,b,c,d,e,f] = faces_matrix[idx];
-	              let matrix = new RabbitEar.Geometry.Matrix(a,b,c,d,e,f);
-	              return xy.transform(matrix);
-	            })
-	          let polygon = RabbitEar.Geometry.ConvexPolygon.convexHull(points);
-	          let p = {x: point[0], y: point[1]};
-	          if (polygon.contains(p) && (
-	              (touched == undefined) ||
-	              (faces_layer[touched.idx] < faces_layer[idx]))) {
-	            touched = {idx: idx, side: side};
-	          }
-	          return touched;
-	        }, touched);
-	    	}, undefined);
-	  if (touched_face === undefined) {
-	    console.log("You didn't touch a face...");
+	  let top_fi = fold.faces_vertices.reduce(
+	    (top_fi, vertices_index, fi) => {
+        let points = vertices_index.map(i => fold.vertices_coords[i]);
+        let face_contains_point = Origami.contains(points, point);
+        if (face_contains_point) {
+          // console.log("Over face " + fi);
+          if ((top_fi == undefined) ||
+              (fold.faces_layer[top_fi] < fold.faces_layer[fi])) {
+            top_fi = fi;
+          }
+        }
+        return top_fi;
+      }, undefined);
+	  if (top_fi === undefined) {
+	    // console.log("You didn't touch a face...");
 	    return undefined;
 	  }
-	  console.log("You touched face " + touched_face.idx + "!");
+	  // console.log("You touched face " + top_fi + "!");
+    return top_fi;
+  }
+
+	static split_folding_faces(fold, splitFaces, line, point) {
+    // assumes point not on line
+    
+    point = [point.x, point.y];
+    let vertices_coords = splitFaces.vertices_coords;
+    let sides_faces     = splitFaces.sides_faces_vertices;
+
+    let fi = Origami.top_face_under_point(fold, point);
+    if (fi !== undefined) {
+      for (var side of [0, 1]) {
+        let vertices_index = sides_faces[fi][side];
+        if (vertices_index !== undefined) {
+          let points = vertices_index.map(i => vertices_coords[i]);
+          if (Origami.contains(points, point)) break;
+        }
+      }
+      // console.log("On side " + side);
+    }
 
 	  return;
+
+	  let faces_vertices         = fold.faces_vertices;
+	  let faces_layer            = fold.faces_layer;
 
 	  // make faces_faces
 	  let nf = faces_vertices.length;
