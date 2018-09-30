@@ -88,14 +88,14 @@ export default class Origami{
     // input is a fold format JSON and a Robby line
     // output is an faces_ array of pairs of [x, y] points, or undefined
 
-    var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
+    // var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
 		// console.log(faces_clipLines)
 
 		// test reconstituteFaces with fake data
-		var fakeFacesMarks = [true, true];
-		var rebuiltArrays = Origami.reconstitute_faces(foldFile.faces_vertices, foldFile.faces_layer, faces_clipLines.sides_faces_vertices, fakeFacesMarks, 0);
+		// var fakeFacesMarks = [true, true];
+		// var rebuiltArrays = Origami.reconstitute_faces(foldFile.faces_vertices, foldFile.faces_layer, faces_clipLines.sides_faces_vertices, fakeFacesMarks, 0);
 
-		var foldedArrays = Origami.reflect_across_fold(rebuiltArrays, foldFile.faces_vertices.length);
+		// var foldedArrays = Origami.reflect_across_fold(rebuiltArrays, foldFile.faces_vertices.length);
 
 		// console.log(rebuiltArrays);
 		// return;
@@ -590,6 +590,14 @@ export default class Origami{
       fold.faces_layer, 
       sides_faces, faces_mark, side);
 	  new_fold.vertices_coords = vertices_coords;
+		var foldedArrays = Origami.reflect_across_fold(rebuiltArrays, foldFile.faces_vertices.length);
+
+    var faces_layer;
+    ({vertices_coords, faces_layer} = reflect_across_fold(
+      new_fold, fold.faces_layer.length)
+
+	  new_fold.vertices_coords = vertices_coords;
+	  new_fold.faces_layer = faces_layer;
 
     Origami.faces_vertices_to_edges(new_fold);
 
