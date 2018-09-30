@@ -65,14 +65,28 @@ export default class Origami{
 		this.square = squareFoldFile;
 	}
 
-	static crease(foldFile, line, point){
+	static prepareFoldFile(foldFile){
+		let dontCopy = ["parent", "inherit"];
+		let fold = JSON.parse(JSON.stringify(foldFile));
+		if(fold.file_frames != undefined){
+			let keys = Object.keys(fold.file_frames[0]).filter(key => !dontCopy.includes(key))
+			// console.log("copying over " + keys.join(' ') + " from frame[0] to main");
+			keys.forEach(key => fold[key] = fold.file_frames[0][key] )
+		}
+		fold.file_frames = null;
+		return fold
+	}
+
+	static crease(masterFoldFile, line, point){
+
+		var foldFile = Origami.prepareFoldFile(masterFoldFile);
 
 		// 1. vertices_intersections
 		// [ boolean, boolean, boolean, boolean, boolean, boolean]
 		var faces_clipLines = Origami.makeFaceClipLines(foldFile, line);
     // input is a fold format JSON and a Robby line
     // output is an faces_ array of pairs of [x, y] points, or undefined
-
+		return;
     // 2. walk around each face with a clipped edge.
     //     check clipped edge endpoints for intersection with edges and vertices in order
     //     initialize new vertex set with old vertices
@@ -137,7 +151,9 @@ export default class Origami{
 		// use each face's matrix to transform the input line
 		//   from folded coords to crease pattern coords
 		let matrices = foldFile["faces_matrix"].map(n => 
+			// new Geometry.Matrix())
 			new Geometry.Matrix(n[0],n[1],n[2],n[3],n[4],n[5]) )
+		// console.log(matrices);
 
 		let facesVertices = foldFile.faces_vertices.map( vIndices => {
 			// from face vertex indices, create faces with vertex geometry
@@ -156,7 +172,8 @@ export default class Origami{
 		})
 		// for every face, we have one clipped crease edge or undefined if no intersection
 		let clippedFacesLine = facePolys.map(function(poly, i){
-			return poly.clipLine( line.transform(matrices[i].inverse()) );
+			// return poly.clipLine( line.transform(matrices[i].inverse()) );
+			return poly.clipLine( line );
 		},this).map(function(edge){
 			// convert to [ [x,y], [x,y] ]. or undefined if no intersection
 			if(edge != undefined){return [[edge.nodes[0].x,edge.nodes[0].y],[edge.nodes[1].x,edge.nodes[1].y]];}
@@ -165,7 +182,7 @@ export default class Origami{
 
 
 		let edgeCrossings = {}
-		clippedFacesLine.map((clip, f) => {
+		clippedFacesLine.forEach((clip, f) => {
 			if(clip != undefined){
 				facePolys[f].edges.forEach((edge, eI) => {
 					let foundIndex = undefined;
@@ -179,6 +196,8 @@ export default class Origami{
 				})
 			}
 		})
+
+
 
 	  //     make dictionary 
 	  //       from edges (in verted index sorted order) 
@@ -221,33 +240,72 @@ export default class Origami{
 			}
 		}
 
-		// for(let key in edgeCrossings){
-		// 	if(edgeCrossings.hasOwnProperty(key)){
-		// 		let edges = key.split(' ').map( e => parseInt(e) )
-		// 		// add new edges to edge array. multi step.
-		// 		// 1. filter out the edge which has a new point in between everything.
-		// 		new_edges_vertices = new_edges_vertices.filter( el => !(el.includes(edges[0]) && el.includes(edges[1])) )
-		// 		new_edges_vertices.push([edges[0], newVertexIndex])
-		// 		new_edges_vertices.push([newVertexIndex, edges[1]])
-		// 	}
-		// }
+		for(let key in edgeCrossings){
+			if(edgeCrossings.hasOwnProperty(key)){
+				let edges = key.split(' ').map( e => parseInt(e) )
+				// add new edges to edge array. multi step.
+				// 1. filter out the edge which has a new point in between everything.
+				new_edges_vertices = new_edges_vertices.filter( el => !(el.includes(edges[0]) && el.includes(edges[1])) )
+				new_edges_vertices.push([edges[0], edgeCrossings[key]])
+				new_edges_vertices.push([edgeCrossings[key], edges[1]])
+			}
+		}
 
-		clippedFacesLine.forEach( (clipLine,i) => {
+		// console.log("+++++++++++++++");
+		// console.log(clippedFacesLine);
+		// console.log(new_vertices_coords)
+		// console.log(new_edges_vertices)
+		// console.log(edgeCrossings);
+		// console.log("---------------");
+
+
+		let facesSubstitutions = {}
+		clippedFacesLine.map( (clipLine,i) => {
+			// this is a face that has been identified as containing a crossing
+			// we need to remove it and replace it with 2 faces
 			if(clipLine != undefined){
-				var newFaces = Array(2);
-				// walk around a face. using edges
-				// console.log(foldFile.faces_edges);
-				// foldFile.faces_edges[i].forEach( edgeArray => {
-				// 	// check every edge
-				// 	let key = edgeArray.slice().sort(function(a,b){return a-b;}).join(' ')
-				// 	if(edgeCrossings[key]){
+				var newFaces = [ [], [] ]
+				var newFaceI = 0;
 
-				// 	}
-				// })
+				// walk around a face. using edges
+				// console.log(foldFile.faces_vertices);
+				foldFile.faces_vertices[i].forEach( (vertex,i,vertexArray) => {
+					let nextVertex = vertexArray[(i+1)%vertexArray.length];
+
+					var key = [vertex, nextVertex].sort( (a,b) => a-b ).join(' ')
+					// let key = edgeArray.slice().sort(function(a,b){return a-b;}).join(' ')
+					// console.log(key)
+					if(edgeCrossings[key]){
+						var intersection = edgeCrossings[key];
+						// console.log("WE found the incident edge")
+						newFaces[newFaceI].push(intersection)
+						newFaceI = (newFaceI+1)%2; // flip bit
+						newFaces[newFaceI].push(intersection)
+						newFaces[newFaceI].push(nextVertex)
+					} else{
+						// console.log("As usual: adding face to arrya")
+						newFaces[newFaceI].push(nextVertex)
+					}
+				})
+			}
+			facesSubstitutions[i] = newFaces
+		})
+
+		// console.log("new face substitutions")
+		// console.log(facesSubstitutions)
+
+		// console.log(foldFile.faces_vertices)
+
+		var facesToRemove = Object.keys(facesSubstitutions)
+		facesToRemove.forEach(i => {
+			let newFacesArray = facesSubstitutions[i]
+			if(newFacesArray != undefined){
+				foldFile.faces_vertices[i] = undefined
+				foldFile.faces_vertices = foldFile.faces_vertices.concat(newFacesArray)
 			}
 		})
 
-		// console.log(new_edges_vertices)
+		// console.log(foldFile.faces_vertices)
 
 		// foldFile.faces_edges.forEach(faceEdgeIndices => {
 		// 	// if()
@@ -258,9 +316,6 @@ export default class Origami{
 		// 	return vIndices.map( vI => foldFile.vertices_coords[vI])
 		// })
 
-		// console.log(clippedFacesLine);
-		// console.log(new_vertices_coords)
-		// console.log(edgeCrossings);
 
 
 

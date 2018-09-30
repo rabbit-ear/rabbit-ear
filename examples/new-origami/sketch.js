@@ -37,6 +37,7 @@ function updateCPandFold(){
 	folded.draw( centerFace );
 }
 updateCPandFold();
+folded.setViewBox();
 
 var isDrawingLine = false;
 
