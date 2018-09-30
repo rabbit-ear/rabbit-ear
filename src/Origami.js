@@ -440,7 +440,7 @@ export default class Origami{
   static overlaps(ps1, ps2) {
     let poly1, poly2;
     [poly1, poly2] = [ps1, ps2].map((ps) => {
-      let ps = ps.map((p) => ({x: p[0], y: p[1]}));
+      ps = ps.map((p) => ({x: p[0], y: p[1]}));
       return Geometry.ConvexPolygon.convexHull(ps);
     })
     return poly1.overlaps(poly2);
@@ -460,8 +460,8 @@ export default class Origami{
       let idx1 = to_process[process_idx];
       process_idx += 1;
       // add all unmarked above-overlapping faces to queue
-      faces_vertices.forEach({(vertices_index, idx2) =>
-        if (marked[idx2]! && ((face_layer[idx2] > face_layer[idx1]))) {
+      faces_vertices.forEach((vertices_index, idx2) => {
+        if (!marked[idx2] && ((face_layer[idx2] > face_layer[idx1]))) {
           if (Origami.overlaps(face_points[idx1], face_points[idx2])) {
             marked[idx2] = true;
             to_process.push(idx2);
@@ -469,8 +469,8 @@ export default class Origami{
         }
       });
       // add all unmarked adjacent faces to queue
-      faces_faces[idx1].forEach({(idx2) =>
-        if (marked[idx2]!) {
+      faces_faces[idx1].forEach((idx2) => {
+        if (!marked[idx2]) {
           marked[idx2] = false;
           to_process.push(idx2);
         }
@@ -481,9 +481,10 @@ export default class Origami{
 
 	static split_folding_faces(fold, line, point) {
     // assumes point not on line
+    point = [point.x, point.y];
+
     var splitFaces = Origami.clip_faces_at_edge_crossings(fold, line);
     
-    point = [point.x, point.y];
     let vertices_coords = splitFaces.vertices_coords_fold;
     let sides_faces     = splitFaces.sides_faces_vertices;
     console.log(fold);
@@ -503,11 +504,17 @@ export default class Origami{
       }
     }
 
-    let moving_faces_marks = Origami.mark_moving_faces(sides_faces[side]);
+    let faces_mark = Origami.mark_moving_faces(sides_faces[side]);
     
-
-    Origami.reconsitute_faces()
-
+    let new_fold = Origami.reconstitute_faces(
+      fold.faces_vertices, 
+      fold.faces_layer, 
+      sides_faces, faces_mark, side);
+	  new_fold.vertices_coords = vertices_coords;
+    ({vertices_coords, faces_vertices} = clean_isolated_vertices(new_fold));
+    new_fold.vertices_coords = vertices_coords;
+    new_fold.faces_vertices = faces_vertices;
+    return new_fold;
 	}
 
 	// remove unused vertices based on appearance in faces_vertices only
