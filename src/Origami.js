@@ -2,17 +2,6 @@
 
 import * as Geometry from './geometry.js'
 
-// points are in array syntax
-// point array is in counter-clockwise winding
-function contains(pointArray, point, epsilon = 0.00000000001){
-	return pointArray.map( (p,i,arr) => {
-		var nextP = arr[(i+1)%arr.length];
-		var a = [ nextP[0]-p[0], nextP[1]-p[1] ];
-		var b = [ point[0]-p[0], point[1]-p[1] ];
-		return a[0]*b[1]-a[1]*b[0] > -epsilon;
-	}).reduce((prev,curr) => {return prev && curr;},true)
-}
-
 var squareFoldFile = {
 	"file_spec": 1.1,
 	"file_creator": "Rabbit Ear",
@@ -100,7 +89,7 @@ export default class Origami{
     // output is an faces_ array of pairs of [x, y] points, or undefined
 
     var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
-		// console.log(faces_clipLines)
+		console.log(faces_clipLines)
 
 		// return;
 
@@ -175,19 +164,16 @@ export default class Origami{
 		})
 
 		// generate one clip line per face, or none if there is no intersection
-		let facePolys = facesVertices.map(vertices => {
-			// convex hull algorithm turns faces into a convex polygon object
+		let clippedFacesLine = facesVertices.map(vertices => {
+			// use geometry library to clip edge inside convex polygon
 			let poly = new Geometry.ConvexPolygon();
 			poly.edges = vertices.map((el,i,verts) => {
 				let nextEl = verts[ (i+1)%verts.length ];
 				return new Geometry.Edge(el[0], el[1], nextEl[0], nextEl[1]);
 			});
 			return poly;
-		})
-
-		// for every face, we have one clipped crease edge or undefined if no intersection
-		let clippedFacesLine = facePolys.map(function(poly, i){
-			// return poly.clipLine( line.transform(matrices[i].inverse()) );
+		}).map(function(poly, i){
+			// for every face, we have one clipped crease edge or undefined if no intersection
 			return poly.clipLine( line );
 		},this).map(function(edge){
 			// convert to [ [x,y], [x,y] ]. or undefined if no intersection
@@ -199,13 +185,14 @@ export default class Origami{
 		let edgeCrossings = {}
 		clippedFacesLine.forEach((clip, f) => {
 			if(clip != undefined){
-				facePolys[f].edges.forEach((edge, eI) => {
+				facesVertices[f].map((fv,i,faceArray) => {
+					let nextFv = faceArray[(i+1)%faceArray.length];
 					let foundIndex = undefined;
-					if(edge.collinear( {x:clip[0][0], y:clip[0][1]} )){ foundIndex = 0; }
-					if(edge.collinear( {x:clip[1][0], y:clip[1][1]} )){ foundIndex = 1; }
+					if(Origami.collinear(fv, nextFv, clip[0])){ foundIndex = 0; }
+					if(Origami.collinear(fv, nextFv, clip[1])){ foundIndex = 1; }
 					if(foundIndex != undefined){
 						let fVI = foldFile.faces_vertices[f];
-						let key = [fVI[eI], fVI[(eI+1)%fVI.length]].sort(function(a,b){return a-b;}).join(" ");
+						let key = [fVI[i], fVI[(i+1)%fVI.length]].sort(function(a,b){return a-b;}).join(" ");
 						edgeCrossings[key] = {'clip':clip[foundIndex], 'face':f};
 					}
 				})
@@ -297,12 +284,30 @@ export default class Origami{
 		}
 	}
 
-  static contains(points, point) {
-    points = points.map(p => ({x: p[0], y: p[1]}));
-    point  = {x: point[0], y: point[1]};
-    return RabbitEar.Geometry.ConvexPolygon
-      .convexHull(points).contains(point);
-  }
+	// points are in array syntax
+	// point array is in counter-clockwise winding
+	static contains(pointArray, point, epsilon = 0.0000000001){
+		return pointArray.map( (p,i,arr) => {
+			var nextP = arr[(i+1)%arr.length];
+			var a = [ nextP[0]-p[0], nextP[1]-p[1] ];
+			var b = [ point[0]-p[0], point[1]-p[1] ];
+			return a[0]*b[1]-a[1]*b[0] > -epsilon;
+		}).reduce((prev,curr) => {return prev && curr;},true)
+	}
+	
+  // static contains(points, point) {
+  //   points = points.map(p => ({x: p[0], y: p[1]}));
+  //   point  = {x: point[0], y: point[1]};
+  //   return RabbitEar.Geometry.ConvexPolygon
+  //     .convexHull(points).contains(point);
+  // }
+
+	static collinear(edgeP0, edgeP1, point, epsilon = 0.0000000001){
+		var dEdge = Math.sqrt(Math.pow(edgeP0[0]-edgeP1[0],2) + Math.pow(edgeP0[1]-edgeP1[1],2));
+		var dP0 = Math.sqrt(Math.pow(point[0]-edgeP0[0],2) + Math.pow(point[1]-edgeP0[1],2));
+		var dP1 = Math.sqrt(Math.pow(point[0]-edgeP1[0],2) + Math.pow(point[1]-edgeP1[1],2));
+		return Math.abs(dEdge - dP0 - dP1) < epsilon
+	}
 
   static top_face_under_point(fold, point) {
 	  // get index of highest layer face which intersects point
@@ -320,10 +325,10 @@ export default class Origami{
         return top_fi;
       }, undefined);
 	  if (top_fi === undefined) {
-	    // console.log("You didn't touch a face...");
+	    console.log("You didn't touch a face...");
 	    return undefined;
 	  }
-	  // console.log("You touched face " + top_fi + "!");
+	  console.log("You touched face " + top_fi + "!");
     return top_fi;
   }
 
@@ -343,7 +348,7 @@ export default class Origami{
           if (Origami.contains(points, point)) break;
         }
       }
-      // console.log("On side " + side);
+      console.log("On side " + side);
     }
 
 	  return;
