@@ -89,7 +89,7 @@ export default class Origami{
     // output is an faces_ array of pairs of [x, y] points, or undefined
 
     var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
-		// console.log(faces_clipLines)
+		console.log(faces_clipLines)
 
 		// return;
 
@@ -150,6 +150,13 @@ export default class Origami{
 	// output: dict keys: two vertex indices defining an edge (as a string: "4 6")
 	//         dict vals: [x, y] location of intersection between the two edge vertices
 	static clip_faces_at_edge_crossings(foldFile, line){
+		// which face does the vertex lie in (just one of them)
+		let vertexInFace = foldFile.vertices_coords.map(v => -1)
+		vertexInFace = vertexInFace.map(function(v,i){
+			for(var f = 0; f < foldFile.faces_vertices.length; f++){
+				if(foldFile.faces_vertices[f].includes(i)){ return f; }
+			}
+		},this);
 
 		// from face vertex indices, create faces with vertex geometry
 		let facesVertices = foldFile.faces_vertices.map( vIndices => {
@@ -177,8 +184,6 @@ export default class Origami{
 			return undefined;
 		},this);
 
-		// console.log(clippedFacesLine)
-
 		// build result dictionary
 		let edgeCrossings = {}
 		clippedFacesLine.forEach((clip, f) => {
@@ -190,12 +195,11 @@ export default class Origami{
 					if(foundIndex != undefined){
 						let fVI = foldFile.faces_vertices[f];
 						let key = [fVI[eI], fVI[(eI+1)%fVI.length]].sort(function(a,b){return a-b;}).join(" ");
-						edgeCrossings[key] = clip[foundIndex];
+						edgeCrossings[key] = {'clip':clip[foundIndex], 'face':f};
 					}
 				})
 			}
 		})
-		return edgeCrossings
 
 		// deep copy components
 		let new_vertices_coords = JSON.parse(JSON.stringify(foldFile.vertices_coords));
@@ -210,11 +214,13 @@ export default class Origami{
 		// update edgeCrossings with index pointer to location in new_vertices_coords.
 		for(let key in edgeCrossings){
 			if(edgeCrossings.hasOwnProperty(key)){
-				new_vertices_coords.push( edgeCrossings[key] )
-				edgeCrossings[key] = new_vertices_coords.length-1
+				new_vertices_coords.push( edgeCrossings[key].clip )
+				edgeCrossings[key].clip = new_vertices_coords.length-1
+				vertexInFace[new_vertices_coords.length-1] = edgeCrossings[key].face;
 			}
 		}
 
+		// forget edges for now
 		// for(let key in edgeCrossings){
 		// 	if(edgeCrossings.hasOwnProperty(key)){
 		// 		let edges = key.split(' ').map( e => parseInt(e) )
@@ -226,15 +232,7 @@ export default class Origami{
 		// 	}
 		// }
 
-		// console.log("+++++++++++++++");
-		// console.log(clippedFacesLine);
-		// console.log(new_vertices_coords)
-		// console.log(new_edges_vertices)
-		// console.log(edgeCrossings);
-		// console.log("---------------");
-
-
-		let facesSubstitutions = {}
+		let facesSubstitutions = []
 		clippedFacesLine.map( (clipLine,i) => {
 			// this is a face that has been identified as containing a crossing
 			// we need to remove it and replace it with 2 faces
@@ -243,22 +241,18 @@ export default class Origami{
 				var newFaceI = 0;
 
 				// walk around a face. using edges
-				// console.log(foldFile.faces_vertices);
 				foldFile.faces_vertices[i].forEach( (vertex,i,vertexArray) => {
 					let nextVertex = vertexArray[(i+1)%vertexArray.length];
 
 					var key = [vertex, nextVertex].sort( (a,b) => a-b ).join(' ')
 					// let key = edgeArray.slice().sort(function(a,b){return a-b;}).join(' ')
-					// console.log(key)
 					if(edgeCrossings[key]){
-						var intersection = edgeCrossings[key];
-						// console.log("WE found the incident edge")
+						var intersection = edgeCrossings[key].clip;
 						newFaces[newFaceI].push(intersection)
 						newFaceI = (newFaceI+1)%2; // flip bit
 						newFaces[newFaceI].push(intersection)
 						newFaces[newFaceI].push(nextVertex)
 					} else{
-						// console.log("As usual: adding face to arrya")
 						newFaces[newFaceI].push(nextVertex)
 					}
 				})
@@ -266,38 +260,30 @@ export default class Origami{
 			facesSubstitutions[i] = newFaces
 		})
 
-		// console.log("new face substitutions")
-		// console.log(facesSubstitutions)
-
-		// console.log(new_faces_vertices)
-
-		var facesToRemove = Object.keys(facesSubstitutions)
-		facesToRemove.forEach(i => {
-			let newFacesArray = facesSubstitutions[i]
-			if(newFacesArray != undefined){
-				new_faces_vertices[i] = undefined
-				new_faces_vertices = new_faces_vertices.concat(newFacesArray)
+		var stay = [];
+		var move = [];
+		for(var i in facesSubstitutions){
+			if(facesSubstitutions[i] == undefined){
+				stay.push(new_faces_vertices[i]);
+				move.push(undefined);
+			} else{
+				stay.push(facesSubstitutions[i][0]);
+				move.push(facesSubstitutions[i][1]);
 			}
-		})
+		}
 
-		// console.log(new_faces_vertices)
+		let matrices = foldFile["faces_matrix"].map(n => 
+			new Geometry.Matrix(n[0],n[1],n[2],n[3],n[4],n[5]).inverse()
+		)
+		let new_vertices_coords_cp = new_vertices_coords.map((point,i) => {
+			return new Geometry.XY(point).transform(matrices[ vertexInFace[i] ])
+		}).map( p => [p.x, p.y])
 
-		// foldFile.faces_edges.forEach(faceEdgeIndices => {
-		// 	// if()
-		// })
-
-		// let facesVertices = new_faces_vertices.map( vIndices => {
-		// 	// from face vertex indices, create faces with vertex geometry
-		// 	return vIndices.map( vI => foldFile.vertices_coords[vI])
-		// })
-
-		// return new_faces_vertices
-		return new_faces_vertices.map( faceArray => {
-			if(faceArray == undefined){ return undefined; }
-			return faceArray.map( i => new_vertices_coords[i] )
-		})
-
-
+		return {
+			"vertices_coords_fold": new_vertices_coords,
+			"vertices_coords_flat": new_vertices_coords_cp,
+			"sides_faces_vertices": [stay, move]
+		}
 	}
 
   static contains(points, point) {

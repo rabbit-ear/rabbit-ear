@@ -38,7 +38,7 @@ function prepareFoldFile(foldFile){
 		keys.forEach(key => fold[key] = fold.file_frames[0][key] )
 	}
 	fold.file_frames = null;
-	return fold
+	return fold;
 }
 
 var tempCP = new CreasePattern();
@@ -69,6 +69,7 @@ function update(){
 
 folded.onMouseDidBeginDrag = function(event){
 	isDrawingLine = true;
+	foldPoint = undefined;
 }
 
 folded.onMouseDown = function(event){
