@@ -95,7 +95,7 @@ export default class Origami{
 		var fakeFacesMarks = [true, true];
 		var rebuiltArrays = Origami.reconstitute_faces(foldFile.faces_vertices, foldFile.faces_layer, faces_clipLines.sides_faces_vertices, fakeFacesMarks, 0);
 
-		var foldedArrays = Origami.reflect_across_fold(rebuiltArrays, foldFile.faces_vertices.length);
+		var foldedArrays = Origami.reflect_across_fold(rebuiltArrays, foldFile.faces_vertices.length, line);
 
 		// console.log(rebuiltArrays);
 		// return;
@@ -385,10 +385,15 @@ export default class Origami{
 		}
 	}
 
-	static reflect_across_fold(arrs, arrayIndex){
+	static reflect_across_fold(arrs, arrayIndex, line){
 		// { 'faces_vertices': compiled_faces_vertices,
 		//   'faces_layer': compiled_faces_layer }
 	  //   'vertices_coords'
+
+	  // var edge = new Geometry.Edge(line[0][0], line[0][1], line[1][0], line[1][1]);
+	  var matrix = line.reflectionMatrix();
+	  console.log("----------------");
+	  console.log(matrix);
 
 		var top_vertices = arrs.faces_vertices.slice(0, arrayIndex);
 		var top_layer = arrs.faces_layer.slice(0, arrayIndex);
@@ -396,6 +401,12 @@ export default class Origami{
 		var bottom_layer = arrs.faces_layer.slice(arrayIndex, arrs.faces_layer.length-arrayIndex);
 		bottom_vertices.reverse();
 		bottom_layer.reverse();
+
+
+	  var vertices = arrs.vertices_coords.slice();
+	  bottom_vertices.forEach(verts => console.log(verts));
+
+
 		return {
 			'faces_vertices': bottom_vertices.concat(top_vertices),
 			'faces_layer': bottom_layer.concat(top_layer)
