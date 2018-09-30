@@ -49,6 +49,8 @@ function duplicate(foldFile){ return JSON.parse(JSON.stringify(foldFile)); }
 function updateCPandFold(){
 	paper.cp = new CreasePattern().importFoldFile(cpFoldFile);
 	folded.cp = new CreasePattern().importFoldFile(cpFoldFile);
+	paper.foldFile = cpFoldFile;
+	folded.foldFile = foldedFoldFile;
 	paper.draw();
 	var centerFace = folded.cp.nearest(0.5, 0.501).face;
 	folded.draw( centerFace );

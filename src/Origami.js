@@ -388,6 +388,8 @@ export default class Origami{
 	static reflect_across_fold(arrs, arrayIndex){
 		// { 'faces_vertices': compiled_faces_vertices,
 		//   'faces_layer': compiled_faces_layer }
+	  //   'vertices_coords'
+
 		var top_vertices = arrs.faces_vertices.slice(0, arrayIndex);
 		var top_layer = arrs.faces_layer.slice(0, arrayIndex);
 		var bottom_vertices = arrs.faces_vertices.slice(arrayIndex, arrs.faces_vertices.length-arrayIndex);

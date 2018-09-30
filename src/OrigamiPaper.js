@@ -16,6 +16,15 @@ var CreaseTypeString = {
 	3 : "valley",
 }
 
+var creaseTypeDictionary = {
+	"B": "boundary",
+	"M": "mountain",
+	"V": "valley",
+	"F": "mark",
+	"U": "mark"
+}
+
+
 export default class OrigamiPaper{
 
 	onResize(event){ }
@@ -135,7 +144,8 @@ export default class OrigamiPaper{
 	}
 	setViewBox(){
 		// todo: need protections if cp is returning no bounds
-		var bounds = this.cp.boundaryBounds();
+		// var bounds = this.cp.boundaryBounds();
+		var bounds = { origin:{x:0,y:0}, size:{width:1, height:1} };
 		this.svg.setAttribute("viewBox", (-this.padding+bounds.origin.x) + " " + (-this.padding+bounds.origin.y) + " " + (bounds.size.width+this.padding*2) + " " + (bounds.size.height+this.padding*2));
 	}
 	get(component){
@@ -180,6 +190,7 @@ export default class OrigamiPaper{
 		this.junctionsLayer.childNodes.forEach(function(junction){ junction.setAttributeNS(null, 'class', 'junction'); },this);
 	}
 
+/*
 	draw(){
 		this.setViewBox();
 
@@ -209,8 +220,10 @@ export default class OrigamiPaper{
 				.shift();
 			junction.sectors.forEach(function(sector){ this.addSector(sector, radius); },this);
 		},this);
-	}
+	}*/
 
+
+/*
 	addNode(node){
 		var dot = this.circle(node.x, node.y, this.style.node.radius, 'node', 'node-' + node.index);
 		this.nodesLayer.appendChild(dot);
@@ -241,6 +254,37 @@ export default class OrigamiPaper{
 		this.sectorsLayer.appendChild(path);
 	}
 	addJunction(junction){ }
+*/
+
+	draw(){
+		if(this.foldFile.vertices_coords == undefined){ return; }
+
+		var verts = this.foldFile.vertices_coords;
+		var edges = this.foldFile.edges_vertices.map(ev => [verts[ev[0]], verts[ev[1]]])
+		var orientations = this.foldFile.edges_assignment.map(a => creaseTypeDictionary[a])
+		var faces = this.foldFile.faces_vertices.map(fv => fv.map(v => verts[v]))
+
+		this.setViewBox();
+
+		[this.boundaryLayer, this.facesLayer, this.junctionsLayer, this.sectorsLayer, this.edgesLayer, this.nodesLayer].forEach(function(layer){
+			while(layer.lastChild) {
+				layer.removeChild(layer.lastChild);
+			}
+		},this);
+		
+		edges.forEach((e,i) => this.addEdge(e, orientations[i]));
+		faces.forEach(f => this.addFace(f))
+	}
+	addEdge(edge, orientation){
+		console.log("adding " + orientation + " edge with ", edge);
+		var creaseline = this.line(edge[0][0], edge[0][1], edge[1][0], edge[1][1], orientation, 'edge');
+		this.edgesLayer.appendChild(creaseline);
+	}
+	addFace(points){
+		console.log(points);
+		var poly = this.polygon(points, 'face', 'face');
+		this.facesLayer.appendChild(poly);
+	}
 
 
 	load(input, callback){ // epsilon
