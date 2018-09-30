@@ -1121,6 +1121,17 @@ export class ConvexPolygon{
 		});
 		return p;
 	}
+
+	overlaps(poly){
+		for(var i = 0; i < this.edges.length; i++){
+			for(var j = 0; j < poly.edges.length; j++){
+				if(intersectionEdgeEdge(this.edges[i], poly.edges[j]) != undefined){ return true; }
+			}
+		}
+		if(this.contains(poly.edges[0].node[0])){ return true; }
+		if(poly.contains(this.edges[0].node[0])){ return true; }
+		return false;
+	}
 }
 /** a Sector is defined by three nodes connecting two adjacent edges (one common node) */
 export class Sector{

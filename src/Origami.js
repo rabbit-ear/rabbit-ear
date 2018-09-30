@@ -2,6 +2,20 @@
 
 import * as Geometry from './geometry.js'
 
+// points are in array syntax
+// point array is in counter-clockwise winding
+function contains(pointArray, point){
+	// let epsilon = 0.00000000001;
+	let epsilon = 0.00000001;
+	return pointArray.map( (p,i,arr) => {
+		var nextP = arr[(i+1)%arr.length];
+		var a = [ nextP[0]-p[0], nextP[1]-p[1] ];
+		var b = [ point[0]-p[0], point[1]-p[1] ];
+		return a[0]*b[1]-a[1]*b[0] > -epsilon;
+	}).reduce((prev,curr) => {return prev && curr;},true)
+}
+
+
 var squareFoldFile = {
 	"file_spec": 1.1,
 	"file_creator": "Rabbit Ear",
@@ -89,7 +103,7 @@ export default class Origami{
     // output is an faces_ array of pairs of [x, y] points, or undefined
 
     var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
-		console.log(faces_clipLines)
+		// console.log(faces_clipLines)
 
 		// return;
 
