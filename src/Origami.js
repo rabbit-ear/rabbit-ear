@@ -2,6 +2,17 @@
 
 import * as Geometry from './geometry.js'
 
+// points are in array syntax
+// point array is in counter-clockwise winding
+function contains(pointArray, point, epsilon = 0.00000000001){
+	return pointArray.map( (p,i,arr) => {
+		var nextP = arr[(i+1)%arr.length];
+		var a = [ nextP[0]-p[0], nextP[1]-p[1] ];
+		var b = [ point[0]-p[0], point[1]-p[1] ];
+		return a[0]*b[1]-a[1]*b[0] > -epsilon;
+	}).reduce((prev,curr) => {return prev && curr;},true)
+}
+
 var squareFoldFile = {
 	"file_spec": 1.1,
 	"file_creator": "Rabbit Ear",
@@ -28,12 +39,12 @@ var oneFoldFoldFile = {
 	"frame_title": "one valley crease",
 	"frame_classes": ["foldedState"],
 	"vertices_coords": [
-		[0.62607054921, 1.172217328213],
-		[1.182184360184, 0.341111180213],
+		[0.62607055447, 1.172217339808],
+		[1.182184366474, 0.341111192497],
 		[1, 1],
 		[0, 1],
-		[1, 0.21920709],
-		[0, 0.75329794]
+		[1, 0.21920709774914016],
+		[0, 0.7532979469531602]
 	],
 	"vertices_vertices": [[1,3], [4,0], [3,4], [0,2], [2,5,1], [0,4,3]],
 	"vertices_faces": [[0], [0], [1], [1], [1,0], [0,1]],
@@ -45,14 +56,14 @@ var oneFoldFoldFile = {
 	"faces_edges": [[0,1,2,3], [5,6,2,4]],
 	"faces_layer": [1,0],
 	"faces_matrix": [
-		[0.55611381, -0.83110614, -0.83110614, -0.55611381, 0.62607055, 1.17221733],
+		[0.5561138120038558, -0.8311061473112445, -0.8311061473112445, -0.5561138120038558, 0.6260705544697115, 1.172217339807961],
 		[1, 0, 0, 1, 0, 0]
 	],
 	"file_frames": [{
 		"frame_classes": ["creasePattern"],
 		"parent": 0,
 		"inherit": true,
-		"vertices_coords": [[0,0], [1,0], [1,1], [0,1], [1,0.21920709], [0,0.75329794]],
+		"vertices_coords": [[0,0], [1,0], [1,1], [0,1], [1,0.21920709774914016], [0,0.7532979469531602]],
 		"edges_foldAngle": [0, 0, 0, 0, 0, 0, 0],
 		"faces_layer": [0,1],
 		"faces_matrix": [[1,0,0,1,0,0], [1,0,0,1,0,0]],
@@ -370,6 +381,34 @@ export default class Origami{
 	  // }
 	  // return faces_splitFaces_move;
 	}
+
+	// remove unused vertices based on appearance in faces_vertices only
+	//  also, this updates changes to references in faces_vertices only
+	static clean_isolated_vertices({vertices_coords, faces_vertices}){
+		let booleans = vertices_coords.map(() => false)
+		let count = booleans.length;
+		faces_vertices.forEach(face => {
+			face.forEach(f => {
+				if(booleans[f] == false){ booleans[f] = true; count -= 1; }
+				if(count == 0){ return; } // we fliped N bits. break
+			})
+		})
+		if(count == 0){ return; } // every vertex is used
+		// make an array of index changes [ 0, 0, 0, -1, -1, -1, -2, -2]
+		let offset = 0
+		let indexMap = booleans.map((b,i) => {
+			if(b == false){ offset -= 1; }
+			return offset;
+		})
+		// update faces vertices with changes
+		faces_vertices = faces_vertices.map(face => face.map(f => f += indexMap[f]))
+		// remove unused vertices from vertex array
+		for(var i = booleans.length-1; i >= 0; i -= 1){
+			if(!booleans[i]){ vertices_coords.splice(i, 1); }
+		}
+		return {vertices_coords, faces_vertices}
+	}
+
 
 
 }
