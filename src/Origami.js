@@ -1,6 +1,7 @@
 'use strict';
 
 import * as Geometry from './geometry.js'
+import * as Fold from '../lib/fold.js'
 
 var squareFoldFile = {
 	"file_spec": 1.1,
