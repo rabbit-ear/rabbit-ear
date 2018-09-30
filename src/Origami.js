@@ -4,9 +4,7 @@ import * as Geometry from './geometry.js'
 
 // points are in array syntax
 // point array is in counter-clockwise winding
-function contains(pointArray, point){
-	// let epsilon = 0.00000000001;
-	let epsilon = 0.00000001;
+function contains(pointArray, point, epsilon = 0.00000000001){
 	return pointArray.map( (p,i,arr) => {
 		var nextP = arr[(i+1)%arr.length];
 		var a = [ nextP[0]-p[0], nextP[1]-p[1] ];
@@ -14,7 +12,6 @@ function contains(pointArray, point){
 		return a[0]*b[1]-a[1]*b[0] > -epsilon;
 	}).reduce((prev,curr) => {return prev && curr;},true)
 }
-
 
 var squareFoldFile = {
 	"file_spec": 1.1,
@@ -389,6 +386,34 @@ export default class Origami{
 	  // }
 	  return faces_splitFaces_move;
 	}
+
+	// remove unused vertices based on appearance in faces_vertices only
+	//  also, this updates changes to references in faces_vertices only
+	static clean_isolated_vertices({vertices_coords, faces_vertices}){
+		let booleans = vertices_coords.map(() => false)
+		let count = booleans.length;
+		faces_vertices.forEach(face => {
+			face.forEach(f => {
+				if(booleans[f] == false){ booleans[f] = true; count -= 1; }
+				if(count == 0){ return; } // we fliped N bits. break
+			})
+		})
+		if(count == 0){ return; } // every vertex is used
+		// make an array of index changes [ 0, 0, 0, -1, -1, -1, -2, -2]
+		let offset = 0
+		let indexMap = booleans.map((b,i) => {
+			if(b == false){ offset -= 1; }
+			return offset;
+		})
+		// update faces vertices with changes
+		faces_vertices = faces_vertices.map(face => face.map(f => f += indexMap[f]))
+		// remove unused vertices from vertex array
+		for(var i = booleans.length-1; i >= 0; i -= 1){
+			if(!booleans[i]){ vertices_coords.splice(i, 1); }
+		}
+		return {vertices_coords, faces_vertices}
+	}
+
 
 
 }
