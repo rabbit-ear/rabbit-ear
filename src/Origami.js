@@ -103,14 +103,16 @@ export default class Origami{
 
     var nf = foldFile.faces_vertices.length;
     // if (point == undefined) point = [0.6, 0.6];
-    var splitFaces = foldFile.faces_vertices.map((f) => [undefined, f])
+    if (point != undefined) {
+      var splitFaces = foldFile.faces_vertices.map((f) => [undefined, f])
 
-    var faces_splitFaces_move = Origami.markMovingFaces(
-        foldFile, 
-        splitFaces,	// faces_splitFaces
-        foldFile.vertices_coords,  // newVertices_coords, 
-        point
-    );
+      var faces_splitFaces_move = Origami.markMovingFaces(
+          foldFile, 
+          splitFaces,	// faces_splitFaces
+          foldFile.vertices_coords,  // newVertices_coords, 
+          point
+      );
+    }
     // point is place where user clicked
     // unfold must have faces_layer as a permutation of the face indices
 
