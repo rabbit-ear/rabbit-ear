@@ -89,7 +89,7 @@ export default class Origami{
     // output is an faces_ array of pairs of [x, y] points, or undefined
 
     var faces_clipLines = Origami.clip_faces_at_edge_crossings(foldFile, line);
-		// console.log(faces_clipLines)
+		console.log(faces_clipLines)
 
 		// return;
 
@@ -251,17 +251,15 @@ export default class Origami{
 			facesSubstitutions[i] = newFaces
 		})
 
-		var leftSide = []; // "stay" side
+		var leftSide = [];
 		var rightSide = [];
 		for(var i in facesSubstitutions){
 			if(facesSubstitutions[i] == undefined){
-				leftSide.push(new_faces_vertices[i]);
-				rightSide.push(undefined);
-			} else{
-				var sortedBySide = Origami.sortTwoFacesBySide(facesSubstitutions[i], new_vertices_coords, line)
-				leftSide.push(facesSubstitutions[i][0]);
-				rightSide.push(facesSubstitutions[i][1]);
+				facesSubstitutions[i] = [new_faces_vertices[i], undefined];
 			}
+			var sortedBySide = Origami.sortTwoFacesBySide(facesSubstitutions[i], new_vertices_coords, line)
+			leftSide.push(sortedBySide[0]);
+			rightSide.push(sortedBySide[1]);
 		}
 
 		let matrices = foldFile["faces_matrix"].map(n => 
@@ -277,7 +275,7 @@ export default class Origami{
 			"sides_faces_vertices": [leftSide, rightSide]
 		}
 	}
-	
+
 	static sortTwoFacesBySide(twoFaces, vertices_coords, line){
 		var result = [undefined, undefined];
 		twoFaces.forEach(face => {
@@ -297,21 +295,17 @@ export default class Origami{
 	// points are in array syntax
 	// point array is in counter-clockwise winding
 	static contains(pointArray, point, epsilon = 0.0000000001){
-		return pointArray.map( (p,i,arr) => {
+		var side = pointArray.map( (p,i,arr) => {
 			var nextP = arr[(i+1)%arr.length];
 			var a = [ nextP[0]-p[0], nextP[1]-p[1] ];
 			var b = [ point[0]-p[0], point[1]-p[1] ];
 			return a[0]*b[1]-a[1]*b[0] > -epsilon;
-		}).reduce((prev,curr) => {return prev && curr;},true)
+		});
+		return side
+			.map(s => s == side[0])
+			.reduce((prev,curr) => {return prev && curr;}, true)
 	}
 	
-  // static contains(points, point) {
-  //   points = points.map(p => ({x: p[0], y: p[1]}));
-  //   point  = {x: point[0], y: point[1]};
-  //   return RabbitEar.Geometry.ConvexPolygon
-  //     .convexHull(points).contains(point);
-  // }
-
 	static collinear(edgeP0, edgeP1, point, epsilon = 0.0000000001){
 		var dEdge = Math.sqrt(Math.pow(edgeP0[0]-edgeP1[0],2) + Math.pow(edgeP0[1]-edgeP1[1],2));
 		var dP0 = Math.sqrt(Math.pow(point[0]-edgeP0[0],2) + Math.pow(point[1]-edgeP0[1],2));
