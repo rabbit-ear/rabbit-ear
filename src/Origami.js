@@ -357,6 +357,48 @@ export default class Origami{
     return faces_faces;
   }
 
+  static overlaps(ps1, ps2) {
+    let poly1, poly2;
+    [poly1, poly2] = [ps1, ps2].map((ps) => {
+      let ps = ps.map((p) => ({x: p[0], y: p[1]}));
+      return Geometry.ConvexPolygon.convexHull(ps);
+    })
+    return poly1.overlaps(poly2);
+  }
+
+  static mark_moving_faces({faces_vertices, vertices_coords}, face_idx) {
+    let faces_faces = Origami.make_faces_faces(faces_vertices);
+    let marked = faces_vertices.map(() => false);
+    marked[face_idx] = true;
+    let to_process = [face_idx];
+    let process_idx = 0;
+    let faces_points = faces_vertices.map((vertices_index) => {
+      return vertices_index.map(i => vertices_coords[i]);
+    })
+    while (process_idx < to_process.length) {
+      // pull face off queue
+      let idx1 = to_process[process_idx];
+      process_idx += 1;
+      // add all unmarked above-overlapping faces to queue
+      faces_vertices.forEach({(vertices_index, idx2) =>
+        if (marked[idx2]! && ((face_layer[idx2] > face_layer[idx1]))) {
+          if (Origami.overlaps(face_points[idx1], face_points[idx2])) {
+            marked[idx2] = true;
+            to_process.push(idx2);
+          }
+        }
+      });
+      // add all unmarked adjacent faces to queue
+      faces_faces[idx1].forEach({(idx2) =>
+        if (marked[idx2]!) {
+          marked[idx2] = false;
+          to_process.push(idx2);
+        }
+      });
+    }
+    return marked;
+  }
+
 	static split_folding_faces(fold, line, point) {
     // assumes point not on line
     var splitFaces = Origami.clip_faces_at_edge_crossings(fold, line);
@@ -364,43 +406,28 @@ export default class Origami{
     point = [point.x, point.y];
     let vertices_coords = splitFaces.vertices_coords_fold;
     let sides_faces     = splitFaces.sides_faces_vertices;
+    console.log(fold);
 
     let fi = Origami.top_face_under_point(fold, point);
-	  if (fi === undefined) {
-	    // console.log("You didn't touch a face...");
+	  if (fi === undefined)
 	    return undefined;
-	  }
-	  // console.log("You touched face " + fi + "!");
     if (fi !== undefined) {
       let side = undefined;
       for (var s of [0, 1]) {
         let vertices_index = sides_faces[s][fi];
         if (vertices_index !== undefined) {
           let points = vertices_index.map(i => vertices_coords[i]);
-          if (Origami.contains(points, point)) {
+          if (Origami.contains(points, point))
             side = s;
-          }
         }
       }
-      // console.log("On side " + side);
     }
 
-	  // let faces_vertices         = fold.faces_vertices;
-	  // let faces_layer            = fold.faces_layer;
+    let moving_faces_marks = Origami.mark_moving_faces(sides_faces[side]);
+    
 
+    Origami.reconsitute_faces()
 
-	  // let faces_splitFaces_move = Array.from(Array(nf)).map(() => Array(2).map(() => false));
-	  // faces_splitFaces_move[touched.idx][touched.side] = true;
-	  
-	  // 
-
-	  // for (var i = 0; i < faces.length; i++) {
-	  //    vertices   = faces_vertices[i];
-	  //    layer      = faces_layer[i];
-	  //    splitFaces = faces_splitFaces[i];
-	  //    move       = faces_splitFaces_move[i];
-	  // }
-	  // return faces_splitFaces_move;
 	}
 
 	// remove unused vertices based on appearance in faces_vertices only
