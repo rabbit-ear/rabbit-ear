@@ -19,9 +19,12 @@ paper.selectedLayer = paper.group();
 paper.svg.appendChild(paper.selectedLayer);
 paper.selectedEdge = undefined;
 
-var oneFoldFoldFile = prepareFoldFile(new Origami().oneFold);
-var backupCP = duplicate(oneFoldFoldFile);
-var backupFolded = duplicate(oneFoldFoldFile);
+var cpFoldFile = prepareFoldFile(new Origami().oneFold);
+var foldedFoldFile = new Origami().oneFold
+
+// var oneFoldFoldFile = prepareFoldFile(new Origami().oneFold);
+var backupCP = duplicate(cpFoldFile);
+var backupFolded = duplicate(foldedFoldFile);
 //////
 
 
@@ -44,8 +47,8 @@ tempCP.setBoundary([ [-1,-1], [2,-1], [2,2], [-1,2] ]);
 function duplicate(foldFile){ return JSON.parse(JSON.stringify(foldFile)); }
 
 function updateCPandFold(){
-	paper.cp = new CreasePattern().importFoldFile(oneFoldFoldFile);
-	folded.cp = new CreasePattern().importFoldFile(oneFoldFoldFile);
+	paper.cp = new CreasePattern().importFoldFile(cpFoldFile);
+	folded.cp = new CreasePattern().importFoldFile(foldedFoldFile);
 	paper.draw();
 	var centerFace = folded.cp.nearest(0.5, 0.501).face;
 	folded.draw( centerFace );
@@ -57,9 +60,9 @@ var isDrawingLine = false;
 
 function update(){
 	if(foldLine){
-		oneFoldFoldFile = duplicate(backupCP);
+		foldedFoldFile = duplicate(backupFolded);
 		// console.log(foldLine, foldPoint);
-		Origami.crease(oneFoldFoldFile, foldLine, foldPoint);
+		Origami.crease(foldedFoldFile, foldLine, foldPoint);
 		updateCPandFold();
 	}
 }
@@ -90,7 +93,7 @@ folded.onMouseUp = function(event){
 	this.startPoint = undefined;
 	this.endPoint = undefined;
 	update();
-	backupCP = duplicate(oneFoldFoldFile);
+	backupFolded = duplicate(foldedFoldFile);
 	folded.setViewBox();
 	isDrawingLine = false;
 }
