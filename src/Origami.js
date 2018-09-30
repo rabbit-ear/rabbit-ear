@@ -113,19 +113,12 @@ export default class Origami{
 
     // console.log(foldFile);
 
-    var nf = foldFile.faces_vertices.length;
     // if (point == undefined) point = [0.6, 0.6];
     if (point != undefined) {
       // console.log("Jason Code!");
-      var splitFaces = {
-        vertices_coords: foldFile.vertices_coords,
-        sides_faces_vertices: [Array(nf), foldFile.faces_vertices]
-      }
-
       var split_faces = Origami.split_folding_faces(
           foldFile, 
-          splitFaces,	
-          foldFile.vertices_coords,  
+          line,
           point
       );
     }
@@ -324,62 +317,64 @@ export default class Origami{
         }
         return top_fi;
       }, undefined);
-	  if (top_fi === undefined) {
-	    console.log("You didn't touch a face...");
-	    return undefined;
-	  }
-	  console.log("You touched face " + top_fi + "!");
     return top_fi;
   }
 
-	static split_folding_faces(fold, splitFaces, line, point) {
+	static split_folding_faces(fold, line, point) {
     // assumes point not on line
+    var splitFaces = Origami.clip_faces_at_edge_crossings(fold, line);
     
     point = [point.x, point.y];
-    let vertices_coords = splitFaces.vertices_coords;
+    let vertices_coords = splitFaces.vertices_coords_fold;
     let sides_faces     = splitFaces.sides_faces_vertices;
 
     let fi = Origami.top_face_under_point(fold, point);
+	  if (fi === undefined) {
+	    // console.log("You didn't touch a face...");
+	    return undefined;
+	  }
+	  // console.log("You touched face " + fi + "!");
     if (fi !== undefined) {
-      for (var side of [0, 1]) {
-        let vertices_index = sides_faces[fi][side];
+      let side = undefined;
+      for (var s of [0, 1]) {
+        let vertices_index = sides_faces[s][fi];
         if (vertices_index !== undefined) {
           let points = vertices_index.map(i => vertices_coords[i]);
-          if (Origami.contains(points, point)) break;
+          if (Origami.contains(points, point)) {
+            side = s;
+          }
         }
       }
       console.log("On side " + side);
     }
 
-	  return;
+	  // let faces_vertices         = fold.faces_vertices;
+	  // let faces_layer            = fold.faces_layer;
 
-	  let faces_vertices         = fold.faces_vertices;
-	  let faces_layer            = fold.faces_layer;
+	  // // make faces_faces
+	  // let nf = faces_vertices.length;
+	  // let faces_faces = Array.from(Array(nf)).map(() => []);
+	  // let edgeMap = {};
+	  // faces_vertices.forEach((vertices, idx1) => {
+	  //   n = vertices.length;
+	  //   vertices.forEach((u, i, vs) => {
+	  //     v = vs[(i + 1) % n];
+	  //     if (v < u) {
+	  //       [u, v] = [v, u];
+	  //     }
+	  //     let key = u + "," + v;
+	  //     if (key in edgeMap) {
+	  //       idx2 = edgeMap[key];
+	  //       faces_faces[idx1].push(idx2);
+	  //       faces_faces[idx2].push(idx1);
+	  //     } else {
+	  //       edgeMap[key] = idx1;
+	  //     }
+	  //   }); 
+	  // });
 
-	  // make faces_faces
-	  let nf = faces_vertices.length;
-	  let faces_faces = Array.from(Array(nf)).map(() => []);
-	  let edgeMap = {};
-	  faces_vertices.forEach((vertices, idx1) => {
-	    n = vertices.length;
-	    vertices.forEach((u, i, vs) => {
-	      v = vs[(i + 1) % n];
-	      if (v < u) {
-	        [u, v] = [v, u];
-	      }
-	      let key = u + "," + v;
-	      if (key in edgeMap) {
-	        idx2 = edgeMap[key];
-	        faces_faces[idx1].push(idx2);
-	        faces_faces[idx2].push(idx1);
-	      } else {
-	        edgeMap[key] = idx1;
-	      }
-	    }); 
-	  });
-
-	  let faces_splitFaces_move = Array.from(Array(nf)).map(() => Array(2).map(() => false));
-	  faces_splitFaces_move[touched.idx][touched.side] = true;
+	  // let faces_splitFaces_move = Array.from(Array(nf)).map(() => Array(2).map(() => false));
+	  // faces_splitFaces_move[touched.idx][touched.side] = true;
 	  
 	  // 
 
@@ -389,7 +384,7 @@ export default class Origami{
 	  //    splitFaces = faces_splitFaces[i];
 	  //    move       = faces_splitFaces_move[i];
 	  // }
-	  return faces_splitFaces_move;
+	  // return faces_splitFaces_move;
 	}
 
 	// remove unused vertices based on appearance in faces_vertices only
