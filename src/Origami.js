@@ -394,7 +394,7 @@ export default class Origami{
 
 	// get index of highest layer face which intersects point
   static top_face_under_point(
-      {faces_vertices, vertices_coords, face_layers}, 
+      {faces_vertices, vertices_coords, faces_layer}, 
       point) {
 	  let top_fi = faces_vertices.map(
 	    (vertices_index, fi) => {
@@ -402,14 +402,14 @@ export default class Origami{
         return Origami.contains(points, point) ? fi : -1;
       }).reduce((acc, fi) => {
         return ((acc === -1) || 
-                ((fi !== -1) && (faces_layers[fi] > face_layers[acc]))
+                ((fi !== -1) && (faces_layer[fi] > faces_layer[acc]))
         ) ? fi : acc;
       }, -1);
     return (top_fi === -1) ? undefined : top_fi;
   }
 
   static faces_above(
-      {faces_vertices, vertices_coords, faces_layers},
+      {faces_vertices, vertices_coords, faces_layer},
       first_face_idx) {
     
   }
@@ -461,8 +461,8 @@ export default class Origami{
       process_idx += 1;
       // add all unmarked above-overlapping faces to queue
       faces_vertices.forEach((vertices_index, idx2) => {
-        if (!marked[idx2] && ((face_layer[idx2] > face_layer[idx1]))) {
-          if (Origami.overlaps(face_points[idx1], face_points[idx2])) {
+        if (!marked[idx2] && ((faceslayer[idx2] > faces_layer[idx1]))) {
+          if (Origami.overlaps(faces_points[idx1], faces_points[idx2])) {
             marked[idx2] = true;
             to_process.push(idx2);
           }
@@ -493,7 +493,7 @@ export default class Origami{
 	  if (fi === undefined)
 	    return undefined;
     if (fi !== undefined) {
-      let side = undefined;
+      var side = undefined;
       for (var s of [0, 1]) {
         let vertices_index = sides_faces[s][fi];
         if (vertices_index !== undefined) {
