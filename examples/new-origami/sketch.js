@@ -19,10 +19,10 @@ paper.selectedLayer = paper.group();
 paper.svg.appendChild(paper.selectedLayer);
 paper.selectedEdge = undefined;
 
-var cpFoldFile = prepareFoldFile(new Origami().oneFold);
-var foldedFoldFile = new Origami().oneFold
+var cpFoldFile = prepareFoldFile(Origami.oneValleyFold);
+var foldedFoldFile = Origami.oneValleyFold
 
-// var oneFoldFoldFile = prepareFoldFile(new Origami().oneFold);
+// var oneFoldFoldFile = prepareFoldFile(Origami.oneValleyFold);
 var backupCP = duplicate(cpFoldFile);
 var backupFolded = duplicate(foldedFoldFile);
 //////
@@ -69,7 +69,7 @@ function update(){
 		if(result == undefined){ return;}
 		folded.foldFile = result;
 		folded.draw();
-		paper.foldFile = prepareFoldFile(JSON.parse(JSON.stringify(result)))
+		paper.foldFile = prepareFoldFile(result)
 		paper.draw();
 
 		// updateCPandFold();

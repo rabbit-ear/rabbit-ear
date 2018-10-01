@@ -14,7 +14,7 @@ import {line, circle, polygon, group, addClass, removeClass} from './SimpleSVG.j
 
 import OrigamiPaper from './OrigamiPaper.js';
 import OrigamiFold from './OrigamiFold.js';
-import Origami from './Origami.js';
+import * as Origami from './Origami.js';
 
 // for convenience, bind these 3 to the window
 window.CreasePattern = CreasePattern;

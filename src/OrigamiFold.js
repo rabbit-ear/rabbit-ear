@@ -195,14 +195,21 @@ export default class OrigamiFold{
 
 		var verts = this.foldFile.vertices_coords;
 		var faces = this.foldFile.faces_vertices.map(fv => fv.map(v => verts[v]))
+		var faceDrawOrder = this.foldFile.faces_layer.map( (v,i) => ({v,i}) ).sort( (a,b) => a.v-b.v).map(a => a.i);//.reverse();
+
 
 		this.setViewBox();
 
 		while(this.facesLayer.lastChild) {
 			this.facesLayer.removeChild(this.facesLayer.lastChild);
 		}
+
+		console.log("# faces", faceDrawOrder);
 		
-		faces.forEach(f => this.addFace(f))
+		for(var i = 0; i < faceDrawOrder.length; i++){
+			this.addFace( faces[ faceDrawOrder[i] ] );
+		}
+		// faces.forEach(f => this.addFace(f))
 
 	}
 	
