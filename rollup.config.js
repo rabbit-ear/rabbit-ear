@@ -4,7 +4,7 @@
 // import { terser } from 'rollup-plugin-terser';
 
 module.exports = {
-  input: 'src/index.js',
+  input: 'srcf/index.js',
   output: {
     name: 'RabbitEar',
     file: 'rabbit-ear.js',
