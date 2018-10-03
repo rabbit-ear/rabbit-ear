@@ -1,7 +1,7 @@
 import SVGLoader from './SVGLoader.js'
-import {GraphNode, GraphEdge} from './graph.js'
-import {PlanarFace, PlanarSector, PlanarGraph} from './planarGraph.js'
-import CreasePattern from './creasePattern.js'
+import {GraphNode, GraphEdge} from './Graph.js'
+import {PlanarFace, PlanarSector, PlanarGraph} from './PlanarGraph.js'
+import CreasePattern from './CreasePattern.js'
 import * as SVG from './SimpleSVG.js'
 
 'use strict';

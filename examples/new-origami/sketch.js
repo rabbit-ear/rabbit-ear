@@ -65,8 +65,8 @@ function update(){
 		foldedFoldFile = duplicate(backupFolded);
 		// console.log(foldLine, foldPoint);
 		var result = Origami.crease(foldedFoldFile, foldLine, foldPoint);
-		console.log(result);
 		if(result == undefined){ return;}
+		console.log(result);
 		folded.foldFile = result;
 		folded.draw();
 		paper.foldFile = prepareFoldFile(result)

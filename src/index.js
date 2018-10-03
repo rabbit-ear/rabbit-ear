@@ -1,14 +1,14 @@
 
-// import './graph.js';
-// import './planarGraph.js';
-// import './geometry.js';
+// import './Graph.js';
+// import './PlanarGraph.js';
+// import './Geometry.js';
 
 import * as Geometry from './geometry.js'
 
 import {VoronoiGraph, creaseVoronoi} from './voronoi.js';
 import './polynomial.js';
 
-import CreasePattern from './creasePattern.js';
+import CreasePattern from './CreasePattern.js';
 
 import {line, circle, polygon, group, addClass, removeClass} from './SimpleSVG.js';
 

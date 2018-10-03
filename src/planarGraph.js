@@ -1,4 +1,4 @@
-// planarGraph.js
+// PlanarGraph.js
 // a planar graph data structure containing edges and vertices in 2D space
 // MIT open source license, Robby Kraft
 //
@@ -6,7 +6,7 @@
 //              they can be equivalent even if they are not "similar", 4 nodes involved instead of 2.
 //  "similar": edges are similar if they contain the same 2 nodes, even if in a different order
 
-import { GraphClean, GraphNode, GraphEdge, Graph } from './graph'
+import { GraphClean, GraphNode, GraphEdge, Graph } from './Graph'
 import * as M from './geometry'
 import '../lib/rbush.js';
 

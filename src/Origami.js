@@ -1,8 +1,6 @@
 'use strict';
 
-import * as Geometry from './geometry.js'
-
-var unfoldedFold = {
+export const unfoldedFold = {
 	"file_spec": 1.1,
 	"file_creator": "Rabbit Ear",
 	"file_author": "",
@@ -19,7 +17,7 @@ var unfoldedFold = {
 	}]
 };
 
-var oneValleyFold = {
+export const oneValleyFold = {
 	"file_spec": 1.1,
 	"file_creator": "Rabbit Ear",
 	"file_author": "Robby Kraft",
@@ -60,6 +58,148 @@ var oneValleyFold = {
 };
 
 
+export function crease(foldFile, line, point){
+
+  if(point != undefined){ point = [point.x, point.y]; }
+  let linePoint = [line.point.x, line.point.y];
+  let lineVector = [line.direction.x, line.direction.y];
+
+  // if (point == undefined) point = [0.6, 0.6];
+  if (point != undefined) {
+    // console.log("Jason Code!");
+    return split_folding_faces(
+        foldFile, 
+        linePoint, 
+        lineVector,
+        point
+    );
+
+  }
+
+}
+
+
+class Matrix{
+	static reflection(origin, vector){
+		// the line of reflection passes through origin, runs along vector
+		let angle = Math.atan2(vector[1], vector[0]);
+		let cosAngle = Math.cos(angle);
+		let sinAngle = Math.sin(angle);
+		let _cosAngle = Math.cos(-angle);
+		let _sinAngle = Math.sin(-angle);
+		let a = cosAngle *  _cosAngle +  sinAngle * _sinAngle;
+		let b = cosAngle * -_sinAngle +  sinAngle * _cosAngle;
+		let c = sinAngle *  _cosAngle + -cosAngle * _sinAngle;
+		let d = sinAngle * -_sinAngle + -cosAngle * _cosAngle;
+		let tx = origin[0] + a * -origin[0] + -origin[1] * c;
+		let ty = origin[1] + b * -origin[0] + -origin[1] * d;
+		return [a, b, c, d, tx, ty];
+	}
+	static inverse(m){
+		var det = m[0] * m[3] - m[1] * m[2];
+		if (!det || isNaN(det) || !isFinite(m[4]) || !isFinite(m[5])){ return undefined; }
+		return [ m[3]/det, -m[1]/det, -m[2]/det, m[0]/det, 
+		         (m[2]*m[5] - m[3]*m[4])/det, (m[1]*m[4] - m[0]*m[5])/det ];
+	}
+}
+
+var transform_point = function(point, matrix){
+	return [ point[0] * matrix[0] + point[1] * matrix[2] + matrix[4],
+	         point[0] * matrix[1] + point[1] * matrix[3] + matrix[5] ];
+}
+
+
+// all points are array syntax [x,y]
+// pointArray is an ordered set outlining a convex polygon
+// pointArray can be either winding direction
+var contains = function(pointArray, point, epsilon = 0.0000000001){
+	return pointArray.map( (p,i,arr) => {
+		let nextP = arr[(i+1)%arr.length];
+		let a = [ nextP[0]-p[0], nextP[1]-p[1] ];
+		let b = [ point[0]-p[0], point[1]-p[1] ];
+		return a[0] * b[1] - a[1] * b[0] > -epsilon;
+	}).map((s,i,arr) => s == arr[0]).reduce((prev,curr) => prev && curr, true)
+}
+
+var collinear = function(edgeP0, edgeP1, point, epsilon = 0.0000000001){
+	// distance between endpoints A,B should be equal to point->A + point->B
+	let dEdge = Math.sqrt(Math.pow(edgeP0[0]-edgeP1[0],2) + Math.pow(edgeP0[1]-edgeP1[1],2));
+	let dP0 = Math.sqrt(Math.pow(point[0]-edgeP0[0],2) + Math.pow(point[1]-edgeP0[1],2));
+	let dP1 = Math.sqrt(Math.pow(point[0]-edgeP1[0],2) + Math.pow(point[1]-edgeP1[1],2));
+	return Math.abs(dEdge - dP0 - dP1) < epsilon
+}
+
+function points_equivalent(a, b, epsilon = 0.0000000001){
+	return Math.abs(a.x-b.x) < epsilon && Math.abs(a.y-b.y) < epsilon;
+}
+
+var overlaps = function(ps1, ps2){
+	// points into edges [point, nextPoint]
+	let e1 = ps1.map((p,i,arr) => [p, arr[(i+1)%arr.length]] )
+	let e2 = ps2.map((p,i,arr) => [p, arr[(i+1)%arr.length]] )
+	for(let i = 0; i < e1.length; i++){
+		for(let j = 0; j < e2.length; j++){
+			if(edge_intersection(e1[i][0], e1[i][1], e2[j][0], e2[j][1]) != undefined){
+				return true;
+			}
+		}
+	}
+	if(contains(ps1, ps2[0])){ return true; }
+	if(contains(ps2, ps1[0])){ return true; }
+	return false;
+}
+
+// each edge A,B is defined by endpoints (a0,a1),(b0,b1), each is [x,y] pair
+var edge_intersection = function(a0, a1, b0, b1){
+	let vecA = [a1[0]-a0[0], a1[1]-a0[1]];
+	let vecB = [b1[0]-b0[0], b1[1]-b0[1]];
+	return vector_intersection(a0, vecA, b0, vecB, edge_edge_comp_func);
+}
+// arguments: line comes first (point, vector), followed by edge's two endpoints
+var line_edge_intersection = function(point, vec, edge0, edge1){
+	let edgeVec = [edge1[0]-edge0[0], edge1[1]-edge0[1]];
+	return vector_intersection(point, vec, edge0, edgeVec, line_edge_comp_func);
+}
+// use comp-function to limit boundary of interesection to edges, rays, lines.
+var vector_intersection = function(aOrigin, aVec, bOrigin, bVec, compFunction, epsilon = 0.0000000001){
+	function determinantXY(a,b){ return a[0] * b[1] - b[0] * a[1]; }
+	var denominator0 = determinantXY(aVec, bVec);
+	var denominator1 = -denominator0;
+	if(Math.abs(denominator0) < epsilon){ return undefined; } /* parallel */
+	var numerator0 = determinantXY([bOrigin[0]-aOrigin[0], bOrigin[1]-aOrigin[1]], bVec);
+	var numerator1 = determinantXY([aOrigin[0]-bOrigin[0], aOrigin[1]-bOrigin[1]], aVec);
+	var t0 = numerator0 / denominator0;
+	var t1 = numerator1 / denominator1;
+	if(compFunction(t0,t1,epsilon)){ return [aOrigin[0] + aVec[0]*t0, aOrigin[1] + aVec[1]*t0]; }
+}
+// some helpful comp functions for vector_intersection
+const edge_edge_comp_func = function(t0,t1,ep = 0.0000000001){return t0 >= -ep && t0 <= 1+ep && t1 >= -ep && t1 <= 1+ep;}
+const line_edge_comp_func = function(t0,t1,ep = 0.0000000001){return t1 >= -ep && t1 <= 1+ep;}
+
+var clip_line = function(poly, linePoint, lineVector){
+	// let edgeVecs = poly.map((p,i,arr) => {
+	// 	let nextP = arr[(i+1)%arr.length];
+	// 	return [p, [pairs[1][0]-pairs[0][0], pairs[1][0]-pairs[0][0]] ];
+	// })
+	let intersections = poly
+		.map((p,i,arr) => [p, arr[(i+1)%arr.length]] ) // poly points into edge pairs
+		.map(function(el){ return line_edge_intersection(linePoint, lineVector, el[0], el[1]); })
+		.filter(function(el){return el != undefined; });
+	switch(intersections.length){
+	case 0: return undefined;
+	case 1: return [intersections[0], intersections[0]]; // degenerate edge
+	case 2: return intersections;
+	default:
+	// special case: line intersects directly on a poly point (2 edges, same point)
+	//  filter to unique points by [x,y] comparison.
+		for(let i = 1; i < intersections.length; i++){
+			if( !points_equivalent(intersections[0], intersections[i])){
+				return [intersections[0], intersections[i]];
+			}
+		}
+	}
+}
+
 var prepareFoldFile = function(foldFile){
 	let dontCopy = ["parent", "inherit"];
 	let fold = JSON.parse(JSON.stringify(foldFile));
@@ -73,79 +213,10 @@ var prepareFoldFile = function(foldFile){
 	return fold;
 }
 
-var crease = function(foldFile, line, point){
-
-	// var foldFile = prepareFoldFile(masterFoldFile);
-
-	// 1. vertices_intersections
-  // input is a fold format JSON and a Robby line
-  // output is an faces_ array of pairs of [x, y] points, or undefined
-
-  // var faces_clipLines = clip_faces_at_edge_crossings(foldFile, line);
-	// console.log(faces_clipLines)
-
-	// test reconstituteFaces with fake data
-	// var fakeFacesMarks = [true, true];
-	// var rebuiltArrays = reconstitute_faces(foldFile.faces_vertices, foldFile.faces_layer, faces_clipLines.sides_faces_vertices, fakeFacesMarks, 0);
-
-	// var foldedArrays = reflect_across_fold(rebuiltArrays, foldFile.faces_vertices.length);
-
-	// console.log(rebuiltArrays);
-	// return;
-
-	// var returnObject = {
-	// 	"vertices_coords_flat": [[0,0], [1,0], [1,1], [0,1], [1,0.21920709], [0,0.75329794]],
-	// 	"vertices_coords_fold": [[0,0], [1,0], [1,1], [0,1], [1,0.21920709], [0,0.75329794]],
-	// 	"sides_faces_vertices": [
-	// 		[[0,1,4,5], [2,3,5,4]],
-	// 		[[null,1,4,5], [2,3,5,4]],
-	// 	]
-	// }
-
-  // 3.5. draw lines on crease pattern
-  //  - using faces_lines, draw these on crease pattern
-  // 
-  // now user clicks on a face:
-  // -------
-  // we loop through faces, checking if user clicked in face. choose top most one f
-  // then check which side was click by checking click intersection with faces_pieces[f]
-  // NOW WE KNOW which side1 or side2 inside all of faces_pieces will be the one that moves
-
-  // console.log(foldFile);
-
-  // if (point == undefined) point = [0.6, 0.6];
-  if (point != undefined) {
-    // console.log("Jason Code!");
-    return split_folding_faces(
-        foldFile, 
-        line,
-        point
-    );
-
-  }
-
-
-  // point is place where user clicked
-  // unfold must have faces_layer as a permutation of the face indices
-
-
-  // var newUnfolded = foldMovingFaces(
-  //     foldFile, 
-  //     // faces_splitFaces, 
-  //     Array(n).fill(0, n, [undefined,[1,2,3,4]]),
-  //     newVertices_coords, 
-  //     Array(n).fill(0, n, [0,1])
-  // );
-
-	// var creasePattern = new CreasePattern().importFoldFile(foldFile);
-	// creasePattern.crease(line);
-}
-
-
 // input: fold file and line
 // output: dict keys: two vertex indices defining an edge (as a string: "4 6")
 //         dict vals: [x, y] location of intersection between the two edge vertices
-var clip_faces_at_edge_crossings = function(foldFile, line){
+var clip_faces_at_edge_crossings = function(foldFile, linePoint, lineVector){
 	// which face does the vertex lie in (just one of them)
 	let vertexInFace = foldFile.vertices_coords.map(v => -1)
 	vertexInFace = vertexInFace.map(function(v,i){
@@ -160,22 +231,8 @@ var clip_faces_at_edge_crossings = function(foldFile, line){
 	})
 
 	// generate one clip line per face, or none if there is no intersection
-	let clippedFacesLine = facesVertices.map(vertices => {
-		// use geometry library to clip edge inside convex polygon
-		let poly = new Geometry.ConvexPolygon();
-		poly.edges = vertices.map((el,i,verts) => {
-			let nextEl = verts[ (i+1)%verts.length ];
-			return new Geometry.Edge(el[0], el[1], nextEl[0], nextEl[1]);
-		});
-		return poly;
-	}).map(function(poly, i){
+	let clippedFacesLine = facesVertices.map(poly => clip_line(poly, linePoint, lineVector))
 		// for every face, we have one clipped crease edge or undefined if no intersection
-		return poly.clipLine( line );
-	},this).map(function(edge){
-		// convert to [ [x,y], [x,y] ]. or undefined if no intersection
-		if(edge != undefined){return [[edge.nodes[0].x,edge.nodes[0].y],[edge.nodes[1].x,edge.nodes[1].y]];}
-		return undefined;
-	},this);
 
 	// build result dictionary
 	let edgeCrossings = {}
@@ -260,17 +317,15 @@ var clip_faces_at_edge_crossings = function(foldFile, line){
 		if(facesSubstitutions[i] == undefined){
 			facesSubstitutions[i] = [new_faces_vertices[i], undefined];
 		}
-		var sortedBySide = sortTwoFacesBySide(facesSubstitutions[i], new_vertices_coords, line)
+		var sortedBySide = sortTwoFacesBySide(facesSubstitutions[i], new_vertices_coords, linePoint, lineVector)
 		leftSide.push(sortedBySide[0]);
 		rightSide.push(sortedBySide[1]);
 	}
 
-	let matrices = foldFile["faces_matrix"].map(n => 
-		new Geometry.Matrix(n[0],n[1],n[2],n[3],n[4],n[5]).inverse()
+	let matrices = foldFile["faces_matrix"].map(n => Matrix.inverse(n) )
+	let new_vertices_coords_cp = new_vertices_coords.map((point,i) =>
+		transform_point(point, matrices[vertexInFace[i]])
 	)
-	let new_vertices_coords_cp = new_vertices_coords.map((point,i) => {
-		return new Geometry.XY(point).transform(matrices[ vertexInFace[i] ])
-	}).map( p => [p.x, p.y])
 
 	return {
 		"vertices_coords_fold": new_vertices_coords,
@@ -279,14 +334,14 @@ var clip_faces_at_edge_crossings = function(foldFile, line){
 	}
 }
 
-var sortTwoFacesBySide = function(twoFaces, vertices_coords, line){
+var sortTwoFacesBySide = function(twoFaces, vertices_coords, linePoint, lineVector){
 	var result = [undefined, undefined];
 	twoFaces.forEach(face => {
 		if(face == undefined){ return; }
 		var crossSum = face.map(p => {
 			var fP = vertices_coords[p];
-			var a = [fP[0] - line.point.x, fP[1] - line.point.y];
-			var b = [line.direction.x, line.direction.y];
+			var a = [fP[0] - linePoint[0], fP[1] - linePoint[1]];
+			var b = [lineVector[0], lineVector[1]];
 			return a[0]*b[1] - a[1]*b[0];
 		}).reduce((prev,curr) => prev+curr);
 		var index = (crossSum < 0) ? 0 : 1;
@@ -357,8 +412,8 @@ var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_verti
 	}
 }
 
-var reflect_across_fold = function(arrs, arrayIndex, line){
-  var matrix = line.reflectionMatrix();
+var reflect_across_fold = function(arrs, arrayIndex, linePoint, lineVector){
+  var matrix = Matrix.reflection(linePoint, lineVector);
 
 	var top_layer = arrs.faces_layer.slice(0, arrayIndex);
 	var bottom_layer = arrs.faces_layer.slice(arrayIndex, arrayIndex + arrs.faces_layer.length-arrayIndex);
@@ -370,8 +425,7 @@ var reflect_across_fold = function(arrs, arrayIndex, line){
 		for(var f = 0; f < arrs.faces_vertices[i].length; f++){
 			if(!boolArray[ arrs.faces_vertices[i][f] ]){
 				var vert = arrs.vertices_coords[ arrs.faces_vertices[i][f] ];
-				var transformed = new Geometry.XY(vert[0], vert[1]).transform(matrix);
-				arrs.vertices_coords[ arrs.faces_vertices[i][f] ] = [transformed.x, transformed.y];
+				arrs.vertices_coords[ arrs.faces_vertices[i][f] ] = transform_point(vert, matrix);
 				boolArray[ arrs.faces_vertices[i][f] ] = true;
 			}
 		}
@@ -381,24 +435,6 @@ var reflect_across_fold = function(arrs, arrayIndex, line){
 		'faces_layer': top_layer.concat(bottom_layer),
 		'vertices_coords': arrs.vertices_coords
 	}
-}
-
-// points are in array syntax
-// point array is in counter-clockwise winding
-var contains = function(pointArray, point, epsilon = 0.0000000001){
-	return pointArray.map( (p,i,arr) => {
-		var nextP = arr[(i+1)%arr.length];
-		var a = [ nextP[0]-p[0], nextP[1]-p[1] ];
-		var b = [ point[0]-p[0], point[1]-p[1] ];
-		return a[0] * b[1] - a[1] * b[0] > -epsilon;
-	}).map((s,i,arr) => s == arr[0]).reduce((prev,curr) => prev && curr, true)
-}
-
-var collinear = function(edgeP0, edgeP1, point, epsilon = 0.0000000001){
-	var dEdge = Math.sqrt(Math.pow(edgeP0[0]-edgeP1[0],2) + Math.pow(edgeP0[1]-edgeP1[1],2));
-	var dP0 = Math.sqrt(Math.pow(point[0]-edgeP0[0],2) + Math.pow(point[1]-edgeP0[1],2));
-	var dP1 = Math.sqrt(Math.pow(point[0]-edgeP1[0],2) + Math.pow(point[1]-edgeP1[1],2));
-	return Math.abs(dEdge - dP0 - dP1) < epsilon
 }
 
 // get index of highest layer face which intersects point
@@ -445,15 +481,6 @@ var make_faces_faces = function(faces_vertices) {
     }); 
   });
   return faces_faces;
-}
-
-var overlaps = function(ps1, ps2) {
-  let poly1, poly2;
-  [poly1, poly2] = [ps1, ps2].map((ps) => {
-    ps = ps.map((p) => ({x: p[0], y: p[1]}));
-    return Geometry.ConvexPolygon.convexHull(ps);
-  })
-  return poly1.overlaps(poly2);
 }
 
 var mark_moving_faces = function(faces_vertices, vertices_coords, faces_layer, face_idx) {
@@ -537,11 +564,10 @@ var faces_vertices_to_edges = function (mesh) {
   return mesh;
 };
 
-var split_folding_faces = function(fold, line, point) {
+var split_folding_faces = function(fold, linePoint, lineVector, point) {
   // assumes point not on line
-  point = [point.x, point.y];
 
-  var splitFaces = clip_faces_at_edge_crossings(fold, line);
+  let splitFaces = clip_faces_at_edge_crossings(fold, linePoint, lineVector);
   
   let vertices_coords = splitFaces.vertices_coords_fold;
   let sides_faces     = splitFaces.sides_faces_vertices;
@@ -575,7 +601,7 @@ var split_folding_faces = function(fold, line, point) {
 
   var faces_layer;
   ({vertices_coords, faces_layer} = reflect_across_fold(
-    new_fold, fold.faces_layer.length, line));
+    new_fold, fold.faces_layer.length, linePoint, lineVector));
 
   new_fold.vertices_coords = vertices_coords;
   console.log("setting fold layer ", faces_layer);
@@ -626,23 +652,3 @@ var clean_isolated_vertices = function({vertices_coords, faces_vertices}){
 	return {vertices_coords, faces_vertices}
 }
 
-export {
-	unfoldedFold,
-	oneValleyFold,
-	prepareFoldFile,
-	crease,
-	clip_faces_at_edge_crossings,
-	sortTwoFacesBySide,
-	reconstitute_faces,
-	reflect_across_fold,
-	contains,
-	collinear,
-	top_face_under_point,
-	faces_above,
-	make_faces_faces,
-	overlaps,
-	mark_moving_faces,
-	faces_vertices_to_edges,
-	split_folding_faces,
-	clean_isolated_vertices	
-}

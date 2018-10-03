@@ -1,6 +1,6 @@
 
 import * as M from './geometry'
-import CreasePattern from './creasePattern.js'
+import CreasePattern from './CreasePattern.js'
 import voronoi from '../lib/voronoi/voronoi.js'
 
 class VoronoiMolecule extends M.Triangle{

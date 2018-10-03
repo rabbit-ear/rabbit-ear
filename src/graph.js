@@ -1,4 +1,4 @@
-// graph.js
+// Graph.js
 // a mathematical undirected graph with edges and nodes
 // MIT open source license, Robby Kraft
 //

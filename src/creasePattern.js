@@ -1,4 +1,4 @@
-// creasePattern.js
+// CreasePattern.js
 // for the purposes of performing origami operations on a planar graph
 // MIT open source license, Robby Kraft
 
@@ -6,7 +6,7 @@
 // 1st order operations: crease pattern methods that don't require any arguments, or only 1st order types
 // 2nd order operations: crease pattern methods that require knowledge of methods in the geometry module
 
-import { PlanarClean, PlanarNode, PlanarEdge, PlanarFace, PlanarSector, PlanarJunction, PlanarGraph } from './planarGraph'
+import { PlanarClean, PlanarNode, PlanarEdge, PlanarFace, PlanarSector, PlanarJunction, PlanarGraph } from './PlanarGraph'
 import CubicEquation from './polynomial'
 import * as M from './geometry'
 import SVGLoader from './SVGLoader.js'

@@ -1,4 +1,4 @@
-import CreasePattern from './creasePattern.js'
+import CreasePattern from './CreasePattern.js'
 
 'use strict';
 
