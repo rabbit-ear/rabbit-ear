@@ -22,7 +22,7 @@ window.OrigamiPaper = OrigamiPaper;
 window.OrigamiFold = OrigamiFold;
 window.Origami = Origami;
 
-// print this "// Rabbit Ear https://rabbitear.org v0.1.1 Copyright 2018 Robby Kraft";
+// figure out how to insert comment header "// Rabbit Ear https://rabbitear.org v0.1.1 Copyright 2018 Robby Kraft";
 
 // export { CreasePattern, OrigamiPaper, OrigamiFold }
 export {

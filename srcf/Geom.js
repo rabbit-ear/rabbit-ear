@@ -93,10 +93,19 @@ export class Matrix{
 		return [ m[3]/det, -m[1]/det, -m[2]/det, m[0]/det, 
 		         (m[2]*m[5] - m[3]*m[4])/det, (m[1]*m[4] - m[0]*m[5])/det ];
 	}
+	static multiply(m1, m2){
+		let a = m1[0] * m2[0] + m1[2] * m2[1];
+		let c = m1[0] * m2[2] + m1[2] * m2[3];
+		let tx = m1[0] * m2[4] + m1[2] * m2[5] + m1[4];
+		let b = m1[1] * m2[0] + m1[3] * m2[1];
+		let d = m1[1] * m2[2] + m1[3] * m2[3];
+		let ty = m1[1] * m2[4] + m1[3] * m2[5] + m1[5];
+		return [a, b, c, d, tx, ty];
+	}
 }
 
 //
-//  Internal functions
+//  internal
 //
 
 /** edge-edge intersection: four endpoints of the two edges */

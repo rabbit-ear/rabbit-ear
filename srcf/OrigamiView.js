@@ -23,12 +23,11 @@ export default class OrigamiView{
 
 	constructor() {
 		//  from arguments, get a fold file, if it exists
-		var args = []; for(var i = 0; i < arguments.length; i++){ args.push(arguments[i]); }
-		// this.cp = args.filter(function(arg){ return arg instanceof PlanarGraph },this).shift();
-		// if(this.cp == undefined){ this.cp = new CreasePattern(); }
-		this.svg = SVG.SVG();
+		let args = []; for(var i = 0; i < arguments.length; i++){ args.push(arguments[i]); }
+		this.cp = args.filter(arg => typeof arg == 'object' && arg['vertices_coords'] != undefined ).shift();
+		if(this.cp == undefined){ this.cp = Origami.emptyFoldFile; }
 
-		this.cp = {}
+		this.svg = SVG.SVG();
 
 		//  from arguments, get a parent DOM node for the new SVG as an HTML element or as a id-string
 		//  but wait until after the <body> has rendered
@@ -86,7 +85,7 @@ export default class OrigamiView{
 				edge:{ strokeColor:{ hue:0, saturation:0.8, brightness:1 } },
 				face:{ fillColor:{ hue:0, saturation:0.8, brightness:1 } }
 			}
-		}
+		};
 
 		this.draw();
 

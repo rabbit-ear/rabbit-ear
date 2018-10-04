@@ -2,11 +2,14 @@
 
 import {contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
 
-export const unfoldedFold = {
+export const emptyFoldFile = {
 	"file_spec": 1.1,
 	"file_creator": "Rabbit Ear",
-	"file_author": "",
+	"file_author": "Robby Kraft",
 	"file_classes": ["singleModel"],
+	"frame_attributes": ["2D"],
+	"frame_title": "square",
+	"frame_classes": ["creasePattern"],
 	"vertices_coords": [[0,0],[1,0],[1,1],[0,1]],
 	"edges_vertices": [[0,1],[1,2],[2,3],[3,0]],
 	"edges_assignment": ["B","B","B","B"],
@@ -233,7 +236,7 @@ var sortTwoFacesBySide = function(twoFaces, vertices_coords, linePoint, lineVect
 // sides_faces_vertices - from clip_faces_.. function
 // faces_mark      - boolean if a face in sides_faces_vertices should move
 // whichSide       - which side of the sides_faces_vertices we're moving
-var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_vertices, faces_mark, whichSideMoves){
+var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_vertices, faces_mark, whichSideMoves, faces_matrix){
 	// build a layer order array while the face array
 	// making the new extene dface array, put the layer order of the face it came from
 	// for extended layer array: 
@@ -245,6 +248,8 @@ var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_verti
 	// i think we can wait to build this at the end all at once.
 	let new_faces_layer = faces_layer.slice(); // copy array
 	let new_faces_layer_end = [];
+	let new_faces_matrix = faces_matrix.slice();
+	let new_faces_matrix_end = [];
 	faces_mark.forEach((shouldMove,i) => {
 		if(!shouldMove){ 
 			// not folding this face, revert back to original joined face
@@ -258,7 +263,9 @@ var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_verti
 			// moving face goes at the end of the array (temporarily in new array)
 			let movingFace = sides_faces_vertices[whichSideMoves][i];
 			new_faces_vertices_end.push(movingFace);
-			new_faces_layer_end.push( new_faces_layer[i] )
+			new_faces_layer_end.push( new_faces_layer[i] );
+			// copy over parent face's matrix, we will modify it during reflection step
+			new_faces_matrix_end.push( faces_matrix[i] ); 
 		}
 	})
 
@@ -274,8 +281,13 @@ var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_verti
 	new_faces_vertices_end.sort( (a,b) => a.i-b.i)
 	new_faces_vertices_end = new_faces_vertices_end.map(a => a.value)
 
+	new_faces_matrix_end = new_faces_matrix_end.map((a,i) => ({'value':a, 'i':shuffle_order[i]}))
+	new_faces_matrix_end.sort( (a,b) => a.i-b.i)
+	new_faces_matrix_end = new_faces_matrix_end.map(a => a.value)
+
 	var compiled_faces_vertices = new_faces_vertices.concat(new_faces_vertices_end);
 	var compiled_faces_layer = faces_layer.slice().concat(new_faces_layer_end_sorted);
+	var compiled_faces_matrix = faces_matrix.slice().concat(new_faces_matrix_end);
 
 	// clean isolated vertices
 	// (compiled_faces_vertices, compiled_faces_layer)
@@ -286,7 +298,8 @@ var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_verti
 
 	return {
 		'faces_vertices': compiled_faces_vertices,
-		'faces_layer':    compiled_faces_layer
+		'faces_layer':    compiled_faces_layer,
+		'faces_matrix':    compiled_faces_matrix
 	}
 }
 
@@ -307,6 +320,10 @@ var reflect_across_fold = function(arrs, arrayIndex, linePoint, lineVector){
 				boolArray[ arrs.faces_vertices[i][f] ] = true;
 			}
 		}
+	}
+	// face matrix transform
+	for(var i = arrayIndex; i < arrs.faces_matrix.length; i++){
+		arrs.faces_matrix[i] = Matrix.multiply(arrs.faces_matrix[i], matrix);
 	}
 
 	return {
@@ -331,11 +348,6 @@ var top_face_under_point = function(
   return (top_fi === -1) ? undefined : top_fi;
 }
 
-var faces_above = function(
-    {faces_vertices, vertices_coords, faces_layer},
-    first_face_idx) {
-  
-}
 
 // make faces_faces
 var make_faces_faces = function(faces_vertices) {
@@ -471,21 +483,52 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
     fold.faces_layer,
     touched
   );
+
+  let faces_matrix = fold["faces_matrix"];
+
   let new_fold = reconstitute_faces(
     fold.faces_vertices, 
     fold.faces_layer, 
-    sides_faces, faces_mark, side);
+    sides_faces, faces_mark, side, faces_matrix);
   new_fold.vertices_coords = vertices_coords;
 
   var faces_layer;
   ({vertices_coords, faces_layer} = reflect_across_fold(
     new_fold, fold.faces_layer.length, linePoint, lineVector));
 
+  // console.log(sides_faces);
+  // console.log(fold.faces_layer);
+  // console.log(faces_layer);
+  // console.log(faces_mark);
+  // console.log(side);
+
+
   new_fold.vertices_coords = vertices_coords;
   console.log("setting fold layer ", faces_layer);
   new_fold.faces_layer = faces_layer;
+  // new_fold.faces_matrix = faces_matrix;
 
   faces_vertices_to_edges(new_fold);
+
+	// we don't want to completely overwrite the file. bring along some metadata and replace when necessary
+	let headers = {
+		"file_spec": 1.1,
+		"file_creator": "Rabbit Ear",
+		"file_author": "",
+		"file_classes": ["singleModel"],
+		"frame_attributes": ["2D"],
+		"frame_title": "one valley crease",
+		"frame_classes": ["foldedState"]
+	};
+
+	["file_spec",
+	 "file_creator",
+	 "file_author",
+	 "file_classes",
+	 "frame_attributes",
+	 "frame_title",
+	 "frame_classes"].forEach(meta => new_fold[meta] = (fold[meta] == undefined) ? headers[meta] : fold[meta])
+
 
   new_fold.file_classes = ["singleModel"];
   new_fold.frame_attributes = ["2D"];
@@ -499,7 +542,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
   // let faces_vertices;
   // ({vertices_coords, faces_vertices} = clean_isolated_vertices(new_fold));
-  console.log(new_fold);
+  // console.log(new_fold);
   return new_fold;
 }
 
