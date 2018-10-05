@@ -5,21 +5,17 @@ import {contains, collinear, overlaps, clip_line_in_poly, transform_point, Matri
 export const emptyFoldFile = {
 	"file_spec": 1.1,
 	"file_creator": "Rabbit Ear",
-	"file_author": "Robby Kraft",
+	"file_author": "",
 	"file_classes": ["singleModel"],
 	"frame_attributes": ["2D"],
 	"frame_title": "square",
 	"frame_classes": ["creasePattern"],
-	"vertices_coords": [[0,0],[1,0],[1,1],[0,1]],
-	"edges_vertices": [[0,1],[1,2],[2,3],[3,0]],
+	"vertices_coords": [[0,0], [1,0], [1,1], [0,1]],
+	"edges_vertices": [[0,1], [1,2], [2,3], [3,0]],
 	"edges_assignment": ["B","B","B","B"],
 	"faces_vertices": [[0,1,2,3]],
 	"faces_layer": [0],
-	"faces_matrix": [[1, 0, 0, 1, 0, 0]],
-	"file_frames": [{
-		"parent": 0,
-		"inherit": true
-	}]
+	"faces_matrix": [[1, 0, 0, 1, 0, 0]]
 };
 
 export const oneValleyFold = {
@@ -379,7 +375,10 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_layer, f
   marked[face_idx] = true;
   let to_process = [face_idx];
   let process_idx = 0;
+  console.log("faces_vertices");
+  console.log(faces_vertices);
   let faces_points = faces_vertices.map((vertices_index) => {
+	  console.log(vertices_index);
     return vertices_index.map(i => vertices_coords[i]);
   })
   while (process_idx < to_process.length) {
