@@ -4,6 +4,7 @@
 
 "use strict";
 
+import SVG from "./SimpleSVG";
 import FoldView from "./FoldView";
 
 export default class OrigamiView extends FoldView{
@@ -19,6 +20,16 @@ export default class OrigamiView extends FoldView{
     constructor() {
         super(arguments[0]);
 
+        // expose these functions to the user
+        this.line = SVG.line;
+        this.circle = SVG.circle;
+        this.polygon = SVG.polygon;
+        this.bezier = SVG.bezier;
+        this.group = SVG.group;
+        this.addClass = SVG.addClass;
+        this.removeClass = SVG.removeClass;
+        this.convertToViewbox = SVG.convertToViewbox;
+
         // interaction behavior
         this.mouse = {
             position: {"x":0,"y":0},// the current position of the mouse
@@ -26,6 +37,8 @@ export default class OrigamiView extends FoldView{
             isPressed: false,       // is the mouse button pressed (y/n)
             isDragging: false       // is the mouse moving while pressed (y/n)
         };
+        this.style.sector = {scale: 0.5};  // radius of sector wedges
+        this.style.face = {scale:1.0};     // shrink scale of each face
         this.style.selected = {
             node:{ radius: 0.02 },
             edge:{ strokeColor:{ hue:0, saturation:0.8, brightness:1 } },

@@ -9,10 +9,8 @@ html,body{
 	justify-content: center;
 }
 svg{
-	width:45vmax;
-	height:45vmax;
-	max-width:100vw;
-	max-height:calc(100vh - 70px);
+	width:100vw;
+	height:100vh;
 	margin:auto;
 }
 .row{

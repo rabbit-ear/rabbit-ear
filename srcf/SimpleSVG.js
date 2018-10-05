@@ -6,6 +6,7 @@
  * and the last is always the ID string
  *
  */
+
 /*jshint esversion: 6 */
 
 const svgNS = "http://www.w3.org/2000/svg";
