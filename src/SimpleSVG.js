@@ -126,7 +126,7 @@ export function removeClass(xmlNode, newClass) {
     xmlNode.setAttributeNS(null, "class", classes.join(" "));
 }
 
-export function setID(xmlNode, newID) {
+export function setId(xmlNode, newID) {
     if (xmlNode === undefined) {
         return;
     }

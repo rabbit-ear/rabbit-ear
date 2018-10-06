@@ -10,6 +10,7 @@
 "use strict";
 
 import SVG from "./SimpleSVG";
+import * as Origami from "./Origami"
 
 const CREASE_DIR = {
 	"B": "boundary",
@@ -19,28 +20,6 @@ const CREASE_DIR = {
 	"U": "mark"
 };
 
-const emptyFoldFile = {"file_spec":1.1,"file_creator":"Rabbit Ear","file_author":"","file_classes":["singleModel"],"frame_attributes":["2D"],"frame_classes":["foldedState"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_assignment":["B","B","B","B"],"faces_vertices":[[0,1,2,3]],"faces_layer":[0],"faces_matrix":[[1,0,0,1,0,0]],"file_frames":[{"frame_classes":["creasePattern"],"parent":0,"inherit":true}]};
-
-
-function flatten_frame(fold_file, frame_num){
-	if(frame_num == undefined ||
-	   fold_file.file_frames == undefined ||
-	   fold_file.file_frames[frame_num] == undefined ||
-	   fold_file.file_frames[frame_num].vertices_coords == undefined){
-		throw "fold file has no frame number " + frame_num;
-		return;
-	}
-	const dontCopy = ["parent", "inherit"];
-	let fold = JSON.parse(JSON.stringify(fold_file));
-	let keys = Object.keys(fold.file_frames[frame_num]).filter(key =>
-		!dontCopy.includes(key)
-	)
-	keys.forEach(key => fold[key] = fold.file_frames[frame_num][key] )
-	fold.file_frames = null;
-	return fold;
-}
-
-
 export default class FoldView{
 
 	constructor() {
@@ -49,7 +28,7 @@ export default class FoldView{
 		this.cp = args.filter(arg =>
 			typeof arg == "object" && arg.vertices_coords != undefined
 		).shift();
-		if(this.cp == undefined){ this.cp = emptyFoldFile; }
+		if(this.cp == undefined){ this.cp = Origami.emptyFoldFile; }
 
 		// create a new SVG
 		this.svg = SVG.SVG();
@@ -163,7 +142,7 @@ export default class FoldView{
 		if(this.frame != undefined &&
 		   this.cp.file_frames[this.frame] != undefined &&
 		   this.cp.file_frames[this.frame].vertices_coords != undefined){
-			data = flatten_frame(this.cp, this.frame);
+			data = Origami.flattenFrame(this.cp, this.frame);
 		}
 		if(data.vertices_coords == undefined){ return; }
 		this.setViewBox();
@@ -182,30 +161,19 @@ export default class FoldView{
 		[this.boundary,
 		 this.faces,
 		 this.creases,
-		 this.vertices].forEach((layer) => {
-			while(layer.lastChild) {
-				layer.removeChild(layer.lastChild);
-			}
-		});
+		 this.vertices].forEach((layer) => SVG.removeChildren(layer));
 		// vertices
 		let vertexR = this.style.vertex.radius
-		verts.forEach((v,i) => {
-			let dot = SVG.circle(v[0], v[1], vertexR, "vertex");
-			this.vertices.appendChild(dot);
-		});
+		verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", this.vertices));
 		// edges
 		if(!this.isFolded()){
-			edges.forEach((e,i) => {
-				let creaseline = SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], orientations[i]);
-				this.creases.appendChild(creaseline);
-			});
+			edges.forEach((e,i) =>
+				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], orientations[i], null, this.creases)
+			);
 		}
 		// faces
 		let faceClass = (this.isFolded() ? "face folded" : "face");
-		faces.forEach(f => {
-			let poly = SVG.polygon(f, faceClass);
-			this.faces.appendChild(poly);
-		});
+		faces.forEach(f => SVG.polygon(f, faceClass, "face", this.faces));
 	}
 
 	getFrames(){

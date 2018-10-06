@@ -18,7 +18,7 @@ export default class OrigamiView extends FoldView{
     onMouseDidBeginDrag(event){ }
 
     constructor() {
-        super(arguments[0]);
+        super(...arguments);
 
         // expose these functions to the user
         this.line = SVG.line;
@@ -28,6 +28,8 @@ export default class OrigamiView extends FoldView{
         this.group = SVG.group;
         this.addClass = SVG.addClass;
         this.removeClass = SVG.removeClass;
+        this.setId = SVG.setId;
+        this.removeChildren = SVG.removeChildren;
         this.convertToViewbox = SVG.convertToViewbox;
 
         // interaction behavior
