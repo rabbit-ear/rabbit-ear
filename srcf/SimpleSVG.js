@@ -148,7 +148,7 @@ function setId(xmlNode, newID) {
 }
 
 function removeChildren(group) {
-	while(group.lastChild) {
+	while (group.lastChild) {
 		group.removeChild(group.lastChild);
 	}
 }

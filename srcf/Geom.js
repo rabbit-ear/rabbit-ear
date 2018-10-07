@@ -5,6 +5,14 @@
 // all infinite lines are defined as point and vector
 // all polygons are an ordered set of points in either winding direction
 
+/** will clean up numbers like 15.0000000000000002 into 15
+ * the epsilon is set to 15 which clips the last 1 digit in a
+ * Javascript 16 digit float. this epsilon is adjustable.*/
+export function clean_number(num, decimalPlaces = 15){
+	if (num == undefined) { return undefined; }
+	return parseFloat(num.toFixed(decimalPlaces));
+}
+
 /** is a point inside of a polygon, including along the boundary within epsilon */
 export function contains(poly, point, epsilon = 0.0000000001){
 	return poly.map( (p,i,arr) => {

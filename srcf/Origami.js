@@ -6,7 +6,7 @@
 
 'use strict';
 
-import {contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
+import {clean_number, contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
 
 export const emptyFoldFile = {
 	"file_spec": 1.1,
@@ -14,7 +14,7 @@ export const emptyFoldFile = {
 	"file_author": "",
 	"file_classes": ["singleModel"],
 	"frame_attributes": ["2D"],
-	"frame_title": "square",
+	"frame_title": "",
 	"frame_classes": ["creasePattern"],
 	"vertices_coords": [[0,0], [1,0], [1,1], [0,1]],
 	"edges_vertices": [[0,1], [1,2], [2,3], [3,0]],
@@ -24,7 +24,7 @@ export const emptyFoldFile = {
 	"faces_matrix": [[1,0,0,1,0,0]],
 	"file_frames":[{
 		"frame_classes":["creasePattern"],
-		"parent":0,
+		"frame_parent":0,
 		"inherit":true
 	}]
 };
@@ -65,7 +65,23 @@ export function valleyFold(foldFile, line, point){
 				point
 		);
 	}
+}
 
+// an edge's two endpoints are collinear to two face edges. find those face edges.
+var find_collinear_face_edges = function(edge, face_vertices, vertices_coords){
+	let face_edge_geometry = face_vertices
+		.map((v) => vertices_coords[v])
+		.map((v, i, arr) => [v, arr[(i+1)%arr.length]]);
+	return edge.map((endPt) => {
+		// filter collinear edges to each endpoint, return first one
+		// as an edge array index, which == face vertex array between i, i+1
+		let i = face_edge_geometry
+			.map((edgeVerts, edgeI) => ({index:edgeI, edge:edgeVerts}))
+			.filter((e) => collinear(e.edge[0], e.edge[1], endPt))
+			.shift()
+			.index
+		return [face_vertices[i], face_vertices[(i+1)%face_vertices.length]].sort((a,b) => a-b)
+	})
 }
 
 // input: fold file and line
@@ -80,31 +96,62 @@ var clip_faces_at_edge_crossings = function(foldFile, linePoint, lineVector){
 	});
 
 	// convert faces into x,y geometry instead of references to vertices
-	let facesVertices = foldFile.faces_vertices.map(vIndices => {
+	let faces_point_geometry = foldFile.faces_vertices.map(vIndices => {
 		return vIndices.map(vI => foldFile.vertices_coords[vI])
 	})
 
-	// generate one clip line per face, or none if there is no intersection
-	let clippedFacesLine = facesVertices.map(poly => clip_line_in_poly(poly, linePoint, lineVector))
-	// for every face, we have one clipped crease edge or undefined if no intersection
+	// generate one clip line per face, or undefined if there is no intersection
+	// array of objects {face: index of face, clip: the clip line}
+	let clippedFacesLine = faces_point_geometry.map((poly,i) => 
+		({'face':i, 'clip':clip_line_in_poly(poly, linePoint, lineVector)})
+	).filter((obj) => obj.clip != undefined)
 
-	// build result dictionary
+	// create a mapping between new clippedFacesLines and edges they intersect
+	// keys: two vertex indices defining an edge (as a string: "4 6")
 	let edgeCrossings = {}
-	clippedFacesLine.forEach((clip, f) => {
-		if(clip != undefined){
-			facesVertices[f].map((fv,i,faceArray) => {
-				let nextFv = faceArray[(i+1)%faceArray.length];
-				let foundIndex = undefined;
-				if(collinear(fv, nextFv, clip[0])){ foundIndex = 0; }
-				if(collinear(fv, nextFv, clip[1])){ foundIndex = 1; }
-				if(foundIndex != undefined){
-					let fVI = foldFile.faces_vertices[f];
-					let key = [fVI[i], fVI[(i+1)%fVI.length]].sort(function(a,b){return a-b;}).join(" ");
-					edgeCrossings[key] = {'clip':clip[foundIndex], 'face':f};
-				}
-			})
-		}
+	clippedFacesLine.forEach(faceClip => {
+		faces_point_geometry[faceClip.face].map((fv,i,faceArray) => {
+			let nextFv = faceArray[(i+1)%faceArray.length];
+			let foundIndex = undefined;
+			if(collinear(fv, nextFv, faceClip.clip[0])){ foundIndex = 0; }
+			if(collinear(fv, nextFv, faceClip.clip[1])){ foundIndex = 1; }
+			if(foundIndex != undefined){
+				let fVI = foldFile.faces_vertices[faceClip.face];
+				let key = [fVI[i], fVI[(i+1)%fVI.length]].sort(function(a,b){return a-b;}).join(" ");
+				edgeCrossings[key] = {'clip':faceClip.clip[foundIndex], 'face':faceClip.face};
+			}
+		})
 	})
+	// for each clip line, give me the 2 collinear edges
+	// let edgeClipPairs = clippedFacesLine.map((faceClip) => ({
+	// 	'face': faceClip.face,
+	// 	'edges': find_collinear_face_edges(faceClip.clip, 
+	// 	           foldFile.faces_vertices[faceClip.face],
+	// 	           foldFile.vertices_coords),
+	// 	'clip': faceClip.clip
+	// }))
+	let edgeClipResults = clippedFacesLine.map((faceClip) => {
+		let answer = find_collinear_face_edges(faceClip.clip, 
+		  foldFile.faces_vertices[faceClip.face],
+		  foldFile.vertices_coords)
+		.map((edge,i) =>
+			({"face":faceClip.face, "edge":edge, "point": faceClip.clip[i]})
+		)
+		return [].concat.apply([], answer)
+	})
+	let edgeClipPairs = [].concat.apply([], edgeClipResults)
+	let edgeCrossings2 = {}
+	edgeClipPairs.forEach(data => {
+		let key = data.edge.sort((a,b) => a-b).join(" ");
+		edgeCrossings2[key] = data;
+	})
+
+	// console.log("+++++++++++++");
+	// console.log("edgeClipPairs");
+	// console.log(edgeClipPairs);
+	// console.log("edgeCrossings");
+	// console.log(edgeCrossings);
+	// console.log(edgeCrossings2);
 
 	// deep copy components
 	let new_vertices_coords = JSON.parse(JSON.stringify(foldFile.vertices_coords));
@@ -138,30 +185,30 @@ var clip_faces_at_edge_crossings = function(foldFile, linePoint, lineVector){
 	// }
 
 	let facesSubstitutions = []
-	clippedFacesLine.map( (clipLine,i) => {
+	clippedFacesLine.map((faceClip) => {
+		let i = faceClip.face;
+		let clipLine = faceClip.clip;
 		// this is a face that has been identified as containing a crossing
 		// we need to remove it and replace it with 2 faces
-		if(clipLine != undefined){
-			var newFaces = [ [], [] ]
-			var newFaceI = 0;
+		var newFaces = [ [], [] ]
+		var newFaceI = 0;
 
-			// walk around a face. using edges
-			foldFile.faces_vertices[i].forEach( (vertex,i,vertexArray) => {
-				let nextVertex = vertexArray[(i+1)%vertexArray.length];
+		// walk around a face. using edges
+		foldFile.faces_vertices[i].forEach( (vertex,i,vertexArray) => {
+			let nextVertex = vertexArray[(i+1)%vertexArray.length];
 
-				var key = [vertex, nextVertex].sort( (a,b) => a-b ).join(' ')
-				// let key = edgeArray.slice().sort(function(a,b){return a-b;}).join(' ')
-				if(edgeCrossings[key]){
-					var intersection = edgeCrossings[key].clip;
-					newFaces[newFaceI].push(intersection)
-					newFaceI = (newFaceI+1)%2; // flip bit
-					newFaces[newFaceI].push(intersection)
-					newFaces[newFaceI].push(nextVertex)
-				} else{
-					newFaces[newFaceI].push(nextVertex)
-				}
-			})
-		}
+			var key = [vertex, nextVertex].sort( (a,b) => a-b ).join(' ')
+			// let key = edgeArray.slice().sort(function(a,b){return a-b;}).join(' ')
+			if(edgeCrossings[key]){
+				var intersection = edgeCrossings[key].clip;
+				newFaces[newFaceI].push(intersection)
+				newFaceI = (newFaceI+1)%2; // flip bit
+				newFaces[newFaceI].push(intersection)
+				newFaces[newFaceI].push(nextVertex)
+			} else{
+				newFaces[newFaceI].push(nextVertex)
+			}
+		})
 		facesSubstitutions[i] = newFaces
 	})
 
@@ -178,7 +225,9 @@ var clip_faces_at_edge_crossings = function(foldFile, linePoint, lineVector){
 
 	let matrices = foldFile["faces_matrix"].map(n => Matrix.inverse(n) )
 	let new_vertices_coords_cp = new_vertices_coords.map((point,i) =>
-		transform_point(point, matrices[vertexFoundInFace[i]])
+		transform_point(point, matrices[vertexFoundInFace[i]]).map((n) => 
+			clean_number(n)
+		)
 	)
 
 	return {
@@ -294,6 +343,7 @@ var reflect_across_fold = function(arrs, arrayIndex, linePoint, lineVector){
 			}
 		}
 	}
+
 	// face matrix transform
 	for(var i = arrayIndex; i < arrs.faces_matrix.length; i++){
 		arrs.faces_matrix[i] = Matrix.multiply(matrix, arrs.faces_matrix[i]);
@@ -356,6 +406,7 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_layer, f
 	console.log(faces_vertices);
 	let faces_points = faces_vertices.map((vertices_index) => {
 		console.log(vertices_index);
+		if(vertices_index == undefined){ return undefined }
 		return vertices_index.map(i => vertices_coords[i]);
 	})
 	while (process_idx < to_process.length) {
@@ -472,15 +523,8 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	({vertices_coords, faces_layer} = reflect_across_fold(
 		new_fold, fold.faces_layer.length, linePoint, lineVector));
 
-	// console.log(sides_faces);
-	// console.log(fold.faces_layer);
-	// console.log(faces_layer);
-	// console.log(faces_mark);
-	// console.log(side);
-
-
 	new_fold.vertices_coords = vertices_coords;
-	console.log("setting fold layer ", faces_layer);
+
 	new_fold.faces_layer = faces_layer;
 	// new_fold.faces_matrix = faces_matrix;
 

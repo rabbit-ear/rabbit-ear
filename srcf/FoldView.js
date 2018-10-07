@@ -54,10 +54,10 @@ export default class FoldView{
 		});
 
 		// prepare SVG
-		this.boundary = SVG.group(null, "boundary");
-		this.faces = SVG.group(null, "faces");
-		this.creases = SVG.group(null, "creases");
-		this.vertices = SVG.group(null, "vertices");
+		this.boundary = SVG.group(undefined, "boundary");
+		this.faces = SVG.group(undefined, "faces");
+		this.creases = SVG.group(undefined, "creases");
+		this.vertices = SVG.group(undefined, "vertices");
 		this.svg.appendChild(this.boundary);
 		this.svg.appendChild(this.faces);
 		this.svg.appendChild(this.creases);
@@ -72,24 +72,6 @@ export default class FoldView{
 		};
 
 		this.draw();
-	}
-	isFolded(){
-		if(this.cp == undefined || this.cp.frame_classes == undefined){ return false; }
-		let frame_classes = this.cp.frame_classes;
-		if(this.frame != undefined &&
-		   this.cp.file_frames[this.frame] != undefined &&
-		   this.cp.file_frames[this.frame].frame_classes != undefined){
-			frame_classes = this.cp.file_frames[this.frame].frame_classes;
-		}
-		// try to discern folded state
-		if(frame_classes.includes("foldedState")){
-			return true;
-		}
-		if(frame_classes.includes("creasePattern")){
-			return false;
-		}
-		// inconclusive
-		return false;
 	}
 	setPadding(padding){
 		if(padding != undefined){
@@ -157,6 +139,9 @@ export default class FoldView{
 				: "mark"
 			)
 		);
+		let faceOrder = (data.faces_layer != undefined)
+			? data.faces_layer.slice()
+			: data.faces_vertices.map((f,i) => i);
 		// clear layers
 		[this.boundary,
 		 this.faces,
@@ -166,14 +151,15 @@ export default class FoldView{
 		let vertexR = this.style.vertex.radius
 		verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", this.vertices));
 		// edges
-		if(!this.isFolded()){
+		if(!this.isFoldedState()){
 			edges.forEach((e,i) =>
 				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], orientations[i], null, this.creases)
 			);
 		}
 		// faces
-		let faceClass = (this.isFolded() ? "face folded" : "face");
-		faces.forEach(f => SVG.polygon(f, faceClass, "face", this.faces));
+		let faceClass = (this.isFoldedState() ? "face folded" : "face");
+		faceOrder.forEach(i => SVG.polygon(faces[i], faceClass, "face", this.faces));
+		// faces.forEach(f => SVG.polygon(f, faceClass, "face", this.faces));
 	}
 
 	getFrames(){
@@ -221,5 +207,23 @@ export default class FoldView{
 			console.log("not a valid .fold file format")
 			return that;
 		}
+	}
+	isFoldedState(){
+		if(this.cp == undefined || this.cp.frame_classes == undefined){ return false; }
+		let frame_classes = this.cp.frame_classes;
+		if(this.frame != undefined &&
+		   this.cp.file_frames[this.frame] != undefined &&
+		   this.cp.file_frames[this.frame].frame_classes != undefined){
+			frame_classes = this.cp.file_frames[this.frame].frame_classes;
+		}
+		// try to discern folded state
+		if(frame_classes.includes("foldedState")){
+			return true;
+		}
+		if(frame_classes.includes("creasePattern")){
+			return false;
+		}
+		// inconclusive
+		return false;
 	}
 }
