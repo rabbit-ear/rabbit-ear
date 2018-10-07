@@ -38,6 +38,7 @@ svg{
 	stroke: black;
 	stroke-width: var(--crease-width);
 	stroke-linecap: round;
+	stroke-linejoin: round;
 }
 .node  { fill: none; stroke: none; }
 .sector{ fill: none; stroke: none; }
@@ -48,6 +49,8 @@ svg{
 	/*stroke-width: calc( var(--crease-width) * 0.25);*/
 	stroke-width: var(--crease-width);
 	stroke: black;
+	stroke-linecap: round;
+	stroke-linejoin: round;
 }
 .mountain{
 	stroke: hsl(14.4, 87%, 45%);
