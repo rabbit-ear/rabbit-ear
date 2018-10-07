@@ -58,12 +58,13 @@ export function valleyFold(foldFile, line, point){
 	// if (point == undefined) point = [0.6, 0.6];
 	if (point != undefined) {
 		// console.log("Jason Code!");
-		return split_folding_faces(
+		let new_fold = split_folding_faces(
 				foldFile, 
 				linePoint, 
 				lineVector,
 				point
 		);
+    return new_fold;
 	}
 
 }
@@ -177,9 +178,11 @@ var clip_faces_at_edge_crossings = function(foldFile, linePoint, lineVector){
 	}
 
 	let matrices = foldFile["faces_matrix"].map(n => Matrix.inverse(n) )
-	let new_vertices_coords_cp = new_vertices_coords.map((point,i) =>
-		transform_point(point, matrices[vertexFoundInFace[i]])
-	)
+	let new_vertices_coords_cp = new_vertices_coords.map((point,i) => {
+    if (vertexFoundInFace[i] === undefined)
+      return point;
+		return transform_point(point, matrices[vertexFoundInFace[i]]);
+  })
 
 	return {
 		"vertices_coords_fold": new_vertices_coords,
@@ -352,11 +355,11 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_layer, f
 	marked[face_idx] = true;
 	let to_process = [face_idx];
 	let process_idx = 0;
-	console.log("faces_vertices");
-	console.log(faces_vertices);
 	let faces_points = faces_vertices.map((vertices_index) => {
-		console.log(vertices_index);
-		return vertices_index.map(i => vertices_coords[i]);
+    if (vertices_index === undefined) {
+      return undefined;
+    }
+    return vertices_index.map(i => vertices_coords[i]);
 	})
 	while (process_idx < to_process.length) {
 		// pull face off queue
@@ -365,10 +368,12 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_layer, f
 		// add all unmarked above-overlapping faces to queue
 		faces_vertices.forEach((vertices_index, idx2) => {
 			if (!marked[idx2] && ((faces_layer[idx2] > faces_layer[idx1]))) {
-				if (overlaps(faces_points[idx1], faces_points[idx2])) {
-					marked[idx2] = true;
-					to_process.push(idx2);
-				}
+        if (faces_points[idx1] !== undefined && faces_points[idx2] !== undefined) {
+          if (overlaps(faces_points[idx1], faces_points[idx2])) {
+            marked[idx2] = true;
+            to_process.push(idx2);
+          }
+        }
 			}
 		});
 		// add all unmarked adjacent faces to queue
@@ -480,7 +485,6 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 
 	new_fold.vertices_coords = vertices_coords;
-	console.log("setting fold layer ", faces_layer);
 	new_fold.faces_layer = faces_layer;
 	// new_fold.faces_matrix = faces_matrix;
 
