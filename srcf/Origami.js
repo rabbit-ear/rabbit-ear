@@ -374,7 +374,7 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_layer, f
 		// add all unmarked adjacent faces to queue
 		faces_faces[idx1].forEach((idx2) => {
 			if (!marked[idx2]) {
-				marked[idx2] = false;
+				marked[idx2] = true;
 				to_process.push(idx2);
 			}
 		});
