@@ -449,7 +449,11 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	let touched = top_face_under_point(fold, point);
 	if (touched === undefined) { return undefined; }
-	
+
+	console.log("------------------");
+	console.log(sides_faces);
+	console.log(sides_faces[touched]);
+
 	let side = [0,1]
 		.map(s => sides_faces[touched][s].map(f => new_vertices_coords[f]))
 		.map(f => contains(f, point))
