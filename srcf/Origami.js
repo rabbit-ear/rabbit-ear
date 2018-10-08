@@ -205,6 +205,67 @@ var sortTwoFacesBySide = function(twoFaces, vertices_coords, linePoint, lineVect
 	return result
 }
 
+// make faces_faces
+var make_faces_faces = function(faces_vertices) {
+	let nf = faces_vertices.length;
+	let faces_faces = Array.from(Array(nf)).map(() => []);
+	let edgeMap = {};
+	faces_vertices.forEach((vertices_index, idx1) => {
+		if (vertices_index === undefined) return;
+		let n = vertices_index.length;
+		vertices_index.forEach((v1, i, vs) => {
+			let v2 = vs[(i + 1) % n];
+			if (v2 < v1) [v1, v2] = [v2, v1];
+			let key = v1 + " " + v2;
+			if (key in edgeMap) {
+				let idx2 = edgeMap[key];
+				faces_faces[idx1].push(idx2);
+				faces_faces[idx2].push(idx1);
+			} else {
+				edgeMap[key] = idx1;
+			}
+		}); 
+	});
+	return faces_faces;
+}
+
+var mark_moving_faces = function(faces_vertices, vertices_coords, faces_faces, faces_layer, face_idx) {
+	let marked = faces_vertices.map(() => false);
+	marked[face_idx] = true;
+	let to_process = [face_idx];
+	let process_idx = 0;
+	let faces_points = faces_vertices.map((vertices_index) => {
+    if (vertices_index === undefined) {
+      return undefined;
+    }
+    return vertices_index.map(i => vertices_coords[i]);
+	})
+	while (process_idx < to_process.length) {
+		// pull face off queue
+		let idx1 = to_process[process_idx];
+		process_idx += 1;
+		// add all unmarked above-overlapping faces to queue
+		faces_vertices.forEach((vertices_index, idx2) => {
+			if (!marked[idx2] && ((faces_layer[idx2] > faces_layer[idx1]))) {
+        if (faces_points[idx1] !== undefined && faces_points[idx2] !== undefined) {
+          if (overlaps(faces_points[idx1], faces_points[idx2])) {
+            marked[idx2] = true;
+            to_process.push(idx2);
+          }
+        }
+			}
+		});
+		// add all unmarked adjacent faces to queue
+		faces_faces[idx1].forEach((idx2) => {
+			if (!marked[idx2]) {
+				marked[idx2] = true;
+				to_process.push(idx2);
+			}
+		});
+	}
+	return marked;
+}
+
 // layerOrder      - original fold file
 // faces_vertices  - original fold file
 // sides_faces_vertices - from clip_faces_.. function
@@ -263,13 +324,6 @@ var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_verti
 	var compiled_faces_layer = faces_layer.slice().concat(new_faces_layer_end_sorted);
 	var compiled_faces_matrix = faces_matrix.slice().concat(new_faces_matrix_end);
 
-	// clean isolated vertices
-	// (compiled_faces_vertices, compiled_faces_layer)
-	// var cleanResult = clean_isolated_vertices(
-	//  { vertices_coords: compiled_faces_vertices, 
-	//    faces_vertices: compiled_faces_layer
-	//  });
-
 	return {
 		'faces_vertices': compiled_faces_vertices,
 		'faces_layer':    compiled_faces_layer,
@@ -324,68 +378,6 @@ var top_face_under_point = function(
 }
 
 
-// make faces_faces
-var make_faces_faces = function(faces_vertices) {
-	let nf = faces_vertices.length;
-	let faces_faces = Array.from(Array(nf)).map(() => []);
-	let edgeMap = {};
-	faces_vertices.forEach((vertices_index, idx1) => {
-		if (vertices_index === undefined) return;
-		let n = vertices_index.length;
-		vertices_index.forEach((v1, i, vs) => {
-			let v2 = vs[(i + 1) % n];
-			if (v2 < v1) [v1, v2] = [v2, v1];
-			let key = v1 + " " + v2;
-			if (key in edgeMap) {
-				let idx2 = edgeMap[key];
-				faces_faces[idx1].push(idx2);
-				faces_faces[idx2].push(idx1);
-			} else {
-				edgeMap[key] = idx1;
-			}
-		}); 
-	});
-	return faces_faces;
-}
-
-var mark_moving_faces = function(faces_vertices, vertices_coords, faces_layer, face_idx) {
-	let faces_faces = make_faces_faces(faces_vertices);
-	let marked = faces_vertices.map(() => false);
-	marked[face_idx] = true;
-	let to_process = [face_idx];
-	let process_idx = 0;
-	let faces_points = faces_vertices.map((vertices_index) => {
-    if (vertices_index === undefined) {
-      return undefined;
-    }
-    return vertices_index.map(i => vertices_coords[i]);
-	})
-	while (process_idx < to_process.length) {
-		// pull face off queue
-		let idx1 = to_process[process_idx];
-		process_idx += 1;
-		// add all unmarked above-overlapping faces to queue
-		faces_vertices.forEach((vertices_index, idx2) => {
-			if (!marked[idx2] && ((faces_layer[idx2] > faces_layer[idx1]))) {
-        if (faces_points[idx1] !== undefined && faces_points[idx2] !== undefined) {
-          if (overlaps(faces_points[idx1], faces_points[idx2])) {
-            marked[idx2] = true;
-            to_process.push(idx2);
-          }
-        }
-			}
-		});
-		// add all unmarked adjacent faces to queue
-		faces_faces[idx1].forEach((idx2) => {
-			if (!marked[idx2]) {
-				marked[idx2] = true;
-				to_process.push(idx2);
-			}
-		});
-	}
-	return marked;
-}
-
 var faces_vertices_to_edges = function (mesh) {
 	var edge, edgeMap, face, i, key, ref, v1, v2, vertices;
 	mesh.edges_vertices = [];
@@ -394,6 +386,9 @@ var faces_vertices_to_edges = function (mesh) {
 	mesh.edges_assignment = [];
 	edgeMap = {};
 	ref = mesh.faces_vertices;
+	console.log("faces_vertices_to_edges");
+	console.log(ref);
+	console.log(ref.length);
 	for (face in ref) {
 		vertices = ref[face];
 		face = parseInt(face);
@@ -454,14 +449,25 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	console.log(sides_faces);
 	console.log(sides_faces[touched]);
 
+	// convert undefineds into empty arrays
+	let containss = [0,1]
+		.map(s => sides_faces[touched][s] == undefined ? [] : sides_faces[touched][s]) 
+		.map(points => points.map(f => new_vertices_coords[f]))
+		.map(f => contains(f, point))
+		console.log(containss);
+
 	let side = [0,1]
-		.map(s => sides_faces[touched][s].map(f => new_vertices_coords[f]))
+		.map(s => sides_faces[touched][s] == undefined ? [] : sides_faces[touched][s]) 
+		.map(points => points.map(f => new_vertices_coords[f]))
 		.map(f => contains(f, point))
 		.indexOf(true)
+
+	let faces_faces = make_faces_faces(sides_faces.map(f => f[side]));
 
 	let faces_mark = mark_moving_faces(
 		sides_faces.map(f => f[side]),
 		new_vertices_coords,
+		faces_faces,
 		fold.faces_layer,
 		touched
 	);
@@ -475,8 +481,15 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		fold.faces_matrix);
 	new_fold.vertices_coords = new_vertices_coords;
 
-	console.log("+++++++++++")
-	console.log(new_fold.faces_vertices);
+	// clean isolated vertices
+	// (compiled_faces_vertices, compiled_faces_layer)
+	// var cleanResult = clean_isolated_vertices(
+	//  { vertices_coords: compiled_faces_vertices, 
+	//    faces_vertices: compiled_faces_layer
+	//  });
+
+
+	console.log("+++++++++++", new_fold.faces_vertices);
 
 	var faces_layer, vertices_coords;
 	({vertices_coords, faces_layer} = reflect_across_fold(
@@ -488,44 +501,35 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	faces_vertices_to_edges(new_fold);
 
-	///////////////////////////////////////////////
-	// needs to do this
-	let inverseMatrix = new_fold.faces_matrix.map(n => Matrix.inverse(n))
+	// copy new vertices over to crease pattern, inverse matrix transform
+	let inverseMatrices = new_fold.faces_matrix.map(n => Matrix.inverse(n))
 	// for every vertex, give me an index to a face which it's found in
-	let vertexFoundInFace = new_vertices_coords.map(v => -1).map((v,i) => {
+	let vertex_in_face = new_fold.vertices_coords.map(v => -1).map((v,i) => {
 		for(var f = 0; f < new_fold.faces_vertices.length; f++){
 			if(new_fold.faces_vertices[f].includes(i)){ return f; }
 		}
 	});
-	let new_vertices_coords_cp = vertices_coords.map((point,i) =>
-		transform_point(point, inverseMatrix[vertexFoundInFace[i]]).map((n) => 
+	
+	console.log("vertex_in_face", vertex_in_face);
+	let new_vertices_coords_cp = new_fold.vertices_coords.map((point,i) =>
+		transform_point(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
 			clean_number(n)
 		)
 	)
 
-///////////////////////////////////////////////
-	console.log("clippedLines");
-	console.log(clippedLines);
-	console.log("newVertices");
-	console.log(newVertices);
-	console.log("new_vertices_coords");
-	console.log(new_vertices_coords);
-	console.log("facesSubstitutions");
-	console.log(facesSubstitutions);
-	console.log("sides_faces");
-	console.log(sides_faces);
-	console.log("touched");
-	console.log(touched);
-	console.log("side");
-	console.log(side);
-	console.log("faces_mark");
-	console.log(faces_mark);
-	console.log("new_fold");
-	console.log(new_fold);
-	console.log("new_vertices_coords");
-	console.log(new_vertices_coords);
-	console.log("vertexFoundInFace");
-	console.log(vertexFoundInFace);
+	///////////////////////////////////////////////
+	console.log("clippedLines", clippedLines);
+	console.log("newVertices", newVertices);
+	console.log("new_vertices_coords", new_vertices_coords);
+	console.log("facesSubstitutions", facesSubstitutions);
+	console.log("sides_faces", sides_faces);
+	console.log("touched", touched);
+	console.log("side", side);
+	console.log("faces_mark", faces_mark);
+	console.log("new_fold", new_fold);
+	console.log("new_vertices_coords", new_vertices_coords);
+	console.log("vertex_in_face", vertex_in_face);
+	///////////////////////////////////////////////
 
 
 	// we don't want to completely overwrite the file. bring along some metadata and replace when necessary

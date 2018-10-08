@@ -15,6 +15,7 @@ export function clean_number(num, decimalPlaces = 15){
 
 /** is a point inside of a polygon, including along the boundary within epsilon */
 export function contains(poly, point, epsilon = 0.0000000001){
+	if(poly == undefined || !(poly.length > 0)){ return false; }
 	return poly.map( (p,i,arr) => {
 		let nextP = arr[(i+1)%arr.length];
 		let a = [ nextP[0]-p[0], nextP[1]-p[1] ];
