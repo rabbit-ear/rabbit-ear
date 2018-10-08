@@ -449,13 +449,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	console.log(sides_faces);
 	console.log(sides_faces[touched]);
 
-	// convert undefineds into empty arrays
-	let containss = [0,1]
-		.map(s => sides_faces[touched][s] == undefined ? [] : sides_faces[touched][s]) 
-		.map(points => points.map(f => new_vertices_coords[f]))
-		.map(f => contains(f, point))
-		console.log(containss);
-
+	// convert undefined to empty array
 	let side = [0,1]
 		.map(s => sides_faces[touched][s] == undefined ? [] : sides_faces[touched][s]) 
 		.map(points => points.map(f => new_vertices_coords[f]))
