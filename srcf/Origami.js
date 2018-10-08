@@ -157,7 +157,7 @@ let make_new_vertices_coords = function(vertices_coords, newVertices){
 /** 
  * build new faces around new vertices
  */
-var make_faces_substitution = function(faces_vertices, clipLines, newVertices){
+var make_new_face_mapping = function(faces_vertices, clipLines, newVertices){
 	// these will depricate the entries listed below, requiring rebuild:
 	//   "vertices_vertices", "vertices_faces"
 	//   "edges_faces", "edges_assignment", "edges_foldAngle", "edges_length"
@@ -166,7 +166,7 @@ var make_faces_substitution = function(faces_vertices, clipLines, newVertices){
 	let edgesCrossed = {};
 	newVertices.forEach(newV => edgesCrossed[newV.edges.join(" ")] = newV)
 
-	let facesSubstitutions = faces_vertices.map(arr => [arr, undefined]);
+	let new_face_map = faces_vertices.map(arr => [arr, undefined]);
 	Object.keys(clipLines).forEach( s => {
 		let faceIndex = parseInt(s);
 		var newFacePair = [ [], [] ]
@@ -184,9 +184,9 @@ var make_faces_substitution = function(faces_vertices, clipLines, newVertices){
 				newFacePair[rightLeft].push(nextVertex)
 			}
 		})
-		facesSubstitutions[faceIndex] = newFacePair;
+		new_face_map[faceIndex] = newFacePair;
 	});
-	return facesSubstitutions;
+	return new_face_map;
 }
 
 var sortTwoFacesBySide = function(twoFaces, vertices_coords, linePoint, lineVector){
@@ -268,10 +268,125 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_faces, f
 
 // layerOrder      - original fold file
 // faces_vertices  - original fold file
-// sides_faces_vertices - from clip_faces_.. function
-// faces_mark      - boolean if a face in sides_faces_vertices should move
-// whichSide       - which side of the sides_faces_vertices we're moving
-var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_vertices, faces_mark, whichSideMoves, faces_matrix){
+// new_face_map    - from clip_faces_.. function
+// faces_mark      - boolean if a face in new_face_map should move
+// whichSide       - which side of the new_face_map we're moving
+var reconstitute_faces = function(faces_vertices, faces_layer, new_face_map, faces_mark, whichSideMoves, faces_matrix){
+	// for each level there are 4 cases:
+	//  1. do not move: clipping ignored. original face restored. new_face_map ignored.
+	//  2. move and clipping occured: split faces, move one face (to top layer)
+	//  3. move without clipping: face was on one side and it either
+	//     3a. moves  3b. stays
+
+	let new_faces_vertices = faces_vertices.slice()
+	// let new_faces_vertices_top = [];
+	let new_faces_matrix = faces_matrix.slice(); // 1:1 with new_faces_vertices
+	// let new_faces_matrix_top = [];
+	let new_faces_layer = faces_layer.slice();  // independent of new_faces_vertices
+	let unmovedLayers = new_faces_layer.length;
+		// let new_faces_layer_top = [];
+	// let layer_flip_index = faces_layer.length;
+	let top_layer_map = []; // {face:_, layer:_}
+
+	faces_mark.forEach((shouldMove,i) => {
+		// if face was split into 2 faces by crease, oneSided will be -1
+		//  otherwise it will be the index of the missing side.
+		let oneSided = new_face_map[i].indexOf(undefined);
+		if (!shouldMove) {
+			// technically we don't need to do anything
+			// new_faces_vertices.push(faces_vertices[i]);
+			// new_faces_layer.push(i);
+			// new_faces_matrix.push(faces_matrix[i]);
+		}
+		if (oneSided !== -1) {
+			// edge is fully on the stay side 
+			if(oneSided === whichSideMoves){
+				// undefined side == moving side (face is staying)
+				// technically again, we don't need to do anything
+			}
+			// edge is fully on the move side
+			else{
+				top_layer_map.push( {face:i, layer:new_faces_layer[i]} );
+				new_faces_layer[i] = undefined;
+				unmovedLayers -= 1;
+				// new_faces_layer = new_faces_layer.filter(l => l != i);
+				// new_top_layer.push(i)
+				// new_faces_layer_top.push(i);
+				// layer_flip_index -= 1; // move the flip index down by one
+			}
+		}
+		if(oneSided === -1 && shouldMove === true){
+			let movingFace = new_face_map[i][whichSideMoves];
+			let stayingFace = new_face_map[i][(whichSideMoves+1)%2];
+			console.log("moving", movingFace);
+			console.log("staying", stayingFace);
+			new_faces_vertices[i] = stayingFace;
+			// add a new face to the end
+			new_faces_vertices.push(movingFace);
+			new_faces_matrix.push( faces_matrix[i].slice() ); 
+			top_layer_map.push( {face:new_faces_vertices.length-1, layer:new_faces_layer[i]} );
+			// new_faces_layer.push( new_faces_vertices.length-1 ); // new face index
+			// matrix is a copy of parent. we will modify it during reflection step
+		}
+	});
+
+	let bottom_layer_map = new_faces_layer
+		.map((layer, i) => ({layer:layer, face:i}))
+		.filter(obj => obj.layer != undefined)
+		.sort((a,b) => a.layer-b.layer)
+		.map((obj,j) => {obj.layer = j; return obj;})
+	let maxLayer = bottom_layer_map[bottom_layer_map.length-1].layer;
+
+	top_layer_map
+		.sort((a,b) => a.layer-b.layer)
+		.forEach((obj,i) => {obj.old_layer = obj.layer; obj.layer = maxLayer+1+i;})
+
+
+	console.log("maps");
+	console.log(bottom_layer_map);
+	console.log(top_layer_map);
+
+	// var originalLayerMax = faces_layer.length
+	// var new_faces_layer_end_sorted = new_faces_layer_end.map((value, i) => ({value, i}))
+	// new_faces_layer_end_sorted.sort( (a,b) => a.value-b.value)
+	// var shuffle_order = new_faces_layer_end_sorted.map(a => a.i)
+	// new_faces_layer_end_sorted.forEach((a,i) => a.value = i + originalLayerMax)
+	// new_faces_layer_end_sorted.sort( (a,b) => a.i-b.i)
+	// new_faces_layer_end_sorted = new_faces_layer_end_sorted.map(a => a.value)
+	new_faces_layer = new_faces_layer.map(e => -1)
+
+	console.log("=========");
+
+	console.log(new_faces_layer.slice());
+
+	bottom_layer_map.forEach(obj => new_faces_layer[obj.face] = obj.layer)
+
+	console.log(new_faces_layer.slice());
+
+	top_layer_map.forEach(obj => new_faces_layer[obj.face] = obj.layer)
+
+	console.log(new_faces_layer.slice());
+
+	// some faces didn't split but still moved layers.
+	// their old locations became undefined
+	// var compiled_faces_vertices = new_faces_vertices.concat(new_faces_vertices_end);
+	// var compiled_faces_layer = new_faces_layer.slice().concat(new_faces_layer_end_sorted);
+	// var compiled_faces_matrix = new_faces_matrix.slice().concat(new_faces_matrix_end);
+
+	// return {
+	// 	'faces_vertices': compiled_faces_vertices,
+	// 	'faces_layer':    compiled_faces_layer,
+	// 	'faces_matrix':   compiled_faces_matrix
+	// }
+
+	return {
+		'faces_vertices': new_faces_vertices,
+		'faces_matrix':   new_faces_matrix,
+		'faces_layer':    new_faces_layer,
+		'unmoved_layers': unmovedLayers
+	}
+
+	/*
 	// build a layer order array while the face array
 	// making the new extene dface array, put the layer order of the face it came from
 	// for extended layer array: 
@@ -285,24 +400,63 @@ var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_verti
 	let new_faces_layer_end = [];
 	let new_faces_matrix = faces_matrix.slice();
 	let new_faces_matrix_end = [];
+	console.log("++++++++++++++ BEFORE reconstitute_faces");
+	console.log(faces_vertices.length, faces_vertices);
+	console.log(faces_layer.length, faces_layer);
 	faces_mark.forEach((shouldMove,i) => {
-		if(!shouldMove){ 
-			// not folding this face, revert back to original joined face
+		let options = new_face_map[i].filter(a => a != undefined)
+		console.log("round", i);
+		if (!shouldMove) {
+			console.log("++ no clip, not moving");
+			// not creasing through this face, revert back to original joined face
 			new_faces_vertices.push(faces_vertices[i]);
+			console.log(faces_vertices[i]);
 		}
-		else{
+		else if (options.length == 1) {
+			if(new_face_map[i][whichSideMoves] == undefined){
+				console.log("++ no clip, yes staying");
+				console.log("!!!! THIS SHOULD NOT BE CALLED");
+				// let stayingFace = new_face_map[i][(whichSideMoves+1)%2];
+				// console.log(stayingFace);
+				// new_faces_vertices.push(stayingFace);
+			} else{
+				console.log("++ no clip, yes moving");
+				let movingFace = new_face_map[i][whichSideMoves];
+				console.log(movingFace);
+				new_faces_vertices.push(movingFace);
+				// new_faces_vertices_end.push(movingFace);
+				new_faces_layer_end.push( new_faces_layer[i] );
+				// copy over parent face's matrix, we will modify it during reflection step
+				new_faces_matrix_end.push( faces_matrix[i] );
+				// we are moving an un-cut face to the other side
+				// we have to remove its old location in the layer stack and matrix
+				new_faces_layer[i] = undefined;
+				new_faces_matrix[i] = undefined;
+			}
+		}
+		else {
+			console.log("++ yes clipping and moving");
 			// yes, we are using this face
 			// staying face goes in the same place
-			let stayingFace = sides_faces_vertices[i][(whichSideMoves+1)%2];
-			new_faces_vertices.push(stayingFace);
+			let stayingFace = new_face_map[i][(whichSideMoves+1)%2];
+			console.log("staying", stayingFace);
+			if(stayingFace != undefined){ new_faces_vertices.push(stayingFace); }
 			// moving face goes at the end of the array (temporarily in new array)
-			let movingFace = sides_faces_vertices[i][whichSideMoves];
-			new_faces_vertices_end.push(movingFace);
-			new_faces_layer_end.push( new_faces_layer[i] );
-			// copy over parent face's matrix, we will modify it during reflection step
-			new_faces_matrix_end.push( faces_matrix[i] ); 
+			let movingFace = new_face_map[i][whichSideMoves];
+			console.log("moving", movingFace);
+			if(movingFace != undefined){
+				new_faces_vertices_end.push(movingFace);
+				new_faces_layer_end.push( new_faces_layer[i] );
+				// copy over parent face's matrix, we will modify it during reflection step
+				new_faces_matrix_end.push( faces_matrix[i] ); 
+			}
 		}
 	})
+	console.log("============== AFTER reconstitute_faces");
+	console.log(faces_vertices.length, faces_vertices);
+	console.log(new_faces_vertices.length, new_faces_vertices);
+	console.log(faces_layer.length, faces_layer);
+	console.log(new_faces_layer.length, new_faces_layer);
 
 	var originalLayerMax = faces_layer.length
 	var new_faces_layer_end_sorted = new_faces_layer_end.map((value, i) => ({value, i}))
@@ -320,15 +474,33 @@ var reconstitute_faces = function(faces_vertices, faces_layer, sides_faces_verti
 	new_faces_matrix_end.sort( (a,b) => a.i-b.i)
 	new_faces_matrix_end = new_faces_matrix_end.map(a => a.value)
 
+	// some faces didn't split but still moved layers.
+	// their old locations became undefined
+	new_faces_layer = new_faces_layer.filter(layer => layer != undefined)
+	new_faces_matrix = new_faces_matrix.filter(matrix => matrix != undefined)
+
 	var compiled_faces_vertices = new_faces_vertices.concat(new_faces_vertices_end);
-	var compiled_faces_layer = faces_layer.slice().concat(new_faces_layer_end_sorted);
-	var compiled_faces_matrix = faces_matrix.slice().concat(new_faces_matrix_end);
+	var compiled_faces_layer = new_faces_layer.slice().concat(new_faces_layer_end_sorted);
+	var compiled_faces_matrix = new_faces_matrix.slice().concat(new_faces_matrix_end);
+
+	// convert [5,3,0,2] into [3,2,0,1]
+	var compiled_faces_layer = compiled_faces_layer
+		.map((value, i) => ({value:value, i:i}))
+		.sort((a,b) => a.value-b.value)
+		.map((obj,j) => {obj.value = j; return obj;})
+		.sort((a,b) => a.i-b.i)
+		.map((a) => a.value)
+
+	console.log("FINISHED -->");
+	console.log(compiled_faces_vertices);
 
 	return {
 		'faces_vertices': compiled_faces_vertices,
 		'faces_layer':    compiled_faces_layer,
-		'faces_matrix':    compiled_faces_matrix
+		'faces_matrix':   compiled_faces_matrix
 	}
+
+	*/
 }
 
 var reflect_across_fold = function(foldFile, arrayIndex, linePoint, lineVector){
@@ -357,7 +529,8 @@ var reflect_across_fold = function(foldFile, arrayIndex, linePoint, lineVector){
 
 	return {
 		'faces_layer': top_layer.concat(bottom_layer),
-		'vertices_coords': foldFile.vertices_coords
+		'vertices_coords': foldFile.vertices_coords,
+		'faces_matrix': foldFile.faces_matrix
 	}
 }
 
@@ -429,51 +602,79 @@ var faces_vertices_to_edges = function (mesh) {
 	return mesh;
 };
 
+// assumes point not on line
 var split_folding_faces = function(fold, linePoint, lineVector, point) {
-	// assumes point not on line
+
+	// find which face index (layer) the user touched
+	let tap = top_face_under_point(fold, point);
+	if (tap == undefined) { return undefined; }
 
 	// keys are faces with vals: {clip: [[x,y],[x,y]], collinear:[[i,j],[k,l]] }
 	let clippedLines = clip_line_in_faces(fold, linePoint, lineVector);
+	
 	// array of objects: {edges:[i,j], face:f, point:[x,y]}
 	let newVertices = get_new_vertices(fold, clippedLines);
+	
+	// create a new .fold vertices_coords with new data appended to the end
 	let new_vertices_coords = make_new_vertices_coords(fold.vertices_coords, newVertices);
-	let facesSubstitutions = make_faces_substitution(fold.faces_vertices, clippedLines, newVertices)
-	let sides_faces = facesSubstitutions.map(subs =>
-		sortTwoFacesBySide(subs, new_vertices_coords, linePoint, lineVector)
-	)
 
-	let touched = top_face_under_point(fold, point);
-	if (touched === undefined) { return undefined; }
+	// walk faces. generate two new faces for every cut face
+	// sort these new face-pairs by which side of the line they are.
+	let new_face_map = make_new_face_mapping(fold.faces_vertices,
+			clippedLines, newVertices).map((subs) =>
+			sortTwoFacesBySide(subs, new_vertices_coords, linePoint, lineVector)
+		)
 
 	console.log("------------------");
-	console.log(sides_faces);
-	console.log(sides_faces[touched]);
+	console.log("1. tap", tap);
+	console.log("2. clippedLines", clippedLines);
+	console.log("3. newVertices", newVertices);
+	console.log("4. new_vertices_coords", new_vertices_coords);
+	console.log("5. new_face_map", new_face_map);
 
-	// convert undefined to empty array
+	// convert undefined to empty array to convert face indices to face point geometry
 	let side = [0,1]
-		.map(s => sides_faces[touched][s] == undefined ? [] : sides_faces[touched][s]) 
+		.map(s => new_face_map[tap][s] == undefined ? [] : new_face_map[tap][s]) 
 		.map(points => points.map(f => new_vertices_coords[f]))
 		.map(f => contains(f, point))
 		.indexOf(true)
 
-	let faces_faces = make_faces_faces(sides_faces.map(f => f[side]));
+	// make face-adjacent faces on only a subset, the side we clicked on
+	let faces_faces = make_faces_faces(new_face_map.map(f => f[side]));
+
+	console.log("6. side", side);
+	console.log("7. faces_faces", faces_faces);
 
 	let faces_mark = mark_moving_faces(
-		sides_faces.map(f => f[side]),
+		new_face_map.map(f => f[side]),
 		new_vertices_coords,
 		faces_faces,
 		fold.faces_layer,
-		touched
+		tap
 	);
 
-	let new_fold = reconstitute_faces(
+	console.log("8. faces_mark", faces_mark);
+
+
+	let faces_vertices, faces_matrix, faces_layer, unmoved_layers;
+	({
+		faces_vertices, faces_matrix, faces_layer, unmoved_layers
+	} = reconstitute_faces(
 		fold.faces_vertices,
 		fold.faces_layer,
-		sides_faces,
+		new_face_map,
 		faces_mark,
 		side,
-		fold.faces_matrix);
-	new_fold.vertices_coords = new_vertices_coords;
+		fold.faces_matrix));
+
+	let new_fold = {
+		vertices_coords: new_vertices_coords,
+		faces_vertices: faces_vertices,
+		faces_matrix: faces_matrix,
+		faces_layer: faces_layer
+	};
+
+	console.log("9. new_fold", new_fold);
 
 	// clean isolated vertices
 	// (compiled_faces_vertices, compiled_faces_layer)
@@ -483,11 +684,13 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	//  });
 
 
-	console.log("+++++++++++", new_fold.faces_vertices);
+	var vertices_coords;
+	({vertices_coords, faces_layer, faces_matrix} = reflect_across_fold(
+		new_fold, unmoved_layers, linePoint, lineVector));
 
-	var faces_layer, vertices_coords;
-	({vertices_coords, faces_layer} = reflect_across_fold(
-		new_fold, fold.faces_layer.length, linePoint, lineVector));
+
+	console.log("10. faces_layer", faces_layer);
+	console.log("11. vertices_coords", vertices_coords);
 
 	new_fold.vertices_coords = vertices_coords;
 	new_fold.faces_layer = faces_layer;
@@ -504,26 +707,13 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		}
 	});
 	
-	console.log("vertex_in_face", vertex_in_face);
+	console.log("12. vertex_in_face", vertex_in_face);
+
 	let new_vertices_coords_cp = new_fold.vertices_coords.map((point,i) =>
 		transform_point(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
 			clean_number(n)
 		)
 	)
-
-	///////////////////////////////////////////////
-	console.log("clippedLines", clippedLines);
-	console.log("newVertices", newVertices);
-	console.log("new_vertices_coords", new_vertices_coords);
-	console.log("facesSubstitutions", facesSubstitutions);
-	console.log("sides_faces", sides_faces);
-	console.log("touched", touched);
-	console.log("side", side);
-	console.log("faces_mark", faces_mark);
-	console.log("new_fold", new_fold);
-	console.log("new_vertices_coords", new_vertices_coords);
-	console.log("vertex_in_face", vertex_in_face);
-	///////////////////////////////////////////////
 
 
 	// we don't want to completely overwrite the file. bring along some metadata and replace when necessary
@@ -547,6 +737,8 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		"inherit": true,
 		"vertices_coords": new_vertices_coords_cp
 	}];
+
+	console.log("13. new_fold", new_fold);
 
 	// let faces_vertices;
 	// ({vertices_coords, faces_vertices} = clean_isolated_vertices(new_fold));
