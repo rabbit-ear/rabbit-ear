@@ -315,52 +315,52 @@ var reconstitute_faces = function(faces_vertices, faces_layer, new_face_map, fac
 	let new_faces_layer = faces_layer.slice(); // don't append to this
 	let top_layer_map = []; // {face:_, layer:_}
 	let stay_layers = new_faces_layer.length; // which layer # divides stay/fold
-	faces_mark.forEach((shouldMove,i) => {
-		let oneSided = new_face_map[i].indexOf(undefined);
-		// one face is fully on one side of the line
-		if (oneSided !== -1) {
-			if(oneSided !== whichSideMoves){
-				top_layer_map.push( {face:i, layer:new_faces_layer[i]} );
-				new_faces_layer[i] = undefined;
-				stay_layers -= 1;
-			}
-			// if face is fully on the stay side no need to do anything.
-		}
-		// face is split and folded by crease line
-		if(oneSided === -1 && shouldMove === true){
-			let movingFace = new_face_map[i][whichSideMoves];
-			let stayingFace = new_face_map[i][(whichSideMoves+1)%2];
-			new_faces_vertices[i] = stayingFace;
-			// add a new face to the end
-			new_faces_vertices.push(movingFace);
-			top_layer_map.push({
-				old_face: i,
-				face: new_faces_vertices.length-1,
-				layer:new_faces_layer[i]
-			});
-		}
-	});
+
+	let faces_mark_i = faces_mark.map((mark,i) => ({mark:mark, i:i}))
+
+	let stay_faces = faces_mark.map((mark,i) => {
+		if(mark){ return new_face_map[i][(whichSideMoves+1)%2]; }
+		else { return faces_vertices[i]; }
+	}).map((verts,i) => {
+		if(verts != undefined){ return {old_face:i, old_layer:faces_layer[i], new_vertices:verts}; }
+	}).filter(el => el != undefined)
+
+	let move_faces = faces_mark_i
+		.filter(obj => obj.mark)
+		.map(obj =>
+		 ({old_face:obj.i, old_layer:faces_layer[obj.i], new_vertices:new_face_map[obj.i][whichSideMoves]})
+	)
+	return {stay_faces, move_faces};
+}
+
+// this modifies argument objects
+var valley_fold_faces = function(stay_faces, move_faces){
 	// top/bottom layer maps. new faces, new layers, and where they came from
 	// some faces have bubbled to the top, layers need to decrement to take their place
-	let bottom_layer_map = new_faces_layer
-		.map((layer, i) => ({layer:layer, face:i}))
-		.filter(obj => obj.layer != undefined)  // the faces that have bubbled up
-		.sort((a,b) => a.layer-b.layer)
-		.map((obj,j) => {obj.layer = j; return obj;})
+	stay_faces.forEach((obj,i) => obj.i = i);
+	move_faces.forEach((obj,i) => obj.i = i);
+	stay_faces.sort((a,b) => a.old_layer - b.old_layer)
+		.forEach((obj,j) => obj.new_layer = j);
 	// give me the top-most layer
-	let maxLayer = bottom_layer_map[bottom_layer_map.length-1].layer;
 	// give layer numbers to the new faces
-	top_layer_map
-		.sort((a,b) => a.layer-b.layer)
-		.forEach((obj,i) => {obj.old_layer = obj.layer; obj.layer = maxLayer+1+i;})
-	// build new_faces_layer from bottom/top maps
-	new_faces_layer = new_faces_layer.map(e => undefined);
-	bottom_layer_map.forEach(obj => new_faces_layer[obj.face] = obj.layer);
-	top_layer_map.forEach(obj => new_faces_layer[obj.face] = obj.layer);
+	move_faces.sort((a,b) => a.old_layer - b.old_layer)
+		.forEach((obj,j) => obj.new_layer = j + stay_faces.length);
+	// we really don't need to do this. put faces back in original order
+	stay_faces.sort((a,b) => a.i - b.i);
+	move_faces.sort((a,b) => a.i - b.i);
+	stay_faces.forEach(obj => delete obj.i);
+	move_faces.forEach(obj => delete obj.i);
+	// give new face ids
+	stay_faces.forEach((obj,i) => obj.new_face = i);
+	move_faces.forEach((obj,i) => obj.new_face = i + stay_faces.length);
+	// perform a valley fold
+	let stay_faces_vertices = stay_faces.map(obj => obj.new_vertices)
+	let move_faces_vertices = move_faces.map(obj => obj.new_vertices)
+	let stay_faces_layer = stay_faces.map(obj => obj.new_layer)
+	let move_faces_layer = move_faces.map(obj => obj.new_layer)
 	return {
-		'faces_vertices': new_faces_vertices,
-		'faces_layer':    new_faces_layer,
-		'stay_layers':    stay_layers
+		'faces_vertices': stay_faces_vertices.concat(move_faces_vertices),
+		'faces_layer': stay_faces_layer.concat(move_faces_layer)
 	}
 }
 
@@ -484,9 +484,15 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	// mark which faces are going to be moving based on a valley fold
 	let faces_mark = mark_moving_faces(moving_side, new_vertices_coords, 
 		faces_faces, fold.faces_layer, tap);
-	// split faces at the fold line. adjust z-order bubble moving faces to top
-	let new_layer_data = reconstitute_faces(fold.faces_vertices,
-		fold.faces_layer, new_face_map, faces_mark, side);
+
+	// split faces at the fold line. 
+	let stay_faces, move_faces;
+	({stay_faces, move_faces} = reconstitute_faces(fold.faces_vertices,
+		fold.faces_layer, new_face_map, faces_mark, side));
+
+	// compile layers back into arrays, bubble moving faces to top z-order
+	let stay_layers = stay_faces.length;
+	let new_layer_data = valley_fold_faces(stay_faces, move_faces);
 
 	// clean isolated vertices
 	// (compiled_faces_vertices, compiled_faces_layer)
@@ -496,7 +502,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	// flip points across the fold line, 
 	let reflected = reflect_across_fold(cleaned.vertices_coords,
 		cleaned.faces_vertices, new_layer_data.faces_layer,
-		new_layer_data.stay_layers, linePoint, lineVector);
+		stay_layers, linePoint, lineVector);
 
 	// for every vertex, give me an index to a face which it's found in
 	let vertex_in_face = reflected.vertices_coords.map((v,i) => {
@@ -515,21 +521,6 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 			clean_number(n)
 		)
 	)
-
-	// console.log("------------------");
-	// console.log("1. tap", tap);
-	// console.log("2. clippedLines", clippedLines);
-	// console.log("3. newVertices", newVertices);
-	// console.log("4. new_vertices_coords", new_vertices_coords);
-	// console.log("5. new_face_map", new_face_map);
-	// console.log("6. side", side);
-	// console.log("7. faces_faces", faces_faces);
-	// console.log("8. faces_mark", faces_mark);
-	// console.log("9. new_fold", new_fold);
-	// console.log("10. faces_layer", faces_layer);
-	// console.log("11. vertices_coords", vertices_coords);
-	// console.log("12. vertex_in_face", vertex_in_face);
-	// console.log("13. faces_matrix", faces_matrix);
 
 	// create new fold file
 	let new_fold = {
@@ -560,6 +551,23 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		"inherit": true,
 		"vertices_coords": new_vertices_coords_cp
 	}];
+
+	// console.log("------------------");
+	// console.log("1. tap", tap);
+	// console.log("2. clippedLines", clippedLines);
+	// console.log("3. newVertices", newVertices);
+	// console.log("4. new_vertices_coords", new_vertices_coords);
+	// console.log("5. new_face_map", new_face_map);
+	// console.log("6. side", side);
+	// console.log("7. faces_faces", faces_faces);
+	// console.log("8. faces_mark", faces_mark);
+	// console.log("9. new_layer_data", new_layer_data);
+	// console.log("9. faces_layer", reflected.faces_layer);
+	// console.log("10. vertices_coords", new_fold.vertices_coords);
+	// console.log("11. vertex_in_face", vertex_in_face);
+	// console.log("12. faces_matrix", faces_matrix);
+	// console.log("13. new_fold", new_fold);
+
 	return new_fold;
 }
 
