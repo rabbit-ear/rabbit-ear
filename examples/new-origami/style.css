@@ -52,6 +52,9 @@ svg{
 	stroke-linecap: round;
 	stroke-linejoin: round;
 }
+.face-backside{
+	fill: rgba(0, 120, 255, 1.0);
+}
 .mountain{
 	stroke: hsl(14.4, 87%, 45%);
 	stroke-width: var(--crease-width);

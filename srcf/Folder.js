@@ -8,27 +8,6 @@
 
 import {clean_number, contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
 
-export const emptyFoldFile = {
-	"file_spec": 1.1,
-	"file_creator": "Rabbit Ear",
-	"file_author": "",
-	"file_classes": ["singleModel"],
-	"frame_attributes": ["2D"],
-	"frame_title": "",
-	"frame_classes": ["creasePattern"],
-	"vertices_coords": [[0,0], [1,0], [1,1], [0,1]],
-	"edges_vertices": [[0,1], [1,2], [2,3], [3,0]],
-	"edges_assignment": ["B","B","B","B"],
-	"faces_vertices": [[0,1,2,3]],
-	"faces_layer": [0],
-	"file_frames":[{
-		"frame_classes":["creasePattern"],
-		"frame_parent":0,
-		"inherit":true
-	}]
-};
-
-
 export function flattenFrame(fold_file, frame_num){
 	if(frame_num == undefined ||
 		 fold_file.file_frames == undefined ||
@@ -333,8 +312,8 @@ var reconstitute_faces = function(faces_vertices, faces_layer, new_face_map, fac
 	return {stay_faces, move_faces};
 }
 
-// this modifies argument objects
-var valley_fold_faces = function(stay_faces, move_faces){
+// argument objects stay_faces and move_faces are modified in place
+var sort_faces_valley_fold = function(stay_faces, move_faces){
 	// top/bottom layer maps. new faces, new layers, and where they came from
 	// some faces have bubbled to the top, layers need to decrement to take their place
 	stay_faces.forEach((obj,i) => obj.i = i);
@@ -492,7 +471,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	// compile layers back into arrays, bubble moving faces to top z-order
 	let stay_layers = stay_faces.length;
-	let new_layer_data = valley_fold_faces(stay_faces, move_faces);
+	let new_layer_data = sort_faces_valley_fold(stay_faces, move_faces);
 
 	// clean isolated vertices
 	// (compiled_faces_vertices, compiled_faces_layer)
@@ -522,12 +501,21 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		)
 	)
 
+	let faces_direction = cleaned.faces_vertices.map(f => true);
+	make_face_walk_tree(cleaned.faces_vertices, bottom_face)
+		.forEach((level,i) => level.forEach((f) => 
+			faces_direction[f.face] = i%2==0 ? true : false
+		))
+
 	// create new fold file
 	let new_fold = {
 		vertices_coords: reflected.vertices_coords,
 		faces_vertices: cleaned.faces_vertices,
 		faces_layer: reflected.faces_layer
 	};
+
+	new_fold.faces_direction = faces_direction;
+	
 	faces_vertices_to_edges(new_fold);
 
 	let headers = {

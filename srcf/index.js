@@ -1,6 +1,8 @@
 import SVG from "./SimpleSVG";
-import OrigamiView from "./OrigamiView";
-import * as Origami from "./Origami";
+import Origami from "./OrigamiView";
+import * as Folder from "./Folder";
 import FoldView from "./FoldView";
 
-export { OrigamiView, Origami, SVG, FoldView }
+window.Origami = Origami;
+
+export { Origami, Folder, SVG, FoldView }

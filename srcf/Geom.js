@@ -13,7 +13,7 @@ export function clean_number(num, decimalPlaces = 15){
 	return parseFloat(num.toFixed(decimalPlaces));
 }
 
-/** is a point inside of a polygon, including along the boundary within epsilon */
+/** is a point inside of a convex polygon, including along the boundary within epsilon */
 export function contains(poly, point, epsilon = 0.0000000001){
 	if(poly == undefined || !(poly.length > 0)){ return false; }
 	return poly.map( (p,i,arr) => {
@@ -33,7 +33,7 @@ export function collinear(edgeP0, edgeP1, point, epsilon = 0.0000000001){
 	return Math.abs(dEdge - dP0 - dP1) < epsilon
 }
 
-/** do two polygons overlap one another */
+/** do two convex polygons overlap one another */
 export function overlaps(ps1, ps2){
 	// convert array of points into edges [point, nextPoint]
 	let e1 = ps1.map((p,i,arr) => [p, arr[(i+1)%arr.length]] )

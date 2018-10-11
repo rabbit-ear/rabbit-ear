@@ -10,7 +10,8 @@
 "use strict";
 
 import SVG from "./SimpleSVG";
-import * as Origami from "./Origami"
+import * as Folder from "./Folder"
+import * as Bases from "./OrigamiBases"
 
 const CREASE_DIR = {
 	"B": "boundary",
@@ -28,7 +29,7 @@ export default class FoldView{
 		this.cp = args.filter(arg =>
 			typeof arg == "object" && arg.vertices_coords != undefined
 		).shift();
-		if(this.cp == undefined){ this.cp = Origami.emptyFoldFile; }
+		if(this.cp == undefined){ this.cp = Bases.unitSquare; }
 
 		// create a new SVG
 		this.svg = SVG.SVG();
@@ -124,7 +125,7 @@ export default class FoldView{
 		if(this.frame != undefined &&
 		   this.cp.file_frames[this.frame] != undefined &&
 		   this.cp.file_frames[this.frame].vertices_coords != undefined){
-			data = Origami.flattenFrame(this.cp, this.frame);
+			data = Folder.flattenFrame(this.cp, this.frame);
 		}
 		if(data.vertices_coords == undefined){ return; }
 		this.setViewBox();
@@ -142,6 +143,11 @@ export default class FoldView{
 		let faceOrder = (data.faces_layer != undefined)
 			? data.faces_layer.slice()
 			: data.faces_vertices.map((f,i) => i);
+
+		let facesDirection = (data.faces_direction != undefined)
+			? data.faces_direction.slice()
+			: data.faces_vertices.map((f,i) => true);
+
 		// clear layers
 		[this.boundary,
 		 this.faces,
@@ -157,8 +163,12 @@ export default class FoldView{
 			);
 		}
 		// faces
-		let faceClass = (this.isFoldedState() ? "face folded" : "face");
-		faceOrder.forEach(i => SVG.polygon(faces[i], faceClass, "face", this.faces));
+
+
+		faceOrder.forEach(i => {
+			let faceClass = (!this.isFoldedState() ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
+			SVG.polygon(faces[i], faceClass, "face", this.faces)
+		});
 		// faces.forEach(f => SVG.polygon(f, faceClass, "face", this.faces));
 	}
 
