@@ -65,7 +65,7 @@ export default class FoldView{
 		this.svg.appendChild(this.vertices);
 
 		// view properties
-		this.frame = undefined; // which frame (0 ..< Inf) to display 
+		this.frame = 0; // which frame (0 ..< Inf) to display 
 		this.zoom = 1.0;
 		this.padding = 0.01;  // padding inside the canvas
 		this.style = {
@@ -84,10 +84,10 @@ export default class FoldView{
 	}
 	setViewBox(){
 		let vertices = this.cp.vertices_coords;
-		if(this.frame != undefined &&
-		   this.cp.file_frames[this.frame] != undefined &&
-		   this.cp.file_frames[this.frame].vertices_coords != undefined){
-			vertices = this.cp.file_frames[this.frame].vertices_coords;
+		if(this.frame > 0 &&
+		   this.cp.file_frames[this.frame - 1] != undefined &&
+		   this.cp.file_frames[this.frame - 1].vertices_coords != undefined){
+			vertices = this.cp.file_frames[this.frame - 1].vertices_coords;
 		}
 		const unitBounds = { origin:{x:0,y:0}, size:{width:1, height:1} };
 		// calculate bounds
@@ -122,10 +122,10 @@ export default class FoldView{
 	draw(){
 		let data = this.cp;
 		// if a frame is set, copy data from that frame
-		if(this.frame != undefined &&
-		   this.cp.file_frames[this.frame] != undefined &&
-		   this.cp.file_frames[this.frame].vertices_coords != undefined){
-			data = Folder.flattenFrame(this.cp, this.frame);
+		if(this.frame > 0 &&
+		   this.cp.file_frames[this.frame - 1] != undefined &&
+		   this.cp.file_frames[this.frame - 1].vertices_coords != undefined){
+			data = Folder.flattenFrame(this.cp, this.frame - 1);
 		}
 		if(data.vertices_coords == undefined){ return; }
 		this.setViewBox();
@@ -221,10 +221,10 @@ export default class FoldView{
 	isFoldedState(){
 		if(this.cp == undefined || this.cp.frame_classes == undefined){ return false; }
 		let frame_classes = this.cp.frame_classes;
-		if(this.frame != undefined &&
-		   this.cp.file_frames[this.frame] != undefined &&
-		   this.cp.file_frames[this.frame].frame_classes != undefined){
-			frame_classes = this.cp.file_frames[this.frame].frame_classes;
+		if(this.frame > 0 &&
+		   this.cp.file_frames[this.frame - 1] != undefined &&
+		   this.cp.file_frames[this.frame - 1].frame_classes != undefined){
+			frame_classes = this.cp.file_frames[this.frame - 1].frame_classes;
 		}
 		// try to discern folded state
 		if(frame_classes.includes("foldedState")){

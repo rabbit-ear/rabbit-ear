@@ -1,4 +1,3 @@
-
 var origami = new Origami();
 
 // these are optional event handlers

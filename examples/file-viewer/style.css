@@ -13,6 +13,7 @@ svg{
 	height:45vmax;
 	max-height:80vh;
 	max-width:100vw;
+	margin:auto;
 }
 .row{
 	display: flex;
@@ -39,7 +40,15 @@ svg{
 	stroke-linecap: round;
 }
 .node  { fill: none; stroke: none; }
-.face  { fill: none; stroke: none; }
+.face  {
+	fill: #EEE8E0;
+}
+.folded{
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke: black;	
+}
 .sector{ fill: none; stroke: none; }
 .mountain{
 	stroke: hsl(14.4, 87%, 45%);
