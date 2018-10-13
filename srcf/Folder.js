@@ -9,20 +9,28 @@
 import {clean_number, contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
 
 export function flattenFrame(fold_file, frame_num){
+	// frame numbers are offset by 1.
+	//  0 refers to base level, outside of the array.
+	//  1 is first index of file_frames array
+	if(frame_num == 0){
+		let copy = JSON.parse(JSON.stringify(fold_file));
+		delete copy.file_frames;
+		return copy;
+	}
 	if(frame_num == undefined ||
 		 fold_file.file_frames == undefined ||
-		 fold_file.file_frames[frame_num] == undefined ||
-		 fold_file.file_frames[frame_num].vertices_coords == undefined){
+		 fold_file.file_frames[frame_num - 1] == undefined ||
+		 fold_file.file_frames[frame_num - 1].vertices_coords == undefined){
 		throw "fold file has no frame number " + frame_num;
 		return;
 	}
 	const dontCopy = ["parent", "inherit"];
 	let fold = JSON.parse(JSON.stringify(fold_file));
-	let keys = Object.keys(fold.file_frames[frame_num]).filter(key =>
+	let keys = Object.keys(fold.file_frames[frame_num - 1]).filter(key =>
 		!dontCopy.includes(key)
 	)
-	keys.forEach(key => fold[key] = fold.file_frames[frame_num][key] )
-	fold.file_frames = null;
+	keys.forEach(key => fold[key] = fold.file_frames[frame_num - 1][key] )
+	delete fold.file_frames;
 	return fold;
 }
 

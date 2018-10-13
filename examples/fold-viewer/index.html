@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<title>Rabbit Ear</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../lib/codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="../../lib/codemirror/theme/idle.css">
+<link rel="stylesheet" href="../lib/bootstrap/css/bootstrap-slider.min.css">
+<link rel="stylesheet" href="../lib/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="style.css">
+<style>
+.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}
+.CodeMirror-selected  { background-color: blue !important; }
+.CodeMirror-selectedtext { color: white; }
+.styled-background { background-color: #ff7; }
+body{ margin: 0; }
+canvas{ width: 100%; height: 100%; }
+</style>
+	<div id="code-column">
+		<textarea id="fold-file-code"></textarea>
+	</div>
+	<div class="row canvases" id="three-canvas"></div>
+	<div class="row toolbar">
+		<a href="#" class="btn btn-sm btn-primary" id="load-file">Open File</a>
+		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-cp-svg">CP .svg</a>
+		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-cp-opx">CP .opx</a>
+		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-cp-fold">CP .fold</a>
+		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-folded-fold">Folded .fold</a>
+		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-folded-svg">Folded .svg</a>
+		<div>
+			<input id="frame-slider" type="text" data-slider-min="0" data-slider-max="1000" data-slider-step="1" data-slider-value="0"/>
+		</div>
+	</div>
+<script type="text/javascript" src="../../examples/lib/bootstrap/js/bootstrap-slider.min.js"></script>
+
+<script type="text/javascript" src="../lib/three.min.js"></script>
+<script type="text/javascript" src="THREE.MeshLine.js"></script>
+<script type="text/javascript" src="../../lib/codemirror/lib/codemirror.js"></script>
+<script type="text/javascript" src="../../lib/codemirror/mode/javascript.js"></script>
+<script type="text/javascript" src="../../rabbit-ear.js"></script>
+<script type="text/javascript" src="OrbitControls.js"></script>
+
+<script type="text/javascript">
+var editor = CodeMirror.fromTextArea(document.getElementById("fold-file-code"), {
+	lineNumbers: true,
+	styleSelectedText: true
+});
+editor.markText({line: 6, ch: 24}, {line: 6, ch: 42}, {className: "styled-background"});
+</script>
+<script type="text/javascript" src="sketch.js"></script>

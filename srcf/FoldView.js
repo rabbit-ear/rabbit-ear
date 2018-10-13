@@ -125,7 +125,7 @@ export default class FoldView{
 		if(this.frame > 0 &&
 		   this.cp.file_frames[this.frame - 1] != undefined &&
 		   this.cp.file_frames[this.frame - 1].vertices_coords != undefined){
-			data = Folder.flattenFrame(this.cp, this.frame - 1);
+			data = Folder.flattenFrame(this.cp, this.frame);
 		}
 		if(data.vertices_coords == undefined){ return; }
 		this.setViewBox();
