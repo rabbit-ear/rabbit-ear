@@ -408,11 +408,10 @@ var loadedFold;
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
 var controls = new THREE.OrbitControls(camera, document.getElementById("three-canvas"));
-// camera.position.set( 0.5, 0.5, 1.5 );
-// controls.target.set(0.5, 0.5, 0.0);
-
-camera.position.set( 50, 50, 150 );
-controls.target.set(50, 50, 0.0);
+camera.position.set( 0.5, 0.5, 1.5 );
+controls.target.set(0.5, 0.5, 0.0);
+// camera.position.set( 50, 50, 150 );
+// controls.target.set(50, 50, 0.0);
 
 controls.addEventListener( 'change', render );
 
@@ -423,14 +422,14 @@ renderer.setSize( window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 var light0 = new THREE.PointLight(0xffffff);
-var light1 = new THREE.PointLight(0xffefac);
+var light1 = new THREE.PointLight(0xffffff);
 var light2 = new THREE.PointLight(0xffffff);
-light0.position.set(-100,200,100);
-light1.position.set(200,-200,100);
-light2.position.set(0,0,-200);
+light0.position.set(-1,2,1);
+light1.position.set(2,-2,1);
+light2.position.set(0,0,-2);
 
-light0.castShadow = true;
-light1.castShadow = true;
+// light0.castShadow = true;
+// light1.castShadow = true;
 // light2.castShadow = true;
 scene.add(light0);
 scene.add(light1);
@@ -452,7 +451,15 @@ renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
 function updateThreeJS(foldFile){
 
-	var material = new THREE.MeshLambertMaterial({color: 0xffffff, side: THREE.DoubleSide, shadowSide:THREE.DoubleSide});
+	// var material = new THREE.MeshLambertMaterial({color: 0xffffff, side: THREE.DoubleSide, shadowSide:THREE.DoubleSide});
+	var material = new THREE.MeshPhongMaterial({
+		color: 0xffffff,
+		side: THREE.DoubleSide,
+		flatShading:true,
+		shininess:0,
+		specular:0xffffff,
+		reflectivity:0
+	});
 
 	// while(scene.children.length){ scene.remove(scene.children[0]); }
 	let faces = foldFileToThreeJSFaces(foldFile, material);
@@ -461,13 +468,11 @@ function updateThreeJS(foldFile){
 	allMeshes.forEach(mesh => scene.remove(mesh));
 	allMeshes = [];
 	allMeshes.push(faces);
-	allMeshes = allMeshes.concat(lines);
+	allMeshes.push(lines);
+	// allMeshes = allMeshes.concat(lines);
+	allMeshes.forEach(mesh => scene.add(mesh));
 
-	// allMeshes.forEach(mesh => {mesh.scale(100,100,100);});
-	allMeshes.forEach(mesh => {mesh.castShadow = true; mesh.receiveShadow = true;});
-
-	scene.add(faces);
-	lines.forEach(line => scene.add(line))
+	// allMeshes.forEach(mesh => {mesh.castShadow = true; mesh.receiveShadow = true;});
 }
 
 function loadFoldFile(foldFile){
@@ -492,110 +497,194 @@ function injectCode(string){
 	doc.replaceRange(newline+string, pos);
 }
 
+
 function foldFileToThreeJSFaces(foldFile, material){
-	var frontside = new THREE.Mesh();//front face of mesh
-	var backside = new THREE.Mesh();//back face of mesh (different color)
-	backside.visible = false;
+	
+	var geometry = new THREE.BufferGeometry();
+	let vertices = foldFile.vertices_coords
+		.map(v => [v[0], v[1], (v[2] != undefined ? v[2] : 0)])
+		.reduce((prev,curr) => prev.concat(curr), []);
+	let normals = foldFile.vertices_coords
+		.map(v => [0,0,1])
+		.reduce((prev,curr) => prev.concat(curr), []);
+	let colors = foldFile.vertices_coords
+		.map(v => [1,1,1])
+		.reduce((prev,curr) => prev.concat(curr), []);
+	let faces = foldFile.faces_vertices
+		.map(fv => fv.map((v,i,arr) => [arr[0], arr[i+1], arr[i+2]])
+		             .slice(0, fv.length-2))
+		.reduce((prev,curr) => prev.concat(curr), [])
+		.reduce((prev,curr) => prev.concat(curr), []);
 
-	let geometry = new THREE.Geometry();
-	geometry.vertices = foldFile.vertices_coords.map(v =>
-		new THREE.Vector3(v[0], v[1], (v[2] != undefined ? v[2] : 0))
-	);
-	// if all faces are only 3-vertex
-	// geometry.faces = foldFile.faces_vertices.map(fv => new THREE.Face3(...fv))
-	// triangulate convex polygons
-	geometry.faces = foldFile.faces_vertices.map(fv =>
-		fv.map((v,i,arr) => new THREE.Face3(arr[0], arr[i+1], arr[i+2])).slice(0, fv.length-2)
-	).reduce((prev,curr) => prev.concat(curr), []);
+	geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+	geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+	geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+	geometry.setIndex(faces);
 
-	geometry.scale(100,100,100);
-
-	geometry.computeVertexNormals();
-	// geometry.normalize();
-
-	var bufferGeometry = new THREE.BufferGeometry().fromGeometry(geometry);
-	bufferGeometry.verticesNeedUpdate = true;
-	bufferGeometry.dynamic = true;
+	// geometry.computeVertexNormals();
 
 	if(material == undefined){ material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide}); }
-	return new THREE.Mesh(bufferGeometry, material);
+	return new THREE.Mesh(geometry, material);
 }
-
-
-function foldFileToThreeJSLines(foldFile){
-	let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
-	let edgeGeom = edges.map(e => {
-		var geometry = new THREE.Geometry();
-		geometry.vertices = e.map(v => {
-			let vec = new THREE.Vector3( v[0], v[1], v[2]!=undefined ? v[2] : 0);
-			return vec;
-		});
-		return geometry;
-	})
-
-	var params = {
-		curves : true,
-		circles : false,
-		amount : 100,
-		lineWidth : 10,
-		dashArray : 0,
-		dashOffset : 0,
-		dashRatio : 1,
-		taper : 'parabolic',
-		strokes : false,
-		sizeAttenuation : false,
-		animateWidth : false,
-		spread : false,
-		autoRotate : true,
-		autoUpdate : true,
-		animateVisibility : false,
-		animateDashOffset : false
-	};
-
-
-	var material = new MeshLineMaterial( {
-		useMap: params.strokes,
-		color: new THREE.Color( 0x000000 ),
-		opacity: 1,//params.strokes ? .5 : 1,
-		dashArray: params.dashArray,
-		dashOffset: params.dashOffset,
-		dashRatio: params.dashRatio,
-		resolution: new THREE.Vector2( window.innerWidth, window.innerHeight ),
-		sizeAttenuation: params.sizeAttenuation,
-		lineWidth: params.lineWidth,
-		near: camera.near,
-		far: camera.far,
-		depthWrite: false,
-		depthTest: !params.strokes,
-		alphaTest: params.strokes ? .5 : 0,
-		transparent: true,
-		side: THREE.DoubleSide
-	});
-	
-	return edgeGeom.map(geom => {
-		var line = new MeshLine();
-		geom.scale(100,100,100);
-		line.setGeometry(geom);
-		return new THREE.Mesh( line.geometry, material );
-	})
-}
-
-
 
 // function foldFileToThreeJSLines(foldFile){
-// 	let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]))
-// 	let vertices = foldFile.vertices_coords.map(v =>
-// 		new THREE.Vector3(v[0], v[1], (v[2] != undefined ? v[2] : 0))
-// 	);
-// 	var positions = new Float32Array(vertices.length * 3);
-// 	vertices.forEach((v,i) => {
-// 		positions[i * 3 + 0] = vertices[i].x;
-// 		positions[i * 3 + 1] = vertices[i].y;
-// 		positions[i * 3 + 2] = vertices[i].z;
+// 	let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
+// 	let edgeGeom = edges.map(e => {
+// 		var geometry = new THREE.Geometry();
+// 		geometry.vertices = e.map(v => {
+// 			let vec = new THREE.Vector3( v[0], v[1], v[2]!=undefined ? v[2] : 0);
+// 			return vec;
+// 		});
+// 		return geometry;
 // 	})
-// 	let indices = foldFile.edges_vertices.reduce((prev,curr) => prev.concat(curr), []);
-// 	var geometry = new THREE.BufferGeometry();
-// 	geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-// 	geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(indices), 1));
-// 	return geometry;
+
+// 	var params = {
+// 		curves : true,
+// 		circles : false,
+// 		amount : 100,
+// 		lineWidth : 10,
+// 		dashArray : 0,
+// 		dashOffset : 0,
+// 		dashRatio : 1,
+// 		taper : 'parabolic',
+// 		strokes : false,
+// 		sizeAttenuation : false,
+// 		animateWidth : false,
+// 		spread : false,
+// 		autoRotate : true,
+// 		autoUpdate : true,
+// 		animateVisibility : false,
+// 		animateDashOffset : false
+// 	};
+
+
+// 	var material = new MeshLineMaterial( {
+// 		useMap: params.strokes,
+// 		color: new THREE.Color(0x000000),
+// 		opacity: 1,
+// 		dashArray: params.dashArray,
+// 		dashOffset: params.dashOffset,
+// 		dashRatio: params.dashRatio,
+// 		resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+// 		sizeAttenuation: params.sizeAttenuation,
+// 		lineWidth: params.lineWidth,
+// 		near: camera.near,
+// 		far: camera.far,
+// 		depthWrite: false,
+// 		depthTest: !params.strokes,
+// 		alphaTest: params.strokes ? .5 : 0,
+// 		transparent: true,
+// 		side: THREE.DoubleSide
+// 	});
+	
+// 	return edgeGeom.map(geom => {
+// 		var line = new MeshLine();
+// 		// geom.scale(100,100,100);
+// 		line.setGeometry(geom);
+// 		return new THREE.Mesh( line.geometry, material );
+// 	})
 // }
+
+function crossVec3(a,b){
+	return [
+		a[1]*b[2] - a[2]*b[1],
+		a[2]*b[0] - a[0]*b[2],
+		a[0]*b[1] - a[1]*b[0]
+	];
+}
+function normalizeVec3(v){
+	let mag = Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
+	return [v[0] / mag, v[1] / mag, v[2] / mag];
+}
+function scaleVec3(v, scale){
+	return [v[0]*scale, v[1]*scale, v[2]*scale];
+}
+
+function foldFileToThreeJSLines(foldFile, scale=0.005){
+	let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
+	// make sure they all have a z component. when z is implied it's 0
+	edges.forEach(edge => {
+		if(edge[0][2] == undefined){ edge[0][2] = 0; }
+		if(edge[1][2] == undefined){ edge[1][2] = 0; }
+	})
+
+	let vertices = edges.map(edge => {
+		// normalized edge vector
+		let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
+		let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
+		if(mag < 1e-10){ throw "encountered a degenerate edge"; }
+		let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
+		// scale to line width
+		let scaled = [normalized[0]*scale, normalized[1]*scale, normalized[2]*scale];
+		let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
+		let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
+
+		// let dirs = [
+		// 	[scaled[0], scaled[2], -scaled[1]],
+		// 	[scaled[1], -scaled[0], scaled[2]],
+		// 	[scaled[0], -scaled[2], scaled[1]],
+		// 	[-scaled[1], scaled[0], scaled[2]]
+		// ]
+		let dirs = [
+			c0,
+			// [c0[0], -c0[2], c0[1]],
+			[-c0[2], c0[1], c0[0]],
+			c1,
+			// [c1[0], -c1[2], c1[1]]
+			[-c1[2], c1[1], c1[0]]
+		]
+		return edge
+			.map(v => dirs.map(dir => [v[0]+dir[0], v[1]+dir[1], v[2]+dir[2]]))
+			.reduce((prev,curr) => prev.concat(curr), []);
+	}).reduce((prev,curr) => prev.concat(curr), [])
+	  .reduce((prev,curr) => prev.concat(curr), []);
+
+	let normals = edges.map(edge => {
+		// normalized edge vector
+		let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
+		let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
+		if(mag < 1e-10){ throw "encountered a degenerate edge"; }
+		let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
+		// scale to line width
+		let scaled = [normalized[0]*scale, normalized[1]*scale, normalized[2]*scale];
+		return [
+			[scaled[0], scaled[1], -scaled[2]],
+			[scaled[1], scaled[0], -scaled[2]],
+			[scaled[2], scaled[1], -scaled[0]],
+			[scaled[0], scaled[2], -scaled[1]],
+			[scaled[0], scaled[1], -scaled[2]],
+			[scaled[1], scaled[0], -scaled[2]],
+			[scaled[2], scaled[1], -scaled[0]],
+			[scaled[0], scaled[2], -scaled[1]]
+		].reduce((prev,curr) => prev.concat(curr), []);
+	}).reduce((prev,curr) => prev.concat(curr), []);
+
+	let faces = edges.map((e,i) => [
+		i*8+0, i*8+4, i*8+1,
+		i*8+1, i*8+4, i*8+5,
+		i*8+1, i*8+5, i*8+2,
+		i*8+2, i*8+5, i*8+6,
+		i*8+2, i*8+6, i*8+3,
+		i*8+3, i*8+6, i*8+7,
+		i*8+3, i*8+7, i*8+0,
+		i*8+0, i*8+7, i*8+4,
+	]).reduce((prev,curr) => prev.concat(curr), []);
+
+	var geometry = new THREE.BufferGeometry();
+	geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+	geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+	// geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+	geometry.setIndex(faces);
+	geometry.computeVertexNormals();
+
+	// let material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
+	let material = new THREE.MeshPhongMaterial({
+		color: 0x000000,
+		side: THREE.DoubleSide,
+		flatShading:true,
+		shininess:0,
+		specular:0x000000,
+		reflectivity:0
+	});
+	return new THREE.Mesh(geometry, material);	
+}

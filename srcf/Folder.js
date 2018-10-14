@@ -34,7 +34,6 @@ export function flattenFrame(fold_file, frame_num){
 	return fold;
 }
 
-
 export function valleyFold(foldFile, line, point){
 
 	if(point != undefined){ point = [point.x, point.y]; }
@@ -50,29 +49,32 @@ export function valleyFold(foldFile, line, point){
 				lineVector,
 				point
 		);
-	return new_fold;
+		return new_fold;
 	}
 }
 
-export function clone(foldFile){
-	try { var keys = Object.getOwnPropertyNames(foldFile); }
-	catch (e) {
-		if (e.message.indexOf("not an object") > -1) {
-			// is not object
-			return foldFile;
-		}
-	}
-	if(keys == []){ return foldFile; }
-	var proto = Object.getPrototypeOf(foldFile);
-	var copyFile = Object.create(proto);
-	keys.forEach(function (name) {
-		var pd = Object.getOwnPropertyDescriptor(foldFile, name);
-		if (pd.value) {
-			pd.value = clone(pd.value);
-		}
-		Object.defineProperty(copyFile, name, pd);
-	});
-	return copyFile;
+export function clone(object){
+	// deep clone an object
+	return JSON.parse(JSON.stringify(object));
+	// try { var keys = Object.getOwnPropertyNames(foldFile); }
+	// catch (e) {
+	// 	if (e.message.indexOf("not an object") > -1) {
+	// 		// is not object
+	// 		return foldFile;
+	// 	}
+	// }
+	// if(keys == []){ return foldFile; }
+	// var proto = Object.getPrototypeOf(foldFile);
+	// var copyFile = Object.create(proto);
+	// keys.forEach(function (name) {
+	// 	var pd = Object.getOwnPropertyDescriptor(foldFile, name);
+	// 	if (pd.value) {
+	// 		pd.value = clone(pd.value);
+	// 	}
+	// 	Object.defineProperty(copyFile, name, pd);
+	// });
+	// return copyFile;
+
 };
 
 /** 
