@@ -50,9 +50,30 @@ export function valleyFold(foldFile, line, point){
 				lineVector,
 				point
 		);
-    return new_fold;
+	return new_fold;
 	}
 }
+
+export function clone(foldFile){
+	try { var keys = Object.getOwnPropertyNames(foldFile); }
+	catch (e) {
+		if (e.message.indexOf("not an object") > -1) {
+			// is not object
+			return foldFile;
+		}
+	}
+	if(keys == []){ return foldFile; }
+	var proto = Object.getPrototypeOf(foldFile);
+	var copyFile = Object.create(proto);
+	keys.forEach(function (name) {
+		var pd = Object.getOwnPropertyDescriptor(foldFile, name);
+		if (pd.value) {
+			pd.value = clone(pd.value);
+		}
+		Object.defineProperty(copyFile, name, pd);
+	});
+	return copyFile;
+};
 
 /** 
  * when an edge fits in a face, endpoints collinear to face edges,
@@ -219,9 +240,9 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_faces, f
 	let to_process = [face_idx];
 	let process_idx = 0;
 	let faces_points = faces_vertices.map((vertices_index) =>
-    (vertices_index === undefined)
-    	? undefined
-    	: vertices_index.map(i => vertices_coords[i])
+	(vertices_index === undefined)
+		? undefined
+		: vertices_index.map(i => vertices_coords[i])
 	)
 	while (process_idx < to_process.length) {
 		// pull face off queue
@@ -230,12 +251,12 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_faces, f
 		// add all unmarked above-overlapping faces to queue
 		faces_vertices.forEach((vertices_index, idx2) => {
 			if (!marked[idx2] && ((faces_layer[idx2] > faces_layer[idx1]))) {
-        if (faces_points[idx1] !== undefined && faces_points[idx2] !== undefined) {
-          if (overlaps(faces_points[idx1], faces_points[idx2])) {
-            marked[idx2] = true;
-            to_process.push(idx2);
-          }
-        }
+		if (faces_points[idx1] !== undefined && faces_points[idx2] !== undefined) {
+		  if (overlaps(faces_points[idx1], faces_points[idx2])) {
+			marked[idx2] = true;
+			to_process.push(idx2);
+		  }
+		}
 			}
 		});
 		// add all unmarked adjacent faces to queue

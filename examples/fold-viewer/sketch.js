@@ -408,8 +408,12 @@ var loadedFold;
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
 var controls = new THREE.OrbitControls(camera, document.getElementById("three-canvas"));
-camera.position.set( 0.5, 0.5, 1.5 );
-controls.target.set(0.5, 0.5, 0.0);
+// camera.position.set( 0.5, 0.5, 1.5 );
+// controls.target.set(0.5, 0.5, 0.0);
+
+camera.position.set( 50, 50, 150 );
+controls.target.set(50, 50, 0.0);
+
 controls.addEventListener( 'change', render );
 
 var renderer = new THREE.WebGLRenderer({antialias:true});
@@ -418,6 +422,21 @@ renderer.setSize( window.innerWidth, window.innerHeight);
 
 document.body.appendChild(renderer.domElement);
 
+var light0 = new THREE.PointLight(0xffffff);
+var light1 = new THREE.PointLight(0xffefac);
+var light2 = new THREE.PointLight(0xffffff);
+light0.position.set(-100,200,100);
+light1.position.set(200,-200,100);
+light2.position.set(0,0,-200);
+
+light0.castShadow = true;
+light1.castShadow = true;
+// light2.castShadow = true;
+scene.add(light0);
+scene.add(light1);
+scene.add(light2);
+
+
 var render = function(){
 	requestAnimationFrame(render);
 	renderer.render(scene, camera);
@@ -425,12 +444,28 @@ var render = function(){
 };
 render();
 
+let allMeshes = [];
+
+renderer.shadowMapEnabled = true;
+renderer.shadowMapType = THREE.PCFSoftShadowMap;
+
 
 function updateThreeJS(foldFile){
 
-	while(scene.children.length){ scene.remove(scene.children[0]); }
-	let faces = foldFileToThreeJSFaces(foldFile);
+	var material = new THREE.MeshLambertMaterial({color: 0xffffff, side: THREE.DoubleSide, shadowSide:THREE.DoubleSide});
+
+	// while(scene.children.length){ scene.remove(scene.children[0]); }
+	let faces = foldFileToThreeJSFaces(foldFile, material);
 	let lines = foldFileToThreeJSLines(foldFile);
+
+	allMeshes.forEach(mesh => scene.remove(mesh));
+	allMeshes = [];
+	allMeshes.push(faces);
+	allMeshes = allMeshes.concat(lines);
+
+	// allMeshes.forEach(mesh => {mesh.scale(100,100,100);});
+	allMeshes.forEach(mesh => {mesh.castShadow = true; mesh.receiveShadow = true;});
+
 	scene.add(faces);
 	lines.forEach(line => scene.add(line))
 }
@@ -457,7 +492,7 @@ function injectCode(string){
 	doc.replaceRange(newline+string, pos);
 }
 
-function foldFileToThreeJSFaces(foldFile){
+function foldFileToThreeJSFaces(foldFile, material){
 	var frontside = new THREE.Mesh();//front face of mesh
 	var backside = new THREE.Mesh();//back face of mesh (different color)
 	backside.visible = false;
@@ -473,6 +508,8 @@ function foldFileToThreeJSFaces(foldFile){
 		fv.map((v,i,arr) => new THREE.Face3(arr[0], arr[i+1], arr[i+2])).slice(0, fv.length-2)
 	).reduce((prev,curr) => prev.concat(curr), []);
 
+	geometry.scale(100,100,100);
+
 	geometry.computeVertexNormals();
 	// geometry.normalize();
 
@@ -480,8 +517,8 @@ function foldFileToThreeJSFaces(foldFile){
 	bufferGeometry.verticesNeedUpdate = true;
 	bufferGeometry.dynamic = true;
 
-	let meshMaterial = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
-	return new THREE.Mesh(bufferGeometry, meshMaterial)
+	if(material == undefined){ material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide}); }
+	return new THREE.Mesh(bufferGeometry, material);
 }
 
 
@@ -537,6 +574,7 @@ function foldFileToThreeJSLines(foldFile){
 	
 	return edgeGeom.map(geom => {
 		var line = new MeshLine();
+		geom.scale(100,100,100);
 		line.setGeometry(geom);
 		return new THREE.Mesh( line.geometry, material );
 	})

@@ -5,16 +5,17 @@
 // all infinite lines are defined as point and vector
 // all polygons are an ordered set of points in either winding direction
 
-/** will clean up numbers like 15.0000000000000002 into 15
- * the epsilon is set to 15 which clips the last 1 digit in a
- * Javascript 16 digit float. this epsilon is adjustable.*/
+/** clean floating point numbers
+ *  example: 15.0000000000000002 into 15
+ * the adjustable epsilon is default 15, Javascripts 16 digit float
+ */
 export function clean_number(num, decimalPlaces = 15){
 	if (num == undefined) { return undefined; }
 	return parseFloat(num.toFixed(decimalPlaces));
 }
 
 /** is a point inside of a convex polygon, including along the boundary within epsilon */
-export function contains(poly, point, epsilon = 0.0000000001){
+export function contains(poly, point, epsilon = 1e-10){
 	if(poly == undefined || !(poly.length > 0)){ return false; }
 	return poly.map( (p,i,arr) => {
 		let nextP = arr[(i+1)%arr.length];
@@ -25,7 +26,7 @@ export function contains(poly, point, epsilon = 0.0000000001){
 }
 
 /** is a point collinear to an edge, between endpoints, within an epsilon */
-export function collinear(edgeP0, edgeP1, point, epsilon = 0.0000000001){
+export function collinear(edgeP0, edgeP1, point, epsilon = 1e-10){
 	// distance between endpoints A,B should be equal to point->A + point->B
 	let dEdge = Math.sqrt(Math.pow(edgeP0[0]-edgeP1[0],2) + Math.pow(edgeP0[1]-edgeP1[1],2));
 	let dP0 = Math.sqrt(Math.pow(point[0]-edgeP0[0],2) + Math.pow(point[1]-edgeP0[1],2));
@@ -136,7 +137,7 @@ var line_edge_intersection = function(point, vec, edge0, edge1){
  * requires a compFunction to describe valid bounds checking 
  * line always returns true, ray is true for t > 0, edge must be between 0 < t < 1
 */
-var vector_intersection = function(aOrigin, aVec, bOrigin, bVec, compFunction, epsilon = 0.0000000001){
+var vector_intersection = function(aOrigin, aVec, bOrigin, bVec, compFunction, epsilon = 1e-10){
 	function determinantXY(a,b){ return a[0] * b[1] - b[0] * a[1]; }
 	var denominator0 = determinantXY(aVec, bVec);
 	var denominator1 = -denominator0;
@@ -148,11 +149,11 @@ var vector_intersection = function(aOrigin, aVec, bOrigin, bVec, compFunction, e
 	if(compFunction(t0,t1,epsilon)){ return [aOrigin[0] + aVec[0]*t0, aOrigin[1] + aVec[1]*t0]; }
 }
 /** comp functions for generalized vector intersection function */
-const edge_edge_comp_func = function(t0,t1,ep = 0.0000000001){return t0 >= -ep && t0 <= 1+ep && t1 >= -ep && t1 <= 1+ep;}
-const line_edge_comp_func = function(t0,t1,ep = 0.0000000001){return t1 >= -ep && t1 <= 1+ep;}
+const edge_edge_comp_func = function(t0,t1,ep = 1e-10){return t0 >= -ep && t0 <= 1+ep && t1 >= -ep && t1 <= 1+ep;}
+const line_edge_comp_func = function(t0,t1,ep = 1e-10){return t1 >= -ep && t1 <= 1+ep;}
 
 /** are two points equivalent within an epsilon */
-function points_equivalent(a, b, epsilon = 0.0000000001){
+function points_equivalent(a, b, epsilon = 1e-10){
 	// rectangular bounds test for faster calculation
 	return Math.abs(a.x-b.x) < epsilon && Math.abs(a.y-b.y) < epsilon;
 }
