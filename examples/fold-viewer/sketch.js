@@ -392,7 +392,7 @@ let fishBase = {
 	}]
 };
 
-
+cmMarks = [];
 
 var slider = new Slider('#frame-slider').on("slide",sliderUpdate);
 function sliderUpdate(value){
@@ -402,24 +402,36 @@ function sliderUpdate(value){
 	// origami.setFrame(frame);
 	let newFold = RabbitEar.Folder.flattenFrame(loadedFold, frame);
 	updateThreeJS(newFold);
+	let linenum = 156 + 49*(frame-1);
+	editor.scrollIntoView({line:linenum+20});
+	cmMarks.forEach(mark => mark.clear());
+	cmMarks = [];
+	cmMarks.push(editor.markText({line: linenum, ch: 0}, {line: linenum+49, ch: 0}, {className: "styled-background"}));
 }
 
 var loadedFold;
+let cm = document.getElementsByClassName("CodeMirror")[0];
+let threeCanvas = document.getElementById("three-canvas");
 var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+
+// console.log("cm.clientWidth");
+// console.log(cm.clientWidth);
+// console.log(threeCanvas.clientHeight);
+
+// var camera = new THREE.PerspectiveCamera(45, threeCanvas.clientWidth/threeCanvas.clientHeight, 0.1, 1000);
+var camera = new THREE.PerspectiveCamera(45, (window.innerWidth - cm.clientWidth)/threeCanvas.clientHeight, 0.1, 1000);
 var controls = new THREE.OrbitControls(camera, document.getElementById("three-canvas"));
 camera.position.set( 0.5, 0.5, 1.5 );
 controls.target.set(0.5, 0.5, 0.0);
-// camera.position.set( 50, 50, 150 );
-// controls.target.set(50, 50, 0.0);
 
 controls.addEventListener( 'change', render );
 
 var renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setClearColor("#FFFFFF");
-renderer.setSize( window.innerWidth, window.innerHeight);
+// renderer.setSize( threeCanvas.clientWidth, threeCanvas.clientHeight);
+renderer.setSize( (window.innerWidth - cm.clientWidth), threeCanvas.clientHeight);
 
-document.body.appendChild(renderer.domElement);
+threeCanvas.appendChild(renderer.domElement);
 
 var light0 = new THREE.PointLight(0xffffff);
 var light1 = new THREE.PointLight(0xffffff);
@@ -435,7 +447,6 @@ scene.add(light0);
 scene.add(light1);
 scene.add(light2);
 
-
 var render = function(){
 	requestAnimationFrame(render);
 	renderer.render(scene, camera);
@@ -448,6 +459,20 @@ let allMeshes = [];
 renderer.shadowMapEnabled = true;
 renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
+// renderer.domElement.onmousemove = function(e){
+// 	let vecs = loadedFold.vertices_coords.map(v => new THREE.Vector3(v[0], v[1], (v[2]!=undefined)?v[2]:0))
+// 	let proj = vecs.map(v => v.applyMatrix4(scene.matrixWorld).project(camera))
+// 	var width = threeCanvas.clientWidth / 2, height = threeCanvas.clientHeight / 2;
+// 	var widthHalf = width / 2, heightHalf = height / 2;
+// 	let pos = vecs.map(v => {
+// 		let vec = v.clone().project(camera);
+// 		vec.x = (vec.x*widthHalf) + widthHalf;
+// 		vec.y = -(vec.y*heightHalf) + heightHalf;
+// 		return vec;
+// 	})
+// 	console.log(pos);
+// 	console.log(e.clientX, e.clientY)
+// }
 
 function updateThreeJS(foldFile){
 
@@ -477,7 +502,7 @@ function updateThreeJS(foldFile){
 
 function loadFoldFile(foldFile){
 	loadedFold = foldFile;
-	injectCode(JSON.stringify(foldFile,null,'\t'));
+	injectCode(JSON.stringify(foldFile,null,'  '));
 	updateThreeJS(foldFile);
 }
 loadFoldFile(animatedBlintzFold);
@@ -527,70 +552,15 @@ function foldFileToThreeJSFaces(foldFile, material){
 	return new THREE.Mesh(geometry, material);
 }
 
-// function foldFileToThreeJSLines(foldFile){
-// 	let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
-// 	let edgeGeom = edges.map(e => {
-// 		var geometry = new THREE.Geometry();
-// 		geometry.vertices = e.map(v => {
-// 			let vec = new THREE.Vector3( v[0], v[1], v[2]!=undefined ? v[2] : 0);
-// 			return vec;
-// 		});
-// 		return geometry;
-// 	})
-
-// 	var params = {
-// 		curves : true,
-// 		circles : false,
-// 		amount : 100,
-// 		lineWidth : 10,
-// 		dashArray : 0,
-// 		dashOffset : 0,
-// 		dashRatio : 1,
-// 		taper : 'parabolic',
-// 		strokes : false,
-// 		sizeAttenuation : false,
-// 		animateWidth : false,
-// 		spread : false,
-// 		autoRotate : true,
-// 		autoUpdate : true,
-// 		animateVisibility : false,
-// 		animateDashOffset : false
-// 	};
-
-
-// 	var material = new MeshLineMaterial( {
-// 		useMap: params.strokes,
-// 		color: new THREE.Color(0x000000),
-// 		opacity: 1,
-// 		dashArray: params.dashArray,
-// 		dashOffset: params.dashOffset,
-// 		dashRatio: params.dashRatio,
-// 		resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
-// 		sizeAttenuation: params.sizeAttenuation,
-// 		lineWidth: params.lineWidth,
-// 		near: camera.near,
-// 		far: camera.far,
-// 		depthWrite: false,
-// 		depthTest: !params.strokes,
-// 		alphaTest: params.strokes ? .5 : 0,
-// 		transparent: true,
-// 		side: THREE.DoubleSide
-// 	});
-	
-// 	return edgeGeom.map(geom => {
-// 		var line = new MeshLine();
-// 		// geom.scale(100,100,100);
-// 		line.setGeometry(geom);
-// 		return new THREE.Mesh( line.geometry, material );
-// 	})
-// }
-
 function crossVec3(a,b){
 	return [
 		a[1]*b[2] - a[2]*b[1],
 		a[2]*b[0] - a[0]*b[2],
 		a[0]*b[1] - a[1]*b[0]
 	];
+}
+function magVec3(v){
+	return Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
 }
 function normalizeVec3(v){
 	let mag = Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
@@ -599,8 +569,11 @@ function normalizeVec3(v){
 function scaleVec3(v, scale){
 	return [v[0]*scale, v[1]*scale, v[2]*scale];
 }
+function dotVec3(a,b){
+	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+}
 
-function foldFileToThreeJSLines(foldFile, scale=0.005){
+function foldFileToThreeJSLines(foldFile, scale=0.02){
 	let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
 	// make sure they all have a z component. when z is implied it's 0
 	edges.forEach(edge => {
@@ -612,27 +585,21 @@ function foldFileToThreeJSLines(foldFile, scale=0.005){
 		// normalized edge vector
 		let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
 		let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-		if(mag < 1e-10){ throw "encountered a degenerate edge"; }
+		if(mag < 1e-10){ throw "degenerate edge"; }
 		let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
-		// scale to line width
-		let scaled = [normalized[0]*scale, normalized[1]*scale, normalized[2]*scale];
-		let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
-		let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
-
-		// let dirs = [
-		// 	[scaled[0], scaled[2], -scaled[1]],
-		// 	[scaled[1], -scaled[0], scaled[2]],
-		// 	[scaled[0], -scaled[2], scaled[1]],
-		// 	[-scaled[1], scaled[0], scaled[2]]
-		// ]
-		let dirs = [
-			c0,
-			// [c0[0], -c0[2], c0[1]],
-			[-c0[2], c0[1], c0[0]],
-			c1,
-			// [c1[0], -c1[2], c1[1]]
-			[-c1[2], c1[1], c1[0]]
-		]
+		let perp = [
+			normalizeVec3(crossVec3(normalized, [1,0,0])),
+			normalizeVec3(crossVec3(normalized, [0,1,0])),
+			normalizeVec3(crossVec3(normalized, [0,0,1]))
+		].map((v,i) => ({i:i, v:v, mag:magVec3(v)}))
+		 .filter(v => v.mag > 1e-10)
+		 .map(obj => obj.v)
+		 .shift()
+		let rotated = [perp];
+		for(var i = 1; i < 4; i++){
+			rotated.push(normalizeVec3(crossVec3(rotated[i-1], normalized)));
+		}
+		let dirs = rotated.map(v => scaleVec3(v, scale));
 		return edge
 			.map(v => dirs.map(dir => [v[0]+dir[0], v[1]+dir[1], v[2]+dir[2]]))
 			.reduce((prev,curr) => prev.concat(curr), []);
@@ -643,23 +610,31 @@ function foldFileToThreeJSLines(foldFile, scale=0.005){
 		// normalized edge vector
 		let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
 		let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-		if(mag < 1e-10){ throw "encountered a degenerate edge"; }
+		if(mag < 1e-10){ throw "degenerate edge"; }
 		let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
 		// scale to line width
 		let scaled = [normalized[0]*scale, normalized[1]*scale, normalized[2]*scale];
+		let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
+		let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
 		return [
-			[scaled[0], scaled[1], -scaled[2]],
-			[scaled[1], scaled[0], -scaled[2]],
-			[scaled[2], scaled[1], -scaled[0]],
-			[scaled[0], scaled[2], -scaled[1]],
-			[scaled[0], scaled[1], -scaled[2]],
-			[scaled[1], scaled[0], -scaled[2]],
-			[scaled[2], scaled[1], -scaled[0]],
-			[scaled[0], scaled[2], -scaled[1]]
-		].reduce((prev,curr) => prev.concat(curr), []);
-	}).reduce((prev,curr) => prev.concat(curr), []);
+			c0,
+			// [c0[0], -c0[2], c0[1]],
+			[-c0[2], c0[1], c0[0]],
+			c1,
+			// [c1[0], -c1[2], c1[1]]
+			[-c1[2], c1[1], c1[0]],
+			c0,
+			// [c0[0], -c0[2], c0[1]],
+			[-c0[2], c0[1], c0[0]],
+			c1,
+			// [c1[0], -c1[2], c1[1]]
+			[-c1[2], c1[1], c1[0]]
+		]
+	}).reduce((prev,curr) => prev.concat(curr), [])
+	  .reduce((prev,curr) => prev.concat(curr), []);
 
 	let faces = edges.map((e,i) => [
+		// 8 triangles making the long cylinder
 		i*8+0, i*8+4, i*8+1,
 		i*8+1, i*8+4, i*8+5,
 		i*8+1, i*8+5, i*8+2,
@@ -668,6 +643,11 @@ function foldFileToThreeJSLines(foldFile, scale=0.005){
 		i*8+3, i*8+6, i*8+7,
 		i*8+3, i*8+7, i*8+0,
 		i*8+0, i*8+7, i*8+4,
+		// endcaps
+		i*8+0, i*8+1, i*8+3,
+		i*8+1, i*8+2, i*8+3,
+		i*8+5, i*8+4, i*8+7,
+		i*8+7, i*8+6, i*8+5,
 	]).reduce((prev,curr) => prev.concat(curr), []);
 
 	var geometry = new THREE.BufferGeometry();
@@ -677,14 +657,14 @@ function foldFileToThreeJSLines(foldFile, scale=0.005){
 	geometry.setIndex(faces);
 	geometry.computeVertexNormals();
 
-	// let material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
-	let material = new THREE.MeshPhongMaterial({
-		color: 0x000000,
-		side: THREE.DoubleSide,
-		flatShading:true,
-		shininess:0,
-		specular:0x000000,
-		reflectivity:0
-	});
+	let material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
+	// let material = new THREE.MeshPhongMaterial({
+	// 	color: 0x000000,
+	// 	side: THREE.DoubleSide,
+	// 	flatShading:true,
+	// 	shininess:0,
+	// 	specular:0x000000,
+	// 	reflectivity:0
+	// });
 	return new THREE.Mesh(geometry, material);	
 }

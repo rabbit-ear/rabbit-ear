@@ -14,11 +14,13 @@
 body{ margin: 0; }
 canvas{ width: 100%; height: 100%; }
 </style>
-	<div id="code-column">
-		<textarea id="fold-file-code"></textarea>
+	<div class="row" id="main-area">
+		<div id="code-column">
+			<textarea id="fold-file-code"></textarea>
+		</div>
+		<div id="three-canvas"></div>
 	</div>
-	<div class="row canvases" id="three-canvas"></div>
-	<div class="row toolbar">
+	<div class="row" id="toolbar">
 		<a href="#" class="btn btn-sm btn-primary" id="load-file">Open File</a>
 		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-cp-svg">CP .svg</a>
 		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-cp-opx">CP .opx</a>
@@ -43,6 +45,6 @@ var editor = CodeMirror.fromTextArea(document.getElementById("fold-file-code"), 
 	lineNumbers: true,
 	styleSelectedText: true
 });
-editor.markText({line: 6, ch: 24}, {line: 6, ch: 42}, {className: "styled-background"});
+// editor.markText({line: 6, ch: 24}, {line: 6, ch: 42}, {className: "styled-background"});
 </script>
 <script type="text/javascript" src="sketch.js"></script>

@@ -7,20 +7,18 @@ html, body {
 	display:flex;
 	flex-direction: column;
 }
-svg{
-	flex:1;
-	width:45vw;
-	height:45vw;
-}
 /* code console */
 .CodeMirror {
 	border: 1px solid #666;
 	height:90vh;
 	/*height: auto;*/
 	/*overflow-y: auto;*/
-	overflow-x: scroll;
+	/*overflow-x: scroll;*/
 	width: 30vw;
 }
+/*.cm-s-default{
+	margin:0 !important;
+}*/
 .row{
 	height:100%;
 	flex:1;
@@ -28,52 +26,24 @@ svg{
 	flex-direction: row;
 }
 #code-column{
-	/*flex:1;*/
-	width:30%;
-	/*padding:1em;*/
-	position:absolute;
-	top:10px;
-	left:10px;
-	z-index: 2;
+	flex: 1;
+}
+#three-canvas{
+	flex: 4;
 }
 #code-console{
 	font-family: monospace;
 }
-/* crease pattern */
-.boundary{
-	fill: white;
-	stroke: black;
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
-}
-.node  { fill: none; stroke: none; }
-.face  { fill: none; stroke: none; }
-.sector{ fill: none; stroke: none; }
-.mountain{
-	stroke: hsl(14.4, 87%, 45%);
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
-}
-.valley{
-	stroke: hsl(205, 74%, 30%);
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
-	stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2)
-}
-.mark{
-	stroke: #888;
-	stroke-width: calc( var(--crease-width) * 0.5);
-	stroke-linecap: round;
-}
-
 .row{
 	display: flex;
 	flex-wrap: wrap;
 }
-.canvases{
+#main-area{
 	flex: 1 0 0;
+	display: flex;
+	flex-direction: column;
 }
-.toolbar{
+#toolbar{
 	flex: 0 0 70px;
 	width:100%;
 	display: flex;
@@ -83,8 +53,4 @@ svg{
 }
 .btn{
 	margin:2px;
-}
-canvas{
-	position: absolute;
-	z-index: -1;
 }
