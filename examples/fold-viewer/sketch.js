@@ -397,6 +397,7 @@ cmMarks = [];
 var slider = new Slider('#frame-slider').on("slide",sliderUpdate);
 function sliderUpdate(value){
 	// value.preventDefault();
+	if(loadedFold.file_frames == undefined){ return; }
 	let fraction = parseFloat(value / 1000);
 	let frame = parseInt(fraction * loadedFold.file_frames.length);
 	// origami.setFrame(frame);
@@ -500,13 +501,24 @@ function updateThreeJS(foldFile){
 	// allMeshes.forEach(mesh => {mesh.castShadow = true; mesh.receiveShadow = true;});
 }
 
+function fileDidLoad(blob, mimeType, fileExtension){
+	if(fileExtension == "fold"){
+		loadFoldFile(JSON.parse(blob));
+	}
+}
+
 function loadFoldFile(foldFile){
 	loadedFold = foldFile;
+	clearCodeMirror();
 	injectCode(JSON.stringify(foldFile,null,'  '));
 	updateThreeJS(foldFile);
 }
 loadFoldFile(animatedBlintzFold);
 
+function clearCodeMirror(){
+	var cm = document.getElementsByClassName("CodeMirror")[0].CodeMirror;
+	cm.setValue("");
+}
 
 function injectCode(string){
 	var cm = document.getElementsByClassName("CodeMirror")[0].CodeMirror;
@@ -573,7 +585,7 @@ function dotVec3(a,b){
 	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
 
-function foldFileToThreeJSLines(foldFile, scale=0.02){
+function foldFileToThreeJSLines(foldFile, scale=0.005){
 	let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
 	// make sure they all have a z component. when z is implied it's 0
 	edges.forEach(edge => {
@@ -617,18 +629,10 @@ function foldFileToThreeJSLines(foldFile, scale=0.02){
 		let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
 		let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
 		return [
-			c0,
-			// [c0[0], -c0[2], c0[1]],
-			[-c0[2], c0[1], c0[0]],
-			c1,
-			// [c1[0], -c1[2], c1[1]]
-			[-c1[2], c1[1], c1[0]],
-			c0,
-			// [c0[0], -c0[2], c0[1]],
-			[-c0[2], c0[1], c0[0]],
-			c1,
-			// [c1[0], -c1[2], c1[1]]
-			[-c1[2], c1[1], c1[0]]
+			c0, [-c0[2], c0[1], c0[0]],
+			c1, [-c1[2], c1[1], c1[0]],
+			c0, [-c0[2], c0[1], c0[0]],
+			c1, [-c1[2], c1[1], c1[0]]
 		]
 	}).reduce((prev,curr) => prev.concat(curr), [])
 	  .reduce((prev,curr) => prev.concat(curr), []);
@@ -657,14 +661,14 @@ function foldFileToThreeJSLines(foldFile, scale=0.02){
 	geometry.setIndex(faces);
 	geometry.computeVertexNormals();
 
-	let material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
-	// let material = new THREE.MeshPhongMaterial({
-	// 	color: 0x000000,
-	// 	side: THREE.DoubleSide,
-	// 	flatShading:true,
-	// 	shininess:0,
-	// 	specular:0x000000,
-	// 	reflectivity:0
-	// });
+	// let material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
+	let material = new THREE.MeshPhongMaterial({
+		color: 0x000000,
+		side: THREE.DoubleSide,
+		flatShading:true,
+		shininess:0,
+		specular:0x000000,
+		reflectivity:0
+	});
 	return new THREE.Mesh(geometry, material);	
 }

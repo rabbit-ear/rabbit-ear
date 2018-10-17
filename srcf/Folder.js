@@ -9,28 +9,39 @@
 import {clean_number, contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
 
 export function flattenFrame(fold_file, frame_num){
-	// frame numbers are offset by 1.
-	//  0 refers to base level, outside of the array.
-	//  1 is first index of file_frames array
-	if(frame_num == 0){
-		let copy = JSON.parse(JSON.stringify(fold_file));
-		delete copy.file_frames;
+	var memo = {visited_frames:[]};
+	function recurse(fold_file, frame, orderArray){
+		if(memo.visited_frames.indexOf(frame) != -1){
+			throw ".FOLD file_frames encountered a circular reference";
+			return orderArray;
+		}
+		memo.visited_frames.push(frame);
+		orderArray = [frame].concat(orderArray);
+		if(frame == 0){ return orderArray; }
+		if(fold_file.file_frames[frame - 1].frame_inherit &&
+		   fold_file.file_frames[frame - 1].frame_parent != undefined){
+			return recurse(fold_file, fold_file.file_frames[frame - 1].frame_parent, orderArray);
+		}
+		return orderArray;
+	}
+	var collapse_order = recurse(fold_file, frame_num, []);
+	const dontCopy = ["frame_parent", "frame_inherit"];
+	let ordered_frames = collapse_order.map(frame => {
+		if(frame == 0){
+			let swap = fold_file.file_frames;
+			fold_file.file_frames = null;
+			let copy = JSON.parse(JSON.stringify(fold_file));
+			fold_file.file_frames = swap;
+			delete copy.file_frames;
+			dontCopy.forEach(key => delete copy[key]);
+			return copy;
+		}
+		let copy = JSON.parse(JSON.stringify(fold_file.file_frames[frame-1]))
+		dontCopy.forEach(key => delete copy[key]);
 		return copy;
-	}
-	if(frame_num == undefined ||
-		 fold_file.file_frames == undefined ||
-		 fold_file.file_frames[frame_num - 1] == undefined ||
-		 fold_file.file_frames[frame_num - 1].vertices_coords == undefined){
-		throw "fold file has no frame number " + frame_num;
-		return;
-	}
-	const dontCopy = ["parent", "inherit"];
-	let fold = JSON.parse(JSON.stringify(fold_file));
-	let keys = Object.keys(fold.file_frames[frame_num - 1]).filter(key =>
-		!dontCopy.includes(key)
-	)
-	keys.forEach(key => fold[key] = fold.file_frames[frame_num - 1][key] )
-	delete fold.file_frames;
+	})
+	var fold = {};
+	ordered_frames.forEach(obj => Object.assign(fold, obj));
 	return fold;
 }
 

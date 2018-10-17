@@ -40,7 +40,7 @@ function handleDrop(e) {
 	for (var i = 0; i < files.length; i++) {
 		var file = files[i];
 		var reader = new FileReader();
-		//attach event handlers here...  
+		//attach event handlers here...
 		reader.readAsDataURL(file);
 		addEventHandler(reader, 'loadend', function (e, file) {
 			var extension = file.name.substr((file.name.lastIndexOf('.') + 1));
