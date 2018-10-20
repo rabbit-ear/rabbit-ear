@@ -1,8 +1,7 @@
 
 const animatedBlintzFold = {
 	"file_spec": 1.1,
-	"file_creator": "",
-	"file_author": "",
+	"file_author": "Robby Kraft",
 	"file_classes": ["singleModel"],
 	"frame_attributes": ["3D"],
 	"frame_title": "blintz base",
@@ -21,7 +20,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent": 0,
-			"inherit": true,
+			"frame_inherit": true,
 			"vertices_coords": [
 				[0.0012038183319507678, 0.0012038183319507678, 0.02450428508239015], [0.5, 0.0, 0.0],
 				[0.9987961816680493, 0.0012038183319507678, 0.02450428508239015], [1.0, 0.5, 0.0],
@@ -32,7 +31,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.004803679899192392, 0.004803679899192392, 0.04877258050403206], [0.5, 0.0, 0.0],
 				[0.9951963201008076, 0.004803679899192392, 0.04877258050403206], [1.0, 0.5, 0.0],
@@ -43,7 +42,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.010764916066947794, 0.010764916066947794, 0.07257116931361558], [0.5, 0.0, 0.0],
 				[0.9892350839330522, 0.010764916066947794, 0.07257116931361558], [1.0, 0.5, 0.0],
@@ -54,7 +53,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.019030116872178315, 0.019030116872178315, 0.09567085809127245], [0.5, 0.0, 0.0],
 				[0.9809698831278217, 0.019030116872178315, 0.09567085809127245], [1.0, 0.5, 0.0],
@@ -65,7 +64,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.029519683912911238, 0.029519683912911238, 0.11784918420649941], [0.5, 0.0, 0.0],
 				[0.9704803160870887, 0.029519683912911238, 0.11784918420649941], [1.0, 0.5, 0.0],
@@ -76,7 +75,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.04213259692436369, 0.04213259692436369, 0.13889255825490054], [0.5, 0.0, 0.0],
 				[0.9578674030756363, 0.04213259692436369, 0.13889255825490054], [1.0, 0.5, 0.0],
@@ -87,7 +86,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.05674738665931575, 0.05674738665931575, 0.15859832104091137], [0.5, 0.0, 0.0],
 				[0.9432526133406842, 0.05674738665931575, 0.15859832104091137], [1.0, 0.5, 0.0],
@@ -98,7 +97,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.0732233047033631, 0.0732233047033631, 0.17677669529663687], [0.5, 0.0, 0.0],
 				[0.9267766952966369, 0.0732233047033631, 0.17677669529663687], [1.0, 0.5, 0.0],
@@ -109,7 +108,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.09140167895908863, 0.09140167895908863, 0.19325261334068422], [0.5, 0.0, 0.0],
 				[0.9085983210409114, 0.09140167895908863, 0.19325261334068422], [1.0, 0.5, 0.0],
@@ -120,7 +119,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.11110744174509943, 0.11110744174509943, 0.2078674030756363], [0.5, 0.0, 0.0],
 				[0.8888925582549005, 0.11110744174509943, 0.2078674030756363], [1.0, 0.5, 0.0],
@@ -131,7 +130,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.13215081579350055, 0.13215081579350055, 0.22048031608708873], [0.5, 0.0, 0.0],
 				[0.8678491842064995, 0.13215081579350055, 0.22048031608708873], [1.0, 0.5, 0.0],
@@ -142,7 +141,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.15432914190872754, 0.15432914190872754, 0.23096988312782168], [0.5, 0.0, 0.0],
 				[0.8456708580912724, 0.15432914190872754, 0.23096988312782168], [1.0, 0.5, 0.0],
@@ -153,7 +152,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.17742883068638443, 0.17742883068638443, 0.23923508393305223], [0.5, 0.0, 0.0],
 				[0.8225711693136155, 0.17742883068638443, 0.23923508393305223], [1.0, 0.5, 0.0],
@@ -164,7 +163,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.20122741949596792, 0.20122741949596792, 0.2451963201008076], [0.5, 0.0, 0.0],
 				[0.7987725805040321, 0.20122741949596792, 0.2451963201008076], [1.0, 0.5, 0.0],
@@ -175,7 +174,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.2254957149176098, 0.2254957149176098, 0.2487961816680492], [0.5, 0.0, 0.0],
 				[0.7745042850823902, 0.2254957149176098, 0.2487961816680492], [1.0, 0.5, 0.0],
@@ -186,7 +185,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.25, 0.25, 0.25], [0.5, 0.0, 0.0],
 				[0.75, 0.25, 0.25], [1.0, 0.5, 0.0],
@@ -197,7 +196,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.27450428508239016, 0.27450428508239016, 0.24879618166804923], [0.5, 0.0, 0.0],
 				[0.7254957149176098, 0.27450428508239016, 0.24879618166804923], [1.0, 0.5, 0.0],
@@ -208,7 +207,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.29877258050403205, 0.29877258050403205, 0.2451963201008076], [0.5, 0.0, 0.0],
 				[0.701227419495968, 0.29877258050403205, 0.2451963201008076], [1.0, 0.5, 0.0],
@@ -219,7 +218,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.3225711693136155, 0.3225711693136155, 0.23923508393305223], [0.5, 0.0, 0.0],
 				[0.6774288306863845, 0.3225711693136155, 0.23923508393305223], [1.0, 0.5, 0.0],
@@ -230,7 +229,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.3456708580912724, 0.3456708580912724, 0.23096988312782168], [0.5, 0.0, 0.0],
 				[0.6543291419087276, 0.3456708580912724, 0.23096988312782168], [1.0, 0.5, 0.0],
@@ -241,7 +240,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.3678491842064994, 0.3678491842064994, 0.22048031608708876], [0.5, 0.0, 0.0],
 				[0.6321508157935005, 0.3678491842064994, 0.22048031608708876], [1.0, 0.5, 0.0],
@@ -252,7 +251,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.3888925582549005, 0.3888925582549005, 0.20786740307563634], [0.5, 0.0, 0.0],
 				[0.6111074417450995, 0.3888925582549005, 0.20786740307563634], [1.0, 0.5, 0.0],
@@ -263,7 +262,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.4085983210409113, 0.4085983210409113, 0.19325261334068428], [0.5, 0.0, 0.0],
 				[0.5914016789590887, 0.4085983210409113, 0.19325261334068428], [1.0, 0.5, 0.0],
@@ -274,7 +273,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.42677669529663687, 0.42677669529663687, 0.1767766952966369], [0.5, 0.0, 0.0],
 				[0.5732233047033631, 0.42677669529663687, 0.1767766952966369], [1.0, 0.5, 0.0],
@@ -285,7 +284,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.4432526133406842, 0.4432526133406842, 0.15859832104091137], [0.5, 0.0, 0.0],
 				[0.5567473866593158, 0.4432526133406842, 0.15859832104091137], [1.0, 0.5, 0.0],
@@ -296,7 +295,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.45786740307563634, 0.45786740307563634, 0.13889255825490054], [0.5, 0.0, 0.0],
 				[0.5421325969243637, 0.45786740307563634, 0.13889255825490054], [1.0, 0.5, 0.0],
@@ -307,7 +306,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.47048031608708873, 0.47048031608708873, 0.11784918420649947], [0.5, 0.0, 0.0],
 				[0.5295196839129113, 0.47048031608708873, 0.11784918420649947], [1.0, 0.5, 0.0],
@@ -318,7 +317,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.4809698831278217, 0.4809698831278217, 0.09567085809127247], [0.5, 0.0, 0.0],
 				[0.5190301168721783, 0.4809698831278217, 0.09567085809127247], [1.0, 0.5, 0.0],
@@ -329,7 +328,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.4892350839330522, 0.4892350839330522, 0.0725711693136156], [0.5, 0.0, 0.0],
 				[0.5107649160669478, 0.4892350839330522, 0.0725711693136156], [1.0, 0.5, 0.0],
@@ -340,7 +339,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.4951963201008076, 0.4951963201008076, 0.04877258050403215], [0.5, 0.0, 0.0],
 				[0.5048036798991924, 0.4951963201008076, 0.04877258050403215], [1.0, 0.5, 0.0],
@@ -351,7 +350,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.4987961816680492, 0.4987961816680492, 0.024504285082390206], [0.5, 0.0, 0.0],
 				[0.5012038183319508, 0.4987961816680492, 0.024504285082390206], [1.0, 0.5, 0.0],
@@ -362,7 +361,7 @@ const animatedBlintzFold = {
 		{
 			"frame_classes": ["foldedState"],
 			"frame_parent":0,
-			"inherit":true,
+			"frame_inherit":true,
 			"vertices_coords": [
 				[0.5, 0.5, 0.0], [0.5, 0.0, 0.0],
 				[0.5, 0.5, 0.0], [1.0, 0.5, 0.0],
@@ -387,7 +386,7 @@ let fishBase = {
 	"file_frames": [{
 		"frame_classes": ["foldedState"],
 		"frame_parent":0,
-		"inherit":true,
+		"frame_inherit":true,
 		"vertices_coords": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]
 	}]
 };
@@ -400,6 +399,7 @@ function sliderUpdate(value){
 	if(loadedFold.file_frames == undefined){ return; }
 	let fraction = parseFloat(value / 1000);
 	let frame = parseInt(fraction * loadedFold.file_frames.length);
+	document.getElementById("frame-number-input").value = frame;
 	// origami.setFrame(frame);
 	let newFold = RabbitEar.Folder.flattenFrame(loadedFold, frame);
 	updateThreeJS(newFold);
@@ -585,7 +585,31 @@ function dotVec3(a,b){
 	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
 
-function foldFileToThreeJSLines(foldFile, scale=0.005){
+function cylinderEdgeVertices(edge, radius){
+	// normalized edge vector
+	let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
+	let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
+	if(mag < 1e-10){ throw "degenerate edge"; }
+	let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
+	let perp = [
+		normalizeVec3(crossVec3(normalized, [1,0,0])),
+		normalizeVec3(crossVec3(normalized, [0,1,0])),
+		normalizeVec3(crossVec3(normalized, [0,0,1]))
+	].map((v,i) => ({i:i, v:v, mag:magVec3(v)}))
+	 .filter(v => v.mag > 1e-10)
+	 .map(obj => obj.v)
+	 .shift()
+	let rotated = [perp];
+	for(var i = 1; i < 4; i++){
+		rotated.push(normalizeVec3(crossVec3(rotated[i-1], normalized)));
+	}
+	let dirs = rotated.map(v => scaleVec3(v, radius));
+	return edge
+		.map(v => dirs.map(dir => [v[0]+dir[0], v[1]+dir[1], v[2]+dir[2]]))
+		.reduce((prev,curr) => prev.concat(curr), []);
+}
+
+function foldFileToThreeJSLines(foldFile, scale=0.0015){
 	let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
 	// make sure they all have a z component. when z is implied it's 0
 	edges.forEach(edge => {
@@ -593,30 +617,34 @@ function foldFileToThreeJSLines(foldFile, scale=0.005){
 		if(edge[1][2] == undefined){ edge[1][2] = 0; }
 	})
 
-	let vertices = edges.map(edge => {
-		// normalized edge vector
-		let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
-		let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-		if(mag < 1e-10){ throw "degenerate edge"; }
-		let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
-		let perp = [
-			normalizeVec3(crossVec3(normalized, [1,0,0])),
-			normalizeVec3(crossVec3(normalized, [0,1,0])),
-			normalizeVec3(crossVec3(normalized, [0,0,1]))
-		].map((v,i) => ({i:i, v:v, mag:magVec3(v)}))
-		 .filter(v => v.mag > 1e-10)
-		 .map(obj => obj.v)
-		 .shift()
-		let rotated = [perp];
-		for(var i = 1; i < 4; i++){
-			rotated.push(normalizeVec3(crossVec3(rotated[i-1], normalized)));
-		}
-		let dirs = rotated.map(v => scaleVec3(v, scale));
-		return edge
-			.map(v => dirs.map(dir => [v[0]+dir[0], v[1]+dir[1], v[2]+dir[2]]))
-			.reduce((prev,curr) => prev.concat(curr), []);
-	}).reduce((prev,curr) => prev.concat(curr), [])
-	  .reduce((prev,curr) => prev.concat(curr), []);
+	// let colorAssignments = {
+	// 	"B": 0x2299CC,
+	// 	"F": 0x666666,
+	// 	"M": 0x2299CC,
+	// 	"V": 0xDD5522 };
+	let colorAssignments = {
+		"B": [0.0,0.0,0.0],
+		"M": [0.5,0.0333,0.0666],
+		"F": [0.25,0.25,0.25],
+		"V": [0.05,0.1,0.45]
+		// "V": [0.3,0.6,1.0]
+	};
+
+	// let colors = foldFile.vertices_coords
+	// 	.map(v => [1,1,1])
+	// 	.reduce((prev,curr) => prev.concat(curr), []);
+
+	let colors = foldFile.edges_assignment.map(e => 
+		[colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
+		colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
+	).reduce((prev,curr) => prev.concat(curr), [])
+	 .reduce((prev,curr) => prev.concat(curr), [])
+	 .reduce((prev,curr) => prev.concat(curr), []);
+
+	let vertices = edges
+		.map(edge => cylinderEdgeVertices(edge, scale))
+		.reduce((prev,curr) => prev.concat(curr), [])
+		.reduce((prev,curr) => prev.concat(curr), []);
 
 	let normals = edges.map(edge => {
 		// normalized edge vector
@@ -657,18 +685,38 @@ function foldFileToThreeJSLines(foldFile, scale=0.005){
 	var geometry = new THREE.BufferGeometry();
 	geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 	geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-	// geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+	geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 	geometry.setIndex(faces);
 	geometry.computeVertexNormals();
 
 	// let material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide});
-	let material = new THREE.MeshPhongMaterial({
-		color: 0x000000,
-		side: THREE.DoubleSide,
-		flatShading:true,
-		shininess:0,
-		specular:0x000000,
-		reflectivity:0
-	});
-	return new THREE.Mesh(geometry, material);	
+	// let boundaryMaterial = new THREE.MeshPhongMaterial({
+	// 	color: 0x000000, specular:0x000000,
+	// 	side: THREE.DoubleSide, flatShading:true, shininess:0, reflectivity:0});
+	// let markMaterial = new THREE.MeshPhongMaterial({
+	// 	color: 0x666666, specular:0x666666, diffuse:0xffffff,
+	// 	side: THREE.DoubleSide, flatShading:true, shininess:0, reflectivity:0});
+	// let mountainMaterial = new THREE.MeshPhongMaterial({
+	// 	color: 0x2299CC, specular:0x2299CC, diffuse:0xffffff,
+	// 	side: THREE.DoubleSide, flatShading:true, shininess:0, reflectivity:0});
+	// let valleyMaterial = new THREE.MeshPhongMaterial({
+	// 	color: 0xDD5522, specular:0xDD5522, diffuse:0xffffff,
+	// 	side: THREE.DoubleSide, flatShading:true, shininess:0, reflectivity:0});
+	// let materialMap = {
+	// 	"B": boundaryMaterial,
+	// 	"F": markMaterial,
+	// 	"M": mountainMaterial,
+	// 	"V": valleyMaterial,
+	// };
+
+	var material = new THREE.MeshToonMaterial( {
+			// color: 0xffffff, 
+			shininess: 0,
+			side: THREE.DoubleSide, vertexColors: THREE.VertexColors
+	} );
+
+	// let material = materialMap[foldFile.edges_assignment[]]
+	// let whiteMaterial = new THREE.MeshPhongMaterial({
+		// color: 0x666666, specular:0x666666, side: THREE.DoubleSide, flatShading:true, shininess:0.5, reflectivity:0.5});
+	return new THREE.Mesh(geometry, material);
 }

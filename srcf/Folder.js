@@ -9,10 +9,11 @@
 import {clean_number, contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
 
 export function flattenFrame(fold_file, frame_num){
+	const dontCopy = ["frame_parent", "frame_inherit"];
 	var memo = {visited_frames:[]};
 	function recurse(fold_file, frame, orderArray){
 		if(memo.visited_frames.indexOf(frame) != -1){
-			throw ".FOLD file_frames encountered a circular reference";
+			throw ".FOLD file_frames encountered a cycle. stopping.";
 			return orderArray;
 		}
 		memo.visited_frames.push(frame);
@@ -24,10 +25,9 @@ export function flattenFrame(fold_file, frame_num){
 		}
 		return orderArray;
 	}
-	var collapse_order = recurse(fold_file, frame_num, []);
-	const dontCopy = ["frame_parent", "frame_inherit"];
-	let ordered_frames = collapse_order.map(frame => {
+	return recurse(fold_file, frame_num, []).map(frame => {
 		if(frame == 0){
+			// for frame 0 (the key frame) don't copy over file_frames array
 			let swap = fold_file.file_frames;
 			fold_file.file_frames = null;
 			let copy = JSON.parse(JSON.stringify(fold_file));
@@ -39,10 +39,7 @@ export function flattenFrame(fold_file, frame_num){
 		let copy = JSON.parse(JSON.stringify(fold_file.file_frames[frame-1]))
 		dontCopy.forEach(key => delete copy[key]);
 		return copy;
-	})
-	var fold = {};
-	ordered_frames.forEach(obj => Object.assign(fold, obj));
-	return fold;
+	}).reduce((prev,curr) => Object.assign(prev,curr),{})
 }
 
 export function valleyFold(foldFile, line, point){
@@ -64,28 +61,49 @@ export function valleyFold(foldFile, line, point){
 	}
 }
 
-export function clone(object){
-	// deep clone an object
-	return JSON.parse(JSON.stringify(object));
-	// try { var keys = Object.getOwnPropertyNames(foldFile); }
-	// catch (e) {
-	// 	if (e.message.indexOf("not an object") > -1) {
-	// 		// is not object
-	// 		return foldFile;
-	// 	}
-	// }
-	// if(keys == []){ return foldFile; }
-	// var proto = Object.getPrototypeOf(foldFile);
-	// var copyFile = Object.create(proto);
-	// keys.forEach(function (name) {
-	// 	var pd = Object.getOwnPropertyDescriptor(foldFile, name);
-	// 	if (pd.value) {
-	// 		pd.value = clone(pd.value);
-	// 	}
-	// 	Object.defineProperty(copyFile, name, pd);
-	// });
-	// return copyFile;
 
+file_spec // num str
+file_creator // str
+file_author  // str
+file_title  // str
+file_description  // str
+file_classes // arr of str
+file_frames //
+
+function copy_object(o){
+
+}
+function copy_array(a){
+
+}
+
+function copy_array_number(a){
+
+}
+
+function is_array(a){
+
+}
+
+// types to check:
+// "undefined" / "null"
+// "boolean"
+// "number"
+// "string"
+// "symbol"
+// "function"
+// "object"
+
+export function clone(thing){
+	// deep clone an object
+	// return JSON.parse(JSON.stringify(object));  // slow
+	if(thing == null || typeof thing == "boolean" || typeof thing ==  "number" ||
+	   typeof thing ==  "string" || typeof thing ==  "symbol"){ return thing; }
+	var copy = Object.assign({},thing);
+	Object.entries(copy)
+		.filter(([k,v]) => typeof v == "object" || typeof v == "symbol" || typeof v == "function")
+		.forEach(([k,v]) => copy[k] = clone(copy[k]) )
+	return copy;
 };
 
 /** 

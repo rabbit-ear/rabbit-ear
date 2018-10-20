@@ -20,16 +20,19 @@ canvas{ width: 100%; height: 100%; }
 		</div>
 		<div id="three-canvas"></div>
 	</div>
-	<div class="row" id="toolbar">
-		<a href="#" class="btn btn-sm btn-primary" id="load-file">Open File</a>
-		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-cp-svg">CP .svg</a>
-		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-cp-opx">CP .opx</a>
-		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-cp-fold">CP .fold</a>
-		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-folded-fold">Folded .fold</a>
-		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-folded-svg">Folded .svg</a>
-		<div>
+
+	<div class="form-row" id="toolbar">
+		<div class="col"></div>
+		<div class="col">
+			<a href="#" class="btn btn-sm btn-primary" id="load-file">Open File</a>
+		</div>
+		<div class="col">
 			<input id="frame-slider" type="text" data-slider-min="0" data-slider-max="1000" data-slider-step="1" data-slider-value="0"/>
 		</div>
+		<div class="col">
+			<input type="text" class="form-control" placeholder="no frames" id="frame-number-input">
+		</div>		
+		<div class="col"></div>
 	</div>
 <script type="text/javascript" src="../../examples/lib/bootstrap/js/bootstrap-slider.min.js"></script>
 

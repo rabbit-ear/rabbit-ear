@@ -10,11 +10,12 @@ html, body {
 /* code console */
 .CodeMirror {
 	border: 1px solid #666;
+	margin-left:20px;
 	height:90vh;
 	/*height: auto;*/
 	/*overflow-y: auto;*/
 	/*overflow-x: scroll;*/
-	width: 30vw;
+	width: 40vw;
 }
 /*.cm-s-default{
 	margin:0 !important;
