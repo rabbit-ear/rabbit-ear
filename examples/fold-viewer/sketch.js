@@ -422,8 +422,10 @@ var scene = new THREE.Scene();
 // var camera = new THREE.PerspectiveCamera(45, threeCanvas.clientWidth/threeCanvas.clientHeight, 0.1, 1000);
 var camera = new THREE.PerspectiveCamera(45, (window.innerWidth - cm.clientWidth)/threeCanvas.clientHeight, 0.1, 1000);
 var controls = new THREE.OrbitControls(camera, document.getElementById("three-canvas"));
-camera.position.set( 0.5, 0.5, 1.5 );
-controls.target.set(0.5, 0.5, 0.0);
+// camera.position.set( 0.5, 0.5, 1.5 );
+// controls.target.set(0.5, 0.5, 0.0);
+camera.position.set(0.0, 0.0, 1.5 );
+controls.target.set(0.0, 0.0, 0.0);
 
 controls.addEventListener( 'change', render );
 

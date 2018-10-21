@@ -4,9 +4,31 @@
  *  general cleanup and validation
  */
 
+// SPEC 1.1
+
+// vertices_coords
+// vertices_vertices
+// vertices_faces
+
+// edges_vertices
+// edges_faces
+// edges_assignment
+// edges_foldAngle
+// edges_length
+
+// faces_vertices
+// faces_edges
+// faceOrders
+// edgeOrders
+
+
+
 'use strict';
 
+import Graph from './Graph'
+
 import {clean_number, contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
+
 
 export function flattenFrame(fold_file, frame_num){
 	const dontCopy = ["frame_parent", "frame_inherit"];
@@ -30,13 +52,13 @@ export function flattenFrame(fold_file, frame_num){
 			// for frame 0 (the key frame) don't copy over file_frames array
 			let swap = fold_file.file_frames;
 			fold_file.file_frames = null;
-			let copy = JSON.parse(JSON.stringify(fold_file));
+			let copy = clone(fold_file);
 			fold_file.file_frames = swap;
 			delete copy.file_frames;
 			dontCopy.forEach(key => delete copy[key]);
 			return copy;
 		}
-		let copy = JSON.parse(JSON.stringify(fold_file.file_frames[frame-1]))
+		let copy = clone(fold_file.file_frames[frame-1])
 		dontCopy.forEach(key => delete copy[key]);
 		return copy;
 	}).reduce((prev,curr) => Object.assign(prev,curr),{})
@@ -62,13 +84,13 @@ export function valleyFold(foldFile, line, point){
 }
 
 
-file_spec // num str
-file_creator // str
-file_author  // str
-file_title  // str
-file_description  // str
-file_classes // arr of str
-file_frames //
+// file_spec // num str
+// file_creator // str
+// file_author  // str
+// file_title  // str
+// file_description  // str
+// file_classes // arr of str
+// file_frames //
 
 function copy_object(o){
 
@@ -96,14 +118,14 @@ function is_array(a){
 
 export function clone(thing){
 	// deep clone an object
-	// return JSON.parse(JSON.stringify(object));  // slow
-	if(thing == null || typeof thing == "boolean" || typeof thing ==  "number" ||
-	   typeof thing ==  "string" || typeof thing ==  "symbol"){ return thing; }
-	var copy = Object.assign({},thing);
-	Object.entries(copy)
-		.filter(([k,v]) => typeof v == "object" || typeof v == "symbol" || typeof v == "function")
-		.forEach(([k,v]) => copy[k] = clone(copy[k]) )
-	return copy;
+	return JSON.parse(JSON.stringify(thing));  // slow
+	// if(thing == null || typeof thing == "boolean" || typeof thing ==  "number" ||
+	//    typeof thing ==  "string" || typeof thing ==  "symbol"){ return thing; }
+	// var copy = (thing.constructor === Array) ? thing.slice() : Object.assign({},thing);
+	// Object.entries(copy)
+	// 	.filter(([k,v]) => typeof v == "object" || typeof v == "symbol" || typeof v == "function")
+	// 	.forEach(([k,v]) => copy[k] = clone(copy[k]) )
+	// return copy;
 };
 
 /** 
@@ -535,7 +557,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	// clean isolated vertices
 	// (compiled_faces_vertices, compiled_faces_layer)
-	var cleaned = clean_isolated_vertices(new_vertices_coords,
+	var cleaned = Graph.clean_isolated_vertices(new_vertices_coords,
 		new_layer_data.faces_vertices);
 
 	// flip points across the fold line, 
@@ -618,37 +640,3 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	return new_fold;
 }
-
-// remove unused vertices based on appearance in faces_vertices only
-//  also, this updates changes to references in faces_vertices only
-var clean_isolated_vertices = function(vertices_coords, faces_vertices){
-	let booleans = vertices_coords.map(() => false)
-	let vertices = vertices_coords.slice();
-	let count = booleans.length;
-	faces_vertices.forEach(face => {
-		face.forEach(v => {
-			if(booleans[v] == false){ booleans[v] = true; count -= 1; }
-			if(count == 0){ return; } // we fliped N bits. break
-		})
-	})
-	if(count == 0){ // every vertex is used
-		return {vertices_coords: vertices, faces_vertices: faces_vertices};
-	} 
-	// make an array of index changes [ 0, 0, 0, -1, -1, -1, -2, -2]
-	let offset = 0
-	let indexMap = booleans.map((b,i) => {
-		if(b == false){ offset -= 1; }
-		return offset;
-	})
-	// update faces vertices with changes
-	faces_vertices = faces_vertices.map(face => face.map(f => f += indexMap[f]))
-	// remove unused vertices from vertex array
-	for(var i = booleans.length-1; i >= 0; i -= 1){
-		if(!booleans[i]){ vertices.splice(i, 1); }
-	}
-	return {
-		vertices_coords: vertices,
-		faces_vertices: faces_vertices
-	};
-}
-
