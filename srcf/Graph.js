@@ -58,47 +58,75 @@
 //   [ [i,j], [k,l], ... ]
 
 
+// SPEC 1.1
+
+// vertices_coords
+// vertices_vertices
+// vertices_faces
+
+// edges_vertices
+// edges_faces
+// edges_assignment
+// edges_foldAngle
+// edges_length
+
+// faces_vertices
+// faces_edges
+// faceOrders
+// edgeOrders
+
+
+
 ///////////////////////////////////////////////
 // REMOVE PARTS
 ///////////////////////////////////////////////
 
 export default { clean_isolated_vertices }
 
-
-// remove unused vertices based on appearance in faces_vertices only
-//  also, this updates changes to references in faces_vertices only
-function clean_isolated_vertices(vertices_coords, faces_vertices){
-	let booleans = vertices_coords.map(() => false)
-	let vertices = vertices_coords.slice();
-	let count = booleans.length;
-	faces_vertices.forEach(face => {
-		face.forEach(v => {
-			if(booleans[v] == false){ booleans[v] = true; count -= 1; }
-			if(count == 0){ return; } // we fliped N bits. break
-		})
-	})
-	if(count == 0){ // every vertex is used
-		return {vertices_coords: vertices, faces_vertices: faces_vertices};
-	} 
-	// make an array of index changes [ 0, 0, 0, -1, -1, -1, -2, -2]
-	let offset = 0
-	let indexMap = booleans.map((b,i) => {
-		if(b == false){ offset -= 1; }
-		return offset;
-	})
-	// update faces vertices with changes
-	faces_vertices = faces_vertices.map(face => face.map(f => f += indexMap[f]))
-	// remove unused vertices from vertex array
-	for(var i = booleans.length-1; i >= 0; i -= 1){
-		if(!booleans[i]){ vertices.splice(i, 1); }
-	}
-	return {
-		vertices_coords: vertices,
-		faces_vertices: faces_vertices
-	};
+// modifies input fold file
+function clean_isolated_vertices(fold_file){
+	// check for existence of vertex in these arrays:
+	let refs = [fold_file.faces_vertices, fold_file.edges_vertices]
+		.filter(a => a != null);
+	let isolated = isolated_indices(fold_file.vertices_coords.length, refs);
+	if(isolated == undefined){ return; } // no isolated vertices
+	let s = 0, index_map = isolated.map(isolated => isolated ? --s : s);
+	// modify vertex array
+	isolated.map((b,i) => i)
+		.filter(i => isolated[i])
+		.reverse()
+		.forEach(i => fold_file.vertices_coords.splice(i,1));
+	// update reference arrays
+	fold_file.faces_vertices = fold_file.faces_vertices
+		.map(entry => entry = entry.map(v => v + index_map[v]));
+	fold_file.edges_vertices = fold_file.edges_vertices
+		.map(entry => entry = entry.map(v => v + index_map[v]));
 }
 
-function removeNode(fold_file, node_index){
+// remove unused vertices based on appearance in faces_vertices only
+// changes contents of vertices_coords array.
+function isolated_indices(array_length, ...reference_arrays){
+	let isolated = Array(array_length).fill(true)
+	vertex_search: // for loops-need to be able to break from inner loops
+	for(let ra = 0; ra < reference_arrays.length; ra += 1){
+		for(let arr = 0; arr < reference_arrays[ra].length; arr += 1){
+			for(let entry = 0; entry < reference_arrays[ra][arr].length; entry += 1){
+				for(let i = 0; i < reference_arrays[ra][arr][entry].length; i += 1){
+					let v = reference_arrays[ra][arr][entry][i];
+					console.log(v);
+					if(isolated[v] == true){
+						isolated[v] = false;
+						array_length -= 1;
+					}
+					if(array_length == 0){ break vertex_search; } // we fliped N bits. break
+				}
+			}
+		}
+	}
+	return isolated;
+}
+
+// function remove_node(fold_file, node_index){
 	// let shift = Graph.remove_from_array(fold_file.edges_vertices, function(n,i))
 
 	// Array.from(arguments).slice(2)
@@ -109,7 +137,7 @@ function removeNode(fold_file, node_index){
 	// 	faces_edges:[3,6],
 	// 	edges_vertices:[2,6,7,8],
 	// }
-}
+// }
 
 
 

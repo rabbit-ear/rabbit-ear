@@ -557,8 +557,13 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	// clean isolated vertices
 	// (compiled_faces_vertices, compiled_faces_layer)
-	var cleaned = Graph.clean_isolated_vertices(new_vertices_coords,
-		new_layer_data.faces_vertices);
+	// var cleaned = Graph.clean_isolated_vertices({new_vertices_coords,
+	//	new_layer_data.faces_vertices});
+	var cleaned = {
+		vertices_coords: new_vertices_coords,
+		faces_vertices:new_layer_data.faces_vertices
+	};
+	Graph.clean_isolated_vertices(cleaned);
 
 	// flip points across the fold line, 
 	let reflected = reflect_across_fold(cleaned.vertices_coords,
