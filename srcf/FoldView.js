@@ -1,4 +1,4 @@
-/** Simple .FOLD file view
+/** .FOLD file viewer
  * converts .fold file into SVG, binds it to the DOM
  *   constructor arguments:
  *   - fold file

@@ -4,10 +4,12 @@
 // import { terser } from 'rollup-plugin-terser';
 
 module.exports = {
-  input: 'srcf/index.js',
-  output: {
-    name: 'RabbitEar',
-    file: 'rabbit-ear.js',
-    format: 'umd'
-  }
+	input: 'srcf/index.js',
+	output: {
+		name: 'RabbitEar',
+		file: 'rabbit-ear.js',
+		format: 'umd',
+		strict: false,
+		banner: "/* Rabbit Ear v2 (c) Robby Kraft, MIT License */"
+	},
 };

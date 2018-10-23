@@ -3,19 +3,19 @@
  *  fold/unfold, add new creases, navigate frames,
  *  general cleanup and validation
  */
+// dependencies: 
+// - FOLD https://github.com/edemaine/fold/
 
-// SPEC 1.1
 
+// -- built for FOLD 1.1 --
 // vertices_coords
 // vertices_vertices
 // vertices_faces
-
 // edges_vertices
 // edges_faces
 // edges_assignment
 // edges_foldAngle
 // edges_length
-
 // faces_vertices
 // faces_edges
 // faceOrders
@@ -29,6 +29,11 @@ import Graph from './Graph'
 
 import {clean_number, contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
 
+// import './fold.js'
+
+
+// console.log(FOLD);
+// console.log(FOLD.convert);
 
 export function flattenFrame(fold_file, frame_num){
 	const dontCopy = ["frame_parent", "frame_inherit"];
@@ -116,9 +121,11 @@ function is_array(a){
 // "function"
 // "object"
 
+
+/** deep clone an object */
 export function clone(thing){
-	// deep clone an object
-	return JSON.parse(JSON.stringify(thing));  // slow
+	return JSON.parse(JSON.stringify(thing));  // supposed to be slow
+	// recurse over each entry, somebody with more knowledge of edge cases needs to check this
 	// if(thing == null || typeof thing == "boolean" || typeof thing ==  "number" ||
 	//    typeof thing ==  "string" || typeof thing ==  "symbol"){ return thing; }
 	// var copy = (thing.constructor === Array) ? thing.slice() : Object.assign({},thing);
@@ -465,55 +472,6 @@ var top_face_under_point = function(
 		}, -1);
 	return (top_fi === -1) ? undefined : top_fi;
 }
-
-
-var faces_vertices_to_edges = function (mesh) {
-	var edge, edgeMap, face, i, key, ref, v1, v2, vertices;
-	mesh.edges_vertices = [];
-	mesh.edges_faces = [];
-	mesh.faces_edges = [];
-	mesh.edges_assignment = [];
-	edgeMap = {};
-	ref = mesh.faces_vertices;
-	for (face in ref) {
-		vertices = ref[face];
-		face = parseInt(face);
-		mesh.faces_edges.push((function() {
-			var j, len, results;
-			results = [];
-			for (i = j = 0, len = vertices.length; j < len; i = ++j) {
-				v1 = vertices[i];
-				v1 = parseInt(v1);
-				v2 = vertices[(i + 1) % vertices.length];
-				if (v1 <= v2) {
-					key = v1 + "," + v2;
-				} else {
-					key = v2 + "," + v1;
-				}
-				if (key in edgeMap) {
-					edge = edgeMap[key];
-				} else {
-					edge = edgeMap[key] = mesh.edges_vertices.length;
-					if (v1 <= v2) {
-						mesh.edges_vertices.push([v1, v2]);
-					} else {
-						mesh.edges_vertices.push([v2, v1]);
-					}
-					mesh.edges_faces.push([null, null]);
-					mesh.edges_assignment.push('B');
-				}
-				if (v1 <= v2) {
-					mesh.edges_faces[edge][0] = face;
-				} else {
-					mesh.edges_faces[edge][1] = face;
-				}
-				results.push(edge);
-			}
-			return results;
-		})());
-	}
-	return mesh;
-};
 
 // assumes point not on line
 var split_folding_faces = function(fold, linePoint, lineVector, point) {

@@ -160,4 +160,3 @@ function points_equivalent(a, b, epsilon = 1e-10){
 
 // need to test:
 // do two polygons overlap if they share a point in common? share an edge?
-

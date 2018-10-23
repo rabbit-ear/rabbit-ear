@@ -1,42 +1,43 @@
 // Graph.js
-// a mathematical undirected graph with edges and nodes
+// an undirected graph with edges and vertices and circuit-defining faces
+// with operations targeting the .FOLD file spec github.com/edemaine/fold
 // MIT open source license, Robby Kraft
 //
-//  "adjacent": 2 nodes are adjacent when they are connected by an edge
-//              edges are adjacent when they are both connected to the same node
-//  "similar": edges are similar if they contain the same 2 nodes, even if in a different order
-//  "incident": an edge is incident to its two nodes
-//  "endpoints": a node is an endpoint of its edge
+//  "adjacent": 2 vertices are adjacent when they are connected by an edge
+//              edges are adjacent when they are both connected to the same vertex
+//  "similar": edges are similar if they contain the same 2 vertices, even if in a different order
+//  "incident": an edge is incident to its two vertices
+//  "endpoints": a vertex is an endpoint of its edge
 //  "new"/"add": functions like "newNode" vs. "addNode", easy way to remember is that the "new" function will use the javascript "new" object initializer. Objects are created in the "new" functions.
 //  "size" the size of a graph is the number of edges
 //  "cycle" a set of edges that form a closed circut, it's possible to walk down a cycle and end up where you began without visiting the same edge twice.
-//  "circuit" a circuit is a cycle except that it's allowed to visit the same node more than once.
+//  "circuit" a circuit is a cycle except that it's allowed to visit the same vertex more than once.
 //  "multigraph": not this graph. but the special case where circular and duplicate edges are allowed
-//  "degree": the degree of a node is how many edges are incident to it
-//  "isolated": a node is isolated if it is connected to 0 edges, degree 0
-//  "leaf": a node is a leaf if it is connected to only 1 edge, degree 1
-//  "pendant": an edge incident with a leaf node
+//  "degree": the degree of a vertex is how many edges are incident to it
+//  "isolated": a vertex is isolated if it is connected to 0 edges, degree 0
+//  "leaf": a vertex is a leaf if it is connected to only 1 edge, degree 1
+//  "pendant": an edge incident with a leaf vertex
 
 "use strict";
 
 /** A survey of the objects removed from a graph after a function is performed */
 
 // "total" must be greater than or equal to the other members of each object
-// "total" can include removed edges/nodes which don't count as "duplicate" or "circular"
+// "total" can include removed edges/vertices which don't count as "duplicate" or "circular"
 // edges;
-// nodes;
+// vertices;
 // intialize a GraphClean with totals, but no other details like "duplicate" or "isolated"
 
 // function GraphClean() {
 // 	return {
-// 		nodes: {total:0, isolated:0},
+// 		vertices: {total:0, isolated:0},
 // 		edges: {total:0, duplicate:0, circular:0},
 // 		duplicateEdges: function(e){ }
 // 	};
 // }
 
 // function GraphClean(){
-// 	var nodes = {total:0, isolated:0}; 
+// 	var vertices = {total:0, isolated:0}; 
 // 	var edges = {total:0, duplicate:0, circular:0};
 
 // 	function duplicateEdges(e){ }
@@ -44,7 +45,7 @@
 // 	function isolatedNodes(n){ }
 
 // 	return Object.freeze({
-// 		nodes,
+// 		vertices,
 // 		edges, 
 // 		duplicateEdges,
 // 		circularEdges,
@@ -52,9 +53,9 @@
 // 	});
 // }
 
-// nodes is an array of whatever
+// vertices is an array of whatever
 //   [ a, b, c ]
-// edges is an array of arrays, indices in nodes array. only 2 per array
+// edges is an array of arrays, indices in vertices array. only 2 per array
 //   [ [i,j], [k,l], ... ]
 
 
@@ -77,186 +78,74 @@
 
 
 
-///////////////////////////////////////////////
-// REMOVE PARTS
-///////////////////////////////////////////////
-
-export default { clean_isolated_vertices }
-
-// modifies input fold file
-function clean_isolated_vertices(fold_file){
-	// check for existence of vertex in these arrays:
-	let refs = [fold_file.faces_vertices, fold_file.edges_vertices]
-		.filter(a => a != null);
-	let isolated = isolated_indices(fold_file.vertices_coords.length, refs);
-	if(isolated == undefined){ return; } // no isolated vertices
-	let s = 0, index_map = isolated.map(isolated => isolated ? --s : s);
-	// modify vertex array
-	isolated.map((b,i) => i)
-		.filter(i => isolated[i])
-		.reverse()
-		.forEach(i => fold_file.vertices_coords.splice(i,1));
-	// update reference arrays
-	fold_file.faces_vertices = fold_file.faces_vertices
-		.map(entry => entry = entry.map(v => v + index_map[v]));
-	fold_file.edges_vertices = fold_file.edges_vertices
-		.map(entry => entry = entry.map(v => v + index_map[v]));
-}
-
-// remove unused vertices based on appearance in faces_vertices only
-// changes contents of vertices_coords array.
-function isolated_indices(array_length, ...reference_arrays){
-	let isolated = Array(array_length).fill(true)
-	vertex_search: // for loops-need to be able to break from inner loops
-	for(let ra = 0; ra < reference_arrays.length; ra += 1){
-		for(let arr = 0; arr < reference_arrays[ra].length; arr += 1){
-			for(let entry = 0; entry < reference_arrays[ra][arr].length; entry += 1){
-				for(let i = 0; i < reference_arrays[ra][arr][entry].length; i += 1){
-					let v = reference_arrays[ra][arr][entry][i];
-					console.log(v);
-					if(isolated[v] == true){
-						isolated[v] = false;
-						array_length -= 1;
-					}
-					if(array_length == 0){ break vertex_search; } // we fliped N bits. break
-				}
-			}
-		}
-	}
-	return isolated;
-}
-
-// function remove_node(fold_file, node_index){
-	// let shift = Graph.remove_from_array(fold_file.edges_vertices, function(n,i))
-
-	// Array.from(arguments).slice(2)
-	// 	.forEach(obj => obj.forEach(arr => arr.forEach(a => a += shift[a])))
-
-	// returns an "invalid" object: everything index in each key in the fold file is now invalid.
-	// {
-	// 	faces_edges:[3,6],
-	// 	edges_vertices:[2,6,7,8],
-	// }
-// }
 
 
-
-function remove_edge(edge_index, edge_array){
-	edge_array.splice(edge_index, 1);
-}
-
-/** Searches and removes any edges connecting the two nodes supplied in the arguments
- * @param {[[number, number]]} an array of two-integer arrays.
- * @param {[number, number]} a two-integer array
- * @returns {boolean} true if an edge matched and was removed
- * @example 
- * var result = removeEdge(edges, e)
- */
-
-function remove_edges_with_node(node_index, edge_array){
-	edge_array = edge_array
-		.filter(e => e[0] === node_index || e[1] === node_index);
-}
-
-function remove_edges_with_nodes(a_index, b_index, edge_array){
-	edge_array = edge_array.filter(e =>
-		(e[0] === a_index && e[1] === b_index) ||
-		(e[0] === b_index && e[1] === a_index)
-	);
-	Array.from(arguments).slice(3).forEach()
-}
-
-function remove_from_array(array, match_function){
-	let remove = array.map((a,i) => match_function(a,i));
-	let s = 0, shift = remove.map(rem => rem ? --s : s);
-	array = array.filter(e => match_function(e));
-	return shift;
-}
-
-/** Remove a node and any edges that connect to it
- * @param {GraphNode} node the node that will be removed
- * @returns {GraphClean} number of nodes and edges removed
- * @example 
- * var result = graph.removeNode(node)
- * // result.node will be 1
- * // result.edges will be >= 0
- */
-function remove_node(node_array, edge_array, node_index){
-	edge_array = edge_array.filter(el => el[0] !== node_index && el[1] !== node_index);
-	node_array = node_array.filter(el => el !== node);
-	node_array.splice()
-}
-
-/** Remove the second node and replaces all mention of it with the first in every edge
- * @param {GraphNode} node1 first node to merge, this node will persist
- * @param {GraphNode} node2 second node to merge, this node will be removed
- * @returns {GraphClean} 1 removed node, newly duplicate and circular edges will be removed
- * @example 
- * var result = graph.mergeNodes(node1, node2)
- * // result.node will be 1
- * // result.edges will be >= 0
- */
-function mergeNodes(node1, node2){
-	if(node1 === node2) { return undefined; }
-	this.edges.forEach(function(edge){
-		if(edge.nodes[0]===node2){edge.nodes[0]=node1;}
-		if(edge.nodes[1]===node2){edge.nodes[1]=node1;}
-	},this);
-	// this potentially created circular edges
-	var nodesLength = this.nodes.length;
-	this.nodes = this.nodes.filter(function(el){ return el !== node2; });
-	return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
-}
-
-
-
-/** Check if a node is isolated and remove it if so
- * @returns {GraphClean} the number of nodes removed
- */
-function removeNodeIfIsolated(node){
-	if(this.edges.filter(function(edge){return edge.nodes[0]===node||edge.nodes[1]===node;},this).length === 0){ return new GraphClean(); };
-	this.nodes = this.nodes.filter(function(el){ return el !== node; });
-	this.nodeArrayDidChange();
-	return new GraphClean(1, 0);
-}
 
 ///////////////////////////////////////////////
-// REMOVE PARTS (SEARCH REQUIRED TO LOCATE)
+// GET PARTS
 ///////////////////////////////////////////////
 
-/** Removes any node that isn't a part of an edge
- * @returns {GraphClean} the number of nodes removed
+/** Get an array of edge indices that contain the vertex
+ * @returns {GraphEdge[]} array of adjacent edges
+ * @example
+ * var adjacent = vertex.adjacentEdges()
+ */
+function vertex_adjacent_edges(graph, vertex){
+	return graph.edges_vertices
+		.map((edge, index)=> ({edge:edge, index:index}))
+		.filter(obj => obj.edge[0] === vertex || obj.edge[1] === vertex)
+		.map(obj => obj.index)
+}
+/** Get an array of vertices that share an edge in common with this vertex
+ * @returns {GraphNode[]} array of adjacent vertices
+ * @example
+ * var adjacent = vertex.adjacentNodes()
+ */
+function vertex_adjacent_vertices(graph, vertex){
+	let edges = graph.edges_vertices
+		.map((edge,index)=> ({edge:edge, index:index}));
+	let a = edges
+		.filter(obj => obj.edge[0] === vertex)
+		.map(obj => obj.edge[1])
+	let b = edges
+		.filter(obj => obj.edge[1] === vertex)
+		.map(obj => obj.edge[0])
+	return a.concat(b);
+}
+/** Test if a vertex is connected to another vertex by an edge
+ * @param {GraphNode} vertex test adjacency between this and the supplied parameter
+ * @returns {boolean} true or false, adjacent or not
+ * @example
+ * var isAdjacent = vertex.isAdjacentToNode(anotherNode);
+ */
+function are_vertices_adjacent(graph, a, b){
+	return vertex_adjacent_vertices(graph, a).indexOf(b) != -1
+}
+/** The degree of a vertex is the number of adjacent edges, circular edges are counted twice
+ * @returns {number} number of adjacent edges
+ * @example
+ * var degree = vertex.degree();
+ */
+function degree(graph, vertex){
+	return graph.edges_vertices.filter(edge => edge[0] === vertex).length +
+	       graph.edges_vertices.filter(edge => edge[1] === vertex).length;
+}
+/** Removes any vertex that isn't a part of an edge
+ * @returns {GraphClean} the number of vertices removed
  * @example 
  * var result = graph.removeIsolatedNodes()
- * // result.node will be >= 0
+ * // result.vertex will be >= 0
  */
-function removeIsolatedNodes(){
-	// this function relies on .index values. it would be nice if it didn't
-	this.nodeArrayDidChange();
-	// build an array containing T/F if a node is NOT isolated for each node
-	var nodeDegree = [];
-	for(var i = 0; i < this.nodes.length; i++){ nodeDegree[i] = false; }
-	for(var i = 0; i < this.edges.length; i++){
-		nodeDegree[this.edges[i].nodes[0].index] = true;
-		nodeDegree[this.edges[i].nodes[1].index] = true;
-	}
-	// filter out isolated nodes
-	var nodeLength = this.nodes.length;
-	this.nodes = this.nodes.filter(function(el,i){ return nodeDegree[i]; });
-	var isolatedCount = nodeLength - this.nodes.length;
-	if(isolatedCount > 0){ this.nodeArrayDidChange(); }
-	return new GraphClean().isolatedNodes(isolatedCount);
-}
 
-/** Remove all edges that contain the same node at both ends
+
+/** Remove all edges that contain the same vertex at both ends
  * @returns {GraphClean} the number of edges removed
  * @example 
  * var result = graph.removeCircularEdges()
  * // result.edges will be >= 0
  */
-function removeCircularEdges(){
-	var edgesLength = this.edges.length;
-	this.edges = this.edges.filter(function(el){ return el.nodes[0] !== el.nodes[1]; });
+function remove_circular_edges(graph){
+	let circular = graph.edges_vertices.filter(edge => edge[0] === edge[1]);
 	if(this.edges.length != edgesLength){ this.edgeArrayDidChange(); }
 	return new GraphClean().circularEdges(edgesLength - this.edges.length);
 }
@@ -292,8 +181,8 @@ function removeDuplicateEdges(){
  */
 function cleanGraph(){
 	this.edgeArrayDidChange();
-	this.nodeArrayDidChange();
-	// should we remove isolated nodes as a part of clean()?
+	this.vertexArrayDidChange();
+	// should we remove isolated vertices as a part of clean()?
 	// return this.removeDuplicateEdges().join(this.removeCircularEdges()).join(this.removeIsolatedNodes());
 	// return this.removeDuplicateEdges().join(this.removeCircularEdges());
 	var dups = this.removeDuplicateEdges();
@@ -309,61 +198,250 @@ function cleanGraph(){
  */
 function clean(){ return this.cleanGraph(); }
 
+
+
 ///////////////////////////////////////////////
-// GET PARTS
+// REMOVE PARTS
 ///////////////////////////////////////////////
 
-/** Get an array of edges that contain this node
- * @returns {GraphEdge[]} array of adjacent edges
- * @example
- * var adjacent = node.adjacentEdges()
- */
-function nodeAdjacentEdges(n){
-	return this.edges.filter(e => e[0] === n || e[1] === n)
-}
-/** Get an array of nodes that share an edge in common with this node
- * @returns {GraphNode[]} array of adjacent nodes
- * @example
- * var adjacent = node.adjacentNodes()
- */
-function nodeAdjacentNodes(){
-	var checked = []; // the last step, to remove duplicate nodes
-	return this.adjacentEdges()
-		.filter(function(el){ return !el.isCircular(); })
-		.map(function(el){
-			if(el.nodes[0] === this){ return el.nodes[1]; }
-			return el.nodes[0];
-		},this)
-		.filter(function(el){
-			return checked.indexOf(el) >= 0 ? false : checked.push(el);
-		},this);
-}
-/** Test if a node is connected to another node by an edge
- * @param {GraphNode} node test adjacency between this and the supplied parameter
- * @returns {boolean} true or false, adjacent or not
- * @example
- * var isAdjacent = node.isAdjacentToNode(anotherNode);
- */
-function isNodeAdjacentToNode(node){
-	return (this.graph.getEdgeConnectingNodes(this, node) !== undefined);
-}
-/** The degree of a node is the number of adjacent edges, circular edges are counted twice
- * @returns {number} number of adjacent edges
- * @example
- * var degree = node.degree();
- */
-function degree(){
-	return this.graph.edges.map(function(el){
-		var sum = 0;
-		if(el.nodes[0] === this){ sum += 1; }
-		if(el.nodes[1] === this){ sum += 1; }
-		return sum;
-	}, this).reduce(function(a, b){ return a + b; });
-	// this implementation does not consider the invalid graph case where circular edges are counted twice.
-	// return this.adjacentEdges().length;
+export default { clean_isolated_vertices }
+
+// modifies input fold file // changes contents of vertices_coords array.
+function clean_isolated_vertices(fold){
+	// check for existence of vertex in these arrays:
+	let refs = [fold.faces_vertices, fold.edges_vertices]
+		.filter(a => a != null);
+	let isolated = isolated_indices(fold.vertices_coords.length, refs);
+	if(isolated == undefined){ return; } // no isolated vertices
+	let s = 0, index_map = isolated.map(isolated => isolated ? --s : s);
+	// modify vertex array
+	isolated.map((b,i) => i)
+		.filter(i => isolated[i])
+		.reverse()
+		.forEach(i => fold.vertices_coords.splice(i,1));
+	// update all _vertices data in fold
+	vertices_did_update(fold, index_map);
 }
 
 
+/* compare a 0-indexed array (array's length) against a set of
+ *  reference arrays, search for no mention of each index in refs
+ *  which are arrays of arrays themselves. inside an array.
+ */
+function isolated_indices(array_length, ...reference_arrays){
+	let isolated = Array(array_length).fill(true)
+	vertex_search: // need for-loops to be able to break
+	for(let ra = 0; ra < reference_arrays.length; ra += 1){
+		for(let arr = 0; arr < reference_arrays[ra].length; arr += 1){
+			for(let entry = 0; entry < reference_arrays[ra][arr].length; entry += 1){
+				for(let i = 0; i < reference_arrays[ra][arr][entry].length; i += 1){
+					let v = reference_arrays[ra][arr][entry][i];
+					if(isolated[v] == true){
+						isolated[v] = false;
+						array_length -= 1;
+					}
+					if(array_length == 0){ break vertex_search; } // we fliped N bits. break
+				}
+			}
+		}
+	}
+	return isolated;
+}
+
+function vertices_did_update(graph, index_map){
+	if(graph.faces_vertices != null){
+		graph.faces_vertices = graph.faces_vertices
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+	if(graph.edges_vertices != null){
+		graph.edges_vertices = graph.edges_vertices
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+	if(graph.vertices_vertices != null){
+		graph.vertices_vertices = graph.vertices_vertices
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+}
+
+
+// this comes from fold.js. still working on the best way to require() the fold module
+var faces_vertices_to_edges = function (mesh) {
+	var edge, edgeMap, face, i, key, ref, v1, v2, vertices;
+	mesh.edges_vertices = [];
+	mesh.edges_faces = [];
+	mesh.faces_edges = [];
+	mesh.edges_assignment = [];
+	edgeMap = {};
+	ref = mesh.faces_vertices;
+	for (face in ref) {
+		vertices = ref[face];
+		face = parseInt(face);
+		mesh.faces_edges.push((function() {
+			var j, len, results;
+			results = [];
+			for (i = j = 0, len = vertices.length; j < len; i = ++j) {
+				v1 = vertices[i];
+				v1 = parseInt(v1);
+				v2 = vertices[(i + 1) % vertices.length];
+				if (v1 <= v2) {
+					key = v1 + "," + v2;
+				} else {
+					key = v2 + "," + v1;
+				}
+				if (key in edgeMap) {
+					edge = edgeMap[key];
+				} else {
+					edge = edgeMap[key] = mesh.edges_vertices.length;
+					if (v1 <= v2) {
+						mesh.edges_vertices.push([v1, v2]);
+					} else {
+						mesh.edges_vertices.push([v2, v1]);
+					}
+					mesh.edges_faces.push([null, null]);
+					mesh.edges_assignment.push('B');
+				}
+				if (v1 <= v2) {
+					mesh.edges_faces[edge][0] = face;
+				} else {
+					mesh.edges_faces[edge][1] = face;
+				}
+				results.push(edge);
+			}
+			return results;
+		})());
+	}
+	return mesh;
+};
+
+// let ff = {
+// 	"file_spec": 1.1,
+// 	"file_creator": "",
+// 	"file_author": "",
+// 	"file_classes": ["singleModel"],
+// 	"frame_attributes": ["2D"],
+// 	"frame_title": "",
+// 	"frame_classes": ["creasePattern"],
+// 	"vertices_coords": [[0,0], [1,0], [1,1], [0,1]],
+// 	"edges_vertices": [[0,1], [1,3], [3,0]],
+// 	"edges_assignment": ["B","B","B","B"],
+// 	"faces_vertices": [[0,1,3]],
+// 	"faces_layer": [0],
+// 	"file_frames": [{
+// 		"frame_classes": ["creasePattern"],
+// 		"frame_parent":0,
+// 		"inherit":true
+// 	}]
+// };
+
+// clean_isolated_vertices(ff);
+
+// console.log(ff);
+
+function remove_vertex(fold, vertex_index){
+
+// vertices_coords
+// vertices_vertices
+// edges_vertices
+// faces_vertices
+	// fold.vertices_coords.splice(vertex_index,1);
+	// if(fold.vertices_vertices != null){
+	// 	fold.vertices_vertices.forEach((entry,e) => entry.forEach((vertex,v) => {
+	// 		if(v == vertex_index){ fold.vertices_vertices[e][v] = null; }
+	// 		if(v > vertex_index){ fold.vertices_vertices[e][v] -= 1; }
+	// 	}));
+	// }
+
+
+	// Array.from(arguments).slice(2)
+	// 	.forEach(obj => obj.forEach(arr => arr.forEach(a => a += shift[a])))
+
+	// // returns an "invalid" object: everything index in each key in the fold file is now invalid.
+	// {
+	// 	faces_edges:[3,6],
+	// 	edges_vertices:[2,6,7,8],
+	// }
+}
+
+
+
+function remove_edge(edge_index, edge_array){
+	edge_array.splice(edge_index, 1);
+}
+
+/** Searches and removes any edges connecting the two vertices supplied in the arguments
+ * @param {[[number, number]]} an array of two-integer arrays.
+ * @param {[number, number]} a two-integer array
+ * @returns {boolean} true if an edge matched and was removed
+ * @example 
+ * var result = removeEdge(edges, e)
+ */
+
+function remove_edges_with_vertex(vertex_index, edge_array){
+	edge_array = edge_array
+		.filter(e => e[0] === vertex_index || e[1] === vertex_index);
+}
+
+function remove_edges_with_vertices(a_index, b_index, edge_array){
+	edge_array = edge_array.filter(e =>
+		(e[0] === a_index && e[1] === b_index) ||
+		(e[0] === b_index && e[1] === a_index)
+	);
+	Array.from(arguments).slice(3).forEach()
+}
+
+function remove_from_array(array, match_function){
+	let remove = array.map((a,i) => match_function(a,i));
+	let s = 0, shift = remove.map(rem => rem ? --s : s);
+	array = array.filter(e => match_function(e));
+	return shift;
+}
+
+/** Remove a vertex and any edges that connect to it
+ * @param {GraphNode} vertex the vertex that will be removed
+ * @returns {GraphClean} number of vertices and edges removed
+ * @example 
+ * var result = graph.removeNode(vertex)
+ * // result.vertex will be 1
+ * // result.edges will be >= 0
+ */
+function remove_vertex(vertex_array, edge_array, vertex_index){
+	edge_array = edge_array.filter(el => el[0] !== vertex_index && el[1] !== vertex_index);
+	vertex_array = vertex_array.filter(el => el !== vertex);
+	vertex_array.splice()
+}
+
+/** Remove the second vertex and replaces all mention of it with the first in every edge
+ * @param {GraphNode} vertex1 first vertex to merge, this vertex will persist
+ * @param {GraphNode} vertex2 second vertex to merge, this vertex will be removed
+ * @returns {GraphClean} 1 removed vertex, newly duplicate and circular edges will be removed
+ * @example 
+ * var result = graph.mergeNodes(vertex1, vertex2)
+ * // result.vertex will be 1
+ * // result.edges will be >= 0
+ */
+function mergeNodes(node1, node2){
+	if(node1 === node2) { return undefined; }
+	this.edges.forEach(function(edge){
+		if(edge.nodes[0]===node2){edge.nodes[0]=node1;}
+		if(edge.nodes[1]===node2){edge.nodes[1]=node1;}
+	},this);
+	// this potentially created circular edges
+	var nodesLength = this.nodes.length;
+	this.nodes = this.nodes.filter(function(el){ return el !== node2; });
+	return new GraphClean(nodesLength - this.nodes.length).join(this.cleanGraph());
+}
+
+
+
+/** Check if a node is isolated and remove it if so
+ * @returns {GraphClean} the number of nodes removed
+ */
+function removeNodeIfIsolated(node){
+	if(this.edges.filter(function(edge){return edge.nodes[0]===node||edge.nodes[1]===node;},this).length === 0){ return new GraphClean(); };
+	this.nodes = this.nodes.filter(function(el){ return el !== node; });
+	this.nodeArrayDidChange();
+	return new GraphClean(1, 0);
+}
 
 
 
@@ -378,48 +456,33 @@ function degree(){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-/** Get an array of edges that share a node in common with this edge
- * @returns {GraphEdge[]} array of adjacent edges
+/** Get an array of edges_vertices indices that share a node in common with this edge
+ * @returns {[number]} array of adjacent edges
  * @example
  * var adjacent = edge.adjacentEdges()
  */
-function adjacentEdges(){
-	return this.graph.edges
-	.filter(function(el) {  return el !== this &&
-					(el.nodes[0] === this.nodes[0] || 
-					 el.nodes[0] === this.nodes[1] || 
-					 el.nodes[1] === this.nodes[0] || 
-					 el.nodes[1] === this.nodes[1]); }, this)
+function edgeAdjacentEdges(fold, edge_index){
+	let match = fold.edges_vertices[edge_index];
+	return fold.edges_vertices
+		.map((edge,index) => ({edge:edge, index:index}))
+		.filter(e => e.edge[0] === match[0] || 
+					 e.edge[0] === match[1] || 
+					 e.edge[1] === match[0] || 
+					 e.edge[1] === match[1])
+		.map(e => e.index)
 }
-/** Get the two nodes of this edge
- * @returns {GraphNode[]} the two nodes of this edge
- * @example
- * var adjacent = edge.adjacentNodes()
- */
-function adjacentNodes(){
-	return [this.nodes[0], this.nodes[1]];
-}
+
 /** Test if an edge is connected to another edge by a common node
  * @param {GraphEdge} edge test adjacency between this and supplied parameter
  * @returns {boolean} true or false, adjacent or not
  * @example
  * var isAdjacent = edge.isAdjacentToEdge(anotherEdge)
  */
-function isAdjacentToEdge(edge){
-	return( (this.nodes[0] === edge.nodes[0]) || (this.nodes[1] === edge.nodes[1]) ||
-			(this.nodes[0] === edge.nodes[1]) || (this.nodes[1] === edge.nodes[0]) );
+function areEdgesAdjacent(fold, a, b){
+	return( (fold.edges_vertices[a][0] === fold.edges_vertices[b][0]) ||
+	        (fold.edges_vertices[a][0] === fold.edges_vertices[b][1]) || 
+	        (fold.edges_vertices[a][1] === fold.edges_vertices[b][0]) ||
+	        (fold.edges_vertices[a][1] === fold.edges_vertices[b][1]) );
 }
 /** Test if an edge contains the same nodes as another edge
  * @param {GraphEdge} edge test similarity between this and supplied parameter
@@ -427,9 +490,11 @@ function isAdjacentToEdge(edge){
  * @example
  * var isSimilar = edge.isSimilarToEdge(anotherEdge)
  */
-function isSimilarToEdge(edge){
-	return( (this.nodes[0] === edge.nodes[0] && this.nodes[1] === edge.nodes[1] ) ||
-			(this.nodes[0] === edge.nodes[1] && this.nodes[1] === edge.nodes[0] ) );
+function areEdgesSimilar(fold, a, b){
+	return( (fold.edges_vertices[a][0] === fold.edges_vertices[b][0] && 
+		     fold.edges_vertices[a][1] === fold.edges_vertices[b][1] ) ||
+			(fold.edges_vertices[a][0] === fold.edges_vertices[b][1] && 
+			 fold.edges_vertices[a][1] === fold.edges_vertices[b][0] ) );
 }
 /** A convenience function, supply one of the edge's incident nodes and get back the other node
  * @param {GraphNode} node must be one of the edge's 2 nodes
