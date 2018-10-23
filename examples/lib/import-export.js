@@ -1,4 +1,4 @@
-FOLD = require('fold');
+// FOLD = require('fold');
 
 // UPLOAD: implement this callback, function(cp){ }  -it will pass in the crease pattern as argument #1
 var creasePatternDidUpload;

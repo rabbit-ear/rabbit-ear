@@ -1,6 +1,5 @@
-// Graph.js
-// an undirected graph with edges and vertices and circuit-defining faces
-// all operations target the .FOLD file spec github.com/edemaine/fold
+// Graph.js - operations on a graph with vertices, edges, and faces
+// all properties follow the .FOLD file specification github.com/edemaine/fold
 // MIT open source license, Robby Kraft
 //
 //  "adjacent": 2 vertices are adjacent when they are connected by an edge
@@ -17,9 +16,9 @@
 //  "isolated": a vertex is isolated if it is connected to 0 edges, degree 0
 //  "leaf": a vertex is a leaf if it is connected to only 1 edge, degree 1
 //  "pendant": an edge incident with a leaf vertex
-
-
-// SPEC 1.1
+//
+// built to .FOLD v.1.1
+//
 // vertices_coords
 // vertices_vertices
 // vertices_faces
@@ -34,21 +33,46 @@
 // edgeOrders
 
 
+/** Check if a vertex is connected to another vertex by an edge */
+export function are_vertices_adjacent(graph, a, b){
+	return get_vertex_adjacent_vertices(graph, a).indexOf(b) !== -1;
+}
+
+/** Check if an edge contains the same nodes as another edge */
+export function are_edges_similar(graph, a, b){
+	return (graph.edges_vertices[a][0] === graph.edges_vertices[b][0] && 
+	        graph.edges_vertices[a][1] === graph.edges_vertices[b][1] ) ||
+	       (graph.edges_vertices[a][0] === graph.edges_vertices[b][1] && 
+	        graph.edges_vertices[a][1] === graph.edges_vertices[b][0] );
+}
+
+/** Check if an edge is connected to another edge by a common vertex */
+export function are_edges_adjacent(graph, a, b){
+	return graph.edges_vertices[a][0] === graph.edges_vertices[b][0] ||
+	       graph.edges_vertices[a][0] === graph.edges_vertices[b][1] || 
+	       graph.edges_vertices[a][1] === graph.edges_vertices[b][0] ||
+	       graph.edges_vertices[a][1] === graph.edges_vertices[b][1];
+}
+
+/** Check if an edge points both at both ends to the same node */
+export function is_edge_circular(graph, edge){
+	return graph.edges_vertices[edge][0] == graph.edges_vertices[edge][1];
+}
+
 ///////////////////////////////////////////////
-// GET PARTS
+// GETTERS, ADJACENCY, ISOLATED
 ///////////////////////////////////////////////
 
-/** Get an array of edge indices that contain the vertex
+/** Get an array of edge indices adjacent to this vertex
  *
  * @returns {number[]]} array of adjacent edge indices
  */
 export function get_vertex_adjacent_edges(graph, vertex){
 	return graph.edges_vertices
-		.map((edge, index)=> ({edge:edge, index:index}))
-		.filter(obj => obj.edge[0] === vertex || obj.edge[1] === vertex)
-		.map(obj => obj.index)
+		.map((edge, i) => edge.indexOf(vertex) === -1 ? -1 : i)
+		.filter(edge => edge != -1)
 }
-/** Get an array of vertices that share an edge in common with this vertex
+/** Get an array of vertex indices that share an edge with this vertex
  *
  * @returns {number[]]} array of adjacent vertex indices
  */
@@ -102,16 +126,14 @@ export function get_isolated_vertices(graph){
 	let isolated = Array(vertices_length).fill(true);
 	vertex_search: // need to use for-loops to be able to break
 	for(let ra = 0; ra < refs.length; ra += 1){
-		for(let arr = 0; arr < refs[ra].length; arr += 1){
-			for(let entry = 0; entry < refs[ra][arr].length; entry += 1){
-				for(let i = 0; i < refs[ra][arr][entry].length; i += 1){
-					let v = refs[ra][arr][entry][i];
-					if(isolated[v] == true){
-						isolated[v] = false;
-						vertices_length -= 1;
-					}
-					if(vertices_length == 0){ break vertex_search; } // we fliped N bits. break
+		for(let entry = 0; entry < refs[ra].length; entry += 1){
+			for(let i = 0; i < refs[ra][entry].length; i += 1){
+				let v = refs[ra][entry][i];
+				if(isolated[v] == true){
+					isolated[v] = false;
+					vertices_length -= 1;
 				}
+				if(vertices_length == 0){ break vertex_search; } // we fliped N bits. break
 			}
 		}
 	}
@@ -238,7 +260,7 @@ function get_edge_count(graph){
 }
 
 ///////////////////////////////////////////////
-// REMOVE PARTS
+// REMOVE THINGS
 ///////////////////////////////////////////////
 
 /** Removes circular and duplicate edges, isolated vertices */
@@ -328,7 +350,7 @@ export function remove_vertices(graph, vertices){
 			.filter((v,i) => removes[i])
 	}
 
-	// todo: process items in file_frames which have parent-child relationship
+	// todo: do the same with frames in file_frames where inherit=true
 }
 
 /** Removes edges, updates all relevant array indices
@@ -380,9 +402,10 @@ export function remove_edges(graph, edges){
 			.filter((e,i) => removes[i])
 	}
 
-	// todo: process items in file_frames which have parent-child relationship
+	// todo: do the same with frames in file_frames where inherit=true
 }
 
+// unused, but can be a generalized function one day
 function remove_from_array(array, match_function){
 	let remove = array.map((a,i) => match_function(a,i));
 	let s = 0, shift = remove.map(rem => rem ? --s : s);
@@ -435,37 +458,7 @@ function reindex_edge(graph, old_index, new_index){
 }
 
 ///////////////////////////////////////////////
-// CONDITIONAL TEST
-///////////////////////////////////////////////
-
-/** Check if a vertex is connected to another vertex by an edge */
-export function are_vertices_adjacent(graph, a, b){
-	return get_vertex_adjacent_vertices(graph, a).indexOf(b) !== -1;
-}
-
-/** Check if an edge contains the same nodes as another edge */
-export function are_edges_similar(graph, a, b){
-	return (graph.edges_vertices[a][0] === graph.edges_vertices[b][0] && 
-	        graph.edges_vertices[a][1] === graph.edges_vertices[b][1] ) ||
-	       (graph.edges_vertices[a][0] === graph.edges_vertices[b][1] && 
-	        graph.edges_vertices[a][1] === graph.edges_vertices[b][0] );
-}
-
-/** Check if an edge is connected to another edge by a common vertex */
-export function are_edges_adjacent(graph, a, b){
-	return graph.edges_vertices[a][0] === graph.edges_vertices[b][0] ||
-	       graph.edges_vertices[a][0] === graph.edges_vertices[b][1] || 
-	       graph.edges_vertices[a][1] === graph.edges_vertices[b][0] ||
-	       graph.edges_vertices[a][1] === graph.edges_vertices[b][1];
-}
-
-/** Check if an edge points both at both ends to the same node */
-export function is_edge_circular(graph, edge){
-	return graph.edges_vertices[edge][0] == graph.edges_vertices[edge][1];
-}
-
-///////////////////////////////////////////////
-// GENERATE PARTS
+// GENERATE THINGS
 ///////////////////////////////////////////////
 
 // this comes from fold.js. still working on the best way to require() the fold module

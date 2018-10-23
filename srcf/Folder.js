@@ -136,7 +136,7 @@ export function clone(thing){
 };
 
 /** 
- * when an edge fits in a face, endpoints collinear to face edges,
+ * when an edge sits inside a face with its endpoints collinear to face edges,
  *  find those 2 face edges.
  * @param [[x, y], [x, y]] edge
  * @param [a, b, c, d, e] face_vertices. just 1 face. not .fold array
@@ -276,7 +276,7 @@ var make_faces_faces = function(faces_vertices) {
 	let faces_faces = Array.from(Array(nf)).map(() => []);
 	let edgeMap = {};
 	faces_vertices.forEach((vertices_index, idx1) => {
-		if (vertices_index === undefined) return;
+		if (vertices_index === undefined) return;  //todo: why is this here?
 		let n = vertices_index.length;
 		vertices_index.forEach((v1, i, vs) => {
 			let v2 = vs[(i + 1) % n];
@@ -500,6 +500,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	// make face-adjacent faces on only a subset, the side we clicked on
 	let moving_side = new_face_map.map(f => f[side]);
 	let faces_faces = make_faces_faces(moving_side);
+	console.log(faces_faces);
 	// mark which faces are going to be moving based on a valley fold
 	let faces_mark = mark_moving_faces(moving_side, new_vertices_coords, 
 		faces_faces, fold.faces_layer, tap);
@@ -561,7 +562,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	new_fold.faces_direction = faces_direction;
 	
-	faces_vertices_to_edges(new_fold);
+	Graph.faces_vertices_to_edges(new_fold);
 
 	let headers = {
 		"file_spec": 1.1,
