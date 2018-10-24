@@ -21,6 +21,14 @@
 // faceOrders
 // edgeOrders
 
+// file_spec // num str
+// file_creator // str
+// file_author  // str
+// file_title  // str
+// file_description  // str
+// file_classes // arr of str
+// file_frames //
+
 
 
 'use strict';
@@ -89,41 +97,22 @@ export function valleyFold(foldFile, line, point){
 }
 
 
-// file_spec // num str
-// file_creator // str
-// file_author  // str
-// file_title  // str
-// file_description  // str
-// file_classes // arr of str
-// file_frames //
-
-function copy_object(o){
-
-}
-function copy_array(a){
-
-}
-
-function copy_array_number(a){
-
-}
-
-function is_array(a){
-
-}
-
-// types to check:
-// "undefined" / "null"
-// "boolean"
-// "number"
-// "string"
-// "symbol"
-// "function"
-// "object"
+function copy_object(o){}
+function copy_array(a){}
+function copy_array_number(a){}
+function is_array(a){}
 
 
 /** deep clone an object */
 export function clone(thing){
+	// types to check:
+	// "undefined" / "null"
+	// "boolean"
+	// "number"
+	// "string"
+	// "symbol"
+	// "function"
+	// "object"
 	return JSON.parse(JSON.stringify(thing));  // supposed to be slow
 	// recurse over each entry, somebody with more knowledge of edge cases needs to check this
 	// if(thing == null || typeof thing == "boolean" || typeof thing ==  "number" ||
@@ -215,7 +204,7 @@ let make_new_vertices_coords = function(vertices_coords, newVertices){
 
 	newVertices.forEach(obj => {
 		new_vertices_coords.push(obj.point);
-		obj.newVertexIndex = new_vertices_coords.length-1
+		obj.newVertexIndex = new_vertices_coords.length-1;
 	})
 	return new_vertices_coords;
 }
@@ -271,29 +260,6 @@ var sortTwoFacesBySide = function(twoFaces, vertices_coords, linePoint, lineVect
 	return result
 }
 
-var make_faces_faces = function(faces_vertices) {
-	let nf = faces_vertices.length;
-	let faces_faces = Array.from(Array(nf)).map(() => []);
-	let edgeMap = {};
-	faces_vertices.forEach((vertices_index, idx1) => {
-		if (vertices_index === undefined) return;  //todo: why is this here?
-		let n = vertices_index.length;
-		vertices_index.forEach((v1, i, vs) => {
-			let v2 = vs[(i + 1) % n];
-			if (v2 < v1) [v1, v2] = [v2, v1];
-			let key = v1 + " " + v2;
-			if (key in edgeMap) {
-				let idx2 = edgeMap[key];
-				faces_faces[idx1].push(idx2);
-				faces_faces[idx2].push(idx1);
-			} else {
-				edgeMap[key] = idx1;
-			}
-		}); 
-	});
-	return faces_faces;
-}
-
 var mark_moving_faces = function(faces_vertices, vertices_coords, faces_faces, faces_layer, face_idx) {
 	let marked = faces_vertices.map(() => false);
 	marked[face_idx] = true;
@@ -329,43 +295,6 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_faces, f
 	}
 	return marked;
 }
-
-// bottom_face will become the root node
-var make_face_walk_tree = function(faces_vertices, bottom_face = 0){
-	let new_faces_faces = make_faces_faces(faces_vertices);
-	var visited = [bottom_face];
-	var list = [[{ face: bottom_face, parent: undefined, edge: undefined }]];
-	do{
-		list[list.length] = list[list.length-1].map((current) =>{
-			let unique_faces = new_faces_faces[current.face]
-				.filter(f => visited.indexOf(f) === -1);
-			visited = visited.concat(unique_faces);
-			return unique_faces.map(f => ({
-				face: f,
-				parent: current.face,
-				edge: faces_vertices[f]
-					.filter(v => faces_vertices[current.face].indexOf(v) != -1)
-					.sort((a,b) => a-b)
-			}))
-		}).reduce((prev,curr) => prev.concat(curr),[])
-	} while(list[list.length-1].length > 0);
-	if(list.length > 0 && list[list.length-1].length == 0){ list.pop(); }
-	return list;
-}
-
-var make_faces_matrix = function(vertices_coords, faces_vertices, bottom_face){
-	let faces_matrix = faces_vertices.map(v => [1,0,0,1,0,0]);
-	make_face_walk_tree(faces_vertices, bottom_face).forEach((level) => 
-		level.filter((entry) => entry.parent != undefined).forEach((entry) => {
-			let edge = entry.edge.map(v => vertices_coords[v])
-			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			let local = Matrix.reflection(edge[0], vec);
-			faces_matrix[entry.face] = Matrix.multiply(local, faces_matrix[entry.parent]);
-		})
-	);
-	return faces_matrix;
-}
-
 
 /** merge faces or separate faces at the clip line, and bubble up faces
  *  in the layer order if they're going to be folded.
@@ -499,7 +428,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		.indexOf(true)
 	// make face-adjacent faces on only a subset, the side we clicked on
 	let moving_side = new_face_map.map(f => f[side]);
-	let faces_faces = make_faces_faces(moving_side);
+	let faces_faces = Graph.make_faces_faces({faces_vertices:moving_side});
 	console.log(faces_faces);
 	// mark which faces are going to be moving based on a valley fold
 	let faces_mark = mark_moving_faces(moving_side, new_vertices_coords, 
@@ -537,8 +466,8 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	});
 
 	var bottom_face = 1; // todo: we need a way for the user to select this
-	let faces_matrix = make_faces_matrix(reflected.vertices_coords, 
-		cleaned.faces_vertices, bottom_face);
+	let faces_matrix = Graph.make_faces_matrix({vertices_coords:reflected.vertices_coords, 
+		faces_vertices:cleaned.faces_vertices}, bottom_face);
 	let inverseMatrices = faces_matrix.map(n => Matrix.inverse(n));
 
 	let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
@@ -547,11 +476,11 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		)
 	)
 
-	let faces_direction = cleaned.faces_vertices.map(f => true);
-	make_face_walk_tree(cleaned.faces_vertices, bottom_face)
-		.forEach((level,i) => level.forEach((f) => 
-			faces_direction[f.face] = i%2==0 ? true : false
-		))
+	// let faces_direction = cleaned.faces_vertices.map(f => true);
+	// make_face_walk_tree(cleaned.faces_vertices, bottom_face)
+	// 	.forEach((level,i) => level.forEach((f) => 
+	// 		faces_direction[f.face] = i%2==0 ? true : false
+	// 	))
 
 	// create new fold file
 	let new_fold = {
@@ -560,7 +489,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		faces_layer: reflected.faces_layer
 	};
 
-	new_fold.faces_direction = faces_direction;
+	// new_fold.faces_direction = faces_direction;
 	
 	Graph.faces_vertices_to_edges(new_fold);
 

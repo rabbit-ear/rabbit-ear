@@ -33,6 +33,78 @@
 // edgeOrders
 
 
+import {clean_number, contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
+
+///////////////////////////////////////////////
+// MAKERS
+///////////////////////////////////////////////
+
+// faces_faces is a set of faces edge-adjacent to a face.
+// for every face.
+export function make_faces_faces(graph) {
+	let nf = graph.faces_vertices.length;
+	let faces_faces = Array.from(Array(nf)).map(() => []);
+	let edgeMap = {};
+	graph.faces_vertices.forEach((vertices_index, idx1) => {
+		if (vertices_index === undefined) return;  //todo: why is this here?
+		let n = vertices_index.length;
+		vertices_index.forEach((v1, i, vs) => {
+			let v2 = vs[(i + 1) % n];
+			if (v2 < v1) [v1, v2] = [v2, v1];
+			let key = v1 + " " + v2;
+			if (key in edgeMap) {
+				let idx2 = edgeMap[key];
+				faces_faces[idx1].push(idx2);
+				faces_faces[idx2].push(idx1);
+			} else {
+				edgeMap[key] = idx1;
+			}
+		}); 
+	});
+	return faces_faces;
+}
+
+export function make_faces_matrix(graph, root_face){
+	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
+	make_face_walk_tree(graph, root_face).forEach((level) => 
+		level.filter((entry) => entry.parent != undefined).forEach((entry) => {
+			let edge = entry.edge.map(v => graph.vertices_coords[v])
+			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
+			let local = Matrix.reflection(edge[0], vec);
+			faces_matrix[entry.face] = Matrix.multiply(local, faces_matrix[entry.parent]);
+		})
+	);
+	return faces_matrix;
+}
+
+// root_face will become the root node
+function make_face_walk_tree(graph, root_face = 0){
+	let new_faces_faces = make_faces_faces(graph);
+	var visited = [root_face];
+	var list = [[{ face: root_face, parent: undefined, edge: undefined }]];
+	do{
+		list[list.length] = list[list.length-1].map((current) =>{
+			let unique_faces = new_faces_faces[current.face]
+				.filter(f => visited.indexOf(f) === -1);
+			visited = visited.concat(unique_faces);
+			return unique_faces.map(f => ({
+				face: f,
+				parent: current.face,
+				edge: graph.faces_vertices[f]
+					.filter(v => graph.faces_vertices[current.face].indexOf(v) != -1)
+					.sort((a,b) => a-b)
+			}))
+		}).reduce((prev,curr) => prev.concat(curr),[])
+	} while(list[list.length-1].length > 0);
+	if(list.length > 0 && list[list.length-1].length == 0){ list.pop(); }
+	return list;
+}
+
+///////////////////////////////////////////////
+// QUERIES
+///////////////////////////////////////////////
+
+
 /** Check if a vertex is connected to another vertex by an edge */
 export function are_vertices_adjacent(graph, a, b){
 	return get_vertex_adjacent_vertices(graph, a).indexOf(b) !== -1;
@@ -458,7 +530,7 @@ function reindex_edge(graph, old_index, new_index){
 }
 
 ///////////////////////////////////////////////
-// GENERATE THINGS
+// FROM .FOLD SOURCE
 ///////////////////////////////////////////////
 
 // this comes from fold.js. still working on the best way to require() the fold module

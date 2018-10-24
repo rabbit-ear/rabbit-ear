@@ -5,15 +5,6 @@
 // all infinite lines are defined as point and vector
 // all polygons are an ordered set of points in either winding direction
 
-/** clean floating point numbers
- *  example: 15.0000000000000002 into 15
- * the adjustable epsilon is default 15, Javascripts 16 digit float
- */
-export function clean_number(num, decimalPlaces = 15){
-	if (num == undefined) { return undefined; }
-	return parseFloat(num.toFixed(decimalPlaces));
-}
-
 /** is a point inside of a convex polygon, including along the boundary within epsilon */
 export function contains(poly, point, epsilon = 1e-10){
 	if(poly == undefined || !(poly.length > 0)){ return false; }
@@ -158,5 +149,126 @@ function points_equivalent(a, b, epsilon = 1e-10){
 	return Math.abs(a.x-b.x) < epsilon && Math.abs(a.y-b.y) < epsilon;
 }
 
+/** clean floating point numbers
+ *  example: 15.0000000000000002 into 15
+ * the adjustable epsilon is default 15, Javascripts 16 digit float
+ */
+export function clean_number(num, decimalPlaces = 15){
+	if (num == undefined) { return undefined; }
+	return parseFloat(num.toFixed(decimalPlaces));
+}
+
+function normalize(p){
+	var z = p[2] == null ? 0 : p[2];
+	var m = Math.sqrt(p[0]*p[0] + p[1]*p[1] + z*z);
+	return [p[0]/m, p[1]/m, z/m];
+}
+function midpoint(a, b){
+	var aZ = a[2] == null ? 0 : a[2];
+	var bZ = b[2] == null ? 0 : b[2];
+	return [(a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (aZ+bZ)*0.5];
+}
+function cross(a, b){ return [
+	a[1]*b[2] - a[2]*b[1],
+	a[2]*b[0] - a[0]*b[2],
+	a[0]*b[1] - a[1]*b[0]
+];}
+
+// Origami Axioms
+class CreaseLine{
+	static betweenPoints(){
+		let points = gimme2Points(...arguments);
+		return {
+			point: [points[0][0], points[0][1], points[0][2]],
+			direction: normalize([
+				points[1][0] - points[0][0],
+				points[1][1] - points[0][1],
+				points[1][2] - points[0][2]
+			])
+		}
+	}
+	static perpendicularBisector(){
+		// perpendicular bisector in 3D gives you a plane.
+		// we're going to assume this plane intersects with the z=0 plane.
+		// sometime figure out a good way to input this normal plane
+		let points = gimme2Points(...arguments);
+		let vec = normalize([
+			points[1][0] - points[0][0],
+			points[1][1] - points[0][1],
+			points[1][2] - points[0][2]
+		]);
+		return {
+			point: midpoint(points[0], points[1]),
+			direction: cross(vec, [0,0,1]))
+		}
+	}
+}
+
+function isValidNumber(n){ return n != null && !isNaN(n); }
+function isValidXY(p){ return p != null && !isNaN(p.x) && !isNaN(p.y); }
+function isValidPoint(p){
+	return p.constructor === Array && !isNaN(p[0]) && !isNaN(p[1]);
+}
+function gimme1Point(a, b, c){
+	// input is 1 point, or 2 or 3 numbers (z optional)
+	if(isValidPoint(a)){ return [a[0], a[1], (a[2] == null ? 0 : a[2])]; }
+	if(isValidNumber(b)){ return [a, b, (c == null ? 0 : c)]; }
+	if(isValidXY(a)){ return [a.x, a.y, (a.z == null ? 0 : a.z)]; }
+}
+function gimme2Points(a, b, c, d, e, f){
+	// input is 2 points, or 4-6 numbers (z optional)
+	if(isValidPoint(a) && isValidPoint(b)){ return [
+		[a[0], a[1], (a[2] == null ? 0 : a[2])],
+		[b[0], b[1], (b[2] == null ? 0 : b[2])]
+	];}
+	if(isValidNumber(d)){
+		if(isValidNumber(f)){ return [[a, b, c], [d, e, f]]; }
+		else{ return [[a, b, 0], [c, d, 0]]; }
+	}
+	if(isValidXY(a) && isValidXY(b)){ return [
+		[a.x, a.y, (a.z == null ? 0 : a.z)],
+		[b.x, b.y, (b.z == null ? 0 : b.z)]
+	];}
+}
+
+
+// function gimme1Edge(a, b, c, d){
+// 	// input is 1 edge, 2 XY, or 4 numbers
+// 	if(a instanceof M.Edge){ return a; }
+// 	if(a.nodes !== undefined){ return new M.Edge(a.nodes[0], a.nodes[1]); }
+// 	if(isValidPoint(b) ){ return new M.Edge(a,b); }
+// 	if(isValidNumber(d)){ return new M.Edge(a,b,c,d); }
+// }
+
+function axiom1(){
+	return CreaseLine.betweenPoints(...arguments);
+}
+function axiom2(){
+	return CreaseLine.perpendicularBisector(...arguments);
+}
+function axiom3(one, two){
+	return new M.Edge(one).infiniteLine().bisect(new M.Edge(two).infiniteLine())
+		.map(function (line) { return new CPLine(this, line); }, this);
+}
+function axiom4(line, point){
+	return new CPLine(this, new M.Line(point, new M.Edge(line).vector().rotate90()));
+}
+function axiom5(origin, point, line){
+	var radius = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
+	var intersections = new M.Circle(origin, radius).intersection(new M.Edge(line).infiniteLine());
+	var lines = [];
+	for(var i = 0; i < intersections.length; i++){ lines.push(this.axiom2(point, intersections[i])); }
+	return lines;
+}
+
+function axiom7(point, ontoLine, perp){
+	var newLine = new M.Line(point, new M.Edge(perp).vector());
+	var intersection = newLine.intersection(new M.Edge(ontoLine).infiniteLine());
+	if(intersection === undefined){ return undefined; }
+	return this.axiom2(point, intersection);
+};
+
 // need to test:
 // do two polygons overlap if they share a point in common? share an edge?
+
+
