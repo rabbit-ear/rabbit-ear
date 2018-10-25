@@ -18,13 +18,13 @@ function line(x1, y1, x2, y2, className, id, parent) {
 	shape.setAttributeNS(null, "y1", y1);
 	shape.setAttributeNS(null, "x2", x2);
 	shape.setAttributeNS(null, "y2", y2);
-	if (className != undefined) {
+	if (className != null) {
 		shape.setAttributeNS(null, "class", className);
 	}
-	if (id != undefined) {
+	if (id != null) {
 		shape.setAttributeNS(null, "id", id);
 	}
-	if (parent != undefined) {
+	if (parent != null) {
 		parent.appendChild(shape);
 	}
 	return shape;
@@ -35,13 +35,13 @@ function circle(x, y, radius, className, id, parent) {
 	shape.setAttributeNS(null, "cx", x);
 	shape.setAttributeNS(null, "cy", y);
 	shape.setAttributeNS(null, "r", radius);
-	if (className != undefined) {
+	if (className != null) {
 		shape.setAttributeNS(null, "class", className);
 	}
-	if (id != undefined) {
+	if (id != null) {
 		shape.setAttributeNS(null, "id", id);
 	}
-	if (parent != undefined) {
+	if (parent != null) {
 		parent.appendChild(shape);
 	}
 	return shape;
@@ -53,13 +53,13 @@ function polygon(pointArray, className, id, parent) {
 	)).reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
 	let shape = document.createElementNS(svgNS, "polygon");
 	shape.setAttributeNS(null, "points", pointsString);
-	if (className != undefined) {
+	if (className != null) {
 		shape.setAttributeNS(null, "class", className);
 	}
-	if (id != undefined) {
+	if (id != null) {
 		shape.setAttributeNS(null, "id", id);
 	}
-	if (parent != undefined) {
+	if (parent != null) {
 		parent.appendChild(shape);
 	}
 	return shape;
@@ -71,13 +71,13 @@ function bezier(fromX, fromY, c1X, c1Y, c2X, c2Y,
 			" " + c2X + "," + c2Y + " " + toX + "," + toY;
 	let shape = document.createElementNS(svgNS, "path");
 	shape.setAttributeNS(null, "d", d);
-	if (className != undefined) {
+	if (className != null) {
 		shape.setAttributeNS(null, "class", className);
 	}
-	if (id != undefined) {
+	if (id != null) {
 		shape.setAttributeNS(null, "id", id);
 	}
-	if (parent != undefined) {
+	if (parent != null) {
 		parent.appendChild(shape);
 	}
 	return shape;
@@ -87,13 +87,13 @@ function bezier(fromX, fromY, c1X, c1Y, c2X, c2Y,
 /**  Container Types  */
 function group(className, id, parent) {
 	let g = document.createElementNS(svgNS, "g");
-	if (className != undefined) {
+	if (className != null) {
 		g.setAttributeNS(null, "class", className);
 	}
-	if (id != undefined) {
+	if (id != null) {
 		g.setAttributeNS(null, "id", id);
 	}
-	if (parent != undefined) {
+	if (parent != null) {
 		parent.appendChild(g);
 	}
 	return g;
@@ -102,13 +102,13 @@ function group(className, id, parent) {
 function SVG(className, id, parent) {
 	let svg = document.createElementNS(svgNS, "svg");
 	svg.setAttributeNS(null, "viewBox", "0 0 1 1");
-	if (className != undefined) {
+	if (className != null) {
 		svg.setAttributeNS(null, "class", className);
 	}
-	if (id != undefined) {
+	if (id != null) {
 		svg.setAttributeNS(null, "id", id);
 	}
-	if (parent != undefined) {
+	if (parent != null) {
 		parent.appendChild(svg);
 	}
 	return svg;

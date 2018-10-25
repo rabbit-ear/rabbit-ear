@@ -1,4 +1,4 @@
-var origami = new Origami();
+var origami = Origami();
 
 // these are optional event handlers
 origami.onMouseDown = function(event){

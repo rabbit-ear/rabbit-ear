@@ -190,7 +190,7 @@ class CreaseLine{
 	static perpendicularBisector(){
 		// perpendicular bisector in 3D gives you a plane.
 		// we're going to assume this plane intersects with the z=0 plane.
-		// sometime figure out a good way to input this normal plane
+		// figure out a user friendly way to ask for this second plane
 		let points = gimme2Points(...arguments);
 		let vec = normalize([
 			points[1][0] - points[0][0],
@@ -199,7 +199,7 @@ class CreaseLine{
 		]);
 		return {
 			point: midpoint(points[0], points[1]),
-			direction: cross(vec, [0,0,1]))
+			direction: cross(vec, [0,0,1])
 		}
 	}
 }
