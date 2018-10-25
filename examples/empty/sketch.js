@@ -1,13 +1,13 @@
 var origami = Origami();
 
-// these are optional event handlers
-origami.onMouseDown = function(event){
+// optional: respond to events
+origami.event.onMouseDown = function(event){
 }
-origami.onMouseUp = function(event){
+origami.event.onMouseUp = function(event){
 }
-origami.onMouseMove = function(event){
+origami.event.onMouseMove = function(event){
 }
-origami.onMouseDidBeginDrag = function(event){
+origami.event.onMouseDidBeginDrag = function(event){
 }
-origami.animate = function(event){
+origami.event.animate = function(event){
 }

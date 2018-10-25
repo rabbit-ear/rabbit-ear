@@ -13,15 +13,15 @@ import SVG from "./SimpleSVG";
 import * as Folder from "./Folder"
 import * as Bases from "./OrigamiBases"
 
-const CREASE_DIR = {
-	"B": "boundary",
-	"M": "mountain",
-	"V": "valley",
-	"F": "mark",
-	"U": "mark"
-};
-
 export default function FoldView(){
+
+	const CREASE_DIR = {
+		"B": "boundary",
+		"M": "mountain",
+		"V": "valley",
+		"F": "mark",
+		"U": "mark"
+	};
 
 	//  from arguments, get a fold file, if it exists
 	let args = Array.from(arguments);
@@ -225,14 +225,12 @@ export default function FoldView(){
 	const showFaces = function(){ origami.faces.setAttribute("display", "");}
 	const hideFaces = function(){ origami.faces.setAttribute("display", "none");}
 
-
 	draw();
 
-	// return Object.freeze({
-	return {
+	return Object.freeze({
 		cp,
 		svg,
-		// properties
+
 		boundaryGroup,
 		facesGroup,
 		creasesGroup,
@@ -241,10 +239,10 @@ export default function FoldView(){
 		zoom,
 		padding,
 		style,
-		// methods
+
 		setPadding,
 		draw,
 		setViewBox,
-	};
+	});
 
 }

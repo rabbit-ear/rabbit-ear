@@ -159,10 +159,10 @@ function convertToViewbox(svg, x, y) {
 	pt.x = x;
 	pt.y = y;
 	let svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
-	return {
-		x: svgPoint.x,
-		y: svgPoint.y
-	};
+	var array = [svgPoint.x, svgPoint.y];
+	array.x = svgPoint.x;
+	array.y = svgPoint.y;
+	return array;
 }
 
 export default {
