@@ -6,6 +6,7 @@
 
 import SVG from "./SimpleSVG";
 import FoldView from "./FoldView";
+import * as Folder from "./Folder"
 
 export default function OrigamiView(){
 
@@ -91,7 +92,8 @@ export default function OrigamiView(){
 		hideVertices, showEdges, hideEdges, showFaces, hideFaces,
 		event:this.event,
 		mouse,
-		paint
+		paint,
+		flattenFrame: Folder.flattenFrame
 	};
 
 }

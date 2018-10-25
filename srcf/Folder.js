@@ -510,3 +510,42 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	return new_fold;
 }
+
+
+// export function fold(face){
+// 	this.clean();
+// 	var copyCP = this.copy().removeAllMarks();
+// 	if(face == undefined){
+// 		var bounds = copyCP.boundaryBounds();
+// 		face = copyCP.nearest(bounds.origin.x + bounds.size.width * 0.5,
+// 		                      bounds.origin.y + bounds.size.height*0.5).face;
+// 	} else{
+// 		var centroid = face.centroid();
+// 		face = copyCP.nearest(centroid.x, centroid.y).face;
+// 	}
+// 	if(face === undefined){ return; }
+// 	var tree = face.adjacentFaceTree();
+// 	var faces = [];
+// 	tree['matrix'] = new M.Matrix();
+// 	faces.push({'face':tree.obj, 'matrix':tree['matrix'], 'level':0});
+// 	function recurse(node, level){
+// 		node.children.forEach(function(child){
+// 			var local = child.obj.commonEdges(child.parent.obj).shift().reflectionMatrix();
+// 			child['matrix'] = child.parent['matrix'].mult(local);
+// 			faces.push({'face':child.obj, 'matrix':child['matrix'], 'level':level});
+// 			recurse(child, level+1);
+// 		},this);
+// 	}
+// 	recurse(tree, 1);
+// 	var nodeTransformed = Array.apply(false, Array(copyCP.nodes.length))
+// 	faces.forEach(function(f){
+// 		f.face.cache = {matrix:f.matrix, coloring:f.level % 2};
+// 		f.face.nodes
+// 			.filter(function(node){ return !nodeTransformed[node.index]; },this)
+// 			.forEach(function(node){
+// 				node.transform(f.matrix);
+// 				nodeTransformed[node.index] = true;
+// 			},this);
+// 	},this);
+// 	return copyCP.exportFoldFile();
+// }
