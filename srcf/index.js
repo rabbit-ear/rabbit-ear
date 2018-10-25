@@ -5,4 +5,12 @@ import FoldView from "./FoldView";
 
 window.Origami = Origami;
 
-export { Origami, Folder, SVG, FoldView }
+let addClass = SVG.addClass;
+let removeClass = SVG.removeClass;
+let setId = SVG.setId;
+let removeChildren = SVG.removeChildren;
+
+export {
+	Origami, Folder, SVG, FoldView,
+	addClass, removeClass, setId, removeChildren
+};

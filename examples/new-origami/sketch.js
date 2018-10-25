@@ -7,42 +7,45 @@ var starterFold = {"file_spec":1.1,"file_creator":"Rabbit Ear","file_author":"Ro
 
 var div = document.getElementsByClassName('row')[0];
 var paper = new RabbitEar.Origami(div, starterFold);
-var folded = new RabbitEar.Origami(div, starterFold).setPadding(0.1);
+var folded = new RabbitEar.Origami(div, starterFold);
+folded.setPadding(0.1);
 // var paper = new RabbitEar.Origami(div);
 // var folded = new RabbitEar.Origami(div).setPadding(0.1);
 paper.setFrame(0);
 paper.draw();
 folded.draw();
-folded.markLayer = folded.group();
+folded.markLayer = folded.paint.group();
 folded.svg.appendChild(folded.markLayer);
 
 let foldLine;
 
 function duplicate(foldFile){ return JSON.parse(JSON.stringify(foldFile)); }
 
-folded.onMouseDidBeginDrag = function(event){
-	isDrawingLine = true;
-	foldPoint = undefined;
-}
+// folded.onMouseDidBeginDrag = function(event){
+// 	isDrawingLine = true;
+// 	foldPoint = undefined;
+// }
 
-folded.onMouseDown = function(event){
-	this.startPoint = event.point;
-	this.endPoint = event.point;
+folded.event.onMouseDown = function(event){
+	foldPoint = undefined;
+	folded.startPoint = event.position;
+	folded.endPoint = event.position;
 }
-folded.onMouseMove = function(event){
-	if(this.mouse.isPressed){
-		this.endPoint = event.point;
-		foldLine = updateCreaseLine(this.startPoint, this.endPoint);
+folded.event.onMouseMove = function(event){
+	if(folded.mouse.isPressed){
+		isDrawingLine = true;
+		folded.endPoint = event.position;
+		foldLine = updateCreaseLine(folded.startPoint, folded.endPoint);
 	}
 }
-folded.onMouseUp = function(event){
+folded.event.onMouseUp = function(event){
 	if(isDrawingLine == false){
 		// we made a point
-		foldPoint = event.point;
+		foldPoint = event.position;
 	}
 	isDrawingLine = false;
-	this.startPoint = undefined;
-	this.endPoint = undefined;
+	folded.startPoint = undefined;
+	folded.endPoint = undefined;
 	update();
 }
 
@@ -60,21 +63,21 @@ function update(){
 }
 
 function updateCreaseLine(point1, point2){
-	folded.removeChildren(folded.markLayer);
+	RabbitEar.removeChildren(folded.markLayer);
 	var vec = {x:point2.x - point1.x, y:point2.y - point1.y};
 	var d = Math.sqrt(Math.pow(vec.x,2) + Math.pow(vec.y,2));
 	if(d <= 0){ d = 0.000001; }
 	var normalized = {x:vec.x / d, y:vec.y / d};
 
-	var svgLine = folded.line(
+	var svgLine = folded.paint.line(
 		point1.x + normalized.x * 10,
 		point1.y + normalized.y * 10,
 		point1.x - normalized.x * 10,
 		point1.y - normalized.y * 10,
 		'valley');
 	folded.markLayer.appendChild(svgLine);
-	var node0 = folded.circle(folded.startPoint.x, folded.startPoint.y, 0.01, 'blue-node');
-	var node1 = folded.circle(folded.endPoint.x, folded.endPoint.y, 0.01, 'blue-node');
+	var node0 = folded.paint.circle(folded.startPoint.x, folded.startPoint.y, 0.01, 'blue-node');
+	var node1 = folded.paint.circle(folded.endPoint.x, folded.endPoint.y, 0.01, 'blue-node');
 	folded.markLayer.appendChild(node0);
 	folded.markLayer.appendChild(node1);
 	return {point:point1, direction:normalized};

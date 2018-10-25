@@ -52,15 +52,18 @@ export default function FoldView(){
 		parent.appendChild(svg);
 	});
 
+	let groups = {
+		boundary: SVG.group(undefined, "boundary"),
+		faces: SVG.group(undefined, "faces"),
+		creases: SVG.group(undefined, "creases"),
+		vertices: SVG.group(undefined, "vertices"),
+	}
+
 	// prepare SVG
-	let boundaryGroup = SVG.group(undefined, "boundary");
-	let facesGroup = SVG.group(undefined, "faces");
-	let creasesGroup = SVG.group(undefined, "creases");
-	let verticesGroup = SVG.group(undefined, "vertices");
-	svg.appendChild(boundaryGroup);
-	svg.appendChild(facesGroup);
-	svg.appendChild(creasesGroup);
-	svg.appendChild(verticesGroup);
+	svg.appendChild(groups.boundary);
+	svg.appendChild(groups.faces);
+	svg.appendChild(groups.creases);
+	svg.appendChild(groups.vertices);
 
 	// view properties
 	let frame = 0; // which frame (0 ..< Inf) to display 
@@ -145,23 +148,23 @@ export default function FoldView(){
 			: data.faces_vertices.map((f,i) => true);
 
 		// clear layers
-		[boundaryGroup,
-		 facesGroup,
-		 creasesGroup,
-		 verticesGroup].forEach((layer) => SVG.removeChildren(layer));
+		[groups.boundary,
+		 groups.faces,
+		 groups.creases,
+		 groups.vertices].forEach((layer) => SVG.removeChildren(layer));
 		// vertices
 		let vertexR = style.vertex.radius
-		verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", verticesGroup));
+		verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", groups.vertices));
 		// edges
 		if(!isFoldedState()){
 			edges.forEach((e,i) =>
-				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], orientations[i], null, creasesGroup)
+				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], orientations[i], null, groups.creases)
 			);
 		}
 		// faces
 		faceOrder.forEach(i => {
 			let faceClass = (!isFoldedState() ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
-			SVG.polygon(faces[i], faceClass, "face", facesGroup)
+			SVG.polygon(faces[i], faceClass, "face", groups.faces)
 		});
 		// faces.forEach(f => SVG.polygon(f, faceClass, "face", this.faces));
 	}
@@ -231,10 +234,7 @@ export default function FoldView(){
 		cp,
 		svg,
 
-		boundaryGroup,
-		facesGroup,
-		creasesGroup,
-		verticesGroup,
+		groups,
 		frame,
 		zoom,
 		padding,
@@ -243,6 +243,16 @@ export default function FoldView(){
 		setPadding,
 		draw,
 		setViewBox,
+
+		getFrames,
+		getFrame,
+		setFrame,
+		showVertices,
+		hideVertices,
+		showEdges,
+		hideEdges,
+		showFaces,
+		hideFaces
 	});
 
 }

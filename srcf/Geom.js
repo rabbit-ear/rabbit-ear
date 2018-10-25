@@ -175,7 +175,7 @@ function cross(a, b){ return [
 ];}
 
 // Origami Axioms
-class CreaseLine{
+class Line{
 	static betweenPoints(){
 		let points = gimme2Points(...arguments);
 		return {
@@ -203,6 +203,23 @@ class CreaseLine{
 		}
 	}
 }
+
+function bisect_lines(a, b){
+	if( a.parallel(b) ){
+		return [new Line( a.point.midpoint(b.point), a.direction)];
+	} else{
+		var intersection = intersectionLineLine(a, b);
+		var vectors = bisectVectors(a.direction, b.direction);
+		vectors[1] = vectors[1].rotate90();
+		if(Math.abs(a.direction.cross(vectors[1])) < Math.abs(a.direction.cross(vectors[0]))){
+			var swap = vectors[0];
+			vectors[0] = vectors[1];
+			vectors[1] = swap;
+		}
+		return vectors.map((el) => new Line(intersection, el));
+	}
+}
+
 
 function isValidNumber(n){ return n != null && !isNaN(n); }
 function isValidXY(p){ return p != null && !isNaN(p.x) && !isNaN(p.y); }
@@ -241,13 +258,15 @@ function gimme2Points(a, b, c, d, e, f){
 // }
 
 function axiom1(){
-	return CreaseLine.betweenPoints(...arguments);
+	return Line.betweenPoints(...arguments);
 }
 function axiom2(){
-	return CreaseLine.perpendicularBisector(...arguments);
+	return Line.perpendicularBisector(...arguments);
 }
 function axiom3(one, two){
-	return new M.Edge(one).infiniteLine().bisect(new M.Edge(two).infiniteLine())
+	return new M.Edge(one)
+		.infiniteLine()
+		.bisect(new M.Edge(two).infiniteLine())
 		.map(function (line) { return new CPLine(this, line); }, this);
 }
 function axiom4(line, point){

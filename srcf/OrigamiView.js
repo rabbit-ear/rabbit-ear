@@ -7,11 +7,12 @@
 import SVG from "./SimpleSVG";
 import FoldView from "./FoldView";
 
-export default function OrigamiView(args){
+export default function OrigamiView(){
 
-	let {cp, svg, boundaryGroup, facesGroup, creasesGroup, 
-	     verticesGroup, frame, zoom, padding, style, setPadding,
-	     draw, setViewBox} = FoldView(args);
+	let { cp, svg, groups, frame, zoom, padding, style, setPadding,
+		draw, setViewBox, getFrames, getFrame, setFrame, showVertices,
+		hideVertices, showEdges, hideEdges, showFaces, hideFaces
+	 } = FoldView(...arguments);
 
 	// implement these, they will get called when the event fires
 	this.event = {
@@ -24,24 +25,21 @@ export default function OrigamiView(args){
 	}
 
 	// expose these functions to the user
-	let line = SVG.line;
-	let circle = SVG.circle;
-	let polygon = SVG.polygon;
-	let bezier = SVG.bezier;
-	let group = SVG.group;
-	let addClass = SVG.addClass;
-	let removeClass = SVG.removeClass;
-	let setId = SVG.setId;
+	let paint = {
+		line: SVG.line,
+		circle: SVG.circle,
+		polygon: SVG.polygon,
+		bezier: SVG.bezier,
+		group: SVG.group
+	}
 	let removeChildren = SVG.removeChildren;
 	let convertToViewbox = SVG.convertToViewbox;
 
 	// interaction behavior
 	let mouse = {
-		// position: {"x":0,"y":0},// the current position of the mouse
-		position: [],
+		position: {"x":0,"y":0},// the current position of the mouse
 		pressed: {"x":0,"y":0}, // the last location the mouse was pressed
 		isPressed: false,       // is the mouse button pressed (y/n)
-		isDragging: false       // is the mouse moving while pressed (y/n)
 	};
 	var frameNum = 0;
 
@@ -54,72 +52,46 @@ export default function OrigamiView(args){
 		face:{ fillColor:{ hue:0, saturation:0.8, brightness:1 } }
 	};
 
-	var thaaar = this;
+	var that = this;
 	svg.onmousedown = function(event){
 		mouse.isPressed = true;
-		mouse.isDragging = false;
 		mouse.pressed = convertToViewbox(svg, event.clientX, event.clientY);
 		// attemptSelection();
-		thaaar.event.onMouseDown(mouse);
+		that.event.onMouseDown(mouse);
 	};
 	svg.onmouseup = function(event){
 		mouse.isPressed = false;
-		mouse.isDragging = false;
 		selectedTouchPoint = undefined;
-		thaaar.event.onMouseUp(mouse);
+		that.event.onMouseUp(mouse);
 	};
 	svg.onmousemove = function(event){
 		mouse.position = convertToViewbox(svg, event.clientX, event.clientY);
 		if(mouse.isPressed){
-			if(mouse.isDragging === false){
-				mouse.isDragging = true;
-				thaaar.event.onMouseDidBeginDrag(mouse);
-			}
+			that.event.onMouseDidBeginDrag(mouse);
 		}
 		// updateSelection();
-		thaaar.event.onMouseMove(mouse);
+		that.event.onMouseMove(mouse);
 	};
 	svg.onResize = function(event){
-		thaaar.event.onResize(event);
+		that.event.onResize(event);
 	};
 
 	// javascript get Date()
 	// todo: watch for the variable getting set
 	animateTimer = setInterval(function(){
-		if(typeof thaaar.event.animate === "function"){
-			thaaar.event.animate({"time":svg.getCurrentTime(), "frame":frameNum});
+		if(typeof that.event.animate === "function"){
+			that.event.animate({"time":svg.getCurrentTime(), "frame":frameNum});
 		}
 		frameNum += 1;
 	}, 1000/60);
 
-	return Object.freeze({
-		cp,
-		svg,
-		boundaryGroup,
-		facesGroup,
-		creasesGroup,
-		verticesGroup,
-		frame,
-		zoom,
-		padding,
-		style,
-		setPadding,
-		draw,
-		setViewBox,
-
-		mouse,
+	// return Object.freeze({
+	return { cp, svg, groups, frame, zoom, padding, style, setPadding,
+		draw, setViewBox, getFrames, getFrame, setFrame, showVertices,
+		hideVertices, showEdges, hideEdges, showFaces, hideFaces,
 		event:this.event,
-
-		line,
-		circle,
-		polygon,
-		bezier,
-		group,
-		addClass,
-		removeClass,
-		setId,
-		removeChildren,
-		convertToViewbox,
-	});
+		mouse,
+		paint
+	};
 
 }

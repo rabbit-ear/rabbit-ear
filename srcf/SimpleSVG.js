@@ -8,7 +8,6 @@
  * return: the new geometry XML object.
  */
 
-
 const svgNS = "http://www.w3.org/2000/svg";
 
 /**  Geometry Primitives  */
@@ -165,8 +164,6 @@ function convertToViewbox(svg, x, y) {
 	return array;
 }
 
-export default {
-	line, circle, polygon, bezier,
-	group, SVG,
+export default { line, circle, polygon, bezier, group, SVG,
 	addClass, removeClass, setId, removeChildren, convertToViewbox
 }

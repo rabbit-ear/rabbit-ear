@@ -29,19 +29,10 @@
 // file_classes // arr of str
 // file_frames //
 
-
-
 'use strict';
 
 import * as Graph from './Graph'
-
-import {clean_number, contains, collinear, overlaps, clip_line_in_poly, transform_point, Matrix} from './Geom'
-
-// import './fold.js'
-
-
-// console.log(FOLD);
-// console.log(FOLD.convert);
+import * as Geom from './Geom'
 
 export function flattenFrame(fold_file, frame_num){
 	const dontCopy = ["frame_parent", "frame_inherit"];
@@ -96,23 +87,9 @@ export function valleyFold(foldFile, line, point){
 	}
 }
 
-
-function copy_object(o){}
-function copy_array(a){}
-function copy_array_number(a){}
-function is_array(a){}
-
-
 /** deep clone an object */
 export function clone(thing){
-	// types to check:
-	// "undefined" / "null"
-	// "boolean"
-	// "number"
-	// "string"
-	// "symbol"
-	// "function"
-	// "object"
+	// types to check:, "undefined" / "null", "boolean", "number", "string", "symbol", "function", "object"
 	return JSON.parse(JSON.stringify(thing));  // supposed to be slow
 	// recurse over each entry, somebody with more knowledge of edge cases needs to check this
 	// if(thing == null || typeof thing == "boolean" || typeof thing ==  "number" ||
@@ -141,7 +118,7 @@ var find_collinear_face_edges = function(edge, face_vertices, vertices_coords){
 		// as an edge array index, which == face vertex array between i, i+1
 		let i = face_edge_geometry
 			.map((edgeVerts, edgeI) => ({index:edgeI, edge:edgeVerts}))
-			.filter((e) => collinear(e.edge[0], e.edge[1], endPt))
+			.filter((e) => Geom.collinear(e.edge[0], e.edge[1], endPt))
 			.shift()
 			.index;
 		return [face_vertices[i], face_vertices[(i+1)%face_vertices.length]]
@@ -161,7 +138,7 @@ var clip_line_in_faces = function({vertices_coords, faces_vertices},
 		.map(va => va.map(v => vertices_coords[v]))
 		.map((poly,i) => ({
 			"face":i,
-			"clip":clip_line_in_poly(poly, linePoint, lineVector)
+			"clip":Geom.clip_line_in_poly(poly, linePoint, lineVector)
 		}))
 		.filter((obj) => obj.clip != undefined)
 		.reduce((prev, curr) => {
@@ -278,7 +255,7 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_faces, f
 		faces_vertices.forEach((vertices_index, idx2) => {
 			if (!marked[idx2] && ((faces_layer[idx2] > faces_layer[idx1]))) {
 		if (faces_points[idx1] !== undefined && faces_points[idx2] !== undefined) {
-		  if (overlaps(faces_points[idx1], faces_points[idx2])) {
+		  if (Geom.overlaps(faces_points[idx1], faces_points[idx2])) {
 			marked[idx2] = true;
 			to_process.push(idx2);
 		  }
@@ -363,7 +340,7 @@ var sort_faces_valley_fold = function(stay_faces, move_faces){
 
 var reflect_across_fold = function(vertices_coords, faces_vertices,
 	faces_layer, stay_layers, linePoint, lineVector){
-	var matrix = Matrix.reflection(linePoint, lineVector);
+	var matrix = Geom.Matrix.reflection(linePoint, lineVector);
 
 	var top_layer = faces_layer.slice(0, stay_layers);
 	var bottom_layer = faces_layer.slice(stay_layers, stay_layers + faces_layer.length-stay_layers);
@@ -375,7 +352,7 @@ var reflect_across_fold = function(vertices_coords, faces_vertices,
 		for(var f = 0; f < faces_vertices[i].length; f++){
 			if(!boolArray[ faces_vertices[i][f] ]){
 				var vert = vertices_coords[ faces_vertices[i][f] ];
-				vertices_coords[ faces_vertices[i][f] ] = transform_point(vert, matrix);
+				vertices_coords[ faces_vertices[i][f] ] = Geom.transform_point(vert, matrix);
 				boolArray[ faces_vertices[i][f] ] = true;
 			}
 		}
@@ -393,7 +370,7 @@ var top_face_under_point = function(
 	let top_fi = faces_vertices.map(
 		(vertices_index, fi) => {
 			let points = vertices_index.map(i => vertices_coords[i]);
-			return contains(points, point) ? fi : -1;
+			return Geom.contains(points, point) ? fi : -1;
 		}).reduce((acc, fi) => {
 			return ((acc === -1) || 
 							((fi !== -1) && (faces_layer[fi] > faces_layer[acc]))
@@ -424,7 +401,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	let side = [0,1]
 		.map(s => new_face_map[tap][s] == undefined ? [] : new_face_map[tap][s]) 
 		.map(points => points.map(f => new_vertices_coords[f]))
-		.map(f => contains(f, point))
+		.map(f => Geom.contains(f, point))
 		.indexOf(true)
 	// make face-adjacent faces on only a subset, the side we clicked on
 	let moving_side = new_face_map.map(f => f[side]);
@@ -468,11 +445,11 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	var bottom_face = 1; // todo: we need a way for the user to select this
 	let faces_matrix = Graph.make_faces_matrix({vertices_coords:reflected.vertices_coords, 
 		faces_vertices:cleaned.faces_vertices}, bottom_face);
-	let inverseMatrices = faces_matrix.map(n => Matrix.inverse(n));
+	let inverseMatrices = faces_matrix.map(n => Geom.Matrix.inverse(n));
 
 	let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
-		transform_point(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
-			clean_number(n)
+		Geom.transform_point(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
+			Geom.clean_number(n)
 		)
 	)
 
