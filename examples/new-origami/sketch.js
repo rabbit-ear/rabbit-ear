@@ -52,7 +52,7 @@ folded.event.onMouseUp = function(event){
 function update(){
 	if(foldLine){
 		var foldedFoldFile = duplicate(folded.cp);
-		var result = RabbitEar.Folder.valleyFold(foldedFoldFile, foldLine, foldPoint);
+		var result = RabbitEar.fold.valleyFold(foldedFoldFile, foldLine, foldPoint);
 		if(result == undefined){ return;}
 		folded.cp = result;
 		folded.draw();

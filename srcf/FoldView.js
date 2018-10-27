@@ -118,8 +118,10 @@ export default function FoldView(){
 		svg.setAttribute("viewBox", viewBoxString);
 	}
 
-	const draw = function(){
-		let data = cp;
+	const draw = function(importCP){
+		let data = importCP != null ? importCP : cp;
+
+		console.log(data);
 		// if a frame is set, copy data from that frame
 		if(frame > 0 &&
 		   cp.file_frames[frame - 1] != undefined &&
@@ -154,7 +156,8 @@ export default function FoldView(){
 		 groups.vertices].forEach((layer) => SVG.removeChildren(layer));
 		// vertices
 		let vertexR = style.vertex.radius
-		verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", groups.vertices));
+		// verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", groups.vertices));
+		verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", null, groups.vertices));
 		// edges
 		if(!isFoldedState()){
 			edges.forEach((e,i) =>

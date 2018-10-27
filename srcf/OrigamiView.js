@@ -38,20 +38,16 @@ export default function OrigamiView(){
 
 	// interaction behavior
 	let mouse = {
-		position: {"x":0,"y":0},// the current position of the mouse
-		pressed: {"x":0,"y":0}, // the last location the mouse was pressed
-		isPressed: false,       // is the mouse button pressed (y/n)
+		isPressed: false,     // is the mouse button pressed (y/n)
+		position: [0,0], // the current position of the mouse
+		pressed: [0,0],  // the last location the mouse was pressed
+		drag: [0,0]      // vector, displacement from start to now
 	};
 	var frameNum = 0;
 
 	// update FoldView member variables to
 	style.sector = {scale: 0.5};  // radius of sector wedges
 	style.face = {scale:1.0};     // shrink scale of each face
-	style.selected = {
-		node:{ radius: 0.02 },
-		edge:{ strokeColor:{ hue:0, saturation:0.8, brightness:1 } },
-		face:{ fillColor:{ hue:0, saturation:0.8, brightness:1 } }
-	};
 
 	var that = this;
 	svg.onmousedown = function(event){
@@ -68,6 +64,8 @@ export default function OrigamiView(){
 	svg.onmousemove = function(event){
 		mouse.position = convertToViewbox(svg, event.clientX, event.clientY);
 		if(mouse.isPressed){
+			mouse.drag = [mouse.position[0] - mouse.pressed[0], 
+			              mouse.position[1] - mouse.pressed[1]];
 			that.event.onMouseDidBeginDrag(mouse);
 		}
 		// updateSelection();

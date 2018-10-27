@@ -299,20 +299,20 @@ function get_vertex_count(graph){
 function get_edge_count(graph){
 	// these arrays indicate edge length
 	// assumption: 0-length array might be present when meant to be null
-	if(graph.edges_vertices != null && edges_vertices.length != 0){
-		return edges_vertices.length;
+	if(graph.edges_vertices != null && graph.edges_vertices.length != 0){
+		return graph.edges_vertices.length;
 	}
-	if(graph.edges_faces != null && edges_faces.length != 0){
-		return edges_faces.length;
+	if(graph.edges_faces != null && graph.edges_faces.length != 0){
+		return graph.edges_faces.length;
 	}
-	if(graph.edges_assignment != null && edges_assignment.length != 0){
-		return edges_assignment.length;
+	if(graph.edges_assignment != null && graph.edges_assignment.length != 0){
+		return graph.edges_assignment.length;
 	}
-	if(graph.edges_foldAngle != null && edges_foldAngle.length != 0){
-		return edges_foldAngle.length;
+	if(graph.edges_foldAngle != null && graph.edges_foldAngle.length != 0){
+		return graph.edges_foldAngle.length;
 	}
-	if(graph.edges_length != null && edges_length.length != 0){
-		return edges_length.length;
+	if(graph.edges_length != null && graph.edges_length.length != 0){
+		return graph.edges_length.length;
 	}
 	// these arrays contain references to edges. find the max instance
 	let max = 0;
@@ -411,15 +411,15 @@ export function remove_vertices(graph, vertices){
 	// these arrays change their size, their contents are untouched
 	if(graph.vertices_faces != null){
 		graph.vertices_faces = graph.vertices_faces
-			.filter((v,i) => removes[i])
+			.filter((v,i) => !removes[i])
 	}
 	if(graph.vertices_vertices != null){
 		graph.vertices_vertices = graph.vertices_vertices
-			.filter((v,i) => removes[i])
+			.filter((v,i) => !removes[i])
 	}
 	if(graph.vertices_coords != null){
 		graph.vertices_coords = graph.vertices_coords
-			.filter((v,i) => removes[i])
+			.filter((v,i) => !removes[i])
 	}
 
 	// todo: do the same with frames in file_frames where inherit=true
@@ -455,23 +455,23 @@ export function remove_edges(graph, edges){
 	// these arrays change their size, their contents are untouched
 	if(graph.edges_vertices != null){
 		graph.edges_vertices = graph.edges_vertices
-			.filter((e,i) => removes[i])
+			.filter((e,i) => !removes[i])
 	}
 	if(graph.edges_faces != null){
 		graph.edges_faces = graph.edges_faces
-			.filter((e,i) => removes[i])
+			.filter((e,i) => !removes[i])
 	}
 	if(graph.edges_assignment != null){
 		graph.edges_assignment = graph.edges_assignment
-			.filter((e,i) => removes[i])
+			.filter((e,i) => !removes[i])
 	}
 	if(graph.edges_foldAngle != null){
 		graph.edges_foldAngle = graph.edges_foldAngle
-			.filter((e,i) => removes[i])
+			.filter((e,i) => !removes[i])
 	}
 	if(graph.edges_length != null){
 		graph.edges_length = graph.edges_length
-			.filter((e,i) => removes[i])
+			.filter((e,i) => !removes[i])
 	}
 
 	// todo: do the same with frames in file_frames where inherit=true
@@ -528,6 +528,47 @@ function reindex_edge(graph, old_index, new_index){
 		}))
 	}
 }
+
+
+///////////////////////////////////////////////
+// GEOMETRY STUFF
+///////////////////////////////////////////////
+
+export function rebuild_edge(graph, old_index, edge_vertices_a, edge_vertices_b){
+	// this leaves behind a null in the old_index in every array
+	if(graph.edges_vertices != null){
+		graph.edges_vertices.push(edge_vertices_a);
+		graph.edges_vertices.push(edge_vertices_b);
+		graph.edges_vertices[old_index] = undefined;
+	}
+	if(graph.edges_faces != null){
+		graph.edges_faces.push( graph.edges_faces[old_index].slice() );
+		graph.edges_faces.push( graph.edges_faces[old_index].slice() );
+		graph.edges_faces[old_index] = undefined;
+	}
+	if(graph.edges_assignment != null){
+		graph.edges_assignment.push( graph.edges_assignment[old_index] );
+		graph.edges_assignment.push( graph.edges_assignment[old_index] );
+		graph.edges_assignment[old_index] = undefined;
+	}
+	if(graph.edges_foldAngle != null){
+		graph.edges_foldAngle.push( graph.edges_foldAngle[old_index] );
+		graph.edges_foldAngle.push( graph.edges_foldAngle[old_index] );
+		graph.edges_foldAngle[old_index] = undefined;
+	}
+	if(graph.edges_length != null){
+		graph.edges_length.push( graph.edges_length[old_index] );
+		graph.edges_length.push( graph.edges_length[old_index] );
+		graph.edges_length[old_index] = undefined;
+	}
+	// [ graph.edges_vertices, graph.edges_faces, graph.edges_assignment,
+	// 	graph.edges_foldAngle, graph.edges_length
+	// ].forEach(arr => arr[old_index] = undefined)
+}
+
+// returns the new edge created by the two faces
+// function rebuild_edge(fold, old_index, edge_vertices_a, edge_vertices_b){
+
 
 ///////////////////////////////////////////////
 // FROM .FOLD SOURCE

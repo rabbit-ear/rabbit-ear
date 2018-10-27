@@ -19,7 +19,7 @@ export const unitSquare = {
 	}]
 };
 
-export const blintzBase = {
+export const blintz = {
 	"file_spec": 1.1,
 	"frame_title": "blintz base",
 	"file_classes": ["singleModel"],
@@ -38,19 +38,26 @@ export const blintzBase = {
 	}]
 };
 
-export const kiteBase = {
+export const kite = {
 	"file_spec": 1.1,
 	"frame_title": "kite base",
 	"file_classes": ["singleModel"],
 	"frame_classes": ["creasePattern"],
 	"frame_attributes": ["2D"],
 	"vertices_coords": [[0,0],[1,0],[1,1],[0,1],[0.414213562373095,0],[1,0.585786437626905]],
-	"faces_vertices": [[2,3,5],[3,0,4],[3,1,5],[1,3,4]],
 	"edges_vertices": [[2,3],[3,0],[3,1],[3,4],[0,4],[4,1],[3,5],[1,5],[5,2]],
-	"edges_assignment": ["B","B","V","M","B","B","M","B","B"]
+	"edges_assignment": ["B","B","V","M","B","B","M","B","B"],
+	"faces_vertices": [[2,3,5],[3,0,4],[3,1,5],[1,3,4]],
+	"faces_layer": [2,3,0,1],
+	"file_frames": [{
+		"frame_classes": ["foldedState"],
+		"frame_parent": 0,
+		"frame_inherit": true,
+		"vertices_coords": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.414213562373095,0],[1,0.585786437626905]]
+	}]
 };
 
-export const fishBase = {
+export const fish = {
 	"file_spec": 1.1,
 	"frame_title": "fish base",
 	"file_classes": ["singleModel"],
@@ -69,7 +76,7 @@ export const fishBase = {
 	}]
 };
 
-export const birdBase = {
+export const bird = {
 	"file_spec": 1.1,
 	"frame_title": "bird base",
 	"file_classes": ["singleModel"],
@@ -81,7 +88,7 @@ export const birdBase = {
 	"edges_assignment": ["M","M","M","M","M","M","M","M","M","M","M","M","F","F","F","F","F","F","V","V","F","F","F","F","F","F","V","V","V","B","B","V","B","B","V","B","B","V","B","B"]
 };
 
-export const frogBase = {
+export const frog = {
 	"file_spec": 1.1,
 	"frame_title": "frog base",
 	"file_classes": ["singleModel"],

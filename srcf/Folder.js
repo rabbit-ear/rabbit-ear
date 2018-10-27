@@ -167,7 +167,6 @@ var get_new_vertices = function(clipLines){
 			"face": parseInt(faceIndex)
 		}))
 	});
-
 	let new_vertices = Object.keys(edgeCrossings).map(key => {
 		edgeCrossings[key].edges = key.split(" ").map(s => parseInt(s));
 		return edgeCrossings[key];
@@ -406,7 +405,6 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	// make face-adjacent faces on only a subset, the side we clicked on
 	let moving_side = new_face_map.map(f => f[side]);
 	let faces_faces = Graph.make_faces_faces({faces_vertices:moving_side});
-	console.log(faces_faces);
 	// mark which faces are going to be moving based on a valley fold
 	let faces_mark = mark_moving_faces(moving_side, new_vertices_coords, 
 		faces_faces, fold.faces_layer, tap);
@@ -511,6 +509,235 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	return new_fold;
 }
 
+/** This filters out all non-operational edges
+ * removes: "F": flat "U": unassigned
+ * retains: "B": border/boundary, "M": mountain, "V": valley
+ */
+function remove_flat_creases(fold){
+	let removeTypes = ["f", "F", "b", "B"];
+	let removeEdges = fold.edges_assignment
+		.map((a,i) => ({a:a,i:i}))
+		.filter(obj => removeTypes.indexOf(obj.a) != -1)
+		.map(obj => obj.i)
+	Graph.remove_edges(fold, removeEdges);
+}
+
+function faces_containing_point(fold, point){
+	return fold.faces_vertices
+		.map((fv,i) => ({face:fv.map(v => fold.vertices_coords[v]),i:i}))
+		.filter(f => Geom.contains(f.face, point))
+		.map(f => f.i);
+}
+
+function fold_without_layering(fold, face){
+	if (face == null){ face = 0; }
+	let faces_matrix = Graph.make_faces_matrix(fold, face);
+
+	let vertex_in_face = fold.vertices_coords.map((v,i) => {
+		for(var f = 0; f < fold.faces_vertices.length; f++){
+			if(fold.faces_vertices[f].includes(i)){ return f; }
+		}
+	});
+	console.log("vertex_in_face");
+	console.log(vertex_in_face);
+
+	let new_vertices_coords_cp = fold.vertices_coords.map((point,i) =>
+		Geom.transform_point(point, faces_matrix[vertex_in_face[i]]).map((n) => 
+			Geom.clean_number(n)
+		)
+	)
+
+	console.log("new_vertices_coords_cp");
+	console.log(new_vertices_coords_cp);
+
+	fold.vertices_coords = new_vertices_coords_cp;
+	return fold;
+}
+
+// function clip_face_into_two(fold, face_index, )
+
+
+
+var get_new_vertices = function(clipLines){
+	// edgeCrossings is object with N entries: # edges which are crossed by line
+	let edgeCrossings = {};
+	Object.keys(clipLines).forEach(faceIndex => {
+		let keys = clipLines[faceIndex].collinear.map(e => e.sort((a,b) => a-b).join(" "))
+		keys.forEach((k,i) => edgeCrossings[k] = ({
+			"point": clipLines[faceIndex].clip[i],
+			"face": parseInt(faceIndex)
+		}))
+	});
+	let new_vertices = Object.keys(edgeCrossings).map(key => {
+		edgeCrossings[key].edges = key.split(" ").map(s => parseInt(s));
+		return edgeCrossings[key];
+	})
+	return new_vertices;
+}
+
+
+// /** clip an infinite line in a polygon, returns an edge or undefined if no intersection */
+// export function clip_line_in_poly(poly, linePoint, lineVector){
+// 	let intersections = poly
+// 		.map((p,i,arr) => [p, arr[(i+1)%arr.length]] ) // poly points into edge pairs
+// 		.map((el,i,arr) => ({
+// 			xing:line_edge_intersection(linePoint, lineVector, el[0], el[1]),
+// 			poly_vertices:[i, (i+1)%arr.length]
+// 		}))
+// 		.filter((el) => el.xing != null);
+// 	switch(intersections.length){
+// 	case 0: return undefined;
+// 	case 1: // degenerate edge
+// 		let array = [intersections[0].xing, intersections[0].xing];
+// 		array[face]
+// 	case 2:
+// 		let array = intersections.map(el => el.xing)
+// 		return intersections;
+// 	default:
+// 	// special case: line intersects directly on a poly point (2 edges, same point)
+// 	//  filter to unique points by [x,y] comparison.
+// 		for(let i = 1; i < intersections.length; i++){
+// 			if( !points_equivalent(intersections[0], intersections[i])){
+// 				return [intersections[0], intersections[i]];
+// 			}
+// 		}
+// 	}
+// }
+
+
+var clip_line_in_faces = function({vertices_coords, faces_vertices},
+	linePoint, lineVector){
+	// convert faces into x,y geometry instead of references to vertices
+	// generate one clip line per face, or undefined if there is no intersection
+	// array of objects {face: index of face, clip: the clip line}
+	let clipLines = faces_vertices
+		.map(va => va.map(v => vertices_coords[v]))
+		.map((poly,i) => ({
+			"face":i,
+			"clip":Geom.clip_line_in_poly(poly, linePoint, lineVector)
+		}))
+		.filter((obj) => obj.clip != undefined)
+		.reduce((prev, curr) => {
+			prev[curr.face] = {"clip": curr.clip};
+			return prev;
+		}, {});
+
+	Object.keys(clipLines).forEach(faceIndex => {
+		let face = faces_vertices[faceIndex];
+		let line = clipLines[faceIndex].clip;
+		clipLines[faceIndex].collinear = find_collinear_face_edges(line, face, vertices_coords);
+	});
+
+	// each face is now an index in the object, containing "clip", "collinear"
+	// 0: {  clip: [[x,y],[x,y]],  collinear: [[i,j],[k,l]]  }
+	return clipLines
+}
+
+export function crease_through_layers(fold_file, line){
+	let fold = clone(fold_file);
+	remove_flat_creases(fold);
+	console.log("crease_through_layers");
+	let face = faces_containing_point(fold, line.point).shift();
+	if (face == null){ return; }
+	console.log(face);
+	let folded = fold_without_layering(fold, face);
+	console.log(folded);
+
+	let clippedLines = clip_line_in_faces(folded, line.point, line.direction);
+
+	console.log("clippedLines");
+	console.log(clippedLines);
+
+	let newVertices = get_new_vertices(clippedLines);
+	// create a new .fold vertices_coords with new data appended to the end
+	let new_vertices_coords = make_new_vertices_coords(fold.vertices_coords, newVertices);
+	// walk faces. generate two new faces for every cut face
+	// sort these new face-pairs by which side of the line they are.
+	let new_face_map = make_new_face_mapping(fold.faces_vertices,
+			clippedLines, newVertices).map((subs) =>
+			sortTwoFacesBySide(subs, new_vertices_coords, line.point, line.direction)
+		)
+
+	let side = 0;
+	console.log("new_face_map");
+	console.log(new_face_map);
+	let faces_mark = new_face_map.map(a => true)
+
+	let stay_faces, move_faces;
+	({stay_faces, move_faces} = reconstitute_faces(fold.faces_vertices,
+		fold.faces_layer, new_face_map, faces_mark, side));
+
+	// compile layers back into arrays, bubble moving faces to top z-order
+	let stay_layers = stay_faces.length;
+	let new_layer_data = sort_faces_valley_fold(stay_faces, move_faces);
+
+	// clean isolated vertices
+	// (compiled_faces_vertices, compiled_faces_layer)
+	// var cleaned = Graph.remove_isolated_vertices({new_vertices_coords,
+	//	new_layer_data.faces_vertices});
+	var cleaned = {
+		vertices_coords: new_vertices_coords,
+		faces_vertices:new_layer_data.faces_vertices
+	};
+	Graph.remove_isolated_vertices(cleaned);
+
+	// flip points across the fold line, 
+	let reflected = reflect_across_fold(cleaned.vertices_coords,
+		cleaned.faces_vertices, new_layer_data.faces_layer,
+		stay_layers, line.point, line.direction);
+
+	// for every vertex, give me an index to a face which it's found in
+	let vertex_in_face = reflected.vertices_coords.map((v,i) => {
+		for(var f = 0; f < cleaned.faces_vertices.length; f++){
+			if(cleaned.faces_vertices[f].includes(i)){ return f; }
+		}
+	});
+
+	var bottom_face = 1; // todo: we need a way for the user to select this
+	let faces_matrix = Graph.make_faces_matrix({vertices_coords:reflected.vertices_coords, 
+		faces_vertices:cleaned.faces_vertices}, bottom_face);
+	let inverseMatrices = faces_matrix.map(n => Geom.Matrix.inverse(n));
+
+	let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
+		Geom.transform_point(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
+			Geom.clean_number(n)
+		)
+	)
+
+	// let faces_direction = cleaned.faces_vertices.map(f => true);
+	// make_face_walk_tree(cleaned.faces_vertices, bottom_face)
+	// 	.forEach((level,i) => level.forEach((f) => 
+	// 		faces_direction[f.face] = i%2==0 ? true : false
+	// 	))
+
+	// create new fold file
+	// let new_fold = {
+	// 	vertices_coords: reflected.vertices_coords,
+	// 	faces_vertices: cleaned.faces_vertices,
+	// 	faces_layer: reflected.faces_layer
+	// };
+
+	// return new_fold;
+
+	fold.vertices_coords = reflected.vertices_coords;
+	fold.faces_vertices = cleaned.faces_vertices;
+	fold.faces_layer = reflected.faces_layer;
+
+
+
+	// let faces_matrix = Graph.make_faces_matrix({vertices_coords:reflected.vertices_coords, 
+	// 	faces_vertices:cleaned.faces_vertices}, bottom_face);
+	// let inverseMatrices = faces_matrix.map(n => Geom.Matrix.inverse(n));
+	// let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
+	// 	Geom.transform_point(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
+	// 		Geom.clean_number(n)
+	// 	)
+	// )
+
+
+	return fold_file;
+}
+
 
 // export function fold(face){
 // 	this.clean();
@@ -549,3 +776,71 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 // 	},this);
 // 	return copyCP.exportFoldFile();
 // }
+
+
+
+
+/** clip an infinite line in a polygon, returns an edge or undefined if no intersection */
+// requires:
+// - fold.vertices_coords
+// - fold.edges_vertices
+// - fold.faces_vertices
+export function clip_edges_with_line(fold, linePoint, lineVector){
+	var vertex_index = fold.vertices_coords.length;
+	let intersections = fold.edges_vertices
+		.map(ev => ev.map(v => fold.vertices_coords[v]))
+		.map((edge, i) => {
+			let intersection = Geom.line_edge_intersection(linePoint, lineVector, edge[0], edge[1]);
+			let new_index = (intersection == null ? vertex_index : vertex_index++);
+			return {
+				point: intersection,
+				vertices: fold.edges_vertices[i], // shallow copy to fold file
+				new_index: new_index
+			};
+		})
+	// add new vertices to vertex_ arrays
+	let new_vertices = intersections
+		.filter(el => el.point != null)
+		.map(el => el.point)
+
+	new_vertices.forEach(v => fold.vertices_coords.push(v));
+	// fold.vertices_coords = fold.vertices_coords.concat(new_vertices);
+	// add new edges to edges_ arrays
+
+	// let new_edges = intersections
+	// 	.filter(el => el.intersection != null)
+	// 	.map(el => el.point)
+	// fold.edges_vertices = fold.edges_vertices.concat(new_edges);
+
+	// rebuild edges
+	intersections
+		.map((sect, i) => ({sect:sect, edge:i}))
+		.filter(el => el.sect.point != null)
+		.forEach(el => {
+			let edge_vertices_a = [fold.edges_vertices[el.edge][0], el.sect.new_index];
+			let edge_vertices_b = [fold.edges_vertices[el.edge][1], el.sect.new_index];
+			Graph.rebuild_edge(fold, el.edge, edge_vertices_a, edge_vertices_b);
+		});
+	// rebuild faces and build new edges (requires faces)
+	// let edge_map = intersections.map(inter => )
+
+	// fold.faces_vertices.
+
+	// rebuild faces
+
+
+	// clean components
+	let vertices_to_remove = fold.vertices_coords
+		.map((vc,i) => vc == null ? i : undefined)
+		.filter(el => el != null)
+	let edges_to_remove = fold.edges_vertices
+		.map((ev,i) => ev == null ? i : undefined)
+		.filter(el => el != null)
+	// let faces_to_remove = fold.faces_vertices
+	// 	.map((fv,i) => fv == null ? i : undefined)
+	// 	.filter(el => el != null)
+	
+	Graph.remove_vertices(fold, vertices_to_remove);
+	Graph.remove_edges(fold, edges_to_remove);
+
+}

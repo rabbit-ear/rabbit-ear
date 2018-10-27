@@ -1,8 +1,9 @@
 import SVG from "./SimpleSVG";
 import Origami from "./OrigamiView";
-import * as Folder from "./Folder";
+import * as fold from "./Folder";
 import FoldView from "./FoldView";
-import * as Bases from "./OrigamiBases";
+import * as bases from "./OrigamiBases";
+import * as math from './Geom';
 
 window.Origami = Origami;
 
@@ -12,6 +13,6 @@ let setId = SVG.setId;
 let removeChildren = SVG.removeChildren;
 
 export {
-	Origami, Folder, SVG, FoldView, Bases,
+	Origami, fold, SVG, FoldView, bases, math,
 	addClass, removeClass, setId, removeChildren
 };

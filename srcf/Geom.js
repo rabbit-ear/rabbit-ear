@@ -5,7 +5,13 @@
 // all infinite lines are defined as point and vector
 // all polygons are an ordered set of points in either winding direction
 
-/** is a point inside of a convex polygon, including along the boundary within epsilon */
+
+/** is a point inside of a convex polygon? 
+ * including along the boundary within epsilon 
+ *
+ * @param poly is an array of points [ [x,y], [x,y]...]
+ * @returns {boolean} true if point is inside polygon
+ */
 export function contains(poly, point, epsilon = 1e-10){
 	if(poly == undefined || !(poly.length > 0)){ return false; }
 	return poly.map( (p,i,arr) => {
@@ -119,7 +125,7 @@ var edge_intersection = function(a0, a1, b0, b1){
  * line-edge intersection:
  * in the arguments line comes first (point, vector) followed by edge's two endpoints
  */
-var line_edge_intersection = function(point, vec, edge0, edge1){
+export function line_edge_intersection(point, vec, edge0, edge1){
 	let edgeVec = [edge1[0]-edge0[0], edge1[1]-edge0[1]];
 	return vector_intersection(point, vec, edge0, edgeVec, line_edge_comp_func);
 }
@@ -129,12 +135,12 @@ var line_edge_intersection = function(point, vec, edge0, edge1){
  * line always returns true, ray is true for t > 0, edge must be between 0 < t < 1
 */
 var vector_intersection = function(aOrigin, aVec, bOrigin, bVec, compFunction, epsilon = 1e-10){
-	function determinantXY(a,b){ return a[0] * b[1] - b[0] * a[1]; }
-	var denominator0 = determinantXY(aVec, bVec);
+	function det(a,b){ return a[0] * b[1] - b[0] * a[1]; }
+	var denominator0 = det(aVec, bVec);
 	var denominator1 = -denominator0;
 	if(Math.abs(denominator0) < epsilon){ return undefined; } /* parallel */
-	var numerator0 = determinantXY([bOrigin[0]-aOrigin[0], bOrigin[1]-aOrigin[1]], bVec);
-	var numerator1 = determinantXY([aOrigin[0]-bOrigin[0], aOrigin[1]-bOrigin[1]], aVec);
+	var numerator0 = det([bOrigin[0]-aOrigin[0], bOrigin[1]-aOrigin[1]], bVec);
+	var numerator1 = det([aOrigin[0]-bOrigin[0], aOrigin[1]-bOrigin[1]], aVec);
 	var t0 = numerator0 / denominator0;
 	var t1 = numerator1 / denominator1;
 	if(compFunction(t0,t1,epsilon)){ return [aOrigin[0] + aVec[0]*t0, aOrigin[1] + aVec[1]*t0]; }
