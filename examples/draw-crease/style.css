@@ -45,7 +45,7 @@ svg{
 	stroke-width: var(--crease-width);
 	stroke-linecap: round;
 }
-.vertex  { fill: red; stroke: none; }
+.vertex  { fill: hsl(205, 74%, 30%); stroke: none; }
 .face  { fill: white; stroke: none; }
 .sector{ fill: none; stroke: none; }
 .mountain{

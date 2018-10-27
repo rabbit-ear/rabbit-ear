@@ -118,7 +118,7 @@ var find_collinear_face_edges = function(edge, face_vertices, vertices_coords){
 		// as an edge array index, which == face vertex array between i, i+1
 		let i = face_edge_geometry
 			.map((edgeVerts, edgeI) => ({index:edgeI, edge:edgeVerts}))
-			.filter((e) => Geom.collinear(e.edge[0], e.edge[1], endPt))
+			.filter((e) => Geom.edge_collinear(e.edge[0], e.edge[1], endPt))
 			.shift()
 			.index;
 		return [face_vertices[i], face_vertices[(i+1)%face_vertices.length]]
@@ -778,8 +778,6 @@ export function crease_through_layers(fold_file, line){
 // }
 
 
-
-
 /** clip an infinite line in a polygon, returns an edge or undefined if no intersection */
 // requires:
 // - fold.vertices_coords
@@ -787,10 +785,12 @@ export function crease_through_layers(fold_file, line){
 // - fold.faces_vertices
 export function clip_edges_with_line(fold, linePoint, lineVector){
 	var vertex_index = fold.vertices_coords.length;
-	let intersections = fold.edges_vertices
+	let vertices_intersections = fold.vertices_coords
+		.map(v => Geom.line_collinear(linePoint, lineVector, v));
+	let edges_intersections = fold.edges_vertices
 		.map(ev => ev.map(v => fold.vertices_coords[v]))
 		.map((edge, i) => {
-			let intersection = Geom.line_edge_intersection(linePoint, lineVector, edge[0], edge[1]);
+			let intersection = Geom.line_edge_intersect_exclusive(linePoint, lineVector, edge[0], edge[1]);
 			let new_index = (intersection == null ? vertex_index : vertex_index++);
 			return {
 				point: intersection,
@@ -798,8 +798,12 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 				new_index: new_index
 			};
 		})
+
+	console.log(vertices_intersections);
+	console.log(edges_intersections);
+
 	// add new vertices to vertex_ arrays
-	let new_vertices = intersections
+	let new_vertices = edges_intersections
 		.filter(el => el.point != null)
 		.map(el => el.point)
 
@@ -807,26 +811,62 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 	// fold.vertices_coords = fold.vertices_coords.concat(new_vertices);
 	// add new edges to edges_ arrays
 
-	// let new_edges = intersections
+	// let new_edges = edges_intersections
 	// 	.filter(el => el.intersection != null)
 	// 	.map(el => el.point)
 	// fold.edges_vertices = fold.edges_vertices.concat(new_edges);
 
 	// rebuild edges
-	intersections
+	let edge_record = [];
+	edges_intersections
 		.map((sect, i) => ({sect:sect, edge:i}))
 		.filter(el => el.sect.point != null)
 		.forEach(el => {
 			let edge_vertices_a = [fold.edges_vertices[el.edge][0], el.sect.new_index];
 			let edge_vertices_b = [fold.edges_vertices[el.edge][1], el.sect.new_index];
 			Graph.rebuild_edge(fold, el.edge, edge_vertices_a, edge_vertices_b);
+			edge_record[el.edge] = {
+				edges:[
+					fold.edges_vertices.length-2, 
+					fold.edges_vertices.length-1
+				],
+				vertices:[
+					edge_vertices_a[0],
+					edge_vertices_b[0],
+					el.sect.new_index
+				]
+			};
 		});
 	// rebuild faces and build new edges (requires faces)
-	// let edge_map = intersections.map(inter => )
+	// let edge_record = edges_intersections
+	// 	.map((sect,i) => sect.point == null ? undefined : i)
+	// 	.filter(el => el != null)
+	// 	.map(edge_i => fold.edges_vertices[edge_i])
+
+	console.log(edge_record);
+
+	// important!
+	// vertices_vertices is now invalid
+
+
+	// let two_vertex_with_intersection = {
+	// 	"0 2" : new_v_i,
+	// 	"5 7" : new_v_i,
+	// 	"20 8" : new_v_i
+	// }
+	// let old_edge_with_intersection = {
+	// 	"1" : new_v_i,
+	// 	"4" : new_v_i,
+	// 	"5" : new_v_i
+	// }
+
+	// let new_face_parts = [
+	// 	undefined,
+	// 	{}
+	// ]
 
 	// fold.faces_vertices.
 
-	// rebuild faces
 
 
 	// clean components

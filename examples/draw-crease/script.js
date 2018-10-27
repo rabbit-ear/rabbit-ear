@@ -25,6 +25,7 @@ origami.event.onMouseMove = function(event){
 		// origami.cp = RabbitEar.fold.crease_through_layers(origami.cp, line);
 		let newcp = RabbitEar.fold.clone(RabbitEar.bases.fish);
 		let result = RabbitEar.fold.clip_edges_with_line(newcp, line.point, line.direction);
+		// let result = RabbitEar.fold.clip_edges_with_line(newcp, [0.333, 0.333], [1, 1]);
 		// console.log("--------------");
 		// console.log(newcp);
 		// console.log(newCP);

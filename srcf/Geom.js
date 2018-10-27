@@ -23,13 +23,28 @@ export function contains(poly, point, epsilon = 1e-10){
 }
 
 /** is a point collinear to an edge, between endpoints, within an epsilon */
-export function collinear(edgeP0, edgeP1, point, epsilon = 1e-10){
+export function edge_collinear(edgeP0, edgeP1, point, epsilon = 1e-10){
 	// distance between endpoints A,B should be equal to point->A + point->B
 	let dEdge = Math.sqrt(Math.pow(edgeP0[0]-edgeP1[0],2) + Math.pow(edgeP0[1]-edgeP1[1],2));
 	let dP0 = Math.sqrt(Math.pow(point[0]-edgeP0[0],2) + Math.pow(point[1]-edgeP0[1],2));
 	let dP1 = Math.sqrt(Math.pow(point[0]-edgeP1[0],2) + Math.pow(point[1]-edgeP1[1],2));
 	return Math.abs(dEdge - dP0 - dP1) < epsilon
 }
+
+/** is a point collinear to a line, within an epsilon */
+// export function line_collinear(linePoint, lineVector, point, epsilon = 1e-10){
+// 	// point is collinear to line if the vectors to linePoint dot product == 1
+// 	let pointPoint = normalize([point[0] - linePoint[0], point[1] - linePoint[1]]);
+// 	let normalVec = normalize(lineVector);
+// 	let dot = pointPoint[0]*normalVec[0] + pointPoint[1]*normalVec[1];
+// 	return Math.abs(Math.abs(dot)-1) < epsilon;
+// }
+export function line_collinear(linePoint, lineVector, point, epsilon = 1e-10){
+	let pointPoint = [point[0] - linePoint[0], point[1] - linePoint[1]];
+	let cross = pointPoint[0]*lineVector[1] - pointPoint[1]*lineVector[0];
+	return Math.abs(cross) < epsilon;
+}
+
 
 /** do two convex polygons overlap one another */
 export function overlaps(ps1, ps2){
@@ -129,6 +144,16 @@ export function line_edge_intersection(point, vec, edge0, edge1){
 	let edgeVec = [edge1[0]-edge0[0], edge1[1]-edge0[1]];
 	return vector_intersection(point, vec, edge0, edgeVec, line_edge_comp_func);
 }
+
+export function line_edge_intersect_exclusive(point, vec, edge0, edge1){
+	let edgeVec = [edge1[0]-edge0[0], edge1[1]-edge0[1]];
+	let x = vector_intersection(point, vec, edge0, edgeVec, line_edge_comp_func);
+	if (x == null){ return undefined; }
+	if(points_equivalent(x, edge0) || points_equivalent(x, edge1)){
+		return undefined;
+	}
+	return x;
+}
 /** 
  * the generalized vector intersection function
  * requires a compFunction to describe valid bounds checking 
@@ -152,7 +177,7 @@ const line_edge_comp_func = function(t0,t1,ep = 1e-10){return t1 >= -ep && t1 <=
 /** are two points equivalent within an epsilon */
 function points_equivalent(a, b, epsilon = 1e-10){
 	// rectangular bounds test for faster calculation
-	return Math.abs(a.x-b.x) < epsilon && Math.abs(a.y-b.y) < epsilon;
+	return Math.abs(a[0]-b[0]) < epsilon && Math.abs(a[1]-b[1]) < epsilon;
 }
 
 /** clean floating point numbers

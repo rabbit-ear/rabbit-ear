@@ -60,14 +60,16 @@ export const kite = {
 export const fish = {
 	"file_spec": 1.1,
 	"frame_title": "fish base",
+	"file_author": "Robby Kraft",
 	"file_classes": ["singleModel"],
 	"frame_classes": ["creasePattern"],
 	"frame_attributes": ["2D"],
 	"vertices_coords": [[0,0],[1,0],[1,1],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.292893218813452,0],[1,0.707106781186548]],
-	"faces_vertices": [[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],
 	"edges_vertices": [[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],
-	"faces_layer": [2,3,5,6,4,7,0,1],
 	"edges_assignment": ["B","B","F","M","M","M","M","M","M","V","B","B","V","B","B"],
+	"faces_vertices": [[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],
+	"faces_edges": [[0,8,7],[1,3,5],[2,6,8],[2,5,4],[3,10,9],[4,9,11],[6,13,12],[7,12,14]],
+	"faces_layer": [2,3,5,6,4,7,0,1],
 	"file_frames": [{
 		"frame_classes": ["foldedState"],
 		"frame_parent": 0,

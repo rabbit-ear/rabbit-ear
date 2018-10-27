@@ -570,6 +570,30 @@ export function rebuild_edge(graph, old_index, edge_vertices_a, edge_vertices_b)
 // function rebuild_edge(fold, old_index, edge_vertices_a, edge_vertices_b){
 
 
+// rebuild faces
+// edge_map is an array, indices relate to old_edge_indices
+// 0: { edges:[new_edge_1, new_edge_2], vertices:[v_1, v_2, new_vertex] }
+function rebuild_face(fold, old_face, edge_map){
+	// returns 2 faces
+
+	
+// vertices_coords
+// vertices_vertices
+// vertices_faces
+// edges_vertices
+// edges_faces
+// edges_assignment
+// edges_foldAngle
+// edges_length
+// faces_vertices
+// faces_edges
+// faceOrders
+// edgeOrders
+
+
+}
+
+
 ///////////////////////////////////////////////
 // FROM .FOLD SOURCE
 ///////////////////////////////////////////////
