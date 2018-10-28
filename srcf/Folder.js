@@ -778,13 +778,21 @@ export function crease_through_layers(fold_file, line){
 // }
 
 
+
 /** clip an infinite line in a polygon, returns an edge or undefined if no intersection */
 // requires:
 // - fold.vertices_coords
 // - fold.edges_vertices
 // - fold.faces_vertices
 export function clip_edges_with_line(fold, linePoint, lineVector){
-	var vertex_index = fold.vertices_coords.length;
+	let edge_map = {};
+	fold.edges_vertices.forEach((ev,i) => {
+		let key = ev.sort( (a,b) => a-b ).join(' ')
+		edge_map[key] = i;
+	})
+	console.log("edge_map");
+	console.log(edge_map);
+	let vertex_index = fold.vertices_coords.length;
 	let vertices_intersections = fold.vertices_coords
 		.map(v => Geom.line_collinear(linePoint, lineVector, v));
 	let edges_intersections = fold.edges_vertices
@@ -798,10 +806,6 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 				new_index: new_index
 			};
 		})
-
-	console.log(vertices_intersections);
-	console.log(edges_intersections);
-
 	// add new vertices to vertex_ arrays
 	let new_vertices = edges_intersections
 		.filter(el => el.point != null)
@@ -837,12 +841,12 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 				]
 			};
 		});
-	// rebuild faces and build new edges (requires faces)
 	// let edge_record = edges_intersections
 	// 	.map((sect,i) => sect.point == null ? undefined : i)
 	// 	.filter(el => el != null)
 	// 	.map(edge_i => fold.edges_vertices[edge_i])
 
+	// rebuild faces and build new edges (requires faces)
 	console.log(edge_record);
 
 	// important!
@@ -865,22 +869,131 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 	// 	{}
 	// ]
 
-	// fold.faces_vertices.
+	// make sure faces edges is built
+	// fold.faces_edges
+	let faces_intersections = fold.faces_vertices.map((fv,fi) => {
+		let verts = fv.map(v => ({intersection:vertices_intersections[v], v:v}))
+			.filter(el => el.intersection)
+			.map(el => el.v)
+		let edges = fold.faces_edges[fi]
+			.map(fe => edge_record[fe])
+			.filter(el => el != null)
+		return {vertices:verts, edges:edges};
+	});
+	console.log("faces_intersections");
+	console.log(faces_intersections);
 
+	// we don't do anythign with this until later
+	let faces_to_modify = faces_intersections.map(el => {
+		if(el.edges.length == 2){ return el; }
+		if(el.vertices.length == 1 && el.edges.length == 1){ return el; }
+		return undefined;
+	});
+
+	let two_edges_faces = faces_intersections.map(el => {
+		if(el.edges.length == 2){ return el; }
+		return undefined;
+	}).map(el => el != null ? el.edges : undefined);
+	let point_edge_faces = faces_intersections.map(el => {
+		if(el.vertices.length == 1 && el.edges.length == 1){ return el; }
+		return undefined;
+	}).map(el => el != null ? el.vertices : undefined);
+
+
+	let new_edges_vertices = [];
+	console.log("two_edges_faces");
+	two_edges_faces
+		.map((edges,i) => ({edges:edges, i:i}))
+		.filter(el => el.edges != null)
+		.forEach(el => {
+			let face_index = el.i;
+			let chop_edges = el.edges
+			let edge_keys = el.edges.map(e => ({
+					key: e.vertices.slice(0, 2).sort((a,b) => a-b).join(' '), 
+					new_v: e.vertices[2]
+				})
+			)
+			let faces_edges_keys = fold.faces_vertices[face_index]
+				.map((fv,i,arr) => [fv, arr[(i+1)%arr.length]])
+				// .map((ev,i) => ({ev: ev.sort((a,b) => a-b).join(' '), i: i}))
+				.map((ev,i) => ev.sort((a,b) => a-b).join(' '))
+			// console.log(edge_keys, face_index, edges);
+			console.log(fold.faces_vertices[face_index]);
+			console.log(faces_edges_keys);
+			let found_indices = edge_keys
+				.map(el => ({
+					found: faces_edges_keys.indexOf(el.key),
+					new_v: el.new_v
+				})
+			)
+			// console.log(el.edges);
+			console.log(found_indices);
+			let sorted_found_indices = found_indices.sort((a,b) => a.found-b.found);
+			// face a
+			let face_a = fold.faces_vertices[face_index]
+				.slice(sorted_found_indices[1].found);
+			face_a = face_a.concat(fold.faces_vertices[face_index]
+				.slice(0, sorted_found_indices[0].found)
+			)
+			face_a.push(sorted_found_indices[0].new_v);
+			face_a.push(sorted_found_indices[1].new_v);
+			// face b
+			let face_b = fold.faces_vertices[face_index]
+				.slice(sorted_found_indices[0].found, sorted_found_indices[1].found);
+			face_b.push(sorted_found_indices[1].new_v);
+			face_b.push(sorted_found_indices[0].new_v);
+			console.log("face_a face_b");
+			console.log(face_a);
+			console.log(face_b);
+			console.log("------------");
+
+			// add things onto the graph
+			new_edges_vertices.push([
+				sorted_found_indices[0].new_v,
+				sorted_found_indices[1].new_v
+			]);
+			fold.faces_vertices.push(face_a);
+			fold.faces_vertices.push(face_b);
+		})
+
+
+	fold.edges_vertices = fold.edges_vertices.concat(new_edges_vertices);
+
+	// faces_vertices[faceIndex].forEach( (vertex,i,vertexArray) => {
+	// 	let nextVertex = vertexArray[(i+1)%vertexArray.length];
+	// 	var key = [vertex, nextVertex].sort( (a,b) => a-b ).join(' ')
+	// 	if(edgesCrossed[key]){
+	// 		var intersection = edgesCrossed[key].newVertexIndex;
+	// 		newFacePair[rightLeft].push(intersection)
+	// 		rightLeft = (rightLeft+1)%2; // flip bit
+	// 		newFacePair[rightLeft].push(intersection)
+	// 		newFacePair[rightLeft].push(nextVertex)
+	// 	} else{
+	// 		newFacePair[rightLeft].push(nextVertex)
+	// 	}
+	// })
 
 
 	// clean components
 	let vertices_to_remove = fold.vertices_coords
 		.map((vc,i) => vc == null ? i : undefined)
-		.filter(el => el != null)
+		.filter(el => el != null);
 	let edges_to_remove = fold.edges_vertices
 		.map((ev,i) => ev == null ? i : undefined)
-		.filter(el => el != null)
-	// let faces_to_remove = fold.faces_vertices
-	// 	.map((fv,i) => fv == null ? i : undefined)
-	// 	.filter(el => el != null)
-	
+		.filter(el => el != null);
+	// let faces_to_remove = faces_intersections
+	// 	.map((el,i) => (el != null) ? i : undefined)
+	// 	.filter(el => el != null);
+	let faces_to_remove = faces_to_modify
+		.map((el,i) => (el != null) ? i : undefined)
+		.filter(el => el != null);
+
+	console.log("faces_to_remove");
+	console.log(faces_intersections);
+	console.log(faces_to_remove);
+
 	Graph.remove_vertices(fold, vertices_to_remove);
 	Graph.remove_edges(fold, edges_to_remove);
+	Graph.remove_faces(fold, faces_to_remove);
 
 }

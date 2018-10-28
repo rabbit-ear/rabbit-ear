@@ -331,6 +331,35 @@ function get_edge_count(graph){
 	return max;
 }
 
+/* Get the number of faces in the graph
+ * in some cases face arrays might not be defined
+ *
+ * @returns {number} number of faces
+ */
+function get_face_count(graph){
+	// these arrays indicate vertex length
+	// assumption: 0-length array might be present when meant to be null
+	if(graph.faces_vertices != null && graph.faces_vertices.length != 0){
+		return graph.faces_vertices.length;
+	}
+	if(graph.faces_edges != null && graph.faces_edges.length != 0){
+		return graph.faces_edges.length;
+	}
+	// these arrays contain references to faces. find the max instance
+	let max = 0;
+	if(graph.vertices_faces != null){
+		graph.vertices_faces.forEach(fv => fv.forEach(v =>{
+			if(v > max){ max = v; }
+		}))
+	}
+	if(graph.edges_faces != null){
+		graph.edges_faces.forEach(ev => ev.forEach(v =>{
+			if(v > max){ max = v; }
+		}))
+	}
+	// return 0 if none found
+	return max;
+}
 ///////////////////////////////////////////////
 // REMOVE THINGS
 ///////////////////////////////////////////////
@@ -407,7 +436,7 @@ export function remove_vertices(graph, vertices){
 			.map(entry => entry.map(v => v + index_map[v]));
 	}
 
-	// update every array with a 1:1 relationship to vertices_coords
+	// update every array with a 1:1 relationship to vertices_ arrays
 	// these arrays change their size, their contents are untouched
 	if(graph.vertices_faces != null){
 		graph.vertices_faces = graph.vertices_faces
@@ -451,7 +480,7 @@ export function remove_edges(graph, edges){
 			}));
 	}
 
-	// update every array with a 1:1 relationship to edges_vertices
+	// update every array with a 1:1 relationship to edges_ arrays
 	// these arrays change their size, their contents are untouched
 	if(graph.edges_vertices != null){
 		graph.edges_vertices = graph.edges_vertices
@@ -473,7 +502,48 @@ export function remove_edges(graph, edges){
 		graph.edges_length = graph.edges_length
 			.filter((e,i) => !removes[i])
 	}
+	// todo: do the same with frames in file_frames where inherit=true
+}
 
+/** Removes faces, updates all relevant array indices
+ *
+ * @param {faces} an array of face indices
+ */
+export function remove_faces(graph, faces){
+	if(faces.length == 0){ return; }
+
+	// length of index_map is length of the original edges_vertices
+	let s = 0, removes = Array( get_face_count(graph) ).fill(false);
+	faces.forEach(e => removes[e] = true);
+	let index_map = removes.map(remove => remove ? --s : s);
+
+	// update every component that points to faces_ arrays
+	// these arrays do not change their size, only their contents
+	if(graph.vertices_faces != null){
+		graph.vertices_faces = graph.vertices_faces
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+	if(graph.edges_faces != null){
+		graph.edges_faces = graph.edges_faces
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+	if(graph.faceOrders != null){
+		graph.faceOrders = graph.faceOrders
+			.map(entry => entry.map((v,i) => {
+				if(i == 2) return v;  // exception. orientation. not index.
+				return v + index_map[v];
+			}));
+	}
+	// update every array with a 1:1 relationship to faces_
+	// these arrays change their size, their contents are untouched
+	if(graph.faces_vertices != null){
+		graph.faces_vertices = graph.faces_vertices
+			.filter((e,i) => !removes[i])
+	}
+	if(graph.faces_edges != null){
+		graph.faces_edges = graph.faces_edges
+			.filter((e,i) => !removes[i])
+	}
 	// todo: do the same with frames in file_frames where inherit=true
 }
 
@@ -576,7 +646,7 @@ export function rebuild_edge(graph, old_index, edge_vertices_a, edge_vertices_b)
 function rebuild_face(fold, old_face, edge_map){
 	// returns 2 faces
 
-	
+
 // vertices_coords
 // vertices_vertices
 // vertices_faces
