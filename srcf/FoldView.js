@@ -121,7 +121,6 @@ export default function FoldView(){
 	const draw = function(importCP){
 		let data = importCP != null ? importCP : cp;
 
-		console.log(data);
 		// if a frame is set, copy data from that frame
 		if(frame > 0 &&
 		   cp.file_frames[frame - 1] != undefined &&

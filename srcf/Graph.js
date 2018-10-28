@@ -606,6 +606,10 @@ function reindex_edge(graph, old_index, new_index){
 
 export function rebuild_edge(graph, old_index, edge_vertices_a, edge_vertices_b){
 	// this leaves behind a null in the old_index in every array
+
+// todo: do we need to rebuild vertices_vertices?
+// also edgeOrders
+
 	if(graph.edges_vertices != null){
 		graph.edges_vertices.push(edge_vertices_a);
 		graph.edges_vertices.push(edge_vertices_b);
@@ -640,27 +644,65 @@ export function rebuild_edge(graph, old_index, edge_vertices_a, edge_vertices_b)
 // function rebuild_edge(fold, old_index, edge_vertices_a, edge_vertices_b){
 
 
-// rebuild faces
-// edge_map is an array, indices relate to old_edge_indices
-// 0: { edges:[new_edge_1, new_edge_2], vertices:[v_1, v_2, new_vertex] }
-function rebuild_face(fold, old_face, edge_map){
-	// returns 2 faces
+// adds n number of faces to the arrays
+// copying old_face's attributes
+export function rebuild_face(graph, old_index, new_face_vertices){
+	// this leaves behind a null in the old_index in every array
 
-
-// vertices_coords
-// vertices_vertices
-// vertices_faces
-// edges_vertices
-// edges_faces
-// edges_assignment
-// edges_foldAngle
-// edges_length
 // faces_vertices
 // faces_edges
+
+// vertices_faces
+// edges_faces
+
 // faceOrders
 // edgeOrders
+	
 
+	if(graph.faces_vertices != null){
+		graph.faces_vertices.push(new_face_vertices);
+		graph.faces_vertices[old_index] = undefined;
+	}
+	// if(graph.faces_edges != null){
+	// 	let edge_key = {};
+	// 	graph.faces_edges.forEach((ev,i) => {
+	// 		console.log(ev);
+	// 		if(ev != null){
+	// 			let key = ev.sort((a,b) => a-b).join(' ');
+	// 			edge_key[key] = i;
+	// 		}
+	// 	})
+	// 	let new_face_edges = new_face_vertices.map((fv,i,arr) => {
+	// 		let key = [fv, arr[(i+1)%arr.length]].sort((a,b) => a-b).join(' ');
+	// 		return edge_key[key];
+	// 	});
+	// 	graph.faces_edges.push(new_face_edges);
+	// 	graph.faces_edges[old_index] = undefined;
+	// }
+	if(graph.faceOrders != null){
+		//todo
+	}
 
+	// if(graph.vertices_faces != null){
+	// 	let new_index = get_face_count(graph)
+	// 	for(var i = 0; i < graph.vertices_faces.length; i++){
+	// 		for(var j = 0; j < graph.vertices_faces[i].length; j++){
+	// 			if(graph.vertices_faces[i][j] == old_index){
+	// 				graph.vertices_faces[i][j] = new_index;
+	// 			}
+	// 		}
+	// 	}
+	// }
+	// if(graph.edges_faces != null){
+	// 	let new_index = get_face_count(graph)
+	// 	for(var i = 0; i < graph.edges_faces.length; i++){
+	// 		for(var j = 0; j < graph.edges_faces[i].length; j++){
+	// 			if(graph.edges_faces[i][j] == old_index){
+	// 				graph.edges_faces[i][j] = new_index;
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
 
 

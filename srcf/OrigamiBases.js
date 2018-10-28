@@ -11,7 +11,6 @@ export const unitSquare = {
 	"edges_vertices": [[0,1], [1,2], [2,3], [3,0]],
 	"edges_assignment": ["B","B","B","B"],
 	"faces_vertices": [[0,1,2,3]],
-	"faces_layer": [0],
 	"file_frames": [{
 		"frame_classes": ["creasePattern"],
 		"frame_parent":0,
@@ -29,7 +28,6 @@ export const blintz = {
 	"edges_vertices": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],
 	"edges_assignment": ["B","B","B","B","B","B","B","B","V","V","V","V"],
 	"faces_vertices": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],
-	"faces_layer": [0,1,2,3,4],
 	"file_frames": [{
 		"frame_classes": ["creasePattern"],
 		"frame_parent": 0,
@@ -48,7 +46,6 @@ export const kite = {
 	"edges_vertices": [[2,3],[3,0],[3,1],[3,4],[0,4],[4,1],[3,5],[1,5],[5,2]],
 	"edges_assignment": ["B","B","V","M","B","B","M","B","B"],
 	"faces_vertices": [[2,3,5],[3,0,4],[3,1,5],[1,3,4]],
-	"faces_layer": [2,3,0,1],
 	"file_frames": [{
 		"frame_classes": ["foldedState"],
 		"frame_parent": 0,
@@ -69,7 +66,6 @@ export const fish = {
 	"edges_assignment": ["B","B","F","M","M","M","M","M","M","V","B","B","V","B","B"],
 	"faces_vertices": [[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],
 	"faces_edges": [[0,8,7],[1,3,5],[2,6,8],[2,5,4],[3,10,9],[4,9,11],[6,13,12],[7,12,14]],
-	"faces_layer": [2,3,5,6,4,7,0,1],
 	"file_frames": [{
 		"frame_classes": ["foldedState"],
 		"frame_parent": 0,
@@ -120,7 +116,6 @@ export const animatedBlintzFold = {
 	"edges_vertices": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],
 	"edges_assignment": ["B","B","B","B","B","B","B","B","V","V","V","V"],
 	"faces_vertices": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],
-	"faces_layer": [4,0,1,2,3],
 	"file_frames": [
 		{
 			"frame_classes": ["foldedState"],
