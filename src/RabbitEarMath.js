@@ -3,52 +3,104 @@ var EPSILON_LOW  = 3e-6;
 var EPSILON      = 1e-10;
 var EPSILON_HIGH = 1e-14;
 
-/** are two points equivalent within an epsilon */
-function points_equivalent(a, b, epsilon = EPSILON){
-	// rectangular bounds test for faster calculation
-	return Math.abs(a[0]-b[0]) < epsilon && Math.abs(a[1]-b[1]) < epsilon;
-}
+/** n-dimensional vector */
+export function Vector() {
+	let _v = get_vec(...arguments);
 
-function isValidNumber(n){ return n != null && !isNaN(n); }
-function isValidXY(p){ return p != null && !isNaN(p.x) && !isNaN(p.y); }
-function isValidPoint(p){
-	return p.constructor === Array && !isNaN(p[0]) && !isNaN(p[1]);
-}
-function gimme1Point(a, b, c){
-	// input is 1 point, or 2 or 3 numbers (z optional)
-	if(isValidPoint(a)){ return [a[0], a[1], (a[2] == null ? 0 : a[2])]; }
-	if(isValidNumber(b)){ return [a, b, (c == null ? 0 : c)]; }
-	if(isValidXY(a)){ return [a.x, a.y, (a.z == null ? 0 : a.z)]; }
-}
-function gimme2Points(a, b, c, d, e, f){
-	// input is 2 points, or 4-6 numbers (z optional)
-	if(isValidPoint(a) && isValidPoint(b)){ return [
-		[a[0], a[1], (a[2] == null ? 0 : a[2])],
-		[b[0], b[1], (b[2] == null ? 0 : b[2])]
-	];}
-	if(isValidNumber(d)){
-		if(isValidNumber(f)){ return [[a, b, c], [d, e, f]]; }
-		else{ return [[a, b, 0], [c, d, 0]]; }
+	const normalize = function() {
+		let m = magnitude();
+		let components = _v.map(c => c / m);
+		return Vector(components);
 	}
-	if(isValidXY(a) && isValidXY(b)){ return [
-		[a.x, a.y, (a.z == null ? 0 : a.z)],
-		[b.x, b.y, (b.z == null ? 0 : b.z)]
-	];}
+	const magnitude = function() {
+		let sum = _v
+			.map(component => component * component)
+			.reduce((prev,curr) => prev + curr);
+		return Math.sqrt(sum);
+	}
+	const dot = function() {
+		let vec = get_vec(...arguments);
+		let length = (_v.length < vec.length) ? _v.length : vec.length;
+		return Array.from(Array(length))
+			.map((_,i) => _v[i] * vec[i])
+			.reduce((prev,curr) => prev + curr, 0);
+	}
+	const cross2 = function() {
+		let vec = get_vec(...arguments);
+		return _v[0] * vec[1] - _v[1] * vec[0];
+	}
+	const cross3 = function() {
+		let b = get_vec(...arguments);
+		let a = _v.slice();
+		if(a[2] == null){ a[2] = 0; }
+		if(b[2] == null){ b[2] = 0; }
+		return (a[1]*b[2] - a[2]*b[1]) - (a[0]*b[2] - a[2]*b[0]) + (a[0]*b[1] - a[1]*b[0]);
+	}
+	const cross = function(){ return cross3(...arguments); }
+	const distanceTo = function() {
+		let vec = get_vec(...arguments);
+		let length = (_v.length < vec.length) ? _v.length : vec.length;
+		let sum = Array.from(Array(length))
+			.map((_,i) => Math.pow(_v[i] - vec[i], 2))
+			.reduce((prev, curr) => prev + curr, 0);
+		return Math.sqrt(sum);
+	}
+	const transform = function() {
+		let m = get_matrix(...arguments);
+		return Vector(_v[0] * m[0] + _v[1] * m[2] + m[4],
+		              _v[0] * m[1] + _v[1] * m[3] + m[5]);
+	}
+	const rotateZ = function(angle, origin){
+		return transform( Matrix().rotation(angle, origin) );
+	}
+	const rotateZ90 = function() { return Vector(-_v[1], _v[0]); }
+	const rotateZ180 = function() { return Vector(-_v[0], -_v[1]); }
+	const rotateZ270 = function() { return Vector(_v[1], -_v[0]); }
+	const reflect = function(line){
+		var origin = (line.direction != undefined) ? (line.point || line.origin) : new XY(line.nodes[0].x, line.nodes[0].y);
+		var vector = (line.direction != undefined) ? line.direction : new XY(line.nodes[1].x, line.nodes[1].y).subtract(origin);
+		return transform( Matrix().reflection(vector, origin) );
+	}
+	const lerp = function(point, pct){
+		let inv = 1.0-pct;
+		return XY(_x * pct + point[0] * inv, _y * pct + point[1] * inv);
+	}
+
+	const equivalent = function(point, epsilon = EPSILON_HIGH){
+		// rect bounding box for now, much cheaper than radius calculation
+		return Math.abs(_x - point.x) < epsilon && Math.abs(_y - point.y) < epsilon;
+	}
+	const scale = function(mag){ return XY(_x * mag, _y * mag); }
+	const midpoint = function(a){ return XY((_x+a[0])*0.5, (_y+a[1])*0.5); }
+
+	return Object.freeze({
+		normalize,
+		magnitude,
+		dot,
+		cross,
+		distanceTo,
+		transform,
+		rotateZ,
+		rotateZ90,
+		rotateZ180,
+		rotateZ270,
+		reflect,
+		lerp,
+		equivalent,
+		scale,
+		midpoint,
+		// get x() { return _m[0]; },
+		// get y() { return _m[1]; },
+		get vector() { return _v; },
+		get x() { return _v[0]; },
+		get y() { return _v[1]; },
+		get z() { return _v[2]; },
+	});
 }
 
-
-
-/** clean floating point numbers
- *  example: 15.0000000000000002 into 15
- * the adjustable epsilon is default 15, Javascripts 16 digit float
- */
-export function clean_number(num, decimalPlaces = 15){
-	if (num == undefined) { return undefined; }
-	return parseFloat(num.toFixed(decimalPlaces));
-}
 
 /** 
- * Matrix class to standardize row-column order
+ * 2D Matrix with translation component in x,y
  */
 export function Matrix(){
 	let params = Array.from(arguments);
@@ -124,6 +176,28 @@ export function Matrix(){
 	});
 }
 
+/** are two points equivalent within an epsilon */
+function points_equivalent(a, b, epsilon = EPSILON){
+	// rectangular bounds test for faster calculation
+	return Math.abs(a[0]-b[0]) < epsilon && Math.abs(a[1]-b[1]) < epsilon;
+}
+
+function isValidNumber(n){ return n != null && !isNaN(n); }
+function isValidXY(p){ return p != null && !isNaN(p.x) && !isNaN(p.y); }
+function isValidPoint(p){
+	return p.constructor === Array && !isNaN(p[0]) && !isNaN(p[1]);
+}
+
+
+/** clean floating point numbers
+ *  example: 15.0000000000000002 into 15
+ * the adjustable epsilon is default 15, Javascripts 16 digit float
+ */
+export function clean_number(num, decimalPlaces = 15){
+	if (num == undefined) { return undefined; }
+	return parseFloat(num.toFixed(decimalPlaces));
+}
+
 /** 
  * this searches user-provided inputs for a valid n-dimensional vector 
  * which includes objects {x:, y:}, arrays [x,y], or sequences of numbers
@@ -133,6 +207,9 @@ export function Matrix(){
 export function get_vec(){
 	let params = Array.from(arguments);
 	if(params.length == 0) { return []; }
+	if(params[0].vector != null && params[0].vector.constructor == Array){
+		return params[0].vector; // Vector type
+	}
 	let arrays = params.filter((param) => param.constructor === Array);
 	if(arrays.length >= 1) { return arrays[0]; }
 	let numbers = params.filter((param) => !isNaN(param));
@@ -145,78 +222,22 @@ export function get_vec(){
 	return [];
 }
 
-/** n-dimensional vector */
-export function Vector(){
-	let _v = get_vec(...arguments);
 
-	const normalize = function() {
-		let m = magnitude();
-		let components = _v.map(c => c / m);
-		return XY(components);
+/** 
+ * this searches user-provided inputs for a valid n-dimensional vector 
+ * which includes objects {x:, y:}, arrays [x,y], or sequences of numbers
+ * 
+ * @returns (number[]) array of number components
+*/
+export function get_matrix(){
+	let params = Array.from(arguments);
+	if(params.length == 0) { return []; }
+	if(params[0].m != null && params[0].m.constructor == Array){
+		return params[0].m; // Matrix type
 	}
-	const magnitude = function() {
-		let sum = _v
-			.map(component => component * component)
-			.reduce((prev,curr) => prev + curr);
-		return Math.sqrt(sum);
-	}
-	const dot = function(vector) {
-		let p = vector
-		return _x * p[0] + _y * p[1];
-	}
-	const cross = function(p){ return _x * p[1] - _y * p[0]; }
-	const distanceTo = function(a){
-		return Math.sqrt( Math.pow(_x-a[0], 2) + Math.pow(_y-a[1], 2) );
-	}
-	const translate = function(dx, dy){ return XY(_x+dx, _y+dy); }
-	const transform = function(matrix){
-		return XY(_x * matrix[0] + _y * matrix[2] + matrix[4],
-		          _x * matrix[1] + _y * matrix[3] + matrix[5]);
-	}
-	const rotate = function(angle, origin){
-		return transform( Matrix().rotation(angle, origin) );
-	}
-	const rotate90 = function() { return XY(-_y, _x); }
-	const rotate180 = function() { return XY(-_x, -_y); }
-	const rotate270 = function() { return XY(_y, -_x); }
-	const reflect = function(line){
-		var origin = (line.direction != undefined) ? (line.point || line.origin) : new XY(line.nodes[0].x, line.nodes[0].y);
-		var vector = (line.direction != undefined) ? line.direction : new XY(line.nodes[1].x, line.nodes[1].y).subtract(origin);
-		return transform( Matrix().reflection(vector, origin) );
-	}
-	const lerp = function(point, pct){
-		let inv = 1.0-pct;
-		return XY(_x * pct + point[0] * inv, _y * pct + point[1] * inv);
-	}
-
-	const equivalent = function(point, epsilon = EPSILON_HIGH){
-		// rect bounding box for now, much cheaper than radius calculation
-		return Math.abs(_x - point.x) < epsilon && Math.abs(_y - point.y) < epsilon;
-	}
-	const scale = function(mag){ return XY(_x * mag, _y * mag); }
-	const midpoint = function(a){ return XY((_x+a[0])*0.5, (_y+a[1])*0.5); }
-
-	return Object.freeze({
-		normalize,
-		magnitude,
-		dot,
-		cross,
-		distanceTo,
-		translate,
-		transform,
-		rotate,
-		rotate90,
-		rotate180,
-		rotate270,
-		reflect,
-		lerp,
-		equivalent,
-		scale,
-		midpoint,
-		// get x() { return _m[0]; },
-		// get y() { return _m[1]; },
-		get x() { return _v[0]; },
-		get y() { return _v[1]; },
-		get z() { return _v[2]; },
-	});
+	let arrays = params.filter((param) => param.constructor === Array);
+	if(arrays.length >= 1) { return arrays[0]; }
+	let numbers = params.filter((param) => !isNaN(param));
+	if(numbers.length >= 1) { return numbers; }
+	return [];
 }
