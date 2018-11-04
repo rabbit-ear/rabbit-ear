@@ -1,6 +1,8 @@
 /** .FOLD file viewer
- * converts .fold file into SVG, binds it to the DOM
- *   constructor arguments:
+ * this is an SVG based front-end for the .fold file format
+ *  (.fold file spec: https://github.com/edemaine/fold)
+ *
+ *  FoldView constructor arguments:
  *   - fold file
  *   - DOM object, or "string" DOM id
  * example:
@@ -9,11 +11,16 @@
 
 "use strict";
 
-import SVG from "./SimpleSVG";
+import * as SVG from "../lib/svg";
 import * as Folder from "./Folder"
 import * as Bases from "./OrigamiBases"
 
 export default function FoldView(){
+
+	let { zoom, translate, appendChild, setViewBox, getViewBox,
+		scale, svg, width, height,
+		onMouseMove, onMouseDown, onMouseUp, onMouseLeave, onMouseEnter
+	} = SVG.View(...arguments);
 
 	const CREASE_DIR = {
 		"B": "boundary",
@@ -30,27 +37,7 @@ export default function FoldView(){
 	).shift();
 	if(cp == undefined){ cp = Bases.unitSquare; }
 
-	// create a new SVG
-	let svg = SVG.SVG();
-
-	//  from arguments, get a parent DOM vertex for the new SVG as
-	//  an HTML element or as a id-string
-	//  but wait until after the <body> has rendered
-	document.addEventListener("DOMContentLoaded", function(){
-		let parent = args.filter((arg) =>
-			arg instanceof HTMLElement
-		).shift();
-		if(parent == null){
-			let idString = args.filter((a) =>
-				typeof a === "string" || a instanceof String
-			).shift();
-			if(idString != null){
-				parent = document.getElementById(idString);
-			}
-		}
-		if(parent == null){ parent = document.body; }
-		parent.appendChild(svg);
-	});
+	console.log(cp);
 
 	let groups = {
 		boundary: SVG.group(undefined, "boundary"),
@@ -60,28 +47,28 @@ export default function FoldView(){
 	}
 
 	// prepare SVG
-	svg.appendChild(groups.boundary);
-	svg.appendChild(groups.faces);
-	svg.appendChild(groups.creases);
-	svg.appendChild(groups.vertices);
+	// svg.appendChild(groups.boundary);
+	// svg.appendChild(groups.faces);
+	// svg.appendChild(groups.creases);
+	// svg.appendChild(groups.vertices);
 
 	// view properties
 	let frame = 0; // which frame (0 ..< Inf) to display 
-	let zoom = 1.0;
-	let padding = 0.01;  // padding inside the canvas
+	// let zoom = 1.0;
+	// let padding = 0.01;  // padding inside the canvas
 	let style = {
 		vertex:{ radius: 0.01 },  // radius, percent of page
 	};
 
-	const setPadding = function(pad){
-		if(pad != null){
-			padding = pad;
-			// this.setViewBox();
-			draw();
-		}
-	}
+	// const setPadding = function(pad){
+	// 	if(pad != null){
+	// 		padding = pad;
+	// 		// this.setViewBox();
+	// 		draw();
+	// 	}
+	// }
 
-	const setViewBox = function(){
+	const setViewBoxCP = function(){
 		let vertices = cp.vertices_coords;
 		if(frame > 0 &&
 		   cp.file_frames[frame - 1] != undefined &&
@@ -120,6 +107,7 @@ export default function FoldView(){
 
 	const draw = function(importCP){
 		let data = importCP != null ? importCP : cp;
+		cp = data;
 
 		// if a frame is set, copy data from that frame
 		if(frame > 0 &&
@@ -128,7 +116,6 @@ export default function FoldView(){
 			data = Folder.flattenFrame(cp, frame);
 		}
 		if(data.vertices_coords == undefined){ return; }
-		setViewBox();
 		// gather components
 		let verts = data.vertices_coords;
 		let edges = data.edges_vertices.map(ev => ev.map(v => verts[v]));
@@ -234,17 +221,17 @@ export default function FoldView(){
 
 	return Object.freeze({
 		cp,
-		svg,
+		// svg,
 
-		groups,
-		frame,
-		zoom,
-		padding,
-		style,
+		// groups,
+		// frame,
+		// zoom,
+		// padding,
+		// style,
 
-		setPadding,
+		// setPadding,
 		draw,
-		setViewBox,
+		setViewBoxCP,
 
 		getFrames,
 		getFrame,

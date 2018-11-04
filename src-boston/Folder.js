@@ -68,6 +68,23 @@ export function flattenFrame(fold_file, frame_num){
 	}).reduce((prev,curr) => Object.assign(prev,curr),{})
 }
 
+
+export function merge_frame(fold_file, frame){
+	const dontCopy = ["frame_parent", "frame_inherit"];
+	let copy = clone(frame);
+	dontCopy.forEach(key => delete copy[key]);
+	// don't deep copy file_frames. stash. bring them back.
+	let swap = fold_file.file_frames;
+	fold_file.file_frames = null;
+	let fold = clone(fold_file);
+	fold_file.file_frames = swap;
+	delete fold.file_frames;
+	// merge 2
+	Object.assign(fold, frame);
+	return fold;
+}
+
+
 export function valleyFold(foldFile, line, point){
 
 	if(point != undefined){ point = [point.x, point.y]; }
@@ -633,149 +650,88 @@ var clip_line_in_faces = function({vertices_coords, faces_vertices},
 	return clipLines
 }
 
-export function crease_through_layers(fold_file, line){
-	let fold = clone(fold_file);
-	remove_flat_creases(fold);
-	console.log("crease_through_layers");
-	let face = faces_containing_point(fold, line.point).shift();
-	if (face == null){ return; }
-	console.log(face);
-	let folded = fold_without_layering(fold, face);
-	console.log(folded);
+// function that adds a frame onto the fold file - 
+// makes it a parent relationship to the keyframe,
+// removes all edge mappings, rebuilds faces.
+// @returns {number} new frame number (array index + 1)
+// no
+// returns {fold_frame} object
+function make_folded_frame(fold, parent_frame = 0, root_face){
+	// todo, make it so parent_frame actually goes and gets data from that frame
 
-	let clippedLines = clip_line_in_faces(folded, line.point, line.direction);
-
-	console.log("clippedLines");
-	console.log(clippedLines);
-
-	let newVertices = get_new_vertices(clippedLines);
-	// create a new .fold vertices_coords with new data appended to the end
-	let new_vertices_coords = make_new_vertices_coords(fold.vertices_coords, newVertices);
-	// walk faces. generate two new faces for every cut face
-	// sort these new face-pairs by which side of the line they are.
-	let new_face_map = make_new_face_mapping(fold.faces_vertices,
-			clippedLines, newVertices).map((subs) =>
-			sortTwoFacesBySide(subs, new_vertices_coords, line.point, line.direction)
-		)
-
-	let side = 0;
-	console.log("new_face_map");
-	console.log(new_face_map);
-	let faces_mark = new_face_map.map(a => true)
-
-	let stay_faces, move_faces;
-	({stay_faces, move_faces} = reconstitute_faces(fold.faces_vertices,
-		fold.faces_layer, new_face_map, faces_mark, side));
-
-	// compile layers back into arrays, bubble moving faces to top z-order
-	let stay_layers = stay_faces.length;
-	let new_layer_data = sort_faces_valley_fold(stay_faces, move_faces);
-
-	// clean isolated vertices
-	// (compiled_faces_vertices, compiled_faces_layer)
-	// var cleaned = Graph.remove_isolated_vertices({new_vertices_coords,
-	//	new_layer_data.faces_vertices});
-	var cleaned = {
-		vertices_coords: new_vertices_coords,
-		faces_vertices:new_layer_data.faces_vertices
-	};
-	Graph.remove_isolated_vertices(cleaned);
-
-	// flip points across the fold line, 
-	let reflected = reflect_across_fold(cleaned.vertices_coords,
-		cleaned.faces_vertices, new_layer_data.faces_layer,
-		stay_layers, line.point, line.direction);
-
+	// remove_flat_creases(fold);
 	// for every vertex, give me an index to a face which it's found in
-	let vertex_in_face = reflected.vertices_coords.map((v,i) => {
-		for(var f = 0; f < cleaned.faces_vertices.length; f++){
-			if(cleaned.faces_vertices[f].includes(i)){ return f; }
+	let vertex_in_face = fold.vertices_coords.map((v,i) => {
+		for(var f = 0; f < fold.faces_vertices.length; f++){
+			if(fold.faces_vertices[f].includes(i)){ return f; }
 		}
 	});
-
-	var bottom_face = 1; // todo: we need a way for the user to select this
-	let faces_matrix = Graph.make_faces_matrix({vertices_coords:reflected.vertices_coords, 
-		faces_vertices:cleaned.faces_vertices}, bottom_face);
-	let inverseMatrices = faces_matrix.map(n => Geom.Matrix.inverse(n));
-
-	let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
-		Geom.transform_point(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
-			Geom.clean_number(n)
-		)
-	)
-
-	// let faces_direction = cleaned.faces_vertices.map(f => true);
-	// make_face_walk_tree(cleaned.faces_vertices, bottom_face)
-	// 	.forEach((level,i) => level.forEach((f) => 
-	// 		faces_direction[f.face] = i%2==0 ? true : false
-	// 	))
-
-	// create new fold file
-	// let new_fold = {
-	// 	vertices_coords: reflected.vertices_coords,
-	// 	faces_vertices: cleaned.faces_vertices,
-	// 	faces_layer: reflected.faces_layer
-	// };
-
-	// return new_fold;
-
-	fold.vertices_coords = reflected.vertices_coords;
-	fold.faces_vertices = cleaned.faces_vertices;
-	fold.faces_layer = reflected.faces_layer;
-
-
-
-	// let faces_matrix = Graph.make_faces_matrix({vertices_coords:reflected.vertices_coords, 
-	// 	faces_vertices:cleaned.faces_vertices}, bottom_face);
+	let faces_matrix = Graph.make_faces_matrix(fold, root_face);
 	// let inverseMatrices = faces_matrix.map(n => Geom.Matrix.inverse(n));
-	// let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
-	// 	Geom.transform_point(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
-	// 		Geom.clean_number(n)
-	// 	)
-	// )
-
-
-	return fold_file;
+	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
+		Geom.transform_point(point, faces_matrix[vertex_in_face[i]])
+			.map((n) => Geom.clean_number(n, 14))
+	)
+	return {
+		"frame_classes": ["foldedState"],
+		"frame_parent": parent_frame,
+		"frame_inherit": true,
+		"vertices_coords": new_vertices_coords,
+		"re:faces_matrix": faces_matrix
+	};
 }
 
 
-// export function fold(face){
-// 	this.clean();
-// 	var copyCP = this.copy().removeAllMarks();
-// 	if(face == undefined){
-// 		var bounds = copyCP.boundaryBounds();
-// 		face = copyCP.nearest(bounds.origin.x + bounds.size.width * 0.5,
-// 		                      bounds.origin.y + bounds.size.height*0.5).face;
-// 	} else{
-// 		var centroid = face.centroid();
-// 		face = copyCP.nearest(centroid.x, centroid.y).face;
-// 	}
-// 	if(face === undefined){ return; }
-// 	var tree = face.adjacentFaceTree();
-// 	var faces = [];
-// 	tree['matrix'] = new M.Matrix();
-// 	faces.push({'face':tree.obj, 'matrix':tree['matrix'], 'level':0});
-// 	function recurse(node, level){
-// 		node.children.forEach(function(child){
-// 			var local = child.obj.commonEdges(child.parent.obj).shift().reflectionMatrix();
-// 			child['matrix'] = child.parent['matrix'].mult(local);
-// 			faces.push({'face':child.obj, 'matrix':child['matrix'], 'level':level});
-// 			recurse(child, level+1);
-// 		},this);
-// 	}
-// 	recurse(tree, 1);
-// 	var nodeTransformed = Array.apply(false, Array(copyCP.nodes.length))
-// 	faces.forEach(function(f){
-// 		f.face.cache = {matrix:f.matrix, coloring:f.level % 2};
-// 		f.face.nodes
-// 			.filter(function(node){ return !nodeTransformed[node.index]; },this)
-// 			.forEach(function(node){
-// 				node.transform(f.matrix);
-// 				nodeTransformed[node.index] = true;
-// 			},this);
-// 	},this);
-// 	return copyCP.exportFoldFile();
-// }
+function make_unfolded_frame(fold, parent_frame = 0, root_face){
+	// todo, make it so parent_frame actually goes and gets data from that frame
+
+	// remove_flat_creases(fold);
+	// for every vertex, give me an index to a face which it's found in
+	let vertex_in_face = fold.vertices_coords.map((v,i) => {
+		for(var f = 0; f < fold.faces_vertices.length; f++){
+			if(fold.faces_vertices[f].includes(i)){ return f; }
+		}
+	});
+	let faces_matrix = Graph.make_faces_matrix(fold, root_face);
+	let inverseMatrices = faces_matrix.map(n => Geom.Matrix.inverse(n));
+	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
+		Geom.transform_point(point, inverseMatrices[vertex_in_face[i]])
+			.map((n) => Geom.clean_number(n))
+	)
+	return {
+		"frame_classes": ["creasePattern"],
+		"frame_parent": parent_frame,
+		"frame_inherit": true,
+		"vertices_coords": new_vertices_coords,
+		"re:faces_matrix": faces_matrix
+	};
+}
+
+export function crease_through_layers(fold_file, linePoint, lineVector){
+	// let root_face = faces_containing_point(fold_file, linePoint).shift();
+	let root_face = 0;
+	console.log("fold_file", fold_file);
+	let fold = clone(fold_file);
+
+	let folded_frame = make_folded_frame(fold, 0, root_face);
+	console.log("folded_frame", folded_frame);
+	let folded = merge_frame(fold, folded_frame);
+	console.log("folded", folded);
+
+	clip_edges_with_line(folded, linePoint, lineVector);
+	let unfolded_frame = make_unfolded_frame(folded, 0, root_face);
+	console.log("unfolded_frame", unfolded_frame);
+	let unfolded = merge_frame(folded, unfolded_frame);
+	console.log("unfolded", unfolded);
+
+	unfolded.file_frames = [{
+		"frame_classes": ["foldedState"],
+		"frame_parent": 0,
+		"frame_inherit": true,
+		"vertices_coords": folded.vertices_coords,
+	}]
+	return unfolded;
+}
 
 
 
@@ -947,8 +903,10 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 			// faces_substitution.push(face_b);
 		})
 
-	fold.edges_vertices = fold.edges_vertices.concat(new_edges_vertices);
+	// fold.edges_vertices = fold.edges_vertices.concat(new_edges_vertices);
 	// fold.faces_vertices = fold.faces_vertices.concat(faces_substitution);
+
+	new_edges_vertices.forEach(ev => Graph.add_edge(fold, ev, "M"));
 
 	faces_substitution
 		.map((faces,i) => ({faces:faces, i:i}))

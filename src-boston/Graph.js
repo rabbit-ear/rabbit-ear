@@ -604,6 +604,13 @@ function reindex_edge(graph, old_index, new_index){
 // GEOMETRY STUFF
 ///////////////////////////////////////////////
 
+// todo figure out a good system here. ask for everything as a param?
+export function add_edge(graph, edge_vertices, edge_assignment){
+	graph.edges_vertices.push(edge_vertices);
+	graph.edges_assignment.push(edge_assignment);
+	// todo, more things
+}
+
 export function rebuild_edge(graph, old_index, edge_vertices_a, edge_vertices_b){
 	// this leaves behind a null in the old_index in every array
 
