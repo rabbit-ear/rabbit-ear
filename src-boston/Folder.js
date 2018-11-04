@@ -386,7 +386,7 @@ var top_face_under_point = function(
 	let top_fi = faces_vertices.map(
 		(vertices_index, fi) => {
 			let points = vertices_index.map(i => vertices_coords[i]);
-			return Geom.contains(points, point) ? fi : -1;
+			return Geom.polygon_contains_point(points, point) ? fi : -1;
 		}).reduce((acc, fi) => {
 			return ((acc === -1) || 
 							((fi !== -1) && (faces_layer[fi] > faces_layer[acc]))
@@ -417,7 +417,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	let side = [0,1]
 		.map(s => new_face_map[tap][s] == undefined ? [] : new_face_map[tap][s]) 
 		.map(points => points.map(f => new_vertices_coords[f]))
-		.map(f => Geom.contains(f, point))
+		.map(f => Geom.polygon_contains_point(f, point))
 		.indexOf(true)
 	// make face-adjacent faces on only a subset, the side we clicked on
 	let moving_side = new_face_map.map(f => f[side]);
@@ -542,7 +542,7 @@ function remove_flat_creases(fold){
 function faces_containing_point(fold, point){
 	return fold.faces_vertices
 		.map((fv,i) => ({face:fv.map(v => fold.vertices_coords[v]),i:i}))
-		.filter(f => Geom.contains(f.face, point))
+		.filter(f => Geom.polygon_contains_point(f.face, point))
 		.map(f => f.i);
 }
 

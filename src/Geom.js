@@ -5,14 +5,13 @@
 // all infinite lines are defined as point and vector
 // all polygons are an ordered set of points in either winding direction
 
-
 /** is a point inside of a convex polygon? 
  * including along the boundary within epsilon 
  *
  * @param poly is an array of points [ [x,y], [x,y]...]
  * @returns {boolean} true if point is inside polygon
  */
-export function contains(poly, point, epsilon = 1e-10){
+export function polygon_contains_point(poly, point, epsilon = 1e-10){
 	if(poly == undefined || !(poly.length > 0)){ return false; }
 	return poly.map( (p,i,arr) => {
 		let nextP = arr[(i+1)%arr.length];
@@ -58,8 +57,8 @@ export function overlaps(ps1, ps2){
 			}
 		}
 	}
-	if(contains(ps1, ps2[0])){ return true; }
-	if(contains(ps2, ps1[0])){ return true; }
+	if(polygon_contains_point(ps1, ps2[0])){ return true; }
+	if(polygon_contains_point(ps2, ps1[0])){ return true; }
 	return false;
 }
 
@@ -93,6 +92,9 @@ export function transform_point(point, matrix){
 /** 
  * Matrix class to standardize row-column order
  */
+export function matrix_reflection(origin, vector){
+
+}
 export class Matrix{
 	static reflection(origin, vector){
 		// the line of reflection passes through origin, runs along vector
@@ -250,35 +252,6 @@ function bisect_lines(a, b){
 		return vectors.map((el) => new Line(intersection, el));
 	}
 }
-
-
-function isValidNumber(n){ return n != null && !isNaN(n); }
-function isValidXY(p){ return p != null && !isNaN(p.x) && !isNaN(p.y); }
-function isValidPoint(p){
-	return p.constructor === Array && !isNaN(p[0]) && !isNaN(p[1]);
-}
-function gimme1Point(a, b, c){
-	// input is 1 point, or 2 or 3 numbers (z optional)
-	if(isValidPoint(a)){ return [a[0], a[1], (a[2] == null ? 0 : a[2])]; }
-	if(isValidNumber(b)){ return [a, b, (c == null ? 0 : c)]; }
-	if(isValidXY(a)){ return [a.x, a.y, (a.z == null ? 0 : a.z)]; }
-}
-function gimme2Points(a, b, c, d, e, f){
-	// input is 2 points, or 4-6 numbers (z optional)
-	if(isValidPoint(a) && isValidPoint(b)){ return [
-		[a[0], a[1], (a[2] == null ? 0 : a[2])],
-		[b[0], b[1], (b[2] == null ? 0 : b[2])]
-	];}
-	if(isValidNumber(d)){
-		if(isValidNumber(f)){ return [[a, b, c], [d, e, f]]; }
-		else{ return [[a, b, 0], [c, d, 0]]; }
-	}
-	if(isValidXY(a) && isValidXY(b)){ return [
-		[a.x, a.y, (a.z == null ? 0 : a.z)],
-		[b.x, b.y, (b.z == null ? 0 : b.z)]
-	];}
-}
-
 
 // function gimme1Edge(a, b, c, d){
 // 	// input is 1 edge, 2 XY, or 4 numbers
