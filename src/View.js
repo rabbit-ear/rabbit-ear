@@ -35,8 +35,6 @@ export default function View(){
 	).shift();
 	if(cp == undefined){ cp = unitSquare; }
 
-	console.log(cp);
-
 	let groups = {
 		boundary: SVG.group(undefined, "boundary"),
 		faces: SVG.group(undefined, "faces"),
@@ -52,7 +50,8 @@ export default function View(){
 
 	// view properties
 	let frame = 0; // which frame (0 ..< Inf) to display 
-	// let padding = 0.01;  // padding inside the canvas
+	let padding = 0.01;  // padding inside the canvas
+	let _zoom = 1.0;
 	let style = {
 		vertex:{ radius: 0.01 },  // radius, percent of page
 	};
@@ -65,46 +64,33 @@ export default function View(){
 	// 	}
 	// }
 
-	const setViewBoxCP = function(){
+	const updateViewBox = function(){
 		let vertices = cp.vertices_coords;
 		if(frame > 0 &&
 		   cp.file_frames[frame - 1] != undefined &&
 		   cp.file_frames[frame - 1].vertices_coords != undefined){
 			vertices = cp.file_frames[frame - 1].vertices_coords;
 		}
-		const unitBounds = { origin:{x:0,y:0}, size:{width:1, height:1} };
 		// calculate bounds
 		let xSorted = vertices.slice().sort((a,b) => a[0] - b[0]);
 		let ySorted = vertices.slice().sort((a,b) => a[1] - b[1]);
-		let origin = {
-			x: xSorted.shift()[0],
-			y: ySorted.shift()[1]
-		};
-		let size = {
-			width: xSorted.pop()[0] - origin.x, 
-			height: ySorted.pop()[1] - origin.y
-		};
-		let isInvalid = isNaN(origin.x) || isNaN(origin.y) ||
-					  isNaN(size.width) || isNaN(size.height);
-		bounds = isInvalid ? unitBounds : {origin: origin, size: size};
-		// todo: this is maybe not the best zoom operation
-		let d = (bounds.size.width / zoom) - bounds.size.width;
-		let oX = bounds.origin.x - d;
-		let oY = bounds.origin.y - d;
-		let width = bounds.size.width + d * 2;
-		let height = bounds.size.height + d * 2;
-		let viewBoxString = [
-			(-padding+oX),
-			(-padding+oY),
-			(padding*2+width),
-			(padding*2+height)
-		].join(" ");
-		svg.setAttribute("viewBox", viewBoxString);
+		let boundsX = xSorted.shift()[0];
+		let boundsY = ySorted.shift()[1];
+		let boundsW = xSorted.pop()[0] - boundsX;
+		let boundsH = ySorted.pop()[1] - boundsY;
+		let isInvalid = isNaN(boundsX) || isNaN(boundsY) ||
+		                isNaN(boundsW) || isNaN(boundsH);
+		if (isInvalid) {
+			SVG.setViewBox(svg, 0, 0, 1, 1, padding);
+		} else{
+			SVG.setViewBox(svg, boundsX, boundsY, boundsW, boundsH, padding);
+		}
 	}
 
 	const draw = function(importCP){
-		let data = importCP != null ? importCP : cp;
-		cp = data;
+		let data = cp;
+		// let data = importCP != null ? importCP : cp;
+		// cp = data;
 
 		// if a frame is set, copy data from that frame
 		if(frame > 0 &&
@@ -153,6 +139,7 @@ export default function View(){
 			SVG.polygon(faces[i], faceClass, "face", groups.faces)
 		});
 		// faces.forEach(f => SVG.polygon(f, faceClass, "face", this.faces));
+		updateViewBox();
 	}
 
 	const load = function(input, callback){ // epsilon
@@ -218,7 +205,7 @@ export default function View(){
 
 	return Object.freeze({
 		cp,
-		// svg,
+		svg,
 
 		// groups,
 		// frame,
@@ -228,7 +215,7 @@ export default function View(){
 
 		// setPadding,
 		draw,
-		setViewBoxCP,
+		updateViewBox,
 
 		getFrames,
 		getFrame,

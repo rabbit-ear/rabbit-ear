@@ -2,24 +2,24 @@ var div = document.getElementsByClassName('row')[0];
 
 var cp = RabbitEar.bases.fish;
 
-var origami = RabbitEar.Origami(div, cp);
-var folded = RabbitEar.Origami(div, cp);
+var origami = RabbitEar.View(div, cp);
+var folded = RabbitEar.View(div, cp);
 
 // folded.cp = folded.flattenFrame(origami.cp, 1);
 // console.log(folded.cp);
 folded.setFrame(1);
 // folded.draw();
 
-origami.drawLayer = origami.paint.group(null, "marks");
-origami.svg.appendChild(origami.drawLayer);
+let origamiDrawLayer = RabbitEar.svg.group(null, "marks");
+origami.svg.appendChild(origamiDrawLayer);
 
-folded.drawLayer = folded.paint.group(null, "marks");
-folded.svg.appendChild(folded.drawLayer);
+let foldedDrawLayer = RabbitEar.svg.group(null, "marks");
+folded.svg.appendChild(foldedDrawLayer);
 
 
-origami.event.onMouseMove = function(event){
-	RabbitEar.removeChildren(origami.drawLayer);
-	// origami.paint.circle(event.position.x, event.position.y, 0.02, "node", null, origami.drawLayer);
+origami.onMouseMove = function(event){
+	RabbitEar.removeChildren(origamiDrawLayer);
+	// origami.paint.circle(event.position.x, event.position.y, 0.02, "node", null, origamiDrawLayer);
 	if(origami.mouse.isPressed){
 		// origami.math.
 		var line = {
@@ -37,9 +37,9 @@ origami.event.onMouseMove = function(event){
 }
 
 
-folded.event.onMouseMove = function(event){
-	RabbitEar.removeChildren(folded.drawLayer);
-	// folded.paint.circle(event.position.x, event.position.y, 0.02, "node", null, folded.drawLayer);
+folded.onMouseMove = function(event){
+	RabbitEar.removeChildren(foldedDrawLayer);
+	// folded.paint.circle(event.position.x, event.position.y, 0.02, "node", null, foldedDrawLayer);
 	if(folded.mouse.isPressed){
 		// folded.math.
 		var line = {
@@ -55,3 +55,4 @@ folded.event.onMouseMove = function(event){
 	}
 	// folded.draw(origami.cp);
 }
+
