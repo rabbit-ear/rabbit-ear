@@ -19,7 +19,7 @@ const CREASE_DIR = {
 
 import * as SVG from "../lib/svg";
 import * as Folder from "./Folder"
-import * as Bases from "./OrigamiBases"
+import { unitSquare } from "./OrigamiBases"
 
 export default function View(){
 
@@ -33,7 +33,7 @@ export default function View(){
 	let cp = args.filter(arg =>
 		typeof arg == "object" && arg.vertices_coords != undefined
 	).shift();
-	if(cp == undefined){ cp = Bases.unitSquare; }
+	if(cp == undefined){ cp = unitSquare; }
 
 	console.log(cp);
 

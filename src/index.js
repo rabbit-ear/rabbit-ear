@@ -1,6 +1,13 @@
 import * as bases from './OrigamiBases';
-import * as math from './RabbitEarMath';
+// import * as math from '../lib/geometry';
+import { Matrix, Vector } from '../lib/geometry';
 
-export { default as view } from './View';
+let math = {
+	Matrix,
+	Vector
+}
+
+export { default as View } from './View';
 export { bases };
 export { math };
+
