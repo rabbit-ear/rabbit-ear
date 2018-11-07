@@ -465,7 +465,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
 		Geom.core.transform_point(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
-			Rules.clean_number(n)
+			Geom.input.clean_number(n)
 		)
 	)
 
@@ -561,7 +561,7 @@ function fold_without_layering(fold, face){
 
 	let new_vertices_coords_cp = fold.vertices_coords.map((point,i) =>
 		Geom.core.transform_point(point, faces_matrix[vertex_in_face[i]]).map((n) => 
-			Rules.clean_number(n)
+			Geom.input.clean_number(n)
 		)
 	)
 
@@ -657,7 +657,7 @@ var clip_line_in_faces = function({vertices_coords, faces_vertices},
 // @returns {number} new frame number (array index + 1)
 // no
 // returns {fold_frame} object
-function make_folded_frame(fold, parent_frame = 0, root_face){
+export function make_folded_frame(fold, parent_frame = 0, root_face){
 	// todo, make it so parent_frame actually goes and gets data from that frame
 
 	// remove_flat_creases(fold);
@@ -671,7 +671,7 @@ function make_folded_frame(fold, parent_frame = 0, root_face){
 	// let inverseMatrices = faces_matrix.map(n => Geom.Matrix.inverse(n));
 	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
 		Geom.core.transform_point(point, faces_matrix[vertex_in_face[i]])
-			.map((n) => Rules.clean_number(n, 14))
+			.map((n) => Geom.input.clean_number(n, 14))
 	)
 	return {
 		"frame_classes": ["foldedState"],
@@ -697,7 +697,7 @@ function make_unfolded_frame(fold, parent_frame = 0, root_face){
 	let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix_inverse(n));
 	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
 		Geom.core.transform_point(point, inverseMatrices[vertex_in_face[i]])
-			.map((n) => Rules.clean_number(n))
+			.map((n) => Geom.input.clean_number(n))
 	)
 	return {
 		"frame_classes": ["creasePattern"],
@@ -709,6 +709,7 @@ function make_unfolded_frame(fold, parent_frame = 0, root_face){
 }
 
 export function crease_through_layers(fold_file, linePoint, lineVector){
+	console.log("+++++++++++++++++++");
 	// let root_face = faces_containing_point(fold_file, linePoint).shift();
 	let root_face = 0;
 	console.log("fold_file", fold_file);
@@ -718,6 +719,15 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 	console.log("folded_frame", folded_frame);
 	let folded = merge_frame(fold, folded_frame);
 	console.log("folded", folded);
+
+	// delete
+	folded.file_frames = [{
+		"frame_classes": ["foldedState"],
+		"frame_parent": 0,
+		"frame_inherit": true,
+		"vertices_coords": folded.vertices_coords,
+	}];
+	return folded;
 
 	clip_edges_with_line(folded, linePoint, lineVector);
 	let unfolded_frame = make_unfolded_frame(folded, 0, root_face);
@@ -755,7 +765,7 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 	let edges_intersections = fold.edges_vertices
 		.map(ev => ev.map(v => fold.vertices_coords[v]))
 		.map((edge, i) => {
-			let intersection = Intersection.line_edge_intersect_exclusive(linePoint, lineVector, edge[0], edge[1]);
+			let intersection = Geom.intersection.line_edge_exclusive(linePoint, lineVector, edge[0], edge[1]);
 			let new_index = (intersection == null ? vertex_index : vertex_index++);
 			return {
 				point: intersection,

@@ -25,15 +25,15 @@ export default function View(){
 
 	let { zoom, translate, appendChild, setViewBox, getViewBox,
 		scale, svg, width, height,
-		onMouseMove, onMouseDown, onMouseUp, onMouseLeave, onMouseEnter
+		// onMouseMove, onMouseDown, onMouseUp, onMouseLeave, onMouseEnter
 	} = SVG.View(...arguments);
 
 	//  from arguments, get a fold file, if it exists
 	let args = Array.from(arguments);
-	let cp = args.filter(arg =>
+	let _cp = args.filter(arg =>
 		typeof arg == "object" && arg.vertices_coords != undefined
 	).shift();
-	if(cp == undefined){ cp = unitSquare; }
+	if(_cp == undefined){ _cp = unitSquare; }
 
 	let groups = {
 		boundary: SVG.group(undefined, "boundary"),
@@ -55,6 +55,15 @@ export default function View(){
 	let style = {
 		vertex:{ radius: 0.01 },  // radius, percent of page
 	};
+	let _mouse = {
+		isPressed: false,// is the mouse button pressed (y/n)
+		position: [0,0], // the current position of the mouse
+		pressed: [0,0],  // the last location the mouse was pressed
+		drag: [0,0],     // vector, displacement from start to now
+		prev: [0,0],     // on mouseMoved, this was the previous location
+		x: 0,      // redundant data --
+		y: 0       // -- these are the same as position
+	};
 
 	// const setPadding = function(pad){
 	// 	if(pad != null){
@@ -65,11 +74,11 @@ export default function View(){
 	// }
 
 	const updateViewBox = function(){
-		let vertices = cp.vertices_coords;
+		let vertices = _cp.vertices_coords;
 		if(frame > 0 &&
-		   cp.file_frames[frame - 1] != undefined &&
-		   cp.file_frames[frame - 1].vertices_coords != undefined){
-			vertices = cp.file_frames[frame - 1].vertices_coords;
+		   _cp.file_frames[frame - 1] != undefined &&
+		   _cp.file_frames[frame - 1].vertices_coords != undefined){
+			vertices = _cp.file_frames[frame - 1].vertices_coords;
 		}
 		// calculate bounds
 		let xSorted = vertices.slice().sort((a,b) => a[0] - b[0]);
@@ -87,16 +96,13 @@ export default function View(){
 		}
 	}
 
-	const draw = function(importCP){
-		let data = cp;
-		// let data = importCP != null ? importCP : cp;
-		// cp = data;
-
+	const draw = function(){
+		let data = _cp;
 		// if a frame is set, copy data from that frame
 		if(frame > 0 &&
-		   cp.file_frames[frame - 1] != undefined &&
-		   cp.file_frames[frame - 1].vertices_coords != undefined){
-			data = Folder.flattenFrame(cp, frame);
+		   _cp.file_frames[frame - 1] != undefined &&
+		   _cp.file_frames[frame - 1].vertices_coords != undefined){
+			data = Folder.flattenFrame(_cp, frame);
 		}
 		if(data.vertices_coords == undefined){ return; }
 		// gather components
@@ -152,9 +158,9 @@ export default function View(){
 				fetch(input)
 					.then((response) => response.json())
 					.then((data) => {
-						cp = data;
+						_cp = data;
 						draw();
-						if(callback != undefined){ callback(cp); }
+						if(callback != undefined){ callback(_cp); }
 					});
 				// return this;
 			}
@@ -162,7 +168,7 @@ export default function View(){
 		try{
 			// try .fold file format first
 			let foldFileImport = JSON.parse(input);
-			cp = foldFileImport;
+			_cp = foldFileImport;
 			// return this;
 		} catch(err){
 			console.log("not a valid .fold file format")
@@ -170,12 +176,12 @@ export default function View(){
 		}
 	}
 	const isFoldedState = function(){
-		if(cp == undefined || cp.frame_classes == undefined){ return false; }
-		let frame_classes = cp.frame_classes;
+		if(_cp == undefined || _cp.frame_classes == undefined){ return false; }
+		let frame_classes = _cp.frame_classes;
 		if(frame > 0 &&
-		   cp.file_frames[frame - 1] != undefined &&
-		   cp.file_frames[frame - 1].frame_classes != undefined){
-			frame_classes = cp.file_frames[frame - 1].frame_classes;
+		   _cp.file_frames[frame - 1] != undefined &&
+		   _cp.file_frames[frame - 1].frame_classes != undefined){
+			frame_classes = _cp.file_frames[frame - 1].frame_classes;
 		}
 		// try to discern folded state
 		if(frame_classes.includes("foldedState")){
@@ -188,8 +194,8 @@ export default function View(){
 		return false;
 	}
 
-	const getFrames = function(){ return cp.file_frames; }
-	const getFrame = function(index){ return cp.file_frames[index]; }
+	const getFrames = function(){ return _cp.file_frames; }
+	const getFrame = function(index){ return _cp.file_frames[index]; }
 	const setFrame = function(index){
 		frame = index;
 		draw();
@@ -203,8 +209,56 @@ export default function View(){
 
 	draw();
 
+
+
+	let _onmousemove, _onmousedown, _onmouseup, _onmouseleave, _onmouseenter;
+
+	// clientX and clientY are from the browser event data
+	function updateMousePosition(clientX, clientY){
+		_mouse.prev = _mouse.position;
+		_mouse.position = SVG.convertToViewBox(svg, clientX, clientY);
+		_mouse.x = _mouse.position[0];
+		_mouse.y = _mouse.position[1];
+	}
+
+	function updateHandlers(){
+		svg.onmousemove = function(event){
+			updateMousePosition(event.clientX, event.clientY);
+			if(_mouse.isPressed){
+				_mouse.drag = [_mouse.position[0] - _mouse.pressed[0], 
+				               _mouse.position[1] - _mouse.pressed[1]];
+				_mouse.drag.x = _mouse.drag[0];
+				_mouse.drag.y = _mouse.drag[1];
+			}
+			if(_onmousemove != null){ _onmousemove( Object.assign({}, _mouse) ); }
+		}
+		svg.onmousedown = function(event){
+			_mouse.isPressed = true;
+			_mouse.pressed = SVG.convertToViewBox(svg, event.clientX, event.clientY);
+			if(_onmousedown != null){ _onmousedown( Object.assign({}, _mouse) ); }
+		}
+		svg.onmouseup = function(event){
+			_mouse.isPressed = false;
+			if(_onmouseup != null){ _onmouseup( Object.assign({}, _mouse) ); }
+		}
+		svg.onmouseleave = function(event){
+			updateMousePosition(event.clientX, event.clientY);
+			if(_onmouseleave != null){ _onmouseleave( Object.assign({}, _mouse) ); }
+		}
+		svg.onmouseenter = function(event){
+			updateMousePosition(event.clientX, event.clientY);
+			if(_onmouseenter != null){ _onmouseenter( Object.assign({}, _mouse) ); }
+		}
+	}
+
 	return Object.freeze({
-		cp,
+		set cp(c){
+			_cp = c;
+			draw();
+		},
+		get cp(){
+			return _cp;
+		},
 		svg,
 
 		// groups,
@@ -225,7 +279,28 @@ export default function View(){
 		showEdges,
 		hideEdges,
 		showFaces,
-		hideFaces
+		hideFaces,
+
+		set onMouseMove(handler) {
+			_onmousemove = handler;
+			updateHandlers();
+		},
+		set onMouseDown(handler) {
+			_onmousedown = handler;
+			updateHandlers();
+		},
+		set onMouseUp(handler) {
+			_onmouseup = handler;
+			updateHandlers();
+		},
+		set onMouseLeave(handler) {
+			_onmouseleave = handler;
+			updateHandlers();
+		},
+		set onMouseEnter(handler) {
+			_onmouseenter = handler;
+			updateHandlers();
+		}
 	});
 
 }

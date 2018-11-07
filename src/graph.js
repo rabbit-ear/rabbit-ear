@@ -70,8 +70,8 @@ export function make_faces_matrix(graph, root_face){
 		level.filter((entry) => entry.parent != undefined).forEach((entry) => {
 			let edge = entry.edge.map(v => graph.vertices_coords[v])
 			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			let local = Geom.core.make_matrix_reflection(edge[0], vec);
-			faces_matrix[entry.face] = Geom.core.multiply_matrices(local, faces_matrix[entry.parent]);
+			let local = Geom.core.make_matrix_reflection(vec, edge[0]);
+			faces_matrix[entry.face] = Geom.core.multiply_matrices(faces_matrix[entry.parent], local);
 		})
 	);
 	return faces_matrix;
