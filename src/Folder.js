@@ -694,9 +694,9 @@ function make_unfolded_frame(fold, parent_frame = 0, root_face){
 		}
 	});
 	let faces_matrix = Graph.make_faces_matrix(fold, root_face);
-	let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix_inverse(n));
+	// let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix_inverse(n));
 	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
-		Geom.core.transform_point(point, inverseMatrices[vertex_in_face[i]])
+		Geom.core.transform_point(point, faces_matrix[vertex_in_face[i]])
 			.map((n) => Geom.input.clean_number(n))
 	)
 	return {
@@ -719,15 +719,6 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 	console.log("folded_frame", folded_frame);
 	let folded = merge_frame(fold, folded_frame);
 	console.log("folded", folded);
-
-	// delete
-	folded.file_frames = [{
-		"frame_classes": ["foldedState"],
-		"frame_parent": 0,
-		"frame_inherit": true,
-		"vertices_coords": folded.vertices_coords,
-	}];
-	return folded;
 
 	clip_edges_with_line(folded, linePoint, lineVector);
 	let unfolded_frame = make_unfolded_frame(folded, 0, root_face);
@@ -808,6 +799,9 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 				]
 			};
 		});
+
+
+
 	// let edge_record = edges_intersections
 	// 	.map((sect,i) => sect.point == null ? undefined : i)
 	// 	.filter(el => el != null)
@@ -913,6 +907,7 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 			faces_substitution[face_index] = [face_a, face_b];
 			// faces_substitution.push(face_b);
 		})
+
 
 	// fold.edges_vertices = fold.edges_vertices.concat(new_edges_vertices);
 	// fold.faces_vertices = fold.faces_vertices.concat(faces_substitution);

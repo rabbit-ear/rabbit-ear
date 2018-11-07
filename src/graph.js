@@ -77,6 +77,19 @@ export function make_faces_matrix(graph, root_face){
 	return faces_matrix;
 }
 
+export function make_faces_matrix_inv(graph, root_face){
+	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
+	make_face_walk_tree(graph, root_face).forEach((level) => 
+		level.filter((entry) => entry.parent != undefined).forEach((entry) => {
+			let edge = entry.edge.map(v => graph.vertices_coords[v])
+			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
+			let local = Geom.core.make_matrix_reflection(vec, edge[0]);
+			faces_matrix[entry.face] = Geom.core.multiply_matrices(local, faces_matrix[entry.parent]);
+		})
+	);
+	return faces_matrix;
+}
+
 // root_face will become the root node
 function make_face_walk_tree(graph, root_face = 0){
 	let new_faces_faces = make_faces_faces(graph);
