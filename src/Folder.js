@@ -718,21 +718,34 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 	let folded_frame = make_folded_frame(fold, 0, root_face);
 	// console.log("folded_frame", folded_frame);
 	let folded = merge_frame(fold, folded_frame);
+	console.log(folded);
 	// console.log("folded", folded);
-
 	let migration = clip_edges_with_line(folded, linePoint, lineVector);
 	console.log(migration);
-	let unfolded_frame = make_unfolded_frame(folded, 0, root_face);
+	//////////////////////////////////
+	// wait, can we retain a mapping of the old faces_vertices to the old faces, then just transform using the old faces.
+	let vertex_in_face = folded.vertices_coords.map((v,i) => {
+		for(var f = 0; f < folded.faces_vertices.length; f++){
+			if(folded.faces_vertices[f].includes(i)){ return f; }
+		}
+	});
+	console.log(migration.faces);
+	let faces_matrix = folded["re:faces_matrix"];
+	let new_vertices_coords = folded.vertices_coords.map((point,i) =>
+		Geom.core.transform_point(point, faces_matrix[migration.faces[vertex_in_face[i]]])
+			.map((n) => Geom.input.clean_number(n))
+	)
+	//////////////////////////////////
+	// let unfolded_frame = make_unfolded_frame(folded, 0, root_face);
 	// console.log("unfolded_frame", unfolded_frame);
-	let unfolded = merge_frame(folded, unfolded_frame);
-	// console.log("unfolded", unfolded);
-
-	unfolded.file_frames = [{
-		"frame_classes": ["foldedState"],
+	let unfolded = merge_frame(folded, {
+		"frame_classes": ["creasePattern"],
 		"frame_parent": 0,
 		"frame_inherit": true,
-		"vertices_coords": folded.vertices_coords,
-	}]
+		"vertices_coords": new_vertices_coords,
+		"re:faces_matrix": faces_matrix
+	});
+	// console.log("unfolded", unfolded);
 	return unfolded;
 }
 

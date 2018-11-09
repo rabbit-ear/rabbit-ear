@@ -30,13 +30,14 @@ origami.onMouseMove = function(mouse){
 		};
 
 		let fishClone = RabbitEar.fold.clone(RabbitEar.bases.test);
-		RabbitEar.fold.clip_edges_with_line(fishClone, line.point, line.direction);
-		origami.cp = fishClone;
-		folded.cp = fishClone;
+		// let migration = RabbitEar.fold.clip_edges_with_line(fishClone, line.point, line.direction);
+		// console.log(migration);
+		// origami.cp = fishClone;
+		// folded.cp = fishClone;
 
-		// let result = RabbitEar.fold.crease_through_layers(fishClone, line.point, line.direction);
-		// origami.cp = result;
-		// folded.cp = result;
+		let result = RabbitEar.fold.crease_through_layers(fishClone, line.point, line.direction);
+		origami.cp = result;
+		folded.cp = result;
 
 	}
 }
