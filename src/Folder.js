@@ -720,7 +720,8 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 	let folded = merge_frame(fold, folded_frame);
 	// console.log("folded", folded);
 
-	clip_edges_with_line(folded, linePoint, lineVector);
+	let migration = clip_edges_with_line(folded, linePoint, lineVector);
+	console.log(migration);
 	let unfolded_frame = make_unfolded_frame(folded, 0, root_face);
 	// console.log("unfolded_frame", unfolded_frame);
 	let unfolded = merge_frame(folded, unfolded_frame);
