@@ -683,7 +683,7 @@ export function make_folded_frame(fold, parent_frame = 0, root_face){
 }
 
 
-function make_unfolded_frame(fold, parent_frame = 0, root_face){
+export function make_unfolded_frame(fold, parent_frame = 0, root_face){
 	// todo, make it so parent_frame actually goes and gets data from that frame
 
 	// remove_flat_creases(fold);
@@ -709,22 +709,22 @@ function make_unfolded_frame(fold, parent_frame = 0, root_face){
 }
 
 export function crease_through_layers(fold_file, linePoint, lineVector){
-	console.log("+++++++++++++++++++");
+	// console.log("+++++++++++++++++++");
 	// let root_face = faces_containing_point(fold_file, linePoint).shift();
 	let root_face = 0;
-	console.log("fold_file", fold_file);
+	// console.log("fold_file", fold_file);
 	let fold = clone(fold_file);
 
 	let folded_frame = make_folded_frame(fold, 0, root_face);
-	console.log("folded_frame", folded_frame);
+	// console.log("folded_frame", folded_frame);
 	let folded = merge_frame(fold, folded_frame);
-	console.log("folded", folded);
+	// console.log("folded", folded);
 
 	clip_edges_with_line(folded, linePoint, lineVector);
 	let unfolded_frame = make_unfolded_frame(folded, 0, root_face);
-	console.log("unfolded_frame", unfolded_frame);
+	// console.log("unfolded_frame", unfolded_frame);
 	let unfolded = merge_frame(folded, unfolded_frame);
-	console.log("unfolded", unfolded);
+	// console.log("unfolded", unfolded);
 
 	unfolded.file_frames = [{
 		"frame_classes": ["foldedState"],
@@ -735,19 +735,40 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 	return unfolded;
 }
 
+// i want my fold operation to be as simple (in code) as this
+// - fold the faces
+// - use the crease line to chop all faces (adding a mark line)
+// - unfold all the faces.
+// but to do this it won't work unless you unfold using the original
+// mapping of faces and transformations, as there are now new faces
 
 
-/** clip an infinite line in a polygon, returns an edge or undefined if no intersection */
-// requires:
-// - fold.vertices_coords
-// - fold.edges_vertices
-// - fold.faces_vertices
+// let migration_object = {
+// 	vertices_: [0, 1, 2, 5, 5, 3, 4, 6, 6],
+// 	faces_: []
+// }
+
+// let migration_object = {
+// 	vertices_: [false, false, false, false, false, true, true, true]
+//  edges_: [0, 1, 2, null, 3, ]
+// }
+
+// edges change: remove edge 2 turns into 2 edges, appended to end
+//  [a, b,  c,  d, e, f]        -- before
+//  [a, b,  d,  e, f, g, h]     -- after (remove edge, 2, replcae with 2 new)
+//  [0, 1,  3,  4, 5, 2, 2]     -- these is a changelog for the old array
+
+// faces change: same as edge
+
+
+
+/** clip a line in all the faces of a fold file. */
 export function clip_edges_with_line(fold, linePoint, lineVector){
 	let edge_map = {};
 	fold.edges_vertices.forEach((ev,i) => {
 		let key = ev.sort( (a,b) => a-b ).join(' ')
 		edge_map[key] = i;
-	})
+	});
 	// console.log("edge_map");
 	// console.log(edge_map);
 	let vertex_index = fold.vertices_coords.length;
@@ -768,6 +789,12 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 	let new_vertices = edges_intersections
 		.filter(el => el.point != null)
 		.map(el => el.point)
+
+	//
+	let migration_vertices = fold.vertices_coords.map(v => false);
+	migration_vertices = migration_vertices.concat(new_vertices.map(v => true));
+	// console.log("migration_vertices", migration_vertices);
+	//
 
 	new_vertices.forEach(v => fold.vertices_coords.push(v));
 	// fold.vertices_coords = fold.vertices_coords.concat(new_vertices);
@@ -799,7 +826,7 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 				]
 			};
 		});
-
+	// console.log("edge_record", edge_record);
 
 
 	// let edge_record = edges_intersections
@@ -841,8 +868,8 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 			.filter(el => el != null)
 		return {vertices:verts, edges:edges};
 	});
-	// console.log("faces_intersections");
-	// console.log(faces_intersections);
+
+	// console.log("faces_intersections", faces_intersections);
 
 	// we don't do anythign with this until later
 	let faces_to_modify = faces_intersections.map(el => {
@@ -850,6 +877,8 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 		if(el.vertices.length == 1 && el.edges.length == 1){ return el; }
 		return undefined;
 	});
+
+	// console.log("faces_to_modify", faces_to_modify);
 
 	let two_edges_faces = faces_intersections.map(el => {
 		if(el.edges.length == 2){ return el; }
@@ -908,19 +937,24 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 			// faces_substitution.push(face_b);
 		})
 
+	// console.log("new_edges_vertices", new_edges_vertices);
+	// console.log("faces_substitution", faces_substitution);
+
 
 	// fold.edges_vertices = fold.edges_vertices.concat(new_edges_vertices);
 	// fold.faces_vertices = fold.faces_vertices.concat(faces_substitution);
 
 	new_edges_vertices.forEach(ev => Graph.add_edge(fold, ev, "M"));
 
-	faces_substitution
+	let new_faces_map = faces_substitution
 		.map((faces,i) => ({faces:faces, i:i}))
 		.filter(el => el.faces != null)
-		.forEach(el => el.faces.forEach(face =>
-			Graph.rebuild_face(fold, el.i, face)
-		))
-	// faces_substitution.forEach(face => rebuild_face(fold, fv))
+		.map(el => el.faces
+			.map(face => ({
+				old: el.i,
+				new: Graph.rebuild_face(fold, el.i, face)
+			})
+		)).reduce((prev,curr) => prev.concat(curr));
 
 	// clean components
 	let vertices_to_remove = fold.vertices_coords
@@ -936,8 +970,38 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 		.map((fv,i) => fv == null ? i : undefined)
 		.filter(el => el != null);
 
-	Graph.remove_vertices(fold, vertices_to_remove);
-	Graph.remove_edges(fold, edges_to_remove);
-	Graph.remove_faces(fold, faces_to_remove);
+	// console.log("new_faces_map", new_faces_map);
+	// console.log("vertices_to_remove", vertices_to_remove);
+	// console.log("edges_to_remove", edges_to_remove);
+	// console.log("faces_to_remove", faces_to_remove);
 
+//  [a, b,  c,  d, e, f]        -- before
+//  [a, b,  d,  e, f, g, h]     -- after (remove edge, 2, replcae with 2 new)
+//  [0, 1,  3,  4, 5, 2, 2]     -- these is a changelog for the old array
+
+	let migration_edges = fold.edges_vertices.map((v,i) => i);
+	edge_record.forEach((record, old_index) => {
+		if(record != null){
+			record.edges.forEach(new_index =>
+				migration_edges[new_index] = old_index
+			)
+		}
+	})
+
+	let migration_faces = fold.faces_vertices.map((v,i) => i);
+	new_faces_map.forEach(el => migration_faces[el.new] = el.old);
+
+	let vertices_removes = Graph.remove_vertices(fold, vertices_to_remove);
+	let edges_removes = Graph.remove_edges(fold, edges_to_remove);
+	let faces_removes = Graph.remove_faces(fold, faces_to_remove);
+
+	migration_vertices = migration_vertices.filter((v,i) => !vertices_removes[i]);
+	migration_edges = migration_edges.filter((e,i) => !edges_removes[i]);
+	migration_faces = migration_faces.filter((e,i) => !faces_removes[i]);
+
+	return {
+		vertices: migration_vertices,
+		edges: migration_edges,
+		faces: migration_faces
+	}
 }

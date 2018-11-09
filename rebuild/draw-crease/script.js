@@ -1,6 +1,6 @@
 var div = document.getElementsByClassName('row')[0];
 
-var cp = RabbitEar.bases.fish;
+var cp = RabbitEar.bases.test;
 
 var folded = RabbitEar.View(div, cp);
 var origami = RabbitEar.View(div, cp);
@@ -18,18 +18,18 @@ folded.svg.appendChild(foldedDrawLayer);
 
 origami.onMouseMove = function(mouse){
 	RabbitEar.svg.removeChildren(origamiDrawLayer);
-	RabbitEar.svg.circle(mouse.x, mouse.y, 0.01, "node", null, origamiDrawLayer);
+	// RabbitEar.svg.circle(mouse.x, mouse.y, 0.01, "node", null, origamiDrawLayer);
 
 	if(mouse.isPressed){
 
-		RabbitEar.svg.circle(mouse.pressed.x, mouse.pressed.y, 0.01, "node", null, origamiDrawLayer);
+		// RabbitEar.svg.circle(mouse.pressed.x, mouse.pressed.y, 0.01, "node", null, origamiDrawLayer);
 
 		var line = {
 			point: mouse.pressed,
 			direction: mouse.drag
 		};
 
-		let fishClone = RabbitEar.fold.clone(RabbitEar.bases.fish);
+		let fishClone = RabbitEar.fold.clone(RabbitEar.bases.test);
 		RabbitEar.fold.clip_edges_with_line(fishClone, line.point, line.direction);
 		origami.cp = fishClone;
 		folded.cp = fishClone;
