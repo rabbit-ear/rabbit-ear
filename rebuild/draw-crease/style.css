@@ -20,6 +20,7 @@ svg{
 	height:45vmax;
 	max-width:100vw;
 	max-height:calc(100vh - 70px);
+	margin:auto;
 }
 .row{
 	display: flex;
@@ -70,4 +71,4 @@ svg{
 }
 
 .fill-yellow{ fill: hsl(43, 88%, 46%); }
-.folded{ fill: rgba(255, 255, 255, 0.66); }
+.folded{ fill: rgba(255, 255, 255, 0.33); }

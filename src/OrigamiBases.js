@@ -133,3 +133,27 @@ export const test = {
 		]
 	}]
 }
+
+export const dodecagon = {
+	"file_spec": 1.1,
+	"file_creator": "",
+	"file_author": "",
+	"file_classes": ["singleModel"],
+	"frame_attributes": ["2D"],
+	"frame_title": "",
+	"frame_classes": ["creasePattern"],
+	"vertices_coords": [
+		[1,0],[0.8660254,0.5],[0.5,0.8660254],[0,1],[-0.5,0.8660254],[-0.8660254,0.5],[-1,0],[-0.8660254,-0.5],[-0.5,-0.8660254],[0,-1],[0.5,-0.8660254],[0.8660254,-0.5]
+	],
+	"edges_vertices": [
+		[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,8], [8,9], [9,10], [10,11], [11,0]
+	],
+	"edges_assignment": ["B","B","B","B","B","B","B","B","B","B","B","B"],
+	"faces_vertices": [[0,1,2,3,4,5,6,7,8,9,10,11]],
+	"faces_edges": [[0,1,2,3,4,5,6,7,8,9,10,11]],
+	"file_frames": [{
+		"frame_classes": ["foldedState"],
+		"frame_parent":0,
+		"inherit":true
+	}]
+};

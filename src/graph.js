@@ -630,6 +630,10 @@ export function add_edge(graph, edge_vertices, edge_assignment){
 	// todo, more things
 }
 
+// an edge has been split into two edges.
+// remove the old_index, add edge a and b,
+// and copy over any properties from old_index to the new
+// (like crease assignment)
 export function rebuild_edge(graph, old_index, edge_vertices_a, edge_vertices_b){
 	// this leaves behind a null in the old_index in every array
 
@@ -664,6 +668,8 @@ export function rebuild_edge(graph, old_index, edge_vertices_a, edge_vertices_b)
 	// [ graph.edges_vertices, graph.edges_faces, graph.edges_assignment,
 	// 	graph.edges_foldAngle, graph.edges_length
 	// ].forEach(arr => arr[old_index] = undefined)
+	let edges_count = get_edge_count(graph);
+	return [edges_count - 2, edges_count - 1];
 }
 
 // returns the new edge created by the two faces

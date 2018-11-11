@@ -99,10 +99,11 @@ export default function View(){
 	const draw = function(){
 		let data = _cp;
 		// if a frame is set, copy data from that frame
-		if(frame > 0 &&
-		   _cp.file_frames[frame - 1] != undefined &&
-		   _cp.file_frames[frame - 1].vertices_coords != undefined){
-			data = Folder.flattenFrame(_cp, frame);
+		if(frame > 0 && _cp.file_frames != null){
+			if(_cp.file_frames[frame - 1] != undefined &&
+		   	   _cp.file_frames[frame - 1].vertices_coords != undefined){
+				data = Folder.flattenFrame(_cp, frame);
+			}
 		}
 		if(data.vertices_coords == undefined){ return; }
 		// gather components
@@ -116,10 +117,10 @@ export default function View(){
 				: "mark"
 			)
 		);
-		let faceOrder = (data.faces_layer != undefined)
+		let faceOrder = (data.faces_layer != undefined && data.faces_layer.length == data.faces_vertices.length)
 			? data.faces_layer.slice()
 			: data.faces_vertices.map((f,i) => i);
-
+		
 		let facesDirection = (data.faces_direction != undefined)
 			? data.faces_direction.slice()
 			: data.faces_vertices.map((f,i) => true);
