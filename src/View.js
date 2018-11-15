@@ -131,9 +131,10 @@ export default function View(){
 		 groups.creases,
 		 groups.vertices].forEach((layer) => SVG.removeChildren(layer));
 		// vertices
-		let vertexR = style.vertex.radius
-		// verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", groups.vertices));
-		verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", null, groups.vertices));
+		if(!isFoldedState()){
+			let vertexR = style.vertex.radius;
+			verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", null, groups.vertices));
+		}
 		// edges
 		if(!isFoldedState()){
 			edges.forEach((e,i) =>
@@ -252,7 +253,8 @@ export default function View(){
 		}
 	}
 
-	return Object.freeze({
+	// return Object.freeze({
+	return {
 		set cp(c){
 			_cp = c;
 			draw();
@@ -302,6 +304,7 @@ export default function View(){
 			_onmouseenter = handler;
 			updateHandlers();
 		}
-	});
+	// });
+	};
 
 }

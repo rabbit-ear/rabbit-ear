@@ -357,7 +357,7 @@ var sort_faces_valley_fold = function(stay_faces, move_faces){
 
 var reflect_across_fold = function(vertices_coords, faces_vertices,
 	faces_layer, stay_layers, linePoint, lineVector){
-	var matrix = Geom.core.make_matrix_reflection(lineVector, linePoint);
+	var matrix = Geom.Core.make_matrix_reflection(lineVector, linePoint);
 
 	var top_layer = faces_layer.slice(0, stay_layers);
 	var bottom_layer = faces_layer.slice(stay_layers, stay_layers + faces_layer.length-stay_layers);
@@ -369,7 +369,7 @@ var reflect_across_fold = function(vertices_coords, faces_vertices,
 		for(var f = 0; f < faces_vertices[i].length; f++){
 			if(!boolArray[ faces_vertices[i][f] ]){
 				var vert = vertices_coords[ faces_vertices[i][f] ];
-				vertices_coords[ faces_vertices[i][f] ] = Geom.core.transform_point(vert, matrix);
+				vertices_coords[ faces_vertices[i][f] ] = Geom.Core.multiply_vector2_matrix2(vert, matrix);
 				boolArray[ faces_vertices[i][f] ] = true;
 			}
 		}
@@ -461,11 +461,11 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	var bottom_face = 1; // todo: we need a way for the user to select this
 	let faces_matrix = Graph.make_faces_matrix({vertices_coords:reflected.vertices_coords, 
 		faces_vertices:cleaned.faces_vertices}, bottom_face);
-	let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix_inverse(n));
+	let inverseMatrices = faces_matrix.map(n => Geom.Core.make_matrix2_inverse(n));
 
 	let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
-		Geom.core.transform_point(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
-			Geom.input.clean_number(n)
+		Geom.Core.multiply_vector2_matrix2(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
+			Geom.Input.clean_number(n)
 		)
 	)
 
@@ -560,8 +560,8 @@ function fold_without_layering(fold, face){
 	console.log(vertex_in_face);
 
 	let new_vertices_coords_cp = fold.vertices_coords.map((point,i) =>
-		Geom.core.transform_point(point, faces_matrix[vertex_in_face[i]]).map((n) => 
-			Geom.input.clean_number(n)
+		Geom.Core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
+			Geom.Input.clean_number(n)
 		)
 	)
 
@@ -615,7 +615,7 @@ var get_new_vertices = function(clipLines){
 // 	// special case: line intersects directly on a poly point (2 edges, same point)
 // 	//  filter to unique points by [x,y] comparison.
 // 		for(let i = 1; i < intersections.length; i++){
-// 			if( !points_equivalent(intersections[0], intersections[i])){
+// 			if( !equivalent2(intersections[0], intersections[i])){
 // 				return [intersections[0], intersections[i]];
 // 			}
 // 		}
@@ -668,10 +668,10 @@ export function make_folded_frame(fold, parent_frame = 0, root_face){
 		}
 	});
 	let faces_matrix = Graph.make_faces_matrix(fold, root_face);
-	// let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix_inverse(n));
+	// let inverseMatrices = faces_matrix.map(n => Geom.Core.make_matrix2_inverse(n));
 	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
-		Geom.core.transform_point(point, faces_matrix[vertex_in_face[i]])
-			.map((n) => Geom.input.clean_number(n, 14))
+		Geom.Core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
+			.map((n) => Geom.Input.clean_number(n, 14))
 	)
 	return {
 		"frame_classes": ["foldedState"],
@@ -694,10 +694,10 @@ export function make_unfolded_frame(fold, parent_frame = 0, root_face){
 		}
 	});
 	let faces_matrix = Graph.make_faces_matrix(fold, root_face);
-	// let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix_inverse(n));
+	// let inverseMatrices = faces_matrix.map(n => Geom.Core.make_matrix2_inverse(n));
 	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
-		Geom.core.transform_point(point, faces_matrix[vertex_in_face[i]])
-			.map((n) => Geom.input.clean_number(n, 14))
+		Geom.Core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
+			.map((n) => Geom.Input.clean_number(n, 14))
 	)
 	return {
 		"frame_classes": ["creasePattern"],
@@ -736,8 +736,8 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 	// console.log("migration.faces", migration.faces);
 	let faces_matrix = creased["re:faces_matrix"];
 	let new_vertices_coords = creased.vertices_coords.map((point,i) =>
-		Geom.core.transform_point(point, Geom.core.make_matrix_inverse(faces_matrix[migration.faces[vertex_in_face[i]]]))
-			.map((n) => Geom.input.clean_number(n))
+		Geom.Core.multiply_vector2_matrix2(point, Geom.Core.make_matrix2_inverse(faces_matrix[migration.faces[vertex_in_face[i]]]))
+			.map((n) => Geom.Input.clean_number(n))
 	)
 	//////////////////////////////////
 	// let unfolded_frame = make_unfolded_frame(creased, 0, root_face);
@@ -788,8 +788,6 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 //  [0, 1,  3,  4, 5, 2, 2]     -- these is a changelog for the old array
 
 // faces change: same as edge
-
-
 
 /** clip a line in all the faces of a fold file. */
 export function clip_edges_with_line(fold, linePoint, lineVector){
@@ -1038,6 +1036,22 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 		edges: edges_diff,
 		faces: faces_diff
 	};
-
 	return fold_new
 }
+
+
+export function add_line(fold, linePoint, lineVector){
+
+}
+
+export function add_edge(fold, pointA, pointB){
+	let f = clone(fold);
+	f.vertices_coords.push(pointA);
+	f.vertices_coords.push(pointB);
+	f.edges_vertices.push([
+		f.vertices_coords.length-2,
+		f.vertices_coords.length-1
+	]);
+	return f;
+}
+

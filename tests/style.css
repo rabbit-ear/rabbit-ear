@@ -1,0 +1,23 @@
+:root{ --crease-width: 0.01; }
+
+html,body{
+	margin:0;
+	display:flex;
+	justify-content: center;
+}
+svg{
+	width:100vw;
+	height:100vh;
+}
+.mountain, .valley, .boundary, .mark {
+	stroke:black;
+	stroke-linecap: round;
+	stroke-width: var(--crease-width);
+}
+.node, .face, .sector{
+	stroke: none;
+	fill: none;
+}
+.boundary{ fill:none; }
+.mark{ stroke-width: calc( var(--crease-width) * 0.25); }
+.valley{ stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2) }
