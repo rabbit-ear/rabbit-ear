@@ -1,21 +1,15 @@
 var creaseEdge = RabbitEar.Origami();
 
 creaseEdge.redraw = function(){
-	var edge = RabbitEar.Math.Edge(Math.random(), Math.random(), Math.random(), Math.random());
-	let p = edge.endpoints;
-
-	let result = RabbitEar.fold.add_edge(RabbitEar.bases.unitSquare, p[0], p[1]);
-	console.log(result);
+	let p = [[Math.random(), Math.random()], [Math.random(), Math.random()]];
+	let result = RabbitEar.fold.axiom1(RabbitEar.bases.unitSquare, p[0], p[1]);
 	result.edges_assignment.push("V");
 	creaseEdge.cp = result;
-
-	// this.cp.clear();
-	// this.cp.crease(edge).mountain();
-
-	// this.draw();
 }
 creaseEdge.redraw();
 
-creaseEdge.onMouseDown = function(event){ }
-creaseEdge.onMouseUp = function(event){ }
-creaseEdge.onMouseMove = function(event){ }
+creaseEdge.onMouseDown = function(mouse){
+	creaseEdge.redraw();
+}
+creaseEdge.onMouseUp = function(mouse){ }
+creaseEdge.onMouseMove = function(mouse){ }

@@ -1044,7 +1044,9 @@ export function add_line(fold, linePoint, lineVector){
 
 }
 
-export function add_edge(fold, pointA, pointB){
+export function axiom1(fold, pointA, pointB){
+	// chop faces
+	// let line = Geom.axiom1(pointA, pointB);
 	let f = clone(fold);
 	f.vertices_coords.push(pointA);
 	f.vertices_coords.push(pointB);
@@ -1055,3 +1057,13 @@ export function add_edge(fold, pointA, pointB){
 	return f;
 }
 
+export function axiom1_force(fold, pointA, pointB){
+	let f = clone(fold);
+	f.vertices_coords.push(pointA);
+	f.vertices_coords.push(pointB);
+	f.edges_vertices.push([
+		f.vertices_coords.length-2,
+		f.vertices_coords.length-1
+	]);
+	return f;
+}

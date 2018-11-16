@@ -3,4 +3,19 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 <body></body>
 <script type="text/javascript" src="../rabbit-ear.js"></script>
-<script type="text/javascript" src="crease_edge.js"></script>
+<script type="text/javascript" src="_jquery.min.js"></script>
+
+<script>
+// load a file in url bar using hash mark:
+//     _tests.html#axiom1
+// or  _tests.html#axiom1.js
+//
+var loadOnBoot = "crease_edges.js";
+if(window.location.hash != undefined && window.location.hash != ""){
+	loadOnBoot = window.location.hash.substr(1);
+	if(loadOnBoot.length > 3 && loadOnBoot.substr(loadOnBoot.length-3) != '.js'){
+		loadOnBoot += ".js";
+	}
+}
+$.getScript(loadOnBoot, function(arg){});
+</script>
