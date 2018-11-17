@@ -6,10 +6,8 @@
 <script>
 window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-121244028-1');
 </script>
-<script type="text/javascript" src="../lib/paper-full.min.js"></script>
 
-<script type="text/javascript" src="../cp.js"></script>
-<script type="text/javascript" src="../cp.paperjs.js"></script>
+<script type="text/javascript" src="../rabbit-ear.js"></script>
 
 <script type="text/javascript" src="lib/katex/katex.min.js"></script>
 <link rel="stylesheet" href="lib/katex/katex.min.css">
@@ -18,6 +16,7 @@ window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);
 <link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css" />
 <link rel="stylesheet" href="css/style.css" />
 <link rel="stylesheet" href="css/nav.css" />
+<link rel="stylesheet" href="css/svg.css" />
 </head>
 <body>
 	<nav>

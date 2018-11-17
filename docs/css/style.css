@@ -22,31 +22,31 @@ table { border-collapse: collapse; border-spacing: 0; }
 	background: #fffb5f; /* Gecko Browsers */
 }
 
-canvas[resize] {
+svg {
 	width: 90vw;
 	height: 90vw;
 	max-width: 60vh;
 	max-height: 60vh;
 }
-canvas[resize].large {
+svg.large {
 	width: 90vw;
 	height: 90vw;
 	max-width: 80vh;
 	max-height: 80vh;
 }
-canvas[resize].panorama {
+svg.panorama {
 	width: 90vw;
 	height: 30vw;
 	max-width: 90vw;
 	max-height: 30vw;
 }
-canvas[resize].fill {
+svg.fill {
 	width: 90vw;
 	height: 90vh;
 	max-width: 90vw;
 	max-height: 90vh;
 }
-canvas[resize].third {
+svg.third {
 	width: 20vw;
 	height: 20vw;
 /*	max-width: calc(30vw);
@@ -77,6 +77,7 @@ h1{
 	padding-top:1em;
 	padding-bottom:1em;
 	text-align: center;
+	text-transform: uppercase;
 }
 h2, h3, h4, h5, h6{
 	margin: 0 15vw 0 15vw;

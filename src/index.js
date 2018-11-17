@@ -4,6 +4,7 @@ import * as bases from './OrigamiBases';
 import { Matrix, Vector, Line, Ray, Edge, Circle } from '../lib/geometry';
 import * as svg from '../lib/svg';
 import * as fold from './Folder';
+import * as noise from '../lib/perlin';
 
 let Math = {
 	Matrix,
@@ -19,3 +20,4 @@ export { bases };
 export { Math };
 export { svg };
 export { fold };
+export { noise };

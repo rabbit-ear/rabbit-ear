@@ -1,9 +1,11 @@
 <?php include 'header.php';?>
 
+
 <h1>EUCLIDEAN MATH</h1>
 
-	<div class="centered">
-		<canvas id="canvas-interior-angles" resize></canvas>
+<section>
+	<div class="centered" id="canvas-interior-angles">
+		<canvas  resize></canvas>
 	</div>
 
 	<div class="centered">
@@ -11,7 +13,7 @@
 	</div>
 
 	<p>This library includes a suite of geometry tools that exist and can be leveraged independently of the rest of the Planar Graph and origami related code.</p>
-
+</section>
 <section id="types">
 
 <h2>PRIMITIVES</h2>
