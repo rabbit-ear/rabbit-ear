@@ -422,10 +422,10 @@ var scene = new THREE.Scene();
 // var camera = new THREE.PerspectiveCamera(45, threeCanvas.clientWidth/threeCanvas.clientHeight, 0.1, 1000);
 var camera = new THREE.PerspectiveCamera(45, (window.innerWidth - cm.clientWidth)/threeCanvas.clientHeight, 0.1, 1000);
 var controls = new THREE.OrbitControls(camera, document.getElementById("three-canvas"));
-// camera.position.set( 0.5, 0.5, 1.5 );
-// controls.target.set(0.5, 0.5, 0.0);
-camera.position.set(0.0, 0.0, 1.5 );
-controls.target.set(0.0, 0.0, 0.0);
+camera.position.set( 0.5, 0.5, 1.5 );
+controls.target.set(0.5, 0.5, 0.0);
+// camera.position.set(0.0, 0.0, 1.5 );
+// controls.target.set(0.0, 0.0, 0.0);
 
 controls.addEventListener( 'change', render );
 
@@ -436,19 +436,44 @@ renderer.setSize( (window.innerWidth - cm.clientWidth), threeCanvas.clientHeight
 
 threeCanvas.appendChild(renderer.domElement);
 
-var light0 = new THREE.PointLight(0xffffff);
-var light1 = new THREE.PointLight(0xffffff);
-var light2 = new THREE.PointLight(0xffffff);
-light0.position.set(-1,2,1);
-light1.position.set(2,-2,1);
-light2.position.set(0,0,-2);
+// var light0 = new THREE.PointLight(0xffffff);
+// var light1 = new THREE.PointLight(0xffffff);
+// var light2 = new THREE.PointLight(0xffffff);
+// light0.position.set(-1,2,1);
+// light1.position.set(2,-2,1);
+// light2.position.set(0,0,-2);
+// var ambientLight = new THREE.AmbientLight(0x444444);
+// scene.add(ambientLight);
 
 // light0.castShadow = true;
 // light1.castShadow = true;
 // light2.castShadow = true;
-scene.add(light0);
-scene.add(light1);
-scene.add(light2);
+// scene.add(light0);
+// scene.add(light1);
+// scene.add(light2);
+
+
+// var directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
+// directionalLight1.position.set(-100, -100, 100);
+// scene.add(directionalLight1);
+
+// shining from below
+var directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.2);
+directionalLight2.position.set(20, 20, -100);
+scene.add(directionalLight2);
+
+var spotLight1 = new THREE.SpotLight(0xffffff, 0.3);
+spotLight1.position.set(50, -200, 100);
+scene.add(spotLight1)
+
+var spotLight2 = new THREE.SpotLight(0xffffff, 0.3);
+spotLight2.position.set(100, 50, 200);
+scene.add(spotLight2)
+
+var ambientLight = new THREE.AmbientLight(0xffffff, 0.48);
+scene.add(ambientLight);
+
+
 
 var render = function(){
 	requestAnimationFrame(render);

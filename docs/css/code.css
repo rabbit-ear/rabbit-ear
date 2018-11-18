@@ -1,54 +1,44 @@
-
-/* code syntax highlighting */
 code, pre {
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+	text-align: left;
 	color: #f8f8f2;
 	background: none;
-	text-shadow: 0 1px rgba(0, 0, 0, 0.3);
-	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-	text-align: left;
+	line-height: 1.5;
 	white-space: pre;
 	word-spacing: normal;
 	word-break: normal;
 	word-wrap: normal;
-	line-height: 1.5;
-
 	-moz-tab-size: 4;
 	-o-tab-size: 4;
 	tab-size: 4;
-
 	-webkit-hyphens: none;
 	-moz-hyphens: none;
 	-ms-hyphens: none;
 	hyphens: none;
 }
-code {
-	padding: .1em;
-	border-radius: .3em;
-	white-space: normal;
-}
 pre {
 	padding: 1em;
-	margin-top: 2em;
-	margin-bottom:2em;
+	margin: 2em auto;
+	display: block;
 	overflow: auto;
 	border-radius: 0.3em;
 	background: #272822;
-	max-width:800px;
-	display:inline-block;
-	min-width:500px;
+	max-width: 600px;
+	width: 450px;
+	min-width: 200px;
 }
 
 code a, code a:visited, code a:active, code a:hover{
-	color:white;
+	font-weight: normal;
 	text-decoration: none;
+	/*border-bottom-width: 0.5px;*/
+	/*border-style: solid;*/
+	/*border-color: white;*/
 }
 code a:hover{
-	/*border-width: 5px;*/
-	border-bottom-width: 1.5px;
-	border-style: solid;
-	border-color: white;/*#66D9EF;*/
+	/*border-style: none;*/
 }
-
 /* the following are short to allow quick typing */
 
 c{ /* comment */

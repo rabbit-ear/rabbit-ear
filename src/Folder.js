@@ -1058,7 +1058,6 @@ export function clip_line(fold, linePoint, lineVector){
 		).filter(p => p != null);
 }
 
-
 export function add_line(fold, linePoint, lineVector){
 
 }
@@ -1093,3 +1092,14 @@ export function axiom1_force(fold, pointA, pointB){
 export function axiom2(fold, pointA, pointB){
 	return Geom.core.axiom2(pointA, pointB);
 }
+
+export function is_boundary_closed(fold){
+
+}
+
+
+export function remove_boundary(fold){
+	
+}
+
+

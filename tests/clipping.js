@@ -9,8 +9,8 @@ clipping.reset = function(){
 	for(var i = 0; i < 20; i++){
 		let x = Math.random();
 		let y = Math.random();
-		let x2 = x + Math.random()*0.2-0.1;
-		let y2 = y + Math.random()*0.2-0.1;
+		let x2 = x + Math.random()*0.4-0.2;
+		let y2 = y + Math.random()*0.4-0.2;
 		clipping.edges.push([ [x,y], [x2,y2] ]);
 	}
 	clipping.edges.forEach(edge =>

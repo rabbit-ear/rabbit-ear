@@ -1,4 +1,25 @@
 
+export const empty = {
+	"file_spec": 1.1,
+	"file_creator": "",
+	"file_author": "",
+	"file_classes": [],
+	"frame_attributes": [],
+	"frame_title": "",
+	"frame_classes": [],
+	"vertices_coords": [],
+	"edges_vertices": [],
+	"edges_faces": [],
+	"edges_assignment": [],
+	"edges_foldAngle": [],
+	"edges_length": [],
+	"faces_vertices": [],
+	"faces_edges": [],
+	"edgeOrders": [],
+	"faceOrders": [],
+	"file_frames": []
+};
+
 export const unitSquare = {
 	"file_spec": 1.1,
 	"file_creator": "",

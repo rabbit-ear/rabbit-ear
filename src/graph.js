@@ -17,21 +17,7 @@
 //  "leaf": a vertex is a leaf if it is connected to only 1 edge, degree 1
 //  "pendant": an edge incident with a leaf vertex
 //
-// built to .FOLD v.1.1
-//
-// vertices_coords
-// vertices_vertices
-// vertices_faces
-// edges_vertices
-// edges_faces
-// edges_assignment
-// edges_foldAngle
-// edges_length
-// faces_vertices
-// faces_edges
-// faceOrders
-// edgeOrders
-
+//  built to .FOLD v.1.1
 
 import * as Geom from '../lib/geometry'
 
