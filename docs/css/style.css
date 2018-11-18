@@ -56,6 +56,12 @@ svg {
 	display: block;
 	margin: auto;
 }
+.three-js{
+	width: 70vh;
+	height: 70vh;
+	display: block;
+	margin: auto;
+}
 
 .quote{
 	text-align: center;

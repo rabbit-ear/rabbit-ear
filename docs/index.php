@@ -1,5 +1,9 @@
 <?php include 'header.php';?>
 
+<script type="text/javascript" src="../lib/three.min.js"></script>
+<script type="text/javascript" src="../lib/THREE.MeshLine.js"></script>
+<script type="text/javascript" src="../lib/THREE.OrbitControls.js"></script>
+
 <h1>Crease Patterns</h1>
 
 <section id="intro">
@@ -12,7 +16,7 @@
 	<h2>Graphs</h2>
 	<p>A mathematical graph is an abstract map of connections between nodes. Origami crease patterns leverage these, their creases are the graph's edges, ending at nodes shared by neighboring crease lines.</p>
 	<p>Furthermore this kind of graph is embedded in the Euclidean plane; these are called <b>planar graphs</b>.</p>
-	<canvas id="canvas-intersection-wobble" class="panorama" resize></canvas>
+	<div class="three-js" id="intersection-wobble"></div>
 	<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>fragment</f></a>();</code></pre>
 	<p class="quote">Edges in a planar graphs are not allowed to cross. An overlapped edge must be split into two with a node added at the intersection.</p>
 	<p>The aim of this library is for origami designs to be able to be created entirely in code, making every component accessible, flexible, and parametric.</p>
@@ -30,5 +34,8 @@
 
 <script type="text/javascript" src="../tests/fish_noise.js"></script>
 <!-- <script type="text/javascript" src="../tests/intersect_wobble.js"></script> -->
-
+<script>
+let view3D = RabbitEar.Origami3D("intersection-wobble");
+view3D.load("../files/fold/square-twist.fold");
+</script>
 <?php include 'footer.php';?>

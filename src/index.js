@@ -16,6 +16,7 @@ let Math = {
 }
 
 export { default as Origami } from './View';
+export { default as Origami3D } from './View3D';
 export { bases };
 export { Math };
 export { svg };

@@ -4,9 +4,7 @@
  *
  *  View constructor arguments:
  *   - fold file
- *   - DOM object, or "string" DOM id
- * example:
- *   let origami = new View().load("crane.fold");
+ *   - DOM object, or "string" DOM id to attach to
  */
 
 const CREASE_DIR = {
