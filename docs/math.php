@@ -4,22 +4,14 @@
 <h1>EUCLIDEAN MATH</h1>
 
 <section>
-	<div class="centered" id="canvas-interior-angles">
-		<canvas  resize></canvas>
-	</div>
-
-	<div class="centered">
-		<pre><code><span id="interiorAngleSpan"></span></code></pre>
-	</div>
-
-	<p>This library includes a suite of geometry tools that exist and can be leveraged independently of the rest of the Planar Graph and origami related code.</p>
+	<p>This library includes a suite of geometry tools that exist and can be leveraged independently of the rest of the origami related code.</p>
 </section>
+
 <section id="types">
-
-<h2>PRIMITIVES</h2>
-
-<h3>Points</h3>
+	<h2>PRIMITIVES</h2>
+	<h3>Points</h3>
 	<p>A point is represented by its components in 2D space: x and y. We call this class object an <b>XY</b>.</p>
+	<div id="canvas-clipping"></div>
 	<div class="centered">
 		<pre><code><key>let</key> point <key>=</key> <key>new</key> <v>XY</v>(<n>0.5</n>, <n>0.666</n>)</code></pre>
 	</div>
@@ -102,9 +94,7 @@
 
 	<p>A 2x2 matrix is sufficient to represent a reflection line that goes through the origin. For all lines, an additional 1x2 column is required.</p>
 
-	<div class="centered">
-		<canvas id="canvas-reflection" resize></canvas>
-	</div>
+	<div id="canvas-reflection" resize></div>
 
 	<div class="quote large">
 		<div id="matrix-1"></div>
@@ -132,97 +122,9 @@
 
 	<p>The sketch on the left determines the nearest point only using a normal vector and the sketch on the right includes the endpoints in the calculation.</p>
 
-
 </section>
 
-<script type="text/javascript" src="../tests/sector_bisect.js"></script>
-<script type="text/javascript" src="../tests/interior_angles.js"></script>
-<script type="text/javascript" src="../tests/intersect_all.js"></script>
-<script type="text/javascript" src="../tests/polygon_clip.js"></script>
-<script type="text/javascript" src="../tests/point_normal.js"></script>
-<script type="text/javascript" src="../tests/point_nearest.js"></script>
-
-<script src="../tests/reflection.js"></script>
-
-<script>
-var convexPoly = new OrigamiPaper("canvas-convex-polygon").setPadding(0.05);
-convexPoly.reset = function(){
-	var points = [];
-	for(var i = 0; i < 30; i++){ points.push(new XY(Math.random(), Math.random()));}
-	this.cp.setBoundary(points);
-	this.draw();
-	var style = {radius:0.015, strokeColor:null, fillColor:{gray:0.0}};
-	points.forEach(function(p){
-		var shape = new this.scope.Shape.Circle(style);
-		shape.position = p;
-	},this);
-}
-convexPoly.reset();
-convexPoly.onMouseDown = function(event){
-	this.reset();
-}
-</script>
-
-<script>
-katex.render("\\begin{bmatrix} a & c & tx \\\\ b & d & ty \\end{bmatrix}", document.getElementById("matrix-1"));
-katex.render("\\begin{Bmatrix} a & c \\\\ b & d \\end{Bmatrix}", document.getElementById("matrix-2"));
-katex.render("\\begin{Bmatrix} tx \\\\ ty \\end{Bmatrix}", document.getElementById("matrix-3"));
-</script>
-
-<script>
-intersectAllCallback = function(event){
-	if(event !== undefined){
-		var edge = event.edge;
-		var ray = event.ray;
-		var line = event.line;
-		document.getElementById("intersect-all-edge").innerHTML = "<n>" + edge[0].x.toFixed(2) + "</n>, <n>" + edge[0].y.toFixed(2) + "</n>, <n>" + edge[1].x.toFixed(2) + "</n>, <n>" + edge[1].y.toFixed(2) + "</n>";
-		document.getElementById("intersect-all-ray").innerHTML = "<n>" + ray[0].x.toFixed(2) + "</n>, <n>" + ray[0].y.toFixed(2) + "</n>, <n>" + ray[1].x.toFixed(2) + "</n>, <n>" + ray[1].y.toFixed(2) + "</n>";
-		document.getElementById("intersect-all-line").innerHTML = "<n>" + line[0].x.toFixed(2) + "</n>, <n>" + line[0].y.toFixed(2) + "</n>, <n>" + line[1].x.toFixed(2) + "</n>, <n>" + line[1].y.toFixed(2) + "</n>";
-	}
-}
-intersectAll.redraw();
-</script>
-
-<script>
-interiorAnglesCallback = function(event){
-	// console.log(event);
-	var string = "edge vectors <key>=</key> ";
-	if(event !== undefined){
-		event.edgeAngles.forEach(function(el, i){
-			string += "<n>" + (el*180/Math.PI).toFixed(1) + "</n>&deg;"
-			if(i !== event.edgeAngles.length-1){ string += ", "; }
-		});
-		string += "<br>sector angles <key>=</key> ";
-		event.interiorAngles.forEach(function(el, i){
-			string += "<n>" + (el*180/Math.PI).toFixed(1) + "</n>&deg;"
-			if(i !== event.edgeAngles.length-1){ string += ", "; }
-		});
-	}
-	document.getElementById("interiorAngleSpan").innerHTML = string;
-}
-projectInAngles.update();
-projectInAngles.updateAngles();
-</script>
-
-<script>
-reflexMatrixCallback = function(event){
-	if(event !== undefined){
-		var a = event.a.toFixed(2);
-		var b = event.b.toFixed(2);
-		var c = event.c.toFixed(2);
-		var d = event.d.toFixed(2);
-		var tx = event.tx.toFixed(2);
-		var ty = event.ty.toFixed(2);
-		if(a == "-0.00") a = "0.00";
-		if(b == "-0.00") b = "0.00";
-		if(c == "-0.00") c = "0.00";
-		if(d == "-0.00") d = "0.00";
-		if(tx == "-0.00") tx = "0.00";
-		if(ty == "-0.00") ty = "0.00";
-		katex.render("\\begin{bmatrix} "+a+" & "+b+" & "+tx+" \\\\ "+c+" & "+d+" & "+ty+" \\end{bmatrix}", document.getElementById("matrix-1"));
-	}
-}
-reflex.computeReflection();
-</script>
+<script type="text/javascript" src="../tests/clipping.js"></script>
+<script type="text/javascript" src="../tests/reflection.js"></script>
 
 <?php include 'footer.php';?>

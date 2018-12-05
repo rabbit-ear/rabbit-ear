@@ -9,16 +9,16 @@
 <section id="intro">
 	<div id="fish-noise"></div>
 	<pre><code><f>let</f> cp <op>=</op> CreasePattern().<f>fishBase</f>()</code></pre>
-	<p class="quote">The crease pattern is the map for an origami design, and in recent years has expanded in understanding and scope.</p>
+	<p class="quote">It's easy to represent an origami crease pattern mathematically, making possible generative and parametric origami design.</p>
 </section>
 
 <section id="graphs">
 	<h2>Graphs</h2>
-	<p>A mathematical graph is an abstract map of connections between nodes. Origami crease patterns leverage these, their creases are the graph's edges, ending at nodes shared by neighboring crease lines.</p>
-	<p>Furthermore this kind of graph is embedded in the Euclidean plane; these are called <b>planar graphs</b>.</p>
+	<p>A graph is an abstract collection of <strong>nodes</strong> and connections between them called <strong>edges</strong>. A crease pattern's crease lines are the edges and their endpoints as nodes. When it lies flat like this it's called a <strong>planar graph</strong>.</p>
+	<p>However, when the model begins to fold, the lines leave the plane and enter 3D.</p>
 	<div class="three-js" id="intersection-wobble"></div>
-	<pre><code><span id="span-intersection-results"></span>planarGraph.<a href=""><f>fragment</f></a>();</code></pre>
-	<p class="quote">Edges in a planar graphs are not allowed to cross. An overlapped edge must be split into two with a node added at the intersection.</p>
+	<pre><code><span id="span-intersection-results"></span>origami.<a href=""><f>fold</f></a>();</code></pre>
+	<p class="quote">Even if a model is folded in 3D, it still has a 2D crease pattern.</p>
 	<p>The aim of this library is for origami designs to be able to be created entirely in code, making every component accessible, flexible, and parametric.</p>
 </section>
 

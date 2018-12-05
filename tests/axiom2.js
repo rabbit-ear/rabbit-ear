@@ -1,12 +1,12 @@
-let axiom2 = RabbitEar.Origami();
-let drawGroup = RabbitEar.svg.group();
-axiom2.svg.appendChild(drawGroup);
+let axiom2 = RabbitEar.Origami("canvas-axiom-2");
+axiom2.drawGroup = RabbitEar.svg.group();
+axiom2.svg.appendChild(axiom2.drawGroup);
 
 axiom2.points = [[Math.random(),Math.random()], [Math.random(),Math.random()]];
 
 axiom2.redraw = function(){
-	RabbitEar.svg.removeChildren(drawGroup);
-	axiom2.points.forEach(p => RabbitEar.svg.circle(p[0], p[1], 0.015, "touch", null, drawGroup));
+	RabbitEar.svg.removeChildren(axiom2.drawGroup);
+	axiom2.points.forEach(p => RabbitEar.svg.circle(p[0], p[1], 0.015, "touch", null, axiom2.drawGroup));
 	let crease = RabbitEar.fold.axiom2(RabbitEar.bases.unitSquare, axiom2.points[0], axiom2.points[1]);
 	let newCP = RabbitEar.fold.clip_edges_with_line(RabbitEar.fold.clone(RabbitEar.bases.unitSquare), crease[0], crease[1]);
 	newCP.edges_assignment[newCP.edges_assignment.length-1] = "V";

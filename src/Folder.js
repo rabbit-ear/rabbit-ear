@@ -465,7 +465,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
-			Geom.Input.clean_number(n)
+			Geom.input.clean_number(n)
 		)
 	)
 
@@ -561,7 +561,7 @@ function fold_without_layering(fold, face){
 
 	let new_vertices_coords_cp = fold.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
-			Geom.Input.clean_number(n)
+			Geom.input.clean_number(n)
 		)
 	)
 
@@ -671,7 +671,7 @@ export function make_folded_frame(fold, parent_frame = 0, root_face){
 	// let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix2_inverse(n));
 	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
-			.map((n) => Geom.Input.clean_number(n, 14))
+			.map((n) => Geom.input.clean_number(n, 14))
 	)
 	return {
 		"frame_classes": ["foldedState"],
@@ -697,7 +697,7 @@ export function make_unfolded_frame(fold, parent_frame = 0, root_face){
 	// let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix2_inverse(n));
 	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
-			.map((n) => Geom.Input.clean_number(n, 14))
+			.map((n) => Geom.input.clean_number(n, 14))
 	)
 	return {
 		"frame_classes": ["creasePattern"],
@@ -737,7 +737,7 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 	let faces_matrix = creased["re:faces_matrix"];
 	let new_vertices_coords = creased.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, Geom.core.make_matrix2_inverse(faces_matrix[migration.faces[vertex_in_face[i]]]))
-			.map((n) => Geom.Input.clean_number(n))
+			.map((n) => Geom.input.clean_number(n))
 	)
 	//////////////////////////////////
 	// let unfolded_frame = make_unfolded_frame(creased, 0, root_face);
