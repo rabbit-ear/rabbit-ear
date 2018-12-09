@@ -44,9 +44,21 @@ view10.redraw = function(){
 		}
 	}
 	intersections.forEach(p => {
-		let circle = RabbitEar.svg.circle(p[0], p[1], 8);
-		circle.setAttribute("fill", "#195783");
-		view10.intersectionLayer.appendChild(circle);
+		let r1 = 3.5;
+		let r2 = 13;
+		for(var i = 0; i < 6; i++){
+			var a = Math.PI*2/6 * i;
+			let aster = RabbitEar.svg.line(
+				p[0]+r1*Math.cos(a), p[1]+r1*Math.sin(a),
+				p[0]+r2*Math.cos(a), p[1]+r2*Math.sin(a)
+			);
+			aster.setAttribute("stroke", "#195783");
+			aster.setAttribute("stroke-width", 4);
+			view10.intersectionLayer.appendChild(aster);
+		}
+		// let circle = RabbitEar.svg.circle(p[0], p[1], 8);
+		// circle.setAttribute("fill", "#195783");
+		// view10.intersectionLayer.appendChild(circle);
 	});
 }
 view10.redraw();
