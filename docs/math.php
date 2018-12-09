@@ -4,8 +4,8 @@
 <h1>EUCLIDEAN MATH</h1>
 
 <section>
-	<p>This library includes a suite of geometry tools that exist and can be leveraged independently of the rest of the origami related code.</p>
-	<p class="explain">It's possible to import this math library for use in other projects. Nothing here is bound to origami, it's just numbers and arrays.</p>
+	<p>This library includes a suite of geometry tools that can be leveraged independently of the rest of the origami related code.</p>
+	<p class="explain">It's possible to import only this math library and leave out all origami related code. All operations are performed on basic number types and arrays.</p>
 
 </section>
 
@@ -21,9 +21,7 @@
 <h3>Lines, Rays, Segments</h3>
 	<p><b>Mathematical lines</b> extend infinitely in both directions, <b>rays</b> extend infinitely in one direction, and line segments, or <b>edges</b> are bound by two endpoints.</p>
 
-	<div class="centered">
-		<canvas id="canvas-intersect-all" resize></canvas>
-	</div>
+	<div id="canvas-intersection"></div>
 
 	<div class="centered">
 		<pre><code><key>let</key> segment <key>=</key> <key>new</key> <v>Edge</v>(<span id="intersect-all-edge"></span>)<br><key>let</key> ray <key>=</key> <key>new</key> <v>Ray</v>(<span id="intersect-all-ray"></span>)<br><key>let</key> line <key>=</key> <key>new</key> <v>Line</v>(<span id="intersect-all-line"></span>)</code></pre>
@@ -127,5 +125,6 @@
 <script type="text/javascript" src="../tests/clipping.js"></script>
 <script type="text/javascript" src="../tests/reflection.js"></script>
 <script type="text/javascript" src="../tests/convex_hull.js"></script>
+<script type="text/javascript" src="../tests/intersection.js"></script>
 
 <?php include 'footer.php';?>

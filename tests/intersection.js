@@ -1,98 +1,66 @@
-var intersectSketchCallback = undefined;
+let view10 = RabbitEar.svg.View("canvas-intersection", 500, 500);
 
-var intersectSketch = RabbitEar.Origami();
+view10.NUM_LINES = 7;
 
-// intersectSketch.intersectionLayer = 
-// intersectSketch.intersectionLayer.moveBelow(intersectSketch.edgeLayer);
+view10.lines = Array.from(Array(view10.NUM_LINES))
+	.map(_ => RabbitEar.svg.line(0,0,0,0));
 
-// intersectSketch.drawIntersections = function(line, ray, edge){
-// 	paper = this.scope;
-// 	this.intersectionLayer.activate();
-// 	this.intersectionLayer.removeChildren();
-// 	var intersections = [
-// 		intersectionLineRay(line, ray),
-// 		intersectionLineEdge(line, edge),
-// 		intersectionRayEdge(ray, edge)];
-// 	var intersectParts = [
-// 		[line, ray],
-// 		[line, edge],
-// 		[ray, edge],
-// 	];
-// 	for(var inter = 0; inter < intersections.length; inter++){
-// 		var intersection = intersections[inter];
-// 		if(intersection !== undefined){
-// 			var interRadius = 0.04;
-// 			var vec0 = intersectParts[inter][0].vector();
-// 			var vec1 = intersectParts[inter][1].vector();
-// 			var fourPoints = [
-// 				intersection.add(vec0.normalize().scale(interRadius)),
-// 				intersection.add(vec1.normalize().scale(interRadius)),
-// 				intersection.subtract(vec0.normalize().scale(interRadius)),
-// 				intersection.subtract(vec1.normalize().scale(interRadius))
-// 			];
-// 			var arcPoints = [];
-// 			fourPoints.forEach(function(el, i){
-// 				var nextI = (i+1)%fourPoints.length;
-// 				var b = bisectVectors(el.subtract(intersection), fourPoints[nextI].subtract(intersection))[0];
-// 				var arcMidPoint = b.normalize().scale(interRadius).add(intersection);
-// 				var thesePoints = [ fourPoints[i],
-// 				                    arcMidPoint,
-// 				                    fourPoints[nextI] ];
-// 				arcPoints.push(thesePoints);
-// 			});
-// 			var fillColors = [this.styles.byrne.yellow, this.styles.byrne.red];
-// 			for(var i = 0; i < 4; i++){
-// 				var fillArc = new this.scope.Path.Arc(arcPoints[i][0], arcPoints[i][1], arcPoints[i][2]);
-// 				fillArc.add(intersection);
-// 				fillArc.closed = true;
-// 				fillArc.strokeWidth = null;
-// 				fillArc.fillColor = fillColors[i%2];
-// 			}
-// 		}
-// 	}
-// }
+view10.lines.forEach(l => {
+	l.setAttribute("stroke", "#ecb233");
+	l.setAttribute("stroke-width", 3);
+	l.setAttribute("stroke-dasharray", "6 6");
+	l.setAttribute("stroke-linecap", "round");
+	view10.appendChild(l);
+});
 
-intersectSketch.redraw = function(){
-	// var points = this.touchPoints.map(function(el){ return new XY(el.position.x, el.position.y); });
-	var line = RabbitEar.Math.Line(this.points[0], this.points[1].subtract(this.points[0]));
-	var ray = RabbitEar.Math.Ray(this.points[2], this.points[3].subtract(this.points[2]));
-	var edge = RabbitEar.Math.Edge(this.points[4], this.points[5]);
+view10.touches = Array.from(Array(view10.NUM_LINES*2)).map(_ => (
+	{pos: [Math.random()*view10.width, Math.random()*view10.height], svg: RabbitEar.svg.circle(0, 0, 8)}
+));
 
-	
-	// this.cp.clear();
-	// this.cp.crease(line).mountain();
-	// this.cp.crease(ray).mountain();
-	// this.cp.crease(edge).mountain();
-	// this.draw();
-	// this.drawIntersections(line, ray, edge);
+view10.touches.forEach(p => {
+	p.svg.setAttribute("fill", "#e44f2a");
+	view10.appendChild(p.svg);
+});
 
-	if(intersectSketchCallback !== undefined){
-		var event = {
-			"edge": [this.touchPoints[4].position, this.touchPoints[5].position],
-			"ray": [this.touchPoints[2].position, this.touchPoints[3].position],
-			"line": [this.touchPoints[0].position, this.touchPoints[1].position]
-		};
-		intersectSketchCallback(event);
+view10.intersectionLayer = RabbitEar.svg.group();
+view10.appendChild(view10.intersectionLayer);
+
+view10.redraw = function(){
+	view10.touches.forEach((p,i) => {
+		p.svg.setAttribute("cx", p.pos[0]);
+		p.svg.setAttribute("cy", p.pos[1]);
+		view10.lines[parseInt(i/2)].setAttribute("x"+(i%2+1), p.pos[0]);
+		view10.lines[parseInt(i/2)].setAttribute("y"+(i%2+1), p.pos[1]);
+	});
+	RabbitEar.svg.removeChildren(view10.intersectionLayer);
+	var intersections = [];
+	for(var i = 0; i < view10.NUM_LINES-1; i++){
+		for(var j = i+1; j < view10.NUM_LINES; j++){
+			let inter = RabbitEar.math.intersection.edge_edge(
+				view10.touches[i*2].pos, view10.touches[i*2+1].pos,
+				view10.touches[j*2].pos, view10.touches[j*2+1].pos
+			);
+			if(inter != null){ intersections.push(inter); }
+		}
 	}
+	intersections.forEach(p => {
+		let circle = RabbitEar.svg.circle(p[0], p[1], 8);
+		circle.setAttribute("fill", "#195783");
+		view10.intersectionLayer.appendChild(circle);
+	});
+}
+view10.redraw();
+
+view10.onMouseDown = function(mouse){
+	let ep = view10.width / 50;
+	let down = view10.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
+	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
+	view10.selected = found;
 }
 
-intersectSketch.setup = function(){
-	this.points = [
-		[0.9, 0.56], [0.7, 0.53],
-		[0.9, 0.44], [0.7, 0.47],
-		[0.15, 0.3], [0.15, 0.7]
-	].map((point) => RabbitEar.Math.Vector(point));
-	console.log(this.points);
-	this.redraw();
-}
-intersectSketch.setup();
-
-// intersectSketch.animate = function(event){ }
-// intersectSketch.onResize = function(event){ }
-intersectSketch.onMouseDown = function(event){ }
-intersectSketch.onMouseUp = function(event){ }
-intersectSketch.onMouseMove = function(event){
-	// if(this.mouse.isPressed){
-	// 	this.redraw();
-	// }
+view10.onMouseMove = function(mouse){
+	if(mouse.isPressed && view10.selected != null){
+		view10.touches[view10.selected].pos = mouse.position;
+		view10.redraw();
+	}
 }
