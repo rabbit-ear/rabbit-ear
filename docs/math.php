@@ -5,6 +5,8 @@
 
 <section>
 	<p>This library includes a suite of geometry tools that exist and can be leveraged independently of the rest of the origami related code.</p>
+	<p class="explain">It's possible to import this math library for use in other projects. Nothing here is bound to origami, it's just numbers and arrays.</p>
+
 </section>
 
 <section id="types">
@@ -35,9 +37,7 @@
 
 	<p>A <b>ConvexPolygon</b> object is defined its <b>edges</b>, it contains the classic convex hull algorithm, and can clip <b>lines</b>, <b>rays</b>, and <b>edges</b> into a new edge which fits within its boundary.</p>
 
-	<div class="centered">
-		<canvas id="canvas-convex-polygon" resize></canvas>
-	</div>
+	<div id="canvas-convex-hull"></div>
 
 	<p class="quote">The convex hull algorithm performed on a collection of points</p>
 	
@@ -126,5 +126,6 @@
 
 <script type="text/javascript" src="../tests/clipping.js"></script>
 <script type="text/javascript" src="../tests/reflection.js"></script>
+<script type="text/javascript" src="../tests/convex_hull.js"></script>
 
 <?php include 'footer.php';?>

@@ -8,8 +8,9 @@
 
 <section id="intro">
 	<div id="fish-noise"></div>
-	<pre><code><f>let</f> cp <op>=</op> CreasePattern().<f>fishBase</f>()</code></pre>
-	<p class="quote">It's easy to represent an origami crease pattern mathematically, making possible generative and parametric origami design.</p>
+	<pre><code><f>let</f> origami <op>=</op> <f>RabbitEar</f>.bases.fish</code></pre>
+	<p class="quote">A crease pattern can easily be represented in code making computation design an accessible reality.</p>	
+	<p>It's possible to design origami by modifying an existing design. But truly novel designs begin when you understand crease patterns..</p>
 </section>
 
 <section id="graphs">

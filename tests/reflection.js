@@ -1,73 +1,72 @@
-let RE = RabbitEar;
-let view = RabbitEar.svg.View("canvas-reflection", 800, 300);
+let view5 = RabbitEar.svg.View("canvas-reflection", 800, 300);
 
-view.reflectLayer = RE.svg.group();
-view.appendChild(view.reflectLayer);
+view5.reflectLayer = RabbitEar.svg.group();
+view5.appendChild(view5.reflectLayer);
 
-view.touches = [
-	{pos: [Math.random()*view.width, Math.random()*view.height], svg: RE.svg.circle(0, 0, 4)},
-	{pos: [Math.random()*view.width, Math.random()*view.height], svg: RE.svg.circle(0, 0, 4)},
+view5.touches = [
+	{pos: [Math.random()*view5.width, Math.random()*view5.height], svg: RabbitEar.svg.circle(0, 0, 8)},
+	{pos: [Math.random()*view5.width, Math.random()*view5.height], svg: RabbitEar.svg.circle(0, 0, 8)},
 ];
-view.touches.forEach(p => {
-	p.svg.setAttribute("fill", "red");
-	view.appendChild(p.svg);
+view5.touches.forEach(p => {
+	p.svg.setAttribute("fill", "#e44f2a");
+	view5.appendChild(p.svg);
 });
 
-view.points = Array.from(Array(24)).map((_,i) => {
-	let x = Math.random()*view.width;
-	let y = Math.random()*view.height;
-	let circle = RE.svg.circle(x, y, 4);
-	circle.setAttribute("fill", "black");
-	view.appendChild(circle);
+view5.points = Array.from(Array(24)).map((_,i) => {
+	let x = Math.random()*view5.width;
+	let y = Math.random()*view5.height;
+	let circle = RabbitEar.svg.circle(x, y, 4);
+	circle.setAttribute("fill", "#195783");
+	view5.appendChild(circle);
 	return { pos: [x,y], svg: circle };
 });
 
-view.line = RE.svg.line(0,0,0,0);
-view.line.setAttribute("stroke", "red");
-view.line.setAttribute("stroke-width", 3);
-view.line.setAttribute("stroke-dasharray", "6 6");
-view.line.setAttribute("stroke-linecap", "round");
-view.appendChild(view.line);
+view5.line = RabbitEar.svg.line(0,0,0,0);
+view5.line.setAttribute("stroke", "#e44f2a");
+view5.line.setAttribute("stroke-width", 3);
+view5.line.setAttribute("stroke-dasharray", "6 6");
+view5.line.setAttribute("stroke-linecap", "round");
+view5.appendChild(view5.line);
 
 
-view.drawReflections = function(){
-	RE.svg.removeChildren(view.reflectLayer);
+view5.drawReflections = function(){
+	RabbitEar.svg.removeChildren(view5.reflectLayer);
 
 	let vec = [
-		view.touches[1].pos[0] - view.touches[0].pos[0],
-		view.touches[1].pos[1] - view.touches[0].pos[1]
+		view5.touches[1].pos[0] - view5.touches[0].pos[0],
+		view5.touches[1].pos[1] - view5.touches[0].pos[1]
 	];
-	let matrix = RE.Math.Matrix.makeReflection(vec, view.touches[0].pos);
-	view.points.forEach(p => {
+	let matrix = RabbitEar.math.Matrix.makeReflection(vec, view5.touches[0].pos);
+	view5.points.forEach(p => {
 		let newPos = matrix.transform(p.pos);
 		// console.log(newPos);
-		let circle = RE.svg.circle(newPos.x, newPos.y, 4);
-		circle.setAttribute("fill", "#ccc");
-		view.reflectLayer.appendChild(circle);
+		let circle = RabbitEar.svg.circle(newPos.x, newPos.y, 4);
+		circle.setAttribute("fill", "#ecb233");
+		view5.reflectLayer.appendChild(circle);
 	})
 }
 
-view.redraw = function(){
-	view.touches.forEach((p,i) => {
+view5.redraw = function(){
+	view5.touches.forEach((p,i) => {
 		p.svg.setAttribute("cx", p.pos[0]);
 		p.svg.setAttribute("cy", p.pos[1]);
-		view.line.setAttribute("x"+(i+1), p.pos[0]);
-		view.line.setAttribute("y"+(i+1), p.pos[1]);
+		view5.line.setAttribute("x"+(i+1), p.pos[0]);
+		view5.line.setAttribute("y"+(i+1), p.pos[1]);
 	});
-	view.drawReflections();
+	view5.drawReflections();
 }
-view.redraw();
+view5.redraw();
 
-view.onMouseDown = function(mouse){
-	let ep = view.width / 50;
-	let down = view.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
+view5.onMouseDown = function(mouse){
+	let ep = view5.width / 50;
+	let down = view5.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
-	view.selected = found;
+	view5.selected = found;
 }
 
-view.onMouseMove = function(mouse){
-	if(mouse.isPressed && view.selected != null){
-		view.touches[view.selected].pos = mouse.position;
-		view.redraw();
+view5.onMouseMove = function(mouse){
+	if(mouse.isPressed && view5.selected != null){
+		view5.touches[view5.selected].pos = mouse.position;
+		view5.redraw();
 	}
 }
