@@ -1,9 +1,10 @@
 <?php include 'header.php';?>
 
 
-<h1>EUCLIDEAN MATH</h1>
+<h1>EUCLIDEAN GEOMETRY</h1>
 
 <section>
+	<div id="canvas-bisect"></div>
 	<p>This library includes a suite of geometry tools that can be leveraged independently of the rest of the origami related code.</p>
 	<p class="explain">It's possible to import only this math library and leave out all origami related code. All operations are performed on basic number types and arrays.</p>
 
@@ -43,9 +44,7 @@
 		<pre><code><key>let</key> polygon <key>=</key> <key>new</key> <v>ConvexPolygon</v>()</code></pre>
 	</div>
 
-	<div class="centered">
-		<canvas id="canvas-polygon-clip" resize></canvas>
-	</div>
+	<div id="canvas-clip-line"></div>
 
 	<div class="centered">
 		<pre><code><key>let</key> clipped <key>=</key> polygon.<f>clipEdge</f>( <key>new</key> <v>Edge</v>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
@@ -53,6 +52,8 @@
 
 	<p class="quote">Clipping functions return an edge with a new set of endpoints.</p>
 	
+	<div id="canvas-polygon-contains"></div>
+
 </section>
 
 <section id="angles">
@@ -92,7 +93,7 @@
 
 	<p>A 2x2 matrix is sufficient to represent a reflection line that goes through the origin. For all lines, an additional 1x2 column is required.</p>
 
-	<div id="canvas-reflection" resize></div>
+	<div id="canvas-reflection"></div>
 
 	<div class="quote large">
 		<div id="matrix-1"></div>
@@ -122,9 +123,12 @@
 
 </section>
 
+<script type="text/javascript" src="../tests/bisect.js"></script>
 <script type="text/javascript" src="../tests/clipping.js"></script>
+<script type="text/javascript" src="../tests/clip_line.js"></script>
 <script type="text/javascript" src="../tests/reflection.js"></script>
 <script type="text/javascript" src="../tests/convex_hull.js"></script>
+<script type="text/javascript" src="../tests/polygon_contains.js"></script>
 <script type="text/javascript" src="../tests/intersection.js"></script>
 
 <?php include 'footer.php';?>

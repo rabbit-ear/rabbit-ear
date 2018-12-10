@@ -1,8 +1,11 @@
-let view9 = RabbitEar.svg.View("canvas-clipping", 500, 500);
+let view9 = RabbitEar.svg.View("canvas-clip-line", 500, 500);
+
+view9.STROKE_WIDTH = view9.width * 0.0125;
+view9.RADIUS = view9.width * 0.025;
 
 view9.polygon = RabbitEar.svg.polygon();
 view9.polygon.setAttribute("stroke", "black");
-view9.polygon.setAttribute("stroke-width", 3);
+view9.polygon.setAttribute("stroke-width", view9.STROKE_WIDTH);
 view9.polygon.setAttribute("fill", "none");
 view9.polygon.setAttribute("stroke-linecap", "round");
 view9.appendChild(view9.polygon);
@@ -12,7 +15,7 @@ view9.appendChild(view9.lineLayer);
 
 view9.touches = Array.from(Array(2)).map(_ => ({
 	pos: [Math.random()*view9.width, Math.random()*view9.height],
-	svg: RabbitEar.svg.circle(0, 0, 8)
+	svg: RabbitEar.svg.circle(0, 0, view9.RADIUS)
 }));
 view9.touches[0].pos = [view9.width*0.5, view9.height*0.5];
 
@@ -44,9 +47,17 @@ view9.redraw = function(){
 	if(edge != null){
 		let l = RabbitEar.svg.line(edge[0][0], edge[0][1], edge[1][0], edge[1][1]);
 		l.setAttribute("stroke", "#ecb233");
-		l.setAttribute("stroke-width", 3);
+		l.setAttribute("stroke-width", view9.STROKE_WIDTH);
 		l.setAttribute("stroke-linecap", "round");
 		view9.lineLayer.appendChild(l);
+		let endpoints = [
+			RabbitEar.svg.circle(edge[0][0], edge[0][1], view9.RADIUS),
+			RabbitEar.svg.circle(edge[1][0], edge[1][1], view9.RADIUS)
+		];
+		endpoints.forEach(c => {
+			c.setAttribute("fill", "#ecb233");
+			view9.lineLayer.appendChild(c);
+		})
 	}
 }
 view9.redraw();
