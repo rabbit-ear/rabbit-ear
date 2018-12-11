@@ -7,16 +7,18 @@
 	<div id="canvas-bisect"></div>
 	<p>This library includes a suite of geometry tools that can be leveraged independently of the rest of the origami related code.</p>
 	<p class="explain">It's possible to import only this math library and leave out all origami related code. All operations are performed on basic number types and arrays.</p>
-
+	<div class="centered">
+		<pre><code><key>let</key> M <key>=</key> <f>RabbitEar</f>.math</code></pre>
+	</div>
 </section>
 
 <section id="types">
 	<h2>PRIMITIVES</h2>
-	<h3>Points</h3>
-	<p>A point is represented by its components in 2D space: x and y. We call this class object an <b>XY</b>.</p>
+	<h3>Points / Vector</h3>
+	<p>A vector is represented by its components in 2D space: x and y. We call this class object a <b>vector</b>.</p>
 	<div id="canvas-clipping"></div>
 	<div class="centered">
-		<pre><code><key>let</key> point <key>=</key> <key>new</key> <v>XY</v>(<n>0.5</n>, <n>0.666</n>)</code></pre>
+		<pre><code><key>let</key> point <key>=</key> <f>M</f>.<f>Vector</f>(<n>0.5</n>, <n>0.666</n>)</code></pre>
 	</div>
 
 <h3>Lines, Rays, Segments</h3>
@@ -25,7 +27,7 @@
 	<div id="canvas-intersection"></div>
 
 	<div class="centered">
-		<pre><code><key>let</key> segment <key>=</key> <key>new</key> <v>Edge</v>(<span id="intersect-all-edge"></span>)<br><key>let</key> ray <key>=</key> <key>new</key> <v>Ray</v>(<span id="intersect-all-ray"></span>)<br><key>let</key> line <key>=</key> <key>new</key> <v>Line</v>(<span id="intersect-all-line"></span>)</code></pre>
+		<pre><code><key>let</key> segment <key>=</key> <f>M</f>.<f>Edge</f>(<span id="intersect-all-edge"></span>)<br><key>let</key> ray <key>=</key> <f>M</f>.<f>Ray</f>(<span id="intersect-all-ray"></span>)<br><key>let</key> line <key>=</key> <f>M</f>.<f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
 	</div>
 	
 	<p class="quote">Four arguments describe two points <b>(x1, y1, x2, y2)</b>.</p>
@@ -41,7 +43,7 @@
 	<p class="quote">The convex hull algorithm performed on a collection of points</p>
 	
 	<div class="centered">
-		<pre><code><key>let</key> polygon <key>=</key> <key>new</key> <v>ConvexPolygon</v>()</code></pre>
+		<pre><code><key>let</key> polygon <key>=</key> <f>M</f>.<f>Polygon</f>()</code></pre>
 	</div>
 
 	<div id="canvas-clip-line"></div>
@@ -49,7 +51,7 @@
 	<div id="canvas-clip-poly"></div>
 
 	<div class="centered">
-		<pre><code><key>let</key> clipped <key>=</key> polygon.<f>clipEdge</f>( <key>new</key> <v>Edge</v>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
+		<pre><code><key>let</key> clipped <key>=</key> polygon.<f>clipEdge</f>( <f>Edge</f>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
 	</div>
 
 	<p class="quote">Clipping functions return an edge with a new set of endpoints.</p>

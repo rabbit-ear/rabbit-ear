@@ -4,10 +4,6 @@ view12.STROKE_WIDTH = view12.width * 0.01;
 view12.RADIUS = view12.width * 0.02;
 
 view12.polygon = RabbitEar.svg.polygon();
-// view12.polygon.setAttribute("stroke", "#ecb233");
-// view12.polygon.setAttribute("stroke-width", view12.STROKE_WIDTH);
-// view12.polygon.setAttribute("fill", "none");
-// view12.polygon.setAttribute("stroke-linecap", "round");
 view12.polygon.setAttribute("fill", "#ecb233");
 view12.polygon.setAttribute("stroke", "none");
 view12.appendChild(view12.polygon);
