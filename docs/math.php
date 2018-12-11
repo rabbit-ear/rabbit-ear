@@ -56,6 +56,8 @@
 	
 	<div id="canvas-polygon-contains"></div>
 
+	<div id="canvas-polygon-overlaps"></div>
+
 </section>
 
 <section id="angles">
@@ -132,6 +134,7 @@
 <script type="text/javascript" src="../tests/reflection.js"></script>
 <script type="text/javascript" src="../tests/convex_hull.js"></script>
 <script type="text/javascript" src="../tests/polygon_contains.js"></script>
+<script type="text/javascript" src="../tests/polygon_overlaps.js"></script>
 <script type="text/javascript" src="../tests/intersection.js"></script>
 
 <?php include 'footer.php';?>

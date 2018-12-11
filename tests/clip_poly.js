@@ -46,11 +46,11 @@ view13.redraw = function(){
 	let vec = [view13.touches[1].pos[0] - view13.touches[0].pos[0], view13.touches[1].pos[1] - view13.touches[0].pos[1]];
 
 	RabbitEar.svg.removeChildren(view13.lineLayer);
-	let polys = RabbitEar.math.core.split_convex_polygon(view13.hull.points, view13.touches[0].pos, vec);
+	let polys = view13.hull.split(view13.touches[0].pos, vec);
 	let colors = ["#195783", "#ecb233"];
 	if(polys != null){
-		polys.forEach((p,i)=> {
-			let poly = RabbitEar.svg.polygon(p);
+		polys.sort((a,b) => b.signedArea() - a.signedArea()).forEach((p,i)=> {
+			let poly = RabbitEar.svg.polygon(p.points);
 			poly.setAttribute("fill", colors[i%2]);
 			view13.lineLayer.appendChild(poly);
 		});
