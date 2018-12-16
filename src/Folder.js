@@ -846,7 +846,7 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 			let a = [fold_new.edges_vertices[i][0], sect.new_index];
 			let b = [fold_new.edges_vertices[i][1], sect.new_index];
 			return {
-				edges: Graph.rebuild_edge(fold_new, i, a, b),
+				edges: Graph.replace_edge(fold_new, i, a, b),
 				vertices:[a[0], b[0], sect.new_index]
 			};
 		})
@@ -981,7 +981,7 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 		.map(el => el.faces
 			.map(face => ({
 				old: el.i,
-				new: Graph.rebuild_face(fold_new, el.i, face)
+				new: Graph.replace_face(fold_new, el.i, face)
 			})
 		)).reduce((prev,curr) => prev.concat(curr));
 
@@ -1102,4 +1102,63 @@ export function remove_boundary(fold){
 	
 }
 
+
+// export function apply_diff(graph, diff){
+// 	if(diff.vertices != null){
+// 		if(diff.vertices.new != null){
+// 			graph.vertices_coords = graph.vertices_coords.concat(diff.vertices.new);
+// 		}
+// 	}
+// 	if(diff.edges != null){
+// 		if(diff.edges.replace != null){
+// 			diff.edges.replace.forEach(el => {
+// 				Graph.replace_edge(graph, el.old_index, el.new)
+// 				// Graph.remove_edges(graph, [el.old_index]);
+// 			});
+// 		}
+// 		// let remove = diff.edges.replace.map(el => el.old_index);
+// 		// Graph.remove_edges(graph, remove);
+// 		if(diff.edges.new != null){
+// 			diff.edges.new.forEach(edge => Graph.add_edge(graph, edge, "V"));
+// 		}
+// 	}
+// 	if(diff.faces != null){
+// 		if(diff.faces.replace != null){
+// 			diff.faces.replace.forEach(el => {
+// 				Graph.replace_face(graph, el.old_index, el.new);
+// 				// Graph.remove_faces(graph, [el.old_index]);
+// 			});
+// 		}
+// 		// let remove = diff.faces.replace.map(el => el.old_index);
+// 		// Graph.remove_faces(graph, remove);
+// 	}
+// }
+
+export function apply_diff(graph, diff){
+	if(diff.vertices != null){
+		if(diff.vertices.new != null){
+			graph.vertices_coords = graph.vertices_coords.concat(diff.vertices.new);
+		}
+	}
+	if(diff.edges != null){
+		if(diff.edges.replace != null){
+			diff.edges.replace.forEach(el => {
+				graph.edges_vertices = graph.edges_vertices.concat(el.new);
+				let new_assignments = el.new.map(n => graph.edges_assignment[el.old_index]);
+				graph.edges_assignment = graph.edges_assignment.concat(new_assignments);
+			});
+		}
+		if(diff.edges.new != null){
+			graph.edges_vertices = graph.edges_vertices.concat(diff.edges.new);
+			graph.edges_assignment = graph.edges_assignment.concat(diff.edges.new.map(_ => "V"));
+		}
+	}
+	if(diff.faces != null){
+		if(diff.faces.replace != null){
+			diff.faces.replace.forEach(el => 
+				graph.faces_vertices = graph.faces_vertices.concat(el.new)
+			);
+		}
+	}
+}
 

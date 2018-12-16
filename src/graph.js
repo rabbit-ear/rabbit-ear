@@ -1,5 +1,5 @@
 // Graph.js - operations on a graph with vertices, edges, and faces
-// all properties follow the .FOLD file specification github.com/edemaine/fold
+// all naming follows the .FOLD file specification github.com/edemaine/fold
 // MIT open source license, Robby Kraft
 //
 //  "adjacent": 2 vertices are adjacent when they are connected by an edge
@@ -609,6 +609,10 @@ function reindex_edge(graph, old_index, new_index){
 // GEOMETRY STUFF
 ///////////////////////////////////////////////
 
+// add_vertices is trivial. append them to the end of the array.
+// todo, double check this though
+
+
 // todo figure out a good system here. ask for everything as a param?
 export function add_edge(graph, edge_vertices, edge_assignment){
 	graph.edges_vertices.push(edge_vertices);
@@ -617,38 +621,45 @@ export function add_edge(graph, edge_vertices, edge_assignment){
 }
 
 // an edge has been split into two edges.
-// remove the old_index, add edge a and b,
+// remove the old_index, add edges_vertices, an array of edges
 // and copy over any properties from old_index to the new
 // (like crease assignment)
-export function rebuild_edge(graph, old_index, edge_vertices_a, edge_vertices_b){
+export function replace_edge(graph, old_index, edges_vertices){
 	// this leaves behind a null in the old_index in every array
 
 // todo: do we need to rebuild vertices_vertices?
 // also edgeOrders
+	let new_count = edges_vertices.length;
 
 	if(graph.edges_vertices != null){
-		graph.edges_vertices.push(edge_vertices_a);
-		graph.edges_vertices.push(edge_vertices_b);
+		graph.edges_vertices = graph.edges_vertices.concat(edges_vertices);
 		graph.edges_vertices[old_index] = undefined;
 	}
 	if(graph.edges_faces != null){
-		graph.edges_faces.push( graph.edges_faces[old_index].slice() );
-		graph.edges_faces.push( graph.edges_faces[old_index].slice() );
+		// let copies = Array.from(Array(new_count))
+		// 	.map(_ => graph.edges_faces[old_index].slice());
+		// graph.edges_faces = graph.edges_faces.concat(copies);
+		for(var i = 0; i < new_count; i++){
+			graph.edges_faces.push( graph.edges_faces[old_index].slice() );
+		}
 		graph.edges_faces[old_index] = undefined;
 	}
 	if(graph.edges_assignment != null){
-		graph.edges_assignment.push( graph.edges_assignment[old_index] );
-		graph.edges_assignment.push( graph.edges_assignment[old_index] );
+		for(var i = 0; i < new_count; i++){
+			graph.edges_assignment.push( graph.edges_assignment[old_index] );
+		}
 		graph.edges_assignment[old_index] = undefined;
 	}
 	if(graph.edges_foldAngle != null){
-		graph.edges_foldAngle.push( graph.edges_foldAngle[old_index] );
-		graph.edges_foldAngle.push( graph.edges_foldAngle[old_index] );
+		for(var i = 0; i < new_count; i++){
+			graph.edges_foldAngle.push( graph.edges_foldAngle[old_index] );
+		}
 		graph.edges_foldAngle[old_index] = undefined;
 	}
 	if(graph.edges_length != null){
-		graph.edges_length.push( graph.edges_length[old_index] );
-		graph.edges_length.push( graph.edges_length[old_index] );
+		for(var i = 0; i < new_count; i++){
+			graph.edges_length.push( graph.edges_length[old_index] );
+		}
 		graph.edges_length[old_index] = undefined;
 	}
 	// [ graph.edges_vertices, graph.edges_faces, graph.edges_assignment,
@@ -657,14 +668,12 @@ export function rebuild_edge(graph, old_index, edge_vertices_a, edge_vertices_b)
 	let edges_count = get_edge_count(graph);
 	return [edges_count - 2, edges_count - 1];
 }
-
 // returns the new edge created by the two faces
-// function rebuild_edge(fold, old_index, edge_vertices_a, edge_vertices_b){
 
 
 // adds n number of faces to the arrays
 // copying old_face's attributes
-export function rebuild_face(graph, old_index, new_face_vertices){
+export function replace_face(graph, old_index, new_face_vertices){
 	// this leaves behind a null in the old_index in every array
 
 // faces_vertices
@@ -681,7 +690,7 @@ export function rebuild_face(graph, old_index, new_face_vertices){
 		graph.faces_vertices.push(new_face_vertices);
 		graph.faces_vertices[old_index] = undefined;
 	}
-	// if(graph.faces_edges != null){
+	if(graph.faces_edges != null){
 	// 	let edge_key = {};
 	// 	graph.faces_edges.forEach((ev,i) => {
 	// 		console.log(ev);
@@ -696,7 +705,7 @@ export function rebuild_face(graph, old_index, new_face_vertices){
 	// 	});
 	// 	graph.faces_edges.push(new_face_edges);
 	// 	graph.faces_edges[old_index] = undefined;
-	// }
+	}
 	if(graph.faceOrders != null){
 		//todo
 	}
@@ -725,7 +734,6 @@ export function rebuild_face(graph, old_index, new_face_vertices){
 	// return index of new face
 	return graph.faces_vertices.length - 1;
 }
-
 
 ///////////////////////////////////////////////
 // FROM .FOLD SOURCE

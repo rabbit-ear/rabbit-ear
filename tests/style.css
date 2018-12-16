@@ -35,3 +35,6 @@ svg{
 	stroke: none;
 	fill: hsl(14.4, 87%, 45%);
 }
+.face-highlight{
+	fill: var(--byrne-yellow);
+}

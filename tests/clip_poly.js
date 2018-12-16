@@ -1,73 +1,73 @@
-let view13 = RabbitEar.svg.View("canvas-clip-poly", 500, 500);
+let clipPoly = RabbitEar.svg.View("canvas-clip-poly", 500, 500);
 
-view13.STROKE_WIDTH = view13.width * 0.0125;
-view13.RADIUS = view13.width * 0.025;
+clipPoly.STROKE_WIDTH = clipPoly.width * 0.0125;
+clipPoly.RADIUS = clipPoly.width * 0.025;
 
-view13.lineLayer = RabbitEar.svg.group();
-view13.topLayer = RabbitEar.svg.group();
-view13.appendChild(view13.lineLayer);
-view13.appendChild(view13.topLayer);
+clipPoly.lineLayer = RabbitEar.svg.group();
+clipPoly.topLayer = RabbitEar.svg.group();
+clipPoly.appendChild(clipPoly.lineLayer);
+clipPoly.appendChild(clipPoly.topLayer);
 
-view13.touches = Array.from(Array(2)).map(_ => ({
-	pos: [Math.random()*view13.width, Math.random()*view13.height],
-	svg: RabbitEar.svg.circle(0, 0, view13.RADIUS)
+clipPoly.touches = Array.from(Array(2)).map(_ => ({
+	pos: [Math.random()*clipPoly.width, Math.random()*clipPoly.height],
+	svg: RabbitEar.svg.circle(0, 0, clipPoly.RADIUS)
 }));
-view13.touches[0].pos = [view13.width*0.5, view13.height*0.5];
+clipPoly.touches[0].pos = [clipPoly.width*0.5, clipPoly.height*0.5];
 
-view13.polygon = RabbitEar.svg.polygon();
-view13.polygon.setAttribute("stroke", "black");
-view13.polygon.setAttribute("stroke-width", view13.STROKE_WIDTH);
-view13.polygon.setAttribute("fill", "none");
-view13.polygon.setAttribute("stroke-linecap", "round");
-view13.topLayer.appendChild(view13.polygon);
+clipPoly.polygon = RabbitEar.svg.polygon();
+clipPoly.polygon.setAttribute("stroke", "black");
+clipPoly.polygon.setAttribute("stroke-width", clipPoly.STROKE_WIDTH);
+clipPoly.polygon.setAttribute("fill", "none");
+clipPoly.polygon.setAttribute("stroke-linecap", "round");
+clipPoly.topLayer.appendChild(clipPoly.polygon);
 
-view13.touches.forEach(p => {
+clipPoly.touches.forEach(p => {
 	p.svg.setAttribute("fill", "#e44f2a");
-	view13.topLayer.appendChild(p.svg);
+	clipPoly.topLayer.appendChild(p.svg);
 });
 
-view13.rebuildHull = function(){
+clipPoly.rebuildHull = function(){
 	let hullPoints = Array.from(Array(24)).map(_ => {
 		let a = Math.random() * Math.PI*2;
-		let r = Math.random() * view13.height*0.5;
-		return [view13.width*0.5 + r*Math.cos(a), view13.height*0.5 + r*Math.sin(a)];
+		let r = Math.random() * clipPoly.height*0.5;
+		return [clipPoly.width*0.5 + r*Math.cos(a), clipPoly.height*0.5 + r*Math.sin(a)];
 	});
-	view13.hull = RabbitEar.math.Polygon.convexHull(hullPoints);
-	let pointsString = view13.hull.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
-	view13.polygon.setAttribute("points", pointsString);
+	clipPoly.hull = RabbitEar.math.Polygon.convexHull(hullPoints);
+	let pointsString = clipPoly.hull.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
+	clipPoly.polygon.setAttribute("points", pointsString);
 }
-view13.rebuildHull();
+clipPoly.rebuildHull();
 
-view13.redraw = function(){
-	view13.touches.forEach((p,i) => {
+clipPoly.redraw = function(){
+	clipPoly.touches.forEach((p,i) => {
 		p.svg.setAttribute("cx", p.pos[0]);
 		p.svg.setAttribute("cy", p.pos[1]);
 	});
-	let vec = [view13.touches[1].pos[0] - view13.touches[0].pos[0], view13.touches[1].pos[1] - view13.touches[0].pos[1]];
+	let vec = [clipPoly.touches[1].pos[0] - clipPoly.touches[0].pos[0], clipPoly.touches[1].pos[1] - clipPoly.touches[0].pos[1]];
 
-	RabbitEar.svg.removeChildren(view13.lineLayer);
-	let polys = view13.hull.split(view13.touches[0].pos, vec);
+	RabbitEar.svg.removeChildren(clipPoly.lineLayer);
+	let polys = clipPoly.hull.split(clipPoly.touches[0].pos, vec);
 	let colors = ["#195783", "#ecb233"];
 	if(polys != null){
 		polys.sort((a,b) => b.signedArea() - a.signedArea()).forEach((p,i)=> {
 			let poly = RabbitEar.svg.polygon(p.points);
 			poly.setAttribute("fill", colors[i%2]);
-			view13.lineLayer.appendChild(poly);
+			clipPoly.lineLayer.appendChild(poly);
 		});
 	}
 }
-view13.redraw();
+clipPoly.redraw();
 
-view13.onMouseDown = function(mouse){
-	let ep = view13.width / 50;
-	let down = view13.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
+clipPoly.onMouseDown = function(mouse){
+	let ep = clipPoly.width / 50;
+	let down = clipPoly.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
-	view13.selected = found;
+	clipPoly.selected = found;
 }
 
-view13.onMouseMove = function(mouse){
-	if(mouse.isPressed && view13.selected != null){
-		view13.touches[view13.selected].pos = mouse.position;
-		view13.redraw();
+clipPoly.onMouseMove = function(mouse){
+	if(mouse.isPressed && clipPoly.selected != null){
+		clipPoly.touches[clipPoly.selected].pos = mouse.position;
+		clipPoly.redraw();
 	}
 }

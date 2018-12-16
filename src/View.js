@@ -15,13 +15,17 @@ const CREASE_DIR = {
 	"U": "mark"
 };
 
+import * as Geom from '../lib/geometry';
+
 import * as SVG from "../lib/svg";
 import * as Folder from "./Folder"
 import { unitSquare } from "./OrigamiBases"
 
 export default function View(){
 
-	let { zoom, translate, appendChild, setViewBox, getViewBox,
+	let { zoom, translate, appendChild, removeChildren,
+		// load, 
+		download, setViewBox, getViewBox, size,
 		scale, svg, width, height,
 		// onMouseMove, onMouseDown, onMouseUp, onMouseLeave, onMouseEnter
 	} = SVG.View(...arguments);
@@ -259,13 +263,36 @@ export default function View(){
 		get cp(){
 			return _cp;
 		},
+		get vertices(){
+			return _cp.vertices_coords == null
+				? []
+				: _cp.vertices_coords.map(v => Geom.Vector(v));
+		},
+		get edges(){
+			return _cp.edges_vertices == null
+				? []
+				: _cp.edges_vertices
+					.map(e => e.map(ev => _cp.vertices_coords[ev]))
+					.map(e => Geom.Edge(e));
+		},
+		get faces(){
+			return _cp.faces_vertices == null
+				? []
+				: _cp.faces_vertices
+					.map(f => f.map(fv => _cp.vertices_coords[fv]))
+					.map(f => Geom.Polygon(f));
+		},
 		svg,
+		// zoom, translate, appendChild, removeChildren,
+		// load, download, setViewBox, getViewBox, size,
+		// scale, svg, width, height,
 
 		// groups,
 		// frame,
 		// zoom,
 		// padding,
 		// style,
+
 
 		// setPadding,
 		draw,
