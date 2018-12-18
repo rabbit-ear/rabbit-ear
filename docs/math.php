@@ -16,19 +16,27 @@
 	<h2>PRIMITIVES</h2>
 	<h3>Points / Vector</h3>
 	<p>A vector is represented by its components in 2D space: x and y. We call this class object a <b>vector</b>.</p>
-	<div id="canvas-clipping"></div>
+	<div id="canvas-vector"></div>
 	<div class="centered">
 		<pre><code><key>let</key> point <key>=</key> <f>M</f>.<f>Vector</f>(<n>0.5</n>, <n>0.666</n>)</code></pre>
 	</div>
 
-<h3>Lines, Rays, Segments</h3>
+<h3><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h3>
+
+	<div id="canvas-line-ray-edge"></div>
+
 	<p><b>Mathematical lines</b> extend infinitely in both directions, <b>rays</b> extend infinitely in one direction, and line segments, or <b>edges</b> are bound by two endpoints.</p>
+
+	<h4><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h4>
+
 
 	<div id="canvas-intersection"></div>
 
 	<div class="centered">
 		<pre><code><key>let</key> segment <key>=</key> <f>M</f>.<f>Edge</f>(<span id="intersect-all-edge"></span>)<br><key>let</key> ray <key>=</key> <f>M</f>.<f>Ray</f>(<span id="intersect-all-ray"></span>)<br><key>let</key> line <key>=</key> <f>M</f>.<f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
 	</div>
+
+	<div id="canvas-clipping"></div>
 	
 	<p class="quote">Four arguments describe two points <b>(x1, y1, x2, y2)</b>.</p>
 
@@ -129,7 +137,9 @@
 
 </section>
 
+<script type="text/javascript" src="../tests/line_ray_edge.js"></script>
 <script type="text/javascript" src="../tests/bisect.js"></script>
+<script type="text/javascript" src="../tests/vector.js"></script>
 <script type="text/javascript" src="../tests/clipping.js"></script>
 <script type="text/javascript" src="../tests/clip_line.js"></script>
 <script type="text/javascript" src="../tests/clip_poly.js"></script>

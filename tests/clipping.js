@@ -5,15 +5,15 @@ clipping.svg.appendChild(drawGroup);
 clipping.points = [[Math.random(),Math.random()], [Math.random(),Math.random()]];
 clipping.reset = function(){
 	clipping.manyEdgesCP = RabbitEar.fold.clone(RabbitEar.bases.unitSquare);
-	clipping.edges = [];
-	for(var i = 0; i < 20; i++){
+	clipping.newEdges = [];
+	for(var i = 0; i < 10; i++){
 		let x = Math.random();
 		let y = Math.random();
 		let x2 = x + Math.random()*0.4-0.2;
 		let y2 = y + Math.random()*0.4-0.2;
-		clipping.edges.push([ [x,y], [x2,y2] ]);
+		clipping.newEdges.push([ [x,y], [x2,y2] ]);
 	}
-	clipping.edges.forEach(edge =>
+	clipping.newEdges.forEach(edge =>
 		clipping.manyEdgesCP = RabbitEar.fold.axiom1(clipping.manyEdgesCP, edge[0], edge[1])
 	)
 	clipping.cp = clipping.manyEdgesCP;
