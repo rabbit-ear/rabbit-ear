@@ -1,6 +1,6 @@
 let xing = RabbitEar.svg.View("canvas-intersection", 500, 500);
 
-xing.NUM_LINES = 7;
+xing.NUM_LINES = 4;
 
 xing.lines = Array.from(Array(xing.NUM_LINES))
 	.map(_ => RabbitEar.svg.line(0,0,0,0));

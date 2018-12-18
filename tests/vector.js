@@ -1,3 +1,5 @@
+let vecSketchCallback;
+
 let vec = RabbitEar.svg.View("canvas-vector", 500, 500, function(){
 	vec.setViewBox(-250,-250,500,500);
 	vec.reset();
@@ -9,9 +11,10 @@ vec.svg.appendChild(vec.drawLayer);
 vec.svg.appendChild(vec.dotLayer);
 
 vec.reset = function(){
+	var randAngle = Math.random() * Math.PI * 2;
 	vec.touches = [
-		{pos: [Math.random()*vec.width + vec.getViewBox()[0],
-		       Math.random()*vec.height + vec.getViewBox()[1]],
+		{pos: [Math.cos(randAngle) * 150,
+		       Math.sin(randAngle) * 150],
 		 svg: RabbitEar.svg.circle(0, 0, 12)}
 	];
 	vec.touches.forEach(p => {
@@ -36,57 +39,16 @@ vec.redraw = function(){
 	});
 
 	RabbitEar.svg.removeChildren(vec.drawLayer);
-// let center = [vec.width / 2, vec.height / 2];
 
-	let line = RabbitEar.svg.line(0, 0, vec.normalized.x, vec.normalized.y);
-	line.setAttribute("stroke", "black");
-	line.setAttribute("stroke-width", 8);
-	vec.drawLayer.appendChild(line);
-
-	let crossLine = RabbitEar.svg.line(0, 0, vec.cross.x, vec.cross.y);
-	crossLine.setAttribute("stroke", "#e44f2a");
-	crossLine.setAttribute("stroke-width", 8);
-	vec.drawLayer.appendChild(crossLine);
-
-
-	let normLen = vec.normalized.magnitude();
-	let normAngle = Math.atan2(vec.normalized.y, vec.normalized.x);
-	let nA, nB;
-	if (vec.normalized.x > 0 && vec.normalized.y > 0){ nA = 0;  nB = normAngle; }
-	if (vec.normalized.x > 0 && vec.normalized.y < 0){ nA = normAngle;  nB = 0; }
-	if (vec.normalized.x < 0 && vec.normalized.y > 0){ nA = normAngle;  nB = Math.PI; }
-	if (vec.normalized.x < 0 && vec.normalized.y < 0){ nA = Math.PI;  nB = normAngle; }
-
-	let normArc = RabbitEar.svg.arc(0, 0, normLen, nA, nB);
-	normArc.setAttribute("stroke", "black");
-	normArc.setAttribute("fill", "none");
-	normArc.setAttribute("stroke-width", 8);
-	normArc.setAttribute("stroke-linecap", "round");
-	normArc.setAttribute("stroke-dasharray", "10 17");
-	vec.drawLayer.appendChild(normArc);
-
-	let crossLen = vec.cross.magnitude();
-	let crossAngle = Math.atan2(vec.cross.y, vec.cross.x);
-	let crossA, crossB;
-	if (vec.cross.x > 0 && vec.cross.y > 0){ crossA = 0;  crossB = crossAngle; }
-	if (vec.cross.x > 0 && vec.cross.y < 0){ crossA = crossAngle;  crossB = 0; }
-	if (vec.cross.x < 0 && vec.cross.y > 0){ crossA = crossAngle;  crossB = Math.PI; }
-	if (vec.cross.x < 0 && vec.cross.y < 0){ crossA = Math.PI;  crossB = crossAngle; }
-
-	let crossArc1 = RabbitEar.svg.arc(0, 0, crossLen, crossA, crossB);
-	crossArc1.setAttribute("stroke", "#e44f2a");
-	crossArc1.setAttribute("fill", "none");
-	crossArc1.setAttribute("stroke-width", 8);
-	crossArc1.setAttribute("stroke-linecap", "round");
-	crossArc1.setAttribute("stroke-dasharray", "10 17");
-	vec.drawLayer.appendChild(crossArc1);
-
+	// dot product
 	let dotXLine = RabbitEar.svg.line(0, 0, vec.dotX, 0);
 	let dotYLine = RabbitEar.svg.line(0, 0, 0, vec.dotY);
 	dotXLine.setAttribute("stroke", "#ecb233");
 	dotYLine.setAttribute("stroke", "#ecb233");
 	dotXLine.setAttribute("stroke-width", 8);
 	dotYLine.setAttribute("stroke-width", 8);
+	dotXLine.setAttribute("stroke-linecap", "round");
+	dotYLine.setAttribute("stroke-linecap", "round");
 	vec.drawLayer.appendChild(dotXLine);
 	vec.drawLayer.appendChild(dotYLine);
 
@@ -101,7 +63,62 @@ vec.redraw = function(){
 	dotXdash.setAttribute("stroke-dasharray", "0.01 17");
 	dotYdash.setAttribute("stroke-dasharray", "0.01 17");
 	vec.drawLayer.appendChild(dotXdash);
-	vec.drawLayer.appendChild(dotYdash);
+	vec.drawLayer.appendChild(dotYdash);	
+
+	// cross product
+	let crossLine = RabbitEar.svg.line(0, 0, vec.cross.x, vec.cross.y);
+	crossLine.setAttribute("stroke", "#195783");
+	crossLine.setAttribute("stroke-width", 8);
+	crossLine.setAttribute("stroke-linecap", "round");
+	crossLine.setAttribute("stroke-dasharray", "10 17");
+	vec.drawLayer.appendChild(crossLine);
+	let crossDot = RabbitEar.svg.circle(vec.cross.x, vec.cross.y, 12);
+	crossDot.setAttribute("fill", "#195783");
+	vec.drawLayer.appendChild(crossDot);
+
+	let crossLen = vec.cross.magnitude();
+	let crossAngle = Math.atan2(vec.cross.y, vec.cross.x);
+	let crossA = 0, crossB = 0;
+	if (vec.cross.x > 0 && vec.cross.y > 0){ crossA = 0;  crossB = crossAngle; }
+	if (vec.cross.x > 0 && vec.cross.y < 0){ crossA = crossAngle;  crossB = 0; }
+	if (vec.cross.x < 0 && vec.cross.y > 0){ crossA = crossAngle;  crossB = Math.PI; }
+	if (vec.cross.x < 0 && vec.cross.y < 0){ crossA = Math.PI;  crossB = crossAngle; }
+
+	let crossArc1 = RabbitEar.svg.arc(0, 0, crossLen, crossA, crossB);
+	crossArc1.setAttribute("stroke", "#195783");
+	crossArc1.setAttribute("fill", "none");
+	crossArc1.setAttribute("stroke-width", 8);
+	crossArc1.setAttribute("stroke-linecap", "round");
+	crossArc1.setAttribute("stroke-dasharray", "0.01 17");
+	vec.drawLayer.appendChild(crossArc1);
+
+
+	let line = RabbitEar.svg.line(0, 0, vec.normalized.x, vec.normalized.y);
+	line.setAttribute("stroke", "#e44f2a");
+	line.setAttribute("stroke-width", 8);
+	line.setAttribute("stroke-linecap", "round");
+	vec.drawLayer.appendChild(line);
+
+	let normLen = vec.normalized.magnitude();
+	let normAngle = Math.atan2(vec.normalized.y, vec.normalized.x);
+	let nA = 0, nB = 0;
+	if (vec.normalized.x > 0 && vec.normalized.y > 0){ nA = 0;  nB = normAngle; }
+	if (vec.normalized.x > 0 && vec.normalized.y < 0){ nA = normAngle;  nB = 0; }
+	if (vec.normalized.x < 0 && vec.normalized.y > 0){ nA = normAngle;  nB = Math.PI; }
+	if (vec.normalized.x < 0 && vec.normalized.y < 0){ nA = Math.PI;  nB = normAngle; }
+
+	let normArc = RabbitEar.svg.arc(0, 0, normLen, nA, nB);
+	normArc.setAttribute("stroke", "#e44f2a");
+	normArc.setAttribute("fill", "none");
+	normArc.setAttribute("stroke-width", 8);
+	normArc.setAttribute("stroke-linecap", "round");
+	normArc.setAttribute("stroke-dasharray", "10 17");
+	vec.drawLayer.appendChild(normArc);
+
+	if(vecSketchCallback != null){
+		let readable = vec.touches[0].pos.map(p => p / 200.0)
+		vecSketchCallback({vector: readable});
+	}
 }
 
 vec.update = function(){

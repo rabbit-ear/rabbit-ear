@@ -18,17 +18,20 @@
 	<p>A vector is represented by its components in 2D space: x and y. We call this class object a <b>vector</b>.</p>
 	<div id="canvas-vector"></div>
 	<div class="centered">
-		<pre><code><key>let</key> point <key>=</key> <f>M</f>.<f>Vector</f>(<n>0.5</n>, <n>0.666</n>)</code></pre>
+		<pre><code><key>let</key> point <key>=</key> <f>M</f>.<f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br>point.<f>normalize</f>() <span style="color:#e44f2a">// normalized vector</span><br>point.<f>dot</f>() <span style="color:#ecb233">// dot product</span><br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#195783">// cross product with +Z</span></code></pre>
 	</div>
 
-<h3><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h3>
+	<h3>Linear Interpolation</h3>
+	<div id="canvas-lerp"></div>
+	<div class="centered">
+		<pre><code><key>let</key> interp <key>=</key> vec1.<f>lerp</f>(vec2)</code></pre>
+	</div>
+
+	<h3><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h3>
 
 	<div id="canvas-line-ray-edge"></div>
 
 	<p><b>Mathematical lines</b> extend infinitely in both directions, <b>rays</b> extend infinitely in one direction, and line segments, or <b>edges</b> are bound by two endpoints.</p>
-
-	<h4><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h4>
-
 
 	<div id="canvas-intersection"></div>
 
@@ -139,6 +142,7 @@
 
 <script type="text/javascript" src="../tests/line_ray_edge.js"></script>
 <script type="text/javascript" src="../tests/bisect.js"></script>
+<script type="text/javascript" src="../tests/lerp.js"></script>
 <script type="text/javascript" src="../tests/vector.js"></script>
 <script type="text/javascript" src="../tests/clipping.js"></script>
 <script type="text/javascript" src="../tests/clip_line.js"></script>
@@ -148,5 +152,16 @@
 <script type="text/javascript" src="../tests/polygon_contains.js"></script>
 <script type="text/javascript" src="../tests/polygon_overlaps.js"></script>
 <script type="text/javascript" src="../tests/intersection.js"></script>
+
+
+<script type="text/javascript">
+vecSketchCallback = function(event){
+	if (event.vector != null){
+		let pointString = "<n>" + (event.vector[0]).toFixed(2) + "</n>, " + "<n>" + (event.vector[1]).toFixed(2) + "</n>";
+		document.getElementById("vec-sketch-vector").innerHTML = pointString;
+	}
+}
+</script>
+
 
 <?php include 'footer.php';?>
