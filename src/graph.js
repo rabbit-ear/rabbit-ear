@@ -263,7 +263,7 @@ function get_edge_connecting_vertices(graph, a, b){
  *
  * @returns {number} number of vertices
  */
-function get_vertex_count(graph){
+export function get_vertex_count(graph){
 	// these arrays indicate vertex length
 	// assumption: 0-length array might be present when meant to be null
 	if(graph.vertices_coords != null && graph.vertices_coords.length != 0){
@@ -295,7 +295,7 @@ function get_vertex_count(graph){
  *
  * @returns {number} number of edges
  */
-function get_edge_count(graph){
+export function get_edge_count(graph){
 	// these arrays indicate edge length
 	// assumption: 0-length array might be present when meant to be null
 	if(graph.edges_vertices != null && graph.edges_vertices.length != 0){
@@ -335,7 +335,7 @@ function get_edge_count(graph){
  *
  * @returns {number} number of faces
  */
-function get_face_count(graph){
+export function get_face_count(graph){
 	// these arrays indicate vertex length
 	// assumption: 0-length array might be present when meant to be null
 	if(graph.faces_vertices != null && graph.faces_vertices.length != 0){
@@ -762,23 +762,28 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector){
 		.map((point, i) => ({point: point, at_index: i, at_real_index: face_edges[i] }))
 		.filter(el => el.point != null);
 
+	if(vertices_intersections.length == 0 && edges_intersections.length == 0){
+		return {};
+	}
 	// in the case of edges_intersections, we have new vertices, edges, and faces
 	// otherwise in the case of only vertices_intersections, we only have new faces
 	if(edges_intersections.length > 0){
 		diff.vertices = {};
-		diff.vertices.new = edges_intersections.map(el => el.point)
+		diff.vertices.new = edges_intersections.map(el => ({coords:el.point}))
 	}
 	if(edges_intersections.length > 0){
 		diff.edges.replace = edges_intersections
 			.map((el, i) => {
-				let newEdges = [
-					[edges_vertices[face_edges[el.at_index]][0], vertices_coords.length + i],
-					[vertices_coords.length + i, edges_vertices[face_edges[el.at_index]][1]]
-				];
+				let a = edges_vertices[face_edges[el.at_index]][0];
+				let c = edges_vertices[face_edges[el.at_index]][1];
+				let b = vertices_coords.length + i;
 				return {
 					// old_index: el.at_index,
 					old_index: el.at_real_index,
-					new: newEdges
+					new: [
+						{vertices: [a, b]},
+						{vertices: [b, c]}
+					]
 				};
 			});
 	}
@@ -840,11 +845,17 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector){
 		new_edge = sorted_vertices.map(el => el.at_index);
 
 	}
-	diff.edges.new = [new_edge];
+	diff.edges.new = [{
+		vertices: new_edge,
+		assignment: "M"
+	}];
 	diff.faces = {};
 	diff.faces.replace = [{
 		old_index: faceIndex,
-		new: [face_a, face_b]
+		new: [
+			{vertices: face_a}, 
+			{vertices: face_b}
+		]
 	}];
 	return diff;
 }

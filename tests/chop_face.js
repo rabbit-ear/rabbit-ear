@@ -4,9 +4,12 @@ facesChop.cp = RabbitEar.bases.fish;
 
 let drawLayer = RabbitEar.svg.group();
 facesChop.svg.appendChild(drawLayer)
-let dot = RabbitEar.svg.circle(0, 0, 0.01);
+let dot = RabbitEar.svg.circle(0, 0, 0.015);
+let dotVec = RabbitEar.svg.circle(0, 0, 0.015);
 dot.setAttribute("fill", "#e44f2a");
+dotVec.setAttribute("fill", "#e44f2a");
 drawLayer.appendChild(dot);
+drawLayer.appendChild(dotVec);
 
 let frogFaces = facesChop.faces;
 let highlightedFace = 0;
@@ -23,13 +26,16 @@ let e = 0.9;
 // event.time = 1.1;
 // {
 facesChop.animate = function(event){
-	let vx = Math.cos(q*event.time*d + Math.sin(q*b*event.time+0.8) + a);
-	let vy = Math.sin(q*event.time*e - Math.sin(q*a*event.time+1.9) + c);
+	let vang = Math.cos(q*event.time*d + Math.sin(q*b*event.time+0.8) - Math.sin(q*a*event.time+1.9) + a) * Math.PI;
+	let vx = Math.cos(vang);
+	let vy = Math.sin(vang);
 
-	let x = Math.cos(s*event.time*a - Math.sin(s*d*event.time+0.8) + b)*0.5+0.5;
-	let y = Math.sin(s*event.time*c + Math.sin(s*e*event.time+1.9) + a)*0.5+0.5;
+	let x = (Math.cos(s*event.time*a - Math.sin(s*d*event.time+0.8) + b)*0.5+0.5)*0.9 + 0.05;
+	let y = (Math.sin(s*event.time*c + Math.sin(s*e*event.time+1.9) + a)*0.5+0.5)*0.9 + 0.05;
 	dot.setAttribute("cx", x);
 	dot.setAttribute("cy", y);
+	dotVec.setAttribute("cx", x + vx*0.03);
+	dotVec.setAttribute("cy", y + vy*0.03);
 
 	let found = frogFaces.map(f => f.contains([x, y]))
 		.map((b,i) => b ? i : null)
@@ -44,7 +50,7 @@ facesChop.animate = function(event){
 	faces.childNodes[highlightedFace].setAttribute("class", "face-highlight");
 
 	let newCP = JSON.parse(JSON.stringify(RabbitEar.bases.fish));
-	let diff = RabbitEar.math.graph.split_convex_polygon_combinatoric(newCP, highlightedFace, [x,y], [vx, vy]);
+	let diff = RabbitEar.graph.split_convex_polygon(newCP, highlightedFace, [x,y], [vx, vy]);
 
 	RabbitEar.fold.apply_diff(newCP, diff);
 	// console.log(newCP);
