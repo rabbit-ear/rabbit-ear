@@ -8,7 +8,7 @@
 	<p>This library includes a suite of geometry tools that can be leveraged independently of the rest of the origami related code.</p>
 	<p class="explain">It's possible to import only this math library and leave out all origami related code. All operations are performed on basic number types and arrays.</p>
 	<div class="centered">
-		<pre><code><key>let</key> M <key>=</key> <f>RabbitEar</f>.math</code></pre>
+		<pre><code><f>let</f> M <key>=</key> <f>RabbitEar</f>.math</code></pre>
 	</div>
 </section>
 
@@ -18,13 +18,13 @@
 	<p>A vector is represented by its components in 2D space: x and y. We call this class object a <b>vector</b>.</p>
 	<div id="canvas-vector"></div>
 	<div class="centered">
-		<pre><code><key>let</key> point <key>=</key> <f>M</f>.<f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br>point.<f>normalize</f>() <span style="color:#e44f2a">// normalized vector</span><br>point.<f>dot</f>() <span style="color:#ecb233">// dot product</span><br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#195783">// cross product with +Z</span></code></pre>
+		<pre><code><f>let</f> point <key>=</key> <f>M</f>.<f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br>point.<f>normalize</f>() <span style="color:#e44f2a">// normalized vector</span><br>point.<f>dot</f>() <span style="color:#ecb233">// dot product</span><br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#6096bb">// cross product with +Z</span></code></pre>
 	</div>
 
 	<h3>Linear Interpolation</h3>
 	<div id="canvas-lerp"></div>
 	<div class="centered">
-		<pre><code><key>let</key> interp <key>=</key> vec1.<f>lerp</f>(vec2)</code></pre>
+		<pre><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, t)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, t)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, t)</code></pre>
 	</div>
 
 	<h3><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h3>
@@ -36,7 +36,7 @@
 	<div id="canvas-intersection"></div>
 
 	<div class="centered">
-		<pre><code><key>let</key> segment <key>=</key> <f>M</f>.<f>Edge</f>(<span id="intersect-all-edge"></span>)<br><key>let</key> ray <key>=</key> <f>M</f>.<f>Ray</f>(<span id="intersect-all-ray"></span>)<br><key>let</key> line <key>=</key> <f>M</f>.<f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
+		<pre><code><f>let</f> segment <key>=</key> <f>M</f>.<f>Edge</f>(<span id="intersect-all-edge"></span>)<br><f>let</f> ray <key>=</key> <f>M</f>.<f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> line <key>=</key> <f>M</f>.<f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
 	</div>
 
 	<div id="canvas-clipping"></div>
@@ -54,7 +54,7 @@
 	<p class="quote">The convex hull algorithm performed on a collection of points</p>
 	
 	<div class="centered">
-		<pre><code><key>let</key> polygon <key>=</key> <f>M</f>.<f>Polygon</f>()</code></pre>
+		<pre><code><f>let</f> polygon <key>=</key> <f>M</f>.<f>Polygon</f>()</code></pre>
 	</div>
 
 	<div id="canvas-clip-line"></div>
@@ -62,7 +62,7 @@
 	<div id="canvas-clip-poly"></div>
 
 	<div class="centered">
-		<pre><code><key>let</key> clipped <key>=</key> polygon.<f>clipEdge</f>( <f>Edge</f>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
+		<pre><code><f>let</f> clipped <key>=</key> polygon.<f>clipEdge</f>( <f>Edge</f>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
 	</div>
 
 	<p class="quote">Clipping functions return an edge with a new set of endpoints.</p>
@@ -119,7 +119,7 @@
 	<p class="quote">Any line type (Line, Ray, Edge) can be turned into a reflection matrix.</p>
 
 	<div class="centered">
-		<pre><code><key>let</key> matrix <key>=</key> edge.<v>reflectionMatrix</v>()</code></pre>
+		<pre><code><f>let</f> matrix <key>=</key> edge.<v>reflectionMatrix</v>()</code></pre>
 	</div>
 
 </section>

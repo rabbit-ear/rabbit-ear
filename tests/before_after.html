@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+<style>
+svg{
+	width:45vw;
+	margin:auto;
+	padding:1vw;
+}
+polygon{ fill: none; }
+line{
+	stroke: black;
+	stroke-width: 0.01px;
+}
+.valley{
+	stroke: red;
+	stroke-dasharray: 0.02 0.02;
+	stroke-linecap: round;
+}
+</style>
+</head>
+<body>
+<script src="../rabbit-ear.js"></script>
+<script type="text/javascript">
+
+let origami = RabbitEar.Origami();
+let creased = RabbitEar.Origami();
+
+console.log(origami.cp);
+
+let cp = JSON.parse(JSON.stringify(origami.cp));
+
+let diff = RabbitEar.graph.split_convex_polygon(cp, 0, [0.5,0.5], [-0.5, -1]);
+// let diff = RabbitEar.graph.split_convex_polygon(cp, 0, [1,1], [-0.5, -1]);
+// let diff = RabbitEar.graph.split_convex_polygon(cp, 0, [1,1], [-0.5, -1]);
+console.log(diff);
+
+RabbitEar.fold.apply_diff(cp, diff);
+
+console.log(cp);
+creased.cp = cp;
+
+
+</script>
+</body>
+</html>

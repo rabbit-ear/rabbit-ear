@@ -1134,6 +1134,9 @@ export function remove_boundary(fold){
 // 	}
 // }
 
+
+
+
 export function apply_diff(graph, diff){
 	if(diff.vertices != null){
 		if(diff.vertices.new != null){

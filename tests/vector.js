@@ -13,8 +13,8 @@ vec.svg.appendChild(vec.dotLayer);
 vec.reset = function(){
 	var randAngle = Math.random() * Math.PI * 2;
 	vec.touches = [
-		{pos: [Math.cos(randAngle) * 150,
-		       Math.sin(randAngle) * 150],
+		{pos: [Math.cos(randAngle) * 220,
+		       Math.sin(randAngle) * 220],
 		 svg: RabbitEar.svg.circle(0, 0, 12)}
 	];
 	vec.touches.forEach(p => {
