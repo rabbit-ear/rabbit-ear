@@ -1103,6 +1103,8 @@ export function remove_boundary(fold){
 }
 
 
+
+
 // export function apply_diff(graph, diff){
 // 	if(diff.vertices != null){
 // 		if(diff.vertices.new != null){
@@ -1136,35 +1138,62 @@ export function remove_boundary(fold){
 
 function diff_new_v(graph, newVertex){
 	let i = Graph.get_vertex_count(graph);
+	// this will add any key, even custom ones, appending them to vertices_
 	let keys = Object.keys(newVertex);
 	keys.forEach(suffix => {
 		let key = "vertices_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newVertex[suffix]);
 		graph[key][i] = newVertex[suffix];
-	})
+	});
+	return i;
+	// // check the standard keys and infer any that were left out
+	// ["coords", "vertices", "faces"]
+	// 	.filter(el => b.indexOf(el) === -1)
+	// 	.forEach(suffix => {
+	// 		let key = "vertices_" + suffix;
+	// 		graph[key][i] = newVertex[suffix];
+	// 	})
 }
 
 function diff_new_e(graph, newEdge){
 	let i = Graph.get_edge_count(graph);
+	// this will add any key, even custom ones, appending them to edges_
 	let keys = Object.keys(newEdge);
 	keys.forEach(suffix => {
 		let key = "edges_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newEdge[suffix]);
 		graph[key][i] = newEdge[suffix];
-	})
+	});
+	return i;
 }
 function diff_new_f(graph, newFace){
 	let i = Graph.get_face_count(graph);
+	// this will add any key, even custom ones, appending them to faces_
 	let keys = Object.keys(newFace);
 	keys.forEach(suffix => {
 		let key = "faces_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newFace[suffix]);
 		graph[key][i] = newFace[suffix];
-	})
+	});
+	// check the standard keys and infer any that were left out
+	let faces_keys = ["vertices", "edges"];
+	return i;
+}
+
+function validate(graph){
+	let v = Graph.get_vertex_count(graph);
+	let e = Graph.get_edge_count(graph);
+	let f = Graph.get_face_count(graph);
+	graph.
+	["vertices_coords", "vertices_vertices", "vertices_faces"]
+	["edges_vertices", "edges_faces", "edges_assignment", "edges_foldAngle", "edges_length"]
+	["faces_vertices", "faces_edges"].filter()
+
 }
 
 
 export function apply_diff(graph, diff){
+
 	let remove_vertices = [];
 	let remove_edges = [];
 	let remove_faces = [];
@@ -1181,7 +1210,17 @@ export function apply_diff(graph, diff){
 				el.new
 					.filter(e => e.edges_assignment == null)
 					.forEach(e => e.assignment = oldAssignment);
-				el.new.forEach(newEdge => diff_new_e(graph, newEdge))
+				el.new.forEach(newEdge => {
+					let index = diff_new_e(graph, newEdge);
+					// check the standard keys and infer any that were left out
+					// ["vertices", "faces", "assignment", "foldAngle", "length"]
+					let allKeys = ["faces", "assignment"];
+					allKeys.filter(suffix => newFace[suffix] != null)
+						.forEach(suffix => {
+							let key = "edges_" + suffix;
+							graph[key][index] = graph[key][el.old_index];
+						});
+				})
 			});
 			remove_edges = remove_edges
 				.concat(diff.edges.replace.map(el => el.old_index));
@@ -1193,14 +1232,32 @@ export function apply_diff(graph, diff){
 	if(diff.faces != null){
 		if(diff.faces.replace != null){
 			diff.faces.replace.forEach(el => {
-				el.new.forEach(newFace => diff_new_f(graph, newFace))
+				el.new.forEach(newFace => {
+					let index = diff_new_f(graph, newFace);
+					// check the standard keys and infer any that were left out
+					// ["vertices", "faces", "assignment", "foldAngle", "length"]
+					let allKeys = ["vertices", "edges"];
+					allKeys.filter(suffix => newFace[suffix] != null)
+						.forEach(suffix => {
+							let key = "faces_" + suffix;
+							graph[key][index] = graph[key][el.old_index];
+						});
+				})
 			});
 			remove_faces = remove_faces
 				.concat(diff.faces.replace.map(el => el.old_index));
 		}
 	}
-	// Graph.remove_vertices(graph, remove_vertices);
-	// Graph.remove_edges(graph, remove_edges);
-	// Graph.remove_faces(graph, remove_faces);
+	console.log("-----------------");
+
+	console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
+	console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
+
+	Graph.remove_vertices(graph, remove_vertices);
+	Graph.remove_edges(graph, remove_edges);
+	Graph.remove_faces(graph, remove_faces);
+
+	console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
+	console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
 }
 

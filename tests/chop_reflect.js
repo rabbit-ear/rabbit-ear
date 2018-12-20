@@ -1,12 +1,8 @@
 let chopReflect = RabbitEar.Origami("canvas-faces-chop");
 
 chopReflect.masterCP = JSON.parse(JSON.stringify(RabbitEar.bases.bird));
-RabbitEar.graph.faces_vertices_to_edges(chopReflect.masterCP);
+// RabbitEar.graph.faces_vertices_to_edges(chopReflect.masterCP);
 chopReflect.cp = chopReflect.masterCP;
-
-let one = JSON.parse(JSON.stringify(RabbitEar.bases.bird));
-console.log(one);
-console.log(chopReflect.cp);
 
 let drawLayer = RabbitEar.svg.group();
 chopReflect.svg.appendChild(drawLayer)
@@ -28,10 +24,10 @@ let c = 2.1;
 let d = 1.3;
 let e = 0.9;
 
-// let event = {};
-// event.time = 1.1;
-// {
-chopReflect.animate = function(event){
+let event = {};
+event.time = 1.1;
+{
+// chopReflect.animate = function(event){
 	let vang = Math.cos(q*event.time*d + Math.sin(q*b*event.time+0.8) - Math.sin(q*a*event.time+1.9) + a) * 2;
 	let vx = Math.cos(vang);
 	let vy = Math.sin(vang);
