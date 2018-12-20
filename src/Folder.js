@@ -1180,15 +1180,45 @@ function diff_new_f(graph, newFace){
 	return i;
 }
 
-function validate(graph){
-	let v = Graph.get_vertex_count(graph);
-	let e = Graph.get_edge_count(graph);
-	let f = Graph.get_face_count(graph);
-	graph.
-	["vertices_coords", "vertices_vertices", "vertices_faces"]
-	["edges_vertices", "edges_faces", "edges_assignment", "edges_foldAngle", "edges_length"]
-	["faces_vertices", "faces_edges"].filter()
 
+function validate(graph){
+	let l = {
+		vertices: Graph.get_vertex_count(graph),
+		edges: Graph.get_edge_count(graph),
+		faces: Graph.get_face_count(graph)
+	}
+	// ["coords"]
+	let vertexTest = ["vertices", "faces"]
+		.map(el => ({key: "vertices_"+el, suffix: el}))
+		.filter(el => graph[el.key] != null)
+		.map(el => graph[el.key].reduce((prev,curr) => {
+			return curr.reduce((a,b) => {
+				return a && (b < l[el.suffix]);
+			}, true)
+		}, true))
+		.reduce((a,b) => a && b, true);
+
+	let edgeTest = ["vertices", "faces"]//, "assignment", "foldAngle", "length"]
+		.map(el => ({key: "edges_"+el, suffix: el}))
+		.filter(el => graph[el.key] != null)
+		.map(el => graph[el.key].reduce((prev,curr) => {
+			return curr.reduce((a,b) => {
+				return a && (b < l[el.suffix]);
+			}, true)
+		}, true))
+		.reduce((a,b) => a && b, true);
+
+	let faceTest = ["vertices", "edges"]
+		.map(el => ({key: "faces_"+el, suffix: el}))
+		.filter(el => graph[el.key] != null)
+		.map(el => graph[el.key].reduce((prev,curr) => {
+			return curr.reduce((a,b) => {
+				return a && (b < l[el.suffix]);
+			}, true)
+		}, true))
+		.reduce((a,b) => a && b, true);
+
+	return vertexTest && edgeTest && faceTest;
 }
 
 
@@ -1215,7 +1245,7 @@ export function apply_diff(graph, diff){
 					// check the standard keys and infer any that were left out
 					// ["vertices", "faces", "assignment", "foldAngle", "length"]
 					let allKeys = ["faces", "assignment"];
-					allKeys.filter(suffix => newFace[suffix] != null)
+					allKeys.filter(suffix => newEdge[suffix] != null)
 						.forEach(suffix => {
 							let key = "edges_" + suffix;
 							graph[key][index] = graph[key][el.old_index];
@@ -1250,14 +1280,17 @@ export function apply_diff(graph, diff){
 	}
 	console.log("-----------------");
 
-	console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
-	console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
+	let validated = validate(graph);
+	console.log("validated", validated);
 
-	Graph.remove_vertices(graph, remove_vertices);
-	Graph.remove_edges(graph, remove_edges);
-	Graph.remove_faces(graph, remove_faces);
+	// console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
+	// console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
 
-	console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
-	console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
+	// Graph.remove_vertices(graph, remove_vertices);
+	// Graph.remove_edges(graph, remove_edges);
+	// Graph.remove_faces(graph, remove_faces);
+
+	// console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
+	// console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
 }
 
