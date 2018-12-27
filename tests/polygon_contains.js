@@ -1,4 +1,4 @@
-let contains = RabbitEar.svg.View("canvas-polygon-contains", 500, 500);
+let contains = RabbitEar.svg.Image("canvas-polygon-contains", 500, 500);
 
 contains.STROKE_WIDTH = contains.width * 0.01;
 contains.RADIUS = contains.width * 0.02;

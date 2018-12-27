@@ -1,4 +1,4 @@
-let reflect = RabbitEar.svg.View("canvas-reflection", 800, 300);
+let reflect = RabbitEar.svg.Image("canvas-reflection", 800, 300);
 
 reflect.reflectLayer = RabbitEar.svg.group();
 reflect.appendChild(reflect.reflectLayer);

@@ -6,15 +6,6 @@ import * as noise from '../lib/perlin';
 
 import * as graph from './Graph';
 
-// let Math = {
-// 	Matrix,
-// 	Vector,
-// 	Line,
-// 	Ray,
-// 	Edge,
-// 	Circle
-// }
-
 export { default as Origami } from './View';
 export { default as Origami3D } from './View3D';
 export { bases };

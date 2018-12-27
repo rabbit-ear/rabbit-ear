@@ -1,6 +1,6 @@
 let chopReflect = RabbitEar.Origami("canvas-faces-chop");
 
-chopReflect.masterCP = JSON.parse(JSON.stringify(RabbitEar.bases.bird));
+chopReflect.masterCP = JSON.parse(JSON.stringify(RabbitEar.bases.test));
 // RabbitEar.graph.faces_vertices_to_edges(chopReflect.masterCP);
 chopReflect.cp = chopReflect.masterCP;
 
@@ -25,12 +25,12 @@ let d = 1.3;
 let e = 0.9;
 
 let event = {};
-event.time = 1.1;
+event.time = 2;
 {
 // chopReflect.animate = function(event){
-	let vang = Math.cos(q*event.time*d + Math.sin(q*b*event.time+0.8) - Math.sin(q*a*event.time+1.9) + a) * 2;
-	let vx = Math.cos(vang);
-	let vy = Math.sin(vang);
+	let vAngle = Math.cos(q*event.time*d + Math.sin(q*b*event.time+0.8) - Math.sin(q*a*event.time+1.9) + a) * 2;
+	let vx = Math.cos(vAngle);
+	let vy = Math.sin(vAngle);
 
 	let x = (Math.sin(event.time*0.5 + Math.sin(event.time*0.43)+3)*0.5+0.5 + Math.cos(s*event.time*a - Math.sin(s*d*event.time+0.8) + b)*0.5+0.5)*0.45 + 0.05;
 	let y = (Math.cos(event.time*1.1 + Math.cos(event.time*0.2)+2)*0.5+0.5 + Math.sin(s*event.time*c + Math.sin(s*e*event.time+1.9) + a)*0.5+0.5)*0.45 + 0.05;
@@ -53,6 +53,8 @@ event.time = 1.1;
 
 	let newCP = JSON.parse(JSON.stringify(chopReflect.masterCP));
 	// console.log(newCP);
+	console.log(newCP.faces_vertices[highlightedFace]);
+	console.log(newCP.faces_vertices[highlightedFace].map(fv => newCP.vertices_coords[fv]));
 
 	let matrices = RabbitEar.graph.make_faces_matrix_inv(newCP, highlightedFace);
 	let firstCrease = RabbitEar.math.Line([x,y], [vx,vy]);
@@ -61,6 +63,7 @@ event.time = 1.1;
 	creaseLines.forEach((line,i) => {
 		let diff = RabbitEar.graph.split_convex_polygon(newCP, i, line.point, line.vector);
 		RabbitEar.fold.apply_diff(newCP, diff);
+		chopReflect.cp = newCP;
 	});
 
 	chopReflect.cp = newCP;

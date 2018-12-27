@@ -1,4 +1,4 @@
-let lre = RabbitEar.svg.View("canvas-line-ray-edge", 600, 300);
+let lre = RabbitEar.svg.Image("canvas-line-ray-edge", 600, 300);
 
 lre.lineLayer = RabbitEar.svg.group();
 lre.appendChild(lre.lineLayer);

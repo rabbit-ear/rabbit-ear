@@ -30,8 +30,8 @@ facesChop.animate = function(event){
 	let vx = Math.cos(vang);
 	let vy = Math.sin(vang);
 
-	let x = (Math.cos(s*event.time*a - Math.sin(s*d*event.time+0.8) + b)*0.5+0.5)*0.9 + 0.05;
-	let y = (Math.sin(s*event.time*c + Math.sin(s*e*event.time+1.9) + a)*0.5+0.5)*0.9 + 0.05;
+	let x = (Math.sin(event.time*0.5 + Math.sin(event.time*0.43)+3)*0.5+0.5 + Math.cos(s*event.time*a - Math.sin(s*d*event.time+0.8) + b)*0.5+0.5)*0.45 + 0.05;
+	let y = (Math.cos(event.time*1.1 + Math.cos(event.time*0.2)+2)*0.5+0.5 + Math.sin(s*event.time*c + Math.sin(s*e*event.time+1.9) + a)*0.5+0.5)*0.45 + 0.05;
 	dot.setAttribute("cx", x);
 	dot.setAttribute("cy", y);
 	dotVec.setAttribute("cx", x + vx*0.03);

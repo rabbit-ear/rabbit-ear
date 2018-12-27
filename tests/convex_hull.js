@@ -1,4 +1,4 @@
-let hull = RabbitEar.svg.View("canvas-convex-hull", 500, 500);
+let hull = RabbitEar.svg.Image("canvas-convex-hull", 500, 500);
 
 hull.STROKE_WIDTH = hull.width * 0.01;
 hull.RADIUS = hull.width * 0.02;

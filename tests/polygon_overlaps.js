@@ -1,4 +1,4 @@
-let overlap = RabbitEar.svg.View("canvas-polygon-overlaps", 800, 500);
+let overlap = RabbitEar.svg.Image("canvas-polygon-overlaps", 800, 500);
 overlap.COUNT = 4;
 
 overlap.speeds = Array.from(Array(overlap.COUNT)).map(_ => Math.random() - 0.5)

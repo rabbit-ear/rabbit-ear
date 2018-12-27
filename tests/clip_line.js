@@ -1,4 +1,4 @@
-let clipLine = RabbitEar.svg.View("canvas-clip-line", 500, 500);
+let clipLine = RabbitEar.svg.Image("canvas-clip-line", 500, 500);
 
 clipLine.STROKE_WIDTH = clipLine.width * 0.0125;
 clipLine.RADIUS = clipLine.width * 0.025;

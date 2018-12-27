@@ -1,4 +1,4 @@
-let clipPoly2 = RabbitEar.svg.View("canvas-clip-poly", 500, 500);
+let clipPoly2 = RabbitEar.svg.Image("canvas-clip-poly", 500, 500);
 
 clipPoly2.STROKE_WIDTH = clipPoly2.width * 0.0125;
 clipPoly2.RADIUS = clipPoly2.width * 0.025;

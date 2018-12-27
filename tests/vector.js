@@ -1,6 +1,6 @@
 let vecSketchCallback;
 
-let vec = RabbitEar.svg.View("canvas-vector", 500, 500, function(){
+let vec = RabbitEar.svg.Image("canvas-vector", 500, 500, function(){
 	vec.setViewBox(-250,-250,500,500);
 	vec.reset();
 	vec.update();

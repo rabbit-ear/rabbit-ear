@@ -1,4 +1,4 @@
-let bisect = RabbitEar.svg.View("canvas-bisect", 500, 500);
+let bisect = RabbitEar.svg.Image("canvas-bisect", 500, 500);
 
 bisect.NUM_WEDGES = 2;
 bisect.STROKE_WIDTH = bisect.height * 0.0125;

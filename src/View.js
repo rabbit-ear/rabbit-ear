@@ -28,7 +28,7 @@ export default function View(){
 		download, setViewBox, getViewBox, size,
 		scale, svg, width, height,
 		// onMouseMove, onMouseDown, onMouseUp, onMouseLeave, onMouseEnter
-	} = SVG.View(...arguments);
+	} = SVG.Image(...arguments);
 
 	//  from arguments, get a fold file, if it exists
 	let args = Array.from(arguments);
