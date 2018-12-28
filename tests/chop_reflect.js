@@ -6,8 +6,8 @@ chopReflect.cp = chopReflect.masterCP;
 
 let drawLayer = RabbitEar.svg.group();
 chopReflect.svg.appendChild(drawLayer)
-let dot = RabbitEar.svg.circle(0, 0, 0.015);
-let dotVec = RabbitEar.svg.circle(0, 0, 0.015);
+let dot = RabbitEar.svg.circle(0, 0, 0.02);
+let dotVec = RabbitEar.svg.circle(0, 0, 0.02);
 dot.setAttribute("fill", "#e44f2a");
 dotVec.setAttribute("fill", "#e44f2a");
 drawLayer.appendChild(dot);
@@ -56,17 +56,20 @@ chopReflect.animate = function(event){
 	// console.log(newCP.faces_vertices[highlightedFace]);
 	// console.log(newCP.faces_vertices[highlightedFace].map(fv => newCP.vertices_coords[fv]));
 
+	let coloring = RabbitEar.graph.face_coloring(newCP, highlightedFace);
+	// console.log(coloring);
+
 	let matrices = RabbitEar.graph.make_faces_matrix_inv(newCP, highlightedFace);
 	let firstCrease = RabbitEar.math.Line([x,y], [vx,vy]);
-	let creaseLines = matrices.map(m => firstCrease.transform(m));
+	let creaseLineFaces = matrices.map(m => firstCrease.transform(m));
 
 	let removes = {
 		vertices:[],
 		edges:[],
 		faces:[]
 	};
-	creaseLines.forEach((line,i) => {
-		let diff = RabbitEar.graph.split_convex_polygon(newCP, i, line.point, line.vector);
+	creaseLineFaces.forEach((line,i) => {
+		let diff = RabbitEar.graph.split_convex_polygon(newCP, i, line.point, line.vector, coloring[i] ? "M" : "V");
 		let remove = RabbitEar.fold.apply_diff(newCP, diff);
 		removes.vertices = removes.vertices.concat(remove.vertices);
 		removes.edges = removes.edges.concat(remove.edges);

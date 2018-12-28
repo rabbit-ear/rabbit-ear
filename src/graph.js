@@ -76,12 +76,23 @@ export function make_faces_matrix_inv(graph, root_face){
 	return faces_matrix;
 }
 
+export function face_coloring(graph, root_face = 0){
+	let coloring = [];
+	coloring[root_face] = false;
+	make_face_walk_tree(graph, root_face).forEach((level, i) => 
+		level.forEach((entry) => coloring[entry.face] = (i % 2 == 0))
+	);
+	return coloring;
+}
+
 // root_face will become the root node
 function make_face_walk_tree(graph, root_face = 0){
 	let new_faces_faces = make_faces_faces(graph);
 	var visited = [root_face];
-	var list = [[{ face: root_face, parent: undefined, edge: undefined }]];
+	var list = [[{ face: root_face, parent: undefined, edge: undefined, level: 0 }]];
+	// let current_level = 0;
 	do{
+		// current_level += 1;
 		list[list.length] = list[list.length-1].map((current) =>{
 			let unique_faces = new_faces_faces[current.face]
 				.filter(f => visited.indexOf(f) === -1);
@@ -89,6 +100,7 @@ function make_face_walk_tree(graph, root_face = 0){
 			return unique_faces.map(f => ({
 				face: f,
 				parent: current.face,
+				// level: current_level,
 				edge: graph.faces_vertices[f]
 					.filter(v => graph.faces_vertices[current.face].indexOf(v) != -1)
 					.sort((a,b) => a-b)
@@ -736,7 +748,7 @@ export function replace_face(graph, old_index, new_face_vertices){
 }
 
 
-export function split_convex_polygon(graph, faceIndex, linePoint, lineVector){
+export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, crease_assignment = "M"){
 	let vertices_coords = graph.vertices_coords;
 	let edges_vertices = graph.edges_vertices;
 
@@ -850,7 +862,7 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector){
 	}
 	diff.edges.new = [{
 		vertices: new_edge,
-		assignment: "M"
+		assignment: crease_assignment  // from way at the top
 	}];
 	diff.faces = {};
 	diff.faces.replace = [{
