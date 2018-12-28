@@ -1,6 +1,6 @@
 let chopReflect = RabbitEar.Origami("canvas-faces-chop");
 
-chopReflect.masterCP = JSON.parse(JSON.stringify(RabbitEar.bases.test));
+chopReflect.masterCP = JSON.parse(JSON.stringify(RabbitEar.bases.bird));
 // RabbitEar.graph.faces_vertices_to_edges(chopReflect.masterCP);
 chopReflect.cp = chopReflect.masterCP;
 
@@ -24,10 +24,10 @@ let c = 2.1;
 let d = 1.3;
 let e = 0.9;
 
-let event = {};
-event.time = 2;
-{
-// chopReflect.animate = function(event){
+// let event = {};
+// event.time = 2;
+// {
+chopReflect.animate = function(event){
 	let vAngle = Math.cos(q*event.time*d + Math.sin(q*b*event.time+0.8) - Math.sin(q*a*event.time+1.9) + a) * 2;
 	let vx = Math.cos(vAngle);
 	let vy = Math.sin(vAngle);
@@ -53,19 +53,31 @@ event.time = 2;
 
 	let newCP = JSON.parse(JSON.stringify(chopReflect.masterCP));
 	// console.log(newCP);
-	console.log(newCP.faces_vertices[highlightedFace]);
-	console.log(newCP.faces_vertices[highlightedFace].map(fv => newCP.vertices_coords[fv]));
+	// console.log(newCP.faces_vertices[highlightedFace]);
+	// console.log(newCP.faces_vertices[highlightedFace].map(fv => newCP.vertices_coords[fv]));
 
 	let matrices = RabbitEar.graph.make_faces_matrix_inv(newCP, highlightedFace);
 	let firstCrease = RabbitEar.math.Line([x,y], [vx,vy]);
 	let creaseLines = matrices.map(m => firstCrease.transform(m));
 
+	let removes = {
+		vertices:[],
+		edges:[],
+		faces:[]
+	};
 	creaseLines.forEach((line,i) => {
 		let diff = RabbitEar.graph.split_convex_polygon(newCP, i, line.point, line.vector);
-		RabbitEar.fold.apply_diff(newCP, diff);
-		chopReflect.cp = newCP;
+		let remove = RabbitEar.fold.apply_diff(newCP, diff);
+		removes.vertices = removes.vertices.concat(remove.vertices);
+		removes.edges = removes.edges.concat(remove.edges);
+		removes.faces = removes.faces.concat(remove.faces);
 	});
 
-	chopReflect.cp = newCP;
+	RabbitEar.graph.remove_vertices(newCP, removes.vertices);
+	RabbitEar.graph.remove_edges(newCP, removes.edges);
+	RabbitEar.graph.remove_faces(newCP, removes.faces);
 
+	chopReflect.cp = newCP;
 }
+
+

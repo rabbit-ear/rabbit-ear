@@ -1209,7 +1209,6 @@ function diff_new_v(graph, newVertex){
 }
 
 function diff_new_e(graph, newEdge){
-	console.log(newEdge);
 	let i = Graph.get_edge_count(graph);
 	Object.keys(newEdge).forEach(suffix => {
 		let key = "edges_" + suffix;
@@ -1240,6 +1239,43 @@ function diff_new_f(graph, newFace){
 	return i;
 }
 
+export function join_diff(a, b){
+	let c = {};
+	if(a.vertices != null || b.vertices != null){
+		if(a.vertices == null) { a.vertices = {}; }
+		if(b.vertices == null) { b.vertices = {}; }
+		if(a.vertices.new == null) { a.vertices.new = []; }
+		if(b.vertices.new == null) { b.vertices.new = []; }
+		c.vertices = {};
+		c.vertices.new = a.vertices.new.concat(b.vertices.new);
+	}
+
+	if(a.edges != null || b.edges != null){
+		if(a.edges == null) { a.edges = {}; }
+		if(b.edges == null) { b.edges = {}; }
+		if(a.edges.new == null) { a.edges.new = []; }
+		if(b.edges.new == null) { b.edges.new = []; }
+		c.edges = {};
+		c.edges.new = a.edges.new.concat(b.edges.new);
+
+		if(a.edges.replace == null) { a.edges.replace = []; }
+		if(b.edges.replace == null) { b.edges.replace = []; }
+		c.edges = {};
+		c.edges.replace = a.edges.replace.concat(b.edges.replace);
+	}
+
+	if(a.faces != null || b.faces != null){
+		if(a.faces == null) { a.faces = {}; }
+		if(b.faces == null) { b.faces = {}; }
+
+		if(a.faces.replace == null) { a.faces.replace = []; }
+		if(b.faces.replace == null) { b.faces.replace = []; }
+		c.faces = {};
+		c.faces.replace = a.faces.replace.concat(b.faces.replace);
+	}
+	return c;
+
+}
 
 export function apply_diff(graph, diff){
 
@@ -1260,7 +1296,6 @@ export function apply_diff(graph, diff){
 					.filter(e => e.edges_assignment == null)
 					.forEach(e => e.assignment = oldAssignment);
 				el.new.forEach(newEdge => {
-					console.log("from a replaced edge");
 					let index = diff_new_e(graph, newEdge);
 					// check the standard keys and infer any that were left out
 					// ["vertices", "faces", "assignment", "foldAngle", "length"]
@@ -1276,7 +1311,6 @@ export function apply_diff(graph, diff){
 				.concat(diff.edges.replace.map(el => el.old_index));
 		}
 		if(diff.edges.new != null){
-			console.log("from a new edge");
 			diff.edges.new.forEach(el => diff_new_e(graph, el));
 		}
 	}
@@ -1299,19 +1333,14 @@ export function apply_diff(graph, diff){
 				.concat(diff.faces.replace.map(el => el.old_index));
 		}
 	}
-	console.log("-----------------");
 
 	let validated = validate(graph);
-	console.log("validated", validated);
 
-	// console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
-	// console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
+	return {
+		vertices: remove_vertices,
+		edges: remove_edges,
+		faces: remove_faces
+	};
 
-	Graph.remove_vertices(graph, remove_vertices);
-	Graph.remove_edges(graph, remove_edges);
-	Graph.remove_faces(graph, remove_faces);
-
-	// console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
-	// console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
 }
 

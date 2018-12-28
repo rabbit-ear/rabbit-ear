@@ -742,7 +742,6 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector){
 
 	let face_vertices = graph.faces_vertices[faceIndex];
 	let face_edges = graph.faces_edges[faceIndex];
-	console.log("face_edges", faceIndex, graph.faces_vertices.length, graph.faces_edges);
 
 	let diff = {
 		edges: {} // we are definitely adding edges.. probably

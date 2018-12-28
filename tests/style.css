@@ -11,8 +11,9 @@ html,body{
 	justify-content: center;
 }
 svg{
-	width:100vw;
-	height:100vh;
+	width:90vw;
+	height:90vh;
+	margin: 5vmin;
 }
 .mountain, .valley, .boundary, .mark {
 	stroke:black;
