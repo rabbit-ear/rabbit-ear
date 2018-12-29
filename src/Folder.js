@@ -1146,11 +1146,10 @@ function validate(graph){
 		.map(key => ({prefix: key, suffixes: foldKeys[key]}))
 		.map(el => el.suffixes
 			.map(suffix => el.prefix + "_" + suffix)
-			.filter(el => graph[el] != null)
-			.map((el,_,arr) => graph[el].length === graph[arr[0]].length)
+			.filter(key => graph[key] != null)
+			.map((key,_,arr) => graph[key].length === graph[arr[0]].length)
 			.reduce((a,b) => a && b, true)
 		).reduce((a,b) => a && b, true);
-
 
 	let l = {
 		vertices: Graph.get_vertex_count(graph),
@@ -1158,37 +1157,19 @@ function validate(graph){
 		faces: Graph.get_face_count(graph)
 	}
 
-	let vertexIndexTest = ["vertices", "faces"]
-		.map(el => ({key: "vertices_"+el, suffix: el}))
-		.filter(el => graph[el.key] != null)
-		.map(el => graph[el.key].reduce((prev,curr) => {
-			return curr.reduce((a,b) => {
-				return a && (b < l[el.suffix]);
-			}, true)
-		}, true))
-		.reduce((a,b) => a && b, true);
+	let arraysIndexTest = Object.keys(foldKeys)
+		.map(key => ({prefix: key, suffixes: foldKeys[key]}))
+		.map(el => el.suffixes
+			.map(suffix => ({key:el.prefix + "_" + suffix, suffix: suffix}))
+			.filter(ell => graph[ell.key] != null && l[ell.suffix] != null)
+			.map(ell => graph[ell.key]
+				.reduce((prev,curr) => curr
+					.reduce((a,b) => a && (b < l[ell.suffix]), true)
+				, true)
+			).reduce((a,b) => a && b, true)
+		).reduce((a,b) => a && b, true);
 
-	let edgeIndexTest = ["vertices", "faces"]
-		.map(el => ({key: "edges_"+el, suffix: el}))
-		.filter(el => graph[el.key] != null)
-		.map(el => graph[el.key].reduce((prev,curr) => {
-			return curr.reduce((a,b) => {
-				return a && (b < l[el.suffix]);
-			}, true)
-		}, true))
-		.reduce((a,b) => a && b, true);
-
-	let faceIndexTest = ["vertices", "edges"]
-		.map(el => ({key: "faces_"+el, suffix: el}))
-		.filter(el => graph[el.key] != null)
-		.map(el => graph[el.key].reduce((prev,curr) => {
-			return curr.reduce((a,b) => {
-				return a && (b < l[el.suffix]);
-			}, true)
-		}, true))
-		.reduce((a,b) => a && b, true);
-
-	return arraysLengthTest && vertexIndexTest && edgeIndexTest && faceIndexTest;
+	return arraysLengthTest && arraysIndexTest;
 }
 
 
