@@ -8,6 +8,8 @@ export const empty = {
 	"frame_title": "",
 	"frame_classes": [],
 	"vertices_coords": [],
+	"vertices_vertices": [],
+	"vertices_faces": [],
 	"edges_vertices": [],
 	"edges_faces": [],
 	"edges_assignment": [],
@@ -29,32 +31,42 @@ export const unitSquare = {
 	"frame_title": "",
 	"frame_classes": ["creasePattern"],
 	"vertices_coords": [[0,0], [1,0], [1,1], [0,1]],
+	"vertices_vertices": [[1,3], [2,0], [3,1], [0,2]],
+	"vertices_faces": [[0], [0], [0], [0]],
 	"edges_vertices": [[0,1], [1,2], [2,3], [3,0]],
+	"edges_faces": [0, 0, 0, 0],
 	"edges_assignment": ["B","B","B","B"],
+	"edges_foldAngle": [0, 0, 0, 0],
+	"edges_length": [1, 1, 1, 1],
 	"faces_vertices": [[0,1,2,3]],
-	"faces_edges": [[0,1,2,3]],
-	"file_frames": [{
-		"frame_classes": ["creasePattern"],
-		"frame_parent":0,
-		"inherit":true
-	}]
+	"faces_edges": [[0,1,2,3]]
 };
 
 export const blintz = {
 	"file_spec": 1.1,
-	"frame_title": "blintz base",
+	"file_creator": "",
+	"file_author": "",
 	"file_classes": ["singleModel"],
-	"frame_classes": ["foldedState"],
 	"frame_attributes": ["2D"],
-	"vertices_coords": [[0.5,0.5], [0.5,0], [0.5,0.5], [1,0.5], [0.5,0.5], [0.5,1], [0.5,0.5], [0,0.5]],
+	"frame_title": "blintz base",
+	"frame_classes": ["creasePattern"],
+	"vertices_coords": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],
+	"vertices_vertices": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],
+	"vertices_faces": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],
 	"edges_vertices": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],
+	"edges_faces": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],
 	"edges_assignment": ["B","B","B","B","B","B","B","B","V","V","V","V"],
+	"edges_foldAngle": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	"edges_length": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.70710678118655, 0.70710678118655, 0.70710678118655, 0.70710678118655],
 	"faces_vertices": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],
+	"faces_edges": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],
 	"file_frames": [{
-		"frame_classes": ["creasePattern"],
+		"frame_classes": ["foldedState"],
 		"frame_parent": 0,
-		"inherit": true,
-		"vertices_coords": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]]
+		"frame_inherit": true,
+		"vertices_coords": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],
+		"edges_foldAngle": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],
+		"faceOrders": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]
 	}]
 };
 
