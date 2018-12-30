@@ -1,19 +1,21 @@
 // example
 // mouse hover over nodes, faces, edges, sectors to highlight them
-var cp = new CreasePattern().frogBase();
-var origami = new OrigamiPaper(cp);
+var origami = new RabbitEar.Origami(RabbitEar.bases.frog);
 
 origami.onMouseMove = function(event){
 	// update returns all components back to their original color
-	this.update();
+	origami.draw();
 	// now we set the colors of the components we want
 
 	// get all the nearest components to the cursor
-	var nearest = this.cp.nearest(event.point);
+	var nearest = origami.nearest(event);
+	console.log(nearest);
 
 	// get() gives us the SVG element that corresponds to the crease pattern data component
-	this.addClass(this.get(nearest.node), 'fill-dark-blue');
-	this.addClass(this.get(nearest.edge), 'stroke-yellow');
-	this.addClass(this.get(nearest.face), 'fill-red');
-	this.addClass(this.get(nearest.sector), 'fill-blue');
+	if(nearest.vertex) { origami.addClass(nearest.vertex, 'fill-yellow'); }
+	if(nearest.face) { origami.addClass(nearest.face, 'fill-red'); }
+	// origami.addClass(origami.get(nearest.node), 'fill-dark-blue');
+	// origami.addClass(origami.get(nearest.edge), 'stroke-yellow');
+	// origami.addClass(origami.get(nearest.face), 'fill-red');
+	// origami.addClass(origami.get(nearest.sector), 'fill-blue');
 }

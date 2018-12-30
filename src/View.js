@@ -75,6 +75,56 @@ export default function View(){
 	// 	}
 	// }
 
+	const nearest = function() {
+		// var point = gimme1Vec(a,b);
+		let point = Geom.Vector(...arguments);
+		// var face = this.faceContainingPoint(point);
+		let vertices = makeVertices();
+		let edges = makeEdges();
+		let faces = makeFaces();
+
+		let nearest = {};
+
+		nearest.vertex = vertices
+			.map((v,i) => ({v: v, i: i, d: point.distanceTo(v)}))
+			.sort((a,b) => a.d - b.d)
+			// .map(el => el.v)
+			.map(el => groups.vertices.childNodes[el.i])
+			.shift();
+
+		nearest.face = faces
+			.map((f,i) => ({face: f, i: i}))
+			.filter(el => el.face.contains([point.x, point.y]))
+			.map(el => groups.faces.childNodes[el.i])
+			.shift();
+
+		return nearest;
+
+		// var edgeArray = this.edges
+		// 	.map(function(edge:PlanarEdge){
+		// 		return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
+		// 	},this)
+		// 	.sort(function(a,b){
+		// 		return a.distance - b.distance;
+		// 	})[0];
+
+		// var node = (edge !== undefined) ? edge.nodes
+		// 	.slice().sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);}).shift() : undefined;
+
+		// var junction = (node != undefined) ? node.junction() : undefined;
+		// if(junction === undefined){
+		// 	var sortedJunction = this.junctions
+		// 		.map(function(el){ return {'junction':el, 'distance':point.distanceTo(el.origin)};},this)
+		// 		.sort(function(a,b){return a['distance']-b['distance'];})
+		// 		.shift();
+		// 	junction = (sortedJunction !== undefined) ? sortedJunction['junction'] : undefined
+		// }
+
+		// var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
+		// 	return el.contains(point);
+		// },this).shift() : undefined;
+	}
+
 	const updateViewBox = function(){
 		let vertices = _cp.vertices_coords;
 		if(frame > 0 &&
@@ -198,6 +248,26 @@ export default function View(){
 		return false;
 	}
 
+	const makeVertices = function() {
+		return _cp.vertices_coords == null
+			? []
+			: _cp.vertices_coords.map(v => Geom.Vector(v));
+	}
+	const makeEdges = function() {
+		return _cp.edges_vertices == null
+			? []
+			: _cp.edges_vertices
+				.map(e => e.map(ev => _cp.vertices_coords[ev]))
+				.map(e => Geom.Edge(e));
+	}
+	const makeFaces = function() {
+		return _cp.faces_vertices == null
+			? []
+			: _cp.faces_vertices
+				.map(f => f.map(fv => _cp.vertices_coords[fv]))
+				.map(f => Geom.Polygon(f));
+	}
+
 	const getFrames = function(){ return _cp.file_frames; }
 	const getFrame = function(index){ return _cp.file_frames[index]; }
 	const setFrame = function(index){
@@ -254,6 +324,10 @@ export default function View(){
 		}
 	}
 
+
+	function addClass(node, className) { SVG.addClass(node, className); }
+	function removeClass(node, className) { SVG.removeClass(node, className); }
+
 	// return Object.freeze({
 	return {
 		set cp(c){
@@ -263,25 +337,9 @@ export default function View(){
 		get cp(){
 			return _cp;
 		},
-		get vertices(){
-			return _cp.vertices_coords == null
-				? []
-				: _cp.vertices_coords.map(v => Geom.Vector(v));
-		},
-		get edges(){
-			return _cp.edges_vertices == null
-				? []
-				: _cp.edges_vertices
-					.map(e => e.map(ev => _cp.vertices_coords[ev]))
-					.map(e => Geom.Edge(e));
-		},
-		get faces(){
-			return _cp.faces_vertices == null
-				? []
-				: _cp.faces_vertices
-					.map(f => f.map(fv => _cp.vertices_coords[fv]))
-					.map(f => Geom.Polygon(f));
-		},
+		get vertices() { return makeVertices(); },
+		get edges() { return makeEdges(); },
+		get faces() { return makeFaces(); },
 		svg,
 		// zoom, translate, appendChild, removeChildren,
 		// load, download, setViewBox, getViewBox, size,
@@ -293,6 +351,9 @@ export default function View(){
 		// padding,
 		// style,
 
+		nearest,
+		addClass,
+		removeClass,
 
 		// setPadding,
 		draw,

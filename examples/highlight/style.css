@@ -57,6 +57,7 @@ svg{
 }
 
 .stroke-yellow{ stroke: hsl(43, 88%, 46%); }
+.fill-yellow{ fill: hsl(43, 88%, 46%); }
 .fill-red{ fill: hsl(14.4, 87%, 45%); }
 .fill-blue{ fill: hsl(205, 74%, 30%); }
 .fill-dark-blue{ fill: hsl(191, 82%, 14% ); }
