@@ -76,40 +76,28 @@ export default function View(){
 	// }
 
 	const nearest = function() {
-		// var point = gimme1Vec(a,b);
 		let point = Geom.Vector(...arguments);
-		// var face = this.faceContainingPoint(point);
-		let vertices = makeVertices();
-		let edges = makeEdges();
-		let faces = makeFaces();
-
 		let nearest = {};
 
-		nearest.vertex = vertices
-			.map((v,i) => ({v: v, i: i, d: point.distanceTo(v)}))
+		nearest.vertex = makeVertices()
+			.map((v,i) => ({v:v, i:i, d:point.distanceTo(v)}))
 			.sort((a,b) => a.d - b.d)
-			// .map(el => el.v)
 			.map(el => groups.vertices.childNodes[el.i])
 			.shift();
 
-		nearest.face = faces
+		nearest.crease = makeEdges()
+			.map((e,i) => ({e:e, i:i, d:e.nearestPoint(point).distanceTo(point)}))
+			.sort((a,b) => a.d - b.d)
+			.map(el => groups.creases.childNodes[el.i])
+			.shift();
+
+		nearest.face = makeFaces()
 			.map((f,i) => ({face: f, i: i}))
 			.filter(el => el.face.contains([point.x, point.y]))
 			.map(el => groups.faces.childNodes[el.i])
 			.shift();
 
 		return nearest;
-
-		// var edgeArray = this.edges
-		// 	.map(function(edge:PlanarEdge){
-		// 		return {edge:edge, distance:edge.nearestPoint(point).distanceTo(point)};
-		// 	},this)
-		// 	.sort(function(a,b){
-		// 		return a.distance - b.distance;
-		// 	})[0];
-
-		// var node = (edge !== undefined) ? edge.nodes
-		// 	.slice().sort(function(a,b){ return a.distanceTo(point) - b.distanceTo(point);}).shift() : undefined;
 
 		// var junction = (node != undefined) ? node.junction() : undefined;
 		// if(junction === undefined){
@@ -127,7 +115,7 @@ export default function View(){
 
 	const updateViewBox = function(){
 		let vertices = _cp.vertices_coords;
-		if(frame > 0 &&
+		if (frame > 0 &&
 		   _cp.file_frames[frame - 1] != undefined &&
 		   _cp.file_frames[frame - 1].vertices_coords != undefined){
 			vertices = _cp.file_frames[frame - 1].vertices_coords;
@@ -151,7 +139,7 @@ export default function View(){
 	const draw = function(){
 		let data = _cp;
 		// if a frame is set, copy data from that frame
-		if(frame > 0 && _cp.file_frames != null){
+		if (frame > 0 && _cp.file_frames != null){
 			if(_cp.file_frames[frame - 1] != undefined &&
 		   	   _cp.file_frames[frame - 1].vertices_coords != undefined){
 				data = Folder.flattenFrame(_cp, frame);
@@ -182,13 +170,19 @@ export default function View(){
 		 groups.faces,
 		 groups.creases,
 		 groups.vertices].forEach((layer) => SVG.removeChildren(layer));
+		// boundary
+		if (!isFoldedState()) {
+			let polygonPoints = Folder.get_boundary_vertices(_cp)
+				.map(v => _cp.vertices_coords[v])
+			SVG.polygon(polygonPoints, "boundary", null, groups.boundary);
+		}		
 		// vertices
-		if(!isFoldedState()){
+		if (!isFoldedState()) {
 			let vertexR = style.vertex.radius;
 			verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", null, groups.vertices));
 		}
 		// edges
-		if(!isFoldedState()){
+		if (!isFoldedState()) {
 			edges.forEach((e,i) =>
 				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], orientations[i], null, groups.creases)
 			);

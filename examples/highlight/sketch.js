@@ -1,6 +1,6 @@
 // example
 // mouse hover over nodes, faces, edges, sectors to highlight them
-var origami = new RabbitEar.Origami(RabbitEar.bases.frog);
+var origami = new RabbitEar.Origami(RabbitEar.bases.kite);
 
 origami.onMouseMove = function(event){
 	// update returns all components back to their original color
@@ -9,10 +9,10 @@ origami.onMouseMove = function(event){
 
 	// get all the nearest components to the cursor
 	var nearest = origami.nearest(event);
-	console.log(nearest);
+	// console.log(nearest);
 
-	// get() gives us the SVG element that corresponds to the crease pattern data component
 	if(nearest.vertex) { origami.addClass(nearest.vertex, 'fill-yellow'); }
+	if(nearest.crease) { origami.addClass(nearest.crease, 'stroke-yellow'); }
 	if(nearest.face) { origami.addClass(nearest.face, 'fill-red'); }
 	// origami.addClass(origami.get(nearest.node), 'fill-dark-blue');
 	// origami.addClass(origami.get(nearest.edge), 'stroke-yellow');

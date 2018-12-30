@@ -1134,6 +1134,40 @@ export function remove_boundary(fold){
 // }
 
 
+export function get_boundary_vertices(graph){
+	let edges_vertices_b = graph.edges_vertices.filter((ev,i) =>
+		graph.edges_assignment[i] == "B" ||
+		graph.edges_assignment[i] == "b"
+	).map(arr => arr.slice());
+	// the index of keys[i] is an edge_vertex from edges_vertices_b
+	//  the [] value is the indices in edges_vertices_b this i appears
+	let keys = Array.from(Array(graph.vertices_coords.length)).map(_ => [])
+	edges_vertices_b.forEach((ev,i) => ev.forEach(e => keys[e].push(i)))
+	let edgeIndex = 0;
+	let startVertex = edges_vertices_b[edgeIndex].shift();
+	let nextVertex = edges_vertices_b[edgeIndex].shift();
+	let vertices = [startVertex];
+	while (vertices[0] !== nextVertex) {
+		vertices.push(nextVertex);
+		let whichEdges = keys[nextVertex];
+		let thisKeyIndex = keys[nextVertex].indexOf(edgeIndex);
+		if (thisKeyIndex === -1) { return; }
+		keys[nextVertex].splice(thisKeyIndex, 1);
+		let nextEdgeAndIndex = keys[nextVertex]
+			.map((el,i) => ({key: el, i: i}))
+			.filter(el => el.key !== edgeIndex).shift();
+		if (nextEdgeAndIndex == null) { return; }
+		keys[nextVertex].splice(nextEdgeAndIndex.i, 1);
+		edgeIndex = nextEdgeAndIndex.key;
+		let lastEdgeIndex = edges_vertices_b[edgeIndex].indexOf(nextVertex);
+		if (lastEdgeIndex === -1) { return; }
+		edges_vertices_b[edgeIndex].splice(lastEdgeIndex, 1);
+		nextVertex = edges_vertices_b[edgeIndex].shift();
+	}
+	return vertices;
+}
+
+
 function validate(graph){
 
 	let foldKeys = {
