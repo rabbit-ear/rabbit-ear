@@ -547,27 +547,20 @@ function faces_containing_point(fold, point){
 		.map(f => f.i);
 }
 
-function fold_without_layering(fold, face){
+export function fold_without_layering(fold, face){
 	if (face == null){ face = 0; }
 	let faces_matrix = Graph.make_faces_matrix(fold, face);
-
 	let vertex_in_face = fold.vertices_coords.map((v,i) => {
 		for(var f = 0; f < fold.faces_vertices.length; f++){
 			if(fold.faces_vertices[f].includes(i)){ return f; }
 		}
 	});
-	console.log("vertex_in_face");
-	console.log(vertex_in_face);
-
 	let new_vertices_coords_cp = fold.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
 			Geom.input.clean_number(n)
 		)
 	)
-
-	console.log("new_vertices_coords_cp");
-	console.log(new_vertices_coords_cp);
-
+	fold.frame_classes = ["foldedState"];
 	fold.vertices_coords = new_vertices_coords_cp;
 	return fold;
 }

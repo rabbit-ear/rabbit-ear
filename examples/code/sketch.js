@@ -24,11 +24,8 @@ var consoleDiv = document.createElement("div");
 consoleDiv.id = "code-console";
 document.getElementById("code-container").appendChild(consoleDiv)
 
-var cp = new CreasePattern();
-var origami = new OrigamiPaper(document.getElementsByClassName("row")[0], cp);
-origami.setPadding(0.05);
+var origami = new RabbitEar.Origami(document.getElementsByClassName("row")[0]);
 
-//reflection
 // programmatically inspect object
 // inspecting an object and doing something with it
 function getAllMethods(object) {
@@ -36,28 +33,18 @@ function getAllMethods(object) {
 		return typeof object[property] == 'function';
 	});
 }
-console.log(getAllMethods(CreasePattern.prototype));
+// console.log(getAllMethods(CreasePattern.prototype));
 
-// var boundCrease = cp.crease.bind(cp)
-// window.creaseRay = cp.creaseRay;
-window.crease = cp.crease.bind(cp);
-
-// console.log(window.cp);
-// function creaseRay(ray) {
-// 		cp.creaseRay(ray);
-// }
-
-// console.log(Object.getOwnPropertyNames(CreasePattern));
+// window.crease = cp.crease.bind(cp);
 
 function resetCP(){
-	origami.cp.clear();
+	origami.cp = RabbitEar.bases.unitSquare;
 }
 
 origami.animate = function(event){ }
-origami.onResize = function(event){ }
-origami.onMouseMove = function(event){ }
-origami.onMouseDown = function(event){
-	var nearest = this.cp.nearest(event.point);
+origami.onMouseMove = function(mouse){ }
+origami.onMouseDown = function(mouse){
+	var nearest = origami.nearest(mouse);
 	console.log(nearest);
 	var keys = Object.keys(nearest);
 	var consoleString = "";

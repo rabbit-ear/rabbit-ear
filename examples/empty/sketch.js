@@ -1,14 +1,9 @@
-var origami = Origami();
+var origami = RabbitEar.Origami();
 
-// optional: respond to events
-origami.event.onMouseDown = function(event){
-}
-origami.event.onMouseUp = function(event){
-}
-origami.event.onMouseMove = function(event){
-	console.log(event);
-}
-origami.event.onMouseDidBeginDrag = function(event){
-}
-origami.event.animate = function(event){
-}
+// optional event handlers
+origami.onMouseDown = function(mouse) { }
+origami.onMouseUp = function(mouse) { }
+origami.onMouseMove = function(mouse) { }
+origami.onMouseLeave = function(mouse) { }
+origami.onMouseEnter = function(mouse) { }
+origami.animate = function(event) { }

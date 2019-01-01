@@ -7,6 +7,8 @@ html,body{
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	background-color:hsl(205, 74%, 30%);
+	color:white;
 }
 svg{
 /*	width:100vw;
@@ -44,7 +46,7 @@ svg.half{*/
 	stroke-linecap: round;
 }
 .node  { fill: none; stroke: none; }
-.face  { fill: none; stroke: none; }
+.face  { fill: rgba(255, 255, 255, 0.6); stroke: none; }
 .sector{ fill: none; stroke: none; }
 .mountain{
 	stroke: hsl(14.4, 87%, 45%);

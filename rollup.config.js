@@ -1,4 +1,6 @@
 // import minify from 'rollup-plugin-babel-minify';
+// import json from 'rollup-plugin-json';
+import string from 'rollup-plugin-string';
 
 module.exports = {
 	input: 'src/index.js',
@@ -14,4 +16,10 @@ module.exports = {
 	// 		comments: false
 	// 	} )
 	// ]
+	plugins: [
+		// json({}),
+		string({
+			include: '**/*.fold',  // allows .fold files to be imported as a module
+		})
+	]
 };

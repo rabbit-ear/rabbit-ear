@@ -1,6 +1,7 @@
 :root{
 	--crease-width: 0.01;
 	--crease-width-half: 0.005;
+	--crease-width-third: 0.00333;
 	--crease-width-double: 0.02;
 	--crease-width-oneandhalf: 0.015;
 }
@@ -40,13 +41,13 @@ svg{
 	stroke-dasharray:var(--crease-width-oneandhalf) var(--crease-width-double);
 }
 .mountain{
-	stroke: hsl(14.4, 87%, 45%);
+	stroke: hsl(205, 74%, 30%);
 	stroke-width: var(--crease-width);
 	stroke-linecap: round;
 }
 .mark{
-	stroke: #888;
-	stroke-width: var(--crease-width-half);
+	stroke: hsl(205, 74%, 30%);
+	stroke-width: var(--crease-width-third);
 	stroke-linecap: round;
 }
 .boundary{

@@ -322,6 +322,20 @@ export default function View(){
 	function addClass(node, className) { SVG.addClass(node, className); }
 	function removeClass(node, className) { SVG.removeClass(node, className); }
 
+
+	const clear = function() {
+		// todo: remove all creases from current CP, leave the boundary.
+		_cp = RabbitEar.bases.unitSquare;
+	}
+
+	const crease = function(a, b, c, d){
+		// Folder.
+	}
+
+	const fold = function(face){
+		return Folder.fold_without_layering(_cp, face);
+	}
+
 	// return Object.freeze({
 	return {
 		set cp(c){
@@ -348,6 +362,10 @@ export default function View(){
 		nearest,
 		addClass,
 		removeClass,
+
+		clear,
+		crease,
+		fold,
 
 		// setPadding,
 		draw,
