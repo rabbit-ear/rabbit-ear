@@ -3,7 +3,6 @@ import * as math from '../lib/geometry';
 import * as svg from '../lib/svg';
 import * as fold from './Folder';
 import * as noise from '../lib/perlin';
-
 import * as graph from './Graph';
 
 export { default as Origami } from './View';
@@ -13,7 +12,6 @@ export { svg };
 export { fold };
 export { noise };
 export { graph };
-
 
 // load bases
 import empty from './bases/empty.fold';
@@ -27,6 +25,7 @@ import frog from './bases/frog.fold';
 import test from './bases/test-three-fold.fold';
 import dodecagon from './bases/test-dodecagon.fold';
 import boundary from './bases/test-boundary.fold';
+import concave from './bases/test-concave.fold';
 const bases = {
 	empty: JSON.parse(empty),
 	square: JSON.parse(square),
@@ -38,7 +37,8 @@ const bases = {
 	// remove these for production
 	test: JSON.parse(test),
 	dodecagon: JSON.parse(dodecagon),
-	boundary: JSON.parse(boundary)
+	boundary: JSON.parse(boundary),
+	concave: JSON.parse(concave)
 };
 
 export { bases };

@@ -24,7 +24,7 @@ hull.touches.forEach(p => {
 });
 
 hull.rebuildHull = function(){
-	let convexHull = RabbitEar.math.core.convex_hull(hull.touches.map(t => t.pos));
+	let convexHull = RabbitEar.math.core.geometry.convex_hull(hull.touches.map(t => t.pos));
 	let pointsString = convexHull.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
 	hull.polygon.setAttribute("points", pointsString);
 }

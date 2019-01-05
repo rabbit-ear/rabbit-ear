@@ -36,7 +36,7 @@ xing.redraw = function(){
 	var intersections = [];
 	for(var i = 0; i < xing.NUM_LINES-1; i++){
 		for(var j = i+1; j < xing.NUM_LINES; j++){
-			let inter = RabbitEar.math.intersection.edge_edge(
+			let inter = RabbitEar.math.core.intersection.edge_edge(
 				xing.touches[i*2].pos, xing.touches[i*2+1].pos,
 				xing.touches[j*2].pos, xing.touches[j*2+1].pos
 			);

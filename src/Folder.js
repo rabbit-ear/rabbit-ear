@@ -136,7 +136,7 @@ var find_collinear_face_edges = function(edge, face_vertices, vertices_coords){
 		// as an edge array index, which == face vertex array between i, i+1
 		let i = face_edge_geometry
 			.map((edgeVerts, edgeI) => ({index:edgeI, edge:edgeVerts}))
-			.filter((e) => Geom.intersection.point_on_edge(e.edge[0], e.edge[1], endPt))
+			.filter((e) => Geom.core.intersection.point_on_edge(e.edge[0], e.edge[1], endPt))
 			.shift()
 			.index;
 		return [face_vertices[i], face_vertices[(i+1)%face_vertices.length]]
@@ -156,7 +156,7 @@ var clip_line_in_faces = function({vertices_coords, faces_vertices},
 		.map(va => va.map(v => vertices_coords[v]))
 		.map((poly,i) => ({
 			"face":i,
-			"clip":Geom.intersection.clip_line_in_poly(poly, linePoint, lineVector)
+			"clip":Geom.core.intersection.clip_line_in_poly(poly, linePoint, lineVector)
 		}))
 		.filter((obj) => obj.clip != undefined)
 		.reduce((prev, curr) => {
@@ -272,7 +272,7 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_faces, f
 		faces_vertices.forEach((vertices_index, idx2) => {
 			if (!marked[idx2] && ((faces_layer[idx2] > faces_layer[idx1]))) {
 		if (faces_points[idx1] !== undefined && faces_points[idx2] !== undefined) {
-		  if (Geom.intersection.polygons_overlap(faces_points[idx1], faces_points[idx2])) {
+		  if (Geom.core.intersection.polygons_overlap(faces_points[idx1], faces_points[idx2])) {
 			marked[idx2] = true;
 			to_process.push(idx2);
 		  }
@@ -387,7 +387,7 @@ var top_face_under_point = function(
 	let top_fi = faces_vertices.map(
 		(vertices_index, fi) => {
 			let points = vertices_index.map(i => vertices_coords[i]);
-			return Geom.intersection.point_in_polygon(points, point) ? fi : -1;
+			return Geom.core.intersection.point_in_polygon(points, point) ? fi : -1;
 		}).reduce((acc, fi) => {
 			return ((acc === -1) || 
 							((fi !== -1) && (faces_layer[fi] > faces_layer[acc]))
@@ -418,7 +418,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	let side = [0,1]
 		.map(s => new_face_map[tap][s] == undefined ? [] : new_face_map[tap][s]) 
 		.map(points => points.map(f => new_vertices_coords[f]))
-		.map(f => Geom.intersection.point_in_polygon(f, point))
+		.map(f => Geom.core.intersection.point_in_polygon(f, point))
 		.indexOf(true)
 	// make face-adjacent faces on only a subset, the side we clicked on
 	let moving_side = new_face_map.map(f => f[side]);
@@ -465,7 +465,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
-			Geom.input.clean_number(n)
+			Geom.core.clean_number(n)
 		)
 	)
 
@@ -543,7 +543,7 @@ function remove_flat_creases(fold){
 function faces_containing_point(fold, point){
 	return fold.faces_vertices
 		.map((fv,i) => ({face:fv.map(v => fold.vertices_coords[v]),i:i}))
-		.filter(f => Geom.intersection.point_in_polygon(f.face, point))
+		.filter(f => Geom.core.intersection.point_in_polygon(f.face, point))
 		.map(f => f.i);
 }
 
@@ -557,7 +557,7 @@ export function fold_without_layering(fold, face){
 	});
 	let new_vertices_coords_cp = fold.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
-			Geom.input.clean_number(n)
+			Geom.core.clean_number(n)
 		)
 	)
 	fold.frame_classes = ["foldedState"];
@@ -625,7 +625,7 @@ var clip_line_in_faces = function({vertices_coords, faces_vertices},
 		.map(va => va.map(v => vertices_coords[v]))
 		.map((poly,i) => ({
 			"face":i,
-			"clip":Geom.intersection.clip_line_in_poly(poly, linePoint, lineVector)
+			"clip":Geom.core.intersection.clip_line_in_poly(poly, linePoint, lineVector)
 		}))
 		.filter((obj) => obj.clip != undefined)
 		.reduce((prev, curr) => {
@@ -664,7 +664,7 @@ export function make_folded_frame(fold, parent_frame = 0, root_face){
 	// let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix2_inverse(n));
 	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
-			.map((n) => Geom.input.clean_number(n, 14))
+			.map((n) => Geom.core.clean_number(n, 14))
 	)
 	return {
 		"frame_classes": ["foldedState"],
@@ -690,7 +690,7 @@ export function make_unfolded_frame(fold, parent_frame = 0, root_face){
 	// let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix2_inverse(n));
 	let new_vertices_coords = fold.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
-			.map((n) => Geom.input.clean_number(n, 14))
+			.map((n) => Geom.core.clean_number(n, 14))
 	)
 	return {
 		"frame_classes": ["creasePattern"],
@@ -730,7 +730,7 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 	let faces_matrix = creased["re:faces_matrix"];
 	let new_vertices_coords = creased.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, Geom.core.make_matrix2_inverse(faces_matrix[migration.faces[vertex_in_face[i]]]))
-			.map((n) => Geom.input.clean_number(n))
+			.map((n) => Geom.core.clean_number(n))
 	)
 	//////////////////////////////////
 	// let unfolded_frame = make_unfolded_frame(creased, 0, root_face);
@@ -796,11 +796,11 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 	// 1. find all edge-crossings and vertex-crossings
 	let vertices_length = fold_new.vertices_coords.length;
 	let vertices_intersections = fold_new.vertices_coords
-		.map(v => Geom.intersection.point_on_line(linePoint, lineVector, v));
+		.map(v => Geom.core.intersection.point_on_line(linePoint, lineVector, v));
 	let edges_intersections = fold_new.edges_vertices
 		.map(ev => ev.map(v => fold_new.vertices_coords[v]))
 		.map((edge, i) => {
-			let intersection = Geom.intersection.line_edge_exclusive(linePoint, lineVector, edge[0], edge[1]);
+			let intersection = Geom.core.intersection.line_edge_exclusive(linePoint, lineVector, edge[0], edge[1]);
 			let new_index = (intersection == null ? vertices_length : vertices_length++);
 			return {
 				point: intersection,
@@ -1042,7 +1042,7 @@ export function clip_line(fold, linePoint, lineVector){
 
 	return [lineVector, [-lineVector[0], -lineVector[1]]]
 		.map(lv => edges
-			.map(e => Geom.intersection.ray_edge(linePoint, lv, e[0], e[1]))
+			.map(e => Geom.core.intersection.ray_edge(linePoint, lv, e[0], e[1]))
 			.filter(i => i != null)
 			.map(i => ({intersection:i, length:len(i, linePoint)}))
 			.sort((a, b) => a.length - b.length)

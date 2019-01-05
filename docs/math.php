@@ -59,7 +59,7 @@
 
 	<div id="canvas-clip-line"></div>
 
-	<div id="canvas-clip-poly"></div>
+	<div id="canvas-split-poly"></div>
 
 	<div class="centered">
 		<pre><code><f>let</f> clipped <key>=</key> polygon.<f>clipEdge</f>( <f>Edge</f>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
@@ -146,7 +146,7 @@
 <script type="text/javascript" src="../tests/vector.js"></script>
 <script type="text/javascript" src="../tests/clipping.js"></script>
 <script type="text/javascript" src="../tests/clip_line.js"></script>
-<script type="text/javascript" src="../tests/clip_poly.js"></script>
+<script type="text/javascript" src="../tests/split_poly.js"></script>
 <script type="text/javascript" src="../tests/reflection.js"></script>
 <script type="text/javascript" src="../tests/convex_hull.js"></script>
 <script type="text/javascript" src="../tests/polygon_contains.js"></script>

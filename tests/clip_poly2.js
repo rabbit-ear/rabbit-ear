@@ -43,7 +43,7 @@ clipPoly2.redraw = function(){
 	let vec = [clipPoly2.touches[1].pos[0] - clipPoly2.touches[0].pos[0], clipPoly2.touches[1].pos[1] - clipPoly2.touches[0].pos[1]];
 
 	RabbitEar.svg.removeChildren(clipPoly2.lineLayer);
-	let polys = RabbitEar.math.core.split_convex_polygon(clipPoly2.hull.points, clipPoly2.touches[0].pos, vec);
+	let polys = RabbitEar.math.core.geometry.split_convex_polygon(clipPoly2.hull.points, clipPoly2.touches[0].pos, vec);
 	let colors = ["#195783", "#ecb233"];
 	if(polys != null){
 		polys.forEach((p,i)=> {

@@ -5,15 +5,24 @@
 	--byrne-yellow: #ecb233;
 }
 
+/* 
+#145685 (20, 86, 133) blue
+#edb31c (237, 179, 28) yellow
+#e64e1e (230, 78, 30) red
+*/
+
 html,body{
 	margin:0;
+	height: 100%;
 	display:flex;
 	justify-content: center;
+	overflow: hidden;
 }
 svg{
-	width:90vw;
-	height:90vh;
-	margin: 5vmin;
+	width:100vw;
+	height:100vh;
+	/*margin: 5vmin;*/
+	touch-action: none;
 }
 .mountain, .valley, .boundary, .mark {
 	stroke:black;

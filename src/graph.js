@@ -763,14 +763,14 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, cr
 	// at_index: where in the polygon this occurs
 	let vertices_intersections = face_vertices
 		.map(fv => vertices_coords[fv])
-		.map(v => Geom.intersection.point_on_line(linePoint, lineVector, v) ? v : null)
+		.map(v => Geom.core.intersection.point_on_line(linePoint, lineVector, v) ? v : null)
 		.map((point, i) => ({ point: point, at_index: i }))
 		.filter(el => el.point != null);
 
 	let edges_intersections = face_edges
 		.map(ei => edges_vertices[ei])
 		.map(edge => edge.map(e => vertices_coords[e]))
-		.map(edge => Geom.intersection.line_edge_exclusive(linePoint, lineVector, edge[0], edge[1]))
+		.map(edge => Geom.core.intersection.line_edge_exclusive(linePoint, lineVector, edge[0], edge[1]))
 		.map((point, i) => ({point: point, at_index: i, at_real_index: face_edges[i] }))
 		.filter(el => el.point != null);
 

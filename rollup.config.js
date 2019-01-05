@@ -10,14 +10,12 @@ module.exports = {
 		format: 'umd',
 		banner: "/* Rabbit Ear v2 (c) Robby Kraft, MIT License */"
 	},
-	// plugins: [
-	// 	minify( {
-	// 		bannerNewLine: true,
-	// 		comments: false
-	// 	} )
-	// ]
 	plugins: [
 		// json({}),
+		// minify( {
+		// 	bannerNewLine: true,
+		// 	comments: false
+		// } )
 		string({
 			include: '**/*.fold',  // allows .fold files to be imported as a module
 		})

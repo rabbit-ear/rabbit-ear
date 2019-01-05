@@ -52,7 +52,7 @@ bisect.update = function(){
 			true
 		);
 	});
-	let bisects = RabbitEar.math.core.bisect_vectors(vecs[0], vecs[1]);
+	let bisects = RabbitEar.math.core.algebra.bisect_vectors(vecs[0], vecs[1]);
 	bisects.forEach((vec,i) => {
 		bisect.bisectLines[i].setAttribute("x1", centerX + vec[0] * (r1*1.05) );
 		bisect.bisectLines[i].setAttribute("y1", centerY + vec[1] * (r1*1.05) );

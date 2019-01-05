@@ -4,7 +4,7 @@ clipping.svg.appendChild(drawGroup);
 
 clipping.points = [[Math.random(),Math.random()], [Math.random(),Math.random()]];
 clipping.reset = function(){
-	clipping.manyEdgesCP = RabbitEar.fold.clone(RabbitEar.bases.unitSquare);
+	clipping.manyEdgesCP = RabbitEar.fold.clone(RabbitEar.bases.square);
 	clipping.newEdges = [];
 	for(var i = 0; i < 10; i++){
 		let x = Math.random();

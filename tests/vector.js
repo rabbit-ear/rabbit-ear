@@ -1,7 +1,7 @@
 let vecSketchCallback;
 
-let vec = RabbitEar.svg.Image("canvas-vector", 500, 500, function(){
-	vec.setViewBox(-250,-250,500,500);
+let vec = RabbitEar.svg.Image("canvas-vector", window.innerWidth, window.innerHeight, function(){
+	vec.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
 	vec.reset();
 	vec.update();
 });
@@ -11,6 +11,7 @@ vec.svg.appendChild(vec.drawLayer);
 vec.svg.appendChild(vec.dotLayer);
 
 vec.reset = function(){
+	vec.removeChildren(vec.dotLayer);
 	var randAngle = Math.random() * Math.PI * 2;
 	vec.touches = [
 		{pos: [Math.cos(randAngle) * 220,
@@ -139,3 +140,7 @@ vec.onMouseMove = function(mouse){
 		vec.update();
 	}
 }
+
+vec.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
+vec.reset();
+vec.update();
