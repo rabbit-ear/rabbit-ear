@@ -7,8 +7,8 @@ axiom2.points = [[Math.random(),Math.random()], [Math.random(),Math.random()]];
 axiom2.redraw = function(){
 	RabbitEar.svg.removeChildren(axiom2.drawGroup);
 	axiom2.points.forEach(p => RabbitEar.svg.circle(p[0], p[1], 0.015, "touch", null, axiom2.drawGroup));
-	let crease = RabbitEar.fold.axiom2(RabbitEar.bases.unitSquare, axiom2.points[0], axiom2.points[1]);
-	let newCP = RabbitEar.fold.clip_edges_with_line(RabbitEar.fold.clone(RabbitEar.bases.unitSquare), crease[0], crease[1]);
+	let crease = RabbitEar.fold.axiom2(RabbitEar.bases.square, axiom2.points[0], axiom2.points[1]);
+	let newCP = RabbitEar.fold.clip_edges_with_line(RabbitEar.fold.clone(RabbitEar.bases.square), crease[0], crease[1]);
 	newCP.edges_assignment[newCP.edges_assignment.length-1] = "V";
 	axiom2.cp = newCP;
 }

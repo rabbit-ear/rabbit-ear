@@ -9,7 +9,7 @@ creaseEdges.reset = function(){
 		[Math.random() * 0.5, Math.random() * 0.5 + 0.5],
 		[Math.random() * 0.5 + 0.5, Math.random() * 0.5]
 	];
-	let cp = RabbitEar.bases.unitSquare;
+	let cp = RabbitEar.bases.square;
 	let once = RabbitEar.fold.axiom1(cp, e0[0], e0[1]);
 	let result = RabbitEar.fold.axiom1(once, e1[0], e1[1]);
 	creaseEdges.cp = result;

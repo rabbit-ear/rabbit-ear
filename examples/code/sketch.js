@@ -38,7 +38,7 @@ function getAllMethods(object) {
 // window.crease = cp.crease.bind(cp);
 
 function resetCP(){
-	origami.cp = RabbitEar.bases.unitSquare;
+	origami.cp = RabbitEar.bases.square;
 }
 
 origami.animate = function(event){ }

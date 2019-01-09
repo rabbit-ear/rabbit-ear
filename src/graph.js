@@ -161,7 +161,7 @@ export function get_vertex_adjacent_edges(graph, vertex){
  */
 export function get_vertex_adjacent_vertices(graph, vertex){
 	let edges = graph.edges_vertices
-		.map((edge,index)=> ({edge:edge, index:index}));
+		.map((edge,index) => ({edge:edge, index:index}));
 	let a = edges
 		.filter(obj => obj.edge[0] === vertex)
 		.map(obj => obj.edge[1])

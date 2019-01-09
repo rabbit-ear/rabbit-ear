@@ -9,7 +9,7 @@ axiom1.redraw = function(){
 	axiom1.points.forEach(p => RabbitEar.svg.circle(p[0], p[1], 0.015, "touch", null, axiom1.drawGroup));
 	let linePoint = axiom1.points[0];
 	let lineVector = [0,1].map(i => axiom1.points[1][i] - axiom1.points[0][i]);
-	let newCP = RabbitEar.fold.clip_edges_with_line(RabbitEar.fold.clone(RabbitEar.bases.unitSquare), linePoint, lineVector);
+	let newCP = RabbitEar.fold.clip_edges_with_line(RabbitEar.fold.clone(RabbitEar.bases.square), linePoint, lineVector);
 	newCP.edges_assignment[newCP.edges_assignment.length-1] = "V";
 	axiom1.cp = newCP;
 }

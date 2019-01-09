@@ -16,7 +16,6 @@ const CREASE_DIR = {
 };
 
 import * as Geom from '../lib/geometry';
-
 import * as SVG from "../lib/svg";
 import * as Folder from "./Folder"
 

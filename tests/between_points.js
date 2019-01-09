@@ -9,7 +9,7 @@ betweenPoints.redraw = function(){
 	// betweenPoints.points.forEach(p => RabbitEar.svg.circle(p[0], p[1], 0.015, "touch", null, drawGroup));
 
 	betweenPoints.cp.edges_assignment.push("V");
-	betweenPoints.cp = RabbitEar.fold.betweenPoints(RabbitEar.bases.unitSquare, betweenPoints.points[0], betweenPoints.points[1]);
+	betweenPoints.cp = RabbitEar.fold.betweenPoints(RabbitEar.bases.square, betweenPoints.points[0], betweenPoints.points[1]);
 }
 betweenPoints.redraw();
 
