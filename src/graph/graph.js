@@ -18,40 +18,17 @@
 //  "leaf": a node is a leaf if it is connected to only 1 edge, degree 1
 //  "pendant": an edge incident with a leaf node
 
-// {
-// 	"vertices_coords": [],
-// 	"vertices_vertices": [],
-// 	"vertices_faces": [],
-// 	"edges_vertices": [],
-// 	"edges_faces": [],
-// 	"edges_assignment": [],
-// 	"edges_foldAngle": [],
-// 	"edges_length": [],
-// 	"faces_vertices": [],
-// 	"faces_edges": [],
-// 	"edgeOrders": [],
-// 	"faceOrders": [],
-// };
-
 /** A graph is a set of nodes and edges connecting them */
 export default function Graph() {
+	let _m = {}; // the data model. fold file format spec
+
 	let params = Array.from(arguments);
-
-	let _m = {}; // the fold file
-
-	// let vertices_coords = [];
-	// let vertices_vertices = [];
-	// let vertices_faces = [];
-	// let edges_vertices = [];
-	// let edges_faces = [];
-	// let edges_assignment = [];
-	// let edges_foldAngle = [];
-	// let edges_length = [];
-	// let faces_vertices = [];
-	// let faces_edges = [];
-	// let edgeOrders = [];
-	// let faceOrders = [];
-	// let file_frames = [];
+	let paramsObj = params.filter(el => typeof el === "object" && el !== null);
+	if (paramsObj.length > 0) {
+		// expecting the user to have passed in a fold_file.
+		// no way of filtering multiple objects right now.
+		_m = JSON.parse(JSON.stringify(paramsObj.shift()));
+	}
 
 	let _meta_keys = ["file_spec", "file_creator", "file_author", "file_classes",
 		"frame_title", "frame_attributes", "frame_classes"];
@@ -68,12 +45,8 @@ export default function Graph() {
 	let _geometry_dict = {
 		"vertices": ["coords", "vertices", "faces"],
 		"edges": ["vertices", "faces", "assignment", "foldAngle", "length"],
-		"faces": ["vertices", "edges"],
+		"faces": ["vertices", "edges"]
 	};
-
-	// these two are the exception:
-	//   "edgeOrders": []
-	//   "faceOrders": []
 
 	// todo: callback hooks for when certain properties of the data structure have been altered
 	let didChange = undefined; // callback function
@@ -83,7 +56,7 @@ export default function Graph() {
 	///////////////////////////////////////////////
 
 	// this contains keys, like "vertices_vertices", which require rebuilding
-	let dirty = {
+	let unclean = {
 		"vertices_coords": [],
 		"vertices_vertices": [],
 		"vertices_faces": [],
@@ -106,7 +79,11 @@ export default function Graph() {
 	const newVertex = function(x, y) {
 		if (_m.vertices_coords == null) { _m.vertices_coords = []; }
 		_m.vertices_coords.push([x,y]);
-		return _m.vertices_coords.length-1;
+		let new_index = _m.vertices_coords.length-1;
+		// mark unclean data
+		unclean.vertices_vertices[new_index] = true;
+		unclean.vertices_faces[new_index] = true;
+		return new_index;
 	}
 
 	/** Create an edge and add it to the graph
@@ -118,10 +95,17 @@ export default function Graph() {
 	const newEdge = function(node1, node2) {
 		if (_m.edges_vertices == null) { _m.edges_vertices = []; }
 		_m.edges_vertices.push([node1, node2]);
-		return edge;
+		let new_index = _m.edges_vertices.length-1;
+		// mark unclean data
+		unclean.edges_vertices[new_index] = true;
+		unclean.edges_faces[new_index] = true;
+		unclean.edges_assignment[new_index] = true;
+		unclean.edges_foldAngle[new_index] = true;
+		unclean.edges_length[new_index] = true;
+		return new_index;
 	}
 
-	const validate = function(){
+	const validate = function() {
 		let arraysLengthTest = Object.keys(_geometry_dict)
 			.map(key => ({prefix: key, suffixes: _geometry_dict[key]}))
 			.map(el => el.suffixes
@@ -146,7 +130,6 @@ export default function Graph() {
 					, true)
 				).reduce((a,b) => a && b, true)
 			).reduce((a,b) => a && b, true);
-
 		return arraysLengthTest && arraysIndexTest;
 	}
 
@@ -155,7 +138,7 @@ export default function Graph() {
 	 *
 	 * @returns {number} number of vertices
 	 */
-	const verticesCount = function(){
+	const verticesCount = function() {
 		return Math.max(...(
 			[[], _m.vertices_coords, _m.vertices_faces, _m.vertices_vertices]
 			.filter(el => el != null)
@@ -166,7 +149,7 @@ export default function Graph() {
 	 *
 	 * @returns {number} number of edges
 	 */
-	const edgesCount = function(){
+	const edgesCount = function() {
 		return Math.max(...(
 			[[], _m.edges_vertices, _m.edges_faces]
 			.filter(el => el != null)
@@ -178,7 +161,7 @@ export default function Graph() {
 	 *
 	 * @returns {number} number of faces
 	 */
-	const facesCount = function(){
+	const facesCount = function() {
 		return Math.max(...(
 			[[], _m.faces_vertices, _m.faces_edges]
 			.filter(el => el != null)
@@ -187,8 +170,7 @@ export default function Graph() {
 	}
 
 	const load = function(fold_file){
-		clear();
-		Object.assign(_m, fold_file);
+		_m = JSON.parse(JSON.stringify(fold_file));
 	}
 
 	const foldFile = function() {
@@ -229,6 +211,64 @@ export default function Graph() {
 		return _edges.splice(index, 1);
 		// edgeArrayDidChange();
 		// return new GraphClean(undefined, edgesLength - edges.length);
+	}
+
+	const addVertexOnEdge = function(x, y, oldEdgeIndex) {
+		if (edgesCount() < oldEdgeIndex) { return; }
+
+		// "vertices_coords",
+		// "vertices_vertices",
+		// "vertices_faces",
+		// "edges_vertices",
+		// "edges_faces",
+		// "edges_assignment",
+		// "edges_foldAngle",
+		// "edges_length",
+		// "faces_vertices",
+		// "faces_edges",
+		// "edgeOrders",
+		// "faceOrders",
+
+		let new_vertex_index = newVertex(x, y);
+		let old_edge_vertices = _m.edges_vertices[oldEdgeIndex];
+
+		// new vertex entries
+		if (_m.vertices_vertices == null) { _m.vertices_vertices = []; }
+		_m.vertices_vertices[new_vertex_index] = [...old_edge_vertices];
+		if (_m.edges_faces != null && _m.edges_faces[oldEdgeIndex] != null) {
+			_m.vertices_faces[new_vertex_index] = [..._m.edges_faces[oldEdgeIndex]];
+		}
+		// new edges entries
+		let new_edges = [
+			{ edges_vertices: [old_edge_vertices[0], new_vertex_index] },
+			{ edges_vertices: [new_vertex_index, old_edge_vertices[1]] }
+		];
+		["edges_faces", "edges_assignment", "edges_foldAngle"]
+			.filter(key => _m[key] != null && _m[key][oldEdgeIndex] != null)
+			.forEach(key => {
+				// todo, copy these arrays
+				new_edges[0][key] = _m[key][oldEdgeIndex];
+				new_edges[1][key] = _m[key][oldEdgeIndex];
+			});
+		// recalculate
+		// "edges_length"
+
+		// let diff = {
+		// 	edges:[
+		// 		old_index: oldEdgeIndex,
+		// 		new_indices: [edges_vertices.length, edges_vertices.length+1]
+		// 	]
+		// };
+		let new_edge_index = _m.edges_vertices.length;
+		new_edges.forEach((edge,i) => {
+			Object.keys(edge).forEach(key => _m[key][new_edge_index+i] = edge[key])
+		});
+		let incident_faces = _m.edges_faces[old_index];
+		let face_edges = _m.faces_edges
+		// rebuild faces edges. walk the new faces_edges to generate new faces_vertices
+		// done
+		// maybe
+
 	}
 
 	/** Searches and removes any edges connecting the two nodes supplied in the arguments
