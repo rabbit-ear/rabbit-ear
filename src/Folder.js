@@ -29,7 +29,7 @@
 // file_classes // arr of str
 // file_frames //
 
-import * as Graph from './Graph'
+import * as Graph from './graph'
 import * as Geom from '../lib/geometry'
 // import * as Geom from './math/core'
 // import * as Rules from './math/rules'

@@ -83,19 +83,22 @@ export default function View(){
 		nearest.vertex = makeVertices()
 			.map((v,i) => ({v:v, i:i, d:point.distanceTo(v)}))
 			.sort((a,b) => a.d - b.d)
-			.map(el => groups.vertices.childNodes[el.i])
+			// .map(el => groups.vertices.childNodes[el.i])
+			.map(el => el.i)
 			.shift();
 
 		nearest.crease = makeEdges()
 			.map((e,i) => ({e:e, i:i, d:e.nearestPoint(point).distanceTo(point)}))
 			.sort((a,b) => a.d - b.d)
-			.map(el => groups.creases.childNodes[el.i])
+			// .map(el => groups.creases.childNodes[el.i])
+			.map(el => el.i)
 			.shift();
 
 		nearest.face = makeFaces()
 			.map((f,i) => ({face: f, i: i}))
 			.filter(el => el.face.contains([point.x, point.y]))
-			.map(el => groups.faces.childNodes[el.i])
+			// .map(el => groups.faces.childNodes[el.i])
+			.map(el => el.i)
 			.shift();
 
 		return nearest;
@@ -287,6 +290,8 @@ export default function View(){
 		_mouse.position = SVG.convertToViewBox(svg, clientX, clientY);
 		_mouse.x = _mouse.position[0];
 		_mouse.y = _mouse.position[1];
+		_mouse[0] = _mouse.position[0];
+		_mouse[1] = _mouse.position[1];
 	}
 
 	function updateHandlers(){
