@@ -19,7 +19,7 @@
 //  "pendant": an edge incident with a leaf node
 
 /** A graph is a set of nodes and edges connecting them */
-export default function Graph() {
+export default function Model() {
 	let _m = {}; // the data model. fold file format spec
 
 	let params = Array.from(arguments);

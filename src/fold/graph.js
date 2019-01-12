@@ -1,45 +1,30 @@
-// Graph.js - operations on a graph with vertices, edges, and faces
-// all naming follows the .FOLD file specification github.com/edemaine/fold
+// graph manipulators. follows the .FOLD file specification
+// github.com/edemaine/fold version 1.1
 // MIT open source license, Robby Kraft
-//
-//  "adjacent": 2 vertices are adjacent when they are connected by an edge
-//              edges are adjacent when they are both connected to the same vertex
-//  "similar": edges are similar if they contain the same 2 vertices, even if in a different order
-//  "incident": an edge is incident to its two vertices
-//  "endpoints": a vertex is an endpoint of its edge
-//  "new"/"add": functions like "newNode" vs. "addNode", easy way to remember is that the "new" function will use the javascript "new" object initializer. Objects are created in the "new" functions.
-//  "size" the size of a graph is the number of edges
-//  "cycle" a set of edges that form a closed circut, it's possible to walk down a cycle and end up where you began without visiting the same edge twice.
-//  "circuit" a circuit is a cycle except that it's allowed to visit the same vertex more than once.
-//  "multigraph": not this graph. but the special case where circular and duplicate edges are allowed
-//  "degree": the degree of a vertex is how many edges are incident to it
-//  "isolated": a vertex is isolated if it is connected to 0 edges, degree 0
-//  "leaf": a vertex is a leaf if it is connected to only 1 edge, degree 1
-//  "pendant": an edge incident with a leaf vertex
-//
-//  built to .FOLD v.1.1
 
-import * as Geom from '../lib/geometry'
-
-
-export function addVertexOnEdge(_m, x, y, oldEdgeIndex) {
-	if (edgesCount() < oldEdgeIndex) { return; }
+/**
+ * appends a vertex along an edge. causing a rebuild on all arrays
+ * including edges and faces.
+ * requires edges_vertices to be defined
+ */
+export const addVertexOnEdge = function(graph, x, y, oldEdgeIndex) {
+	if (graph.edges_vertices.length < oldEdgeIndex) { return; }
 	// new vertex entries
 	// vertices_coords
 	let new_vertex_index = newVertex(x, y);
-	let incident_vertices = _m.edges_vertices[old_edge_index];
+	let incident_vertices = graph.edges_vertices[old_edge_index];
 	// vertices_vertices, new vertex
-	if (_m.vertices_vertices == null) { _m.vertices_vertices = []; }
-	_m.vertices_vertices[new_vertex_index] = [...incident_vertices];
+	if (graph.vertices_vertices == null) { graph.vertices_vertices = []; }
+	graph.vertices_vertices[new_vertex_index] = [...incident_vertices];
 	// vertices_vertices, update incident vertices with new vertex
 	incident_vertices.forEach((v,i,arr) => {
 		let otherV = arr[(i+1)%arr.length];
-		let otherI = _m.vertices_vertices[v].indexOf(otherV);
-		_m.vertices_vertices[v][otherI] = new_vertex_index;
+		let otherI = graph.vertices_vertices[v].indexOf(otherV);
+		graph.vertices_vertices[v][otherI] = new_vertex_index;
 	})
 	// vertices_faces
-	if (_m.edges_faces != null && _m.edges_faces[old_edge_index] != null) {
-		_m.vertices_faces[new_vertex_index] = [..._m.edges_faces[old_edge_index]];
+	if (graph.edges_faces != null && graph.edges_faces[old_edge_index] != null) {
+		graph.vertices_faces[new_vertex_index] = [...graph.edges_faces[old_edge_index]];
 	}
 	// new edges entries
 	// set edges_vertices
@@ -48,14 +33,14 @@ export function addVertexOnEdge(_m, x, y, oldEdgeIndex) {
 		{ edges_vertices: [new_vertex_index, incident_vertices[1]] }
 	];
 	// set new index in edges_ arrays
-	new_edges.forEach((e,i) => e.i = _m.edges_vertices.length+i);
+	new_edges.forEach((e,i) => e.i = graph.edges_vertices.length+i);
 	// copy over relevant data if it exists
 	["edges_faces", "edges_assignment", "edges_foldAngle"]
-		.filter(key => _m[key] != null && _m[key][old_edge_index] != null)
+		.filter(key => graph[key] != null && graph[key][old_edge_index] != null)
 		.forEach(key => {
 			// todo, copy these arrays
-			new_edges[0][key] = _m[key][old_edge_index];
-			new_edges[1][key] = _m[key][old_edge_index];
+			new_edges[0][key] = graph[key][old_edge_index];
+			new_edges[1][key] = graph[key][old_edge_index];
 		});
 
 	// todo: recalculate "edges_length"
@@ -64,13 +49,13 @@ export function addVertexOnEdge(_m, x, y, oldEdgeIndex) {
 	new_edges.forEach((edge,i) =>
 		Object.keys(edge)
 			.filter(key => key !== "i")
-			.forEach(key => _m[key][edge.i] = edge[key])
+			.forEach(key => graph[key][edge.i] = edge[key])
 	);
-	let incident_faces_indices = _m.edges_faces[old_edge_index];
-	let face_edges = _m.faces_edges
+	let incident_faces_indices = graph.edges_faces[old_edge_index];
+	let face_edges = graph.faces_edges
 
-	let incident_faces_edges = incident_faces_indices.map(i => _m.faces_edges[i]);
-	let incident_faces_vertices = incident_faces_indices.map(i => _m.faces_vertices[i]);
+	let incident_faces_edges = incident_faces_indices.map(i => graph.faces_edges[i]);
+	let incident_faces_vertices = incident_faces_indices.map(i => graph.faces_vertices[i]);
 
 	// faces_vertices
 	// because Javascript, this is a pointer and modifies the master graph
@@ -97,7 +82,7 @@ export function addVertexOnEdge(_m, x, y, oldEdgeIndex) {
 			[prevEdge, old_edge_index],
 			[old_edge_index, nextEdge]
 		].map(pairs => {
-			let verts = pairs.map(e => _m.edges_vertices[e])
+			let verts = pairs.map(e => graph.edges_vertices[e])
 			return verts[0][0] === verts[1][0] || verts[0][0] === verts[1][1]
 				? verts[0][0] : verts[0][1]; 
 		}).reduce((a,b) => a.concat(b),[])
@@ -118,9 +103,9 @@ export function addVertexOnEdge(_m, x, y, oldEdgeIndex) {
 	});
 	// remove old data
 	// ["edges_vertices", "edges_faces", "edges_assignment", "edges_foldAngle", "edges_length"]
-	// 	.filter(key => _m[key] != null)
-	// 	.forEach(key => _m[key][old_edge_index] = undefined);
-	remove_edges(_m, [old_edge_index]);
+	// 	.filter(key => graph[key] != null)
+	// 	.forEach(key => graph[key][old_edge_index] = undefined);
+	remove_edges(graph, [old_edge_index]);
 }
 
 ///////////////////////////////////////////////
@@ -129,12 +114,12 @@ export function addVertexOnEdge(_m, x, y, oldEdgeIndex) {
 
 // faces_faces is a set of faces edge-adjacent to a face.
 // for every face.
-export function make_faces_faces(graph) {
+export const make_faces_faces = function(graph) {
 	let nf = graph.faces_vertices.length;
 	let faces_faces = Array.from(Array(nf)).map(() => []);
 	let edgeMap = {};
 	graph.faces_vertices.forEach((vertices_index, idx1) => {
-		if (vertices_index === undefined) return;  //todo: why is this here?
+		if (vertices_index === undefined) { return; }  //todo: why is this here?
 		let n = vertices_index.length;
 		vertices_index.forEach((v1, i, vs) => {
 			let v2 = vs[(i + 1) % n];
@@ -152,43 +137,17 @@ export function make_faces_faces(graph) {
 	return faces_faces;
 }
 
-export function make_faces_matrix(graph, root_face){
-	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
-	make_face_walk_tree(graph, root_face).forEach((level) => 
-		level.filter((entry) => entry.parent != undefined).forEach((entry) => {
-			let edge = entry.edge.map(v => graph.vertices_coords[v])
-			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			let local = Geom.core.make_matrix2_reflection(vec, edge[0]);
-			faces_matrix[entry.face] = Geom.core.multiply_matrices2(faces_matrix[entry.parent], local);
-		})
-	);
-	return faces_matrix;
-}
-
-export function make_faces_matrix_inv(graph, root_face){
-	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
-	make_face_walk_tree(graph, root_face).forEach((level) => 
-		level.filter((entry) => entry.parent != undefined).forEach((entry) => {
-			let edge = entry.edge.map(v => graph.vertices_coords[v])
-			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			let local = Geom.core.make_matrix2_reflection(vec, edge[0]);
-			faces_matrix[entry.face] = Geom.core.multiply_matrices2(local, faces_matrix[entry.parent]);
-		})
-	);
-	return faces_matrix;
-}
-
-export function face_coloring(graph, root_face = 0){
+export const face_coloring = function(graph, root_face = 0){
 	let coloring = [];
 	coloring[root_face] = false;
 	make_face_walk_tree(graph, root_face).forEach((level, i) => 
-		level.forEach((entry) => coloring[entry.face] = (i % 2 == 0))
+		level.forEach((entry) => coloring[entry.face] = (i % 2 === 0))
 	);
 	return coloring;
 }
 
 // root_face will become the root node
-function make_face_walk_tree(graph, root_face = 0){
+const make_face_walk_tree = function(graph, root_face = 0){
 	let new_faces_faces = make_faces_faces(graph);
 	var visited = [root_face];
 	var list = [[{ face: root_face, parent: undefined, edge: undefined, level: 0 }]];
@@ -204,7 +163,7 @@ function make_face_walk_tree(graph, root_face = 0){
 				parent: current.face,
 				// level: current_level,
 				edge: graph.faces_vertices[f]
-					.filter(v => graph.faces_vertices[current.face].indexOf(v) != -1)
+					.filter(v => graph.faces_vertices[current.face].indexOf(v) !== -1)
 					.sort((a,b) => a-b)
 			}))
 		}).reduce((prev,curr) => prev.concat(curr),[])
@@ -241,7 +200,7 @@ export function are_edges_adjacent(graph, a, b){
 
 /** Check if an edge points both at both ends to the same node */
 export function is_edge_circular(graph, edge){
-	return graph.edges_vertices[edge][0] == graph.edges_vertices[edge][1];
+	return graph.edges_vertices[edge][0] === graph.edges_vertices[edge][1];
 }
 
 ///////////////////////////////////////////////
@@ -252,7 +211,7 @@ export function is_edge_circular(graph, edge){
  *
  * @returns {number[]]} array of adjacent edge indices
  */
-export function get_vertex_adjacent_edges(graph, vertex){
+export function get_vertex_adjacent_edges(graph, vertex) {
 	return graph.edges_vertices
 		.map((edge, i) => edge.indexOf(vertex) === -1 ? -1 : i)
 		.filter(edge => edge != -1)
@@ -723,17 +682,6 @@ function reindex_edge(graph, old_index, new_index){
 // GEOMETRY STUFF
 ///////////////////////////////////////////////
 
-// add_vertices is trivial. append them to the end of the array.
-// todo, double check this though
-
-
-// todo figure out a good system here. ask for everything as a param?
-export function add_edge(graph, edge_vertices, edge_assignment){
-	graph.edges_vertices.push(edge_vertices);
-	graph.edges_assignment.push(edge_assignment);
-	// todo, more things
-}
-
 // an edge has been split into two edges.
 // remove the old_index, add edges_vertices, an array of edges
 // and copy over any properties from old_index to the new
@@ -850,132 +798,20 @@ export function replace_face(graph, old_index, new_face_vertices){
 }
 
 
-export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, crease_assignment = "M"){
-	let vertices_coords = graph.vertices_coords;
-	let edges_vertices = graph.edges_vertices;
-
-	let face_vertices = graph.faces_vertices[faceIndex];
-	let face_edges = graph.faces_edges[faceIndex];
-
-	let diff = {
-		edges: {} // we are definitely adding edges.. probably
-	};
-
-	//    point: intersection [x,y] point or null if no intersection
-	// at_index: where in the polygon this occurs
-	let vertices_intersections = face_vertices
-		.map(fv => vertices_coords[fv])
-		.map(v => Geom.core.intersection.point_on_line(linePoint, lineVector, v) ? v : null)
-		.map((point, i) => ({ point: point, at_index: i }))
-		.filter(el => el.point != null);
-
-	let edges_intersections = face_edges
-		.map(ei => edges_vertices[ei])
-		.map(edge => edge.map(e => vertices_coords[e]))
-		.map(edge => Geom.core.intersection.line_edge_exclusive(linePoint, lineVector, edge[0], edge[1]))
-		.map((point, i) => ({point: point, at_index: i, at_real_index: face_edges[i] }))
-		.filter(el => el.point != null);
-
-	if(vertices_intersections.length == 0 && edges_intersections.length == 0){
-		return {};
-	}
-	// in the case of edges_intersections, we have new vertices, edges, and faces
-	// otherwise in the case of only vertices_intersections, we only have new faces
-	if(edges_intersections.length > 0){
-		diff.vertices = {};
-		diff.vertices.new = edges_intersections.map(el => ({coords:el.point}))
-	}
-	if(edges_intersections.length > 0){
-		diff.edges.replace = edges_intersections
-			.map((el, i) => {
-				let a = edges_vertices[face_edges[el.at_index]][0];
-				let c = edges_vertices[face_edges[el.at_index]][1];
-				let b = vertices_coords.length + i;
-				return {
-					// old_index: el.at_index,
-					old_index: el.at_real_index,
-					new: [
-						{vertices: [a, b]},
-						{vertices: [b, c]}
-					]
-				};
-			});
-	}
-
-	let face_a, face_b, new_edge;
-	// three cases: intersection at 2 edges, 2 points, 1 edge and 1 point
-	if(edges_intersections.length == 2){
-		let in_order = (edges_intersections[0].at_index < edges_intersections[1].at_index);
-
-		let sorted_edges = edges_intersections.slice()
-			.sort((a,b) => a.at_index - b.at_index);
-
-		// these are new vertices
-		let face_a_vertices_end = in_order
-			? [vertices_coords.length, vertices_coords.length+1]
-			: [vertices_coords.length+1, vertices_coords.length];
-		let face_b_vertices_end = in_order
-			? [vertices_coords.length+1, vertices_coords.length]
-			: [vertices_coords.length, vertices_coords.length+1];
-
-		face_a = face_vertices
-			.slice(sorted_edges[1].at_index+1)
-			.concat(face_vertices.slice(0, sorted_edges[0].at_index+1))
-			.concat(face_a_vertices_end);
-		face_b = face_vertices
-			.slice(sorted_edges[0].at_index+1, sorted_edges[1].at_index+1)
-			.concat(face_b_vertices_end);
-		new_edge = [vertices_coords.length, vertices_coords.length+1];
-
-	} else if(edges_intersections.length == 1 && vertices_intersections.length == 1){
-		vertices_intersections[0]["type"] = "v";
-		edges_intersections[0]["type"] = "e";
-		let sorted_geom = vertices_intersections.concat(edges_intersections)
-			.sort((a,b) => a.at_index - b.at_index);
-
-		let face_a_vertices_end = sorted_geom[0].type === "e"
-			? [vertices_coords.length, sorted_geom[1].at_index]
-			: [vertices_coords.length];
-		let face_b_vertices_end = sorted_geom[1].type === "e"
-			? [vertices_coords.length, sorted_geom[0].at_index]
-			: [vertices_coords.length];
-
-		face_a = face_vertices.slice(sorted_geom[1].at_index+1)
-			.concat(face_vertices.slice(0, sorted_geom[0].at_index+1))
-			.concat(face_a_vertices_end);
-		face_b = face_vertices
-			.slice(sorted_geom[0].at_index+1, sorted_geom[1].at_index+1)
-			.concat(face_b_vertices_end);
-		new_edge = [vertices_intersections[0].at_index, vertices_coords.length];
-
-	} else if(vertices_intersections.length == 2){
-		let sorted_vertices = vertices_intersections.slice()
-			.sort((a,b) => a.at_index - b.at_index);
-		face_a = face_vertices
-			.slice(sorted_vertices[1].at_index)
-			.concat(face_vertices.slice(0, sorted_vertices[0].at_index+1))
-		face_b = face_vertices
-			.slice(sorted_vertices[0].at_index, sorted_vertices[1].at_index+1);
-		new_edge = sorted_vertices.map(el => el.at_index);
-
-	}
-	if(new_edge == null){
-		return {};
-	}
-	diff.edges.new = [{
-		vertices: new_edge,
-		assignment: crease_assignment  // from way at the top
-	}];
-	diff.faces = {};
-	diff.faces.replace = [{
-		old_index: faceIndex,
-		new: [
-			{vertices: face_a}, 
-			{vertices: face_b}
-		]
-	}];
-	return diff;
+/** This filters out all non-operational edges
+ * removes: "F": flat "U": unassigned
+ * retains: "B": border/boundary, "M": mountain, "V": valley
+ */
+export const remove_marks = function(fold) {
+	let removeTypes = ["f", "F", "b", "B"];
+	let removeEdges = fold.edges_assignment
+		.map((a,i) => ({a:a,i:i}))
+		.filter(obj => removeTypes.indexOf(obj.a) != -1)
+		.map(obj => obj.i)
+	Graph.remove_edges(fold, removeEdges);
+	// todo, rebuild faces
 }
+
 
 
 ///////////////////////////////////////////////
