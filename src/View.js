@@ -15,12 +15,10 @@ const CREASE_DIR = {
 	"U": "mark"
 };
 
-import * as Geom from '../lib/geometry';
+import * as Geom from "../lib/geometry";
 import * as SVG from "../lib/svg";
-import * as Folder from "./Folder"
-
-// import { unitSquare } from "./OrigamiBases"
-const unitSquare = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
+import * as Graph from "./fold/graph";
+import "./CreasePattern";
 
 export default function View(){
 
@@ -32,11 +30,8 @@ export default function View(){
 	} = SVG.Image(...arguments);
 
 	//  from arguments, get a fold file, if it exists
-	let args = Array.from(arguments);
-	let _cp = args.filter(arg =>
-		typeof arg == "object" && arg.vertices_coords != undefined
-	).shift();
-	if(_cp == undefined){ _cp = unitSquare; }
+	let _cp = RabbitEar.CreasePattern(...arguments);
+	// let _cp = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
 
 	let groups = {
 		boundary: SVG.group(undefined, "boundary"),
@@ -120,8 +115,8 @@ export default function View(){
 	const updateViewBox = function(){
 		let vertices = _cp.vertices_coords;
 		if (frame > 0 &&
-		   _cp.file_frames[frame - 1] != undefined &&
-		   _cp.file_frames[frame - 1].vertices_coords != undefined){
+		   _cp.file_frames[frame - 1] != null &&
+		   _cp.file_frames[frame - 1].vertices_coords != null){
 			vertices = _cp.file_frames[frame - 1].vertices_coords;
 		}
 		// calculate bounds
@@ -144,28 +139,31 @@ export default function View(){
 		let data = _cp;
 		// if a frame is set, copy data from that frame
 		if (frame > 0 && _cp.file_frames != null){
-			if(_cp.file_frames[frame - 1] != undefined &&
-		   	   _cp.file_frames[frame - 1].vertices_coords != undefined){
-				data = Folder.flattenFrame(_cp, frame);
+			if(_cp.file_frames[frame - 1] != null &&
+		   	   _cp.file_frames[frame - 1].vertices_coords != null){
+				data = File.flatten_frame(_cp, frame);
 			}
 		}
-		if(data.vertices_coords == undefined){ return; }
+		if(data.vertices_coords == null){ return; }
 		// gather components
 		let verts = data.vertices_coords;
 		let edges = data.edges_vertices.map(ev => ev.map(v => verts[v]));
-		let faces = data.faces_vertices.map(fv => fv.map(v => verts[v]));
+		// let faces = data.faces_vertices.map(fv => fv.map(v => verts[v]));
+		let faces = data.faces_vertices
+			.map(fv => fv.map(v => verts[v]))
+			.map(face => Geom.Polygon(face).scale(0.8).points);
 		let orientations = data.edges_vertices.map((ev,i) =>
-			(data.edges_assignment != undefined && 
-			 data.edges_assignment[i] != undefined
+			(data.edges_assignment != null && 
+			 data.edges_assignment[i] != null
 				? CREASE_DIR[data.edges_assignment[i]] 
 				: "mark"
 			)
 		);
-		let faceOrder = (data.faces_layer != undefined && data.faces_layer.length == data.faces_vertices.length)
+		let faceOrder = (data.faces_layer != null && data.faces_layer.length == data.faces_vertices.length)
 			? data.faces_layer.slice()
 			: data.faces_vertices.map((f,i) => i);
 		
-		let facesDirection = (data.faces_direction != undefined)
+		let facesDirection = (data.faces_direction != null)
 			? data.faces_direction.slice()
 			: data.faces_vertices.map((f,i) => true);
 
@@ -176,7 +174,7 @@ export default function View(){
 		 groups.vertices].forEach((layer) => SVG.removeChildren(layer));
 		// boundary
 		if (!isFoldedState()) {
-			let polygonPoints = Folder.get_boundary_vertices(_cp)
+			let polygonPoints = Graph.get_boundary_vertices(_cp)
 				.map(v => _cp.vertices_coords[v])
 			SVG.polygon(polygonPoints, "boundary", null, groups.boundary);
 		}		
@@ -212,7 +210,7 @@ export default function View(){
 					.then((data) => {
 						_cp = data;
 						draw();
-						if(callback != undefined){ callback(_cp); }
+						if(callback != null){ callback(_cp); }
 					});
 				// return this;
 			}
@@ -228,11 +226,11 @@ export default function View(){
 		}
 	}
 	const isFoldedState = function(){
-		if(_cp == undefined || _cp.frame_classes == undefined){ return false; }
+		if(_cp == null || _cp.frame_classes == null){ return false; }
 		let frame_classes = _cp.frame_classes;
 		if(frame > 0 &&
-		   _cp.file_frames[frame - 1] != undefined &&
-		   _cp.file_frames[frame - 1].frame_classes != undefined){
+		   _cp.file_frames[frame - 1] != null &&
+		   _cp.file_frames[frame - 1].frame_classes != null){
 			frame_classes = _cp.file_frames[frame - 1].frame_classes;
 		}
 		// try to discern folded state
@@ -334,7 +332,7 @@ export default function View(){
 
 	const clear = function() {
 		// todo: remove all creases from current CP, leave the boundary.
-		_cp = unitSquare;
+		_cp = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
 	}
 
 	const crease = function(a, b, c, d){
@@ -342,7 +340,7 @@ export default function View(){
 	}
 
 	const fold = function(face){
-		return Folder.fold_without_layering(_cp, face);
+		// return Folder.fold_without_layering(_cp, face);
 	}
 
 	// return Object.freeze({

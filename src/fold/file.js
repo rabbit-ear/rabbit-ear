@@ -1,4 +1,5 @@
 
+
 export const validate = function(graph) {
 
 	let foldKeys = {
@@ -52,7 +53,7 @@ export const clone = function(thing){
 	// return copy;
 };
 
-export const flattenFrame = function(fold_file, frame_num){
+export const flatten_frame = function(fold_file, frame_num){
 	const dontCopy = ["frame_parent", "frame_inherit"];
 	var memo = {visited_frames:[]};
 	function recurse(fold_file, frame, orderArray){

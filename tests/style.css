@@ -17,12 +17,15 @@ html,body{
 	display:flex;
 	justify-content: center;
 	overflow: hidden;
+	/*flex-direction: column;*/
 }
 svg{
 	width:100vw;
 	height:100vh;
 	/*margin: 5vmin;*/
 	touch-action: none;
+/*	height:45vh;
+	padding:2vh;*/
 }
 .mountain, .valley, .boundary, .mark {
 	stroke:black;
@@ -32,6 +35,9 @@ svg{
 .vertex, .face, .sector{
 	stroke: none;
 	fill: none;
+}
+.face {
+	fill: rgba(0, 0, 0, 0.1);
 }
 .vertex{ fill: hsl(43, 88%, 46%); }
 .boundary{ fill:none; }

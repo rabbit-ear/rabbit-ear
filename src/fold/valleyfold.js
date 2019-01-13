@@ -1,18 +1,18 @@
 
-export default valleyFold = function(foldFile, line, point){
+export default function(foldFile, line, point){
 
-	if(point != undefined){ point = [point.x, point.y]; }
+	if(point != null){ point = [point.x, point.y]; }
 	let linePoint = [line.point.x, line.point.y];
 	let lineVector = [line.direction.x, line.direction.y];
 
-	// if (point == undefined) point = [0.6, 0.6];
-	if (point != undefined) {
+	// if (point == null) point = [0.6, 0.6];
+	if (point != null) {
 		// console.log("Jason Code!");
 		let new_fold = split_folding_faces(
-				foldFile, 
-				linePoint, 
-				lineVector,
-				point
+			foldFile, 
+			linePoint, 
+			lineVector,
+			point
 		);
 		return new_fold;
 	}
@@ -23,7 +23,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	// find which face index (layer) the user touched
 	let tap = top_face_under_point(fold, point);
-	if (tap == undefined) { return undefined; }
+	if (tap == null) { return undefined; }
 	// keys are faces with vals: {clip: [[x,y],[x,y]], collinear:[[i,j],[k,l]] }
 	let clippedLines = clip_line_in_faces(fold, linePoint, lineVector);
 	// array of objects: {edges:[i,j], face:f, point:[x,y]}
@@ -38,7 +38,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		)
 	// convert undefined to empty array to convert face indices to face point geometry
 	let side = [0,1]
-		.map(s => new_face_map[tap][s] == undefined ? [] : new_face_map[tap][s]) 
+		.map(s => new_face_map[tap][s] == null ? [] : new_face_map[tap][s]) 
 		.map(points => points.map(f => new_vertices_coords[f]))
 		.map(f => Geom.core.intersection.point_in_polygon(f, point))
 		.indexOf(true)

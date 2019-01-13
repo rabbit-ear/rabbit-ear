@@ -1,9 +1,10 @@
 
-import * as Geom from '../../lib/geometry'
+import * as Graph from "./graph";
+import * as Geom from "../../lib/geometry";
 
-export function make_faces_matrix(graph, root_face){
+export const make_faces_matrix = function(graph, root_face) {
 	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
-	make_face_walk_tree(graph, root_face).forEach((level) => 
+	Graph.make_face_walk_tree(graph, root_face).forEach((level) =>
 		level.filter((entry) => entry.parent != undefined).forEach((entry) => {
 			let edge = entry.edge.map(v => graph.vertices_coords[v])
 			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
@@ -14,9 +15,9 @@ export function make_faces_matrix(graph, root_face){
 	return faces_matrix;
 }
 
-export function make_faces_matrix_inv(graph, root_face){
+export const make_faces_matrix_inv = function(graph, root_face) {
 	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
-	make_face_walk_tree(graph, root_face).forEach((level) => 
+	Graph.make_face_walk_tree(graph, root_face).forEach((level) =>
 		level.filter((entry) => entry.parent != undefined).forEach((entry) => {
 			let edge = entry.edge.map(v => graph.vertices_coords[v])
 			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
@@ -26,6 +27,15 @@ export function make_faces_matrix_inv(graph, root_face){
 	);
 	return faces_matrix;
 }
+
+export const faces_containing_point = function(fold, point) {
+	return fold.faces_vertices
+		.map((fv,i) => ({face:fv.map(v => fold.vertices_coords[v]),i:i}))
+		.filter(f => Geom.core.intersection.point_in_polygon(f.face, point))
+		.map(f => f.i);
+}
+
+
 
 export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, crease_assignment = "M"){
 	let vertices_coords = graph.vertices_coords;
@@ -154,7 +164,6 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, cr
 	return diff;
 }
 
-
 /** 
  * when an edge sits inside a face with its endpoints collinear to face edges,
  *  find those 2 face edges.
@@ -180,33 +189,23 @@ var find_collinear_face_edges = function(edge, face_vertices, vertices_coords){
 	})
 }
 
-// input: fold file and line
-// output: dict keys: two vertex indices defining an edge (as a string: "4 6")
-//         dict vals: [x, y] location of intersection between the two edge vertices
-var clip_line_in_faces = function({vertices_coords, faces_vertices},
-	linePoint, lineVector){
-	// convert faces into x,y geometry instead of references to vertices
-	// generate one clip line per face, or undefined if there is no intersection
-	// array of objects {face: index of face, clip: the clip line}
-	let clipLines = faces_vertices
-		.map(va => va.map(v => vertices_coords[v]))
-		.map((poly,i) => ({
-			"face":i,
-			"clip":Geom.core.intersection.clip_line_in_poly(poly, linePoint, lineVector)
-		}))
-		.filter((obj) => obj.clip != undefined)
-		.reduce((prev, curr) => {
-			prev[curr.face] = {"clip": curr.clip};
-			return prev;
-		}, {});
 
-	Object.keys(clipLines).forEach(faceIndex => {
-		let face = faces_vertices[faceIndex];
-		let line = clipLines[faceIndex].clip;
-		clipLines[faceIndex].collinear = find_collinear_face_edges(line, face, vertices_coords);
-	});
+export function clip_line(fold, linePoint, lineVector){
+	function len(a,b){
+		return Math.sqrt(Math.pow(a[0]-b[0],2) + Math.pow(a[1]-b[1],2));
+	}
 
-	// each face is now an index in the object, containing "clip", "collinear"
-	// 0: {  clip: [[x,y],[x,y]],  collinear: [[i,j],[k,l]]  }
-	return clipLines
+	let edges = fold.edges_vertices
+		.map(ev => ev.map(e => fold.vertices_coords[e]));
+
+	return [lineVector, [-lineVector[0], -lineVector[1]]]
+		.map(lv => edges
+			.map(e => Geom.core.intersection.ray_edge(linePoint, lv, e[0], e[1]))
+			.filter(i => i != null)
+			.map(i => ({intersection:i, length:len(i, linePoint)}))
+			.sort((a, b) => a.length - b.length)
+			.map(el => el.intersection)
+			.shift()
+		).filter(p => p != null);
 }
+

@@ -401,7 +401,7 @@ function sliderUpdate(value){
 	let frame = parseInt(fraction * loadedFold.file_frames.length);
 	document.getElementById("frame-number-input").value = frame;
 	// origami.setFrame(frame);
-	let newFold = RabbitEar.Folder.flattenFrame(loadedFold, frame);
+	let newFold = RabbitEar.Folder.flatten_frame(loadedFold, frame);
 	updateThreeJS(newFold);
 	let linenum = 156 + 49*(frame-1);
 	editor.scrollIntoView({line:linenum+20});

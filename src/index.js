@@ -1,17 +1,33 @@
-// import * as bases from './OrigamiBases';
 import * as math from '../lib/geometry';
 import * as svg from '../lib/svg';
-import * as fold from './Folder';
 import * as noise from '../lib/perlin';
-import * as graph from './graph';
+// import * as Model from './Model';
 
+export { default as CreasePattern } from './CreasePattern';
 export { default as Origami } from './View';
 export { default as Origami3D } from './View3D';
+// export { default as Model } from '/Model';
 export { math };
 export { svg };
-export { fold };
 export { noise };
-export { graph };
+// export { Model };
+
+// fold file manipulators
+import * as file from './fold/file';
+import * as graph from './fold/graph';
+import * as origami from './fold/origami';
+import * as planargraph from './fold/planargraph';
+import * as valleyfold from './fold/valleyfold';
+import * as creasethrough from './fold/creasethrough';
+const fold = {
+	file: file,
+	graph: graph,
+	origami: origami,
+	planargraph: planargraph,
+	valleyfold: valleyfold,
+	creasethrough: creasethrough
+};
+export { fold };
 
 // load bases
 import empty from './bases/empty.fold';

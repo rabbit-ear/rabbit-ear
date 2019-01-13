@@ -38,7 +38,7 @@ origami.onMouseMove = function(mouse){
 // 		let fishClone = RabbitEar.fold.clone(RabbitEar.bases.fish);
 // 		// let result = RabbitEar.fold.clip_edges_with_line(fishClone, line.point, line.direction);
 // 		let result = RabbitEar.fold.crease_through_layers(fishClone, line.point, line.direction);
-// 		let foldedResult = RabbitEar.fold.flattenFrame(result, 0);//result.file_frames.length);
+// 		let foldedResult = RabbitEar.fold.flatten_frame(result, 0);//result.file_frames.length);
 // 		folded.cp = foldedResult;
 // 		folded.draw();
 // 		// folded.draw(result);
