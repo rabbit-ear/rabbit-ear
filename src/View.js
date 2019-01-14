@@ -15,12 +15,12 @@ const CREASE_DIR = {
 	"U": "mark"
 };
 
+import "./CreasePattern";
 import * as Geom from "../lib/geometry";
 import * as SVG from "../lib/svg";
 import * as Graph from "./fold/graph";
-import "./CreasePattern";
 
-export default function View(){
+export default function() {
 
 	let { zoom, translate, appendChild, removeChildren,
 		// load, 
@@ -62,6 +62,11 @@ export default function View(){
 		x: 0,      // redundant data --
 		y: 0       // -- these are the same as position
 	};
+
+
+	_cp.onchange = function(){
+		draw();
+	}
 
 	// const setPadding = function(pad){
 	// 	if(pad != null){
@@ -332,7 +337,7 @@ export default function View(){
 
 	const clear = function() {
 		// todo: remove all creases from current CP, leave the boundary.
-		_cp = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
+		// _cp = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
 	}
 
 	const crease = function(a, b, c, d){

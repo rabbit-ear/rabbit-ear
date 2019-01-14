@@ -1,5 +1,7 @@
 // MIT open source license, Robby Kraft
 
+import * as Graph from "./fold/graph";
+
 /** A graph is a set of nodes and edges connecting them */
 export default function() {
 	let _m = {}; // the data model. fold file format spec
@@ -18,9 +20,6 @@ export default function() {
 		_m = JSON.parse(JSON.stringify(paramsObj.shift()));
 	}
 
-	// todo: callback hooks for when certain properties of the data structure have been altered
-	let didChange = undefined; // callback function
-
 	// this contains keys, like "vertices_vertices", which require rebuilding
 	let unclean = {"vertices_coords":[],"vertices_vertices":[],"vertices_faces":[],"edges_vertices":[],"edges_faces":[],"edges_assignment":[],"edges_foldAngle":[],"edges_length":[],"faces_vertices":[],"faces_edges":[],"edgeOrders":[],"faceOrders":[]};
 
@@ -36,30 +35,36 @@ export default function() {
 	const clear = function() {
 		Graph.all_keys.filter(a => _m[a] != null)
 			.forEach(key => delete _m[key]);
+		if (typeof _onchange === "function") { _onchange(); }
 	}
-	const clearGeometry = function() {
+	const clearGraph = function() {
 		Graph.keys.graph.filter(a => _m[a] != null)
 			.forEach(key => delete _m[key]);
+		if (typeof _onchange === "function") { _onchange(); }
 	}
 	const addVertexOnEdge = function(x, y, oldEdgeIndex) {
-		return Graph.add_vertex_on_edge(_m, x, y, oldEdgeIndex);
+		Graph.add_vertex_on_edge(_m, x, y, oldEdgeIndex);
+		if (typeof _onchange === "function") { _onchange(); }
 	}
 	const connectedGraphs = function() {
 		return Graph.connectedGraphs(_m);
+		if (typeof _onchange === "function") { _onchange(); }
 	}
 
+
+	// callback for when the crease pattern has been altered
+	let _onchange;
+
 	return {
-		// get scale() { return _scale; },
-		// set onMouseMove(handler) { _onmousemove = handler; },
-		get nodes() { return _nodes; },
-		get edges() { return _edges.map(e => e.nodes.map(n => n.index)) },
-		didChange,
+		set onchange(func) { _onchange = func; },
+		get onchange() { return _onchange },
 		load,
 		save,
 		clear,
-		clearGeometry,
+		clearGraph,
 		addVertexOnEdge,
 		connectedGraphs,
+		// fold spec 1.1
 		get vertices_coords() { return _m.vertices_coords; },
 		get vertices_vertices() { return _m.vertices_vertices; },
 		get vertices_faces() { return _m.vertices_faces; },

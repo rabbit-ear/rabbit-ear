@@ -1,18 +1,6 @@
-// // this contains keys, like "vertices_vertices", which require rebuilding
-// let unclean = {
-// 	"vertices_coords": [],
-// 	"vertices_vertices": [],
-// 	"vertices_faces": [],
-// 	"edges_vertices": [],
-// 	"edges_faces": [],
-// 	"edges_assignment": [],
-// 	"edges_foldAngle": [],
-// 	"edges_length": [],
-// 	"faces_vertices": [],
-// 	"faces_edges": [],
-// 	"edgeOrders": [],
-// 	"faceOrders": [],
-// };
+// graph manipulators for .FOLD file github.com/edemaine/fold
+// MIT open source license, Robby Kraft
+// relates to .FOLD version 1.1
 
 export const keys = {
 	meta: [
@@ -106,10 +94,14 @@ export const facesCount = function(graph) {
 	));
 }
 
-
+/* This returns a 
+ * in some cases face arrays might not be defined
+ *
+ * @returns {number} number of faces
+ */
 export const remove_edges = function(graph, edges) {
 	// length of index_map is length of the original edges_vertices
-	let s = 0, removes = Array( graph.edges_vertices.length ).fill(false);
+	let s = 0, removes = Array( edgesCount(graph) ).fill(false);
 	edges.forEach(e => removes[e] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
 

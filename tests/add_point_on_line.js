@@ -7,7 +7,8 @@ let origami = RabbitEar.Origami(cp);
 
 origami.onMouseDown = function(event) {
 	let nearest = origami.nearest(event);
-	RabbitEar.fold.graph.add_vertex_on_edge(cp, event.x, event.y, nearest.crease);
-	origami.cp = cp;
+	origami.cp.addVertexOnEdge(event.x, event.y, nearest.crease);
+	// origami.draw();
+	console.log(origami.cp);
 }
 
