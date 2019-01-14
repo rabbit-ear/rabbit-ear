@@ -2,6 +2,68 @@
 import * as Graph from "./graph";
 import * as Geom from "../../lib/geometry";
 
+/**
+ * @returns index of nearest vertex in vertices_ arrays or
+ *  undefined if there are no vertices_coords
+ */
+export const nearest_vertex = function(graph, point) {
+	if (graph.vertices_coords == null || graph.vertices_coords.length === 0) {
+		return undefined;
+	}
+	let p = [...point];
+	if (p[2] == null) { p[2] = 0; }
+	return graph.vertices_coords.map(v => v
+		.map((n,i) => Math.pow(n - p[i], 2))
+		.reduce((a,b) => a + b,0)
+	).map((n,i) => ({d:Math.sqrt(n), i:i}))
+	.sort((a,b) => a.d - b.d)
+	.shift()
+	.i;
+};
+
+/**
+ * returns index of nearest edge in edges_ arrays or
+ *  undefined if there are no vertices_coords or edges_vertices
+ */
+export const nearest_edge = function(graph, point) {
+	if (graph.vertices_coords == null || graph.vertices_coords.length === 0 ||
+		graph.edges_vertices == null || graph.edges_vertices.length === 0) {
+		return undefined;
+	}
+	// todo, z is not included in the calculation
+	return graph.edges_vertices
+		.map(e => e.map(ev => graph.vertices_coords[ev]))
+		.map(e => Geom.Edge(e))
+		.map((e,i) => ({e:e, i:i, d:e.nearestPoint(point).distanceTo(point)}))
+		.sort((a,b) => a.d - b.d)
+		.shift()
+		.i;
+};
+
+export const face_containing_point = function(graph, point) {
+	if (graph.vertices_coords == null || graph.vertices_coords.length === 0 ||
+		graph.faces_vertices == null || graph.faces_vertices.length === 0) {
+		return undefined;
+	}
+	return graph.faces_vertices
+		.map((fv,i) => ({face:fv.map(v => graph.vertices_coords[v]),i:i}))
+		.filter(f => Geom.core.intersection.point_in_poly(f.face, point))
+		.shift()
+		.i;
+};
+
+export const faces_containing_point = function(graph, point) {
+	if (graph.vertices_coords == null || graph.vertices_coords.length === 0 ||
+		graph.faces_vertices == null || graph.faces_vertices.length === 0) {
+		return undefined;
+	}
+	return graph.faces_vertices
+		.map((fv,i) => ({face:fv.map(v => graph.vertices_coords[v]),i:i}))
+		.filter(f => Geom.core.intersection.point_in_polygon(f.face, point))
+		.map(f => f.i);
+};
+
+
 export const make_faces_matrix = function(graph, root_face) {
 	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
 	Graph.make_face_walk_tree(graph, root_face).forEach((level) =>
@@ -27,14 +89,6 @@ export const make_faces_matrix_inv = function(graph, root_face) {
 	);
 	return faces_matrix;
 }
-
-export const faces_containing_point = function(fold, point) {
-	return fold.faces_vertices
-		.map((fv,i) => ({face:fv.map(v => fold.vertices_coords[v]),i:i}))
-		.filter(f => Geom.core.intersection.point_in_polygon(f.face, point))
-		.map(f => f.i);
-}
-
 
 
 export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, crease_assignment = "M"){

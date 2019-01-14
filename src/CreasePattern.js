@@ -1,6 +1,7 @@
 // MIT open source license, Robby Kraft
 
 import * as Graph from "./fold/graph";
+import * as PlanarGraph from "./fold/planargraph";
 
 /** A graph is a set of nodes and edges connecting them */
 export default function() {
@@ -50,7 +51,15 @@ export default function() {
 		return Graph.connectedGraphs(_m);
 		if (typeof _onchange === "function") { _onchange(); }
 	}
-
+	const nearestVertex = function(x, y, z = 0) {
+		return PlanarGraph.nearest_vertex(_m, [x, y, z]);
+	}
+	const nearestEdge = function(x, y, z = 0) {
+		return PlanarGraph.nearest_edge(_m, [x, y, z]);
+	}
+	const nearestFace = function(x, y, z = 0) {
+		return PlanarGraph.face_containing_point(_m, [x, y, z]);
+	}
 
 	// callback for when the crease pattern has been altered
 	let _onchange;
@@ -64,6 +73,9 @@ export default function() {
 		clearGraph,
 		addVertexOnEdge,
 		connectedGraphs,
+		nearestVertex,
+		nearestEdge,
+		nearestFace,
 		// fold spec 1.1
 		get vertices_coords() { return _m.vertices_coords; },
 		get vertices_vertices() { return _m.vertices_vertices; },
@@ -80,3 +92,36 @@ export default function() {
 		get file_frames() { return _m.file_frames; }
 	};
 }
+
+
+function Crease() {
+	let graph; // pointer back to the graph;
+	let index; // index of this crease in the graph
+
+	let params = Array.from(arguments);
+	let paramsObj = params.filter(el => typeof el === "object" && el !== null);
+	if (paramsObj.length > 0) { }
+
+	const mountain = function() {
+		graph.edges_assignment[index] = "M";
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+	}
+	const valley = function() {
+		graph.edges_assignment[index] = "V";
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+	}
+	const remove = function() { }
+	const addVertexOnEdge = function(x, y) {
+		let thisEdge = this.index;
+		graph.addVertexOnEdge(x, y, thisEdge);
+	}
+
+	return {
+		mountain,
+		valley,
+		remove,
+		addVertexOnEdge
+	};
+}
+
+

@@ -63,7 +63,6 @@ export default function() {
 		y: 0       // -- these are the same as position
 	};
 
-
 	_cp.onchange = function(){
 		draw();
 	}
