@@ -77,28 +77,24 @@ export default function() {
 
 	const nearest = function() {
 		let point = Geom.Vector(...arguments);
+		let nearestVertex = _cp.nearestVertex(point[0], point[1]);
+		let nearestEdge = _cp.nearestEdge(point[0], point[1]);
+		let nearestFace = _cp.nearestFace(point[0], point[1]);
+
 		let nearest = {};
 
-		nearest.vertex = makeVertices()
-			.map((v,i) => ({v:v, i:i, d:point.distanceTo(v)}))
-			.sort((a,b) => a.d - b.d)
-			// .map(el => groups.vertices.childNodes[el.i])
-			.map(el => el.i)
-			.shift();
-
-		nearest.crease = makeEdges()
-			.map((e,i) => ({e:e, i:i, d:e.nearestPoint(point).distanceTo(point)}))
-			.sort((a,b) => a.d - b.d)
-			// .map(el => groups.creases.childNodes[el.i])
-			.map(el => el.i)
-			.shift();
-
-		nearest.face = makeFaces()
-			.map((f,i) => ({face: f, i: i}))
-			.filter(el => el.face.contains([point.x, point.y]))
-			// .map(el => groups.faces.childNodes[el.i])
-			.map(el => el.i)
-			.shift();
+		if (nearestVertex != null) {
+			nearestVertex.svg = groups.vertices.childNodes[nearestVertex.index];
+			nearest.vertex = nearestVertex;
+		}
+		if (nearestEdge != null) {
+			nearestEdge.svg = groups.creases.childNodes[nearestEdge.index];
+			nearest.edge = nearestEdge;
+		}
+		if (nearestFace != null) {
+			nearestFace.svg = groups.faces.childNodes[nearestFace.index];
+			nearest.face = nearestFace;
+		}
 
 		return nearest;
 
@@ -155,7 +151,8 @@ export default function() {
 		// let faces = data.faces_vertices.map(fv => fv.map(v => verts[v]));
 		let faces = data.faces_vertices
 			.map(fv => fv.map(v => verts[v]))
-			.map(face => Geom.Polygon(face).scale(0.8).points);
+			// .map(face => Geom.Polygon(face).scale(0.8).points);
+			.map(face => Geom.Polygon(face).points);
 		let orientations = data.edges_vertices.map((ev,i) =>
 			(data.edges_assignment != null && 
 			 data.edges_assignment[i] != null
@@ -430,5 +427,5 @@ export default function() {
 		}
 	// });
 	};
-
 }
+

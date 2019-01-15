@@ -88,7 +88,7 @@ function fileDidLoad(blob, mimeType, fileExtension){
 // $().button('toggle')
 /////////////////////////////////////////////
 var div = document.getElementById('cp-container');
-var origami = new OrigamiPaper(div);
+var origami = new RabbitEar.Origami(div);
 // origami.style.mountain.strokeColor = {gray:0.0}
 // origami.mediumLines();
 

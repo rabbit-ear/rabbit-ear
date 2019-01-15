@@ -1,21 +1,25 @@
 // example
 // mouse hover over nodes, faces, edges, sectors to highlight them
-var origami = new RabbitEar.Origami(RabbitEar.bases.concave);
+var origami = new RabbitEar.Origami(RabbitEar.bases.fish);
+// var origami = new RabbitEar.Origami(RabbitEar.bases.concave);
 
-origami.onMouseMove = function(event){
+origami.onMouseMove = function(event) {
 	// update returns all components back to their original color
 	origami.draw();
-	// now we set the colors of the components we want
+	origami.color(event);
+}
 
+origami.onMouseDown = function(event) {
+	origami.nearest(event).edge.flip();
+	origami.color(event);
+}
+
+origami.color = function(event) {
 	// get all the nearest components to the cursor
 	var nearest = origami.nearest(event);
 	// console.log(nearest);
 
-	if(nearest.vertex) { origami.addClass(nearest.vertex, 'fill-yellow'); }
-	if(nearest.crease) { origami.addClass(nearest.crease, 'stroke-yellow'); }
-	if(nearest.face) { origami.addClass(nearest.face, 'fill-red'); }
-	// origami.addClass(origami.get(nearest.node), 'fill-dark-blue');
-	// origami.addClass(origami.get(nearest.edge), 'stroke-yellow');
-	// origami.addClass(origami.get(nearest.face), 'fill-red');
-	// origami.addClass(origami.get(nearest.sector), 'fill-blue');
+	if(nearest.vertex) { origami.addClass(nearest.vertex.svg, 'fill-yellow'); }
+	if(nearest.edge) { origami.addClass(nearest.edge.svg, 'stroke-yellow'); }
+	if(nearest.face) { origami.addClass(nearest.face.svg, 'fill-red'); }
 }

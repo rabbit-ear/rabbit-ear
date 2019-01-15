@@ -45,11 +45,11 @@ export const face_containing_point = function(graph, point) {
 		graph.faces_vertices == null || graph.faces_vertices.length === 0) {
 		return undefined;
 	}
-	return graph.faces_vertices
+	let face = graph.faces_vertices
 		.map((fv,i) => ({face:fv.map(v => graph.vertices_coords[v]),i:i}))
 		.filter(f => Geom.core.intersection.point_in_poly(f.face, point))
 		.shift()
-		.i;
+	return (face == null ? undefined : face.i);
 };
 
 export const faces_containing_point = function(graph, point) {
