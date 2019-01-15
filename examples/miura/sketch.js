@@ -32,7 +32,7 @@ function injectCode(string){
 	doc.replaceRange(newline+string, pos);
 }
 
-injectCode("//use variables \"SLIDER\", \"ROWS\", \"COLUMNS\"\nvar points = [];\nfor(var r = -1; r < ROWS+1; r++){\n\tvar row = [];\n\tfor(var c = -1; c < COLUMNS+1; c++){\n\t\tvar point = {\n\t\t\tx:c/COLUMNS,\n\t\t\ty:r/ROWS + (c%2)*(1/ROWS*SLIDER)\n\t\t}\n\t\trow.push(point);\n\t}\n\tpoints.push(row);\n}\n//give back the points\npoints;");
+injectCode("//use variables \"SLIDER\", \"ROWS\", \"COLUMNS\"\nvar points = [];\nfor(var r = -1; r < ROWS+1; r++){\n\tvar row = [];\n\tfor(var c = 0; c < COLUMNS+1; c++){\n\t\tvar point = [\n\t\t\tc/COLUMNS,\n\t\t\tr/ROWS + (c%2)*(1/ROWS*SLIDER)\n\t\t]\n\t\trow.push(point);\n\t}\n\tpoints.push(row);\n}\n//give back the points\npoints;");
 
 /////////////////////////////////////////////////
 
@@ -100,7 +100,8 @@ var ROWS = 12;
 var COLUMNS = 12;
 
 origami.reset = function(){
-	this.cp.clear();
+	// this.cp.clear();
+	this.cp.load(RabbitEar.bases.square);
 	// get points from code window
 
 	var points = eval(document.getElementsByClassName("CodeMirror")[0].CodeMirror.getValue());
@@ -119,16 +120,17 @@ origami.reset = function(){
 	// 	}
 	// 	points.push(row);
 	// }
+	this.cp.onchange = undefined;
 
-	points.forEach(function(row,j){
-		row.forEach(function(point,i){
+	points.forEach((row,j) => {
+		row.forEach((point,i) => {
 			// crease zig zag rows
 			if(i < row.length-1){
 				var nextHorizPoint = row[ (i+1)%row.length ];
 				var crease = this.cp.crease(point, nextHorizPoint);
-				if(crease != undefined){
-					if(j%2 == 0){ crease.mountain(); }
-					else { crease.valley(); }
+				if(crease != null){
+					if(j%2 == 0){ crease.valley(); }
+					else { crease.mountain(); }
 				}
 			}
 			// crease lines connecting between zig zag rows
@@ -136,13 +138,15 @@ origami.reset = function(){
 				var nextRow = points[ (j+1)%points.length ];
 				var nextVertPoint = nextRow[ i ];
 				var crease = this.cp.crease(point, nextVertPoint);
-				if(crease != undefined){
+				if(crease != null){
 					if((i+j)%2 == 0){ crease.mountain(); }
 					else { crease.valley(); }
 				}
 			}
-		},this)
-	},this);
+		})
+	});
+	this.cp.onchange = function(){ origami.draw(); };
+
 	this.draw();
 }
 origami.reset();

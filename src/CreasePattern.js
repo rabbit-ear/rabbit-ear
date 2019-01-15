@@ -43,14 +43,6 @@ export default function() {
 			.forEach(key => delete _m[key]);
 		if (typeof _onchange === "function") { _onchange(); }
 	}
-	const addVertexOnEdge = function(x, y, oldEdgeIndex) {
-		Graph.add_vertex_on_edge(_m, x, y, oldEdgeIndex);
-		if (typeof _onchange === "function") { _onchange(); }
-	}
-	const connectedGraphs = function() {
-		return Graph.connectedGraphs(_m);
-		if (typeof _onchange === "function") { _onchange(); }
-	}
 	const nearestVertex = function(x, y, z = 0) {
 		let index = PlanarGraph.nearest_vertex(_m, [x, y, z]);
 		return (index != null) ? Vertex(this, index) : undefined;
@@ -73,6 +65,19 @@ export default function() {
 		return Face(this, index);
 	}
 
+	const crease = function() {
+		let edge_index = PlanarGraph.add_crease(_m, ...arguments);
+		return Crease(this, edge_index);
+	}
+	const addVertexOnEdge = function(x, y, oldEdgeIndex) {
+		Graph.add_vertex_on_edge(_m, x, y, oldEdgeIndex);
+		if (typeof _onchange === "function") { _onchange(); }
+	}
+	const connectedGraphs = function() {
+		return Graph.connectedGraphs(_m);
+		if (typeof _onchange === "function") { _onchange(); }
+	}
+
 	// callback for when the crease pattern has been altered
 	let _onchange;
 
@@ -91,6 +96,7 @@ export default function() {
 		nearestVertex,
 		nearestEdge,
 		nearestFace,
+		crease,
 		// fold spec 1.1
 		get vertices_coords() { return _m.vertices_coords; },
 		get vertices_vertices() { return _m.vertices_vertices; },

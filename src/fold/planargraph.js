@@ -263,3 +263,27 @@ export function clip_line(fold, linePoint, lineVector){
 		).filter(p => p != null);
 }
 
+
+export const add_crease = function(graph, a, b, c, d) {
+	// let edge = Geom.Edge([a, b, c, d]);
+	let edge = Geom.Edge([a, b]);
+
+	let edge_vertices = edge.endpoints
+		.map(ep => graph.vertices_coords
+			.map(v => Math.sqrt(Math.pow(ep[0]-v[0],2)+Math.pow(ep[1]-v[1],2)))
+			.map((d,i) => d < 0.00000001 ? i : undefined)
+			.filter(el => el !== undefined)
+			.shift()
+		).map((v,i) => {
+			if (v !== undefined) { return v; }
+			// else
+			graph.vertices_coords.push(edge.endpoints[i]);
+			return graph.vertices_coords.length - 1;
+		});
+
+	graph.edges_vertices.push(edge_vertices);
+	graph.edges_assignment.push("F");
+	return graph.edges_vertices.length-1;
+}
+
+
