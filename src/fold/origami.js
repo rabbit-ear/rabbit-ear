@@ -35,35 +35,37 @@ export function crease_line(graph, point, vector) {
 		.map((_,i) => graph.edges_vertices.length-new_edge_count+i);
 }
 
-export function axiom1(graph, pointA, pointB) {
-	// n-dimension
+export function axiom1(graph, pointA, pointB) { // n-dimension
 	let line = Geom.core.origami.axiom1(pointA, pointB);
-
 	return crease_line(graph, line[0], line[1]);
 }
-
-export function axiom1_force(fold, pointA, pointB) {
-	let f = clone(fold);
-	f.vertices_coords.push(pointA);
-	f.vertices_coords.push(pointB);
-	f.edges_vertices.push([
-		f.vertices_coords.length-2,
-		f.vertices_coords.length-1
-	]);
-	f.edges_assignment.push("F");
-	return f;
+export function axiom2(graph, pointA, pointB) {
+	let line = Geom.core.origami.axiom2(pointA, pointB);
+	return crease_line(graph, line[0], line[1]);
 }
-
-
-export function axiom2(fold, pointA, pointB) {
-	return Geom.core.axiom2(pointA, pointB);
+export function axiom3(graph, pointA, vectorA, pointB, vectorB) {
+	let lines = Geom.core.origami.axiom3(pointA, vectorA, pointB, vectorB);
+	// return lines.map(line => crease_line(graph, line[0], line[1]))
+	// 	.reduce((a,b) => a.concat(b), []);
+	
+	return crease_line(graph, lines[0][0], lines[0][1]);
 }
-
-export function axiom3(graph) { }
-export function axiom4(graph) { }
-export function axiom5(graph) { }
-export function axiom6(graph) { }
-export function axiom7(graph) { }
+export function axiom4(graph, pointA, vectorA, pointB) {
+	let line = Geom.core.origami.axiom4(pointA, vectorA, pointB);
+	return crease_line(graph, line[0], line[1]);
+}
+export function axiom5(graph, pointA, vectorA, pointB, pointC) {
+	let line = Geom.core.origami.axiom5(pointA, vectorA, pointB, pointC);
+	return crease_line(graph, line[0], line[1]);
+}
+export function axiom6(graph, pointA, vectorA, pointB, vectorB, pointC, pointD) {
+	let line = Geom.core.origami.axiom6(pointA, vectorA, pointB, vectorB, pointC, pointD);
+	return crease_line(graph, line[0], line[1]);
+}
+export function axiom7(graph, pointA, vectorA, pointB, vectorB, pointC) {
+	let line = Geom.core.origami.axiom7(pointA, vectorA, pointB, vectorB, pointC);
+	return crease_line(graph, line[0], line[1]);
+}
 
 export function fold_without_layering(fold, face) {
 	if (face == null) { face = 0; }

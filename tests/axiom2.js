@@ -1,29 +1,36 @@
 let axiom2 = RabbitEar.Origami("canvas-axiom-2");
-axiom2.drawGroup = RabbitEar.svg.group();
-axiom2.svg.appendChild(axiom2.drawGroup);
 
-axiom2.points = [[Math.random(),Math.random()], [Math.random(),Math.random()]];
+axiom2.touches = [
+	{pos: [0.1, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02)},
+	{pos: [0.9, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02)},
+];
+axiom2.touches.forEach(p => {
+	p.svg.setAttribute("fill", "#e44f2a");
+	axiom2.svg.appendChild(p.svg);
+});
 
 axiom2.redraw = function(){
-	RabbitEar.svg.removeChildren(axiom2.drawGroup);
-	axiom2.points.forEach(p => RabbitEar.svg.circle(p[0], p[1], 0.015, "touch", null, axiom2.drawGroup));
-	let crease = RabbitEar.fold.axiom2(RabbitEar.bases.square, axiom2.points[0], axiom2.points[1]);
-	let newCP = RabbitEar.fold.clip_edges_with_line(RabbitEar.fold.clone(RabbitEar.bases.square), crease[0], crease[1]);
-	newCP.edges_assignment[newCP.edges_assignment.length-1] = "V";
-	axiom2.cp = newCP;
+	axiom2.touches.forEach((p,i) => {
+		p.svg.setAttribute("cx", p.pos[0]);
+		p.svg.setAttribute("cy", p.pos[1]);
+	});
+	axiom2.cp = RabbitEar.CreasePattern(RabbitEar.bases.square);
+	let creases = axiom2.cp.axiom2(axiom2.touches[0].pos, axiom2.touches[1].pos);
+	creases.forEach(c => c.valley());
+	axiom2.draw();
 }
 axiom2.redraw();
 
-axiom2.onMouseMove = function(mouse){
-	if(mouse.isPressed && axiom2.selected != null){
-		axiom2.points[axiom2.selected] = mouse.position;
-		axiom2.redraw();
-	}
-}
-
 axiom2.onMouseDown = function(mouse){
-	let ep = 5e-2;
-	let down = axiom2.points.map(p => Math.abs(mouse.x - p[0]) < ep && Math.abs(mouse.y - p[1]) < ep);
+	let ep = 0.03;
+	let down = axiom2.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	axiom2.selected = found;
+}
+
+axiom2.onMouseMove = function(mouse){
+	if(mouse.isPressed && axiom2.selected != null){
+		axiom2.touches[axiom2.selected].pos = mouse.position;
+		axiom2.redraw();
+	}
 }

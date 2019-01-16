@@ -81,12 +81,24 @@ export default function() {
 	const axiom1 = function() {
 		return Origami.axiom1(_m, ...arguments).map(e => Crease(this, e));
 	}
-	const axiom2 = function() { Origami.axiom2(_m, ...arguments); }
-	const axiom3 = function() { Origami.axiom3(_m, ...arguments); }
-	const axiom4 = function() { Origami.axiom4(_m, ...arguments); }
-	const axiom5 = function() { Origami.axiom5(_m, ...arguments); }
-	const axiom6 = function() { Origami.axiom6(_m, ...arguments); }
-	const axiom7 = function() { Origami.axiom7(_m, ...arguments); }
+	const axiom2 = function() {
+		return Origami.axiom2(_m, ...arguments).map(e => Crease(this, e));
+	}
+	const axiom3 = function() {
+		return Origami.axiom3(_m, ...arguments).map(e => Crease(this, e));
+	}
+	const axiom4 = function() {
+		return Origami.axiom4(_m, ...arguments).map(e => Crease(this, e));
+	}
+	const axiom5 = function() {
+		return Origami.axiom5(_m, ...arguments).map(e => Crease(this, e));
+	}
+	const axiom6 = function() {
+		return Origami.axiom6(_m, ...arguments).map(e => Crease(this, e));
+	}
+	const axiom7 = function() {
+		return Origami.axiom7(_m, ...arguments).map(e => Crease(this, e));
+	}
 
 	// callback for when the crease pattern has been altered
 	let _onchange;

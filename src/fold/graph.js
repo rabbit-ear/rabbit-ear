@@ -63,7 +63,7 @@ export const new_edge = function(graph, node1, node2) {
  *
  * @returns {number} number of vertices
  */
-export const verticesCount = function(graph) {
+export const vertices_count = function(graph) {
 	return Math.max(...(
 		[[], graph.vertices_coords, graph.vertices_faces, graph.vertices_vertices]
 		.filter(el => el != null)
@@ -74,7 +74,7 @@ export const verticesCount = function(graph) {
  *
  * @returns {number} number of edges
  */
-export const edgesCount = function(graph) {
+export const edges_count = function(graph) {
 	return Math.max(...(
 		[[], graph.edges_vertices, graph.edges_faces]
 		.filter(el => el != null)
@@ -86,7 +86,7 @@ export const edgesCount = function(graph) {
  *
  * @returns {number} number of faces
  */
-export const facesCount = function(graph) {
+export const faces_count = function(graph) {
 	return Math.max(...(
 		[[], graph.faces_vertices, graph.faces_edges]
 		.filter(el => el != null)
@@ -363,7 +363,7 @@ export const connectedGraphs = function(graph) {
  */
 export function remove_vertices(graph, vertices){
 	// length of index_map is length of the original vertices_coords
-	let s = 0, removes = Array( verticesCount(graph) ).fill(false);
+	let s = 0, removes = Array( vertices_count(graph) ).fill(false);
 	vertices.forEach(v => removes[v] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
 
@@ -410,7 +410,7 @@ export function remove_vertices(graph, vertices){
  */
 export const remove_edges = function(graph, edges) {
 	// length of index_map is length of the original edges_vertices
-	let s = 0, removes = Array( edgesCount(graph) ).fill(false);
+	let s = 0, removes = Array( edges_count(graph) ).fill(false);
 	edges.forEach(e => removes[e] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
 
@@ -464,7 +464,7 @@ export const remove_edges = function(graph, edges) {
  */
 export function remove_faces(graph, faces){
 	// length of index_map is length of the original edges_vertices
-	let s = 0, removes = Array( facesCount(graph) ).fill(false);
+	let s = 0, removes = Array( faces_count(graph) ).fill(false);
 	faces.forEach(e => removes[e] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
 

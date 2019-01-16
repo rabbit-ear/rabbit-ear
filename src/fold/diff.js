@@ -3,7 +3,7 @@ import { validate } from "./file";
 
 
 export const diff_new_v = function(graph, newVertex) {
-	let i = Graph.verticesCount(graph);
+	let i = Graph.vertices_count(graph);
 	Object.keys(newVertex).forEach(suffix => {
 		let key = "vertices_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newVertex[suffix]);
@@ -19,7 +19,7 @@ export const diff_new_v = function(graph, newVertex) {
 }
 
 export const diff_new_e = function(graph, newEdge) {
-	let i = Graph.edgesCount(graph);
+	let i = Graph.edges_count(graph);
 	Object.keys(newEdge).forEach(suffix => {
 		let key = "edges_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newEdge[suffix]);
@@ -34,7 +34,7 @@ export const diff_new_e = function(graph, newEdge) {
 	return i;
 }
 export const diff_new_f = function(graph, newFace) {
-	let i = Graph.facesCount(graph);
+	let i = Graph.faces_count(graph);
 	Object.keys(newFace).forEach(suffix => {
 		let key = "faces_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newFace[suffix]);

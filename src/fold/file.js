@@ -18,9 +18,9 @@ export const validate = function(graph) {
 		).reduce((a,b) => a && b, true);
 
 	let l = {
-		vertices: Graph.get_vertex_count(graph),
-		edges: Graph.get_edge_count(graph),
-		faces: Graph.get_face_count(graph)
+		vertices: Graph.vertices_count(graph),
+		edges: Graph.edges_count(graph),
+		faces: Graph.faces_count(graph)
 	}
 
 	let arraysIndexTest = Object.keys(foldKeys)
