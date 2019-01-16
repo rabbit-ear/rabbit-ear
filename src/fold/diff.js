@@ -1,6 +1,9 @@
+import * as Graph from "./graph";
+import { validate } from "./file";
+
 
 export const diff_new_v = function(graph, newVertex) {
-	let i = Graph.get_vertex_count(graph);
+	let i = Graph.verticesCount(graph);
 	Object.keys(newVertex).forEach(suffix => {
 		let key = "vertices_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newVertex[suffix]);
@@ -16,7 +19,7 @@ export const diff_new_v = function(graph, newVertex) {
 }
 
 export const diff_new_e = function(graph, newEdge) {
-	let i = Graph.get_edge_count(graph);
+	let i = Graph.edgesCount(graph);
 	Object.keys(newEdge).forEach(suffix => {
 		let key = "edges_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newEdge[suffix]);
@@ -31,7 +34,7 @@ export const diff_new_e = function(graph, newEdge) {
 	return i;
 }
 export const diff_new_f = function(graph, newFace) {
-	let i = Graph.get_face_count(graph);
+	let i = Graph.facesCount(graph);
 	Object.keys(newFace).forEach(suffix => {
 		let key = "faces_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newFace[suffix]);
@@ -141,7 +144,7 @@ export const apply_diff = function(graph, diff) {
 		}
 	}
 
-	let validated = validate(graph);
+	// let validated = validate(graph);
 
 	return {
 		vertices: remove_vertices,

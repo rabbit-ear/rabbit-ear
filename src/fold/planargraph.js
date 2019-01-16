@@ -91,7 +91,7 @@ export const make_faces_matrix_inv = function(graph, root_face) {
 }
 
 
-export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, crease_assignment = "M"){
+export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, crease_assignment = "F"){
 	let vertices_coords = graph.vertices_coords;
 	let edges_vertices = graph.edges_vertices;
 

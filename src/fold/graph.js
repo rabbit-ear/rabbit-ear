@@ -94,58 +94,6 @@ export const facesCount = function(graph) {
 	));
 }
 
-/* This returns a 
- * in some cases face arrays might not be defined
- *
- * @returns {number} number of faces
- */
-export const remove_edges = function(graph, edges) {
-	// length of index_map is length of the original edges_vertices
-	let s = 0, removes = Array( edgesCount(graph) ).fill(false);
-	edges.forEach(e => removes[e] = true);
-	let index_map = removes.map(remove => remove ? --s : s);
-
-	if(edges.length == 0){ return removes; }
-
-	// update every component that points to edges_vertices
-	// these arrays do not change their size, only their contents
-	if(graph.faces_edges != null){
-		graph.faces_edges = graph.faces_edges
-			.map(entry => entry.map(v => v + index_map[v]));
-	}
-	if(graph.edgeOrders != null){
-		graph.edgeOrders = graph.edgeOrders
-			.map(entry => entry.map((v,i) => {
-				if(i == 2) return v;  // exception. orientation. not index.
-				return v + index_map[v];
-			}));
-	}
-
-	// update every array with a 1:1 relationship to edges_ arrays
-	// these arrays change their size, their contents are untouched
-	if(graph.edges_vertices != null){
-		graph.edges_vertices = graph.edges_vertices
-			.filter((e,i) => !removes[i])
-	}
-	if(graph.edges_faces != null){
-		graph.edges_faces = graph.edges_faces
-			.filter((e,i) => !removes[i])
-	}
-	if(graph.edges_assignment != null){
-		graph.edges_assignment = graph.edges_assignment
-			.filter((e,i) => !removes[i])
-	}
-	if(graph.edges_foldAngle != null){
-		graph.edges_foldAngle = graph.edges_foldAngle
-			.filter((e,i) => !removes[i])
-	}
-	if(graph.edges_length != null){
-		graph.edges_length = graph.edges_length
-			.filter((e,i) => !removes[i])
-	}
-	return removes;
-	// todo: do the same with frames in file_frames where inherit=true
-}
 
 ///////////////////////////////////////////////
 // MAKERS
@@ -399,4 +347,156 @@ export const connectedGraphs = function(graph) {
 		graphs.push(graph);
 	}
 	return graphs;
+}
+
+
+
+
+
+
+
+
+/** Removes vertices, updates all relevant array indices
+ *
+ * @param {vertices} an array of vertex indices
+ * @example remove_vertices(fold_file, [2,6,11,15]);
+ */
+export function remove_vertices(graph, vertices){
+	// length of index_map is length of the original vertices_coords
+	let s = 0, removes = Array( verticesCount(graph) ).fill(false);
+	vertices.forEach(v => removes[v] = true);
+	let index_map = removes.map(remove => remove ? --s : s);
+
+	if(vertices.length == 0){ return removes; }
+
+	// update every component that points to vertices_coords
+	// these arrays do not change their size, only their contents
+	if(graph.faces_vertices != null){
+		graph.faces_vertices = graph.faces_vertices
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+	if(graph.edges_vertices != null){
+		graph.edges_vertices = graph.edges_vertices
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+	if(graph.vertices_vertices != null){
+		graph.vertices_vertices = graph.vertices_vertices
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+
+	// update every array with a 1:1 relationship to vertices_ arrays
+	// these arrays change their size, their contents are untouched
+	if(graph.vertices_faces != null){
+		graph.vertices_faces = graph.vertices_faces
+			.filter((v,i) => !removes[i])
+	}
+	if(graph.vertices_vertices != null){
+		graph.vertices_vertices = graph.vertices_vertices
+			.filter((v,i) => !removes[i])
+	}
+	if(graph.vertices_coords != null){
+		graph.vertices_coords = graph.vertices_coords
+			.filter((v,i) => !removes[i])
+	}
+
+	return removes;
+	// todo: do the same with frames in file_frames where inherit=true
+}
+
+/* This returns a 
+ * in some cases face arrays might not be defined
+ *
+ * @returns {number} number of faces
+ */
+export const remove_edges = function(graph, edges) {
+	// length of index_map is length of the original edges_vertices
+	let s = 0, removes = Array( edgesCount(graph) ).fill(false);
+	edges.forEach(e => removes[e] = true);
+	let index_map = removes.map(remove => remove ? --s : s);
+
+	if(edges.length == 0){ return removes; }
+
+	// update every component that points to edges_vertices
+	// these arrays do not change their size, only their contents
+	if(graph.faces_edges != null){
+		graph.faces_edges = graph.faces_edges
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+	if(graph.edgeOrders != null){
+		graph.edgeOrders = graph.edgeOrders
+			.map(entry => entry.map((v,i) => {
+				if(i == 2) return v;  // exception. orientation. not index.
+				return v + index_map[v];
+			}));
+	}
+
+	// update every array with a 1:1 relationship to edges_ arrays
+	// these arrays change their size, their contents are untouched
+	if(graph.edges_vertices != null){
+		graph.edges_vertices = graph.edges_vertices
+			.filter((e,i) => !removes[i])
+	}
+	if(graph.edges_faces != null){
+		graph.edges_faces = graph.edges_faces
+			.filter((e,i) => !removes[i])
+	}
+	if(graph.edges_assignment != null){
+		graph.edges_assignment = graph.edges_assignment
+			.filter((e,i) => !removes[i])
+	}
+	if(graph.edges_foldAngle != null){
+		graph.edges_foldAngle = graph.edges_foldAngle
+			.filter((e,i) => !removes[i])
+	}
+	if(graph.edges_length != null){
+		graph.edges_length = graph.edges_length
+			.filter((e,i) => !removes[i])
+	}
+	return removes;
+	// todo: do the same with frames in file_frames where inherit=true
+}
+
+
+/** Removes faces, updates all relevant array indices
+ *
+ * @param {faces} an array of face indices
+ * @example remove_edges(fold_file, [1,9,11,13]);
+ */
+export function remove_faces(graph, faces){
+	// length of index_map is length of the original edges_vertices
+	let s = 0, removes = Array( facesCount(graph) ).fill(false);
+	faces.forEach(e => removes[e] = true);
+	let index_map = removes.map(remove => remove ? --s : s);
+
+	if(faces.length == 0){ return removes; }
+
+	// update every component that points to faces_ arrays
+	// these arrays do not change their size, only their contents
+	if(graph.vertices_faces != null){
+		graph.vertices_faces = graph.vertices_faces
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+	if(graph.edges_faces != null){
+		graph.edges_faces = graph.edges_faces
+			.map(entry => entry.map(v => v + index_map[v]));
+	}
+	if(graph.faceOrders != null){
+		graph.faceOrders = graph.faceOrders
+			.map(entry => entry.map((v,i) => {
+				if(i == 2) return v;  // exception. orientation. not index.
+				return v + index_map[v];
+			}));
+	}
+	// update every array with a 1:1 relationship to faces_
+	// these arrays change their size, their contents are untouched
+	if(graph.faces_vertices != null){
+		graph.faces_vertices = graph.faces_vertices
+			.filter((e,i) => !removes[i])
+	}
+	if(graph.faces_edges != null){
+		graph.faces_edges = graph.faces_edges
+			.filter((e,i) => !removes[i])
+	}
+	return removes;
+	// todo: do the same with frames in file_frames where inherit=true
 }

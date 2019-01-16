@@ -35,13 +35,15 @@ svg{
 	stroke: none;
 }
 .valley{
-	stroke: hsl(205, 74%, 30%);
+	/*stroke: hsl(205, 74%, 30%);*/
+	stroke: black;
 	stroke-width: var(--crease-width);
 	stroke-linecap: round;
 	stroke-dasharray:var(--crease-width-oneandhalf) var(--crease-width-double);
 }
 .mountain{
-	stroke: hsl(205, 74%, 30%);
+	/*stroke: hsl(205, 74%, 30%);*/
+	stroke: black;
 	stroke-width: var(--crease-width);
 	stroke-linecap: round;
 }

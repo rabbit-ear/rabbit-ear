@@ -2,6 +2,7 @@
 
 import * as Graph from "./fold/graph";
 import * as PlanarGraph from "./fold/planargraph";
+import * as Origami from "./fold/origami";
 
 /** A graph is a set of nodes and edges connecting them */
 export default function() {
@@ -77,6 +78,13 @@ export default function() {
 		return Graph.connectedGraphs(_m);
 		if (typeof _onchange === "function") { _onchange(); }
 	}
+	const axiom1 = function() { Origami.axiom1(_m, ...arguments); }
+	const axiom2 = function() { Origami.axiom2(_m, ...arguments); }
+	const axiom3 = function() { Origami.axiom3(_m, ...arguments); }
+	const axiom4 = function() { Origami.axiom4(_m, ...arguments); }
+	const axiom5 = function() { Origami.axiom5(_m, ...arguments); }
+	const axiom6 = function() { Origami.axiom6(_m, ...arguments); }
+	const axiom7 = function() { Origami.axiom7(_m, ...arguments); }
 
 	// callback for when the crease pattern has been altered
 	let _onchange;
@@ -97,6 +105,7 @@ export default function() {
 		nearestEdge,
 		nearestFace,
 		crease,
+		axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
 		// fold spec 1.1
 		get vertices_coords() { return _m.vertices_coords; },
 		get vertices_vertices() { return _m.vertices_vertices; },
@@ -118,18 +127,12 @@ const Crease = function(_graph, _index) {
 	let graph = _graph; // pointer back to the graph;
 	let index = _index; // index of this crease in the graph
 
-	// let params = Array.from(arguments);
-	// let paramsObj = params.filter(el => typeof el === "object" && el !== null);
-	// if (paramsObj.length > 0) { }
-
-	const is_mountain = function() {
-		return graph.edges_assignment[index] === "M" ||
-			graph.edges_assignment[index] === "m";
+	const is_assignment = function(options) {
+		return options.map(l => l === graph.edges_assignment[index])
+			.reduce((a,b) => a || b, false);
 	}
-	const is_valley = function() {
-		return graph.edges_assignment[index] === "V" ||
-			graph.edges_assignment[index] === "v";
-	}
+	const is_mountain = function() { return is_assignment(["M", "m"]); }
+	const is_valley = function() { return is_assignment(["V", "v"]); }
 
 	const flip = function() {
 		if (is_mountain()) { valley(); }
