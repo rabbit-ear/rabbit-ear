@@ -19,33 +19,27 @@ export function crease_line(graph, point, vector) {
 	let boundary = Graph.get_boundary_vertices(graph);
 	let poly = boundary.map(v => graph.vertices_coords[v]);
 	// let edge = Geom.core.intersection.clip_line_in_convex_poly(poly, line[0], line[1]);
-	return graph.faces_vertices.forEach((fv,i) => {
+	let new_edge_count = 0;
+	graph.faces_vertices.forEach((fv,i) => {
 		let diff = PlanarGraph.split_convex_polygon(graph, i, point, vector);
 		let remove = apply_diff(graph, diff);
+		if (diff.edges != null && diff.edges.new != null) {
+			new_edge_count += diff.edges.new.length;
+		}
 		// console.log(diff, remove);
 		Graph.remove_vertices(graph, remove.vertices);
 		Graph.remove_edges(graph, remove.edges);
 		Graph.remove_faces(graph, remove.faces);
 	});
+	return Array.apply(null, Array(new_edge_count))
+		.map((_,i) => graph.edges_vertices.length-new_edge_count+i);
 }
 
 export function axiom1(graph, pointA, pointB) {
 	// n-dimension
 	let line = Geom.core.origami.axiom1(pointA, pointB);
 
-	crease_line(graph, line[0], line[1]);
-
-
-	// chop faces
-	// let line = Geom.axiom1(pointA, pointB);
-	// graph.vertices_coords.push(pointA);
-	// graph.vertices_coords.push(pointB);
-	// graph.edges_vertices.push([
-	// 	graph.vertices_coords.length-2,
-	// 	graph.vertices_coords.length-1
-	// ]);
-	// graph.edges_assignment.push("F");
-	// return graph;
+	return crease_line(graph, line[0], line[1]);
 }
 
 export function axiom1_force(fold, pointA, pointB) {

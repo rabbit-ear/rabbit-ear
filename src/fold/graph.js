@@ -32,7 +32,7 @@ export const keys = {
 
 export const all_keys = ["file_frames"]
 	.concat(keys.meta)
-	.concat(keys.geometry)
+	.concat(keys.graph)
 	.concat(keys.orders);
 
 export const new_vertex = function(graph, x, y) {

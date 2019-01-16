@@ -15,7 +15,8 @@ axiom1.redraw = function(){
 		p.svg.setAttribute("cy", p.pos[1]);
 	});
 	axiom1.cp = RabbitEar.CreasePattern(RabbitEar.bases.square);
-	axiom1.cp.axiom1(axiom1.touches[0].pos, axiom1.touches[1].pos);
+	let creases = axiom1.cp.axiom1(axiom1.touches[0].pos, axiom1.touches[1].pos);
+	creases.forEach(c => c.valley());
 	axiom1.draw();
 }
 axiom1.redraw();

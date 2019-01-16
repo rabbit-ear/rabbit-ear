@@ -151,7 +151,7 @@ export default function() {
 		// let faces = data.faces_vertices.map(fv => fv.map(v => verts[v]));
 		let faces = data.faces_vertices
 			.map(fv => fv.map(v => verts[v]))
-			.map(face => Geom.Polygon(face).scale(0.9).points);
+			.map(face => Geom.Polygon(face).scale(0.666).points);
 			// .map(face => Geom.Polygon(face).points);
 		let orientations = data.edges_vertices.map((ev,i) =>
 			(data.edges_assignment != null && 

@@ -78,7 +78,9 @@ export default function() {
 		return Graph.connectedGraphs(_m);
 		if (typeof _onchange === "function") { _onchange(); }
 	}
-	const axiom1 = function() { Origami.axiom1(_m, ...arguments); }
+	const axiom1 = function() {
+		return Origami.axiom1(_m, ...arguments).map(e => Crease(this, e));
+	}
 	const axiom2 = function() { Origami.axiom2(_m, ...arguments); }
 	const axiom3 = function() { Origami.axiom3(_m, ...arguments); }
 	const axiom4 = function() { Origami.axiom4(_m, ...arguments); }

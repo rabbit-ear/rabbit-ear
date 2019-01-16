@@ -101,27 +101,49 @@ export const apply_diff = function(graph, diff) {
 	if (diff.edges != null) {
 		if (diff.edges.replace != null) {
 			diff.edges.replace.forEach(el => {
-				let oldAssignment = graph.edges_assignment[el.old_index];
-				el.new
-					.filter(e => e.edges_assignment == null)
-					.forEach(e => e.assignment = oldAssignment);
+				// let oldAssignment = graph.edges_assignment[el.old_index];
+				// el.new
+				// 	.filter(e => e.edges_assignment == null)
+				// 	.forEach(e => e.assignment = oldAssignment);
 				el.new.forEach(newEdge => {
 					let index = diff_new_e(graph, newEdge);
 					// check the standard keys and infer any that were left out
 					// ["vertices", "faces", "assignment", "foldAngle", "length"]
-					let allKeys = ["faces", "assignment"];
-					allKeys.filter(suffix => newEdge[suffix] != null)
+					// let allKeys = ["faces", "assignment"];
+					let allKeys = ["foldAngle", "assignment"];
+					allKeys.filter(suffix => newEdge[suffix] == null)
 						.forEach(suffix => {
 							let key = "edges_" + suffix;
 							graph[key][index] = graph[key][el.old_index];
 						});
+					// this needs to be calculated
+					graph["edges_length"][index] = 0;
+
 				})
 			});
 			remove_edges = remove_edges
 				.concat(diff.edges.replace.map(el => el.old_index));
 		}
 		if (diff.edges.new != null) {
-			diff.edges.new.forEach(el => diff_new_e(graph, el));
+			diff.edges.new.forEach(el => {
+				let index = diff_new_e(graph, el);
+				// do the thing again. from above. infer left out things
+				if (graph["edges_foldAngle"][index] == null) {
+					graph["edges_foldAngle"][index] = 0;
+				}
+				if (graph["edges_assignment"][index] == null) {
+					graph["edges_assignment"][index] = "F";
+				}
+				if (graph["edges_length"][index] == null) {
+					graph["edges_length"][index] = 0;
+				}
+				if (graph["edges_faces"][index] == null) {
+					// something
+				}
+				if (graph["edges_vertices"][index] == null) {
+					// something. maybe return something and say we need this
+				}
+			});
 		}
 	}
 	if (diff.faces != null) {
@@ -130,13 +152,14 @@ export const apply_diff = function(graph, diff) {
 				el.new.forEach(newFace => {
 					let index = diff_new_f(graph, newFace);
 					// check the standard keys and infer any that were left out
-					// ["vertices", "faces", "assignment", "foldAngle", "length"]
-					let allKeys = ["vertices", "edges"];
-					allKeys.filter(suffix => newFace[suffix] != null)
-						.forEach(suffix => {
-							let key = "faces_" + suffix;
-							graph[key][index] = graph[key][el.old_index];
-						});
+					// copyable attributes from the old values
+					// with faces, there are none
+					// let allKeys = ["vertices", "edges"];
+					// allKeys.filter(suffix => newFace[suffix] == null)
+					// 	.forEach(suffix => {
+					// 		let key = "faces_" + suffix;
+					// 		graph[key][index] = graph[key][el.old_index];
+					// 	});
 				})
 			});
 			remove_faces = remove_faces
