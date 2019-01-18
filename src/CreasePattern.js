@@ -13,7 +13,7 @@ export default function() {
 	// 	typeof arg == "object" && arg.vertices_coords != undefined
 	// ).shift();
 	// if(_cp == undefined) { _cp = unitSquare; }
-	
+
 	let params = Array.from(arguments);
 	let paramsObj = params.filter(el => typeof el === "object" && el !== null);
 	if (paramsObj.length > 0) {
@@ -156,10 +156,17 @@ const Crease = function(_graph, _index) {
 	}
 	const mountain = function() {
 		graph.edges_assignment[index] = "M";
+		graph.edges_foldAngle[index] = -180;
 		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
 	const valley = function() {
 		graph.edges_assignment[index] = "V";
+		graph.edges_foldAngle[index] = 180;
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+	}
+	const mark = function() {
+		graph.edges_assignment[index] = "F";
+		graph.edges_foldAngle[index] = 0;
 		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
 	const remove = function() { }

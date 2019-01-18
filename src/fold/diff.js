@@ -1,7 +1,6 @@
 import * as Graph from "./graph";
 import { validate } from "./file";
 
-
 export const diff_new_v = function(graph, newVertex) {
 	let i = Graph.vertices_count(graph);
 	Object.keys(newVertex).forEach(suffix => {
@@ -33,6 +32,7 @@ export const diff_new_e = function(graph, newEdge) {
 	});
 	return i;
 }
+
 export const diff_new_f = function(graph, newFace) {
 	let i = Graph.faces_count(graph);
 	Object.keys(newFace).forEach(suffix => {
@@ -110,15 +110,20 @@ export const apply_diff = function(graph, diff) {
 					// check the standard keys and infer any that were left out
 					// ["vertices", "faces", "assignment", "foldAngle", "length"]
 					// let allKeys = ["faces", "assignment"];
-					let allKeys = ["foldAngle", "assignment"];
+					let allKeys = ["foldAngle", "assignment", "faces"];
 					allKeys.filter(suffix => newEdge[suffix] == null)
 						.forEach(suffix => {
 							let key = "edges_" + suffix;
 							graph[key][index] = graph[key][el.old_index];
 						});
+					let e_coords = graph["edges_vertices"][index]
+						.map(v => graph.vertices_coords[v]);
+					let dX = e_coords[0][0]-e_coords[1][0];
+					let dY = e_coords[0][1]-e_coords[1][1];
+					let distance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
+					graph["edges_length"][index] = distance;
 					// this needs to be calculated
-					graph["edges_length"][index] = 0;
-
+					// graph["edges_length"][index] = 0;
 				})
 			});
 			remove_edges = remove_edges
@@ -136,6 +141,12 @@ export const apply_diff = function(graph, diff) {
 				}
 				if (graph["edges_length"][index] == null) {
 					graph["edges_length"][index] = 0;
+					let e_coords = graph["edges_vertices"][index]
+						.map(v => graph.vertices_coords[v]);
+					let dX = e_coords[0][0]-e_coords[1][0];
+					let dY = e_coords[0][1]-e_coords[1][1];
+					let distance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
+					graph["edges_length"][index] = distance;
 				}
 				if (graph["edges_faces"][index] == null) {
 					// something
