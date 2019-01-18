@@ -187,7 +187,7 @@ export default function() {
 		// edges
 		if (!isFoldedState()) {
 			edges.forEach((e,i) =>
-				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], orientations[i], null, groups.creases)
+				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], orientations[i], ""+i, groups.creases)
 			);
 		}
 		// faces

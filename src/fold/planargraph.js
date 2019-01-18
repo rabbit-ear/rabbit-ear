@@ -185,21 +185,15 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, cr
 
 		// 0 4 8 7
 		// 2 6 8 5
+		let in_order_e = (edges_intersections[0].at_index < edges_intersections[1].at_index) && edges_intersections[0].at_index !== 0;
 
 		// this points to new edges
-		let face_a_edges_end = in_order
+		let face_a_edges_end = in_order_e
 			? [edges_vertices.length, edges_vertices.length+4, edges_vertices.length+3]
 			: [edges_vertices.length+2, edges_vertices.length+4, edges_vertices.length+1];
-		let face_b_edges_end = in_order
+		let face_b_edges_end = in_order_e
 			? [edges_vertices.length+2, edges_vertices.length+4, edges_vertices.length+1]
 			: [edges_vertices.length, edges_vertices.length+4, edges_vertices.length+3];
-
-		// console.log("a", face_edges.slice(sorted_edges[1].at_index+1));
-		// console.log("b", face_edges.slice(0, sorted_edges[0].at_index));
-		// console.log("c", face_a_edges_end)
-
-		// console.log("a2", face_edges.slice(sorted_edges[0].at_index+1, sorted_edges[1].at_index));
-		// console.log("b2", face_b_edges_end);
 
 		// new faces_edges
 		new_faces[0].edges = face_edges
@@ -245,7 +239,7 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, cr
 			.slice(sorted_geom[0].at_index+1, sorted_geom[1].at_index+1)
 			.concat(face_b_vertices_end);
 
-		// new faces_edges
+		// new faces_edges NOT TESTED
 		new_faces[0].edges = face_edges.slice(sorted_geom[1].at_index+1)
 			.concat(face_edges.slice(0, sorted_geom[0].at_index+1))
 			.concat(face_a_edges_end);
