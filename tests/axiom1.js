@@ -1,8 +1,9 @@
 let axiom1 = RabbitEar.Origami("canvas-axiom-1");
 
 axiom1.touches = [
-	{pos: [0.1, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02)},
-	{pos: [0.9, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02)},
+	// {pos: [0.1, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02)},
+	{pos: [0.0, 0.0], svg: RabbitEar.svg.circle(0, 0, 0.02)},
+	{pos: [0.2, 0.8], svg: RabbitEar.svg.circle(0, 0, 0.02)},
 ];
 axiom1.touches.forEach(p => {
 	p.svg.setAttribute("fill", "#e44f2a");
@@ -14,7 +15,7 @@ axiom1.redraw = function(){
 		p.svg.setAttribute("cx", p.pos[0]);
 		p.svg.setAttribute("cy", p.pos[1]);
 	});
-	axiom1.cp = RabbitEar.CreasePattern(RabbitEar.bases.square);
+	axiom1.cp = RabbitEar.CreasePattern(RabbitEar.bases.dodecagon);
 	let creases = axiom1.cp.axiom1(axiom1.touches[0].pos, axiom1.touches[1].pos);
 	creases.forEach(c => c.valley());
 	axiom1.draw();

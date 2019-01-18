@@ -26,7 +26,7 @@ export default function() {
 	let unclean = {"vertices_coords":[],"vertices_vertices":[],"vertices_faces":[],"edges_vertices":[],"edges_faces":[],"edges_assignment":[],"edges_foldAngle":[],"edges_length":[],"faces_vertices":[],"faces_edges":[],"edgeOrders":[],"faceOrders":[]};
 
 	const load = function(file){ _m = JSON.parse(JSON.stringify(file)); }
-	const save = function() {
+	const json = function() {
 		let fold_file = Object.create(null);
 		Graph.all_keys.filter(key => _m[key] != null)
 			.forEach(key =>
@@ -107,7 +107,7 @@ export default function() {
 		set onchange(func) { _onchange = func; },
 		get onchange() { return _onchange },
 		load,
-		save,
+		json,
 		clear,
 		clearGraph,
 		addVertexOnEdge,

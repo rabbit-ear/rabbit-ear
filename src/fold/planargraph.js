@@ -66,7 +66,7 @@ export const faces_containing_point = function(graph, point) {
 export const make_faces_matrix = function(graph, root_face) {
 	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
 	Graph.make_face_walk_tree(graph, root_face).forEach((level) =>
-		level.filter((entry) => entry.parent != undefined).forEach((entry) => {
+		level.filter((entry) => entry.parent != null).forEach((entry) => {
 			let edge = entry.edge.map(v => graph.vertices_coords[v])
 			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
 			let local = Geom.core.make_matrix2_reflection(vec, edge[0]);
@@ -79,7 +79,7 @@ export const make_faces_matrix = function(graph, root_face) {
 export const make_faces_matrix_inv = function(graph, root_face) {
 	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
 	Graph.make_face_walk_tree(graph, root_face).forEach((level) =>
-		level.filter((entry) => entry.parent != undefined).forEach((entry) => {
+		level.filter((entry) => entry.parent != null).forEach((entry) => {
 			let edge = entry.edge.map(v => graph.vertices_coords[v])
 			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
 			let local = Geom.core.make_matrix2_reflection(vec, edge[0]);
@@ -115,7 +115,9 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, cr
 		.map((point, i) => ({point: point, at_index: i, at_real_index: face_edges[i] }))
 		.filter(el => el.point != null);
 
-	if (vertices_intersections.length == 0 && edges_intersections.length == 0) {
+	// console.log("edges_intersections", edges_intersections);
+
+	if (vertices_intersections.length === 0 && edges_intersections.length === 0) {
 		// the line does not intersect the face
 		return {};
 	}
@@ -154,16 +156,17 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, cr
 	let new_faces = [{vertices:[], edges:[]}, {vertices:[], edges:[]}]
 	let new_edge = {
 		vertices: [], assignment: crease_assignment, foldAngle: foldAngle,
+		// todo, these aren't ordered with respect to the vertices
 		faces: [graph.faces_vertices.length, graph.faces_vertices.length+1]
 	};
 	// three cases: intersection at 2 edges, 2 points, 1 edge and 1 point
-	if(edges_intersections.length == 2){
+	if(edges_intersections.length === 2){
 		let in_order = (edges_intersections[0].at_index < edges_intersections[1].at_index);
 
 		let sorted_edges = edges_intersections.slice()
 			.sort((a,b) => a.at_index - b.at_index);
 
-		// these are new vertices
+		// this points to new vertices
 		let face_a_vertices_end = in_order
 			? [vertices_coords.length, vertices_coords.length+1]
 			: [vertices_coords.length+1, vertices_coords.length];
@@ -171,6 +174,7 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, cr
 			? [vertices_coords.length+1, vertices_coords.length]
 			: [vertices_coords.length, vertices_coords.length+1];
 
+		// new faces_vertices
 		new_faces[0].vertices = face_vertices
 			.slice(sorted_edges[1].at_index+1)
 			.concat(face_vertices.slice(0, sorted_edges[0].at_index+1))
@@ -178,14 +182,46 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, cr
 		new_faces[1].vertices = face_vertices
 			.slice(sorted_edges[0].at_index+1, sorted_edges[1].at_index+1)
 			.concat(face_b_vertices_end);
+
+		// 0 4 8 7
+		// 2 6 8 5
+
+		// this points to new edges
+		let face_a_edges_end = in_order
+			? [edges_vertices.length, edges_vertices.length+4, edges_vertices.length+3]
+			: [edges_vertices.length+2, edges_vertices.length+4, edges_vertices.length+1];
+		let face_b_edges_end = in_order
+			? [edges_vertices.length+2, edges_vertices.length+4, edges_vertices.length+1]
+			: [edges_vertices.length, edges_vertices.length+4, edges_vertices.length+3];
+
+		// console.log("a", face_edges.slice(sorted_edges[1].at_index+1));
+		// console.log("b", face_edges.slice(0, sorted_edges[0].at_index));
+		// console.log("c", face_a_edges_end)
+
+		// console.log("a2", face_edges.slice(sorted_edges[0].at_index+1, sorted_edges[1].at_index));
+		// console.log("b2", face_b_edges_end);
+
+		// new faces_edges
+		new_faces[0].edges = face_edges
+			.slice(sorted_edges[1].at_index+1)
+			.concat(face_edges.slice(0, sorted_edges[0].at_index))
+			.concat(face_a_edges_end);
+		new_faces[1].edges = face_edges
+			.slice(sorted_edges[0].at_index+1, sorted_edges[1].at_index)
+			.concat(face_b_edges_end);
+
+		// console.log(new_faces[0].edges);
+		// console.log(new_faces[1].edges);
+
 		new_edge.vertices = [vertices_coords.length, vertices_coords.length+1];
 
-	} else if(edges_intersections.length == 1 && vertices_intersections.length == 1){
+	} else if(edges_intersections.length === 1 && vertices_intersections.length === 1){
 		vertices_intersections[0]["type"] = "v";
 		edges_intersections[0]["type"] = "e";
 		let sorted_geom = vertices_intersections.concat(edges_intersections)
 			.sort((a,b) => a.at_index - b.at_index);
 
+		// this points to new vertices
 		let face_a_vertices_end = sorted_geom[0].type === "e"
 			? [vertices_coords.length, sorted_geom[1].at_index]
 			: [vertices_coords.length];
@@ -193,22 +229,48 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, cr
 			? [vertices_coords.length, sorted_geom[0].at_index]
 			: [vertices_coords.length];
 
+		// this points to new edges
+		let face_a_edges_end = sorted_geom[0].type === "e"
+			? [edges_vertices.length, sorted_geom[1].at_index]
+			: [edges_vertices.length];
+		let face_b_edges_end = sorted_geom[1].type === "e"
+			? [edges_vertices.length, sorted_geom[0].at_index]
+			: [edges_vertices.length];
+
+		// new faces_vertices
 		new_faces[0].vertices = face_vertices.slice(sorted_geom[1].at_index+1)
 			.concat(face_vertices.slice(0, sorted_geom[0].at_index+1))
 			.concat(face_a_vertices_end);
 		new_faces[1].vertices = face_vertices
 			.slice(sorted_geom[0].at_index+1, sorted_geom[1].at_index+1)
 			.concat(face_b_vertices_end);
+
+		// new faces_edges
+		new_faces[0].edges = face_edges.slice(sorted_geom[1].at_index+1)
+			.concat(face_edges.slice(0, sorted_geom[0].at_index+1))
+			.concat(face_a_edges_end);
+		new_faces[1].edges = face_edges
+			.slice(sorted_geom[0].at_index+1, sorted_geom[1].at_index+1)
+			.concat(face_b_edges_end);
+
 		new_edge.vertices = [vertices_intersections[0].at_index, vertices_coords.length];
 
-	} else if(vertices_intersections.length == 2){
+	} else if(vertices_intersections.length === 2){
 		let sorted_vertices = vertices_intersections.slice()
 			.sort((a,b) => a.at_index - b.at_index);
+		// new faces_vertices
 		new_faces[0].vertices = face_vertices
 			.slice(sorted_vertices[1].at_index)
 			.concat(face_vertices.slice(0, sorted_vertices[0].at_index+1))
 		new_faces[1].vertices = face_vertices
 			.slice(sorted_vertices[0].at_index, sorted_vertices[1].at_index+1);
+		// new faces_edges... not tested
+		new_faces[0].vertices = face_edges
+			.slice(sorted_vertices[1].at_index)
+			.concat(face_edges.slice(0, sorted_vertices[0].at_index+1))
+		new_faces[1].vertices = face_edges
+			.slice(sorted_vertices[0].at_index, sorted_vertices[1].at_index+1);
+
 		new_edge.vertices = sorted_vertices.map(el => el.at_index);
 
 	}

@@ -122,8 +122,6 @@ export const apply_diff = function(graph, diff) {
 					let dY = e_coords[0][1]-e_coords[1][1];
 					let distance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
 					graph["edges_length"][index] = distance;
-					// this needs to be calculated
-					// graph["edges_length"][index] = 0;
 				})
 			});
 			remove_edges = remove_edges

@@ -26,10 +26,10 @@ export function crease_line(graph, point, vector) {
 		if (diff.edges != null && diff.edges.new != null) {
 			new_edge_count += diff.edges.new.length;
 		}
-		console.log(diff, remove);
-		Graph.remove_vertices(graph, remove.vertices);
-		Graph.remove_edges(graph, remove.edges);
-		Graph.remove_faces(graph, remove.faces);
+		// console.log(diff, remove);
+		// Graph.remove_vertices(graph, remove.vertices);
+		// Graph.remove_edges(graph, remove.edges);
+		// Graph.remove_faces(graph, remove.faces);
 	});
 	return Array.apply(null, Array(new_edge_count))
 		.map((_,i) => graph.edges_vertices.length-new_edge_count+i);
