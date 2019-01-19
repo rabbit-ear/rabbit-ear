@@ -185,13 +185,12 @@ export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, cr
 
 		// 0 4 8 7
 		// 2 6 8 5
-		let in_order_e = (edges_intersections[0].at_index < edges_intersections[1].at_index) && edges_intersections[0].at_index !== 0;
 
 		// this points to new edges
-		let face_a_edges_end = in_order_e
+		let face_a_edges_end = in_order
 			? [edges_vertices.length, edges_vertices.length+4, edges_vertices.length+3]
 			: [edges_vertices.length+2, edges_vertices.length+4, edges_vertices.length+1];
-		let face_b_edges_end = in_order_e
+		let face_b_edges_end = in_order
 			? [edges_vertices.length+2, edges_vertices.length+4, edges_vertices.length+1]
 			: [edges_vertices.length, edges_vertices.length+4, edges_vertices.length+3];
 

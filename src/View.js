@@ -153,6 +153,18 @@ export default function() {
 			.map(fv => fv.map(v => verts[v]))
 			.map(face => Geom.Polygon(face).scale(0.666).points);
 			// .map(face => Geom.Polygon(face).points);
+
+		let facesFromEdges = data.faces_edges
+			.map(face_edges => face_edges
+				.map(edge => data.edges_vertices[edge])
+				.map((vi,i,arr) => {
+					let next = arr[(i+1)%arr.length];
+					return vi[1] === next[0] || vi[1] === next[1]
+						? vi[0] : vi[1];
+				}).map(v => data.vertices_coords[v])
+			)
+			.map(face => Geom.Polygon(face).scale(0.83333).points);
+
 		let orientations = data.edges_vertices.map((ev,i) =>
 			(data.edges_assignment != null && 
 			 data.edges_assignment[i] != null
@@ -194,7 +206,9 @@ export default function() {
 		faceOrder.forEach(i => {
 			let faceClass = (!isFoldedState() ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
 			SVG.polygon(faces[i], faceClass, "face", groups.faces)
+			SVG.polygon(facesFromEdges[i], faceClass, "face", groups.faces)
 		});
+
 		// faces.forEach(f => SVG.polygon(f, faceClass, "face", this.faces));
 		updateViewBox();
 	}
