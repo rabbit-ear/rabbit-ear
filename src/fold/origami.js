@@ -22,17 +22,18 @@ export function crease_line(graph, point, vector) {
 	let new_edge_count = 0;
 	graph.faces_vertices.forEach((fv,i) => {
 		let diff = PlanarGraph.split_convex_polygon(graph, i, point, vector);
-		let remove = apply_diff(graph, diff);
-		if (diff.edges != null && diff.edges.new != null) {
-			new_edge_count += diff.edges.new.length;
-		}
+		// let remove = apply_diff(graph, diff);
+		// if (diff.edges != null && diff.edges.new != null) {
+		// 	new_edge_count += diff.edges.new.length;
+		// }
 		// console.log(diff, remove);
-		Graph.remove_vertices(graph, remove.vertices);
-		Graph.remove_edges(graph, remove.edges);
-		Graph.remove_faces(graph, remove.faces);
+		// Graph.remove_vertices(graph, remove.vertices);
+		// Graph.remove_edges(graph, remove.edges);
+		// Graph.remove_faces(graph, remove.faces);
 	});
-	return Array.apply(null, Array(new_edge_count))
-		.map((_,i) => graph.edges_vertices.length-new_edge_count+i);
+	return [];
+	// return Array.apply(null, Array(new_edge_count))
+	// 	.map((_,i) => graph.edges_vertices.length-new_edge_count+i);
 }
 
 export function axiom1(graph, pointA, pointB) { // n-dimension
@@ -47,7 +48,7 @@ export function axiom3(graph, pointA, vectorA, pointB, vectorB) {
 	let lines = Geom.core.origami.axiom3(pointA, vectorA, pointB, vectorB);
 	// return lines.map(line => crease_line(graph, line[0], line[1]))
 	// 	.reduce((a,b) => a.concat(b), []);
-	
+
 	return crease_line(graph, lines[0][0], lines[0][1]);
 }
 export function axiom4(graph, pointA, vectorA, pointB) {

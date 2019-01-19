@@ -262,7 +262,11 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 	// ["edges_vertices", "edges_faces", "edges_assignment", "edges_foldAngle", "edges_length"]
 	// 	.filter(key => graph[key] != null)
 	// 	.forEach(key => graph[key][old_edge_index] = undefined);
-	remove_edges(graph, [old_edge_index]);
+	let edge_map = remove_edges(graph, [old_edge_index]);
+	return {
+		vertices: { new: [{index:new_vertex_index}] },
+		edges: { map: edge_map }
+	};
 }
 
 
@@ -367,7 +371,7 @@ export function remove_vertices(graph, vertices){
 	vertices.forEach(v => removes[v] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
 
-	if(vertices.length == 0){ return removes; }
+	if(vertices.length == 0){ return index_map; }
 
 	// update every component that points to vertices_coords
 	// these arrays do not change their size, only their contents
@@ -399,7 +403,7 @@ export function remove_vertices(graph, vertices){
 			.filter((v,i) => !removes[i])
 	}
 
-	return removes;
+	return index_map;
 	// todo: do the same with frames in file_frames where inherit=true
 }
 
@@ -414,7 +418,7 @@ export const remove_edges = function(graph, edges) {
 	edges.forEach(e => removes[e] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
 
-	if(edges.length == 0){ return removes; }
+	if(edges.length == 0){ return index_map; }
 
 	// update every component that points to edges_vertices
 	// these arrays do not change their size, only their contents
@@ -452,7 +456,7 @@ export const remove_edges = function(graph, edges) {
 		graph.edges_length = graph.edges_length
 			.filter((e,i) => !removes[i])
 	}
-	return removes;
+	return index_map;
 	// todo: do the same with frames in file_frames where inherit=true
 }
 
@@ -468,7 +472,7 @@ export function remove_faces(graph, faces){
 	faces.forEach(e => removes[e] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
 
-	if(faces.length == 0){ return removes; }
+	if(faces.length == 0){ return index_map; }
 
 	// update every component that points to faces_ arrays
 	// these arrays do not change their size, only their contents
@@ -497,6 +501,6 @@ export function remove_faces(graph, faces){
 		graph.faces_edges = graph.faces_edges
 			.filter((e,i) => !removes[i])
 	}
-	return removes;
+	return index_map;
 	// todo: do the same with frames in file_frames where inherit=true
 }

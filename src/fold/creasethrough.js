@@ -138,6 +138,7 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 // faces change: same as edge
 
 /** clip a line in all the faces of a fold file. */
+// todo: this is broken now read the comment at the bottom
 export function clip_edges_with_line(fold, linePoint, lineVector){
 	// console.log("+++++++++++++++++++++++");
 	let fold_new = fold;//clone(fold);
@@ -369,6 +370,9 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 	new_faces_map.forEach(el => faces_diff[el.new] = el.old);
 	// console.log("new_faces_map", new_faces_map);
 
+	// todo: each of these return values has been switched inside these functions
+	// from the array of booleans to the array of maps.
+	// to get this working again we need to switch those back
 	let vertices_removes = Graph.remove_vertices(fold_new, vertices_to_remove);
 	let edges_removes = Graph.remove_edges(fold_new, edges_to_remove);
 	let faces_removes = Graph.remove_faces(fold_new, faces_to_remove);

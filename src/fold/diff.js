@@ -21,7 +21,7 @@ export const diff_new_e = function(graph, newEdge) {
 	let i = Graph.edges_count(graph);
 	Object.keys(newEdge).forEach(suffix => {
 		let key = "edges_" + suffix;
-		// console.log("setting " + key + " at " + i + " with " + newEdge[suffix]);
+		console.log("setting " + key + " at " + i + " with " + newEdge[suffix]);
 		graph[key][i] = newEdge[suffix];
 		if (newEdge[suffix] == null) {
 			console.log("ERROR new edge");
