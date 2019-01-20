@@ -1,6 +1,6 @@
 let movingDot = RabbitEar.Origami("canvas-moving-dot");
 
-movingDot.cp = RabbitEar.bases.frog;
+movingDot.cp = RabbitEar.CreasePattern(RabbitEar.bases.frog);
 
 let drawLayer = RabbitEar.svg.group();
 movingDot.svg.appendChild(drawLayer)
@@ -11,7 +11,7 @@ drawLayer.appendChild(dot);
 let frogFaces = movingDot.faces;
 let highlightedFace = 0;
 
-let z = 0.333; //master speed
+let s = 0.333; //master speed
 let a = 0.8;
 let b = 1.2;
 let c = 2.1;
@@ -19,21 +19,13 @@ let d = 1.3;
 let e = 0.9;
 
 movingDot.animate = function(event){
-	let x = Math.cos(z*event.time*a - Math.sin(z*d*event.time+0.8) + b)*0.5+0.5;
-	let y = Math.sin(z*event.time*c + Math.sin(z*e*event.time+1.9) + a)*0.5+0.5;
+	let x = (Math.sin(event.time*0.5 + Math.sin(event.time*0.43)+3)*0.5+0.5 + Math.cos(s*event.time*a - Math.sin(s*d*event.time+0.8) + b)*0.5+0.5)*0.45 + 0.05;
+	let y = (Math.cos(event.time*1.1 + Math.cos(event.time*0.2)+2)*0.5+0.5 + Math.sin(s*event.time*c + Math.sin(s*e*event.time+1.9) + a)*0.5+0.5)*0.45 + 0.05;
 	dot.setAttribute("cx", x);
 	dot.setAttribute("cy", y);
 
-	let found = frogFaces.map(f => f.contains([x, y]))
-		.map((b,i) => b ? i : null)
-		.filter(el => el != null)
-		.shift();
-	if(found != highlightedFace){
-		let faces = Array.from(movingDot.svg.childNodes)
-			.filter(el => el.getAttribute('id') == 'faces')
-			.shift();
-		faces.childNodes[highlightedFace].setAttribute("class", "face");
-		highlightedFace = found;
-		faces.childNodes[highlightedFace].setAttribute("class", "face-highlight");
-	}
+	movingDot.draw();
+	let nearest = movingDot.nearest(x, y);
+	nearest.face.svg.setAttribute("class", "face-highlight");
+	nearest.edge.svg.setAttribute("class", "crease-highlight");
 }

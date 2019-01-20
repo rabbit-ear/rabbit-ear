@@ -2,7 +2,7 @@ let chopReflect = RabbitEar.Origami("canvas-faces-chop");
 
 chopReflect.masterCP = JSON.parse(JSON.stringify(RabbitEar.bases.bird));
 // RabbitEar.graph.faces_vertices_to_edges(chopReflect.masterCP);
-chopReflect.cp = chopReflect.masterCP;
+chopReflect.cp = RabbitEar.CreasePattern(chopReflect.masterCP);
 
 let drawLayer = RabbitEar.svg.group();
 chopReflect.svg.appendChild(drawLayer)

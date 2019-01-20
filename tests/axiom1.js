@@ -2,8 +2,8 @@ let axiom1 = RabbitEar.Origami("canvas-axiom-1");
 
 axiom1.touches = [
 	// {pos: [0.1, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02)},
+	{pos: [-1.0, 0.0], svg: RabbitEar.svg.circle(0, 0, 0.02)},
 	{pos: [0.0, 0.0], svg: RabbitEar.svg.circle(0, 0, 0.02)},
-	{pos: [0.2, 0.8], svg: RabbitEar.svg.circle(0, 0, 0.02)},
 ];
 axiom1.touches.forEach(p => {
 	p.svg.setAttribute("fill", "#e44f2a");

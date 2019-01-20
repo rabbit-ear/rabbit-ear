@@ -76,6 +76,7 @@ export default function() {
 	// }
 
 	const nearest = function() {
+		// console.log(...arguments);
 		let point = Geom.Vector(...arguments);
 		let nearestVertex = _cp.nearestVertex(point[0], point[1]);
 		let nearestEdge = _cp.nearestEdge(point[0], point[1]);
@@ -206,6 +207,9 @@ export default function() {
 		faceOrder.forEach(i => {
 			let faceClass = (!isFoldedState() ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
 			SVG.polygon(faces[i], faceClass, "face", groups.faces)
+		});
+		faceOrder.forEach(i => {
+			let faceClass = (!isFoldedState() ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
 			SVG.polygon(facesFromEdges[i], faceClass, "face", groups.faces)
 		});
 
@@ -360,6 +364,7 @@ export default function() {
 
 	// return Object.freeze({
 	return {
+		get mouse() { return JSON.parse(JSON.stringify(_mouse)); },
 		set cp(c){
 			_cp = c;
 			draw();

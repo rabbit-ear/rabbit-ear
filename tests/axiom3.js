@@ -24,7 +24,7 @@ axiom3.redraw = function(){
 	let vectorB = [axiom3.touches[3].pos[0] - axiom3.touches[2].pos[0], 
 	               axiom3.touches[3].pos[1] - axiom3.touches[2].pos[1]];
 	let creases = axiom3.cp.axiom3(pointA, vectorA, pointB, vectorB);
-	console.log(creases);
+	// console.log(creases);
 	creases.forEach(c => c.valley());
 	axiom3.draw();
 }

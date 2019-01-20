@@ -262,7 +262,14 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 			if(in1) { return new_edges[1].i; }
 			throw "something wrong with faces_edges construction";
 		})
-		face.splice(edgeIndex, 1, ...edges);
+		if (edgeIndex === face.length-1) {
+			// replacing the edge at the end of the array, we have to be careful
+			// to put the first at the end, the second at the beginning
+			face.splice(edgeIndex, 1, edges[0]);
+			face.unshift(edges[1]);
+		} else {
+			face.splice(edgeIndex, 1, ...edges);
+		}
 		return edges;
 	});
 	// remove old data

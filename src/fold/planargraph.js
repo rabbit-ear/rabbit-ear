@@ -154,17 +154,6 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		.slice(sorted_indices[0], sorted_indices[1])
 		.concat([graph.edges_vertices.length]);
 
-	// todo: investigate this special case. why?
-	if (sorted_indices[0] === 0) {
-		new_faces[0].edges = graph.faces_edges[faceIndex].slice(sorted_indices[1] - 1, graph.faces_edges[faceIndex].length-1)
-			.concat(graph.faces_edges[faceIndex].slice(0, sorted_indices[0]))
-			.concat([graph.edges_vertices.length]);
-
-		new_faces[1].edges = [graph.faces_edges[faceIndex][graph.faces_edges[faceIndex].length-1]].concat(graph.faces_edges[faceIndex]
-			.slice(sorted_indices[0], sorted_indices[1]-1))
-			.concat([graph.edges_vertices.length]);
-	}
-
 	let foldAngle = 0;
 	switch (crease_assignment) {
 		case "M": foldAngle = -180; break;

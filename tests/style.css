@@ -54,3 +54,8 @@ svg{
 .face-highlight{
 	fill: var(--byrne-yellow);
 }
+.crease-highlight {
+	stroke: var(--byrne-yellow);
+	stroke-linecap: round;
+	stroke-width: var(--crease-width);
+}
