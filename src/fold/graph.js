@@ -199,6 +199,14 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 			new_edges[0][key] = graph[key][old_edge_index];
 			new_edges[1][key] = graph[key][old_edge_index];
 		});
+	// calculate length
+	const distance2 = function(a,b){
+		return Math.sqrt(Math.pow(b[0]-a[0],2) + Math.pow(b[1]-a[1],2));
+	}
+	new_edges.forEach((el,i) => {
+		let verts = el.edges_vertices.map(v => graph.vertices_coords[v]);
+		new_edges[i]["edges_length"] = distance2(...verts);
+	})
 
 	// todo: recalculate "edges_length"
 	// todo: copy over edgeOrders. don't need to do this with faceOrders
@@ -209,7 +217,6 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 			.forEach(key => graph[key][edge.i] = edge[key])
 	);
 	let incident_faces_indices = graph.edges_faces[old_edge_index];
-	let face_edges = graph.faces_edges
 
 	let incident_faces_edges = incident_faces_indices.map(i => graph.faces_edges[i]);
 	let incident_faces_vertices = incident_faces_indices.map(i => graph.faces_vertices[i]);

@@ -146,12 +146,24 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		.concat(graph.faces_vertices[faceIndex].slice(0, sorted_indices[0]+1));
 	new_faces[1].vertices = graph.faces_vertices[faceIndex]
 		.slice(sorted_indices[0], sorted_indices[1]+1);
+
 	new_faces[0].edges = graph.faces_edges[faceIndex].slice(sorted_indices[1])
 		.concat(graph.faces_edges[faceIndex].slice(0, sorted_indices[0]))
 		.concat([graph.edges_vertices.length]);
 	new_faces[1].edges = graph.faces_edges[faceIndex]
 		.slice(sorted_indices[0], sorted_indices[1])
 		.concat([graph.edges_vertices.length]);
+
+	// todo: investigate this special case. why?
+	if (sorted_indices[0] === 0) {
+		new_faces[0].edges = graph.faces_edges[faceIndex].slice(sorted_indices[1] - 1, graph.faces_edges[faceIndex].length-1)
+			.concat(graph.faces_edges[faceIndex].slice(0, sorted_indices[0]))
+			.concat([graph.edges_vertices.length]);
+
+		new_faces[1].edges = [graph.faces_edges[faceIndex][graph.faces_edges[faceIndex].length-1]].concat(graph.faces_edges[faceIndex]
+			.slice(sorted_indices[0], sorted_indices[1]-1))
+			.concat([graph.edges_vertices.length]);
+	}
 
 	let foldAngle = 0;
 	switch (crease_assignment) {
@@ -179,29 +191,31 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		let key = "edges_" + suffix;
 		graph[key][edges_count+i] = edge[suffix];
 	}));
+	new_edges.forEach((edge, i) => {
+		let a = edge.vertices[0];
+		let b = edge.vertices[1];
+		graph.vertices_vertices[a].push(b);
+		graph.vertices_vertices[b].push(a);
+	})
 
 	new_faces.forEach((face,i) => Object.keys(face).forEach(suffix => {
 		let key = "faces_" + suffix;
 		graph[key][faces_count+i] = face[suffix];
 	}));
 
-	// A. find location of old face in face_edges, replace with index to new face
-	graph.faces_edges
-		.filter((_,i) => i !== faceIndex)
-		.forEach((face,i) => face
-			.filter(edgeI => graph.edges_faces[edgeI] != null)
-			.map(edgeI => ({ edge: edgeI, indexOf: graph.edges_faces[edgeI].indexOf(faceIndex)}))
-			.filter(el => el.indexOf != -1)
-			.forEach(el => graph.edges_faces[el.edge][el.indexOf] = faces_count+i)
-		);
-
-	// B. new faces_edges which haven't been set (new edges)
-	graph.faces_edges
-		.filter((_,i) => i !== faceIndex)
-		.forEach((face,i) => face
-			.filter(edgeI => graph.edges_faces[edgeI] == null)
-			.forEach(edgeI => graph.edges_faces[edgeI] = [faces_count+i])
-		);
+	let valid_edges = graph.edges_faces.map((e,i) => e.indexOf(faceIndex) !== -1);
+	let valid_vertices = graph.vertices_faces.map((e,i) => e.indexOf(faceIndex) !== -1);
+	graph.edges_faces = graph.edges_faces.map((_,i) => graph.edges_faces[i].filter(el => el !== faceIndex))
+	graph.faces_edges.filter((_,i) => i !== faceIndex).map((face,i) => 
+		face.filter(edge => valid_edges[edge])
+			.forEach(edge => graph.edges_faces[edge].push(faces_count+i))
+	);
+	graph.vertices_faces = graph.vertices_faces.map((_,i) => graph.vertices_faces[i].filter(el => el !== faceIndex))
+	// todo: this doesn't yet order faces counter-clockwise around the vertex
+	graph.faces_vertices.filter((_,i) => i !== faceIndex).map((face,i) => 
+		face.filter(vertex => valid_vertices[vertex])
+			.forEach(vertex => graph.vertices_faces[vertex].push(faces_count+i))
+	);
 
 	Graph.remove_faces(graph, [faceIndex]);
 
@@ -212,6 +226,7 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 
 	// console.log(diff);
 }
+
 // export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, crease_assignment = "F"){
 // 	let vertices_count = graph.vertices_coords.length;
 // 	let edges_count = graph.edges_vertices.length;

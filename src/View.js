@@ -194,7 +194,7 @@ export default function() {
 		// vertices
 		if (!isFoldedState()) {
 			let vertexR = style.vertex.radius;
-			verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", null, groups.vertices));
+			verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", ""+i, groups.vertices));
 		}
 		// edges
 		if (!isFoldedState()) {
