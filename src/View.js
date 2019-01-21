@@ -8,11 +8,11 @@
  */
 
 const CREASE_DIR = {
-	"B": "boundary",
-	"M": "mountain",
-	"V": "valley",
-	"F": "mark",
-	"U": "mark"
+	"B": "boundary", "b": "boundary",
+	"M": "mountain", "m": "mountain",
+	"V": "valley",   "v": "valley",
+	"F": "mark",     "f": "mark",
+	"U": "mark",     "u": "mark"
 };
 
 import "./CreasePattern";
@@ -64,7 +64,7 @@ export default function() {
 		y: 0       // -- these are the same as position
 	};
 
-	_cp.onchange = function(){
+	_cp.onchange = function() {
 		draw();
 	}
 
@@ -75,6 +75,19 @@ export default function() {
 	// 		draw();
 	// 	}
 	// }
+
+	const setFrame = function() {
+		// todo, this is fragmented code
+		// needs reorganizing
+		
+		// if a frame is set, copy data from that frame
+		if (frame > 0 && _cp.file_frames != null){
+			if(_cp.file_frames[frame - 1] != null &&
+		   	   _cp.file_frames[frame - 1].vertices_coords != null){
+				data = File.flatten_frame(_cp, frame);
+			}
+		}
+	}
 
 	const nearest = function() {
 		// console.log(...arguments);
@@ -114,7 +127,7 @@ export default function() {
 		// },this).shift() : undefined;
 	}
 
-	const updateViewBox = function(){
+	const updateViewBox = function() {
 		let vertices = _cp.vertices_coords;
 		if (frame > 0 &&
 		   _cp.file_frames[frame - 1] != null &&
@@ -137,93 +150,54 @@ export default function() {
 		}
 	}
 
-	const draw = function(){
-		let data = _cp;
-		// if a frame is set, copy data from that frame
-		if (frame > 0 && _cp.file_frames != null){
-			if(_cp.file_frames[frame - 1] != null &&
-		   	   _cp.file_frames[frame - 1].vertices_coords != null){
-				data = File.flatten_frame(_cp, frame);
-			}
-		}
-		if(data.vertices_coords == null){ return; }
+	const draw = function() {
+		if(_cp.vertices_coords == null){ return; }
 		// gather components
-		let verts = data.vertices_coords;
-		let edges = data.edges_vertices.map(ev => ev.map(v => verts[v]));
-		// let faces = data.faces_vertices.map(fv => fv.map(v => verts[v]));
-
-		let faces;
-		if (_isFolded) {
-			faces = data.faces_vertices
-				.map(fv => fv.map(v => verts[v]))
-				.map(face => Geom.Polygon(face).points);
-		} else {
-			faces = data.faces_vertices
-				.map(fv => fv.map(v => verts[v]))
-				.map(face => Geom.Polygon(face).scale(0.666).points);
-		}
-
-		let facesFromEdges = data.faces_edges
+		let verts = _cp.vertices_coords;
+		let edges = _cp.edges_vertices.map(ev => ev.map(v => verts[v]));
+		let eAssignments = ( _isFolded
+			? _cp.edges_assignment.map(a => "F")
+			: _cp.edges_assignment.map(a => CREASE_DIR[a]));
+		let fAssignments = ( _isFolded
+			? _cp.faces_vertices.map(fv => "face folded")
+			: _cp.faces_vertices.map(fv => "face"));
+		let facesV = _cp.faces_vertices
+			.map(fv => fv.map(v => verts[v]))
+			.map(face => Geom.Polygon(face));
+		let facesE = _cp.faces_edges
 			.map(face_edges => face_edges
-				.map(edge => data.edges_vertices[edge])
+				.map(edge => _cp.edges_vertices[edge])
 				.map((vi,i,arr) => {
 					let next = arr[(i+1)%arr.length];
-					return vi[1] === next[0] || vi[1] === next[1]
-						? vi[0] : vi[1];
-				}).map(v => data.vertices_coords[v])
+					return (vi[1] === next[0] || vi[1] === next[1]
+						? vi[0] : vi[1]);
+				}).map(v => _cp.vertices_coords[v])
 			)
-			.map(face => Geom.Polygon(face).scale(0.83333).points);
-
-		let orientations = data.edges_vertices.map((ev,i) =>
-			(data.edges_assignment != null && 
-			 data.edges_assignment[i] != null
-				? CREASE_DIR[data.edges_assignment[i]] 
-				: "mark"
-			)
-		);
-		let faceOrder = (data.faces_layer != null && data.faces_layer.length == data.faces_vertices.length)
-			? data.faces_layer.slice()
-			: data.faces_vertices.map((f,i) => i);
+			.map(face => Geom.Polygon(face));
+		let boundary = Graph.get_boundary_vertices(_cp)
+			.map(v => _cp.vertices_coords[v])
 		
-		let facesDirection = (data.faces_direction != null)
-			? data.faces_direction.slice()
-			: data.faces_vertices.map((f,i) => true);
-
-		// clear layers
-		[groups.boundary,
-		 groups.faces,
-		 groups.creases,
-		 groups.vertices].forEach((layer) => SVG.removeChildren(layer));
-		// boundary
-		if (!isFoldedState() && !_isFolded) {
-			let polygonPoints = Graph.get_boundary_vertices(_cp)
-				.map(v => _cp.vertices_coords[v])
-			SVG.polygon(polygonPoints, "boundary", null, groups.boundary);
-		}		
-		// vertices
-		if (!isFoldedState() && !_isFolded) {
-			let vertexR = style.vertex.radius;
-			verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", ""+i, groups.vertices));
-		}
-		// edges
-		// if (!isFoldedState() && !_isFolded) {
-			edges.forEach((e,i) =>
-				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], _isFolded ? "mark" : orientations[i], ""+i, groups.creases)
-			);
-		// }
-		// faces
-		faceOrder.forEach(i => {
-			let faceClass = (!isFoldedState() || !_isFolded ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
-			SVG.polygon(faces[i], faceClass, "face", groups.faces)
-		});
 		if (!_isFolded) {
-			faceOrder.forEach(i => {
-				let faceClass = (!isFoldedState() ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
-				SVG.polygon(facesFromEdges[i], faceClass, "face", groups.faces)
-			});
+			facesV = facesV.map(face => face.scale(0.6666));
+			facesE = facesE.map(face => face.scale(0.8333));
 		}
-
-		// faces.forEach(f => SVG.polygon(f, faceClass, "face", this.faces));
+		// clear layers
+		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
+		// boundary
+		SVG.polygon(boundary, "boundary", null, groups.boundary);
+		// vertices
+		verts.forEach((v,i) => SVG.circle(v[0], v[1], style.vertex.radius, "vertex", ""+i, groups.vertices));
+		// edges
+		edges.forEach((e,i) =>
+			SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
+		);
+		// faces
+		facesV.forEach((face, i) =>
+			SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
+		);
+		facesE.forEach((face, i) =>
+			SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
+		);
 		updateViewBox();
 	}
 
