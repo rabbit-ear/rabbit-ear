@@ -1,7 +1,7 @@
 // graph manipulators for .FOLD file github.com/edemaine/fold
 // MIT open source license, Robby Kraft
-// relates to .FOLD version 1.1
 
+// keys in the .FOLD version 1.1
 export const keys = {
 	meta: [
 		"file_spec",
@@ -93,7 +93,6 @@ export const faces_count = function(graph) {
 		.map(el => el.length)
 	));
 }
-
 
 ///////////////////////////////////////////////
 // MAKERS
@@ -207,19 +206,15 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 		let verts = el.edges_vertices.map(v => graph.vertices_coords[v]);
 		new_edges[i]["edges_length"] = distance2(...verts);
 	})
-
-	// todo: recalculate "edges_length"
 	// todo: copy over edgeOrders. don't need to do this with faceOrders
-
 	new_edges.forEach((edge,i) =>
 		Object.keys(edge)
 			.filter(key => key !== "i")
 			.forEach(key => graph[key][edge.i] = edge[key])
 	);
 	let incident_faces_indices = graph.edges_faces[old_edge_index];
-
-	let incident_faces_edges = incident_faces_indices.map(i => graph.faces_edges[i]);
 	let incident_faces_vertices = incident_faces_indices.map(i => graph.faces_vertices[i]);
+	let incident_faces_edges = incident_faces_indices.map(i => graph.faces_edges[i]);
 
 	// faces_vertices
 	// because Javascript, this is a pointer and modifies the master graph
@@ -260,7 +255,7 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 				.reduce((a,b) => a && b, true);
 			if(in0) { return new_edges[0].i; }
 			if(in1) { return new_edges[1].i; }
-			throw "something wrong with faces_edges construction";
+			throw "something wrong with input graph's faces_edges construction";
 		})
 		if (edgeIndex === face.length-1) {
 			// replacing the edge at the end of the array, we have to be careful
@@ -273,13 +268,18 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 		return edges;
 	});
 	// remove old data
-	// ["edges_vertices", "edges_faces", "edges_assignment", "edges_foldAngle", "edges_length"]
-	// 	.filter(key => graph[key] != null)
-	// 	.forEach(key => graph[key][old_edge_index] = undefined);
 	let edge_map = remove_edges(graph, [old_edge_index]);
 	return {
-		vertices: { new: [{index:new_vertex_index}] },
-		edges: { map: edge_map }
+		vertices: {
+			new: [{index: new_vertex_index}]
+		},
+		edges: {
+			map: edge_map,
+			replace: [{
+				old: old_edge_index,
+				new: new_edges.map(el => el.i)
+			}]
+		}
 	};
 }
 
@@ -481,7 +481,7 @@ export const remove_edges = function(graph, edges) {
  * @example remove_edges(fold_file, [1,9,11,13]);
  */
 export function remove_faces(graph, faces){
-	// length of index_map is length of the original edges_vertices
+	// length of index_map is length of the original faces_vertices
 	let s = 0, removes = Array( faces_count(graph) ).fill(false);
 	faces.forEach(e => removes[e] = true);
 	let index_map = removes.map(remove => remove ? --s : s);

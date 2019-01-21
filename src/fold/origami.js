@@ -6,7 +6,6 @@
  *  could result in multiple edges
  */
 
-
 // "re:boundaries_vertices" = [[5,3,9,7,6,8,1,2]];
 // "re:faces_matrix" = [[1,0,0,1,0,0]];
 
@@ -14,6 +13,29 @@ import * as Geom from "../../lib/geometry";
 import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
 import { apply_diff } from "./diff";
+
+export function crease_folded(graph, point, vector, face_index) {
+	// if face isn't set, it will be determined by whichever face
+	// is directly underneath point. or if none, index 0.
+	if (face == null) {
+		// todo, detect face under point
+		face = 0;
+		// let faces = Array.from(chopReflect.svg.childNodes)
+		// 	.filter(el => el.getAttribute('id') == 'faces')
+		// 	.shift();
+		// faces.childNodes[face_index].setAttribute("class", "face");
+		// face_index = found;
+	}
+	let primaryLine = Geom.Line(point, vector);
+	let coloring = Graph.face_coloring(graph, face_index);
+	PlanarGraph.make_faces_matrix_inv(graph, face_index)
+		.map(m => primaryLine.transform(m))
+		.reverse()
+		.forEach((line, reverse_i, arr) => {
+			let i = arr.length - 1 - reverse_i;
+			PlanarGraph.split_convex_polygon(graph, i, line.point, line.vector, coloring[i] ? "M" : "V");
+		});
+}
 
 export function crease_line(graph, point, vector) {
 	let boundary = Graph.get_boundary_vertices(graph);
@@ -48,7 +70,6 @@ export function axiom3(graph, pointA, vectorA, pointB, vectorB) {
 	let lines = Geom.core.origami.axiom3(pointA, vectorA, pointB, vectorB);
 	// return lines.map(line => crease_line(graph, line[0], line[1]))
 	// 	.reduce((a,b) => a.concat(b), []);
-
 	return crease_line(graph, lines[0][0], lines[0][1]);
 }
 export function axiom4(graph, pointA, vectorA, pointB) {
@@ -77,7 +98,7 @@ export function fold_without_layering(fold, face) {
 		}
 	});
 	let new_vertices_coords_cp = fold.vertices_coords.map((point,i) =>
-		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
+		Geom.core.algebra.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
 			Geom.core.clean_number(n)
 		)
 	)

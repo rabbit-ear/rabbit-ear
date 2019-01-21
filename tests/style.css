@@ -17,15 +17,16 @@ html,body{
 	display:flex;
 	justify-content: center;
 	overflow: hidden;
-	/*flex-direction: column;*/
+	flex-direction: column;
 }
 svg{
 	width:100vw;
 	height:100vh;
 	/*margin: 5vmin;*/
 	touch-action: none;
-/*	height:45vh;
-	padding:2vh;*/
+	height:40vh;
+	max-width: 90vw;
+	padding:2vh;
 }
 .mountain, .valley, .boundary, .mark {
 	stroke:black;

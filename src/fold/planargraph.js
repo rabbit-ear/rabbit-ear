@@ -69,8 +69,8 @@ export const make_faces_matrix = function(graph, root_face) {
 		level.filter((entry) => entry.parent != null).forEach((entry) => {
 			let edge = entry.edge.map(v => graph.vertices_coords[v])
 			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			let local = Geom.core.make_matrix2_reflection(vec, edge[0]);
-			faces_matrix[entry.face] = Geom.core.multiply_matrices2(faces_matrix[entry.parent], local);
+			let local = Geom.core.algebra.make_matrix2_reflection(vec, edge[0]);
+			faces_matrix[entry.face] = Geom.core.algebra.multiply_matrices2(faces_matrix[entry.parent], local);
 		})
 	);
 	return faces_matrix;
@@ -82,8 +82,8 @@ export const make_faces_matrix_inv = function(graph, root_face) {
 		level.filter((entry) => entry.parent != null).forEach((entry) => {
 			let edge = entry.edge.map(v => graph.vertices_coords[v])
 			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			let local = Geom.core.make_matrix2_reflection(vec, edge[0]);
-			faces_matrix[entry.face] = Geom.core.multiply_matrices2(local, faces_matrix[entry.parent]);
+			let local = Geom.core.algebra.make_matrix2_reflection(vec, edge[0]);
+			faces_matrix[entry.face] = Geom.core.algebra.multiply_matrices2(local, faces_matrix[entry.parent]);
 		})
 	);
 	return faces_matrix;
@@ -206,11 +206,19 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 			.forEach(vertex => graph.vertices_faces[vertex].push(faces_count+i))
 	);
 
-	Graph.remove_faces(graph, [faceIndex]);
+	let faces_map = Graph.remove_faces(graph, [faceIndex]);
 
-	let diff = {
-		faces: new_faces,
-		edges: new_edges
+	return {
+		faces: {
+			map: faces_map,
+			replace: [{
+				old: faceIndex,
+				new: new_faces
+			}]
+		},
+		edges: {
+			new: new_edges
+		}
 	}
 
 	// console.log(diff);

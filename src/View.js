@@ -53,6 +53,7 @@ export default function() {
 	let style = {
 		vertex:{ radius: 0.01 },  // radius, percent of page
 	};
+	let _isFolded = false; // is this a rendering of the folded form?
 	let _mouse = {
 		isPressed: false,// is the mouse button pressed (y/n)
 		position: [0,0], // the current position of the mouse
@@ -150,10 +151,17 @@ export default function() {
 		let verts = data.vertices_coords;
 		let edges = data.edges_vertices.map(ev => ev.map(v => verts[v]));
 		// let faces = data.faces_vertices.map(fv => fv.map(v => verts[v]));
-		let faces = data.faces_vertices
-			.map(fv => fv.map(v => verts[v]))
-			.map(face => Geom.Polygon(face).scale(0.666).points);
-			// .map(face => Geom.Polygon(face).points);
+
+		let faces;
+		if (_isFolded) {
+			faces = data.faces_vertices
+				.map(fv => fv.map(v => verts[v]))
+				.map(face => Geom.Polygon(face).points);
+		} else {
+			faces = data.faces_vertices
+				.map(fv => fv.map(v => verts[v]))
+				.map(face => Geom.Polygon(face).scale(0.666).points);
+		}
 
 		let facesFromEdges = data.faces_edges
 			.map(face_edges => face_edges
@@ -187,31 +195,33 @@ export default function() {
 		 groups.creases,
 		 groups.vertices].forEach((layer) => SVG.removeChildren(layer));
 		// boundary
-		if (!isFoldedState()) {
+		if (!isFoldedState() && !_isFolded) {
 			let polygonPoints = Graph.get_boundary_vertices(_cp)
 				.map(v => _cp.vertices_coords[v])
 			SVG.polygon(polygonPoints, "boundary", null, groups.boundary);
 		}		
 		// vertices
-		if (!isFoldedState()) {
+		if (!isFoldedState() && !_isFolded) {
 			let vertexR = style.vertex.radius;
 			verts.forEach((v,i) => SVG.circle(v[0], v[1], vertexR, "vertex", ""+i, groups.vertices));
 		}
 		// edges
-		if (!isFoldedState()) {
+		// if (!isFoldedState() && !_isFolded) {
 			edges.forEach((e,i) =>
-				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], orientations[i], ""+i, groups.creases)
+				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], _isFolded ? "mark" : orientations[i], ""+i, groups.creases)
 			);
-		}
+		// }
 		// faces
 		faceOrder.forEach(i => {
-			let faceClass = (!isFoldedState() ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
+			let faceClass = (!isFoldedState() || !_isFolded ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
 			SVG.polygon(faces[i], faceClass, "face", groups.faces)
 		});
-		faceOrder.forEach(i => {
-			let faceClass = (!isFoldedState() ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
-			SVG.polygon(facesFromEdges[i], faceClass, "face", groups.faces)
-		});
+		if (!_isFolded) {
+			faceOrder.forEach(i => {
+				let faceClass = (!isFoldedState() ? "face" : facesDirection[i] ? "face folded" : "face-backside folded");
+				SVG.polygon(facesFromEdges[i], faceClass, "face", groups.faces)
+			});
+		}
 
 		// faces.forEach(f => SVG.polygon(f, faceClass, "face", this.faces));
 		updateViewBox();
@@ -407,6 +417,15 @@ export default function() {
 		hideEdges,
 		showFaces,
 		hideFaces,
+
+		set isFolded(_folded) {
+			_isFolded = !!_folded;
+			if (_isFolded) {
+
+			} else{
+
+			}
+		},
 
 		set onMouseMove(handler) {
 			_onmousemove = handler;
