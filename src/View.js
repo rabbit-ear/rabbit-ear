@@ -22,34 +22,28 @@ import * as Graph from "./fold/graph";
 
 export default function() {
 
-	let { zoom, translate, appendChild, removeChildren,
-		// load, 
-		download, setViewBox, getViewBox, size,
-		scale, svg, width, height,
-		// onMouseMove, onMouseDown, onMouseUp, onMouseLeave, onMouseEnter
-	} = SVG.Image(...arguments);
-
+	let canvas = SVG.Image(...arguments);
 	//  from arguments, get a fold file, if it exists
 	let _cp = RabbitEar.CreasePattern(...arguments);
-	// let _cp = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
+	// tie handler from crease pattern
+	_cp.onchange = function() {
+		draw();
+	}
 
+	// prepare SVG
 	let groups = {
 		boundary: SVG.group(undefined, "boundary"),
 		faces: SVG.group(undefined, "faces"),
 		creases: SVG.group(undefined, "creases"),
 		vertices: SVG.group(undefined, "vertices"),
 	}
-
-	// prepare SVG
-	svg.appendChild(groups.boundary);
-	svg.appendChild(groups.faces);
-	svg.appendChild(groups.creases);
-	svg.appendChild(groups.vertices);
+	canvas.svg.appendChild(groups.boundary);
+	canvas.svg.appendChild(groups.faces);
+	canvas.svg.appendChild(groups.creases);
+	canvas.svg.appendChild(groups.vertices);
 
 	// view properties
-	let frame = 0; // which frame (0 ..< Inf) to display 
-	let padding = 0.01;  // padding inside the canvas
-	let _zoom = 1.0;
+	let frame = 0; // which fold file frame (0 ..< Inf) to display
 	let style = {
 		vertex:{ radius: 0.01 },  // radius, percent of page
 	};
@@ -63,92 +57,6 @@ export default function() {
 		x: 0,      // redundant data --
 		y: 0       // -- these are the same as position
 	};
-
-	_cp.onchange = function() {
-		draw();
-	}
-
-	// const setPadding = function(pad){
-	// 	if(pad != null){
-	// 		padding = pad;
-	// 		// this.setViewBox();
-	// 		draw();
-	// 	}
-	// }
-
-	const setFrame = function() {
-		// todo, this is fragmented code
-		// needs reorganizing
-		
-		// if a frame is set, copy data from that frame
-		if (frame > 0 && _cp.file_frames != null){
-			if(_cp.file_frames[frame - 1] != null &&
-		   	   _cp.file_frames[frame - 1].vertices_coords != null){
-				data = File.flatten_frame(_cp, frame);
-			}
-		}
-	}
-
-	const nearest = function() {
-		// console.log(...arguments);
-		let point = Geom.Vector(...arguments);
-		let nearestVertex = _cp.nearestVertex(point[0], point[1]);
-		let nearestEdge = _cp.nearestEdge(point[0], point[1]);
-		let nearestFace = _cp.nearestFace(point[0], point[1]);
-
-		let nearest = {};
-
-		if (nearestVertex != null) {
-			nearestVertex.svg = groups.vertices.childNodes[nearestVertex.index];
-			nearest.vertex = nearestVertex;
-		}
-		if (nearestEdge != null) {
-			nearestEdge.svg = groups.creases.childNodes[nearestEdge.index];
-			nearest.edge = nearestEdge;
-		}
-		if (nearestFace != null) {
-			nearestFace.svg = groups.faces.childNodes[nearestFace.index];
-			nearest.face = nearestFace;
-		}
-
-		return nearest;
-
-		// var junction = (node != undefined) ? node.junction() : undefined;
-		// if(junction === undefined){
-		// 	var sortedJunction = this.junctions
-		// 		.map(function(el){ return {'junction':el, 'distance':point.distanceTo(el.origin)};},this)
-		// 		.sort(function(a,b){return a['distance']-b['distance'];})
-		// 		.shift();
-		// 	junction = (sortedJunction !== undefined) ? sortedJunction['junction'] : undefined
-		// }
-
-		// var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
-		// 	return el.contains(point);
-		// },this).shift() : undefined;
-	}
-
-	const updateViewBox = function() {
-		let vertices = _cp.vertices_coords;
-		if (frame > 0 &&
-		   _cp.file_frames[frame - 1] != null &&
-		   _cp.file_frames[frame - 1].vertices_coords != null){
-			vertices = _cp.file_frames[frame - 1].vertices_coords;
-		}
-		// calculate bounds
-		let xSorted = vertices.slice().sort((a,b) => a[0] - b[0]);
-		let ySorted = vertices.slice().sort((a,b) => a[1] - b[1]);
-		let boundsX = xSorted.shift()[0];
-		let boundsY = ySorted.shift()[1];
-		let boundsW = xSorted.pop()[0] - boundsX;
-		let boundsH = ySorted.pop()[1] - boundsY;
-		let isInvalid = isNaN(boundsX) || isNaN(boundsY) ||
-		                isNaN(boundsW) || isNaN(boundsH);
-		if (isInvalid) {
-			SVG.setViewBox(svg, 0, 0, 1, 1, padding);
-		} else{
-			SVG.setViewBox(svg, boundsX, boundsY, boundsW, boundsH, padding);
-		}
-	}
 
 	const draw = function() {
 		if(_cp.vertices_coords == null){ return; }
@@ -200,8 +108,74 @@ export default function() {
 		);
 		updateViewBox();
 	}
+	
+	draw();
 
-	const load = function(input, callback){ // epsilon
+	const updateViewBox = function() {
+		let vertices = _cp.vertices_coords;
+		if (frame > 0 &&
+		   _cp.file_frames[frame - 1] != null &&
+		   _cp.file_frames[frame - 1].vertices_coords != null){
+			vertices = _cp.file_frames[frame - 1].vertices_coords;
+		}
+		// calculate bounds
+		let xSorted = vertices.slice().sort((a,b) => a[0] - b[0]);
+		let ySorted = vertices.slice().sort((a,b) => a[1] - b[1]);
+		let boundsX = xSorted.shift()[0];
+		let boundsY = ySorted.shift()[1];
+		let boundsW = xSorted.pop()[0] - boundsX;
+		let boundsH = ySorted.pop()[1] - boundsY;
+		let isInvalid = isNaN(boundsX) || isNaN(boundsY) ||
+		                isNaN(boundsW) || isNaN(boundsH);
+		if (isInvalid) {
+			SVG.setViewBox(canvas.svg, 0, 0, 1, 1);
+		} else{
+			SVG.setViewBox(canvas.svg, boundsX, boundsY, boundsW, boundsH);
+		}
+	}
+
+	const nearest = function() {
+		let point = Geom.Vector(...arguments);
+		let nearestVertex = _cp.nearestVertex(point[0], point[1]);
+		let nearestEdge = _cp.nearestEdge(point[0], point[1]);
+		let nearestFace = _cp.nearestFace(point[0], point[1]);
+
+		let nearest = {};
+
+		if (nearestVertex != null) {
+			nearestVertex.svg = groups.vertices.childNodes[nearestVertex.index];
+			nearest.vertex = nearestVertex;
+		}
+		if (nearestEdge != null) {
+			nearestEdge.svg = groups.creases.childNodes[nearestEdge.index];
+			nearest.edge = nearestEdge;
+		}
+		if (nearestFace != null) {
+			nearestFace.svg = groups.faces.childNodes[nearestFace.index];
+			nearest.face = nearestFace;
+		}
+
+		return nearest;
+
+		// var junction = (node != undefined) ? node.junction() : undefined;
+		// if(junction === undefined){
+		// 	var sortedJunction = this.junctions
+		// 		.map(function(el){ return {'junction':el, 'distance':point.distanceTo(el.origin)};},this)
+		// 		.sort(function(a,b){return a['distance']-b['distance'];})
+		// 		.shift();
+		// 	junction = (sortedJunction !== undefined) ? sortedJunction['junction'] : undefined
+		// }
+
+		// var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
+		// 	return el.contains(point);
+		// },this).shift() : undefined;
+	}
+
+	const save = function() {
+
+	}
+
+	const load = function(input, callback) { // epsilon
 		// are they giving us a filename, or the data of an already loaded file?
 		if (typeof input === 'string' || input instanceof String){
 			let extension = input.substr((input.lastIndexOf('.') + 1));
@@ -228,7 +202,7 @@ export default function() {
 			// return this;
 		}
 	}
-	const isFoldedState = function(){
+	const isFoldedState = function() {
 		if(_cp == null || _cp.frame_classes == null){ return false; }
 		let frame_classes = _cp.frame_classes;
 		if(frame > 0 &&
@@ -273,69 +247,31 @@ export default function() {
 		frame = index;
 		draw();
 	}
-	const showVertices = function(){ origami.vertices.setAttribute("display", "");}
-	const hideVertices = function(){ origami.vertices.setAttribute("display", "none");}
-	const showEdges = function(){ origami.creases.setAttribute("display", "");}
-	const hideEdges = function(){ origami.creases.setAttribute("display", "none");}
-	const showFaces = function(){ origami.faces.setAttribute("display", "");}
-	const hideFaces = function(){ origami.faces.setAttribute("display", "none");}
+	const showVertices = function(){ groups.vertices.removeAttribute("visibility");}
+	const hideVertices = function(){ groups.vertices.setAttribute("visibility", "hidden");}
+	const showEdges = function(){ groups.creases.removeAttribute("visibility");}
+	const hideEdges = function(){ groups.creases.setAttribute("visibility", "hidden");}
+	const showFaces = function(){ groups.faces.removeAttribute("visibility");}
+	const hideFaces = function(){ groups.faces.setAttribute("visibility", "hidden");}
 
-	draw();
-
-
-	let _onmousemove, _onmousedown, _onmouseup, _onmouseleave, _onmouseenter, _animate, _animationFrame;
-
-	// clientX and clientY are from the browser event data
-	function updateMousePosition(clientX, clientY){
-		_mouse.prev = _mouse.position;
-		_mouse.position = SVG.convertToViewBox(svg, clientX, clientY);
-		_mouse.x = _mouse.position[0];
-		_mouse.y = _mouse.position[1];
-		_mouse[0] = _mouse.position[0];
-		_mouse[1] = _mouse.position[1];
-	}
-
-	function updateHandlers(){
-		svg.onmousemove = function(event){
-			updateMousePosition(event.clientX, event.clientY);
-			if(_mouse.isPressed){
-				_mouse.drag = [_mouse.position[0] - _mouse.pressed[0], 
-				               _mouse.position[1] - _mouse.pressed[1]];
-				_mouse.drag.x = _mouse.drag[0];
-				_mouse.drag.y = _mouse.drag[1];
-			}
-			if(_onmousemove != null){ _onmousemove( Object.assign({}, _mouse) ); }
-		}
-		svg.onmousedown = function(event){
-			_mouse.isPressed = true;
-			_mouse.pressed = SVG.convertToViewBox(svg, event.clientX, event.clientY);
-			if(_onmousedown != null){ _onmousedown( Object.assign({}, _mouse) ); }
-		}
-		svg.onmouseup = function(event){
-			_mouse.isPressed = false;
-			if(_onmouseup != null){ _onmouseup( Object.assign({}, _mouse) ); }
-		}
-		svg.onmouseleave = function(event){
-			updateMousePosition(event.clientX, event.clientY);
-			if(_onmouseleave != null){ _onmouseleave( Object.assign({}, _mouse) ); }
-		}
-		svg.onmouseenter = function(event){
-			updateMousePosition(event.clientX, event.clientY);
-			if(_onmouseenter != null){ _onmouseenter( Object.assign({}, _mouse) ); }
-		}
-		svg.ontouchmove = svg.onmousemove;
-		svg.ontouchstart = svg.onmousedown;
-		svg.ontouchend = svg.onmouseup;
-	}
-
+	// const setFrame = function() {
+	// 	// todo, this is fragmented code
+	// 	// needs reorganizing
+		
+	// 	// if a frame is set, copy data from that frame
+	// 	if (frame > 0 && _cp.file_frames != null){
+	// 		if(_cp.file_frames[frame - 1] != null &&
+	// 	   	   _cp.file_frames[frame - 1].vertices_coords != null){
+	// 			data = File.flatten_frame(_cp, frame);
+	// 		}
+	// 	}
+	// }
 
 	function addClass(node, className) { SVG.addClass(node, className); }
 	function removeClass(node, className) { SVG.removeClass(node, className); }
 
-
 	const clear = function() {
 		// todo: remove all creases from current CP, leave the boundary.
-		// _cp = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
 	}
 
 	const crease = function(a, b, c, d){
@@ -352,23 +288,14 @@ export default function() {
 		set cp(c){
 			_cp = c;
 			draw();
+			_cp.onchange = function() {
+				draw();
+			}
 		},
-		get cp(){
-			return _cp;
-		},
+		get cp(){ return _cp; },
 		get vertices() { return makeVertices(); },
 		get edges() { return makeEdges(); },
 		get faces() { return makeFaces(); },
-		svg,
-		// zoom, translate, appendChild, removeChildren,
-		// load, download, setViewBox, getViewBox, size,
-		// scale, svg, width, height,
-
-		// groups,
-		// frame,
-		// zoom,
-		// padding,
-		// style,
 
 		nearest,
 		addClass,
@@ -378,19 +305,32 @@ export default function() {
 		crease,
 		fold,
 
-		// setPadding,
 		draw,
 		updateViewBox,
 
-		getFrames,
-		getFrame,
-		setFrame,
-		showVertices,
-		hideVertices,
-		showEdges,
-		hideEdges,
-		showFaces,
-		hideFaces,
+		getFrames, getFrame, setFrame,
+		showVertices, showEdges, showFaces,
+		hideVertices, hideEdges, hideFaces,
+	
+		load,
+		save,
+		get svg() { return canvas.svg; },
+		get zoom() { return canvas.zoom; },
+		get translate() { return canvas.translate; },
+		get appendChild() { return canvas.appendChild; },
+		get removeChildren() { return canvas.removeChildren; },
+		get size() { return canvas.size; },
+		get scale() { return canvas.scale; },
+		get width() { return canvas.width; },
+		get height() { return canvas.height; },
+		set width(a) { canvas.width = a; },
+		set height(a) { canvas.height = a; },
+		set onMouseMove(a) { canvas.onMouseMove = a; },
+		set onMouseDown(a) { canvas.onMouseDown = a; },
+		set onMouseUp(a) { canvas.onMouseUp = a; },
+		set onMouseLeave(a) { canvas.onMouseLeave = a; },
+		set onMouseEnter(a) { canvas.onMouseEnter = a; },
+		set animate(a) { canvas.animate = a; },
 
 		set isFolded(_folded) {
 			_isFolded = !!_folded;
@@ -401,43 +341,6 @@ export default function() {
 			}
 		},
 
-		set onMouseMove(handler) {
-			_onmousemove = handler;
-			updateHandlers();
-		},
-		set onMouseDown(handler) {
-			_onmousedown = handler;
-			updateHandlers();
-		},
-		set onMouseUp(handler) {
-			_onmouseup = handler;
-			updateHandlers();
-		},
-		set onMouseLeave(handler) {
-			_onmouseleave = handler;
-			updateHandlers();
-		},
-		set onMouseEnter(handler) {
-			_onmouseenter = handler;
-			updateHandlers();
-		},
-		set animate(handler) {
-			if (_animate != null) {
-				clearInterval(_animate);
-			}
-			_animate = handler;
-			if (_animate != null) {
-				_animationFrame = 0;
-				setInterval(function(){
-					let animObj = {
-						"time": svg.getCurrentTime(),
-						"frame": _animationFrame++
-					};
-					_animate(animObj);
-				}, 1000/60);
-			}
-		}
-	// });
 	};
 }
 
