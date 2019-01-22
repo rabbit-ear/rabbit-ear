@@ -218,6 +218,12 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 
 	// faces_vertices
 	// because Javascript, this is a pointer and modifies the master graph
+	console.log("================");
+	console.log(graph.edges_vertices);
+	console.log(graph.edges_faces);
+	console.log(incident_faces_indices);
+	console.log(incident_faces_vertices);
+	console.log(incident_faces_edges);
 	incident_faces_vertices.forEach(face => 
 		face.map((fv,i,arr) => {
 			let nextI = (i+1)%arr.length;

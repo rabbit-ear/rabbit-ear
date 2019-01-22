@@ -1,5 +1,6 @@
 import * as Graph from "./graph";
 import * as Geom from "../../lib/geometry";
+import { merge_maps } from "./diff";
 
 /**
  * @returns index of nearest vertex in vertices_ arrays or
@@ -112,13 +113,15 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		.filter(el => el.point !== undefined);
 
 	let new_v_indices = [];
+	let edge_map = Array.from(Array(graph.edges_vertices.length)).map(_=>0);
 	if (edges_intersections.length === 2) {
 		new_v_indices = edges_intersections.map((el,i,arr) => {
 			let diff = Graph.add_vertex_on_edge(graph, el.point[0], el.point[1], el.i_edges);
 			arr.slice(i+1)
 				.filter(el => diff.edges.map[el.i_edges] != null)
-				.forEach(el => el.i_edges += diff.edges.map[el.i_edges])
-			return diff.vertices.new[0].index
+				.forEach(el => el.i_edges += diff.edges.map[el.i_edges]);
+			edge_map = merge_maps(edge_map, diff.edges.map);
+			return diff.vertices.new[0].index;
 		});
 	} else if (edges_intersections.length === 1 && vertices_intersections.length === 1) {
 		let a = vertices_intersections.map(el => el.i_vertices);
@@ -126,14 +129,15 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 			let diff = Graph.add_vertex_on_edge(graph, el.point[0], el.point[1], el.i_edges);
 			arr.slice(i+1)
 				.filter(el => diff.edges.map[el.i_edges] != null)
-				.forEach(el => el.i_edges += diff.edges.map[el.i_edges])
-			return diff.vertices.new[0].index
+				.forEach(el => el.i_edges += diff.edges.map[el.i_edges]);
+			edge_map = diff.edges.map;
+			return diff.vertices.new[0].index;
 		});
 		new_v_indices = a.concat(b);
 	} else if (vertices_intersections.length === 2) {
 		new_v_indices = vertices_intersections.map(el => el.i_vertices);
 	} else {
-		return undefined;
+		return {};
 	}
 
 	// connect across the polygon. split into 2
@@ -163,8 +167,11 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		return Math.sqrt(Math.pow(b[0]-a[0],2) + Math.pow(b[1]-a[1],2));
 	}
 
+	let edges_count = graph.edges_vertices.length;
+	let faces_count = graph.faces_vertices.length;
+
 	let new_edges = [{
-		// index: graph.edges.
+		index: edges_count,
 		vertices: [...new_v_indices],
 		assignment: crease_assignment,
 		foldAngle: foldAngle,
@@ -173,13 +180,13 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		faces: [graph.faces_vertices.length, graph.faces_vertices.length+1]
 	}];
 
-	let edges_count = graph.edges_vertices.length;
-	let faces_count = graph.faces_vertices.length;
-
-	new_edges.forEach((edge,i) => Object.keys(edge).forEach(suffix => {
-		let key = "edges_" + suffix;
-		graph[key][edges_count+i] = edge[suffix];
-	}));
+	new_edges.forEach((edge,i) => Object.keys(edge)
+		.filter(key => key !== "index")
+		.forEach(suffix => {
+			let key = "edges_" + suffix;
+			graph[key][edges_count+i] = edge[suffix];
+		})
+	);
 	new_edges.forEach((edge, i) => {
 		let a = edge.vertices[0];
 		let b = edge.vertices[1];
@@ -217,7 +224,8 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 			}]
 		},
 		edges: {
-			new: new_edges
+			new: new_edges,
+			map: edge_map
 		}
 	}
 

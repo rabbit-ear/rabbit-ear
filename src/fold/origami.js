@@ -38,24 +38,23 @@ export function crease_folded(graph, point, vector, face_index) {
 }
 
 export function crease_line(graph, point, vector) {
-	let boundary = Graph.get_boundary_vertices(graph);
-	let poly = boundary.map(v => graph.vertices_coords[v]);
-	// let edge = Geom.core.intersection.clip_line_in_convex_poly(poly, line[0], line[1]);
-	let new_edge_count = 0;
-	graph.faces_vertices.forEach((fv,i) => {
+	// let boundary = Graph.get_boundary_vertices(graph);
+	// let poly = boundary.map(v => graph.vertices_coords[v]);
+	// let edge_map = Array.from(Array(graph.edges_vertices.length)).map(_=>0);
+	let new_edges = [];
+	let arr = Array.from(Array(graph.faces_vertices.length)).map((_,i)=>i).reverse();
+	arr.forEach(i => {
 		let diff = PlanarGraph.split_convex_polygon(graph, i, point, vector);
-		// let remove = apply_diff(graph, diff);
-		// if (diff.edges != null && diff.edges.new != null) {
-		// 	new_edge_count += diff.edges.new.length;
-		// }
-		// console.log(diff, remove);
-		// Graph.remove_vertices(graph, remove.vertices);
-		// Graph.remove_edges(graph, remove.edges);
-		// Graph.remove_faces(graph, remove.faces);
+		if (diff.edges != null && diff.edges.new != null) {
+			// a new crease line was added
+			let newEdgeIndex = diff.edges.new[0].index;
+			new_edges = new_edges.map(edge => 
+				edge += (diff.edges.map[edge] == null ? 0 : diff.edges.map[edge])
+			);
+			new_edges.push(newEdgeIndex);
+		}
 	});
-	return [];
-	// return Array.apply(null, Array(new_edge_count))
-	// 	.map((_,i) => graph.edges_vertices.length-new_edge_count+i);
+	return new_edges;
 }
 
 export function axiom1(graph, pointA, pointB) { // n-dimension

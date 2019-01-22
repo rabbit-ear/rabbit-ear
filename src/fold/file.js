@@ -1,44 +1,4 @@
 
-
-export const validate = function(graph) {
-
-	let foldKeys = {
-		"vertices": ["coords", "vertices", "faces"],
-		"edges": ["vertices", "faces", "assignment", "foldAngle", "length"],
-		"faces": ["vertices", "edges"],
-	};
-
-	let arraysLengthTest = Object.keys(foldKeys)
-		.map(key => ({prefix: key, suffixes: foldKeys[key]}))
-		.map(el => el.suffixes
-			.map(suffix => el.prefix + "_" + suffix)
-			.filter(key => graph[key] != null)
-			.map((key,_,arr) => graph[key].length === graph[arr[0]].length)
-			.reduce((a,b) => a && b, true)
-		).reduce((a,b) => a && b, true);
-
-	let l = {
-		vertices: Graph.vertices_count(graph),
-		edges: Graph.edges_count(graph),
-		faces: Graph.faces_count(graph)
-	}
-
-	let arraysIndexTest = Object.keys(foldKeys)
-		.map(key => ({prefix: key, suffixes: foldKeys[key]}))
-		.map(el => el.suffixes
-			.map(suffix => ({key:el.prefix + "_" + suffix, suffix: suffix}))
-			.filter(ell => graph[ell.key] != null && l[ell.suffix] != null)
-			.map(ell => graph[ell.key]
-				.reduce((prev,curr) => curr
-					.reduce((a,b) => a && (b < l[ell.suffix]), true)
-				, true)
-			).reduce((a,b) => a && b, true)
-		).reduce((a,b) => a && b, true);
-
-	return arraysLengthTest && arraysIndexTest;
-}
-
-
 /** deep clone an object */
 export const clone = function(thing){
 	// types to check:, "undefined" / "null", "boolean", "number", "string", "symbol", "function", "object"

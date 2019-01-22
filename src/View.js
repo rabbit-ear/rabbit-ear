@@ -109,8 +109,6 @@ export default function() {
 		updateViewBox();
 	}
 	
-	draw();
-
 	const updateViewBox = function() {
 		let vertices = _cp.vertices_coords;
 		if (frame > 0 &&
@@ -281,6 +279,17 @@ export default function() {
 	const fold = function(face){
 		// return Folder.fold_without_layering(_cp, face);
 	}
+	// crease pattern functions for convenience
+	const axiom1 = function() { return _cp.axiom1(...arguments); }
+	const axiom2 = function() { return _cp.axiom2(...arguments); }
+	const axiom3 = function() { return _cp.axiom3(...arguments); }
+	const axiom4 = function() { return _cp.axiom4(...arguments); }
+	const axiom5 = function() { return _cp.axiom5(...arguments); }
+	const axiom6 = function() { return _cp.axiom6(...arguments); }
+	const axiom7 = function() { return _cp.axiom7(...arguments); }
+
+	// init this object
+	draw();
 
 	// return Object.freeze({
 	return {
@@ -304,6 +313,7 @@ export default function() {
 		clear,
 		crease,
 		fold,
+		axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
 
 		draw,
 		updateViewBox,

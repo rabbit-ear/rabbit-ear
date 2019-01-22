@@ -15,11 +15,11 @@ export default function() {
 	// if(_cp == undefined) { _cp = unitSquare; }
 
 	let params = Array.from(arguments);
-	let paramsObj = params.filter(el => typeof el === "object" && el !== null);
-	if (paramsObj.length > 0) {
+	let paramsObjs = params.filter(el => typeof el === "object" && el !== null);
+	if (paramsObjs.length > 0) {
 		// expecting the user to have passed in a fold_file.
-		// no way of filtering multiple objects right now.
-		_m = JSON.parse(JSON.stringify(paramsObj.shift()));
+		// not filtering multiple objects right now.
+		_m = JSON.parse(JSON.stringify(paramsObjs.shift()));
 	}
 
 	// this contains keys, like "vertices_vertices", which require rebuilding
@@ -179,6 +179,7 @@ const Crease = function(_graph, _index) {
 		get index() { return _index; },
 		mountain,
 		valley,
+		mark,
 		flip,
 		get isMountain(){ return is_mountain(); },
 		get isValley(){ return is_valley(); },

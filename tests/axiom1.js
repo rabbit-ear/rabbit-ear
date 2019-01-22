@@ -10,14 +10,21 @@ axiom1.touches.forEach(p => {
 	axiom1.svg.appendChild(p.svg);
 });
 
-axiom1.redraw = function(){
+axiom1.redraw = function() {
 	axiom1.touches.forEach((p,i) => {
 		p.svg.setAttribute("cx", p.pos[0]);
 		p.svg.setAttribute("cy", p.pos[1]);
 	});
 	axiom1.cp = RabbitEar.CreasePattern(RabbitEar.bases.dodecagon);
-	let creases = axiom1.cp.axiom1(axiom1.touches[0].pos, axiom1.touches[1].pos);
-	creases.forEach(c => c.valley());
+
+	// axiom1.axiom1([0,0], [1,2])
+	// 	.forEach(c => c.mark());
+	for (let i = 0; i < 3; i++) {
+		axiom1.axiom1([Math.random(), Math.random()], [Math.random()-0.5, Math.random()-0.5]);
+	}
+
+	// let creases = axiom1.axiom1(axiom1.touches[0].pos, axiom1.touches[1].pos);
+	// creases.forEach(c => c.valley());
 	axiom1.draw();
 }
 axiom1.redraw();

@@ -1,5 +1,20 @@
 import * as Graph from "./graph";
-import { validate } from "./file";
+
+export const merge_maps = function(a, b) {
+	// "a" came first
+	let aRemoves = [];
+	for (let i = 1; i < a.length; i++) {
+		if (a[i] !== a[i-1]) { aRemoves.push(i); }
+	}
+	let bRemoves = [];
+	for (let i = 1; i < b.length; i++) {
+		if (b[i] !== b[i-1]) { bRemoves.push(i); }
+	}
+	let bCopy = b.slice();
+	aRemoves.forEach(i => bCopy.splice(i, 0, (i === 0) ? 0 : bCopy[i-1] ));
+
+	return a.map((v,i) => v + bCopy[i]);
+}
 
 export const diff_new_v = function(graph, newVertex) {
 	let i = Graph.vertices_count(graph);
@@ -175,8 +190,6 @@ export const apply_diff = function(graph, diff) {
 				.concat(diff.faces.replace.map(el => el.old_index));
 		}
 	}
-
-	// let validated = validate(graph);
 
 	return {
 		vertices: remove_vertices,

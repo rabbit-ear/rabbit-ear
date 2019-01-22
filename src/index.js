@@ -14,6 +14,7 @@ export { noise };
 
 // fold file manipulators
 import * as file from './fold/file';
+import { default as validate } from './fold/validate';
 import * as graph from './fold/graph';
 import * as origami from './fold/origami';
 import * as planargraph from './fold/planargraph';
@@ -21,6 +22,7 @@ import * as valleyfold from './fold/valleyfold';
 import * as creasethrough from './fold/creasethrough';
 const fold = {
 	file: file,
+	validate: validate,
 	graph: graph,
 	origami: origami,
 	planargraph: planargraph,

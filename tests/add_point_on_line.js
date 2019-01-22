@@ -1,6 +1,4 @@
 
-let tttop = RabbitEar.Origami(RabbitEar.bases.kite);
-
 let cp = RabbitEar.bases.kite;
 
 let origami = RabbitEar.Origami(cp);
