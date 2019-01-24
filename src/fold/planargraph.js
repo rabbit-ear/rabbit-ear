@@ -1,6 +1,7 @@
 import * as Graph from "./graph";
 import * as Geom from "../../lib/geometry";
 import { merge_maps } from "./diff";
+import { default as validate } from "./validate";
 
 /**
  * @returns index of nearest vertex in vertices_ arrays or
@@ -121,6 +122,7 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 				.filter(el => diff.edges.map[el.i_edges] != null)
 				.forEach(el => el.i_edges += diff.edges.map[el.i_edges]);
 			edge_map = merge_maps(edge_map, diff.edges.map);
+
 			return diff.vertices.new[0].index;
 		});
 	} else if (edges_intersections.length === 1 && vertices_intersections.length === 1) {
@@ -199,6 +201,10 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		graph[key][faces_count+i] = face[suffix];
 	}));
 
+	console.log("---------------------");
+	console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
+	console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
+
 	let valid_edges = graph.edges_faces.map((e,i) => e.indexOf(faceIndex) !== -1);
 	let valid_vertices = graph.vertices_faces.map((e,i) => e.indexOf(faceIndex) !== -1);
 	graph.edges_faces = graph.edges_faces.map((_,i) => graph.edges_faces[i].filter(el => el !== faceIndex))
@@ -206,14 +212,19 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		face.filter(edge => valid_edges[edge])
 			.forEach(edge => graph.edges_faces[edge].push(faces_count+i))
 	);
+
 	graph.vertices_faces = graph.vertices_faces.map((_,i) => graph.vertices_faces[i].filter(el => el !== faceIndex))
 	// todo: this doesn't yet order faces counter-clockwise around the vertex
 	graph.faces_vertices.filter((_,i) => i !== faceIndex).map((face,i) => 
 		face.filter(vertex => valid_vertices[vertex])
 			.forEach(vertex => graph.vertices_faces[vertex].push(faces_count+i))
 	);
+	console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
+	console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
 
 	let faces_map = Graph.remove_faces(graph, [faceIndex]);
+	console.log(JSON.parse(JSON.stringify(graph.faces_vertices)));
+	console.log(JSON.parse(JSON.stringify(graph.faces_edges)));
 
 	return {
 		faces: {

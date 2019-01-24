@@ -21,6 +21,8 @@ axiom1.redraw = function() {
 	// 	.forEach(c => c.mark());
 	for (let i = 0; i < 3; i++) {
 		axiom1.axiom1([Math.random(), Math.random()], [Math.random()-0.5, Math.random()-0.5]);
+		console.log(axiom1.cp.json());
+		RabbitEar.fold.validate(axiom1.cp.json());
 	}
 
 	// let creases = axiom1.axiom1(axiom1.touches[0].pos, axiom1.touches[1].pos);

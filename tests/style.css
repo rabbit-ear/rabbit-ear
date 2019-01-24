@@ -22,12 +22,16 @@ html,body{
 svg{
 	width:100vw;
 	height:100vh;
-	/*margin: 5vmin;*/
 	touch-action: none;
 
 /*	height:40vh;
 	max-width: 90vw;
-	padding:2vh;*/
+	
+*/
+/*	padding:2vh;
+	width:40vw;
+	max-height: 90vh;
+*/
 }
 .mountain, .valley, .boundary, .mark {
 	stroke:black;

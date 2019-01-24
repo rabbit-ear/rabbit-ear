@@ -64,7 +64,7 @@ export default function() {
 		let verts = _cp.vertices_coords;
 		let edges = _cp.edges_vertices.map(ev => ev.map(v => verts[v]));
 		let eAssignments = ( _isFolded
-			? _cp.edges_assignment.map(a => "F")
+			? _cp.edges_assignment.map(a => CREASE_DIR["F"])
 			: _cp.edges_assignment.map(a => CREASE_DIR[a]));
 		let fAssignments = ( _isFolded
 			? _cp.faces_vertices.map(fv => "face folded")
@@ -92,9 +92,9 @@ export default function() {
 		// clear layers
 		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
 		// boundary
-		SVG.polygon(boundary, "boundary", null, groups.boundary);
+		if (!_isFolded) { SVG.polygon(boundary, "boundary", null, groups.boundary); }
 		// vertices
-		verts.forEach((v,i) => SVG.circle(v[0], v[1], style.vertex.radius, "vertex", ""+i, groups.vertices));
+		if (!_isFolded) { verts.forEach((v,i) => SVG.circle(v[0], v[1], style.vertex.radius, "vertex", ""+i, groups.vertices)); }
 		// edges
 		edges.forEach((e,i) =>
 			SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
@@ -103,9 +103,9 @@ export default function() {
 		facesV.forEach((face, i) =>
 			SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
 		);
-		facesE.forEach((face, i) =>
+		if (!_isFolded) { facesE.forEach((face, i) =>
 			SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
-		);
+		); }
 		updateViewBox();
 	}
 	

@@ -51,7 +51,7 @@ chopReflect.animate = function(event){
 	let cp = JSON.parse(JSON.stringify(chopReflect.masterCP));
 	RabbitEar.fold.origami.crease_folded(cp, line.point, line.vector, 4);
 	chopReflect.cp = RabbitEar.CreasePattern(cp);
-	let foldedCP = RabbitEar.fold.origami.fold_without_layering(cp);
+	let foldedCP = RabbitEar.fold.origami.fold_without_layering(cp, chopReflect.nearest(0.5, 0.5).face.index);
 	folded.cp = RabbitEar.CreasePattern(foldedCP);
 }
 
