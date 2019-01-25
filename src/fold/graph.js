@@ -171,7 +171,7 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 	let incident_vertices = graph.edges_vertices[old_edge_index];
 	// vertices_vertices, new vertex
 	if (graph.vertices_vertices == null) { graph.vertices_vertices = []; }
-	graph.vertices_vertices[new_vertex_index] = [...incident_vertices];
+	graph.vertices_vertices[new_vertex_index] = JSON.parse(JSON.stringify(incident_vertices));
 	// vertices_vertices, update incident vertices with new vertex
 	incident_vertices.forEach((v,i,arr) => {
 		let otherV = arr[(i+1)%arr.length];
@@ -180,7 +180,7 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 	})
 	// vertices_faces
 	if (graph.edges_faces != null && graph.edges_faces[old_edge_index] != null) {
-		graph.vertices_faces[new_vertex_index] = [...graph.edges_faces[old_edge_index]];
+		graph.vertices_faces[new_vertex_index] = JSON.parse(JSON.stringify(graph.edges_faces[old_edge_index]));
 	}
 	// new edges entries
 	// set edges_vertices
@@ -391,7 +391,7 @@ export function remove_vertices(graph, vertices){
 	vertices.forEach(v => removes[v] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
 
-	if(vertices.length == 0){ return index_map; }
+	if(vertices.length === 0){ return index_map; }
 
 	// update every component that points to vertices_coords
 	// these arrays do not change their size, only their contents
@@ -438,7 +438,7 @@ export const remove_edges = function(graph, edges) {
 	edges.forEach(e => removes[e] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
 
-	if(edges.length == 0){ return index_map; }
+	if(edges.length === 0){ return index_map; }
 
 	// update every component that points to edges_vertices
 	// these arrays do not change their size, only their contents
@@ -449,7 +449,7 @@ export const remove_edges = function(graph, edges) {
 	if(graph.edgeOrders != null){
 		graph.edgeOrders = graph.edgeOrders
 			.map(entry => entry.map((v,i) => {
-				if(i == 2) return v;  // exception. orientation. not index.
+				if(i === 2) return v;  // exception. orientation. not index.
 				return v + index_map[v];
 			}));
 	}
@@ -486,38 +486,38 @@ export const remove_edges = function(graph, edges) {
  * @param {faces} an array of face indices
  * @example remove_edges(fold_file, [1,9,11,13]);
  */
-export function remove_faces(graph, faces){
+export function remove_faces(graph, faces) {
 	// length of index_map is length of the original faces_vertices
 	let s = 0, removes = Array( faces_count(graph) ).fill(false);
 	faces.forEach(e => removes[e] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
 
-	if(faces.length == 0){ return index_map; }
+	if (faces.length === 0) { return index_map; }
 
 	// update every component that points to faces_ arrays
 	// these arrays do not change their size, only their contents
-	if(graph.vertices_faces != null){
+	if (graph.vertices_faces != null) {
 		graph.vertices_faces = graph.vertices_faces
 			.map(entry => entry.map(v => v + index_map[v]));
 	}
-	if(graph.edges_faces != null){
+	if (graph.edges_faces != null) {
 		graph.edges_faces = graph.edges_faces
 			.map(entry => entry.map(v => v + index_map[v]));
 	}
-	if(graph.faceOrders != null){
+	if (graph.faceOrders != null) {
 		graph.faceOrders = graph.faceOrders
 			.map(entry => entry.map((v,i) => {
-				if(i == 2) return v;  // exception. orientation. not index.
+				if(i === 2) return v;  // exception. orientation. not index.
 				return v + index_map[v];
 			}));
 	}
 	// update every array with a 1:1 relationship to faces_
 	// these arrays change their size, their contents are untouched
-	if(graph.faces_vertices != null){
+	if (graph.faces_vertices != null) {
 		graph.faces_vertices = graph.faces_vertices
 			.filter((e,i) => !removes[i])
 	}
-	if(graph.faces_edges != null){
+	if (graph.faces_edges != null) {
 		graph.faces_edges = graph.faces_edges
 			.filter((e,i) => !removes[i])
 	}
