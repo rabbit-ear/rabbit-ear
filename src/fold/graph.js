@@ -195,8 +195,8 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 		.filter(key => graph[key] != null && graph[key][old_edge_index] != null)
 		.forEach(key => {
 			// todo, copy these arrays
-			new_edges[0][key] = graph[key][old_edge_index];
-			new_edges[1][key] = graph[key][old_edge_index];
+			new_edges[0][key] = JSON.parse(JSON.stringify(graph[key][old_edge_index]));
+			new_edges[1][key] = JSON.parse(JSON.stringify(graph[key][old_edge_index]));
 		});
 	// calculate length
 	const distance2 = function(a,b){
@@ -218,12 +218,6 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 
 	// faces_vertices
 	// because Javascript, this is a pointer and modifies the master graph
-	// console.log("================");
-	// console.log(graph.edges_vertices);
-	// console.log(graph.edges_faces);
-	// console.log(incident_faces_indices);
-	// console.log(incident_faces_vertices);
-	// console.log(incident_faces_edges);
 	incident_faces_vertices.forEach(face => 
 		face.map((fv,i,arr) => {
 			let nextI = (i+1)%arr.length;

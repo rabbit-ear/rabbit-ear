@@ -100,7 +100,7 @@ export default function(graph) {
 	).reduce((a,b) => a.concat(b), []);
 
 	if (e_f_test.length > 0) {
-		throw "vertices_faces "+e_f_test[0].i+" connects to face "+e_f_test[0].face+", whereas in faces_edges this same connection in reverse doesn't exist.";
+		throw "edges_faces "+e_f_test[0].i+" connects to face "+e_f_test[0].face+", whereas in faces_edges this same connection in reverse doesn't exist.";
 	}
 
 	let f_v_test = graph.faces_vertices.map((face,i) => 

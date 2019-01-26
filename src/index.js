@@ -34,6 +34,7 @@ export { fold };
 // load bases
 import empty from './bases/empty.fold';
 import square from './bases/square.fold';
+import book from './bases/book.fold';
 import blintz from './bases/blintz.fold';
 import kite from './bases/kite.fold';
 import fish from './bases/fish.fold';
@@ -47,6 +48,7 @@ import concave from './bases/test-concave.fold';
 const bases = {
 	empty: JSON.parse(empty),
 	square: JSON.parse(square),
+	book: JSON.parse(book),
 	blintz: JSON.parse(blintz),
 	kite: JSON.parse(kite),
 	fish: JSON.parse(fish),

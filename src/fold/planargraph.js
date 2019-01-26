@@ -216,45 +216,54 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 	new_edges.forEach((edge, i) => {
 		let a = edge.vertices[0];
 		let b = edge.vertices[1];
-		// todo, these are not going in counter-clockwise order
+		// todo, it appears these are going in counter-clockwise order, but i don't know why
 		graph.vertices_vertices[a].push(b);
 		graph.vertices_vertices[b].push(a);
 	});
 
 
-// this section. this is where the fuckup is
-
-	// search inside every edges_faces and vertices_faces for an occurence
-	// of the face we're about to remove, and determine which of our two 
-	// new faces needs to be put in its place.
-	let incident_edges = graph.edges_faces
-		.map((e,i) => e.indexOf(faceIndex) !== -1);
-	let incident_vertices = graph.vertices_faces
-		.map((e,i) => e.indexOf(faceIndex) !== -1);
-	// remake edges_faces to contain no mention of the removed face.  ..why?
-	graph.edges_faces = graph.edges_faces
-		.map((_,i) => graph.edges_faces[i].filter(el => el !== faceIndex));
-	//
-	graph.faces_edges
-		.filter((_,i) => i !== faceIndex) // uhh this might be a problem. "i" gets off index next row
-		.forEach((face,i) =>
-			face.filter(edge => incident_edges[edge])
-				.forEach(edge => graph.edges_faces[edge].push(faces_count+i))
-		);
-	// remove any mention of the removed-face from vertices_faces
-	graph.vertices_faces = graph.vertices_faces
-		.map((_,i) => graph.vertices_faces[i].filter(el => el !== faceIndex));
-	//
-	// todo: this doesn't yet order faces counter-clockwise around the vertex
+	// rebuild edges_faces, vertices_faces
+	// search inside vertices_faces for an occurence of the removed face,
+	// determine which of our two new faces needs to be put in its place
+	// by checking faces_vertices, by way of this map we build below:
+	let v_f_map = {};
 	graph.faces_vertices
-		.filter((_,i) => i !== faceIndex)
-		.forEach((face,i) =>
-			face.filter(vertex => incident_vertices[vertex])
-				.forEach(vertex => graph.vertices_faces[vertex].push(faces_count+i))
-		);
+		.map((face,i) => ({face: face, i:i}))
+		.filter(el => el.i === faces_count || el.i === faces_count+1)
+		.forEach(el => el.face.forEach(v => {
+			if (v_f_map[v] == null) { v_f_map[v] = []; }
+			v_f_map[v].push(el.i)
+		}));
+	graph.vertices_faces
+		.forEach((vf,i) => {
+			let indexOf = vf.indexOf(faceIndex);
+			while (indexOf !== -1) {
+				graph.vertices_faces[i].splice(indexOf, 1, ...(v_f_map[i]));
+				indexOf = vf.indexOf(faceIndex);
+			}
+		})
+	// the same as above, but making a map of faces_edges to rebuild edges_faces
+	let e_f_map = {};
+	graph.faces_edges
+		.map((face,i) => ({face: face, i:i}))
+		.filter(el => el.i === faces_count || el.i === faces_count+1)
+		.forEach(el => el.face.forEach(e => {
+			if (e_f_map[e] == null) { e_f_map[e] = []; }
+			e_f_map[e].push(el.i)
+		}));
+	graph.edges_faces
+		.forEach((ef,i) => {
+			let indexOf = ef.indexOf(faceIndex);
+			while (indexOf !== -1) {
+				graph.edges_faces[i].splice(indexOf, 1, ...(e_f_map[i]));
+				indexOf = ef.indexOf(faceIndex);
+			}
+		});
 
+	// remove faces, adjust all relevant indices
 	let faces_map = Graph.remove_faces(graph, [faceIndex]);
 
+	// return a diff of the geometry
 	return {
 		faces: {
 			map: faces_map,
@@ -268,7 +277,6 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 			map: edge_map
 		}
 	}
-
 }
 
 // export function split_convex_polygon(graph, faceIndex, linePoint, lineVector, crease_assignment = "F"){
