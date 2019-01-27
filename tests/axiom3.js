@@ -1,15 +1,12 @@
 let axiom3 = RabbitEar.Origami("canvas-axiom-3");
 
 axiom3.touches = [
-	{pos: [0.1, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02)},
-	{pos: [0.9, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02)},
-	{pos: [0.2, 0.4], svg: RabbitEar.svg.circle(0, 0, 0.02)},
-	{pos: [0.7, 0.8], svg: RabbitEar.svg.circle(0, 0, 0.02)},
+	{pos: [0.1, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom3.svg)},
+	{pos: [0.9, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom3.svg)},
+	{pos: [0.2, 0.4], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom3.svg)},
+	{pos: [0.7, 0.8], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom3.svg)},
 ];
-axiom3.touches.forEach(p => {
-	p.svg.setAttribute("fill", "#e44f2a");
-	axiom3.svg.appendChild(p.svg);
-});
+axiom3.touches.forEach(p => p.svg.setAttribute("fill", "#e44f2a"));
 
 axiom3.redraw = function(){
 	axiom3.touches.forEach((p,i) => {

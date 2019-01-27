@@ -3,29 +3,23 @@
 import * as Graph from "./fold/graph";
 import * as PlanarGraph from "./fold/planargraph";
 import * as Origami from "./fold/origami";
+import squareFoldString from './bases/square.fold';
 
 /** A graph is a set of nodes and edges connecting them */
 export default function() {
-	let _m = {}; // the data model. fold file format spec
-
-	// let args = Array.from(arguments);
-	// let _cp = args.filter(arg =>
-	// 	typeof arg == "object" && arg.vertices_coords != undefined
-	// ).shift();
-	// if(_cp == undefined) { _cp = unitSquare; }
-
+	// unit square is the default base, if nothing else is provided
+	let _m = JSON.parse(squareFoldString); // the data model. fold file format spec
 	let params = Array.from(arguments);
 	let paramsObjs = params.filter(el => typeof el === "object" && el !== null);
-	if (paramsObjs.length > 0) {
+	// todo: which key should we check to verify .fold? coords prevents abstract CPs
+	let foldObjs = paramsObjs.filter(el => el.vertices_coords != null);
+	if (foldObjs.length > 0) {
 		// expecting the user to have passed in a fold_file.
-		// not filtering multiple objects right now.
-		_m = JSON.parse(JSON.stringify(paramsObjs.shift()));
+		// if there are multiple we are only grabbing the first one
+		_m = JSON.parse(JSON.stringify(foldObjs.shift()));
 	}
 
-	// this contains keys, like "vertices_vertices", which require rebuilding
-	let unclean = {"vertices_coords":[],"vertices_vertices":[],"vertices_faces":[],"edges_vertices":[],"edges_faces":[],"edges_assignment":[],"edges_foldAngle":[],"edges_length":[],"faces_vertices":[],"faces_edges":[],"edgeOrders":[],"faceOrders":[]};
-
-	const load = function(file){ _m = JSON.parse(JSON.stringify(file)); }
+	const load = function(file) { _m = JSON.parse(JSON.stringify(file)); }
 	const json = function() {
 		let fold_file = Object.create(null);
 		Graph.all_keys.filter(key => _m[key] != null)
@@ -35,6 +29,10 @@ export default function() {
 		return fold_file;
 	}
 	const clear = function() {
+		Graph.remove_non_boundary_edges(_m);
+		if (typeof _onchange === "function") { _onchange(); }
+	}
+	const wipe = function() {
 		Graph.all_keys.filter(a => _m[a] != null)
 			.forEach(key => delete _m[key]);
 		if (typeof _onchange === "function") { _onchange(); }

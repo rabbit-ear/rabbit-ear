@@ -3,19 +3,22 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 <body></body>
 <script type="text/javascript" src="../rabbit-ear.js"></script>
-<script type="text/javascript" src="_jquery.min.js"></script>
-
 <script>
-// load a file in url bar using hash mark:
-//     _tests.html#axiom1
-// or  _tests.html#axiom1.js
-//
-var loadOnBoot = "vector.js";
-if(window.location.hash != undefined && window.location.hash != ""){
+
+let script = document.createElement('script');
+document.head.appendChild(script);
+
+// append the url with a # followed by the filename (it assumes .js)
+// example: url/#axiom1 or url/#axiom1.js
+let loadOnBoot = "axiom1.js";
+if(window.location.hash != null && window.location.hash != ""){
 	loadOnBoot = window.location.hash.substr(1);
 	if(loadOnBoot.length > 3 && loadOnBoot.substr(loadOnBoot.length-3) != '.js'){
 		loadOnBoot += ".js";
 	}
 }
-$.getScript(loadOnBoot, function(arg){});
+
+// script.onload = function() { };
+script.src = loadOnBoot;
+
 </script>

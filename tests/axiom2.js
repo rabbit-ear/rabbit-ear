@@ -1,22 +1,27 @@
 let axiom2 = RabbitEar.Origami("canvas-axiom-2");
 
+// create 2 UI-control points
 axiom2.touches = [
-	{pos: [0.1, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02)},
-	{pos: [0.9, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02)},
+	{pos: [0.0, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom2.svg)},
+	{pos: [1.0, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom2.svg)},
 ];
-axiom2.touches.forEach(p => {
-	p.svg.setAttribute("fill", "#e44f2a");
-	axiom2.svg.appendChild(p.svg);
-});
+axiom2.touches.forEach(p => p.svg.setAttribute("fill", "#e44f2a"));
 
-axiom2.redraw = function(){
-	axiom2.touches.forEach((p,i) => {
-		p.svg.setAttribute("cx", p.pos[0]);
-		p.svg.setAttribute("cy", p.pos[1]);
-	});
+// called once, at the beginning
+axiom2.reset = function() {
 	axiom2.cp = RabbitEar.CreasePattern(RabbitEar.bases.square);
-	let creases = axiom2.cp.axiom2(axiom2.touches[0].pos, axiom2.touches[1].pos);
-	creases.forEach(c => c.valley());
+	for (let i = 0; i < 5; i++) {
+		axiom2.axiom2([Math.random(), Math.random()], [Math.random()-0.5, Math.random()-0.5]);
+	}
+	axiom2.base = axiom2.cp.json();
+}
+axiom2.reset();
+
+// called after the control-points change
+axiom2.redraw = function() {
+	axiom2.touches.forEach((p,i) => ["cx","cy"].forEach((c,ci) => p.svg.setAttribute(c, p.pos[ci])));
+	axiom2.cp = RabbitEar.CreasePattern(axiom2.base);
+	axiom2.axiom2(axiom2.touches[0].pos, axiom2.touches[1].pos).forEach(c => c.valley());
 	axiom2.draw();
 }
 axiom2.redraw();

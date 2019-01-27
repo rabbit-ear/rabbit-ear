@@ -58,6 +58,32 @@ export const new_edge = function(graph, node1, node2) {
 	return new_index;
 }
 
+/**
+ * this removes all edges except for "B", boundary creases.
+ * rebuilds the face, and 
+ * todo: removes a collinear vertex and merges the 2 boundary edges
+ */
+export const remove_non_boundary_edges = function(graph) {
+	let remove_indices = graph.edges_assignment
+		.map(a => !(a === "b" || a === "B"))
+		.map((a,i) => a ? i : null)
+		.filter(a => a != null)
+	let edge_map = remove_edges(graph, remove_indices);
+	let face = get_boundary_face(graph);
+	graph.faces_edges = [face.edges];
+	graph.faces_vertices = [face.vertices];
+	remove_isolated_vertices(graph);
+}
+
+export const remove_isolated_vertices = function(graph) {
+	let isolated = graph.vertices_coords.map(_ => true);
+	graph.edges_vertices.forEach(edge => edge.forEach(v => isolated[v] = false));
+	let vertices = isolated.map((el,i) => el ? i : null)
+		.filter(el => el !== null);
+	if (vertices.length === 0) { return []; }
+	return remove_vertices(graph, vertices);
+}
+
 /* Get the number of vertices in the graph
  * in the case of abstract graphs, vertex count needs to be searched
  *
@@ -283,7 +309,41 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 	};
 }
 
-
+export const get_boundary_face = function(graph) {
+	let edges_vertices_b = graph.edges_assignment
+		.map(a => a === "B" || a === "b");
+	let vertices_edges = graph.vertices_coords.map(_ => []);
+	graph.edges_vertices.forEach((ev,i) =>
+		ev.forEach(v => vertices_edges[v].push(i))
+	);
+	let edge_walk = [];
+	let vertex_walk = [];
+	let edgeIndex = -1;
+	for (let i = 0; i < edges_vertices_b.length; i++) {
+		if (edges_vertices_b[i]) { edgeIndex = i; break; }
+	}
+	edges_vertices_b[edgeIndex] = false;
+	edge_walk.push(edgeIndex);
+	vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
+	let nextVertex = graph.edges_vertices[edgeIndex][1];
+	while (vertex_walk[0] !== nextVertex) {
+		vertex_walk.push(nextVertex);
+		edgeIndex = vertices_edges[nextVertex]
+			.filter(v => edges_vertices_b[v])
+			.shift();
+		if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
+			nextVertex = graph.edges_vertices[edgeIndex][1];
+		} else {
+			nextVertex = graph.edges_vertices[edgeIndex][0];
+		}
+		edges_vertices_b[edgeIndex] = false;
+		edge_walk.push(edgeIndex);
+	}
+	return {
+		vertices: vertex_walk,
+		edges: edge_walk,
+	};
+}
 
 export const get_boundary_vertices = function(graph) {
 	let edges_vertices_b = graph.edges_vertices.filter((ev,i) =>
