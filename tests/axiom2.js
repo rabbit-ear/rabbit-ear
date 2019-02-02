@@ -7,7 +7,7 @@ axiom2.touches = [
 ];
 axiom2.touches.forEach(p => p.svg.setAttribute("fill", "#e44f2a"));
 
-// called once, at the beginning
+// called once at the beginning. build a square with random crease marks
 axiom2.reset = function() {
 	axiom2.cp = RabbitEar.CreasePattern(RabbitEar.bases.square);
 	for (let i = 0; i < 5; i++) {
@@ -21,7 +21,7 @@ axiom2.reset();
 axiom2.redraw = function() {
 	axiom2.touches.forEach((p,i) => ["cx","cy"].forEach((c,ci) => p.svg.setAttribute(c, p.pos[ci])));
 	axiom2.cp = RabbitEar.CreasePattern(axiom2.base);
-	axiom2.axiom2(axiom2.touches[0].pos, axiom2.touches[1].pos).forEach(c => c.valley());
+	axiom2.axiom2(axiom2.touches[0].pos, axiom2.touches[1].pos).valley();
 	axiom2.draw();
 }
 axiom2.redraw();

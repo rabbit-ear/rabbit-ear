@@ -84,6 +84,10 @@ export const remove_isolated_vertices = function(graph) {
 	return remove_vertices(graph, vertices);
 }
 
+export const remove_collinear_vertices = function(graph) {
+	
+}
+
 /* Get the number of vertices in the graph
  * in the case of abstract graphs, vertex count needs to be searched
  *

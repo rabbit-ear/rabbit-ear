@@ -17,9 +17,9 @@ import { apply_diff } from "./diff";
 export function crease_folded(graph, point, vector, face_index) {
 	// if face isn't set, it will be determined by whichever face
 	// is directly underneath point. or if none, index 0.
-	if (face == null) {
+	if (face_index == null) {
 		// todo, detect face under point
-		face = 0;
+		face_index = 0;
 		// let faces = Array.from(chopReflect.svg.childNodes)
 		// 	.filter(el => el.getAttribute('id') == 'faces')
 		// 	.shift();
@@ -49,6 +49,23 @@ export function crease_line(graph, point, vector) {
 			// a new crease line was added
 			let newEdgeIndex = diff.edges.new[0].index;
 			new_edges = new_edges.map(edge => 
+				edge += (diff.edges.map[edge] == null ? 0 : diff.edges.map[edge])
+			);
+			new_edges.push(newEdgeIndex);
+		}
+	});
+	return new_edges;
+}
+
+export function crease_ray(graph, point, vector) {
+	let new_edges = [];
+	let arr = Array.from(Array(graph.faces_vertices.length)).map((_,i)=>i).reverse();
+	arr.forEach(i => {
+		let diff = PlanarGraph.split_convex_polygon(graph, i, point, vector);
+		if (diff.edges != null && diff.edges.new != null) {
+			// a new crease line was added
+			let newEdgeIndex = diff.edges.new[0].index;
+			new_edges = new_edges.map(edge =>
 				edge += (diff.edges.map[edge] == null ? 0 : diff.edges.map[edge])
 			);
 			new_edges.push(newEdgeIndex);
@@ -87,6 +104,16 @@ export function axiom7(graph, pointA, vectorA, pointB, vectorB, pointC) {
 	let line = Geom.core.origami.axiom7(pointA, vectorA, pointB, vectorB, pointC);
 	return crease_line(graph, line[0], line[1]);
 }
+
+export function creaseRay(graph, point, vector) {
+	let ray = Geom.core.Ray(point, vector);
+	graph.faces_vertices.forEach(face => {
+		let points = face.map(v => graph.vertices_coords[v]);
+		Geom.core.intersection.clip_ray_in_convex_poly(_points, point, vector);
+	})
+	return crease_line(graph, line[0], line[1]);
+}
+
 
 export function fold_without_layering(fold, face) {
 	if (face == null) { face = 0; }

@@ -48,26 +48,21 @@ export default function() {
 	}
 	const nearestEdge = function(x, y, z = 0) {
 		let index = PlanarGraph.nearest_edge(_m, [x, y, z]);
-		return (index != null) ? Crease(this, index) : undefined;
+		return (index != null) ? Edge(this, index) : undefined;
 	}
 	const nearestFace = function(x, y, z = 0) {
 		let index = PlanarGraph.face_containing_point(_m, [x, y, z]);
 		return (index != null) ? Face(this, index) : undefined;
 	}
-	const vertex = function(index) {
-		return Vertex(this, index);
-	}
-	const edge = function(index) {
-		return Crease(this, index);
-	}
-	const face = function(index) {
-		return Face(this, index);
-	}
+	const vertex = function(index)   { return Vertex(this, index);   }
+	const edge = function(index)     { return Edge(this, index);     }
+	const face = function(index)     { return Face(this, index);     }
+	const crease = function(indices) { return Crease(this, indices); }
 
-	const crease = function() {
-		let edge_index = PlanarGraph.add_crease(_m, ...arguments);
-		return Crease(this, edge_index);
-	}
+	// const crease = function() {
+	// 	let edge_index = PlanarGraph.add_crease(_m, ...arguments);
+	// 	return Crease(this, edge_index);
+	// }
 	const addVertexOnEdge = function(x, y, oldEdgeIndex) {
 		Graph.add_vertex_on_edge(_m, x, y, oldEdgeIndex);
 		if (typeof _onchange === "function") { _onchange(); }
@@ -77,25 +72,28 @@ export default function() {
 		if (typeof _onchange === "function") { _onchange(); }
 	}
 	const axiom1 = function() {
-		return Origami.axiom1(_m, ...arguments).map(e => Crease(this, e));
+		return Crease(this, Origami.axiom1(_m, ...arguments));
 	}
 	const axiom2 = function() {
-		return Origami.axiom2(_m, ...arguments).map(e => Crease(this, e));
+		return Crease(this, Origami.axiom2(_m, ...arguments));
 	}
 	const axiom3 = function() {
-		return Origami.axiom3(_m, ...arguments).map(e => Crease(this, e));
+		return Crease(this, Origami.axiom3(_m, ...arguments));
 	}
 	const axiom4 = function() {
-		return Origami.axiom4(_m, ...arguments).map(e => Crease(this, e));
+		return Crease(this, Origami.axiom4(_m, ...arguments));
 	}
 	const axiom5 = function() {
-		return Origami.axiom5(_m, ...arguments).map(e => Crease(this, e));
+		return Crease(this, Origami.axiom5(_m, ...arguments));
 	}
 	const axiom6 = function() {
-		return Origami.axiom6(_m, ...arguments).map(e => Crease(this, e));
+		return Crease(this, Origami.axiom6(_m, ...arguments));
 	}
 	const axiom7 = function() {
-		return Origami.axiom7(_m, ...arguments).map(e => Crease(this, e));
+		return Crease(this, Origami.axiom7(_m, ...arguments));
+	}
+	const creaseRay = function() {
+		return Crease(this, Origami.creaseRay(_m, ...arguments));
 	}
 
 	// callback for when the crease pattern has been altered
@@ -112,12 +110,13 @@ export default function() {
 		connectedGraphs,
 		vertex,
 		edge,
+		crease,
 		face,
 		nearestVertex,
 		nearestEdge,
 		nearestFace,
-		crease,
 		axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
+		creaseRay,
 		// fold spec 1.1
 		get vertices_coords() { return _m.vertices_coords; },
 		get vertices_vertices() { return _m.vertices_vertices; },
@@ -135,7 +134,63 @@ export default function() {
 	};
 }
 
-const Crease = function(_graph, _index) {
+// consider this: a crease can be an ARRAY of edges. 
+// this way one crease is one crease. it's more what a person expects.
+// one crease can == many edges.
+const Crease = function(_graph, _indices) {
+	let graph = _graph; // pointer back to the graph;
+	let indices = _indices; // indices of this crease in the graph
+
+	const is_assignment = function(options) {
+		return indices.map(index => options
+				.map(l => l === graph.edges_assignment[index])
+				.reduce((a,b) => a || b, false)
+			).reduce((a,b) => a || b, false);
+	}
+	const is_mountain = function() { return is_assignment(["M", "m"]); }
+	const is_valley = function() { return is_assignment(["V", "v"]); }
+
+	const flip = function() {
+		if (is_mountain()) { valley(); }
+		else if (is_valley()) { mountain(); }
+		else { return; } // don't trigger the callback
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+	}
+	const mountain = function() {
+		indices.forEach(index => graph.edges_assignment[index] = "M");
+		indices.forEach(index => graph.edges_foldAngle[index] = -180);
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+	}
+	const valley = function() {
+		indices.forEach(index => graph.edges_assignment[index] = "V");
+		indices.forEach(index => graph.edges_foldAngle[index] = 180);
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+	}
+	const mark = function() {
+		indices.forEach(index => graph.edges_assignment[index] = "F");
+		indices.forEach(index => graph.edges_foldAngle[index] = 0);
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+	}
+	const remove = function() { }
+	// const addVertexOnEdge = function(x, y) {
+	// 	let thisEdge = this.index;
+	// 	graph.addVertexOnEdge(x, y, thisEdge);
+	// }
+
+	return {
+		get index() { return _index; },
+		mountain,
+		valley,
+		mark,
+		flip,
+		get isMountain(){ return is_mountain(); },
+		get isValley(){ return is_valley(); },
+		remove
+		// addVertexOnEdge
+	};
+}
+
+const Edge = function(_graph, _index) {
 	let graph = _graph; // pointer back to the graph;
 	let index = _index; // index of this crease in the graph
 

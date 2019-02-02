@@ -21,7 +21,7 @@ axiom1.reset();
 axiom1.redraw = function() {
 	axiom1.touches.forEach((p,i) => ["cx","cy"].forEach((c,ci) => p.svg.setAttribute(c, p.pos[ci])));
 	axiom1.cp = RabbitEar.CreasePattern(axiom1.base);
-	axiom1.axiom1(axiom1.touches[0].pos, axiom1.touches[1].pos).forEach(c => c.valley());
+	axiom1.axiom1(axiom1.touches[0].pos, axiom1.touches[1].pos).valley();
 	axiom1.draw();
 }
 axiom1.redraw();
