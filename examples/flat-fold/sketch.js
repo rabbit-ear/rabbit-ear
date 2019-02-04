@@ -1,6 +1,7 @@
 var div = document.getElementsByClassName('row')[0];
 var origami = RabbitEar.Origami(div);
 var folded = RabbitEar.Origami(div);
+folded.isFolded = true;
 let masterCP = JSON.parse(JSON.stringify(RabbitEar.bases.square));
 
 origami.boot = function() {
@@ -68,16 +69,15 @@ let sector_angles = function(graph, vertex) {
 function kawasaki(graph, vertex) {
 	let vectors = vertex_adjacent_vectors(graph, vertex);
 	let vectors_as_angles = vectors.map(v => Math.atan2(v[1], v[0]));
-	let ks = vectors.map((v,i,arr) => {
+	return vectors.map((v,i,arr) => {
 		let nextV = arr[(i+1)%arr.length];
 		return RabbitEar.math.core.geometry.counter_clockwise_angle2(v, nextV);
 	}).map((_, i, arr) => {
 		let a = arr.slice();
 		a.splice(i,1);
 		return a;
-	}).map(a => kawasaki_from_even(a));
-console.log(ks);
-	return ks.map((kawasakis, i, arr) =>
+	}).map(a => kawasaki_from_even(a))
+	.map((kawasakis, i, arr) =>
 		(kawasakis == null
 			? undefined
 			: vectors_as_angles[i] + kawasakis[1])
@@ -88,43 +88,44 @@ origami.updateCenter = function(point){
 	origami.cp = RabbitEar.CreasePattern(origami.masterCP);
 	origami.cp.vertices_coords[origami.midVertex] = [point.x, point.y];
 	origami.draw();
-
 	var a = {x:0,y:0};
 	var b = {x:1,y:1};
+	let poke_through = (b.x - a.x)*(origami.cp.vertices_coords[origami.midVertex][1] - a.y) > (b.y - a.y)*(origami.cp.vertices_coords[origami.midVertex][0] - a.x);
 	var cross = (b.x - a.x)*(origami.cp.vertices_coords[origami.midVertex][1] - a.y) > (b.y - a.y)*(origami.cp.vertices_coords[origami.midVertex][0] - a.x);
-	if((b.x - a.x)*(origami.cp.vertices_coords[origami.midVertex][1] - a.y) > (b.y - a.y)*(origami.cp.vertices_coords[origami.midVertex][0] - a.x)){
-		origami.cp.edges_assignment[4] = "V";
-		// cornerCrease.valley(); kawasakiCrease.mountain();
-	} else{
-		origami.cp.edges_assignment[4] = "M";
-		// kawasakiCrease.valley(); cornerCrease.mountain();
-	}
-	// updateFoldedState(origami.cp);
+
+	origami.cp.edges_assignment[6] = poke_through ? "V" : "M";
+	origami.cp.edges_assignment[5] = poke_through ? "M" : "V";
 
 	let center = origami.cp.vertices_coords[origami.midVertex];
 	let kawasakis = kawasaki(origami.cp, origami.midVertex)
 	let cp = origami.cp.json();
 	let kawasaki_vec = kawasakis.map(a => [Math.cos(a), Math.sin(a)]);
 
-	RabbitEar.fold.planargraph.split_convex_polygon(cp, 1, center, kawasaki_vec[1], "M");
+	// RabbitEar.fold.planargraph.split_convex_polygon(cp, 1, center, kawasaki_vec[1], poke_through ? "V" : "M");
+	RabbitEar.fold.planargraph.split_convex_polygon(cp, 1, center, kawasaki_vec[1], "V");
 
 	origami.cp = RabbitEar.CreasePattern(cp);
 	
-	kawasakis.forEach(vector => {
-		// RabbitEar.fold.origami.crease_line(origami.cp, center, vector)
+	// kawasakis.forEach(vector => {
+	// 	// RabbitEar.fold.origami.crease_line(origami.cp, center, vector)
 
-		// let primaryLine = Geom.Line(center, vector);
-		// let coloring = Graph.face_coloring(graph, face_index);
-		// PlanarGraph.make_faces_matrix_inv(graph, face_index)
-		// 	.map(m => primaryLine.transform(m))
-		// 	.reverse()
-		// 	.forEach((line, reverse_i, arr) => {
-		// 		let i = arr.length - 1 - reverse_i;
-		// 		PlanarGraph.split_convex_polygon(graph, i, center, vector, coloring[i] ? "M" : "V");
-		// 	});
-	});
+	// 	// let primaryLine = Geom.Line(center, vector);
+	// 	// let coloring = Graph.face_coloring(graph, face_index);
+	// 	// PlanarGraph.make_faces_matrix_inv(graph, face_index)
+	// 	// 	.map(m => primaryLine.transform(m))
+	// 	// 	.reverse()
+	// 	// 	.forEach((line, reverse_i, arr) => {
+	// 	// 		let i = arr.length - 1 - reverse_i;
+	// 	// 		PlanarGraph.split_convex_polygon(graph, i, center, vector, coloring[i] ? "M" : "V");
+	// 	// 	});
+	// });
 
 	origami.draw();
+
+	let foldedCP = RabbitEar.fold.origami.fold_without_layering(cp, 0);
+	foldedCP["re:faces_layer"] = poke_through ? [0,1,2,3] : [0,1,3,2];
+	folded.cp = RabbitEar.CreasePattern(foldedCP);
+	console.log(folded.cp);
 }
 
 origami.onMouseMove = function(mouse){

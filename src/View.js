@@ -100,9 +100,15 @@ export default function() {
 			SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
 		);
 		// faces
-		facesV.forEach((face, i) =>
-			SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
-		);
+		if (_cp.faces_layer) {
+			console.log("found faces_layer");
+			facesV.forEach((face, i) =>
+				SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
+		} else {
+			facesV.forEach((face, i) =>
+				SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
+			);
+		}
 		if (!_isFolded) { facesE.forEach((face, i) =>
 			SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
 		); }
