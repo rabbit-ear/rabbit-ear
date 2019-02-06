@@ -123,7 +123,7 @@ origami.updateCenter = function(point){
 	origami.draw();
 
 	let foldedCP = RabbitEar.fold.origami.fold_without_layering(cp, 0);
-	foldedCP["re:faces_layer"] = poke_through ? [0,1,2,3] : [0,1,3,2];
+	foldedCP["re:faces_layer"] = poke_through ? [1,0,2,3] : [0,1,3,2];
 	folded.cp = RabbitEar.CreasePattern(foldedCP);
 	console.log(folded.cp);
 }

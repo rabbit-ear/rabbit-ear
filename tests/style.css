@@ -45,6 +45,13 @@ svg{
 .face {
 	fill: rgba(0, 0, 0, 0.1);
 }
+.face-front {
+	fill: #195783;
+}
+.face-back {
+	fill: #ecb233;
+}
+
 .vertex{ fill: hsl(43, 88%, 46%); }
 .boundary{ fill:none; }
 .mark{

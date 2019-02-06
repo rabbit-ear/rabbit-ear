@@ -96,14 +96,16 @@ export default function() {
 		// vertices
 		if (!_isFolded) { verts.forEach((v,i) => SVG.circle(v[0], v[1], style.vertex.radius, "vertex", ""+i, groups.vertices)); }
 		// edges
-		edges.forEach((e,i) =>
-			SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
-		);
+		if (!_isFolded) { 
+			edges.forEach((e,i) =>
+				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
+			);
+		}
 		// faces
-		if (_cp.faces_layer) {
-			console.log("found faces_layer");
-			facesV.forEach((face, i) =>
-				SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
+		if (_cp["re:faces_layer"]) {
+			_cp["re:faces_layer"].forEach((fi,i) =>
+				SVG.polygon(facesV[fi].points, i%2==0 ? "face-front" : "face-back", "face", groups.faces)
+			);
 		} else {
 			facesV.forEach((face, i) =>
 				SVG.polygon(face.points, fAssignments[i], "face", groups.faces)

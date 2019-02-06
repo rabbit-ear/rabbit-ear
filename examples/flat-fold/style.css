@@ -47,6 +47,8 @@ svg.half{*/
 }
 .node  { fill: none; stroke: none; }
 .face  { fill: rgba(255, 255, 255, 0.6); stroke: none; }
+.face-front { fill: white; stroke: black;  stroke-width: var(--crease-width);}
+.face-back { fill: #ecb233; stroke: black; stroke-width: var(--crease-width); }
 .sector{ fill: none; stroke: none; }
 .mountain{
 	stroke: hsl(14.4, 87%, 45%);

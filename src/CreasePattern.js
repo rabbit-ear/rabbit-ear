@@ -5,10 +5,13 @@ import * as PlanarGraph from "./fold/planargraph";
 import * as Origami from "./fold/origami";
 import squareFoldString from './bases/square.fold';
 
+let cpObjKeys = ["load", "json", "clear", "wipe", "clearGraph", "nearestVertex", "nearestEdge", "nearestFace", "vertex", "edge", "face", "crease", "addVertexOnEdge", "connectedGraphs", "axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7", "creaseRay"];
+
 /** A graph is a set of nodes and edges connecting them */
 export default function() {
-	// unit square is the default base, if nothing else is provided
-	let _m = JSON.parse(squareFoldString); // the data model. fold file format spec
+	let graph = {}; // the returned object. fold file format spec
+
+	// parse arguments, look for an input .fold file
 	let params = Array.from(arguments);
 	let paramsObjs = params.filter(el => typeof el === "object" && el !== null);
 	// todo: which key should we check to verify .fold? coords prevents abstract CPs
@@ -16,122 +19,100 @@ export default function() {
 	if (foldObjs.length > 0) {
 		// expecting the user to have passed in a fold_file.
 		// if there are multiple we are only grabbing the first one
-		_m = JSON.parse(JSON.stringify(foldObjs.shift()));
+		graph = JSON.parse(JSON.stringify(foldObjs.shift()));
+	} else {
+		// unit square is the default base if nothing else is provided
+		graph = JSON.parse(squareFoldString);
 	}
 
-	const load = function(file) { _m = JSON.parse(JSON.stringify(file)); }
-	const json = function() {
+	// callback for when the crease pattern has been altered
+	graph.onchange = undefined;
+
+	graph.load = function(file) {
+		// todo: 
+		let imported = JSON.parse(JSON.stringify(file));
+		// Graph.all_keys.filter(key => graph[key] = undefined) {
+
+		// }
+		for (key in imported) {
+			graph[key] = imported[key];
+		}
+	}
+	graph.json = function() {
 		let fold_file = Object.create(null);
-		Graph.all_keys.filter(key => _m[key] != null)
-			.forEach(key =>
-				fold_file[key] = JSON.parse(JSON.stringify(_m[key]))
-			);
-		return fold_file;
+		Object.assign(fold_file, graph);
+		cpObjKeys.forEach(key => delete fold_file[key]);
+		return JSON.parse(JSON.stringify(fold_file));
 	}
-	const clear = function() {
-		Graph.remove_non_boundary_edges(_m);
-		if (typeof _onchange === "function") { _onchange(); }
+	graph.clear = function() {
+		Graph.remove_non_boundary_edges(graph);
+		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
-	const wipe = function() {
-		Graph.all_keys.filter(a => _m[a] != null)
-			.forEach(key => delete _m[key]);
-		if (typeof _onchange === "function") { _onchange(); }
+	graph.wipe = function() {
+		// Graph.all_keys.filter(a => _m[a] != null)
+		// 	.forEach(key => delete _m[key]);
+		// if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
-	const clearGraph = function() {
-		Graph.keys.graph.filter(a => _m[a] != null)
-			.forEach(key => delete _m[key]);
-		if (typeof _onchange === "function") { _onchange(); }
+	graph.clearGraph = function() {
+		// Graph.keys.graph.filter(a => _m[a] != null)
+		// 	.forEach(key => delete _m[key]);
+		// if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
-	const nearestVertex = function(x, y, z = 0) {
-		let index = PlanarGraph.nearest_vertex(_m, [x, y, z]);
+	graph.nearestVertex = function(x, y, z = 0) {
+		let index = PlanarGraph.nearest_vertex(graph, [x, y, z]);
 		return (index != null) ? Vertex(this, index) : undefined;
 	}
-	const nearestEdge = function(x, y, z = 0) {
-		let index = PlanarGraph.nearest_edge(_m, [x, y, z]);
+	graph.nearestEdge = function(x, y, z = 0) {
+		let index = PlanarGraph.nearest_edge(graph, [x, y, z]);
 		return (index != null) ? Edge(this, index) : undefined;
 	}
-	const nearestFace = function(x, y, z = 0) {
-		let index = PlanarGraph.face_containing_point(_m, [x, y, z]);
+	graph.nearestFace = function(x, y, z = 0) {
+		let index = PlanarGraph.face_containing_point(graph, [x, y, z]);
 		return (index != null) ? Face(this, index) : undefined;
 	}
-	const vertex = function(index)   { return Vertex(this, index);   }
-	const edge = function(index)     { return Edge(this, index);     }
-	const face = function(index)     { return Face(this, index);     }
-	const crease = function(indices) { return Crease(this, indices); }
+	graph.vertex = function(index)   { return Vertex(this, index);   }
+	graph.edge = function(index)     { return Edge(this, index);     }
+	graph.face = function(index)     { return Face(this, index);     }
+	graph.crease = function(indices) { return Crease(this, indices); }
 
 	// const crease = function() {
 	// 	let edge_index = PlanarGraph.add_crease(_m, ...arguments);
 	// 	return Crease(this, edge_index);
 	// }
-	const addVertexOnEdge = function(x, y, oldEdgeIndex) {
-		Graph.add_vertex_on_edge(_m, x, y, oldEdgeIndex);
-		if (typeof _onchange === "function") { _onchange(); }
+	graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {
+		Graph.add_vertex_on_edge(graph, x, y, oldEdgeIndex);
+		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
-	const connectedGraphs = function() {
-		return Graph.connectedGraphs(_m);
-		if (typeof _onchange === "function") { _onchange(); }
+	graph.connectedGraphs = function() {
+		return Graph.connectedGraphs(graph);
+		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
-	const axiom1 = function() {
-		return Crease(this, Origami.axiom1(_m, ...arguments));
+	graph.axiom1 = function() {
+		return Crease(this, Origami.axiom1(graph, ...arguments));
 	}
-	const axiom2 = function() {
-		return Crease(this, Origami.axiom2(_m, ...arguments));
+	graph.axiom2 = function() {
+		return Crease(this, Origami.axiom2(graph, ...arguments));
 	}
-	const axiom3 = function() {
-		return Crease(this, Origami.axiom3(_m, ...arguments));
+	graph.axiom3 = function() {
+		return Crease(this, Origami.axiom3(graph, ...arguments));
 	}
-	const axiom4 = function() {
-		return Crease(this, Origami.axiom4(_m, ...arguments));
+	graph.axiom4 = function() {
+		return Crease(this, Origami.axiom4(graph, ...arguments));
 	}
-	const axiom5 = function() {
-		return Crease(this, Origami.axiom5(_m, ...arguments));
+	graph.axiom5 = function() {
+		return Crease(this, Origami.axiom5(graph, ...arguments));
 	}
-	const axiom6 = function() {
-		return Crease(this, Origami.axiom6(_m, ...arguments));
+	graph.axiom6 = function() {
+		return Crease(this, Origami.axiom6(graph, ...arguments));
 	}
-	const axiom7 = function() {
-		return Crease(this, Origami.axiom7(_m, ...arguments));
+	graph.axiom7 = function() {
+		return Crease(this, Origami.axiom7(graph, ...arguments));
 	}
-	const creaseRay = function() {
-		return Crease(this, Origami.creaseRay(_m, ...arguments));
+	graph.creaseRay = function() {
+		return Crease(this, Origami.creaseRay(graph, ...arguments));
 	}
 
-	// callback for when the crease pattern has been altered
-	let _onchange;
-
-	return {
-		set onchange(func) { _onchange = func; },
-		get onchange() { return _onchange },
-		load,
-		json,
-		clear,
-		clearGraph,
-		addVertexOnEdge,
-		connectedGraphs,
-		vertex,
-		edge,
-		crease,
-		face,
-		nearestVertex,
-		nearestEdge,
-		nearestFace,
-		axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
-		creaseRay,
-		// fold spec 1.1
-		get vertices_coords() { return _m.vertices_coords; },
-		get vertices_vertices() { return _m.vertices_vertices; },
-		get vertices_faces() { return _m.vertices_faces; },
-		get edges_vertices() { return _m.edges_vertices; },
-		get edges_faces() { return _m.edges_faces; },
-		get edges_assignment() { return _m.edges_assignment; },
-		get edges_foldAngle() { return _m.edges_foldAngle; },
-		get edges_length() { return _m.edges_length; },
-		get faces_vertices() { return _m.faces_vertices; },
-		get faces_edges() { return _m.faces_edges; },
-		get edgeOrders() { return _m.edgeOrders; },
-		get faceOrders() { return _m.faceOrders; },
-		get file_frames() { return _m.file_frames; }
-	};
+	return graph;
 }
 
 // consider this: a crease can be an ARRAY of edges. 
