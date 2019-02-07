@@ -43,11 +43,9 @@ export default function() {
 	canvas.svg.appendChild(groups.vertices);
 
 	// view properties
-	let frame = 0; // which fold file frame (0 ..< Inf) to display
 	let style = {
 		vertex:{ radius: 0.01 },  // radius, percent of page
 	};
-	let _isFolded = false; // is this a rendering of the folded form?
 	let _mouse = {
 		isPressed: false,// is the mouse button pressed (y/n)
 		position: [0,0], // the current position of the mouse
@@ -58,17 +56,48 @@ export default function() {
 		y: 0       // -- these are the same as position
 	};
 
-	const draw = function() {
-		if(_cp.vertices_coords == null){ return; }
+	const drawFolded = function() {
+		// gather components
+		let verts = _cp.vertices_coords;
+		// let edges = _cp.edges_vertices.map(ev => ev.map(v => verts[v]));
+		// let eAssignments = _cp.edges_assignment.map(a => CREASE_DIR["F"]);
+		let fAssignments = _cp.faces_vertices.map(fv => "face folded");
+		// todo: ask if faces V or faces E doesn't exist, grab available one
+		let facesV = _cp.faces_vertices
+			.map(fv => fv.map(v => verts[v]))
+			.map(face => Geom.Polygon(face));
+		let boundary = Graph.get_boundary_vertices(_cp)
+			.map(v => _cp.vertices_coords[v])
+		
+		// clear layers
+		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
+		// boundary
+		// SVG.polygon(boundary, "boundary", null, groups.boundary);
+		// // vertices
+		// verts.forEach((v,i) => SVG.circle(v[0], v[1], style.vertex.radius, "vertex", ""+i, groups.vertices));
+		// // edges
+		// edges.forEach((e,i) =>
+		// 	SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
+		// );
+		// faces
+		if (_cp["re:faces_layer"] && _cp["re:faces_layer"].length > 0) {
+			_cp["re:faces_layer"].forEach((fi,i) =>
+				SVG.polygon(facesV[fi].points, i%2==0 ? "face-front" : "face-back", "face", groups.faces)
+			);
+		} else if (_cp.facesOrder && _cp.facesOrder.length > 0) {
+
+		} else {
+			facesV.forEach((face, i) =>
+				SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
+			);
+		}
+	}
+	const drawCP = function() {
 		// gather components
 		let verts = _cp.vertices_coords;
 		let edges = _cp.edges_vertices.map(ev => ev.map(v => verts[v]));
-		let eAssignments = ( _isFolded
-			? _cp.edges_assignment.map(a => CREASE_DIR["F"])
-			: _cp.edges_assignment.map(a => CREASE_DIR[a]));
-		let fAssignments = ( _isFolded
-			? _cp.faces_vertices.map(fv => "face folded")
-			: _cp.faces_vertices.map(fv => "face"));
+		let eAssignments = _cp.edges_assignment.map(a => CREASE_DIR[a]);
+		let fAssignments = _cp.faces_vertices.map(fv => "face");
 		let facesV = _cp.faces_vertices
 			.map(fv => fv.map(v => verts[v]))
 			.map(face => Geom.Polygon(face));
@@ -85,48 +114,41 @@ export default function() {
 		let boundary = Graph.get_boundary_vertices(_cp)
 			.map(v => _cp.vertices_coords[v])
 		
-		if (!_isFolded) {
-			facesV = facesV.map(face => face.scale(0.6666));
-			facesE = facesE.map(face => face.scale(0.8333));
-		}
+		facesV = facesV.map(face => face.scale(0.6666));
+		facesE = facesE.map(face => face.scale(0.8333));
 		// clear layers
 		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
 		// boundary
-		if (!_isFolded) { SVG.polygon(boundary, "boundary", null, groups.boundary); }
+		SVG.polygon(boundary, "boundary", null, groups.boundary);
 		// vertices
-		if (!_isFolded) { verts.forEach((v,i) => SVG.circle(v[0], v[1], style.vertex.radius, "vertex", ""+i, groups.vertices)); }
+		verts.forEach((v,i) => SVG.circle(v[0], v[1], style.vertex.radius, "vertex", ""+i, groups.vertices));
 		// edges
-		if (!_isFolded) { 
-			edges.forEach((e,i) =>
-				SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
-			);
-		}
+		edges.forEach((e,i) =>
+			SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
+		);
 		// faces
-		if (_cp["re:faces_layer"]) {
-			_cp["re:faces_layer"].forEach((fi,i) =>
-				SVG.polygon(facesV[fi].points, i%2==0 ? "face-front" : "face-back", "face", groups.faces)
-			);
-		} else {
-			facesV.forEach((face, i) =>
-				SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
-			);
-		}
-		if (!_isFolded) { facesE.forEach((face, i) =>
+		facesV.forEach((face, i) =>
 			SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
-		); }
+		);
+		facesE.forEach((face, i) =>
+			SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
+		);
+	}
+
+	const draw = function() {
+		if (_cp.vertices_coords == null){ return; }
+		if (isFolded()) {
+			drawFolded();
+		} else{
+			drawCP();
+		}
 		updateViewBox();
 	}
 	
 	const updateViewBox = function() {
-		let vertices = _cp.vertices_coords;
-		if (frame > 0 &&
-		   _cp.file_frames[frame - 1] != null &&
-		   _cp.file_frames[frame - 1].vertices_coords != null){
-			vertices = _cp.file_frames[frame - 1].vertices_coords;
-		}
 		// calculate bounds
-		let xSorted = vertices.slice().sort((a,b) => a[0] - b[0]);
-		let ySorted = vertices.slice().sort((a,b) => a[1] - b[1]);
+		let xSorted = _cp.vertices_coords.slice().sort((a,b) => a[0] - b[0]);
+		let ySorted = _cp.vertices_coords.slice().sort((a,b) => a[1] - b[1]);
 		let boundsX = xSorted.shift()[0];
 		let boundsY = ySorted.shift()[1];
 		let boundsW = xSorted.pop()[0] - boundsX;
@@ -208,23 +230,10 @@ export default function() {
 			// return this;
 		}
 	}
-	const isFoldedState = function() {
-		if(_cp == null || _cp.frame_classes == null){ return false; }
-		let frame_classes = _cp.frame_classes;
-		if(frame > 0 &&
-		   _cp.file_frames[frame - 1] != null &&
-		   _cp.file_frames[frame - 1].frame_classes != null){
-			frame_classes = _cp.file_frames[frame - 1].frame_classes;
-		}
+	const isFolded = function() {
 		// try to discern folded state
-		if(frame_classes.includes("foldedState")){
-			return true;
-		}
-		if(frame_classes.includes("creasePattern")){
-			return false;
-		}
-		// inconclusive
-		return false;
+		if(_cp == null || _cp.frame_classes == null){ return false; }
+		return _cp.frame_classes.includes("foldedState");
 	}
 
 	const makeVertices = function() {
@@ -247,31 +256,12 @@ export default function() {
 				.map(f => Geom.Polygon(f));
 	}
 
-	const getFrames = function(){ return _cp.file_frames; }
-	const getFrame = function(index){ return _cp.file_frames[index]; }
-	const setFrame = function(index){
-		frame = index;
-		draw();
-	}
 	const showVertices = function(){ groups.vertices.removeAttribute("visibility");}
 	const hideVertices = function(){ groups.vertices.setAttribute("visibility", "hidden");}
 	const showEdges = function(){ groups.creases.removeAttribute("visibility");}
 	const hideEdges = function(){ groups.creases.setAttribute("visibility", "hidden");}
 	const showFaces = function(){ groups.faces.removeAttribute("visibility");}
 	const hideFaces = function(){ groups.faces.setAttribute("visibility", "hidden");}
-
-	// const setFrame = function() {
-	// 	// todo, this is fragmented code
-	// 	// needs reorganizing
-		
-	// 	// if a frame is set, copy data from that frame
-	// 	if (frame > 0 && _cp.file_frames != null){
-	// 		if(_cp.file_frames[frame - 1] != null &&
-	// 	   	   _cp.file_frames[frame - 1].vertices_coords != null){
-	// 			data = File.flatten_frame(_cp, frame);
-	// 		}
-	// 	}
-	// }
 
 	function addClass(node, className) { SVG.addClass(node, className); }
 	function removeClass(node, className) { SVG.removeClass(node, className); }
@@ -322,11 +312,11 @@ export default function() {
 		crease,
 		fold,
 		axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
+		isFolded,
 
 		draw,
 		updateViewBox,
 
-		getFrames, getFrame, setFrame,
 		showVertices, showEdges, showFaces,
 		hideVertices, hideEdges, hideFaces,
 	
@@ -350,13 +340,13 @@ export default function() {
 		set onMouseEnter(a) { canvas.onMouseEnter = a; },
 		set animate(a) { canvas.animate = a; },
 
-		set isFolded(_folded) {
-			_isFolded = !!_folded;
-			if (_isFolded) {
-
-			} else{
-
-			}
+		set setFolded(_folded) {
+			_cp.frame_classes = _cp.frame_classes
+				.filter(a => a !== "creasePattern");
+			_cp.frame_classes = _cp.frame_classes
+				.filter(a => a !== "foldedState");
+			_cp.frame_classes.push("foldedState");
+			// todo re-call draw()
 		},
 
 	};

@@ -25,6 +25,9 @@ export default function() {
 		graph = JSON.parse(squareFoldString);
 	}
 
+	// unclear if we want to use this
+	// let frame = 0; // which fold file frame (0 ..< Inf) to display
+
 	// callback for when the crease pattern has been altered
 	graph.onchange = undefined;
 
@@ -110,6 +113,9 @@ export default function() {
 	}
 	graph.creaseRay = function() {
 		return Crease(this, Origami.creaseRay(graph, ...arguments));
+	}
+	graph.kawasaki = function() {
+		return Crease(this, Origami.kawasaki_collapse(graph, ...arguments));
 	}
 
 	return graph;
