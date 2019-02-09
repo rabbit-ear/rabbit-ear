@@ -3,7 +3,7 @@
 import * as Graph from "./fold/graph";
 import * as PlanarGraph from "./fold/planargraph";
 import * as Origami from "./fold/origami";
-import squareFoldString from './bases/square.fold';
+import squareFoldString from "./bases/square.fold";
 
 let cpObjKeys = ["load", "json", "clear", "wipe", "clearGraph", "nearestVertex", "nearestEdge", "nearestFace", "vertex", "edge", "face", "crease", "addVertexOnEdge", "connectedGraphs", "axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7", "creaseRay"];
 
@@ -37,7 +37,7 @@ export default function() {
 		// Graph.all_keys.filter(key => graph[key] = undefined) {
 
 		// }
-		for (key in imported) {
+		for (let key in imported) {
 			graph[key] = imported[key];
 		}
 	}
@@ -78,10 +78,6 @@ export default function() {
 	graph.face = function(index)     { return Face(this, index);     }
 	graph.crease = function(indices) { return Crease(this, indices); }
 
-	// const crease = function() {
-	// 	let edge_index = PlanarGraph.add_crease(_m, ...arguments);
-	// 	return Crease(this, edge_index);
-	// }
 	graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {
 		Graph.add_vertex_on_edge(graph, x, y, oldEdgeIndex);
 		if (typeof graph.onchange === "function") { graph.onchange(); }
@@ -113,6 +109,9 @@ export default function() {
 	}
 	graph.creaseRay = function() {
 		return Crease(this, Origami.creaseRay(graph, ...arguments));
+	}
+	graph.creaseSegment = function() {
+		return Crease(this, Origami.creaseSegment(graph, ...arguments));
 	}
 	graph.kawasaki = function() {
 		return Crease(this, Origami.kawasaki_collapse(graph, ...arguments));

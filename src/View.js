@@ -19,6 +19,7 @@ import "./CreasePattern";
 import * as Geom from "../lib/geometry";
 import * as SVG from "../lib/svg";
 import * as Graph from "./fold/graph";
+import { flatten_frame } from "./fold/file";
 
 export default function() {
 
@@ -56,18 +57,20 @@ export default function() {
 		y: 0       // -- these are the same as position
 	};
 
-	const drawFolded = function() {
+	let frame;
+
+	const drawFolded = function(graph) {
 		// gather components
-		let verts = _cp.vertices_coords;
-		// let edges = _cp.edges_vertices.map(ev => ev.map(v => verts[v]));
-		// let eAssignments = _cp.edges_assignment.map(a => CREASE_DIR["F"]);
-		let fAssignments = _cp.faces_vertices.map(fv => "face folded");
+		let verts = graph.vertices_coords;
+		// let edges = graph.edges_vertices.map(ev => ev.map(v => verts[v]));
+		// let eAssignments = graph.edges_assignment.map(a => CREASE_DIR["F"]);
+		let fAssignments = graph.faces_vertices.map(fv => "face folded");
 		// todo: ask if faces V or faces E doesn't exist, grab available one
-		let facesV = _cp.faces_vertices
+		let facesV = graph.faces_vertices
 			.map(fv => fv.map(v => verts[v]))
 			.map(face => Geom.Polygon(face));
-		let boundary = Graph.get_boundary_vertices(_cp)
-			.map(v => _cp.vertices_coords[v])
+		let boundary = Graph.get_boundary_vertices(graph)
+			.map(v => graph.vertices_coords[v])
 		
 		// clear layers
 		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
@@ -80,11 +83,11 @@ export default function() {
 		// 	SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
 		// );
 		// faces
-		if (_cp["re:faces_layer"] && _cp["re:faces_layer"].length > 0) {
-			_cp["re:faces_layer"].forEach((fi,i) =>
+		if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
+			graph["re:faces_layer"].forEach((fi,i) =>
 				SVG.polygon(facesV[fi].points, i%2==0 ? "face-front" : "face-back", "face", groups.faces)
 			);
-		} else if (_cp.facesOrder && _cp.facesOrder.length > 0) {
+		} else if (graph.facesOrder && graph.facesOrder.length > 0) {
 
 		} else {
 			facesV.forEach((face, i) =>
@@ -92,27 +95,27 @@ export default function() {
 			);
 		}
 	}
-	const drawCP = function() {
+	const drawCP = function(graph) {
 		// gather components
-		let verts = _cp.vertices_coords;
-		let edges = _cp.edges_vertices.map(ev => ev.map(v => verts[v]));
-		let eAssignments = _cp.edges_assignment.map(a => CREASE_DIR[a]);
-		let fAssignments = _cp.faces_vertices.map(fv => "face");
-		let facesV = _cp.faces_vertices
+		let verts = graph.vertices_coords;
+		let edges = graph.edges_vertices.map(ev => ev.map(v => verts[v]));
+		let eAssignments = graph.edges_assignment.map(a => CREASE_DIR[a]);
+		let fAssignments = graph.faces_vertices.map(fv => "face");
+		let facesV = !(graph.faces_vertices) ? [] : graph.faces_vertices
 			.map(fv => fv.map(v => verts[v]))
 			.map(face => Geom.Polygon(face));
-		let facesE = _cp.faces_edges
+		let facesE = !(graph.faces_edges) ? [] : graph.faces_edges
 			.map(face_edges => face_edges
-				.map(edge => _cp.edges_vertices[edge])
+				.map(edge => graph.edges_vertices[edge])
 				.map((vi,i,arr) => {
 					let next = arr[(i+1)%arr.length];
 					return (vi[1] === next[0] || vi[1] === next[1]
 						? vi[0] : vi[1]);
-				}).map(v => _cp.vertices_coords[v])
+				}).map(v => graph.vertices_coords[v])
 			)
 			.map(face => Geom.Polygon(face));
-		let boundary = Graph.get_boundary_vertices(_cp)
-			.map(v => _cp.vertices_coords[v])
+		let boundary = Graph.get_boundary_vertices(graph)
+			.map(v => graph.vertices_coords[v])
 		
 		facesV = facesV.map(face => face.scale(0.6666));
 		facesE = facesE.map(face => face.scale(0.8333));
@@ -137,10 +140,11 @@ export default function() {
 
 	const draw = function() {
 		if (_cp.vertices_coords == null){ return; }
+		let graph = frame ? flatten_frame(_cp, frame) : _cp;
 		if (isFolded()) {
-			drawFolded();
+			drawFolded(graph);
 		} else{
-			drawCP();
+			drawCP(graph);
 		}
 		updateViewBox();
 	}
@@ -303,6 +307,14 @@ export default function() {
 		get vertices() { return makeVertices(); },
 		get edges() { return makeEdges(); },
 		get faces() { return makeFaces(); },
+
+		get frameCount() {
+			return _cp.file_frames ? _cp.file_frames.length : 0;
+		},
+		set frame(f) {
+			frame = f;
+			draw();
+		},
 
 		nearest,
 		addClass,

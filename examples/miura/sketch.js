@@ -127,7 +127,7 @@ origami.reset = function(){
 			// crease zig zag rows
 			if(i < row.length-1){
 				var nextHorizPoint = row[ (i+1)%row.length ];
-				var crease = this.cp.crease(point, nextHorizPoint);
+				var crease = this.cp.creaseSegment(point, nextHorizPoint);
 				if(crease != null){
 					if(j%2 == 0){ crease.valley(); }
 					else { crease.mountain(); }
@@ -137,7 +137,7 @@ origami.reset = function(){
 			if(j < points.length-1){
 				var nextRow = points[ (j+1)%points.length ];
 				var nextVertPoint = nextRow[ i ];
-				var crease = this.cp.crease(point, nextVertPoint);
+				var crease = this.cp.creaseSegment(point, nextVertPoint);
 				if(crease != null){
 					if((i+j)%2 == 0){ crease.mountain(); }
 					else { crease.valley(); }

@@ -45,6 +45,7 @@ import test from './bases/test-three-fold.fold';
 import dodecagon from './bases/test-dodecagon.fold';
 import boundary from './bases/test-boundary.fold';
 import concave from './bases/test-concave.fold';
+import blintzAnimated from './bases/blintz-animated.fold';
 const bases = {
 	empty: JSON.parse(empty),
 	square: JSON.parse(square),
@@ -58,7 +59,8 @@ const bases = {
 	test: JSON.parse(test),
 	dodecagon: JSON.parse(dodecagon),
 	boundary: JSON.parse(boundary),
-	concave: JSON.parse(concave)
+	concave: JSON.parse(concave),
+	blintzAnimated: JSON.parse(blintzAnimated)
 };
 
 export { bases };

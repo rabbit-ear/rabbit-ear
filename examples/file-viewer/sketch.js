@@ -2,41 +2,26 @@ var slider = new Slider('#frame-slider').on("slide",sliderUpdate);
 
 function sliderUpdate(value){
 	let fraction = parseFloat(value / 1000);
-	let frame = parseInt(fraction * origami.getFrames().length);
-	origami.setFrame(frame);
+	let frame = parseInt(fraction * origami.frameCount);
+	origami.frame = frame;
 }
 
 var div = document.getElementsByClassName('canvases')[0];
-var origami = new RabbitEar.Origami(div, RabbitEar.bases.blintz);
+var origami = RabbitEar.Origami(div, RabbitEar.bases.blintzAnimated);
 
 origami.onMouseMove = function(event){
+	origami.draw();
+	var nearest = origami.nearest(event);
 
-	// var nearest = origami.cp.nearest(event.point);
-	// if(nearest.node !== undefined){ this.nodes[nearest.node.index].visible = true; }
-	// if(nearest.edge !== undefined){
-		// this.addClass(this.get(nearest.edge), 'stroke-yellow');
-	// }
-	// if(nearest.face !== undefined){ this.faces[nearest.face.index].fillColor = this.styles.byrne.yellow}
-	// if(nearest.sector !== undefined){ this.sectors[nearest.sector.index].fillColor.alpha = 1.0; }
-
+	if(nearest.vertex) { origami.addClass(nearest.vertex.svg, 'fill-yellow'); }
+	if(nearest.edge) { origami.addClass(nearest.edge.svg, 'stroke-yellow'); }
+	if(nearest.face) { origami.addClass(nearest.face.svg, 'fill-red'); }
 }
-origami.onMouseDown = function(event){
 
-	var nearest = this.cp.nearest(event.point);
-	// if(nearest.edge){ console.log(nearest.edge); }
-
-}
 // IMPORT / EXPORT
 creasePatternDidUpload = function(cp){
 	origami.cp = cp;
 	origami.draw();
-	updateFoldedState(origami.cp);
-}
-function updateFoldedState(cp){
-	// origami.cp = cp.copy();
-	// origami.draw();
-	// origami.style = { face:{ fillColor:{ gray:0.0, alpha:0.1 } } };
-	// origami.update();
 }
 document.getElementById("download-cp-svg").addEventListener("click", function(e){
 	e.preventDefault();
@@ -50,13 +35,4 @@ document.getElementById("download-cp-opx").addEventListener("click", function(e)
 	e.preventDefault();
 	downloadCreasePattern(origami.cp, "creasepattern", "opx");
 });
-document.getElementById("download-folded-svg").addEventListener("click", function(e){
-	e.preventDefault();
-	downloadFolded(origami.cp, "folded", "svg");
-});
-document.getElementById("download-folded-fold").addEventListener("click", function(e){
-	e.preventDefault();
-	downloadFolded(origami.cp, "folded", "fold");
-});
-
 

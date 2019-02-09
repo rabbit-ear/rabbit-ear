@@ -1,0 +1,39 @@
+{
+	"file_spec": 1.1,
+	"file_creator": "Rabbit Ear",
+	"file_author": "Robby Kraft",
+	"file_classes": ["singleModel"],
+	"frame_attributes": ["2D"],
+	"frame_title": "two crease",
+	"frame_classes": ["foldedState"],
+	"vertices_coords": [
+		[0.62607055447,1.172217339808],
+		[1.182184366474,0.341111192497],
+		[1,1],
+		[0.09125259834688448,0.9087474026840066],
+		[1,0.21920709774914016],
+		[0,0.7532979469531602],
+		[0.09125259731599344,1],
+		[0,0.9087474016531155]
+	],
+	"edges_vertices": [[0,1], [1,4], [4,5], [0,5], [6,7], [5,7], [2,4], [2,6], [3,6], [3,7]],
+	"edges_assignment": ["B","B","V","B","M","B","B","B","B","B"],
+	"faces_vertices": [[0,1,4,5], [6,7,5,4,2], [6,3,7]],
+	"faces_edges": [[0,1,2,3], [4,5,2,6,7], [8,9,4]],
+	"re:faces_layer": [0,1,2],
+	"file_frames": [{
+		"frame_classes":["creasePattern"],
+		"frame_parent":0,
+		"frame_inherit":true,
+		"vertices_coords":[
+			[0, 0],
+			[1, 0],
+			[1, 1],
+			[0, 1],
+			[1, 0.21920709774914],
+			[0, 0.75329794695316],
+			[0.091252597315993, 1],
+			[0, 0.908747401653116]
+		]
+	}]
+}

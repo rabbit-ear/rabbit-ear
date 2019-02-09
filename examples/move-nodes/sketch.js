@@ -2,19 +2,27 @@
 // split screen: crease pattern and folded form
 
 var div = document.getElementsByClassName('row')[0];
-var cp = new CreasePattern().frogBase();
-var origami = new OrigamiPaper(div, cp);
-var folded = new OrigamiFold(div, cp);
+var origami = RabbitEar.Origami(div, RabbitEar.bases.frog);
+var folded = RabbitEar.Origami(div, origami.cp);
 
-origami.onMouseMove = function(event){
+origami.onMouseMove = function(event) {
 	origami.draw();
-	origami.nearest = origami.cp.nearest(event.point);
-	this.addClass(this.get(origami.nearest.node), 'fill-yellow');
+
+	let nearest = origami.nearest(event);
+
+	if(nearest.vertex) { origami.addClass(nearest.vertex.svg, 'fill-yellow'); }
+	if(nearest.edge) { origami.addClass(nearest.edge.svg, 'stroke-yellow'); }
+	if(nearest.face) { origami.addClass(nearest.face.svg, 'fill-red'); }
+
 	if(origami.selected){
-		origami.selected.x = event.point.x;
-		origami.selected.y = event.point.y;
-		folded.draw();
+		origami.cp.vertices_coords[origami.selected.index] = [event.x, event.y];
+		origami.draw();
+		// folded.draw();
 	}
 }
-origami.onMouseDown = function(event){ origami.selected = origami.nearest.node; }
-origami.onMouseUp = function(){ origami.selected = undefined; }
+origami.onMouseDown = function(event) {
+	origami.selected = origami.nearest(event).vertex;
+}
+origami.onMouseUp = function() {
+	origami.selected = undefined;
+}

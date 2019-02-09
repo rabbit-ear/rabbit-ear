@@ -106,12 +106,35 @@ export function axiom7(graph, pointA, vectorA, pointB, vectorB, pointC) {
 }
 
 export function creaseRay(graph, point, vector) {
+	// todo idk if this is done
 	let ray = Geom.core.Ray(point, vector);
 	graph.faces_vertices.forEach(face => {
 		let points = face.map(v => graph.vertices_coords[v]);
 		Geom.core.intersection.clip_ray_in_convex_poly(_points, point, vector);
 	})
 	return crease_line(graph, line[0], line[1]);
+}
+
+export const creaseSegment = function(graph, a, b, c, d) {
+	// let edge = Geom.Edge([a, b, c, d]);
+	let edge = Geom.Edge([a, b]);
+
+	let edge_vertices = edge.endpoints
+		.map(ep => graph.vertices_coords
+			.map(v => Math.sqrt(Math.pow(ep[0]-v[0],2)+Math.pow(ep[1]-v[1],2)))
+			.map((d,i) => d < 0.00000001 ? i : undefined)
+			.filter(el => el !== undefined)
+			.shift()
+		).map((v,i) => {
+			if (v !== undefined) { return v; }
+			// else
+			graph.vertices_coords.push(edge.endpoints[i]);
+			return graph.vertices_coords.length - 1;
+		});
+
+	graph.edges_vertices.push(edge_vertices);
+	graph.edges_assignment.push("F");
+	return [graph.edges_vertices.length-1];
 }
 
 
