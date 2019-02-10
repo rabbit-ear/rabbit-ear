@@ -287,7 +287,7 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
  * @param vertices_coords from .fold
  * @return [[a,b], [c,d]] vertices indices of the collinear face edges. 1:1 index relation to edge endpoints.
  */
-var find_collinear_face_edges = function(edge, face_vertices, vertices_coords){
+export const find_collinear_face_edges = function(edge, face_vertices, vertices_coords){
 	let face_edge_geometry = face_vertices
 		.map((v) => vertices_coords[v])
 		.map((v, i, arr) => [v, arr[(i+1)%arr.length]]);

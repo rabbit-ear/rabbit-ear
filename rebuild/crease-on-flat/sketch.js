@@ -1,6 +1,6 @@
 var div = document.getElementsByClassName('row')[0];
-var origami = new OrigamiPaper(div);
-var folded = new OrigamiFold(div);
+var origami = Origami(div);
+var folded = Origami(div);
 
 // setup for folded state
 folded.autoResize = false;

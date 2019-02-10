@@ -5,7 +5,7 @@ var cp = RabbitEar.bases.test;
 var folded = RabbitEar.Origami(div, cp);
 var origami = RabbitEar.Origami(div, cp);
 
-folded.setFrame(1);
+folded.frame = 1;
 
 origami.onMouseMove = function(mouse){
 
@@ -16,8 +16,8 @@ origami.onMouseMove = function(mouse){
 			direction: mouse.drag
 		};
 
-		let cpClone = RabbitEar.fold.clone(cp);
-		let result = RabbitEar.fold.crease_through_layers(cpClone, line.point, line.direction);
+		let cpClone = JSON.parse(JSON.stringify(RabbitEar.bases.test));
+		let result = RabbitEar.fold.creasethrough.crease_through_layers(cpClone, line.point, line.direction);
 		
 		// console.log(result);
 		origami.cp = result;

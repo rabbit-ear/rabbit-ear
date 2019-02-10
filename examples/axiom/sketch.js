@@ -1,13 +1,12 @@
 var G = RabbitEar.Geometry;
-
-var origami = new OrigamiPaper("svgs").setPadding(0.02);
-var folded = new OrigamiFold("svgs").setPadding(0.02);
+var origami = RabbitEar.Origami("svgs");
+var folded = RabbitEar.Origami("svgs");
 // folded.style = { face:{ fillColor:{ gray:1.0, alpha:0.66 } } };
 folded.mouseZoom = false;
 // origami.markLayer = new origami.scope.Layer();
-origami.markLayer = origami.group();
-origami.touchPointsLayer = origami.group();
-origami.arrowLayer = origami.group();
+origami.markLayer = RabbitEar.svg.group();
+origami.touchPointsLayer = RabbitEar.svg.group();
+origami.arrowLayer = RabbitEar.svg.group();
 origami.svg.appendChild(origami.markLayer);
 origami.svg.appendChild(origami.touchPointsLayer);
 origami.svg.appendChild(origami.arrowLayer);
@@ -25,15 +24,15 @@ origami.makeTouchPoint = function(location, radius, className){
 	var x,y;
 	if(location.x != undefined){ x = location.x; y = location.y; }
 	else if(Array.isArray(location) && location.length > 1){ x = location[0]; y = location[1]; }
-	var dot = this.circle(x, y, radius, className, 'touch-point-' + this.touchPoints.length);
-	this.touchPointsLayer.appendChild(dot);
-	this.touchPoints.push(dot);
+	var dot = RabbitEar.svg.circle(x, y, radius, className, 'touch-point-' + origami.touchPoints.length);
+	origami.touchPointsLayer.appendChild(dot);
+	origami.touchPoints.push(dot);
 }
 
 origami.clearTouchPoints = function(){
-	this.touchPoints = [];
-	while(this.touchPointsLayer.lastChild) {
-		this.touchPointsLayer.removeChild(this.touchPointsLayer.lastChild);
+	origami.touchPoints = [];
+	while(origami.touchPointsLayer.lastChild) {
+		origami.touchPointsLayer.removeChild(origami.touchPointsLayer.lastChild);
 	}
 }
 
@@ -109,109 +108,109 @@ origami.setAxiom = function(number, marks, lines){
 			origami.makeTouchPoint(edge1.nodes[1], 0.015, 'line-touch-point');
 			break;
 	}
-	this.redraw();
+	origami.redraw();
 }
 
 origami.redraw = function(){
-	origami.cp.clear();
-	while(this.markLayer.lastChild) {
-		this.markLayer.removeChild(this.markLayer.lastChild);
-	}
+	// origami.cp.clear();
+	origami.cp = RabbitEar.CreasePattern(RabbitEar.bases.square);
+	RabbitEar.svg.removeChildren(origami.markLayer);
 
 	var crease;
-	switch(this.axiom){
+	switch(origami.axiom){
 		case 1:
-			crease = this.cp.creaseThroughPoints(this.marks[0], this.marks[1]).valley();
+			// crease = origami.cp.axiom1(origami.marks[0], origami.marks[1]).valley();
+			crease = origami.cp.axiom1([origami.marks[0].x, origami.marks[0].y], [origami.marks[1].x, origami.marks[1].y]).valley();
 			break;
 		case 2:
-			crease = this.cp.creasePointToPoint(this.marks[0], this.marks[1]).valley();
+			crease = origami.cp.axiom2(origami.marks[0], origami.marks[1]).valley();
 			break;
 		case 3:
-			var m0 = this.cp.boundary.clipLine(this.lines[0]);
-			var m1 = this.cp.boundary.clipLine(this.lines[1]);
-			var creases = this.cp.creaseEdgeToEdge(m0, m1);
+			var m0 = origami.cp.boundary.clipLine(origami.lines[0]);
+			var m1 = origami.cp.boundary.clipLine(origami.lines[1]);
+			var creases = origami.cp.axiom3(m0, m1);
 			crease = creases[0];
 			if(crease == undefined){ return; }
 			crease.valley();
-			var path0 = this.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
-			var path1 = this.line(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
-			this.markLayer.appendChild(path0);
-			this.markLayer.appendChild(path1);
+			var path0 = origami.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path1 = origami.line(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
+			origami.markLayer.appendChild(path0);
+			origami.markLayer.appendChild(path1);
 			break;
 		case 4:
-			var m0 = this.cp.boundary.clipLine(this.lines[0]);
-			crease = this.cp.creasePerpendicularThroughPoint(m0, this.marks[0]).valley();
-			var path0 = this.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
-			this.markLayer.appendChild(path0);
+			var m0 = origami.cp.boundary.clipLine(origami.lines[0]);
+			crease = origami.cp.creasePerpendicularThroughPoint(m0, origami.marks[0]).valley();
+			var path0 = origami.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			origami.markLayer.appendChild(path0);
 			break;
 		case 5:
-			var m0 = this.cp.boundary.clipLine(this.lines[0]);
-			crease = this.cp.creasePointToLine(this.marks[0], this.marks[1], m0)[0];
+			var m0 = origami.cp.boundary.clipLine(origami.lines[0]);
+			crease = origami.cp.creasePointToLine(origami.marks[0], origami.marks[1], m0)[0];
 			if(crease == undefined){ return; }
 			crease.valley();
-			var path0 = this.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
-			this.markLayer.appendChild(path0);
+			var path0 = origami.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			origami.markLayer.appendChild(path0);
 			break;
 		case 6:
-			var m0 = this.cp.boundary.clipLine(this.lines[0]);
-			var m1 = this.cp.boundary.clipLine(this.lines[1]);
+			var m0 = origami.cp.boundary.clipLine(origami.lines[0]);
+			var m1 = origami.cp.boundary.clipLine(origami.lines[1]);
 			if(m0 == undefined || m1 == undefined){ return; }
-			var creases = this.cp.creasePointsToLines(this.marks[0], this.marks[1], m0, m1);
+			var creases = origami.cp.creasePointsToLines(origami.marks[0], origami.marks[1], m0, m1);
 			crease = creases[0];
 			if(crease == undefined){ return; }
 			crease.valley();
-			var path0 = this.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
-			var path1 = this.line(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
-			this.markLayer.appendChild(path0);
-			this.markLayer.appendChild(path1);
+			var path0 = origami.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path1 = origami.line(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
+			origami.markLayer.appendChild(path0);
+			origami.markLayer.appendChild(path1);
 			break;
 		case 7:
-			var m0 = this.cp.boundary.clipLine(this.lines[0]);
-			var m1 = this.cp.boundary.clipLine(this.lines[1]);
-			crease = this.cp.creasePerpendicularPointOntoLine(this.marks[0], m0, m1);
+			var m0 = origami.cp.boundary.clipLine(origami.lines[0]);
+			var m1 = origami.cp.boundary.clipLine(origami.lines[1]);
+			crease = origami.cp.creasePerpendicularPointOntoLine(origami.marks[0], m0, m1);
 			if(crease == undefined){ return; }
 			crease.valley();
-			var path0 = this.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
-			var path1 = this.line(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
-			this.markLayer.appendChild(path0);
-			this.markLayer.appendChild(path1);
+			var path0 = origami.line(m0.nodes[0].x, m0.nodes[0].y, m0.nodes[1].x, m0.nodes[1].y, 'yellow-line');
+			var path1 = origami.line(m1.nodes[0].x, m1.nodes[0].y, m1.nodes[1].x, m1.nodes[1].y, 'yellow-line');
+			origami.markLayer.appendChild(path0);
+			origami.markLayer.appendChild(path1);
 			break;
 
 		}
 
-		switch(this.axiom){
+		switch(origami.axiom){
 			case 2:
-				var intersect = crease.nearestPointNormalTo({x:this.marks[0].x, y:this.marks[0].y});
-				this.drawArrowAcross(crease, intersect);
+				var intersect = crease.nearestPointNormalTo({x:origami.marks[0].x, y:origami.marks[0].y});
+				origami.drawArrowAcross(crease, intersect);
 				break;
 			case 5:
-				var intersect = crease.nearestPointNormalTo({x:this.marks[0].x, y:this.marks[0].y});
-				this.drawArrowAcross(crease, intersect);
+				var intersect = crease.nearestPointNormalTo({x:origami.marks[0].x, y:origami.marks[0].y});
+				origami.drawArrowAcross(crease, intersect);
 				break;
 			case 6:
-				var intersect1 = crease.nearestPointNormalTo({x:this.marks[0].x, y:this.marks[0].y});
-				var intersect2 = crease.nearestPointNormalTo({x:this.marks[1].x, y:this.marks[1].y});
-				this.drawArrowAcross(crease, intersect1);
-				this.drawArrowAcross(crease, intersect2);
+				var intersect1 = crease.nearestPointNormalTo({x:origami.marks[0].x, y:origami.marks[0].y});
+				var intersect2 = crease.nearestPointNormalTo({x:origami.marks[1].x, y:origami.marks[1].y});
+				origami.drawArrowAcross(crease, intersect1);
+				origami.drawArrowAcross(crease, intersect2);
 				break;
 			case 7:
-				var intersect = crease.nearestPointNormalTo({x:this.marks[0].x, y:this.marks[0].y});
-				this.drawArrowAcross(crease, intersect);
+				var intersect = crease.nearestPointNormalTo({x:origami.marks[0].x, y:origami.marks[0].y});
+				origami.drawArrowAcross(crease, intersect);
 				break;
 			default:
-				this.drawArrowAcross(crease);
+				origami.drawArrowAcross(crease);
 				break;
 		}
 
-	this.updateFoldedState(this.cp);
-	this.draw();
+	origami.updateFoldedState(origami.cp);
+	origami.draw();
 }
 
 origami.updateFoldedState = function(cp){
-	folded.cp = cp.copy();
-	// var tableFace = folded.cp.nearest(this.marks[0].x, this.marks[0].y).face;
+	folded.cp = RabbitEar.CreasePattern(JSON.parse(JSON.stringify(cp.json())));
+	// var tableFace = folded.cp.nearest(origami.marks[0].x, this.marks[0].y).face;
 	// folded.draw( tableFace );
-	folded.draw();
+	folded.fold();
 }
 
 origami.onMouseDown = function(event){
@@ -219,53 +218,57 @@ origami.onMouseDown = function(event){
 		function epsilonEqual(a, b, epsilon){return ( Math.abs(a-b) < epsilon );}
 		return epsilonEqual(a.x,b.x,epsilon) && epsilonEqual(a.y,b.y,epsilon);
 	}
-	for(var i = 0; i < this.touchPoints.length; i++){
-		var tp = {x:parseFloat(this.touchPoints[i].getAttribute('cx')), y:parseFloat(this.touchPoints[i].getAttribute('cy'))};
-		if(pointsSimilar(this.mouse.position, tp, 0.03)){
-			this.selectedTouchPoint = this.touchPoints[i];
+	for(var i = 0; i < origami.touchPoints.length; i++){
+		var tp = {
+			x: parseFloat(origami.touchPoints[i].getAttribute('cx')), 
+			y: parseFloat(origami.touchPoints[i].getAttribute('cy'))
+		};
+		if(pointsSimilar(origami.mouse, tp, 0.03)){
+			origami.selectedTouchPoint = origami.touchPoints[i];
 		}
 	}
 }
 
 origami.onMouseMove = function(event){
-	if(this.mouse.isPressed){
-		if(this.mouse.isDragging && this.selectedTouchPoint !== undefined){
-			this.selectedTouchPoint.setAttribute('cx', this.mouse.position.x);
-			this.selectedTouchPoint.setAttribute('cy', this.mouse.position.y);
+	if(origami.mouse.isPressed){
+		if(origami.selectedTouchPoint !== undefined){
+			origami.selectedTouchPoint.setAttribute('cx', origami.mouse.x);
+			origami.selectedTouchPoint.setAttribute('cy', origami.mouse.y);
 		}
 
-		switch(this.axiom){
+		switch(origami.axiom){
 			case 1:
-			case 2: this.marks = this.touchPoints.map(function(p){ return this.getPosition(p); },this); 
+			case 2: origami.marks = origami.touchPoints
+				.map(p => origami.getPosition(p));
 				break;
-			case 3: this.lines = [
-				new G.Edge(this.getPosition(this.touchPoints[0]), this.getPosition(this.touchPoints[1])).infiniteLine(),
-				new G.Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine()
+			case 3: origami.lines = [
+				new G.Edge(origami.getPosition(origami.touchPoints[0]), origami.getPosition(origami.touchPoints[1])).infiniteLine(),
+				new G.Edge(origami.getPosition(origami.touchPoints[2]), origami.getPosition(origami.touchPoints[3])).infiniteLine()
 			]; break;
 			case 4: 
-				this.marks = [this.getPosition(this.touchPoints[0])];
-				this.lines = [
-					new G.Edge(this.getPosition(this.touchPoints[1]), this.getPosition(this.touchPoints[2])).infiniteLine()
+				origami.marks = [origami.getPosition(origami.touchPoints[0])];
+				origami.lines = [
+					new G.Edge(origami.getPosition(origami.touchPoints[1]), origami.getPosition(origami.touchPoints[2])).infiniteLine()
 				]; break;
 			case 5: 
-				this.marks = [this.getPosition(this.touchPoints[0]), this.getPosition(this.touchPoints[1])];
-				this.lines = [
-					new G.Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine()
+				origami.marks = [origami.getPosition(origami.touchPoints[0]), origami.getPosition(origami.touchPoints[1])];
+				origami.lines = [
+					new G.Edge(origami.getPosition(origami.touchPoints[2]), origami.getPosition(origami.touchPoints[3])).infiniteLine()
 				]; break;
 			case 6: 
-				this.marks = [this.getPosition(this.touchPoints[0]), this.getPosition(this.touchPoints[1])];
-				this.lines = [
-					new G.Edge(this.getPosition(this.touchPoints[2]), this.getPosition(this.touchPoints[3])).infiniteLine(),
-					new G.Edge(this.getPosition(this.touchPoints[4]), this.getPosition(this.touchPoints[5])).infiniteLine()
+				origami.marks = [origami.getPosition(origami.touchPoints[0]), origami.getPosition(origami.touchPoints[1])];
+				origami.lines = [
+					new G.Edge(origami.getPosition(origami.touchPoints[2]), origami.getPosition(origami.touchPoints[3])).infiniteLine(),
+					new G.Edge(origami.getPosition(origami.touchPoints[4]), origami.getPosition(origami.touchPoints[5])).infiniteLine()
 				]; break;
 			case 7: 
-				this.marks = [this.getPosition(this.touchPoints[0])];
-				this.lines = [
-					new G.Edge(this.getPosition(this.touchPoints[1]), this.getPosition(this.touchPoints[2])).infiniteLine(),
-					new G.Edge(this.getPosition(this.touchPoints[3]), this.getPosition(this.touchPoints[4])).infiniteLine()
+				origami.marks = [origami.getPosition(origami.touchPoints[0])];
+				origami.lines = [
+					new G.Edge(origami.getPosition(origami.touchPoints[1]), origami.getPosition(origami.touchPoints[2])).infiniteLine(),
+					new G.Edge(origami.getPosition(origami.touchPoints[3]), origami.getPosition(origami.touchPoints[4])).infiniteLine()
 				]; break;
 		}
-		this.redraw();
+		origami.redraw();
 	}
 }
 
@@ -275,11 +278,12 @@ origami.onMouseMove = function(event){
 // intersect is a point on the line, the point which the arrow should be cast perpendicularly across
 // when left undefined, intersect will be the midpoint of the line.
 origami.drawArrowAcross = function(crease, crossing){
+	return;
 	if(crossing == undefined){ crossing = crease.midpoint(); }
 
 	var creaseNormal = crease.vector().rotate90().normalize();
 	var perpLine = {point:{x:crossing.x, y:crossing.y}, direction:{x:creaseNormal.x, y:creaseNormal.y}};
-	var perpendicular = this.cp.boundary.clipLine(perpLine);
+	var perpendicular = origami.cp.boundary.clipLine(perpLine);
 	var shortLength = perpendicular.nodes
 		.map(function(n){ return crossing.distanceTo(n); },this)
 		.sort(function(a,b){ return a-b; })
@@ -312,8 +316,8 @@ origami.drawArrowAcross = function(crease, crossing){
 	},this);
 
 	// draw geometry
-	while(this.arrowLayer.lastChild) {
-		this.arrowLayer.removeChild(this.arrowLayer.lastChild);
+	while(origami.arrowLayer.lastChild) {
+		origami.arrowLayer.removeChild(origami.arrowLayer.lastChild);
 	}
 
 	// debug lines
@@ -323,8 +327,8 @@ origami.drawArrowAcross = function(crease, crossing){
 	// this.arrowLayer.appendChild( this.line(crossing.x, crossing.y, crossing.add(toMiddleOfPage).x, crossing.add(toMiddleOfPage).y, 'blue-line') );
 
 
-	var bez = this.bezier(arcEnds[0].x, arcEnds[0].y, controlPoints[0].x, controlPoints[0].y, controlPoints[1].x, controlPoints[1].y, arcEnds[1].x, arcEnds[1].y, 'arrow-path');
-	this.arrowLayer.appendChild(bez);
+	var bez = RabbitEar.svg.bezier(arcEnds[0].x, arcEnds[0].y, controlPoints[0].x, controlPoints[0].y, controlPoints[1].x, controlPoints[1].y, arcEnds[1].x, arcEnds[1].y, 'arrow-path');
+	origami.arrowLayer.appendChild(bez);
 
 	arcEnds.forEach(function(point, i){
 		// var tilt = vector.rotate( (i%2)*Math.PI ).rotate(0.35 * Math.pow(-1,i+1));
@@ -335,7 +339,7 @@ origami.drawArrowAcross = function(crease, crossing){
 			point.add(arrowNormal.scale(arrowheadWidth*0.375)), 
 			point.add(arrowVector.scale(arrowheadLength))
 		];
-		var arrowhead = this.polygon(segments, 'arrowhead');
+		var arrowhead = RabbitEar.svg.polygon(segments, 'arrowhead');
 		this.arrowLayer.appendChild(arrowhead);
 	},this);
 

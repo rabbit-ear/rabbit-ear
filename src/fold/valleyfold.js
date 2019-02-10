@@ -1,18 +1,17 @@
+import * as Geom from "../../lib/geometry";
+import * as Graph from "./graph";
+import * as PlanarGraph from "./planargraph";
 
-export default function(foldFile, line, point){
-
-	if(point != null){ point = [point.x, point.y]; }
-	let linePoint = [line.point.x, line.point.y];
-	let lineVector = [line.direction.x, line.direction.y];
+export default function(foldFile, linePoint, lineVector, touchPoint){
 
 	// if (point == null) point = [0.6, 0.6];
-	if (point != null) {
+	if (touchPoint != null) {
 		// console.log("Jason Code!");
 		let new_fold = split_folding_faces(
 			foldFile, 
 			linePoint, 
 			lineVector,
-			point
+			touchPoint
 		);
 		return new_fold;
 	}
@@ -40,7 +39,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	let side = [0,1]
 		.map(s => new_face_map[tap][s] == null ? [] : new_face_map[tap][s]) 
 		.map(points => points.map(f => new_vertices_coords[f]))
-		.map(f => Geom.core.intersection.point_in_polygon(f, point))
+		.map(f => Geom.core.intersection.point_in_poly(f, point))
 		.indexOf(true)
 	// make face-adjacent faces on only a subset, the side we clicked on
 	let moving_side = new_face_map.map(f => f[side]);
@@ -66,6 +65,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		vertices_coords: new_vertices_coords,
 		faces_vertices:new_layer_data.faces_vertices
 	};
+	console.log(cleaned);
 	Graph.remove_isolated_vertices(cleaned);
 
 	// flip points across the fold line, 
@@ -81,7 +81,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	});
 
 	var bottom_face = 1; // todo: we need a way for the user to select this
-	let faces_matrix = Graph.make_faces_matrix({vertices_coords:reflected.vertices_coords, 
+	let faces_matrix = PlanarGraph.make_faces_matrix({vertices_coords:reflected.vertices_coords, 
 		faces_vertices:cleaned.faces_vertices}, bottom_face);
 	let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix2_inverse(n));
 
@@ -106,7 +106,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 
 	// new_fold.faces_direction = faces_direction;
 	
-	Graph.faces_vertices_to_edges(new_fold);
+	faces_vertices_to_edges(new_fold);
 
 	let headers = {
 		"file_spec": 1.1,
@@ -161,7 +161,7 @@ var clip_line_in_faces = function({vertices_coords, faces_vertices},
 		.map(va => va.map(v => vertices_coords[v]))
 		.map((poly,i) => ({
 			"face":i,
-			"clip":Geom.core.intersection.clip_line_in_poly(poly, linePoint, lineVector)
+			"clip":Geom.core.intersection.clip_line_in_convex_poly(poly, linePoint, lineVector)
 		}))
 		.filter((obj) => obj.clip != undefined)
 		.reduce((prev, curr) => {
@@ -172,7 +172,7 @@ var clip_line_in_faces = function({vertices_coords, faces_vertices},
 	Object.keys(clipLines).forEach(faceIndex => {
 		let face = faces_vertices[faceIndex];
 		let line = clipLines[faceIndex].clip;
-		clipLines[faceIndex].collinear = find_collinear_face_edges(line, face, vertices_coords);
+		clipLines[faceIndex].collinear = PlanarGraph.find_collinear_face_edges(line, face, vertices_coords);
 	});
 
 	// each face is now an index in the object, containing "clip", "collinear"
@@ -277,7 +277,7 @@ var mark_moving_faces = function(faces_vertices, vertices_coords, faces_faces, f
 		faces_vertices.forEach((vertices_index, idx2) => {
 			if (!marked[idx2] && ((faces_layer[idx2] > faces_layer[idx1]))) {
 		if (faces_points[idx1] !== undefined && faces_points[idx2] !== undefined) {
-		  if (Geom.core.intersection.polygons_overlap(faces_points[idx1], faces_points[idx2])) {
+		  if (Geom.core.intersection.convex_polygons_overlap(faces_points[idx1], faces_points[idx2])) {
 			marked[idx2] = true;
 			to_process.push(idx2);
 		  }
@@ -392,7 +392,7 @@ var top_face_under_point = function(
 	let top_fi = faces_vertices.map(
 		(vertices_index, fi) => {
 			let points = vertices_index.map(i => vertices_coords[i]);
-			return Geom.core.intersection.point_in_polygon(points, point) ? fi : -1;
+			return Geom.core.intersection.point_in_poly(points, point) ? fi : -1;
 		}).reduce((acc, fi) => {
 			return ((acc === -1) || 
 							((fi !== -1) && (faces_layer[fi] > faces_layer[acc]))
@@ -400,3 +400,57 @@ var top_face_under_point = function(
 		}, -1);
 	return (top_fi === -1) ? undefined : top_fi;
 }
+
+
+///////////////////////////////////////////////
+// FROM .FOLD SOURCE
+///////////////////////////////////////////////
+
+// this comes from fold.js. still working on the best way to require() the fold module
+const faces_vertices_to_edges = function (mesh) {
+	var edge, edgeMap, face, i, key, ref, v1, v2, vertices;
+	mesh.edges_vertices = [];
+	mesh.edges_faces = [];
+	mesh.faces_edges = [];
+	mesh.edges_assignment = [];
+	edgeMap = {};
+	ref = mesh.faces_vertices;
+	for (face in ref) {
+		vertices = ref[face];
+		face = parseInt(face);
+		mesh.faces_edges.push((function() {
+			var j, len, results;
+			results = [];
+			for (i = j = 0, len = vertices.length; j < len; i = ++j) {
+				v1 = vertices[i];
+				v1 = parseInt(v1);
+				v2 = vertices[(i + 1) % vertices.length];
+				if (v1 <= v2) {
+					key = v1 + "," + v2;
+				} else {
+					key = v2 + "," + v1;
+				}
+				if (key in edgeMap) {
+					edge = edgeMap[key];
+				} else {
+					edge = edgeMap[key] = mesh.edges_vertices.length;
+					if (v1 <= v2) {
+						mesh.edges_vertices.push([v1, v2]);
+					} else {
+						mesh.edges_vertices.push([v2, v1]);
+					}
+					mesh.edges_faces.push([null, null]);
+					mesh.edges_assignment.push('B');
+				}
+				if (v1 <= v2) {
+					mesh.edges_faces[edge][0] = face;
+				} else {
+					mesh.edges_faces[edge][1] = face;
+				}
+				results.push(edge);
+			}
+			return results;
+		})());
+	}
+	return mesh;
+};

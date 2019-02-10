@@ -19,6 +19,7 @@ import "./CreasePattern";
 import * as Geom from "../lib/geometry";
 import * as SVG from "../lib/svg";
 import * as Graph from "./fold/graph";
+import * as Origami from "./fold/origami";
 import { flatten_frame } from "./fold/file";
 
 export default function() {
@@ -47,16 +48,6 @@ export default function() {
 	let style = {
 		vertex:{ radius: 0.01 },  // radius, percent of page
 	};
-	let _mouse = {
-		isPressed: false,// is the mouse button pressed (y/n)
-		position: [0,0], // the current position of the mouse
-		pressed: [0,0],  // the last location the mouse was pressed
-		drag: [0,0],     // vector, displacement from start to now
-		prev: [0,0],     // on mouseMoved, this was the previous location
-		x: 0,      // redundant data --
-		y: 0       // -- these are the same as position
-	};
-
 	let frame;
 
 	const drawFolded = function(graph) {
@@ -64,7 +55,7 @@ export default function() {
 		let verts = graph.vertices_coords;
 		// let edges = graph.edges_vertices.map(ev => ev.map(v => verts[v]));
 		// let eAssignments = graph.edges_assignment.map(a => CREASE_DIR["F"]);
-		let fAssignments = graph.faces_vertices.map(fv => "face folded");
+		let fAssignments = graph.faces_vertices.map(fv => "folded-face");
 		// todo: ask if faces V or faces E doesn't exist, grab available one
 		let facesV = graph.faces_vertices
 			.map(fv => fv.map(v => verts[v]))
@@ -279,7 +270,9 @@ export default function() {
 	}
 
 	const fold = function(face){
-		// return Folder.fold_without_layering(_cp, face);
+		let folded = Origami.fold_without_layering(_cp, face);
+		_cp = RabbitEar.CreasePattern(folded);
+		draw();
 	}
 	// crease pattern functions for convenience
 	const axiom1 = function() { return _cp.axiom1(...arguments); }
@@ -295,7 +288,7 @@ export default function() {
 
 	// return Object.freeze({
 	return {
-		get mouse() { return JSON.parse(JSON.stringify(_mouse)); },
+		get mouse() { return canvas.mouse; },
 		set cp(c){
 			_cp = c;
 			draw();
