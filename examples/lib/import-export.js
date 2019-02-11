@@ -47,7 +47,7 @@ function downloadCreasePattern(cp, filename, extension){
 	var fullname = [filename, extension].join('.');
 	switch(extension){
 		case 'fold':
-			var foldObject = cp.json();
+			var foldObject = cp.json;
 			var foldFileBlob = JSON.stringify(foldObject);
 			makeDownloadBlob(foldFileBlob, fullname, "application/json");
 		break;
@@ -56,7 +56,7 @@ function downloadCreasePattern(cp, filename, extension){
 			makeDownloadBlob(svgBlob, fullname, "image/svg+xml");
 		break;
 		case 'opx':
-			var foldObject = cp.json();
+			var foldObject = cp.json;
 			var foldFileBlob = JSON.stringify(foldObject);
 			var opxFile = FOLD.convert.convertFromTo(foldFileBlob, "fold", "opx");
 			makeDownloadBlob(opxFile, fullname, "text/xml");

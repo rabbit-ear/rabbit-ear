@@ -3,7 +3,9 @@
 import * as Graph from "./fold/graph";
 import * as PlanarGraph from "./fold/planargraph";
 import * as Origami from "./fold/origami";
+import * as Geometry from "../lib/geometry";
 import squareFoldString from "./bases/square.fold";
+import * as Input from "./fold/input";
 
 let cpObjKeys = ["load", "json", "clear", "wipe", "clearGraph", "nearestVertex", "nearestEdge", "nearestFace", "vertex", "edge", "face", "crease", "addVertexOnEdge", "connectedGraphs", "axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7", "creaseRay"];
 
@@ -41,12 +43,6 @@ export default function() {
 			graph[key] = imported[key];
 		}
 	}
-	graph.json = function() {
-		let fold_file = Object.create(null);
-		Object.assign(fold_file, graph);
-		cpObjKeys.forEach(key => delete fold_file[key]);
-		return JSON.parse(JSON.stringify(fold_file));
-	}
 	graph.clear = function() {
 		Graph.remove_non_boundary_edges(graph);
 		if (typeof graph.onchange === "function") { graph.onchange(); }
@@ -82,30 +78,34 @@ export default function() {
 		Graph.add_vertex_on_edge(graph, x, y, oldEdgeIndex);
 		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
-	graph.connectedGraphs = function() {
-		return Graph.connectedGraphs(graph);
-		if (typeof graph.onchange === "function") { graph.onchange(); }
-	}
 	graph.axiom1 = function() {
-		return Crease(this, Origami.axiom1(graph, ...arguments));
+		console.log(arguments);
+		let points = Input.get_two_vec2(...arguments);
+		console.log(points);
+		if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
+		return Crease(this, Origami.axiom1(graph, ...points));
 	}
 	graph.axiom2 = function() {
-		return Crease(this, Origami.axiom2(graph, ...arguments));
+		let points = Input.get_two_vec2(...arguments);
+		if (!points) { throw {name: "TypeError", message: "axiom2 needs 2 points"}; }
+		return Crease(this, Origami.axiom2(graph, ...points));
 	}
 	graph.axiom3 = function() {
-		return Crease(this, Origami.axiom3(graph, ...arguments));
+		let points = Input.get_two_lines(...arguments);
+		if (!points) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
+		return Crease(this, Origami.axiom3(graph, arguments));
 	}
 	graph.axiom4 = function() {
-		return Crease(this, Origami.axiom4(graph, ...arguments));
+		return Crease(this, Origami.axiom4(graph, arguments));
 	}
 	graph.axiom5 = function() {
-		return Crease(this, Origami.axiom5(graph, ...arguments));
+		return Crease(this, Origami.axiom5(graph, arguments));
 	}
 	graph.axiom6 = function() {
-		return Crease(this, Origami.axiom6(graph, ...arguments));
+		return Crease(this, Origami.axiom6(graph, arguments));
 	}
 	graph.axiom7 = function() {
-		return Crease(this, Origami.axiom7(graph, ...arguments));
+		return Crease(this, Origami.axiom7(graph, arguments));
 	}
 	graph.creaseRay = function() {
 		return Crease(this, Origami.creaseRay(graph, ...arguments));
@@ -116,6 +116,24 @@ export default function() {
 	graph.kawasaki = function() {
 		return Crease(this, Origami.kawasaki_collapse(graph, ...arguments));
 	}
+	// getters, setters
+	Object.defineProperty(graph, "json", { get: function() {
+			let fold_file = Object.create(null);
+			Object.assign(fold_file, graph);
+			cpObjKeys.forEach(key => delete fold_file[key]);
+			return JSON.parse(JSON.stringify(fold_file));
+		}
+	});
+	Object.defineProperty(graph, "boundary", { get: function() {
+			let boundaryVertices = Graph.get_boundary_face(graph).vertices
+				.map(v => graph.vertices_coords[v]);
+			return Geometry.Polygon(boundaryVertices);
+		}
+	});
+	Object.defineProperty(graph, "connectedGraphs", { get: function() {
+			return Graph.connectedGraphs(graph);
+		}
+	});
 
 	return graph;
 }

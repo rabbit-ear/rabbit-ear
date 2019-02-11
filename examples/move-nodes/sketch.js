@@ -17,7 +17,8 @@ origami.onMouseMove = function(event) {
 	if(origami.selected){
 		origami.cp.vertices_coords[origami.selected.index] = [event.x, event.y];
 		origami.draw();
-		// folded.draw();
+		folded.cp = JSON.parse(JSON.stringify(origami.cp));
+		folded.fold();
 	}
 }
 origami.onMouseDown = function(event) {

@@ -2266,6 +2266,7 @@
 	 * @returns {Graph[]} 
 	 */
 	const connectedGraphs = function(graph) {
+		return;
 		var cp = JSON.parse(JSON.stringify(graph));
 		cp.clean();
 		cp.removeIsolatedNodes();
@@ -3020,6 +3021,7 @@
 		return crease_line(graph, line[0], line[1]);
 	}
 	function axiom3$1(graph, pointA, vectorA, pointB, vectorB) {
+		console.log(pointA, vectorA, pointB, vectorB);
 		let lines = core.origami.axiom3(pointA, vectorA, pointB, vectorB);
 		// return lines.map(line => crease_line(graph, line[0], line[1]))
 		// 	.reduce((a,b) => a.concat(b), []);
@@ -3172,6 +3174,52 @@
 
 	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
 
+	/** 
+	 * this searches user-provided inputs for a valid n-dimensional vector 
+	 * which includes objects {x:, y:}, arrays [x,y], or sequences of numbers
+	 * 
+	 * @returns (number[]) array of number components
+	 *   invalid/no input returns an emptry array
+	*/
+
+	function get_vec$1() {
+		let params = Array.from(arguments);
+		if (params.length === 0) { return; }
+		// list of numbers 1, 2, 3, 4, 5
+		let numbers = params.filter((param) => !isNaN(param));
+		if (numbers.length >= 1) { return numbers; }
+		// already a vector type: {vector:[1,2,3]}
+		if (params[0].vector != null && params[0].vector.constructor === Array) {
+			return params[0].vector;
+		}
+		if (!isNaN(params[0].x)) {
+			return ['x','y','z'].map(c => params[0][c]).filter(a => a != null);
+		}
+		// at this point, a valid vector is somewhere inside arrays
+		let arrays = params.filter((param) => param.constructor === Array);
+		if (arrays.length >= 1) { return get_vec$1(...arrays[0]); }
+	}
+
+	function get_two_vec2$1() {
+		let params = Array.from(arguments);
+		let numbers = params.filter((param) => !isNaN(param));
+		if (numbers.length >= 4) {
+			return [
+				[numbers[0], numbers[1]],
+				[numbers[2], numbers[3]]
+			];
+		}
+		let vecs = params.map(a => get_vec$1(a)).filter(a => a != null);
+		if (vecs.length > 1) { return vecs; }
+		let arrays = params.filter((param) => param.constructor === Array);
+		if (arrays.length === 0) { return; }
+		return get_two_vec2$1(...arrays[0]);
+	}
+
+	function get_two_lines() {
+		
+	}
+
 	// MIT open source license, Robby Kraft
 
 	let cpObjKeys = ["load", "json", "clear", "wipe", "clearGraph", "nearestVertex", "nearestEdge", "nearestFace", "vertex", "edge", "face", "crease", "addVertexOnEdge", "connectedGraphs", "axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7", "creaseRay"];
@@ -3210,12 +3258,6 @@
 				graph[key] = imported[key];
 			}
 		};
-		graph.json = function() {
-			let fold_file = Object.create(null);
-			Object.assign(fold_file, graph);
-			cpObjKeys.forEach(key => delete fold_file[key]);
-			return JSON.parse(JSON.stringify(fold_file));
-		};
 		graph.clear = function() {
 			remove_non_boundary_edges(graph);
 			if (typeof graph.onchange === "function") { graph.onchange(); }
@@ -3251,30 +3293,34 @@
 			add_vertex_on_edge(graph, x, y, oldEdgeIndex);
 			if (typeof graph.onchange === "function") { graph.onchange(); }
 		};
-		graph.connectedGraphs = function() {
-			return connectedGraphs(graph);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
 		graph.axiom1 = function() {
-			return Crease(this, axiom1$1(graph, ...arguments));
+			console.log(arguments);
+			let points = get_two_vec2$1(...arguments);
+			console.log(points);
+			if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
+			return Crease(this, axiom1$1(graph, ...points));
 		};
 		graph.axiom2 = function() {
-			return Crease(this, axiom2$1(graph, ...arguments));
+			let points = get_two_vec2$1(...arguments);
+			if (!points) { throw {name: "TypeError", message: "axiom2 needs 2 points"}; }
+			return Crease(this, axiom2$1(graph, ...points));
 		};
 		graph.axiom3 = function() {
-			return Crease(this, axiom3$1(graph, ...arguments));
+			let points = get_two_lines(...arguments);
+			if (!points) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
+			return Crease(this, axiom3$1(graph, arguments));
 		};
 		graph.axiom4 = function() {
-			return Crease(this, axiom4$1(graph, ...arguments));
+			return Crease(this, axiom4$1(graph, arguments));
 		};
 		graph.axiom5 = function() {
-			return Crease(this, axiom5$1(graph, ...arguments));
+			return Crease(this, axiom5$1(graph, arguments));
 		};
 		graph.axiom6 = function() {
-			return Crease(this, axiom6$1(graph, ...arguments));
+			return Crease(this, axiom6$1(graph, arguments));
 		};
 		graph.axiom7 = function() {
-			return Crease(this, axiom7$1(graph, ...arguments));
+			return Crease(this, axiom7$1(graph, arguments));
 		};
 		graph.creaseRay = function() {
 			return Crease(this, creaseRay(graph, ...arguments));
@@ -3285,6 +3331,24 @@
 		graph.kawasaki = function() {
 			return Crease(this, kawasaki_collapse(graph, ...arguments));
 		};
+		// getters, setters
+		Object.defineProperty(graph, "json", { get: function() {
+				let fold_file = Object.create(null);
+				Object.assign(fold_file, graph);
+				cpObjKeys.forEach(key => delete fold_file[key]);
+				return JSON.parse(JSON.stringify(fold_file));
+			}
+		});
+		Object.defineProperty(graph, "boundary", { get: function() {
+				let boundaryVertices = get_boundary_face(graph).vertices
+					.map(v => graph.vertices_coords[v]);
+				return Polygon(boundaryVertices);
+			}
+		});
+		Object.defineProperty(graph, "connectedGraphs", { get: function() {
+				return connectedGraphs(graph);
+			}
+		});
 
 		return graph;
 	}
@@ -3679,7 +3743,7 @@
 				switch(extension){
 					case 'fold':
 					fetch(input)
-						.then((response) => response.json())
+						.then((response) => response.json)
 						.then((data) => {
 							_cp = data;
 							draw();
@@ -3954,7 +4018,7 @@
 				switch(extension){
 					case 'fold':
 					fetch(input)
-						.then((response) => response.json())
+						.then((response) => response.json)
 						.then((data) => {
 							_cp = data;
 							draw();

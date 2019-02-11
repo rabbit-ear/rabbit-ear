@@ -206,7 +206,7 @@ export default function() {
 			switch(extension){
 				case 'fold':
 				fetch(input)
-					.then((response) => response.json())
+					.then((response) => response.json)
 					.then((data) => {
 						_cp = data;
 						draw();

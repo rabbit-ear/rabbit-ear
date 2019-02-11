@@ -389,6 +389,7 @@ export const get_boundary_vertices = function(graph) {
  * @returns {Graph[]} 
  */
 export const connectedGraphs = function(graph) {
+	return;
 	var cp = JSON.parse(JSON.stringify(graph));
 	cp.clean();
 	cp.removeIsolatedNodes();

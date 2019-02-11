@@ -13,7 +13,8 @@ axiom1.reset = function() {
 	for (let i = 0; i < 5; i++) {
 		axiom1.axiom1([Math.random(), Math.random()], [Math.random()-0.5, Math.random()-0.5]);
 	}
-	axiom1.base = axiom1.cp.json();
+	console.log(axiom1.cp.json);
+	axiom1.base = axiom1.cp.json;
 }
 axiom1.reset();
 

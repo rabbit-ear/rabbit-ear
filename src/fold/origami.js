@@ -83,6 +83,7 @@ export function axiom2(graph, pointA, pointB) {
 	return crease_line(graph, line[0], line[1]);
 }
 export function axiom3(graph, pointA, vectorA, pointB, vectorB) {
+	console.log(pointA, vectorA, pointB, vectorB);
 	let lines = Geom.core.origami.axiom3(pointA, vectorA, pointB, vectorB);
 	// return lines.map(line => crease_line(graph, line[0], line[1]))
 	// 	.reduce((a,b) => a.concat(b), []);
