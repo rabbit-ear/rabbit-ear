@@ -3021,8 +3021,8 @@
 		return crease_line(graph, line[0], line[1]);
 	}
 	function axiom3$1(graph, pointA, vectorA, pointB, vectorB) {
-		console.log(pointA, vectorA, pointB, vectorB);
 		let lines = core.origami.axiom3(pointA, vectorA, pointB, vectorB);
+		// todo: each iteration needs to apply the diff to the prev iterations
 		// return lines.map(line => crease_line(graph, line[0], line[1]))
 		// 	.reduce((a,b) => a.concat(b), []);
 		return crease_line(graph, lines[0][0], lines[0][1]);
@@ -3217,7 +3217,24 @@
 	}
 
 	function get_two_lines() {
-		
+		let params = Array.from(arguments);
+		if (params[0].point) {
+			if (params[0].point.constructor === Array) {
+				return [
+					[[params[0].point[0], params[0].point[1]],
+					 [params[0].vector[0], params[0].vector[1]]],
+					[[params[1].point[0], params[1].point[1]],
+					 [params[1].vector[0], params[1].vector[1]]],
+				];
+			} else {
+				return [
+					[[params[0].point.x, params[0].point.y],
+					 [params[0].vector.x, params[0].vector.y]],
+					[[params[1].point.x, params[1].point.y],
+					 [params[1].vector.x, params[1].vector.y]],
+				];
+			}
+		}
 	}
 
 	// MIT open source license, Robby Kraft
@@ -3294,9 +3311,7 @@
 			if (typeof graph.onchange === "function") { graph.onchange(); }
 		};
 		graph.axiom1 = function() {
-			console.log(arguments);
 			let points = get_two_vec2$1(...arguments);
-			console.log(points);
 			if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
 			return Crease(this, axiom1$1(graph, ...points));
 		};
@@ -3306,9 +3321,9 @@
 			return Crease(this, axiom2$1(graph, ...points));
 		};
 		graph.axiom3 = function() {
-			let points = get_two_lines(...arguments);
-			if (!points) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
-			return Crease(this, axiom3$1(graph, arguments));
+			let lines = get_two_lines(...arguments);
+			if (!lines) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
+			return Crease(this, axiom3$1(graph, ...lines[0], ...lines[1]));
 		};
 		graph.axiom4 = function() {
 			return Crease(this, axiom4$1(graph, arguments));
@@ -3397,7 +3412,7 @@
 		// }
 
 		return {
-			get index() { return _index; },
+			get index() { return _indices; },
 			mountain,
 			valley,
 			mark,

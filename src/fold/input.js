@@ -136,7 +136,24 @@ export function get_line() {
 }
 
 export function get_two_lines() {
-	
+	let params = Array.from(arguments);
+	if (params[0].point) {
+		if (params[0].point.constructor === Array) {
+			return [
+				[[params[0].point[0], params[0].point[1]],
+				 [params[0].vector[0], params[0].vector[1]]],
+				[[params[1].point[0], params[1].point[1]],
+				 [params[1].vector[0], params[1].vector[1]]],
+			];
+		} else {
+			return [
+				[[params[0].point.x, params[0].point.y],
+				 [params[0].vector.x, params[0].vector.y]],
+				[[params[1].point.x, params[1].point.y],
+				 [params[1].vector.x, params[1].vector.y]],
+			];
+		}
+	}
 }
 
 export function get_array_of_vec() {

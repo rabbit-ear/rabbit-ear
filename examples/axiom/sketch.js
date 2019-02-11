@@ -84,6 +84,11 @@ origami.update = function() {
 	// clear and re-fold axiom
 	origami.cp = RabbitEar.CreasePattern(RabbitEar.bases.square);
 	origami.foldAxiom(origami.axiom, origami.args[origami.axiom].marks, origami.args[origami.axiom].lines);
+	// draw axiom helper lines
+	RabbitEar.svg.removeChildren(origami.markLayer);
+	origami.args[origami.axiom].lines
+		.map(line => origami.cp.boundary.clipLine(line))
+		.forEach(line => RabbitEar.svg.line(line[0][0], line[0][1], line[1][0], line[1][1], "yellow-line", null, origami.markLayer));
 	// update folded state
 	folded.cp = RabbitEar.CreasePattern(JSON.parse(JSON.stringify(origami.cp.json)));
 	folded.fold();
@@ -115,46 +120,27 @@ origami.getPosition = function(svgElement) {
 
 origami.foldAxiom = function(axiom, marks, lines) {
 	switch (axiom){
-		case 1:
-			origami.cp.axiom1(...marks).valley();
-			break;
-		case 2:
-			origami.cp.axiom2(...marks).valley();
-			break;
+		case 1: origami.cp.axiom1(...marks).valley(); break;
+		case 2: origami.cp.axiom2(...marks).valley(); break;
+		case 4: origami.cp.axiom4(...marks, ...lines).valley(); break;
+		case 7: origami.cp.axiom7(...marks, ...lines).valley(); break;
 		case 3:
-			// var creases = origami.cp.axiom3(...lines[0], ...lines[1]);
-			var creases = origami.cp.axiom3(lines[0].point, lines[0].vector, lines[1].point, lines[1].vector);
-			var m0 = origami.cp.boundary.clipLine(lines[0]);
-			var m1 = origami.cp.boundary.clipLine(lines[1]);
-			crease = creases[0];
-			if(crease == undefined){ return; }
-			crease.valley();
-			break;
-		case 4:
-			var m0 = origami.cp.boundary.clipLine(lines[0]);
-			crease = origami.cp.creasePerpendicularThroughPoint(m0, marks[0]).valley();
+			var creases = origami.cp.axiom3(...lines);
+			// let crease = creases[0];
+			// console.log("creases", creases);
+			// if(crease == undefined){ return; }
+			creases.valley();
 			break;
 		case 5:
-			var m0 = origami.cp.boundary.clipLine(lines[0]);
-			crease = origami.cp.creasePointToLine(marks[0], marks[1], m0)[0];
-			if(crease == undefined){ return; }
-			crease.valley();
+			origami.cp.axiom5(...marks, ...lines);
+			// let crease = creases[0];
+			creases.valley();
 			break;
 		case 6:
-			var m0 = origami.cp.boundary.clipLine(lines[0]);
-			var m1 = origami.cp.boundary.clipLine(lines[1]);
-			if(m0 == undefined || m1 == undefined){ return; }
-			var creases = origami.cp.creasePointsToLines(marks[0], marks[1], m0, m1);
-			crease = creases[0];
-			if(crease == undefined){ return; }
-			crease.valley();
-			break;
-		case 7:
-			var m0 = origami.cp.boundary.clipLine(lines[0]);
-			var m1 = origami.cp.boundary.clipLine(lines[1]);
-			crease = origami.cp.creasePerpendicularPointOntoLine(marks[0], m0, m1);
-			if(crease == undefined){ return; }
-			crease.valley();
+			origami.cp.axiom6(...marks, ...lines);
+			// let crease = creases[0];
+			// if(crease == undefined){ return; }
+			creases.valley();
 			break;
 	}
 }
@@ -178,7 +164,6 @@ origami.buildInteractionLayer = function(axiom, marks, lines){
 			if(lines.length < 2){ throw "axiom 3 is expecting two lines"; }
 			var edge0 = origami.cp.boundary.clipLine(lines[0]);
 			var edge1 = origami.cp.boundary.clipLine(lines[1]);
-			console.log(edge0);
 			origami.makeTouchPoint(edge0[0], 0.015, 'line-touch-point');
 			origami.makeTouchPoint(edge0[1], 0.015, 'line-touch-point');
 			origami.makeTouchPoint(edge1[0], 0.015, 'line-touch-point');
@@ -283,7 +268,6 @@ origami.onMouseMove = function(event){
 				RabbitEar.math.Line.withPoints(origami.getPosition(origami.touchPoints[0]), origami.getPosition(origami.touchPoints[1])),
 				RabbitEar.math.Line.withPoints(origami.getPosition(origami.touchPoints[2]), origami.getPosition(origami.touchPoints[3]))
 			];
-			origami.args[origami.axiom].lines = origami.args[origami.axiom].lines.map(l => [l.point, l.vector]);
 			break;
 		case 4: 
 			origami.marks = [origami.getPosition(origami.touchPoints[0])];

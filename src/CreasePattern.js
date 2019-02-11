@@ -79,9 +79,7 @@ export default function() {
 		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
 	graph.axiom1 = function() {
-		console.log(arguments);
 		let points = Input.get_two_vec2(...arguments);
-		console.log(points);
 		if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
 		return Crease(this, Origami.axiom1(graph, ...points));
 	}
@@ -91,9 +89,9 @@ export default function() {
 		return Crease(this, Origami.axiom2(graph, ...points));
 	}
 	graph.axiom3 = function() {
-		let points = Input.get_two_lines(...arguments);
-		if (!points) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
-		return Crease(this, Origami.axiom3(graph, arguments));
+		let lines = Input.get_two_lines(...arguments);
+		if (!lines) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
+		return Crease(this, Origami.axiom3(graph, ...lines[0], ...lines[1]));
 	}
 	graph.axiom4 = function() {
 		return Crease(this, Origami.axiom4(graph, arguments));
@@ -182,7 +180,7 @@ const Crease = function(_graph, _indices) {
 	// }
 
 	return {
-		get index() { return _index; },
+		get index() { return _indices; },
 		mountain,
 		valley,
 		mark,
