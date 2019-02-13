@@ -58,6 +58,10 @@ export default function() {
 		// 	.forEach(key => delete _m[key]);
 		// if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
+	graph.copy = function() {
+		// todo: how do you call the function that we're inside?
+		return RabbitEar.CreasePattern(JSON.parse(JSON.stringify(graph)));
+	}
 	graph.nearestVertex = function(x, y, z = 0) {
 		let index = PlanarGraph.nearest_vertex(graph, [x, y, z]);
 		return (index != null) ? Vertex(this, index) : undefined;
@@ -111,6 +115,9 @@ export default function() {
 	}
 	graph.creaseSegment = function() {
 		return Crease(this, Origami.creaseSegment(graph, ...arguments));
+	}
+	graph.creaseThroughLayers = function(point, vector, face) {
+		RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
 	}
 	graph.kawasaki = function() {
 		return Crease(this, Origami.kawasaki_collapse(graph, ...arguments));

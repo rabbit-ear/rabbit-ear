@@ -44,7 +44,7 @@ svg{
 
 .stroke-yellow{
 	stroke: hsl(43, 88%, 46%);
-	stroke-width: 0.01;
+	/*stroke-width: 0.01;*/
 	stroke-linecap: round;
 }
 

@@ -3,18 +3,17 @@ var prevCP, STEPS = 5;
 
 for(var i = 0; i < STEPS; i++){
 	// grab the crease pattern from the previous step if it exists
-	var cp = (prevCP != undefined) ? prevCP.copy() : new CreasePattern();
+	var cp = (prevCP != null) ? prevCP.copy() : RabbitEar.CreasePattern();
 	
 	// generate the geometry for a random crease line
-	var origin = { x:Math.random(), y:Math.random() };
+	var origin = [Math.random(), Math.random()];
 	var angle = Math.random()*Math.PI*2;
-	var vecA = { x:Math.cos(angle), y:Math.sin(angle) };
-	var vecB = { x:-vecA.x, y:-vecA.y };
+	var vecA = [Math.cos(angle), Math.sin(angle)];
+	// var vecB = [-vecA.x, -vecA.y];
 
 	// crease origami paper
-	cp.creaseAndReflect(origin, vecA).forEach(function(c){c.valley(); },this);
-	cp.creaseAndReflect(origin, vecB).forEach(function(c){c.valley(); },this);
-	cp.clean();
+	cp.creaseThroughLayers(origin, vecA);//.forEach((c) => c.valley());
+	// cp.clean();
 
 	// create html components
 	var lineHeader = document.createElement("h2");
@@ -25,7 +24,8 @@ for(var i = 0; i < STEPS; i++){
 	container.appendChild(row)
 
 	// new svgs, fill them with the crease pattern
-	var origami = new OrigamiPaper(row, cp);
-	var fold = new OrigamiFold(row, cp);
+	var origami = RabbitEar.Origami(row, cp);
+	var fold = RabbitEar.Origami(row, cp);
+	fold.fold();
 	prevCP = cp;
 }

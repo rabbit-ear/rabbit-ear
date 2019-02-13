@@ -3282,7 +3282,6 @@
 		"faces_edges": [],
 	};
 
-
 	function svg_to_fold(svg) {
 		let elements = flatten_tree(svg);
 		// match this to the SVG spec
@@ -3290,7 +3289,10 @@
 		let geometry = {};
 		parseable.forEach(tag => geometry[tag] = elements.filter(e => e.tagName === tag));
 		console.log(geometry);
+		// for each geometry, add creases without regards to invalid planar data
+		//  (intersecting lines, duplicate vertices), clean up later.
 		let graph = JSON.parse(JSON.stringify(empty));
+		// rectangles
 		geometry.rect.forEach(rect => {
 			let x = rect.x.baseVal.value;
 			let y = rect.y.baseVal.value;
@@ -3304,6 +3306,9 @@
 			];
 			lines.forEach(l => add_edge_between_points(graph, l[0][0],l[0][1], l[1][0],l[1][1]));
 		});
+		// paths
+		// polylines
+		// lines
 		return graph;
 	}
 
@@ -3369,6 +3374,10 @@
 			// 	.forEach(key => delete _m[key]);
 			// if (typeof graph.onchange === "function") { graph.onchange(); }
 		};
+		graph.copy = function() {
+			// todo: how do you call the function that we're inside?
+			return RabbitEar.CreasePattern(JSON.parse(JSON.stringify(graph)));
+		};
 		graph.nearestVertex = function(x, y, z = 0) {
 			let index = nearest_vertex(graph, [x, y, z]);
 			return (index != null) ? Vertex(this, index) : undefined;
@@ -3422,6 +3431,9 @@
 		};
 		graph.creaseSegment = function() {
 			return Crease(this, creaseSegment(graph, ...arguments));
+		};
+		graph.creaseThroughLayers = function(point, vector, face) {
+			RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
 		};
 		graph.kawasaki = function() {
 			return Crease(this, kawasaki_collapse(graph, ...arguments));
@@ -3906,7 +3918,7 @@
 		const crease = function(a, b, c, d){
 			// Folder.
 		};
-
+		
 		const fold = function(face){
 			let folded = fold_without_layering(_cp, face);
 			_cp = CreasePattern(folded);

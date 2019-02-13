@@ -277,7 +277,7 @@ export default function() {
 	const crease = function(a, b, c, d){
 		// Folder.
 	}
-
+	
 	const fold = function(face){
 		let folded = Origami.fold_without_layering(_cp, face);
 		_cp = CreasePattern(folded);
