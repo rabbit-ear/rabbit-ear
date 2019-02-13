@@ -45,8 +45,7 @@ export const flatten_frame = function(fold_file, frame_num){
 		dontCopy.forEach(key => delete copy[key]);
 		return copy;
 	}).reduce((prev,curr) => Object.assign(prev,curr),{})
-}
-
+};
 
 export const merge_frame = function(fold_file, frame){
 	const dontCopy = ["frame_parent", "frame_inherit"];
@@ -61,4 +60,4 @@ export const merge_frame = function(fold_file, frame){
 	// merge 2
 	Object.assign(fold, frame);
 	return fold;
-}
+};

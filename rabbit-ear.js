@@ -1533,7 +1533,7 @@
 	});
 
 	/* SVG (c) Robby Kraft, MIT License */
-	function createShiftArr(a){var b="    ";isNaN(parseInt(a))?b=a:1===a?b=" ":2===a?b="  ":3===a?b="   ":4===a?b="    ":5===a?b="     ":6===a?b="      ":7===a?b="       ":8===a?b="        ":9===a?b="         ":10===a?b="          ":11===a?b="           ":12===a?b="            ":void 0;var c=["\n"];for(let d=0;100>d;d++)c.push(c[d]+b);return c}function vkbeautify(){this.step="\t",this.shift=createShiftArr(this.step);}vkbeautify.prototype.xml=function(a,b){var c=a.replace(/>\s{0,}</g,"><").replace(/</g,"~::~<").replace(/\s*xmlns\:/g,"~::~xmlns:").replace(/\s*xmlns\=/g,"~::~xmlns=").split("~::~"),d=c.length,e=!1,f=0,g="",h=b?createShiftArr(b):this.shift;for(let i=0;i<d;i++)-1<c[i].search(/<!/)?(g+=h[f]+c[i],e=!0,(-1<c[i].search(/-->/)||-1<c[i].search(/\]>/)||-1<c[i].search(/!DOCTYPE/))&&(e=!1)):-1<c[i].search(/-->/)||-1<c[i].search(/\]>/)?(g+=c[i],e=!1):/^<\w/.exec(c[i-1])&&/^<\/\w/.exec(c[i])&&/^<[\w:\-\.\,]+/.exec(c[i-1])==/^<\/[\w:\-\.\,]+/.exec(c[i])[0].replace("/","")?(g+=c[i],e||f--):-1<c[i].search(/<\w/)&&-1==c[i].search(/<\//)&&-1==c[i].search(/\/>/)?g=e?g+=c[i]:g+=h[f++]+c[i]:-1<c[i].search(/<\w/)&&-1<c[i].search(/<\//)?g=e?g+=c[i]:g+=h[f]+c[i]:-1<c[i].search(/<\//)?g=e?g+=c[i]:g+=h[--f]+c[i]:-1<c[i].search(/\/>/)?g=e?g+=c[i]:g+=h[f]+c[i]:g+=-1<c[i].search(/<\?/)?h[f]+c[i]:-1<c[i].search(/xmlns\:/)||-1<c[i].search(/xmlns\=/)?h[f]+c[i]:c[i];return "\n"==g[0]?g.slice(1):g},vkbeautify.prototype.json=function(a,b){var b=b?b:this.step;return "undefined"==typeof JSON?a:"string"==typeof a?JSON.stringify(JSON.parse(a),null,b):"object"==typeof a?JSON.stringify(a,null,b):a},vkbeautify.prototype.css=function(a,b){var c=a.replace(/\s{1,}/g," ").replace(/\{/g,"{~::~").replace(/\}/g,"~::~}~::~").replace(/\;/g,";~::~").replace(/\/\*/g,"~::~/*").replace(/\*\//g,"*/~::~").replace(/~::~\s{0,}~::~/g,"~::~").split("~::~"),d=c.length,e=0,f="",g=b?createShiftArr(b):this.shift;for(let h=0;h<d;h++)f+=/\{/.exec(c[h])?g[e++]+c[h]:/\}/.exec(c[h])?g[--e]+c[h]:/\*\\/.exec(c[h])?g[e]+c[h]:g[e]+c[h];return f.replace(/^\n{1,}/,"")};function isSubquery(a,b){return b-(a.replace(/\(/g,"").length-a.replace(/\)/g,"").length)}function split_sql(a,b){return a.replace(/\s{1,}/g," ").replace(/ AND /ig,"~::~"+b+b+"AND ").replace(/ BETWEEN /ig,"~::~"+b+"BETWEEN ").replace(/ CASE /ig,"~::~"+b+"CASE ").replace(/ ELSE /ig,"~::~"+b+"ELSE ").replace(/ END /ig,"~::~"+b+"END ").replace(/ FROM /ig,"~::~FROM ").replace(/ GROUP\s{1,}BY/ig,"~::~GROUP BY ").replace(/ HAVING /ig,"~::~HAVING ").replace(/ IN /ig," IN ").replace(/ JOIN /ig,"~::~JOIN ").replace(/ CROSS~::~{1,}JOIN /ig,"~::~CROSS JOIN ").replace(/ INNER~::~{1,}JOIN /ig,"~::~INNER JOIN ").replace(/ LEFT~::~{1,}JOIN /ig,"~::~LEFT JOIN ").replace(/ RIGHT~::~{1,}JOIN /ig,"~::~RIGHT JOIN ").replace(/ ON /ig,"~::~"+b+"ON ").replace(/ OR /ig,"~::~"+b+b+"OR ").replace(/ ORDER\s{1,}BY/ig,"~::~ORDER BY ").replace(/ OVER /ig,"~::~"+b+"OVER ").replace(/\(\s{0,}SELECT /ig,"~::~(SELECT ").replace(/\)\s{0,}SELECT /ig,")~::~SELECT ").replace(/ THEN /ig," THEN~::~"+b+"").replace(/ UNION /ig,"~::~UNION~::~").replace(/ USING /ig,"~::~USING ").replace(/ WHEN /ig,"~::~"+b+"WHEN ").replace(/ WHERE /ig,"~::~WHERE ").replace(/ WITH /ig,"~::~WITH ").replace(/ ALL /ig," ALL ").replace(/ AS /ig," AS ").replace(/ ASC /ig," ASC ").replace(/ DESC /ig," DESC ").replace(/ DISTINCT /ig," DISTINCT ").replace(/ EXISTS /ig," EXISTS ").replace(/ NOT /ig," NOT ").replace(/ NULL /ig," NULL ").replace(/ LIKE /ig," LIKE ").replace(/\s{0,}SELECT /ig,"SELECT ").replace(/\s{0,}UPDATE /ig,"UPDATE ").replace(/ SET /ig," SET ").replace(/~::~{1,}/g,"~::~").split("~::~")}vkbeautify.prototype.sql=function(a,b){var c=a.replace(/\s{1,}/g," ").replace(/\'/ig,"~::~'").split("~::~"),d=c.length,e=[],f=0,g=this.step,h=0,i="",j=b?createShiftArr(b):this.shift;for(let f=0;f<d;f++)e=f%2?e.concat(c[f]):e.concat(split_sql(c[f],g));d=e.length;for(let c=0;c<d;c++)h=isSubquery(e[c],h),/\s{0,}\s{0,}SELECT\s{0,}/.exec(e[c])&&(e[c]=e[c].replace(/\,/g,",\n"+g+g+"")),/\s{0,}\s{0,}SET\s{0,}/.exec(e[c])&&(e[c]=e[c].replace(/\,/g,",\n"+g+g+"")),/\s{0,}\(\s{0,}SELECT\s{0,}/.exec(e[c])?(f++,i+=j[f]+e[c]):/\'/.exec(e[c])?(1>h&&f&&f--,i+=e[c]):(i+=j[f]+e[c],1>h&&f&&f--);return i=i.replace(/^\n{1,}/,"").replace(/\n{1,}/g,"\n"),i},vkbeautify.prototype.xmlmin=function(a,b){var c=b?a:a.replace(/\<![ \r\n\t]*(--([^\-]|[\r\n]|-[^\-])*--[ \r\n\t]*)\>/g,"").replace(/[ \r\n\t]{1,}xmlns/g," xmlns");return c.replace(/>\s{0,}</g,"><")},vkbeautify.prototype.jsonmin=function(a){return "undefined"==typeof JSON?a:JSON.stringify(JSON.parse(a),null,0)},vkbeautify.prototype.cssmin=function(a,b){var c=b?a:a.replace(/\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\//g,"");return c.replace(/\s{1,}/g," ").replace(/\{\s{1,}/g,"{").replace(/\}\s{1,}/g,"}").replace(/\;\s{1,}/g,";").replace(/\/\*\s{1,}/g,"/*").replace(/\*\/\s{1,}/g,"*/")},vkbeautify.prototype.sqlmin=function(a){return a.replace(/\s{1,}/g," ").replace(/\s{1,}\(/,"(").replace(/\s{1,}\)/,")")};var vkbeautify$1=new vkbeautify;const svgNS="http://www.w3.org/2000/svg",setClassIdParent=function(a,b,c,d){null!=b&&a.setAttributeNS(null,"class",b),null!=c&&a.setAttributeNS(null,"id",c),null!=d&&d.appendChild(a);},setPoints=function(a,b){if(null!=b&&b.constructor===Array){let c=b.map(a=>a.constructor===Array?a:[a.x,a.y]).reduce((a,b)=>a+b[0]+","+b[1]+" ","");a.setAttributeNS(null,"points",c);}},setArc=function(a,b,c,e,f,g,h=!1){var i=Math.sin,j=Math.cos;let k=[b+j(f)*e,c+i(f)*e],l=[j(f)*e,i(f)*e],m=[j(g)*e,i(g)*e],n=[m[0]-l[0],m[1]-l[1]],o=l[0]*m[1]-l[1]*m[0],p=l[0]*m[0]+l[1]*m[1],q=0<Math.atan2(o,p)?0:1,r=h?"M "+b+","+c+" l "+l[0]+","+l[1]+" ":"M "+k[0]+","+k[1]+" ";r+=["a ",e,e,0,q,1,n[0],n[1]].join(" "),h&&(r+=" Z"),a.setAttributeNS(null,"d",r);},line$1=function(a,b,c,d,e,f,g){let h=document.createElementNS(svgNS,"line");return h.setAttributeNS(null,"x1",a),h.setAttributeNS(null,"y1",b),h.setAttributeNS(null,"x2",c),h.setAttributeNS(null,"y2",d),setClassIdParent(h,e,f,g),h},circle=function(a,b,c,d,e,f){let g=document.createElementNS(svgNS,"circle");return g.setAttributeNS(null,"cx",a),g.setAttributeNS(null,"cy",b),g.setAttributeNS(null,"r",c),setClassIdParent(g,d,e,f),g},rect=function(a,b,c,d,e,f,g){let h=document.createElementNS(svgNS,"rect");return h.setAttributeNS(null,"x",a),h.setAttributeNS(null,"y",b),h.setAttributeNS(null,"width",c),h.setAttributeNS(null,"height",d),setClassIdParent(h,e,f,g),h},polygon=function(a,b,c,d){let e=document.createElementNS(svgNS,"polygon");return setPoints(e,a),setClassIdParent(e,b,c,d),e},polyline=function(a,b,c,d){let e=document.createElementNS(svgNS,"polyline");return setPoints(e,a),setClassIdParent(e,b,c,d),e},bezier=function(a,b,c,d,e,f,g,h,i,j,k){let l=document.createElementNS(svgNS,"path");return l.setAttributeNS(null,"d","M "+a+","+b+" C "+c+","+d+" "+e+","+f+" "+g+","+h),setClassIdParent(l,i,j,k),l},text=function(a,b,c,d,e,f){let g=document.createElementNS(svgNS,"text");return g.innerHTML=a,g.setAttributeNS(null,"x",b),g.setAttributeNS(null,"y",c),setClassIdParent(g,d,e,f),g},wedge=function(a,b,c,d,e,f,g,h){let i=document.createElementNS(svgNS,"path");return setArc(i,a,b,c,d,e,!0),setClassIdParent(i,f,g,h),i},arc=function(a,b,c,d,e,f,g,h){let i=document.createElementNS(svgNS,"path");return setArc(i,a,b,c,d,e,!1),setClassIdParent(i,f,g,h),i},regularPolygon=function(b,c,a,d,e,f,g){var h=Math.PI,j=Math.cos;let k=.5*(2*h/d),l=j(k)*a,i=Array.from(Array(d)).map((e,f)=>{let g=-2*h*f/d+k,a=b+l*Math.sin(g),i=c+l*j(g);return [a,i]});return polygon(i,e,f,g)},group=function(a,b,c){let d=document.createElementNS(svgNS,"g");return setClassIdParent(d,a,b,c),d},svg=function(a,b,c){let d=document.createElementNS(svgNS,"svg");return setClassIdParent(d,a,b,c),d},addClass=function(a,b){if(null==a)return;let c=a.getAttribute("class");c==null&&(c="");let d=c.split(" ").filter(a=>a!==b);d.push(b),a.setAttributeNS(null,"class",d.join(" "));},removeClass=function(a,b){if(null==a)return;let c=a.getAttribute("class");c==null&&(c="");let d=c.split(" ").filter(a=>a!==b);a.setAttributeNS(null,"class",d.join(" "));},setId=function(a,b){null==a||a.setAttributeNS(null,"id",b);},removeChildren=function(a){for(;a.lastChild;)a.removeChild(a.lastChild);},setViewBox=function(a,b,c,e,f,g=0){let h=e/1-e,d=[b-h-g,c-h-g,e+2*h+2*g,f+2*h+2*g].join(" ");a.setAttributeNS(null,"viewBox",d);},setDefaultViewBox=function(a){let b=a.getBoundingClientRect(),c=0==b.width?640:b.width,d=0==b.height?480:b.height;setViewBox(a,0,0,c,d);},getViewBox=function(a){let b=a.getAttribute("viewBox");return null==b?void 0:b.split(" ").map(a=>parseFloat(a))},scale=function(a,b,c=0,d=0){1e-8>b&&(b=.01);let e=a.createSVGMatrix().translate(c,d).scale(1/b).translate(-c,-d),f=getViewBox(a);null==f&&setDefaultViewBox(a);let g=a.createSVGPoint(),h=a.createSVGPoint();g.x=f[0],g.y=f[1],h.x=f[0]+f[2],h.y=f[1]+f[3];let i=g.matrixTransform(e),j=h.matrixTransform(e);setViewBox(a,i.x,i.y,j.x-i.x,j.y-i.y);},translate=function(a,b,c){let d=getViewBox(a);null==d&&setDefaultViewBox(a),d[0]+=b,d[1]+=c,a.setAttributeNS(null,"viewBox",d.join(" "));},convertToViewBox=function(a,b,c){let d=a.createSVGPoint();d.x=b,d.y=c;let e=d.matrixTransform(a.getScreenCTM().inverse()),f=[e.x,e.y];return f.x=e.x,f.y=e.y,f},save=function(b,c="image.svg"){let d=document.createElement("a"),a=new window.XMLSerializer().serializeToString(b),e=vkbeautify$1.xml(a),f=new window.Blob([e],{type:"text/plain"});d.setAttribute("href",window.URL.createObjectURL(f)),d.setAttribute("download",c),d.click();},pErr=new window.DOMParser().parseFromString("INVALID","text/xml").getElementsByTagName("parsererror")[0].namespaceURI,load=function(a,b){if("string"==typeof a||a instanceof String){let c=new window.DOMParser().parseFromString(a,"text/xml");if(0===c.getElementsByTagNameNS(pErr,"parsererror").length){let a=c.documentElement;return null!=b&&b(a),a}fetch(a).then(a=>a.text()).then(a=>new window.DOMParser().parseFromString(a,"text/xml")).then(a=>{let c=a.getElementsByTagName("svg");if(null==c||0==c.length)throw"error, valid XML found, but no SVG element";return null!=b&&b(c[0]),c[0]}).catch(a=>b(null,a));}else if(a instanceof Document)return b(a),a};function Image(){function a(){o.addEventListener("mouseup",g,!1),o.addEventListener("mousedown",f,!1),o.addEventListener("mousemove",e,!1),o.addEventListener("mouseleave",h,!1),o.addEventListener("mouseenter",i,!1),o.addEventListener("touchend",g,!1),o.addEventListener("touchmove",k,!1),o.addEventListener("touchstart",j,!1),o.addEventListener("touchcancel",g,!1);}function b(){let a=Object.assign({},s);return a.position=a.position.slice(),a.pressed=a.pressed.slice(),a.drag=a.drag.slice(),a.prev=a.prev.slice(),a}function c(a,b){s.prev=s.position,s.position=convertToViewBox(o,a,b),s.x=s.position[0],s.y=s.position[1];}function d(){s.drag=[s.position[0]-s.pressed[0],s.position[1]-s.pressed[1]],s.drag.x=s.drag[0],s.drag.y=s.drag[1];}function e(a){c(a.clientX,a.clientY),s.isPressed&&d(),null!=F&&F(b());}function f(a){s.isPressed=!0,s.pressed=convertToViewBox(o,a.clientX,a.clientY),null!=G&&G(b());}function g(){s.isPressed=!1,null!=H&&H(b());}function h(a){c(a.clientX,a.clientY),null!=I&&I(b());}function i(a){c(a.clientX,a.clientY),null!=J&&J(b());}function j(a){a.preventDefault();let c=a.touches[0];null==c||(s.isPressed=!0,s.pressed=convertToViewBox(o,c.clientX,c.clientY),null!=G&&G(b()));}function k(a){a.preventDefault();let e=a.touches[0];null==e||(c(e.clientX,e.clientY),s.isPressed&&d(),null!=F&&F(b()));}function l(a){null!=K&&clearInterval(M),K=a,null!=K&&(L=0,M=setInterval(()=>{let a={time:o.getCurrentTime(),frame:L++};K(a);},1e3/60));}let m,n=Array.from(arguments),o=svg(),p=1,q=0,r=o.createSVGMatrix(),s={isPressed:!1,position:[0,0],pressed:[0,0],drag:[0,0],prev:[0,0],x:0,y:0};const t=function(a,b=0,c=0){p=a,scale(o,a,b,c);},u=function(a,b){translate(o,a,b);},v=function(a,b,c,d){setViewBox(o,a,b,c,d,q);},w=function(){return getViewBox(o)},x=function(a){o.appendChild(a);},y=function(a){for(null==a&&(a=o);a.lastChild;)a.removeChild(a.lastChild);},z=function(a="image.svg"){return save(o,a)},A=function(a,b){if(null!=a&&null!=b){let c=getViewBox(o);setViewBox(o,c[0],c[1],a,b,q),o.setAttributeNS(null,"width",a),o.setAttributeNS(null,"height",b);}},B=function(){let a=parseInt(o.getAttributeNS(null,"width"));return null==a?o.getBoundingClientRect().width:a},C=function(){let a=parseInt(o.getAttributeNS(null,"height"));return null==a?o.getBoundingClientRect().height:a},D=function(){let b=n.filter(a=>"function"==typeof a),c=n.filter(a=>!isNaN(a)),d=n.filter(a=>a instanceof HTMLElement).shift(),e=n.filter(b=>"string"==typeof b||b instanceof String).map(a=>document.getElementById(a)).shift();if(m=null==d?null==e?document.body:e:d,m.appendChild(o),2<=c.length)o.setAttributeNS(null,"width",c[0]),o.setAttributeNS(null,"height",c[1]),setViewBox(o,0,0,c[0],c[1]);else if(null==o.getAttribute("viewBox")){let a=o.getBoundingClientRect();setViewBox(o,0,0,a.width,a.height);}1<=b.length&&b[0](),a();};let E=n.filter(a=>!isNaN(a));2<=E.length&&(o.setAttributeNS(null,"width",E[0]),o.setAttributeNS(null,"height",E[1]),setViewBox(o,0,0,E[0],E[1])),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",D):D();let F,G,H,I,J,K,L,M;return {zoom:t,translate:u,appendChild:x,removeChildren:y,load:function(b,c){load(b,function(b,d){null!=b&&(m.removeChild(o),o=b,m.appendChild(o),a()),null!=c&&c(b,d);});},save:z,setViewBox:v,getViewBox:w,size:A,get mouse(){return b()},get scale(){return p},get svg(){return o},get width(){return B()},get height(){return C()},set width(a){o.setAttributeNS(null,"width",a);},set height(a){o.setAttributeNS(null,"height",a);},set onMouseMove(a){F=a;},set onMouseDown(a){G=a;},set onMouseUp(a){H=a;},set onMouseLeave(a){I=a;},set onMouseEnter(a){J=a;},set animate(a){l(a);}}}
+	function createShiftArr(a){var b="    ";isNaN(parseInt(a))?b=a:1===a?b=" ":2===a?b="  ":3===a?b="   ":4===a?b="    ":5===a?b="     ":6===a?b="      ":7===a?b="       ":8===a?b="        ":9===a?b="         ":10===a?b="          ":11===a?b="           ":12===a?b="            ":void 0;var c=["\n"];for(let d=0;100>d;d++)c.push(c[d]+b);return c}function vkbeautify(){this.step="\t",this.shift=createShiftArr(this.step);}vkbeautify.prototype.xml=function(a,b){var c=a.replace(/>\s{0,}</g,"><").replace(/</g,"~::~<").replace(/\s*xmlns\:/g,"~::~xmlns:").replace(/\s*xmlns\=/g,"~::~xmlns=").split("~::~"),d=c.length,e=!1,f=0,g="",h=b?createShiftArr(b):this.shift;for(let i=0;i<d;i++)-1<c[i].search(/<!/)?(g+=h[f]+c[i],e=!0,(-1<c[i].search(/-->/)||-1<c[i].search(/\]>/)||-1<c[i].search(/!DOCTYPE/))&&(e=!1)):-1<c[i].search(/-->/)||-1<c[i].search(/\]>/)?(g+=c[i],e=!1):/^<\w/.exec(c[i-1])&&/^<\/\w/.exec(c[i])&&/^<[\w:\-\.\,]+/.exec(c[i-1])==/^<\/[\w:\-\.\,]+/.exec(c[i])[0].replace("/","")?(g+=c[i],e||f--):-1<c[i].search(/<\w/)&&-1==c[i].search(/<\//)&&-1==c[i].search(/\/>/)?g=e?g+=c[i]:g+=h[f++]+c[i]:-1<c[i].search(/<\w/)&&-1<c[i].search(/<\//)?g=e?g+=c[i]:g+=h[f]+c[i]:-1<c[i].search(/<\//)?g=e?g+=c[i]:g+=h[--f]+c[i]:-1<c[i].search(/\/>/)?g=e?g+=c[i]:g+=h[f]+c[i]:g+=-1<c[i].search(/<\?/)?h[f]+c[i]:-1<c[i].search(/xmlns\:/)||-1<c[i].search(/xmlns\=/)?h[f]+c[i]:c[i];return "\n"==g[0]?g.slice(1):g},vkbeautify.prototype.json=function(a,b){var b=b?b:this.step;return "undefined"==typeof JSON?a:"string"==typeof a?JSON.stringify(JSON.parse(a),null,b):"object"==typeof a?JSON.stringify(a,null,b):a},vkbeautify.prototype.css=function(a,b){var c=a.replace(/\s{1,}/g," ").replace(/\{/g,"{~::~").replace(/\}/g,"~::~}~::~").replace(/\;/g,";~::~").replace(/\/\*/g,"~::~/*").replace(/\*\//g,"*/~::~").replace(/~::~\s{0,}~::~/g,"~::~").split("~::~"),d=c.length,e=0,f="",g=b?createShiftArr(b):this.shift;for(let h=0;h<d;h++)f+=/\{/.exec(c[h])?g[e++]+c[h]:/\}/.exec(c[h])?g[--e]+c[h]:/\*\\/.exec(c[h])?g[e]+c[h]:g[e]+c[h];return f.replace(/^\n{1,}/,"")};function isSubquery(a,b){return b-(a.replace(/\(/g,"").length-a.replace(/\)/g,"").length)}function split_sql(a,b){return a.replace(/\s{1,}/g," ").replace(/ AND /ig,"~::~"+b+b+"AND ").replace(/ BETWEEN /ig,"~::~"+b+"BETWEEN ").replace(/ CASE /ig,"~::~"+b+"CASE ").replace(/ ELSE /ig,"~::~"+b+"ELSE ").replace(/ END /ig,"~::~"+b+"END ").replace(/ FROM /ig,"~::~FROM ").replace(/ GROUP\s{1,}BY/ig,"~::~GROUP BY ").replace(/ HAVING /ig,"~::~HAVING ").replace(/ IN /ig," IN ").replace(/ JOIN /ig,"~::~JOIN ").replace(/ CROSS~::~{1,}JOIN /ig,"~::~CROSS JOIN ").replace(/ INNER~::~{1,}JOIN /ig,"~::~INNER JOIN ").replace(/ LEFT~::~{1,}JOIN /ig,"~::~LEFT JOIN ").replace(/ RIGHT~::~{1,}JOIN /ig,"~::~RIGHT JOIN ").replace(/ ON /ig,"~::~"+b+"ON ").replace(/ OR /ig,"~::~"+b+b+"OR ").replace(/ ORDER\s{1,}BY/ig,"~::~ORDER BY ").replace(/ OVER /ig,"~::~"+b+"OVER ").replace(/\(\s{0,}SELECT /ig,"~::~(SELECT ").replace(/\)\s{0,}SELECT /ig,")~::~SELECT ").replace(/ THEN /ig," THEN~::~"+b+"").replace(/ UNION /ig,"~::~UNION~::~").replace(/ USING /ig,"~::~USING ").replace(/ WHEN /ig,"~::~"+b+"WHEN ").replace(/ WHERE /ig,"~::~WHERE ").replace(/ WITH /ig,"~::~WITH ").replace(/ ALL /ig," ALL ").replace(/ AS /ig," AS ").replace(/ ASC /ig," ASC ").replace(/ DESC /ig," DESC ").replace(/ DISTINCT /ig," DISTINCT ").replace(/ EXISTS /ig," EXISTS ").replace(/ NOT /ig," NOT ").replace(/ NULL /ig," NULL ").replace(/ LIKE /ig," LIKE ").replace(/\s{0,}SELECT /ig,"SELECT ").replace(/\s{0,}UPDATE /ig,"UPDATE ").replace(/ SET /ig," SET ").replace(/~::~{1,}/g,"~::~").split("~::~")}vkbeautify.prototype.sql=function(a,b){var c=a.replace(/\s{1,}/g," ").replace(/\'/ig,"~::~'").split("~::~"),d=c.length,e=[],f=0,g=this.step,h=0,i="",j=b?createShiftArr(b):this.shift;for(let f=0;f<d;f++)e=f%2?e.concat(c[f]):e.concat(split_sql(c[f],g));d=e.length;for(let c=0;c<d;c++)h=isSubquery(e[c],h),/\s{0,}\s{0,}SELECT\s{0,}/.exec(e[c])&&(e[c]=e[c].replace(/\,/g,",\n"+g+g+"")),/\s{0,}\s{0,}SET\s{0,}/.exec(e[c])&&(e[c]=e[c].replace(/\,/g,",\n"+g+g+"")),/\s{0,}\(\s{0,}SELECT\s{0,}/.exec(e[c])?(f++,i+=j[f]+e[c]):/\'/.exec(e[c])?(1>h&&f&&f--,i+=e[c]):(i+=j[f]+e[c],1>h&&f&&f--);return i=i.replace(/^\n{1,}/,"").replace(/\n{1,}/g,"\n"),i},vkbeautify.prototype.xmlmin=function(a,b){var c=b?a:a.replace(/\<![ \r\n\t]*(--([^\-]|[\r\n]|-[^\-])*--[ \r\n\t]*)\>/g,"").replace(/[ \r\n\t]{1,}xmlns/g," xmlns");return c.replace(/>\s{0,}</g,"><")},vkbeautify.prototype.jsonmin=function(a){return "undefined"==typeof JSON?a:JSON.stringify(JSON.parse(a),null,0)},vkbeautify.prototype.cssmin=function(a,b){var c=b?a:a.replace(/\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\//g,"");return c.replace(/\s{1,}/g," ").replace(/\{\s{1,}/g,"{").replace(/\}\s{1,}/g,"}").replace(/\;\s{1,}/g,";").replace(/\/\*\s{1,}/g,"/*").replace(/\*\/\s{1,}/g,"*/")},vkbeautify.prototype.sqlmin=function(a){return a.replace(/\s{1,}/g," ").replace(/\s{1,}\(/,"(").replace(/\s{1,}\)/,")")};var vkbeautify$1=new vkbeautify;const svgNS="http://www.w3.org/2000/svg",setClassIdParent=function(a,b,c,d){null!=b&&a.setAttributeNS(null,"class",b),null!=c&&a.setAttributeNS(null,"id",c),null!=d&&d.appendChild(a);},setPoints=function(a,b){if(null!=b&&b.constructor===Array){let c=b.map(a=>a.constructor===Array?a:[a.x,a.y]).reduce((a,b)=>a+b[0]+","+b[1]+" ","");a.setAttributeNS(null,"points",c);}},setArc=function(a,b,c,e,f,g,h=!1){var i=Math.sin,j=Math.cos;let k=[b+j(f)*e,c+i(f)*e],l=[j(f)*e,i(f)*e],m=[j(g)*e,i(g)*e],n=[m[0]-l[0],m[1]-l[1]],o=l[0]*m[1]-l[1]*m[0],p=l[0]*m[0]+l[1]*m[1],q=0<Math.atan2(o,p)?0:1,r=h?"M "+b+","+c+" l "+l[0]+","+l[1]+" ":"M "+k[0]+","+k[1]+" ";r+=["a ",e,e,0,q,1,n[0],n[1]].join(" "),h&&(r+=" Z"),a.setAttributeNS(null,"d",r);},line$1=function(a,b,c,d,e,f,g){let h=document.createElementNS(svgNS,"line");return h.setAttributeNS(null,"x1",a),h.setAttributeNS(null,"y1",b),h.setAttributeNS(null,"x2",c),h.setAttributeNS(null,"y2",d),setClassIdParent(h,e,f,g),h},circle=function(a,b,c,d,e,f){let g=document.createElementNS(svgNS,"circle");return g.setAttributeNS(null,"cx",a),g.setAttributeNS(null,"cy",b),g.setAttributeNS(null,"r",c),setClassIdParent(g,d,e,f),g},rect=function(a,b,c,d,e,f,g){let h=document.createElementNS(svgNS,"rect");return h.setAttributeNS(null,"x",a),h.setAttributeNS(null,"y",b),h.setAttributeNS(null,"width",c),h.setAttributeNS(null,"height",d),setClassIdParent(h,e,f,g),h},polygon=function(a,b,c,d){let e=document.createElementNS(svgNS,"polygon");return setPoints(e,a),setClassIdParent(e,b,c,d),e},polyline=function(a,b,c,d){let e=document.createElementNS(svgNS,"polyline");return setPoints(e,a),setClassIdParent(e,b,c,d),e},bezier=function(a,b,c,d,e,f,g,h,i,j,k){let l=document.createElementNS(svgNS,"path");return l.setAttributeNS(null,"d","M "+a+","+b+" C "+c+","+d+" "+e+","+f+" "+g+","+h),setClassIdParent(l,i,j,k),l},text=function(a,b,c,d,e,f){let g=document.createElementNS(svgNS,"text");return g.innerHTML=a,g.setAttributeNS(null,"x",b),g.setAttributeNS(null,"y",c),setClassIdParent(g,d,e,f),g},wedge=function(a,b,c,d,e,f,g,h){let i=document.createElementNS(svgNS,"path");return setArc(i,a,b,c,d,e,!0),setClassIdParent(i,f,g,h),i},arc=function(a,b,c,d,e,f,g,h){let i=document.createElementNS(svgNS,"path");return setArc(i,a,b,c,d,e,!1),setClassIdParent(i,f,g,h),i},regularPolygon=function(b,c,a,d,e,f,g){var h=Math.PI,j=Math.cos;let k=.5*(2*h/d),l=j(k)*a,i=Array.from(Array(d)).map((e,f)=>{let g=-2*h*f/d+k,a=b+l*Math.sin(g),i=c+l*j(g);return [a,i]});return polygon(i,e,f,g)},group=function(a,b,c){let d=document.createElementNS(svgNS,"g");return setClassIdParent(d,a,b,c),d},svg=function(a,b,c){let d=document.createElementNS(svgNS,"svg");return setClassIdParent(d,a,b,c),d},addClass=function(a,b){if(null==a)return;let c=a.getAttribute("class");c==null&&(c="");let d=c.split(" ").filter(a=>a!==b);d.push(b),a.setAttributeNS(null,"class",d.join(" "));},removeClass=function(a,b){if(null==a)return;let c=a.getAttribute("class");c==null&&(c="");let d=c.split(" ").filter(a=>a!==b);a.setAttributeNS(null,"class",d.join(" "));},setId=function(a,b){null==a||a.setAttributeNS(null,"id",b);},removeChildren=function(a){for(;a.lastChild;)a.removeChild(a.lastChild);},setViewBox=function(a,b,c,e,f,g=0){let h=e/1-e,d=[b-h-g,c-h-g,e+2*h+2*g,f+2*h+2*g].join(" ");a.setAttributeNS(null,"viewBox",d);},setDefaultViewBox=function(a){let b=a.getBoundingClientRect(),c=0==b.width?640:b.width,d=0==b.height?480:b.height;setViewBox(a,0,0,c,d);},getViewBox=function(a){let b=a.getAttribute("viewBox");return null==b?void 0:b.split(" ").map(a=>parseFloat(a))},scale=function(a,b,c=0,d=0){1e-8>b&&(b=.01);let e=a.createSVGMatrix().translate(c,d).scale(1/b).translate(-c,-d),f=getViewBox(a);null==f&&setDefaultViewBox(a);let g=a.createSVGPoint(),h=a.createSVGPoint();g.x=f[0],g.y=f[1],h.x=f[0]+f[2],h.y=f[1]+f[3];let i=g.matrixTransform(e),j=h.matrixTransform(e);setViewBox(a,i.x,i.y,j.x-i.x,j.y-i.y);},translate=function(a,b,c){let d=getViewBox(a);null==d&&setDefaultViewBox(a),d[0]+=b,d[1]+=c,a.setAttributeNS(null,"viewBox",d.join(" "));},convertToViewBox=function(a,b,c){let d=a.createSVGPoint();d.x=b,d.y=c;let e=d.matrixTransform(a.getScreenCTM().inverse()),f=[e.x,e.y];return f.x=e.x,f.y=e.y,f},save=function(b,c="image.svg"){let d=document.createElement("a"),a=new window.XMLSerializer().serializeToString(b),e=vkbeautify$1.xml(a),f=new window.Blob([e],{type:"text/plain"});d.setAttribute("href",window.URL.createObjectURL(f)),d.setAttribute("download",c),d.click();},pErr=new window.DOMParser().parseFromString("INVALID","text/xml").getElementsByTagName("parsererror")[0].namespaceURI,load=function(a,b){if("string"==typeof a||a instanceof String){let c=new window.DOMParser().parseFromString(a,"text/xml");if(0===c.getElementsByTagNameNS(pErr,"parsererror").length){let a=c.documentElement;return null!=b&&b(a),a}fetch(a).then(a=>a.text()).then(a=>new window.DOMParser().parseFromString(a,"text/xml")).then(a=>{let c=a.getElementsByTagName("svg");if(null==c||0===c.length)throw"error, valid XML found, but no SVG element";return null!=b&&b(c[0]),c[0]});}else if(a instanceof Document)return b(a),a};function Image(){function a(){o.addEventListener("mouseup",g,!1),o.addEventListener("mousedown",f,!1),o.addEventListener("mousemove",e,!1),o.addEventListener("mouseleave",h,!1),o.addEventListener("mouseenter",i,!1),o.addEventListener("touchend",g,!1),o.addEventListener("touchmove",k,!1),o.addEventListener("touchstart",j,!1),o.addEventListener("touchcancel",g,!1);}function b(){let a=Object.assign({},s);return a.position=a.position.slice(),a.pressed=a.pressed.slice(),a.drag=a.drag.slice(),a.prev=a.prev.slice(),a}function c(a,b){s.prev=s.position,s.position=convertToViewBox(o,a,b),s.x=s.position[0],s.y=s.position[1];}function d(){s.drag=[s.position[0]-s.pressed[0],s.position[1]-s.pressed[1]],s.drag.x=s.drag[0],s.drag.y=s.drag[1];}function e(a){c(a.clientX,a.clientY),s.isPressed&&d(),null!=F&&F(b());}function f(a){s.isPressed=!0,s.pressed=convertToViewBox(o,a.clientX,a.clientY),null!=G&&G(b());}function g(){s.isPressed=!1,null!=H&&H(b());}function h(a){c(a.clientX,a.clientY),null!=I&&I(b());}function i(a){c(a.clientX,a.clientY),null!=J&&J(b());}function j(a){a.preventDefault();let c=a.touches[0];null==c||(s.isPressed=!0,s.pressed=convertToViewBox(o,c.clientX,c.clientY),null!=G&&G(b()));}function k(a){a.preventDefault();let e=a.touches[0];null==e||(c(e.clientX,e.clientY),s.isPressed&&d(),null!=F&&F(b()));}function l(a){null!=K&&clearInterval(M),K=a,null!=K&&(L=0,M=setInterval(()=>{let a={time:o.getCurrentTime(),frame:L++};K(a);},1e3/60));}let m,n=Array.from(arguments),o=svg(),p=1,q=0,r=o.createSVGMatrix(),s={isPressed:!1,position:[0,0],pressed:[0,0],drag:[0,0],prev:[0,0],x:0,y:0};const t=function(a,b=0,c=0){p=a,scale(o,a,b,c);},u=function(a,b){translate(o,a,b);},v=function(a,b,c,d){setViewBox(o,a,b,c,d,q);},w=function(){return getViewBox(o)},x=function(a){o.appendChild(a);},y=function(a){for(null==a&&(a=o);a.lastChild;)a.removeChild(a.lastChild);},z=function(a="image.svg"){return save(o,a)},A=function(a,b){if(null!=a&&null!=b){let c=getViewBox(o);setViewBox(o,c[0],c[1],a,b,q),o.setAttributeNS(null,"width",a),o.setAttributeNS(null,"height",b);}},B=function(){let a=parseInt(o.getAttributeNS(null,"width"));return null==a?o.getBoundingClientRect().width:a},C=function(){let a=parseInt(o.getAttributeNS(null,"height"));return null==a?o.getBoundingClientRect().height:a},D=function(){let b=n.filter(a=>"function"==typeof a),c=n.filter(a=>!isNaN(a)),d=n.filter(a=>a instanceof HTMLElement).shift(),e=n.filter(b=>"string"==typeof b||b instanceof String).map(a=>document.getElementById(a)).shift();if(m=null==d?null==e?document.body:e:d,m.appendChild(o),2<=c.length)o.setAttributeNS(null,"width",c[0]),o.setAttributeNS(null,"height",c[1]),setViewBox(o,0,0,c[0],c[1]);else if(null==o.getAttribute("viewBox")){let a=o.getBoundingClientRect();setViewBox(o,0,0,a.width,a.height);}1<=b.length&&b[0](),a();};let E=n.filter(a=>!isNaN(a));2<=E.length&&(o.setAttributeNS(null,"width",E[0]),o.setAttributeNS(null,"height",E[1]),setViewBox(o,0,0,E[0],E[1])),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",D):D();let F,G,H,I,J,K,L,M;return {zoom:t,translate:u,appendChild:x,removeChildren:y,load:function(b,c){load(b,function(b,d){null!=b&&(m.removeChild(o),o=b,m.appendChild(o),a()),null!=c&&c(b,d);});},save:z,setViewBox:v,getViewBox:w,size:A,get mouse(){return b()},get scale(){return p},get svg(){return o},get width(){return B()},get height(){return C()},set width(a){o.setAttributeNS(null,"width",a);},set height(a){o.setAttributeNS(null,"height",a);},set onMouseMove(a){F=a;},set onMouseDown(a){G=a;},set onMouseUp(a){H=a;},set onMouseLeave(a){I=a;},set onMouseEnter(a){J=a;},set animate(a){l(a);}}}
 
 	var svg$1 = /*#__PURE__*/Object.freeze({
 		Image: Image,
@@ -2231,6 +2231,7 @@
 			graph.edges_assignment[i] == "B" ||
 			graph.edges_assignment[i] == "b"
 		).map(arr => arr.slice());
+		if (edges_vertices_b.length === 0) { return []; }
 		// the index of keys[i] is an edge_vertex from edges_vertices_b
 		//  the [] value is the indices in edges_vertices_b this i appears
 		let keys = Array.from(Array(graph.vertices_coords.length)).map(_ => []);
@@ -3076,6 +3077,30 @@
 		return [graph.edges_vertices.length-1];
 	};
 
+	function add_edge_between_points(graph, x0, y0, x1, y1) {
+		// this creates 2 new edges vertices indices.
+		// or grabs old ones if a vertex already exists
+		let edge = [[x0, y0], [x1, y1]];
+		let edge_vertices = edge
+			.map(ep => graph.vertices_coords
+				// for both of the new points, iterate over every vertex,
+				// return an index if it matches a new point, undefined if not
+				.map(v => Math.sqrt(Math.pow(ep[0]-v[0],2)+Math.pow(ep[1]-v[1],2)))
+				.map((d,i) => d < 0.00000001 ? i : undefined)
+				.filter(el => el !== undefined)
+				.shift()
+			).map((v,i) => {
+				if (v !== undefined) { return v; }
+				// else
+				graph.vertices_coords.push(edge[i]);
+				return graph.vertices_coords.length - 1;
+			});
+		graph.edges_vertices.push(edge_vertices);
+		graph.edges_assignment.push("F");
+		graph.edges_length.push(Math.sqrt(Math.pow(x0-x1,2)+Math.pow(y0-y1,2)));
+		return [graph.edges_vertices.length-1];
+	}
+
 
 	// let sector_angles = function(graph, vertex) {
 	// 	let adjacent = origami.cp.vertices_vertices[vertex];
@@ -3167,6 +3192,7 @@
 		axiom7: axiom7$1,
 		creaseRay: creaseRay,
 		creaseSegment: creaseSegment,
+		add_edge_between_points: add_edge_between_points,
 		kawasaki_solutions: kawasaki_solutions,
 		kawasaki_collapse: kawasaki_collapse,
 		fold_without_layering: fold_without_layering
@@ -3235,6 +3261,60 @@
 				];
 			}
 		}
+	}
+
+	let empty = {
+		"file_spec": 1.1,
+		"file_creator": "RabbitEar",
+		"file_classes": ["singleModel"],
+		"frame_title": "",
+		"frame_classes": ["creasePattern"],
+		"frame_attributes": ["2D"],
+		"vertices_coords": [],
+		"vertices_vertices": [],
+		"vertices_faces": [],
+		"edges_vertices": [],
+		"edges_faces": [],
+		"edges_assignment": [],
+		"edges_foldAngle": [],
+		"edges_length": [],
+		"faces_vertices": [],
+		"faces_edges": [],
+	};
+
+
+	function svg_to_fold(svg) {
+		let elements = flatten_tree(svg);
+		// match this to the SVG spec
+		let parseable = ["line", "rect", "path", "polyline", "circle"];
+		let geometry = {};
+		parseable.forEach(tag => geometry[tag] = elements.filter(e => e.tagName === tag));
+		console.log(geometry);
+		let graph = JSON.parse(JSON.stringify(empty));
+		geometry.rect.forEach(rect => {
+			let x = rect.x.baseVal.value;
+			let y = rect.y.baseVal.value;
+			let width = rect.width.baseVal.value;
+			let height = rect.height.baseVal.value;
+			let lines = [
+				[[x,y], [x+width,y]],
+				[[x+width,y], [x+width,y+height]],
+				[[x+width,y+height], [x,y+height]],
+				[[x,y+height], [x,y]],
+			];
+			lines.forEach(l => add_edge_between_points(graph, l[0][0],l[0][1], l[1][0],l[1][1]));
+		});
+		return graph;
+	}
+
+	function flatten_tree(element) {
+		// the container objects in SVG: group, the svg itself
+		if (element.tagName === "g" || element.tagName === "svg") {
+			return Array.from(element.children)
+				.map(child => flatten_tree(child))
+				.reduce((a,b) => a.concat(b),[]);
+		}
+		return [element];
 	}
 
 	// MIT open source license, Robby Kraft
@@ -3537,7 +3617,6 @@
 		}).reduce((prev,curr) => Object.assign(prev,curr),{})
 	};
 
-
 	const merge_frame$1 = function(fold_file, frame){
 		const dontCopy = ["frame_parent", "frame_inherit"];
 		let copy = clone$1(frame);
@@ -3580,7 +3659,7 @@
 
 		let canvas = Image(...arguments);
 		//  from arguments, get a fold file, if it exists
-		let _cp = RabbitEar.CreasePattern(...arguments);
+		let _cp = CreasePattern(...arguments);
 		// tie handler from crease pattern
 		_cp.onchange = function() {
 			draw();
@@ -3752,34 +3831,41 @@
 
 		const load$$1 = function(input, callback) { // epsilon
 			// are they giving us a filename, or the data of an already loaded file?
-			if (typeof input === 'string' || input instanceof String){
+			if (typeof input === "string" || input instanceof String) {
 				let extension = input.substr((input.lastIndexOf('.') + 1));
 				// filename. we need to upload
-				switch(extension){
-					case 'fold':
+				switch(extension) {
+					case "fold":
 					fetch(input)
 						.then((response) => response.json)
 						.then((data) => {
-							_cp = data;
+							_cp = CreasePattern(data);
 							draw();
-							if(callback != null){ callback(_cp); }
+							if (callback != null) { callback(_cp); }
 						});
-					// return this;
+					return;
+					case "svg":
+					load(input, function(svg$$1) {
+						_cp = CreasePattern(svg_to_fold(svg$$1));
+						draw();
+						if (callback != null) { callback(_cp); }
+					});
+					return;
 				}
 			}
-			try{
+			try {
 				// try .fold file format first
 				let foldFileImport = JSON.parse(input);
-				_cp = foldFileImport;
+				_cp = CreasePattern(foldFileImport);
 				// return this;
-			} catch(err){
+			} catch(err) {
 				console.log("not a valid .fold file format");
 				// return this;
 			}
 		};
 		const isFolded = function() {
 			// try to discern folded state
-			if(_cp == null || _cp.frame_classes == null){ return false; }
+			if (_cp == null || _cp.frame_classes == null) { return false; }
 			return _cp.frame_classes.includes("foldedState");
 		};
 
@@ -3823,7 +3909,7 @@
 
 		const fold = function(face){
 			let folded = fold_without_layering(_cp, face);
-			_cp = RabbitEar.CreasePattern(folded);
+			_cp = CreasePattern(folded);
 			draw();
 		};
 		// crease pattern functions for convenience
@@ -3880,6 +3966,7 @@
 			load: load$$1,
 			save: save$$1,
 			get svg() { return canvas.svg; },
+			get svgFile() { return canvas.save(); },
 			get zoom() { return canvas.zoom; },
 			get translate() { return canvas.translate; },
 			get appendChild() { return canvas.appendChild; },
@@ -5076,7 +5163,7 @@
 		clip_edges_with_line: clip_edges_with_line
 	});
 
-	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\t\"edgeOrders\": [],\n\t\"faceOrders\": [],\n\t\"file_frames\": []\n}";
+	var empty$1 = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\t\"edgeOrders\": [],\n\t\"faceOrders\": [],\n\t\"file_frames\": []\n}";
 
 	var book = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,1], [0.5,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,4,0], [3,1], [4,2], [5,1,3], [0,4]],\n\t\"vertices_faces\": [[0], [0,1], [1], [1], [1,0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]],\n\t\"edges_faces\": [[0], [1], [1], [1], [0], [0], [0,1]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180],\n\t\"edges_length\": [0.5, 0.5, 1, 0.5, 0.5, 1, 1],\n\t\"faces_vertices\": [[1,4,5,0], [4,1,2,3]],\n\t\"faces_edges\": [[6,4,5,0], [6,1,2,3]]\n}";
 
@@ -5110,7 +5197,7 @@
 		creasethrough: creasethrough
 	};
 	const bases = {
-		empty: JSON.parse(empty),
+		empty: JSON.parse(empty$1),
 		square: JSON.parse(squareFoldString),
 		book: JSON.parse(book),
 		blintz: JSON.parse(blintz),

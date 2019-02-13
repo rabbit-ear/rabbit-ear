@@ -138,6 +138,30 @@ export const creaseSegment = function(graph, a, b, c, d) {
 	return [graph.edges_vertices.length-1];
 }
 
+export function add_edge_between_points(graph, x0, y0, x1, y1) {
+	// this creates 2 new edges vertices indices.
+	// or grabs old ones if a vertex already exists
+	let edge = [[x0, y0], [x1, y1]];
+	let edge_vertices = edge
+		.map(ep => graph.vertices_coords
+			// for both of the new points, iterate over every vertex,
+			// return an index if it matches a new point, undefined if not
+			.map(v => Math.sqrt(Math.pow(ep[0]-v[0],2)+Math.pow(ep[1]-v[1],2)))
+			.map((d,i) => d < 0.00000001 ? i : undefined)
+			.filter(el => el !== undefined)
+			.shift()
+		).map((v,i) => {
+			if (v !== undefined) { return v; }
+			// else
+			graph.vertices_coords.push(edge[i]);
+			return graph.vertices_coords.length - 1;
+		});
+	graph.edges_vertices.push(edge_vertices);
+	graph.edges_assignment.push("F");
+	graph.edges_length.push(Math.sqrt(Math.pow(x0-x1,2)+Math.pow(y0-y1,2)));
+	return [graph.edges_vertices.length-1];
+}
+
 
 // let sector_angles = function(graph, vertex) {
 // 	let adjacent = origami.cp.vertices_vertices[vertex];

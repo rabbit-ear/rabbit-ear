@@ -70,10 +70,15 @@ function download(text, filename, mimeType){
 	a.download = filename;
 	a.click();
 }
-document.getElementById("download-file").addEventListener("click", function(e){
+document.getElementById("download-svg").addEventListener("click", function(e){
 	e.preventDefault();
-	var svgBlob = origami.cp.exportSVG();
+	var svgBlob = origami.svgFile;
 	download(svgBlob, "creasepattern.svg", "image/svg+xml");
+});
+document.getElementById("download-fold").addEventListener("click", function(e){
+	e.preventDefault();
+	var foldBlob = JSON.stringify(origami.cp.json);
+	download(foldBlob, "creasepattern.fold", "application/json");
 });
 
 function fileDidLoad(blob, mimeType, fileExtension){

@@ -31,7 +31,7 @@ svg{
 }
 .mark{
 	stroke: black;
-	stroke-width: 0.002;
+	/*stroke-width: 0.002;*/
 	stroke-linecap: round;
 }
 .boundary{

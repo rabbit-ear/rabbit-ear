@@ -6,6 +6,7 @@ import * as Origami from "./fold/origami";
 import * as Geometry from "../lib/geometry";
 import squareFoldString from "./bases/square.fold";
 import * as Input from "./fold/input";
+import * as Import from "./fold/import";
 
 let cpObjKeys = ["load", "json", "clear", "wipe", "clearGraph", "nearestVertex", "nearestEdge", "nearestFace", "vertex", "edge", "face", "crease", "addVertexOnEdge", "connectedGraphs", "axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7", "creaseRay"];
 

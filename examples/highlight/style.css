@@ -48,7 +48,7 @@ svg{
 	stroke-linecap: round;
 }
 .mark{
-	stroke: hsl(205, 74%, 30%);
+	stroke: #ccc;
 	stroke-width: var(--crease-width-third);
 	stroke-linecap: round;
 }

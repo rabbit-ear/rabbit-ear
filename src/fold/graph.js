@@ -354,6 +354,7 @@ export const get_boundary_vertices = function(graph) {
 		graph.edges_assignment[i] == "B" ||
 		graph.edges_assignment[i] == "b"
 	).map(arr => arr.slice());
+	if (edges_vertices_b.length === 0) { return []; }
 	// the index of keys[i] is an edge_vertex from edges_vertices_b
 	//  the [] value is the indices in edges_vertices_b this i appears
 	let keys = Array.from(Array(graph.vertices_coords.length)).map(_ => [])

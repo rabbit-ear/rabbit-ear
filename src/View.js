@@ -20,13 +20,15 @@ import * as Geom from "../lib/geometry";
 import * as SVG from "../lib/svg";
 import * as Graph from "./fold/graph";
 import * as Origami from "./fold/origami";
+import * as Import from "./fold/import";
 import { flatten_frame } from "./fold/file";
+import CreasePattern from "./CreasePattern";
 
 export default function() {
 
 	let canvas = SVG.Image(...arguments);
 	//  from arguments, get a fold file, if it exists
-	let _cp = RabbitEar.CreasePattern(...arguments);
+	let _cp = CreasePattern(...arguments);
 	// tie handler from crease pattern
 	_cp.onchange = function() {
 		draw();
@@ -38,7 +40,7 @@ export default function() {
 		faces: SVG.group(undefined, "faces"),
 		creases: SVG.group(undefined, "creases"),
 		vertices: SVG.group(undefined, "vertices"),
-	}
+	};
 	canvas.svg.appendChild(groups.boundary);
 	canvas.svg.appendChild(groups.faces);
 	canvas.svg.appendChild(groups.creases);
@@ -200,34 +202,41 @@ export default function() {
 
 	const load = function(input, callback) { // epsilon
 		// are they giving us a filename, or the data of an already loaded file?
-		if (typeof input === 'string' || input instanceof String){
+		if (typeof input === "string" || input instanceof String) {
 			let extension = input.substr((input.lastIndexOf('.') + 1));
 			// filename. we need to upload
-			switch(extension){
-				case 'fold':
+			switch(extension) {
+				case "fold":
 				fetch(input)
 					.then((response) => response.json)
 					.then((data) => {
-						_cp = data;
+						_cp = CreasePattern(data);
 						draw();
-						if(callback != null){ callback(_cp); }
+						if (callback != null) { callback(_cp); }
 					});
-				// return this;
+				return;
+				case "svg":
+				SVG.load(input, function(svg) {
+					_cp = CreasePattern(Import.svg_to_fold(svg));
+					draw();
+					if (callback != null) { callback(_cp); }
+				});
+				return;
 			}
 		}
-		try{
+		try {
 			// try .fold file format first
 			let foldFileImport = JSON.parse(input);
-			_cp = foldFileImport;
+			_cp = CreasePattern(foldFileImport);
 			// return this;
-		} catch(err){
+		} catch(err) {
 			console.log("not a valid .fold file format")
 			// return this;
 		}
 	}
 	const isFolded = function() {
 		// try to discern folded state
-		if(_cp == null || _cp.frame_classes == null){ return false; }
+		if (_cp == null || _cp.frame_classes == null) { return false; }
 		return _cp.frame_classes.includes("foldedState");
 	}
 
@@ -271,7 +280,7 @@ export default function() {
 
 	const fold = function(face){
 		let folded = Origami.fold_without_layering(_cp, face);
-		_cp = RabbitEar.CreasePattern(folded);
+		_cp = CreasePattern(folded);
 		draw();
 	}
 	// crease pattern functions for convenience
@@ -328,6 +337,7 @@ export default function() {
 		load,
 		save,
 		get svg() { return canvas.svg; },
+		get svgFile() { return canvas.save(); },
 		get zoom() { return canvas.zoom; },
 		get translate() { return canvas.translate; },
 		get appendChild() { return canvas.appendChild; },

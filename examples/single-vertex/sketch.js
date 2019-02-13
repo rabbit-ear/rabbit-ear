@@ -44,8 +44,8 @@ origami.updateCenter = function(point){
 	origami.cp = RabbitEar.CreasePattern(origami.threeCorners);
 	origami.cp.vertices_coords[origami.midVertex] = [point.x, point.y];
 
-	let a = {x:0,y:0};
-	let b = {x:1,y:1};
+	let a = {x:0, y:0};
+	let b = {x:1, y:1};
 	let poke_through = (b.x - a.x)
 		* (origami.cp.vertices_coords[origami.midVertex][1] - a.y)
 		> (b.y - a.y)
@@ -73,4 +73,4 @@ origami.onMouseDown = function(mouse){
 	origami.updateCenter(mouse);
 }
 
-origami.updateCenter({x:0.5, y:0.505});
+origami.updateCenter({x:0.4+Math.random()*0.2, y:0.4+Math.random()*0.2});
