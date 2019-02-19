@@ -44,9 +44,9 @@ polyFold.redraw = function(){
 	let colors = ["#195783", "#ecb233"];
 
 	if (polys != null){
-		polys.sort((a,b) => b.signedArea() - a.signedArea());
+		polys.sort((a,b) => b.area - a.area);
 		if (polys.length > 1) {
-			let matrix = RabbitEar.math.Matrix.makeReflection(vec, polyFold.touches[0].pos);
+			let matrix = RabbitEar.math.Matrix2.makeReflection(vec, polyFold.touches[0].pos);
 			let reflectedPoints = polys[1].points
 				.map(p => matrix.transform(p))
 				.map(p => [p[0], p[1]]);

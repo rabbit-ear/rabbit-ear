@@ -25,7 +25,10 @@ export function crease_through_layers(graph, point, vector, face_index, crease_d
 		face_index = PlanarGraph.face_containing_point(graph, point);
 		if(face_index === undefined) { face_index = 0; }
 	} else {
-		face_centroid = Geom.Face()
+		let points = graph.faces_vertices(face => face.map(fv => graph.vertices_coords[fv]));
+		face_centroid = Geom.Polygon(points).center;
+		console.log("did this work");
+		console.log(face_centroid);
 	}
 	let primaryLine = Geom.Line(point, vector);
 	let coloring = Graph.face_coloring(graph, face_index);

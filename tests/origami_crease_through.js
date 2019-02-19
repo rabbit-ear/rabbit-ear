@@ -2,7 +2,7 @@ let chopReflect = RabbitEar.Origami("canvas-faces-chop");
 let folded = RabbitEar.Origami("canvas-faces-chop-folded");
 folded.isFolded = true;
 
-chopReflect.masterCP = RabbitEar.bases.blintz;
+chopReflect.masterCP = RabbitEar.bases.blintzDistorted;
 chopReflect.cp = RabbitEar.CreasePattern(chopReflect.masterCP);
 
 let drawLayer = RabbitEar.svg.group();

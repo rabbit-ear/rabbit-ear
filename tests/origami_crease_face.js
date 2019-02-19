@@ -1,6 +1,6 @@
 let facesChop = RabbitEar.Origami("canvas-faces-chop");
 
-facesChop.cp = RabbitEar.bases.fish;
+facesChop.cp = RabbitEar.bases.blintz;
 
 let drawLayer = RabbitEar.svg.group();
 facesChop.svg.appendChild(drawLayer)
@@ -49,12 +49,13 @@ facesChop.animate = function(event){
 	highlightedFace = found;
 	faces.childNodes[highlightedFace].setAttribute("class", "face-highlight");
 
-	let newCP = JSON.parse(JSON.stringify(RabbitEar.bases.fish));
-	let diff = RabbitEar.graph.split_convex_polygon(newCP, highlightedFace, [x,y], [vx, vy]);
+	let newCP = JSON.parse(JSON.stringify(RabbitEar.bases.blintz));
+	let diff = RabbitEar.fold.planargraph.split_convex_polygon(newCP, highlightedFace, [x,y], [vx, vy]);
+	facesChop.cp = RabbitEar.CreasePattern(newCP);
 
-	RabbitEar.fold.apply_diff(newCP, diff);
+	// RabbitEar.fold.apply_diff(newCP, diff);
 	// console.log(newCP);
-	facesChop.cp = newCP;
+	// facesChop.cp = newCP;
 
 	let creases = Array.from(facesChop.svg.childNodes)
 		.filter(el => el.getAttribute('id') == 'creases')

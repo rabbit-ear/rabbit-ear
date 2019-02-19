@@ -54,7 +54,7 @@ svg{
 .folded-face {
 	fill: rgba(0, 0, 0, 0.1);
 	stroke: black;
-	stroke-width: var(--crease-width);
+	stroke-width: calc( var(--crease-width) * 0.25);
 }
 
 .vertex{ fill: hsl(43, 88%, 46%); }

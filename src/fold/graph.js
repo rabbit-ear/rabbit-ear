@@ -595,3 +595,19 @@ export function merge_vertices(graph, vertex, removed) {
 
 }
 
+export function make_edges_faces(graph) {
+	let edges_faces = Array
+		.from(Array(graph.edges_vertices.length))
+		.map(_ => []);
+	// todo: does not arrange counter-clockwise
+	graph.faces_edges.forEach((face,i) => face.forEach(edge => edges_faces[edge].push(i)));
+	return edges_faces;
+}
+
+export function make_vertices_faces(graph) {
+	let vertices_faces = Array
+		.from(Array(graph.faces_vertices.length))
+		.map(_ => []);
+	graph.faces_vertices.forEach((face,i) => face.forEach(vertex => vertices_faces[vertex].push(i)));
+	return vertices_faces;
+}
