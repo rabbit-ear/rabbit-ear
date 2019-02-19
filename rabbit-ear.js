@@ -25,9 +25,10 @@
 
 	///////////////////////////////////////////////////////////////////////////////
 	// the following operations neatly generalize for n-dimensions
-	//
-	/** @param [number]
-	 *  @returns [number]
+
+	/**
+	 * @param [number]
+	 * @returns [number]
 	 */
 	function normalize(v) {
 		let m = magnitude(v);
@@ -35,8 +36,9 @@
 		return v.map(c => c / m);
 	}
 
-	/** @param [number]
-	 *  @returns number
+	/**
+	 * @param [number]
+	 * @returns number
 	 */
 	function magnitude(v) {
 		let sum = v
@@ -45,8 +47,9 @@
 		return Math.sqrt(sum);
 	}
 
-	/** @param [number]
-	 *  @returns boolean
+	/**
+	 * @param [number]
+	 * @returns boolean
 	 */
 	function degenerate(v) {
 		return Math.abs(v.reduce((a, b) => a + b, 0)) < EPSILON;
@@ -58,23 +61,30 @@
 	//
 	function dot(a, b) {
 		return a
-			.map((ai,i) => ai * b[i])
+			.map((_,i) => a[i] * b[i])
 			.reduce((prev,curr) => prev + curr, 0);
+	}
+
+	function equivalent(a, b, epsilon = EPSILON) {
+		// rectangular bounds test for fast calculation
+		return a
+			.map((_,i) => Math.abs(a[i] - b[i]) < epsilon)
+			reduce((a,b) => a && b, true);
+	}
+
+	function parallel(a, b, epsilon = EPSILON) {
+		return 1 - Math.abs(dot(normalize(a), normalize(b))) < epsilon;
 	}
 
 	function midpoint$1(a, b) {
 		return a.map((ai,i) => (ai+b[i])*0.5);
 	}
 
-	function equivalent(a, b, epsilon = EPSILON) {
-		// rectangular bounds test for fast calculation
-		return a
-			.map((ai,i) => Math.abs(ai - b[i]) < epsilon)
-			reduce((a,b) => a && b, true);
-	}
-
-	function parallel(a, b, epsilon = EPSILON) {
-		return 1 - Math.abs(dot(normalize(a), normalize(b))) < epsilon;
+	// average is a midpoint function for n-number of arguments
+	function average(vecs) {
+		let initial = Array.from(Array(vecs.length)).map(_ => 0);
+		return vecs.reduce((a,b) => a.map((_,i) => a[i]+b[i]), initial)
+			.map(c => c / vecs.length);
 	}
 
 
@@ -153,18 +163,16 @@
 	}
 
 	function distance2(a, b) {
-		return Math.sqrt(
-			Math.pow(a[0] - b[0], 2) +
-			Math.pow(a[1] - b[1], 2)
-		);
+		let c = a[0] - b[0];
+		let d = a[1] - b[1];
+		return Math.sqrt((c * c) + (d * d));
 	}
 
 	function distance3(a, b) {
-		return Math.sqrt(
-			Math.pow(a[0] - b[0], 2) +
-			Math.pow(a[1] - b[1], 2) +
-			Math.pow(a[2] - b[2], 2)
-		);
+		let c = a[0] - b[0];
+		let d = a[1] - b[1];
+		let e = a[2] - b[2];
+		return Math.sqrt((c * c) + (d * d) + (e * e));
 	}
 
 	// need to test:
@@ -175,9 +183,10 @@
 		magnitude: magnitude,
 		degenerate: degenerate,
 		dot: dot,
-		midpoint: midpoint$1,
 		equivalent: equivalent,
 		parallel: parallel,
+		midpoint: midpoint$1,
+		average: average,
 		multiply_vector2_matrix2: multiply_vector2_matrix2,
 		make_matrix2_reflection: make_matrix2_reflection,
 		make_matrix2_rotation: make_matrix2_rotation,
@@ -201,31 +210,31 @@
 
 
 	function line_line(aPt, aVec, bPt, bVec, epsilon) {
-		return vector_intersection(aPt, aVec, bPt, bVec, line_line_comp, epsilon);
+		return intersection_function(aPt, aVec, bPt, bVec, line_line_comp, epsilon);
 	}
 	function line_ray(linePt, lineVec, rayPt, rayVec, epsilon) {
-		return vector_intersection(linePt, lineVec, rayPt, rayVec, line_ray_comp, epsilon);
+		return intersection_function(linePt, lineVec, rayPt, rayVec, line_ray_comp, epsilon);
 	}
 	function line_edge(point, vec, edge0, edge1, epsilon) {
 		let edgeVec = [edge1[0]-edge0[0], edge1[1]-edge0[1]];
-		return vector_intersection(point, vec, edge0, edgeVec, line_edge_comp, epsilon);
+		return intersection_function(point, vec, edge0, edgeVec, line_edge_comp, epsilon);
 	}
 	function ray_ray(aPt, aVec, bPt, bVec, epsilon) {
-		return vector_intersection(aPt, aVec, bPt, bVec, ray_ray_comp, epsilon);
+		return intersection_function(aPt, aVec, bPt, bVec, ray_ray_comp, epsilon);
 	}
 	function ray_edge(rayPt, rayVec, edge0, edge1, epsilon) {
 		let edgeVec = [edge1[0]-edge0[0], edge1[1]-edge0[1]];
-		return vector_intersection(rayPt, rayVec, edge0, edgeVec, ray_edge_comp, epsilon);
+		return intersection_function(rayPt, rayVec, edge0, edgeVec, ray_edge_comp, epsilon);
 	}
 	function edge_edge(a0, a1, b0, b1, epsilon) {
 		let aVec = [a1[0]-a0[0], a1[1]-a0[1]];
 		let bVec = [b1[0]-b0[0], b1[1]-b0[1]];
-		return vector_intersection(a0, aVec, b0, bVec, edge_edge_comp, epsilon);
+		return intersection_function(a0, aVec, b0, bVec, edge_edge_comp, epsilon);
 	}
 
 	function line_edge_exclusive(point, vec, edge0, edge1) {
 		let edgeVec = [edge1[0]-edge0[0], edge1[1]-edge0[1]];
-		let x = vector_intersection(point, vec, edge0, edgeVec, line_edge_comp);
+		let x = intersection_function(point, vec, edge0, edgeVec, line_edge_comp);
 		if (x == null) { return undefined; }
 		if (equivalent2(x, edge0) || equivalent2(x, edge1)) {
 			return undefined;
@@ -258,15 +267,15 @@
 	 * requires a compFunction to describe valid bounds checking 
 	 * line always returns true, ray is true for t > 0, edge must be between 0 < t < 1
 	*/
-	var vector_intersection = function(aPt, aVec, bPt, bVec, compFunction, epsilon = EPSILON) {
+	const intersection_function = function(aPt, aVec, bPt, bVec, compFunction, epsilon = EPSILON) {
 		function det(a,b) { return a[0] * b[1] - b[0] * a[1]; }
-		var denominator0 = det(aVec, bVec);
-		var denominator1 = -denominator0;
+		let denominator0 = det(aVec, bVec);
+		let denominator1 = -denominator0;
 		if (Math.abs(denominator0) < epsilon) { return undefined; } /* parallel */
-		var numerator0 = det([bPt[0]-aPt[0], bPt[1]-aPt[1]], bVec);
-		var numerator1 = det([aPt[0]-bPt[0], aPt[1]-bPt[1]], aVec);
-		var t0 = numerator0 / denominator0;
-		var t1 = numerator1 / denominator1;
+		let numerator0 = det([bPt[0]-aPt[0], bPt[1]-aPt[1]], bVec);
+		let numerator1 = det([aPt[0]-bPt[0], aPt[1]-bPt[1]], aVec);
+		let t0 = numerator0 / denominator0;
+		let t1 = numerator1 / denominator1;
 		if (compFunction(t0, t1, epsilon)) {
 			return [aPt[0] + aVec[0]*t0, aPt[1] + aVec[1]*t0];
 		}
@@ -422,8 +431,30 @@
 		}
 	}
 
+	function nearest_point(linePoint, lineVector, point, limiterFunc, epsilon = EPSILON) {
+		let magSquared = Math.pow(lineVector[0],2) + Math.pow(lineVector[1],2);
+		let vectorToPoint = [0,1].map((_,i) => point[i] - linePoint[i]);
+		let pTo0 = [0,1].map((_,i) => point[i] - linePoint[i]);
+		let dot = [0,1]
+			.map((_,i) => lineVector[i] * vectorToPoint[i])
+			.reduce((a,b) => a + b, 0);
+		let distance = dot / magSquared;
+		// limit depending on line, ray, edge
+		let d = limiterFunc(distance, epsilon);
+		return [0,1].map((_,i) => linePoint[i] + lineVector[i] * d);
+	}
+
+
 
 	function intersection_circle_line(center, radius, p0, p1) {
+		throw "intersection_circle_line has not been written yet";
+	}
+	function intersection_circle_ray(center, radius, p0, p1) {
+		throw "intersection_circle_ray has not been written yet";
+	}
+
+
+	function intersection_circle_edge(center, radius, p0, p1) {
 		var r_squared =  Math.pow(radius, 2);
 		var x1 = p0[0] - center[0];
 		var y1 = p0[1] - center[1];
@@ -463,6 +494,7 @@
 		ray_edge: ray_edge,
 		edge_edge: edge_edge,
 		line_edge_exclusive: line_edge_exclusive,
+		intersection_function: intersection_function,
 		point_on_line: point_on_line,
 		point_on_edge: point_on_edge,
 		point_in_poly: point_in_poly,
@@ -471,7 +503,10 @@
 		clip_line_in_convex_poly: clip_line_in_convex_poly,
 		clip_ray_in_convex_poly: clip_ray_in_convex_poly,
 		clip_edge_in_convex_poly: clip_edge_in_convex_poly,
-		intersection_circle_line: intersection_circle_line
+		nearest_point: nearest_point,
+		intersection_circle_line: intersection_circle_line,
+		intersection_circle_ray: intersection_circle_ray,
+		intersection_circle_edge: intersection_circle_edge
 	});
 
 	function make_regular_polygon(sides, x = 0, y = 0, radius = 1) {
@@ -597,6 +632,52 @@
 	// 	}
 	// }
 
+	/** Calculates the signed area of a polygon. This requires the polygon be non-intersecting.
+	 * @returns {number} the area of the polygon
+	 * @example
+	 * var area = polygon.signedArea()
+	 */
+	function signed_area(points) {
+		return 0.5 * points.map((el,i,arr) => {
+			var next = arr[(i+1)%arr.length];
+			return el[0] * next[1] - next[0] * el[1];
+		})
+		.reduce((a, b) => a + b, 0);
+	}
+
+	/** Calculates the centroid or the center of mass of the polygon.
+	 * @returns {XY} the location of the centroid
+	 * @example
+	 * var centroid = polygon.centroid()
+	 */
+	function centroid(points) {
+		let sixthArea = 1/(6 * signed_area(points));
+		return points.map((el,i,arr) => {
+			var next = arr[(i+1)%arr.length];
+			var mag = el[0] * next[1] - next[0] * el[1];
+			return [(el[0]+next[0])*mag, (el[1]+next[1])*mag];
+		})
+		.reduce((a, b) => [a[0]+b[0], a[1]+b[1]], [0,0])
+		.map(c => c * sixthArea);
+	}
+
+	/**
+	 * works in any n-dimension (enclosing cube, hypercube..)
+	 * @returns array of arrays: [[x, y], [width, height]]
+	 */
+	function enclosing_rectangle(points) {
+		let l = points[0].length;
+		let mins = Array.from(Array(l)).map(_ => Infinity);
+		let maxs = Array.from(Array(l)).map(_ => -Infinity);
+		points.forEach(point => 
+			point.forEach((c,i) => {
+				if(c < mins[i]) { mins[i] = c; }
+				if(c > maxs[i]) { maxs[i] = c; }
+			})
+		);
+		let lengths = maxs.map((max,i) => max - mins[i]);
+		return [mins, lengths];
+	}
 
 	function convex_hull(points, include_collinear = false, epsilon = EPSILON_HIGH) {
 		// # points in the convex hull before escaping function
@@ -751,6 +832,9 @@
 		interior_angles2: interior_angles2,
 		bisect_vectors: bisect_vectors,
 		bisect_lines2: bisect_lines2,
+		signed_area: signed_area,
+		centroid: centroid,
+		enclosing_rectangle: enclosing_rectangle,
 		convex_hull: convex_hull,
 		split_polygon: split_polygon,
 		split_convex_polygon: split_convex_polygon
@@ -809,27 +893,28 @@
 	*/
 	function get_vec() {
 		let params = Array.from(arguments);
-		if (params.length == 0) { return []; }
-		if (params[0].vector != null && params[0].vector.constructor == Array) {
-			return params[0].vector; // already a Vector type
-		}
-		let arrays = params.filter((param) => param.constructor === Array);
-		if (arrays.length >= 1) { return [...arrays[0]]; }
+		if (params.length === 0) { return; }
+		// list of numbers 1, 2, 3, 4, 5
 		let numbers = params.filter((param) => !isNaN(param));
 		if (numbers.length >= 1) { return numbers; }
+		// already a vector type: {vector:[1,2,3]}
+		if (params[0].vector != null && params[0].vector.constructor === Array) {
+			return params[0].vector;
+		}
 		if (!isNaN(params[0].x)) {
-			// todo, we are relying on convention here. should 'w' be included?
-			// todo: if y is not defined but z is, it will move z to index 1
 			return ['x','y','z'].map(c => params[0][c]).filter(a => a != null);
 		}
-		return [];
+		// at this point, a valid vector is somewhere inside arrays
+		let arrays = params.filter((param) => param.constructor === Array);
+		if (arrays.length >= 1) { return get_vec(...arrays[0]); }
 	}
+
 
 	/** 
 	 * @returns (number[]) array of number components
 	 *  invalid/no input returns the identity matrix
 	*/
-	function get_matrix() {
+	function get_matrix2() {
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
 		let arrays = params.filter((param) => param.constructor === Array);
@@ -877,6 +962,11 @@
 				];
 			}
 		}
+		if (params[0].constructor === Object) {
+			if(params[0].points.length > 0) {
+				return params[0].points;
+			}
+		}
 	}
 
 
@@ -917,6 +1007,10 @@
 			return {point, vector};
 		}
 		return {point: [], vector: []};
+	}
+
+	function get_ray() {
+		return get_line(...arguments);
 	}
 
 	function get_two_vec2() {
@@ -982,7 +1076,7 @@
 			return Math.sqrt(sum);
 		};
 		const transform = function() {
-			let m = get_matrix(...arguments);
+			let m = get_matrix2(...arguments);
 			return Vector$1( multiply_vector2_matrix2(_v, m) );
 		};
 		const add = function(){
@@ -1020,15 +1114,15 @@
 				.map((_,i) => _v[i] * pct + vec[i] * inv);
 			return Vector$1(components);
 		};
-		const isEquivalent = function(vector) {
+		const isEquivalent = function() {
 			// rect bounding box for now, much cheaper than radius calculation
-			let vec = get_vec(vector);
+			let vec = get_vec(...arguments);
 			let sm = (_v.length < vec.length) ? _v : vec;
 			let lg = (_v.length < vec.length) ? vec : _v;
 			return equivalent(sm, lg);
 		};
-		const isParallel = function(vector) {
-			let vec = get_vec(vector);
+		const isParallel = function() {
+			let vec = get_vec(...arguments);
 			let sm = (_v.length < vec.length) ? _v : vec;
 			let lg = (_v.length < vec.length) ? vec : _v;
 			return parallel(sm, lg);
@@ -1043,8 +1137,8 @@
 			for(var i = sm.length; i < lg.length; i++){ sm[i] = 0; }
 			return Vector$1(lg.map((_,i) => (sm[i] + lg[i]) * 0.5));
 		};
-		const bisect = function(vector){
-			let vec = get_vec(vector);
+		const bisect = function(){
+			let vec = get_vec(...arguments);
 			return Vector$1( bisect_vectors(_v, vec) );
 		};
 
@@ -1081,29 +1175,32 @@
 
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
-		if(numbers.length == 3){
+		if (numbers.length === 3) {
 			_origin = numbers.slice(0,2);
 			_radius = numbers[2];
 		}
 
-		const intersectionLine = function(){
-			let line = get_line(...arguments);
-			let point2 = [
-				line.point[0] + line.vector[0],
-				line.point[1] + line.vector[1]
-			];
-			let intersection = intersection_circle_line(_origin, _radius, line.point, point2);
+		const intersectionLine = function() {
+			let points = get_line(...arguments);
+			let intersection = intersection_circle_line(_origin, _radius, points[0], points[1]);
 			return Vector(intersection);
 		};
 
-		const intersectionEdge = function(){
+		const intersectionRay = function() {
+			let points = get_ray(...arguments);
+			let intersection = intersection_circle_ray(_origin, _radius, points[0], points[1]);
+			return Vector(intersection);
+		};
+
+		const intersectionEdge = function() {
 			let points = get_two_vec2(...arguments);
-			let intersection = intersection_circle_line(_origin, _radius, points[0], points[1]);
+			let intersection = intersection_circle_edge(_origin, _radius, points[0], points[1]);
 			return Vector(intersection);
 		};
 
 		return Object.freeze( {
 			intersectionLine,
+			intersectionRay,
 			intersectionEdge,
 			get origin() { return _origin; },
 			get radius() { return _radius; },
@@ -1113,69 +1210,24 @@
 	function Polygon() {
 
 		let _points = get_array_of_vec(...arguments);
+		if (_points === undefined) {
+			// todo, best practices here
+			return undefined;
+		}
 
-		/** 
-		 * Tests whether or not a point is contained inside a polygon.
-		 * @returns {boolean}
-		 * @example
-		 * var isInside = polygon.contains( [0.5, 0.5] )
-		 */
-		const contains = function(point) {
+		const contains = function() {
+			let point = get_vec(...arguments);
 			return point_in_poly(_points, point);
 		};
 
-		/** Calculates the signed area of a polygon. This requires the polygon be non-intersecting.
-		 * @returns {number} the area of the polygon
-		 * @example
-		 * var area = polygon.signedArea()
-		 */
-		const signedArea = function() {
-			return 0.5 * _points.map((el,i,arr) => {
-				var next = arr[(i+1)%arr.length];
-				return el[0] * next[1] - next[0] * el[1];
-			})
-			.reduce((a, b) => a + b, 0);
-		};
-		/** Calculates the centroid or the center of mass of the polygon.
-		 * @returns {XY} the location of the centroid
-		 * @example
-		 * var centroid = polygon.centroid()
-		 */
-		const centroid = function() {
-			return _points.map((el,i,arr) => {
-				var next = arr[(i+1)%arr.length];
-				var mag = el[0] * next[1] - next[0] * el[1];
-				return Vector$1( (el[0]+next[0])*mag, (el[1]+next[1])*mag );
-			})
-			.reduce((prev, curr) => prev.add(curr), Vector$1(0,0))
-			.scale(1/(6 * signedArea(_points)));
-		};
-		/** Calculates the center of the bounding box made by the edges of the polygon.
-		 * @returns {XY} the location of the center of the bounding box
-		 * @example
-		 * var boundsCenter = polygon.center()
-		 */
-		const center = function() {
-			// this is not an average / means
-			var xMin = Infinity, xMax = 0, yMin = Infinity, yMax = 0;
-			_points.forEach(p => {
-				if (p[0] > xMax) { xMax = p[0]; }
-				if (p[0] < xMin) { xMin = p[0]; }
-				if (p[1] > yMax) { yMax = p[1]; }
-				if (p[1] < yMin) { yMin = p[1]; }
-			});
-			return Vector$1( xMin+(xMax-xMin)*0.5, yMin+(yMax-yMin)*0.5 );
-		};
-
-		const scale = function(magnitude, centerPoint = centroid()) {
-			let newPoints = _points.map(p => {
-				let vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
-				return [centerPoint[0] + vec[0]*magnitude, centerPoint[1] + vec[1]*magnitude];
-			});
+		const scale = function(magnitude, center = centroid(_points)) {
+			let newPoints = _points
+				.map(p => [0,1].map((_,i) => p[i] - center[i]))
+				.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude));
 			return Polygon(newPoints);
 		};
 
-		const rotate = function(angle, centerPoint = centroid()) {
+		const rotate = function(angle, centerPoint = centroid(_points)) {
 			let newPoints = _points.map(p => {
 				let vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
 				let mag = Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2));
@@ -1194,8 +1246,7 @@
 				.map(poly => Polygon(poly));
 		};
 
-
-		// todo: replace with non-convex
+		// todo: need non-convex clipping functions returns an array of edges
 		const clipEdge = function() {
 			let edge = get_edge(...arguments);
 			return clip_edge_in_convex_poly(_points, edge[0], edge[1]);
@@ -1211,9 +1262,6 @@
 
 		return Object.freeze( {
 			contains,
-			signedArea,
-			centroid,
-			center,
 			scale,
 			rotate,
 			split,
@@ -1221,8 +1269,14 @@
 			clipLine,
 			clipRay,
 			get points() { return _points; },
+			get area() { return signed_area(_points); },
+			get signedArea() { return signed_area(_points); },
+			get centroid() { return centroid(_points); },
+			get midpoint() { return Algebra.average(_points); },
+			get enclosingRectangle() {
+				return Rectangle(enclosing_rectangle(_points));
+			},
 		} );
-
 	}
 
 	Polygon.regularPolygon = function(sides, x = 0, y = 0, radius = 1) {
@@ -1237,14 +1291,7 @@
 
 	function ConvexPolygon() {
 
-		let {
-			contains,
-			signedArea,
-			centroid,
-			center,
-			points
-		} = Polygon(...arguments);
-		let _points = points;
+		let polygon = Object.create(Polygon(...arguments));
 
 		// const liesOnEdge = function(p) {
 		// 	for(var i = 0; i < this.edges.length; i++) {
@@ -1252,50 +1299,40 @@
 		// 	}
 		// 	return false;
 		// }
+
 		const clipEdge = function() {
 			let edge = get_edge(...arguments);
-			return clip_edge_in_convex_poly(_points, edge[0], edge[1]);
+			return clip_edge_in_convex_poly(polygon.points, edge[0], edge[1]);
 		};
 		const clipLine = function() {
 			let line = get_line(...arguments);
-			return clip_line_in_convex_poly(_points, line.point, line.vector);
+			return clip_line_in_convex_poly(polygon.points, line.point, line.vector);
 		};
 		const clipRay = function() {
 			let line = get_line(...arguments);
-			return clip_ray_in_convex_poly(_points, line.point, line.vector);
-		};
-		const enclosingRectangle = function() {
-			var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-			_points.forEach(p => {
-				if (p[0] > maxX) { maxX = p[0]; }
-				if (p[0] < minX) { minX = p[0]; }
-				if (p[1] > maxY) { maxY = p[1]; }
-				if (p[1] < minY) { minY = p[1]; }
-			});
-			return Rectangle(minX, minY, maxX-minX, maxY-minY);
+			return clip_ray_in_convex_poly(polygon.points, line.point, line.vector);
 		};
 
 		const split = function() {
 			let line = get_line(...arguments);
-			return split_convex_polygon(_points, line.point, line.vector)
+			return split_convex_polygon(polygon.points, line.point, line.vector)
 				.map(poly => ConvexPolygon(poly));
 		};
 
 		const overlaps = function() {
 			let points = get_array_of_vec(...arguments);
-			return convex_polygons_overlap(_points, points);
+			return convex_polygons_overlap(polygon.points, points);
 		};
 
-		const scale = function(magnitude, centerPoint = centroid()) {
-			let newPoints = _points.map(p => {
-				let vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
-				return [centerPoint[0] + vec[0]*magnitude, centerPoint[1] + vec[1]*magnitude];
-			});
+		const scale = function(magnitude, center = centroid(polygon.points)) {
+			let newPoints = polygon.points
+				.map(p => [0,1].map((_,i) => p[i] - center[i]))
+				.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude));
 			return ConvexPolygon(newPoints);
 		};
 
-		const rotate = function(angle, centerPoint = centroid()) {
-			let newPoints = _points.map(p => {
+		const rotate = function(angle, centerPoint = centroid(polygon.points)) {
+			let newPoints = polygon.points.map(p => {
 				let vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
 				let mag = Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2));
 				let a = Math.atan2(vec[1], vec[0]);
@@ -1307,21 +1344,15 @@
 			return ConvexPolygon(newPoints);
 		};
 
-		return Object.freeze( {
-			signedArea,
-			centroid,
-			center,
-			contains,
-			clipEdge,
-			clipLine,
-			clipRay,
-			enclosingRectangle,
-			split,
-			overlaps,
-			scale,
-			rotate,
-			get points() { return _points; },
-		} );
+		Object.defineProperty(polygon, "clipEdge", {value: clipEdge});
+		Object.defineProperty(polygon, "clipLine", {value: clipLine});
+		Object.defineProperty(polygon, "clipRay", {value: clipRay});
+		Object.defineProperty(polygon, "split", {value: split});
+		Object.defineProperty(polygon, "overlaps", {value: overlaps});
+		Object.defineProperty(polygon, "scale", {value: scale});
+		Object.defineProperty(polygon, "rotate", {value: rotate});
+		
+		return Object.freeze(polygon);
 	}
 
 	ConvexPolygon.regularPolygon = function(sides, x = 0, y = 0, radius = 1) {
@@ -1333,40 +1364,70 @@
 		return ConvexPolygon(hull);
 	};
 
-
-
 	function Rectangle(){
 		let _origin, _width, _height;
 
+		// get parameters
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
-		if(numbers.length == 4){
+		let arrays = params.filter((param) => param.constructor === Array);
+		if (numbers.length === 4) {
 			_origin = numbers.slice(0,2);
 			_width = numbers[2];
 			_height = numbers[3];
 		}
+		if (arrays.length === 1) { arrays = arrays[0]; }
+		if (arrays.length === 2) {
+			if (typeof arrays[0][0] === "number") {
+				_origin = arrays[0].slice();
+				_width = arrays[1][0];
+				_height = arrays[1][1];
+			}
+		}
+		// end get parameters
+		let points = [
+			[_origin[0], _origin[1]],
+			[_origin[0] + _width, _origin[1]],
+			[_origin[0] + _width, _origin[1] + _height],
+			[_origin[0], _origin[1] + _height],
+		];
+		let rect = Object.create(ConvexPolygon(points));
 
-		return Object.freeze( {
-			get origin() { return _origin; },
-			get width() { return _width; },
-			get height() { return _height; },
-		} );
+		// redefinition of methods
+		const scale = function(magnitude, center) {
+			if (center == null) {
+				center = [_origin[0] + _width, _origin[1] + _height];
+			}
+			let x = _origin[0] + (center[0] - _origin[0]) * (1-magnitude);
+			let y = _origin[1] + (center[1] - _origin[1]) * (1-magnitude);
+			return Rectangle(x, y, _width*magnitude, _height*magnitude);
+		};
+
+		Object.defineProperty(rect, "origin", {get: function(){ return _origin; }});
+		Object.defineProperty(rect, "width", {get: function(){ return _width; }});
+		Object.defineProperty(rect, "height", {get: function(){ return _height; }});
+		Object.defineProperty(rect, "area", {
+			get: function(){ return _width * _height; }
+		});
+		Object.defineProperty(rect, "scale", {value: scale});
+
+		return Object.freeze(rect);
 	}
 
 	/** 
 	 * 2D Matrix (2x3) with translation component in x,y
 	 */
-	function Matrix() {
-		let _m = get_matrix(...arguments);
+	function Matrix2$1() {
+		let _m = get_matrix2(...arguments);
 
 		const inverse = function() {
-			return Matrix( make_matrix2_inverse(_m) );
+			return Matrix2$1( make_matrix2_inverse(_m) );
 		};
 		const multiply = function() {
-			let m2 = get_matrix(...arguments);
-			return Matrix( multiply_matrices2(_m, m2) );
+			let m2 = get_matrix2(...arguments);
+			return Matrix2$1( multiply_matrices2(_m, m2) );
 		};
-		const transform = function(){
+		const transform = function() {
 			let v = get_vec(...arguments);
 			return Vector$1( multiply_vector2_matrix2(v, _m) );
 		};
@@ -1378,40 +1439,112 @@
 		} );
 	}
 	// static methods
-	Matrix.makeIdentity = function() {
-		return Matrix(1,0,0,1,0,0);
+	Matrix2$1.makeIdentity = function() {
+		return Matrix2$1(1,0,0,1,0,0);
 	};
-	Matrix.makeRotation = function(angle, origin) {
-		return Matrix( make_matrix2_rotation(angle, origin) );
+	Matrix2$1.makeRotation = function(angle, origin) {
+		return Matrix2$1( make_matrix2_rotation(angle, origin) );
 	};
-	Matrix.makeReflection = function(vector, origin) {
-		return Matrix( make_matrix2_reflection(vector, origin) );
+	Matrix2$1.makeReflection = function(vector, origin) {
+		return Matrix2$1( make_matrix2_reflection(vector, origin) );
 	};
 
+	function LinePrototype() {
+		// these will be overwritten for each line type. defaults for Line()
+		// is it valid for t0 to be below 0, above 1, to the unit vector
+		const vec_comp_func = function(t0) { return true; };
+		// cap d below 0 or above 1, to the unit vector, for rays/edges
+		const vec_cap_func = function(d) { return d; };
+
+		// const parallel = function(line, epsilon){}
+		// const collinear = function(point){}
+		// const equivalent = function(line, epsilon){}
+		// const degenrate = function(epsilon){}
+
+		const reflection = function() {
+			return Matrix2.makeReflection(this.vector, this.point);
+		};
+
+		const nearestPoint = function() {
+			let point = get_vec(...arguments);
+			return nearest_point(this.point, this.vector, point, this.vec_cap_func);
+		};
+		
+		const intersectLine = function() {
+			let line = get_line(...arguments);
+			return intersection_function(
+				this.point, this.vector,
+				line.point, line.vector,
+				this_line_comp);
+		};
+		const intersectRay = function() {
+			let ray = get_ray(...arguments);
+			return intersection_function(
+				this.point, this.vector,
+				ray.point, ray.vector,
+				this_ray_comp);
+		};
+		const intersectEdge = function() {
+			let edge = get_edge(...arguments);
+			let edgeVec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
+			return intersection_function(
+				this.point, this.vector,
+				edge[0], edgeVec,
+				this_edge_comp);
+		};
+
+		const this_line_comp = function(t0, t1, epsilon = EPSILON) {
+			return vec_comp_func(t0, epsilon) && true;
+		};
+		const this_ray_comp = function(t0, t1, epsilon = EPSILON) {
+			return vec_comp_func(t0, epsilon) && t1 >= -epsilon;
+		};
+		const this_edge_comp = function(t0, t1, epsilon = EPSILON) {
+			return vec_comp_func(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
+		};
+
+		return Object.freeze( {
+			reflection,
+			nearestPoint,
+			intersectLine,
+			intersectRay,
+			intersectEdge,
+			vec_comp_func,
+			vec_cap_func,
+		} );
+	}
+
 	function Line() {
-		let {point, vector} = get_line(...arguments);
+		let { point, vector } = get_line(...arguments);
 
 		const isParallel = function() {
 			let line = get_line(...arguments);
 			return parallel(vector, line.vector);
 		};
 		const transform = function() {
-			let mat = get_matrix(...arguments);
+			let mat = get_matrix2(...arguments);
 			// todo: a little more elegant of a solution, please
 			let norm = normalize(vector);
 			let temp = point.map((p,i) => p + norm[i]);
-			if(temp == null) { return; }
+			if (temp == null) { return; }
 			var p0 = multiply_vector2_matrix2(point, mat);
 			var p1 = multiply_vector2_matrix2(temp, mat);
 			return Line.withPoints([p0, p1]);
 		};
 
-		return Object.freeze( {
-			isParallel,
-			transform,
-			get vector() { return vector; },
-			get point() { return point; },
-		} );
+		let line = Object.create(LinePrototype());
+		const vec_comp_func = function() { return true; };
+		const vec_cap_func = function(d) { return d; };
+		Object.defineProperty(line, "vec_comp_func", {value: vec_comp_func});
+		Object.defineProperty(line, "vec_cap_func", {value: vec_cap_func});
+
+		Object.defineProperty(line, "point", {get: function(){ return point; }});
+		Object.defineProperty(line, "vector", {get: function(){ return vector; }});
+		Object.defineProperty(line, "length", {get: function(){ return Infinity; }});
+		Object.defineProperty(line, "transform", {value: transform});
+		Object.defineProperty(line, "isParallel", {value: isParallel});
+
+		return Object.freeze(line);
 	}
 	// static methods
 	Line.withPoints = function() {
@@ -1439,13 +1572,31 @@
 
 
 	function Ray() {
-		let {point, vector} = get_line(...arguments);
+		let { point, vector } = get_line(...arguments);
 
-		return Object.freeze( {
-			get vector() { return vector; },
-			get point() { return point; },
-			get origin() { return point; },
-		} );
+		const transform = function() {
+			let mat = get_matrix2(...arguments);
+			// todo: a little more elegant of a solution, please
+			let norm = normalize(vector);
+			let temp = point.map((p,i) => p + norm[i]);
+			if (temp == null) { return; }
+			var p0 = multiply_vector2_matrix2(point, mat);
+			var p1 = multiply_vector2_matrix2(temp, mat);
+			return Ray.withPoints([p0, p1]);
+		};
+
+		let ray = Object.create(LinePrototype());
+		const vec_comp_func = function(t0, ep) { return t0 >= -ep; };
+		const vec_cap_func = function(d, ep) { return (d < -ep ? 0 : d); };
+		Object.defineProperty(ray, "vec_comp_func", {value: vec_comp_func});
+		Object.defineProperty(ray, "vec_cap_func", {value: vec_cap_func});
+
+		Object.defineProperty(ray, "point", {get: function(){ return point; }});
+		Object.defineProperty(ray, "vector", {get: function(){ return vector; }});
+		Object.defineProperty(ray, "length", {get: function(){ return Infinity; }});
+		Object.defineProperty(ray, "transform", {value: transform});
+
+		return Object.freeze(ray);
 	}
 	// static methods
 	Ray.withPoints = function() {
@@ -1463,6 +1614,13 @@
 	function Edge() {
 		let _endpoints = get_two_vec2(...arguments);
 
+		const transform = function() {
+			let mat = get_matrix2(...arguments);
+			let transformed_points = _endpoints
+				.map(point => multiply_vector2_matrix2(point, mat));
+			return Edge(transformed_points);
+		};
+
 		const vector = function() {
 			return Vector$1(
 				_endpoints[1][0] - _endpoints[0][0],
@@ -1475,38 +1633,23 @@
 			               + Math.pow(_endpoints[1][1] - _endpoints[0][1],2));
 		};
 
-		const nearestPoint = function() {
-			let point = get_vec(...arguments);
-			var answer = nearestPointNormalTo(...arguments);
-			return (answer == null)
-				? Vector$1(_endpoints.map(p => ({
-						point: p,
-						d: Math.sqrt(Math.pow(p[0] - point[0],2) + Math.pow(p[1] - point[1],2))
-					}))
-					.sort((a,b) => a.d - b.d)
-					.shift()
-					.point)
-				: answer;
+		let edge = Object.create(LinePrototype());
+		let vec_comp_func = function(t0, ep) { return t0 >= -ep && t0 <= 1+ep; };
+		const vec_cap_func = function(d, ep) {
+			if (d < -ep) { return 0; }
+			if (d > 1+ep) { return 1; }
+			return d;
 		};
-		const nearestPointNormalTo = function() {
-			let point = get_vec(...arguments);
-			let p = length();
-			var u = ((point[0]-_endpoints[0][0]) * (_endpoints[1][0]-_endpoints[0][0])
-			       + (point[1]-_endpoints[0][1]) * (_endpoints[1][1]-_endpoints[0][1]))
-			       / (Math.pow(p, 2) );
-			return (u < 0 || u > 1.0)
-				? undefined
-				: Vector$1(_endpoints[0][0] + u*(_endpoints[1][0]-_endpoints[0][0]),
-			             _endpoints[0][1] + u*(_endpoints[1][1]-_endpoints[0][1]) );
-		};
+		Object.defineProperty(edge, "vec_comp_func", {value: vec_comp_func});
+		Object.defineProperty(edge, "vec_cap_func", {value: vec_cap_func});
 
-		return Object.freeze( {
-			vector,
-			length,
-			nearestPoint,
-			nearestPointNormalTo,
-			get endpoints() { return _endpoints; },
-		} );
+		Object.defineProperty(edge, "points", {get: function(){ return _endpoints; }});
+		Object.defineProperty(edge, "point", {get: function(){ return _endpoints[0]; }});
+		Object.defineProperty(edge, "vector", {get: function(){ return vector(); }});
+		Object.defineProperty(edge, "length", {get: function(){ return length(); }});
+		Object.defineProperty(edge, "transform", {value: transform});
+
+		return Object.freeze(edge);
 	}
 
 	/**
@@ -1526,7 +1669,7 @@
 		Polygon: Polygon,
 		ConvexPolygon: ConvexPolygon,
 		Rectangle: Rectangle,
-		Matrix: Matrix,
+		Matrix2: Matrix2$1,
 		Line: Line,
 		Ray: Ray,
 		Edge: Edge
@@ -2418,8 +2561,8 @@
 	};
 
 
-	/** Removes faces, updates all relevant array indices
-	 *
+	/**
+	 * Removes faces, updates all relevant array indices
 	 * @param {faces} an array of face indices
 	 * @example remove_edges(fold_file, [1,9,11,13]);
 	 */
@@ -2462,6 +2605,16 @@
 		// todo: do the same with frames in file_frames where inherit=true
 	}
 
+	/**
+	 * Replace all instances of removed vertices with "vertex".
+	 * @param vertex number index of vertex to remain
+	 * @param [removed] array of indices to be replaced
+	 */
+	function merge_vertices(graph, vertex, removed) {
+		
+
+	}
+
 	var graph = /*#__PURE__*/Object.freeze({
 		keys: keys,
 		all_keys: all_keys,
@@ -2482,7 +2635,8 @@
 		connectedGraphs: connectedGraphs,
 		remove_vertices: remove_vertices,
 		remove_edges: remove_edges,
-		remove_faces: remove_faces
+		remove_faces: remove_faces,
+		merge_vertices: merge_vertices
 	});
 
 	const merge_maps = function(a, b) {
@@ -2953,17 +3107,39 @@
 	 *  could result in multiple edges
 	 */
 
+	// for now, this uses "re:faces_layer", todo: use faceOrders
+	function crease_through_layers(graph, point, vector, face_index, crease_direction = "V") {
+		let opposite_crease = 
+			(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
+		// if face isn't set, it will be determined by whichever face
+		// is directly underneath point. or if none, index 0.
+		let face_centroid;
+		if (face_index == null) {
+			face_index = face_containing_point(graph, point);
+			if(face_index === undefined) { face_index = 0; }
+		} else {
+			face_centroid = undefined();
+		}
+		let primaryLine = Line(point, vector);
+		let coloring = face_coloring(graph, face_index);
+		make_faces_matrix_inv(graph, face_index)
+			.map(m => primaryLine.transform(m))
+			.reverse()
+			.forEach((line, reverse_i, arr) => {
+				let i = arr.length - 1 - reverse_i;
+				split_convex_polygon$1(graph, i, line.point,
+					line.vector, coloring[i] ? crease_direction : opposite_crease);
+			});
+		// determine which faces changed
+
+	}
+
 	function crease_folded(graph, point, vector, face_index) {
 		// if face isn't set, it will be determined by whichever face
 		// is directly underneath point. or if none, index 0.
 		if (face_index == null) {
-			// todo, detect face under point
-			face_index = 0;
-			// let faces = Array.from(chopReflect.svg.childNodes)
-			// 	.filter(el => el.getAttribute('id') == 'faces')
-			// 	.shift();
-			// faces.childNodes[face_index].setAttribute("class", "face");
-			// face_index = found;
+			face_index = face_containing_point(graph, point);
+			if(face_index === undefined) { face_index = 0; }
 		}
 		let primaryLine = Line(point, vector);
 		let coloring = face_coloring(graph, face_index);
@@ -2981,14 +3157,17 @@
 		// let poly = boundary.map(v => graph.vertices_coords[v]);
 		// let edge_map = Array.from(Array(graph.edges_vertices.length)).map(_=>0);
 		let new_edges = [];
-		let arr = Array.from(Array(graph.faces_vertices.length)).map((_,i)=>i).reverse();
+		let arr = Array.from(Array(graph.faces_vertices.length))
+			.map((_,i)=>i).reverse();
 		arr.forEach(i => {
 			let diff = split_convex_polygon$1(graph, i, point, vector);
 			if (diff.edges != null && diff.edges.new != null) {
 				// a new crease line was added
 				let newEdgeIndex = diff.edges.new[0].index;
 				new_edges = new_edges.map(edge => 
-					edge += (diff.edges.map[edge] == null ? 0 : diff.edges.map[edge])
+					edge += (diff.edges.map[edge] == null
+						? 0
+						: diff.edges.map[edge])
 				);
 				new_edges.push(newEdgeIndex);
 			}
@@ -3180,6 +3359,7 @@
 	}
 
 	var origami$2 = /*#__PURE__*/Object.freeze({
+		crease_through_layers: crease_through_layers,
 		crease_folded: crease_folded,
 		crease_line: crease_line,
 		crease_ray: crease_ray,
@@ -3351,7 +3531,7 @@
 		graph.onchange = undefined;
 
 		graph.load = function(file) {
-			// todo: 
+			// todo:
 			let imported = JSON.parse(JSON.stringify(file));
 			// Graph.all_keys.filter(key => graph[key] = undefined) {
 
@@ -3402,41 +3582,62 @@
 		graph.axiom1 = function() {
 			let points = get_two_vec2$1(...arguments);
 			if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
-			return Crease(this, axiom1$1(graph, ...points));
+			let crease = Crease(this, axiom1$1(graph, ...points));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
 		};
 		graph.axiom2 = function() {
 			let points = get_two_vec2$1(...arguments);
 			if (!points) { throw {name: "TypeError", message: "axiom2 needs 2 points"}; }
-			return Crease(this, axiom2$1(graph, ...points));
+			let crease = Crease(this, axiom2$1(graph, ...points));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
 		};
 		graph.axiom3 = function() {
 			let lines = get_two_lines(...arguments);
 			if (!lines) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
-			return Crease(this, axiom3$1(graph, ...lines[0], ...lines[1]));
+			let crease = Crease(this, axiom3$1(graph, ...lines[0], ...lines[1]));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
 		};
 		graph.axiom4 = function() {
-			return Crease(this, axiom4$1(graph, arguments));
+			let crease = Crease(this, axiom4$1(graph, arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
 		};
 		graph.axiom5 = function() {
-			return Crease(this, axiom5$1(graph, arguments));
+			let crease = Crease(this, axiom5$1(graph, arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
 		};
 		graph.axiom6 = function() {
-			return Crease(this, axiom6$1(graph, arguments));
+			let crease = Crease(this, axiom6$1(graph, arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
 		};
 		graph.axiom7 = function() {
-			return Crease(this, axiom7$1(graph, arguments));
+			let crease = Crease(this, axiom7$1(graph, arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
 		};
 		graph.creaseRay = function() {
-			return Crease(this, creaseRay(graph, ...arguments));
+			let crease = Crease(this, creaseRay(graph, ...arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
 		};
 		graph.creaseSegment = function() {
-			return Crease(this, creaseSegment(graph, ...arguments));
+			let crease = Crease(this, creaseSegment(graph, ...arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
 		};
 		graph.creaseThroughLayers = function(point, vector, face) {
 			RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
 		};
 		graph.kawasaki = function() {
-			return Crease(this, kawasaki_collapse(graph, ...arguments));
+			let crease = Crease(this, kawasaki_collapse(graph, ...arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
 		};
 		// getters, setters
 		Object.defineProperty(graph, "json", { get: function() {
@@ -4835,7 +5036,7 @@
 		};
 	}
 
-	function crease_through_layers(fold_file, linePoint, lineVector){
+	function crease_through_layers$1(fold_file, linePoint, lineVector){
 		// console.log("+++++++++++++++++++");
 		// let root_face = faces_containing_point(fold_file, linePoint).shift();
 		let root_face = 0;
@@ -5171,7 +5372,7 @@
 	var creasethrough = /*#__PURE__*/Object.freeze({
 		make_folded_frame: make_folded_frame,
 		make_unfolded_frame: make_unfolded_frame,
-		crease_through_layers: crease_through_layers,
+		crease_through_layers: crease_through_layers$1,
 		clip_edges_with_line: clip_edges_with_line
 	});
 

@@ -35,7 +35,7 @@ export default function() {
 	graph.onchange = undefined;
 
 	graph.load = function(file) {
-		// todo: 
+		// todo:
 		let imported = JSON.parse(JSON.stringify(file));
 		// Graph.all_keys.filter(key => graph[key] = undefined) {
 
@@ -86,41 +86,62 @@ export default function() {
 	graph.axiom1 = function() {
 		let points = Input.get_two_vec2(...arguments);
 		if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
-		return Crease(this, Origami.axiom1(graph, ...points));
+		let crease = Crease(this, Origami.axiom1(graph, ...points));
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+		return crease;
 	}
 	graph.axiom2 = function() {
 		let points = Input.get_two_vec2(...arguments);
 		if (!points) { throw {name: "TypeError", message: "axiom2 needs 2 points"}; }
-		return Crease(this, Origami.axiom2(graph, ...points));
+		let crease = Crease(this, Origami.axiom2(graph, ...points));
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+		return crease;
 	}
 	graph.axiom3 = function() {
 		let lines = Input.get_two_lines(...arguments);
 		if (!lines) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
-		return Crease(this, Origami.axiom3(graph, ...lines[0], ...lines[1]));
+		let crease = Crease(this, Origami.axiom3(graph, ...lines[0], ...lines[1]));
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+		return crease;
 	}
 	graph.axiom4 = function() {
-		return Crease(this, Origami.axiom4(graph, arguments));
+		let crease = Crease(this, Origami.axiom4(graph, arguments));
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+		return crease;
 	}
 	graph.axiom5 = function() {
-		return Crease(this, Origami.axiom5(graph, arguments));
+		let crease = Crease(this, Origami.axiom5(graph, arguments));
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+		return crease;
 	}
 	graph.axiom6 = function() {
-		return Crease(this, Origami.axiom6(graph, arguments));
+		let crease = Crease(this, Origami.axiom6(graph, arguments));
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+		return crease;
 	}
 	graph.axiom7 = function() {
-		return Crease(this, Origami.axiom7(graph, arguments));
+		let crease = Crease(this, Origami.axiom7(graph, arguments));
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+		return crease;
 	}
 	graph.creaseRay = function() {
-		return Crease(this, Origami.creaseRay(graph, ...arguments));
+		let crease = Crease(this, Origami.creaseRay(graph, ...arguments));
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+		return crease;
 	}
 	graph.creaseSegment = function() {
-		return Crease(this, Origami.creaseSegment(graph, ...arguments));
+		let crease = Crease(this, Origami.creaseSegment(graph, ...arguments));
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+		return crease;
 	}
 	graph.creaseThroughLayers = function(point, vector, face) {
 		RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
+		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
 	graph.kawasaki = function() {
-		return Crease(this, Origami.kawasaki_collapse(graph, ...arguments));
+		let crease = Crease(this, Origami.kawasaki_collapse(graph, ...arguments));
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+		return crease;
 	}
 	// getters, setters
 	Object.defineProperty(graph, "json", { get: function() {

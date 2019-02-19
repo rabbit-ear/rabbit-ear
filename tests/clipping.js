@@ -4,7 +4,7 @@ clipping.svg.appendChild(drawGroup);
 
 clipping.points = [[Math.random(),Math.random()], [Math.random(),Math.random()]];
 clipping.reset = function(){
-	clipping.manyEdgesCP = RabbitEar.fold.clone(RabbitEar.bases.square);
+	clipping.manyEdgesCP = JSON.parse(JSON.stringify(RabbitEar.bases.square));
 	clipping.newEdges = [];
 	for(var i = 0; i < 10; i++){
 		let x = Math.random();
@@ -14,7 +14,7 @@ clipping.reset = function(){
 		clipping.newEdges.push([ [x,y], [x2,y2] ]);
 	}
 	clipping.newEdges.forEach(edge =>
-		clipping.manyEdgesCP = RabbitEar.fold.axiom1(clipping.manyEdgesCP, edge[0], edge[1])
+		clipping.manyEdgesCP = clipping.cp.axiom1(edge[0], edge[1])
 	)
 	clipping.cp = clipping.manyEdgesCP;
 }
@@ -29,7 +29,7 @@ clipping.redraw = function(){
 
 	if(edge.length >= 2){
 		clipping.cp.edges_assignment[clipping.cp.edges_assignment.length] = "V";
-		clipping.cp = RabbitEar.fold.axiom1(clipping.manyEdgesCP, edge[0], edge[1]);
+		clipping.cp = clipping.cp.axiom1(edge[0], edge[1]);
 	} else {
 		clipping.cp = clipping.manyEdgesCP;
 	}

@@ -1,9 +1,9 @@
 let vecSketchCallback;
 
 let vec = RabbitEar.svg.Image("canvas-vector", window.innerWidth, window.innerHeight, function(){
-	vec.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
-	vec.reset();
-	vec.update();
+	// vec.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
+	// vec.reset();
+	// vec.update();
 });
 vec.drawLayer = RabbitEar.svg.group();
 vec.dotLayer = RabbitEar.svg.group();

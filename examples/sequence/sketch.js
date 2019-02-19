@@ -12,6 +12,7 @@ for(var i = 0; i < STEPS; i++){
 	// var vecB = [-vecA.x, -vecA.y];
 
 	// crease origami paper
+	//todo: need to be able to pass objects {x:, y:} in each arg, in each method
 	cp.creaseThroughLayers(origin, vecA);//.forEach((c) => c.valley());
 	// cp.clean();
 

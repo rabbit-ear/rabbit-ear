@@ -43,7 +43,7 @@ lre.redraw = function(){
 		lre.lines[parseInt(i/2)].setAttribute("x"+(i%2+1), p.pos[0]);
 		lre.lines[parseInt(i/2)].setAttribute("y"+(i%2+1), p.pos[1]);
 	});
-	let line = RabbitEar.math.Line.withPoints(lre.touches[0].pos, lre.touches[1].pos)
+	let line = RabbitEar.math.Line.withPoints(lre.touches[0].pos, lre.touches[1].pos);
 	let clipLine = lre.boundary.clipLine(line);
 	lre.lines[0].setAttribute("x1", clipLine[0][0]);
 	lre.lines[0].setAttribute("y1", clipLine[0][1]);

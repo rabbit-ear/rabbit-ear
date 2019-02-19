@@ -541,8 +541,8 @@ export const remove_edges = function(graph, edges) {
 }
 
 
-/** Removes faces, updates all relevant array indices
- *
+/**
+ * Removes faces, updates all relevant array indices
  * @param {faces} an array of face indices
  * @example remove_edges(fold_file, [1,9,11,13]);
  */
@@ -584,3 +584,14 @@ export function remove_faces(graph, faces) {
 	return index_map;
 	// todo: do the same with frames in file_frames where inherit=true
 }
+
+/**
+ * Replace all instances of removed vertices with "vertex".
+ * @param vertex number index of vertex to remain
+ * @param [removed] array of indices to be replaced
+ */
+export function merge_vertices(graph, vertex, removed) {
+	
+
+}
+

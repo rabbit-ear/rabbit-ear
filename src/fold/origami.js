@@ -14,17 +14,39 @@ import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
 import { apply_diff } from "./diff";
 
+// for now, this uses "re:faces_layer", todo: use faceOrders
+export function crease_through_layers(graph, point, vector, face_index, crease_direction = "V") {
+	let opposite_crease = 
+		(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
+	// if face isn't set, it will be determined by whichever face
+	// is directly underneath point. or if none, index 0.
+	let face_centroid;
+	if (face_index == null) {
+		face_index = PlanarGraph.face_containing_point(graph, point);
+		if(face_index === undefined) { face_index = 0; }
+	} else {
+		face_centroid = Geom.Face()
+	}
+	let primaryLine = Geom.Line(point, vector);
+	let coloring = Graph.face_coloring(graph, face_index);
+	PlanarGraph.make_faces_matrix_inv(graph, face_index)
+		.map(m => primaryLine.transform(m))
+		.reverse()
+		.forEach((line, reverse_i, arr) => {
+			let i = arr.length - 1 - reverse_i;
+			PlanarGraph.split_convex_polygon(graph, i, line.point,
+				line.vector, coloring[i] ? crease_direction : opposite_crease);
+		});
+	// determine which faces changed
+
+}
+
 export function crease_folded(graph, point, vector, face_index) {
 	// if face isn't set, it will be determined by whichever face
 	// is directly underneath point. or if none, index 0.
 	if (face_index == null) {
-		// todo, detect face under point
-		face_index = 0;
-		// let faces = Array.from(chopReflect.svg.childNodes)
-		// 	.filter(el => el.getAttribute('id') == 'faces')
-		// 	.shift();
-		// faces.childNodes[face_index].setAttribute("class", "face");
-		// face_index = found;
+		face_index = PlanarGraph.face_containing_point(graph, point);
+		if(face_index === undefined) { face_index = 0; }
 	}
 	let primaryLine = Geom.Line(point, vector);
 	let coloring = Graph.face_coloring(graph, face_index);
@@ -42,14 +64,17 @@ export function crease_line(graph, point, vector) {
 	// let poly = boundary.map(v => graph.vertices_coords[v]);
 	// let edge_map = Array.from(Array(graph.edges_vertices.length)).map(_=>0);
 	let new_edges = [];
-	let arr = Array.from(Array(graph.faces_vertices.length)).map((_,i)=>i).reverse();
+	let arr = Array.from(Array(graph.faces_vertices.length))
+		.map((_,i)=>i).reverse();
 	arr.forEach(i => {
 		let diff = PlanarGraph.split_convex_polygon(graph, i, point, vector);
 		if (diff.edges != null && diff.edges.new != null) {
 			// a new crease line was added
 			let newEdgeIndex = diff.edges.new[0].index;
 			new_edges = new_edges.map(edge => 
-				edge += (diff.edges.map[edge] == null ? 0 : diff.edges.map[edge])
+				edge += (diff.edges.map[edge] == null
+					? 0
+					: diff.edges.map[edge])
 			);
 			new_edges.push(newEdgeIndex);
 		}

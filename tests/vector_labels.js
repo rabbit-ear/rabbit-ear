@@ -1,9 +1,9 @@
 let vecTextSketchCallback;
 
-let vecText = RabbitEar.svg.Image("canvas-vector-text", window.innerWidth, window.innerHeight, function(){
-	// vecText.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
-	// vecText.reset();
-	// vecText.update();
+let vecText = RabbitEar.svg.Image("canvas-vector-labels", window.innerWidth, window.innerHeight, function(){
+	vecText.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
+	vecText.reset();
+	vecText.update();
 });
 vecText.drawLayer = RabbitEar.svg.group();
 vecText.dotLayer = RabbitEar.svg.group();

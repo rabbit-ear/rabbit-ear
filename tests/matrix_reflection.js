@@ -36,7 +36,7 @@ reflect.drawReflections = function(){
 		reflect.touches[1].pos[0] - reflect.touches[0].pos[0],
 		reflect.touches[1].pos[1] - reflect.touches[0].pos[1]
 	];
-	let matrix = RabbitEar.math.Matrix.makeReflection(vec, reflect.touches[0].pos);
+	let matrix = RabbitEar.math.Matrix2.makeReflection(vec, reflect.touches[0].pos);
 	reflect.points.forEach(p => {
 		let newPos = matrix.transform(p.pos);
 		// console.log(newPos);

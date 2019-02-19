@@ -2,9 +2,7 @@ var creaseEdge = RabbitEar.Origami();
 
 creaseEdge.redraw = function(){
 	let p = [[Math.random(), Math.random()], [Math.random(), Math.random()]];
-	let result = RabbitEar.fold.axiom1(RabbitEar.bases.square, p[0], p[1]);
-	result.edges_assignment.push("V");
-	creaseEdge.cp = result;
+	creaseEdge.cp.axiom1(p[0], p[1]).valley();
 }
 creaseEdge.redraw();
 

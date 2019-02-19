@@ -1,24 +1,23 @@
 <?php include 'header.php';?>
 
-
 <h1>EUCLIDEAN GEOMETRY</h1>
 
 <section>
 	<div id="canvas-bisect"></div>
-	<p>This library includes a suite of geometry tools that can be leveraged independently of the rest of the origami related code.</p>
-	<p class="explain">It's possible to import only this math library and leave out all origami related code. All operations are performed on basic number types and arrays.</p>
+	<p>Included in this library is a suite of geometry tools able to be leveraged independently.</p>
 	<div class="centered">
-		<pre><code><f>let</f> M <key>=</key> <f>RabbitEar</f>.math</code></pre>
+		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
+	<p class="explain">If you're interested in including this math library in your own projects <a href="https://github.com/robbykraft/Geometry">the code is here</a>.</p>
 </section>
 
 <section id="types">
 	<h2>PRIMITIVES</h2>
 	<h3>Points / Vector</h3>
 	<p>A vector is represented by its components in 2D space: x and y. We call this class object a <b>vector</b>.</p>
-	<div id="canvas-vector"></div>
+	<div id="canvas-vector-labels"></div>
 	<div class="centered">
-		<pre><code><f>let</f> point <key>=</key> <f>M</f>.<f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br>point.<f>normalize</f>() <span style="color:#e44f2a">// normalized vector</span><br>point.<f>dot</f>() <span style="color:#ecb233">// dot product</span><br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#6096bb">// cross product with +Z</span></code></pre>
+		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br>point.<f>normalize</f>() <span style="color:#e44f2a">// normalized vector</span><br>point.<f>dot</f>() <span style="color:#ecb233">// dot product</span><br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#6096bb">// cross product with +Z</span></code></pre>
 	</div>
 
 	<h3>Linear Interpolation</h3>
@@ -36,7 +35,7 @@
 	<div id="canvas-intersection"></div>
 
 	<div class="centered">
-		<pre><code><f>let</f> segment <key>=</key> <f>M</f>.<f>Edge</f>(<span id="intersect-all-edge"></span>)<br><f>let</f> ray <key>=</key> <f>M</f>.<f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> line <key>=</key> <f>M</f>.<f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
+		<pre><code><f>let</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)<br><f>let</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
 	</div>
 
 	<div id="canvas-clipping"></div>
@@ -54,7 +53,7 @@
 	<p class="quote">The convex hull algorithm performed on a collection of points</p>
 	
 	<div class="centered">
-		<pre><code><f>let</f> polygon <key>=</key> <f>M</f>.<f>Polygon</f>()</code></pre>
+		<pre><code><f>let</f> polygon <key>=</key> <f>Polygon</f>()</code></pre>
 	</div>
 
 	<div id="canvas-clip-line"></div>
@@ -141,17 +140,17 @@
 </section>
 
 <script type="text/javascript" src="../tests/line_ray_edge.js"></script>
-<script type="text/javascript" src="../tests/bisect.js"></script>
-<script type="text/javascript" src="../tests/lerp.js"></script>
-<script type="text/javascript" src="../tests/vector.js"></script>
+<script type="text/javascript" src="../tests/sector_bisect.js"></script>
+<script type="text/javascript" src="../tests/vector_lerp.js"></script>
+<script type="text/javascript" src="../tests/vector_labels.js"></script>
 <script type="text/javascript" src="../tests/clipping.js"></script>
-<script type="text/javascript" src="../tests/clip_line.js"></script>
-<script type="text/javascript" src="../tests/split_poly.js"></script>
-<script type="text/javascript" src="../tests/reflection.js"></script>
-<script type="text/javascript" src="../tests/convex_hull.js"></script>
+<script type="text/javascript" src="../tests/polygon_split1.js"></script>
+<script type="text/javascript" src="../tests/polygon_split2.js"></script>
+<script type="text/javascript" src="../tests/matrix_reflection.js"></script>
+<script type="text/javascript" src="../tests/polygon_convex_hull.js"></script>
 <script type="text/javascript" src="../tests/polygon_contains.js"></script>
 <script type="text/javascript" src="../tests/polygon_overlaps.js"></script>
-<script type="text/javascript" src="../tests/intersection.js"></script>
+<script type="text/javascript" src="../tests/line_intersection.js"></script>
 
 
 <script type="text/javascript">
