@@ -4,11 +4,11 @@
 
 <section>
 	<div id="canvas-bisect"></div>
-	<p>Included in this library is a suite of geometry tools able to be leveraged independently.</p>
+	<p>This library includes a suite of geometry tools capable of being used independently of any origami calculations.</p>
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
-	<p class="explain">If you're interested in including this math library in your own projects <a href="https://github.com/robbykraft/Geometry">the code is here</a>.</p>
+	<p class="explain">Include this math library in your own projects: <a href="https://github.com/robbykraft/Geometry">code is here</a>.</p>
 </section>
 
 <section id="types">
@@ -19,8 +19,9 @@
 	<div class="centered">
 		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br>point.<f>normalize</f>() <span style="color:#e44f2a">// normalized vector</span><br>point.<f>dot</f>() <span style="color:#ecb233">// dot product</span><br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#6096bb">// cross product with +Z</span></code></pre>
 	</div>
+	<p class="explain">The vector object capable of being generalized to n-dimensions.</p>
 
-	<h3>Linear Interpolation</h3>
+	<!-- <h4>Linear Interpolation</h4> -->
 	<div id="canvas-lerp"></div>
 	<div class="centered">
 		<pre><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, t)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, t)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, t)</code></pre>
@@ -37,6 +38,13 @@
 	<div class="centered">
 		<pre><code><f>let</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)<br><f>let</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
 	</div>
+
+	<div id="nearest-point"></div>
+
+	<div class="centered">
+		<pre><code><f>let</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)<br><f>let</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
+	</div>
+
 
 	<div id="canvas-clipping"></div>
 	
@@ -140,6 +148,7 @@
 </section>
 
 <script type="text/javascript" src="../tests/line_ray_edge.js"></script>
+<script type="text/javascript" src="../tests/line_nearest_point.js"></script>
 <script type="text/javascript" src="../tests/sector_bisect.js"></script>
 <script type="text/javascript" src="../tests/vector_lerp.js"></script>
 <script type="text/javascript" src="../tests/vector_labels.js"></script>
