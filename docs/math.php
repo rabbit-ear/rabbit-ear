@@ -4,22 +4,22 @@
 
 <section>
 	<div id="canvas-bisect"></div>
-	<p>This library includes a suite of geometry tools capable of being used independently of any origami calculations.</p>
+	<p>This library includes a suite of geometry tools capable of being used independently of the rest of this library.</p>
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
-	<p class="explain">Include this math library in your own projects: <a href="https://github.com/robbykraft/Geometry">code is here</a>.</p>
+	<p class="explain">To include this math library in your own projects, the <a href="https://github.com/robbykraft/Geometry">code is here</a>.</p>
 </section>
 
 <section id="types">
 	<h2>PRIMITIVES</h2>
-	<h3>Points / Vector</h3>
-	<p>A vector is represented by its components in 2D space: x and y. We call this class object a <b>vector</b>.</p>
+	<h3>Point / Vector</h3>
+	<p>We describe a point by its location; its x and y (and z). Another way of saying location is the <b>offset from the origin (0,0)</b>. This allows for generalizations, when the origin isn't (0,0). A point is a displacement from a location. We call this object a <b>vector</b>.</p>
 	<div id="canvas-vector-labels"></div>
 	<div class="centered">
 		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br>point.<f>normalize</f>() <span style="color:#e44f2a">// normalized vector</span><br>point.<f>dot</f>() <span style="color:#ecb233">// dot product</span><br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#6096bb">// cross product with +Z</span></code></pre>
 	</div>
-	<p class="explain">The vector object capable of being generalized to n-dimensions.</p>
+	<p class="explain">This vector object and its methods can generalize to n-dimensions.</p>
 
 	<!-- <h4>Linear Interpolation</h4> -->
 	<div id="canvas-lerp"></div>
@@ -27,7 +27,7 @@
 		<pre><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, t)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, t)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, t)</code></pre>
 	</div>
 
-	<h3><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h3>
+<h3><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h3>
 
 	<div id="canvas-line-ray-edge"></div>
 
@@ -42,15 +42,29 @@
 	<div id="nearest-point"></div>
 
 	<div class="centered">
-		<pre><code><f>let</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)<br><f>let</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
+		<pre><code><f>let</f> point <key>=</key> edge.<f>nearestPoint</f>(<span id="nearest-point-mouse"></span>)</code></pre>
 	</div>
+
+	<p>The nearest point on a line to another point can be located if you draw a normal vector that passes through the point.</p>
+
+	<p>In the case of line segments, the normal might lie beyond the endpoints. The shortest point is now one of the two endpoints.</p>
 
 
 	<div id="canvas-clipping"></div>
 	
 	<p class="quote">Four arguments describe two points <b>(x1, y1, x2, y2)</b>.</p>
 
-	<p><b>Edges</b> and <b>lines</b> are defined by two collinear points, <b>rays</b> however are defined by an <b>origin</b> and a <b>direction vector</b>.</p>
+	<p>Lines, rays, and edges all contain a point and a vector.</p>
+
+	<div class="centered">
+		<pre><code><f>let</f> point <key>=</key> line.<f>point</f><br><f>let</f> vector <key>=</key> line.<f>vector</f></code></pre>
+	</div>
+
+	<p>In the case of rays the point is the terminal end, the vector extends to infinity. With edges the point is simply one of the endpoints; both of them are accessible from the <b>edge-only</b> property:</p>
+
+	<div class="centered">
+		<pre><code><f>let</f> endpoints <key>=</key> edge.<f>points</f></code></pre>
+	</div>
 
 <h3>Polygon</h3>
 
@@ -131,22 +145,6 @@
 
 </section>
 
-<section>
-<h3>Distance</h3>
-
-	<p>The nearest point on a line to another point can be located if you draw a normal vector that passes through the point.</p>
-
-	<p>In the case of line segments, the normal might lie beyond the endpoints. The shortest point is now one of the two endpoints.</p>
-
-	<div class="centered">
-		<canvas id="canvas-point-normal" class="half" resize></canvas>
-		<canvas id="canvas-point-nearest" class="half" resize></canvas>
-	</div>
-
-	<p>The sketch on the left determines the nearest point only using a normal vector and the sketch on the right includes the endpoints in the calculation.</p>
-
-</section>
-
 <script type="text/javascript" src="../tests/line_ray_edge.js"></script>
 <script type="text/javascript" src="../tests/line_nearest_point.js"></script>
 <script type="text/javascript" src="../tests/sector_bisect.js"></script>
@@ -161,7 +159,6 @@
 <script type="text/javascript" src="../tests/polygon_overlaps.js"></script>
 <script type="text/javascript" src="../tests/line_intersection.js"></script>
 
-
 <script type="text/javascript">
 vecSketchCallback = function(event){
 	if (event.vector != null){
@@ -169,7 +166,12 @@ vecSketchCallback = function(event){
 		document.getElementById("vec-sketch-vector").innerHTML = pointString;
 	}
 }
+nearestPointCallback = function(event) {
+	if (event.mouse != null) {
+		let pointString = "<n>" + (event.mouse[0]).toFixed(2) + "</n>, " + "<n>" + (event.mouse[1]).toFixed(2) + "</n>";
+		document.getElementById("nearest-point-mouse").innerHTML = pointString;
+	}
+}
 </script>
-
 
 <?php include 'footer.php';?>

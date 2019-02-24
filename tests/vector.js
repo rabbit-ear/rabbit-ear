@@ -77,7 +77,7 @@ vec.redraw = function(){
 	crossDot.setAttribute("fill", "#195783");
 	vec.drawLayer.appendChild(crossDot);
 
-	let crossLen = vec.cross.magnitude();
+	let crossLen = vec.cross.magnitude;
 	let crossAngle = Math.atan2(vec.cross.y, vec.cross.x);
 	let crossA = 0, crossB = 0;
 	if (vec.cross.x > 0 && vec.cross.y > 0){ crossA = 0;  crossB = crossAngle; }
@@ -100,7 +100,7 @@ vec.redraw = function(){
 	line.setAttribute("stroke-linecap", "round");
 	vec.drawLayer.appendChild(line);
 
-	let normLen = vec.normalized.magnitude();
+	let normLen = vec.normalized.magnitude;
 	let normAngle = Math.atan2(vec.normalized.y, vec.normalized.x);
 	let nA = 0, nB = 0;
 	if (vec.normalized.x > 0 && vec.normalized.y > 0){ nA = 0;  nB = normAngle; }

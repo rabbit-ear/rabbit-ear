@@ -1,4 +1,6 @@
-let nearestPoint = RabbitEar.svg.Image("nearest-point", 1000, 300);
+var nearestPointCallback;
+
+let nearestPoint = RabbitEar.svg.Image("nearest-point", 600, 300);
 let lineLayer = RabbitEar.svg.group();
 let circleLayer = RabbitEar.svg.group();
 nearestPoint.appendChild(lineLayer);
@@ -25,4 +27,7 @@ nearestPoint.onMouseMove = function(mouse) {
 	circles.forEach(c => c.setAttribute("stroke", "black"));
 	circles.forEach(c => c.setAttribute("stroke-width", 4));
 	circles.forEach(c => circleLayer.appendChild(c));
+	if (nearestPointCallback != null) {
+		nearestPointCallback({mouse: mouse.position});
+	}
 }
