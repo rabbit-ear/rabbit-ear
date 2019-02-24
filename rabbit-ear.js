@@ -3510,6 +3510,15 @@
 			.map((_,i) => [x + r*Math.cos(i/RES_CIRCLE*Math.PI*2), y + r*Math.sin(i/RES_CIRCLE*Math.PI*2)])
 			.map((_,i,arr) => [arr[i][0], arr[i][1], arr[(i+1)%arr.length][0], arr[(i+1)%arr.length][1]]);
 	}
+	function svg_ellipse_to_segments(ellipse) {
+		let x = ellipse.cx.baseVal.value;
+		let y = ellipse.cy.baseVal.value;
+		let rx = ellipse.rx.baseVal.value;
+		let ry = ellipse.ry.baseVal.value;
+		return Array.from(Array(RES_CIRCLE))
+			.map((_,i) => [x + rx*Math.cos(i/RES_CIRCLE*Math.PI*2), y + ry*Math.sin(i/RES_CIRCLE*Math.PI*2)])
+			.map((_,i,arr) => [arr[i][0], arr[i][1], arr[(i+1)%arr.length][0], arr[(i+1)%arr.length][1]]);
+	}
 	function svg_polygon_to_segments(polygon) {
 		return Array.from(polygon.points)
 			.map(p => [p.x, p.y])
@@ -3537,6 +3546,7 @@
 			"line": svg_line_to_segments,
 			"rect": svg_rect_to_segments,
 			"circle": svg_circle_to_segments,
+			"ellipse": svg_ellipse_to_segments,
 			"polygon": svg_polygon_to_segments,
 			"polyline": svg_polyline_to_segments,
 			"path": svg_path_to_segments
