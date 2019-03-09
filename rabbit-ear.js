@@ -9,100 +9,51 @@
 	const EPSILON_LOW  = 3e-6;
 	const EPSILON      = 1e-10;
 	const EPSILON_HIGH = 1e-14;
-
-	/** clean floating point numbers
-	 *  example: 15.0000000000000002 into 15
-	 * the adjustable epsilon is default 15, Javascripts 16 digit float
-	 */
 	function clean_number(num, decimalPlaces = 15) {
-		// todo, this fails when num is a string, consider checking
 		return (num == null
 			? undefined
 			: parseFloat(num.toFixed(decimalPlaces)));
 	}
 
-	// all points are array syntax [x,y]
-
-	///////////////////////////////////////////////////////////////////////////////
-	// the following operations neatly generalize for n-dimensions
-
-	/**
-	 * @param [number]
-	 * @returns [number]
-	 */
 	function normalize(v) {
 		let m = magnitude(v);
-		// todo: do we need to intervene for a divide by 0?
 		return v.map(c => c / m);
 	}
-
-	/**
-	 * @param [number]
-	 * @returns number
-	 */
 	function magnitude(v) {
 		let sum = v
 			.map(component => component * component)
 			.reduce((prev,curr) => prev + curr);
 		return Math.sqrt(sum);
 	}
-
-	/**
-	 * @param [number]
-	 * @returns boolean
-	 */
 	function degenerate(v) {
 		return Math.abs(v.reduce((a, b) => a + b, 0)) < EPSILON;
 	}
-
-	///////////////////////////////////////////////////////////////////////////////
-	// these *can* generalize to n-dimensions, but lengths of arguments must match
-	// if the second argument larger than the first it will ignore leftover components
-	//
 	function dot(a, b) {
 		return a
 			.map((_,i) => a[i] * b[i])
 			.reduce((prev,curr) => prev + curr, 0);
 	}
-
 	function equivalent(a, b, epsilon = EPSILON) {
-		// rectangular bounds test for fast calculation
 		return a
 			.map((_,i) => Math.abs(a[i] - b[i]) < epsilon)
 			reduce((a,b) => a && b, true);
 	}
-
 	function parallel(a, b, epsilon = EPSILON) {
 		return 1 - Math.abs(dot(normalize(a), normalize(b))) < epsilon;
 	}
-
 	function midpoint$1(a, b) {
 		return a.map((ai,i) => (ai+b[i])*0.5);
 	}
-
-	// average is a midpoint function for n-number of arguments
-	function average(vecs) {
-		let initial = Array.from(Array(vecs.length)).map(_ => 0);
-		return vecs.reduce((a,b) => a.map((_,i) => a[i]+b[i]), initial)
-			.map(c => c / vecs.length);
+	function average(vectors) {
+		let initial = Array.from(Array(vectors.length)).map(_ => 0);
+		return vectors.reduce((a,b) => a.map((_,i) => a[i]+b[i]), initial)
+			.map(c => c / vectors.length);
 	}
-
-
-	///////////////////////////////////////////////////////////////////////////////
-	// everything else that follows is hard-coded to certain dimensions
-	//
-
-	/** apply a matrix transform on a point */
 	function multiply_vector2_matrix2(vector, matrix) {
 		return [ vector[0] * matrix[0] + vector[1] * matrix[2] + matrix[4],
 		         vector[0] * matrix[1] + vector[1] * matrix[3] + matrix[5] ];
 	}
-
-	/** 
-	 * These all standardize a row-column order
-	 */
 	function make_matrix2_reflection(vector, origin) {
-		// the line of reflection passes through origin, runs along vector
 		let angle = Math.atan2(vector[1], vector[0]);
 		let cosAngle = Math.cos(angle);
 		let sinAngle = Math.sin(angle);
@@ -132,7 +83,7 @@
 			m[3]/det,
 			-m[1]/det,
 			-m[2]/det,
-			m[0]/det, 
+			m[0]/det,
 			(m[2]*m[5] - m[3]*m[4])/det,
 			(m[1]*m[4] - m[0]*m[5])/det
 		];
@@ -146,14 +97,9 @@
 		let ty = m1[1] * m2[4] + m1[3] * m2[5] + m1[5];
 		return [a, b, c, d, tx, ty];
 	}
-
-	// these are all hard-coded to certain vector lengths
-	// the length is specified by the number at the end of the function name
-
 	function cross2(a, b) {
 		return [ a[0]*b[1], a[1]*b[0] ];
 	}
-
 	function cross3(a, b) {
 		return [
 			a[1]*b[2] - a[2]*b[1],
@@ -161,22 +107,17 @@
 			a[0]*b[1] - a[1]*b[0]
 		];
 	}
-
 	function distance2(a, b) {
 		let c = a[0] - b[0];
 		let d = a[1] - b[1];
 		return Math.sqrt((c * c) + (d * d));
 	}
-
 	function distance3(a, b) {
 		let c = a[0] - b[0];
 		let d = a[1] - b[1];
 		let e = a[2] - b[2];
 		return Math.sqrt((c * c) + (d * d) + (e * e));
 	}
-
-	// need to test:
-	// do two polygons overlap if they share a point in common? share an edge?
 
 	var algebra = /*#__PURE__*/Object.freeze({
 		normalize: normalize,
@@ -198,17 +139,9 @@
 		distance3: distance3
 	});
 
-	/** 
-	 *  all intersection functions are inclusive and return true if 
-	 *  intersection lies directly on an edge's endpoint. to exclude
-	 *  endpoints, use "exclusive" functions
-	 */
-
 	function equivalent2(a, b, epsilon = EPSILON) {
 		return Math.abs(a[0]-b[0]) < epsilon && Math.abs(a[1]-b[1]) < epsilon;
 	}
-
-
 	function line_line(aPt, aVec, bPt, bVec, epsilon) {
 		return intersection_function(aPt, aVec, bPt, bVec, line_line_comp, epsilon);
 	}
@@ -231,18 +164,25 @@
 		let bVec = [b1[0]-b0[0], b1[1]-b0[1]];
 		return intersection_function(a0, aVec, b0, bVec, edge_edge_comp, epsilon);
 	}
-
-	function line_edge_exclusive(point, vec, edge0, edge1) {
-		let edgeVec = [edge1[0]-edge0[0], edge1[1]-edge0[1]];
-		let x = intersection_function(point, vec, edge0, edgeVec, line_edge_comp);
-		if (x == null) { return undefined; }
-		if (equivalent2(x, edge0) || equivalent2(x, edge1)) {
-			return undefined;
-		}
-		return x;
+	function line_ray_exclusive(linePt, lineVec, rayPt, rayVec, epsilon) {
+		return intersection_function(linePt, lineVec, rayPt, rayVec, line_ray_comp_exclusive, epsilon);
 	}
-
-	/** comparison functions for a generalized vector intersection function */
+	function line_edge_exclusive(point, vec, edge0, edge1, epsilon) {
+		let edgeVec = [edge1[0]-edge0[0], edge1[1]-edge0[1]];
+		return intersection_function(point, vec, edge0, edgeVec, line_edge_comp_exclusive, epsilon);
+	}
+	function ray_ray_exclusive(aPt, aVec, bPt, bVec, epsilon) {
+		return intersection_function(aPt, aVec, bPt, bVec, ray_ray_comp_exclusive, epsilon);
+	}
+	function ray_edge_exclusive(rayPt, rayVec, edge0, edge1, epsilon) {
+		let edgeVec = [edge1[0]-edge0[0], edge1[1]-edge0[1]];
+		return intersection_function(rayPt, rayVec, edge0, edgeVec, ray_edge_comp_exclusive, epsilon);
+	}
+	function edge_edge_exclusive(a0, a1, b0, b1, epsilon) {
+		let aVec = [a1[0]-a0[0], a1[1]-a0[1]];
+		let bVec = [b1[0]-b0[0], b1[1]-b0[1]];
+		return intersection_function(a0, aVec, b0, bVec, edge_edge_comp_exclusive, epsilon);
+	}
 	const line_line_comp = function() { return true; };
 	const line_ray_comp = function(t0, t1, epsilon = EPSILON) {
 		return t1 >= -epsilon;
@@ -260,18 +200,27 @@
 		return t0 >= -epsilon && t0 <= 1+epsilon &&
 		       t1 >= -epsilon && t1 <= 1+epsilon;
 	};
-
-
-	/** 
-	 * the generalized vector intersection function
-	 * requires a compFunction to describe valid bounds checking 
-	 * line always returns true, ray is true for t > 0, edge must be between 0 < t < 1
-	*/
+	const line_ray_comp_exclusive = function(t0, t1, epsilon = EPSILON) {
+		return t1 > epsilon;
+	};
+	const line_edge_comp_exclusive = function(t0, t1, epsilon = EPSILON) {
+		return t1 > epsilon && t1 < 1-epsilon;
+	};
+	const ray_ray_comp_exclusive = function(t0, t1, epsilon = EPSILON) {
+		return t0 > epsilon && t1 > epsilon;
+	};
+	const ray_edge_comp_exclusive = function(t0, t1, epsilon = EPSILON) {
+		return t0 > epsilon && t1 > epsilon && t1 < 1-epsilon;
+	};
+	const edge_edge_comp_exclusive = function(t0, t1, epsilon = EPSILON) {
+		return t0 > epsilon && t0 < 1-epsilon &&
+		       t1 > epsilon && t1 < 1-epsilon;
+	};
 	const intersection_function = function(aPt, aVec, bPt, bVec, compFunction, epsilon = EPSILON) {
 		function det(a,b) { return a[0] * b[1] - b[0] * a[1]; }
 		let denominator0 = det(aVec, bVec);
 		let denominator1 = -denominator0;
-		if (Math.abs(denominator0) < epsilon) { return undefined; } /* parallel */
+		if (Math.abs(denominator0) < epsilon) { return undefined; }
 		let numerator0 = det([bPt[0]-aPt[0], bPt[1]-aPt[1]], bVec);
 		let numerator1 = det([aPt[0]-bPt[0], aPt[1]-bPt[1]], aVec);
 		let t0 = numerator0 / denominator0;
@@ -280,25 +229,12 @@
 			return [aPt[0] + aVec[0]*t0, aPt[1] + aVec[1]*t0];
 		}
 	};
-
-
-
-	/** 
-	 *  Boolean tests
-	 *  collinearity, overlap, contains
-	 */
-
-
-	/** is a point collinear to a line, within an epsilon */
 	function point_on_line(linePoint, lineVector, point, epsilon = EPSILON) {
 		let pointPoint = [point[0] - linePoint[0], point[1] - linePoint[1]];
 		let cross = pointPoint[0]*lineVector[1] - pointPoint[1]*lineVector[0];
 		return Math.abs(cross) < epsilon;
 	}
-
-	/** is a point collinear to an edge, between endpoints, within an epsilon */
 	function point_on_edge(edge0, edge1, point, epsilon = EPSILON) {
-		// distance between endpoints A,B should be equal to point->A + point->B
 		let dEdge = Math.sqrt(Math.pow(edge0[0]-edge1[0],2) +
 		                      Math.pow(edge0[1]-edge1[1],2));
 		let dP0 = Math.sqrt(Math.pow(point[0]-edge0[0],2) +
@@ -307,16 +243,7 @@
 		                    Math.pow(point[1]-edge1[1],2));
 		return Math.abs(dEdge - dP0 - dP1) < epsilon;
 	}
-
-
-	/**
-	 * Tests whether or not a point is contained inside a polygon.
-	 * @returns {boolean} whether the point is inside the polygon or not
-	 * @example
-	 * var isInside = point_in_poly(polygonPoints, [0.5, 0.5])
-	 */
 	function point_in_poly(poly, point, epsilon = EPSILON) {
-		// W. Randolph Franklin https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
 		let isInside = false;
 		for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
 			if ( (poly[i][1] > point[1]) != (poly[j][1] > point[1]) &&
@@ -326,13 +253,6 @@
 		}
 		return isInside;
 	}
-
-	/** is a point inside of a convex polygon? 
-	 * including along the boundary within epsilon 
-	 *
-	 * @param poly is an array of points [ [x,y], [x,y]...]
-	 * @returns {boolean} true if point is inside polygon
-	 */
 	function point_in_convex_poly(poly, point, epsilon = EPSILON) {
 		if (poly == undefined || !(poly.length > 0)) { return false; }
 		return poly.map( (p,i,arr) => {
@@ -342,10 +262,7 @@
 			return a[0] * b[1] - a[1] * b[0] > -epsilon;
 		}).map((s,i,arr) => s == arr[0]).reduce((prev,curr) => prev && curr, true)
 	}
-
-	/** do two convex polygons overlap one another */
 	function convex_polygons_overlap(ps1, ps2) {
-		// convert array of points into edges [point, nextPoint]
 		let e1 = ps1.map((p,i,arr) => [p, arr[(i+1)%arr.length]] );
 		let e2 = ps2.map((p,i,arr) => [p, arr[(i+1)%arr.length]] );
 		for (let i = 0; i < e1.length; i++) {
@@ -359,25 +276,16 @@
 		if (point_in_convex_poly(ps2, ps1[0])) { return true; }
 		return false;
 	}
-
-	/** 
-	 *  Clipping operations
-	 *  
-	 */
-
-	/** clip an infinite line in a polygon, returns an edge or undefined if no intersection */
 	function clip_line_in_convex_poly(poly, linePoint, lineVector) {
 		let intersections = poly
-			.map((p,i,arr) => [p, arr[(i+1)%arr.length]] ) // poly points into edge pairs
+			.map((p,i,arr) => [p, arr[(i+1)%arr.length]] )
 			.map(el => line_edge(linePoint, lineVector, el[0], el[1]))
 			.filter(el => el != null);
 		switch (intersections.length) {
 		case 0: return undefined;
-		case 1: return [intersections[0], intersections[0]]; // degenerate edge
+		case 1: return [intersections[0], intersections[0]];
 		case 2: return intersections;
 		default:
-		// special case: line intersects directly on a poly point (2 edges, same point)
-		//  filter to unique points by [x,y] comparison.
 			for (let i = 1; i < intersections.length; i++) {
 				if ( !equivalent2(intersections[0], intersections[i])) {
 					return [intersections[0], intersections[i]];
@@ -385,17 +293,15 @@
 			}
 		}
 	}
-
 	function clip_ray_in_convex_poly(poly, linePoint, lineVector) {
 		var intersections = poly
-			.map((p,i,arr) => [p, arr[(i+1)%arr.length]] ) // poly points into edge pairs
+			.map((p,i,arr) => [p, arr[(i+1)%arr.length]] )
 			.map(el => ray_edge(linePoint, lineVector, el[0], el[1]))
 			.filter(el => el != null);
 		switch (intersections.length) {
 		case 0: return undefined;
 		case 1: return [linePoint, intersections[0]];
 		case 2: return intersections;
-		// default: throw "clipping ray in a convex polygon resulting in 3 or more points";
 		default:
 			for (let i = 1; i < intersections.length; i++) {
 				if ( !equivalent2(intersections[0], intersections[i])) {
@@ -404,13 +310,11 @@
 			}
 		}
 	}
-
 	function clip_edge_in_convex_poly(poly, edgeA, edgeB) {
 		let intersections = poly
-			.map((p,i,arr) => [p, arr[(i+1)%arr.length]] ) // poly points into edge pairs
+			.map((p,i,arr) => [p, arr[(i+1)%arr.length]] )
 			.map(el => edge_edge(edgeA, edgeB, el[0], el[1]))
 			.filter(el => el != null);
-		// more efficient if we make sure these are unique
 		for (var i = 0; i < intersections.length; i++) {
 			for (var j = intersections.length-1; j > i; j--) {
 				if (equivalent2(intersections[i], intersections[j])) {
@@ -423,14 +327,13 @@
 			case 0: return ( aInside
 				? [[...edgeA], [...edgeB]]
 				: undefined );
-			case 1: return ( aInside 
+			case 1: return ( aInside
 				? [[...edgeA], intersections[0]]
 				: [[...edgeB], intersections[0]] );
 			case 2: return intersections;
 			default: throw "clipping ray in a convex polygon resulting in 3 or more points";
 		}
 	}
-
 	function nearest_point(linePoint, lineVector, point, limiterFunc, epsilon = EPSILON) {
 		let magSquared = Math.pow(lineVector[0],2) + Math.pow(lineVector[1],2);
 		let vectorToPoint = [0,1].map((_,i) => point[i] - linePoint[i]);
@@ -439,21 +342,40 @@
 			.map((_,i) => lineVector[i] * vectorToPoint[i])
 			.reduce((a,b) => a + b, 0);
 		let distance = dot / magSquared;
-		// limit depending on line, ray, edge
 		let d = limiterFunc(distance, epsilon);
 		return [0,1].map((_,i) => linePoint[i] + lineVector[i] * d);
 	}
-
-
-
-	function intersection_circle_line(center, radius, p0, p1) {
-		throw "intersection_circle_line has not been written yet";
+	function intersection_circle_line(center, radius, p0, p1, epsilon = EPSILON) {
+		let x1 = p0[0] - center[0];
+		let y1 = p0[1] - center[1];
+		let x2 = p1[0] - center[0];
+		let y2 = p1[1] - center[1];
+		let dx = x2 - x1;
+		let dy = y2 - y1;
+		let det = x1*y2 - x2*y1;
+		let det_sq = det * det;
+		let r_sq = radius * radius;
+		let dr_sq = Math.abs(dx*dx + dy*dy);
+		let delta = r_sq * dr_sq - det_sq;
+		if (delta < -epsilon) { return undefined; }
+		let suffix = Math.sqrt(r_sq*dr_sq - det_sq);
+		function sgn(x) { return (x < -epsilon) ? -1 : 1; }
+		let solutionA = [
+			center[0] + (det * dy + sgn(dy)*dx * suffix) / dr_sq,
+			center[1] + (-det * dx + Math.abs(dy) * suffix) / dr_sq
+		];
+		if (delta > epsilon) {
+			let solutionB = [
+				center[0] + (det * dy - sgn(dy)*dx * suffix) / dr_sq,
+				center[1] + (-det * dx - Math.abs(dy) * suffix) / dr_sq
+			];
+			return [solutionA, solutionB];
+		}
+		return [solutionA];
 	}
 	function intersection_circle_ray(center, radius, p0, p1) {
 		throw "intersection_circle_ray has not been written yet";
 	}
-
-
 	function intersection_circle_edge(center, radius, p0, p1) {
 		var r_squared =  Math.pow(radius, 2);
 		var x1 = p0[0] - center[0];
@@ -493,7 +415,11 @@
 		ray_ray: ray_ray,
 		ray_edge: ray_edge,
 		edge_edge: edge_edge,
+		line_ray_exclusive: line_ray_exclusive,
 		line_edge_exclusive: line_edge_exclusive,
+		ray_ray_exclusive: ray_ray_exclusive,
+		ray_edge_exclusive: ray_edge_exclusive,
+		edge_edge_exclusive: edge_edge_exclusive,
 		intersection_function: intersection_function,
 		point_on_line: point_on_line,
 		point_on_edge: point_on_edge,
@@ -516,16 +442,10 @@
 			var a = -2 * Math.PI * i / sides + halfwedge;
 			var px = clean_number(x + r * Math.sin(a), 14);
 			var py = clean_number(y + r * Math.cos(a), 14);
-			return [px, py]; // align point along Y
+			return [px, py];
 		});
 	}
-
-	/** There are 2 interior angles between 2 absolute angle measurements, from A to B return the clockwise one
-	 * @param {number} angle in radians, angle PI/2 is along the +Y axis
-	 * @returns {number} clockwise interior angle (from a to b) in radians
-	 */
 	function clockwise_angle2_radians(a, b) {
-		// this is on average 50 to 100 times faster than clockwise_angle2
 		while (a < 0) { a += Math.PI*2; }
 		while (b < 0) { b += Math.PI*2; }
 		var a_b = a - b;
@@ -534,7 +454,6 @@
 			: Math.PI*2 - (b - a);
 	}
 	function counter_clockwise_angle2_radians(a, b) {
-		// this is on average 50 to 100 times faster than counter_clockwise_angle2
 		while (a < 0) { a += Math.PI*2; }
 		while (b < 0) { b += Math.PI*2; }
 		var b_a = b - a;
@@ -542,11 +461,6 @@
 			? b_a
 			: Math.PI*2 - (a - b);
 	}
-
-	/** There are 2 angles between 2 vectors, from A to B return the clockwise one.
-	 * @param {[number, number]} vector
-	 * @returns {number} clockwise angle (from a to b) in radians
-	 */
 	function clockwise_angle2(a, b) {
 		var dotProduct = b[0]*a[0] + b[1]*a[1];
 		var determinant = b[0]*a[1] - b[1]*a[0];
@@ -561,10 +475,6 @@
 		if (angle < 0) { angle += Math.PI*2; }
 		return angle;
 	}
-	/** There are 2 interior angles between 2 vectors, return both, the smaller first
-	 * @param {[number, number]} vector
-	 * @returns {[number, number]} 2 angle measurements between vectors
-	 */
 	function interior_angles2(a, b) {
 		var interior1 = clockwise_angle2(a, b);
 		var interior2 = Math.PI*2 - interior1;
@@ -572,10 +482,6 @@
 			? [interior1, interior2]
 			: [interior2, interior1];
 	}
-	/** This bisects 2 vectors, returning both smaller and larger outside angle bisections [small, large]
-	 * @param {[number, number]} vector
-	 * @returns {[[number, number],[number, number]]} 2 vectors, the smaller angle first
-	 */
 	function bisect_vectors(a, b) {
 		let aV = normalize(a);
 		let bV = normalize(b);
@@ -584,25 +490,18 @@
 		let vecB = aV.map((_,i) => -aV[i] + -bV[i]);
 		return [vecA, normalize(vecB)];
 	}
-
-	/** This bisects 2 lines
-	 * @param {[number, number]} all vectors, lines defined by points and vectors
-	 * @returns [ [number,number], [number,number] ] // line, defined as point, vector, in that order
-	 */
 	function bisect_lines2(pointA, vectorA, pointB, vectorB) {
 		let denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
-		if (Math.abs(denominator) < EPSILON) { /* parallel */
+		if (Math.abs(denominator) < EPSILON) {
 			return [midpoint(pointA, pointB), vectorA.slice()];
 		}
 		let vectorC = [pointB[0]-pointA[0], pointB[1]-pointA[1]];
-		// var numerator = vectorC[0] * vectorB[1] - vectorB[0] * vectorC[1];
 		let numerator = (pointB[0]-pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1]-pointA[1]);
 		var t = numerator / denominator;
 		let x = pointA[0] + vectorA[0]*t;
 		let y = pointA[1] + vectorA[1]*t;
 		var bisects = bisect_vectors(vectorA, vectorB);
 		bisects[1] = [ bisects[1][1], -bisects[1][0] ];
-		// swap to make smaller interior angle first
 		if (Math.abs(cross2(vectorA, bisects[1])) <
 		   Math.abs(cross2(vectorA, bisects[0]))) {
 			var swap = bisects[0];
@@ -611,32 +510,6 @@
 		}
 		return bisects.map((el) => [[x,y], el]);
 	}
-
-	// todo: check the implementation above, if it works, delete this:
-
-	// export function bisect_lines2(pointA, vectorA, pointB, vectorB) {
-	// 	if (parallel(vectorA, vectorB)) {
-	// 		return [midpoint(pointA, pointB), vectorA.slice()];
-	// 	} else{
-	// 		var inter = Intersection.line_line(pointA, vectorA, pointB, vectorB);
-	// 		var bisect = bisect_vectors(vectorA, vectorB);
-	// 		bisects[1] = [ bisects[1][1], -bisects[1][0] ];
-	// 		// swap to make smaller interior angle first
-	// 		if (Math.abs(cross2(vectorA, bisects[1])) <
-	// 		   Math.abs(cross2(vectorA, bisects[0]))) {
-	// 			var swap = bisects[0];
-	// 			bisects[0] = bisects[1];
-	// 			bisects[1] = swap;
-	// 		}
-	// 		return bisects.map((el) => [inter, el]);
-	// 	}
-	// }
-
-	/** Calculates the signed area of a polygon. This requires the polygon be non-intersecting.
-	 * @returns {number} the area of the polygon
-	 * @example
-	 * var area = polygon.signedArea()
-	 */
 	function signed_area(points) {
 		return 0.5 * points.map((el,i,arr) => {
 			var next = arr[(i+1)%arr.length];
@@ -644,12 +517,6 @@
 		})
 		.reduce((a, b) => a + b, 0);
 	}
-
-	/** Calculates the centroid or the center of mass of the polygon.
-	 * @returns {XY} the location of the centroid
-	 * @example
-	 * var centroid = polygon.centroid()
-	 */
 	function centroid(points) {
 		let sixthArea = 1/(6 * signed_area(points));
 		return points.map((el,i,arr) => {
@@ -660,16 +527,11 @@
 		.reduce((a, b) => [a[0]+b[0], a[1]+b[1]], [0,0])
 		.map(c => c * sixthArea);
 	}
-
-	/**
-	 * works in any n-dimension (enclosing cube, hypercube..)
-	 * @returns array of arrays: [[x, y], [width, height]]
-	 */
 	function enclosing_rectangle(points) {
 		let l = points[0].length;
 		let mins = Array.from(Array(l)).map(_ => Infinity);
 		let maxs = Array.from(Array(l)).map(_ => -Infinity);
-		points.forEach(point => 
+		points.forEach(point =>
 			point.forEach((c,i) => {
 				if(c < mins[i]) { mins[i] = c; }
 				if(c > maxs[i]) { maxs[i] = c; }
@@ -678,73 +540,47 @@
 		let lengths = maxs.map((max,i) => max - mins[i]);
 		return [mins, lengths];
 	}
-
 	function convex_hull(points, include_collinear = false, epsilon = EPSILON_HIGH) {
-		// # points in the convex hull before escaping function
 		var INFINITE_LOOP = 10000;
-		// sort points by y. if ys are equivalent, sort by x
 		var sorted = points.slice().sort((a,b) =>
 			(Math.abs(a[1]-b[1]) < epsilon
 				? a[0] - b[0]
 				: a[1] - b[1]));
 		var hull = [];
 		hull.push(sorted[0]);
-		// the current direction the perimeter walker is facing
-		var ang = 0;  
+		var ang = 0;
 		var infiniteLoop = 0;
 		do{
 			infiniteLoop++;
 			var h = hull.length-1;
 			var angles = sorted
-				// remove all points in the same location from this search
-				.filter(el => 
+				.filter(el =>
 					!( Math.abs(el[0] - hull[h][0]) < epsilon
 					&& Math.abs(el[1] - hull[h][1]) < epsilon))
-				// sort by angle, setting lowest values next to "ang"
 				.map(el => {
 					var angle = Math.atan2(hull[h][1] - el[1], hull[h][0] - el[0]);
 					while(angle < ang) { angle += Math.PI*2; }
 					return {node:el, angle:angle, distance:undefined};
-				})  // distance to be set later
+				})
 				.sort((a,b) => (a.angle < b.angle)?-1:(a.angle > b.angle)?1:0);
 			if (angles.length === 0) { return undefined; }
-			// narrowest-most right turn
 			var rightTurn = angles[0];
-			// collect all other points that are collinear along the same ray
 			angles = angles.filter(el => Math.abs(rightTurn.angle - el.angle) < epsilon)
-			// sort collinear points by their distances from the connecting point
-				.map(el => { 
+				.map(el => {
 					var distance = Math.sqrt(Math.pow(hull[h][0]-el.node[0], 2) + Math.pow(hull[h][1]-el.node[1], 2));
 					el.distance = distance;
 					return el;
 				})
-			// (OPTION 1) exclude all collinear points along the hull 
 			.sort((a,b) => (a.distance < b.distance)?1:(a.distance > b.distance)?-1:0);
-			// (OPTION 2) include all collinear points along the hull
-			// .sort(function(a,b) {return (a.distance < b.distance)?-1:(a.distance > b.distance)?1:0});
-			// if the point is already in the convex hull, we've made a loop. we're done
-			// if (contains(hull, angles[0].node)) {
-			// if (includeCollinear) {
-			// 	points.sort(function(a,b) {return (a.distance - b.distance)});
-			// } else{
-			// 	points.sort(function(a,b) {return b.distance - a.distance});
-			// }
-
 			if (hull.filter(el => el === angles[0].node).length > 0) {
 				return hull;
 			}
-			// add point to hull, prepare to loop again
 			hull.push(angles[0].node);
-			// update walking direction with the angle to the new point
 			ang = Math.atan2( hull[h][1] - angles[0].node[1], hull[h][0] - angles[0].node[0]);
 		} while(infiniteLoop < INFINITE_LOOP);
 		return undefined;
 	}
-
-
 	function split_polygon(poly, linePoint, lineVector) {
-		//    point: intersection [x,y] point or null if no intersection
-		// at_index: where in the polygon this occurs
 		let vertices_intersections = poly.map((v,i) => {
 			let intersection = point_on_line(linePoint, lineVector, v);
 			return { type: "v", point: intersection ? v : null, at_index: i };
@@ -753,7 +589,6 @@
 			let intersection = line_edge_exclusive(linePoint, lineVector, v, arr[(i+1)%arr.length]);
 			return { type: "e", point: intersection, at_index: i };
 		}).filter(el => el.point != null);
-
 		let sorted = vertices_intersections.concat(edges_intersections).sort((a,b) =>
 			( Math.abs(a.point[0]-b.point[0]) < EPSILON
 				? a.point[1] - b.point[1]
@@ -762,13 +597,7 @@
 		console.log(sorted);
 		return poly;
 	}
-
 	function split_convex_polygon(poly, linePoint, lineVector) {
-		// todo: should this return undefined if no intersection? 
-		//       or the original poly?
-
-		//    point: intersection [x,y] point or null if no intersection
-		// at_index: where in the polygon this occurs
 		let vertices_intersections = poly.map((v,i) => {
 			let intersection = point_on_line(linePoint, lineVector, v);
 			return { point: intersection ? v : null, at_index: i };
@@ -777,18 +606,14 @@
 			let intersection = line_edge_exclusive(linePoint, lineVector, v, arr[(i+1)%arr.length]);
 			return { point: intersection, at_index: i };
 		}).filter(el => el.point != null);
-
-		// three cases: intersection at 2 edges, 2 points, 1 edge and 1 point
 		if (edges_intersections.length == 2) {
 			let sorted_edges = edges_intersections.slice()
 				.sort((a,b) => a.at_index - b.at_index);
-
 			let face_a = poly
 				.slice(sorted_edges[1].at_index+1)
 				.concat(poly.slice(0, sorted_edges[0].at_index+1));
 			face_a.push(sorted_edges[0].point);
 			face_a.push(sorted_edges[1].point);
-
 			let face_b = poly
 				.slice(sorted_edges[0].at_index+1, sorted_edges[1].at_index+1);
 			face_b.push(sorted_edges[1].point);
@@ -799,16 +624,14 @@
 			edges_intersections[0]["type"] = "e";
 			let sorted_geom = vertices_intersections.concat(edges_intersections)
 				.sort((a,b) => a.at_index - b.at_index);
-
 			let face_a = poly.slice(sorted_geom[1].at_index+1)
 				.concat(poly.slice(0, sorted_geom[0].at_index+1));
 			if (sorted_geom[0].type === "e") { face_a.push(sorted_geom[0].point); }
-			face_a.push(sorted_geom[1].point); // todo: if there's a bug, it's here. switch this
-
+			face_a.push(sorted_geom[1].point);
 			let face_b = poly
 				.slice(sorted_geom[0].at_index+1, sorted_geom[1].at_index+1);
 			if (sorted_geom[1].type === "e") { face_b.push(sorted_geom[1].point); }
-			face_b.push(sorted_geom[0].point); // todo: if there's a bug, it's here. switch this
+			face_b.push(sorted_geom[0].point);
 			return [face_a, face_b];
 		} else if (vertices_intersections.length == 2) {
 			let sorted_vertices = vertices_intersections.slice()
@@ -841,11 +664,9 @@
 	});
 
 	function axiom1(a, b) {
-		// n-dimension
 		return [a, a.map((_,i) => b[i] - a[i])];
 	}
 	function axiom2(a, b) {
-		// 2-dimension
 		let mid = midpoint$1(a, b);
 		let vec = a.map((_,i) => b[i] - a[i]);
 		return [mid, [vec[1], -vec[0]] ];
@@ -859,19 +680,10 @@
 		return [[...pointB], rightAngle];
 	}
 	function axiom5(pointA, vectorA, pointB, pointC) {
-		// var radius = Math.sqrt(Math.pow(origin.x - point.x, 2) + Math.pow(origin.y - point.y, 2));
-		// var intersections = new M.Circle(origin, radius).intersection(new M.Edge(line).infiniteLine());
-		// var lines = [];
-		// for(var i = 0; i < intersections.length; i++){ lines.push(this.axiom2(point, intersections[i])); }
-		// return lines;
 	}
 	function axiom6(pointA, vectorA, pointB, vectorB, pointC, pointD) {
 	}
 	function axiom7(pointA, vectorA, pointB, vectorB, pointC) {
-		// var newLine = new M.Line(point, new M.Edge(perp).vector());
-		// var intersection = newLine.intersection(new M.Edge(ontoLine).infiniteLine());
-		// if(intersection === undefined){ return undefined; }
-		// return this.axiom2(point, intersection);
 	}
 
 	var origami$1 = /*#__PURE__*/Object.freeze({
@@ -884,43 +696,27 @@
 		axiom7: axiom7
 	});
 
-	/** 
-	 * this searches user-provided inputs for a valid n-dimensional vector 
-	 * which includes objects {x:, y:}, arrays [x,y], or sequences of numbers
-	 * 
-	 * @returns (number[]) array of number components
-	 *   invalid/no input returns an emptry array
-	*/
 	function get_vec() {
 		let params = Array.from(arguments);
 		if (params.length === 0) { return; }
-		// list of numbers 1, 2, 3, 4, 5
 		let numbers = params.filter((param) => !isNaN(param));
 		if (numbers.length >= 1) { return numbers; }
-		// already a vector type: {vector:[1,2,3]}
 		if (params[0].vector != null && params[0].vector.constructor === Array) {
 			return params[0].vector;
 		}
 		if (!isNaN(params[0].x)) {
 			return ['x','y','z'].map(c => params[0][c]).filter(a => a != null);
 		}
-		// at this point, a valid vector is somewhere inside arrays
 		let arrays = params.filter((param) => param.constructor === Array);
 		if (arrays.length >= 1) { return get_vec(...arrays[0]); }
 	}
-
-
-	/** 
-	 * @returns (number[]) array of number components
-	 *  invalid/no input returns the identity matrix
-	*/
 	function get_matrix2() {
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
 		let arrays = params.filter((param) => param.constructor === Array);
 		if (params.length == 0) { return [1,0,0,1,0,0]; }
 		if (params[0].m != null && params[0].m.constructor == Array) {
-			numbers = params[0].m.slice(); // Matrix type
+			numbers = params[0].m.slice();
 		}
 		if (numbers.length == 0 && arrays.length >= 1) { numbers = arrays[0]; }
 		if (numbers.length >= 6) { return numbers.slice(0,6); }
@@ -932,11 +728,6 @@
 		}
 		return [1,0,0,1,0,0];
 	}
-
-
-	/** 
-	 * @returns [[2,3],[10,11]]
-	*/
 	function get_edge() {
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
@@ -968,11 +759,6 @@
 			}
 		}
 	}
-
-
-	/** 
-	 * @returns ({ point:[], vector:[] })
-	*/
 	function get_line() {
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
@@ -1008,11 +794,9 @@
 		}
 		return {point: [], vector: []};
 	}
-
 	function get_ray() {
 		return get_line(...arguments);
 	}
-
 	function get_two_vec2() {
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
@@ -1030,7 +814,6 @@
 			return arrays[0];
 		}
 	}
-
 	function get_array_of_vec() {
 		let params = Array.from(arguments);
 		let arrays = params.filter((param) => param.constructor === Array);
@@ -1044,14 +827,11 @@
 		}
 	}
 
-	/** n-dimensional vector, with some operations meant only for 2D */
-	function Vector$1() {
-
+	function Vector() {
 		let _v = get_vec(...arguments);
-		if (_v === undefined) { return; } // what is the best practice here
-
+		if (_v === undefined) { return; }
 		const normalize$$1 = function() {
-			return Vector$1( normalize(_v) );
+			return Vector( normalize(_v) );
 		};
 		const dot$$1 = function() {
 			let vec = get_vec(...arguments);
@@ -1064,7 +844,7 @@
 			let a = _v.slice();
 			if(a[2] == null){ a[2] = 0; }
 			if(b[2] == null){ b[2] = 0; }
-			return Vector$1( cross3(a, b) );
+			return Vector( cross3(a, b) );
 		};
 		const distanceTo = function() {
 			let vec = get_vec(...arguments);
@@ -1076,34 +856,33 @@
 		};
 		const transform = function() {
 			let m = get_matrix2(...arguments);
-			return Vector$1( multiply_vector2_matrix2(_v, m) );
+			return Vector( multiply_vector2_matrix2(_v, m) );
 		};
 		const add = function(){
 			let vec = get_vec(...arguments);
-			return Vector$1( _v.map((v,i) => v + vec[i]) );
+			return Vector( _v.map((v,i) => v + vec[i]) );
 		};
 		const subtract = function(){
 			let vec = get_vec(...arguments);
-			return Vector$1( _v.map((v,i) => v - vec[i]) );
+			return Vector( _v.map((v,i) => v - vec[i]) );
 		};
-		// these are implicitly 2D functions, and will convert the vector into 2D
 		const rotateZ = function(angle, origin) {
 			var m = make_matrix2_rotation(angle, origin);
-			return Vector$1( multiply_vector2_matrix2(_v, m) );
+			return Vector( multiply_vector2_matrix2(_v, m) );
 		};
 		const rotateZ90 = function() {
-			return Vector$1(-_v[1], _v[0]);
+			return Vector(-_v[1], _v[0]);
 		};
 		const rotateZ180 = function() {
-			return Vector$1(-_v[0], -_v[1]);
+			return Vector(-_v[0], -_v[1]);
 		};
 		const rotateZ270 = function() {
-			return Vector$1(_v[1], -_v[0]);
+			return Vector(_v[1], -_v[0]);
 		};
 		const reflect = function() {
 			let reflect = get_line(...arguments);
 			let m = make_matrix2_reflection(reflect.vector, reflect.point);
-			return Vector$1( multiply_vector2_matrix2(_v, m) );
+			return Vector( multiply_vector2_matrix2(_v, m) );
 		};
 		const lerp = function(vector, pct) {
 			let vec = get_vec(vector);
@@ -1111,10 +890,9 @@
 			let length = (_v.length < vec.length) ? _v.length : vec.length;
 			let components = Array.from(Array(length))
 				.map((_,i) => _v[i] * pct + vec[i] * inv);
-			return Vector$1(components);
+			return Vector(components);
 		};
 		const isEquivalent = function() {
-			// rect bounding box for now, much cheaper than radius calculation
 			let vec = get_vec(...arguments);
 			let sm = (_v.length < vec.length) ? _v : vec;
 			let lg = (_v.length < vec.length) ? vec : _v;
@@ -1127,20 +905,19 @@
 			return parallel(sm, lg);
 		};
 		const scale = function(mag) {
-			return Vector$1( _v.map(v => v * mag) );
+			return Vector( _v.map(v => v * mag) );
 		};
 		const midpoint = function() {
 			let vec = get_vec(...arguments);
 			let sm = (_v.length < vec.length) ? _v.slice() : vec;
 			let lg = (_v.length < vec.length) ? vec : _v.slice();
 			for(var i = sm.length; i < lg.length; i++){ sm[i] = 0; }
-			return Vector$1(lg.map((_,i) => (sm[i] + lg[i]) * 0.5));
+			return Vector(lg.map((_,i) => (sm[i] + lg[i]) * 0.5));
 		};
 		const bisect = function(){
 			let vec = get_vec(...arguments);
-			return Vector$1( bisect_vectors(_v, vec) );
+			return Vector( bisect_vectors(_v, vec) );
 		};
-
 		Object.defineProperty(_v, "normalize", {value: normalize$$1});
 		Object.defineProperty(_v, "dot", {value: dot$$1});
 		Object.defineProperty(_v, "cross", {value: cross});
@@ -1165,38 +942,42 @@
 		Object.defineProperty(_v, "magnitude", {get: function() {
 			return magnitude(_v);
 		}});
-
 		return Object.freeze(_v);
 	}
 
 	function Circle(){
 		let _origin, _radius;
-
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
 		if (numbers.length === 3) {
 			_origin = numbers.slice(0,2);
 			_radius = numbers[2];
 		}
-
 		const intersectionLine = function() {
-			let points = get_line(...arguments);
-			let intersection = intersection_circle_line(_origin, _radius, points[0], points[1]);
-			return Vector(intersection);
+			let line = get_line(...arguments);
+			let p2 = [line.point[0] + line.vector[0], line.point[1] + line.vector[1]];
+			let intersection = intersection_circle_line(_origin, _radius, line.point, p2);
+			return (intersection === undefined
+				? undefined
+				: intersection.map(i => Vector(i))
+			);
 		};
-
 		const intersectionRay = function() {
 			let points = get_ray(...arguments);
 			let intersection = intersection_circle_ray(_origin, _radius, points[0], points[1]);
-			return Vector(intersection);
+			return (intersection === undefined
+				? undefined
+				: intersection.map(i => Vector(i))
+			);
 		};
-
 		const intersectionEdge = function() {
 			let points = get_two_vec2(...arguments);
 			let intersection = intersection_circle_edge(_origin, _radius, points[0], points[1]);
-			return Vector(intersection);
+			return (intersection === undefined
+				? undefined
+				: intersection.map(i => Vector(i))
+			);
 		};
-
 		return Object.freeze( {
 			intersectionLine,
 			intersectionRay,
@@ -1207,45 +988,37 @@
 	}
 
 	function Polygon() {
-
 		let _points = get_array_of_vec(...arguments);
 		if (_points === undefined) {
-			// todo, best practices here
 			return undefined;
 		}
-
 		const contains = function() {
 			let point = get_vec(...arguments);
 			return point_in_poly(_points, point);
 		};
-
 		const scale = function(magnitude, center = centroid(_points)) {
 			let newPoints = _points
 				.map(p => [0,1].map((_,i) => p[i] - center[i]))
 				.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude));
 			return Polygon(newPoints);
 		};
-
 		const rotate = function(angle, centerPoint = centroid(_points)) {
 			let newPoints = _points.map(p => {
 				let vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
 				let mag = Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2));
 				let a = Math.atan2(vec[1], vec[0]);
 				return [
-					centerPoint[0] + Math.cos(a+angle) * mag, 
+					centerPoint[0] + Math.cos(a+angle) * mag,
 					centerPoint[1] + Math.sin(a+angle) * mag
 				];
 			});
 			return Polygon(newPoints);
 		};
-
 		const split = function() {
 			let line = get_line(...arguments);
 			return split_polygon(_points, line.point, line.vector)
 				.map(poly => Polygon(poly));
 		};
-
-		// todo: need non-convex clipping functions returns an array of edges
 		const clipEdge = function() {
 			let edge = get_edge(...arguments);
 			return clip_edge_in_convex_poly(_points, edge[0], edge[1]);
@@ -1258,7 +1031,6 @@
 			let line = get_line(...arguments);
 			return clip_ray_in_convex_poly(_points, line.point, line.vector);
 		};
-
 		return Object.freeze( {
 			contains,
 			scale,
@@ -1277,7 +1049,6 @@
 			},
 		} );
 	}
-
 	Polygon.regularPolygon = function(sides, x = 0, y = 0, radius = 1) {
 		let points = make_regular_polygon(sides, x, y, radius);
 		return Polygon(points);
@@ -1286,19 +1057,8 @@
 		let hull = convex_hull(points, includeCollinear);
 		return Polygon(hull);
 	};
-
-
 	function ConvexPolygon() {
-
 		let polygon = Object.create(Polygon(...arguments));
-
-		// const liesOnEdge = function(p) {
-		// 	for(var i = 0; i < this.edges.length; i++) {
-		// 		if (this.edges[i].collinear(p)) { return true; }
-		// 	}
-		// 	return false;
-		// }
-
 		const clipEdge = function() {
 			let edge = get_edge(...arguments);
 			return clip_edge_in_convex_poly(polygon.points, edge[0], edge[1]);
@@ -1311,38 +1071,33 @@
 			let line = get_line(...arguments);
 			return clip_ray_in_convex_poly(polygon.points, line.point, line.vector);
 		};
-
 		const split = function() {
 			let line = get_line(...arguments);
 			return split_convex_polygon(polygon.points, line.point, line.vector)
 				.map(poly => ConvexPolygon(poly));
 		};
-
 		const overlaps = function() {
 			let points = get_array_of_vec(...arguments);
 			return convex_polygons_overlap(polygon.points, points);
 		};
-
 		const scale = function(magnitude, center = centroid(polygon.points)) {
 			let newPoints = polygon.points
 				.map(p => [0,1].map((_,i) => p[i] - center[i]))
 				.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude));
 			return ConvexPolygon(newPoints);
 		};
-
 		const rotate = function(angle, centerPoint = centroid(polygon.points)) {
 			let newPoints = polygon.points.map(p => {
 				let vec = [p[0] - centerPoint[0], p[1] - centerPoint[1]];
 				let mag = Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2));
 				let a = Math.atan2(vec[1], vec[0]);
 				return [
-					centerPoint[0] + Math.cos(a+angle) * mag, 
+					centerPoint[0] + Math.cos(a+angle) * mag,
 					centerPoint[1] + Math.sin(a+angle) * mag
 				];
 			});
 			return ConvexPolygon(newPoints);
 		};
-
 		Object.defineProperty(polygon, "clipEdge", {value: clipEdge});
 		Object.defineProperty(polygon, "clipLine", {value: clipLine});
 		Object.defineProperty(polygon, "clipRay", {value: clipRay});
@@ -1350,10 +1105,8 @@
 		Object.defineProperty(polygon, "overlaps", {value: overlaps});
 		Object.defineProperty(polygon, "scale", {value: scale});
 		Object.defineProperty(polygon, "rotate", {value: rotate});
-		
 		return Object.freeze(polygon);
 	}
-
 	ConvexPolygon.regularPolygon = function(sides, x = 0, y = 0, radius = 1) {
 		let points = make_regular_polygon(sides, x, y, radius);
 		return ConvexPolygon(points);
@@ -1362,11 +1115,8 @@
 		let hull = convex_hull(points, includeCollinear);
 		return ConvexPolygon(hull);
 	};
-
 	function Rectangle(){
 		let _origin, _width, _height;
-
-		// get parameters
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
 		let arrays = params.filter((param) => param.constructor === Array);
@@ -1383,7 +1133,6 @@
 				_height = arrays[1][1];
 			}
 		}
-		// end get parameters
 		let points = [
 			[_origin[0], _origin[1]],
 			[_origin[0] + _width, _origin[1]],
@@ -1391,8 +1140,6 @@
 			[_origin[0], _origin[1] + _height],
 		];
 		let rect = Object.create(ConvexPolygon(points));
-
-		// redefinition of methods
 		const scale = function(magnitude, center) {
 			if (center == null) {
 				center = [_origin[0] + _width, _origin[1] + _height];
@@ -1401,7 +1148,6 @@
 			let y = _origin[1] + (center[1] - _origin[1]) * (1-magnitude);
 			return Rectangle(x, y, _width*magnitude, _height*magnitude);
 		};
-
 		Object.defineProperty(rect, "origin", {get: function(){ return _origin; }});
 		Object.defineProperty(rect, "width", {get: function(){ return _width; }});
 		Object.defineProperty(rect, "height", {get: function(){ return _height; }});
@@ -1409,16 +1155,11 @@
 			get: function(){ return _width * _height; }
 		});
 		Object.defineProperty(rect, "scale", {value: scale});
-
 		return Object.freeze(rect);
 	}
 
-	/** 
-	 * 2D Matrix (2x3) with translation component in x,y
-	 */
 	function Matrix2$1() {
 		let _m = get_matrix2(...arguments);
-
 		const inverse = function() {
 			return Matrix2$1( make_matrix2_inverse(_m) );
 		};
@@ -1428,7 +1169,7 @@
 		};
 		const transform = function() {
 			let v = get_vec(...arguments);
-			return Vector$1( multiply_vector2_matrix2(v, _m) );
+			return Vector( multiply_vector2_matrix2(v, _m) );
 		};
 		return Object.freeze( {
 			inverse,
@@ -1437,7 +1178,6 @@
 			get m() { return _m; },
 		} );
 	}
-	// static methods
 	Matrix2$1.makeIdentity = function() {
 		return Matrix2$1(1,0,0,1,0,0);
 	};
@@ -1449,39 +1189,28 @@
 	};
 
 	function LinePrototype() {
-		// these will be overwritten for each line type. defaults for Line()
-		// is it valid for t0 to be below 0, above 1, to the unit vector
 		const vec_comp_func = function(t0) { return true; };
-		// cap d below 0 or above 1, to the unit vector, for rays/edges
 		const vec_cap_func = function(d) { return d; };
-
-		// const parallel = function(line, epsilon){}
-		// const collinear = function(point){}
-		// const equivalent = function(line, epsilon){}
-		// const degenrate = function(epsilon){}
-
 		const reflection = function() {
 			return Matrix2.makeReflection(this.vector, this.point);
 		};
-
 		const nearestPoint = function() {
 			let point = get_vec(...arguments);
-			return Vector$1(nearest_point(this.point, this.vector, point, this.vec_cap_func));
+			return Vector(nearest_point(this.point, this.vector, point, this.vec_cap_func));
 		};
-		
 		const intersectLine = function() {
 			let line = get_line(...arguments);
 			return intersection_function(
 				this.point, this.vector,
 				line.point, line.vector,
-				this_line_comp);
+				compare_to_line);
 		};
 		const intersectRay = function() {
 			let ray = get_ray(...arguments);
 			return intersection_function(
 				this.point, this.vector,
 				ray.point, ray.vector,
-				this_ray_comp);
+				compare_to_ray);
 		};
 		const intersectEdge = function() {
 			let edge = get_edge(...arguments);
@@ -1489,19 +1218,17 @@
 			return intersection_function(
 				this.point, this.vector,
 				edge[0], edgeVec,
-				this_edge_comp);
+				compare_to_edge);
 		};
-
-		const this_line_comp = function(t0, t1, epsilon = EPSILON) {
+		const compare_to_line = function(t0, t1, epsilon = EPSILON) {
 			return vec_comp_func(t0, epsilon) && true;
 		};
-		const this_ray_comp = function(t0, t1, epsilon = EPSILON) {
+		const compare_to_ray = function(t0, t1, epsilon = EPSILON) {
 			return vec_comp_func(t0, epsilon) && t1 >= -epsilon;
 		};
-		const this_edge_comp = function(t0, t1, epsilon = EPSILON) {
+		const compare_to_edge = function(t0, t1, epsilon = EPSILON) {
 			return vec_comp_func(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
 		};
-
 		return Object.freeze( {
 			reflection,
 			nearestPoint,
@@ -1512,17 +1239,14 @@
 			vec_cap_func,
 		} );
 	}
-
 	function Line() {
 		let { point, vector } = get_line(...arguments);
-
 		const isParallel = function() {
 			let line = get_line(...arguments);
 			return parallel(vector, line.vector);
 		};
 		const transform = function() {
 			let mat = get_matrix2(...arguments);
-			// todo: a little more elegant of a solution, please
 			let norm = normalize(vector);
 			let temp = point.map((p,i) => p + norm[i]);
 			if (temp == null) { return; }
@@ -1530,23 +1254,19 @@
 			var p1 = multiply_vector2_matrix2(temp, mat);
 			return Line.withPoints([p0, p1]);
 		};
-
 		let line = Object.create(LinePrototype());
 		const vec_comp_func = function() { return true; };
 		const vec_cap_func = function(d) { return d; };
 		Object.defineProperty(line, "vec_comp_func", {value: vec_comp_func});
 		Object.defineProperty(line, "vec_cap_func", {value: vec_cap_func});
-
 		Object.defineProperty(line, "point", {get: function(){ return point; }});
 		Object.defineProperty(line, "vector", {get: function(){ return vector; }});
 		Object.defineProperty(line, "length", {get: function(){ return Infinity; }});
 		Object.defineProperty(line, "transform", {value: transform});
 		Object.defineProperty(line, "isParallel", {value: isParallel});
-
 		return Object.freeze(line);
 	}
-	// static methods
-	Line.withPoints = function() {
+	Line.fromPoints = function() {
 		let points = get_two_vec2(...arguments);
 		return Line({
 			point: points[0],
@@ -1565,17 +1285,12 @@
 		return Line({
 			point: midpoint$1(points[0], points[1]),
 			vector: [vec[1], -vec[0]]
-			// vector: Algebra.cross3(vec, [0,0,1])
 		});
 	};
-
-
 	function Ray() {
 		let { point, vector } = get_line(...arguments);
-
 		const transform = function() {
 			let mat = get_matrix2(...arguments);
-			// todo: a little more elegant of a solution, please
 			let norm = normalize(vector);
 			let temp = point.map((p,i) => p + norm[i]);
 			if (temp == null) { return; }
@@ -1583,21 +1298,17 @@
 			var p1 = multiply_vector2_matrix2(temp, mat);
 			return Ray.withPoints([p0, p1]);
 		};
-
 		let ray = Object.create(LinePrototype());
 		const vec_comp_func = function(t0, ep) { return t0 >= -ep; };
 		const vec_cap_func = function(d, ep) { return (d < -ep ? 0 : d); };
 		Object.defineProperty(ray, "vec_comp_func", {value: vec_comp_func});
 		Object.defineProperty(ray, "vec_cap_func", {value: vec_cap_func});
-
 		Object.defineProperty(ray, "point", {get: function(){ return point; }});
 		Object.defineProperty(ray, "vector", {get: function(){ return vector; }});
 		Object.defineProperty(ray, "length", {get: function(){ return Infinity; }});
 		Object.defineProperty(ray, "transform", {value: transform});
-
 		return Object.freeze(ray);
 	}
-	// static methods
 	Ray.withPoints = function() {
 		let points = get_two_vec2(...arguments);
 		return Ray({
@@ -1608,32 +1319,26 @@
 			])
 		});
 	};
-
-
 	function Edge() {
 		let inputs = get_two_vec2(...arguments);
-		let _endpoints = (inputs.length > 0 ? inputs.map(p => Vector$1(p)) : undefined);
+		let _endpoints = (inputs.length > 0 ? inputs.map(p => Vector(p)) : undefined);
 		if (_endpoints === undefined) { return; }
-
 		const transform = function() {
 			let mat = get_matrix2(...arguments);
 			let transformed_points = _endpoints
 				.map(point => multiply_vector2_matrix2(point, mat));
 			return Edge(transformed_points);
 		};
-
 		const vector = function() {
-			return Vector$1(
+			return Vector(
 				_endpoints[1][0] - _endpoints[0][0],
 				_endpoints[1][1] - _endpoints[0][1]
 			);
 		};
-
 		const length = function() {
 			return Math.sqrt(Math.pow(_endpoints[1][0] - _endpoints[0][0],2)
 			               + Math.pow(_endpoints[1][1] - _endpoints[0][1],2));
 		};
-
 		let edge = Object.create(LinePrototype());
 		let vec_comp_func = function(t0, ep) { return t0 >= -ep && t0 <= 1+ep; };
 		const vec_cap_func = function(d, ep) {
@@ -1643,29 +1348,19 @@
 		};
 		Object.defineProperty(edge, "vec_comp_func", {value: vec_comp_func});
 		Object.defineProperty(edge, "vec_cap_func", {value: vec_cap_func});
-
 		Object.defineProperty(edge, "points", {get: function(){ return _endpoints; }});
 		Object.defineProperty(edge, "point", {get: function(){ return _endpoints[0]; }});
 		Object.defineProperty(edge, "vector", {get: function(){ return vector(); }});
 		Object.defineProperty(edge, "length", {get: function(){ return length(); }});
 		Object.defineProperty(edge, "transform", {value: transform});
-
 		return Object.freeze(edge);
 	}
 
-	/**
-	 *  Geometry library
-	 *  The goal of this user-facing library is to type check all arguments for a
-	 *  likely use case, which might slow runtime by a small fraction.
-	 *  Use the core library functions for fastest-possible calculations.
-	 */
-
-	// let core = { algebra, geometry, intersection, origami };
 	let core = { algebra, geometry, intersection, origami: origami$1, EPSILON_LOW, EPSILON, EPSILON_HIGH, clean_number };
 
 	var geometry$1 = /*#__PURE__*/Object.freeze({
 		core: core,
-		Vector: Vector$1,
+		Vector: Vector,
 		Circle: Circle,
 		Polygon: Polygon,
 		ConvexPolygon: ConvexPolygon,
@@ -1677,7 +1372,1109 @@
 	});
 
 	/* SVG (c) Robby Kraft, MIT License */
-	function createShiftArr(a){var b="    ";isNaN(parseInt(a))?b=a:1===a?b=" ":2===a?b="  ":3===a?b="   ":4===a?b="    ":5===a?b="     ":6===a?b="      ":7===a?b="       ":8===a?b="        ":9===a?b="         ":10===a?b="          ":11===a?b="           ":12===a?b="            ":void 0;var c=["\n"];for(let d=0;100>d;d++)c.push(c[d]+b);return c}function vkbeautify(){this.step="\t",this.shift=createShiftArr(this.step);}vkbeautify.prototype.xml=function(a,b){var c=a.replace(/>\s{0,}</g,"><").replace(/</g,"~::~<").replace(/\s*xmlns\:/g,"~::~xmlns:").replace(/\s*xmlns\=/g,"~::~xmlns=").split("~::~"),d=c.length,e=!1,f=0,g="",h=b?createShiftArr(b):this.shift;for(let i=0;i<d;i++)-1<c[i].search(/<!/)?(g+=h[f]+c[i],e=!0,(-1<c[i].search(/-->/)||-1<c[i].search(/\]>/)||-1<c[i].search(/!DOCTYPE/))&&(e=!1)):-1<c[i].search(/-->/)||-1<c[i].search(/\]>/)?(g+=c[i],e=!1):/^<\w/.exec(c[i-1])&&/^<\/\w/.exec(c[i])&&/^<[\w:\-\.\,]+/.exec(c[i-1])==/^<\/[\w:\-\.\,]+/.exec(c[i])[0].replace("/","")?(g+=c[i],e||f--):-1<c[i].search(/<\w/)&&-1==c[i].search(/<\//)&&-1==c[i].search(/\/>/)?g=e?g+=c[i]:g+=h[f++]+c[i]:-1<c[i].search(/<\w/)&&-1<c[i].search(/<\//)?g=e?g+=c[i]:g+=h[f]+c[i]:-1<c[i].search(/<\//)?g=e?g+=c[i]:g+=h[--f]+c[i]:-1<c[i].search(/\/>/)?g=e?g+=c[i]:g+=h[f]+c[i]:g+=-1<c[i].search(/<\?/)?h[f]+c[i]:-1<c[i].search(/xmlns\:/)||-1<c[i].search(/xmlns\=/)?h[f]+c[i]:c[i];return "\n"==g[0]?g.slice(1):g},vkbeautify.prototype.json=function(a,b){var b=b?b:this.step;return "undefined"==typeof JSON?a:"string"==typeof a?JSON.stringify(JSON.parse(a),null,b):"object"==typeof a?JSON.stringify(a,null,b):a},vkbeautify.prototype.css=function(a,b){var c=a.replace(/\s{1,}/g," ").replace(/\{/g,"{~::~").replace(/\}/g,"~::~}~::~").replace(/\;/g,";~::~").replace(/\/\*/g,"~::~/*").replace(/\*\//g,"*/~::~").replace(/~::~\s{0,}~::~/g,"~::~").split("~::~"),d=c.length,e=0,f="",g=b?createShiftArr(b):this.shift;for(let h=0;h<d;h++)f+=/\{/.exec(c[h])?g[e++]+c[h]:/\}/.exec(c[h])?g[--e]+c[h]:/\*\\/.exec(c[h])?g[e]+c[h]:g[e]+c[h];return f.replace(/^\n{1,}/,"")};function isSubquery(a,b){return b-(a.replace(/\(/g,"").length-a.replace(/\)/g,"").length)}function split_sql(a,b){return a.replace(/\s{1,}/g," ").replace(/ AND /ig,"~::~"+b+b+"AND ").replace(/ BETWEEN /ig,"~::~"+b+"BETWEEN ").replace(/ CASE /ig,"~::~"+b+"CASE ").replace(/ ELSE /ig,"~::~"+b+"ELSE ").replace(/ END /ig,"~::~"+b+"END ").replace(/ FROM /ig,"~::~FROM ").replace(/ GROUP\s{1,}BY/ig,"~::~GROUP BY ").replace(/ HAVING /ig,"~::~HAVING ").replace(/ IN /ig," IN ").replace(/ JOIN /ig,"~::~JOIN ").replace(/ CROSS~::~{1,}JOIN /ig,"~::~CROSS JOIN ").replace(/ INNER~::~{1,}JOIN /ig,"~::~INNER JOIN ").replace(/ LEFT~::~{1,}JOIN /ig,"~::~LEFT JOIN ").replace(/ RIGHT~::~{1,}JOIN /ig,"~::~RIGHT JOIN ").replace(/ ON /ig,"~::~"+b+"ON ").replace(/ OR /ig,"~::~"+b+b+"OR ").replace(/ ORDER\s{1,}BY/ig,"~::~ORDER BY ").replace(/ OVER /ig,"~::~"+b+"OVER ").replace(/\(\s{0,}SELECT /ig,"~::~(SELECT ").replace(/\)\s{0,}SELECT /ig,")~::~SELECT ").replace(/ THEN /ig," THEN~::~"+b+"").replace(/ UNION /ig,"~::~UNION~::~").replace(/ USING /ig,"~::~USING ").replace(/ WHEN /ig,"~::~"+b+"WHEN ").replace(/ WHERE /ig,"~::~WHERE ").replace(/ WITH /ig,"~::~WITH ").replace(/ ALL /ig," ALL ").replace(/ AS /ig," AS ").replace(/ ASC /ig," ASC ").replace(/ DESC /ig," DESC ").replace(/ DISTINCT /ig," DISTINCT ").replace(/ EXISTS /ig," EXISTS ").replace(/ NOT /ig," NOT ").replace(/ NULL /ig," NULL ").replace(/ LIKE /ig," LIKE ").replace(/\s{0,}SELECT /ig,"SELECT ").replace(/\s{0,}UPDATE /ig,"UPDATE ").replace(/ SET /ig," SET ").replace(/~::~{1,}/g,"~::~").split("~::~")}vkbeautify.prototype.sql=function(a,b){var c=a.replace(/\s{1,}/g," ").replace(/\'/ig,"~::~'").split("~::~"),d=c.length,e=[],f=0,g=this.step,h=0,i="",j=b?createShiftArr(b):this.shift;for(let f=0;f<d;f++)e=f%2?e.concat(c[f]):e.concat(split_sql(c[f],g));d=e.length;for(let c=0;c<d;c++)h=isSubquery(e[c],h),/\s{0,}\s{0,}SELECT\s{0,}/.exec(e[c])&&(e[c]=e[c].replace(/\,/g,",\n"+g+g+"")),/\s{0,}\s{0,}SET\s{0,}/.exec(e[c])&&(e[c]=e[c].replace(/\,/g,",\n"+g+g+"")),/\s{0,}\(\s{0,}SELECT\s{0,}/.exec(e[c])?(f++,i+=j[f]+e[c]):/\'/.exec(e[c])?(1>h&&f&&f--,i+=e[c]):(i+=j[f]+e[c],1>h&&f&&f--);return i=i.replace(/^\n{1,}/,"").replace(/\n{1,}/g,"\n"),i},vkbeautify.prototype.xmlmin=function(a,b){var c=b?a:a.replace(/\<![ \r\n\t]*(--([^\-]|[\r\n]|-[^\-])*--[ \r\n\t]*)\>/g,"").replace(/[ \r\n\t]{1,}xmlns/g," xmlns");return c.replace(/>\s{0,}</g,"><")},vkbeautify.prototype.jsonmin=function(a){return "undefined"==typeof JSON?a:JSON.stringify(JSON.parse(a),null,0)},vkbeautify.prototype.cssmin=function(a,b){var c=b?a:a.replace(/\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\//g,"");return c.replace(/\s{1,}/g," ").replace(/\{\s{1,}/g,"{").replace(/\}\s{1,}/g,"}").replace(/\;\s{1,}/g,";").replace(/\/\*\s{1,}/g,"/*").replace(/\*\/\s{1,}/g,"*/")},vkbeautify.prototype.sqlmin=function(a){return a.replace(/\s{1,}/g," ").replace(/\s{1,}\(/,"(").replace(/\s{1,}\)/,")")};var vkbeautify$1=new vkbeautify;const svgNS="http://www.w3.org/2000/svg",setClassIdParent=function(a,b,c,d){null!=b&&a.setAttributeNS(null,"class",b),null!=c&&a.setAttributeNS(null,"id",c),null!=d&&d.appendChild(a);},setPoints=function(a,b){if(null!=b&&b.constructor===Array){let c=b.map(a=>a.constructor===Array?a:[a.x,a.y]).reduce((a,b)=>a+b[0]+","+b[1]+" ","");a.setAttributeNS(null,"points",c);}},setArc=function(a,b,c,e,f,g,h=!1){var i=Math.sin,j=Math.cos;let k=[b+j(f)*e,c+i(f)*e],l=[j(f)*e,i(f)*e],m=[j(g)*e,i(g)*e],n=[m[0]-l[0],m[1]-l[1]],o=l[0]*m[1]-l[1]*m[0],p=l[0]*m[0]+l[1]*m[1],q=0<Math.atan2(o,p)?0:1,r=h?"M "+b+","+c+" l "+l[0]+","+l[1]+" ":"M "+k[0]+","+k[1]+" ";r+=["a ",e,e,0,q,1,n[0],n[1]].join(" "),h&&(r+=" Z"),a.setAttributeNS(null,"d",r);},line$1=function(a,b,c,d,e,f,g){let h=document.createElementNS(svgNS,"line");return h.setAttributeNS(null,"x1",a),h.setAttributeNS(null,"y1",b),h.setAttributeNS(null,"x2",c),h.setAttributeNS(null,"y2",d),setClassIdParent(h,e,f,g),h},circle=function(a,b,c,d,e,f){let g=document.createElementNS(svgNS,"circle");return g.setAttributeNS(null,"cx",a),g.setAttributeNS(null,"cy",b),g.setAttributeNS(null,"r",c),setClassIdParent(g,d,e,f),g},ellipse=function(a,b,c,d,e,f,g){let h=document.createElementNS(svgNS,"ellipse");return h.setAttributeNS(null,"cx",a),h.setAttributeNS(null,"cy",b),h.setAttributeNS(null,"rx",c),h.setAttributeNS(null,"ry",d),setClassIdParent(h,e,f,g),h},rect=function(a,b,c,d,e,f,g){let h=document.createElementNS(svgNS,"rect");return h.setAttributeNS(null,"x",a),h.setAttributeNS(null,"y",b),h.setAttributeNS(null,"width",c),h.setAttributeNS(null,"height",d),setClassIdParent(h,e,f,g),h},polygon=function(a,b,c,d){let e=document.createElementNS(svgNS,"polygon");return setPoints(e,a),setClassIdParent(e,b,c,d),e},polyline=function(a,b,c,d){let e=document.createElementNS(svgNS,"polyline");return setPoints(e,a),setClassIdParent(e,b,c,d),e},bezier=function(a,b,c,d,e,f,g,h,i,j,k){let l=document.createElementNS(svgNS,"path");return l.setAttributeNS(null,"d","M "+a+","+b+" C "+c+","+d+" "+e+","+f+" "+g+","+h),setClassIdParent(l,i,j,k),l},text=function(a,b,c,d,e,f){let g=document.createElementNS(svgNS,"text");return g.innerHTML=a,g.setAttributeNS(null,"x",b),g.setAttributeNS(null,"y",c),setClassIdParent(g,d,e,f),g},wedge=function(a,b,c,d,e,f,g,h){let i=document.createElementNS(svgNS,"path");return setArc(i,a,b,c,d,e,!0),setClassIdParent(i,f,g,h),i},arc=function(a,b,c,d,e,f,g,h){let i=document.createElementNS(svgNS,"path");return setArc(i,a,b,c,d,e,!1),setClassIdParent(i,f,g,h),i},regularPolygon=function(b,c,a,d,e,f,g){var h=Math.PI,j=Math.cos;let k=.5*(2*h/d),l=j(k)*a,i=Array.from(Array(d)).map((e,f)=>{let g=-2*h*f/d+k,a=b+l*Math.sin(g),i=c+l*j(g);return [a,i]});return polygon(i,e,f,g)},group=function(a,b,c){let d=document.createElementNS(svgNS,"g");return setClassIdParent(d,a,b,c),d},svg=function(a,b,c){let d=document.createElementNS(svgNS,"svg");return setClassIdParent(d,a,b,c),d},addClass=function(a,b){if(null==a)return;let c=a.getAttribute("class");c==null&&(c="");let d=c.split(" ").filter(a=>a!==b);d.push(b),a.setAttributeNS(null,"class",d.join(" "));},removeClass=function(a,b){if(null==a)return;let c=a.getAttribute("class");c==null&&(c="");let d=c.split(" ").filter(a=>a!==b);a.setAttributeNS(null,"class",d.join(" "));},setId=function(a,b){null==a||a.setAttributeNS(null,"id",b);},removeChildren=function(a){for(;a.lastChild;)a.removeChild(a.lastChild);},setViewBox=function(a,b,c,e,f,g=0){let h=e/1-e,d=[b-h-g,c-h-g,e+2*h+2*g,f+2*h+2*g].join(" ");a.setAttributeNS(null,"viewBox",d);},setDefaultViewBox=function(a){let b=a.getBoundingClientRect(),c=0==b.width?640:b.width,d=0==b.height?480:b.height;setViewBox(a,0,0,c,d);},getViewBox=function(a){let b=a.getAttribute("viewBox");return null==b?void 0:b.split(" ").map(a=>parseFloat(a))},scale=function(a,b,c=0,d=0){1e-8>b&&(b=.01);let e=a.createSVGMatrix().translate(c,d).scale(1/b).translate(-c,-d),f=getViewBox(a);null==f&&setDefaultViewBox(a);let g=a.createSVGPoint(),h=a.createSVGPoint();g.x=f[0],g.y=f[1],h.x=f[0]+f[2],h.y=f[1]+f[3];let i=g.matrixTransform(e),j=h.matrixTransform(e);setViewBox(a,i.x,i.y,j.x-i.x,j.y-i.y);},translate=function(a,b,c){let d=getViewBox(a);null==d&&setDefaultViewBox(a),d[0]+=b,d[1]+=c,a.setAttributeNS(null,"viewBox",d.join(" "));},convertToViewBox=function(a,b,c){let d=a.createSVGPoint();d.x=b,d.y=c;let e=d.matrixTransform(a.getScreenCTM().inverse()),f=[e.x,e.y];return f.x=e.x,f.y=e.y,f},save=function(b,c="image.svg"){let d=document.createElement("a"),a=new window.XMLSerializer().serializeToString(b),e=vkbeautify$1.xml(a),f=new window.Blob([e],{type:"text/plain"});d.setAttribute("href",window.URL.createObjectURL(f)),d.setAttribute("download",c),document.body.appendChild(d),d.click(),d.remove();},pErr=new window.DOMParser().parseFromString("INVALID","text/xml").getElementsByTagName("parsererror")[0].namespaceURI,load=function(a,b){if("string"==typeof a||a instanceof String){let c=new window.DOMParser().parseFromString(a,"text/xml");if(0===c.getElementsByTagNameNS(pErr,"parsererror").length){let a=c.documentElement;return null!=b&&b(a),a}fetch(a).then(a=>a.text()).then(a=>new window.DOMParser().parseFromString(a,"text/xml")).then(a=>{let c=a.getElementsByTagName("svg");if(null==c||0===c.length)throw"error, valid XML found, but no SVG element";return null!=b&&b(c[0]),c[0]});}else if(a instanceof Document)return b(a),a},controlPoint=function(a,b){let d=circle(0,0,b),c=[0,0],e=!1;null!=a&&a.appendChild(d);const f=function(a,b){c[0]=a,c[1]=b,d.setAttribute("cx",a),d.setAttribute("cy",b);},g=function(a){if(e){let b=h(a);f(b[0],b[1]);}};let h=function(a){return a};return {circle:d,set position(a){null==a[0]?null!=a.x&&f(a.x,a.y):f(a[0],a[1]);},get position(){return [...c]},onMouseUp:function(){e=!1;},onMouseMove:g,distance:function(a){var b=Math.pow;return Math.sqrt(b(a[0]-c[0],2)+b(a[1]-c[1],2))},set positionDidUpdate(a){h=a;},set selected(a){e=!0;}}};function ControlPoints(a,b=1,c){let d,e=Array.from(Array(b)).map(()=>controlPoint(a,c));const f=function(a){0<e.length&&(d=e.map((b,c)=>({i:c,d:b.distance(a)})).sort((c,a)=>c.d-a.d).shift().i,e[d].selected=!0);};return Object.defineProperty(e,"onMouseDown",{value:f}),Object.defineProperty(e,"onMouseMove",{value:function(a){e.forEach(b=>b.onMouseMove(a));}}),Object.defineProperty(e,"onMouseUp",{value:function(a){e.forEach(b=>b.onMouseUp(a)),d=void 0;}}),Object.defineProperty(e,"selectedIndex",{get:function(){return d}}),Object.defineProperty(e,"selected",{get:function(){return e[d]}}),e}function Image(){function a(){o.addEventListener("mouseup",g,!1),o.addEventListener("mousedown",f,!1),o.addEventListener("mousemove",e,!1),o.addEventListener("mouseleave",h,!1),o.addEventListener("mouseenter",i,!1),o.addEventListener("touchend",g,!1),o.addEventListener("touchmove",k,!1),o.addEventListener("touchstart",j,!1),o.addEventListener("touchcancel",g,!1);}function b(){let a=s.position.slice();return Object.keys(s).filter(a=>"object"==typeof a).forEach(b=>a[b]=s[b].slice()),Object.keys(s).filter(a=>"object"!=typeof a).forEach(b=>a[b]=s[b]),Object.freeze(a)}function c(a,b){s.prev=s.position,s.position=convertToViewBox(o,a,b),s.x=s.position[0],s.y=s.position[1];}function d(){s.drag=[s.position[0]-s.pressed[0],s.position[1]-s.pressed[1]],s.drag.x=s.drag[0],s.drag.y=s.drag[1];}function e(a){c(a.clientX,a.clientY);let e=b();t.controlPoints&&t.controlPoints.onMouseMove(e),s.isPressed&&d(),null!=G&&G(e);}function f(a){s.isPressed=!0,s.pressed=convertToViewBox(o,a.clientX,a.clientY);let c=b();t.controlPoints&&t.controlPoints.onMouseDown(c),null!=H&&H(c);}function g(){s.isPressed=!1;let a=b();t.controlPoints&&t.controlPoints.onMouseUp(a),null!=I&&I(a);}function h(a){c(a.clientX,a.clientY),null!=J&&J(b());}function i(a){c(a.clientX,a.clientY),null!=K&&K(b());}function j(a){a.preventDefault();let c=a.touches[0];if(null!=c){s.isPressed=!0,s.pressed=convertToViewBox(o,c.clientX,c.clientY);let a=b();t.controlPoints&&t.controlPoints.onMouseDown(a),null!=H&&H(a);}}function k(a){a.preventDefault();let e=a.touches[0];if(null!=e){c(e.clientX,e.clientY),s.isPressed&&d();let a=b();t.controlPoints&&t.controlPoints.onMouseMove(a),null!=G&&G(a);}}function l(a){null!=L&&clearInterval(N),L=a,null!=L&&(M=0,N=setInterval(()=>{let a={time:o.getCurrentTime(),frame:M++};L(a);},1e3/60));}let m,n=Array.from(arguments),o=svg(),p=1,q=0,r=o.createSVGMatrix(),s=Object.create(null);Object.assign(s,{isPressed:!1,position:[0,0],pressed:[0,0],drag:[0,0],prev:[0,0],x:0,y:0});let t={controlPoints:void 0};const u=function(a,b=0,c=0){p=a,scale(o,a,b,c);},v=function(a,b){translate(o,a,b);},w=function(a,b,c,d){setViewBox(o,a,b,c,d,q);},x=function(){return getViewBox(o)},y=function(a){o.appendChild(a);},z=function(a){for(null==a&&(a=o);a.lastChild;)a.removeChild(a.lastChild);},A=function(a="image.svg"){return save(o,a)},B=function(a,b){if(null!=a&&null!=b){let c=getViewBox(o);setViewBox(o,c[0],c[1],a,b,q),o.setAttributeNS(null,"width",a),o.setAttributeNS(null,"height",b);}},C=function(){let a=parseInt(o.getAttributeNS(null,"width"));return null==a||isNaN(a)?o.getBoundingClientRect().width:a},D=function(){let a=parseInt(o.getAttributeNS(null,"height"));return null==a||isNaN(a)?o.getBoundingClientRect().height:a},E=function(){let b=n.filter(a=>"function"==typeof a),c=n.filter(a=>!isNaN(a)),d=n.filter(a=>a instanceof HTMLElement).shift(),e=n.filter(b=>"string"==typeof b||b instanceof String).map(a=>document.getElementById(a)).shift();if(m=null==d?null==e?document.body:e:d,m.appendChild(o),2<=c.length)o.setAttributeNS(null,"width",c[0]),o.setAttributeNS(null,"height",c[1]),setViewBox(o,0,0,c[0],c[1]);else if(null==o.getAttribute("viewBox")){let a=o.getBoundingClientRect();setViewBox(o,0,0,a.width,a.height);}1<=b.length&&b[0](),a();};let F=n.filter(a=>!isNaN(a));2<=F.length&&(o.setAttributeNS(null,"width",F[0]),o.setAttributeNS(null,"height",F[1]),setViewBox(o,0,0,F[0],F[1])),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",E):E();let G,H,I,J,K,L,M,N;const O=function(){t.controlPoints.forEach(a=>a.remove()),t.controlPoints=[];},P=function(a,b){let c=o,d=.01*C();return null!=b&&(b.parent&&(c=b.parent),b.radius&&(d=b.radius)),O(),t.controlPoints=ControlPoints(c,a,d),t.controlPoints};return {zoom:u,translate:v,appendChild:y,removeChildren:z,load:function(b,c){load(b,function(b,d){null!=b&&(m.removeChild(o),o=b,m.appendChild(o),a()),null!=c&&c(b,d);});},save:A,setViewBox:w,getViewBox:x,size:B,get mouse(){return b()},get scale(){return p},get svg(){return o},get width(){return C()},get height(){return D()},set width(a){o.setAttributeNS(null,"width",a);},set height(a){o.setAttributeNS(null,"height",a);},set onMouseMove(a){G=a;},set onMouseDown(a){H=a;},set onMouseUp(a){I=a;},set onMouseLeave(a){J=a;},set onMouseEnter(a){K=a;},set animate(a){l(a);},makeControlPoints:P,get controlPoints(){return t.controlPoints}}}
+	// converted to a Javascript module. a few lines modified
+
+	/**
+	* vkBeautify - javascript plugin to pretty-print or minify text in XML, JSON, CSS and SQL formats.
+	*  
+	* Version - 0.99.00.beta 
+	* Copyright (c) 2012 Vadim Kiryukhin
+	* vkiryukhin @ gmail.com
+	* http://www.eslinstructor.net/vkbeautify/
+	* 
+	* MIT license:
+	*   http://www.opensource.org/licenses/mit-license.php
+	*
+	*   Pretty print
+	*
+	*        vkbeautify.xml(text [,indent_pattern]);
+	*        vkbeautify.json(text [,indent_pattern]);
+	*        vkbeautify.css(text [,indent_pattern]);
+	*        vkbeautify.sql(text [,indent_pattern]);
+	*
+	*        @text - String; text to beatufy;
+	*        @indent_pattern - Integer | String;
+	*                Integer:  number of white spaces;
+	*                String:   character string to visualize indentation ( can also be a set of white spaces )
+	*   Minify
+	*
+	*        vkbeautify.xmlmin(text [,preserve_comments]);
+	*        vkbeautify.jsonmin(text);
+	*        vkbeautify.cssmin(text [,preserve_comments]);
+	*        vkbeautify.sqlmin(text);
+	*
+	*        @text - String; text to minify;
+	*        @preserve_comments - Bool; [optional];
+	*                Set this flag to true to prevent removing comments from @text ( minxml and mincss functions only. )
+	*
+	*   Examples:
+	*        vkbeautify.xml(text); // pretty print XML
+	*        vkbeautify.json(text, 4 ); // pretty print JSON
+	*        vkbeautify.css(text, '. . . .'); // pretty print CSS
+	*        vkbeautify.sql(text, '----'); // pretty print SQL
+	*
+	*        vkbeautify.xmlmin(text, true);// minify XML, preserve comments
+	*        vkbeautify.jsonmin(text);// minify JSON
+	*        vkbeautify.cssmin(text);// minify CSS, remove comments ( default )
+	*        vkbeautify.sqlmin(text);// minify SQL
+	*
+	*/
+
+	function createShiftArr(step) {
+
+		var space = '    ';
+		
+		if ( isNaN(parseInt(step)) ) {  // argument is string
+			space = step;
+		} else { // argument is integer
+			switch(step) {
+				case 1: space = ' '; break;
+				case 2: space = '  '; break;
+				case 3: space = '   '; break;
+				case 4: space = '    '; break;
+				case 5: space = '     '; break;
+				case 6: space = '      '; break;
+				case 7: space = '       '; break;
+				case 8: space = '        '; break;
+				case 9: space = '         '; break;
+				case 10: space = '          '; break;
+				case 11: space = '           '; break;
+				case 12: space = '            '; break;
+			}
+		}
+
+		var shift = ['\n']; // array of shifts
+		for(let ix=0;ix<100;ix++){
+			shift.push(shift[ix]+space); 
+		}
+		return shift;
+	}
+
+	function vkbeautify(){
+		this.step = '\t'; // 4 spaces
+		this.shift = createShiftArr(this.step);
+	}
+	vkbeautify.prototype.xml = function(text,step) {
+
+		var ar = text.replace(/>\s{0,}</g,"><")
+					 .replace(/</g,"~::~<")
+					 .replace(/\s*xmlns\:/g,"~::~xmlns:")
+					 .replace(/\s*xmlns\=/g,"~::~xmlns=")
+					 .split('~::~'),
+			len = ar.length,
+			inComment = false,
+			deep = 0,
+			str = '',
+			shift = step ? createShiftArr(step) : this.shift;
+
+			for(let ix=0;ix<len;ix++) {
+				// start comment or <![CDATA[...]]> or <!DOCTYPE //
+				if(ar[ix].search(/<!/) > -1) { 
+					str += shift[deep]+ar[ix];
+					inComment = true; 
+					// end comment  or <![CDATA[...]]> //
+					if(ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1 || ar[ix].search(/!DOCTYPE/) > -1 ) { 
+						inComment = false; 
+					}
+				} else 
+				// end comment  or <![CDATA[...]]> //
+				if(ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) { 
+					str += ar[ix];
+					inComment = false; 
+				} else 
+				// <elm></elm> //
+				if( /^<\w/.exec(ar[ix-1]) && /^<\/\w/.exec(ar[ix]) &&
+					/^<[\w:\-\.\,]+/.exec(ar[ix-1]) == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace('/','')) { 
+					str += ar[ix];
+					if(!inComment) deep--;
+				} else
+				 // <elm> //
+				if(ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) == -1 && ar[ix].search(/\/>/) == -1 ) {
+					str = !inComment ? str += shift[deep++]+ar[ix] : str += ar[ix];
+				} else 
+				 // <elm>...</elm> //
+				if(ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
+					str = !inComment ? str += shift[deep]+ar[ix] : str += ar[ix];
+				} else 
+				// </elm> //
+				if(ar[ix].search(/<\//) > -1) { 
+					str = !inComment ? str += shift[--deep]+ar[ix] : str += ar[ix];
+				} else 
+				// <elm/> //
+				if(ar[ix].search(/\/>/) > -1 ) { 
+					str = !inComment ? str += shift[deep]+ar[ix] : str += ar[ix];
+				} else 
+				// <? xml ... ?> //
+				if(ar[ix].search(/<\?/) > -1) { 
+					str += shift[deep]+ar[ix];
+				} else 
+				// xmlns //
+				if( ar[ix].search(/xmlns\:/) > -1  || ar[ix].search(/xmlns\=/) > -1) { 
+					str += shift[deep]+ar[ix];
+				} 
+				
+				else {
+					str += ar[ix];
+				}
+			}
+			
+		return  (str[0] == '\n') ? str.slice(1) : str;
+	};
+
+	vkbeautify.prototype.json = function(text,step) {
+
+		var step = step ? step : this.step;
+		
+		if (typeof JSON === 'undefined' ) return text; 
+		
+		if ( typeof text === "string" ) return JSON.stringify(JSON.parse(text), null, step);
+		if ( typeof text === "object" ) return JSON.stringify(text, null, step);
+			
+		return text; // text is not string nor object
+	};
+
+	vkbeautify.prototype.css = function(text, step) {
+
+		var ar = text.replace(/\s{1,}/g,' ')
+					.replace(/\{/g,"{~::~")
+					.replace(/\}/g,"~::~}~::~")
+					.replace(/\;/g,";~::~")
+					.replace(/\/\*/g,"~::~/*")
+					.replace(/\*\//g,"*/~::~")
+					.replace(/~::~\s{0,}~::~/g,"~::~")
+					.split('~::~'),
+			len = ar.length,
+			deep = 0,
+			str = '',
+			shift = step ? createShiftArr(step) : this.shift;
+			
+			for(let ix=0;ix<len;ix++) {
+
+				if( /\{/.exec(ar[ix]))  { 
+					str += shift[deep++]+ar[ix];
+				} else 
+				if( /\}/.exec(ar[ix]))  { 
+					str += shift[--deep]+ar[ix];
+				} else
+				if( /\*\\/.exec(ar[ix]))  { 
+					str += shift[deep]+ar[ix];
+				}
+				else {
+					str += shift[deep]+ar[ix];
+				}
+			}
+			return str.replace(/^\n{1,}/,'');
+	};
+
+	//----------------------------------------------------------------------------
+
+	function isSubquery(str, parenthesisLevel) {
+		return  parenthesisLevel - (str.replace(/\(/g,'').length - str.replace(/\)/g,'').length )
+	}
+
+	function split_sql(str, tab) {
+
+		return str.replace(/\s{1,}/g," ")
+
+					.replace(/ AND /ig,"~::~"+tab+tab+"AND ")
+					.replace(/ BETWEEN /ig,"~::~"+tab+"BETWEEN ")
+					.replace(/ CASE /ig,"~::~"+tab+"CASE ")
+					.replace(/ ELSE /ig,"~::~"+tab+"ELSE ")
+					.replace(/ END /ig,"~::~"+tab+"END ")
+					.replace(/ FROM /ig,"~::~FROM ")
+					.replace(/ GROUP\s{1,}BY/ig,"~::~GROUP BY ")
+					.replace(/ HAVING /ig,"~::~HAVING ")
+					//.replace(/ SET /ig," SET~::~")
+					.replace(/ IN /ig," IN ")
+					
+					.replace(/ JOIN /ig,"~::~JOIN ")
+					.replace(/ CROSS~::~{1,}JOIN /ig,"~::~CROSS JOIN ")
+					.replace(/ INNER~::~{1,}JOIN /ig,"~::~INNER JOIN ")
+					.replace(/ LEFT~::~{1,}JOIN /ig,"~::~LEFT JOIN ")
+					.replace(/ RIGHT~::~{1,}JOIN /ig,"~::~RIGHT JOIN ")
+					
+					.replace(/ ON /ig,"~::~"+tab+"ON ")
+					.replace(/ OR /ig,"~::~"+tab+tab+"OR ")
+					.replace(/ ORDER\s{1,}BY/ig,"~::~ORDER BY ")
+					.replace(/ OVER /ig,"~::~"+tab+"OVER ")
+
+					.replace(/\(\s{0,}SELECT /ig,"~::~(SELECT ")
+					.replace(/\)\s{0,}SELECT /ig,")~::~SELECT ")
+					
+					.replace(/ THEN /ig," THEN~::~"+tab+"")
+					.replace(/ UNION /ig,"~::~UNION~::~")
+					.replace(/ USING /ig,"~::~USING ")
+					.replace(/ WHEN /ig,"~::~"+tab+"WHEN ")
+					.replace(/ WHERE /ig,"~::~WHERE ")
+					.replace(/ WITH /ig,"~::~WITH ")
+					
+					//.replace(/\,\s{0,}\(/ig,",~::~( ")
+					//.replace(/\,/ig,",~::~"+tab+tab+"")
+
+					.replace(/ ALL /ig," ALL ")
+					.replace(/ AS /ig," AS ")
+					.replace(/ ASC /ig," ASC ")	
+					.replace(/ DESC /ig," DESC ")	
+					.replace(/ DISTINCT /ig," DISTINCT ")
+					.replace(/ EXISTS /ig," EXISTS ")
+					.replace(/ NOT /ig," NOT ")
+					.replace(/ NULL /ig," NULL ")
+					.replace(/ LIKE /ig," LIKE ")
+					.replace(/\s{0,}SELECT /ig,"SELECT ")
+					.replace(/\s{0,}UPDATE /ig,"UPDATE ")
+					.replace(/ SET /ig," SET ")
+								
+					.replace(/~::~{1,}/g,"~::~")
+					.split('~::~');
+	}
+
+	vkbeautify.prototype.sql = function(text,step) {
+
+		var ar_by_quote = text.replace(/\s{1,}/g," ")
+								.replace(/\'/ig,"~::~\'")
+								.split('~::~'),
+			len = ar_by_quote.length,
+			ar = [],
+			deep = 0,
+			tab = this.step,//+this.step,
+			parenthesisLevel = 0,
+			str = '',
+			shift = step ? createShiftArr(step) : this.shift;
+			for(let ix=0;ix<len;ix++) {
+				if(ix%2) {
+					ar = ar.concat(ar_by_quote[ix]);
+				} else {
+					ar = ar.concat(split_sql(ar_by_quote[ix], tab) );
+				}
+			}
+			
+			len = ar.length;
+			for(let ix=0;ix<len;ix++) {
+				
+				parenthesisLevel = isSubquery(ar[ix], parenthesisLevel);
+				
+				if( /\s{0,}\s{0,}SELECT\s{0,}/.exec(ar[ix]))  { 
+					ar[ix] = ar[ix].replace(/\,/g,",\n"+tab+tab+"");
+				} 
+				
+				if( /\s{0,}\s{0,}SET\s{0,}/.exec(ar[ix]))  { 
+					ar[ix] = ar[ix].replace(/\,/g,",\n"+tab+tab+"");
+				} 
+				
+				if( /\s{0,}\(\s{0,}SELECT\s{0,}/.exec(ar[ix]))  { 
+					deep++;
+					str += shift[deep]+ar[ix];
+				} else 
+				if( /\'/.exec(ar[ix]) )  { 
+					if(parenthesisLevel<1 && deep) {
+						deep--;
+					}
+					str += ar[ix];
+				}
+				else  { 
+					str += shift[deep]+ar[ix];
+					if(parenthesisLevel<1 && deep) {
+						deep--;
+					}
+				} 
+			}
+
+			str = str.replace(/^\n{1,}/,'').replace(/\n{1,}/g,"\n");
+			return str;
+	};
+
+
+	vkbeautify.prototype.xmlmin = function(text, preserveComments) {
+
+		var str = preserveComments ? text
+								   : text.replace(/\<![ \r\n\t]*(--([^\-]|[\r\n]|-[^\-])*--[ \r\n\t]*)\>/g,"")
+										 .replace(/[ \r\n\t]{1,}xmlns/g, ' xmlns');
+		return  str.replace(/>\s{0,}</g,"><"); 
+	};
+
+	vkbeautify.prototype.jsonmin = function(text) {
+
+		if (typeof JSON === 'undefined' ) return text; 
+		
+		return JSON.stringify(JSON.parse(text), null, 0); 
+					
+	};
+
+	vkbeautify.prototype.cssmin = function(text, preserveComments) {
+		
+		var str = preserveComments ? text
+								   : text.replace(/\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\//g,"") ;
+
+		return str.replace(/\s{1,}/g,' ')
+				  .replace(/\{\s{1,}/g,"{")
+				  .replace(/\}\s{1,}/g,"}")
+				  .replace(/\;\s{1,}/g,";")
+				  .replace(/\/\*\s{1,}/g,"/*")
+				  .replace(/\*\/\s{1,}/g,"*/");
+	};
+
+	vkbeautify.prototype.sqlmin = function(text) {
+		return text.replace(/\s{1,}/g," ").replace(/\s{1,}\(/,"(").replace(/\s{1,}\)/,")");
+	};
+
+	var vkbeautify$1 = (new vkbeautify());
+
+	/** simple svg in javascript
+	 *
+	 * @param: the order in the geometry functions follow a general guideline
+	 *  - the necessary parameters for the geometry, number of params varies
+	 *  - className
+	 *  - id
+	 *  - the parent container to append this new element
+	 *
+	 * you can set all these later. some are more important than others.
+	 * if you don't use the parent parameter, you'll want to append
+	 * this object to an SVG or group using .appendChild
+	 *
+	 * @returns: the new geometry XML object.
+	 */
+
+	const svgNS = "http://www.w3.org/2000/svg";
+
+	const setClassIdParent = function(element, className, id, parent) {
+		if (className != null) {
+			element.setAttributeNS(null, "class", className);
+		}
+		if (id != null) {
+			element.setAttributeNS(null, "id", id);
+		}
+		if (parent != null) {
+			parent.appendChild(element);
+		}
+	};
+
+	/**
+	 * geometry modifiers
+	 */
+
+	const setPoints = function(polygon, pointsArray) {
+		if (pointsArray == null || pointsArray.constructor !== Array) {
+			return;
+		}
+		let pointsString = pointsArray.map((el) =>
+			(el.constructor === Array ? el : [el.x, el.y])
+		).reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
+		polygon.setAttributeNS(null, "points", pointsString);
+	};
+
+	const setArc = function(shape, x, y, radius, startAngle, endAngle,
+			includeCenter = false) {
+		let start = [
+			x + Math.cos(startAngle) * radius,
+			y + Math.sin(startAngle) * radius ];
+		let vecStart = [
+			Math.cos(startAngle) * radius,
+			Math.sin(startAngle) * radius ];
+		let vecEnd = [
+			Math.cos(endAngle) * radius,
+			Math.sin(endAngle) * radius ];
+		let arcVec = [vecEnd[0] - vecStart[0], vecEnd[1] - vecStart[1]];
+		let py = vecStart[0]*vecEnd[1] - vecStart[1]*vecEnd[0];
+		let px = vecStart[0]*vecEnd[0] + vecStart[1]*vecEnd[1];
+		let arcdir = (Math.atan2(py, px) > 0 ? 0 : 1);
+		let d = (includeCenter
+			? "M " + x + "," + y + " l " + vecStart[0] + "," + vecStart[1] + " "
+			: "M " + start[0] + "," + start[1] + " ");
+		d += ["a ", radius, radius, 0, arcdir, 1, arcVec[0], arcVec[1]].join(" ");
+		if (includeCenter) { d += " Z"; }
+		shape.setAttributeNS(null, "d", d);
+	};
+
+	/**
+	 * geometry primitives
+	 */
+
+	const line$1 = function(x1, y1, x2, y2, className, id, parent) {
+		let shape = document.createElementNS(svgNS, "line");
+		shape.setAttributeNS(null, "x1", x1);
+		shape.setAttributeNS(null, "y1", y1);
+		shape.setAttributeNS(null, "x2", x2);
+		shape.setAttributeNS(null, "y2", y2);
+		setClassIdParent(shape, className, id, parent);
+		return shape;
+	};
+
+	const circle = function(x, y, radius, className, id, parent) {
+		let shape = document.createElementNS(svgNS, "circle");
+		shape.setAttributeNS(null, "cx", x);
+		shape.setAttributeNS(null, "cy", y);
+		shape.setAttributeNS(null, "r", radius);
+		setClassIdParent(shape, className, id, parent);
+		return shape;
+	};
+
+	const ellipse = function(x, y, rx, ry, className, id, parent) {
+		let shape = document.createElementNS(svgNS, "ellipse");
+		shape.setAttributeNS(null, "cx", x);
+		shape.setAttributeNS(null, "cy", y);
+		shape.setAttributeNS(null, "rx", rx);
+		shape.setAttributeNS(null, "ry", ry);
+		setClassIdParent(shape, className, id, parent);
+		return shape;
+	};
+
+	const rect = function(x, y, width, height, className, id, parent) {
+		let shape = document.createElementNS(svgNS, "rect");
+		shape.setAttributeNS(null, "x", x);
+		shape.setAttributeNS(null, "y", y);
+		shape.setAttributeNS(null, "width", width);
+		shape.setAttributeNS(null, "height", height);
+		setClassIdParent(shape, className, id, parent);
+		return shape;
+	};
+
+	const polygon = function(pointsArray, className, id, parent) {
+		let shape = document.createElementNS(svgNS, "polygon");
+		setPoints(shape, pointsArray);
+		setClassIdParent(shape, className, id, parent);
+		return shape;
+	};
+
+	const polyline = function(pointsArray, className, id, parent) {
+		let shape = document.createElementNS(svgNS, "polyline");
+		setPoints(shape, pointsArray);
+		setClassIdParent(shape, className, id, parent);
+		return shape;
+	};
+
+	const bezier = function(fromX, fromY, c1X, c1Y, c2X, c2Y,
+			toX, toY, className, id, parent) {
+		let d = "M " + fromX + "," + fromY + " C " + c1X + "," + c1Y +
+				" " + c2X + "," + c2Y + " " + toX + "," + toY;
+		let shape = document.createElementNS(svgNS, "path");
+		shape.setAttributeNS(null, "d", d);
+		setClassIdParent(shape, className, id, parent);
+		return shape;
+	};
+
+	const text = function(textString, x, y, className, id, parent) {
+		let shape = document.createElementNS(svgNS, "text");
+		shape.innerHTML = textString;
+		shape.setAttributeNS(null, "x", x);
+		shape.setAttributeNS(null, "y", y);
+		setClassIdParent(shape, className, id, parent);
+		return shape;
+	};
+
+	const wedge = function(x, y, radius, angleA, angleB, className, id, parent) {
+		let shape = document.createElementNS(svgNS, "path");
+		setArc(shape, x, y, radius, angleA, angleB, true);
+		setClassIdParent(shape, className, id, parent);
+		return shape;
+	};
+
+	const arc = function(x, y, radius, angleA, angleB, className, id, parent) {
+		let shape = document.createElementNS(svgNS, "path");
+		setArc(shape, x, y, radius, angleA, angleB, false);
+		setClassIdParent(shape, className, id, parent);
+		return shape;
+	};
+
+	// export const curve = function(fromX, fromY, midX, midY, toX, toY, className, id)
+
+	/**
+	 * compound shapes
+	 */
+
+	const regularPolygon = function(cX, cY, radius, sides, className, id, parent) {
+		let halfwedge = 2*Math.PI/sides * 0.5;
+		let r = Math.cos(halfwedge) * radius;
+		let points = Array.from(new Array(sides)).map((el,i) => {
+			let a = -2 * Math.PI * i / sides + halfwedge;
+			let x = cX + r * Math.sin(a);
+			let y = cY + r * Math.cos(a);
+			return [x, y];
+		});
+		return polygon(points, className, id, parent);
+	};
+
+	/**
+	 * container types
+	 */
+
+	const group = function(className, id, parent) {
+		let g = document.createElementNS(svgNS, "g");
+		setClassIdParent(g, className, id, parent);
+		return g;
+	};
+
+	const svg = function(className, id, parent) {
+		let svgImage = document.createElementNS(svgNS, "svg");
+		svgImage.setAttribute("version", "1.1");
+		svgImage.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+		// svgImage.setAttributeNS(null, "viewBox", "0 0 1 1");
+		setClassIdParent(svgImage, className, id, parent);
+		return svgImage;
+	};
+
+	/**
+	 * element modifiers
+	 */
+
+	const addClass = function(xmlNode, newClass) {
+		if (xmlNode == undefined) {
+			return;
+		}
+		let currentClass = xmlNode.getAttribute("class");
+		if (currentClass == undefined) {
+			currentClass = "";
+		}
+		let classes = currentClass.split(" ").filter((c) => c !== newClass);
+		classes.push(newClass);
+		xmlNode.setAttributeNS(null, "class", classes.join(" "));
+	};
+
+	const removeClass = function(xmlNode, newClass) {
+		if (xmlNode == undefined) {
+			return;
+		}
+		let currentClass = xmlNode.getAttribute("class");
+		if (currentClass == undefined) {
+			currentClass = "";
+		}
+		let classes = currentClass.split(" ").filter((c) => c !== newClass);
+		xmlNode.setAttributeNS(null, "class", classes.join(" "));
+	};
+
+	const setId = function(xmlNode, newID) {
+		if (xmlNode == undefined) {
+			return;
+		}
+		xmlNode.setAttributeNS(null, "id", newID);
+	};
+
+	const removeChildren = function(group) {
+		while (group.lastChild) {
+			group.removeChild(group.lastChild);
+		}
+	};
+
+	/**
+	 * math, view
+	 */
+
+	const setViewBox = function(svg, x, y, width, height, padding = 0) {
+	// let d = (bounds.size.width / _zoom) - bounds.size.width;
+		let scale = 1.0;
+		let d = (width / scale) - width;
+		let X = (x - d) - padding;
+		let Y = (y - d) - padding;
+		let W = (width + d * 2) + padding * 2;
+		let H = (height + d * 2) + padding * 2;
+		let viewBoxString = [X, Y, W, H].join(" ");
+		svg.setAttributeNS(null, "viewBox", viewBoxString);
+	};
+
+	const setDefaultViewBox = function(svg) {
+		let size = svg.getBoundingClientRect();
+		let width = (size.width == 0 ? 640 : size.width);
+		let height = (size.height == 0 ? 480 : size.height);
+		setViewBox(svg, 0, 0, width, height);
+	};
+
+	/** @returns {number} array of 4 numbers: x, y, width, height */
+	const getViewBox = function(svg) {
+		let vb = svg.getAttribute("viewBox");
+		return (vb == null
+			? undefined
+			: vb.split(" ").map((n) => parseFloat(n)));
+	};
+
+	const scale = function(svg, scale, origin_x = 0, origin_y = 0) {
+		if (scale < 1e-8) { scale = 0.01; }
+		let matrix = svg.createSVGMatrix()
+			.translate(origin_x, origin_y)
+			.scale(1/scale)
+			.translate(-origin_x, -origin_y);
+		let viewBox = getViewBox(svg);
+		if (viewBox == null) {
+			setDefaultViewBox(svg);
+		}
+		let top_left = svg.createSVGPoint();
+		let bot_right = svg.createSVGPoint();
+		top_left.x = viewBox[0];
+		top_left.y = viewBox[1];
+		bot_right.x = viewBox[0] + viewBox[2];
+		bot_right.y = viewBox[1] + viewBox[3];
+		let new_top_left = top_left.matrixTransform(matrix);
+		let new_bot_right = bot_right.matrixTransform(matrix);
+		setViewBox(svg,
+			new_top_left.x,
+			new_top_left.y,
+			new_bot_right.x - new_top_left.x,
+			new_bot_right.y - new_top_left.y
+		);
+	};
+
+	const translate = function(svg, dx, dy) {
+		let viewBox = getViewBox(svg);
+		if (viewBox == null) {
+			setDefaultViewBox(svg);
+		}
+		viewBox[0] += dx;
+		viewBox[1] += dy;
+		svg.setAttributeNS(null, "viewBox", viewBox.join(" "));
+	};
+
+	const convertToViewBox = function(svg, x, y) {
+		let pt = svg.createSVGPoint();
+		pt.x = x;
+		pt.y = y;
+		let svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
+		let array = [svgPoint.x, svgPoint.y];
+		array.x = svgPoint.x;
+		array.y = svgPoint.y;
+		return array;
+	};
+
+	/**
+	 * import, export
+	 */
+
+	const save = function(svg, filename = "image.svg") {
+		let a = document.createElement("a");
+		let source = (new window.XMLSerializer()).serializeToString(svg);
+		let formatted = vkbeautify$1.xml(source);
+		let blob = new window.Blob([formatted], {type: "text/plain"});
+		a.setAttribute("href", window.URL.createObjectURL(blob));
+		a.setAttribute("download", filename);
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+	};
+
+	/** parser error to check against */
+	const pErr = (new window.DOMParser())
+		.parseFromString("INVALID", "text/xml")
+		.getElementsByTagName("parsererror")[0]
+		.namespaceURI;
+
+	// the SVG is returned, or given as the argument in the callback(svg, error)
+	const load = function(input, callback) {
+		// try cascading attempts at different possible param types
+		// "input" is either a (1) raw text encoding of the svg
+		//   (2) filename (3) already parsed DOM element
+		if (typeof input === "string" || input instanceof String) {
+			// (1) raw text encoding
+			let xml = (new window.DOMParser()).parseFromString(input, "text/xml");
+			if (xml.getElementsByTagNameNS(pErr, "parsererror").length === 0) {
+				let parsedSVG = xml.documentElement;
+				if (callback != null) {
+					callback(parsedSVG);
+				}
+				return parsedSVG;
+			}
+			// (2) filename
+			fetch(input)
+				.then((response) => response.text())
+				.then((str) => (new window.DOMParser())
+					.parseFromString(str, "text/xml")
+				).then((svgData) => {
+					let allSVGs = svgData.getElementsByTagName("svg");
+					if (allSVGs == null || allSVGs.length === 0) {
+						throw "error, valid XML found, but no SVG element";
+					}
+					if (callback != null) {
+						callback(allSVGs[0]);
+					}
+					return allSVGs[0];
+				// }).catch((err) => callback(null, err));
+				});
+		} else if (input instanceof Document) {
+			// (3) already parsed SVG... why would this happen? IDK. just return it
+			callback(input);
+			return input;
+		}
+	};
+
+	const controlPoint = function(parent, radius) {
+
+		let c = circle(0, 0, radius);
+		let _position = [0,0];
+		let _selected = false;
+
+		if (parent != null) {
+			parent.appendChild(c);
+		}
+
+		const setPosition = function(x, y) {
+			_position[0] = x;
+			_position[1] = y;
+			c.setAttribute("cx", x);
+			c.setAttribute("cy", y);
+		};
+		const onMouseMove = function(mouse) {
+			if (_selected) {
+				let pos = _updatePosition(mouse);
+				setPosition(pos[0], pos[1]);
+			}
+		};
+		const onMouseUp = function(mouse) {
+			_selected = false;
+		};
+		const distance = function(mouse) {
+			return Math.sqrt(
+				Math.pow(mouse[0] - _position[0], 2) +
+				Math.pow(mouse[1] - _position[1], 2)
+			);
+		};
+		let _updatePosition = function(input){ return input; };
+		return {
+			circle: c,
+			set position(pos) {
+				if (pos[0] != null) { setPosition(pos[0], pos[1]); }
+				else if (pos.x != null) { setPosition(pos.x, pos.y); }
+			},
+			get position() { return [..._position]; },
+			onMouseUp,
+			onMouseMove,
+			distance,
+			set positionDidUpdate(method) { _updatePosition = method; },
+			set selected(value) { _selected = true; }
+		};
+	};
+
+	function ControlPoints(parent, number = 1, radius) {
+		let _points = Array.from(Array(number)).map(_ => controlPoint(parent, radius));
+		let _selected = undefined;
+
+		const onMouseDown = function(mouse) {
+			if (!(_points.length > 0)) { return; }
+			_selected = _points
+				.map((p,i) => ({i:i, d:p.distance(mouse)}))
+				.sort((a,b) => a.d - b.d)
+				.shift()
+				.i;
+			_points[_selected].selected = true;
+		};
+
+		const onMouseMove = function(mouse) {
+			_points.forEach(p => p.onMouseMove(mouse));
+		};
+
+		const onMouseUp = function(mouse) {
+			_points.forEach(p => p.onMouseUp(mouse));
+			_selected = undefined;
+		};
+
+		Object.defineProperty(_points, "onMouseDown", {value: onMouseDown});
+		Object.defineProperty(_points, "onMouseMove", {value: onMouseMove});
+		Object.defineProperty(_points, "onMouseUp", {value: onMouseUp});
+		Object.defineProperty(_points, "selectedIndex", {get: function() { return _selected; }});
+		Object.defineProperty(_points, "selected", {get: function() { return _points[_selected]; }});
+
+		return _points;
+	}
+
+	/** interactive svg image
+	 * creates SVG, binds it to the DOM, supplies methods and handlers
+	 * @param: (number, number) width, height
+	 * @param: a DOM object or "string" DOM id- a parent to attach to
+	 */
+
+	function Image() {
+		// get constructor parameters
+		let params = Array.from(arguments);
+
+		// create a new SVG
+		let _svg = svg();
+
+		let _parent = undefined;  // parent node
+
+		// view properties
+		let _scale = 1.0;
+		let _padding = 0;
+
+		let _matrix = _svg.createSVGMatrix();
+
+		let _mouse = Object.create(null);
+		Object.assign(_mouse, {
+			isPressed: false, // is the mouse button pressed (y/n)
+			position: [0,0],  // the current position of the mouse [x,y]
+			pressed: [0,0],   // the last location the mouse was pressed
+			drag: [0,0],      // vector, displacement from start to now
+			prev: [0,0],      // on mouseMoved, the previous location
+			x: 0,             //
+			y: 0              // -- x and y, copy of position data
+		});
+
+		let properties = {
+			controlPoints: undefined
+		};
+
+		// exported
+		const zoom = function(scale$$1, origin_x = 0, origin_y = 0) {
+			_scale = scale$$1;
+			scale(_svg, scale$$1, origin_x, origin_y);
+		};
+		const translate$$1 = function(dx, dy) {
+			translate(_svg, dx, dy);
+		};
+		const setViewBox$$1 = function(x, y, width, height) {
+			setViewBox(_svg, x, y, width, height, _padding);
+		};
+		const getViewBox$$1 = function() {
+			return getViewBox(_svg);
+		};
+		const appendChild = function(element) {
+			_svg.appendChild(element);
+		};
+		const removeChildren$$1 = function(group$$1) {
+			// serves 2 functions:
+			// removeChildren() will remove all children from this SVG.
+			// removeChildren(group) will remove children from *group*
+			if (group$$1 == null) {
+				group$$1 = _svg;
+			}
+			while (group$$1.lastChild) {
+				group$$1.removeChild(group$$1.lastChild);
+			}
+		};
+		const save$$1 = function(filename = "image.svg") {
+			return save(_svg, filename);
+		};
+		const load$$1 = function(data, callback) {
+			load(data, function(newSVG, error) {
+				if (newSVG != null) {
+					// todo: do we need to remove any existing handlers to properly free memory?
+					_parent.removeChild(_svg);
+					_svg = newSVG;
+					_parent.appendChild(_svg);
+					// re-attach handlers
+					attachHandlers();
+				}
+				if (callback != null) { callback(newSVG, error); }
+			});
+		};
+		const size = function(w, h) {
+			if (w == null || h == null) { return; }
+			let vb = getViewBox(_svg);
+			setViewBox(_svg, vb[0], vb[1], w, h, _padding);
+			_svg.setAttributeNS(null, "width", w);
+			_svg.setAttributeNS(null, "height", h);
+		};
+
+		const getWidth = function() {
+			let w = parseInt(_svg.getAttributeNS(null, "width"));
+			return w != null && !isNaN(w) ? w : _svg.getBoundingClientRect().width;
+		};
+		const getHeight = function() {
+			let h = parseInt(_svg.getAttributeNS(null, "height"));
+			return h != null && !isNaN(h) ? h : _svg.getBoundingClientRect().height;
+		};
+
+		// after page load, find a parent element for the new SVG in the arguments
+		const attachToDOM = function() {
+			let functions = params.filter((arg) => typeof arg === "function");
+			let numbers = params.filter((arg) => !isNaN(arg));
+			let element = params.filter((arg) =>
+					arg instanceof HTMLElement)
+				.shift();
+			let idElement = params.filter((a) =>
+					typeof a === "string" || a instanceof String)
+				.map(str => document.getElementById(str))
+				.shift();
+			_parent = (element != null
+				? element
+				: (idElement != null
+					? idElement
+					: document.body));
+			_parent.appendChild(_svg);
+
+			if (numbers.length >= 2) {
+				_svg.setAttributeNS(null, "width", numbers[0]);
+				_svg.setAttributeNS(null, "height", numbers[1]);
+				setViewBox(_svg, 0, 0, numbers[0], numbers[1]);
+			} 
+			else if (_svg.getAttribute("viewBox") == null) {
+				// set a viewBox if viewBox doesn't yet exist
+				let rect$$1 = _svg.getBoundingClientRect();
+				setViewBox(_svg, 0, 0, rect$$1.width, rect$$1.height);
+			}
+
+			if (functions.length >= 1) {
+				functions[0]();
+			}
+
+			attachHandlers();
+		};
+		// boot begin:
+		// set numbers if they exist, before page has even loaded
+		// this way the svg has a width and height even before document has loaded
+		let numbers = params.filter((arg) => !isNaN(arg));
+		if (numbers.length >= 2) {
+			_svg.setAttributeNS(null, "width", numbers[0]);
+			_svg.setAttributeNS(null, "height", numbers[1]);
+			setViewBox(_svg, 0, 0, numbers[0], numbers[1]);
+		} 
+
+		if (document.readyState === 'loading') {
+			// wait until after the <body> has rendered
+			document.addEventListener('DOMContentLoaded', attachToDOM);
+		} else {
+			attachToDOM();
+		}
+
+		function attachHandlers() {
+			// mouse
+			_svg.addEventListener("mouseup", mouseUpHandler, false);
+			_svg.addEventListener("mousedown", mouseDownHandler, false);
+			_svg.addEventListener("mousemove", mouseMoveHandler, false);
+			_svg.addEventListener("mouseleave", mouseLeaveHandler, false);
+			_svg.addEventListener("mouseenter", mouseEnterHandler, false);
+			// touches
+			_svg.addEventListener("touchend", mouseUpHandler, false);
+			_svg.addEventListener("touchmove", touchMoveHandler, false);
+			_svg.addEventListener("touchstart", touchStartHandler, false);
+			_svg.addEventListener("touchcancel", mouseUpHandler, false);
+		}
+
+		// the user-defined event handlers are stored here
+		let _onmousemove, _onmousedown, _onmouseup, _onmouseleave, _onmouseenter, _animate, _animationFrame, _intervalID;
+
+		// deep copy mouse object
+		function getMouse() {
+			let m = _mouse.position.slice();
+			// all object properties are Arrays. we can .slice()
+			Object.keys(_mouse)
+				.filter(key => typeof key === "object")
+				.forEach(key => m[key] = _mouse[key].slice());
+			Object.keys(_mouse)
+				.filter(key => typeof key !== "object")
+				.forEach(key => m[key] = _mouse[key]);
+			return Object.freeze(m);
+		}
+		// clientX and clientY are from the browser event data
+		function updateMousePosition(clientX, clientY) {
+			_mouse.prev = _mouse.position;
+			_mouse.position = convertToViewBox(_svg, clientX, clientY);
+			_mouse.x = _mouse.position[0];
+			_mouse.y = _mouse.position[1];
+		}
+		function updateMouseDrag() {
+			// counting on updateMousePosition to have just been called
+			// using mouse.position instead of calling SVG.convertToViewBox again
+			_mouse.drag = [_mouse.position[0] - _mouse.pressed[0], 
+			               _mouse.position[1] - _mouse.pressed[1]];
+			_mouse.drag.x = _mouse.drag[0];
+			_mouse.drag.y = _mouse.drag[1];
+		}
+
+		function mouseMoveHandler(event) {
+			updateMousePosition(event.clientX, event.clientY);
+			let mouse = getMouse();
+			if (properties.controlPoints){ properties.controlPoints.onMouseMove(mouse); }
+			if (_mouse.isPressed) { updateMouseDrag(); }
+			if (_onmousemove != null) { _onmousemove(mouse); }
+		}
+		function mouseDownHandler(event) {
+			_mouse.isPressed = true;
+			_mouse.pressed = convertToViewBox(_svg, event.clientX, event.clientY);
+			let mouse = getMouse();
+			if (properties.controlPoints){ properties.controlPoints.onMouseDown(mouse); }
+			if (_onmousedown != null) { _onmousedown(mouse); }
+		}
+		function mouseUpHandler(event) {
+			_mouse.isPressed = false;
+			let mouse = getMouse();
+			if (properties.controlPoints){ properties.controlPoints.onMouseUp(mouse); }
+			if (_onmouseup != null) { _onmouseup(mouse); }
+		}
+		function mouseLeaveHandler(event) {
+			updateMousePosition(event.clientX, event.clientY);
+			if (_onmouseleave != null) { _onmouseleave(getMouse()); }
+		}
+		function mouseEnterHandler(event) {
+			updateMousePosition(event.clientX, event.clientY);
+			if (_onmouseenter != null) { _onmouseenter(getMouse()); }
+		}
+		function touchStartHandler(event) {
+			event.preventDefault();
+			let touch = event.touches[0];
+			if (touch == null) { return; }
+			_mouse.isPressed = true;
+			_mouse.pressed = convertToViewBox(_svg, touch.clientX, touch.clientY);
+			let mouse = getMouse();
+			if (properties.controlPoints){ properties.controlPoints.onMouseDown(mouse); }
+			if (_onmousedown != null) { _onmousedown(mouse); }
+		}
+		function touchMoveHandler(event) {
+			event.preventDefault();
+			let touch = event.touches[0];
+			if (touch == null) { return; }
+			updateMousePosition(touch.clientX, touch.clientY);
+			if (_mouse.isPressed) { updateMouseDrag(); }
+			let mouse = getMouse();
+			if (properties.controlPoints){ properties.controlPoints.onMouseMove(mouse); }
+			if (_onmousemove != null) { _onmousemove(mouse); }
+		}
+		function updateAnimationHandler(handler) {
+			if (_animate != null) {
+				clearInterval(_intervalID);
+			}
+			_animate = handler;
+			if (_animate != null) {
+				_animationFrame = 0;
+				_intervalID = setInterval(() => {
+					let animObj = {
+						"time": _svg.getCurrentTime(),
+						"frame": _animationFrame++
+					};
+					_animate(animObj);
+				}, 1000/60);
+			}
+		}
+		// these are the same as mouseUpHandler
+		// function touchEndHandler(event) { }
+		// function touchCancelHandler(event) { }
+
+		const removeControlPoints = function() {
+			if (properties.controlPoints == undefined) { return; }
+			if (properties.controlPoints.length === 0) { return; }
+			properties.controlPoints.forEach(tp => tp.remove());
+			properties.controlPoints = [];
+		};
+		const makeControlPoints = function(number, options) {
+			let parent = _svg;
+			let radius = getWidth() * 0.01;
+			if (options != null) {
+				if (options.parent) { parent = options.parent; }
+				if (options.radius) { radius = options.radius; }
+			}
+			removeControlPoints();
+			properties.controlPoints = ControlPoints(parent, number, radius);
+			return properties.controlPoints;
+		};
+
+		// return Object.freeze({
+		return {
+			zoom, translate: translate$$1, appendChild, removeChildren: removeChildren$$1,
+			load: load$$1, save: save$$1,
+			setViewBox: setViewBox$$1, getViewBox: getViewBox$$1, size,
+			get mouse() { return getMouse(); },
+			get scale() { return _scale; },
+			get svg() { return _svg; },
+			get width() { return getWidth(); },
+			get height() { return getHeight(); },
+			set width(w) { _svg.setAttributeNS(null, "width", w); },
+			set height(h) { _svg.setAttributeNS(null, "height", h); },
+			set onMouseMove(handler) { _onmousemove = handler; },
+			set onMouseDown(handler) { _onmousedown = handler; },
+			set onMouseUp(handler) { _onmouseup = handler; },
+			set onMouseLeave(handler) { _onmouseleave = handler; },
+			set onMouseEnter(handler) { _onmouseenter = handler; },
+			set animate(handler) { updateAnimationHandler(handler); },
+			makeControlPoints,
+			get controlPoints() { return properties.controlPoints; }
+			// set onResize(handler) {}
+		};
+		// });
+	}
 
 	var svg$1 = /*#__PURE__*/Object.freeze({
 		Image: Image,
@@ -4000,7 +4797,7 @@
 		};
 
 		const nearest = function() {
-			let point = Vector$1(...arguments);
+			let point = Vector(...arguments);
 			let nearestVertex = _cp.nearestVertex(point[0], point[1]);
 			let nearestEdge = _cp.nearestEdge(point[0], point[1]);
 			let nearestFace = _cp.nearestFace(point[0], point[1]);
@@ -4083,7 +4880,7 @@
 		const makeVertices = function() {
 			return _cp.vertices_coords == null
 				? []
-				: _cp.vertices_coords.map(v => Vector$1(v));
+				: _cp.vertices_coords.map(v => Vector(v));
 		};
 		const makeEdges = function() {
 			return _cp.edges_vertices == null
