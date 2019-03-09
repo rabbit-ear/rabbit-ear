@@ -60,16 +60,16 @@ lre.redraw = function(){
 }
 lre.redraw();
 
-lre.onMouseDown = function(mouse){
+lre.addEventListener("mousedown", function(mouse){
 	let ep = lre.width / 50;
 	let down = lre.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	lre.selected = found;
-}
+});
 
-lre.onMouseMove = function(mouse){
+lre.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && lre.selected != null){
 		lre.touches[lre.selected].pos = mouse.position;
 		lre.redraw();
 	}
-}
+});

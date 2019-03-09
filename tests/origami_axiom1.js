@@ -26,16 +26,16 @@ axiom1.redraw = function() {
 }
 axiom1.redraw();
 
-axiom1.onMouseDown = function(mouse){
+axiom1.addEventListener("mousedown", function(mouse){
 	let ep = 0.03;
 	let down = axiom1.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	axiom1.selected = found;
-}
+});
 
-axiom1.onMouseMove = function(mouse){
+axiom1.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && axiom1.selected != null){
 		axiom1.touches[axiom1.selected].pos = mouse.position;
 		axiom1.redraw();
 	}
-}
+});

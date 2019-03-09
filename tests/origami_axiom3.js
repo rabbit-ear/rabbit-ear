@@ -27,16 +27,16 @@ axiom3.redraw = function(){
 }
 axiom3.redraw();
 
-axiom3.onMouseDown = function(mouse){
+axiom3.addEventListener("mousedown", function(mouse){
 	let ep = 0.03;
 	let down = axiom3.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	axiom3.selected = found;
-}
+});
 
-axiom3.onMouseMove = function(mouse){
+axiom3.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && axiom3.selected != null){
 		axiom3.touches[axiom3.selected].pos = mouse.position;
 		axiom3.redraw();
 	}
-}
+});

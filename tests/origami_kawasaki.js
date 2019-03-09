@@ -1,0 +1,70 @@
+let sketch = RabbitEar.svg.Image("sketch");
+
+sketch.drawLayer = RabbitEar.svg.group();
+sketch.sectorLayer = RabbitEar.svg.group();
+sketch.touchLayer = RabbitEar.svg.group();
+sketch.appendChild(sketch.sectorLayer);
+sketch.appendChild(sketch.drawLayer);
+sketch.appendChild(sketch.touchLayer);
+
+let points = RabbitEar.svg.controls(sketch, 8, {
+	parent: sketch.touchLayer,
+	radius: sketch.width*0.01,
+	fill: "#000"
+});
+
+points.forEach((p,i) => {
+	let r = (sketch.width > sketch.height) ? sketch.height*0.45 : sketch.width*0.45;
+	let angle = Math.random() * Math.PI * 2;
+	p.position = [
+		sketch.width/2 + r * Math.cos(angle),
+		sketch.height/2 + r * Math.sin(angle)
+	];
+});
+sketch.sectorLines = points.map(p => RabbitEar.svg.line(sketch.width/2, sketch.height/2, p.position[0], p.position[1]))
+sketch.sectorLines.forEach(line => sketch.drawLayer.appendChild(line));
+sketch.sectorLines.forEach(line => line.setAttribute("stroke", "black"));
+sketch.sectorLines.forEach(line => line.setAttribute("stroke-width", 5));
+sketch.sectorLines.forEach(line => line.setAttribute("stroke-linecap", "round"));
+
+sketch.updateSectors = function() {
+	let jp = points.map(p => p.position);
+	let j = RabbitEar.math.Junction([sketch.width/2, sketch.height/2], jp);
+	let pair = j.alternatingAngleSum();
+	let kawasakiNormalized = pair.map(n => (n - Math.PI) / (Math.PI) );
+	RabbitEar.svg.removeChildren(sketch.sectorLayer);
+	let angles = points
+		.map(p => [p.position[0] - sketch.width/2, p.position[1] - sketch.height/2])
+		.map(v => Math.atan2(v[1], v[0]))
+		.sort((a,b) => a - b);
+	let r = (sketch.width > sketch.height) ? sketch.height*0.45 : sketch.width*0.45;
+	let wedges = angles.map((_,i,arr) => {
+		let thisr = (0.5+0.5*kawasakiNormalized[i%2]) * r;
+		return RabbitEar.svg.wedge(sketch.width/2, sketch.height/2, thisr, angles[i], angles[(i+1)%arr.length])
+	});
+	let wedgeColors = ["#314f69", "#e35536"];
+	wedges.forEach((w,i) => w.setAttribute("fill", wedgeColors[i%2]));
+	wedges.forEach(w => sketch.sectorLayer.appendChild(w));
+}
+
+points.forEach(p => {
+	p.positionDidUpdate = function(mouse){
+		let angle = Math.atan2(mouse[1] - sketch.height/2, mouse[0] - sketch.width/2);
+		let r = (sketch.width > sketch.height) ? sketch.height*0.45 : sketch.width*0.45;
+		let x = sketch.width/2 + r * Math.cos(angle);
+		let y = sketch.height/2 + r * Math.sin(angle);
+		return [x, y];
+	}
+});
+
+sketch.addEventListener("mousemove", function(mouse){
+	if (points.selected !== undefined) {
+		let line = sketch.sectorLines[points.selectedIndex];
+		line.setAttribute("x2", points.selected.position[0]);
+		line.setAttribute("y2", points.selected.position[1]);
+		sketch.updateSectors();
+	}
+});
+
+sketch.updateSectors();
+

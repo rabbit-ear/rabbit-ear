@@ -127,19 +127,19 @@ vec.update = function(){
 	vec.redraw();
 }
 
-vec.onMouseDown = function(mouse){
+vec.addEventListener("mousedown", function(mouse){
 	let ep = vec.width / 50;
 	let down = vec.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	vec.selected = found;
-}
+});
 
-vec.onMouseMove = function(mouse){
+vec.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && vec.selected != null){
 		vec.touches[vec.selected].pos = mouse.position;
 		vec.update();
 	}
-}
+});
 
 vec.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
 vec.reset();

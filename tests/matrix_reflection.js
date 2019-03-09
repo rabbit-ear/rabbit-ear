@@ -57,16 +57,16 @@ reflect.redraw = function(){
 }
 reflect.redraw();
 
-reflect.onMouseDown = function(mouse){
+reflect.addEventListener("mousedown", function(mouse){
 	let ep = reflect.width / 50;
 	let down = reflect.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	reflect.selected = found;
-}
+});
 
-reflect.onMouseMove = function(mouse){
+reflect.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && reflect.selected != null){
 		reflect.touches[reflect.selected].pos = mouse.position;
 		reflect.redraw();
 	}
-}
+});

@@ -6,8 +6,8 @@ creaseEdge.redraw = function(){
 }
 creaseEdge.redraw();
 
-creaseEdge.onMouseDown = function(mouse){
+creaseEdge.addEventListener("mousedown", function(mouse){
 	creaseEdge.redraw();
-}
-creaseEdge.onMouseUp = function(mouse){ }
-creaseEdge.onMouseMove = function(mouse){ }
+})
+creaseEdge.addEventListener("mouseup", function(mouse){});
+creaseEdge.addEventListener("mousemove", function(mouse){});

@@ -44,16 +44,16 @@ contains.redraw = function(){
 }
 contains.redraw();
 
-contains.onMouseDown = function(mouse){
+contains.addEventListener("mousedown", function(mouse){
 	let ep = contains.width / 25;
 	let down = contains.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	contains.selected = found;
-}
+});
 
-contains.onMouseMove = function(mouse){
+contains.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && contains.selected != null){
 		contains.touches[contains.selected].pos = mouse.position;
 		contains.redraw();
 	}
-}
+});

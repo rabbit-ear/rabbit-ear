@@ -19,7 +19,7 @@ svgLines.forEach(line => line.setAttribute("stroke", "black"));
 svgLines.forEach(line => line.setAttribute("stroke-width", 4));
 svgLines.forEach(line => lineLayer.appendChild(line));
 
-nearestPoint.onMouseMove = function(mouse) {
+nearestPoint.addEventListener("mousemove", function(mouse){
 	RabbitEar.svg.removeChildren(circleLayer);
 	let points = edges.map(e => e.nearestPoint(mouse));
 	let circles = points.map(p => RabbitEar.svg.circle(p.x, p.y, 10));
@@ -30,4 +30,4 @@ nearestPoint.onMouseMove = function(mouse) {
 	if (nearestPointCallback != null) {
 		nearestPointCallback({mouse: mouse.position});
 	}
-}
+});

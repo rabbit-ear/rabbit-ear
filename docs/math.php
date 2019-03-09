@@ -66,6 +66,10 @@
 		<pre><code><f>let</f> endpoints <key>=</key> edge.<f>points</f></code></pre>
 	</div>
 
+<h3>Circle</h3>
+
+	<div id="canvas-circle-line"></div>
+
 <h3>Polygon</h3>
 
 	<p>A <b>ConvexPolygon</b> object is defined its <b>edges</b>, it contains the classic convex hull algorithm, and can clip <b>lines</b>, <b>rays</b>, and <b>edges</b> into a new edge which fits within its boundary.</p>
@@ -151,6 +155,7 @@
 <script type="text/javascript" src="../tests/vector_lerp.js"></script>
 <script type="text/javascript" src="../tests/vector_labels.js"></script>
 <script type="text/javascript" src="../tests/clipping.js"></script>
+<script type="text/javascript" src="../tests/circle_line.js"></script>
 <script type="text/javascript" src="../tests/polygon_split1.js"></script>
 <script type="text/javascript" src="../tests/polygon_split2.js"></script>
 <script type="text/javascript" src="../tests/matrix_reflection.js"></script>

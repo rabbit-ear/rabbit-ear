@@ -36,16 +36,16 @@ clipping.redraw = function(){
 }
 clipping.redraw();
 
-clipping.onMouseMove = function(mouse){
+clipping.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && clipping.selected != null){
 		clipping.points[clipping.selected] = mouse.position;
 		clipping.redraw();
 	}
-}
+});
 
-clipping.onMouseDown = function(mouse){
+clipping.addEventListener("mousedown", function(mouse){
 	let ep = 5e-2;
 	let down = clipping.points.map(p => Math.abs(mouse.x - p[0]) < ep && Math.abs(mouse.y - p[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	clipping.selected = found;
-}
+});

@@ -57,16 +57,16 @@ sectors.update = function(){
 sectors.update();
 
 
-sectors.onMouseDown = function(mouse){
+sectors.addEventListener("mousedown", function(mouse){
 	let ep = sectors.width / 50;
 	let down = sectors.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	sectors.selected = found;
-}
+});
 
-sectors.onMouseMove = function(mouse){
+sectors.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && sectors.selected != null){
 		sectors.touches[sectors.selected].pos = mouse.position;
 		sectors.update();
 	}
-}
+});

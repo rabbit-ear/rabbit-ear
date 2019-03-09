@@ -1,5 +1,5 @@
 
-let circleLine = RabbitEar.svg.Image("circle-intersect", 500, 500);
+let circleLine = RabbitEar.svg.Image("canvas-circle-line", 500, 500);
 
 circleLine.setup = function() {
 	circleLine.boundary = [ [0, 0], [500, 0], [500, 500], [0, 500] ];
@@ -18,12 +18,16 @@ circleLine.setup = function() {
 	circleLine.appendChild(circleSVG);
 	circleLine.appendChild(circleLine.topLayer);
 
-	circleLine.makeControlPoints(2, {parent: circleLine, fill: "#224c72", radius: circleLine.strokeW * 3});
+	circleLine.controls = RabbitEar.svg.controls(circleLine, 2, {
+		parent: circleLine,
+		fill: "#e35536",
+		radius: circleLine.strokeW * 3
+	});
 
-	circleLine.controlPoints.forEach(p => p.position = [
-		Math.random() * circleLine.width, Math.random() * circleLine.height
+	circleLine.controls.forEach(p => p.position = [
+		Math.random() * circleLine.width,
+		Math.random() * circleLine.height
 	]);
-	circleLine.controlPoints.forEach(p => p.circle.setAttribute("fill", "#e35536"));
 }
 circleLine.setup();
 
@@ -31,7 +35,7 @@ circleLine.redraw = function() {
 	RabbitEar.svg.removeChildren(circleLine.topLayer);
 	RabbitEar.svg.removeChildren(circleLine.bottomLayer);
 
-	circleLine.line = RabbitEar.math.Line.fromPoints(circleLine.controlPoints.map(p => p.position));
+	circleLine.line = RabbitEar.math.Line.fromPoints(circleLine.controls.map(p => p.position));
 	let lineOnScreen = RabbitEar.math.core.intersection.clip_line_in_convex_poly(circleLine.boundary, circleLine.line.point, circleLine.line.vector);
 	let svgLine = RabbitEar.svg.line(
 		lineOnScreen[0][0], lineOnScreen[0][1],
@@ -62,6 +66,8 @@ circleLine.redraw = function() {
 }
 circleLine.redraw();
 
-circleLine.onMouseMove = function(mouse) {
+circleLine.addEventListener("mousemove", function(mouse){
 	if (mouse.isPressed) { circleLine.redraw(); }
-}
+});
+
+

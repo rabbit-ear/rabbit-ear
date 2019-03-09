@@ -55,8 +55,8 @@ chopReflect.animate = function(event){
 	folded.cp = RabbitEar.CreasePattern(foldedCP);
 }
 
-chopReflect.onMouseDown = function(event) {
-	console.log("mouse down", event);
-}
+// chopReflect.onMouseDown = function(event) {
+// 	console.log("mouse down", event);
+// }
 
 

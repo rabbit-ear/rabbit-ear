@@ -172,7 +172,7 @@ vecText.update = function(){
 	vecText.redraw();
 }
 
-vecText.onMouseDown = function(mouse){
+vecText.addEventListener("mousedown", function(mouse){
 	// console.log(mouse);
 	// console.log(vecText.touches[0].pos);
 	// let ep = vecText.width / 5;
@@ -182,16 +182,15 @@ vecText.onMouseDown = function(mouse){
 	// vecText.selected = found;
 	// console.log(vecText.selected);
 	vecText.selected = 0;
+});
 
-}
-
-vecText.onMouseMove = function(mouse){
+vecText.addEventListener("mousemove", function(mouse){
 	// console.log(mouse);
 	if(mouse.isPressed && vecText.selected != null){
 		vecText.touches[vecText.selected].pos = mouse.position;
 		vecText.update();
 	}
-}
+});
 
 vecText.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
 vecText.reset();

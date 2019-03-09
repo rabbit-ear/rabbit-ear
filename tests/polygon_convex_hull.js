@@ -38,16 +38,16 @@ hull.redraw = function(){
 }
 hull.redraw();
 
-hull.onMouseDown = function(mouse){
+hull.addEventListener("mousedown", function(mouse){
 	let ep = hull.width / 50;
 	let down = hull.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	hull.selected = found;
-}
+});
 
-hull.onMouseMove = function(mouse){
+hull.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && hull.selected != null){
 		hull.touches[hull.selected].pos = mouse.position;
 		hull.redraw();
 	}
-}
+});

@@ -79,19 +79,19 @@ lerps.update = function(){
 }
 
 
-lerps.onMouseDown = function(mouse){
+lerps.addEventListener("mousedown", function(mouse){
 	let ep = lerps.width / 50;
 	let down = lerps.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	lerps.selected = found;
-}
+});
 
-lerps.onMouseMove = function(mouse){
+lerps.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && lerps.selected != null){
 		lerps.touches[lerps.selected].pos = mouse.position;
 		lerps.update();
 	}
-}
+});
 
 lerps.animate = function(event){
 	let phase = Math.sin(event.time) * 0.5 + 0.5;

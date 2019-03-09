@@ -63,19 +63,19 @@ polyFold.redraw = function(){
 	}
 }
 
-polyFold.onMouseDown = function(mouse){
+polyFold.addEventListener("mousedown", function(mouse){
 	let ep = polyFold.width / 50;
 	let down = polyFold.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	polyFold.selected = found;
-}
+});
 
-polyFold.onMouseMove = function(mouse){
+polyFold.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && polyFold.selected != null){
 		polyFold.touches[polyFold.selected].pos = mouse.position;
 		polyFold.redraw();
 	}
-}
+});
 
 
 polyFold.reset();

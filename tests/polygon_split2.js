@@ -62,16 +62,16 @@ polySplit.redraw = function(){
 }
 polySplit.redraw();
 
-polySplit.onMouseDown = function(mouse){
+polySplit.addEventListener("mousedown", function(mouse){
 	let ep = polySplit.width / 50;
 	let down = polySplit.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	polySplit.selected = found;
-}
+});
 
-polySplit.onMouseMove = function(mouse){
+polySplit.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && polySplit.selected != null){
 		polySplit.touches[polySplit.selected].pos = mouse.position;
 		polySplit.redraw();
 	}
-}
+});

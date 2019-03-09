@@ -62,14 +62,14 @@ bisect.update = function(){
 }
 bisect.update();
 
-bisect.onMouseDown = function(mouse){
+bisect.addEventListener("mousedown", function(mouse){
 	function distanceToMouse(a) { return Math.sqrt(Math.pow(a[0]-mouse[0],2)+Math.pow(a[1]-mouse[1],2)); }
 	bisect.selected = bisect.touches.slice().sort((a,b) => distanceToMouse(a.pos) - distanceToMouse(b.pos)).shift();
-}
+});
 
-bisect.onMouseMove = function(mouse){
+bisect.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && bisect.selected != null){
 		bisect.selected.pos = mouse.position;
 		bisect.update();
 	}
-}
+});

@@ -63,16 +63,16 @@ xing.redraw = function(){
 }
 xing.redraw();
 
-xing.onMouseDown = function(mouse){
+xing.addEventListener("mousedown", function(mouse){
 	let ep = xing.width / 50;
 	let down = xing.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	xing.selected = found;
-}
+});
 
-xing.onMouseMove = function(mouse){
+xing.addEventListener("mousemove", function(mouse){
 	if(mouse.isPressed && xing.selected != null){
 		xing.touches[xing.selected].pos = mouse.position;
 		xing.redraw();
 	}
-}
+});
