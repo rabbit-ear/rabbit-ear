@@ -123,10 +123,10 @@ export default function() {
 			SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
 		);
 		// faces
-		facesV.forEach((face, i) =>
+		facesV.filter(f => f != null).forEach((face, i) =>
 			SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
 		);
-		facesE.forEach((face, i) =>
+		facesE.filter(f => f != null).forEach((face, i) =>
 			SVG.polygon(face.points, fAssignments[i], "face", groups.faces)
 		);
 	}

@@ -987,6 +987,174 @@
 		} );
 	}
 
+	function LinePrototype() {
+		const vec_comp_func = function(t0) { return true; };
+		const vec_cap_func = function(d) { return d; };
+		const reflection = function() {
+			return Matrix2.makeReflection(this.vector, this.point);
+		};
+		const nearestPoint = function() {
+			let point = get_vec(...arguments);
+			return Vector(nearest_point(this.point, this.vector, point, this.vec_cap_func));
+		};
+		const intersectLine = function() {
+			let line = get_line(...arguments);
+			return intersection_function(
+				this.point, this.vector,
+				line.point, line.vector,
+				compare_to_line);
+		};
+		const intersectRay = function() {
+			let ray = get_ray(...arguments);
+			return intersection_function(
+				this.point, this.vector,
+				ray.point, ray.vector,
+				compare_to_ray);
+		};
+		const intersectEdge = function() {
+			let edge = get_edge(...arguments);
+			let edgeVec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
+			return intersection_function(
+				this.point, this.vector,
+				edge[0], edgeVec,
+				compare_to_edge);
+		};
+		const compare_to_line = function(t0, t1, epsilon = EPSILON) {
+			return vec_comp_func(t0, epsilon) && true;
+		};
+		const compare_to_ray = function(t0, t1, epsilon = EPSILON) {
+			return vec_comp_func(t0, epsilon) && t1 >= -epsilon;
+		};
+		const compare_to_edge = function(t0, t1, epsilon = EPSILON) {
+			return vec_comp_func(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
+		};
+		return Object.freeze( {
+			reflection,
+			nearestPoint,
+			intersectLine,
+			intersectRay,
+			intersectEdge,
+			vec_comp_func,
+			vec_cap_func,
+		} );
+	}
+	function Line() {
+		let { point, vector } = get_line(...arguments);
+		const isParallel = function() {
+			let line = get_line(...arguments);
+			return parallel(vector, line.vector);
+		};
+		const transform = function() {
+			let mat = get_matrix2(...arguments);
+			let norm = normalize(vector);
+			let temp = point.map((p,i) => p + norm[i]);
+			if (temp == null) { return; }
+			var p0 = multiply_vector2_matrix2(point, mat);
+			var p1 = multiply_vector2_matrix2(temp, mat);
+			return Line.fromPoints([p0, p1]);
+		};
+		let line = Object.create(LinePrototype());
+		const vec_comp_func = function() { return true; };
+		const vec_cap_func = function(d) { return d; };
+		Object.defineProperty(line, "vec_comp_func", {value: vec_comp_func});
+		Object.defineProperty(line, "vec_cap_func", {value: vec_cap_func});
+		Object.defineProperty(line, "point", {get: function(){ return point; }});
+		Object.defineProperty(line, "vector", {get: function(){ return vector; }});
+		Object.defineProperty(line, "length", {get: function(){ return Infinity; }});
+		Object.defineProperty(line, "transform", {value: transform});
+		Object.defineProperty(line, "isParallel", {value: isParallel});
+		return Object.freeze(line);
+	}
+	Line.fromPoints = function() {
+		let points = get_two_vec2(...arguments);
+		return Line({
+			point: points[0],
+			vector: normalize([
+				points[1][0] - points[0][0],
+				points[1][1] - points[0][1]
+			])
+		});
+	};
+	Line.perpendicularBisector = function() {
+		let points = get_two_vec2(...arguments);
+		let vec = normalize([
+			points[1][0] - points[0][0],
+			points[1][1] - points[0][1]
+		]);
+		return Line({
+			point: midpoint$1(points[0], points[1]),
+			vector: [vec[1], -vec[0]]
+		});
+	};
+	function Ray() {
+		let { point, vector } = get_line(...arguments);
+		const transform = function() {
+			let mat = get_matrix2(...arguments);
+			let norm = normalize(vector);
+			let temp = point.map((p,i) => p + norm[i]);
+			if (temp == null) { return; }
+			var p0 = multiply_vector2_matrix2(point, mat);
+			var p1 = multiply_vector2_matrix2(temp, mat);
+			return Ray.fromPoints([p0, p1]);
+		};
+		let ray = Object.create(LinePrototype());
+		const vec_comp_func = function(t0, ep) { return t0 >= -ep; };
+		const vec_cap_func = function(d, ep) { return (d < -ep ? 0 : d); };
+		Object.defineProperty(ray, "vec_comp_func", {value: vec_comp_func});
+		Object.defineProperty(ray, "vec_cap_func", {value: vec_cap_func});
+		Object.defineProperty(ray, "point", {get: function(){ return point; }});
+		Object.defineProperty(ray, "vector", {get: function(){ return vector; }});
+		Object.defineProperty(ray, "length", {get: function(){ return Infinity; }});
+		Object.defineProperty(ray, "transform", {value: transform});
+		return Object.freeze(ray);
+	}
+	Ray.fromPoints = function() {
+		let points = get_two_vec2(...arguments);
+		return Ray({
+			point: points[0],
+			vector: normalize([
+				points[1][0] - points[0][0],
+				points[1][1] - points[0][1]
+			])
+		});
+	};
+	function Edge() {
+		let inputs = get_two_vec2(...arguments);
+		let _endpoints = (inputs.length > 0 ? inputs.map(p => Vector(p)) : undefined);
+		if (_endpoints === undefined) { return; }
+		const transform = function() {
+			let mat = get_matrix2(...arguments);
+			let transformed_points = _endpoints
+				.map(point => multiply_vector2_matrix2(point, mat));
+			return Edge(transformed_points);
+		};
+		const vector = function() {
+			return Vector(
+				_endpoints[1][0] - _endpoints[0][0],
+				_endpoints[1][1] - _endpoints[0][1]
+			);
+		};
+		const length = function() {
+			return Math.sqrt(Math.pow(_endpoints[1][0] - _endpoints[0][0],2)
+			               + Math.pow(_endpoints[1][1] - _endpoints[0][1],2));
+		};
+		let edge = Object.create(LinePrototype());
+		let vec_comp_func = function(t0, ep) { return t0 >= -ep && t0 <= 1+ep; };
+		const vec_cap_func = function(d, ep) {
+			if (d < -ep) { return 0; }
+			if (d > 1+ep) { return 1; }
+			return d;
+		};
+		Object.defineProperty(edge, "vec_comp_func", {value: vec_comp_func});
+		Object.defineProperty(edge, "vec_cap_func", {value: vec_cap_func});
+		Object.defineProperty(edge, "points", {get: function(){ return _endpoints; }});
+		Object.defineProperty(edge, "point", {get: function(){ return _endpoints[0]; }});
+		Object.defineProperty(edge, "vector", {get: function(){ return vector(); }});
+		Object.defineProperty(edge, "length", {get: function(){ return length(); }});
+		Object.defineProperty(edge, "transform", {value: transform});
+		return Object.freeze(edge);
+	}
+
 	function Polygon() {
 		let _points = get_array_of_vec(...arguments);
 		if (_points === undefined) {
@@ -1061,15 +1229,18 @@
 		let polygon = Object.create(Polygon(...arguments));
 		const clipEdge = function() {
 			let edge = get_edge(...arguments);
-			return clip_edge_in_convex_poly(polygon.points, edge[0], edge[1]);
+			let e = clip_edge_in_convex_poly(polygon.points, edge[0], edge[1]);
+			return e === undefined ? undefined : Edge(e);
 		};
 		const clipLine = function() {
 			let line = get_line(...arguments);
-			return clip_line_in_convex_poly(polygon.points, line.point, line.vector);
+			let e = clip_line_in_convex_poly(polygon.points, line.point, line.vector);
+			return e === undefined ? undefined : Edge(e);
 		};
 		const clipRay = function() {
 			let line = get_line(...arguments);
-			return clip_ray_in_convex_poly(polygon.points, line.point, line.vector);
+			let e = clip_ray_in_convex_poly(polygon.points, line.point, line.vector);
+			return e === undefined ? undefined : Edge(e);
 		};
 		const split = function() {
 			let line = get_line(...arguments);
@@ -1188,200 +1359,14 @@
 		return Matrix2$1( make_matrix2_reflection(vector, origin) );
 	};
 
-	function LinePrototype() {
-		const vec_comp_func = function(t0) { return true; };
-		const vec_cap_func = function(d) { return d; };
-		const reflection = function() {
-			return Matrix2.makeReflection(this.vector, this.point);
-		};
-		const nearestPoint = function() {
-			let point = get_vec(...arguments);
-			return Vector(nearest_point(this.point, this.vector, point, this.vec_cap_func));
-		};
-		const intersectLine = function() {
-			let line = get_line(...arguments);
-			return intersection_function(
-				this.point, this.vector,
-				line.point, line.vector,
-				compare_to_line);
-		};
-		const intersectRay = function() {
-			let ray = get_ray(...arguments);
-			return intersection_function(
-				this.point, this.vector,
-				ray.point, ray.vector,
-				compare_to_ray);
-		};
-		const intersectEdge = function() {
-			let edge = get_edge(...arguments);
-			let edgeVec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			return intersection_function(
-				this.point, this.vector,
-				edge[0], edgeVec,
-				compare_to_edge);
-		};
-		const compare_to_line = function(t0, t1, epsilon = EPSILON) {
-			return vec_comp_func(t0, epsilon) && true;
-		};
-		const compare_to_ray = function(t0, t1, epsilon = EPSILON) {
-			return vec_comp_func(t0, epsilon) && t1 >= -epsilon;
-		};
-		const compare_to_edge = function(t0, t1, epsilon = EPSILON) {
-			return vec_comp_func(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
-		};
-		return Object.freeze( {
-			reflection,
-			nearestPoint,
-			intersectLine,
-			intersectRay,
-			intersectEdge,
-			vec_comp_func,
-			vec_cap_func,
-		} );
-	}
-	function Line() {
-		let { point, vector } = get_line(...arguments);
-		const isParallel = function() {
-			let line = get_line(...arguments);
-			return parallel(vector, line.vector);
-		};
-		const transform = function() {
-			let mat = get_matrix2(...arguments);
-			let norm = normalize(vector);
-			let temp = point.map((p,i) => p + norm[i]);
-			if (temp == null) { return; }
-			var p0 = multiply_vector2_matrix2(point, mat);
-			var p1 = multiply_vector2_matrix2(temp, mat);
-			return Line.withPoints([p0, p1]);
-		};
-		let line = Object.create(LinePrototype());
-		const vec_comp_func = function() { return true; };
-		const vec_cap_func = function(d) { return d; };
-		Object.defineProperty(line, "vec_comp_func", {value: vec_comp_func});
-		Object.defineProperty(line, "vec_cap_func", {value: vec_cap_func});
-		Object.defineProperty(line, "point", {get: function(){ return point; }});
-		Object.defineProperty(line, "vector", {get: function(){ return vector; }});
-		Object.defineProperty(line, "length", {get: function(){ return Infinity; }});
-		Object.defineProperty(line, "transform", {value: transform});
-		Object.defineProperty(line, "isParallel", {value: isParallel});
-		return Object.freeze(line);
-	}
-	Line.fromPoints = function() {
-		let points = get_two_vec2(...arguments);
-		return Line({
-			point: points[0],
-			vector: normalize([
-				points[1][0] - points[0][0],
-				points[1][1] - points[0][1]
-			])
-		});
-	};
-	Line.perpendicularBisector = function() {
-		let points = get_two_vec2(...arguments);
-		let vec = normalize([
-			points[1][0] - points[0][0],
-			points[1][1] - points[0][1]
-		]);
-		return Line({
-			point: midpoint$1(points[0], points[1]),
-			vector: [vec[1], -vec[0]]
-		});
-	};
-	function Ray$1() {
-		let { point, vector } = get_line(...arguments);
-		const transform = function() {
-			let mat = get_matrix2(...arguments);
-			let norm = normalize(vector);
-			let temp = point.map((p,i) => p + norm[i]);
-			if (temp == null) { return; }
-			var p0 = multiply_vector2_matrix2(point, mat);
-			var p1 = multiply_vector2_matrix2(temp, mat);
-			return Ray$1.withPoints([p0, p1]);
-		};
-		let ray = Object.create(LinePrototype());
-		const vec_comp_func = function(t0, ep) { return t0 >= -ep; };
-		const vec_cap_func = function(d, ep) { return (d < -ep ? 0 : d); };
-		Object.defineProperty(ray, "vec_comp_func", {value: vec_comp_func});
-		Object.defineProperty(ray, "vec_cap_func", {value: vec_cap_func});
-		Object.defineProperty(ray, "point", {get: function(){ return point; }});
-		Object.defineProperty(ray, "vector", {get: function(){ return vector; }});
-		Object.defineProperty(ray, "length", {get: function(){ return Infinity; }});
-		Object.defineProperty(ray, "transform", {value: transform});
-		return Object.freeze(ray);
-	}
-	Ray$1.withPoints = function() {
-		let points = get_two_vec2(...arguments);
-		return Ray$1({
-			point: points[0],
-			vector: normalize([
-				points[1][0] - points[0][0],
-				points[1][1] - points[0][1]
-			])
-		});
-	};
-	function Edge() {
-		let inputs = get_two_vec2(...arguments);
-		let _endpoints = (inputs.length > 0 ? inputs.map(p => Vector(p)) : undefined);
-		if (_endpoints === undefined) { return; }
-		const transform = function() {
-			let mat = get_matrix2(...arguments);
-			let transformed_points = _endpoints
-				.map(point => multiply_vector2_matrix2(point, mat));
-			return Edge(transformed_points);
-		};
-		const vector = function() {
-			return Vector(
-				_endpoints[1][0] - _endpoints[0][0],
-				_endpoints[1][1] - _endpoints[0][1]
-			);
-		};
-		const length = function() {
-			return Math.sqrt(Math.pow(_endpoints[1][0] - _endpoints[0][0],2)
-			               + Math.pow(_endpoints[1][1] - _endpoints[0][1],2));
-		};
-		let edge = Object.create(LinePrototype());
-		let vec_comp_func = function(t0, ep) { return t0 >= -ep && t0 <= 1+ep; };
-		const vec_cap_func = function(d, ep) {
-			if (d < -ep) { return 0; }
-			if (d > 1+ep) { return 1; }
-			return d;
-		};
-		Object.defineProperty(edge, "vec_comp_func", {value: vec_comp_func});
-		Object.defineProperty(edge, "vec_cap_func", {value: vec_cap_func});
-		Object.defineProperty(edge, "points", {get: function(){ return _endpoints; }});
-		Object.defineProperty(edge, "point", {get: function(){ return _endpoints[0]; }});
-		Object.defineProperty(edge, "vector", {get: function(){ return vector(); }});
-		Object.defineProperty(edge, "length", {get: function(){ return length(); }});
-		Object.defineProperty(edge, "transform", {value: transform});
-		return Object.freeze(edge);
-	}
-
 	function Sector(center, pointA, pointB) {
 		let _center = get_vec(center);
 		let _points = [pointA, pointB];
 		let _vectors = _points.map(p => p.map((_,i) => p[i] - _center[i]));
 		let _angle = counter_clockwise_angle2(_vectors[0], _vectors[1]);
 		const bisect = function() {
-			var vectors = this.vectors();
-			var angles = vectors.map(function(el){ return Math.atan2(el.y, el.x); });
-			while(angles[0] < 0){ angles[0] += Math.PI*2; }
-			while(angles[1] < 0){ angles[1] += Math.PI*2; }
-			var interior = counter_clockwise_angle2_radians(angles[0], angles[1]);
-			var bisected = angles[0] + interior*0.5;
-			return new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(bisected), Math.sin(bisected)));
 		};
 		const subsect = function(divisions) {
-			if(divisions == undefined || divisions < 2){ throw "subset() requires number parameter > 1"; }
-			var angles = this.vectors().map(function(el){ return Math.atan2(el.y, el.x); });
-			while(angles[0] < 0){ angles[0] += Math.PI*2; }
-			while(angles[1] < 0){ angles[1] += Math.PI*2; }
-			var interior = counter_clockwise_angle2_radians(angles[0], angles[1]);
-			var rays = [];
-			for(var i = 1; i < divisions; i++){
-				var angle = angles[0] + interior * (i/divisions);
-				rays.push(new Ray(new XY(this.origin.x, this.origin.y), new XY(Math.cos(angle), Math.sin(angle))));
-			}
-			return rays;
 		};
 		const contains = function() {
 			let point = get_vec(...arguments);
@@ -1460,7 +1445,7 @@
 		Rectangle: Rectangle,
 		Matrix2: Matrix2$1,
 		Line: Line,
-		Ray: Ray$1,
+		Ray: Ray,
 		Edge: Edge,
 		Junction: Junction,
 		Sector: Sector
@@ -3580,6 +3565,12 @@
 			new_v_indices = a.concat(b);
 		} else if (vertices_intersections.length === 2) {
 			new_v_indices = vertices_intersections.map(el => el.i_vertices);
+			// check if the proposed edge is collinear to an already existing edge
+			let face_v = graph.faces_vertices[faceIndex];
+			let v_i = vertices_intersections;
+			let match_a = face_v[(v_i[0].i_face+1)%face_v.length] === v_i[1].i_vertices;
+			let match_b = face_v[(v_i[1].i_face+1)%face_v.length] === v_i[0].i_vertices;
+			if (match_a || match_b) { return {}; }
 		} else {
 			return {};
 		}
@@ -3812,7 +3803,7 @@
 			.reverse()
 			.forEach((line, reverse_i, arr) => {
 				let i = arr.length - 1 - reverse_i;
-				split_convex_polygon$1(graph, i, line.point, line.vector, coloring[i] ? "M" : "V");
+				let diff = split_convex_polygon$1(graph, i, line.point, line.vector, coloring[i] ? "M" : "V");
 			});
 	}
 
@@ -4603,10 +4594,10 @@
 				line$1(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
 			);
 			// faces
-			facesV.forEach((face, i) =>
+			facesV.filter(f => f != null).forEach((face, i) =>
 				polygon(face.points, fAssignments[i], "face", groups.faces)
 			);
-			facesE.forEach((face, i) =>
+			facesE.filter(f => f != null).forEach((face, i) =>
 				polygon(face.points, fAssignments[i], "face", groups.faces)
 			);
 		};

@@ -265,8 +265,8 @@ origami.onMouseMove = function(event){
 			.map(p => origami.getPosition(p));
 			break;
 		case 3: origami.args[origami.axiom].lines = [
-				RabbitEar.math.Line.withPoints(origami.getPosition(origami.touchPoints[0]), origami.getPosition(origami.touchPoints[1])),
-				RabbitEar.math.Line.withPoints(origami.getPosition(origami.touchPoints[2]), origami.getPosition(origami.touchPoints[3]))
+				RabbitEar.math.Line.fromPoints(origami.getPosition(origami.touchPoints[0]), origami.getPosition(origami.touchPoints[1])),
+				RabbitEar.math.Line.fromPoints(origami.getPosition(origami.touchPoints[2]), origami.getPosition(origami.touchPoints[3]))
 			];
 			break;
 		case 4: 

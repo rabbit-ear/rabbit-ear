@@ -12,6 +12,7 @@ let points = RabbitEar.svg.controls(sketch, 8, {
 	radius: sketch.width*0.01,
 	fill: "#000"
 });
+points.forEach(p => p.circle.remove());
 
 points.forEach((p,i) => {
 	let r = (sketch.width > sketch.height) ? sketch.height*0.45 : sketch.width*0.45;
@@ -29,9 +30,11 @@ sketch.sectorLines.forEach(line => line.setAttribute("stroke-linecap", "round"))
 
 sketch.updateSectors = function() {
 	let jp = points.map(p => p.position);
-	let j = RabbitEar.math.Junction([sketch.width/2, sketch.height/2], jp);
-	let pair = j.alternatingAngleSum();
-	let kawasakiNormalized = pair.map(n => (n - Math.PI) / (Math.PI) );
+	let kawasakiNormalized = RabbitEar.math
+		.Junction([sketch.width/2, sketch.height/2], jp)
+		.alternatingAngleSum()
+	 	.map(n => 0.5+0.5*(Math.PI - n) / (Math.PI) );
+
 	RabbitEar.svg.removeChildren(sketch.sectorLayer);
 	let angles = points
 		.map(p => [p.position[0] - sketch.width/2, p.position[1] - sketch.height/2])
@@ -39,10 +42,13 @@ sketch.updateSectors = function() {
 		.sort((a,b) => a - b);
 	let r = (sketch.width > sketch.height) ? sketch.height*0.45 : sketch.width*0.45;
 	let wedges = angles.map((_,i,arr) => {
-		let thisr = (0.5+0.5*kawasakiNormalized[i%2]) * r;
+		let thisr = Math.sqrt(kawasakiNormalized[i%2]) * r;
 		return RabbitEar.svg.wedge(sketch.width/2, sketch.height/2, thisr, angles[i], angles[(i+1)%arr.length])
 	});
-	let wedgeColors = ["#314f69", "#e35536"];
+	let flatFoldable = Math.abs(kawasakiNormalized[0] - kawasakiNormalized[1]) < 0.02;
+	let wedgeColors = flatFoldable
+		? ["#f1c14f", "#f1c14f"]
+		: ["#314f69", "#e35536"];
 	wedges.forEach((w,i) => w.setAttribute("fill", wedgeColors[i%2]));
 	wedges.forEach(w => sketch.sectorLayer.appendChild(w));
 }
@@ -67,4 +73,3 @@ sketch.addEventListener("mousemove", function(mouse){
 });
 
 sketch.updateSectors();
-

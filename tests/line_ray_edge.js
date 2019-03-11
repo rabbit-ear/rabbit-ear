@@ -31,7 +31,7 @@ lre.lines = [
 lre.lines.forEach((l,i) => {
 	l.setAttribute("stroke", lre.lineColors[i%3]);
 	l.setAttribute("stroke-width", 3);
-	l.setAttribute("stroke-dasharray", "6 6");
+//	l.setAttribute("stroke-dasharray", "6 6");
 	l.setAttribute("stroke-linecap", "round");
 	lre.appendChild(l);
 });
@@ -43,14 +43,14 @@ lre.redraw = function(){
 		lre.lines[parseInt(i/2)].setAttribute("x"+(i%2+1), p.pos[0]);
 		lre.lines[parseInt(i/2)].setAttribute("y"+(i%2+1), p.pos[1]);
 	});
-	let line = RabbitEar.math.Line.withPoints(lre.touches[0].pos, lre.touches[1].pos);
+	let line = RabbitEar.math.Line.fromPoints(lre.touches[0].pos, lre.touches[1].pos);
 	let clipLine = lre.boundary.clipLine(line);
 	lre.lines[0].setAttribute("x1", clipLine[0][0]);
 	lre.lines[0].setAttribute("y1", clipLine[0][1]);
 	lre.lines[0].setAttribute("x2", clipLine[1][0]);
 	lre.lines[0].setAttribute("y2", clipLine[1][1]);
 
-	let ray = RabbitEar.math.Ray.withPoints(lre.touches[2].pos, lre.touches[3].pos);
+	let ray = RabbitEar.math.Ray.fromPoints(lre.touches[2].pos, lre.touches[3].pos);
 	let clipRay = lre.boundary.clipRay(ray);
 	lre.lines[1].setAttribute("x1", clipRay[0][0]);
 	lre.lines[1].setAttribute("y1", clipRay[0][1]);

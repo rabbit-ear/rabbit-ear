@@ -156,6 +156,12 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		new_v_indices = a.concat(b);
 	} else if (vertices_intersections.length === 2) {
 		new_v_indices = vertices_intersections.map(el => el.i_vertices);
+		// check if the proposed edge is collinear to an already existing edge
+		let face_v = graph.faces_vertices[faceIndex];
+		let v_i = vertices_intersections;
+		let match_a = face_v[(v_i[0].i_face+1)%face_v.length] === v_i[1].i_vertices;
+		let match_b = face_v[(v_i[1].i_face+1)%face_v.length] === v_i[0].i_vertices;
+		if (match_a || match_b) { return {}; }
 	} else {
 		return {};
 	}

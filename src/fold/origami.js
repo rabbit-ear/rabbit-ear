@@ -58,7 +58,7 @@ export function crease_folded(graph, point, vector, face_index) {
 		.reverse()
 		.forEach((line, reverse_i, arr) => {
 			let i = arr.length - 1 - reverse_i;
-			PlanarGraph.split_convex_polygon(graph, i, line.point, line.vector, coloring[i] ? "M" : "V");
+			let diff = PlanarGraph.split_convex_polygon(graph, i, line.point, line.vector, coloring[i] ? "M" : "V");
 		});
 }
 

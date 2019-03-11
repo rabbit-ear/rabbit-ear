@@ -22,15 +22,7 @@ origami.boot = function() {
 }
 origami.boot();
 
-// folded.mouseZoom = false;
-// folded.rotation = 180;
 origami.midVertex = 4;
-
-function updateFoldedState(cp){
-	folded.cp = cp.copy();
-	let topFace = folded.nearest(0.5, 0.002).face;
-	folded.draw(topFace);
-}
 
 origami.updateCenter = function(point){
 	// check bounds of point

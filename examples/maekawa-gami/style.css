@@ -1,0 +1,71 @@
+:root{ --crease-width: 0.01; }
+
+html,body{
+	height:100%;
+	margin:0px;
+	display:flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background-color:hsl(205, 74%, 30%);
+	color:white;
+}
+svg{
+/*	width:100vw;
+	height:100vh;
+	margin:auto;
+}
+svg.half{*/
+	width:45vmax;
+	height:45vmax;
+	max-width:100vw;
+	max-height:calc(100vh - 70px);
+}
+.row{
+	display: flex;
+	flex-wrap: wrap;
+}
+.canvases{
+	flex: 1 0 0;
+}
+.toolbar{
+	flex: 0 0 70px;
+	width:100%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+.btn{
+	margin:2px;
+}
+.boundary{
+	fill: white;
+	stroke: black;
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+}
+.node  { fill: none; stroke: none; }
+.face  { fill: rgba(255, 255, 255, 0.6); stroke: none; }
+.face-front { fill: white; stroke: black;  stroke-width: var(--crease-width);}
+.face-back { fill: #ecb233; stroke: black; stroke-width: var(--crease-width); }
+.sector{ fill: none; stroke: none; }
+.mountain{
+	stroke: hsl(14.4, 87%, 45%);
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+}
+.valley{
+	stroke: hsl(205, 74%, 30%);
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2)
+}
+.mark{
+	stroke: #888;
+	stroke-width: calc( var(--crease-width) * 0.5);
+	stroke-linecap: round;
+}
+.stroke-yellow{ stroke: hsl(43, 88%, 46%); }
+.fill-yellow{ fill: hsl(43, 88%, 46%); }
+.folded-face{ fill: rgba(255, 255, 255, 0.25); }
