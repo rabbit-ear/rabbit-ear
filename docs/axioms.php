@@ -58,9 +58,6 @@
 
 <script type="text/javascript" src="../tests/axiom1.js"></script>
 <script type="text/javascript" src="../tests/axiom2.js"></script>
-<!-- <script type="text/javascript" src="../tests/axiom3.js"></script>
-<script type="text/javascript" src="../tests/axiom4.js"></script>
-<script type="text/javascript" src="../tests/axiom5.js"></script>
-<script type="text/javascript" src="../tests/axiom7.js"></script> -->
+<script type="text/javascript" src="../tests/axiom3.js"></script>
 
 <?php include 'footer.php';?>

@@ -225,7 +225,7 @@ export function kawasaki_solutions(graph, vertex) {
 	// get the interior angles of sectors around a vertex
 	return vectors.map((v,i,arr) => {
 		let nextV = arr[(i+1)%arr.length];
-		return RabbitEar.math.core.geometry.counter_clockwise_angle2(v, nextV);
+		return Geom.core.geometry.counter_clockwise_angle2(v, nextV);
 	}).map((_, i, arr) => {
 		// for every sector, get an array of all the OTHER sectors
 		let a = arr.slice();

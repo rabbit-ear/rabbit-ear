@@ -28,29 +28,32 @@
 				<a href="/" class="link-fa dropbtn"><i class="fa fa-home fa-2x left-pad"></i></a>
 			</li>
 			<li class="dropdown">
-				<a href="/docs/" class="">HELLO</a>
+				<a href="/docs/">HELLO</a>
 				<div class="dropdown-content">
 				<a href="introduction.php">START HERE</a>
 				</div>
 			</li>
 			<li class="dropdown">
-				<a href="graph.php" class="">I. GRAPH</a>
-			</li>
-			<li class="dropdown">
-				<a href="planarGraph.php" class="dropbtn">II. PLANAR GRAPH</a>
+				<a href="math.php">I. MATH</a>
 				<div class="dropdown-content">
-				<a href="math.php">A. MATH</a>
-				<a href="epsilon.php">B. EPSILON</a>
-				<a href="space.php">C. 2D SPACE</a>
+					<a href="math.php">A. GEOMETRY</a>
+					<a href="epsilon.php">B. EPSILON</a>
 				</div>
 			</li>
 			<li class="dropdown">
-				<a href="creasePattern.php" class="dropbtn">III. CREASE PATTERN</a>
+				<a href="planarGraph.php" class="dropbtn">II. GRAPHS</a>
 				<div class="dropdown-content">
+					<a href="graph.php">A. GRAPH</a>
+					<a href="space.php">B. PLANAR GRAPH</a>
+				</div>
+			</li>
+			<li class="dropdown">
+				<a href="creasePattern.php" class="dropbtn">III. ORIGAMI</a>
+				<div class="dropdown-content">
+				<a href="axioms.php">AXIOMS</a>
 				<a href="crease.php">CREASE</a>
-				<a href="axioms.php">ORIGAMI AXIOMS</a>
 				<!-- <a href="importExport.php">IMPORT &amp; EXPORT</a> -->
-				<a href="flatFoldable.php">FLAT FOLDABLE</a>
+				<a href="flat-foldable.php">FLAT FOLDABLE</a>
 				<!-- <a href="boxPleating.php">BOX PLEATING</a> -->
 				<a href="voronoi.php">VORONOI</a>
 				<!-- <a href="symmetry.php">SYMMETRY</a> -->

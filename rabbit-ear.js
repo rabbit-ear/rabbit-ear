@@ -1097,6 +1097,9 @@
 			var p1 = multiply_vector2_matrix2(temp, mat);
 			return Ray.fromPoints([p0, p1]);
 		};
+		const rotate180 = function() {
+			return Ray(point[0], point[1], -vector[0], -vector[1]);
+		};
 		let ray = Object.create(LinePrototype());
 		const vec_comp_func = function(t0, ep) { return t0 >= -ep; };
 		const vec_cap_func = function(d, ep) { return (d < -ep ? 0 : d); };
@@ -1106,6 +1109,7 @@
 		Object.defineProperty(ray, "vector", {get: function(){ return vector; }});
 		Object.defineProperty(ray, "length", {get: function(){ return Infinity; }});
 		Object.defineProperty(ray, "transform", {value: transform});
+		Object.defineProperty(ray, "rotate180", {value: rotate180});
 		return Object.freeze(ray);
 	}
 	Ray.fromPoints = function() {
@@ -1365,6 +1369,9 @@
 		let _vectors = _points.map(p => p.map((_,i) => p[i] - _center[i]));
 		let _angle = counter_clockwise_angle2(_vectors[0], _vectors[1]);
 		const bisect = function() {
+			let angles = _vectors.map(el => Math.atan2(el[1], el[0]));
+			let bisected = angles[0] + _angle*0.5;
+			return Ray(_center[0], _center[1], Math.cos(bisected), Math.sin(bisected));
 		};
 		const subsect = function(divisions) {
 		};
@@ -1421,17 +1428,44 @@
 				interior.filter((_,i) => i%2 === 1).reduce((a,b) => a+b, 0)
 			];
 		};
+		const kawasaki_from_even = function(array) {
+			let even_sum = array.filter((_,i) => i%2 === 0).reduce((a,b) => a+b, 0);
+			let odd_sum = array.filter((_,i) => i%2 === 1).reduce((a,b) => a+b, 0);
+			return [Math.PI - even_sum, Math.PI - odd_sum];
+		};
+		const kawasaki_solutions = function() {
+			return _vectors.map((v,i,arr) => {
+				let nextV = arr[(i+1)%arr.length];
+				return counter_clockwise_angle2(v, nextV);
+			}).map((_, i, arr) => {
+				let a = arr.slice();
+				a.splice(i,1);
+				return a;
+			}).map(a => kawasaki_from_even(a))
+			.map((kawasakis, i, arr) =>
+				(kawasakis == null
+					? undefined
+					: _angles[i] + kawasakis[1])
+			).map(k => (k === undefined)
+				? undefined
+				: [Math.cos(k), Math.sin(k)]
+			);
+		};
 		return Object.freeze( {
 			kawasaki,
+			kawasaki_solutions,
 			alternatingAngleSum,
 			sectors,
+			get center() { return _center; },
 			get points() { return _points; },
 			get vectors() { return _vectors; },
 			get angles() { return _angles; },
 		} );
 	}
-	Junction.fromVectors = function(points) {
-		return Junction([0,0], points);
+	Junction.fromVectors = function(center, vectors) {
+		let points = get_array_of_vec(vectors)
+			.map(v => v.map((n,i) => n + center[i]));
+		return Junction(center, points);
 	};
 
 	let core = { algebra, geometry, intersection, origami: origami$1, EPSILON_LOW, EPSILON, EPSILON_HIGH, clean_number };
@@ -3970,7 +4004,7 @@
 		// get the interior angles of sectors around a vertex
 		return vectors.map((v,i,arr) => {
 			let nextV = arr[(i+1)%arr.length];
-			return RabbitEar.math.core.geometry.counter_clockwise_angle2(v, nextV);
+			return core.geometry.counter_clockwise_angle2(v, nextV);
 		}).map((_, i, arr) => {
 			// for every sector, get an array of all the OTHER sectors
 			let a = arr.slice();
