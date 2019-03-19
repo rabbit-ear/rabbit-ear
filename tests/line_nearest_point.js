@@ -1,6 +1,6 @@
 var nearestPointCallback;
 
-let nearestPoint = RabbitEar.svg.Image("nearest-point", 600, 300);
+let nearestPoint = RabbitEar.svg.image("nearest-point", 600, 300);
 
 nearestPoint.setup = function(){
 	nearestPoint.backLayer = RabbitEar.svg.group();
@@ -16,7 +16,9 @@ nearestPoint.setup = function(){
 			Math.random()*nearestPoint.width,
 			Math.random()*nearestPoint.height)
 	);
-	let svgLines = nearestPoint.edges.map(edge => RabbitEar.svg.line(edge.points[0][0], edge.points[0][1], edge.points[1][0], edge.points[1][1]));
+	let svgLines = nearestPoint.edges.map(edge =>
+		RabbitEar.svg.line(edge[0][0], edge[0][1], edge[1][0], edge[1][1])
+	);
 	svgLines.forEach(line => line.setAttribute("stroke", "#224c72"));
 	svgLines.forEach(line => line.setAttribute("stroke-width", 4));
 	svgLines.forEach(line => nearestPoint.lineLayer.appendChild(line));

@@ -729,10 +729,10 @@
 		return [1,0,0,1,0,0];
 	}
 	function get_edge() {
-		let params = Array.from(arguments);
+		let params = Array.from(arguments).filter(p => p != null);
 		let numbers = params.filter((param) => !isNaN(param));
 		let arrays = params.filter((param) => param.constructor === Array);
-		if (params.length == 0) { return undefined; }
+		if (params.length === 0) { return undefined; }
 		if (!isNaN(params[0]) && numbers.length >= 4) {
 			return [
 				[params[0], params[1]],
@@ -740,18 +740,19 @@
 			];
 		}
 		if (arrays.length > 0) {
-			if (arrays.length == 2) {
+			if (arrays.length === 2) {
 				return [
 					[arrays[0][0], arrays[0][1]],
 					[arrays[1][0], arrays[1][1]]
 				];
 			}
-			if (arrays.length == 4) {
+			else if (arrays.length === 4) {
 				return [
 					[arrays[0], arrays[1]],
 					[arrays[2], arrays[3]]
 				];
 			}
+			else { return get_edge(...arrays[0]); }
 		}
 		if (params[0].constructor === Object) {
 			if(params[0].points.length > 0) {
@@ -987,7 +988,10 @@
 		} );
 	}
 
-	function LinePrototype() {
+	function LinePrototype(proto) {
+		if(proto == null) {
+			proto = {};
+		}
 		const vec_comp_func = function(t0) { return true; };
 		const vec_cap_func = function(d) { return d; };
 		const reflection = function() {
@@ -1028,15 +1032,14 @@
 		const compare_to_edge = function(t0, t1, epsilon = EPSILON) {
 			return vec_comp_func(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
 		};
-		return Object.freeze( {
-			reflection,
-			nearestPoint,
-			intersectLine,
-			intersectRay,
-			intersectEdge,
-			vec_comp_func,
-			vec_cap_func,
-		} );
+		Object.defineProperty(proto, "reflection", {value: reflection});
+		Object.defineProperty(proto, "nearestPoint", {value: nearestPoint});
+		Object.defineProperty(proto, "intersectLine", {value: intersectLine});
+		Object.defineProperty(proto, "intersectRay", {value: intersectRay});
+		Object.defineProperty(proto, "intersectEdge", {value: intersectEdge});
+		Object.defineProperty(proto, "vec_comp_func", {value: vec_comp_func});
+		Object.defineProperty(proto, "vec_cap_func", {value: vec_cap_func});
+		return Object.freeze(proto);
 	}
 	function Line() {
 		let { point, vector } = get_line(...arguments);
@@ -1124,25 +1127,26 @@
 	};
 	function Edge() {
 		let inputs = get_two_vec2(...arguments);
+		let edge = Object.create(LinePrototype(Array()));
 		let _endpoints = (inputs.length > 0 ? inputs.map(p => Vector(p)) : undefined);
 		if (_endpoints === undefined) { return; }
+		_endpoints.forEach((p,i) => edge[i] = p);
 		const transform = function() {
 			let mat = get_matrix2(...arguments);
-			let transformed_points = _endpoints
+			let transformed_points = edge
 				.map(point => multiply_vector2_matrix2(point, mat));
 			return Edge(transformed_points);
 		};
 		const vector = function() {
 			return Vector(
-				_endpoints[1][0] - _endpoints[0][0],
-				_endpoints[1][1] - _endpoints[0][1]
+				edge[1][0] - edge[0][0],
+				edge[1][1] - edge[0][1]
 			);
 		};
 		const length = function() {
-			return Math.sqrt(Math.pow(_endpoints[1][0] - _endpoints[0][0],2)
-			               + Math.pow(_endpoints[1][1] - _endpoints[0][1],2));
+			return Math.sqrt(Math.pow(edge[1][0] - edge[0][0],2)
+			               + Math.pow(edge[1][1] - edge[0][1],2));
 		};
-		let edge = Object.create(LinePrototype());
 		let vec_comp_func = function(t0, ep) { return t0 >= -ep && t0 <= 1+ep; };
 		const vec_cap_func = function(d, ep) {
 			if (d < -ep) { return 0; }
@@ -1151,8 +1155,7 @@
 		};
 		Object.defineProperty(edge, "vec_comp_func", {value: vec_comp_func});
 		Object.defineProperty(edge, "vec_cap_func", {value: vec_cap_func});
-		Object.defineProperty(edge, "points", {get: function(){ return _endpoints; }});
-		Object.defineProperty(edge, "point", {get: function(){ return _endpoints[0]; }});
+		Object.defineProperty(edge, "point", {get: function(){ return edge[0]; }});
 		Object.defineProperty(edge, "vector", {get: function(){ return vector(); }});
 		Object.defineProperty(edge, "length", {get: function(){ return length(); }});
 		Object.defineProperty(edge, "transform", {value: transform});
@@ -1405,6 +1408,9 @@
 		let clockwise_order = Array.from(Array(_angles.length))
 			.map((_,i) => i)
 			.sort((a,b) => _angles[a] - _angles[b]);
+		clockwise_order = clockwise_order
+			.slice(clockwise_order.indexOf(0), clockwise_order.length)
+			.concat(clockwise_order.slice(0, clockwise_order.indexOf(0)));
 		const kawasaki = function() {
 			let angles = points
 				.map(p => [p.position[0] - sketch.width/2, p.position[1] - sketch.height/2])
@@ -1434,18 +1440,17 @@
 			return [Math.PI - even_sum, Math.PI - odd_sum];
 		};
 		const kawasaki_solutions = function() {
-			return _vectors.map((v,i,arr) => {
-				let nextV = arr[(i+1)%arr.length];
-				return counter_clockwise_angle2(v, nextV);
-			}).map((_, i, arr) => {
-				let a = arr.slice();
-				a.splice(i,1);
-				return a;
-			}).map(a => kawasaki_from_even(a))
+			return clockwise_order.map((_,i) => {
+				let thisV = _vectors[clockwise_order[i]];
+				let nextV = _vectors[clockwise_order[(i+1)%clockwise_order.length]];
+				return counter_clockwise_angle2(thisV, nextV);
+			}).map((_, i, arr) =>
+				arr.slice(i+1,arr.length).concat(arr.slice(0,i))
+			).map(a => kawasaki_from_even(a))
 			.map((kawasakis, i, arr) =>
 				(kawasakis == null
 					? undefined
-					: _angles[i] + kawasakis[1])
+					: _angles[clockwise_order[i]] + kawasakis[0])
 			).map(k => (k === undefined)
 				? undefined
 				: [Math.cos(k), Math.sin(k)]
@@ -1720,247 +1725,51 @@
 	};
 	var vkbeautify$1 = (new vkbeautify());
 
-	const svgNS = "http://www.w3.org/2000/svg";
-	const setClassIdParent = function(element, className, id, parent) {
-		if (className != null) {
-			element.setAttributeNS(null, "class", className);
-		}
-		if (id != null) {
-			element.setAttributeNS(null, "id", id);
-		}
-		if (parent != null) {
-			parent.appendChild(element);
+	const removeChildren = function(parent) {
+		while (parent.lastChild) {
+			parent.removeChild(parent.lastChild);
 		}
 	};
-	const setPoints = function(polygon, pointsArray) {
-		if (pointsArray == null || pointsArray.constructor !== Array) {
-			return;
-		}
-		let pointsString = pointsArray.map((el) =>
-			(el.constructor === Array ? el : [el.x, el.y])
-		).reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
-		polygon.setAttributeNS(null, "points", pointsString);
+	const getWidth = function(svg) {
+		let w = parseInt(svg.getAttributeNS(null, "width"));
+		return w != null && !isNaN(w) ? w : svg.getBoundingClientRect().width;
 	};
-	const setArc = function(shape, x, y, radius, startAngle, endAngle,
-			includeCenter = false) {
-		let start = [
-			x + Math.cos(startAngle) * radius,
-			y + Math.sin(startAngle) * radius ];
-		let vecStart = [
-			Math.cos(startAngle) * radius,
-			Math.sin(startAngle) * radius ];
-		let vecEnd = [
-			Math.cos(endAngle) * radius,
-			Math.sin(endAngle) * radius ];
-		let arcVec = [vecEnd[0] - vecStart[0], vecEnd[1] - vecStart[1]];
-		let py = vecStart[0]*vecEnd[1] - vecStart[1]*vecEnd[0];
-		let px = vecStart[0]*vecEnd[0] + vecStart[1]*vecEnd[1];
-		let arcdir = (Math.atan2(py, px) > 0 ? 0 : 1);
-		let d = (includeCenter
-			? "M " + x + "," + y + " l " + vecStart[0] + "," + vecStart[1] + " "
-			: "M " + start[0] + "," + start[1] + " ");
-		d += ["a ", radius, radius, 0, arcdir, 1, arcVec[0], arcVec[1]].join(" ");
-		if (includeCenter) { d += " Z"; }
-		shape.setAttributeNS(null, "d", d);
+	const getHeight = function(svg) {
+		let h = parseInt(svg.getAttributeNS(null, "height"));
+		return h != null && !isNaN(h) ? h : svg.getBoundingClientRect().height;
 	};
-	const line$1 = function(x1, y1, x2, y2, className, id, parent) {
-		let shape = document.createElementNS(svgNS, "line");
-		shape.setAttributeNS(null, "x1", x1);
-		shape.setAttributeNS(null, "y1", y1);
-		shape.setAttributeNS(null, "x2", x2);
-		shape.setAttributeNS(null, "y2", y2);
-		setClassIdParent(shape, className, id, parent);
-		return shape;
-	};
-	const circle = function(x, y, radius, className, id, parent) {
-		let shape = document.createElementNS(svgNS, "circle");
-		shape.setAttributeNS(null, "cx", x);
-		shape.setAttributeNS(null, "cy", y);
-		shape.setAttributeNS(null, "r", radius);
-		setClassIdParent(shape, className, id, parent);
-		return shape;
-	};
-	const ellipse = function(x, y, rx, ry, className, id, parent) {
-		let shape = document.createElementNS(svgNS, "ellipse");
-		shape.setAttributeNS(null, "cx", x);
-		shape.setAttributeNS(null, "cy", y);
-		shape.setAttributeNS(null, "rx", rx);
-		shape.setAttributeNS(null, "ry", ry);
-		setClassIdParent(shape, className, id, parent);
-		return shape;
-	};
-	const rect = function(x, y, width, height, className, id, parent) {
-		let shape = document.createElementNS(svgNS, "rect");
-		shape.setAttributeNS(null, "x", x);
-		shape.setAttributeNS(null, "y", y);
-		shape.setAttributeNS(null, "width", width);
-		shape.setAttributeNS(null, "height", height);
-		setClassIdParent(shape, className, id, parent);
-		return shape;
-	};
-	const polygon = function(pointsArray, className, id, parent) {
-		let shape = document.createElementNS(svgNS, "polygon");
-		setPoints(shape, pointsArray);
-		setClassIdParent(shape, className, id, parent);
-		return shape;
-	};
-	const polyline = function(pointsArray, className, id, parent) {
-		let shape = document.createElementNS(svgNS, "polyline");
-		setPoints(shape, pointsArray);
-		setClassIdParent(shape, className, id, parent);
-		return shape;
-	};
-	const bezier = function(fromX, fromY, c1X, c1Y, c2X, c2Y,
-			toX, toY, className, id, parent) {
-		let d = "M " + fromX + "," + fromY + " C " + c1X + "," + c1Y +
-				" " + c2X + "," + c2Y + " " + toX + "," + toY;
-		let shape = document.createElementNS(svgNS, "path");
-		shape.setAttributeNS(null, "d", d);
-		setClassIdParent(shape, className, id, parent);
-		return shape;
-	};
-	const text = function(textString, x, y, className, id, parent) {
-		let shape = document.createElementNS(svgNS, "text");
-		shape.innerHTML = textString;
-		shape.setAttributeNS(null, "x", x);
-		shape.setAttributeNS(null, "y", y);
-		setClassIdParent(shape, className, id, parent);
-		return shape;
-	};
-	const wedge = function(x, y, radius, angleA, angleB, className, id, parent) {
-		let shape = document.createElementNS(svgNS, "path");
-		setArc(shape, x, y, radius, angleA, angleB, true);
-		setClassIdParent(shape, className, id, parent);
-		return shape;
-	};
-	const arc = function(x, y, radius, angleA, angleB, className, id, parent) {
-		let shape = document.createElementNS(svgNS, "path");
-		setArc(shape, x, y, radius, angleA, angleB, false);
-		setClassIdParent(shape, className, id, parent);
-		return shape;
-	};
-	const regularPolygon = function(cX, cY, radius, sides, className, id, parent) {
-		let halfwedge = 2*Math.PI/sides * 0.5;
-		let r = Math.cos(halfwedge) * radius;
-		let points = Array.from(Array(sides)).map((el,i) => {
-			let a = -2 * Math.PI * i / sides + halfwedge;
-			let x = cX + r * Math.sin(a);
-			let y = cY + r * Math.cos(a);
-			return [x, y];
-		});
-		return polygon(points, className, id, parent);
-	};
-	const group = function(className, id, parent) {
-		let g = document.createElementNS(svgNS, "g");
-		setClassIdParent(g, className, id, parent);
-		return g;
-	};
-	const svg = function(className, id, parent) {
-		let svgImage = document.createElementNS(svgNS, "svg");
-		svgImage.setAttribute("version", "1.1");
-		svgImage.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-		setClassIdParent(svgImage, className, id, parent);
-		return svgImage;
+	const getClassList = function(xmlNode) {
+		let currentClass = xmlNode.getAttribute("class");
+		return (currentClass == null
+			? []
+			: currentClass.split(" ").filter((s) => s !== ""));
 	};
 	const addClass = function(xmlNode, newClass) {
-		if (xmlNode == undefined) {
+		if (xmlNode == null) {
 			return;
 		}
-		let currentClass = xmlNode.getAttribute("class");
-		if (currentClass == undefined) {
-			currentClass = "";
-		}
-		let classes = currentClass.split(" ").filter((c) => c !== newClass);
+		let classes = getClassList(xmlNode)
+			.filter(c => c !== newClass);
 		classes.push(newClass);
 		xmlNode.setAttributeNS(null, "class", classes.join(" "));
+		return xmlNode;
 	};
-	const removeClass = function(xmlNode, newClass) {
-		if (xmlNode == undefined) {
+	const removeClass = function(xmlNode, removedClass) {
+		if (xmlNode == null) {
 			return;
 		}
-		let currentClass = xmlNode.getAttribute("class");
-		if (currentClass == undefined) {
-			currentClass = "";
-		}
-		let classes = currentClass.split(" ").filter((c) => c !== newClass);
+		let classes = getClassList(xmlNode)
+			.filter(c => c !== removedClass);
 		xmlNode.setAttributeNS(null, "class", classes.join(" "));
+		return xmlNode;
 	};
-	const setId = function(xmlNode, newID) {
-		if (xmlNode == undefined) {
-			return;
-		}
-		xmlNode.setAttributeNS(null, "id", newID);
+	const setClass = function(xmlNode, className) {
+		xmlNode.setAttributeNS(null, "class", className);
+		return xmlNode;
 	};
-	const removeChildren = function(group) {
-		while (group.lastChild) {
-			group.removeChild(group.lastChild);
-		}
-	};
-	const setViewBox = function(svg, x, y, width, height, padding = 0) {
-		let scale = 1.0;
-		let d = (width / scale) - width;
-		let X = (x - d) - padding;
-		let Y = (y - d) - padding;
-		let W = (width + d * 2) + padding * 2;
-		let H = (height + d * 2) + padding * 2;
-		let viewBoxString = [X, Y, W, H].join(" ");
-		svg.setAttributeNS(null, "viewBox", viewBoxString);
-	};
-	const setDefaultViewBox = function(svg) {
-		let size = svg.getBoundingClientRect();
-		let width = (size.width == 0 ? 640 : size.width);
-		let height = (size.height == 0 ? 480 : size.height);
-		setViewBox(svg, 0, 0, width, height);
-	};
-	const getViewBox = function(svg) {
-		let vb = svg.getAttribute("viewBox");
-		return (vb == null
-			? undefined
-			: vb.split(" ").map((n) => parseFloat(n)));
-	};
-	const scale = function(svg, scale, origin_x = 0, origin_y = 0) {
-		if (scale < 1e-8) { scale = 0.01; }
-		let matrix = svg.createSVGMatrix()
-			.translate(origin_x, origin_y)
-			.scale(1/scale)
-			.translate(-origin_x, -origin_y);
-		let viewBox = getViewBox(svg);
-		if (viewBox == null) {
-			setDefaultViewBox(svg);
-		}
-		let top_left = svg.createSVGPoint();
-		let bot_right = svg.createSVGPoint();
-		top_left.x = viewBox[0];
-		top_left.y = viewBox[1];
-		bot_right.x = viewBox[0] + viewBox[2];
-		bot_right.y = viewBox[1] + viewBox[3];
-		let new_top_left = top_left.matrixTransform(matrix);
-		let new_bot_right = bot_right.matrixTransform(matrix);
-		setViewBox(svg,
-			new_top_left.x,
-			new_top_left.y,
-			new_bot_right.x - new_top_left.x,
-			new_bot_right.y - new_top_left.y
-		);
-	};
-	const translate = function(svg, dx, dy) {
-		let viewBox = getViewBox(svg);
-		if (viewBox == null) {
-			setDefaultViewBox(svg);
-		}
-		viewBox[0] += dx;
-		viewBox[1] += dy;
-		svg.setAttributeNS(null, "viewBox", viewBox.join(" "));
-	};
-	const convertToViewBox = function(svg, x, y) {
-		let pt = svg.createSVGPoint();
-		pt.x = x;
-		pt.y = y;
-		let svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
-		let array = [svgPoint.x, svgPoint.y];
-		array.x = svgPoint.x;
-		array.y = svgPoint.y;
-		return array;
+	const setID = function(xmlNode, idName) {
+		xmlNode.setAttributeNS(null, "id", idName);
+		return xmlNode;
 	};
 	const save = function(svg, filename = "image.svg") {
 		let a = document.createElement("a");
@@ -2007,16 +1816,261 @@
 		}
 	};
 
-	function Image() {
-		let params = Array.from(arguments);
-		let _svg = svg();
-		let _parent = undefined;
-		let _scale = 1.0;
-		let _padding = 0;
-		let _matrix = _svg.createSVGMatrix();
+	const setViewBox = function(svg, x, y, width, height, padding = 0) {
+		let scale = 1.0;
+		let d = (width / scale) - width;
+		let X = (x - d) - padding;
+		let Y = (y - d) - padding;
+		let W = (width + d * 2) + padding * 2;
+		let H = (height + d * 2) + padding * 2;
+		let viewBoxString = [X, Y, W, H].join(" ");
+		svg.setAttributeNS(null, "viewBox", viewBoxString);
+	};
+	const getViewBox = function(svg) {
+		let vb = svg.getAttribute("viewBox");
+		return (vb == null
+			? undefined
+			: vb.split(" ").map((n) => parseFloat(n)));
+	};
+	const scaleViewBox = function(svg, scale, origin_x = 0, origin_y = 0) {
+		if (scale < 1e-8) { scale = 0.01; }
+		let matrix = svg.createSVGMatrix()
+			.translate(origin_x, origin_y)
+			.scale(1/scale)
+			.translate(-origin_x, -origin_y);
+		let viewBox = getViewBox(svg);
+		if (viewBox == null) {
+			setDefaultViewBox(svg);
+		}
+		let top_left = svg.createSVGPoint();
+		let bot_right = svg.createSVGPoint();
+		top_left.x = viewBox[0];
+		top_left.y = viewBox[1];
+		bot_right.x = viewBox[0] + viewBox[2];
+		bot_right.y = viewBox[1] + viewBox[3];
+		let new_top_left = top_left.matrixTransform(matrix);
+		let new_bot_right = bot_right.matrixTransform(matrix);
+		setViewBox(svg,
+			new_top_left.x,
+			new_top_left.y,
+			new_bot_right.x - new_top_left.x,
+			new_bot_right.y - new_top_left.y
+		);
+	};
+	const translateViewBox = function(svg, dx, dy) {
+		let viewBox = getViewBox(svg);
+		if (viewBox == null) {
+			setDefaultViewBox(svg);
+		}
+		viewBox[0] += dx;
+		viewBox[1] += dy;
+		svg.setAttributeNS(null, "viewBox", viewBox.join(" "));
+	};
+	const convertToViewBox = function(svg, x, y) {
+		let pt = svg.createSVGPoint();
+		pt.x = x;
+		pt.y = y;
+		let svgPoint = pt.matrixTransform(svg.getScreenCTM().inverse());
+		let array = [svgPoint.x, svgPoint.y];
+		array.x = svgPoint.x;
+		array.y = svgPoint.y;
+		return array;
+	};
+	const setDefaultViewBox = function(svg) {
+		let size = svg.getBoundingClientRect();
+		let width = (size.width == 0 ? 640 : size.width);
+		let height = (size.height == 0 ? 480 : size.height);
+		setViewBox(svg, 0, 0, width, height);
+	};
+
+	const svgNS = "http://www.w3.org/2000/svg";
+	const svg = function() {
+		let svgImage = document.createElementNS(svgNS, "svg");
+		svgImage.setAttribute("version", "1.1");
+		svgImage.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+		setupSVG(svgImage);
+		return svgImage;
+	};
+	const line$1 = function(x1, y1, x2, y2) {
+		let shape = document.createElementNS(svgNS, "line");
+		shape.setAttributeNS(null, "x1", x1);
+		shape.setAttributeNS(null, "y1", y1);
+		shape.setAttributeNS(null, "x2", x2);
+		shape.setAttributeNS(null, "y2", y2);
+		attachClassMethods(shape);
+		return shape;
+	};
+	const circle = function(x, y, radius) {
+		let shape = document.createElementNS(svgNS, "circle");
+		shape.setAttributeNS(null, "cx", x);
+		shape.setAttributeNS(null, "cy", y);
+		shape.setAttributeNS(null, "r", radius);
+		attachClassMethods(shape);
+		return shape;
+	};
+	const ellipse = function(x, y, rx, ry) {
+		let shape = document.createElementNS(svgNS, "ellipse");
+		shape.setAttributeNS(null, "cx", x);
+		shape.setAttributeNS(null, "cy", y);
+		shape.setAttributeNS(null, "rx", rx);
+		shape.setAttributeNS(null, "ry", ry);
+		attachClassMethods(shape);
+		return shape;
+	};
+	const rect = function(x, y, width, height) {
+		let shape = document.createElementNS(svgNS, "rect");
+		shape.setAttributeNS(null, "x", x);
+		shape.setAttributeNS(null, "y", y);
+		shape.setAttributeNS(null, "width", width);
+		shape.setAttributeNS(null, "height", height);
+		attachClassMethods(shape);
+		return shape;
+	};
+	const polygon = function(pointsArray) {
+		let shape = document.createElementNS(svgNS, "polygon");
+		setPoints(shape, pointsArray);
+		attachClassMethods(shape);
+		return shape;
+	};
+	const polyline = function(pointsArray) {
+		let shape = document.createElementNS(svgNS, "polyline");
+		setPoints(shape, pointsArray);
+		attachClassMethods(shape);
+		return shape;
+	};
+	const bezier = function(fromX, fromY, c1X, c1Y, c2X, c2Y,
+			toX, toY) {
+		let d = "M " + fromX + "," + fromY + " C " + c1X + "," + c1Y +
+				" " + c2X + "," + c2Y + " " + toX + "," + toY;
+		let shape = document.createElementNS(svgNS, "path");
+		shape.setAttributeNS(null, "d", d);
+		attachClassMethods(shape);
+		return shape;
+	};
+	const text = function(textString, x, y) {
+		let shape = document.createElementNS(svgNS, "text");
+		shape.innerHTML = textString;
+		shape.setAttributeNS(null, "x", x);
+		shape.setAttributeNS(null, "y", y);
+		attachClassMethods(shape);
+		return shape;
+	};
+	const wedge = function(x, y, radius, angleA, angleB) {
+		let shape = document.createElementNS(svgNS, "path");
+		setArc(shape, x, y, radius, angleA, angleB, true);
+		attachClassMethods(shape);
+		return shape;
+	};
+	const arc = function(x, y, radius, angleA, angleB) {
+		let shape = document.createElementNS(svgNS, "path");
+		setArc(shape, x, y, radius, angleA, angleB, false);
+		attachClassMethods(shape);
+		return shape;
+	};
+	const group = function() {
+		let g = document.createElementNS(svgNS, "g");
+		attachClassMethods(g);
+		attachGeometryMethods(g);
+		return g;
+	};
+	const regularPolygon = function(cX, cY, radius, sides) {
+		let halfwedge = 2*Math.PI/sides * 0.5;
+		let r = Math.cos(halfwedge) * radius;
+		let points = Array.from(Array(sides)).map((el,i) => {
+			let a = -2 * Math.PI * i / sides + halfwedge;
+			let x = cX + r * Math.sin(a);
+			let y = cY + r * Math.cos(a);
+			return [x, y];
+		});
+		return polygon(points);
+	};
+	const setPoints = function(polygon, pointsArray) {
+		if (pointsArray == null || pointsArray.constructor !== Array) {
+			return;
+		}
+		let pointsString = pointsArray.map((el) =>
+			(el.constructor === Array ? el : [el.x, el.y])
+		).reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
+		polygon.setAttributeNS(null, "points", pointsString);
+	};
+	const setArc = function(shape, x, y, radius, startAngle, endAngle,
+			includeCenter = false) {
+		let start = [
+			x + Math.cos(startAngle) * radius,
+			y + Math.sin(startAngle) * radius ];
+		let vecStart = [
+			Math.cos(startAngle) * radius,
+			Math.sin(startAngle) * radius ];
+		let vecEnd = [
+			Math.cos(endAngle) * radius,
+			Math.sin(endAngle) * radius ];
+		let arcVec = [vecEnd[0] - vecStart[0], vecEnd[1] - vecStart[1]];
+		let py = vecStart[0]*vecEnd[1] - vecStart[1]*vecEnd[0];
+		let px = vecStart[0]*vecEnd[0] + vecStart[1]*vecEnd[1];
+		let arcdir = (Math.atan2(py, px) > 0 ? 0 : 1);
+		let d = (includeCenter
+			? "M " + x + "," + y + " l " + vecStart[0] + "," + vecStart[1] + " "
+			: "M " + start[0] + "," + start[1] + " ");
+		d += ["a ", radius, radius, 0, arcdir, 1, arcVec[0], arcVec[1]].join(" ");
+		if (includeCenter) { d += " Z"; }
+		shape.setAttributeNS(null, "d", d);
+	};
+	const geometryMethods = {
+		"line" : line$1,
+		"circle" : circle,
+		"ellipse" : ellipse,
+		"rect" : rect,
+		"polygon" : polygon,
+		"polyline" : polyline,
+		"bezier" : bezier,
+		"text" : text,
+		"wedge" : wedge,
+		"arc" : arc,
+		"regularPolygon" : regularPolygon,
+		"group" : group,
+	};
+	const attachGeometryMethods = function(element) {
+		Object.keys(geometryMethods).forEach(key => {
+			element[key] = function() {
+				let g = geometryMethods[key](...arguments);
+				element.appendChild(g);
+				return g;
+			};
+		});
+	};
+	const attachClassMethods = function(element) {
+		element.removeChildren = function() { return removeChildren(element); };
+		element.addClass = function() { return addClass(element, ...arguments); };
+		element.removeClass = function() { return removeClass(element, ...arguments); };
+		element.setClass = function() { return setClass(element, ...arguments); };
+		element.setID = function() { return setID(element, ...arguments); };
+	};
+	const attachViewBoxMethods = function(element) {
+		element.setViewBox = function() { return setViewBox(element, ...arguments); };
+		element.getViewBox = function() { return getViewBox(element, ...arguments); };
+		element.scaleViewBox = function() { return scaleViewBox(element, ...arguments); };
+		element.translateViewBox = function() { return translateViewBox(element, ...arguments); };
+		element.convertToViewBox = function() { return convertToViewBox(element, ...arguments); };
+	};
+	const setupSVG = function(svgImage) {
+		attachClassMethods(svgImage);
+		attachGeometryMethods(svgImage);
+		attachViewBoxMethods(svgImage);
+	};
+
+	const Names = {
+		start: "onMouseDown",
+		enter: "onMouseEnter",
+		leave: "onMouseLeave",
+		move: "onMouseMove",
+		end: "onMouseUp",
+		scroll: "onScroll",
+	};
+	function Events(node) {
+		let _node;
+		let _pointer = Object.create(null);
 		let _events = {};
-		let _mouse = Object.create(null);
-		Object.assign(_mouse, {
+		Object.assign(_pointer, {
 			isPressed: false,
 			position: [0,0],
 			pressed: [0,0],
@@ -2025,192 +2079,103 @@
 			x: 0,
 			y: 0
 		});
-		const zoom = function(scale$$1, origin_x = 0, origin_y = 0) {
-			_scale = scale$$1;
-			scale(_svg, scale$$1, origin_x, origin_y);
-		};
-		const translate$$1 = function(dx, dy) {
-			translate(_svg, dx, dy);
-		};
-		const setViewBox$$1 = function(x, y, width, height) {
-			setViewBox(_svg, x, y, width, height, _padding);
-		};
-		const getViewBox$$1 = function() {
-			return getViewBox(_svg);
-		};
-		const appendChild = function(element) {
-			_svg.appendChild(element);
-		};
-		const removeChildren$$1 = function(group$$1) {
-			if (group$$1 == null) {
-				group$$1 = _svg;
-			}
-			while (group$$1.lastChild) {
-				group$$1.removeChild(group$$1.lastChild);
-			}
-		};
-		const save$$1 = function(filename = "image.svg") {
-			return save(_svg, filename);
-		};
-		const load$$1 = function(data, callback) {
-			load(data, function(newSVG, error) {
-				if (newSVG != null) {
-					if (_svg != null) { _svg.remove(); }
-					_svg = newSVG;
-					_parent.appendChild(_svg);
-					attachHandlers();
-				}
-				if (callback != null) { callback(newSVG, error); }
-			});
-		};
-		const size = function(w, h) {
-			if (w == null || h == null) { return; }
-			let vb = getViewBox(_svg);
-			setViewBox(_svg, vb[0], vb[1], w, h, _padding);
-			_svg.setAttributeNS(null, "width", w);
-			_svg.setAttributeNS(null, "height", h);
-		};
-		const getWidth = function() {
-			let w = parseInt(_svg.getAttributeNS(null, "width"));
-			return w != null && !isNaN(w) ? w : _svg.getBoundingClientRect().width;
-		};
-		const getHeight = function() {
-			let h = parseInt(_svg.getAttributeNS(null, "height"));
-			return h != null && !isNaN(h) ? h : _svg.getBoundingClientRect().height;
-		};
-		const attachToDOM = function() {
-			let functions = params.filter((arg) => typeof arg === "function");
-			let numbers = params.filter((arg) => !isNaN(arg));
-			let element = params.filter((arg) =>
-					arg instanceof HTMLElement)
-				.shift();
-			let idElement = params.filter((a) =>
-					typeof a === "string" || a instanceof String)
-				.map(str => document.getElementById(str))
-				.shift();
-			_parent = (element != null
-				? element
-				: (idElement != null
-					? idElement
-					: document.body));
-			_parent.appendChild(_svg);
-			if (numbers.length >= 2) {
-				_svg.setAttributeNS(null, "width", numbers[0]);
-				_svg.setAttributeNS(null, "height", numbers[1]);
-				setViewBox(_svg, 0, 0, numbers[0], numbers[1]);
-			}
-			else if (_svg.getAttribute("viewBox") == null) {
-				let rect$$1 = _svg.getBoundingClientRect();
-				setViewBox(_svg, 0, 0, rect$$1.width, rect$$1.height);
-			}
-			if (functions.length >= 1) {
-				functions[0]();
-			}
-			attachHandlers();
-		};
-		let numbers = params.filter((arg) => !isNaN(arg));
-		if (numbers.length >= 2) {
-			_svg.setAttributeNS(null, "width", numbers[0]);
-			_svg.setAttributeNS(null, "height", numbers[1]);
-			setViewBox(_svg, 0, 0, numbers[0], numbers[1]);
-		}
-		if (document.readyState === 'loading') {
-			document.addEventListener('DOMContentLoaded', attachToDOM);
-		} else {
-			attachToDOM();
-		}
-		function attachHandlers() {
-			_svg.addEventListener("mouseup", mouseUpHandler, false);
-			_svg.addEventListener("mousedown", mouseDownHandler, false);
-			_svg.addEventListener("mousemove", mouseMoveHandler, false);
-			_svg.addEventListener("mouseleave", mouseLeaveHandler, false);
-			_svg.addEventListener("mouseenter", mouseEnterHandler, false);
-			_svg.addEventListener("touchend", mouseUpHandler, false);
-			_svg.addEventListener("touchmove", touchMoveHandler, false);
-			_svg.addEventListener("touchstart", touchStartHandler, false);
-			_svg.addEventListener("touchcancel", mouseUpHandler, false);
-		}
-		function getMouse() {
-			let m = _mouse.position.slice();
-			Object.keys(_mouse)
+		const getPointer = function() {
+			let m = _pointer.position.slice();
+			Object.keys(_pointer)
 				.filter(key => typeof key === "object")
-				.forEach(key => m[key] = _mouse[key].slice());
-			Object.keys(_mouse)
+				.forEach(key => m[key] = _pointer[key].slice());
+			Object.keys(_pointer)
 				.filter(key => typeof key !== "object")
-				.forEach(key => m[key] = _mouse[key]);
+				.forEach(key => m[key] = _pointer[key]);
 			return Object.freeze(m);
-		}
-		function updateMousePosition(clientX, clientY) {
-			_mouse.prev = _mouse.position;
-			_mouse.position = convertToViewBox(_svg, clientX, clientY);
-			_mouse.x = _mouse.position[0];
-			_mouse.y = _mouse.position[1];
-		}
-		function updateMouseDrag() {
-			_mouse.drag = [_mouse.position[0] - _mouse.pressed[0],
-			               _mouse.position[1] - _mouse.pressed[1]];
-			_mouse.drag.x = _mouse.drag[0];
-			_mouse.drag.y = _mouse.drag[1];
-		}
-		function mouseMoveHandler(event) {
-			updateMousePosition(event.clientX, event.clientY);
-			let mouse = getMouse();
-			if (_mouse.isPressed) { updateMouseDrag(); }
-			if (_events.mousemove) {
-				_events.mousemove.forEach(f => f(mouse));
+		};
+		const updatePointerPosition = function(clientX, clientY) {
+			_pointer.prev = _pointer.position;
+			_pointer.position = convertToViewBox(_node, clientX, clientY);
+			_pointer.x = _pointer.position[0];
+			_pointer.y = _pointer.position[1];
+		};
+		const updateTouchDrag = function() {
+			_pointer.drag = [_pointer.position[0] - _pointer.pressed[0],
+			               _pointer.position[1] - _pointer.pressed[1]];
+			_pointer.drag.x = _pointer.drag[0];
+			_pointer.drag.y = _pointer.drag[1];
+		};
+		const mouseMoveHandler = function(event) {
+			updatePointerPosition(event.clientX, event.clientY);
+			let mouse = getPointer();
+			if (_pointer.isPressed) { updateTouchDrag(); }
+			if (_events[Names.move]) {
+				_events[Names.move].forEach(f => f(mouse));
 			}
-		}
-		function mouseDownHandler(event) {
-			_mouse.isPressed = true;
-			_mouse.pressed = convertToViewBox(_svg, event.clientX, event.clientY);
-			let mouse = getMouse();
-			if (_events.mousedown) {
-				_events.mousedown.forEach(f => f(mouse));
+		};
+		const mouseDownHandler = function(event) {
+			_pointer.isPressed = true;
+			_pointer.pressed = convertToViewBox(_node, event.clientX, event.clientY);
+			if (_events[Names.start]) {
+				let mouse = getPointer();
+				_events[Names.start].forEach(f => f(mouse));
 			}
-		}
-		function mouseUpHandler(event) {
-			_mouse.isPressed = false;
-			let mouse = getMouse();
-			if (_events.mouseup) {
-				_events.mouseup.forEach(f => f(mouse));
+		};
+		const mouseUpHandler = function(event) {
+			_pointer.isPressed = false;
+			if (_events[Names.end]) {
+				let mouse = getPointer();
+				_events[Names.end].forEach(f => f(mouse));
 			}
-		}
-		function mouseLeaveHandler(event) {
-			updateMousePosition(event.clientX, event.clientY);
-			if (_events.mouseleave) {
-				_events.mouseleave.forEach(f => f(mouse));
+		};
+		const mouseLeaveHandler = function(event) {
+			updatePointerPosition(event.clientX, event.clientY);
+			if (_events[Names.leave]) {
+				let mouse = getPointer();
+				_events[Names.leave].forEach(f => f(mouse));
 			}
-		}
-		function mouseEnterHandler(event) {
-			updateMousePosition(event.clientX, event.clientY);
-			if (_events.mouseenter) {
-				_events.mouseenter.forEach(f => f(mouse));
+		};
+		const mouseEnterHandler = function(event) {
+			updatePointerPosition(event.clientX, event.clientY);
+			if (_events[Names.enter]) {
+				let mouse = getPointer();
+				_events[Names.enter].forEach(f => f(mouse));
 			}
-		}
-		function touchStartHandler(event) {
+		};
+		const touchStartHandler = function(event) {
 			event.preventDefault();
 			let touch = event.touches[0];
 			if (touch == null) { return; }
-			_mouse.isPressed = true;
-			_mouse.pressed = convertToViewBox(_svg, touch.clientX, touch.clientY);
-			let mouse = getMouse();
-			if (_events.mousedown) {
-				_events.mousedown.forEach(f => f(mouse));
+			_pointer.isPressed = true;
+			_pointer.pressed = convertToViewBox(_node, touch.clientX, touch.clientY);
+			if (_events.oMouseDown) {
+				let mouse = getPointer();
+				_events.oMouseDown.forEach(f => f(mouse));
 			}
-		}
-		function touchMoveHandler(event) {
+		};
+		const touchMoveHandler = function(event) {
 			event.preventDefault();
 			let touch = event.touches[0];
 			if (touch == null) { return; }
-			updateMousePosition(touch.clientX, touch.clientY);
-			if (_mouse.isPressed) { updateMouseDrag(); }
-			let mouse = getMouse();
-			if (_events.mousemove) {
-				_events.mousemove.forEach(f => f(mouse));
+			updatePointerPosition(touch.clientX, touch.clientY);
+			let mouse = getPointer();
+			if (_pointer.isPressed) { updateTouchDrag(); }
+			if (_events[Names.move]) {
+				_events[Names.move].forEach(f => f(mouse));
 			}
-		}
+		};
+		const scrollHandler = function(event) {
+			let e = {
+				deltaX: event.deltaX,
+				deltaY: event.deltaY,
+				deltaZ: event.deltaZ,
+			};
+			e.position = convertToViewBox(_node, event.clientX, event.clientY);
+			e.x = e.position[0];
+			e.y = e.position[1];
+			event.preventDefault();
+			if (_events[Names.scroll]) {
+				_events[Names.scroll].forEach(f => f(e));
+			}
+		};
 		let _animate, _intervalID, _animationFrame;
-		function updateAnimationHandler(handler) {
+		const updateAnimationHandler = function(handler) {
 			if (_animate != null) {
 				clearInterval(_intervalID);
 			}
@@ -2219,41 +2184,149 @@
 				_animationFrame = 0;
 				_intervalID = setInterval(() => {
 					let animObj = {
-						"time": _svg.getCurrentTime(),
+						"time": _node.getCurrentTime(),
 						"frame": _animationFrame++
 					};
 					_animate(animObj);
 				}, 1000/60);
 			}
-		}
+		};
+		const handlers = {
+			mouseup: mouseUpHandler,
+			mousedown: mouseDownHandler,
+			mousemove: mouseMoveHandler,
+			mouseleave: mouseLeaveHandler,
+			mouseenter: mouseEnterHandler,
+			touchend: mouseUpHandler,
+			touchmove: touchMoveHandler,
+			touchstart: touchStartHandler,
+			touchcancel: mouseUpHandler,
+			wheel: scrollHandler,
+		};
 		const addEventListener = function(eventName, func) {
-			if (typeof func !== "function") { throw "must supply a function type to addEventListener"; }
+			if (typeof func !== "function") {
+				throw "must supply a function type to addEventListener";
+			}
 			if (_events[eventName] === undefined) {
 				_events[eventName] = [];
 			}
 			_events[eventName].push(func);
 		};
-		let _this = {
-			zoom, translate: translate$$1, appendChild, removeChildren: removeChildren$$1,
-			load: load$$1, save: save$$1,
-			setViewBox: setViewBox$$1, getViewBox: getViewBox$$1, size,
-			get mouse() { return getMouse(); },
-			get scale() { return _scale; },
-			get svg() { return _svg; },
-			get width() { return getWidth(); },
-			get height() { return getHeight(); },
-			set width(w) { _svg.setAttributeNS(null, "width", w); },
-			set height(h) { _svg.setAttributeNS(null, "height", h); },
-			set onMouseMove(handler) { addEventListener("mousemove", handler); },
-			set onMouseDown(handler) { addEventListener("mousedown", handler); },
-			set onMouseUp(handler) { addEventListener("mouseup", handler); },
-			set onMouseLeave(handler) { addEventListener("mouseleave", handler); },
-			set onMouseEnter(handler) { addEventListener("mouseenter", handler); },
-			set animate(handler) { updateAnimationHandler(handler); },
-			addEventListener
+		const attachHandlers = function(element) {
+			Object.keys(handlers).forEach(key =>
+				element.addEventListener(key, handlers[key], false)
+			);
+			updateAnimationHandler(_animate);
 		};
-		return _this;
+		const removeHandlers = function(element) {
+			Object.keys(handlers).forEach(key =>
+				element.removeEventListener(key, handlers[key], false)
+			);
+			if (_animate != null) {
+				clearInterval(_intervalID);
+			}
+		};
+		const setup = function(node) {
+			if (_node != null) {
+				removeHandlers(_node);
+			}
+			_node = node;
+			Object.keys(Names).map(key => Names[key]).forEach(key => {
+				Object.defineProperty(_node, key, {
+					set: function(handler) { addEventListener(key, handler); }
+				});
+			});
+			Object.defineProperty(_node, "animate", {
+				set: function(handler) { updateAnimationHandler(handler); }
+			});
+			Object.defineProperty(_node, "mouse", {get: function(){ return getPointer(); }});
+			Object.defineProperty(_node, "pointer", {get: function(){ return getPointer(); }});
+			attachHandlers(_node);
+		};
+		setup(node);
+		return {
+			setup,
+			remove: function() { removeHandlers(_node); }
+		};
 	}
+
+	function image() {
+		let _svg = svg();
+		let params = Array.from(arguments);
+		initSize(_svg, params);
+		attachSVGMethods(_svg);
+		_svg.events = Events(_svg);
+		const setup = function() {
+			initSize(_svg, params);
+			getElement(params).appendChild(_svg);
+			params.filter((arg) => typeof arg === "function")
+				.forEach((func) => func());
+		};
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', setup);
+		} else {
+			setup();
+		}
+		return _svg;
+	}const getElement = function(params) {
+		let element = params.filter((arg) =>
+				arg instanceof HTMLElement
+			).shift();
+		let idElement = params.filter((a) =>
+				typeof a === "string" || a instanceof String)
+			.map(str => document.getElementById(str))
+			.shift();
+		return (element != null
+			? element
+			: (idElement != null
+				? idElement
+				: document.body));
+	};
+	const initSize = function(svg$$1, params) {
+		let numbers = params.filter((arg) => !isNaN(arg));
+		if (numbers.length >= 2) {
+			svg$$1.setAttributeNS(null, "width", numbers[0]);
+			svg$$1.setAttributeNS(null, "height", numbers[1]);
+			setViewBox(svg$$1, 0, 0, numbers[0], numbers[1]);
+		}
+		else if (svg$$1.getAttribute("viewBox") == null) {
+			let rect$$1 = svg$$1.getBoundingClientRect();
+			setViewBox(svg$$1, 0, 0, rect$$1.width, rect$$1.height);
+		}
+	};
+	const attachSVGMethods = function(element) {
+		Object.defineProperty(element, "w", {
+			get: function(){ return getWidth(element); },
+			set: function(w){ element.setAttributeNS(null, "width", w); }
+		});
+		Object.defineProperty(element, "h", {
+			get: function(){ return getHeight(element); },
+			set: function(h){ element.setAttributeNS(null, "height", h); }
+		});
+		element.getWidth = function() { return getWidth(element); };
+		element.getHeight = function() { return getHeight(element); };
+		element.setWidth = function(w) { element.setAttributeNS(null, "width", w); };
+		element.setHeight = function(h) { element.setAttributeNS(null, "height", h); };
+		element.save = function(filename = "image.svg") {
+			return save(element, filename);
+		};
+		element.load = function(data, callback) {
+			load(data, function(newSVG, error) {
+				let parent = element.parentNode;
+				if (newSVG != null) {
+					newSVG.events = element.events;
+					setupSVG(newSVG);
+					if (newSVG.events == null) { newSVG.events = Events(newSVG); }
+					else { newSVG.events.setup(newSVG); }
+					attachSVGMethods(newSVG);
+					element.remove();
+					element = newSVG;
+				}
+				if (parent != null) { parent.appendChild(element); }
+				if (callback != null) { callback(element, error); }
+			});
+		};
+	};
 
 	const controlPoint = function(parent, options) {
 		if (options == null) { options = {}; }
@@ -2310,7 +2383,8 @@
 		if (options.fill == null) { options.fill = "#000000"; }
 		let _points = Array.from(Array(number)).map(_ => controlPoint(options.parent, options));
 		let _selected = undefined;
-		const onMouseDown = function(mouse) {
+		const mouseDownHandler = function(event) {
+			let mouse = convertToViewBox(svgObject, event.clientX, event.clientY);
 			if (!(_points.length > 0)) { return; }
 			_selected = _points
 				.map((p,i) => ({i:i, d:p.distance(mouse)}))
@@ -2319,16 +2393,18 @@
 				.i;
 			_points[_selected].selected = true;
 		};
-		const onMouseMove = function(mouse) {
+		const mouseMoveHandler = function(event) {
+			let mouse = convertToViewBox(svgObject, event.clientX, event.clientY);
 			_points.forEach(p => p.onMouseMove(mouse));
 		};
-		const onMouseUp = function(mouse) {
+		const mouseUpHandler = function(event) {
+			let mouse = convertToViewBox(svgObject, event.clientX, event.clientY);
 			_points.forEach(p => p.onMouseUp(mouse));
 			_selected = undefined;
 		};
-		svgObject.addEventListener("mousedown", onMouseDown);
-		svgObject.addEventListener("mouseup", onMouseUp);
-		svgObject.addEventListener("mousemove", onMouseMove);
+		svgObject.addEventListener("mousedown", mouseDownHandler);
+		svgObject.addEventListener("mouseup", mouseUpHandler);
+		svgObject.addEventListener("mousemove", mouseMoveHandler);
 		Object.defineProperty(_points, "selectedIndex", {get: function() { return _selected; }});
 		Object.defineProperty(_points, "selected", {get: function() { return _points[_selected]; }});
 		Object.defineProperty(_points, "removeAll", {value: function() {
@@ -2338,10 +2414,7 @@
 	}
 
 	var svg$1 = /*#__PURE__*/Object.freeze({
-		Image: Image,
-		controls: controls,
-		setPoints: setPoints,
-		setArc: setArc,
+		svg: svg,
 		line: line$1,
 		circle: circle,
 		ellipse: ellipse,
@@ -2352,21 +2425,20 @@
 		text: text,
 		wedge: wedge,
 		arc: arc,
-		regularPolygon: regularPolygon,
 		group: group,
-		svg: svg,
-		addClass: addClass,
-		removeClass: removeClass,
-		setId: setId,
-		removeChildren: removeChildren,
+		regularPolygon: regularPolygon,
+		setPoints: setPoints,
+		setArc: setArc,
 		setViewBox: setViewBox,
-		setDefaultViewBox: setDefaultViewBox,
 		getViewBox: getViewBox,
-		scale: scale,
-		translate: translate,
+		scaleViewBox: scaleViewBox,
+		translateViewBox: translateViewBox,
 		convertToViewBox: convertToViewBox,
+		removeChildren: removeChildren,
 		save: save,
-		load: load
+		load: load,
+		image: image,
+		controls: controls
 	});
 
 	/*
@@ -4533,7 +4605,7 @@
 
 	function View() {
 
-		let canvas = Image(...arguments);
+		let canvas = image(...arguments);
 		//  from arguments, get a fold file, if it exists
 		let _cp = CreasePattern(...arguments);
 		// tie handler from crease pattern
@@ -4543,15 +4615,11 @@
 
 		// prepare SVG
 		let groups = {
-			boundary: group(undefined, "boundary"),
-			faces: group(undefined, "faces"),
-			creases: group(undefined, "creases"),
-			vertices: group(undefined, "vertices"),
+			boundary: canvas.group().setID("boundary"),
+			faces: canvas.group().setID("faces"),
+			creases: canvas.group().setID("creases"),
+			vertices: canvas.group().setID("vertices"),
 		};
-		canvas.svg.appendChild(groups.boundary);
-		canvas.svg.appendChild(groups.faces);
-		canvas.svg.appendChild(groups.creases);
-		canvas.svg.appendChild(groups.vertices);
 
 		// view properties
 		let style = {
@@ -4573,7 +4641,7 @@
 				.map(v => graph.vertices_coords[v]);
 			
 			// clear layers
-			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
+			Object.keys(groups).forEach((key) => groups[key].removeChildren());
 			// boundary
 			// SVG.polygon(boundary, "boundary", null, groups.boundary);
 			// // vertices
@@ -4585,11 +4653,15 @@
 			// faces
 			if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
 				graph["re:faces_layer"].forEach((fi,i) =>
-					polygon(facesV[fi].points, i%2==0 ? "face-front" : "face-back", "face", groups.faces)
+					groups.faces.polygon(facesV[fi].points)
+						.setClass(i%2==0 ? "face-front" : "face-back")
+						.setID("face")
 				);
 			} else if (graph.facesOrder && graph.facesOrder.length > 0) ; else {
 				facesV.forEach((face, i) =>
-					polygon(face.points, fAssignments[i], "face", groups.faces)
+					groups.faces.polygon(face.points)
+						.setClass(fAssignments[i])
+						.setID("face")
 				);
 			}
 		};
@@ -4620,19 +4692,28 @@
 			// clear layers
 			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
 			// boundary
-			polygon(boundary, "boundary", null, groups.boundary);
+			groups.boundary.polygon(boundary).setClass("boundary");
 			// vertices
-			verts.forEach((v,i) => circle(v[0], v[1], style.vertex.radius, "vertex", ""+i, groups.vertices));
+			verts.forEach((v,i) => groups.vertices.circle(v[0], v[1], style.vertex.radius)
+				.setClass("vertex")
+				.setID(""+i)
+			);
 			// edges
 			edges.forEach((e,i) =>
-				line$1(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
+				groups.creases.line(e[0][0], e[0][1], e[1][0], e[1][1])
+					.setClass(eAssignments[i])
+					.setID(""+i)
 			);
 			// faces
 			facesV.filter(f => f != null).forEach((face, i) =>
-				polygon(face.points, fAssignments[i], "face", groups.faces)
+				groups.faces.polygon(face.points)
+					.setClass(fAssignments[i])
+					.setID("face")
 			);
 			facesE.filter(f => f != null).forEach((face, i) =>
-				polygon(face.points, fAssignments[i], "face", groups.faces)
+				groups.faces.polygon(face.points)
+					.setClass(fAssignments[i])
+					.setID("face")
 			);
 		};
 
@@ -4658,9 +4739,9 @@
 			let isInvalid = isNaN(boundsX) || isNaN(boundsY) ||
 			                isNaN(boundsW) || isNaN(boundsH);
 			if (isInvalid) {
-				setViewBox(canvas.svg, 0, 0, 1, 1);
+				setViewBox(canvas, 0, 0, 1, 1);
 			} else{
-				setViewBox(canvas.svg, boundsX, boundsY, boundsW, boundsH);
+				setViewBox(canvas, boundsX, boundsY, boundsW, boundsH);
 			}
 		};
 
@@ -4765,15 +4846,16 @@
 					.map(f => Polygon(f));
 		};
 
+		const appendChild = function() {
+			canvas.appendChild(...arguments);
+		};
+
 		const showVertices = function(){ groups.vertices.removeAttribute("visibility");};
 		const hideVertices = function(){ groups.vertices.setAttribute("visibility", "hidden");};
 		const showEdges = function(){ groups.creases.removeAttribute("visibility");};
 		const hideEdges = function(){ groups.creases.setAttribute("visibility", "hidden");};
 		const showFaces = function(){ groups.faces.removeAttribute("visibility");};
 		const hideFaces = function(){ groups.faces.setAttribute("visibility", "hidden");};
-
-		function addClass$$1(node, className) { addClass(node, className); }
-		function removeClass$$1(node, className) { removeClass(node, className); }
 
 		const clear = function() {
 			// todo: remove all creases from current CP, leave the boundary.
@@ -4800,6 +4882,11 @@
 		// init this object
 		draw();
 
+
+		const addEventListener = function(eventName, func) {
+			canvas.addEventListener(eventName, func);
+		};
+
 		// return Object.freeze({
 		return {
 			get mouse() { return canvas.mouse; },
@@ -4824,8 +4911,7 @@
 			},
 
 			nearest,
-			addClass: addClass$$1,
-			removeClass: removeClass$$1,
+			appendChild,
 
 			clear,
 			crease,
@@ -4841,11 +4927,10 @@
 		
 			load: load$$1,
 			save: save$$1,
-			get svg() { return canvas.svg; },
+			get svg() { return canvas; },
 			get svgFile() { return canvas.save(); },
 			get zoom() { return canvas.zoom; },
 			get translate() { return canvas.translate; },
-			get appendChild() { return canvas.appendChild; },
 			get removeChildren() { return canvas.removeChildren; },
 			get size() { return canvas.size; },
 			get scale() { return canvas.scale; },
@@ -4859,7 +4944,8 @@
 			set onMouseLeave(a) { canvas.onMouseLeave = a; },
 			set onMouseEnter(a) { canvas.onMouseEnter = a; },
 			set animate(a) { canvas.animate = a; },
-
+			addEventListener,
+		
 			set setFolded(_folded) {
 				_cp.frame_classes = _cp.frame_classes
 					.filter(a => a !== "creasePattern");

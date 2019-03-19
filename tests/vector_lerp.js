@@ -1,4 +1,4 @@
-let lerps = RabbitEar.svg.Image("canvas-lerp", 500, 500);
+let lerps = RabbitEar.svg.image("canvas-lerp", 500, 500);
 
 lerps.dotLayer = RabbitEar.svg.group();
 lerps.curveLayer = RabbitEar.svg.group();

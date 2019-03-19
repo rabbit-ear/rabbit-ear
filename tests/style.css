@@ -43,7 +43,7 @@ svg{
 	fill: none;
 }
 .face {
-	fill: rgba(0, 0, 0, 0.1);
+	fill: rgba(0, 0, 0, 0.05);
 }
 .face-front {
 	fill: #195783;

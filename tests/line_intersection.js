@@ -1,4 +1,4 @@
-let xing = RabbitEar.svg.Image("canvas-intersection", 500, 500);
+let xing = RabbitEar.svg.image("canvas-intersection", 500, 500);
 
 xing.NUM_LINES = 4;
 

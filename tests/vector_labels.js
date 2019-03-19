@@ -1,6 +1,6 @@
 let vecTextSketchCallback;
 
-let vecText = RabbitEar.svg.Image("canvas-vector-labels", window.innerWidth, window.innerHeight, function(){
+let vecText = RabbitEar.svg.image("canvas-vector-labels", window.innerWidth, window.innerHeight, function(){
 	vecText.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
 	vecText.reset();
 	vecText.update();

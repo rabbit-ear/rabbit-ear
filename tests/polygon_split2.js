@@ -1,4 +1,4 @@
-let polySplit = RabbitEar.svg.Image("canvas-split-poly", 500, 500);
+let polySplit = RabbitEar.svg.image("canvas-split-poly", 500, 500);
 
 polySplit.STROKE_WIDTH = polySplit.width * 0.0125;
 polySplit.RADIUS = polySplit.width * 0.025;

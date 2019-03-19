@@ -1,5 +1,5 @@
 
-let circleLine = RabbitEar.svg.Image("canvas-circle-line", 500, 500);
+let circleLine = RabbitEar.svg.image("canvas-circle-line", 500, 500);
 
 circleLine.setup = function() {
 	circleLine.boundary = [ [0, 0], [500, 0], [500, 500], [0, 500] ];

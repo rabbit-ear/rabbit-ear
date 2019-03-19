@@ -36,7 +36,7 @@ origami.onMouseMove = function(mouse) {
 		let p = origami.cp.vertices_coords[vertex.index];
 		let lines = options.map(v => RabbitEar.math.Line(p, v));
 		let edges = lines.map(l => boundary.clipLine(l));
-		let svgEdges = edges.map(e => e.points)
+		let svgEdges = edges
 			.map(e => RabbitEar.svg.line(e[0][0], e[0][1], e[1][0], e[1][1]));
 		svgEdges.forEach(e => e.setAttribute("stroke-width", 0.01));
 		svgEdges.forEach(e => e.setAttribute("stroke", "#f1c14f"));
@@ -52,8 +52,8 @@ origami.onMouseMove = function(mouse) {
 			.sort((a,b) => a.dist - b.dist)
 			.shift().edge;
 		let nearestEdgeSVG = RabbitEar.svg.line(
-			origami.nextEdge.points[0][0], origami.nextEdge.points[0][1],
-			origami.nextEdge.points[1][0], origami.nextEdge.points[1][1]
+			origami.nextEdge[0][0], origami.nextEdge[0][1],
+			origami.nextEdge[1][0], origami.nextEdge[1][1]
 		);
 		nearestEdgeSVG.setAttribute("stroke-width", 0.015);
 		nearestEdgeSVG.setAttribute("stroke", "#e35536");
@@ -69,8 +69,8 @@ origami.onMouseMove = function(mouse) {
 origami.onMouseDown = function(mouse) {
 	if (origami.nextEdge !== undefined) {
 		let nextVector = [
-			origami.nextEdge.points[1][0] - origami.nextEdge.points[0][0],
-			origami.nextEdge.points[1][1] - origami.nextEdge.points[0][1]
+			origami.nextEdge[1][0] - origami.nextEdge[0][0],
+			origami.nextEdge[1][1] - origami.nextEdge[0][1]
 		];
 		let cp = JSON.parse(JSON.stringify(origami.cp.json));
 		RabbitEar.fold.origami.crease_folded(cp, cp.vertices_coords[origami.near.vertex.index], nextVector, origami.near.face.index);

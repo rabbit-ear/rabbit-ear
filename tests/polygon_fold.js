@@ -1,4 +1,4 @@
-let polyFold = RabbitEar.svg.Image("canvas-fold-poly", 500, 500);
+let polyFold = RabbitEar.svg.image("canvas-fold-poly", 500, 500);
 
 polyFold.STROKE_WIDTH = polyFold.width * 0.0125;
 polyFold.RADIUS = polyFold.width * 0.025;

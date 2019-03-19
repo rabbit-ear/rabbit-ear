@@ -33,8 +33,7 @@
 	<p><a href="http://github.com/robbykraft/Origami/">All code is available</a>, released under the MIT open source license.</p>
 </section>
 
-<script type="text/javascript" src="../tests/fish_noise.js"></script>
-<!-- <script type="text/javascript" src="../tests/intersect_wobble.js"></script> -->
+<script type="text/javascript" src="../tests/origami_swim.js"></script>
 <script>
 let view3D = RabbitEar.Origami3D("intersection-wobble");
 view3D.load("../files/fold/square-twist.fold");

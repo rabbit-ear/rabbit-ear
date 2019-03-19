@@ -1,4 +1,4 @@
-let clipLine = RabbitEar.svg.Image("canvas-clip-line", 500, 500);
+let clipLine = RabbitEar.svg.image("canvas-clip-line", 500, 500);
 
 clipLine.setup = function() {
 	clipLine.STROKE_WIDTH = clipLine.width * 0.0125;

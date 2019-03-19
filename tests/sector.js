@@ -1,4 +1,4 @@
-let sectors = RabbitEar.svg.Image("canvas-sectors", 500, 500);
+let sectors = RabbitEar.svg.image("canvas-sectors", 500, 500);
 
 sectors.NUM_LINES = 2;
 
