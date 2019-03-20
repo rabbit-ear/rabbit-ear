@@ -4586,13 +4586,8 @@
 		merge_frame: merge_frame$1
 	});
 
-	/** .FOLD file viewer
-	 * this is an SVG based front-end for the .fold file format
-	 *  (.fold file spec: https://github.com/edemaine/fold)
-	 *
-	 *  View constructor arguments:
-	 *   - fold file
-	 *   - DOM object, or "string" DOM id to attach to
+	/**
+	 * .FOLD file into SVG, and back
 	 */
 
 	const CREASE_DIR = {
@@ -4603,9 +4598,97 @@
 		"U": "mark",     "u": "mark"
 	};
 
+	const vertices = function(graph, options) {
+		let radius = options && options.radius ? options.radius : 0.01;
+		return graph.vertices_coords.map((v,i) =>
+			circle(v[0], v[1], radius)
+				.setClass("vertex")
+				.setID(""+i)
+		);
+	};
+
+	const creases = function(graph) {
+		let edges = graph.edges_vertices
+			.map(ev => ev.map(v => graph.vertices_coords[v]));
+		let eAssignments = graph.edges_assignment.map(a => CREASE_DIR[a]);
+		return edges.map((e,i) =>
+			line$1(e[0][0], e[0][1], e[1][0], e[1][1])
+				.setClass(eAssignments[i])
+				.setID(""+i)
+		);
+	};
+
+	const facesVertices = function(graph) {
+		let fAssignments = graph.faces_vertices.map(fv => "face");
+		let facesV = !(graph.faces_vertices) ? [] : graph.faces_vertices
+			.map(fv => fv.map(v => graph.vertices_coords[v]));
+			// .map(face => Geom.Polygon(face));
+		// facesV = facesV.map(face => face.scale(0.6666));
+		return facesV.filter(f => f != null).map((face, i) =>
+			polygon(face)
+				.setClass(fAssignments[i])
+				.setID(""+i)
+		);
+	};
+
+	const facesEdges = function(graph) {
+		let fAssignments = graph.faces_vertices.map(fv => "face");
+		let facesE = !(graph.faces_edges) ? [] : graph.faces_edges
+			.map(face_edges => face_edges
+				.map(edge => graph.edges_vertices[edge])
+				.map((vi,i,arr) => {
+					let next = arr[(i+1)%arr.length];
+					return (vi[1] === next[0] || vi[1] === next[1]
+						? vi[0] : vi[1]);
+				}).map(v => graph.vertices_coords[v])
+			);
+			// .map(face => Geom.Polygon(face));
+		// facesE = facesE.map(face => face.scale(0.8333));
+		return facesE.filter(f => f != null).map((face, i) =>
+			polygon(face)
+				.setClass(fAssignments[i])
+				.setID(""+i)
+		);
+	};
+
+	const boundary = function(graph) {
+		let boundary = get_boundary_vertices(graph)
+			.map(v => graph.vertices_coords[v]);
+		return [polygon(boundary).setClass("boundary")];
+	};
+
+	const foldedFaces = function(graph) {
+		let facesV = graph.faces_vertices
+			.map(fv => fv.map(v => graph.vertices_coords[v]));
+			// .map(face => Geom.Polygon(face));
+		if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
+			return graph["re:faces_layer"].map((fi,i) =>
+				polygon(facesV[fi])
+					.setClass(i%2==0 ? "face-front" : "face-back")
+					.setID(""+i)
+			);
+		// } else if (graph.facesOrder && graph.facesOrder.length > 0) {
+		} else {
+			return facesV.forEach((face, i) =>
+				groups.faces.polygon(face)
+					.setClass("folded-face")
+					.setID("face")
+				);
+		}
+	};
+
+	/** .FOLD file viewer
+	 * this is an SVG based front-end for the .fold file format
+	 *  (.fold file spec: https://github.com/edemaine/fold)
+	 *
+	 *  View constructor arguments:
+	 *   - fold file
+	 *   - DOM object, or "string" DOM id to attach to
+	 */
+
 	function View() {
 
-		let canvas = image(...arguments);
+		let _svg = image(...arguments);
 		//  from arguments, get a fold file, if it exists
 		let _cp = CreasePattern(...arguments);
 		// tie handler from crease pattern
@@ -4615,111 +4698,42 @@
 
 		// prepare SVG
 		let groups = {
-			boundary: canvas.group().setID("boundary"),
-			faces: canvas.group().setID("faces"),
-			creases: canvas.group().setID("creases"),
-			vertices: canvas.group().setID("vertices"),
+			boundary: _svg.group().setID("boundary"),
+			faces: _svg.group().setID("faces"),
+			creases: _svg.group().setID("creases"),
+			vertices: _svg.group().setID("vertices"),
 		};
-
-		// view properties
-		let style = {
-			vertex:{ radius: 0.01 },  // radius, percent of page
-		};
-		let frame;
+		let _frame;
 
 		const drawFolded = function(graph) {
-			// gather components
-			let verts = graph.vertices_coords;
-			// let edges = graph.edges_vertices.map(ev => ev.map(v => verts[v]));
-			// let eAssignments = graph.edges_assignment.map(a => CREASE_DIR["F"]);
-			let fAssignments = graph.faces_vertices.map(fv => "folded-face");
-			// todo: ask if faces V or faces E doesn't exist, grab available one
-			let facesV = graph.faces_vertices
-				.map(fv => fv.map(v => verts[v]))
-				.map(face => Polygon(face));
-			let boundary = get_boundary_vertices(graph)
-				.map(v => graph.vertices_coords[v]);
-			
-			// clear layers
-			Object.keys(groups).forEach((key) => groups[key].removeChildren());
-			// boundary
-			// SVG.polygon(boundary, "boundary", null, groups.boundary);
-			// // vertices
-			// verts.forEach((v,i) => SVG.circle(v[0], v[1], style.vertex.radius, "vertex", ""+i, groups.vertices));
-			// // edges
-			// edges.forEach((e,i) =>
-			// 	SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
-			// );
-			// faces
-			if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
-				graph["re:faces_layer"].forEach((fi,i) =>
-					groups.faces.polygon(facesV[fi].points)
-						.setClass(i%2==0 ? "face-front" : "face-back")
-						.setID("face")
-				);
-			} else if (graph.facesOrder && graph.facesOrder.length > 0) ; else {
-				facesV.forEach((face, i) =>
-					groups.faces.polygon(face.points)
-						.setClass(fAssignments[i])
-						.setID("face")
-				);
-			}
+			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
+			foldedFaces(graph)
+				.forEach(f => groups.faces.appendChild(f));
 		};
 		const drawCP = function(graph) {
-			// gather components
-			let verts = graph.vertices_coords;
-			let edges = graph.edges_vertices.map(ev => ev.map(v => verts[v]));
-			let eAssignments = graph.edges_assignment.map(a => CREASE_DIR[a]);
-			let fAssignments = graph.faces_vertices.map(fv => "face");
-			let facesV = !(graph.faces_vertices) ? [] : graph.faces_vertices
-				.map(fv => fv.map(v => verts[v]))
-				.map(face => Polygon(face));
-			let facesE = !(graph.faces_edges) ? [] : graph.faces_edges
-				.map(face_edges => face_edges
-					.map(edge => graph.edges_vertices[edge])
-					.map((vi,i,arr) => {
-						let next = arr[(i+1)%arr.length];
-						return (vi[1] === next[0] || vi[1] === next[1]
-							? vi[0] : vi[1]);
-					}).map(v => graph.vertices_coords[v])
-				)
-				.map(face => Polygon(face));
-			let boundary = get_boundary_vertices(graph)
-				.map(v => graph.vertices_coords[v]);
-			
-			facesV = facesV.map(face => face.scale(0.6666));
-			facesE = facesE.map(face => face.scale(0.8333));
 			// clear layers
 			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
-			// boundary
-			groups.boundary.polygon(boundary).setClass("boundary");
-			// vertices
-			verts.forEach((v,i) => groups.vertices.circle(v[0], v[1], style.vertex.radius)
-				.setClass("vertex")
-				.setID(""+i)
+
+			let svg$$1 = {
+				boundary: boundary(graph),
+				faces: facesVertices(graph).concat(facesEdges(graph)),
+				creases: creases(graph),
+				vertices: vertices(graph)
+			};
+			Object.keys(svg$$1).forEach(key => 
+				svg$$1[key].forEach(el => groups[key].appendChild(el))
 			);
-			// edges
-			edges.forEach((e,i) =>
-				groups.creases.line(e[0][0], e[0][1], e[1][0], e[1][1])
-					.setClass(eAssignments[i])
-					.setID(""+i)
-			);
-			// faces
-			facesV.filter(f => f != null).forEach((face, i) =>
-				groups.faces.polygon(face.points)
-					.setClass(fAssignments[i])
-					.setID("face")
-			);
-			facesE.filter(f => f != null).forEach((face, i) =>
-				groups.faces.polygon(face.points)
-					.setClass(fAssignments[i])
-					.setID("face")
-			);
+
+			// FoldSVG.vertices(graph).forEach(a => groups.vertices.appendChild(a));
+			// FoldSVG.creases(graph).forEach(a => groups.creases.appendChild(a));
+			// FoldSVG.facesVertices(graph).forEach(a => groups.faces.appendChild(a));
+			// FoldSVG.facesEdges(graph).forEach(a => groups.faces.appendChild(a));
+			// FoldSVG.boundary(graph).forEach(a => groups.boundary.appendChild(a));
 		};
 
 		const draw = function() {
 			if (_cp.vertices_coords == null){ return; }
-			let graph = frame ? flatten_frame(_cp, frame) : _cp;
+			let graph = _frame ? flatten_frame(_cp, _frame) : _cp;
 			if (isFolded()) {
 				drawFolded(graph);
 			} else{
@@ -4739,9 +4753,9 @@
 			let isInvalid = isNaN(boundsX) || isNaN(boundsY) ||
 			                isNaN(boundsW) || isNaN(boundsH);
 			if (isInvalid) {
-				setViewBox(canvas, 0, 0, 1, 1);
+				setViewBox(_svg, 0, 0, 1, 1);
 			} else{
-				setViewBox(canvas, boundsX, boundsY, boundsW, boundsH);
+				setViewBox(_svg, boundsX, boundsY, boundsW, boundsH);
 			}
 		};
 
@@ -4780,10 +4794,6 @@
 			// var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
 			// 	return el.contains(point);
 			// },this).shift() : undefined;
-		};
-
-		const save$$1 = function() {
-
 		};
 
 		const load$$1 = function(input, callback) { // epsilon
@@ -4846,10 +4856,6 @@
 					.map(f => Polygon(f));
 		};
 
-		const appendChild = function() {
-			canvas.appendChild(...arguments);
-		};
-
 		const showVertices = function(){ groups.vertices.removeAttribute("visibility");};
 		const hideVertices = function(){ groups.vertices.setAttribute("visibility", "hidden");};
 		const showEdges = function(){ groups.creases.removeAttribute("visibility");};
@@ -4857,105 +4863,77 @@
 		const showFaces = function(){ groups.faces.removeAttribute("visibility");};
 		const hideFaces = function(){ groups.faces.setAttribute("visibility", "hidden");};
 
-		const clear = function() {
-			// todo: remove all creases from current CP, leave the boundary.
-		};
-
 		const crease = function(a, b, c, d){
 			// Folder.
 		};
-		
+
 		const fold = function(face){
 			let folded = fold_without_layering(_cp, face);
 			_cp = CreasePattern(folded);
 			draw();
 		};
-		// crease pattern functions for convenience
-		const axiom1 = function() { return _cp.axiom1(...arguments); };
-		const axiom2 = function() { return _cp.axiom2(...arguments); };
-		const axiom3 = function() { return _cp.axiom3(...arguments); };
-		const axiom4 = function() { return _cp.axiom4(...arguments); };
-		const axiom5 = function() { return _cp.axiom5(...arguments); };
-		const axiom6 = function() { return _cp.axiom6(...arguments); };
-		const axiom7 = function() { return _cp.axiom7(...arguments); };
 
 		// init this object
 		draw();
 
 
-		const addEventListener = function(eventName, func) {
-			canvas.addEventListener(eventName, func);
+		const setCP = function(cp) {
+			_cp = cp;
+			draw();
+			_cp.onchange = draw;
 		};
 
-		// return Object.freeze({
-		return {
-			get mouse() { return canvas.mouse; },
-			set cp(c){
-				_cp = c;
-				draw();
-				_cp.onchange = function() {
-					draw();
-				};
-			},
-			get cp(){ return _cp; },
-			get vertices() { return makeVertices(); },
-			get edges() { return makeEdges(); },
-			get faces() { return makeFaces(); },
-
-			get frameCount() {
-				return _cp.file_frames ? _cp.file_frames.length : 0;
-			},
-			set frame(f) {
-				frame = f;
-				draw();
-			},
-
-			nearest,
-			appendChild,
-
-			clear,
-			crease,
-			fold,
-			axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
-			isFolded,
-
-			draw,
-			updateViewBox,
-
-			showVertices, showEdges, showFaces,
-			hideVertices, hideEdges, hideFaces,
-		
-			load: load$$1,
-			save: save$$1,
-			get svg() { return canvas; },
-			get svgFile() { return canvas.save(); },
-			get zoom() { return canvas.zoom; },
-			get translate() { return canvas.translate; },
-			get removeChildren() { return canvas.removeChildren; },
-			get size() { return canvas.size; },
-			get scale() { return canvas.scale; },
-			get width() { return canvas.width; },
-			get height() { return canvas.height; },
-			set width(a) { canvas.width = a; },
-			set height(a) { canvas.height = a; },
-			set onMouseMove(a) { canvas.onMouseMove = a; },
-			set onMouseDown(a) { canvas.onMouseDown = a; },
-			set onMouseUp(a) { canvas.onMouseUp = a; },
-			set onMouseLeave(a) { canvas.onMouseLeave = a; },
-			set onMouseEnter(a) { canvas.onMouseEnter = a; },
-			set animate(a) { canvas.animate = a; },
-			addEventListener,
-		
-			set setFolded(_folded) {
+		Object.defineProperty(_svg, "cp", {
+			get: function() { return _cp; },
+			set: function(cp) { setCP(cp); }
+		});
+		Object.defineProperty(_svg, "vertices", {
+			get: function() { return makeVertices(); }
+		});
+		Object.defineProperty(_svg, "edges", {
+			get: function() { return makeEdges(); }
+		});
+		Object.defineProperty(_svg, "faces", {
+			get: function() { return makeFaces(); }
+		});
+		Object.defineProperty(_svg, "frameCount", {
+			get: function() { return _cp.file_frames ? _cp.file_frames.length : 0; }
+		});
+		Object.defineProperty(_svg, "frame", {
+			set: function(f) { _frame = f; draw(); }
+		});
+		Object.defineProperty(_svg, "nearest", {value: nearest});
+		Object.defineProperty(_svg, "axiom1", {value:function(){return _cp.axiom1(...arguments);}});
+		Object.defineProperty(_svg, "axiom2", {value:function(){return _cp.axiom2(...arguments);}});
+		Object.defineProperty(_svg, "axiom3", {value:function(){return _cp.axiom3(...arguments);}});
+		Object.defineProperty(_svg, "axiom4", {value:function(){return _cp.axiom4(...arguments);}});
+		Object.defineProperty(_svg, "axiom5", {value:function(){return _cp.axiom5(...arguments);}});
+		Object.defineProperty(_svg, "axiom6", {value:function(){return _cp.axiom6(...arguments);}});
+		Object.defineProperty(_svg, "axiom7", {value:function(){return _cp.axiom7(...arguments);}});
+		Object.defineProperty(_svg, "draw", { value: draw });
+		Object.defineProperty(_svg, "updateViewBox", { value: updateViewBox });
+		Object.defineProperty(_svg, "isFolded", { value: isFolded });
+		Object.defineProperty(_svg, "fold", { value: fold });
+		Object.defineProperty(_svg, "crease", { value: crease });
+		Object.defineProperty(_svg, "load", { value: load$$1 });
+		Object.defineProperty(_svg, "folded", { 
+			set: function(f) {
 				_cp.frame_classes = _cp.frame_classes
 					.filter(a => a !== "creasePattern");
 				_cp.frame_classes = _cp.frame_classes
 					.filter(a => a !== "foldedState");
 				_cp.frame_classes.push("foldedState");
 				// todo re-call draw()
-			},
+			}
+		});
+		Object.defineProperty(_svg, "showVertices", { value: showVertices });
+		Object.defineProperty(_svg, "hideVertices", { value: hideVertices });
+		Object.defineProperty(_svg, "showEdges", { value: showEdges });
+		Object.defineProperty(_svg, "hideEdges", { value: hideEdges });
+		Object.defineProperty(_svg, "showFaces", { value: showFaces });
+		Object.defineProperty(_svg, "hideFaces", { value: hideFaces });
 
-		};
+		return _svg;
 	}
 
 	/** .FOLD file viewer
@@ -6143,7 +6121,7 @@
 
 	var dodecagon = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [\n\t\t[1,0],[0.8660254,0.5],[0.5,0.8660254],[0,1],[-0.5,0.8660254],[-0.8660254,0.5],[-1,0],[-0.8660254,-0.5],[-0.5,-0.8660254],[0,-1],[0.5,-0.8660254],[0.8660254,-0.5]\n\t],\n\t\"vertices_vertices\": [[11,1], [0,2], [1,3], [2,4], [3,5], [4,6], [5,7], [6,8], [7,9], [8,10], [9,11], [10,0]],\n\t\"vertices_faces\": [[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0]],\n\t\"edges_vertices\": [\n\t\t[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,8], [8,9], [9,10], [10,11], [11,0]\n\t],\n\t\"edges_faces\": [[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381],\n\t\"faces_vertices\": [[0,1,2,3,4,5,6,7,8,9,10,11]],\n\t\"faces_edges\": [[0,1,2,3,4,5,6,7,8,9,10,11]]\n}";
 
-	var boundary = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [[0.3535533905932738,0.8535533905932737], [-0.3535533905932738,0.8535533905932737], [-0.8535533905932737,0.35355339059327384], [-0.8535533905932737,-0.35355339059327373], [-0.35355339059327384,-0.8535533905932737], [0.3535533905932737,-0.8535533905932738], [0.8535533905932735,-0.3535533905932743], [0.8535533905932736,0.35355339059327395]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,7], [7,6], [6,5], [5,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\"],\n\t\"faces_vertices\": [[0,1,2,7,6,5,2,3,4,5,6,7]],\n\t\"faces_edges\": [[0,1,2,3,4,5,6,7,8,9,10,11]]\n}";
+	var boundary$1 = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [[0.3535533905932738,0.8535533905932737], [-0.3535533905932738,0.8535533905932737], [-0.8535533905932737,0.35355339059327384], [-0.8535533905932737,-0.35355339059327373], [-0.35355339059327384,-0.8535533905932737], [0.3535533905932737,-0.8535533905932738], [0.8535533905932735,-0.3535533905932743], [0.8535533905932736,0.35355339059327395]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,7], [7,6], [6,5], [5,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\"],\n\t\"faces_vertices\": [[0,1,2,7,6,5,2,3,4,5,6,7]],\n\t\"faces_edges\": [[0,1,2,3,4,5,6,7,8,9,10,11]]\n}";
 
 	var concave = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [[0,0], [1,0], [1,0.33333333333333], [0.33333333333333,0.33333333333333], [0.33333333333333,0.66666666666666], [1,0.66666666666666], [1,1], [0,1]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\"],\n\t\"faces_vertices\": [[0,1,2,3,4,5,6,7]],\n\t\"faces_edges\": [[0,1,2,3,4,5,6,7]]\n}";
 
@@ -6172,7 +6150,7 @@
 		// remove these for production
 		test: JSON.parse(test),
 		dodecagon: JSON.parse(dodecagon),
-		boundary: JSON.parse(boundary),
+		boundary: JSON.parse(boundary$1),
 		concave: JSON.parse(concave),
 		blintzAnimated: JSON.parse(blintzAnimated),
 		blintzDistorted: JSON.parse(blintzDistorted)

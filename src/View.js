@@ -15,7 +15,6 @@ const CREASE_DIR = {
 	"U": "mark",     "u": "mark"
 };
 
-import "./CreasePattern";
 import * as Geom from "../lib/geometry";
 import * as SVG from "../lib/svg";
 import * as Graph from "./fold/graph";
@@ -23,10 +22,11 @@ import * as Origami from "./fold/origami";
 import * as Import from "./fold/import";
 import { flatten_frame } from "./fold/file";
 import CreasePattern from "./CreasePattern";
+import * as FoldSVG from "./fold/svg";
 
 export default function() {
 
-	let canvas = SVG.image(...arguments);
+	let _svg = SVG.image(...arguments);
 	//  from arguments, get a fold file, if it exists
 	let _cp = CreasePattern(...arguments);
 	// tie handler from crease pattern
@@ -36,113 +36,47 @@ export default function() {
 
 	// prepare SVG
 	let groups = {
-		boundary: canvas.group().setID("boundary"),
-		faces: canvas.group().setID("faces"),
-		creases: canvas.group().setID("creases"),
-		vertices: canvas.group().setID("vertices"),
+		boundary: _svg.group().setID("boundary"),
+		faces: _svg.group().setID("faces"),
+		creases: _svg.group().setID("creases"),
+		vertices: _svg.group().setID("vertices"),
 	};
 
 	// view properties
 	let style = {
 		vertex:{ radius: 0.01 },  // radius, percent of page
 	};
-	let frame;
+	let _frame;
 
 	const drawFolded = function(graph) {
-		// gather components
-		let verts = graph.vertices_coords;
-		// let edges = graph.edges_vertices.map(ev => ev.map(v => verts[v]));
-		// let eAssignments = graph.edges_assignment.map(a => CREASE_DIR["F"]);
-		let fAssignments = graph.faces_vertices.map(fv => "folded-face");
-		// todo: ask if faces V or faces E doesn't exist, grab available one
-		let facesV = graph.faces_vertices
-			.map(fv => fv.map(v => verts[v]))
-			.map(face => Geom.Polygon(face));
-		let boundary = Graph.get_boundary_vertices(graph)
-			.map(v => graph.vertices_coords[v])
-		
-		// clear layers
-		Object.keys(groups).forEach((key) => groups[key].removeChildren());
-		// boundary
-		// SVG.polygon(boundary, "boundary", null, groups.boundary);
-		// // vertices
-		// verts.forEach((v,i) => SVG.circle(v[0], v[1], style.vertex.radius, "vertex", ""+i, groups.vertices));
-		// // edges
-		// edges.forEach((e,i) =>
-		// 	SVG.line(e[0][0], e[0][1], e[1][0], e[1][1], eAssignments[i], ""+i, groups.creases)
-		// );
-		// faces
-		if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
-			graph["re:faces_layer"].forEach((fi,i) =>
-				groups.faces.polygon(facesV[fi].points)
-					.setClass(i%2==0 ? "face-front" : "face-back")
-					.setID("face")
-			);
-		} else if (graph.facesOrder && graph.facesOrder.length > 0) {
-
-		} else {
-			facesV.forEach((face, i) =>
-				groups.faces.polygon(face.points)
-					.setClass(fAssignments[i])
-					.setID("face")
-			);
-		}
+		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
+		FoldSVG.foldedFaces(graph)
+			.forEach(f => groups.faces.appendChild(f));
 	}
 	const drawCP = function(graph) {
-		// gather components
-		let verts = graph.vertices_coords;
-		let edges = graph.edges_vertices.map(ev => ev.map(v => verts[v]));
-		let eAssignments = graph.edges_assignment.map(a => CREASE_DIR[a]);
-		let fAssignments = graph.faces_vertices.map(fv => "face");
-		let facesV = !(graph.faces_vertices) ? [] : graph.faces_vertices
-			.map(fv => fv.map(v => verts[v]))
-			.map(face => Geom.Polygon(face));
-		let facesE = !(graph.faces_edges) ? [] : graph.faces_edges
-			.map(face_edges => face_edges
-				.map(edge => graph.edges_vertices[edge])
-				.map((vi,i,arr) => {
-					let next = arr[(i+1)%arr.length];
-					return (vi[1] === next[0] || vi[1] === next[1]
-						? vi[0] : vi[1]);
-				}).map(v => graph.vertices_coords[v])
-			)
-			.map(face => Geom.Polygon(face));
-		let boundary = Graph.get_boundary_vertices(graph)
-			.map(v => graph.vertices_coords[v])
-		
-		facesV = facesV.map(face => face.scale(0.6666));
-		facesE = facesE.map(face => face.scale(0.8333));
 		// clear layers
 		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
-		// boundary
-		groups.boundary.polygon(boundary).setClass("boundary");
-		// vertices
-		verts.forEach((v,i) => groups.vertices.circle(v[0], v[1], style.vertex.radius)
-			.setClass("vertex")
-			.setID(""+i)
+
+		let svg = {
+			boundary: FoldSVG.boundary(graph),
+			faces: FoldSVG.facesVertices(graph).concat(FoldSVG.facesEdges(graph)),
+			creases: FoldSVG.creases(graph),
+			vertices: FoldSVG.vertices(graph)
+		};
+		Object.keys(svg).forEach(key => 
+			svg[key].forEach(el => groups[key].appendChild(el))
 		);
-		// edges
-		edges.forEach((e,i) =>
-			groups.creases.line(e[0][0], e[0][1], e[1][0], e[1][1])
-				.setClass(eAssignments[i])
-				.setID(""+i)
-		);
-		// faces
-		facesV.filter(f => f != null).forEach((face, i) =>
-			groups.faces.polygon(face.points)
-				.setClass(fAssignments[i])
-				.setID("face")
-		);
-		facesE.filter(f => f != null).forEach((face, i) =>
-			groups.faces.polygon(face.points)
-				.setClass(fAssignments[i])
-				.setID("face")
-		);
+
+		// FoldSVG.vertices(graph).forEach(a => groups.vertices.appendChild(a));
+		// FoldSVG.creases(graph).forEach(a => groups.creases.appendChild(a));
+		// FoldSVG.facesVertices(graph).forEach(a => groups.faces.appendChild(a));
+		// FoldSVG.facesEdges(graph).forEach(a => groups.faces.appendChild(a));
+		// FoldSVG.boundary(graph).forEach(a => groups.boundary.appendChild(a));
 	}
 
 	const draw = function() {
 		if (_cp.vertices_coords == null){ return; }
-		let graph = frame ? flatten_frame(_cp, frame) : _cp;
+		let graph = _frame ? flatten_frame(_cp, _frame) : _cp;
 		if (isFolded()) {
 			drawFolded(graph);
 		} else{
@@ -162,9 +96,9 @@ export default function() {
 		let isInvalid = isNaN(boundsX) || isNaN(boundsY) ||
 		                isNaN(boundsW) || isNaN(boundsH);
 		if (isInvalid) {
-			SVG.setViewBox(canvas, 0, 0, 1, 1);
+			SVG.setViewBox(_svg, 0, 0, 1, 1);
 		} else{
-			SVG.setViewBox(canvas, boundsX, boundsY, boundsW, boundsH);
+			SVG.setViewBox(_svg, boundsX, boundsY, boundsW, boundsH);
 		}
 	}
 
@@ -203,10 +137,6 @@ export default function() {
 		// var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
 		// 	return el.contains(point);
 		// },this).shift() : undefined;
-	}
-
-	const save = function() {
-
 	}
 
 	const load = function(input, callback) { // epsilon
@@ -269,10 +199,6 @@ export default function() {
 				.map(f => Geom.Polygon(f));
 	}
 
-	const appendChild = function() {
-		canvas.appendChild(...arguments);
-	}
-
 	const showVertices = function(){ groups.vertices.removeAttribute("visibility");}
 	const hideVertices = function(){ groups.vertices.setAttribute("visibility", "hidden");}
 	const showEdges = function(){ groups.creases.removeAttribute("visibility");}
@@ -280,14 +206,10 @@ export default function() {
 	const showFaces = function(){ groups.faces.removeAttribute("visibility");}
 	const hideFaces = function(){ groups.faces.setAttribute("visibility", "hidden");}
 
-	const clear = function() {
-		// todo: remove all creases from current CP, leave the boundary.
-	}
-
 	const crease = function(a, b, c, d){
 		// Folder.
 	}
-	
+
 	const fold = function(face){
 		let folded = Origami.fold_without_layering(_cp, face);
 		_cp = CreasePattern(folded);
@@ -306,78 +228,61 @@ export default function() {
 	draw();
 
 
-	const addEventListener = function(eventName, func) {
-		canvas.addEventListener(eventName, func);
+	const setCP = function(cp) {
+		_cp = cp;
+		draw();
+		_cp.onchange = draw;
 	}
 
-	// return Object.freeze({
-	return {
-		get mouse() { return canvas.mouse; },
-		set cp(c){
-			_cp = c;
-			draw();
-			_cp.onchange = function() {
-				draw();
-			}
-		},
-		get cp(){ return _cp; },
-		get vertices() { return makeVertices(); },
-		get edges() { return makeEdges(); },
-		get faces() { return makeFaces(); },
-
-		get frameCount() {
-			return _cp.file_frames ? _cp.file_frames.length : 0;
-		},
-		set frame(f) {
-			frame = f;
-			draw();
-		},
-
-		nearest,
-		appendChild,
-
-		clear,
-		crease,
-		fold,
-		axiom1, axiom2, axiom3, axiom4, axiom5, axiom6, axiom7,
-		isFolded,
-
-		draw,
-		updateViewBox,
-
-		showVertices, showEdges, showFaces,
-		hideVertices, hideEdges, hideFaces,
-	
-		load,
-		save,
-		get svg() { return canvas; },
-		get svgFile() { return canvas.save(); },
-		get zoom() { return canvas.zoom; },
-		get translate() { return canvas.translate; },
-		get removeChildren() { return canvas.removeChildren; },
-		get size() { return canvas.size; },
-		get scale() { return canvas.scale; },
-		get width() { return canvas.width; },
-		get height() { return canvas.height; },
-		set width(a) { canvas.width = a; },
-		set height(a) { canvas.height = a; },
-		set onMouseMove(a) { canvas.onMouseMove = a; },
-		set onMouseDown(a) { canvas.onMouseDown = a; },
-		set onMouseUp(a) { canvas.onMouseUp = a; },
-		set onMouseLeave(a) { canvas.onMouseLeave = a; },
-		set onMouseEnter(a) { canvas.onMouseEnter = a; },
-		set animate(a) { canvas.animate = a; },
-		addEventListener,
-	
-		set setFolded(_folded) {
+	Object.defineProperty(_svg, "cp", {
+		get: function() { return _cp; },
+		set: function(cp) { setCP(cp); }
+	});
+	Object.defineProperty(_svg, "vertices", {
+		get: function() { return makeVertices(); }
+	});
+	Object.defineProperty(_svg, "edges", {
+		get: function() { return makeEdges(); }
+	});
+	Object.defineProperty(_svg, "faces", {
+		get: function() { return makeFaces(); }
+	});
+	Object.defineProperty(_svg, "frameCount", {
+		get: function() { return _cp.file_frames ? _cp.file_frames.length : 0; }
+	});
+	Object.defineProperty(_svg, "frame", {
+		set: function(f) { _frame = f; draw(); }
+	});
+	Object.defineProperty(_svg, "nearest", {value: nearest});
+	Object.defineProperty(_svg, "axiom1", {value:function(){return _cp.axiom1(...arguments);}});
+	Object.defineProperty(_svg, "axiom2", {value:function(){return _cp.axiom2(...arguments);}});
+	Object.defineProperty(_svg, "axiom3", {value:function(){return _cp.axiom3(...arguments);}});
+	Object.defineProperty(_svg, "axiom4", {value:function(){return _cp.axiom4(...arguments);}});
+	Object.defineProperty(_svg, "axiom5", {value:function(){return _cp.axiom5(...arguments);}});
+	Object.defineProperty(_svg, "axiom6", {value:function(){return _cp.axiom6(...arguments);}});
+	Object.defineProperty(_svg, "axiom7", {value:function(){return _cp.axiom7(...arguments);}});
+	Object.defineProperty(_svg, "draw", { value: draw });
+	Object.defineProperty(_svg, "updateViewBox", { value: updateViewBox });
+	Object.defineProperty(_svg, "isFolded", { value: isFolded });
+	Object.defineProperty(_svg, "fold", { value: fold });
+	Object.defineProperty(_svg, "crease", { value: crease });
+	Object.defineProperty(_svg, "load", { value: load });
+	Object.defineProperty(_svg, "folded", { 
+		set: function(f) {
 			_cp.frame_classes = _cp.frame_classes
 				.filter(a => a !== "creasePattern");
 			_cp.frame_classes = _cp.frame_classes
 				.filter(a => a !== "foldedState");
 			_cp.frame_classes.push("foldedState");
 			// todo re-call draw()
-		},
+		}
+	});
+	Object.defineProperty(_svg, "showVertices", { value: showVertices });
+	Object.defineProperty(_svg, "hideVertices", { value: hideVertices });
+	Object.defineProperty(_svg, "showEdges", { value: showEdges });
+	Object.defineProperty(_svg, "hideEdges", { value: hideEdges });
+	Object.defineProperty(_svg, "showFaces", { value: showFaces });
+	Object.defineProperty(_svg, "hideFaces", { value: hideFaces });
 
-	};
-}
-
+	return _svg;
+};
