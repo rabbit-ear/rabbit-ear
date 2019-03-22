@@ -7,7 +7,7 @@ collapse = RabbitEar.svg.image("canvas-kawasaki-collapse", 500, 500, function() 
 
 collapse.setup = function() {
 	if (collapse.didInitialize) { return; }
-	collapse.STROKE_WIDTH = collapse.width * 0.01;
+	collapse.STROKE_WIDTH = collapse.w * 0.01;
 	collapse.removeChildren();
 	collapse.mountainLayer = RabbitEar.svg.group();
 	collapse.appendChild(collapse.mountainLayer);
@@ -26,11 +26,11 @@ collapse.setup = function() {
 			Math.random() * Math.PI * 2,
 			Math.random() * Math.PI * 2,
 		].map(a => [Math.cos(a), Math.sin(a)]);
-		collapse.junction = RabbitEar.math.Junction.fromVectors([collapse.width/2, collapse.height/2], vectors);
+		collapse.junction = RabbitEar.math.Junction.fromVectors([collapse.w/2, collapse.h/2], vectors);
 		let interior_angles = collapse.junction.sectors().map(s => s.angle);
 		largest = interior_angles.slice().sort((a,b) => b-a).shift();
 	} while(largest > Math.PI * 0.9);
-	let rays = vectors.map(v => RabbitEar.math.Ray(collapse.width/2, collapse.height/2, v[0], v[1]));
+	let rays = vectors.map(v => RabbitEar.math.Ray(collapse.w/2, collapse.h/2, v[0], v[1]));
 	let boundary = RabbitEar.math.ConvexPolygon([[0,0], [500,0], [500,500], [0,500]]);
 	let ray_edges = rays.map(r => boundary.clipRay(r));
 	let svgLines = ray_edges
@@ -46,12 +46,19 @@ collapse.setup = function() {
 }
 collapse.setup();
 
-collapse.addEventListener("mousemove", function(mouse){
+// collapse.addEventListener("mousemove", function(mouse){
+// 	collapse.didTouch(mouse);
+// });
+// collapse.addEventListener("mousedown", function(mouse){
+// 	collapse.didTouch(mouse);
+// });
+
+collapse.onMouseMove = function(mouse) {
 	collapse.didTouch(mouse);
-});
-collapse.addEventListener("mousedown", function(mouse){
+}
+collapse.onMouseDown = function(mouse) {
 	collapse.didTouch(mouse);
-});
+}
 
 collapse.didTouch = function(point) {
 	RabbitEar.svg.removeChildren(collapse.valleyLayer);
@@ -67,7 +74,7 @@ collapse.didTouch = function(point) {
 	let vector = collapse.solutions[sector_index];
 	if (vector === undefined) { return; }
 
-	let valley_ray = RabbitEar.math.Ray(collapse.width/2, collapse.height/2, vector[0], vector[1]);
+	let valley_ray = RabbitEar.math.Ray(collapse.w/2, collapse.h/2, vector[0], vector[1]);
 	let boundary = RabbitEar.math.ConvexPolygon([[0,0], [500,0], [500,500], [0,500]]);
 	let valley_edge = boundary.clipRay(valley_ray);
 	let e = valley_edge;

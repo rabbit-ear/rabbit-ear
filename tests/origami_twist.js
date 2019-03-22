@@ -2,8 +2,8 @@ let twist = RabbitEar.svg.image("canvas-convex-twist", 500, 500);
 
 twist.setup = function() {
 
-	twist.STROKE_WIDTH = twist.width * 0.01;
-	twist.RADIUS = twist.width * 0.02;
+	twist.STROKE_WIDTH = twist.w * 0.01;
+	twist.RADIUS = twist.w * 0.02;
 
 	twist.polygon = RabbitEar.svg.polygon();
 	twist.polygon.setAttribute("stroke", "#e14929");//"#ecb233");
@@ -22,8 +22,8 @@ twist.setup = function() {
 		fill: "#ecb233"
 	});
 	twist.controls.forEach(control => control.position = [
-		Math.random()*twist.width*0.5 + twist.width*0.25, 
-		Math.random()*twist.height*0.5 + twist.height*0.25
+		Math.random()*twist.w*0.5 + twist.w*0.25, 
+		Math.random()*twist.h*0.5 + twist.h*0.25
 	]);
 }
 twist.setup();
@@ -107,8 +107,8 @@ twist.redraw = function(){
 }
 twist.redraw();
 
-twist.addEventListener("mousemove", function(mouse){
+twist.onMouseMove = function(mouse){
 	if(mouse.isPressed){
 		twist.redraw();
 	}
-});
+}

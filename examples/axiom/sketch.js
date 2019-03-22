@@ -5,9 +5,9 @@ origami.markLayer = RabbitEar.svg.group();
 origami.interactionLayer = RabbitEar.svg.group();
 origami.arrowLayer = RabbitEar.svg.group();
 
-origami.svg.appendChild(origami.markLayer);
-origami.svg.appendChild(origami.interactionLayer);
-origami.svg.appendChild(origami.arrowLayer);
+origami.appendChild(origami.markLayer);
+origami.appendChild(origami.interactionLayer);
+origami.appendChild(origami.arrowLayer);
 origami.touchPoints = [];
 
 origami.axiom = undefined;

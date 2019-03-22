@@ -1,4 +1,5 @@
 import * as Origami from "./origami";
+import * as SVG from "../../lib/svg";
 import { segments } from "../../lib/svg-segmentize";
 
 export function svg_to_fold(svg) {
@@ -30,3 +31,35 @@ export function svg_to_fold(svg) {
 
 	return graph;
 }
+
+export const load_fold = function(input, callback) {
+	// are they giving us a filename, or the data of an already loaded file?
+	if (typeof input === "string" || input instanceof String) {
+		let extension = input.substr((input.lastIndexOf('.') + 1));
+		// filename. we need to upload
+		switch(extension) {
+			case "fold":
+			fetch(input)
+				.then((response) => response.json)
+				.then((data) => {
+					if (callback != null) { callback(data); }
+				});
+			return;
+			case "svg":
+			SVG.load(input, function(svg) {
+				let fold = svg_to_fold(svg);
+				if (callback != null) { callback(fold); }
+			});
+			return;
+		}
+	}
+	try {
+		// try .fold file format first
+		let fold = JSON.parse(input);
+		if (callback != null) { callback(fold); }
+	} catch(err) {
+		console.log("not a valid .fold file format")
+		// return this;
+	}
+}
+

@@ -943,7 +943,7 @@
 		Object.defineProperty(_v, "magnitude", {get: function() {
 			return magnitude(_v);
 		}});
-		return Object.freeze(_v);
+		return _v;
 	}
 
 	function Circle(){
@@ -979,13 +979,13 @@
 				: intersection.map(i => Vector(i))
 			);
 		};
-		return Object.freeze( {
+		return {
 			intersectionLine,
 			intersectionRay,
 			intersectionEdge,
 			get origin() { return _origin; },
 			get radius() { return _radius; },
-		} );
+		};
 	}
 
 	function LinePrototype(proto) {
@@ -1039,7 +1039,7 @@
 		Object.defineProperty(proto, "intersectEdge", {value: intersectEdge});
 		Object.defineProperty(proto, "vec_comp_func", {value: vec_comp_func});
 		Object.defineProperty(proto, "vec_cap_func", {value: vec_cap_func});
-		return Object.freeze(proto);
+		return proto;
 	}
 	function Line() {
 		let { point, vector } = get_line(...arguments);
@@ -1066,7 +1066,7 @@
 		Object.defineProperty(line, "length", {get: function(){ return Infinity; }});
 		Object.defineProperty(line, "transform", {value: transform});
 		Object.defineProperty(line, "isParallel", {value: isParallel});
-		return Object.freeze(line);
+		return line;
 	}
 	Line.fromPoints = function() {
 		let points = get_two_vec2(...arguments);
@@ -1113,7 +1113,7 @@
 		Object.defineProperty(ray, "length", {get: function(){ return Infinity; }});
 		Object.defineProperty(ray, "transform", {value: transform});
 		Object.defineProperty(ray, "rotate180", {value: rotate180});
-		return Object.freeze(ray);
+		return ray;
 	}
 	Ray.fromPoints = function() {
 		let points = get_two_vec2(...arguments);
@@ -1159,7 +1159,7 @@
 		Object.defineProperty(edge, "vector", {get: function(){ return vector(); }});
 		Object.defineProperty(edge, "length", {get: function(){ return length(); }});
 		Object.defineProperty(edge, "transform", {value: transform});
-		return Object.freeze(edge);
+		return edge;
 	}
 
 	function Polygon() {
@@ -1206,7 +1206,7 @@
 			let line = get_line(...arguments);
 			return clip_ray_in_convex_poly(_points, line.point, line.vector);
 		};
-		return Object.freeze( {
+		return {
 			contains,
 			scale,
 			rotate,
@@ -1222,7 +1222,7 @@
 			get enclosingRectangle() {
 				return Rectangle(enclosing_rectangle(_points));
 			},
-		} );
+		};
 	}
 	Polygon.regularPolygon = function(sides, x = 0, y = 0, radius = 1) {
 		let points = make_regular_polygon(sides, x, y, radius);
@@ -1283,7 +1283,7 @@
 		Object.defineProperty(polygon, "overlaps", {value: overlaps});
 		Object.defineProperty(polygon, "scale", {value: scale});
 		Object.defineProperty(polygon, "rotate", {value: rotate});
-		return Object.freeze(polygon);
+		return polygon;
 	}
 	ConvexPolygon.regularPolygon = function(sides, x = 0, y = 0, radius = 1) {
 		let points = make_regular_polygon(sides, x, y, radius);
@@ -1333,7 +1333,7 @@
 			get: function(){ return _width * _height; }
 		});
 		Object.defineProperty(rect, "scale", {value: scale});
-		return Object.freeze(rect);
+		return rect;
 	}
 
 	function Matrix2$1() {
@@ -1349,12 +1349,12 @@
 			let v = get_vec(...arguments);
 			return Vector( multiply_vector2_matrix2(v, _m) );
 		};
-		return Object.freeze( {
+		return {
 			inverse,
 			multiply,
 			transform,
 			get m() { return _m; },
-		} );
+		};
 	}
 	Matrix2$1.makeIdentity = function() {
 		return Matrix2$1(1,0,0,1,0,0);
@@ -1386,7 +1386,7 @@
 			             (point[0] - _center[0]) * (_points[1][1] - _center[1]);
 			return cross0 < 0 && cross1 < 0;
 		};
-		return Object.freeze( {
+		return {
 			contains,
 			bisect,
 			subsect,
@@ -1394,7 +1394,7 @@
 			get points() { return _points; },
 			get vectors() { return _vectors; },
 			get angle() { return _angle; },
-		} );
+		};
 	}
 
 	function Junction(center, points) {
@@ -1456,7 +1456,7 @@
 				: [Math.cos(k), Math.sin(k)]
 			);
 		};
-		return Object.freeze( {
+		return {
 			kawasaki,
 			kawasaki_solutions,
 			alternatingAngleSum,
@@ -1465,7 +1465,7 @@
 			get points() { return _points; },
 			get vectors() { return _vectors; },
 			get angles() { return _angles; },
-		} );
+		};
 	}
 	Junction.fromVectors = function(center, vectors) {
 		let points = get_array_of_vec(vectors)
@@ -1938,8 +1938,7 @@
 		attachClassMethods(shape);
 		return shape;
 	};
-	const bezier = function(fromX, fromY, c1X, c1Y, c2X, c2Y,
-			toX, toY) {
+	const bezier = function(fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY) {
 		let d = "M " + fromX + "," + fromY + " C " + c1X + "," + c1Y +
 				" " + c2X + "," + c2Y + " " + toX + "," + toY;
 		let shape = document.createElementNS(svgNS, "path");
@@ -2059,17 +2058,16 @@
 	};
 
 	const Names = {
-		start: "onMouseDown",
+		begin: "onMouseDown",
 		enter: "onMouseEnter",
 		leave: "onMouseLeave",
 		move: "onMouseMove",
 		end: "onMouseUp",
 		scroll: "onScroll",
 	};
-	function Events(node) {
-		let _node;
+	const Pointer = function(node) {
+		let _node = node;
 		let _pointer = Object.create(null);
-		let _events = {};
 		Object.assign(_pointer, {
 			isPressed: false,
 			position: [0,0],
@@ -2089,78 +2087,94 @@
 				.forEach(key => m[key] = _pointer[key]);
 			return Object.freeze(m);
 		};
-		const updatePointerPosition = function(clientX, clientY) {
-			_pointer.prev = _pointer.position;
+		const setPosition = function(clientX, clientY) {
 			_pointer.position = convertToViewBox(_node, clientX, clientY);
 			_pointer.x = _pointer.position[0];
 			_pointer.y = _pointer.position[1];
 		};
-		const updateTouchDrag = function() {
+		const didRelease = function(clientX, clientY) {
+			_pointer.isPressed = false;
+			setPosition(event.clientX, event.clientY);
+		};
+		const didPress = function(clientX, clientY) {
+			_pointer.isPressed = true;
+			_pointer.pressed = convertToViewBox(_node, event.clientX, event.clientY);
+			setPosition(event.clientX, event.clientY);
+		};
+		const didMove = function(clientX, clientY) {
+			_pointer.prev = _pointer.position;
+			setPosition(clientX, clientY);
+			if (_pointer.isPressed) {
+				updateDrag();
+			}
+		};
+		const updateDrag = function() {
 			_pointer.drag = [_pointer.position[0] - _pointer.pressed[0],
 			               _pointer.position[1] - _pointer.pressed[1]];
 			_pointer.drag.x = _pointer.drag[0];
 			_pointer.drag.y = _pointer.drag[1];
 		};
-		const mouseMoveHandler = function(event) {
-			updatePointerPosition(event.clientX, event.clientY);
-			let mouse = getPointer();
-			if (_pointer.isPressed) { updateTouchDrag(); }
-			if (_events[Names.move]) {
-				_events[Names.move].forEach(f => f(mouse));
+		let _this = {};
+		Object.defineProperty(_this, "getPointer", {value: getPointer});
+		Object.defineProperty(_this, "didMove", {value: didMove});
+		Object.defineProperty(_this, "didPress", {value: didPress});
+		Object.defineProperty(_this, "didRelease", {value: didRelease});
+		Object.defineProperty(_this, "node", {set: function(n){ _node = n; }});
+		return _this;
+	};
+	function Events(node) {
+		let _node;
+		let _pointer = Pointer(node);
+		let _events = {};
+		const fireEvents = function(event, events) {
+			if (events == null) { return; }
+			if (events.length > 0) {
+				event.preventDefault();
 			}
+			let mouse = _pointer.getPointer();
+			events.forEach(f => f(mouse));
+		};
+		const mouseMoveHandler = function(event) {
+			let events = _events[Names.move];
+			_pointer.didMove(event.clientX, event.clientY);
+			fireEvents(event, events);
 		};
 		const mouseDownHandler = function(event) {
-			_pointer.isPressed = true;
-			_pointer.pressed = convertToViewBox(_node, event.clientX, event.clientY);
-			if (_events[Names.start]) {
-				let mouse = getPointer();
-				_events[Names.start].forEach(f => f(mouse));
-			}
+			let events = _events[Names.begin];
+			_pointer.didPress(event.clientX, event.clientY);
+			fireEvents(event, events);
 		};
 		const mouseUpHandler = function(event) {
-			_pointer.isPressed = false;
-			if (_events[Names.end]) {
-				let mouse = getPointer();
-				_events[Names.end].forEach(f => f(mouse));
-			}
+			let events = _events[Names.end];
+			_pointer.didRelease(event.clientX, event.clientY);
+			fireEvents(event, events);
 		};
 		const mouseLeaveHandler = function(event) {
-			updatePointerPosition(event.clientX, event.clientY);
-			if (_events[Names.leave]) {
-				let mouse = getPointer();
-				_events[Names.leave].forEach(f => f(mouse));
-			}
+			let events = _events[Names.leave];
+			_pointer.didMove(event.clientX, event.clientY);
+			fireEvents(event, events);
 		};
 		const mouseEnterHandler = function(event) {
-			updatePointerPosition(event.clientX, event.clientY);
-			if (_events[Names.enter]) {
-				let mouse = getPointer();
-				_events[Names.enter].forEach(f => f(mouse));
-			}
+			let events = _events[Names.enter];
+			_pointer.didMove(event.clientX, event.clientY);
+			fireEvents(event, events);
 		};
 		const touchStartHandler = function(event) {
-			event.preventDefault();
+			let events = _events[Names.begin];
 			let touch = event.touches[0];
 			if (touch == null) { return; }
-			_pointer.isPressed = true;
-			_pointer.pressed = convertToViewBox(_node, touch.clientX, touch.clientY);
-			if (_events.oMouseDown) {
-				let mouse = getPointer();
-				_events.oMouseDown.forEach(f => f(mouse));
-			}
+			_pointer.didPress(touch.clientX, touch.clientY);
+			fireEvents(event, events);
 		};
 		const touchMoveHandler = function(event) {
-			event.preventDefault();
+			let events = _events[Names.move];
 			let touch = event.touches[0];
 			if (touch == null) { return; }
-			updatePointerPosition(touch.clientX, touch.clientY);
-			let mouse = getPointer();
-			if (_pointer.isPressed) { updateTouchDrag(); }
-			if (_events[Names.move]) {
-				_events[Names.move].forEach(f => f(mouse));
-			}
+			_pointer.didMove(touch.clientX, touch.clientY);
+			fireEvents(event, events);
 		};
 		const scrollHandler = function(event) {
+			let events = _events[Names.scroll];
 			let e = {
 				deltaX: event.deltaX,
 				deltaY: event.deltaY,
@@ -2169,10 +2183,11 @@
 			e.position = convertToViewBox(_node, event.clientX, event.clientY);
 			e.x = e.position[0];
 			e.y = e.position[1];
-			event.preventDefault();
-			if (_events[Names.scroll]) {
-				_events[Names.scroll].forEach(f => f(e));
+			if (events == null) { return; }
+			if (events.length > 0) {
+				event.preventDefault();
 			}
+			events.forEach(f => f(e));
 		};
 		let _animate, _intervalID, _animationFrame;
 		const updateAnimationHandler = function(handler) {
@@ -2231,6 +2246,7 @@
 				removeHandlers(_node);
 			}
 			_node = node;
+			_pointer.node = _node;
 			Object.keys(Names).map(key => Names[key]).forEach(key => {
 				Object.defineProperty(_node, key, {
 					set: function(handler) { addEventListener(key, handler); }
@@ -2239,8 +2255,8 @@
 			Object.defineProperty(_node, "animate", {
 				set: function(handler) { updateAnimationHandler(handler); }
 			});
-			Object.defineProperty(_node, "mouse", {get: function(){ return getPointer(); }});
-			Object.defineProperty(_node, "pointer", {get: function(){ return getPointer(); }});
+			Object.defineProperty(_node, "mouse", {get: function(){ return _pointer.getPointer(); }});
+			Object.defineProperty(_node, "pointer", {get: function(){ return _pointer.getPointer(); }});
 			attachHandlers(_node);
 		};
 		setup(node);
@@ -3365,6 +3381,24 @@
 		return vertices_faces;
 	}
 
+	const bounding_rect = function(graph) {
+		if (graph.vertices_coords.length <= 0) { return [0,0,0,0]; }
+		let dimension = graph.vertices_coords[0].length;
+		let smallest = Array.from(Array(dimension)).map(_ => Infinity);
+		let largest = Array.from(Array(dimension)).map(_ => -Infinity);
+		graph.vertices_coords.forEach(v => v.forEach((n,i) => {
+			if (n < smallest[i]) { smallest[i] = n; }
+			if (n > largest[i]) { largest[i] = n; }
+		}));
+		let x = smallest[0];
+		let y = smallest[1];
+		let w = largest[0] - smallest[0];
+		let h = largest[1] - smallest[1];
+		return (isNaN(x) || isNaN(y) || isNaN(w) || isNaN(h)
+			? [0,0,0,0]
+			: [x,y,w,h]);
+	};
+
 	var graph = /*#__PURE__*/Object.freeze({
 		keys: keys,
 		all_keys: all_keys,
@@ -3388,7 +3422,8 @@
 		remove_faces: remove_faces,
 		merge_vertices: merge_vertices,
 		make_edges_faces: make_edges_faces,
-		make_vertices_faces: make_vertices_faces
+		make_vertices_faces: make_vertices_faces,
+		bounding_rect: bounding_rect
 	});
 
 	const merge_maps = function(a, b) {
@@ -3998,17 +4033,16 @@
 	const creaseSegment = function(graph, a, b, c, d) {
 		// let edge = Geom.Edge([a, b, c, d]);
 		let edge = Edge([a, b]);
-
-		let edge_vertices = edge.endpoints
-			.map(ep => graph.vertices_coords
-				.map(v => Math.sqrt(Math.pow(ep[0]-v[0],2)+Math.pow(ep[1]-v[1],2)))
+		let edge_vertices = [0,1]
+			.map((_,e) => graph.vertices_coords
+				.map(v => Math.sqrt(Math.pow(edge[e][0]-v[0],2)+Math.pow(edge[e][1]-v[1],2)))
 				.map((d,i) => d < 0.00000001 ? i : undefined)
 				.filter(el => el !== undefined)
 				.shift()
 			).map((v,i) => {
 				if (v !== undefined) { return v; }
 				// else
-				graph.vertices_coords.push(edge.endpoints[i]);
+				graph.vertices_coords.push(edge[i]);
 				return graph.vertices_coords.length - 1;
 			});
 
@@ -4139,8 +4173,6 @@
 		fold_without_layering: fold_without_layering
 	});
 
-	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
-
 	/** 
 	 * this searches user-provided inputs for a valid n-dimensional vector 
 	 * which includes objects {x:, y:}, arrays [x,y], or sequences of numbers
@@ -4207,7 +4239,7 @@
 	/* (c) Robby Kraft, MIT License */
 	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
 
-	function svg_to_fold(svg) {
+	function svg_to_fold(svg$$1) {
 
 		// for each geometry, add creases without regards to invalid planar data
 		//  (intersecting lines, duplicate vertices), clean up later.
@@ -4230,12 +4262,45 @@
 			"faces_edges": [],
 		};
 
-		segments(svg).forEach(l =>
+		segments(svg$$1).forEach(l =>
 			add_edge_between_points(graph, l[0], l[1], l[2], l[3])
 		);
 
 		return graph;
 	}
+
+	const load_fold = function(input, callback) {
+		// are they giving us a filename, or the data of an already loaded file?
+		if (typeof input === "string" || input instanceof String) {
+			let extension = input.substr((input.lastIndexOf('.') + 1));
+			// filename. we need to upload
+			switch(extension) {
+				case "fold":
+				fetch(input)
+					.then((response) => response.json)
+					.then((data) => {
+						if (callback != null) { callback(data); }
+					});
+				return;
+				case "svg":
+				load(input, function(svg$$1) {
+					let fold = svg_to_fold(svg$$1);
+					if (callback != null) { callback(fold); }
+				});
+				return;
+			}
+		}
+		try {
+			// try .fold file format first
+			let fold = JSON.parse(input);
+			if (callback != null) { callback(fold); }
+		} catch(err) {
+			console.log("not a valid .fold file format");
+			// return this;
+		}
+	};
+
+	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
 
 	// MIT open source license, Robby Kraft
 
@@ -4289,6 +4354,11 @@
 			// 	.forEach(key => delete _m[key]);
 			// if (typeof graph.onchange === "function") { graph.onchange(); }
 		};
+		Object.defineProperty(graph, "isFolded", { get: function(){
+			// try to discern folded state
+			if (graph.frame_classes == null) { return false; }
+			return graph.frame_classes.includes("foldedState");
+		}});
 		graph.copy = function() {
 			// todo: how do you call the function that we're inside?
 			return RabbitEar.CreasePattern(JSON.parse(JSON.stringify(graph)));
@@ -4309,6 +4379,34 @@
 		graph.edge = function(index)     { return Edge$1(this, index);     };
 		graph.face = function(index)     { return Face(this, index);     };
 		graph.crease = function(indices) { return Crease(this, indices); };
+
+		// todo: these create new Geometry objects each time, even if the CP hasn't changed
+		Object.defineProperty(graph, "vertices", { get: function() {
+			return this.vertices_coords == null
+				? []
+				: this.vertices_coords.map(v => Vector(v));
+		}});
+		Object.defineProperty(graph, "edges", { get: function() {
+			return this.edges_vertices == null
+				? []
+				: this.edges_vertices
+					.map(e => e.map(ev => this.vertices_coords[ev]))
+					.map(e => Edge(e));
+		}});
+		Object.defineProperty(graph, "faces", { get: function() {
+			return this.faces_vertices == null
+				? []
+				: this.faces_vertices
+					.map(f => f.map(fv => this.vertices_coords[fv]))
+					.map(f => Polygon(f));
+		}});
+		Object.defineProperty(graph, "boundary", { get: function() {
+			// todo: this only works for unfolded flat crease patterns
+			return Polygon(get_boundary_face(graph)
+				.vertices
+				.map(v => graph.vertices_coords[v])
+			);
+		}});
 
 		graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {
 			add_vertex_on_edge(graph, x, y, oldEdgeIndex);
@@ -4382,12 +4480,6 @@
 				return JSON.parse(JSON.stringify(fold_file));
 			}
 		});
-		Object.defineProperty(graph, "boundary", { get: function() {
-				let boundaryVertices = get_boundary_face(graph).vertices
-					.map(v => graph.vertices_coords[v]);
-				return Polygon(boundaryVertices);
-			}
-		});
 		Object.defineProperty(graph, "connectedGraphs", { get: function() {
 				return connectedGraphs(graph);
 			}
@@ -4456,6 +4548,10 @@
 		let graph = _graph; // pointer back to the graph;
 		let index = _index; // index of this crease in the graph
 
+		let points = _graph.edges_vertices[_index]
+			.map(ev => _graph.vertices_coords[ev]);
+		let _e = Edge(points);
+
 		const is_assignment = function(options) {
 			return options.map(l => l === graph.edges_assignment[index])
 				.reduce((a,b) => a || b, false);
@@ -4484,51 +4580,48 @@
 			graph.edges_foldAngle[index] = 0;
 			if (typeof graph.onchange === "function") { graph.onchange(); }
 		};
-		const remove = function() { };
 		const addVertexOnEdge = function(x, y) {
 			let thisEdge = this.index;
 			graph.addVertexOnEdge(x, y, thisEdge);
 		};
 
-		return {
-			get index() { return _index; },
-			mountain,
-			valley,
-			mark,
-			flip,
-			get isMountain(){ return is_mountain(); },
-			get isValley(){ return is_valley(); },
-			remove,
-			addVertexOnEdge
-		};
+		Object.defineProperty(_e, "mountain", {value: mountain});
+		Object.defineProperty(_e, "valley", {value: valley});
+		Object.defineProperty(_e, "mark", {value: mark});
+		Object.defineProperty(_e, "flip", {value: flip});
+		Object.defineProperty(_e, "index", {
+			get: function(){ return _index; }
+		});
+		Object.defineProperty(_e, "isMountain", {
+			get: function(){ return is_mountain(); }
+		});
+		Object.defineProperty(_e, "isValley", {
+			get: function(){ return is_valley(); }
+		});
+		// Object.defineProperty(_e, "remove", {value: remove});
+		Object.defineProperty(_e, "addVertexOnEdge", {value: addVertexOnEdge});
+
+		return _e;
 	};
 
 	const Vertex = function(_graph, _index) {
 
-		return {
-			get index() { return _index; },
-		};
+		let _v = Vector(_graph.vertices_coords[_index]);
+		Object.defineProperty(_v, "index", {
+			get: function(){ return _index; }
+		});
+		return _v;
 	};
 
 	const Face = function(_graph, _index) {
 
-		return {
-			get index() { return _index; },
-		};
-	};
-
-	/** deep clone an object */
-	const clone$1 = function(thing){
-		// types to check:, "undefined" / "null", "boolean", "number", "string", "symbol", "function", "object"
-		return JSON.parse(JSON.stringify(thing));  // might be a faster way
-		// recurse over each entry. todo
-		// if(thing == null || typeof thing == "boolean" || typeof thing ==  "number" ||
-		//    typeof thing ==  "string" || typeof thing ==  "symbol"){ return thing; }
-		// var copy = (thing.constructor === Array) ? thing.slice() : Object.assign({},thing);
-		// Object.entries(copy)
-		// 	.filter(([k,v]) => typeof v == "object" || typeof v == "symbol" || typeof v == "function")
-		// 	.forEach(([k,v]) => copy[k] = clone(copy[k]) )
-		// return copy;
+		let points = _graph.faces_vertices[_index]
+			.map(fv => _graph.vertices_coords[fv]);
+		let _f = Polygon(points);
+		Object.defineProperty(_f, "index", {
+			get: function(){ return _index; }
+		});
+		return _f;
 	};
 
 	const flatten_frame = function(fold_file, frame_num){
@@ -4553,13 +4646,13 @@
 				// for frame 0 (the key frame) don't copy over file_frames array
 				let swap = fold_file.file_frames;
 				fold_file.file_frames = null;
-				let copy = clone$1(fold_file);
+				let copy = JSON.parse(JSON.stringify(fold_file));
 				fold_file.file_frames = swap;
 				delete copy.file_frames;
 				dontCopy.forEach(key => delete copy[key]);
 				return copy;
 			}
-			let copy = clone$1(fold_file.file_frames[frame-1]);
+			let copy = JSON.parse(JSON.stringify(fold_file.file_frames[frame-1]));
 			dontCopy.forEach(key => delete copy[key]);
 			return copy;
 		}).reduce((prev,curr) => Object.assign(prev,curr),{})
@@ -4567,12 +4660,12 @@
 
 	const merge_frame$1 = function(fold_file, frame){
 		const dontCopy = ["frame_parent", "frame_inherit"];
-		let copy = clone$1(frame);
+		let copy = JSON.parse(JSON.stringify(frame));
 		dontCopy.forEach(key => delete copy[key]);
 		// don't deep copy file_frames. stash. bring them back.
 		let swap = fold_file.file_frames;
 		fold_file.file_frames = null;
-		let fold = clone$1(fold_file);
+		let fold = JSON.parse(JSON.stringify(fold_file));
 		fold_file.file_frames = swap;
 		delete fold.file_frames;
 		// merge 2
@@ -4580,8 +4673,7 @@
 		return fold;
 	};
 
-	var file = /*#__PURE__*/Object.freeze({
-		clone: clone$1,
+	var frame = /*#__PURE__*/Object.freeze({
 		flatten_frame: flatten_frame,
 		merge_frame: merge_frame$1
 	});
@@ -4596,6 +4688,12 @@
 		"V": "valley",   "v": "valley",
 		"F": "mark",     "f": "mark",
 		"U": "mark",     "u": "mark"
+	};
+
+	const boundary = function(graph) {
+		let boundary = get_boundary_vertices(graph)
+			.map(v => graph.vertices_coords[v]);
+		return [polygon(boundary).setClass("boundary")];
 	};
 
 	const vertices = function(graph, options) {
@@ -4651,12 +4749,6 @@
 		);
 	};
 
-	const boundary = function(graph) {
-		let boundary = get_boundary_vertices(graph)
-			.map(v => graph.vertices_coords[v]);
-		return [polygon(boundary).setClass("boundary")];
-	};
-
 	const foldedFaces = function(graph) {
 		let facesV = graph.faces_vertices
 			.map(fv => fv.map(v => graph.vertices_coords[v]));
@@ -4669,10 +4761,10 @@
 			);
 		// } else if (graph.facesOrder && graph.facesOrder.length > 0) {
 		} else {
-			return facesV.forEach((face, i) =>
-				groups.faces.polygon(face)
+			return facesV.map((face, i) =>
+				polygon(face)
 					.setClass("folded-face")
-					.setID("face")
+					.setID(""+i)
 				);
 		}
 	};
@@ -4686,254 +4778,156 @@
 	 *   - DOM object, or "string" DOM id to attach to
 	 */
 
-	function View() {
+	const plural = { boundary: "boundaries", face: "faces", crease: "creases", vertex: "vertices" };
 
-		let _svg = image(...arguments);
-		//  from arguments, get a fold file, if it exists
-		let _cp = CreasePattern(...arguments);
-		// tie handler from crease pattern
-		_cp.onchange = function() {
+	function View2D() {
+
+		let _this = image(...arguments);
+
+		let groups = {};
+		["boundary", "face", "crease", "vertex"].forEach(key =>
+			groups[key] = _this.group().setID(plural[key])
+		);
+
+		let prop = {
+			cp: undefined, 
+			frame: undefined,
+			style: {
+				vertex_radius: 0.01 // percent of page
+			},
+		};
+
+		const setCreasePattern = function(cp) {
+			// todo: check if cp is a CreasePattern type
+			prop.cp = cp;
 			draw();
+			prop.cp.onchange = draw;
 		};
-
-		// prepare SVG
-		let groups = {
-			boundary: _svg.group().setID("boundary"),
-			faces: _svg.group().setID("faces"),
-			creases: _svg.group().setID("creases"),
-			vertices: _svg.group().setID("vertices"),
-		};
-		let _frame;
 
 		const drawFolded = function(graph) {
-			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
 			foldedFaces(graph)
-				.forEach(f => groups.faces.appendChild(f));
+				.forEach(f => groups.face.appendChild(f));
 		};
-		const drawCP = function(graph) {
-			// clear layers
-			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
 
-			let svg$$1 = {
+		const drawCreasePattern = function(graph) {
+			let drawings = {
 				boundary: boundary(graph),
-				faces: facesVertices(graph).concat(facesEdges(graph)),
-				creases: creases(graph),
-				vertices: vertices(graph)
+				face: facesVertices(graph).concat(facesEdges(graph)),
+				crease: creases(graph),
+				vertex: vertices(graph)
 			};
-			Object.keys(svg$$1).forEach(key => 
-				svg$$1[key].forEach(el => groups[key].appendChild(el))
+			Object.keys(drawings).forEach(key => 
+				drawings[key].forEach(el => groups[key].appendChild(el))
 			);
-
-			// FoldSVG.vertices(graph).forEach(a => groups.vertices.appendChild(a));
-			// FoldSVG.creases(graph).forEach(a => groups.creases.appendChild(a));
-			// FoldSVG.facesVertices(graph).forEach(a => groups.faces.appendChild(a));
-			// FoldSVG.facesEdges(graph).forEach(a => groups.faces.appendChild(a));
-			// FoldSVG.boundary(graph).forEach(a => groups.boundary.appendChild(a));
 		};
 
 		const draw = function() {
-			if (_cp.vertices_coords == null){ return; }
-			let graph = _frame ? flatten_frame(_cp, _frame) : _cp;
-			if (isFolded()) {
+			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
+			// flatten if necessary
+			let graph = prop.frame
+				? flatten_frame(prop.cp, prop.frame)
+				: prop.cp;
+			if (graph.isFolded) {
 				drawFolded(graph);
 			} else{
-				drawCP(graph);
+				drawCreasePattern(graph);
 			}
 			updateViewBox();
 		};
-		
+
 		const updateViewBox = function() {
-			// calculate bounds
-			let xSorted = _cp.vertices_coords.slice().sort((a,b) => a[0] - b[0]);
-			let ySorted = _cp.vertices_coords.slice().sort((a,b) => a[1] - b[1]);
-			let boundsX = xSorted.shift()[0];
-			let boundsY = ySorted.shift()[1];
-			let boundsW = xSorted.pop()[0] - boundsX;
-			let boundsH = ySorted.pop()[1] - boundsY;
-			let isInvalid = isNaN(boundsX) || isNaN(boundsY) ||
-			                isNaN(boundsW) || isNaN(boundsH);
-			if (isInvalid) {
-				setViewBox(_svg, 0, 0, 1, 1);
-			} else{
-				setViewBox(_svg, boundsX, boundsY, boundsW, boundsH);
-			}
+			let r = bounding_rect(prop.cp);
+			setViewBox(_this, r[0], r[1], r[2], r[3]);
 		};
 
+		const showVertices = function(){ groups.vertex.removeAttribute("visibility");};
+		const hideVertices = function(){ groups.vertex.setAttribute("visibility", "hidden");};
+		const showEdges = function(){ groups.crease.removeAttribute("visibility");};
+		const hideEdges = function(){ groups.crease.setAttribute("visibility", "hidden");};
+		const showFaces = function(){ groups.face.removeAttribute("visibility");};
+		const hideFaces = function(){ groups.face.setAttribute("visibility", "hidden");};
+
 		const nearest = function() {
-			let point = Vector(...arguments);
-			let nearestVertex = _cp.nearestVertex(point[0], point[1]);
-			let nearestEdge = _cp.nearestEdge(point[0], point[1]);
-			let nearestFace = _cp.nearestFace(point[0], point[1]);
-
+			let p = Vector(...arguments);
+			let methods = {
+				"vertex": prop.cp.nearestVertex,
+				"crease": prop.cp.nearestEdge,
+				"face": prop.cp.nearestFace,
+			};
 			let nearest = {};
-
-			if (nearestVertex != null) {
-				nearestVertex.svg = groups.vertices.childNodes[nearestVertex.index];
-				nearest.vertex = nearestVertex;
-			}
-			if (nearestEdge != null) {
-				nearestEdge.svg = groups.creases.childNodes[nearestEdge.index];
-				nearest.edge = nearestEdge;
-			}
-			if (nearestFace != null) {
-				nearestFace.svg = groups.faces.childNodes[nearestFace.index];
-				nearest.face = nearestFace;
-			}
-
+			// fill the methods
+			Object.keys(methods)
+				.forEach(key => nearest[key] = methods[key].apply(prop.cp, p));
+			Object.keys(methods)
+				.filter(key => methods[key] == null)
+				.forEach(key => delete methods[key]);
+			Object.keys(nearest)
+				.filter(key => nearest[key] != null)
+				.forEach(key => nearest[key].svg = groups[key].childNodes[nearest[key].index]);
 			return nearest;
-
-			// var junction = (node != undefined) ? node.junction() : undefined;
-			// if(junction === undefined){
-			// 	var sortedJunction = this.junctions
-			// 		.map(function(el){ return {'junction':el, 'distance':point.distanceTo(el.origin)};},this)
-			// 		.sort(function(a,b){return a['distance']-b['distance'];})
-			// 		.shift();
-			// 	junction = (sortedJunction !== undefined) ? sortedJunction['junction'] : undefined
-			// }
-
-			// var sector = (junction !== undefined) ? junction.sectors.filter(function(el){
-			// 	return el.contains(point);
-			// },this).shift() : undefined;
 		};
 
 		const load$$1 = function(input, callback) { // epsilon
-			// are they giving us a filename, or the data of an already loaded file?
-			if (typeof input === "string" || input instanceof String) {
-				let extension = input.substr((input.lastIndexOf('.') + 1));
-				// filename. we need to upload
-				switch(extension) {
-					case "fold":
-					fetch(input)
-						.then((response) => response.json)
-						.then((data) => {
-							_cp = CreasePattern(data);
-							draw();
-							if (callback != null) { callback(_cp); }
-						});
-					return;
-					case "svg":
-					load(input, function(svg$$1) {
-						_cp = CreasePattern(svg_to_fold(svg$$1));
-						draw();
-						if (callback != null) { callback(_cp); }
-					});
-					return;
-				}
-			}
-			try {
-				// try .fold file format first
-				let foldFileImport = JSON.parse(input);
-				_cp = CreasePattern(foldFileImport);
-				// return this;
-			} catch(err) {
-				console.log("not a valid .fold file format");
-				// return this;
-			}
-		};
-		const isFolded = function() {
-			// try to discern folded state
-			if (_cp == null || _cp.frame_classes == null) { return false; }
-			return _cp.frame_classes.includes("foldedState");
-		};
-
-		const makeVertices = function() {
-			return _cp.vertices_coords == null
-				? []
-				: _cp.vertices_coords.map(v => Vector(v));
-		};
-		const makeEdges = function() {
-			return _cp.edges_vertices == null
-				? []
-				: _cp.edges_vertices
-					.map(e => e.map(ev => _cp.vertices_coords[ev]))
-					.map(e => Edge(e));
-		};
-		const makeFaces = function() {
-			return _cp.faces_vertices == null
-				? []
-				: _cp.faces_vertices
-					.map(f => f.map(fv => _cp.vertices_coords[fv]))
-					.map(f => Polygon(f));
-		};
-
-		const showVertices = function(){ groups.vertices.removeAttribute("visibility");};
-		const hideVertices = function(){ groups.vertices.setAttribute("visibility", "hidden");};
-		const showEdges = function(){ groups.creases.removeAttribute("visibility");};
-		const hideEdges = function(){ groups.creases.setAttribute("visibility", "hidden");};
-		const showFaces = function(){ groups.faces.removeAttribute("visibility");};
-		const hideFaces = function(){ groups.faces.setAttribute("visibility", "hidden");};
-
-		const crease = function(a, b, c, d){
-			// Folder.
+			load_fold(input, function(fold){
+				setCreasePattern( CreasePattern(fold) );
+				if (callback != null) { callback(); }
+			});
 		};
 
 		const fold = function(face){
-			let folded = fold_without_layering(_cp, face);
-			_cp = CreasePattern(folded);
-			draw();
+			let folded = fold_without_layering(prop.cp, face);
+			setCreasePattern( CreasePattern(folded) );
 		};
 
-		// init this object
-		draw();
+		Object.defineProperty(_this, "cp", {
+			get: function() { return prop.cp; },
+			set: function(cp) { setCreasePattern(cp); }
+		});
+		Object.defineProperty(_this, "frameCount", {
+			get: function() { return prop.cp.file_frames ? prop.cp.file_frames.length : 0; }
+		});
+		Object.defineProperty(_this, "frame", {
+			set: function(f) { prop.frame = f; draw(); },
+			get: function() { return prop.frame; }
+		});
 
+		// attach CreasePattern methods
+		["axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7",
+		 "crease"]
+			.forEach(method => Object.defineProperty(_this, method, {
+				value: function(){ return prop.cp[method](...arguments); }
+			}));
+		// attach CreasePattern getters
+		["boundary", "vertices", "edges", "faces", "isFolded"]
+			.forEach(method => Object.defineProperty(_this, method, {
+				get: function(){ return prop.cp[method]; }
+			}));
 
-		const setCP = function(cp) {
-			_cp = cp;
-			draw();
-			_cp.onchange = draw;
-		};
-
-		Object.defineProperty(_svg, "cp", {
-			get: function() { return _cp; },
-			set: function(cp) { setCP(cp); }
-		});
-		Object.defineProperty(_svg, "vertices", {
-			get: function() { return makeVertices(); }
-		});
-		Object.defineProperty(_svg, "edges", {
-			get: function() { return makeEdges(); }
-		});
-		Object.defineProperty(_svg, "faces", {
-			get: function() { return makeFaces(); }
-		});
-		Object.defineProperty(_svg, "frameCount", {
-			get: function() { return _cp.file_frames ? _cp.file_frames.length : 0; }
-		});
-		Object.defineProperty(_svg, "frame", {
-			set: function(f) { _frame = f; draw(); }
-		});
-		Object.defineProperty(_svg, "nearest", {value: nearest});
-		Object.defineProperty(_svg, "axiom1", {value:function(){return _cp.axiom1(...arguments);}});
-		Object.defineProperty(_svg, "axiom2", {value:function(){return _cp.axiom2(...arguments);}});
-		Object.defineProperty(_svg, "axiom3", {value:function(){return _cp.axiom3(...arguments);}});
-		Object.defineProperty(_svg, "axiom4", {value:function(){return _cp.axiom4(...arguments);}});
-		Object.defineProperty(_svg, "axiom5", {value:function(){return _cp.axiom5(...arguments);}});
-		Object.defineProperty(_svg, "axiom6", {value:function(){return _cp.axiom6(...arguments);}});
-		Object.defineProperty(_svg, "axiom7", {value:function(){return _cp.axiom7(...arguments);}});
-		Object.defineProperty(_svg, "draw", { value: draw });
-		Object.defineProperty(_svg, "updateViewBox", { value: updateViewBox });
-		Object.defineProperty(_svg, "isFolded", { value: isFolded });
-		Object.defineProperty(_svg, "fold", { value: fold });
-		Object.defineProperty(_svg, "crease", { value: crease });
-		Object.defineProperty(_svg, "load", { value: load$$1 });
-		Object.defineProperty(_svg, "folded", { 
+		Object.defineProperty(_this, "nearest", {value: nearest});
+		Object.defineProperty(_this, "draw", { value: draw });
+		Object.defineProperty(_this, "fold", { value: fold });
+		Object.defineProperty(_this, "load", { value: load$$1 });
+		Object.defineProperty(_this, "folded", { 
 			set: function(f) {
-				_cp.frame_classes = _cp.frame_classes
+				prop.cp.frame_classes = prop.cp.frame_classes
 					.filter(a => a !== "creasePattern");
-				_cp.frame_classes = _cp.frame_classes
+				prop.cp.frame_classes = prop.cp.frame_classes
 					.filter(a => a !== "foldedState");
-				_cp.frame_classes.push("foldedState");
+				prop.cp.frame_classes.push("foldedState");
 				// todo re-call draw()
 			}
 		});
-		Object.defineProperty(_svg, "showVertices", { value: showVertices });
-		Object.defineProperty(_svg, "hideVertices", { value: hideVertices });
-		Object.defineProperty(_svg, "showEdges", { value: showEdges });
-		Object.defineProperty(_svg, "hideEdges", { value: hideEdges });
-		Object.defineProperty(_svg, "showFaces", { value: showFaces });
-		Object.defineProperty(_svg, "hideFaces", { value: hideFaces });
+		Object.defineProperty(_this, "showVertices", { value: showVertices });
+		Object.defineProperty(_this, "hideVertices", { value: hideVertices });
+		Object.defineProperty(_this, "showEdges", { value: showEdges });
+		Object.defineProperty(_this, "hideEdges", { value: hideEdges });
+		Object.defineProperty(_this, "showFaces", { value: showFaces });
+		Object.defineProperty(_this, "hideFaces", { value: hideFaces });
 
-		return _svg;
+		// boot
+		setCreasePattern( CreasePattern(...arguments) );
+
+		return _this;
 	}
 
 	/** .FOLD file viewer
@@ -5737,7 +5731,6 @@
 		};
 	}
 
-
 	function make_unfolded_frame(fold, parent_frame = 0, root_face){
 		// todo, make it so parent_frame actually goes and gets data from that frame
 
@@ -6130,7 +6123,7 @@
 	var blintzDistorted = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0.005,0.005], [0.5,0], [0.995,0.005], [1,0.5], [0.995,0.995], [0.5,1], [0.005,0.995], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.707106781186548, 0.707106781186548, 0.707106781186548, 0.707106781186548],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
 
 	const fold = {
-		file: file,
+		frame: frame,
 		validate: validate,
 		graph: graph,
 		origami: origami$2,
@@ -6162,7 +6155,7 @@
 	exports.fold = fold;
 	exports.bases = bases;
 	exports.CreasePattern = CreasePattern;
-	exports.Origami = View;
+	exports.Origami = View2D;
 	exports.Origami3D = View3D;
 
 	Object.defineProperty(exports, '__esModule', { value: true });

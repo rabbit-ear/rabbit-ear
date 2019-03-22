@@ -19,7 +19,7 @@ origami.color = function(event) {
 	var nearest = origami.nearest(event);
 	// console.log(nearest);
 
-	if(nearest.vertex) { origami.addClass(nearest.vertex.svg, 'fill-yellow'); }
-	if(nearest.edge) { origami.addClass(nearest.edge.svg, 'stroke-yellow'); }
-	if(nearest.face) { origami.addClass(nearest.face.svg, 'fill-red'); }
+	if(nearest.vertex) { nearest.vertex.svg.addClass('fill-yellow'); }
+	if(nearest.crease) { nearest.crease.svg.addClass('stroke-yellow'); }
+	if(nearest.face) { nearest.face.svg.addClass('fill-red'); }
 }

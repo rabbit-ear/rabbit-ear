@@ -4,13 +4,9 @@ axiom3.setup = function() {
 	axiom3.lineLayer = RabbitEar.svg.group();
 	axiom3.appendChild(axiom3.lineLayer);
 	// create 4 UI-control points
-	axiom3.controls = RabbitEar.svg.controls(axiom3.svg, 4, {
-		radius: 0.02,
-		fill: "#e44f2a",
-	});
-	axiom3.controls.forEach(control =>
-		control.position = [Math.random(), Math.random()]
-	);
+	axiom3.controls = RabbitEar.svg
+		.controls(axiom3, 4, { radius: 0.02, fill: "#e44f2a" });
+	axiom3.controls.forEach(c => c.position = [Math.random(), Math.random()]);
 }
 axiom3.setup();
 

@@ -3,7 +3,7 @@
  */
 
 import * as SVG from "../../lib/svg";
-import { get_boundary_vertices } from "./graph";
+import { get_boundary_vertices } from "../fold/graph";
 
 const CREASE_DIR = {
 	"B": "boundary", "b": "boundary",
@@ -11,6 +11,12 @@ const CREASE_DIR = {
 	"V": "valley",   "v": "valley",
 	"F": "mark",     "f": "mark",
 	"U": "mark",     "u": "mark"
+};
+
+export const boundary = function(graph) {
+	let boundary = get_boundary_vertices(graph)
+		.map(v => graph.vertices_coords[v])
+	return [SVG.polygon(boundary).setClass("boundary")];
 };
 
 export const vertices = function(graph, options) {
@@ -66,12 +72,6 @@ export const facesEdges = function(graph) {
 	);
 };
 
-export const boundary = function(graph) {
-	let boundary = get_boundary_vertices(graph)
-		.map(v => graph.vertices_coords[v])
-	return [SVG.polygon(boundary).setClass("boundary")];
-};
-
 export const foldedFaces = function(graph) {
 	let facesV = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
@@ -84,10 +84,10 @@ export const foldedFaces = function(graph) {
 		);
 	// } else if (graph.facesOrder && graph.facesOrder.length > 0) {
 	} else {
-		return facesV.forEach((face, i) =>
-			groups.faces.polygon(face)
+		return facesV.map((face, i) =>
+			SVG.polygon(face)
 				.setClass("folded-face")
-				.setID("face")
+				.setID(""+i)
 			);
 	}
 }

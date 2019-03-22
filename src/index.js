@@ -3,8 +3,8 @@ import * as svg from '../lib/svg';
 import * as noise from '../lib/perlin';
 // import * as Model from './Model';
 
-export { default as CreasePattern } from './CreasePattern';
-export { default as Origami } from './View';
+export { default as CreasePattern } from './cp/CreasePattern';
+export { default as Origami } from './View2D';
 export { default as Origami3D } from './View3D';
 // export { default as Model } from '/Model';
 export { math };
@@ -13,7 +13,7 @@ export { noise };
 // export { Model };
 
 // fold file manipulators
-import * as file from './fold/file';
+import * as frame from './fold/frame';
 import { default as validate } from './fold/validate';
 import * as graph from './fold/graph';
 import * as origami from './fold/origami';
@@ -21,7 +21,7 @@ import * as planargraph from './fold/planargraph';
 import { default as valleyfold } from './fold/valleyfold';
 import * as creasethrough from './fold/creasethrough';
 const fold = {
-	file: file,
+	frame: frame,
 	validate: validate,
 	graph: graph,
 	origami: origami,

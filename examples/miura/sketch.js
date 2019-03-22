@@ -106,7 +106,8 @@ var COLUMNS = 12;
 
 origami.reset = function(){
 	// this.cp.clear();
-	this.cp.load(RabbitEar.bases.square);
+	// this.cp.load(RabbitEar.bases.square);
+	origami.cp = RabbitEar.CreasePattern(RabbitEar.bases.square);
 	// get points from code window
 
 	var points = eval(document.getElementsByClassName("CodeMirror")[0].CodeMirror.getValue());

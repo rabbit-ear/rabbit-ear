@@ -30,7 +30,6 @@ export function make_folded_frame(fold, parent_frame = 0, root_face){
 	};
 }
 
-
 export function make_unfolded_frame(fold, parent_frame = 0, root_face){
 	// todo, make it so parent_frame actually goes and gets data from that frame
 

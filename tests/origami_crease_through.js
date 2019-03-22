@@ -6,7 +6,7 @@ chopReflect.masterCP = RabbitEar.bases.blintzDistorted;
 chopReflect.cp = RabbitEar.CreasePattern(chopReflect.masterCP);
 
 let drawLayer = RabbitEar.svg.group();
-chopReflect.svg.appendChild(drawLayer)
+chopReflect.appendChild(drawLayer)
 let dot = RabbitEar.svg.circle(0, 0, 0.02);
 let dotVec = RabbitEar.svg.circle(0, 0, 0.02);
 dot.setAttribute("fill", "#e44f2a");
