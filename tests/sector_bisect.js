@@ -1,15 +1,15 @@
 let bisect = RabbitEar.svg.image("canvas-bisect", 500, 500);
 
 bisect.NUM_WEDGES = 2;
-bisect.STROKE_WIDTH = bisect.height * 0.0125;
-bisect.RADIUS = bisect.height * 0.033333;
+bisect.STROKE_WIDTH = bisect.h * 0.0125;
+bisect.RADIUS = bisect.h * 0.033333;
 
 bisect.reset = function(){
 	bisect.touches = Array.from(Array(bisect.NUM_WEDGES)).map(_ => {
 		let a = Math.random() * Math.PI * 2;
-		let r = bisect.height * 0.45;
+		let r = bisect.h * 0.45;
 		return {
-			pos: [bisect.width/2 + Math.cos(a) * r, bisect.height/2 + Math.sin(a) * r],
+			pos: [bisect.w/2 + Math.cos(a) * r, bisect.h/2 + Math.sin(a) * r],
 			svg: RabbitEar.svg.circle(0, 0, bisect.RADIUS)
 		};
 	});
@@ -35,12 +35,12 @@ bisect.reset = function(){
 bisect.reset();
 
 bisect.update = function(){
-	let angles = bisect.touches.map(el => Math.atan2(el.pos[1] - bisect.height/2, el.pos[0] - bisect.width/2));
+	let angles = bisect.touches.map(el => Math.atan2(el.pos[1] - bisect.h/2, el.pos[0] - bisect.w/2));
 	let vecs = angles.map(a => [Math.cos(a), Math.sin(a)]);
-	let centerX = bisect.width * 0.5;
-	let centerY = bisect.height * 0.5;
-	let r1 = bisect.height * 0.333;
-	let r2 = bisect.height * 0.475;
+	let centerX = bisect.w * 0.5;
+	let centerY = bisect.h * 0.5;
+	let r1 = bisect.h * 0.333;
+	let r2 = bisect.h * 0.475;
 	bisect.touches.forEach(el => {
 		el.svg.setAttribute("cx", el.pos[0]);
 		el.svg.setAttribute("cy", el.pos[1]);
@@ -62,14 +62,14 @@ bisect.update = function(){
 }
 bisect.update();
 
-bisect.addEventListener("mousedown", function(mouse){
+bisect.onMouseDown = function(mouse){
 	function distanceToMouse(a) { return Math.sqrt(Math.pow(a[0]-mouse[0],2)+Math.pow(a[1]-mouse[1],2)); }
 	bisect.selected = bisect.touches.slice().sort((a,b) => distanceToMouse(a.pos) - distanceToMouse(b.pos)).shift();
-});
+};
 
-bisect.addEventListener("mousemove", function(mouse){
+bisect.onMouseMove = function(mouse){
 	if(mouse.isPressed && bisect.selected != null){
 		bisect.selected.pos = mouse.position;
 		bisect.update();
 	}
-});
+};

@@ -6,6 +6,7 @@ import * as Origami from "../fold/origami";
 import * as Geometry from "../../lib/geometry";
 import * as Input from "../fold/input";
 import * as Import from "../fold/import";
+import {default as ValleyFold} from "../fold/valleyfold";
 import squareFoldString from "../bases/square.fold";
 
 let cpObjKeys = ["load", "json", "clear", "wipe", "clearGraph", "nearestVertex", "nearestEdge", "nearestFace", "vertex", "edge", "face", "crease", "addVertexOnEdge", "connectedGraphs", "axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7", "creaseRay"];
@@ -169,6 +170,10 @@ export default function() {
 	}
 	graph.creaseThroughLayers = function(point, vector, face) {
 		RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
+		if (typeof graph.onchange === "function") { graph.onchange(); }
+	}
+	graph.valleyFold = function(point, vector, grabPoint) {
+		Origami.crease_through_layers(graph, point, vector, grabPoint);
 		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
 	graph.kawasaki = function() {

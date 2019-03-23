@@ -194,6 +194,8 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 	new_faces[1].edges = graph.faces_edges[faceIndex]
 		.slice(new_face_v_indices[0], new_face_v_indices[1])
 		.concat([graph.edges_vertices.length]);
+	new_faces[0].index = graph.faces_vertices.length;
+	new_faces[1].index = graph.faces_vertices.length+1;
 
 	// construct data for our new edge (vertices, faces, assignent, foldAngle, length)
 	let new_edges = [{
@@ -212,6 +214,7 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 	let edges_count = graph.edges_vertices.length;
 	let faces_count = graph.faces_vertices.length;
 	new_faces.forEach((face,i) => Object.keys(face)
+		.filter(suffix => suffix !== "index")
 		.forEach(suffix => graph["faces_"+suffix][faces_count+i] = face[suffix])
 	);
 	new_edges.forEach((edge,i) => Object.keys(edge)
@@ -226,7 +229,6 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		graph.vertices_vertices[a].push(b);
 		graph.vertices_vertices[b].push(a);
 	});
-
 
 	// rebuild edges_faces, vertices_faces
 	// search inside vertices_faces for an occurence of the removed face,
@@ -267,7 +269,10 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		});
 
 	// remove faces, adjust all relevant indices
+	// console.log(JSON.parse(JSON.stringify(graph["re:faces_coloring"])));
 	let faces_map = Graph.remove_faces(graph, [faceIndex]);
+	// console.log("removing faceIndex", faces_map);
+	// console.log(JSON.parse(JSON.stringify(graph["re:faces_coloring"])));
 
 	// return a diff of the geometry
 	return {

@@ -1,7 +1,7 @@
 let polySplit = RabbitEar.svg.image("canvas-split-poly", 500, 500);
 
-polySplit.STROKE_WIDTH = polySplit.width * 0.0125;
-polySplit.RADIUS = polySplit.width * 0.025;
+polySplit.STROKE_WIDTH = polySplit.w * 0.0125;
+polySplit.RADIUS = polySplit.w * 0.025;
 
 polySplit.lineLayer = RabbitEar.svg.group();
 polySplit.topLayer = RabbitEar.svg.group();
@@ -9,10 +9,10 @@ polySplit.appendChild(polySplit.lineLayer);
 polySplit.appendChild(polySplit.topLayer);
 
 polySplit.touches = Array.from(Array(2)).map(_ => ({
-	pos: [Math.random()*polySplit.width, Math.random()*polySplit.height],
+	pos: [Math.random()*polySplit.w, Math.random()*polySplit.h],
 	svg: RabbitEar.svg.circle(0, 0, polySplit.RADIUS)
 }));
-polySplit.touches[0].pos = [polySplit.width*0.5, polySplit.height*0.5];
+polySplit.touches[0].pos = [polySplit.w*0.5, polySplit.h*0.5];
 
 // polySplit.polygon = RabbitEar.svg.polygon();
 // polySplit.polygon.setAttribute("stroke", "black");
@@ -29,8 +29,8 @@ polySplit.touches.forEach(p => {
 polySplit.rebuildHull = function(){
 	let hullPoints = Array.from(Array(24)).map(_ => {
 		let a = Math.random() * Math.PI*2;
-		let r = Math.random() * polySplit.height*0.5;
-		return [polySplit.width*0.5 + r*Math.cos(a), polySplit.height*0.5 + r*Math.sin(a)];
+		let r = Math.random() * polySplit.h*0.5;
+		return [polySplit.w*0.5 + r*Math.cos(a), polySplit.h*0.5 + r*Math.sin(a)];
 	});
 	polySplit.hull = RabbitEar.math.ConvexPolygon.convexHull(hullPoints);
 	let pointsString = polySplit.hull.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
@@ -62,16 +62,16 @@ polySplit.redraw = function(){
 }
 polySplit.redraw();
 
-polySplit.addEventListener("mousedown", function(mouse){
-	let ep = polySplit.width / 50;
+polySplit.onMouseDown = function(mouse){
+	let ep = polySplit.w / 50;
 	let down = polySplit.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	polySplit.selected = found;
-});
+};
 
-polySplit.addEventListener("mousemove", function(mouse){
+polySplit.onMouseMove = function(mouse){
 	if(mouse.isPressed && polySplit.selected != null){
 		polySplit.touches[polySplit.selected].pos = mouse.position;
 		polySplit.redraw();
 	}
-});
+};

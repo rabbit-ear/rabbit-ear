@@ -1061,8 +1061,8 @@
 		const vec_cap_func = function(d) { return d; };
 		Object.defineProperty(line, "vec_comp_func", {value: vec_comp_func});
 		Object.defineProperty(line, "vec_cap_func", {value: vec_cap_func});
-		Object.defineProperty(line, "point", {get: function(){ return point; }});
-		Object.defineProperty(line, "vector", {get: function(){ return vector; }});
+		Object.defineProperty(line, "point", {get: function(){ return Vector(point); }});
+		Object.defineProperty(line, "vector", {get: function(){ return Vector(vector); }});
 		Object.defineProperty(line, "length", {get: function(){ return Infinity; }});
 		Object.defineProperty(line, "transform", {value: transform});
 		Object.defineProperty(line, "isParallel", {value: isParallel});
@@ -1108,8 +1108,8 @@
 		const vec_cap_func = function(d, ep) { return (d < -ep ? 0 : d); };
 		Object.defineProperty(ray, "vec_comp_func", {value: vec_comp_func});
 		Object.defineProperty(ray, "vec_cap_func", {value: vec_cap_func});
-		Object.defineProperty(ray, "point", {get: function(){ return point; }});
-		Object.defineProperty(ray, "vector", {get: function(){ return vector; }});
+		Object.defineProperty(ray, "point", {get: function(){ return Vector(point); }});
+		Object.defineProperty(ray, "vector", {get: function(){ return Vector(vector); }});
 		Object.defineProperty(ray, "length", {get: function(){ return Infinity; }});
 		Object.defineProperty(ray, "transform", {value: transform});
 		Object.defineProperty(ray, "rotate180", {value: rotate180});
@@ -1893,36 +1893,36 @@
 	};
 	const line$1 = function(x1, y1, x2, y2) {
 		let shape = document.createElementNS(svgNS, "line");
-		shape.setAttributeNS(null, "x1", x1);
-		shape.setAttributeNS(null, "y1", y1);
-		shape.setAttributeNS(null, "x2", x2);
-		shape.setAttributeNS(null, "y2", y2);
+		if (x1) { shape.setAttributeNS(null, "x1", x1); }
+		if (y1) { shape.setAttributeNS(null, "y1", y1); }
+		if (x2) { shape.setAttributeNS(null, "x2", x2); }
+		if (y2) { shape.setAttributeNS(null, "y2", y2); }
 		attachClassMethods(shape);
 		return shape;
 	};
 	const circle = function(x, y, radius) {
 		let shape = document.createElementNS(svgNS, "circle");
-		shape.setAttributeNS(null, "cx", x);
-		shape.setAttributeNS(null, "cy", y);
-		shape.setAttributeNS(null, "r", radius);
+		if (x) { shape.setAttributeNS(null, "cx", x); }
+		if (y) { shape.setAttributeNS(null, "cy", y); }
+		if (radius) { shape.setAttributeNS(null, "r", radius); }
 		attachClassMethods(shape);
 		return shape;
 	};
 	const ellipse = function(x, y, rx, ry) {
 		let shape = document.createElementNS(svgNS, "ellipse");
-		shape.setAttributeNS(null, "cx", x);
-		shape.setAttributeNS(null, "cy", y);
-		shape.setAttributeNS(null, "rx", rx);
-		shape.setAttributeNS(null, "ry", ry);
+		if (x) { shape.setAttributeNS(null, "cx", x); }
+		if (y) { shape.setAttributeNS(null, "cy", y); }
+		if (rx) { shape.setAttributeNS(null, "rx", rx); }
+		if (ry) { shape.setAttributeNS(null, "ry", ry); }
 		attachClassMethods(shape);
 		return shape;
 	};
 	const rect = function(x, y, width, height) {
 		let shape = document.createElementNS(svgNS, "rect");
-		shape.setAttributeNS(null, "x", x);
-		shape.setAttributeNS(null, "y", y);
-		shape.setAttributeNS(null, "width", width);
-		shape.setAttributeNS(null, "height", height);
+		if (x) { shape.setAttributeNS(null, "x", x); }
+		if (y) { shape.setAttributeNS(null, "y", y); }
+		if (width) { shape.setAttributeNS(null, "width", width); }
+		if (height) { shape.setAttributeNS(null, "height", height); }
 		attachClassMethods(shape);
 		return shape;
 	};
@@ -2094,12 +2094,11 @@
 		};
 		const didRelease = function(clientX, clientY) {
 			_pointer.isPressed = false;
-			setPosition(event.clientX, event.clientY);
 		};
 		const didPress = function(clientX, clientY) {
 			_pointer.isPressed = true;
-			_pointer.pressed = convertToViewBox(_node, event.clientX, event.clientY);
-			setPosition(event.clientX, event.clientY);
+			_pointer.pressed = convertToViewBox(_node, clientX, clientY);
+			setPosition(clientX, clientY);
 		};
 		const didMove = function(clientX, clientY) {
 			_pointer.prev = _pointer.position;
@@ -2145,6 +2144,7 @@
 			fireEvents(event, events);
 		};
 		const mouseUpHandler = function(event) {
+			mouseMoveHandler(event);
 			let events = _events[Names.end];
 			_pointer.didRelease(event.clientX, event.clientY);
 			fireEvents(event, events);
@@ -2164,6 +2164,11 @@
 			let touch = event.touches[0];
 			if (touch == null) { return; }
 			_pointer.didPress(touch.clientX, touch.clientY);
+			fireEvents(event, events);
+		};
+		const touchEndHandler = function(event) {
+			let events = _events[Names.end];
+			_pointer.didRelease();
 			fireEvents(event, events);
 		};
 		const touchMoveHandler = function(event) {
@@ -2212,10 +2217,10 @@
 			mousemove: mouseMoveHandler,
 			mouseleave: mouseLeaveHandler,
 			mouseenter: mouseEnterHandler,
-			touchend: mouseUpHandler,
+			touchend: touchEndHandler,
 			touchmove: touchMoveHandler,
 			touchstart: touchStartHandler,
-			touchcancel: mouseUpHandler,
+			touchcancel: touchEndHandler,
 			wheel: scrollHandler,
 		};
 		const addEventListener = function(eventName, func) {
@@ -2368,7 +2373,7 @@
 				setPosition(pos[0], pos[1]);
 			}
 		};
-		const onMouseUp = function(mouse) {
+		const onMouseUp = function() {
 			_selected = false;
 		};
 		const distance = function(mouse) {
@@ -2400,6 +2405,7 @@
 		let _points = Array.from(Array(number)).map(_ => controlPoint(options.parent, options));
 		let _selected = undefined;
 		const mouseDownHandler = function(event) {
+			event.preventDefault();
 			let mouse = convertToViewBox(svgObject, event.clientX, event.clientY);
 			if (!(_points.length > 0)) { return; }
 			_selected = _points
@@ -2410,17 +2416,47 @@
 			_points[_selected].selected = true;
 		};
 		const mouseMoveHandler = function(event) {
+			event.preventDefault();
 			let mouse = convertToViewBox(svgObject, event.clientX, event.clientY);
 			_points.forEach(p => p.onMouseMove(mouse));
 		};
 		const mouseUpHandler = function(event) {
-			let mouse = convertToViewBox(svgObject, event.clientX, event.clientY);
-			_points.forEach(p => p.onMouseUp(mouse));
+			event.preventDefault();
+			_points.forEach(p => p.onMouseUp());
 			_selected = undefined;
 		};
-		svgObject.addEventListener("mousedown", mouseDownHandler);
-		svgObject.addEventListener("mouseup", mouseUpHandler);
-		svgObject.addEventListener("mousemove", mouseMoveHandler);
+		const touchDownHandler = function(event) {
+			event.preventDefault();
+			let touch = event.touches[0];
+			if (touch == null) { return; }
+			let pointer = convertToViewBox(svgObject, touch.clientX, touch.clientY);
+			if (!(_points.length > 0)) { return; }
+			_selected = _points
+				.map((p,i) => ({i:i, d:p.distance(pointer)}))
+				.sort((a,b) => a.d - b.d)
+				.shift()
+				.i;
+			_points[_selected].selected = true;
+		};
+		const touchMoveHandler = function(event) {
+			event.preventDefault();
+			let touch = event.touches[0];
+			if (touch == null) { return; }
+			let pointer = convertToViewBox(svgObject, touch.clientX, touch.clientY);
+			_points.forEach(p => p.onMouseMove(pointer));
+		};
+		const touchUpHandler = function(event) {
+			event.preventDefault();
+			_points.forEach(p => p.onMouseUp());
+			_selected = undefined;
+		};
+		svgObject.addEventListener("touchstart", touchDownHandler, false);
+		svgObject.addEventListener("touchend", touchUpHandler, false);
+		svgObject.addEventListener("touchcancel", touchUpHandler, false);
+		svgObject.addEventListener("touchmove", touchMoveHandler, false);
+		svgObject.addEventListener("mousedown", mouseDownHandler, false);
+		svgObject.addEventListener("mouseup", mouseUpHandler, false);
+		svgObject.addEventListener("mousemove", mouseMoveHandler, false);
 		Object.defineProperty(_points, "selectedIndex", {get: function() { return _selected; }});
 		Object.defineProperty(_points, "selected", {get: function() { return _points[_selected]; }});
 		Object.defineProperty(_points, "removeAll", {value: function() {
@@ -3284,27 +3320,12 @@
 		}
 
 		// update every array with a 1:1 relationship to edges_ arrays
+		// keys like "edges_vertices", "edges_faces" and anything else "edges_..."
 		// these arrays change their size, their contents are untouched
-		if(graph.edges_vertices != null){
-			graph.edges_vertices = graph.edges_vertices
-				.filter((e,i) => !removes[i]);
-		}
-		if(graph.edges_faces != null){
-			graph.edges_faces = graph.edges_faces
-				.filter((e,i) => !removes[i]);
-		}
-		if(graph.edges_assignment != null){
-			graph.edges_assignment = graph.edges_assignment
-				.filter((e,i) => !removes[i]);
-		}
-		if(graph.edges_foldAngle != null){
-			graph.edges_foldAngle = graph.edges_foldAngle
-				.filter((e,i) => !removes[i]);
-		}
-		if(graph.edges_length != null){
-			graph.edges_length = graph.edges_length
-				.filter((e,i) => !removes[i]);
-		}
+		Object.keys(graph)
+			.filter(key => key.includes("edges_"))
+			.forEach(key => graph[key] = graph[key].filter((e,i) => !removes[i]));
+
 		return index_map;
 		// todo: do the same with frames in file_frames where inherit=true
 	};
@@ -3341,15 +3362,12 @@
 				}));
 		}
 		// update every array with a 1:1 relationship to faces_
+		// keys like "faces_vertices", "faces_edges" and anything else "faces_..."
 		// these arrays change their size, their contents are untouched
-		if (graph.faces_vertices != null) {
-			graph.faces_vertices = graph.faces_vertices
-				.filter((e,i) => !removes[i]);
-		}
-		if (graph.faces_edges != null) {
-			graph.faces_edges = graph.faces_edges
-				.filter((e,i) => !removes[i]);
-		}
+		Object.keys(graph)
+			.filter(key => key.includes("faces_"))
+			.forEach(key => graph[key] = graph[key].filter((e,i) => !removes[i]));
+
 		return index_map;
 		// todo: do the same with frames in file_frames where inherit=true
 	}
@@ -3744,6 +3762,8 @@
 		new_faces[1].edges = graph.faces_edges[faceIndex]
 			.slice(new_face_v_indices[0], new_face_v_indices[1])
 			.concat([graph.edges_vertices.length]);
+		new_faces[0].index = graph.faces_vertices.length;
+		new_faces[1].index = graph.faces_vertices.length+1;
 
 		// construct data for our new edge (vertices, faces, assignent, foldAngle, length)
 		let new_edges = [{
@@ -3762,6 +3782,7 @@
 		let edges_count$$1 = graph.edges_vertices.length;
 		let faces_count$$1 = graph.faces_vertices.length;
 		new_faces.forEach((face,i) => Object.keys(face)
+			.filter(suffix => suffix !== "index")
 			.forEach(suffix => graph["faces_"+suffix][faces_count$$1+i] = face[suffix])
 		);
 		new_edges.forEach((edge,i) => Object.keys(edge)
@@ -3776,7 +3797,6 @@
 			graph.vertices_vertices[a].push(b);
 			graph.vertices_vertices[b].push(a);
 		});
-
 
 		// rebuild edges_faces, vertices_faces
 		// search inside vertices_faces for an occurence of the removed face,
@@ -3817,7 +3837,10 @@
 			});
 
 		// remove faces, adjust all relevant indices
+		// console.log(JSON.parse(JSON.stringify(graph["re:faces_coloring"])));
 		let faces_map = remove_faces(graph, [faceIndex]);
+		// console.log("removing faceIndex", faces_map);
+		// console.log(JSON.parse(JSON.stringify(graph["re:faces_coloring"])));
 
 		// return a diff of the geometry
 		return {
@@ -3901,7 +3924,8 @@
 	 */
 
 	// for now, this uses "re:faces_layer", todo: use faceOrders
-	function crease_through_layers(graph, point, vector, face_index, crease_direction = "V") {
+	function crease_through_layers(graph, point, vector, grab_normal, crease_direction = "V") {
+		let face_index;
 		let opposite_crease = 
 			(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
 		// if face isn't set, it will be determined by whichever face
@@ -3917,17 +3941,70 @@
 			console.log(face_centroid);
 		}
 		let primaryLine = Line(point, vector);
-		let coloring = face_coloring(graph, face_index);
+		let grabNormal = Vector(grab_normal);
+
+		let graph_faces_coloring = graph["re:faces_coloring"] != null
+			? graph["re:faces_coloring"]
+			: face_coloring(graph, face_index);
+		let faces_to_move = Array.from(Array(graph.faces_vertices.length)).map(_ => false);
+
+		let move_normals = make_faces_matrix_inv(graph, face_index)
+			.map(m => grabNormal.transform(m));
+
 		make_faces_matrix_inv(graph, face_index)
 			.map(m => primaryLine.transform(m))
 			.reverse()
 			.forEach((line, reverse_i, arr) => {
 				let i = arr.length - 1 - reverse_i;
-				split_convex_polygon$1(graph, i, line.point,
-					line.vector, coloring[i] ? crease_direction : opposite_crease);
-			});
-		// determine which faces changed
+				let diff = split_convex_polygon$1(graph, i, line.point,
+					line.vector, graph_faces_coloring[i] ? crease_direction : opposite_crease);
+				console.log(diff);
+				if (diff != null && diff.faces != null) {
+					//
+					let move_normal = move_normals[i];
+					console.log("move_normal", move_normal);
+					diff.faces.replace.forEach(replace => {
+						// center of two faces - b/c convex, able to do a quick average
+						let face_centers = replace.new
+							.map(el => el.index + diff.faces.map[el.index])
+							.map(i => graph.faces_vertices[i])
+							.map(fv => fv.map(v => graph.vertices_coords[v]))
+							.map(face => 
+								face.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
+									.map(el => el/face.length)
+							);
+						let face_vectors = [
+							[face_centers[1][0] - face_centers[0][0], face_centers[1][1] - face_centers[0][1]],
+							[face_centers[0][0] - face_centers[1][0], face_centers[0][1] - face_centers[1][1]]
+						].map(vec => Vector(vec));
+						console.log("face_vectors", face_vectors);
+						let dots = face_vectors.map(v => v.dot(move_normal));
+						let will_move = dots.map(d => d > 0);
+						let colors = will_move.map(m => m
+							? !graph_faces_coloring[replace.old]
+							: graph_faces_coloring[replace.old]);
 
+						// delete graph_faces_coloring[replace.old];
+						replace.new.forEach((newFace, i) => {
+							console.log("adding new face at ", newFace.index);
+							graph_faces_coloring[newFace.index] = colors[i];
+							faces_to_move[newFace.index] = will_move[i];
+						});
+					});
+					// console.log("diff.faces.map", diff.faces.map);
+					// console.log("before", JSON.parse(JSON.stringify(graph_faces_coloring)));
+					diff.faces.map.forEach((change, index) => graph_faces_coloring[index+change] = graph_faces_coloring[index]);
+					graph_faces_coloring.pop();
+
+					diff.faces.map.forEach((change, index) => faces_to_move[index+change] = faces_to_move[index]);
+					faces_to_move.pop();
+					// console.log("after", JSON.parse(JSON.stringify(graph_faces_coloring)));
+				}
+			});
+		graph["re:faces_coloring"] = graph_faces_coloring;
+		graph["re:faces_to_move"] = faces_to_move;
+		// determine which faces changed
+		// console.log(graph);
 	}
 
 	function crease_folded(graph, point, vector, face_index) {
@@ -4299,954 +4376,6 @@
 			// return this;
 		}
 	};
-
-	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
-
-	// MIT open source license, Robby Kraft
-
-	let cpObjKeys = ["load", "json", "clear", "wipe", "clearGraph", "nearestVertex", "nearestEdge", "nearestFace", "vertex", "edge", "face", "crease", "addVertexOnEdge", "connectedGraphs", "axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7", "creaseRay"];
-
-	/** A graph is a set of nodes and edges connecting them */
-	function CreasePattern() {
-		let graph = {}; // the returned object. fold file format spec
-
-		// parse arguments, look for an input .fold file
-		let params = Array.from(arguments);
-		let paramsObjs = params.filter(el => typeof el === "object" && el !== null);
-		// todo: which key should we check to verify .fold? coords prevents abstract CPs
-		let foldObjs = paramsObjs.filter(el => el.vertices_coords != null);
-		if (foldObjs.length > 0) {
-			// expecting the user to have passed in a fold_file.
-			// if there are multiple we are only grabbing the first one
-			graph = JSON.parse(JSON.stringify(foldObjs.shift()));
-		} else {
-			// unit square is the default base if nothing else is provided
-			graph = JSON.parse(squareFoldString);
-		}
-
-		// unclear if we want to use this
-		// let frame = 0; // which fold file frame (0 ..< Inf) to display
-
-		// callback for when the crease pattern has been altered
-		graph.onchange = undefined;
-
-		graph.load = function(file) {
-			// todo:
-			let imported = JSON.parse(JSON.stringify(file));
-			// Graph.all_keys.filter(key => graph[key] = undefined) {
-
-			// }
-			for (let key in imported) {
-				graph[key] = imported[key];
-			}
-		};
-		graph.clear = function() {
-			remove_non_boundary_edges(graph);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		graph.wipe = function() {
-			// Graph.all_keys.filter(a => _m[a] != null)
-			// 	.forEach(key => delete _m[key]);
-			// if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		graph.clearGraph = function() {
-			// Graph.keys.graph.filter(a => _m[a] != null)
-			// 	.forEach(key => delete _m[key]);
-			// if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		Object.defineProperty(graph, "isFolded", { get: function(){
-			// try to discern folded state
-			if (graph.frame_classes == null) { return false; }
-			return graph.frame_classes.includes("foldedState");
-		}});
-		graph.copy = function() {
-			// todo: how do you call the function that we're inside?
-			return RabbitEar.CreasePattern(JSON.parse(JSON.stringify(graph)));
-		};
-		graph.nearestVertex = function(x, y, z = 0) {
-			let index = nearest_vertex(graph, [x, y, z]);
-			return (index != null) ? Vertex(this, index) : undefined;
-		};
-		graph.nearestEdge = function(x, y, z = 0) {
-			let index = nearest_edge(graph, [x, y, z]);
-			return (index != null) ? Edge$1(this, index) : undefined;
-		};
-		graph.nearestFace = function(x, y, z = 0) {
-			let index = face_containing_point(graph, [x, y, z]);
-			return (index != null) ? Face(this, index) : undefined;
-		};
-		graph.vertex = function(index)   { return Vertex(this, index);   };
-		graph.edge = function(index)     { return Edge$1(this, index);     };
-		graph.face = function(index)     { return Face(this, index);     };
-		graph.crease = function(indices) { return Crease(this, indices); };
-
-		// todo: these create new Geometry objects each time, even if the CP hasn't changed
-		Object.defineProperty(graph, "vertices", { get: function() {
-			return this.vertices_coords == null
-				? []
-				: this.vertices_coords.map(v => Vector(v));
-		}});
-		Object.defineProperty(graph, "edges", { get: function() {
-			return this.edges_vertices == null
-				? []
-				: this.edges_vertices
-					.map(e => e.map(ev => this.vertices_coords[ev]))
-					.map(e => Edge(e));
-		}});
-		Object.defineProperty(graph, "faces", { get: function() {
-			return this.faces_vertices == null
-				? []
-				: this.faces_vertices
-					.map(f => f.map(fv => this.vertices_coords[fv]))
-					.map(f => Polygon(f));
-		}});
-		Object.defineProperty(graph, "boundary", { get: function() {
-			// todo: this only works for unfolded flat crease patterns
-			return Polygon(get_boundary_face(graph)
-				.vertices
-				.map(v => graph.vertices_coords[v])
-			);
-		}});
-
-		graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {
-			add_vertex_on_edge(graph, x, y, oldEdgeIndex);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		graph.axiom1 = function() {
-			let points = get_two_vec2$1(...arguments);
-			if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
-			let crease = Crease(this, axiom1$1(graph, ...points));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom2 = function() {
-			let points = get_two_vec2$1(...arguments);
-			if (!points) { throw {name: "TypeError", message: "axiom2 needs 2 points"}; }
-			let crease = Crease(this, axiom2$1(graph, ...points));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom3 = function() {
-			let lines = get_two_lines(...arguments);
-			if (!lines) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
-			let crease = Crease(this, axiom3$1(graph, ...lines[0], ...lines[1]));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom4 = function() {
-			let crease = Crease(this, axiom4$1(graph, arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom5 = function() {
-			let crease = Crease(this, axiom5$1(graph, arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom6 = function() {
-			let crease = Crease(this, axiom6$1(graph, arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom7 = function() {
-			let crease = Crease(this, axiom7$1(graph, arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.creaseRay = function() {
-			let crease = Crease(this, creaseRay(graph, ...arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.creaseSegment = function() {
-			let crease = Crease(this, creaseSegment(graph, ...arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.creaseThroughLayers = function(point, vector, face) {
-			RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		graph.kawasaki = function() {
-			let crease = Crease(this, kawasaki_collapse(graph, ...arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		// getters, setters
-		Object.defineProperty(graph, "json", { get: function() {
-				let fold_file = Object.create(null);
-				Object.assign(fold_file, graph);
-				cpObjKeys.forEach(key => delete fold_file[key]);
-				return JSON.parse(JSON.stringify(fold_file));
-			}
-		});
-		Object.defineProperty(graph, "connectedGraphs", { get: function() {
-				return connectedGraphs(graph);
-			}
-		});
-
-		return graph;
-	}
-
-	// consider this: a crease can be an ARRAY of edges. 
-	// this way one crease is one crease. it's more what a person expects.
-	// one crease can == many edges.
-	const Crease = function(_graph, _indices) {
-		let graph = _graph; // pointer back to the graph;
-		let indices = _indices; // indices of this crease in the graph
-
-		const is_assignment = function(options) {
-			return indices.map(index => options
-					.map(l => l === graph.edges_assignment[index])
-					.reduce((a,b) => a || b, false)
-				).reduce((a,b) => a || b, false);
-		};
-		const is_mountain = function() { return is_assignment(["M", "m"]); };
-		const is_valley = function() { return is_assignment(["V", "v"]); };
-
-		const flip = function() {
-			if (is_mountain()) { valley(); }
-			else if (is_valley()) { mountain(); }
-			else { return; } // don't trigger the callback
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const mountain = function() {
-			indices.forEach(index => graph.edges_assignment[index] = "M");
-			indices.forEach(index => graph.edges_foldAngle[index] = -180);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const valley = function() {
-			indices.forEach(index => graph.edges_assignment[index] = "V");
-			indices.forEach(index => graph.edges_foldAngle[index] = 180);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const mark = function() {
-			indices.forEach(index => graph.edges_assignment[index] = "F");
-			indices.forEach(index => graph.edges_foldAngle[index] = 0);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const remove = function() { };
-		// const addVertexOnEdge = function(x, y) {
-		// 	let thisEdge = this.index;
-		// 	graph.addVertexOnEdge(x, y, thisEdge);
-		// }
-
-		return {
-			get index() { return _indices; },
-			mountain,
-			valley,
-			mark,
-			flip,
-			get isMountain(){ return is_mountain(); },
-			get isValley(){ return is_valley(); },
-			remove
-			// addVertexOnEdge
-		};
-	};
-
-	const Edge$1 = function(_graph, _index) {
-		let graph = _graph; // pointer back to the graph;
-		let index = _index; // index of this crease in the graph
-
-		let points = _graph.edges_vertices[_index]
-			.map(ev => _graph.vertices_coords[ev]);
-		let _e = Edge(points);
-
-		const is_assignment = function(options) {
-			return options.map(l => l === graph.edges_assignment[index])
-				.reduce((a,b) => a || b, false);
-		};
-		const is_mountain = function() { return is_assignment(["M", "m"]); };
-		const is_valley = function() { return is_assignment(["V", "v"]); };
-
-		const flip = function() {
-			if (is_mountain()) { valley(); }
-			else if (is_valley()) { mountain(); }
-			else { return; } // don't trigger the callback
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const mountain = function() {
-			graph.edges_assignment[index] = "M";
-			graph.edges_foldAngle[index] = -180;
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const valley = function() {
-			graph.edges_assignment[index] = "V";
-			graph.edges_foldAngle[index] = 180;
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const mark = function() {
-			graph.edges_assignment[index] = "F";
-			graph.edges_foldAngle[index] = 0;
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const addVertexOnEdge = function(x, y) {
-			let thisEdge = this.index;
-			graph.addVertexOnEdge(x, y, thisEdge);
-		};
-
-		Object.defineProperty(_e, "mountain", {value: mountain});
-		Object.defineProperty(_e, "valley", {value: valley});
-		Object.defineProperty(_e, "mark", {value: mark});
-		Object.defineProperty(_e, "flip", {value: flip});
-		Object.defineProperty(_e, "index", {
-			get: function(){ return _index; }
-		});
-		Object.defineProperty(_e, "isMountain", {
-			get: function(){ return is_mountain(); }
-		});
-		Object.defineProperty(_e, "isValley", {
-			get: function(){ return is_valley(); }
-		});
-		// Object.defineProperty(_e, "remove", {value: remove});
-		Object.defineProperty(_e, "addVertexOnEdge", {value: addVertexOnEdge});
-
-		return _e;
-	};
-
-	const Vertex = function(_graph, _index) {
-
-		let _v = Vector(_graph.vertices_coords[_index]);
-		Object.defineProperty(_v, "index", {
-			get: function(){ return _index; }
-		});
-		return _v;
-	};
-
-	const Face = function(_graph, _index) {
-
-		let points = _graph.faces_vertices[_index]
-			.map(fv => _graph.vertices_coords[fv]);
-		let _f = Polygon(points);
-		Object.defineProperty(_f, "index", {
-			get: function(){ return _index; }
-		});
-		return _f;
-	};
-
-	const flatten_frame = function(fold_file, frame_num){
-		const dontCopy = ["frame_parent", "frame_inherit"];
-		var memo = {visited_frames:[]};
-		function recurse(fold_file, frame, orderArray){
-			if(memo.visited_frames.indexOf(frame) != -1){
-				throw ".FOLD file_frames encountered a cycle. stopping.";
-				return orderArray;
-			}
-			memo.visited_frames.push(frame);
-			orderArray = [frame].concat(orderArray);
-			if(frame == 0){ return orderArray; }
-			if(fold_file.file_frames[frame - 1].frame_inherit &&
-			   fold_file.file_frames[frame - 1].frame_parent != undefined){
-				return recurse(fold_file, fold_file.file_frames[frame - 1].frame_parent, orderArray);
-			}
-			return orderArray;
-		}
-		return recurse(fold_file, frame_num, []).map(frame => {
-			if(frame == 0){
-				// for frame 0 (the key frame) don't copy over file_frames array
-				let swap = fold_file.file_frames;
-				fold_file.file_frames = null;
-				let copy = JSON.parse(JSON.stringify(fold_file));
-				fold_file.file_frames = swap;
-				delete copy.file_frames;
-				dontCopy.forEach(key => delete copy[key]);
-				return copy;
-			}
-			let copy = JSON.parse(JSON.stringify(fold_file.file_frames[frame-1]));
-			dontCopy.forEach(key => delete copy[key]);
-			return copy;
-		}).reduce((prev,curr) => Object.assign(prev,curr),{})
-	};
-
-	const merge_frame$1 = function(fold_file, frame){
-		const dontCopy = ["frame_parent", "frame_inherit"];
-		let copy = JSON.parse(JSON.stringify(frame));
-		dontCopy.forEach(key => delete copy[key]);
-		// don't deep copy file_frames. stash. bring them back.
-		let swap = fold_file.file_frames;
-		fold_file.file_frames = null;
-		let fold = JSON.parse(JSON.stringify(fold_file));
-		fold_file.file_frames = swap;
-		delete fold.file_frames;
-		// merge 2
-		Object.assign(fold, frame);
-		return fold;
-	};
-
-	var frame = /*#__PURE__*/Object.freeze({
-		flatten_frame: flatten_frame,
-		merge_frame: merge_frame$1
-	});
-
-	/**
-	 * .FOLD file into SVG, and back
-	 */
-
-	const CREASE_DIR = {
-		"B": "boundary", "b": "boundary",
-		"M": "mountain", "m": "mountain",
-		"V": "valley",   "v": "valley",
-		"F": "mark",     "f": "mark",
-		"U": "mark",     "u": "mark"
-	};
-
-	const boundary = function(graph) {
-		let boundary = get_boundary_vertices(graph)
-			.map(v => graph.vertices_coords[v]);
-		return [polygon(boundary).setClass("boundary")];
-	};
-
-	const vertices = function(graph, options) {
-		let radius = options && options.radius ? options.radius : 0.01;
-		return graph.vertices_coords.map((v,i) =>
-			circle(v[0], v[1], radius)
-				.setClass("vertex")
-				.setID(""+i)
-		);
-	};
-
-	const creases = function(graph) {
-		let edges = graph.edges_vertices
-			.map(ev => ev.map(v => graph.vertices_coords[v]));
-		let eAssignments = graph.edges_assignment.map(a => CREASE_DIR[a]);
-		return edges.map((e,i) =>
-			line$1(e[0][0], e[0][1], e[1][0], e[1][1])
-				.setClass(eAssignments[i])
-				.setID(""+i)
-		);
-	};
-
-	const facesVertices = function(graph) {
-		let fAssignments = graph.faces_vertices.map(fv => "face");
-		let facesV = !(graph.faces_vertices) ? [] : graph.faces_vertices
-			.map(fv => fv.map(v => graph.vertices_coords[v]));
-			// .map(face => Geom.Polygon(face));
-		// facesV = facesV.map(face => face.scale(0.6666));
-		return facesV.filter(f => f != null).map((face, i) =>
-			polygon(face)
-				.setClass(fAssignments[i])
-				.setID(""+i)
-		);
-	};
-
-	const facesEdges = function(graph) {
-		let fAssignments = graph.faces_vertices.map(fv => "face");
-		let facesE = !(graph.faces_edges) ? [] : graph.faces_edges
-			.map(face_edges => face_edges
-				.map(edge => graph.edges_vertices[edge])
-				.map((vi,i,arr) => {
-					let next = arr[(i+1)%arr.length];
-					return (vi[1] === next[0] || vi[1] === next[1]
-						? vi[0] : vi[1]);
-				}).map(v => graph.vertices_coords[v])
-			);
-			// .map(face => Geom.Polygon(face));
-		// facesE = facesE.map(face => face.scale(0.8333));
-		return facesE.filter(f => f != null).map((face, i) =>
-			polygon(face)
-				.setClass(fAssignments[i])
-				.setID(""+i)
-		);
-	};
-
-	const foldedFaces = function(graph) {
-		let facesV = graph.faces_vertices
-			.map(fv => fv.map(v => graph.vertices_coords[v]));
-			// .map(face => Geom.Polygon(face));
-		if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
-			return graph["re:faces_layer"].map((fi,i) =>
-				polygon(facesV[fi])
-					.setClass(i%2==0 ? "face-front" : "face-back")
-					.setID(""+i)
-			);
-		// } else if (graph.facesOrder && graph.facesOrder.length > 0) {
-		} else {
-			return facesV.map((face, i) =>
-				polygon(face)
-					.setClass("folded-face")
-					.setID(""+i)
-				);
-		}
-	};
-
-	/** .FOLD file viewer
-	 * this is an SVG based front-end for the .fold file format
-	 *  (.fold file spec: https://github.com/edemaine/fold)
-	 *
-	 *  View constructor arguments:
-	 *   - fold file
-	 *   - DOM object, or "string" DOM id to attach to
-	 */
-
-	const plural = { boundary: "boundaries", face: "faces", crease: "creases", vertex: "vertices" };
-
-	function View2D() {
-
-		let _this = image(...arguments);
-
-		let groups = {};
-		["boundary", "face", "crease", "vertex"].forEach(key =>
-			groups[key] = _this.group().setID(plural[key])
-		);
-
-		let prop = {
-			cp: undefined, 
-			frame: undefined,
-			style: {
-				vertex_radius: 0.01 // percent of page
-			},
-		};
-
-		const setCreasePattern = function(cp) {
-			// todo: check if cp is a CreasePattern type
-			prop.cp = cp;
-			draw();
-			prop.cp.onchange = draw;
-		};
-
-		const drawFolded = function(graph) {
-			foldedFaces(graph)
-				.forEach(f => groups.face.appendChild(f));
-		};
-
-		const drawCreasePattern = function(graph) {
-			let drawings = {
-				boundary: boundary(graph),
-				face: facesVertices(graph).concat(facesEdges(graph)),
-				crease: creases(graph),
-				vertex: vertices(graph)
-			};
-			Object.keys(drawings).forEach(key => 
-				drawings[key].forEach(el => groups[key].appendChild(el))
-			);
-		};
-
-		const draw = function() {
-			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
-			// flatten if necessary
-			let graph = prop.frame
-				? flatten_frame(prop.cp, prop.frame)
-				: prop.cp;
-			if (graph.isFolded) {
-				drawFolded(graph);
-			} else{
-				drawCreasePattern(graph);
-			}
-			updateViewBox();
-		};
-
-		const updateViewBox = function() {
-			let r = bounding_rect(prop.cp);
-			setViewBox(_this, r[0], r[1], r[2], r[3]);
-		};
-
-		const showVertices = function(){ groups.vertex.removeAttribute("visibility");};
-		const hideVertices = function(){ groups.vertex.setAttribute("visibility", "hidden");};
-		const showEdges = function(){ groups.crease.removeAttribute("visibility");};
-		const hideEdges = function(){ groups.crease.setAttribute("visibility", "hidden");};
-		const showFaces = function(){ groups.face.removeAttribute("visibility");};
-		const hideFaces = function(){ groups.face.setAttribute("visibility", "hidden");};
-
-		const nearest = function() {
-			let p = Vector(...arguments);
-			let methods = {
-				"vertex": prop.cp.nearestVertex,
-				"crease": prop.cp.nearestEdge,
-				"face": prop.cp.nearestFace,
-			};
-			let nearest = {};
-			// fill the methods
-			Object.keys(methods)
-				.forEach(key => nearest[key] = methods[key].apply(prop.cp, p));
-			Object.keys(methods)
-				.filter(key => methods[key] == null)
-				.forEach(key => delete methods[key]);
-			Object.keys(nearest)
-				.filter(key => nearest[key] != null)
-				.forEach(key => nearest[key].svg = groups[key].childNodes[nearest[key].index]);
-			return nearest;
-		};
-
-		const load$$1 = function(input, callback) { // epsilon
-			load_fold(input, function(fold){
-				setCreasePattern( CreasePattern(fold) );
-				if (callback != null) { callback(); }
-			});
-		};
-
-		const fold = function(face){
-			let folded = fold_without_layering(prop.cp, face);
-			setCreasePattern( CreasePattern(folded) );
-		};
-
-		Object.defineProperty(_this, "cp", {
-			get: function() { return prop.cp; },
-			set: function(cp) { setCreasePattern(cp); }
-		});
-		Object.defineProperty(_this, "frameCount", {
-			get: function() { return prop.cp.file_frames ? prop.cp.file_frames.length : 0; }
-		});
-		Object.defineProperty(_this, "frame", {
-			set: function(f) { prop.frame = f; draw(); },
-			get: function() { return prop.frame; }
-		});
-
-		// attach CreasePattern methods
-		["axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7",
-		 "crease"]
-			.forEach(method => Object.defineProperty(_this, method, {
-				value: function(){ return prop.cp[method](...arguments); }
-			}));
-		// attach CreasePattern getters
-		["boundary", "vertices", "edges", "faces", "isFolded"]
-			.forEach(method => Object.defineProperty(_this, method, {
-				get: function(){ return prop.cp[method]; }
-			}));
-
-		Object.defineProperty(_this, "nearest", {value: nearest});
-		Object.defineProperty(_this, "draw", { value: draw });
-		Object.defineProperty(_this, "fold", { value: fold });
-		Object.defineProperty(_this, "load", { value: load$$1 });
-		Object.defineProperty(_this, "folded", { 
-			set: function(f) {
-				prop.cp.frame_classes = prop.cp.frame_classes
-					.filter(a => a !== "creasePattern");
-				prop.cp.frame_classes = prop.cp.frame_classes
-					.filter(a => a !== "foldedState");
-				prop.cp.frame_classes.push("foldedState");
-				// todo re-call draw()
-			}
-		});
-		Object.defineProperty(_this, "showVertices", { value: showVertices });
-		Object.defineProperty(_this, "hideVertices", { value: hideVertices });
-		Object.defineProperty(_this, "showEdges", { value: showEdges });
-		Object.defineProperty(_this, "hideEdges", { value: hideEdges });
-		Object.defineProperty(_this, "showFaces", { value: showFaces });
-		Object.defineProperty(_this, "hideFaces", { value: hideFaces });
-
-		// boot
-		setCreasePattern( CreasePattern(...arguments) );
-
-		return _this;
-	}
-
-	/** .FOLD file viewer
-	 * this is an THREE.js based front-end for the .fold file format
-	 *  (.fold file spec: https://github.com/edemaine/fold)
-	 *
-	 *  View constructor arguments:
-	 *   - fold file
-	 *   - DOM object, or "string" DOM id to attach to
-	 */
-
-	// import { unitSquare } from "./OrigamiBases"
-	const unitSquare = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
-
-	function View3D(){
-
-		//  from arguments, get a fold file, if it exists
-		let args = Array.from(arguments);
-		let _cp = args.filter(arg =>
-			typeof arg == "object" && arg.vertices_coords != undefined
-		).shift();
-		if(_cp == undefined){ _cp = unitSquare; }
-
-
-		let allMeshes = [];
-		let scene = new THREE.Scene();
-		let _parent;
-
-		function bootThreeJS(domParent){
-			var camera = new THREE.PerspectiveCamera(45, domParent.clientWidth/domParent.clientHeight, 0.1, 1000);
-			var controls = new THREE.OrbitControls(camera, domParent);
-			camera.position.set(0.5, 0.5, 1.5);
-			controls.target.set(0.5, 0.5, 0.0);
-			// camera.position.set(0.0, 0.0, 1.5 );
-			// controls.target.set(0.0, 0.0, 0.0);
-			controls.addEventListener('change', render);
-			var renderer = new THREE.WebGLRenderer({antialias:true});
-			renderer.setClearColor("#FFFFFF");
-			renderer.setSize(domParent.clientWidth, domParent.clientHeight);
-			domParent.appendChild(renderer.domElement);
-			// shining from below
-			var directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.2);
-			directionalLight2.position.set(20, 20, -100);
-			scene.add(directionalLight2);
-			// above
-			var spotLight1 = new THREE.SpotLight(0xffffff, 0.3);
-			spotLight1.position.set(50, -200, 100);
-			scene.add(spotLight1);
-			var spotLight2 = new THREE.SpotLight(0xffffff, 0.3);
-			spotLight2.position.set(100, 50, 200);
-			scene.add(spotLight2);
-			var ambientLight = new THREE.AmbientLight(0xffffff, 0.48);
-			scene.add(ambientLight);
-
-			var render = function(){
-				requestAnimationFrame(render);
-				renderer.render(scene, camera);
-				controls.update();
-			};
-			render();
-
-			draw();
-		}
-
-		// after page load, find a parent element for the new SVG in the arguments
-		const attachToDOM = function(){
-			let functions = args.filter((arg) => typeof arg === "function");
-			let numbers = args.filter((arg) => !isNaN(arg));
-			let element = args.filter((arg) =>
-					arg instanceof HTMLElement)
-				.shift();
-			let idElement = args.filter((a) =>
-					typeof a === "string" || a instanceof String)
-				.map(str => document.getElementById(str))
-				.shift();
-			_parent = (element != null
-				? element
-				: (idElement != null
-					? idElement
-					: document.body));
-			bootThreeJS(_parent);
-			if(numbers.length >= 2){
-				_svg.setAttributeNS(null, "width", numbers[0]);
-				_svg.setAttributeNS(null, "height", numbers[1]);
-			} 
-			if(functions.length >= 1){
-				functions[0]();
-			}
-		};
-
-
-		if(document.readyState === 'loading') {
-			// wait until after the <body> has rendered
-			document.addEventListener('DOMContentLoaded', attachToDOM);
-		} else {
-			attachToDOM();
-		}
-
-
-		function draw(){
-			var material = new THREE.MeshPhongMaterial({
-				color: 0xffffff,
-				side: THREE.DoubleSide,
-				flatShading:true,
-				shininess:0,
-				specular:0xffffff,
-				reflectivity:0
-			});
-			let faces = foldFileToThreeJSFaces(_cp, material);
-			let lines = foldFileToThreeJSLines(_cp);
-			allMeshes.forEach(mesh => scene.remove(mesh));
-			allMeshes = [];
-			allMeshes.push(faces);
-			allMeshes.push(lines);
-			allMeshes.forEach(mesh => scene.add(mesh));
-		}
-
-
-		const load = function(input, callback){ // epsilon
-			// are they giving us a filename, or the data of an already loaded file?
-			if (typeof input === 'string' || input instanceof String){
-				let extension = input.substr((input.lastIndexOf('.') + 1));
-				// filename. we need to upload
-				switch(extension){
-					case 'fold':
-					fetch(input)
-						.then((response) => response.json)
-						.then((data) => {
-							_cp = data;
-							draw();
-							if(callback != undefined){ callback(_cp); }
-						});
-					// return this;
-				}
-			}
-			try{
-				// try .fold file format first
-				let foldFileImport = JSON.parse(input);
-				_cp = foldFileImport;
-				// return this;
-			} catch(err){
-				console.log("not a valid .fold file format");
-				// return this;
-			}
-		};
-
-		const getFrames = function(){ return _cp.file_frames; };
-		const getFrame = function(index){ return _cp.file_frames[index]; };
-		const setFrame = function(index){
-			draw();
-		};
-
-
-		// return Object.freeze({
-		return {
-			set cp(c){
-				_cp = c;
-				draw();
-			},
-			get cp(){
-				return _cp;
-			},
-			draw,
-			load,
-			getFrames,
-			getFrame,
-			setFrame,
-		// });
-		};
-
-
-
-
-		function foldFileToThreeJSFaces(foldFile, material){
-			
-			var geometry = new THREE.BufferGeometry();
-			let vertices = foldFile.vertices_coords
-				.map(v => [v[0], v[1], (v[2] != undefined ? v[2] : 0)])
-				.reduce((prev,curr) => prev.concat(curr), []);
-			let normals = foldFile.vertices_coords
-				.map(v => [0,0,1])
-				.reduce((prev,curr) => prev.concat(curr), []);
-			let colors = foldFile.vertices_coords
-				.map(v => [1,1,1])
-				.reduce((prev,curr) => prev.concat(curr), []);
-			let faces = foldFile.faces_vertices
-				.map(fv => fv.map((v,i,arr) => [arr[0], arr[i+1], arr[i+2]])
-				             .slice(0, fv.length-2))
-				.reduce((prev,curr) => prev.concat(curr), [])
-				.reduce((prev,curr) => prev.concat(curr), []);
-
-			geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-			geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-			geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-			geometry.setIndex(faces);
-
-			if(material == undefined){ material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide}); }
-			return new THREE.Mesh(geometry, material);
-		}
-
-		function crossVec3(a,b){
-			return [
-				a[1]*b[2] - a[2]*b[1],
-				a[2]*b[0] - a[0]*b[2],
-				a[0]*b[1] - a[1]*b[0]
-			];
-		}
-		function magVec3(v){
-			return Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
-		}
-		function normalizeVec3(v){
-			let mag = Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
-			return [v[0] / mag, v[1] / mag, v[2] / mag];
-		}
-		function scaleVec3(v, scale){
-			return [v[0]*scale, v[1]*scale, v[2]*scale];
-		}
-
-		function cylinderEdgeVertices(edge, radius){
-			// normalized edge vector
-			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
-			let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-			if(mag < 1e-10){ throw "degenerate edge"; }
-			let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
-			let perp = [
-				normalizeVec3(crossVec3(normalized, [1,0,0])),
-				normalizeVec3(crossVec3(normalized, [0,1,0])),
-				normalizeVec3(crossVec3(normalized, [0,0,1]))
-			].map((v,i) => ({i:i, v:v, mag:magVec3(v)}))
-			 .filter(v => v.mag > 1e-10)
-			 .map(obj => obj.v)
-			 .shift();
-			let rotated = [perp];
-			for(var i = 1; i < 4; i++){
-				rotated.push(normalizeVec3(crossVec3(rotated[i-1], normalized)));
-			}
-			let dirs = rotated.map(v => scaleVec3(v, radius));
-			return edge
-				.map(v => dirs.map(dir => [v[0]+dir[0], v[1]+dir[1], v[2]+dir[2]]))
-				.reduce((prev,curr) => prev.concat(curr), []);
-		}
-
-		function foldFileToThreeJSLines(foldFile, scale=0.005){
-			let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
-			// make sure they all have a z component. when z is implied it's 0
-			edges.forEach(edge => {
-				if(edge[0][2] == undefined){ edge[0][2] = 0; }
-				if(edge[1][2] == undefined){ edge[1][2] = 0; }
-			});
-
-			let colorAssignments = {
-				"B": [0.0,0.0,0.0],
-				// "M": [0.9,0.31,0.16],
-				"M": [0.6,0.2,0.11],
-				"F": [0.25,0.25,0.25],
-				"V": [0.12,0.35,0.50]
-			};
-
-			let colors = foldFile.edges_assignment.map(e => 
-				[colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
-				colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
-			).reduce((prev,curr) => prev.concat(curr), [])
-			 .reduce((prev,curr) => prev.concat(curr), [])
-			 .reduce((prev,curr) => prev.concat(curr), []);
-
-			let vertices = edges
-				.map(edge => cylinderEdgeVertices(edge, scale))
-				.reduce((prev,curr) => prev.concat(curr), [])
-				.reduce((prev,curr) => prev.concat(curr), []);
-
-			let normals = edges.map(edge => {
-				// normalized edge vector
-				let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
-				let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-				if(mag < 1e-10){ throw "degenerate edge"; }
-				let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
-				let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
-				return [
-					c0, [-c0[2], c0[1], c0[0]],
-					c1, [-c1[2], c1[1], c1[0]],
-					c0, [-c0[2], c0[1], c0[0]],
-					c1, [-c1[2], c1[1], c1[0]]
-				]
-			}).reduce((prev,curr) => prev.concat(curr), [])
-			  .reduce((prev,curr) => prev.concat(curr), []);
-
-			let faces = edges.map((e,i) => [
-				// 8 triangles making the long cylinder
-				i*8+0, i*8+4, i*8+1,
-				i*8+1, i*8+4, i*8+5,
-				i*8+1, i*8+5, i*8+2,
-				i*8+2, i*8+5, i*8+6,
-				i*8+2, i*8+6, i*8+3,
-				i*8+3, i*8+6, i*8+7,
-				i*8+3, i*8+7, i*8+0,
-				i*8+0, i*8+7, i*8+4,
-				// endcaps
-				i*8+0, i*8+1, i*8+3,
-				i*8+1, i*8+2, i*8+3,
-				i*8+5, i*8+4, i*8+7,
-				i*8+7, i*8+6, i*8+5,
-			]).reduce((prev,curr) => prev.concat(curr), []);
-
-			var geometry = new THREE.BufferGeometry();
-			geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-			geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-			geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-			geometry.setIndex(faces);
-			geometry.computeVertexNormals();
-
-			var material = new THREE.MeshToonMaterial( {
-					shininess: 0,
-					side: THREE.DoubleSide, vertexColors: THREE.VertexColors
-			} );
-			return new THREE.Mesh(geometry, material);
-		}
-
-
-	}
 
 	function valleyfold(foldFile, linePoint, lineVector, touchPoint){
 
@@ -5699,6 +4828,969 @@
 		}
 		return mesh;
 	};
+
+	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
+
+	// MIT open source license, Robby Kraft
+
+	let cpObjKeys = ["load", "json", "clear", "wipe", "clearGraph", "nearestVertex", "nearestEdge", "nearestFace", "vertex", "edge", "face", "crease", "addVertexOnEdge", "connectedGraphs", "axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7", "creaseRay"];
+
+	/** A graph is a set of nodes and edges connecting them */
+	function CreasePattern() {
+		let graph = {}; // the returned object. fold file format spec
+
+		// parse arguments, look for an input .fold file
+		let params = Array.from(arguments);
+		let paramsObjs = params.filter(el => typeof el === "object" && el !== null);
+		// todo: which key should we check to verify .fold? coords prevents abstract CPs
+		let foldObjs = paramsObjs.filter(el => el.vertices_coords != null);
+		if (foldObjs.length > 0) {
+			// expecting the user to have passed in a fold_file.
+			// if there are multiple we are only grabbing the first one
+			graph = JSON.parse(JSON.stringify(foldObjs.shift()));
+		} else {
+			// unit square is the default base if nothing else is provided
+			graph = JSON.parse(squareFoldString);
+		}
+
+		// unclear if we want to use this
+		// let frame = 0; // which fold file frame (0 ..< Inf) to display
+
+		// callback for when the crease pattern has been altered
+		graph.onchange = undefined;
+
+		graph.load = function(file) {
+			// todo:
+			let imported = JSON.parse(JSON.stringify(file));
+			// Graph.all_keys.filter(key => graph[key] = undefined) {
+
+			// }
+			for (let key in imported) {
+				graph[key] = imported[key];
+			}
+		};
+		graph.clear = function() {
+			remove_non_boundary_edges(graph);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		graph.wipe = function() {
+			// Graph.all_keys.filter(a => _m[a] != null)
+			// 	.forEach(key => delete _m[key]);
+			// if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		graph.clearGraph = function() {
+			// Graph.keys.graph.filter(a => _m[a] != null)
+			// 	.forEach(key => delete _m[key]);
+			// if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		Object.defineProperty(graph, "isFolded", { get: function(){
+			// try to discern folded state
+			if (graph.frame_classes == null) { return false; }
+			return graph.frame_classes.includes("foldedState");
+		}});
+		graph.copy = function() {
+			// todo: how do you call the function that we're inside?
+			return RabbitEar.CreasePattern(JSON.parse(JSON.stringify(graph)));
+		};
+		graph.nearestVertex = function(x, y, z = 0) {
+			let index = nearest_vertex(graph, [x, y, z]);
+			return (index != null) ? Vertex(this, index) : undefined;
+		};
+		graph.nearestEdge = function(x, y, z = 0) {
+			let index = nearest_edge(graph, [x, y, z]);
+			return (index != null) ? Edge$1(this, index) : undefined;
+		};
+		graph.nearestFace = function(x, y, z = 0) {
+			let index = face_containing_point(graph, [x, y, z]);
+			return (index != null) ? Face(this, index) : undefined;
+		};
+		graph.vertex = function(index)   { return Vertex(this, index);   };
+		graph.edge = function(index)     { return Edge$1(this, index);     };
+		graph.face = function(index)     { return Face(this, index);     };
+		graph.crease = function(indices) { return Crease(this, indices); };
+
+		// todo: these create new Geometry objects each time, even if the CP hasn't changed
+		Object.defineProperty(graph, "vertices", { get: function() {
+			return this.vertices_coords == null
+				? []
+				: this.vertices_coords.map(v => Vector(v));
+		}});
+		Object.defineProperty(graph, "edges", { get: function() {
+			return this.edges_vertices == null
+				? []
+				: this.edges_vertices
+					.map(e => e.map(ev => this.vertices_coords[ev]))
+					.map(e => Edge(e));
+		}});
+		Object.defineProperty(graph, "faces", { get: function() {
+			return this.faces_vertices == null
+				? []
+				: this.faces_vertices
+					.map(f => f.map(fv => this.vertices_coords[fv]))
+					.map(f => Polygon(f));
+		}});
+		Object.defineProperty(graph, "boundary", { get: function() {
+			// todo: this only works for unfolded flat crease patterns
+			return Polygon(get_boundary_face(graph)
+				.vertices
+				.map(v => graph.vertices_coords[v])
+			);
+		}});
+
+		graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {
+			add_vertex_on_edge(graph, x, y, oldEdgeIndex);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		graph.axiom1 = function() {
+			let points = get_two_vec2$1(...arguments);
+			if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
+			let crease = Crease(this, axiom1$1(graph, ...points));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
+		};
+		graph.axiom2 = function() {
+			let points = get_two_vec2$1(...arguments);
+			if (!points) { throw {name: "TypeError", message: "axiom2 needs 2 points"}; }
+			let crease = Crease(this, axiom2$1(graph, ...points));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
+		};
+		graph.axiom3 = function() {
+			let lines = get_two_lines(...arguments);
+			if (!lines) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
+			let crease = Crease(this, axiom3$1(graph, ...lines[0], ...lines[1]));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
+		};
+		graph.axiom4 = function() {
+			let crease = Crease(this, axiom4$1(graph, arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
+		};
+		graph.axiom5 = function() {
+			let crease = Crease(this, axiom5$1(graph, arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
+		};
+		graph.axiom6 = function() {
+			let crease = Crease(this, axiom6$1(graph, arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
+		};
+		graph.axiom7 = function() {
+			let crease = Crease(this, axiom7$1(graph, arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
+		};
+		graph.creaseRay = function() {
+			let crease = Crease(this, creaseRay(graph, ...arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
+		};
+		graph.creaseSegment = function() {
+			let crease = Crease(this, creaseSegment(graph, ...arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
+		};
+		graph.creaseThroughLayers = function(point, vector, face) {
+			RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		graph.valleyFold = function(point, vector, grabPoint) {
+			crease_through_layers(graph, point, vector, grabPoint);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		graph.kawasaki = function() {
+			let crease = Crease(this, kawasaki_collapse(graph, ...arguments));
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+			return crease;
+		};
+		// getters, setters
+		Object.defineProperty(graph, "json", { get: function() {
+				let fold_file = Object.create(null);
+				Object.assign(fold_file, graph);
+				cpObjKeys.forEach(key => delete fold_file[key]);
+				return JSON.parse(JSON.stringify(fold_file));
+			}
+		});
+		Object.defineProperty(graph, "connectedGraphs", { get: function() {
+				return connectedGraphs(graph);
+			}
+		});
+
+		return graph;
+	}
+
+	// consider this: a crease can be an ARRAY of edges. 
+	// this way one crease is one crease. it's more what a person expects.
+	// one crease can == many edges.
+	const Crease = function(_graph, _indices) {
+		let graph = _graph; // pointer back to the graph;
+		let indices = _indices; // indices of this crease in the graph
+
+		const is_assignment = function(options) {
+			return indices.map(index => options
+					.map(l => l === graph.edges_assignment[index])
+					.reduce((a,b) => a || b, false)
+				).reduce((a,b) => a || b, false);
+		};
+		const is_mountain = function() { return is_assignment(["M", "m"]); };
+		const is_valley = function() { return is_assignment(["V", "v"]); };
+
+		const flip = function() {
+			if (is_mountain()) { valley(); }
+			else if (is_valley()) { mountain(); }
+			else { return; } // don't trigger the callback
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const mountain = function() {
+			indices.forEach(index => graph.edges_assignment[index] = "M");
+			indices.forEach(index => graph.edges_foldAngle[index] = -180);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const valley = function() {
+			indices.forEach(index => graph.edges_assignment[index] = "V");
+			indices.forEach(index => graph.edges_foldAngle[index] = 180);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const mark = function() {
+			indices.forEach(index => graph.edges_assignment[index] = "F");
+			indices.forEach(index => graph.edges_foldAngle[index] = 0);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const remove = function() { };
+		// const addVertexOnEdge = function(x, y) {
+		// 	let thisEdge = this.index;
+		// 	graph.addVertexOnEdge(x, y, thisEdge);
+		// }
+
+		return {
+			get index() { return _indices; },
+			mountain,
+			valley,
+			mark,
+			flip,
+			get isMountain(){ return is_mountain(); },
+			get isValley(){ return is_valley(); },
+			remove
+			// addVertexOnEdge
+		};
+	};
+
+	const Edge$1 = function(_graph, _index) {
+		let graph = _graph; // pointer back to the graph;
+		let index = _index; // index of this crease in the graph
+
+		let points = _graph.edges_vertices[_index]
+			.map(ev => _graph.vertices_coords[ev]);
+		let _e = Edge(points);
+
+		const is_assignment = function(options) {
+			return options.map(l => l === graph.edges_assignment[index])
+				.reduce((a,b) => a || b, false);
+		};
+		const is_mountain = function() { return is_assignment(["M", "m"]); };
+		const is_valley = function() { return is_assignment(["V", "v"]); };
+
+		const flip = function() {
+			if (is_mountain()) { valley(); }
+			else if (is_valley()) { mountain(); }
+			else { return; } // don't trigger the callback
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const mountain = function() {
+			graph.edges_assignment[index] = "M";
+			graph.edges_foldAngle[index] = -180;
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const valley = function() {
+			graph.edges_assignment[index] = "V";
+			graph.edges_foldAngle[index] = 180;
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const mark = function() {
+			graph.edges_assignment[index] = "F";
+			graph.edges_foldAngle[index] = 0;
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const addVertexOnEdge = function(x, y) {
+			let thisEdge = this.index;
+			graph.addVertexOnEdge(x, y, thisEdge);
+		};
+
+		Object.defineProperty(_e, "mountain", {value: mountain});
+		Object.defineProperty(_e, "valley", {value: valley});
+		Object.defineProperty(_e, "mark", {value: mark});
+		Object.defineProperty(_e, "flip", {value: flip});
+		Object.defineProperty(_e, "index", {
+			get: function(){ return _index; }
+		});
+		Object.defineProperty(_e, "isMountain", {
+			get: function(){ return is_mountain(); }
+		});
+		Object.defineProperty(_e, "isValley", {
+			get: function(){ return is_valley(); }
+		});
+		// Object.defineProperty(_e, "remove", {value: remove});
+		Object.defineProperty(_e, "addVertexOnEdge", {value: addVertexOnEdge});
+
+		return _e;
+	};
+
+	const Vertex = function(_graph, _index) {
+
+		let _v = Vector(_graph.vertices_coords[_index]);
+		Object.defineProperty(_v, "index", {
+			get: function(){ return _index; }
+		});
+		return _v;
+	};
+
+	const Face = function(_graph, _index) {
+
+		let points = _graph.faces_vertices[_index]
+			.map(fv => _graph.vertices_coords[fv]);
+		let _f = Polygon(points);
+		Object.defineProperty(_f, "index", {
+			get: function(){ return _index; }
+		});
+		return _f;
+	};
+
+	const flatten_frame = function(fold_file, frame_num){
+		const dontCopy = ["frame_parent", "frame_inherit"];
+		var memo = {visited_frames:[]};
+		function recurse(fold_file, frame, orderArray){
+			if(memo.visited_frames.indexOf(frame) != -1){
+				throw ".FOLD file_frames encountered a cycle. stopping.";
+				return orderArray;
+			}
+			memo.visited_frames.push(frame);
+			orderArray = [frame].concat(orderArray);
+			if(frame == 0){ return orderArray; }
+			if(fold_file.file_frames[frame - 1].frame_inherit &&
+			   fold_file.file_frames[frame - 1].frame_parent != undefined){
+				return recurse(fold_file, fold_file.file_frames[frame - 1].frame_parent, orderArray);
+			}
+			return orderArray;
+		}
+		return recurse(fold_file, frame_num, []).map(frame => {
+			if(frame == 0){
+				// for frame 0 (the key frame) don't copy over file_frames array
+				let swap = fold_file.file_frames;
+				fold_file.file_frames = null;
+				let copy = JSON.parse(JSON.stringify(fold_file));
+				fold_file.file_frames = swap;
+				delete copy.file_frames;
+				dontCopy.forEach(key => delete copy[key]);
+				return copy;
+			}
+			let copy = JSON.parse(JSON.stringify(fold_file.file_frames[frame-1]));
+			dontCopy.forEach(key => delete copy[key]);
+			return copy;
+		}).reduce((prev,curr) => Object.assign(prev,curr),{})
+	};
+
+	const merge_frame$1 = function(fold_file, frame){
+		const dontCopy = ["frame_parent", "frame_inherit"];
+		let copy = JSON.parse(JSON.stringify(frame));
+		dontCopy.forEach(key => delete copy[key]);
+		// don't deep copy file_frames. stash. bring them back.
+		let swap = fold_file.file_frames;
+		fold_file.file_frames = null;
+		let fold = JSON.parse(JSON.stringify(fold_file));
+		fold_file.file_frames = swap;
+		delete fold.file_frames;
+		// merge 2
+		Object.assign(fold, frame);
+		return fold;
+	};
+
+	var frame = /*#__PURE__*/Object.freeze({
+		flatten_frame: flatten_frame,
+		merge_frame: merge_frame$1
+	});
+
+	/**
+	 * .FOLD file into SVG, and back
+	 */
+
+	const CREASE_DIR = {
+		"B": "boundary", "b": "boundary",
+		"M": "mountain", "m": "mountain",
+		"V": "valley",   "v": "valley",
+		"F": "mark",     "f": "mark",
+		"U": "mark",     "u": "mark"
+	};
+
+	const boundary = function(graph) {
+		let boundary = get_boundary_vertices(graph)
+			.map(v => graph.vertices_coords[v]);
+		return [polygon(boundary).setClass("boundary")];
+	};
+
+	const vertices = function(graph, options) {
+		let radius = options && options.radius ? options.radius : 0.01;
+		return graph.vertices_coords.map((v,i) =>
+			circle(v[0], v[1], radius)
+				.setClass("vertex")
+				.setID(""+i)
+		);
+	};
+
+	const creases = function(graph) {
+		let edges = graph.edges_vertices
+			.map(ev => ev.map(v => graph.vertices_coords[v]));
+		let eAssignments = graph.edges_assignment.map(a => CREASE_DIR[a]);
+		return edges.map((e,i) =>
+			line$1(e[0][0], e[0][1], e[1][0], e[1][1])
+				.setClass(eAssignments[i])
+				.setID(""+i)
+		);
+	};
+
+	const facesVertices = function(graph) {
+		let fAssignments = graph.faces_vertices.map(fv => "face");
+		let facesV = !(graph.faces_vertices) ? [] : graph.faces_vertices
+			.map(fv => fv.map(v => graph.vertices_coords[v]));
+			// .map(face => Geom.Polygon(face));
+		// facesV = facesV.map(face => face.scale(0.6666));
+		return facesV.filter(f => f != null).map((face, i) =>
+			polygon(face)
+				.setClass(fAssignments[i])
+				.setID(""+i)
+		);
+	};
+
+	const facesEdges = function(graph) {
+		let fAssignments = graph.faces_vertices.map(fv => "face");
+		let facesE = !(graph.faces_edges) ? [] : graph.faces_edges
+			.map(face_edges => face_edges
+				.map(edge => graph.edges_vertices[edge])
+				.map((vi,i,arr) => {
+					let next = arr[(i+1)%arr.length];
+					return (vi[1] === next[0] || vi[1] === next[1]
+						? vi[0] : vi[1]);
+				}).map(v => graph.vertices_coords[v])
+			);
+			// .map(face => Geom.Polygon(face));
+		// facesE = facesE.map(face => face.scale(0.8333));
+		return facesE.filter(f => f != null).map((face, i) =>
+			polygon(face)
+				.setClass(fAssignments[i])
+				.setID(""+i)
+		);
+	};
+
+	const foldedFaces = function(graph) {
+		let facesV = graph.faces_vertices
+			.map(fv => fv.map(v => graph.vertices_coords[v]));
+			// .map(face => Geom.Polygon(face));
+		if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
+			return graph["re:faces_coloring"].map((coloring, i) =>
+				polygon(facesV[i])
+					// .setClass(coloring ? "face-front" : "face-back")
+					.setClass(coloring ? "face-front-debug" : "face-back-debug")
+					.setID(""+i)
+			);
+		// if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
+		// 	return graph["re:faces_layer"].map((fi,i) =>
+		// 		SVG.polygon(facesV[fi])
+		// 			.setClass(i%2==0 ? "face-front" : "face-back")
+		// 			.setID(""+i)
+		// 	);
+		} else {
+			return facesV.map((face, i) =>
+				polygon(face)
+					.setClass("folded-face")
+					.setID(""+i)
+				);
+		}
+	};
+
+	/** .FOLD file viewer
+	 * this is an SVG based front-end for the .fold file format
+	 *  (.fold file spec: https://github.com/edemaine/fold)
+	 *
+	 *  View constructor arguments:
+	 *   - fold file
+	 *   - DOM object, or "string" DOM id to attach to
+	 */
+
+	const plural = { boundary: "boundaries", face: "faces", crease: "creases", vertex: "vertices" };
+
+	function View2D() {
+
+		let _this = image(...arguments);
+
+		let groups = {};
+		["boundary", "face", "crease", "vertex"].forEach(key =>
+			groups[key] = _this.group().setID(plural[key])
+		);
+
+		let prop = {
+			cp: undefined, 
+			frame: undefined,
+			style: {
+				vertex_radius: 0.01 // percent of page
+			},
+		};
+
+		let preferences = {
+			autofit: true,
+		};
+
+		const setCreasePattern = function(cp) {
+			// todo: check if cp is a CreasePattern type
+			prop.cp = cp;
+			draw();
+			prop.cp.onchange = draw;
+		};
+
+		const drawFolded = function(graph) {
+			foldedFaces(graph)
+				.forEach(f => groups.face.appendChild(f));
+		};
+
+		const drawCreasePattern = function(graph) {
+			let drawings = {
+				boundary: boundary(graph),
+				face: facesVertices(graph).concat(facesEdges(graph)),
+				crease: creases(graph),
+				vertex: vertices(graph)
+			};
+			Object.keys(drawings).forEach(key => 
+				drawings[key].forEach(el => groups[key].appendChild(el))
+			);
+		};
+
+		const draw = function() {
+			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
+			// flatten if necessary
+			let graph = prop.frame
+				? flatten_frame(prop.cp, prop.frame)
+				: prop.cp;
+			if (graph.isFolded) {
+				drawFolded(graph);
+			} else{
+				drawCreasePattern(graph);
+			}
+			if (preferences.autofit) { updateViewBox(); }
+		};
+
+		const updateViewBox = function() {
+			let r = bounding_rect(prop.cp);
+			setViewBox(_this, r[0], r[1], r[2], r[3]);
+		};
+
+		const showVertices = function(){ groups.vertex.removeAttribute("visibility");};
+		const hideVertices = function(){ groups.vertex.setAttribute("visibility", "hidden");};
+		const showEdges = function(){ groups.crease.removeAttribute("visibility");};
+		const hideEdges = function(){ groups.crease.setAttribute("visibility", "hidden");};
+		const showFaces = function(){ groups.face.removeAttribute("visibility");};
+		const hideFaces = function(){ groups.face.setAttribute("visibility", "hidden");};
+
+		const nearest = function() {
+			let p = Vector(...arguments);
+			let methods = {
+				"vertex": prop.cp.nearestVertex,
+				"crease": prop.cp.nearestEdge,
+				"face": prop.cp.nearestFace,
+			};
+			let nearest = {};
+			// fill the methods
+			Object.keys(methods)
+				.forEach(key => nearest[key] = methods[key].apply(prop.cp, p));
+			Object.keys(methods)
+				.filter(key => methods[key] == null)
+				.forEach(key => delete methods[key]);
+			Object.keys(nearest)
+				.filter(key => nearest[key] != null)
+				.forEach(key => nearest[key].svg = groups[key].childNodes[nearest[key].index]);
+			return nearest;
+		};
+
+		const load$$1 = function(input, callback) { // epsilon
+			load_fold(input, function(fold){
+				setCreasePattern( CreasePattern(fold) );
+				if (callback != null) { callback(); }
+			});
+		};
+
+		const fold = function(face){
+			let folded = fold_without_layering(prop.cp, face);
+			setCreasePattern( CreasePattern(folded) );
+		};
+
+		Object.defineProperty(_this, "cp", {
+			get: function() { return prop.cp; },
+			set: function(cp) { setCreasePattern(cp); }
+		});
+		Object.defineProperty(_this, "frameCount", {
+			get: function() { return prop.cp.file_frames ? prop.cp.file_frames.length : 0; }
+		});
+		Object.defineProperty(_this, "frame", {
+			set: function(f) { prop.frame = f; draw(); },
+			get: function() { return prop.frame; }
+		});
+
+		// attach CreasePattern methods
+		["axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7",
+		 "crease"]
+			.forEach(method => Object.defineProperty(_this, method, {
+				value: function(){ return prop.cp[method](...arguments); }
+			}));
+		// attach CreasePattern getters
+		["boundary", "vertices", "edges", "faces", "isFolded"]
+			.forEach(method => Object.defineProperty(_this, method, {
+				get: function(){ return prop.cp[method]; }
+			}));
+
+		Object.defineProperty(_this, "nearest", {value: nearest});
+		Object.defineProperty(_this, "draw", { value: draw });
+		Object.defineProperty(_this, "fold", { value: fold });
+		Object.defineProperty(_this, "load", { value: load$$1 });
+		Object.defineProperty(_this, "folded", { 
+			set: function(f) {
+				prop.cp.frame_classes = prop.cp.frame_classes
+					.filter(a => a !== "creasePattern");
+				prop.cp.frame_classes = prop.cp.frame_classes
+					.filter(a => a !== "foldedState");
+				prop.cp.frame_classes.push("foldedState");
+				// todo re-call draw()
+			}
+		});
+		Object.defineProperty(_this, "showVertices", { value: showVertices });
+		Object.defineProperty(_this, "hideVertices", { value: hideVertices });
+		Object.defineProperty(_this, "showEdges", { value: showEdges });
+		Object.defineProperty(_this, "hideEdges", { value: hideEdges });
+		Object.defineProperty(_this, "showFaces", { value: showFaces });
+		Object.defineProperty(_this, "hideFaces", { value: hideFaces });
+		_this.preferences = preferences;
+
+		// boot
+		setCreasePattern( CreasePattern(...arguments) );
+
+		return _this;
+	}
+
+	/** .FOLD file viewer
+	 * this is an THREE.js based front-end for the .fold file format
+	 *  (.fold file spec: https://github.com/edemaine/fold)
+	 *
+	 *  View constructor arguments:
+	 *   - fold file
+	 *   - DOM object, or "string" DOM id to attach to
+	 */
+
+	// import { unitSquare } from "./OrigamiBases"
+	const unitSquare = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
+
+	function View3D(){
+
+		//  from arguments, get a fold file, if it exists
+		let args = Array.from(arguments);
+		let _cp = args.filter(arg =>
+			typeof arg == "object" && arg.vertices_coords != undefined
+		).shift();
+		if(_cp == undefined){ _cp = unitSquare; }
+
+
+		let allMeshes = [];
+		let scene = new THREE.Scene();
+		let _parent;
+
+		function bootThreeJS(domParent){
+			var camera = new THREE.PerspectiveCamera(45, domParent.clientWidth/domParent.clientHeight, 0.1, 1000);
+			var controls = new THREE.OrbitControls(camera, domParent);
+			camera.position.set(0.5, 0.5, 1.5);
+			controls.target.set(0.5, 0.5, 0.0);
+			// camera.position.set(0.0, 0.0, 1.5 );
+			// controls.target.set(0.0, 0.0, 0.0);
+			controls.addEventListener('change', render);
+			var renderer = new THREE.WebGLRenderer({antialias:true});
+			renderer.setClearColor("#FFFFFF");
+			renderer.setSize(domParent.clientWidth, domParent.clientHeight);
+			domParent.appendChild(renderer.domElement);
+			// shining from below
+			var directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.2);
+			directionalLight2.position.set(20, 20, -100);
+			scene.add(directionalLight2);
+			// above
+			var spotLight1 = new THREE.SpotLight(0xffffff, 0.3);
+			spotLight1.position.set(50, -200, 100);
+			scene.add(spotLight1);
+			var spotLight2 = new THREE.SpotLight(0xffffff, 0.3);
+			spotLight2.position.set(100, 50, 200);
+			scene.add(spotLight2);
+			var ambientLight = new THREE.AmbientLight(0xffffff, 0.48);
+			scene.add(ambientLight);
+
+			var render = function(){
+				requestAnimationFrame(render);
+				renderer.render(scene, camera);
+				controls.update();
+			};
+			render();
+
+			draw();
+		}
+
+		// after page load, find a parent element for the new SVG in the arguments
+		const attachToDOM = function(){
+			let functions = args.filter((arg) => typeof arg === "function");
+			let numbers = args.filter((arg) => !isNaN(arg));
+			let element = args.filter((arg) =>
+					arg instanceof HTMLElement)
+				.shift();
+			let idElement = args.filter((a) =>
+					typeof a === "string" || a instanceof String)
+				.map(str => document.getElementById(str))
+				.shift();
+			_parent = (element != null
+				? element
+				: (idElement != null
+					? idElement
+					: document.body));
+			bootThreeJS(_parent);
+			if(numbers.length >= 2){
+				_svg.setAttributeNS(null, "width", numbers[0]);
+				_svg.setAttributeNS(null, "height", numbers[1]);
+			} 
+			if(functions.length >= 1){
+				functions[0]();
+			}
+		};
+
+
+		if(document.readyState === 'loading') {
+			// wait until after the <body> has rendered
+			document.addEventListener('DOMContentLoaded', attachToDOM);
+		} else {
+			attachToDOM();
+		}
+
+
+		function draw(){
+			var material = new THREE.MeshPhongMaterial({
+				color: 0xffffff,
+				side: THREE.DoubleSide,
+				flatShading:true,
+				shininess:0,
+				specular:0xffffff,
+				reflectivity:0
+			});
+			let faces = foldFileToThreeJSFaces(_cp, material);
+			let lines = foldFileToThreeJSLines(_cp);
+			allMeshes.forEach(mesh => scene.remove(mesh));
+			allMeshes = [];
+			allMeshes.push(faces);
+			allMeshes.push(lines);
+			allMeshes.forEach(mesh => scene.add(mesh));
+		}
+
+
+		const load = function(input, callback){ // epsilon
+			// are they giving us a filename, or the data of an already loaded file?
+			if (typeof input === 'string' || input instanceof String){
+				let extension = input.substr((input.lastIndexOf('.') + 1));
+				// filename. we need to upload
+				switch(extension){
+					case 'fold':
+					fetch(input)
+						.then((response) => response.json)
+						.then((data) => {
+							_cp = data;
+							draw();
+							if(callback != undefined){ callback(_cp); }
+						});
+					// return this;
+				}
+			}
+			try{
+				// try .fold file format first
+				let foldFileImport = JSON.parse(input);
+				_cp = foldFileImport;
+				// return this;
+			} catch(err){
+				console.log("not a valid .fold file format");
+				// return this;
+			}
+		};
+
+		const getFrames = function(){ return _cp.file_frames; };
+		const getFrame = function(index){ return _cp.file_frames[index]; };
+		const setFrame = function(index){
+			draw();
+		};
+
+
+		// return Object.freeze({
+		return {
+			set cp(c){
+				_cp = c;
+				draw();
+			},
+			get cp(){
+				return _cp;
+			},
+			draw,
+			load,
+			getFrames,
+			getFrame,
+			setFrame,
+		// });
+		};
+
+
+
+
+		function foldFileToThreeJSFaces(foldFile, material){
+			
+			var geometry = new THREE.BufferGeometry();
+			let vertices = foldFile.vertices_coords
+				.map(v => [v[0], v[1], (v[2] != undefined ? v[2] : 0)])
+				.reduce((prev,curr) => prev.concat(curr), []);
+			let normals = foldFile.vertices_coords
+				.map(v => [0,0,1])
+				.reduce((prev,curr) => prev.concat(curr), []);
+			let colors = foldFile.vertices_coords
+				.map(v => [1,1,1])
+				.reduce((prev,curr) => prev.concat(curr), []);
+			let faces = foldFile.faces_vertices
+				.map(fv => fv.map((v,i,arr) => [arr[0], arr[i+1], arr[i+2]])
+				             .slice(0, fv.length-2))
+				.reduce((prev,curr) => prev.concat(curr), [])
+				.reduce((prev,curr) => prev.concat(curr), []);
+
+			geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+			geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+			geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+			geometry.setIndex(faces);
+
+			if(material == undefined){ material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide}); }
+			return new THREE.Mesh(geometry, material);
+		}
+
+		function crossVec3(a,b){
+			return [
+				a[1]*b[2] - a[2]*b[1],
+				a[2]*b[0] - a[0]*b[2],
+				a[0]*b[1] - a[1]*b[0]
+			];
+		}
+		function magVec3(v){
+			return Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
+		}
+		function normalizeVec3(v){
+			let mag = Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
+			return [v[0] / mag, v[1] / mag, v[2] / mag];
+		}
+		function scaleVec3(v, scale){
+			return [v[0]*scale, v[1]*scale, v[2]*scale];
+		}
+
+		function cylinderEdgeVertices(edge, radius){
+			// normalized edge vector
+			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
+			let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
+			if(mag < 1e-10){ throw "degenerate edge"; }
+			let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
+			let perp = [
+				normalizeVec3(crossVec3(normalized, [1,0,0])),
+				normalizeVec3(crossVec3(normalized, [0,1,0])),
+				normalizeVec3(crossVec3(normalized, [0,0,1]))
+			].map((v,i) => ({i:i, v:v, mag:magVec3(v)}))
+			 .filter(v => v.mag > 1e-10)
+			 .map(obj => obj.v)
+			 .shift();
+			let rotated = [perp];
+			for(var i = 1; i < 4; i++){
+				rotated.push(normalizeVec3(crossVec3(rotated[i-1], normalized)));
+			}
+			let dirs = rotated.map(v => scaleVec3(v, radius));
+			return edge
+				.map(v => dirs.map(dir => [v[0]+dir[0], v[1]+dir[1], v[2]+dir[2]]))
+				.reduce((prev,curr) => prev.concat(curr), []);
+		}
+
+		function foldFileToThreeJSLines(foldFile, scale=0.005){
+			let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
+			// make sure they all have a z component. when z is implied it's 0
+			edges.forEach(edge => {
+				if(edge[0][2] == undefined){ edge[0][2] = 0; }
+				if(edge[1][2] == undefined){ edge[1][2] = 0; }
+			});
+
+			let colorAssignments = {
+				"B": [0.0,0.0,0.0],
+				// "M": [0.9,0.31,0.16],
+				"M": [0.6,0.2,0.11],
+				"F": [0.25,0.25,0.25],
+				"V": [0.12,0.35,0.50]
+			};
+
+			let colors = foldFile.edges_assignment.map(e => 
+				[colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e],
+				colorAssignments[e], colorAssignments[e], colorAssignments[e], colorAssignments[e]]
+			).reduce((prev,curr) => prev.concat(curr), [])
+			 .reduce((prev,curr) => prev.concat(curr), [])
+			 .reduce((prev,curr) => prev.concat(curr), []);
+
+			let vertices = edges
+				.map(edge => cylinderEdgeVertices(edge, scale))
+				.reduce((prev,curr) => prev.concat(curr), [])
+				.reduce((prev,curr) => prev.concat(curr), []);
+
+			let normals = edges.map(edge => {
+				// normalized edge vector
+				let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
+				let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
+				if(mag < 1e-10){ throw "degenerate edge"; }
+				let c0 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,-1])), scale);
+				let c1 = scaleVec3(normalizeVec3(crossVec3(vec, [0,0,1])), scale);
+				return [
+					c0, [-c0[2], c0[1], c0[0]],
+					c1, [-c1[2], c1[1], c1[0]],
+					c0, [-c0[2], c0[1], c0[0]],
+					c1, [-c1[2], c1[1], c1[0]]
+				]
+			}).reduce((prev,curr) => prev.concat(curr), [])
+			  .reduce((prev,curr) => prev.concat(curr), []);
+
+			let faces = edges.map((e,i) => [
+				// 8 triangles making the long cylinder
+				i*8+0, i*8+4, i*8+1,
+				i*8+1, i*8+4, i*8+5,
+				i*8+1, i*8+5, i*8+2,
+				i*8+2, i*8+5, i*8+6,
+				i*8+2, i*8+6, i*8+3,
+				i*8+3, i*8+6, i*8+7,
+				i*8+3, i*8+7, i*8+0,
+				i*8+0, i*8+7, i*8+4,
+				// endcaps
+				i*8+0, i*8+1, i*8+3,
+				i*8+1, i*8+2, i*8+3,
+				i*8+5, i*8+4, i*8+7,
+				i*8+7, i*8+6, i*8+5,
+			]).reduce((prev,curr) => prev.concat(curr), []);
+
+			var geometry = new THREE.BufferGeometry();
+			geometry.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+			geometry.addAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+			geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+			geometry.setIndex(faces);
+			geometry.computeVertexNormals();
+
+			var material = new THREE.MeshToonMaterial( {
+					shininess: 0,
+					side: THREE.DoubleSide, vertexColors: THREE.VertexColors
+			} );
+			return new THREE.Mesh(geometry, material);
+		}
+
+
+	}
 
 	// function that adds a frame onto the fold file - 
 	// makes it a parent relationship to the keyframe,

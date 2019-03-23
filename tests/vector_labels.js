@@ -1,17 +1,18 @@
 let vecTextSketchCallback;
+let vecText;
 
-let vecText = RabbitEar.svg.image("canvas-vector-labels", window.innerWidth, window.innerHeight, function(){
-	vecText.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
-	vecText.reset();
-	vecText.update();
+vecText = RabbitEar.svg.image("canvas-vector-labels", window.innerWidth, window.innerHeight, function(){
+	if (vecText != null) {
+		vecText.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
+		vecText.reset();
+		vecText.update();
+	}
 });
-vecText.drawLayer = RabbitEar.svg.group();
-vecText.dotLayer = RabbitEar.svg.group();
-vecText.svg.appendChild(vecText.drawLayer);
-vecText.svg.appendChild(vecText.dotLayer);
+vecText.drawLayer = vecText.group();
+vecText.dotLayer = vecText.group();
 
 vecText.reset = function(){
-	vecText.removeChildren(vecText.dotLayer);
+	vecText.dotLayer.removeChildren();
 	var randAngle = Math.random() * Math.PI * 2;
 	vecText.touches = [
 		{pos: [Math.cos(randAngle) * 220,
@@ -39,7 +40,7 @@ vecText.redraw = function(){
 		p.svg.setAttribute("cy", p.pos[1]);
 	});
 
-	RabbitEar.svg.removeChildren(vecText.drawLayer);
+	vecText.drawLayer.removeChildren();
 
 	// dot product
 	let dotXLine = RabbitEar.svg.line(0, 0, vecText.dotX, 0);
@@ -156,8 +157,9 @@ function textLarge(string, x, y, parent) {
 }
 
 function textBox(string, x, y, style, parent) {
-	let text = RabbitEar.svg.text(string, x, y, null, null, parent);
+	let text = RabbitEar.svg.text(string, x, y);
 	text.setAttribute("style", style);
+	parent.appendChild(text);
 
 	SVGRect = text.getBBox();
 	var rect = RabbitEar.svg.rect(SVGRect.x, SVGRect.y, SVGRect.width, SVGRect.height);
@@ -172,7 +174,7 @@ vecText.update = function(){
 	vecText.redraw();
 }
 
-vecText.addEventListener("mousedown", function(mouse){
+vecText.onMouseDown = function(mouse){
 	// console.log(mouse);
 	// console.log(vecText.touches[0].pos);
 	// let ep = vecText.width / 5;
@@ -182,15 +184,15 @@ vecText.addEventListener("mousedown", function(mouse){
 	// vecText.selected = found;
 	// console.log(vecText.selected);
 	vecText.selected = 0;
-});
+};
 
-vecText.addEventListener("mousemove", function(mouse){
+vecText.onMouseMove = function(mouse){
 	// console.log(mouse);
 	if(mouse.isPressed && vecText.selected != null){
 		vecText.touches[vecText.selected].pos = mouse.position;
 		vecText.update();
 	}
-});
+};
 
 vecText.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
 vecText.reset();

@@ -515,27 +515,12 @@ export const remove_edges = function(graph, edges) {
 	}
 
 	// update every array with a 1:1 relationship to edges_ arrays
+	// keys like "edges_vertices", "edges_faces" and anything else "edges_..."
 	// these arrays change their size, their contents are untouched
-	if(graph.edges_vertices != null){
-		graph.edges_vertices = graph.edges_vertices
-			.filter((e,i) => !removes[i])
-	}
-	if(graph.edges_faces != null){
-		graph.edges_faces = graph.edges_faces
-			.filter((e,i) => !removes[i])
-	}
-	if(graph.edges_assignment != null){
-		graph.edges_assignment = graph.edges_assignment
-			.filter((e,i) => !removes[i])
-	}
-	if(graph.edges_foldAngle != null){
-		graph.edges_foldAngle = graph.edges_foldAngle
-			.filter((e,i) => !removes[i])
-	}
-	if(graph.edges_length != null){
-		graph.edges_length = graph.edges_length
-			.filter((e,i) => !removes[i])
-	}
+	Object.keys(graph)
+		.filter(key => key.includes("edges_"))
+		.forEach(key => graph[key] = graph[key].filter((e,i) => !removes[i]));
+
 	return index_map;
 	// todo: do the same with frames in file_frames where inherit=true
 }
@@ -572,15 +557,12 @@ export function remove_faces(graph, faces) {
 			}));
 	}
 	// update every array with a 1:1 relationship to faces_
+	// keys like "faces_vertices", "faces_edges" and anything else "faces_..."
 	// these arrays change their size, their contents are untouched
-	if (graph.faces_vertices != null) {
-		graph.faces_vertices = graph.faces_vertices
-			.filter((e,i) => !removes[i])
-	}
-	if (graph.faces_edges != null) {
-		graph.faces_edges = graph.faces_edges
-			.filter((e,i) => !removes[i])
-	}
+	Object.keys(graph)
+		.filter(key => key.includes("faces_"))
+		.forEach(key => graph[key] = graph[key].filter((e,i) => !removes[i]));
+
 	return index_map;
 	// todo: do the same with frames in file_frames where inherit=true
 }

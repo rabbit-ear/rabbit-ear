@@ -1,6 +1,6 @@
 let facesChop = RabbitEar.Origami("canvas-faces-chop");
 
-facesChop.cp = RabbitEar.bases.blintz;
+facesChop.cp = RabbitEar.CreasePattern(RabbitEar.bases.blintz);
 
 let drawLayer = RabbitEar.svg.group();
 facesChop.appendChild(drawLayer)

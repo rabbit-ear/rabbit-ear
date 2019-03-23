@@ -35,6 +35,10 @@ export default function() {
 		},
 	};
 
+	let preferences = {
+		autofit: true,
+	};
+
 	const setCreasePattern = function(cp) {
 		// todo: check if cp is a CreasePattern type
 		prop.cp = cp;
@@ -70,7 +74,7 @@ export default function() {
 		} else{
 			drawCreasePattern(graph);
 		}
-		updateViewBox();
+		if (preferences.autofit) { updateViewBox(); }
 	};
 
 	const updateViewBox = function() {
@@ -161,6 +165,7 @@ export default function() {
 	Object.defineProperty(_this, "hideEdges", { value: hideEdges });
 	Object.defineProperty(_this, "showFaces", { value: showFaces });
 	Object.defineProperty(_this, "hideFaces", { value: hideFaces });
+	_this.preferences = preferences;
 
 	// boot
 	setCreasePattern( CreasePattern(...arguments) );

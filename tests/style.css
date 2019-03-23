@@ -42,19 +42,40 @@ svg{
 	stroke: none;
 	fill: none;
 }
+/*
+ *  face code
+ */
 .face {
 	fill: rgba(0, 0, 0, 0.05);
 }
 .face-front {
 	fill: #195783;
+	stroke: #000;
+	stroke-linecap: round;
+	stroke-width: var(--crease-width);
 }
 .face-back {
 	fill: #ecb233;
+	stroke: #000;
+	stroke-linecap: round;
+	stroke-width: var(--crease-width);
 }
 .folded-face {
 	fill: rgba(0, 0, 0, 0.1);
 	stroke: black;
 	stroke-width: calc( var(--crease-width) * 0.25);
+}
+.face-front-debug {
+ 	fill: rgba(255, 255, 255, 0.25);
+	stroke: #195783;
+	stroke-linecap: round;
+	stroke-width: var(--crease-width);
+}
+.face-back-debug {
+ 	fill: hsla(43, 88%, 46%, 0.25);
+	stroke: #ecb233;
+	stroke-linecap: round;
+	stroke-width: var(--crease-width);
 }
 
 .vertex{ fill: hsl(43, 88%, 46%); }

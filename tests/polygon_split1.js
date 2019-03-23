@@ -1,8 +1,8 @@
 let clipLine = RabbitEar.svg.image("canvas-clip-line", 500, 500);
 
 clipLine.setup = function() {
-	clipLine.STROKE_WIDTH = clipLine.width * 0.0125;
-	clipLine.RADIUS = clipLine.width * 0.025;
+	clipLine.STROKE_WIDTH = clipLine.w * 0.0125;
+	clipLine.RADIUS = clipLine.w * 0.025;
 
 	clipLine.backLayer = RabbitEar.svg.group();
 	clipLine.appendChild(clipLine.backLayer);
@@ -22,9 +22,9 @@ clipLine.setup = function() {
 		fill: "#e44f2a"
 	});
 	clipLine.touches.forEach(p =>
-		p.position = [Math.random()*clipLine.width, Math.random()*clipLine.height]
+		p.position = [Math.random()*clipLine.w, Math.random()*clipLine.h]
 	);
-	clipLine.touches[0].position = [clipLine.width*0.5, clipLine.height*0.5];
+	clipLine.touches[0].position = [clipLine.w*0.5, clipLine.h*0.5];
 
 	clipLine.boundary = [ [0, 0], [500, 0], [500, 500], [0, 500] ];
 }
@@ -33,8 +33,8 @@ clipLine.setup();
 clipLine.rebuildHull = function(){
 	let hullPoints = Array.from(Array(24)).map(_ => {
 		let a = Math.random() * Math.PI*2;
-		let r = Math.random() * clipLine.height*0.5;
-		return [clipLine.width*0.5 + r*Math.cos(a), clipLine.height*0.5 + r*Math.sin(a)];
+		let r = Math.random() * clipLine.h*0.5;
+		return [clipLine.w*0.5 + r*Math.cos(a), clipLine.h*0.5 + r*Math.sin(a)];
 	});
 	clipLine.hull = RabbitEar.math.Polygon.convexHull(hullPoints);
 	let pointsString = clipLine.hull.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
@@ -80,8 +80,8 @@ clipLine.redraw = function(){
 }
 clipLine.redraw();
 
-clipLine.addEventListener("mousemove", function(mouse){
+clipLine.onMouseMove = function(mouse){
 	if (mouse.isPressed) {
 		clipLine.redraw();
 	}
-});
+};

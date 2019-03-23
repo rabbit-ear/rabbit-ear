@@ -3,19 +3,19 @@
 <h1>EUCLIDEAN GEOMETRY</h1>
 
 <section>
-	<div id="canvas-bisect"></div>
-	<p>This library includes a suite of geometry tools capable of being used independently of the rest of this library.</p>
+	<div id="canvas-junction-bisect"></div>
+	<p>Origami is a fantastic visual exploration of geometry and linear algebra. Doing origami teaches you math, special attention to <b>convex</b> polygons, sectors (the angle space between two adjacent lines), and affine transformations.</p>
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
-	<p class="explain">To include this math library in your own projects, the <a href="https://github.com/robbykraft/Geometry">code is here</a>.</p>
+	<p class="explain">This math portion of this library is its own separate module, is open-source and available <a href="https://github.com/robbykraft/Geometry">for download</a>.</p>
 </section>
 
 <section id="types">
 	<h2>PRIMITIVES</h2>
-	<h3>Point / Vector</h3>
-	<p>We describe a point by its location; its x and y (and z). Another way of saying location is the <b>offset from the origin (0,0)</b>. This allows for generalizations, when the origin isn't (0,0). A point is a displacement from a location. We call this object a <b>vector</b>.</p>
 	<div id="canvas-vector-labels"></div>
+	<h3>Point / Vector</h3>
+	<p>A point is a location in space. x and y (and z). Another way of saying this is <b>how far from the origin (0,0)</b>. It's the directions away from location. We call this object a <b>vector</b>.</p>
 	<div class="centered">
 		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br>point.<f>normalize</f>() <span style="color:#e44f2a">// normalized vector</span><br>point.<f>dot</f>() <span style="color:#ecb233">// dot product</span><br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#6096bb">// cross product with +Z</span></code></pre>
 	</div>
@@ -29,11 +29,9 @@
 
 <h3><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h3>
 
-	<div id="canvas-line-ray-edge"></div>
+	<div id="canvas-line-ray-edge-intersection"></div>
 
 	<p><b>Mathematical lines</b> extend infinitely in both directions, <b>rays</b> extend infinitely in one direction, and line segments, or <b>edges</b> are bound by two endpoints.</p>
-
-	<div id="canvas-intersection"></div>
 
 	<div class="centered">
 		<pre><code><f>let</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)<br><f>let</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
@@ -106,6 +104,8 @@
 
 <h3>Bisect</h3>
 
+	<div id="canvas-bisect"></div>
+
 	<p>Two vectors bisected results in two answers. This function will return the bisection of the smaller interior angle first.</p>
 
 	<div class="centered">
@@ -149,7 +149,8 @@
 
 </section>
 
-<script type="text/javascript" src="../tests/line_ray_edge.js"></script>
+<script type="text/javascript" src="../tests/junction_bisect.js"></script>
+<script type="text/javascript" src="../tests/line_ray_edge_intersection.js"></script>
 <script type="text/javascript" src="../tests/line_nearest_point.js"></script>
 <script type="text/javascript" src="../tests/sector_bisect.js"></script>
 <script type="text/javascript" src="../tests/vector_lerp.js"></script>
@@ -162,7 +163,6 @@
 <script type="text/javascript" src="../tests/polygon_convex_hull.js"></script>
 <script type="text/javascript" src="../tests/polygon_contains.js"></script>
 <script type="text/javascript" src="../tests/polygon_overlaps.js"></script>
-<script type="text/javascript" src="../tests/line_intersection.js"></script>
 
 <script type="text/javascript">
 vecSketchCallback = function(event){

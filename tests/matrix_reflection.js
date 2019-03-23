@@ -4,8 +4,8 @@ reflect.reflectLayer = RabbitEar.svg.group();
 reflect.appendChild(reflect.reflectLayer);
 
 reflect.touches = [
-	{pos: [Math.random()*reflect.width, Math.random()*reflect.height], svg: RabbitEar.svg.circle(0, 0, 8)},
-	{pos: [Math.random()*reflect.width, Math.random()*reflect.height], svg: RabbitEar.svg.circle(0, 0, 8)},
+	{pos: [Math.random()*reflect.w, Math.random()*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
+	{pos: [Math.random()*reflect.w, Math.random()*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
 ];
 reflect.touches.forEach(p => {
 	p.svg.setAttribute("fill", "#e44f2a");
@@ -13,8 +13,8 @@ reflect.touches.forEach(p => {
 });
 
 reflect.points = Array.from(Array(24)).map((_,i) => {
-	let x = Math.random()*reflect.width;
-	let y = Math.random()*reflect.height;
+	let x = Math.random()*reflect.w;
+	let y = Math.random()*reflect.h;
 	let circle = RabbitEar.svg.circle(x, y, 4);
 	circle.setAttribute("fill", "#195783");
 	reflect.appendChild(circle);
@@ -57,16 +57,16 @@ reflect.redraw = function(){
 }
 reflect.redraw();
 
-reflect.addEventListener("mousedown", function(mouse){
-	let ep = reflect.width / 50;
+reflect.onMouseDown = function(mouse){
+	let ep = reflect.w / 50;
 	let down = reflect.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	reflect.selected = found;
-});
+};
 
-reflect.addEventListener("mousemove", function(mouse){
+reflect.onMouseMove = function(mouse){
 	if(mouse.isPressed && reflect.selected != null){
 		reflect.touches[reflect.selected].pos = mouse.position;
 		reflect.redraw();
 	}
-});
+};

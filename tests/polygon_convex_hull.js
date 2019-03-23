@@ -1,7 +1,7 @@
 let hull = RabbitEar.svg.image("canvas-convex-hull", 500, 500);
 
-hull.STROKE_WIDTH = hull.width * 0.01;
-hull.RADIUS = hull.width * 0.02;
+hull.STROKE_WIDTH = hull.w * 0.01;
+hull.RADIUS = hull.w * 0.02;
 
 hull.polygon = RabbitEar.svg.polygon();
 hull.polygon.setAttribute("stroke", "#ecb233");
@@ -14,7 +14,7 @@ hull.dotLayer = RabbitEar.svg.group();
 hull.appendChild(hull.dotLayer);
 
 hull.touches = Array.from(Array(12)).map(_ => ({
-	pos: [Math.random()*hull.width, Math.random()*hull.height],
+	pos: [Math.random()*hull.w, Math.random()*hull.h],
 	svg: RabbitEar.svg.circle(0, 0, hull.RADIUS)
 }));
 
@@ -38,16 +38,16 @@ hull.redraw = function(){
 }
 hull.redraw();
 
-hull.addEventListener("mousedown", function(mouse){
-	let ep = hull.width / 50;
+hull.onMouseDown = function(mouse){
+	let ep = hull.w / 50;
 	let down = hull.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	hull.selected = found;
-});
+};
 
-hull.addEventListener("mousemove", function(mouse){
+hull.onMouseMove = function(mouse){
 	if(mouse.isPressed && hull.selected != null){
 		hull.touches[hull.selected].pos = mouse.position;
 		hull.redraw();
 	}
-});
+};

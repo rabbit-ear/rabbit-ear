@@ -1,6 +1,6 @@
 // example
 // mouse hover over nodes, faces, edges, sectors to highlight them
-var origami = new RabbitEar.Origami(RabbitEar.bases.fish);
+var origami = RabbitEar.Origami(RabbitEar.bases.fish);
 // var origami = new RabbitEar.Origami(RabbitEar.bases.concave);
 
 origami.onMouseMove = function(event) {
@@ -10,7 +10,7 @@ origami.onMouseMove = function(event) {
 }
 
 origami.onMouseDown = function(event) {
-	origami.nearest(event).edge.flip();
+	origami.nearest(event).crease.flip();
 	origami.color(event);
 }
 

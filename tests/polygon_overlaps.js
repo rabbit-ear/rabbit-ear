@@ -5,11 +5,11 @@ overlap.speeds = Array.from(Array(overlap.COUNT)).map(_ => Math.random() - 0.5)
 
 overlap.rebuild = function(){
 	let r = 83;
-	let pad = overlap.width * 0.15;
+	let pad = overlap.w * 0.15;
 
 	overlap.centers = Array.from(Array(overlap.COUNT)).map((_,i) => [
-		overlap.width/overlap.COUNT*0.5 + i*overlap.width/(overlap.COUNT),
-		overlap.height * 0.5
+		overlap.w/overlap.COUNT*0.5 + i*overlap.w/(overlap.COUNT),
+		overlap.h * 0.5
 	]);
 
 	overlap.polys = overlap.centers.map(c => 

@@ -4,7 +4,7 @@ let circleLine = RabbitEar.svg.image("canvas-circle-line", 500, 500);
 circleLine.setup = function() {
 	circleLine.boundary = [ [0, 0], [500, 0], [500, 500], [0, 500] ];
 
-	circleLine.strokeW = circleLine.width*0.01;
+	circleLine.strokeW = circleLine.w*0.01;
 
 	circleLine.topLayer = RabbitEar.svg.group();
 	circleLine.bottomLayer = RabbitEar.svg.group();
@@ -25,8 +25,8 @@ circleLine.setup = function() {
 	});
 
 	circleLine.controls.forEach(p => p.position = [
-		Math.random() * circleLine.width,
-		Math.random() * circleLine.height
+		Math.random() * circleLine.w,
+		Math.random() * circleLine.h
 	]);
 }
 circleLine.setup();
@@ -66,8 +66,8 @@ circleLine.redraw = function() {
 }
 circleLine.redraw();
 
-circleLine.addEventListener("mousemove", function(mouse){
+circleLine.onMouseMove = function(mouse){
 	if (mouse.isPressed) { circleLine.redraw(); }
-});
+};
 
 

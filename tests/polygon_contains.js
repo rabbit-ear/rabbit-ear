@@ -1,7 +1,7 @@
 let contains = RabbitEar.svg.image("canvas-polygon-contains", 500, 500);
 
-contains.STROKE_WIDTH = contains.width * 0.01;
-contains.RADIUS = contains.width * 0.02;
+contains.STROKE_WIDTH = contains.w * 0.01;
+contains.RADIUS = contains.w * 0.02;
 
 contains.polygon = RabbitEar.svg.polygon();
 contains.polygon.setAttribute("fill", "#ecb233");
@@ -12,7 +12,7 @@ contains.dotLayer = RabbitEar.svg.group();
 contains.appendChild(contains.dotLayer);
 
 contains.touches = Array.from(Array(6)).map(_ => ({
-	pos: [Math.random()*contains.width, Math.random()*contains.height],
+	pos: [Math.random()*contains.w, Math.random()*contains.h],
 	svg: RabbitEar.svg.circle(0, 0, contains.RADIUS)
 }));
 
@@ -23,9 +23,9 @@ contains.touches.forEach(p => {
 
 contains.rebuildHull = function(){
 	let dots = Array.from(Array(12)).map(_ => {
-		let r = contains.height*0.45;
+		let r = contains.h*0.45;
 		let a = Math.random()*Math.PI*2;
-		return [contains.width*0.5 + Math.cos(a) * r, contains.height*0.5 + Math.sin(a) * r];
+		return [contains.w*0.5 + Math.cos(a) * r, contains.h*0.5 + Math.sin(a) * r];
 	});
 	contains.hull = RabbitEar.math.Polygon.convexHull(dots);
 	let pointsString = contains.hull.points
@@ -45,7 +45,7 @@ contains.redraw = function(){
 contains.redraw();
 
 contains.addEventListener("mousedown", function(mouse){
-	let ep = contains.width / 25;
+	let ep = contains.w / 25;
 	let down = contains.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	contains.selected = found;

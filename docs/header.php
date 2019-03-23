@@ -35,17 +35,17 @@
 			</li>
 			<li class="dropdown">
 				<a href="math.php">I. MATH</a>
-				<div class="dropdown-content">
+<!-- 				<div class="dropdown-content">
 					<a href="math.php">A. GEOMETRY</a>
 					<a href="epsilon.php">B. EPSILON</a>
-				</div>
+				</div> -->
 			</li>
 			<li class="dropdown">
 				<a href="planarGraph.php" class="dropbtn">II. GRAPHS</a>
-				<div class="dropdown-content">
+<!-- 				<div class="dropdown-content">
 					<a href="graph.php">A. GRAPH</a>
 					<a href="space.php">B. PLANAR GRAPH</a>
-				</div>
+				</div> -->
 			</li>
 			<li class="dropdown">
 				<a href="creasePattern.php" class="dropbtn">III. ORIGAMI</a>

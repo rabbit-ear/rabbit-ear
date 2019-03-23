@@ -102,6 +102,16 @@ export const join_diff = function(a, b) {
 
 }
 
+
+// this is not removing the last item(s)
+export const apply_diff_map = function(array, map) {
+// 	console.log("before", JSON.parse(JSON.stringify(array)));
+// 	map.forEach((change, index) => array[index+change] = array[index]);
+// 	console.log("after", JSON.parse(JSON.stringify(array)));
+}
+
+
+
 export const apply_diff = function(graph, diff) {
 
 	let remove_vertices = [];

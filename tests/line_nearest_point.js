@@ -11,10 +11,10 @@ nearestPoint.setup = function(){
 	nearestPoint.appendChild(nearestPoint.circleLayer);
 	nearestPoint.edges = Array.from(Array(12)).map(_ =>
 		RabbitEar.math.Edge(
-			Math.random()*nearestPoint.width,
-			Math.random()*nearestPoint.height,
-			Math.random()*nearestPoint.width,
-			Math.random()*nearestPoint.height)
+			Math.random()*nearestPoint.w,
+			Math.random()*nearestPoint.h,
+			Math.random()*nearestPoint.w,
+			Math.random()*nearestPoint.h)
 	);
 	let svgLines = nearestPoint.edges.map(edge =>
 		RabbitEar.svg.line(edge[0][0], edge[0][1], edge[1][0], edge[1][1])
@@ -50,8 +50,8 @@ nearestPoint.update = function(point) {
 	}
 }
 
-nearestPoint.update([nearestPoint.width/2, nearestPoint.height/2]);
+nearestPoint.update([nearestPoint.w/2, nearestPoint.h/2]);
 
-nearestPoint.addEventListener("mousemove", function(mouse){
+nearestPoint.onMouseMove = function(mouse){
 	nearestPoint.update(mouse.position);
-});
+};

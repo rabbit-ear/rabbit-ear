@@ -76,13 +76,19 @@ export const foldedFaces = function(graph) {
 	let facesV = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		// .map(face => Geom.Polygon(face));
-	if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
-		return graph["re:faces_layer"].map((fi,i) =>
-			SVG.polygon(facesV[fi])
-				.setClass(i%2==0 ? "face-front" : "face-back")
+	if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
+		return graph["re:faces_coloring"].map((coloring, i) =>
+			SVG.polygon(facesV[i])
+				// .setClass(coloring ? "face-front" : "face-back")
+				.setClass(coloring ? "face-front-debug" : "face-back-debug")
 				.setID(""+i)
 		);
-	// } else if (graph.facesOrder && graph.facesOrder.length > 0) {
+	// if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
+	// 	return graph["re:faces_layer"].map((fi,i) =>
+	// 		SVG.polygon(facesV[fi])
+	// 			.setClass(i%2==0 ? "face-front" : "face-back")
+	// 			.setID(""+i)
+	// 	);
 	} else {
 		return facesV.map((face, i) =>
 			SVG.polygon(face)
