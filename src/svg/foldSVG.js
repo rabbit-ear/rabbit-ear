@@ -3,7 +3,7 @@
  */
 
 import * as SVG from "../../lib/svg";
-import { get_boundary_vertices } from "../fold/graph";
+import { get_boundary_vertices, faces_coloring } from "../fold/graph";
 
 const CREASE_DIR = {
 	"B": "boundary", "b": "boundary",
@@ -72,15 +72,28 @@ export const facesEdges = function(graph) {
 	);
 };
 
+function faces_sorted_by_layer(faces_layer) {
+	return faces_layer.map((layer,i) => ({layer:layer, i:i}))
+		.sort((a,b) => a-b)
+		.map(el => el.i)
+}
+
 export const foldedFaces = function(graph) {
 	let facesV = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		// .map(face => Geom.Polygon(face));
-	if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
-		return graph["re:faces_coloring"].map((coloring, i) =>
+	let notMoving = folded.cp["re:faces_to_move"].indexOf(false);
+	if (notMoving !== -1) {
+	// if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
+		let coloring = faces_coloring(graph, notMoving);
+
+		let order = graph["re:faces_layer"] != null
+			? faces_sorted_by_layer(graph["re:faces_layer"])
+			: graph.faces_vertices.map((_,i) => i);
+		return order.map(i =>
 			SVG.polygon(facesV[i])
-				// .setClass(coloring ? "face-front" : "face-back")
-				.setClass(coloring ? "face-front-debug" : "face-back-debug")
+				.setClass(coloring[i] ? "face-front" : "face-back")
+				// .setClass(coloring[i] ? "face-front-debug" : "face-back-debug")
 				.setID(""+i)
 		);
 	// if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {

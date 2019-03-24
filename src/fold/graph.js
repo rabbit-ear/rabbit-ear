@@ -153,9 +153,13 @@ export const make_faces_faces = function(graph) {
 	return faces_faces;
 }
 
-export const face_coloring = function(graph, root_face = 0){
+/**
+ * true/false: which face shares color with root face
+ * the root face (and any similar-color face) will be marked as true
+ */
+export const faces_coloring = function(graph, root_face = 0){
 	let coloring = [];
-	coloring[root_face] = false;
+	coloring[root_face] = true;
 	make_face_walk_tree(graph, root_face).forEach((level, i) => 
 		level.forEach((entry) => coloring[entry.face] = (i % 2 === 0))
 	);
