@@ -74,7 +74,7 @@ export const facesEdges = function(graph) {
 
 function faces_sorted_by_layer(faces_layer) {
 	return faces_layer.map((layer,i) => ({layer:layer, i:i}))
-		.sort((a,b) => a-b)
+		.sort((a,b) => a.layer-b.layer)
 		.map(el => el.i)
 }
 
@@ -83,30 +83,30 @@ export const foldedFaces = function(graph) {
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		// .map(face => Geom.Polygon(face));
 	let notMoving = folded.cp["re:faces_to_move"].indexOf(false);
-	if (notMoving !== -1) {
+	if (notMoving === -1) { notMoving = 0; }
 	// if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
-		let coloring = faces_coloring(graph, notMoving);
+	let coloring = faces_coloring(graph, notMoving);
 
-		let order = graph["re:faces_layer"] != null
-			? faces_sorted_by_layer(graph["re:faces_layer"])
-			: graph.faces_vertices.map((_,i) => i);
-		return order.map(i =>
-			SVG.polygon(facesV[i])
-				.setClass(coloring[i] ? "face-front" : "face-back")
-				// .setClass(coloring[i] ? "face-front-debug" : "face-back-debug")
-				.setID(""+i)
-		);
+	let order = graph["re:faces_layer"] != null
+		? faces_sorted_by_layer(graph["re:faces_layer"])
+		: graph.faces_vertices.map((_,i) => i);
+	return order.map(i =>
+		SVG.polygon(facesV[i])
+			.setClass(coloring[i] ? "face-front" : "face-back")
+			// .setClass(coloring[i] ? "face-front-debug" : "face-back-debug")
+			.setID(""+i)
+	);
 	// if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
 	// 	return graph["re:faces_layer"].map((fi,i) =>
 	// 		SVG.polygon(facesV[fi])
 	// 			.setClass(i%2==0 ? "face-front" : "face-back")
 	// 			.setID(""+i)
 	// 	);
-	} else {
-		return facesV.map((face, i) =>
-			SVG.polygon(face)
-				.setClass("folded-face")
-				.setID(""+i)
-			);
-	}
+	// } else {
+	// 	return facesV.map((face, i) =>
+	// 		SVG.polygon(face)
+	// 			.setClass("folded-face")
+	// 			.setID(""+i)
+	// 		);
+	// }
 }
