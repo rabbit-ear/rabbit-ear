@@ -26,6 +26,12 @@ export default function() {
 	["boundary", "face", "crease", "vertex"].forEach(key =>
 		groups[key] = _this.group().setID(plural[key])
 	);
+	let labels = {
+		"boundary": _this.group(),
+		"face": _this.group(),
+		"crease": _this.group(),
+		"vertex": _this.group()
+	};
 
 	let prop = {
 		cp: undefined, 
@@ -61,10 +67,24 @@ export default function() {
 		Object.keys(drawings).forEach(key => 
 			drawings[key].forEach(el => groups[key].appendChild(el))
 		);
+
+		// face dubug nubmers
+		labels.face.removeChildren();
+		let fAssignments = graph.faces_vertices.map(fv => "face");
+		let facesText = !(graph.faces_vertices) ? [] : graph.faces_vertices
+			.map(fv => fv.map(v => graph.vertices_coords[v]))
+			.map(fv => Geom.ConvexPolygon(fv))
+			.map(face => face.centroid)
+			.map((c,i) => labels.face.text(""+i, c[0], c[1]));
+		facesText.forEach(text => {
+			text.setAttribute("fill", "black");
+			text.setAttribute("style", "font-family: sans-serif; font-size:0.05px")
+		})
 	};
 
 	const draw = function() {
 		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
+		labels.face.removeChildren(); //todo remove
 		// flatten if necessary
 		let graph = prop.frame
 			? flatten_frame(prop.cp, prop.frame)
@@ -142,7 +162,11 @@ export default function() {
 	// attach CreasePattern getters
 	["boundary", "vertices", "edges", "faces", "isFolded"]
 		.forEach(method => Object.defineProperty(_this, method, {
-			get: function(){ return prop.cp[method]; }
+			get: function(){
+				let components = prop.cp[method];
+				// components.forEach(c => c.svg = )
+				return components;
+			}
 		}));
 
 	Object.defineProperty(_this, "nearest", {value: nearest});
@@ -165,6 +189,12 @@ export default function() {
 	Object.defineProperty(_this, "hideEdges", { value: hideEdges });
 	Object.defineProperty(_this, "showFaces", { value: showFaces });
 	Object.defineProperty(_this, "hideFaces", { value: hideFaces });
+
+
+	_this.groups = groups;
+	_this.labels = labels;
+
+
 	_this.preferences = preferences;
 
 	// boot

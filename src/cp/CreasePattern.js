@@ -172,8 +172,8 @@ export default function() {
 		RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
 		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
-	graph.valleyFold = function(point, vector, stayVector) {
-		Origami.crease_through_layers(graph, point, vector, stayVector);
+	graph.valleyFold = function(point, vector, stayVector, face_index) {
+		Origami.crease_through_layers(graph, point, vector, stayVector, "V", face_index);
 		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
 	graph.kawasaki = function() {
