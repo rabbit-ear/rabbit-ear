@@ -14,6 +14,16 @@ import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
 import { apply_diff, apply_diff_map } from "./diff";
 
+/**
+ * point average, not centroid, only useful in certain cases
+ */
+const make_face_center = function(graph, face_index) {
+	return graph.faces_vertices[face_index]
+		.map(v => graph.vertices_coords[v])
+		.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
+		.map(el => el/graph.faces_vertices[face_index].length);
+}
+
 // for now, this uses "re:faces_layer", todo: use faceOrders
 export function crease_through_layers(graph, point, vector, stay_normal, crease_direction = "V", face_index) {
 	console.log("_______________ crease_through_layers");
@@ -56,13 +66,24 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 	let faces_folding = Array.from(Array(graph.faces_vertices.length));
 	let original_face_indices = Array.from(Array(graph.faces_vertices.length)).map((_,i)=>i);
 
+	let faces_center = Array.from(Array(faces_count))
+		.map((_, i) => make_face_center(graph, i))
+		.map(p => Geom.Vector(p));
+
+	let faces_sidedness = Array.from(Array(faces_count))
+		.map((_, i) => faces_center[i].subtract(faces_crease_line[i].point))
+		.map((v2, i) => faces_coloring[i]
+			? faces_crease_line[i].vector.cross(v2).z > 0
+			: faces_crease_line[i].vector.cross(v2).z < 0);
+
+
 	faces_crease_line
 		.reverse()
 		.forEach((line, reverse_i, arr) => {
 			let i = arr.length - 1 - reverse_i;
 			let diff = PlanarGraph.split_convex_polygon(graph, i, line.point,
 				line.vector, faces_coloring[i] ? crease_direction : opposite_crease);
-			
+
 			if (diff != null && diff.faces != null) {
 				let face_stay_normal = faces_stay_normal[i];
 				diff.faces.replace.forEach(replace => {

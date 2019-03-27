@@ -3675,6 +3675,11 @@
 		);
 		return faces_matrix;
 	};
+	/**
+	 * @returns {}, description of changes. empty object if no intersection.
+	 *
+	 */
+
 	const split_convex_polygon$1 = function(graph, faceIndex, linePoint, lineVector, crease_assignment = "F") {
 		// survey face for any intersections which cross directly over a vertex
 		let vertices_intersections = graph.faces_vertices[faceIndex]
@@ -3969,6 +3974,7 @@
 				let i = arr.length - 1 - reverse_i;
 				let diff = split_convex_polygon$1(graph, i, line.point,
 					line.vector, faces_coloring$$1[i] ? crease_direction : opposite_crease);
+				
 				if (diff != null && diff.faces != null) {
 					let face_stay_normal = faces_stay_normal[i];
 					diff.faces.replace.forEach(replace => {
@@ -3981,10 +3987,6 @@
 								face.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
 									.map(el => el/face.length)
 							).map(p => Vector(p));
-						let two_face_vectors = [
-							two_face_centers[0].subtract(two_face_centers[1]),
-							two_face_centers[1].subtract(two_face_centers[0]),
-						];
 
 						// "left";
 						let two_face_should_move = two_face_centers
@@ -4007,7 +4009,7 @@
 
 						// console.log("faces_to_move[replace.old]", faces_to_move[replace.old]);
 
-						original_face_indices.splice(replace.old,1);
+						original_face_indices.splice(replace.old, 1);
 						// delete graph_faces_coloring[replace.old];
 						replace.new.forEach((newFace, i) => {
 							// console.log("adding new face at ", newFace.index);

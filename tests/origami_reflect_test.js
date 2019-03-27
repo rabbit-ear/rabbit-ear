@@ -8,7 +8,7 @@ sketch.controls = RabbitEar.svg.controls(sketch, 2, {radius:0.02, fill: "#e44f2a
 sketch.controls.forEach(c => c.position = [Math.random(), Math.random()]);
 sketch.controls[1].circle.setAttribute("fill", "#000");
 
-let params = Array.from(Array(6)).map(_ => ({
+let params = Array.from(Array(1)).map(_ => ({
 	point: RabbitEar.math.Vector(Math.random(), Math.random()),
 	vector: RabbitEar.math.Vector(Math.random(), Math.random())
 }));
@@ -29,6 +29,24 @@ sketch.cp = RabbitEar.CreasePattern(sketch.masterCP);
 let PlanarGraph = RabbitEar.fold.planargraph;
 let Graph = RabbitEar.fold.graph;
 let Geom = RabbitEar.math;
+
+sketch.drawArrow = function(start, end) {
+	let ARROW_HEAD = 0.0333;
+	let arrow = RabbitEar.svg.group();
+	let line = arrow.line(start[0], start[1], end[0], end[1])
+	line.setAttribute("stroke-width", 0.0075);
+	line.setAttribute("stroke-dasharray", "0.0075 0.015");
+	line.setAttribute("stroke-linecap", "round");
+	let arrowVector = end.subtract(start).normalize();
+	let arrowNormal = arrowVector.rotateZ90();
+	let segments = [
+		end.add(arrowNormal.scale(-ARROW_HEAD*0.375)),
+		end.add(arrowNormal.scale(ARROW_HEAD*0.375)),
+		end.add(arrowVector.scale(ARROW_HEAD))
+	];
+	arrow.polygon(segments).setAttribute("stroke", "none");
+	return arrow;
+}
 
 sketch.update = function() {
 	sketch.drawLayer.removeChildren();
@@ -79,24 +97,19 @@ sketch.update = function() {
 			: faces_crease_line[i].vector.cross(v2).z < 0);
 
 	// svg stuff
-	let svg_segment_p0 = Array.from(Array(faces_count))
-		.map((_,i) => faces_crease_line[i].nearestPoint(faces_center[i]));
-	let svg_segment_p1 = svg_segment_p0
-		.map((p, i) => p.add( faces_crease_line[i].vector.normalize().scale(0.2) ));
 	let svg_colors = faces_sidedness.map(side => side ? "#e44f2a" : "#224c72");
-	svg_segment_p0
-		.map((p0, i) => sketch.drawLayer.line(p0[0], p0[1], svg_segment_p1[i][0], svg_segment_p1[i][1]))
-		.forEach((line, i) => {
-			line.setAttribute("stroke-width", 0.0075);
-			line.setAttribute("stroke", svg_colors[i]);
-			line.setAttribute("stroke-dasharray", "0.0075 0.015");
-			line.setAttribute("stroke-linecap", "round");
-		});
-	svg_segment_p1
-		.map(p1 => sketch.drawLayer.circle(p1[0], p1[1], 0.015))
-		.forEach((circle, i) => circle.setAttribute("fill", svg_colors[i]));
-	svg_segment_p1
-		.map((p1, i) => sketch.drawLayer.text(""+i, p1[0], p1[1]-0.02))
+	let seg_pts = Array.from(Array(faces_count))
+		.map((_,i) => faces_crease_line[i].nearestPoint(faces_center[i]))
+		.map((p, i) => [
+				p.subtract( faces_crease_line[i].vector.normalize().scale(0.1) ),
+				p.add( faces_crease_line[i].vector.normalize().scale(0.1) )
+			]);
+	let arrows = Array.from(Array(faces_count)).map((_,i) => sketch.drawArrow(seg_pts[i][0], seg_pts[i][1]))
+	arrows.forEach(a => sketch.drawLayer.appendChild(a));
+	arrows.forEach((a, i) => a.setAttribute("fill", svg_colors[i]));
+	arrows.forEach((a, i) => a.setAttribute("stroke", svg_colors[i]));
+
+	seg_pts.map((pts, i) => sketch.drawLayer.text(""+i, pts[1][0], pts[1][1]-0.02))
 		.forEach((text, i) => {
 			text.setAttribute("fill", svg_colors[i]);
 			text.setAttribute("style", "font-family: sans-serif; font-size:0.0333px")
@@ -109,9 +122,15 @@ sketch.update = function() {
 		? folded.cp["re:faces_to_move"].indexOf(false)
 		: 0;
 	folded.fold(notMoving);
+	Array.from(folded.groups.face.children)
+		.forEach((face,i) => {
+			face.setAttribute("fill", faces_coloring[i] ? "#ffffff" : "#f1c14f");
+			face.setAttribute("stroke", "black");
+			face.setAttribute("stroke-width", 0.02);
+			face.removeAttribute("class");
+		})
 
 	sketch.setViewBox(-0.2, -0.2, 1.4, 1.4);
-
 }
 sketch.update();
 
