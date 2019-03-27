@@ -103,6 +103,11 @@ export const make_faces_matrix_inv = function(graph, root_face) {
 	);
 	return faces_matrix;
 }
+/**
+ * @returns {}, description of changes. empty object if no intersection.
+ *
+ */
+
 export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVector, crease_assignment = "F") {
 	// survey face for any intersections which cross directly over a vertex
 	let vertices_intersections = graph.faces_vertices[faceIndex]

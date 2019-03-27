@@ -62,6 +62,7 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 			let i = arr.length - 1 - reverse_i;
 			let diff = PlanarGraph.split_convex_polygon(graph, i, line.point,
 				line.vector, faces_coloring[i] ? crease_direction : opposite_crease);
+			
 			if (diff != null && diff.faces != null) {
 				let face_stay_normal = faces_stay_normal[i];
 				diff.faces.replace.forEach(replace => {
@@ -74,10 +75,6 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 							face.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
 								.map(el => el/face.length)
 						).map(p => Geom.Vector(p))
-					let two_face_vectors = [
-						two_face_centers[0].subtract(two_face_centers[1]),
-						two_face_centers[1].subtract(two_face_centers[0]),
-					];
 
 					// "left";
 					let two_face_should_move = two_face_centers
@@ -100,7 +97,7 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 
 					// console.log("faces_to_move[replace.old]", faces_to_move[replace.old]);
 
-					original_face_indices.splice(replace.old,1);
+					original_face_indices.splice(replace.old, 1);
 					// delete graph_faces_coloring[replace.old];
 					replace.new.forEach((newFace, i) => {
 						// console.log("adding new face at ", newFace.index);
