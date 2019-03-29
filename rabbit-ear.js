@@ -992,8 +992,6 @@
 		if(proto == null) {
 			proto = {};
 		}
-		const vec_comp_func = function(t0) { return true; };
-		const vec_cap_func = function(d) { return d; };
 		const reflection = function() {
 			return Matrix2.makeReflection(this.vector, this.point);
 		};
@@ -1006,14 +1004,14 @@
 			return intersection_function(
 				this.point, this.vector,
 				line.point, line.vector,
-				compare_to_line);
+				compare_to_line.bind(this));
 		};
 		const intersectRay = function() {
 			let ray = get_ray(...arguments);
 			return intersection_function(
 				this.point, this.vector,
 				ray.point, ray.vector,
-				compare_to_ray);
+				compare_to_ray.bind(this));
 		};
 		const intersectEdge = function() {
 			let edge = get_edge(...arguments);
@@ -1021,25 +1019,23 @@
 			return intersection_function(
 				this.point, this.vector,
 				edge[0], edgeVec,
-				compare_to_edge);
+				compare_to_edge.bind(this));
 		};
 		const compare_to_line = function(t0, t1, epsilon = EPSILON) {
-			return vec_comp_func(t0, epsilon) && true;
+			return this.vec_comp_func(t0, epsilon) && true;
 		};
 		const compare_to_ray = function(t0, t1, epsilon = EPSILON) {
-			return vec_comp_func(t0, epsilon) && t1 >= -epsilon;
+			return this.vec_comp_func(t0, epsilon) && t1 >= -epsilon;
 		};
 		const compare_to_edge = function(t0, t1, epsilon = EPSILON) {
-			return vec_comp_func(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
+			return this.vec_comp_func(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
 		};
 		Object.defineProperty(proto, "reflection", {value: reflection});
 		Object.defineProperty(proto, "nearestPoint", {value: nearestPoint});
 		Object.defineProperty(proto, "intersectLine", {value: intersectLine});
 		Object.defineProperty(proto, "intersectRay", {value: intersectRay});
 		Object.defineProperty(proto, "intersectEdge", {value: intersectEdge});
-		Object.defineProperty(proto, "vec_comp_func", {value: vec_comp_func});
-		Object.defineProperty(proto, "vec_cap_func", {value: vec_cap_func});
-		return proto;
+		return Object.freeze(proto);
 	}
 	function Line() {
 		let { point, vector } = get_line(...arguments);
@@ -1147,7 +1143,7 @@
 			return Math.sqrt(Math.pow(edge[1][0] - edge[0][0],2)
 			               + Math.pow(edge[1][1] - edge[0][1],2));
 		};
-		let vec_comp_func = function(t0, ep) { return t0 >= -ep && t0 <= 1+ep; };
+		const vec_comp_func = function(t0, ep) { return t0 >= -ep && t0 <= 1+ep; };
 		const vec_cap_func = function(d, ep) {
 			if (d < -ep) { return 0; }
 			if (d > 1+ep) { return 1; }
@@ -3448,6 +3444,21 @@
 		bounding_rect: bounding_rect
 	});
 
+	const apply_diff_map = function(diff_map, array) {
+		// an array whose value is the new index it will end up
+		let index_map = diff_map.map((change,i) => i + change);
+		// gather the removed element indices, remove them from index_map
+		Array.from(Array(diff_map.length-1))
+			.map((change, i) => diff_map[i] !== diff_map[(i+1)%diff_map.length])
+			.map((remove, i) => remove ? i : undefined)
+			.filter(a => a !== undefined)
+			.forEach(i => delete index_map[i]);
+		// fill the new array using index_map
+		let new_array = [];
+		index_map.forEach((newI, oldI) => new_array[newI] = array[oldI]);
+		return new_array;
+	};
+
 	const merge_maps = function(a, b) {
 		// "a" came first
 		let aRemoves = [];
@@ -3932,11 +3943,24 @@
 	 *  could result in multiple edges
 	 */
 
+	/**
+	 * point average, not centroid, only useful in certain cases
+	 */
+	const make_face_center = function(graph, face_index) {
+		return graph.faces_vertices[face_index]
+			.map(v => graph.vertices_coords[v])
+			.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
+			.map(el => el/graph.faces_vertices[face_index].length);
+	};
+
 	// for now, this uses "re:faces_layer", todo: use faceOrders
 	function crease_through_layers(graph, point, vector, stay_normal, crease_direction = "V", face_index) {
 		console.log("_______________ crease_through_layers");
 		console.log(graph.json);
 		// let face_index;
+		// todo: switch this for the general form
+		let faces_count$$1 = graph.faces_vertices.length;
+
 		let opposite_crease = 
 			(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
 		// if face isn't set, it will be determined by whichever face
@@ -3954,19 +3978,29 @@
 		// todo: replace these with a get_faces_length that checks edges too
 		let faces_to_move = graph["re:faces_to_move"] != null
 			? graph["re:faces_to_move"]
-			: Array.from(Array(graph.faces_vertices.length)).map(_ => false);
+			: Array.from(Array(faces_count$$1)).map(_ => false);
 
 		// todo: replace this. this doesn't work
 		let graph_faces_layer = graph["re:faces_layer"] != null
 			? graph["re:faces_layer"]
-			: Array.from(Array(graph.faces_vertices.length)).map(_ => 0);
+			: Array.from(Array(faces_count$$1)).map(_ => 0);
 
 		let faces_matrix = make_faces_matrix_inv(graph, face_index);
 		let faces_crease_line = faces_matrix.map(m => creaseLine.transform(m));
 		let faces_stay_normal = faces_matrix.map(m => stayNormalVec.transform(m));
 		let faces_coloring$$1 = faces_coloring(graph, face_index);
-		let faces_folding = Array.from(Array(graph.faces_vertices.length));
-		let original_face_indices = Array.from(Array(graph.faces_vertices.length)).map((_,i)=>i);
+		let faces_folding = Array.from(Array(faces_count$$1));
+		let original_face_indices = Array.from(Array(faces_count$$1)).map((_,i)=>i);
+
+		let faces_center = Array.from(Array(faces_count$$1))
+			.map((_, i) => make_face_center(graph, i))
+			.map(p => Vector(p));
+
+		let faces_sidedness = Array.from(Array(faces_count$$1))
+			.map((_, i) => faces_center[i].subtract(faces_crease_line[i].point))
+			.map((v2, i) => faces_coloring$$1[i]
+				? faces_crease_line[i].vector.cross(v2).z > 0
+				: faces_crease_line[i].vector.cross(v2).z < 0);
 
 		faces_crease_line
 			.reverse()
@@ -3974,7 +4008,9 @@
 				let i = arr.length - 1 - reverse_i;
 				let diff = split_convex_polygon$1(graph, i, line.point,
 					line.vector, faces_coloring$$1[i] ? crease_direction : opposite_crease);
-				
+
+				console.log("diff", diff);
+
 				if (diff != null && diff.faces != null) {
 					let face_stay_normal = faces_stay_normal[i];
 					diff.faces.replace.forEach(replace => {
@@ -4029,27 +4065,12 @@
 					// console.log(diff.faces.map);
 					// console.log( JSON.parse(JSON.stringify(faces_to_move)) );
 					// todo, if we add more places where faces get removed, add their indices here
-					let removed_faces_index = diff.faces.replace.map(el => el.old);
-					removed_faces_index.forEach(i => {
-						delete faces_to_move[i];
-						delete graph_faces_layer[i];
-						delete faces_folding[i];
-					});
-					diff.faces.map.forEach((change, i) => {
-						if (!removed_faces_index.includes(i)) {
-							faces_to_move[i + change] = faces_to_move[i];
-							graph_faces_layer[i + change] = graph_faces_layer[i];
-							faces_folding[i + change] = faces_folding[i];
-						}
-					});
-					let faces_remove_count = diff.faces.map[diff.faces.map.length-1];
-					// console.log("faces_remove_count", faces_remove_count);
-					faces_to_move = faces_to_move
-						.slice(0, faces_to_move.length + faces_remove_count);
-					graph_faces_layer = graph_faces_layer
-						.slice(0, graph_faces_layer.length + faces_remove_count);
-					faces_folding = faces_folding
-						.slice(0, faces_folding.length + faces_remove_count);
+
+					faces_to_move = apply_diff_map(diff.faces.map, faces_to_move);
+					graph_faces_layer = apply_diff_map(diff.faces.map, graph_faces_layer);
+					faces_folding = apply_diff_map(diff.faces.map, faces_folding);
+					faces_center = apply_diff_map(diff.faces.map, faces_center);
+					faces_sidedness = apply_diff_map(diff.faces.map, faces_sidedness);
 
 					// console.log(JSON.parse(JSON.stringify(faces_to_move)));
 					// console.log("--------");

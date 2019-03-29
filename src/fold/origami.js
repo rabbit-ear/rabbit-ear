@@ -29,6 +29,9 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 	console.log("_______________ crease_through_layers");
 	console.log(graph.json);
 	// let face_index;
+	// todo: switch this for the general form
+	let faces_count = graph.faces_vertices.length;
+
 	let opposite_crease = 
 		(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
 	// if face isn't set, it will be determined by whichever face
@@ -52,19 +55,19 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 	// todo: replace these with a get_faces_length that checks edges too
 	let faces_to_move = graph["re:faces_to_move"] != null
 		? graph["re:faces_to_move"]
-		: Array.from(Array(graph.faces_vertices.length)).map(_ => false);
+		: Array.from(Array(faces_count)).map(_ => false);
 
 	// todo: replace this. this doesn't work
 	let graph_faces_layer = graph["re:faces_layer"] != null
 		? graph["re:faces_layer"]
-		: Array.from(Array(graph.faces_vertices.length)).map(_ => 0);
+		: Array.from(Array(faces_count)).map(_ => 0);
 
 	let faces_matrix = PlanarGraph.make_faces_matrix_inv(graph, face_index);
 	let faces_crease_line = faces_matrix.map(m => creaseLine.transform(m));
 	let faces_stay_normal = faces_matrix.map(m => stayNormalVec.transform(m));
 	let faces_coloring = Graph.faces_coloring(graph, face_index);
-	let faces_folding = Array.from(Array(graph.faces_vertices.length));
-	let original_face_indices = Array.from(Array(graph.faces_vertices.length)).map((_,i)=>i);
+	let faces_folding = Array.from(Array(faces_count));
+	let original_face_indices = Array.from(Array(faces_count)).map((_,i)=>i);
 
 	let faces_center = Array.from(Array(faces_count))
 		.map((_, i) => make_face_center(graph, i))
@@ -76,13 +79,14 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 			? faces_crease_line[i].vector.cross(v2).z > 0
 			: faces_crease_line[i].vector.cross(v2).z < 0);
 
-
 	faces_crease_line
 		.reverse()
 		.forEach((line, reverse_i, arr) => {
 			let i = arr.length - 1 - reverse_i;
 			let diff = PlanarGraph.split_convex_polygon(graph, i, line.point,
 				line.vector, faces_coloring[i] ? crease_direction : opposite_crease);
+
+			console.log("diff", diff);
 
 			if (diff != null && diff.faces != null) {
 				let face_stay_normal = faces_stay_normal[i];
@@ -138,27 +142,12 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 				// console.log(diff.faces.map);
 				// console.log( JSON.parse(JSON.stringify(faces_to_move)) );
 				// todo, if we add more places where faces get removed, add their indices here
-				let removed_faces_index = diff.faces.replace.map(el => el.old);
-				removed_faces_index.forEach(i => {
-					delete faces_to_move[i];
-					delete graph_faces_layer[i];
-					delete faces_folding[i]
-				});
-				diff.faces.map.forEach((change, i) => {
-					if (!removed_faces_index.includes(i)) {
-						faces_to_move[i + change] = faces_to_move[i];
-						graph_faces_layer[i + change] = graph_faces_layer[i];
-						faces_folding[i + change] = faces_folding[i];
-					}
-				})
-				let faces_remove_count = diff.faces.map[diff.faces.map.length-1];
-				// console.log("faces_remove_count", faces_remove_count);
-				faces_to_move = faces_to_move
-					.slice(0, faces_to_move.length + faces_remove_count);
-				graph_faces_layer = graph_faces_layer
-					.slice(0, graph_faces_layer.length + faces_remove_count);
-				faces_folding = faces_folding
-					.slice(0, faces_folding.length + faces_remove_count);
+
+				faces_to_move = apply_diff_map(diff.faces.map, faces_to_move);
+				graph_faces_layer = apply_diff_map(diff.faces.map, graph_faces_layer);
+				faces_folding = apply_diff_map(diff.faces.map, faces_folding);
+				faces_center = apply_diff_map(diff.faces.map, faces_center);
+				faces_sidedness = apply_diff_map(diff.faces.map, faces_sidedness);
 
 				// console.log(JSON.parse(JSON.stringify(faces_to_move)));
 				// console.log("--------");
