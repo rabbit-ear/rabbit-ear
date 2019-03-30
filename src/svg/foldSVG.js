@@ -82,7 +82,7 @@ export const foldedFaces = function(graph) {
 	let facesV = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		// .map(face => Geom.Polygon(face));
-	let notMoving = folded.cp["re:faces_to_move"].indexOf(false);
+	let notMoving = graph["re:faces_to_move"].indexOf(false);
 	if (notMoving === -1) { notMoving = 0; }
 	// if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
 	let coloring = faces_coloring(graph, notMoving);

@@ -21,7 +21,7 @@ let params = Array.from(Array(1)).map(_ => ({
 // ];
 
 console.log("this sketch", params);
-params.forEach(p => sketch.cp.valleyFold(p.point, p.vector, [1,1]));
+params.forEach(p => sketch.cp.valleyFold(p.point, p.vector));
 
 sketch.masterCP = JSON.parse(JSON.stringify(sketch.cp.json));
 sketch.cp = RabbitEar.CreasePattern(sketch.masterCP);
@@ -116,7 +116,7 @@ sketch.update = function() {
 		});
 
 	let cpCopy = RabbitEar.CreasePattern(sketch.masterCP);
-	cpCopy.valleyFold(creaseLine.point, creaseLine.vector, [1,1], 0);
+	cpCopy.valleyFold(creaseLine.point, creaseLine.vector, 0);
 	folded.cp = cpCopy;
 	let notMoving = folded.cp["re:faces_to_move"].indexOf(false) !== -1
 		? folded.cp["re:faces_to_move"].indexOf(false)

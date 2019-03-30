@@ -24,50 +24,62 @@ const make_face_center = function(graph, face_index) {
 		.map(el => el/graph.faces_vertices[face_index].length);
 }
 
+const prepare_extensions = function(graph) {
+	let faces_count = graph.faces_vertices.length;
+	if (graph["re:faces_layer"] == null) { // this isn't exactly good. it works with 1 face
+		graph["re:faces_layer"] = Array.from(Array(faces_count)).map(_ => 0);
+	}
+	if (graph["re:face_stationary"] == null) {
+		graph["re:face_stationary"] = 0;
+	}
+	if (graph["re:faces_to_move"] == null) {
+		graph["re:faces_to_move"] = Array.from(Array(faces_count)).map(_ => false);
+	}
+}
+
 // for now, this uses "re:faces_layer", todo: use faceOrders
-export function crease_through_layers(graph, point, vector, stay_normal, crease_direction = "V", face_index) {
-	console.log("_______________ crease_through_layers");
-	console.log(graph.json);
-	// let face_index;
+export const crease_through_layers = function(graph, point, vector, face_index, crease_direction = "V") {
+	// console.log("_______________ crease_through_layers");
+	// console.log(graph.json);
+
+	let creaseLine = Geom.Line(point, vector);
+	let foldSideVector = creaseLine.vector.rotateZ90();
+
 	// todo: switch this for the general form
 	let faces_count = graph.faces_vertices.length;
 
 	let opposite_crease = 
 		(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
-	// if face isn't set, it will be determined by whichever face
-	// is directly underneath point. or if none, index 0.
-	let face_centroid;
 	if (face_index == null) {
-		face_index = PlanarGraph.face_containing_point(graph, point);
-		if(face_index === undefined) { face_index = 0; }
-	} else {
-		let points = graph.faces_vertices[face_index].map(fv => graph.vertices_coords[fv]);
-		face_centroid = Geom.Polygon(points).centroid;
+		// an unset face will be the face under the point. or if none, index 0
+		let containing_point = PlanarGraph.face_containing_point(graph, point);
+		face_index = (containing_point === undefined) ? 0 : containing_point;
 	}
-	let creaseLine = Geom.Line(point, vector);
-	let stayNormalVec = Geom.Vector(stay_normal);
-
 	// let graph_faces_coloring = graph["re:faces_coloring"] != null
 	// 	? graph["re:faces_coloring"]
 	// 	: Graph.faces_coloring(graph, face_index);
 
-	let folded = [];
-	// todo: replace these with a get_faces_length that checks edges too
-	let faces_to_move = graph["re:faces_to_move"] != null
-		? graph["re:faces_to_move"]
-		: Array.from(Array(faces_count)).map(_ => false);
-
-	// todo: replace this. this doesn't work
-	let graph_faces_layer = graph["re:faces_layer"] != null
-		? graph["re:faces_layer"]
-		: Array.from(Array(faces_count)).map(_ => 0);
+	prepare_extensions(graph);
 
 	let faces_matrix = PlanarGraph.make_faces_matrix_inv(graph, face_index);
 	let faces_crease_line = faces_matrix.map(m => creaseLine.transform(m));
-	let faces_stay_normal = faces_matrix.map(m => stayNormalVec.transform(m));
+	let faces_fold_normal = faces_matrix.map(m => foldSideVector.transform(m));
 	let faces_coloring = Graph.faces_coloring(graph, face_index);
 	let faces_folding = Array.from(Array(faces_count));
 	let original_face_indices = Array.from(Array(faces_count)).map((_,i)=>i);
+	let faces_to_move = graph["re:faces_to_move"]
+	let graph_faces_layer = graph["re:faces_layer"];
+
+	// cache original state
+	let faces_coloring_original = JSON.parse(JSON.stringify(faces_coloring));
+
+	const pointSidedness = function(line, face_center, face_color) {
+		console.log("pointSidedness", line, face_center, face_color);
+		let vector2 = face_center.subtract(line.point);
+		return face_color
+				? line.vector.cross(vector2).z > 0
+				: line.vector.cross(vector2).z < 0;
+	}
 
 	let faces_center = Array.from(Array(faces_count))
 		.map((_, i) => make_face_center(graph, i))
@@ -86,51 +98,36 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 			let diff = PlanarGraph.split_convex_polygon(graph, i, line.point,
 				line.vector, faces_coloring[i] ? crease_direction : opposite_crease);
 
-			console.log("diff", diff);
-
 			if (diff != null && diff.faces != null) {
-				let face_stay_normal = faces_stay_normal[i];
+				let face_fold_normal = faces_fold_normal[i];
 				diff.faces.replace.forEach(replace => {
-					// center of two faces - b/c convex, able to do a quick average
-					let two_face_centers = replace.new
-						.map(el => el.index + diff.faces.map[el.index])
-						.map(i => graph.faces_vertices[i])
-						.map(fv => fv.map(v => graph.vertices_coords[v]))
-						.map(face => 
-							face.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
-								.map(el => el/face.length)
-						).map(p => Geom.Vector(p))
-
+					let new_faces_index = replace.new.map(el => el.index)
+						.map(index => index + diff.faces.map[index]);
+					let new_faces_center = new_faces_index
+						.map((i) => make_face_center(graph, i))
+						.map(p => Geom.Vector(p));
 					// "left";
-					let two_face_should_move = two_face_centers
+					let two_face_should_move = new_faces_center
 						.map(c => c.subtract(line.point))
 						.map(v2 => faces_coloring[replace.old]
 							? line.vector.cross(v2).z > 0
 							: line.vector.cross(v2).z < 0);
 
-					// let two_face_dots = two_face_vectors.map(v => v.dot(face_stay_normal));
-					// let two_face_should_move = two_face_dots.map(d => d < 0);
+					// let two_face_should_move = new_faces_index.map((face_index, i) => 
+					// 	pointSidedness(line, new_faces_center[i], faces_coloring[replace.old])
+					// );
 
-					// console.log("______(this face)_______");
-					// console.log("two_face_should_move", two_face_should_move);
-					// console.log("coloring", faces_coloring[replace.old]);
-					// console.log("two_face_centers", two_face_centers);
-					// console.log("two_face_vectors", two_face_vectors);
-					// console.log("two_face_dots", two_face_dots);
-					// console.log("A+", two_face_centers.map(c => c.subtract(line.point)))
-					// console.log("two_face_should_move_cross", two_face_should_move_cross);
-
-					// console.log("faces_to_move[replace.old]", faces_to_move[replace.old]);
-
+					// what is this doing why do i need it uhhhh
+					console.log("original_face_indices", JSON.parse(JSON.stringify(original_face_indices)));
 					original_face_indices.splice(replace.old, 1);
 					// delete graph_faces_coloring[replace.old];
-					replace.new.forEach((newFace, i) => {
+					new_faces_index.forEach((face_index, i) => {
 						// console.log("adding new face at ", newFace.index);
 						// graph_faces_coloring[newFace.index] = colors[i]
-						faces_to_move[newFace.index] = faces_to_move[replace.old] || two_face_should_move[i];
-						graph_faces_layer[newFace.index] = graph_faces_layer[replace.old];
-						faces_folding[newFace.index] = two_face_should_move[i];
-						console.log("making a new face: coloring is ", faces_coloring[replace.old], " faces_folding is ", faces_folding[newFace.index] );
+						faces_to_move[face_index] = faces_to_move[replace.old] || two_face_should_move[i];
+						graph_faces_layer[face_index] = graph_faces_layer[replace.old];
+						faces_folding[face_index] = two_face_should_move[i];
+						console.log("making a new face: coloring is ", faces_coloring[replace.old], " faces_folding is ", faces_folding[face_index] );
 					});
 				})
 				// diff.faces.map.forEach((change, index) => graph_faces_coloring[index+change] = graph_faces_coloring[index]);
@@ -146,8 +143,8 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 				faces_to_move = apply_diff_map(diff.faces.map, faces_to_move);
 				graph_faces_layer = apply_diff_map(diff.faces.map, graph_faces_layer);
 				faces_folding = apply_diff_map(diff.faces.map, faces_folding);
-				faces_center = apply_diff_map(diff.faces.map, faces_center);
-				faces_sidedness = apply_diff_map(diff.faces.map, faces_sidedness);
+				// faces_center = apply_diff_map(diff.faces.map, faces_center);
+				// faces_sidedness = apply_diff_map(diff.faces.map, faces_sidedness);
 
 				// console.log(JSON.parse(JSON.stringify(faces_to_move)));
 				// console.log("--------");
@@ -158,6 +155,7 @@ export function crease_through_layers(graph, point, vector, stay_normal, crease_
 	faces_folding.forEach((f,newI) => {
 		if (f == null) {
 			let oldI = original_face_indices[newI];
+			if (oldI == null) { return; }
 			console.log("old new", oldI, newI);
 			let line = faces_crease_line[oldI];
 			let face_center = graph.faces_vertices[newI]
