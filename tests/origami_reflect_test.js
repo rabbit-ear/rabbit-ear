@@ -14,10 +14,10 @@ let params = Array.from(Array(1)).map(_ => ({
 }));
 
 // let params = [
-// 	{point: [0.200133, 0.670124], vector: [0.631504, 0.400134]},
-// 	{point: [0.929233, 0.589455], vector: [0.342171, 0.292683]},
-// 	{point: [0.937888, 0.917617], vector: [0.329196, 0.431406]},
-// 	{point: [0.760438, 0.965996], vector: [0.507460, 0.654924]}
+// 	{ point: [0.594607, 0.795777], vector: [0.754324, 0.753027]},
+// 	{ point: [0.611284, 0.884815], vector: [0.878432, 0.164763]},
+// 	{ point: [0.180743, 0.925500], vector: [0.825651, 0.013952]},
+// 	{ point: [0.278687, 0.682494], vector: [0.136923, 0.559915]}
 // ];
 
 console.log("this sketch", params);
@@ -116,19 +116,19 @@ sketch.update = function() {
 		});
 
 	let cpCopy = RabbitEar.CreasePattern(sketch.masterCP);
-	cpCopy.valleyFold(creaseLine.point, creaseLine.vector, 0);
+	cpCopy.valleyFold(creaseLine.point, creaseLine.vector);
 	folded.cp = cpCopy;
 	let notMoving = folded.cp["re:faces_to_move"].indexOf(false) !== -1
 		? folded.cp["re:faces_to_move"].indexOf(false)
 		: 0;
 	folded.fold(notMoving);
-	Array.from(folded.groups.face.children)
-		.forEach((face,i) => {
-			face.setAttribute("fill", faces_coloring[i] ? "#ffffff" : "#f1c14f");
-			face.setAttribute("stroke", "black");
-			face.setAttribute("stroke-width", 0.02);
-			face.removeAttribute("class");
-		})
+	// Array.from(folded.groups.face.children)
+	// 	.forEach((face,i) => {
+	// 		face.setAttribute("fill", faces_coloring[i] ? "#ffffff" : "#f1c14f");
+	// 		face.setAttribute("stroke", "black");
+	// 		face.setAttribute("stroke-width", 0.005);
+	// 		face.removeAttribute("class");
+	// 	})
 
 	sketch.setViewBox(-0.2, -0.2, 1.4, 1.4);
 }

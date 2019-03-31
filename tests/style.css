@@ -52,13 +52,13 @@ svg{
 	fill: #195783;
 	stroke: #000;
 	stroke-linecap: round;
-	stroke-width: var(--crease-width);
+	stroke-width: calc( var(--crease-width) * 0.25);
 }
 .face-back {
 	fill: #ecb233;
 	stroke: #000;
 	stroke-linecap: round;
-	stroke-width: var(--crease-width);
+	stroke-width: calc( var(--crease-width) * 0.25);
 }
 .folded-face {
 	fill: rgba(0, 0, 0, 0.1);
@@ -69,13 +69,13 @@ svg{
 	fill: rgba(255, 255, 255, 0.8);
 	stroke: #195783;
 	stroke-linecap: round;
-	stroke-width: var(--crease-width);
+	stroke-width: calc( var(--crease-width) * 0.25);
 }
 .face-back-debug {
 	fill: hsla(43, 88%, 46%, 0.8);
 	stroke: #ecb233;
 	stroke-linecap: round;
-	stroke-width: var(--crease-width);
+	stroke-width: calc( var(--crease-width) * 0.25);
 }
 
 .vertex{ fill: hsl(43, 88%, 46%); }

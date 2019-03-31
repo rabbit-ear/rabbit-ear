@@ -173,7 +173,8 @@ export default function() {
 		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
 	graph.valleyFold = function(point, vector, face_index) {
-		Origami.crease_through_layers(graph, point, vector, face_index, "V");
+		let folded = Origami.crease_through_layers(graph, point, vector, face_index, "V");
+		Object.keys(folded).forEach(key => graph[key] = folded[key]);
 		if (typeof graph.onchange === "function") { graph.onchange(); }
 	}
 	graph.kawasaki = function() {

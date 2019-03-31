@@ -82,10 +82,21 @@ export const foldedFaces = function(graph) {
 	let facesV = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		// .map(face => Geom.Polygon(face));
-	let notMoving = graph["re:faces_to_move"].indexOf(false);
-	if (notMoving === -1) { notMoving = 0; }
+	let notMoving = 0;
+	// if (graph["re:faces_to_move"] != null) {
+	// 	let faces_to_move = graph["re:faces_to_move"].indexOf(false);
+	// 	if (faces_to_move !== -1) { notMoving = faces_to_move; }
+	// }
+	if (graph["re:face_stationary"] != null) {
+		notMoving = graph["re:face_stationary"];
+	}
 	// if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
-	let coloring = faces_coloring(graph, notMoving);
+
+	// let coloring = faces_coloring(graph, notMoving);
+	let coloring = graph["re:faces_coloring"];
+	if (coloring == null) {
+		coloring = faces_coloring(graph, notMoving);
+	}
 
 	let order = graph["re:faces_layer"] != null
 		? faces_sorted_by_layer(graph["re:faces_layer"])

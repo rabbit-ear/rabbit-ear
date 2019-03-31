@@ -74,7 +74,7 @@ lrex.redraw = function(){
 			let lc = (i === 3) ? Math.PI*2 : 0
 			let interior = RabbitEar.math.core.geometry.counter_clockwise_angle2_radians(a[0], a[1]+lc);
 
-			let r = wedge_space / Math.pow(interior, 0.8);
+			let r = wedge_space / Math.pow(interior, 0.866);
 
 			let p = [xing.p[0] + dp[0]*r, xing.p[1] + dp[1]*r]
 			let w = lrex.xingLayer.wedge(p[0], p[1], wedge_r, a[0], a[1]);

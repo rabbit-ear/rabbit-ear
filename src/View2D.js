@@ -193,6 +193,7 @@ export default function() {
 
 	_this.groups = groups;
 	_this.labels = labels;
+	Object.defineProperty(_this, "updateViewBox", { value: updateViewBox });
 
 
 	_this.preferences = preferences;

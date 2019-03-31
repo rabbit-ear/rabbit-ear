@@ -14,6 +14,24 @@ import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
 import { apply_diff, apply_diff_map } from "./diff";
 
+export function foldLayers(faces_layer, faces_folding) {
+	let folding_i = faces_layer
+		.map((el,i) => faces_folding[i] ? i : undefined)
+		.filter(a => a !== undefined)
+	let not_folding_i = faces_layer
+		.map((el,i) => !faces_folding[i] ? i : undefined)
+		.filter(a => a !== undefined)
+	let sorted_folding_i = folding_i.slice()
+		.sort((a,b) => faces_layer[a] - faces_layer[b]);
+	let sorted_not_folding_i = not_folding_i.slice()
+		.sort((a,b) => faces_layer[a] - faces_layer[b]);
+	let new_faces_layer = [];
+	sorted_not_folding_i.forEach((layer, i) => new_faces_layer[layer] = i);
+	let topLayer = sorted_not_folding_i.length;
+	sorted_folding_i.reverse().forEach((layer, i) => new_faces_layer[layer] = topLayer + i);
+	return new_faces_layer;
+}
+
 /**
  * point average, not centroid, only useful in certain cases
  */
@@ -37,16 +55,44 @@ const prepare_extensions = function(graph) {
 	}
 }
 
+/**
+ * the crease line is defined by point, vector, happening on face_index
+ */
+const pointSidedness = function(point, vector, face_center, face_color) {
+	let vec2 = [face_center[0] - point[0], face_center[1] - point[1]];
+	let det = vector[0] * vec2[1] - vector[1] * vec2[0];
+	return face_color ? det > 0 : det < 0;
+}
+
+const prepare_to_fold = function(graph, point, vector, face_index) {
+	let faces_count = graph.faces_vertices.length;
+	graph["re:faces_folding"] = Array.from(Array(faces_count));
+	graph["re:faces_preindex"] = Array.from(Array(faces_count)).map((_,i)=>i);
+	graph["re:faces_coloring"] = Graph.faces_coloring(graph, face_index);
+	graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
+	graph["re:faces_creases"] = graph["re:faces_matrix"]
+		.map(mat => Geom.core.algebra.multiply_line_matrix2(point, vector, mat));
+	graph["re:faces_center"] = Array.from(Array(faces_count))
+		.map((_, i) => make_face_center(graph, i));
+	graph["re:faces_sidedness"] = Array.from(Array(faces_count))
+		.map((_, i) => pointSidedness(
+			graph["re:faces_creases"][i][0],
+			graph["re:faces_creases"][i][1],
+			graph["re:faces_center"][i],
+			graph["re:faces_coloring"][i]
+		));
+}
+
+/**
+ * this returns a copy of the graph with new crease lines.
+ * modifying the input graph with "re:" keys
+ * make sure graph at least follows fold file format
+ * any additional keys will be copied over.
+ */
+
 // for now, this uses "re:faces_layer", todo: use faceOrders
 export const crease_through_layers = function(graph, point, vector, face_index, crease_direction = "V") {
-	// console.log("_______________ crease_through_layers");
-	// console.log(graph.json);
-
-	let creaseLine = Geom.Line(point, vector);
-	let foldSideVector = creaseLine.vector.rotateZ90();
-
-	// todo: switch this for the general form
-	let faces_count = graph.faces_vertices.length;
+	console.log("+++++++++++++++++++++++ crease_through_layers");
 
 	let opposite_crease = 
 		(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
@@ -55,155 +101,109 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 		let containing_point = PlanarGraph.face_containing_point(graph, point);
 		face_index = (containing_point === undefined) ? 0 : containing_point;
 	}
-	// let graph_faces_coloring = graph["re:faces_coloring"] != null
-	// 	? graph["re:faces_coloring"]
-	// 	: Graph.faces_coloring(graph, face_index);
 
 	prepare_extensions(graph);
+	prepare_to_fold(graph, point, vector, face_index);
 
-	let faces_matrix = PlanarGraph.make_faces_matrix_inv(graph, face_index);
-	let faces_crease_line = faces_matrix.map(m => creaseLine.transform(m));
-	let faces_fold_normal = faces_matrix.map(m => foldSideVector.transform(m));
-	let faces_coloring = Graph.faces_coloring(graph, face_index);
-	let faces_folding = Array.from(Array(faces_count));
-	let original_face_indices = Array.from(Array(faces_count)).map((_,i)=>i);
-	let faces_to_move = graph["re:faces_to_move"]
-	let graph_faces_layer = graph["re:faces_layer"];
+	let folded = JSON.parse(JSON.stringify(graph));
 
-	// cache original state
-	let faces_coloring_original = JSON.parse(JSON.stringify(faces_coloring));
-
-	const pointSidedness = function(line, face_center, face_color) {
-		console.log("pointSidedness", line, face_center, face_color);
-		let vector2 = face_center.subtract(line.point);
-		return face_color
-				? line.vector.cross(vector2).z > 0
-				: line.vector.cross(vector2).z < 0;
-	}
-
-	let faces_center = Array.from(Array(faces_count))
-		.map((_, i) => make_face_center(graph, i))
-		.map(p => Geom.Vector(p));
-
-	let faces_sidedness = Array.from(Array(faces_count))
-		.map((_, i) => faces_center[i].subtract(faces_crease_line[i].point))
-		.map((v2, i) => faces_coloring[i]
-			? faces_crease_line[i].vector.cross(v2).z > 0
-			: faces_crease_line[i].vector.cross(v2).z < 0);
-
-	faces_crease_line
-		.reverse()
-		.forEach((line, reverse_i, arr) => {
-			let i = arr.length - 1 - reverse_i;
-			let diff = PlanarGraph.split_convex_polygon(graph, i, line.point,
-				line.vector, faces_coloring[i] ? crease_direction : opposite_crease);
-
-			if (diff != null && diff.faces != null) {
-				let face_fold_normal = faces_fold_normal[i];
-				diff.faces.replace.forEach(replace => {
-					let new_faces_index = replace.new.map(el => el.index)
-						.map(index => index + diff.faces.map[index]);
-					let new_faces_center = new_faces_index
-						.map((i) => make_face_center(graph, i))
-						.map(p => Geom.Vector(p));
-					// "left";
-					let two_face_should_move = new_faces_center
-						.map(c => c.subtract(line.point))
-						.map(v2 => faces_coloring[replace.old]
-							? line.vector.cross(v2).z > 0
-							: line.vector.cross(v2).z < 0);
-
-					// let two_face_should_move = new_faces_index.map((face_index, i) => 
-					// 	pointSidedness(line, new_faces_center[i], faces_coloring[replace.old])
-					// );
-
-					// what is this doing why do i need it uhhhh
-					console.log("original_face_indices", JSON.parse(JSON.stringify(original_face_indices)));
-					original_face_indices.splice(replace.old, 1);
-					// delete graph_faces_coloring[replace.old];
-					new_faces_index.forEach((face_index, i) => {
-						// console.log("adding new face at ", newFace.index);
-						// graph_faces_coloring[newFace.index] = colors[i]
-						faces_to_move[face_index] = faces_to_move[replace.old] || two_face_should_move[i];
-						graph_faces_layer[face_index] = graph_faces_layer[replace.old];
-						faces_folding[face_index] = two_face_should_move[i];
-						console.log("making a new face: coloring is ", faces_coloring[replace.old], " faces_folding is ", faces_folding[face_index] );
+	let faces_count = graph.faces_vertices.length;
+	Array.from(Array(faces_count)).map((_,i) => i).reverse()
+		.forEach(i => {
+			let diff = PlanarGraph.split_convex_polygon(
+				folded, i,
+				folded["re:faces_creases"][i][0],
+				folded["re:faces_creases"][i][1],
+				folded["re:faces_coloring"][i] ? crease_direction : opposite_crease
+			);
+			if (diff == null || diff.faces == null) { return; }
+			console.log("face_stationary", graph["re:face_stationary"]);
+			console.log("diff", diff);
+			diff.faces.replace.forEach(replace => {
+				replace.new.map(el => el.index)
+					.map(index => index + diff.faces.map[index]) // new indices post-face removal
+					.forEach(i => {
+						folded["re:faces_center"][i] = make_face_center(folded, i);
+						folded["re:faces_sidedness"][i] = pointSidedness(
+							graph["re:faces_creases"][replace.old][0],
+							graph["re:faces_creases"][replace.old][1],
+							folded["re:faces_center"][i],
+							graph["re:faces_coloring"][replace.old]
+						);
+						folded["re:faces_layer"][i] = graph["re:faces_layer"][replace.old];
+						folded["re:faces_preindex"][i] = graph["re:faces_preindex"][replace.old];
+						// if (replace.old === folded["re:face_stationary"] 
+						// 	&& folded["re:faces_sidedness"][i]) {
+							// console.log(">>>> resetting stationary from", folded["re:face_stationary"]  , "to", i);
+							// folded["re:face_stationary"] = i;
+						// }
+						console.log(">>>> preindex", JSON.parse(JSON.stringify(folded["re:faces_preindex"])));
 					});
-				})
-				// diff.faces.map.forEach((change, index) => graph_faces_coloring[index+change] = graph_faces_coloring[index]);
-				// if (graph_faces_coloring["-1"] != null) { delete graph_faces_coloring["-1"] }
-				// graph_faces_coloring.pop();
-
-				// console.log("+++++++");
-				// console.log(diff.faces);
-				// console.log(diff.faces.map);
-				// console.log( JSON.parse(JSON.stringify(faces_to_move)) );
-				// todo, if we add more places where faces get removed, add their indices here
-
-				faces_to_move = apply_diff_map(diff.faces.map, faces_to_move);
-				graph_faces_layer = apply_diff_map(diff.faces.map, graph_faces_layer);
-				faces_folding = apply_diff_map(diff.faces.map, faces_folding);
-				// faces_center = apply_diff_map(diff.faces.map, faces_center);
-				// faces_sidedness = apply_diff_map(diff.faces.map, faces_sidedness);
-
-				// console.log(JSON.parse(JSON.stringify(faces_to_move)));
-				// console.log("--------");
-			}
+			})
 		});
-	console.log("original_face_indices", original_face_indices);
+	folded["re:faces_layer"] = foldLayers(
+		folded["re:faces_layer"],
+		folded["re:faces_sidedness"]
+	);
 
-	faces_folding.forEach((f,newI) => {
-		if (f == null) {
-			let oldI = original_face_indices[newI];
-			if (oldI == null) { return; }
-			console.log("old new", oldI, newI);
-			let line = faces_crease_line[oldI];
-			let face_center = graph.faces_vertices[newI]
-				.map(v => graph.vertices_coords[v])
-				.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
-				.map(el => el/graph.faces_vertices[newI].length)
-			let face_center_vec = Geom.Vector(face_center);
-			let v2 = face_center_vec.subtract(line.point);
-			console.log("comparing " + newI, line.point, line.vector, v2);
-			let should_fold = faces_coloring[oldI]
-					? line.vector.cross(v2).z > 0
-					: line.vector.cross(v2).z < 0;
-			// let should_fold = line.vector.cross(v2).z > 0;
-			faces_folding[newI] = should_fold;
-			console.log("filling in a line: coloring is ", faces_coloring[newI], " faces_folding is ", should_fold );
-		}
-	});
+	// update stationary face with new face.
+	let new_face_stationary = folded["re:faces_preindex"]
+		.map((f, i) => ({face: f, i: i}))
+		.filter(el => el.face === folded["re:face_stationary"])
+		.filter(el => folded["re:faces_sidedness"][el.i])
+		.map(el => el.i)
+		.shift();
+	if (new_face_stationary != null) {
+		folded["re:face_stationary"] = new_face_stationary;
+	}
+	// update colorings
+	console.log("original stationary", graph["re:face_stationary"])
+	console.log("original coloring", graph["re:faces_coloring"][graph["re:face_stationary"]]);
+	let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
+
+	folded["re:faces_coloring"] = Graph.faces_coloring(folded, new_face_stationary);
+
+	return folded;
+
+	// console.log("original_face_indices", original_face_indices);
+
+	// faces_folding.forEach((f,newI) => {
+	// 	if (f == null) {
+	// 		let oldI = original_face_indices[newI];
+	// 		if (oldI == null) { return; }
+	// 		console.log("old new", oldI, newI);
+	// 		let line = faces_crease_line[oldI];
+	// 		let face_center = graph.faces_vertices[newI]
+	// 			.map(v => graph.vertices_coords[v])
+	// 			.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
+	// 			.map(el => el/graph.faces_vertices[newI].length)
+	// 		let face_center_vec = Geom.Vector(face_center);
+	// 		let v2 = face_center_vec.subtract(line.point);
+	// 		console.log("comparing " + newI, line.point, line.vector, v2);
+	// 		let should_fold = faces_coloring[oldI]
+	// 				? line.vector.cross(v2).z > 0
+	// 				: line.vector.cross(v2).z < 0;
+	// 		// let should_fold = line.vector.cross(v2).z > 0;
+	// 		faces_folding[newI] = should_fold;
+	// 		console.log("filling in a line: coloring is ", faces_coloring[newI], " faces_folding is ", should_fold );
+	// 	}
+	// });
+
 	// now we know which layers are being folded
-	console.log("+++ BEFORE faces_layer", JSON.parse(JSON.stringify(graph_faces_layer)));
-	console.log("faces_folding ", faces_folding);
-	let new_layer_order = foldLayers(graph_faces_layer, faces_folding);
+	// console.log("+++ BEFORE faces_layer", JSON.parse(JSON.stringify(graph_faces_layer)));
+	// console.log("faces_folding ", faces_folding);
+//	let new_layer_order = foldLayers(graph_faces_layer, faces_folding);
 	// console.log("layering after " + lastLayer, faces_folding_indices, folding_layer_order);
-	console.log("--- AFTER faces_layer", JSON.parse(JSON.stringify(new_layer_order)));
+	// console.log("--- AFTER faces_layer", JSON.parse(JSON.stringify(new_layer_order)));
 
 	// console.log("faces_folding", faces_folding);
 	// graph["re:faces_coloring"] = faces_coloring;
-	graph["re:faces_to_move"] = faces_to_move;
-	graph["re:faces_layer"] = new_layer_order;
+
+//	graph["re:faces_to_move"] = faces_to_move;
+//	graph["re:faces_layer"] = new_layer_order;
+
 	// determine which faces changed
 	// console.log(graph);
-}
-
-export function foldLayers(layer_order, faces_folding) {
-	let new_layer_order = [];
-	let folding_i = layer_order
-		.map((el,i) => faces_folding[i] ? i : undefined)
-		.filter(a => a !== undefined)
-	let not_folding_i = layer_order
-		.map((el,i) => !faces_folding[i] ? i : undefined)
-		.filter(a => a !== undefined)
-	let sorted_folding_i = folding_i.slice()
-		.sort((a,b) => layer_order[a] - layer_order[b]);
-	let sorted_not_folding_i = not_folding_i.slice()
-		.sort((a,b) => layer_order[a] - layer_order[b]);
-	sorted_not_folding_i.forEach((layer, i) => new_layer_order[layer] = i);
-	let topLayer = sorted_not_folding_i.length;
-	sorted_folding_i.reverse().forEach((layer, i) => new_layer_order[layer] = topLayer + i);
-	return new_layer_order;
 }
 
 export function crease_folded(graph, point, vector, face_index) {
@@ -412,6 +412,9 @@ export function kawasaki_collapse(graph, vertex, face, crease_direction = "F") {
 }
 
 export function fold_without_layering(fold, face) {
+	if (fold["re:face_stationary"] != null) {
+		face = fold["re:face_stationary"];
+	}
 	if (face == null) { face = 0; }
 	let faces_matrix = PlanarGraph.make_faces_matrix(fold, face);
 	let vertex_in_face = fold.vertices_coords.map((v,i) => {
