@@ -43,6 +43,7 @@ export default function() {
 
 	let preferences = {
 		autofit: true,
+		debug: false,
 	};
 
 	const setCreasePattern = function(cp) {
@@ -68,7 +69,8 @@ export default function() {
 			drawings[key].forEach(el => groups[key].appendChild(el))
 		);
 
-		// face dubug nubmers
+		if (!preferences.debug) { return; }
+		// face dubug numbers
 		labels.face.removeChildren();
 		let fAssignments = graph.faces_vertices.map(fv => "face");
 		let facesText = !(graph.faces_vertices) ? [] : graph.faces_vertices
@@ -94,7 +96,15 @@ export default function() {
 		} else{
 			drawCreasePattern(graph);
 		}
-		if (preferences.autofit) { updateViewBox(); }
+		// make svg components pass through their touches
+		Object.keys(groups).forEach(key => 
+			Array.from(groups[key].children).forEach(c =>
+				c.setAttribute("pointer-events", "none")
+			)
+		)
+		if (preferences.autofit) {
+			updateViewBox();
+		}
 	};
 
 	const updateViewBox = function() {

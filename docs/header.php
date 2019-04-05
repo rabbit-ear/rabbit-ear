@@ -2,11 +2,6 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<!-- <script async src="https://www.googletagmanager.com/gtag/js?id=UA-121244028-1"></script> -->
-<script>
-// window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','UA-121244028-1');
-</script>
-
 <script type="text/javascript" src="../rabbit-ear.js"></script>
 
 <!-- <script type="text/javascript" src="lib/katex/katex.min.js"></script> -->
@@ -29,36 +24,32 @@
 			</li>
 			<li class="dropdown">
 				<a href="/docs/">HELLO</a>
-				<div class="dropdown-content">
-				<a href="introduction.php">START HERE</a>
-				</div>
 			</li>
 			<li class="dropdown">
-				<a href="math.php">I. MATH</a>
+				<a href="math.php" class="dropbtn">I. MATH</a>
 <!-- 				<div class="dropdown-content">
-					<a href="math.php">A. GEOMETRY</a>
-					<a href="epsilon.php">B. EPSILON</a>
+					<a href="vector.php">VECTOR</a>
+					<a href="line.php">LINE</a>
+					<a href="polygon.php">POLYGON</a>
+					<a href="sector.php">SECTOR</a>
+					<a href="epsilon.php">EPSILON</a>
 				</div> -->
 			</li>
 			<li class="dropdown">
-				<a href="planarGraph.php" class="dropbtn">II. GRAPHS</a>
+				<a href="graphs.php" class="dropbtn">II. GRAPHS</a>
 <!-- 				<div class="dropdown-content">
-					<a href="graph.php">A. GRAPH</a>
-					<a href="space.php">B. PLANAR GRAPH</a>
+					<a href="graph.php">GRAPH</a>
+					<a href="space.php">PLANAR</a>
 				</div> -->
 			</li>
 			<li class="dropdown">
-				<a href="creasePattern.php" class="dropbtn">III. ORIGAMI</a>
-				<div class="dropdown-content">
-				<a href="axioms.php">AXIOMS</a>
-				<a href="crease.php">CREASE</a>
-				<!-- <a href="importExport.php">IMPORT &amp; EXPORT</a> -->
-				<a href="flat-foldable.php">FLAT FOLDABLE</a>
-				<!-- <a href="boxPleating.php">BOX PLEATING</a> -->
-				<a href="voronoi.php">VORONOI</a>
-				<!-- <a href="symmetry.php">SYMMETRY</a> -->
-				<!-- <a href="paper.php">PAPER</a> -->
-				</div>
+				<a href="origami.php" class="dropbtn">III. ORIGAMI</a>
+<!-- 				<div class="dropdown-content">
+					<a href="axioms.php">AXIOMS</a>
+					<a href="crease.php">CREASE</a>
+					<a href="flat-foldable.php">FOLDABILITY</a>
+					<a href="voronoi.php">VORONOI</a>
+				</div> -->
 			</li>
 		</ul>
 	</nav>

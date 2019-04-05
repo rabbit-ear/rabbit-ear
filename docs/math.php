@@ -4,11 +4,12 @@
 
 <section>
 	<div id="canvas-junction-bisect"></div>
-	<p>Origami is a fantastic visual exploration of geometry and linear algebra. Doing origami teaches you math, special attention to <b>convex</b> polygons, sectors (the angle space between two adjacent lines), and affine transformations.</p>
+	<p>Origami is a fantastic opportunity to explore geometry and linear algebra in a visual way.</p>
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
-	<p class="explain">This math portion of this library is its own separate module, is open-source and available <a href="https://github.com/robbykraft/Geometry">for download</a>.</p>
+	<p class="explain">This Javascript math library is open-source and available <a href="https://github.com/robbykraft/Geometry">here</a>.</p>
+	<p>Digitized origami designs make use of traditional structures like graphs, convex polygons, and affine transformations - but with extra focus on perhaps otherwise overlooked details. For example at the node of a planar graph the focus isn't so much on the lines as much as the space and the angle <i>between</i> the lines.</p>
 </section>
 
 <section id="types">
@@ -25,6 +26,28 @@
 	<div id="canvas-lerp"></div>
 	<div class="centered">
 		<pre><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, t)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, t)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, t)</code></pre>
+	</div>
+
+	<div class="centered">
+		<pre><code><f>function</f> <v>magnitude</v>()
+<f>function</f> <v>normalize</v>()
+<f>function</f> <v>dot</v>(<arg>vector</arg>)
+<f>function</f> <v>cross</v>(<arg>vector</arg>)
+<f>function</f> <v>distanceTo</v>(<arg>vector</arg>)
+<f>function</f> <v>transform</v>(<arg>matrix</arg>)
+<f>function</f> <v>add</v>(<arg>vector</arg>)
+<f>function</f> <v>subtract</v>(<arg>vector</arg>)
+<f>function</f> <v>rotateZ</v>(<arg>angle</arg>, <arg>origin</arg>)
+<f>function</f> <v>rotateZ90</v>()
+<f>function</f> <v>rotateZ180</v>()
+<f>function</f> <v>rotateZ270</v>()
+<f>function</f> <v>reflect</v>(<arg>line</arg>)
+<f>function</f> <v>lerp</v>(<arg>vector</arg>, <arg>magnitude</arg>)
+<f>function</f> <v>isEquivalent</v>(<arg>vector</arg>)
+<f>function</f> <v>isParallel</v>(<arg>vector</arg>)
+<f>function</f> <v>scale</v>(<arg>magnitude</arg>)
+<f>function</f> <v>midpoint</v>(<arg>vector</arg>)
+<f>function</f> <v>bisect</v>(<arg>vector</arg>)</code></pre>
 	</div>
 
 <h3><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h3>

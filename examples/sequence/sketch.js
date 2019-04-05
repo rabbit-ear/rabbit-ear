@@ -2,7 +2,6 @@ var container = document.getElementById("folding-sequence");
 var prevCP, STEPS = 5;
 
 for(var i = 0; i < STEPS; i++){
-	console.log("============================ ROUND " + i);
 	// grab the crease pattern from the previous step if it exists
 	var cp = (prevCP != null) ? prevCP.copy() : RabbitEar.CreasePattern();
 	
@@ -16,7 +15,7 @@ for(var i = 0; i < STEPS; i++){
 
 	// create html components
 	var lineHeader = document.createElement("h2");
-	lineHeader.innerHTML = (i+1) + ".";
+	lineHeader.innerHTML = (i+1);
 	container.appendChild(lineHeader);
 	var row = document.createElement("div");
 	row.className = "row";

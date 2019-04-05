@@ -67,6 +67,8 @@ svg{
 	stroke-linecap: round;
 }
 .folded-face{ fill: rgba(255,255,255,0.5); }
+.face-front{ fill: rgba(255,255,255,0.5); }
+.face-back{ fill: rgba(255,255,255,0.5); }
 
 .fill-yellow{ fill: hsl(43, 88%, 46%); }
 .arrow-path{ fill:none; stroke: hsl(14.4, 87%, 45%); stroke-width: var(--crease-width); }

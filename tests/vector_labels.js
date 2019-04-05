@@ -8,10 +8,18 @@ vecText = RabbitEar.svg.image("canvas-vector-labels", window.innerWidth, window.
 		vecText.update();
 	}
 });
+vecText.gridLayer = vecText.group();
 vecText.drawLayer = vecText.group();
 vecText.dotLayer = vecText.group();
 
 vecText.reset = function(){
+	vecText.gridLayer.removeChildren();
+	for (let i = -4; i <= 4; i++) {
+		let s = i * 200;
+		vecText.gridLayer.line(s, -vecText.h, s, vecText.h).setAttribute("stroke", "#ccc");
+		vecText.gridLayer.line(-vecText.w, s, vecText.w, s).setAttribute("stroke", "#ccc");
+	}
+
 	vecText.dotLayer.removeChildren();
 	var randAngle = Math.random() * Math.PI * 2;
 	vecText.touches = [

@@ -9,7 +9,7 @@ nearestPoint.setup = function(){
 	nearestPoint.appendChild(nearestPoint.backLayer);
 	nearestPoint.appendChild(nearestPoint.lineLayer);
 	nearestPoint.appendChild(nearestPoint.circleLayer);
-	nearestPoint.edges = Array.from(Array(12)).map(_ =>
+	nearestPoint.edges = Array.from(Array(8)).map(_ =>
 		RabbitEar.math.Edge(
 			Math.random()*nearestPoint.w,
 			Math.random()*nearestPoint.h,
@@ -29,7 +29,7 @@ nearestPoint.setup();
 nearestPoint.update = function(point) {
 	RabbitEar.svg.removeChildren(nearestPoint.circleLayer);
 	let points = nearestPoint.edges.map(e => e.nearestPoint(point));
-	let circles = points.map(p => RabbitEar.svg.circle(p.x, p.y, 8));
+	let circles = points.map(p => RabbitEar.svg.circle(p.x, p.y, 6));
 	circles.forEach(c => c.setAttribute("fill", "white"));
 	circles.forEach(c => c.setAttribute("stroke", "#224c72"));
 	circles.forEach(c => c.setAttribute("stroke-width", 4));
@@ -41,7 +41,7 @@ nearestPoint.update = function(point) {
 		l.setAttribute("stroke", "#f1c14f");
 		l.setAttribute("stroke-width", 4);
 		l.setAttribute("stroke-linecap", "round");
-		l.setAttribute("stroke-dasharray", "4 8");
+		l.setAttribute("stroke-dasharray", "0.1 8");
 		nearestPoint.backLayer.appendChild(l);
 	});
 

@@ -29,6 +29,8 @@ export default function() {
 		graph = JSON.parse(squareFoldString);
 	}
 
+	let creases = [];
+
 	// unclear if we want to use this
 	// let frame = 0; // which fold file frame (0 ..< Inf) to display
 

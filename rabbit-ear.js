@@ -22,11 +22,11 @@
 	function magnitude(v) {
 		let sum = v
 			.map(component => component * component)
-			.reduce((prev,curr) => prev + curr);
+			.reduce((prev,curr) => prev + curr, 0);
 		return Math.sqrt(sum);
 	}
-	function degenerate(v) {
-		return Math.abs(v.reduce((a, b) => a + b, 0)) < EPSILON;
+	function degenerate(v, epsilon = EPSILON) {
+		return Math.abs(v.reduce((a, b) => a + b, 0)) < epsilon;
 	}
 	function dot(a, b) {
 		return a
@@ -1000,12 +1000,34 @@
 		if(proto == null) {
 			proto = {};
 		}
+		const isParallel = function(line, epsilon){
+			if (line.vector == null) {
+				throw "line isParallel(): please ensure object contains a vector";
+			}
+			let this_is_smaller = (this.vector.length < line.vector.length);
+			let sm = this_is_smaller ? this.vector : line.vector;
+			let lg = this_is_smaller ? line.vector : this.vector;
+			return parallel(sm, lg, epsilon);
+		};
+		const isDegenrate = function(epsilon){
+			return degenerate(this.vector, epsilon);
+		};
 		const reflection = function() {
 			return Matrix2.makeReflection(this.vector, this.point);
 		};
 		const nearestPoint = function() {
 			let point = get_vec(...arguments);
-			return Vector(nearest_point(this.point, this.vector, point, this.vec_cap_func));
+			return Vector(nearest_point(this.point, this.vector, point, this.clip_function));
+		};
+		const intersect = function(other) {
+			return intersection_function(
+				this.point, this.vector,
+				other.point, other.vector,
+				function(t0, t1, epsilon = EPSILON) {
+					return this.compare_function(t0, epsilon)
+					   && other.compare_function(t1, epsilon);
+				}.bind(this)
+			);
 		};
 		const intersectLine = function() {
 			let line = get_line(...arguments);
@@ -1030,16 +1052,19 @@
 				compare_to_edge.bind(this));
 		};
 		const compare_to_line = function(t0, t1, epsilon = EPSILON) {
-			return this.vec_comp_func(t0, epsilon) && true;
+			return this.compare_function(t0, epsilon) && true;
 		};
 		const compare_to_ray = function(t0, t1, epsilon = EPSILON) {
-			return this.vec_comp_func(t0, epsilon) && t1 >= -epsilon;
+			return this.compare_function(t0, epsilon) && t1 >= -epsilon;
 		};
 		const compare_to_edge = function(t0, t1, epsilon = EPSILON) {
-			return this.vec_comp_func(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
+			return this.compare_function(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
 		};
-		Object.defineProperty(proto, "reflection", {value: reflection});
+		Object.defineProperty(proto, "isParallel", {value: isParallel});
+		Object.defineProperty(proto, "isDegenrate", {value: isDegenrate});
 		Object.defineProperty(proto, "nearestPoint", {value: nearestPoint});
+		Object.defineProperty(proto, "reflection", {value: reflection});
+		Object.defineProperty(proto, "intersect", {value: intersect});
 		Object.defineProperty(proto, "intersectLine", {value: intersectLine});
 		Object.defineProperty(proto, "intersectRay", {value: intersectRay});
 		Object.defineProperty(proto, "intersectEdge", {value: intersectEdge});
@@ -1047,25 +1072,20 @@
 	}
 	function Line() {
 		let { point, vector } = get_line(...arguments);
-		const isParallel = function() {
-			let line = get_line(...arguments);
-			return parallel(vector, line.vector);
-		};
 		const transform = function() {
 			let mat = get_matrix2(...arguments);
 			let line = multiply_line_matrix2(point, vector, mat);
 			return Line(line[0], line[1]);
 		};
 		let line = Object.create(LinePrototype());
-		const vec_comp_func = function() { return true; };
-		const vec_cap_func = function(d) { return d; };
-		Object.defineProperty(line, "vec_comp_func", {value: vec_comp_func});
-		Object.defineProperty(line, "vec_cap_func", {value: vec_cap_func});
+		const compare_function = function() { return true; };
+		const clip_function = function(d) { return d; };
+		Object.defineProperty(line, "compare_function", {value: compare_function});
+		Object.defineProperty(line, "clip_function", {value: clip_function});
 		Object.defineProperty(line, "point", {get: function(){ return Vector(point); }});
 		Object.defineProperty(line, "vector", {get: function(){ return Vector(vector); }});
 		Object.defineProperty(line, "length", {get: function(){ return Infinity; }});
 		Object.defineProperty(line, "transform", {value: transform});
-		Object.defineProperty(line, "isParallel", {value: isParallel});
 		return line;
 	}
 	Line.fromPoints = function() {
@@ -1103,10 +1123,10 @@
 			return Ray(point[0], point[1], -vector[0], -vector[1]);
 		};
 		let ray = Object.create(LinePrototype());
-		const vec_comp_func = function(t0, ep) { return t0 >= -ep; };
-		const vec_cap_func = function(d, ep) { return (d < -ep ? 0 : d); };
-		Object.defineProperty(ray, "vec_comp_func", {value: vec_comp_func});
-		Object.defineProperty(ray, "vec_cap_func", {value: vec_cap_func});
+		const compare_function = function(t0, ep) { return t0 >= -ep; };
+		const clip_function = function(d, ep) { return (d < -ep ? 0 : d); };
+		Object.defineProperty(ray, "compare_function", {value: compare_function});
+		Object.defineProperty(ray, "clip_function", {value: clip_function});
 		Object.defineProperty(ray, "point", {get: function(){ return Vector(point); }});
 		Object.defineProperty(ray, "vector", {get: function(){ return Vector(vector); }});
 		Object.defineProperty(ray, "length", {get: function(){ return Infinity; }});
@@ -1146,14 +1166,14 @@
 			return Math.sqrt(Math.pow(edge[1][0] - edge[0][0],2)
 			               + Math.pow(edge[1][1] - edge[0][1],2));
 		};
-		const vec_comp_func = function(t0, ep) { return t0 >= -ep && t0 <= 1+ep; };
-		const vec_cap_func = function(d, ep) {
+		const compare_function = function(t0, ep) { return t0 >= -ep && t0 <= 1+ep; };
+		const clip_function = function(d, ep) {
 			if (d < -ep) { return 0; }
 			if (d > 1+ep) { return 1; }
 			return d;
 		};
-		Object.defineProperty(edge, "vec_comp_func", {value: vec_comp_func});
-		Object.defineProperty(edge, "vec_cap_func", {value: vec_cap_func});
+		Object.defineProperty(edge, "compare_function", {value: compare_function});
+		Object.defineProperty(edge, "clip_function", {value: clip_function});
 		Object.defineProperty(edge, "point", {get: function(){ return edge[0]; }});
 		Object.defineProperty(edge, "vector", {get: function(){ return vector(); }});
 		Object.defineProperty(edge, "length", {get: function(){ return length(); }});
@@ -4009,7 +4029,7 @@
 
 	// for now, this uses "re:faces_layer", todo: use faceOrders
 	const crease_through_layers = function(graph, point, vector, face_index, crease_direction = "V") {
-		console.log("+++++++++++++++++++++++ crease_through_layers");
+		// console.log("+++++++++++++++++++++++ crease_through_layers");
 
 		let opposite_crease = 
 			(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
@@ -4034,9 +4054,9 @@
 					folded["re:faces_coloring"][i] ? crease_direction : opposite_crease
 				);
 				if (diff == null || diff.faces == null) { return; }
-				console.log("face_stationary", graph["re:face_stationary"]);
-				console.log("diff", diff);
-				diff.faces.replace.forEach(replace => {
+				// console.log("face_stationary", graph["re:face_stationary"]);
+				// console.log("diff", diff);
+				diff.faces.replace.forEach(replace => 
 					replace.new.map(el => el.index)
 						.map(index => index + diff.faces.map[index]) // new indices post-face removal
 						.forEach(i => {
@@ -4049,14 +4069,8 @@
 							);
 							folded["re:faces_layer"][i] = graph["re:faces_layer"][replace.old];
 							folded["re:faces_preindex"][i] = graph["re:faces_preindex"][replace.old];
-							// if (replace.old === folded["re:face_stationary"] 
-							// 	&& folded["re:faces_sidedness"][i]) {
-								// console.log(">>>> resetting stationary from", folded["re:face_stationary"]  , "to", i);
-								// folded["re:face_stationary"] = i;
-							// }
-							console.log(">>>> preindex", JSON.parse(JSON.stringify(folded["re:faces_preindex"])));
-						});
-				});
+						})
+				);
 			});
 		folded["re:faces_layer"] = foldLayers(
 			folded["re:faces_layer"],
@@ -4067,60 +4081,19 @@
 		let new_face_stationary = folded["re:faces_preindex"]
 			.map((f, i) => ({face: f, i: i}))
 			.filter(el => el.face === folded["re:face_stationary"])
-			.filter(el => folded["re:faces_sidedness"][el.i])
+			.filter(el => !folded["re:faces_sidedness"][el.i])
 			.map(el => el.i)
 			.shift();
 		if (new_face_stationary != null) {
 			folded["re:face_stationary"] = new_face_stationary;
 		}
 		// update colorings
-		console.log("original stationary", graph["re:face_stationary"]);
-		console.log("original coloring", graph["re:faces_coloring"][graph["re:face_stationary"]]);
 		let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
-
 		folded["re:faces_coloring"] = faces_coloring(folded, new_face_stationary);
 
+		// console.log("original stationary", graph["re:face_stationary"])
+		// console.log("original coloring", graph["re:faces_coloring"][graph["re:face_stationary"]]);
 		return folded;
-
-		// console.log("original_face_indices", original_face_indices);
-
-		// faces_folding.forEach((f,newI) => {
-		// 	if (f == null) {
-		// 		let oldI = original_face_indices[newI];
-		// 		if (oldI == null) { return; }
-		// 		console.log("old new", oldI, newI);
-		// 		let line = faces_crease_line[oldI];
-		// 		let face_center = graph.faces_vertices[newI]
-		// 			.map(v => graph.vertices_coords[v])
-		// 			.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
-		// 			.map(el => el/graph.faces_vertices[newI].length)
-		// 		let face_center_vec = Geom.Vector(face_center);
-		// 		let v2 = face_center_vec.subtract(line.point);
-		// 		console.log("comparing " + newI, line.point, line.vector, v2);
-		// 		let should_fold = faces_coloring[oldI]
-		// 				? line.vector.cross(v2).z > 0
-		// 				: line.vector.cross(v2).z < 0;
-		// 		// let should_fold = line.vector.cross(v2).z > 0;
-		// 		faces_folding[newI] = should_fold;
-		// 		console.log("filling in a line: coloring is ", faces_coloring[newI], " faces_folding is ", should_fold );
-		// 	}
-		// });
-
-		// now we know which layers are being folded
-		// console.log("+++ BEFORE faces_layer", JSON.parse(JSON.stringify(graph_faces_layer)));
-		// console.log("faces_folding ", faces_folding);
-	//	let new_layer_order = foldLayers(graph_faces_layer, faces_folding);
-		// console.log("layering after " + lastLayer, faces_folding_indices, folding_layer_order);
-		// console.log("--- AFTER faces_layer", JSON.parse(JSON.stringify(new_layer_order)));
-
-		// console.log("faces_folding", faces_folding);
-		// graph["re:faces_coloring"] = faces_coloring;
-
-	//	graph["re:faces_to_move"] = faces_to_move;
-	//	graph["re:faces_layer"] = new_layer_order;
-
-		// determine which faces changed
-		// console.log(graph);
 	};
 
 	function crease_folded(graph, point, vector, face_index) {
@@ -5489,6 +5462,7 @@
 
 		let preferences = {
 			autofit: true,
+			debug: false,
 		};
 
 		const setCreasePattern = function(cp) {
@@ -5514,7 +5488,8 @@
 				drawings[key].forEach(el => groups[key].appendChild(el))
 			);
 
-			// face dubug nubmers
+			if (!preferences.debug) { return; }
+			// face dubug numbers
 			labels.face.removeChildren();
 			let fAssignments = graph.faces_vertices.map(fv => "face");
 			let facesText = !(graph.faces_vertices) ? [] : graph.faces_vertices
@@ -5540,7 +5515,14 @@
 			} else{
 				drawCreasePattern(graph);
 			}
-			if (preferences.autofit) { updateViewBox(); }
+			Object.keys(groups).forEach(key => 
+				Array.from(groups[key].children).forEach(c =>
+					c.setAttribute("pointer-events", "none")
+				)
+			);
+			if (preferences.autofit) {
+				updateViewBox();
+			}
 		};
 
 		const updateViewBox = function() {

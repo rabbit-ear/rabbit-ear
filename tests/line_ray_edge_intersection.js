@@ -46,9 +46,9 @@ lrex.redraw = function(){
 	// intersection wedges
 	lrex.xingLayer.removeChildren();
 	let intersections = [
-		{p: line.intersectRay(ray), v: [line, ray], c: ["#ecb233", "#195783"]},
-		{p: ray.intersectEdge(edge), v: [ray, edge], c: ["#195783", "#e44f2a"]},
-		{p: edge.intersectLine(line), v: [edge, line], c: ["#e44f2a", "#ecb233"]}
+		{p: line.intersect(ray), v: [line, ray], c: ["#ecb233", "#195783"]},
+		{p: ray.intersect(edge), v: [ray, edge], c: ["#195783", "#e44f2a"]},
+		{p: edge.intersect(line), v: [edge, line], c: ["#e44f2a", "#ecb233"]}
 	].filter(xing => xing.p != null);
 	intersections.forEach(xing => xing.vecs = [
 		xing.v[0].vector.normalize(),
