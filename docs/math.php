@@ -16,13 +16,19 @@
 
 <section id="types">
 	<h2>PRIMITIVES</h2>
-	<div id="canvas-vector-labels"></div>
 	<h3>Point / Vector</h3>
-	<p>A point is a location in space. x and y (and z). Another way of saying this is <b>how far from the origin (0,0)</b>. It's the directions away from location. We call this object a <b>vector</b>.</p>
+	<p>Consider this object from two perspectives (spoiler, they are the same):</p>
+	<ul>
+		<li>a point in space, as measured from the origin (0,0)</li>
+		<li>a translation away from another point in space</li>
+	</ul>
+	<p>We call this object a <b>vector</b>.</p>
+	<div id="canvas-vector-labels"></div>
 	<div class="centered">
 		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br>point.<f>normalize</f>() <span style="color:#e44f2a">// normalized vector</span><br>point.<f>dot</f>() <span style="color:#ecb233">// dot product</span><br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#6096bb">// cross product with +Z</span></code></pre>
 	</div>
-	<p class="explain">This vector object and its methods can generalize to n-dimensions.</p>
+	<p>Notice the y axis is positive in the downwards direction. <b>I did not make this decision</b> it's a computer graphics standard, I've learned that fighting against it just causes more problems.</p>
+	<p class="explain">This vector object is not limited to 2D, it works in n-dimensions.</p>
 
 	<!-- <h4>Linear Interpolation</h4> -->
 	<div id="canvas-lerp"></div>

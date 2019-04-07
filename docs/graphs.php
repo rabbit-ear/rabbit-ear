@@ -1,6 +1,5 @@
 <?php include 'header.php';?>
 <script type="text/javascript" src="../lib/d3.min.js"></script>
-<script type="text/javascript" src="js/graph.js"></script>
 <script type="text/javascript" src="js/cp.d3js.js"></script>
 <style>
 .links line {
