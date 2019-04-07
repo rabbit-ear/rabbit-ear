@@ -86,15 +86,15 @@ document.querySelector("#slider2").oninput = function(event) {
 	spiral.rebuild();
 }
 
-let count = 0;
-setInterval(function(){
-	count += 1;
-	let wave = 0.201 - 0.2*Math.cos(count/100);
-	spiral.innerAngle = wave;
+// let count = 0;
+// setInterval(function(){
+// 	count += 1;
+// 	let wave = 0.201 - 0.2*Math.cos(count/100);
+// 	spiral.innerAngle = wave;
 
-	let wave2 = Math.PI/4 + 0.5*Math.sin(count/100);
-	spiral.angle = wave2;
+// 	let wave2 = Math.PI/4 + 0.5*Math.sin(count/100);
+// 	spiral.angle = wave2;
 
-	spiral.rebuild();
-}, 20);
+// 	spiral.rebuild();
+// }, 20);
 

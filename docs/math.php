@@ -1,10 +1,12 @@
 <?php include 'header.php';?>
 
+<h3 style="text-align:center;margin-top:3em;">CHAPTER I.</h3>
+
 <h1>EUCLIDEAN GEOMETRY</h1>
 
 <section>
 	<div id="canvas-junction-bisect"></div>
-	<p>Origami is a fantastic opportunity to explore geometry and linear algebra in a visual way.</p>
+	<p>Origami lends the perfect canvas to visually explore geometry and linear algebra. Even moreso if you consider the code underneath it</p>
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
@@ -150,7 +152,14 @@
 		<div class="inline" id="matrix-2"></div><div class="inline" id="matrix-3"></div>
 	</div>
 
+
 	<p>Matrices are the dark arts of geometric transformations. Inside of one matrix can contain instructions for any number of rotations, translations, reflections, scaling, shearing (mathematically speaking some of those are redundant).</p>
+
+	<div id="canvas-matrix-basis"></div>
+
+	<div class="quote large">
+		<div id="matrix-2"></div>
+	</div>
 
 	<p>A matrix for 2D transformations needs 6 numbers: 4 for rotation, scaling, and reflection operations, and 2 for translation.</p>
 
@@ -182,10 +191,11 @@
 <script type="text/javascript" src="../tests/circle_line.js"></script>
 <script type="text/javascript" src="../tests/polygon_split1.js"></script>
 <script type="text/javascript" src="../tests/polygon_split2.js"></script>
-<script type="text/javascript" src="../tests/matrix_reflection.js"></script>
 <script type="text/javascript" src="../tests/polygon_convex_hull.js"></script>
 <script type="text/javascript" src="../tests/polygon_contains.js"></script>
 <script type="text/javascript" src="../tests/polygon_overlaps.js"></script>
+<script type="text/javascript" src="../tests/matrix_reflection.js"></script>
+<script type="text/javascript" src="../tests/matrix_basis.js"></script>
 
 <script type="text/javascript">
 vecSketchCallback = function(event){

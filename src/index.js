@@ -31,6 +31,8 @@ const fold = {
 };
 export { fold };
 
+export { default as graph } from './graph';
+
 // load bases
 import empty from './bases/empty.fold';
 import square from './bases/square.fold';
