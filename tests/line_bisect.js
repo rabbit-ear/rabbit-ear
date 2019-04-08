@@ -4,10 +4,17 @@ lBis.setup = function() {
 	lBis.colors = ["black", "black"];//["#ecb233", "#e44f2a", "#195783"];
 	lBis.lines = [lBis.line(), lBis.line()];
 	lBis.controls = RabbitEar.svg.controls(lBis, 4, {radius:6});
-	lBis.controls.forEach(c => c.position = [
-		Math.random()*lBis.w*0.8 + lBis.w*0.1,
-		Math.random()*lBis.h*0.8 + lBis.h*0.1
-	]);
+	let pos = [
+		[lBis.w*0.5 - 50, lBis.h*0.5 - 50],
+		[lBis.w*0.5 + 50, lBis.h*0.5 - 50],
+		[lBis.w*0.5 - 50, lBis.h*0.5 + 50],
+		[lBis.w*0.5 + 50, lBis.h*0.5 + 50],
+	]
+	lBis.controls.forEach((c,i) => c.position = pos[i]);
+	// lBis.controls.forEach((c,i) => c.position = [
+	// 	Math.random()*lBis.w*0.8 + lBis.w*0.1,
+	// 	Math.random()*lBis.h*0.8 + lBis.h*0.1
+	// ]);
 	lBis.controls.forEach((c,i) => 
 		c.circle.setAttribute("fill", "none")//lBis.colors[Math.floor(i/2)%3])
 	);
@@ -38,6 +45,7 @@ lBis.redraw = function() {
 		lBis.lines[i].setAttribute("y"+(j+1), p[1]);
 	}));
 	let bisects = RabbitEar.math.core.geometry.bisect_lines2(lineA.point, lineA.vector, lineB.point, lineB.vector);
+
 	let linelines = bisects.map(b => RabbitEar.math.Line(b[0][0], b[0][1], b[1][0], b[1][1]));
 	let bColors = ["#ecb233", "#e44f2a"];
 	let lineSegs = linelines.map((l,i) => ({l:lBis.boundary.clipLine(l), c:bColors[i%2]})).filter(el => el.l !== undefined)

@@ -41,7 +41,7 @@
 	function parallel(a, b, epsilon = EPSILON) {
 		return 1 - Math.abs(dot(normalize(a), normalize(b))) < epsilon;
 	}
-	function midpoint$1(a, b) {
+	function midpoint(a, b) {
 		return a.map((ai,i) => (ai+b[i])*0.5);
 	}
 	function average(vectors) {
@@ -133,7 +133,7 @@
 		dot: dot,
 		equivalent: equivalent,
 		parallel: parallel,
-		midpoint: midpoint$1,
+		midpoint: midpoint,
 		average: average,
 		multiply_vector2_matrix2: multiply_vector2_matrix2,
 		multiply_line_matrix2: multiply_line_matrix2,
@@ -501,14 +501,18 @@
 	function bisect_lines2(pointA, vectorA, pointB, vectorB) {
 		let denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
 		if (Math.abs(denominator) < EPSILON) {
-			return [midpoint(pointA, pointB), [vectorA[0], vectorA[1]]];
+			let solution = [midpoint(pointA, pointB), [vectorA[0], vectorA[1]]];
+			let array = [solution, solution];
+			let dot$$1 = vectorA[0]*vectorB[0] + vectorA[1]*vectorB[1];
+			(dot$$1 > 0 ? delete array[1] : delete array[0]);
+			return array;
 		}
 		let vectorC = [pointB[0]-pointA[0], pointB[1]-pointA[1]];
 		let numerator = (pointB[0]-pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1]-pointA[1]);
-		var t = numerator / denominator;
+		let t = numerator / denominator;
 		let x = pointA[0] + vectorA[0]*t;
 		let y = pointA[1] + vectorA[1]*t;
-		var bisects = bisect_vectors(vectorA, vectorB);
+		let bisects = bisect_vectors(vectorA, vectorB);
 		bisects[1] = [ bisects[1][1], -bisects[1][0] ];
 		return bisects.map((el) => [[x,y], el]);
 	}
@@ -669,7 +673,7 @@
 		return [a, a.map((_,i) => b[i] - a[i])];
 	}
 	function axiom2(a, b) {
-		let mid = midpoint$1(a, b);
+		let mid = midpoint(a, b);
 		let vec = a.map((_,i) => b[i] - a[i]);
 		return [mid, [vec[1], -vec[0]] ];
 	}
@@ -910,7 +914,7 @@
 		const scale = function(mag) {
 			return Vector( _v.map(v => v * mag) );
 		};
-		const midpoint = function() {
+		const midpoint$$1 = function() {
 			let vec = get_vec(...arguments);
 			let sm = (_v.length < vec.length) ? _v.slice() : vec;
 			let lg = (_v.length < vec.length) ? vec : _v.slice();
@@ -937,7 +941,7 @@
 		Object.defineProperty(_v, "isEquivalent", {value: isEquivalent});
 		Object.defineProperty(_v, "isParallel", {value: isParallel});
 		Object.defineProperty(_v, "scale", {value: scale});
-		Object.defineProperty(_v, "midpoint", {value: midpoint});
+		Object.defineProperty(_v, "midpoint", {value: midpoint$$1});
 		Object.defineProperty(_v, "bisect", {value: bisect});
 		Object.defineProperty(_v, "x", {get: function(){ return _v[0]; }});
 		Object.defineProperty(_v, "y", {get: function(){ return _v[1]; }});
@@ -1100,7 +1104,7 @@
 			points[1][1] - points[0][1]
 		]);
 		return Line({
-			point: midpoint$1(points[0], points[1]),
+			point: midpoint(points[0], points[1]),
 			vector: [vec[1], -vec[0]]
 		});
 	};
@@ -1208,10 +1212,12 @@
 	}
 
 	function Polygon() {
-		let _points = get_array_of_vec(...arguments);
+		let _points = get_array_of_vec(...arguments).map(p => Vector(p));
 		if (_points === undefined) {
 			return undefined;
 		}
+		let _sides = _points.map((p,i,arr) =>
+			Edge(p[0], p[1], arr[(i+1)%arr.length][0], arr[(i+1)%arr.length][0]));
 		const contains = function() {
 			let point = get_vec(...arguments);
 			return point_in_poly(_points, point);
@@ -1265,6 +1271,8 @@
 			clipLine,
 			clipRay,
 			get points() { return _points; },
+			get sides() { return _sides; },
+			get edges() { return _sides; },
 			get sectors() { return sectors(); },
 			get area() { return signed_area(_points); },
 			get signedArea() { return signed_area(_points); },

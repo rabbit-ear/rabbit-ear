@@ -36,28 +36,6 @@
 		<pre><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, t)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, t)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, t)</code></pre>
 	</div>
 
-	<div class="centered">
-		<pre><code><f>function</f> <v>magnitude</v>()
-<f>function</f> <v>normalize</v>()
-<f>function</f> <v>dot</v>(<arg>vector</arg>)
-<f>function</f> <v>cross</v>(<arg>vector</arg>)
-<f>function</f> <v>distanceTo</v>(<arg>vector</arg>)
-<f>function</f> <v>transform</v>(<arg>matrix</arg>)
-<f>function</f> <v>add</v>(<arg>vector</arg>)
-<f>function</f> <v>subtract</v>(<arg>vector</arg>)
-<f>function</f> <v>rotateZ</v>(<arg>angle</arg>, <arg>origin</arg>)
-<f>function</f> <v>rotateZ90</v>()
-<f>function</f> <v>rotateZ180</v>()
-<f>function</f> <v>rotateZ270</v>()
-<f>function</f> <v>reflect</v>(<arg>line</arg>)
-<f>function</f> <v>lerp</v>(<arg>vector</arg>, <arg>magnitude</arg>)
-<f>function</f> <v>isEquivalent</v>(<arg>vector</arg>)
-<f>function</f> <v>isParallel</v>(<arg>vector</arg>)
-<f>function</f> <v>scale</v>(<arg>magnitude</arg>)
-<f>function</f> <v>midpoint</v>(<arg>vector</arg>)
-<f>function</f> <v>bisect</v>(<arg>vector</arg>)</code></pre>
-	</div>
-
 <h3><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h3>
 
 	<div id="canvas-line-ray-edge-intersection"></div>
@@ -68,19 +46,25 @@
 		<pre><code><f>let</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)<br><f>let</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
 	</div>
 
+	<p>We can ask two lines to <b>bisect</b>. This method returns an array of two lines (if the lines are not parallel), always sorting the yellow first, the smaller interior angle solution when the dot product is > 0.</p>
+
+	<p>This operation is essentially origami axiom #3.</p>
+
 	<div id="canvas-line-bisect"></div>
 
-	<p>These lines are bisected. This method returns two lines, always with the yellow, orientable with regards to if the vectors are pointed in the same direction (dot product is > 0).</p>
+	<div class="centered">
+		<pre><code>line_a.<f>bisect</f>(line_b)</code></pre>
+	</div>
+
+	<p>The nearest point on a line to another point can be located if you draw a normal vector that passes through the point.</p>
+
+	<p>In the case of line segments, the normal might lie beyond the endpoints. The shortest point is now one of the two endpoints.</p>
 
 	<div id="nearest-point"></div>
 
 	<div class="centered">
 		<pre><code><f>let</f> point <key>=</key> edge.<f>nearestPoint</f>(<span id="nearest-point-mouse"></span>)</code></pre>
 	</div>
-
-	<p>The nearest point on a line to another point can be located if you draw a normal vector that passes through the point.</p>
-
-	<p>In the case of line segments, the normal might lie beyond the endpoints. The shortest point is now one of the two endpoints.</p>
 
 
 	<div id="canvas-clipping"></div>
@@ -190,6 +174,28 @@
 	</div>
 
 </section>
+
+	<div class="centered">
+		<pre><code><f>function</f> <v>magnitude</v>()
+<f>function</f> <v>normalize</v>()
+<f>function</f> <v>dot</v>(<arg>vector</arg>)
+<f>function</f> <v>cross</v>(<arg>vector</arg>)
+<f>function</f> <v>distanceTo</v>(<arg>vector</arg>)
+<f>function</f> <v>transform</v>(<arg>matrix</arg>)
+<f>function</f> <v>add</v>(<arg>vector</arg>)
+<f>function</f> <v>subtract</v>(<arg>vector</arg>)
+<f>function</f> <v>rotateZ</v>(<arg>angle</arg>, <arg>origin</arg>)
+<f>function</f> <v>rotateZ90</v>()
+<f>function</f> <v>rotateZ180</v>()
+<f>function</f> <v>rotateZ270</v>()
+<f>function</f> <v>reflect</v>(<arg>line</arg>)
+<f>function</f> <v>lerp</v>(<arg>vector</arg>, <arg>magnitude</arg>)
+<f>function</f> <v>isEquivalent</v>(<arg>vector</arg>)
+<f>function</f> <v>isParallel</v>(<arg>vector</arg>)
+<f>function</f> <v>scale</v>(<arg>magnitude</arg>)
+<f>function</f> <v>midpoint</v>(<arg>vector</arg>)
+<f>function</f> <v>bisect</v>(<arg>vector</arg>)</code></pre>
+	</div>
 
 <script type="text/javascript" src="../tests/junction_bisect.js"></script>
 <script type="text/javascript" src="../tests/line_ray_edge_intersection.js"></script>
