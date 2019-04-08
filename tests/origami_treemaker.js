@@ -47,3 +47,4 @@ origami.onMouseMove = function(mouse) {
 origami.onMouseUp = function(mouse) {
 	origami.selected = undefined;
 }
+

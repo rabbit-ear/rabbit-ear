@@ -126,23 +126,28 @@ vecText.redraw = function(){
 	vecText.drawLayer.appendChild(normArc);
 
 	// text
-	let dotXString = (vecText.dotX/200).toFixed(1);
-	let dotYString = (vecText.dotY/200).toFixed(1);
+	let dotXString = "X: " + (vecText.dotX/200).toFixed(1);
+	let dotYString = "Y: " + (vecText.dotY/200).toFixed(1);
 	let dotXText = textLarge(dotXString, vecText.dotX, -15, vecText.drawLayer);
 	let dotYText = textLarge(dotYString, 0, vecText.dotY-15, vecText.drawLayer);
 	dotXText.setAttribute("fill", "#ecb233");
 	dotYText.setAttribute("fill", "#ecb233");
-	let dotXEquationText = textSmall("dot product • x", vecText.dotX, -45, vecText.drawLayer);
-	let dotYEquationText = textSmall("dot product • y", 0, vecText.dotY-45, vecText.drawLayer);
-	dotXEquationText.setAttribute("fill", "#ecb233");
-	dotYEquationText.setAttribute("fill", "#ecb233");
+	// let dotXEquationText = textSmall("x", vecText.dotX, -45, vecText.drawLayer);
+	// let dotYEquationText = textSmall("y", 0, vecText.dotY-45, vecText.drawLayer);
+	// dotXEquationText.setAttribute("fill", "#ecb233");
+	// dotYEquationText.setAttribute("fill", "#ecb233");
 
 	let crossString = "("+(vecText.cross.x/200).toFixed(1) + ", " + (vecText.cross.y/200).toFixed(1)+")";
 	let crossText = textLarge(crossString, vecText.cross.x, vecText.cross.y-25, vecText.drawLayer);
 	crossText.setAttribute("fill", "#195783");
-	let crossEquationString = "cross product ✕ z"
+	let crossEquationString = "+z cross product"
 	let crossEquationText = textSmall(crossEquationString, vecText.cross.x, vecText.cross.y-55, vecText.drawLayer);
 	crossEquationText.setAttribute("fill", "#195783");
+
+	let printableNorm = vecText.normalized.map(p => p / 200.0);
+	let normString = "("+printableNorm[0].toFixed(1) + ", " + printableNorm[1].toFixed(1)+")";
+	let normText = textLarge(normString, vecText.normalized.x, vecText.normalized.y-25, vecText.drawLayer);
+	normText.setAttribute("fill", "#e44f2a");
 
 	let printableVec = vecText.touches[0].pos.map(p => p / 200.0);
 	let vecString = "("+printableVec[0].toFixed(1) + ", " + printableVec[1].toFixed(1)+")";
@@ -156,7 +161,7 @@ vecText.redraw = function(){
 }
 
 function textSmall(string, x, y, parent) {
-	let textStyle = "font-family:Helvetica; font-weight:700; font-size:14px; text-anchor:middle; user-select:none;";
+	let textStyle = "font-family:Helvetica; font-weight:700; font-size:18px; text-anchor:middle; user-select:none;";
 	return textBox(string, x, y, textStyle, parent);
 }
 function textLarge(string, x, y, parent) {

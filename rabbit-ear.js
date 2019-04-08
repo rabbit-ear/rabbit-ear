@@ -227,8 +227,8 @@
 	const intersection_function = function(aPt, aVec, bPt, bVec, compFunction, epsilon = EPSILON) {
 		function det(a,b) { return a[0] * b[1] - b[0] * a[1]; }
 		let denominator0 = det(aVec, bVec);
-		let denominator1 = -denominator0;
 		if (Math.abs(denominator0) < epsilon) { return undefined; }
+		let denominator1 = -denominator0;
 		let numerator0 = det([bPt[0]-aPt[0], bPt[1]-aPt[1]], bVec);
 		let numerator1 = det([aPt[0]-bPt[0], aPt[1]-bPt[1]], aVec);
 		let t0 = numerator0 / denominator0;
@@ -501,7 +501,7 @@
 	function bisect_lines2(pointA, vectorA, pointB, vectorB) {
 		let denominator = vectorA[0] * vectorB[1] - vectorB[0] * vectorA[1];
 		if (Math.abs(denominator) < EPSILON) {
-			return [midpoint(pointA, pointB), vectorA.slice()];
+			return [midpoint(pointA, pointB), [vectorA[0], vectorA[1]]];
 		}
 		let vectorC = [pointB[0]-pointA[0], pointB[1]-pointA[1]];
 		let numerator = (pointB[0]-pointA[0]) * vectorB[1] - vectorB[0] * (pointB[1]-pointA[1]);
@@ -510,12 +510,6 @@
 		let y = pointA[1] + vectorA[1]*t;
 		var bisects = bisect_vectors(vectorA, vectorB);
 		bisects[1] = [ bisects[1][1], -bisects[1][0] ];
-		if (Math.abs(cross2(vectorA, bisects[1])) <
-		   Math.abs(cross2(vectorA, bisects[0]))) {
-			var swap = bisects[0];
-			bisects[0] = bisects[1];
-			bisects[1] = swap;
-		}
 		return bisects.map((el) => [[x,y], el]);
 	}
 	function signed_area(points) {
@@ -867,11 +861,11 @@
 			let m = get_matrix2(...arguments);
 			return Vector( multiply_vector2_matrix2(_v, m) );
 		};
-		const add = function(){
+		const add = function() {
 			let vec = get_vec(...arguments);
 			return Vector( _v.map((v,i) => v + vec[i]) );
 		};
-		const subtract = function(){
+		const subtract = function() {
 			let vec = get_vec(...arguments);
 			return Vector( _v.map((v,i) => v - vec[i]) );
 		};
@@ -920,12 +914,12 @@
 			let vec = get_vec(...arguments);
 			let sm = (_v.length < vec.length) ? _v.slice() : vec;
 			let lg = (_v.length < vec.length) ? vec : _v.slice();
-			for(var i = sm.length; i < lg.length; i++){ sm[i] = 0; }
+			for (let i = sm.length; i < lg.length; i++) { sm[i] = 0; }
 			return Vector(lg.map((_,i) => (sm[i] + lg[i]) * 0.5));
 		};
-		const bisect = function(){
+		const bisect = function() {
 			let vec = get_vec(...arguments);
-			return Vector( bisect_vectors(_v, vec) );
+			return bisect_vectors(_v, vec).map(b => Vector(b));
 		};
 		Object.defineProperty(_v, "normalize", {value: normalize$$1});
 		Object.defineProperty(_v, "dot", {value: dot$$1});
@@ -951,6 +945,7 @@
 		Object.defineProperty(_v, "magnitude", {get: function() {
 			return magnitude(_v);
 		}});
+		Object.defineProperty(_v, "copy", {value: function() { return Vector(..._v);}});
 		return _v;
 	}
 
@@ -1181,6 +1176,37 @@
 		return edge;
 	}
 
+	function Sector(center, pointA, pointB) {
+		let _center = get_vec(center);
+		let _points = [pointA, pointB];
+		let _vectors = _points.map(p => p.map((_,i) => p[i] - _center[i]));
+		let _angle = counter_clockwise_angle2(_vectors[0], _vectors[1]);
+		const bisect = function() {
+			let angles = _vectors.map(el => Math.atan2(el[1], el[0]));
+			let bisected = angles[0] + _angle*0.5;
+			return Ray(_center[0], _center[1], Math.cos(bisected), Math.sin(bisected));
+		};
+		const subsect = function(divisions) {
+		};
+		const contains = function() {
+			let point = get_vec(...arguments);
+			var cross0 = (point[1] - _points[0][1]) * (_center[0] - _points[0][0]) -
+			             (point[0] - _points[0][0]) * (_center[1] - _points[0][1]);
+			var cross1 = (point[1] - _center[1]) * (_points[1][0] - _center[0]) -
+			             (point[0] - _center[0]) * (_points[1][1] - _center[1]);
+			return cross0 < 0 && cross1 < 0;
+		};
+		return {
+			contains,
+			bisect,
+			subsect,
+			get center() { return _center; },
+			get points() { return _points; },
+			get vectors() { return _vectors; },
+			get angle() { return _angle; },
+		};
+	}
+
 	function Polygon() {
 		let _points = get_array_of_vec(...arguments);
 		if (_points === undefined) {
@@ -1208,6 +1234,11 @@
 			});
 			return Polygon(newPoints);
 		};
+		const sectors = function() {
+			return _points.map((p,i,arr) =>
+				[arr[(i+arr.length-1)%arr.length], p, arr[(i+1)%arr.length]]
+			).map(points => Sector(points[1], points[2], points[0]));
+		};
 		const split = function() {
 			let line = get_line(...arguments);
 			return split_polygon(_points, line.point, line.vector)
@@ -1234,6 +1265,7 @@
 			clipLine,
 			clipRay,
 			get points() { return _points; },
+			get sectors() { return sectors(); },
 			get area() { return signed_area(_points); },
 			get signedArea() { return signed_area(_points); },
 			get centroid() { return centroid(_points); },
@@ -1384,37 +1416,6 @@
 	Matrix2$1.makeReflection = function(vector, origin) {
 		return Matrix2$1( make_matrix2_reflection(vector, origin) );
 	};
-
-	function Sector(center, pointA, pointB) {
-		let _center = get_vec(center);
-		let _points = [pointA, pointB];
-		let _vectors = _points.map(p => p.map((_,i) => p[i] - _center[i]));
-		let _angle = counter_clockwise_angle2(_vectors[0], _vectors[1]);
-		const bisect = function() {
-			let angles = _vectors.map(el => Math.atan2(el[1], el[0]));
-			let bisected = angles[0] + _angle*0.5;
-			return Ray(_center[0], _center[1], Math.cos(bisected), Math.sin(bisected));
-		};
-		const subsect = function(divisions) {
-		};
-		const contains = function() {
-			let point = get_vec(...arguments);
-			var cross0 = (point[1] - _points[0][1]) * (_center[0] - _points[0][0]) -
-			             (point[0] - _points[0][0]) * (_center[1] - _points[0][1]);
-			var cross1 = (point[1] - _center[1]) * (_points[1][0] - _center[0]) -
-			             (point[0] - _center[0]) * (_points[1][1] - _center[1]);
-			return cross0 < 0 && cross1 < 0;
-		};
-		return {
-			contains,
-			bisect,
-			subsect,
-			get center() { return _center; },
-			get points() { return _points; },
-			get vectors() { return _vectors; },
-			get angle() { return _angle; },
-		};
-	}
 
 	function Junction(center, points) {
 		let _points = get_array_of_vec(points);
@@ -3951,6 +3952,11 @@
 	 *  could result in multiple edges
 	 */
 
+	function universal_molecule(polygon, radii) {
+		let poly = ConvexPolygon(polygon);
+		poly.sectors();
+	}
+
 	function foldLayers(faces_layer, faces_folding) {
 		let folding_i = faces_layer
 			.map((el,i) => faces_folding[i] ? i : undefined)
@@ -4323,6 +4329,7 @@
 	}
 
 	var origami$2 = /*#__PURE__*/Object.freeze({
+		universal_molecule: universal_molecule,
 		foldLayers: foldLayers,
 		crease_through_layers: crease_through_layers,
 		crease_folded: crease_folded,

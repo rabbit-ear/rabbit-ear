@@ -14,6 +14,11 @@ import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
 import { apply_diff, apply_diff_map } from "./diff";
 
+export function universal_molecule(polygon, radii) {
+	let poly = Geom.ConvexPolygon(polygon);
+	poly.sectors()
+}
+
 export function foldLayers(faces_layer, faces_folding) {
 	let folding_i = faces_layer
 		.map((el,i) => faces_folding[i] ? i : undefined)

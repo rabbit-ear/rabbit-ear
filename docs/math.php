@@ -68,6 +68,10 @@
 		<pre><code><f>let</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)<br><f>let</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
 	</div>
 
+	<div id="canvas-line-bisect"></div>
+
+	<p>These lines are bisected. This method returns two lines, always with the yellow, orientable with regards to if the vectors are pointed in the same direction (dot product is > 0).</p>
+
 	<div id="nearest-point"></div>
 
 	<div class="centered">
@@ -189,6 +193,7 @@
 
 <script type="text/javascript" src="../tests/junction_bisect.js"></script>
 <script type="text/javascript" src="../tests/line_ray_edge_intersection.js"></script>
+<script type="text/javascript" src="../tests/line_bisect.js"></script>
 <script type="text/javascript" src="../tests/line_nearest_point.js"></script>
 <script type="text/javascript" src="../tests/sector_bisect.js"></script>
 <script type="text/javascript" src="../tests/vector_lerp.js"></script>
