@@ -1,30 +1,42 @@
 <?php include 'header.php';?>
 
+<h3 style="text-align:center;margin-top:3em;">CHAPTER III.</h3>
+
 <h1>ORIGAMI</h1>
+
+
+	<div id="canvas-face-coloring"></div>
 
 <section id="intro">
 
 <h2>Flat-foldability</h2>
 
-	<h3>Kawasaki's Theorem</h3>
+	<p>At the heart of origami computation is the test for flat-foldability: whether or not an origami crease pattern will fold flat.</p>
 
-	<p class="explain">The sum of alternating interior angles between the edges around one vertex should each add up to 180&deg;.</p>
+	<div id="single-vertex" class="diptych"></div>
+	
+	<p class="quote">This is ensuring flat-foldability by using the Kawasaki Collapse.</p>
+
+	<h3>Kawasaki's Theorem</h3>
+	
+	<p>The sum of alternating interior angles between the edges around one vertex should each add up to 180&deg;.</p>
+
 	<div id="canvas-kawasaki"></div>
 
 	<div class="centered">
-		<pre><code>cp.<f>kawasaki</f>()</code></pre>
+		<pre><code>junction.<f>kawasaki</f>()</code></pre>
 	</div>
-
-	<p>This data is available to us in a few ways:
-		<ul>
-			<li>create a <b>Junction</b> at the node</li>
-			<li>get the function from the core of the library</li>
-		</ul>
-	</p>
 
 	<h3>Kawasaki Collapse</h3>
 
-	<p>when the unique case that there are three edges around a node, and each interior angle is less than 180&deg;, there is one and only one solution per sector.</p>
+	<p>This unique case occurs often in computational origami:
+		<ul>
+			<li>three edges around a shared vertex</li>
+			<li>every crease is the same orientation</li>
+			<li>each interior angle is less than 180&deg;</li>
+		</ul>
+	</p>
+	<p>there are three solutions to satisfy flat-foldability, one per sector.</p>
 
 	<div id="canvas-kawasaki-collapse"></div>
 
@@ -34,10 +46,33 @@
 
 </section>
 
+<section id="molecules">
+
+<h2>Uniaxial Bases</h2>
+
+
+	<div id="canvas-origami-molecule"></div>
+
+	<h3>The Universal Molecule</h3>
+
+	<p>Uniaxial base design allowed huge advancements in origami art. In a uniaxial base, origami molecules are formed out of convex polygons tiling the plane.</p>
+
+	<div id="canvas-treemaker"></div>
+
+	<p>bases are formed by a system of tree design, made popular by Robert Lang's Treemaker.</p>
+
+</section>
+
+<section id="twists">
+
+<h2>Twists</h2>
+
+	<div id="canvas-convex-twist"></div>
+
 
 <h2>Axioms</h2>
 
-<section id="intro">
+<section id="axioms">
 
 <h3>Axiom 1</h3>
 	<p class="explain">Given two points, we can fold a line connecting them</p>
@@ -91,8 +126,13 @@
 
 </section>
 
+<script type="text/javascript" src="../tests/origami_single_vertex.js"></script>
 <script type="text/javascript" src="../tests/origami_kawasaki.js"></script>
 <script type="text/javascript" src="../tests/origami_kawasaki_collapse.js"></script>
+<script type="text/javascript" src="../tests/origami_molecule.js"></script>
+<script type="text/javascript" src="../tests/origami_twist.js"></script>
+<script type="text/javascript" src="../tests/origami_treemaker.js"></script>
+<script type="text/javascript" src="../tests/origami_two_coloring.js"></script>
 <script type="text/javascript" src="../tests/origami_axiom1.js"></script>
 <script type="text/javascript" src="../tests/origami_axiom2.js"></script>
 <script type="text/javascript" src="../tests/origami_axiom3.js"></script>

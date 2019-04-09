@@ -1,5 +1,5 @@
 
-let polySec = RabbitEar.svg.image("canvas-polygon-sectors", 500, 500);
+let polySec = RabbitEar.svg.image("canvas-origami-molecule", 500, 500);
 
 polySec.setup = function() {
 	polySec.STROKE_WIDTH = polySec.w * 0.01;

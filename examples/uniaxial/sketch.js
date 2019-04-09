@@ -122,4 +122,15 @@ const TreeMaker = function(div) {
 
 }
 
-let tm = TreeMaker("canvas-treemaker");
+let row = document.querySelectorAll(".row")[0];
+let tm = TreeMaker(row);
+
+document.querySelector("#button-expand").onclick = function(event) {
+	tm.expand();
+}
+document.querySelector("#button-contract").onclick = function(event) {
+	tm.contract();
+}
+document.querySelector("#button-stop").onclick = function(event) {
+	tm.stop();
+}

@@ -44,6 +44,7 @@ export default function() {
 	let preferences = {
 		autofit: true,
 		debug: false,
+		padding: 0
 	};
 
 	const setCreasePattern = function(cp) {
@@ -109,7 +110,7 @@ export default function() {
 
 	const updateViewBox = function() {
 		let r = Graph.bounding_rect(prop.cp);
-		SVG.setViewBox(_this, r[0], r[1], r[2], r[3]);
+		SVG.setViewBox(_this, r[0], r[1], r[2], r[3], preferences.padding);
 	};
 
 	const showVertices = function(){ groups.vertex.removeAttribute("visibility");};

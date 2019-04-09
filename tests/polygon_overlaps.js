@@ -1,10 +1,10 @@
 let overlap = RabbitEar.svg.image("canvas-polygon-overlaps", 800, 500);
-overlap.COUNT = 4;
+overlap.COUNT = 3;
 
 overlap.speeds = Array.from(Array(overlap.COUNT)).map(_ => Math.random() - 0.5)
 
 overlap.rebuild = function(){
-	let r = 83;
+	let r = 120;
 	let pad = overlap.w * 0.15;
 
 	overlap.centers = Array.from(Array(overlap.COUNT)).map((_,i) => [

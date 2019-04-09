@@ -324,10 +324,10 @@ export function add_edge_between_points(graph, x0, y0, x1, y1) {
 // }
 
 let vertex_adjacent_vectors = function(graph, vertex) {
-	let adjacent = origami.cp.vertices_vertices[vertex];
+	let adjacent = graph.vertices_vertices[vertex];
 	return adjacent.map(v => [
-		origami.cp.vertices_coords[v][0] - origami.cp.vertices_coords[vertex][0],
-		origami.cp.vertices_coords[v][1] - origami.cp.vertices_coords[vertex][1]
+		graph.vertices_coords[v][0] - graph.vertices_coords[vertex][0],
+		graph.vertices_coords[v][1] - graph.vertices_coords[vertex][1]
 	]);
 }
 

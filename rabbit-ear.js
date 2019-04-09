@@ -692,7 +692,7 @@
 	function axiom7(pointA, vectorA, pointB, vectorB, pointC) {
 	}
 
-	var origami$1 = /*#__PURE__*/Object.freeze({
+	var origami = /*#__PURE__*/Object.freeze({
 		axiom1: axiom1,
 		axiom2: axiom2,
 		axiom3: axiom3,
@@ -1501,7 +1501,7 @@
 		return Junction(center, points);
 	};
 
-	let core = { algebra, geometry, intersection, origami: origami$1, EPSILON_LOW, EPSILON, EPSILON_HIGH, clean_number };
+	let core = { algebra, geometry, intersection, origami, EPSILON_LOW, EPSILON, EPSILON_HIGH, clean_number };
 
 	var geometry$1 = /*#__PURE__*/Object.freeze({
 		core: core,
@@ -4270,10 +4270,10 @@
 	// }
 
 	let vertex_adjacent_vectors = function(graph, vertex) {
-		let adjacent = origami.cp.vertices_vertices[vertex];
+		let adjacent = graph.vertices_vertices[vertex];
 		return adjacent.map(v => [
-			origami.cp.vertices_coords[v][0] - origami.cp.vertices_coords[vertex][0],
-			origami.cp.vertices_coords[v][1] - origami.cp.vertices_coords[vertex][1]
+			graph.vertices_coords[v][0] - graph.vertices_coords[vertex][0],
+			graph.vertices_coords[v][1] - graph.vertices_coords[vertex][1]
 		]);
 	};
 
@@ -4336,7 +4336,7 @@
 		return fold;
 	}
 
-	var origami$2 = /*#__PURE__*/Object.freeze({
+	var origami$1 = /*#__PURE__*/Object.freeze({
 		universal_molecule: universal_molecule,
 		foldLayers: foldLayers,
 		crease_through_layers: crease_through_layers,
@@ -5478,6 +5478,7 @@
 		let preferences = {
 			autofit: true,
 			debug: false,
+			padding: 0
 		};
 
 		const setCreasePattern = function(cp) {
@@ -5543,7 +5544,7 @@
 
 		const updateViewBox = function() {
 			let r = bounding_rect(prop.cp);
-			setViewBox(_this, r[0], r[1], r[2], r[3]);
+			setViewBox(_this, r[0], r[1], r[2], r[3], preferences.padding);
 		};
 
 		const showVertices = function(){ groups.vertex.removeAttribute("visibility");};
@@ -7006,7 +7007,7 @@
 		frame: frame,
 		validate: validate,
 		graph: graph,
-		origami: origami$2,
+		origami: origami$1,
 		planargraph: planargraph,
 		valleyfold: valleyfold,
 		creasethrough: creasethrough

@@ -6,12 +6,12 @@
 
 <section>
 	<div id="canvas-junction-bisect"></div>
-	<p>Origami lends the perfect canvas to visually explore geometry and linear algebra. Even moreso if you consider the code underneath it</p>
+	<p>The mathematics of ancient Greece, compass-straight edge geometry, finds a contemporary home in origami math.</p>
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
-	<p class="explain">This Javascript math library is open-source and available <a href="https://github.com/robbykraft/Geometry">here</a>.</p>
-	<p>Digitized origami designs make use of traditional structures like graphs, convex polygons, and affine transformations - but with extra focus on perhaps otherwise overlooked details. For example at the node of a planar graph the focus isn't so much on the lines as much as the space and the angle <i>between</i> the lines.</p>
+	<p>Origami makes use of the familiar math of today, like graphs, affine transformations, line intersections - though often presenting them from a new perspective.</p>
+	<p class="explain">This math presented here is now its own Javascript library, open-source and available <a href="https://github.com/robbykraft/Geometry">here</a>.</p>
 </section>
 
 <section id="types">
@@ -46,6 +46,18 @@
 		<pre><code><f>let</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)<br><f>let</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)</code></pre>
 	</div>
 
+	<p>Lines, rays, and edges all contain a point and a vector.</p>
+
+	<div class="centered">
+		<pre><code><c>// one line</c><br>line.<f>point</f><br>line.<f>vector</f><br><c>// one edge</c><br>edge.<f>point</f><br>edge.<f>vector</f></code></pre>
+	</div>
+
+	<p>Edges are unique, an edge's endpoints can be accessed with array syntax.</p>
+
+	<div class="centered">
+		<pre><code>edge[<n>0</n>] <c>// endpoint 1</c><br>edge[<n>1</n>] <c>// endpoint 2</c></code></pre>
+	</div>
+
 	<p>We can ask two lines to <b>bisect</b>. This method returns an array of two lines (if the lines are not parallel), always sorting the yellow first, the smaller interior angle solution when the dot product is > 0.</p>
 
 	<p>This operation is essentially origami axiom #3.</p>
@@ -66,30 +78,13 @@
 		<pre><code><f>let</f> point <key>=</key> edge.<f>nearestPoint</f>(<span id="nearest-point-mouse"></span>)</code></pre>
 	</div>
 
-
-	<div id="canvas-clipping"></div>
-	
-	<p class="quote">Four arguments describe two points <b>(x1, y1, x2, y2)</b>.</p>
-
-	<p>Lines, rays, and edges all contain a point and a vector.</p>
-
-	<div class="centered">
-		<pre><code><f>let</f> point <key>=</key> line.<f>point</f><br><f>let</f> vector <key>=</key> line.<f>vector</f></code></pre>
-	</div>
-
-	<p>In the case of rays the point is the terminal end, the vector extends to infinity. With edges the point is simply one of the endpoints; both of them are accessible from the <b>edge-only</b> property:</p>
-
-	<div class="centered">
-		<pre><code><f>let</f> endpoints <key>=</key> edge.<f>points</f></code></pre>
-	</div>
-
 <h3>Circle</h3>
 
 	<div id="canvas-circle-line"></div>
 
 <h3>Polygon</h3>
 
-	<p>A <b>ConvexPolygon</b> object is defined its <b>edges</b>, it contains the classic convex hull algorithm, and can clip <b>lines</b>, <b>rays</b>, and <b>edges</b> into a new edge which fits within its boundary.</p>
+	<p>A <b>Polygon</b> is a ordered set of <b>points</b> which defines the boundary. This <b>ConvexPolygon</b> is built using the convex hull algorithm, and it can clip <b>lines</b>, <b>rays</b>, and <b>edges</b>.</p>
 
 	<div id="canvas-convex-hull"></div>
 

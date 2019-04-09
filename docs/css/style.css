@@ -26,7 +26,10 @@ h2{
 	border-bottom-style: solid;
 	border-bottom-color: black;
 }
-h3{ font-weight: 500; }
+h3{
+	padding: 1em 0 0 0;
+	font-weight: 500;
+}
 p, ol, ul {
 	font-size: 140%;
 	margin: 1em 0;
@@ -91,6 +94,15 @@ div[id^="canvas-"] {
 }
 .tests li{
 	padding:.33em 0;
+}
+
+.diptych {
+	display: flex;
+	flex-direction: row;
+
+}
+.diptych div {
+	flex: 1;
 }
 
 @media only screen and (max-width: 600px) {  }
