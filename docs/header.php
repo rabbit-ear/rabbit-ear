@@ -27,7 +27,7 @@
 			</li>
 			<li class="dropdown">
 				<a href="math.php" class="dropbtn">I. MATH</a>
-<!-- 				<div class="dropdown-content">
+ 				<!-- <div class="dropdown-content">
 					<a href="vector.php">VECTOR</a>
 					<a href="line.php">LINE</a>
 					<a href="polygon.php">POLYGON</a>
@@ -37,19 +37,9 @@
 			</li>
 			<li class="dropdown">
 				<a href="graphs.php" class="dropbtn">II. GRAPHS</a>
-<!-- 				<div class="dropdown-content">
-					<a href="graph.php">GRAPH</a>
-					<a href="space.php">PLANAR</a>
-				</div> -->
 			</li>
 			<li class="dropdown">
-				<a href="origami.php" class="dropbtn">III. ORIGAMI</a>
-<!-- 				<div class="dropdown-content">
-					<a href="axioms.php">AXIOMS</a>
-					<a href="crease.php">CREASE</a>
-					<a href="flat-foldable.php">FOLDABILITY</a>
-					<a href="voronoi.php">VORONOI</a>
-				</div> -->
+				<a href="cp.php" class="dropbtn">III. CREASE PATTERNS</a>
 			</li>
 		</ul>
 	</nav>

@@ -1,6 +1,6 @@
 import * as Origami from "./origami";
-import * as SVG from "../../lib/svg";
-import { segments } from "../../lib/svg-segmentize";
+import * as SVG from "../../include/svg";
+import { segments } from "../../include/svg-segmentize";
 
 export function svg_to_fold(svg) {
 

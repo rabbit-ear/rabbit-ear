@@ -16,7 +16,7 @@ axiom3.reset = function() {
 	for (let i = 0; i < 5; i++) {
 		axiom3.axiom2([Math.random(), Math.random()], [Math.random()-0.5, Math.random()-0.5]);
 	}
-	axiom3.base = axiom3.cp.json;
+	axiom3.base = axiom3.cp.getFOLD();
 }
 axiom3.reset();
 

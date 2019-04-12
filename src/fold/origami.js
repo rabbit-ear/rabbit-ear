@@ -9,12 +9,12 @@
 // "re:boundaries_vertices" = [[5,3,9,7,6,8,1,2]];
 // "re:faces_matrix" = [[1,0,0,1,0,0]];
 
-import * as Geom from "../../lib/geometry";
+import * as Geom from "../../include/geometry";
 import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
 import { apply_diff, apply_diff_map } from "./diff";
 
-export function universal_molecule(polygon, radii) {
+export function universal_molecule(polygon) {
 	let poly = Geom.ConvexPolygon(polygon);
 	poly.sectors()
 }
@@ -76,7 +76,7 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 	graph["re:faces_coloring"] = Graph.faces_coloring(graph, face_index);
 	graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
 	graph["re:faces_creases"] = graph["re:faces_matrix"]
-		.map(mat => Geom.core.algebra.multiply_line_matrix2(point, vector, mat));
+		.map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
 	graph["re:faces_center"] = Array.from(Array(faces_count))
 		.map((_, i) => make_face_center(graph, i));
 	graph["re:faces_sidedness"] = Array.from(Array(faces_count))
@@ -223,34 +223,34 @@ export function crease_ray(graph, point, vector) {
 }
 
 export function axiom1(graph, pointA, pointB) { // n-dimension
-	let line = Geom.core.origami.axiom1(pointA, pointB);
+	let line = Geom.core.axiom[1](pointA, pointB);
 	return crease_line(graph, line[0], line[1]);
 }
 export function axiom2(graph, pointA, pointB) {
-	let line = Geom.core.origami.axiom2(pointA, pointB);
+	let line = Geom.core.axiom[2](pointA, pointB);
 	return crease_line(graph, line[0], line[1]);
 }
 export function axiom3(graph, pointA, vectorA, pointB, vectorB) {
-	let lines = Geom.core.origami.axiom3(pointA, vectorA, pointB, vectorB);
+	let lines = Geom.core.axiom[3](pointA, vectorA, pointB, vectorB);
 	// todo: each iteration needs to apply the diff to the prev iterations
 	// return lines.map(line => crease_line(graph, line[0], line[1]))
 	// 	.reduce((a,b) => a.concat(b), []);
 	return crease_line(graph, lines[0][0], lines[0][1]);
 }
 export function axiom4(graph, pointA, vectorA, pointB) {
-	let line = Geom.core.origami.axiom4(pointA, vectorA, pointB);
+	let line = Geom.core.axiom[4](pointA, vectorA, pointB);
 	return crease_line(graph, line[0], line[1]);
 }
 export function axiom5(graph, pointA, vectorA, pointB, pointC) {
-	let line = Geom.core.origami.axiom5(pointA, vectorA, pointB, pointC);
+	let line = Geom.core.axiom[5](pointA, vectorA, pointB, pointC);
 	return crease_line(graph, line[0], line[1]);
 }
 export function axiom6(graph, pointA, vectorA, pointB, vectorB, pointC, pointD) {
-	let line = Geom.core.origami.axiom6(pointA, vectorA, pointB, vectorB, pointC, pointD);
+	let line = Geom.core.axiom[6](pointA, vectorA, pointB, vectorB, pointC, pointD);
 	return crease_line(graph, line[0], line[1]);
 }
 export function axiom7(graph, pointA, vectorA, pointB, vectorB, pointC) {
-	let line = Geom.core.origami.axiom7(pointA, vectorA, pointB, vectorB, pointC);
+	let line = Geom.core.axiom[7](pointA, vectorA, pointB, vectorB, pointC);
 	return crease_line(graph, line[0], line[1]);
 }
 
@@ -319,7 +319,7 @@ export function add_edge_between_points(graph, x0, y0, x1, y1) {
 // 	let vectors_as_angles = vectors.map(v => Math.atan2(v[1], v[0]));
 // 	return vectors.map((v,i,arr) => {
 // 		let nextV = arr[(i+1)%arr.length];
-// 		return RabbitEar.math.core.geometry.counter_clockwise_angle2(v, nextV);
+// 		return RabbitEar.math.core.counter_clockwise_angle2(v, nextV);
 // 	});
 // }
 
@@ -344,7 +344,7 @@ export function kawasaki_solutions(graph, vertex) {
 	// get the interior angles of sectors around a vertex
 	return vectors.map((v,i,arr) => {
 		let nextV = arr[(i+1)%arr.length];
-		return Geom.core.geometry.counter_clockwise_angle2(v, nextV);
+		return Geom.core.counter_clockwise_angle2(v, nextV);
 	}).map((_, i, arr) => {
 		// for every sector, get an array of all the OTHER sectors
 		let a = arr.slice();
@@ -381,7 +381,7 @@ export function fold_without_layering(fold, face) {
 		}
 	});
 	let new_vertices_coords_cp = fold.vertices_coords.map((point,i) =>
-		Geom.core.algebra.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
+		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
 			Geom.core.clean_number(n)
 		)
 	)

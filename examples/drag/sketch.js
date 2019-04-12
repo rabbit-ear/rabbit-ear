@@ -39,7 +39,7 @@ folded.onMouseMove = function(mouse) {
 
 		origami.cp.valleyFold(midpoint, vector.rotateZ90());
 	}
-	folded.cp = RabbitEar.CreasePattern(origami.cp.json);
+	folded.cp = RabbitEar.CreasePattern(origami.cp.getFOLD());
 	folded.fold();
 }
 

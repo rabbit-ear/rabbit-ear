@@ -18,27 +18,46 @@ polySec.setup = function() {
 }
 polySec.setup();
 
-polySec.recurseMolecule = function(rays, polygon, sides) {
+polySec.recurseMolecule = function(rays, polygon, sides, isEdgeRay) {
 	let count = rays.length;
+	if (isEdgeRay == null) {
+		isEdgeRay = rays.map(_ => true);
+	}
 
 	// each intersect is with rays at index i and i+1
 	let intersects = rays
 		.map((ray,i,arr) => ray.intersect(arr[(i+1)%arr.length]));
 
 	if (count <= 3) {
+		let incenter = intersects.filter(i => i !== undefined).shift();
 		return [
-			[rays[0].point, intersects[0]],
-			[rays[1].point, intersects[0]],
-			[rays[2].point, intersects[0]],
+			[rays[0].point, incenter],
+			[rays[1].point, incenter],
+			[rays[2].point, incenter]
 		];
 	}
 
 	// each ray's 2 distances to the 2 neighboring intersections
-	let rayDistances = rays.map((r,i,arr) => [
-		r.point.distanceTo(intersects[(i+arr.length-1)%arr.length]),
-		r.point.distanceTo(intersects[i])
-	]);
+	let rayDistances = rays.map((r,i,arr) => 
+		[intersects[(i+arr.length-1)%arr.length], intersects[i]]
+	).map((sects,i) => sects.map(s => s === undefined
+		? [Infinity, Infinity]
+		: rays[i].point.distanceTo(s))
+	);
+	// let rayDistances = rays.map((r,i,arr) => [
+	// 	r.point.distanceTo(intersects[(i+arr.length-1)%arr.length]),
+	// 	r.point.distanceTo(intersects[i])
+	// ]);
 	let sided = rayDistances.map(i => i[0] < i[1]);
+
+	console.log("isEdgeRay", isEdgeRay);
+	console.log("before", JSON.parse(JSON.stringify(rayDistances)));
+	// bad fix for ignoring the inner lines
+	isEdgeRay.map((e,i) => ({e, i}))
+		.filter(el => !el.e)
+		.forEach(el => rayDistances[el.i] = [Infinity, Infinity]);
+	console.log("after", JSON.parse(JSON.stringify(rayDistances)));
+
 
 	let smallest = rayDistances
 		.map((d,i) => ({
@@ -65,7 +84,7 @@ polySec.recurseMolecule = function(rays, polygon, sides) {
 	let vectorA = polygon.points[side0[1]].subtract(pointA);
 	let pointB = polygon.points[side1[0]];
 	let vectorB = polygon.points[side1[1]].subtract(pointB);
-	let bisects = RabbitEar.math.core.geometry.bisect_lines2(pointA, vectorA, pointB, vectorB);
+	let bisects = RabbitEar.math.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
 
 	let newRay = RabbitEar.math.Ray(intersects[index], bisects[0][1]);
 	let newSides = [side0, side1];
@@ -82,12 +101,15 @@ polySec.recurseMolecule = function(rays, polygon, sides) {
 		rays2.splice(0, 1);
 		sides2.splice(pair[0], 1, newSides);
 		sides2.splice(0, 1);
+		isEdgeRay.splice(pair[0], 1, false);
+		isEdgeRay.splice(0, 1);
 	} else {
 		rays2.splice(pair[0], 2, newRay);
 		sides2.splice(pair[0], 2, newSides);
+		isEdgeRay.splice(pair[0], 2, false);
 	}
 
-	return solutions.concat(polySec.recurseMolecule(rays2, polygon, sides2));
+	return solutions.concat(polySec.recurseMolecule(rays2, polygon, sides2, isEdgeRay));
 }
 
 polySec.buildMolecule = function(polygon) {

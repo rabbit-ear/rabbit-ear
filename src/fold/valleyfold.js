@@ -1,4 +1,4 @@
-import * as Geom from "../../lib/geometry";
+import * as Geom from "../../include/geometry";
 import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
 

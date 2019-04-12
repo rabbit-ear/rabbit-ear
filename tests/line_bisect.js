@@ -44,7 +44,7 @@ lBis.redraw = function() {
 		lBis.lines[i].setAttribute("x"+(j+1), p[0]);
 		lBis.lines[i].setAttribute("y"+(j+1), p[1]);
 	}));
-	let bisects = RabbitEar.math.core.geometry.bisect_lines2(lineA.point, lineA.vector, lineB.point, lineB.vector);
+	let bisects = RabbitEar.math.core.bisect_lines2(lineA.point, lineA.vector, lineB.point, lineB.vector);
 
 	let linelines = bisects.map(b => RabbitEar.math.Line(b[0][0], b[0][1], b[1][0], b[1][1]));
 	let bColors = ["#ecb233", "#e44f2a"];

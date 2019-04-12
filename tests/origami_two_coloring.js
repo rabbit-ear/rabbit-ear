@@ -8,7 +8,7 @@ let faceCount = twoColor.faces.length;
 
 let facesSVG = twoColor.groups.face.children;
 
-let faces_coloring = RabbitEar.fold.graph.faces_coloring(twoColor.cp, 0);
+let faces_coloring = RabbitEar.core.faces_coloring(twoColor.cp, 0);
 
 faces_coloring
 	.map(color => color ? 0 : 1)

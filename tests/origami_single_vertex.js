@@ -63,7 +63,7 @@ singleVertex.updateCenter = function(point){
 	
 	singleVertex.draw();
 
-	let foldedCP = RabbitEar.fold.origami.fold_without_layering(singleVertex.cp.json, 0);
+	let foldedCP = RabbitEar.core.fold_without_layering(singleVertex.cp.getFOLD(), 0);
 	foldedCP["re:faces_layer"] = poke_through ? [1,0,2,3] : [0,1,3,2];
 	folded.cp = RabbitEar.CreasePattern(foldedCP);
 

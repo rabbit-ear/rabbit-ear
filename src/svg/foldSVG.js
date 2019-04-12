@@ -2,7 +2,7 @@
  * .FOLD file into SVG, and back
  */
 
-import * as SVG from "../../lib/svg";
+import * as SVG from "../../include/svg";
 import { get_boundary_vertices, faces_coloring } from "../fold/graph";
 
 const CREASE_DIR = {

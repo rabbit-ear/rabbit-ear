@@ -9,15 +9,19 @@ basisVec = RabbitEar.svg.image("canvas-matrix-basis", function(){
 		basisVec.reset();
 		basisVec.update();
 	}
-});basisVec.setViewBox(-0.5*6, -aspect/2*6, 1*6, aspect*6);
+});
+
+basisVec.setViewBox(-0.5*6, -aspect/2*6, 1*6, aspect*6);
 
 basisVec.gridLayer = basisVec.group();
 basisVec.drawLayer = basisVec.group();
+basisVec.basisColors = ["#ecb233", "#e44f2a"];
 
 basisVec.touches = RabbitEar.svg.controls(basisVec, 2, {radius: 0.04, fill: "#e44f2a"});
+basisVec.touches.forEach((t,i) => t.circle.setAttribute("fill", basisVec.basisColors[i]));
 
-basisVec.reset = function(){
-	for(let i = 0; i < 2; i++) {
+basisVec.reset = function() {
+	for (let i = 0; i < 2; i++) {
 		var angle = Math.random() * Math.PI * 2;
 		basisVec.touches[i].position = [
 			Math.cos(angle),
@@ -28,7 +32,7 @@ basisVec.reset = function(){
 	basisVec.touches[1].position = [0, 1];
 
 }
-basisVec.recalc = function(){
+basisVec.recalc = function() {
 	let center = [0, 0];
 	basisVec.vectors = basisVec.touches
 		.map(t => RabbitEar.math.Vector(t.position));
@@ -37,7 +41,7 @@ basisVec.recalc = function(){
 	basisVec.dot0_1 = basisVec.normalized[0].dot(basisVec.normalized[1]);
 	basisVec.dot1_0 = basisVec.normalized[1].dot(basisVec.normalized[0]);
 }
-basisVec.redraw = function(){
+basisVec.redraw = function() {
 
 	basisVec.gridLayer.removeChildren();
 
@@ -86,11 +90,22 @@ basisVec.redraw = function(){
 	}
 	poly.setAttribute("opacity", 0.3)
 
+	let basisLines = basisVec.touches
+		.map(t => t.position)
+		.map(p => basisVec.drawLayer.line(0, 0, p[0], p[1]))
+		.forEach((l, i) => {
+			l.setAttribute("stroke", basisVec.basisColors[i]);
+			l.setAttribute("stroke-width", 0.03);
+		});
+		
 	// dot product
 	let dotLine = basisVec.drawLayer.line(0, 0, basisVec.dot0_1[0], basisVec.dot0_1[1]);
 	dotLine.setAttribute("stroke", "#ecb233");
 	dotLine.setAttribute("stroke-width", 0.01);
 	dotLine.setAttribute("stroke-linecap", "round");
+
+	let originDot = basisVec.drawLayer.circle(0, 0, 0.015);
+	originDot.setAttribute("fill", "black");
 
 	// let dotXdash = RabbitEar.svg.line(basisVec.v.x, basisVec.v.y, basisVec.dotX, 0);
 	// let dotYdash = RabbitEar.svg.line(basisVec.v.x, basisVec.v.y, 0, basisVec.dotY);
@@ -103,7 +118,7 @@ basisVec.redraw = function(){
 	// dotXdash.setAttribute("stroke-dasharray", "0.01 17");
 	// dotYdash.setAttribute("stroke-dasharray", "0.01 17");
 	// basisVec.drawLayer.appendChild(dotXdash);
-	// basisVec.drawLayer.appendChild(dotYdash);	
+	// basisVec.drawLayer.appendChild(dotYdash);
 
 	// cross product
 	// let crossLine = basisVec.drawLayer.line(0, 0, basisVec.cross[0], basisVec.cross[1]);
@@ -153,22 +168,25 @@ basisVec.redraw = function(){
 	// normArc.setAttribute("stroke-dasharray", "10 17");
 	// basisVec.drawLayer.appendChild(normArc);
 
-	if(basisVecSketchCallback != null){
-		let readable = basisVec.touches[0].position
-		basisVecSketchCallback({vector: readable});
+	if (basisVecSketchCallback != null) {
+		let axes = [
+			basisVec.touches[0].position,
+			basisVec.touches[1].position
+		];
+		basisVecSketchCallback({axes: axes});
 	}
 }
 
-basisVec.update = function(){
+basisVec.update = function() {
 	basisVec.recalc();
 	basisVec.redraw();
 }
 
-basisVec.onMouseDown = function(mouse){
+basisVec.onMouseDown = function(mouse) {
 	basisVec.selected = 0;
 };
 
-basisVec.onMouseMove = function(mouse){
+basisVec.onMouseMove = function(mouse) {
 	// console.log(mouse);
 	// if(mouse.isPressed && basisVec.selected != null){
 	// 	basisVec.touches[basisVec.selected].pos = mouse.position;

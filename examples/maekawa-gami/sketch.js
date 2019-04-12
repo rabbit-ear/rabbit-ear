@@ -73,9 +73,9 @@ origami.onMouseDown = function(mouse) {
 			origami.nextEdge[1][1] - origami.nextEdge[0][1]
 		];
 		let cp = JSON.parse(JSON.stringify(origami.cp.json));
-		RabbitEar.fold.origami.crease_folded(cp, cp.vertices_coords[origami.near.vertex.index], nextVector, origami.near.face.index);
+		RabbitEar.core.crease_folded(cp, cp.vertices_coords[origami.near.vertex.index], nextVector, origami.near.face.index);
 		origami.cp = RabbitEar.CreasePattern(cp);
-		let foldedCP = RabbitEar.fold.origami.fold_without_layering(cp);
+		let foldedCP = RabbitEar.core.fold_without_layering(cp);
 		folded.cp = RabbitEar.CreasePattern(foldedCP);
 	}
 	// origami.updateCenter(mouse);

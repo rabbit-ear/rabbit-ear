@@ -7,8 +7,8 @@
  *   - DOM object, or "string" DOM id to attach to
  */
 
-import * as Geom from "../lib/geometry";
-import * as SVG from "../lib/svg";
+import * as Geom from "../include/geometry";
+import * as SVG from "../include/svg";
 import * as Graph from "./fold/graph";
 import * as Origami from "./fold/origami";
 import * as Import from "./fold/import";
@@ -44,6 +44,7 @@ export default function() {
 	let preferences = {
 		autofit: true,
 		debug: false,
+		touchfold: true,
 		padding: 0
 	};
 
@@ -140,6 +141,27 @@ export default function() {
 		return nearest;
 	}
 
+	const getVertices = function() {
+		let vertices = prop.cp.vertices;
+		vertices.forEach((v,i) => v.svg = groups.vertex.children[i])
+		return vertices;
+	}
+	const getEdges = function() {
+		let edges = prop.cp.edges;
+		edges.forEach((v,i) => v.svg = groups.crease.children[i])
+		return edges;
+	}
+	const getFaces = function() {
+		let faces = prop.cp.faces;
+		faces.forEach((v,i) => v.svg = groups.face.children[i])
+		return faces;
+	}
+	const getBoundary = function() {
+		let boundary = prop.cp.getBoundary();
+		boundary.forEach((v,i) => v.svg = groups.boundary.children[i])
+		return boundary;
+	};
+
 	const load = function(input, callback) { // epsilon
 		Import.load_fold(input, function(fold){
 			setCreasePattern( CreasePattern(fold) );
@@ -171,7 +193,8 @@ export default function() {
 			value: function(){ return prop.cp[method](...arguments); }
 		}));
 	// attach CreasePattern getters
-	["boundary", "vertices", "edges", "faces", "isFolded"]
+	// ["boundary", "vertices", "edges", "faces",
+	["isFolded"]
 		.forEach(method => Object.defineProperty(_this, method, {
 			get: function(){
 				let components = prop.cp[method];
@@ -181,6 +204,12 @@ export default function() {
 		}));
 
 	Object.defineProperty(_this, "nearest", {value: nearest});
+	Object.defineProperty(_this, "vertices", {
+		get: function(){ return getVertices(); }
+	});
+	Object.defineProperty(_this, "edges", {
+		get: function(){ return getEdges(); }
+	});
 	Object.defineProperty(_this, "draw", { value: draw });
 	Object.defineProperty(_this, "fold", { value: fold });
 	Object.defineProperty(_this, "load", { value: load });

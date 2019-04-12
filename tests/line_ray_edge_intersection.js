@@ -67,12 +67,12 @@ lrex.redraw = function(){
 	let wedges = intersections
 		.map(xing => xing.angles.map((_,i) => {
 			let a = [xing.angles[i], xing.angles[(i+1)%xing.angles.length]];
-			let dp = RabbitEar.math.core.geometry.bisect_vectors(
+			let dp = RabbitEar.math.core.bisect_vectors(
 				[Math.cos(a[0]), Math.sin(a[0])],
 				[Math.cos(a[1]), Math.sin(a[1])]
 			)[0];
 			let lc = (i === 3) ? Math.PI*2 : 0
-			let interior = RabbitEar.math.core.geometry.counter_clockwise_angle2_radians(a[0], a[1]+lc);
+			let interior = RabbitEar.math.core.counter_clockwise_angle2_radians(a[0], a[1]+lc);
 
 			let r = wedge_space / Math.pow(interior, 0.866);
 

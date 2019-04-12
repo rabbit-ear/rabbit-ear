@@ -33,7 +33,7 @@ for (var i = 0; i < 2; i++) {
 	// valleys.cp.valleyFold(point, vector, stay);
 
 
-valleys.masterCP = JSON.parse(JSON.stringify(valleys.cp.json));
+valleys.masterCP = JSON.parse(JSON.stringify(valleys.cp.getFOLD()));
 valleys.cp = RabbitEar.CreasePattern(valleys.masterCP);
 
 valleys.controls = RabbitEar.svg.controls(valleys, 2, {radius:0.02, fill: "#e44f2a"});
@@ -60,7 +60,7 @@ valleys.update = function() {
 		valleys.drawLayer.circle(stayPoint[0], stayPoint[1], 0.02).setAttribute("fill", "#224c72");
 		valleys.cp.valleyFold(points[0], vector, stayVector);
 	}
-	folded.cp = RabbitEar.CreasePattern(valleys.cp.json);
+	folded.cp = RabbitEar.CreasePattern(valleys.cp.getFOLD());
 	let notMoving = folded.cp["re:faces_to_move"].indexOf(false);
 	console.log("notMoving", notMoving);
 	folded.fold(notMoving);

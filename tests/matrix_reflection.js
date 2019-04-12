@@ -12,10 +12,10 @@ reflect.touches.forEach(p => {
 	reflect.appendChild(p.svg);
 });
 
-reflect.points = Array.from(Array(24)).map((_,i) => {
+reflect.points = Array.from(Array(10)).map((_,i) => {
 	let x = Math.random()*reflect.w;
 	let y = Math.random()*reflect.h;
-	let circle = RabbitEar.svg.circle(x, y, 4);
+	let circle = RabbitEar.svg.circle(x, y, 6);
 	circle.setAttribute("fill", "#195783");
 	reflect.appendChild(circle);
 	return { pos: [x,y], svg: circle };
@@ -40,7 +40,7 @@ reflect.drawReflections = function(){
 	reflect.points.forEach(p => {
 		let newPos = matrix.transform(p.pos);
 		// console.log(newPos);
-		let circle = RabbitEar.svg.circle(newPos.x, newPos.y, 4);
+		let circle = RabbitEar.svg.circle(newPos.x, newPos.y, 6);
 		circle.setAttribute("fill", "#ecb233");
 		reflect.reflectLayer.appendChild(circle);
 	})

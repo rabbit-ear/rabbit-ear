@@ -692,16 +692,6 @@
 	function axiom7(pointA, vectorA, pointB, vectorB, pointC) {
 	}
 
-	var origami = /*#__PURE__*/Object.freeze({
-		axiom1: axiom1,
-		axiom2: axiom2,
-		axiom3: axiom3,
-		axiom4: axiom4,
-		axiom5: axiom5,
-		axiom6: axiom6,
-		axiom7: axiom7
-	});
-
 	function get_vec() {
 		let params = Array.from(arguments);
 		if (params.length === 0) { return; }
@@ -1501,10 +1491,26 @@
 		return Junction(center, points);
 	};
 
-	let core = { algebra, geometry, intersection, origami, EPSILON_LOW, EPSILON, EPSILON_HIGH, clean_number };
+	let core = Object.create(null);
+	Object.assign(core, algebra, geometry);
+	core.EPSILON_LOW = EPSILON_LOW;
+	core.EPSILON = EPSILON;
+	core.EPSILON_HIGH = EPSILON_HIGH;
+	core.intersection = intersection;
+	core.clean_number = clean_number;
+	core.axiom = [];
+	core.axiom[1] = axiom1;
+	core.axiom[2] = axiom2;
+	core.axiom[3] = axiom3;
+	core.axiom[4] = axiom4;
+	core.axiom[5] = axiom5;
+	core.axiom[6] = axiom6;
+	core.axiom[7] = axiom7;
+	delete core.axiom[0];
+	Object.freeze(core.axiom);
+	Object.freeze(core);
 
 	var geometry$1 = /*#__PURE__*/Object.freeze({
-		core: core,
 		Vector: Vector,
 		Circle: Circle,
 		Polygon: Polygon,
@@ -1515,7 +1521,8 @@
 		Ray: Ray,
 		Edge: Edge,
 		Junction: Junction,
-		Sector: Sector
+		Sector: Sector,
+		core: core
 	});
 
 	/* SVG (c) Robby Kraft, MIT License */
@@ -2597,238 +2604,58 @@
 	}
 	seed(0);
 
-	/*
-	for(var i=0; i<256; i++) {
-	  perm[i] = perm[i + 256] = p[i];
-	  gradP[i] = gradP[i + 256] = grad3[perm[i] % 12];
-	}*/
+	const flatten_frame = function(fold_file, frame_num){
+		const dontCopy = ["frame_parent", "frame_inherit"];
+		var memo = {visited_frames:[]};
+		function recurse(fold_file, frame, orderArray){
+			if(memo.visited_frames.indexOf(frame) != -1){
+				throw ".FOLD file_frames encountered a cycle. stopping.";
+				return orderArray;
+			}
+			memo.visited_frames.push(frame);
+			orderArray = [frame].concat(orderArray);
+			if(frame == 0){ return orderArray; }
+			if(fold_file.file_frames[frame - 1].frame_inherit &&
+			   fold_file.file_frames[frame - 1].frame_parent != undefined){
+				return recurse(fold_file, fold_file.file_frames[frame - 1].frame_parent, orderArray);
+			}
+			return orderArray;
+		}
+		return recurse(fold_file, frame_num, []).map(frame => {
+			if(frame == 0){
+				// for frame 0 (the key frame) don't copy over file_frames array
+				let swap = fold_file.file_frames;
+				fold_file.file_frames = null;
+				let copy = JSON.parse(JSON.stringify(fold_file));
+				fold_file.file_frames = swap;
+				delete copy.file_frames;
+				dontCopy.forEach(key => delete copy[key]);
+				return copy;
+			}
+			let copy = JSON.parse(JSON.stringify(fold_file.file_frames[frame-1]));
+			dontCopy.forEach(key => delete copy[key]);
+			return copy;
+		}).reduce((prev,curr) => Object.assign(prev,curr),{})
+	};
 
-	// Skewing and unskewing factors for 2, 3, and 4 dimensions
-	var F2 = 0.5*(Math.sqrt(3)-1);
-	var G2 = (3-Math.sqrt(3))/6;
+	const merge_frame$1 = function(fold_file, frame){
+		const dontCopy = ["frame_parent", "frame_inherit"];
+		let copy = JSON.parse(JSON.stringify(frame));
+		dontCopy.forEach(key => delete copy[key]);
+		// don't deep copy file_frames. stash. bring them back.
+		let swap = fold_file.file_frames;
+		fold_file.file_frames = null;
+		let fold = JSON.parse(JSON.stringify(fold_file));
+		fold_file.file_frames = swap;
+		delete fold.file_frames;
+		// merge 2
+		Object.assign(fold, frame);
+		return fold;
+	};
 
-	var F3 = 1/3;
-	var G3 = 1/6;
-
-	// 2D simplex noise
-	function simplex2(xin, yin) {
-	  var n0, n1, n2; // Noise contributions from the three corners
-	  // Skew the input space to determine which simplex cell we're in
-	  var s = (xin+yin)*F2; // Hairy factor for 2D
-	  var i = Math.floor(xin+s);
-	  var j = Math.floor(yin+s);
-	  var t = (i+j)*G2;
-	  var x0 = xin-i+t; // The x,y distances from the cell origin, unskewed.
-	  var y0 = yin-j+t;
-	  // For the 2D case, the simplex shape is an equilateral triangle.
-	  // Determine which simplex we are in.
-	  var i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
-	  if(x0>y0) { // lower triangle, XY order: (0,0)->(1,0)->(1,1)
-	    i1=1; j1=0;
-	  } else {    // upper triangle, YX order: (0,0)->(0,1)->(1,1)
-	    i1=0; j1=1;
-	  }
-	  // A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
-	  // a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
-	  // c = (3-sqrt(3))/6
-	  var x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
-	  var y1 = y0 - j1 + G2;
-	  var x2 = x0 - 1 + 2 * G2; // Offsets for last corner in (x,y) unskewed coords
-	  var y2 = y0 - 1 + 2 * G2;
-	  // Work out the hashed gradient indices of the three simplex corners
-	  i &= 255;
-	  j &= 255;
-	  var gi0 = gradP[i+perm[j]];
-	  var gi1 = gradP[i+i1+perm[j+j1]];
-	  var gi2 = gradP[i+1+perm[j+1]];
-	  // Calculate the contribution from the three corners
-	  var t0 = 0.5 - x0*x0-y0*y0;
-	  if(t0<0) {
-	    n0 = 0;
-	  } else {
-	    t0 *= t0;
-	    n0 = t0 * t0 * gi0.dot2(x0, y0);  // (x,y) of grad3 used for 2D gradient
-	  }
-	  var t1 = 0.5 - x1*x1-y1*y1;
-	  if(t1<0) {
-	    n1 = 0;
-	  } else {
-	    t1 *= t1;
-	    n1 = t1 * t1 * gi1.dot2(x1, y1);
-	  }
-	  var t2 = 0.5 - x2*x2-y2*y2;
-	  if(t2<0) {
-	    n2 = 0;
-	  } else {
-	    t2 *= t2;
-	    n2 = t2 * t2 * gi2.dot2(x2, y2);
-	  }
-	  // Add contributions from each corner to get the final noise value.
-	  // The result is scaled to return values in the interval [-1,1].
-	  return 70 * (n0 + n1 + n2);
-	}
-	// 3D simplex noise
-	function simplex3(xin, yin, zin) {
-	  var n0, n1, n2, n3; // Noise contributions from the four corners
-
-	  // Skew the input space to determine which simplex cell we're in
-	  var s = (xin+yin+zin)*F3; // Hairy factor for 2D
-	  var i = Math.floor(xin+s);
-	  var j = Math.floor(yin+s);
-	  var k = Math.floor(zin+s);
-
-	  var t = (i+j+k)*G3;
-	  var x0 = xin-i+t; // The x,y distances from the cell origin, unskewed.
-	  var y0 = yin-j+t;
-	  var z0 = zin-k+t;
-
-	  // For the 3D case, the simplex shape is a slightly irregular tetrahedron.
-	  // Determine which simplex we are in.
-	  var i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords
-	  var i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
-	  if(x0 >= y0) {
-	    if(y0 >= z0)      { i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; }
-	    else if(x0 >= z0) { i1=1; j1=0; k1=0; i2=1; j2=0; k2=1; }
-	    else              { i1=0; j1=0; k1=1; i2=1; j2=0; k2=1; }
-	  } else {
-	    if(y0 < z0)      { i1=0; j1=0; k1=1; i2=0; j2=1; k2=1; }
-	    else if(x0 < z0) { i1=0; j1=1; k1=0; i2=0; j2=1; k2=1; }
-	    else             { i1=0; j1=1; k1=0; i2=1; j2=1; k2=0; }
-	  }
-	  // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z),
-	  // a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and
-	  // a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where
-	  // c = 1/6.
-	  var x1 = x0 - i1 + G3; // Offsets for second corner
-	  var y1 = y0 - j1 + G3;
-	  var z1 = z0 - k1 + G3;
-
-	  var x2 = x0 - i2 + 2 * G3; // Offsets for third corner
-	  var y2 = y0 - j2 + 2 * G3;
-	  var z2 = z0 - k2 + 2 * G3;
-
-	  var x3 = x0 - 1 + 3 * G3; // Offsets for fourth corner
-	  var y3 = y0 - 1 + 3 * G3;
-	  var z3 = z0 - 1 + 3 * G3;
-
-	  // Work out the hashed gradient indices of the four simplex corners
-	  i &= 255;
-	  j &= 255;
-	  k &= 255;
-	  var gi0 = gradP[i+   perm[j+   perm[k   ]]];
-	  var gi1 = gradP[i+i1+perm[j+j1+perm[k+k1]]];
-	  var gi2 = gradP[i+i2+perm[j+j2+perm[k+k2]]];
-	  var gi3 = gradP[i+ 1+perm[j+ 1+perm[k+ 1]]];
-
-	  // Calculate the contribution from the four corners
-	  var t0 = 0.6 - x0*x0 - y0*y0 - z0*z0;
-	  if(t0<0) {
-	    n0 = 0;
-	  } else {
-	    t0 *= t0;
-	    n0 = t0 * t0 * gi0.dot3(x0, y0, z0);  // (x,y) of grad3 used for 2D gradient
-	  }
-	  var t1 = 0.6 - x1*x1 - y1*y1 - z1*z1;
-	  if(t1<0) {
-	    n1 = 0;
-	  } else {
-	    t1 *= t1;
-	    n1 = t1 * t1 * gi1.dot3(x1, y1, z1);
-	  }
-	  var t2 = 0.6 - x2*x2 - y2*y2 - z2*z2;
-	  if(t2<0) {
-	    n2 = 0;
-	  } else {
-	    t2 *= t2;
-	    n2 = t2 * t2 * gi2.dot3(x2, y2, z2);
-	  }
-	  var t3 = 0.6 - x3*x3 - y3*y3 - z3*z3;
-	  if(t3<0) {
-	    n3 = 0;
-	  } else {
-	    t3 *= t3;
-	    n3 = t3 * t3 * gi3.dot3(x3, y3, z3);
-	  }
-	  // Add contributions from each corner to get the final noise value.
-	  // The result is scaled to return values in the interval [-1,1].
-	  return 32 * (n0 + n1 + n2 + n3);
-
-	}
-	// ##### Perlin noise stuff
-
-	function fade(t) {
-	  return t*t*t*(t*(t*6-15)+10);
-	}
-
-	function lerp(a, b, t) {
-	  return (1-t)*a + t*b;
-	}
-
-	// 2D Perlin Noise
-	function perlin2(x, y) {
-	  // Find unit grid cell containing point
-	  var X = Math.floor(x), Y = Math.floor(y);
-	  // Get relative xy coordinates of point within that cell
-	  x = x - X; y = y - Y;
-	  // Wrap the integer cells at 255 (smaller integer period can be introduced here)
-	  X = X & 255; Y = Y & 255;
-
-	  // Calculate noise contributions from each of the four corners
-	  var n00 = gradP[X+perm[Y]].dot2(x, y);
-	  var n01 = gradP[X+perm[Y+1]].dot2(x, y-1);
-	  var n10 = gradP[X+1+perm[Y]].dot2(x-1, y);
-	  var n11 = gradP[X+1+perm[Y+1]].dot2(x-1, y-1);
-
-	  // Compute the fade curve value for x
-	  var u = fade(x);
-
-	  // Interpolate the four results
-	  return lerp(
-	      lerp(n00, n10, u),
-	      lerp(n01, n11, u),
-	     fade(y));
-	}
-	// 3D Perlin Noise
-	function perlin3(x, y, z) {
-	  // Find unit grid cell containing point
-	  var X = Math.floor(x), Y = Math.floor(y), Z = Math.floor(z);
-	  // Get relative xyz coordinates of point within that cell
-	  x = x - X; y = y - Y; z = z - Z;
-	  // Wrap the integer cells at 255 (smaller integer period can be introduced here)
-	  X = X & 255; Y = Y & 255; Z = Z & 255;
-
-	  // Calculate noise contributions from each of the eight corners
-	  var n000 = gradP[X+  perm[Y+  perm[Z  ]]].dot3(x,   y,     z);
-	  var n001 = gradP[X+  perm[Y+  perm[Z+1]]].dot3(x,   y,   z-1);
-	  var n010 = gradP[X+  perm[Y+1+perm[Z  ]]].dot3(x,   y-1,   z);
-	  var n011 = gradP[X+  perm[Y+1+perm[Z+1]]].dot3(x,   y-1, z-1);
-	  var n100 = gradP[X+1+perm[Y+  perm[Z  ]]].dot3(x-1,   y,   z);
-	  var n101 = gradP[X+1+perm[Y+  perm[Z+1]]].dot3(x-1,   y, z-1);
-	  var n110 = gradP[X+1+perm[Y+1+perm[Z  ]]].dot3(x-1, y-1,   z);
-	  var n111 = gradP[X+1+perm[Y+1+perm[Z+1]]].dot3(x-1, y-1, z-1);
-
-	  // Compute the fade curve value for x, y, z
-	  var u = fade(x);
-	  var v = fade(y);
-	  var w = fade(z);
-
-	  // Interpolate
-	  return lerp(
-	      lerp(
-	        lerp(n000, n100, u),
-	        lerp(n001, n101, u), w),
-	      lerp(
-	        lerp(n010, n110, u),
-	        lerp(n011, n111, u), w),
-	     v);
-	}
-
-	var perlin = /*#__PURE__*/Object.freeze({
-		seed: seed,
-		simplex2: simplex2,
-		simplex3: simplex3,
-		perlin2: perlin2,
-		perlin3: perlin3
+	var frame = /*#__PURE__*/Object.freeze({
+		flatten_frame: flatten_frame,
+		merge_frame: merge_frame$1
 	});
 
 	// graph manipulators for .FOLD file github.com/edemaine/fold
@@ -3449,7 +3276,7 @@
 			: [x,y,w,h]);
 	};
 
-	var graph = /*#__PURE__*/Object.freeze({
+	var graph$1 = /*#__PURE__*/Object.freeze({
 		keys: keys,
 		all_keys: all_keys,
 		new_vertex: new_vertex,
@@ -3475,21 +3302,6 @@
 		make_vertices_faces: make_vertices_faces,
 		bounding_rect: bounding_rect
 	});
-
-	const merge_maps = function(a, b) {
-		// "a" came first
-		let aRemoves = [];
-		for (let i = 1; i < a.length; i++) {
-			if (a[i] !== a[i-1]) { aRemoves.push(i); }
-		}
-		for (let i = 1; i < b.length; i++) {
-			if (b[i] !== b[i-1]) ;
-		}
-		let bCopy = b.slice();
-		aRemoves.forEach(i => bCopy.splice(i, 0, (i === 0) ? 0 : bCopy[i-1] ));
-
-		return a.map((v,i) => v + bCopy[i]);
-	};
 
 	// import {vertices_count, edges_count, faces_count} from "./graph";
 
@@ -3603,6 +3415,21 @@
 		return true;
 	}
 
+	const merge_maps = function(a, b) {
+		// "a" came first
+		let aRemoves = [];
+		for (let i = 1; i < a.length; i++) {
+			if (a[i] !== a[i-1]) { aRemoves.push(i); }
+		}
+		for (let i = 1; i < b.length; i++) {
+			if (b[i] !== b[i-1]) ;
+		}
+		let bCopy = b.slice();
+		aRemoves.forEach(i => bCopy.splice(i, 0, (i === 0) ? 0 : bCopy[i-1] ));
+
+		return a.map((v,i) => v + bCopy[i]);
+	};
+
 	const angle_from_assignment = function(assignment) {
 		switch (assignment) {
 			case "M":
@@ -3684,8 +3511,8 @@
 			level.filter((entry) => entry.parent != null).forEach((entry) => {
 				let edge = entry.edge.map(v => graph.vertices_coords[v]);
 				let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-				let local = core.algebra.make_matrix2_reflection(vec, edge[0]);
-				faces_matrix[entry.face] = core.algebra.multiply_matrices2(faces_matrix[entry.parent], local);
+				let local = core.make_matrix2_reflection(vec, edge[0]);
+				faces_matrix[entry.face] = core.multiply_matrices2(faces_matrix[entry.parent], local);
 			})
 		);
 		return faces_matrix;
@@ -3697,8 +3524,8 @@
 			level.filter((entry) => entry.parent != null).forEach((entry) => {
 				let edge = entry.edge.map(v => graph.vertices_coords[v]);
 				let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-				let local = core.algebra.make_matrix2_reflection(vec, edge[0]);
-				faces_matrix[entry.face] = core.algebra.multiply_matrices2(local, faces_matrix[entry.parent]);
+				let local = core.make_matrix2_reflection(vec, edge[0]);
+				faces_matrix[entry.face] = core.multiply_matrices2(local, faces_matrix[entry.parent]);
 			})
 		);
 		return faces_matrix;
@@ -3808,7 +3635,7 @@
 			vertices: [...new_v_indices],
 			assignment: crease_assignment,
 			foldAngle: angle_from_assignment(crease_assignment),
-			length: core.algebra.distance2(
+			length: core.distance2(
 				...(new_v_indices.map(v => graph.vertices_coords[v]))
 			),
 			// todo, unclear if these are ordered with respect to the vertices
@@ -3960,7 +3787,7 @@
 	 *  could result in multiple edges
 	 */
 
-	function universal_molecule(polygon, radii) {
+	function universal_molecule(polygon) {
 		let poly = ConvexPolygon(polygon);
 		poly.sectors();
 	}
@@ -4022,7 +3849,7 @@
 		graph["re:faces_coloring"] = faces_coloring(graph, face_index);
 		graph["re:faces_matrix"] = make_faces_matrix_inv(graph, face_index);
 		graph["re:faces_creases"] = graph["re:faces_matrix"]
-			.map(mat => core.algebra.multiply_line_matrix2(point, vector, mat));
+			.map(mat => core.multiply_line_matrix2(point, vector, mat));
 		graph["re:faces_center"] = Array.from(Array(faces_count$$1))
 			.map((_, i) => make_face_center(graph, i));
 		graph["re:faces_sidedness"] = Array.from(Array(faces_count$$1))
@@ -4169,34 +3996,34 @@
 	}
 
 	function axiom1$1(graph, pointA, pointB) { // n-dimension
-		let line = core.origami.axiom1(pointA, pointB);
+		let line = core.axiom[1](pointA, pointB);
 		return crease_line(graph, line[0], line[1]);
 	}
 	function axiom2$1(graph, pointA, pointB) {
-		let line = core.origami.axiom2(pointA, pointB);
+		let line = core.axiom[2](pointA, pointB);
 		return crease_line(graph, line[0], line[1]);
 	}
 	function axiom3$1(graph, pointA, vectorA, pointB, vectorB) {
-		let lines = core.origami.axiom3(pointA, vectorA, pointB, vectorB);
+		let lines = core.axiom[3](pointA, vectorA, pointB, vectorB);
 		// todo: each iteration needs to apply the diff to the prev iterations
 		// return lines.map(line => crease_line(graph, line[0], line[1]))
 		// 	.reduce((a,b) => a.concat(b), []);
 		return crease_line(graph, lines[0][0], lines[0][1]);
 	}
 	function axiom4$1(graph, pointA, vectorA, pointB) {
-		let line = core.origami.axiom4(pointA, vectorA, pointB);
+		let line = core.axiom[4](pointA, vectorA, pointB);
 		return crease_line(graph, line[0], line[1]);
 	}
 	function axiom5$1(graph, pointA, vectorA, pointB, pointC) {
-		let line = core.origami.axiom5(pointA, vectorA, pointB, pointC);
+		let line = core.axiom[5](pointA, vectorA, pointB, pointC);
 		return crease_line(graph, line[0], line[1]);
 	}
 	function axiom6$1(graph, pointA, vectorA, pointB, vectorB, pointC, pointD) {
-		let line = core.origami.axiom6(pointA, vectorA, pointB, vectorB, pointC, pointD);
+		let line = core.axiom[6](pointA, vectorA, pointB, vectorB, pointC, pointD);
 		return crease_line(graph, line[0], line[1]);
 	}
 	function axiom7$1(graph, pointA, vectorA, pointB, vectorB, pointC) {
-		let line = core.origami.axiom7(pointA, vectorA, pointB, vectorB, pointC);
+		let line = core.axiom[7](pointA, vectorA, pointB, vectorB, pointC);
 		return crease_line(graph, line[0], line[1]);
 	}
 
@@ -4265,7 +4092,7 @@
 	// 	let vectors_as_angles = vectors.map(v => Math.atan2(v[1], v[0]));
 	// 	return vectors.map((v,i,arr) => {
 	// 		let nextV = arr[(i+1)%arr.length];
-	// 		return RabbitEar.math.core.geometry.counter_clockwise_angle2(v, nextV);
+	// 		return RabbitEar.math.core.counter_clockwise_angle2(v, nextV);
 	// 	});
 	// }
 
@@ -4290,7 +4117,7 @@
 		// get the interior angles of sectors around a vertex
 		return vectors.map((v,i,arr) => {
 			let nextV = arr[(i+1)%arr.length];
-			return core.geometry.counter_clockwise_angle2(v, nextV);
+			return core.counter_clockwise_angle2(v, nextV);
 		}).map((_, i, arr) => {
 			// for every sector, get an array of all the OTHER sectors
 			let a = arr.slice();
@@ -4327,7 +4154,7 @@
 			}
 		});
 		let new_vertices_coords_cp = fold.vertices_coords.map((point,i) =>
-			core.algebra.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
+			core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
 				core.clean_number(n)
 			)
 		);
@@ -4336,7 +4163,7 @@
 		return fold;
 	}
 
-	var origami$1 = /*#__PURE__*/Object.freeze({
+	var origami = /*#__PURE__*/Object.freeze({
 		universal_molecule: universal_molecule,
 		foldLayers: foldLayers,
 		crease_through_layers: crease_through_layers,
@@ -4357,6 +4184,22 @@
 		kawasaki_collapse: kawasaki_collapse,
 		fold_without_layering: fold_without_layering
 	});
+
+	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\t\"edgeOrders\": [],\n\t\"faceOrders\": [],\n\t\"file_frames\": []\n}";
+
+	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
+
+	var book = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,1], [0.5,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,4,0], [3,1], [4,2], [5,1,3], [0,4]],\n\t\"vertices_faces\": [[0], [0,1], [1], [1], [1,0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]],\n\t\"edges_faces\": [[0], [1], [1], [1], [0], [0], [0,1]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180],\n\t\"edges_length\": [0.5, 0.5, 1, 0.5, 0.5, 1, 1],\n\t\"faces_vertices\": [[1,4,5,0], [4,1,2,3]],\n\t\"faces_edges\": [[6,4,5,0], [6,1,2,3]]\n}";
+
+	var blintz = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.707106781186548, 0.707106781186548, 0.707106781186548, 0.707106781186548],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
+
+	var kite = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0], [0.414213562373095,0], [1,0], [1,0.585786437626905], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4]],\n\t\"vertices_faces\": [[0], [1,0], [2,1], [3,2], [3], [0,1,2,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [[0,1,5], [1,2,5], [2,3,5], [3,4,5]],\n\t\"faces_edges\": [[0,6,5], [1,8,6], [2,7,8], [3,4,7]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.414213562373095,0],[1,0.585786437626905]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
+
+	var fish = "{\n\t\"this base is broken\": true,\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.292893218813452,0],[1,0.707106781186548]],\n\t\"vertices_vertices\": [[6,4,3],[7,5,3,4,6],[3,5,7],[0,4,1,5,2],[0,6,2,3],[1,7,2,3],[1,4,0],[2,5,1]],\n\t\"vertices_faces\":[[1,4],[2,3,5,6],[0,7],[0,1,2,3],[1,3,4,5],[0,2,6,7],[4,5],[6,7]],\n\t\"edges_vertices\": [[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],\n\t\"edges_faces\":[[0],[0,2],[0,7],[1],[1,4],[1,3],[2,3],[2,6],[3,5],[4],[4,5],[5],[6],[6,7],[7]],\n\t\"edges_length\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_foldAngle\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_assignment\": [\"B\",\"B\",\"F\",\"M\",\"M\",\"M\",\"M\",\"M\",\"M\",\"V\",\"B\",\"B\",\"V\",\"B\",\"B\"],\n\t\"faces_vertices\": [[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],\n\t\"faces_edges\": [[0,8,7],[1,3,5],[2,6,8],[2,5,4],[3,10,9],[4,9,11],[6,13,12],[7,12,14]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n\t}]\n}";
+
+	var bird = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.207106781186548,0.5],[0.5,0.207106781186548],[0.792893218813452,0.5],[0.5,0.792893218813452],[0.353553390593274,0.646446609406726],[0.646446609406726,0.646446609406726],[0.646446609406726,0.353553390593274],[0.353553390593274,0.353553390593274],[0,0.5],[0.5,0],[1,0.5],[0.5,1]],\n\t\"edges_vertices\": [[3,5],[5,9],[3,9],[3,13],[5,13],[0,5],[0,13],[0,12],[5,12],[4,5],[4,12],[4,9],[0,6],[6,12],[0,14],[6,14],[1,6],[1,14],[1,11],[6,11],[4,6],[4,11],[1,7],[7,11],[1,15],[7,15],[2,7],[2,15],[2,10],[7,10],[4,7],[4,10],[2,8],[8,10],[2,16],[8,16],[3,8],[3,16],[8,9],[4,8]],\n\t\"edges_faces\": [[0,1],[0,5],[21,0],[1],[2,1],[2,3],[2],[3,6],[4,3],[4,5],[11,4],[5,22],[6,7],[6,11],[7],[8,7],[8,9],[8],[9,12],[10,9],[10,11],[17,10],[12,13],[12,17],[13],[14,13],[14,15],[14],[15,18],[16,15],[16,17],[23,16],[18,19],[18,23],[19],[20,19],[20,21],[20],[22,21],[22,23]],\n\t\"edges_assignment\": [\"M\",\"F\",\"V\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"V\",\"F\",\"M\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"M\"],\n\t\"faces_vertices\": [[3,5,9],[5,3,13],[0,5,13],[5,0,12],[4,5,12],[5,4,9],[0,6,12],[6,0,14],[1,6,14],[6,1,11],[4,6,11],[6,4,12],[1,7,11],[7,1,15],[2,7,15],[7,2,10],[4,7,10],[7,4,11],[2,8,10],[8,2,16],[3,8,16],[8,3,9],[4,8,9],[8,4,10]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,4,6],[5,7,8],[9,8,10],[9,11,1],[12,13,7],[12,14,15],[16,15,17],[16,18,19],[20,19,21],[20,10,13],[22,23,18],[22,24,25],[26,25,27],[26,28,29],[30,29,31],[30,21,23],[32,33,28],[32,34,35],[36,35,37],[36,2,38],[39,38,11],[39,31,33]]\n}";
+
+	var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
 
 	/** 
 	 * this searches user-provided inputs for a valid n-dimensional vector 
@@ -4421,6 +4264,393 @@
 		}
 	}
 
+	const makeUUID = function() {
+		// there is a non-zero chance this generates duplicate strings
+		const digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+		return Array.from(Array(24))
+			.map(_ => Math.floor(Math.random()*digits.length))
+			.map(i => digits[i])
+			.join('');
+	};
+
+	/**
+	 * this is meant to be a prototype
+	 * a component relates 1:1 to something in the FOLD graph, vertex/edge/face.
+	 */
+	const Component = function(proto, options) {
+		if(proto == null) {
+			proto = {};
+		}
+		if (options != null) {
+			proto.graph = options.graph; // pointer back to the graph
+			proto.index = options.index; // index of this crease in the graph
+		}
+		proto.uuid = makeUUID();
+
+		const disable = function() {
+			Object.setPrototypeOf(this, null);
+			Object.getOwnPropertyNames(this)
+				.forEach(key => delete this[key]);
+		};
+		Object.defineProperty(proto, "disable", { value: disable});
+		return Object.freeze(proto);
+	};
+
+	/**
+	 * in each of these, properties should be set to configurable so that
+	 * the object can be disabled, and all property keys erased.
+	 */
+
+	const Vertex = function(graph, index) {
+		let point = Vector(graph.vertices_coords[index]);
+		let _this = Object.create(Component(point, {graph, index}));
+		return _this;
+	};
+
+	const Face = function(graph, index) {
+		let points = graph.faces_vertices[index]
+			.map(fv => graph.vertices_coords[fv]);
+		let face = Polygon(points);
+		let _this = Object.create(Component(face, {graph, index}));
+		return _this;
+	};
+
+	const Edge$1 = function(graph, index) {
+
+		let points = graph.edges_vertices[index]
+			.map(ev => graph.vertices_coords[ev]);
+		let edge = Edge(points);
+
+		let _this = Object.create(Component(edge, {graph, index}));
+
+		const is_assignment = function(options) {
+			return options.map(l => l === this.graph.edges_assignment[index])
+				.reduce((a,b) => a || b, false);
+		};
+		const is_mountain = function() {
+			return is_assignment.call(this, ["M", "m"]);
+		};
+		const is_valley = function() {
+			return is_assignment.call(this, ["V", "v"]);
+		};
+		const is_boundary = function() {
+			return is_assignment.call(this, ["B", "b"]);
+		};
+
+		const flip = function() {
+			if (is_mountain.call(this)) { valley.call(this); }
+			else if (is_valley.call(this)) { mountain.call(this); }
+			else { return; } // don't trigger the callback
+			if (typeof this.graph.onchange === "function") { this.graph.onchange(); }
+		};
+		const mountain = function() {
+			this.graph.edges_assignment[index] = "M";
+			this.graph.edges_foldAngle[index] = -180;
+			if (typeof this.graph.onchange === "function") { this.graph.onchange(); }
+		};
+		const valley = function() {
+			this.graph.edges_assignment[index] = "V";
+			this.graph.edges_foldAngle[index] = 180;
+			if (typeof this.graph.onchange === "function") { this.graph.onchange(); }
+		};
+		const mark = function() {
+			this.graph.edges_assignment[index] = "F";
+			this.graph.edges_foldAngle[index] = 0;
+			if (typeof this.graph.onchange === "function") { this.graph.onchange(); }
+		};
+		const addVertexOnEdge = function(x, y) {
+			let thisEdge = this.index;
+			this.graph.addVertexOnEdge(x, y, thisEdge);
+		};
+
+		Object.defineProperty(_this, "mountain", {configurable: true, value: mountain});
+		Object.defineProperty(_this, "valley", {configurable: true, value: valley});
+		Object.defineProperty(_this, "mark", {configurable: true, value: mark});
+		Object.defineProperty(_this, "flip", {configurable: true, value: flip});
+		Object.defineProperty(_this, "isBoundary", {
+			configurable: true,
+			get: function(){ return is_boundary.call(this); }
+		});
+		Object.defineProperty(_this, "isMountain", {
+			configurable: true,
+			get: function(){ return is_mountain.call(this); }
+		});
+		Object.defineProperty(_this, "isValley", {
+			configurable: true,
+			get: function(){ return is_valley.call(this); }
+		});
+		// Object.defineProperty(_this, "remove", {value: remove});
+		Object.defineProperty(_this, "addVertexOnEdge", {configurable: true, value: addVertexOnEdge});
+		return _this;
+	};
+
+
+	// consider this: a crease can be an ARRAY of edges. 
+	// this way one crease is one crease. it's more what a person expects.
+	// one crease can == many edges.
+	const Crease = function(_graph, _indices) {
+		// let graph = _graph; // pointer back to the graph;
+		// let indices = _indices; // indices of this crease in the graph
+
+		const is_assignment = function(options) {
+			return indices.map(index => options
+					.map(l => l === graph.edges_assignment[index])
+					.reduce((a,b) => a || b, false)
+				).reduce((a,b) => a || b, false);
+		};
+		const is_mountain = function() { return is_assignment(["M", "m"]); };
+		const is_valley = function() { return is_assignment(["V", "v"]); };
+
+		const flip = function() {
+			if (is_mountain()) { valley(); }
+			else if (is_valley()) { mountain(); }
+			else { return; } // don't trigger the callback
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const mountain = function() {
+			indices.forEach(index => graph.edges_assignment[index] = "M");
+			indices.forEach(index => graph.edges_foldAngle[index] = -180);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const valley = function() {
+			indices.forEach(index => graph.edges_assignment[index] = "V");
+			indices.forEach(index => graph.edges_foldAngle[index] = 180);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const mark = function() {
+			indices.forEach(index => graph.edges_assignment[index] = "F");
+			indices.forEach(index => graph.edges_foldAngle[index] = 0);
+			if (typeof graph.onchange === "function") { graph.onchange(); }
+		};
+		const remove = function() { };
+		// const addVertexOnEdge = function(x, y) {
+		// 	let thisEdge = this.index;
+		// 	graph.addVertexOnEdge(x, y, thisEdge);
+		// }
+
+		// Object.create(Component())
+
+		return {
+			mountain,
+			valley,
+			mark,
+			flip,
+			get isMountain(){ return is_mountain(); },
+			get isValley(){ return is_valley(); },
+			remove
+			// addVertexOnEdge
+		};
+	};
+
+	// MIT open source license, Robby Kraft
+
+	const CreasePatternPrototype = function(proto) {
+		if(proto == null) {
+			proto = {};
+		}
+
+		/**
+		 * @param {file} is a FOLD object.
+		 * @param {prevent_wipe} true and it will import without first clearing
+		 */
+		const load = function(file, prevent_wipe) {
+			if (prevent_wipe == null || prevent_wipe !== true) {
+				all_keys.forEach(key => delete this[key]);
+			}
+			Object.assign(this, JSON.parse(JSON.stringify(file)));
+		};
+		/**
+		 * @return {CreasePattern} a deep copy of this object.
+		 */ 
+		const copy = function() {
+			return CreasePattern(JSON.parse(JSON.stringify(this)));
+		};
+		/**
+		 * this removes all geometry from the crease pattern and returns it
+		 * to its original state (and keeps the boundary edges if present)
+		 */
+		const clear = function() {
+			remove_non_boundary_edges(this);
+			if (typeof this.onchange === "function") { this.onchange(); }
+		};
+		/**
+		 * @return {Object} a deep copy of this object in the FOLD format.
+		 */ 
+		const getFOLD = function() {
+			return JSON.parse(JSON.stringify(this));
+		};
+
+		// const wipe = function() {
+		// 	Graph.all_keys.filter(a => _m[a] != null)
+		// 		.forEach(key => delete _m[key]);
+		// 	if (typeof this.onchange === "function") { this.onchange(); }
+		// }
+
+		// todo: memo these. they're created each time, even if the CP hasn't changed
+		const getVertices = function() {
+			return (this.vertices_coords || [])
+				.map((_,i) => Vertex(this, i));
+		};
+		const getEdges = function() {
+			return (this.edges_vertices || [])
+				.map((_,i) => Edge$1(this, i));
+			// return (this.edges_vertices || [])
+			// 		.map(e => e.map(ev => this.vertices_coords[ev]))
+			// 		.map(e => Geometry.Edge(e));
+		};
+		const getFaces = function() {
+			return (this.faces_vertices || [])
+				.map((_,i) => Face(this, i));
+			// return (this.faces_vertices || [])
+			// 		.map(f => f.map(fv => this.vertices_coords[fv]))
+			// 		.map(f => Polygon(f));
+		};
+		const getBoundary = function() {
+			// todo: test this for another reason anyway
+			// todo: this only works for unfolded flat crease patterns
+			return Polygon(
+				get_boundary_face(this).vertices
+					.map(v => this.vertices_coords[v])
+			);
+		};
+		const nearestVertex = function(x, y, z = 0) {
+			let index = nearest_vertex(this, [x, y, z]);
+			return (index != null) ? Vertex(this, index) : undefined;
+		};
+		const nearestEdge = function(x, y, z = 0) {
+			let index = nearest_edge(this, [x, y, z]);
+			return (index != null) ? Edge$1(this, index) : undefined;
+		};
+		const nearestFace = function(x, y, z = 0) {
+			let index = face_containing_point(this, [x, y, z]);
+			return (index != null) ? Face(this, index) : undefined;
+		};
+
+		Object.defineProperty(proto, "boundary", { get: getBoundary });
+		Object.defineProperty(proto, "vertices", { get: getVertices });
+		Object.defineProperty(proto, "edges", { get: getEdges });
+		Object.defineProperty(proto, "faces", { get: getFaces });
+		Object.defineProperty(proto, "clear", { value: clear });
+		Object.defineProperty(proto, "load", { value: load });
+		Object.defineProperty(proto, "copy", { value: copy });
+		Object.defineProperty(proto, "getFOLD", { value: getFOLD});
+		Object.defineProperty(proto, "nearestVertex", { value: nearestVertex });
+		Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
+		Object.defineProperty(proto, "nearestFace", { value: nearestFace });
+		Object.defineProperty(proto, "connectedGraphs", { get: function() {
+			return connectedGraphs(this);
+		}});
+
+		return Object.freeze(proto);
+	};
+
+	/** A graph is a set of nodes and edges connecting them */
+	const CreasePattern = function() {
+		let graph = Object.create(CreasePatternPrototype());
+
+		// parse arguments, look for an input .fold file
+		let params = Array.from(arguments);
+		let paramsObjs = params.filter(el => typeof el === "object" && el !== null);
+		// todo: which key should we check to verify .fold? coords prevents abstract CPs
+		let foldObjs = paramsObjs.filter(el => el.vertices_coords != null);
+
+		// unit square is the default base if nothing else is provided
+		graph.load( (foldObjs.shift() || JSON.parse(squareFoldString)) );
+
+		// unclear how best to use frames
+		// let frame = 0; // which fold file frame (0 ..< Inf) to display
+
+		// callback for when the crease pattern has been altered
+		graph.onchange = undefined;
+
+		const didUpdate = function() {
+			if (typeof graph.onchange === "function") {
+				graph.onchange();
+			}
+		};
+
+		Object.defineProperty(graph, "isFolded", { get: function(){
+			// try to discern folded state
+			if (graph.frame_classes == null) { return false; }
+			return graph.frame_classes.includes("foldedState");
+		}});
+
+		graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {
+			add_vertex_on_edge(graph, x, y, oldEdgeIndex);
+			didUpdate();
+		};
+		graph.axiom1 = function() {
+			let points = get_two_vec2$1(...arguments);
+			if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
+			// let line = Geom.core.axiom[1](...points);
+			// let crease = Crease(this, crease_line(graph, line[0], line[1]));
+			let crease = Crease(this, axiom1$1(graph, ...points));
+			didUpdate();
+			return crease;
+		};
+		graph.axiom2 = function() {
+			let points = get_two_vec2$1(...arguments);
+			if (!points) { throw {name: "TypeError", message: "axiom2 needs 2 points"}; }
+			let crease = Crease(this, axiom2$1(graph, ...points));
+			didUpdate();
+			return crease;
+		};
+		graph.axiom3 = function() {
+			let lines = get_two_lines(...arguments);
+			if (!lines) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
+			let crease = Crease(this, axiom3$1(graph, ...lines[0], ...lines[1]));
+			didUpdate();
+			return crease;
+		};
+		graph.axiom4 = function() {
+			let crease = Crease(this, axiom4$1(graph, arguments));
+			didUpdate();
+			return crease;
+		};
+		graph.axiom5 = function() {
+			let crease = Crease(this, axiom5$1(graph, arguments));
+			didUpdate();
+			return crease;
+		};
+		graph.axiom6 = function() {
+			let crease = Crease(this, axiom6$1(graph, arguments));
+			didUpdate();
+			return crease;
+		};
+		graph.axiom7 = function() {
+			let crease = Crease(this, axiom7$1(graph, arguments));
+			didUpdate();
+			return crease;
+		};
+		graph.creaseRay = function() {
+			let crease = Crease(this, creaseRay(graph, ...arguments));
+			didUpdate();
+			return crease;
+		};
+		graph.creaseSegment = function() {
+			let crease = Crease(this, creaseSegment(graph, ...arguments));
+			didUpdate();
+			return crease;
+		};
+		graph.creaseThroughLayers = function(point, vector, face) {
+			RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
+			didUpdate();
+		};
+		graph.valleyFold = function(point, vector, face_index) {
+			let folded = crease_through_layers(graph, point, vector, face_index, "V");
+			Object.keys(folded).forEach(key => graph[key] = folded[key]);
+			didUpdate();
+		};
+		graph.kawasaki = function() {
+			let crease = Crease(this, kawasaki_collapse(graph, ...arguments));
+			didUpdate();
+			return crease;
+		};
+
+		return graph;
+
+	};
+
 	/* (c) Robby Kraft, MIT License */
 	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
 
@@ -4484,841 +4714,6 @@
 			// return this;
 		}
 	};
-
-	function valleyfold(foldFile, linePoint, lineVector, touchPoint){
-
-		// if (point == null) point = [0.6, 0.6];
-		if (touchPoint != null) {
-			// console.log("Jason Code!");
-			let new_fold = split_folding_faces(
-				foldFile, 
-				linePoint, 
-				lineVector,
-				touchPoint
-			);
-			return new_fold;
-		}
-	}
-
-	// assumes point not on line
-	var split_folding_faces = function(fold, linePoint, lineVector, point) {
-
-		// find which face index (layer) the user touched
-		let tap = top_face_under_point(fold, point);
-		if (tap == null) { return undefined; }
-		// keys are faces with vals: {clip: [[x,y],[x,y]], collinear:[[i,j],[k,l]] }
-		let clippedLines = clip_line_in_faces(fold, linePoint, lineVector);
-		// array of objects: {edges:[i,j], face:f, point:[x,y]}
-		let newVertices = get_new_vertices(clippedLines);
-		// create a new .fold vertices_coords with new data appended to the end
-		let new_vertices_coords = make_new_vertices_coords(fold.vertices_coords, newVertices);
-		// walk faces. generate two new faces for every cut face
-		// sort these new face-pairs by which side of the line they are.
-		let new_face_map = make_new_face_mapping(fold.faces_vertices,
-				clippedLines, newVertices).map((subs) =>
-				sortTwoFacesBySide(subs, new_vertices_coords, linePoint, lineVector)
-			);
-		// convert undefined to empty array to convert face indices to face point geometry
-		let side = [0,1]
-			.map(s => new_face_map[tap][s] == null ? [] : new_face_map[tap][s]) 
-			.map(points => points.map(f => new_vertices_coords[f]))
-			.map(f => core.intersection.point_in_poly(f, point))
-			.indexOf(true);
-		// make face-adjacent faces on only a subset, the side we clicked on
-		let moving_side = new_face_map.map(f => f[side]);
-		let faces_faces = make_faces_faces({faces_vertices:moving_side});
-		// mark which faces are going to be moving based on a valley fold
-		let faces_mark = mark_moving_faces(moving_side, new_vertices_coords, 
-			faces_faces, fold.faces_layer, tap);
-
-		// split faces at the fold line. 
-		let stay_faces, move_faces;
-		({stay_faces, move_faces} = reconstitute_faces(fold.faces_vertices,
-			fold.faces_layer, new_face_map, faces_mark, side));
-
-		// compile layers back into arrays, bubble moving faces to top z-order
-		let stay_layers = stay_faces.length;
-		let new_layer_data = sort_faces_valley_fold(stay_faces, move_faces);
-
-		// clean isolated vertices
-		// (compiled_faces_vertices, compiled_faces_layer)
-		// var cleaned = Graph.remove_isolated_vertices({new_vertices_coords,
-		//	new_layer_data.faces_vertices});
-		var cleaned = {
-			vertices_coords: new_vertices_coords,
-			faces_vertices:new_layer_data.faces_vertices
-		};
-		console.log(cleaned);
-		remove_isolated_vertices(cleaned);
-
-		// flip points across the fold line, 
-		let reflected = reflect_across_fold(cleaned.vertices_coords,
-			cleaned.faces_vertices, new_layer_data.faces_layer,
-			stay_layers, linePoint, lineVector);
-
-		// for every vertex, give me an index to a face which it's found in
-		let vertex_in_face = reflected.vertices_coords.map((v,i) => {
-			for(var f = 0; f < cleaned.faces_vertices.length; f++){
-				if(cleaned.faces_vertices[f].includes(i)){ return f; }
-			}
-		});
-
-		var bottom_face = 1; // todo: we need a way for the user to select this
-		let faces_matrix = make_faces_matrix({vertices_coords:reflected.vertices_coords, 
-			faces_vertices:cleaned.faces_vertices}, bottom_face);
-		let inverseMatrices = faces_matrix.map(n => core.make_matrix2_inverse(n));
-
-		let new_vertices_coords_cp = reflected.vertices_coords.map((point,i) =>
-			core.multiply_vector2_matrix2(point, inverseMatrices[vertex_in_face[i]]).map((n) => 
-				core.clean_number(n)
-			)
-		);
-
-		// let faces_direction = cleaned.faces_vertices.map(f => true);
-		// make_face_walk_tree(cleaned.faces_vertices, bottom_face)
-		// 	.forEach((level,i) => level.forEach((f) => 
-		// 		faces_direction[f.face] = i%2==0 ? true : false
-		// 	))
-
-		// create new fold file
-		let new_fold = {
-			vertices_coords: reflected.vertices_coords,
-			faces_vertices: cleaned.faces_vertices,
-			faces_layer: reflected.faces_layer
-		};
-
-		// new_fold.faces_direction = faces_direction;
-		
-		faces_vertices_to_edges(new_fold);
-
-		let headers = {
-			"file_spec": 1.1,
-			"file_creator": "Rabbit Ear",
-			"file_author": "",
-			"file_classes": ["singleModel"],
-			"frame_attributes": ["2D"],
-			"frame_title": "one valley crease",
-			"frame_classes": ["foldedState"]
-		};
-		// bring along any metadata from the original file, replace when necessary
-		Object.keys(headers).forEach(meta => new_fold[meta] = (fold[meta] == undefined) ? headers[meta] : fold[meta]);
-
-		new_fold.file_classes = ["singleModel"];
-		new_fold.frame_attributes = ["2D"];
-		new_fold.frame_classes = ["foldedState"];
-		new_fold.file_frames = [{
-			"frame_classes": ["creasePattern"],
-			"parent": 0,
-			"inherit": true,
-			"vertices_coords": new_vertices_coords_cp
-		}];
-
-		// console.log("------------------");
-		// console.log("1. tap", tap);
-		// console.log("2. clippedLines", clippedLines);
-		// console.log("3. newVertices", newVertices);
-		// console.log("4. new_vertices_coords", new_vertices_coords);
-		// console.log("5. new_face_map", new_face_map);
-		// console.log("6. side", side);
-		// console.log("7. faces_faces", faces_faces);
-		// console.log("8. faces_mark", faces_mark);
-		// console.log("9. new_layer_data", new_layer_data);
-		// console.log("9. faces_layer", reflected.faces_layer);
-		// console.log("10. vertices_coords", new_fold.vertices_coords);
-		// console.log("11. vertex_in_face", vertex_in_face);
-		// console.log("12. faces_matrix", faces_matrix);
-		// console.log("13. new_fold", new_fold);
-
-		return new_fold;
-	};
-
-	// input: fold file and line
-	// output: dict keys: two vertex indices defining an edge (as a string: "4 6")
-	//         dict vals: [x, y] location of intersection between the two edge vertices
-	var clip_line_in_faces = function({vertices_coords, faces_vertices},
-		linePoint, lineVector){
-		// convert faces into x,y geometry instead of references to vertices
-		// generate one clip line per face, or undefined if there is no intersection
-		// array of objects {face: index of face, clip: the clip line}
-		let clipLines = faces_vertices
-			.map(va => va.map(v => vertices_coords[v]))
-			.map((poly,i) => ({
-				"face":i,
-				"clip":core.intersection.clip_line_in_convex_poly(poly, linePoint, lineVector)
-			}))
-			.filter((obj) => obj.clip != undefined)
-			.reduce((prev, curr) => {
-				prev[curr.face] = {"clip": curr.clip};
-				return prev;
-			}, {});
-
-		Object.keys(clipLines).forEach(faceIndex => {
-			let face = faces_vertices[faceIndex];
-			let line = clipLines[faceIndex].clip;
-			clipLines[faceIndex].collinear = find_collinear_face_edges(line, face, vertices_coords);
-		});
-
-		// each face is now an index in the object, containing "clip", "collinear"
-		// 0: {  clip: [[x,y],[x,y]],  collinear: [[i,j],[k,l]]  }
-		return clipLines
-	};
-
-	var get_new_vertices = function(clipLines){
-		// edgeCrossings is object with N entries: # edges which are crossed by line
-		let edgeCrossings = {};
-		Object.keys(clipLines).forEach(faceIndex => {
-			let keys$$1 = clipLines[faceIndex].collinear.map(e => e.sort((a,b) => a-b).join(" "));
-			keys$$1.forEach((k,i) => edgeCrossings[k] = ({
-				"point": clipLines[faceIndex].clip[i],
-				"face": parseInt(faceIndex)
-			}));
-		});
-		let new_vertices = Object.keys(edgeCrossings).map(key => {
-			edgeCrossings[key].edges = key.split(" ").map(s => parseInt(s));
-			return edgeCrossings[key];
-		});
-		return new_vertices;
-	};
-
-	let make_new_vertices_coords = function(vertices_coords, newVertices){
-		// deep copy components
-		let new_vertices_coords = JSON.parse(JSON.stringify(vertices_coords));
-
-		newVertices.forEach(obj => {
-			new_vertices_coords.push(obj.point);
-			obj.newVertexIndex = new_vertices_coords.length-1;
-		});
-		return new_vertices_coords;
-	};
-
-	/** 
-	 * edge-walk faces with the new clip line to make 2 faces where 1 face was.
-	 */
-	var make_new_face_mapping = function(faces_vertices, clipLines, newVertices){
-		// these will depricate the entries listed below, requiring rebuild:
-		//   "vertices_vertices", "vertices_faces"
-		//   "edges_faces", "edges_assignment", "edges_foldAngle", "edges_length"
-		//   "faces_edges", "faces_layer", "faceOrders"
-
-		let edgesCrossed = {};
-		newVertices.forEach(newV => edgesCrossed[newV.edges.join(" ")] = newV);
-
-		let new_face_map = faces_vertices.map(arr => [arr, undefined]);
-		Object.keys(clipLines).forEach( s => {
-			let faceIndex = parseInt(s);
-			var newFacePair = [ [], [] ];
-			var rightLeft = 0;
-			faces_vertices[faceIndex].forEach( (vertex,i,vertexArray) => {
-				let nextVertex = vertexArray[(i+1)%vertexArray.length];
-				var key = [vertex, nextVertex].sort( (a,b) => a-b ).join(' ');
-				if(edgesCrossed[key]){
-					var intersection = edgesCrossed[key].newVertexIndex;
-					newFacePair[rightLeft].push(intersection);
-					rightLeft = (rightLeft+1)%2; // flip bit
-					newFacePair[rightLeft].push(intersection);
-					newFacePair[rightLeft].push(nextVertex);
-				} else{
-					newFacePair[rightLeft].push(nextVertex);
-				}
-			});
-			new_face_map[faceIndex] = newFacePair;
-		});
-		return new_face_map;
-	};
-
-	var sortTwoFacesBySide = function(twoFaces, vertices_coords, linePoint, lineVector){
-		var result = [undefined, undefined];
-		twoFaces.forEach(face => {
-			if(face == undefined){ return; }
-			var crossSum = face.map(p => {
-				var fP = vertices_coords[p];
-				var a = [fP[0] - linePoint[0], fP[1] - linePoint[1]];
-				var b = [lineVector[0], lineVector[1]];
-				return a[0]*b[1] - a[1]*b[0];
-			}).reduce((prev,curr) => prev+curr);
-			var index = (crossSum < 0) ? 0 : 1;
-			result[index] = face;
-		});
-		return result
-	};
-
-	var mark_moving_faces = function(faces_vertices, vertices_coords, faces_faces, faces_layer, face_idx) {
-		let marked = faces_vertices.map(() => false);
-		marked[face_idx] = true;
-		let to_process = [face_idx];
-		let process_idx = 0;
-		let faces_points = faces_vertices.map((vertices_index) =>
-		(vertices_index === undefined)
-			? undefined
-			: vertices_index.map(i => vertices_coords[i])
-		);
-		while (process_idx < to_process.length) {
-			// pull face off queue
-			let idx1 = to_process[process_idx];
-			process_idx += 1;
-			// add all unmarked above-overlapping faces to queue
-			faces_vertices.forEach((vertices_index, idx2) => {
-				if (!marked[idx2] && ((faces_layer[idx2] > faces_layer[idx1]))) {
-			if (faces_points[idx1] !== undefined && faces_points[idx2] !== undefined) {
-			  if (core.intersection.convex_polygons_overlap(faces_points[idx1], faces_points[idx2])) {
-				marked[idx2] = true;
-				to_process.push(idx2);
-			  }
-			}
-				}
-			});
-			// add all unmarked adjacent faces to queue
-			faces_faces[idx1].forEach((idx2) => {
-				if (!marked[idx2]) {
-					marked[idx2] = true;
-					to_process.push(idx2);
-				}
-			});
-		}
-		return marked;
-	};
-
-	/** merge faces or separate faces at the clip line, and bubble up faces
-	 *  in the layer order if they're going to be folded.
-	 * new_face_map   - from make_new_face_mapping function
-	 * faces_mark     - boolean if a face in new_face_map should move
-	 * whichSideMoves - which side of the new_face_map we're moving
-	 */
-	var reconstitute_faces = function(faces_vertices, faces_layer, new_face_map, faces_mark, whichSideMoves){
-		// for each level there are 4 cases:
-		//  1. do not move: clipping ignored. original face restored. new_face_map ignored.
-		//  2. move and clipping occured: split faces, move one face (to top layer)
-		//  3. move without clipping: face was on one side and it either
-		//     3a. moves  3b. stays
-		let new_faces_vertices = faces_vertices.slice(); // append to this
-		let new_faces_layer = faces_layer.slice(); // don't append to this
-		let stay_layers = new_faces_layer.length; // which layer # divides stay/fold
-
-		let faces_mark_i = faces_mark.map((mark,i) => ({mark:mark, i:i}));
-
-		let stay_faces = faces_mark.map((mark,i) => {
-			if(mark){ return new_face_map[i][(whichSideMoves+1)%2]; }
-			else { return faces_vertices[i]; }
-		}).map((verts,i) => {
-			if(verts != undefined){ return {old_face:i, old_layer:faces_layer[i], new_vertices:verts}; }
-		}).filter(el => el != undefined);
-
-		let move_faces = faces_mark_i
-			.filter(obj => obj.mark)
-			.map(obj =>
-			 ({old_face:obj.i, old_layer:faces_layer[obj.i], new_vertices:new_face_map[obj.i][whichSideMoves]})
-		);
-		return {stay_faces, move_faces};
-	};
-
-	// argument objects stay_faces and move_faces are modified in place
-	var sort_faces_valley_fold = function(stay_faces, move_faces){
-		// top/bottom layer maps. new faces, new layers, and where they came from
-		// some faces have bubbled to the top, layers need to decrement to take their place
-		stay_faces.forEach((obj,i) => obj.i = i);
-		move_faces.forEach((obj,i) => obj.i = i);
-		stay_faces.sort((a,b) => a.old_layer - b.old_layer)
-			.forEach((obj,j) => obj.new_layer = j);
-		// give me the top-most layer
-		// give layer numbers to the new faces
-		move_faces.sort((a,b) => a.old_layer - b.old_layer)
-			.forEach((obj,j) => obj.new_layer = j + stay_faces.length);
-		// we really don't need to do this. put faces back in original order
-		stay_faces.sort((a,b) => a.i - b.i);
-		move_faces.sort((a,b) => a.i - b.i);
-		stay_faces.forEach(obj => delete obj.i);
-		move_faces.forEach(obj => delete obj.i);
-		// give new face ids
-		stay_faces.forEach((obj,i) => obj.new_face = i);
-		move_faces.forEach((obj,i) => obj.new_face = i + stay_faces.length);
-		// perform a valley fold
-		let stay_faces_vertices = stay_faces.map(obj => obj.new_vertices);
-		let move_faces_vertices = move_faces.map(obj => obj.new_vertices);
-		let stay_faces_layer = stay_faces.map(obj => obj.new_layer);
-		let move_faces_layer = move_faces.map(obj => obj.new_layer);
-		return {
-			'faces_vertices': stay_faces_vertices.concat(move_faces_vertices),
-			'faces_layer': stay_faces_layer.concat(move_faces_layer)
-		}
-	};
-
-	var reflect_across_fold = function(vertices_coords, faces_vertices,
-		faces_layer, stay_layers, linePoint, lineVector){
-		var matrix = core.make_matrix_reflection(lineVector, linePoint);
-
-		var top_layer = faces_layer.slice(0, stay_layers);
-		var bottom_layer = faces_layer.slice(stay_layers, stay_layers + faces_layer.length-stay_layers);
-		bottom_layer.reverse();
-
-		var boolArray = vertices_coords.map(() => false);
-
-		for(var i = stay_layers; i < faces_vertices.length; i++){
-			for(var f = 0; f < faces_vertices[i].length; f++){
-				if(!boolArray[ faces_vertices[i][f] ]){
-					var vert = vertices_coords[ faces_vertices[i][f] ];
-					vertices_coords[ faces_vertices[i][f] ] = core.multiply_vector2_matrix2(vert, matrix);
-					boolArray[ faces_vertices[i][f] ] = true;
-				}
-			}
-		}
-		return {
-			'faces_layer': top_layer.concat(bottom_layer),
-			'vertices_coords': vertices_coords,
-		}
-	};
-
-	// get index of highest layer face which intersects point
-	var top_face_under_point = function(
-			{faces_vertices, vertices_coords, faces_layer}, 
-			point) {
-		let top_fi = faces_vertices.map(
-			(vertices_index, fi) => {
-				let points = vertices_index.map(i => vertices_coords[i]);
-				return core.intersection.point_in_poly(points, point) ? fi : -1;
-			}).reduce((acc, fi) => {
-				return ((acc === -1) || 
-								((fi !== -1) && (faces_layer[fi] > faces_layer[acc]))
-				) ? fi : acc;
-			}, -1);
-		return (top_fi === -1) ? undefined : top_fi;
-	};
-
-
-	///////////////////////////////////////////////
-	// FROM .FOLD SOURCE
-	///////////////////////////////////////////////
-
-	// this comes from fold.js. still working on the best way to require() the fold module
-	const faces_vertices_to_edges = function (mesh) {
-		var edge, edgeMap, face, i, key, ref, v1, v2, vertices;
-		mesh.edges_vertices = [];
-		mesh.edges_faces = [];
-		mesh.faces_edges = [];
-		mesh.edges_assignment = [];
-		edgeMap = {};
-		ref = mesh.faces_vertices;
-		for (face in ref) {
-			vertices = ref[face];
-			face = parseInt(face);
-			mesh.faces_edges.push((function() {
-				var j, len, results;
-				results = [];
-				for (i = j = 0, len = vertices.length; j < len; i = ++j) {
-					v1 = vertices[i];
-					v1 = parseInt(v1);
-					v2 = vertices[(i + 1) % vertices.length];
-					if (v1 <= v2) {
-						key = v1 + "," + v2;
-					} else {
-						key = v2 + "," + v1;
-					}
-					if (key in edgeMap) {
-						edge = edgeMap[key];
-					} else {
-						edge = edgeMap[key] = mesh.edges_vertices.length;
-						if (v1 <= v2) {
-							mesh.edges_vertices.push([v1, v2]);
-						} else {
-							mesh.edges_vertices.push([v2, v1]);
-						}
-						mesh.edges_faces.push([null, null]);
-						mesh.edges_assignment.push('B');
-					}
-					if (v1 <= v2) {
-						mesh.edges_faces[edge][0] = face;
-					} else {
-						mesh.edges_faces[edge][1] = face;
-					}
-					results.push(edge);
-				}
-				return results;
-			})());
-		}
-		return mesh;
-	};
-
-	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
-
-	// MIT open source license, Robby Kraft
-
-	let cpObjKeys = ["load", "json", "clear", "wipe", "clearGraph", "nearestVertex", "nearestEdge", "nearestFace", "vertex", "edge", "face", "crease", "addVertexOnEdge", "connectedGraphs", "axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7", "creaseRay"];
-
-	/** A graph is a set of nodes and edges connecting them */
-	function CreasePattern() {
-		let graph = {}; // the returned object. fold file format spec
-
-		// parse arguments, look for an input .fold file
-		let params = Array.from(arguments);
-		let paramsObjs = params.filter(el => typeof el === "object" && el !== null);
-		// todo: which key should we check to verify .fold? coords prevents abstract CPs
-		let foldObjs = paramsObjs.filter(el => el.vertices_coords != null);
-		if (foldObjs.length > 0) {
-			// expecting the user to have passed in a fold_file.
-			// if there are multiple we are only grabbing the first one
-			graph = JSON.parse(JSON.stringify(foldObjs.shift()));
-		} else {
-			// unit square is the default base if nothing else is provided
-			graph = JSON.parse(squareFoldString);
-		}
-
-		// unclear if we want to use this
-		// let frame = 0; // which fold file frame (0 ..< Inf) to display
-
-		// callback for when the crease pattern has been altered
-		graph.onchange = undefined;
-
-		graph.load = function(file) {
-			// todo:
-			let imported = JSON.parse(JSON.stringify(file));
-			// Graph.all_keys.filter(key => graph[key] = undefined) {
-
-			// }
-			for (let key in imported) {
-				graph[key] = imported[key];
-			}
-		};
-		graph.clear = function() {
-			remove_non_boundary_edges(graph);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		graph.wipe = function() {
-			// Graph.all_keys.filter(a => _m[a] != null)
-			// 	.forEach(key => delete _m[key]);
-			// if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		graph.clearGraph = function() {
-			// Graph.keys.graph.filter(a => _m[a] != null)
-			// 	.forEach(key => delete _m[key]);
-			// if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		Object.defineProperty(graph, "isFolded", { get: function(){
-			// try to discern folded state
-			if (graph.frame_classes == null) { return false; }
-			return graph.frame_classes.includes("foldedState");
-		}});
-		graph.copy = function() {
-			// todo: how do you call the function that we're inside?
-			return RabbitEar.CreasePattern(JSON.parse(JSON.stringify(graph)));
-		};
-		graph.nearestVertex = function(x, y, z = 0) {
-			let index = nearest_vertex(graph, [x, y, z]);
-			return (index != null) ? Vertex(this, index) : undefined;
-		};
-		graph.nearestEdge = function(x, y, z = 0) {
-			let index = nearest_edge(graph, [x, y, z]);
-			return (index != null) ? Edge$1(this, index) : undefined;
-		};
-		graph.nearestFace = function(x, y, z = 0) {
-			let index = face_containing_point(graph, [x, y, z]);
-			return (index != null) ? Face(this, index) : undefined;
-		};
-		graph.vertex = function(index)   { return Vertex(this, index);   };
-		graph.edge = function(index)     { return Edge$1(this, index);     };
-		graph.face = function(index)     { return Face(this, index);     };
-		graph.crease = function(indices) { return Crease(this, indices); };
-
-		// todo: these create new Geometry objects each time, even if the CP hasn't changed
-		Object.defineProperty(graph, "vertices", { get: function() {
-			return this.vertices_coords == null
-				? []
-				: this.vertices_coords.map(v => Vector(v));
-		}});
-		Object.defineProperty(graph, "edges", { get: function() {
-			return this.edges_vertices == null
-				? []
-				: this.edges_vertices
-					.map(e => e.map(ev => this.vertices_coords[ev]))
-					.map(e => Edge(e));
-		}});
-		Object.defineProperty(graph, "faces", { get: function() {
-			return this.faces_vertices == null
-				? []
-				: this.faces_vertices
-					.map(f => f.map(fv => this.vertices_coords[fv]))
-					.map(f => Polygon(f));
-		}});
-		Object.defineProperty(graph, "boundary", { get: function() {
-			// todo: this only works for unfolded flat crease patterns
-			return Polygon(get_boundary_face(graph)
-				.vertices
-				.map(v => graph.vertices_coords[v])
-			);
-		}});
-
-		graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {
-			add_vertex_on_edge(graph, x, y, oldEdgeIndex);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		graph.axiom1 = function() {
-			let points = get_two_vec2$1(...arguments);
-			if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
-			let crease = Crease(this, axiom1$1(graph, ...points));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom2 = function() {
-			let points = get_two_vec2$1(...arguments);
-			if (!points) { throw {name: "TypeError", message: "axiom2 needs 2 points"}; }
-			let crease = Crease(this, axiom2$1(graph, ...points));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom3 = function() {
-			let lines = get_two_lines(...arguments);
-			if (!lines) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
-			let crease = Crease(this, axiom3$1(graph, ...lines[0], ...lines[1]));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom4 = function() {
-			let crease = Crease(this, axiom4$1(graph, arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom5 = function() {
-			let crease = Crease(this, axiom5$1(graph, arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom6 = function() {
-			let crease = Crease(this, axiom6$1(graph, arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.axiom7 = function() {
-			let crease = Crease(this, axiom7$1(graph, arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.creaseRay = function() {
-			let crease = Crease(this, creaseRay(graph, ...arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.creaseSegment = function() {
-			let crease = Crease(this, creaseSegment(graph, ...arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		graph.creaseThroughLayers = function(point, vector, face) {
-			RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		graph.valleyFold = function(point, vector, face_index) {
-			let folded = crease_through_layers(graph, point, vector, face_index, "V");
-			Object.keys(folded).forEach(key => graph[key] = folded[key]);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		graph.kawasaki = function() {
-			let crease = Crease(this, kawasaki_collapse(graph, ...arguments));
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-			return crease;
-		};
-		// getters, setters
-		Object.defineProperty(graph, "json", { get: function() {
-				let fold_file = Object.create(null);
-				Object.assign(fold_file, graph);
-				cpObjKeys.forEach(key => delete fold_file[key]);
-				return JSON.parse(JSON.stringify(fold_file));
-			}
-		});
-		Object.defineProperty(graph, "connectedGraphs", { get: function() {
-				return connectedGraphs(graph);
-			}
-		});
-
-		return graph;
-	}
-
-	// consider this: a crease can be an ARRAY of edges. 
-	// this way one crease is one crease. it's more what a person expects.
-	// one crease can == many edges.
-	const Crease = function(_graph, _indices) {
-		let graph = _graph; // pointer back to the graph;
-		let indices = _indices; // indices of this crease in the graph
-
-		const is_assignment = function(options) {
-			return indices.map(index => options
-					.map(l => l === graph.edges_assignment[index])
-					.reduce((a,b) => a || b, false)
-				).reduce((a,b) => a || b, false);
-		};
-		const is_mountain = function() { return is_assignment(["M", "m"]); };
-		const is_valley = function() { return is_assignment(["V", "v"]); };
-
-		const flip = function() {
-			if (is_mountain()) { valley(); }
-			else if (is_valley()) { mountain(); }
-			else { return; } // don't trigger the callback
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const mountain = function() {
-			indices.forEach(index => graph.edges_assignment[index] = "M");
-			indices.forEach(index => graph.edges_foldAngle[index] = -180);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const valley = function() {
-			indices.forEach(index => graph.edges_assignment[index] = "V");
-			indices.forEach(index => graph.edges_foldAngle[index] = 180);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const mark = function() {
-			indices.forEach(index => graph.edges_assignment[index] = "F");
-			indices.forEach(index => graph.edges_foldAngle[index] = 0);
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const remove = function() { };
-		// const addVertexOnEdge = function(x, y) {
-		// 	let thisEdge = this.index;
-		// 	graph.addVertexOnEdge(x, y, thisEdge);
-		// }
-
-		return {
-			get index() { return _indices; },
-			mountain,
-			valley,
-			mark,
-			flip,
-			get isMountain(){ return is_mountain(); },
-			get isValley(){ return is_valley(); },
-			remove
-			// addVertexOnEdge
-		};
-	};
-
-	const Edge$1 = function(_graph, _index) {
-		let graph = _graph; // pointer back to the graph;
-		let index = _index; // index of this crease in the graph
-
-		let points = _graph.edges_vertices[_index]
-			.map(ev => _graph.vertices_coords[ev]);
-		let _e = Edge(points);
-
-		const is_assignment = function(options) {
-			return options.map(l => l === graph.edges_assignment[index])
-				.reduce((a,b) => a || b, false);
-		};
-		const is_mountain = function() { return is_assignment(["M", "m"]); };
-		const is_valley = function() { return is_assignment(["V", "v"]); };
-
-		const flip = function() {
-			if (is_mountain()) { valley(); }
-			else if (is_valley()) { mountain(); }
-			else { return; } // don't trigger the callback
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const mountain = function() {
-			graph.edges_assignment[index] = "M";
-			graph.edges_foldAngle[index] = -180;
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const valley = function() {
-			graph.edges_assignment[index] = "V";
-			graph.edges_foldAngle[index] = 180;
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const mark = function() {
-			graph.edges_assignment[index] = "F";
-			graph.edges_foldAngle[index] = 0;
-			if (typeof graph.onchange === "function") { graph.onchange(); }
-		};
-		const addVertexOnEdge = function(x, y) {
-			let thisEdge = this.index;
-			graph.addVertexOnEdge(x, y, thisEdge);
-		};
-
-		Object.defineProperty(_e, "mountain", {value: mountain});
-		Object.defineProperty(_e, "valley", {value: valley});
-		Object.defineProperty(_e, "mark", {value: mark});
-		Object.defineProperty(_e, "flip", {value: flip});
-		Object.defineProperty(_e, "index", {
-			get: function(){ return _index; }
-		});
-		Object.defineProperty(_e, "isMountain", {
-			get: function(){ return is_mountain(); }
-		});
-		Object.defineProperty(_e, "isValley", {
-			get: function(){ return is_valley(); }
-		});
-		// Object.defineProperty(_e, "remove", {value: remove});
-		Object.defineProperty(_e, "addVertexOnEdge", {value: addVertexOnEdge});
-
-		return _e;
-	};
-
-	const Vertex = function(_graph, _index) {
-
-		let _v = Vector(_graph.vertices_coords[_index]);
-		Object.defineProperty(_v, "index", {
-			get: function(){ return _index; }
-		});
-		return _v;
-	};
-
-	const Face = function(_graph, _index) {
-
-		let points = _graph.faces_vertices[_index]
-			.map(fv => _graph.vertices_coords[fv]);
-		let _f = Polygon(points);
-		Object.defineProperty(_f, "index", {
-			get: function(){ return _index; }
-		});
-		return _f;
-	};
-
-	const flatten_frame = function(fold_file, frame_num){
-		const dontCopy = ["frame_parent", "frame_inherit"];
-		var memo = {visited_frames:[]};
-		function recurse(fold_file, frame, orderArray){
-			if(memo.visited_frames.indexOf(frame) != -1){
-				throw ".FOLD file_frames encountered a cycle. stopping.";
-				return orderArray;
-			}
-			memo.visited_frames.push(frame);
-			orderArray = [frame].concat(orderArray);
-			if(frame == 0){ return orderArray; }
-			if(fold_file.file_frames[frame - 1].frame_inherit &&
-			   fold_file.file_frames[frame - 1].frame_parent != undefined){
-				return recurse(fold_file, fold_file.file_frames[frame - 1].frame_parent, orderArray);
-			}
-			return orderArray;
-		}
-		return recurse(fold_file, frame_num, []).map(frame => {
-			if(frame == 0){
-				// for frame 0 (the key frame) don't copy over file_frames array
-				let swap = fold_file.file_frames;
-				fold_file.file_frames = null;
-				let copy = JSON.parse(JSON.stringify(fold_file));
-				fold_file.file_frames = swap;
-				delete copy.file_frames;
-				dontCopy.forEach(key => delete copy[key]);
-				return copy;
-			}
-			let copy = JSON.parse(JSON.stringify(fold_file.file_frames[frame-1]));
-			dontCopy.forEach(key => delete copy[key]);
-			return copy;
-		}).reduce((prev,curr) => Object.assign(prev,curr),{})
-	};
-
-	const merge_frame$1 = function(fold_file, frame){
-		const dontCopy = ["frame_parent", "frame_inherit"];
-		let copy = JSON.parse(JSON.stringify(frame));
-		dontCopy.forEach(key => delete copy[key]);
-		// don't deep copy file_frames. stash. bring them back.
-		let swap = fold_file.file_frames;
-		fold_file.file_frames = null;
-		let fold = JSON.parse(JSON.stringify(fold_file));
-		fold_file.file_frames = swap;
-		delete fold.file_frames;
-		// merge 2
-		Object.assign(fold, frame);
-		return fold;
-	};
-
-	var frame = /*#__PURE__*/Object.freeze({
-		flatten_frame: flatten_frame,
-		merge_frame: merge_frame$1
-	});
 
 	/**
 	 * .FOLD file into SVG, and back
@@ -5478,6 +4873,7 @@
 		let preferences = {
 			autofit: true,
 			debug: false,
+			touchfold: true,
 			padding: 0
 		};
 
@@ -5574,6 +4970,17 @@
 			return nearest;
 		};
 
+		const getVertices = function() {
+			let vertices$$1 = prop.cp.vertices;
+			vertices$$1.forEach((v,i) => v.svg = groups.vertex.children[i]);
+			return vertices$$1;
+		};
+		const getEdges = function() {
+			let edges = prop.cp.edges;
+			edges.forEach((v,i) => v.svg = groups.crease.children[i]);
+			return edges;
+		};
+
 		const load$$1 = function(input, callback) { // epsilon
 			load_fold(input, function(fold){
 				setCreasePattern( CreasePattern(fold) );
@@ -5605,7 +5012,8 @@
 				value: function(){ return prop.cp[method](...arguments); }
 			}));
 		// attach CreasePattern getters
-		["boundary", "vertices", "edges", "faces", "isFolded"]
+		// ["boundary", "vertices", "edges", "faces",
+		["isFolded"]
 			.forEach(method => Object.defineProperty(_this, method, {
 				get: function(){
 					let components = prop.cp[method];
@@ -5615,6 +5023,12 @@
 			}));
 
 		Object.defineProperty(_this, "nearest", {value: nearest});
+		Object.defineProperty(_this, "vertices", {
+			get: function(){ return getVertices(); }
+		});
+		Object.defineProperty(_this, "edges", {
+			get: function(){ return getEdges(); }
+		});
 		Object.defineProperty(_this, "draw", { value: draw });
 		Object.defineProperty(_this, "fold", { value: fold });
 		Object.defineProperty(_this, "load", { value: load$$1 });
@@ -5966,402 +5380,6 @@
 
 
 	}
-
-	// function that adds a frame onto the fold file - 
-	// makes it a parent relationship to the keyframe,
-	// removes all edge mappings, rebuilds faces.
-	// @returns {number} new frame number (array index + 1)
-	// no
-	// returns {fold_frame} object
-	function make_folded_frame(fold, parent_frame = 0, root_face){
-		// todo, make it so parent_frame actually goes and gets data from that frame
-
-		// remove_flat_creases(fold);
-		// for every vertex, give me an index to a face which it's found in
-		let vertex_in_face = fold.vertices_coords.map((v,i) => {
-			for(var f = 0; f < fold.faces_vertices.length; f++){
-				if(fold.faces_vertices[f].includes(i)){ return f; }
-			}
-		});
-		let faces_matrix = Graph.make_faces_matrix(fold, root_face);
-		// let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix2_inverse(n));
-		let new_vertices_coords = fold.vertices_coords.map((point,i) =>
-			Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
-				.map((n) => Geom.core.clean_number(n, 14))
-		);
-		return {
-			"frame_classes": ["foldedState"],
-			"frame_parent": parent_frame,
-			"frame_inherit": true,
-			"vertices_coords": new_vertices_coords,
-			"re:faces_matrix": faces_matrix
-		};
-	}
-
-	function make_unfolded_frame(fold, parent_frame = 0, root_face){
-		// todo, make it so parent_frame actually goes and gets data from that frame
-
-		// remove_flat_creases(fold);
-		// for every vertex, give me an index to a face which it's found in
-		let vertex_in_face = fold.vertices_coords.map((v,i) => {
-			for(var f = 0; f < fold.faces_vertices.length; f++){
-				if(fold.faces_vertices[f].includes(i)){ return f; }
-			}
-		});
-		let faces_matrix = Graph.make_faces_matrix(fold, root_face);
-		// let inverseMatrices = faces_matrix.map(n => Geom.core.make_matrix2_inverse(n));
-		let new_vertices_coords = fold.vertices_coords.map((point,i) =>
-			Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
-				.map((n) => Geom.core.clean_number(n, 14))
-		);
-		return {
-			"frame_classes": ["creasePattern"],
-			"frame_parent": parent_frame,
-			"frame_inherit": true,
-			"vertices_coords": new_vertices_coords,
-			"re:faces_matrix": faces_matrix
-		};
-	}
-
-	function crease_through_layers$1(fold_file, linePoint, lineVector){
-		// console.log("+++++++++++++++++++");
-		// let root_face = faces_containing_point(fold_file, linePoint).shift();
-		let root_face = 0;
-		// console.log("fold_file", fold_file);
-		let fold = clone(fold_file);
-		// console.log("faces 1", fold.faces_vertices);
-
-		let folded_frame = make_folded_frame(fold, 1, root_face);
-		// console.log("folded_frame", folded_frame);
-		let folded = merge_frame(fold, folded_frame);
-		// console.log("folded", folded);
-		// console.log("folded", folded.faces_edges);
-		// console.log("folded", folded);
-		let creased = clip_edges_with_line(folded, linePoint, lineVector);
-		let migration = creased["re:diff"];
-		// console.log("migration", migration);
-
-		//////////////////////////////////
-		// wait, can we retain a mapping of the old faces_vertices to the old faces, then just transform using the old faces.
-		let vertex_in_face = creased.vertices_coords.map((v,i) => {
-			for(var f = 0; f < creased.faces_vertices.length; f++){
-				if(creased.faces_vertices[f].includes(i)){ return f; }
-			}
-		});
-		// console.log("migration.faces", migration.faces);
-		let faces_matrix = creased["re:faces_matrix"];
-		let new_vertices_coords = creased.vertices_coords.map((point,i) =>
-			Geom.core.multiply_vector2_matrix2(point, Geom.core.make_matrix2_inverse(faces_matrix[migration.faces[vertex_in_face[i]]]))
-				.map((n) => Geom.core.clean_number(n))
-		);
-		//////////////////////////////////
-		// let unfolded_frame = make_unfolded_frame(creased, 0, root_face);
-		// console.log("unfolded_frame", unfolded_frame);
-		let unfolded = merge_frame(creased, {
-			"frame_classes": ["creasePattern"],
-			"frame_parent": 0,
-			"frame_inherit": true,
-			"vertices_coords": new_vertices_coords,
-			"re:faces_matrix": faces_matrix
-		});
-		// console.log("unfolded", unfolded);
-
-		// console.log("faces 2", unfolded.faces_vertices);
-
-		delete unfolded.faces_edges;
-		delete unfolded.faces_layer;
-		delete unfolded.frame_inherit;
-		delete unfolded.frame_parent;
-
-		unfolded.file_frames = [ make_folded_frame(unfolded, 0, 1) ];
-
-		return unfolded;
-	}
-
-
-	// i want my fold operation to be as simple (in code) as this
-	// - fold the faces
-	// - use the crease line to chop all faces (adding a mark line)
-	// - unfold all the faces.
-	// but to do this it won't work unless you unfold using the original
-	// mapping of faces and transformations, as there are now new faces
-
-
-	// let migration_object = {
-	// 	vertices_: [0, 1, 2, 5, 5, 3, 4, 6, 6],
-	// 	faces_: []
-	// }
-
-	// let migration_object = {
-	// 	vertices_: [false, false, false, false, false, true, true, true]
-	//  edges_: [0, 1, 2, null, 3, ]
-	// }
-
-	// edges change: remove edge 2 turns into 2 edges, appended to end
-	//  [a, b,  c,  d, e, f]        -- before
-	//  [a, b,  d,  e, f, g, h]     -- after (remove edge, 2, replcae with 2 new)
-	//  [0, 1,  3,  4, 5, 2, 2]     -- these is a changelog for the old array
-
-	// faces change: same as edge
-
-	/** clip a line in all the faces of a fold file. */
-	// todo: this is broken now read the comment at the bottom
-	function clip_edges_with_line(fold, linePoint, lineVector){
-		// console.log("+++++++++++++++++++++++");
-		let fold_new = fold;//clone(fold);
-		fold.edges_vertices.forEach((ev,i) => {
-			let key = ev.sort( (a,b) => a-b ).join(' ');
-		});
-		// console.log("edge_map", edge_map);
-
-		// 1. find all edge-crossings and vertex-crossings
-		let vertices_length = fold_new.vertices_coords.length;
-		let vertices_intersections = fold_new.vertices_coords
-			.map(v => Geom.core.intersection.point_on_line(linePoint, lineVector, v));
-		let edges_intersections = fold_new.edges_vertices
-			.map(ev => ev.map(v => fold_new.vertices_coords[v]))
-			.map((edge, i) => {
-				let intersection = Geom.core.intersection.line_edge_exclusive(linePoint, lineVector, edge[0], edge[1]);
-				let new_index = (intersection == null ? vertices_length : vertices_length++);
-				return {
-					point: intersection,
-					vertices: fold_new.edges_vertices[i], // shallow copy to fold file
-					new_index: new_index
-				};
-			});
-
-		// 2. first fold modification: add new vertices to vertex_ arrays
-		let new_vertices = edges_intersections
-			.filter(el => el.point != null)
-			.map(el => el.point);
-
-		// 
-		let vertices_diff = fold_new.vertices_coords
-			.map(v => false)
-			.concat(new_vertices.map(v => true));
-		// console.log("vertices_diff", vertices_diff);
-
-		fold_new.vertices_coords = fold_new.vertices_coords
-			.concat(new_vertices);
-
-		// add new edges to edges_ arrays
-
-		// rebuild edges
-		// an edge is clipped, creating 2 edges sharing 1 new vertex
-		// 
-		// edges_replacement: edges_-indexed objects:
-		//  { edges: (2) edges which replace this edge,
-		//    vertices: (3) 1 and 2 relate to edge 1 and 2. 3 is the new one
-		//  }
-
-		let edges_replacement = edges_intersections
-			.map((sect, i) => {
-				if (sect.point == null) { return null; }
-				let a = [fold_new.edges_vertices[i][0], sect.new_index];
-				let b = [fold_new.edges_vertices[i][1], sect.new_index];
-				return {
-					edges: Graph.replace_edge(fold_new, i, a, b),
-					vertices:[a[0], b[0], sect.new_index]
-				};
-			});
-
-		// console.log("edges_replacement", edges_replacement);
-
-		// let two_vertex_with_intersection = {
-		// 	"0 2" : new_v_i,
-		// 	"5 7" : new_v_i,
-		// 	"20 8" : new_v_i
-		// }
-		// let old_edge_with_intersection = {
-		// 	"1" : new_v_i,
-		// 	"4" : new_v_i,
-		// 	"5" : new_v_i
-		// }
-
-		// let new_face_parts = [
-		// 	undefined,
-		// 	{}
-		// ]
-
-		// console.log("fold_new.faces_edges", fold_new.faces_edges);
-
-		// make sure faces edges is built
-		// fold_new.faces_edges
-		// faces_-indexed has a face been chopped? objects:
-		// { edges: (0,1,2) of its edges were chopped,
-		//   vertices: (0,1,2) of its vertices was crossed by an edge
-		//  }
-		// these "edges" objects are
-		let faces_intersections = fold_new.faces_vertices.map((face_v, face_i) => {
-			let verts = face_v
-				.map(v => ({intersection: vertices_intersections[v], v: v}))
-				.filter(el => el.intersection)
-				.map(el => el.v);
-			let edges = fold_new.faces_edges[face_i]
-				.map(face_e => {
-					let e = edges_replacement[face_e];
-					if (e == null) { return undefined; }
-					e.old_edge = face_e;
-					return e;
-				})
-				.filter(el => el != null);
-			return {vertices:verts, edges:edges};
-		});
-
-		// console.log("faces_intersections", faces_intersections);
-
-		// we don't do anything with this until later
-		let faces_to_modify = faces_intersections.map(el => {
-			if(el.edges.length == 2){ return el; }
-			if(el.vertices.length == 1 && el.edges.length == 1){ return el; }
-			return undefined;
-		});
-
-		// console.log("faces_to_modify", faces_to_modify);
-
-		// two_edges_faces: face-indexed, which 
-		let two_edges_faces = faces_intersections.map(el => {
-			if(el.edges.length == 2){ return el; }
-			return undefined;
-		}).map(el => el != null ? el.edges : undefined);
-		let point_edge_faces = faces_intersections.map(el => {
-			if(el.vertices.length == 1 && el.edges.length == 1){ return el; }
-			return undefined;
-		}).map(el => el != null ? el.vertices : undefined);
-
-		// console.log("two_edges_faces", two_edges_faces);
-
-		let new_edges_vertices = [];
-		let faces_substitution = [];
-		// console.log("-------- inside faces loop");
-		two_edges_faces
-			.map((edges,i) => ({edges:edges, i:i}))
-			.filter(el => el.edges != null)
-			.forEach(el => {
-				let face_index = el.i;
-				let chop_edges = el.edges;
-				let edge_keys = el.edges.map(e => ({
-						key: e.vertices.slice(0, 2).sort((a,b) => a-b).join(' '), 
-						new_v: e.vertices[2]
-					})
-				);
-				let faces_edges_keys = fold_new.faces_vertices[face_index]
-					.map((fv,i,arr) => [fv, arr[(i+1)%arr.length]])
-					// .map((ev,i) => ({ev: ev.sort((a,b) => a-b).join(' '), i: i}))
-					.map((ev,i) => ev.sort((a,b) => a-b).join(' '));
-				// console.log("faces_edges_keys", faces_edges_keys);
-				// faces_edges_keys.forEach(fkey => console.log(edge_map[fkey]));
-				let found_indices = edge_keys
-					.map(el => ({
-						found: faces_edges_keys.indexOf(el.key),
-						new_v: el.new_v
-					})
-				);
-				let sorted_found_indices = found_indices.sort((a,b) => a.found-b.found);
-				// console.log("sorted_found_indices", sorted_found_indices);
-				// face a
-				let face_a = fold_new.faces_vertices[face_index]
-					.slice(sorted_found_indices[1].found+1);
-				face_a = face_a.concat(fold_new.faces_vertices[face_index]
-					.slice(0, sorted_found_indices[0].found+1)
-				);
-				face_a.push(sorted_found_indices[0].new_v);
-				face_a.push(sorted_found_indices[1].new_v);
-				// face b
-				let face_b = fold_new.faces_vertices[face_index]
-					.slice(sorted_found_indices[0].found+1, sorted_found_indices[1].found+1);
-				face_b.push(sorted_found_indices[1].new_v);
-				face_b.push(sorted_found_indices[0].new_v);
-				// add things onto the graph
-				new_edges_vertices.push([
-					sorted_found_indices[0].new_v,
-					sorted_found_indices[1].new_v
-				]);
-				faces_substitution[face_index] = [face_a, face_b];
-				// faces_substitution.push(face_b);
-			});
-
-		// console.log("new_edges_vertices", new_edges_vertices);
-		// console.log("faces_substitution", faces_substitution);
-
-		// fold_new.edges_vertices = fold_new.edges_vertices.concat(new_edges_vertices);
-		// fold_new.faces_vertices = fold_new.faces_vertices.concat(faces_substitution);
-
-		new_edges_vertices.forEach(ev => Graph.add_edge(fold_new, ev, "F"));
-
-		let new_faces_map = faces_substitution
-			.map((faces,i) => ({faces:faces, i:i}))
-			.filter(el => el.faces != null)
-			.map(el => el.faces
-				.map(face => ({
-					old: el.i,
-					new: Graph.replace_face(fold_new, el.i, face)
-				})
-			)).reduce((prev,curr) => prev.concat(curr));
-
-		// clean components
-		let vertices_to_remove = fold_new.vertices_coords
-			.map((vc,i) => vc == null ? i : undefined)
-			.filter(el => el != null);
-		let edges_to_remove = fold_new.edges_vertices
-			.map((ev,i) => ev == null ? i : undefined)
-			.filter(el => el != null);
-		// let faces_to_remove = faces_to_modify
-		// 	.map((el,i) => (el != null) ? i : undefined)
-		// 	.filter(el => el != null);
-		let faces_to_remove = fold_new.faces_vertices
-			.map((fv,i) => fv == null ? i : undefined)
-			.filter(el => el != null);
-
-		// console.log("new_faces_map", new_faces_map);
-		// console.log("vertices_to_remove", vertices_to_remove);
-		// console.log("edges_to_remove", edges_to_remove);
-		// console.log("faces_to_remove", faces_to_remove);
-
-	//  [a, b,  c,  d, e, f]        -- before
-	//  [a, b,  d,  e, f, g, h]     -- after (remove edge, 2, replcae with 2 new)
-	//  [0, 1,  3,  4, 5, 2, 2]     -- these is a changelog for the old array
-
-		let edges_diff = fold_new.edges_vertices.map((v,i) => i);
-		edges_replacement.forEach((record, old_edge) => {
-			if(record != null){
-				record.edges.forEach(new_index =>
-					edges_diff[new_index] = old_edge
-				);
-			}
-		});
-
-		let faces_diff = fold_new.faces_vertices.map((v,i) => i);
-		new_faces_map.forEach(el => faces_diff[el.new] = el.old);
-		// console.log("new_faces_map", new_faces_map);
-
-		// todo: each of these return values has been switched inside these functions
-		// from the array of booleans to the array of maps.
-		// to get this working again we need to switch those back
-		let vertices_removes = Graph.remove_vertices(fold_new, vertices_to_remove);
-		let edges_removes = Graph.remove_edges(fold_new, edges_to_remove);
-		let faces_removes = Graph.remove_faces(fold_new, faces_to_remove);
-
-		// console.log("faces_diff before:", faces_diff.slice());
-
-		vertices_diff = vertices_diff.filter((v,i) => !vertices_removes[i]);
-		edges_diff = edges_diff.filter((e,i) => !edges_removes[i]);
-		faces_diff = faces_diff.filter((e,i) => !faces_removes[i]);
-
-		fold_new["re:diff"] = {
-			vertices: vertices_diff,
-			edges: edges_diff,
-			faces: faces_diff
-		};
-		return fold_new
-	}
-
-	var creasethrough = /*#__PURE__*/Object.freeze({
-		make_folded_frame: make_folded_frame,
-		make_unfolded_frame: make_unfolded_frame,
-		crease_through_layers: crease_through_layers$1,
-		clip_edges_with_line: clip_edges_with_line
-	});
 
 	// graph.js
 	// an undirected graph with edges and nodes
@@ -6977,41 +5995,15 @@
 		return graph;
 	};
 
-	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\t\"edgeOrders\": [],\n\t\"faceOrders\": [],\n\t\"file_frames\": []\n}";
-
-	var book = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,1], [0.5,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,4,0], [3,1], [4,2], [5,1,3], [0,4]],\n\t\"vertices_faces\": [[0], [0,1], [1], [1], [1,0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]],\n\t\"edges_faces\": [[0], [1], [1], [1], [0], [0], [0,1]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180],\n\t\"edges_length\": [0.5, 0.5, 1, 0.5, 0.5, 1, 1],\n\t\"faces_vertices\": [[1,4,5,0], [4,1,2,3]],\n\t\"faces_edges\": [[6,4,5,0], [6,1,2,3]]\n}";
-
-	var blintz = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.707106781186548, 0.707106781186548, 0.707106781186548, 0.707106781186548],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
-
-	var kite = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0], [0.414213562373095,0], [1,0], [1,0.585786437626905], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4]],\n\t\"vertices_faces\": [[0], [1,0], [2,1], [3,2], [3], [0,1,2,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [[0,1,5], [1,2,5], [2,3,5], [3,4,5]],\n\t\"faces_edges\": [[0,6,5], [1,8,6], [2,7,8], [3,4,7]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.414213562373095,0],[1,0.585786437626905]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
-
-	var fish = "{\n\t\"this base is broken\": true,\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.292893218813452,0],[1,0.707106781186548]],\n\t\"vertices_vertices\": [[6,4,3],[7,5,3,4,6],[3,5,7],[0,4,1,5,2],[0,6,2,3],[1,7,2,3],[1,4,0],[2,5,1]],\n\t\"vertices_faces\":[[1,4],[2,3,5,6],[0,7],[0,1,2,3],[1,3,4,5],[0,2,6,7],[4,5],[6,7]],\n\t\"edges_vertices\": [[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],\n\t\"edges_faces\":[[0],[0,2],[0,7],[1],[1,4],[1,3],[2,3],[2,6],[3,5],[4],[4,5],[5],[6],[6,7],[7]],\n\t\"edges_length\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_foldAngle\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_assignment\": [\"B\",\"B\",\"F\",\"M\",\"M\",\"M\",\"M\",\"M\",\"M\",\"V\",\"B\",\"B\",\"V\",\"B\",\"B\"],\n\t\"faces_vertices\": [[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],\n\t\"faces_edges\": [[0,8,7],[1,3,5],[2,6,8],[2,5,4],[3,10,9],[4,9,11],[6,13,12],[7,12,14]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n\t}]\n}";
-
-	var bird = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.207106781186548,0.5],[0.5,0.207106781186548],[0.792893218813452,0.5],[0.5,0.792893218813452],[0.353553390593274,0.646446609406726],[0.646446609406726,0.646446609406726],[0.646446609406726,0.353553390593274],[0.353553390593274,0.353553390593274],[0,0.5],[0.5,0],[1,0.5],[0.5,1]],\n\t\"edges_vertices\": [[3,5],[5,9],[3,9],[3,13],[5,13],[0,5],[0,13],[0,12],[5,12],[4,5],[4,12],[4,9],[0,6],[6,12],[0,14],[6,14],[1,6],[1,14],[1,11],[6,11],[4,6],[4,11],[1,7],[7,11],[1,15],[7,15],[2,7],[2,15],[2,10],[7,10],[4,7],[4,10],[2,8],[8,10],[2,16],[8,16],[3,8],[3,16],[8,9],[4,8]],\n\t\"edges_faces\": [[0,1],[0,5],[21,0],[1],[2,1],[2,3],[2],[3,6],[4,3],[4,5],[11,4],[5,22],[6,7],[6,11],[7],[8,7],[8,9],[8],[9,12],[10,9],[10,11],[17,10],[12,13],[12,17],[13],[14,13],[14,15],[14],[15,18],[16,15],[16,17],[23,16],[18,19],[18,23],[19],[20,19],[20,21],[20],[22,21],[22,23]],\n\t\"edges_assignment\": [\"M\",\"F\",\"V\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"V\",\"F\",\"M\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"M\"],\n\t\"faces_vertices\": [[3,5,9],[5,3,13],[0,5,13],[5,0,12],[4,5,12],[5,4,9],[0,6,12],[6,0,14],[1,6,14],[6,1,11],[4,6,11],[6,4,12],[1,7,11],[7,1,15],[2,7,15],[7,2,10],[4,7,10],[7,4,11],[2,8,10],[8,2,16],[3,8,16],[8,3,9],[4,8,9],[8,4,10]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,4,6],[5,7,8],[9,8,10],[9,11,1],[12,13,7],[12,14,15],[16,15,17],[16,18,19],[20,19,21],[20,10,13],[22,23,18],[22,24,25],[26,25,27],[26,28,29],[30,29,31],[30,21,23],[32,33,28],[32,34,35],[36,35,37],[36,2,38],[39,38,11],[39,31,33]]\n}";
-
-	var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
-
-	var test = "{\n\t\"file_spec\":1.1,\n\t\"file_creator\":\"Rabbit Ear\",\n\t\"file_author\":\"Robby Kraft\",\n\t\"file_classes\":[\"singleModel\"],\n\t\"frame_attributes\":[\"2D\"],\n\t\"frame_title\":\"three crease\",\n\t\"frame_classes\":[\"creasePattern\"],\n\t\"vertices_coords\":[\n\t\t[0,0],[1,0],[1,1],[0,1],[1,0.21920709774914],[0,0.75329794695316],[0.1,1],[0,0.9],[0.506713890898239,0],[0.645319539098137,0.408638686308289],[1,0.871265438078371]\n\t],\n\t\"edges_vertices\":[[8,9],[5,9],[0,5],[0,8],[5,7],[9,10],[2,10],[2,6],[6,7],[3,6],[3,7],[1,8],[1,4],[4,9],[4,10]],\n\t\"edges_assignment\":[\"M\",\"M\",\"B\",\"B\",\"B\",\"V\",\"B\",\"B\",\"V\",\"B\",\"B\",\"B\",\"B\",\"M\",\"B\"],\n\t\"faces_vertices\":[[8,9,5,0],[7,5,9,10,2,6],[6,3,7],[8,1,4,9],[9,4,10]],\n\t\"faces_edges\":[[0,1,2,3],[4,1,5,6,7,8],[9,10,8],[11,12,13,0],[13,14,5]],\n\t\"re:faces_layer\":[0,1,2,4,3],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\":[\n\t\t\t[0.62607055446971, 1.17221733980796],\n\t\t\t[0.44072549605688, 0.90956291495505],\n\t\t\t[1, 1],\n\t\t\t[0.1, 0.9],\n\t\t\t[0.37030057556411, 0.70197659007504],\n\t\t\t[0, 0.75329794695316],\n\t\t\t[0.1, 1],\n\t\t\t[0, 0.9],\n\t\t\t[0.90786114793244, 0.75108431015443],\n\t\t\t[0.64531953909814, 0.40863868630829],\n\t\t\t[1, 0.87126543807837]\n\t\t]\n\t}]\n}";
-
-	var dodecagon = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [\n\t\t[1,0],[0.8660254,0.5],[0.5,0.8660254],[0,1],[-0.5,0.8660254],[-0.8660254,0.5],[-1,0],[-0.8660254,-0.5],[-0.5,-0.8660254],[0,-1],[0.5,-0.8660254],[0.8660254,-0.5]\n\t],\n\t\"vertices_vertices\": [[11,1], [0,2], [1,3], [2,4], [3,5], [4,6], [5,7], [6,8], [7,9], [8,10], [9,11], [10,0]],\n\t\"vertices_faces\": [[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0]],\n\t\"edges_vertices\": [\n\t\t[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,8], [8,9], [9,10], [10,11], [11,0]\n\t],\n\t\"edges_faces\": [[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381, 0.5176381],\n\t\"faces_vertices\": [[0,1,2,3,4,5,6,7,8,9,10,11]],\n\t\"faces_edges\": [[0,1,2,3,4,5,6,7,8,9,10,11]]\n}";
-
-	var boundary$1 = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [[0.3535533905932738,0.8535533905932737], [-0.3535533905932738,0.8535533905932737], [-0.8535533905932737,0.35355339059327384], [-0.8535533905932737,-0.35355339059327373], [-0.35355339059327384,-0.8535533905932737], [0.3535533905932737,-0.8535533905932738], [0.8535533905932735,-0.3535533905932743], [0.8535533905932736,0.35355339059327395]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,7], [7,6], [6,5], [5,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\"],\n\t\"faces_vertices\": [[0,1,2,7,6,5,2,3,4,5,6,7]],\n\t\"faces_edges\": [[0,1,2,3,4,5,6,7,8,9,10,11]]\n}";
-
-	var concave = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [[0,0], [1,0], [1,0.33333333333333], [0.33333333333333,0.33333333333333], [0.33333333333333,0.66666666666666], [1,0.66666666666666], [1,1], [0,1]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\"],\n\t\"faces_vertices\": [[0,1,2,3,4,5,6,7]],\n\t\"faces_edges\": [[0,1,2,3,4,5,6,7]]\n}";
-
-	var blintzAnimated = "{\n\t\"file_spec\": 1.1,\n\t\"file_author\": \"Robby Kraft\",\n\t\"file_classes\": [\"singleModel\", \"animation\"],\n\t\"re:file_date\": \"2018-10-14\",\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"3D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [\n\t\t[0.0, 0.0, 0.0], [0.5, 0.0, 0.0],\n\t\t[1.0, 0.0, 0.0], [1.0, 0.5, 0.0],\n\t\t[1.0, 1.0, 0.0], [0.5, 1.0, 0.0],\n\t\t[0.0, 1.0, 0.0], [0.0, 0.5, 0.0]\n\t],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_layer\": [4,0,1,2,3],\n\t\"file_frames\": [\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\": 0,\n\t\t\t\"frame_inherit\": true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.0012038183319507678, 0.0012038183319507678, 0.02450428508239015], [0.5, 0.0, 0.0],\n\t\t\t\t[0.9987961816680493, 0.0012038183319507678, 0.02450428508239015], [1.0, 0.5, 0.0],\n\t\t\t\t[0.9987961816680493, 0.9987961816680493, 0.02450428508239015], [0.5, 1.0, 0.0],\n\t\t\t\t[0.0012038183319507678, 0.9987961816680493, 0.02450428508239015], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.004803679899192392, 0.004803679899192392, 0.04877258050403206], [0.5, 0.0, 0.0],\n\t\t\t\t[0.9951963201008076, 0.004803679899192392, 0.04877258050403206], [1.0, 0.5, 0.0],\n\t\t\t\t[0.9951963201008076, 0.9951963201008076, 0.04877258050403206], [0.5, 1.0, 0.0],\n\t\t\t\t[0.004803679899192392, 0.9951963201008076, 0.04877258050403206], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.010764916066947794, 0.010764916066947794, 0.07257116931361558], [0.5, 0.0, 0.0],\n\t\t\t\t[0.9892350839330522, 0.010764916066947794, 0.07257116931361558], [1.0, 0.5, 0.0],\n\t\t\t\t[0.9892350839330522, 0.9892350839330522, 0.07257116931361558], [0.5, 1.0, 0.0],\n\t\t\t\t[0.010764916066947794, 0.9892350839330522, 0.07257116931361558], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.019030116872178315, 0.019030116872178315, 0.09567085809127245], [0.5, 0.0, 0.0],\n\t\t\t\t[0.9809698831278217, 0.019030116872178315, 0.09567085809127245], [1.0, 0.5, 0.0],\n\t\t\t\t[0.9809698831278217, 0.9809698831278217, 0.09567085809127245], [0.5, 1.0, 0.0],\n\t\t\t\t[0.019030116872178315, 0.9809698831278217, 0.09567085809127245], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.029519683912911238, 0.029519683912911238, 0.11784918420649941], [0.5, 0.0, 0.0],\n\t\t\t\t[0.9704803160870887, 0.029519683912911238, 0.11784918420649941], [1.0, 0.5, 0.0],\n\t\t\t\t[0.9704803160870887, 0.9704803160870887, 0.11784918420649941], [0.5, 1.0, 0.0],\n\t\t\t\t[0.029519683912911238, 0.9704803160870887, 0.11784918420649941], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.04213259692436369, 0.04213259692436369, 0.13889255825490054], [0.5, 0.0, 0.0],\n\t\t\t\t[0.9578674030756363, 0.04213259692436369, 0.13889255825490054], [1.0, 0.5, 0.0],\n\t\t\t\t[0.9578674030756363, 0.9578674030756363, 0.13889255825490054], [0.5, 1.0, 0.0],\n\t\t\t\t[0.04213259692436369, 0.9578674030756363, 0.13889255825490054], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.05674738665931575, 0.05674738665931575, 0.15859832104091137], [0.5, 0.0, 0.0],\n\t\t\t\t[0.9432526133406842, 0.05674738665931575, 0.15859832104091137], [1.0, 0.5, 0.0],\n\t\t\t\t[0.9432526133406842, 0.9432526133406842, 0.15859832104091137], [0.5, 1.0, 0.0],\n\t\t\t\t[0.05674738665931575, 0.9432526133406842, 0.15859832104091137], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.0732233047033631, 0.0732233047033631, 0.17677669529663687], [0.5, 0.0, 0.0],\n\t\t\t\t[0.9267766952966369, 0.0732233047033631, 0.17677669529663687], [1.0, 0.5, 0.0],\n\t\t\t\t[0.9267766952966369, 0.9267766952966369, 0.17677669529663687], [0.5, 1.0, 0.0],\n\t\t\t\t[0.0732233047033631, 0.9267766952966369, 0.17677669529663687], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.09140167895908863, 0.09140167895908863, 0.19325261334068422], [0.5, 0.0, 0.0],\n\t\t\t\t[0.9085983210409114, 0.09140167895908863, 0.19325261334068422], [1.0, 0.5, 0.0],\n\t\t\t\t[0.9085983210409114, 0.9085983210409114, 0.19325261334068422], [0.5, 1.0, 0.0],\n\t\t\t\t[0.09140167895908863, 0.9085983210409114, 0.19325261334068422], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.11110744174509943, 0.11110744174509943, 0.2078674030756363], [0.5, 0.0, 0.0],\n\t\t\t\t[0.8888925582549005, 0.11110744174509943, 0.2078674030756363], [1.0, 0.5, 0.0],\n\t\t\t\t[0.8888925582549005, 0.8888925582549005, 0.2078674030756363], [0.5, 1.0, 0.0],\n\t\t\t\t[0.11110744174509943, 0.8888925582549005, 0.2078674030756363], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.13215081579350055, 0.13215081579350055, 0.22048031608708873], [0.5, 0.0, 0.0],\n\t\t\t\t[0.8678491842064995, 0.13215081579350055, 0.22048031608708873], [1.0, 0.5, 0.0],\n\t\t\t\t[0.8678491842064995, 0.8678491842064995, 0.22048031608708873], [0.5, 1.0, 0.0],\n\t\t\t\t[0.13215081579350055, 0.8678491842064995, 0.22048031608708873], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.15432914190872754, 0.15432914190872754, 0.23096988312782168], [0.5, 0.0, 0.0],\n\t\t\t\t[0.8456708580912724, 0.15432914190872754, 0.23096988312782168], [1.0, 0.5, 0.0],\n\t\t\t\t[0.8456708580912724, 0.8456708580912724, 0.23096988312782168], [0.5, 1.0, 0.0],\n\t\t\t\t[0.15432914190872754, 0.8456708580912724, 0.23096988312782168], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.17742883068638443, 0.17742883068638443, 0.23923508393305223], [0.5, 0.0, 0.0],\n\t\t\t\t[0.8225711693136155, 0.17742883068638443, 0.23923508393305223], [1.0, 0.5, 0.0],\n\t\t\t\t[0.8225711693136155, 0.8225711693136155, 0.23923508393305223], [0.5, 1.0, 0.0],\n\t\t\t\t[0.17742883068638443, 0.8225711693136155, 0.23923508393305223], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.20122741949596792, 0.20122741949596792, 0.2451963201008076], [0.5, 0.0, 0.0],\n\t\t\t\t[0.7987725805040321, 0.20122741949596792, 0.2451963201008076], [1.0, 0.5, 0.0],\n\t\t\t\t[0.7987725805040321, 0.7987725805040321, 0.2451963201008076], [0.5, 1.0, 0.0],\n\t\t\t\t[0.20122741949596792, 0.7987725805040321, 0.2451963201008076], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.2254957149176098, 0.2254957149176098, 0.2487961816680492], [0.5, 0.0, 0.0],\n\t\t\t\t[0.7745042850823902, 0.2254957149176098, 0.2487961816680492], [1.0, 0.5, 0.0],\n\t\t\t\t[0.7745042850823902, 0.7745042850823902, 0.2487961816680492], [0.5, 1.0, 0.0],\n\t\t\t\t[0.2254957149176098, 0.7745042850823902, 0.2487961816680492], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.25, 0.25, 0.25], [0.5, 0.0, 0.0],\n\t\t\t\t[0.75, 0.25, 0.25], [1.0, 0.5, 0.0],\n\t\t\t\t[0.75, 0.75, 0.25], [0.5, 1.0, 0.0],\n\t\t\t\t[0.25, 0.75, 0.25], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.27450428508239016, 0.27450428508239016, 0.24879618166804923], [0.5, 0.0, 0.0],\n\t\t\t\t[0.7254957149176098, 0.27450428508239016, 0.24879618166804923], [1.0, 0.5, 0.0],\n\t\t\t\t[0.7254957149176098, 0.7254957149176098, 0.24879618166804923], [0.5, 1.0, 0.0],\n\t\t\t\t[0.27450428508239016, 0.7254957149176098, 0.24879618166804923], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.29877258050403205, 0.29877258050403205, 0.2451963201008076], [0.5, 0.0, 0.0],\n\t\t\t\t[0.701227419495968, 0.29877258050403205, 0.2451963201008076], [1.0, 0.5, 0.0],\n\t\t\t\t[0.701227419495968, 0.701227419495968, 0.2451963201008076], [0.5, 1.0, 0.0],\n\t\t\t\t[0.29877258050403205, 0.701227419495968, 0.2451963201008076], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.3225711693136155, 0.3225711693136155, 0.23923508393305223], [0.5, 0.0, 0.0],\n\t\t\t\t[0.6774288306863845, 0.3225711693136155, 0.23923508393305223], [1.0, 0.5, 0.0],\n\t\t\t\t[0.6774288306863845, 0.6774288306863845, 0.23923508393305223], [0.5, 1.0, 0.0],\n\t\t\t\t[0.3225711693136155, 0.6774288306863845, 0.23923508393305223], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.3456708580912724, 0.3456708580912724, 0.23096988312782168], [0.5, 0.0, 0.0],\n\t\t\t\t[0.6543291419087276, 0.3456708580912724, 0.23096988312782168], [1.0, 0.5, 0.0],\n\t\t\t\t[0.6543291419087276, 0.6543291419087276, 0.23096988312782168], [0.5, 1.0, 0.0],\n\t\t\t\t[0.3456708580912724, 0.6543291419087276, 0.23096988312782168], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.3678491842064994, 0.3678491842064994, 0.22048031608708876], [0.5, 0.0, 0.0],\n\t\t\t\t[0.6321508157935005, 0.3678491842064994, 0.22048031608708876], [1.0, 0.5, 0.0],\n\t\t\t\t[0.6321508157935005, 0.6321508157935005, 0.22048031608708876], [0.5, 1.0, 0.0],\n\t\t\t\t[0.3678491842064994, 0.6321508157935005, 0.22048031608708876], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.3888925582549005, 0.3888925582549005, 0.20786740307563634], [0.5, 0.0, 0.0],\n\t\t\t\t[0.6111074417450995, 0.3888925582549005, 0.20786740307563634], [1.0, 0.5, 0.0],\n\t\t\t\t[0.6111074417450995, 0.6111074417450995, 0.20786740307563634], [0.5, 1.0, 0.0],\n\t\t\t\t[0.3888925582549005, 0.6111074417450995, 0.20786740307563634], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.4085983210409113, 0.4085983210409113, 0.19325261334068428], [0.5, 0.0, 0.0],\n\t\t\t\t[0.5914016789590887, 0.4085983210409113, 0.19325261334068428], [1.0, 0.5, 0.0],\n\t\t\t\t[0.5914016789590887, 0.5914016789590887, 0.19325261334068428], [0.5, 1.0, 0.0],\n\t\t\t\t[0.4085983210409113, 0.5914016789590887, 0.19325261334068428], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.42677669529663687, 0.42677669529663687, 0.1767766952966369], [0.5, 0.0, 0.0],\n\t\t\t\t[0.5732233047033631, 0.42677669529663687, 0.1767766952966369], [1.0, 0.5, 0.0],\n\t\t\t\t[0.5732233047033631, 0.5732233047033631, 0.1767766952966369], [0.5, 1.0, 0.0],\n\t\t\t\t[0.42677669529663687, 0.5732233047033631, 0.1767766952966369], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.4432526133406842, 0.4432526133406842, 0.15859832104091137], [0.5, 0.0, 0.0],\n\t\t\t\t[0.5567473866593158, 0.4432526133406842, 0.15859832104091137], [1.0, 0.5, 0.0],\n\t\t\t\t[0.5567473866593158, 0.5567473866593158, 0.15859832104091137], [0.5, 1.0, 0.0],\n\t\t\t\t[0.4432526133406842, 0.5567473866593158, 0.15859832104091137], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.45786740307563634, 0.45786740307563634, 0.13889255825490054], [0.5, 0.0, 0.0],\n\t\t\t\t[0.5421325969243637, 0.45786740307563634, 0.13889255825490054], [1.0, 0.5, 0.0],\n\t\t\t\t[0.5421325969243637, 0.5421325969243637, 0.13889255825490054], [0.5, 1.0, 0.0],\n\t\t\t\t[0.45786740307563634, 0.5421325969243637, 0.13889255825490054], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.47048031608708873, 0.47048031608708873, 0.11784918420649947], [0.5, 0.0, 0.0],\n\t\t\t\t[0.5295196839129113, 0.47048031608708873, 0.11784918420649947], [1.0, 0.5, 0.0],\n\t\t\t\t[0.5295196839129113, 0.5295196839129113, 0.11784918420649947], [0.5, 1.0, 0.0],\n\t\t\t\t[0.47048031608708873, 0.5295196839129113, 0.11784918420649947], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.4809698831278217, 0.4809698831278217, 0.09567085809127247], [0.5, 0.0, 0.0],\n\t\t\t\t[0.5190301168721783, 0.4809698831278217, 0.09567085809127247], [1.0, 0.5, 0.0],\n\t\t\t\t[0.5190301168721783, 0.5190301168721783, 0.09567085809127247], [0.5, 1.0, 0.0],\n\t\t\t\t[0.4809698831278217, 0.5190301168721783, 0.09567085809127247], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.4892350839330522, 0.4892350839330522, 0.0725711693136156], [0.5, 0.0, 0.0],\n\t\t\t\t[0.5107649160669478, 0.4892350839330522, 0.0725711693136156], [1.0, 0.5, 0.0],\n\t\t\t\t[0.5107649160669478, 0.5107649160669478, 0.0725711693136156], [0.5, 1.0, 0.0],\n\t\t\t\t[0.4892350839330522, 0.5107649160669478, 0.0725711693136156], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.4951963201008076, 0.4951963201008076, 0.04877258050403215], [0.5, 0.0, 0.0],\n\t\t\t\t[0.5048036798991924, 0.4951963201008076, 0.04877258050403215], [1.0, 0.5, 0.0],\n\t\t\t\t[0.5048036798991924, 0.5048036798991924, 0.04877258050403215], [0.5, 1.0, 0.0],\n\t\t\t\t[0.4951963201008076, 0.5048036798991924, 0.04877258050403215], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.4987961816680492, 0.4987961816680492, 0.024504285082390206], [0.5, 0.0, 0.0],\n\t\t\t\t[0.5012038183319508, 0.4987961816680492, 0.024504285082390206], [1.0, 0.5, 0.0],\n\t\t\t\t[0.5012038183319508, 0.5012038183319508, 0.024504285082390206], [0.5, 1.0, 0.0],\n\t\t\t\t[0.4987961816680492, 0.5012038183319508, 0.024504285082390206], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\t\"frame_parent\":0,\n\t\t\t\"frame_inherit\":true,\n\t\t\t\"vertices_coords\": [\n\t\t\t\t[0.5, 0.5, 0.0], [0.5, 0.0, 0.0],\n\t\t\t\t[0.5, 0.5, 0.0], [1.0, 0.5, 0.0],\n\t\t\t\t[0.5, 0.5, 0.0], [0.5, 1.0, 0.0],\n\t\t\t\t[0.5, 0.5, 0.0], [0.0, 0.5, 0.0]\n\t\t\t]\n\t\t}\n\t]\n}";
-
-	var blintzDistorted = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0.005,0.005], [0.5,0], [0.995,0.005], [1,0.5], [0.995,0.995], [0.5,1], [0.005,0.995], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.707106781186548, 0.707106781186548, 0.707106781186548, 0.707106781186548],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
-
-	const fold = {
-		frame: frame,
-		validate: validate,
-		graph: graph,
-		origami: origami$1,
-		planargraph: planargraph,
-		valleyfold: valleyfold,
-		creasethrough: creasethrough
-	};
+	const core$1 = Object.create(null);
+	Object.assign(core$1, frame, validate, graph$1, origami, planargraph);
+	// remove these for production
+	// import test from './bases/test-three-fold.fold';
+	// import dodecagon from './bases/test-dodecagon.fold';
+	// import boundary from './bases/test-boundary.fold';
+	// import concave from './bases/test-concave.fold';
+	// import blintzAnimated from './bases/blintz-animated.fold';
+	// import blintzDistorted from './bases/blintz-distort.fold';
 	const bases = {
 		empty: JSON.parse(empty),
 		square: JSON.parse(squareFoldString),
@@ -7022,18 +6014,17 @@
 		bird: JSON.parse(bird),
 		frog: JSON.parse(frog),
 		// remove these for production
-		test: JSON.parse(test),
-		dodecagon: JSON.parse(dodecagon),
-		boundary: JSON.parse(boundary$1),
-		concave: JSON.parse(concave),
-		blintzAnimated: JSON.parse(blintzAnimated),
-		blintzDistorted: JSON.parse(blintzDistorted)
+		// test: JSON.parse(test),
+		// dodecagon: JSON.parse(dodecagon),
+		// boundary: JSON.parse(boundary),
+		// concave: JSON.parse(concave),
+		// blintzAnimated: JSON.parse(blintzAnimated),
+		// blintzDistorted: JSON.parse(blintzDistorted)
 	};
 
 	exports.math = geometry$1;
 	exports.svg = svg$1;
-	exports.noise = perlin;
-	exports.fold = fold;
+	exports.core = core$1;
 	exports.bases = bases;
 	exports.CreasePattern = CreasePattern;
 	exports.Origami = View2D;

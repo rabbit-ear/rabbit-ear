@@ -13,7 +13,7 @@ axiom2.reset = function() {
 	for (let i = 0; i < 5; i++) {
 		axiom2.axiom2([Math.random(), Math.random()], [Math.random()-0.5, Math.random()-0.5]);
 	}
-	axiom2.base = axiom2.cp.json;
+	axiom2.base = axiom2.cp.getFOLD();
 }
 axiom2.reset();
 

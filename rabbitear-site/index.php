@@ -22,8 +22,8 @@
 		</div>
 		<div class="footer">
 			<!-- <button type="button" class="btn btn-outline-light" id="showcase-button">showcase</button> -->
-			<button type="button" class="btn btn-outline-light" id="download-button">download &amp; introduction</button>
-			<!-- <button type="button" class="btn btn-outline-light" id="docs-button">docs</button> -->
+			<button type="button" class="btn btn-outline-light" id="download-button">download</button>
+			<button type="button" class="btn btn-outline-light" id="docs-button">introduction</button>
 			<button type="button" class="btn btn-outline-light" id="blog-button">blog</button>
 		</div>
 		<!-- <script type="text/javascript" src="js/rabbit-ear.min.js?2"></script> -->

@@ -2,7 +2,7 @@
 
 <h3 style="text-align:center;margin-top:3em;">CHAPTER III.</h3>
 
-<h1>ORIGAMI</h1>
+<h1>CREASE PATTERNS</h1>
 
 
 	<div id="canvas-face-coloring"></div>
@@ -50,16 +50,15 @@
 
 <h2>Uniaxial Bases</h2>
 
-
-	<div id="canvas-origami-molecule"></div>
-
-	<h3>The Universal Molecule</h3>
-
-	<p>Uniaxial base design allowed huge advancements in origami art. In a uniaxial base, origami molecules are formed out of convex polygons tiling the plane.</p>
+	<p>Robert Lang's Treemaker</p>
 
 	<div id="canvas-treemaker"></div>
 
-	<p>bases are formed by a system of tree design, made popular by Robert Lang's Treemaker.</p>
+	<h3>The Universal Molecule</h3>
+
+	<div id="canvas-origami-molecule"></div>
+
+	<p>Uniaxial base design allowed huge advancements in origami art. In a uniaxial base, origami molecules are formed out of convex polygons tiling the plane.</p>
 
 </section>
 

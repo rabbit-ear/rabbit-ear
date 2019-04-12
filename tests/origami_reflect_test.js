@@ -23,7 +23,7 @@ let params = Array.from(Array(1)).map(_ => ({
 console.log("this sketch", params);
 params.forEach(p => sketch.cp.valleyFold(p.point, p.vector));
 
-sketch.masterCP = JSON.parse(JSON.stringify(sketch.cp.json));
+sketch.masterCP = JSON.parse(JSON.stringify(sketch.cp.getFOLD()));
 sketch.cp = RabbitEar.CreasePattern(sketch.masterCP);
 
 let PlanarGraph = RabbitEar.fold.planargraph;
@@ -65,7 +65,7 @@ sketch.update = function() {
 	creaseL.setAttribute("stroke-dasharray", "0.01 0.02");
 	creaseL.setAttribute("stroke-linecap", "round");
 
-	let graph = sketch.cp.json;
+	let graph = sketch.cp.getFOLD();
 	let face_index = 0;
 
 	let faces_count = graph.faces_vertices.length;

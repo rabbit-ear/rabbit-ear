@@ -1,5 +1,5 @@
 <?php include 'header.php';?>
-<script type="text/javascript" src="../lib/d3.min.js"></script>
+<script type="text/javascript" src="../include/d3.min.js"></script>
 <script type="text/javascript" src="js/cp.d3js.js"></script>
 <style>
 .links line {
@@ -175,6 +175,16 @@
 	</div>
 
 	<p class="quote">Each of the numbers in a Graph Clean object is the number of elements <strong>removed</strong>.</p>
+
+</section>
+
+
+<section id="graphs">
+	<h2>Crease Patterns</h2>
+	<p>A crease pattern's crease lines are the edges of the graph, nodes as endpoints. When it lies flat like this it's called a <strong>planar graph</strong>. During folding the edges leave the plane and enter 3D.</p>
+	<div class="three-js" id="intersection-wobble"></div>
+	<pre><code><span id="span-intersection-results"></span>origami.<a href=""><f>fold</f></a>();</code></pre>
+	<p class="quote">Even if a model is folded in 3D, it still has a 2D crease pattern.</p>
 
 </section>
 

@@ -9,7 +9,7 @@ nearestPoint.setup = function(){
 	nearestPoint.appendChild(nearestPoint.backLayer);
 	nearestPoint.appendChild(nearestPoint.lineLayer);
 	nearestPoint.appendChild(nearestPoint.circleLayer);
-	nearestPoint.edges = Array.from(Array(8)).map(_ =>
+	nearestPoint.edges = Array.from(Array(3)).map(_ =>
 		RabbitEar.math.Edge(
 			Math.random()*nearestPoint.w,
 			Math.random()*nearestPoint.h,
