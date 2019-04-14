@@ -254,12 +254,22 @@ export function axiom7(graph, pointA, vectorA, pointB, vectorB, pointC) {
 	return crease_line(graph, line[0], line[1]);
 }
 
+// export function creaseLine(graph, point, vector) {
+// 	// todo idk if this is done
+// 	let ray = Geom.Line(point, vector);
+// 	graph.faces_vertices.forEach(face => {
+// 		let points = face.map(v => graph.vertices_coords[v]);
+// 		Geom.core.intersection.clip_line_in_convex_poly(points, point, vector);
+// 	})
+// 	return crease_line(graph, line[0], line[1]);
+// }
+
 export function creaseRay(graph, point, vector) {
 	// todo idk if this is done
-	let ray = Geom.core.Ray(point, vector);
+	let ray = Geom.Ray(point, vector);
 	graph.faces_vertices.forEach(face => {
 		let points = face.map(v => graph.vertices_coords[v]);
-		Geom.core.intersection.clip_ray_in_convex_poly(_points, point, vector);
+		Geom.core.intersection.clip_ray_in_convex_poly(points, point, vector);
 	})
 	return crease_line(graph, line[0], line[1]);
 }

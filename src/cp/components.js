@@ -126,8 +126,8 @@ export const Edge = function(graph, index) {
 // this way one crease is one crease. it's more what a person expects.
 // one crease can == many edges.
 export const Crease = function(_graph, _indices) {
-	// let graph = _graph; // pointer back to the graph;
-	// let indices = _indices; // indices of this crease in the graph
+	let graph = _graph; // pointer back to the graph;
+	let indices = _indices; // indices of this crease in the graph
 
 	const is_assignment = function(options) {
 		return indices.map(index => options

@@ -105,32 +105,7 @@ div[id^="canvas-"] {
 .diptych * {
 	flex: 1;
 }
-.btn {
-	margin: 0;
-    font-family: inherit;
-	display: inline-block;
-    font-weight: 400;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: middle;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    border: 1px solid transparent;
-    padding: .5rem .75rem;
-    font-size: 1rem;
-    line-height: 1.25;
-    border-radius: .25rem;
-    transition: all .15s ease-in-out;	
-    background-color: #e14929;
-    border: none;
-    color: white;
-    padding: 12px 30px;
-    font-size: 16px;
-    font-size: 20px;
-    cursor: pointer;
-}
+
 @media only screen and (max-width: 600px) {  }
 
 ::selection {

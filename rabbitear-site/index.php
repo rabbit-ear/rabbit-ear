@@ -22,9 +22,11 @@
 		</div>
 		<div class="footer">
 			<!-- <button type="button" class="btn btn-outline-light" id="showcase-button">showcase</button> -->
-			<button type="button" class="btn btn-outline-light" id="download-button">download</button>
+			<a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.1.zip">
+				<button type="button" class="btn btn-outline-light" id="download-button">download</button>
+			</a>
 			<button type="button" class="btn btn-outline-light" id="docs-button">introduction</button>
-			<button type="button" class="btn btn-outline-light" id="blog-button">blog</button>
+			<!-- <button type="button" class="btn btn-outline-light" id="blog-button">blog</button> -->
 		</div>
 		<!-- <script type="text/javascript" src="js/rabbit-ear.min.js?2"></script> -->
 		<script type="text/javascript" src="js/rabbit-ear.min.0.1.2.js?2"></script>

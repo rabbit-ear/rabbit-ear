@@ -4,7 +4,7 @@ import * as Graph from "../fold/graph";
 import * as PlanarGraph from "../fold/planargraph";
 import * as Origami from "../fold/origami";
 import { Polygon } from "../../include/geometry";
-import * as Input from "../fold/input";
+import * as Args from "../parsers/arguments";
 import squareFoldString from "../bases/square.fold";
 import { Vertex, Face, Edge, Crease } from "./components";
 
@@ -12,6 +12,23 @@ const CreasePatternPrototype = function(proto) {
 	if(proto == null) {
 		proto = {};
 	}
+
+	/** 
+	 * the most important thing this class offers: this component array
+	 * each object matches 1:1 a component in the FOLD graph.
+	 * when a graph component gets removed, its corresponding object deletes
+	 * itself so even if the user holds onto it, it no longer points to anything.
+	 * each component brings extra functionality to these edges/faces/vertices.
+	 * take great care to make sure they are always matching 1:1.
+	 * keys are each component's UUID for speedy lookup.
+	 */
+	let components = {
+		vertices: [],
+		edges: [],
+		faces: [],
+		// boundary: {},
+	};
+
 
 	/**
 	 * @param {file} is a FOLD object.
@@ -52,19 +69,25 @@ const CreasePatternPrototype = function(proto) {
 
 	// todo: memo these. they're created each time, even if the CP hasn't changed
 	const getVertices = function() {
-		return (this.vertices_coords || [])
+		components.vertices.forEach(v => v.disable());
+		components.vertices = (this.vertices_coords || [])
 			.map((_,i) => Vertex(this, i));
+		return components.vertices;
 	}
 	const getEdges = function() {
-		return (this.edges_vertices || [])
+		components.edges.forEach(v => v.disable());
+		components.edges = (this.edges_vertices || [])
 			.map((_,i) => Edge(this, i));
+		return components.edges;
 		// return (this.edges_vertices || [])
 		// 		.map(e => e.map(ev => this.vertices_coords[ev]))
 		// 		.map(e => Geometry.Edge(e));
 	}
 	const getFaces = function() {
-		return (this.faces_vertices || [])
+		components.faces.forEach(v => v.disable());
+		components.faces = (this.faces_vertices || [])
 			.map((_,i) => Face(this, i));
+		return components.faces;
 		// return (this.faces_vertices || [])
 		// 		.map(f => f.map(fv => this.vertices_coords[fv]))
 		// 		.map(f => Polygon(f));
@@ -121,15 +144,6 @@ const CreasePattern = function() {
 	// unit square is the default base if nothing else is provided
 	graph.load( (foldObjs.shift() || JSON.parse(squareFoldString)) );
 
-	/** 
-	 * the most important thing this class offers: this component array
-	 * each object matches 1:1 a component in the FOLD graph.
-	 * each component brings extra functionality to these edges/faces/vertices.
-	 * take great care to make sure they are always matching 1:1.
-	 * keys are each component's UUID for speedy lookup.
-	 */
-	let components = {};
-
 	// unclear how best to use frames
 	// let frame = 0; // which fold file frame (0 ..< Inf) to display
 
@@ -152,46 +166,33 @@ const CreasePattern = function() {
 		Graph.add_vertex_on_edge(graph, x, y, oldEdgeIndex);
 		didUpdate();
 	}
-	graph.axiom1 = function() {
-		let points = Input.get_two_vec2(...arguments);
-		if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
-		// let line = Geom.core.axiom[1](...points);
-		// let crease = Crease(this, crease_line(graph, line[0], line[1]));
-		let crease = Crease(this, Origami.axiom1(graph, ...points));
+	const axiom = function(number, params) {
+		let args;
+		switch(number) {
+			case 1: args = Args.get_two_vec2(params); break;
+			case 2: args = Args.get_two_vec2(params); break;
+			case 3: args = Args.get_two_lines(params); break;
+			case 4: args = Args.get_two_lines(params);break;
+			case 5: args = Args.get_two_lines(params);break;
+			case 6: args = Args.get_two_lines(params);break;
+			case 7: args = Args.get_two_lines(params);break;
+		}
+		if (args === undefined) {
+			throw "axiom " + number + " was not provided with the correct inputs";
+		}
+		let crease = Crease(this, Origami["axiom"+number](graph, ...args));
 		didUpdate();
 		return crease;
 	}
-	graph.axiom2 = function() {
-		let points = Input.get_two_vec2(...arguments);
-		if (!points) { throw {name: "TypeError", message: "axiom2 needs 2 points"}; }
-		let crease = Crease(this, Origami.axiom2(graph, ...points));
-		didUpdate();
-		return crease;
-	}
-	graph.axiom3 = function() {
-		let lines = Input.get_two_lines(...arguments);
-		if (!lines) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
-		let crease = Crease(this, Origami.axiom3(graph, ...lines[0], ...lines[1]));
-		didUpdate();
-		return crease;
-	}
-	graph.axiom4 = function() {
-		let crease = Crease(this, Origami.axiom4(graph, arguments));
-		didUpdate();
-		return crease;
-	}
-	graph.axiom5 = function() {
-		let crease = Crease(this, Origami.axiom5(graph, arguments));
-		didUpdate();
-		return crease;
-	}
-	graph.axiom6 = function() {
-		let crease = Crease(this, Origami.axiom6(graph, arguments));
-		didUpdate();
-		return crease;
-	}
-	graph.axiom7 = function() {
-		let crease = Crease(this, Origami.axiom7(graph, arguments));
+	graph.axiom1 = function() { return axiom.call(this, [1, arguments]); }
+	graph.axiom2 = function() { return axiom.call(this, [2, arguments]); }
+	graph.axiom3 = function() { return axiom.call(this, [3, arguments]); }
+	graph.axiom4 = function() { return axiom.call(this, [4, arguments]); }
+	graph.axiom5 = function() { return axiom.call(this, [5, arguments]); }
+	graph.axiom6 = function() { return axiom.call(this, [6, arguments]); }
+	graph.axiom7 = function() { return axiom.call(this, [7, arguments]); }
+	graph.creaseLine = function() {
+		let crease = Crease(this, Origami.crease_line(graph, ...arguments));
 		didUpdate();
 		return crease;
 	}
@@ -218,6 +219,10 @@ const CreasePattern = function() {
 		let crease = Crease(this, Origami.kawasaki_collapse(graph, ...arguments));
 		didUpdate();
 		return crease;
+	}
+	graph.rectangle = function() {
+		// remove boundary
+		// add new boundary
 	}
 
 	return graph;

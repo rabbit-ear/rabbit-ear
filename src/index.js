@@ -60,6 +60,7 @@ const bases = {
 export { default as CreasePattern } from './cp/CreasePattern';
 export { default as Origami } from './View2D';
 export { default as Origami3D } from './View3D';
+export { default as Graph } from './Graph';
 
 export { math };
 export { svg };
@@ -68,5 +69,4 @@ export { core };
 // export { noise };
 // export { fold };
 
-export { default as graph } from './graph';
 export { bases };

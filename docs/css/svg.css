@@ -22,5 +22,6 @@
 	fill: hsl(14.4, 87%, 45%);
 }
 
+.face { fill: rgba(0, 0, 0, 0.1); stroke: black;  stroke-width: calc(var(--crease-width)*0.1);}
 .face-front { fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);}
 .face-back { fill: white; stroke: black; stroke-width: var(--crease-width); }

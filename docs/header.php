@@ -11,6 +11,7 @@
 <!-- <link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css" /> -->
 <link rel="stylesheet" href="/docs/css/reset.css" />
 <link rel="stylesheet" href="/docs/css/style.css" />
+<link rel="stylesheet" href="/docs/css/ui.css" />
 <link rel="stylesheet" href="/docs/css/code.css" />
 <link rel="stylesheet" href="/docs/css/nav.css" />
 <link rel="stylesheet" href="/docs/css/svg.css" />
@@ -40,6 +41,9 @@
 			</li>
 			<li class="dropdown">
 				<a href="cp.php" class="dropbtn">III. CREASE PATTERNS</a>
+			</li>
+			<li class="dropdown">
+				<a href="this.php" class="dropbtn">IV. RABBIT EAR</a>
 			</li>
 		</ul>
 	</nav>

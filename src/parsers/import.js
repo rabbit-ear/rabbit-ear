@@ -1,10 +1,10 @@
-import * as Origami from "./origami";
+import * as Origami from "../fold/origami";
 import * as SVG from "../../include/svg";
 import { segments } from "../../include/svg-segmentize";
 
 export function svg_to_fold(svg) {
 
-	// for each geometry, add creases without regards to invalid planar data
+	// for each geometry, add creases without regards to invalid planar edge crossings
 	//  (intersecting lines, duplicate vertices), clean up later.
 	let graph = {
 		"file_spec": 1.1,
@@ -40,7 +40,7 @@ export const load_fold = function(input, callback) {
 		switch(extension) {
 			case "fold":
 			fetch(input)
-				.then((response) => response.json)
+				.then((response) => response.json())
 				.then((data) => {
 					if (callback != null) { callback(data); }
 				});

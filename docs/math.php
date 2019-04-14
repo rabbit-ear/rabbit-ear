@@ -13,7 +13,7 @@
 
 <section>
 	<div id="canvas-junction-bisect"></div>
-	<p>The mathematics of ancient Greece: Euclid and compass-straight edge geometry, finds an unlikely home in the mathematics of origami.</p>
+	<p>The mathematics of ancient Greece: Euclid and compass-straight edge geometry, finds a contemporary home in the mathematics of origami.</p>
 	<p>Including other familiar math as well, often presented in a fresh perspective.</p>
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>

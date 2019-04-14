@@ -13,7 +13,7 @@
 <div class="language"><pre>.HTML</pre></div>
 <pre><code>&lt;!<key>DOCTYPE</key> html&gt;
 &lt;<key>title</key>&gt;Rabbit Ear&lt;/<key>title</key>&gt;
-&lt;<key>script</key> <v>src=</v><str>"rabbit-ear.js"</str>&gt;&lt;/<key>script</key>&gt;
+&lt;<key>script</key> <v>src</v>=<str>"rabbit-ear.js"</str>&gt;&lt;/<key>script</key>&gt;
 &lt;<key>script</key>&gt;
 <f>RabbitEar</f>.<f>Origami</f>();
 &lt;/<key>script</key>&gt;
@@ -30,7 +30,7 @@
 	<p>Download Rabbit Ear here.</p>
 
 	<div class="center">
-		<button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.1.zip</button>
+		<button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.2.zip</button>
 	</div>
 
 	<p>Create a new project inside the "sketches" folder by copying and renaming "empty".</p>
@@ -38,7 +38,12 @@
 		<img style="width:100%" src="https://rabbitear.org/images/new-project.gif">
 	</div>
 
-	<p>The <strong>style.css</strong> sets the colors and style of all the SVG content. There's nothing special in <strong>index.html</strong>. Take a look at <strong>sketch.js</strong>.</p>
+	<p>There are three files:</p>
+	<ul>
+		<li><strong>index.html</strong> open this file to run your sketch.</li>
+		<li><strong>style.css</strong> set the color of the paper and style the lines.</li>
+		<li><strong>sketch.js</strong> let's look closer at this:</li>
+	</ul>
 
 <div class="centered">
 <pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();
@@ -71,17 +76,21 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 
 	<p class="quote">A flat-foldable crease pattern is always two-colorable.</p>
 
-	<p>This loads an svg image, interprets it like a crease pattern and folds it.</p>
+	<p>This loads an svg image, interprets it like a crease pattern, and folds it.</p>
 
-	<div id="canvas-svg-load"></div>
-	<div id="div-folded-crane"></div>
+	<div id="div-folded-crane" class="diptych"></div>
 
-<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();
-origami.<f>load</f>(<str>"elephant.svg"</str>);
-origami.<f>fold</f>();
-</code></pre>
+	<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
 
-	<p>This sketch modifies the folding method to only allow axiom 1 folds.</p>
+	<p>This sketch generates pleats based on a sine curve.</p>
+
+	<div id="canvas-sine-pleats" class="diptych"></div>
+	<div class="center" style="width: 300px; max-width: 50vw; margin:auto; margin-top: 2rem; text-align:center;">
+		<input type="range" id="sine-pleats-input" min=0 max=500 value=0>
+	</div>
+
+	<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();</code></pre>
+
 	<p>Because Rabbit Ear draws using SVG, a vector image file is always ready for export.</p>
 
 	<div class="center">
@@ -100,22 +109,16 @@ origami.<f>fold</f>();
 
 <section>
 
-	<p>Each origami comes with a <b>Crease Pattern</b>, an extended <a href="https://github.com/edemaine/fold">FOLD</a> object. This is where all the crease information is stored.</p>
+	<p>Each origami object contains a <b>Crease Pattern</b>, an extended <a href="https://github.com/edemaine/fold">FOLD</a> object. This is where all the crease information is stored.</p>
 
 	<div class="centered">
-		<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.cp <c>// an origami's crease pattern is here</c></code></pre>
+		<pre><code>origami.cp <c>// an origami's crease pattern is here</c></code></pre>
 	</div>
 
-	<p>For more computational-type sketches you'll want to access this directly. Or alternatively, create one directly:</p>
+	<p>For more computational use cases, create one directly and visualize it on your own:</p>
 
 	<div class="centered">
 		<pre><code><f>let</f> cp <key>=</key> <f>RabbitEar</f>.<f>CreasePattern</f>();</code></pre>
-	</div>
-
-	<p>An <b>extended</b> FOLD object means it comes with additional methods like fold, axiom4, kawasakiCollapse, but it's always possible to get the FOLD object.</p>
-
-	<div class="centered">
-		<pre><code><f>let</f> foldObject <key>=</key> cp.<f>getFOLD</f>();</code></pre>
 	</div>
 
 	<div class="diptych">
@@ -124,8 +127,8 @@ origami.<f>fold</f>();
 
 </section>
 
-<section id="about">
-	<h2>About</h2>
+<section id="footer" style="font-size: 80%; margin: 2rem 0">
+	<hr>
 	<p>This project is <a href="http://github.com/robbykraft/Origami/">open source</a>, released under the MIT license.</p>
 
 </section>
@@ -133,104 +136,77 @@ origami.<f>fold</f>();
 <script type="text/javascript" src="../tests/origami_fold.js"></script>
 <script type="text/javascript" src="../tests/origami_two_coloring.js"></script>
 <!-- <script type="text/javascript" src="../tests/origami_swim.js"></script> -->
-<script>
-let view3D = RabbitEar.Origami3D("intersection-wobble");
-view3D.load("../files/fold/square-twist.fold");
-</script>
+
 
 <script>
-let craneFold = RabbitEar.Origami("div-folded-crane")
-craneFold.load("../files/fold/crane.fold", function(cp){
-	console.log(cp);
-});
-// craneFold.svg.setAttributeNS(null, 'id', 'folded-crane');
-// craneFold.colorLayer = craneFold.group(undefined, "color-layer");
-// craneFold.svg.appendChild(craneFold.colorLayer);
-// craneFold.svg.appendChild(craneFold.facesLayer);
-
-</script>
-
-<!-- <script type="text/javascript" src="js/rabbit-ear.min.js"></script>
- -->
-<script>
-// flat fold example: kawasaki collapse, crease pattern and folded form
-// let kawasakiPaper = RabbitEar.Origami("kawasaki-collapse-example");
-// kawasakiPaper.onMouseMove = function(event){
-// 	this.cp.clear();
-// 	this.cp.crease(0, 0, event.point.x, event.point.y).mountain();
-// 	this.cp.crease(1, 1, event.point.x, event.point.y).mountain();
-// 	let cornerCrease = this.cp.crease(1, 0, event.point.x, event.point.y);
-// 	let kawasakiCrease = this.cp.kawasakiCollapse(event.point);
-// 	let a = {x:0,y:0};
-// 	let b = {x:1,y:1};
-// 	let cross = (b.x - a.x)*(event.point.y - a.y) > (b.y - a.y)*(event.point.x - a.x);
-// 	// console.log(cross)
-// 	if((b.x - a.x)*(event.point.y - a.y) > (b.y - a.y)*(event.point.x - a.x)){ 
-// 		cornerCrease.valley(); kawasakiCrease.mountain();
-// 	} else{
-// 		kawasakiCrease.valley(); cornerCrease.mountain();
-// 	}
-// 	this.draw();
-// 	kawasakiFolded.cp = this.cp.copy();
-// 	kawasakiFolded.draw();
-// }
-// let kawasakiFolded = RabbitEar.Origami("kawasaki-collapse-example");
-// kawasakiFolded.holdPoint = {x:0.5, y:0.0001};
-// kawasakiFolded.rotation = 180;
-// kawasakiPaper.onMouseMove( {point:{x:0.5,y:0.55}} );
-
-</script>
-
-<script>
-// download flat fold example folded form
-function download(text, filename){
-	let blob = new Blob([text], {type: "image/svg+xml"});
-	let url = window.URL.createObjectURL(blob);
-	let a = document.createElement("a");
-	a.href = url;
-	a.download = filename;
-	a.click();
-}
-// document.getElementById("download-example-button").onclick = function(event){
-// 	let svg = kawasakiFolded.cp.foldSVG();
-// 	download(svg, "rabbit-ear.js example.svg");
-// }
-
-
+// let view3D = RabbitEar.Origami3D("intersection-wobble");
+// view3D.load("../files/fold/square-twist.fold");
 </script>
 
 <script>
 // folded crane
-// let craneFold = new OrigamiFold("div-folded-crane").load("../files/svg/crane.svg", function(){
-// 	craneFold.foldedCP.faces_vertices
-// 		.map(function(face){
-// 			return face.map(function(nodeIndex){
-// 				return craneFold.foldedCP.vertices_coords[nodeIndex];
-// 			},this);
-// 		},this)
-// 		.forEach(function(vertices, index){
-// 			let polygon = craneFold.polygon(vertices, 'folded-paper-color', 'face-' + index);
-// 			craneFold.colorLayer.appendChild(polygon);
-// 		},this);
-// });
-// craneFold.svg.setAttributeNS(null, 'id', 'folded-crane');
-// craneFold.colorLayer = craneFold.group(undefined, "color-layer");
-// craneFold.svg.appendChild(craneFold.colorLayer);
-// craneFold.svg.appendChild(craneFold.facesLayer);
+let craneCP = RabbitEar.svg.image("div-folded-crane")
+craneCP.load("../files/svg/crane.svg", function(image){
+	let pad = image.w*0.02;
+	image.setViewBox(-pad, -pad, image.w + pad*2, image.h + pad*2);
+});
+
+let craneFold = RabbitEar.Origami("div-folded-crane")
+craneFold.load("../files/fold/crane.fold", function(cp){
+	craneFold.foldWithoutLayering(2);
+});
+
 </script>
 
 <script type="text/javascript">
+document.getElementById("download-example-button").onclick = function(event){
+	RabbitEar.svg.save(sinePleatsFolded);
+}
 document.getElementById("download-button").onclick = function(e){
 	let zip_file_path = "https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.1.zip";
-	let zip_file_name = "rabbit-ear.zip";
+	download(zip_file_path, "rabbit-ear.zip");
+}
+function download(url, filename){
 	let a = document.createElement("a");
-	document.body.appendChild(a);
 	a.style = "display: none";
-	a.href = zip_file_path;
-	a.download = zip_file_name;
+	document.body.appendChild(a);
+	a.href = url;
+	a.download = filename;
 	a.click();
 	document.body.removeChild(a);
 }
+</script>
+
+<script>
+let sinePleats = RabbitEar.Origami("canvas-sine-pleats");
+let sinePleatsFolded = RabbitEar.Origami("canvas-sine-pleats");
+
+sinePleats.init = function(t = 0.0) {
+	if (t >= 1) { t = 0.99; }
+	let unitCosine = -Math.cos(t*Math.PI*2)*0.5 + 0.5
+	sinePleats.cp = RabbitEar.CreasePattern();//.rectangle(2,1);
+	let PLEATS = 12;
+	let a = Array.from(Array((PLEATS-1))).map((_,i) => i+1);
+	let f = a.map(i => i/PLEATS);
+	let pts = f.map((f,i) =>
+		Math.PI/2 + (i%2)*(0.05+0.075*Math.sin(t*Math.PI*3)) + 0.3*(-Math.cos(t*5))
+	).map((a,i) => [
+		[0.5 + (f[i]-0.5)*(1.0+0.5-0.5*unitCosine), t],
+		[Math.cos(a), Math.sin(a)]
+	]);
+	pts.map((p,i) => i%2===0
+			? sinePleats.cp.creaseLine(p[0], p[1]).mountain()
+			: sinePleats.cp.creaseLine(p[0], p[1]).valley() );
+	sinePleatsFolded.cp = RabbitEar.CreasePattern(JSON.parse(JSON.stringify(sinePleats.cp)));
+	let face = sinePleats.nearest(pts[5][0][0]-0.02, pts[5][0][1]).face;
+	sinePleatsFolded.fold(face.index);
+}
+sinePleats.init();
+document.querySelector("#sine-pleats-input").oninput = function(event) {
+	let v = event.target.value / 500;
+	sinePleats.init(v*2);
+}
+
 </script>
 
 <?php include 'footer.php';?>

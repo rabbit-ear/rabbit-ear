@@ -1,4 +1,4 @@
-// graph.js
+// Graph.js
 // an undirected graph with edges and nodes
 // MIT open source license, Robby Kraft
 //
@@ -94,7 +94,7 @@ const GraphNode = function(graph) {
 			);
 	}
 	/** 
-	 * Get both adjacent edges and nodes. saves on computation time
+	 * Get both adjacent edges and nodes.
 	 */
 	const adjacent = function() {
 		let adj = Object.create(null);

@@ -2375,10 +2375,10 @@
 					if (newSVG.events == null) { newSVG.events = Events(newSVG); }
 					else { newSVG.events.setup(newSVG); }
 					attachSVGMethods(newSVG);
+					if (parent != null) { parent.insertBefore(newSVG, element); }
 					element.remove();
 					element = newSVG;
 				}
-				if (parent != null) { parent.appendChild(element); }
 				if (callback != null) { callback(element, error); }
 			});
 		};
@@ -3276,7 +3276,7 @@
 			: [x,y,w,h]);
 	};
 
-	var graph$1 = /*#__PURE__*/Object.freeze({
+	var graph = /*#__PURE__*/Object.freeze({
 		keys: keys,
 		all_keys: all_keys,
 		new_vertex: new_vertex,
@@ -4027,12 +4027,22 @@
 		return crease_line(graph, line[0], line[1]);
 	}
 
+	// export function creaseLine(graph, point, vector) {
+	// 	// todo idk if this is done
+	// 	let ray = Geom.Line(point, vector);
+	// 	graph.faces_vertices.forEach(face => {
+	// 		let points = face.map(v => graph.vertices_coords[v]);
+	// 		Geom.core.intersection.clip_line_in_convex_poly(points, point, vector);
+	// 	})
+	// 	return crease_line(graph, line[0], line[1]);
+	// }
+
 	function creaseRay(graph, point, vector) {
 		// todo idk if this is done
-		let ray = core.Ray(point, vector);
+		let ray = Ray(point, vector);
 		graph.faces_vertices.forEach(face => {
 			let points = face.map(v => graph.vertices_coords[v]);
-			core.intersection.clip_ray_in_convex_poly(_points, point, vector);
+			core.intersection.clip_ray_in_convex_poly(points, point, vector);
 		});
 		return crease_line(graph, line[0], line[1]);
 	}
@@ -4163,7 +4173,7 @@
 		return fold;
 	}
 
-	var origami = /*#__PURE__*/Object.freeze({
+	var Origami = /*#__PURE__*/Object.freeze({
 		universal_molecule: universal_molecule,
 		foldLayers: foldLayers,
 		crease_through_layers: crease_through_layers,
@@ -4389,8 +4399,8 @@
 	// this way one crease is one crease. it's more what a person expects.
 	// one crease can == many edges.
 	const Crease = function(_graph, _indices) {
-		// let graph = _graph; // pointer back to the graph;
-		// let indices = _indices; // indices of this crease in the graph
+		let graph = _graph; // pointer back to the graph;
+		let indices = _indices; // indices of this crease in the graph
 
 		const is_assignment = function(options) {
 			return indices.map(index => options
@@ -4449,6 +4459,23 @@
 			proto = {};
 		}
 
+		/** 
+		 * the most important thing this class offers: this component array
+		 * each object matches 1:1 a component in the FOLD graph.
+		 * when a graph component gets removed, its corresponding object deletes
+		 * itself so even if the user holds onto it, it no longer points to anything.
+		 * each component brings extra functionality to these edges/faces/vertices.
+		 * take great care to make sure they are always matching 1:1.
+		 * keys are each component's UUID for speedy lookup.
+		 */
+		let components = {
+			vertices: [],
+			edges: [],
+			faces: [],
+			// boundary: {},
+		};
+
+
 		/**
 		 * @param {file} is a FOLD object.
 		 * @param {prevent_wipe} true and it will import without first clearing
@@ -4488,19 +4515,25 @@
 
 		// todo: memo these. they're created each time, even if the CP hasn't changed
 		const getVertices = function() {
-			return (this.vertices_coords || [])
+			components.vertices.forEach(v => v.disable());
+			components.vertices = (this.vertices_coords || [])
 				.map((_,i) => Vertex(this, i));
+			return components.vertices;
 		};
 		const getEdges = function() {
-			return (this.edges_vertices || [])
+			components.edges.forEach(v => v.disable());
+			components.edges = (this.edges_vertices || [])
 				.map((_,i) => Edge$1(this, i));
+			return components.edges;
 			// return (this.edges_vertices || [])
 			// 		.map(e => e.map(ev => this.vertices_coords[ev]))
 			// 		.map(e => Geometry.Edge(e));
 		};
 		const getFaces = function() {
-			return (this.faces_vertices || [])
+			components.faces.forEach(v => v.disable());
+			components.faces = (this.faces_vertices || [])
 				.map((_,i) => Face(this, i));
+			return components.faces;
 			// return (this.faces_vertices || [])
 			// 		.map(f => f.map(fv => this.vertices_coords[fv]))
 			// 		.map(f => Polygon(f));
@@ -4579,46 +4612,33 @@
 			add_vertex_on_edge(graph, x, y, oldEdgeIndex);
 			didUpdate();
 		};
-		graph.axiom1 = function() {
-			let points = get_two_vec2$1(...arguments);
-			if (!points) { throw {name: "TypeError", message: "axiom1 needs 2 points"}; }
-			// let line = Geom.core.axiom[1](...points);
-			// let crease = Crease(this, crease_line(graph, line[0], line[1]));
-			let crease = Crease(this, axiom1$1(graph, ...points));
+		const axiom = function(number, params) {
+			let args;
+			switch(number) {
+				case 1: args = get_two_vec2$1(params); break;
+				case 2: args = get_two_vec2$1(params); break;
+				case 3: args = get_two_lines(params); break;
+				case 4: args = get_two_lines(params);break;
+				case 5: args = get_two_lines(params);break;
+				case 6: args = get_two_lines(params);break;
+				case 7: args = get_two_lines(params);break;
+			}
+			if (args === undefined) {
+				throw "axiom " + number + " was not provided with the correct inputs";
+			}
+			let crease = Crease(this, Origami["axiom"+number](graph, ...args));
 			didUpdate();
 			return crease;
 		};
-		graph.axiom2 = function() {
-			let points = get_two_vec2$1(...arguments);
-			if (!points) { throw {name: "TypeError", message: "axiom2 needs 2 points"}; }
-			let crease = Crease(this, axiom2$1(graph, ...points));
-			didUpdate();
-			return crease;
-		};
-		graph.axiom3 = function() {
-			let lines = get_two_lines(...arguments);
-			if (!lines) { throw {name: "TypeError", message: "axiom3 needs 2 lines"}; }
-			let crease = Crease(this, axiom3$1(graph, ...lines[0], ...lines[1]));
-			didUpdate();
-			return crease;
-		};
-		graph.axiom4 = function() {
-			let crease = Crease(this, axiom4$1(graph, arguments));
-			didUpdate();
-			return crease;
-		};
-		graph.axiom5 = function() {
-			let crease = Crease(this, axiom5$1(graph, arguments));
-			didUpdate();
-			return crease;
-		};
-		graph.axiom6 = function() {
-			let crease = Crease(this, axiom6$1(graph, arguments));
-			didUpdate();
-			return crease;
-		};
-		graph.axiom7 = function() {
-			let crease = Crease(this, axiom7$1(graph, arguments));
+		graph.axiom1 = function() { return axiom.call(this, [1, arguments]); };
+		graph.axiom2 = function() { return axiom.call(this, [2, arguments]); };
+		graph.axiom3 = function() { return axiom.call(this, [3, arguments]); };
+		graph.axiom4 = function() { return axiom.call(this, [4, arguments]); };
+		graph.axiom5 = function() { return axiom.call(this, [5, arguments]); };
+		graph.axiom6 = function() { return axiom.call(this, [6, arguments]); };
+		graph.axiom7 = function() { return axiom.call(this, [7, arguments]); };
+		graph.creaseLine = function() {
+			let crease = Crease(this, crease_line(graph, ...arguments));
 			didUpdate();
 			return crease;
 		};
@@ -4646,6 +4666,10 @@
 			didUpdate();
 			return crease;
 		};
+		graph.rectangle = function() {
+			// remove boundary
+			// add new boundary
+		};
 
 		return graph;
 
@@ -4656,7 +4680,7 @@
 
 	function svg_to_fold(svg$$1) {
 
-		// for each geometry, add creases without regards to invalid planar data
+		// for each geometry, add creases without regards to invalid planar edge crossings
 		//  (intersecting lines, duplicate vertices), clean up later.
 		let graph = {
 			"file_spec": 1.1,
@@ -4692,7 +4716,7 @@
 			switch(extension) {
 				case "fold":
 				fetch(input)
-					.then((response) => response.json)
+					.then((response) => response.json())
 					.then((data) => {
 						if (callback != null) { callback(data); }
 					});
@@ -4980,9 +5004,14 @@
 			edges.forEach((v,i) => v.svg = groups.crease.children[i]);
 			return edges;
 		};
+		const getFaces = function() {
+			let faces = prop.cp.faces;
+			faces.forEach((v,i) => v.svg = groups.face.children[i]);
+			return faces;
+		};
 
 		const load$$1 = function(input, callback) { // epsilon
-			load_fold(input, function(fold){
+			load_fold(input, function(fold) {
 				setCreasePattern( CreasePattern(fold) );
 				if (callback != null) { callback(); }
 			});
@@ -4991,6 +5020,12 @@
 		const fold = function(face){
 			let folded = fold_without_layering(prop.cp, face);
 			setCreasePattern( CreasePattern(folded) );
+		};
+
+		const foldWithoutLayering = function(face){
+			let folded = fold_without_layering(prop.cp, face);
+			setCreasePattern( CreasePattern(folded) );
+			Array.from(groups.face.children).forEach(face => face.setClass("face"));
 		};
 
 		Object.defineProperty(_this, "cp", {
@@ -5029,8 +5064,12 @@
 		Object.defineProperty(_this, "edges", {
 			get: function(){ return getEdges(); }
 		});
+		Object.defineProperty(_this, "faces", {
+			get: function(){ return getFaces(); }
+		});
 		Object.defineProperty(_this, "draw", { value: draw });
 		Object.defineProperty(_this, "fold", { value: fold });
+		Object.defineProperty(_this, "foldWithoutLayering", { value: foldWithoutLayering });
 		Object.defineProperty(_this, "load", { value: load$$1 });
 		Object.defineProperty(_this, "folded", { 
 			set: function(f) {
@@ -5381,7 +5420,7 @@
 
 	}
 
-	// graph.js
+	// Graph.js
 	// an undirected graph with edges and nodes
 	// MIT open source license, Robby Kraft
 	//
@@ -5477,7 +5516,7 @@
 				);
 		};
 		/** 
-		 * Get both adjacent edges and nodes. saves on computation time
+		 * Get both adjacent edges and nodes.
 		 */
 		const adjacent = function() {
 			let adj = Object.create(null);
@@ -5996,7 +6035,7 @@
 	};
 
 	const core$1 = Object.create(null);
-	Object.assign(core$1, frame, validate, graph$1, origami, planargraph);
+	Object.assign(core$1, frame, validate, graph, Origami, planargraph);
 	// remove these for production
 	// import test from './bases/test-three-fold.fold';
 	// import dodecagon from './bases/test-dodecagon.fold';
@@ -6029,7 +6068,7 @@
 	exports.CreasePattern = CreasePattern;
 	exports.Origami = View2D;
 	exports.Origami3D = View3D;
-	exports.graph = Graph$1;
+	exports.Graph = Graph$1;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

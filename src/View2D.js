@@ -11,7 +11,7 @@ import * as Geom from "../include/geometry";
 import * as SVG from "../include/svg";
 import * as Graph from "./fold/graph";
 import * as Origami from "./fold/origami";
-import * as Import from "./fold/import";
+import * as Import from "./parsers/import";
 import { flatten_frame } from "./fold/frame";
 import CreasePattern from "./cp/CreasePattern";
 import * as FoldSVG from "./svg/foldSVG";
@@ -163,7 +163,7 @@ export default function() {
 	};
 
 	const load = function(input, callback) { // epsilon
-		Import.load_fold(input, function(fold){
+		Import.load_fold(input, function(fold) {
 			setCreasePattern( CreasePattern(fold) );
 			if (callback != null) { callback(); }
 		});
@@ -172,6 +172,12 @@ export default function() {
 	const fold = function(face){
 		let folded = Origami.fold_without_layering(prop.cp, face);
 		setCreasePattern( CreasePattern(folded) );
+	}
+
+	const foldWithoutLayering = function(face){
+		let folded = Origami.fold_without_layering(prop.cp, face);
+		setCreasePattern( CreasePattern(folded) );
+		Array.from(groups.face.children).forEach(face => face.setClass("face"))
 	}
 
 	Object.defineProperty(_this, "cp", {
@@ -210,8 +216,12 @@ export default function() {
 	Object.defineProperty(_this, "edges", {
 		get: function(){ return getEdges(); }
 	});
+	Object.defineProperty(_this, "faces", {
+		get: function(){ return getFaces(); }
+	});
 	Object.defineProperty(_this, "draw", { value: draw });
 	Object.defineProperty(_this, "fold", { value: fold });
+	Object.defineProperty(_this, "foldWithoutLayering", { value: foldWithoutLayering });
 	Object.defineProperty(_this, "load", { value: load });
 	Object.defineProperty(_this, "folded", { 
 		set: function(f) {
