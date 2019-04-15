@@ -1,11 +1,17 @@
+let matrixReflectCallback = undefined;
+
 let reflect = RabbitEar.svg.image("canvas-reflection", 800, 300);
 
 reflect.reflectLayer = RabbitEar.svg.group();
 reflect.appendChild(reflect.reflectLayer);
 
+// reflect.touches = [
+// 	{pos: [Math.random()*reflect.w, Math.random()*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
+// 	{pos: [Math.random()*reflect.w, Math.random()*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
+// ];
 reflect.touches = [
-	{pos: [Math.random()*reflect.w, Math.random()*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
-	{pos: [Math.random()*reflect.w, Math.random()*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
+	{pos: [0.25*reflect.w, 0.5*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
+	{pos: [0.75*reflect.w, 0.5*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
 ];
 reflect.touches.forEach(p => {
 	p.svg.setAttribute("fill", "#e44f2a");
@@ -43,7 +49,10 @@ reflect.drawReflections = function(){
 		let circle = RabbitEar.svg.circle(newPos.x, newPos.y, 6);
 		circle.setAttribute("fill", "#ecb233");
 		reflect.reflectLayer.appendChild(circle);
-	})
+	});
+	if (matrixReflectCallback !== undefined) {
+		matrixReflectCallback({matrix: matrix.m});
+	}
 }
 
 reflect.redraw = function(){

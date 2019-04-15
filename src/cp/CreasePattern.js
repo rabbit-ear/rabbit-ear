@@ -124,9 +124,9 @@ const CreasePatternPrototype = function(proto) {
 	Object.defineProperty(proto, "nearestVertex", { value: nearestVertex });
 	Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
 	Object.defineProperty(proto, "nearestFace", { value: nearestFace });
-	Object.defineProperty(proto, "connectedGraphs", { get: function() {
-		return Graph.connectedGraphs(this);
-	}});
+	// Object.defineProperty(proto, "connectedGraphs", { get: function() {
+	// 	return Graph.connectedGraphs(this);
+	// }});
 
 	return Object.freeze(proto);
 }
@@ -172,10 +172,10 @@ const CreasePattern = function() {
 			case 1: args = Args.get_two_vec2(params); break;
 			case 2: args = Args.get_two_vec2(params); break;
 			case 3: args = Args.get_two_lines(params); break;
-			case 4: args = Args.get_two_lines(params);break;
-			case 5: args = Args.get_two_lines(params);break;
-			case 6: args = Args.get_two_lines(params);break;
-			case 7: args = Args.get_two_lines(params);break;
+			case 4: args = Args.get_two_lines(params); break;
+			case 5: args = Args.get_two_lines(params); break;
+			case 6: args = Args.get_two_lines(params); break;
+			case 7: args = Args.get_two_lines(params); break;
 		}
 		if (args === undefined) {
 			throw "axiom " + number + " was not provided with the correct inputs";

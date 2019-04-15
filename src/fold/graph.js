@@ -35,7 +35,11 @@ export const all_keys = ["file_frames"]
 	.concat(keys.graph)
 	.concat(keys.orders);
 
-export const new_vertex = function(graph, x, y) {
+/**
+ * these should trigger a careful re-build, they augment only one
+ * array for the larger set of components
+ */ 
+const new_vertex = function(graph, x, y) {
 	if (graph.vertices_coords == null) { graph.vertices_coords = []; }
 	graph.vertices_coords.push([x,y]);
 	let new_index = graph.vertices_coords.length-1;
@@ -45,7 +49,7 @@ export const new_vertex = function(graph, x, y) {
 	return new_index;
 }
 
-export const new_edge = function(graph, node1, node2) {
+const new_edge = function(graph, node1, node2) {
 	if (_m.edges_vertices == null) { graph.edges_vertices = []; }
 	graph.edges_vertices.push([node1, node2]);
 	let new_index = graph.edges_vertices.length-1;
@@ -66,8 +70,8 @@ export const new_edge = function(graph, node1, node2) {
 export const remove_non_boundary_edges = function(graph) {
 	let remove_indices = graph.edges_assignment
 		.map(a => !(a === "b" || a === "B"))
-		.map((a,i) => a ? i : null)
-		.filter(a => a != null)
+		.map((a,i) => a ? i : undefined)
+		.filter(a => a !== undefined)
 	let edge_map = remove_edges(graph, remove_indices);
 	let face = get_boundary_face(graph);
 	graph.faces_edges = [face.edges];
@@ -78,8 +82,8 @@ export const remove_non_boundary_edges = function(graph) {
 export const remove_isolated_vertices = function(graph) {
 	let isolated = graph.vertices_coords.map(_ => true);
 	graph.edges_vertices.forEach(edge => edge.forEach(v => isolated[v] = false));
-	let vertices = isolated.map((el,i) => el ? i : null)
-		.filter(el => el !== null);
+	let vertices = isolated.map((el,i) => el ? i : undefined)
+		.filter(el => el !== undefined);
 	if (vertices.length === 0) { return []; }
 	return remove_vertices(graph, vertices);
 }
@@ -99,6 +103,18 @@ export const vertices_count = function(graph) {
 		.filter(el => el != null)
 		.map(el => el.length)
 	));
+	// if(graph.faces_vertices != null){
+	// 	graph.faces_vertices.forEach(fv => fv.forEach(v =>{
+	// 		if(v > max){ max = v; }
+	// 	}))
+	// }
+	// if(graph.edges_vertices != null){
+	// 	graph.edges_vertices.forEach(ev => ev.forEach(v =>{
+	// 		if(v > max){ max = v; }
+	// 	}))
+	// }
+	// // return 0 if none found
+	// return max;
 }
 /* Get the number of edges in the graph as all edge definitions are optional
  *
@@ -110,6 +126,20 @@ export const edges_count = function(graph) {
 		.filter(el => el != null)
 		.map(el => el.length)
 	));
+	// let max = 0;
+	// if(graph.faces_edges != null){
+	// 	graph.faces_edges.forEach(fe => fe.forEach(e =>{
+	// 		if(e > max){ max = e; }
+	// 	}))
+	// }
+	// if(graph.edgeOrders != null){
+	// 	graph.edgeOrders.forEach(eo => eo.forEach((e,i) =>{
+	// 		// exception. index 2 is orientation, not index
+	// 		if(i != 2 && e > max){ max = e; }
+	// 	}))
+	// }
+	// // return 0 if none found
+	// return max;
 }
 /* Get the number of faces in the graph
  * in some cases face arrays might not be defined
@@ -122,6 +152,19 @@ export const faces_count = function(graph) {
 		.filter(el => el != null)
 		.map(el => el.length)
 	));
+	// let max = 0;
+	// if(graph.vertices_faces != null){
+	// 	graph.vertices_faces.forEach(fv => fv.forEach(v =>{
+	// 		if(v > max){ max = v; }
+	// 	}))
+	// }
+	// if(graph.edges_faces != null){
+	// 	graph.edges_faces.forEach(ev => ev.forEach(v =>{
+	// 		if(v > max){ max = v; }
+	// 	}))
+	// }
+	// // return 0 if none found
+	// return max;
 }
 
 ///////////////////////////////////////////////
@@ -205,7 +248,7 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 	let incident_vertices = graph.edges_vertices[old_edge_index];
 	// vertices_vertices, new vertex
 	if (graph.vertices_vertices == null) { graph.vertices_vertices = []; }
-	graph.vertices_vertices[new_vertex_index] = JSON.parse(JSON.stringify(incident_vertices));
+	graph.vertices_vertices[new_vertex_index] = clone(incident_vertices);
 	// vertices_vertices, update incident vertices with new vertex
 	incident_vertices.forEach((v,i,arr) => {
 		let otherV = arr[(i+1)%arr.length];
@@ -214,7 +257,7 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 	})
 	// vertices_faces
 	if (graph.edges_faces != null && graph.edges_faces[old_edge_index] != null) {
-		graph.vertices_faces[new_vertex_index] = JSON.parse(JSON.stringify(graph.edges_faces[old_edge_index]));
+		graph.vertices_faces[new_vertex_index] = clone(graph.edges_faces[old_edge_index]);
 	}
 	// new edges entries
 	// set edges_vertices
@@ -229,8 +272,8 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 		.filter(key => graph[key] != null && graph[key][old_edge_index] != null)
 		.forEach(key => {
 			// todo, copy these arrays
-			new_edges[0][key] = JSON.parse(JSON.stringify(graph[key][old_edge_index]));
-			new_edges[1][key] = JSON.parse(JSON.stringify(graph[key][old_edge_index]));
+			new_edges[0][key] = clone(graph[key][old_edge_index]);
+			new_edges[1][key] = clone(graph[key][old_edge_index]);
 		});
 	// calculate length
 	const distance2 = function(a,b){
@@ -388,62 +431,6 @@ export const get_boundary_vertices = function(graph) {
 }
 
 
-
-
-/** Convert this graph into an array of connected graphs, attempting one Hamilton path if possible. Edges are arranged in each graph.edges with connected edges next to one another.
- * @returns {Graph[]} 
- */
-export const connectedGraphs = function(graph) {
-	return;
-	var cp = JSON.parse(JSON.stringify(graph));
-	cp.clean();
-	cp.removeIsolatedNodes();
-	// cache every node's adjacent edge #
-	cp.nodes.forEach(function(node){ node.cache['adj'] = node.adjacentEdges().length; },this);
-	var graphs = [];
-	while (cp.edges.length > 0) {
-		var graph = new Graph();
-		// create a duplicate set of nodes in the new emptry graph, remove unused nodes at the end
-		cp.nodes.forEach(function(node){graph.addNode(Object.assign(new cp.nodeType(graph),node));},this);
-		// select the node with most adjacentEdges
-		var node = cp.nodes.slice().sort(function(a,b){return b.cache['adj'] - a.cache['adj'];})[0];
-		var adj = node.adjacentEdges();
-		while (adj.length > 0) {
-			// approach 1
-			// var nextEdge = adj[0];
-			// approach 2
-			// var nextEdge = adj.sort(function(a,b){return b.otherNode(node).cache['adj'] - a.otherNode(node).cache['adj'];})[0];
-			// approach 3, prioritize nodes with even number of adjacencies
-			var smartList = adj.filter(function(el){return el.otherNode(node).cache['adj'] % 2 == 0;},this)
-			if (smartList.length == 0){ smartList = adj; }
-			var nextEdge = smartList.sort(function(a,b){return b.otherNode(node).cache['adj'] - a.otherNode(node).cache['adj'];})[0];
-			var nextNode = nextEdge.otherNode(node);
-			// create new edge on other graph with pointers to its nodes
-			var newEdge = Object.assign(new cp.edgeType(graph,undefined,undefined), nextEdge);
-			newEdge.nodes = [graph.nodes[node.index], graph.nodes[nextNode.index] ];
-			graph.addEdge( newEdge );
-			// update this graph with 
-			node.cache['adj'] -= 1;
-			nextNode.cache['adj'] -= 1;
-			cp.edges = cp.edges.filter(function(el){ return el !== nextEdge; });
-			// prepare loop for next iteration. increment objects
-			node = nextNode;
-			adj = node.adjacentEdges();
-		}
-		// remove unused nodes
-		graph.removeIsolatedNodes();
-		graphs.push(graph);
-	}
-	return graphs;
-}
-
-
-
-
-
-
-
-
 /** Removes vertices, updates all relevant array indices
  *
  * @param {vertices} an array of vertex indices
@@ -571,17 +558,66 @@ export function remove_faces(graph, faces) {
 	// todo: do the same with frames in file_frames where inherit=true
 }
 
+
+
+
+
+
+// unused, but can be a generalized function one day
+function remove_from_array(array, match_function){
+	let remove = array.map((a,i) => match_function(a,i));
+	let s = 0, shift = remove.map(rem => rem ? --s : s);
+	array = array.filter(e => match_function(e));
+	return shift;
+}
+
+/** replace all instances of the vertex old_index with new_index
+ * does not modify array sizes, only contents of arrays
+ */
+/**
+ * subscript should be a component, "vertices" will search "faces_vertices"...
+ */
+export const reindex_subscript = function(graph, subscript, old_index, new_index){
+	Object.keys(graph)
+		.filter(key => key.includes("_" + subscript))
+		.forEach(key =>
+			graph[key].forEach((array, outerI) =>
+				array.forEach((component, innerI) => {
+					if(component === old_index){
+						graph[key][outerI][innerI] = new_index;
+					}
+				})
+			)
+		);
+	return graph;
+}
+
+/** This filters out all non-operational edges
+ * removes: "F": flat "U": unassigned
+ * retains: "B": border/boundary, "M": mountain, "V": valley
+ */
+export const remove_marks = function(fold) {
+	let removeTypes = ["f", "F", "b", "B"];
+	let removeEdges = fold.edges_assignment
+		.map((a,i) => ({a:a,i:i}))
+		.filter(obj => removeTypes.indexOf(obj.a) != -1)
+		.map(obj => obj.i)
+	Graph.remove_edges(fold, removeEdges);
+	// todo, rebuild faces
+}
+
+
 /**
  * Replace all instances of removed vertices with "vertex".
  * @param vertex number index of vertex to remain
  * @param [removed] array of indices to be replaced
  */
-export function merge_vertices(graph, vertex, removed) {
+export const merge_vertices = function(graph, vertex, removed) {
 	
 
 }
 
-export function make_edges_faces(graph) {
+export const make_edges_faces = function(graph) {
 	let edges_faces = Array
 		.from(Array(graph.edges_vertices.length))
 		.map(_ => []);
@@ -590,7 +626,7 @@ export function make_edges_faces(graph) {
 	return edges_faces;
 }
 
-export function make_vertices_faces(graph) {
+export const make_vertices_faces = function(graph) {
 	let vertices_faces = Array
 		.from(Array(graph.faces_vertices.length))
 		.map(_ => []);
@@ -618,3 +654,28 @@ export const bounding_rect = function(graph) {
 
 const bounding_cube = function(graph) {
 }
+
+export const clone = function(o) {
+	// from https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
+	var newO, i;
+	if (typeof o !== 'object') {
+		return o;
+	}
+	if (!o) {
+		return o;
+	}
+	if ('[object Array]' === Object.prototype.toString.apply(o)) {
+		newO = [];
+		for (i = 0; i < o.length; i += 1) {
+			newO[i] = clone(o[i]);
+		}
+		return newO;
+	}
+	newO = {};
+	for (i in o) {
+		if (o.hasOwnProperty(i)) {
+			newO[i] = clone(o[i]);
+		}
+	}
+	return newO;
+} 

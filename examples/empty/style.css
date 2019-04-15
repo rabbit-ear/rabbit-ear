@@ -21,3 +21,6 @@ svg{
 .boundary{ fill:none; }
 .mark{ stroke-width: calc( var(--crease-width) * 0.25); }
 .valley{ stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2) }
+.face{ fill: rgba(0,0,0,0.3); }
+.face-front{ stroke: black; stroke-width: calc( var(--crease-width)*0.25 ); fill: #f1c14f; }
+.face-back{ stroke: black; stroke-width: calc( var(--crease-width)*0.25 ); fill: white; }

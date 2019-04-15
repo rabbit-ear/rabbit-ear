@@ -14,7 +14,7 @@ import * as Origami from "./fold/origami";
 import * as Import from "./parsers/import";
 import { flatten_frame } from "./fold/frame";
 import CreasePattern from "./cp/CreasePattern";
-import * as FoldSVG from "./svg/foldSVG";
+import * as SVGHelper from "./svg/svgHelper";
 
 const plural = { boundary: "boundaries", face: "faces", crease: "creases", vertex: "vertices" };
 
@@ -45,7 +45,7 @@ export default function() {
 		autofit: true,
 		debug: false,
 		touchfold: true,
-		padding: 0
+		padding: 0,
 	};
 
 	const setCreasePattern = function(cp) {
@@ -56,17 +56,21 @@ export default function() {
 	}
 
 	const drawFolded = function(graph) {
-		FoldSVG.foldedFaces(graph)
+		SVGHelper.foldedFaces(graph)
 			.forEach(f => groups.face.appendChild(f));
 	};
 
 	const drawCreasePattern = function(graph) {
 		let drawings = {
-			boundary: FoldSVG.boundary(graph),
-			face: FoldSVG.facesVertices(graph).concat(FoldSVG.facesEdges(graph)),
-			crease: FoldSVG.creases(graph),
-			vertex: FoldSVG.vertices(graph)
+			boundary: SVGHelper.boundary(graph),
+			face: SVGHelper.facesVertices(graph),
+			crease: SVGHelper.creases(graph),
+			vertex: SVGHelper.vertices(graph)
 		};
+		if (preferences.debug) {
+			// add faces edges
+			drawings.face = drawings.face.concat(SVGHelper.facesEdges(graph));
+		}
 		Object.keys(drawings).forEach(key => 
 			drawings[key].forEach(el => groups[key].appendChild(el))
 		);
@@ -86,6 +90,11 @@ export default function() {
 		})
 	};
 
+	const isFolded = function(graph) {
+		if (graph.frame_classes == null) { return false; }
+		return graph.frame_classes.includes("foldedState");
+	}
+
 	const draw = function() {
 		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
 		labels.face.removeChildren(); //todo remove
@@ -93,7 +102,7 @@ export default function() {
 		let graph = prop.frame
 			? flatten_frame(prop.cp, prop.frame)
 			: prop.cp;
-		if (graph.isFolded) {
+		if (isFolded(graph)) {
 			drawFolded(graph);
 		} else{
 			drawCreasePattern(graph);
@@ -170,8 +179,18 @@ export default function() {
 	}
 
 	const fold = function(face){
-		let folded = Origami.fold_without_layering(prop.cp, face);
-		setCreasePattern( CreasePattern(folded) );
+		let vertices_coords = Origami.fold_vertices_coords(prop.cp, face);
+		let file_frame = {
+			vertices_coords,
+			frame_classes: ["foldedState"],
+			frame_inherit: true,
+			frame_parent: 0
+		};
+		if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
+		prop.cp.file_frames.unshift(file_frame);
+		prop.frame = 1;
+		draw();
+		// setCreasePattern( CreasePattern(folded) );
 	}
 
 	const foldWithoutLayering = function(face){
@@ -179,6 +198,15 @@ export default function() {
 		setCreasePattern( CreasePattern(folded) );
 		Array.from(groups.face.children).forEach(face => face.setClass("face"))
 	}
+
+	Object.defineProperty(_this, "export", { value: function() {
+		let svg = _this.cloneNode(true);
+		svg.setAttribute("x", "0px");
+		svg.setAttribute("y", "0px");
+		svg.setAttribute("width", "600px");
+		svg.setAttribute("height", "600px");
+		return SVG.save(svg, ...arguments);
+	}});
 
 	Object.defineProperty(_this, "cp", {
 		get: function() { return prop.cp; },
@@ -240,16 +268,32 @@ export default function() {
 	Object.defineProperty(_this, "showFaces", { value: showFaces });
 	Object.defineProperty(_this, "hideFaces", { value: hideFaces });
 
-
 	_this.groups = groups;
 	_this.labels = labels;
 	Object.defineProperty(_this, "updateViewBox", { value: updateViewBox });
-
 
 	_this.preferences = preferences;
 
 	// boot
 	setCreasePattern( CreasePattern(...arguments) );
+
+	let lastStep;
+	_this.events.addEventListener("onMouseDown", function(mouse) {
+		lastStep = JSON.parse(JSON.stringify(prop.cp));
+	});
+	_this.events.addEventListener("onMouseMove", function(mouse) {
+		if (mouse.isPressed) {
+			prop.cp = CreasePattern(lastStep);
+			let points = [
+				Geom.Vector(mouse.pressed),
+				Geom.Vector(mouse.position)
+			];
+			let midpoint = points[0].midpoint(points[1]);
+			let vector = points[1].subtract(points[0]);
+			prop.cp.valleyFold(midpoint, vector.rotateZ90());
+			fold();
+		}
+	});
 
 	return _this;
 };

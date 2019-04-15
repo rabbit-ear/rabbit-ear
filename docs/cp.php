@@ -5,7 +5,7 @@
 <h1>CREASE PATTERNS</h1>
 
 
-	<div id="canvas-face-coloring"></div>
+	<div id="canvas-face-dual"></div>
 
 <section id="intro">
 
@@ -16,6 +16,8 @@
 	<div id="single-vertex" class="diptych"></div>
 	
 	<p class="quote">This is ensuring flat-foldability by using the Kawasaki Collapse.</p>
+
+	<p>Flat-foldability is difficult to calculate, but there are tools for approximating a calculation:</p>
 
 	<h3>Kawasaki's Theorem</h3>
 	
@@ -65,6 +67,10 @@
 <section id="twists">
 
 <h2>Twists</h2>
+
+	<div id="canvas-face-coloring"></div>
+
+	<p>Especially with face tilings, it's helpful for 
 
 	<div id="canvas-convex-twist"></div>
 
@@ -129,6 +135,7 @@
 <script type="text/javascript" src="../tests/origami_kawasaki.js"></script>
 <script type="text/javascript" src="../tests/origami_kawasaki_collapse.js"></script>
 <script type="text/javascript" src="../tests/origami_molecule.js"></script>
+<script type="text/javascript" src="../tests/graph_face_dual.js"></script>
 <script type="text/javascript" src="../tests/origami_twist.js"></script>
 <script type="text/javascript" src="../tests/origami_treemaker.js"></script>
 <script type="text/javascript" src="../tests/origami_two_coloring.js"></script>

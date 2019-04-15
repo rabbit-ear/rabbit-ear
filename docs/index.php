@@ -30,7 +30,7 @@
 	<p>Download Rabbit Ear here.</p>
 
 	<div class="center">
-		<button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.2.zip</button>
+		<a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.19.zip"><button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.19.zip</button></a>
 	</div>
 
 	<p>Create a new project inside the "sketches" folder by copying and renaming "empty".</p>
@@ -82,7 +82,7 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 
 	<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
 
-	<p>This sketch generates pleats based on a sine curve.</p>
+	<p>These generative pleats are based sine curves.</p>
 
 	<div id="canvas-sine-pleats" class="diptych"></div>
 	<div class="center" style="width: 300px; max-width: 50vw; margin:auto; margin-top: 2rem; text-align:center;">
@@ -94,12 +94,10 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 	<p>Because Rabbit Ear draws using SVG, a vector image file is always ready for export.</p>
 
 	<div class="center">
-		<button type="button" class="btn btn-dark" id="download-example-button">download image</button>
+		<button type="button" class="btn btn-dark" id="download-example-button">save image</button>
 	</div>
 
-
 </section>
-
 
 <h2>CREASE PATTERN</h2>
 
@@ -109,7 +107,7 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 
 <section>
 
-	<p>Each origami object contains a <b>Crease Pattern</b>, an extended <a href="https://github.com/edemaine/fold">FOLD</a> object. This is where all the crease information is stored.</p>
+	<p>Each origami object contains a <b>Crease Pattern</b>, an extended <a href="https://github.com/edemaine/fold">FOLD</a> object. This is where all the crease information is stored; storing both unfolded and folded states.</p>
 
 	<div class="centered">
 		<pre><code>origami.cp <c>// an origami's crease pattern is here</c></code></pre>
@@ -160,7 +158,7 @@ craneFold.load("../files/fold/crane.fold", function(cp){
 
 <script type="text/javascript">
 document.getElementById("download-example-button").onclick = function(event){
-	RabbitEar.svg.save(sinePleatsFolded);
+	sinePleatsFolded.export("pleats.svg", true);
 }
 document.getElementById("download-button").onclick = function(e){
 	let zip_file_path = "https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.1.zip";

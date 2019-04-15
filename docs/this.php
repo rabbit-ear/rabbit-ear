@@ -10,7 +10,7 @@
 
 	<pre><code>&lt;<key>script</key> <v>src</v>=<str>"rabbit-ear.js"</str>&gt;&lt;/<key>script</key>&gt;</code></pre>
 
-	<p class="quote">All functionality is contained in this file, rabbit-ear.js</p>
+	<p class="quote">Everything is contained in this one file, rabbit-ear.js</p>
 
 <div id="canvas-origami-fold"></div>
 
@@ -35,8 +35,12 @@
 
 <section>
 
-<h2>CREASE PATTERN</h2>
+<h2>Objects</h2>
 
+<h3>I. Origami</h3>
+
+
+<h3>II. CreasePattern</h3>
 	<div class="diptych">
 		<img src="../rabbitear-site/images/one-fold-cp.svg">
 	</div>
@@ -71,10 +75,19 @@
 
 
 <section>
+<h2>Containers</h2>
+<h3>I. Core</h3>
+<h3>II. Math</h3>
+<h3>III. SVG</h3>
+<h3>IV. bases</h3>
+
+</section>
+
+<section>
 
 	<h2>CONTRIBUTING</h2>
 
-	<p>If it wasn't obvious yet (then I succeeded), this library is far from done.</p>
+	<p>If it wasn't obvious yet (then I succeeded), this library is not finished.</p>
 
 	<p>The core of this library is in a good place; the data model follows the FOLD specification, graphics are in SVG, and the math library was written specifically for this project.</p>
 

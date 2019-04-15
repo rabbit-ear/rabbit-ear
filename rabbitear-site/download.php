@@ -25,7 +25,7 @@
 <h1>DOWNLOAD</h1>
 
 	<div class="column">
-		<a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.1.zip">
+		<a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.19.zip">
 			<button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.1.zip</button>
 		</a>
 		<p>381 kb</p>

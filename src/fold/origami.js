@@ -15,8 +15,7 @@ import * as PlanarGraph from "./planargraph";
 import { apply_diff, apply_diff_map } from "./diff";
 
 export function universal_molecule(polygon) {
-	let poly = Geom.ConvexPolygon(polygon);
-	poly.sectors()
+
 }
 
 export function foldLayers(faces_layer, faces_folding) {
@@ -38,26 +37,13 @@ export function foldLayers(faces_layer, faces_folding) {
 }
 
 /**
- * point average, not centroid, only useful in certain cases
+ * point average, not centroid, must be convex, only useful in certain cases
  */
 const make_face_center = function(graph, face_index) {
 	return graph.faces_vertices[face_index]
 		.map(v => graph.vertices_coords[v])
 		.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
 		.map(el => el/graph.faces_vertices[face_index].length);
-}
-
-const prepare_extensions = function(graph) {
-	let faces_count = graph.faces_vertices.length;
-	if (graph["re:faces_layer"] == null) { // this isn't exactly good. it works with 1 face
-		graph["re:faces_layer"] = Array.from(Array(faces_count)).map(_ => 0);
-	}
-	if (graph["re:face_stationary"] == null) {
-		graph["re:face_stationary"] = 0;
-	}
-	if (graph["re:faces_to_move"] == null) {
-		graph["re:faces_to_move"] = Array.from(Array(faces_count)).map(_ => false);
-	}
 }
 
 /**
@@ -88,6 +74,19 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 		));
 }
 
+const prepare_extensions = function(graph) {
+	let faces_count = graph.faces_vertices.length;
+	if (graph["re:faces_layer"] == null) { // this isn't exactly good. it works with 1 face
+		graph["re:faces_layer"] = Array.from(Array(faces_count)).map(_ => 0);
+	}
+	if (graph["re:face_stationary"] == null) {
+		graph["re:face_stationary"] = 0;
+	}
+	if (graph["re:faces_to_move"] == null) {
+		graph["re:faces_to_move"] = Array.from(Array(faces_count)).map(_ => false);
+	}
+}
+
 /**
  * this returns a copy of the graph with new crease lines.
  * modifying the input graph with "re:" keys
@@ -110,7 +109,8 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	prepare_extensions(graph);
 	prepare_to_fold(graph, point, vector, face_index);
 
-	let folded = JSON.parse(JSON.stringify(graph));
+	// let folded = JSON.parse(JSON.stringify(graph));
+	let folded = Graph.clone(graph);
 
 	let faces_count = graph.faces_vertices.length;
 	Array.from(Array(faces_count)).map((_,i) => i).reverse()
@@ -398,4 +398,23 @@ export function fold_without_layering(fold, face) {
 	fold.frame_classes = ["foldedState"];
 	fold.vertices_coords = new_vertices_coords_cp;
 	return fold;
+}
+
+
+export const fold_vertices_coords = function(fold, face) {
+	if (fold["re:face_stationary"] != null) {
+		face = fold["re:face_stationary"];
+	}
+	if (face == null) { face = 0; }
+	let faces_matrix = PlanarGraph.make_faces_matrix(fold, face);
+	let vertex_in_face = fold.vertices_coords.map((v,i) => {
+		for(let f = 0; f < fold.faces_vertices.length; f++) {
+			if (fold.faces_vertices[f].includes(i)){ return f; }
+		}
+	});
+	return fold.vertices_coords.map((point,i) =>
+		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
+			Geom.core.clean_number(n)
+		)
+	)
 }

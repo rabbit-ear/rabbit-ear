@@ -1,23 +1,26 @@
+export const append_frame = function(fold_file) {
+
+}
 
 export const flatten_frame = function(fold_file, frame_num){
 	const dontCopy = ["frame_parent", "frame_inherit"];
 	var memo = {visited_frames:[]};
 	function recurse(fold_file, frame, orderArray){
-		if(memo.visited_frames.indexOf(frame) != -1){
+		if(memo.visited_frames.indexOf(frame) !== -1){
 			throw ".FOLD file_frames encountered a cycle. stopping.";
 			return orderArray;
 		}
 		memo.visited_frames.push(frame);
 		orderArray = [frame].concat(orderArray);
-		if(frame == 0){ return orderArray; }
+		if(frame === 0){ return orderArray; }
 		if(fold_file.file_frames[frame - 1].frame_inherit &&
-		   fold_file.file_frames[frame - 1].frame_parent != undefined){
+		   fold_file.file_frames[frame - 1].frame_parent != null){
 			return recurse(fold_file, fold_file.file_frames[frame - 1].frame_parent, orderArray);
 		}
 		return orderArray;
 	}
 	return recurse(fold_file, frame_num, []).map(frame => {
-		if(frame == 0){
+		if(frame === 0){
 			// for frame 0 (the key frame) don't copy over file_frames array
 			let swap = fold_file.file_frames;
 			fold_file.file_frames = null;

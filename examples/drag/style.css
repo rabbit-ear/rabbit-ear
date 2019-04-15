@@ -6,18 +6,26 @@ html,body{
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	background-color:hsl(205, 74%, 30%);
+	background-color: black; /*hsl(205, 74%, 30%);*/
 	color:white;
 	font-family: sans-serif;
 }
 svg{
-	width:42vmax;
-	height:42vmax;
+	width:95vmin;
+	height:95vmin;
 	margin: auto;
 	max-width:100vw;
 	max-height:calc(100vh - 70px);
 	padding: 0 3vw;
 }
+.top-corner svg{
+	width: 100%;
+	height: 100%;
+	max-width: initial;
+	max-height: initial;
+	padding: initial;
+}
+
 h2{
 	display: inline-block;
 	margin: 1rem 2rem;
@@ -30,10 +38,8 @@ h2{
 	z-index: 1;
 	top: 1rem;
 	right: 1rem;
-	padding:.5em .75em;
-	background-color: white;
-	color: black;
-	display: none;
+	width: 33vmin;
+	height: 33vmin;
 	cursor: pointer;
 }
 .row{

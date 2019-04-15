@@ -121,3 +121,22 @@ export const foldedFaces = function(graph) {
 	// 		);
 	// }
 }
+
+export const getPageCSS = function() {
+	let css = [];
+	for (let sheeti = 0; sheeti < document.styleSheets.length; sheeti++) {
+		let sheet = document.styleSheets[sheeti];
+		let rules = ('cssRules' in sheet) ? sheet.cssRules : sheet.rules;
+		for (let rulei = 0; rulei < rules.length; rulei++) {
+			let rule = rules[rulei];
+			if ('cssText' in rule){
+				css.push(rule.cssText);
+			}
+			else{
+				css.push(rule.selectorText+' {\n'+rule.style.cssText+'\n}\n');
+			}
+		}
+	}
+	return css.join('\n');
+}
+

@@ -56,7 +56,7 @@
 	<div class="centered">
 		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br><span id="vec-sketch-normal"></span>point.<f>normalize</f>() <br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#6096bb">// cross product with +Z</span></code></pre>
 	</div>
-	<p>Notice the y axis is positive in the downwards direction. <b>I did not make this decision</b> it's a computer graphics standard, I've learned that fighting against it just causes more problems.</p>
+	<p>Notice the y axis is positive in the downwards direction. <b>I didn't make this decision</b>, it's a computer graphics standard. The SVG is simply drawing in its coordinate frame. If you want to flip the +Y axis is not difficult, but it's on you.</p>
 	<p class="explain">This vector object is not limited to 2D, it works in n-dimensions.</p>
 	<!-- <h4>Linear Interpolation</h4> -->
 	<div id="canvas-lerp"></div>
@@ -64,8 +64,8 @@
 		<pre><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, t)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, t)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, t)</code></pre>
 	</div>
 
-	<p>This vector object is <b>immutable</b>.</p>
-	<p>Each vector operation returns a <b>new, transformed vector</b>. This approach generally applies to the entire library.</p>
+	<p>This vector object is <b>immutable</b>. Each vector operation returns a <b>new, transformed vector</b>.
+	<p>This immutability pattern is generally reflected throughout the entire library.</p>
 
 	<div class="centered">
 <pre><code><c>// return a bool</c>
@@ -96,7 +96,7 @@
 <f>function</f> <v>bisect</v>(<arg>vector</arg>)</code></pre>
 </div>
 
-	<p>Keep in mind these two takes on the same object, <b>point</b> and <b>vector</b>. A point might not use magnitude() often, whereas a vector might never use distanceTo().</p>
+	<p>Remember <b>point</b> and <b>vector</b>; two ways of looking at the same object. As you use this object ask yourself "which am I dealing with?". A point might rarely use magnitude() but often uses distanceTo(), whereas a vector is the reverse.</p>
 
 </section>
 
@@ -116,27 +116,32 @@
 		<div id="matrix-2"></div>
 	</div>
 
-	<p>When a sheet of paper is folded, one side is <b>reflected</b> across the crease line.</p>
+	<p>One transform in particular is especially useful to origami. To simulate a fold:</p>
+	<ol>
+		<li>clip the polygon into two along the crease line.</li>
+		<li><b>reflect</b> one face across the crease line.</li>
+	</ol>
 
 	<div id="canvas-fold-poly"></div>
 
-
-	<p>A matrix for 2D transformations needs 6 numbers: 4 for rotation, scaling, and reflection operations, and 2 for translation.</p>
-
 <h3 id="reflection">Reflection</h3>
 
-	<p>A 2x2 matrix is sufficient to represent a reflection line that goes through the origin. For all lines, an additional 1x2 column is required.</p>
+	<p>A 2x2 matrix is sufficient to represent a reflection. However a problem arises: all the lines of reflection must pass through the origin. There are two solutions:</p>
+	<ul>
+		<li>translate your geometry to the origin, perform the reflection, translate it back.</li>
+		<li>append a 1x2 column to the reflection matrix, encoding the translation: <b>(tx, ty)</b></li>
+	</ul>
+
+	<div class="quote">
+		<div id="matrix-3"></div>
+	</div>
 
 	<div id="canvas-reflection"></div>
-<!-- 
-	<div class="quote large">
-		<div id="matrix-1"></div>
-	</div> -->
 
-	<p class="quote">Any line type (Line, Ray, Edge) can be turned into a reflection matrix.</p>
+	<p>Any line type (Line, Ray, Edge) can be turned into a reflection matrix.</p>
 
 	<div class="centered">
-		<pre><code><f>let</f> matrix <key>=</key> edge.<v>reflectionMatrix</v>()</code></pre>
+		<pre><code><f>let</f> matrix <key>=</key> edge.<f>reflection</f>()</code></pre>
 	</div>
 
 </section>
@@ -154,37 +159,31 @@
 	</div>
 
 
-	<p>Line and Ray are initialized with two arguments:</p>
+	<p>Line and Ray are initialized with a <b>point</b> and a <b>direction</b>, Edge is initialized with <b>two endpoints</b>:</p>
 		
 	<div class="centered">
-		<pre><code><f>Line</f>(<arg>origin_point</arg>, <arg>direction_vector</arg>)</code></pre>
+		<pre><code><f>Line</f>(<arg>point</arg>, <arg>vector</arg>)<br><f>Ray</f>(<arg>point</arg>, <arg>vector</arg>)<br><f>Edge</f>(<arg>point_a</arg>, <arg>point_b</arg>)</code></pre>
 	</div>
 
-	<p>Edge however is initialized with two endpoints:</p>
-
-	<div class="centered">
-		<pre><code><f>Edge</f>(<arg>point_1</arg>, <arg>point_2</arg>)</code></pre>
-	</div>
-
-	<p>Lines, rays, and edges all contain a point and a vector. An Edges's endpoints can be accessed with array syntax:</p>
+	<p>All three types contain a point and a vector (even the Edge). Uniquely, an Edges's endpoints can be accessed with array syntax:</p>
 
 	<div class="centered">
 		<pre><code><c>// line, ray, edge</c><br>line.<f>point</f><br>line.<f>vector</f><br><c>// edge only</c><br>edge[<n>0</n>]<br>edge[<n>1</n>]</code></pre>
 	</div>
 
-	<p>We can ask two lines to <b>bisect</b>. This method returns an array of two lines (if the lines are not parallel), always sorting the yellow first, the smaller interior angle solution when the dot product is > 0.</p>
-
-	<p>This operation is essentially origami axiom #3.</p>
+	<p>We can ask two lines to <b>bisect</b>. In the unique case these lines are parallel, there is only one solution. Otherwise, this method returns an array of two lines and always sorts one first: the bisection of the smaller interior angle when the dot product is > 0.</p>
 
 	<div id="canvas-line-bisect"></div>
 
+	<p class="quote">This operation is analogous to origami axiom #3.</p>
+
 	<div class="centered">
-		<pre><code>yellow.<f>bisect</f>(red)</code></pre>
+		<pre><code>lineA.<f>bisect</f>(lineB)</code></pre>
 	</div>
 
-	<p>The nearest point on a line to another point can be located if you draw a normal vector that passes through the point.</p>
+	<p>The <b>nearest point</b> on a line can be located by projecting the point down to the line, along the line's normal.</p>
 
-	<p>In the case of line segments, the normal might lie beyond the endpoints. The shortest point is now one of the two endpoints.</p>
+	<p>In the case of rays and segments, the projection might lie beyond the endpoints. The nearest point is set to that endpoint.</p>
 
 	<div id="nearest-point"></div>
 
@@ -284,8 +283,8 @@
 <script type="text/javascript" src="../tests/matrix_basis.js"></script>
 <script type="text/javascript">
 katex.render("\\begin{bmatrix} a & c & tx \\\\ b & d & ty \\end{bmatrix}", document.getElementById("matrix-1"));
-katex.render("\\begin{Bmatrix} a & c \\\\ b & d \\end{Bmatrix}", document.getElementById("matrix-2"));
-// katex.render("\\begin{Bmatrix} tx \\\\ ty \\end{Bmatrix}", document.getElementById("matrix-3"));
+katex.render("\\begin{bmatrix} a & c \\\\ b & d \\end{bmatrix}", document.getElementById("matrix-2"));
+katex.render("\\begin{bmatrix} a & c & tx \\\\ b & d & ty \\end{bmatrix}", document.getElementById("matrix-3"));
 </script>
 <script type="text/javascript">
 vecTextSketchCallback = function(event){
@@ -304,8 +303,11 @@ nearestPointCallback = function(event) {
 }
 basisVecSketchCallback = function(event) {
 	if (event.axes == null) { return; }
-	
-	katex.render("\\begin{Bmatrix} "+event.axes[0][0].toFixed(1)+" & "+event.axes[1][0].toFixed(1)+" \\\\ "+event.axes[0][1].toFixed(1)+" & "+event.axes[1][1].toFixed(1)+" \\end{Bmatrix}", document.getElementById("matrix-2"));
+	katex.render("\\begin{bmatrix} "+event.axes[0][0].toFixed(1)+" & "+event.axes[1][0].toFixed(1)+" \\\\ "+event.axes[0][1].toFixed(1)+" & "+event.axes[1][1].toFixed(1)+" \\end{bmatrix}", document.getElementById("matrix-2"));
+}
+matrixReflectCallback = function(event) {
+	if (event.matrix == null) { return; }
+	katex.render("\\begin{bmatrix} "+event.matrix[0].toFixed(1)+" & "+event.matrix[2].toFixed(1)+" & "+event.matrix[4].toFixed(1) +" \\\\ "+event.matrix[1].toFixed(1)+" & "+event.matrix[3].toFixed(1)+" & "+event.matrix[5].toFixed(1) +" \\end{bmatrix}", document.getElementById("matrix-3"));
 }
 </script>
 

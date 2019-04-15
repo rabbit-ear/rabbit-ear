@@ -1,7 +1,6 @@
 import * as math from '../include/geometry';
 import * as svg from '../include/svg';
 import * as noise from '../include/perlin';
-// import * as Model from './Model';
 
 // fold file manipulators
 import * as frame from './fold/frame';
@@ -65,8 +64,4 @@ export { default as Graph } from './Graph';
 export { math };
 export { svg };
 export { core };
-
-// export { noise };
-// export { fold };
-
 export { bases };
