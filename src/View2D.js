@@ -11,7 +11,7 @@ import * as Geom from "../include/geometry";
 import * as SVG from "../include/svg";
 import * as Graph from "./fold/graph";
 import * as Origami from "./fold/origami";
-import * as Import from "./parsers/import";
+import * as Convert from "./parsers/convert";
 import { flatten_frame } from "./fold/frame";
 import CreasePattern from "./cp/CreasePattern";
 import * as SVGHelper from "./svg/svgHelper";
@@ -182,7 +182,7 @@ export default function() {
 	};
 
 	const load = function(input, callback) { // epsilon
-		Import.load_file(input, function(fold) {
+		Convert.load_file(input, function(fold) {
 			setCreasePattern( CreasePattern(fold) );
 			if (callback != null) { callback(); }
 		});
@@ -284,7 +284,11 @@ export default function() {
 	let lastStep;
 	_this.events.addEventListener("onMouseDown", function(mouse) {
 		if (preferences.folding) {
-			lastStep = JSON.parse(JSON.stringify(prop.cp));
+			try{
+				lastStep = JSON.parse(JSON.stringify(prop.cp));
+			} catch(error) {
+				console.warn("problem loading the last fold step", error);
+			}
 		}
 	});
 	_this.events.addEventListener("onMouseMove", function(mouse) {

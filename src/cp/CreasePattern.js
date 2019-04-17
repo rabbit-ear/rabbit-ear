@@ -7,6 +7,7 @@ import { Polygon } from "../../include/geometry";
 import * as Args from "../parsers/arguments";
 import squareFoldString from "../bases/square.fold";
 import { Vertex, Face, Edge, Crease } from "./components";
+import * as Convert from "../parsers/convert";
 
 const CreasePatternPrototype = function(proto) {
 	if(proto == null) {
@@ -29,6 +30,11 @@ const CreasePatternPrototype = function(proto) {
 		// boundary: {},
 	};
 
+	let _this;
+
+	const bind = function(that){
+		_this = that;
+	}
 
 	/**
 	 * @param {file} is a FOLD object.
@@ -36,29 +42,37 @@ const CreasePatternPrototype = function(proto) {
 	 */
 	const load = function(file, prevent_wipe) {
 		if (prevent_wipe == null || prevent_wipe !== true) {
-			Graph.all_keys.forEach(key => delete this[key])
+			Graph.all_keys.forEach(key => delete _this[key])
 		}
-		Object.assign(this, JSON.parse(JSON.stringify(file)));
+		Object.assign(_this, JSON.parse(JSON.stringify(file)));
 	}
 	/**
 	 * @return {CreasePattern} a deep copy of this object.
 	 */ 
 	const copy = function() {
-		return CreasePattern(JSON.parse(JSON.stringify(this)));
+		return CreasePattern(JSON.parse(JSON.stringify(_this)));
 	}
 	/**
 	 * this removes all geometry from the crease pattern and returns it
 	 * to its original state (and keeps the boundary edges if present)
 	 */
 	const clear = function() {
-		Graph.remove_non_boundary_edges(this);
-		if (typeof this.onchange === "function") { this.onchange(); }
+		Graph.remove_non_boundary_edges(_this);
+		if (typeof _this.onchange === "function") { _this.onchange(); }
 	}
 	/**
 	 * @return {Object} a deep copy of this object in the FOLD format.
 	 */ 
-	const getFOLD = function() {
-		return JSON.parse(JSON.stringify(this));
+	const json = function() {
+		try {
+			return JSON.parse(JSON.stringify(_this));
+		} catch(error){
+			console.warn("could not parse Crease Pattern into JSON", error);
+		}
+	}
+
+	const svg = function(cssRules) {
+		return Convert.fold_to_svg(_this);
 	}
 
 	// const wipe = function() {
@@ -70,14 +84,14 @@ const CreasePatternPrototype = function(proto) {
 	// todo: memo these. they're created each time, even if the CP hasn't changed
 	const getVertices = function() {
 		components.vertices.forEach(v => v.disable());
-		components.vertices = (this.vertices_coords || [])
-			.map((_,i) => Vertex(this, i));
+		components.vertices = (_this.vertices_coords || [])
+			.map((_,i) => Vertex(_this, i));
 		return components.vertices;
 	}
 	const getEdges = function() {
 		components.edges.forEach(v => v.disable());
-		components.edges = (this.edges_vertices || [])
-			.map((_,i) => Edge(this, i));
+		components.edges = (_this.edges_vertices || [])
+			.map((_,i) => Edge(_this, i));
 		return components.edges;
 		// return (this.edges_vertices || [])
 		// 		.map(e => e.map(ev => this.vertices_coords[ev]))
@@ -85,8 +99,8 @@ const CreasePatternPrototype = function(proto) {
 	}
 	const getFaces = function() {
 		components.faces.forEach(v => v.disable());
-		components.faces = (this.faces_vertices || [])
-			.map((_,i) => Face(this, i));
+		components.faces = (_this.faces_vertices || [])
+			.map((_,i) => Face(_this, i));
 		return components.faces;
 		// return (this.faces_vertices || [])
 		// 		.map(f => f.map(fv => this.vertices_coords[fv]))
@@ -96,21 +110,21 @@ const CreasePatternPrototype = function(proto) {
 		// todo: test this for another reason anyway
 		// todo: this only works for unfolded flat crease patterns
 		return Polygon(
-			Graph.get_boundary_face(this).vertices
-				.map(v => this.vertices_coords[v])
+			Graph.get_boundary_face(_this).vertices
+				.map(v => _this.vertices_coords[v])
 		);
 	};
 	const nearestVertex = function(x, y, z = 0) {
-		let index = PlanarGraph.nearest_vertex(this, [x, y, z]);
-		return (index != null) ? Vertex(this, index) : undefined;
+		let index = PlanarGraph.nearest_vertex(_this, [x, y, z]);
+		return (index != null) ? Vertex(_this, index) : undefined;
 	}
 	const nearestEdge = function(x, y, z = 0) {
-		let index = PlanarGraph.nearest_edge(this, [x, y, z]);
-		return (index != null) ? Edge(this, index) : undefined;
+		let index = PlanarGraph.nearest_edge(_this, [x, y, z]);
+		return (index != null) ? Edge(_this, index) : undefined;
 	}
 	const nearestFace = function(x, y, z = 0) {
-		let index = PlanarGraph.face_containing_point(this, [x, y, z]);
-		return (index != null) ? Face(this, index) : undefined;
+		let index = PlanarGraph.face_containing_point(_this, [x, y, z]);
+		return (index != null) ? Face(_this, index) : undefined;
 	}
 
 	Object.defineProperty(proto, "boundary", { get: getBoundary });
@@ -120,10 +134,12 @@ const CreasePatternPrototype = function(proto) {
 	Object.defineProperty(proto, "clear", { value: clear });
 	Object.defineProperty(proto, "load", { value: load });
 	Object.defineProperty(proto, "copy", { value: copy });
-	Object.defineProperty(proto, "getFOLD", { value: getFOLD});
+	Object.defineProperty(proto, "bind", { value: bind });
+	Object.defineProperty(proto, "json", { get: json });
 	Object.defineProperty(proto, "nearestVertex", { value: nearestVertex });
 	Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
 	Object.defineProperty(proto, "nearestFace", { value: nearestFace });
+	Object.defineProperty(proto, "svg", { value: svg });
 	// Object.defineProperty(proto, "connectedGraphs", { get: function() {
 	// 	return Graph.connectedGraphs(this);
 	// }});
@@ -133,7 +149,9 @@ const CreasePatternPrototype = function(proto) {
 
 /** A graph is a set of nodes and edges connecting them */
 const CreasePattern = function() {
-	let graph = Object.create(CreasePatternPrototype());
+	let proto = CreasePatternPrototype();
+	let graph = Object.create(proto);
+	proto.bind(graph);
 
 	// parse arguments, look for an input .fold file
 	let params = Array.from(arguments);
@@ -184,6 +202,7 @@ const CreasePattern = function() {
 		didUpdate();
 		return crease;
 	}
+
 	graph.axiom1 = function() { return axiom.call(this, [1, arguments]); }
 	graph.axiom2 = function() { return axiom.call(this, [2, arguments]); }
 	graph.axiom3 = function() { return axiom.call(this, [3, arguments]); }

@@ -23,7 +23,8 @@ origami.color = function(event) {
 }
 
 // IMPORT / EXPORT
-foldFileDidLoad = function(fold){
+foldFileDidLoad = function(fold) {
+	console.log("fold", fold)
 	origami.cp = RabbitEar.CreasePattern(fold);
 	// origami.draw();
 }

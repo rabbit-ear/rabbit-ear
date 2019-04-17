@@ -1,6 +1,6 @@
 let div = document.querySelectorAll('.row')[0];
-let origami = RabbitEar.Origami(div);
-let folded = RabbitEar.Origami(div);
+let origami = RabbitEar.Origami(div, {folding:false});
+let folded = RabbitEar.Origami(div, {folding:false});
 
 origami.nextLayer = RabbitEar.svg.group();
 origami.appendChild(origami.nextLayer);
@@ -8,17 +8,6 @@ origami.appendChild(origami.nextLayer);
 function updateFoldedState(cp){
 	folded.cp = cp.copy();
 	folded.draw();
-}
-
-origami.updateCenter = function(point) {
-	// check bounds of point
-
-	// origami.cp.kawasaki(, 1, "V");
-	
-	origami.draw();
-
-	// let foldedCP = RabbitEar.fold.origami.fold_without_layering(origami.cp, 0);
-	// folded.cp = RabbitEar.CreasePattern(foldedCP);
 }
 
 let options = Array.from(Array(8))
@@ -61,9 +50,6 @@ origami.onMouseMove = function(mouse) {
 		origami.nextLayer.appendChild(nearestEdgeSVG);
 	}
 
-	// if(mouse.isPressed){
-	// 	origami.updateCenter(mouse);
-	// }
 }
 
 origami.onMouseDown = function(mouse) {
@@ -72,13 +58,10 @@ origami.onMouseDown = function(mouse) {
 			origami.nextEdge[1][0] - origami.nextEdge[0][0],
 			origami.nextEdge[1][1] - origami.nextEdge[0][1]
 		];
-		let cp = JSON.parse(JSON.stringify(origami.cp.json));
+		let cp = origami.cp.json;
 		RabbitEar.core.crease_folded(cp, cp.vertices_coords[origami.near.vertex.index], nextVector, origami.near.face.index);
 		origami.cp = RabbitEar.CreasePattern(cp);
 		let foldedCP = RabbitEar.core.fold_without_layering(cp);
 		folded.cp = RabbitEar.CreasePattern(foldedCP);
 	}
-	// origami.updateCenter(mouse);
 }
-
-origami.updateCenter({x:0.4+Math.random()*0.2, y:0.4+Math.random()*0.2});

@@ -11,7 +11,9 @@ import * as planargraph from './fold/planargraph';
 import { default as valleyfold } from './fold/valleyfold';
 import * as creasethrough from './fold/creasethrough';
 
-import * as convert from './parsers/convert';
+import { intoFOLD, intoSVG, intoORIPA } from './parsers/convert';
+
+let convert = { intoFOLD, intoSVG, intoORIPA };
 
 const core = Object.create(null);
 Object.assign(core, frame, validate, graph, origami, planargraph);

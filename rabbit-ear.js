@@ -4281,9 +4281,6 @@
 		fold_vertices_coords: fold_vertices_coords
 	});
 
-	/* (c) Robby Kraft, MIT License */
-	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
-
 	/**
 	 * .FOLD file into SVG, and back
 	 */
@@ -4379,6 +4376,99 @@
 		// }
 	};
 
+	/* (c) Robby Kraft, MIT License */
+	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
+
+	// import * as Fold from "../include/fold";
+
+
+	/**
+	 * this asynchronously loads data from "input",
+	 * if necessary, converts into the FOLD format,
+	 * and calls "callback(fold)" with the data as the first argument.
+	 *
+	 * valid "input" arguments are:
+	 * - filenames ("pattern.svg")
+	 * - raw blob contents of a preloaded file (.fold, .oripa, .svg)
+	 * - SVG DOM objects (<svg> SVGElement)
+	 */
+
+	const load_file = function(input, callback) {
+		let type = typeof input;
+		if (type === "object") {
+			try {
+				let fold = JSON.parse(JSON.stringify(input));
+				// todo different way of checking fold format validity
+				if (fold.vertices_coords == null) { throw "tried FOLD format, got empty object"; }
+				if (callback != null) {
+					callback(fold);
+				}
+			} catch(err) {
+				// console.warn("could not load file, object is either not valid FOLD or corrupt JSON.", err);
+				if (s instanceof Element){
+					let fold = svg_to_fold(input);
+					if (callback != null) {
+						callback(fold);
+					}
+				}
+			} finally {
+				return;
+			}
+		}
+		// are they giving us a filename, or the data of an already loaded file?
+		if (type === "string" || input instanceof String) {
+			// try a FOLD format string
+			try {
+				// try .fold file format first
+				let fold = JSON.parse(input);
+				if (callback != null) { callback(fold); }
+			} catch(err) {
+				let extension = input.substr((input.lastIndexOf('.') + 1));
+				// filename. we need to upload
+				switch(extension) {
+					case "fold":
+						fetch(input)
+							.then((response) => response.json())
+							.then((data) => {
+								if (callback != null) { callback(data); }
+							});
+					break;
+					case "svg":
+						load(input, function(svg$$1) {
+							let fold = svg_to_fold(svg$$1);
+							if (callback != null) { callback(fold); }
+						});
+					break;
+					case "oripa":
+						// ORIPA.load(input, function(fold) {
+						// 	if (callback != null) { callback(fold); }
+						// });
+					break;
+				}
+			}
+		}
+	};
+
+
+	const intoFOLD = function(input, callback) {
+		load_file(input, function(fold) {
+			if (callback != null) { callback(fold); }
+		});
+	};
+
+	const intoSVG = function(input, callback) {
+		load_file(input, function(fold) {
+			let svg$$1 = fold_to_svg(fold);
+			if (callback != null) { 
+				callback(svg$$1);
+			}
+		});
+	};
+
+	const intoORIPA = function(input, callback) {
+
+	};
+
 	const svg_to_fold = function(svg$$1) {
 		// for each geometry, add creases without regards to invalid planar edge crossings
 		//  (intersecting lines, duplicate vertices), clean up later.
@@ -4411,15 +4501,24 @@
 	 * specify a frame number otherwise it will render the top level
 	 */
 	const fold_to_svg = function(fold, frame_number = 0) {
+		console.log("fold_to_svg start");
 		let graph = frame_number
 			? flatten_frame(fold, frame_number)
 			: fold;
 		// if (isFolded(graph)) { }
 		let svg$$1 = svg();
+		svg$$1.setAttribute("x", "0px");
+		svg$$1.setAttribute("y", "0px");
+		svg$$1.setAttribute("width", "600px");
+		svg$$1.setAttribute("height", "600px");
 		let groupNames = ["boundary", "face", "crease", "vertex"];
 		let groups = groupNames.map(key => svg$$1.group().setID(groupNamesPlural[key]));
+		console.log("fold_to_svg about to fill");
+		console.log(svg$$1, groups);
+		// return svg;
 		fill_svg_groups(graph, ...groups);
 		setViewBox(svg$$1, ...bounding_rect(graph));
+		console.log("fold_to_svg done");
 		return svg$$1;
 	};
 
@@ -4429,11 +4528,6 @@
 		crease: "creases",
 		vertex: "vertices"
 	};
-
-	var convert = /*#__PURE__*/Object.freeze({
-		svg_to_fold: svg_to_fold,
-		fold_to_svg: fold_to_svg
-	});
 
 	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\t\"edgeOrders\": [],\n\t\"faceOrders\": [],\n\t\"file_frames\": []\n}";
 
@@ -4715,6 +4809,11 @@
 			// boundary: {},
 		};
 
+		let _this;
+
+		const bind = function(that){
+			_this = that;
+		};
 
 		/**
 		 * @param {file} is a FOLD object.
@@ -4722,29 +4821,37 @@
 		 */
 		const load = function(file, prevent_wipe) {
 			if (prevent_wipe == null || prevent_wipe !== true) {
-				all_keys.forEach(key => delete this[key]);
+				all_keys.forEach(key => delete _this[key]);
 			}
-			Object.assign(this, JSON.parse(JSON.stringify(file)));
+			Object.assign(_this, JSON.parse(JSON.stringify(file)));
 		};
 		/**
 		 * @return {CreasePattern} a deep copy of this object.
 		 */ 
 		const copy = function() {
-			return CreasePattern(JSON.parse(JSON.stringify(this)));
+			return CreasePattern(JSON.parse(JSON.stringify(_this)));
 		};
 		/**
 		 * this removes all geometry from the crease pattern and returns it
 		 * to its original state (and keeps the boundary edges if present)
 		 */
 		const clear = function() {
-			remove_non_boundary_edges(this);
-			if (typeof this.onchange === "function") { this.onchange(); }
+			remove_non_boundary_edges(_this);
+			if (typeof _this.onchange === "function") { _this.onchange(); }
 		};
 		/**
 		 * @return {Object} a deep copy of this object in the FOLD format.
 		 */ 
-		const getFOLD = function() {
-			return JSON.parse(JSON.stringify(this));
+		const json = function() {
+			try {
+				return JSON.parse(JSON.stringify(_this));
+			} catch(error){
+				console.warn("could not parse Crease Pattern into JSON", error);
+			}
+		};
+
+		const svg = function(cssRules) {
+			return fold_to_svg(_this);
 		};
 
 		// const wipe = function() {
@@ -4756,14 +4863,14 @@
 		// todo: memo these. they're created each time, even if the CP hasn't changed
 		const getVertices = function() {
 			components.vertices.forEach(v => v.disable());
-			components.vertices = (this.vertices_coords || [])
-				.map((_,i) => Vertex(this, i));
+			components.vertices = (_this.vertices_coords || [])
+				.map((_,i) => Vertex(_this, i));
 			return components.vertices;
 		};
 		const getEdges = function() {
 			components.edges.forEach(v => v.disable());
-			components.edges = (this.edges_vertices || [])
-				.map((_,i) => Edge$1(this, i));
+			components.edges = (_this.edges_vertices || [])
+				.map((_,i) => Edge$1(_this, i));
 			return components.edges;
 			// return (this.edges_vertices || [])
 			// 		.map(e => e.map(ev => this.vertices_coords[ev]))
@@ -4771,8 +4878,8 @@
 		};
 		const getFaces = function() {
 			components.faces.forEach(v => v.disable());
-			components.faces = (this.faces_vertices || [])
-				.map((_,i) => Face(this, i));
+			components.faces = (_this.faces_vertices || [])
+				.map((_,i) => Face(_this, i));
 			return components.faces;
 			// return (this.faces_vertices || [])
 			// 		.map(f => f.map(fv => this.vertices_coords[fv]))
@@ -4782,21 +4889,21 @@
 			// todo: test this for another reason anyway
 			// todo: this only works for unfolded flat crease patterns
 			return Polygon(
-				get_boundary_face(this).vertices
-					.map(v => this.vertices_coords[v])
+				get_boundary_face(_this).vertices
+					.map(v => _this.vertices_coords[v])
 			);
 		};
 		const nearestVertex = function(x, y, z = 0) {
-			let index = nearest_vertex(this, [x, y, z]);
-			return (index != null) ? Vertex(this, index) : undefined;
+			let index = nearest_vertex(_this, [x, y, z]);
+			return (index != null) ? Vertex(_this, index) : undefined;
 		};
 		const nearestEdge = function(x, y, z = 0) {
-			let index = nearest_edge(this, [x, y, z]);
-			return (index != null) ? Edge$1(this, index) : undefined;
+			let index = nearest_edge(_this, [x, y, z]);
+			return (index != null) ? Edge$1(_this, index) : undefined;
 		};
 		const nearestFace = function(x, y, z = 0) {
-			let index = face_containing_point(this, [x, y, z]);
-			return (index != null) ? Face(this, index) : undefined;
+			let index = face_containing_point(_this, [x, y, z]);
+			return (index != null) ? Face(_this, index) : undefined;
 		};
 
 		Object.defineProperty(proto, "boundary", { get: getBoundary });
@@ -4806,10 +4913,12 @@
 		Object.defineProperty(proto, "clear", { value: clear });
 		Object.defineProperty(proto, "load", { value: load });
 		Object.defineProperty(proto, "copy", { value: copy });
-		Object.defineProperty(proto, "getFOLD", { value: getFOLD});
+		Object.defineProperty(proto, "bind", { value: bind });
+		Object.defineProperty(proto, "json", { get: json });
 		Object.defineProperty(proto, "nearestVertex", { value: nearestVertex });
 		Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
 		Object.defineProperty(proto, "nearestFace", { value: nearestFace });
+		Object.defineProperty(proto, "svg", { value: svg });
 		// Object.defineProperty(proto, "connectedGraphs", { get: function() {
 		// 	return Graph.connectedGraphs(this);
 		// }});
@@ -4819,7 +4928,9 @@
 
 	/** A graph is a set of nodes and edges connecting them */
 	const CreasePattern = function() {
-		let graph = Object.create(CreasePatternPrototype());
+		let proto = CreasePatternPrototype();
+		let graph = Object.create(proto);
+		proto.bind(graph);
 
 		// parse arguments, look for an input .fold file
 		let params = Array.from(arguments);
@@ -4870,6 +4981,7 @@
 			didUpdate();
 			return crease;
 		};
+
 		graph.axiom1 = function() { return axiom.call(this, [1, arguments]); };
 		graph.axiom2 = function() { return axiom.call(this, [2, arguments]); };
 		graph.axiom3 = function() { return axiom.call(this, [3, arguments]); };
@@ -4913,67 +5025,6 @@
 
 		return graph;
 
-	};
-
-	// import * as Fold from "../include/fold";
-
-	/**
-	 * this asynchronously loads data from "input",
-	 * if necessary, converts into the FOLD format,
-	 * and calls "callback(fold)" with the data as the first argument.
-	 *
-	 * valid "input" arguments are:
-	 * - filenames ("pattern.svg")
-	 * - raw blob contents of a preloaded file (.fold, .oripa, .svg)
-	 * - SVG DOM objects (<svg> SVGElement)
-	 */
-
-	const load_file = function(input, callback) {
-		let type = typeof input;
-		if (type === "object") {
-			try {
-				let fold = JSON.parse(JSON.stringify(input));
-				if (callback != null) {
-					callback(fold);
-				}
-			} catch(err) {
-				console.warn("could not load file, object is either not valid FOLD or corrupt JSON.", err);
-			} finally {
-				return;
-			}
-		}
-		// are they giving us a filename, or the data of an already loaded file?
-		if (type === "string" || input instanceof String) {
-			// try a FOLD format string
-			try {
-				// try .fold file format first
-				let fold = JSON.parse(input);
-				if (callback != null) { callback(fold); }
-			} catch(err) {
-				let extension = input.substr((input.lastIndexOf('.') + 1));
-				// filename. we need to upload
-				switch(extension) {
-					case "fold":
-						fetch(input)
-							.then((response) => response.json())
-							.then((data) => {
-								if (callback != null) { callback(data); }
-							});
-					break;
-					case "svg":
-						load(input, function(svg$$1) {
-							let fold = svg_to_fold(svg$$1);
-							if (callback != null) { callback(fold); }
-						});
-					break;
-					case "oripa":
-						// ORIPA.load(input, function(fold) {
-						// 	if (callback != null) { callback(fold); }
-						// });
-					break;
-				}
-			}
-		}
 	};
 
 	/** .FOLD file viewer
@@ -5246,7 +5297,11 @@
 		let lastStep;
 		_this.events.addEventListener("onMouseDown", function(mouse) {
 			if (preferences.folding) {
-				lastStep = JSON.parse(JSON.stringify(prop.cp));
+				try{
+					lastStep = JSON.parse(JSON.stringify(prop.cp));
+				} catch(error) {
+					console.warn("problem loading the last fold step", error);
+				}
 			}
 		});
 		_this.events.addEventListener("onMouseMove", function(mouse) {
@@ -6197,6 +6252,8 @@
 
 		return graph;
 	};
+
+	let convert = { intoFOLD, intoSVG, intoORIPA };
 
 	const core$1 = Object.create(null);
 	Object.assign(core$1, frame, validate, graph, Origami, planargraph);
