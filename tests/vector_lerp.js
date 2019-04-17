@@ -1,3 +1,5 @@
+let lerpsCallback = undefined;
+
 let lerps = RabbitEar.svg.image("canvas-lerp", 500, 500);
 
 lerps.reset = function(){
@@ -78,6 +80,10 @@ lerps.animate = function(event){
 	lerps.midLine.setAttribute("y1", lerps.ctrlLerps[0].y);
 	lerps.midLine.setAttribute("x2", lerps.ctrlLerps[1].x);
 	lerps.midLine.setAttribute("y2", lerps.ctrlLerps[1].y);
+
+	if (lerpsCallback !== undefined) {
+		lerpsCallback({t:phase});
+	}
 }
 
 lerps.reset();

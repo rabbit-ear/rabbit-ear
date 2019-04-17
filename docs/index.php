@@ -1,5 +1,7 @@
 <?php include 'header.php';?>
 
+<p class="explain">Rabbit Ear is gearing up for a version 2 release. Documentation and updates will continue through April and May of 2019</p>
+
 <!-- <script type="text/javascript" src="../include/three.min.js"></script>
 <script type="text/javascript" src="../include/THREE.MeshLine.js"></script>
 <script type="text/javascript" src="../include/THREE.OrbitControls.js"></script>
@@ -30,7 +32,7 @@
 	<p>Download Rabbit Ear here.</p>
 
 	<div class="center">
-		<a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.19.zip"><button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.19.zip</button></a>
+		<!-- <a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.19.zip"><button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.19.zip</button></a> -->
 	</div>
 
 	<p>Create a new project inside the "sketches" folder by copying and renaming "empty".</p>
@@ -38,11 +40,11 @@
 		<img style="width:100%" src="https://rabbitear.org/images/new-project.gif">
 	</div>
 
-	<p>There are three files:</p>
+	<p>There are three files in your sketch:</p>
 	<ul>
 		<li><strong>index.html</strong> open this file to run your sketch.</li>
 		<li><strong>style.css</strong> set the color of the paper and style the lines.</li>
-		<li><strong>sketch.js</strong> let's look closer at this:</li>
+		<li><strong>sketch.js</strong> let's take a closer look:</li>
 	</ul>
 
 <div class="centered">
@@ -69,9 +71,9 @@
 origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 
 <f>RabbitEar</f>.core.faces_coloring(origami.cp, <n>0</n>)
-  .<f>map</f>(<arg>color</arg> <key>=></key> color <key>?</key> <str>"#224c72"</str> <key>:</key> <str>"#f1c14f"</str>)
-  .<f>forEach</f>((<arg>color</arg>, <arg>i</arg>) =>
-    origami.faces[i].<f>setAttribute</f>(<str>"fill"</str>, color)
+  .<f>map</f>(<arg>color</arg> <f>=></f> color <key>?</key> <str>"#224c72"</str> <key>:</key> <str>"#f1c14f"</str>)
+  .<f>forEach</f>((<arg>color</arg>, <arg>i</arg>) <f>=></f>
+    origami.faces[i].<f>setAttribute</f>(<str>"style"</str>, <str>"fill:"</str> <key>+</key> color)
   );</code></pre>
 
 	<p class="quote">A flat-foldable crease pattern is always two-colorable.</p>
@@ -82,16 +84,24 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 
 	<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
 
-	<p>These generative pleats are based sine curves.</p>
+	<p>These generative pleats are based on sine curves.</p>
 
 	<div id="canvas-sine-pleats" class="diptych"></div>
 	<div class="center" style="width: 300px; max-width: 50vw; margin:auto; margin-top: 2rem; text-align:center;">
-		<input type="range" id="sine-pleats-input" min=0 max=500 value=0>
+		<input type="range" id="sine-pleats-input" min=0 max=500 value=225>
 	</div>
 
-	<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();</code></pre>
+	<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();
+<f>let</f> creaseLines <op>=</op> <f>Array</f>.<f>from</f>(<f>Array</f>((<n>12</n>)))
+  .<f>map</f>((<arg>_</arg>,<arg>i</arg>) <f>=></f> [ [p[i][<n>0</n>], p[i][<n>1</n>]], [p[i][<n>2</n>], p[i][<n>3</n>]] ]
+);
 
-	<p>Because Rabbit Ear draws using SVG, a vector image file is always ready for export.</p>
+creaseLines.<f>forEach</f>((<arg>a</arg>,<arg>i</arg>) <f>=></f> i<op>%</op>2 <op>===</op> <n>0</n>
+  <op>?</op> sinePleats.cp.<f>creaseLine</f>(a[<n>0</n>], a[<n>1</n>]).<f>mountain</f>()
+  <op>:</op> sinePleats.cp.<f>creaseLine</f>(a[<n>0</n>], a[<n>1</n>]).<f>valley</f>()
+);</code></pre>
+
+	<p>Because Rabbit Ear draws using SVG, a vector image is always ready to download.</p>
 
 	<div class="center">
 		<button type="button" class="btn btn-dark" id="download-example-button">save image</button>
@@ -99,28 +109,34 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 
 </section>
 
+<section>
+
 <h2>CREASE PATTERN</h2>
 
 	<div class="diptych">
-		<img src="../rabbitear-site/images/one-fold-cp.svg">
+		<img src="/images/one-fold-cp.svg">
 	</div>
-
-<section>
 
 	<p>Each origami object contains a <b>Crease Pattern</b>, an extended <a href="https://github.com/edemaine/fold">FOLD</a> object. This is where all the crease information is stored; storing both unfolded and folded states.</p>
 
 	<div class="centered">
-		<pre><code>origami.cp <c>// an origami's crease pattern is here</c></code></pre>
+		<pre><code>origami.cp <c>// crease data is stored here</c></code></pre>
 	</div>
 
-	<p>For more computational use cases, create one directly and visualize it on your own:</p>
+	<p>As demonstrated in the last example, crease patterns can be folded using code. In some cases you might want a crease pattern, unattached to an SVG:</p>
 
 	<div class="centered">
 		<pre><code><f>let</f> cp <key>=</key> <f>RabbitEar</f>.<f>CreasePattern</f>();</code></pre>
 	</div>
 
+	<p>There is a growing list of ways to put in a crease.</p>
+
+	<div class="centered">
+		<pre><code>origami.<f>axiom1</f>()<br>origami.<f>creaseRay</f>(ray)<br>origami.<f>creaseLine</f>()</code></pre>
+	</div>
+
 	<div class="diptych">
-		<img src="../rabbitear-site/images/one-fold-folded.svg">
+		<img src="/images/one-fold-folded.svg">
 	</div>
 
 </section>
@@ -131,10 +147,39 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 
 </section>
 
-<script type="text/javascript" src="../tests/origami_fold.js"></script>
-<script type="text/javascript" src="../tests/origami_two_coloring.js"></script>
-<!-- <script type="text/javascript" src="../tests/origami_swim.js"></script> -->
+<script>
+let twoColor = RabbitEar.Origami("canvas-face-coloring");
+twoColor.load(RabbitEar.bases.frog);
+twoColor.preferences.folding = false;
+twoColor.groups.vertex.setAttribute("opacity", 0)
 
+RabbitEar.core.faces_coloring(twoColor.cp, 0)
+	.map(color => color ? "#224c72" : "#f1c14f")
+	.forEach((color, i) =>
+		twoColor.faces[i].svg.setAttribute("style", "fill:"+color)
+	);
+
+</script>
+<script>
+let origamiFold = RabbitEar.Origami("canvas-origami-fold");
+
+origamiFold.init = function() {
+	origamiFold.setViewBox(-0.1, -0.1, 1.2, 1.2);
+	origamiFold.preferences.autofit = false;
+
+	let points = [
+		RabbitEar.math.Vector(1, 0),
+		RabbitEar.math.Vector(0.7 - Math.random()*0.3, 0.2 + Math.random()*0.45)
+	];
+	let midpoint = points[0].midpoint(points[1]);
+	let vector = points[1].subtract(points[0]);
+
+	origamiFold.cp.valleyFold(midpoint, vector.rotateZ90());
+	origamiFold.fold();
+}
+origamiFold.init();
+
+</script>
 
 <script>
 // let view3D = RabbitEar.Origami3D("intersection-wobble");
@@ -145,25 +190,25 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 // folded crane
 let craneCP = RabbitEar.svg.image("div-folded-crane")
 craneCP.load("../files/svg/crane.svg", function(image){
-	let pad = image.w*0.02;
-	image.setViewBox(-pad, -pad, image.w + pad*2, image.h + pad*2);
+	// let pad = image.w*0.02;
+	// image.setViewBox(-pad, -pad, image.w + pad*2, image.h + pad*2);
+	let pad = 12;
+	image.setViewBox(-12, -12, 600 + 12*2, 600 + 12*2);
 });
-
 let craneFold = RabbitEar.Origami("div-folded-crane")
 craneFold.load("../files/fold/crane.fold", function(cp){
 	craneFold.foldWithoutLayering(2);
 });
-
 </script>
 
 <script type="text/javascript">
 document.getElementById("download-example-button").onclick = function(event){
 	sinePleatsFolded.export("pleats.svg", true);
 }
-document.getElementById("download-button").onclick = function(e){
-	let zip_file_path = "https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.1.zip";
-	download(zip_file_path, "rabbit-ear.zip");
-}
+// document.getElementById("download-button").onclick = function(e){
+// 	let zip_file_path = "https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.1.zip";
+// 	download(zip_file_path, "rabbit-ear.zip");
+// }
 function download(url, filename){
 	let a = document.createElement("a");
 	a.style = "display: none";
@@ -177,11 +222,12 @@ function download(url, filename){
 
 <script>
 let sinePleats = RabbitEar.Origami("canvas-sine-pleats");
+sinePleats.groups.face.setAttribute("opacity", 0);
 let sinePleatsFolded = RabbitEar.Origami("canvas-sine-pleats");
 
 sinePleats.init = function(t = 0.0) {
 	if (t >= 1) { t = 0.99; }
-	let unitCosine = -Math.cos(t*Math.PI*2)*0.5 + 0.5
+	let unitCosine = -Math.cos(t*Math.PI*2)*0.5 + 0.5;
 	sinePleats.cp = RabbitEar.CreasePattern();//.rectangle(2,1);
 	let PLEATS = 12;
 	let a = Array.from(Array((PLEATS-1))).map((_,i) => i+1);
@@ -193,16 +239,27 @@ sinePleats.init = function(t = 0.0) {
 		[Math.cos(a), Math.sin(a)]
 	]);
 	pts.map((p,i) => i%2===0
-			? sinePleats.cp.creaseLine(p[0], p[1]).mountain()
-			: sinePleats.cp.creaseLine(p[0], p[1]).valley() );
-	sinePleatsFolded.cp = RabbitEar.CreasePattern(JSON.parse(JSON.stringify(sinePleats.cp)));
-	let face = sinePleats.nearest(pts[5][0][0]-0.02, pts[5][0][1]).face;
-	sinePleatsFolded.fold(face.index);
+		? sinePleats.cp.creaseLine(p[0], p[1]).mountain()
+		: sinePleats.cp.creaseLine(p[0], p[1]).valley()
+	);
+	let cp = RabbitEar.CreasePattern(sinePleats.cp.getFOLD());
+	let vertices_coords = RabbitEar.core.fold_vertices_coords(cp, 0);
+	let file_frame = {
+		vertices_coords,
+		frame_classes: ["foldedState"],
+		frame_inherit: true,
+		frame_parent: 0
+	};
+	cp.file_frames = [file_frame];
+	sinePleatsFolded.cp = cp;
+	sinePleatsFolded.frame = 1;
 }
-sinePleats.init();
+sinePleats.init(-0.35 + (225 / 500)*1.2);
 document.querySelector("#sine-pleats-input").oninput = function(event) {
 	let v = event.target.value / 500;
-	sinePleats.init(v*2);
+	// sinePleats.init(v*2);
+	sinePleats.init(-0.35 + v*1.2 );
+	// sinePleats.init(v*0.84);
 }
 
 </script>

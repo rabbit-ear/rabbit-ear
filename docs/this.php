@@ -34,6 +34,14 @@
 </section>
 
 <section>
+	
+	<p>Before going too deep, here are some generally useful things:</p>
+
+<h3>Convert between files</h3>
+
+</section>
+
+<section>
 
 <h2>Objects</h2>
 

@@ -19,7 +19,7 @@ nearestPoint.setup = function(){
 	let svgLines = nearestPoint.edges.map(edge =>
 		RabbitEar.svg.line(edge[0][0], edge[0][1], edge[1][0], edge[1][1])
 	);
-	svgLines.forEach(line => line.setAttribute("stroke", "#224c72"));
+	svgLines.forEach(line => line.setAttribute("stroke", "#000"));
 	svgLines.forEach(line => line.setAttribute("stroke-width", 4));
 	svgLines.forEach(line => nearestPoint.lineLayer.appendChild(line));
 }
@@ -31,7 +31,7 @@ nearestPoint.update = function(point) {
 	let points = nearestPoint.edges.map(e => e.nearestPoint(point));
 	let circles = points.map(p => RabbitEar.svg.circle(p.x, p.y, 6));
 	circles.forEach(c => c.setAttribute("fill", "white"));
-	circles.forEach(c => c.setAttribute("stroke", "#224c72"));
+	circles.forEach(c => c.setAttribute("stroke", "#000"));
 	circles.forEach(c => c.setAttribute("stroke-width", 4));
 	circles.forEach(c => nearestPoint.circleLayer.appendChild(c));
 	

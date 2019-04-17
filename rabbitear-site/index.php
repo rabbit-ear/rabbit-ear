@@ -23,7 +23,7 @@
  		</div>
 		<div class="footer">
 			<!-- <button type="button" class="btn btn-outline-light" id="showcase-button">showcase</button> -->
-			<a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.19.zip">
+			<a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.1.zip">
 				<button type="button" class="btn btn-outline-light" id="download-button">download</button>
 			</a>
 			<button type="button" class="btn btn-outline-light" id="docs-button">instructions</button>

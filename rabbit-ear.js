@@ -4281,6 +4281,160 @@
 		fold_vertices_coords: fold_vertices_coords
 	});
 
+	/* (c) Robby Kraft, MIT License */
+	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
+
+	/**
+	 * .FOLD file into SVG, and back
+	 */
+
+	const CREASE_DIR = {
+		"B": "boundary", "b": "boundary",
+		"M": "mountain", "m": "mountain",
+		"V": "valley",   "v": "valley",
+		"F": "mark",     "f": "mark",
+		"U": "mark",     "u": "mark"
+	};
+
+	const fill_svg_groups = function(graph, boundaryGroup, facesGroup, creasesGroup, verticesGroup) {
+		boundary(graph).forEach(b => boundaryGroup.appendChild(b));
+		faces(graph).forEach(f => facesGroup.appendChild(f));
+		creases(graph).forEach(c => creasesGroup.appendChild(c));
+		vertices(graph).forEach(v => verticesGroup.appendChild(v));
+	};
+
+	const boundary = function(graph) {
+		let boundary = get_boundary_vertices(graph)
+			.map(v => graph.vertices_coords[v]);
+		return [polygon(boundary).setClass("boundary")];
+	};
+
+	const vertices = function(graph, options) {
+		let radius = options && options.radius ? options.radius : 0.01;
+		return graph.vertices_coords.map((v,i) =>
+			circle(v[0], v[1], radius)
+				.setClass("vertex")
+				.setID(""+i)
+		);
+	};
+
+	const creases = function(graph) {
+		let edges = graph.edges_vertices
+			.map(ev => ev.map(v => graph.vertices_coords[v]));
+		let eAssignments = graph.edges_assignment.map(a => CREASE_DIR[a]);
+		return edges.map((e,i) =>
+			line$1(e[0][0], e[0][1], e[1][0], e[1][1])
+				.setClass(eAssignments[i])
+				.setID(""+i)
+		);
+	};
+
+	function faces_sorted_by_layer(faces_layer) {
+		return faces_layer.map((layer,i) => ({layer:layer, i:i}))
+			.sort((a,b) => a.layer-b.layer)
+			.map(el => el.i)
+	}
+
+	const faces = function(graph) {
+		let facesV = graph.faces_vertices
+			.map(fv => fv.map(v => graph.vertices_coords[v]));
+			// .map(face => Geom.Polygon(face));
+		let notMoving = 0;
+		// if (graph["re:faces_to_move"] != null) {
+		// 	let faces_to_move = graph["re:faces_to_move"].indexOf(false);
+		// 	if (faces_to_move !== -1) { notMoving = faces_to_move; }
+		// }
+		if (graph["re:face_stationary"] != null) {
+			notMoving = graph["re:face_stationary"];
+		}
+		// if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
+
+		// let coloring = faces_coloring(graph, notMoving);
+		let coloring = graph["re:faces_coloring"];
+		if (coloring == null) {
+			coloring = faces_coloring(graph, notMoving);
+		}
+
+		let order = graph["re:faces_layer"] != null
+			? faces_sorted_by_layer(graph["re:faces_layer"])
+			: graph.faces_vertices.map((_,i) => i);
+		return order.map(i =>
+			polygon(facesV[i])
+				.setClass(coloring[i] ? "front" : "back")
+				// .setClass(coloring[i] ? "face-front-debug" : "face-back-debug")
+				.setID(""+i)
+		);
+		// if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
+		// 	return graph["re:faces_layer"].map((fi,i) =>
+		// 		SVG.polygon(facesV[fi])
+		// 			.setClass(i%2==0 ? "face-front" : "face-back")
+		// 			.setID(""+i)
+		// 	);
+		// } else {
+		// 	return facesV.map((face, i) =>
+		// 		SVG.polygon(face)
+		// 			.setClass("folded-face")
+		// 			.setID(""+i)
+		// 		);
+		// }
+	};
+
+	const svg_to_fold = function(svg$$1) {
+		// for each geometry, add creases without regards to invalid planar edge crossings
+		//  (intersecting lines, duplicate vertices), clean up later.
+		let graph = {
+			"file_spec": 1.1,
+			"file_creator": "RabbitEar",
+			"file_classes": ["singleModel"],
+			"frame_title": "",
+			"frame_classes": ["creasePattern"],
+			"frame_attributes": ["2D"],
+			"vertices_coords": [],
+			"vertices_vertices": [],
+			"vertices_faces": [],
+			"edges_vertices": [],
+			"edges_faces": [],
+			"edges_assignment": [],
+			"edges_foldAngle": [],
+			"edges_length": [],
+			"faces_vertices": [],
+			"faces_edges": [],
+		};
+		// todo: import semgents into a planar graph, handle edge crossings
+		segments(svg$$1).forEach(l =>
+			add_edge_between_points(graph, l[0], l[1], l[2], l[3])
+		);
+		return graph;
+	};
+
+	/**
+	 * specify a frame number otherwise it will render the top level
+	 */
+	const fold_to_svg = function(fold, frame_number = 0) {
+		let graph = frame_number
+			? flatten_frame(fold, frame_number)
+			: fold;
+		// if (isFolded(graph)) { }
+		let svg$$1 = svg();
+		let groupNames = ["boundary", "face", "crease", "vertex"];
+		let groups = groupNames.map(key => svg$$1.group().setID(groupNamesPlural[key]));
+		fill_svg_groups(graph, ...groups);
+		setViewBox(svg$$1, ...bounding_rect(graph));
+		return svg$$1;
+	};
+
+	const groupNamesPlural = {
+		boundary: "boundaries",
+		face: "faces",
+		crease: "creases",
+		vertex: "vertices"
+	};
+
+	var convert = /*#__PURE__*/Object.freeze({
+		svg_to_fold: svg_to_fold,
+		fold_to_svg: fold_to_svg
+	});
+
 	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\t\"edgeOrders\": [],\n\t\"faceOrders\": [],\n\t\"file_frames\": []\n}";
 
 	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
@@ -4761,189 +4915,65 @@
 
 	};
 
-	/* (c) Robby Kraft, MIT License */
-	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
+	// import * as Fold from "../include/fold";
 
-	function svg_to_fold(svg$$1) {
+	/**
+	 * this asynchronously loads data from "input",
+	 * if necessary, converts into the FOLD format,
+	 * and calls "callback(fold)" with the data as the first argument.
+	 *
+	 * valid "input" arguments are:
+	 * - filenames ("pattern.svg")
+	 * - raw blob contents of a preloaded file (.fold, .oripa, .svg)
+	 * - SVG DOM objects (<svg> SVGElement)
+	 */
 
-		// for each geometry, add creases without regards to invalid planar edge crossings
-		//  (intersecting lines, duplicate vertices), clean up later.
-		let graph = {
-			"file_spec": 1.1,
-			"file_creator": "RabbitEar",
-			"file_classes": ["singleModel"],
-			"frame_title": "",
-			"frame_classes": ["creasePattern"],
-			"frame_attributes": ["2D"],
-			"vertices_coords": [],
-			"vertices_vertices": [],
-			"vertices_faces": [],
-			"edges_vertices": [],
-			"edges_faces": [],
-			"edges_assignment": [],
-			"edges_foldAngle": [],
-			"edges_length": [],
-			"faces_vertices": [],
-			"faces_edges": [],
-		};
-
-		segments(svg$$1).forEach(l =>
-			add_edge_between_points(graph, l[0], l[1], l[2], l[3])
-		);
-
-		return graph;
-	}
-
-	const load_fold = function(input, callback) {
-		// are they giving us a filename, or the data of an already loaded file?
-		if (typeof input === "string" || input instanceof String) {
-			let extension = input.substr((input.lastIndexOf('.') + 1));
-			// filename. we need to upload
-			switch(extension) {
-				case "fold":
-				fetch(input)
-					.then((response) => response.json())
-					.then((data) => {
-						if (callback != null) { callback(data); }
-					});
-				return;
-				case "svg":
-				load(input, function(svg$$1) {
-					let fold = svg_to_fold(svg$$1);
-					if (callback != null) { callback(fold); }
-				});
+	const load_file = function(input, callback) {
+		let type = typeof input;
+		if (type === "object") {
+			try {
+				let fold = JSON.parse(JSON.stringify(input));
+				if (callback != null) {
+					callback(fold);
+				}
+			} catch(err) {
+				console.warn("could not load file, object is either not valid FOLD or corrupt JSON.", err);
+			} finally {
 				return;
 			}
 		}
-		try {
-			// try .fold file format first
-			let fold = JSON.parse(input);
-			if (callback != null) { callback(fold); }
-		} catch(err) {
-			console.log("not a valid .fold file format");
-			// return this;
+		// are they giving us a filename, or the data of an already loaded file?
+		if (type === "string" || input instanceof String) {
+			// try a FOLD format string
+			try {
+				// try .fold file format first
+				let fold = JSON.parse(input);
+				if (callback != null) { callback(fold); }
+			} catch(err) {
+				let extension = input.substr((input.lastIndexOf('.') + 1));
+				// filename. we need to upload
+				switch(extension) {
+					case "fold":
+						fetch(input)
+							.then((response) => response.json())
+							.then((data) => {
+								if (callback != null) { callback(data); }
+							});
+					break;
+					case "svg":
+						load(input, function(svg$$1) {
+							let fold = svg_to_fold(svg$$1);
+							if (callback != null) { callback(fold); }
+						});
+					break;
+					case "oripa":
+						// ORIPA.load(input, function(fold) {
+						// 	if (callback != null) { callback(fold); }
+						// });
+					break;
+				}
+			}
 		}
-	};
-
-	/**
-	 * .FOLD file into SVG, and back
-	 */
-
-	const CREASE_DIR = {
-		"B": "boundary", "b": "boundary",
-		"M": "mountain", "m": "mountain",
-		"V": "valley",   "v": "valley",
-		"F": "mark",     "f": "mark",
-		"U": "mark",     "u": "mark"
-	};
-
-	const boundary = function(graph) {
-		let boundary = get_boundary_vertices(graph)
-			.map(v => graph.vertices_coords[v]);
-		return [polygon(boundary).setClass("boundary")];
-	};
-
-	const vertices = function(graph, options) {
-		let radius = options && options.radius ? options.radius : 0.01;
-		return graph.vertices_coords.map((v,i) =>
-			circle(v[0], v[1], radius)
-				.setClass("vertex")
-				.setID(""+i)
-		);
-	};
-
-	const creases = function(graph) {
-		let edges = graph.edges_vertices
-			.map(ev => ev.map(v => graph.vertices_coords[v]));
-		let eAssignments = graph.edges_assignment.map(a => CREASE_DIR[a]);
-		return edges.map((e,i) =>
-			line$1(e[0][0], e[0][1], e[1][0], e[1][1])
-				.setClass(eAssignments[i])
-				.setID(""+i)
-		);
-	};
-
-	const facesVertices = function(graph) {
-		let fAssignments = graph.faces_vertices.map(fv => "face");
-		let facesV = !(graph.faces_vertices) ? [] : graph.faces_vertices
-			.map(fv => fv.map(v => graph.vertices_coords[v]));
-			// .map(face => Geom.Polygon(face));
-		// facesV = facesV.map(face => face.scale(0.6666));
-		return facesV.filter(f => f != null).map((face, i) =>
-			polygon(face)
-				.setClass(fAssignments[i])
-				.setID(""+i)
-		);
-	};
-
-	const facesEdges = function(graph) {
-		let fAssignments = graph.faces_vertices.map(fv => "face");
-		let facesE = !(graph.faces_edges) ? [] : graph.faces_edges
-			.map(face_edges => face_edges
-				.map(edge => graph.edges_vertices[edge])
-				.map((vi,i,arr) => {
-					let next = arr[(i+1)%arr.length];
-					return (vi[1] === next[0] || vi[1] === next[1]
-						? vi[0] : vi[1]);
-				}).map(v => graph.vertices_coords[v])
-			);
-			// .map(face => Geom.Polygon(face));
-		// facesE = facesE.map(face => face.scale(0.8333));
-		return facesE.filter(f => f != null).map((face, i) =>
-			polygon(face)
-				.setClass(fAssignments[i])
-				.setID(""+i)
-		);
-	};
-
-	function faces_sorted_by_layer(faces_layer) {
-		return faces_layer.map((layer,i) => ({layer:layer, i:i}))
-			.sort((a,b) => a.layer-b.layer)
-			.map(el => el.i)
-	}
-
-	const foldedFaces = function(graph) {
-		let facesV = graph.faces_vertices
-			.map(fv => fv.map(v => graph.vertices_coords[v]));
-			// .map(face => Geom.Polygon(face));
-		let notMoving = 0;
-		// if (graph["re:faces_to_move"] != null) {
-		// 	let faces_to_move = graph["re:faces_to_move"].indexOf(false);
-		// 	if (faces_to_move !== -1) { notMoving = faces_to_move; }
-		// }
-		if (graph["re:face_stationary"] != null) {
-			notMoving = graph["re:face_stationary"];
-		}
-		// if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
-
-		// let coloring = faces_coloring(graph, notMoving);
-		let coloring = graph["re:faces_coloring"];
-		if (coloring == null) {
-			coloring = faces_coloring(graph, notMoving);
-		}
-
-		let order = graph["re:faces_layer"] != null
-			? faces_sorted_by_layer(graph["re:faces_layer"])
-			: graph.faces_vertices.map((_,i) => i);
-		return order.map(i =>
-			polygon(facesV[i])
-				.setClass(coloring[i] ? "face-front" : "face-back")
-				// .setClass(coloring[i] ? "face-front-debug" : "face-back-debug")
-				.setID(""+i)
-		);
-		// if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
-		// 	return graph["re:faces_layer"].map((fi,i) =>
-		// 		SVG.polygon(facesV[fi])
-		// 			.setClass(i%2==0 ? "face-front" : "face-back")
-		// 			.setID(""+i)
-		// 	);
-		// } else {
-		// 	return facesV.map((face, i) =>
-		// 		SVG.polygon(face)
-		// 			.setClass("folded-face")
-		// 			.setID(""+i)
-		// 		);
-		// }
 	};
 
 	/** .FOLD file viewer
@@ -4957,6 +4987,25 @@
 
 	const plural = { boundary: "boundaries", face: "faces", crease: "creases", vertex: "vertices" };
 
+	const DEFAULTS = Object.freeze({
+		autofit: true,
+		debug: false,
+		folding: true,
+		padding: 0
+	});
+
+	const parsePreferences = function() {
+		let keys$$1 = Object.keys(DEFAULTS);
+		let prefs = {};
+		Array(...arguments)
+			.filter(obj => typeof obj === "object")
+			.forEach(obj => Object.keys(obj)
+				.filter(key => keys$$1.includes(key))
+				.forEach(key => prefs[key] = obj[key])
+			);
+		return prefs;
+	};
+
 	function View2D() {
 
 		let _this = image(...arguments);
@@ -4965,6 +5014,11 @@
 		["boundary", "face", "crease", "vertex"].forEach(key =>
 			groups[key] = _this.group().setID(plural[key])
 		);
+		// make svg components pass through their touches
+		Object.keys(groups).forEach(key =>
+			groups[key].setAttribute("pointer-events", "none")
+		);
+
 		let labels = {
 			"boundary": _this.group(),
 			"face": _this.group(),
@@ -4973,19 +5027,18 @@
 		};
 
 		let prop = {
-			cp: undefined, 
+			cp: undefined,
 			frame: undefined,
 			style: {
 				vertex_radius: 0.01 // percent of page
 			},
 		};
 
-		let preferences = {
-			autofit: true,
-			debug: false,
-			touchfold: true,
-			padding: 0,
-		};
+		let preferences = {};
+		Object.assign(preferences, DEFAULTS);
+		let userDefaults = parsePreferences(...arguments);
+		Object.keys(userDefaults)
+			.forEach(key => preferences[key] = userDefaults[key]);
 
 		const setCreasePattern = function(cp) {
 			// todo: check if cp is a CreasePattern type
@@ -4994,27 +5047,11 @@
 			prop.cp.onchange = draw;
 		};
 
-		const drawFolded = function(graph) {
-			foldedFaces(graph)
-				.forEach(f => groups.face.appendChild(f));
-		};
-
-		const drawCreasePattern = function(graph) {
-			let drawings = {
-				boundary: boundary(graph),
-				face: facesVertices(graph),
-				crease: creases(graph),
-				vertex: vertices(graph)
-			};
-			if (preferences.debug) {
-				// add faces edges
-				drawings.face = drawings.face.concat(facesEdges(graph));
-			}
-			Object.keys(drawings).forEach(key => 
-				drawings[key].forEach(el => groups[key].appendChild(el))
-			);
-
-			if (!preferences.debug) { return; }
+		const drawDebug = function(graph) {
+			// if (preferences.debug) {
+			// 	// add faces edges
+			// 	drawings.face = drawings.face.concat(SVGHelper.facesEdges(graph));
+			// }
 			// face dubug numbers
 			labels.face.removeChildren();
 			let fAssignments = graph.faces_vertices.map(fv => "face");
@@ -5027,6 +5064,7 @@
 				text$$1.setAttribute("fill", "black");
 				text$$1.setAttribute("style", "font-family: sans-serif; font-size:0.05px");
 			});
+
 		};
 
 		const isFolded = function(graph) {
@@ -5035,39 +5073,37 @@
 		};
 
 		const draw = function() {
-			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
-			labels.face.removeChildren(); //todo remove
 			// flatten if necessary
 			let graph = prop.frame
 				? flatten_frame(prop.cp, prop.frame)
 				: prop.cp;
+
 			if (isFolded(graph)) {
-				drawFolded(graph);
+				_this.removeClass("creasePattern");
+				_this.addClass("foldedState");
 			} else{
-				drawCreasePattern(graph);
+				_this.removeClass("foldedState");
+				_this.addClass("creasePattern");
 			}
-			// make svg components pass through their touches
-			Object.keys(groups).forEach(key => 
-				Array.from(groups[key].children).forEach(c =>
-					c.setAttribute("pointer-events", "none")
-				)
-			);
-			if (preferences.autofit) {
-				updateViewBox();
-			}
+
+			Object.keys(groups).forEach((key) => removeChildren(groups[key]));
+			labels.face.removeChildren(); //todo remove
+
+			// both folded and non-folded draw all the components, style them in CSS
+			let arr = [groups.boundary, groups.face, groups.crease, groups.vertex];
+			fill_svg_groups(graph, ...arr);
+
+			if (preferences.debug) { drawDebug(graph); }
+			if (preferences.autofit) { updateViewBox(); }
 		};
 
 		const updateViewBox = function() {
-			let r = bounding_rect(prop.cp);
+			let graph = prop.frame
+				? flatten_frame(prop.cp, prop.frame)
+				: prop.cp;
+			let r = bounding_rect(graph);
 			setViewBox(_this, r[0], r[1], r[2], r[3], preferences.padding);
 		};
-
-		const showVertices = function(){ groups.vertex.removeAttribute("visibility");};
-		const hideVertices = function(){ groups.vertex.setAttribute("visibility", "hidden");};
-		const showEdges = function(){ groups.crease.removeAttribute("visibility");};
-		const hideEdges = function(){ groups.crease.setAttribute("visibility", "hidden");};
-		const showFaces = function(){ groups.face.removeAttribute("visibility");};
-		const hideFaces = function(){ groups.face.setAttribute("visibility", "hidden");};
 
 		const nearest = function() {
 			let p = Vector(...arguments);
@@ -5100,13 +5136,15 @@
 			return edges;
 		};
 		const getFaces = function() {
-			let faces = prop.cp.faces;
-			faces.forEach((v,i) => v.svg = groups.face.children[i]);
-			return faces;
+			let faces$$1 = prop.cp.faces;
+			faces$$1.forEach((v,i) => v.svg = groups.face.children[i]);
+			return faces$$1;
+			// return prop.cp.faces
+			// 	.map((v,i) => Object.assign(groups.face.children[i], v));
 		};
 
 		const load$$1 = function(input, callback) { // epsilon
-			load_fold(input, function(fold) {
+			load_file(input, function(fold) {
 				setCreasePattern( CreasePattern(fold) );
 				if (callback != null) { callback(); }
 			});
@@ -5195,12 +5233,6 @@
 				// todo re-call draw()
 			}
 		});
-		Object.defineProperty(_this, "showVertices", { value: showVertices });
-		Object.defineProperty(_this, "hideVertices", { value: hideVertices });
-		Object.defineProperty(_this, "showEdges", { value: showEdges });
-		Object.defineProperty(_this, "hideEdges", { value: hideEdges });
-		Object.defineProperty(_this, "showFaces", { value: showFaces });
-		Object.defineProperty(_this, "hideFaces", { value: hideFaces });
 
 		_this.groups = groups;
 		_this.labels = labels;
@@ -5213,21 +5245,20 @@
 
 		let lastStep;
 		_this.events.addEventListener("onMouseDown", function(mouse) {
-			lastStep = JSON.parse(JSON.stringify(prop.cp));
+			if (preferences.folding) {
+				lastStep = JSON.parse(JSON.stringify(prop.cp));
+			}
 		});
 		_this.events.addEventListener("onMouseMove", function(mouse) {
-			if (mouse.isPressed) {
+			if (preferences.folding && mouse.isPressed) {
 				prop.cp = CreasePattern(lastStep);
-
 				let points = [
 					Vector(mouse.pressed),
 					Vector(mouse.position)
 				];
 				let midpoint = points[0].midpoint(points[1]);
 				let vector = points[1].subtract(points[0]);
-
 				prop.cp.valleyFold(midpoint, vector.rotateZ90());
-				// folded.cp = RabbitEar.CreasePattern(origami.cp.getFOLD());
 				fold();
 			}
 		});
@@ -6196,6 +6227,7 @@
 
 	exports.math = geometry$1;
 	exports.svg = svg$1;
+	exports.convert = convert;
 	exports.core = core$1;
 	exports.bases = bases;
 	exports.CreasePattern = CreasePattern;

@@ -10,6 +10,9 @@ import * as origami from './fold/origami';
 import * as planargraph from './fold/planargraph';
 import { default as valleyfold } from './fold/valleyfold';
 import * as creasethrough from './fold/creasethrough';
+
+import * as convert from './parsers/convert';
+
 const core = Object.create(null);
 Object.assign(core, frame, validate, graph, origami, planargraph);
 // const fold = {
@@ -63,5 +66,6 @@ export { default as Graph } from './Graph';
 
 export { math };
 export { svg };
+export { convert };
 export { core };
 export { bases };

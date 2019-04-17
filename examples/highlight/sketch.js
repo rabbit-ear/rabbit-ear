@@ -1,7 +1,6 @@
 // example
 // mouse hover over nodes, faces, edges, sectors to highlight them
-var origami = RabbitEar.Origami(RabbitEar.bases.fish);
-// var origami = new RabbitEar.Origami(RabbitEar.bases.concave);
+var origami = RabbitEar.Origami(RabbitEar.bases.fish, {folding:false});
 
 origami.onMouseMove = function(event) {
 	// update returns all components back to their original color

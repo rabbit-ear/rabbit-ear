@@ -1,3 +1,5 @@
+let clipLineCallback = undefined;
+
 let clipLine = RabbitEar.svg.image("canvas-clip-line", 500, 500);
 
 clipLine.setup = function() {
@@ -76,6 +78,9 @@ clipLine.redraw = function(){
 			c.setAttribute("fill", "#224c72");
 			clipLine.topLayer.appendChild(c);
 		})
+	}
+	if (clipLineCallback !== undefined) {
+		clipLineCallback({edge})
 	}
 }
 clipLine.redraw();

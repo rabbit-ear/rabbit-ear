@@ -5,7 +5,7 @@
 	stroke-linecap: round;
 	stroke-width: var(--crease-width);
 }
-.vertex, .face, .sector{
+.vertex, .sector{
 	stroke: none;
 	fill: none;
 }
@@ -22,6 +22,36 @@
 	fill: hsl(14.4, 87%, 45%);
 }
 
-.face { fill: rgba(0, 0, 0, 0.1); stroke: black;  stroke-width: calc(var(--crease-width)*0.1);}
-.face-front { fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);}
-.face-back { fill: white; stroke: black; stroke-width: var(--crease-width); }
+.creasePattern #faces .front {
+	stroke: none; fill: none;
+}
+
+.creasePattern #faces .back {
+	stroke: none; fill: none;
+}
+
+.foldedState #faces {
+	fill: rgba(0, 0, 0, 0.1);
+	stroke: black;
+	stroke-width: calc(var(--crease-width)*0.1);
+}
+
+.foldedState #faces .front {
+	fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);
+}
+.foldedState #faces .back {
+	fill: white; stroke: black; stroke-width: var(--crease-width);
+}
+
+.foldedState #creases * {
+	fill: none; stroke: none;
+}
+
+.foldedState #vertices * {
+	fill: none; stroke: none;
+}
+
+/* this is cool if you leave it out, you can see the boundary in the folded form */
+.foldedState #boundaries * {
+	fill: none; stroke: none;
+}

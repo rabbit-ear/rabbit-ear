@@ -10,11 +10,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700">
 <!-- <link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css" /> -->
 <link rel="stylesheet" href="/docs/css/reset.css" />
-<link rel="stylesheet" href="/docs/css/style.css" />
-<link rel="stylesheet" href="/docs/css/ui.css" />
-<link rel="stylesheet" href="/docs/css/code.css" />
-<link rel="stylesheet" href="/docs/css/nav.css" />
-<link rel="stylesheet" href="/docs/css/svg.css" />
+<link rel="stylesheet" href="/docs/css/style.css?version=0.1" />
+<link rel="stylesheet" href="/docs/css/ui.css?version=0.1" />
+<link rel="stylesheet" href="/docs/css/code.css?version=0.1" />
+<link rel="stylesheet" href="/docs/css/nav.css?version=0.1" />
+<link rel="stylesheet" href="/docs/css/svg.css?version=0.1" />
 </head>
 <body>
 	<nav>
@@ -28,7 +28,7 @@
 			</li>
 			<li class="dropdown">
 				<a href="math.php" class="dropbtn">I. MATH</a>
- 				<!-- <div class="dropdown-content">
+				<!-- <div class="dropdown-content">
 					<a href="vector.php">VECTOR</a>
 					<a href="line.php">LINE</a>
 					<a href="polygon.php">POLYGON</a>
@@ -37,13 +37,13 @@
 				</div> -->
 			</li>
 			<li class="dropdown">
-				<a href="graphs.php" class="dropbtn">II. GRAPHS</a>
+				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">II. GRAPHS</a>
 			</li>
 			<li class="dropdown">
-				<a href="cp.php" class="dropbtn">III. CREASE PATTERNS</a>
+				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">III. CREASE PATTERNS</a>
 			</li>
 			<li class="dropdown">
-				<a href="this.php" class="dropbtn">IV. RABBIT EAR</a>
+				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">IV. RABBIT EAR</a>
 			</li>
 		</ul>
 	</nav>

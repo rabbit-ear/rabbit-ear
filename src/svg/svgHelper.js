@@ -13,6 +13,13 @@ const CREASE_DIR = {
 	"U": "mark",     "u": "mark"
 };
 
+export const fill_svg_groups = function(graph, boundaryGroup, facesGroup, creasesGroup, verticesGroup) {
+	boundary(graph).forEach(b => boundaryGroup.appendChild(b));
+	faces(graph).forEach(f => facesGroup.appendChild(f));
+	creases(graph).forEach(c => creasesGroup.appendChild(c));
+	vertices(graph).forEach(v => verticesGroup.appendChild(v));
+}
+
 export const boundary = function(graph) {
 	let boundary = get_boundary_vertices(graph)
 		.map(v => graph.vertices_coords[v])
@@ -78,7 +85,7 @@ function faces_sorted_by_layer(faces_layer) {
 		.map(el => el.i)
 }
 
-export const foldedFaces = function(graph) {
+export const faces = function(graph) {
 	let facesV = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		// .map(face => Geom.Polygon(face));
@@ -103,7 +110,7 @@ export const foldedFaces = function(graph) {
 		: graph.faces_vertices.map((_,i) => i);
 	return order.map(i =>
 		SVG.polygon(facesV[i])
-			.setClass(coloring[i] ? "face-front" : "face-back")
+			.setClass(coloring[i] ? "front" : "back")
 			// .setClass(coloring[i] ? "face-front-debug" : "face-back-debug")
 			.setID(""+i)
 	);

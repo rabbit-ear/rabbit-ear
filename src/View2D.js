@@ -18,6 +18,25 @@ import * as SVGHelper from "./svg/svgHelper";
 
 const plural = { boundary: "boundaries", face: "faces", crease: "creases", vertex: "vertices" };
 
+const DEFAULTS = Object.freeze({
+	autofit: true,
+	debug: false,
+	folding: true,
+	padding: 0
+});
+
+const parsePreferences = function() {
+	let keys = Object.keys(DEFAULTS);
+	let prefs = {};
+	Array(...arguments)
+		.filter(obj => typeof obj === "object")
+		.forEach(obj => Object.keys(obj)
+			.filter(key => keys.includes(key))
+			.forEach(key => prefs[key] = obj[key])
+		);
+	return prefs;
+}
+
 export default function() {
 
 	let _this = SVG.image(...arguments);
@@ -26,6 +45,11 @@ export default function() {
 	["boundary", "face", "crease", "vertex"].forEach(key =>
 		groups[key] = _this.group().setID(plural[key])
 	);
+	// make svg components pass through their touches
+	Object.keys(groups).forEach(key =>
+		groups[key].setAttribute("pointer-events", "none")
+	);
+
 	let labels = {
 		"boundary": _this.group(),
 		"face": _this.group(),
@@ -33,20 +57,21 @@ export default function() {
 		"vertex": _this.group()
 	};
 
+	let isClean = true;
+
 	let prop = {
-		cp: undefined, 
+		cp: undefined,
 		frame: undefined,
 		style: {
 			vertex_radius: 0.01 // percent of page
 		},
 	};
 
-	let preferences = {
-		autofit: true,
-		debug: false,
-		touchfold: true,
-		padding: 0,
-	};
+	let preferences = {};
+	Object.assign(preferences, DEFAULTS);
+	let userDefaults = parsePreferences(...arguments);
+	Object.keys(userDefaults)
+		.forEach(key => preferences[key] = userDefaults[key]);
 
 	const setCreasePattern = function(cp) {
 		// todo: check if cp is a CreasePattern type
@@ -55,27 +80,11 @@ export default function() {
 		prop.cp.onchange = draw;
 	}
 
-	const drawFolded = function(graph) {
-		SVGHelper.foldedFaces(graph)
-			.forEach(f => groups.face.appendChild(f));
-	};
-
-	const drawCreasePattern = function(graph) {
-		let drawings = {
-			boundary: SVGHelper.boundary(graph),
-			face: SVGHelper.facesVertices(graph),
-			crease: SVGHelper.creases(graph),
-			vertex: SVGHelper.vertices(graph)
-		};
-		if (preferences.debug) {
-			// add faces edges
-			drawings.face = drawings.face.concat(SVGHelper.facesEdges(graph));
-		}
-		Object.keys(drawings).forEach(key => 
-			drawings[key].forEach(el => groups[key].appendChild(el))
-		);
-
-		if (!preferences.debug) { return; }
+	const drawDebug = function(graph) {
+		// if (preferences.debug) {
+		// 	// add faces edges
+		// 	drawings.face = drawings.face.concat(SVGHelper.facesEdges(graph));
+		// }
 		// face dubug numbers
 		labels.face.removeChildren();
 		let fAssignments = graph.faces_vertices.map(fv => "face");
@@ -88,7 +97,8 @@ export default function() {
 			text.setAttribute("fill", "black");
 			text.setAttribute("style", "font-family: sans-serif; font-size:0.05px")
 		})
-	};
+
+	}
 
 	const isFolded = function(graph) {
 		if (graph.frame_classes == null) { return false; }
@@ -96,39 +106,37 @@ export default function() {
 	}
 
 	const draw = function() {
-		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
-		labels.face.removeChildren(); //todo remove
 		// flatten if necessary
 		let graph = prop.frame
 			? flatten_frame(prop.cp, prop.frame)
 			: prop.cp;
+
 		if (isFolded(graph)) {
-			drawFolded(graph);
+			_this.removeClass("creasePattern");
+			_this.addClass("foldedState");
 		} else{
-			drawCreasePattern(graph);
+			_this.removeClass("foldedState");
+			_this.addClass("creasePattern");
 		}
-		// make svg components pass through their touches
-		Object.keys(groups).forEach(key => 
-			Array.from(groups[key].children).forEach(c =>
-				c.setAttribute("pointer-events", "none")
-			)
-		)
-		if (preferences.autofit) {
-			updateViewBox();
-		}
+
+		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
+		labels.face.removeChildren(); //todo remove
+
+		// both folded and non-folded draw all the components, style them in CSS
+		let arr = [groups.boundary, groups.face, groups.crease, groups.vertex];
+		SVGHelper.fill_svg_groups(graph, ...arr);
+
+		if (preferences.debug) { drawDebug(graph); }
+		if (preferences.autofit) { updateViewBox(); }
 	};
 
 	const updateViewBox = function() {
-		let r = Graph.bounding_rect(prop.cp);
+		let graph = prop.frame
+			? flatten_frame(prop.cp, prop.frame)
+			: prop.cp;
+		let r = Graph.bounding_rect(graph);
 		SVG.setViewBox(_this, r[0], r[1], r[2], r[3], preferences.padding);
 	};
-
-	const showVertices = function(){ groups.vertex.removeAttribute("visibility");};
-	const hideVertices = function(){ groups.vertex.setAttribute("visibility", "hidden");};
-	const showEdges = function(){ groups.crease.removeAttribute("visibility");};
-	const hideEdges = function(){ groups.crease.setAttribute("visibility", "hidden");};
-	const showFaces = function(){ groups.face.removeAttribute("visibility");};
-	const hideFaces = function(){ groups.face.setAttribute("visibility", "hidden");};
 
 	const nearest = function() {
 		let p = Geom.Vector(...arguments);
@@ -164,6 +172,8 @@ export default function() {
 		let faces = prop.cp.faces;
 		faces.forEach((v,i) => v.svg = groups.face.children[i])
 		return faces;
+		// return prop.cp.faces
+		// 	.map((v,i) => Object.assign(groups.face.children[i], v));
 	}
 	const getBoundary = function() {
 		let boundary = prop.cp.getBoundary();
@@ -172,7 +182,7 @@ export default function() {
 	};
 
 	const load = function(input, callback) { // epsilon
-		Import.load_fold(input, function(fold) {
+		Import.load_file(input, function(fold) {
 			setCreasePattern( CreasePattern(fold) );
 			if (callback != null) { callback(); }
 		});
@@ -261,12 +271,6 @@ export default function() {
 			// todo re-call draw()
 		}
 	});
-	Object.defineProperty(_this, "showVertices", { value: showVertices });
-	Object.defineProperty(_this, "hideVertices", { value: hideVertices });
-	Object.defineProperty(_this, "showEdges", { value: showEdges });
-	Object.defineProperty(_this, "hideEdges", { value: hideEdges });
-	Object.defineProperty(_this, "showFaces", { value: showFaces });
-	Object.defineProperty(_this, "hideFaces", { value: hideFaces });
 
 	_this.groups = groups;
 	_this.labels = labels;
@@ -279,10 +283,12 @@ export default function() {
 
 	let lastStep;
 	_this.events.addEventListener("onMouseDown", function(mouse) {
-		lastStep = JSON.parse(JSON.stringify(prop.cp));
+		if (preferences.folding) {
+			lastStep = JSON.parse(JSON.stringify(prop.cp));
+		}
 	});
 	_this.events.addEventListener("onMouseMove", function(mouse) {
-		if (mouse.isPressed) {
+		if (preferences.folding && mouse.isPressed) {
 			prop.cp = CreasePattern(lastStep);
 			let points = [
 				Geom.Vector(mouse.pressed),

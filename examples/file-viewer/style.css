@@ -43,12 +43,7 @@ svg{
 .face  {
 	fill: #EEE8E0;
 }
-.folded{
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
-	stroke-linejoin: round;
-	stroke: black;	
-}
+
 .sector{ fill: none; stroke: none; }
 .mountain{
 	stroke: hsl(14.4, 87%, 45%);
@@ -66,6 +61,45 @@ svg{
 	stroke-width: calc( var(--crease-width) * 0.5);
 	stroke-linecap: round;
 }
-.stroke-yellow{ stroke: hsl(43, 88%, 46%); }
-.fill-yellow{ fill: hsl(43, 88%, 46%); }
-.folded-face{ fill: rgba(0,0,0,0.05); }
+
+.creasePattern #faces .front {
+	stroke: none; fill: none;
+}
+
+.creasePattern #faces .back {
+	stroke: none; fill: none;
+}
+
+.foldedState #faces {
+	fill: rgba(0, 0, 0, 0.1);
+	stroke: black;
+	stroke-width: calc(var(--crease-width)*0.1);
+	stroke-linejoin: bevel;
+}
+
+.foldedState #faces .front {
+	fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);
+}
+.foldedState #faces .back {
+	fill: white; stroke: black; stroke-width: var(--crease-width);
+}
+
+.foldedState #creases * {
+	fill: none; stroke: none;
+}
+
+.foldedState #vertices * {
+	fill: none; stroke: none;
+}
+
+/* this is cool if you leave it out, you can see the boundary in the folded form */
+.foldedState #boundaries * {
+	fill: none; stroke: none;
+}
+
+.stroke-yellow{ stroke: hsl(43, 88%, 46%) !important; }
+.fill-yellow{ fill: hsl(43, 88%, 46%) !important; }
+.fill-red{ fill: hsl(14.4, 87%, 45%) !important; }
+.fill-blue{ fill: hsl(205, 74%, 30%) !important; }
+.fill-dark-blue{ fill: hsl(191, 82%, 14% ) !important; }
+.fill-black{ fill: black; }

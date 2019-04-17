@@ -56,8 +56,8 @@ polyFold.redraw = function(){
 			let poly = RabbitEar.svg.polygon(p.points);
 			poly.setAttribute("fill", colors[i%2]);
 			poly.setAttribute("stroke", "black");
+			poly.setAttribute("stroke-linejoin", "bevel");
 			poly.setAttribute("stroke-width", polyFold.STROKE_WIDTH);
-			poly.setAttribute("stroke-linecap", "round");
 			polyFold.paperLayer.appendChild(poly);
 		});
 	}

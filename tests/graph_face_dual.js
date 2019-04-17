@@ -41,11 +41,11 @@ faceDual.init = function() {
 
 	let faces_coloring = RabbitEar.core.faces_coloring(faceDual.cp, 0);
 
+	let faces = faceDual.faces;
 	faces_coloring
 		.map(color => color ? "#224c72" : "#f1c14f")
-		.forEach((color, i) => {
-			faceDual.faces[i].svg.removeAttribute("class");
-			faceDual.faces[i].svg.setAttribute("fill", color);
-		});
+		.forEach((color, i) => 
+			faces[i].setAttribute("style", "fill:"+color)
+		);
 
 }

@@ -1,7 +1,7 @@
 
 const TreeMaker = function(div) {
-	let origami = RabbitEar.Origami(div);
-	let graph = RabbitEar.graph();
+	let origami = RabbitEar.Origami(div, {folding:false});
+	let graph = RabbitEar.Graph();
 
 	origami.drawLayer = origami.group();
 	let newestNode = graph.newNode({position: [0.5, 0.5], radius: 0.1});

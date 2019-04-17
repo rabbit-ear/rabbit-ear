@@ -18,7 +18,7 @@
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
-	<p class="quote">Every operation described below is found under this subheading.</p>
+	<p class="quote">Every operation on this page is accessible under this subheading.</p>
 	<p class="explain">This Javascript math library is its own <a href="https://github.com/robbykraft/Geometry">open-source and free library</a>.</p>
 </section>
 
@@ -54,14 +54,14 @@
 
 	<div id="canvas-vector-labels"></div>
 	<div class="centered">
-		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br><span id="vec-sketch-normal"></span>point.<f>normalize</f>() <br>point.<f>cross</f>([<n>0</n>,<n>0</n>,<n>1</n>]) <span style="color:#6096bb">// cross product with +Z</span></code></pre>
+		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br><span id="vec-sketch-normal"></span>point.<f>normalize</f>()</code></pre>
 	</div>
 	<p>Notice the y axis is positive in the downwards direction. <b>I didn't make this decision</b>, it's a computer graphics standard. The SVG is simply drawing in its coordinate frame. If you want to flip the +Y axis is not difficult, but it's on you.</p>
-	<p class="explain">This vector object is not limited to 2D, it works in n-dimensions.</p>
+	<p class="explain">This vector object works in N-dimensions, not limited to 2D.</p>
 	<!-- <h4>Linear Interpolation</h4> -->
 	<div id="canvas-lerp"></div>
 	<div class="centered">
-		<pre><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, t)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, t)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, t)</code></pre>
+		<pre><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, <span id="lerp-time-1">t</span>)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, <span id="lerp-time-2">t</span>)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, <span id="lerp-time-3">t</span>)</code></pre>
 	</div>
 
 	<p>This vector object is <b>immutable</b>. Each vector operation returns a <b>new, transformed vector</b>.
@@ -88,12 +88,9 @@
 <f>function</f> <v>lerp</v>(<arg>vector</arg>, <arg>magnitude</arg>)
 
 <f>function</f> <v>transform</v>(<arg>matrix</arg>)
-<f>function</f> <v>reflect</v>(<arg>line</arg>)
-<f>function</f> <v>rotateZ</v>(<arg>angle</arg>, <arg>origin</arg>)
-<f>function</f> <v>rotateZ90</v>()
-<f>function</f> <v>rotateZ180</v>()
-<f>function</f> <v>rotateZ270</v>()
-<f>function</f> <v>bisect</v>(<arg>vector</arg>)</code></pre>
+<f>function</f> <v>reflect</v>(<arg>line</arg>)          <c>// 2D</c>
+<f>function</f> <v>rotateZ</v>(<arg>angle</arg>, <arg>origin</arg>) <c>// 2D</c>
+<f>function</f> <v>bisect</v>(<arg>vector</arg>)         <c>// 2D</c></code></pre>
 </div>
 
 	<p>Remember <b>point</b> and <b>vector</b>; two ways of looking at the same object. As you use this object ask yourself "which am I dealing with?". A point might rarely use magnitude() but often uses distanceTo(), whereas a vector is the reverse.</p>
@@ -209,6 +206,26 @@
 
 	<div id="canvas-clip-line"></div>
 
+	<div class="centered">
+		<pre><code><span id="clip-line-result"></span> <key>=</key> poly.<f>clipline</f>(line)</code></pre>
+	</div>
+
+	<p>In line intersection with a convex polygon there are four possible results:</p>
+	<ul>
+		<li><b>0</b>: no intersection</li>
+		<li><b>1</b>: collinear to a point</li>
+		<li><b>2</b>: intersects the polygon</li>
+		<li><b>Infinity</b>: collinear to an edge</li>
+	</ul>
+
+	<p class="quote">A non-convex polygon cannot make such guarantees.</p>
+
+
+	<p>Edge and ray intersections with convex polygons offer the same 4 results, but for a different reason:</p>
+	<ul>
+		<li><b>1</b>: one point is inside and one outside</li>
+	</ul>
+
 	<div id="canvas-split-poly"></div>
 
 	<div class="centered">
@@ -295,6 +312,14 @@ vecTextSketchCallback = function(event){
 		document.getElementById("vec-sketch-normal").innerHTML = "[" + normalString + "] <key>=</key> ";
 	}
 }
+lerpsCallback = function(event) {
+	if(event.t != null) {
+		let timeString = "<n>" + event.t.toFixed(2) + "</n>";
+		document.getElementById("lerp-time-1").innerHTML = timeString;
+		document.getElementById("lerp-time-2").innerHTML = timeString;
+		document.getElementById("lerp-time-3").innerHTML = timeString;
+	}
+}
 nearestPointCallback = function(event) {
 	if (event.mouse != null) {
 		let pointString = "<n>" + (event.mouse[0]).toFixed(2) + "</n>, " + "<n>" + (event.mouse[1]).toFixed(2) + "</n>";
@@ -309,6 +334,13 @@ matrixReflectCallback = function(event) {
 	if (event.matrix == null) { return; }
 	katex.render("\\begin{bmatrix} "+event.matrix[0].toFixed(1)+" & "+event.matrix[2].toFixed(1)+" & "+event.matrix[4].toFixed(1) +" \\\\ "+event.matrix[1].toFixed(1)+" & "+event.matrix[3].toFixed(1)+" & "+event.matrix[5].toFixed(1) +" \\end{bmatrix}", document.getElementById("matrix-3"));
 }
+clipLineCallback = function(event) {
+	let e = event.edge == null ? [] : event.edge.slice();
+	let ps = e.map(p => "[<n>" + p[0].toFixed(0) + "</n>, <n>" + p[1].toFixed(0) + "</n>]")
+		.join(", ");
+	document.getElementById("clip-line-result").innerHTML = ps;
+}
+clipLine.redraw();
 </script>
 
 <?php include 'footer.php';?>

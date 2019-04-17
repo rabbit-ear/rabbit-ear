@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link rel="stylesheet" href="../include/bootstrap/css/bootstrap-slider.min.css">
 <link rel="stylesheet" href="../include/bootstrap/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="slider.css">
 </head>
 <body>
 	<div class="row canvases"> </div>
@@ -15,14 +15,13 @@
 		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-cp-opx">Download .opx</a>
 		<a href="#" class="btn btn-sm btn-outline-secondary" id="download-cp-fold">Download .fold</a>
 		<div>
-			<input id="frame-slider" type="text" data-slider-min="0" data-slider-max="1000" data-slider-step="1" data-slider-value="0"/>
+			<input id="frame-slider" type="range" min="0" max="1000" value="0">
 		</div>
 	</div>
 </body>
-<script type="text/javascript" src="../../examples/include/bootstrap/js/bootstrap-slider.min.js"></script>
 <script type="text/javascript" src="../include/drag-and-drop.js"></script>
 <script type="text/javascript" src="../include/file-upload-button.js"></script>
-<!-- <script type='text/javascript' src='../../include/fold.js'></script> -->
+<script type='text/javascript' src='../../include/fold.js'></script>
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
 <script type="text/javascript" src="../include/import-export.js"></script>
 <script type="text/javascript" src="sketch.js"></script>

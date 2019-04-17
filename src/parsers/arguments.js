@@ -1,4 +1,3 @@
-
 /** 
  * this searches user-provided inputs for a valid n-dimensional vector 
  * which includes objects {x:, y:}, arrays [x,y], or sequences of numbers
