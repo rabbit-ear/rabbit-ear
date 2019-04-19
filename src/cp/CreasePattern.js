@@ -4,10 +4,10 @@ import * as Graph from "../fold/graph";
 import * as PlanarGraph from "../fold/planargraph";
 import * as Origami from "../fold/origami";
 import { Polygon } from "../../include/geometry";
-import * as Args from "../parsers/arguments";
+import * as Args from "../convert/arguments";
 import squareFoldString from "../bases/square.fold";
 import { Vertex, Face, Edge, Crease } from "./components";
-import * as Convert from "../parsers/convert";
+import * as File from "../convert/file";
 
 const CreasePatternPrototype = function(proto) {
 	if(proto == null) {
@@ -72,7 +72,7 @@ const CreasePatternPrototype = function(proto) {
 	}
 
 	const svg = function(cssRules) {
-		return Convert.fold_to_svg(_this);
+		return File.fold_to_svg(_this);
 	}
 
 	// const wipe = function() {
@@ -83,13 +83,17 @@ const CreasePatternPrototype = function(proto) {
 
 	// todo: memo these. they're created each time, even if the CP hasn't changed
 	const getVertices = function() {
-		components.vertices.forEach(v => v.disable());
+		components.vertices
+			.filter(v => v.disable !== undefined)
+			.forEach(v => v.disable());
 		components.vertices = (_this.vertices_coords || [])
 			.map((_,i) => Vertex(_this, i));
 		return components.vertices;
 	}
 	const getEdges = function() {
-		components.edges.forEach(v => v.disable());
+		components.edges
+			.filter(e => e.disable !== undefined)
+			.forEach(e => e.disable());
 		components.edges = (_this.edges_vertices || [])
 			.map((_,i) => Edge(_this, i));
 		return components.edges;
@@ -98,7 +102,9 @@ const CreasePatternPrototype = function(proto) {
 		// 		.map(e => Geometry.Edge(e));
 	}
 	const getFaces = function() {
-		components.faces.forEach(v => v.disable());
+		components.faces
+			.filter(f => f.disable !== undefined)
+			.forEach(f => f.disable());
 		components.faces = (_this.faces_vertices || [])
 			.map((_,i) => Face(_this, i));
 		return components.faces;

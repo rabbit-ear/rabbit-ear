@@ -3,30 +3,26 @@
  */
 
 import * as SVG from "../../include/svg";
-import { get_boundary_vertices, faces_coloring } from "../fold/graph";
+import { CREASE_NAMES, get_boundary_vertices, faces_coloring } from "../fold/graph";
 
-const CREASE_DIR = {
-	"B": "boundary", "b": "boundary",
-	"M": "mountain", "m": "mountain",
-	"V": "valley",   "v": "valley",
-	"F": "mark",     "f": "mark",
-	"U": "mark",     "u": "mark"
-};
-
-export const fill_svg_groups = function(graph, boundaryGroup, facesGroup, creasesGroup, verticesGroup) {
-	boundary(graph).forEach(b => boundaryGroup.appendChild(b));
-	faces(graph).forEach(f => facesGroup.appendChild(f));
-	creases(graph).forEach(c => creasesGroup.appendChild(c));
-	vertices(graph).forEach(v => verticesGroup.appendChild(v));
+/**
+ * if you already have groups initialized, to save on re-initializing, pass the groups
+ * in as values under these keys, and they will get drawn into.
+ */
+export const intoGroups = function(graph, {boundaries, faces, creases, vertices}) {
+	if (boundaries){ drawBoundary(graph).forEach(b => boundaries.appendChild(b)); }
+	if (faces){ drawFaces(graph).forEach(f => faces.appendChild(f)); }
+	if (creases){ drawCreases(graph).forEach(c => creases.appendChild(c)); }
+	if (vertices){ drawVertices(graph).forEach(v => vertices.appendChild(v)); }
 }
 
-export const boundary = function(graph) {
+const drawBoundary = function(graph) {
 	let boundary = get_boundary_vertices(graph)
 		.map(v => graph.vertices_coords[v])
 	return [SVG.polygon(boundary).setClass("boundary")];
 };
 
-export const vertices = function(graph, options) {
+const drawVertices = function(graph, options) {
 	let radius = options && options.radius ? options.radius : 0.01;
 	return graph.vertices_coords.map((v,i) =>
 		SVG.circle(v[0], v[1], radius)
@@ -35,10 +31,10 @@ export const vertices = function(graph, options) {
 	);
 };
 
-export const creases = function(graph) {
+const drawCreases = function(graph) {
 	let edges = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]));
-	let eAssignments = graph.edges_assignment.map(a => CREASE_DIR[a]);
+	let eAssignments = graph.edges_assignment.map(a => CREASE_NAMES[a]);
 	return edges.map((e,i) =>
 		SVG.line(e[0][0], e[0][1], e[1][0], e[1][1])
 			.setClass(eAssignments[i])
@@ -46,7 +42,7 @@ export const creases = function(graph) {
 	);
 };
 
-export const facesVertices = function(graph) {
+const drawFacesVertices = function(graph) {
 	let fAssignments = graph.faces_vertices.map(fv => "face");
 	let facesV = !(graph.faces_vertices) ? [] : graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
@@ -59,7 +55,7 @@ export const facesVertices = function(graph) {
 	);
 };
 
-export const facesEdges = function(graph) {
+const drawFacesEdges = function(graph) {
 	let fAssignments = graph.faces_vertices.map(fv => "face");
 	let facesE = !(graph.faces_edges) ? [] : graph.faces_edges
 		.map(face_edges => face_edges
@@ -85,7 +81,7 @@ function faces_sorted_by_layer(faces_layer) {
 		.map(el => el.i)
 }
 
-export const faces = function(graph) {
+const drawFaces = function(graph) {
 	let facesV = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		// .map(face => Geom.Polygon(face));
@@ -128,22 +124,3 @@ export const faces = function(graph) {
 	// 		);
 	// }
 }
-
-export const getPageCSS = function() {
-	let css = [];
-	for (let sheeti = 0; sheeti < document.styleSheets.length; sheeti++) {
-		let sheet = document.styleSheets[sheeti];
-		let rules = ('cssRules' in sheet) ? sheet.cssRules : sheet.rules;
-		for (let rulei = 0; rulei < rules.length; rulei++) {
-			let rule = rules[rulei];
-			if ('cssText' in rule){
-				css.push(rule.cssText);
-			}
-			else{
-				css.push(rule.selectorText+' {\n'+rule.style.cssText+'\n}\n');
-			}
-		}
-	}
-	return css.join('\n');
-}
-

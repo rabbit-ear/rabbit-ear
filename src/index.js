@@ -11,7 +11,7 @@ import * as planargraph from './fold/planargraph';
 import { default as valleyfold } from './fold/valleyfold';
 import * as creasethrough from './fold/creasethrough';
 
-import { intoFOLD, intoSVG, intoORIPA } from './parsers/convert';
+import { intoFOLD, intoSVG, intoORIPA } from './convert/file';
 
 let convert = { intoFOLD, intoSVG, intoORIPA };
 

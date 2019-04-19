@@ -11,12 +11,10 @@ import * as Geom from "../include/geometry";
 import * as SVG from "../include/svg";
 import * as Graph from "./fold/graph";
 import * as Origami from "./fold/origami";
-import * as Convert from "./parsers/convert";
+import * as File from "./convert/file";
 import { flatten_frame } from "./fold/frame";
 import CreasePattern from "./cp/CreasePattern";
-import * as SVGHelper from "./svg/svgHelper";
-
-const plural = { boundary: "boundaries", face: "faces", crease: "creases", vertex: "vertices" };
+import * as Draw from "./convert/draw";
 
 const DEFAULTS = Object.freeze({
 	autofit: true,
@@ -41,10 +39,19 @@ export default function() {
 
 	let _this = SVG.image(...arguments);
 
-	let groups = {};
-	["boundary", "face", "crease", "vertex"].forEach(key =>
-		groups[key] = _this.group().setID(plural[key])
+	let groups = {};  // visible = {};
+	// ["boundary", "face", "crease", "vertex"]
+	// make sure they are added in this order
+	["boundaries", "faces", "creases", "vertices", "labels"].forEach(key =>
+		groups[key] = _this.group().setID(key)
 	);
+
+	let visibleGroups = {
+		"boundaries": groups["boundaries"],
+		"faces": groups["faces"],
+		"creases": groups["creases"],
+	};
+
 	// make svg components pass through their touches
 	Object.keys(groups).forEach(key =>
 		groups[key].setAttribute("pointer-events", "none")
@@ -83,7 +90,7 @@ export default function() {
 	const drawDebug = function(graph) {
 		// if (preferences.debug) {
 		// 	// add faces edges
-		// 	drawings.face = drawings.face.concat(SVGHelper.facesEdges(graph));
+		// 	drawings.face = drawings.face.concat(Draw.facesEdges(graph));
 		// }
 		// face dubug numbers
 		labels.face.removeChildren();
@@ -96,8 +103,7 @@ export default function() {
 		facesText.forEach(text => {
 			text.setAttribute("fill", "black");
 			text.setAttribute("style", "font-family: sans-serif; font-size:0.05px")
-		})
-
+		});
 	}
 
 	const isFolded = function(graph) {
@@ -123,8 +129,7 @@ export default function() {
 		labels.face.removeChildren(); //todo remove
 
 		// both folded and non-folded draw all the components, style them in CSS
-		let arr = [groups.boundary, groups.face, groups.crease, groups.vertex];
-		SVGHelper.fill_svg_groups(graph, ...arr);
+		Draw.intoGroups(graph, visibleGroups);
 
 		if (preferences.debug) { drawDebug(graph); }
 		if (preferences.autofit) { updateViewBox(); }
@@ -140,10 +145,15 @@ export default function() {
 
 	const nearest = function() {
 		let p = Geom.Vector(...arguments);
+		// let methods = {
+		// 	"vertex": prop.cp.nearestVertex,
+		// 	"crease": prop.cp.nearestEdge,
+		// 	"face": prop.cp.nearestFace,
+		// };
 		let methods = {
-			"vertex": prop.cp.nearestVertex,
-			"crease": prop.cp.nearestEdge,
-			"face": prop.cp.nearestFace,
+			"vertices": prop.cp.nearestVertex,
+			"creases": prop.cp.nearestEdge,
+			"faces": prop.cp.nearestFace,
 		};
 		let nearest = {};
 		// fill the methods
@@ -160,29 +170,53 @@ export default function() {
 
 	const getVertices = function() {
 		let vertices = prop.cp.vertices;
-		vertices.forEach((v,i) => v.svg = groups.vertex.children[i])
+		vertices.forEach((v,i) => v.svg = groups.vertices.children[i])
+		Object.defineProperty(vertices, "visible", {
+			get: function(){ return visibleGroups["vertices"] !== undefined; },
+			set: function(isVisible){
+				if(isVisible) { visibleGroups["vertices"] = groups["vertices"]; }
+				else { delete visibleGroups["vertices"]; }
+				draw();
+			},
+		});
 		return vertices;
 	}
 	const getEdges = function() {
 		let edges = prop.cp.edges;
-		edges.forEach((v,i) => v.svg = groups.crease.children[i])
+		edges.forEach((v,i) => v.svg = groups.creases.children[i])
+		Object.defineProperty(edges, "visible", {
+			get: function(){ return visibleGroups["creases"] !== undefined; },
+			set: function(isVisible){
+				if(isVisible) { visibleGroups["creases"] = groups["creases"]; }
+				else { delete visibleGroups["creases"]; }
+				draw();
+			},
+		});
 		return edges;
 	}
 	const getFaces = function() {
 		let faces = prop.cp.faces;
-		faces.forEach((v,i) => v.svg = groups.face.children[i])
+		faces.forEach((v,i) => v.svg = groups.faces.children[i])
+		Object.defineProperty(faces, "visible", {
+			get: function(){ return visibleGroups["faces"] !== undefined; },
+			set: function(isVisible){
+				if(isVisible) { visibleGroups["faces"] = groups["faces"]; }
+				else { delete visibleGroups["faces"]; }
+				draw();
+			},
+		});
 		return faces;
 		// return prop.cp.faces
 		// 	.map((v,i) => Object.assign(groups.face.children[i], v));
 	}
 	const getBoundary = function() {
 		let boundary = prop.cp.getBoundary();
-		boundary.forEach((v,i) => v.svg = groups.boundary.children[i])
+		boundary.forEach((v,i) => v.svg = groups.boundaries.children[i])
 		return boundary;
 	};
 
 	const load = function(input, callback) { // epsilon
-		Convert.load_file(input, function(fold) {
+		File.load_file(input, function(fold) {
 			setCreasePattern( CreasePattern(fold) );
 			if (callback != null) { callback(); }
 		});
@@ -206,7 +240,7 @@ export default function() {
 	const foldWithoutLayering = function(face){
 		let folded = Origami.fold_without_layering(prop.cp, face);
 		setCreasePattern( CreasePattern(folded) );
-		Array.from(groups.face.children).forEach(face => face.setClass("face"))
+		Array.from(groups.faces.children).forEach(face => face.setClass("face"))
 	}
 
 	Object.defineProperty(_this, "export", { value: function() {

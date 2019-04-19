@@ -35,6 +35,14 @@ export const all_keys = ["file_frames"]
 	.concat(keys.graph)
 	.concat(keys.orders);
 
+export const CREASE_NAMES = {
+	"B": "boundary", "b": "boundary",
+	"M": "mountain", "m": "mountain",
+	"V": "valley",   "v": "valley",
+	"F": "mark",     "f": "mark",
+	"U": "mark",     "u": "mark"
+};
+
 /**
  * these should trigger a careful re-build, they augment only one
  * array for the larger set of components

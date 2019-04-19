@@ -2726,6 +2726,14 @@
 		.concat(keys.graph)
 		.concat(keys.orders);
 
+	const CREASE_NAMES = {
+		"B": "boundary", "b": "boundary",
+		"M": "mountain", "m": "mountain",
+		"V": "valley",   "v": "valley",
+		"F": "mark",     "f": "mark",
+		"U": "mark",     "u": "mark"
+	};
+
 	/**
 	 * these should trigger a careful re-build, they augment only one
 	 * array for the larger set of components
@@ -3345,6 +3353,7 @@
 	var graph = /*#__PURE__*/Object.freeze({
 		keys: keys,
 		all_keys: all_keys,
+		CREASE_NAMES: CREASE_NAMES,
 		remove_non_boundary_edges: remove_non_boundary_edges,
 		remove_isolated_vertices: remove_isolated_vertices,
 		remove_collinear_vertices: remove_collinear_vertices,
@@ -4285,28 +4294,24 @@
 	 * .FOLD file into SVG, and back
 	 */
 
-	const CREASE_DIR = {
-		"B": "boundary", "b": "boundary",
-		"M": "mountain", "m": "mountain",
-		"V": "valley",   "v": "valley",
-		"F": "mark",     "f": "mark",
-		"U": "mark",     "u": "mark"
+	/**
+	 * if you already have groups initialized, to save on re-initializing, pass the groups
+	 * in as values under these keys, and they will get drawn into.
+	 */
+	const intoGroups = function(graph, {boundaries, faces, creases, vertices}) {
+		if (boundaries){ drawBoundary(graph).forEach(b => boundaries.appendChild(b)); }
+		if (faces){ drawFaces(graph).forEach(f => faces.appendChild(f)); }
+		if (creases){ drawCreases(graph).forEach(c => creases.appendChild(c)); }
+		if (vertices){ drawVertices(graph).forEach(v => vertices.appendChild(v)); }
 	};
 
-	const fill_svg_groups = function(graph, boundaryGroup, facesGroup, creasesGroup, verticesGroup) {
-		boundary(graph).forEach(b => boundaryGroup.appendChild(b));
-		faces(graph).forEach(f => facesGroup.appendChild(f));
-		creases(graph).forEach(c => creasesGroup.appendChild(c));
-		vertices(graph).forEach(v => verticesGroup.appendChild(v));
-	};
-
-	const boundary = function(graph) {
+	const drawBoundary = function(graph) {
 		let boundary = get_boundary_vertices(graph)
 			.map(v => graph.vertices_coords[v]);
 		return [polygon(boundary).setClass("boundary")];
 	};
 
-	const vertices = function(graph, options) {
+	const drawVertices = function(graph, options) {
 		let radius = options && options.radius ? options.radius : 0.01;
 		return graph.vertices_coords.map((v,i) =>
 			circle(v[0], v[1], radius)
@@ -4315,10 +4320,10 @@
 		);
 	};
 
-	const creases = function(graph) {
+	const drawCreases = function(graph) {
 		let edges = graph.edges_vertices
 			.map(ev => ev.map(v => graph.vertices_coords[v]));
-		let eAssignments = graph.edges_assignment.map(a => CREASE_DIR[a]);
+		let eAssignments = graph.edges_assignment.map(a => CREASE_NAMES[a]);
 		return edges.map((e,i) =>
 			line$1(e[0][0], e[0][1], e[1][0], e[1][1])
 				.setClass(eAssignments[i])
@@ -4332,7 +4337,7 @@
 			.map(el => el.i)
 	}
 
-	const faces = function(graph) {
+	const drawFaces = function(graph) {
 		let facesV = graph.faces_vertices
 			.map(fv => fv.map(v => graph.vertices_coords[v]));
 			// .map(face => Geom.Polygon(face));
@@ -4511,12 +4516,13 @@
 		svg$$1.setAttribute("y", "0px");
 		svg$$1.setAttribute("width", "600px");
 		svg$$1.setAttribute("height", "600px");
-		let groupNames = ["boundary", "face", "crease", "vertex"];
-		let groups = groupNames.map(key => svg$$1.group().setID(groupNamesPlural[key]));
+		let groupNames = ["boundary", "face", "crease", "vertex"]
+			.map(singular => groupNamesPlural[singular]);
+		let groups = groupNames.map(key => svg$$1.group().setID(key));
 		console.log("fold_to_svg about to fill");
-		console.log(svg$$1, groups);
+		console.log(svg$$1, {...groups});
 		// return svg;
-		fill_svg_groups(graph, ...groups);
+		intoGroups(graph, {...groups});
 		setViewBox(svg$$1, ...bounding_rect(graph));
 		console.log("fold_to_svg done");
 		return svg$$1;
@@ -4862,13 +4868,17 @@
 
 		// todo: memo these. they're created each time, even if the CP hasn't changed
 		const getVertices = function() {
-			components.vertices.forEach(v => v.disable());
+			components.vertices
+				.filter(v => v.disable !== undefined)
+				.forEach(v => v.disable());
 			components.vertices = (_this.vertices_coords || [])
 				.map((_,i) => Vertex(_this, i));
 			return components.vertices;
 		};
 		const getEdges = function() {
-			components.edges.forEach(v => v.disable());
+			components.edges
+				.filter(e => e.disable !== undefined)
+				.forEach(e => e.disable());
 			components.edges = (_this.edges_vertices || [])
 				.map((_,i) => Edge$1(_this, i));
 			return components.edges;
@@ -4877,7 +4887,9 @@
 			// 		.map(e => Geometry.Edge(e));
 		};
 		const getFaces = function() {
-			components.faces.forEach(v => v.disable());
+			components.faces
+				.filter(f => f.disable !== undefined)
+				.forEach(f => f.disable());
 			components.faces = (_this.faces_vertices || [])
 				.map((_,i) => Face(_this, i));
 			return components.faces;
@@ -5036,8 +5048,6 @@
 	 *   - DOM object, or "string" DOM id to attach to
 	 */
 
-	const plural = { boundary: "boundaries", face: "faces", crease: "creases", vertex: "vertices" };
-
 	const DEFAULTS = Object.freeze({
 		autofit: true,
 		debug: false,
@@ -5061,10 +5071,19 @@
 
 		let _this = image(...arguments);
 
-		let groups = {};
-		["boundary", "face", "crease", "vertex"].forEach(key =>
-			groups[key] = _this.group().setID(plural[key])
+		let groups = {};  // visible = {};
+		// ["boundary", "face", "crease", "vertex"]
+		// make sure they are added in this order
+		["boundaries", "faces", "creases", "vertices", "labels"].forEach(key =>
+			groups[key] = _this.group().setID(key)
 		);
+
+		let visibleGroups = {
+			"boundaries": groups["boundaries"],
+			"faces": groups["faces"],
+			"creases": groups["creases"],
+		};
+
 		// make svg components pass through their touches
 		Object.keys(groups).forEach(key =>
 			groups[key].setAttribute("pointer-events", "none")
@@ -5101,7 +5120,7 @@
 		const drawDebug = function(graph) {
 			// if (preferences.debug) {
 			// 	// add faces edges
-			// 	drawings.face = drawings.face.concat(SVGHelper.facesEdges(graph));
+			// 	drawings.face = drawings.face.concat(Draw.facesEdges(graph));
 			// }
 			// face dubug numbers
 			labels.face.removeChildren();
@@ -5115,7 +5134,6 @@
 				text$$1.setAttribute("fill", "black");
 				text$$1.setAttribute("style", "font-family: sans-serif; font-size:0.05px");
 			});
-
 		};
 
 		const isFolded = function(graph) {
@@ -5141,8 +5159,7 @@
 			labels.face.removeChildren(); //todo remove
 
 			// both folded and non-folded draw all the components, style them in CSS
-			let arr = [groups.boundary, groups.face, groups.crease, groups.vertex];
-			fill_svg_groups(graph, ...arr);
+			intoGroups(graph, visibleGroups);
 
 			if (preferences.debug) { drawDebug(graph); }
 			if (preferences.autofit) { updateViewBox(); }
@@ -5158,10 +5175,15 @@
 
 		const nearest = function() {
 			let p = Vector(...arguments);
+			// let methods = {
+			// 	"vertex": prop.cp.nearestVertex,
+			// 	"crease": prop.cp.nearestEdge,
+			// 	"face": prop.cp.nearestFace,
+			// };
 			let methods = {
-				"vertex": prop.cp.nearestVertex,
-				"crease": prop.cp.nearestEdge,
-				"face": prop.cp.nearestFace,
+				"vertices": prop.cp.nearestVertex,
+				"creases": prop.cp.nearestEdge,
+				"faces": prop.cp.nearestFace,
 			};
 			let nearest = {};
 			// fill the methods
@@ -5177,19 +5199,43 @@
 		};
 
 		const getVertices = function() {
-			let vertices$$1 = prop.cp.vertices;
-			vertices$$1.forEach((v,i) => v.svg = groups.vertex.children[i]);
-			return vertices$$1;
+			let vertices = prop.cp.vertices;
+			vertices.forEach((v,i) => v.svg = groups.vertices.children[i]);
+			Object.defineProperty(vertices, "visible", {
+				get: function(){ return visibleGroups["vertices"] !== undefined; },
+				set: function(isVisible){
+					if(isVisible) { visibleGroups["vertices"] = groups["vertices"]; }
+					else { delete visibleGroups["vertices"]; }
+					draw();
+				},
+			});
+			return vertices;
 		};
 		const getEdges = function() {
 			let edges = prop.cp.edges;
-			edges.forEach((v,i) => v.svg = groups.crease.children[i]);
+			edges.forEach((v,i) => v.svg = groups.creases.children[i]);
+			Object.defineProperty(edges, "visible", {
+				get: function(){ return visibleGroups["creases"] !== undefined; },
+				set: function(isVisible){
+					if(isVisible) { visibleGroups["creases"] = groups["creases"]; }
+					else { delete visibleGroups["creases"]; }
+					draw();
+				},
+			});
 			return edges;
 		};
 		const getFaces = function() {
-			let faces$$1 = prop.cp.faces;
-			faces$$1.forEach((v,i) => v.svg = groups.face.children[i]);
-			return faces$$1;
+			let faces = prop.cp.faces;
+			faces.forEach((v,i) => v.svg = groups.faces.children[i]);
+			Object.defineProperty(faces, "visible", {
+				get: function(){ return visibleGroups["faces"] !== undefined; },
+				set: function(isVisible){
+					if(isVisible) { visibleGroups["faces"] = groups["faces"]; }
+					else { delete visibleGroups["faces"]; }
+					draw();
+				},
+			});
+			return faces;
 			// return prop.cp.faces
 			// 	.map((v,i) => Object.assign(groups.face.children[i], v));
 		};
@@ -5219,7 +5265,7 @@
 		const foldWithoutLayering = function(face){
 			let folded = fold_without_layering(prop.cp, face);
 			setCreasePattern( CreasePattern(folded) );
-			Array.from(groups.face.children).forEach(face => face.setClass("face"));
+			Array.from(groups.faces.children).forEach(face => face.setClass("face"));
 		};
 
 		Object.defineProperty(_this, "export", { value: function() {

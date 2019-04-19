@@ -12,6 +12,8 @@
 
 	<div id="canvas-origami-fold"></div>
 
+	<p class="quote">grab</p>
+
 <div class="language"><pre>.HTML</pre></div>
 <pre><code>&lt;!<key>DOCTYPE</key> html&gt;
 &lt;<key>title</key>&gt;Rabbit Ear&lt;/<key>title</key>&gt;
@@ -29,12 +31,12 @@
 
 <h2>Getting Started</h2>
 
-	<p>Download Rabbit Ear here.</p>
+<!-- 	<p>Download Rabbit Ear here.</p>
 
 	<div class="center">
-		<!-- <a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.19.zip"><button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.19.zip</button></a> -->
+		<a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.19.zip"><button class="btn btn-primary" id="download-button"><i class="fa fa-download"></i> rabbit-ear-0.19.zip</button></a>
 	</div>
-
+ -->
 	<p>Create a new project inside the "sketches" folder by copying and renaming "empty".</p>
 	<div style="margin: auto; text-align: center; width:50vw; min-width: 300px;">
 		<img style="width:100%" src="https://rabbitear.org/images/new-project.gif">
@@ -82,7 +84,12 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 
 	<div id="div-folded-crane" class="diptych"></div>
 
-	<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
+	<div class="diptych">
+		<pre style="margin:1em;"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);</code></pre>
+		<pre style="margin:1em;"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
+	</div>
+
+	<p class="quote">In some cases Rabbit Ear is capable of determining layer ordering for a folding. When it is unsure it draws translucent faces.</p>
 
 	<p>These generative pleats are based on sine curves.</p>
 
@@ -151,15 +158,15 @@ creaseLines.<f>forEach</f>((<arg>a</arg>,<arg>i</arg>) <f>=></f> i<op>%</op>2 <o
 let twoColor = RabbitEar.Origami("canvas-face-coloring");
 twoColor.load(RabbitEar.bases.frog);
 twoColor.preferences.folding = false;
-twoColor.groups.vertex.setAttribute("opacity", 0)
-
+twoColor.groups.vertices.setAttribute("opacity", 0)
+let faces = twoColor.faces;
 RabbitEar.core.faces_coloring(twoColor.cp, 0)
 	.map(color => color ? "#224c72" : "#f1c14f")
 	.forEach((color, i) =>
-		twoColor.faces[i].svg.setAttribute("style", "fill:"+color)
+		faces[i].svg.setAttribute("style", "fill:"+color)
 	);
-
 </script>
+
 <script>
 let origamiFold = RabbitEar.Origami("canvas-origami-fold");
 
@@ -222,7 +229,7 @@ function download(url, filename){
 
 <script>
 let sinePleats = RabbitEar.Origami("canvas-sine-pleats");
-sinePleats.groups.face.setAttribute("opacity", 0);
+sinePleats.groups.faces.setAttribute("opacity", 0);
 let sinePleatsFolded = RabbitEar.Origami("canvas-sine-pleats");
 
 sinePleats.init = function(t = 0.0) {
@@ -242,7 +249,7 @@ sinePleats.init = function(t = 0.0) {
 		? sinePleats.cp.creaseLine(p[0], p[1]).mountain()
 		: sinePleats.cp.creaseLine(p[0], p[1]).valley()
 	);
-	let cp = RabbitEar.CreasePattern(sinePleats.cp.getFOLD());
+	let cp = RabbitEar.CreasePattern(sinePleats.cp.json);
 	let vertices_coords = RabbitEar.core.fold_vertices_coords(cp, 0);
 	let file_frame = {
 		vertices_coords,

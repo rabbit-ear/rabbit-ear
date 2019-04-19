@@ -1,6 +1,6 @@
 import * as Origami from "../fold/origami";
 import * as SVG from "../../include/svg";
-import * as SVGHelper from "../svg/svgHelper";
+import * as Draw from "./draw";
 import { segments } from "../../include/svg-segmentize";
 import { flatten_frame } from "../fold/frame";
 import { bounding_rect } from "../fold/graph";
@@ -136,12 +136,14 @@ export const fold_to_svg = function(fold, frame_number = 0) {
 	svg.setAttribute("y", "0px");
 	svg.setAttribute("width", "600px");
 	svg.setAttribute("height", "600px");
-	let groupNames = ["boundary", "face", "crease", "vertex"];
-	let groups = groupNames.map(key => svg.group().setID(groupNamesPlural[key]));
+	let groupNames = ["boundary", "face", "crease", "vertex"]
+		.map(singular => groupNamesPlural[singular])
+	let groups = groupNames.map(key => svg.group().setID(key));
+	let obj = { ...groups };
 	console.log("fold_to_svg about to fill");
-	console.log(svg, groups);
+	console.log(svg, {...groups});
 	// return svg;
-	SVGHelper.fill_svg_groups(graph, ...groups);
+	Draw.intoGroups(graph, {...groups});
 	SVG.setViewBox(svg, ...bounding_rect(graph));
 	console.log("fold_to_svg done");
 	return svg;
