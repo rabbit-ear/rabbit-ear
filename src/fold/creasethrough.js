@@ -22,7 +22,7 @@ export function make_folded_frame(fold, parent_frame = 0, root_face){
 			.map((n) => Geom.core.clean_number(n, 14))
 	)
 	return {
-		"frame_classes": ["foldedState"],
+		"frame_classes": ["foldedForm"],
 		"frame_parent": parent_frame,
 		"frame_inherit": true,
 		"vertices_coords": new_vertices_coords,

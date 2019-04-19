@@ -18,7 +18,7 @@ const animatedBlintzFold = {
 	"faces_layer": [4,0,1,2,3],
 	"file_frames": [
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent": 0,
 			"frame_inherit": true,
 			"vertices_coords": [
@@ -29,7 +29,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -40,7 +40,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -51,7 +51,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -62,7 +62,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -73,7 +73,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -84,7 +84,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -95,7 +95,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -106,7 +106,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -117,7 +117,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -128,7 +128,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -139,7 +139,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -150,7 +150,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -161,7 +161,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -172,7 +172,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -183,7 +183,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -194,7 +194,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -205,7 +205,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -216,7 +216,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -227,7 +227,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -238,7 +238,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -249,7 +249,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -260,7 +260,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -271,7 +271,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -282,7 +282,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -293,7 +293,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -304,7 +304,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -315,7 +315,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -326,7 +326,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -337,7 +337,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -348,7 +348,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -359,7 +359,7 @@ const animatedBlintzFold = {
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -384,7 +384,7 @@ let fishBase = {
 	"faces_layer": [2,3,5,6,4,7,0,1],
 	"edges_assignment": ["B","B","V","M","M","M","M","M","M","V","B","B","V","B","B"],
 	"file_frames": [{
-		"frame_classes": ["foldedState"],
+		"frame_classes": ["foldedForm"],
 		"frame_parent":0,
 		"frame_inherit":true,
 		"vertices_coords": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]

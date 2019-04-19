@@ -32,7 +32,7 @@ svg{
 	right: 1rem;
 	width: 33vmin;
 	height: 33vmin;
-	cursor: pointer;
+	/*cursor: pointer;*/
 }
 .boundary{
 	fill: white;
@@ -41,9 +41,6 @@ svg{
 	stroke-linecap: round;
 }
 .vertex  { fill: none; stroke: none; }
-.face  { fill: rgba(255, 255, 255, 0.6); stroke: none; }
-.face-front { fill: white; stroke: #000; stroke-width: 0.00333; }
-.face-back { fill: #ecb233; stroke: #000; stroke-width: 0.00333; }
 .sector{ fill: none; stroke: none; }
 .mountain{
 	stroke: hsl(14.4, 87%, 45%);
@@ -63,4 +60,34 @@ svg{
 }
 .stroke-yellow{ stroke: hsl(43, 88%, 46%); }
 .fill-yellow{ fill: hsl(43, 88%, 46%); }
-.folded-face{ fill: rgba(255, 255, 255, 0.25); }
+
+.creasePattern #faces {
+	stroke: none; fill: none;
+}
+
+.foldedForm #faces {
+	fill: rgba(0, 0, 0, 0.1);
+	stroke: black;
+	stroke-width: calc(var(--crease-width)*0.1);
+	stroke-linejoin: bevel;
+}
+
+.foldedForm #faces .front {
+	fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);
+}
+.foldedForm #faces .back {
+	fill: white; stroke: black; stroke-width: var(--crease-width);
+}
+
+.foldedForm #creases * {
+	fill: none; stroke: none;
+}
+
+.foldedForm #vertices * {
+	fill: none; stroke: none;
+}
+
+/* this is cool if you leave it out, you can see the boundary in the folded form */
+.foldedForm #boundaries * {
+	fill: none; stroke: none;
+}

@@ -101,15 +101,17 @@ const drawFaces = function(graph) {
 		coloring = faces_coloring(graph, notMoving);
 	}
 
+	let orderIsCertain = graph["re:faces_layer"] != null;
+
 	let order = graph["re:faces_layer"] != null
 		? faces_sorted_by_layer(graph["re:faces_layer"])
 		: graph.faces_vertices.map((_,i) => i);
-	return order.map(i =>
-		SVG.polygon(facesV[i])
+		
+	return orderIsCertain
+		? order.map(i => SVG.polygon(facesV[i])
 			.setClass(coloring[i] ? "front" : "back")
-			// .setClass(coloring[i] ? "face-front-debug" : "face-back-debug")
-			.setID(""+i)
-	);
+			.setID(""+i))
+		: order.map(i =>SVG.polygon(facesV[i]).setID(""+i));
 	// if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
 	// 	return graph["re:faces_layer"].map((fi,i) =>
 	// 		SVG.polygon(facesV[fi])

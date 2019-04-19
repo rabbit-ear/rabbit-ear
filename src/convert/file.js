@@ -2,6 +2,7 @@ import * as Origami from "../fold/origami";
 import * as SVG from "../../include/svg";
 import * as Draw from "./draw";
 import { segments } from "../../include/svg-segmentize";
+import * as Segmentize from "../../include/svg-segmentize";
 import { flatten_frame } from "../fold/frame";
 import { bounding_rect } from "../fold/graph";
 // import * as Fold from "../include/fold";
@@ -28,17 +29,21 @@ export const load_file = function(input, callback) {
 			if (callback != null) {
 				callback(fold);
 			}
+			return fold; // asynchronous loading was not required
 		} catch(err) {
-			// console.warn("could not load file, object is either not valid FOLD or corrupt JSON.", err);
-			if (s instanceof Element){
+			if (input instanceof Element){
 				let fold = svg_to_fold(input);
 				if (callback != null) {
 					callback(fold);
 				}
+				return fold; // asynchronous loading was not required
+			} else {
+				// console.warn("could not load file, object is either not valid FOLD or corrupt JSON.", err);
 			}
-		} finally {
-			return;
-		}
+		} 
+		// finally {
+		// 	return;  // currently not used. everything previous is already returning
+		// }
 	}
 	// are they giving us a filename, or the data of an already loaded file?
 	if (type === "string" || input instanceof String) {
@@ -76,18 +81,34 @@ export const load_file = function(input, callback) {
 
 
 export const intoFOLD = function(input, callback) {
-	load_file(input, function(fold) {
+	return load_file(input, function(fold) {
 		if (callback != null) { callback(fold); }
-	})
+	});
 }
 
 export const intoSVG = function(input, callback) {
-	load_file(input, function(fold) {
-		let svg = fold_to_svg(fold);
+	let syncFold, svg, async = false;
+	// attempt to load synchronously, the callback will be called regardless,
+	// we need a flag to flip when the call is done, then check if the async
+	// call is in progress
+	syncFold = load_file(input, function(fold) {
+		if (async) {
+			let svg = fold_to_svg(fold);
+			if (callback != null) { 
+				callback(svg);
+			}
+		}
+	});
+	async = true;
+	// if the load was synchronous, syncFold will contain data. if not,
+	// let the callback above finish off the conversion.
+	if (syncFold !== undefined) {
+		let svg = fold_to_svg(syncFold);
 		if (callback != null) { 
 			callback(svg);
 		}
-	})
+		return svg;
+	}
 }
 
 export const intoORIPA = function(input, callback) {
@@ -115,6 +136,9 @@ export const svg_to_fold = function(svg) {
 		"faces_vertices": [],
 		"faces_edges": [],
 	};
+	// return graph;
+	console.log("svg_to_fold");
+	console.log(Segmentize.svg(svg));
 	// todo: import semgents into a planar graph, handle edge crossings
 	segments(svg).forEach(l =>
 		Origami.add_edge_between_points(graph, l[0], l[1], l[2], l[3])

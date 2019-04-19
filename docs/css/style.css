@@ -65,13 +65,14 @@ div[id^="canvas-"] {
 .center {
 	text-align: center;
 }
-.three-js{
-	width: 70vh;
-	height: 70vh;
-	display: block;
+.three {
+	width: 100%;
+	height: 50vh;
+	max-height: 100vw;
+/*	display: block;
 	margin: auto;
+*/
 }
-
 .quote{
 	text-align: center;
 	font-style: italic;

@@ -183,7 +183,7 @@ const CreasePattern = function() {
 	Object.defineProperty(graph, "isFolded", { get: function(){
 		// try to discern folded state
 		if (graph.frame_classes == null) { return false; }
-		return graph.frame_classes.includes("foldedState");
+		return graph.frame_classes.includes("foldedForm");
 	}});
 
 	graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {

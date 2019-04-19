@@ -5,7 +5,7 @@
 	"file_classes": ["singleModel"],
 	"frame_attributes": ["2D"],
 	"frame_title": "two crease",
-	"frame_classes": ["foldedState"],
+	"frame_classes": ["foldedForm"],
 	"vertices_coords": [
 		[0.62607055447,1.172217339808],
 		[0.4407254960573305,0.9095629149556625],

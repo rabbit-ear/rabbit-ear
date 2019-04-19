@@ -115,14 +115,14 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 		"file_classes": ["singleModel"],
 		"frame_attributes": ["2D"],
 		"frame_title": "one valley crease",
-		"frame_classes": ["foldedState"]
+		"frame_classes": ["foldedForm"]
 	};
 	// bring along any metadata from the original file, replace when necessary
 	Object.keys(headers).forEach(meta => new_fold[meta] = (fold[meta] == undefined) ? headers[meta] : fold[meta])
 
 	new_fold.file_classes = ["singleModel"];
 	new_fold.frame_attributes = ["2D"];
-	new_fold.frame_classes = ["foldedState"];
+	new_fold.frame_classes = ["foldedForm"];
 	new_fold.file_frames = [{
 		"frame_classes": ["creasePattern"],
 		"parent": 0,

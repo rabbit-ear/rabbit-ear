@@ -4243,7 +4243,7 @@
 				core.clean_number(n)
 			)
 		);
-		fold.frame_classes = ["foldedState"];
+		fold.frame_classes = ["foldedForm"];
 		fold.vertices_coords = new_vertices_coords_cp;
 		return fold;
 	}
@@ -4357,15 +4357,17 @@
 			coloring = faces_coloring(graph, notMoving);
 		}
 
+		let orderIsCertain = graph["re:faces_layer"] != null;
+
 		let order = graph["re:faces_layer"] != null
 			? faces_sorted_by_layer(graph["re:faces_layer"])
 			: graph.faces_vertices.map((_,i) => i);
-		return order.map(i =>
-			polygon(facesV[i])
+			
+		return orderIsCertain
+			? order.map(i => polygon(facesV[i])
 				.setClass(coloring[i] ? "front" : "back")
-				// .setClass(coloring[i] ? "face-front-debug" : "face-back-debug")
-				.setID(""+i)
-		);
+				.setID(""+i))
+			: order.map(i =>polygon(facesV[i]).setID(""+i));
 		// if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
 		// 	return graph["re:faces_layer"].map((fi,i) =>
 		// 		SVG.polygon(facesV[fi])
@@ -4382,7 +4384,7 @@
 	};
 
 	/* (c) Robby Kraft, MIT License */
-	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
+	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),svgNS$1="http://www.w3.org/2000/svg",svgAttributes=["class","style","externalResourcesRequired","x","y","width","height","viewBox","preserveAspectRatio","zoomAndPan","version","baseProfile","contentScriptType","contentStyleType"],shape_attr={line:["x1","y1","x2","y2"],rect:["x","y","width","height"],circle:["cx","cy","r"],ellipse:["cx","cy","rx","ry"],polygon:["points"],polyline:["points"],path:["d"]},flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},attribute_list=function(b){return Array.from(b.attributes).filter(c=>-1===shape_attr[b.tagName].indexOf(c.name))},svg$2=function(b){let c=document.createElementNS(svgNS$1,"svg");svgAttributes.map(c=>({attribute:c,value:b.getAttribute(c)})).filter(a=>null!=a.value).forEach(a=>c.setAttribute(a.attribute,a.value));let d=flatten_tree(b),e=d.filter(a=>"style"===a.tagName||"defs"===a.tagName);0<e.length&&e.map(a=>a.cloneNode(!0)).forEach(a=>c.appendChild(a));let f=d.filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a).map(b=>[...b,attribute_list(a)])).reduce((c,a)=>c.concat(a),[]);return f.forEach(a=>{let b=document.createElementNS(svgNS$1,"line");b.setAttributeNS(null,"x1",a[0]),b.setAttributeNS(null,"y1",a[1]),b.setAttributeNS(null,"x2",a[2]),b.setAttributeNS(null,"y2",a[3]),null!=a[4]&&a[4].forEach(a=>b.setAttribute(a.nodeName,a.nodeValue)),c.appendChild(b);}),c},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
 
 	// import * as Fold from "../include/fold";
 
@@ -4408,17 +4410,19 @@
 				if (callback != null) {
 					callback(fold);
 				}
+				return fold; // asynchronous loading was not required
 			} catch(err) {
-				// console.warn("could not load file, object is either not valid FOLD or corrupt JSON.", err);
-				if (s instanceof Element){
+				if (input instanceof Element){
 					let fold = svg_to_fold(input);
 					if (callback != null) {
 						callback(fold);
 					}
+					return fold; // asynchronous loading was not required
 				}
-			} finally {
-				return;
-			}
+			} 
+			// finally {
+			// 	return;  // currently not used. everything previous is already returning
+			// }
 		}
 		// are they giving us a filename, or the data of an already loaded file?
 		if (type === "string" || input instanceof String) {
@@ -4456,18 +4460,34 @@
 
 
 	const intoFOLD = function(input, callback) {
-		load_file(input, function(fold) {
+		return load_file(input, function(fold) {
 			if (callback != null) { callback(fold); }
 		});
 	};
 
 	const intoSVG = function(input, callback) {
-		load_file(input, function(fold) {
-			let svg$$1 = fold_to_svg(fold);
+		let syncFold, async = false;
+		// attempt to load synchronously, the callback will be called regardless,
+		// we need a flag to flip when the call is done, then check if the async
+		// call is in progress
+		syncFold = load_file(input, function(fold) {
+			if (async) {
+				let svg$$1 = fold_to_svg(fold);
+				if (callback != null) { 
+					callback(svg$$1);
+				}
+			}
+		});
+		async = true;
+		// if the load was synchronous, syncFold will contain data. if not,
+		// let the callback above finish off the conversion.
+		if (syncFold !== undefined) {
+			let svg$$1 = fold_to_svg(syncFold);
 			if (callback != null) { 
 				callback(svg$$1);
 			}
-		});
+			return svg$$1;
+		}
 	};
 
 	const intoORIPA = function(input, callback) {
@@ -4495,6 +4515,9 @@
 			"faces_vertices": [],
 			"faces_edges": [],
 		};
+		// return graph;
+		console.log("svg_to_fold");
+		console.log(svg$2(svg$$1));
 		// todo: import semgents into a planar graph, handle edge crossings
 		segments(svg$$1).forEach(l =>
 			add_edge_between_points(graph, l[0], l[1], l[2], l[3])
@@ -4537,15 +4560,15 @@
 
 	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\t\"edgeOrders\": [],\n\t\"faceOrders\": [],\n\t\"file_frames\": []\n}";
 
-	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
+	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]],\n\t\"re:faces_layer\": [0]\n}";
 
 	var book = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,1], [0.5,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,4,0], [3,1], [4,2], [5,1,3], [0,4]],\n\t\"vertices_faces\": [[0], [0,1], [1], [1], [1,0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]],\n\t\"edges_faces\": [[0], [1], [1], [1], [0], [0], [0,1]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180],\n\t\"edges_length\": [0.5, 0.5, 1, 0.5, 0.5, 1, 1],\n\t\"faces_vertices\": [[1,4,5,0], [4,1,2,3]],\n\t\"faces_edges\": [[6,4,5,0], [6,1,2,3]]\n}";
 
-	var blintz = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.707106781186548, 0.707106781186548, 0.707106781186548, 0.707106781186548],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
+	var blintz = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.707106781186548, 0.707106781186548, 0.707106781186548, 0.707106781186548],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
 
-	var kite = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0], [0.414213562373095,0], [1,0], [1,0.585786437626905], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4]],\n\t\"vertices_faces\": [[0], [1,0], [2,1], [3,2], [3], [0,1,2,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [[0,1,5], [1,2,5], [2,3,5], [3,4,5]],\n\t\"faces_edges\": [[0,6,5], [1,8,6], [2,7,8], [3,4,7]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.414213562373095,0],[1,0.585786437626905]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
+	var kite = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0], [0.414213562373095,0], [1,0], [1,0.585786437626905], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4]],\n\t\"vertices_faces\": [[0], [1,0], [2,1], [3,2], [3], [0,1,2,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [[0,1,5], [1,2,5], [2,3,5], [3,4,5]],\n\t\"faces_edges\": [[0,6,5], [1,8,6], [2,7,8], [3,4,7]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.414213562373095,0],[1,0.585786437626905]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
 
-	var fish = "{\n\t\"this base is broken\": true,\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.292893218813452,0],[1,0.707106781186548]],\n\t\"vertices_vertices\": [[6,4,3],[7,5,3,4,6],[3,5,7],[0,4,1,5,2],[0,6,2,3],[1,7,2,3],[1,4,0],[2,5,1]],\n\t\"vertices_faces\":[[1,4],[2,3,5,6],[0,7],[0,1,2,3],[1,3,4,5],[0,2,6,7],[4,5],[6,7]],\n\t\"edges_vertices\": [[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],\n\t\"edges_faces\":[[0],[0,2],[0,7],[1],[1,4],[1,3],[2,3],[2,6],[3,5],[4],[4,5],[5],[6],[6,7],[7]],\n\t\"edges_length\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_foldAngle\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_assignment\": [\"B\",\"B\",\"F\",\"M\",\"M\",\"M\",\"M\",\"M\",\"M\",\"V\",\"B\",\"B\",\"V\",\"B\",\"B\"],\n\t\"faces_vertices\": [[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],\n\t\"faces_edges\": [[0,8,7],[1,3,5],[2,6,8],[2,5,4],[3,10,9],[4,9,11],[6,13,12],[7,12,14]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedState\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n\t}]\n}";
+	var fish = "{\n\t\"this base is broken\": true,\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.292893218813452,0],[1,0.707106781186548]],\n\t\"vertices_vertices\": [[6,4,3],[7,5,3,4,6],[3,5,7],[0,4,1,5,2],[0,6,2,3],[1,7,2,3],[1,4,0],[2,5,1]],\n\t\"vertices_faces\":[[1,4],[2,3,5,6],[0,7],[0,1,2,3],[1,3,4,5],[0,2,6,7],[4,5],[6,7]],\n\t\"edges_vertices\": [[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],\n\t\"edges_faces\":[[0],[0,2],[0,7],[1],[1,4],[1,3],[2,3],[2,6],[3,5],[4],[4,5],[5],[6],[6,7],[7]],\n\t\"edges_length\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_foldAngle\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_assignment\": [\"B\",\"B\",\"F\",\"M\",\"M\",\"M\",\"M\",\"M\",\"M\",\"V\",\"B\",\"B\",\"V\",\"B\",\"B\"],\n\t\"faces_vertices\": [[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],\n\t\"faces_edges\": [[0,8,7],[1,3,5],[2,6,8],[2,5,4],[3,10,9],[4,9,11],[6,13,12],[7,12,14]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n\t}]\n}";
 
 	var bird = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.207106781186548,0.5],[0.5,0.207106781186548],[0.792893218813452,0.5],[0.5,0.792893218813452],[0.353553390593274,0.646446609406726],[0.646446609406726,0.646446609406726],[0.646446609406726,0.353553390593274],[0.353553390593274,0.353553390593274],[0,0.5],[0.5,0],[1,0.5],[0.5,1]],\n\t\"edges_vertices\": [[3,5],[5,9],[3,9],[3,13],[5,13],[0,5],[0,13],[0,12],[5,12],[4,5],[4,12],[4,9],[0,6],[6,12],[0,14],[6,14],[1,6],[1,14],[1,11],[6,11],[4,6],[4,11],[1,7],[7,11],[1,15],[7,15],[2,7],[2,15],[2,10],[7,10],[4,7],[4,10],[2,8],[8,10],[2,16],[8,16],[3,8],[3,16],[8,9],[4,8]],\n\t\"edges_faces\": [[0,1],[0,5],[21,0],[1],[2,1],[2,3],[2],[3,6],[4,3],[4,5],[11,4],[5,22],[6,7],[6,11],[7],[8,7],[8,9],[8],[9,12],[10,9],[10,11],[17,10],[12,13],[12,17],[13],[14,13],[14,15],[14],[15,18],[16,15],[16,17],[23,16],[18,19],[18,23],[19],[20,19],[20,21],[20],[22,21],[22,23]],\n\t\"edges_assignment\": [\"M\",\"F\",\"V\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"V\",\"F\",\"M\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"M\"],\n\t\"faces_vertices\": [[3,5,9],[5,3,13],[0,5,13],[5,0,12],[4,5,12],[5,4,9],[0,6,12],[6,0,14],[1,6,14],[6,1,11],[4,6,11],[6,4,12],[1,7,11],[7,1,15],[2,7,15],[7,2,10],[4,7,10],[7,4,11],[2,8,10],[8,2,16],[3,8,16],[8,3,9],[4,8,9],[8,4,10]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,4,6],[5,7,8],[9,8,10],[9,11,1],[12,13,7],[12,14,15],[16,15,17],[16,18,19],[20,19,21],[20,10,13],[22,23,18],[22,24,25],[26,25,27],[26,28,29],[30,29,31],[30,21,23],[32,33,28],[32,34,35],[36,35,37],[36,2,38],[39,38,11],[39,31,33]]\n}";
 
@@ -4968,7 +4991,7 @@
 		Object.defineProperty(graph, "isFolded", { get: function(){
 			// try to discern folded state
 			if (graph.frame_classes == null) { return false; }
-			return graph.frame_classes.includes("foldedState");
+			return graph.frame_classes.includes("foldedForm");
 		}});
 
 		graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {
@@ -5039,19 +5062,19 @@
 
 	};
 
-	/** .FOLD file viewer
-	 * this is an SVG based front-end for the .fold file format
-	 *  (.fold file spec: https://github.com/edemaine/fold)
+	/** FOLD file viewer
+	 * this is an SVG based front-end for the FOLD file format
+	 *  (FOLD file spec: https://github.com/edemaine/fold)
 	 *
 	 *  View constructor arguments:
-	 *   - fold file
+	 *   - FOLD file
 	 *   - DOM object, or "string" DOM id to attach to
 	 */
 
 	const DEFAULTS = Object.freeze({
 		autofit: true,
 		debug: false,
-		folding: true,
+		folding: false,
 		padding: 0
 	});
 
@@ -5113,6 +5136,7 @@
 		const setCreasePattern = function(cp) {
 			// todo: check if cp is a CreasePattern type
 			prop.cp = cp;
+			prop.frame = undefined;
 			draw();
 			prop.cp.onchange = draw;
 		};
@@ -5138,7 +5162,7 @@
 
 		const isFolded = function(graph) {
 			if (graph.frame_classes == null) { return false; }
-			return graph.frame_classes.includes("foldedState");
+			return graph.frame_classes.includes("foldedForm");
 		};
 
 		const draw = function() {
@@ -5149,9 +5173,9 @@
 
 			if (isFolded(graph)) {
 				_this.removeClass("creasePattern");
-				_this.addClass("foldedState");
+				_this.addClass("foldedForm");
 			} else{
-				_this.removeClass("foldedState");
+				_this.removeClass("foldedForm");
 				_this.addClass("creasePattern");
 			}
 
@@ -5251,7 +5275,7 @@
 			let vertices_coords = fold_vertices_coords(prop.cp, face);
 			let file_frame = {
 				vertices_coords,
-				frame_classes: ["foldedState"],
+				frame_classes: ["foldedForm"],
 				frame_inherit: true,
 				frame_parent: 0
 			};
@@ -5267,6 +5291,22 @@
 			setCreasePattern( CreasePattern(folded) );
 			Array.from(groups.faces.children).forEach(face => face.setClass("face"));
 		};
+
+		Object.defineProperty(_this, "frames", {
+			get: function() {
+				let frameZero = JSON.parse(JSON.stringify(prop.cp));
+				delete frameZero.file_frames;
+				return [frameZero].concat(JSON.parse(JSON.stringify(prop.cp.file_frames)));
+			}
+		});
+		Object.defineProperty(_this, "frame", {
+			get: function() { return prop.frame; },
+			set: function(newValue) {
+				// check bounds of frames
+				prop.frame = newValue;
+				draw();
+			}
+		});
 
 		Object.defineProperty(_this, "export", { value: function() {
 			let svg$$1 = _this.cloneNode(true);
@@ -5284,10 +5324,10 @@
 		Object.defineProperty(_this, "frameCount", {
 			get: function() { return prop.cp.file_frames ? prop.cp.file_frames.length : 0; }
 		});
-		Object.defineProperty(_this, "frame", {
-			set: function(f) { prop.frame = f; draw(); },
-			get: function() { return prop.frame; }
-		});
+		// Object.defineProperty(_this, "frame", {
+		// 	set: function(f) { prop.frame = f; draw(); },
+		// 	get: function() { return prop.frame; }
+		// });
 
 		// attach CreasePattern methods
 		["axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7",
@@ -5325,14 +5365,15 @@
 				prop.cp.frame_classes = prop.cp.frame_classes
 					.filter(a => a !== "creasePattern");
 				prop.cp.frame_classes = prop.cp.frame_classes
-					.filter(a => a !== "foldedState");
-				prop.cp.frame_classes.push("foldedState");
-				// todo re-call draw()
+					.filter(a => a !== "foldedForm");
+				prop.cp.frame_classes.push( f ? "foldedForm" : "creasePattern");
+				draw();
 			}
 		});
 
-		_this.groups = groups;
-		_this.labels = labels;
+		// _this.groups = groups;
+		// _this.labels = labels;
+
 		Object.defineProperty(_this, "updateViewBox", { value: updateViewBox });
 
 		_this.preferences = preferences;
@@ -5383,25 +5424,42 @@
 
 		//  from arguments, get a fold file, if it exists
 		let args = Array.from(arguments);
-		let _cp = args.filter(arg =>
-			typeof arg == "object" && arg.vertices_coords != undefined
-		).shift();
-		if(_cp == undefined){ _cp = unitSquare; }
-
 
 		let allMeshes = [];
 		let scene = new THREE.Scene();
 		let _parent;
 
+		let prop = {
+			cp: undefined,
+			frame: undefined,
+			style: {
+				vertex_radius: 0.01 // percent of page
+			},
+		};
+
+		prop.cp = args.filter(arg =>
+			typeof arg == "object" && arg.vertices_coords != undefined
+		).shift();
+		if(prop.cp == undefined){ prop.cp = CreasePattern(unitSquare); }
+
+
 		function bootThreeJS(domParent){
 			var camera = new THREE.PerspectiveCamera(45, domParent.clientWidth/domParent.clientHeight, 0.1, 1000);
-			var controls = new THREE.OrbitControls(camera, domParent);
-			camera.position.set(0.5, 0.5, 1.5);
-			controls.target.set(0.5, 0.5, 0.0);
+			var controls$$1 = new THREE.OrbitControls(camera, domParent);
+			controls$$1.enableZoom = false;
+	//		camera.position.set(0.5, 0.5, 1.5);
+			camera.position.set(-0.75, 2, -0.025);
+			// controls.target.set(0.5, 0.5, 0.0);
+			controls$$1.target.set(0.0, 0.0, 0.0);
 			// camera.position.set(0.0, 0.0, 1.5 );
 			// controls.target.set(0.0, 0.0, 0.0);
-			controls.addEventListener('change', render);
+			controls$$1.addEventListener('change', render);
 			var renderer = new THREE.WebGLRenderer({antialias:true});
+
+			if (window.devicePixelRatio !== 1) {
+				renderer.setPixelRatio(window.devicePixelRatio);
+			}
+			
 			renderer.setClearColor("#FFFFFF");
 			renderer.setSize(domParent.clientWidth, domParent.clientHeight);
 			domParent.appendChild(renderer.domElement);
@@ -5419,10 +5477,11 @@
 			var ambientLight = new THREE.AmbientLight(0xffffff, 0.48);
 			scene.add(ambientLight);
 
+
 			var render = function(){
 				requestAnimationFrame(render);
 				renderer.render(scene, camera);
-				controls.update();
+				controls$$1.update();
 			};
 			render();
 
@@ -5473,8 +5532,12 @@
 				specular:0xffffff,
 				reflectivity:0
 			});
-			let faces = foldFileToThreeJSFaces(_cp, material);
-			let lines = foldFileToThreeJSLines(_cp);
+
+			let graph = prop.frame
+				? flatten_frame(prop.cp, prop.frame)
+				: prop.cp;
+			let faces = foldFileToThreeJSFaces(graph, material);
+			let lines = foldFileToThreeJSLines(graph);
 			allMeshes.forEach(mesh => scene.remove(mesh));
 			allMeshes = [];
 			allMeshes.push(faces);
@@ -5482,56 +5545,41 @@
 			allMeshes.forEach(mesh => scene.add(mesh));
 		}
 
-
-		const load = function(input, callback){ // epsilon
-			// are they giving us a filename, or the data of an already loaded file?
-			if (typeof input === 'string' || input instanceof String){
-				let extension = input.substr((input.lastIndexOf('.') + 1));
-				// filename. we need to upload
-				switch(extension){
-					case 'fold':
-					fetch(input)
-						.then((response) => response.json)
-						.then((data) => {
-							_cp = data;
-							draw();
-							if(callback != undefined){ callback(_cp); }
-						});
-					// return this;
-				}
-			}
-			try{
-				// try .fold file format first
-				let foldFileImport = JSON.parse(input);
-				_cp = foldFileImport;
-				// return this;
-			} catch(err){
-				console.log("not a valid .fold file format");
-				// return this;
-			}
-		};
-
-		const getFrames = function(){ return _cp.file_frames; };
-		const getFrame = function(index){ return _cp.file_frames[index]; };
-		const setFrame = function(index){
+		const setCreasePattern = function(cp) {
+			// todo: check if cp is a CreasePattern type
+			prop.cp = cp;
 			draw();
+			prop.cp.onchange = draw;
 		};
 
+		const load$$1 = function(input, callback) { // epsilon
+			load_file(input, function(fold) {
+				setCreasePattern( CreasePattern(fold) );
+				if (callback != null) { callback(); }
+			});
+		};
 
 		// return Object.freeze({
 		return {
 			set cp(c){
-				_cp = c;
+				setCreasePattern(c);
 				draw();
 			},
 			get cp(){
-				return _cp;
+				return prop.cp;
 			},
 			draw,
-			load,
-			getFrames,
-			getFrame,
-			setFrame,
+			load: load$$1,
+			get frame() { return prop.frame; },
+			set frame(newValue) {
+				prop.frame = newValue;
+				draw();
+			},
+			get frames() {
+				let frameZero = JSON.parse(JSON.stringify(prop.cp));
+				delete frameZero.file_frames;
+				return [frameZero].concat(JSON.parse(JSON.stringify(prop.cp.file_frames)));
+			}
 		// });
 		};
 
@@ -5607,7 +5655,7 @@
 				.reduce((prev,curr) => prev.concat(curr), []);
 		}
 
-		function foldFileToThreeJSLines(foldFile, scale=0.005){
+		function foldFileToThreeJSLines(foldFile, scale=0.002){
 			let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
 			// make sure they all have a z component. when z is implied it's 0
 			edges.forEach(edge => {
@@ -5617,10 +5665,10 @@
 
 			let colorAssignments = {
 				"B": [0.0,0.0,0.0],
-				// "M": [0.9,0.31,0.16],
-				"M": [0.6,0.2,0.11],
-				"F": [0.25,0.25,0.25],
-				"V": [0.12,0.35,0.50]
+		 // "M": [0.9,0.31,0.16],
+				"M": [0.0,0.0,0.0],//[34/255, 76/255, 117/255], //[0.6,0.2,0.11],
+				"F": [0.0,0.0,0.0],//[0.25,0.25,0.25],
+				"V": [0.0,0.0,0.0],//[227/255, 85/255, 54/255]//[0.12,0.35,0.50]
 			};
 
 			let colors = foldFile.edges_assignment.map(e => 

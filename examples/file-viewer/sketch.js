@@ -1,10 +1,12 @@
 var div = document.getElementsByClassName("canvases")[0];
 var origami = RabbitEar.Origami(div, {folding:false});
 var slider = document.querySelector("#frame-slider");
+slider.oninput = sliderUpdate;
 
-function sliderUpdate(value){
+function sliderUpdate(event) {
+	let value = event.target.value
 	let fraction = parseFloat(value / 1000);
-	let frame = parseInt(fraction * origami.frameCount);
+	let frame = parseInt(fraction * (origami.frames.length-1));
 	origami.frame = frame;
 }
 

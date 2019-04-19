@@ -395,7 +395,7 @@ export function fold_without_layering(fold, face) {
 			Geom.core.clean_number(n)
 		)
 	)
-	fold.frame_classes = ["foldedState"];
+	fold.frame_classes = ["foldedForm"];
 	fold.vertices_coords = new_vertices_coords_cp;
 	return fold;
 }

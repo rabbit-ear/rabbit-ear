@@ -22,37 +22,33 @@ svg{
 .mark{ stroke-width: calc( var(--crease-width) * 0.25); }
 .valley{ stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2) }
 
-.creasePattern #faces .front {
+.creasePattern #faces {
 	stroke: none; fill: none;
 }
 
-.creasePattern #faces .back {
-	stroke: none; fill: none;
-}
-
-.foldedState #faces {
+.foldedForm #faces {
 	fill: rgba(0, 0, 0, 0.1);
 	stroke: black;
 	stroke-width: calc(var(--crease-width)*0.1);
 	stroke-linejoin: bevel;
 }
 
-.foldedState #faces .front {
+.foldedForm #faces .front {
 	fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);
 }
-.foldedState #faces .back {
+.foldedForm #faces .back {
 	fill: white; stroke: black; stroke-width: var(--crease-width);
 }
 
-.foldedState #creases * {
+.foldedForm #creases * {
 	fill: none; stroke: none;
 }
 
-.foldedState #vertices * {
+.foldedForm #vertices * {
 	fill: none; stroke: none;
 }
 
 /* this is cool if you leave it out, you can see the boundary in the folded form */
-.foldedState #boundaries * {
+.foldedForm #boundaries * {
 	fill: none; stroke: none;
 }

@@ -1,9 +1,9 @@
-/** .FOLD file viewer
- * this is an SVG based front-end for the .fold file format
- *  (.fold file spec: https://github.com/edemaine/fold)
+/** FOLD file viewer
+ * this is an SVG based front-end for the FOLD file format
+ *  (FOLD file spec: https://github.com/edemaine/fold)
  *
  *  View constructor arguments:
- *   - fold file
+ *   - FOLD file
  *   - DOM object, or "string" DOM id to attach to
  */
 
@@ -19,7 +19,7 @@ import * as Draw from "./convert/draw";
 const DEFAULTS = Object.freeze({
 	autofit: true,
 	debug: false,
-	folding: true,
+	folding: false,
 	padding: 0
 });
 
@@ -83,6 +83,7 @@ export default function() {
 	const setCreasePattern = function(cp) {
 		// todo: check if cp is a CreasePattern type
 		prop.cp = cp;
+		prop.frame = undefined;
 		draw();
 		prop.cp.onchange = draw;
 	}
@@ -108,7 +109,7 @@ export default function() {
 
 	const isFolded = function(graph) {
 		if (graph.frame_classes == null) { return false; }
-		return graph.frame_classes.includes("foldedState");
+		return graph.frame_classes.includes("foldedForm");
 	}
 
 	const draw = function() {
@@ -119,9 +120,9 @@ export default function() {
 
 		if (isFolded(graph)) {
 			_this.removeClass("creasePattern");
-			_this.addClass("foldedState");
+			_this.addClass("foldedForm");
 		} else{
-			_this.removeClass("foldedState");
+			_this.removeClass("foldedForm");
 			_this.addClass("creasePattern");
 		}
 
@@ -226,7 +227,7 @@ export default function() {
 		let vertices_coords = Origami.fold_vertices_coords(prop.cp, face);
 		let file_frame = {
 			vertices_coords,
-			frame_classes: ["foldedState"],
+			frame_classes: ["foldedForm"],
 			frame_inherit: true,
 			frame_parent: 0
 		};
@@ -242,6 +243,22 @@ export default function() {
 		setCreasePattern( CreasePattern(folded) );
 		Array.from(groups.faces.children).forEach(face => face.setClass("face"))
 	}
+
+	Object.defineProperty(_this, "frames", {
+		get: function() {
+			let frameZero = JSON.parse(JSON.stringify(prop.cp));
+			delete frameZero.file_frames;
+			return [frameZero].concat(JSON.parse(JSON.stringify(prop.cp.file_frames)));
+		}
+	});
+	Object.defineProperty(_this, "frame", {
+		get: function() { return prop.frame; },
+		set: function(newValue) {
+			// check bounds of frames
+			prop.frame = newValue;
+			draw();
+		}
+	});
 
 	Object.defineProperty(_this, "export", { value: function() {
 		let svg = _this.cloneNode(true);
@@ -259,10 +276,10 @@ export default function() {
 	Object.defineProperty(_this, "frameCount", {
 		get: function() { return prop.cp.file_frames ? prop.cp.file_frames.length : 0; }
 	});
-	Object.defineProperty(_this, "frame", {
-		set: function(f) { prop.frame = f; draw(); },
-		get: function() { return prop.frame; }
-	});
+	// Object.defineProperty(_this, "frame", {
+	// 	set: function(f) { prop.frame = f; draw(); },
+	// 	get: function() { return prop.frame; }
+	// });
 
 	// attach CreasePattern methods
 	["axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7",
@@ -300,14 +317,15 @@ export default function() {
 			prop.cp.frame_classes = prop.cp.frame_classes
 				.filter(a => a !== "creasePattern");
 			prop.cp.frame_classes = prop.cp.frame_classes
-				.filter(a => a !== "foldedState");
-			prop.cp.frame_classes.push("foldedState");
-			// todo re-call draw()
+				.filter(a => a !== "foldedForm");
+			prop.cp.frame_classes.push( f ? "foldedForm" : "creasePattern");
+			draw();
 		}
 	});
 
-	_this.groups = groups;
-	_this.labels = labels;
+	// _this.groups = groups;
+	// _this.labels = labels;
+
 	Object.defineProperty(_this, "updateViewBox", { value: updateViewBox });
 
 	_this.preferences = preferences;
