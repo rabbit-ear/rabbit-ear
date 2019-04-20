@@ -55,18 +55,36 @@ origami.updateCenter = function(point){
 	folded.cp = RabbitEar.CreasePattern(foldedCP);
 }
 
+origami.startTime = 1.0 + Math.random()*2;
+origami.duration = 4.0;
+origami.animPhase = 0;
+origami.step = 0.03;
+
 origami.animate = function(event){
-	if(!origami.mouse.isPressed){
-		let scale = .2;
-		let sp = 0.12345;
-		let sp2 = 0.22222;
-		let off = 11.111;
-		let point = {x: Math.sin( 6.28 * Math.cos(off + sp*(event.time+6)) ),
-		             y: Math.cos( 6.28 * Math.cos(off + sp2*(event.time+6)) )};
-		let newCenter = { x: 0.5 + point.x * scale, y: 0.5 + point.y * scale };
-		origami.updateCenter(newCenter);
+	if (event.time > origami.startTime) {
+		let t = (event.time - origami.startTime) / origami.duration;
+		let inc = (1.0 - Math.cos(t*Math.PI*2))*0.5;
+		origami.animPhase += inc * origami.step;
+		if (t >= 1) {
+			origami.startTime = event.time + 0.2 + Math.random()*5;  // wait time
+			origami.duration = 2.0 + Math.random()*4;
+		}
+		origami.drawFrame();
 	}
 }
+
+origami.drawFrame = function(){
+	let scale = .2;
+	let sp = 0.12345;
+	let sp2 = 0.22222;
+	let off = 50.2;//11.111;
+	let point = {x: Math.sin(6.28 * Math.cos(off + sp * (origami.animPhase+6)) ),
+	             y: Math.cos(6.28 * Math.cos(off + sp2 * (origami.animPhase+6)) )};
+	let newCenter = { x: 0.5 + point.x * scale, y: 0.5 + point.y * scale };
+	origami.updateCenter(newCenter);
+}
+origami.drawFrame();
+
 origami.onMouseMove = function(mouse){
 	if(mouse.isPressed){
 		origami.updateCenter(mouse);
@@ -75,6 +93,7 @@ origami.onMouseMove = function(mouse){
 
 origami.onMouseDown = function(mouse){
 	origami.updateCenter(mouse);
+	origami.startTime = Infinity;
 }
 
-origami.updateCenter({x:0.4+Math.random()*0.2, y:0.4+Math.random()*0.2});
+// origami.updateCenter({x:0.4+Math.random()*0.2, y:0.4+Math.random()*0.2});

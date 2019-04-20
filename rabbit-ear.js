@@ -2694,14 +2694,24 @@
 
 	// keys in the .FOLD version 1.1
 	const keys = {
-		meta: [
+		file: [
 			"file_spec",
 			"file_creator",
 			"file_author",
+			"file_title",
+			"file_description",
 			"file_classes",
+			"file_frames"
+		],
+		frame: [
+			"frame_author",
 			"frame_title",
+			"frame_description",
 			"frame_attributes",
-			"frame_classes"
+			"frame_classes",
+			"frame_unit"
+			// "frame_parent",  // when inside file_frames only
+			// "frame_inherit",
 		],
 		graph: [
 			"vertices_coords",
@@ -2721,8 +2731,10 @@
 		]
 	};
 
-	const all_keys = ["file_frames"]
-		.concat(keys.meta)
+
+	const all_keys = []
+		.concat(keys.file)
+		.concat(keys.frame)
 		.concat(keys.graph)
 		.concat(keys.orders);
 
@@ -4290,6 +4302,9 @@
 		fold_vertices_coords: fold_vertices_coords
 	});
 
+	/* (c) Robby Kraft, MIT License */
+	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
+
 	/**
 	 * .FOLD file into SVG, and back
 	 */
@@ -4383,14 +4398,23 @@
 		// }
 	};
 
-	/* (c) Robby Kraft, MIT License */
-	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),svgNS$1="http://www.w3.org/2000/svg",svgAttributes=["class","style","externalResourcesRequired","x","y","width","height","viewBox","preserveAspectRatio","zoomAndPan","version","baseProfile","contentScriptType","contentStyleType"],shape_attr={line:["x1","y1","x2","y2"],rect:["x","y","width","height"],circle:["cx","cy","r"],ellipse:["cx","cy","rx","ry"],polygon:["points"],polyline:["points"],path:["d"]},flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},attribute_list=function(b){return Array.from(b.attributes).filter(c=>-1===shape_attr[b.tagName].indexOf(c.name))},svg$2=function(b){let c=document.createElementNS(svgNS$1,"svg");svgAttributes.map(c=>({attribute:c,value:b.getAttribute(c)})).filter(a=>null!=a.value).forEach(a=>c.setAttribute(a.attribute,a.value));let d=flatten_tree(b),e=d.filter(a=>"style"===a.tagName||"defs"===a.tagName);0<e.length&&e.map(a=>a.cloneNode(!0)).forEach(a=>c.appendChild(a));let f=d.filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a).map(b=>[...b,attribute_list(a)])).reduce((c,a)=>c.concat(a),[]);return f.forEach(a=>{let b=document.createElementNS(svgNS$1,"line");b.setAttributeNS(null,"x1",a[0]),b.setAttributeNS(null,"y1",a[1]),b.setAttributeNS(null,"x2",a[2]),b.setAttributeNS(null,"y2",a[3]),null!=a[4]&&a[4].forEach(a=>b.setAttribute(a.nodeName,a.nodeValue)),c.appendChild(b);}),c},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
-
 	// import * as Fold from "../include/fold";
 
+	const recursive_freeze = function(input) {
+		Object.freeze(input);
+			if (input === undefined) {
+			return input;
+		}
+		Object.getOwnPropertyNames(input).filter(prop =>
+			input[prop] !== null
+			&& (typeof input[prop] === "object" || typeof input[prop] === "function")
+			&& !Object.isFrozen(input[prop])
+		).forEach(prop => recursive_freeze(input[prop]));
+		return input;
+	};
 
 	/**
-	 * this asynchronously loads data from "input",
+	 * this asynchronously or synchronously loads data from "input",
 	 * if necessary, converts into the FOLD format,
 	 * and calls "callback(fold)" with the data as the first argument.
 	 *
@@ -4458,7 +4482,6 @@
 		}
 	};
 
-
 	const intoFOLD = function(input, callback) {
 		return load_file(input, function(fold) {
 			if (callback != null) { callback(fold); }
@@ -4516,8 +4539,8 @@
 			"faces_edges": [],
 		};
 		// return graph;
-		console.log("svg_to_fold");
-		console.log(svg$2(svg$$1));
+		// console.log("svg_to_fold");
+		// console.log(Segmentize.svg(svg));
 		// todo: import semgents into a planar graph, handle edge crossings
 		segments(svg$$1).forEach(l =>
 			add_edge_between_points(graph, l[0], l[1], l[2], l[3])
@@ -4529,7 +4552,7 @@
 	 * specify a frame number otherwise it will render the top level
 	 */
 	const fold_to_svg = function(fold, frame_number = 0) {
-		console.log("fold_to_svg start");
+		// console.log("fold_to_svg start");
 		let graph = frame_number
 			? flatten_frame(fold, frame_number)
 			: fold;
@@ -4542,12 +4565,12 @@
 		let groupNames = ["boundary", "face", "crease", "vertex"]
 			.map(singular => groupNamesPlural[singular]);
 		let groups = groupNames.map(key => svg$$1.group().setID(key));
-		console.log("fold_to_svg about to fill");
-		console.log(svg$$1, {...groups});
+		// console.log("fold_to_svg about to fill");
+		// console.log(svg, {...groups});
 		// return svg;
 		intoGroups(graph, {...groups});
 		setViewBox(svg$$1, ...bounding_rect(graph));
-		console.log("fold_to_svg done");
+		// console.log("fold_to_svg done");
 		return svg$$1;
 	};
 
@@ -4558,9 +4581,9 @@
 		vertex: "vertices"
 	};
 
-	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\t\"edgeOrders\": [],\n\t\"faceOrders\": [],\n\t\"file_frames\": []\n}";
+	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
 
-	var squareFoldString = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]],\n\t\"re:faces_layer\": [0]\n}";
+	var square = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]],\n\t\"re:faces_layer\": [0]\n}";
 
 	var book = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,1], [0.5,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,4,0], [3,1], [4,2], [5,1,3], [0,4]],\n\t\"vertices_faces\": [[0], [0,1], [1], [1], [1,0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]],\n\t\"edges_faces\": [[0], [1], [1], [1], [0], [0], [0,1]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180],\n\t\"edges_length\": [0.5, 0.5, 1, 0.5, 0.5, 1, 1],\n\t\"faces_vertices\": [[1,4,5,0], [4,1,2,3]],\n\t\"faces_edges\": [[6,4,5,0], [6,1,2,3]]\n}";
 
@@ -4581,6 +4604,13 @@
 	 * @returns (number[]) array of number components
 	 *   invalid/no input returns an emptry array
 	*/
+
+	const clean_number$1 = function(num, decimalPlaces = 15) {
+		// todo, this fails when num is a string, consider checking
+		return (num == null
+			? undefined
+			: parseFloat(num.toFixed(decimalPlaces)));
+	};
 
 	function get_vec$1() {
 		let params = Array.from(arguments);
@@ -4815,6 +4845,105 @@
 		};
 	};
 
+	const template = function() {
+		return {
+			file_spec: 1.1,
+			file_creator: "Rabbit Ear",
+			file_author: "",
+			file_title: "",
+			file_description: "",
+			file_classes: [],
+			file_frames: [],
+
+			frame_author: "",
+			frame_title: "",
+			frame_description: "",
+			frame_attributes: [],
+			frame_classes: [],
+			frame_unit: "unit",
+		};
+	};
+
+	const cp_type = function() {
+		return {
+			file_classes: ["singleModel"],
+			frame_attributes: ["2D"],
+			frame_classes: ["creasePattern"],
+		};
+	};
+
+	const square_graph = function() {
+		return {
+			vertices_coords: [[0,0], [1,0], [1,1], [0,1]],
+			vertices_vertices: [[1,3], [2,0], [3,1], [0,2]],
+			vertices_faces: [[0], [0], [0], [0]],
+			edges_vertices: [[0,1], [1,2], [2,3], [3,0]],
+			edges_faces: [[0], [0], [0], [0]],
+			edges_assignment: ["B","B","B","B"],
+			edges_foldAngle: [0, 0, 0, 0],
+			edges_length: [1, 1, 1, 1],
+			faces_vertices: [[0,1,2,3]],
+			faces_edges: [[0,1,2,3]]
+		};
+	};
+
+
+	const square$1 = function(width, height) {
+		return Object.assign(
+			Object.create(null),
+			template(),
+			cp_type,
+			square_graph()
+		);
+	};
+
+	const rectangle = function(width, height) {
+		let graph = square_graph();
+		graph.vertices_coords = [[0,0], [width,0], [width,height], [0,height]];
+		graph.edges_length = [width, height, width, height];
+		return Object.assign(
+			Object.create(null),
+			template(),
+			cp_type,
+			graph
+		);
+	};
+
+	const regular_polygon = function(sides, radius = 1) {
+		let arr = Array.from(Array(sides));
+		let angle = 2 * Math.PI / sides;
+		let sideLength = clean_number$1(Math.sqrt(
+			Math.pow(radius - radius*Math.cos(angle), 2) +
+			Math.pow(radius*Math.sin(angle), 2)
+		));
+		let graph = {
+			// vertices_
+			vertices_coords: arr.map((_,i) => angle * i).map(a => [
+				clean_number$1(radius*Math.cos(a)),
+				clean_number$1(radius*Math.sin(a))
+			]),
+			vertices_vertices: arr
+				.map((_,i) => [(i+1)%arr.length, (i+arr.length-1)%arr.length]),
+			vertices_faces: arr.map(_ => [0]),
+			// edges_
+			edges_vertices: arr.map((_,i) => [i, (i+1)%arr.length]),
+			edges_faces: arr.map(_ => [0]),
+			edges_assignment: arr.map(_ => "B"),
+			edges_foldAngle: arr.map(_ => 0),
+			edges_length: arr.map(_ => sideLength),
+			// faces_
+			faces_vertices: [arr.map((_,i) => i)],
+			faces_edges: [arr.map((_,i) => i)],
+			// "re:faces_layer": [0]
+		};
+		return Object.assign(
+			Object.create(null),
+			template(),
+			cp_type,
+			graph
+		);
+	};
+
 	// MIT open source license, Robby Kraft
 
 	const CreasePatternPrototype = function(proto) {
@@ -4873,7 +5002,7 @@
 		 */ 
 		const json = function() {
 			try {
-				return JSON.parse(JSON.stringify(_this));
+				return Object.assign(Object.create(null), JSON.parse(JSON.stringify(_this)));
 			} catch(error){
 				console.warn("could not parse Crease Pattern into JSON", error);
 			}
@@ -4941,63 +5070,19 @@
 			return (index != null) ? Face(_this, index) : undefined;
 		};
 
-		Object.defineProperty(proto, "boundary", { get: getBoundary });
-		Object.defineProperty(proto, "vertices", { get: getVertices });
-		Object.defineProperty(proto, "edges", { get: getEdges });
-		Object.defineProperty(proto, "faces", { get: getFaces });
-		Object.defineProperty(proto, "clear", { value: clear });
-		Object.defineProperty(proto, "load", { value: load });
-		Object.defineProperty(proto, "copy", { value: copy });
-		Object.defineProperty(proto, "bind", { value: bind });
-		Object.defineProperty(proto, "json", { get: json });
-		Object.defineProperty(proto, "nearestVertex", { value: nearestVertex });
-		Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
-		Object.defineProperty(proto, "nearestFace", { value: nearestFace });
-		Object.defineProperty(proto, "svg", { value: svg });
-		// Object.defineProperty(proto, "connectedGraphs", { get: function() {
-		// 	return Graph.connectedGraphs(this);
-		// }});
-
-		return Object.freeze(proto);
-	};
-
-	/** A graph is a set of nodes and edges connecting them */
-	const CreasePattern = function() {
-		let proto = CreasePatternPrototype();
-		let graph = Object.create(proto);
-		proto.bind(graph);
-
-		// parse arguments, look for an input .fold file
-		let params = Array.from(arguments);
-		let paramsObjs = params.filter(el => typeof el === "object" && el !== null);
-		// todo: which key should we check to verify .fold? coords prevents abstract CPs
-		let foldObjs = paramsObjs.filter(el => el.vertices_coords != null);
-
-		// unit square is the default base if nothing else is provided
-		graph.load( (foldObjs.shift() || JSON.parse(squareFoldString)) );
-
-		// unclear how best to use frames
-		// let frame = 0; // which fold file frame (0 ..< Inf) to display
-
-		// callback for when the crease pattern has been altered
-		graph.onchange = undefined;
-
+		// updates
 		const didUpdate = function() {
-			if (typeof graph.onchange === "function") {
-				graph.onchange();
+			if (typeof _this.onchange === "function") {
+				_this.onchange();
 			}
 		};
-
-		Object.defineProperty(graph, "isFolded", { get: function(){
-			// try to discern folded state
-			if (graph.frame_classes == null) { return false; }
-			return graph.frame_classes.includes("foldedForm");
-		}});
-
-		graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {
-			add_vertex_on_edge(graph, x, y, oldEdgeIndex);
+		// fold methods
+		const valleyFold = function(point, vector, face_index) {
+			let folded = crease_through_layers(_this, point, vector, face_index, "V");
+			Object.keys(folded).forEach(key => _this[key] = folded[key]);
 			didUpdate();
 		};
+
 		const axiom = function(number, params) {
 			let args;
 			switch(number) {
@@ -5012,54 +5097,122 @@
 			if (args === undefined) {
 				throw "axiom " + number + " was not provided with the correct inputs";
 			}
-			let crease = Crease(this, Origami["axiom"+number](graph, ...args));
+			let crease = Crease(_this, Origami["axiom"+number](_this, ...args));
+			didUpdate();
+			return crease;
+		};
+		const axiom1 = function() { return axiom.call(_this, [1, arguments]); };
+		const axiom2 = function() { return axiom.call(_this, [2, arguments]); };
+		const axiom3 = function() { return axiom.call(_this, [3, arguments]); };
+		const axiom4 = function() { return axiom.call(_this, [4, arguments]); };
+		const axiom5 = function() { return axiom.call(_this, [5, arguments]); };
+		const axiom6 = function() { return axiom.call(_this, [6, arguments]); };
+		const axiom7 = function() { return axiom.call(_this, [7, arguments]); };
+
+		const addVertexOnEdge = function(x, y, oldEdgeIndex) {
+			add_vertex_on_edge(_this, x, y, oldEdgeIndex);
+			didUpdate();
+		};
+
+		const creaseLine = function() {
+			let crease = Crease(this, crease_line(_this, ...arguments));
+			didUpdate();
+			return crease;
+		};
+		const creaseRay$$1 = function() {
+			let crease = Crease(this, creaseRay(_this, ...arguments));
+			didUpdate();
+			return crease;
+		};
+		const creaseSegment$$1 = function() {
+			let crease = Crease(this, creaseSegment(_this, ...arguments));
+			didUpdate();
+			return crease;
+		};
+		const creaseThroughLayers = function(point, vector, face) {
+			RabbitEar.fold.origami.crease_folded(_this, point, vector, face);
+			didUpdate();
+		};
+		const kawasaki = function() {
+			let crease = Crease(this, kawasaki_collapse(_this, ...arguments));
 			didUpdate();
 			return crease;
 		};
 
-		graph.axiom1 = function() { return axiom.call(this, [1, arguments]); };
-		graph.axiom2 = function() { return axiom.call(this, [2, arguments]); };
-		graph.axiom3 = function() { return axiom.call(this, [3, arguments]); };
-		graph.axiom4 = function() { return axiom.call(this, [4, arguments]); };
-		graph.axiom5 = function() { return axiom.call(this, [5, arguments]); };
-		graph.axiom6 = function() { return axiom.call(this, [6, arguments]); };
-		graph.axiom7 = function() { return axiom.call(this, [7, arguments]); };
-		graph.creaseLine = function() {
-			let crease = Crease(this, crease_line(graph, ...arguments));
-			didUpdate();
-			return crease;
-		};
-		graph.creaseRay = function() {
-			let crease = Crease(this, creaseRay(graph, ...arguments));
-			didUpdate();
-			return crease;
-		};
-		graph.creaseSegment = function() {
-			let crease = Crease(this, creaseSegment(graph, ...arguments));
-			didUpdate();
-			return crease;
-		};
-		graph.creaseThroughLayers = function(point, vector, face) {
-			RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
-			didUpdate();
-		};
-		graph.valleyFold = function(point, vector, face_index) {
-			let folded = crease_through_layers(graph, point, vector, face_index, "V");
-			Object.keys(folded).forEach(key => graph[key] = folded[key]);
-			didUpdate();
-		};
-		graph.kawasaki = function() {
-			let crease = Crease(this, kawasaki_collapse(graph, ...arguments));
-			didUpdate();
-			return crease;
-		};
-		graph.rectangle = function() {
-			// remove boundary
-			// add new boundary
-		};
+		Object.defineProperty(proto, "boundary", { get: getBoundary });
+		Object.defineProperty(proto, "vertices", { get: getVertices });
+		Object.defineProperty(proto, "edges", { get: getEdges });
+		Object.defineProperty(proto, "faces", { get: getFaces });
+		Object.defineProperty(proto, "clear", { value: clear });
+		Object.defineProperty(proto, "load", { value: load });
+		Object.defineProperty(proto, "copy", { value: copy });
+		Object.defineProperty(proto, "bind", { value: bind });
+		Object.defineProperty(proto, "json", { get: json });
+		Object.defineProperty(proto, "nearestVertex", { value: nearestVertex });
+		Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
+		Object.defineProperty(proto, "nearestFace", { value: nearestFace });
+		Object.defineProperty(proto, "svg", { value: svg });
+
+		Object.defineProperty(proto, "axiom1", { value: axiom1 });
+		Object.defineProperty(proto, "axiom2", { value: axiom2 });
+		Object.defineProperty(proto, "axiom3", { value: axiom3 });
+		Object.defineProperty(proto, "axiom4", { value: axiom4 });
+		Object.defineProperty(proto, "axiom5", { value: axiom5 });
+		Object.defineProperty(proto, "axiom6", { value: axiom6 });
+		Object.defineProperty(proto, "axiom7", { value: axiom7 });
+		Object.defineProperty(proto, "valleyFold", { value: valleyFold });
+		Object.defineProperty(proto, "addVertexOnEdge", { value: addVertexOnEdge });
+		Object.defineProperty(proto, "creaseLine", { value: creaseLine });
+		Object.defineProperty(proto, "creaseRay", { value: creaseRay$$1 });
+		Object.defineProperty(proto, "creaseSegment", { value: creaseSegment$$1 });
+		Object.defineProperty(proto, "creaseThroughLayers", { value: creaseThroughLayers });
+		Object.defineProperty(proto, "kawasaki", { value: kawasaki });
+		
+		Object.defineProperty(proto, "isFolded", { get: function(){
+			// todo, this is a heuristic function. can incorporate more cases
+			if (_this.frame_classes == null) { return false; }
+			return _this.frame_classes.includes("foldedForm");
+		}});
+
+		// Object.defineProperty(proto, "connectedGraphs", { get: function() {
+		// 	return Graph.connectedGraphs(this);
+		// }});
+
+		return Object.freeze(proto);
+	};
+
+	/** A graph is a set of nodes and edges connecting them */
+	const CreasePattern = function() {
+
+		let proto = CreasePatternPrototype();
+		let graph = Object.create(proto);
+		proto.bind(graph);
+
+		// parse arguments, look for an input .fold file
+		// todo: which key should we check to verify .fold? coords prevents abstract CPs
+		let foldObjs = Array.from(arguments)
+			.filter(el => typeof el === "object" && el !== null)
+			.filter(el => el.vertices_coords != null);
+		// unit square is the default base if nothing else is provided
+		graph.load( (foldObjs.shift() || square$1()) );
+
+		// callback for when the crease pattern has been altered
+		graph.onchange = undefined;
 
 		return graph;
+	};
 
+	CreasePattern.square = function() {
+		return CreasePattern();
+	};
+	CreasePattern.rectangle = function(width = 1, height = 1) {
+		return CreasePattern(rectangle(width, height));
+	};
+	CreasePattern.regularPolygon = function(sides, radius = 1) {
+		if (sides == null) {
+			console.warn("regularPolygon requires number of sides parameter");
+		}
+		return CreasePattern(regular_polygon(sides, radius));
 	};
 
 	/** FOLD file viewer
@@ -5161,6 +5314,7 @@
 		};
 
 		const isFolded = function(graph) {
+			// todo, this is a heuristic function. can incorporate more cases
 			if (graph.frame_classes == null) { return false; }
 			return graph.frame_classes.includes("foldedForm");
 		};
@@ -5445,15 +5599,15 @@
 
 		function bootThreeJS(domParent){
 			var camera = new THREE.PerspectiveCamera(45, domParent.clientWidth/domParent.clientHeight, 0.1, 1000);
-			var controls$$1 = new THREE.OrbitControls(camera, domParent);
-			controls$$1.enableZoom = false;
+			var controls = new THREE.OrbitControls(camera, domParent);
+			controls.enableZoom = false;
 	//		camera.position.set(0.5, 0.5, 1.5);
 			camera.position.set(-0.75, 2, -0.025);
 			// controls.target.set(0.5, 0.5, 0.0);
-			controls$$1.target.set(0.0, 0.0, 0.0);
+			controls.target.set(0.0, 0.0, 0.0);
 			// camera.position.set(0.0, 0.0, 1.5 );
 			// controls.target.set(0.0, 0.0, 0.0);
-			controls$$1.addEventListener('change', render);
+			controls.addEventListener('change', render);
 			var renderer = new THREE.WebGLRenderer({antialias:true});
 
 			if (window.devicePixelRatio !== 1) {
@@ -5481,14 +5635,14 @@
 			var render = function(){
 				requestAnimationFrame(render);
 				renderer.render(scene, camera);
-				controls$$1.update();
+				controls.update();
 			};
 			render();
 
 			draw();
 		}
 
-		// after page load, find a parent element for the new SVG in the arguments
+		// after page load, find a parent element for the canvas in the arguments
 		const attachToDOM = function(){
 			let functions = args.filter((arg) => typeof arg === "function");
 			let numbers = args.filter((arg) => !isNaN(arg));
@@ -5505,10 +5659,7 @@
 					? idElement
 					: document.body));
 			bootThreeJS(_parent);
-			if(numbers.length >= 2){
-				_svg.setAttributeNS(null, "width", numbers[0]);
-				_svg.setAttributeNS(null, "height", numbers[1]);
-			} 
+			if(numbers.length >= 2); 
 			if(functions.length >= 1){
 				functions[0]();
 			}
@@ -5552,7 +5703,7 @@
 			prop.cp.onchange = draw;
 		};
 
-		const load$$1 = function(input, callback) { // epsilon
+		const load = function(input, callback) { // epsilon
 			load_file(input, function(fold) {
 				setCreasePattern( CreasePattern(fold) );
 				if (callback != null) { callback(); }
@@ -5569,7 +5720,7 @@
 				return prop.cp;
 			},
 			draw,
-			load: load$$1,
+			load,
 			get frame() { return prop.frame; },
 			set frame(newValue) {
 				prop.frame = newValue;
@@ -6359,14 +6510,14 @@
 	// import blintzAnimated from './bases/blintz-animated.fold';
 	// import blintzDistorted from './bases/blintz-distort.fold';
 	const bases = {
-		empty: JSON.parse(empty),
-		square: JSON.parse(squareFoldString),
-		book: JSON.parse(book),
-		blintz: JSON.parse(blintz),
-		kite: JSON.parse(kite),
-		fish: JSON.parse(fish),
-		bird: JSON.parse(bird),
-		frog: JSON.parse(frog),
+		empty: recursive_freeze(JSON.parse(empty)),
+		square: recursive_freeze(JSON.parse(square)),
+		book: recursive_freeze(JSON.parse(book)),
+		blintz: recursive_freeze(JSON.parse(blintz)),
+		kite: recursive_freeze(JSON.parse(kite)),
+		fish: recursive_freeze(JSON.parse(fish)),
+		bird: recursive_freeze(JSON.parse(bird)),
+		frog: recursive_freeze(JSON.parse(frog)),
 		// remove these for production
 		// test: JSON.parse(test),
 		// dodecagon: JSON.parse(dodecagon),

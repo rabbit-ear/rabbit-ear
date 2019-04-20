@@ -13,13 +13,11 @@
 
 <section>
 	<div id="canvas-junction-bisect"></div>
-	<p>The mathematics of ancient Greece: Euclid and compass-straight edge geometry, finds a contemporary home in the mathematics of origami.</p>
-	<p>Including other familiar math as well, often presented in a fresh perspective.</p>
+	<p>The mathematics of ancient Greece, Euclid and compass-straight edge geometry, finds a contemporary home in the mathematics of origami.</p>
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
-	<p class="quote">Every operation on this page is accessible under this subheading.</p>
-	<p class="explain">This Javascript math library is its own <a href="https://github.com/robbykraft/Geometry">open-source and free library</a>.</p>
+	<p class="explain">This code is available as its own <a href="https://github.com/robbykraft/Geometry">free, open-source library</a>.</p>
 </section>
 
 <section id="types">
@@ -218,13 +216,12 @@
 		<li><b>Infinity</b>: collinear to an edge</li>
 	</ul>
 
-	<p class="quote">A non-convex polygon cannot make such guarantees.</p>
-
-
 	<p>Edge and ray intersections with convex polygons offer the same 4 results, but for a different reason:</p>
 	<ul>
 		<li><b>1</b>: one point is inside and one outside</li>
 	</ul>
+
+	<p class="quote">A non-convex polygon cannot make such guarantees.</p>
 
 	<div id="canvas-split-poly"></div>
 
@@ -266,6 +263,8 @@
 <section>
 
 <h2>APPENDIX</h2>
+
+	<p>The core of this library contains the methods that do the computation. It's all been made available to you as well</p>
 
 	<div class="centered">
 		<pre class="compact"><code><f>RabbitEar</f>.math

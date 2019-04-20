@@ -5,9 +5,9 @@ import * as PlanarGraph from "../fold/planargraph";
 import * as Origami from "../fold/origami";
 import { Polygon } from "../../include/geometry";
 import * as Args from "../convert/arguments";
-import squareFoldString from "../bases/square.fold";
 import { Vertex, Face, Edge, Crease } from "./components";
 import * as File from "../convert/file";
+import * as Make from "../fold/make";
 
 const CreasePatternPrototype = function(proto) {
 	if(proto == null) {
@@ -65,7 +65,7 @@ const CreasePatternPrototype = function(proto) {
 	 */ 
 	const json = function() {
 		try {
-			return JSON.parse(JSON.stringify(_this));
+			return Object.assign(Object.create(null), JSON.parse(JSON.stringify(_this)));
 		} catch(error){
 			console.warn("could not parse Crease Pattern into JSON", error);
 		}
@@ -133,63 +133,19 @@ const CreasePatternPrototype = function(proto) {
 		return (index != null) ? Face(_this, index) : undefined;
 	}
 
-	Object.defineProperty(proto, "boundary", { get: getBoundary });
-	Object.defineProperty(proto, "vertices", { get: getVertices });
-	Object.defineProperty(proto, "edges", { get: getEdges });
-	Object.defineProperty(proto, "faces", { get: getFaces });
-	Object.defineProperty(proto, "clear", { value: clear });
-	Object.defineProperty(proto, "load", { value: load });
-	Object.defineProperty(proto, "copy", { value: copy });
-	Object.defineProperty(proto, "bind", { value: bind });
-	Object.defineProperty(proto, "json", { get: json });
-	Object.defineProperty(proto, "nearestVertex", { value: nearestVertex });
-	Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
-	Object.defineProperty(proto, "nearestFace", { value: nearestFace });
-	Object.defineProperty(proto, "svg", { value: svg });
-	// Object.defineProperty(proto, "connectedGraphs", { get: function() {
-	// 	return Graph.connectedGraphs(this);
-	// }});
-
-	return Object.freeze(proto);
-}
-
-/** A graph is a set of nodes and edges connecting them */
-const CreasePattern = function() {
-	let proto = CreasePatternPrototype();
-	let graph = Object.create(proto);
-	proto.bind(graph);
-
-	// parse arguments, look for an input .fold file
-	let params = Array.from(arguments);
-	let paramsObjs = params.filter(el => typeof el === "object" && el !== null);
-	// todo: which key should we check to verify .fold? coords prevents abstract CPs
-	let foldObjs = paramsObjs.filter(el => el.vertices_coords != null);
-
-	// unit square is the default base if nothing else is provided
-	graph.load( (foldObjs.shift() || JSON.parse(squareFoldString)) );
-
-	// unclear how best to use frames
-	// let frame = 0; // which fold file frame (0 ..< Inf) to display
-
-	// callback for when the crease pattern has been altered
-	graph.onchange = undefined;
-
+	// updates
 	const didUpdate = function() {
-		if (typeof graph.onchange === "function") {
-			graph.onchange();
+		if (typeof _this.onchange === "function") {
+			_this.onchange();
 		}
-	}
-
-	Object.defineProperty(graph, "isFolded", { get: function(){
-		// try to discern folded state
-		if (graph.frame_classes == null) { return false; }
-		return graph.frame_classes.includes("foldedForm");
-	}});
-
-	graph.addVertexOnEdge = function(x, y, oldEdgeIndex) {
-		Graph.add_vertex_on_edge(graph, x, y, oldEdgeIndex);
+	};
+	// fold methods
+	const valleyFold = function(point, vector, face_index) {
+		let folded = Origami.crease_through_layers(_this, point, vector, face_index, "V");
+		Object.keys(folded).forEach(key => _this[key] = folded[key]);
 		didUpdate();
-	}
+	};
+
 	const axiom = function(number, params) {
 		let args;
 		switch(number) {
@@ -204,54 +160,122 @@ const CreasePattern = function() {
 		if (args === undefined) {
 			throw "axiom " + number + " was not provided with the correct inputs";
 		}
-		let crease = Crease(this, Origami["axiom"+number](graph, ...args));
+		let crease = Crease(_this, Origami["axiom"+number](_this, ...args));
 		didUpdate();
 		return crease;
-	}
+	};
+	const axiom1 = function() { return axiom.call(_this, [1, arguments]); };
+	const axiom2 = function() { return axiom.call(_this, [2, arguments]); };
+	const axiom3 = function() { return axiom.call(_this, [3, arguments]); };
+	const axiom4 = function() { return axiom.call(_this, [4, arguments]); };
+	const axiom5 = function() { return axiom.call(_this, [5, arguments]); };
+	const axiom6 = function() { return axiom.call(_this, [6, arguments]); };
+	const axiom7 = function() { return axiom.call(_this, [7, arguments]); };
 
-	graph.axiom1 = function() { return axiom.call(this, [1, arguments]); }
-	graph.axiom2 = function() { return axiom.call(this, [2, arguments]); }
-	graph.axiom3 = function() { return axiom.call(this, [3, arguments]); }
-	graph.axiom4 = function() { return axiom.call(this, [4, arguments]); }
-	graph.axiom5 = function() { return axiom.call(this, [5, arguments]); }
-	graph.axiom6 = function() { return axiom.call(this, [6, arguments]); }
-	graph.axiom7 = function() { return axiom.call(this, [7, arguments]); }
-	graph.creaseLine = function() {
-		let crease = Crease(this, Origami.crease_line(graph, ...arguments));
+	const addVertexOnEdge = function(x, y, oldEdgeIndex) {
+		Graph.add_vertex_on_edge(_this, x, y, oldEdgeIndex);
+		didUpdate();
+	};
+
+	const creaseLine = function() {
+		let crease = Crease(this, Origami.crease_line(_this, ...arguments));
 		didUpdate();
 		return crease;
-	}
-	graph.creaseRay = function() {
-		let crease = Crease(this, Origami.creaseRay(graph, ...arguments));
+	};
+	const creaseRay = function() {
+		let crease = Crease(this, Origami.creaseRay(_this, ...arguments));
 		didUpdate();
 		return crease;
-	}
-	graph.creaseSegment = function() {
-		let crease = Crease(this, Origami.creaseSegment(graph, ...arguments));
+	};
+	const creaseSegment = function() {
+		let crease = Crease(this, Origami.creaseSegment(_this, ...arguments));
 		didUpdate();
 		return crease;
-	}
-	graph.creaseThroughLayers = function(point, vector, face) {
-		RabbitEar.fold.origami.crease_folded(graph, point, vector, face);
+	};
+	const creaseThroughLayers = function(point, vector, face) {
+		RabbitEar.fold.origami.crease_folded(_this, point, vector, face);
 		didUpdate();
-	}
-	graph.valleyFold = function(point, vector, face_index) {
-		let folded = Origami.crease_through_layers(graph, point, vector, face_index, "V");
-		Object.keys(folded).forEach(key => graph[key] = folded[key]);
-		didUpdate();
-	}
-	graph.kawasaki = function() {
-		let crease = Crease(this, Origami.kawasaki_collapse(graph, ...arguments));
+	};
+	const kawasaki = function() {
+		let crease = Crease(this, Origami.kawasaki_collapse(_this, ...arguments));
 		didUpdate();
 		return crease;
-	}
-	graph.rectangle = function() {
-		// remove boundary
-		// add new boundary
-	}
+	};
+
+	Object.defineProperty(proto, "boundary", { get: getBoundary });
+	Object.defineProperty(proto, "vertices", { get: getVertices });
+	Object.defineProperty(proto, "edges", { get: getEdges });
+	Object.defineProperty(proto, "faces", { get: getFaces });
+	Object.defineProperty(proto, "clear", { value: clear });
+	Object.defineProperty(proto, "load", { value: load });
+	Object.defineProperty(proto, "copy", { value: copy });
+	Object.defineProperty(proto, "bind", { value: bind });
+	Object.defineProperty(proto, "json", { get: json });
+	Object.defineProperty(proto, "nearestVertex", { value: nearestVertex });
+	Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
+	Object.defineProperty(proto, "nearestFace", { value: nearestFace });
+	Object.defineProperty(proto, "svg", { value: svg });
+
+	Object.defineProperty(proto, "axiom1", { value: axiom1 });
+	Object.defineProperty(proto, "axiom2", { value: axiom2 });
+	Object.defineProperty(proto, "axiom3", { value: axiom3 });
+	Object.defineProperty(proto, "axiom4", { value: axiom4 });
+	Object.defineProperty(proto, "axiom5", { value: axiom5 });
+	Object.defineProperty(proto, "axiom6", { value: axiom6 });
+	Object.defineProperty(proto, "axiom7", { value: axiom7 });
+	Object.defineProperty(proto, "valleyFold", { value: valleyFold });
+	Object.defineProperty(proto, "addVertexOnEdge", { value: addVertexOnEdge });
+	Object.defineProperty(proto, "creaseLine", { value: creaseLine });
+	Object.defineProperty(proto, "creaseRay", { value: creaseRay });
+	Object.defineProperty(proto, "creaseSegment", { value: creaseSegment });
+	Object.defineProperty(proto, "creaseThroughLayers", { value: creaseThroughLayers });
+	Object.defineProperty(proto, "kawasaki", { value: kawasaki });
+	
+	Object.defineProperty(proto, "isFolded", { get: function(){
+		// todo, this is a heuristic function. can incorporate more cases
+		if (_this.frame_classes == null) { return false; }
+		return _this.frame_classes.includes("foldedForm");
+	}});
+
+	// Object.defineProperty(proto, "connectedGraphs", { get: function() {
+	// 	return Graph.connectedGraphs(this);
+	// }});
+
+	return Object.freeze(proto);
+}
+
+/** A graph is a set of nodes and edges connecting them */
+const CreasePattern = function() {
+
+	let proto = CreasePatternPrototype();
+	let graph = Object.create(proto);
+	proto.bind(graph);
+
+	// parse arguments, look for an input .fold file
+	// todo: which key should we check to verify .fold? coords prevents abstract CPs
+	let foldObjs = Array.from(arguments)
+		.filter(el => typeof el === "object" && el !== null)
+		.filter(el => el.vertices_coords != null);
+	// unit square is the default base if nothing else is provided
+	graph.load( (foldObjs.shift() || Make.square()) );
+
+	// callback for when the crease pattern has been altered
+	graph.onchange = undefined;
 
 	return graph;
+}
 
+CreasePattern.square = function() {
+	return CreasePattern();
+}
+CreasePattern.rectangle = function(width = 1, height = 1) {
+	return CreasePattern(Make.rectangle(width, height));
+}
+CreasePattern.regularPolygon = function(sides, radius = 1) {
+	if (sides == null) {
+		console.warn("regularPolygon requires number of sides parameter");
+	}
+	return CreasePattern(Make.regular_polygon(sides, radius));
 }
 
 export default CreasePattern;

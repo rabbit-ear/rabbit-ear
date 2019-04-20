@@ -11,7 +11,7 @@ import * as planargraph from './fold/planargraph';
 import { default as valleyfold } from './fold/valleyfold';
 import * as creasethrough from './fold/creasethrough';
 
-import { intoFOLD, intoSVG, intoORIPA } from './convert/file';
+import { recursive_freeze, intoFOLD, intoSVG, intoORIPA } from './convert/file';
 
 let convert = { intoFOLD, intoSVG, intoORIPA };
 
@@ -44,14 +44,14 @@ import frog from './bases/frog.fold';
 // import blintzAnimated from './bases/blintz-animated.fold';
 // import blintzDistorted from './bases/blintz-distort.fold';
 const bases = {
-	empty: JSON.parse(empty),
-	square: JSON.parse(square),
-	book: JSON.parse(book),
-	blintz: JSON.parse(blintz),
-	kite: JSON.parse(kite),
-	fish: JSON.parse(fish),
-	bird: JSON.parse(bird),
-	frog: JSON.parse(frog),
+	empty: recursive_freeze(JSON.parse(empty)),
+	square: recursive_freeze(JSON.parse(square)),
+	book: recursive_freeze(JSON.parse(book)),
+	blintz: recursive_freeze(JSON.parse(blintz)),
+	kite: recursive_freeze(JSON.parse(kite)),
+	fish: recursive_freeze(JSON.parse(fish)),
+	bird: recursive_freeze(JSON.parse(bird)),
+	frog: recursive_freeze(JSON.parse(frog)),
 	// remove these for production
 	// test: JSON.parse(test),
 	// dodecagon: JSON.parse(dodecagon),

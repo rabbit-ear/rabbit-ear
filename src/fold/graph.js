@@ -3,14 +3,24 @@
 
 // keys in the .FOLD version 1.1
 export const keys = {
-	meta: [
+	file: [
 		"file_spec",
 		"file_creator",
 		"file_author",
+		"file_title",
+		"file_description",
 		"file_classes",
+		"file_frames"
+	],
+	frame: [
+		"frame_author",
 		"frame_title",
+		"frame_description",
 		"frame_attributes",
-		"frame_classes"
+		"frame_classes",
+		"frame_unit"
+		// "frame_parent",  // when inside file_frames only
+		// "frame_inherit",
 	],
 	graph: [
 		"vertices_coords",
@@ -30,8 +40,14 @@ export const keys = {
 	]
 };
 
-export const all_keys = ["file_frames"]
-	.concat(keys.meta)
+let frame_attributes = ["2D", "3D", "abstract", "manifold", "nonManifold", "orientable", "nonOrientable", "selfTouching", "nonSelfTouching", "selfIntersecting", "nonSelfIntersecting"];
+let frame_classes = ["creasePattern", "foldedForm", "graph", "linkage"];
+let file_classes = ["singleModel", "multiModel", "animation", "diagrams"];
+
+
+export const all_keys = []
+	.concat(keys.file)
+	.concat(keys.frame)
 	.concat(keys.graph)
 	.concat(keys.orders);
 

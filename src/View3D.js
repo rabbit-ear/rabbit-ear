@@ -7,16 +7,9 @@
  *   - DOM object, or "string" DOM id to attach to
  */
 
-
-import * as Geom from "../include/geometry";
-import * as SVG from "../include/svg";
-import * as Graph from "./fold/graph";
-import * as Origami from "./fold/origami";
 import * as File from "./convert/file";
 import { flatten_frame } from "./fold/frame";
 import CreasePattern from "./cp/CreasePattern";
-import * as Draw from "./convert/draw";
-
 
 const CREASE_DIR = {
 	"B": "boundary",
@@ -103,7 +96,7 @@ export default function View3D(){
 		draw();
 	}
 
-	// after page load, find a parent element for the new SVG in the arguments
+	// after page load, find a parent element for the canvas in the arguments
 	const attachToDOM = function(){
 		let functions = args.filter((arg) => typeof arg === "function");
 		let numbers = args.filter((arg) => !isNaN(arg));
@@ -121,8 +114,8 @@ export default function View3D(){
 				: document.body));
 		bootThreeJS(_parent);
 		if(numbers.length >= 2){
-			_svg.setAttributeNS(null, "width", numbers[0]);
-			_svg.setAttributeNS(null, "height", numbers[1]);
+			// _svg.setAttributeNS(null, "width", numbers[0]);
+			// _svg.setAttributeNS(null, "height", numbers[1]);
 		} 
 		if(functions.length >= 1){
 			functions[0]();

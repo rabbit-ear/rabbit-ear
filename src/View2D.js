@@ -14,7 +14,7 @@ import * as Origami from "./fold/origami";
 import * as File from "./convert/file";
 import { flatten_frame } from "./fold/frame";
 import CreasePattern from "./cp/CreasePattern";
-import * as Draw from "./convert/draw";
+import * as Draw from "./fold/draw";
 
 const DEFAULTS = Object.freeze({
 	autofit: true,
@@ -108,6 +108,7 @@ export default function() {
 	}
 
 	const isFolded = function(graph) {
+		// todo, this is a heuristic function. can incorporate more cases
 		if (graph.frame_classes == null) { return false; }
 		return graph.frame_classes.includes("foldedForm");
 	}

@@ -1,15 +1,27 @@
 import * as Origami from "../fold/origami";
 import * as SVG from "../../include/svg";
-import * as Draw from "./draw";
 import { segments } from "../../include/svg-segmentize";
 import * as Segmentize from "../../include/svg-segmentize";
 import { flatten_frame } from "../fold/frame";
 import { bounding_rect } from "../fold/graph";
+import * as Draw from "../fold/draw";
 // import * as Fold from "../include/fold";
 
+export const recursive_freeze = function(input) {
+	Object.freeze(input);
+		if (input === undefined) {
+		return input;
+	}
+	Object.getOwnPropertyNames(input).filter(prop =>
+		input[prop] !== null
+		&& (typeof input[prop] === "object" || typeof input[prop] === "function")
+		&& !Object.isFrozen(input[prop])
+	).forEach(prop => recursive_freeze(input[prop]));
+	return input;
+}
 
 /**
- * this asynchronously loads data from "input",
+ * this asynchronously or synchronously loads data from "input",
  * if necessary, converts into the FOLD format,
  * and calls "callback(fold)" with the data as the first argument.
  *
@@ -79,7 +91,6 @@ export const load_file = function(input, callback) {
 	}
 }
 
-
 export const intoFOLD = function(input, callback) {
 	return load_file(input, function(fold) {
 		if (callback != null) { callback(fold); }
@@ -137,8 +148,8 @@ export const svg_to_fold = function(svg) {
 		"faces_edges": [],
 	};
 	// return graph;
-	console.log("svg_to_fold");
-	console.log(Segmentize.svg(svg));
+	// console.log("svg_to_fold");
+	// console.log(Segmentize.svg(svg));
 	// todo: import semgents into a planar graph, handle edge crossings
 	segments(svg).forEach(l =>
 		Origami.add_edge_between_points(graph, l[0], l[1], l[2], l[3])
@@ -150,7 +161,7 @@ export const svg_to_fold = function(svg) {
  * specify a frame number otherwise it will render the top level
  */
 export const fold_to_svg = function(fold, frame_number = 0) {
-	console.log("fold_to_svg start");
+	// console.log("fold_to_svg start");
 	let graph = frame_number
 		? flatten_frame(fold, frame_number)
 		: fold;
@@ -164,12 +175,12 @@ export const fold_to_svg = function(fold, frame_number = 0) {
 		.map(singular => groupNamesPlural[singular])
 	let groups = groupNames.map(key => svg.group().setID(key));
 	let obj = { ...groups };
-	console.log("fold_to_svg about to fill");
-	console.log(svg, {...groups});
+	// console.log("fold_to_svg about to fill");
+	// console.log(svg, {...groups});
 	// return svg;
 	Draw.intoGroups(graph, {...groups});
 	SVG.setViewBox(svg, ...bounding_rect(graph));
-	console.log("fold_to_svg done");
+	// console.log("fold_to_svg done");
 	return svg;
 }
 

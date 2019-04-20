@@ -2,9 +2,9 @@
 
 <p class="explain">Rabbit Ear is gearing up for a version 2 release. Documentation and updates will continue through April and May of 2019</p>
 
-<script type="text/javascript" src="../include/three.min.js"></script>
-<script type="text/javascript" src="../include/THREE.MeshLine.js"></script>
-<script type="text/javascript" src="../include/THREE.OrbitControls.js"></script>
+<script type="text/javascript" src="include/threejs/three.min.js"></script>
+<script type="text/javascript" src="include/threejs/THREE.MeshLine.js"></script>
+<script type="text/javascript" src="include/threejs/THREE.OrbitControls.js"></script>
 
 <h1>Origami</h1>
 

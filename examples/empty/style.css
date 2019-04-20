@@ -34,10 +34,17 @@ svg{
 }
 
 .foldedForm #faces .front {
-	fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);
+	fill: none;
+	stroke: none;
+	stroke: black;
+	stroke-width: calc(var(--crease-width) * 0.1);
 }
+
 .foldedForm #faces .back {
-	fill: white; stroke: black; stroke-width: var(--crease-width);
+	fill: none;
+	stroke: none;
+	stroke: black;
+	stroke-width: calc(var(--crease-width) * 0.1);
 }
 
 .foldedForm #creases * {
@@ -50,5 +57,5 @@ svg{
 
 /* this is cool if you leave it out, you can see the boundary in the folded form */
 .foldedForm #boundaries * {
-	fill: none; stroke: none;
+	/*fill: none; stroke: none;*/
 }

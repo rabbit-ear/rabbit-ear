@@ -6,6 +6,13 @@
  *   invalid/no input returns an emptry array
 */
 
+export const clean_number = function(num, decimalPlaces = 15) {
+	// todo, this fails when num is a string, consider checking
+	return (num == null
+		? undefined
+		: parseFloat(num.toFixed(decimalPlaces)));
+}
+
 export function get_vec() {
 	let params = Array.from(arguments);
 	if (params.length === 0) { return; }
