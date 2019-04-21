@@ -1,3 +1,3 @@
 let sketch = RabbitEar.Origami("canvas");
-
-sketch.cp = RabbitEar.CreasePattern(RabbitEar.bases.bird);
+sketch.preferences.folding = true;
+// sketch.cp = RabbitEar.CreasePattern(RabbitEar.bases.bird);

@@ -23,7 +23,7 @@ for (var i = 0; i < 2; i++) {
 	let point = params[i].point;
 	let vector = params[i].vector;
 	let stay = RabbitEar.math.Vector(Math.random(), Math.random());
-	valleys.cp.valleyFold(point, vector, stay);
+	valleys.cp.valleyFold(point, vector, 0);//stay);
 	console.log(point, vector);
 }
 
@@ -33,7 +33,7 @@ for (var i = 0; i < 2; i++) {
 	// valleys.cp.valleyFold(point, vector, stay);
 
 
-valleys.masterCP = JSON.parse(JSON.stringify(valleys.cp.getFOLD()));
+valleys.masterCP = JSON.parse(JSON.stringify(valleys.cp.json));
 valleys.cp = RabbitEar.CreasePattern(valleys.masterCP);
 
 valleys.controls = RabbitEar.svg.controls(valleys, 2, {radius:0.02, fill: "#e44f2a"});
@@ -58,11 +58,10 @@ valleys.update = function() {
 		let stayVector = vector.rotateZ90();
 		let stayPoint = points[0].midpoint(points[1]).add(stayVector.normalize().scale(0.1));
 		valleys.drawLayer.circle(stayPoint[0], stayPoint[1], 0.02).setAttribute("fill", "#224c72");
-		valleys.cp.valleyFold(points[0], vector, stayVector);
+		valleys.cp.valleyFold(points[0], vector, 0);//stayVector);
 	}
-	folded.cp = RabbitEar.CreasePattern(valleys.cp.getFOLD());
+	folded.cp = RabbitEar.CreasePattern(valleys.cp.json);
 	let notMoving = folded.cp["re:faces_to_move"].indexOf(false);
-	console.log("notMoving", notMoving);
 	folded.fold(notMoving);
 	// let foldedCP = RabbitEar.fold.origami.fold_without_layering(valleys.cp.json, valleys.nearest(0.5, 0.5).face.index);
 	// folded.cp = RabbitEar.CreasePattern(foldedCP);

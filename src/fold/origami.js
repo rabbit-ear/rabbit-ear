@@ -103,6 +103,7 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	if (face_index == null) {
 		// an unset face will be the face under the point. or if none, index 0
 		let containing_point = PlanarGraph.face_containing_point(graph, point);
+		// todo, if it's still unset, find the point 
 		face_index = (containing_point === undefined) ? 0 : containing_point;
 	}
 
@@ -159,6 +160,7 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
 	folded["re:faces_coloring"] = Graph.faces_coloring(folded, new_face_stationary);
 
+	console.log("returned folded", JSON.parse(JSON.stringify(folded)));
 	// console.log("original stationary", graph["re:face_stationary"])
 	// console.log("original coloring", graph["re:faces_coloring"][graph["re:face_stationary"]]);
 	return folded;

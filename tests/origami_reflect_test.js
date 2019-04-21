@@ -20,15 +20,10 @@ let params = Array.from(Array(1)).map(_ => ({
 // 	{ point: [0.278687, 0.682494], vector: [0.136923, 0.559915]}
 // ];
 
-console.log("this sketch", params);
 params.forEach(p => sketch.cp.valleyFold(p.point, p.vector));
 
-sketch.masterCP = JSON.parse(JSON.stringify(sketch.cp.getFOLD()));
+sketch.masterCP = JSON.parse(JSON.stringify(sketch.cp.json));
 sketch.cp = RabbitEar.CreasePattern(sketch.masterCP);
-
-let PlanarGraph = RabbitEar.fold.planargraph;
-let Graph = RabbitEar.fold.graph;
-let Geom = RabbitEar.math;
 
 sketch.drawArrow = function(start, end) {
 	let ARROW_HEAD = 0.0333;
@@ -65,15 +60,15 @@ sketch.update = function() {
 	creaseL.setAttribute("stroke-dasharray", "0.01 0.02");
 	creaseL.setAttribute("stroke-linecap", "round");
 
-	let graph = sketch.cp.getFOLD();
+	let graph = sketch.cp.json;
 	let face_index = 0;
 
 	let faces_count = graph.faces_vertices.length;
 
-	let faces_matrix = PlanarGraph.make_faces_matrix_inv(graph, face_index);
+	let faces_matrix = RabbitEar.core.make_faces_matrix_inv(graph, face_index);
 	let faces_crease_line = faces_matrix.map(m => creaseLine.transform(m));
 	let faces_stay_normal = faces_matrix.map(m => stayNormalVec.transform(m));
-	let faces_coloring = Graph.faces_coloring(graph, face_index);
+	let faces_coloring = RabbitEar.core.faces_coloring(graph, face_index);
 	// let faces_is_folding = Array.from(Array(faces_count));
 	let original_face_indices = Array.from(Array(faces_count)).map((_,i) => i);
 
@@ -85,7 +80,7 @@ sketch.update = function() {
 		});
 
 	let faces_center = Array.from(Array(faces_count))
-		.map((line, i) => Geom.Vector(graph.faces_vertices[i]
+		.map((line, i) => RabbitEar.math.Vector(graph.faces_vertices[i]
 			.map(v => graph.vertices_coords[v])
 			.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
 			.map(el => el/graph.faces_vertices[i].length)

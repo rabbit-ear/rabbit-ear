@@ -134,16 +134,25 @@ const CreasePatternPrototype = function(proto) {
 	}
 
 	// updates
-	const didUpdate = function() {
+	const didModifyGraph = function() {
+		// remove file_frames which were dependent on this geometry. we can
+		// no longer guarantee they match. alternatively we could mark them invalid
+		_this.file_frames = _this.file_frames
+			.filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
+		// broadcast update to handler if attached
 		if (typeof _this.onchange === "function") {
 			_this.onchange();
 		}
 	};
 	// fold methods
 	const valleyFold = function(point, vector, face_index) {
+		if (!Args.is_vector(point) || !Args.is_vector(vector) || !Args.is_number(face_index)) {
+			console.warn("valleyFold was not supplied the correct parameters");
+			return;
+		}
 		let folded = Origami.crease_through_layers(_this, point, vector, face_index, "V");
 		Object.keys(folded).forEach(key => _this[key] = folded[key]);
-		didUpdate();
+		didModifyGraph();
 	};
 
 	const axiom = function(number, params) {
@@ -161,7 +170,7 @@ const CreasePatternPrototype = function(proto) {
 			throw "axiom " + number + " was not provided with the correct inputs";
 		}
 		let crease = Crease(_this, Origami["axiom"+number](_this, ...args));
-		didUpdate();
+		didModifyGraph();
 		return crease;
 	};
 	const axiom1 = function() { return axiom.call(_this, [1, arguments]); };
@@ -174,31 +183,31 @@ const CreasePatternPrototype = function(proto) {
 
 	const addVertexOnEdge = function(x, y, oldEdgeIndex) {
 		Graph.add_vertex_on_edge(_this, x, y, oldEdgeIndex);
-		didUpdate();
+		didModifyGraph();
 	};
 
 	const creaseLine = function() {
 		let crease = Crease(this, Origami.crease_line(_this, ...arguments));
-		didUpdate();
+		didModifyGraph();
 		return crease;
 	};
 	const creaseRay = function() {
 		let crease = Crease(this, Origami.creaseRay(_this, ...arguments));
-		didUpdate();
+		didModifyGraph();
 		return crease;
 	};
 	const creaseSegment = function() {
 		let crease = Crease(this, Origami.creaseSegment(_this, ...arguments));
-		didUpdate();
+		didModifyGraph();
 		return crease;
 	};
 	const creaseThroughLayers = function(point, vector, face) {
 		RabbitEar.fold.origami.crease_folded(_this, point, vector, face);
-		didUpdate();
+		didModifyGraph();
 	};
 	const kawasaki = function() {
 		let crease = Crease(this, Origami.kawasaki_collapse(_this, ...arguments));
-		didUpdate();
+		didModifyGraph();
 		return crease;
 	};
 

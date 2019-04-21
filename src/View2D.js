@@ -198,11 +198,12 @@ export default function() {
 	}
 	const getFaces = function() {
 		let faces = prop.cp.faces;
-		faces.forEach((v,i) => v.svg = groups.faces.children[i])
+		let sortedFaces = Array.from(groups.faces.children).slice().sort((a,b) => parseInt(a.id) - parseInt(b.id) );
+		faces.forEach((v,i) => v.svg = sortedFaces[i])
 		Object.defineProperty(faces, "visible", {
 			get: function(){ return visibleGroups["faces"] !== undefined; },
 			set: function(isVisible){
-				if(isVisible) { visibleGroups["faces"] = groups["faces"]; }
+				if (isVisible) { visibleGroups["faces"] = groups["faces"]; }
 				else { delete visibleGroups["faces"]; }
 				draw();
 			},
@@ -224,13 +225,15 @@ export default function() {
 		});
 	}
 
-	const fold = function(face){
+	const fold = function(face) {
+		if (face == null) { face = 0; }
 		let vertices_coords = Origami.fold_vertices_coords(prop.cp, face);
 		let file_frame = {
 			vertices_coords,
 			frame_classes: ["foldedForm"],
 			frame_inherit: true,
-			frame_parent: 0
+			frame_parent: 0,
+			"re:face_stationary": face
 		};
 		if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
 		prop.cp.file_frames.unshift(file_frame);
@@ -334,11 +337,23 @@ export default function() {
 	// boot
 	setCreasePattern( CreasePattern(...arguments) );
 
-	let lastStep;
+	let lastStep, touchFaceIndex, touchFaceColoring;
 	_this.events.addEventListener("onMouseDown", function(mouse) {
 		if (preferences.folding) {
 			try{
 				lastStep = JSON.parse(JSON.stringify(prop.cp));
+				touchFaceColoring = true;
+				if (prop.cp["re:faces_matrix"] != null){
+					console.log(prop.cp["re:faces_matrix"]);
+					let transformed_points = prop.cp["re:faces_matrix"].map(m => RabbitEar.math.Vector(mouse.x, mouse.y), m);
+					console.log(transformed_points);
+				}
+				let containing_point = RabbitEar.core.face_containing_point(prop.cp, mouse);
+				touchFaceIndex = (containing_point === undefined) 
+					? 0 // get bottom most face
+					: containing_point;
+				console.log(touchFaceIndex, prop.cp);
+
 			} catch(error) {
 				console.warn("problem loading the last fold step", error);
 			}
@@ -353,7 +368,9 @@ export default function() {
 			];
 			let midpoint = points[0].midpoint(points[1]);
 			let vector = points[1].subtract(points[0]);
-			prop.cp.valleyFold(midpoint, vector.rotateZ90());
+
+			prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
+			// prop.cp.valleyFold(midpoint, touchFaceColoring ? vector.rotateZ90() : vector.rotateZ270(), touchFaceIndex);
 			fold();
 		}
 	});

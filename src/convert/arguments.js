@@ -6,6 +6,17 @@
  *   invalid/no input returns an emptry array
 */
 
+export const is_vector = function(arg) {
+	return arg != null
+		&& arg[0] != null
+		&& arg[1] != null
+		&& !isNaN(arg[0])
+		&& !isNaN(arg[1]);
+}
+export const is_number = function(n) {
+	return n != null && !isNaN(n);
+}
+
 export const clean_number = function(num, decimalPlaces = 15) {
 	// todo, this fails when num is a string, consider checking
 	return (num == null
@@ -13,7 +24,7 @@ export const clean_number = function(num, decimalPlaces = 15) {
 		: parseFloat(num.toFixed(decimalPlaces)));
 }
 
-export function get_vec() {
+export const get_vec = function() {
 	let params = Array.from(arguments);
 	if (params.length === 0) { return; }
 	// list of numbers 1, 2, 3, 4, 5
@@ -31,7 +42,7 @@ export function get_vec() {
 	if (arrays.length >= 1) { return get_vec(...arrays[0]); }
 }
 
-export function get_two_vec2() {
+export const get_two_vec2 = function() {
 	let params = Array.from(arguments);
 	let numbers = params.filter((param) => !isNaN(param));
 	if (numbers.length >= 4) {
@@ -51,7 +62,7 @@ export function get_two_vec2() {
  * @returns (number[]) array of number components
  *  invalid/no input returns the identity matrix
 */
-export function get_matrix() {
+export const get_matrix = function() {
 	let params = Array.from(arguments);
 	let numbers = params.filter((param) => !isNaN(param));
 	let arrays = params.filter((param) => param.constructor === Array);
@@ -74,7 +85,7 @@ export function get_matrix() {
 /** 
  * @returns [[2,3],[10,11]]
 */
-export function get_edge() {
+export const get_edge = function() {
 	let params = Array.from(arguments);
 	let numbers = params.filter((param) => !isNaN(param));
 	let arrays = params.filter((param) => param.constructor === Array);
@@ -105,7 +116,7 @@ export function get_edge() {
 /** 
  * @returns ({ point:[], vector:[] })
 */
-export function get_line() {
+export const get_line = function() {
 	let params = Array.from(arguments);
 	let numbers = params.filter((param) => !isNaN(param));
 	let arrays = params.filter((param) => param.constructor === Array);
@@ -141,7 +152,7 @@ export function get_line() {
 	return {point: [], vector: []};
 }
 
-export function get_two_lines() {
+export const get_two_lines = function() {
 	let params = Array.from(arguments);
 	if (params[0].point) {
 		if (params[0].point.constructor === Array) {
@@ -162,7 +173,7 @@ export function get_two_lines() {
 	}
 }
 
-export function get_array_of_vec() {
+export const get_array_of_vec = function() {
 	let params = Array.from(arguments);
 	let arrays = params.filter((param) => param.constructor === Array);
 	if (arrays.length == 1 && arrays[0].length > 0 && arrays[0][0].length > 0 && !isNaN(arrays[0][0][0])) {
@@ -176,7 +187,7 @@ export function get_array_of_vec() {
 }
 
 
-export function get_array_of_vec2() {
+export const get_array_of_vec2 = function() {
 	// todo
 	let params = Array.from(arguments);
 	let arrays = params.filter((param) => param.constructor === Array);
@@ -190,9 +201,4 @@ export function get_array_of_vec2() {
 	// 	return arrays[0];
 	// }
 	return params;
-}
-
-// unused
-export function is_number(n) {
-	return n != null && !isNaN(n);
 }

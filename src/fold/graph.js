@@ -44,7 +44,6 @@ let frame_attributes = ["2D", "3D", "abstract", "manifold", "nonManifold", "orie
 let frame_classes = ["creasePattern", "foldedForm", "graph", "linkage"];
 let file_classes = ["singleModel", "multiModel", "animation", "diagrams"];
 
-
 export const all_keys = []
 	.concat(keys.file)
 	.concat(keys.frame)

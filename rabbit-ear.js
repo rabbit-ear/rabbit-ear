@@ -2731,7 +2731,6 @@
 		]
 	};
 
-
 	const all_keys = []
 		.concat(keys.file)
 		.concat(keys.frame)
@@ -3963,6 +3962,7 @@
 		if (face_index == null) {
 			// an unset face will be the face under the point. or if none, index 0
 			let containing_point = face_containing_point(graph, point);
+			// todo, if it's still unset, find the point 
 			face_index = (containing_point === undefined) ? 0 : containing_point;
 		}
 
@@ -4019,6 +4019,7 @@
 		let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
 		folded["re:faces_coloring"] = faces_coloring(folded, new_face_stationary);
 
+		console.log("returned folded", JSON.parse(JSON.stringify(folded)));
 		// console.log("original stationary", graph["re:face_stationary"])
 		// console.log("original coloring", graph["re:faces_coloring"][graph["re:face_stationary"]]);
 		return folded;
@@ -4605,6 +4606,17 @@
 	 *   invalid/no input returns an emptry array
 	*/
 
+	const is_vector = function(arg) {
+		return arg != null
+			&& arg[0] != null
+			&& arg[1] != null
+			&& !isNaN(arg[0])
+			&& !isNaN(arg[1]);
+	};
+	const is_number = function(n) {
+		return n != null && !isNaN(n);
+	};
+
 	const clean_number$1 = function(num, decimalPlaces = 15) {
 		// todo, this fails when num is a string, consider checking
 		return (num == null
@@ -4612,7 +4624,7 @@
 			: parseFloat(num.toFixed(decimalPlaces)));
 	};
 
-	function get_vec$1() {
+	const get_vec$1 = function() {
 		let params = Array.from(arguments);
 		if (params.length === 0) { return; }
 		// list of numbers 1, 2, 3, 4, 5
@@ -4628,9 +4640,9 @@
 		// at this point, a valid vector is somewhere inside arrays
 		let arrays = params.filter((param) => param.constructor === Array);
 		if (arrays.length >= 1) { return get_vec$1(...arrays[0]); }
-	}
+	};
 
-	function get_two_vec2$1() {
+	const get_two_vec2$1 = function() {
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
 		if (numbers.length >= 4) {
@@ -4644,9 +4656,9 @@
 		let arrays = params.filter((param) => param.constructor === Array);
 		if (arrays.length === 0) { return; }
 		return get_two_vec2$1(...arrays[0]);
-	}
+	};
 
-	function get_two_lines() {
+	const get_two_lines = function() {
 		let params = Array.from(arguments);
 		if (params[0].point) {
 			if (params[0].point.constructor === Array) {
@@ -4665,7 +4677,7 @@
 				];
 			}
 		}
-	}
+	};
 
 	const makeUUID = function() {
 		// there is a non-zero chance this generates duplicate strings
@@ -5071,16 +5083,25 @@
 		};
 
 		// updates
-		const didUpdate = function() {
+		const didModifyGraph = function() {
+			// remove file_frames which were dependent on this geometry. we can
+			// no longer guarantee they match. alternatively we could mark them invalid
+			_this.file_frames = _this.file_frames
+				.filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
+			// broadcast update to handler if attached
 			if (typeof _this.onchange === "function") {
 				_this.onchange();
 			}
 		};
 		// fold methods
 		const valleyFold = function(point, vector, face_index) {
+			if (!is_vector(point) || !is_vector(vector) || !is_number(face_index)) {
+				console.warn("valleyFold was not supplied the correct parameters");
+				return;
+			}
 			let folded = crease_through_layers(_this, point, vector, face_index, "V");
 			Object.keys(folded).forEach(key => _this[key] = folded[key]);
-			didUpdate();
+			didModifyGraph();
 		};
 
 		const axiom = function(number, params) {
@@ -5098,7 +5119,7 @@
 				throw "axiom " + number + " was not provided with the correct inputs";
 			}
 			let crease = Crease(_this, Origami["axiom"+number](_this, ...args));
-			didUpdate();
+			didModifyGraph();
 			return crease;
 		};
 		const axiom1 = function() { return axiom.call(_this, [1, arguments]); };
@@ -5111,31 +5132,31 @@
 
 		const addVertexOnEdge = function(x, y, oldEdgeIndex) {
 			add_vertex_on_edge(_this, x, y, oldEdgeIndex);
-			didUpdate();
+			didModifyGraph();
 		};
 
 		const creaseLine = function() {
 			let crease = Crease(this, crease_line(_this, ...arguments));
-			didUpdate();
+			didModifyGraph();
 			return crease;
 		};
 		const creaseRay$$1 = function() {
 			let crease = Crease(this, creaseRay(_this, ...arguments));
-			didUpdate();
+			didModifyGraph();
 			return crease;
 		};
 		const creaseSegment$$1 = function() {
 			let crease = Crease(this, creaseSegment(_this, ...arguments));
-			didUpdate();
+			didModifyGraph();
 			return crease;
 		};
 		const creaseThroughLayers = function(point, vector, face) {
 			RabbitEar.fold.origami.crease_folded(_this, point, vector, face);
-			didUpdate();
+			didModifyGraph();
 		};
 		const kawasaki = function() {
 			let crease = Crease(this, kawasaki_collapse(_this, ...arguments));
-			didUpdate();
+			didModifyGraph();
 			return crease;
 		};
 
@@ -5404,11 +5425,12 @@
 		};
 		const getFaces = function() {
 			let faces = prop.cp.faces;
-			faces.forEach((v,i) => v.svg = groups.faces.children[i]);
+			let sortedFaces = Array.from(groups.faces.children).slice().sort((a,b) => parseInt(a.id) - parseInt(b.id) );
+			faces.forEach((v,i) => v.svg = sortedFaces[i]);
 			Object.defineProperty(faces, "visible", {
 				get: function(){ return visibleGroups["faces"] !== undefined; },
 				set: function(isVisible){
-					if(isVisible) { visibleGroups["faces"] = groups["faces"]; }
+					if (isVisible) { visibleGroups["faces"] = groups["faces"]; }
 					else { delete visibleGroups["faces"]; }
 					draw();
 				},
@@ -5425,13 +5447,15 @@
 			});
 		};
 
-		const fold = function(face){
+		const fold = function(face) {
+			if (face == null) { face = 0; }
 			let vertices_coords = fold_vertices_coords(prop.cp, face);
 			let file_frame = {
 				vertices_coords,
 				frame_classes: ["foldedForm"],
 				frame_inherit: true,
-				frame_parent: 0
+				frame_parent: 0,
+				"re:face_stationary": face
 			};
 			if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
 			prop.cp.file_frames.unshift(file_frame);
@@ -5535,11 +5559,22 @@
 		// boot
 		setCreasePattern( CreasePattern(...arguments) );
 
-		let lastStep;
+		let lastStep, touchFaceIndex;
 		_this.events.addEventListener("onMouseDown", function(mouse) {
 			if (preferences.folding) {
 				try{
 					lastStep = JSON.parse(JSON.stringify(prop.cp));
+					if (prop.cp["re:faces_matrix"] != null){
+						console.log(prop.cp["re:faces_matrix"]);
+						let transformed_points = prop.cp["re:faces_matrix"].map(m => RabbitEar.math.Vector(mouse.x, mouse.y), m);
+						console.log(transformed_points);
+					}
+					let containing_point = RabbitEar.core.face_containing_point(prop.cp, mouse);
+					touchFaceIndex = (containing_point === undefined) 
+						? 0 // get bottom most face
+						: containing_point;
+					console.log(touchFaceIndex, prop.cp);
+
 				} catch(error) {
 					console.warn("problem loading the last fold step", error);
 				}
@@ -5554,7 +5589,9 @@
 				];
 				let midpoint = points[0].midpoint(points[1]);
 				let vector = points[1].subtract(points[0]);
-				prop.cp.valleyFold(midpoint, vector.rotateZ90());
+
+				prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
+				// prop.cp.valleyFold(midpoint, touchFaceColoring ? vector.rotateZ90() : vector.rotateZ270(), touchFaceIndex);
 				fold();
 			}
 		});
