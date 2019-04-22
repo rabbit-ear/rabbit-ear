@@ -42,8 +42,11 @@
 			<li class="dropdown">
 				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">III. CREASE PATTERNS</a>
 			</li>
-			<li class="dropdown">
+<!-- 			<li class="dropdown">
 				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">IV. RABBIT EAR</a>
+			</li> -->
+			<li class="dropdown">
+				<a href="appendix.php" class="dropbtn">APPENDIX</a>
 			</li>
 		</ul>
 	</nav>

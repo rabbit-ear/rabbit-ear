@@ -65,6 +65,19 @@
 
 <section id="examples">
 
+	<p>This loads an svg image, interprets it like a crease pattern, and folds it.</p>
+
+	<div id="div-folded-crane" class="diptych"></div>
+
+	<div class="diptych">
+		<pre style="margin:1em;"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);</code></pre>
+		<pre style="margin:1em;"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
+	</div>
+
+	<p class="quote">In some cases Rabbit Ear is capable of determining layer ordering for a folding. When it is unsure it draws translucent faces.</p>
+
+	<p class="explain">loading a file requires running a localhost server.</p>
+
 	<p>This sketch loads a frog base and colors the faces.</p>
 
 	<div id="canvas-face-coloring"></div>
@@ -79,17 +92,6 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
   );</code></pre>
 
 	<p class="quote">A flat-foldable crease pattern is always two-colorable.</p>
-
-	<p>This loads an svg image, interprets it like a crease pattern, and folds it.</p>
-
-	<div id="div-folded-crane" class="diptych"></div>
-
-	<div class="diptych">
-		<pre style="margin:1em;"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);</code></pre>
-		<pre style="margin:1em;"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
-	</div>
-
-	<p class="quote">In some cases Rabbit Ear is capable of determining layer ordering for a folding. When it is unsure it draws translucent faces.</p>
 
 	<p>These generative pleats are based on sine curves.</p>
 

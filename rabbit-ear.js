@@ -3567,6 +3567,31 @@
 			.i;
 	};
 
+	/**
+	 * someday this will implement facesOrders. right now just re:faces_layer
+	 * leave faces_options empty to search all faces
+	 */
+	const topmost_face = function(graph, faces_options) {
+		if (faces_options == null) {
+			faces_options = Array.from(Array(graph.faces_vertices.length))
+				.map((_,i) => i);
+		}
+		if (faces_options.length === 0) { return undefined; }
+		if (faces_options.length === 1) { return faces_options[0]; }
+
+		// top to bottom
+		let faces_in_order = graph["re:faces_layer"]
+			.map((layer,i) => ({layer:layer, i:i}))
+			.sort((a,b) => b.layer - a.layer)
+			.map(el => el.i);
+
+		for (var i = 0; i < faces_in_order.length; i++) {
+			if (faces_options.includes(faces_in_order[i])) {
+				return faces_in_order[i];
+			}
+		}
+	};
+
 	const face_containing_point = function(graph, point) {
 		if (graph.vertices_coords == null || graph.vertices_coords.length === 0 ||
 			graph.faces_vertices == null || graph.faces_vertices.length === 0) {
@@ -3579,6 +3604,16 @@
 		return (face == null ? undefined : face.i);
 	};
 
+	const folded_faces_containing_point = function(graph, point, faces_matrix) {
+		let transformed_points = faces_matrix
+			// .map(m => Geom.core.make_matrix2_inverse(m))
+			.map(m => core.multiply_vector2_matrix2(point, m));
+		return graph.faces_vertices
+			.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
+			.filter((f,i) => core.intersection.point_in_poly(f.face, transformed_points[i]))
+			.map(f => f.i);
+	};
+
 	const faces_containing_point = function(graph, point) {
 		if (graph.vertices_coords == null || graph.vertices_coords.length === 0 ||
 			graph.faces_vertices == null || graph.faces_vertices.length === 0) {
@@ -3586,10 +3621,9 @@
 		}
 		return graph.faces_vertices
 			.map((fv,i) => ({face:fv.map(v => graph.vertices_coords[v]),i:i}))
-			.filter(f => core.intersection.point_in_polygon(f.face, point))
+			.filter(f => core.intersection.point_in_poly(f.face, point))
 			.map(f => f.i);
 	};
-
 
 	const make_faces_matrix = function(graph, root_face) {
 		let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
@@ -3598,7 +3632,8 @@
 				let edge = entry.edge.map(v => graph.vertices_coords[v]);
 				let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
 				let local = core.make_matrix2_reflection(vec, edge[0]);
-				faces_matrix[entry.face] = core.multiply_matrices2(faces_matrix[entry.parent], local);
+				faces_matrix[entry.face] =
+					core.multiply_matrices2(faces_matrix[entry.parent], local);
 			})
 		);
 		return faces_matrix;
@@ -3611,21 +3646,24 @@
 				let edge = entry.edge.map(v => graph.vertices_coords[v]);
 				let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
 				let local = core.make_matrix2_reflection(vec, edge[0]);
-				faces_matrix[entry.face] = core.multiply_matrices2(local, faces_matrix[entry.parent]);
+				faces_matrix[entry.face] =
+					core.multiply_matrices2(local, faces_matrix[entry.parent]);
 			})
 		);
 		return faces_matrix;
 	};
+
 	/**
 	 * @returns {}, description of changes. empty object if no intersection.
 	 *
 	 */
-
 	const split_convex_polygon$1 = function(graph, faceIndex, linePoint, lineVector, crease_assignment = "F") {
 		// survey face for any intersections which cross directly over a vertex
 		let vertices_intersections = graph.faces_vertices[faceIndex]
 			.map(fv => graph.vertices_coords[fv])
-			.map(v => core.intersection.point_on_line(linePoint, lineVector, v) ? v : undefined)
+			.map(v => (core.intersection.point_on_line(linePoint, lineVector, v)
+				? v
+				: undefined))
 			.map((point, i) => ({
 				point: point,
 				i_face: i,
@@ -3856,7 +3894,9 @@
 	var planargraph = /*#__PURE__*/Object.freeze({
 		nearest_vertex: nearest_vertex,
 		nearest_edge: nearest_edge,
+		topmost_face: topmost_face,
 		face_containing_point: face_containing_point,
+		folded_faces_containing_point: folded_faces_containing_point,
 		faces_containing_point: faces_containing_point,
 		make_faces_matrix: make_faces_matrix,
 		make_faces_matrix_inv: make_faces_matrix_inv,
@@ -3872,6 +3912,19 @@
 	 *  ending at the boundary; in non-convex paper, this
 	 *  could result in multiple edges
 	 */
+
+	function build_folded_frame(graph, face_stationary = 0) {
+			let faces_matrix = make_faces_matrix_inv(graph, face_stationary);
+			let vertices_coords = fold_vertices_coords(graph, face_stationary, faces_matrix);
+			return {
+				vertices_coords,
+				frame_classes: ["foldedForm"],
+				frame_inherit: true,
+				frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
+				"re:face_stationary": face_stationary,
+				"re:faces_matrix": faces_matrix
+			};
+	}
 
 	function universal_molecule(polygon) {
 
@@ -3944,6 +3997,17 @@
 		if (graph["re:faces_to_move"] == null) {
 			graph["re:faces_to_move"] = Array.from(Array(faces_count$$1)).map(_ => false);
 		}
+	};
+
+	const point_in_folded_face = function(graph, point) {
+		let mats = make_faces_matrix_inv(graph, cpView.cp["re:face_stationary"]);
+		let transformed_points = mats.map(m => core.multiply_vector2_matrix2(point, m));
+
+		let circles = transformedPoints.map(p => cpView.drawLayer.circle(p[0], p[1], 0.01));
+		// console.log(circles);
+		let point_in_poly = transformedPoints.map((p,i) => faces[i].contains(p));
+
+		faces_containing_point({}, point); 
 	};
 
 	/**
@@ -4019,7 +4083,7 @@
 		let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
 		folded["re:faces_coloring"] = faces_coloring(folded, new_face_stationary);
 
-		console.log("returned folded", JSON.parse(JSON.stringify(folded)));
+		// console.log("returned folded", JSON.parse(JSON.stringify(folded)));
 		// console.log("original stationary", graph["re:face_stationary"])
 		// console.log("original coloring", graph["re:faces_coloring"][graph["re:face_stationary"]]);
 		return folded;
@@ -4245,7 +4309,7 @@
 			face = fold["re:face_stationary"];
 		}
 		if (face == null) { face = 0; }
-		let faces_matrix = make_faces_matrix(fold, face);
+		let faces_matrix = make_faces_matrix_inv(fold, face);
 		let vertex_in_face = fold.vertices_coords.map((v,i) => {
 			for(var f = 0; f < fold.faces_vertices.length; f++){
 				if(fold.faces_vertices[f].includes(i)){ return f; }
@@ -4262,18 +4326,20 @@
 	}
 
 
-	const fold_vertices_coords = function(fold, face) {
-		if (fold["re:face_stationary"] != null) {
-			face = fold["re:face_stationary"];
+	const fold_vertices_coords = function(graph, face_stationary, faces_matrix) {
+		if (graph["re:face_stationary"] != null) {
+			face_stationary = graph["re:face_stationary"];
 		}
-		if (face == null) { face = 0; }
-		let faces_matrix = make_faces_matrix(fold, face);
-		let vertex_in_face = fold.vertices_coords.map((v,i) => {
-			for(let f = 0; f < fold.faces_vertices.length; f++) {
-				if (fold.faces_vertices[f].includes(i)){ return f; }
+		if (face_stationary == null) { face_stationary = 0; }
+		if (faces_matrix == null) {
+			faces_matrix = make_faces_matrix_inv(graph, face_stationary);
+		}
+		let vertex_in_face = graph.vertices_coords.map((v,i) => {
+			for(let f = 0; f < graph.faces_vertices.length; f++) {
+				if (graph.faces_vertices[f].includes(i)){ return f; }
 			}
 		});
-		return fold.vertices_coords.map((point,i) =>
+		return graph.vertices_coords.map((point,i) =>
 			core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
 				core.clean_number(n)
 			)
@@ -4281,8 +4347,10 @@
 	};
 
 	var Origami = /*#__PURE__*/Object.freeze({
+		build_folded_frame: build_folded_frame,
 		universal_molecule: universal_molecule,
 		foldLayers: foldLayers,
+		point_in_folded_face: point_in_folded_face,
 		crease_through_layers: crease_through_layers,
 		crease_folded: crease_folded,
 		crease_line: crease_line,
@@ -5448,15 +5516,12 @@
 		};
 
 		const fold = function(face) {
+			// 1. check if a folded frame already exists (and it's valid)
+			// 2. if not, build one
 			if (face == null) { face = 0; }
-			let vertices_coords = fold_vertices_coords(prop.cp, face);
-			let file_frame = {
-				vertices_coords,
-				frame_classes: ["foldedForm"],
-				frame_inherit: true,
-				frame_parent: 0,
-				"re:face_stationary": face
-			};
+
+			let file_frame = build_folded_frame(prop.cp, face);
+			// console.log("file_frame", file_frame);
 			if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
 			prop.cp.file_frames.unshift(file_frame);
 			prop.frame = 1;
@@ -5562,19 +5627,29 @@
 		let lastStep, touchFaceIndex;
 		_this.events.addEventListener("onMouseDown", function(mouse) {
 			if (preferences.folding) {
-				try{
+				try {
 					lastStep = JSON.parse(JSON.stringify(prop.cp));
-					if (prop.cp["re:faces_matrix"] != null){
-						console.log(prop.cp["re:faces_matrix"]);
-						let transformed_points = prop.cp["re:faces_matrix"].map(m => RabbitEar.math.Vector(mouse.x, mouse.y), m);
-						console.log(transformed_points);
+					let faces_matrix;
+					if (prop.cp.file_frames != null
+						&& prop.cp.file_frames.length > 0
+						&& prop.cp.file_frames[0]["re:faces_matrix"] != null) {
+						faces_matrix = prop.cp.file_frames[0]["re:faces_matrix"];
+					} else {
+						console.log("needed to re-make faces_matrix");
+						faces_matrix = make_faces_matrix_inv(prop.cp, 0);
 					}
-					let containing_point = RabbitEar.core.face_containing_point(prop.cp, mouse);
-					touchFaceIndex = (containing_point === undefined) 
+					// prop.cp["re:faces_matrix"] = faces_matrix;
+					// console.log("faces_matrix", faces_matrix);
+					let transformed_points = faces_matrix.map(m => core.multiply_vector2_matrix2([mouse[0], mouse[1]], m));
+					// console.log("transformed_points", transformed_points);
+					let mouse_over_faces = folded_faces_containing_point(prop.cp, mouse, faces_matrix);
+					console.log("mouse_over_faces", mouse_over_faces);
+					let topmost = topmost_face(prop.cp, mouse_over_faces);
+					// console.log("topmost", topmost);
+					touchFaceIndex = (topmost === undefined)
 						? 0 // get bottom most face
-						: containing_point;
+						: topmost;
 					console.log(touchFaceIndex, prop.cp);
-
 				} catch(error) {
 					console.warn("problem loading the last fold step", error);
 				}
@@ -5583,6 +5658,7 @@
 		_this.events.addEventListener("onMouseMove", function(mouse) {
 			if (preferences.folding && mouse.isPressed) {
 				prop.cp = CreasePattern(lastStep);
+				// console.log(prop.cp);
 				let points = [
 					Vector(mouse.pressed),
 					Vector(mouse.position)

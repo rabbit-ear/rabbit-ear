@@ -14,6 +14,19 @@ import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
 import { apply_diff, apply_diff_map } from "./diff";
 
+export function build_folded_frame(graph, face_stationary = 0) {
+		let faces_matrix = PlanarGraph.make_faces_matrix_inv(graph, face_stationary);
+		let vertices_coords = fold_vertices_coords(graph, face_stationary, faces_matrix);
+		return {
+			vertices_coords,
+			frame_classes: ["foldedForm"],
+			frame_inherit: true,
+			frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
+			"re:face_stationary": face_stationary,
+			"re:faces_matrix": faces_matrix
+		};
+}
+
 export function universal_molecule(polygon) {
 
 }
@@ -85,6 +98,17 @@ const prepare_extensions = function(graph) {
 	if (graph["re:faces_to_move"] == null) {
 		graph["re:faces_to_move"] = Array.from(Array(faces_count)).map(_ => false);
 	}
+}
+
+export const point_in_folded_face = function(graph, point) {
+	let mats = PlanarGraph.make_faces_matrix_inv(graph, cpView.cp["re:face_stationary"]);
+	let transformed_points = mats.map(m => Geom.core.multiply_vector2_matrix2(point, m));
+
+	let circles = transformedPoints.map(p => cpView.drawLayer.circle(p[0], p[1], 0.01));
+	// console.log(circles);
+	let point_in_poly = transformedPoints.map((p,i) => faces[i].contains(p));
+
+	PlanarGraph.faces_containing_point({}, point) 
 }
 
 /**
@@ -160,7 +184,19 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
 	folded["re:faces_coloring"] = Graph.faces_coloring(folded, new_face_stationary);
 
-	console.log("returned folded", JSON.parse(JSON.stringify(folded)));
+	let need_to_remove = [
+		"re:faces_center",
+		"re:faces_coloring",
+		"re:faces_creases",
+		"re:faces_folding",
+		"re:faces_layer",
+		"re:faces_matrix",
+		"re:faces_preindex",
+		"re:faces_sidedness",
+		"re:faces_to_move"
+	];
+
+	// console.log("returned folded", JSON.parse(JSON.stringify(folded)));
 	// console.log("original stationary", graph["re:face_stationary"])
 	// console.log("original coloring", graph["re:faces_coloring"][graph["re:face_stationary"]]);
 	return folded;
@@ -386,7 +422,7 @@ export function fold_without_layering(fold, face) {
 		face = fold["re:face_stationary"];
 	}
 	if (face == null) { face = 0; }
-	let faces_matrix = PlanarGraph.make_faces_matrix(fold, face);
+	let faces_matrix = PlanarGraph.make_faces_matrix_inv(fold, face);
 	let vertex_in_face = fold.vertices_coords.map((v,i) => {
 		for(var f = 0; f < fold.faces_vertices.length; f++){
 			if(fold.faces_vertices[f].includes(i)){ return f; }
@@ -403,18 +439,20 @@ export function fold_without_layering(fold, face) {
 }
 
 
-export const fold_vertices_coords = function(fold, face) {
-	if (fold["re:face_stationary"] != null) {
-		face = fold["re:face_stationary"];
+export const fold_vertices_coords = function(graph, face_stationary, faces_matrix) {
+	if (graph["re:face_stationary"] != null) {
+		face_stationary = graph["re:face_stationary"];
 	}
-	if (face == null) { face = 0; }
-	let faces_matrix = PlanarGraph.make_faces_matrix(fold, face);
-	let vertex_in_face = fold.vertices_coords.map((v,i) => {
-		for(let f = 0; f < fold.faces_vertices.length; f++) {
-			if (fold.faces_vertices[f].includes(i)){ return f; }
+	if (face_stationary == null) { face_stationary = 0; }
+	if (faces_matrix == null) {
+		faces_matrix = PlanarGraph.make_faces_matrix_inv(graph, face_stationary);
+	}
+	let vertex_in_face = graph.vertices_coords.map((v,i) => {
+		for(let f = 0; f < graph.faces_vertices.length; f++) {
+			if (graph.faces_vertices[f].includes(i)){ return f; }
 		}
 	});
-	return fold.vertices_coords.map((point,i) =>
+	return graph.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]]).map((n) => 
 			Geom.core.clean_number(n)
 		)

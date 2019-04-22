@@ -31,6 +31,8 @@
 
 	<p>The highlighted green are objects you can create. Bases, math, svg, and core are all containers themselves.</p>
 
+	<p class="quote">The goal is to <b>not</b> have to go into "core". it's like opening up your engine.</p>
+
 </section>
 
 <section>

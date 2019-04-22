@@ -15,6 +15,11 @@ import * as File from "./convert/file";
 import { flatten_frame } from "./fold/frame";
 import CreasePattern from "./cp/CreasePattern";
 import * as Draw from "./fold/draw";
+import {
+	make_faces_matrix_inv,
+	folded_faces_containing_point,
+	topmost_face
+} from "./fold/planargraph";
 
 const DEFAULTS = Object.freeze({
 	autofit: true,
@@ -226,15 +231,12 @@ export default function() {
 	}
 
 	const fold = function(face) {
+		// 1. check if a folded frame already exists (and it's valid)
+		// 2. if not, build one
 		if (face == null) { face = 0; }
-		let vertices_coords = Origami.fold_vertices_coords(prop.cp, face);
-		let file_frame = {
-			vertices_coords,
-			frame_classes: ["foldedForm"],
-			frame_inherit: true,
-			frame_parent: 0,
-			"re:face_stationary": face
-		};
+
+		let file_frame = Origami.build_folded_frame(prop.cp, face);
+		// console.log("file_frame", file_frame);
 		if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
 		prop.cp.file_frames.unshift(file_frame);
 		prop.frame = 1;
@@ -340,20 +342,30 @@ export default function() {
 	let lastStep, touchFaceIndex, touchFaceColoring;
 	_this.events.addEventListener("onMouseDown", function(mouse) {
 		if (preferences.folding) {
-			try{
+			try {
 				lastStep = JSON.parse(JSON.stringify(prop.cp));
 				touchFaceColoring = true;
-				if (prop.cp["re:faces_matrix"] != null){
-					console.log(prop.cp["re:faces_matrix"]);
-					let transformed_points = prop.cp["re:faces_matrix"].map(m => RabbitEar.math.Vector(mouse.x, mouse.y), m);
-					console.log(transformed_points);
+				let faces_matrix;
+				if (prop.cp.file_frames != null
+					&& prop.cp.file_frames.length > 0
+					&& prop.cp.file_frames[0]["re:faces_matrix"] != null) {
+					faces_matrix = prop.cp.file_frames[0]["re:faces_matrix"];
+				} else {
+					console.log("needed to re-make faces_matrix");
+					faces_matrix = make_faces_matrix_inv(prop.cp, 0);
 				}
-				let containing_point = RabbitEar.core.face_containing_point(prop.cp, mouse);
-				touchFaceIndex = (containing_point === undefined) 
+				// prop.cp["re:faces_matrix"] = faces_matrix;
+				// console.log("faces_matrix", faces_matrix);
+				let transformed_points = faces_matrix.map(m => Geom.core.multiply_vector2_matrix2([mouse[0], mouse[1]], m));
+				// console.log("transformed_points", transformed_points);
+				let mouse_over_faces = folded_faces_containing_point(prop.cp, mouse, faces_matrix);
+				console.log("mouse_over_faces", mouse_over_faces);
+				let topmost = topmost_face(prop.cp, mouse_over_faces);
+				// console.log("topmost", topmost);
+				touchFaceIndex = (topmost === undefined)
 					? 0 // get bottom most face
-					: containing_point;
+					: topmost;
 				console.log(touchFaceIndex, prop.cp);
-
 			} catch(error) {
 				console.warn("problem loading the last fold step", error);
 			}
@@ -362,6 +374,7 @@ export default function() {
 	_this.events.addEventListener("onMouseMove", function(mouse) {
 		if (preferences.folding && mouse.isPressed) {
 			prop.cp = CreasePattern(lastStep);
+			// console.log(prop.cp);
 			let points = [
 				Geom.Vector(mouse.pressed),
 				Geom.Vector(mouse.position)
