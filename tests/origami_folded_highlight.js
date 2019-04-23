@@ -86,39 +86,34 @@ let fold = {
 
 let origami = RabbitEar.Origami(fold);
 origami.frame = 1;
+origami.drawLayer = RabbitEar.svg.group();
+origami.appendChild(origami.drawLayer);
 let cpView = RabbitEar.Origami(fold);
 cpView.frame = 0;
 cpView.drawLayer = RabbitEar.svg.group();
 cpView.appendChild(cpView.drawLayer);
 
 origami.onMouseMove = function(mouse) {
+	origami.drawLayer.removeChildren();
 	cpView.drawLayer.removeChildren();
 	let faces = cpView.faces
 	faces.forEach(f => f.svg.setAttribute("style", ""));
 
 	let faces_containing = RabbitEar.core.folded_faces_containing_point(origami.cp, mouse, fold.file_frames[0]["re:faces_matrix"]);
-	// console.log("faces_containing", faces_containing);
-
-	let mats = RabbitEar.core.make_faces_matrix_inv(origami.cp, cpView.cp["re:face_stationary"]);
-	// console.log(mats);
-	let mouseVec = RabbitEar.math.Vector(mouse.x, mouse.y);
-	// let transformedPoints = mats.map(m => mouseVec.transform(RabbitEar.math.core.make_matrix2_inverse(m)));
-	let transformedPoints = mats.map(m => mouseVec.transform(m));
-	// console.log(transformedPoints);
-	let circles = transformedPoints.map(p => cpView.drawLayer.circle(p[0], p[1], 0.01));
-	// console.log(circles);
-	let point_in_poly = transformedPoints.map((p,i) => faces[i].contains(p));
-	// console.log(point_in_poly);
-	// console.log(faces);
-	faces.forEach((f,i) => {
-		if(point_in_poly[i]) { f.svg.setAttribute("style", "fill:#e14929"); }
-	});
-
 	let top_face = RabbitEar.core.topmost_face(origami.cp, faces_containing);
+
+	let mouseVec = RabbitEar.math.Vector(mouse.x, mouse.y);
+	let circles = fold.file_frames[0]["re:faces_matrix"]
+		.map(m => mouseVec.transform(m))
+		.map(p => cpView.drawLayer.circle(p[0], p[1], 0.01));
+
+	faces_containing.forEach(f => faces[f].svg.setAttribute("style", "fill: #e14929"));
+
 	if (top_face != null) {
-		faces[top_face].svg.setAttribute("style", "fill:#ecb233");
+		faces[top_face].svg.setAttribute("style", "fill: #ecb233");
+		circles[top_face].setAttribute("style", "fill: #e14929");
+		// dot on folded canvas
+		let p = RabbitEar.math.core.multiply_vector2_matrix2(mouse, fold.file_frames[0]["re:faces_matrix"][top_face]);
+		origami.drawLayer.circle(p[0], p[1], 0.01);
 	}
-
 }
-
-

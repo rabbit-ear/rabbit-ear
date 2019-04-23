@@ -21,7 +21,7 @@
 </section>
 
 <section id="types">
-	<h2>PRIMITIVES</h2>
+	<h3>PRIMITIVES</h3>
 	<!-- <p>This library contains a growing list of about ten primitives.</p> -->
 	<div class="centered">
 		<pre class="compact"><code><f>RabbitEar</f>.math
@@ -42,7 +42,8 @@
 </section>
 
 <section id="vector">
-	<h3>Point / Vector</h3>
+<h2>Point / Vector</h2>
+
 	<p>Consider this object from two perspectives:</p>
 	<ul>
 		<li>a point in space, as measured from the origin (0,0)</li>
@@ -96,8 +97,7 @@
 </section>
 
 <section id="matrix">
-
-<h3>MATRIX</h3>
+<h2>MATRIX</h2>
 
 	<div class="quote">
 		<div id="matrix-1"></div>
@@ -119,7 +119,7 @@
 
 	<div id="canvas-fold-poly"></div>
 
-<h3 id="reflection">Reflection</h3>
+	<h3 id="reflection">Reflection</h3>
 
 	<p>A 2x2 matrix is sufficient to represent a reflection. However a problem arises: all the lines of reflection must pass through the origin. There are two solutions:</p>
 	<ul>
@@ -142,7 +142,7 @@
 </section>
 
 <section id="line">
-<h3><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h3>
+<h2><span style="color:#ecb233">Lines</span>, <span style="color:#195783">Rays</span>, <span style="color:#e44f2a">Segments</span></h2>
 
 	<div id="canvas-line-ray-edge-intersection"></div>
 
@@ -186,11 +186,15 @@
 		<pre><code><f>let</f> point <key>=</key> edge.<f>nearestPoint</f>(<span id="nearest-point-mouse"></span>)</code></pre>
 	</div>
 
-<h3>Circle</h3>
+<h2>Circle</h2>
 
-	<div id="canvas-circle-line"></div>
+	<p>Circle packing appears often in origami design.</p>
 
-<h3>Polygon</h3>
+	<div id="canvas-circle-packing"></div>
+
+	<p class="quote">By connecting edges across neighboring circles' radii it begins to resemble circle-river origami design.</p>
+
+<h2>Polygon</h2>
 
 	<p>A <b>Polygon</b> is a ordered set of <b>points</b> which defines the boundary. This <b>ConvexPolygon</b> is built using the convex hull algorithm, and it can clip <b>lines</b>, <b>rays</b>, and <b>edges</b>.</p>
 
@@ -223,6 +227,12 @@
 
 	<p class="quote">A non-convex polygon cannot make such guarantees.</p>
 
+	<div id="canvas-origami-molecule"></div>
+
+	<p class="explain">straight skeleton contains a few bugs right now</p>
+
+	<p>A <b>straight skeleton</b> is a Voronoi diagram of the edges of the polygon. Lang's universal molecule and the Demaines' fold and one cut both use this.</p>
+
 	<div id="canvas-split-poly"></div>
 
 	<div class="centered">
@@ -231,10 +241,6 @@
 
 	<p class="quote">Clipping functions return an edge with a new set of endpoints.</p>
 	
-	<div id="canvas-polygon-contains"></div>
-
-	<div id="canvas-polygon-overlaps"></div>
-
 </section>
 
 <section id="angles">
@@ -281,6 +287,10 @@
 
 <p>These methods are also available as properties on the primitives, but here they all are laid out and it's easier to spot them.</p>
 
+
+	<div id="canvas-polygon-overlaps"></div>
+
+
 <script type="text/javascript" src="../tests/junction_bisect.js"></script>
 <script type="text/javascript" src="../tests/line_ray_edge_intersection.js"></script>
 <script type="text/javascript" src="../tests/line_bisect.js"></script>
@@ -288,13 +298,14 @@
 <script type="text/javascript" src="../tests/sector_bisect.js"></script>
 <script type="text/javascript" src="../tests/vector_lerp.js"></script>
 <script type="text/javascript" src="../tests/vector_labels.js"></script>
-<script type="text/javascript" src="../tests/circle_line.js"></script>
+<script type="text/javascript" src="../tests/circle_packing.js"></script>
 <script type="text/javascript" src="../tests/polygon_fold.js"></script>
 <script type="text/javascript" src="../tests/polygon_split1.js"></script>
 <script type="text/javascript" src="../tests/polygon_split2.js"></script>
 <script type="text/javascript" src="../tests/polygon_convex_hull.js"></script>
-<script type="text/javascript" src="../tests/polygon_contains.js"></script>
+<!-- <script type="text/javascript" src="../tests/polygon_contains.js"></script> -->
 <script type="text/javascript" src="../tests/polygon_overlaps.js"></script>
+<script type="text/javascript" src="../tests/polygon_skeleton.js"></script>
 <script type="text/javascript" src="../tests/matrix_reflection.js"></script>
 <script type="text/javascript" src="../tests/matrix_basis.js"></script>
 <script type="text/javascript">

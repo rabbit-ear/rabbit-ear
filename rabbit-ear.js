@@ -948,7 +948,7 @@
 		let params = Array.from(arguments);
 		let numbers = params.filter((param) => !isNaN(param));
 		if (numbers.length === 3) {
-			_origin = numbers.slice(0,2);
+			_origin = Vector(numbers.slice(0,2));
 			_radius = numbers[2];
 		}
 		const intersectionLine = function() {
@@ -982,6 +982,7 @@
 			intersectionEdge,
 			get origin() { return _origin; },
 			get radius() { return _radius; },
+			set radius(newRadius) { _radius = newRadius; },
 		};
 	}
 
@@ -3598,7 +3599,7 @@
 			return undefined;
 		}
 		let face = graph.faces_vertices
-			.map((fv,i) => ({face:fv.map(v => graph.vertices_coords[v]),i:i}))
+			.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
 			.filter(f => core.intersection.point_in_poly(f.face, point))
 			.shift();
 		return (face == null ? undefined : face.i);
@@ -3606,7 +3607,6 @@
 
 	const folded_faces_containing_point = function(graph, point, faces_matrix) {
 		let transformed_points = faces_matrix
-			// .map(m => Geom.core.make_matrix2_inverse(m))
 			.map(m => core.multiply_vector2_matrix2(point, m));
 		return graph.faces_vertices
 			.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
@@ -3620,7 +3620,7 @@
 			return undefined;
 		}
 		return graph.faces_vertices
-			.map((fv,i) => ({face:fv.map(v => graph.vertices_coords[v]),i:i}))
+			.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
 			.filter(f => core.intersection.point_in_poly(f.face, point))
 			.map(f => f.i);
 	};
@@ -3914,16 +3914,17 @@
 	 */
 
 	function build_folded_frame(graph, face_stationary = 0) {
-			let faces_matrix = make_faces_matrix_inv(graph, face_stationary);
-			let vertices_coords = fold_vertices_coords(graph, face_stationary, faces_matrix);
-			return {
-				vertices_coords,
-				frame_classes: ["foldedForm"],
-				frame_inherit: true,
-				frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
-				"re:face_stationary": face_stationary,
-				"re:faces_matrix": faces_matrix
-			};
+		console.log("build_folded_frame", graph, face_stationary);
+		let faces_matrix = make_faces_matrix(graph, face_stationary);
+		let vertices_coords = fold_vertices_coords(graph, face_stationary, faces_matrix);
+		return {
+			vertices_coords,
+			frame_classes: ["foldedForm"],
+			frame_inherit: true,
+			frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
+			"re:face_stationary": face_stationary,
+			"re:faces_matrix": faces_matrix
+		};
 	}
 
 	function universal_molecule(polygon) {
@@ -3972,7 +3973,19 @@
 		graph["re:faces_folding"] = Array.from(Array(faces_count$$1));
 		graph["re:faces_preindex"] = Array.from(Array(faces_count$$1)).map((_,i)=>i);
 		graph["re:faces_coloring"] = faces_coloring(graph, face_index);
+
+		if (graph.file_frames != null
+			&& graph.file_frames.length > 0
+			&& graph.file_frames[0]["re:faces_matrix"] != null
+			&& graph.file_frames[0]["re:faces_matrix"].length === faces_count$$1) {
+			console.log("prepare_to_fold found faces matrix from last fold", graph.file_frames[0]["re:faces_matrix"]);
+			graph["re:faces_matrix"] = JSON.parse(JSON.stringify(graph.file_frames[0]["re:faces_matrix"]));
+		} else {
+			console.log("prepare_to_fold creating new faces matrix");
+			graph["re:faces_matrix"] = make_faces_matrix_inv(graph, face_index);
+		}
 		graph["re:faces_matrix"] = make_faces_matrix_inv(graph, face_index);
+
 		graph["re:faces_creases"] = graph["re:faces_matrix"]
 			.map(mat => core.multiply_line_matrix2(point, vector, mat));
 		graph["re:faces_center"] = Array.from(Array(faces_count$$1))
@@ -4019,7 +4032,7 @@
 
 	// for now, this uses "re:faces_layer", todo: use faceOrders
 	const crease_through_layers = function(graph, point, vector, face_index, crease_direction = "V") {
-		// console.log("+++++++++++++++++++++++ crease_through_layers");
+		console.log("+++++++++ crease_through_layers", point, vector, face_index);
 
 		let opposite_crease = 
 			(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
@@ -4082,6 +4095,12 @@
 		// update colorings
 		let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
 		folded["re:faces_coloring"] = faces_coloring(folded, new_face_stationary);
+
+		let folded_frame = build_folded_frame(folded, new_face_stationary);
+		console.log("setting new folded frame");
+		folded.file_frames = [folded_frame];
+
+		delete folded["re:faces_matrix"];
 
 		// console.log("returned folded", JSON.parse(JSON.stringify(folded)));
 		// console.log("original stationary", graph["re:face_stationary"])
@@ -4332,7 +4351,7 @@
 		}
 		if (face_stationary == null) { face_stationary = 0; }
 		if (faces_matrix == null) {
-			faces_matrix = make_faces_matrix_inv(graph, face_stationary);
+			faces_matrix = make_faces_matrix(graph, face_stationary);
 		}
 		let vertex_in_face = graph.vertices_coords.map((v,i) => {
 			for(let f = 0; f < graph.faces_vertices.length; f++) {
@@ -5169,6 +5188,7 @@
 			}
 			let folded = crease_through_layers(_this, point, vector, face_index, "V");
 			Object.keys(folded).forEach(key => _this[key] = folded[key]);
+			delete _this["re:faces_matrix"];
 			didModifyGraph();
 		};
 
@@ -5519,11 +5539,18 @@
 			// 1. check if a folded frame already exists (and it's valid)
 			// 2. if not, build one
 			if (face == null) { face = 0; }
-
-			let file_frame = build_folded_frame(prop.cp, face);
-			// console.log("file_frame", file_frame);
-			if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
-			prop.cp.file_frames.unshift(file_frame);
+			if (prop.cp.file_frames != null
+				&& prop.cp.file_frames.length > 0
+				&& prop.cp.file_frames[0]["re:faces_matrix"] != null
+				&& prop.cp.file_frames[0]["re:faces_matrix"].length === prop.cp.faces_vertices.length) {
+				console.log("fold() - using faces matrix");
+				// well.. do nothing. we're good
+			} else {
+				let file_frame = build_folded_frame(prop.cp, face);
+				// console.log("file_frame", file_frame);
+				if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
+				prop.cp.file_frames.unshift(file_frame);
+			}
 			prop.frame = 1;
 			draw();
 			// setCreasePattern( CreasePattern(folded) );
@@ -5638,18 +5665,12 @@
 						console.log("needed to re-make faces_matrix");
 						faces_matrix = make_faces_matrix_inv(prop.cp, 0);
 					}
-					// prop.cp["re:faces_matrix"] = faces_matrix;
-					// console.log("faces_matrix", faces_matrix);
-					let transformed_points = faces_matrix.map(m => core.multiply_vector2_matrix2([mouse[0], mouse[1]], m));
-					// console.log("transformed_points", transformed_points);
-					let mouse_over_faces = folded_faces_containing_point(prop.cp, mouse, faces_matrix);
-					console.log("mouse_over_faces", mouse_over_faces);
-					let topmost = topmost_face(prop.cp, mouse_over_faces);
-					// console.log("topmost", topmost);
-					touchFaceIndex = (topmost === undefined)
+					let faces_containing = folded_faces_containing_point(prop.cp, mouse, faces_matrix);
+					let top_face = topmost_face(prop.cp, faces_containing);
+					touchFaceIndex = (top_face === undefined)
 						? 0 // get bottom most face
-						: topmost;
-					console.log(touchFaceIndex, prop.cp);
+						: top_face;
+					console.log("valleyfold()", touchFaceIndex, prop.cp);
 				} catch(error) {
 					console.warn("problem loading the last fold step", error);
 				}
@@ -5657,17 +5678,17 @@
 		});
 		_this.events.addEventListener("onMouseMove", function(mouse) {
 			if (preferences.folding && mouse.isPressed) {
+				if (prop.cp.file_frames[0] != null) {
+					console.log("what about now", prop.cp.file_frames[0]["re:faces_matrix"]);
+				}
 				prop.cp = CreasePattern(lastStep);
-				// console.log(prop.cp);
-				let points = [
-					Vector(mouse.pressed),
-					Vector(mouse.position)
-				];
+				if (prop.cp.file_frames[0] != null) {
+					console.log("and now", prop.cp.file_frames[0]["re:faces_matrix"]);
+				}
+				let points = [Vector(mouse.pressed), Vector(mouse.position)];
 				let midpoint = points[0].midpoint(points[1]);
 				let vector = points[1].subtract(points[0]);
-
 				prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
-				// prop.cp.valleyFold(midpoint, touchFaceColoring ? vector.rotateZ90() : vector.rotateZ270(), touchFaceIndex);
 				fold();
 			}
 		});

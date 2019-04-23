@@ -85,7 +85,7 @@ export const face_containing_point = function(graph, point) {
 		return undefined;
 	}
 	let face = graph.faces_vertices
-		.map((fv,i) => ({face:fv.map(v => graph.vertices_coords[v]),i:i}))
+		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
 		.filter(f => Geom.core.intersection.point_in_poly(f.face, point))
 		.shift()
 	return (face == null ? undefined : face.i);
@@ -93,7 +93,6 @@ export const face_containing_point = function(graph, point) {
 
 export const folded_faces_containing_point = function(graph, point, faces_matrix) {
 	let transformed_points = faces_matrix
-		// .map(m => Geom.core.make_matrix2_inverse(m))
 		.map(m => Geom.core.multiply_vector2_matrix2(point, m));
 	return graph.faces_vertices
 		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
@@ -107,7 +106,7 @@ export const faces_containing_point = function(graph, point) {
 		return undefined;
 	}
 	return graph.faces_vertices
-		.map((fv,i) => ({face:fv.map(v => graph.vertices_coords[v]),i:i}))
+		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
 		.filter(f => Geom.core.intersection.point_in_poly(f.face, point))
 		.map(f => f.i);
 };

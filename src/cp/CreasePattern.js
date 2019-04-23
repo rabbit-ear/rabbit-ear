@@ -152,6 +152,7 @@ const CreasePatternPrototype = function(proto) {
 		}
 		let folded = Origami.crease_through_layers(_this, point, vector, face_index, "V");
 		Object.keys(folded).forEach(key => _this[key] = folded[key]);
+		delete _this["re:faces_matrix"];
 		didModifyGraph();
 	};
 

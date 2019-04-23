@@ -15,16 +15,17 @@ import * as PlanarGraph from "./planargraph";
 import { apply_diff, apply_diff_map } from "./diff";
 
 export function build_folded_frame(graph, face_stationary = 0) {
-		let faces_matrix = PlanarGraph.make_faces_matrix_inv(graph, face_stationary);
-		let vertices_coords = fold_vertices_coords(graph, face_stationary, faces_matrix);
-		return {
-			vertices_coords,
-			frame_classes: ["foldedForm"],
-			frame_inherit: true,
-			frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
-			"re:face_stationary": face_stationary,
-			"re:faces_matrix": faces_matrix
-		};
+	console.log("build_folded_frame", graph, face_stationary);
+	let faces_matrix = PlanarGraph.make_faces_matrix(graph, face_stationary);
+	let vertices_coords = fold_vertices_coords(graph, face_stationary, faces_matrix);
+	return {
+		vertices_coords,
+		frame_classes: ["foldedForm"],
+		frame_inherit: true,
+		frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
+		"re:face_stationary": face_stationary,
+		"re:faces_matrix": faces_matrix
+	};
 }
 
 export function universal_molecule(polygon) {
@@ -73,7 +74,19 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 	graph["re:faces_folding"] = Array.from(Array(faces_count));
 	graph["re:faces_preindex"] = Array.from(Array(faces_count)).map((_,i)=>i);
 	graph["re:faces_coloring"] = Graph.faces_coloring(graph, face_index);
+
+	if (graph.file_frames != null
+		&& graph.file_frames.length > 0
+		&& graph.file_frames[0]["re:faces_matrix"] != null
+		&& graph.file_frames[0]["re:faces_matrix"].length === faces_count) {
+		console.log("prepare_to_fold found faces matrix from last fold", graph.file_frames[0]["re:faces_matrix"]);
+		graph["re:faces_matrix"] = JSON.parse(JSON.stringify(graph.file_frames[0]["re:faces_matrix"]));
+	} else {
+		console.log("prepare_to_fold creating new faces matrix");
+		graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
+	}
 	graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
+
 	graph["re:faces_creases"] = graph["re:faces_matrix"]
 		.map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
 	graph["re:faces_center"] = Array.from(Array(faces_count))
@@ -120,7 +133,7 @@ export const point_in_folded_face = function(graph, point) {
 
 // for now, this uses "re:faces_layer", todo: use faceOrders
 export const crease_through_layers = function(graph, point, vector, face_index, crease_direction = "V") {
-	// console.log("+++++++++++++++++++++++ crease_through_layers");
+	console.log("+++++++++ crease_through_layers", point, vector, face_index);
 
 	let opposite_crease = 
 		(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
@@ -195,6 +208,12 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 		"re:faces_sidedness",
 		"re:faces_to_move"
 	];
+
+	let folded_frame = build_folded_frame(folded, new_face_stationary);
+	console.log("setting new folded frame");
+	folded.file_frames = [folded_frame];
+
+	delete folded["re:faces_matrix"];
 
 	// console.log("returned folded", JSON.parse(JSON.stringify(folded)));
 	// console.log("original stationary", graph["re:face_stationary"])
@@ -445,7 +464,7 @@ export const fold_vertices_coords = function(graph, face_stationary, faces_matri
 	}
 	if (face_stationary == null) { face_stationary = 0; }
 	if (faces_matrix == null) {
-		faces_matrix = PlanarGraph.make_faces_matrix_inv(graph, face_stationary);
+		faces_matrix = PlanarGraph.make_faces_matrix(graph, face_stationary);
 	}
 	let vertex_in_face = graph.vertices_coords.map((v,i) => {
 		for(let f = 0; f < graph.faces_vertices.length; f++) {
