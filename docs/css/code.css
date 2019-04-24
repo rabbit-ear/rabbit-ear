@@ -18,8 +18,8 @@ code, pre {
 	hyphens: none;
 }
 pre {
-	padding: 1em;
-	margin: 2em auto;
+	padding: 1rem;
+	margin: 2rem auto;
 	display: block;
 	overflow: auto;
 	border-radius: 0.3em;
@@ -27,6 +27,30 @@ pre {
 	max-width: 600px;
 	width: 450px;
 	min-width: 200px;
+}
+.language {
+	position: relative;
+}
+.language pre {
+	display: inline-block;
+	position: absolute;
+	padding: 0.25rem 0.5rem;
+	z-index: 1;
+	color: black;
+	background-color: white;
+	font-weight: bold;
+	right: calc((100% - 450px) / 2);
+	top: calc(-1.5rem + 6px);
+	border: solid black 3px;
+	border-radius: 4px;
+	max-width: initial;
+	width: initial;
+	min-width: initial;
+
+}
+
+pre.compact, pre.compact code {
+	line-height: 1.0;
 }
 
 code a, code a:visited, code a:active, code a:hover{

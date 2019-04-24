@@ -6,19 +6,16 @@ for(var i = 0; i < STEPS; i++){
 	var cp = (prevCP != null) ? prevCP.copy() : RabbitEar.CreasePattern();
 	
 	// generate the geometry for a random crease line
-	var origin = [Math.random(), Math.random()];
+	var point = [Math.random(), Math.random()];
 	var angle = Math.random()*Math.PI*2;
-	var vecA = [Math.cos(angle), Math.sin(angle)];
-	// var vecB = [-vecA.x, -vecA.y];
+	var vector = [Math.cos(angle), Math.sin(angle)];
 
 	// crease origami paper
-	//todo: need to be able to pass objects {x:, y:} in each arg, in each method
-	cp.creaseThroughLayers(origin, vecA);//.forEach((c) => c.valley());
-	// cp.clean();
+	cp.valleyFold(point, vector);
 
 	// create html components
 	var lineHeader = document.createElement("h2");
-	lineHeader.innerHTML = (i+1) + ".";
+	lineHeader.innerHTML = (i+1);
 	container.appendChild(lineHeader);
 	var row = document.createElement("div");
 	row.className = "row";
@@ -27,6 +24,10 @@ for(var i = 0; i < STEPS; i++){
 	// new svgs, fill them with the crease pattern
 	var origami = RabbitEar.Origami(row, cp);
 	var fold = RabbitEar.Origami(row, cp);
-	fold.fold();
+
+	let notMoving = cp["re:faces_to_move"].indexOf(false) !== -1
+		? cp["re:faces_to_move"].indexOf(false) : 0;
+	fold.fold(notMoving);
+
 	prevCP = cp;
 }

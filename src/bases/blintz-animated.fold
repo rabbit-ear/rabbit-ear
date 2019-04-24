@@ -18,7 +18,7 @@
 	"faces_layer": [4,0,1,2,3],
 	"file_frames": [
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent": 0,
 			"frame_inherit": true,
 			"vertices_coords": [
@@ -29,7 +29,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -40,7 +40,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -51,7 +51,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -62,7 +62,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -73,7 +73,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -84,7 +84,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -95,7 +95,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -106,7 +106,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -117,7 +117,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -128,7 +128,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -139,7 +139,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -150,7 +150,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -161,7 +161,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -172,7 +172,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -183,7 +183,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -194,7 +194,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -205,7 +205,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -216,7 +216,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -227,7 +227,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -238,7 +238,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -249,7 +249,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -260,7 +260,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -271,7 +271,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -282,7 +282,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -293,7 +293,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -304,7 +304,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -315,7 +315,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -326,7 +326,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -337,7 +337,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -348,7 +348,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [
@@ -359,7 +359,7 @@
 			]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent":0,
 			"frame_inherit":true,
 			"vertices_coords": [

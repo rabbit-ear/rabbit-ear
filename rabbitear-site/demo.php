@@ -116,7 +116,7 @@
 </div>
 
 <script type="text/javascript" src="../cp.js"></script>
-<script type="text/javascript" src="../lib/paper-full.min.js"></script>
+<script type="text/javascript" src="../include/paper-full.min.js"></script>
 <script type="text/javascript" src="../cp.paperjs.js"></script>
 <script type="text/javascript" src="js/demo-triptych.js"></script>
 <script type="text/javascript" src="../tests/nearest.js"></script>

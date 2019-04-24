@@ -2,21 +2,31 @@
 	"file_spec": 1.1,
 	"file_creator": "",
 	"file_author": "",
+	"file_title": "",
+	"file_description": "",
 	"file_classes": [],
+	"file_frames": [],
+
+	"frame_author": "",
 	"frame_title": "",
+	"frame_description": "",
 	"frame_attributes": [],
 	"frame_classes": [],
+	"frame_unit": "",
+
 	"vertices_coords": [],
 	"vertices_vertices": [],
 	"vertices_faces": [],
+
 	"edges_vertices": [],
 	"edges_faces": [],
 	"edges_assignment": [],
 	"edges_foldAngle": [],
 	"edges_length": [],
+
 	"faces_vertices": [],
 	"faces_edges": [],
+
 	"edgeOrders": [],
-	"faceOrders": [],
-	"file_frames": []
+	"faceOrders": []
 }

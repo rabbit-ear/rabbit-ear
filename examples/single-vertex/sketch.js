@@ -1,9 +1,15 @@
 let div = document.getElementsByClassName('row')[0];
-let origami = RabbitEar.Origami(div);
-let folded = RabbitEar.Origami(div);
+let singleVertex;
+singleVertex = RabbitEar.Origami(div, {folding:false}, function(){
+	if (singleVertex != null) {
+		singleVertex.boot();
+		singleVertex.updateCenter({x:0.4+Math.random()*0.2, y:0.4+Math.random()*0.2});
+	}
+});
+let folded = RabbitEar.Origami(div, {folding:false});
 
-origami.boot = function() {
-	origami.threeCorners = {
+singleVertex.boot = function() {
+	singleVertex.threeCorners = {
 		"file_spec": 1.1,
 		"frame_attributes": ["2D"],
 		"frame_classes": ["creasePattern"],
@@ -18,21 +24,14 @@ origami.boot = function() {
 		"faces_vertices": [[0,1,4], [1,2,3,4], [3,0,4]],
 		"faces_edges": [[0,5,4], [1,2,6,5], [3,4,6]]
 	};
-	origami.cp = RabbitEar.CreasePattern(origami.threeCorners);
-}
-origami.boot();
-
-// folded.mouseZoom = false;
-// folded.rotation = 180;
-origami.midVertex = 4;
-
-function updateFoldedState(cp){
-	folded.cp = cp.copy();
-	let topFace = folded.nearest(0.5, 0.002).face;
-	folded.draw(topFace);
+	singleVertex.cp = RabbitEar.CreasePattern(singleVertex.threeCorners);
+	singleVertex.preferences.padding = 0.1;
+	folded.preferences.padding = 0.1;
 }
 
-origami.updateCenter = function(point){
+singleVertex.midVertex = 4;
+
+singleVertex.updateCenter = function(point){
 	// check bounds of point
 	let ep = 0.01;
 	if (point.x < ep) { point.x = ep; }
@@ -41,36 +40,37 @@ origami.updateCenter = function(point){
 	if (point.y > 1-ep) { point.y = 1-ep; }
 
 	// reset back to the 3 crease CP
-	origami.cp = RabbitEar.CreasePattern(origami.threeCorners);
-	origami.cp.vertices_coords[origami.midVertex] = [point.x, point.y];
+	singleVertex.cp = RabbitEar.CreasePattern(singleVertex.threeCorners);
+	singleVertex.cp.vertices_coords[singleVertex.midVertex] = [point.x, point.y];
 
 	let a = {x:0, y:0};
 	let b = {x:1, y:1};
 	let poke_through = (b.x - a.x)
-		* (origami.cp.vertices_coords[origami.midVertex][1] - a.y)
+		* (singleVertex.cp.vertices_coords[singleVertex.midVertex][1] - a.y)
 		> (b.y - a.y)
-		* (origami.cp.vertices_coords[origami.midVertex][0] - a.x);
+		* (singleVertex.cp.vertices_coords[singleVertex.midVertex][0] - a.x);
 
-	origami.cp.edges_assignment[6] = poke_through ? "V" : "M";
-	origami.cp.edges_assignment[5] = poke_through ? "M" : "V";
+	singleVertex.cp.edges_assignment[4] = poke_through ? "V" : "M";
+	singleVertex.cp.edges_assignment[5] = "M";
+	singleVertex.cp.kawasaki(singleVertex.midVertex, 1, poke_through ? "V" : "M");
+	singleVertex.draw();
 
-	origami.cp.kawasaki(origami.midVertex, 1, "V");
-	
-	origami.draw();
-
-	let foldedCP = RabbitEar.fold.origami.fold_without_layering(origami.cp, 0);
+	let foldedCP = RabbitEar.core.fold_without_layering(singleVertex.cp.getFOLD(), 0);
 	foldedCP["re:faces_layer"] = poke_through ? [1,0,2,3] : [0,1,3,2];
 	folded.cp = RabbitEar.CreasePattern(foldedCP);
+
+	Array.from(singleVertex.groups.face.children)
+		.forEach(f => f.setAttribute("style", "fill: #ecb233"));
+	Array.from(singleVertex.groups.vertex.children)
+		.forEach(v => v.setAttribute("style", "fill: none"));
 }
 
-origami.onMouseMove = function(mouse){
+singleVertex.onMouseMove = function(mouse){
 	if(mouse.isPressed){
-		origami.updateCenter(mouse);
+		singleVertex.updateCenter(mouse);
 	}
 }
 
-origami.onMouseDown = function(mouse){
-	origami.updateCenter(mouse);
+singleVertex.onMouseDown = function(mouse){
+	singleVertex.updateCenter(mouse);
 }
-
-origami.updateCenter({x:0.4+Math.random()*0.2, y:0.4+Math.random()*0.2});

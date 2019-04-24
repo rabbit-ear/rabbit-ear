@@ -10,7 +10,7 @@ document.head.appendChild(script);
 
 // append the url with a # followed by the filename (it assumes .js)
 // example: url/#axiom1 or url/#axiom1.js
-let loadOnBoot = "axiom1.js";
+let loadOnBoot = "";
 if(window.location.hash != null && window.location.hash != ""){
 	loadOnBoot = window.location.hash.substr(1);
 	if(loadOnBoot.length > 3 && loadOnBoot.substr(loadOnBoot.length-3) != '.js'){

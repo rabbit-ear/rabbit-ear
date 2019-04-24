@@ -26,7 +26,10 @@ h2{
 	border-bottom-style: solid;
 	border-bottom-color: black;
 }
-h3{ font-weight: 500; }
+h3{
+	padding: 1em 0 0 0;
+	font-weight: 500;
+}
 p, ol, ul {
 	font-size: 140%;
 	margin: 1em 0;
@@ -59,13 +62,17 @@ svg {
 div[id^="canvas-"] {
 	margin: 0 -15vw;
 }
-.three-js{
-	width: 70vh;
-	height: 70vh;
-	display: block;
-	margin: auto;
+.center {
+	text-align: center;
 }
-
+.three {
+	width: 100%;
+	height: 50vh;
+	max-height: 100vw;
+/*	display: block;
+	margin: auto;
+*/
+}
 .quote{
 	text-align: center;
 	font-style: italic;
@@ -91,6 +98,13 @@ div[id^="canvas-"] {
 }
 .tests li{
 	padding:.33em 0;
+}
+.diptych {
+	display: flex;
+	flex-direction: row;
+}
+.diptych * {
+	flex: 1;
 }
 
 @media only screen and (max-width: 600px) {  }

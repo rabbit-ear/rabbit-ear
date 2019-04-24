@@ -1,10 +1,10 @@
-let sectors = RabbitEar.svg.Image("canvas-sectors", 500, 500);
+let sectors = RabbitEar.svg.image("canvas-sectors", 500, 500);
 
 sectors.NUM_LINES = 2;
 
 sectors.reset = function(){
 	sectors.touches = Array.from(Array(sectors.NUM_LINES)).map(_ => (
-		{pos: [Math.random()*sectors.width, Math.random()*sectors.height], svg: RabbitEar.svg.circle(0, 0, 8)}
+		{pos: [Math.random()*sectors.w, Math.random()*sectors.h], svg: RabbitEar.svg.circle(0, 0, 8)}
 	));
 	sectors.lines = sectors.touches.map(_ => RabbitEar.svg.line(0,0,0,0));
 	sectors.wedges = sectors.touches.map(_ => RabbitEar.svg.wedge(0,0,0,0,0));
@@ -29,12 +29,12 @@ sectors.reset = function(){
 sectors.reset();
 
 sectors.update = function(){
-	let angles = sectors.touches.map(el => Math.atan2(el.pos[1] - sectors.height/2, el.pos[0] - sectors.width/2));
+	let angles = sectors.touches.map(el => Math.atan2(el.pos[1] - sectors.h/2, el.pos[0] - sectors.w/2));
 	let vecs = angles.map(a => [Math.cos(a), Math.sin(a)]);
 
-	let centerX = sectors.width * 0.5;
-	let centerY = sectors.height * 0.5;
-	let r = sectors.height / 3;
+	let centerX = sectors.w * 0.5;
+	let centerY = sectors.h * 0.5;
+	let r = sectors.h / 3;
 	sectors.touches.forEach(el => {
 		el.svg.setAttribute("cx", el.pos[0]);
 		el.svg.setAttribute("cy", el.pos[1]);
@@ -47,7 +47,7 @@ sectors.update = function(){
 	});
 	sectors.wedges.forEach((w,i,a) => {
 		RabbitEar.svg.setArc(w, centerX, centerY,
-			sectors.width * 0.25,
+			sectors.w * 0.25,
 			Math.atan2(vecs[i][1], vecs[i][0]),
 			Math.atan2(vecs[(i+1)%a.length][1], vecs[(i+1)%a.length][0]),
 			true
@@ -58,15 +58,17 @@ sectors.update();
 
 
 sectors.onMouseDown = function(mouse){
-	let ep = sectors.width / 50;
-	let down = sectors.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
+	let ep = sectors.w / 50;
+	let down = sectors.touches.map(p => 
+		Math.abs(mouse.x - p.pos[0]) < ep &&
+		Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	sectors.selected = found;
-}
+};
 
 sectors.onMouseMove = function(mouse){
 	if(mouse.isPressed && sectors.selected != null){
 		sectors.touches[sectors.selected].pos = mouse.position;
 		sectors.update();
 	}
-}
+};

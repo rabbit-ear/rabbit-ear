@@ -42,18 +42,39 @@ svg{
 	stroke: none;
 	fill: none;
 }
+/*
+ *  face code
+ */
 .face {
-	fill: rgba(0, 0, 0, 0.1);
+	fill: rgba(0, 0, 0, 0.05);
 }
 .face-front {
 	fill: #195783;
+	stroke: #000;
+	stroke-linecap: round;
+	stroke-width: calc( var(--crease-width) * 0.25);
 }
 .face-back {
 	fill: #ecb233;
+	stroke: #000;
+	stroke-linecap: round;
+	stroke-width: calc( var(--crease-width) * 0.25);
 }
 .folded-face {
 	fill: rgba(0, 0, 0, 0.1);
 	stroke: black;
+	stroke-width: calc( var(--crease-width) * 0.25);
+}
+.face-front-debug {
+	fill: rgba(255, 255, 255, 0.8);
+	stroke: #195783;
+	stroke-linecap: round;
+	stroke-width: calc( var(--crease-width) * 0.25);
+}
+.face-back-debug {
+	fill: hsla(43, 88%, 46%, 0.8);
+	stroke: #ecb233;
+	stroke-linecap: round;
 	stroke-width: calc( var(--crease-width) * 0.25);
 }
 
@@ -76,4 +97,35 @@ svg{
 	stroke: var(--byrne-yellow);
 	stroke-linecap: round;
 	stroke-width: var(--crease-width);
+}
+
+.creasePattern #faces {
+	stroke: none; fill: none;
+}
+
+.foldedForm #faces {
+	fill: rgba(0, 0, 0, 0.1);
+	stroke: black;
+	stroke-width: calc(var(--crease-width)*0.1);
+	stroke-linejoin: bevel;
+}
+
+.foldedForm #faces .front {
+	fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);
+}
+.foldedForm #faces .back {
+	fill: white; stroke: black; stroke-width: var(--crease-width);
+}
+
+.foldedForm #creases * {
+	fill: none; stroke: none;
+}
+
+.foldedForm #vertices * {
+	fill: none; stroke: none;
+}
+
+/* this is cool if you leave it out, you can see the boundary in the folded form */
+.foldedForm #boundaries * {
+	fill: none; stroke: none;
 }

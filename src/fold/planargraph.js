@@ -1,5 +1,5 @@
 import * as Graph from "./graph";
-import * as Geom from "../../lib/geometry";
+import * as Geom from "../../include/geometry";
 import { merge_maps } from "./diff";
 import { default as validate } from "./validate";
 
@@ -54,17 +54,51 @@ export const nearest_edge = function(graph, point) {
 		.i;
 };
 
+/**
+ * someday this will implement facesOrders. right now just re:faces_layer
+ * leave faces_options empty to search all faces
+ */
+export const topmost_face = function(graph, faces_options) {
+	if (faces_options == null) {
+		faces_options = Array.from(Array(graph.faces_vertices.length))
+			.map((_,i) => i);
+	}
+	if (faces_options.length === 0) { return undefined; }
+	if (faces_options.length === 1) { return faces_options[0]; }
+
+	// top to bottom
+	let faces_in_order = graph["re:faces_layer"]
+		.map((layer,i) => ({layer:layer, i:i}))
+		.sort((a,b) => b.layer - a.layer)
+		.map(el => el.i)
+
+	for (var i = 0; i < faces_in_order.length; i++) {
+		if (faces_options.includes(faces_in_order[i])) {
+			return faces_in_order[i];
+		}
+	}
+}
+
 export const face_containing_point = function(graph, point) {
 	if (graph.vertices_coords == null || graph.vertices_coords.length === 0 ||
 		graph.faces_vertices == null || graph.faces_vertices.length === 0) {
 		return undefined;
 	}
 	let face = graph.faces_vertices
-		.map((fv,i) => ({face:fv.map(v => graph.vertices_coords[v]),i:i}))
+		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
 		.filter(f => Geom.core.intersection.point_in_poly(f.face, point))
 		.shift()
 	return (face == null ? undefined : face.i);
 };
+
+export const folded_faces_containing_point = function(graph, point, faces_matrix) {
+	let transformed_points = faces_matrix
+		.map(m => Geom.core.multiply_vector2_matrix2(point, m));
+	return graph.faces_vertices
+		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
+		.filter((f,i) => Geom.core.intersection.point_in_poly(f.face, transformed_points[i]))
+		.map(f => f.i);
+}
 
 export const faces_containing_point = function(graph, point) {
 	if (graph.vertices_coords == null || graph.vertices_coords.length === 0 ||
@@ -72,11 +106,10 @@ export const faces_containing_point = function(graph, point) {
 		return undefined;
 	}
 	return graph.faces_vertices
-		.map((fv,i) => ({face:fv.map(v => graph.vertices_coords[v]),i:i}))
-		.filter(f => Geom.core.intersection.point_in_polygon(f.face, point))
+		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
+		.filter(f => Geom.core.intersection.point_in_poly(f.face, point))
 		.map(f => f.i);
 };
-
 
 export const make_faces_matrix = function(graph, root_face) {
 	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
@@ -84,8 +117,9 @@ export const make_faces_matrix = function(graph, root_face) {
 		level.filter((entry) => entry.parent != null).forEach((entry) => {
 			let edge = entry.edge.map(v => graph.vertices_coords[v])
 			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			let local = Geom.core.algebra.make_matrix2_reflection(vec, edge[0]);
-			faces_matrix[entry.face] = Geom.core.algebra.multiply_matrices2(faces_matrix[entry.parent], local);
+			let local = Geom.core.make_matrix2_reflection(vec, edge[0]);
+			faces_matrix[entry.face] =
+				Geom.core.multiply_matrices2(faces_matrix[entry.parent], local);
 		})
 	);
 	return faces_matrix;
@@ -97,17 +131,25 @@ export const make_faces_matrix_inv = function(graph, root_face) {
 		level.filter((entry) => entry.parent != null).forEach((entry) => {
 			let edge = entry.edge.map(v => graph.vertices_coords[v])
 			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			let local = Geom.core.algebra.make_matrix2_reflection(vec, edge[0]);
-			faces_matrix[entry.face] = Geom.core.algebra.multiply_matrices2(local, faces_matrix[entry.parent]);
+			let local = Geom.core.make_matrix2_reflection(vec, edge[0]);
+			faces_matrix[entry.face] =
+				Geom.core.multiply_matrices2(local, faces_matrix[entry.parent]);
 		})
 	);
 	return faces_matrix;
 }
+
+/**
+ * @returns {}, description of changes. empty object if no intersection.
+ *
+ */
 export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVector, crease_assignment = "F") {
 	// survey face for any intersections which cross directly over a vertex
 	let vertices_intersections = graph.faces_vertices[faceIndex]
 		.map(fv => graph.vertices_coords[fv])
-		.map(v => Geom.core.intersection.point_on_line(linePoint, lineVector, v) ? v : undefined)
+		.map(v => (Geom.core.intersection.point_on_line(linePoint, lineVector, v)
+			? v
+			: undefined))
 		.map((point, i) => ({
 			point: point,
 			i_face: i,
@@ -136,7 +178,8 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 	let edge_map = Array.from(Array(graph.edges_vertices.length)).map(_=>0);
 	if (edges_intersections.length === 2) {
 		new_v_indices = edges_intersections.map((el,i,arr) => {
-			let diff = Graph.add_vertex_on_edge(graph, el.point[0], el.point[1], el.i_edges);
+			let diff = Graph
+				.add_vertex_on_edge(graph, el.point[0], el.point[1], el.i_edges);
 			arr.slice(i+1)
 				.filter(el => diff.edges.map[el.i_edges] != null)
 				.forEach(el => el.i_edges += diff.edges.map[el.i_edges]);
@@ -146,7 +189,8 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 	} else if (edges_intersections.length === 1 && vertices_intersections.length === 1) {
 		let a = vertices_intersections.map(el => el.i_vertices);
 		let b = edges_intersections.map((el,i,arr) => {
-			let diff = Graph.add_vertex_on_edge(graph, el.point[0], el.point[1], el.i_edges);
+			let diff = Graph
+				.add_vertex_on_edge(graph, el.point[0], el.point[1], el.i_edges);
 			arr.slice(i+1)
 				.filter(el => diff.edges.map[el.i_edges] != null)
 				.forEach(el => el.i_edges += diff.edges.map[el.i_edges]);
@@ -156,6 +200,12 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		new_v_indices = a.concat(b);
 	} else if (vertices_intersections.length === 2) {
 		new_v_indices = vertices_intersections.map(el => el.i_vertices);
+		// check if the proposed edge is collinear to an already existing edge
+		let face_v = graph.faces_vertices[faceIndex];
+		let v_i = vertices_intersections;
+		let match_a = face_v[(v_i[0].i_face+1)%face_v.length] === v_i[1].i_vertices;
+		let match_b = face_v[(v_i[1].i_face+1)%face_v.length] === v_i[0].i_vertices;
+		if (match_a || match_b) { return {}; }
 	} else {
 		return {};
 	}
@@ -188,6 +238,8 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 	new_faces[1].edges = graph.faces_edges[faceIndex]
 		.slice(new_face_v_indices[0], new_face_v_indices[1])
 		.concat([graph.edges_vertices.length]);
+	new_faces[0].index = graph.faces_vertices.length;
+	new_faces[1].index = graph.faces_vertices.length+1;
 
 	// construct data for our new edge (vertices, faces, assignent, foldAngle, length)
 	let new_edges = [{
@@ -195,7 +247,7 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		vertices: [...new_v_indices],
 		assignment: crease_assignment,
 		foldAngle: angle_from_assignment(crease_assignment),
-		length: Geom.core.algebra.distance2(
+		length: Geom.core.distance2(
 			...(new_v_indices.map(v => graph.vertices_coords[v]))
 		),
 		// todo, unclear if these are ordered with respect to the vertices
@@ -206,6 +258,7 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 	let edges_count = graph.edges_vertices.length;
 	let faces_count = graph.faces_vertices.length;
 	new_faces.forEach((face,i) => Object.keys(face)
+		.filter(suffix => suffix !== "index")
 		.forEach(suffix => graph["faces_"+suffix][faces_count+i] = face[suffix])
 	);
 	new_edges.forEach((edge,i) => Object.keys(edge)
@@ -220,7 +273,6 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		graph.vertices_vertices[a].push(b);
 		graph.vertices_vertices[b].push(a);
 	});
-
 
 	// rebuild edges_faces, vertices_faces
 	// search inside vertices_faces for an occurence of the removed face,
@@ -261,7 +313,10 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		});
 
 	// remove faces, adjust all relevant indices
+	// console.log(JSON.parse(JSON.stringify(graph["re:faces_coloring"])));
 	let faces_map = Graph.remove_faces(graph, [faceIndex]);
+	// console.log("removing faceIndex", faces_map);
+	// console.log(JSON.parse(JSON.stringify(graph["re:faces_coloring"])));
 
 	// return a diff of the geometry
 	return {

@@ -1,0 +1,83 @@
+:root{
+	--crease-width: 0.00666;
+	--crease-width-half: 0.00333;
+	--crease-width-third: 0.00222;
+	--crease-width-double: 0.01333;
+	--crease-width-oneandhalf: 0.01666;
+}
+
+html,body{
+	height: 100%;
+	margin: 0px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background-color: hsl(205, 74%, 30%);
+}
+svg{
+	width: 45vw;
+	height: 45vw;
+	max-height: 90vh;
+	margin: auto;
+}
+
+.face-front{
+	fill: #ecb233;
+	/*opacity: 0.3;*/
+	stroke: #000;
+	stroke-linecap: round;
+	stroke-width: var(--crease-width-third);
+}
+.face-back{
+	fill: white;
+	/*opacity: 0.3;*/
+	stroke: #000;
+	stroke-linecap: round;
+	stroke-width: var(--crease-width-third);
+}
+
+/* set some components transparent, to be revealed when cursor is near */
+.vertex{
+	fill: none;
+	stroke: none;
+}
+.face{
+	fill: none;
+	stroke: none;
+}
+.sector{
+	fill: none;
+	stroke: none;
+}
+.valley{
+	/*stroke: hsl(205, 74%, 30%);*/
+	stroke: black;
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke-dasharray:var(--crease-width-oneandhalf) var(--crease-width-double);
+}
+.mountain{
+	/*stroke: hsl(205, 74%, 30%);*/
+	stroke: black;
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+}
+.mark{
+	stroke: #ccc;
+	stroke-width: var(--crease-width-third);
+	stroke-linecap: round;
+}
+.boundary{
+	fill: white;
+	stroke: black;
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+}
+
+.stroke-yellow{ stroke: hsl(43, 88%, 46%); }
+.fill-yellow{ fill: hsl(43, 88%, 46%); }
+.fill-red{ fill: hsl(14.4, 87%, 45%); }
+.fill-blue{ fill: hsl(205, 74%, 30%); }
+.fill-dark-blue{ fill: hsl(191, 82%, 14% ); }
+.fill-black{ fill: black; }

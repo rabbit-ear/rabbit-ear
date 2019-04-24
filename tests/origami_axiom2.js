@@ -2,8 +2,8 @@ let axiom2 = RabbitEar.Origami("canvas-axiom-2");
 
 // create 2 UI-control points
 axiom2.touches = [
-	{pos: [0.0, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom2.svg)},
-	{pos: [1.0, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom2.svg)},
+	{pos: [0.0, 0.5], svg: axiom2.circle(0, 0, 0.02)},
+	{pos: [1.0, 0.5], svg: axiom2.circle(0, 0, 0.02)},
 ];
 axiom2.touches.forEach(p => p.svg.setAttribute("fill", "#e44f2a"));
 
@@ -13,7 +13,7 @@ axiom2.reset = function() {
 	for (let i = 0; i < 5; i++) {
 		axiom2.axiom2([Math.random(), Math.random()], [Math.random()-0.5, Math.random()-0.5]);
 	}
-	axiom2.base = axiom2.cp.json;
+	axiom2.base = axiom2.cp.getFOLD();
 }
 axiom2.reset();
 
@@ -31,11 +31,11 @@ axiom2.onMouseDown = function(mouse){
 	let down = axiom2.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	axiom2.selected = found;
-}
+};
 
 axiom2.onMouseMove = function(mouse){
 	if(mouse.isPressed && axiom2.selected != null){
 		axiom2.touches[axiom2.selected].pos = mouse.position;
 		axiom2.redraw();
 	}
-}
+};

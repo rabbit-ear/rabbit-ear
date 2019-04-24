@@ -1,62 +1,78 @@
-let chopReflect = RabbitEar.Origami("canvas-faces-chop");
+let valleys = RabbitEar.Origami("canvas-faces-chop");
 let folded = RabbitEar.Origami("canvas-faces-chop-folded");
 folded.isFolded = true;
 
-chopReflect.masterCP = RabbitEar.bases.blintzDistorted;
-chopReflect.cp = RabbitEar.CreasePattern(chopReflect.masterCP);
+valleys.drawLayer = valleys.group();
 
-let drawLayer = RabbitEar.svg.group();
-chopReflect.svg.appendChild(drawLayer)
-let dot = RabbitEar.svg.circle(0, 0, 0.02);
-let dotVec = RabbitEar.svg.circle(0, 0, 0.02);
-dot.setAttribute("fill", "#e44f2a");
-dotVec.setAttribute("fill", "#e44f2a");
-drawLayer.appendChild(dot);
-drawLayer.appendChild(dotVec);
+// let cpts = [[0.8, 0.18], [0.2, 0.2]]
+let cpts = [[0.3, 0.2], [0.3, 0.3]]
 
-let cpFaces = chopReflect.faces;
-
-let highlightedFace = 0;
-
-// let s = 0.333; //master speed
-let s = 0.33333; //master speed
-let q = 1; //master speed
-let a = 0.8;
-let b = 1.2;
-let c = 2.1;
-let d = 1.3;
-let e = 0.9;
-
-chopReflect.updateWanderingLine = function(event) {
-	let vAngle = Math.cos(q*s*event.time*d + Math.sin(q*b*s*event.time+0.8) - Math.sin(q*a*s*event.time+1.9) + a) * 2;
-	let vx = Math.cos(vAngle);
-	let vy = Math.sin(vAngle);
-	let x = (Math.sin(s*event.time*0.5 + Math.sin(s*event.time*0.43)+3)*0.5+0.5 + Math.cos(s*event.time*a - Math.sin(d*s*event.time+0.8) + b)*0.5+0.5)*0.45 + 0.05;
-	let y = (Math.cos(s*event.time*1.1 + Math.cos(s*event.time*0.2)+2)*0.5+0.5 + Math.sin(s*event.time*c + Math.sin(e*s*event.time+1.9) + a)*0.5+0.5)*0.45 + 0.05;
-	dot.setAttribute("cx", x);
-	dot.setAttribute("cy", y);
-	dotVec.setAttribute("cx", x + vx*0.03);
-	dotVec.setAttribute("cy", y + vy*0.03);
-	return {
-		point: [x,y],
-		vector: [vx,vy]
-	};
-}
-
-// let event = {};
-// event.time = 2;
+let params = [{
+	point: [0.6684523757573304, 0.7068981830977321],
+	vector: [0.8305701963995926, 0.0269449235394514]
+},
 // {
-chopReflect.animate = function(event){
-	let line = chopReflect.updateWanderingLine(event);
-	let cp = JSON.parse(JSON.stringify(chopReflect.masterCP));
-	RabbitEar.fold.origami.crease_folded(cp, line.point, line.vector, 4);
-	chopReflect.cp = RabbitEar.CreasePattern(cp);
-	let foldedCP = RabbitEar.fold.origami.fold_without_layering(cp, chopReflect.nearest(0.5, 0.5).face.index);
-	folded.cp = RabbitEar.CreasePattern(foldedCP);
+// 	// point: [0.5827608218865481, 0.6323193249195302],
+// 	// vector: [0.4901779040449912, 0.7237222669179171]
+// 	point: [0.5827608218865481, 0.6323193249195302],
+// 	vector: [0.4901779040449912, -0.7237222669179171]
+// }
+]
+
+for (var i = 0; i < params.length; i++) {
+	// let point = RabbitEar.math.Vector(Math.random(), Math.random());
+	// let vector = RabbitEar.math.Vector(Math.random(), Math.random());
+	let point = params[i].point;
+	let vector = params[i].vector;
+	let stay = RabbitEar.math.Vector(Math.random(), Math.random());
+	valleys.cp.valleyFold(point, vector, 0);//stay);
+	// console.log(point, vector);
 }
 
-chopReflect.onMouseDown = function(event) {
-	console.log("mouse down", event);
+// let point = RabbitEar.math.Vector(0.2, 0.8);
+// let vector = RabbitEar.math.Vector(1, 1);
+// let stay = RabbitEar.math.Vector(1, -1);
+// valleys.cp.valleyFold(point, vector, stay);
+
+valleys.masterCP = JSON.parse(JSON.stringify(valleys.cp.json));
+valleys.cp = RabbitEar.CreasePattern(valleys.masterCP);
+
+valleys.controls = RabbitEar.svg.controls(valleys, 2, {radius:0.02, fill: "#e44f2a"});
+// valleys.controls.forEach(c => c.position = [Math.random(), Math.random()]);
+valleys.controls.forEach((c,i) => c.position = cpts[i]);
+valleys.controls[1].circle.setAttribute("fill", "#000");
+
+let yes = true;
+
+valleys.update = function() {
+	valleys.drawLayer.removeChildren();
+
+	if(yes){
+		valleys.cp = RabbitEar.CreasePattern(valleys.masterCP);
+		let line = RabbitEar.math.Line.fromPoints(valleys.controls[0].position, valleys.controls[1].position);
+		let cp = JSON.parse(JSON.stringify(valleys.masterCP));
+		let points = [
+			RabbitEar.math.Vector(valleys.controls[0].position),
+			RabbitEar.math.Vector(valleys.controls[1].position)
+		];
+		let vector = points[1].subtract(points[0]);
+		let stayVector = vector.rotateZ90();
+		let stayPoint = points[0].midpoint(points[1]).add(stayVector.normalize().scale(0.1));
+		valleys.drawLayer.circle(stayPoint[0], stayPoint[1], 0.02).setAttribute("fill", "#224c72");
+		let topface = RabbitEar.core.face_containing_point(valleys.cp, valleys.controls[0].position);
+		valleys.cp.valleyFold(points[0], vector, topface);
+	}
+	folded.cp = RabbitEar.CreasePattern(valleys.cp.json);
+	let notMoving = folded.cp["re:faces_to_move"].indexOf(false);
+	// folded.fold(notMoving);
+	folded.fold();
+	// let foldedCP = RabbitEar.fold.origami.fold_without_layering(valleys.cp.json, valleys.nearest(0.5, 0.5).face.index);
+	// folded.cp = RabbitEar.CreasePattern(foldedCP);
 }
+valleys.update();
 
-
+valleys.onMouseMove = function(mouse) {
+	if (mouse.isPressed) {
+		valleys.update();
+	}
+}

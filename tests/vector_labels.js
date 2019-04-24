@@ -1,17 +1,26 @@
 let vecTextSketchCallback;
+let vecText;
 
-let vecText = RabbitEar.svg.Image("canvas-vector-labels", window.innerWidth, window.innerHeight, function(){
-	vecText.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
-	vecText.reset();
-	vecText.update();
+vecText = RabbitEar.svg.image("canvas-vector-labels", window.innerWidth, window.innerHeight, function(){
+	if (vecText != null) {
+		vecText.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
+		vecText.reset();
+		vecText.update();
+	}
 });
-vecText.drawLayer = RabbitEar.svg.group();
-vecText.dotLayer = RabbitEar.svg.group();
-vecText.svg.appendChild(vecText.drawLayer);
-vecText.svg.appendChild(vecText.dotLayer);
+vecText.gridLayer = vecText.group();
+vecText.drawLayer = vecText.group();
+vecText.dotLayer = vecText.group();
 
 vecText.reset = function(){
-	vecText.removeChildren(vecText.dotLayer);
+	vecText.gridLayer.removeChildren();
+	for (let i = -4; i <= 4; i++) {
+		let s = i * 200;
+		vecText.gridLayer.line(s, -vecText.h, s, vecText.h).setAttribute("stroke", "#ccc");
+		vecText.gridLayer.line(-vecText.w, s, vecText.w, s).setAttribute("stroke", "#ccc");
+	}
+
+	vecText.dotLayer.removeChildren();
 	var randAngle = Math.random() * Math.PI * 2;
 	vecText.touches = [
 		{pos: [Math.cos(randAngle) * 220,
@@ -29,6 +38,7 @@ vecText.recalc = function(){
 	vecText.v = RabbitEar.math.Vector(vecpts);
 	vecText.normalized = vecText.v.normalize().scale(200);
 	vecText.cross = vecText.v.cross([0,0,1]);
+	vecText.rot90 = vecText.v.rotateZ90();
 	vecText.dotX = vecText.v.dot([1,0,0]);
 	vecText.dotY = vecText.v.dot([0,1,0]);
 }
@@ -39,7 +49,7 @@ vecText.redraw = function(){
 		p.svg.setAttribute("cy", p.pos[1]);
 	});
 
-	RabbitEar.svg.removeChildren(vecText.drawLayer);
+	vecText.drawLayer.removeChildren();
 
 	// dot product
 	let dotXLine = RabbitEar.svg.line(0, 0, vecText.dotX, 0);
@@ -67,23 +77,23 @@ vecText.redraw = function(){
 	vecText.drawLayer.appendChild(dotYdash);	
 
 	// cross product
-	let crossLine = RabbitEar.svg.line(0, 0, vecText.cross.x, vecText.cross.y);
+	let crossLine = RabbitEar.svg.line(0, 0, vecText.rot90.x, vecText.rot90.y);
 	crossLine.setAttribute("stroke", "#195783");
 	crossLine.setAttribute("stroke-width", 8);
 	crossLine.setAttribute("stroke-linecap", "round");
 	crossLine.setAttribute("stroke-dasharray", "10 17");
 	vecText.drawLayer.appendChild(crossLine);
-	let crossDot = RabbitEar.svg.circle(vecText.cross.x, vecText.cross.y, 8);
+	let crossDot = RabbitEar.svg.circle(vecText.rot90.x, vecText.rot90.y, 8);
 	crossDot.setAttribute("fill", "#195783");
 	vecText.drawLayer.appendChild(crossDot);
 
-	let crossLen = vecText.cross.magnitude;
-	let crossAngle = Math.atan2(vecText.cross.y, vecText.cross.x);
+	let crossLen = vecText.rot90.magnitude;
+	let crossAngle = Math.atan2(vecText.rot90.y, vecText.rot90.x);
 	let crossA = 0, crossB = 0;
-	if (vecText.cross.x > 0 && vecText.cross.y > 0){ crossA = 0;  crossB = crossAngle; }
-	if (vecText.cross.x > 0 && vecText.cross.y < 0){ crossA = crossAngle;  crossB = 0; }
-	if (vecText.cross.x < 0 && vecText.cross.y > 0){ crossA = crossAngle;  crossB = Math.PI; }
-	if (vecText.cross.x < 0 && vecText.cross.y < 0){ crossA = Math.PI;  crossB = crossAngle; }
+	if (vecText.rot90.x > 0 && vecText.rot90.y > 0){ crossA = 0;  crossB = crossAngle; }
+	if (vecText.rot90.x > 0 && vecText.rot90.y < 0){ crossA = crossAngle;  crossB = 0; }
+	if (vecText.rot90.x < 0 && vecText.rot90.y > 0){ crossA = crossAngle;  crossB = Math.PI; }
+	if (vecText.rot90.x < 0 && vecText.rot90.y < 0){ crossA = Math.PI;  crossB = crossAngle; }
 
 	let crossArc1 = RabbitEar.svg.arc(0, 0, crossLen, crossA, crossB);
 	crossArc1.setAttribute("stroke", "#195783");
@@ -93,6 +103,14 @@ vecText.redraw = function(){
 	crossArc1.setAttribute("stroke-dasharray", "0.01 17");
 	vecText.drawLayer.appendChild(crossArc1);
 
+
+
+	let lineV = RabbitEar.svg.line(0, 0, vecText.v.x, vecText.v.y);
+	lineV.setAttribute("stroke", "#e44f2a");
+	lineV.setAttribute("stroke-width", 8);
+	lineV.setAttribute("stroke-dasharray", "0.01 17");
+	lineV.setAttribute("stroke-linecap", "round");
+	vecText.drawLayer.appendChild(lineV);
 
 	let line = RabbitEar.svg.line(0, 0, vecText.normalized.x, vecText.normalized.y);
 	line.setAttribute("stroke", "#e44f2a");
@@ -117,37 +135,43 @@ vecText.redraw = function(){
 	vecText.drawLayer.appendChild(normArc);
 
 	// text
-	let dotXString = (vecText.dotX/200).toFixed(1);
-	let dotYString = (vecText.dotY/200).toFixed(1);
+	let dotXString = "X: " + (vecText.dotX/200).toFixed(1);
+	let dotYString = "Y: " + (vecText.dotY/200).toFixed(1);
 	let dotXText = textLarge(dotXString, vecText.dotX, -15, vecText.drawLayer);
 	let dotYText = textLarge(dotYString, 0, vecText.dotY-15, vecText.drawLayer);
 	dotXText.setAttribute("fill", "#ecb233");
 	dotYText.setAttribute("fill", "#ecb233");
-	let dotXEquationText = textSmall("dot product • x", vecText.dotX, -45, vecText.drawLayer);
-	let dotYEquationText = textSmall("dot product • y", 0, vecText.dotY-45, vecText.drawLayer);
-	dotXEquationText.setAttribute("fill", "#ecb233");
-	dotYEquationText.setAttribute("fill", "#ecb233");
+	// let dotXEquationText = textSmall("x", vecText.dotX, -45, vecText.drawLayer);
+	// let dotYEquationText = textSmall("y", 0, vecText.dotY-45, vecText.drawLayer);
+	// dotXEquationText.setAttribute("fill", "#ecb233");
+	// dotYEquationText.setAttribute("fill", "#ecb233");
 
-	let crossString = "("+(vecText.cross.x/200).toFixed(1) + ", " + (vecText.cross.y/200).toFixed(1)+")";
-	let crossText = textLarge(crossString, vecText.cross.x, vecText.cross.y-25, vecText.drawLayer);
+	let crossString = "("+(vecText.rot90.x/200).toFixed(1) + ", " + (vecText.rot90.y/200).toFixed(1)+")";
+	let crossText = textLarge(crossString, vecText.rot90.x, vecText.rot90.y-25, vecText.drawLayer);
 	crossText.setAttribute("fill", "#195783");
-	let crossEquationString = "cross product ✕ z"
-	let crossEquationText = textSmall(crossEquationString, vecText.cross.x, vecText.cross.y-55, vecText.drawLayer);
+	let crossEquationString = "+90 degrees"
+	let crossEquationText = textSmall(crossEquationString, vecText.rot90.x, vecText.rot90.y-55, vecText.drawLayer);
 	crossEquationText.setAttribute("fill", "#195783");
 
-	let printableVec = vecText.touches[0].pos.map(p => p / 200.0);
-	let vecString = "("+printableVec[0].toFixed(1) + ", " + printableVec[1].toFixed(1)+")";
-	let vectorText = textLarge(vecString, vecText.touches[0].pos[0], vecText.touches[0].pos[1]-25, vecText.drawLayer);
-	vectorText.setAttribute("fill", "#e44f2a");
+	let printableNorm = vecText.normalized.map(p => p / 200.0);
+	let normString = "("+printableNorm[0].toFixed(1) + ", " + printableNorm[1].toFixed(1)+")";
+	let normText = textLarge(normString, vecText.normalized.x, vecText.normalized.y-25, vecText.drawLayer);
+	normText.setAttribute("fill", "#e44f2a");
+
+	// let printableVec = vecText.touches[0].pos.map(p => p / 200.0);
+	// let vecString = "("+printableVec[0].toFixed(1) + ", " + printableVec[1].toFixed(1)+")";
+	// let vectorText = textLarge(vecString, vecText.touches[0].pos[0], vecText.touches[0].pos[1]-25, vecText.drawLayer);
+	// vectorText.setAttribute("fill", "#e44f2a");
 
 	if(vecTextSketchCallback != null){
-		let readable = vecText.touches[0].pos.map(p => p / 200.0)
-		vecTextSketchCallback({vector: readable});
+		let readableVec = vecText.touches[0].pos.map(p => p / 200.0)
+		let readableNorm = vecText.normalized.map(p => p / 200.0)
+		vecTextSketchCallback({vector: readableVec, normalized: readableNorm});
 	}
 }
 
 function textSmall(string, x, y, parent) {
-	let textStyle = "font-family:Helvetica; font-weight:700; font-size:14px; text-anchor:middle; user-select:none;";
+	let textStyle = "font-family:Helvetica; font-weight:700; font-size:18px; text-anchor:middle; user-select:none;";
 	return textBox(string, x, y, textStyle, parent);
 }
 function textLarge(string, x, y, parent) {
@@ -156,8 +180,9 @@ function textLarge(string, x, y, parent) {
 }
 
 function textBox(string, x, y, style, parent) {
-	let text = RabbitEar.svg.text(string, x, y, null, null, parent);
+	let text = RabbitEar.svg.text(string, x, y);
 	text.setAttribute("style", style);
+	parent.appendChild(text);
 
 	SVGRect = text.getBBox();
 	var rect = RabbitEar.svg.rect(SVGRect.x, SVGRect.y, SVGRect.width, SVGRect.height);
@@ -182,8 +207,7 @@ vecText.onMouseDown = function(mouse){
 	// vecText.selected = found;
 	// console.log(vecText.selected);
 	vecText.selected = 0;
-
-}
+};
 
 vecText.onMouseMove = function(mouse){
 	// console.log(mouse);
@@ -191,7 +215,7 @@ vecText.onMouseMove = function(mouse){
 		vecText.touches[vecText.selected].pos = mouse.position;
 		vecText.update();
 	}
-}
+};
 
 vecText.setViewBox(-window.innerWidth/2, -window.innerHeight/2, window.innerWidth, window.innerHeight);
 vecText.reset();

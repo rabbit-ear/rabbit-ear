@@ -1,6 +1,6 @@
 let clipping = RabbitEar.Origami("canvas-clipping");
 let drawGroup = RabbitEar.svg.group();
-clipping.svg.appendChild(drawGroup);
+clipping.appendChild(drawGroup);
 
 clipping.points = [[Math.random(),Math.random()], [Math.random(),Math.random()]];
 clipping.reset = function(){
@@ -41,11 +41,11 @@ clipping.onMouseMove = function(mouse){
 		clipping.points[clipping.selected] = mouse.position;
 		clipping.redraw();
 	}
-}
+};
 
 clipping.onMouseDown = function(mouse){
 	let ep = 5e-2;
 	let down = clipping.points.map(p => Math.abs(mouse.x - p[0]) < ep && Math.abs(mouse.y - p[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	clipping.selected = found;
-}
+};

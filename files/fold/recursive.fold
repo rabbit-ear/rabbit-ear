@@ -11,7 +11,7 @@
 	"faces_vertices": [[0,1,2,3]],
 	"file_frames": [
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent": 0,
 			"frame_inherit": true,
 			"edges_vertices": [[0,1], [1,2], [2,3], [3,0], [0,2]],
@@ -19,7 +19,7 @@
 			"faces_vertices": [[0,1,2], [2,3,0]]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent": 1,
 			"frame_inherit": true,
 			"vertices_coords": [[0,0,0], [1,0,0], [1,1,0], [0,1,0], [0.5,0.5,0]],
@@ -28,19 +28,19 @@
 			"faces_vertices": [[0,1,4], [1,2,4], [2,3,4], [3,0,4]]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent": 2,
 			"frame_inherit": true,
 			"vertices_coords": [[0,0,0], [1,0,0], [0.5,0.5,1], [0,1,0], [0.5,0.5,0]]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent": 2,
 			"frame_inherit": true,
 			"vertices_coords": [[0,0,0], [0.5,0.5,1], [1,1,0], [0,1,0], [0.5,0.5,0]]
 		},
 		{
-			"frame_classes": ["foldedState"],
+			"frame_classes": ["foldedForm"],
 			"frame_parent": 3,
 			"frame_inherit": true,
 			"vertices_coords": [[0,0,0], [0,1,0], [0.5,0.5,1], [0,1,0], [0.5,0.5,0]]

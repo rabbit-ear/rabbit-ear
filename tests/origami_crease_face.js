@@ -1,9 +1,9 @@
 let facesChop = RabbitEar.Origami("canvas-faces-chop");
 
-facesChop.cp = RabbitEar.bases.blintz;
+facesChop.cp = RabbitEar.CreasePattern(RabbitEar.bases.blintz);
 
 let drawLayer = RabbitEar.svg.group();
-facesChop.svg.appendChild(drawLayer)
+facesChop.appendChild(drawLayer)
 let dot = RabbitEar.svg.circle(0, 0, 0.015);
 let dotVec = RabbitEar.svg.circle(0, 0, 0.015);
 dot.setAttribute("fill", "#e44f2a");
@@ -42,7 +42,7 @@ facesChop.animate = function(event){
 		.filter(el => el != null)
 		.shift();
 
-	let faces = Array.from(facesChop.svg.childNodes)
+	let faces = Array.from(facesChop.childNodes)
 		.filter(el => el.getAttribute('id') == 'faces')
 		.shift();
 	faces.childNodes[highlightedFace].setAttribute("class", "face");
@@ -57,7 +57,7 @@ facesChop.animate = function(event){
 	// console.log(newCP);
 	// facesChop.cp = newCP;
 
-	let creases = Array.from(facesChop.svg.childNodes)
+	let creases = Array.from(facesChop.childNodes)
 		.filter(el => el.getAttribute('id') == 'creases')
 		.shift();
 

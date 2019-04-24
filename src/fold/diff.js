@@ -1,5 +1,20 @@
 import * as Graph from "./graph";
 
+export const apply_diff_map = function(diff_map, array) {
+	// an array whose value is the new index it will end up
+	let index_map = diff_map.map((change,i) => i + change);
+	// gather the removed element indices, remove them from index_map
+	Array.from(Array(diff_map.length-1))
+		.map((change, i) => diff_map[i] !== diff_map[(i+1)%diff_map.length])
+		.map((remove, i) => remove ? i : undefined)
+		.filter(a => a !== undefined)
+		.forEach(i => delete index_map[i]);
+	// fill the new array using index_map
+	let new_array = [];
+	index_map.forEach((newI, oldI) => new_array[newI] = array[oldI]);
+	return new_array;
+}
+
 export const merge_maps = function(a, b) {
 	// "a" came first
 	let aRemoves = [];
@@ -99,7 +114,6 @@ export const join_diff = function(a, b) {
 		c.faces.replace = a.faces.replace.concat(b.faces.replace);
 	}
 	return c;
-
 }
 
 export const apply_diff = function(graph, diff) {

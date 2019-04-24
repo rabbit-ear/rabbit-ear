@@ -1,27 +1,34 @@
-var slider = new Slider('#frame-slider').on("slide",sliderUpdate);
+var div = document.getElementsByClassName("canvases")[0];
+var origami = RabbitEar.Origami(div, {folding:false});
+var slider = document.querySelector("#frame-slider");
+slider.oninput = sliderUpdate;
 
-function sliderUpdate(value){
+function sliderUpdate(event) {
+	let value = event.target.value
 	let fraction = parseFloat(value / 1000);
-	let frame = parseInt(fraction * origami.frameCount);
+	let frame = parseInt(fraction * (origami.frames.length-1));
 	origami.frame = frame;
 }
 
-var div = document.getElementsByClassName('canvases')[0];
-var origami = RabbitEar.Origami(div, RabbitEar.bases.blintzAnimated);
-
 origami.onMouseMove = function(event){
+	// update returns all components back to their original color
 	origami.draw();
-	var nearest = origami.nearest(event);
+	origami.color(event);
+}
 
-	if(nearest.vertex) { origami.addClass(nearest.vertex.svg, 'fill-yellow'); }
-	if(nearest.edge) { origami.addClass(nearest.edge.svg, 'stroke-yellow'); }
-	if(nearest.face) { origami.addClass(nearest.face.svg, 'fill-red'); }
+origami.color = function(event) {
+	// get all the nearest components to the cursor
+	var nearest = origami.nearest(event);
+	if(nearest.vertex) { nearest.vertex.svg.addClass('fill-yellow'); }
+	if(nearest.crease) { nearest.crease.svg.addClass('stroke-yellow'); }
+	if(nearest.face) { nearest.face.svg.addClass('fill-red'); }
 }
 
 // IMPORT / EXPORT
-creasePatternDidUpload = function(cp){
-	origami.cp = cp;
-	origami.draw();
+foldFileDidLoad = function(fold) {
+	console.log("fold", fold)
+	origami.cp = RabbitEar.CreasePattern(fold);
+	// origami.draw();
 }
 document.getElementById("download-cp-svg").addEventListener("click", function(e){
 	e.preventDefault();

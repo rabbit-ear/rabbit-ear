@@ -1,6 +1,6 @@
 let origami = RabbitEar.Origami(RabbitEar.bases.kite);
 
-origami.onMouseDown = function(event) {
+origami.addEventListener("mousedown", function(mouse){
 	let nearest = origami.nearest(event);
 	origami.cp.addVertexOnEdge(event.x, event.y, nearest.edge.index);
-}
+});

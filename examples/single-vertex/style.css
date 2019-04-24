@@ -51,12 +51,12 @@ svg.half{*/
 .face-back { fill: #ecb233; stroke: black; stroke-width: var(--crease-width); }
 .sector{ fill: none; stroke: none; }
 .mountain{
-	stroke: hsl(14.4, 87%, 45%);
+	stroke: black;
 	stroke-width: var(--crease-width);
 	stroke-linecap: round;
 }
 .valley{
-	stroke: hsl(205, 74%, 30%);
+	stroke: black;
 	stroke-width: var(--crease-width);
 	stroke-linecap: round;
 	stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2)

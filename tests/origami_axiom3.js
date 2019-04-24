@@ -1,42 +1,50 @@
 let axiom3 = RabbitEar.Origami("canvas-axiom-3");
 
-axiom3.touches = [
-	{pos: [0.1, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom3.svg)},
-	{pos: [0.9, 0.5], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom3.svg)},
-	{pos: [0.2, 0.4], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom3.svg)},
-	{pos: [0.7, 0.8], svg: RabbitEar.svg.circle(0, 0, 0.02, null, null, axiom3.svg)},
-];
-axiom3.touches.forEach(p => p.svg.setAttribute("fill", "#e44f2a"));
+axiom3.setup = function() {
+	axiom3.lineLayer = RabbitEar.svg.group();
+	axiom3.appendChild(axiom3.lineLayer);
+	// create 4 UI-control points
+	axiom3.controls = RabbitEar.svg
+		.controls(axiom3, 4, { radius: 0.02, fill: "#e44f2a" });
+	axiom3.controls.forEach(c => c.position = [Math.random(), Math.random()]);
+}
+axiom3.setup();
 
-axiom3.redraw = function(){
-	axiom3.touches.forEach((p,i) => {
-		p.svg.setAttribute("cx", p.pos[0]);
-		p.svg.setAttribute("cy", p.pos[1]);
-	});
+// called once at the beginning. build a square with random crease marks
+axiom3.reset = function() {
 	axiom3.cp = RabbitEar.CreasePattern(RabbitEar.bases.square);
-	let pointA = axiom3.touches[0].pos;
-	let vectorA = [axiom3.touches[1].pos[0] - axiom3.touches[0].pos[0], 
-	               axiom3.touches[1].pos[1] - axiom3.touches[0].pos[1]];
-	let pointB = axiom3.touches[2].pos;
-	let vectorB = [axiom3.touches[3].pos[0] - axiom3.touches[2].pos[0], 
-	               axiom3.touches[3].pos[1] - axiom3.touches[2].pos[1]];
-	let creases = axiom3.cp.axiom3(pointA, vectorA, pointB, vectorB);
-	// console.log(creases);
-	creases.forEach(c => c.valley());
+	for (let i = 0; i < 5; i++) {
+		axiom3.axiom2([Math.random(), Math.random()], [Math.random()-0.5, Math.random()-0.5]);
+	}
+	axiom3.base = axiom3.cp.getFOLD();
+}
+axiom3.reset();
+
+// called after the control-points change
+axiom3.redraw = function() {
+	RabbitEar.svg.removeChildren(axiom3.lineLayer);
+	let lines = Array.from(Array(axiom3.controls.length/2))
+		.map((c,i) => [
+			axiom3.controls[(i*2)].position,
+			axiom3.controls[(i*2)+1].position
+		]).map(p => RabbitEar.math.Line.fromPoints(p[0], p[1]));
+	let boundary = RabbitEar.math.ConvexPolygon([[0,0], [1,0], [1,1], [0,1]]);
+	let edges = lines.map(l => boundary.clipLine(l));
+	edges.map(e => RabbitEar.svg.line(e[0][0], e[0][1], e[1][0], e[1][1]))
+		.forEach(l => {
+			l.setAttribute("stroke", "#f1c14f");
+			l.setAttribute("stroke-width", 0.01);
+			axiom3.lineLayer.appendChild(l);
+		});
+
+	axiom3.cp = RabbitEar.CreasePattern(axiom3.base);
+	axiom3.axiom3(lines[0], lines[1]).valley();
 	axiom3.draw();
 }
 axiom3.redraw();
 
-axiom3.onMouseDown = function(mouse){
-	let ep = 0.03;
-	let down = axiom3.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
-	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
-	axiom3.selected = found;
-}
-
-axiom3.onMouseMove = function(mouse){
-	if(mouse.isPressed && axiom3.selected != null){
-		axiom3.touches[axiom3.selected].pos = mouse.position;
+axiom3.onMouseMove = function(mouse) {
+	if(mouse.isPressed) {
 		axiom3.redraw();
 	}
 }

@@ -1,4 +1,4 @@
-let view = RabbitEar.svg.Image("canvas", 500, 500);
+let view = RabbitEar.svg.image("canvas", 500, 500);
 
 view.touches = [
 	{pos: [0, 250], svg: RabbitEar.svg.circle(0, 0, 8)},

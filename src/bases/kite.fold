@@ -17,7 +17,7 @@
 	"faces_vertices": [[0,1,5], [1,2,5], [2,3,5], [3,4,5]],
 	"faces_edges": [[0,6,5], [1,8,6], [2,7,8], [3,4,7]],
 	"file_frames": [{
-		"frame_classes": ["foldedState"],
+		"frame_classes": ["foldedForm"],
 		"frame_parent": 0,
 		"frame_inherit": true,
 		"vertices_coords": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.414213562373095,0],[1,0.585786437626905]],

@@ -1,10 +1,10 @@
 import * as Graph from "./graph";
 // import {vertices_count, edges_count, faces_count} from "./graph";
 
-// this is going to be messy! as I think of an edge case to test I add it here.
-// the intention IS that this is slow. slow but thorough.
-// currently only enforcing graph combinatorics.
-// nothing like illegal planar graph edge crossings.. that will probably be its own validate.
+// there's little order right now other than adding tests as i think of them
+// this should be thorough at the cost of speed.
+// currently only enforcing graph combinatorics, doesn't check things like illegal
+// planar graph edge crossings.. that will probably be its own validate.
 // currently testing for and requiring that every key in spec 1.1 be present.
 
 export default function(graph) {

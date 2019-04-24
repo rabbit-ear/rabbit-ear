@@ -1,21 +1,27 @@
-let reflect = RabbitEar.svg.Image("canvas-reflection", 800, 300);
+let matrixReflectCallback = undefined;
+
+let reflect = RabbitEar.svg.image("canvas-reflection", 800, 300);
 
 reflect.reflectLayer = RabbitEar.svg.group();
 reflect.appendChild(reflect.reflectLayer);
 
+// reflect.touches = [
+// 	{pos: [Math.random()*reflect.w, Math.random()*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
+// 	{pos: [Math.random()*reflect.w, Math.random()*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
+// ];
 reflect.touches = [
-	{pos: [Math.random()*reflect.width, Math.random()*reflect.height], svg: RabbitEar.svg.circle(0, 0, 8)},
-	{pos: [Math.random()*reflect.width, Math.random()*reflect.height], svg: RabbitEar.svg.circle(0, 0, 8)},
+	{pos: [0.25*reflect.w, 0.5*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
+	{pos: [0.75*reflect.w, 0.5*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
 ];
 reflect.touches.forEach(p => {
 	p.svg.setAttribute("fill", "#e44f2a");
 	reflect.appendChild(p.svg);
 });
 
-reflect.points = Array.from(Array(24)).map((_,i) => {
-	let x = Math.random()*reflect.width;
-	let y = Math.random()*reflect.height;
-	let circle = RabbitEar.svg.circle(x, y, 4);
+reflect.points = Array.from(Array(10)).map((_,i) => {
+	let x = Math.random()*reflect.w;
+	let y = Math.random()*reflect.h;
+	let circle = RabbitEar.svg.circle(x, y, 6);
 	circle.setAttribute("fill", "#195783");
 	reflect.appendChild(circle);
 	return { pos: [x,y], svg: circle };
@@ -40,10 +46,13 @@ reflect.drawReflections = function(){
 	reflect.points.forEach(p => {
 		let newPos = matrix.transform(p.pos);
 		// console.log(newPos);
-		let circle = RabbitEar.svg.circle(newPos.x, newPos.y, 4);
+		let circle = RabbitEar.svg.circle(newPos.x, newPos.y, 6);
 		circle.setAttribute("fill", "#ecb233");
 		reflect.reflectLayer.appendChild(circle);
-	})
+	});
+	if (matrixReflectCallback !== undefined) {
+		matrixReflectCallback({matrix: matrix.m});
+	}
 }
 
 reflect.redraw = function(){
@@ -58,15 +67,15 @@ reflect.redraw = function(){
 reflect.redraw();
 
 reflect.onMouseDown = function(mouse){
-	let ep = reflect.width / 50;
+	let ep = reflect.w / 50;
 	let down = reflect.touches.map(p => Math.abs(mouse.x - p.pos[0]) < ep && Math.abs(mouse.y - p.pos[1]) < ep);
 	let found = down.map((b,i) => b ? i : undefined).filter(a => a != undefined).shift();
 	reflect.selected = found;
-}
+};
 
 reflect.onMouseMove = function(mouse){
 	if(mouse.isPressed && reflect.selected != null){
 		reflect.touches[reflect.selected].pos = mouse.position;
 		reflect.redraw();
 	}
-}
+};

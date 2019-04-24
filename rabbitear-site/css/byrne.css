@@ -24,6 +24,9 @@ h3 a, h3 a:hover, h3 a:visited, h3 a:active{
 	border-bottom: 3px dashed white;
 	display: inline;
 }
+.under {
+	border-bottom: 3px dashed white;
+}
 .btn-outline-light:hover {
 	color: black;
 }
@@ -39,4 +42,8 @@ svg.half{
 svg.third{
 	width:25vw;
 	height:25vw;
+}
+
+.row svg {
+	margin:auto;
 }

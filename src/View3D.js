@@ -7,6 +7,10 @@
  *   - DOM object, or "string" DOM id to attach to
  */
 
+import * as File from "./convert/file";
+import { flatten_frame } from "./fold/frame";
+import CreasePattern from "./cp/CreasePattern";
+
 const CREASE_DIR = {
 	"B": "boundary",
 	"M": "mountain",
@@ -22,11 +26,6 @@ export default function View3D(){
 
 	//  from arguments, get a fold file, if it exists
 	let args = Array.from(arguments);
-	let _cp = args.filter(arg =>
-		typeof arg == "object" && arg.vertices_coords != undefined
-	).shift();
-	if(_cp == undefined){ _cp = unitSquare; }
-
 
 	let allMeshes = [];
 	let scene = new THREE.Scene();
@@ -37,25 +36,38 @@ export default function View3D(){
 		vertex:{ radius: 0.01 },  // radius, percent of page
 	};
 	let _parent;
-	let _mouse = {
-		isPressed: false,// is the mouse button pressed (y/n)
-		position: [0,0], // the current position of the mouse
-		pressed: [0,0],  // the last location the mouse was pressed
-		drag: [0,0],     // vector, displacement from start to now
-		prev: [0,0],     // on mouseMoved, this was the previous location
-		x: 0,      // redundant data --
-		y: 0       // -- these are the same as position
+
+	let prop = {
+		cp: undefined,
+		frame: undefined,
+		style: {
+			vertex_radius: 0.01 // percent of page
+		},
 	};
+
+	prop.cp = args.filter(arg =>
+		typeof arg == "object" && arg.vertices_coords != undefined
+	).shift();
+	if(prop.cp == undefined){ prop.cp = CreasePattern(unitSquare); }
+
 
 	function bootThreeJS(domParent){
 		var camera = new THREE.PerspectiveCamera(45, domParent.clientWidth/domParent.clientHeight, 0.1, 1000);
 		var controls = new THREE.OrbitControls(camera, domParent);
-		camera.position.set(0.5, 0.5, 1.5);
-		controls.target.set(0.5, 0.5, 0.0);
+		controls.enableZoom = false;
+//		camera.position.set(0.5, 0.5, 1.5);
+		camera.position.set(-0.75, 2, -0.025);
+		// controls.target.set(0.5, 0.5, 0.0);
+		controls.target.set(0.0, 0.0, 0.0);
 		// camera.position.set(0.0, 0.0, 1.5 );
 		// controls.target.set(0.0, 0.0, 0.0);
 		controls.addEventListener('change', render);
 		var renderer = new THREE.WebGLRenderer({antialias:true});
+
+		if (window.devicePixelRatio !== 1) {
+			renderer.setPixelRatio(window.devicePixelRatio);
+		}
+		
 		renderer.setClearColor("#FFFFFF");
 		renderer.setSize(domParent.clientWidth, domParent.clientHeight);
 		domParent.appendChild(renderer.domElement);
@@ -73,6 +85,7 @@ export default function View3D(){
 		var ambientLight = new THREE.AmbientLight(0xffffff, 0.48);
 		scene.add(ambientLight);
 
+
 		var render = function(){
 			requestAnimationFrame(render);
 			renderer.render(scene, camera);
@@ -83,7 +96,7 @@ export default function View3D(){
 		draw();
 	}
 
-	// after page load, find a parent element for the new SVG in the arguments
+	// after page load, find a parent element for the canvas in the arguments
 	const attachToDOM = function(){
 		let functions = args.filter((arg) => typeof arg === "function");
 		let numbers = args.filter((arg) => !isNaN(arg));
@@ -101,8 +114,8 @@ export default function View3D(){
 				: document.body));
 		bootThreeJS(_parent);
 		if(numbers.length >= 2){
-			_svg.setAttributeNS(null, "width", numbers[0]);
-			_svg.setAttributeNS(null, "height", numbers[1]);
+			// _svg.setAttributeNS(null, "width", numbers[0]);
+			// _svg.setAttributeNS(null, "height", numbers[1]);
 		} 
 		if(functions.length >= 1){
 			functions[0]();
@@ -127,8 +140,12 @@ export default function View3D(){
 			specular:0xffffff,
 			reflectivity:0
 		});
-		let faces = foldFileToThreeJSFaces(_cp, material);
-		let lines = foldFileToThreeJSLines(_cp);
+
+		let graph = prop.frame
+			? flatten_frame(prop.cp, prop.frame)
+			: prop.cp;
+		let faces = foldFileToThreeJSFaces(graph, material);
+		let lines = foldFileToThreeJSLines(graph);
 		allMeshes.forEach(mesh => scene.remove(mesh));
 		allMeshes = [];
 		allMeshes.push(faces);
@@ -136,44 +153,30 @@ export default function View3D(){
 		allMeshes.forEach(mesh => scene.add(mesh));
 	}
 
-
-	const load = function(input, callback){ // epsilon
-		// are they giving us a filename, or the data of an already loaded file?
-		if (typeof input === 'string' || input instanceof String){
-			let extension = input.substr((input.lastIndexOf('.') + 1));
-			// filename. we need to upload
-			switch(extension){
-				case 'fold':
-				fetch(input)
-					.then((response) => response.json)
-					.then((data) => {
-						_cp = data;
-						draw();
-						if(callback != undefined){ callback(_cp); }
-					});
-				// return this;
-			}
-		}
-		try{
-			// try .fold file format first
-			let foldFileImport = JSON.parse(input);
-			_cp = foldFileImport;
-			// return this;
-		} catch(err){
-			console.log("not a valid .fold file format")
-			// return this;
-		}
+	const setCreasePattern = function(cp) {
+		// todo: check if cp is a CreasePattern type
+		prop.cp = cp;
+		draw();
+		prop.cp.onchange = draw;
 	}
+
+	const load = function(input, callback) { // epsilon
+		File.load_file(input, function(fold) {
+			setCreasePattern( CreasePattern(fold) );
+			if (callback != null) { callback(); }
+		});
+	}
+
 	const isFoldedState = function(){
-		if(_cp == undefined || _cp.frame_classes == undefined){ return false; }
-		let frame_classes = _cp.frame_classes;
+		if(prop.cp == undefined || prop.cp.frame_classes == undefined){ return false; }
+		let frame_classes = prop.cp.frame_classes;
 		if(frame > 0 &&
-		   _cp.file_frames[frame - 1] != undefined &&
-		   _cp.file_frames[frame - 1].frame_classes != undefined){
-			frame_classes = _cp.file_frames[frame - 1].frame_classes;
+		   prop.cp.file_frames[frame - 1] != undefined &&
+		   prop.cp.file_frames[frame - 1].frame_classes != undefined){
+			frame_classes = prop.cp.file_frames[frame - 1].frame_classes;
 		}
 		// try to discern folded state
-		if(frame_classes.includes("foldedState")){
+		if(frame_classes.includes("foldedForm")){
 			return true;
 		}
 		if(frame_classes.includes("creasePattern")){
@@ -183,28 +186,27 @@ export default function View3D(){
 		return false;
 	}
 
-	const getFrames = function(){ return _cp.file_frames; }
-	const getFrame = function(index){ return _cp.file_frames[index]; }
-	const setFrame = function(index){
-		frame = index;
-		draw();
-	}
-
-
 	// return Object.freeze({
 	return {
 		set cp(c){
-			_cp = c;
+			setCreasePattern(c);
 			draw();
 		},
 		get cp(){
-			return _cp;
+			return prop.cp;
 		},
 		draw,
 		load,
-		getFrames,
-		getFrame,
-		setFrame,
+		get frame() { return prop.frame; },
+		set frame(newValue) {
+			prop.frame = newValue;
+			draw();
+		},
+		get frames() {
+			let frameZero = JSON.parse(JSON.stringify(prop.cp));
+			delete frameZero.file_frames;
+			return [frameZero].concat(JSON.parse(JSON.stringify(prop.cp.file_frames)));
+		}
 	// });
 	};
 
@@ -283,7 +285,7 @@ export default function View3D(){
 			.reduce((prev,curr) => prev.concat(curr), []);
 	}
 
-	function foldFileToThreeJSLines(foldFile, scale=0.005){
+	function foldFileToThreeJSLines(foldFile, scale=0.002){
 		let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
 		// make sure they all have a z component. when z is implied it's 0
 		edges.forEach(edge => {
@@ -293,10 +295,10 @@ export default function View3D(){
 
 		let colorAssignments = {
 			"B": [0.0,0.0,0.0],
-			// "M": [0.9,0.31,0.16],
-			"M": [0.6,0.2,0.11],
-			"F": [0.25,0.25,0.25],
-			"V": [0.12,0.35,0.50]
+	 // "M": [0.9,0.31,0.16],
+			"M": [0.0,0.0,0.0],//[34/255, 76/255, 117/255], //[0.6,0.2,0.11],
+			"F": [0.0,0.0,0.0],//[0.25,0.25,0.25],
+			"V": [0.0,0.0,0.0],//[227/255, 85/255, 54/255]//[0.12,0.35,0.50]
 		};
 
 		let colors = foldFile.edges_assignment.map(e => 
