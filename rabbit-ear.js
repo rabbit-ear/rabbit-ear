@@ -3913,8 +3913,12 @@
 	 *  could result in multiple edges
 	 */
 
-	function build_folded_frame(graph, face_stationary = 0) {
-		console.log("build_folded_frame", graph, face_stationary);
+	function build_folded_frame(graph, face_stationary) {
+		if (face_stationary == null) {
+			face_stationary = 0;
+			console.warn("build_folded_frame was not supplied a stationary face");
+		}
+		// console.log("build_folded_frame", graph, face_stationary);
 		let faces_matrix = make_faces_matrix(graph, face_stationary);
 		let vertices_coords = fold_vertices_coords(graph, face_stationary, faces_matrix);
 		return {
@@ -3984,7 +3988,7 @@
 			console.log("prepare_to_fold creating new faces matrix");
 			graph["re:faces_matrix"] = make_faces_matrix_inv(graph, face_index);
 		}
-		graph["re:faces_matrix"] = make_faces_matrix_inv(graph, face_index);
+		// graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
 
 		graph["re:faces_creases"] = graph["re:faces_matrix"]
 			.map(mat => core.multiply_line_matrix2(point, vector, mat));
@@ -4085,10 +4089,12 @@
 		// update stationary face with new face.
 		let new_face_stationary = folded["re:faces_preindex"]
 			.map((f, i) => ({face: f, i: i}))
-			.filter(el => el.face === folded["re:face_stationary"])
+			// .filter(el => el.face === folded["re:face_stationary"])
+			.filter(el => el.face === face_index)
 			.filter(el => !folded["re:faces_sidedness"][el.i])
 			.map(el => el.i)
 			.shift();
+
 		if (new_face_stationary != null) {
 			folded["re:face_stationary"] = new_face_stationary;
 		}
@@ -4096,11 +4102,38 @@
 		let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
 		folded["re:faces_coloring"] = faces_coloring(folded, new_face_stationary);
 
-		let folded_frame = build_folded_frame(folded, new_face_stationary);
-		console.log("setting new folded frame");
+		let new_matrices = make_faces_matrix(folded, new_face_stationary);
+		let folded_faces_matrix = Array.from(Array(folded.faces_vertices.length))
+			.map((m,i) => graph["re:faces_matrix"][ folded["re:faces_preindex"][i] ])
+			// .map((m,i) => Geom.core.multiply_matrices2(new_matrices[i], m));
+			.map((m,i) => new_matrices[i]);
+
+		// folded_faces_matrix = new_matrices;
+		// console.log("THIS SHOULD BE FULL OF THINGS", folded_faces_matrix);
+
+		// folded_frame["re:faces_matrix"] = folded_faces_matrix;
+
+		// console.log("build_folded_frame", graph, new_face_stationary);
+		// let faces_matrix = PlanarGraph.make_faces_matrix(graph, new_face_stationary);
+		let folded_vertices_coords = fold_vertices_coords(folded, new_face_stationary, folded_faces_matrix);
+		let folded_frame = {
+			vertices_coords: folded_vertices_coords,
+			frame_classes: ["foldedForm"],
+			frame_inherit: true,
+			frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
+			"re:face_stationary": new_face_stationary,
+			"re:faces_matrix": folded_faces_matrix
+		};
+
+		// console.log(folded_frame);
+
+		// console.log("((((", face_index, new_face_stationary);
+
 		folded.file_frames = [folded_frame];
 
-		delete folded["re:faces_matrix"];
+		// console.log("folded", folded);
+
+		// delete folded["re:faces_matrix"];
 
 		// console.log("returned folded", JSON.parse(JSON.stringify(folded)));
 		// console.log("original stationary", graph["re:face_stationary"])
@@ -4328,7 +4361,7 @@
 			face = fold["re:face_stationary"];
 		}
 		if (face == null) { face = 0; }
-		let faces_matrix = make_faces_matrix_inv(fold, face);
+		let faces_matrix = make_faces_matrix(fold, face);
 		let vertex_in_face = fold.vertices_coords.map((v,i) => {
 			for(var f = 0; f < fold.faces_vertices.length; f++){
 				if(fold.faces_vertices[f].includes(i)){ return f; }
@@ -4346,10 +4379,13 @@
 
 
 	const fold_vertices_coords = function(graph, face_stationary, faces_matrix) {
-		if (graph["re:face_stationary"] != null) {
-			face_stationary = graph["re:face_stationary"];
+		// if (graph["re:face_stationary"] != null) {
+		// 	face_stationary = graph["re:face_stationary"];
+		// }
+		if (face_stationary == null) {
+			console.warn("fold_vertices_coords was not supplied a stationary face");
+			face_stationary = 0;
 		}
-		if (face_stationary == null) { face_stationary = 0; }
 		if (faces_matrix == null) {
 			faces_matrix = make_faces_matrix(graph, face_stationary);
 		}
@@ -5173,8 +5209,10 @@
 		const didModifyGraph = function() {
 			// remove file_frames which were dependent on this geometry. we can
 			// no longer guarantee they match. alternatively we could mark them invalid
-			_this.file_frames = _this.file_frames
-				.filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
+			
+			// _this.file_frames = _this.file_frames
+			// 	.filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
+			
 			// broadcast update to handler if attached
 			if (typeof _this.onchange === "function") {
 				_this.onchange();
@@ -5538,6 +5576,7 @@
 		const fold = function(face) {
 			// 1. check if a folded frame already exists (and it's valid)
 			// 2. if not, build one
+			if(prop.cp.file_frames.length > 0)
 			if (face == null) { face = 0; }
 			if (prop.cp.file_frames != null
 				&& prop.cp.file_frames.length > 0
@@ -5546,6 +5585,7 @@
 				console.log("fold() - using faces matrix");
 				// well.. do nothing. we're good
 			} else {
+				console.log("fold() - XXXXXX     rebuilding faces matrix    XXXXXXXX");
 				let file_frame = build_folded_frame(prop.cp, face);
 				// console.log("file_frame", file_frame);
 				if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
@@ -5651,7 +5691,7 @@
 		// boot
 		setCreasePattern( CreasePattern(...arguments) );
 
-		let lastStep, touchFaceIndex;
+		let lastStep, touchFaceIndex, touchTransform;
 		_this.events.addEventListener("onMouseDown", function(mouse) {
 			if (preferences.folding) {
 				try {
@@ -5661,8 +5701,9 @@
 						&& prop.cp.file_frames.length > 0
 						&& prop.cp.file_frames[0]["re:faces_matrix"] != null) {
 						faces_matrix = prop.cp.file_frames[0]["re:faces_matrix"];
+						// console.log("+/- <<< reusing faces_matrix");
 					} else {
-						console.log("needed to re-make faces_matrix");
+						// console.log("+/- ___ re-make faces_matrix");
 						faces_matrix = make_faces_matrix_inv(prop.cp, 0);
 					}
 					let faces_containing = folded_faces_containing_point(prop.cp, mouse, faces_matrix);
@@ -5670,7 +5711,9 @@
 					touchFaceIndex = (top_face === undefined)
 						? 0 // get bottom most face
 						: top_face;
-					console.log("valleyfold()", touchFaceIndex, prop.cp);
+					// console.log("valleyfold()", touchFaceIndex, prop.cp);
+					touchTransform = JSON.parse(JSON.stringify(faces_matrix[top_face]));
+					console.log("touchTransform", touchTransform);
 				} catch(error) {
 					console.warn("problem loading the last fold step", error);
 				}
@@ -5686,9 +5729,14 @@
 					console.log("and now", prop.cp.file_frames[0]["re:faces_matrix"]);
 				}
 				let points = [Vector(mouse.pressed), Vector(mouse.position)];
+				// points = points.map(p => p.transform(RabbitEar.math.core.make_matrix2_inverse(touchTransform)));
 				let midpoint = points[0].midpoint(points[1]);
 				let vector = points[1].subtract(points[0]);
+
+				// console.log("valleyfold()", touchFaceIndex);
 				prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
+				// console.log("=== DOES CP CONTAIN FILE FRAMES", prop.cp.file_frames);
+
 				fold();
 			}
 		});

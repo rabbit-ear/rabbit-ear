@@ -188,11 +188,11 @@
 
 <h2>Circle</h2>
 
-	<p>Circle packing appears often in origami design.</p>
+	<p>These circles are constrained to a square space and maintain relative radii as they grow to best fit.</p>
 
 	<div id="canvas-circle-packing"></div>
 
-	<p class="quote">By connecting edges across neighboring circles' radii it begins to resemble circle-river origami design.</p>
+	<p class="quote">a preliminary step in circle-river origami design.</p>
 
 <h2>Polygon</h2>
 
@@ -205,14 +205,10 @@
 	<div class="centered">
 		<pre><code><f>let</f> polygon <key>=</key> <f>Polygon</f>()</code></pre>
 	</div>
+	
+	<h3>Intersections</h3>
 
-	<div id="canvas-clip-line"></div>
-
-	<div class="centered">
-		<pre><code><span id="clip-line-result"></span> <key>=</key> poly.<f>clipline</f>(line)</code></pre>
-	</div>
-
-	<p>In line intersection with a convex polygon there are four possible results:</p>
+	<p>The intersection between a line and a convex polygon can result in:</p>
 	<ul>
 		<li><b>0</b>: no intersection</li>
 		<li><b>1</b>: collinear to a point</li>
@@ -220,18 +216,24 @@
 		<li><b>Infinity</b>: collinear to an edge</li>
 	</ul>
 
-	<p>Edge and ray intersections with convex polygons offer the same 4 results, but for a different reason:</p>
+	<div id="canvas-clip-line"></div>
+
+	<div class="centered">
+		<pre><code><span id="clip-line-result"></span> <key>=</key> poly.<f>clipline</f>(line)</code></pre>
+	</div>
+
+	<p>Edges and rays can result in a similar set, but one difference:</p>
 	<ul>
-		<li><b>1</b>: one point is inside and one outside</li>
+		<li><b>1</b>: it's possible one point is inside and one outside</li>
 	</ul>
 
 	<p class="quote">A non-convex polygon cannot make such guarantees.</p>
 
+	<p>A <b>straight skeleton</b> is a Voronoi diagram of the edges of the polygon. Both the <a href="//erikdemaine.org/foldcut/#skeleton">fold-and-one-cut algorithm</a> and the origami <a href="//langorigami.com/article/treemaker/">universal molecule</a> employ the straight skeleton.</p>
+
 	<div id="canvas-origami-molecule"></div>
 
 	<p class="explain">straight skeleton contains a few bugs right now</p>
-
-	<p>A <b>straight skeleton</b> is a Voronoi diagram of the edges of the polygon. Lang's universal molecule and the Demaines' fold and one cut both use this.</p>
 
 	<div id="canvas-split-poly"></div>
 
@@ -251,13 +253,9 @@
 
 <h3>Bisect</h3>
 
-	<div id="canvas-bisect"></div>
-
 	<p>Two vectors bisected results in two answers. This function will return the bisection of the smaller interior angle first.</p>
 
-	<div class="centered">
-		<canvas id="canvas-sector-bisect" resize></canvas>
-	</div>
+	<div id="canvas-sector-bisect"></div>
 
 	<div class="centered">
 		<pre><code>[<v>XY</v>,<v>XY</v>] <key>=</key> <v>bisect</v>(<arg>a</arg><key>:</key><v>XY</v>, <arg>b</arg><key>:</key><v>XY</v>) </code></pre>
@@ -292,12 +290,13 @@
 
 
 <script type="text/javascript" src="../tests/junction_bisect.js"></script>
+<script type="text/javascript" src="../tests/vector_lerp.js"></script>
+<script type="text/javascript" src="../tests/vector_labels.js"></script>
+<script type="text/javascript" src="../tests/matrix_reflection.js"></script>
+<script type="text/javascript" src="../tests/matrix_basis.js"></script>
 <script type="text/javascript" src="../tests/line_ray_edge_intersection.js"></script>
 <script type="text/javascript" src="../tests/line_bisect.js"></script>
 <script type="text/javascript" src="../tests/line_nearest_point.js"></script>
-<script type="text/javascript" src="../tests/sector_bisect.js"></script>
-<script type="text/javascript" src="../tests/vector_lerp.js"></script>
-<script type="text/javascript" src="../tests/vector_labels.js"></script>
 <script type="text/javascript" src="../tests/circle_packing.js"></script>
 <script type="text/javascript" src="../tests/polygon_fold.js"></script>
 <script type="text/javascript" src="../tests/polygon_split1.js"></script>
@@ -306,8 +305,7 @@
 <!-- <script type="text/javascript" src="../tests/polygon_contains.js"></script> -->
 <script type="text/javascript" src="../tests/polygon_overlaps.js"></script>
 <script type="text/javascript" src="../tests/polygon_skeleton.js"></script>
-<script type="text/javascript" src="../tests/matrix_reflection.js"></script>
-<script type="text/javascript" src="../tests/matrix_basis.js"></script>
+<script type="text/javascript" src="../tests/sector_bisect.js"></script>
 <script type="text/javascript">
 katex.render("\\begin{bmatrix} a & c & tx \\\\ b & d & ty \\end{bmatrix}", document.getElementById("matrix-1"));
 katex.render("\\begin{bmatrix} a & c \\\\ b & d \\end{bmatrix}", document.getElementById("matrix-2"));

@@ -1,4 +1,4 @@
-let bisect = RabbitEar.svg.image("canvas-bisect", 500, 500);
+let bisect = RabbitEar.svg.image("canvas-sector-bisect", 500, 500);
 
 bisect.NUM_WEDGES = 2;
 bisect.STROKE_WIDTH = bisect.h * 0.0125;
@@ -52,7 +52,7 @@ bisect.update = function(){
 			true
 		);
 	});
-	let bisects = RabbitEar.math.core.geometry.bisect_vectors(vecs[0], vecs[1]);
+	let bisects = RabbitEar.math.core.bisect_vectors(vecs[0], vecs[1]);
 	bisects.forEach((vec,i) => {
 		bisect.bisectLines[i].setAttribute("x1", centerX + vec[0] * (r1*1.05) );
 		bisect.bisectLines[i].setAttribute("y1", centerY + vec[1] * (r1*1.05) );

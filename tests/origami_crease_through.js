@@ -10,21 +10,23 @@ let cpts = [[0.3, 0.2], [0.3, 0.3]]
 let params = [{
 	point: [0.6684523757573304, 0.7068981830977321],
 	vector: [0.8305701963995926, 0.0269449235394514]
-},{
-	// point: [0.5827608218865481, 0.6323193249195302],
-	// vector: [0.4901779040449912, 0.7237222669179171]
-	point: [0.5827608218865481, 0.6323193249195302],
-	vector: [0.4901779040449912, -0.7237222669179171]
-}]
+},
+// {
+// 	// point: [0.5827608218865481, 0.6323193249195302],
+// 	// vector: [0.4901779040449912, 0.7237222669179171]
+// 	point: [0.5827608218865481, 0.6323193249195302],
+// 	vector: [0.4901779040449912, -0.7237222669179171]
+// }
+]
 
-for (var i = 0; i < 2; i++) {
+for (var i = 0; i < params.length; i++) {
 	// let point = RabbitEar.math.Vector(Math.random(), Math.random());
 	// let vector = RabbitEar.math.Vector(Math.random(), Math.random());
 	let point = params[i].point;
 	let vector = params[i].vector;
 	let stay = RabbitEar.math.Vector(Math.random(), Math.random());
 	valleys.cp.valleyFold(point, vector, 0);//stay);
-	console.log(point, vector);
+	// console.log(point, vector);
 }
 
 // let point = RabbitEar.math.Vector(0.2, 0.8);

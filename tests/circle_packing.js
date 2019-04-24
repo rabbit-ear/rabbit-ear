@@ -1,19 +1,33 @@
 let circlePack;
+let cirPPad = 6;
 circlePack = RabbitEar.svg.image("canvas-circle-packing", 500, 500, function(){
-	circlePack.setViewBox(-3,-3,500+2*3,500+2*3);
+	if (circlePack !== undefined) {
+		circlePack.setViewBox(-cirPPad,-cirPPad,500+2*cirPPad,500+2*cirPPad);
+	}
 });
-circlePack.setViewBox(-3,-3,500+2*3,500+2*3);
+circlePack.setViewBox(-cirPPad,-cirPPad,500+2*cirPPad,500+2*cirPPad);
 
-circlePack.circles = Array.from(Array(12)).map(_ => RabbitEar.math.Circle(Math.random()*circlePack.w, Math.random()*circlePack.h, 20 + Math.random()*40));
+let defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+circlePack.appendChild(defs);
+let clipPath = 
+	document.createElementNS("http://www.w3.org/2000/svg", "clipPath");
+defs.appendChild(clipPath);
+clipPath.setAttribute("id", "page-clip");
+let clipRect = RabbitEar.svg.rect(0, 0, 500, 500);
+clipPath.appendChild(clipRect);
 
-circlePack.circles.forEach(c => c.svg = circlePack.circle(0, 0, 0));
-// circlePack.circleLayer = circlePack.group();
+circlePack.circleLayer = circlePack.group();
 let r = circlePack.rect(0, 0, circlePack.w, circlePack.h);
 r.setAttribute("fill", "none");
 r.setAttribute("stroke-width", 6);
 r.setAttribute("stroke", "black");
 
 circlePack.drawLayer = circlePack.group();
+
+circlePack.circles = Array.from(Array(12))
+	.map(_ => RabbitEar.math.Circle(0, 0, 0));
+circlePack.circles
+	.forEach(c => c.svg = circlePack.circleLayer.circle(0, 0, 0));
 
 circlePack.theAnimatefunc = function(event) {
 	if (circlePack.mouse.isPressed) {
@@ -23,19 +37,20 @@ circlePack.theAnimatefunc = function(event) {
 	let mag = result.magnitude;
 	let stillCount = result.stillCount;
 	let frameDiff = mag - circlePack.readings[event.frame%2];
-	if (Math.abs(frameDiff) < .02 && stillCount < 2) {
+	// if (Math.abs(frameDiff) < .02 && stillCount < 2) {
+	if (Math.abs(frameDiff) < .05 && stillCount < 2) {
 		circlePack.frozenCount++;
 	}
-	if (circlePack.frozenCount > 10) {
+	if (circlePack.frozenCount > 40) {
 		circlePack.animate = undefined;
 	}
 	// console.log(circlePack.frozenCount, frameDiff);
 	circlePack.readings[event.frame%2] = mag;
 	if (mag > -50) {
-		circlePack.circles.forEach(c => c.radius *= 1.002);
+		circlePack.circles.forEach(c => c.radius *= 1.003);//1.002);
 	}
 	else {
-		circlePack.circles.forEach(c => c.radius *= 0.998);
+		circlePack.circles.forEach(c => c.radius *= 0.997);//0.998);
 	}
 	circlePack.update();
 	// console.log(mag);
@@ -46,13 +61,11 @@ circlePack.boot = function() {
 	circlePack.circles.forEach(c => {
 		c.origin[0] = Math.random()*circlePack.w; 
 		c.origin[1] = Math.random()*circlePack.h;
-		c.radius = 20 + Math.random()*40;
+		c.radius = 6 + Math.random()*60;
 	})
 
 	circlePack.circles.forEach(c => c.svg.setAttribute("fill", "#224c72"));
-	// circlePack.circles.forEach(c => c.svg.setAttribute("stroke", "#000"));
-	// circlePack.circles.forEach(c => c.svg.setAttribute("stroke-width", 4));
-
+	circlePack.circles.forEach(c => c.svg.setAttribute("style", "clip-path: url(#page-clip)"));
 	circlePack.readings = []
 	circlePack.frozenCount = 0;
 	circlePack.animate = circlePack.theAnimatefunc;
@@ -142,6 +155,7 @@ circlePack.analyze = function() {
 				);
 				l.setAttribute("stroke", "#ecb233");//e14929");
 				l.setAttribute("stroke-width", stroke_width);
+				l.setAttribute("stroke-linecap", "round");
 				// l.setAttribute("opacity", opacity);
 			}
 		}

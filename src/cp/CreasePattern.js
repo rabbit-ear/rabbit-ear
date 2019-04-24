@@ -137,8 +137,10 @@ const CreasePatternPrototype = function(proto) {
 	const didModifyGraph = function() {
 		// remove file_frames which were dependent on this geometry. we can
 		// no longer guarantee they match. alternatively we could mark them invalid
-		_this.file_frames = _this.file_frames
-			.filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
+		
+		// _this.file_frames = _this.file_frames
+		// 	.filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
+		
 		// broadcast update to handler if attached
 		if (typeof _this.onchange === "function") {
 			_this.onchange();

@@ -233,6 +233,7 @@ export default function() {
 	const fold = function(face) {
 		// 1. check if a folded frame already exists (and it's valid)
 		// 2. if not, build one
+		if(prop.cp.file_frames.length > 0)
 		if (face == null) { face = 0; }
 		if (prop.cp.file_frames != null
 			&& prop.cp.file_frames.length > 0
@@ -241,6 +242,7 @@ export default function() {
 			console.log("fold() - using faces matrix")
 			// well.. do nothing. we're good
 		} else {
+			console.log("fold() - XXXXXX     rebuilding faces matrix    XXXXXXXX")
 			let file_frame = Origami.build_folded_frame(prop.cp, face);
 			// console.log("file_frame", file_frame);
 			if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
@@ -346,7 +348,7 @@ export default function() {
 	// boot
 	setCreasePattern( CreasePattern(...arguments) );
 
-	let lastStep, touchFaceIndex, touchFaceColoring;
+	let lastStep, touchFaceIndex, touchFaceColoring, touchTransform;
 	_this.events.addEventListener("onMouseDown", function(mouse) {
 		if (preferences.folding) {
 			try {
@@ -357,8 +359,9 @@ export default function() {
 					&& prop.cp.file_frames.length > 0
 					&& prop.cp.file_frames[0]["re:faces_matrix"] != null) {
 					faces_matrix = prop.cp.file_frames[0]["re:faces_matrix"];
+					// console.log("+/- <<< reusing faces_matrix");
 				} else {
-					console.log("needed to re-make faces_matrix");
+					// console.log("+/- ___ re-make faces_matrix");
 					faces_matrix = make_faces_matrix_inv(prop.cp, 0);
 				}
 				let faces_containing = folded_faces_containing_point(prop.cp, mouse, faces_matrix);
@@ -366,7 +369,9 @@ export default function() {
 				touchFaceIndex = (top_face === undefined)
 					? 0 // get bottom most face
 					: top_face;
-				console.log("valleyfold()", touchFaceIndex, prop.cp);
+				// console.log("valleyfold()", touchFaceIndex, prop.cp);
+				touchTransform = JSON.parse(JSON.stringify(faces_matrix[top_face]));
+				console.log("touchTransform", touchTransform);
 			} catch(error) {
 				console.warn("problem loading the last fold step", error);
 			}
@@ -382,9 +387,14 @@ export default function() {
 				console.log("and now", prop.cp.file_frames[0]["re:faces_matrix"]);
 			}
 			let points = [Geom.Vector(mouse.pressed), Geom.Vector(mouse.position)];
+			// points = points.map(p => p.transform(RabbitEar.math.core.make_matrix2_inverse(touchTransform)));
 			let midpoint = points[0].midpoint(points[1]);
 			let vector = points[1].subtract(points[0]);
+
+			// console.log("valleyfold()", touchFaceIndex);
 			prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
+			// console.log("=== DOES CP CONTAIN FILE FRAMES", prop.cp.file_frames);
+
 			fold();
 		}
 	});

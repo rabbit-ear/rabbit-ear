@@ -14,8 +14,12 @@ import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
 import { apply_diff, apply_diff_map } from "./diff";
 
-export function build_folded_frame(graph, face_stationary = 0) {
-	console.log("build_folded_frame", graph, face_stationary);
+export function build_folded_frame(graph, face_stationary) {
+	if (face_stationary == null) {
+		face_stationary = 0;
+		console.warn("build_folded_frame was not supplied a stationary face");
+	}
+	// console.log("build_folded_frame", graph, face_stationary);
 	let faces_matrix = PlanarGraph.make_faces_matrix(graph, face_stationary);
 	let vertices_coords = fold_vertices_coords(graph, face_stationary, faces_matrix);
 	return {
@@ -85,7 +89,7 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 		console.log("prepare_to_fold creating new faces matrix");
 		graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
 	}
-	graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
+	// graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
 
 	graph["re:faces_creases"] = graph["re:faces_matrix"]
 		.map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
@@ -186,10 +190,12 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	// update stationary face with new face.
 	let new_face_stationary = folded["re:faces_preindex"]
 		.map((f, i) => ({face: f, i: i}))
-		.filter(el => el.face === folded["re:face_stationary"])
+		// .filter(el => el.face === folded["re:face_stationary"])
+		.filter(el => el.face === face_index)
 		.filter(el => !folded["re:faces_sidedness"][el.i])
 		.map(el => el.i)
 		.shift();
+
 	if (new_face_stationary != null) {
 		folded["re:face_stationary"] = new_face_stationary;
 	}
@@ -209,11 +215,38 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 		"re:faces_to_move"
 	];
 
-	let folded_frame = build_folded_frame(folded, new_face_stationary);
-	console.log("setting new folded frame");
+	let new_matrices = PlanarGraph.make_faces_matrix(folded, new_face_stationary);
+	let folded_faces_matrix = Array.from(Array(folded.faces_vertices.length))
+		.map((m,i) => graph["re:faces_matrix"][ folded["re:faces_preindex"][i] ])
+		// .map((m,i) => Geom.core.multiply_matrices2(new_matrices[i], m));
+		.map((m,i) => new_matrices[i]);
+
+	// folded_faces_matrix = new_matrices;
+	// console.log("THIS SHOULD BE FULL OF THINGS", folded_faces_matrix);
+
+	// folded_frame["re:faces_matrix"] = folded_faces_matrix;
+
+	// console.log("build_folded_frame", graph, new_face_stationary);
+	// let faces_matrix = PlanarGraph.make_faces_matrix(graph, new_face_stationary);
+	let folded_vertices_coords = fold_vertices_coords(folded, new_face_stationary, folded_faces_matrix);
+	let folded_frame = {
+		vertices_coords: folded_vertices_coords,
+		frame_classes: ["foldedForm"],
+		frame_inherit: true,
+		frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
+		"re:face_stationary": new_face_stationary,
+		"re:faces_matrix": folded_faces_matrix
+	};
+
+	// console.log(folded_frame);
+
+	// console.log("((((", face_index, new_face_stationary);
+
 	folded.file_frames = [folded_frame];
 
-	delete folded["re:faces_matrix"];
+	// console.log("folded", folded);
+
+	// delete folded["re:faces_matrix"];
 
 	// console.log("returned folded", JSON.parse(JSON.stringify(folded)));
 	// console.log("original stationary", graph["re:face_stationary"])
@@ -441,7 +474,7 @@ export function fold_without_layering(fold, face) {
 		face = fold["re:face_stationary"];
 	}
 	if (face == null) { face = 0; }
-	let faces_matrix = PlanarGraph.make_faces_matrix_inv(fold, face);
+	let faces_matrix = PlanarGraph.make_faces_matrix(fold, face);
 	let vertex_in_face = fold.vertices_coords.map((v,i) => {
 		for(var f = 0; f < fold.faces_vertices.length; f++){
 			if(fold.faces_vertices[f].includes(i)){ return f; }
@@ -459,10 +492,13 @@ export function fold_without_layering(fold, face) {
 
 
 export const fold_vertices_coords = function(graph, face_stationary, faces_matrix) {
-	if (graph["re:face_stationary"] != null) {
-		face_stationary = graph["re:face_stationary"];
+	// if (graph["re:face_stationary"] != null) {
+	// 	face_stationary = graph["re:face_stationary"];
+	// }
+	if (face_stationary == null) {
+		console.warn("fold_vertices_coords was not supplied a stationary face");
+		face_stationary = 0;
 	}
-	if (face_stationary == null) { face_stationary = 0; }
 	if (faces_matrix == null) {
 		faces_matrix = PlanarGraph.make_faces_matrix(graph, face_stationary);
 	}
