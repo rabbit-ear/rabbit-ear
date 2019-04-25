@@ -11,14 +11,14 @@ import * as Geom from "../include/geometry";
 import * as SVG from "../include/svg";
 import * as Graph from "./fold/graph";
 import * as Origami from "./fold/origami";
-import * as File from "./convert/file";
-import { flatten_frame } from "./fold/frame";
+import * as Format from "./convert/format";
+import { flatten_frame, load_file } from "./fold/file";
 import CreasePattern from "./cp/CreasePattern";
 import * as Draw from "./fold/draw";
 import {
-	make_faces_matrix_inv,
-	folded_faces_containing_point,
-	topmost_face
+	faces_containing_point,
+	topmost_face,
+	bounding_rect
 } from "./fold/planargraph";
 
 const DEFAULTS = Object.freeze({
@@ -118,6 +118,11 @@ export default function() {
 		return graph.frame_classes.includes("foldedForm");
 	}
 
+	/**
+	 * This converts the FOLD object into an SVG
+	 * (1) flattens the frame if one is selected (recursively if needed)
+	 * (2) identifies whether the frame is creasePattern or folded form
+	 */
 	const draw = function() {
 		// flatten if necessary
 		let graph = prop.frame
@@ -146,7 +151,7 @@ export default function() {
 		let graph = prop.frame
 			? flatten_frame(prop.cp, prop.frame)
 			: prop.cp;
-		let r = Graph.bounding_rect(graph);
+		let r = bounding_rect(graph);
 		SVG.setViewBox(_this, r[0], r[1], r[2], r[3], preferences.padding);
 	};
 
@@ -203,7 +208,8 @@ export default function() {
 	}
 	const getFaces = function() {
 		let faces = prop.cp.faces;
-		let sortedFaces = Array.from(groups.faces.children).slice().sort((a,b) => parseInt(a.id) - parseInt(b.id) );
+		let sortedFaces = Array.from(groups.faces.children).slice()
+			.sort((a,b) => parseInt(a.id) - parseInt(b.id) );
 		faces.forEach((v,i) => v.svg = sortedFaces[i])
 		Object.defineProperty(faces, "visible", {
 			get: function(){ return visibleGroups["faces"] !== undefined; },
@@ -224,7 +230,7 @@ export default function() {
 	};
 
 	const load = function(input, callback) { // epsilon
-		File.load_file(input, function(fold) {
+		load_file(input, function(fold) {
 			setCreasePattern( CreasePattern(fold) );
 			if (callback != null) { callback(); }
 		});
@@ -233,8 +239,9 @@ export default function() {
 	const fold = function(face) {
 		// 1. check if a folded frame already exists (and it's valid)
 		// 2. if not, build one
-		if(prop.cp.file_frames.length > 0)
-		if (face == null) { face = 0; }
+		// if (prop.cp.file_frames.length > 0)
+		// if (face == null) { face = 0; }
+
 		if (prop.cp.file_frames != null
 			&& prop.cp.file_frames.length > 0
 			&& prop.cp.file_frames[0]["re:faces_matrix"] != null
@@ -242,7 +249,7 @@ export default function() {
 			console.log("fold() - using faces matrix")
 			// well.. do nothing. we're good
 		} else {
-			console.log("fold() - XXXXXX     rebuilding faces matrix    XXXXXXXX")
+			console.log("fold() - XXXXXX -----rebuilding----- XXXXXXXX")
 			let file_frame = Origami.build_folded_frame(prop.cp, face);
 			// console.log("file_frame", file_frame);
 			if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
@@ -348,30 +355,26 @@ export default function() {
 	// boot
 	setCreasePattern( CreasePattern(...arguments) );
 
-	let lastStep, touchFaceIndex, touchFaceColoring, touchTransform;
+	let prevCP, prevCPFolded, touchFaceIndex;
 	_this.events.addEventListener("onMouseDown", function(mouse) {
 		if (preferences.folding) {
 			try {
-				lastStep = JSON.parse(JSON.stringify(prop.cp));
-				touchFaceColoring = true;
-				let faces_matrix;
-				if (prop.cp.file_frames != null
-					&& prop.cp.file_frames.length > 0
-					&& prop.cp.file_frames[0]["re:faces_matrix"] != null) {
-					faces_matrix = prop.cp.file_frames[0]["re:faces_matrix"];
-					// console.log("+/- <<< reusing faces_matrix");
-				} else {
-					// console.log("+/- ___ re-make faces_matrix");
-					faces_matrix = make_faces_matrix_inv(prop.cp, 0);
+				prevCP = JSON.parse(JSON.stringify(prop.cp));
+				console.log("got a prev cp", prevCP);
+				if (prop.frame == null || prop.frame === 0 || prevCP.file_frames == null) {
+					console.log("NEEDING TO BUILD A FOLDED FRAME");
+					let file_frame = Origami.build_folded_frame(prevCP, 0);
+					if (prevCP.file_frames == null) { prevCP.file_frames = []; }
+					prevCP.file_frames.unshift(file_frame);
 				}
-				let faces_containing = folded_faces_containing_point(prop.cp, mouse, faces_matrix);
-				let top_face = topmost_face(prop.cp, faces_containing);
+				prevCPFolded = flatten_frame(prevCP, 0);
+				let faces_containing = faces_containing_point(prevCPFolded, mouse);
+				let top_face = topmost_face(prevCPFolded, faces_containing);
+				console.log("+++ faces_containing", faces_containing);
+				console.log("+++ top_face", top_face);
 				touchFaceIndex = (top_face === undefined)
 					? 0 // get bottom most face
 					: top_face;
-				// console.log("valleyfold()", touchFaceIndex, prop.cp);
-				touchTransform = JSON.parse(JSON.stringify(faces_matrix[top_face]));
-				console.log("touchTransform", touchTransform);
 			} catch(error) {
 				console.warn("problem loading the last fold step", error);
 			}
@@ -379,22 +382,14 @@ export default function() {
 	});
 	_this.events.addEventListener("onMouseMove", function(mouse) {
 		if (preferences.folding && mouse.isPressed) {
-			if (prop.cp.file_frames[0] != null) {
-				console.log("what about now", prop.cp.file_frames[0]["re:faces_matrix"]);
-			}
-			prop.cp = CreasePattern(lastStep);
-			if (prop.cp.file_frames[0] != null) {
-				console.log("and now", prop.cp.file_frames[0]["re:faces_matrix"]);
-			}
+			prop.cp = CreasePattern(prevCP);
 			let points = [Geom.Vector(mouse.pressed), Geom.Vector(mouse.position)];
 			// points = points.map(p => p.transform(RabbitEar.math.core.make_matrix2_inverse(touchTransform)));
 			let midpoint = points[0].midpoint(points[1]);
 			let vector = points[1].subtract(points[0]);
-
 			// console.log("valleyfold()", touchFaceIndex);
 			prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
 			// console.log("=== DOES CP CONTAIN FILE FRAMES", prop.cp.file_frames);
-
 			fold();
 		}
 	});

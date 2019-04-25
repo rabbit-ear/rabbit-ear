@@ -17,11 +17,10 @@
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
-	<p class="explain">This code is available as its own <a href="https://github.com/robbykraft/Geometry">free, open-source library</a>.</p>
 </section>
 
 <section id="types">
-	<h3>PRIMITIVES</h3>
+	<h3>Contents</h3>
 	<!-- <p>This library contains a growing list of about ten primitives.</p> -->
 	<div class="centered">
 		<pre class="compact"><code><f>RabbitEar</f>.math
@@ -92,7 +91,7 @@
 <f>function</f> <v>bisect</v>(<arg>vector</arg>)         <c>// 2D</c></code></pre>
 </div>
 
-	<p>Remember <b>point</b> and <b>vector</b>; two ways of looking at the same object. As you use this object ask yourself "which am I dealing with?". A point might rarely use magnitude() but often uses distanceTo(), whereas a vector is the reverse.</p>
+	<p>Remember <b>point</b> and <b>vector</b>; two ways of looking at the same object. Ask yourself which one you are dealing with. A point might rarely use magnitude() but often uses distanceTo(), whereas a vector would be the opposite.</p>
 
 </section>
 
@@ -103,7 +102,7 @@
 		<div id="matrix-1"></div>
 	</div>
 
-	<p>Matrices are a powerful representation for geometric transformations. Inside of one matrix can contain instructions for any number of rotations, translations, reflections, scaling, shearing.</p>
+	<p>Matrices are powerful representations of geometric transformations. Inside of one matrix can contain instructions for any number of rotations, translations, reflections, scaling, shearing.</p>
 
 	<div id="canvas-matrix-basis"></div>
 
@@ -279,11 +278,13 @@
 ┗━ <v>core</v></code></pre>
 </section>
 
-<p>contains methods like:</p>
+	<p>contains methods like:</p>
 
-<p>centroid, convex_hull, cross, dot, multiply_vector2_matrix2, signed_area, split_polygon, among many, many more.</p>
+	<p>centroid, convex_hull, cross, dot, multiply_vector2_matrix2, signed_area, split_polygon, among many, many more.</p>
 
-<p>These methods are also available as properties on the primitives, but here they all are laid out and it's easier to spot them.</p>
+	<p>These methods are also available as properties on the primitives, but here they all are laid out and it's easier to spot them.</p>
+
+	<p class="explain">This math library is now its own free and <a href="https://github.com/robbykraft/Geometry">open-source</a> independent module.</p>
 
 
 	<div id="canvas-polygon-overlaps"></div>

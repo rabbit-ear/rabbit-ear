@@ -6,8 +6,9 @@ import * as Origami from "../fold/origami";
 import { Polygon } from "../../include/geometry";
 import * as Args from "../convert/arguments";
 import { Vertex, Face, Edge, Crease } from "./components";
-import * as File from "../convert/file";
+import * as Format from "../convert/format";
 import * as Make from "../fold/make";
+import * as File from "../fold/file";
 
 const CreasePatternPrototype = function(proto) {
 	if(proto == null) {
@@ -72,7 +73,7 @@ const CreasePatternPrototype = function(proto) {
 	}
 
 	const svg = function(cssRules) {
-		return File.fold_to_svg(_this);
+		return Format.fold_to_svg(_this);
 	}
 
 	// const wipe = function() {
@@ -89,7 +90,7 @@ const CreasePatternPrototype = function(proto) {
 		components.vertices = (_this.vertices_coords || [])
 			.map((_,i) => Vertex(_this, i));
 		return components.vertices;
-	}
+	};
 	const getEdges = function() {
 		components.edges
 			.filter(e => e.disable !== undefined)
@@ -100,7 +101,7 @@ const CreasePatternPrototype = function(proto) {
 		// return (this.edges_vertices || [])
 		// 		.map(e => e.map(ev => this.vertices_coords[ev]))
 		// 		.map(e => Geometry.Edge(e));
-	}
+	};
 	const getFaces = function() {
 		components.faces
 			.filter(f => f.disable !== undefined)
@@ -111,7 +112,7 @@ const CreasePatternPrototype = function(proto) {
 		// return (this.faces_vertices || [])
 		// 		.map(f => f.map(fv => this.vertices_coords[fv]))
 		// 		.map(f => Polygon(f));
-	}
+	};
 	const getBoundary = function() {
 		// todo: test this for another reason anyway
 		// todo: this only works for unfolded flat crease patterns
@@ -123,15 +124,43 @@ const CreasePatternPrototype = function(proto) {
 	const nearestVertex = function(x, y, z = 0) {
 		let index = PlanarGraph.nearest_vertex(_this, [x, y, z]);
 		return (index != null) ? Vertex(_this, index) : undefined;
-	}
+	};
 	const nearestEdge = function(x, y, z = 0) {
 		let index = PlanarGraph.nearest_edge(_this, [x, y, z]);
 		return (index != null) ? Edge(_this, index) : undefined;
-	}
+	};
 	const nearestFace = function(x, y, z = 0) {
 		let index = PlanarGraph.face_containing_point(_this, [x, y, z]);
 		return (index != null) ? Face(_this, index) : undefined;
+	};
+
+	const getFacesAtPoint = function(x, y, z = 0) {
+
+	};
+
+	const getFoldedFacesAtPoint = function() {
+		let point = Args.get_vec(...arguments);
+		return getFoldedForm().faces_vertices
+			.map((fv,i) => ({face: fv.map(v => folded.vertices_coords[v]), i: i}))
+			.filter((f,i) => Geom.core.intersection.point_in_poly(f.face, point))
+			.map(f => f.i);
+	};
+
+	const getTopFoldedFaceAtPoint = function() {
+		let faces = getFoldedFacesAtPoint(...arguments);
+		return topmost_face(_this, faces);
 	}
+
+	const getFoldedForm = function() {
+		let foldedFrame = _this.file_frames
+			.filter(f => f.frame_classes.includes("foldedForm"))
+			.filter(f => f.vertices_coords.length === _this.vertices_coords.length)
+			.shift();
+		return foldedFrame != null
+			? File.merge_frame(_this, foldedFrame)
+			: undefined;
+	}
+
 
 	// updates
 	const didModifyGraph = function() {
@@ -213,6 +242,8 @@ const CreasePatternPrototype = function(proto) {
 		didModifyGraph();
 		return crease;
 	};
+
+	Object.defineProperty(proto, "getFoldedForm", { value: getFoldedForm });
 
 	Object.defineProperty(proto, "boundary", { get: getBoundary });
 	Object.defineProperty(proto, "vertices", { get: getVertices });

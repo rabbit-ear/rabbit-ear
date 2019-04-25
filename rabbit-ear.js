@@ -2631,6 +2631,44 @@
 	}
 	seed(0);
 
+	const clone$1 = function(o) {
+		// from https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
+		var newO, i;
+		if (typeof o !== 'object') {
+			return o;
+		}
+		if (!o) {
+			return o;
+		}
+		if ('[object Array]' === Object.prototype.toString.apply(o)) {
+			newO = [];
+			for (i = 0; i < o.length; i += 1) {
+				newO[i] = clone$1(o[i]);
+			}
+			return newO;
+		}
+		newO = {};
+		for (i in o) {
+			if (o.hasOwnProperty(i)) {
+				newO[i] = clone$1(o[i]);
+			}
+		}
+		return newO;
+	}; 
+
+	const recursive_freeze = function(input) {
+		Object.freeze(input);
+			if (input === undefined) {
+			return input;
+		}
+		Object.getOwnPropertyNames(input).filter(prop =>
+			input[prop] !== null
+			&& (typeof input[prop] === "object" || typeof input[prop] === "function")
+			&& !Object.isFrozen(input[prop])
+		).forEach(prop => recursive_freeze(input[prop]));
+		return input;
+	};
+
 	const append_frame = function(fold_file) {
 
 	};
@@ -2638,22 +2676,22 @@
 	const flatten_frame = function(fold_file, frame_num){
 		const dontCopy = ["frame_parent", "frame_inherit"];
 		var memo = {visited_frames:[]};
-		function recurse(fold_file, frame, orderArray){
-			if(memo.visited_frames.indexOf(frame) !== -1){
-				throw ".FOLD file_frames encountered a cycle. stopping.";
+		function recurse(fold_file, frame, orderArray) {
+			if (memo.visited_frames.indexOf(frame) !== -1) {
+				throw "FOLD file_frames encountered a cycle. stopping.";
 				return orderArray;
 			}
 			memo.visited_frames.push(frame);
 			orderArray = [frame].concat(orderArray);
-			if(frame === 0){ return orderArray; }
-			if(fold_file.file_frames[frame - 1].frame_inherit &&
-			   fold_file.file_frames[frame - 1].frame_parent != null){
+			if (frame === 0) { return orderArray; }
+			if (fold_file.file_frames[frame - 1].frame_inherit &&
+			   fold_file.file_frames[frame - 1].frame_parent != null) {
 				return recurse(fold_file, fold_file.file_frames[frame - 1].frame_parent, orderArray);
 			}
 			return orderArray;
 		}
 		return recurse(fold_file, frame_num, []).map(frame => {
-			if(frame === 0){
+			if (frame === 0) {
 				// for frame 0 (the key frame) don't copy over file_frames array
 				let swap = fold_file.file_frames;
 				fold_file.file_frames = null;
@@ -2684,14 +2722,87 @@
 		return fold;
 	};
 
-	var frame = /*#__PURE__*/Object.freeze({
+	/**
+	 * this asynchronously or synchronously loads data from "input",
+	 * if necessary, converts into the FOLD format,
+	 * and calls "callback(fold)" with the data as the first argument.
+	 *
+	 * valid "input" arguments are:
+	 * - filenames ("pattern.svg")
+	 * - raw blob contents of a preloaded file (.fold, .oripa, .svg)
+	 * - SVG DOM objects (<svg> SVGElement)
+	 */
+
+	const load_file = function(input, callback) {
+		let type = typeof input;
+		if (type === "object") {
+			try {
+				let fold = JSON.parse(JSON.stringify(input));
+				// todo different way of checking fold format validity
+				if (fold.vertices_coords == null) {
+					throw "tried FOLD format, got empty object";
+				}
+				if (callback != null) {
+					callback(fold);
+				}
+				return fold; // asynchronous loading was not required
+			} catch(err) {
+				if (input instanceof Element){
+					let fold = svg_to_fold(input);
+					if (callback != null) {
+						callback(fold);
+					}
+					return fold; // asynchronous loading was not required
+				}
+			} 
+			// finally {
+			// 	return;  // currently not used. everything previous is already returning
+			// }
+		}
+		// are they giving us a filename, or the data of an already loaded file?
+		if (type === "string" || input instanceof String) {
+			// try a FOLD format string
+			try {
+				// try .fold file format first
+				let fold = JSON.parse(input);
+				if (callback != null) { callback(fold); }
+			} catch(err) {
+				let extension = input.substr((input.lastIndexOf('.') + 1));
+				// filename. we need to upload
+				switch(extension) {
+					case "fold":
+						fetch(input)
+							.then((response) => response.json())
+							.then((data) => {
+								if (callback != null) { callback(data); }
+							});
+					break;
+					case "svg":
+						SVG.load(input, function(svg) {
+							let fold = svg_to_fold(svg);
+							if (callback != null) { callback(fold); }
+						});
+					break;
+					case "oripa":
+						// ORIPA.load(input, function(fold) {
+						// 	if (callback != null) { callback(fold); }
+						// });
+					break;
+				}
+			}
+		}
+	};
+
+	var file = /*#__PURE__*/Object.freeze({
+		clone: clone$1,
+		recursive_freeze: recursive_freeze,
 		append_frame: append_frame,
 		flatten_frame: flatten_frame,
-		merge_frame: merge_frame$1
+		merge_frame: merge_frame$1,
+		load_file: load_file
 	});
 
 	// graph manipulators for .FOLD file github.com/edemaine/fold
-	// MIT open source license, Robby Kraft
 
 	// keys in the .FOLD version 1.1
 	const keys = {
@@ -3319,49 +3430,6 @@
 		return vertices_faces;
 	};
 
-	const bounding_rect = function(graph) {
-		if (graph.vertices_coords.length <= 0) { return [0,0,0,0]; }
-		let dimension = graph.vertices_coords[0].length;
-		let smallest = Array.from(Array(dimension)).map(_ => Infinity);
-		let largest = Array.from(Array(dimension)).map(_ => -Infinity);
-		graph.vertices_coords.forEach(v => v.forEach((n,i) => {
-			if (n < smallest[i]) { smallest[i] = n; }
-			if (n > largest[i]) { largest[i] = n; }
-		}));
-		let x = smallest[0];
-		let y = smallest[1];
-		let w = largest[0] - smallest[0];
-		let h = largest[1] - smallest[1];
-		return (isNaN(x) || isNaN(y) || isNaN(w) || isNaN(h)
-			? [0,0,0,0]
-			: [x,y,w,h]);
-	};
-
-	const clone$1 = function(o) {
-		// from https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
-		var newO, i;
-		if (typeof o !== 'object') {
-			return o;
-		}
-		if (!o) {
-			return o;
-		}
-		if ('[object Array]' === Object.prototype.toString.apply(o)) {
-			newO = [];
-			for (i = 0; i < o.length; i += 1) {
-				newO[i] = clone$1(o[i]);
-			}
-			return newO;
-		}
-		newO = {};
-		for (i in o) {
-			if (o.hasOwnProperty(i)) {
-				newO[i] = clone$1(o[i]);
-			}
-		}
-		return newO;
-	};
-
 	var graph = /*#__PURE__*/Object.freeze({
 		keys: keys,
 		all_keys: all_keys,
@@ -3385,9 +3453,7 @@
 		remove_marks: remove_marks,
 		merge_vertices: merge_vertices,
 		make_edges_faces: make_edges_faces,
-		make_vertices_faces: make_vertices_faces,
-		bounding_rect: bounding_rect,
-		clone: clone$1
+		make_vertices_faces: make_vertices_faces
 	});
 
 	// import {vertices_count, edges_count, faces_count} from "./graph";
@@ -3572,7 +3638,7 @@
 	 * someday this will implement facesOrders. right now just re:faces_layer
 	 * leave faces_options empty to search all faces
 	 */
-	const topmost_face = function(graph, faces_options) {
+	const topmost_face$1 = function(graph, faces_options) {
 		if (faces_options == null) {
 			faces_options = Array.from(Array(graph.faces_vertices.length))
 				.map((_,i) => i);
@@ -3891,10 +3957,29 @@
 			).filter(p => p != null);
 	}
 
+
+	const bounding_rect = function(graph) {
+		if (graph.vertices_coords.length <= 0) { return [0,0,0,0]; }
+		let dimension = graph.vertices_coords[0].length;
+		let smallest = Array.from(Array(dimension)).map(_ => Infinity);
+		let largest = Array.from(Array(dimension)).map(_ => -Infinity);
+		graph.vertices_coords.forEach(v => v.forEach((n,i) => {
+			if (n < smallest[i]) { smallest[i] = n; }
+			if (n > largest[i]) { largest[i] = n; }
+		}));
+		let x = smallest[0];
+		let y = smallest[1];
+		let w = largest[0] - smallest[0];
+		let h = largest[1] - smallest[1];
+		return (isNaN(x) || isNaN(y) || isNaN(w) || isNaN(h)
+			? [0,0,0,0]
+			: [x,y,w,h]);
+	};
+
 	var planargraph = /*#__PURE__*/Object.freeze({
 		nearest_vertex: nearest_vertex,
 		nearest_edge: nearest_edge,
-		topmost_face: topmost_face,
+		topmost_face: topmost_face$1,
 		face_containing_point: face_containing_point,
 		folded_faces_containing_point: folded_faces_containing_point,
 		faces_containing_point: faces_containing_point,
@@ -3902,7 +3987,8 @@
 		make_faces_matrix_inv: make_faces_matrix_inv,
 		split_convex_polygon: split_convex_polygon$1,
 		find_collinear_face_edges: find_collinear_face_edges,
-		clip_line: clip_line
+		clip_line: clip_line,
+		bounding_rect: bounding_rect
 	});
 
 	/**
@@ -3986,11 +4072,12 @@
 			graph["re:faces_matrix"] = JSON.parse(JSON.stringify(graph.file_frames[0]["re:faces_matrix"]));
 		} else {
 			console.log("prepare_to_fold creating new faces matrix");
-			graph["re:faces_matrix"] = make_faces_matrix_inv(graph, face_index);
+			graph["re:faces_matrix"] = make_faces_matrix(graph, face_index);
 		}
 		// graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
 
 		graph["re:faces_creases"] = graph["re:faces_matrix"]
+			.map(mat => core.make_matrix2_inverse(mat))
 			.map(mat => core.multiply_line_matrix2(point, vector, mat));
 		graph["re:faces_center"] = Array.from(Array(faces_count$$1))
 			.map((_, i) => make_face_center(graph, i));
@@ -4016,16 +4103,16 @@
 		}
 	};
 
-	const point_in_folded_face = function(graph, point) {
-		let mats = make_faces_matrix_inv(graph, cpView.cp["re:face_stationary"]);
-		let transformed_points = mats.map(m => core.multiply_vector2_matrix2(point, m));
+	// export const point_in_folded_face = function(graph, point) {
+	// 	let mats = PlanarGraph.make_faces_matrix_inv(graph, cpView.cp["re:face_stationary"]);
+	// 	let transformed_points = mats.map(m => Geom.core.multiply_vector2_matrix2(point, m));
 
-		let circles = transformedPoints.map(p => cpView.drawLayer.circle(p[0], p[1], 0.01));
-		// console.log(circles);
-		let point_in_poly = transformedPoints.map((p,i) => faces[i].contains(p));
+	// 	let circles = transformedPoints.map(p => cpView.drawLayer.circle(p[0], p[1], 0.01));
+	// 	// console.log(circles);
+	// 	let point_in_poly = transformedPoints.map((p,i) => faces[i].contains(p));
 
-		faces_containing_point({}, point); 
-	};
+	// 	PlanarGraph.faces_containing_point({}, point) 
+	// }
 
 	/**
 	 * this returns a copy of the graph with new crease lines.
@@ -4141,23 +4228,23 @@
 		return folded;
 	};
 
-	function crease_folded(graph, point, vector, face_index) {
-		// if face isn't set, it will be determined by whichever face
-		// is directly underneath point. or if none, index 0.
-		if (face_index == null) {
-			face_index = face_containing_point(graph, point);
-			if(face_index === undefined) { face_index = 0; }
-		}
-		let primaryLine = Line(point, vector);
-		let coloring = faces_coloring(graph, face_index);
-		make_faces_matrix_inv(graph, face_index)
-			.map(m => primaryLine.transform(m))
-			.reverse()
-			.forEach((line, reverse_i, arr) => {
-				let i = arr.length - 1 - reverse_i;
-				let diff = split_convex_polygon$1(graph, i, line.point, line.vector, coloring[i] ? "M" : "V");
-			});
-	}
+	// export function crease_folded(graph, point, vector, face_index) {
+	// 	// if face isn't set, it will be determined by whichever face
+	// 	// is directly underneath point. or if none, index 0.
+	// 	if (face_index == null) {
+	// 		face_index = PlanarGraph.face_containing_point(graph, point);
+	// 		if(face_index === undefined) { face_index = 0; }
+	// 	}
+	// 	let primaryLine = Geom.Line(point, vector);
+	// 	let coloring = Graph.faces_coloring(graph, face_index);
+	// 	PlanarGraph.make_faces_matrix_inv(graph, face_index)
+	// 		.map(m => primaryLine.transform(m))
+	// 		.reverse()
+	// 		.forEach((line, reverse_i, arr) => {
+	// 			let i = arr.length - 1 - reverse_i;
+	// 			let diff = PlanarGraph.split_convex_polygon(graph, i, line.point, line.vector, coloring[i] ? "M" : "V");
+	// 		});
+	// }
 
 	function crease_line(graph, point, vector) {
 		// let boundary = Graph.get_boundary_vertices(graph);
@@ -4405,9 +4492,7 @@
 		build_folded_frame: build_folded_frame,
 		universal_molecule: universal_molecule,
 		foldLayers: foldLayers,
-		point_in_folded_face: point_in_folded_face,
 		crease_through_layers: crease_through_layers,
-		crease_folded: crease_folded,
 		crease_line: crease_line,
 		crease_ray: crease_ray,
 		axiom1: axiom1$1,
@@ -4427,7 +4512,6 @@
 	});
 
 	/* (c) Robby Kraft, MIT License */
-	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};
 
 	/**
 	 * .FOLD file into SVG, and back
@@ -4524,87 +4608,6 @@
 
 	// import * as Fold from "../include/fold";
 
-	const recursive_freeze = function(input) {
-		Object.freeze(input);
-			if (input === undefined) {
-			return input;
-		}
-		Object.getOwnPropertyNames(input).filter(prop =>
-			input[prop] !== null
-			&& (typeof input[prop] === "object" || typeof input[prop] === "function")
-			&& !Object.isFrozen(input[prop])
-		).forEach(prop => recursive_freeze(input[prop]));
-		return input;
-	};
-
-	/**
-	 * this asynchronously or synchronously loads data from "input",
-	 * if necessary, converts into the FOLD format,
-	 * and calls "callback(fold)" with the data as the first argument.
-	 *
-	 * valid "input" arguments are:
-	 * - filenames ("pattern.svg")
-	 * - raw blob contents of a preloaded file (.fold, .oripa, .svg)
-	 * - SVG DOM objects (<svg> SVGElement)
-	 */
-
-	const load_file = function(input, callback) {
-		let type = typeof input;
-		if (type === "object") {
-			try {
-				let fold = JSON.parse(JSON.stringify(input));
-				// todo different way of checking fold format validity
-				if (fold.vertices_coords == null) { throw "tried FOLD format, got empty object"; }
-				if (callback != null) {
-					callback(fold);
-				}
-				return fold; // asynchronous loading was not required
-			} catch(err) {
-				if (input instanceof Element){
-					let fold = svg_to_fold(input);
-					if (callback != null) {
-						callback(fold);
-					}
-					return fold; // asynchronous loading was not required
-				}
-			} 
-			// finally {
-			// 	return;  // currently not used. everything previous is already returning
-			// }
-		}
-		// are they giving us a filename, or the data of an already loaded file?
-		if (type === "string" || input instanceof String) {
-			// try a FOLD format string
-			try {
-				// try .fold file format first
-				let fold = JSON.parse(input);
-				if (callback != null) { callback(fold); }
-			} catch(err) {
-				let extension = input.substr((input.lastIndexOf('.') + 1));
-				// filename. we need to upload
-				switch(extension) {
-					case "fold":
-						fetch(input)
-							.then((response) => response.json())
-							.then((data) => {
-								if (callback != null) { callback(data); }
-							});
-					break;
-					case "svg":
-						load(input, function(svg$$1) {
-							let fold = svg_to_fold(svg$$1);
-							if (callback != null) { callback(fold); }
-						});
-					break;
-					case "oripa":
-						// ORIPA.load(input, function(fold) {
-						// 	if (callback != null) { callback(fold); }
-						// });
-					break;
-				}
-			}
-		}
-	};
 
 	const intoFOLD = function(input, callback) {
 		return load_file(input, function(fold) {
@@ -4639,37 +4642,6 @@
 
 	const intoORIPA = function(input, callback) {
 
-	};
-
-	const svg_to_fold = function(svg$$1) {
-		// for each geometry, add creases without regards to invalid planar edge crossings
-		//  (intersecting lines, duplicate vertices), clean up later.
-		let graph = {
-			"file_spec": 1.1,
-			"file_creator": "RabbitEar",
-			"file_classes": ["singleModel"],
-			"frame_title": "",
-			"frame_classes": ["creasePattern"],
-			"frame_attributes": ["2D"],
-			"vertices_coords": [],
-			"vertices_vertices": [],
-			"vertices_faces": [],
-			"edges_vertices": [],
-			"edges_faces": [],
-			"edges_assignment": [],
-			"edges_foldAngle": [],
-			"edges_length": [],
-			"faces_vertices": [],
-			"faces_edges": [],
-		};
-		// return graph;
-		// console.log("svg_to_fold");
-		// console.log(Segmentize.svg(svg));
-		// todo: import semgents into a planar graph, handle edge crossings
-		segments(svg$$1).forEach(l =>
-			add_edge_between_points(graph, l[0], l[1], l[2], l[3])
-		);
-		return graph;
 	};
 
 	/**
@@ -5205,6 +5177,17 @@
 			return (index != null) ? Face(_this, index) : undefined;
 		};
 
+		const getFoldedForm = function() {
+			let foldedFrame = _this.file_frames
+				.filter(f => f.frame_classes.includes("foldedForm"))
+				.filter(f => f.vertices_coords.length === _this.vertices_coords.length)
+				.shift();
+			return foldedFrame != null
+				? merge_frame$1(_this, foldedFrame)
+				: undefined;
+		};
+
+
 		// updates
 		const didModifyGraph = function() {
 			// remove file_frames which were dependent on this geometry. we can
@@ -5285,6 +5268,8 @@
 			didModifyGraph();
 			return crease;
 		};
+
+		Object.defineProperty(proto, "getFoldedForm", { value: getFoldedForm });
 
 		Object.defineProperty(proto, "boundary", { get: getBoundary });
 		Object.defineProperty(proto, "vertices", { get: getVertices });
@@ -5466,6 +5451,11 @@
 			return graph.frame_classes.includes("foldedForm");
 		};
 
+		/**
+		 * This converts the FOLD object into an SVG
+		 * (1) flattens the frame if one is selected (recursively if needed)
+		 * (2) identifies whether the frame is creasePattern or folded form
+		 */
 		const draw = function() {
 			// flatten if necessary
 			let graph = prop.frame
@@ -5551,7 +5541,8 @@
 		};
 		const getFaces = function() {
 			let faces = prop.cp.faces;
-			let sortedFaces = Array.from(groups.faces.children).slice().sort((a,b) => parseInt(a.id) - parseInt(b.id) );
+			let sortedFaces = Array.from(groups.faces.children).slice()
+				.sort((a,b) => parseInt(a.id) - parseInt(b.id) );
 			faces.forEach((v,i) => v.svg = sortedFaces[i]);
 			Object.defineProperty(faces, "visible", {
 				get: function(){ return visibleGroups["faces"] !== undefined; },
@@ -5576,8 +5567,9 @@
 		const fold = function(face) {
 			// 1. check if a folded frame already exists (and it's valid)
 			// 2. if not, build one
-			if(prop.cp.file_frames.length > 0)
-			if (face == null) { face = 0; }
+			// if (prop.cp.file_frames.length > 0)
+			// if (face == null) { face = 0; }
+
 			if (prop.cp.file_frames != null
 				&& prop.cp.file_frames.length > 0
 				&& prop.cp.file_frames[0]["re:faces_matrix"] != null
@@ -5585,7 +5577,7 @@
 				console.log("fold() - using faces matrix");
 				// well.. do nothing. we're good
 			} else {
-				console.log("fold() - XXXXXX     rebuilding faces matrix    XXXXXXXX");
+				console.log("fold() - XXXXXX -----rebuilding----- XXXXXXXX");
 				let file_frame = build_folded_frame(prop.cp, face);
 				// console.log("file_frame", file_frame);
 				if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
@@ -5691,29 +5683,26 @@
 		// boot
 		setCreasePattern( CreasePattern(...arguments) );
 
-		let lastStep, touchFaceIndex, touchTransform;
+		let prevCP, prevCPFolded, touchFaceIndex;
 		_this.events.addEventListener("onMouseDown", function(mouse) {
 			if (preferences.folding) {
 				try {
-					lastStep = JSON.parse(JSON.stringify(prop.cp));
-					let faces_matrix;
-					if (prop.cp.file_frames != null
-						&& prop.cp.file_frames.length > 0
-						&& prop.cp.file_frames[0]["re:faces_matrix"] != null) {
-						faces_matrix = prop.cp.file_frames[0]["re:faces_matrix"];
-						// console.log("+/- <<< reusing faces_matrix");
-					} else {
-						// console.log("+/- ___ re-make faces_matrix");
-						faces_matrix = make_faces_matrix_inv(prop.cp, 0);
+					prevCP = JSON.parse(JSON.stringify(prop.cp));
+					console.log("got a prev cp", prevCP);
+					if (prop.frame == null || prop.frame === 0 || prevCP.file_frames == null) {
+						console.log("NEEDING TO BUILD A FOLDED FRAME");
+						let file_frame = build_folded_frame(prevCP, 0);
+						if (prevCP.file_frames == null) { prevCP.file_frames = []; }
+						prevCP.file_frames.unshift(file_frame);
 					}
-					let faces_containing = folded_faces_containing_point(prop.cp, mouse, faces_matrix);
-					let top_face = topmost_face(prop.cp, faces_containing);
+					prevCPFolded = flatten_frame(prevCP, 0);
+					let faces_containing = faces_containing_point(prevCPFolded, mouse);
+					let top_face = topmost_face$1(prevCPFolded, faces_containing);
+					console.log("+++ faces_containing", faces_containing);
+					console.log("+++ top_face", top_face);
 					touchFaceIndex = (top_face === undefined)
 						? 0 // get bottom most face
 						: top_face;
-					// console.log("valleyfold()", touchFaceIndex, prop.cp);
-					touchTransform = JSON.parse(JSON.stringify(faces_matrix[top_face]));
-					console.log("touchTransform", touchTransform);
 				} catch(error) {
 					console.warn("problem loading the last fold step", error);
 				}
@@ -5721,22 +5710,14 @@
 		});
 		_this.events.addEventListener("onMouseMove", function(mouse) {
 			if (preferences.folding && mouse.isPressed) {
-				if (prop.cp.file_frames[0] != null) {
-					console.log("what about now", prop.cp.file_frames[0]["re:faces_matrix"]);
-				}
-				prop.cp = CreasePattern(lastStep);
-				if (prop.cp.file_frames[0] != null) {
-					console.log("and now", prop.cp.file_frames[0]["re:faces_matrix"]);
-				}
+				prop.cp = CreasePattern(prevCP);
 				let points = [Vector(mouse.pressed), Vector(mouse.position)];
 				// points = points.map(p => p.transform(RabbitEar.math.core.make_matrix2_inverse(touchTransform)));
 				let midpoint = points[0].midpoint(points[1]);
 				let vector = points[1].subtract(points[0]);
-
 				// console.log("valleyfold()", touchFaceIndex);
 				prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
 				// console.log("=== DOES CP CONTAIN FILE FRAMES", prop.cp.file_frames);
-
 				fold();
 			}
 		});
@@ -5886,7 +5867,7 @@
 		};
 
 		const load = function(input, callback) { // epsilon
-			load_file(input, function(fold) {
+			File.load_file(input, function(fold) {
 				setCreasePattern( CreasePattern(fold) );
 				if (callback != null) { callback(); }
 			});
@@ -6683,7 +6664,7 @@
 	let convert = { intoFOLD, intoSVG, intoORIPA };
 
 	const core$1 = Object.create(null);
-	Object.assign(core$1, frame, validate, graph, Origami, planargraph);
+	Object.assign(core$1, file, validate, graph, Origami, planargraph);
 	// remove these for production
 	// import test from './bases/test-three-fold.fold';
 	// import dodecagon from './bases/test-dodecagon.fold';

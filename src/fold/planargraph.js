@@ -380,3 +380,24 @@ export function clip_line(fold, linePoint, lineVector){
 }
 
 
+export const bounding_rect = function(graph) {
+	if (graph.vertices_coords.length <= 0) { return [0,0,0,0]; }
+	let dimension = graph.vertices_coords[0].length;
+	let smallest = Array.from(Array(dimension)).map(_ => Infinity);
+	let largest = Array.from(Array(dimension)).map(_ => -Infinity);
+	graph.vertices_coords.forEach(v => v.forEach((n,i) => {
+		if (n < smallest[i]) { smallest[i] = n; }
+		if (n > largest[i]) { largest[i] = n; }
+	}));
+	let x = smallest[0];
+	let y = smallest[1];
+	let w = largest[0] - smallest[0];
+	let h = largest[1] - smallest[1];
+	return (isNaN(x) || isNaN(y) || isNaN(w) || isNaN(h)
+		? [0,0,0,0]
+		: [x,y,w,h]);
+}
+
+const bounding_cube = function(graph) {
+}
+

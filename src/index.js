@@ -3,7 +3,7 @@ import * as svg from '../include/svg';
 import * as noise from '../include/perlin';
 
 // fold file manipulators
-import * as frame from './fold/frame';
+import * as file from './fold/file';
 import { default as validate } from './fold/validate';
 import * as graph from './fold/graph';
 import * as origami from './fold/origami';
@@ -11,14 +11,14 @@ import * as planargraph from './fold/planargraph';
 import { default as valleyfold } from './fold/valleyfold';
 import * as creasethrough from './fold/creasethrough';
 
-import { recursive_freeze, intoFOLD, intoSVG, intoORIPA } from './convert/file';
+import { intoFOLD, intoSVG, intoORIPA } from './convert/format';
 
 let convert = { intoFOLD, intoSVG, intoORIPA };
 
 const core = Object.create(null);
-Object.assign(core, frame, validate, graph, origami, planargraph);
+Object.assign(core, file, validate, graph, origami, planargraph);
 // const fold = {
-// 	frame: frame,
+// 	file: file,
 // 	validate: validate,
 // 	graph: graph,
 // 	origami: origami,
@@ -44,14 +44,14 @@ import frog from './bases/frog.fold';
 // import blintzAnimated from './bases/blintz-animated.fold';
 // import blintzDistorted from './bases/blintz-distort.fold';
 const bases = {
-	empty: recursive_freeze(JSON.parse(empty)),
-	square: recursive_freeze(JSON.parse(square)),
-	book: recursive_freeze(JSON.parse(book)),
-	blintz: recursive_freeze(JSON.parse(blintz)),
-	kite: recursive_freeze(JSON.parse(kite)),
-	fish: recursive_freeze(JSON.parse(fish)),
-	bird: recursive_freeze(JSON.parse(bird)),
-	frog: recursive_freeze(JSON.parse(frog)),
+	empty: file.recursive_freeze(JSON.parse(empty)),
+	square: file.recursive_freeze(JSON.parse(square)),
+	book: file.recursive_freeze(JSON.parse(book)),
+	blintz: file.recursive_freeze(JSON.parse(blintz)),
+	kite: file.recursive_freeze(JSON.parse(kite)),
+	fish: file.recursive_freeze(JSON.parse(fish)),
+	bird: file.recursive_freeze(JSON.parse(bird)),
+	frog: file.recursive_freeze(JSON.parse(frog)),
 	// remove these for production
 	// test: JSON.parse(test),
 	// dodecagon: JSON.parse(dodecagon),

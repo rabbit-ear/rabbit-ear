@@ -1,6 +1,8 @@
 // graph manipulators for .FOLD file github.com/edemaine/fold
 // MIT open source license, Robby Kraft
 
+import { clone } from "./file";
+
 // keys in the .FOLD version 1.1
 export const keys = {
 	file: [
@@ -656,49 +658,3 @@ export const make_vertices_faces = function(graph) {
 	graph.faces_vertices.forEach((face,i) => face.forEach(vertex => vertices_faces[vertex].push(i)));
 	return vertices_faces;
 }
-
-export const bounding_rect = function(graph) {
-	if (graph.vertices_coords.length <= 0) { return [0,0,0,0]; }
-	let dimension = graph.vertices_coords[0].length;
-	let smallest = Array.from(Array(dimension)).map(_ => Infinity);
-	let largest = Array.from(Array(dimension)).map(_ => -Infinity);
-	graph.vertices_coords.forEach(v => v.forEach((n,i) => {
-		if (n < smallest[i]) { smallest[i] = n; }
-		if (n > largest[i]) { largest[i] = n; }
-	}));
-	let x = smallest[0];
-	let y = smallest[1];
-	let w = largest[0] - smallest[0];
-	let h = largest[1] - smallest[1];
-	return (isNaN(x) || isNaN(y) || isNaN(w) || isNaN(h)
-		? [0,0,0,0]
-		: [x,y,w,h]);
-}
-
-const bounding_cube = function(graph) {
-}
-
-export const clone = function(o) {
-	// from https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
-	var newO, i;
-	if (typeof o !== 'object') {
-		return o;
-	}
-	if (!o) {
-		return o;
-	}
-	if ('[object Array]' === Object.prototype.toString.apply(o)) {
-		newO = [];
-		for (i = 0; i < o.length; i += 1) {
-			newO[i] = clone(o[i]);
-		}
-		return newO;
-	}
-	newO = {};
-	for (i in o) {
-		if (o.hasOwnProperty(i)) {
-			newO[i] = clone(o[i]);
-		}
-	}
-	return newO;
-} 

@@ -13,6 +13,7 @@ import * as Geom from "../../include/geometry";
 import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
 import { apply_diff, apply_diff_map } from "./diff";
+import * as File from "./file";
 
 export function build_folded_frame(graph, face_stationary) {
 	if (face_stationary == null) {
@@ -87,11 +88,11 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 		graph["re:faces_matrix"] = JSON.parse(JSON.stringify(graph.file_frames[0]["re:faces_matrix"]));
 	} else {
 		console.log("prepare_to_fold creating new faces matrix");
-		graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
+		graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix(graph, face_index);
 	}
-	// graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
-
+	// crease lines are calculated using each face's INVERSE matrix
 	graph["re:faces_creases"] = graph["re:faces_matrix"]
+		.map(mat => Geom.core.make_matrix2_inverse(mat))
 		.map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
 	graph["re:faces_center"] = Array.from(Array(faces_count))
 		.map((_, i) => make_face_center(graph, i));
@@ -106,7 +107,8 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 
 const prepare_extensions = function(graph) {
 	let faces_count = graph.faces_vertices.length;
-	if (graph["re:faces_layer"] == null) { // this isn't exactly good. it works with 1 face
+	if (graph["re:faces_layer"] == null) {
+		// valid solution only when there is 1 face
 		graph["re:faces_layer"] = Array.from(Array(faces_count)).map(_ => 0);
 	}
 	if (graph["re:face_stationary"] == null) {
@@ -117,16 +119,16 @@ const prepare_extensions = function(graph) {
 	}
 }
 
-export const point_in_folded_face = function(graph, point) {
-	let mats = PlanarGraph.make_faces_matrix_inv(graph, cpView.cp["re:face_stationary"]);
-	let transformed_points = mats.map(m => Geom.core.multiply_vector2_matrix2(point, m));
+// export const point_in_folded_face = function(graph, point) {
+// 	let mats = PlanarGraph.make_faces_matrix_inv(graph, cpView.cp["re:face_stationary"]);
+// 	let transformed_points = mats.map(m => Geom.core.multiply_vector2_matrix2(point, m));
 
-	let circles = transformedPoints.map(p => cpView.drawLayer.circle(p[0], p[1], 0.01));
-	// console.log(circles);
-	let point_in_poly = transformedPoints.map((p,i) => faces[i].contains(p));
+// 	let circles = transformedPoints.map(p => cpView.drawLayer.circle(p[0], p[1], 0.01));
+// 	// console.log(circles);
+// 	let point_in_poly = transformedPoints.map((p,i) => faces[i].contains(p));
 
-	PlanarGraph.faces_containing_point({}, point) 
-}
+// 	PlanarGraph.faces_containing_point({}, point) 
+// }
 
 /**
  * this returns a copy of the graph with new crease lines.
@@ -152,7 +154,7 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	prepare_to_fold(graph, point, vector, face_index);
 
 	// let folded = JSON.parse(JSON.stringify(graph));
-	let folded = Graph.clone(graph);
+	let folded = File.clone(graph);
 
 	let faces_count = graph.faces_vertices.length;
 	Array.from(Array(faces_count)).map((_,i) => i).reverse()
@@ -254,23 +256,23 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	return folded;
 }
 
-export function crease_folded(graph, point, vector, face_index) {
-	// if face isn't set, it will be determined by whichever face
-	// is directly underneath point. or if none, index 0.
-	if (face_index == null) {
-		face_index = PlanarGraph.face_containing_point(graph, point);
-		if(face_index === undefined) { face_index = 0; }
-	}
-	let primaryLine = Geom.Line(point, vector);
-	let coloring = Graph.faces_coloring(graph, face_index);
-	PlanarGraph.make_faces_matrix_inv(graph, face_index)
-		.map(m => primaryLine.transform(m))
-		.reverse()
-		.forEach((line, reverse_i, arr) => {
-			let i = arr.length - 1 - reverse_i;
-			let diff = PlanarGraph.split_convex_polygon(graph, i, line.point, line.vector, coloring[i] ? "M" : "V");
-		});
-}
+// export function crease_folded(graph, point, vector, face_index) {
+// 	// if face isn't set, it will be determined by whichever face
+// 	// is directly underneath point. or if none, index 0.
+// 	if (face_index == null) {
+// 		face_index = PlanarGraph.face_containing_point(graph, point);
+// 		if(face_index === undefined) { face_index = 0; }
+// 	}
+// 	let primaryLine = Geom.Line(point, vector);
+// 	let coloring = Graph.faces_coloring(graph, face_index);
+// 	PlanarGraph.make_faces_matrix_inv(graph, face_index)
+// 		.map(m => primaryLine.transform(m))
+// 		.reverse()
+// 		.forEach((line, reverse_i, arr) => {
+// 			let i = arr.length - 1 - reverse_i;
+// 			let diff = PlanarGraph.split_convex_polygon(graph, i, line.point, line.vector, coloring[i] ? "M" : "V");
+// 		});
+// }
 
 export function crease_line(graph, point, vector) {
 	// let boundary = Graph.get_boundary_vertices(graph);

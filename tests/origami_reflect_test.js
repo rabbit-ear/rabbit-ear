@@ -8,7 +8,7 @@ sketch.controls = RabbitEar.svg.controls(sketch, 2, {radius:0.02, fill: "#e44f2a
 sketch.controls.forEach(c => c.position = [Math.random(), Math.random()]);
 sketch.controls[1].circle.setAttribute("fill", "#000");
 
-let params = Array.from(Array(1)).map(_ => ({
+let params = Array.from(Array(2)).map(_ => ({
 	point: RabbitEar.math.Vector(Math.random(), Math.random()),
 	vector: RabbitEar.math.Vector(Math.random(), Math.random())
 }));
@@ -20,7 +20,7 @@ let params = Array.from(Array(1)).map(_ => ({
 // 	{ point: [0.278687, 0.682494], vector: [0.136923, 0.559915]}
 // ];
 
-params.forEach(p => sketch.cp.valleyFold(p.point, p.vector));
+params.forEach(p => sketch.cp.valleyFold(p.point, p.vector, 0));
 
 sketch.masterCP = JSON.parse(JSON.stringify(sketch.cp.json));
 sketch.cp = RabbitEar.CreasePattern(sketch.masterCP);
@@ -111,7 +111,7 @@ sketch.update = function() {
 		});
 
 	let cpCopy = RabbitEar.CreasePattern(sketch.masterCP);
-	cpCopy.valleyFold(creaseLine.point, creaseLine.vector);
+	cpCopy.valleyFold(creaseLine.point, creaseLine.vector, 0);
 	folded.cp = cpCopy;
 	let notMoving = folded.cp["re:faces_to_move"].indexOf(false) !== -1
 		? folded.cp["re:faces_to_move"].indexOf(false)
