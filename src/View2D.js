@@ -246,10 +246,10 @@ export default function() {
 			&& prop.cp.file_frames.length > 0
 			&& prop.cp.file_frames[0]["re:faces_matrix"] != null
 			&& prop.cp.file_frames[0]["re:faces_matrix"].length === prop.cp.faces_vertices.length) {
-			console.log("fold() - using faces matrix")
+			// console.log("fold() - using faces matrix")
 			// well.. do nothing. we're good
 		} else {
-			console.log("fold() - XXXXXX -----rebuilding----- XXXXXXXX")
+			// console.log("fold() - XXXXXX -----rebuilding----- XXXXXXXX")
 			let file_frame = Origami.build_folded_frame(prop.cp, face);
 			// console.log("file_frame", file_frame);
 			if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
@@ -360,7 +360,7 @@ export default function() {
 		if (preferences.folding) {
 			try {
 				prevCP = JSON.parse(JSON.stringify(prop.cp));
-				console.log("got a prev cp", prevCP);
+				// console.log("got a prev cp", prevCP);
 				if (prop.frame == null || prop.frame === 0 || prevCP.file_frames == null) {
 					console.log("NEEDING TO BUILD A FOLDED FRAME");
 					let file_frame = Origami.build_folded_frame(prevCP, 0);
@@ -370,8 +370,8 @@ export default function() {
 				prevCPFolded = flatten_frame(prevCP, 0);
 				let faces_containing = faces_containing_point(prevCPFolded, mouse);
 				let top_face = topmost_face(prevCPFolded, faces_containing);
-				console.log("+++ faces_containing", faces_containing);
-				console.log("+++ top_face", top_face);
+				// console.log("+++ faces_containing", faces_containing);
+				// console.log("+++ top_face", top_face);
 				touchFaceIndex = (top_face === undefined)
 					? 0 // get bottom most face
 					: top_face;

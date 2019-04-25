@@ -84,10 +84,10 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 		&& graph.file_frames.length > 0
 		&& graph.file_frames[0]["re:faces_matrix"] != null
 		&& graph.file_frames[0]["re:faces_matrix"].length === faces_count) {
-		console.log("prepare_to_fold found faces matrix from last fold", graph.file_frames[0]["re:faces_matrix"]);
+		// console.log("prepare_to_fold found faces matrix from last fold", graph.file_frames[0]["re:faces_matrix"]);
 		graph["re:faces_matrix"] = JSON.parse(JSON.stringify(graph.file_frames[0]["re:faces_matrix"]));
 	} else {
-		console.log("prepare_to_fold creating new faces matrix");
+		// console.log("prepare_to_fold creating new faces matrix");
 		graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix(graph, face_index);
 	}
 	// crease lines are calculated using each face's INVERSE matrix
@@ -139,7 +139,7 @@ const prepare_extensions = function(graph) {
 
 // for now, this uses "re:faces_layer", todo: use faceOrders
 export const crease_through_layers = function(graph, point, vector, face_index, crease_direction = "V") {
-	console.log("+++++++++ crease_through_layers", point, vector, face_index);
+	// console.log("+++++++++ crease_through_layers", point, vector, face_index);
 
 	let opposite_crease = 
 		(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
@@ -152,6 +152,9 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 
 	prepare_extensions(graph);
 	prepare_to_fold(graph, point, vector, face_index);
+
+	let first_matrix = graph["re:faces_matrix"][face_index];
+	// console.log("=== first matrix", first_matrix);
 
 	// let folded = JSON.parse(JSON.stringify(graph));
 	let folded = File.clone(graph);
@@ -217,11 +220,14 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 		"re:faces_to_move"
 	];
 
-	let new_matrices = PlanarGraph.make_faces_matrix(folded, new_face_stationary);
-	let folded_faces_matrix = Array.from(Array(folded.faces_vertices.length))
-		.map((m,i) => graph["re:faces_matrix"][ folded["re:faces_preindex"][i] ])
-		// .map((m,i) => Geom.core.multiply_matrices2(new_matrices[i], m));
-		.map((m,i) => new_matrices[i]);
+	let folded_faces_matrix = PlanarGraph
+		.make_faces_matrix(folded, new_face_stationary)
+		.map(m => Geom.core.multiply_matrices2(first_matrix, m));
+
+	// let folded_faces_matrix = Array.from(Array(folded.faces_vertices.length))
+	// 	.map((m,i) => graph["re:faces_matrix"][ folded["re:faces_preindex"][i] ])
+	// 	// .map((m,i) => Geom.core.multiply_matrices2(new_matrices[i], m));
+	// 	.map((m,i) => new_matrices[i]);
 
 	// folded_faces_matrix = new_matrices;
 	// console.log("THIS SHOULD BE FULL OF THINGS", folded_faces_matrix);

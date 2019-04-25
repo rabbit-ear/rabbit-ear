@@ -4068,14 +4068,13 @@
 			&& graph.file_frames.length > 0
 			&& graph.file_frames[0]["re:faces_matrix"] != null
 			&& graph.file_frames[0]["re:faces_matrix"].length === faces_count$$1) {
-			console.log("prepare_to_fold found faces matrix from last fold", graph.file_frames[0]["re:faces_matrix"]);
+			// console.log("prepare_to_fold found faces matrix from last fold", graph.file_frames[0]["re:faces_matrix"]);
 			graph["re:faces_matrix"] = JSON.parse(JSON.stringify(graph.file_frames[0]["re:faces_matrix"]));
 		} else {
-			console.log("prepare_to_fold creating new faces matrix");
+			// console.log("prepare_to_fold creating new faces matrix");
 			graph["re:faces_matrix"] = make_faces_matrix(graph, face_index);
 		}
-		// graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix_inv(graph, face_index);
-
+		// crease lines are calculated using each face's INVERSE matrix
 		graph["re:faces_creases"] = graph["re:faces_matrix"]
 			.map(mat => core.make_matrix2_inverse(mat))
 			.map(mat => core.multiply_line_matrix2(point, vector, mat));
@@ -4092,7 +4091,8 @@
 
 	const prepare_extensions = function(graph) {
 		let faces_count$$1 = graph.faces_vertices.length;
-		if (graph["re:faces_layer"] == null) { // this isn't exactly good. it works with 1 face
+		if (graph["re:faces_layer"] == null) {
+			// valid solution only when there is 1 face
 			graph["re:faces_layer"] = Array.from(Array(faces_count$$1)).map(_ => 0);
 		}
 		if (graph["re:face_stationary"] == null) {
@@ -4123,7 +4123,7 @@
 
 	// for now, this uses "re:faces_layer", todo: use faceOrders
 	const crease_through_layers = function(graph, point, vector, face_index, crease_direction = "V") {
-		console.log("+++++++++ crease_through_layers", point, vector, face_index);
+		// console.log("+++++++++ crease_through_layers", point, vector, face_index);
 
 		let opposite_crease = 
 			(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
@@ -4136,6 +4136,9 @@
 
 		prepare_extensions(graph);
 		prepare_to_fold(graph, point, vector, face_index);
+
+		let first_matrix = graph["re:faces_matrix"][face_index];
+		// console.log("=== first matrix", first_matrix);
 
 		// let folded = JSON.parse(JSON.stringify(graph));
 		let folded = clone$1(graph);
@@ -4189,11 +4192,13 @@
 		let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
 		folded["re:faces_coloring"] = faces_coloring(folded, new_face_stationary);
 
-		let new_matrices = make_faces_matrix(folded, new_face_stationary);
-		let folded_faces_matrix = Array.from(Array(folded.faces_vertices.length))
-			.map((m,i) => graph["re:faces_matrix"][ folded["re:faces_preindex"][i] ])
-			// .map((m,i) => Geom.core.multiply_matrices2(new_matrices[i], m));
-			.map((m,i) => new_matrices[i]);
+		let folded_faces_matrix = make_faces_matrix(folded, new_face_stationary)
+			.map(m => core.multiply_matrices2(first_matrix, m));
+
+		// let folded_faces_matrix = Array.from(Array(folded.faces_vertices.length))
+		// 	.map((m,i) => graph["re:faces_matrix"][ folded["re:faces_preindex"][i] ])
+		// 	// .map((m,i) => Geom.core.multiply_matrices2(new_matrices[i], m));
+		// 	.map((m,i) => new_matrices[i]);
 
 		// folded_faces_matrix = new_matrices;
 		// console.log("THIS SHOULD BE FULL OF THINGS", folded_faces_matrix);
@@ -5573,11 +5578,8 @@
 			if (prop.cp.file_frames != null
 				&& prop.cp.file_frames.length > 0
 				&& prop.cp.file_frames[0]["re:faces_matrix"] != null
-				&& prop.cp.file_frames[0]["re:faces_matrix"].length === prop.cp.faces_vertices.length) {
-				console.log("fold() - using faces matrix");
-				// well.. do nothing. we're good
-			} else {
-				console.log("fold() - XXXXXX -----rebuilding----- XXXXXXXX");
+				&& prop.cp.file_frames[0]["re:faces_matrix"].length === prop.cp.faces_vertices.length) ; else {
+				// console.log("fold() - XXXXXX -----rebuilding----- XXXXXXXX")
 				let file_frame = build_folded_frame(prop.cp, face);
 				// console.log("file_frame", file_frame);
 				if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
@@ -5688,7 +5690,7 @@
 			if (preferences.folding) {
 				try {
 					prevCP = JSON.parse(JSON.stringify(prop.cp));
-					console.log("got a prev cp", prevCP);
+					// console.log("got a prev cp", prevCP);
 					if (prop.frame == null || prop.frame === 0 || prevCP.file_frames == null) {
 						console.log("NEEDING TO BUILD A FOLDED FRAME");
 						let file_frame = build_folded_frame(prevCP, 0);
@@ -5698,8 +5700,8 @@
 					prevCPFolded = flatten_frame(prevCP, 0);
 					let faces_containing = faces_containing_point(prevCPFolded, mouse);
 					let top_face = topmost_face$1(prevCPFolded, faces_containing);
-					console.log("+++ faces_containing", faces_containing);
-					console.log("+++ top_face", top_face);
+					// console.log("+++ faces_containing", faces_containing);
+					// console.log("+++ top_face", top_face);
 					touchFaceIndex = (top_face === undefined)
 						? 0 // get bottom most face
 						: top_face;
