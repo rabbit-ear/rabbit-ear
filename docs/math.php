@@ -9,11 +9,11 @@
 
 <h3 style="text-align:center;margin-top:3em;">CHAPTER I.</h3>
 
-<h1>EUCLIDEAN GEOMETRY</h1>
+<h1>ORIGAMI MATH</h1>
 
 <section>
 	<div id="canvas-junction-bisect"></div>
-	<p>The mathematics of ancient Greece, Euclid and compass-straight edge geometry, finds a contemporary home in the mathematics of origami.</p>
+	<p>The mathematics of ancient Greece, linear algebra, and graph data structures come together in origami math.</p>
 	<div class="centered">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
@@ -91,7 +91,7 @@
 <f>function</f> <v>bisect</v>(<arg>vector</arg>)         <c>// 2D</c></code></pre>
 </div>
 
-	<p>Remember <b>point</b> and <b>vector</b>; two ways of looking at the same object. Ask yourself which one you are dealing with. A point might rarely use magnitude() but often uses distanceTo(), whereas a vector would be the opposite.</p>
+	<p>Remember <b>point</b> and <b>vector</b>; two ways of looking at the same object. Ask yourself which one you are dealing with. A point might rarely use magnitude() but often uses distanceTo(), and a vector would be the opposite.</p>
 
 </section>
 
@@ -102,7 +102,7 @@
 		<div id="matrix-1"></div>
 	</div>
 
-	<p>Matrices are powerful representations of geometric transformations. Inside of one matrix can contain instructions for any number of rotations, translations, reflections, scaling, shearing.</p>
+	<p>Matrices are powerful representations of geometric transformations. Inside of one matrix can contain instructions for any number of rotations, translations, reflections, scaling, shearing; and it can tell you things like whether a polygon has been flipped over.</p>
 
 	<div id="canvas-matrix-basis"></div>
 
@@ -110,10 +110,10 @@
 		<div id="matrix-2"></div>
 	</div>
 
-	<p>One transform in particular is especially useful to origami. To simulate a fold:</p>
+	<p>One transform in particular is especially useful to origami: <b>reflection</b>. Folding an origami is two steps:</p>
 	<ol>
-		<li>clip the polygon into two along the crease line.</li>
-		<li><b>reflect</b> one face across the crease line.</li>
+		<li>Along the crease line, divide the polygon into two.</li>
+		<li><b>reflect</b> one face across the crease line and lie it on top of the other.</li>
 	</ol>
 
 	<div id="canvas-fold-poly"></div>
@@ -191,7 +191,7 @@
 
 	<div id="canvas-circle-packing"></div>
 
-	<p class="quote">a preliminary step in circle-river origami design.</p>
+	<p class="quote">a preliminary step in circle-river origami design is circle-packing.</p>
 
 <h2>Polygon</h2>
 
@@ -232,7 +232,7 @@
 
 	<div id="canvas-origami-molecule"></div>
 
-	<p class="explain">straight skeleton contains a few bugs right now</p>
+	<p class="explain">straight skeleton code is under construction</p>
 
 	<div id="canvas-split-poly"></div>
 
@@ -257,17 +257,19 @@
 	<div id="canvas-sector-bisect"></div>
 
 	<div class="centered">
-		<pre><code>[<v>XY</v>,<v>XY</v>] <key>=</key> <v>bisect</v>(<arg>a</arg><key>:</key><v>XY</v>, <arg>b</arg><key>:</key><v>XY</v>) </code></pre>
+		<pre><code><f>bisect</f>(<arg>vec1</arg>, <arg>vec2</arg>)</code></pre>
 	</div>
 
 </section>
-
 
 <section>
 
 <h2>APPENDIX</h2>
 
-	<p>The core of this library contains the methods that do the computation. It's all been made available to you as well</p>
+	<p>This math library is a <a href="https://github.com/robbykraft/Geometry">free and open-source</a> independent module.</p>
+
+<h3>Core</h3>
+	<p>The <b>core</b> is where the computation occurs, everything above is calling methods in here.</p>
 
 	<div class="centered">
 		<pre class="compact"><code><f>RabbitEar</f>.math
@@ -278,14 +280,7 @@
 ┗━ <v>core</v></code></pre>
 </section>
 
-	<p>contains methods like:</p>
-
-	<p>centroid, convex_hull, cross, dot, multiply_vector2_matrix2, signed_area, split_polygon, among many, many more.</p>
-
-	<p>These methods are also available as properties on the primitives, but here they all are laid out and it's easier to spot them.</p>
-
-	<p class="explain">This math library is now its own free and <a href="https://github.com/robbykraft/Geometry">open-source</a> independent module.</p>
-
+	<p class="quote">Be careful, there is no type checking; the core was built for speed. It will be more reliable if you avoid this section.</p>
 
 	<div id="canvas-polygon-overlaps"></div>
 

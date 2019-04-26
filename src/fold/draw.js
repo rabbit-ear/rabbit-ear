@@ -3,7 +3,7 @@
  */
 
 import * as SVG from "../../include/svg";
-import { CREASE_NAMES, get_boundary_vertices, faces_matrix_coloring } from "../fold/graph";
+import { CREASE_NAMES, get_boundary_vertices, faces_matrix_coloring, faces_coloring } from "../fold/graph";
 
 /**
  * if you already have groups initialized, to save on re-initializing, pass the groups
@@ -86,37 +86,52 @@ const drawFaces = function(graph) {
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		// .map(face => Geom.Polygon(face));
 
+	// determine coloring of each face
 	let coloring = graph["re:faces_coloring"];
 	if (coloring == null) {
-		// coloring = faces_coloring(graph, notMoving);
+		if (graph["re:faces_matrix"] != null) {
+			coloring = faces_matrix_coloring(graph["re:faces_matrix"]);
+		} else {
+			// last resort. assuming a lot with the 0 face.
+			coloring = faces_coloring(graph, 0);
+		}
 	}
 
-	if (graph["re:faces_matrix"] != null) {
-		coloring = faces_matrix_coloring(graph["re:faces_matrix"]);
-	}
-
+	// determine layer order
 	let orderIsCertain = graph["re:faces_layer"] != null;
 
 	let order = graph["re:faces_layer"] != null
 		? faces_sorted_by_layer(graph["re:faces_layer"])
 		: graph.faces_vertices.map((_,i) => i);
-		
+
 	return orderIsCertain
 		? order.map(i => SVG.polygon(facesV[i])
 			.setClass(coloring[i] ? "front" : "back")
 			.setID(""+i))
 		: order.map(i =>SVG.polygon(facesV[i]).setID(""+i));
-	// if (graph["re:faces_layer"] && graph["re:faces_layer"].length > 0) {
-	// 	return graph["re:faces_layer"].map((fi,i) =>
-	// 		SVG.polygon(facesV[fi])
-	// 			.setClass(i%2==0 ? "face-front" : "face-back")
-	// 			.setID(""+i)
-	// 	);
-	// } else {
-	// 	return facesV.map((face, i) =>
-	// 		SVG.polygon(face)
-	// 			.setClass("folded-face")
-	// 			.setID(""+i)
-	// 		);
-	// }
-}
+};
+
+
+export const updateFaces = function(graph, group) {
+	let facesV = graph.faces_vertices
+		.map(fv => fv.map(v => graph.vertices_coords[v]));
+	let strings = facesV
+		.map(face => face.reduce((a, b) => a + b[0] + "," + b[1] + " ", ""));
+	Array.from(group.children)
+		.sort((a,b) => parseInt(a.id) - parseInt(b.id))
+		.forEach((face, i) => face.setAttribute("points", strings[i]));
+};
+
+export const updateCreases = function(graph, group) {
+	let edges = graph.edges_vertices
+		.map(ev => ev.map(v => graph.vertices_coords[v]));
+
+	Array.from(group.children)
+		// .sort((a,b) => parseInt(a.id) - parseInt(b.id))
+		.forEach((line,i) => {
+			line.setAttribute("x1", edges[i][0][0]);
+			line.setAttribute("y1", edges[i][0][1]);
+			line.setAttribute("x2", edges[i][1][0]);
+			line.setAttribute("y2", edges[i][1][1]);
+		});
+};

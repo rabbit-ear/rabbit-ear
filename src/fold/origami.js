@@ -156,10 +156,6 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	prepare_extensions(graph);
 	prepare_to_fold(graph, point, vector, face_index);
 
-	let first_matrix = graph["re:faces_matrix"][face_index];
-	// console.log("=== first matrix", first_matrix);
-
-	// let folded = JSON.parse(JSON.stringify(graph));
 	let folded = File.clone(graph);
 
 	let faces_count = graph.faces_vertices.length;
@@ -195,53 +191,30 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 		folded["re:faces_sidedness"]
 	);
 
-	// update stationary face with new face.
-	let new_face_stationary = folded["re:faces_preindex"]
-		.map((f, i) => ({face: f, i: i}))
-		// .filter(el => el.face === folded["re:face_stationary"])
-		.filter(el => el.face === face_index)
-		.filter(el => !folded["re:faces_sidedness"][el.i])
-		.map(el => el.i)
-		.shift();
+	let new_face_stationary, old_face_stationary;
+	for (var i = 0; i < folded["re:faces_preindex"].length; i++) {
+		if (!folded["re:faces_sidedness"][i]) {
+			old_face_stationary = folded["re:faces_preindex"][i];
+			new_face_stationary = i
+			break;
+		}
+	}
 
-	// if (new_face_stationary != null) {
-	// 	folded["re:face_stationary"] = new_face_stationary;
-	// }
-	// update colorings
-	let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
-	// folded["re:faces_coloring"] = Graph.faces_coloring(folded, new_face_stationary);
-
-	let need_to_remove = [
-		"re:faces_center",
-		"re:faces_coloring",
-		"re:faces_creases",
-		"re:faces_folding",
-		"re:faces_layer",
-		"re:faces_matrix",
-		"re:faces_preindex",
-		"re:faces_sidedness",
-		"re:faces_to_move"
-	];
+	let first_matrix;
+	if (new_face_stationary === undefined) {
+		first_matrix = Geom.core.make_matrix2_reflection(vector, point);
+		first_matrix = Geom.core.multiply_matrices2(first_matrix, graph["re:faces_matrix"][0]);
+		new_face_stationary = 0; // can be any face;
+	} else {
+		first_matrix = graph["re:faces_matrix"][old_face_stationary];
+	}
 
 	let folded_faces_matrix = PlanarGraph
 		.make_faces_matrix(folded, new_face_stationary)
 		.map(m => Geom.core.multiply_matrices2(first_matrix, m));
 
-
 	folded["re:faces_coloring"] = Graph.faces_matrix_coloring(folded_faces_matrix);
 
-	// let folded_faces_matrix = Array.from(Array(folded.faces_vertices.length))
-	// 	.map((m,i) => graph["re:faces_matrix"][ folded["re:faces_preindex"][i] ])
-	// 	// .map((m,i) => Geom.core.multiply_matrices2(new_matrices[i], m));
-	// 	.map((m,i) => new_matrices[i]);
-
-	// folded_faces_matrix = new_matrices;
-	// console.log("THIS SHOULD BE FULL OF THINGS", folded_faces_matrix);
-
-	// folded_frame["re:faces_matrix"] = folded_faces_matrix;
-
-	// console.log("build_folded_frame", graph, new_face_stationary);
-	// let faces_matrix = PlanarGraph.make_faces_matrix(graph, new_face_stationary);
 	let folded_vertices_coords = fold_vertices_coords(folded, new_face_stationary, folded_faces_matrix);
 	let folded_frame = {
 		vertices_coords: folded_vertices_coords,
@@ -252,19 +225,20 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 		"re:faces_matrix": folded_faces_matrix
 	};
 
-	// console.log(folded_frame);
-
-	// console.log("((((", face_index, new_face_stationary);
-
 	folded.file_frames = [folded_frame];
 
-	// console.log("folded", folded);
+	// let need_to_remove = [
+	// 	"re:faces_center",
+	// 	"re:faces_coloring",
+	// 	"re:faces_creases",
+	// 	"re:faces_folding",
+	// 	"re:faces_layer",
+	// 	"re:faces_matrix",
+	// 	"re:faces_preindex",
+	// 	"re:faces_sidedness",
+	// 	"re:faces_to_move"
+	// ];
 
-	// delete folded["re:faces_matrix"];
-
-	// console.log("returned folded", JSON.parse(JSON.stringify(folded)));
-	// console.log("original stationary", graph["re:face_stationary"])
-	// console.log("original coloring", graph["re:faces_coloring"][graph["re:face_stationary"]]);
 	return folded;
 }
 

@@ -7,8 +7,7 @@
  *   - DOM object, or "string" DOM id to attach to
  */
 
-import * as Format from "./convert/format";
-import { flatten_frame } from "./fold/file";
+import { flatten_frame, load_file } from "./fold/file";
 import CreasePattern from "./cp/CreasePattern";
 
 const CREASE_DIR = {
@@ -161,7 +160,7 @@ export default function View3D(){
 	}
 
 	const load = function(input, callback) { // epsilon
-		File.load_file(input, function(fold) {
+		load_file(input, function(fold) {
 			setCreasePattern( CreasePattern(fold) );
 			if (callback != null) { callback(); }
 		});

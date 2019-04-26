@@ -139,9 +139,16 @@ export default function() {
 
 		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
 		labels.face.removeChildren(); //todo remove
-
 		// both folded and non-folded draw all the components, style them in CSS
 		Draw.intoGroups(graph, visibleGroups);
+
+
+		// if (groups.faces.children.length === graph.faces_vertices.length) {
+		// 	Draw.updateFaces(graph, groups.faces);
+		// } else {
+		// 	// SVG.removeChildren(groups.faces);
+		// 	Draw.updateGroups(graph, visibleGroups);
+		// }
 
 		if (preferences.debug) { drawDebug(graph); }
 		if (preferences.autofit) { updateViewBox(); }
@@ -248,6 +255,8 @@ export default function() {
 			&& prop.cp.file_frames[0]["re:faces_matrix"].length === prop.cp.faces_vertices.length) {
 			// well.. do nothing. we're good
 		} else {
+			// for the moment let's assume it's just 1 layer. face = 0
+			if (face == null) { face = 0; }
 			let file_frame = Origami.build_folded_frame(prop.cp, face);
 			if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
 			prop.cp.file_frames.unshift(file_frame);
@@ -358,7 +367,7 @@ export default function() {
 				prevCP = JSON.parse(JSON.stringify(prop.cp));
 				// console.log("got a prev cp", prevCP);
 				if (prop.frame == null || prop.frame === 0 || prevCP.file_frames == null) {
-					console.log("NEEDING TO BUILD A FOLDED FRAME");
+					// console.log("NEEDING TO BUILD A FOLDED FRAME");
 					let file_frame = Origami.build_folded_frame(prevCP, 0);
 					if (prevCP.file_frames == null) { prevCP.file_frames = []; }
 					prevCP.file_frames.unshift(file_frame);
@@ -366,8 +375,6 @@ export default function() {
 				prevCPFolded = flatten_frame(prevCP, 1);
 				let faces_containing = faces_containing_point(prevCPFolded, mouse);
 				let top_face = topmost_face(prevCPFolded, faces_containing);
-				// console.log("+++ faces_containing", faces_containing);
-				// console.log("+++ top_face", top_face);
 				touchFaceIndex = (top_face == null)
 					? 0 // get bottom most face
 					: top_face;
@@ -380,12 +387,9 @@ export default function() {
 		if (preferences.folding && mouse.isPressed) {
 			prop.cp = CreasePattern(prevCP);
 			let points = [Geom.Vector(mouse.pressed), Geom.Vector(mouse.position)];
-			// points = points.map(p => p.transform(RabbitEar.math.core.make_matrix2_inverse(touchTransform)));
 			let midpoint = points[0].midpoint(points[1]);
 			let vector = points[1].subtract(points[0]);
-			// console.log("valleyfold()", touchFaceIndex);
 			prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
-			// console.log("=== DOES CP CONTAIN FILE FRAMES", prop.cp.file_frames);
 			fold();
 		}
 	});

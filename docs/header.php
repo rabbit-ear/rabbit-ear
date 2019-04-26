@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<script type="text/javascript" src="../rabbit-ear.js?version=0.1"></script>
+<script type="text/javascript" src="../rabbit-ear.js?version=0.2"></script>
 
 <!-- <script type="text/javascript" src="lib/katex/katex.min.js"></script> -->
 <!-- <link rel="stylesheet" href="lib/katex/katex.min.css"> -->
@@ -10,11 +10,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700">
 <!-- <link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css" /> -->
 <link rel="stylesheet" href="/docs/css/reset.css" />
-<link rel="stylesheet" href="/docs/css/style.css?version=0.2" />
-<link rel="stylesheet" href="/docs/css/ui.css?version=0.2" />
-<link rel="stylesheet" href="/docs/css/code.css?version=0.2" />
-<link rel="stylesheet" href="/docs/css/nav.css?version=0.2" />
-<link rel="stylesheet" href="/docs/css/svg.css?version=0.2" />
+<link rel="stylesheet" href="/docs/css/style.css?version=0.3" />
+<link rel="stylesheet" href="/docs/css/ui.css?version=0.3" />
+<link rel="stylesheet" href="/docs/css/code.css?version=0.3" />
+<link rel="stylesheet" href="/docs/css/nav.css?version=0.3" />
+<link rel="stylesheet" href="/docs/css/svg.css?version=0.3" />
 </head>
 <body>
 	<nav>
@@ -46,7 +46,7 @@
 				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">IV. RABBIT EAR</a>
 			</li> -->
 			<li class="dropdown">
-				<a href="appendix.php" class="dropbtn">APPENDIX</a>
+				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">APPENDIX</a>
 			</li>
 		</ul>
 	</nav>

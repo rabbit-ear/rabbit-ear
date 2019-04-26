@@ -189,9 +189,24 @@ RabbitEar.core.faces_coloring(twoColor.cp, 0)
 </script>
 
 <script>
-let origamiFold = RabbitEar.Origami("canvas-origami-fold", {folding:true});
+let origamiFold;
+console.log(window.innerWidth, window.innerHeight)
+let sketchW = (window.innerWidth < window.innerHeight)
+	? 1
+	: window.innerWidth / window.innerHeight;
+let sketchH = (window.innerWidth < window.innerHeight)
+	? window.innerHeight / window.innerWidth
+	: 1;
+console.log(sketchW, sketchH);
+origamiFold = RabbitEar.Origami("canvas-origami-fold", {folding:true}, sketchW * window.innerWidth, sketchH * window.innerWidth, function(){
+	// did load
+	let pad = 0.1;
+	origamiFold.setViewBox(-pad - (sketchW-1)*0.5, -pad, sketchW+pad*2, sketchH+pad*2);
+});
 origamiFold.init = function() {
-	origamiFold.setViewBox(-0.1, -0.1, 1.2, 1.2);
+	let pad = 0.1;
+
+	origamiFold.setViewBox(-pad, -pad, sketchW+pad*2, sketchH+pad*2);
 	origamiFold.preferences.autofit = false;
 	let points = [
 		RabbitEar.math.Vector(1, 0),
@@ -199,7 +214,7 @@ origamiFold.init = function() {
 	];
 	let midpoint = points[0].midpoint(points[1]);
 	let vector = points[1].subtract(points[0]);
-	origamiFold.cp.valleyFold(midpoint, vector.rotateZ90());
+	origamiFold.cp.valleyFold(midpoint, vector.rotateZ90(), 0);
 	origamiFold.fold();
 }
 origamiFold.init();
