@@ -60,6 +60,7 @@ valleys.update = function() {
 		let stayPoint = points[0].midpoint(points[1]).add(stayVector.normalize().scale(0.1));
 		valleys.drawLayer.circle(stayPoint[0], stayPoint[1], 0.02).setAttribute("fill", "#224c72");
 		let topface = RabbitEar.core.face_containing_point(valleys.cp, valleys.controls[0].position);
+		console.log(topface);
 		valleys.cp.valleyFold(points[0], vector, topface);
 	}
 	folded.cp = RabbitEar.CreasePattern(valleys.cp.json);

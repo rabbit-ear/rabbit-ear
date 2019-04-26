@@ -246,18 +246,14 @@ export default function() {
 			&& prop.cp.file_frames.length > 0
 			&& prop.cp.file_frames[0]["re:faces_matrix"] != null
 			&& prop.cp.file_frames[0]["re:faces_matrix"].length === prop.cp.faces_vertices.length) {
-			// console.log("fold() - using faces matrix")
 			// well.. do nothing. we're good
 		} else {
-			// console.log("fold() - XXXXXX -----rebuilding----- XXXXXXXX")
 			let file_frame = Origami.build_folded_frame(prop.cp, face);
-			// console.log("file_frame", file_frame);
 			if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
 			prop.cp.file_frames.unshift(file_frame);
 		}
 		prop.frame = 1;
 		draw();
-		// setCreasePattern( CreasePattern(folded) );
 	}
 
 	const foldWithoutLayering = function(face){
@@ -367,12 +363,12 @@ export default function() {
 					if (prevCP.file_frames == null) { prevCP.file_frames = []; }
 					prevCP.file_frames.unshift(file_frame);
 				}
-				prevCPFolded = flatten_frame(prevCP, 0);
+				prevCPFolded = flatten_frame(prevCP, 1);
 				let faces_containing = faces_containing_point(prevCPFolded, mouse);
 				let top_face = topmost_face(prevCPFolded, faces_containing);
 				// console.log("+++ faces_containing", faces_containing);
 				// console.log("+++ top_face", top_face);
-				touchFaceIndex = (top_face === undefined)
+				touchFaceIndex = (top_face == null)
 					? 0 // get bottom most face
 					: top_face;
 			} catch(error) {

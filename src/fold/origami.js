@@ -28,7 +28,7 @@ export function build_folded_frame(graph, face_stationary) {
 		frame_classes: ["foldedForm"],
 		frame_inherit: true,
 		frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
-		"re:face_stationary": face_stationary,
+		// "re:face_stationary": face_stationary,
 		"re:faces_matrix": faces_matrix
 	};
 }
@@ -78,7 +78,7 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 	let faces_count = graph.faces_vertices.length;
 	graph["re:faces_folding"] = Array.from(Array(faces_count));
 	graph["re:faces_preindex"] = Array.from(Array(faces_count)).map((_,i)=>i);
-	graph["re:faces_coloring"] = Graph.faces_coloring(graph, face_index);
+	// graph["re:faces_coloring"] = Graph.faces_coloring(graph, face_index);
 
 	if (graph.file_frames != null
 		&& graph.file_frames.length > 0
@@ -90,6 +90,9 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 		// console.log("prepare_to_fold creating new faces matrix");
 		graph["re:faces_matrix"] = PlanarGraph.make_faces_matrix(graph, face_index);
 	}
+
+	graph["re:faces_coloring"] = Graph.faces_matrix_coloring(graph["re:faces_matrix"]);
+
 	// crease lines are calculated using each face's INVERSE matrix
 	graph["re:faces_creases"] = graph["re:faces_matrix"]
 		.map(mat => Geom.core.make_matrix2_inverse(mat))
@@ -111,9 +114,9 @@ const prepare_extensions = function(graph) {
 		// valid solution only when there is 1 face
 		graph["re:faces_layer"] = Array.from(Array(faces_count)).map(_ => 0);
 	}
-	if (graph["re:face_stationary"] == null) {
-		graph["re:face_stationary"] = 0;
-	}
+	// if (graph["re:face_stationary"] == null) {
+	// 	graph["re:face_stationary"] = 0;
+	// }
 	if (graph["re:faces_to_move"] == null) {
 		graph["re:faces_to_move"] = Array.from(Array(faces_count)).map(_ => false);
 	}
@@ -201,12 +204,12 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 		.map(el => el.i)
 		.shift();
 
-	if (new_face_stationary != null) {
-		folded["re:face_stationary"] = new_face_stationary;
-	}
+	// if (new_face_stationary != null) {
+	// 	folded["re:face_stationary"] = new_face_stationary;
+	// }
 	// update colorings
 	let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
-	folded["re:faces_coloring"] = Graph.faces_coloring(folded, new_face_stationary);
+	// folded["re:faces_coloring"] = Graph.faces_coloring(folded, new_face_stationary);
 
 	let need_to_remove = [
 		"re:faces_center",
@@ -223,6 +226,9 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	let folded_faces_matrix = PlanarGraph
 		.make_faces_matrix(folded, new_face_stationary)
 		.map(m => Geom.core.multiply_matrices2(first_matrix, m));
+
+
+	folded["re:faces_coloring"] = Graph.faces_matrix_coloring(folded_faces_matrix);
 
 	// let folded_faces_matrix = Array.from(Array(folded.faces_vertices.length))
 	// 	.map((m,i) => graph["re:faces_matrix"][ folded["re:faces_preindex"][i] ])
@@ -242,7 +248,7 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 		frame_classes: ["foldedForm"],
 		frame_inherit: true,
 		frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
-		"re:face_stationary": new_face_stationary,
+		// "re:face_stationary": new_face_stationary,
 		"re:faces_matrix": folded_faces_matrix
 	};
 
@@ -478,9 +484,6 @@ export function kawasaki_collapse(graph, vertex, face, crease_direction = "F") {
 }
 
 export function fold_without_layering(fold, face) {
-	if (fold["re:face_stationary"] != null) {
-		face = fold["re:face_stationary"];
-	}
 	if (face == null) { face = 0; }
 	let faces_matrix = PlanarGraph.make_faces_matrix(fold, face);
 	let vertex_in_face = fold.vertices_coords.map((v,i) => {
@@ -500,9 +503,6 @@ export function fold_without_layering(fold, face) {
 
 
 export const fold_vertices_coords = function(graph, face_stationary, faces_matrix) {
-	// if (graph["re:face_stationary"] != null) {
-	// 	face_stationary = graph["re:face_stationary"];
-	// }
 	if (face_stationary == null) {
 		console.warn("fold_vertices_coords was not supplied a stationary face");
 		face_stationary = 0;

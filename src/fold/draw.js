@@ -3,7 +3,7 @@
  */
 
 import * as SVG from "../../include/svg";
-import { CREASE_NAMES, get_boundary_vertices, faces_coloring } from "../fold/graph";
+import { CREASE_NAMES, get_boundary_vertices, faces_matrix_coloring } from "../fold/graph";
 
 /**
  * if you already have groups initialized, to save on re-initializing, pass the groups
@@ -85,20 +85,14 @@ const drawFaces = function(graph) {
 	let facesV = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		// .map(face => Geom.Polygon(face));
-	let notMoving = 0;
-	// if (graph["re:faces_to_move"] != null) {
-	// 	let faces_to_move = graph["re:faces_to_move"].indexOf(false);
-	// 	if (faces_to_move !== -1) { notMoving = faces_to_move; }
-	// }
-	if (graph["re:face_stationary"] != null) {
-		notMoving = graph["re:face_stationary"];
-	}
-	// if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
 
-	// let coloring = faces_coloring(graph, notMoving);
 	let coloring = graph["re:faces_coloring"];
 	if (coloring == null) {
-		coloring = faces_coloring(graph, notMoving);
+		// coloring = faces_coloring(graph, notMoving);
+	}
+
+	if (graph["re:faces_matrix"] != null) {
+		coloring = faces_matrix_coloring(graph["re:faces_matrix"]);
 	}
 
 	let orderIsCertain = graph["re:faces_layer"] != null;

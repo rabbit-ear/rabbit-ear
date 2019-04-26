@@ -3005,6 +3005,12 @@
 		return faces_faces;
 	};
 
+
+	const faces_matrix_coloring = function(faces_matrix) {
+		return faces_matrix
+			.map(m => m[0] * m[3] - m[1] * m[2])
+			.map(c => c >= 0);
+	};
 	/**
 	 * true/false: which face shares color with root face
 	 * the root face (and any similar-color face) will be marked as true
@@ -3441,6 +3447,7 @@
 		edges_count: edges_count,
 		faces_count: faces_count,
 		make_faces_faces: make_faces_faces,
+		faces_matrix_coloring: faces_matrix_coloring,
 		faces_coloring: faces_coloring,
 		make_face_walk_tree: make_face_walk_tree,
 		add_vertex_on_edge: add_vertex_on_edge,
@@ -4012,7 +4019,7 @@
 			frame_classes: ["foldedForm"],
 			frame_inherit: true,
 			frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
-			"re:face_stationary": face_stationary,
+			// "re:face_stationary": face_stationary,
 			"re:faces_matrix": faces_matrix
 		};
 	}
@@ -4062,7 +4069,7 @@
 		let faces_count$$1 = graph.faces_vertices.length;
 		graph["re:faces_folding"] = Array.from(Array(faces_count$$1));
 		graph["re:faces_preindex"] = Array.from(Array(faces_count$$1)).map((_,i)=>i);
-		graph["re:faces_coloring"] = faces_coloring(graph, face_index);
+		// graph["re:faces_coloring"] = Graph.faces_coloring(graph, face_index);
 
 		if (graph.file_frames != null
 			&& graph.file_frames.length > 0
@@ -4074,6 +4081,9 @@
 			// console.log("prepare_to_fold creating new faces matrix");
 			graph["re:faces_matrix"] = make_faces_matrix(graph, face_index);
 		}
+
+		graph["re:faces_coloring"] = faces_matrix_coloring(graph["re:faces_matrix"]);
+
 		// crease lines are calculated using each face's INVERSE matrix
 		graph["re:faces_creases"] = graph["re:faces_matrix"]
 			.map(mat => core.make_matrix2_inverse(mat))
@@ -4095,9 +4105,9 @@
 			// valid solution only when there is 1 face
 			graph["re:faces_layer"] = Array.from(Array(faces_count$$1)).map(_ => 0);
 		}
-		if (graph["re:face_stationary"] == null) {
-			graph["re:face_stationary"] = 0;
-		}
+		// if (graph["re:face_stationary"] == null) {
+		// 	graph["re:face_stationary"] = 0;
+		// }
 		if (graph["re:faces_to_move"] == null) {
 			graph["re:faces_to_move"] = Array.from(Array(faces_count$$1)).map(_ => false);
 		}
@@ -4185,15 +4195,17 @@
 			.map(el => el.i)
 			.shift();
 
-		if (new_face_stationary != null) {
-			folded["re:face_stationary"] = new_face_stationary;
-		}
+		// if (new_face_stationary != null) {
+		// 	folded["re:face_stationary"] = new_face_stationary;
+		// }
 		// update colorings
 		let original_stationary_coloring = graph["re:faces_coloring"][graph["re:face_stationary"]];
-		folded["re:faces_coloring"] = faces_coloring(folded, new_face_stationary);
 
 		let folded_faces_matrix = make_faces_matrix(folded, new_face_stationary)
 			.map(m => core.multiply_matrices2(first_matrix, m));
+
+
+		folded["re:faces_coloring"] = faces_matrix_coloring(folded_faces_matrix);
 
 		// let folded_faces_matrix = Array.from(Array(folded.faces_vertices.length))
 		// 	.map((m,i) => graph["re:faces_matrix"][ folded["re:faces_preindex"][i] ])
@@ -4213,7 +4225,7 @@
 			frame_classes: ["foldedForm"],
 			frame_inherit: true,
 			frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
-			"re:face_stationary": new_face_stationary,
+			// "re:face_stationary": new_face_stationary,
 			"re:faces_matrix": folded_faces_matrix
 		};
 
@@ -4449,9 +4461,6 @@
 	}
 
 	function fold_without_layering(fold, face) {
-		if (fold["re:face_stationary"] != null) {
-			face = fold["re:face_stationary"];
-		}
 		if (face == null) { face = 0; }
 		let faces_matrix = make_faces_matrix(fold, face);
 		let vertex_in_face = fold.vertices_coords.map((v,i) => {
@@ -4471,9 +4480,6 @@
 
 
 	const fold_vertices_coords = function(graph, face_stationary, faces_matrix) {
-		// if (graph["re:face_stationary"] != null) {
-		// 	face_stationary = graph["re:face_stationary"];
-		// }
 		if (face_stationary == null) {
 			console.warn("fold_vertices_coords was not supplied a stationary face");
 			face_stationary = 0;
@@ -4569,20 +4575,11 @@
 		let facesV = graph.faces_vertices
 			.map(fv => fv.map(v => graph.vertices_coords[v]));
 			// .map(face => Geom.Polygon(face));
-		let notMoving = 0;
-		// if (graph["re:faces_to_move"] != null) {
-		// 	let faces_to_move = graph["re:faces_to_move"].indexOf(false);
-		// 	if (faces_to_move !== -1) { notMoving = faces_to_move; }
-		// }
-		if (graph["re:face_stationary"] != null) {
-			notMoving = graph["re:face_stationary"];
-		}
-		// if (graph["re:faces_coloring"] && graph["re:faces_coloring"].length > 0) {
 
-		// let coloring = faces_coloring(graph, notMoving);
 		let coloring = graph["re:faces_coloring"];
-		if (coloring == null) {
-			coloring = faces_coloring(graph, notMoving);
+
+		if (graph["re:faces_matrix"] != null) {
+			coloring = faces_matrix_coloring(graph["re:faces_matrix"]);
 		}
 
 		let orderIsCertain = graph["re:faces_layer"] != null;
@@ -5579,15 +5576,12 @@
 				&& prop.cp.file_frames.length > 0
 				&& prop.cp.file_frames[0]["re:faces_matrix"] != null
 				&& prop.cp.file_frames[0]["re:faces_matrix"].length === prop.cp.faces_vertices.length) ; else {
-				// console.log("fold() - XXXXXX -----rebuilding----- XXXXXXXX")
 				let file_frame = build_folded_frame(prop.cp, face);
-				// console.log("file_frame", file_frame);
 				if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
 				prop.cp.file_frames.unshift(file_frame);
 			}
 			prop.frame = 1;
 			draw();
-			// setCreasePattern( CreasePattern(folded) );
 		};
 
 		const foldWithoutLayering = function(face){
@@ -5697,12 +5691,12 @@
 						if (prevCP.file_frames == null) { prevCP.file_frames = []; }
 						prevCP.file_frames.unshift(file_frame);
 					}
-					prevCPFolded = flatten_frame(prevCP, 0);
+					prevCPFolded = flatten_frame(prevCP, 1);
 					let faces_containing = faces_containing_point(prevCPFolded, mouse);
 					let top_face = topmost_face$1(prevCPFolded, faces_containing);
 					// console.log("+++ faces_containing", faces_containing);
 					// console.log("+++ top_face", top_face);
-					touchFaceIndex = (top_face === undefined)
+					touchFaceIndex = (top_face == null)
 						? 0 // get bottom most face
 						: top_face;
 				} catch(error) {

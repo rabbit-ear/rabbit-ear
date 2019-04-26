@@ -221,6 +221,12 @@ export const make_faces_faces = function(graph) {
 	return faces_faces;
 }
 
+
+export const faces_matrix_coloring = function(faces_matrix) {
+	return faces_matrix
+		.map(m => m[0] * m[3] - m[1] * m[2])
+		.map(c => c >= 0);
+}
 /**
  * true/false: which face shares color with root face
  * the root face (and any similar-color face) will be marked as true
