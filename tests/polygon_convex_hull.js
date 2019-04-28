@@ -20,7 +20,7 @@ hull.setup();
 
 hull.redraw = function(){
 	hull.drawLayer.removeChildren();
-	hull.poly = RabbitEar.math.ConvexPolygon.convexHull(hull.touches.map(t => t.position));
+	hull.poly = RabbitEar.ConvexPolygon.convexHull(hull.touches.map(t => t.position));
 	let sectors = hull.poly.sectors;
 	let bisections = sectors.map(s => s.bisect());
 	bisections.map(s => [s.point, s.point.add(s.vector.scale(60))])

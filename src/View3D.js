@@ -7,7 +7,8 @@
  *   - DOM object, or "string" DOM id to attach to
  */
 
-import { flatten_frame, load_file } from "./fold/file";
+import { flatten_frame } from "./fold/file";
+import { load_file } from "./convert/convert";
 import CreasePattern from "./cp/CreasePattern";
 
 const CREASE_DIR = {

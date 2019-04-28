@@ -59,7 +59,6 @@ let fold = {
 	"re:faces_layer":[1,14,9,6,13,2,5,10,15,0,7,8,3,12,11,4],
 	"re:face_stationary":9,
 	"re:faces_to_move":[],
-	"re:faces_folding":[],
 	"re:faces_preindex":[7,7,6,6,5,5,4,4,3,3,2,2,1,1,0,0],
 	"re:faces_coloring":[false,true,false,true,false,true,false,true,false,true,false,true,false,true,false,true],
 	"re:faces_creases":[],
@@ -102,7 +101,7 @@ origami.onMouseMove = function(mouse) {
 	let faces_containing = RabbitEar.core.folded_faces_containing_point(origami.cp, mouse, fold.file_frames[0]["re:faces_matrix"]);
 	let top_face = RabbitEar.core.topmost_face(origami.cp, faces_containing);
 
-	let mouseVec = RabbitEar.math.Vector(mouse.x, mouse.y);
+	let mouseVec = RabbitEar.Vector(mouse.x, mouse.y);
 	let circles = fold.file_frames[0]["re:faces_matrix"]
 		.map(m => mouseVec.transform(m))
 		.map(p => cpView.drawLayer.circle(p[0], p[1], 0.01));
@@ -113,7 +112,7 @@ origami.onMouseMove = function(mouse) {
 		faces[top_face].svg.setAttribute("style", "fill: #ecb233");
 		circles[top_face].setAttribute("style", "fill: #e14929");
 		// dot on folded canvas
-		let p = RabbitEar.math.core.multiply_vector2_matrix2(mouse, fold.file_frames[0]["re:faces_matrix"][top_face]);
+		let p = RabbitEar.math.multiply_vector2_matrix2(mouse, fold.file_frames[0]["re:faces_matrix"][top_face]);
 		origami.drawLayer.circle(p[0], p[1], 0.01);
 	}
 }

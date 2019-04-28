@@ -13,7 +13,7 @@ overlap.rebuild = function(){
 	]);
 
 	overlap.polys = overlap.centers.map(c => 
-		RabbitEar.math.ConvexPolygon.regularPolygon( parseInt(Math.random()*2)+4, c[0], c[1], r)
+		RabbitEar.ConvexPolygon.regularPolygon( parseInt(Math.random()*2)+4, c[0], c[1], r)
 	);
 
 	overlap.removeChildren();

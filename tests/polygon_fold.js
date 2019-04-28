@@ -27,7 +27,7 @@ polyFold.reset = function(){
 		let r = Math.random() * polyFold.h*0.5;
 		return [polyFold.w*0.5 + r*Math.cos(a), polyFold.h*0.5 + r*Math.sin(a)];
 	});
-	polyFold.hull = RabbitEar.math.ConvexPolygon.convexHull(hullPoints);
+	polyFold.hull = RabbitEar.ConvexPolygon.convexHull(hullPoints);
 }
 
 polyFold.redraw = function(){
@@ -46,11 +46,11 @@ polyFold.redraw = function(){
 	if (polys != null){
 		polys.sort((a,b) => b.area - a.area);
 		if (polys.length > 1) {
-			let matrix = RabbitEar.math.Matrix2.makeReflection(vec, polyFold.touches[0].pos);
+			let matrix = RabbitEar.Matrix2.makeReflection(vec, polyFold.touches[0].pos);
 			let reflectedPoints = polys[1].points
 				.map(p => matrix.transform(p))
 				.map(p => [p[0], p[1]]);
-			polys[1] = RabbitEar.math.ConvexPolygon(reflectedPoints);
+			polys[1] = RabbitEar.ConvexPolygon(reflectedPoints);
 		}
 		polys.forEach((p,i)=> {
 			let poly = RabbitEar.svg.polygon(p.points);

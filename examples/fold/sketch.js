@@ -1,4 +1,7 @@
-let origami = RabbitEar.Origami({folding:true});
+let origami;
+origami = RabbitEar.Origami({folding:true}, window.innerWidth, window.innerHeight, function(){
+	origami.setViewBox(-0.1, -0.1, 1.2, 1.2);
+});
 origami.folded = true;
 let cpView = RabbitEar.Origami(document.querySelectorAll('.corner')[0]);
 

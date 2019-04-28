@@ -84,9 +84,9 @@ polySec.recurseMolecule = function(rays, polygon, sides, isEdgeRay) {
 	let vectorA = polygon.points[side0[1]].subtract(pointA);
 	let pointB = polygon.points[side1[0]];
 	let vectorB = polygon.points[side1[1]].subtract(pointB);
-	let bisects = RabbitEar.math.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
+	let bisects = RabbitEar.math.bisect_lines2(pointA, vectorA, pointB, vectorB);
 
-	let newRay = RabbitEar.math.Ray(intersects[index], bisects[0][1]);
+	let newRay = RabbitEar.Ray(intersects[index], bisects[0][1]);
 	let newSides = [side0, side1];
 
 	polygon.points.map((_,i,arr) => [
@@ -126,7 +126,7 @@ polySec.buildMolecule = function(polygon) {
 
 polySec.redraw = function(){
 	polySec.drawLayer.removeChildren();
-	polySec.poly = RabbitEar.math.ConvexPolygon.convexHull(polySec.touches.map(t => t.position));
+	polySec.poly = RabbitEar.ConvexPolygon.convexHull(polySec.touches.map(t => t.position));
 
 	let pointsString = polySec.poly.points
 		.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");

@@ -21,7 +21,7 @@ lrex.setup = function() {
 		l.setAttribute("stroke-linecap", "round");
 	});
 	let p = 1000;
-	lrex.boundary = RabbitEar.math.Polygon([
+	lrex.boundary = RabbitEar.Polygon([
 		[-p, -p], [lrex.w+p, -p], [lrex.w+p, lrex.h+p], [-p, lrex.h+p]
 	]);
 }
@@ -32,9 +32,9 @@ lrex.redraw = function(){
 		[lrex.controls[(i*2)+0].position[0], lrex.controls[(i*2)+0].position[1]],
 		[lrex.controls[(i*2)+1].position[0], lrex.controls[(i*2)+1].position[1]]
 	]);
-	let line = RabbitEar.math.Line.fromPoints(lrex.controls[0].position, lrex.controls[1].position);
-	let ray = RabbitEar.math.Ray.fromPoints(lrex.controls[2].position, lrex.controls[3].position);
-	let edge = RabbitEar.math.Edge(lrex.controls[4].position, lrex.controls[5].position);
+	let line = RabbitEar.Line.fromPoints(lrex.controls[0].position, lrex.controls[1].position);
+	let ray = RabbitEar.Ray.fromPoints(lrex.controls[2].position, lrex.controls[3].position);
+	let edge = RabbitEar.Edge(lrex.controls[4].position, lrex.controls[5].position);
 
 	segments[0] = lrex.boundary.clipLine(line);
 	segments[1] = lrex.boundary.clipRay(ray);
@@ -67,12 +67,12 @@ lrex.redraw = function(){
 	let wedges = intersections
 		.map(xing => xing.angles.map((_,i) => {
 			let a = [xing.angles[i], xing.angles[(i+1)%xing.angles.length]];
-			let dp = RabbitEar.math.core.bisect_vectors(
+			let dp = RabbitEar.math.bisect_vectors(
 				[Math.cos(a[0]), Math.sin(a[0])],
 				[Math.cos(a[1]), Math.sin(a[1])]
 			)[0];
 			let lc = (i === 3) ? Math.PI*2 : 0
-			let interior = RabbitEar.math.core.counter_clockwise_angle2_radians(a[0], a[1]+lc);
+			let interior = RabbitEar.math.counter_clockwise_angle2_radians(a[0], a[1]+lc);
 
 			let r = wedge_space / Math.pow(interior, 0.866);
 

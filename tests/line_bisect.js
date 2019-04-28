@@ -24,7 +24,7 @@ lBis.setup = function() {
 		l.setAttribute("stroke-linecap", "round");
 	});
 	let p = 1000;
-	lBis.boundary = RabbitEar.math.Polygon([
+	lBis.boundary = RabbitEar.Polygon([
 		[-p, -p], [lBis.w+p, -p], [lBis.w+p, lBis.h+p], [-p, lBis.h+p]
 	]);
 	lBis.arrowLayer = lBis.group();
@@ -34,8 +34,8 @@ lBis.setup = function() {
 lBis.redraw = function() {
 	lBis.lineLayer.removeChildren();
 	lBis.arrowLayer.removeChildren();
-	let lineA = RabbitEar.math.Line.fromPoints(lBis.controls[0].position, lBis.controls[1].position);
-	let lineB = RabbitEar.math.Line.fromPoints(lBis.controls[2].position, lBis.controls[3].position);
+	let lineA = RabbitEar.Line.fromPoints(lBis.controls[0].position, lBis.controls[1].position);
+	let lineB = RabbitEar.Line.fromPoints(lBis.controls[2].position, lBis.controls[3].position);
 	let segments = [
 		lBis.boundary.clipLine(lineA),
 		lBis.boundary.clipLine(lineB)
@@ -44,9 +44,9 @@ lBis.redraw = function() {
 		lBis.lines[i].setAttribute("x"+(j+1), p[0]);
 		lBis.lines[i].setAttribute("y"+(j+1), p[1]);
 	}));
-	let bisects = RabbitEar.math.core.bisect_lines2(lineA.point, lineA.vector, lineB.point, lineB.vector);
+	let bisects = RabbitEar.math.bisect_lines2(lineA.point, lineA.vector, lineB.point, lineB.vector);
 
-	let linelines = bisects.map(b => RabbitEar.math.Line(b[0][0], b[0][1], b[1][0], b[1][1]));
+	let linelines = bisects.map(b => RabbitEar.Line(b[0][0], b[0][1], b[1][0], b[1][1]));
 	let bColors = ["#ecb233", "#e44f2a"];
 	let lineSegs = linelines.map((l,i) => ({l:lBis.boundary.clipLine(l), c:bColors[i%2]})).filter(el => el.l !== undefined)
 	lineSegs.map(el => {
@@ -57,7 +57,7 @@ lBis.redraw = function() {
 		return l;
 	})
 
-	let controls = lBis.controls.map(c => RabbitEar.math.Vector(c.position));
+	let controls = lBis.controls.map(c => RabbitEar.Vector(c.position));
 
 	let arrows = [
 		drawArrow(controls[0], controls[1]),

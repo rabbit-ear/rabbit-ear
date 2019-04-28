@@ -76,7 +76,6 @@ const pointSidedness = function(point, vector, face_center, face_color) {
 
 const prepare_to_fold = function(graph, point, vector, face_index) {
 	let faces_count = graph.faces_vertices.length;
-	graph["re:faces_folding"] = Array.from(Array(faces_count));
 	graph["re:faces_preindex"] = Array.from(Array(faces_count)).map((_,i)=>i);
 	// graph["re:faces_coloring"] = Graph.faces_coloring(graph, face_index);
 
@@ -231,7 +230,6 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	// 	"re:faces_center",
 	// 	"re:faces_coloring",
 	// 	"re:faces_creases",
-	// 	"re:faces_folding",
 	// 	"re:faces_layer",
 	// 	"re:faces_matrix",
 	// 	"re:faces_preindex",
@@ -407,7 +405,7 @@ export function add_edge_between_points(graph, x0, y0, x1, y1) {
 // 	let vectors_as_angles = vectors.map(v => Math.atan2(v[1], v[0]));
 // 	return vectors.map((v,i,arr) => {
 // 		let nextV = arr[(i+1)%arr.length];
-// 		return RabbitEar.math.core.counter_clockwise_angle2(v, nextV);
+// 		return Geom.core.counter_clockwise_angle2(v, nextV);
 // 	});
 // }
 

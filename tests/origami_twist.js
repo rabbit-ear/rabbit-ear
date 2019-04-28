@@ -30,7 +30,7 @@ twist.setup();
 
 twist.rebuildHull = function(){
 	let points = twist.controls.map(t => t.position);
-	twist.poly = RabbitEar.math.ConvexPolygon.convexHull(points);
+	twist.poly = RabbitEar.ConvexPolygon.convexHull(points);
 	let pointsString = twist.poly.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
 	twist.polygon.setAttribute("points", pointsString);
 }
@@ -40,18 +40,18 @@ twist.rebuildCreases = function() {
 	let poly_junctions = twist.poly.points.map((center, i, arr) => ({
 		center: center,
 		points: [arr[(i+1)%arr.length], arr[(i+arr.length-1)%arr.length]]
-	})).map(el => RabbitEar.math.Junction(el.center, el.points));
+	})).map(el => RabbitEar.Junction(el.center, el.points));
 	let poly_sectors = poly_junctions.map(j => j.sectors().sort((a,b) => a.angle - b.angle).shift());
 	let rays = poly_sectors.map(sector => sector.bisect());
 	let rays_180 = rays.map(ray => ray.rotate180());
 
 	twist.junctions = poly_junctions.map((j,i) =>
-		RabbitEar.math.Junction.fromVectors(j.center, j.vectors.concat([rays_180[i].vector]))
+		RabbitEar.Junction.fromVectors(j.center, j.vectors.concat([rays_180[i].vector]))
 	);
 
 	let solutions = twist.junctions.map(j => j.kawasaki_solutions());
 
-	let boundary = RabbitEar.math.ConvexPolygon([[0,0], [500,0], [500,500], [0,500]]);
+	let boundary = RabbitEar.ConvexPolygon([[0,0], [500,0], [500,500], [0,500]]);
 	twist.bisect_edges = rays_180.map(r => boundary.clipRay(r));
 	let svgLines = twist.bisect_edges
 		.map(e => RabbitEar.svg.line(e[0][0], e[0][1], e[1][0], e[1][1]));
@@ -63,7 +63,7 @@ twist.rebuildCreases = function() {
 	});
 
 	let kawasakiVectors = solutions
-		.map((three,i) => three.map(vec => RabbitEar.math.Ray(twist.junctions[i].center, vec)))
+		.map((three,i) => three.map(vec => RabbitEar.Ray(twist.junctions[i].center, vec)))
 	twist.kawasaki_edges = kawasakiVectors
 		.map(vec => vec.filter((_,i) => i === 1).shift())
 		.map(r => boundary.clipRay(r));
@@ -84,7 +84,7 @@ twist.reportErrors = function() {
 	for (let i = 0; i < twist.bisect_edges.length; i++) {
 		for(let j = 0; j < twist.kawasaki_edges.length; j++) {
 			if (i !== j) {
-				let sect = RabbitEar.math.core.intersection.edge_edge(
+				let sect = RabbitEar.math.intersection.edge_edge(
 					twist.bisect_edges[i][0], twist.bisect_edges[i][1],
 					twist.kawasaki_edges[j][0], twist.kawasaki_edges[j][1]
 				);

@@ -4,90 +4,67 @@ html, body {
 	width: 100%;
 	height: 100%;
 }
-body{
+
+body {
 	margin: 0px;
 	display: flex;
-	align-items: flex-end;
+	align-items: center;
 	justify-content: center;	
-	background-color: black; /*hsl(205, 74%, 30%);*/
+	background-color: black;
 	color: white;
 	font-family: sans-serif;
 }
-svg{
-	width: 100vmin;
-	height: 100vmin;
-	align-self: flex-end;
-}
-.corner svg{
-	width: 100%;
-	height: 100%;
-	max-width: initial;
-	max-height: initial;
-	padding: initial;
-}
+
 .corner {
 	position: absolute;
 	z-index: 1;
 	top: 1rem;
 	right: 1rem;
-	width: 33vmin;
-	height: 33vmin;
-	/*cursor: pointer;*/
-}
-.boundary{
-	fill: white;
-	stroke: black;
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
-}
-.vertex  { fill: none; stroke: none; }
-.sector{ fill: none; stroke: none; }
-.mountain{
-	stroke: hsl(14.4, 87%, 45%);
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
-}
-.valley{
-	stroke: hsl(205, 74%, 30%);
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
-	stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2)
-}
-.mark{
-	stroke: #888;
-	stroke-width: calc( var(--crease-width) * 0.5);
-	stroke-linecap: round;
-}
-.stroke-yellow{ stroke: hsl(43, 88%, 46%); }
-.fill-yellow{ fill: hsl(43, 88%, 46%); }
-
-.creasePattern #faces {
-	stroke: none; fill: none;
+	width: 45vmin;
+	height: 45vmin;
+	cursor: pointer;
 }
 
+svg {
+	width: 100%;
+	height: 100%;
+}
+
+svg * {
+	stroke-width: var(--crease-width);
+}
+
+.boundary {
+	fill: none;
+	stroke: none;
+}
+
+.foldedForm * {
+	stroke-width: calc( var(--crease-width) * 0.25);
+}
 .foldedForm #faces {
-	fill: rgba(0, 0, 0, 0.1);
 	stroke: black;
-	stroke-width: calc(var(--crease-width)*0.1);
-	stroke-linejoin: bevel;
 }
-
 .foldedForm #faces .front {
-	fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);
+	fill: #ecb233;
 }
 .foldedForm #faces .back {
-	fill: white; stroke: black; stroke-width: var(--crease-width);
+	fill: white;
 }
 
-.foldedForm #creases * {
-	fill: none; stroke: none;
+.creasePattern .mountain {
+	stroke: black;
+	stroke-linecap: round;
 }
-
-.foldedForm #vertices * {
-	fill: none; stroke: none;
+.creasePattern .valley {
+	stroke: black;
+	stroke-linecap: round;
+	stroke-dasharray: calc( var(--crease-width) * 0.01) calc( var(--crease-width) * 2)
 }
-
-/* this is cool if you leave it out, you can see the boundary in the folded form */
-.foldedForm #boundaries * {
-	fill: none; stroke: none;
+.creasePattern #faces {
+	stroke: none;
+	fill: none;
+}
+.creasePattern #creases * {
+	stroke: white;
 }

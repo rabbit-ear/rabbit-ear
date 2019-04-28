@@ -35,7 +35,7 @@ basisVec.reset = function() {
 basisVec.recalc = function() {
 	let center = [0, 0];
 	basisVec.vectors = basisVec.touches
-		.map(t => RabbitEar.math.Vector(t.position));
+		.map(t => RabbitEar.Vector(t.position));
 	basisVec.normalized = basisVec.vectors.map(v => v.normalize());
 	basisVec.cross = basisVec.normalized[0].cross(basisVec.normalized[1]);
 	basisVec.dot0_1 = basisVec.normalized[0].dot(basisVec.normalized[1]);

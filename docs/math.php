@@ -23,7 +23,7 @@
 	<h3>Contents</h3>
 	<!-- <p>This library contains a growing list of about ten primitives.</p> -->
 	<div class="centered">
-		<pre class="compact"><code><f>RabbitEar</f>.math
+		<pre class="compact"><code><f>RabbitEar</f>
 ┃
 ┣━ <v>Vector</v>
 ┣━ <v>Matrix2</v>
@@ -36,7 +36,7 @@
 ┣━ <v>Circle</v>
 ┣━ <v>Polygon</v>
 ┣━ <v>ConvexPolygon</v>
-┗━ core</code></pre>
+┗━ math</code></pre>
 	</div>
 </section>
 
@@ -202,7 +202,7 @@
 	<p class="quote">The convex hull algorithm performed on a collection of points</p>
 	
 	<div class="centered">
-		<pre><code><f>let</f> polygon <key>=</key> <f>Polygon</f>()</code></pre>
+		<pre><code><f>let</f> polygon <key>=</key> <f>Polygon</f>(pointA, pointB, ...)</code></pre>
 	</div>
 	
 	<h3>Intersections</h3>
@@ -272,15 +272,15 @@
 	<p>The <b>core</b> is where the computation occurs, everything above is calling methods in here.</p>
 
 	<div class="centered">
-		<pre class="compact"><code><f>RabbitEar</f>.math
+		<pre class="compact"><code><f>RabbitEar</f>
 ┃
 ┣━ Circle
 ┣━ ConvexPolygon
 ┣━ ...
-┗━ <v>core</v></code></pre>
+┗━ <v>math</v></code></pre>
 </section>
 
-	<p class="quote">Be careful, there is no type checking; the core was built for speed. It will be more reliable if you avoid this section.</p>
+	<p class="quote">The core was built for speed; there is no type checking. Things will be more reliable if you avoid this section.</p>
 
 	<div id="canvas-polygon-overlaps"></div>
 

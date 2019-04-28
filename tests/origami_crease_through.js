@@ -20,18 +20,18 @@ let params = [{
 ]
 
 for (var i = 0; i < params.length; i++) {
-	// let point = RabbitEar.math.Vector(Math.random(), Math.random());
-	// let vector = RabbitEar.math.Vector(Math.random(), Math.random());
+	// let point = RabbitEar.Vector(Math.random(), Math.random());
+	// let vector = RabbitEar.Vector(Math.random(), Math.random());
 	let point = params[i].point;
 	let vector = params[i].vector;
-	let stay = RabbitEar.math.Vector(Math.random(), Math.random());
+	let stay = RabbitEar.Vector(Math.random(), Math.random());
 	valleys.cp.valleyFold(point, vector, 0);//stay);
 	// console.log(point, vector);
 }
 
-// let point = RabbitEar.math.Vector(0.2, 0.8);
-// let vector = RabbitEar.math.Vector(1, 1);
-// let stay = RabbitEar.math.Vector(1, -1);
+// let point = RabbitEar.Vector(0.2, 0.8);
+// let vector = RabbitEar.Vector(1, 1);
+// let stay = RabbitEar.Vector(1, -1);
 // valleys.cp.valleyFold(point, vector, stay);
 
 valleys.masterCP = JSON.parse(JSON.stringify(valleys.cp.json));
@@ -49,11 +49,11 @@ valleys.update = function() {
 
 	if(yes){
 		valleys.cp = RabbitEar.CreasePattern(valleys.masterCP);
-		let line = RabbitEar.math.Line.fromPoints(valleys.controls[0].position, valleys.controls[1].position);
+		let line = RabbitEar.Line.fromPoints(valleys.controls[0].position, valleys.controls[1].position);
 		let cp = JSON.parse(JSON.stringify(valleys.masterCP));
 		let points = [
-			RabbitEar.math.Vector(valleys.controls[0].position),
-			RabbitEar.math.Vector(valleys.controls[1].position)
+			RabbitEar.Vector(valleys.controls[0].position),
+			RabbitEar.Vector(valleys.controls[1].position)
 		];
 		let vector = points[1].subtract(points[0]);
 		let stayVector = vector.rotateZ90();

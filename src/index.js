@@ -11,7 +11,12 @@ import * as planargraph from './fold/planargraph';
 import { default as valleyfold } from './fold/valleyfold';
 import * as creasethrough from './fold/creasethrough';
 
-import { intoFOLD, intoSVG, intoORIPA } from './convert/format';
+import { intoFOLD, intoSVG, intoORIPA } from './convert/convert';
+
+import { default as CreasePattern } from './cp/CreasePattern';
+import { default as Origami } from './View2D';
+import { default as Origami3D } from './View3D';
+import { default as Graph } from './Graph';
 
 let convert = { intoFOLD, intoSVG, intoORIPA };
 
@@ -61,13 +66,20 @@ const bases = {
 	// blintzDistorted: JSON.parse(blintzDistorted)
 };
 
-export { default as CreasePattern } from './cp/CreasePattern';
-export { default as Origami } from './View2D';
-export { default as Origami3D } from './View3D';
-export { default as Graph } from './Graph';
+let rabbitEar = {
+	CreasePattern,
+	Origami,
+	Origami3D,
+	Graph,
+	svg,
+	convert,
+	core,
+	bases,
+	math: math.core
+};
 
-export { math };
-export { svg };
-export { convert };
-export { core };
-export { bases };
+Object.keys(math)
+	.filter(key => key !== "core")
+	.forEach(key => rabbitEar[key] = math[key]);
+
+export default rabbitEar;

@@ -1,4 +1,4 @@
-import { clean_number } from "../convert/arguments";
+import { clean_number } from "../convert/arguments"; 
 
 const template = function() {
 	return {

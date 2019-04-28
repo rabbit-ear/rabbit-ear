@@ -37,16 +37,16 @@
 				</div> -->
 			</li>
 			<li class="dropdown">
-				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">II. GRAPHS</a>
+				<a href="graphs.php" class="dropbtn" style="cursor:not-allowed; color:#888">II. GRAPHS</a>
 			</li>
 			<li class="dropdown">
-				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">III. CREASE PATTERNS</a>
+				<a href="cp.php" class="dropbtn" style="cursor:not-allowed; color:#888">III. CREASE PATTERNS</a>
 			</li>
 <!-- 			<li class="dropdown">
 				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">IV. RABBIT EAR</a>
 			</li> -->
 			<li class="dropdown">
-				<a href="" class="dropbtn" style="cursor:not-allowed; color:#888">APPENDIX</a>
+				<a href="appendix.php" class="dropbtn">APPENDIX</a>
 			</li>
 		</ul>
 	</nav>

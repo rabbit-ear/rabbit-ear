@@ -3,7 +3,12 @@
  */
 
 import * as SVG from "../../include/svg";
-import { CREASE_NAMES, get_boundary_vertices, faces_matrix_coloring, faces_coloring } from "../fold/graph";
+import {
+	CREASE_NAMES,
+	get_boundary_vertices,
+	faces_matrix_coloring,
+	faces_coloring
+} from "../fold/graph";
 
 /**
  * if you already have groups initialized, to save on re-initializing, pass the groups

@@ -12,7 +12,7 @@ let cpFaces = creaseThrough.faces;
 let highlightedFace = 0;
 
 creaseThrough.update = function() {
-	let line = RabbitEar.math.Line.fromPoints(creaseThrough.controls[0].position, creaseThrough.controls[1].position);
+	let line = RabbitEar.Line.fromPoints(creaseThrough.controls[0].position, creaseThrough.controls[1].position);
 	let cp = JSON.parse(JSON.stringify(creaseThrough.masterCP));
 	RabbitEar.fold.origami.crease_folded(cp, line.point, line.vector, 4);
 	creaseThrough.cp = RabbitEar.CreasePattern(cp);

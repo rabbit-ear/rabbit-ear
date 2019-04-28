@@ -60,6 +60,10 @@ export const CREASE_NAMES = {
 	"U": "mark",     "u": "mark"
 };
 
+const make_complete = function(graph) {
+
+}
+
 /**
  * these should trigger a careful re-build, they augment only one
  * array for the larger set of components
@@ -203,7 +207,7 @@ export const make_faces_faces = function(graph) {
 	let faces_faces = Array.from(Array(nf)).map(() => []);
 	let edgeMap = {};
 	graph.faces_vertices.forEach((vertices_index, idx1) => {
-		if (vertices_index === undefined) { return; }  //todo: why is this here?
+		if (vertices_index === undefined) { return; }  //todo: necessary?
 		let n = vertices_index.length;
 		vertices_index.forEach((v1, i, vs) => {
 			let v2 = vs[(i + 1) % n];
@@ -243,6 +247,9 @@ export const faces_coloring = function(graph, root_face = 0){
 // root_face will become the root node
 export const make_face_walk_tree = function(graph, root_face = 0){
 	let new_faces_faces = make_faces_faces(graph);
+	if (new_faces_faces.length <= 0) {
+		return [];
+	}
 	var visited = [root_face];
 	var list = [[{ face: root_face, parent: undefined, edge: undefined, level: 0 }]];
 	// let current_level = 0;

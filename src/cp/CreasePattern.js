@@ -6,9 +6,15 @@ import * as Origami from "../fold/origami";
 import { Polygon } from "../../include/geometry";
 import * as Args from "../convert/arguments";
 import { Vertex, Face, Edge, Crease } from "./components";
-import * as Format from "../convert/format";
+import * as Convert from "../convert/convert";
 import * as Make from "../fold/make";
 import * as File from "../fold/file";
+
+const appendRabbitEarExtensions = function(graph) {
+	if (graph.faces_vertices.length === 1) {
+		graph["re:faces_layer"] = [0]
+	}
+}
 
 const CreasePatternPrototype = function(proto) {
 	if(proto == null) {
@@ -46,6 +52,7 @@ const CreasePatternPrototype = function(proto) {
 			Graph.all_keys.forEach(key => delete _this[key])
 		}
 		Object.assign(_this, JSON.parse(JSON.stringify(file)));
+		appendRabbitEarExtensions(_this);
 	}
 	/**
 	 * @return {CreasePattern} a deep copy of this object.
@@ -73,7 +80,7 @@ const CreasePatternPrototype = function(proto) {
 	}
 
 	const svg = function(cssRules) {
-		return Format.fold_to_svg(_this);
+		return Convert.fold_to_svg(_this);
 	}
 
 	// const wipe = function() {

@@ -9,8 +9,8 @@ sketch.controls.forEach(c => c.position = [Math.random(), Math.random()]);
 sketch.controls[1].circle.setAttribute("fill", "#000");
 
 let params = Array.from(Array(2)).map(_ => ({
-	point: RabbitEar.math.Vector(Math.random(), Math.random()),
-	vector: RabbitEar.math.Vector(Math.random(), Math.random())
+	point: RabbitEar.Vector(Math.random(), Math.random()),
+	vector: RabbitEar.Vector(Math.random(), Math.random())
 }));
 
 // let params = [
@@ -46,7 +46,7 @@ sketch.drawArrow = function(start, end) {
 sketch.update = function() {
 	sketch.drawLayer.removeChildren();
 
-	let creaseLine = RabbitEar.math.Line.fromPoints(sketch.controls[0].position, sketch.controls[1].position);
+	let creaseLine = RabbitEar.Line.fromPoints(sketch.controls[0].position, sketch.controls[1].position);
 	let stayNormalVec = creaseLine.vector.rotateZ90();
 	
 	let creaseL = sketch.drawLayer.line(
@@ -80,7 +80,7 @@ sketch.update = function() {
 		});
 
 	let faces_center = Array.from(Array(faces_count))
-		.map((line, i) => RabbitEar.math.Vector(graph.faces_vertices[i]
+		.map((line, i) => RabbitEar.Vector(graph.faces_vertices[i]
 			.map(v => graph.vertices_coords[v])
 			.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
 			.map(el => el/graph.faces_vertices[i].length)

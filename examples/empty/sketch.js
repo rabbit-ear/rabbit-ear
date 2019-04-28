@@ -1,6 +1,5 @@
-var origami = RabbitEar.Origami();
+var origami = RabbitEar.Origami({folding:true, padding:0.1});
 
-// optional event handlers
 origami.onMouseDown = function(mouse) { }
 origami.onMouseUp = function(mouse) { }
 origami.onMouseMove = function(mouse) { }

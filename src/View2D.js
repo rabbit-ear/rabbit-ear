@@ -11,10 +11,10 @@ import * as Geom from "../include/geometry";
 import * as SVG from "../include/svg";
 import * as Graph from "./fold/graph";
 import * as Origami from "./fold/origami";
-import * as Format from "./convert/format";
-import { flatten_frame, load_file } from "./fold/file";
+import { flatten_frame } from "./fold/file";
+import { load_file } from "./convert/convert";
 import CreasePattern from "./cp/CreasePattern";
-import * as Draw from "./fold/draw";
+import * as FoldToSVG from "./draw/toSVG";
 import {
 	faces_containing_point,
 	topmost_face,
@@ -90,6 +90,9 @@ export default function() {
 		prop.cp = cp;
 		prop.frame = undefined;
 		draw();
+		// two levels of autofit going on here
+		if (!preferences.autofit) { updateViewBox(); }
+
 		prop.cp.onchange = draw;
 	}
 
@@ -140,14 +143,14 @@ export default function() {
 		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
 		labels.face.removeChildren(); //todo remove
 		// both folded and non-folded draw all the components, style them in CSS
-		Draw.intoGroups(graph, visibleGroups);
+		FoldToSVG.intoGroups(graph, visibleGroups);
 
 
 		// if (groups.faces.children.length === graph.faces_vertices.length) {
-		// 	Draw.updateFaces(graph, groups.faces);
+		// 	FoldToSVG.updateFaces(graph, groups.faces);
 		// } else {
 		// 	// SVG.removeChildren(groups.faces);
-		// 	Draw.updateGroups(graph, visibleGroups);
+		// 	FoldToSVG.updateGroups(graph, visibleGroups);
 		// }
 
 		if (preferences.debug) { drawDebug(graph); }
@@ -273,9 +276,13 @@ export default function() {
 
 	Object.defineProperty(_this, "frames", {
 		get: function() {
+			if (prop.cp.file_frames === undefined) {
+				return [JSON.parse(JSON.stringify(prop.cp))];
+			}
 			let frameZero = JSON.parse(JSON.stringify(prop.cp));
 			delete frameZero.file_frames;
-			return [frameZero].concat(JSON.parse(JSON.stringify(prop.cp.file_frames)));
+			let frames = JSON.parse(JSON.stringify(prop.cp.file_frames));
+			return [frameZero].concat(frames);
 		}
 	});
 	Object.defineProperty(_this, "frame", {

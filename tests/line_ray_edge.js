@@ -18,7 +18,7 @@ lre.setup = function() {
 		l.setAttribute("stroke-linecap", "round");
 	});
 	let p = 1000;
-	lre.boundary = RabbitEar.math.Polygon([
+	lre.boundary = RabbitEar.Polygon([
 		[-p, -p], [lre.w+p, -p], [lre.w+p, lre.h+p], [-p, lre.h+p]
 	]);
 }
@@ -29,8 +29,8 @@ lre.redraw = function(){
 		[lre.controls[(i*2)+0].position[0], lre.controls[(i*2)+0].position[1]],
 		[lre.controls[(i*2)+1].position[0], lre.controls[(i*2)+1].position[1]]
 	]);
-	let line = RabbitEar.math.Line.fromPoints(lre.controls[0].position, lre.controls[1].position);
-	let ray = RabbitEar.math.Ray.fromPoints(lre.controls[2].position, lre.controls[3].position);
+	let line = RabbitEar.Line.fromPoints(lre.controls[0].position, lre.controls[1].position);
+	let ray = RabbitEar.Ray.fromPoints(lre.controls[2].position, lre.controls[3].position);
 	segments[0] = lre.boundary.clipLine(line);
 	segments[1] = lre.boundary.clipRay(ray);
 	segments.forEach((segment, i) => segment.forEach((p, j) => {

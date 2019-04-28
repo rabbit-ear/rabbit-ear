@@ -61,8 +61,8 @@ lerps.onMouseMove = function(mouse){
 
 lerps.animate = function(event){
 	let phase = Math.sin(event.time) * 0.5 + 0.5;
-	let vecs = lerps.controls.map(el => RabbitEar.math.Vector(el.position))
-	// let vecs = lerps.touches.map(el => RabbitEar.math.Vector([el.pos[0], el.pos[1]]))
+	let vecs = lerps.controls.map(el => RabbitEar.Vector(el.position))
+	// let vecs = lerps.touches.map(el => RabbitEar.Vector([el.pos[0], el.pos[1]]))
 	lerps.ctrlLerps = [
 		vecs[0].lerp(vecs[2], phase),
 		vecs[2].lerp(vecs[1], phase)

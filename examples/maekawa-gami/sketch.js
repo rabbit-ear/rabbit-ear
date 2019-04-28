@@ -21,9 +21,9 @@ origami.onMouseMove = function(mouse) {
 	origami.near = origami.nearest(mouse);
 	let vertex = origami.near.vertex;
 	if (vertex) {
-		let boundary = RabbitEar.math.ConvexPolygon([[0,0], [1,0], [1,1], [0,1]]);
+		let boundary = RabbitEar.ConvexPolygon([[0,0], [1,0], [1,1], [0,1]]);
 		let p = origami.cp.vertices_coords[vertex.index];
-		let lines = options.map(v => RabbitEar.math.Line(p, v));
+		let lines = options.map(v => RabbitEar.Line(p, v));
 		let edges = lines.map(l => boundary.clipLine(l));
 		let svgEdges = edges
 			.map(e => RabbitEar.svg.line(e[0][0], e[0][1], e[1][0], e[1][1]));

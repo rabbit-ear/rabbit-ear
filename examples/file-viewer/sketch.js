@@ -1,13 +1,16 @@
 var div = document.getElementsByClassName("canvases")[0];
-var origami = RabbitEar.Origami(div, {folding:false});
+var origami = RabbitEar.Origami(div, {folding:false, padding:0.05});
 var slider = document.querySelector("#frame-slider");
+var frameInfo = document.querySelector("#frame-span");
 slider.oninput = sliderUpdate;
 
 function sliderUpdate(event) {
 	let value = event.target.value
 	let fraction = parseFloat(value / 1000);
-	let frame = parseInt(fraction * (origami.frames.length-1));
+	let frameCount = origami.frames.length-1;
+	let frame = parseInt(fraction * frameCount);
 	origami.frame = frame;
+	frameInfo.innerHTML = "frame " + frame + "/" + frameCount;
 }
 
 origami.onMouseMove = function(event){
@@ -24,12 +27,20 @@ origami.color = function(event) {
 	if(nearest.face) { nearest.face.svg.addClass('fill-red'); }
 }
 
-// IMPORT / EXPORT
-foldFileDidLoad = function(fold) {
-	console.log("fold", fold)
-	origami.cp = RabbitEar.CreasePattern(fold);
-	// origami.draw();
+fileDidLoad = function(blob, mimeType, fileExtension) {
+	origami.load(blob, function(cp) {
+		sliderUpdate({target:{value:0}});
+		slider.value = 0;
+	});
 }
+
+// IMPORT / EXPORT
+// foldFileDidLoad = function(fold) {
+// 	console.log("fold", fold)
+// 	origami.cp = RabbitEar.CreasePattern(fold);
+// 	// origami.draw();
+// }
+
 document.getElementById("download-cp-svg").addEventListener("click", function(e){
 	e.preventDefault();
 	downloadCreasePattern(origami.cp, "creasepattern", "svg");

@@ -1,9 +1,9 @@
 /* Rabbit Ear v2 (c) Robby Kraft, MIT License */
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.RabbitEar = {})));
-}(this, (function (exports) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.RabbitEar = factory());
+}(this, (function () { 'use strict';
 
 	/* Geometry (c) Robby Kraft, MIT License */
 	const EPSILON_LOW  = 3e-6;
@@ -1511,7 +1511,7 @@
 	Object.freeze(core.axiom);
 	Object.freeze(core);
 
-	var geometry$1 = /*#__PURE__*/Object.freeze({
+	var math = /*#__PURE__*/Object.freeze({
 		Vector: Vector,
 		Circle: Circle,
 		Polygon: Polygon,
@@ -2722,84 +2722,12 @@
 		return fold;
 	};
 
-	/**
-	 * this asynchronously or synchronously loads data from "input",
-	 * if necessary, converts into the FOLD format,
-	 * and calls "callback(fold)" with the data as the first argument.
-	 *
-	 * valid "input" arguments are:
-	 * - filenames ("pattern.svg")
-	 * - raw blob contents of a preloaded file (.fold, .oripa, .svg)
-	 * - SVG DOM objects (<svg> SVGElement)
-	 */
-
-	const load_file = function(input, callback) {
-		let type = typeof input;
-		if (type === "object") {
-			try {
-				let fold = JSON.parse(JSON.stringify(input));
-				// todo different way of checking fold format validity
-				if (fold.vertices_coords == null) {
-					throw "tried FOLD format, got empty object";
-				}
-				if (callback != null) {
-					callback(fold);
-				}
-				return fold; // asynchronous loading was not required
-			} catch(err) {
-				if (input instanceof Element){
-					let fold = svg_to_fold(input);
-					if (callback != null) {
-						callback(fold);
-					}
-					return fold; // asynchronous loading was not required
-				}
-			} 
-			// finally {
-			// 	return;  // currently not used. everything previous is already returning
-			// }
-		}
-		// are they giving us a filename, or the data of an already loaded file?
-		if (type === "string" || input instanceof String) {
-			// try a FOLD format string
-			try {
-				// try .fold file format first
-				let fold = JSON.parse(input);
-				if (callback != null) { callback(fold); }
-			} catch(err) {
-				let extension = input.substr((input.lastIndexOf('.') + 1));
-				// filename. we need to upload
-				switch(extension) {
-					case "fold":
-						fetch(input)
-							.then((response) => response.json())
-							.then((data) => {
-								if (callback != null) { callback(data); }
-							});
-					break;
-					case "svg":
-						SVG.load(input, function(svg) {
-							let fold = svg_to_fold(svg);
-							if (callback != null) { callback(fold); }
-						});
-					break;
-					case "oripa":
-						// ORIPA.load(input, function(fold) {
-						// 	if (callback != null) { callback(fold); }
-						// });
-					break;
-				}
-			}
-		}
-	};
-
 	var file = /*#__PURE__*/Object.freeze({
 		clone: clone$1,
 		recursive_freeze: recursive_freeze,
 		append_frame: append_frame,
 		flatten_frame: flatten_frame,
-		merge_frame: merge_frame$1,
-		load_file: load_file
+		merge_frame: merge_frame$1
 	});
 
 	// graph manipulators for .FOLD file github.com/edemaine/fold
@@ -2987,7 +2915,7 @@
 		let faces_faces = Array.from(Array(nf)).map(() => []);
 		let edgeMap = {};
 		graph.faces_vertices.forEach((vertices_index, idx1) => {
-			if (vertices_index === undefined) { return; }  //todo: why is this here?
+			if (vertices_index === undefined) { return; }  //todo: necessary?
 			let n = vertices_index.length;
 			vertices_index.forEach((v1, i, vs) => {
 				let v2 = vs[(i + 1) % n];
@@ -3027,6 +2955,9 @@
 	// root_face will become the root node
 	const make_face_walk_tree = function(graph, root_face = 0){
 		let new_faces_faces = make_faces_faces(graph);
+		if (new_faces_faces.length <= 0) {
+			return [];
+		}
 		var visited = [root_face];
 		var list = [[{ face: root_face, parent: undefined, edge: undefined, level: 0 }]];
 		// let current_level = 0;
@@ -4067,7 +3998,6 @@
 
 	const prepare_to_fold = function(graph, point, vector, face_index) {
 		let faces_count$$1 = graph.faces_vertices.length;
-		graph["re:faces_folding"] = Array.from(Array(faces_count$$1));
 		graph["re:faces_preindex"] = Array.from(Array(faces_count$$1)).map((_,i)=>i);
 		// graph["re:faces_coloring"] = Graph.faces_coloring(graph, face_index);
 
@@ -4221,7 +4151,6 @@
 		// 	"re:faces_center",
 		// 	"re:faces_coloring",
 		// 	"re:faces_creases",
-		// 	"re:faces_folding",
 		// 	"re:faces_layer",
 		// 	"re:faces_matrix",
 		// 	"re:faces_preindex",
@@ -4397,7 +4326,7 @@
 	// 	let vectors_as_angles = vectors.map(v => Math.atan2(v[1], v[0]));
 	// 	return vectors.map((v,i,arr) => {
 	// 		let nextV = arr[(i+1)%arr.length];
-	// 		return RabbitEar.math.core.counter_clockwise_angle2(v, nextV);
+	// 		return Geom.core.counter_clockwise_angle2(v, nextV);
 	// 	});
 	// }
 
@@ -4510,6 +4439,7 @@
 	});
 
 	/* (c) Robby Kraft, MIT License */
+	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),shape_attr={line:["x1","y1","x2","y2"],rect:["x","y","width","height"],circle:["cx","cy","r"],ellipse:["cx","cy","rx","ry"],polygon:["points"],polyline:["points"],path:["d"]},flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},attribute_list=function(b){return Array.from(b.attributes).filter(c=>-1===shape_attr[b.tagName].indexOf(c.name))},withAttributes=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a).map(b=>{let c={x1:b[0],y1:b[1],x2:b[2],y2:b[3]};return attribute_list(a).forEach(b=>c[b.nodeName]=b.value),c})).reduce((c,a)=>c.concat(a),[])};
 
 	/**
 	 * .FOLD file into SVG, and back
@@ -4591,6 +4521,93 @@
 	// import * as Fold from "../include/fold";
 
 
+	/** parser error to check against */
+	const pErr$1 = (new window.DOMParser())
+		.parseFromString("INVALID", "text/xml")
+		.getElementsByTagName("parsererror")[0]
+		.namespaceURI;
+
+	/**
+	 * this asynchronously or synchronously loads data from "input",
+	 * if necessary, converts into the FOLD format,
+	 * and calls "callback(fold)" with the data as the first argument.
+	 *
+	 * valid "input" arguments are:
+	 * - filenames ("pattern.svg")
+	 * - raw blob contents of a preloaded file (.fold, .oripa, .svg)
+	 * - SVG DOM objects (<svg> SVGElement)
+	 */
+	const load_file = function(input, callback) {
+		let type = typeof input;
+		if (type === "object") {
+			try {
+				let fold = JSON.parse(JSON.stringify(input));
+				// todo different way of checking fold format validity
+				if (fold.vertices_coords == null) {
+					throw "tried FOLD format, got empty object";
+				}
+				if (callback != null) {
+					callback(fold);
+				}
+				return fold; // asynchronous loading was not required
+			} catch(err) {
+				if (input instanceof Element){
+					let fold = svg_to_fold(input);
+					if (callback != null) {
+						callback(fold);
+					}
+					return fold; // asynchronous loading was not required
+				}
+			} 
+			// finally {
+			// 	return;  // currently not used. everything previous is already returning
+			// }
+		}
+		// are they giving us a filename, or the data of an already loaded file?
+		if (type === "string" || input instanceof String) {
+			// try a FOLD format string
+			try {
+				// try .fold file format first
+				let fold = JSON.parse(input);
+				if (callback != null) { callback(fold); }
+			} catch(err) {
+				// try rendering the XML string
+				let xml = (new window.DOMParser()).parseFromString(input, "text/xml");
+				console.log(xml);
+				if (xml.getElementsByTagNameNS(pErr$1, "parsererror").length === 0) {
+					let parsedSVG = xml.documentElement;
+					let fold = svg_to_fold(parsedSVG);
+					if (callback != null) { callback(fold); }
+					console.log("fold", fold);
+					return fold;
+				}
+
+				let extension = input.substr((input.lastIndexOf('.') + 1));
+				// filename. we need to upload
+				switch(extension) {
+					case "fold":
+						fetch(input)
+							.then((response) => response.json())
+							.then((data) => {
+								if (callback != null) { callback(data); }
+							});
+					break;
+					case "svg":
+						load(input, function(svg$$1) {
+							let fold = svg_to_fold(svg$$1);
+							if (callback != null) { callback(fold); }
+						});
+					break;
+					case "oripa":
+						// ORIPA.load(input, function(fold) {
+						// 	if (callback != null) { callback(fold); }
+						// });
+					break;
+				}
+			}
+		}
+	};
+
 	const intoFOLD = function(input, callback) {
 		return load_file(input, function(fold) {
 			if (callback != null) { callback(fold); }
@@ -4626,6 +4643,68 @@
 
 	};
 
+	const svg_to_fold = function(svg$$1) {
+		// for each geometry, add creases without regards to invalid planar edge crossings
+		//  (intersecting lines, duplicate vertices), clean up later.
+		let graph = {
+			"file_spec": 1.1,
+			"file_creator": "Rabbit Ear",
+			"file_classes": ["singleModel"],
+			"frame_title": "",
+			"frame_classes": ["creasePattern"],
+			"frame_attributes": ["2D"],
+			"vertices_coords": [],
+			"vertices_vertices": [],
+			"vertices_faces": [],
+			"edges_vertices": [],
+			"edges_faces": [],
+			"edges_assignment": [],
+			"edges_foldAngle": [],
+			"edges_length": [],
+			"faces_vertices": [],
+			"faces_edges": [],
+		};
+		let vl = graph.vertices_coords.length;
+		let segments$$1 = withAttributes(svg$$1);
+
+		graph.vertices_coords = segments$$1.map(s => [[s.x1, s.y1], [s.x2, s.y2]])
+			.reduce((a,b) => a.concat(b), []);
+		graph.edges_vertices = segments$$1.map((_,i) => [vl+i*2, vl+i*2+1]);
+		graph.edges_assignment = segments$$1.map(l => {
+			if (isBlack(l.stroke)){ return "F"; }
+			else if (isRed(l.stroke)){ return "M"; }
+			else if (isBlue(l.stroke)){ return "V"; }
+			return "F";
+		});
+		graph.edges_foldAngle = graph.edges_assignment.map(a => 
+			(a === "M" ? -180 : (a === "V" ? 180 : 0))
+		);
+		// console.log("svg_to_fold");
+		// todo: import semgents into a planar graph, handle edge crossings
+
+		// Graph.makeComplete(graph);
+		return graph;
+	};
+
+	const isBlack = function(color) {
+		return color === "#000" ||
+			color === "#000000" ||
+			color === "black";
+	};
+
+	const isBlue = function(color) {
+		return color === "#00F" ||
+			color === "#0000FF" ||
+			color === "blue";
+	};
+
+	const isRed = function(color) {
+		return color === "#F00" ||
+			color === "#FF0000" ||
+			color === "red";
+	};
+
+
 	/**
 	 * specify a frame number otherwise it will render the top level
 	 */
@@ -4658,22 +4737,6 @@
 		crease: "creases",
 		vertex: "vertices"
 	};
-
-	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
-
-	var square = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]],\n\t\"re:faces_layer\": [0]\n}";
-
-	var book = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,1], [0.5,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,4,0], [3,1], [4,2], [5,1,3], [0,4]],\n\t\"vertices_faces\": [[0], [0,1], [1], [1], [1,0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]],\n\t\"edges_faces\": [[0], [1], [1], [1], [0], [0], [0,1]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180],\n\t\"edges_length\": [0.5, 0.5, 1, 0.5, 0.5, 1, 1],\n\t\"faces_vertices\": [[1,4,5,0], [4,1,2,3]],\n\t\"faces_edges\": [[6,4,5,0], [6,1,2,3]]\n}";
-
-	var blintz = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.707106781186548, 0.707106781186548, 0.707106781186548, 0.707106781186548],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
-
-	var kite = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0], [0.414213562373095,0], [1,0], [1,0.585786437626905], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4]],\n\t\"vertices_faces\": [[0], [1,0], [2,1], [3,2], [3], [0,1,2,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [[0,1,5], [1,2,5], [2,3,5], [3,4,5]],\n\t\"faces_edges\": [[0,6,5], [1,8,6], [2,7,8], [3,4,7]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.414213562373095,0],[1,0.585786437626905]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
-
-	var fish = "{\n\t\"this base is broken\": true,\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.292893218813452,0],[1,0.707106781186548]],\n\t\"vertices_vertices\": [[6,4,3],[7,5,3,4,6],[3,5,7],[0,4,1,5,2],[0,6,2,3],[1,7,2,3],[1,4,0],[2,5,1]],\n\t\"vertices_faces\":[[1,4],[2,3,5,6],[0,7],[0,1,2,3],[1,3,4,5],[0,2,6,7],[4,5],[6,7]],\n\t\"edges_vertices\": [[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],\n\t\"edges_faces\":[[0],[0,2],[0,7],[1],[1,4],[1,3],[2,3],[2,6],[3,5],[4],[4,5],[5],[6],[6,7],[7]],\n\t\"edges_length\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_foldAngle\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_assignment\": [\"B\",\"B\",\"F\",\"M\",\"M\",\"M\",\"M\",\"M\",\"M\",\"V\",\"B\",\"B\",\"V\",\"B\",\"B\"],\n\t\"faces_vertices\": [[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],\n\t\"faces_edges\": [[0,8,7],[1,3,5],[2,6,8],[2,5,4],[3,10,9],[4,9,11],[6,13,12],[7,12,14]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n\t}]\n}";
-
-	var bird = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.207106781186548,0.5],[0.5,0.207106781186548],[0.792893218813452,0.5],[0.5,0.792893218813452],[0.353553390593274,0.646446609406726],[0.646446609406726,0.646446609406726],[0.646446609406726,0.353553390593274],[0.353553390593274,0.353553390593274],[0,0.5],[0.5,0],[1,0.5],[0.5,1]],\n\t\"edges_vertices\": [[3,5],[5,9],[3,9],[3,13],[5,13],[0,5],[0,13],[0,12],[5,12],[4,5],[4,12],[4,9],[0,6],[6,12],[0,14],[6,14],[1,6],[1,14],[1,11],[6,11],[4,6],[4,11],[1,7],[7,11],[1,15],[7,15],[2,7],[2,15],[2,10],[7,10],[4,7],[4,10],[2,8],[8,10],[2,16],[8,16],[3,8],[3,16],[8,9],[4,8]],\n\t\"edges_faces\": [[0,1],[0,5],[21,0],[1],[2,1],[2,3],[2],[3,6],[4,3],[4,5],[11,4],[5,22],[6,7],[6,11],[7],[8,7],[8,9],[8],[9,12],[10,9],[10,11],[17,10],[12,13],[12,17],[13],[14,13],[14,15],[14],[15,18],[16,15],[16,17],[23,16],[18,19],[18,23],[19],[20,19],[20,21],[20],[22,21],[22,23]],\n\t\"edges_assignment\": [\"M\",\"F\",\"V\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"V\",\"F\",\"M\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"M\"],\n\t\"faces_vertices\": [[3,5,9],[5,3,13],[0,5,13],[5,0,12],[4,5,12],[5,4,9],[0,6,12],[6,0,14],[1,6,14],[6,1,11],[4,6,11],[6,4,12],[1,7,11],[7,1,15],[2,7,15],[7,2,10],[4,7,10],[7,4,11],[2,8,10],[8,2,16],[3,8,16],[8,3,9],[4,8,9],[8,4,10]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,4,6],[5,7,8],[9,8,10],[9,11,1],[12,13,7],[12,14,15],[16,15,17],[16,18,19],[20,19,21],[20,10,13],[22,23,18],[22,24,25],[26,25,27],[26,28,29],[30,29,31],[30,21,23],[32,33,28],[32,34,35],[36,35,37],[36,2,38],[39,38,11],[39,31,33]]\n}";
-
-	var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
 
 	/** 
 	 * this searches user-provided inputs for a valid n-dimensional vector 
@@ -4977,7 +5040,7 @@
 	};
 
 
-	const square$1 = function(width, height) {
+	const square = function(width, height) {
 		return Object.assign(
 			Object.create(null),
 			template(),
@@ -5035,6 +5098,12 @@
 
 	// MIT open source license, Robby Kraft
 
+	const appendRabbitEarExtensions = function(graph) {
+		if (graph.faces_vertices.length === 1) {
+			graph["re:faces_layer"] = [0];
+		}
+	};
+
 	const CreasePatternPrototype = function(proto) {
 		if(proto == null) {
 			proto = {};
@@ -5071,6 +5140,7 @@
 				all_keys.forEach(key => delete _this[key]);
 			}
 			Object.assign(_this, JSON.parse(JSON.stringify(file)));
+			appendRabbitEarExtensions(_this);
 		};
 		/**
 		 * @return {CreasePattern} a deep copy of this object.
@@ -5308,7 +5378,7 @@
 			.filter(el => typeof el === "object" && el !== null)
 			.filter(el => el.vertices_coords != null);
 		// unit square is the default base if nothing else is provided
-		graph.load( (foldObjs.shift() || square$1()) );
+		graph.load( (foldObjs.shift() || square()) );
 
 		// callback for when the crease pattern has been altered
 		graph.onchange = undefined;
@@ -5357,7 +5427,7 @@
 		return prefs;
 	};
 
-	function View2D() {
+	function Origami$1() {
 
 		let _this = image(...arguments);
 
@@ -5405,6 +5475,9 @@
 			prop.cp = cp;
 			prop.frame = undefined;
 			draw();
+			// two levels of autofit going on here
+			if (!preferences.autofit) { updateViewBox(); }
+
 			prop.cp.onchange = draw;
 		};
 
@@ -5459,10 +5532,10 @@
 
 
 			// if (groups.faces.children.length === graph.faces_vertices.length) {
-			// 	Draw.updateFaces(graph, groups.faces);
+			// 	FoldToSVG.updateFaces(graph, groups.faces);
 			// } else {
 			// 	// SVG.removeChildren(groups.faces);
-			// 	Draw.updateGroups(graph, visibleGroups);
+			// 	FoldToSVG.updateGroups(graph, visibleGroups);
 			// }
 
 			if (preferences.debug) { drawDebug(graph); }
@@ -5581,9 +5654,13 @@
 
 		Object.defineProperty(_this, "frames", {
 			get: function() {
+				if (prop.cp.file_frames === undefined) {
+					return [JSON.parse(JSON.stringify(prop.cp))];
+				}
 				let frameZero = JSON.parse(JSON.stringify(prop.cp));
 				delete frameZero.file_frames;
-				return [frameZero].concat(JSON.parse(JSON.stringify(prop.cp.file_frames)));
+				let frames = JSON.parse(JSON.stringify(prop.cp.file_frames));
+				return [frameZero].concat(frames);
 			}
 		});
 		Object.defineProperty(_this, "frame", {
@@ -6641,6 +6718,22 @@
 		return graph;
 	};
 
+	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
+
+	var square$1 = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]],\n\t\"re:faces_layer\": [0]\n}";
+
+	var book = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,1], [0.5,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,4,0], [3,1], [4,2], [5,1,3], [0,4]],\n\t\"vertices_faces\": [[0], [0,1], [1], [1], [1,0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,4]],\n\t\"edges_faces\": [[0], [1], [1], [1], [0], [0], [0,1]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180],\n\t\"edges_length\": [0.5, 0.5, 1, 0.5, 0.5, 1, 1],\n\t\"faces_vertices\": [[1,4,5,0], [4,1,2,3]],\n\t\"faces_edges\": [[6,4,5,0], [6,1,2,3]]\n}";
+
+	var blintz = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"blintz base\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [0.5,0], [1,0], [1,0.5], [1,1], [0.5,1], [0,1], [0,0.5]],\n\t\"vertices_vertices\": [[1,7], [2,3,7,0], [3,1], [4,5,1,2], [5,3], [6,7,3,4], [7,5], [0,1,5,6]],\n\t\"vertices_faces\": [[0], [1,4,0], [1], [2,4,1], [2], [3,4,2], [3], [0,4,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0], [1,3], [3,5], [5,7], [7,1]],\n\t\"edges_faces\": [[0], [1], [1], [2], [2], [3], [3], [0], [1,4], [2,4], [3,4], [0,4]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"B\",\"V\",\"V\",\"V\",\"V\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.707106781186548, 0.707106781186548, 0.707106781186548, 0.707106781186548],\n\t\"faces_vertices\": [[0,1,7], [2,3,1], [4,5,3], [6,7,5], [1,3,5,7]],\n\t\"faces_edges\": [[0,11,7], [2,8,1], [4,9,3], [6,10,5], [8,9,10,11]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.5,0.5], [0.5,0.0], [0.5,0.5], [1.0,0.5], [0.5,0.5], [0.5,1.0], [0.5,0.5], [0.0,0.5]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180],\n\t\t\"faceOrders\": [[0,4,1], [1,4,1], [2,4,1], [3,4,1]]\n\t}]\n}";
+
+	var kite = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0], [0.414213562373095,0], [1,0], [1,0.585786437626905], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4]],\n\t\"vertices_faces\": [[0], [1,0], [2,1], [3,2], [3], [0,1,2,3]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [5,1], [3,5], [5,2]],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [[0,1,5], [1,2,5], [2,3,5], [3,4,5]],\n\t\"faces_edges\": [[0,6,5], [1,8,6], [2,7,8], [3,4,7]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.414213562373095,0],[1,0.585786437626905]],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
+
+	var fish = "{\n\t\"this base is broken\": true,\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.292893218813452,0],[1,0.707106781186548]],\n\t\"vertices_vertices\": [[6,4,3],[7,5,3,4,6],[3,5,7],[0,4,1,5,2],[0,6,2,3],[1,7,2,3],[1,4,0],[2,5,1]],\n\t\"vertices_faces\":[[1,4],[2,3,5,6],[0,7],[0,1,2,3],[1,3,4,5],[0,2,6,7],[4,5],[6,7]],\n\t\"edges_vertices\": [[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],\n\t\"edges_faces\":[[0],[0,2],[0,7],[1],[1,4],[1,3],[2,3],[2,6],[3,5],[4],[4,5],[5],[6],[6,7],[7]],\n\t\"edges_length\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_foldAngle\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_assignment\": [\"B\",\"B\",\"F\",\"M\",\"M\",\"M\",\"M\",\"M\",\"M\",\"V\",\"B\",\"B\",\"V\",\"B\",\"B\"],\n\t\"faces_vertices\": [[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],\n\t\"faces_edges\": [[0,8,7],[1,3,5],[2,6,8],[2,5,4],[3,10,9],[4,9,11],[6,13,12],[7,12,14]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n\t}]\n}";
+
+	var bird = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.207106781186548,0.5],[0.5,0.207106781186548],[0.792893218813452,0.5],[0.5,0.792893218813452],[0.353553390593274,0.646446609406726],[0.646446609406726,0.646446609406726],[0.646446609406726,0.353553390593274],[0.353553390593274,0.353553390593274],[0,0.5],[0.5,0],[1,0.5],[0.5,1]],\n\t\"edges_vertices\": [[3,5],[5,9],[3,9],[3,13],[5,13],[0,5],[0,13],[0,12],[5,12],[4,5],[4,12],[4,9],[0,6],[6,12],[0,14],[6,14],[1,6],[1,14],[1,11],[6,11],[4,6],[4,11],[1,7],[7,11],[1,15],[7,15],[2,7],[2,15],[2,10],[7,10],[4,7],[4,10],[2,8],[8,10],[2,16],[8,16],[3,8],[3,16],[8,9],[4,8]],\n\t\"edges_faces\": [[0,1],[0,5],[21,0],[1],[2,1],[2,3],[2],[3,6],[4,3],[4,5],[11,4],[5,22],[6,7],[6,11],[7],[8,7],[8,9],[8],[9,12],[10,9],[10,11],[17,10],[12,13],[12,17],[13],[14,13],[14,15],[14],[15,18],[16,15],[16,17],[23,16],[18,19],[18,23],[19],[20,19],[20,21],[20],[22,21],[22,23]],\n\t\"edges_assignment\": [\"M\",\"F\",\"V\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"V\",\"F\",\"M\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"M\"],\n\t\"faces_vertices\": [[3,5,9],[5,3,13],[0,5,13],[5,0,12],[4,5,12],[5,4,9],[0,6,12],[6,0,14],[1,6,14],[6,1,11],[4,6,11],[6,4,12],[1,7,11],[7,1,15],[2,7,15],[7,2,10],[4,7,10],[7,4,11],[2,8,10],[8,2,16],[3,8,16],[8,3,9],[4,8,9],[8,4,10]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,4,6],[5,7,8],[9,8,10],[9,11,1],[12,13,7],[12,14,15],[16,15,17],[16,18,19],[20,19,21],[20,10,13],[22,23,18],[22,24,25],[26,25,27],[26,28,29],[30,29,31],[30,21,23],[32,33,28],[32,34,35],[36,35,37],[36,2,38],[39,38,11],[39,31,33]]\n}";
+
+	var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
+
 	let convert = { intoFOLD, intoSVG, intoORIPA };
 
 	const core$1 = Object.create(null);
@@ -6654,7 +6747,7 @@
 	// import blintzDistorted from './bases/blintz-distort.fold';
 	const bases = {
 		empty: recursive_freeze(JSON.parse(empty)),
-		square: recursive_freeze(JSON.parse(square)),
+		square: recursive_freeze(JSON.parse(square$1)),
 		book: recursive_freeze(JSON.parse(book)),
 		blintz: recursive_freeze(JSON.parse(blintz)),
 		kite: recursive_freeze(JSON.parse(kite)),
@@ -6670,16 +6763,22 @@
 		// blintzDistorted: JSON.parse(blintzDistorted)
 	};
 
-	exports.math = geometry$1;
-	exports.svg = svg$1;
-	exports.convert = convert;
-	exports.core = core$1;
-	exports.bases = bases;
-	exports.CreasePattern = CreasePattern;
-	exports.Origami = View2D;
-	exports.Origami3D = View3D;
-	exports.Graph = Graph$1;
+	let rabbitEar = {
+		CreasePattern,
+		Origami: Origami$1,
+		Origami3D: View3D,
+		Graph: Graph$1,
+		svg: svg$1,
+		convert,
+		core: core$1,
+		bases,
+		math: core
+	};
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+	Object.keys(math)
+		.filter(key => key !== "core")
+		.forEach(key => rabbitEar[key] = math[key]);
+
+	return rabbitEar;
 
 })));

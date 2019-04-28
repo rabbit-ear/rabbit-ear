@@ -10,8 +10,10 @@ junctionBisect.updateSectors = function() {
 		? junctionBisect.h
 		: junctionBisect.w);
 	let jp = junctionBisect.controls.map(p => p.position);
-	let junction = RabbitEar.math
-		.Junction([junctionBisect.w/2, junctionBisect.h/2], jp);
+	let junction = RabbitEar.Junction([
+		junctionBisect.w/2,
+		junctionBisect.h/2
+	], jp);
 	RabbitEar.svg.removeChildren(junctionBisect.sectorLayer);
 	let sectors = junction.sectors();
 	let angles = sectors

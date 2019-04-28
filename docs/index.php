@@ -14,8 +14,8 @@
 
 	<p class="quote">grab</p>
 
-<div class="language"><pre>.HTML</pre></div>
-<pre><code>&lt;!<key>DOCTYPE</key> html&gt;
+	<div class="language"><pre>.HTML</pre></div>
+	<pre><code>&lt;!<key>DOCTYPE</key> html&gt;
 &lt;<key>title</key>&gt;Rabbit Ear&lt;/<key>title</key>&gt;
 &lt;<key>script</key> <v>src</v>=<str>"rabbit-ear.js"</str>&gt;&lt;/<key>script</key>&gt;
 &lt;<key>script</key>&gt;
@@ -29,7 +29,7 @@
 
 <section id="first-app">
 
-<h2>Getting Started</h2>
+	<h2>Getting Started</h2>
 
 <!-- 	<p>Download Rabbit Ear here.</p>
 
@@ -49,14 +49,14 @@
 		<li><strong>sketch.js</strong> let's take a closer look:</li>
 	</ul>
 
-<div class="centered">
-<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();
+	<div class="centered">
+	<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();
 <br><c>// respond to a touch event</c>
 <f>origami</f>.<v>onMouseMove</v> = <f>function</f>(<arg>event</arg>){
 
 }
 </code></pre>
-</div>
+	</div>
 
 </section>
 
@@ -190,14 +190,12 @@ RabbitEar.core.faces_coloring(twoColor.cp, 0)
 
 <script>
 let origamiFold;
-console.log(window.innerWidth, window.innerHeight)
 let sketchW = (window.innerWidth < window.innerHeight)
 	? 1
 	: window.innerWidth / window.innerHeight;
 let sketchH = (window.innerWidth < window.innerHeight)
 	? window.innerHeight / window.innerWidth
 	: 1;
-console.log(sketchW, sketchH);
 origamiFold = RabbitEar.Origami("canvas-origami-fold", {folding:true}, sketchW * window.innerWidth, sketchH * window.innerWidth, function(){
 	// did load
 	let pad = 0.1;
@@ -209,8 +207,8 @@ origamiFold.init = function() {
 	origamiFold.setViewBox(-pad, -pad, sketchW+pad*2, sketchH+pad*2);
 	origamiFold.preferences.autofit = false;
 	let points = [
-		RabbitEar.math.Vector(1, 0),
-		RabbitEar.math.Vector(0.7 - Math.random()*0.3, 0.2 + Math.random()*0.45)
+		RabbitEar.Vector(1, 0),
+		RabbitEar.Vector(0.7 - Math.random()*0.3, 0.2 + Math.random()*0.45)
 	];
 	let midpoint = points[0].midpoint(points[1]);
 	let vector = points[1].subtract(points[0]);

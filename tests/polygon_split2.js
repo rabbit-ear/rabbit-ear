@@ -32,7 +32,7 @@ polySplit.rebuildHull = function(){
 		let r = Math.random() * polySplit.h*0.5;
 		return [polySplit.w*0.5 + r*Math.cos(a), polySplit.h*0.5 + r*Math.sin(a)];
 	});
-	polySplit.hull = RabbitEar.math.ConvexPolygon.convexHull(hullPoints);
+	polySplit.hull = RabbitEar.ConvexPolygon.convexHull(hullPoints);
 	let pointsString = polySplit.hull.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
 	// polySplit.polygon.setAttribute("points", pointsString);
 }

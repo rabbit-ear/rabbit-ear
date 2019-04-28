@@ -38,7 +38,7 @@ clipLine.rebuildHull = function(){
 		let r = Math.random() * clipLine.h*0.5;
 		return [clipLine.w*0.5 + r*Math.cos(a), clipLine.h*0.5 + r*Math.sin(a)];
 	});
-	clipLine.hull = RabbitEar.math.Polygon.convexHull(hullPoints);
+	clipLine.hull = RabbitEar.Polygon.convexHull(hullPoints);
 	let pointsString = clipLine.hull.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
 	clipLine.polygon.setAttribute("points", pointsString);
 }
@@ -51,8 +51,8 @@ clipLine.redraw = function(){
 		clipLine.touches[1].position[1] - clipLine.touches[0].position[1]
 	];
 	RabbitEar.svg.removeChildren(clipLine.backLayer);
-	let backLine = RabbitEar.math.Line(clipLine.touches[1].position, vec);
-	let backEdge = RabbitEar.math.core.intersection.clip_line_in_convex_poly(clipLine.boundary, backLine.point, backLine.vector);
+	let backLine = RabbitEar.Line(clipLine.touches[1].position, vec);
+	let backEdge = RabbitEar.math.intersection.clip_line_in_convex_poly(clipLine.boundary, backLine.point, backLine.vector);
 	let backEdgeSVG = RabbitEar.svg.line(backEdge[0][0], backEdge[0][1], backEdge[1][0], backEdge[1][1]);
 	backEdgeSVG.setAttribute("stroke", "#f1c14f");
 	backEdgeSVG.setAttribute("stroke", "#f1c14f");
