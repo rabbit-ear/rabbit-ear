@@ -35,7 +35,6 @@ polygon {
 
 .mark {
 	stroke: #888;
-	stroke-width: calc( var(--crease-width) * 0.5);
 }
 
 .foldedForm #faces polygon {
@@ -59,7 +58,6 @@ polygon {
 	fill: #EEE8E0;
 }
 
-
 .creasePattern #faces {
 	stroke: none; fill: none;
 }
@@ -72,10 +70,14 @@ polygon {
 }
 
 .foldedForm #faces .front {
-	fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);
+	fill: #ecb233;
+	stroke: black;
+	/*stroke-width: var(--crease-width);*/
 }
 .foldedForm #faces .back {
-	fill: white; stroke: black; stroke-width: var(--crease-width);
+	fill: white;
+	stroke: black;
+	/*stroke-width: var(--crease-width);*/
 }
 
 .foldedForm #creases * {

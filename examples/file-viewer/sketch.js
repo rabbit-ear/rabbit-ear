@@ -29,8 +29,10 @@ origami.color = function(event) {
 
 fileDidLoad = function(blob, mimeType, fileExtension) {
 	origami.load(blob, function(cp) {
+		console.log("load finish - start callback");
 		sliderUpdate({target:{value:0}});
 		slider.value = 0;
+		console.log("callback finish");
 	});
 }
 

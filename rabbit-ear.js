@@ -4518,6 +4518,232 @@
 			: order.map(i =>polygon(facesV[i]).setID(""+i));
 	};
 
+	// this code is from the official FOLD library
+	// https://github.com/edemaine/fold
+	// by Erik Demaine, Jason Ku, Robert Lang
+	// 
+	// i'm still working on the best way to include
+	// the actual official library, for now, just this part
+
+	let oripa = {};
+
+	oripa.type2fold = {
+	  0: 'F',
+	  1: 'B',
+	  2: 'M',
+	  3: 'V'
+	};
+
+	oripa.fold2type = {};
+
+	let ref = oripa.type2fold;
+	for (let x in ref) {
+	  let y = ref[x];
+	  oripa.fold2type[y] = x;
+	}
+
+	oripa.fold2type_default = 0;
+
+	oripa.prop_xml2fold = {
+	  'editorName': 'frame_author',
+	  'originalAuthorName': 'frame_designer',
+	  'reference': 'frame_reference',
+	  'title': 'frame_title',
+	  'memo': 'frame_description',
+	  'paperSize': null,
+	  'mainVersion': null,
+	  'subVersion': null
+	};
+
+	oripa.POINT_EPS = 1.0;
+
+	oripa.toFold = function(oripaStr) {
+	  var children, fold, j, k, l, len, len1, len2, len3, len4, line, lines, m, n, nodeSpec, object, oneChildSpec, oneChildText, prop, property, ref1, ref2, ref3, ref4, ref5, subproperty, top, type, vertex, x0, x1, xml, y0, y1;
+	  fold = {
+	    vertices_coords: [],
+	    edges_vertices: [],
+	    edges_assignment: [],
+	    file_creator: 'oripa2fold'
+	  };
+	  vertex = function(x, y) {
+	    var v;
+	    v = fold.vertices_coords.length;
+	    fold.vertices_coords.push([parseFloat(x), parseFloat(y)]);
+	    return v;
+	  };
+	  nodeSpec = function(node, type, key, value) {
+	    if ((type != null) && node.tagName !== type) {
+	      console.warn("ORIPA file has " + node.tagName + " where " + type + " was expected");
+	      return null;
+	    } else if ((key != null) && (!node.hasAttribute(key) || ((value != null) && node.getAttribute(key) !== value))) {
+	      console.warn("ORIPA file has " + node.tagName + " with " + key + " = " + (node.getAttribute(key)) + " where " + value + " was expected");
+	      return null;
+	    } else {
+	      return node;
+	    }
+	  };
+	  children = function(node) {
+	    var child, j, len, ref1, results;
+	    if (node) {
+	      ref1 = node.childNodes;
+	      results = [];
+	      for (j = 0, len = ref1.length; j < len; j++) {
+	        child = ref1[j];
+	        if (child.nodeType === 1) {
+	          results.push(child);
+	        }
+	      }
+	      return results;
+	    } else {
+	      return [];
+	    }
+	  };
+	  oneChildSpec = function(node, type, key, value) {
+	    var sub;
+	    sub = children(node);
+	    if (sub.length !== 1) {
+	      console.warn("ORIPA file has " + node.tagName + " with " + node.childNodes.length + " children, not 1");
+	      return null;
+	    } else {
+	      return nodeSpec(sub[0], type, key, value);
+	    }
+	  };
+	  oneChildText = function(node) {
+	    var child;
+	    if (node.childNodes.length > 1) {
+	      console.warn("ORIPA file has " + node.tagName + " with " + node.childNodes.length + " children, not 0 or 1");
+	      return null;
+	    } else if (node.childNodes.length === 0) {
+	      return '';
+	    } else {
+	      child = node.childNodes[0];
+	      if (child.nodeType !== 3) {
+	        return console.warn("ORIPA file has nodeType " + child.nodeType + " where 3 (text) was expected");
+	      } else {
+	        return child.data;
+	      }
+	    }
+	  };
+	  xml = new DOMParser().parseFromString(oripaStr, 'text/xml');
+	  ref1 = children(xml.documentElement);
+	  for (j = 0, len = ref1.length; j < len; j++) {
+	    top = ref1[j];
+	    if (nodeSpec(top, 'object', 'class', 'oripa.DataSet')) {
+	      ref2 = children(top);
+	      for (k = 0, len1 = ref2.length; k < len1; k++) {
+	        property = ref2[k];
+	        if (property.getAttribute('property') === 'lines') {
+	          lines = oneChildSpec(property, 'array', 'class', 'oripa.OriLineProxy');
+	          ref3 = children(lines);
+	          for (l = 0, len2 = ref3.length; l < len2; l++) {
+	            line = ref3[l];
+	            if (nodeSpec(line, 'void', 'index')) {
+	              ref4 = children(line);
+	              for (m = 0, len3 = ref4.length; m < len3; m++) {
+	                object = ref4[m];
+	                if (nodeSpec(object, 'object', 'class', 'oripa.OriLineProxy')) {
+	                  x0 = x1 = y0 = y1 = type = 0;
+	                  ref5 = children(object);
+	                  for (n = 0, len4 = ref5.length; n < len4; n++) {
+	                    subproperty = ref5[n];
+	                    if (nodeSpec(subproperty, 'void', 'property')) {
+	                      switch (subproperty.getAttribute('property')) {
+	                        case 'x0':
+	                          x0 = oneChildText(oneChildSpec(subproperty, 'double'));
+	                          break;
+	                        case 'x1':
+	                          x1 = oneChildText(oneChildSpec(subproperty, 'double'));
+	                          break;
+	                        case 'y0':
+	                          y0 = oneChildText(oneChildSpec(subproperty, 'double'));
+	                          break;
+	                        case 'y1':
+	                          y1 = oneChildText(oneChildSpec(subproperty, 'double'));
+	                          break;
+	                        case 'type':
+	                          type = oneChildText(oneChildSpec(subproperty, 'int'));
+	                      }
+	                    }
+	                  }
+	                  if ((x0 != null) && (x1 != null) && (y0 != null) && (y1 != null)) {
+	                    fold.edges_vertices.push([vertex(x0, y0), vertex(x1, y1)]);
+	                    if (type != null) {
+	                      type = parseInt(type);
+	                    }
+	                    fold.edges_assignment.push(oripa.type2fold[type]);
+	                  } else {
+	                    console.warn("ORIPA line has missing data: " + x0 + " " + x1 + " " + y0 + " " + y1 + " " + type);
+	                  }
+	                }
+	              }
+	            }
+	          }
+	        } else if (property.getAttribute('property') in oripa.prop_xml2fold) {
+	          prop = oripa.prop_xml2fold[property.getAttribute('property')];
+	          if (prop != null) {
+	            fold[prop] = oneChildText(oneChildSpec(property, 'string'));
+	          }
+	        } else {
+	          console.warn("Ignoring " + property.tagName + " " + (top.getAttribute('property')) + " in ORIPA file");
+	        }
+	      }
+	    }
+	  }
+	  filter.collapseNearbyVertices(fold, oripa.POINT_EPS);
+	  filter.subdivideCrossingEdges_vertices(fold, oripa.POINT_EPS);
+	  convert.edges_vertices_to_faces_vertices(fold);
+	  return fold;
+	};
+
+	oripa.fromFold = function(fold) {
+	  var coord, edge, ei, fp, i, j, len, line, lines, ref1, s, vertex, vs, xp;
+	  if (typeof fold === 'string') {
+	    fold = JSON.parse(fold);
+	  }
+	  s = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \n<java version=\"1.5.0_05\" class=\"java.beans.XMLDecoder\"> \n <object class=\"oripa.DataSet\"> \n  <void property=\"mainVersion\"> \n   <int>1</int> \n  </void> \n  <void property=\"subVersion\"> \n   <int>1</int> \n  </void> \n  <void property=\"paperSize\"> \n   <double>400.0</double> \n  </void> \n";
+	  ref1 = oripa.prop_xml2fold;
+	  for (xp in ref1) {
+	    fp = ref1[xp];
+	    s += (".\n  <void property=\"" + xp + "\"> \n   <string>" + (fold[fp] || '') + "</string> \n  </void> \n").slice(2);
+	  }
+	  lines = (function() {
+	    var j, len, ref2, results;
+	    ref2 = fold.edges_vertices;
+	    results = [];
+	    for (ei = j = 0, len = ref2.length; j < len; ei = ++j) {
+	      edge = ref2[ei];
+	      vs = (function() {
+	        var k, l, len1, len2, ref3, results1;
+	        results1 = [];
+	        for (k = 0, len1 = edge.length; k < len1; k++) {
+	          vertex = edge[k];
+	          ref3 = fold.vertices_coords[vertex].slice(2);
+	          for (l = 0, len2 = ref3.length; l < len2; l++) {
+	            coord = ref3[l];
+	          }
+	          results1.push(fold.vertices_coords[vertex]);
+	        }
+	        return results1;
+	      })();
+	      results.push({
+	        x0: vs[0][0],
+	        y0: vs[0][1],
+	        x1: vs[1][0],
+	        y1: vs[1][1],
+	        type: oripa.fold2type[fold.edges_assignment[ei]] || oripa.fold2type_default
+	      });
+	    }
+	    return results;
+	  })();
+	  s += (".\n  <void property=\"lines\"> \n   <array class=\"oripa.OriLineProxy\" length=\"" + lines.length + "\"> \n").slice(2);
+	  for (i = j = 0, len = lines.length; j < len; i = ++j) {
+	    line = lines[i];
+	    s += (".\n    <void index=\"" + i + "\"> \n     <object class=\"oripa.OriLineProxy\"> \n      <void property=\"type\"> \n       <int>" + line.type + "</int> \n      </void> \n      <void property=\"x0\"> \n       <double>" + line.x0 + "</double> \n      </void> \n      <void property=\"x1\"> \n       <double>" + line.x1 + "</double> \n      </void> \n      <void property=\"y0\"> \n       <double>" + line.y0 + "</double> \n      </void> \n      <void property=\"y1\"> \n       <double>" + line.y1 + "</double> \n      </void> \n     </object> \n    </void> \n").slice(2);
+	  }
+	  s += ".\n   </array> \n  </void> \n </object> \n</java> \n".slice(2);
+	  return s;
+	};
+
 	// import * as Fold from "../include/fold";
 
 
@@ -4573,12 +4799,10 @@
 			} catch(err) {
 				// try rendering the XML string
 				let xml = (new window.DOMParser()).parseFromString(input, "text/xml");
-				console.log(xml);
 				if (xml.getElementsByTagNameNS(pErr$1, "parsererror").length === 0) {
 					let parsedSVG = xml.documentElement;
 					let fold = svg_to_fold(parsedSVG);
 					if (callback != null) { callback(fold); }
-					console.log("fold", fold);
 					return fold;
 				}
 
@@ -4640,7 +4864,9 @@
 	};
 
 	const intoORIPA = function(input, callback) {
-
+		// coded for FOLD input only!!
+		let fold = JSON.parse(JSON.stringify(input));
+		return oripa.fromFold(fold);
 	};
 
 	const svg_to_fold = function(svg$$1) {
@@ -4670,12 +4896,7 @@
 		graph.vertices_coords = segments$$1.map(s => [[s.x1, s.y1], [s.x2, s.y2]])
 			.reduce((a,b) => a.concat(b), []);
 		graph.edges_vertices = segments$$1.map((_,i) => [vl+i*2, vl+i*2+1]);
-		graph.edges_assignment = segments$$1.map(l => {
-			if (isBlack(l.stroke)){ return "F"; }
-			else if (isRed(l.stroke)){ return "M"; }
-			else if (isBlue(l.stroke)){ return "V"; }
-			return "F";
-		});
+		graph.edges_assignment = segments$$1.map(l => color_to_assignment(l.stroke));
 		graph.edges_foldAngle = graph.edges_assignment.map(a => 
 			(a === "M" ? -180 : (a === "V" ? 180 : 0))
 		);
@@ -4686,25 +4907,49 @@
 		return graph;
 	};
 
-	const isBlack = function(color) {
-		return color === "#000" ||
-			color === "#000000" ||
-			color === "black";
+	const color_to_assignment = function(string) {
+		// cannot discern between mark and boundary
+		// boundary has to be decided by planar analysis
+		let c = [0,0,0,1];
+		if (string[0] === "#") {
+			c = hexToComponents(string);
+		} else if (css_color_names.indexOf(string) !== -1) {
+			c = hexToComponents(css_colors[string]);
+		}
+		//
+		const ep = 0.05;
+		// black
+		if (c[0] < ep && c[1] < ep && c[2] < ep) { return "F"; }
+		if (c[0] > c[1] && (c[0] - c[2]) > ep) { return "V"; }
+		if (c[2] > c[1] && (c[2] - c[0]) > ep) { return "M"; }
+		return "F";
 	};
 
-	const isBlue = function(color) {
-		return color === "#00F" ||
-			color === "#0000FF" ||
-			color === "blue";
+	const hexToComponents = function(h) {
+		let r = 0, g = 0, b = 0, a = 255;
+		// 3 digits
+		if (h.length == 4) {
+			r = "0x" + h[1] + h[1];
+			g = "0x" + h[2] + h[2];
+			b = "0x" + h[3] + h[3];
+		// 6 digits
+		} else if (h.length == 7) {
+			r = "0x" + h[1] + h[2];
+			g = "0x" + h[3] + h[4];
+			b = "0x" + h[5] + h[6];
+		} else if (h.length == 5) {
+			r = "0x" + h[1] + h[1];
+			g = "0x" + h[2] + h[2];
+			b = "0x" + h[3] + h[3];
+			a = "0x" + h[4] + h[4];
+		} else if (h.length == 9) {
+			r = "0x" + h[1] + h[2];
+			g = "0x" + h[3] + h[4];
+			b = "0x" + h[5] + h[6];
+			a = "0x" + h[7] + h[8];
+		}
+		return [+(r / 255), +(g / 255), +(b / 255), +(a / 255)];
 	};
-
-	const isRed = function(color) {
-		return color === "#F00" ||
-			color === "#FF0000" ||
-			color === "red";
-	};
-
-
 	/**
 	 * specify a frame number otherwise it will render the top level
 	 */
@@ -4737,6 +4982,158 @@
 		crease: "creases",
 		vertex: "vertices"
 	};
+
+	const css_colors = {
+		"black": "#000000",
+		"silver": "#c0c0c0",
+		"gray": "#808080",
+		"white": "#ffffff",
+		"maroon": "#800000",
+		"red": "#ff0000",
+		"purple": "#800080",
+		"fuchsia": "#ff00ff",
+		"green": "#008000",
+		"lime": "#00ff00",
+		"olive": "#808000",
+		"yellow": "#ffff00",
+		"navy": "#000080",
+		"blue": "#0000ff",
+		"teal": "#008080",
+		"aqua": "#00ffff",
+		"orange": "#ffa500",
+		"aliceblue": "#f0f8ff",
+		"antiquewhite": "#faebd7",
+		"aquamarine": "#7fffd4",
+		"azure": "#f0ffff",
+		"beige": "#f5f5dc",
+		"bisque": "#ffe4c4",
+		"blanchedalmond": "#ffebcd",
+		"blueviolet": "#8a2be2",
+		"brown": "#a52a2a",
+		"burlywood": "#deb887",
+		"cadetblue": "#5f9ea0",
+		"chartreuse": "#7fff00",
+		"chocolate": "#d2691e",
+		"coral": "#ff7f50",
+		"cornflowerblue": "#6495ed",
+		"cornsilk": "#fff8dc",
+		"crimson": "#dc143c",
+		"cyan": "#00ffff",
+		"darkblue": "#00008b",
+		"darkcyan": "#008b8b",
+		"darkgoldenrod": "#b8860b",
+		"darkgray": "#a9a9a9",
+		"darkgreen": "#006400",
+		"darkgrey": "#a9a9a9",
+		"darkkhaki": "#bdb76b",
+		"darkmagenta": "#8b008b",
+		"darkolivegreen": "#556b2f",
+		"darkorange": "#ff8c00",
+		"darkorchid": "#9932cc",
+		"darkred": "#8b0000",
+		"darksalmon": "#e9967a",
+		"darkseagreen": "#8fbc8f",
+		"darkslateblue": "#483d8b",
+		"darkslategray": "#2f4f4f",
+		"darkslategrey": "#2f4f4f",
+		"darkturquoise": "#00ced1",
+		"darkviolet": "#9400d3",
+		"deeppink": "#ff1493",
+		"deepskyblue": "#00bfff",
+		"dimgray": "#696969",
+		"dimgrey": "#696969",
+		"dodgerblue": "#1e90ff",
+		"firebrick": "#b22222",
+		"floralwhite": "#fffaf0",
+		"forestgreen": "#228b22",
+		"gainsboro": "#dcdcdc",
+		"ghostwhite": "#f8f8ff",
+		"gold": "#ffd700",
+		"goldenrod": "#daa520",
+		"greenyellow": "#adff2f",
+		"grey": "#808080",
+		"honeydew": "#f0fff0",
+		"hotpink": "#ff69b4",
+		"indianred": "#cd5c5c",
+		"indigo": "#4b0082",
+		"ivory": "#fffff0",
+		"khaki": "#f0e68c",
+		"lavender": "#e6e6fa",
+		"lavenderblush": "#fff0f5",
+		"lawngreen": "#7cfc00",
+		"lemonchiffon": "#fffacd",
+		"lightblue": "#add8e6",
+		"lightcoral": "#f08080",
+		"lightcyan": "#e0ffff",
+		"lightgoldenrodyellow": "#fafad2",
+		"lightgray": "#d3d3d3",
+		"lightgreen": "#90ee90",
+		"lightgrey": "#d3d3d3",
+		"lightpink": "#ffb6c1",
+		"lightsalmon": "#ffa07a",
+		"lightseagreen": "#20b2aa",
+		"lightskyblue": "#87cefa",
+		"lightslategray": "#778899",
+		"lightslategrey": "#778899",
+		"lightsteelblue": "#b0c4de",
+		"lightyellow": "#ffffe0",
+		"limegreen": "#32cd32",
+		"linen": "#faf0e6",
+		"magenta": "#ff00ff",
+		"mediumaquamarine": "#66cdaa",
+		"mediumblue": "#0000cd",
+		"mediumorchid": "#ba55d3",
+		"mediumpurple": "#9370db",
+		"mediumseagreen": "#3cb371",
+		"mediumslateblue": "#7b68ee",
+		"mediumspringgreen": "#00fa9a",
+		"mediumturquoise": "#48d1cc",
+		"mediumvioletred": "#c71585",
+		"midnightblue": "#191970",
+		"mintcream": "#f5fffa",
+		"mistyrose": "#ffe4e1",
+		"moccasin": "#ffe4b5",
+		"navajowhite": "#ffdead",
+		"oldlace": "#fdf5e6",
+		"olivedrab": "#6b8e23",
+		"orangered": "#ff4500",
+		"orchid": "#da70d6",
+		"palegoldenrod": "#eee8aa",
+		"palegreen": "#98fb98",
+		"paleturquoise": "#afeeee",
+		"palevioletred": "#db7093",
+		"papayawhip": "#ffefd5",
+		"peachpuff": "#ffdab9",
+		"peru": "#cd853f",
+		"pink": "#ffc0cb",
+		"plum": "#dda0dd",
+		"powderblue": "#b0e0e6",
+		"rosybrown": "#bc8f8f",
+		"royalblue": "#4169e1",
+		"saddlebrown": "#8b4513",
+		"salmon": "#fa8072",
+		"sandybrown": "#f4a460",
+		"seagreen": "#2e8b57",
+		"seashell": "#fff5ee",
+		"sienna": "#a0522d",
+		"skyblue": "#87ceeb",
+		"slateblue": "#6a5acd",
+		"slategray": "#708090",
+		"slategrey": "#708090",
+		"snow": "#fffafa",
+		"springgreen": "#00ff7f",
+		"steelblue": "#4682b4",
+		"tan": "#d2b48c",
+		"thistle": "#d8bfd8",
+		"tomato": "#ff6347",
+		"turquoise": "#40e0d0",
+		"violet": "#ee82ee",
+		"wheat": "#f5deb3",
+		"whitesmoke": "#f5f5f5",
+		"yellowgreen": "#9acd32"
+	};
+
+	const css_color_names = Object.keys(css_colors);
 
 	/** 
 	 * this searches user-provided inputs for a valid n-dimensional vector 
@@ -5540,6 +5937,19 @@
 
 			if (preferences.debug) { drawDebug(graph); }
 			if (preferences.autofit) { updateViewBox(); }
+
+			// stroke width
+			let styleElement = _this.querySelector("style");
+
+			if (styleElement == null) {
+				const svgNS = "http://www.w3.org/2000/svg";
+				styleElement = document.createElementNS(svgNS, "style");
+				_this.appendChild(styleElement);
+			}
+			let r = bounding_rect(graph);
+			let vmin = r[2] > r[3] ? r[3] : r[2];
+			styleElement.innerHTML = "line {stroke-width:" + vmin*0.005 + " };}";
+			// groups.creases.setAttribute("style", "stroke-width:"+vmin*0.005);
 		};
 
 		const updateViewBox = function() {
@@ -6734,7 +7144,7 @@
 
 	var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
 
-	let convert = { intoFOLD, intoSVG, intoORIPA };
+	let convert$1 = { intoFOLD, intoSVG, intoORIPA };
 
 	const core$1 = Object.create(null);
 	Object.assign(core$1, file, validate, graph, Origami, planargraph);
@@ -6769,7 +7179,7 @@
 		Origami3D: View3D,
 		Graph: Graph$1,
 		svg: svg$1,
-		convert,
+		convert: convert$1,
 		core: core$1,
 		bases,
 		math: core

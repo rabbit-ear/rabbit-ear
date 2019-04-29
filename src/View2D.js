@@ -155,6 +155,19 @@ export default function() {
 
 		if (preferences.debug) { drawDebug(graph); }
 		if (preferences.autofit) { updateViewBox(); }
+
+		// stroke width
+		let styleElement = _this.querySelector("style");
+
+		if (styleElement == null) {
+			const svgNS = "http://www.w3.org/2000/svg";
+			styleElement = document.createElementNS(svgNS, "style");
+			_this.appendChild(styleElement);
+		}
+		let r = bounding_rect(graph);
+		let vmin = r[2] > r[3] ? r[3] : r[2];
+		styleElement.innerHTML = "line {stroke-width:" + vmin*0.005 + " };}";
+		// groups.creases.setAttribute("style", "stroke-width:"+vmin*0.005);
 	};
 
 	const updateViewBox = function() {
