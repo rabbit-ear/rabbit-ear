@@ -1,4 +1,4 @@
-var origami = RabbitEar.Origami({folding:true, padding:0.1});
+let origami = RabbitEar.Origami({folding:true,padding:0.1,autofit:false});
 
 origami.onMouseDown = function(mouse) { }
 origami.onMouseUp = function(mouse) { }

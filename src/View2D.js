@@ -85,10 +85,10 @@ export default function() {
 	Object.keys(userDefaults)
 		.forEach(key => preferences[key] = userDefaults[key]);
 
-	const setCreasePattern = function(cp) {
+	const setCreasePattern = function(cp, frame = undefined) {
 		// todo: check if cp is a CreasePattern type
 		prop.cp = cp;
-		prop.frame = undefined;
+		prop.frame = frame;
 		draw();
 		// two levels of autofit going on here
 		if (!preferences.autofit) { updateViewBox(); }
@@ -166,7 +166,7 @@ export default function() {
 		}
 		let r = bounding_rect(graph);
 		let vmin = r[2] > r[3] ? r[3] : r[2];
-		styleElement.innerHTML = "line {stroke-width:" + vmin*0.005 + " };}";
+		styleElement.innerHTML = "#creases line {stroke-width:" + vmin*0.005 + " };}";
 		// groups.creases.setAttribute("style", "stroke-width:"+vmin*0.005);
 	};
 
@@ -175,7 +175,8 @@ export default function() {
 			? flatten_frame(prop.cp, prop.frame)
 			: prop.cp;
 		let r = bounding_rect(graph);
-		SVG.setViewBox(_this, r[0], r[1], r[2], r[3], preferences.padding);
+		let vmin = r[2] > r[3] ? r[3] : r[2];
+		SVG.setViewBox(_this, r[0], r[1], r[2], r[3], preferences.padding * vmin);
 	};
 
 	const nearest = function() {
@@ -378,7 +379,7 @@ export default function() {
 	_this.preferences = preferences;
 
 	// boot
-	setCreasePattern( CreasePattern(...arguments) );
+	setCreasePattern( CreasePattern(...arguments), 1 );
 
 	let prevCP, prevCPFolded, touchFaceIndex;
 	_this.events.addEventListener("onMouseDown", function(mouse) {

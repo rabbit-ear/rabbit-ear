@@ -10,10 +10,18 @@ import * as Convert from "../convert/convert";
 import * as Make from "../fold/make";
 import * as File from "../fold/file";
 
-const appendRabbitEarExtensions = function(graph) {
-	if (graph.faces_vertices.length === 1) {
-		graph["re:faces_layer"] = [0]
-	}
+const placeholderFoldedForm = function(graph) {
+	// todo, better checking for specifically a "foldedForm" frame
+	if (graph.file_frames == null || graph.file_frames.length === 0) {
+		let faces_array = Array.from(Array(graph.faces_vertices.length));
+		graph.file_frames = [{
+			frame_classes: "foldedForm",
+			frame_inherit: true,
+			frame_parent: 0,
+			"re:faces_layer": faces_array.map((_,i) => i),
+			"re:faces_matrix": faces_array.map(_ => [1,0,0,1,0,0])
+		}];
+	}	
 }
 
 const CreasePatternPrototype = function(proto) {
@@ -52,7 +60,7 @@ const CreasePatternPrototype = function(proto) {
 			Graph.all_keys.forEach(key => delete _this[key])
 		}
 		Object.assign(_this, JSON.parse(JSON.stringify(file)));
-		appendRabbitEarExtensions(_this);
+		placeholderFoldedForm(_this);
 	}
 	/**
 	 * @return {CreasePattern} a deep copy of this object.

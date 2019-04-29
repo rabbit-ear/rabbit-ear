@@ -45,11 +45,11 @@ polygon {
 }
 
 .foldedForm #faces .front {
-	fill: sienna;
+	fill: steelblue;
 }
 
 .foldedForm #faces .back {
-	fill: white;
+	fill: peru;
 }
 
 .foldedForm #creases line {
