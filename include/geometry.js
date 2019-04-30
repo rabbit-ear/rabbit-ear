@@ -979,6 +979,36 @@ function Circle(){
 	};
 }
 
+function Matrix2() {
+	let _m = get_matrix2(...arguments);
+	const inverse = function() {
+		return Matrix2( make_matrix2_inverse(_m) );
+	};
+	const multiply = function() {
+		let m2 = get_matrix2(...arguments);
+		return Matrix2( multiply_matrices2(_m, m2) );
+	};
+	const transform = function() {
+		let v = get_vec(...arguments);
+		return Vector( multiply_vector2_matrix2(v, _m) );
+	};
+	return {
+		inverse,
+		multiply,
+		transform,
+		get m() { return _m; },
+	};
+}
+Matrix2.makeIdentity = function() {
+	return Matrix2(1,0,0,1,0,0);
+};
+Matrix2.makeRotation = function(angle, origin) {
+	return Matrix2( make_matrix2_rotation(angle, origin) );
+};
+Matrix2.makeReflection = function(vector, origin) {
+	return Matrix2( make_matrix2_reflection(vector, origin) );
+};
+
 function LinePrototype(proto) {
 	if(proto == null) {
 		proto = {};
@@ -1200,16 +1230,17 @@ function Polygon() {
 	if (_points === undefined) {
 		return undefined;
 	}
-	let _sides = _points.map((p,i,arr) =>
-		Edge(p[0], p[1], arr[(i+1)%arr.length][0], arr[(i+1)%arr.length][0]));
+	let _sides = _points
+		.map((p,i,arr) => [p, arr[(i+1)%arr.length]])
+		.map(ps => Edge(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
 	const contains = function() {
 		let point = get_vec(...arguments);
 		return point_in_poly(_points, point);
 	};
-	const scale = function(magnitude, center = centroid(_points)) {
+	const scale = function(magnitude$$1, center = centroid(_points)) {
 		let newPoints = _points
 			.map(p => [0,1].map((_,i) => p[i] - center[i]))
-			.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude));
+			.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude$$1));
 		return Polygon(newPoints);
 	};
 	const rotate = function(angle, centerPoint = centroid(_points)) {
@@ -1246,6 +1277,17 @@ function Polygon() {
 		let line = get_line(...arguments);
 		return clip_ray_in_convex_poly(_points, line.point, line.vector);
 	};
+	const nearest = function() {
+		let point = get_vec(...arguments);
+		let points = _sides.map(edge => edge.nearestPoint(point));
+		let lowD = Infinity, lowI;
+		points.map(p => distance2(point, p))
+			.forEach((d,i) => { if(d < lowD){ lowD = d; lowI = i;} });
+		return {
+			point: points[lowI],
+			edge: _sides[lowI],
+		}
+	};
 	return {
 		contains,
 		scale,
@@ -1261,7 +1303,8 @@ function Polygon() {
 		get area() { return signed_area(_points); },
 		get signedArea() { return signed_area(_points); },
 		get centroid() { return centroid(_points); },
-		get midpoint() { return Algebra.average(_points); },
+		get midpoint() { return average(_points); },
+		nearest,
 		get enclosingRectangle() {
 			return Rectangle(enclosing_rectangle(_points));
 		},
@@ -1301,10 +1344,10 @@ function ConvexPolygon() {
 		let points = get_array_of_vec(...arguments);
 		return convex_polygons_overlap(polygon.points, points);
 	};
-	const scale = function(magnitude, center = centroid(polygon.points)) {
+	const scale = function(magnitude$$1, center = centroid(polygon.points)) {
 		let newPoints = polygon.points
 			.map(p => [0,1].map((_,i) => p[i] - center[i]))
-			.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude));
+			.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude$$1));
 		return ConvexPolygon(newPoints);
 	};
 	const rotate = function(angle, centerPoint = centroid(polygon.points)) {
@@ -1361,13 +1404,13 @@ function Rectangle(){
 		[_origin[0], _origin[1] + _height],
 	];
 	let rect = Object.create(ConvexPolygon(points));
-	const scale = function(magnitude, center) {
+	const scale = function(magnitude$$1, center) {
 		if (center == null) {
 			center = [_origin[0] + _width, _origin[1] + _height];
 		}
-		let x = _origin[0] + (center[0] - _origin[0]) * (1-magnitude);
-		let y = _origin[1] + (center[1] - _origin[1]) * (1-magnitude);
-		return Rectangle(x, y, _width*magnitude, _height*magnitude);
+		let x = _origin[0] + (center[0] - _origin[0]) * (1-magnitude$$1);
+		let y = _origin[1] + (center[1] - _origin[1]) * (1-magnitude$$1);
+		return Rectangle(x, y, _width*magnitude$$1, _height*magnitude$$1);
 	};
 	Object.defineProperty(rect, "origin", {get: function(){ return _origin; }});
 	Object.defineProperty(rect, "width", {get: function(){ return _width; }});
@@ -1378,36 +1421,6 @@ function Rectangle(){
 	Object.defineProperty(rect, "scale", {value: scale});
 	return rect;
 }
-
-function Matrix2$1() {
-	let _m = get_matrix2(...arguments);
-	const inverse = function() {
-		return Matrix2$1( make_matrix2_inverse(_m) );
-	};
-	const multiply = function() {
-		let m2 = get_matrix2(...arguments);
-		return Matrix2$1( multiply_matrices2(_m, m2) );
-	};
-	const transform = function() {
-		let v = get_vec(...arguments);
-		return Vector( multiply_vector2_matrix2(v, _m) );
-	};
-	return {
-		inverse,
-		multiply,
-		transform,
-		get m() { return _m; },
-	};
-}
-Matrix2$1.makeIdentity = function() {
-	return Matrix2$1(1,0,0,1,0,0);
-};
-Matrix2$1.makeRotation = function(angle, origin) {
-	return Matrix2$1( make_matrix2_rotation(angle, origin) );
-};
-Matrix2$1.makeReflection = function(vector, origin) {
-	return Matrix2$1( make_matrix2_reflection(vector, origin) );
-};
 
 function Junction(center, points) {
 	let _points = get_array_of_vec(points);
@@ -1504,4 +1517,4 @@ delete core.axiom[0];
 Object.freeze(core.axiom);
 Object.freeze(core);
 
-export { Vector, Circle, Polygon, ConvexPolygon, Rectangle, Matrix2$1 as Matrix2, Line, Ray, Edge, Junction, Sector, core };
+export { Vector, Circle, Polygon, ConvexPolygon, Rectangle, Matrix2, Line, Ray, Edge, Junction, Sector, core };

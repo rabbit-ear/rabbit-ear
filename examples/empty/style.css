@@ -19,7 +19,7 @@ svg {
 svg * {
 	stroke-width: var(--crease-width);
 	stroke-linecap: round;
-	stroke: black;
+	/*stroke: black;*/
 }
 
 polygon {
@@ -41,7 +41,7 @@ polygon {
 }
 
 .foldedForm #faces polygon {
-	stroke: black;
+	/*stroke: black;*/
 }
 
 .foldedForm #faces .front {

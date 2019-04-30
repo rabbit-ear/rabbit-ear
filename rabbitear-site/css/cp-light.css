@@ -5,20 +5,47 @@ svg{
 	height:40vmax;
 }
 
-.mountain, .valley, .boundary, .mark {
-	stroke:black;
-	stroke-linecap: round;
+svg * {
 	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke: black;
 }
-.node, .face, .sector{
-	stroke: none;
+
+polygon {
 	fill: none;
+	stroke: none;
+	stroke-linejoin: bevel;
 }
-.folded-face{
-	fill:rgba(255, 255, 255, 0.5);
+
+.boundary {
+	fill: none;
+	stroke: none;
 }
-.boundary{ fill:#FFFFFF; }
-.mark{ stroke-width: calc( var(--crease-width) * 0.25); }
-.valley{ stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2) }
-.face-front { fill: white; stroke: black;  stroke-width: var(--crease-width);}
-.face-back { fill: #ecb233; stroke: black; stroke-width: var(--crease-width); }
+
+.valley{
+	stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);
+}
+.mark {
+	stroke-width: calc( var(--crease-width) * 0.25);
+}
+
+.creasePattern .boundary {
+	stroke: black;
+	fill: linen;
+}
+
+.foldedForm #faces polygon {
+	stroke: black;
+}
+
+.foldedForm #faces .front {
+	fill: peru;
+}
+
+.foldedForm #faces .back {
+	fill: linen;
+}
+
+.foldedForm #creases line {
+	stroke: none;
+}

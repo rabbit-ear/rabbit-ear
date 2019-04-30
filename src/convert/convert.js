@@ -95,13 +95,13 @@ export const load_file = function(input, callback) {
 	}
 }
 
-export const intoFOLD = function(input, callback) {
+export const toFOLD = function(input, callback) {
 	return load_file(input, function(fold) {
 		if (callback != null) { callback(fold); }
 	});
 }
 
-export const intoSVG = function(input, callback) {
+export const toSVG = function(input, callback) {
 	let syncFold, svg, async = false;
 	// attempt to load synchronously, the callback will be called regardless,
 	// we need a flag to flip when the call is done, then check if the async
@@ -126,7 +126,7 @@ export const intoSVG = function(input, callback) {
 	}
 }
 
-export const intoORIPA = function(input, callback) {
+export const toORIPA = function(input, callback) {
 	// coded for FOLD input only!!
 	let fold = JSON.parse(JSON.stringify(input));
 	return ORIPA.fromFold(fold);

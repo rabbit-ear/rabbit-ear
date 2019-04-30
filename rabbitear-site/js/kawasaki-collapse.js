@@ -1,6 +1,6 @@
 let div = document.getElementsByClassName('row')[0];
-let origami = RabbitEar.Origami(div);
-let folded = RabbitEar.Origami(div);
+let origami = RabbitEar.Origami(div, {padding:0.05});
+let folded = RabbitEar.Origami(div, {padding:0.05});
 
 origami.boot = function() {
 	origami.threeCorners = {
@@ -12,7 +12,7 @@ origami.boot = function() {
 		"vertices_faces": [[0,2], [0,1], [1], [1,2], [0,1,2]],
 		"edges_vertices": [[0,1], [1,2], [2,3], [3,0], [0,4], [1,4], [3,4]],
 		"edges_faces": [[0], [1], [1], [2], [2,0], [0,1], [1,2]],
-		"edges_assignment": ["B","B","B","B","V","V","V"],
+		"edges_assignment": ["B","B","B","B","V","M","V"],
 		"edges_foldAngle": [0, 0, 0, 0, 180, 180, 180],
 		"edges_length": [1, 1, 1, 1, 0.70710678, 0.70710678, 0.70710678],
 		"faces_vertices": [[0,1,4], [1,2,3,4], [3,0,4]],
@@ -43,16 +43,15 @@ origami.updateCenter = function(point){
 		> (b.y - a.y)
 		* (origami.cp.vertices_coords[origami.midVertex][0] - a.x);
 
-	origami.cp.edges_assignment[6] = poke_through ? "V" : "M";
-	origami.cp.edges_assignment[5] = poke_through ? "M" : "V";
-
-	origami.cp.kawasaki(origami.midVertex, 1, "V");
+	origami.cp.edges_assignment[4] = poke_through ? "V" : "M";
+	origami.cp.kawasaki(origami.midVertex, 1, poke_through ? "V" : "M");
 	
 	origami.draw();
 
-	let foldedCP = RabbitEar.fold.origami.fold_without_layering(origami.cp, 0);
-	foldedCP["re:faces_layer"] = poke_through ? [1,0,2,3] : [0,1,3,2];
-	folded.cp = RabbitEar.CreasePattern(foldedCP);
+	folded.cp = origami.cp.copy();
+	folded.fold(0);
+	folded.cp["re:faces_layer"] = poke_through ? [1,0,2,3] : [0,1,3,2];
+	folded.draw();
 }
 
 origami.startTime = 1.0 + Math.random()*2;

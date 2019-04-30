@@ -1,4 +1,4 @@
-:root{ --crease-width: 0.00666; }
+:root{ --crease-width: 0.005; }
 
 html, body {
 	width: 100%;
@@ -40,7 +40,7 @@ svg * {
 }
 
 .foldedForm * {
-	stroke-width: calc( var(--crease-width) * 0.25);
+	stroke-width: calc( var(--crease-width) * 0.2);
 }
 .foldedForm #faces {
 	stroke: black;
@@ -59,7 +59,7 @@ svg * {
 .creasePattern .valley {
 	stroke: black;
 	stroke-linecap: round;
-	stroke-dasharray: calc( var(--crease-width) * 0.01) calc( var(--crease-width) * 2)
+	stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 3)
 }
 .creasePattern #faces {
 	stroke: none;

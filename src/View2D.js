@@ -25,7 +25,8 @@ const DEFAULTS = Object.freeze({
 	autofit: true,
 	debug: false,
 	folding: false,
-	padding: 0
+	padding: 0,
+	shadows: false
 });
 
 const parsePreferences = function() {
@@ -44,6 +45,30 @@ export default function() {
 
 	let _this = SVG.image(...arguments);
 
+	(function(){
+		const svgNS = "http://www.w3.org/2000/svg";
+		let defs = document.createElementNS(svgNS, "defs");
+		let filter = document.createElementNS(svgNS, "filter");
+		filter.setAttribute("width", "200%");
+		filter.setAttribute("height", "200%");
+		filter.setAttribute("id", "face-shadow");
+		let blur = document.createElementNS(svgNS, "feGaussianBlur");
+		blur.setAttribute("result", "blurOut");
+		blur.setAttribute("in", "SourceAlpha");
+		blur.setAttribute("stdDeviation", 0.005);
+		let merge = document.createElementNS(svgNS, "feMerge");
+		let mergeNode1 = document.createElementNS(svgNS, "feMergeNode");
+		let mergeNode2 = document.createElementNS(svgNS, "feMergeNode");
+		mergeNode2.setAttribute("in", "SourceGraphic");
+		_this.appendChild(defs);
+		defs.appendChild(filter);
+		filter.appendChild(blur);
+		filter.appendChild(merge);
+		merge.appendChild(mergeNode1);
+		merge.appendChild(mergeNode2);
+	})();
+
+	// make SVG groups
 	let groups = {};  // visible = {};
 	// ["boundary", "face", "crease", "vertex"]
 	// make sure they are added in this order
@@ -145,7 +170,6 @@ export default function() {
 		// both folded and non-folded draw all the components, style them in CSS
 		FoldToSVG.intoGroups(graph, visibleGroups);
 
-
 		// if (groups.faces.children.length === graph.faces_vertices.length) {
 		// 	FoldToSVG.updateFaces(graph, groups.faces);
 		// } else {
@@ -156,6 +180,12 @@ export default function() {
 		if (preferences.debug) { drawDebug(graph); }
 		if (preferences.autofit) { updateViewBox(); }
 
+		if (preferences.shadows) {
+			Array.from(groups.faces.children)
+				.forEach(f => f.setAttribute("filter", "url(#face-shadow)"));
+		}
+
+		return;
 		// stroke width
 		let styleElement = _this.querySelector("style");
 
@@ -248,9 +278,17 @@ export default function() {
 		// 	.map((v,i) => Object.assign(groups.face.children[i], v));
 	}
 	const getBoundary = function() {
-		let boundary = prop.cp.getBoundary();
-		boundary.forEach((v,i) => v.svg = groups.boundaries.children[i])
-		return boundary;
+		let graph = prop.frame
+			? flatten_frame(prop.cp, prop.frame)
+			: prop.cp;
+		return Geom.Polygon(
+			Graph.get_boundary_face(graph)
+				.vertices
+				.map(v => graph.vertices_coords[v])
+		);
+		// let boundary = prop.cp.boundary;
+		// boundary.forEach((v,i) => v.svg = groups.boundaries.children[i])
+		// return boundary;
 	};
 
 	const load = function(input, callback) { // epsilon
@@ -355,6 +393,9 @@ export default function() {
 	});
 	Object.defineProperty(_this, "faces", {
 		get: function(){ return getFaces(); }
+	});
+	Object.defineProperty(_this, "boundary", {
+		get: function(){ return getBoundary(); }
 	});
 	Object.defineProperty(_this, "draw", { value: draw });
 	Object.defineProperty(_this, "fold", { value: fold });

@@ -1,4 +1,4 @@
-/* Rabbit Ear v2 (c) Robby Kraft, MIT License */
+/* Rabbit Ear v0.2 (c) Robby Kraft, MIT License */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
@@ -986,6 +986,36 @@
 		};
 	}
 
+	function Matrix2() {
+		let _m = get_matrix2(...arguments);
+		const inverse = function() {
+			return Matrix2( make_matrix2_inverse(_m) );
+		};
+		const multiply = function() {
+			let m2 = get_matrix2(...arguments);
+			return Matrix2( multiply_matrices2(_m, m2) );
+		};
+		const transform = function() {
+			let v = get_vec(...arguments);
+			return Vector( multiply_vector2_matrix2(v, _m) );
+		};
+		return {
+			inverse,
+			multiply,
+			transform,
+			get m() { return _m; },
+		};
+	}
+	Matrix2.makeIdentity = function() {
+		return Matrix2(1,0,0,1,0,0);
+	};
+	Matrix2.makeRotation = function(angle, origin) {
+		return Matrix2( make_matrix2_rotation(angle, origin) );
+	};
+	Matrix2.makeReflection = function(vector, origin) {
+		return Matrix2( make_matrix2_reflection(vector, origin) );
+	};
+
 	function LinePrototype(proto) {
 		if(proto == null) {
 			proto = {};
@@ -1207,16 +1237,17 @@
 		if (_points === undefined) {
 			return undefined;
 		}
-		let _sides = _points.map((p,i,arr) =>
-			Edge(p[0], p[1], arr[(i+1)%arr.length][0], arr[(i+1)%arr.length][0]));
+		let _sides = _points
+			.map((p,i,arr) => [p, arr[(i+1)%arr.length]])
+			.map(ps => Edge(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
 		const contains = function() {
 			let point = get_vec(...arguments);
 			return point_in_poly(_points, point);
 		};
-		const scale = function(magnitude, center = centroid(_points)) {
+		const scale = function(magnitude$$1, center = centroid(_points)) {
 			let newPoints = _points
 				.map(p => [0,1].map((_,i) => p[i] - center[i]))
-				.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude));
+				.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude$$1));
 			return Polygon(newPoints);
 		};
 		const rotate = function(angle, centerPoint = centroid(_points)) {
@@ -1253,6 +1284,17 @@
 			let line = get_line(...arguments);
 			return clip_ray_in_convex_poly(_points, line.point, line.vector);
 		};
+		const nearest = function() {
+			let point = get_vec(...arguments);
+			let points = _sides.map(edge => edge.nearestPoint(point));
+			let lowD = Infinity, lowI;
+			points.map(p => distance2(point, p))
+				.forEach((d,i) => { if(d < lowD){ lowD = d; lowI = i;} });
+			return {
+				point: points[lowI],
+				edge: _sides[lowI],
+			}
+		};
 		return {
 			contains,
 			scale,
@@ -1268,7 +1310,8 @@
 			get area() { return signed_area(_points); },
 			get signedArea() { return signed_area(_points); },
 			get centroid() { return centroid(_points); },
-			get midpoint() { return Algebra.average(_points); },
+			get midpoint() { return average(_points); },
+			nearest,
 			get enclosingRectangle() {
 				return Rectangle(enclosing_rectangle(_points));
 			},
@@ -1308,10 +1351,10 @@
 			let points = get_array_of_vec(...arguments);
 			return convex_polygons_overlap(polygon.points, points);
 		};
-		const scale = function(magnitude, center = centroid(polygon.points)) {
+		const scale = function(magnitude$$1, center = centroid(polygon.points)) {
 			let newPoints = polygon.points
 				.map(p => [0,1].map((_,i) => p[i] - center[i]))
-				.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude));
+				.map(vec => vec.map((_,i) => center[i] + vec[i] * magnitude$$1));
 			return ConvexPolygon(newPoints);
 		};
 		const rotate = function(angle, centerPoint = centroid(polygon.points)) {
@@ -1368,13 +1411,13 @@
 			[_origin[0], _origin[1] + _height],
 		];
 		let rect = Object.create(ConvexPolygon(points));
-		const scale = function(magnitude, center) {
+		const scale = function(magnitude$$1, center) {
 			if (center == null) {
 				center = [_origin[0] + _width, _origin[1] + _height];
 			}
-			let x = _origin[0] + (center[0] - _origin[0]) * (1-magnitude);
-			let y = _origin[1] + (center[1] - _origin[1]) * (1-magnitude);
-			return Rectangle(x, y, _width*magnitude, _height*magnitude);
+			let x = _origin[0] + (center[0] - _origin[0]) * (1-magnitude$$1);
+			let y = _origin[1] + (center[1] - _origin[1]) * (1-magnitude$$1);
+			return Rectangle(x, y, _width*magnitude$$1, _height*magnitude$$1);
 		};
 		Object.defineProperty(rect, "origin", {get: function(){ return _origin; }});
 		Object.defineProperty(rect, "width", {get: function(){ return _width; }});
@@ -1385,36 +1428,6 @@
 		Object.defineProperty(rect, "scale", {value: scale});
 		return rect;
 	}
-
-	function Matrix2$1() {
-		let _m = get_matrix2(...arguments);
-		const inverse = function() {
-			return Matrix2$1( make_matrix2_inverse(_m) );
-		};
-		const multiply = function() {
-			let m2 = get_matrix2(...arguments);
-			return Matrix2$1( multiply_matrices2(_m, m2) );
-		};
-		const transform = function() {
-			let v = get_vec(...arguments);
-			return Vector( multiply_vector2_matrix2(v, _m) );
-		};
-		return {
-			inverse,
-			multiply,
-			transform,
-			get m() { return _m; },
-		};
-	}
-	Matrix2$1.makeIdentity = function() {
-		return Matrix2$1(1,0,0,1,0,0);
-	};
-	Matrix2$1.makeRotation = function(angle, origin) {
-		return Matrix2$1( make_matrix2_rotation(angle, origin) );
-	};
-	Matrix2$1.makeReflection = function(vector, origin) {
-		return Matrix2$1( make_matrix2_reflection(vector, origin) );
-	};
 
 	function Junction(center, points) {
 		let _points = get_array_of_vec(points);
@@ -1517,7 +1530,7 @@
 		Polygon: Polygon,
 		ConvexPolygon: ConvexPolygon,
 		Rectangle: Rectangle,
-		Matrix2: Matrix2$1,
+		Matrix2: Matrix2,
 		Line: Line,
 		Ray: Ray,
 		Edge: Edge,
@@ -4981,13 +4994,13 @@
 		}
 	};
 
-	const intoFOLD = function(input, callback) {
+	const toFOLD = function(input, callback) {
 		return load_file(input, function(fold) {
 			if (callback != null) { callback(fold); }
 		});
 	};
 
-	const intoSVG = function(input, callback) {
+	const toSVG = function(input, callback) {
 		let syncFold, async = false;
 		// attempt to load synchronously, the callback will be called regardless,
 		// we need a flag to flip when the call is done, then check if the async
@@ -5012,7 +5025,7 @@
 		}
 	};
 
-	const intoORIPA = function(input, callback) {
+	const toORIPA = function(input, callback) {
 		// coded for FOLD input only!!
 		let fold = JSON.parse(JSON.stringify(input));
 		return oripa.fromFold(fold);
@@ -5499,7 +5512,7 @@
 		if (graph.file_frames == null || graph.file_frames.length === 0) {
 			let faces_array = Array.from(Array(graph.faces_vertices.length));
 			graph.file_frames = [{
-				frame_classes: "foldedForm",
+				frame_classes: ["foldedForm"],
 				frame_inherit: true,
 				frame_parent: 0,
 				"re:faces_layer": faces_array.map((_,i) => i),
@@ -5816,7 +5829,8 @@
 		autofit: true,
 		debug: false,
 		folding: false,
-		padding: 0
+		padding: 0,
+		shadows: false
 	});
 
 	const parsePreferences = function() {
@@ -5835,6 +5849,30 @@
 
 		let _this = image(...arguments);
 
+		(function(){
+			const svgNS = "http://www.w3.org/2000/svg";
+			let defs = document.createElementNS(svgNS, "defs");
+			let filter = document.createElementNS(svgNS, "filter");
+			filter.setAttribute("width", "200%");
+			filter.setAttribute("height", "200%");
+			filter.setAttribute("id", "face-shadow");
+			let blur = document.createElementNS(svgNS, "feGaussianBlur");
+			blur.setAttribute("result", "blurOut");
+			blur.setAttribute("in", "SourceAlpha");
+			blur.setAttribute("stdDeviation", 0.005);
+			let merge = document.createElementNS(svgNS, "feMerge");
+			let mergeNode1 = document.createElementNS(svgNS, "feMergeNode");
+			let mergeNode2 = document.createElementNS(svgNS, "feMergeNode");
+			mergeNode2.setAttribute("in", "SourceGraphic");
+			_this.appendChild(defs);
+			defs.appendChild(filter);
+			filter.appendChild(blur);
+			filter.appendChild(merge);
+			merge.appendChild(mergeNode1);
+			merge.appendChild(mergeNode2);
+		})();
+
+		// make SVG groups
 		let groups = {};  // visible = {};
 		// ["boundary", "face", "crease", "vertex"]
 		// make sure they are added in this order
@@ -5934,7 +5972,6 @@
 			// both folded and non-folded draw all the components, style them in CSS
 			intoGroups(graph, visibleGroups);
 
-
 			// if (groups.faces.children.length === graph.faces_vertices.length) {
 			// 	FoldToSVG.updateFaces(graph, groups.faces);
 			// } else {
@@ -5945,6 +5982,12 @@
 			if (preferences.debug) { drawDebug(graph); }
 			if (preferences.autofit) { updateViewBox(); }
 
+			if (preferences.shadows) {
+				Array.from(groups.faces.children)
+					.forEach(f => f.setAttribute("filter", "url(#face-shadow)"));
+			}
+
+			return;
 			// stroke width
 			let styleElement = _this.querySelector("style");
 
@@ -6035,6 +6078,19 @@
 			return faces;
 			// return prop.cp.faces
 			// 	.map((v,i) => Object.assign(groups.face.children[i], v));
+		};
+		const getBoundary = function() {
+			let graph = prop.frame
+				? flatten_frame(prop.cp, prop.frame)
+				: prop.cp;
+			return Polygon(
+				get_boundary_face(graph)
+					.vertices
+					.map(v => graph.vertices_coords[v])
+			);
+			// let boundary = prop.cp.boundary;
+			// boundary.forEach((v,i) => v.svg = groups.boundaries.children[i])
+			// return boundary;
 		};
 
 		const load$$1 = function(input, callback) { // epsilon
@@ -6137,6 +6193,9 @@
 		});
 		Object.defineProperty(_this, "faces", {
 			get: function(){ return getFaces(); }
+		});
+		Object.defineProperty(_this, "boundary", {
+			get: function(){ return getBoundary(); }
 		});
 		Object.defineProperty(_this, "draw", { value: draw });
 		Object.defineProperty(_this, "fold", { value: fold });
@@ -7152,7 +7211,7 @@
 
 	var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
 
-	let convert$1 = { intoFOLD, intoSVG, intoORIPA };
+	let convert$1 = { toFOLD, toSVG, toORIPA };
 
 	const core$1 = Object.create(null);
 	Object.assign(core$1, file, validate, graph, Origami, planargraph);
@@ -7200,3 +7259,4 @@
 	return rabbitEar;
 
 })));
+const RE = RabbitEar;

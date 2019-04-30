@@ -11,14 +11,14 @@ import * as planargraph from './fold/planargraph';
 import { default as valleyfold } from './fold/valleyfold';
 import * as creasethrough from './fold/creasethrough';
 
-import { intoFOLD, intoSVG, intoORIPA } from './convert/convert';
+import { toFOLD, toSVG, toORIPA } from './convert/convert';
 
 import { default as CreasePattern } from './cp/CreasePattern';
 import { default as Origami } from './View2D';
 import { default as Origami3D } from './View3D';
 import { default as Graph } from './Graph';
 
-let convert = { intoFOLD, intoSVG, intoORIPA };
+let convert = { toFOLD, toSVG, toORIPA };
 
 const core = Object.create(null);
 Object.assign(core, file, validate, graph, origami, planargraph);

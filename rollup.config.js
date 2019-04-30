@@ -8,7 +8,8 @@ module.exports = {
 		name: 'RabbitEar',
 		file: 'rabbit-ear.js',
 		format: 'umd',
-		banner: "/* Rabbit Ear v2 (c) Robby Kraft, MIT License */"
+		banner: "/* Rabbit Ear v0.2 (c) Robby Kraft, MIT License */",
+		footer: "const RE = RabbitEar;"
 	},
 	plugins: [
 		// json({}),

@@ -15,7 +15,7 @@ const placeholderFoldedForm = function(graph) {
 	if (graph.file_frames == null || graph.file_frames.length === 0) {
 		let faces_array = Array.from(Array(graph.faces_vertices.length));
 		graph.file_frames = [{
-			frame_classes: "foldedForm",
+			frame_classes: ["foldedForm"],
 			frame_inherit: true,
 			frame_parent: 0,
 			"re:faces_layer": faces_array.map((_,i) => i),
