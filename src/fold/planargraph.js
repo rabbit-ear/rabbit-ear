@@ -17,6 +17,82 @@ const angle_from_assignment = function(assignment) {
 }
 
 /**
+ * fragment splits overlapping edges at their intersections
+ * and joins new edges at a new shared vertex.
+ * this destroys and rebuilds all face data with face walking 
+ */
+export const fragment = function(graph) {
+
+	const EPSILON = 1e-12;
+	const horizSort = function(a,b){ return a[0] - b[0]; }
+	const vertSort = function(a,b){ return a[1] - b[1]; }
+	const horizSort2 = function(a,b){
+		return a.intersection[0] - b.intersection[0]; }
+	const vertSort2 = function(a,b){
+		return a.intersection[1] - b.intersection[1]; }
+
+	let edge_count = graph.edges_vertices.length;
+	let edges = graph.edges_vertices.map(ev => [
+		graph.vertices_coords[ev[0]],
+		graph.vertices_coords[ev[1]]
+	]);
+	console.log(edges);
+	let edges_vector = edges.map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
+	let edges_magnitude = edges_vector.map(e => Math.sqrt(e[0]*e[0]+e[1]*e[1]));
+	let edges_normalized = edges_vector
+		.map((e,i) => [e[0]/edges_magnitude[i], e[1]/edges_magnitude[i]]);
+	let edges_horizontal = edges_normalized.map(e => Math.abs(e[0]) > 0.7);//.707
+
+	console.log("edges_normalized", edges_normalized);
+	console.log("edges_horizontal", edges_horizontal);
+	let crossings = Array.from(Array(edge_count - 1)).map(_ => []);
+	for (let i = 0; i < edges.length-1; i++) {
+		for (let j = i+1; j < edges.length; j++) {
+			crossings[i][j] = Geom.core.intersection.edge_edge_exclusive(
+				edges[i][0], edges[i][1],
+				edges[j][0], edges[j][1]
+			)
+		}
+	}
+	console.log(crossings);
+	let edges_intersections = Array.from(Array(edge_count)).map(_ => []);
+	for (let i = 0; i < edges.length-1; i++) {
+		for (let j = i+1; j < edges.length; j++) {
+			if (crossings[i][j] != null) {
+				// warning - these are shallow pointers
+				edges_intersections[i].push(crossings[i][j]);
+				edges_intersections[j].push(crossings[i][j]);
+			}
+		}
+	}
+
+	let edges_intersections2 = Array.from(Array(edge_count)).map(_ => []);
+	for (let i = 0; i < edges.length-1; i++) {
+		for (let j = i+1; j < edges.length; j++) {
+			if (crossings[i][j] != null) {
+				// warning - these are shallow pointers
+				edges_intersections2[i].push({edge:j, intersection:crossings[i][j]});
+				edges_intersections2[j].push({edge:i, intersection:crossings[i][j]});
+			}
+		}
+	}
+
+	edges_intersections.forEach((e,i) => 
+		e.sort(edges_horizontal[i] ? horizSort : vertSort)
+	)
+	edges_intersections2.forEach((e,i) => 
+		e.sort(edges_horizontal[i] ? horizSort2 : vertSort2)
+	)
+
+	console.log(edges_intersections);
+	console.log(edges_intersections2);
+
+	// edges_intersections2.
+
+	// remove circular edges
+}
+
+/**
  * @returns index of nearest vertex in vertices_ arrays or
  *  undefined if there are no vertices_coords
  */

@@ -41,14 +41,7 @@ import kite from './bases/kite.fold';
 import fish from './bases/fish.fold';
 import bird from './bases/bird.fold';
 import frog from './bases/frog.fold';
-// remove these for production
-// import test from './bases/test-three-fold.fold';
-// import dodecagon from './bases/test-dodecagon.fold';
-// import boundary from './bases/test-boundary.fold';
-// import concave from './bases/test-concave.fold';
-// import blintzAnimated from './bases/blintz-animated.fold';
-// import blintzDistorted from './bases/blintz-distort.fold';
-const bases = {
+let b = {
 	empty: file.recursive_freeze(JSON.parse(empty)),
 	square: file.recursive_freeze(JSON.parse(square)),
 	book: file.recursive_freeze(JSON.parse(book)),
@@ -56,15 +49,43 @@ const bases = {
 	kite: file.recursive_freeze(JSON.parse(kite)),
 	fish: file.recursive_freeze(JSON.parse(fish)),
 	bird: file.recursive_freeze(JSON.parse(bird)),
-	frog: file.recursive_freeze(JSON.parse(frog)),
-	// remove these for production
-	// test: JSON.parse(test),
-	// dodecagon: JSON.parse(dodecagon),
-	// boundary: JSON.parse(boundary),
-	// concave: JSON.parse(concave),
-	// blintzAnimated: JSON.parse(blintzAnimated),
-	// blintzDistorted: JSON.parse(blintzDistorted)
-};
+	frog: file.recursive_freeze(JSON.parse(frog))
+}
+let clone = core.clone;
+let bases = Object.create(null);
+Object.defineProperty(bases, "empty", {get:function(){ return clone(b.empty); }})
+Object.defineProperty(bases, "square", {get:function(){ return clone(b.square); }})
+Object.defineProperty(bases, "book", {get:function(){ return clone(b.book); }})
+Object.defineProperty(bases, "blintz", {get:function(){ return clone(b.blintz); }})
+Object.defineProperty(bases, "kite", {get:function(){ return clone(b.kite); }})
+Object.defineProperty(bases, "fish", {get:function(){ return clone(b.fish); }})
+Object.defineProperty(bases, "bird", {get:function(){ return clone(b.bird); }})
+Object.defineProperty(bases, "frog", {get:function(){ return clone(b.frog); }})
+
+// remove these for production
+// import test from './bases/test-three-fold.fold';
+// import dodecagon from './bases/test-dodecagon.fold';
+// import boundary from './bases/test-boundary.fold';
+// import concave from './bases/test-concave.fold';
+// import blintzAnimated from './bases/blintz-animated.fold';
+// import blintzDistorted from './bases/blintz-distort.fold';
+// const bases = {
+// 	empty: file.recursive_freeze(JSON.parse(empty)),
+// 	square: file.recursive_freeze(JSON.parse(square)),
+// 	book: file.recursive_freeze(JSON.parse(book)),
+// 	blintz: file.recursive_freeze(JSON.parse(blintz)),
+// 	kite: file.recursive_freeze(JSON.parse(kite)),
+// 	fish: file.recursive_freeze(JSON.parse(fish)),
+// 	bird: file.recursive_freeze(JSON.parse(bird)),
+// 	frog: file.recursive_freeze(JSON.parse(frog)),
+// 	// remove these for production
+// 	// test: JSON.parse(test),
+// 	// dodecagon: JSON.parse(dodecagon),
+// 	// boundary: JSON.parse(boundary),
+// 	// concave: JSON.parse(concave),
+// 	// blintzAnimated: JSON.parse(blintzAnimated),
+// 	// blintzDistorted: JSON.parse(blintzDistorted)
+// };
 
 let rabbitEar = {
 	CreasePattern,

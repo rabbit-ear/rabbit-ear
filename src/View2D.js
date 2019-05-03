@@ -112,7 +112,9 @@ export default function() {
 
 	const setCreasePattern = function(cp, frame = undefined) {
 		// todo: check if cp is a CreasePattern type
-		prop.cp = cp;
+		prop.cp = (cp.__rabbit_ear == null)
+			? CreasePattern(cp)
+			: cp;
 		prop.frame = frame;
 		draw();
 		// two levels of autofit going on here
@@ -196,7 +198,8 @@ export default function() {
 		}
 		let r = bounding_rect(graph);
 		let vmin = r[2] > r[3] ? r[3] : r[2];
-		styleElement.innerHTML = "#creases line {stroke-width:" + vmin*0.005 + " };}";
+		let creaseStyle = "stroke-width:" + vmin*0.005;
+		styleElement.innerHTML = "#creases line {" + creaseStyle + "}";
 		// groups.creases.setAttribute("style", "stroke-width:"+vmin*0.005);
 	};
 
@@ -230,7 +233,9 @@ export default function() {
 			.forEach(key => delete methods[key]);
 		Object.keys(nearest)
 			.filter(key => nearest[key] != null)
-			.forEach(key => nearest[key].svg = groups[key].childNodes[nearest[key].index]);
+			.forEach(key =>
+				nearest[key].svg = groups[key].childNodes[nearest[key].index]
+			);
 		return nearest;
 	}
 
@@ -307,7 +312,8 @@ export default function() {
 		if (prop.cp.file_frames != null
 			&& prop.cp.file_frames.length > 0
 			&& prop.cp.file_frames[0]["re:faces_matrix"] != null
-			&& prop.cp.file_frames[0]["re:faces_matrix"].length === prop.cp.faces_vertices.length) {
+			&& prop.cp.file_frames[0]["re:faces_matrix"].length 
+				=== prop.cp.faces_vertices.length) {
 			// well.. do nothing. we're good
 		} else {
 			// for the moment let's assume it's just 1 layer. face = 0
@@ -360,7 +366,10 @@ export default function() {
 		set: function(cp) { setCreasePattern(cp); }
 	});
 	Object.defineProperty(_this, "frameCount", {
-		get: function() { return prop.cp.file_frames ? prop.cp.file_frames.length : 0; }
+		get: function() { return prop.cp.file_frames
+			? prop.cp.file_frames.length
+			: 0;
+		}
 	});
 	// Object.defineProperty(_this, "frame", {
 	// 	set: function(f) { prop.frame = f; draw(); },
@@ -399,7 +408,9 @@ export default function() {
 	});
 	Object.defineProperty(_this, "draw", { value: draw });
 	Object.defineProperty(_this, "fold", { value: fold });
-	Object.defineProperty(_this, "foldWithoutLayering", { value: foldWithoutLayering });
+	Object.defineProperty(_this, "foldWithoutLayering", {
+		value: foldWithoutLayering
+	});
 	Object.defineProperty(_this, "load", { value: load });
 	Object.defineProperty(_this, "folded", { 
 		set: function(f) {
@@ -412,7 +423,7 @@ export default function() {
 		}
 	});
 
-	// _this.groups = groups;
+	_this.groups = groups;
 	// _this.labels = labels;
 
 	Object.defineProperty(_this, "updateViewBox", { value: updateViewBox });
@@ -428,7 +439,9 @@ export default function() {
 			try {
 				prevCP = JSON.parse(JSON.stringify(prop.cp));
 				// console.log("got a prev cp", prevCP);
-				if (prop.frame == null || prop.frame === 0 || prevCP.file_frames == null) {
+				if (prop.frame == null
+					|| prop.frame === 0
+					|| prevCP.file_frames == null) {
 					// console.log("NEEDING TO BUILD A FOLDED FRAME");
 					let file_frame = Origami.build_folded_frame(prevCP, 0);
 					if (prevCP.file_frames == null) { prevCP.file_frames = []; }

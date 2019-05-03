@@ -14,14 +14,15 @@
 
 	<p class="quote">grab</p>
 
-	<div class="language"><pre>.HTML</pre></div>
+	<div class="code"><pre class="language">.HTML</pre>
 	<pre><code>&lt;!<key>DOCTYPE</key> html&gt;
 &lt;<key>title</key>&gt;Rabbit Ear&lt;/<key>title</key>&gt;
 &lt;<key>script</key> <v>src</v>=<str>"rabbit-ear.js"</str>&gt;&lt;/<key>script</key>&gt;
 &lt;<key>script</key>&gt;
-<f>RabbitEar</f>.<f>Origami</f>( {<str>"folding"</str>:<n>true</n>} );
+<f>RE</f>.<f>Origami</f>( {<str>"folding"</str>:<n>true</n>} );
 &lt;/<key>script</key>&gt;
 </code></pre>
+</div>
 
 	<p>This simple app creates the sketch above - a square sheet of paper that you can fold.</p>
 
@@ -49,8 +50,8 @@
 		<li><strong>sketch.js</strong> let's take a closer look:</li>
 	</ul>
 
-	<div class="centered">
-	<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();
+	<div class="centered code"><pre class="language">.js</pre>
+	<pre><code><f>let</f> origami <key>=</key> <f>RE</f>.<f>Origami</f>();
 <br><c>// respond to a touch event</c>
 <f>origami</f>.<v>onMouseMove</v> = <f>function</f>(<arg>event</arg>){
 
@@ -69,9 +70,9 @@
 
 	<div id="div-folded-crane" class="diptych"></div>
 
-	<div class="diptych">
-		<pre style="margin:1em;"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);</code></pre>
-		<pre style="margin:1em;"><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
+	<div class="diptych code">
+		<pre><code><f>let</f> origami <key>=</key> <f>RE</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);</code></pre>
+		<pre><code><f>let</f> origami <key>=</key> <f>RE</f>.<f>Origami</f>();<br>origami.<f>load</f>(<str>"crane.svg"</str>);<br>origami.<f>fold</f>();</code></pre>
 	</div>
 
 	<p class="quote">In some cases Rabbit Ear is capable of determining layer ordering for a folding. When it is unsure it draws translucent faces.</p>
@@ -82,14 +83,16 @@
 
 	<div id="canvas-face-coloring"></div>
 
-<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();
-origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
+<div class="code"><pre class="language">.js</pre>
+<pre><code><f>let</f> origami <key>=</key> <f>RE</f>.<f>Origami</f>();
+origami.<f>load</f>(<f>RE</f>.bases.frog);
 
-<f>RabbitEar</f>.core.faces_coloring(origami.cp, <n>0</n>)
+<f>RE</f>.core.faces_coloring(origami.cp, <n>0</n>)
   .<f>map</f>(<arg>color</arg> <f>=></f> color <key>?</key> <str>"#224c72"</str> <key>:</key> <str>"#f1c14f"</str>)
   .<f>forEach</f>((<arg>color</arg>, <arg>i</arg>) <f>=></f>
     origami.faces[i].<f>setAttribute</f>(<str>"style"</str>, <str>"fill:"</str> <key>+</key> color)
   );</code></pre>
+</div>
 
 	<p class="quote">A flat-foldable crease pattern is always two-colorable.</p>
 
@@ -100,7 +103,8 @@ origami.<f>load</f>(<f>RabbitEar</f>.bases.frog);
 		<input type="range" id="sine-pleats-input" min=0 max=500 value=225>
 	</div>
 
-	<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami</f>();
+<div class="code"><pre class="language">.js</pre>
+	<pre><code><f>let</f> origami <key>=</key> <f>RE</f>.<f>Origami</f>();
 <f>let</f> creaseLines <op>=</op> <f>Array</f>.<f>from</f>(<f>Array</f>((<n>12</n>)))
   .<f>map</f>((<arg>_</arg>,<arg>i</arg>) <f>=></f> [ [p[i][<n>0</n>], p[i][<n>1</n>]], [p[i][<n>2</n>], p[i][<n>3</n>]] ]
 );
@@ -109,6 +113,7 @@ creaseLines.<f>forEach</f>((<arg>a</arg>,<arg>i</arg>) <f>=></f> i<op>%</op>2 <o
   <op>?</op> sinePleats.cp.<f>creaseLine</f>(a[<n>0</n>], a[<n>1</n>]).<f>mountain</f>()
   <op>:</op> sinePleats.cp.<f>creaseLine</f>(a[<n>0</n>], a[<n>1</n>]).<f>valley</f>()
 );</code></pre>
+</div>
 
 	<p>Because Rabbit Ear draws using SVG, a vector image is always ready to download.</p>
 
@@ -124,8 +129,8 @@ creaseLines.<f>forEach</f>((<arg>a</arg>,<arg>i</arg>) <f>=></f> i<op>%</op>2 <o
 		<input type="range" id="twist-3d-input" min=0 max=500 value=125>
 	</div>
 
-	<div class="centered">
-		<pre><code><f>let</f> origami <key>=</key> <f>RabbitEar</f>.<f>Origami3D</f>();<br>origami.<f>load</f>(<str>"square-twist.fold"</str>);</code></pre>
+	<div class="centered code"><pre class="language">.js</pre>
+		<pre><code><f>let</f> origami <key>=</key> <f>RE</f>.<f>Origami3D</f>();<br>origami.<f>load</f>(<str>"square-twist.fold"</str>);</code></pre>
 	</div>
 
 </section>
@@ -140,19 +145,19 @@ creaseLines.<f>forEach</f>((<arg>a</arg>,<arg>i</arg>) <f>=></f> i<op>%</op>2 <o
 
 	<p>Each origami object contains a <b>Crease Pattern</b>, an extended <a href="https://github.com/edemaine/fold">FOLD</a> object. This is where all the crease information is stored including the folded form.</p>
 
-	<div class="centered">
+	<div class="centered code"><pre class="language">.js</pre>
 		<pre><code>origami.cp <c>// crease data is stored here</c></code></pre>
 	</div>
 
 	<p>For especially algorithmic cases, you can create a crease pattern data object directly, unattached to any SVG.</p>
 
-	<div class="centered">
-		<pre><code><f>let</f> cp <key>=</key> <f>RabbitEar</f>.<f>CreasePattern</f>();</code></pre>
+	<div class="centered code"><pre class="language">.js</pre>
+		<pre><code><f>let</f> cp <key>=</key> <f>RE</f>.<f>CreasePattern</f>();</code></pre>
 	</div>
 
 	<p>There is a growing list of ways to put in a crease.</p>
 
-	<div class="centered">
+	<div class="centered code"><pre class="language">.js</pre>
 		<pre><code><f>axiom1</f>(<arg>point</arg>, <arg>point</arg>)
 ...
 <f>axiom7</f>(<arg>point</arg>, <arg>line</arg>, <arg>line</arg>)

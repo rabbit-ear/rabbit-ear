@@ -10,11 +10,18 @@ h1, h2, h3, h3, h4, nav {
 	font-weight: 300;
 	text-transform: uppercase;
 }
-h1{ font-size: 420%; }
-h2{ font-size: 280%; }
-h3{ font-size: 240%; }
-h4{ font-size: 180%; }
-h5{ font-size: 150%; }
+h1{ font-size: 4.2rem; }
+h2{ font-size: 2.8rem; }
+h3{ font-size: 2.4rem; }
+h4{ font-size: 1.8rem; }
+h5{ font-size: 1.5rem; }
+h6{ font-size: 1.2rem; }
+p, ol, ul {
+	font-size: 1.4rem;
+}
+nav ul {
+	font-size: 1rem;
+}
 h1{
 	padding: 1em 0;
 	text-align: center;
@@ -31,7 +38,6 @@ h3{
 	font-weight: 500;
 }
 p, ol, ul {
-	font-size: 140%;
 	margin: 1em 0;
 	line-height: 1.33em;
 	text-align: justify;
@@ -52,6 +58,18 @@ a, a:hover, a:visited, a:active{
 	font-weight: bold;
 }
 a:hover { text-decoration: none; }
+
+.code {
+	margin: 2rem auto;
+	max-width: 600px;
+	width: 450px;
+	min-width: 200px;
+}
+
+pre {
+	border-radius: 0.3em;
+	padding: 1rem;
+}
 
 svg {
 	max-width: 100%;
@@ -107,7 +125,96 @@ div[id^="canvas-"] {
 	flex: 1;
 }
 
-@media only screen and (max-width: 600px) {  }
+.diptych.code {
+	margin-left: 0;
+	margin-right: 0;
+	max-width: unset;
+	width: unset;
+	min-width: unset;
+}
+.diptych.code pre:nth-child(1){
+	margin-right: 1em;
+}
+.diptych.code pre:nth-child(2){
+	margin-left: 1em;
+}
+
+@media not all and (hover) {
+	body{
+		margin: 3rem 6vw;
+	}
+	h1{ font-size: 6.6rem; }
+	h2{ font-size: 5.2rem; }
+	h3{ font-size: 4.6rem; }
+	h4{ font-size: 3.0rem; }
+	h5{ font-size: 2.5rem; }
+	h6{ font-size: 2.0rem; }
+	p, ol, ul { font-size: 2.0rem; }
+	nav ul {
+		font-size: 1.5rem;
+	}
+	pre {
+		font-size: 2.0rem;
+	}
+	h1{
+		padding: 6rem 0 4rem 0;
+	}
+	h2{
+		padding-top: 2rem;
+		padding-bottom: 0.7rem;
+	}
+	h3{
+		padding: 3rem 0 1rem 0;
+	}
+	p, ol, ul {
+		margin: 1rem 0 2rem 0;
+	}
+
+	svg {
+		width: 100%;
+		max-height: 40vh;
+		display: block;
+		margin: auto;
+	}
+	div[id^="canvas-"] {
+		margin: 0 -6vw;
+	}
+
+/*	.diptych {
+		display: block;
+		flex-direction: unset;
+	}
+	.diptych * {
+		flex: unset;
+	}*/
+
+	.diptych svg {
+		width: 30vw;
+		max-height: 40vh;
+		/*display: block;*/
+		/*margin: auto;*/
+	}
+
+	.code {
+		max-width: 95vw;
+		min-width: 50%;
+		width: 85%;
+	}
+
+	.diptych.code {
+		max-width: unset;
+		width: unset;
+		min-width: unset;
+		display: flex;
+		flex-direction: row;
+	}
+
+	/*div[id^="canvas-"].diptych  {
+		margin: 0 -6vw;
+	}*/
+
+
+}
 
 ::selection {
 	background: #fffb5f; /* WebKit/Blink Browsers */

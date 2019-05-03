@@ -26,13 +26,14 @@
 			<a href="https://github.com/robbykraft/Origami/releases/download/untagged-1fdecd22aca74a9d72a0/rabbit-ear-0.1.zip">
 				<button type="button" class="btn btn-outline-light" id="download-button">download</button>
 			</a>
-			<button type="button" class="btn btn-outline-light" id="docs-button">instructions</button>
+			<a href="/docs/">
+				<button type="button" class="btn btn-outline-light" id="docs-button">instructions</button>
+			</a>
 			<!-- <button type="button" class="btn btn-outline-light" id="blog-button">blog</button> -->
 		</div>
 		<!-- <script type="text/javascript" src="js/rabbit-ear.min.js?2"></script> -->
 		<!-- <script type="text/javascript" src="js/rabbit-ear.min.0.1.2.js?2"></script> -->
 		<script type="text/javascript" src="../rabbit-ear.js?3"></script>
-		<script type="text/javascript" src="js/buttons.js?3"></script>
 		<script type="text/javascript" src="js/kawasaki-collapse.js?3"></script>
 	</body>
 </html>

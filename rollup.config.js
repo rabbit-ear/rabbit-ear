@@ -1,6 +1,7 @@
 // import minify from 'rollup-plugin-babel-minify';
 // import json from 'rollup-plugin-json';
 import string from 'rollup-plugin-string';
+import cleanup from "rollup-plugin-cleanup";
 
 module.exports = {
 	input: 'src/index.js',
@@ -12,6 +13,10 @@ module.exports = {
 		footer: "const RE = RabbitEar;"
 	},
 	plugins: [
+		cleanup({
+			comments: "none",
+			maxEmptyLines: 0
+		}),
 		// json({}),
 		// minify( {
 		// 	bannerNewLine: true,

@@ -2,7 +2,7 @@ import * as Origami from "../fold/origami";
 import * as SVG from "../../include/svg";
 import * as Segmentize from "../../include/svg-segmentize";
 import { flatten_frame } from "../fold/file";
-import { bounding_rect } from "../fold/planargraph";
+import { bounding_rect, fragment } from "../fold/planargraph";
 import * as FoldToSVG from "../draw/toSVG";
 import { default as ORIPA } from "./oripa";
 import { default as css_colors } from "./css_colors";
@@ -163,6 +163,8 @@ export const svg_to_fold = function(svg) {
 	graph.edges_foldAngle = graph.edges_assignment.map(a => 
 		(a === "M" ? -180 : (a === "V" ? 180 : 0))
 	);
+
+	fragment(graph);
 	// console.log("svg_to_fold");
 	// todo: import semgents into a planar graph, handle edge crossings
 

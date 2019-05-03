@@ -2,17 +2,24 @@
 
 <h1>APPENDIX</h1>
 
-<h2>Library Structure</h2>
+<h2 id="library">Library Structure</h2>
 
 <section>
-	<div class="centered">
+	<div class="centered code">
 		<pre class="compact"><code><f>RabbitEar</f>
 ┃
-┃ <c>// origami objects</c>
+┃ <c>// containers</c>
+┣━ bases
+┣━ math
+┣━ convert
+┣━ svg
+┣━ core
+┃
+┃ <c>// origami</c>
 ┣━ <v>CreasePattern</v>
 ┣━ <v>Origami</v>
 ┃
-┃ <c>// math objects</c>
+┃ <c>// math</c>
 ┣━ <v>Vector</v>
 ┣━ <v>Matrix2</v>
 ┣━ <v>Line</v>
@@ -24,34 +31,37 @@
 ┣━ <v>Circle</v>
 ┣━ <v>Junction</v>
 ┣━ <v>Sector</v>
-┣━ <v>Graph</v>
-┃
-┃ <c>// containers</c>
-┣━ bases
-┣━ math
-┣━ convert
-┣━ svg
-┗━ core</code></pre>
+┗━ <v>Graph</v></code></pre>
 </div>
 
-	<p>Capitalized entries are objects you can create, lowercase are containers (like folders) containing things inside them.</p>
+	<p>Capitalized entries are objects you can create, lowercase are subfolders with either objects or more levels inside them.</p>
 
+	<div class="diptych code">
+		<pre><code><f>RabbitEar</f></code></pre>
+		<pre><code><f>RE</f></code></pre>
+	</div>
+
+	<p>This namespace is under both <b>RabbitEar</b> and <b>RE</b> for short. They're interchangeable</p>
 </section>
 
 <section>
 
 	<h2>Containers</h2>
 	<ul>
-		<li><b>bases</b>: contains useful origami bases in FOLD format</li>
-		<li><b>convert</b>: convenient methods for converting between file types</li>
+		<li><b>bases</b>: traditional origami bases in FOLD format</li>
+		<li><b>convert</b>: methods for converting between file types</li>
 		<li><b>math</b>: a decent-sized linear algebra and geometry library</li>
 		<li><b>svg</b>: a mini creative coding library for drawing SVG</li>
 		<li><b>core</b>: the brains of the library, the algorithms behind the origami operations operating primarily on FOLD objects</li>
 	</ul>
 
-	<h3>Bases</h3>
+graft() // combines two fold files
+stripGraft()
+stretch
 
-	<div class="centered">
+	<h3 id="bases">Bases</h3>
+
+	<div class="centered code">
 		<pre class="compact"><code><f>RabbitEar</f>.bases
 ┃
 ┣━ square
@@ -59,17 +69,43 @@
 ┣━ fish
 ┣━ bird
 ┣━ frog
-┗━ blintz</code></pre>		
+┣━ blintz
+┃
+┗━ make
+    ┃
+    ┣━ <f>polygon</f>(<arg>sides</arg>)
+    ┣━ <f>triangleGrid</f>(<arg>count</arg>)
+    ┣━ <f>squareGrid</f>(<arg>count</arg>)
+    ┣━ <f>rectangleGrid</f>(<arg>countX</arg>, <arg>countY</arg>)
+    ┗━ <f>hexGrid</f>(<arg>sides</arg>)
+</code></pre>
 	</div>
 
-	<p>Popular origami bases like kite, frog, bird are available here in the FOLD format. These are <a>frozen</a> objects, Javascript passes objects by reference, make sure to clone them before use.
+	<p>Traditional origami bases are available in FOLD format.</p>
 
-	<div class="centered">
-		<pre class="compact"><code><f>let</f> birdBase <key>=</key> <f>JSON</f>.<f>parse</f>(<f>JSON</f>.<f>stringify</f>(<f>RabbitEar</f>.bases.bird));</code></pre>		
+	<div class="centered code">
+		<pre class="compact"><code>cp <key>=</key> <f>RabbitEar</f>.bases.bird</code></pre>
 	</div>
 
-	<h3>Math</h3>
-	<div class="centered" style="height:15rem; overflow: scroll;">
+	<p>The "make" category contains functions which <b>generate</b> FOLD objects, they are not FOLD objects themselves.</p>
+
+	<div class="centered code">
+		<pre class="compact"><code>cp <key>=</key> <f>RabbitEar</f>.bases.make.<f>polygon</f>(<n>5</n>)</code></pre>
+	</div>
+
+	<h3 id="convert">Convert</h3>
+	<div class="centered code">
+		<pre class="compact"><code><f>RabbitEar</f>.convert
+┃
+┣━ <f>toFOLD</f>(<arg>input</arg>, <arg>callback</arg>)
+┣━ <f>toORIPA</f>(<arg>input</arg>, <arg>callback</arg>)
+┗━ <f>toSVG</f>(<arg>input</arg>, <arg>callback</arg>)
+</code></pre>
+	</div>	
+	<p>Convenient methods to convert between file formats. the SVG into FOLD conversion will interpret as best as possible with regards to mountain/valley assignment, epsilon range for not-exactly-perfect line endpoints.</p>
+
+	<h3 id="math">Math</h3>
+	<div class="centered code">
 		<pre class="compact"><code><f>RabbitEar</f>.math
 ┃
 ┣━ <v>average</v>
@@ -107,23 +143,12 @@
 ┣━ <v>signed_area</v>
 ┣━ <v>split_convex_polygon</v>
 ┗━ <v>split_polygon</v>
-</code></pre>		
+</code></pre>
 	</div>	
 	<p>This is the core of the math library. <b>It's recommended you use the objects like Vector, Polygon, and use their property methods.</b> There's no type checking in the core; it was built for speed. However if you follow the correct parameter types this is where the fast math operations are housed.</p>
 
-	<h3>Convert</h3>
-	<div class="centered">
-		<pre class="compact"><code><f>RabbitEar</f>.convert
-┃
-┣━ <v>intoFOLD</v>
-┣━ <v>intoORIPA</v>
-┗━ <v>intoSVG</v>
-</code></pre>		
-	</div>	
-	<p>Convenient methods to convert between file formats. the SVG into FOLD conversion will interpret as best as possible with regards to mountain/valley assignment, epsilon range for not-exactly-perfect line endpoints.</p>
-
-	<h3>SVG</h3>
-	<div class="centered">
+	<h3 id="svg">SVG</h3>
+	<div class="centered code">
 		<pre class="compact"><code><f>RabbitEar</f>.svg
 ┃
 ┃	<c>// drawing</c>
@@ -165,12 +190,12 @@
 
 <section>
 	<h2>Origami Objects</h2>
-	<h3>CreasePattern</h3>
+	<h3 id="crease-pattern">CreasePattern</h3>
 	<p>a digital representation of an origami design; an extended FOLD file format</p>
-	<h3>Origami</h3>
+	<h3 id="origami">Origami</h3>
 	<p>a union of a CreasePattern object, SVG visualization, and interactive touch handling</p>
 	<p>The dependency tree for shapes in the SVG</p>
-	<div class="centered">
+	<div class="centered code">
 		<pre class="compact"><code>&lt;<key>svg</key>&gt;
 ┃
 ┣━ &lt;<key>group</key>&gt; (boundary)

@@ -1,5 +1,4 @@
 nav ul {
-	font-size: 100%;
 	list-style: none;
 	margin: 0;
 	padding: 0;
@@ -15,7 +14,7 @@ nav ul {
 nav li {
 	float: left;
 	letter-spacing: 1px;
-	font-size: 100%;
+/*	font-size: 1rem;*/
 }
 nav li a, nav li a:hover, nav li a:visited, nav li a:active{
 	color: #FFF; text-decoration: none;

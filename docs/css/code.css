@@ -18,20 +18,16 @@ code, pre {
 	hyphens: none;
 }
 pre {
-	padding: 1rem;
-	margin: 2rem auto;
 	display: block;
 	overflow: auto;
-	border-radius: 0.3em;
 	background: #272822;
-	max-width: 600px;
-	width: 450px;
-	min-width: 200px;
 }
-.language {
+
+div.code{
 	position: relative;
 }
-.language pre {
+
+pre.language {
 	display: inline-block;
 	position: absolute;
 	padding: 0.25rem 0.5rem;
@@ -39,8 +35,9 @@ pre {
 	color: black;
 	background-color: white;
 	font-weight: bold;
-	right: calc((100% - 450px) / 2);
-	top: calc(-1.5rem + 6px);
+	/*right: calc((100% - 450px) / 2);*/
+	right: 1.5rem;
+	top: calc(-1.5rem);
 	border: solid black 3px;
 	border-radius: 4px;
 	max-width: initial;

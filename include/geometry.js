@@ -1,7 +1,5 @@
 /* Geometry (c) Robby Kraft, MIT License */
-const EPSILON_LOW  = 3e-6;
-const EPSILON      = 1e-10;
-const EPSILON_HIGH = 1e-14;
+const EPSILON = 1e-12;
 function clean_number(num, decimalPlaces = 15) {
 	return (num == null
 		? undefined
@@ -539,7 +537,7 @@ function enclosing_rectangle(points) {
 	let lengths = maxs.map((max,i) => max - mins[i]);
 	return [mins, lengths];
 }
-function convex_hull(points, include_collinear = false, epsilon = EPSILON_HIGH) {
+function convex_hull(points, include_collinear = false, epsilon = EPSILON) {
 	var INFINITE_LOOP = 10000;
 	var sorted = points.slice().sort((a,b) =>
 		(Math.abs(a[1]-b[1]) < epsilon
@@ -1002,6 +1000,9 @@ function Matrix2() {
 Matrix2.makeIdentity = function() {
 	return Matrix2(1,0,0,1,0,0);
 };
+Matrix2.makeTranslation = function(tx, ty) {
+	return Matrix2(1,0,0,1,tx,ty);
+};
 Matrix2.makeRotation = function(angle, origin) {
 	return Matrix2( make_matrix2_rotation(angle, origin) );
 };
@@ -1255,6 +1256,17 @@ function Polygon() {
 		});
 		return Polygon(newPoints);
 	};
+	const translate = function() {
+		let vec = get_vec(...arguments);
+		let newPoints = _points.map(p => p.map((n,i) => n+vec[i]));
+		return Polygon(newPoints);
+	};
+	const transform = function() {
+		let m = get_matrix2(...arguments);
+		let newPoints = _points
+			.map(p => Vector(multiply_vector2_matrix2(p, m)));
+		return Polygon(newPoints);
+	};
 	const sectors = function() {
 		return _points.map((p,i,arr) =>
 			[arr[(i+arr.length-1)%arr.length], p, arr[(i+1)%arr.length]]
@@ -1292,6 +1304,8 @@ function Polygon() {
 		contains,
 		scale,
 		rotate,
+		translate,
+		transform,
 		split,
 		clipEdge,
 		clipLine,
@@ -1500,9 +1514,7 @@ Junction.fromVectors = function(center, vectors) {
 
 let core = Object.create(null);
 Object.assign(core, algebra, geometry);
-core.EPSILON_LOW = EPSILON_LOW;
 core.EPSILON = EPSILON;
-core.EPSILON_HIGH = EPSILON_HIGH;
 core.intersection = intersection;
 core.clean_number = clean_number;
 core.axiom = [];

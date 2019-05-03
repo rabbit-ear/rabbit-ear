@@ -1,7 +1,10 @@
 <?php include 'header.php';?>
 <script type="text/javascript" src="include/katex/katex.min.js"></script>
 <link rel="stylesheet" href="include/katex/katex.min.css">
+<style>
+.katex { font-size: 2em !important; } 
 
+</style>
 
 <span style="color:#e44f2a"></span>
 <span style="color:#ecb233"></span>
@@ -14,7 +17,7 @@
 <section>
 	<div id="canvas-junction-bisect"></div>
 	<p>The mathematics of ancient Greece, linear algebra, and graph data structures come together in origami math.</p>
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
 </section>
@@ -22,7 +25,7 @@
 <section id="types">
 	<h3>Contents</h3>
 	<!-- <p>This library contains a growing list of about ten primitives.</p> -->
-	<div class="centered">
+	<div class="centered code">
 		<pre class="compact"><code><f>RabbitEar</f>
 ┃
 ┣━ <v>Vector</v>
@@ -51,21 +54,21 @@
 	<p>We call this object a <b>vector</b>.</p>
 
 	<div id="canvas-vector-labels"></div>
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br><span id="vec-sketch-normal"></span>point.<f>normalize</f>()</code></pre>
 	</div>
 	<p>Notice the y axis is positive in the downwards direction. <b>I didn't make this decision</b>, it's a computer graphics standard. The SVG is simply drawing in its coordinate frame. If you want to flip the +Y axis is not difficult, but it's on you.</p>
 	<p class="explain">This vector object works in N-dimensions, not limited to 2D.</p>
 	<!-- <h4>Linear Interpolation</h4> -->
 	<div id="canvas-lerp"></div>
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><span style="color:#6096bb">blue1</span> = <span style="color:#e44f2a">red1</span>.lerp(<span style="color:#e44f2a">red2</span>, <span id="lerp-time-1">t</span>)<br><span style="color:#6096bb">blue2</span> = <span style="color:#e44f2a">red2</span>.lerp(<span style="color:#e44f2a">red3</span>, <span id="lerp-time-2">t</span>)<br><span style="color:#ecb233">yellow</span> = <span style="color:#6096bb">blue1</span>.lerp(<span style="color:#6096bb">blue2</span>, <span id="lerp-time-3">t</span>)</code></pre>
 	</div>
 
 	<p>This vector object is <b>immutable</b>. Each vector operation returns a <b>new, transformed vector</b>.
 	<p>This immutability pattern is generally reflected throughout the entire library.</p>
 
-	<div class="centered">
+	<div class="centered code">
 <pre><code><c>// return a bool</c>
 <f>function</f> <v>isEquivalent</v>(<arg>vector</arg>)
 <f>function</f> <v>isParallel</v>(<arg>vector</arg>)</code></pre>
@@ -134,7 +137,7 @@
 
 	<p>Any line type (Line, Ray, Edge) can be turned into a reflection matrix.</p>
 
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><f>let</f> matrix <key>=</key> edge.<f>reflection</f>()</code></pre>
 	</div>
 
@@ -148,20 +151,20 @@
 	<p><b><span style="color:#ecb233">Lines</span></b> extend infinitely in both directions, <b><span style="color:#347298">rays</span></b> extend infinitely in one direction, and line segments, or <b><span style="color:#e44f2a">edges</span></b> are bound by two endpoints.</p>
 
 
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><f>let</f> line <key>=</key> <f>Line</f>(<span id="intersect-all-line"></span>)<br><f>let</f> ray <key>=</key> <f>Ray</f>(<span id="intersect-all-ray"></span>)<br><f>let</f> segment <key>=</key> <f>Edge</f>(<span id="intersect-all-edge"></span>)</code></pre>
 	</div>
 
 
 	<p>Line and Ray are initialized with a <b>point</b> and a <b>direction</b>, Edge is initialized with <b>two endpoints</b>:</p>
 		
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><f>Line</f>(<arg>point</arg>, <arg>vector</arg>)<br><f>Ray</f>(<arg>point</arg>, <arg>vector</arg>)<br><f>Edge</f>(<arg>point_a</arg>, <arg>point_b</arg>)</code></pre>
 	</div>
 
 	<p>All three types contain a point and a vector (even the Edge). Uniquely, an Edges's endpoints can be accessed with array syntax:</p>
 
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><c>// line, ray, edge</c><br>line.<f>point</f><br>line.<f>vector</f><br><c>// edge only</c><br>edge[<n>0</n>]<br>edge[<n>1</n>]</code></pre>
 	</div>
 
@@ -171,7 +174,7 @@
 
 	<p class="quote">This operation is analogous to origami axiom #3.</p>
 
-	<div class="centered">
+	<div class="centered code">
 		<pre><code>lineA.<f>bisect</f>(lineB)</code></pre>
 	</div>
 
@@ -181,7 +184,7 @@
 
 	<div id="nearest-point"></div>
 
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><f>let</f> point <key>=</key> edge.<f>nearestPoint</f>(<span id="nearest-point-mouse"></span>)</code></pre>
 	</div>
 
@@ -201,7 +204,7 @@
 
 	<p class="quote">The convex hull algorithm performed on a collection of points</p>
 	
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><f>let</f> polygon <key>=</key> <f>Polygon</f>(pointA, pointB, ...)</code></pre>
 	</div>
 	
@@ -217,7 +220,7 @@
 
 	<div id="canvas-clip-line"></div>
 
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><span id="clip-line-result"></span> <key>=</key> poly.<f>clipline</f>(line)</code></pre>
 	</div>
 
@@ -232,11 +235,11 @@
 
 	<div id="canvas-origami-molecule"></div>
 
-	<p class="explain">straight skeleton code is under construction</p>
+	<p class="explain">contribute to the straight skeleton code <a href="https://github.com/robbykraft/Origami/blob/master/src/fold/origami.js">here</a></p>
 
 	<div id="canvas-split-poly"></div>
 
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><f>let</f> clipped <key>=</key> polygon.<f>clipEdge</f>( <f>Edge</f>(<n>0.5</n>, <n>0</n>, <n>0.5</n>, <n>1</n>) )</code></pre>
 	</div>
 
@@ -256,7 +259,7 @@
 
 	<div id="canvas-sector-bisect"></div>
 
-	<div class="centered">
+	<div class="centered code">
 		<pre><code><f>bisect</f>(<arg>vec1</arg>, <arg>vec2</arg>)</code></pre>
 	</div>
 
@@ -271,7 +274,7 @@
 <h3>Core</h3>
 	<p>The <b>core</b> is where the computation occurs, everything above is calling methods in here.</p>
 
-	<div class="centered">
+	<div class="centered code">
 		<pre class="compact"><code><f>RabbitEar</f>
 ┃
 ┣━ Circle

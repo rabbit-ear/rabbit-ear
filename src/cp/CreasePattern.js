@@ -81,7 +81,8 @@ const CreasePatternPrototype = function(proto) {
 	 */ 
 	const json = function() {
 		try {
-			return Object.assign(Object.create(null), JSON.parse(JSON.stringify(_this)));
+			return Object
+				.assign(Object.create(null), JSON.parse(JSON.stringify(_this)));
 		} catch(error){
 			console.warn("could not parse Crease Pattern into JSON", error);
 		}
@@ -192,11 +193,17 @@ const CreasePatternPrototype = function(proto) {
 	};
 	// fold methods
 	const valleyFold = function(point, vector, face_index) {
-		if (!Args.is_vector(point) || !Args.is_vector(vector) || !Args.is_number(face_index)) {
+		if (!Args.is_vector(point)
+			|| !Args.is_vector(vector)
+			|| !Args.is_number(face_index)) {
 			console.warn("valleyFold was not supplied the correct parameters");
 			return;
 		}
-		let folded = Origami.crease_through_layers(_this, point, vector, face_index, "V");
+		let folded = Origami.crease_through_layers(_this,
+			point,
+			vector,
+			face_index,
+			"V");
 		Object.keys(folded).forEach(key => _this[key] = folded[key]);
 		delete _this["re:faces_matrix"];
 		didModifyGraph();
@@ -286,7 +293,9 @@ const CreasePatternPrototype = function(proto) {
 	Object.defineProperty(proto, "creaseLine", { value: creaseLine });
 	Object.defineProperty(proto, "creaseRay", { value: creaseRay });
 	Object.defineProperty(proto, "creaseSegment", { value: creaseSegment });
-	Object.defineProperty(proto, "creaseThroughLayers", { value: creaseThroughLayers });
+	Object.defineProperty(proto, "creaseThroughLayers", {
+		value: creaseThroughLayers
+	});
 	Object.defineProperty(proto, "kawasaki", { value: kawasaki });
 	
 	Object.defineProperty(proto, "isFolded", { get: function(){
@@ -310,7 +319,7 @@ const CreasePattern = function() {
 	proto.bind(graph);
 
 	// parse arguments, look for an input .fold file
-	// todo: which key should we check to verify .fold? coords prevents abstract CPs
+	// todo: which key should we check to verify .fold? coords /=/ abstract CPs
 	let foldObjs = Array.from(arguments)
 		.filter(el => typeof el === "object" && el !== null)
 		.filter(el => el.vertices_coords != null);
@@ -319,6 +328,7 @@ const CreasePattern = function() {
 
 	// callback for when the crease pattern has been altered
 	graph.onchange = undefined;
+	graph.__rabbit_ear = RabbitEar;
 
 	return graph;
 }
