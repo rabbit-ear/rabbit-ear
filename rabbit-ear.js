@@ -3262,26 +3262,27 @@
 				return 0;
 		}
 	};
-	const fragment = function(graph) {
+	const fragment = function(graph, epsilon = core.EPSILON) {
 		const horizSort = function(a,b){ return a[0] - b[0]; };
 		const vertSort = function(a,b){ return a[1] - b[1]; };
-		const horizSort2 = function(a,b){
-			return a.intersection[0] - b.intersection[0]; };
-		const vertSort2 = function(a,b){
-			return a.intersection[1] - b.intersection[1]; };
+		const equivalent = function(a, b) {
+			for (var i = 0; i < a.length; i++) {
+				if (Math.abs(a[i] - b[i]) > epsilon) {
+					return false;
+				}
+			}
+			return true;
+		};
 		let edge_count = graph.edges_vertices.length;
 		let edges = graph.edges_vertices.map(ev => [
 			graph.vertices_coords[ev[0]],
 			graph.vertices_coords[ev[1]]
 		]);
-		console.log(edges);
 		let edges_vector = edges.map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
 		let edges_magnitude = edges_vector.map(e => Math.sqrt(e[0]*e[0]+e[1]*e[1]));
 		let edges_normalized = edges_vector
 			.map((e,i) => [e[0]/edges_magnitude[i], e[1]/edges_magnitude[i]]);
-		let edges_horizontal = edges_normalized.map(e => Math.abs(e[0]) > 0.8);
-		console.log("edges_normalized", edges_normalized);
-		console.log("edges_horizontal", edges_horizontal);
+		let edges_horizontal = edges_normalized.map(e => Math.abs(e[0]) > 0.7);
 		let crossings = Array.from(Array(edge_count - 1)).map(_ => []);
 		for (let i = 0; i < edges.length-1; i++) {
 			for (let j = i+1; j < edges.length; j++) {
@@ -3291,7 +3292,6 @@
 				);
 			}
 		}
-		console.log(crossings);
 		let edges_intersections = Array.from(Array(edge_count)).map(_ => []);
 		for (let i = 0; i < edges.length-1; i++) {
 			for (let j = i+1; j < edges.length; j++) {
@@ -3301,23 +3301,71 @@
 				}
 			}
 		}
-		let edges_intersections2 = Array.from(Array(edge_count)).map(_ => []);
-		for (let i = 0; i < edges.length-1; i++) {
-			for (let j = i+1; j < edges.length; j++) {
-				if (crossings[i][j] != null) {
-					edges_intersections2[i].push({edge:j, intersection:crossings[i][j]});
-					edges_intersections2[j].push({edge:i, intersection:crossings[i][j]});
-				}
-			}
-		}
+		edges.forEach((e,i) => e.sort(edges_horizontal[i] ? horizSort : vertSort));
 		edges_intersections.forEach((e,i) =>
 			e.sort(edges_horizontal[i] ? horizSort : vertSort)
 		);
-		edges_intersections2.forEach((e,i) =>
-			e.sort(edges_horizontal[i] ? horizSort2 : vertSort2)
-		);
-		console.log(edges_intersections);
-		console.log(edges_intersections2);
+		let new_edges = edges_intersections
+			.map((e,i) => [edges[i][0], ...e, edges[i][1]])
+			.map(ev =>
+				Array.from(Array(ev.length-1))
+					.map((_,i) => [ev[i], ev[(i+1)]])
+			);
+		new_edges = new_edges
+			.map(edgeGroup => edgeGroup
+				.filter(e => false === e
+					.map((_,i) => Math.abs(e[0][i] - e[1][i]) < epsilon)
+					.reduce((a,b) => a && b, true)
+				)
+			);
+		let edge_map = new_edges
+			.map((edge,i) => edge.map(_ => i))
+			.reduce((a,b) => a.concat(b), []);
+		let vertices_coords = new_edges
+			.map(edge => edge.reduce((a,b) => a.concat(b), []))
+			.reduce((a,b) => a.concat(b), []);
+		let counter = 0;
+		let edges_vertices = new_edges
+			.map(edge => edge.map(_ => [counter++, counter++]))
+			.reduce((a,b) => a.concat(b), []);
+		let vertices_equivalent = Array
+			.from(Array(vertices_coords.length)).map(_ => []);
+		for (var i = 0; i < vertices_coords.length-1; i++) {
+			for (var j = i+1; j < vertices_coords.length; j++) {
+				vertices_equivalent[i][j] = equivalent(
+					vertices_coords[i],
+					vertices_coords[j]
+				);
+			}
+		}
+		console.log(vertices_equivalent);
+		let vertices_map = vertices_coords.map(vc => undefined);
+		vertices_equivalent.forEach((row,i) => row.forEach((eq,j) => {
+			if (eq){
+				vertices_map[j] = vertices_map[i] === undefined
+					? i
+					: vertices_map[i];
+			}
+		}));
+		let vertices_remove = vertices_map.map(m => m !== undefined);
+		vertices_map.forEach((map,i) => {
+			if(map === undefined) { vertices_map[i] = i; }
+		});
+		console.log("vertices_map", vertices_map);
+		edges_vertices.forEach((edge,i) => edge.forEach((v,j) => {
+			edges_vertices[i][j] = vertices_map[v];
+		}));
+		let flat = {
+			vertices_coords,
+			edges_vertices
+		};
+		console.log("edges_vertices", edges_vertices);
+		console.log("vertices_remove", vertices_remove);
+		let vertices_remove_indices = vertices_remove
+			.map((rm,i) => rm ? i : undefined)
+			.filter(i => i !== undefined);
+		remove_vertices(flat, vertices_remove_indices);
+		console.log(flat);
 	};
 	const nearest_vertex = function(graph, point) {
 		if (graph.vertices_coords == null || graph.vertices_coords.length === 0) {
@@ -4550,10 +4598,8 @@
 		}
 		return [+(r / 255), +(g / 255), +(b / 255), +(a / 255)];
 	};
-	const fold_to_svg = function(fold, frame_number = 0) {
-		let graph = frame_number
-			? flatten_frame(fold, frame_number)
-			: fold;
+	const fold_to_svg = function(fold, cssRules) {
+		let graph = fold;
 		let svg$$1 = svg();
 		svg$$1.setAttribute("x", "0px");
 		svg$$1.setAttribute("y", "0px");
@@ -4562,7 +4608,9 @@
 		let groupNames = ["boundary", "face", "crease", "vertex"]
 			.map(singular => groupNamesPlural[singular]);
 		let groups = groupNames.map(key => svg$$1.group().setID(key));
-		intoGroups(graph, {...groups});
+		let obj = {};
+		groupNames.forEach((name,i) => obj[name] = groups[i]);
+		intoGroups(graph, obj);
 		setViewBox(svg$$1, ...bounding_rect(graph));
 		return svg$$1;
 	};
@@ -4917,7 +4965,10 @@
 			}
 		};
 		const svg = function(cssRules) {
-			return fold_to_svg(_this);
+			return fold_to_svg(_this, cssRules);
+		};
+		const oripa = function() {
+			return toORIPA(_this);
 		};
 		const getVertices = function() {
 			components.vertices
@@ -5058,6 +5109,7 @@
 		Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
 		Object.defineProperty(proto, "nearestFace", { value: nearestFace });
 		Object.defineProperty(proto, "svg", { value: svg });
+		Object.defineProperty(proto, "oripa", { value: oripa });
 		Object.defineProperty(proto, "axiom1", { value: axiom1 });
 		Object.defineProperty(proto, "axiom2", { value: axiom2 });
 		Object.defineProperty(proto, "axiom3", { value: axiom3 });
@@ -5078,6 +5130,7 @@
 			if (_this.frame_classes == null) { return false; }
 			return _this.frame_classes.includes("foldedForm");
 		}});
+		proto.__rabbit_ear = RabbitEar;
 		return Object.freeze(proto);
 	};
 	const CreasePattern = function() {
@@ -5089,7 +5142,6 @@
 			.filter(el => el.vertices_coords != null);
 		graph.load( (foldObjs.shift() || square()) );
 		graph.onchange = undefined;
-		graph.__rabbit_ear = RabbitEar;
 		return graph;
 	};
 	CreasePattern.square = function() {
@@ -5223,17 +5275,9 @@
 				Array.from(groups.faces.children)
 					.forEach(f => f.setAttribute("filter", "url(#face-shadow)"));
 			}
-			return;
-			let styleElement = _this.querySelector("style");
-			if (styleElement == null) {
-				const svgNS = "http://www.w3.org/2000/svg";
-				styleElement = document.createElementNS(svgNS, "style");
-				_this.appendChild(styleElement);
-			}
 			let r = bounding_rect(graph);
 			let vmin = r[2] > r[3] ? r[3] : r[2];
-			let creaseStyle = "stroke-width:" + vmin*0.005;
-			styleElement.innerHTML = "#creases line {" + creaseStyle + "}";
+			_this.style = "--crease-width: " + vmin*0.005 + ";";
 		};
 		const updateViewBox = function() {
 			let graph = prop.frame

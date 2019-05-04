@@ -1,4 +1,4 @@
-var div = document.getElementsByClassName("canvases")[0];
+var div = document.getElementsByClassName("origami")[0];
 var origami = RabbitEar.Origami(div, {folding:false, padding:0.05});
 var slider = document.querySelector("#frame-slider");
 var frameInfo = document.querySelector("#frame-span");
@@ -29,30 +29,42 @@ origami.color = function(event) {
 
 fileDidLoad = function(blob, mimeType, fileExtension) {
 	origami.load(blob, function(cp) {
-		console.log("load finish - start callback");
 		sliderUpdate({target:{value:0}});
 		slider.value = 0;
-		console.log("callback finish");
+		var data = JSON.stringify(origami.cp);
+		let codeWindow = document.querySelectorAll(".root")[0];
+		while (codeWindow.children.length > 0) {
+			codeWindow.removeChild(codeWindow.children[0]);
+		}
+		jsonView.format(data, ".root");
 	});
 }
 
-// IMPORT / EXPORT
-// foldFileDidLoad = function(fold) {
-// 	console.log("fold", fold)
-// 	origami.cp = RabbitEar.CreasePattern(fold);
-// 	// origami.draw();
-// }
+document.getElementById("download-cp-svg")
+	.addEventListener("click", function(e){
+	e.preventDefault();
+	var svg = origami.cp.svg();
+	var svgBlob = (new XMLSerializer()).serializeToString(svg);
+	makeDownloadBlob(svgBlob, "origami", "image/svg+xml");
+});
+document.getElementById("download-cp-fold")
+	.addEventListener("click", function(e){
+	e.preventDefault();
+	var fold = JSON.stringify(origami.cp);
+	makeDownloadBlob(fold, "origami", "application/json");
+});
+document.getElementById("download-cp-opx")
+	.addEventListener("click", function(e){
+	e.preventDefault();
+	var oripa = origami.cp.oripa();
+	makeDownloadBlob(oripa, "origami", "text/xml");
+});
 
-document.getElementById("download-cp-svg").addEventListener("click", function(e){
-	e.preventDefault();
-	downloadCreasePattern(origami.cp, "creasepattern", "svg");
-});
-document.getElementById("download-cp-fold").addEventListener("click", function(e){
-	e.preventDefault();
-	downloadCreasePattern(origami.cp, "creasepattern", "fold");
-});
-document.getElementById("download-cp-opx").addEventListener("click", function(e){
-	e.preventDefault();
-	downloadCreasePattern(origami.cp, "creasepattern", "opx");
-});
-
+function makeDownloadBlob(text, filename, mimeType){
+	var blob = new Blob([text], {type: mimeType});
+	var url = window.URL.createObjectURL(blob);
+	var a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
+}

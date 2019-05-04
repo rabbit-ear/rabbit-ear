@@ -156,6 +156,7 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	prepare_to_fold(graph, point, vector, face_index);
 
 	let folded = File.clone(graph);
+	// let folded = JSON.parse(JSON.stringify(graph));
 
 	let faces_count = graph.faces_vertices.length;
 	Array.from(Array(faces_count)).map((_,i) => i).reverse()

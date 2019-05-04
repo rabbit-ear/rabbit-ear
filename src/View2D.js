@@ -187,7 +187,12 @@ export default function() {
 				.forEach(f => f.setAttribute("filter", "url(#face-shadow)"));
 		}
 
-		return;
+		let r = bounding_rect(graph);
+		let vmin = r[2] > r[3] ? r[3] : r[2];
+		_this.style = "--crease-width: " + vmin*0.005 + ";"
+		// styleElement.innerHTML = "#creases line {" + creaseStyle + "}";
+
+/*
 		// stroke width
 		let styleElement = _this.querySelector("style");
 
@@ -197,10 +202,12 @@ export default function() {
 			_this.appendChild(styleElement);
 		}
 		let r = bounding_rect(graph);
+		// --crease-width: 5;
 		let vmin = r[2] > r[3] ? r[3] : r[2];
 		let creaseStyle = "stroke-width:" + vmin*0.005;
 		styleElement.innerHTML = "#creases line {" + creaseStyle + "}";
 		// groups.creases.setAttribute("style", "stroke-width:"+vmin*0.005);
+*/
 	};
 
 	const updateViewBox = function() {

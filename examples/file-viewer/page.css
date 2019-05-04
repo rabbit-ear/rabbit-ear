@@ -1,0 +1,48 @@
+html,body{
+	height: 100%;
+	width: 100%;
+}
+body {
+	margin: 0px;
+	background-color: #eee;
+	display: grid;
+	grid-template-columns: min-content auto;
+	grid-template-rows: auto 20%;
+}
+svg {
+	max-width: 80vh;
+	max-height: 80vh;
+	margin: auto;
+}
+.toolbar{
+	width:100%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+.json {
+	grid-row: 1 / 3;
+	overflow-y: scroll;
+}
+.origami {
+	text-align: center;
+}
+@media (orientation: portrait) {
+	body {
+		grid-template-columns: auto;
+		grid-template-rows: 60% 20% 20%;
+	}
+	.origami {
+		grid-row: 1 / 2;
+	}
+	.toolbar {
+		grid-row: 2 / 3;
+	}
+	.json {
+		grid-row: 3 / 4;
+	}
+	.json pre{
+		width: 100%;
+	}
+}

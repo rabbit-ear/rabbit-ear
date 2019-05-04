@@ -89,7 +89,10 @@ const CreasePatternPrototype = function(proto) {
 	}
 
 	const svg = function(cssRules) {
-		return Convert.fold_to_svg(_this);
+		return Convert.fold_to_svg(_this, cssRules);
+	}
+	const oripa = function() {
+		return Convert.toORIPA(_this);
 	}
 
 	// const wipe = function() {
@@ -280,6 +283,7 @@ const CreasePatternPrototype = function(proto) {
 	Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
 	Object.defineProperty(proto, "nearestFace", { value: nearestFace });
 	Object.defineProperty(proto, "svg", { value: svg });
+	Object.defineProperty(proto, "oripa", { value: oripa });
 
 	Object.defineProperty(proto, "axiom1", { value: axiom1 });
 	Object.defineProperty(proto, "axiom2", { value: axiom2 });
@@ -308,6 +312,8 @@ const CreasePatternPrototype = function(proto) {
 	// 	return Graph.connectedGraphs(this);
 	// }});
 
+	proto.__rabbit_ear = RabbitEar;
+
 	return Object.freeze(proto);
 }
 
@@ -328,7 +334,6 @@ const CreasePattern = function() {
 
 	// callback for when the crease pattern has been altered
 	graph.onchange = undefined;
-	graph.__rabbit_ear = RabbitEar;
 
 	return graph;
 }

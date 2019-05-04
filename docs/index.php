@@ -1,6 +1,6 @@
 <?php include 'header.php';?>
 
-<p class="explain">Rabbit Ear is gearing up for a version 2 release. Documentation and updates will continue through April and May of 2019</p>
+<p class="explain">Rabbit Ear is gearing up for a version 2 release. Documentation and updates will continue through May and June of 2019</p>
 
 <script type="text/javascript" src="include/threejs/three.min.js"></script>
 <script type="text/javascript" src="include/threejs/THREE.MeshLine.js"></script>

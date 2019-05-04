@@ -21,30 +21,37 @@ const angle_from_assignment = function(assignment) {
  * and joins new edges at a new shared vertex.
  * this destroys and rebuilds all face data with face walking 
  */
-export const fragment = function(graph) {
+export const fragment = function(graph, epsilon = Geom.core.EPSILON) {
 
 	const EPSILON = 1e-12;
 	const horizSort = function(a,b){ return a[0] - b[0]; }
 	const vertSort = function(a,b){ return a[1] - b[1]; }
-	const horizSort2 = function(a,b){
-		return a.intersection[0] - b.intersection[0]; }
-	const vertSort2 = function(a,b){
-		return a.intersection[1] - b.intersection[1]; }
+	// const horizSort2 = function(a,b){
+	// 	return a.intersection[0] - b.intersection[0]; }
+	// const vertSort2 = function(a,b){
+	// 	return a.intersection[1] - b.intersection[1]; }
+
+	const equivalent = function(a, b) {
+		for (var i = 0; i < a.length; i++) {
+			if (Math.abs(a[i] - b[i]) > epsilon) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	let edge_count = graph.edges_vertices.length;
 	let edges = graph.edges_vertices.map(ev => [
 		graph.vertices_coords[ev[0]],
 		graph.vertices_coords[ev[1]]
 	]);
-	console.log(edges);
+
 	let edges_vector = edges.map(e => [e[1][0] - e[0][0], e[1][1] - e[0][1]]);
 	let edges_magnitude = edges_vector.map(e => Math.sqrt(e[0]*e[0]+e[1]*e[1]));
 	let edges_normalized = edges_vector
 		.map((e,i) => [e[0]/edges_magnitude[i], e[1]/edges_magnitude[i]]);
 	let edges_horizontal = edges_normalized.map(e => Math.abs(e[0]) > 0.7);//.707
 
-	console.log("edges_normalized", edges_normalized);
-	console.log("edges_horizontal", edges_horizontal);
 	let crossings = Array.from(Array(edge_count - 1)).map(_ => []);
 	for (let i = 0; i < edges.length-1; i++) {
 		for (let j = i+1; j < edges.length; j++) {
@@ -54,7 +61,7 @@ export const fragment = function(graph) {
 			)
 		}
 	}
-	console.log(crossings);
+
 	let edges_intersections = Array.from(Array(edge_count)).map(_ => []);
 	for (let i = 0; i < edges.length-1; i++) {
 		for (let j = i+1; j < edges.length; j++) {
@@ -66,30 +73,103 @@ export const fragment = function(graph) {
 		}
 	}
 
-	let edges_intersections2 = Array.from(Array(edge_count)).map(_ => []);
-	for (let i = 0; i < edges.length-1; i++) {
-		for (let j = i+1; j < edges.length; j++) {
-			if (crossings[i][j] != null) {
-				// warning - these are shallow pointers
-				edges_intersections2[i].push({edge:j, intersection:crossings[i][j]});
-				edges_intersections2[j].push({edge:i, intersection:crossings[i][j]});
-			}
-		}
-	}
+	// let edges_intersections2 = Array.from(Array(edge_count)).map(_ => []);
+	// for (let i = 0; i < edges.length-1; i++) {
+	// 	for (let j = i+1; j < edges.length; j++) {
+	// 		if (crossings[i][j] != null) {
+	// 			// warning - these are shallow pointers
+	// 			edges_intersections2[i].push({edge:j, intersection:crossings[i][j]});
+	// 			edges_intersections2[j].push({edge:i, intersection:crossings[i][j]});
+	// 		}
+	// 	}
+	// }
+
+	edges.forEach((e,i) => e.sort(edges_horizontal[i] ? horizSort : vertSort));
 
 	edges_intersections.forEach((e,i) => 
 		e.sort(edges_horizontal[i] ? horizSort : vertSort)
 	)
-	edges_intersections2.forEach((e,i) => 
-		e.sort(edges_horizontal[i] ? horizSort2 : vertSort2)
-	)
+	// edges_intersections2.forEach((e,i) => 
+	// 	e.sort(edges_horizontal[i] ? horizSort2 : vertSort2)
+	// )
 
-	console.log(edges_intersections);
-	console.log(edges_intersections2);
+	let new_edges = edges_intersections
+		.map((e,i) => [edges[i][0], ...e, edges[i][1]])
+		.map(ev => 
+			Array.from(Array(ev.length-1))
+				.map((_,i) => [ev[i], ev[(i+1)]])
+		);
 
-	// edges_intersections2.
+	// remove degenerate edges
+	new_edges = new_edges
+		.map(edgeGroup => edgeGroup
+			.filter(e => false === e
+				.map((_,i) => Math.abs(e[0][i] - e[1][i]) < epsilon)
+				.reduce((a,b) => a && b, true)
+			)
+		);
 
-	// remove circular edges
+	// let edge_map = new_edges.map(edge => edge.map(_ => counter++));
+	let edge_map = new_edges
+		.map((edge,i) => edge.map(_ => i))
+		.reduce((a,b) => a.concat(b), []);
+
+	let vertices_coords = new_edges
+		.map(edge => edge.reduce((a,b) => a.concat(b), []))
+		.reduce((a,b) => a.concat(b), [])
+	let counter = 0;
+	let edges_vertices = new_edges
+		.map(edge => edge.map(_ => [counter++, counter++]))
+		.reduce((a,b) => a.concat(b), []);
+
+	let vertices_equivalent = Array
+		.from(Array(vertices_coords.length)).map(_ => []);
+	for (var i = 0; i < vertices_coords.length-1; i++) {
+		for (var j = i+1; j < vertices_coords.length; j++) {
+			vertices_equivalent[i][j] = equivalent(
+				vertices_coords[i],
+				vertices_coords[j]
+			);
+		}
+	}
+
+	// console.log(vertices_equivalent);
+
+	let vertices_map = vertices_coords.map(vc => undefined)
+
+	vertices_equivalent.forEach((row,i) => row.forEach((eq,j) => {
+		if (eq){
+			vertices_map[j] = vertices_map[i] === undefined
+				? i
+				: vertices_map[i];
+		}
+	}));
+	let vertices_remove = vertices_map.map(m => m !== undefined);
+	vertices_map.forEach((map,i) => {
+		if(map === undefined) { vertices_map[i] = i; }
+	});
+
+	// console.log("vertices_map", vertices_map);
+
+	edges_vertices.forEach((edge,i) => edge.forEach((v,j) => {
+		edges_vertices[i][j] = vertices_map[v];
+	}));
+
+	let flat = {
+		vertices_coords,
+		edges_vertices
+	}
+
+	// console.log("edges_vertices", edges_vertices);
+	// console.log("vertices_remove", vertices_remove);
+	let vertices_remove_indices = vertices_remove
+		.map((rm,i) => rm ? i : undefined)
+		.filter(i => i !== undefined);
+	Graph.remove_vertices(flat, vertices_remove_indices);
+
+	// console.log(flat);
+
+	return flat;
 }
 
 /**

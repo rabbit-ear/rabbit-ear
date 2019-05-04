@@ -218,11 +218,12 @@ const hexToComponents = function(h) {
 /**
  * specify a frame number otherwise it will render the top level
  */
-export const fold_to_svg = function(fold, frame_number = 0) {
+export const fold_to_svg = function(fold, cssRules) {
 	// console.log("fold_to_svg start");
-	let graph = frame_number
-		? flatten_frame(fold, frame_number)
-		: fold;
+	// let graph = frame_number
+	// 	? flatten_frame(fold, frame_number)
+	// 	: fold;
+	let graph = fold;
 	// if (isFolded(graph)) { }
 	let svg = SVG.svg();
 	svg.setAttribute("x", "0px");
@@ -232,9 +233,10 @@ export const fold_to_svg = function(fold, frame_number = 0) {
 	let groupNames = ["boundary", "face", "crease", "vertex"]
 		.map(singular => groupNamesPlural[singular])
 	let groups = groupNames.map(key => svg.group().setID(key));
-	let obj = { ...groups };
-
-	FoldToSVG.intoGroups(graph, {...groups});
+	let obj = {};
+	groupNames.forEach((name,i) => obj[name] = groups[i]);
+	// let obj = { ...groups };
+	FoldToSVG.intoGroups(graph, obj);
 	SVG.setViewBox(svg, ...bounding_rect(graph));
 	// console.log("fold_to_svg done");
 	return svg;
