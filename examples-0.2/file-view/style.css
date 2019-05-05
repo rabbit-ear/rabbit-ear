@@ -1,0 +1,101 @@
+:root{
+	--crease-width: 0.005;
+}
+
+svg {
+	width: 100%;
+	height: 100%;
+}
+
+svg * {
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke: black;
+}
+
+polygon {
+	fill: none;
+	stroke: none;
+	stroke-linejoin: bevel;
+}
+
+.boundary {
+	fill: white;
+	stroke: black;
+}
+
+.mountain{
+	stroke: #e14929;
+}
+
+.valley{
+	stroke: #314f69;
+	stroke-dasharray: calc( var(--crease-width) * 2) calc( var(--crease-width) * 2);
+}
+
+.mark {
+	stroke: #888;
+}
+
+.foldedForm #faces polygon {
+	stroke: black;
+	fill: #FFF8;
+}
+
+.foldedForm #faces .front {
+	fill: sienna;
+}
+
+.foldedForm #faces .back {
+	fill: white;
+}
+
+.foldedForm #creases line {
+	stroke: none;
+}
+
+.face  {
+	fill: #EEE8E0;
+}
+
+.creasePattern #faces {
+	stroke: none; fill: none;
+}
+
+.foldedForm #faces {
+	fill: rgba(0, 0, 0, 0.1);
+	stroke: black;
+	stroke-width: calc(var(--crease-width)*0.1);
+	stroke-linejoin: bevel;
+}
+
+.foldedForm #faces .front {
+	fill: #ecb233;
+	stroke: black;
+	/*stroke-width: var(--crease-width);*/
+}
+.foldedForm #faces .back {
+	fill: white;
+	stroke: black;
+	/*stroke-width: var(--crease-width);*/
+}
+
+.foldedForm #creases * {
+	fill: none; stroke: none;
+}
+
+.foldedForm #vertices * {
+	fill: none; stroke: none;
+}
+
+/* this is cool if you leave it out, you can see the boundary in the folded form */
+.foldedForm #boundaries * {
+	fill: none; stroke: none;
+}
+
+.stroke-yellow{ stroke: hsl(43, 88%, 46%) !important; }
+.fill-yellow{ fill: hsl(43, 88%, 46%) !important; }
+.fill-red{ fill: hsl(14.4, 87%, 45%) !important; }
+.fill-blue{ fill: hsl(205, 74%, 30%) !important; }
+.fill-dark-blue{ fill: hsl(191, 82%, 14% ) !important; }
+.fill-black{ fill: black; }

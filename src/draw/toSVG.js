@@ -10,6 +10,9 @@ import {
 	faces_coloring
 } from "../fold/graph";
 
+
+export const defaultStyle = "svg * {\n stroke-width: var(--crease-width);\n stroke-linecap: round;\n stroke: black;\n}\npolygon {\n fill: none;\n stroke: none;\n stroke-linejoin: bevel;\n}\n.boundary {\n fill: white;\n stroke: black;\n}\n.mountain{\n stroke: #e14929;\n}\n.valley{\n stroke: #314f69;\nstroke-dasharray: calc( var(--crease-width) * 2) calc( var(--crease-width) * 2);\n}\n.mark {\n stroke: #888;\n}\n.foldedForm #faces polygon {\n /*stroke: black;*/\n}\n.foldedForm #faces .front {\n fill: steelblue;\n}\n.foldedForm #faces .back {\n fill: peru;\n}\n.foldedForm #creases line {\n stroke: none;\n}";
+
 /**
  * if you already have groups initialized, to save on re-initializing, pass the groups
  * in as values under these keys, and they will get drawn into.

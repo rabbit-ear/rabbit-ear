@@ -3250,6 +3250,1479 @@
 		return a.map((v,i) => v + bCopy[i]);
 	};
 
+	var geom = {},
+	  modulo = function(a, b) { return (+a % (b = +b) + b) % b; };
+	geom.EPS = 0.000001;
+	geom.sum = function(a, b) {
+	  return a + b;
+	};
+	geom.min = function(a, b) {
+	  if (a < b) {
+	    return a;
+	  } else {
+	    return b;
+	  }
+	};
+	geom.max = function(a, b) {
+	  if (a > b) {
+	    return a;
+	  } else {
+	    return b;
+	  }
+	};
+	geom.all = function(a, b) {
+	  return a && b;
+	};
+	geom.next = function(start, n, i) {
+	  if (i == null) {
+	    i = 1;
+	  }
+	  return modulo(start + i, n);
+	};
+	geom.rangesDisjoint = function(arg, arg1) {
+	  var a1, a2, b1, b2, ref, ref1;
+	  a1 = arg[0], a2 = arg[1];
+	  b1 = arg1[0], b2 = arg1[1];
+	  return ((b1 < (ref = Math.min(a1, a2)) && ref > b2)) || ((b1 > (ref1 = Math.max(a1, a2)) && ref1 < b2));
+	};
+	geom.topologicalSort = function(vs) {
+	  var k, l, len, len1, list, ref, v;
+	  for (k = 0, len = vs.length; k < len; k++) {
+	    v = vs[k];
+	    ref = [false, null], v.visited = ref[0], v.parent = ref[1];
+	  }
+	  list = [];
+	  for (l = 0, len1 = vs.length; l < len1; l++) {
+	    v = vs[l];
+	    if (!v.visited) {
+	      list = geom.visit(v, list);
+	    }
+	  }
+	  return list;
+	};
+	geom.visit = function(v, list) {
+	  var k, len, ref, u;
+	  v.visited = true;
+	  ref = v.children;
+	  for (k = 0, len = ref.length; k < len; k++) {
+	    u = ref[k];
+	    if (!(!u.visited)) {
+	      continue;
+	    }
+	    u.parent = v;
+	    list = geom.visit(u, list);
+	  }
+	  return list.concat([v]);
+	};
+	geom.magsq = function(a) {
+	  return geom.dot(a, a);
+	};
+	geom.mag = function(a) {
+	  return Math.sqrt(geom.magsq(a));
+	};
+	geom.unit = function(a, eps) {
+	  var length;
+	  if (eps == null) {
+	    eps = geom.EPS;
+	  }
+	  length = geom.magsq(a);
+	  if (length < eps) {
+	    return null;
+	  }
+	  return geom.mul(a, 1 / geom.mag(a));
+	};
+	geom.ang2D = function(a, eps) {
+	  if (eps == null) {
+	    eps = geom.EPS;
+	  }
+	  if (geom.magsq(a) < eps) {
+	    return null;
+	  }
+	  return Math.atan2(a[1], a[0]);
+	};
+	geom.mul = function(a, s) {
+	  var i, k, len, results;
+	  results = [];
+	  for (k = 0, len = a.length; k < len; k++) {
+	    i = a[k];
+	    results.push(i * s);
+	  }
+	  return results;
+	};
+	geom.linearInterpolate = function(t, a, b) {
+	  return geom.plus(geom.mul(a, 1 - t), geom.mul(b, t));
+	};
+	geom.plus = function(a, b) {
+	  var ai, i, k, len, results;
+	  results = [];
+	  for (i = k = 0, len = a.length; k < len; i = ++k) {
+	    ai = a[i];
+	    results.push(ai + b[i]);
+	  }
+	  return results;
+	};
+	geom.sub = function(a, b) {
+	  return geom.plus(a, geom.mul(b, -1));
+	};
+	geom.dot = function(a, b) {
+	  var ai, i;
+	  return ((function() {
+	    var k, len, results;
+	    results = [];
+	    for (i = k = 0, len = a.length; k < len; i = ++k) {
+	      ai = a[i];
+	      results.push(ai * b[i]);
+	    }
+	    return results;
+	  })()).reduce(geom.sum);
+	};
+	geom.distsq = function(a, b) {
+	  return geom.magsq(geom.sub(a, b));
+	};
+	geom.dist = function(a, b) {
+	  return Math.sqrt(geom.distsq(a, b));
+	};
+	geom.closestIndex = function(a, bs) {
+	  var b, dist, i, k, len, minDist, minI;
+	  minDist = 2e308;
+	  for (i = k = 0, len = bs.length; k < len; i = ++k) {
+	    b = bs[i];
+	    if (minDist > (dist = geom.dist(a, b))) {
+	      minDist = dist;
+	      minI = i;
+	    }
+	  }
+	  return minI;
+	};
+	geom.dir = function(a, b) {
+	  return geom.unit(geom.sub(b, a));
+	};
+	geom.ang = function(a, b) {
+	  var ref, ua, ub, v;
+	  ref = (function() {
+	    var k, len, ref, results;
+	    ref = [a, b];
+	    results = [];
+	    for (k = 0, len = ref.length; k < len; k++) {
+	      v = ref[k];
+	      results.push(geom.unit(v));
+	    }
+	    return results;
+	  })(), ua = ref[0], ub = ref[1];
+	  if (!((ua != null) && (ub != null))) {
+	    return null;
+	  }
+	  return Math.acos(geom.dot(ua, ub));
+	};
+	geom.cross = function(a, b) {
+	  var i, j, ref, ref1;
+	  if ((a.length === (ref = b.length) && ref === 2)) {
+	    return a[0] * b[1] - a[1] * b[0];
+	  }
+	  if ((a.length === (ref1 = b.length) && ref1 === 3)) {
+	    return (function() {
+	      var k, len, ref2, ref3, results;
+	      ref2 = [[1, 2], [2, 0], [0, 1]];
+	      results = [];
+	      for (k = 0, len = ref2.length; k < len; k++) {
+	        ref3 = ref2[k], i = ref3[0], j = ref3[1];
+	        results.push(a[i] * b[j] - a[j] * b[i]);
+	      }
+	      return results;
+	    })();
+	  }
+	  return null;
+	};
+	geom.parallel = function(a, b, eps) {
+	  var ref, ua, ub, v;
+	  if (eps == null) {
+	    eps = geom.EPS;
+	  }
+	  ref = (function() {
+	    var k, len, ref, results;
+	    ref = [a, b];
+	    results = [];
+	    for (k = 0, len = ref.length; k < len; k++) {
+	      v = ref[k];
+	      results.push(geom.unit(v));
+	    }
+	    return results;
+	  })(), ua = ref[0], ub = ref[1];
+	  if (!((ua != null) && (ub != null))) {
+	    return null;
+	  }
+	  return 1 - Math.abs(geom.dot(ua, ub)) < eps;
+	};
+	geom.rotate = function(a, u, t) {
+	  var ct, i, k, len, p, q, ref, ref1, results, st;
+	  u = geom.unit(u);
+	  if (u == null) {
+	    return null;
+	  }
+	  ref = [Math.cos(t), Math.sin(t)], ct = ref[0], st = ref[1];
+	  ref1 = [[0, 1, 2], [1, 2, 0], [2, 0, 1]];
+	  results = [];
+	  for (k = 0, len = ref1.length; k < len; k++) {
+	    p = ref1[k];
+	    results.push(((function() {
+	      var l, len1, ref2, results1;
+	      ref2 = [ct, -st * u[p[2]], st * u[p[1]]];
+	      results1 = [];
+	      for (i = l = 0, len1 = ref2.length; l < len1; i = ++l) {
+	        q = ref2[i];
+	        results1.push(a[p[i]] * (u[p[0]] * u[p[i]] * (1 - ct) + q));
+	      }
+	      return results1;
+	    })()).reduce(geom.sum));
+	  }
+	  return results;
+	};
+	geom.interiorAngle = function(a, b, c) {
+	  var ang;
+	  ang = geom.ang2D(geom.sub(a, b)) - geom.ang2D(geom.sub(c, b));
+	  return ang + (ang < 0 ? 2 * Math.PI : 0);
+	};
+	geom.turnAngle = function(a, b, c) {
+	  return Math.PI - geom.interiorAngle(a, b, c);
+	};
+	geom.triangleNormal = function(a, b, c) {
+	  return geom.unit(geom.cross(geom.sub(b, a), geom.sub(c, b)));
+	};
+	geom.polygonNormal = function(points, eps) {
+	  var i, p;
+	  if (eps == null) {
+	    eps = geom.EPS;
+	  }
+	  return geom.unit(((function() {
+	    var k, len, results;
+	    results = [];
+	    for (i = k = 0, len = points.length; k < len; i = ++k) {
+	      p = points[i];
+	      results.push(geom.cross(p, points[geom.next(i, points.length)]));
+	    }
+	    return results;
+	  })()).reduce(geom.plus), eps);
+	};
+	geom.twiceSignedArea = function(points) {
+	  var i, v0, v1;
+	  return ((function() {
+	    var k, len, results;
+	    results = [];
+	    for (i = k = 0, len = points.length; k < len; i = ++k) {
+	      v0 = points[i];
+	      v1 = points[geom.next(i, points.length)];
+	      results.push(v0[0] * v1[1] - v1[0] * v0[1]);
+	    }
+	    return results;
+	  })()).reduce(geom.sum);
+	};
+	geom.polygonOrientation = function(points) {
+	  return Math.sign(geom.twiceSignedArea(points));
+	};
+	geom.sortByAngle = function(points, origin, mapping) {
+	  if (origin == null) {
+	    origin = [0, 0];
+	  }
+	  if (mapping == null) {
+	    mapping = function(x) {
+	      return x;
+	    };
+	  }
+	  origin = mapping(origin);
+	  return points.sort(function(p, q) {
+	    var pa, qa;
+	    pa = geom.ang2D(geom.sub(mapping(p), origin));
+	    qa = geom.ang2D(geom.sub(mapping(q), origin));
+	    return pa - qa;
+	  });
+	};
+	geom.segmentsCross = function(arg, arg1) {
+	  var p0, p1, q0, q1;
+	  p0 = arg[0], q0 = arg[1];
+	  p1 = arg1[0], q1 = arg1[1];
+	  if (geom.rangesDisjoint([p0[0], q0[0]], [p1[0], q1[0]]) || geom.rangesDisjoint([p0[1], q0[1]], [p1[1], q1[1]])) {
+	    return false;
+	  }
+	  return geom.polygonOrientation([p0, q0, p1]) !== geom.polygonOrientation([p0, q0, q1]) && geom.polygonOrientation([p1, q1, p0]) !== geom.polygonOrientation([p1, q1, q0]);
+	};
+	geom.parametricLineIntersect = function(arg, arg1) {
+	  var denom, p1, p2, q1, q2;
+	  p1 = arg[0], p2 = arg[1];
+	  q1 = arg1[0], q2 = arg1[1];
+	  denom = (q2[1] - q1[1]) * (p2[0] - p1[0]) + (q1[0] - q2[0]) * (p2[1] - p1[1]);
+	  if (denom === 0) {
+	    return [null, null];
+	  } else {
+	    return [(q2[0] * (p1[1] - q1[1]) + q2[1] * (q1[0] - p1[0]) + q1[1] * p1[0] - p1[1] * q1[0]) / denom, (q1[0] * (p2[1] - p1[1]) + q1[1] * (p1[0] - p2[0]) + p1[1] * p2[0] - p2[1] * p1[0]) / denom];
+	  }
+	};
+	geom.segmentIntersectSegment = function(s1, s2) {
+	  var ref, s, t;
+	  ref = geom.parametricLineIntersect(s1, s2), s = ref[0], t = ref[1];
+	  if ((s != null) && ((0 <= s && s <= 1)) && ((0 <= t && t <= 1))) {
+	    return geom.linearInterpolate(s, s1[0], s1[1]);
+	  } else {
+	    return null;
+	  }
+	};
+	geom.lineIntersectLine = function(l1, l2) {
+	  var ref, s, t;
+	  ref = geom.parametricLineIntersect(l1, l2), s = ref[0], t = ref[1];
+	  if (s != null) {
+	    return geom.linearInterpolate(s, l1[0], l1[1]);
+	  } else {
+	    return null;
+	  }
+	};
+	geom.pointStrictlyInSegment = function(p, s, eps) {
+	  var v0, v1;
+	  if (eps == null) {
+	    eps = geom.EPS;
+	  }
+	  v0 = geom.sub(p, s[0]);
+	  v1 = geom.sub(p, s[1]);
+	  return geom.parallel(v0, v1, eps) && geom.dot(v0, v1) < 0;
+	};
+	geom.centroid = function(points) {
+	  return geom.mul(points.reduce(geom.plus), 1.0 / points.length);
+	};
+	geom.basis = function(ps, eps) {
+	  var d, ds, n, ns, p, x, y, z;
+	  if (eps == null) {
+	    eps = geom.EPS;
+	  }
+	  if (((function() {
+	    var k, len, results;
+	    results = [];
+	    for (k = 0, len = ps.length; k < len; k++) {
+	      p = ps[k];
+	      results.push(p.length !== 3);
+	    }
+	    return results;
+	  })()).reduce(geom.all)) {
+	    return null;
+	  }
+	  ds = (function() {
+	    var k, len, results;
+	    results = [];
+	    for (k = 0, len = ps.length; k < len; k++) {
+	      p = ps[k];
+	      if (geom.distsq(p, ps[0]) > eps) {
+	        results.push(geom.dir(p, ps[0]));
+	      }
+	    }
+	    return results;
+	  })();
+	  if (ds.length === 0) {
+	    return [];
+	  }
+	  x = ds[0];
+	  if (((function() {
+	    var k, len, results;
+	    results = [];
+	    for (k = 0, len = ds.length; k < len; k++) {
+	      d = ds[k];
+	      results.push(geom.parallel(d, x, eps));
+	    }
+	    return results;
+	  })()).reduce(geom.all)) {
+	    return [x];
+	  }
+	  ns = (function() {
+	    var k, len, results;
+	    results = [];
+	    for (k = 0, len = ds.length; k < len; k++) {
+	      d = ds[k];
+	      results.push(geom.unit(geom.cross(d, x)));
+	    }
+	    return results;
+	  })();
+	  ns = (function() {
+	    var k, len, results;
+	    results = [];
+	    for (k = 0, len = ns.length; k < len; k++) {
+	      n = ns[k];
+	      if (n != null) {
+	        results.push(n);
+	      }
+	    }
+	    return results;
+	  })();
+	  z = ns[0];
+	  y = geom.cross(z, x);
+	  if (((function() {
+	    var k, len, results;
+	    results = [];
+	    for (k = 0, len = ns.length; k < len; k++) {
+	      n = ns[k];
+	      results.push(geom.parallel(n, z, eps));
+	    }
+	    return results;
+	  })()).reduce(geom.all)) {
+	    return [x, y];
+	  }
+	  return [x, y, z];
+	};
+	geom.above = function(ps, qs, n, eps) {
+	  var pn, qn, ref, v, vs;
+	  if (eps == null) {
+	    eps = geom.EPS;
+	  }
+	  ref = (function() {
+	    var k, len, ref, results;
+	    ref = [ps, qs];
+	    results = [];
+	    for (k = 0, len = ref.length; k < len; k++) {
+	      vs = ref[k];
+	      results.push((function() {
+	        var l, len1, results1;
+	        results1 = [];
+	        for (l = 0, len1 = vs.length; l < len1; l++) {
+	          v = vs[l];
+	          results1.push(geom.dot(v, n));
+	        }
+	        return results1;
+	      })());
+	    }
+	    return results;
+	  })(), pn = ref[0], qn = ref[1];
+	  if (qn.reduce(geom.max) - pn.reduce(geom.min) < eps) {
+	    return 1;
+	  }
+	  if (pn.reduce(geom.max) - qn.reduce(geom.min) < eps) {
+	    return -1;
+	  }
+	  return 0;
+	};
+	geom.separatingDirection2D = function(t1, t2, n, eps) {
+	  var i, j, k, l, len, len1, len2, m, o, p, q, ref, sign, t;
+	  if (eps == null) {
+	    eps = geom.EPS;
+	  }
+	  ref = [t1, t2];
+	  for (k = 0, len = ref.length; k < len; k++) {
+	    t = ref[k];
+	    for (i = l = 0, len1 = t.length; l < len1; i = ++l) {
+	      p = t[i];
+	      for (j = o = 0, len2 = t.length; o < len2; j = ++o) {
+	        q = t[j];
+	        if (!(i < j)) {
+	          continue;
+	        }
+	        m = geom.unit(geom.cross(geom.sub(p, q), n));
+	        if (m != null) {
+	          sign = geom.above(t1, t2, m, eps);
+	          if (sign !== 0) {
+	            return geom.mul(m, sign);
+	          }
+	        }
+	      }
+	    }
+	  }
+	  return null;
+	};
+	geom.separatingDirection3D = function(t1, t2, eps) {
+	  var i, j, k, l, len, len1, len2, len3, m, o, p, q1, q2, r, ref, ref1, sign, x1, x2;
+	  if (eps == null) {
+	    eps = geom.EPS;
+	  }
+	  ref = [[t1, t2], [t2, t1]];
+	  for (k = 0, len = ref.length; k < len; k++) {
+	    ref1 = ref[k], x1 = ref1[0], x2 = ref1[1];
+	    for (l = 0, len1 = x1.length; l < len1; l++) {
+	      p = x1[l];
+	      for (i = o = 0, len2 = x2.length; o < len2; i = ++o) {
+	        q1 = x2[i];
+	        for (j = r = 0, len3 = x2.length; r < len3; j = ++r) {
+	          q2 = x2[j];
+	          if (!(i < j)) {
+	            continue;
+	          }
+	          m = geom.unit(geom.cross(geom.sub(p, q1), geom.sub(p, q2)));
+	          if (m != null) {
+	            sign = geom.above(t1, t2, m, eps);
+	            if (sign !== 0) {
+	              return geom.mul(m, sign);
+	            }
+	          }
+	        }
+	      }
+	    }
+	  }
+	  return null;
+	};
+	geom.circleCross = function(d, r1, r2) {
+	  var x, y;
+	  x = (d * d - r2 * r2 + r1 * r1) / d / 2;
+	  y = Math.sqrt(r1 * r1 - x * x);
+	  return [x, y];
+	};
+	geom.creaseDir = function(u1, u2, a, b, eps) {
+	  var b1, b2, x, y, z, zmag;
+	  if (eps == null) {
+	    eps = geom.EPS;
+	  }
+	  b1 = Math.cos(a) + Math.cos(b);
+	  b2 = Math.cos(a) - Math.cos(b);
+	  x = geom.plus(u1, u2);
+	  y = geom.sub(u1, u2);
+	  z = geom.unit(geom.cross(y, x));
+	  x = geom.mul(x, b1 / geom.magsq(x));
+	  y = geom.mul(y, geom.magsq(y) < eps ? 0 : b2 / geom.magsq(y));
+	  zmag = Math.sqrt(1 - geom.magsq(x) - geom.magsq(y));
+	  z = geom.mul(z, zmag);
+	  return [x, y, z].reduce(geom.plus);
+	};
+	geom.quadSplit = function(u, p, d, t) {
+	  if (geom.magsq(p) > d * d) {
+	    throw new Error("STOP! Trying to split expansive quad.");
+	  }
+	  return geom.mul(u, (d * d - geom.magsq(p)) / 2 / (d * Math.cos(t) - geom.dot(u, p)));
+	};
+
+	var filter$1 = {};
+	filter$1.edgesAssigned = function(fold, target) {
+	  var assignment, i, k, len, ref, results;
+	  ref = fold.edges_assignment;
+	  results = [];
+	  for (i = k = 0, len = ref.length; k < len; i = ++k) {
+	    assignment = ref[i];
+	    if (assignment === target) {
+	      results.push(i);
+	    }
+	  }
+	  return results;
+	};
+	filter$1.mountainEdges = function(fold) {
+	  return filter$1.edgesAssigned(fold, 'M');
+	};
+	filter$1.valleyEdges = function(fold) {
+	  return filter$1.edgesAssigned(fold, 'V');
+	};
+	filter$1.flatEdges = function(fold) {
+	  return filter$1.edgesAssigned(fold, 'F');
+	};
+	filter$1.boundaryEdges = function(fold) {
+	  return filter$1.edgesAssigned(fold, 'B');
+	};
+	filter$1.unassignedEdges = function(fold) {
+	  return filter$1.edgesAssigned(fold, 'U');
+	};
+	filter$1.keysStartingWith = function(fold, prefix) {
+	  var key, results;
+	  results = [];
+	  for (key in fold) {
+	    if (key.slice(0, prefix.length) === prefix) {
+	      results.push(key);
+	    }
+	  }
+	  return results;
+	};
+	filter$1.keysEndingWith = function(fold, suffix) {
+	  var key, results;
+	  results = [];
+	  for (key in fold) {
+	    if (key.slice(-suffix.length) === suffix) {
+	      results.push(key);
+	    }
+	  }
+	  return results;
+	};
+	filter$1.remapField = function(fold, field, old2new) {
+	  var array, i, j, k, key, l, len, len1, len2, m, new2old, old, ref, ref1;
+	  new2old = [];
+	  for (i = k = 0, len = old2new.length; k < len; i = ++k) {
+	    j = old2new[i];
+	    if (j != null) {
+	      new2old[j] = i;
+	    }
+	  }
+	  ref = filter$1.keysStartingWith(fold, field + "_");
+	  for (l = 0, len1 = ref.length; l < len1; l++) {
+	    key = ref[l];
+	    fold[key] = (function() {
+	      var len2, m, results;
+	      results = [];
+	      for (m = 0, len2 = new2old.length; m < len2; m++) {
+	        old = new2old[m];
+	        results.push(fold[key][old]);
+	      }
+	      return results;
+	    })();
+	  }
+	  ref1 = filter$1.keysEndingWith(fold, "_" + field);
+	  for (m = 0, len2 = ref1.length; m < len2; m++) {
+	    key = ref1[m];
+	    fold[key] = (function() {
+	      var len3, n, ref2, results;
+	      ref2 = fold[key];
+	      results = [];
+	      for (n = 0, len3 = ref2.length; n < len3; n++) {
+	        array = ref2[n];
+	        results.push((function() {
+	          var len4, o, results1;
+	          results1 = [];
+	          for (o = 0, len4 = array.length; o < len4; o++) {
+	            old = array[o];
+	            results1.push(old2new[old]);
+	          }
+	          return results1;
+	        })());
+	      }
+	      return results;
+	    })();
+	  }
+	  return fold;
+	};
+	filter$1.remapFieldSubset = function(fold, field, keep) {
+	  var id, old2new, value;
+	  id = 0;
+	  old2new = (function() {
+	    var k, len, results;
+	    results = [];
+	    for (k = 0, len = keep.length; k < len; k++) {
+	      value = keep[k];
+	      if (value) {
+	        results.push(id++);
+	      } else {
+	        results.push(null);
+	      }
+	    }
+	    return results;
+	  })();
+	  filter$1.remapField(fold, field, old2new);
+	  return old2new;
+	};
+	filter$1.numType = function(fold, type) {
+	  var counts, key, value;
+	  counts = (function() {
+	    var k, len, ref, results;
+	    ref = filter$1.keysStartingWith(fold, type + "_");
+	    results = [];
+	    for (k = 0, len = ref.length; k < len; k++) {
+	      key = ref[k];
+	      value = fold[key];
+	      if (value.length == null) {
+	        continue;
+	      }
+	      results.push(value.length);
+	    }
+	    return results;
+	  })();
+	  if (!counts.length) {
+	    counts = (function() {
+	      var k, len, ref, results;
+	      ref = filter$1.keysEndingWith(fold, "_" + type);
+	      results = [];
+	      for (k = 0, len = ref.length; k < len; k++) {
+	        key = ref[k];
+	        results.push(1 + Math.max.apply(Math, fold[key]));
+	      }
+	      return results;
+	    })();
+	  }
+	  if (counts.length) {
+	    return Math.max.apply(Math, counts);
+	  } else {
+	    return 0;
+	  }
+	};
+	filter$1.numVertices = function(fold) {
+	  return filter$1.numType(fold, 'vertices');
+	};
+	filter$1.numEdges = function(fold) {
+	  return filter$1.numType(fold, 'edges');
+	};
+	filter$1.numFaces = function(fold) {
+	  return filter$1.numType(fold, 'faces');
+	};
+	filter$1.removeDuplicateEdges_vertices = function(fold) {
+	  var edge, id, key, old2new, seen, v, w;
+	  seen = {};
+	  id = 0;
+	  old2new = (function() {
+	    var k, len, ref, results;
+	    ref = fold.edges_vertices;
+	    results = [];
+	    for (k = 0, len = ref.length; k < len; k++) {
+	      edge = ref[k];
+	      v = edge[0], w = edge[1];
+	      if (v < w) {
+	        key = v + "," + w;
+	      } else {
+	        key = w + "," + v;
+	      }
+	      if (!(key in seen)) {
+	        seen[key] = id;
+	        id += 1;
+	      }
+	      results.push(seen[key]);
+	    }
+	    return results;
+	  })();
+	  filter$1.remapField(fold, 'edges', old2new);
+	  return old2new;
+	};
+	filter$1.edges_verticesIncident = function(e1, e2) {
+	  var k, len, v;
+	  for (k = 0, len = e1.length; k < len; k++) {
+	    v = e1[k];
+	    if (indexOf.call(e2, v) >= 0) {
+	      return v;
+	    }
+	  }
+	  return null;
+	};
+	var RepeatedPointsDS = (function() {
+	  function RepeatedPointsDS(vertices_coords, epsilon1) {
+	    var base, coord, k, len, name, ref, v;
+	    this.vertices_coords = vertices_coords;
+	    this.epsilon = epsilon1;
+	    this.hash = {};
+	    ref = this.vertices_coords;
+	    for (v = k = 0, len = ref.length; k < len; v = ++k) {
+	      coord = ref[v];
+	      ((base = this.hash)[name = this.key(coord)] != null ? base[name] : base[name] = []).push(v);
+	    }
+	  }
+	  RepeatedPointsDS.prototype.lookup = function(coord) {
+	    var k, key, l, len, len1, len2, m, ref, ref1, ref2, ref3, v, x, xr, xt, y, yr, yt;
+	    x = coord[0], y = coord[1];
+	    xr = Math.round(x / this.epsilon);
+	    yr = Math.round(y / this.epsilon);
+	    ref = [xr, xr - 1, xr + 1];
+	    for (k = 0, len = ref.length; k < len; k++) {
+	      xt = ref[k];
+	      ref1 = [yr, yr - 1, yr + 1];
+	      for (l = 0, len1 = ref1.length; l < len1; l++) {
+	        yt = ref1[l];
+	        key = xt + "," + yt;
+	        ref3 = (ref2 = this.hash[key]) != null ? ref2 : [];
+	        for (m = 0, len2 = ref3.length; m < len2; m++) {
+	          v = ref3[m];
+	          if (this.epsilon > geom.dist(this.vertices_coords[v], coord)) {
+	            return v;
+	          }
+	        }
+	      }
+	    }
+	    return null;
+	  };
+	  RepeatedPointsDS.prototype.key = function(coord) {
+	    var key, x, xr, y, yr;
+	    x = coord[0], y = coord[1];
+	    xr = Math.round(x / this.epsilon);
+	    yr = Math.round(y / this.epsilon);
+	    return key = xr + "," + yr;
+	  };
+	  RepeatedPointsDS.prototype.insert = function(coord) {
+	    var base, name, v;
+	    v = this.lookup(coord);
+	    if (v != null) {
+	      return v;
+	    }
+	    ((base = this.hash)[name = this.key(coord)] != null ? base[name] : base[name] = []).push(v = this.vertices_coords.length);
+	    this.vertices_coords.push(coord);
+	    return v;
+	  };
+	  return RepeatedPointsDS;
+	})();
+	filter$1.collapseNearbyVertices = function(fold, epsilon) {
+	  var coords, old2new, vertices;
+	  vertices = new RepeatedPointsDS([], epsilon);
+	  old2new = (function() {
+	    var k, len, ref, results;
+	    ref = fold.vertices_coords;
+	    results = [];
+	    for (k = 0, len = ref.length; k < len; k++) {
+	      coords = ref[k];
+	      results.push(vertices.insert(coords));
+	    }
+	    return results;
+	  })();
+	  return filter$1.remapField(fold, 'vertices', old2new);
+	};
+	filter$1.maybeAddVertex = function(fold, coords, epsilon) {
+	  var i;
+	  i = geom.closestIndex(coords, fold.vertices_coords);
+	  if ((i != null) && epsilon >= geom.dist(coords, fold.vertices_coords[i])) {
+	    return i;
+	  } else {
+	    return fold.vertices_coords.push(coords) - 1;
+	  }
+	};
+	filter$1.addVertexLike = function(fold, oldVertexIndex) {
+	  var k, key, len, ref, vNew;
+	  vNew = filter$1.numVertices(fold);
+	  ref = filter$1.keysStartingWith(fold, 'vertices_');
+	  for (k = 0, len = ref.length; k < len; k++) {
+	    key = ref[k];
+	    switch (key.slice(6)) {
+	      case 'vertices':
+	        break;
+	      default:
+	        fold[key][vNew] = fold[key][oldVertexIndex];
+	    }
+	  }
+	  return vNew;
+	};
+	filter$1.addEdgeLike = function(fold, oldEdgeIndex, v1, v2) {
+	  var eNew, k, key, len, ref;
+	  eNew = fold.edges_vertices.length;
+	  ref = filter$1.keysStartingWith(fold, 'edges_');
+	  for (k = 0, len = ref.length; k < len; k++) {
+	    key = ref[k];
+	    switch (key.slice(6)) {
+	      case 'vertices':
+	        fold.edges_vertices.push([v1 != null ? v1 : fold.edges_vertices[oldEdgeIndex][0], v2 != null ? v2 : fold.edges_vertices[oldEdgeIndex][1]]);
+	        break;
+	      case 'edges':
+	        break;
+	      default:
+	        fold[key][eNew] = fold[key][oldEdgeIndex];
+	    }
+	  }
+	  return eNew;
+	};
+	filter$1.addVertexAndSubdivide = function(fold, coords, epsilon) {
+	  var changedEdges, e, i, iNew, k, len, ref, s, u, v;
+	  v = filter$1.maybeAddVertex(fold, coords, epsilon);
+	  changedEdges = [];
+	  if (v === fold.vertices_coords.length - 1) {
+	    ref = fold.edges_vertices;
+	    for (i = k = 0, len = ref.length; k < len; i = ++k) {
+	      e = ref[i];
+	      if (indexOf.call(e, v) >= 0) {
+	        continue;
+	      }
+	      s = (function() {
+	        var l, len1, results;
+	        results = [];
+	        for (l = 0, len1 = e.length; l < len1; l++) {
+	          u = e[l];
+	          results.push(fold.vertices_coords[u]);
+	        }
+	        return results;
+	      })();
+	      if (geom.pointStrictlyInSegment(coords, s)) {
+	        iNew = filter$1.addEdgeLike(fold, i, v, e[1]);
+	        changedEdges.push(i, iNew);
+	        e[1] = v;
+	      }
+	    }
+	  }
+	  return [v, changedEdges];
+	};
+	filter$1.removeLoopEdges = function(fold) {
+	  var edge;
+	  return filter$1.remapFieldSubset(fold, 'edges', (function() {
+	    var k, len, ref, results;
+	    ref = fold.edges_vertices;
+	    results = [];
+	    for (k = 0, len = ref.length; k < len; k++) {
+	      edge = ref[k];
+	      results.push(edge[0] !== edge[1]);
+	    }
+	    return results;
+	  })());
+	};
+	filter$1.subdivideCrossingEdges_vertices = function(fold, epsilon, involvingEdgesFrom) {
+	  var addEdge, changedEdges, cross, crossI, e, e1, e2, i, i1, i2, k, l, len, len1, len2, len3, m, n, old2new, p, ref, ref1, ref2, ref3, s, s1, s2, u, v, vertices;
+	  changedEdges = [[], []];
+	  addEdge = function(v1, v2, oldEdgeIndex, which) {
+	    var eNew;
+	    eNew = filter$1.addEdgeLike(fold, oldEdgeIndex, v1, v2);
+	    return changedEdges[which].push(oldEdgeIndex, eNew);
+	  };
+	  i = involvingEdgesFrom != null ? involvingEdgesFrom : 0;
+	  while (i < fold.edges_vertices.length) {
+	    e = fold.edges_vertices[i];
+	    s = (function() {
+	      var k, len, results;
+	      results = [];
+	      for (k = 0, len = e.length; k < len; k++) {
+	        u = e[k];
+	        results.push(fold.vertices_coords[u]);
+	      }
+	      return results;
+	    })();
+	    ref = fold.vertices_coords;
+	    for (v = k = 0, len = ref.length; k < len; v = ++k) {
+	      p = ref[v];
+	      if (indexOf.call(e, v) >= 0) {
+	        continue;
+	      }
+	      if (geom.pointStrictlyInSegment(p, s)) {
+	        addEdge(v, e[1], i, 0);
+	        e[1] = v;
+	      }
+	    }
+	    i++;
+	  }
+	  vertices = new RepeatedPointsDS(fold.vertices_coords, epsilon);
+	  i1 = involvingEdgesFrom != null ? involvingEdgesFrom : 0;
+	  while (i1 < fold.edges_vertices.length) {
+	    e1 = fold.edges_vertices[i1];
+	    s1 = (function() {
+	      var l, len1, results;
+	      results = [];
+	      for (l = 0, len1 = e1.length; l < len1; l++) {
+	        v = e1[l];
+	        results.push(fold.vertices_coords[v]);
+	      }
+	      return results;
+	    })();
+	    ref1 = fold.edges_vertices.slice(0, i1);
+	    for (i2 = l = 0, len1 = ref1.length; l < len1; i2 = ++l) {
+	      e2 = ref1[i2];
+	      s2 = (function() {
+	        var len2, m, results;
+	        results = [];
+	        for (m = 0, len2 = e2.length; m < len2; m++) {
+	          v = e2[m];
+	          results.push(fold.vertices_coords[v]);
+	        }
+	        return results;
+	      })();
+	      if (!filter$1.edges_verticesIncident(e1, e2) && geom.segmentsCross(s1, s2)) {
+	        cross = geom.lineIntersectLine(s1, s2);
+	        if (cross == null) {
+	          continue;
+	        }
+	        crossI = vertices.insert(cross);
+	        if (!(indexOf.call(e1, crossI) >= 0 && indexOf.call(e2, crossI) >= 0)) {
+	          if (indexOf.call(e1, crossI) < 0) {
+	            addEdge(crossI, e1[1], i1, 0);
+	            e1[1] = crossI;
+	            s1[1] = fold.vertices_coords[crossI];
+	          }
+	          if (indexOf.call(e2, crossI) < 0) {
+	            addEdge(crossI, e2[1], i2, 1);
+	            e2[1] = crossI;
+	          }
+	        }
+	      }
+	    }
+	    i1++;
+	  }
+	  old2new = filter$1.removeDuplicateEdges_vertices(fold);
+	  ref2 = [0, 1];
+	  for (m = 0, len2 = ref2.length; m < len2; m++) {
+	    i = ref2[m];
+	    changedEdges[i] = (function() {
+	      var len3, n, ref3, results;
+	      ref3 = changedEdges[i];
+	      results = [];
+	      for (n = 0, len3 = ref3.length; n < len3; n++) {
+	        e = ref3[n];
+	        results.push(old2new[e]);
+	      }
+	      return results;
+	    })();
+	  }
+	  old2new = filter$1.removeLoopEdges(fold);
+	  ref3 = [0, 1];
+	  for (n = 0, len3 = ref3.length; n < len3; n++) {
+	    i = ref3[n];
+	    changedEdges[i] = (function() {
+	      var len4, o, ref4, results;
+	      ref4 = changedEdges[i];
+	      results = [];
+	      for (o = 0, len4 = ref4.length; o < len4; o++) {
+	        e = ref4[o];
+	        results.push(old2new[e]);
+	      }
+	      return results;
+	    })();
+	  }
+	  if (involvingEdgesFrom != null) {
+	    return changedEdges;
+	  } else {
+	    return changedEdges[0].concat(changedEdges[1]);
+	  }
+	};
+	filter$1.addEdgeAndSubdivide = function(fold, v1, v2, epsilon) {
+	  var changedEdges, changedEdges1, changedEdges2, e, i, iNew, k, len, ref, ref1, ref2, ref3, ref4;
+	  if (v1.length != null) {
+	    ref = filter$1.addVertexAndSubdivide(fold, v1, epsilon), v1 = ref[0], changedEdges1 = ref[1];
+	  }
+	  if (v2.length != null) {
+	    ref1 = filter$1.addVertexAndSubdivide(fold, v2, epsilon), v2 = ref1[0], changedEdges2 = ref1[1];
+	  }
+	  if (v1 === v2) {
+	    return [[], []];
+	  }
+	  ref2 = fold.edges_vertices;
+	  for (i = k = 0, len = ref2.length; k < len; i = ++k) {
+	    e = ref2[i];
+	    if ((e[0] === v1 && e[1] === v2) || (e[0] === v2 && e[1] === v1)) {
+	      return [[i], []];
+	    }
+	  }
+	  iNew = fold.edges_vertices.push([v1, v2]) - 1;
+	  if (iNew) {
+	    changedEdges = filter$1.subdivideCrossingEdges_vertices(fold, epsilon, iNew);
+	    if (indexOf.call(changedEdges[0], iNew) < 0) {
+	      changedEdges[0].push(iNew);
+	    }
+	  } else {
+	    changedEdges = [[iNew], []];
+	  }
+	  if (changedEdges1 != null) {
+	    (ref3 = changedEdges[1]).push.apply(ref3, changedEdges1);
+	  }
+	  if (changedEdges2 != null) {
+	    (ref4 = changedEdges[1]).push.apply(ref4, changedEdges2);
+	  }
+	  return changedEdges;
+	};
+	filter$1.cutEdges = function(fold, es) {
+	  var b1, b2, boundaries, e, e1, e2, ev, i, i1, i2, ie, ie1, ie2, k, l, len, len1, len2, len3, len4, len5, len6, len7, m, n, neighbor, neighbors, o, q, r, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, t, u1, u2, v, v1, v2, ve, vertices_boundaries;
+	  vertices_boundaries = [];
+	  ref = filter$1.boundaryEdges(fold);
+	  for (k = 0, len = ref.length; k < len; k++) {
+	    e = ref[k];
+	    ref1 = fold.edges_vertices[e];
+	    for (l = 0, len1 = ref1.length; l < len1; l++) {
+	      v = ref1[l];
+	      (vertices_boundaries[v] != null ? vertices_boundaries[v] : vertices_boundaries[v] = []).push(e);
+	    }
+	  }
+	  for (m = 0, len2 = es.length; m < len2; m++) {
+	    e1 = es[m];
+	    e2 = filter$1.addEdgeLike(fold, e1);
+	    ref2 = fold.edges_vertices[e1];
+	    for (i = n = 0, len3 = ref2.length; n < len3; i = ++n) {
+	      v = ref2[i];
+	      ve = fold.vertices_edges[v];
+	      ve.splice(ve.indexOf(e1) + i, 0, e2);
+	    }
+	    ref3 = fold.edges_vertices[e1];
+	    for (i = o = 0, len4 = ref3.length; o < len4; i = ++o) {
+	      v1 = ref3[i];
+	      u1 = fold.edges_vertices[e1][1 - i];
+	      u2 = fold.edges_vertices[e2][1 - i];
+	      boundaries = (ref4 = vertices_boundaries[v1]) != null ? ref4.length : void 0;
+	      if (boundaries >= 2) {
+	        if (boundaries > 2) {
+	          throw new Error(vertices_boundaries[v1].length + " boundary edges at vertex " + v1);
+	        }
+	        ref5 = vertices_boundaries[v1], b1 = ref5[0], b2 = ref5[1];
+	        neighbors = fold.vertices_edges[v1];
+	        i1 = neighbors.indexOf(b1);
+	        i2 = neighbors.indexOf(b2);
+	        if (i2 === (i1 + 1) % neighbors.length) {
+	          if (i2 !== 0) {
+	            neighbors = neighbors.slice(i2).concat(neighbors.slice(0, +i1 + 1 || 9e9));
+	          }
+	        } else if (i1 === (i2 + 1) % neighbors.length) {
+	          if (i1 !== 0) {
+	            neighbors = neighbors.slice(i1).concat(neighbors.slice(0, +i2 + 1 || 9e9));
+	          }
+	        } else {
+	          throw new Error("Nonadjacent boundary edges at vertex " + v1);
+	        }
+	        ie1 = neighbors.indexOf(e1);
+	        ie2 = neighbors.indexOf(e2);
+	        ie = Math.min(ie1, ie2);
+	        fold.vertices_edges[v1] = neighbors.slice(0, +ie + 1 || 9e9);
+	        v2 = filter$1.addVertexLike(fold, v1);
+	        fold.vertices_edges[v2] = neighbors.slice(1 + ie);
+	        ref6 = fold.vertices_edges[v2];
+	        for (q = 0, len5 = ref6.length; q < len5; q++) {
+	          neighbor = ref6[q];
+	          ev = fold.edges_vertices[neighbor];
+	          ev[ev.indexOf(v1)] = v2;
+	        }
+	      }
+	    }
+	    if ((ref7 = fold.edges_assignment) != null) {
+	      ref7[e1] = 'B';
+	    }
+	    if ((ref8 = fold.edges_assignment) != null) {
+	      ref8[e2] = 'B';
+	    }
+	    ref9 = fold.edges_vertices[e1];
+	    for (i = r = 0, len6 = ref9.length; r < len6; i = ++r) {
+	      v = ref9[i];
+	      (vertices_boundaries[v] != null ? vertices_boundaries[v] : vertices_boundaries[v] = []).push(e1);
+	    }
+	    ref10 = fold.edges_vertices[e2];
+	    for (i = t = 0, len7 = ref10.length; t < len7; i = ++t) {
+	      v = ref10[i];
+	      (vertices_boundaries[v] != null ? vertices_boundaries[v] : vertices_boundaries[v] = []).push(e2);
+	    }
+	  }
+	  delete fold.vertices_vertices;
+	  return fold;
+	};
+	filter$1.edges_vertices_to_vertices_vertices = function(fold) {
+	  var edge, k, len, numVertices, ref, v, vertices_vertices, w;
+	  numVertices = filter$1.numVertices(fold);
+	  vertices_vertices = (function() {
+	    var k, ref, results;
+	    results = [];
+	    for (v = k = 0, ref = numVertices; 0 <= ref ? k < ref : k > ref; v = 0 <= ref ? ++k : --k) {
+	      results.push([]);
+	    }
+	    return results;
+	  })();
+	  ref = fold.edges_vertices;
+	  for (k = 0, len = ref.length; k < len; k++) {
+	    edge = ref[k];
+	    v = edge[0], w = edge[1];
+	    while (v >= vertices_vertices.length) {
+	      vertices_vertices.push([]);
+	    }
+	    while (w >= vertices_vertices.length) {
+	      vertices_vertices.push([]);
+	    }
+	    vertices_vertices[v].push(w);
+	    vertices_vertices[w].push(v);
+	  }
+	  return vertices_vertices;
+	};
+
+	var convert$1 = {},
+	  modulo$1 = function(a, b) { return (+a % (b = +b) + b) % b; },
+	  hasProp = {}.hasOwnProperty;
+	convert$1.edges_vertices_to_vertices_vertices_unsorted = function(fold) {
+	  fold.vertices_vertices = filter$1.edges_vertices_to_vertices_vertices(fold);
+	  return fold;
+	};
+	convert$1.edges_vertices_to_vertices_vertices_sorted = function(fold) {
+	  convert$1.edges_vertices_to_vertices_vertices_unsorted(fold);
+	  return convert$1.sort_vertices_vertices(fold);
+	};
+	convert$1.edges_vertices_to_vertices_edges_sorted = function(fold) {
+	  convert$1.edges_vertices_to_vertices_vertices_sorted(fold);
+	  return convert$1.vertices_vertices_to_vertices_edges(fold);
+	};
+	convert$1.sort_vertices_vertices = function(fold) {
+	  var neighbors, ref, ref1, ref2, v;
+	  if (((ref = fold.vertices_coords) != null ? (ref1 = ref[0]) != null ? ref1.length : void 0 : void 0) !== 2) {
+	    throw new Error("sort_vertices_vertices: Vertex coordinates missing or not two dimensional");
+	  }
+	  if (fold.vertices_vertices == null) {
+	    convert$1.edges_vertices_to_vertices_vertices(fold);
+	  }
+	  ref2 = fold.vertices_vertices;
+	  for (v in ref2) {
+	    neighbors = ref2[v];
+	    geom.sortByAngle(neighbors, v, function(x) {
+	      return fold.vertices_coords[x];
+	    });
+	  }
+	  return fold;
+	};
+	convert$1.vertices_vertices_to_faces_vertices = function(fold) {
+	  var face, i, j, k, key, l, len, len1, len2, neighbors, next, ref, ref1, ref2, ref3, u, uv, v, w, x;
+	  next = {};
+	  ref = fold.vertices_vertices;
+	  for (v = j = 0, len = ref.length; j < len; v = ++j) {
+	    neighbors = ref[v];
+	    for (i = k = 0, len1 = neighbors.length; k < len1; i = ++k) {
+	      u = neighbors[i];
+	      next[u + "," + v] = neighbors[modulo$1(i - 1, neighbors.length)];
+	    }
+	  }
+	  fold.faces_vertices = [];
+	  ref1 = (function() {
+	    var results;
+	    results = [];
+	    for (key in next) {
+	      results.push(key);
+	    }
+	    return results;
+	  })();
+	  for (l = 0, len2 = ref1.length; l < len2; l++) {
+	    uv = ref1[l];
+	    w = next[uv];
+	    if (w == null) {
+	      continue;
+	    }
+	    next[uv] = null;
+	    ref2 = uv.split(','), u = ref2[0], v = ref2[1];
+	    u = parseInt(u);
+	    v = parseInt(v);
+	    face = [u, v];
+	    while (w !== face[0]) {
+	      if (w == null) {
+	        console.warn("Confusion with face " + face);
+	        break;
+	      }
+	      face.push(w);
+	      ref3 = [v, w], u = ref3[0], v = ref3[1];
+	      w = next[u + "," + v];
+	      next[u + "," + v] = null;
+	    }
+	    next[face[face.length - 1] + "," + face[0]] = null;
+	    if ((w != null) && geom.polygonOrientation((function() {
+	      var len3, m, results;
+	      results = [];
+	      for (m = 0, len3 = face.length; m < len3; m++) {
+	        x = face[m];
+	        results.push(fold.vertices_coords[x]);
+	      }
+	      return results;
+	    })()) > 0) {
+	      fold.faces_vertices.push(face);
+	    }
+	  }
+	  return fold;
+	};
+	convert$1.vertices_edges_to_faces_vertices_edges = function(fold) {
+	  var e, e1, e2, edges, i, j, k, l, len, len1, len2, len3, m, neighbors, next, nexts, ref, ref1, v, vertex, vertices, x;
+	  next = [];
+	  ref = fold.vertices_edges;
+	  for (v = j = 0, len = ref.length; j < len; v = ++j) {
+	    neighbors = ref[v];
+	    next[v] = {};
+	    for (i = k = 0, len1 = neighbors.length; k < len1; i = ++k) {
+	      e = neighbors[i];
+	      next[v][e] = neighbors[modulo$1(i - 1, neighbors.length)];
+	    }
+	  }
+	  fold.faces_vertices = [];
+	  fold.faces_edges = [];
+	  for (vertex = l = 0, len2 = next.length; l < len2; vertex = ++l) {
+	    nexts = next[vertex];
+	    for (e1 in nexts) {
+	      e2 = nexts[e1];
+	      if (e2 == null) {
+	        continue;
+	      }
+	      e1 = parseInt(e1);
+	      nexts[e1] = null;
+	      edges = [e1];
+	      vertices = [filter$1.edges_verticesIncident(fold.edges_vertices[e1], fold.edges_vertices[e2])];
+	      if (vertices[0] == null) {
+	        throw new Error("Confusion at edges " + e1 + " and " + e2);
+	      }
+	      while (e2 !== edges[0]) {
+	        if (e2 == null) {
+	          console.warn("Confusion with face containing edges " + edges);
+	          break;
+	        }
+	        edges.push(e2);
+	        ref1 = fold.edges_vertices[e2];
+	        for (m = 0, len3 = ref1.length; m < len3; m++) {
+	          v = ref1[m];
+	          if (v !== vertices[vertices.length - 1]) {
+	            vertices.push(v);
+	            break;
+	          }
+	        }
+	        e1 = e2;
+	        e2 = next[v][e1];
+	        next[v][e1] = null;
+	      }
+	      if ((e2 != null) && geom.polygonOrientation((function() {
+	        var len4, n, results;
+	        results = [];
+	        for (n = 0, len4 = vertices.length; n < len4; n++) {
+	          x = vertices[n];
+	          results.push(fold.vertices_coords[x]);
+	        }
+	        return results;
+	      })()) > 0) {
+	        fold.faces_vertices.push(vertices);
+	        fold.faces_edges.push(edges);
+	      }
+	    }
+	  }
+	  return fold;
+	};
+	convert$1.edges_vertices_to_faces_vertices = function(fold) {
+	  convert$1.edges_vertices_to_vertices_vertices_sorted(fold);
+	  return convert$1.vertices_vertices_to_faces_vertices(fold);
+	};
+	convert$1.edges_vertices_to_faces_vertices_edges = function(fold) {
+	  convert$1.edges_vertices_to_vertices_edges_sorted(fold);
+	  return convert$1.vertices_edges_to_faces_vertices(fold);
+	};
+	convert$1.vertices_vertices_to_vertices_edges = function(fold) {
+	  var edge, edgeMap, i, j, len, ref, ref1, v1, v2, vertex, vertices;
+	  edgeMap = {};
+	  ref = fold.edges_vertices;
+	  for (edge = j = 0, len = ref.length; j < len; edge = ++j) {
+	    ref1 = ref[edge], v1 = ref1[0], v2 = ref1[1];
+	    edgeMap[v1 + "," + v2] = edge;
+	    edgeMap[v2 + "," + v1] = edge;
+	  }
+	  return fold.vertices_edges = (function() {
+	    var k, len1, ref2, results;
+	    ref2 = fold.vertices_vertices;
+	    results = [];
+	    for (vertex = k = 0, len1 = ref2.length; k < len1; vertex = ++k) {
+	      vertices = ref2[vertex];
+	      results.push((function() {
+	        var l, ref3, results1;
+	        results1 = [];
+	        for (i = l = 0, ref3 = vertices.length; 0 <= ref3 ? l < ref3 : l > ref3; i = 0 <= ref3 ? ++l : --l) {
+	          results1.push(edgeMap[vertex + "," + vertices[i]]);
+	        }
+	        return results1;
+	      })());
+	    }
+	    return results;
+	  })();
+	};
+	convert$1.faces_vertices_to_faces_edges = function(fold) {
+	  var edge, edgeMap, face, i, j, len, ref, ref1, v1, v2, vertices;
+	  edgeMap = {};
+	  ref = fold.edges_vertices;
+	  for (edge = j = 0, len = ref.length; j < len; edge = ++j) {
+	    ref1 = ref[edge], v1 = ref1[0], v2 = ref1[1];
+	    edgeMap[v1 + "," + v2] = edge;
+	    edgeMap[v2 + "," + v1] = edge;
+	  }
+	  return fold.faces_edges = (function() {
+	    var k, len1, ref2, results;
+	    ref2 = fold.faces_vertices;
+	    results = [];
+	    for (face = k = 0, len1 = ref2.length; k < len1; face = ++k) {
+	      vertices = ref2[face];
+	      results.push((function() {
+	        var l, ref3, results1;
+	        results1 = [];
+	        for (i = l = 0, ref3 = vertices.length; 0 <= ref3 ? l < ref3 : l > ref3; i = 0 <= ref3 ? ++l : --l) {
+	          results1.push(edgeMap[vertices[i] + "," + vertices[(i + 1) % vertices.length]]);
+	        }
+	        return results1;
+	      })());
+	    }
+	    return results;
+	  })();
+	};
+	convert$1.faces_vertices_to_edges = function(mesh) {
+	  var edge, edgeMap, face, i, key, ref, v1, v2, vertices;
+	  mesh.edges_vertices = [];
+	  mesh.edges_faces = [];
+	  mesh.faces_edges = [];
+	  mesh.edges_assignment = [];
+	  edgeMap = {};
+	  ref = mesh.faces_vertices;
+	  for (face in ref) {
+	    vertices = ref[face];
+	    face = parseInt(face);
+	    mesh.faces_edges.push((function() {
+	      var j, len, results;
+	      results = [];
+	      for (i = j = 0, len = vertices.length; j < len; i = ++j) {
+	        v1 = vertices[i];
+	        v1 = parseInt(v1);
+	        v2 = vertices[(i + 1) % vertices.length];
+	        if (v1 <= v2) {
+	          key = v1 + "," + v2;
+	        } else {
+	          key = v2 + "," + v1;
+	        }
+	        if (key in edgeMap) {
+	          edge = edgeMap[key];
+	        } else {
+	          edge = edgeMap[key] = mesh.edges_vertices.length;
+	          if (v1 <= v2) {
+	            mesh.edges_vertices.push([v1, v2]);
+	          } else {
+	            mesh.edges_vertices.push([v2, v1]);
+	          }
+	          mesh.edges_faces.push([null, null]);
+	          mesh.edges_assignment.push('B');
+	        }
+	        if (v1 <= v2) {
+	          mesh.edges_faces[edge][0] = face;
+	        } else {
+	          mesh.edges_faces[edge][1] = face;
+	        }
+	        results.push(edge);
+	      }
+	      return results;
+	    })());
+	  }
+	  return mesh;
+	};
+	convert$1.deepCopy = function(fold) {
+	  var copy, item, j, key, len, ref, results, value;
+	  if ((ref = typeof fold) === 'number' || ref === 'string' || ref === 'boolean') {
+	    return fold;
+	  } else if (Array.isArray(fold)) {
+	    results = [];
+	    for (j = 0, len = fold.length; j < len; j++) {
+	      item = fold[j];
+	      results.push(convert$1.deepCopy(item));
+	    }
+	    return results;
+	  } else {
+	    copy = {};
+	    for (key in fold) {
+	      if (!hasProp.call(fold, key)) continue;
+	      value = fold[key];
+	      copy[key] = convert$1.deepCopy(value);
+	    }
+	    return copy;
+	  }
+	};
+	convert$1.toJSON = function(fold) {
+	  var key, obj, value;
+	  return "{\n" + ((function() {
+	    var results;
+	    results = [];
+	    for (key in fold) {
+	      value = fold[key];
+	      results.push(("  " + (JSON.stringify(key)) + ": ") + (Array.isArray(value) ? "[\n" + ((function() {
+	        var j, len, results1;
+	        results1 = [];
+	        for (j = 0, len = value.length; j < len; j++) {
+	          obj = value[j];
+	          results1.push("    " + (JSON.stringify(obj)));
+	        }
+	        return results1;
+	      })()).join(',\n') + "\n  ]" : JSON.stringify(value)));
+	    }
+	    return results;
+	  })()).join(',\n') + "\n}\n";
+	};
+	convert$1.extensions = {};
+	convert$1.converters = {};
+	convert$1.getConverter = function(fromExt, toExt) {
+	  if (fromExt === toExt) {
+	    return function(x) {
+	      return x;
+	    };
+	  } else {
+	    return convert$1.converters["" + fromExt + toExt];
+	  }
+	};
+	convert$1.setConverter = function(fromExt, toExt, converter) {
+	  convert$1.extensions[fromExt] = true;
+	  convert$1.extensions[toExt] = true;
+	  return convert$1.converters["" + fromExt + toExt] = converter;
+	};
+	convert$1.convertFromTo = function(data, fromExt, toExt) {
+	  var converter;
+	  if (fromExt[0] !== '.') {
+	    fromExt = "." + fromExt;
+	  }
+	  if (toExt[0] !== '.') {
+	    toExt = "." + toExt;
+	  }
+	  converter = convert$1.getConverter(fromExt, toExt);
+	  if (converter == null) {
+	    if (fromExt === toExt) {
+	      return data;
+	    }
+	    throw new Error("No converter from " + fromExt + " to " + toExt);
+	  }
+	  return converter(data);
+	};
+	convert$1.convertFrom = function(data, fromExt) {
+	  return convert$1.convertFromTo(data, fromExt, '.fold');
+	};
+	convert$1.convertTo = function(data, toExt) {
+	  return convert$1.convertFromTo(data, '.fold', toExt);
+	};
+
 	const angle_from_assignment = function(assignment) {
 		switch (assignment) {
 			case "M":
@@ -3338,7 +4811,6 @@
 				);
 			}
 		}
-		console.log(vertices_equivalent);
 		let vertices_map = vertices_coords.map(vc => undefined);
 		vertices_equivalent.forEach((row,i) => row.forEach((eq,j) => {
 			if (eq){
@@ -3351,7 +4823,6 @@
 		vertices_map.forEach((map,i) => {
 			if(map === undefined) { vertices_map[i] = i; }
 		});
-		console.log("vertices_map", vertices_map);
 		edges_vertices.forEach((edge,i) => edge.forEach((v,j) => {
 			edges_vertices[i][j] = vertices_map[v];
 		}));
@@ -3359,13 +4830,12 @@
 			vertices_coords,
 			edges_vertices
 		};
-		console.log("edges_vertices", edges_vertices);
-		console.log("vertices_remove", vertices_remove);
 		let vertices_remove_indices = vertices_remove
 			.map((rm,i) => rm ? i : undefined)
 			.filter(i => i !== undefined);
 		remove_vertices(flat, vertices_remove_indices);
-		console.log(flat);
+		convert$1.edges_vertices_to_vertices_vertices_sorted(flat);
+		return flat;
 	};
 	const nearest_vertex = function(graph, point) {
 		if (graph.vertices_coords == null || graph.vertices_coords.length === 0) {
@@ -4027,6 +5497,7 @@
 
 	const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return [[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return [[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),shape_attr={line:["x1","y1","x2","y2"],rect:["x","y","width","height"],circle:["cx","cy","r"],ellipse:["cx","cy","rx","ry"],polygon:["points"],polyline:["points"],path:["d"]},flatten_tree=function(a){return "g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},attribute_list=function(b){return Array.from(b.attributes).filter(c=>-1===shape_attr[b.tagName].indexOf(c.name))},withAttributes=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a).map(b=>{let c={x1:b[0],y1:b[1],x2:b[2],y2:b[3]};return attribute_list(a).forEach(b=>c[b.nodeName]=b.value),c})).reduce((c,a)=>c.concat(a),[])};
 
+	const defaultStyle = "svg * {\n stroke-width: var(--crease-width);\n stroke-linecap: round;\n stroke: black;\n}\npolygon {\n fill: none;\n stroke: none;\n stroke-linejoin: bevel;\n}\n.boundary {\n fill: white;\n stroke: black;\n}\n.mountain{\n stroke: #e14929;\n}\n.valley{\n stroke: #314f69;\nstroke-dasharray: calc( var(--crease-width) * 2) calc( var(--crease-width) * 2);\n}\n.mark {\n stroke: #888;\n}\n.foldedForm #faces polygon {\n /*stroke: black;*/\n}\n.foldedForm #faces .front {\n fill: steelblue;\n}\n.foldedForm #faces .back {\n fill: peru;\n}\n.foldedForm #creases line {\n stroke: none;\n}";
 	const intoGroups = function(graph, {boundaries, faces, creases, vertices}) {
 		if (boundaries){ drawBoundary(graph).forEach(b => boundaries.appendChild(b)); }
 		if (faces){ drawFaces(graph).forEach(f => faces.appendChild(f)); }
@@ -4559,7 +6030,7 @@
 		graph.edges_foldAngle = graph.edges_assignment.map(a =>
 			(a === "M" ? -180 : (a === "V" ? 180 : 0))
 		);
-		fragment(graph);
+		console.log(fragment(graph));
 		return graph;
 	};
 	const color_to_assignment = function(string) {
@@ -4605,13 +6076,28 @@
 		svg$$1.setAttribute("y", "0px");
 		svg$$1.setAttribute("width", "600px");
 		svg$$1.setAttribute("height", "600px");
+		const svgNS = "http://www.w3.org/2000/svg";
+		let styleElement = document.createElementNS(svgNS, "style");
+		styleElement.setAttribute("type", "text/css");
+		svg$$1.appendChild(styleElement);
 		let groupNames = ["boundary", "face", "crease", "vertex"]
 			.map(singular => groupNamesPlural[singular]);
 		let groups = groupNames.map(key => svg$$1.group().setID(key));
 		let obj = {};
 		groupNames.forEach((name,i) => obj[name] = groups[i]);
 		intoGroups(graph, obj);
-		setViewBox(svg$$1, ...bounding_rect(graph));
+		let r = bounding_rect(graph);
+		setViewBox(svg$$1, ...r);
+		let vmin = r[2] > r[3] ? r[3] : r[2];
+		let styleString = "\n";
+		styleString += "svg {\n --crease-width: " + vmin*0.005 + ";\n}\n";
+		styleString += (cssRules != null)
+			? cssRules
+			: defaultStyle;
+		styleString += "\n";
+		var docu = new DOMParser().parseFromString('<xml></xml>', 'application/xml');
+		var cdata = docu.createCDATASection(styleString);
+		styleElement.appendChild(cdata);
 		return svg$$1;
 	};
 	const groupNamesPlural = {
@@ -6095,7 +7581,7 @@
 
 	var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
 
-	let convert$1 = { toFOLD, toSVG, toORIPA };
+	let convert$2 = { toFOLD, toSVG, toORIPA };
 	const core$1 = Object.create(null);
 	Object.assign(core$1, file, validate, graph, Origami, planargraph);
 	let b = {
@@ -6124,7 +7610,7 @@
 		Origami3D: View3D,
 		Graph: Graph$1,
 		svg: svg$1,
-		convert: convert$1,
+		convert: convert$2,
 		core: core$1,
 		bases,
 		math: core

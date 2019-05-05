@@ -3,6 +3,8 @@ import * as Geom from "../../include/geometry";
 import { merge_maps } from "./diff";
 import { default as validate } from "./validate";
 
+import {default as convert} from "../official/convert";
+
 const angle_from_assignment = function(assignment) {
 	switch (assignment) {
 		case "M":
@@ -168,6 +170,8 @@ export const fragment = function(graph, epsilon = Geom.core.EPSILON) {
 	Graph.remove_vertices(flat, vertices_remove_indices);
 
 	// console.log(flat);
+
+	convert.edges_vertices_to_vertices_vertices_sorted(flat);
 
 	return flat;
 }

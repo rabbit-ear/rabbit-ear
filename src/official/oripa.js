@@ -2,8 +2,7 @@
 // https://github.com/edemaine/fold
 // by Erik Demaine, Jason Ku, Robert Lang
 // 
-// i'm still working on the best way to include
-// the actual official library, for now, just this part
+// this file was modified slightly, it's its own module. not inside convert
 
 let oripa = {};
 

@@ -4,7 +4,7 @@ import * as Segmentize from "../../include/svg-segmentize";
 import { flatten_frame } from "../fold/file";
 import { bounding_rect, fragment } from "../fold/planargraph";
 import * as FoldToSVG from "../draw/toSVG";
-import { default as ORIPA } from "./oripa";
+import { default as ORIPA } from "../official/oripa";
 import { default as css_colors } from "./css_colors";
 // import * as Fold from "../include/fold";
 
@@ -133,8 +133,6 @@ export const toORIPA = function(input, callback) {
 }
 
 export const svg_to_fold = function(svg) {
-	// for each geometry, add creases without regards to invalid planar edge crossings
-	//  (intersecting lines, duplicate vertices), clean up later.
 	let graph = {
 		"file_spec": 1.1,
 		"file_creator": "Rabbit Ear",
@@ -164,7 +162,7 @@ export const svg_to_fold = function(svg) {
 		(a === "M" ? -180 : (a === "V" ? 180 : 0))
 	);
 
-	fragment(graph);
+	console.log(fragment(graph));
 	// console.log("svg_to_fold");
 	// todo: import semgents into a planar graph, handle edge crossings
 
@@ -230,15 +228,31 @@ export const fold_to_svg = function(fold, cssRules) {
 	svg.setAttribute("y", "0px");
 	svg.setAttribute("width", "600px");
 	svg.setAttribute("height", "600px");
+	const svgNS = "http://www.w3.org/2000/svg";
+	let styleElement = document.createElementNS(svgNS, "style");
+	styleElement.setAttribute("type", "text/css");
+	svg.appendChild(styleElement);
 	let groupNames = ["boundary", "face", "crease", "vertex"]
 		.map(singular => groupNamesPlural[singular])
 	let groups = groupNames.map(key => svg.group().setID(key));
 	let obj = {};
 	groupNames.forEach((name,i) => obj[name] = groups[i]);
-	// let obj = { ...groups };
 	FoldToSVG.intoGroups(graph, obj);
-	SVG.setViewBox(svg, ...bounding_rect(graph));
-	// console.log("fold_to_svg done");
+	let r = bounding_rect(graph);
+	SVG.setViewBox(svg, ...r);
+
+	// fill CSS style with --crease-width, and custom or a default style
+	let vmin = r[2] > r[3] ? r[3] : r[2];
+	let styleString = "\n";
+	styleString += "svg {\n --crease-width: " + vmin*0.005 + ";\n}\n";
+	styleString += (cssRules != null)
+		? cssRules
+		: FoldToSVG.defaultStyle;
+	styleString += "\n";
+	// wrap style in CDATA section
+	var docu = new DOMParser().parseFromString('<xml></xml>', 'application/xml')
+	var cdata = docu.createCDATASection(styleString);
+	styleElement.appendChild(cdata);
 	return svg;
 }
 

@@ -1,0 +1,43 @@
+:root{ --crease-width: 0.01; }
+
+html,body{
+	margin:0px;
+	color: white;
+	background-color:hsl(205, 74%, 30%);
+	font-family: sans-serif;
+	display:flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+h2{
+	display: inline-block;
+	margin: 1rem 2rem;
+	padding:.5em .75em;
+	background-color: hsl(43, 88%, 46%);
+}
+svg{
+	width:40vw;
+	height:40vw;
+	max-height:60vh;
+	margin:auto;
+	padding: 0 3vw;
+}
+.row{
+	display: flex;
+	flex-wrap: wrap;
+	margin: 1rem 0 1rem 0;
+}
+.mountain, .valley, .boundary, .mark {
+	stroke:black;
+	stroke-linecap: round;
+	stroke-width: var(--crease-width);
+}
+.node, .face, .sector{
+	stroke: none;
+	fill: none;
+}
+.folded-face{ fill:rgba(255, 255, 255, 0.333); }
+.boundary{ fill:white; }
+.mark{ stroke-width: calc( var(--crease-width) * 0.25); }
+.valley{ stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2) }
