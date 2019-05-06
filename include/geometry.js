@@ -242,7 +242,7 @@ function point_on_edge(edge0, edge1, point, epsilon = EPSILON) {
 	                    Math.pow(point[1]-edge1[1],2));
 	return Math.abs(dEdge - dP0 - dP1) < epsilon;
 }
-function point_in_poly(poly, point, epsilon = EPSILON) {
+function point_in_poly(point, poly, epsilon = EPSILON) {
 	let isInside = false;
 	for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
 		if ( (poly[i][1] > point[1]) != (poly[j][1] > point[1]) &&
@@ -252,7 +252,7 @@ function point_in_poly(poly, point, epsilon = EPSILON) {
 	}
 	return isInside;
 }
-function point_in_convex_poly(poly, point, epsilon = EPSILON) {
+function point_in_convex_poly(point, poly, epsilon = EPSILON) {
 	if (poly == undefined || !(poly.length > 0)) { return false; }
 	return poly.map( (p,i,arr) => {
 		let nextP = arr[(i+1)%arr.length];
@@ -271,8 +271,8 @@ function convex_polygons_overlap(ps1, ps2) {
 			}
 		}
 	}
-	if (point_in_convex_poly(ps1, ps2[0])) { return true; }
-	if (point_in_convex_poly(ps2, ps1[0])) { return true; }
+	if (point_in_poly(ps2[0], ps1)) { return true; }
+	if (point_in_poly(ps1[0], ps2)) { return true; }
 	return false;
 }
 function clip_line_in_convex_poly(poly, linePoint, lineVector) {
@@ -316,21 +316,32 @@ function clip_edge_in_convex_poly(poly, edgeA, edgeB) {
 		.filter(el => el != null);
 	for (var i = 0; i < intersections.length; i++) {
 		for (var j = intersections.length-1; j > i; j--) {
-			if (equivalent2(intersections[i], intersections[j])) {
+			if (equivalent2(intersections[i], intersections[j], 0.0000001)) {
 				intersections.splice(j, 1);
 			}
 		}
 	}
-	let aInside = point_in_convex_poly(edgeA, poly);
+	let aInside = point_in_poly(edgeA, poly);
+	console.log("intersections", intersections);
+	console.log("aInside", aInside);
 	switch (intersections.length) {
 		case 0: return ( aInside
 			? [[...edgeA], [...edgeB]]
 			: undefined );
-		case 1: return ( aInside
+		case 2: return intersections;
+		case 1:
+			let bInside = point_in_poly(edgeB, poly);
+			let equivA = poly.map(p => equivalent2(p, edgeA))
+				.reduce((a,b) => a || b, false);
+			let equivB = poly.map(p => equivalent2(p, edgeB))
+				.reduce((a,b) => a || b, false);
+		if (equivA && equivB) { return [edgeA, edgeB]; }
+		if (equivA) { return bInside ? [edgeA, edgeB] : undefined; }
+		if (equivB) { return aInside ? [edgeA, edgeB] : undefined; }
+		return ( aInside
 			? [[...edgeA], intersections[0]]
 			: [[...edgeB], intersections[0]] );
-		case 2: return intersections;
-		default: throw "clipping ray in a convex polygon resulting in 3 or more points";
+		default: throw "clipping edge in a convex polygon resulting in 3 or more points";
 	}
 }
 function nearest_point(linePoint, lineVector, point, limiterFunc, epsilon = EPSILON) {
@@ -1023,7 +1034,7 @@ function LinePrototype(proto) {
 		let lg = this_is_smaller ? line.vector : this.vector;
 		return parallel(sm, lg, epsilon);
 	};
-	const isDegenrate = function(epsilon){
+	const isDegenerate = function(epsilon){
 		return degenerate(this.vector, epsilon);
 	};
 	const reflection = function() {
@@ -1075,7 +1086,7 @@ function LinePrototype(proto) {
 		return this.compare_function(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
 	};
 	Object.defineProperty(proto, "isParallel", {value: isParallel});
-	Object.defineProperty(proto, "isDegenrate", {value: isDegenrate});
+	Object.defineProperty(proto, "isDegenerate", {value: isDegenerate});
 	Object.defineProperty(proto, "nearestPoint", {value: nearestPoint});
 	Object.defineProperty(proto, "reflection", {value: reflection});
 	Object.defineProperty(proto, "intersect", {value: intersect});
@@ -1236,7 +1247,7 @@ function Polygon() {
 		.map(ps => Edge(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
 	const contains = function() {
 		let point = get_vec(...arguments);
-		return point_in_poly(_points, point);
+		return point_in_poly(point, _points);
 	};
 	const scale = function(magnitude$$1, center = centroid(_points)) {
 		let newPoints = _points

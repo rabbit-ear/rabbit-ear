@@ -245,7 +245,7 @@
 		                    Math.pow(point[1]-edge1[1],2));
 		return Math.abs(dEdge - dP0 - dP1) < epsilon;
 	}
-	function point_in_poly(poly, point, epsilon = EPSILON) {
+	function point_in_poly(point, poly, epsilon = EPSILON) {
 		let isInside = false;
 		for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
 			if ( (poly[i][1] > point[1]) != (poly[j][1] > point[1]) &&
@@ -255,7 +255,7 @@
 		}
 		return isInside;
 	}
-	function point_in_convex_poly(poly, point, epsilon = EPSILON) {
+	function point_in_convex_poly(point, poly, epsilon = EPSILON) {
 		if (poly == undefined || !(poly.length > 0)) { return false; }
 		return poly.map( (p,i,arr) => {
 			let nextP = arr[(i+1)%arr.length];
@@ -274,8 +274,8 @@
 				}
 			}
 		}
-		if (point_in_convex_poly(ps1, ps2[0])) { return true; }
-		if (point_in_convex_poly(ps2, ps1[0])) { return true; }
+		if (point_in_poly(ps2[0], ps1)) { return true; }
+		if (point_in_poly(ps1[0], ps2)) { return true; }
 		return false;
 	}
 	function clip_line_in_convex_poly(poly, linePoint, lineVector) {
@@ -319,21 +319,32 @@
 			.filter(el => el != null);
 		for (var i = 0; i < intersections.length; i++) {
 			for (var j = intersections.length-1; j > i; j--) {
-				if (equivalent2(intersections[i], intersections[j])) {
+				if (equivalent2(intersections[i], intersections[j], 0.0000001)) {
 					intersections.splice(j, 1);
 				}
 			}
 		}
-		let aInside = point_in_convex_poly(edgeA, poly);
+		let aInside = point_in_poly(edgeA, poly);
+		console.log("intersections", intersections);
+		console.log("aInside", aInside);
 		switch (intersections.length) {
 			case 0: return ( aInside
 				? [[...edgeA], [...edgeB]]
 				: undefined );
-			case 1: return ( aInside
+			case 2: return intersections;
+			case 1:
+				let bInside = point_in_poly(edgeB, poly);
+				let equivA = poly.map(p => equivalent2(p, edgeA))
+					.reduce((a,b) => a || b, false);
+				let equivB = poly.map(p => equivalent2(p, edgeB))
+					.reduce((a,b) => a || b, false);
+			if (equivA && equivB) { return [edgeA, edgeB]; }
+			if (equivA) { return bInside ? [edgeA, edgeB] : undefined; }
+			if (equivB) { return aInside ? [edgeA, edgeB] : undefined; }
+			return ( aInside
 				? [[...edgeA], intersections[0]]
 				: [[...edgeB], intersections[0]] );
-			case 2: return intersections;
-			default: throw "clipping ray in a convex polygon resulting in 3 or more points";
+			default: throw "clipping edge in a convex polygon resulting in 3 or more points";
 		}
 	}
 	function nearest_point(linePoint, lineVector, point, limiterFunc, epsilon = EPSILON) {
@@ -1017,7 +1028,7 @@
 			let lg = this_is_smaller ? line.vector : this.vector;
 			return parallel(sm, lg, epsilon);
 		};
-		const isDegenrate = function(epsilon){
+		const isDegenerate = function(epsilon){
 			return degenerate(this.vector, epsilon);
 		};
 		const reflection = function() {
@@ -1069,7 +1080,7 @@
 			return this.compare_function(t0, epsilon) && t1 >= -epsilon && t1 <= 1+epsilon;
 		};
 		Object.defineProperty(proto, "isParallel", {value: isParallel});
-		Object.defineProperty(proto, "isDegenrate", {value: isDegenrate});
+		Object.defineProperty(proto, "isDegenerate", {value: isDegenerate});
 		Object.defineProperty(proto, "nearestPoint", {value: nearestPoint});
 		Object.defineProperty(proto, "reflection", {value: reflection});
 		Object.defineProperty(proto, "intersect", {value: intersect});
@@ -1228,7 +1239,7 @@
 			.map(ps => Edge(ps[0][0], ps[0][1], ps[1][0], ps[1][1]));
 		const contains = function() {
 			let point = get_vec(...arguments);
-			return point_in_poly(_points, point);
+			return point_in_poly(point, _points);
 		};
 		const scale = function(magnitude$$1, center = centroid(_points)) {
 			let newPoints = _points
@@ -3781,6 +3792,7 @@
 	};
 
 	var filter$1 = {};
+	var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 	filter$1.edgesAssigned = function(fold, target) {
 	  var assignment, i, k, len, ref, results;
 	  ref = fold.edges_assignment;
@@ -4735,6 +4747,14 @@
 				return 0;
 		}
 	};
+	const fragment2 = function(graph, epsilon = core.EPSILON) {
+		filter$1.subdivideCrossingEdges_vertices(graph);
+		convert$1.edges_vertices_to_vertices_vertices_sorted(graph);
+		convert$1.vertices_vertices_to_faces_vertices(graph);
+		convert$1.faces_vertices_to_faces_edges(graph);
+		console.log(graph);
+		return graph;
+	};
 	const fragment = function(graph, epsilon = core.EPSILON) {
 		const horizSort = function(a,b){ return a[0] - b[0]; };
 		const vertSort = function(a,b){ return a[1] - b[1]; };
@@ -4835,6 +4855,8 @@
 			.filter(i => i !== undefined);
 		remove_vertices(flat, vertices_remove_indices);
 		convert$1.edges_vertices_to_vertices_vertices_sorted(flat);
+		convert$1.vertices_vertices_to_faces_vertices(flat);
+		convert$1.faces_vertices_to_faces_edges(flat);
 		return flat;
 	};
 	const nearest_vertex = function(graph, point) {
@@ -4888,7 +4910,7 @@
 		}
 		let face = graph.faces_vertices
 			.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
-			.filter(f => core.intersection.point_in_poly(f.face, point))
+			.filter(f => core.intersection.point_in_poly(point, f.face))
 			.shift();
 		return (face == null ? undefined : face.i);
 	};
@@ -4897,7 +4919,7 @@
 			.map(m => core.multiply_vector2_matrix2(point, m));
 		return graph.faces_vertices
 			.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
-			.filter((f,i) => core.intersection.point_in_poly(f.face, transformed_points[i]))
+			.filter((f,i) => core.intersection.point_in_poly(transformed_points[i], f.face))
 			.map(f => f.i);
 	};
 	const faces_containing_point = function(graph, point) {
@@ -4907,7 +4929,7 @@
 		}
 		return graph.faces_vertices
 			.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
-			.filter(f => core.intersection.point_in_poly(f.face, point))
+			.filter(f => core.intersection.point_in_poly(point, f.face))
 			.map(f => f.i);
 	};
 	const make_faces_matrix = function(graph, root_face) {
@@ -5130,6 +5152,7 @@
 	};
 
 	var planargraph = /*#__PURE__*/Object.freeze({
+		fragment2: fragment2,
 		fragment: fragment,
 		nearest_vertex: nearest_vertex,
 		nearest_edge: nearest_edge,
@@ -6428,6 +6451,11 @@
 		const bind = function(that){
 			_this = that;
 		};
+		const clean = function() {
+			convert$1.edges_vertices_to_vertices_vertices_sorted(_this);
+			convert$1.vertices_vertices_to_faces_vertices(_this);
+			convert$1.faces_vertices_to_faces_edges(_this);
+		};
 		const load = function(file, prevent_wipe) {
 			if (prevent_wipe == null || prevent_wipe !== true) {
 				all_keys.forEach(key => delete _this[key]);
@@ -6587,6 +6615,7 @@
 		Object.defineProperty(proto, "edges", { get: getEdges });
 		Object.defineProperty(proto, "faces", { get: getFaces });
 		Object.defineProperty(proto, "clear", { value: clear });
+		Object.defineProperty(proto, "clean", { value: clean });
 		Object.defineProperty(proto, "load", { value: load });
 		Object.defineProperty(proto, "copy", { value: copy });
 		Object.defineProperty(proto, "bind", { value: bind });

@@ -10,6 +10,8 @@ import * as Convert from "../convert/convert";
 import * as Make from "../fold/make";
 import * as File from "../fold/file";
 
+import { default as FOLDConvert } from "../official/convert";
+
 const placeholderFoldedForm = function(graph) {
 	// todo, better checking for specifically a "foldedForm" frame
 	if (graph.file_frames == null || graph.file_frames.length === 0) {
@@ -49,6 +51,12 @@ const CreasePatternPrototype = function(proto) {
 
 	const bind = function(that){
 		_this = that;
+	}
+
+	const clean = function() {
+		FOLDConvert.edges_vertices_to_vertices_vertices_sorted(_this);
+		FOLDConvert.vertices_vertices_to_faces_vertices(_this);
+		FOLDConvert.faces_vertices_to_faces_edges(_this);
 	}
 
 	/**
@@ -161,7 +169,7 @@ const CreasePatternPrototype = function(proto) {
 		let point = Args.get_vec(...arguments);
 		return getFoldedForm().faces_vertices
 			.map((fv,i) => ({face: fv.map(v => folded.vertices_coords[v]), i: i}))
-			.filter((f,i) => Geom.core.intersection.point_in_poly(f.face, point))
+			.filter((f,i) => Geom.core.intersection.point_in_poly(point, f.face))
 			.map(f => f.i);
 	};
 
@@ -275,6 +283,7 @@ const CreasePatternPrototype = function(proto) {
 	Object.defineProperty(proto, "edges", { get: getEdges });
 	Object.defineProperty(proto, "faces", { get: getFaces });
 	Object.defineProperty(proto, "clear", { value: clear });
+	Object.defineProperty(proto, "clean", { value: clean });
 	Object.defineProperty(proto, "load", { value: load });
 	Object.defineProperty(proto, "copy", { value: copy });
 	Object.defineProperty(proto, "bind", { value: bind });

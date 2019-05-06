@@ -45,14 +45,14 @@ a.button.disabled {
 
 .button {
 	color: #fff;
-	background-color: #007bff;
-	border-color: #007bff;
+	background-color: #3071a9;
+	border-color: #3071a9;
 }
 
 .button:hover {
 	color: #fff;
-	background-color: #0069d9;
-	border-color: #0062cc;
+	background-color: #4993d4;
+	border-color: #4993d4;
 }
 
 .button.outline {

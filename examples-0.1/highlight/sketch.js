@@ -1,6 +1,7 @@
 // example
 // mouse hover over nodes, faces, edges, sectors to highlight them
-var origami = RabbitEar.Origami(RabbitEar.bases.fish, {folding:false});
+var origami = RabbitEar.Origami(RabbitEar.bases.blintz, {folding:false});
+origami.load("../../files/fold/crane.fold");
 
 origami.onMouseMove = function(event) {
 	// update returns all components back to their original color

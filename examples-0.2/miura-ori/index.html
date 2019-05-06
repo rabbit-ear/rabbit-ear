@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<title>Rabbit Ear</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="slider.css">
+<link rel="stylesheet" type="text/css" href="button.css">
+<link rel="stylesheet" type="text/css" href="style.css">
+
+<div class="grid">
+	<div id="origami-cp"></div>
+	<div id="origami-fold"></div>
+	<div id="editor">//use the variable "SLIDER" anywhere in the code
+(function() {
+  // return an array of points in an IIFE
+  // these points become the vertices of the CP
+
+  let COLUMNS = 12;
+  let ROWS = 12;
+
+  let points = [];
+  for(let r = -1; r < ROWS+1; r++){
+    let row = [];
+    for(let c = 0; c < COLUMNS+1; c++){
+      let point = [
+        c/COLUMNS,
+        r/ROWS + (c%2)*(1/ROWS*SLIDER)
+      ];
+      row.push(point);
+    }
+    points.push(row);
+  }
+  return points;
+})();
+</div>
+	<div id="toolbar">
+		<!-- <span class="input-group-addon">columns, rows</span> -->
+		<!-- <input type="text" aria-label="First name" class="form-control" id="columns-input" value="12"> -->
+		<!-- <input type="text" aria-label="Last name" class="form-control" id="rows-input" value="12"> -->
+		<p id="interp-value">0.5</p>
+		<input id="interp-slider" type="range" min="0" max="1000" value="500"/>
+		<a href="#" class="button" id="download-svg">code</a>
+		<a href="#" class="button" id="download-svg">.svg</a>
+		<a href="#" class="button" id="download-fold">.fold</a>
+	</div>
+</div>
+
+<div id="console"></div>
+
+<script type="text/javascript" src="https://ace.c9.io/build/src/ace.js" charset="utf-8"></script>
+<script type="text/javascript" src="https://ace.c9.io/build/src/keybinding-sublime.js"></script>
+<script type="text/javascript" src="../../rabbit-ear.js"></script>
+<script type="text/javascript" src="sketch.js"></script>

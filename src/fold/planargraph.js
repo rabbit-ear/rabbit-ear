@@ -4,6 +4,7 @@ import { merge_maps } from "./diff";
 import { default as validate } from "./validate";
 
 import {default as convert} from "../official/convert";
+import {default as filter} from "../official/filter";
 
 const angle_from_assignment = function(assignment) {
 	switch (assignment) {
@@ -18,6 +19,14 @@ const angle_from_assignment = function(assignment) {
 	}
 }
 
+export const fragment2 = function(graph, epsilon = Geom.core.EPSILON) {
+	filter.subdivideCrossingEdges_vertices(graph);
+	convert.edges_vertices_to_vertices_vertices_sorted(graph);
+	convert.vertices_vertices_to_faces_vertices(graph);
+	convert.faces_vertices_to_faces_edges(graph);
+	console.log(graph);
+	return graph;
+}
 /**
  * fragment splits overlapping edges at their intersections
  * and joins new edges at a new shared vertex.
@@ -172,6 +181,8 @@ export const fragment = function(graph, epsilon = Geom.core.EPSILON) {
 	// console.log(flat);
 
 	convert.edges_vertices_to_vertices_vertices_sorted(flat);
+	convert.vertices_vertices_to_faces_vertices(flat);
+	convert.faces_vertices_to_faces_edges(flat);
 
 	return flat;
 }
@@ -246,7 +257,7 @@ export const face_containing_point = function(graph, point) {
 	}
 	let face = graph.faces_vertices
 		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
-		.filter(f => Geom.core.intersection.point_in_poly(f.face, point))
+		.filter(f => Geom.core.intersection.point_in_poly(point, f.face))
 		.shift()
 	return (face == null ? undefined : face.i);
 };
@@ -256,7 +267,7 @@ export const folded_faces_containing_point = function(graph, point, faces_matrix
 		.map(m => Geom.core.multiply_vector2_matrix2(point, m));
 	return graph.faces_vertices
 		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
-		.filter((f,i) => Geom.core.intersection.point_in_poly(f.face, transformed_points[i]))
+		.filter((f,i) => Geom.core.intersection.point_in_poly(transformed_points[i], f.face))
 		.map(f => f.i);
 }
 
@@ -267,7 +278,7 @@ export const faces_containing_point = function(graph, point) {
 	}
 	return graph.faces_vertices
 		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
-		.filter(f => Geom.core.intersection.point_in_poly(f.face, point))
+		.filter(f => Geom.core.intersection.point_in_poly(point, f.face))
 		.map(f => f.i);
 };
 

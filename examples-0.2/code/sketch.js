@@ -1,10 +1,9 @@
-var myCodeMirror = CodeMirror(document.getElementById("code-container"), {
-	value: "",
-	mode:  "javascript",
-	lineNumbers: true,
-	theme: "idle"
-}).on('change', (editor,event) => {
-	// console.log( editor.getValue() );
+
+var editor = ace.edit("editor");
+editor.setTheme("ace/theme/monokai");
+editor.setKeyboardHandler("ace/keyboard/sublime");
+editor.session.setMode("ace/mode/javascript");
+editor.session.on("change", function(delta){
 	try{
 		resetCP();
 		eval(editor.getValue());
@@ -13,18 +12,14 @@ var myCodeMirror = CodeMirror(document.getElementById("code-container"), {
 		consoleDiv.innerHTML = "";
 	}
 	catch(err){
-		consoleDiv.innerHTML = err;
+		consoleDiv.innerHTML = "<p>" + err + "</p>";
 		console.log(err);
 	}
 });
-
 // after code mirror sets up, trigger origami.redraw()
 
-var consoleDiv = document.createElement("div");
-consoleDiv.id = "code-console";
-document.getElementById("code-container").appendChild(consoleDiv)
-
-var origami = new RabbitEar.Origami(document.getElementsByClassName("row")[0]);
+var consoleDiv = document.querySelector("#console");
+var origami = RabbitEar.Origami("origami", {padding:0.1});
 
 // programmatically inspect object
 // inspecting an object and doing something with it
@@ -54,25 +49,10 @@ origami.onMouseDown = function(mouse){
 			consoleString += keys[i] + ": <a href='#' onclick='injectCode(\"" + cpObject + "\")'>" + cpObject + "</a><br>";
 		}
 	}
-	consoleDiv.innerHTML = consoleString;
+	consoleDiv.innerHTML = "<p>" + consoleString + "</p>";
 	// var nearestEdge = this.cp.nearest(event.point).edge || {};
 	// if(nearestEdge !== undefined){
 	// 	updateCodeMirror("cp.edges[" + nearestEdge.edge.index + "]");
 	// 	// console.log( nearest.edge.edge.index );
 	// }
-}
-
-function injectCode(string){
-	var cm = document.getElementsByClassName("CodeMirror")[0].CodeMirror;
-	var doc = cm.getDoc();
-	var cursor = doc.getCursor();
-	var line = doc.getLine(cursor.line);
-	var newline = '\n';
-	if(cursor.ch == 0){ newline = ''; }
-	var pos = { // create a new object to avoid mutation of the original selection
-		line: (doc.size+5),
-		ch: line.length - 1 // set the character position to the end of the line
-	}
-	doc.replaceRange(newline+string, pos);
-
 }

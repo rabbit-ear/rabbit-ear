@@ -2,6 +2,8 @@ import {default as geom} from "./geom";
 
 var filter = {};
 
+var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
 filter.edgesAssigned = function(fold, target) {
   var assignment, i, k, len, ref, results;
   ref = fold.edges_assignment;

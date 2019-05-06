@@ -6,18 +6,52 @@ html, body{
 
 body {
 	margin: 0px;
-	display: grid;
-	grid-template-columns: 50% 50%;
-	grid-template-rows: 100%;
 	background-color: hsl(205, 74%, 30%);
 	color: white;
 }
 
+.grid {
+	height: 100%;
+	display: grid;
+	grid-template-columns: 50% 50%;
+	grid-template-rows: 100%;
+}
+
+#console{
+	position: absolute;
+	z-index: 7;
+	bottom: 0px;
+	right: 0px;
+	width: calc(50vw - 4rem);
+	margin: 2rem;
+	/*background-color: rgb(64, 98, 85);*/
+	background-color: rgb(47, 49, 41);
+	border-radius: 0.5em;
+}
+#console p {
+	padding: 0.5rem;
+	margin: 0;
+	color: #ddd;
+	font-family: monospace;
+}
+#console a {
+	color: white;
+}
+
+#editor {
+	width: calc(100% - 2rem);
+	height: calc(100% - 2rem);
+	margin: 1rem;
+}
+
 @media (orientation: portrait) {
-	body {
+	.grid {
 		grid-template-rows: 50% 50%;
 		grid-template-columns: 100%;
 	}
+	#console{
+		width: calc(100vw - 2rem);
+	}	
 }
 
 svg {
@@ -49,7 +83,8 @@ polygon {
 }
 
 .foldedForm #faces polygon {
-	stroke: black;
+	stroke: rgba(0, 0, 0, 0.2);
+	fill: rgba(255, 255, 255, 0.2);
 }
 
 .foldedForm #faces .front {

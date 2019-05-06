@@ -7,61 +7,58 @@
 }
 
 html,body{
-	height:100%;
-	margin:0px;
-	display:flex;
+	height: 100%;
+	margin: 0px;
+	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	background-color: #EEE;
 }
-svg{
-	width:100vw;
-	height:100vh;
-	margin:auto;
+
+svg {
+	width: 100%;
+	height: 100%;
 }
 
-/* set some components transparent, to be revealed when cursor is near */
-.node{
+svg * {
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke: black;
+}
+
+polygon {
 	fill: none;
 	stroke: none;
+	stroke-linejoin: bevel;
 }
-.face{
-	fill: none;
-	stroke: none;
+
+.boundary {
+	fill: linen;
 }
-.sector{
-	fill: none;
-	stroke: none;
-}
+
 .valley{
-	/*stroke: hsl(205, 74%, 30%);*/
-	stroke: black;
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
-	stroke-dasharray:var(--crease-width-oneandhalf) var(--crease-width-double);
+	stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);
 }
-.mountain{
-	/*stroke: hsl(205, 74%, 30%);*/
-	stroke: black;
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
-}
-.mark{
-	stroke: #ccc;
-	stroke-width: var(--crease-width-third);
-	stroke-linecap: round;
-}
-.boundary{
-	fill: white;
-	stroke: black;
-	stroke-width: var(--crease-width);
-	stroke-linecap: round;
+.mark {
+	stroke-width: calc( var(--crease-width) * 0.25);
 }
 
-.stroke-yellow{ stroke: hsl(43, 88%, 46%); }
-.fill-yellow{ fill: hsl(43, 88%, 46%); }
-.fill-red{ fill: hsl(14.4, 87%, 45%); }
-.fill-blue{ fill: hsl(205, 74%, 30%); }
-.fill-dark-blue{ fill: hsl(191, 82%, 14% ); }
-.fill-black{ fill: black; }
+.foldedForm #faces polygon {
+	fill: rgba(220, 10, 100, 0.2);
+	stroke: rgba(0, 0, 0, 0.2);
+}
+
+.foldedForm #faces .front {
+	fill: linen;
+	stroke: black;
+}
+
+.foldedForm #faces .back {
+	fill: peru;
+	stroke: black;
+}
+
+.foldedForm #creases line {
+	stroke: none;
+}
