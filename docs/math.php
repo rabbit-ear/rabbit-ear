@@ -229,6 +229,8 @@
 		<li><b>1</b>: it's possible one point is inside and one outside</li>
 	</ul>
 
+	<div id="canvas-clip-edge"></div>
+
 	<p class="quote">A non-convex polygon cannot make such guarantees.</p>
 
 	<p>A <b>straight skeleton</b> is a Voronoi diagram of the edges of the polygon. Both the <a href="//erikdemaine.org/foldcut/#skeleton">fold-and-one-cut algorithm</a> and the origami <a href="//langorigami.com/article/treemaker/">universal molecule</a> employ the straight skeleton.</p>
@@ -298,8 +300,9 @@
 <script type="text/javascript" src="../tests/line_nearest_point.js"></script>
 <script type="text/javascript" src="../tests/circle_packing.js"></script>
 <script type="text/javascript" src="../tests/polygon_fold.js"></script>
-<script type="text/javascript" src="../tests/polygon_split1.js"></script>
-<script type="text/javascript" src="../tests/polygon_split2.js"></script>
+<script type="text/javascript" src="../tests/polygon_clip_line.js"></script>
+<script type="text/javascript" src="../tests/polygon_clip_edge.js"></script>
+<script type="text/javascript" src="../tests/polygon_split.js"></script>
 <script type="text/javascript" src="../tests/polygon_convex_hull.js"></script>
 <!-- <script type="text/javascript" src="../tests/polygon_contains.js"></script> -->
 <script type="text/javascript" src="../tests/polygon_overlaps.js"></script>

@@ -14,12 +14,13 @@ polySplit.touches = Array.from(Array(2)).map(_ => ({
 }));
 polySplit.touches[0].pos = [polySplit.w*0.5, polySplit.h*0.5];
 
-// polySplit.polygon = RabbitEar.svg.polygon();
-// polySplit.polygon.setAttribute("stroke", "black");
-// polySplit.polygon.setAttribute("stroke-width", polySplit.STROKE_WIDTH);
-// polySplit.polygon.setAttribute("fill", "none");
-// polySplit.polygon.setAttribute("stroke-linecap", "round");
-// polySplit.topLayer.appendChild(polySplit.polygon);
+polySplit.polygon = RabbitEar.svg.polygon();
+polySplit.polygon.setAttribute("stroke", "black");
+polySplit.polygon.setAttribute("stroke-width", polySplit.STROKE_WIDTH);
+polySplit.polygon.setAttribute("fill", "none");
+polySplit.polygon.setAttribute("stroke-linecap", "round");
+polySplit.polygon.setAttribute("stroke-dasharray", polySplit.STROKE_WIDTH + " " + polySplit.STROKE_WIDTH*2);
+polySplit.topLayer.appendChild(polySplit.polygon);
 
 polySplit.touches.forEach(p => {
 	p.svg.setAttribute("fill", "#e44f2a");
@@ -33,8 +34,9 @@ polySplit.rebuildHull = function(){
 		return [polySplit.w*0.5 + r*Math.cos(a), polySplit.h*0.5 + r*Math.sin(a)];
 	});
 	polySplit.hull = RabbitEar.ConvexPolygon.convexHull(hullPoints);
+
 	let pointsString = polySplit.hull.points.reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
-	// polySplit.polygon.setAttribute("points", pointsString);
+	polySplit.polygon.setAttribute("points", pointsString);
 }
 polySplit.rebuildHull();
 
@@ -53,11 +55,19 @@ polySplit.redraw = function(){
 		polys.sort((a,b) => b.area - a.area).forEach((p,i)=> {
 			let poly = RabbitEar.svg.polygon(p.scale(0.8).points);
 			poly.setAttribute("fill", colors[i%2]);
-			poly.setAttribute("stroke", "black");
+			poly.setAttribute("stroke", "none");
 			poly.setAttribute("stroke-width", polySplit.STROKE_WIDTH);
 			poly.setAttribute("stroke-linecap", "round");
 			polySplit.lineLayer.appendChild(poly);
 		});
+	}
+	let ed = polySplit.hull.clipLine(polySplit.touches[0].pos, vec);
+	if (ed !== undefined) {
+		let clipLine = polySplit.lineLayer.line(ed[0][0], ed[0][1], ed[1][0], ed[1][1]);
+		clipLine.setAttribute("stroke", "black");
+		clipLine.setAttribute("stroke-width", polySplit.STROKE_WIDTH);
+		clipLine.setAttribute("stroke-linecap", "round");
+		clipLine.setAttribute("stroke-dasharray", polySplit.STROKE_WIDTH + " " + polySplit.STROKE_WIDTH*2);
 	}
 }
 polySplit.redraw();
