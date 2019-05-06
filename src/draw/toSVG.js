@@ -106,9 +106,10 @@ const drawFaces = function(graph) {
 	}
 
 	// determine layer order
-	let orderIsCertain = graph["re:faces_layer"] != null;
+	let orderIsCertain = graph["re:faces_layer"] != null 
+		&& graph["re:faces_layer"].length === graph.faces_vertices.length;
 
-	let order = graph["re:faces_layer"] != null
+	let order = orderIsCertain
 		? faces_sorted_by_layer(graph["re:faces_layer"])
 		: graph.faces_vertices.map((_,i) => i);
 

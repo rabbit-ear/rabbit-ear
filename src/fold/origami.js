@@ -351,25 +351,110 @@ export function creaseRay(graph, point, vector) {
 	return crease_line(graph, line[0], line[1]);
 }
 
+/**
+ * this modifies vertices_coords, edges_vertices, with no regard to 
+ * the other arrays - re-build all other edges_, faces_, vertices_
+ */ 
 export const creaseSegment = function(graph, a, b, c, d) {
-	// let edge = Geom.Edge([a, b, c, d]);
+	// the input parameter
 	let edge = Geom.Edge([a, b]);
-	let edge_vertices = [0,1]
-		.map((_,e) => graph.vertices_coords
-			.map(v => Math.sqrt(Math.pow(edge[e][0]-v[0],2)+Math.pow(edge[e][1]-v[1],2)))
-			.map((d,i) => d < 0.00000001 ? i : undefined)
-			.filter(el => el !== undefined)
-			.shift()
-		).map((v,i) => {
-			if (v !== undefined) { return v; }
-			// else
-			graph.vertices_coords.push(edge[i]);
-			return graph.vertices_coords.length - 1;
-		});
+
+	let edges = graph.edges_vertices
+		.map(ev => ev.map(v => graph.vertices_coords[v]));
+
+	let edge_collinear_a = edges
+		.map(e => Geom.core.intersection.point_on_edge(e[0], e[1], edge[0]))
+		.map((on_edge, i) => on_edge ? i : undefined)
+		.filter(a => a !== undefined)
+		.shift();
+	let edge_collinear_b = edges
+		.map(e => Geom.core.intersection.point_on_edge(e[0], e[1], edge[1]))
+		.map((on_edge, i) => on_edge ? i : undefined)
+		.filter(a => a !== undefined)
+		.shift();
+	let vertex_equivalent_a = graph.vertices_coords
+		.map(v => Math.sqrt(Math.pow(edge[0][0]-v[0], 2) +
+		                    Math.pow(edge[0][1]-v[1], 2)))
+		.map((d,i) => d < 1e-8 ? i : undefined)
+		.filter(el => el !== undefined)
+		.shift();
+	let vertex_equivalent_b = graph.vertices_coords
+		.map(v => Math.sqrt(Math.pow(edge[1][0]-v[0], 2) +
+		                    Math.pow(edge[1][1]-v[1], 2)))
+		.map((d,i) => d < 1e-8 ? i : undefined)
+		.filter(el => el !== undefined)
+		.shift();
+
+	// the new edge
+	let edge_vertices = [];
+	// don't remove things until very end, make sure indices match
+	let edges_to_remove = [];
+	// at each new index, which edge did this edge come from
+	let edges_index_map = [];
+
+
+	// if (vertex_equivalent_a !== undefined && vertex_equivalent_b !== undefined) {
+	// 	let edge_already_exists = graph.edges_vertices.filter(ev => 
+	// 		(ev[0] === vertex_equivalent_a && ev[1] === vertex_equivalent_b) ||
+	// 		(ev[0] === vertex_equivalent_b && ev[1] === vertex_equivalent_a)
+	// 	);
+	// 	if(edge_already_exists.length > 0) { console.log("found already edge"); console.log(edge_already_exists); return; }
+	// }
+
+	if (vertex_equivalent_a !== undefined) {
+		// easy, assign point
+		edge_vertices[0] = vertex_equivalent_a;
+	} else {
+		// create new vertex
+		graph.vertices_coords.push([edge[0][0], edge[0][1]]);
+		let vertex_new_index = graph.vertices_coords.length - 1;
+		edge_vertices[0] = vertex_new_index;
+		if (edge_collinear_a !== undefined) {
+			// rebuild old edge with two edges, new vertex inbetween
+			edges_to_remove.push(edge_collinear_a);
+			let edge_vertices_old = graph.edges_vertices[edge_collinear_a];
+			graph.edges_vertices.push([edge_vertices_old[0], vertex_new_index]);
+			graph.edges_vertices.push([vertex_new_index, edge_vertices_old[1]]);
+			// these new edges came from this old edge
+			edges_index_map[graph.edges_vertices.length - 2] = edge_collinear_a;
+			edges_index_map[graph.edges_vertices.length - 1] = edge_collinear_a;
+		}
+	}
+
+	if (vertex_equivalent_b !== undefined) {
+		// easy, assign point
+		edge_vertices[1] = vertex_equivalent_b;
+	} else {
+		// create new vertex
+		graph.vertices_coords.push([edge[1][0], edge[1][1]]);
+		let vertex_new_index = graph.vertices_coords.length - 1;
+		edge_vertices[1] = vertex_new_index;
+		if (edge_collinear_b !== undefined) {
+			// rebuild old edge with two edges, new vertex inbetween
+			edges_to_remove.push(edge_collinear_b);
+			let edge_vertices_old = graph.edges_vertices[edge_collinear_b];
+			graph.edges_vertices.push([edge_vertices_old[0], vertex_new_index]);
+			graph.edges_vertices.push([vertex_new_index, edge_vertices_old[1]]);
+			// these new edges came from this old edge
+			edges_index_map[graph.edges_vertices.length - 2] = edge_collinear_b;
+			edges_index_map[graph.edges_vertices.length - 1] = edge_collinear_b;
+		}
+	}
+
+	// edges_to_remove.sort((a,b) => a-b);
+	// for(var i = edges_to_remove.length-1; i >= 0; i--) {
+	// 	graph.edges_vertices.splice(i, 1);
+	// }
 
 	graph.edges_vertices.push(edge_vertices);
-	graph.edges_assignment.push("F");
-	return [graph.edges_vertices.length-1];
+	graph.edges_assignment[graph.edges_vertices.length-1] = "F";
+
+	let diff = {
+		edges_new: [graph.edges_vertices.length-1],
+		edges_to_remove: edges_to_remove,
+		edges_index_map
+	}
+	return diff;
 }
 
 export function add_edge_between_points(graph, x0, y0, x1, y1) {

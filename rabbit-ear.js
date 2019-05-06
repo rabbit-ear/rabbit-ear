@@ -256,13 +256,24 @@
 		return isInside;
 	}
 	function point_in_convex_poly(point, poly, epsilon = EPSILON) {
-		if (poly == undefined || !(poly.length > 0)) { return false; }
+		if (poly == null || !(poly.length > 0)) { return false; }
 		return poly.map( (p,i,arr) => {
 			let nextP = arr[(i+1)%arr.length];
 			let a = [ nextP[0]-p[0], nextP[1]-p[1] ];
 			let b = [ point[0]-p[0], point[1]-p[1] ];
 			return a[0] * b[1] - a[1] * b[0] > -epsilon;
-		}).map((s,i,arr) => s == arr[0]).reduce((prev,curr) => prev && curr, true)
+		}).map((s,i,arr) => s === arr[0])
+			.reduce((prev,curr) => prev && curr, true);
+	}
+	function point_in_convex_poly_exclusive(point, poly, epsilon=EPSILON) {
+		if (poly == null || !(poly.length > 0)) { return false; }
+		return poly.map( (p,i,arr) => {
+			let nextP = arr[(i+1)%arr.length];
+			let a = [ nextP[0]-p[0], nextP[1]-p[1] ];
+			let b = [ point[0]-p[0], point[1]-p[1] ];
+			return a[0] * b[1] - a[1] * b[0] > epsilon;
+		}).map((s,i,arr) => s === arr[0])
+			.reduce((prev,curr) => prev && curr, true);
 	}
 	function convex_polygons_overlap(ps1, ps2) {
 		let e1 = ps1.map((p,i,arr) => [p, arr[(i+1)%arr.length]] );
@@ -315,32 +326,26 @@
 	function clip_edge_in_convex_poly(poly, edgeA, edgeB) {
 		let intersections = poly
 			.map((p,i,arr) => [p, arr[(i+1)%arr.length]] )
-			.map(el => edge_edge(edgeA, edgeB, el[0], el[1]))
+			.map(el => edge_edge_exclusive(edgeA, edgeB, el[0], el[1]))
 			.filter(el => el != null);
-		for (var i = 0; i < intersections.length; i++) {
-			for (var j = intersections.length-1; j > i; j--) {
-				if (equivalent2(intersections[i], intersections[j], 0.0000001)) {
-					intersections.splice(j, 1);
-				}
-			}
+		let aInside = point_in_convex_poly_exclusive(edgeA, poly);
+		let bInside = point_in_convex_poly_exclusive(edgeB, poly);
+		let aInsideCollinear = point_in_convex_poly(edgeA, poly);
+		let bInsideCollinear = point_in_convex_poly(edgeB, poly);
+		if (intersections.length === 0 &&
+			(aInside || bInside)) {
+			return [edgeA, edgeB];
 		}
-		let aInside = point_in_poly(edgeA, poly);
-		console.log("intersections", intersections);
-		console.log("aInside", aInside);
+		if(intersections.length === 0 &&
+			(aInsideCollinear && bInsideCollinear)) {
+			return [edgeA, edgeB];
+		}
 		switch (intersections.length) {
 			case 0: return ( aInside
 				? [[...edgeA], [...edgeB]]
 				: undefined );
 			case 2: return intersections;
 			case 1:
-				let bInside = point_in_poly(edgeB, poly);
-				let equivA = poly.map(p => equivalent2(p, edgeA))
-					.reduce((a,b) => a || b, false);
-				let equivB = poly.map(p => equivalent2(p, edgeB))
-					.reduce((a,b) => a || b, false);
-			if (equivA && equivB) { return [edgeA, edgeB]; }
-			if (equivA) { return bInside ? [edgeA, edgeB] : undefined; }
-			if (equivB) { return aInside ? [edgeA, edgeB] : undefined; }
 			return ( aInside
 				? [[...edgeA], intersections[0]]
 				: [[...edgeB], intersections[0]] );
@@ -437,6 +442,7 @@
 		point_on_edge: point_on_edge,
 		point_in_poly: point_in_poly,
 		point_in_convex_poly: point_in_convex_poly,
+		point_in_convex_poly_exclusive: point_in_convex_poly_exclusive,
 		convex_polygons_overlap: convex_polygons_overlap,
 		clip_line_in_convex_poly: clip_line_in_convex_poly,
 		clip_ray_in_convex_poly: clip_ray_in_convex_poly,
@@ -2778,6 +2784,36 @@
 	};
 	const remove_collinear_vertices = function(graph) {
 	};
+	const remove_duplicate_edges = function(graph) {
+		const equivalent = function(a, b) {
+			return (a[0] === b[0] && a[1] === b[1]) ||
+			       (a[0] === b[1] && a[1] === b[0]);
+		};
+		let edges_equivalent = Array
+			.from(Array(graph.edges_vertices.length)).map(_ => []);
+		for (var i = 0; i < graph.edges_vertices.length-1; i++) {
+			for (var j = i+1; j < graph.edges_vertices.length; j++) {
+				edges_equivalent[i][j] = equivalent(
+					graph.edges_vertices[i],
+					graph.edges_vertices[j]
+				);
+			}
+		}
+		let edges_map = graph.edges_vertices.map(vc => undefined);
+		edges_equivalent.forEach((row,i) => row.forEach((eq,j) => {
+			if (eq){
+				edges_map[j] = edges_map[i] === undefined ? i : edges_map[i];
+			}
+		}));
+		let edges_remove = edges_map.map(m => m !== undefined);
+		edges_map.forEach((map,i) => {
+			if(map === undefined) { edges_map[i] = i; }
+		});
+		let edges_remove_indices = edges_remove
+			.map((rm,i) => rm ? i : undefined)
+			.filter(i => i !== undefined);
+		remove_edges(graph, edges_remove_indices);
+	};
 	const vertices_count = function(graph) {
 		return Math.max(...(
 			[[], graph.vertices_coords, graph.vertices_faces, graph.vertices_vertices]
@@ -2870,7 +2906,8 @@
 			graph.vertices_vertices[v][otherI] = new_vertex_index;
 		});
 		if (graph.edges_faces != null && graph.edges_faces[old_edge_index] != null) {
-			graph.vertices_faces[new_vertex_index] = clone$1(graph.edges_faces[old_edge_index]);
+			graph.vertices_faces[new_vertex_index] =
+				clone$1(graph.edges_faces[old_edge_index]);
 		}
 		let new_edges = [
 			{ edges_vertices: [incident_vertices[0], new_vertex_index] },
@@ -2896,13 +2933,17 @@
 				.forEach(key => graph[key][edge.i] = edge[key])
 		);
 		let incident_faces_indices = graph.edges_faces[old_edge_index];
-		let incident_faces_vertices = incident_faces_indices.map(i => graph.faces_vertices[i]);
-		let incident_faces_edges = incident_faces_indices.map(i => graph.faces_edges[i]);
+		let incident_faces_vertices = incident_faces_indices
+			.map(i => graph.faces_vertices[i]);
+		let incident_faces_edges = incident_faces_indices
+			.map(i => graph.faces_edges[i]);
 		incident_faces_vertices.forEach(face =>
 			face.map((fv,i,arr) => {
 				let nextI = (i+1)%arr.length;
-				return (fv === incident_vertices[0] && arr[nextI] === incident_vertices[1]) ||
-				       (fv === incident_vertices[1] && arr[nextI] === incident_vertices[0])
+				return (fv === incident_vertices[0]
+				        && arr[nextI] === incident_vertices[1]) ||
+				       (fv === incident_vertices[1]
+				        && arr[nextI] === incident_vertices[0])
 					? nextI : undefined;
 			}).filter(el => el !== undefined)
 			.sort((a,b) => b-a)
@@ -3143,6 +3184,7 @@
 		remove_non_boundary_edges: remove_non_boundary_edges,
 		remove_isolated_vertices: remove_isolated_vertices,
 		remove_collinear_vertices: remove_collinear_vertices,
+		remove_duplicate_edges: remove_duplicate_edges,
 		vertices_count: vertices_count,
 		edges_count: edges_count,
 		faces_count: faces_count,
@@ -4834,9 +4876,7 @@
 		let vertices_map = vertices_coords.map(vc => undefined);
 		vertices_equivalent.forEach((row,i) => row.forEach((eq,j) => {
 			if (eq){
-				vertices_map[j] = vertices_map[i] === undefined
-					? i
-					: vertices_map[i];
+				vertices_map[j] = vertices_map[i] === undefined ? i : vertices_map[i];
 			}
 		}));
 		let vertices_remove = vertices_map.map(m => m !== undefined);
@@ -5388,20 +5428,71 @@
 	}
 	const creaseSegment = function(graph, a, b, c, d) {
 		let edge = Edge([a, b]);
-		let edge_vertices = [0,1]
-			.map((_,e) => graph.vertices_coords
-				.map(v => Math.sqrt(Math.pow(edge[e][0]-v[0],2)+Math.pow(edge[e][1]-v[1],2)))
-				.map((d,i) => d < 0.00000001 ? i : undefined)
-				.filter(el => el !== undefined)
-				.shift()
-			).map((v,i) => {
-				if (v !== undefined) { return v; }
-				graph.vertices_coords.push(edge[i]);
-				return graph.vertices_coords.length - 1;
-			});
+		let edges = graph.edges_vertices
+			.map(ev => ev.map(v => graph.vertices_coords[v]));
+		let edge_collinear_a = edges
+			.map(e => core.intersection.point_on_edge(e[0], e[1], edge[0]))
+			.map((on_edge, i) => on_edge ? i : undefined)
+			.filter(a => a !== undefined)
+			.shift();
+		let edge_collinear_b = edges
+			.map(e => core.intersection.point_on_edge(e[0], e[1], edge[1]))
+			.map((on_edge, i) => on_edge ? i : undefined)
+			.filter(a => a !== undefined)
+			.shift();
+		let vertex_equivalent_a = graph.vertices_coords
+			.map(v => Math.sqrt(Math.pow(edge[0][0]-v[0], 2) +
+			                    Math.pow(edge[0][1]-v[1], 2)))
+			.map((d,i) => d < 1e-8 ? i : undefined)
+			.filter(el => el !== undefined)
+			.shift();
+		let vertex_equivalent_b = graph.vertices_coords
+			.map(v => Math.sqrt(Math.pow(edge[1][0]-v[0], 2) +
+			                    Math.pow(edge[1][1]-v[1], 2)))
+			.map((d,i) => d < 1e-8 ? i : undefined)
+			.filter(el => el !== undefined)
+			.shift();
+		let edge_vertices = [];
+		let edges_to_remove = [];
+		let edges_index_map = [];
+		if (vertex_equivalent_a !== undefined) {
+			edge_vertices[0] = vertex_equivalent_a;
+		} else {
+			graph.vertices_coords.push([edge[0][0], edge[0][1]]);
+			let vertex_new_index = graph.vertices_coords.length - 1;
+			edge_vertices[0] = vertex_new_index;
+			if (edge_collinear_a !== undefined) {
+				edges_to_remove.push(edge_collinear_a);
+				let edge_vertices_old = graph.edges_vertices[edge_collinear_a];
+				graph.edges_vertices.push([edge_vertices_old[0], vertex_new_index]);
+				graph.edges_vertices.push([vertex_new_index, edge_vertices_old[1]]);
+				edges_index_map[graph.edges_vertices.length - 2] = edge_collinear_a;
+				edges_index_map[graph.edges_vertices.length - 1] = edge_collinear_a;
+			}
+		}
+		if (vertex_equivalent_b !== undefined) {
+			edge_vertices[1] = vertex_equivalent_b;
+		} else {
+			graph.vertices_coords.push([edge[1][0], edge[1][1]]);
+			let vertex_new_index = graph.vertices_coords.length - 1;
+			edge_vertices[1] = vertex_new_index;
+			if (edge_collinear_b !== undefined) {
+				edges_to_remove.push(edge_collinear_b);
+				let edge_vertices_old = graph.edges_vertices[edge_collinear_b];
+				graph.edges_vertices.push([edge_vertices_old[0], vertex_new_index]);
+				graph.edges_vertices.push([vertex_new_index, edge_vertices_old[1]]);
+				edges_index_map[graph.edges_vertices.length - 2] = edge_collinear_b;
+				edges_index_map[graph.edges_vertices.length - 1] = edge_collinear_b;
+			}
+		}
 		graph.edges_vertices.push(edge_vertices);
-		graph.edges_assignment.push("F");
-		return [graph.edges_vertices.length-1];
+		graph.edges_assignment[graph.edges_vertices.length-1] = "F";
+		let diff = {
+			edges_new: [graph.edges_vertices.length-1],
+			edges_to_remove: edges_to_remove,
+			edges_index_map
+		};
+		return diff;
 	};
 	function add_edge_between_points(graph, x0, y0, x1, y1) {
 		let edge = [[x0, y0], [x1, y1]];
@@ -5566,8 +5657,9 @@
 				coloring = faces_coloring(graph, 0);
 			}
 		}
-		let orderIsCertain = graph["re:faces_layer"] != null;
-		let order = graph["re:faces_layer"] != null
+		let orderIsCertain = graph["re:faces_layer"] != null
+			&& graph["re:faces_layer"].length === graph.faces_vertices.length;
+		let order = orderIsCertain
 			? faces_sorted_by_layer(graph["re:faces_layer"])
 			: graph.faces_vertices.map((_,i) => i);
 		return orderIsCertain
@@ -6452,6 +6544,7 @@
 			_this = that;
 		};
 		const clean = function() {
+			remove_duplicate_edges(_this);
 			convert$1.edges_vertices_to_vertices_vertices_sorted(_this);
 			convert$1.vertices_vertices_to_faces_vertices(_this);
 			convert$1.faces_vertices_to_faces_edges(_this);
@@ -6596,7 +6689,24 @@
 			return crease;
 		};
 		const creaseSegment$$1 = function() {
-			let crease = Crease(this, creaseSegment(_this, ...arguments));
+			let diff = creaseSegment(_this, ...arguments);
+			if (diff === undefined) { return; }
+			if (diff.edges_index_map != null) {
+				Object.keys(diff.edges_index_map)
+					.forEach(i => _this.edges_assignment[i] =
+						_this.edges_assignment[ diff.edges_index_map[i] ]);
+			}
+			let edges_remove_count = (diff.edges_to_remove != null)
+				? diff.edges_to_remove.length : 0;
+			if (diff.edges_to_remove != null) {
+				diff.edges_to_remove.slice()
+					.sort((a,b) => b-a)
+					.forEach(i => {
+						_this.edges_vertices.splice(i, 1);
+						_this.edges_assignment.splice(i, 1);
+					});
+			}
+			let crease = Crease(this, [diff.edges_new[0] - edges_remove_count]);
 			didModifyGraph();
 			return crease;
 		};

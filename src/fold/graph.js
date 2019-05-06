@@ -121,6 +121,42 @@ export const remove_collinear_vertices = function(graph) {
 	
 }
 
+export const remove_duplicate_edges = function(graph) {
+	const equivalent = function(a, b) {
+		return (a[0] === b[0] && a[1] === b[1]) ||
+		       (a[0] === b[1] && a[1] === b[0]);
+	}
+
+	let edges_equivalent = Array
+		.from(Array(graph.edges_vertices.length)).map(_ => []);
+	for (var i = 0; i < graph.edges_vertices.length-1; i++) {
+		for (var j = i+1; j < graph.edges_vertices.length; j++) {
+			edges_equivalent[i][j] = equivalent(
+				graph.edges_vertices[i],
+				graph.edges_vertices[j]
+			);
+		}
+	}
+
+	let edges_map = graph.edges_vertices.map(vc => undefined)
+
+	edges_equivalent.forEach((row,i) => row.forEach((eq,j) => {
+		if (eq){
+			edges_map[j] = edges_map[i] === undefined ? i : edges_map[i];
+		}
+	}));
+	let edges_remove = edges_map.map(m => m !== undefined);
+	edges_map.forEach((map,i) => {
+		if(map === undefined) { edges_map[i] = i; }
+	});
+
+	let edges_remove_indices = edges_remove
+		.map((rm,i) => rm ? i : undefined)
+		.filter(i => i !== undefined);
+
+	remove_edges(graph, edges_remove_indices);
+}
+
 /* Get the number of vertices in the graph
  * in the case of abstract graphs, vertex count needs to be searched
  *
@@ -295,7 +331,8 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 	})
 	// vertices_faces
 	if (graph.edges_faces != null && graph.edges_faces[old_edge_index] != null) {
-		graph.vertices_faces[new_vertex_index] = clone(graph.edges_faces[old_edge_index]);
+		graph.vertices_faces[new_vertex_index] =
+			clone(graph.edges_faces[old_edge_index]);
 	}
 	// new edges entries
 	// set edges_vertices
@@ -328,16 +365,20 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 			.forEach(key => graph[key][edge.i] = edge[key])
 	);
 	let incident_faces_indices = graph.edges_faces[old_edge_index];
-	let incident_faces_vertices = incident_faces_indices.map(i => graph.faces_vertices[i]);
-	let incident_faces_edges = incident_faces_indices.map(i => graph.faces_edges[i]);
+	let incident_faces_vertices = incident_faces_indices
+		.map(i => graph.faces_vertices[i]);
+	let incident_faces_edges = incident_faces_indices
+		.map(i => graph.faces_edges[i]);
 
 	// faces_vertices
 	// because Javascript, this is a pointer and modifies the master graph
 	incident_faces_vertices.forEach(face => 
 		face.map((fv,i,arr) => {
 			let nextI = (i+1)%arr.length;
-			return (fv === incident_vertices[0] && arr[nextI] === incident_vertices[1]) ||
-			       (fv === incident_vertices[1] && arr[nextI] === incident_vertices[0])
+			return (fv === incident_vertices[0]
+			        && arr[nextI] === incident_vertices[1]) ||
+			       (fv === incident_vertices[1]
+			        && arr[nextI] === incident_vertices[0])
 				? nextI : undefined;
 		}).filter(el => el !== undefined)
 		.sort((a,b) => b-a)

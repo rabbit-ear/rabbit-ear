@@ -150,9 +150,7 @@ export const fragment = function(graph, epsilon = Geom.core.EPSILON) {
 
 	vertices_equivalent.forEach((row,i) => row.forEach((eq,j) => {
 		if (eq){
-			vertices_map[j] = vertices_map[i] === undefined
-				? i
-				: vertices_map[i];
+			vertices_map[j] = vertices_map[i] === undefined ? i : vertices_map[i];
 		}
 	}));
 	let vertices_remove = vertices_map.map(m => m !== undefined);

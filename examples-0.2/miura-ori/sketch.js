@@ -1,5 +1,11 @@
 
-var editor = ace.edit("editor");
+var editor;
+try{
+	editor = ace.edit("editor");
+} catch(err) {
+	throw("requires internet. access to ace editor in HTML file. maybe CDN moved.");
+}
+
 editor.setTheme("ace/theme/monokai");
 editor.setKeyboardHandler("ace/keyboard/sublime");
 editor.session.setMode("ace/mode/javascript");
@@ -94,12 +100,12 @@ document.getElementById("download-fold").addEventListener("click", function(e){
 });
 
 function fileDidLoad(blob, mimeType, fileExtension){
-	var points = JSON.parse(blob);
-	touchNodes.nodes = [];
-	points.forEach(function(point){
-		touchNodes.newPlanarNode(point[0], point[1]);
-	},this);
-	origami.drawVoronoi();
+	// var points = JSON.parse(blob);
+	// touchNodes.nodes = [];
+	// points.forEach(function(point){
+	// 	touchNodes.newPlanarNode(point[0], point[1]);
+	// },this);
+	// origami.drawVoronoi();
 }
 
 // $().button('toggle')
@@ -109,8 +115,6 @@ var origami = RabbitEar.Origami("origami-cp", {padding:0.05});
 var folded = RabbitEar.Origami("origami-fold", {padding:0.05});
 
 var SLIDER = 0.5;
-var ROWS = 12;
-var COLUMNS = 12;
 
 origami.reset = function(){
 	// this.cp.clear();
@@ -137,14 +141,15 @@ origami.reset = function(){
 
 	let boundary = RE.ConvexPolygon([[0,0], [1,0], [1,1], [0,1]]);
 
-	let clip = boundary.clipEdge([0.1, 0.6], [0, 0.5]);
-	if(clip !== undefined) {
-		var crease = origami.cp.creaseSegment(clip);
-		if(crease != null){
-			crease.mountain();
-		}
-	}
-/*
+	// let c0 = origami.cp.creaseSegment([0,0.5], [1,0.4]);
+	// if (c0 != null){ c0.valley(); }
+	// let c1 = origami.cp.creaseSegment([0.5,0], [1,0.4]);
+	// if (c1 != null){ c1.mountain(); }
+	// let c2 = origami.cp.creaseSegment([0,0.5], [1,1]);
+	// if (c2 != null){ c2.mountain(); }
+
+
+
 	points.forEach((row,j) => {
 		row.forEach((point,i) => {
 			// crease zig zag rows
@@ -176,16 +181,15 @@ origami.reset = function(){
 			}
 		})
 	});
-*/
+
+
 
 	origami.cp.onchange = function(){ origami.draw(); };
 
 	origami.cp.clean();
-
 	origami.draw();
 
 	folded.cp = origami.cp.copy();
-	
 	folded.fold();
 }
 origami.reset();

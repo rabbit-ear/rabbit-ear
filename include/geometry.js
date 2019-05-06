@@ -253,13 +253,24 @@ function point_in_poly(point, poly, epsilon = EPSILON) {
 	return isInside;
 }
 function point_in_convex_poly(point, poly, epsilon = EPSILON) {
-	if (poly == undefined || !(poly.length > 0)) { return false; }
+	if (poly == null || !(poly.length > 0)) { return false; }
 	return poly.map( (p,i,arr) => {
 		let nextP = arr[(i+1)%arr.length];
 		let a = [ nextP[0]-p[0], nextP[1]-p[1] ];
 		let b = [ point[0]-p[0], point[1]-p[1] ];
 		return a[0] * b[1] - a[1] * b[0] > -epsilon;
-	}).map((s,i,arr) => s == arr[0]).reduce((prev,curr) => prev && curr, true)
+	}).map((s,i,arr) => s === arr[0])
+		.reduce((prev,curr) => prev && curr, true);
+}
+function point_in_convex_poly_exclusive(point, poly, epsilon=EPSILON) {
+	if (poly == null || !(poly.length > 0)) { return false; }
+	return poly.map( (p,i,arr) => {
+		let nextP = arr[(i+1)%arr.length];
+		let a = [ nextP[0]-p[0], nextP[1]-p[1] ];
+		let b = [ point[0]-p[0], point[1]-p[1] ];
+		return a[0] * b[1] - a[1] * b[0] > epsilon;
+	}).map((s,i,arr) => s === arr[0])
+		.reduce((prev,curr) => prev && curr, true);
 }
 function convex_polygons_overlap(ps1, ps2) {
 	let e1 = ps1.map((p,i,arr) => [p, arr[(i+1)%arr.length]] );
@@ -312,32 +323,26 @@ function clip_ray_in_convex_poly(poly, linePoint, lineVector) {
 function clip_edge_in_convex_poly(poly, edgeA, edgeB) {
 	let intersections = poly
 		.map((p,i,arr) => [p, arr[(i+1)%arr.length]] )
-		.map(el => edge_edge(edgeA, edgeB, el[0], el[1]))
+		.map(el => edge_edge_exclusive(edgeA, edgeB, el[0], el[1]))
 		.filter(el => el != null);
-	for (var i = 0; i < intersections.length; i++) {
-		for (var j = intersections.length-1; j > i; j--) {
-			if (equivalent2(intersections[i], intersections[j], 0.0000001)) {
-				intersections.splice(j, 1);
-			}
-		}
+	let aInside = point_in_convex_poly_exclusive(edgeA, poly);
+	let bInside = point_in_convex_poly_exclusive(edgeB, poly);
+	let aInsideCollinear = point_in_convex_poly(edgeA, poly);
+	let bInsideCollinear = point_in_convex_poly(edgeB, poly);
+	if (intersections.length === 0 &&
+		(aInside || bInside)) {
+		return [edgeA, edgeB];
 	}
-	let aInside = point_in_poly(edgeA, poly);
-	console.log("intersections", intersections);
-	console.log("aInside", aInside);
+	if(intersections.length === 0 &&
+		(aInsideCollinear && bInsideCollinear)) {
+		return [edgeA, edgeB];
+	}
 	switch (intersections.length) {
 		case 0: return ( aInside
 			? [[...edgeA], [...edgeB]]
 			: undefined );
 		case 2: return intersections;
 		case 1:
-			let bInside = point_in_poly(edgeB, poly);
-			let equivA = poly.map(p => equivalent2(p, edgeA))
-				.reduce((a,b) => a || b, false);
-			let equivB = poly.map(p => equivalent2(p, edgeB))
-				.reduce((a,b) => a || b, false);
-		if (equivA && equivB) { return [edgeA, edgeB]; }
-		if (equivA) { return bInside ? [edgeA, edgeB] : undefined; }
-		if (equivB) { return aInside ? [edgeA, edgeB] : undefined; }
 		return ( aInside
 			? [[...edgeA], intersections[0]]
 			: [[...edgeB], intersections[0]] );
@@ -435,6 +440,7 @@ var intersection = /*#__PURE__*/Object.freeze({
 	point_on_edge: point_on_edge,
 	point_in_poly: point_in_poly,
 	point_in_convex_poly: point_in_convex_poly,
+	point_in_convex_poly_exclusive: point_in_convex_poly_exclusive,
 	convex_polygons_overlap: convex_polygons_overlap,
 	clip_line_in_convex_poly: clip_line_in_convex_poly,
 	clip_ray_in_convex_poly: clip_ray_in_convex_poly,

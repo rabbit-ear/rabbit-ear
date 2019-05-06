@@ -54,6 +54,9 @@ const CreasePatternPrototype = function(proto) {
 	}
 
 	const clean = function() {
+		// todo
+		// this needs to chop edges that have line endpoints collear to them
+		Graph.remove_duplicate_edges(_this);
 		FOLDConvert.edges_vertices_to_vertices_vertices_sorted(_this);
 		FOLDConvert.vertices_vertices_to_faces_vertices(_this);
 		FOLDConvert.faces_vertices_to_faces_edges(_this);
@@ -262,7 +265,25 @@ const CreasePatternPrototype = function(proto) {
 		return crease;
 	};
 	const creaseSegment = function() {
-		let crease = Crease(this, Origami.creaseSegment(_this, ...arguments));
+		let diff = Origami.creaseSegment(_this, ...arguments);
+		if (diff === undefined) { return; }
+		if (diff.edges_index_map != null) {
+			Object.keys(diff.edges_index_map)
+				.forEach(i => _this.edges_assignment[i] = 
+					_this.edges_assignment[ diff.edges_index_map[i] ]);
+		}
+		let edges_remove_count = (diff.edges_to_remove != null)
+			? diff.edges_to_remove.length : 0;
+		if (diff.edges_to_remove != null) {
+			diff.edges_to_remove.slice()
+				.sort((a,b) => b-a) // reverse order
+				.forEach(i => {
+					_this.edges_vertices.splice(i, 1);
+					_this.edges_assignment.splice(i, 1);
+				});
+		}
+		// _this.edges_assignment.push("F");
+		let crease = Crease(this, [diff.edges_new[0] - edges_remove_count]);
 		didModifyGraph();
 		return crease;
 	};
