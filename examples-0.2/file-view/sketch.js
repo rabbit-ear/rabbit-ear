@@ -4,6 +4,8 @@ var slider = document.querySelector("#frame-slider");
 var frameInfo = document.querySelector("#frame-span");
 slider.oninput = sliderUpdate;
 
+origami.cp = {};
+
 function sliderUpdate(event) {
 	let value = event.target.value
 	let fraction = parseFloat(value / 1000);

@@ -25,6 +25,10 @@ export const intoGroups = function(graph, {boundaries, faces, creases, vertices}
 }
 
 const drawBoundary = function(graph) {
+	if ("edges_vertices" in graph === false ||
+		"vertices_coords" in graph === false) {
+		return [];
+	}
 	let boundary = get_boundary_vertices(graph)
 		.map(v => graph.vertices_coords[v])
 	return [SVG.polygon(boundary).setClass("boundary")];
@@ -40,6 +44,10 @@ const drawVertices = function(graph, options) {
 };
 
 const drawCreases = function(graph) {
+	if ("edges_vertices" in graph === false ||
+		"vertices_coords" in graph === false) {
+		return [];
+	}
 	let edges = graph.edges_vertices
 		.map(ev => ev.map(v => graph.vertices_coords[v]));
 	let eAssignments = graph.edges_assignment.map(a => CREASE_NAMES[a]);
@@ -51,6 +59,10 @@ const drawCreases = function(graph) {
 };
 
 const drawFacesVertices = function(graph) {
+	if ("faces_vertices" in graph === false ||
+		"vertices_coords" in graph === false) {
+		return [];
+	}
 	let fAssignments = graph.faces_vertices.map(fv => "face");
 	let facesV = !(graph.faces_vertices) ? [] : graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
@@ -64,6 +76,11 @@ const drawFacesVertices = function(graph) {
 };
 
 const drawFacesEdges = function(graph) {
+	if ("faces_edges" in graph === false ||
+		"edges_vertices" in graph === false ||
+		"vertices_coords" in graph === false) {
+		return [];
+	}
 	let fAssignments = graph.faces_vertices.map(fv => "face");
 	let facesE = !(graph.faces_edges) ? [] : graph.faces_edges
 		.map(face_edges => face_edges
@@ -90,6 +107,10 @@ function faces_sorted_by_layer(faces_layer) {
 }
 
 const drawFaces = function(graph) {
+	if ("faces_vertices" in graph === false ||
+		"vertices_coords" in graph === false) {
+		return [];
+	}
 	let facesV = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		// .map(face => Geom.Polygon(face));
@@ -97,7 +118,7 @@ const drawFaces = function(graph) {
 	// determine coloring of each face
 	let coloring = graph["re:faces_coloring"];
 	if (coloring == null) {
-		if (graph["re:faces_matrix"] != null) {
+		if ("re:faces_matrix" in graph) {
 			coloring = faces_matrix_coloring(graph["re:faces_matrix"]);
 		} else {
 			// last resort. assuming a lot with the 0 face.

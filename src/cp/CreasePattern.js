@@ -12,19 +12,21 @@ import * as File from "../fold/file";
 
 import { default as FOLDConvert } from "../official/convert";
 
-const placeholderFoldedForm = function(graph) {
-	// todo, better checking for specifically a "foldedForm" frame
-	if (graph.file_frames == null || graph.file_frames.length === 0) {
-		let faces_array = Array.from(Array(graph.faces_vertices.length));
-		graph.file_frames = [{
-			frame_classes: ["foldedForm"],
-			frame_inherit: true,
-			frame_parent: 0,
-			"re:faces_layer": faces_array.map((_,i) => i),
-			"re:faces_matrix": faces_array.map(_ => [1,0,0,1,0,0])
-		}];
-	}	
-}
+// const placeholderFoldedForm = function(graph) {
+// 	// todo, better checking for specifically a "foldedForm" frame
+// 	if (graph.file_frames == null || graph.file_frames.length === 0) {
+// 		if (graph.faces_vertices != null) {
+// 			let faces_array = Array.from(Array(graph.faces_vertices.length));
+// 			graph.file_frames = [{
+// 				frame_classes: ["foldedForm"],
+// 				frame_inherit: true,
+// 				frame_parent: 0,
+// 				"re:faces_layer": faces_array.map((_,i) => i),
+// 				"re:faces_matrix": faces_array.map(_ => [1,0,0,1,0,0])
+// 			}];
+// 		}
+// 	}	
+// }
 
 const CreasePatternPrototype = function(proto) {
 	if(proto == null) {
@@ -32,7 +34,7 @@ const CreasePatternPrototype = function(proto) {
 	}
 
 	/** 
-	 * the most important thing this class offers: this component array
+	 * an important thing this class offers: this component array
 	 * each object matches 1:1 a component in the FOLD graph.
 	 * when a graph component gets removed, its corresponding object deletes
 	 * itself so even if the user holds onto it, it no longer points to anything.
@@ -71,7 +73,7 @@ const CreasePatternPrototype = function(proto) {
 			Graph.all_keys.forEach(key => delete _this[key])
 		}
 		Object.assign(_this, JSON.parse(JSON.stringify(file)));
-		placeholderFoldedForm(_this);
+		// placeholderFoldedForm(_this);
 	}
 	/**
 	 * @return {CreasePattern} a deep copy of this object.
@@ -85,7 +87,7 @@ const CreasePatternPrototype = function(proto) {
 	 */
 	const clear = function() {
 		Graph.remove_non_boundary_edges(_this);
-		if (typeof _this.onchange === "function") { _this.onchange(); }
+		_this.onchange.forEach(f => f());
 	}
 	/**
 	 * @return {Object} a deep copy of this object in the FOLD format.
@@ -109,7 +111,7 @@ const CreasePatternPrototype = function(proto) {
 	// const wipe = function() {
 	// 	Graph.all_keys.filter(a => _m[a] != null)
 	// 		.forEach(key => delete _m[key]);
-	// 	if (typeof this.onchange === "function") { this.onchange(); }
+	// 	_this.onchange.forEach(f => f());
 	// }
 
 	// todo: memo these. they're created each time, even if the CP hasn't changed
@@ -201,9 +203,7 @@ const CreasePatternPrototype = function(proto) {
 		// 	.filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
 		
 		// broadcast update to handler if attached
-		if (typeof _this.onchange === "function") {
-			_this.onchange();
-		}
+		_this.onchange.forEach(f => f());
 	};
 	// fold methods
 	const valleyFold = function(point, vector, face_index) {
@@ -332,15 +332,12 @@ const CreasePatternPrototype = function(proto) {
 	});
 	Object.defineProperty(proto, "kawasaki", { value: kawasaki });
 	
-	Object.defineProperty(proto, "isFolded", { get: function(){
-		// todo, this is a heuristic function. can incorporate more cases
-		if (_this.frame_classes == null) { return false; }
-		return _this.frame_classes.includes("foldedForm");
-	}});
-
 	// Object.defineProperty(proto, "connectedGraphs", { get: function() {
 	// 	return Graph.connectedGraphs(this);
 	// }});
+
+	// callbacks for when the crease pattern has been altered
+	proto.onchange = [];
 
 	proto.__rabbit_ear = RabbitEar;
 
@@ -357,13 +354,10 @@ const CreasePattern = function() {
 	// parse arguments, look for an input .fold file
 	// todo: which key should we check to verify .fold? coords /=/ abstract CPs
 	let foldObjs = Array.from(arguments)
-		.filter(el => typeof el === "object" && el !== null)
-		.filter(el => el.vertices_coords != null);
+		.filter(el => typeof el === "object" && el !== null);
+		// .filter(el => el.vertices_coords != null);
 	// unit square is the default base if nothing else is provided
 	graph.load( (foldObjs.shift() || Make.square()) );
-
-	// callback for when the crease pattern has been altered
-	graph.onchange = undefined;
 
 	return graph;
 }

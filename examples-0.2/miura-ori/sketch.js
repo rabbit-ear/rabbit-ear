@@ -103,9 +103,9 @@ origami.reset = function(){
 	let points = eval(origami.editor.getValue());
 	if(points == undefined || points.constructor !== Array){ return; }
 
-	origami.cp.onchange = undefined;
+	delete origami.cp.onchange[0];
 	origami.miuraOri(points);
-	origami.cp.onchange = function(){ origami.draw(); };
+	origami.cp.onchange[0] = function(){ origami.draw(); };
 	origami.draw();
 
 	folded.cp = origami.cp.copy();

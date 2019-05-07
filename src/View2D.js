@@ -120,7 +120,7 @@ export default function() {
 		// two levels of autofit going on here
 		if (!preferences.autofit) { updateViewBox(); }
 
-		prop.cp.onchange = draw;
+		prop.cp.onchange.push(draw);
 	}
 
 	const drawDebug = function(graph) {
@@ -143,7 +143,8 @@ export default function() {
 	}
 
 	const isFolded = function(graph) {
-		// todo, this is a heuristic function. can incorporate more cases
+		// this is a heuristic function.
+		// continue developing best practices for detecting folded state
 		if (graph.frame_classes == null) { return false; }
 		return graph.frame_classes.includes("foldedForm");
 	}
@@ -391,14 +392,10 @@ export default function() {
 		}));
 	// attach CreasePattern getters
 	// ["boundary", "vertices", "edges", "faces",
-	["isFolded"]
-		.forEach(method => Object.defineProperty(_this, method, {
-			get: function(){
-				let components = prop.cp[method];
-				// components.forEach(c => c.svg = )
-				return components;
-			}
-		}));
+	// ["isFolded"]
+	// 	.forEach(method => Object.defineProperty(_this, method, {
+	// 		get: function(){ return prop.cp[method]; }
+	// 	}));
 
 	Object.defineProperty(_this, "nearest", {value: nearest});
 	Object.defineProperty(_this, "vertices", {

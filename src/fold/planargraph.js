@@ -550,7 +550,10 @@ export function clip_line(fold, linePoint, lineVector){
 
 
 export const bounding_rect = function(graph) {
-	if (graph.vertices_coords.length <= 0) { return [0,0,0,0]; }
+	if ("vertices_coords" in graph === false ||
+		graph.vertices_coords.length <= 0) {
+		return [0,0,0,0];
+	}
 	let dimension = graph.vertices_coords[0].length;
 	let smallest = Array.from(Array(dimension)).map(_ => Infinity);
 	let largest = Array.from(Array(dimension)).map(_ => -Infinity);

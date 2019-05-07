@@ -887,10 +887,9 @@ const controlPoint = function(parent, options) {
 	if (options == null) { options = {}; }
 	if (options.radius == null) { options.radius = 1; }
 	if (options.fill == null) { options.fill = "#000000"; }
-	if (options.position == null) { options.position = [0,0]; }
 	let c = circle(0, 0, options.radius);
 	c.setAttribute("fill", options.fill);
-	let _position = options.position.slice();
+	let _position = [0,0];
 	let _selected = false;
 	if (parent != null) {
 		parent.appendChild(c);
@@ -901,6 +900,11 @@ const controlPoint = function(parent, options) {
 		c.setAttribute("cx", x);
 		c.setAttribute("cy", y);
 	};
+	if ("position" in options) {
+		let pos = options.position;
+		if (pos[0] != null) { setPosition(...pos); }
+		else if (pos.x != null) { setPosition(pos.x, pos.y); }
+	}
 	const onMouseMove = function(mouse) {
 		if (_selected) {
 			let pos = _updatePosition(mouse);
@@ -917,6 +921,9 @@ const controlPoint = function(parent, options) {
 		);
 	};
 	let _updatePosition = function(input){ return input; };
+	const remove = function() {
+		parent.removeChild(c);
+	};
 	return {
 		circle: c,
 		set position(pos) {
@@ -927,16 +934,18 @@ const controlPoint = function(parent, options) {
 		onMouseUp,
 		onMouseMove,
 		distance,
+		remove,
 		set positionDidUpdate(method) { _updatePosition = method; },
 		set selected(value) { _selected = true; }
 	};
 };
-function controls(svgObject, number = 1, options) {
+function controls(svgObject, number, options) {
 	if (options == null) { options = {}; }
 	if (options.parent == null) { options.parent = svgObject; }
 	if (options.radius == null) { options.radius = 1; }
 	if (options.fill == null) { options.fill = "#000000"; }
-	let _points = Array.from(Array(number)).map(_ => controlPoint(options.parent, options));
+	let _points = Array.from(Array(number))
+		.map(_ => controlPoint(options.parent, options));
 	let _selected = undefined;
 	const mouseDownHandler = function(event) {
 		event.preventDefault();
@@ -991,10 +1000,19 @@ function controls(svgObject, number = 1, options) {
 	svgObject.addEventListener("mousedown", mouseDownHandler, false);
 	svgObject.addEventListener("mouseup", mouseUpHandler, false);
 	svgObject.addEventListener("mousemove", mouseMoveHandler, false);
-	Object.defineProperty(_points, "selectedIndex", {get: function() { return _selected; }});
-	Object.defineProperty(_points, "selected", {get: function() { return _points[_selected]; }});
+	Object.defineProperty(_points, "selectedIndex", {
+		get: function() { return _selected; }
+	});
+	Object.defineProperty(_points, "selected", {
+		get: function() { return _points[_selected]; }
+	});
 	Object.defineProperty(_points, "removeAll", {value: function() {
 		_points.forEach(tp => tp.remove());
+		_points.splice(0, _points.length);
+		_selected = undefined;
+	}});
+	Object.defineProperty(_points, "add", {value: function(options) {
+		_points.push(controlPoint(svgObject, options));
 	}});
 	return _points;
 }

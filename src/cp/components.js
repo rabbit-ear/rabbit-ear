@@ -77,22 +77,22 @@ export const Edge = function(graph, index) {
 		if (is_mountain.call(this)) { valley.call(this); }
 		else if (is_valley.call(this)) { mountain.call(this); }
 		else { return; } // don't trigger the callback
-		if (typeof this.graph.onchange === "function") { this.graph.onchange(); }
+		this.graph.onchange.forEach(f => f());
 	}
 	const mountain = function() {
 		this.graph.edges_assignment[index] = "M";
 		this.graph.edges_foldAngle[index] = -180;
-		if (typeof this.graph.onchange === "function") { this.graph.onchange(); }
+		this.graph.onchange.forEach(f => f());
 	}
 	const valley = function() {
 		this.graph.edges_assignment[index] = "V";
 		this.graph.edges_foldAngle[index] = 180;
-		if (typeof this.graph.onchange === "function") { this.graph.onchange(); }
+		this.graph.onchange.forEach(f => f());
 	}
 	const mark = function() {
 		this.graph.edges_assignment[index] = "F";
 		this.graph.edges_foldAngle[index] = 0;
-		if (typeof this.graph.onchange === "function") { this.graph.onchange(); }
+		this.graph.onchange.forEach(f => f());
 	}
 	const remove = function() { }
 	const addVertexOnEdge = function(x, y) {
@@ -142,22 +142,22 @@ export const Crease = function(_graph, _indices) {
 		if (is_mountain()) { valley(); }
 		else if (is_valley()) { mountain(); }
 		else { return; } // don't trigger the callback
-		if (typeof graph.onchange === "function") { graph.onchange(); }
+		graph.onchange.forEach(f => f());
 	}
 	const mountain = function() {
 		indices.forEach(index => graph.edges_assignment[index] = "M");
 		indices.forEach(index => graph.edges_foldAngle[index] = -180);
-		if (typeof graph.onchange === "function") { graph.onchange(); }
+		graph.onchange.forEach(f => f());
 	}
 	const valley = function() {
 		indices.forEach(index => graph.edges_assignment[index] = "V");
 		indices.forEach(index => graph.edges_foldAngle[index] = 180);
-		if (typeof graph.onchange === "function") { graph.onchange(); }
+		graph.onchange.forEach(f => f());
 	}
 	const mark = function() {
 		indices.forEach(index => graph.edges_assignment[index] = "F");
 		indices.forEach(index => graph.edges_foldAngle[index] = 0);
-		if (typeof graph.onchange === "function") { graph.onchange(); }
+		graph.onchange.forEach(f => f());
 	}
 	const remove = function() { }
 	// const addVertexOnEdge = function(x, y) {

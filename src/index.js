@@ -18,6 +18,8 @@ import { default as Origami } from './View2D';
 import { default as Origami3D } from './View3D';
 import { default as Graph } from './Graph';
 
+import { axiom } from './fold/axioms';
+
 let convert = { toFOLD, toSVG, toORIPA };
 
 const core = Object.create(null);
@@ -96,7 +98,8 @@ let rabbitEar = {
 	convert,
 	core,
 	bases,
-	math: math.core
+	math: math.core,
+	axiom: axiom
 };
 
 Object.keys(math)

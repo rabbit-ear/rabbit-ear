@@ -41,6 +41,10 @@ export const append_frame = function(fold_file) {
 }
 
 export const flatten_frame = function(fold_file, frame_num){
+	if ("file_frames" in fold_file === false ||
+		fold_file.file_frames.length < frame_num) {
+		return fold_file;
+	}
 	const dontCopy = ["frame_parent", "frame_inherit"];
 	var memo = {visited_frames:[]};
 	function recurse(fold_file, frame, orderArray) {

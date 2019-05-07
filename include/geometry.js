@@ -1,5 +1,5 @@
 /* Geometry (c) Robby Kraft, MIT License */
-const EPSILON = 1e-12;
+const EPSILON = 1e-10;
 function clean_number(num, decimalPlaces = 15) {
 	return (num == null
 		? undefined
@@ -228,25 +228,26 @@ const intersection_function = function(aPt, aVec, bPt, bVec, compFunction, epsil
 		return [aPt[0] + aVec[0]*t0, aPt[1] + aVec[1]*t0];
 	}
 };
-function point_on_line(linePoint, lineVector, point, epsilon = EPSILON) {
+function point_on_line(linePoint, lineVector, point, epsilon=EPSILON) {
 	let pointPoint = [point[0] - linePoint[0], point[1] - linePoint[1]];
 	let cross = pointPoint[0]*lineVector[1] - pointPoint[1]*lineVector[0];
 	return Math.abs(cross) < epsilon;
 }
 function point_on_edge(edge0, edge1, point, epsilon = EPSILON) {
-	let dEdge = Math.sqrt(Math.pow(edge0[0]-edge1[0],2) +
-	                      Math.pow(edge0[1]-edge1[1],2));
-	let dP0 = Math.sqrt(Math.pow(point[0]-edge0[0],2) +
-	                    Math.pow(point[1]-edge0[1],2));
-	let dP1 = Math.sqrt(Math.pow(point[0]-edge1[0],2) +
-	                    Math.pow(point[1]-edge1[1],2));
+	let edge0_1 = [edge0[0]-edge1[0], edge0[1]-edge1[1]];
+	let edge0_p = [edge0[0]-point[0], edge0[1]-point[1]];
+	let edge1_p = [edge1[0]-point[0], edge1[1]-point[1]];
+	let dEdge = Math.sqrt(edge0_1[0]*edge0_1[0] + edge0_1[1]*edge0_1[1]);
+	let dP0   = Math.sqrt(edge0_p[0]*edge0_p[0] + edge0_p[1]*edge0_p[1]);
+	let dP1   = Math.sqrt(edge1_p[0]*edge1_p[0] + edge1_p[1]*edge1_p[1]);
 	return Math.abs(dEdge - dP0 - dP1) < epsilon;
 }
 function point_in_poly(point, poly, epsilon = EPSILON) {
 	let isInside = false;
 	for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
 		if ( (poly[i][1] > point[1]) != (poly[j][1] > point[1]) &&
-		point[0] < (poly[j][0] - poly[i][0]) * (point[1] - poly[i][1]) / (poly[j][1] - poly[i][1]) + poly[i][0] ) {
+		point[0] < (poly[j][0] - poly[i][0]) * (point[1] - poly[i][1])
+		/ (poly[j][1] - poly[i][1]) + poly[i][0] ) {
 			isInside = !isInside;
 		}
 	}
@@ -325,27 +326,26 @@ function clip_edge_in_convex_poly(poly, edgeA, edgeB) {
 		.map((p,i,arr) => [p, arr[(i+1)%arr.length]] )
 		.map(el => edge_edge_exclusive(edgeA, edgeB, el[0], el[1]))
 		.filter(el => el != null);
-	let aInside = point_in_convex_poly_exclusive(edgeA, poly);
-	let bInside = point_in_convex_poly_exclusive(edgeB, poly);
-	let aInsideCollinear = point_in_convex_poly(edgeA, poly);
-	let bInsideCollinear = point_in_convex_poly(edgeB, poly);
+	let aInsideExclusive = point_in_convex_poly_exclusive(edgeA, poly);
+	let bInsideExclusive = point_in_convex_poly_exclusive(edgeB, poly);
+	let aInsideInclusive = point_in_convex_poly(edgeA, poly);
+	let bInsideInclusive = point_in_convex_poly(edgeB, poly);
 	if (intersections.length === 0 &&
-		(aInside || bInside)) {
+		(aInsideExclusive || bInsideExclusive)) {
 		return [edgeA, edgeB];
 	}
 	if(intersections.length === 0 &&
-		(aInsideCollinear && bInsideCollinear)) {
+		(aInsideInclusive && bInsideInclusive)) {
 		return [edgeA, edgeB];
 	}
 	switch (intersections.length) {
-		case 0: return ( aInside
+		case 0: return ( aInsideExclusive
 			? [[...edgeA], [...edgeB]]
 			: undefined );
-		case 2: return intersections;
-		case 1:
-		return ( aInside
+		case 1: return ( aInsideInclusive
 			? [[...edgeA], intersections[0]]
 			: [[...edgeB], intersections[0]] );
+		case 2: return intersections;
 		default: throw "clipping edge in a convex polygon resulting in 3 or more points";
 	}
 }

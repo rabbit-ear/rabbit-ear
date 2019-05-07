@@ -299,38 +299,6 @@ export function crease_ray(graph, point, vector) {
 	return new_edges;
 }
 
-export function axiom1(graph, pointA, pointB) { // n-dimension
-	let line = Geom.core.axiom[1](pointA, pointB);
-	return crease_line(graph, line[0], line[1]);
-}
-export function axiom2(graph, pointA, pointB) {
-	let line = Geom.core.axiom[2](pointA, pointB);
-	return crease_line(graph, line[0], line[1]);
-}
-export function axiom3(graph, pointA, vectorA, pointB, vectorB) {
-	let lines = Geom.core.axiom[3](pointA, vectorA, pointB, vectorB);
-	// todo: each iteration needs to apply the diff to the prev iterations
-	// return lines.map(line => crease_line(graph, line[0], line[1]))
-	// 	.reduce((a,b) => a.concat(b), []);
-	return crease_line(graph, lines[0][0], lines[0][1]);
-}
-export function axiom4(graph, pointA, vectorA, pointB) {
-	let line = Geom.core.axiom[4](pointA, vectorA, pointB);
-	return crease_line(graph, line[0], line[1]);
-}
-export function axiom5(graph, pointA, vectorA, pointB, pointC) {
-	let line = Geom.core.axiom[5](pointA, vectorA, pointB, pointC);
-	return crease_line(graph, line[0], line[1]);
-}
-export function axiom6(graph, pointA, vectorA, pointB, vectorB, pointC, pointD) {
-	let line = Geom.core.axiom[6](pointA, vectorA, pointB, vectorB, pointC, pointD);
-	return crease_line(graph, line[0], line[1]);
-}
-export function axiom7(graph, pointA, vectorA, pointB, vectorB, pointC) {
-	let line = Geom.core.axiom[7](pointA, vectorA, pointB, vectorB, pointC);
-	return crease_line(graph, line[0], line[1]);
-}
-
 // export function creaseLine(graph, point, vector) {
 // 	// todo idk if this is done
 // 	let ray = Geom.Line(point, vector);
