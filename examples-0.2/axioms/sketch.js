@@ -168,7 +168,7 @@ origami.drawArrowAcross = function(crease, crossing){
 	var arrowheadWidth = 0.05;
 	var arrowheadLength = 0.075;
 
-	var arcBend = 0.05;
+	var arcBend = 0.1;
 	// var arcMid = crossing.add(arrowPerp.scale(perpendicular.length * arcBend + arrowheadLength*0.2));
 	var arcEnds = [perpendicular[0], perpendicular[1]]
 		.map(function(n){
@@ -187,23 +187,8 @@ origami.drawArrowAcross = function(crease, crossing){
 	// draw geometry
 	origami.arrowLayer.removeChildren();
 
-	// debug lines
-	// let debugYellowStyle = "stroke:#ecb233;stroke-width:0.005";
-	// let debugBlueStyle = "stroke:#224c72;stroke-width:0.005";
-	// var dbl = perpendicular;
-	// origami.arrowLayer
-	// 	.line(dbl[0].x, dbl[0].y, dbl[1].x, dbl[1].y)
-	// 	.setAttribute("style", debugYellowStyle);
-	// origami.arrowLayer
-	// 	.line(arcEnds[0].x, arcEnds[0].y, arcEnds[1].x, arcEnds[1].y)
-	// 	.setAttribute("style", debugYellowStyle);
-	// origami.arrowLayer
-	// 	.line(crossing.x, crossing.y,
-	// 		crossing.add(toMiddleOfPage).x, crossing.add(toMiddleOfPage).y)
-	// 	.setAttribute("style", debugBlueStyle)
-
 	let arrowFill = "stroke:none;fill:#e14929";
-	let arrowStroke = "stroke:#e14929;stroke-width:0.005;fill:none;";
+	let arrowStroke = "stroke:#e14929;stroke-width:0.01;fill:none;";
 
 	var bez = origami.arrowLayer.bezier(
 		arcEnds[0].x, arcEnds[0].y,
@@ -213,9 +198,15 @@ origami.drawArrowAcross = function(crease, crossing){
 	);
 	bez.setAttribute("style", arrowStroke);
 
+	let arrowVecs = [0,1].map(i => RE.Vector(
+		arcEnds[i].x - curveControls[i].x,
+		arcEnds[i].y - curveControls[i].y
+	).normalize());
+
 	[arcEnds[0], arcEnds[1]].forEach(function(point, i){
 		// var tilt = vector.rotate( (i%2)*Math.PI ).rotate(0.35 * Math.pow(-1,i+1));
-		var arrowVector = perpendicular[i].subtract(point).normalize();
+		// var arrowVector = perpendicular[i].subtract(point).normalize();
+		var arrowVector = arrowVecs[i];
 		var arrowNormal = arrowVector.rotateZ90();
 		var segments = [
 			point.add(arrowNormal.scale(-arrowheadWidth*0.375)), 
@@ -225,6 +216,35 @@ origami.drawArrowAcross = function(crease, crossing){
 		let arrowhead = origami.arrowLayer.polygon(segments);
 		arrowhead.setAttribute("style", arrowFill)
 	},this);
+
+	///////////////////////////////////////////
+	// debug lines
+	// let debugYellowStyle = "stroke:#ecb233;stroke-width:0.005";
+	// let debugBlueStyle = "stroke:#224c72;stroke-width:0.005";
+	// let debugRedStyle = "stroke:#e14929;stroke-width:0.005";
+	// var dbl = perpendicular;
+	// origami.arrowLayer
+	// 	.line(dbl[0].x, dbl[0].y, dbl[1].x, dbl[1].y)
+	// 	.setAttribute("style", debugYellowStyle);
+	// origami.arrowLayer.line(
+	// 	crossing.x, crossing.y,
+	// 	crossing.add(toMiddleOfPage).x, crossing.add(toMiddleOfPage).y
+	// ).setAttribute("style", debugBlueStyle)
+	// origami.arrowLayer.line(
+	// 	curveControls[0].x, curveControls[0].y,
+	// 	curveControls[1].x, curveControls[1].y
+	// ).setAttribute("style", debugRedStyle)
+	// origami.arrowLayer
+	// 	.line(arcEnds[0].x, arcEnds[0].y, arcEnds[1].x, arcEnds[1].y)
+	// 	.setAttribute("style", debugBlueStyle);
+	// origami.arrowLayer.line(
+	// 	arcEnds[0].x, arcEnds[0].y,
+	// 	curveControls[0].x, curveControls[0].y
+	// ).setAttribute("style", debugBlueStyle)
+	// origami.arrowLayer.line(
+	// 	curveControls[1].x, curveControls[1].y,
+	// 	arcEnds[1].x, arcEnds[1].y
+	// ).setAttribute("style", debugBlueStyle)
 
 }
 
