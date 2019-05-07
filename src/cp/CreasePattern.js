@@ -223,6 +223,19 @@ const CreasePatternPrototype = function(proto) {
 		didModifyGraph();
 	};
 
+	const crease = function() {
+		let o = Array.from(arguments)
+			.filter(el => typeof el === "object" && el !== null)
+			.shift();  // for now don't handle multiple inputs
+		if (o !== undefined) {
+			if ("point" in o && "vector" in o) {
+				let c = Crease(this, Origami.crease_line(_this, o.point, o.vector));
+				didModifyGraph();
+				return c;
+			}
+		}
+	}
+
 	const axiom = function(number, params) {
 		let args;
 		switch(number) {
@@ -324,6 +337,7 @@ const CreasePatternPrototype = function(proto) {
 	Object.defineProperty(proto, "axiom7", { value: axiom7 });
 	Object.defineProperty(proto, "valleyFold", { value: valleyFold });
 	Object.defineProperty(proto, "addVertexOnEdge", { value: addVertexOnEdge });
+	Object.defineProperty(proto, "crease", { value: crease });
 	Object.defineProperty(proto, "creaseLine", { value: creaseLine });
 	Object.defineProperty(proto, "creaseRay", { value: creaseRay });
 	Object.defineProperty(proto, "creaseSegment", { value: creaseSegment });

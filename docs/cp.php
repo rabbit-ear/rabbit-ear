@@ -70,12 +70,16 @@
 
 	<div id="canvas-face-coloring"></div>
 
-	<p>Especially with face tilings, it's helpful for 
+	<p>Especially with face tilings, it's helpful for.........</p>
 
 	<div id="canvas-convex-twist"></div>
 
 
 <h2>Axioms</h2>
+
+RE.axiom(1,[0.2,0.333],[1,1])
+
+RE.axiom(1,{x:0.2, y:0.333},{x:1,y:1})
 
 <section id="axioms">
 

@@ -776,13 +776,16 @@ function get_line() {
 		};
 	}
 	if (arrays.length > 0) {
-		if (arrays.length == 2) {
+		if (arrays.length === 1) {
+			return get_line(...arrays[0]);
+		}
+		if (arrays.length === 2) {
 			return {
 				point: [arrays[0][0], arrays[0][1]],
 				vector: [arrays[1][0], arrays[1][1]]
 			};
 		}
-		if (arrays.length == 4) {
+		if (arrays.length === 4) {
 			return {
 				point: [arrays[0], arrays[1]],
 				vector: [arrays[2], arrays[3]]
@@ -1193,6 +1196,9 @@ function Edge() {
 			edge[1][1] - edge[0][1]
 		);
 	};
+	const midpoint$$1 = function() {
+		return Vector(midpoint(_endpoints[0], _endpoints[1]));
+	};
 	const length = function() {
 		return Math.sqrt(Math.pow(edge[1][0] - edge[0][0],2)
 		               + Math.pow(edge[1][1] - edge[0][1],2));
@@ -1207,6 +1213,7 @@ function Edge() {
 	Object.defineProperty(edge, "clip_function", {value: clip_function});
 	Object.defineProperty(edge, "point", {get: function(){ return edge[0]; }});
 	Object.defineProperty(edge, "vector", {get: function(){ return vector(); }});
+	Object.defineProperty(edge, "midpoint", {value: midpoint$$1});
 	Object.defineProperty(edge, "length", {get: function(){ return length(); }});
 	Object.defineProperty(edge, "transform", {value: transform});
 	return edge;
@@ -1296,15 +1303,18 @@ function Polygon() {
 	};
 	const clipEdge = function() {
 		let edge = get_edge(...arguments);
-		return clip_edge_in_convex_poly(_points, edge[0], edge[1]);
+		let e = clip_edge_in_convex_poly(_points, edge[0], edge[1]);
+		return e === undefined ? undefined : Edge(e);
 	};
 	const clipLine = function() {
 		let line = get_line(...arguments);
-		return clip_line_in_convex_poly(_points, line.point, line.vector);
+		let e = clip_line_in_convex_poly(_points, line.point, line.vector);
+		return e === undefined ? undefined : Edge(e);
 	};
 	const clipRay = function() {
 		let line = get_line(...arguments);
-		return clip_ray_in_convex_poly(_points, line.point, line.vector);
+		let e = clip_ray_in_convex_poly(_points, line.point, line.vector);
+		return e === undefined ? undefined : Edge(e);
 	};
 	const nearest = function() {
 		let point = get_vec(...arguments);

@@ -774,13 +774,16 @@
 			};
 		}
 		if (arrays.length > 0) {
-			if (arrays.length == 2) {
+			if (arrays.length === 1) {
+				return get_line(...arrays[0]);
+			}
+			if (arrays.length === 2) {
 				return {
 					point: [arrays[0][0], arrays[0][1]],
 					vector: [arrays[1][0], arrays[1][1]]
 				};
 			}
-			if (arrays.length == 4) {
+			if (arrays.length === 4) {
 				return {
 					point: [arrays[0], arrays[1]],
 					vector: [arrays[2], arrays[3]]
@@ -1187,6 +1190,9 @@
 				edge[1][1] - edge[0][1]
 			);
 		};
+		const midpoint$$1 = function() {
+			return Vector(midpoint(_endpoints[0], _endpoints[1]));
+		};
 		const length = function() {
 			return Math.sqrt(Math.pow(edge[1][0] - edge[0][0],2)
 			               + Math.pow(edge[1][1] - edge[0][1],2));
@@ -1201,6 +1207,7 @@
 		Object.defineProperty(edge, "clip_function", {value: clip_function});
 		Object.defineProperty(edge, "point", {get: function(){ return edge[0]; }});
 		Object.defineProperty(edge, "vector", {get: function(){ return vector(); }});
+		Object.defineProperty(edge, "midpoint", {value: midpoint$$1});
 		Object.defineProperty(edge, "length", {get: function(){ return length(); }});
 		Object.defineProperty(edge, "transform", {value: transform});
 		return edge;
@@ -1288,15 +1295,18 @@
 		};
 		const clipEdge = function() {
 			let edge = get_edge(...arguments);
-			return clip_edge_in_convex_poly(_points, edge[0], edge[1]);
+			let e = clip_edge_in_convex_poly(_points, edge[0], edge[1]);
+			return e === undefined ? undefined : Edge(e);
 		};
 		const clipLine = function() {
 			let line = get_line(...arguments);
-			return clip_line_in_convex_poly(_points, line.point, line.vector);
+			let e = clip_line_in_convex_poly(_points, line.point, line.vector);
+			return e === undefined ? undefined : Edge(e);
 		};
 		const clipRay = function() {
 			let line = get_line(...arguments);
-			return clip_ray_in_convex_poly(_points, line.point, line.vector);
+			let e = clip_ray_in_convex_poly(_points, line.point, line.vector);
+			return e === undefined ? undefined : Edge(e);
 		};
 		const nearest = function() {
 			let point = get_vec(...arguments);
@@ -6636,6 +6646,18 @@
 			delete _this["re:faces_matrix"];
 			didModifyGraph();
 		};
+		const crease = function() {
+			let o = Array.from(arguments)
+				.filter(el => typeof el === "object" && el !== null)
+				.shift();
+			if (o !== undefined) {
+				if ("point" in o && "vector" in o) {
+					let c = Crease(this, crease_line(_this, o.point, o.vector));
+					didModifyGraph();
+					return c;
+				}
+			}
+		};
 		const axiom = function(number, params) {
 			let args;
 			switch(number) {
@@ -6731,6 +6753,7 @@
 		Object.defineProperty(proto, "axiom7", { value: axiom7 });
 		Object.defineProperty(proto, "valleyFold", { value: valleyFold });
 		Object.defineProperty(proto, "addVertexOnEdge", { value: addVertexOnEdge });
+		Object.defineProperty(proto, "crease", { value: crease });
 		Object.defineProperty(proto, "creaseLine", { value: creaseLine });
 		Object.defineProperty(proto, "creaseRay", { value: creaseRay$$1 });
 		Object.defineProperty(proto, "creaseSegment", { value: creaseSegment$$1 });
@@ -7701,18 +7724,26 @@
 		console.log("c", c);
 		console.log("d", d);
 	};
+	const makeCrease = function(point, vector) {
+		let crease = [point, vector];
+		crease.point = point;
+		crease.vector = vector;
+		return crease;
+	};
 	const axiom1$1 = function(pointA, pointB) {
-		let a, b;
-		a = pointA; b = pointB;
-		return [a, a.map((_,i) => b[i] - a[i])];
+		let p0 = get_vec$1(pointA);
+		let p1 = get_vec$1(pointB);
+		let vec = p0.map((_,i) => p1[i] - p0[i]);
+		return makeCrease(p0, vec);
 	};
 	const axiom2$1 = function(a, b) {
 		let mid = core.midpoint(a, b);
 		let vec = core.normalize(a.map((_,i) => b[i] - a[i]));
-		return [mid, [vec[1], -vec[0]] ];
+		return makeCrease(mid, [vec[1], -vec[0]]);
 	};
 	const axiom3$1 = function(pointA, vectorA, pointB, vectorB){
-		return core.bisect_lines2(pointA, vectorA, pointB, vectorB);
+		return core.bisect_lines2(pointA, vectorA, pointB, vectorB)
+			.map(line => makeCrease(line[0], line[1]));
 	};
 	const axiom4$1 = function(pointA, vectorA, pointB) {
 		let norm = core.normalize(vectorA);

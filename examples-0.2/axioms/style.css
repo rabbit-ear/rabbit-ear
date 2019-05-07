@@ -1,0 +1,89 @@
+:root{ --crease-width: 0.01; }
+
+html, body{
+	height: 100%;
+	font-size: 150%;
+}
+body {
+	margin: 0px;
+	background-color: #195783;
+	color: white;
+}
+.grid {
+	height: 100%;
+	display: grid;
+	grid-template-columns: 50% 50%;
+	grid-template-rows: 80% 20%;
+}
+#origami-cp {
+	grid-column: 1/2;
+	grid-row: 1/2;
+}
+#origami-fold {
+	grid-column: 2/3;
+	grid-row: 1/2;
+}
+#toolbar {
+	grid-column: 1/3;
+	grid-row: 2/3;
+}
+
+#toolbar{
+	width:100%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+.btn-outline-light:hover{
+	color:hsl(205, 74%, 30%);
+}
+.btn-outline-light.active{
+	color:hsl(205, 74%, 30%);
+}
+/* crease pattern */
+
+svg {
+	width: 100%;
+	height: 100%;
+}
+
+svg * {
+	stroke-width: var(--crease-width);
+	stroke-linecap: round;
+	stroke: black;
+}
+
+polygon {
+	fill: none;
+	stroke: none;
+	stroke-linejoin: bevel;
+}
+
+.boundary {
+	fill: linen;
+}
+
+.valley{
+	stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);
+}
+.mark {
+	stroke-width: calc( var(--crease-width) * 0.25);
+}
+
+.foldedForm #faces polygon {
+	stroke: rgba(0, 0, 0, 0.2);
+	fill: rgba(255, 255, 255, 0.2);
+}
+
+.foldedForm #faces .front {
+	fill: linen;
+}
+
+.foldedForm #faces .back {
+	fill: peru;
+}
+
+.foldedForm #creases line {
+	stroke: none;
+}

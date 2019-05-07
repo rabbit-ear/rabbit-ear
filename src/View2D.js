@@ -120,7 +120,14 @@ export default function() {
 		// two levels of autofit going on here
 		if (!preferences.autofit) { updateViewBox(); }
 
+		// instead, make
 		prop.cp.onchange.push(draw);
+	}
+
+	const updateFromCPOnChange = function() {
+		// get last update time
+		// 1. if timeout is still running ignore it.
+		// 2. if update time passes 1/30th of a second force a call
 	}
 
 	const drawDebug = function(graph) {
