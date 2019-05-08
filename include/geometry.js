@@ -360,7 +360,7 @@ function nearest_point(linePoint, lineVector, point, limiterFunc, epsilon = EPSI
 	let d = limiterFunc(distance, epsilon);
 	return [0,1].map((_,i) => linePoint[i] + lineVector[i] * d);
 }
-function intersection_circle_line(center, radius, p0, p1, epsilon = EPSILON) {
+function circle_line(center, radius, p0, p1, epsilon = EPSILON) {
 	let x1 = p0[0] - center[0];
 	let y1 = p0[1] - center[1];
 	let x2 = p1[0] - center[0];
@@ -388,10 +388,10 @@ function intersection_circle_line(center, radius, p0, p1, epsilon = EPSILON) {
 	}
 	return [solutionA];
 }
-function intersection_circle_ray(center, radius, p0, p1) {
-	throw "intersection_circle_ray has not been written yet";
+function circle_ray(center, radius, p0, p1) {
+	throw "circle_ray has not been written yet";
 }
-function intersection_circle_edge(center, radius, p0, p1) {
+function circle_edge(center, radius, p0, p1) {
 	var r_squared =  Math.pow(radius, 2);
 	var x1 = p0[0] - center[0];
 	var y1 = p0[1] - center[1];
@@ -446,9 +446,9 @@ var intersection = /*#__PURE__*/Object.freeze({
 	clip_ray_in_convex_poly: clip_ray_in_convex_poly,
 	clip_edge_in_convex_poly: clip_edge_in_convex_poly,
 	nearest_point: nearest_point,
-	intersection_circle_line: intersection_circle_line,
-	intersection_circle_ray: intersection_circle_ray,
-	intersection_circle_edge: intersection_circle_edge
+	circle_line: circle_line,
+	circle_ray: circle_ray,
+	circle_edge: circle_edge
 });
 
 function make_regular_polygon(sides, x = 0, y = 0, radius = 1) {
@@ -965,7 +965,7 @@ function Circle(){
 	const intersectionLine = function() {
 		let line = get_line(...arguments);
 		let p2 = [line.point[0] + line.vector[0], line.point[1] + line.vector[1]];
-		let intersection = intersection_circle_line(_origin, _radius, line.point, p2);
+		let intersection = circle_line(_origin, _radius, line.point, p2);
 		return (intersection === undefined
 			? undefined
 			: intersection.map(i => Vector(i))
@@ -973,7 +973,7 @@ function Circle(){
 	};
 	const intersectionRay = function() {
 		let points = get_ray(...arguments);
-		let intersection = intersection_circle_ray(_origin, _radius, points[0], points[1]);
+		let intersection = circle_ray(_origin, _radius, points[0], points[1]);
 		return (intersection === undefined
 			? undefined
 			: intersection.map(i => Vector(i))
@@ -981,7 +981,7 @@ function Circle(){
 	};
 	const intersectionEdge = function() {
 		let points = get_two_vec2(...arguments);
-		let intersection = intersection_circle_edge(_origin, _radius, points[0], points[1]);
+		let intersection = circle_edge(_origin, _radius, points[0], points[1]);
 		return (intersection === undefined
 			? undefined
 			: intersection.map(i => Vector(i))

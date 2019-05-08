@@ -363,7 +363,7 @@
 		let d = limiterFunc(distance, epsilon);
 		return [0,1].map((_,i) => linePoint[i] + lineVector[i] * d);
 	}
-	function intersection_circle_line(center, radius, p0, p1, epsilon = EPSILON) {
+	function circle_line(center, radius, p0, p1, epsilon = EPSILON) {
 		let x1 = p0[0] - center[0];
 		let y1 = p0[1] - center[1];
 		let x2 = p1[0] - center[0];
@@ -391,10 +391,10 @@
 		}
 		return [solutionA];
 	}
-	function intersection_circle_ray(center, radius, p0, p1) {
-		throw "intersection_circle_ray has not been written yet";
+	function circle_ray(center, radius, p0, p1) {
+		throw "circle_ray has not been written yet";
 	}
-	function intersection_circle_edge(center, radius, p0, p1) {
+	function circle_edge(center, radius, p0, p1) {
 		var r_squared =  Math.pow(radius, 2);
 		var x1 = p0[0] - center[0];
 		var y1 = p0[1] - center[1];
@@ -448,9 +448,9 @@
 		clip_ray_in_convex_poly: clip_ray_in_convex_poly,
 		clip_edge_in_convex_poly: clip_edge_in_convex_poly,
 		nearest_point: nearest_point,
-		intersection_circle_line: intersection_circle_line,
-		intersection_circle_ray: intersection_circle_ray,
-		intersection_circle_edge: intersection_circle_edge
+		circle_line: circle_line,
+		circle_ray: circle_ray,
+		circle_edge: circle_edge
 	});
 	function make_regular_polygon(sides, x = 0, y = 0, radius = 1) {
 		var halfwedge = 2*Math.PI/sides * 0.5;
@@ -961,7 +961,7 @@
 		const intersectionLine = function() {
 			let line = get_line(...arguments);
 			let p2 = [line.point[0] + line.vector[0], line.point[1] + line.vector[1]];
-			let intersection = intersection_circle_line(_origin, _radius, line.point, p2);
+			let intersection = circle_line(_origin, _radius, line.point, p2);
 			return (intersection === undefined
 				? undefined
 				: intersection.map(i => Vector(i))
@@ -969,7 +969,7 @@
 		};
 		const intersectionRay = function() {
 			let points = get_ray(...arguments);
-			let intersection = intersection_circle_ray(_origin, _radius, points[0], points[1]);
+			let intersection = circle_ray(_origin, _radius, points[0], points[1]);
 			return (intersection === undefined
 				? undefined
 				: intersection.map(i => Vector(i))
@@ -977,7 +977,7 @@
 		};
 		const intersectionEdge = function() {
 			let points = get_two_vec2(...arguments);
-			let intersection = intersection_circle_edge(_origin, _radius, points[0], points[1]);
+			let intersection = circle_edge(_origin, _radius, points[0], points[1]);
 			return (intersection === undefined
 				? undefined
 				: intersection.map(i => Vector(i))
@@ -7751,10 +7751,29 @@
 		return [[...pointB], rightAngle];
 	};
 	const axiom5$1 = function(pointA, vectorA, pointB, pointC) {
+		let pA = get_vec$1(pointA);
+		let vA = get_vec$1(vectorA);
+		let pB = get_vec$1(pointB);
+		let pC = get_vec$1(pointC);
+		let radius = Math.sqrt(Math.pow(pB[0]-pC[0], 2) + Math.pow(pB[1]-pC[1], 2));
+		let pA2 = [pA[0] + vA[0], pA[1] + vA[1]];
+		let sect = core.intersection.circle_line(pB, radius, pA, pA2);
+		return sect === undefined
+			? []
+			: sect.map(s => axiom2$1(pC, s));
 	};
 	const axiom6$1 = function(pointA, vectorA, pointB, vectorB, pointC, pointD) {
 	};
 	const axiom7$1 = function(pointA, vectorA, pointB, vectorB, pointC) {
+		let pA = get_vec$1(pointA);
+		let pC = get_vec$1(pointC);
+		let vA = get_vec$1(vectorA);
+		let vB = get_vec$1(vectorB);
+		let sect = core.intersection.line_line(pA, vA, pC, vB);
+		if(sect === undefined){ return undefined; }
+		let mid = core.midpoint(pC, sect);
+		let vec = core.normalize(pC.map((_,i) => sect[i] - pC[i]));
+		return makeCrease(mid, [vec[1], -vec[0]]);
 	};
 
 	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";

@@ -1,6 +1,6 @@
 :root{ --crease-width: 0.01; }
 
-html, body{
+html, body {
 	height: 100%;
 	font-size: 150%;
 }
@@ -13,7 +13,7 @@ body {
 	height: 100%;
 	display: grid;
 	grid-template-columns: 50% 50%;
-	grid-template-rows: 80% 20%;
+	grid-template-rows: calc(100vh - 4.5rem) 4.5rem;
 }
 #origami-cp {
 	grid-column: 1/2;
@@ -28,19 +28,29 @@ body {
 	grid-row: 2/3;
 }
 
-#toolbar{
-	width:100%;
+#toolbar {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+#toolbar div {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: center;
 }
-.btn-outline-light:hover{
+/*.btn-outline-light:hover{
 	color:hsl(205, 74%, 30%);
 }
 .btn-outline-light.active{
 	color:hsl(205, 74%, 30%);
+}*/
+[id *= "btn-option"] {
+  opacity: 0;
 }
+
 /* crease pattern */
 
 svg {
@@ -64,7 +74,7 @@ polygon {
 	fill: linen;
 }
 
-.valley{
+.valley {
 	stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);
 }
 .mark {

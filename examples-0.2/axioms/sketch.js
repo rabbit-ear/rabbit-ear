@@ -6,6 +6,7 @@ origami.interactionLayer = origami.group();
 origami.arrowLayer = origami.group();
 origami.controls = RE.svg.controls(origami, 0);
 origami.axiom = undefined;
+origami.subSelect = 0;
 
 // 1: hard reset, axiom has changed
 origami.setNewAxiom = function(axiom) {
@@ -55,7 +56,7 @@ origami.update = function() {
 		break;
 		case 3: creaseLine = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
-							lines[1].point, lines[1].vector)[0];
+							lines[1].point, lines[1].vector)[origami.subSelect];
 		break;
 		case 4: creaseLine = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
@@ -63,7 +64,7 @@ origami.update = function() {
 		break;
 		case 5: creaseLine = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
-							pts[2], pts[3]);
+							pts[2], pts[3])[origami.subSelect];
 		break;
 		case 6: creaseLine = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
@@ -97,20 +98,21 @@ origami.update = function() {
 		.map(l => origami.markLayer.line(l[0][0], l[0][1], l[1][0], l[1][1]))
 		.forEach(l => l.setAttribute("style", auxLineStyle));
 
+	origami.arrowLayer.removeChildren();
 	origami.drawArrowsForAxiom(origami.axiom, creaseEdge);
 }
 
 origami.drawArrowsForAxiom = function(axiom, crease){
+	if (crease == null) { return; }
 
 	let pts = origami.controls.map(p => p.position);
-
 	switch (axiom){
 		case 2:
 			var intersect = crease.nearestPoint(pts[0]);
 			origami.drawArrowAcross(crease, intersect);
 			break;
 		case 5:
-			var intersect = crease.nearestPoint({x:origami.marks[0].x, y:origami.marks[0].y});
+			var intersect = crease.nearestPoint(pts[2]);  // todo: or [3] ?
 			origami.drawArrowAcross(crease, intersect);
 			break;
 		case 6:
@@ -120,7 +122,7 @@ origami.drawArrowsForAxiom = function(axiom, crease){
 			origami.drawArrowAcross(crease, intersect2);
 			break;
 		case 7:
-			var intersect = crease.nearestPoint({x:origami.marks[0].x, y:origami.marks[0].y});
+			var intersect = crease.nearestPoint(pts[4]);
 			origami.drawArrowAcross(crease, intersect);
 			break;
 		default:
@@ -138,7 +140,7 @@ origami.onMouseMove = function(event){
 // when left undefined, intersect will be the midpoint of the line.
 origami.drawArrowAcross = function(crease, crossing){
 
-	if (crease == null) { origami.arrowLayer.removeChildren(); return; }
+	if (crease == null) { return; }
 
 	if (crossing == null) { crossing = crease.midpoint(); }
 
@@ -154,11 +156,13 @@ origami.drawArrowAcross = function(crease, crossing){
 		.sort(function(a,b){ return a-b; })
 		.shift();
 
+	// another place it can fail
 	let shortPerp = [perpendicularInBoundary[0], perpendicularInBoundary[1]]
-		.map(function(n){
-			var newLength = n.subtract(crossing).normalize().scale(shortLength);
-			return crossing.add(newLength);
-		},this);
+		.map(n => n.subtract(crossing).normalize())
+		.filter(v => v !== undefined)
+		.map(v => v.scale(shortLength))
+		.map(v => crossing.add(v))
+	if (shortPerp.length < 2) { return; }
 
 	let perpendicular = RE.Edge(shortPerp);
 
@@ -185,10 +189,8 @@ origami.drawArrowAcross = function(crease, crossing){
 	},this);
 
 	// draw geometry
-	origami.arrowLayer.removeChildren();
-
-	let arrowFill = "stroke:none;fill:#e14929";
-	let arrowStroke = "stroke:#e14929;stroke-width:0.01;fill:none;";
+	let arrowFill = "stroke:none;fill:#000";
+	let arrowStroke = "stroke:#000;stroke-width:0.01;fill:none;";
 
 	var bez = origami.arrowLayer.bezier(
 		arcEnds[0].x, arcEnds[0].y,
@@ -257,7 +259,22 @@ var selectAxiom = function(n){
 	document.getElementById("btn-axiom-"+n).checked = true;
 	// document.getElementById("btn-axiom-"+n).className = "btn btn-outline-light active";
 	// update model
+	["btn-option-a", "btn-option-b", "btn-option-c"]
+		.forEach(s => document.querySelector("#"+s).style.opacity = 0);
+
+	if (n === 3 || n === 5 || n === 6) {
+		document.querySelector("#btn-option-a").style.opacity = 1;
+		document.querySelector("#btn-option-b").style.opacity = 1;
+	}
+	if (n === 6) {
+		document.querySelector("#btn-option-c").style.opacity = 1;
+	}
 	origami.setNewAxiom(n);
+}
+
+function setSubSel(s) {
+	origami.subSelect = s;
+	origami.update();
 }
 
 var whichAxiom = function(){
@@ -274,5 +291,8 @@ document.getElementById("btn-axiom-4").onclick = function(){ selectAxiom(4); }
 document.getElementById("btn-axiom-5").onclick = function(){ selectAxiom(5); }
 document.getElementById("btn-axiom-6").onclick = function(){ selectAxiom(6); }
 document.getElementById("btn-axiom-7").onclick = function(){ selectAxiom(7); }
+document.getElementById("btn-option-a").onclick = function(){ setSubSel(0); }
+document.getElementById("btn-option-b").onclick = function(){ setSubSel(1); }
+document.getElementById("btn-option-c").onclick = function(){ setSubSel(2); }
 
 selectAxiom(1);
