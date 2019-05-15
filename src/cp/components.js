@@ -1,4 +1,4 @@
-import * as Geometry from "../../include/geometry.js";
+import * as Geometry from "../../include/geometry";
 
 const makeUUID = function() {
 	// there is a non-zero chance this generates duplicate strings

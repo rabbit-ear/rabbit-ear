@@ -69,7 +69,7 @@ origami.update = function() {
 		case 6: creaseLine = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							lines[1].point, lines[1].vector,
-							pts[4], pts[5]);
+							pts[4], pts[5])[origami.subSelect];
 		break;
 		case 7: creaseLine = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
@@ -115,12 +115,12 @@ origami.drawArrowsForAxiom = function(axiom, crease){
 			var intersect = crease.nearestPoint(pts[2]);  // todo: or [3] ?
 			origami.drawArrowAcross(crease, intersect);
 			break;
-		case 6:
-			var intersect1 = crease.nearestPoint({x:origami.marks[0].x, y:origami.marks[0].y});
-			var intersect2 = crease.nearestPoint({x:origami.marks[1].x, y:origami.marks[1].y});
-			origami.drawArrowAcross(crease, intersect1);
-			origami.drawArrowAcross(crease, intersect2);
-			break;
+		// case 6:
+		// 	var intersect1 = crease.nearestPoint({x:origami.marks[0].x, y:origami.marks[0].y});
+		// 	var intersect2 = crease.nearestPoint({x:origami.marks[1].x, y:origami.marks[1].y});
+		// 	origami.drawArrowAcross(crease, intersect1);
+		// 	origami.drawArrowAcross(crease, intersect2);
+		// 	break;
 		case 7:
 			var intersect = crease.nearestPoint(pts[4]);
 			origami.drawArrowAcross(crease, intersect);
@@ -231,22 +231,22 @@ origami.drawArrowAcross = function(crease, crossing){
 	// origami.arrowLayer.line(
 	// 	crossing.x, crossing.y,
 	// 	crossing.add(toMiddleOfPage).x, crossing.add(toMiddleOfPage).y
-	// ).setAttribute("style", debugBlueStyle)
+	// ).setAttribute("style", debugBlueStyle);
 	// origami.arrowLayer.line(
 	// 	curveControls[0].x, curveControls[0].y,
 	// 	curveControls[1].x, curveControls[1].y
-	// ).setAttribute("style", debugRedStyle)
+	// ).setAttribute("style", debugRedStyle);
 	// origami.arrowLayer
 	// 	.line(arcEnds[0].x, arcEnds[0].y, arcEnds[1].x, arcEnds[1].y)
 	// 	.setAttribute("style", debugBlueStyle);
 	// origami.arrowLayer.line(
 	// 	arcEnds[0].x, arcEnds[0].y,
 	// 	curveControls[0].x, curveControls[0].y
-	// ).setAttribute("style", debugBlueStyle)
+	// ).setAttribute("style", debugBlueStyle);
 	// origami.arrowLayer.line(
 	// 	curveControls[1].x, curveControls[1].y,
 	// 	arcEnds[1].x, arcEnds[1].y
-	// ).setAttribute("style", debugBlueStyle)
+	// ).setAttribute("style", debugBlueStyle);
 
 }
 

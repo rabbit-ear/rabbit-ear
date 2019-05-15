@@ -2,7 +2,7 @@
 	"file_spec": 1.1,
 	"file_author": "Robby Kraft",
 	"file_classes": ["singleModel", "animation"],
-	"re:file_date": "2018-10-14",
+	"file_re:date": "2018-10-14",
 	"frame_title": "blintz base",
 	"frame_attributes": ["3D"],
 	"frame_classes": ["creasePattern"],

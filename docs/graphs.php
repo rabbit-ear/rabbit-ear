@@ -1,5 +1,6 @@
 <?php include 'header.php';?>
-<script type="text/javascript" src="../include/d3.min.js"></script>
+<!-- <script type="text/javascript" src="../include/d3.min.js"></script> -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.2/d3.min.js"></script>
 <script type="text/javascript" src="js/cp.d3js.js"></script>
 <style>
 .links line {

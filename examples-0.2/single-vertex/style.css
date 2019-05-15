@@ -48,18 +48,18 @@ polygon {
 	stroke-width: calc( var(--crease-width) * 0.25);
 }
 
-.foldedForm #faces polygon {
+.foldedForm .faces polygon {
 	stroke: black;
 }
 
-.foldedForm #faces .front {
+.foldedForm .faces .front {
 	fill: peru;
 }
 
-.foldedForm #faces .back {
+.foldedForm .faces .back {
 	fill: linen;
 }
 
-.foldedForm #creases line {
+.foldedForm .creases line {
 	stroke: none;
 }

@@ -12,6 +12,16 @@ import * as File from "../fold/file";
 
 import { default as FOLDConvert } from "../official/convert";
 
+/** 
+ * an important thing this class offers: this component array
+ * each object matches 1:1 a component in the FOLD graph.
+ * when a graph component gets removed, its corresponding object deletes
+ * itself so even if the user holds onto it, it no longer points to anything.
+ * each component brings extra functionality to these edges/faces/vertices.
+ * take great care to make sure they are always matching 1:1.
+ * keys are each component's UUID for speedy lookup.
+ */
+
 // const placeholderFoldedForm = function(graph) {
 // 	// todo, better checking for specifically a "foldedForm" frame
 // 	if (graph.file_frames == null || graph.file_frames.length === 0) {
@@ -21,27 +31,18 @@ import { default as FOLDConvert } from "../official/convert";
 // 				frame_classes: ["foldedForm"],
 // 				frame_inherit: true,
 // 				frame_parent: 0,
-// 				"re:faces_layer": faces_array.map((_,i) => i),
-// 				"re:faces_matrix": faces_array.map(_ => [1,0,0,1,0,0])
+// 				"faces_re:layer": faces_array.map((_,i) => i),
+// 				"faces_re:matrix": faces_array.map(_ => [1,0,0,1,0,0])
 // 			}];
 // 		}
 // 	}	
 // }
 
-const CreasePatternPrototype = function(proto) {
+const Prototype = function(proto) {
 	if(proto == null) {
 		proto = {};
 	}
 
-	/** 
-	 * an important thing this class offers: this component array
-	 * each object matches 1:1 a component in the FOLD graph.
-	 * when a graph component gets removed, its corresponding object deletes
-	 * itself so even if the user holds onto it, it no longer points to anything.
-	 * each component brings extra functionality to these edges/faces/vertices.
-	 * take great care to make sure they are always matching 1:1.
-	 * keys are each component's UUID for speedy lookup.
-	 */
 	let components = {
 		vertices: [],
 		edges: [],
@@ -51,7 +52,7 @@ const CreasePatternPrototype = function(proto) {
 
 	let _this;
 
-	const bind = function(that){
+	const bind = function(that) {
 		_this = that;
 	}
 
@@ -93,16 +94,20 @@ const CreasePatternPrototype = function(proto) {
 	 * @return {Object} a deep copy of this object in the FOLD format.
 	 */ 
 	const json = function() {
-		try {
-			return Object
-				.assign(Object.create(null), JSON.parse(JSON.stringify(_this)));
-		} catch(error){
-			console.warn("could not parse Crease Pattern into JSON", error);
-		}
+		// let non_copy_keys = ["__rabbit_ear"];
+		// let backup = {};
+		// non_copy_keys.forEach(key => {
+		// 	backup[key] = _this[key];
+		// 	delete _this[key];
+		// });
+		// let json = FOLDConvert.toJSON(_this);
+		// non_copy_keys.forEach(key => _this[key] = backup[key]);
+		// return json;
+		return FOLDConvert.toJSON(_this);
 	}
 
 	const svg = function(cssRules) {
-		return Convert.fold_to_svg(_this, cssRules);
+		// return Convert.fold_to_svg(_this, cssRules);
 	}
 	const oripa = function() {
 		return Convert.toORIPA(_this);
@@ -192,8 +197,6 @@ const CreasePatternPrototype = function(proto) {
 			? File.merge_frame(_this, foldedFrame)
 			: undefined;
 	}
-
-
 	// updates
 	const didModifyGraph = function() {
 		// remove file_frames which were dependent on this geometry. we can
@@ -219,7 +222,7 @@ const CreasePatternPrototype = function(proto) {
 			face_index,
 			"V");
 		Object.keys(folded).forEach(key => _this[key] = folded[key]);
-		delete _this["re:faces_matrix"];
+		delete _this["faces_re:matrix"];
 		didModifyGraph();
 	};
 
@@ -346,9 +349,6 @@ const CreasePatternPrototype = function(proto) {
 	});
 	Object.defineProperty(proto, "kawasaki", { value: kawasaki });
 	
-	// Object.defineProperty(proto, "connectedGraphs", { get: function() {
-	// 	return Graph.connectedGraphs(this);
-	// }});
 
 	// callbacks for when the crease pattern has been altered
 	proto.onchange = [];
@@ -358,17 +358,27 @@ const CreasePatternPrototype = function(proto) {
 	return Object.freeze(proto);
 }
 
+const validFoldObject = function(fold) {
+	let keys1_1 = ["file_spec","file_creator","file_author","file_title","file_description","file_classes","file_frames","frame_author","frame_title","frame_description","frame_attributes","frame_classes","frame_unit","vertices_coords","vertices_vertices","vertices_faces","edges_vertices","edges_faces","edges_assignment","edges_foldAngle","edges_length","faces_vertices","faces_edges","edgeOrders","faceOrders"];
+	let argKeys = Object.keys(fold);
+	for(var i = 0; i < argKeys.length; i++) {
+		if (keys1_1.includes(argKeys[i])) { return true; }
+	}
+	return false;
+}
+
 /** A graph is a set of nodes and edges connecting them */
 const CreasePattern = function() {
 
-	let proto = CreasePatternPrototype();
+	let proto = Prototype();
 	let graph = Object.create(proto);
 	proto.bind(graph);
 
 	// parse arguments, look for an input .fold file
 	// todo: which key should we check to verify .fold? coords /=/ abstract CPs
 	let foldObjs = Array.from(arguments)
-		.filter(el => typeof el === "object" && el !== null);
+		.filter(el => typeof el === "object" && el !== null)
+		.filter(el => validFoldObject(el));
 		// .filter(el => el.vertices_coords != null);
 	// unit square is the default base if nothing else is provided
 	graph.load( (foldObjs.shift() || Make.square()) );
@@ -377,7 +387,7 @@ const CreasePattern = function() {
 }
 
 CreasePattern.square = function() {
-	return CreasePattern();
+	return CreasePattern(Make.rectangle(1, 1));
 }
 CreasePattern.rectangle = function(width = 1, height = 1) {
 	return CreasePattern(Make.rectangle(width, height));

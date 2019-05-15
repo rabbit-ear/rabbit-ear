@@ -26,7 +26,7 @@ export function make_folded_frame(fold, parent_frame = 0, root_face){
 		"frame_parent": parent_frame,
 		"frame_inherit": true,
 		"vertices_coords": new_vertices_coords,
-		"re:faces_matrix": faces_matrix
+		"faces_re:matrix": faces_matrix
 	};
 }
 
@@ -51,7 +51,7 @@ export function make_unfolded_frame(fold, parent_frame = 0, root_face){
 		"frame_parent": parent_frame,
 		"frame_inherit": true,
 		"vertices_coords": new_vertices_coords,
-		"re:faces_matrix": faces_matrix
+		"faces_re:matrix": faces_matrix
 	};
 }
 
@@ -81,7 +81,7 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 		}
 	});
 	// console.log("migration.faces", migration.faces);
-	let faces_matrix = creased["re:faces_matrix"];
+	let faces_matrix = creased["faces_re:matrix"];
 	let new_vertices_coords = creased.vertices_coords.map((point,i) =>
 		Geom.core.multiply_vector2_matrix2(point, Geom.core.make_matrix2_inverse(faces_matrix[migration.faces[vertex_in_face[i]]]))
 			.map((n) => Geom.core.clean_number(n))
@@ -94,7 +94,7 @@ export function crease_through_layers(fold_file, linePoint, lineVector){
 		"frame_parent": 0,
 		"frame_inherit": true,
 		"vertices_coords": new_vertices_coords,
-		"re:faces_matrix": faces_matrix
+		"faces_re:matrix": faces_matrix
 	});
 	// console.log("unfolded", unfolded);
 

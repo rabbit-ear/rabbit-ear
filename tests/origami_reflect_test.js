@@ -22,7 +22,7 @@ let params = Array.from(Array(2)).map(_ => ({
 
 params.forEach(p => sketch.cp.valleyFold(p.point, p.vector, 0));
 
-sketch.masterCP = JSON.parse(JSON.stringify(sketch.cp.json));
+sketch.masterCP = sketch.cp.copy();
 sketch.cp = RabbitEar.CreasePattern(sketch.masterCP);
 
 sketch.drawArrow = function(start, end) {
@@ -60,7 +60,7 @@ sketch.update = function() {
 	creaseL.setAttribute("stroke-dasharray", "0.01 0.02");
 	creaseL.setAttribute("stroke-linecap", "round");
 
-	let graph = sketch.cp.json;
+	let graph = sketch.cp.copy();
 	let face_index = 0;
 
 	let faces_count = graph.faces_vertices.length;
@@ -113,8 +113,8 @@ sketch.update = function() {
 	let cpCopy = RabbitEar.CreasePattern(sketch.masterCP);
 	cpCopy.valleyFold(creaseLine.point, creaseLine.vector, 0);
 	folded.cp = cpCopy;
-	let notMoving = folded.cp["re:faces_to_move"].indexOf(false) !== -1
-		? folded.cp["re:faces_to_move"].indexOf(false)
+	let notMoving = folded.cp["faces_re:to_move"].indexOf(false) !== -1
+		? folded.cp["faces_re:to_move"].indexOf(false)
 		: 0;
 	folded.fold(notMoving);
 	// Array.from(folded.groups.face.children)

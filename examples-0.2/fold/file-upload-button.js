@@ -9,6 +9,7 @@
 	fileDialogButton.type = "file"
 	fileDialogButton.id = "files"
 	fileDialogButton.style = "display:none;";
+	fileDialogButton.accept = ".json,.fold,.svg,.oripa,.opx,application/json,image/svg+xml";
 	document.body.appendChild(fileDialogButton);
 
 	document.getElementById("load-file").addEventListener("click", function(e){

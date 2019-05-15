@@ -50,7 +50,7 @@ origami.updateCenter = function(point){
 
 	folded.cp = origami.cp.copy();
 	folded.fold(0);
-	folded.cp["re:faces_layer"] = poke_through ? [1,0,2,3] : [0,1,3,2];
+	folded.cp["faces_re:layer"] = poke_through ? [1,0,2,3] : [0,1,3,2];
 	folded.draw();
 }
 

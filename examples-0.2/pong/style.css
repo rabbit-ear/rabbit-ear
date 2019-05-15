@@ -31,20 +31,20 @@ polygon {
 	stroke-width: var(--crease-width);
 }
 
-.foldedForm #faces .front {
+.foldedForm .faces .front {
 	/*fill: steelblue;*/
 	fill: none;
 	stroke: black;
 	stroke-width: calc(var(--crease-width) * 0.1);
 }
 
-.foldedForm #faces .back {
+.foldedForm .faces .back {
 	/*fill: peru;*/
 	fill: none;
 	stroke: black;
 	stroke-width: calc(var(--crease-width) * 0.1);
 }
 
-.foldedForm #creases line {
+.foldedForm .creases line {
 	stroke: none;
 }

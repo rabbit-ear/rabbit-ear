@@ -29,7 +29,6 @@ function parseValues(args) {
 	var numbers = args.match(number);
 	return numbers ? numbers.map(Number) : [];
 }
-
 function Bezier(ax, ay, bx, by, cx, cy, dx, dy) {
   return new Bezier$1(ax, ay, bx, by, cx, cy, dx, dy);
 }
@@ -276,7 +275,6 @@ function getCubicArcLength(xs, ys, t) {
   }
   return z * sum;
 }
-
 function Arc(x0, y0, rx,ry, xAxisRotate, LargeArcFlag,SweepFlag, x,y) {
   return new Arc$1(x0, y0, rx,ry, xAxisRotate, LargeArcFlag,SweepFlag, x,y);
 }
@@ -455,7 +453,6 @@ function angleBetween(v0, v1) {
   var angle = sign*Math.acos(p/n);
   return angle;
 }
-
 function LinearPosition(x0, x1, y0, y1) {
   return new LinearPosition$1(x0, x1, y0, y1);
 }
@@ -486,7 +483,6 @@ LinearPosition$1.prototype.getPropertiesAtLength = function(pos){
   var tangent = this.getTangentAtLength();
   return {x: point.x, y: point.y, tangentX: tangent.x, tangentY: tangent.y};
 };
-
 function PathProperties(svgString) {
   var length = 0;
   var partial_lengths = [];
@@ -673,7 +669,6 @@ function PathProperties(svgString) {
   };
   return svgProperties(svgString);
 }
-
 const RES_CIRCLE = 64;
 const RES_PATH = 128;
 const emptyValue = { value: 0 };
@@ -795,8 +790,502 @@ const parsers = {
 	"polyline": svg_polyline_to_segments,
 	"path": svg_path_to_segments
 };
+let DOMParser = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.DOMParser;
+if (typeof DOMParser === "undefined" || DOMParser === null) {
+	DOMParser = require("xmldom").DOMParser;
+}
+let XMLSerializer = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.XMLSerializer;
+if (typeof XMLSerializer === "undefined" || XMLSerializer === null) {
+	XMLSerializer = require("xmldom").XMLSerializer;
+}
+let document = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.document;
+if (typeof document === "undefined" || document === null) {
+	document = new DOMParser()
+		.parseFromString("<!DOCTYPE html><title>a</title>", "text/html");
+}
+const parseable = Object.keys(parsers);
+const shape_attr = {
+	"line": ["x1", "y1", "x2", "y2"],
+	"rect": ["x", "y", "width", "height"],
+	"circle": ["cx", "cy", "r"],
+	"ellipse": ["cx", "cy", "rx", "ry"],
+	"polygon": ["points"],
+	"polyline": ["points"],
+	"path": ["d"]
+};
+const inputIntoXML = function(input) {
+	return (typeof input === "string"
+		? new DOMParser().parseFromString(input, "text/xml").documentElement
+		: input);
+};
+const flatten_tree = function(element) {
+	if (element.tagName === "g" || element.tagName === "svg") {
+		if (element.childNodes == null) { return []; }
+		return Array.from(element.childNodes)
+			.map(child => flatten_tree(child))
+			.reduce((a,b) => a.concat(b),[]);
+	}
+	return [element];
+};
+const attribute_list = function(element) {
+	return Array.from(element.attributes)
+		.filter(a => shape_attr[element.tagName].indexOf(a.name) === -1);
+};
+const withAttributes = function(input) {
+	let inputSVG = inputIntoXML(input);
+	return flatten_tree(inputSVG)
+		.filter(e => parseable.indexOf(e.tagName) !== -1)
+		.map(e => parsers[e.tagName](e).map(s => {
+			let obj = ({x1:s[0], y1:s[1], x2:s[2], y2:s[3]});
+			attribute_list(e).forEach(a => obj[a.nodeName] = a.value);
+			return obj;
+		}))
+		.reduce((a,b) => a.concat(b), []);
+};
 
-function vkXML(text, step) {
+const get_boundary_vertices = function(graph) {
+	let edges_vertices_b = graph.edges_vertices.filter((ev,i) =>
+		graph.edges_assignment[i] == "B" ||
+		graph.edges_assignment[i] == "b"
+	).map(arr => arr.slice());
+	if (edges_vertices_b.length === 0) { return []; }
+	let keys = Array.from(Array(graph.vertices_coords.length)).map(_ => []);
+	edges_vertices_b.forEach((ev,i) => ev.forEach(e => keys[e].push(i)));
+	let edgeIndex = 0;
+	let startVertex = edges_vertices_b[edgeIndex].shift();
+	let nextVertex = edges_vertices_b[edgeIndex].shift();
+	let vertices = [startVertex];
+	while (vertices[0] !== nextVertex) {
+		vertices.push(nextVertex);
+		let whichEdges = keys[nextVertex];
+		let thisKeyIndex = keys[nextVertex].indexOf(edgeIndex);
+		if (thisKeyIndex === -1) { return; }
+		keys[nextVertex].splice(thisKeyIndex, 1);
+		let nextEdgeAndIndex = keys[nextVertex]
+			.map((el,i) => ({key: el, i: i}))
+			.filter(el => el.key !== edgeIndex).shift();
+		if (nextEdgeAndIndex == null) { return; }
+		keys[nextVertex].splice(nextEdgeAndIndex.i, 1);
+		edgeIndex = nextEdgeAndIndex.key;
+		let lastEdgeIndex = edges_vertices_b[edgeIndex].indexOf(nextVertex);
+		if (lastEdgeIndex === -1) { return; }
+		edges_vertices_b[edgeIndex].splice(lastEdgeIndex, 1);
+		nextVertex = edges_vertices_b[edgeIndex].shift();
+	}
+	return vertices;
+};
+const bounding_rect = function(graph) {
+	if ("vertices_coords" in graph === false ||
+		graph.vertices_coords.length <= 0) {
+		return [0,0,0,0];
+	}
+	let dimension = graph.vertices_coords[0].length;
+	let smallest = Array.from(Array(dimension)).map(_ => Infinity);
+	let largest = Array.from(Array(dimension)).map(_ => -Infinity);
+	graph.vertices_coords.forEach(v => v.forEach((n,i) => {
+		if (n < smallest[i]) { smallest[i] = n; }
+		if (n > largest[i]) { largest[i] = n; }
+	}));
+	let x = smallest[0];
+	let y = smallest[1];
+	let w = largest[0] - smallest[0];
+	let h = largest[1] - smallest[1];
+	return (isNaN(x) || isNaN(y) || isNaN(w) || isNaN(h)
+		? [0,0,0,0]
+		: [x,y,w,h]);
+};
+const make_faces_faces = function(graph) {
+	let nf = graph.faces_vertices.length;
+	let faces_faces = Array.from(Array(nf)).map(() => []);
+	let edgeMap = {};
+	graph.faces_vertices.forEach((vertices_index, idx1) => {
+		if (vertices_index === undefined) { return; }
+		let n = vertices_index.length;
+		vertices_index.forEach((v1, i, vs) => {
+			let v2 = vs[(i + 1) % n];
+			if (v2 < v1) [v1, v2] = [v2, v1];
+			let key = v1 + " " + v2;
+			if (key in edgeMap) {
+				let idx2 = edgeMap[key];
+				faces_faces[idx1].push(idx2);
+				faces_faces[idx2].push(idx1);
+			} else {
+				edgeMap[key] = idx1;
+			}
+		});
+	});
+	return faces_faces;
+};
+const faces_matrix_coloring = function(faces_matrix) {
+	return faces_matrix
+		.map(m => m[0] * m[3] - m[1] * m[2])
+		.map(c => c >= 0);
+};
+const faces_coloring = function(graph, root_face = 0){
+	let coloring = [];
+	coloring[root_face] = true;
+	make_face_walk_tree(graph, root_face).forEach((level, i) =>
+		level.forEach((entry) => coloring[entry.face] = (i % 2 === 0))
+	);
+	return coloring;
+};
+const make_face_walk_tree = function(graph, root_face = 0){
+	let new_faces_faces = make_faces_faces(graph);
+	if (new_faces_faces.length <= 0) {
+		return [];
+	}
+	var visited = [root_face];
+	var list = [[{ face: root_face, parent: undefined, edge: undefined, level: 0 }]];
+	do{
+		list[list.length] = list[list.length-1].map((current) =>{
+			let unique_faces = new_faces_faces[current.face]
+				.filter(f => visited.indexOf(f) === -1);
+			visited = visited.concat(unique_faces);
+			return unique_faces.map(f => ({
+				face: f,
+				parent: current.face,
+				edge: graph.faces_vertices[f]
+					.filter(v => graph.faces_vertices[current.face].indexOf(v) !== -1)
+					.sort((a,b) => a-b)
+			}))
+		}).reduce((prev,curr) => prev.concat(curr),[]);
+	} while(list[list.length-1].length > 0);
+	if(list.length > 0 && list[list.length-1].length == 0){ list.pop(); }
+	return list;
+};
+const flatten_frame = function(fold_file, frame_num){
+	if ("file_frames" in fold_file === false ||
+		fold_file.file_frames.length < frame_num) {
+		return fold_file;
+	}
+	const dontCopy = ["frame_parent", "frame_inherit"];
+	var memo = {visited_frames:[]};
+	function recurse(fold_file, frame, orderArray) {
+		if (memo.visited_frames.indexOf(frame) !== -1) {
+			throw "FOLD file_frames encountered a cycle. stopping.";
+			return orderArray;
+		}
+		memo.visited_frames.push(frame);
+		orderArray = [frame].concat(orderArray);
+		if (frame === 0) { return orderArray; }
+		if (fold_file.file_frames[frame - 1].frame_inherit &&
+		   fold_file.file_frames[frame - 1].frame_parent != null) {
+			return recurse(fold_file, fold_file.file_frames[frame - 1].frame_parent, orderArray);
+		}
+		return orderArray;
+	}
+	return recurse(fold_file, frame_num, []).map(frame => {
+		if (frame === 0) {
+			let swap = fold_file.file_frames;
+			fold_file.file_frames = null;
+			let copy = JSON.parse(JSON.stringify(fold_file));
+			fold_file.file_frames = swap;
+			delete copy.file_frames;
+			dontCopy.forEach(key => delete copy[key]);
+			return copy;
+		}
+		let copy = JSON.parse(JSON.stringify(fold_file.file_frames[frame-1]));
+		dontCopy.forEach(key => delete copy[key]);
+		return copy;
+	}).reduce((prev,curr) => Object.assign(prev,curr),{})
+};
+
+var css_colors = {
+	"black": "#000000",
+	"silver": "#c0c0c0",
+	"gray": "#808080",
+	"white": "#ffffff",
+	"maroon": "#800000",
+	"red": "#ff0000",
+	"purple": "#800080",
+	"fuchsia": "#ff00ff",
+	"green": "#008000",
+	"lime": "#00ff00",
+	"olive": "#808000",
+	"yellow": "#ffff00",
+	"navy": "#000080",
+	"blue": "#0000ff",
+	"teal": "#008080",
+	"aqua": "#00ffff",
+	"orange": "#ffa500",
+	"aliceblue": "#f0f8ff",
+	"antiquewhite": "#faebd7",
+	"aquamarine": "#7fffd4",
+	"azure": "#f0ffff",
+	"beige": "#f5f5dc",
+	"bisque": "#ffe4c4",
+	"blanchedalmond": "#ffebcd",
+	"blueviolet": "#8a2be2",
+	"brown": "#a52a2a",
+	"burlywood": "#deb887",
+	"cadetblue": "#5f9ea0",
+	"chartreuse": "#7fff00",
+	"chocolate": "#d2691e",
+	"coral": "#ff7f50",
+	"cornflowerblue": "#6495ed",
+	"cornsilk": "#fff8dc",
+	"crimson": "#dc143c",
+	"cyan": "#00ffff",
+	"darkblue": "#00008b",
+	"darkcyan": "#008b8b",
+	"darkgoldenrod": "#b8860b",
+	"darkgray": "#a9a9a9",
+	"darkgreen": "#006400",
+	"darkgrey": "#a9a9a9",
+	"darkkhaki": "#bdb76b",
+	"darkmagenta": "#8b008b",
+	"darkolivegreen": "#556b2f",
+	"darkorange": "#ff8c00",
+	"darkorchid": "#9932cc",
+	"darkred": "#8b0000",
+	"darksalmon": "#e9967a",
+	"darkseagreen": "#8fbc8f",
+	"darkslateblue": "#483d8b",
+	"darkslategray": "#2f4f4f",
+	"darkslategrey": "#2f4f4f",
+	"darkturquoise": "#00ced1",
+	"darkviolet": "#9400d3",
+	"deeppink": "#ff1493",
+	"deepskyblue": "#00bfff",
+	"dimgray": "#696969",
+	"dimgrey": "#696969",
+	"dodgerblue": "#1e90ff",
+	"firebrick": "#b22222",
+	"floralwhite": "#fffaf0",
+	"forestgreen": "#228b22",
+	"gainsboro": "#dcdcdc",
+	"ghostwhite": "#f8f8ff",
+	"gold": "#ffd700",
+	"goldenrod": "#daa520",
+	"greenyellow": "#adff2f",
+	"grey": "#808080",
+	"honeydew": "#f0fff0",
+	"hotpink": "#ff69b4",
+	"indianred": "#cd5c5c",
+	"indigo": "#4b0082",
+	"ivory": "#fffff0",
+	"khaki": "#f0e68c",
+	"lavender": "#e6e6fa",
+	"lavenderblush": "#fff0f5",
+	"lawngreen": "#7cfc00",
+	"lemonchiffon": "#fffacd",
+	"lightblue": "#add8e6",
+	"lightcoral": "#f08080",
+	"lightcyan": "#e0ffff",
+	"lightgoldenrodyellow": "#fafad2",
+	"lightgray": "#d3d3d3",
+	"lightgreen": "#90ee90",
+	"lightgrey": "#d3d3d3",
+	"lightpink": "#ffb6c1",
+	"lightsalmon": "#ffa07a",
+	"lightseagreen": "#20b2aa",
+	"lightskyblue": "#87cefa",
+	"lightslategray": "#778899",
+	"lightslategrey": "#778899",
+	"lightsteelblue": "#b0c4de",
+	"lightyellow": "#ffffe0",
+	"limegreen": "#32cd32",
+	"linen": "#faf0e6",
+	"magenta": "#ff00ff",
+	"mediumaquamarine": "#66cdaa",
+	"mediumblue": "#0000cd",
+	"mediumorchid": "#ba55d3",
+	"mediumpurple": "#9370db",
+	"mediumseagreen": "#3cb371",
+	"mediumslateblue": "#7b68ee",
+	"mediumspringgreen": "#00fa9a",
+	"mediumturquoise": "#48d1cc",
+	"mediumvioletred": "#c71585",
+	"midnightblue": "#191970",
+	"mintcream": "#f5fffa",
+	"mistyrose": "#ffe4e1",
+	"moccasin": "#ffe4b5",
+	"navajowhite": "#ffdead",
+	"oldlace": "#fdf5e6",
+	"olivedrab": "#6b8e23",
+	"orangered": "#ff4500",
+	"orchid": "#da70d6",
+	"palegoldenrod": "#eee8aa",
+	"palegreen": "#98fb98",
+	"paleturquoise": "#afeeee",
+	"palevioletred": "#db7093",
+	"papayawhip": "#ffefd5",
+	"peachpuff": "#ffdab9",
+	"peru": "#cd853f",
+	"pink": "#ffc0cb",
+	"plum": "#dda0dd",
+	"powderblue": "#b0e0e6",
+	"rosybrown": "#bc8f8f",
+	"royalblue": "#4169e1",
+	"saddlebrown": "#8b4513",
+	"salmon": "#fa8072",
+	"sandybrown": "#f4a460",
+	"seagreen": "#2e8b57",
+	"seashell": "#fff5ee",
+	"sienna": "#a0522d",
+	"skyblue": "#87ceeb",
+	"slateblue": "#6a5acd",
+	"slategray": "#708090",
+	"slategrey": "#708090",
+	"snow": "#fffafa",
+	"springgreen": "#00ff7f",
+	"steelblue": "#4682b4",
+	"tan": "#d2b48c",
+	"thistle": "#d8bfd8",
+	"tomato": "#ff6347",
+	"turquoise": "#40e0d0",
+	"violet": "#ee82ee",
+	"wheat": "#f5deb3",
+	"whitesmoke": "#f5f5f5",
+	"yellowgreen": "#9acd32"
+};
+
+const css_color_names = Object.keys(css_colors);
+const svg_to_fold = function(svg$$1) {
+	let graph = {
+		"file_spec": 1.1,
+		"file_creator": "Rabbit Ear",
+		"file_classes": ["singleModel"],
+		"frame_title": "",
+		"frame_classes": ["creasePattern"],
+		"frame_attributes": ["2D"],
+		"vertices_coords": [],
+		"vertices_vertices": [],
+		"vertices_faces": [],
+		"edges_vertices": [],
+		"edges_faces": [],
+		"edges_assignment": [],
+		"edges_foldAngle": [],
+		"edges_length": [],
+		"faces_vertices": [],
+		"faces_edges": [],
+	};
+	let vl = graph.vertices_coords.length;
+	let segments$$1 = withAttributes(svg$$1);
+	graph.vertices_coords = segments$$1
+		.map(s => [[s.x1, s.y1], [s.x2, s.y2]])
+		.reduce((a,b) => a.concat(b), []);
+	return graph;
+	graph.edges_vertices = segments$$1.map((_,i) => [vl+i*2, vl+i*2+1]);
+	graph.edges_assignment = segments$$1.map(l => color_to_assignment(l.stroke));
+	graph.edges_foldAngle = graph.edges_assignment.map(a =>
+		(a === "M" ? -180 : (a === "V" ? 180 : 0))
+	);
+	return graph;
+};
+const color_to_assignment = function(string) {
+	let c = [0,0,0,1];
+	if (string[0] === "#") {
+		c = hexToComponents(string);
+	} else if (css_color_names.indexOf(string) !== -1) {
+		c = hexToComponents(css_colors[string]);
+	}
+	const ep = 0.05;
+	if (c[0] < ep && c[1] < ep && c[2] < ep) { return "F"; }
+	if (c[0] > c[1] && (c[0] - c[2]) > ep) { return "V"; }
+	if (c[2] > c[1] && (c[2] - c[0]) > ep) { return "M"; }
+	return "F";
+};
+const hexToComponents = function(h) {
+	let r = 0, g = 0, b = 0, a = 255;
+	if (h.length == 4) {
+		r = "0x" + h[1] + h[1];
+		g = "0x" + h[2] + h[2];
+		b = "0x" + h[3] + h[3];
+	} else if (h.length == 7) {
+		r = "0x" + h[1] + h[2];
+		g = "0x" + h[3] + h[4];
+		b = "0x" + h[5] + h[6];
+	} else if (h.length == 5) {
+		r = "0x" + h[1] + h[1];
+		g = "0x" + h[2] + h[2];
+		b = "0x" + h[3] + h[3];
+		a = "0x" + h[4] + h[4];
+	} else if (h.length == 9) {
+		r = "0x" + h[1] + h[2];
+		g = "0x" + h[3] + h[4];
+		b = "0x" + h[5] + h[6];
+		a = "0x" + h[7] + h[8];
+	}
+	return [+(r / 255), +(g / 255), +(b / 255), +(a / 255)];
+};
+
+let DOMParser$1 = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.DOMParser;
+if (typeof DOMParser$1 === "undefined" || DOMParser$1 === null) {
+	DOMParser$1 = require("xmldom").DOMParser;
+}
+let document$1 = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.document;
+if (typeof document$1 === "undefined" || document$1 === null) {
+	document$1 = new DOMParser$1()
+		.parseFromString("<!DOCTYPE html><title>a</title>", "text/html");
+}
+const svgNS$1 = "http://www.w3.org/2000/svg";
+const svg$1 = function() {
+	let svgImage = document$1.createElementNS(svgNS$1, "svg");
+	svgImage.setAttribute("version", "1.1");
+	svgImage.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+	return svgImage;
+};
+const group = function() {
+	let g = document$1.createElementNS(svgNS$1, "g");
+	return g;
+};
+const style = function() {
+	let style = document$1.createElementNS(svgNS$1, "style");
+	style.setAttribute("type", "text/css");
+	return style;
+};
+const line = function(x1, y1, x2, y2) {
+	let shape = document$1.createElementNS(svgNS$1, "line");
+	shape.setAttributeNS(null, "x1", x1);
+	shape.setAttributeNS(null, "y1", y1);
+	shape.setAttributeNS(null, "x2", x2);
+	shape.setAttributeNS(null, "y2", y2);
+	return shape;
+};
+const circle = function(x, y, radius) {
+	let shape = document$1.createElementNS(svgNS$1, "circle");
+	shape.setAttributeNS(null, "cx", x);
+	shape.setAttributeNS(null, "cy", y);
+	shape.setAttributeNS(null, "r", radius);
+	return shape;
+};
+const polygon = function(pointsArray) {
+	let shape = document$1.createElementNS(svgNS$1, "polygon");
+	setPoints(shape, pointsArray);
+	return shape;
+};
+const setPoints = function(polygon, pointsArray) {
+	if (pointsArray == null || pointsArray.constructor !== Array) {
+		return;
+	}
+	let pointsString = pointsArray.map((el) =>
+		(el.constructor === Array ? el : [el.x, el.y])
+	).reduce((prev, curr) => prev + curr[0] + "," + curr[1] + " ", "");
+	polygon.setAttributeNS(null, "points", pointsString);
+};
+const setViewBox = function(svg, x, y, width, height, padding = 0) {
+	let scale = 1.0;
+	let d = (width / scale) - width;
+	let X = (x - d) - padding;
+	let Y = (y - d) - padding;
+	let W = (width + d * 2) + padding * 2;
+	let H = (height + d * 2) + padding * 2;
+	let viewBoxString = [X, Y, W, H].join(" ");
+	svg.setAttributeNS(null, "viewBox", viewBoxString);
+};
+
+function vkXML$1(text, step) {
 	var ar = text.replace(/>\s{0,}</g,"><")
 				 .replace(/</g,"~::~<")
 				 .replace(/\s*xmlns\:/g,"~::~xmlns:")
@@ -856,124 +1345,263 @@ function vkXML(text, step) {
 	return  (str[0] == '\n') ? str.slice(1) : str;
 }
 
-let DOMParser = (typeof window === "undefined" || window === null)
+const style$1 = `
+svg * {
+  stroke-width:var(--crease-width);
+  stroke-linecap:round;
+  stroke:black;
+}
+polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
+.boundary {fill:white; stroke:black;}
+.mark {stroke:#AAA;}
+.mountain {stroke:#00F;}
+.valley{
+  stroke:#F00;
+  stroke-dasharray:calc(var(--crease-width)*2) calc(var(--crease-width)*2);
+}
+.foldedForm .boundary {fill:none;stroke:none;}
+.foldedForm .faces polygon { stroke:#000; }
+.foldedForm .faces .front { fill:#DDD; }
+.foldedForm .faces .back { fill:#FFF; }
+.foldedForm .creases line { stroke:none; }`;
+
+let DOMParser$2 = (typeof window === "undefined" || window === null)
 	? undefined
 	: window.DOMParser;
-if (typeof DOMParser === "undefined" || DOMParser === null) {
-	DOMParser = require("xmldom").DOMParser;
+if (typeof DOMParser$2 === "undefined" || DOMParser$2 === null) {
+	DOMParser$2 = require("xmldom").DOMParser;
 }
-let XMLSerializer = (typeof window === "undefined" || window === null)
+let XMLSerializer$1 = (typeof window === "undefined" || window === null)
 	? undefined
 	: window.XMLSerializer;
-if (typeof XMLSerializer === "undefined" || XMLSerializer === null) {
-	XMLSerializer = require("xmldom").XMLSerializer;
+if (typeof XMLSerializer$1 === "undefined" || XMLSerializer$1 === null) {
+	XMLSerializer$1 = require("xmldom").XMLSerializer;
 }
-let document = (typeof window === "undefined" || window === null)
-	? undefined
-	: window.document;
-if (typeof document === "undefined" || document === null) {
-	document = new DOMParser()
-		.parseFromString("<!DOCTYPE html><title>a</title>", "text/html");
-}
-const parseable = Object.keys(parsers);
-const svgNS = "http://www.w3.org/2000/svg";
-const svgAttributes = [
-	"version",
-	"xmlns",
-	"contentScriptType",
-	"contentStyleType",
-	"baseProfile",
-	"class",
-	"externalResourcesRequired",
-	"x",
-	"y",
-	"width",
-	"height",
-	"viewBox",
-	"preserveAspectRatio",
-	"zoomAndPan",
-	"style"
-];
-const shape_attr = {
-	"line": ["x1", "y1", "x2", "y2"],
-	"rect": ["x", "y", "width", "height"],
-	"circle": ["cx", "cy", "r"],
-	"ellipse": ["cx", "cy", "rx", "ry"],
-	"polygon": ["points"],
-	"polyline": ["points"],
-	"path": ["d"]
+const CREASE_NAMES = {
+	B: "boundary", b: "boundary",
+	M: "mountain", m: "mountain",
+	V: "valley",   v: "valley",
+	F: "mark",     f: "mark",
+	U: "mark",     u: "mark"
 };
-const inputIntoXML = function(input) {
-	return (typeof input === "string"
-		? new DOMParser().parseFromString(input, "text/xml").documentElement
-		: input);
+const DISPLAY_NAME = {
+	vertices: "vertices",
+	edges: "creases",
+	faces: "faces",
+	boundaries: "boundaries"
 };
-const flatten_tree = function(element) {
-	if (element.tagName === "g" || element.tagName === "svg") {
-		if (element.childNodes == null) { return []; }
-		return Array.from(element.childNodes)
-			.map(child => flatten_tree(child))
-			.reduce((a,b) => a.concat(b),[]);
-	}
-	return [element];
-};
-const attribute_list = function(element) {
-	return Array.from(element.attributes)
-		.filter(a => shape_attr[element.tagName].indexOf(a.name) === -1);
-};
-const svg = function(input) {
-	let inputSVG = inputIntoXML(input);
-	let newSVG = document.createElementNS(svgNS, "svg");
-	svgAttributes.map(a => ({attribute: a, value: inputSVG.getAttribute(a)}))
-		.filter(obj => obj.value != null && obj.value !== "")
-		.forEach(obj => newSVG.setAttribute(obj.attribute, obj.value));
-	if (newSVG.getAttribute("xmlns") === null) {
-		newSVG.setAttribute("xmlns", svgNS);
-	}
-	let elements = flatten_tree(inputSVG);
-	let styles = elements
-		.filter(e => e.tagName === "style" || e.tagName === "defs");
-	if (styles.length > 0) {
-		styles.map(style => style.cloneNode(true))
-			.forEach(style => newSVG.appendChild(style));
-	}
-	let segments = elements
-		.filter(e => parseable.indexOf(e.tagName) !== -1)
-		.map(e => parsers[e.tagName](e)
-			.map(unit => [...unit, attribute_list(e)])
-		).reduce((a,b) => a.concat(b), []);
-	segments.forEach(s => {
-		let line = document.createElementNS(svgNS, "line");
-		line.setAttributeNS(null, "x1", s[0]);
-		line.setAttributeNS(null, "y1", s[1]);
-		line.setAttributeNS(null, "x2", s[2]);
-		line.setAttributeNS(null, "y2", s[3]);
-		if (s[4] != null) {
-			s[4].forEach(attr => line.setAttribute(attr.nodeName, attr.nodeValue));
+const fold_to_svg = function(fold, options) {
+	let svg = svg$1();
+	let stylesheet = style$1;
+	let graph = fold;
+	let style$$1 = true;
+	let groups = {
+		boundaries: true,
+		faces: true,
+		edges: true,
+		vertices: false
+	};
+	let width = "500px";
+	let height = "500px";
+	if (options != null) {
+		if (options.width != null) { width = options.width; }
+		if (options.height != null) { height = options.height; }
+		if (options.style != null) { style$$1 = options.style; }
+		if (options.stylesheet != null) { stylesheet = options.stylesheet; }
+		if (options.frame != null) {
+			graph = flatten_frame(fold, options.frame);
 		}
-		newSVG.appendChild(line);
+	}
+	let file_classes = (graph.file_classes != null
+		? graph.file_classes : []).join(" ");
+	let frame_classes = graph.frame_classes != null
+		? graph.frame_classes : [].join(" ");
+	let top_level_classes = [file_classes, frame_classes]
+		.filter(s => s !== "")
+		.join(" ");
+	svg.setAttribute("class", top_level_classes);
+	svg.setAttribute("width", width);
+	svg.setAttribute("height", height);
+	let styleElement = style();
+	svg.appendChild(styleElement);
+	Object.keys(groups)
+		.filter(key => groups[key] === false)
+		.forEach(key => delete groups[key]);
+	Object.keys(groups).forEach(key => {
+		groups[key] = group();
+		groups[key].setAttribute("class", DISPLAY_NAME[key]);
+		svg.appendChild(groups[key]);
 	});
-	let stringified = new XMLSerializer().serializeToString(newSVG);
-	let beautified = vkXML(stringified);
+	Object.keys(groups).forEach(key =>
+		components[key](graph).forEach(o =>
+			groups[key].appendChild(o)
+		)
+	);
+	let rect = bounding_rect(graph);
+	setViewBox(svg, ...rect);
+	let vmin = rect[2] > rect[3] ? rect[3] : rect[2];
+	let innerStyle = (style$$1
+		? `\nsvg { --crease-width: ${vmin*0.005}; }\n${stylesheet}`
+		: `\nsvg { --crease-width: ${vmin*0.005}; }\n`);
+	var docu = (new DOMParser$2())
+		.parseFromString('<xml></xml>', 'application/xml');
+	var cdata = docu.createCDATASection(innerStyle);
+	styleElement.appendChild(cdata);
+	let stringified = (new XMLSerializer$1()).serializeToString(svg);
+	let beautified = vkXML$1(stringified);
 	return beautified;
 };
-const withAttributes = function(input) {
-	let inputSVG = inputIntoXML(input);
-	return flatten_tree(inputSVG)
-		.filter(e => parseable.indexOf(e.tagName) !== -1)
-		.map(e => parsers[e.tagName](e).map(s => {
-			let obj = ({x1:s[0], y1:s[1], x2:s[2], y2:s[3]});
-			attribute_list(e).forEach(a => obj[a.nodeName] = a.value);
-			return obj;
-		}))
-		.reduce((a,b) => a.concat(b), []);
+const svgBoundaries = function(graph) {
+	if ("edges_vertices" in graph === false ||
+	    "vertices_coords" in graph === false) {
+		return [];
+	}
+	let boundary = get_boundary_vertices(graph)
+		.map(v => graph.vertices_coords[v]);
+	let p = polygon(boundary);
+	p.setAttribute("class", "boundary");
+	return [p];
 };
-const segments = function(input) {
-	let inputSVG = inputIntoXML(input);
-	return flatten_tree(inputSVG)
-		.filter(e => parseable.indexOf(e.tagName) !== -1)
-		.map(e => parsers[e.tagName](e))
-		.reduce((a,b) => a.concat(b), []);
+const svgVertices = function(graph, options) {
+	if ("vertices_coords" in graph === false) {
+		return [];
+	}
+	let radius = options && options.radius ? options.radius : 0.01;
+	let svg_vertices = graph.vertices_coords
+		.map(v => circle(v[0], v[1], radius));
+	svg_vertices.forEach((c,i) => c.setAttribute("id", ""+i));
+	return svg_vertices;
+};
+const svgEdges = function(graph) {
+	if ("edges_vertices" in graph === false ||
+	    "vertices_coords" in graph === false) {
+		return [];
+	}
+	let svg_edges = graph.edges_vertices
+		.map(ev => ev.map(v => graph.vertices_coords[v]))
+		.map(e => line(e[0][0], e[0][1], e[1][0], e[1][1]));
+	svg_edges.forEach((edge, i) => edge.setAttribute("id", ""+i));
+	make_edge_assignment_names(graph)
+		.forEach((a, i) => svg_edges[i].setAttribute("class", a));
+	return svg_edges;
+};
+const svgFaces = function(graph) {
+	if ("faces_vertices" in graph === true) {
+		return svgFacesVertices(graph);
+	} else if ("faces_edges" in graph === true) {
+		return svgFacesEdges(graph);
+	}
+	return [];
+};
+const svgFacesVertices = function(graph) {
+	if ("faces_vertices" in graph === false ||
+	    "vertices_coords" in graph === false) {
+		return [];
+	}
+	let svg_faces = graph.faces_vertices
+		.map(fv => fv.map(v => graph.vertices_coords[v]))
+		.map(face => polygon(face));
+	svg_faces.forEach((face, i) => face.setAttribute("id", ""+i));
+	return finalize_faces(graph, svg_faces);
+};
+const svgFacesEdges = function(graph) {
+	if ("faces_edges" in graph === false ||
+	    "edges_vertices" in graph === false ||
+	    "vertices_coords" in graph === false) {
+		return [];
+	}
+	let svg_faces = graph.faces_edges
+		.map(face_edges => face_edges
+			.map(edge => graph.edges_vertices[edge])
+			.map((vi, i, arr) => {
+				let next = arr[(i+1)%arr.length];
+				return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
+			}).map(v => graph.vertices_coords[v])
+		).map(face => polygon(face));
+	svg_faces.forEach((face, i) => face.setAttribute("id", ""+i));
+	return finalize_faces(graph, svg_faces);
+};
+const finalize_faces = function(graph, svg_faces) {
+	let orderIsCertain = graph["faces_re:layer"] != null
+		&& graph["faces_re:layer"].length === graph.faces_vertices.length;
+	if (orderIsCertain) {
+		make_faces_sidedness(graph)
+			.forEach((side, i) => svg_faces[i].setAttribute("class", side));
+	}
+	return (orderIsCertain
+		? faces_sorted_by_layer(graph["faces_re:layer"]).map(i => svg_faces[i])
+		: svg_faces);
+};
+const make_faces_sidedness = function(graph) {
+	let coloring = graph["faces_re:coloring"];
+	if (coloring == null) {
+		coloring = ("faces_re:matrix" in graph)
+			? faces_matrix_coloring(graph["faces_re:matrix"])
+			: faces_coloring(graph, 0);
+	}
+	return coloring.map(c => c ? "front" : "back");
+};
+const faces_sorted_by_layer = function(faces_layer) {
+	return faces_layer.map((layer,i) => ({layer:layer, i:i}))
+		.sort((a,b) => a.layer-b.layer)
+		.map(el => el.i)
+};
+const make_edge_assignment_names = function(graph) {
+	return (graph.edges_vertices == null || graph.edges_assignment == null ||
+		graph.edges_vertices.length !== graph.edges_assignment.length
+		? []
+		: graph.edges_assignment.map(a => CREASE_NAMES[a]));
+};
+const components = {
+	vertices: svgVertices,
+	edges: svgEdges,
+	faces: svgFaces,
+	boundaries: svgBoundaries
 };
 
-export { svg, withAttributes, segments };
+let DOMParser$3 = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.DOMParser;
+if (typeof DOMParser$3 === "undefined" || DOMParser$3 === null) {
+	DOMParser$3 = require("xmldom").DOMParser;
+}
+let XMLSerializer$2 = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.XMLSerializer;
+if (typeof XMLSerializer$2 === "undefined" || XMLSerializer$2 === null) {
+	XMLSerializer$2 = require("xmldom").XMLSerializer;
+}
+let core = {
+	svgBoundaries,
+	svgVertices,
+	svgEdges,
+	svgFacesVertices,
+	svgFacesEdges
+};
+let convert = {
+	core,
+	toSVG: function(input, options) {
+		if (typeof input === "object" && input !== null) {
+			return fold_to_svg(input, options);
+		}
+		else if (typeof input === "string" || input instanceof String) {
+			try {
+				let obj = JSON.parse(input);
+				return fold_to_svg(obj, options);
+			} catch (error) {
+				throw error;
+			}
+		}
+	},
+	toFOLD: function(input, options) {
+		if (typeof input === "string") {
+			let svg = (new DOMParser$3())
+				.parseFromString(input, "text/xml").documentElement;
+			return svg_to_fold(svg, options);
+		} else {
+			return svg_to_fold(input, options);
+		}
+	},
+};
+
+export default convert;

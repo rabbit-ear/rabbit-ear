@@ -89,7 +89,6 @@ export const regular_polygon = function(sides, radius = 1) {
 		// faces_
 		faces_vertices: [arr.map((_,i) => i)],
 		faces_edges: [arr.map((_,i) => i)],
-		// "re:faces_layer": [0]
 	}
 	return Object.assign(
 		Object.create(null),

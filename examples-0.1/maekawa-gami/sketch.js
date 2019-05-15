@@ -58,7 +58,7 @@ origami.onMouseDown = function(mouse) {
 			origami.nextEdge[1][0] - origami.nextEdge[0][0],
 			origami.nextEdge[1][1] - origami.nextEdge[0][1]
 		];
-		let cp = origami.cp.json;
+		let cp = origami.cp.copy();
 		RabbitEar.core.crease_folded(cp, cp.vertices_coords[origami.near.vertex.index], nextVector, origami.near.face.index);
 		origami.cp = RabbitEar.CreasePattern(cp);
 		let foldedCP = RabbitEar.core.fold_without_layering(cp);

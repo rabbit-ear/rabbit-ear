@@ -39,21 +39,21 @@ polygon {
 	stroke-width: calc( var(--crease-width) * 0.25);
 }
 
-.foldedForm #faces polygon {
+.foldedForm .faces polygon {
 	fill: rgba(220, 10, 100, 0.2);
 	stroke: rgba(0, 0, 0, 0.2);
 }
 
-.foldedForm #faces .front {
+.foldedForm .faces .front {
 	fill: linen;
 	stroke: black;
 }
 
-.foldedForm #faces .back {
+.foldedForm .faces .back {
 	fill: peru;
 	stroke: black;
 }
 
-.foldedForm #creases line {
+.foldedForm .creases line {
 	stroke: none;
 }

@@ -81,19 +81,19 @@ polygon {
 	stroke-width: calc( var(--crease-width) * 0.25);
 }
 
-.foldedForm #faces polygon {
-	stroke: rgba(0, 0, 0, 0.2);
+.foldedForm .faces polygon {
+	stroke: none;
 	fill: rgba(255, 255, 255, 0.2);
 }
 
-.foldedForm #faces .front {
+.foldedForm .faces .front {
 	fill: linen;
 }
 
-.foldedForm #faces .back {
+.foldedForm .faces .back {
 	fill: peru;
 }
 
-.foldedForm #creases line {
+.foldedForm .creases line {
 	stroke: none;
 }

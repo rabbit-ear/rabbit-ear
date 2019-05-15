@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<title>Rabbit Ear</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="style.css">
+<script type="text/javascript" src="../../rabbit-ear.js"></script>
+
+<script>
+let origami = RE.Origami({folding:true, padding:0.15, autofit:false});
+let pattern = RE.Origami({padding:0.15});
+
+origami.onMouseMove = function(mouse) {
+	if (mouse.isPressed) {
+		pattern.cp = origami.cp;
+	}
+}
+</script>

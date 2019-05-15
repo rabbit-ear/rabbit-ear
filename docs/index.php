@@ -288,12 +288,12 @@ sinePleats.init = function(t = 0.0) {
 		? sinePleats.cp.creaseLine(p[0], p[1]).mountain()
 		: sinePleats.cp.creaseLine(p[0], p[1]).valley()
 	);
-	let cp = RabbitEar.CreasePattern(sinePleats.cp.json);
+	let cp = sinePleats.cp.copy();
 	let vertices_coords = RabbitEar.core.fold_vertices_coords(cp, 0);
 	let faces_layer = Array.from(Array(sinePleats.faces.length)).map((_,i) => i);
 	let file_frame = {
 		vertices_coords,
-		"re:faces_layer": faces_layer,
+		"faces_re:layer": faces_layer,
 		frame_classes: ["foldedForm"],
 		frame_inherit: true,
 		frame_parent: 0

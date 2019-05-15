@@ -224,7 +224,7 @@ export const nearest_edge = function(graph, point) {
 };
 
 /**
- * someday this will implement facesOrders. right now just re:faces_layer
+ * someday this will implement facesOrders. right now just faces_re:layer
  * leave faces_options empty to search all faces
  */
 export const topmost_face = function(graph, faces_options) {
@@ -236,7 +236,7 @@ export const topmost_face = function(graph, faces_options) {
 	if (faces_options.length === 1) { return faces_options[0]; }
 
 	// top to bottom
-	let faces_in_order = graph["re:faces_layer"]
+	let faces_in_order = graph["faces_re:layer"]
 		.map((layer,i) => ({layer:layer, i:i}))
 		.sort((a,b) => b.layer - a.layer)
 		.map(el => el.i)
@@ -482,10 +482,10 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		});
 
 	// remove faces, adjust all relevant indices
-	// console.log(JSON.parse(JSON.stringify(graph["re:faces_coloring"])));
+	// console.log(JSON.parse(JSON.stringify(graph["faces_re:coloring"])));
 	let faces_map = Graph.remove_faces(graph, [faceIndex]);
 	// console.log("removing faceIndex", faces_map);
-	// console.log(JSON.parse(JSON.stringify(graph["re:faces_coloring"])));
+	// console.log(JSON.parse(JSON.stringify(graph["faces_re:coloring"])));
 
 	// return a diff of the geometry
 	return {
@@ -509,9 +509,11 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
  * @param [[x, y], [x, y]] edge
  * @param [a, b, c, d, e] face_vertices. just 1 face. not .fold array
  * @param vertices_coords from .fold
- * @return [[a,b], [c,d]] vertices indices of the collinear face edges. 1:1 index relation to edge endpoints.
+ * @return [[a,b], [c,d]] vertices indices of the collinear face edges.
+ *         1:1 index relation to edge endpoints.
  */
-export const find_collinear_face_edges = function(edge, face_vertices, vertices_coords){
+export const find_collinear_face_edges = function(edge, face_vertices,
+	vertices_coords) {
 	let face_edge_geometry = face_vertices
 		.map((v) => vertices_coords[v])
 		.map((v, i, arr) => [v, arr[(i+1)%arr.length]]);
@@ -520,8 +522,9 @@ export const find_collinear_face_edges = function(edge, face_vertices, vertices_
 		// as an edge array index, which == face vertex array between i, i+1
 		let i = face_edge_geometry
 			.map((edgeVerts, edgeI) => ({index:edgeI, edge:edgeVerts}))
-			.filter((e) => Geom.core.intersection.point_on_edge(e.edge[0], e.edge[1], endPt))
-			.shift()
+			.filter((e) => Geom.core.intersection
+				.point_on_edge(e.edge[0], e.edge[1], endPt)
+			).shift()
 			.index;
 		return [face_vertices[i], face_vertices[(i+1)%face_vertices.length]]
 			.sort((a,b) => a-b);
@@ -529,7 +532,7 @@ export const find_collinear_face_edges = function(edge, face_vertices, vertices_
 }
 
 
-export function clip_line(fold, linePoint, lineVector){
+export function clip_line(fold, linePoint, lineVector) {
 	function len(a,b){
 		return Math.sqrt(Math.pow(a[0]-b[0],2) + Math.pow(a[1]-b[1],2));
 	}

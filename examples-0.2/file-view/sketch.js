@@ -52,8 +52,7 @@ document.getElementById("download-cp-svg")
 document.getElementById("download-cp-fold")
 	.addEventListener("click", function(e){
 	e.preventDefault();
-	var fold = JSON.stringify(origami.cp);
-	makeDownloadBlob(fold, "origami", "application/json");
+	makeDownloadBlob(origami.cp.json, "origami", "application/json");
 });
 document.getElementById("download-cp-opx")
 	.addEventListener("click", function(e){

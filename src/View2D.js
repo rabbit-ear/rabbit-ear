@@ -14,7 +14,7 @@ import * as Origami from "./fold/origami";
 import { flatten_frame } from "./fold/file";
 import { load_file } from "./convert/convert";
 import CreasePattern from "./cp/CreasePattern";
-import * as FoldToSVG from "./draw/toSVG";
+import { default as FOLD_SVG } from "../include/fold-svg";
 import {
 	faces_containing_point,
 	topmost_face,
@@ -28,6 +28,20 @@ const DEFAULTS = Object.freeze({
 	padding: 0,
 	shadows: false
 });
+
+const DISPLAY_NAME = {
+	vertices: "vertices",
+	edges: "creases",
+	faces: "faces",
+	boundaries: "boundaries"
+};
+
+const drawComponent = {
+	vertices: FOLD_SVG.core.svgVertices,
+	edges: FOLD_SVG.core.svgEdges,
+	faces: FOLD_SVG.core.svgFacesVertices,
+	boundaries: FOLD_SVG.core.svgBoundaries
+};
 
 const parsePreferences = function() {
 	let keys = Object.keys(DEFAULTS);
@@ -45,42 +59,56 @@ export default function() {
 
 	let _this = SVG.image(...arguments);
 
-	(function(){
-		const svgNS = "http://www.w3.org/2000/svg";
-		let defs = document.createElementNS(svgNS, "defs");
-		let filter = document.createElementNS(svgNS, "filter");
-		filter.setAttribute("width", "200%");
-		filter.setAttribute("height", "200%");
-		filter.setAttribute("id", "face-shadow");
-		let blur = document.createElementNS(svgNS, "feGaussianBlur");
-		blur.setAttribute("result", "blurOut");
-		blur.setAttribute("in", "SourceAlpha");
-		blur.setAttribute("stdDeviation", 0.005);
-		let merge = document.createElementNS(svgNS, "feMerge");
-		let mergeNode1 = document.createElementNS(svgNS, "feMergeNode");
-		let mergeNode2 = document.createElementNS(svgNS, "feMergeNode");
-		mergeNode2.setAttribute("in", "SourceGraphic");
-		_this.appendChild(defs);
-		defs.appendChild(filter);
-		filter.appendChild(blur);
-		filter.appendChild(merge);
-		merge.appendChild(mergeNode1);
-		merge.appendChild(mergeNode2);
-	})();
+	// (function(){
+	// 	const svgNS = "http://www.w3.org/2000/svg";
+	// 	let defs = document.createElementNS(svgNS, "defs");
+	// 	let filter = document.createElementNS(svgNS, "filter");
+	// 	filter.setAttribute("width", "200%");
+	// 	filter.setAttribute("height", "200%");
+	// 	filter.setAttribute("id", "face-shadow");
+	// 	let blur = document.createElementNS(svgNS, "feGaussianBlur");
+	// 	blur.setAttribute("result", "blurOut");
+	// 	blur.setAttribute("in", "SourceAlpha");
+	// 	blur.setAttribute("stdDeviation", 0.005);
+	// 	let merge = document.createElementNS(svgNS, "feMerge");
+	// 	let mergeNode1 = document.createElementNS(svgNS, "feMergeNode");
+	// 	let mergeNode2 = document.createElementNS(svgNS, "feMergeNode");
+	// 	mergeNode2.setAttribute("in", "SourceGraphic");
+	// 	_this.appendChild(defs);
+	// 	defs.appendChild(filter);
+	// 	filter.appendChild(blur);
+	// 	filter.appendChild(merge);
+	// 	merge.appendChild(mergeNode1);
+	// 	merge.appendChild(mergeNode2);
+	// })();
 
 	// make SVG groups
-	let groups = {};  // visible = {};
+	let visible = [
+		"boundaries",
+		"faces",
+		"edges",
+		// "vertices"
+	];
+
+	// visible = {};
 	// ["boundary", "face", "crease", "vertex"]
 	// make sure they are added in this order
-	["boundaries", "faces", "creases", "vertices", "labels"].forEach(key =>
-		groups[key] = _this.group().setID(key)
-	);
+	// ["boundaries", "faces", "creases", "vertices", "labels"].forEach(key =>
+	// 	groups[key] = _this.group().setID(key)
+	// );
 
-	let visibleGroups = {
-		"boundaries": groups["boundaries"],
-		"faces": groups["faces"],
-		"creases": groups["creases"],
-	};
+	let groups = {};
+	["boundaries", "faces", "edges", "vertices"].forEach(key => {
+		groups[key] = _this.group();
+		groups[key].setAttribute("class", DISPLAY_NAME[key]);
+		_this.appendChild(groups[key]);
+	});
+
+	// let visibleGroups = {
+	// 	"boundaries": groups["boundaries"],
+	// 	"faces": groups["faces"],
+	// 	"creases": groups["creases"],
+	// };
 
 	// make svg components pass through their touches
 	Object.keys(groups).forEach(key =>
@@ -88,10 +116,10 @@ export default function() {
 	);
 
 	let labels = {
-		"boundary": _this.group(),
-		"face": _this.group(),
-		"crease": _this.group(),
-		"vertex": _this.group()
+		// "boundary": _this.group(),
+		// "face": _this.group(),
+		// "crease": _this.group(),
+		// "vertex": _this.group()
 	};
 
 	let isClean = true;
@@ -110,8 +138,13 @@ export default function() {
 	Object.keys(userDefaults)
 		.forEach(key => preferences[key] = userDefaults[key]);
 
+	/**
+	 * if the user passes in an already initialized CreasePattern object
+	 * (this class), no deep copy will occur.
+	 */
 	const setCreasePattern = function(cp, frame = undefined) {
-		// todo: check if cp is a CreasePattern type
+		// todo, check if FOLD format
+		// secret key to determine if this is already a CreasePattern type
 		prop.cp = (cp.__rabbit_ear == null)
 			? CreasePattern(cp)
 			: cp;
@@ -151,7 +184,7 @@ export default function() {
 
 	const isFolded = function(graph) {
 		// this is a heuristic function.
-		// continue developing best practices for detecting folded state
+		// need best practices for detecting folded state
 		if (graph.frame_classes == null) { return false; }
 		return graph.frame_classes.includes("foldedForm");
 	}
@@ -170,15 +203,26 @@ export default function() {
 		if (isFolded(graph)) {
 			_this.removeClass("creasePattern");
 			_this.addClass("foldedForm");
+			visible = ["faces", "edges"];
 		} else{
 			_this.removeClass("foldedForm");
 			_this.addClass("creasePattern");
+			visible = ["boundaries", "faces", "edges"];
 		}
 
-		Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
-		labels.face.removeChildren(); //todo remove
+		Object.keys(groups).forEach(key => groups[key].removeChildren());
+		// draw geometry into groups
+		visible.forEach(key =>
+			drawComponent[key](graph).forEach(o =>
+				groups[key].appendChild(o)
+			)
+		);
+
+		// Object.keys(groups).forEach((key) => SVG.removeChildren(groups[key]));
+		// labels.face.removeChildren(); //todo remove
 		// both folded and non-folded draw all the components, style them in CSS
-		FoldToSVG.intoGroups(graph, visibleGroups);
+		// FOLD_SVG.toSVG(graph, null, {svg:_this, style:false});
+		// FoldToSVG.intoGroups(graph, visibleGroups);
 
 		// if (groups.faces.children.length === graph.faces_vertices.length) {
 		// 	FoldToSVG.updateFaces(graph, groups.faces);
@@ -190,14 +234,14 @@ export default function() {
 		if (preferences.debug) { drawDebug(graph); }
 		if (preferences.autofit) { updateViewBox(); }
 
-		if (preferences.shadows) {
-			Array.from(groups.faces.children)
-				.forEach(f => f.setAttribute("filter", "url(#face-shadow)"));
-		}
+		// if (preferences.shadows) {
+		// 	Array.from(groups.faces.children)
+		// 		.forEach(f => f.setAttribute("filter", "url(#face-shadow)"));
+		// }
 
-		let r = bounding_rect(graph);
-		let vmin = r[2] > r[3] ? r[3] : r[2];
-		_this.style = "--crease-width: " + vmin*0.005 + ";"
+		// let r = bounding_rect(graph);
+		// let vmin = r[2] > r[3] ? r[3] : r[2];
+		// _this.style = "--crease-width: " + vmin*0.005 + ";"
 		// styleElement.innerHTML = "#creases line {" + creaseStyle + "}";
 
 /*
@@ -326,8 +370,8 @@ export default function() {
 
 		if (prop.cp.file_frames != null
 			&& prop.cp.file_frames.length > 0
-			&& prop.cp.file_frames[0]["re:faces_matrix"] != null
-			&& prop.cp.file_frames[0]["re:faces_matrix"].length 
+			&& prop.cp.file_frames[0]["faces_re:matrix"] != null
+			&& prop.cp.file_frames[0]["faces_re:matrix"].length 
 				=== prop.cp.faces_vertices.length) {
 			// well.. do nothing. we're good
 		} else {
@@ -434,7 +478,7 @@ export default function() {
 		}
 	});
 
-	_this.groups = groups;
+	// _this.groups = groups;
 	// _this.labels = labels;
 
 	Object.defineProperty(_this, "updateViewBox", { value: updateViewBox });

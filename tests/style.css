@@ -5,7 +5,7 @@
 	--byrne-yellow: #ecb233;
 }
 
-/* 
+/*
 #145685 (20, 86, 133) blue
 #edb31c (237, 179, 28) yellow
 #e64e1e (230, 78, 30) red
@@ -81,7 +81,7 @@ svg{
 .vertex{ fill: hsl(43, 88%, 46%); }
 .boundary{ fill:none; }
 .mark{
-	stroke-width: calc( var(--crease-width) * 0.25);
+	stroke-width: calc( var(--crease-width) * 0.5);
 }
 .valley{
 	stroke-dasharray: calc( var(--crease-width) * 1.5) calc( var(--crease-width) * 2)
@@ -99,33 +99,33 @@ svg{
 	stroke-width: var(--crease-width);
 }
 
-.creasePattern #faces {
+.creasePattern .faces {
 	stroke: none; fill: none;
 }
 
-.foldedForm #faces {
+.foldedForm .faces {
 	fill: rgba(0, 0, 0, 0.1);
 	stroke: black;
 	stroke-width: calc(var(--crease-width)*0.1);
 	stroke-linejoin: bevel;
 }
 
-.foldedForm #faces .front {
+.foldedForm .faces .front {
 	fill: #ecb233; stroke: black;  stroke-width: var(--crease-width);
 }
-.foldedForm #faces .back {
+.foldedForm .faces .back {
 	fill: white; stroke: black; stroke-width: var(--crease-width);
 }
 
-.foldedForm #creases * {
+.foldedForm .creases * {
 	fill: none; stroke: none;
 }
 
-.foldedForm #vertices * {
+.foldedForm .vertices * {
 	fill: none; stroke: none;
 }
 
 /* this is cool if you leave it out, you can see the boundary in the folded form */
-.foldedForm #boundaries * {
+.foldedForm .boundaries * {
 	fill: none; stroke: none;
 }

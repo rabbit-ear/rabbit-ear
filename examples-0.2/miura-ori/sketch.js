@@ -136,6 +136,5 @@ document.querySelector("#download-svg").onclick = function(event) {
 }
 
 document.querySelector("#download-fold").onclick = function(event) {
-	var foldFile = JSON.stringify(origami.cp.json);
-	download(foldFile, "origami.fold", "application/json");
+	download(origami.cp.json, "origami.fold", "application/json");
 }

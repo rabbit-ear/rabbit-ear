@@ -367,7 +367,11 @@ convert.toJSON = function(fold) {
   return "{\n" + ((function() {
     var results;
     results = [];
-    for (key in fold) {
+    // i made a change here - Robby
+    // for (key in fold) {
+    var keys = Object.keys(fold);
+    for(var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+      key = keys[keyIndex];
       value = fold[key];
       results.push(("  " + (JSON.stringify(key)) + ": ") + (Array.isArray(value) ? "[\n" + ((function() {
         var j, len, results1;
