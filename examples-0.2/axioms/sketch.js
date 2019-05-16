@@ -1,5 +1,5 @@
 let origami = RabbitEar.Origami("origami-cp", {padding:0.05});
-let folded = RabbitEar.Origami("origami-fold", {padding:0.05});
+let folded = RabbitEar.Origami("origami-fold", {padding:0.05, shadows:true});
 
 origami.markLayer = origami.group();
 origami.interactionLayer = origami.group();
@@ -136,7 +136,8 @@ origami.onMouseMove = function(event){
 	origami.update();
 }
 
-// intersect is a point on the line, the point which the arrow should be cast perpendicularly across
+// intersect is a point on the line,
+// the point which the arrow should be cast perpendicularly across
 // when left undefined, intersect will be the midpoint of the line.
 origami.drawArrowAcross = function(crease, crossing){
 
@@ -275,13 +276,6 @@ var selectAxiom = function(n){
 function setSubSel(s) {
 	origami.subSelect = s;
 	origami.update();
-}
-
-var whichAxiom = function(){
-	for(var i = 1; i < 8; i++){
-		if(document.getElementById("btn-axiom-"+i).className.indexOf("active") !== -1){ return i; }
-	}
-	return 0;
 }
 
 document.getElementById("btn-axiom-1").onclick = function(){ selectAxiom(1); }

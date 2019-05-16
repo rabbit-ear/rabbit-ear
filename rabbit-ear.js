@@ -6142,7 +6142,7 @@
 		return Object.assign(
 			Object.create(null),
 			template(),
-			cp_type,
+			cp_type(),
 			square_graph()
 		);
 	};
@@ -6153,7 +6153,7 @@
 		return Object.assign(
 			Object.create(null),
 			template(),
-			cp_type,
+			cp_type(),
 			graph
 		);
 	};
@@ -6183,7 +6183,7 @@
 		return Object.assign(
 			Object.create(null),
 			template(),
-			cp_type,
+			cp_type(),
 			graph
 		);
 	};
@@ -8050,7 +8050,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		debug: false,
 		folding: false,
 		padding: 0,
-		shadows: false
+		shadows: false,
+		labels: false
 	});
 	const DISPLAY_NAME$1 = {
 		vertices: "vertices",
@@ -8077,22 +8078,16 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 	};
 	function Origami$1() {
 		let _this = image(...arguments);
-		let visible = [
-			"boundaries",
-			"faces",
-			"edges",
-		];
+		_this.appendChild(shadowFilter("faces_shadow"));
 		let groups = {};
 		["boundaries", "faces", "edges", "vertices"].forEach(key => {
 			groups[key] = _this.group();
 			groups[key].setAttribute("class", DISPLAY_NAME$1[key]);
+			groups[key].setAttribute("pointer-events", "none");
 			_this.appendChild(groups[key]);
 		});
-		Object.keys(groups).forEach(key =>
-			groups[key].setAttribute("pointer-events", "none")
-		);
-		let labels = {
-		};
+		let visible = ["boundaries", "faces", "edges"];
+		let groupLabels = _this.group();
 		let prop = {
 			cp: undefined,
 			frame: undefined,
@@ -8106,26 +8101,13 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		Object.keys(userDefaults)
 			.forEach(key => preferences[key] = userDefaults[key]);
 		const setCreasePattern = function(cp, frame = undefined) {
-			prop.cp = (cp.__rabbit_ear == null)
-				? CreasePattern(cp)
-				: cp;
+			prop.cp = (cp.__rabbit_ear != null)
+				? cp
+				: CreasePattern(cp);
 			prop.frame = frame;
 			draw();
 			if (!preferences.autofit) { updateViewBox(); }
 			prop.cp.onchange.push(draw);
-		};
-		const drawDebug = function(graph) {
-			labels.face.removeChildren();
-			let fAssignments = graph.faces_vertices.map(fv => "face");
-			let facesText = !(graph.faces_vertices) ? [] : graph.faces_vertices
-				.map(fv => fv.map(v => graph.vertices_coords[v]))
-				.map(fv => ConvexPolygon(fv))
-				.map(face => face.centroid)
-				.map((c,i) => labels.face.text(""+i, c[0], c[1]));
-			facesText.forEach(text$$1 => {
-				text$$1.setAttribute("fill", "black");
-				text$$1.setAttribute("style", "font-family: sans-serif; font-size:0.05px");
-			});
 		};
 		const isFolded = function(graph) {
 			if (graph.frame_classes == null) { return false; }
@@ -8135,23 +8117,93 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			let graph = prop.frame
 				? flatten_frame(prop.cp, prop.frame)
 				: prop.cp;
-			if (isFolded(graph)) {
-				_this.removeClass("creasePattern");
-				_this.addClass("foldedForm");
-				visible = ["faces", "edges"];
-			} else{
-				_this.removeClass("foldedForm");
-				_this.addClass("creasePattern");
-				visible = ["boundaries", "faces", "edges"];
-			}
+			let file_classes = (graph.file_classes != null
+				? graph.file_classes : []).join(" ");
+			let frame_classes = graph.frame_classes != null
+				? graph.frame_classes : [].join(" ");
+			let top_level_classes = [file_classes, frame_classes]
+				.filter(s => s !== "")
+				.join(" ");
+			_this.setAttribute("class", top_level_classes);
+			visible = isFolded(graph)
+				? ["faces", "edges"]
+				: ["boundaries", "faces", "edges"];
 			Object.keys(groups).forEach(key => groups[key].removeChildren());
+			groupLabels.removeChildren();
 			visible.forEach(key =>
 				drawComponent[key](graph).forEach(o =>
 					groups[key].appendChild(o)
 				)
 			);
 			if (preferences.debug) { drawDebug(graph); }
+			if (preferences.labels) { drawLabels(graph); }
 			if (preferences.autofit) { updateViewBox(); }
+			if (preferences.shadows) {
+				Array.from(groups.faces.childNodes).forEach(f =>
+					f.setAttribute("filter", "url(#faces_shadow)")
+				);
+			}
+			let styleElement = _this.querySelector("style");
+			if (styleElement == null) {
+				const svgNS = "http://www.w3.org/2000/svg";
+				styleElement = document.createElementNS(svgNS, "style");
+				_this.appendChild(styleElement);
+			}
+			let r = bounding_rect(graph);
+			let vmin = r[2] > r[3] ? r[3] : r[2];
+			let creaseStyle = "stroke-width:" + vmin*0.005;
+			styleElement.innerHTML = "#creases line {" + creaseStyle + "}";
+		};
+		const drawLabels = function(graph) {
+			if ("faces_vertices" in graph === false ||
+			    "edges_vertices" in graph === false ||
+			    "vertices_coords" in graph === false) { return; }
+			let r = bounding_rect(graph);
+			let vmin = r[2] > r[3] ? r[3] : r[2];
+			let fSize = vmin*0.04;
+			let labels_style = {
+				vertices: "fill:#27b;font-family:sans-serif;font-size:"+fSize+"px;",
+				edges: "fill:#e53;font-family:sans-serif;font-size:"+fSize+"px;",
+				faces: "fill:black;font-family:sans-serif;font-size:"+fSize+"px;",
+			};
+			let m = [fSize*0.33, fSize*0.4];
+			graph.vertices_coords
+				.map((v,i) => groupLabels.text(""+i, v[0]-m[0], v[1]+m[1]))
+				.forEach(t => t.setAttribute("style", labels_style.vertices));
+			graph.edges_vertices
+				.map(ev => ev.map(v => graph.vertices_coords[v]))
+				.map(verts => core.average(verts))
+				.map((c,i) => groupLabels.text(""+i, c[0]-m[0], c[1]+m[1]))
+				.forEach(t => t.setAttribute("style", labels_style.edges));
+			graph.faces_vertices
+				.map(fv => fv.map(v => graph.vertices_coords[v]))
+				.map(verts => core.average(verts))
+				.map((c,i) => groupLabels.text(""+i, c[0]-m[0], c[1]+m[1]))
+				.forEach(t => t.setAttribute("style", labels_style.faces));
+		};
+		const drawDebug = function(graph) {
+			let r = bounding_rect(graph);
+			let vmin = r[2] > r[3] ? r[3] : r[2];
+			let strokeW = vmin*0.005;
+			let debug_style = {
+				faces_vertices: "fill:none;stroke:#27b;stroke-width:"+strokeW+";",
+				faces_edges: "fill:none;stroke:#e53;stroke-width:"+strokeW+";",
+			};
+			graph.faces_vertices
+				.map(fv => fv.map(v => graph.vertices_coords[v]))
+				.map(face => ConvexPolygon(face).scale(0.866).points)
+				.map(points => groupLabels.polygon(points))
+				.forEach(poly => poly.setAttribute("style", debug_style.faces_vertices));
+			graph.faces_edges
+				.map(face_edges => face_edges
+					.map(edge => graph.edges_vertices[edge])
+					.map((vi, i, arr) => {
+						let next = arr[(i+1)%arr.length];
+						return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
+					}).map(v => graph.vertices_coords[v])
+				).map(face => ConvexPolygon(face).scale(0.75).points)
+				.map(points => groupLabels.polygon(points))
+				.forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
 		};
 		const updateViewBox = function() {
 			let graph = prop.frame
@@ -8364,7 +8416,43 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			}
 		});
 		return _this;
-	}
+	}const shadowFilter = function(id_name = "shadow") {
+		const svgNS = "http://www.w3.org/2000/svg";
+		let defs = document.createElementNS(svgNS, "defs");
+		let filter = document.createElementNS(svgNS, "filter");
+		filter.setAttribute("width", "200%");
+		filter.setAttribute("height", "200%");
+		filter.setAttribute("id", id_name);
+		let blur = document.createElementNS(svgNS, "feGaussianBlur");
+		blur.setAttribute("in", "SourceAlpha");
+		blur.setAttribute("stdDeviation", "0.01");
+		blur.setAttribute("result", "blur");
+		let offset = document.createElementNS(svgNS, "feOffset");
+		offset.setAttribute("in", "blur");
+		offset.setAttribute("result", "offsetBlur");
+		let flood = document.createElementNS(svgNS, "feFlood");
+		flood.setAttribute("flood-color", "#000");
+		flood.setAttribute("flood-opacity", "0.4");
+		flood.setAttribute("result", "offsetColor");
+		let composite = document.createElementNS(svgNS, "feComposite");
+		composite.setAttribute("in", "offsetColor");
+		composite.setAttribute("in2", "offsetBlur");
+		composite.setAttribute("operator", "in");
+		composite.setAttribute("result", "offsetBlur");
+		let merge = document.createElementNS(svgNS, "feMerge");
+		let mergeNode1 = document.createElementNS(svgNS, "feMergeNode");
+		let mergeNode2 = document.createElementNS(svgNS, "feMergeNode");
+		mergeNode2.setAttribute("in", "SourceGraphic");
+		merge.appendChild(mergeNode1);
+		merge.appendChild(mergeNode2);
+		defs.appendChild(filter);
+		filter.appendChild(blur);
+		filter.appendChild(offset);
+		filter.appendChild(flood);
+		filter.appendChild(composite);
+		filter.appendChild(merge);
+		return defs;
+	};
 
 	const unitSquare = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
 	function View3D(){

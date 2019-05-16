@@ -47,7 +47,7 @@ export const square = function(width, height) {
 	return Object.assign(
 		Object.create(null),
 		template(),
-		cp_type,
+		cp_type(),
 		square_graph()
 	);
 };
@@ -59,7 +59,7 @@ export const rectangle = function(width, height) {
 	return Object.assign(
 		Object.create(null),
 		template(),
-		cp_type,
+		cp_type(),
 		graph
 	);
 };
@@ -93,7 +93,7 @@ export const regular_polygon = function(sides, radius = 1) {
 	return Object.assign(
 		Object.create(null),
 		template(),
-		cp_type,
+		cp_type(),
 		graph
 	);
 };

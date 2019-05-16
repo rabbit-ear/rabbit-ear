@@ -1,4 +1,10 @@
-let sketch = RabbitEar.Origami("canvas");
-sketch.preferences.folding = true;
-sketch.preferences.autofit = false;
-// sketch.cp = RabbitEar.bases.bird;
+let prefs = {
+	folding: true,
+	autofit: false,
+	debug: true,
+	labels: true,
+	padding: 0.033
+}
+
+let sketch = RabbitEar.Origami("canvas", prefs);
+sketch.cp = RabbitEar.bases.frog;
