@@ -108,19 +108,22 @@ origami.drawArrowsForAxiom = function(axiom, crease){
 	let pts = origami.controls.map(p => p.position);
 	switch (axiom){
 		case 2:
-			var intersect = crease.nearestPoint(pts[0]);
-			origami.drawArrowAcross(crease, intersect);
+			origami.arrowLayer.arcArrow(pts[0], pts[1]);
 			break;
+		// case 2:
+		// 	var intersect = crease.nearestPoint(pts[0]);
+		// 	origami.drawArrowAcross(crease, intersect);
+		// 	break;
 		case 5:
 			var intersect = crease.nearestPoint(pts[2]);  // todo: or [3] ?
 			origami.drawArrowAcross(crease, intersect);
 			break;
-		// case 6:
-		// 	var intersect1 = crease.nearestPoint({x:origami.marks[0].x, y:origami.marks[0].y});
-		// 	var intersect2 = crease.nearestPoint({x:origami.marks[1].x, y:origami.marks[1].y});
-		// 	origami.drawArrowAcross(crease, intersect1);
-		// 	origami.drawArrowAcross(crease, intersect2);
-		// 	break;
+		case 6:
+			let intersect1 = crease.nearestPoint(pts[4]);
+			let intersect2 = crease.nearestPoint(pts[5]);
+			origami.drawArrowAcross(crease, intersect1);
+			origami.drawArrowAcross(crease, intersect2);
+			break;
 		case 7:
 			var intersect = crease.nearestPoint(pts[4]);
 			origami.drawArrowAcross(crease, intersect);
@@ -140,115 +143,31 @@ origami.onMouseMove = function(event){
 // the point which the arrow should be cast perpendicularly across
 // when left undefined, intersect will be the midpoint of the line.
 origami.drawArrowAcross = function(crease, crossing){
+	if (crease == null) {
+		console.warn("drawArrowAcross not provided the correct parameters");
+		return;
+	}
+	if (crossing == null) {
+		crossing = crease.midpoint();
+	}
 
-	if (crease == null) { return; }
+	let normal = [-crease.vector[1], crease.vector[0]];
+	let perpLine = { point: crossing, vector: normal };
+	let perpClipEdge = origami.cp.boundary.clipLine(perpLine);
 
-	if (crossing == null) { crossing = crease.midpoint(); }
-
-	var creaseNormal = crease.vector.rotateZ90().normalize();
-	var perpLine = {
-		point:{x:crossing.x, y:crossing.y},
-		vector:{x:creaseNormal.x, y:creaseNormal.y}
-	};
-	var perpendicularInBoundary = origami.cp.boundary.clipLine(perpLine);
-
-	var shortLength = [perpendicularInBoundary[0], perpendicularInBoundary[1]]
+	let shortLength = [perpClipEdge[0], perpClipEdge[1]]
 		.map(function(n){ return n.distanceTo(crossing); },this)
 		.sort(function(a,b){ return a-b; })
 		.shift();
 
 	// another place it can fail
-	let shortPerp = [perpendicularInBoundary[0], perpendicularInBoundary[1]]
+	let perpPointsMirror = [perpClipEdge[0], perpClipEdge[1]]
 		.map(n => n.subtract(crossing).normalize())
 		.filter(v => v !== undefined)
 		.map(v => v.scale(shortLength))
 		.map(v => crossing.add(v))
-	if (shortPerp.length < 2) { return; }
-
-	let perpendicular = RE.Edge(shortPerp);
-
-	var toMiddleOfPage = RE.Vector(0.5 - crossing[0], 0.5 - crossing[1]);
-	var arrowPerp = (toMiddleOfPage.cross(creaseNormal) < 0) ? creaseNormal.rotateZ90() : creaseNormal.rotateZ270();
-
-	var arrowheadWidth = 0.05;
-	var arrowheadLength = 0.075;
-
-	var arcBend = 0.1;
-	// var arcMid = crossing.add(arrowPerp.scale(perpendicular.length * arcBend + arrowheadLength*0.2));
-	var arcEnds = [perpendicular[0], perpendicular[1]]
-		.map(function(n){
-			var bezierTarget = crossing.add(arrowPerp.scale(perpendicular.length * arcBend * 2));
-			var nudge = bezierTarget.subtract(n).normalize().scale(arrowheadLength + arrowheadLength*0.25);
-			return n.add(nudge);
-		},this);
-
-	var controlTarget = crossing.add(arrowPerp.scale(perpendicular.length * (arcBend*2) + arrowheadLength*0.2));
-	var curveControls = [arcEnds[0], arcEnds[1]].map(function(p){
-		var distance = p.distanceTo(controlTarget);
-		var vector = controlTarget.subtract(p).normalize().scale(distance*0.666);
-		return p.add(vector);
-	},this);
-
-	// draw geometry
-	let arrowFill = "stroke:none;fill:#000";
-	let arrowStroke = "stroke:#000;stroke-width:0.01;fill:none;";
-
-	var bez = origami.arrowLayer.bezier(
-		arcEnds[0].x, arcEnds[0].y,
-		curveControls[0].x, curveControls[0].y,
-		curveControls[1].x, curveControls[1].y,
-		arcEnds[1].x, arcEnds[1].y
-	);
-	bez.setAttribute("style", arrowStroke);
-
-	let arrowVecs = [0,1].map(i => RE.Vector(
-		arcEnds[i].x - curveControls[i].x,
-		arcEnds[i].y - curveControls[i].y
-	).normalize());
-
-	[arcEnds[0], arcEnds[1]].forEach(function(point, i){
-		// var tilt = vector.rotate( (i%2)*Math.PI ).rotate(0.35 * Math.pow(-1,i+1));
-		// var arrowVector = perpendicular[i].subtract(point).normalize();
-		var arrowVector = arrowVecs[i];
-		var arrowNormal = arrowVector.rotateZ90();
-		var segments = [
-			point.add(arrowNormal.scale(-arrowheadWidth*0.375)), 
-			point.add(arrowNormal.scale(arrowheadWidth*0.375)), 
-			point.add(arrowVector.scale(arrowheadLength))
-		];
-		let arrowhead = origami.arrowLayer.polygon(segments);
-		arrowhead.setAttribute("style", arrowFill)
-	},this);
-
-	///////////////////////////////////////////
-	// debug lines
-	// let debugYellowStyle = "stroke:#ecb233;stroke-width:0.005";
-	// let debugBlueStyle = "stroke:#224c72;stroke-width:0.005";
-	// let debugRedStyle = "stroke:#e14929;stroke-width:0.005";
-	// var dbl = perpendicular;
-	// origami.arrowLayer
-	// 	.line(dbl[0].x, dbl[0].y, dbl[1].x, dbl[1].y)
-	// 	.setAttribute("style", debugYellowStyle);
-	// origami.arrowLayer.line(
-	// 	crossing.x, crossing.y,
-	// 	crossing.add(toMiddleOfPage).x, crossing.add(toMiddleOfPage).y
-	// ).setAttribute("style", debugBlueStyle);
-	// origami.arrowLayer.line(
-	// 	curveControls[0].x, curveControls[0].y,
-	// 	curveControls[1].x, curveControls[1].y
-	// ).setAttribute("style", debugRedStyle);
-	// origami.arrowLayer
-	// 	.line(arcEnds[0].x, arcEnds[0].y, arcEnds[1].x, arcEnds[1].y)
-	// 	.setAttribute("style", debugBlueStyle);
-	// origami.arrowLayer.line(
-	// 	arcEnds[0].x, arcEnds[0].y,
-	// 	curveControls[0].x, curveControls[0].y
-	// ).setAttribute("style", debugBlueStyle);
-	// origami.arrowLayer.line(
-	// 	curveControls[1].x, curveControls[1].y,
-	// 	arcEnds[1].x, arcEnds[1].y
-	// ).setAttribute("style", debugBlueStyle);
-
+	if (perpPointsMirror.length < 2) { return; }
+	origami.arrowLayer.arcArrow(perpPointsMirror[0], perpPointsMirror[1]);
 }
 
 var selectAxiom = function(n){

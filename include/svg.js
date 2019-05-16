@@ -1,237 +1,63 @@
 /* SVG (c) Robby Kraft, MIT License */
-function createShiftArr(step) {
-	var space = '    ';
-	if ( isNaN(parseInt(step)) ) {
-		space = step;
-	} else {
-		switch(step) {
-			case 1: space = ' '; break;
-			case 2: space = '  '; break;
-			case 3: space = '   '; break;
-			case 4: space = '    '; break;
-			case 5: space = '     '; break;
-			case 6: space = '      '; break;
-			case 7: space = '       '; break;
-			case 8: space = '        '; break;
-			case 9: space = '         '; break;
-			case 10: space = '          '; break;
-			case 11: space = '           '; break;
-			case 12: space = '            '; break;
-		}
-	}
-	var shift = ['\n'];
-	for(let ix=0;ix<100;ix++){
-		shift.push(shift[ix]+space);
-	}
-	return shift;
-}
-function vkbeautify(){
-	this.step = '\t';
-	this.shift = createShiftArr(this.step);
-}vkbeautify.prototype.xml = function(text,step) {
+function vkXML(text, step) {
 	var ar = text.replace(/>\s{0,}</g,"><")
 				 .replace(/</g,"~::~<")
 				 .replace(/\s*xmlns\:/g,"~::~xmlns:")
-				 .replace(/\s*xmlns\=/g,"~::~xmlns=")
 				 .split('~::~'),
 		len = ar.length,
 		inComment = false,
 		deep = 0,
 		str = '',
-		shift = step ? createShiftArr(step) : this.shift;
-		for(let ix=0;ix<len;ix++) {
-			if(ar[ix].search(/<!/) > -1) {
-				str += shift[deep]+ar[ix];
-				inComment = true;
-				if(ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1 || ar[ix].search(/!DOCTYPE/) > -1 ) {
-					inComment = false;
-				}
-			} else
-			if(ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
-				str += ar[ix];
+		space = (step != null && typeof step === "string" ? step : "\t");
+	var shift = ['\n'];
+	for(let si=0; si<100; si++){
+		shift.push(shift[si]+space);
+	}
+	for (let ix=0;ix<len;ix++) {
+		if(ar[ix].search(/<!/) > -1) {
+			str += shift[deep]+ar[ix];
+			inComment = true;
+			if(ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
+				|| ar[ix].search(/!DOCTYPE/) > -1 ) {
 				inComment = false;
-			} else
-			if( /^<\w/.exec(ar[ix-1]) && /^<\/\w/.exec(ar[ix]) &&
-				/^<[\w:\-\.\,]+/.exec(ar[ix-1]) == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace('/','')) {
-				str += ar[ix];
-				if(!inComment) deep--;
-			} else
-			if(ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) == -1 && ar[ix].search(/\/>/) == -1 ) {
-				str = !inComment ? str += shift[deep++]+ar[ix] : str += ar[ix];
-			} else
-			if(ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
-				str = !inComment ? str += shift[deep]+ar[ix] : str += ar[ix];
-			} else
-			if(ar[ix].search(/<\//) > -1) {
-				str = !inComment ? str += shift[--deep]+ar[ix] : str += ar[ix];
-			} else
-			if(ar[ix].search(/\/>/) > -1 ) {
-				str = !inComment ? str += shift[deep]+ar[ix] : str += ar[ix];
-			} else
-			if(ar[ix].search(/<\?/) > -1) {
-				str += shift[deep]+ar[ix];
-			} else
-			if( ar[ix].search(/xmlns\:/) > -1  || ar[ix].search(/xmlns\=/) > -1) {
-				str += shift[deep]+ar[ix];
-			}
-			else {
-				str += ar[ix];
 			}
 		}
+		else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
+			str += ar[ix];
+			inComment = false;
+		}
+		else if ( /^<\w/.exec(ar[ix-1]) && /^<\/\w/.exec(ar[ix]) &&
+			/^<[\w:\-\.\,]+/.exec(ar[ix-1])
+			== /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace('/','')) {
+			str += ar[ix];
+			if (!inComment) { deep--; }
+		}
+		else if(ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) == -1
+			&& ar[ix].search(/\/>/) == -1 ) {
+			str = !inComment ? str += shift[deep++]+ar[ix] : str += ar[ix];
+		}
+		else if(ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
+			str = !inComment ? str += shift[deep]+ar[ix] : str += ar[ix];
+		}
+		else if(ar[ix].search(/<\//) > -1) {
+			str = !inComment ? str += shift[--deep]+ar[ix] : str += ar[ix];
+		}
+		else if(ar[ix].search(/\/>/) > -1 ) {
+			str = !inComment ? str += shift[deep]+ar[ix] : str += ar[ix];
+		}
+		else if(ar[ix].search(/<\?/) > -1) {
+			str += shift[deep]+ar[ix];
+		}
+		else if(ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1){
+			console.log("xmlns at level", deep);
+			str += shift[deep]+ar[ix];
+		}
+		else {
+			str += ar[ix];
+		}
+	}
 	return  (str[0] == '\n') ? str.slice(1) : str;
-};
-vkbeautify.prototype.json = function(text,step) {
-	var step = step ? step : this.step;
-	if (typeof JSON === 'undefined' ) return text;
-	if ( typeof text === "string" ) return JSON.stringify(JSON.parse(text), null, step);
-	if ( typeof text === "object" ) return JSON.stringify(text, null, step);
-	return text;
-};
-vkbeautify.prototype.css = function(text, step) {
-	var ar = text.replace(/\s{1,}/g,' ')
-				.replace(/\{/g,"{~::~")
-				.replace(/\}/g,"~::~}~::~")
-				.replace(/\;/g,";~::~")
-				.replace(/\/\*/g,"~::~/*")
-				.replace(/\*\//g,"*/~::~")
-				.replace(/~::~\s{0,}~::~/g,"~::~")
-				.split('~::~'),
-		len = ar.length,
-		deep = 0,
-		str = '',
-		shift = step ? createShiftArr(step) : this.shift;
-		for(let ix=0;ix<len;ix++) {
-			if( /\{/.exec(ar[ix]))  {
-				str += shift[deep++]+ar[ix];
-			} else
-			if( /\}/.exec(ar[ix]))  {
-				str += shift[--deep]+ar[ix];
-			} else
-			if( /\*\\/.exec(ar[ix]))  {
-				str += shift[deep]+ar[ix];
-			}
-			else {
-				str += shift[deep]+ar[ix];
-			}
-		}
-		return str.replace(/^\n{1,}/,'');
-};
-function isSubquery(str, parenthesisLevel) {
-	return  parenthesisLevel - (str.replace(/\(/g,'').length - str.replace(/\)/g,'').length )
 }
-function split_sql(str, tab) {
-	return str.replace(/\s{1,}/g," ")
-				.replace(/ AND /ig,"~::~"+tab+tab+"AND ")
-				.replace(/ BETWEEN /ig,"~::~"+tab+"BETWEEN ")
-				.replace(/ CASE /ig,"~::~"+tab+"CASE ")
-				.replace(/ ELSE /ig,"~::~"+tab+"ELSE ")
-				.replace(/ END /ig,"~::~"+tab+"END ")
-				.replace(/ FROM /ig,"~::~FROM ")
-				.replace(/ GROUP\s{1,}BY/ig,"~::~GROUP BY ")
-				.replace(/ HAVING /ig,"~::~HAVING ")
-				.replace(/ IN /ig," IN ")
-				.replace(/ JOIN /ig,"~::~JOIN ")
-				.replace(/ CROSS~::~{1,}JOIN /ig,"~::~CROSS JOIN ")
-				.replace(/ INNER~::~{1,}JOIN /ig,"~::~INNER JOIN ")
-				.replace(/ LEFT~::~{1,}JOIN /ig,"~::~LEFT JOIN ")
-				.replace(/ RIGHT~::~{1,}JOIN /ig,"~::~RIGHT JOIN ")
-				.replace(/ ON /ig,"~::~"+tab+"ON ")
-				.replace(/ OR /ig,"~::~"+tab+tab+"OR ")
-				.replace(/ ORDER\s{1,}BY/ig,"~::~ORDER BY ")
-				.replace(/ OVER /ig,"~::~"+tab+"OVER ")
-				.replace(/\(\s{0,}SELECT /ig,"~::~(SELECT ")
-				.replace(/\)\s{0,}SELECT /ig,")~::~SELECT ")
-				.replace(/ THEN /ig," THEN~::~"+tab+"")
-				.replace(/ UNION /ig,"~::~UNION~::~")
-				.replace(/ USING /ig,"~::~USING ")
-				.replace(/ WHEN /ig,"~::~"+tab+"WHEN ")
-				.replace(/ WHERE /ig,"~::~WHERE ")
-				.replace(/ WITH /ig,"~::~WITH ")
-				.replace(/ ALL /ig," ALL ")
-				.replace(/ AS /ig," AS ")
-				.replace(/ ASC /ig," ASC ")
-				.replace(/ DESC /ig," DESC ")
-				.replace(/ DISTINCT /ig," DISTINCT ")
-				.replace(/ EXISTS /ig," EXISTS ")
-				.replace(/ NOT /ig," NOT ")
-				.replace(/ NULL /ig," NULL ")
-				.replace(/ LIKE /ig," LIKE ")
-				.replace(/\s{0,}SELECT /ig,"SELECT ")
-				.replace(/\s{0,}UPDATE /ig,"UPDATE ")
-				.replace(/ SET /ig," SET ")
-				.replace(/~::~{1,}/g,"~::~")
-				.split('~::~');
-}
-vkbeautify.prototype.sql = function(text,step) {
-	var ar_by_quote = text.replace(/\s{1,}/g," ")
-							.replace(/\'/ig,"~::~\'")
-							.split('~::~'),
-		len = ar_by_quote.length,
-		ar = [],
-		deep = 0,
-		tab = this.step,
-		parenthesisLevel = 0,
-		str = '',
-		shift = step ? createShiftArr(step) : this.shift;		for(let ix=0;ix<len;ix++) {
-			if(ix%2) {
-				ar = ar.concat(ar_by_quote[ix]);
-			} else {
-				ar = ar.concat(split_sql(ar_by_quote[ix], tab) );
-			}
-		}
-		len = ar.length;
-		for(let ix=0;ix<len;ix++) {
-			parenthesisLevel = isSubquery(ar[ix], parenthesisLevel);
-			if( /\s{0,}\s{0,}SELECT\s{0,}/.exec(ar[ix]))  {
-				ar[ix] = ar[ix].replace(/\,/g,",\n"+tab+tab+"");
-			}
-			if( /\s{0,}\s{0,}SET\s{0,}/.exec(ar[ix]))  {
-				ar[ix] = ar[ix].replace(/\,/g,",\n"+tab+tab+"");
-			}
-			if( /\s{0,}\(\s{0,}SELECT\s{0,}/.exec(ar[ix]))  {
-				deep++;
-				str += shift[deep]+ar[ix];
-			} else
-			if( /\'/.exec(ar[ix]) )  {
-				if(parenthesisLevel<1 && deep) {
-					deep--;
-				}
-				str += ar[ix];
-			}
-			else  {
-				str += shift[deep]+ar[ix];
-				if(parenthesisLevel<1 && deep) {
-					deep--;
-				}
-			}
-		}
-		str = str.replace(/^\n{1,}/,'').replace(/\n{1,}/g,"\n");
-		return str;
-};
-vkbeautify.prototype.xmlmin = function(text, preserveComments) {
-	var str = preserveComments ? text
-							   : text.replace(/\<![ \r\n\t]*(--([^\-]|[\r\n]|-[^\-])*--[ \r\n\t]*)\>/g,"")
-									 .replace(/[ \r\n\t]{1,}xmlns/g, ' xmlns');
-	return  str.replace(/>\s{0,}</g,"><");
-};
-vkbeautify.prototype.jsonmin = function(text) {
-	if (typeof JSON === 'undefined' ) return text;
-	return JSON.stringify(JSON.parse(text), null, 0);
-};
-vkbeautify.prototype.cssmin = function(text, preserveComments) {
-	var str = preserveComments ? text
-							   : text.replace(/\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\//g,"") ;
-	return str.replace(/\s{1,}/g,' ')
-			  .replace(/\{\s{1,}/g,"{")
-			  .replace(/\}\s{1,}/g,"}")
-			  .replace(/\;\s{1,}/g,";")
-			  .replace(/\/\*\s{1,}/g,"/*")
-			  .replace(/\*\/\s{1,}/g,"*/");
-};
-vkbeautify.prototype.sqlmin = function(text) {
-	return text.replace(/\s{1,}/g," ").replace(/\s{1,}\(/,"(").replace(/\s{1,}\)/,")");
-};
-var vkbeautify$1 = (new vkbeautify());
 
 const removeChildren = function(parent) {
 	while (parent.lastChild) {
@@ -288,7 +114,7 @@ const save = function(svg, filename = "image.svg", includeDOMCSS = false) {
 		svg.appendChild(styleContainer);
 	}
 	let source = (new window.XMLSerializer()).serializeToString(svg);
-	let formatted = vkbeautify$1.xml(source);
+	let formatted = vkXML(source);
 	let blob = new window.Blob([formatted], {type: "text/plain"});
 	a.setAttribute("href", window.URL.createObjectURL(blob));
 	a.setAttribute("download", filename);
@@ -416,14 +242,51 @@ const setDefaultViewBox = function(svg) {
 	setViewBox(svg, 0, 0, width, height);
 };
 
-const svgNS = "http://www.w3.org/2000/svg";
-const svg = function() {
-	let svgImage = document.createElementNS(svgNS, "svg");
-	svgImage.setAttribute("version", "1.1");
-	svgImage.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-	setupSVG(svgImage);
-	return svgImage;
+const attachClassMethods = function(element) {
+	element.removeChildren = function() {
+		return removeChildren(element);
+	};
+	element.addClass = function() {
+		return addClass(element, ...arguments);
+	};
+	element.removeClass = function() {
+		return removeClass(element, ...arguments);
+	};
+	element.setClass = function() {
+		return setClass(element, ...arguments);
+	};
+	element.setID = function() {
+		return setID(element, ...arguments);
+	};
 };
+const attachViewBoxMethods = function(element) {
+	element.setViewBox = function() {
+		return setViewBox(element, ...arguments);
+	};
+	element.getViewBox = function() {
+		return getViewBox(element, ...arguments);
+	};
+	element.scaleViewBox = function() {
+		return scaleViewBox(element, ...arguments);
+	};
+	element.translateViewBox = function() {
+		return translateViewBox(element, ...arguments);
+	};
+	element.convertToViewBox = function() {
+		return convertToViewBox(element, ...arguments);
+	};
+};
+const attachAppendableMethods = function(element, methods) {
+	Object.keys(methods).forEach(key => {
+		element[key] = function() {
+			let g = methods[key](...arguments);
+			element.appendChild(g);
+			return g;
+		};
+	});
+};
+
+const svgNS = "http://www.w3.org/2000/svg";
 const line = function(x1, y1, x2, y2) {
 	let shape = document.createElementNS(svgNS, "line");
 	if (x1) { shape.setAttributeNS(null, "x1", x1); }
@@ -499,23 +362,6 @@ const arc = function(x, y, radius, angleA, angleB) {
 	attachClassMethods(shape);
 	return shape;
 };
-const group = function() {
-	let g = document.createElementNS(svgNS, "g");
-	attachClassMethods(g);
-	attachGeometryMethods(g);
-	return g;
-};
-const regularPolygon = function(cX, cY, radius, sides) {
-	let halfwedge = 2*Math.PI/sides * 0.5;
-	let r = Math.cos(halfwedge) * radius;
-	let points = Array.from(Array(sides)).map((el,i) => {
-		let a = -2 * Math.PI * i / sides + halfwedge;
-		let x = cX + r * Math.sin(a);
-		let y = cY + r * Math.cos(a);
-		return [x, y];
-	});
-	return polygon(points);
-};
 const setPoints = function(polygon, pointsArray) {
 	if (pointsArray == null || pointsArray.constructor !== Array) {
 		return;
@@ -547,7 +393,121 @@ const setArc = function(shape, x, y, radius, startAngle, endAngle,
 	if (includeCenter) { d += " Z"; }
 	shape.setAttributeNS(null, "d", d);
 };
-const geometryMethods = {
+
+const svgNS$1 = "http://www.w3.org/2000/svg";
+const regularPolygon = function(cX, cY, radius, sides) {
+	let halfwedge = 2*Math.PI/sides * 0.5;
+	let r = Math.cos(halfwedge) * radius;
+	let points = Array.from(Array(sides)).map((el,i) => {
+		let a = -2 * Math.PI * i / sides + halfwedge;
+		let x = cX + r * Math.sin(a);
+		let y = cY + r * Math.cos(a);
+		return [x, y];
+	});
+	return polygon(points);
+};
+const arcArrow = function(startPoint, endPoint, options) {
+	let p = {
+		color: "#000",
+		strokeWidth: 0.01,
+		width: 0.025,
+		length: 0.075,
+		bend: 0.3,
+		pinch: 0.618,
+		padding: 0.5,
+		side: -1,
+		start: false,
+		end: true
+	};
+	if (typeof options === "object" && options !== null) {
+		Object.assign(p, options);
+	}
+	let arrowFill = "stroke:none;fill:"+p.color+";";
+	let arrowStroke = "stroke:"+p.color+";fill:none;stroke-width:" +
+		p.strokeWidth+";";
+	let vector = [endPoint[0]-startPoint[0], endPoint[1]-startPoint[1]];
+	let perpendicular = [vector[1], -vector[0]];
+	let midpoint = [startPoint[0] + vector[0]/2, startPoint[1] + vector[1]/2];
+	let bezPoint = [
+		midpoint[0] + perpendicular[0]*p.side * p.bend,
+		midpoint[1] + perpendicular[1]*p.side * p.bend
+	];
+	let bezStart = [bezPoint[0] - startPoint[0], bezPoint[1] - startPoint[1]];
+	let bezEnd = [bezPoint[0] - endPoint[0], bezPoint[1] - endPoint[1]];
+	let bezStartLen = Math.sqrt(bezStart[0]*bezStart[0]+bezStart[1]*bezStart[1]);
+	let bezEndLen = Math.sqrt(bezEnd[0]*bezEnd[0]+bezEnd[1]*bezEnd[1]);
+	let bezStartNorm = [bezStart[0]/bezStartLen, bezStart[1]/bezStartLen];
+	let bezEndNorm = [bezEnd[0]/bezEndLen, bezEnd[1]/bezEndLen];
+	let arcStart = [
+		startPoint[0] + bezStartNorm[0]*p.length*((p.start?1:0)+p.padding),
+		startPoint[1] + bezStartNorm[1]*p.length*((p.start?1:0)+p.padding)
+	];
+	let arcEnd = [
+		endPoint[0] + bezEndNorm[0]*p.length*((p.end?1:0)+p.padding),
+		endPoint[1] + bezEndNorm[1]*p.length*((p.end?1:0)+p.padding)
+	];
+	let controlStart = [
+		arcStart[0] + (bezPoint[0] - arcStart[0]) * p.pinch,
+		arcStart[1] + (bezPoint[1] - arcStart[1]) * p.pinch
+	];
+	let controlEnd = [
+		arcEnd[0] + (bezPoint[0] - arcEnd[0]) * p.pinch,
+		arcEnd[1] + (bezPoint[1] - arcEnd[1]) * p.pinch
+	];
+	let startVec = [-bezStartNorm[0], -bezStartNorm[1]];
+	let endVec = [-bezEndNorm[0], -bezEndNorm[1]];
+	let startNormal = [startVec[1], -startVec[0]];
+	let endNormal = [endVec[1], -endVec[0]];
+	let startPoints = [
+		[arcStart[0]+startNormal[0]*-p.width, arcStart[1]+startNormal[1]*-p.width],
+		[arcStart[0]+startNormal[0]*p.width, arcStart[1]+startNormal[1]*p.width],
+		[arcStart[0]+startVec[0]*p.length, arcStart[1]+startVec[1]*p.length]
+	];
+	let endPoints = [
+		[arcEnd[0]+endNormal[0]*-p.width, arcEnd[1]+endNormal[1]*-p.width],
+		[arcEnd[0]+endNormal[0]*p.width, arcEnd[1]+endNormal[1]*p.width],
+		[arcEnd[0]+endVec[0]*p.length, arcEnd[1]+endVec[1]*p.length]
+	];
+	let arrowGroup = document.createElementNS(svgNS$1, "g");
+	let arrowArc = bezier(
+		arcStart[0], arcStart[1], controlStart[0], controlStart[1],
+		controlEnd[0], controlEnd[1], arcEnd[0], arcEnd[1]
+	);
+	arrowArc.setAttribute("style", arrowStroke);
+	arrowGroup.appendChild(arrowArc);
+	if (p.start) {
+		let startHead = polygon(startPoints);
+		startHead.setAttribute("style", arrowFill);
+		arrowGroup.appendChild(startHead);
+	}
+	if (p.end) {
+		let endHead = polygon(endPoints);
+		endHead.setAttribute("style", arrowFill);
+		arrowGroup.appendChild(endHead);
+	}
+	return arrowGroup;
+};
+
+const svgNS$2 = "http://www.w3.org/2000/svg";
+const svg = function() {
+	let svgImage = document.createElementNS(svgNS$2, "svg");
+	svgImage.setAttribute("version", "1.1");
+	svgImage.setAttribute("xmlns", svgNS$2);
+	setupSVG(svgImage);
+	return svgImage;
+};
+const group = function() {
+	let g = document.createElementNS(svgNS$2, "g");
+	attachClassMethods(g);
+	attachAppendableMethods(g, drawMethods);
+	return g;
+};
+const setupSVG = function(svgImage) {
+	attachClassMethods(svgImage);
+	attachViewBoxMethods(svgImage);
+	attachAppendableMethods(svgImage, drawMethods);
+};
+const drawMethods = {
 	"line" : line,
 	"circle" : circle,
 	"ellipse" : ellipse,
@@ -558,36 +518,9 @@ const geometryMethods = {
 	"text" : text,
 	"wedge" : wedge,
 	"arc" : arc,
-	"regularPolygon" : regularPolygon,
 	"group" : group,
-};
-const attachGeometryMethods = function(element) {
-	Object.keys(geometryMethods).forEach(key => {
-		element[key] = function() {
-			let g = geometryMethods[key](...arguments);
-			element.appendChild(g);
-			return g;
-		};
-	});
-};
-const attachClassMethods = function(element) {
-	element.removeChildren = function() { return removeChildren(element); };
-	element.addClass = function() { return addClass(element, ...arguments); };
-	element.removeClass = function() { return removeClass(element, ...arguments); };
-	element.setClass = function() { return setClass(element, ...arguments); };
-	element.setID = function() { return setID(element, ...arguments); };
-};
-const attachViewBoxMethods = function(element) {
-	element.setViewBox = function() { return setViewBox(element, ...arguments); };
-	element.getViewBox = function() { return getViewBox(element, ...arguments); };
-	element.scaleViewBox = function() { return scaleViewBox(element, ...arguments); };
-	element.translateViewBox = function() { return translateViewBox(element, ...arguments); };
-	element.convertToViewBox = function() { return convertToViewBox(element, ...arguments); };
-};
-const setupSVG = function(svgImage) {
-	attachClassMethods(svgImage);
-	attachGeometryMethods(svgImage);
-	attachViewBoxMethods(svgImage);
+	"arcArrow": arcArrow,
+	"regularPolygon": regularPolygon
 };
 
 const Names = {
@@ -845,8 +778,8 @@ const initSize = function(svg$$1, params) {
 		setViewBox(svg$$1, 0, 0, numbers[0], numbers[1]);
 	}
 	else if (svg$$1.getAttribute("viewBox") == null) {
-		let rect$$1 = svg$$1.getBoundingClientRect();
-		setViewBox(svg$$1, 0, 0, rect$$1.width, rect$$1.height);
+		let rect = svg$$1.getBoundingClientRect();
+		setViewBox(svg$$1, 0, 0, rect.width, rect.height);
 	}
 };
 const attachSVGMethods = function(element) {
@@ -939,9 +872,9 @@ const controlPoint = function(parent, options) {
 		set selected(value) { _selected = true; }
 	};
 };
-function controls(svgObject, number, options) {
+function controls(parent, number, options) {
 	if (options == null) { options = {}; }
-	if (options.parent == null) { options.parent = svgObject; }
+	if (options.parent == null) { options.parent = parent; }
 	if (options.radius == null) { options.radius = 1; }
 	if (options.fill == null) { options.fill = "#000000"; }
 	let _points = Array.from(Array(number))
@@ -949,7 +882,7 @@ function controls(svgObject, number, options) {
 	let _selected = undefined;
 	const mouseDownHandler = function(event) {
 		event.preventDefault();
-		let mouse = convertToViewBox(svgObject, event.clientX, event.clientY);
+		let mouse = convertToViewBox(parent, event.clientX, event.clientY);
 		if (!(_points.length > 0)) { return; }
 		_selected = _points
 			.map((p,i) => ({i:i, d:p.distance(mouse)}))
@@ -960,7 +893,7 @@ function controls(svgObject, number, options) {
 	};
 	const mouseMoveHandler = function(event) {
 		event.preventDefault();
-		let mouse = convertToViewBox(svgObject, event.clientX, event.clientY);
+		let mouse = convertToViewBox(parent, event.clientX, event.clientY);
 		_points.forEach(p => p.onMouseMove(mouse));
 	};
 	const mouseUpHandler = function(event) {
@@ -972,7 +905,7 @@ function controls(svgObject, number, options) {
 		event.preventDefault();
 		let touch = event.touches[0];
 		if (touch == null) { return; }
-		let pointer = convertToViewBox(svgObject, touch.clientX, touch.clientY);
+		let pointer = convertToViewBox(parent, touch.clientX, touch.clientY);
 		if (!(_points.length > 0)) { return; }
 		_selected = _points
 			.map((p,i) => ({i:i, d:p.distance(pointer)}))
@@ -985,7 +918,7 @@ function controls(svgObject, number, options) {
 		event.preventDefault();
 		let touch = event.touches[0];
 		if (touch == null) { return; }
-		let pointer = convertToViewBox(svgObject, touch.clientX, touch.clientY);
+		let pointer = convertToViewBox(parent, touch.clientX, touch.clientY);
 		_points.forEach(p => p.onMouseMove(pointer));
 	};
 	const touchUpHandler = function(event) {
@@ -993,13 +926,13 @@ function controls(svgObject, number, options) {
 		_points.forEach(p => p.onMouseUp());
 		_selected = undefined;
 	};
-	svgObject.addEventListener("touchstart", touchDownHandler, false);
-	svgObject.addEventListener("touchend", touchUpHandler, false);
-	svgObject.addEventListener("touchcancel", touchUpHandler, false);
-	svgObject.addEventListener("touchmove", touchMoveHandler, false);
-	svgObject.addEventListener("mousedown", mouseDownHandler, false);
-	svgObject.addEventListener("mouseup", mouseUpHandler, false);
-	svgObject.addEventListener("mousemove", mouseMoveHandler, false);
+	parent.addEventListener("touchstart", touchDownHandler, false);
+	parent.addEventListener("touchend", touchUpHandler, false);
+	parent.addEventListener("touchcancel", touchUpHandler, false);
+	parent.addEventListener("touchmove", touchMoveHandler, false);
+	parent.addEventListener("mousedown", mouseDownHandler, false);
+	parent.addEventListener("mouseup", mouseUpHandler, false);
+	parent.addEventListener("mousemove", mouseMoveHandler, false);
 	Object.defineProperty(_points, "selectedIndex", {
 		get: function() { return _selected; }
 	});
@@ -1012,9 +945,9 @@ function controls(svgObject, number, options) {
 		_selected = undefined;
 	}});
 	Object.defineProperty(_points, "add", {value: function(options) {
-		_points.push(controlPoint(svgObject, options));
+		_points.push(controlPoint(parent, options));
 	}});
 	return _points;
 }
 
-export { svg, line, circle, ellipse, rect, polygon, polyline, bezier, text, wedge, arc, group, regularPolygon, setPoints, setArc, setViewBox, getViewBox, scaleViewBox, translateViewBox, convertToViewBox, removeChildren, save, load, image, controls };
+export { svg, group, line, circle, ellipse, rect, polygon, polyline, bezier, text, wedge, arc, setPoints, setArc, regularPolygon, arcArrow, setViewBox, getViewBox, scaleViewBox, translateViewBox, convertToViewBox, removeChildren, save, load, image, controls };
