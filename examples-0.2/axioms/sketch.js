@@ -108,7 +108,7 @@ origami.drawArrowsForAxiom = function(axiom, crease){
 	let pts = origami.controls.map(p => p.position);
 	switch (axiom){
 		case 2:
-			origami.arrowLayer.arcArrow(pts[0], pts[1]);
+			origami.arrowLayer.arcArrow(pts[0], pts[1], {side:pts[0][0]<pts[1][0]});
 			break;
 		// case 2:
 		// 	var intersect = crease.nearestPoint(pts[0]);
@@ -161,13 +161,15 @@ origami.drawArrowAcross = function(crease, crossing){
 		.shift();
 
 	// another place it can fail
-	let perpPointsMirror = [perpClipEdge[0], perpClipEdge[1]]
+	let pts = [perpClipEdge[0], perpClipEdge[1]]
 		.map(n => n.subtract(crossing).normalize())
 		.filter(v => v !== undefined)
 		.map(v => v.scale(shortLength))
 		.map(v => crossing.add(v))
-	if (perpPointsMirror.length < 2) { return; }
-	origami.arrowLayer.arcArrow(perpPointsMirror[0], perpPointsMirror[1]);
+	if (pts.length < 2) { return; }
+
+	let arrowStyle = { side: pts[0][0]<pts[1][0] };
+	origami.arrowLayer.arcArrow(pts[0], pts[1], arrowStyle);
 }
 
 var selectAxiom = function(n){

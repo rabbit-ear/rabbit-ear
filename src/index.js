@@ -12,6 +12,7 @@ import { default as valleyfold } from './fold/valleyfold';
 import * as creasethrough from './fold/creasethrough';
 
 import { toFOLD, toSVG, toORIPA } from './convert/convert';
+import { default as FOLD_SVG } from "../include/fold-svg";
 
 import { default as CreasePattern } from './cp/CreasePattern';
 import { default as Origami } from './View2D';
@@ -20,7 +21,7 @@ import { default as Graph } from './Graph';
 
 import { axiom } from './fold/axioms';
 
-let convert = { toFOLD, toSVG, toORIPA };
+let convert = { toFOLD, toSVG, toORIPA, FOLD_SVG };
 
 const core = Object.create(null);
 Object.assign(core, file, validate, graph, origami, planargraph);

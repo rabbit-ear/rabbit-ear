@@ -415,22 +415,32 @@ const arcArrow = function(startPoint, endPoint, options) {
 		bend: 0.3,
 		pinch: 0.618,
 		padding: 0.5,
-		side: -1,
+		side: true,
 		start: false,
-		end: true
+		end: true,
+		strokeStyle: "",
+		fillStyle: "",
 	};
 	if (typeof options === "object" && options !== null) {
 		Object.assign(p, options);
 	}
-	let arrowFill = "stroke:none;fill:"+p.color+";";
-	let arrowStroke = "stroke:"+p.color+";fill:none;stroke-width:" +
-		p.strokeWidth+";";
+	let arrowFill = [
+		"stroke:none",
+		"fill:"+p.color,
+		p.fillStyle
+	].filter(a => a !== "").join(";");
+	let arrowStroke = [
+		"fill:none",
+		"stroke:" + p.color,
+		"stroke-width:" + p.strokeWidth,
+		p.strokeStyle
+	].filter(a => a !== "").join(";");
 	let vector = [endPoint[0]-startPoint[0], endPoint[1]-startPoint[1]];
 	let perpendicular = [vector[1], -vector[0]];
 	let midpoint = [startPoint[0] + vector[0]/2, startPoint[1] + vector[1]/2];
 	let bezPoint = [
-		midpoint[0] + perpendicular[0]*p.side * p.bend,
-		midpoint[1] + perpendicular[1]*p.side * p.bend
+		midpoint[0] + perpendicular[0]*(p.side?1:-1) * p.bend,
+		midpoint[1] + perpendicular[1]*(p.side?1:-1) * p.bend
 	];
 	let bezStart = [bezPoint[0] - startPoint[0], bezPoint[1] - startPoint[1]];
 	let bezEnd = [bezPoint[0] - endPoint[0], bezPoint[1] - endPoint[1]];

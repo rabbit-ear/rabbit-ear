@@ -19,7 +19,7 @@ origami.arcArrow = function(startPoint, endPoint, options) {
 		bend: 0.3,      // %
 		pinch: 0.618,   // %
 		padding: 0.5,   // %
-		side: (false) ? 1 : -1,
+		side: true,
 		start: false,
 		end: true
 	};
@@ -36,8 +36,8 @@ origami.arcArrow = function(startPoint, endPoint, options) {
 	let perpendicular = [vector[1], -vector[0]];
 	let midpoint = [startPoint[0] + vector[0]/2, startPoint[1] + vector[1]/2];
 	let bezPoint = [
-		midpoint[0] + perpendicular[0]*p.side * p.bend,
-		midpoint[1] + perpendicular[1]*p.side * p.bend
+		midpoint[0] + perpendicular[0]*(p.side?1:-1) * p.bend,
+		midpoint[1] + perpendicular[1]*(p.side?1:-1) * p.bend
 	];
 
 	let bezStart = [bezPoint[0] - startPoint[0], bezPoint[1] - startPoint[1]];
