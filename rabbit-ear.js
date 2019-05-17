@@ -5323,6 +5323,17 @@
 		} else {
 			first_matrix = graph["faces_re:matrix"][old_face_stationary];
 		}
+		let instruction_crease = core.multiply_line_matrix2(
+			graph["faces_re:creases"][old_face_stationary][0],
+			graph["faces_re:creases"][old_face_stationary][1],
+			graph["faces_re:matrix"][old_face_stationary]
+		);
+		folded["re:fabricated"] = {
+			crease: {
+				point: instruction_crease[0],
+				vector: instruction_crease[1]
+			}
+		};
 		let folded_faces_matrix = make_faces_matrix(folded, new_face_stationary)
 			.map(m => core.multiply_matrices2(first_matrix, m));
 		folded["faces_re:coloring"] = faces_matrix_coloring(folded_faces_matrix);
@@ -7076,6 +7087,42 @@
 		style.setAttribute("type", "text/css");
 		return style;
 	};
+	const shadowFilter = function(id_name = "shadow") {
+		let defs = document$1$1.createElementNS(svgNS$1$1, "defs");
+		let filter = document$1$1.createElementNS(svgNS$1$1, "filter");
+		filter.setAttribute("width", "200%");
+		filter.setAttribute("height", "200%");
+		filter.setAttribute("id", id_name);
+		let blur = document$1$1.createElementNS(svgNS$1$1, "feGaussianBlur");
+		blur.setAttribute("in", "SourceAlpha");
+		blur.setAttribute("stdDeviation", "0.005");
+		blur.setAttribute("result", "blur");
+		let offset = document$1$1.createElementNS(svgNS$1$1, "feOffset");
+		offset.setAttribute("in", "blur");
+		offset.setAttribute("result", "offsetBlur");
+		let flood = document$1$1.createElementNS(svgNS$1$1, "feFlood");
+		flood.setAttribute("flood-color", "#000");
+		flood.setAttribute("flood-opacity", "0.3");
+		flood.setAttribute("result", "offsetColor");
+		let composite = document$1$1.createElementNS(svgNS$1$1, "feComposite");
+		composite.setAttribute("in", "offsetColor");
+		composite.setAttribute("in2", "offsetBlur");
+		composite.setAttribute("operator", "in");
+		composite.setAttribute("result", "offsetBlur");
+		let merge = document$1$1.createElementNS(svgNS$1$1, "feMerge");
+		let mergeNode1 = document$1$1.createElementNS(svgNS$1$1, "feMergeNode");
+		let mergeNode2 = document$1$1.createElementNS(svgNS$1$1, "feMergeNode");
+		mergeNode2.setAttribute("in", "SourceGraphic");
+		merge.appendChild(mergeNode1);
+		merge.appendChild(mergeNode2);
+		defs.appendChild(filter);
+		filter.appendChild(blur);
+		filter.appendChild(offset);
+		filter.appendChild(flood);
+		filter.appendChild(composite);
+		filter.appendChild(merge);
+		return defs;
+	};
 	const line$2 = function(x1, y1, x2, y2) {
 		let shape = document$1$1.createElementNS(svgNS$1$1, "line");
 		shape.setAttributeNS(null, "x1", x1);
@@ -7095,6 +7142,104 @@
 		let shape = document$1$1.createElementNS(svgNS$1$1, "polygon");
 		setPoints$1(shape, pointsArray);
 		return shape;
+	};
+	const bezier$1 = function(fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY) {
+		let d = "M " + fromX + "," + fromY + " C " + c1X + "," + c1Y +
+				" " + c2X + "," + c2Y + " " + toX + "," + toY;
+		let shape = document$1$1.createElementNS(svgNS$1$1, "path");
+		shape.setAttributeNS(null, "d", d);
+		return shape;
+	};
+	const arcArrow$1 = function(startPoint, endPoint, options) {
+		let p = {
+			color: "#000",
+			strokeWidth: 0.01,
+			width: 0.025,
+			length: 0.075,
+			bend: 0.3,
+			pinch: 0.618,
+			padding: 0.5,
+			side: true,
+			start: false,
+			end: true,
+			strokeStyle: "",
+			fillStyle: "",
+		};
+		if (typeof options === "object" && options !== null) {
+			Object.assign(p, options);
+		}
+		let arrowFill = [
+			"stroke:none",
+			"fill:"+p.color,
+			p.fillStyle
+		].filter(a => a !== "").join(";");
+		let arrowStroke = [
+			"fill:none",
+			"stroke:" + p.color,
+			"stroke-width:" + p.strokeWidth,
+			p.strokeStyle
+		].filter(a => a !== "").join(";");
+		let vector = [endPoint[0]-startPoint[0], endPoint[1]-startPoint[1]];
+		let perpendicular = [vector[1], -vector[0]];
+		let midpoint = [startPoint[0] + vector[0]/2, startPoint[1] + vector[1]/2];
+		let bezPoint = [
+			midpoint[0] + perpendicular[0]*(p.side?1:-1) * p.bend,
+			midpoint[1] + perpendicular[1]*(p.side?1:-1) * p.bend
+		];
+		let bezStart = [bezPoint[0] - startPoint[0], bezPoint[1] - startPoint[1]];
+		let bezEnd = [bezPoint[0] - endPoint[0], bezPoint[1] - endPoint[1]];
+		let bezStartLen = Math.sqrt(bezStart[0]*bezStart[0]+bezStart[1]*bezStart[1]);
+		let bezEndLen = Math.sqrt(bezEnd[0]*bezEnd[0]+bezEnd[1]*bezEnd[1]);
+		let bezStartNorm = [bezStart[0]/bezStartLen, bezStart[1]/bezStartLen];
+		let bezEndNorm = [bezEnd[0]/bezEndLen, bezEnd[1]/bezEndLen];
+		let arcStart = [
+			startPoint[0] + bezStartNorm[0]*p.length*((p.start?1:0)+p.padding),
+			startPoint[1] + bezStartNorm[1]*p.length*((p.start?1:0)+p.padding)
+		];
+		let arcEnd = [
+			endPoint[0] + bezEndNorm[0]*p.length*((p.end?1:0)+p.padding),
+			endPoint[1] + bezEndNorm[1]*p.length*((p.end?1:0)+p.padding)
+		];
+		let controlStart = [
+			arcStart[0] + (bezPoint[0] - arcStart[0]) * p.pinch,
+			arcStart[1] + (bezPoint[1] - arcStart[1]) * p.pinch
+		];
+		let controlEnd = [
+			arcEnd[0] + (bezPoint[0] - arcEnd[0]) * p.pinch,
+			arcEnd[1] + (bezPoint[1] - arcEnd[1]) * p.pinch
+		];
+		let startVec = [-bezStartNorm[0], -bezStartNorm[1]];
+		let endVec = [-bezEndNorm[0], -bezEndNorm[1]];
+		let startNormal = [startVec[1], -startVec[0]];
+		let endNormal = [endVec[1], -endVec[0]];
+		let startPoints = [
+			[arcStart[0]+startNormal[0]*-p.width, arcStart[1]+startNormal[1]*-p.width],
+			[arcStart[0]+startNormal[0]*p.width, arcStart[1]+startNormal[1]*p.width],
+			[arcStart[0]+startVec[0]*p.length, arcStart[1]+startVec[1]*p.length]
+		];
+		let endPoints = [
+			[arcEnd[0]+endNormal[0]*-p.width, arcEnd[1]+endNormal[1]*-p.width],
+			[arcEnd[0]+endNormal[0]*p.width, arcEnd[1]+endNormal[1]*p.width],
+			[arcEnd[0]+endVec[0]*p.length, arcEnd[1]+endVec[1]*p.length]
+		];
+		let arrowGroup = document$1$1.createElementNS(svgNS$1$1, "g");
+		let arrowArc = bezier$1(
+			arcStart[0], arcStart[1], controlStart[0], controlStart[1],
+			controlEnd[0], controlEnd[1], arcEnd[0], arcEnd[1]
+		);
+		arrowArc.setAttribute("style", arrowStroke);
+		arrowGroup.appendChild(arrowArc);
+		if (p.start) {
+			let startHead = polygon$1(startPoints);
+			startHead.setAttribute("style", arrowFill);
+			arrowGroup.appendChild(startHead);
+		}
+		if (p.end) {
+			let endHead = polygon$1(endPoints);
+			endHead.setAttribute("style", arrowFill);
+			arrowGroup.appendChild(endHead);
+		}
+		return arrowGroup;
 	};
 	const setPoints$1 = function(polygon, pointsArray) {
 		if (pointsArray == null || pointsArray.constructor !== Array) {
@@ -7223,6 +7368,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		let stylesheet = style$1;
 		let graph = fold;
 		let style$$1 = true;
+		let shadows = false;
+		let padding = 0;
 		let groups = {
 			boundaries: true,
 			faces: true,
@@ -7236,6 +7383,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			if (options.height != null) { height = options.height; }
 			if (options.style != null) { style$$1 = options.style; }
 			if (options.stylesheet != null) { stylesheet = options.stylesheet; }
+			if (options.shadows != null) { shadows = options.shadows; }
+			if (options.padding != null) { padding = options.padding; }
 			if (options.frame != null) {
 				graph = flatten_frame$1(fold, options.frame);
 			}
@@ -7265,8 +7414,20 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				groups[key].appendChild(o)
 			)
 		);
+		if ("re:instructions" in graph) {
+			let instructionLayer = group$1();
+			svg.appendChild(instructionLayer);
+			renderInstructions(graph, instructionLayer);
+		}
+		if (shadows) {
+			let shadow_id = "face_shadow";
+			let shadowFilter$$1 = shadowFilter(shadow_id);
+			svg.appendChild(shadowFilter$$1);
+			Array.from(groups.faces.childNodes)
+				.forEach(f => f.setAttribute("filter", "url(#"+shadow_id+")"));
+		}
 		let rect = bounding_rect$1(graph);
-		setViewBox$1(svg, ...rect);
+		setViewBox$1(svg, ...rect, padding);
 		let vmin = rect[2] > rect[3] ? rect[3] : rect[2];
 		let innerStyle = (style$$1
 			? `\nsvg { --crease-width: ${vmin*0.005}; }\n${stylesheet}`
@@ -7385,6 +7546,34 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		edges: svgEdges,
 		faces: svgFaces,
 		boundaries: svgBoundaries
+	};
+	const renderInstructions = function(graph, group$$1) {
+		if (graph["re:instructions"] === undefined) { return; }
+		if (graph["re:instructions"].length === 0) { return; }
+		Array.from(graph["re:instructions"]).forEach(instruction => {
+			if ("re:instruction_creaseLines" in instruction === true) {
+				instruction["re:instruction_creaseLines"].forEach(crease => {
+					let creaseClass = ("re:instruction_creaseLines_class" in crease)
+						? crease["re:instruction_creaseLines_class"]
+						: "valley";
+					let pts = crease["re:instruction_creaseLines_endpoints"];
+					if (pts !== undefined) {
+						let l = line$2(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
+						l.setAttribute("class", creaseClass);
+						group$$1.appendChild(l);
+					}
+				});
+			}
+			if ("re:instruction_arrows" in instruction === true) {
+				instruction["re:instruction_arrows"].forEach(arrowInst => {
+					let start = arrowInst["re:instruction_arrows_start"];
+					let end = arrowInst["re:instruction_arrows_end"];
+					if (start === undefined || end === undefined) { return; }
+					let arrow = arcArrow$1(start, end, {start:true, end:true});
+					group$$1.appendChild(arrow);
+				});
+			}
+		});
 	};
 	let DOMParser$3 = (typeof window === "undefined" || window === null)
 		? undefined
@@ -8019,7 +8208,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 	};
 	function Origami$1() {
 		let _this = image(...arguments);
-		_this.appendChild(shadowFilter("faces_shadow"));
+		_this.appendChild(shadowFilter$1("faces_shadow"));
 		let groups = {};
 		["boundaries", "faces", "edges", "vertices"].forEach(key => {
 			groups[key] = _this.group();
@@ -8357,7 +8546,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			}
 		});
 		return _this;
-	}const shadowFilter = function(id_name = "shadow") {
+	}const shadowFilter$1 = function(id_name = "shadow") {
 		const svgNS = "http://www.w3.org/2000/svg";
 		let defs = document.createElementNS(svgNS, "defs");
 		let filter = document.createElementNS(svgNS, "filter");

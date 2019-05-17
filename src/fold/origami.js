@@ -209,6 +209,20 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 		first_matrix = graph["faces_re:matrix"][old_face_stationary];
 	}
 
+//////////////////////
+	let instruction_crease = Geom.core.multiply_line_matrix2(
+		graph["faces_re:creases"][old_face_stationary][0],
+		graph["faces_re:creases"][old_face_stationary][1],
+		graph["faces_re:matrix"][old_face_stationary]
+	);
+	folded["re:fabricated"] = {
+		crease: {
+			point: instruction_crease[0],
+			vector: instruction_crease[1]
+		}
+	}
+//////////////////////
+
 	let folded_faces_matrix = PlanarGraph
 		.make_faces_matrix(folded, new_face_stationary)
 		.map(m => Geom.core.multiply_matrices2(first_matrix, m));

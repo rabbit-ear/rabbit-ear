@@ -4,10 +4,11 @@ let origami = RabbitEar.Origami("origami", {
 	autofit:false
 });
 
-let steps = [origami.cp.json];
+let steps = [JSON.parse(JSON.stringify(origami.cp))];
+let instructions = [];
 
 origami.onMouseUp = function(mouse) {
-	steps.push(origami.cp.json);
+	steps.push(JSON.parse(JSON.stringify(origami.cp)));
 }
 
 document.querySelector("#reset-button").onclick = function() {
@@ -17,7 +18,7 @@ document.querySelector("#reset-button").onclick = function() {
 document.querySelector("#back-button").onclick = function() {
 	steps.pop();
 	if (steps.length === 0) { return; }
-	origami.cp = JSON.parse(steps[steps.length-1]);
+	origami.cp = steps[steps.length-1];
 	origami.fold();
 }
 document.querySelector("#print-button").onclick = function() {
@@ -25,8 +26,21 @@ document.querySelector("#print-button").onclick = function() {
 }
 
 function createSteps() {
-	let svgOptions = {width:250, height:250, frame: 1, padding: 0.15};
-	let svgs = steps.map(json => RE.convert.FOLD_SVG.toSVG(json, svgOptions));
+	let svgOptions = {
+		width:250, height:250,
+		frame: 1,
+		padding: 0.15,
+		// shadows:true
+	};
+	let instructions = getInstructions(steps);
+	let stepsWithInstructions = steps
+		.map(step => JSON.parse(JSON.stringify(step)));
+	instructions.forEach((inst,i) =>
+		stepsWithInstructions[i]["re:instructions"] = [inst]
+	);
+
+	let svgs = stepsWithInstructions
+		.map(cp => RE.convert.FOLD_SVG.toSVG(cp, svgOptions));
 	let innerHTML = svgs.join("\n");
 	printHTML(innerHTML);
 }
@@ -48,6 +62,38 @@ function printHTML(innerHTML, css) {
 			document.getElementsByTagName("body")[0].removeChild(printFrame);
 		}
 	}
+}
+
+function getInstructions(cpSequence) {
+	let instructions = Array.from(Array(cpSequence.length-1))
+		.map((_,i) => cpSequence[i+1])
+		.map(cp => cp["re:fabricated"].crease);
+	let hulls = Array.from(Array(cpSequence.length-1))
+		.map((_,i) => cpSequence[i])
+		.map(cp => cp.file_frames != null && cp.file_frames.length > 0
+			? cp.file_frames[0].vertices_coords
+			: cp.vertices_coords)
+		.map(verts => RE.ConvexPolygon.convexHull(verts))
+	// console.log(hulls);
+	// console.log(instructions);
+	let clips = hulls.map((hull,i) => hull.clipLine(instructions[i]))
+	// console.log(clips);
+	return clips.map(edge => {
+		if (edge === undefined) { return {}; }
+		let midpoint = edge.midpoint();
+		let arrowVec = edge.vector.rotateZ90().normalize().scale(0.2);
+		return {
+			"re:instruction_creaseLines": [{
+				"re:instruction_creaseLines_class": "valley",
+				"re:instruction_creaseLines_endpoints": [edge[0], edge[1]]
+			}],
+			"re:instruction_arrows": [{
+				"re:instruction_arrows_start": midpoint.subtract(arrowVec),
+				"re:instruction_arrows_end": midpoint.add(arrowVec)
+			}]
+		};
+	})
+	// return instructions;
 }
 
 
