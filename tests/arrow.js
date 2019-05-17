@@ -1,4 +1,4 @@
-let arrowsStyle = RE.Origami("canvas-arrows-style", {padding:0.1});
+let arrowsStyle = RE.svg.image("canvas-arrows-style", 1,1, {padding:0.1});
 arrowsStyle.drawLayer = arrowsStyle.group();
 
 arrowsStyle.styles = [{

@@ -1,13 +1,13 @@
-let origami = RE.Origami("canvas-arrows", {padding:0.1});
-origami.drawLayer = origami.group();
+let arrowSketch = RE.svg.image("canvas-arrows", 1, 1, {padding:0.1});
+arrowSketch.drawLayer = arrowSketch.group();
 
-origami.controls = RE.svg.controls(origami, 0);
+arrowSketch.controls = RE.svg.controls(arrowSketch, 0);
 Array.from(Array(2))
 	.map(_ => [Math.random(), Math.random()])
 	.map(p => ({position: p, radius: 0.02, fill:"#e14929"}))
-	.forEach(options => origami.controls.add(options));
+	.forEach(options => arrowSketch.controls.add(options));
 
-origami.arcArrow = function(startPoint, endPoint, options) {
+arrowSketch.arcArrow = function(startPoint, endPoint, options) {
 	// options:
 	// - padding: the arrow backs off from the target by a tiny fraction
 	// - color
@@ -122,16 +122,16 @@ origami.arcArrow = function(startPoint, endPoint, options) {
 }
 
 
-origami.redraw = function() {
-	let c = origami.controls;
-	origami.drawLayer.removeChildren();
-	let arrow = origami.arcArrow(c[0].position, c[1].position, {color: "#eb3"});
-	origami.drawLayer.appendChild(arrow);
+arrowSketch.redraw = function() {
+	let c = arrowSketch.controls;
+	arrowSketch.drawLayer.removeChildren();
+	let arrow = arrowSketch.arcArrow(c[0].position, c[1].position, {color: "#eb3"});
+	arrowSketch.drawLayer.appendChild(arrow);
 }
-origami.redraw();
+arrowSketch.redraw();
 
-origami.onMouseMove = function(mouse) {
+arrowSketch.onMouseMove = function(mouse) {
 	if (mouse.isPressed) {
-		origami.redraw();
+		arrowSketch.redraw();
 	}
 }
