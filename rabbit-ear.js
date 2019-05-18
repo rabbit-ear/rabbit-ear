@@ -8216,7 +8216,12 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			groups[key].setAttribute("pointer-events", "none");
 			_this.appendChild(groups[key]);
 		});
-		let visible = ["boundaries", "faces", "edges"];
+		let visible = {
+			"boundaries":true,
+			"faces":true,
+			"edges":true,
+			"vertices":false
+		};
 		let groupLabels = _this.group();
 		let prop = {
 			cp: undefined,
@@ -8239,10 +8244,6 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			if (!preferences.autofit) { updateViewBox(); }
 			prop.cp.onchange.push(draw);
 		};
-		const isFolded = function(graph) {
-			if (graph.frame_classes == null) { return false; }
-			return graph.frame_classes.includes("foldedForm");
-		};
 		const draw = function() {
 			let graph = prop.frame
 				? flatten_frame(prop.cp, prop.frame)
@@ -8255,12 +8256,9 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				.filter(s => s !== "")
 				.join(" ");
 			_this.setAttribute("class", top_level_classes);
-			visible = isFolded(graph)
-				? ["faces", "edges"]
-				: ["boundaries", "faces", "edges"];
 			Object.keys(groups).forEach(key => groups[key].removeChildren());
 			groupLabels.removeChildren();
-			visible.forEach(key =>
+			Object.keys(groups).filter(key => visible[key]).forEach(key =>
 				drawComponent[key](graph).forEach(o =>
 					groups[key].appendChild(o)
 				)
@@ -8345,62 +8343,47 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		};
 		const nearest = function() {
 			let p = Vector(...arguments);
-			let methods = {
-				"vertices": prop.cp.nearestVertex,
-				"creases": prop.cp.nearestEdge,
-				"faces": prop.cp.nearestFace,
+			let plural = {vertex: "vertices", edge: "edges", face: "faces"};
+			let nearest = {
+				vertex: prop.cp.nearestVertex,
+				edge: prop.cp.nearestEdge,
+				face: prop.cp.nearestFace,
 			};
-			let nearest = {};
-			Object.keys(methods)
-				.forEach(key => nearest[key] = methods[key].apply(prop.cp, p));
-			Object.keys(methods)
-				.filter(key => methods[key] == null)
-				.forEach(key => delete methods[key]);
 			Object.keys(nearest)
-				.filter(key => nearest[key] != null)
+				.forEach(key => nearest[key] = nearest[key].apply(prop.cp, p));
+			Object.keys(nearest)
+				.filter(key => nearest[key] !== undefined)
 				.forEach(key =>
-					nearest[key].svg = groups[key].childNodes[nearest[key].index]
+					nearest[key].svg = groups[plural[key]].childNodes[nearest[key].index]
 				);
 			return nearest;
 		};
 		const getVertices = function() {
 			let vertices = prop.cp.vertices;
-			vertices.forEach((v,i) => v.svg = groups.vertices.children[i]);
+			vertices.forEach((v,i) => v.svg = groups.vertices.childNodes[i]);
 			Object.defineProperty(vertices, "visible", {
-				get: function(){ return visibleGroups["vertices"] !== undefined; },
-				set: function(isVisible){
-					if(isVisible) { visibleGroups["vertices"] = groups["vertices"]; }
-					else { delete visibleGroups["vertices"]; }
-					draw();
-				},
+				get: function() { return visible["vertices"]; },
+				set: function(v) { visible["vertices"] = !!v; draw(); },
 			});
 			return vertices;
 		};
 		const getEdges = function() {
 			let edges = prop.cp.edges;
-			edges.forEach((v,i) => v.svg = groups.creases.children[i]);
+			edges.forEach((v,i) => v.svg = groups.edges.childNodes[i]);
 			Object.defineProperty(edges, "visible", {
-				get: function(){ return visibleGroups["creases"] !== undefined; },
-				set: function(isVisible){
-					if(isVisible) { visibleGroups["creases"] = groups["creases"]; }
-					else { delete visibleGroups["creases"]; }
-					draw();
-				},
+				get: function() { return visible["creases"]; },
+				set: function(v) { visible["creases"] = !!v; draw(); },
 			});
 			return edges;
 		};
 		const getFaces = function() {
 			let faces = prop.cp.faces;
-			let sortedFaces = Array.from(groups.faces.children).slice()
+			let sortedFaces = Array.from(groups.faces.childNodes).slice()
 				.sort((a,b) => parseInt(a.id) - parseInt(b.id) );
 			faces.forEach((v,i) => v.svg = sortedFaces[i]);
 			Object.defineProperty(faces, "visible", {
-				get: function(){ return visibleGroups["faces"] !== undefined; },
-				set: function(isVisible){
-					if (isVisible) { visibleGroups["faces"] = groups["faces"]; }
-					else { delete visibleGroups["faces"]; }
-					draw();
-				},
+				get: function() { return visible["faces"]; },
+				set: function(v) { visible["faces"] = !!v; draw(); },
 			});
 			return faces;
 		};
