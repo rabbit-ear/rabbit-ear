@@ -298,7 +298,8 @@ export function crease_line(graph, point, vector) {
 
 export function crease_ray(graph, point, vector) {
 	let new_edges = [];
-	let arr = Array.from(Array(graph.faces_vertices.length)).map((_,i)=>i).reverse();
+	let arr = Array.from(Array(graph.faces_vertices.length))
+		.map((_,i)=>i).reverse();
 	arr.forEach(i => {
 		let diff = PlanarGraph.split_convex_polygon(graph, i, point, vector);
 		if (diff.edges != null && diff.edges.new != null) {

@@ -281,12 +281,25 @@ export const faces_containing_point = function(graph, point) {
 };
 
 export const make_faces_matrix = function(graph, root_face) {
+	// if edge_orientations includes marks AND mountains/valleys,
+	// then perform folds only along mountains and valleys
+	// if edge_orientations doesn't exist, or only includes marks/borders,
+	// then perform folds along all marks
+	// let edge_fold = graph.edges_vertices.map(_ => true);
+	let skip_marks = ("edges_assignment" in graph === true)
+	let edge_fold = skip_marks
+		? graph.edges_assignment.map(a => a!=="f"&&a!=="F"&&a!=="u"&&a!=="U")
+		: graph.edges_vertices.map(_ => true);
+		
 	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
 	Graph.make_face_walk_tree(graph, root_face).forEach((level) =>
 		level.filter((entry) => entry.parent != null).forEach((entry) => {
-			let edge = entry.edge.map(v => graph.vertices_coords[v])
-			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			let local = Geom.core.make_matrix2_reflection(vec, edge[0]);
+			let verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
+			let vec = [verts[1][0] - verts[0][0], verts[1][1] - verts[0][1]];
+			// let local = Geom.core.make_matrix2_reflection(vec, verts[0]);
+			let local = edge_fold[entry.edge]
+				? Geom.core.make_matrix2_reflection(vec, verts[0])
+				: [1,0,0,1,0,0];
 			faces_matrix[entry.face] =
 				Geom.core.multiply_matrices2(faces_matrix[entry.parent], local);
 		})
@@ -298,9 +311,12 @@ export const make_faces_matrix_inv = function(graph, root_face) {
 	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
 	Graph.make_face_walk_tree(graph, root_face).forEach((level) =>
 		level.filter((entry) => entry.parent != null).forEach((entry) => {
-			let edge = entry.edge.map(v => graph.vertices_coords[v])
-			let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]];
-			let local = Geom.core.make_matrix2_reflection(vec, edge[0]);
+			let verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
+			let vec = [verts[1][0] - verts[0][0], verts[1][1] - verts[0][1]];
+			// let local = Geom.core.make_matrix2_reflection(vec, verts[0]);
+			let local = edge_fold[entry.edge]
+				? Geom.core.make_matrix2_reflection(vec, verts[0])
+				: [1,0,0,1,0,0];
 			faces_matrix[entry.face] =
 				Geom.core.multiply_matrices2(local, faces_matrix[entry.parent]);
 		})

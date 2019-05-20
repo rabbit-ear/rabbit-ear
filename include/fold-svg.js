@@ -1495,8 +1495,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 }
 .foldedForm .boundary {fill:none;stroke:none;}
 .foldedForm .faces polygon { stroke:#000; }
-.foldedForm .faces .front { fill:#DDD; }
-.foldedForm .faces .back { fill:#FFF; }
+.foldedForm .faces .front { fill:#FFF; }
+.foldedForm .faces .back { fill:#DDD; }
 .foldedForm .creases line { stroke:none; }`;
 
 let DOMParser$2 = (typeof window === "undefined" || window === null)

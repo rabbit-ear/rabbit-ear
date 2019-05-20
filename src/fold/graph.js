@@ -266,9 +266,17 @@ export const make_faces_faces = function(graph) {
 			} else {
 				edgeMap[key] = idx1;
 			}
-		}); 
+		});
 	});
 	return faces_faces;
+}
+
+const edge_vertex_map = function(graph) {
+	let map = {};
+	graph.edges_vertices
+		.map(ev => ev.sort((a,b) => a-b).join(" "))
+		.forEach((key,i) => map[key] = i);
+	return map;
 }
 
 
@@ -291,7 +299,9 @@ export const faces_coloring = function(graph, root_face = 0){
 }
 
 // root_face will become the root node
-export const make_face_walk_tree = function(graph, root_face = 0){
+export const make_face_walk_tree = function(graph, root_face = 0) {
+	let edge_map = edge_vertex_map(graph);
+	// console.log("edge_map", edge_map)
 	let new_faces_faces = make_faces_faces(graph);
 	if (new_faces_faces.length <= 0) {
 		return [];
@@ -305,14 +315,20 @@ export const make_face_walk_tree = function(graph, root_face = 0){
 			let unique_faces = new_faces_faces[current.face]
 				.filter(f => visited.indexOf(f) === -1);
 			visited = visited.concat(unique_faces);
-			return unique_faces.map(f => ({
-				face: f,
-				parent: current.face,
-				// level: current_level,
-				edge: graph.faces_vertices[f]
-					.filter(v => graph.faces_vertices[current.face].indexOf(v) !== -1)
-					.sort((a,b) => a-b)
-			}))
+			return unique_faces.map(f => {
+				let edge_vertices = graph.faces_vertices[f]
+						.filter(v => graph.faces_vertices[current.face].indexOf(v) !== -1)
+						.sort((a,b) => a-b);
+				let edge = edge_map[edge_vertices.join(" ")];
+				// console.log(" -- looking up", edge_vertices.join(" "), edge);
+				return {
+					face: f,
+					parent: current.face,
+					// level: current_level,
+					edge: edge,
+					edge_vertices: edge_vertices
+				};
+			})
 		}).reduce((prev,curr) => prev.concat(curr),[])
 	} while(list[list.length-1].length > 0);
 	if(list.length > 0 && list[list.length-1].length == 0){ list.pop(); }
@@ -585,22 +601,23 @@ export const remove_edges = function(graph, edges) {
 	let s = 0, removes = Array( edges_count(graph) ).fill(false);
 	edges.forEach(e => removes[e] = true);
 	let index_map = removes.map(remove => remove ? --s : s);
-
-	if(edges.length === 0){ return index_map; }
+	if (edges.length === 0){
+		console.log("catch in remove_edges", index_map);
+		return index_map;
+	}
 
 	// update every component that points to edges_vertices
 	// these arrays do not change their size, only their contents
-	if(graph.faces_edges != null){
-		graph.faces_edges = graph.faces_edges
-			.map(entry => entry.map(v => v + index_map[v]));
-	}
-	if(graph.edgeOrders != null){
-		graph.edgeOrders = graph.edgeOrders
-			.map(entry => entry.map((v,i) => {
-				if(i === 2) return v;  // exception. orientation. not index.
-				return v + index_map[v];
-			}));
-	}
+	// if(graph.faces_edges != null){
+	// 	graph.faces_edges = graph.faces_edges
+	// 		.map(entry => entry.map(v => v + index_map[v]));
+	// }
+	// todo: test this below, when confirmed, remove the portion above
+	Object.keys(graph)
+		.filter(key => key.includes("_edges"))
+		.forEach(key => graph[key] = graph[key]
+			.map(entry => entry.map(v => v + index_map[v]))
+		);
 
 	// update every array with a 1:1 relationship to edges_ arrays
 	// keys like "edges_vertices", "edges_faces" and anything else "edges_..."
@@ -608,6 +625,14 @@ export const remove_edges = function(graph, edges) {
 	Object.keys(graph)
 		.filter(key => key.includes("edges_"))
 		.forEach(key => graph[key] = graph[key].filter((e,i) => !removes[i]));
+
+	// if additional special cases enter the spec, take care of them here
+	if (graph.edgeOrders != null) {
+		// index 2 is orientation. not an edge index.
+		graph.edgeOrders = graph.edgeOrders.map(entry =>
+			entry.map((v,i) => (i === 2) ? v : v + index_map[v])
+		);
+	}
 
 	return index_map;
 	// todo: do the same with frames in file_frames where inherit=true
@@ -694,13 +719,13 @@ export const reindex_subscript = function(graph, subscript, old_index, new_index
  * retains: "B": border/boundary, "M": mountain, "V": valley
  */
 export const remove_marks = function(fold) {
-	let removeTypes = ["f", "F", "b", "B"];
+	let removeTypes = ["f", "F", "u", "U"];
 	let removeEdges = fold.edges_assignment
-		.map((a,i) => ({a:a,i:i}))
+		.map((a,i) => ({a:a, i:i}))
 		.filter(obj => removeTypes.indexOf(obj.a) != -1)
 		.map(obj => obj.i)
-	Graph.remove_edges(fold, removeEdges);
-	// todo, rebuild faces
+	remove_edges(fold, removeEdges);
+	clean(fold);
 }
 
 

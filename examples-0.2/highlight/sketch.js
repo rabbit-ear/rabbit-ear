@@ -5,7 +5,7 @@
 
 var origami = RabbitEar.Origami({padding:0.05});
 origami.vertices.visible = true;
-origami.load("../../files/fold/crane.fold");
+origami.load("https://raw.githubusercontent.com/robbykraft/Origami/master/files/fold/crane.fold");
 
 origami.onMouseMove = function(event) {
 

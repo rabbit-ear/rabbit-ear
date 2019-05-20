@@ -61,3 +61,8 @@ Object.defineProperty(window, "cp", {get:function(){return origami.cp;}});
 // 		.filter(property => typeof object[property] == 'function');
 // }
 // console.log(getAllMethods(RabbitEar));
+
+window.onload = function(){
+	eval(origami.editor.getValue());
+	origami.draw();
+}

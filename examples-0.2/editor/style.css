@@ -21,8 +21,11 @@ html, body {
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+	/*border: 0.3rem solid #e53;*/
+	border: 0.3rem solid #158;
 	background-color: goldenrod;
-	margin: 1em;
+	margin: 1rem;
+	padding: 1rem;
 }
 
 svg {
