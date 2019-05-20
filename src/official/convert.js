@@ -218,7 +218,7 @@ convert.edges_vertices_to_faces_vertices_edges = function(fold) {
   both `faces_vertices` and `faces_edges` property.
    */
   convert.edges_vertices_to_vertices_edges_sorted(fold);
-  return convert.vertices_edges_to_faces_vertices(fold);
+  return convert.vertices_edges_to_faces_vertices_edges(fold);
 };
 
 convert.vertices_vertices_to_vertices_edges = function(fold) {

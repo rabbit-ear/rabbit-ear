@@ -2,6 +2,7 @@
 // MIT open source license, Robby Kraft
 
 import { clone } from "./file";
+import { default as FOLDConvert } from "../official/convert";
 
 // keys in the .FOLD version 1.1
 export const keys = {
@@ -60,8 +61,21 @@ export const CREASE_NAMES = {
 	"U": "mark",     "u": "mark"
 };
 
-const make_complete = function(graph) {
 
+/**
+ * this is the big rebuild-all-arrays function.
+ * leave "keys" empty to rebuild all arrays except vertices_coords and
+ * edges_vertices, these are used to build up the data.
+ */
+export const clean = function(graph, keys) {
+	if ("vertices_coords" in graph === false ||
+			"edges_vertices" in graph === false) {
+		console.warn("clean requires vertices_coords and edges_vertices"); return;
+	}
+	FOLDConvert.edges_vertices_to_faces_vertices_edges(graph);
+	// todo, these are not arranged counter-clockwise
+	let edges_faces = make_edges_faces(graph);
+	graph.edges_faces = edges_faces;
 }
 
 /**
@@ -117,14 +131,10 @@ export const remove_isolated_vertices = function(graph) {
 	return remove_vertices(graph, vertices);
 }
 
-export const remove_collinear_vertices = function(graph) {
-	
-}
-
 export const remove_duplicate_edges = function(graph) {
 	const equivalent = function(a, b) {
 		return (a[0] === b[0] && a[1] === b[1]) ||
-		       (a[0] === b[1] && a[1] === b[0]);
+					 (a[0] === b[1] && a[1] === b[0]);
 	}
 
 	let edges_equivalent = Array
@@ -376,9 +386,9 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 		face.map((fv,i,arr) => {
 			let nextI = (i+1)%arr.length;
 			return (fv === incident_vertices[0]
-			        && arr[nextI] === incident_vertices[1]) ||
-			       (fv === incident_vertices[1]
-			        && arr[nextI] === incident_vertices[0])
+							&& arr[nextI] === incident_vertices[1]) ||
+						 (fv === incident_vertices[1]
+							&& arr[nextI] === incident_vertices[0])
 				? nextI : undefined;
 		}).filter(el => el !== undefined)
 		.sort((a,b) => b-a)
@@ -555,6 +565,14 @@ export function remove_vertices(graph, vertices){
 
 	return index_map;
 	// todo: do the same with frames in file_frames where inherit=true
+}
+
+export const remove_edge_and_rebuild = function(graph, edge) {
+	if ("edges_faces" in graph === false || graph.edges_faces[edge] == null) {
+		console.warn("remove_edge_and_rebuild needs edges_faces to be built");
+		return;
+	}
+	// todo
 }
 
 /* This returns a 

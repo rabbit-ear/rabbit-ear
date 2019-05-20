@@ -87,7 +87,7 @@
 <pre><code><f>let</f> origami <key>=</key> <f>RE</f>.<f>Origami</f>();
 origami.<f>load</f>(<f>RE</f>.bases.frog);
 
-<f>RE</f>.core.faces_coloring(origami.cp, <n>0</n>)
+<f>RE</f>.core.faces_coloring(origami.cp)
   .<f>map</f>(<arg>color</arg> <f>=></f> color <key>?</key> <str>"#224c72"</str> <key>:</key> <str>"#f1c14f"</str>)
   .<f>forEach</f>((<arg>color</arg>, <arg>i</arg>) <f>=></f>
     origami.faces[i].<f>setAttribute</f>(<str>"style"</str>, <str>"fill:"</str> <key>+</key> color)

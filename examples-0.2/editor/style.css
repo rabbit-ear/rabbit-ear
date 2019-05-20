@@ -6,14 +6,23 @@ html, body {
 	height: 100%;
 	width: 100%;
 	margin: 0;
-	display: flex;
-	flex-direction: column;
+	background-color: #f8eed9;
+	font-size: 130%;
 }
 
-div {
+.grid {
+	display: grid;
+	grid-template-columns: auto 100vh auto;
+	grid-template-rows: 100%;
+}
+
+.panel {
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+	background-color: goldenrod;
+	margin: 1em;
 }
 
 svg {
@@ -34,7 +43,7 @@ polygon {
 }
 
 .boundary {
-	fill: linen;
+	fill: white;
 }
 
 .valley{

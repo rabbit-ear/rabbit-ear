@@ -14,4 +14,18 @@ origami.onMouseMove = function(mouse) {
 		pattern.cp = origami.cp;
 	}
 }
+
+pattern.onMouseDown = function() {
+	pattern.backup = pattern.cp.copy();
+}
+
+pattern.onMouseMove = function(mouse) {
+	if (mouse.isPressed) {
+		pattern.cp = pattern.backup.copy();
+		pattern.cp.valleyFold(mouse.pressed, mouse.drag, 0);
+		origami.cp = pattern.cp;
+		origami.fold();
+	}
+}
+
 </script>

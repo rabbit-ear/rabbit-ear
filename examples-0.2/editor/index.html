@@ -5,11 +5,26 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 <link rel="stylesheet" type="text/css" href="button.css">
 
-<div id="origami"></div>
-<div>
-	<a id="print-button" class="button">one</a>
-	<a id="reset-button" class="button">two</a>
-	<a id="back-button" class="button">⟲ undo</a>
+<div class="grid">
+	<div class="panel">
+			<a id="" class="button">axiom</a>
+		<div>
+			<a id="mode-axiom-1" class="button button-red">1</a>
+			<a id="mode-axiom-2" class="button">2</a>
+			<a id="mode-axiom-3" class="button">3</a>
+		</div>
+		<a id="mode-flip-crease" class="button">flip crease</a>
+		<a id="mode-remove-crease" class="button">remove</a>
+		<a id="button-undo" class="button">⟲ undo</a>
+	</div>
+
+	<div id="origami"></div>
+
+	<div class="panel">
+		<a id="switch-origami-preferences-debug" class="button">debug</a>
+		<a id="switch-origami-vertices-visible" class="button button-red">vertices</a>
+	</div>
+
 </div>
 
 <script type="text/javascript" src="../../rabbit-ear.js"></script>

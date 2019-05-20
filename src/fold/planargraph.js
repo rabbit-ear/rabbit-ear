@@ -576,3 +576,13 @@ export const bounding_rect = function(graph) {
 const bounding_cube = function(graph) {
 }
 
+
+export const vertex_is_collinear = function(graph) {
+	// returns n-sized array matching vertices_ length
+	// T/F is a vertex 2-degree between two collinear edges.
+	
+}
+
+export const remove_collinear_vertices = function(graph) {
+	
+}
