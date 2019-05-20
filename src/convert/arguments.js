@@ -128,13 +128,16 @@ export const get_line = function() {
 		};
 	}
 	if (arrays.length > 0) {
-		if (arrays.length == 2) {
+		if (arrays.length === 1) {
+			return get_line(...arrays[0]);
+		}
+		if (arrays.length === 2) {
 			return {
 				point: [arrays[0][0], arrays[0][1]],
 				vector: [arrays[1][0], arrays[1][1]]
 			};
 		}
-		if (arrays.length == 4) {
+		if (arrays.length === 4) {
 			return {
 				point: [arrays[0], arrays[1]],
 				vector: [arrays[2], arrays[3]]
@@ -142,6 +145,9 @@ export const get_line = function() {
 		}
 	}
 	if (params[0].constructor === Object) {
+		if (params[0].point === undefined && params[0][0] != null) {
+			return get_line(params[0][0]);
+		}
 		let vector = [], point = [];
 		if (params[0].vector != null)         { vector = get_vec(params[0].vector); }
 		else if (params[0].direction != null) { vector = get_vec(params[0].direction); }

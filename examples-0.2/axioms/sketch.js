@@ -1,21 +1,20 @@
 let origami = RabbitEar.Origami("origami-cp", {padding:0.05});
-let folded = RabbitEar.Origami("origami-fold", {padding:0.05, shadows:true});
+let folded = RabbitEar.Origami("origami-fold", {padding:0.05});
+// let folded = RabbitEar.Origami("origami-fold", {padding:0.05, shadows:true});
 
 origami.markLayer = origami.group();
-origami.interactionLayer = origami.group();
 origami.arrowLayer = origami.group();
 origami.controls = RE.svg.controls(origami, 0);
 origami.axiom = undefined;
-origami.subSelect = 0;
+origami.subSelect = 0;  // some axioms have 2 or 3 results
 
 // 1: hard reset, axiom has changed
-origami.setNewAxiom = function(axiom) {
+origami.setAxiom = function(axiom) {
+	if (axiom < 1 || axiom > 7) { return; }
 	origami.axiom = axiom;
-	origami.interactionLayer.removeChildren();
 	
 	origami.controls.removeAll();
-	let paramCount = [null, 2, 2, 4, 3, 4, 6, 5];
-	Array.from(Array(paramCount[axiom]))
+	Array.from(Array([null, 2, 2, 4, 3, 4, 6, 5][axiom]))
 		.map(_ => [Math.random(), Math.random()])
 		.map(p => ({position: p, radius: 0.02, fill:"#e14929"}))
 		.forEach(options => origami.controls.add(options));
@@ -33,59 +32,56 @@ origami.update = function() {
 
 	// convert points to lines if necessary
 	switch (origami.axiom){
-		case 3:
-		case 6:
-		case 7:
+		case 3: case 6: case 7:
 			let v = [
 				[pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]],
 				[pts[3][0] - pts[1][0], pts[3][1] - pts[1][1]]
 			];
 			lines = [RE.Line(pts[0], v[0]), RE.Line(pts[1], v[1])];
-		break;
-		case 4:
-		case 5:
+			break;
+		case 4: case 5:
 			lines = [RE.Line(pts[0], [pts[1][0]-pts[0][0], pts[1][1]-pts[0][1]])];
-		break;
+			break;
 	}
 
 	// axiom to get a crease line
-	let creaseLine;
+	let creaseInfo;
 	switch (origami.axiom){
 		case 1:
-		case 2: creaseLine = RE.axiom(origami.axiom, ...pts);
-		break;
-		case 3: creaseLine = RE.axiom(origami.axiom,
+		case 2: creaseInfo = RE.axiom(origami.axiom, ...pts);
+			break;
+		case 3: creaseInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							lines[1].point, lines[1].vector)[origami.subSelect];
-		break;
-		case 4: creaseLine = RE.axiom(origami.axiom,
+			break;
+		case 4: creaseInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							pts[2]);
-		break;
-		case 5: creaseLine = RE.axiom(origami.axiom,
+			break;
+		case 5: creaseInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							pts[2], pts[3])[origami.subSelect];
-		break;
-		case 6: creaseLine = RE.axiom(origami.axiom,
+			break;
+		case 6: creaseInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							lines[1].point, lines[1].vector,
 							pts[4], pts[5])[origami.subSelect];
-		break;
-		case 7: creaseLine = RE.axiom(origami.axiom,
+			break;
+		case 7: creaseInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							lines[1].point, lines[1].vector,
 							pts[4]);
-		break;
+			break;
 	}
 
-	if (creaseLine === undefined) { return; }
-
-	let crease = origami.cp.valleyFold(creaseLine[0], creaseLine[1], 0);
+	if (creaseInfo === undefined) { return; }
+	// console.log("creaseInfo", creaseInfo);
+	let crease = origami.cp.valleyFold(creaseInfo);
 	if (crease) {
 		crease.valley();
 	}
 	// until we get valleyFold returning the crease - create a duplicate
-	let creaseEdge = origami.cp.boundary.clipLine(creaseLine);
+	// let creaseEdge = origami.cp.boundary.clipLine(creaseInfo);
 
 	folded.cp = origami.cp;
 	folded.fold();
@@ -99,11 +95,14 @@ origami.update = function() {
 		.forEach(l => l.setAttribute("style", auxLineStyle));
 
 	origami.arrowLayer.removeChildren();
-	origami.drawArrowsForAxiom(origami.axiom, creaseEdge);
+	console.log("fab", origami.cp["re:fabricated"]);
+	origami.drawArrowsForAxiom(origami.axiom, origami.cp["re:fabricated"].crease);
 }
 
-origami.drawArrowsForAxiom = function(axiom, crease){
-	if (crease == null) { return; }
+origami.drawArrowsForAxiom = function(axiom, creaseLine){
+	if (creaseLine == null) { return; }
+	// until we get valleyFold returning the crease - create a duplicate
+	let crease = origami.cp.boundary.clipLine(creaseLine);
 
 	let pts = origami.controls.map(p => p.position);
 	switch (axiom){
@@ -191,7 +190,7 @@ var selectAxiom = function(n){
 	if (n === 6) {
 		document.querySelector("#btn-option-c").style.opacity = 1;
 	}
-	origami.setNewAxiom(n);
+	origami.setAxiom(n);
 }
 
 function setSubSel(s) {
@@ -199,15 +198,15 @@ function setSubSel(s) {
 	origami.update();
 }
 
-document.getElementById("btn-axiom-1").onclick = function(){ selectAxiom(1); }
-document.getElementById("btn-axiom-2").onclick = function(){ selectAxiom(2); }
-document.getElementById("btn-axiom-3").onclick = function(){ selectAxiom(3); }
-document.getElementById("btn-axiom-4").onclick = function(){ selectAxiom(4); }
-document.getElementById("btn-axiom-5").onclick = function(){ selectAxiom(5); }
-document.getElementById("btn-axiom-6").onclick = function(){ selectAxiom(6); }
-document.getElementById("btn-axiom-7").onclick = function(){ selectAxiom(7); }
-document.getElementById("btn-option-a").onclick = function(){ setSubSel(0); }
-document.getElementById("btn-option-b").onclick = function(){ setSubSel(1); }
-document.getElementById("btn-option-c").onclick = function(){ setSubSel(2); }
+document.querySelector("#btn-axiom-1").onclick = function() { selectAxiom(1); }
+document.querySelector("#btn-axiom-2").onclick = function() { selectAxiom(2); }
+document.querySelector("#btn-axiom-3").onclick = function() { selectAxiom(3); }
+document.querySelector("#btn-axiom-4").onclick = function() { selectAxiom(4); }
+document.querySelector("#btn-axiom-5").onclick = function() { selectAxiom(5); }
+document.querySelector("#btn-axiom-6").onclick = function() { selectAxiom(6); }
+document.querySelector("#btn-axiom-7").onclick = function() { selectAxiom(7); }
+document.querySelector("#btn-option-a").onclick = function() { setSubSel(0); }
+document.querySelector("#btn-option-b").onclick = function() { setSubSel(1); }
+document.querySelector("#btn-option-c").onclick = function() { setSubSel(2); }
 
 selectAxiom(1);

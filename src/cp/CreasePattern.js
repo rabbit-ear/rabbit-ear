@@ -209,16 +209,29 @@ const Prototype = function(proto) {
 		_this.onchange.forEach(f => f());
 	};
 	// fold methods
-	const valleyFold = function(point, vector, face_index) {
-		if (!Args.is_vector(point)
-			|| !Args.is_vector(vector)
-			|| !Args.is_number(face_index)) {
+	const valleyFold = function() { // point, vector, face_index) {
+		let line = Args.get_line(arguments);
+		let face_index = Array.from(arguments)
+			.filter(a => a !== null && !isNaN(a))
+			.shift();
+		// console.log("line", line);
+		// console.log("face_index", face_index);
+		if (!Args.is_vector(line.point) || !Args.is_vector(line.vector)) {
 			console.warn("valleyFold was not supplied the correct parameters");
 			return;
 		}
+
+// if folding on a foldedForm do the below
+// if folding on a creasePattern, add these
+		// let matrix = pattern.cp["faces_re:matrix"] !== null ? pattern.cp["faces_re:matrix"]
+
+		// let mat_inv = matrix
+		// 	.map(mat => Geom.core.make_matrix2_inverse(mat))
+		// 	.map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
+
 		let folded = Origami.crease_through_layers(_this,
-			point,
-			vector,
+			line.point,
+			line.vector,
 			face_index,
 			"V");
 		Object.keys(folded).forEach(key => _this[key] = folded[key]);

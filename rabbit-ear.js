@@ -5372,11 +5372,17 @@
 			graph["faces_re:creases"][old_face_stationary][1],
 			graph["faces_re:matrix"][old_face_stationary]
 		);
+		console.log("instruction_edge", graph.faces_vertices[old_face_stationary].map(fv => graph.vertices_coords[fv]), instruction_crease[0], instruction_crease[1]);
+		let instruction_edge = core.intersection.clip_line_in_convex_poly(
+			graph.faces_vertices[old_face_stationary].map(fv => graph.vertices_coords[fv]),
+			instruction_crease[0], instruction_crease[1]
+		);
 		folded["re:fabricated"] = {
 			crease: {
 				point: instruction_crease[0],
 				vector: instruction_crease[1]
-			}
+			},
+			edge: instruction_edge
 		};
 		let folded_faces_matrix = make_faces_matrix(folded, new_face_stationary)
 			.map(m => core.multiply_matrices2(first_matrix, m));
@@ -7672,9 +7678,6 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			&& !isNaN(arg[0])
 			&& !isNaN(arg[1]);
 	};
-	const is_number = function(n) {
-		return n != null && !isNaN(n);
-	};
 	const clean_number$1 = function(num, decimalPlaces = 15) {
 		return (num == null
 			? undefined
@@ -7708,6 +7711,47 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		let arrays = params.filter((param) => param.constructor === Array);
 		if (arrays.length === 0) { return; }
 		return get_two_vec2$1(...arrays[0]);
+	};
+	const get_line$1 = function() {
+		let params = Array.from(arguments);
+		let numbers = params.filter((param) => !isNaN(param));
+		let arrays = params.filter((param) => param.constructor === Array);
+		if (params.length == 0) { return {vector: [], point: []}; }
+		if (!isNaN(params[0]) && numbers.length >= 4) {
+			return {
+				point: [params[0], params[1]],
+				vector: [params[2], params[3]]
+			};
+		}
+		if (arrays.length > 0) {
+			if (arrays.length === 1) {
+				return get_line$1(...arrays[0]);
+			}
+			if (arrays.length === 2) {
+				return {
+					point: [arrays[0][0], arrays[0][1]],
+					vector: [arrays[1][0], arrays[1][1]]
+				};
+			}
+			if (arrays.length === 4) {
+				return {
+					point: [arrays[0], arrays[1]],
+					vector: [arrays[2], arrays[3]]
+				};
+			}
+		}
+		if (params[0].constructor === Object) {
+			if (params[0].point === undefined && params[0][0] != null) {
+				return get_line$1(params[0][0]);
+			}
+			let vector = [], point = [];
+			if (params[0].vector != null)         { vector = get_vec$1(params[0].vector); }
+			else if (params[0].direction != null) { vector = get_vec$1(params[0].direction); }
+			if (params[0].point != null)       { point = get_vec$1(params[0].point); }
+			else if (params[0].origin != null) { point = get_vec$1(params[0].origin); }
+			return {point, vector};
+		}
+		return {point: [], vector: []};
 	};
 	const get_two_lines = function() {
 		let params = Array.from(arguments);
@@ -8054,16 +8098,18 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		const didModifyGraph = function() {
 			_this.onchange.forEach(f => f());
 		};
-		const valleyFold = function(point, vector, face_index) {
-			if (!is_vector(point)
-				|| !is_vector(vector)
-				|| !is_number(face_index)) {
+		const valleyFold = function() {
+			let line = get_line$1(arguments);
+			let face_index = Array.from(arguments)
+				.filter(a => a !== null && !isNaN(a))
+				.shift();
+			if (!is_vector(line.point) || !is_vector(line.vector)) {
 				console.warn("valleyFold was not supplied the correct parameters");
 				return;
 			}
 			let folded = crease_through_layers(_this,
-				point,
-				vector,
+				line.point,
+				line.vector,
 				face_index,
 				"V");
 			Object.keys(folded).forEach(key => _this[key] = folded[key]);

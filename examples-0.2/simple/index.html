@@ -8,6 +8,7 @@
 <script>
 let origami = RE.Origami({folding:true, padding:0.15, autofit:false});
 let pattern = RE.Origami({padding:0.15});
+pattern.preferences.labels = true;
 
 origami.onMouseMove = function(mouse) {
 	if (mouse.isPressed) {
@@ -22,7 +23,7 @@ pattern.onMouseDown = function() {
 pattern.onMouseMove = function(mouse) {
 	if (mouse.isPressed) {
 		pattern.cp = pattern.backup.copy();
-		pattern.cp.valleyFold(mouse.pressed, mouse.drag, 0);
+		pattern.cp.valleyFold(mouse.pressed, mouse.drag);
 		origami.cp = pattern.cp;
 		origami.fold();
 	}

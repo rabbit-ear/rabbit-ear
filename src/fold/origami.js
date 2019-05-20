@@ -12,7 +12,6 @@
 import * as Geom from "../../include/geometry";
 import * as Graph from "./graph";
 import * as PlanarGraph from "./planargraph";
-import { apply_diff, apply_diff_map } from "./diff";
 import * as File from "./file";
 
 export function build_folded_frame(graph, face_stationary) {
@@ -89,6 +88,7 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 		// console.log("prepare_to_fold creating new faces matrix");
 		graph["faces_re:matrix"] = PlanarGraph.make_faces_matrix(graph, face_index);
 	}
+	// console.log("faces_re:matrix", JSON.parse(JSON.stringify(graph["faces_re:matrix"])));
 
 	graph["faces_re:coloring"] = Graph.faces_matrix_coloring(graph["faces_re:matrix"]);
 
@@ -148,6 +148,7 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	if (face_index == null) {
 		// an unset face will be the face under the point. or if none, index 0
 		let containing_point = PlanarGraph.face_containing_point(graph, point);
+		// console.log("looking... containing_point", containing_point);
 		// todo, if it's still unset, find the point 
 		face_index = (containing_point === undefined) ? 0 : containing_point;
 	}
@@ -215,11 +216,17 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 		graph["faces_re:creases"][old_face_stationary][1],
 		graph["faces_re:matrix"][old_face_stationary]
 	);
+	console.log("instruction_edge", graph.faces_vertices[old_face_stationary].map(fv => graph.vertices_coords[fv]), instruction_crease[0], instruction_crease[1]);
+	let instruction_edge = Geom.core.intersection.clip_line_in_convex_poly(
+		graph.faces_vertices[old_face_stationary].map(fv => graph.vertices_coords[fv]),
+		instruction_crease[0], instruction_crease[1]
+	);
 	folded["re:fabricated"] = {
 		crease: {
 			point: instruction_crease[0],
 			vector: instruction_crease[1]
-		}
+		},
+		edge: instruction_edge
 	}
 //////////////////////
 
