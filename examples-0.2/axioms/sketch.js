@@ -11,7 +11,15 @@ origami.subSelect = 0;  // some axioms have 2 or 3 results
 // 1: hard reset, axiom has changed
 origami.setAxiom = function(axiom) {
 	if (axiom < 1 || axiom > 7) { return; }
-	origami.axiom = axiom;
+	// axiom number buttons
+	document.querySelectorAll("[id^=btn-axiom]")
+		.forEach(b => b.className = "button");
+	document.querySelector("#btn-axiom-"+axiom).className = "button button-red";
+	// sub options buttons
+	let optionCount = [null, 0, 0, 2, 0, 2, 3, 0][axiom];
+	document.querySelectorAll("[id^=btn-option")
+		.forEach((b,i) => b.style.opacity = i < optionCount ? 1 : 0);
+	origami.setSubSel(origami.subSelect);
 	
 	origami.controls.removeAll();
 	Array.from(Array([null, 2, 2, 4, 3, 4, 6, 5][axiom]))
@@ -19,6 +27,16 @@ origami.setAxiom = function(axiom) {
 		.map(p => ({position: p, radius: 0.02, fill:"#e14929"}))
 		.forEach(options => origami.controls.add(options));
 
+	origami.axiom = axiom;
+	origami.update();
+}
+
+origami.setSubSel = function(s) {
+	document.querySelectorAll("[id^=btn-option")
+		.forEach(b => b.className = "button");
+	document.querySelector("#btn-option-"+s).className = "button button-red";
+
+	origami.subSelect = s;
 	origami.update();
 }
 
@@ -31,7 +49,7 @@ origami.update = function() {
 	let lines = [];
 
 	// convert points to lines if necessary
-	switch (origami.axiom){
+	switch (origami.axiom) {
 		case 3: case 6: case 7:
 			let v = [
 				[pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]],
@@ -52,7 +70,7 @@ origami.update = function() {
 			break;
 		case 3: creaseInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
-							lines[1].point, lines[1].vector)[origami.subSelect];
+							lines[1].point, lines[1].vector);
 			break;
 		case 4: creaseInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
@@ -60,12 +78,12 @@ origami.update = function() {
 			break;
 		case 5: creaseInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
-							pts[2], pts[3])[origami.subSelect];
+							pts[2], pts[3]);
 			break;
 		case 6: creaseInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							lines[1].point, lines[1].vector,
-							pts[4], pts[5])[origami.subSelect];
+							pts[4], pts[5]);
 			break;
 		case 7: creaseInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
@@ -75,11 +93,25 @@ origami.update = function() {
 	}
 
 	if (creaseInfo === undefined) { return; }
-	// console.log("creaseInfo", creaseInfo);
-	let crease = origami.cp.valleyFold(creaseInfo);
-	if (crease) {
-		crease.valley();
+
+	// console.log(creaseInfo);
+
+	if (creaseInfo.constructor === Array) {
+		// if (creaseInfo[origami.subSelect] == null) {
+// 
+		// }
+		creaseInfo = creaseInfo[origami.subSelect];
 	}
+	// console.log(creaseInfo);
+	if (creaseInfo === undefined) {
+		// switch
+		origami.setSubSel((origami.subSelect+1)%3);
+	}
+
+	// console.log("creaseInfo", creaseInfo);
+	origami.cp.valleyFold(creaseInfo);
+	// console.log(origami.cp["re:fabricated"]);
+
 	// until we get valleyFold returning the crease - create a duplicate
 	// let creaseEdge = origami.cp.boundary.clipLine(creaseInfo);
 
@@ -95,7 +127,7 @@ origami.update = function() {
 		.forEach(l => l.setAttribute("style", auxLineStyle));
 
 	origami.arrowLayer.removeChildren();
-	console.log("fab", origami.cp["re:fabricated"]);
+	// console.log("fab", origami.cp["re:fabricated"]);
 	origami.drawArrowsForAxiom(origami.axiom, origami.cp["re:fabricated"].crease);
 }
 
@@ -171,42 +203,13 @@ origami.drawArrowAcross = function(crease, crossing){
 	origami.arrowLayer.arcArrow(pts[0], pts[1], arrowStyle);
 }
 
-var selectAxiom = function(n){
-	// update DOM
-	for(var i = 1; i < 8; i++){
-		document.getElementById("btn-axiom-"+i).checked = false;
-		// document.getElementById("btn-axiom-"+i).className = "btn btn-outline-light";
-	}
-	document.getElementById("btn-axiom-"+n).checked = true;
-	// document.getElementById("btn-axiom-"+n).className = "btn btn-outline-light active";
-	// update model
-	["btn-option-a", "btn-option-b", "btn-option-c"]
-		.forEach(s => document.querySelector("#"+s).style.opacity = 0);
+document.querySelectorAll("[id^=btn-axiom]")
+	.forEach(b => b.onclick = function(e) {
+		origami.setAxiom(parseInt(e.target.id.substring(10,11)));
+	});
+document.querySelectorAll("[id^=btn-option]")
+	.forEach(b => b.onclick = function(e) {
+		origami.setSubSel(parseInt(e.target.id.substring(11,12)));
+	});
 
-	if (n === 3 || n === 5 || n === 6) {
-		document.querySelector("#btn-option-a").style.opacity = 1;
-		document.querySelector("#btn-option-b").style.opacity = 1;
-	}
-	if (n === 6) {
-		document.querySelector("#btn-option-c").style.opacity = 1;
-	}
-	origami.setAxiom(n);
-}
-
-function setSubSel(s) {
-	origami.subSelect = s;
-	origami.update();
-}
-
-document.querySelector("#btn-axiom-1").onclick = function() { selectAxiom(1); }
-document.querySelector("#btn-axiom-2").onclick = function() { selectAxiom(2); }
-document.querySelector("#btn-axiom-3").onclick = function() { selectAxiom(3); }
-document.querySelector("#btn-axiom-4").onclick = function() { selectAxiom(4); }
-document.querySelector("#btn-axiom-5").onclick = function() { selectAxiom(5); }
-document.querySelector("#btn-axiom-6").onclick = function() { selectAxiom(6); }
-document.querySelector("#btn-axiom-7").onclick = function() { selectAxiom(7); }
-document.querySelector("#btn-option-a").onclick = function() { setSubSel(0); }
-document.querySelector("#btn-option-b").onclick = function() { setSubSel(1); }
-document.querySelector("#btn-option-c").onclick = function() { setSubSel(2); }
-
-selectAxiom(1);
+origami.setAxiom(1);

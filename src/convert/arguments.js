@@ -118,8 +118,9 @@ export const get_edge = function() {
 */
 export const get_line = function() {
 	let params = Array.from(arguments);
+	let objects = params.filter(p => typeof p === "object");
 	let numbers = params.filter((param) => !isNaN(param));
-	let arrays = params.filter((param) => param.constructor === Array);
+	let arrays = objects.filter((param) => param.constructor === Array || "0" in param === true);
 	if (params.length == 0) { return {vector: [], point: []}; }
 	if (!isNaN(params[0]) && numbers.length >= 4) {
 		return {

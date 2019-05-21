@@ -36,6 +36,13 @@ export function universal_molecule(polygon) {
 
 }
 
+/**
+ * this builds a new faces_layer array. it first separates the folding
+ * faces from the non-folding, using faces_folding, an array of [t,f].
+ * it flips the folding faces over, appends them to the non-folding ordering,
+ * and (re-indexes/normalizes) all the z-index values to be the minimum
+ * whole number set starting with 0.
+ */
 export function foldLayers(faces_layer, faces_folding) {
 	let folding_i = faces_layer
 		.map((el,i) => faces_folding[i] ? i : undefined)
@@ -55,7 +62,9 @@ export function foldLayers(faces_layer, faces_folding) {
 }
 
 /**
- * point average, not centroid, must be convex, only useful in certain cases
+ * for quickly determining which side of a crease a face lies
+ * this uses point average, not centroid, faces must be convex
+ * and again it's not precise, only use this for sided-ness calculation
  */
 const make_face_center = function(graph, face_index) {
 	return graph.faces_vertices[face_index]
@@ -65,9 +74,12 @@ const make_face_center = function(graph, face_index) {
 }
 
 /**
- * the crease line is defined by point, vector, happening on face_index
+ * this establishes which side a point (face_center) is from the
+ * crease line (point, vector). because this uses a +/- determinant
+ * calculation, we also consider the face_color (t/f) whether the face is
+ * upright or flipped, the determinant calculation will be reversed.
  */
-const pointSidedness = function(point, vector, face_center, face_color) {
+const get_face_sidedness = function(point, vector, face_center, face_color) {
 	let vec2 = [face_center[0] - point[0], face_center[1] - point[1]];
 	let det = vector[0] * vec2[1] - vector[1] * vec2[0];
 	return face_color ? det > 0 : det < 0;
@@ -99,7 +111,7 @@ const prepare_to_fold = function(graph, point, vector, face_index) {
 	graph["faces_re:center"] = Array.from(Array(faces_count))
 		.map((_, i) => make_face_center(graph, i));
 	graph["faces_re:sidedness"] = Array.from(Array(faces_count))
-		.map((_, i) => pointSidedness(
+		.map((_, i) => get_face_sidedness(
 			graph["faces_re:creases"][i][0],
 			graph["faces_re:creases"][i][1],
 			graph["faces_re:center"][i],
@@ -132,23 +144,25 @@ const prepare_extensions = function(graph) {
 // 	PlanarGraph.faces_containing_point({}, point) 
 // }
 
+
 /**
  * this returns a copy of the graph with new crease lines.
- * modifying the input graph with "re:" keys
- * make sure graph at least follows fold file format
- * any additional keys will be copied over.
+ * does not modify input graph's geometry, but does append "re:" data
+ * any additional non-standard-FOLD data will be copied over as well.
  */
-
 // for now, this uses "faces_re:layer", todo: use faceOrders
-export const crease_through_layers = function(graph, point, vector, face_index, crease_direction = "V") {
-	// console.log("+++++++++ crease_through_layers", point, vector, face_index);
-
-	let opposite_crease = 
-		(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
+export const crease_through_layers = function(
+	graph,
+	point,
+	vector,
+	face_index,
+	crease_direction = "V"
+){
+	let opposite_crease = (crease_direction === "M" || crease_direction === "m"
+		? "V" : "M");
 	if (face_index == null) {
 		// an unset face will be the face under the point. or if none, index 0
 		let containing_point = PlanarGraph.face_containing_point(graph, point);
-		// console.log("looking... containing_point", containing_point);
 		// todo, if it's still unset, find the point 
 		face_index = (containing_point === undefined) ? 0 : containing_point;
 	}
@@ -159,89 +173,119 @@ export const crease_through_layers = function(graph, point, vector, face_index, 
 	let folded = File.clone(graph);
 	// let folded = JSON.parse(JSON.stringify(graph));
 
+	// one by one, pair up each face with each (reflected) crease line,
+	// if they intersect, chop the face into 2, 
+	// becoming an array of {} or undefined, whether the face was split or not
+	// because split_conved_polygon() calls Graph.remove_faces() we need to
+	// iterate through the faces in reverse order.
 	let faces_count = graph.faces_vertices.length;
-	Array.from(Array(faces_count)).map((_,i) => i).reverse()
-		.forEach(i => {
+	let faces_split = Array.from(Array(faces_count)).map((_,i) => i)
+		.reverse()
+		.map(i => {
 			let diff = PlanarGraph.split_convex_polygon(
 				folded, i,
 				folded["faces_re:creases"][i][0],
 				folded["faces_re:creases"][i][1],
 				folded["faces_re:coloring"][i] ? crease_direction : opposite_crease
 			);
-			if (diff == null || diff.faces == null) { return; }
-			// console.log("face_stationary", graph["face_sre:tationary"]);
+			if (diff == null || diff.faces == null) { return undefined; }
 			// console.log("diff", diff);
 			diff.faces.replace.forEach(replace => 
 				replace.new.map(el => el.index)
-					.map(index => index + diff.faces.map[index]) // new indices post-face removal
+					.map(index => index + diff.faces.map[index])
+						// new indices post-face removal
 					.forEach(i => {
 						folded["faces_re:center"][i] = make_face_center(folded, i);
-						folded["faces_re:sidedness"][i] = pointSidedness(
+						folded["faces_re:sidedness"][i] = get_face_sidedness(
 							graph["faces_re:creases"][replace.old][0],
 							graph["faces_re:creases"][replace.old][1],
 							folded["faces_re:center"][i],
 							graph["faces_re:coloring"][replace.old]
 						);
 						folded["faces_re:layer"][i] = graph["faces_re:layer"][replace.old];
-						folded["faces_re:preindex"][i] = graph["faces_re:preindex"][replace.old];
+						folded["faces_re:preindex"][i] =
+							graph["faces_re:preindex"][replace.old];
 					})
-			)
-		});
-	folded["faces_re:layer"] = foldLayers(
-		folded["faces_re:layer"],
-		folded["faces_re:sidedness"]
-	);
+			);
+			return {
+				index: i,
+				length: diff.edges.new[0].length,
+				edge: diff.edges.new[0].vertices.map(v => folded.vertices_coords[v])
+			};
+		}).reverse(); // reverse a reverse. back to ordering 0,1,2,3,4...
 
-	let new_face_stationary, old_face_stationary;
-	for (var i = 0; i < folded["faces_re:preindex"].length; i++) {
-		if (!folded["faces_re:sidedness"][i]) {
-			old_face_stationary = folded["faces_re:preindex"][i];
-			new_face_stationary = i
-			break;
-		}
-	}
+	// get new face layer ordering
+	folded["faces_re:layer"] =
+		foldLayers(folded["faces_re:layer"], folded["faces_re:sidedness"]);
 
-	let first_matrix;
-	if (new_face_stationary === undefined) {
-		first_matrix = Geom.core.make_matrix2_reflection(vector, point);
-		first_matrix = Geom.core.multiply_matrices2(first_matrix, graph["faces_re:matrix"][0]);
-		new_face_stationary = 0; // can be any face;
-	} else {
-		first_matrix = graph["faces_re:matrix"][old_face_stationary];
-	}
-
-//////////////////////
-	let instruction_crease = Geom.core.multiply_line_matrix2(
-		graph["faces_re:creases"][old_face_stationary][0],
-		graph["faces_re:creases"][old_face_stationary][1],
-		graph["faces_re:matrix"][old_face_stationary]
-	);
-	console.log("instruction_edge", graph.faces_vertices[old_face_stationary].map(fv => graph.vertices_coords[fv]), instruction_crease[0], instruction_crease[1]);
-	let instruction_edge = Geom.core.intersection.clip_line_in_convex_poly(
-		graph.faces_vertices[old_face_stationary].map(fv => graph.vertices_coords[fv]),
-		instruction_crease[0], instruction_crease[1]
-	);
-	folded["re:fabricated"] = {
-		crease: {
-			point: instruction_crease[0],
-			vector: instruction_crease[1]
-		},
-		edge: instruction_edge
-	}
-//////////////////////
-
+	// build new face matrices for the folded state. use face 0 as reference
+	// we need its original matrix, and if face 0 was split we need to know
+	// which of its two new faces doesn't move as the new faces matrix
+	// calculation requires we provide the one face that doesn't move.
+	let face_0_newIndex = (faces_split[0] === undefined
+		? 0
+		: folded["faces_re:preindex"]
+				.map((pre,i) => ({pre, new:i}))
+				.filter(obj => obj.pre === 0)
+				.filter(obj => folded["faces_re:sidedness"][obj.new])
+				.shift().new);
+	// only if face 0 lies on the not-flipped side (sidedness is false),
+	// and it wasn't creased-through, can we use its original matrix.
+	// if face 0 lies on the flip side (sidedness is true), or it was split,
+	// face 0 needs to be multiplied by its crease's reflection matrix
+	let face_0_preMatrix = 
+		(faces_split[0] === undefined && !graph["faces_re:sidedness"][0]
+			? graph["faces_re:matrix"][0]
+			: Geom.core.multiply_matrices2(
+					graph["faces_re:matrix"][0],
+					Geom.core.make_matrix2_reflection(
+						graph["faces_re:creases"][0][1],
+						graph["faces_re:creases"][0][0]
+					)
+				)
+		);
+	// build our new faces_matrices using face 0 as the starting point,
+	// setting face 0 as the identity matrix, then multiply every
+	// face's matrix by face 0's actual starting matrix
 	let folded_faces_matrix = PlanarGraph
-		.make_faces_matrix(folded, new_face_stationary)
-		.map(m => Geom.core.multiply_matrices2(first_matrix, m));
+		.make_faces_matrix(folded, face_0_newIndex)
+		.map(m => Geom.core.multiply_matrices2(face_0_preMatrix, m));
+	// faces coloring is useful for determining if a face is flipped or not
+	folded["faces_re:coloring"] =
+		Graph.faces_matrix_coloring(folded_faces_matrix);
+	// build a "madeBy" section that includes
+	// - what type of operation occurred: valley / mountain fold, flip over
+	// - the edge that draws the fold-line, useful for diagramming
+	// - the direction of the fold/flip
+	let fold_direction = Geom.core.normalize([
+		graph["faces_re:creases"][0][1][1],
+		-graph["faces_re:creases"][0][1][0]
+	]);
+	// faces_split contains the edges that clipped each of the original faces
+	// gather them all together, and reflect them using the original faces'
+	// matrices so the lines lie on top of one another
+	// use that to get the longest-spanning edge that clips through all faces
+	let split_points = faces_split
+		.map((el, i) => el === undefined ? undefined : el.edge.map(p =>
+			Geom.core.multiply_vector2_matrix2(p, graph["faces_re:matrix"][i])
+		)).filter(a => a !== undefined)
+		.reduce((a,b) => a.concat(b), []);
 
-	folded["faces_re:coloring"] = Graph.faces_matrix_coloring(folded_faces_matrix);
+	folded["re:madeBy"] = (split_points.length === 0
+		? { type: "flip", direction: fold_direction }
+		: { type: opposite_crease === "M" ? "valley" : "mountain",
+				direction: fold_direction,
+				edge: PlanarGraph.two_furthest_points(split_points) });
 
-	let folded_vertices_coords = fold_vertices_coords(folded, new_face_stationary, folded_faces_matrix);
 	let folded_frame = {
-		vertices_coords: folded_vertices_coords,
+		vertices_coords: fold_vertices_coords(
+			folded,
+			face_0_newIndex,
+			folded_faces_matrix
+		),
 		frame_classes: ["foldedForm"],
 		frame_inherit: true,
-		frame_parent: 0, // this is not always the case. maybe shouldn't imply this here.
+		frame_parent: 0, // this is not always the case. maybe shouldn't imply
 		// "face_re:stationary": new_face_stationary,
 		"faces_re:matrix": folded_faces_matrix
 	};

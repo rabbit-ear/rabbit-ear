@@ -290,7 +290,7 @@ export const make_faces_matrix = function(graph, root_face) {
 	let edge_fold = skip_marks
 		? graph.edges_assignment.map(a => a!=="f"&&a!=="F"&&a!=="u"&&a!=="U")
 		: graph.edges_vertices.map(_ => true);
-		
+
 	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
 	Graph.make_face_walk_tree(graph, root_face).forEach((level) =>
 		level.filter((entry) => entry.parent != null).forEach((entry) => {
@@ -565,6 +565,27 @@ export function clip_line(fold, linePoint, lineVector) {
 			.map(el => el.intersection)
 			.shift()
 		).filter(p => p != null);
+}
+
+/**
+ * quick bounding box approach to find the two furthest points in a collection
+ *
+ */
+export const two_furthest_points = function(points) {
+	let top = [0, -Infinity];
+	let left = [Infinity, 0];
+	let right = [-Infinity, 0];
+	let bottom = [0, Infinity];
+	points.forEach(p => {
+		if (p[0] < left[0]) { left = p; }
+		if (p[0] > right[0]) { right = p; }
+		if (p[1] < bottom[1]) { bottom = p; }
+		if (p[1] > top[1]) { top = p; }
+	});
+	// handle vertical and horizontal lines cases
+	let t_to_b = Math.abs(top[1] - bottom[1]);
+	let l_to_r = Math.abs(right[0] - left[0]);
+	return t_to_b > l_to_r ? [bottom, top] : [left, right];
 }
 
 

@@ -43,9 +43,21 @@ export const keys = {
 	]
 };
 
-let frame_attributes = ["2D", "3D", "abstract", "manifold", "nonManifold", "orientable", "nonOrientable", "selfTouching", "nonSelfTouching", "selfIntersecting", "nonSelfIntersecting"];
-let frame_classes = ["creasePattern", "foldedForm", "graph", "linkage"];
 let file_classes = ["singleModel", "multiModel", "animation", "diagrams"];
+let frame_classes = ["creasePattern", "foldedForm", "graph", "linkage"];
+let frame_attributes = [
+	"2D",
+	"3D",
+	"abstract",
+	"manifold",
+	"nonManifold",
+	"orientable",
+	"nonOrientable",
+	"selfTouching",
+	"nonSelfTouching",
+	"selfIntersecting",
+	"nonSelfIntersecting"
+];
 
 export const all_keys = []
 	.concat(keys.file)
@@ -64,18 +76,23 @@ export const CREASE_NAMES = {
 
 /**
  * this is the big rebuild-all-arrays function.
- * leave "keys" empty to rebuild all arrays except vertices_coords and
- * edges_vertices, these are used to build up the data.
+ * vertices_coords and edges_vertices are the seeds everything else is rebuilt.
+ * todo: specify "keys" parameter to update certain keys only
  */
 export const clean = function(graph, keys) {
 	if ("vertices_coords" in graph === false ||
 			"edges_vertices" in graph === false) {
-		console.warn("clean requires vertices_coords and edges_vertices"); return;
+		console.warn("clean requires vertices_coords and edges_vertices");
+		return;
 	}
-	FOLDConvert.edges_vertices_to_faces_vertices_edges(graph);
-	// todo, these are not arranged counter-clockwise
-	let edges_faces = make_edges_faces(graph);
-	graph.edges_faces = edges_faces;
+	if (keys == null) {
+		FOLDConvert.edges_vertices_to_faces_vertices_edges(graph);
+		// todo, these are not arranged counter-clockwise
+		let edges_faces = make_edges_faces(graph);
+		graph.edges_faces = edges_faces;
+	} else {
+		console.warn("clean() certain keys only not yet implemented");
+	}
 }
 
 /**

@@ -65,27 +65,19 @@ function printHTML(innerHTML, css) {
 }
 
 function getInstructions(cpSequence) {
-	let instructions = Array.from(Array(cpSequence.length-1))
+	let mades = Array.from(Array(cpSequence.length-1))
 		.map((_,i) => cpSequence[i+1])
-		.map(cp => cp["re:fabricated"].crease);
-	let hulls = Array.from(Array(cpSequence.length-1))
-		.map((_,i) => cpSequence[i])
-		.map(cp => cp.file_frames != null && cp.file_frames.length > 0
-			? cp.file_frames[0].vertices_coords
-			: cp.vertices_coords)
-		.map(verts => RE.ConvexPolygon.convexHull(verts))
-	// console.log(hulls);
-	// console.log(instructions);
-	let clips = hulls.map((hull,i) => hull.clipLine(instructions[i]))
-	// console.log(clips);
-	return clips.map(edge => {
-		if (edge === undefined) { return {}; }
-		let midpoint = edge.midpoint();
-		let arrowVec = edge.vector.rotateZ90().normalize().scale(0.2);
+		.map(cp => cp["re:madeBy"]);
+	console.log(mades);
+	return mades.map(madeBy => {
+		if (madeBy === undefined) { return {}; }
+		if (madeBy.edge === undefined) { return {}; }
+		let midpoint = RE.Vector(RE.math.average(madeBy.edge));
+		let arrowVec = [madeBy.direction[0]*0.2, madeBy.direction[1]*0.2];
 		return {
 			"re:instruction_creaseLines": [{
 				"re:instruction_creaseLines_class": "valley",
-				"re:instruction_creaseLines_endpoints": [edge[0], edge[1]]
+				"re:instruction_creaseLines_endpoints": [madeBy.edge[0], madeBy.edge[1]]
 			}],
 			"re:instruction_arrows": [{
 				"re:instruction_arrows_start": midpoint.subtract(arrowVec),

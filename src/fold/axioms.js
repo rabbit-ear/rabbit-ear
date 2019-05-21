@@ -7,9 +7,12 @@ import * as Args from "../convert/arguments";
  *
  */
 const makeCrease = function(point, vector) {
-	let crease = [point, vector];
-	crease.point = point;
-	crease.vector = vector;
+	let crease = {point, vector};
+	crease[0] = point;
+	crease[1] = vector;
+	// let crease = [point, vector];
+	// crease.point = point;
+	// crease.vector = vector;
 	return crease;
 }
 

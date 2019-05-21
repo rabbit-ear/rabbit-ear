@@ -4209,11 +4209,16 @@
 	const clean = function(graph, keys) {
 		if ("vertices_coords" in graph === false ||
 				"edges_vertices" in graph === false) {
-			console.warn("clean requires vertices_coords and edges_vertices"); return;
+			console.warn("clean requires vertices_coords and edges_vertices");
+			return;
 		}
-		convert$1.edges_vertices_to_faces_vertices_edges(graph);
-		let edges_faces = make_edges_faces(graph);
-		graph.edges_faces = edges_faces;
+		if (keys == null) {
+			convert$1.edges_vertices_to_faces_vertices_edges(graph);
+			let edges_faces = make_edges_faces(graph);
+			graph.edges_faces = edges_faces;
+		} else {
+			console.warn("clean() certain keys only not yet implemented");
+		}
 	};
 	const new_vertex = function(graph, x, y) {
 		if (graph.vertices_coords == null) { graph.vertices_coords = []; }
@@ -5188,6 +5193,21 @@
 				.shift()
 			).filter(p => p != null);
 	}
+	const two_furthest_points = function(points) {
+		let top = [0, -Infinity];
+		let left = [Infinity, 0];
+		let right = [-Infinity, 0];
+		let bottom = [0, Infinity];
+		points.forEach(p => {
+			if (p[0] < left[0]) { left = p; }
+			if (p[0] > right[0]) { right = p; }
+			if (p[1] < bottom[1]) { bottom = p; }
+			if (p[1] > top[1]) { top = p; }
+		});
+		let t_to_b = Math.abs(top[1] - bottom[1]);
+		let l_to_r = Math.abs(right[0] - left[0]);
+		return t_to_b > l_to_r ? [bottom, top] : [left, right];
+	};
 	const bounding_rect = function(graph) {
 		if ("vertices_coords" in graph === false ||
 			graph.vertices_coords.length <= 0) {
@@ -5227,6 +5247,7 @@
 		split_convex_polygon: split_convex_polygon$1,
 		find_collinear_face_edges: find_collinear_face_edges,
 		clip_line: clip_line,
+		two_furthest_points: two_furthest_points,
 		bounding_rect: bounding_rect,
 		vertex_is_collinear: vertex_is_collinear,
 		remove_collinear_vertices: remove_collinear_vertices
@@ -5272,7 +5293,7 @@
 			.reduce((a,b) => [a[0]+b[0], a[1]+b[1]], [0,0])
 			.map(el => el/graph.faces_vertices[face_index].length);
 	};
-	const pointSidedness = function(point, vector, face_center, face_color) {
+	const get_face_sidedness = function(point, vector, face_center, face_color) {
 		let vec2 = [face_center[0] - point[0], face_center[1] - point[1]];
 		let det = vector[0] * vec2[1] - vector[1] * vec2[0];
 		return face_color ? det > 0 : det < 0;
@@ -5295,7 +5316,7 @@
 		graph["faces_re:center"] = Array.from(Array(faces_count$$1))
 			.map((_, i) => make_face_center(graph, i));
 		graph["faces_re:sidedness"] = Array.from(Array(faces_count$$1))
-			.map((_, i) => pointSidedness(
+			.map((_, i) => get_face_sidedness(
 				graph["faces_re:creases"][i][0],
 				graph["faces_re:creases"][i][1],
 				graph["faces_re:center"][i],
@@ -5311,9 +5332,15 @@
 			graph["faces_re:to_move"] = Array.from(Array(faces_count$$1)).map(_ => false);
 		}
 	};
-	const crease_through_layers = function(graph, point, vector, face_index, crease_direction = "V") {
-		let opposite_crease =
-			(crease_direction === "M" || crease_direction === "m" ? "V" : "M");
+	const crease_through_layers = function(
+		graph,
+		point,
+		vector,
+		face_index,
+		crease_direction = "V"
+	){
+		let opposite_crease = (crease_direction === "M" || crease_direction === "m"
+			? "V" : "M");
 		if (face_index == null) {
 			let containing_point = face_containing_point(graph, point);
 			face_index = (containing_point === undefined) ? 0 : containing_point;
@@ -5322,74 +5349,82 @@
 		prepare_to_fold(graph, point, vector, face_index);
 		let folded = clone$1(graph);
 		let faces_count$$1 = graph.faces_vertices.length;
-		Array.from(Array(faces_count$$1)).map((_,i) => i).reverse()
-			.forEach(i => {
+		let faces_split = Array.from(Array(faces_count$$1)).map((_,i) => i)
+			.reverse()
+			.map(i => {
 				let diff = split_convex_polygon$1(
 					folded, i,
 					folded["faces_re:creases"][i][0],
 					folded["faces_re:creases"][i][1],
 					folded["faces_re:coloring"][i] ? crease_direction : opposite_crease
 				);
-				if (diff == null || diff.faces == null) { return; }
+				if (diff == null || diff.faces == null) { return undefined; }
 				diff.faces.replace.forEach(replace =>
 					replace.new.map(el => el.index)
 						.map(index => index + diff.faces.map[index])
 						.forEach(i => {
 							folded["faces_re:center"][i] = make_face_center(folded, i);
-							folded["faces_re:sidedness"][i] = pointSidedness(
+							folded["faces_re:sidedness"][i] = get_face_sidedness(
 								graph["faces_re:creases"][replace.old][0],
 								graph["faces_re:creases"][replace.old][1],
 								folded["faces_re:center"][i],
 								graph["faces_re:coloring"][replace.old]
 							);
 							folded["faces_re:layer"][i] = graph["faces_re:layer"][replace.old];
-							folded["faces_re:preindex"][i] = graph["faces_re:preindex"][replace.old];
+							folded["faces_re:preindex"][i] =
+								graph["faces_re:preindex"][replace.old];
 						})
 				);
-			});
-		folded["faces_re:layer"] = foldLayers(
-			folded["faces_re:layer"],
-			folded["faces_re:sidedness"]
-		);
-		let new_face_stationary, old_face_stationary;
-		for (var i = 0; i < folded["faces_re:preindex"].length; i++) {
-			if (!folded["faces_re:sidedness"][i]) {
-				old_face_stationary = folded["faces_re:preindex"][i];
-				new_face_stationary = i;
-				break;
-			}
-		}
-		let first_matrix;
-		if (new_face_stationary === undefined) {
-			first_matrix = core.make_matrix2_reflection(vector, point);
-			first_matrix = core.multiply_matrices2(first_matrix, graph["faces_re:matrix"][0]);
-			new_face_stationary = 0;
-		} else {
-			first_matrix = graph["faces_re:matrix"][old_face_stationary];
-		}
-		let instruction_crease = core.multiply_line_matrix2(
-			graph["faces_re:creases"][old_face_stationary][0],
-			graph["faces_re:creases"][old_face_stationary][1],
-			graph["faces_re:matrix"][old_face_stationary]
-		);
-		console.log("instruction_edge", graph.faces_vertices[old_face_stationary].map(fv => graph.vertices_coords[fv]), instruction_crease[0], instruction_crease[1]);
-		let instruction_edge = core.intersection.clip_line_in_convex_poly(
-			graph.faces_vertices[old_face_stationary].map(fv => graph.vertices_coords[fv]),
-			instruction_crease[0], instruction_crease[1]
-		);
-		folded["re:fabricated"] = {
-			crease: {
-				point: instruction_crease[0],
-				vector: instruction_crease[1]
-			},
-			edge: instruction_edge
-		};
-		let folded_faces_matrix = make_faces_matrix(folded, new_face_stationary)
-			.map(m => core.multiply_matrices2(first_matrix, m));
-		folded["faces_re:coloring"] = faces_matrix_coloring(folded_faces_matrix);
-		let folded_vertices_coords = fold_vertices_coords(folded, new_face_stationary, folded_faces_matrix);
+				return {
+					index: i,
+					length: diff.edges.new[0].length,
+					edge: diff.edges.new[0].vertices.map(v => folded.vertices_coords[v])
+				};
+			}).reverse();
+		folded["faces_re:layer"] =
+			foldLayers(folded["faces_re:layer"], folded["faces_re:sidedness"]);
+		let face_0_newIndex = (faces_split[0] === undefined
+			? 0
+			: folded["faces_re:preindex"]
+					.map((pre,i) => ({pre, new:i}))
+					.filter(obj => obj.pre === 0)
+					.filter(obj => folded["faces_re:sidedness"][obj.new])
+					.shift().new);
+		let face_0_preMatrix =
+			(faces_split[0] === undefined && !graph["faces_re:sidedness"][0]
+				? graph["faces_re:matrix"][0]
+				: core.multiply_matrices2(
+						graph["faces_re:matrix"][0],
+						core.make_matrix2_reflection(
+							graph["faces_re:creases"][0][1],
+							graph["faces_re:creases"][0][0]
+						)
+					)
+			);
+		let folded_faces_matrix = make_faces_matrix(folded, face_0_newIndex)
+			.map(m => core.multiply_matrices2(face_0_preMatrix, m));
+		folded["faces_re:coloring"] =
+			faces_matrix_coloring(folded_faces_matrix);
+		let fold_direction = core.normalize([
+			graph["faces_re:creases"][0][1][1],
+			-graph["faces_re:creases"][0][1][0]
+		]);
+		let split_points = faces_split
+			.map((el, i) => el === undefined ? undefined : el.edge.map(p =>
+				core.multiply_vector2_matrix2(p, graph["faces_re:matrix"][i])
+			)).filter(a => a !== undefined)
+			.reduce((a,b) => a.concat(b), []);
+		folded["re:madeBy"] = (split_points.length === 0
+			? { type: "flip", direction: fold_direction }
+			: { type: opposite_crease === "M" ? "valley" : "mountain",
+					direction: fold_direction,
+					edge: two_furthest_points(split_points) });
 		let folded_frame = {
-			vertices_coords: folded_vertices_coords,
+			vertices_coords: fold_vertices_coords(
+				folded,
+				face_0_newIndex,
+				folded_faces_matrix
+			),
 			frame_classes: ["foldedForm"],
 			frame_inherit: true,
 			frame_parent: 0,
@@ -7714,8 +7749,9 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 	};
 	const get_line$1 = function() {
 		let params = Array.from(arguments);
+		let objects = params.filter(p => typeof p === "object");
 		let numbers = params.filter((param) => !isNaN(param));
-		let arrays = params.filter((param) => param.constructor === Array);
+		let arrays = objects.filter((param) => param.constructor === Array || "0" in param === true);
 		if (params.length == 0) { return {vector: [], point: []}; }
 		if (!isNaN(params[0]) && numbers.length >= 4) {
 			return {
@@ -9239,9 +9275,9 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 	};
 
 	const makeCrease = function(point, vector) {
-		let crease = [point, vector];
-		crease.point = point;
-		crease.vector = vector;
+		let crease = {point, vector};
+		crease[0] = point;
+		crease[1] = vector;
 		return crease;
 	};
 	const axiom = function(number, parameters) {
