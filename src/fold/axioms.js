@@ -16,7 +16,7 @@ const makeCrease = function(point, vector) {
 	return crease;
 }
 
-const headers = function(crease, axiom, parameters) {
+const addParamInfo = function(crease, axiom, parameters) {
 	crease.axiom = axiom;
 	crease.parameters = parameters
 	return crease;
@@ -55,7 +55,7 @@ export const axiom1 = function(pointA, pointB) {
 	let p1 = Args.get_vec(pointB);
 	let vec = p0.map((_,i) => p1[i] - p0[i]);
 	let solution = makeCrease(p0, vec);
-	return headers(solution, 1, {marks:[p0, p1]});
+	return addParamInfo(solution, 1, {marks:[p0, p1]});
 }
 
 // 2-dimension
@@ -63,19 +63,19 @@ export const axiom2 = function(a, b) {
 	let mid = Geometry.core.midpoint(a, b);
 	let vec = Geometry.core.normalize(a.map((_,i) => b[i] - a[i]));
 	let solution = makeCrease(mid, [vec[1], -vec[0]]);
-	return headers(solution, 2, {marks:[a,b]});
+	return addParamInfo(solution, 2, {marks:[a,b]});
 }
 export const axiom3 = function(pointA, vectorA, pointB, vectorB) {
 	return Geometry.core.bisect_lines2(pointA, vectorA, pointB, vectorB)
 		.map(line => makeCrease(line[0], line[1]))
 		.map(solution =>
-			headers(solution, 3, {lines:[[pointA, vectorA], [pointB, vectorB]]})
+			addParamInfo(solution, 3, {lines:[[pointA, vectorA], [pointB, vectorB]]})
 		);
 }
 export const axiom4 = function(pointA, vectorA, pointB) {
 	let norm = Geometry.core.normalize(vectorA);
 	let solution = makeCrease([...pointB], [norm[1], -norm[0]]);
-	return headers(solution, 4, {marks: [pointB], lines:[[pointA, vectorA]]});
+	return addParamInfo(solution, 4, {marks: [pointB], lines:[[pointA, vectorA]]});
 }
 export const axiom5 = function(pointA, vectorA, pointB, pointC) {
 	let pA = Args.get_vec(pointA);
@@ -88,7 +88,7 @@ export const axiom5 = function(pointA, vectorA, pointB, pointC) {
 	let sect = Geometry.core.intersection.circle_line(pB, radius, pA, pA2);
 	return sect === undefined
 		? []
-		: headers(sect.map(s => axiom2(pC, s)), 5, {
+		: addParamInfo(sect.map(s => axiom2(pC, s)), 5, {
 				marks:[pB, pC],
 				lines:[[pA, vA]]
 			});
@@ -110,7 +110,7 @@ export const axiom7 = function(pointA, vectorA, pointB, vectorB, pointC) {
 	let mid = Geometry.core.midpoint(pC, sect);
 	let vec = Geometry.core.normalize(pC.map((_,i) => sect[i] - pC[i]));
 	let solution = makeCrease(mid, [vec[1], -vec[0]]);
-	return headers(solution, 7, { marks: [pC], lines: [[pA, vA], [pB, vB]]});
+	return addParamInfo(solution, 7, { marks: [pC], lines: [[pA, vA], [pB, vB]]});
 };
 
 
@@ -413,7 +413,11 @@ export const axiom6 = function(pointA, vecA, pointB, vecB, pointC, pointD) {
 		}
 	}
 
-	return lines;
+	let params = {
+		marks: [pointC, pointD],
+		lines: [[pointA, vecA], [pointB, vecB]]
+	};
+	return lines.map(solution => addParamInfo(solution, 6, params));
 }
 
 

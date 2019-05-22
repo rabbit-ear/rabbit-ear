@@ -1575,7 +1575,7 @@ const fold_to_svg = function(fold, options) {
 			groups[key].appendChild(o)
 		)
 	);
-	if ("re:instructions" in graph) {
+	if ("re:diagrams" in graph) {
 		let instructionLayer = group();
 		svg.appendChild(instructionLayer);
 		renderInstructions(graph, instructionLayer);
@@ -1709,15 +1709,15 @@ const components = {
 	boundaries: svgBoundaries
 };
 const renderInstructions = function(graph, group$$1) {
-	if (graph["re:instructions"] === undefined) { return; }
-	if (graph["re:instructions"].length === 0) { return; }
-	Array.from(graph["re:instructions"]).forEach(instruction => {
-		if ("re:instruction_creaseLines" in instruction === true) {
-			instruction["re:instruction_creaseLines"].forEach(crease => {
-				let creaseClass = ("re:instruction_creaseLines_class" in crease)
-					? crease["re:instruction_creaseLines_class"]
+	if (graph["re:diagrams"] === undefined) { return; }
+	if (graph["re:diagrams"].length === 0) { return; }
+	Array.from(graph["re:diagrams"]).forEach(instruction => {
+		if ("re:diagram_lines" in instruction === true) {
+			instruction["re:diagram_lines"].forEach(crease => {
+				let creaseClass = ("re:diagram_line_classes" in crease)
+					? crease["re:diagram_line_classes"].join(" ")
 					: "valley";
-				let pts = crease["re:instruction_creaseLines_endpoints"];
+				let pts = crease["re:diagram_line_coords"];
 				if (pts !== undefined) {
 					let l = line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
 					l.setAttribute("class", creaseClass);
@@ -1725,13 +1725,24 @@ const renderInstructions = function(graph, group$$1) {
 				}
 			});
 		}
-		if ("re:instruction_arrows" in instruction === true) {
-			instruction["re:instruction_arrows"].forEach(arrowInst => {
-				let start = arrowInst["re:instruction_arrows_start"];
-				let end = arrowInst["re:instruction_arrows_end"];
-				if (start === undefined || end === undefined) { return; }
-				let arrow = arcArrow(start, end, {start:true, end:true});
-				group$$1.appendChild(arrow);
+		if ("re:diagram_arrows" in instruction === true) {
+			instruction["re:diagram_arrows"].forEach(arrowInst => {
+				if (arrowInst["re:diagram_arrow_coords"].length === 2) {
+					let p = arrowInst["re:diagram_arrow_coords"];
+					let side = p[0][0] < p[1][0];
+					if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
+						side = p[0][1] < p[1][1]
+							? p[0][0] < 0.5
+							: p[0][0] > 0.5;
+					}
+					if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
+						side = p[0][0] < p[1][0]
+							? p[0][1] > 0.5
+							: p[0][1] < 0.5;
+					}
+					let arrow = arcArrow(p[0], p[1], {side});
+					group$$1.appendChild(arrow);
+				}
 			});
 		}
 	});

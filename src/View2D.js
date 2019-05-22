@@ -249,71 +249,36 @@ export default function() {
 	}
 
 	const drawDiagram = function(graph) {
-		if ("re:diagram" in graph === false) { return; }
-		let info = graph["re:diagram"];
-		let crease = Geom.Edge(info.edge);//prop.cp.boundary.clipLine(info);
-
-		let p = info.parameters;
-		switch (info.axiom){
-			case 2:
-				groups.diagram.arcArrow(p.marks[1], p.marks[0], {side:true});
-				break;
-			// case 2:
-			// 	var intersect = crease.nearestPoint(pts[0]);
-			// 	drawArrowAcross(crease, intersect);
-			// 	break;
-			case 5:
-				var intersect = crease.nearestPoint(p.marks[0]);
-				drawArrowAcross(crease, intersect);
-				break;
-			case 6:
-				let intersect1 = crease.nearestPoint(p.marks[0]);
-				let intersect2 = crease.nearestPoint(p.marks[1]);
-				drawArrowAcross(crease, intersect1);
-				drawArrowAcross(crease, intersect2);
-				break;
-			case 7:
-				var intersect = crease.nearestPoint(p.marks[0]);
-				drawArrowAcross(crease, intersect);
-				break;
-			default:
-				drawArrowAcross(crease);
-				break;
-		}
+		let diagrams = graph["re:diagrams"];
+		if (diagrams == null) { return; }
+		diagrams
+			.map(d => d["re:diagram_arrows"])
+			.filter(a => a != null)
+			.forEach(arrow => arrow
+				.map(a => a["re:diagram_arrow_coords"])
+				.filter(a => a.length > 0)
+				.map(p => {
+					// learn arrow so the arc is always "up". if the two X parameters
+					// are too close to each other, lean the arrow to center of paper.
+					let side = p[0][0] < p[1][0];
+					if (Math.abs(p[0][0] - p[1][0]) < 0.1) { // xs are ~ the same
+						side = p[0][1] < p[1][1]
+							? p[0][0] < 0.5
+							: p[0][0] > 0.5;
+					}
+					if (Math.abs(p[0][1] - p[1][1]) < 0.1) { // if ys are the same
+						side = p[0][0] < p[1][0]
+							? p[0][1] > 0.5
+							: p[0][1] < 0.5;
+					}
+					// todo, those parameters aren't generalized beyond a unit square
+					return groups.diagram.arcArrow(p[0], p[1], {side});
+				})
+			);
 	}
-
-	// intersect is a point on the line,
-	// the point which the arrow should be cast perpendicularly across
-	// when left undefined, intersect will be the midpoint of the line.
-	const drawArrowAcross = function(crease, crossing){
-		if (crease == null) {
-			console.warn("drawArrowAcross not provided the correct parameters");
-			return;
-		}
-		if (crossing == null) {
-			crossing = crease.midpoint();
-		}
-
-		let normal = [-crease.vector[1], crease.vector[0]];
-		let perpLine = { point: crossing, vector: normal };
-		let perpClipEdge = prop.cp.boundary.clipLine(perpLine);
-
-		let shortLength = [perpClipEdge[0], perpClipEdge[1]]
-			.map(function(n){ return n.distanceTo(crossing); },this)
-			.sort(function(a,b){ return a-b; })
-			.shift();
-
-		// another place it can fail
-		let pts = [perpClipEdge[0], perpClipEdge[1]]
-			.map(n => n.subtract(crossing).normalize())
-			.filter(v => v !== undefined)
-			.map(v => v.scale(shortLength))
-			.map(v => crossing.add(v))
-		if (pts.length < 2) { return; }
-
-		let arrowStyle = { side: pts[0][0]<pts[1][0] };
-		groups.diagram.arcArrow(pts[0], pts[1], arrowStyle);
-	}
+		// if ("re:construction" in graph === false) { return; }
+		// let construction = graph["re:construction"];
+		// let diagram = constructon_to_diagram(construction);
 
 	const updateViewBox = function() {
 		let graph = prop.frame

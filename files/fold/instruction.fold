@@ -16,14 +16,17 @@
 	"edges_length": [1, 1, 1, 1],
 	"faces_vertices": [[0,1,2,3]],
 	"faces_edges": [[0,1,2,3]],
-	"re:instructions": [{
-		"re:instruction_creaseLines": [{
-			"re:instruction_creaseLines_class": "valley",
-			"re:instruction_creaseLines_endpoints": [[0,0.2],[1,0.5]]
+	"re:diagrams": [{
+		"re:diagram_lines": [{
+			"re:diagram_line_classes": ["valley"],
+			"re:diagram_line_coords": [[0,0.2], [1,0.5]]
 		}],
-		"re:instruction_arrows": [{
-			"re:instruction_arrows_start": [0.6,0],
-			"re:instruction_arrows_end": [0.3,1]
-		}]
+		"re:diagram_arrows": [{
+			"re:diagram_arrow_classes": [],
+			"re:diagram_arrow_coords": [[0.6,0], [0.3,1]]
+		}],
+		"re:instructions": {
+			"en": "make a crease by bringing one line onto another"
+		}
 	}]
 }

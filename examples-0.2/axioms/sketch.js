@@ -2,8 +2,8 @@ let origami = RabbitEar.Origami("origami-cp", {padding:0.05, diagram:true});
 let folded = RabbitEar.Origami("origami-fold", {padding:0.05});
 // let folded = RabbitEar.Origami("origami-fold", {padding:0.05, shadows:true});
 
-origami.markLayer = origami.group();
-origami.arrowLayer = origami.group();
+origami.markLayer = RE.svg.group();
+origami.insertBefore(origami.markLayer, origami.querySelectorAll(".boundaries")[0].nextSibling)
 origami.controls = RE.svg.controls(origami, 0);
 origami.axiom = undefined;
 origami.subSelect = 0;  // some axioms have 2 or 3 results
@@ -44,11 +44,11 @@ origami.setSubSel = function(s) {
 origami.update = function() {
 	// clear and re-fold axiom
 	origami.cp = RabbitEar.bases.square;
-	
+
+	// convert the input-control-points into marks and lines,
+	// the proper arguments for axiom method calls
 	let pts = origami.controls.map(p => p.position);
 	let lines = [];
-
-	// convert points to lines if necessary
 	switch (origami.axiom) {
 		case 3: case 6: case 7:
 			let v = [
@@ -92,37 +92,28 @@ origami.update = function() {
 			break;
 	}
 	if (creaseInfo === undefined) { return; }
+	// axiom 3, 5, and 6 give us back multiple solutions inside an array
 	if (creaseInfo.constructor === Array) {
-		// if (creaseInfo[origami.subSelect] == null) {
-// 
-		// }
 		creaseInfo = creaseInfo[origami.subSelect];
 	}
-	// console.log(creaseInfo);
 	if (creaseInfo === undefined) {
-		// switch
-		origami.setSubSel((origami.subSelect+1)%3);
+		// no solution possible with current parameters
+		if (origami.subSelect === 0) { return; }
+		// try one more time with the 0 array result
+		origami.setSubSel(0);
 	}
 
-	// console.log("creaseInfo", creaseInfo);
 	origami.cp.valleyFold(creaseInfo);
-	console.log(origami.cp["re:diagram"]);
-	// console.log(origami.cp["re:fabricated"]);
-
-	// until we get valleyFold returning the crease - create a duplicate
-	// let creaseEdge = origami.cp.boundary.clipLine(creaseInfo);
-
 	folded.cp = origami.cp;
 	folded.fold();
 
 	// draw axiom helper lines
 	origami.markLayer.removeChildren();
-	let auxLineStyle = "stroke:#e14929;stroke-width:0.005";
+	let auxLineStyle = "stroke:#eb3;stroke-width:0.01;";
 	lines
 		.map(l => origami.cp.boundary.clipLine(l))
 		.map(l => origami.markLayer.line(l[0][0], l[0][1], l[1][0], l[1][1]))
 		.forEach(l => l.setAttribute("style", auxLineStyle));
-
 }
 
 origami.onMouseMove = function(event){

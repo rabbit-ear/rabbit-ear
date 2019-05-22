@@ -9,6 +9,7 @@ import { Vertex, Face, Edge, Crease } from "./components";
 import * as Convert from "../convert/convert";
 import * as Make from "../fold/make";
 import * as File from "../fold/file";
+import * as Diagram from "../fold/diagram";
 
 import { default as FOLDConvert } from "../official/convert";
 
@@ -235,12 +236,16 @@ const Prototype = function(proto) {
 			face_index,
 			"V");
 		Object.keys(folded).forEach(key => _this[key] = folded[key]);
-		if ("re:diagram" in _this === true) {
+		if ("re:construction" in _this === true) {
 			if (objects.length > 0 && "axiom" in objects[0] === true) {
-				_this["re:diagram"].axiom = objects[0].axiom;
-				_this["re:diagram"].parameters = objects[0].parameters;
+				_this["re:construction"].axiom = objects[0].axiom;
+				_this["re:construction"].parameters = objects[0].parameters;
 			}
+			_this["re:diagrams"] = [
+				Diagram.build_diagram_frame(_this)
+			];
 		}
+
 		delete _this["faces_re:matrix"];
 		didModifyGraph();
 	};

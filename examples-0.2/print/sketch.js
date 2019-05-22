@@ -27,21 +27,31 @@ document.querySelector("#print-button").onclick = function() {
 
 function createSteps() {
 	let svgOptions = {
-		width:250, height:250,
+		width:250,
+		height:250,
 		frame: 1,
 		padding: 0.15,
+		diagram: true
 		// shadows:true
 	};
-	let instructions = getInstructions(steps);
-	let stepsWithInstructions = steps
-		.map(step => JSON.parse(JSON.stringify(step)));
-	instructions.forEach((inst,i) =>
-		stepsWithInstructions[i]["re:instructions"] = [inst]
-	);
+	
+	fencepostDiagrams(steps);
 
-	let svgs = stepsWithInstructions
+	let svgs = steps
 		.map(cp => RE.convert.FOLD_SVG.toSVG(cp, svgOptions));
-	let innerHTML = svgs.join("\n");
+	let writtenInstructions = svgs.map((svg, i) => {
+		let d = steps[i]["re:diagrams"];
+		return d == null ? "" : d.map(diag => diag["re:instructions"])
+			.filter(a => a != null)
+			.map(a => a.en) // english
+			.join("\n");
+	});
+	console.log(writtenInstructions);
+	writtenInstructions.push("");
+	let i = 0;
+	let innerHTML = svgs
+		.reduce((prev,curr,i) => prev + curr + writtenInstructions[i] + "\n", "");
+	// let innerHTML = svgs.join("\n");
 	printHTML(innerHTML);
 }
 
@@ -64,28 +74,16 @@ function printHTML(innerHTML, css) {
 	}
 }
 
-function getInstructions(cpSequence) {
-	let mades = Array.from(Array(cpSequence.length-1))
-		.map((_,i) => cpSequence[i+1])
-		.map(cp => cp["re:diagram"]);
-	console.log(mades);
-	return mades.map(madeBy => {
-		if (madeBy === undefined) { return {}; }
-		if (madeBy.edge === undefined) { return {}; }
-		let midpoint = RE.Vector(RE.math.average(madeBy.edge));
-		let arrowVec = [madeBy.direction[0]*0.2, madeBy.direction[1]*0.2];
-		return {
-			"re:instruction_creaseLines": [{
-				"re:instruction_creaseLines_class": "valley",
-				"re:instruction_creaseLines_endpoints": [madeBy.edge[0], madeBy.edge[1]]
-			}],
-			"re:instruction_arrows": [{
-				"re:instruction_arrows_start": midpoint.subtract(arrowVec),
-				"re:instruction_arrows_end": midpoint.add(arrowVec)
-			}]
-		};
-	})
-	// return instructions;
+function fencepostDiagrams(sequence) {
+	let diagrams = Array.from(Array(sequence.length-1))
+		.map((_,i) => sequence[i+1])
+		.map(cp => cp["re:diagrams"]);
+
+	sequence.forEach(cp => delete cp["re:diagrams"]);
+
+	Array.from(Array(sequence.length-1))
+		.map((_,i) => sequence[i])
+		.forEach((cp,i) => cp["re:diagrams"] = diagrams[i]);
 }
 
 

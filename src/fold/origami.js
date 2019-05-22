@@ -271,7 +271,7 @@ export const crease_through_layers = function(
 		)).filter(a => a !== undefined)
 		.reduce((a,b) => a.concat(b), []);
 
-	folded["re:diagram"] = (split_points.length === 0
+	folded["re:construction"] = (split_points.length === 0
 		? { type: "flip", direction: fold_direction }
 		: { type: opposite_crease === "M" ? "valley" : "mountain",
 				direction: fold_direction,

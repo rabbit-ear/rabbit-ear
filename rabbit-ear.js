@@ -5414,7 +5414,7 @@
 				core.multiply_vector2_matrix2(p, graph["faces_re:matrix"][i])
 			)).filter(a => a !== undefined)
 			.reduce((a,b) => a.concat(b), []);
-		folded["re:diagram"] = (split_points.length === 0
+		folded["re:construction"] = (split_points.length === 0
 			? { type: "flip", direction: fold_direction }
 			: { type: opposite_crease === "M" ? "valley" : "mountain",
 					direction: fold_direction,
@@ -7500,7 +7500,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				groups[key].appendChild(o)
 			)
 		);
-		if ("re:instructions" in graph) {
+		if ("re:diagrams" in graph) {
 			let instructionLayer = group$1();
 			svg.appendChild(instructionLayer);
 			renderInstructions(graph, instructionLayer);
@@ -7634,15 +7634,15 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		boundaries: svgBoundaries
 	};
 	const renderInstructions = function(graph, group$$1) {
-		if (graph["re:instructions"] === undefined) { return; }
-		if (graph["re:instructions"].length === 0) { return; }
-		Array.from(graph["re:instructions"]).forEach(instruction => {
-			if ("re:instruction_creaseLines" in instruction === true) {
-				instruction["re:instruction_creaseLines"].forEach(crease => {
-					let creaseClass = ("re:instruction_creaseLines_class" in crease)
-						? crease["re:instruction_creaseLines_class"]
+		if (graph["re:diagrams"] === undefined) { return; }
+		if (graph["re:diagrams"].length === 0) { return; }
+		Array.from(graph["re:diagrams"]).forEach(instruction => {
+			if ("re:diagram_lines" in instruction === true) {
+				instruction["re:diagram_lines"].forEach(crease => {
+					let creaseClass = ("re:diagram_line_classes" in crease)
+						? crease["re:diagram_line_classes"].join(" ")
 						: "valley";
-					let pts = crease["re:instruction_creaseLines_endpoints"];
+					let pts = crease["re:diagram_line_coords"];
 					if (pts !== undefined) {
 						let l = line$2(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
 						l.setAttribute("class", creaseClass);
@@ -7650,13 +7650,24 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 					}
 				});
 			}
-			if ("re:instruction_arrows" in instruction === true) {
-				instruction["re:instruction_arrows"].forEach(arrowInst => {
-					let start = arrowInst["re:instruction_arrows_start"];
-					let end = arrowInst["re:instruction_arrows_end"];
-					if (start === undefined || end === undefined) { return; }
-					let arrow = arcArrow$1(start, end, {start:true, end:true});
-					group$$1.appendChild(arrow);
+			if ("re:diagram_arrows" in instruction === true) {
+				instruction["re:diagram_arrows"].forEach(arrowInst => {
+					if (arrowInst["re:diagram_arrow_coords"].length === 2) {
+						let p = arrowInst["re:diagram_arrow_coords"];
+						let side = p[0][0] < p[1][0];
+						if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
+							side = p[0][1] < p[1][1]
+								? p[0][0] < 0.5
+								: p[0][0] > 0.5;
+						}
+						if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
+							side = p[0][0] < p[1][0]
+								? p[0][1] > 0.5
+								: p[0][1] < 0.5;
+						}
+						let arrow = arcArrow$1(p[0], p[1], {side});
+						group$$1.appendChild(arrow);
+					}
 				});
 			}
 		});
@@ -8008,6 +8019,99 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		);
 	};
 
+	const instructions_for_axiom = {
+		en:[null,
+			"make a crease that passes through two points",
+			"make a crease by bringing one point to another",
+			"make a crease by bringing one line onto another",
+			"make a crease by bringing one line onto itself and passing through a point",
+			"make a crease",
+			"make a crease",
+			"make a crease"
+		]
+	};
+	const build_diagram_frame = function(graph) {
+		let c = graph["re:construction"];
+		if (c == null) {
+			console.warn("couldn't build diagram. construction info doesn't exist");
+			return;
+		}
+		switch (c.type) {
+			case "flip":
+				return {
+					"re:diagram_arrows": [{
+						"re:diagram_arrow_classes": ["flip"],
+						"re:diagram_arrow_coords": []
+					}],
+					"re:instructions": { "en": "flip over" }
+				};
+				break;
+			case "mountain":
+			case "valley":
+				return {
+					"re:diagram_lines": [{
+						"re:diagram_line_classes": [c.type],
+						"re:diagram_line_coords": c.edge,
+					}],
+					"re:diagram_arrows": [{
+						"re:diagram_arrow_classes": [],
+						"re:diagram_arrow_coords": arrowForConstruction(c, graph)
+					}],
+					"re:instructions": {
+						"en": instructions_for_axiom.en[c.axiom] || (c.type + " fold")
+					}
+				};
+				break;
+			default:
+				return {"error": "could not determine construction type"};
+				break;
+		}
+	};
+	const arrowForConstruction = function(construction, graph) {
+		let p = construction.parameters;
+		if (construction.axiom === 2) {
+			return [p.marks[1], p.marks[0]];
+		}
+		let crease_vector = [
+			construction.edge[1][0] - construction.edge[0][0],
+			construction.edge[1][1] - construction.edge[0][1]
+		];
+		let arrow_vector = construction.direction;
+		let crossing;
+		switch (construction.axiom) {
+			case 4:
+				crossing = core.intersection.nearest_point(
+					construction.edge[0], crease_vector, p.lines[0][0], ((a)=>a));
+				break;
+			case 7:
+				crossing = core.intersection.nearest_point(
+					construction.edge[0], crease_vector, p.marks[0], ((a)=>a));
+				break;
+			default:
+					crossing = core.average(construction.edge);
+					break;
+		}
+		let boundary = get_boundary_face(graph).vertices
+			.map(v => graph.vertices_coords[v]);
+		let perpClipEdge = core.intersection.clip_line_in_convex_poly(
+			boundary, crossing, arrow_vector);
+		if (perpClipEdge === undefined) {
+			return [];
+		}
+		let short_length = [perpClipEdge[0], perpClipEdge[1]]
+			.map(n => core.distance2(n, crossing))
+			.sort((a,b) => a-b)
+			.shift();
+		if (construction.axiom === 7) {
+			short_length = core.distance2(p.marks[0], crossing);
+		}
+		let short_vector = arrow_vector.map(v => v * short_length);
+		return [
+			crossing.map((c, i) => c - short_vector[i]),
+			crossing.map((c, i) => c + short_vector[i])
+		];
+	};
+
 	const Prototype = function(proto) {
 		if(proto == null) {
 			proto = {};
@@ -8116,11 +8220,14 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				face_index,
 				"V");
 			Object.keys(folded).forEach(key => _this[key] = folded[key]);
-			if ("re:diagram" in _this === true) {
+			if ("re:construction" in _this === true) {
 				if (objects.length > 0 && "axiom" in objects[0] === true) {
-					_this["re:diagram"].axiom = objects[0].axiom;
-					_this["re:diagram"].parameters = objects[0].parameters;
+					_this["re:construction"].axiom = objects[0].axiom;
+					_this["re:construction"].parameters = objects[0].parameters;
 				}
+				_this["re:diagrams"] = [
+					build_diagram_frame(_this)
+				];
 			}
 			delete _this["faces_re:matrix"];
 			didModifyGraph();
@@ -8404,57 +8511,29 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				.forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
 		};
 		const drawDiagram = function(graph) {
-			if ("re:diagram" in graph === false) { return; }
-			let info = graph["re:diagram"];
-			let crease = Edge(info.edge);
-			console.log(crease, info);
-			let p = info.parameters;
-			switch (info.axiom){
-				case 2:
-					groups.diagram.arcArrow(p.marks[1], p.marks[0], {side:true});
-					break;
-				case 5:
-					var intersect = crease.nearestPoint(p.marks[0]);
-					drawArrowAcross(crease, intersect);
-					break;
-				case 6:
-					let intersect1 = crease.nearestPoint(p.marks[0]);
-					let intersect2 = crease.nearestPoint(p.marks[1]);
-					drawArrowAcross(crease, intersect1);
-					drawArrowAcross(crease, intersect2);
-					break;
-				case 7:
-					var intersect = crease.nearestPoint(p.marks[0]);
-					drawArrowAcross(crease, intersect);
-					break;
-				default:
-					drawArrowAcross(crease);
-					break;
-			}
-		};
-		const drawArrowAcross = function(crease, crossing){
-			if (crease == null) {
-				console.warn("drawArrowAcross not provided the correct parameters");
-				return;
-			}
-			if (crossing == null) {
-				crossing = crease.midpoint();
-			}
-			let normal = [-crease.vector[1], crease.vector[0]];
-			let perpLine = { point: crossing, vector: normal };
-			let perpClipEdge = prop.cp.boundary.clipLine(perpLine);
-			let shortLength = [perpClipEdge[0], perpClipEdge[1]]
-				.map(function(n){ return n.distanceTo(crossing); },this)
-				.sort(function(a,b){ return a-b; })
-				.shift();
-			let pts = [perpClipEdge[0], perpClipEdge[1]]
-				.map(n => n.subtract(crossing).normalize())
-				.filter(v => v !== undefined)
-				.map(v => v.scale(shortLength))
-				.map(v => crossing.add(v));
-			if (pts.length < 2) { return; }
-			let arrowStyle = { side: pts[0][0]<pts[1][0] };
-			groups.diagram.arcArrow(pts[0], pts[1], arrowStyle);
+			let diagrams = graph["re:diagrams"];
+			if (diagrams == null) { return; }
+			diagrams
+				.map(d => d["re:diagram_arrows"])
+				.filter(a => a != null)
+				.forEach(arrow => arrow
+					.map(a => a["re:diagram_arrow_coords"])
+					.filter(a => a.length > 0)
+					.map(p => {
+						let side = p[0][0] < p[1][0];
+						if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
+							side = p[0][1] < p[1][1]
+								? p[0][0] < 0.5
+								: p[0][0] > 0.5;
+						}
+						if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
+							side = p[0][0] < p[1][0]
+								? p[0][1] > 0.5
+								: p[0][1] < 0.5;
+						}
+						return groups.diagram.arcArrow(p[0], p[1], {side});
+					})
+				);
 		};
 		const updateViewBox = function() {
 			let graph = prop.frame
@@ -9276,7 +9355,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		crease[1] = vector;
 		return crease;
 	};
-	const headers = function(crease, axiom, parameters) {
+	const addParamInfo = function(crease, axiom, parameters) {
 		crease.axiom = axiom;
 		crease.parameters = parameters;
 		return crease;
@@ -9299,25 +9378,25 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		let p1 = get_vec$1(pointB);
 		let vec = p0.map((_,i) => p1[i] - p0[i]);
 		let solution = makeCrease(p0, vec);
-		return headers(solution, 1, {marks:[p0, p1]});
+		return addParamInfo(solution, 1, {marks:[p0, p1]});
 	};
 	const axiom2$1 = function(a, b) {
 		let mid = core.midpoint(a, b);
 		let vec = core.normalize(a.map((_,i) => b[i] - a[i]));
 		let solution = makeCrease(mid, [vec[1], -vec[0]]);
-		return headers(solution, 2, {marks:[a,b]});
+		return addParamInfo(solution, 2, {marks:[a,b]});
 	};
 	const axiom3$1 = function(pointA, vectorA, pointB, vectorB) {
 		return core.bisect_lines2(pointA, vectorA, pointB, vectorB)
 			.map(line => makeCrease(line[0], line[1]))
 			.map(solution =>
-				headers(solution, 3, {lines:[[pointA, vectorA], [pointB, vectorB]]})
+				addParamInfo(solution, 3, {lines:[[pointA, vectorA], [pointB, vectorB]]})
 			);
 	};
 	const axiom4$1 = function(pointA, vectorA, pointB) {
 		let norm = core.normalize(vectorA);
 		let solution = makeCrease([...pointB], [norm[1], -norm[0]]);
-		return headers(solution, 4, {marks: [pointB], lines:[[pointA, vectorA]]});
+		return addParamInfo(solution, 4, {marks: [pointB], lines:[[pointA, vectorA]]});
 	};
 	const axiom5$1 = function(pointA, vectorA, pointB, pointC) {
 		let pA = get_vec$1(pointA);
@@ -9329,7 +9408,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		let sect = core.intersection.circle_line(pB, radius, pA, pA2);
 		return sect === undefined
 			? []
-			: headers(sect.map(s => axiom2$1(pC, s)), 5, {
+			: addParamInfo(sect.map(s => axiom2$1(pC, s)), 5, {
 					marks:[pB, pC],
 					lines:[[pA, vA]]
 				});
@@ -9345,7 +9424,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		let mid = core.midpoint(pC, sect);
 		let vec = core.normalize(pC.map((_,i) => sect[i] - pC[i]));
 		let solution = makeCrease(mid, [vec[1], -vec[0]]);
-		return headers(solution, 7, { marks: [pC], lines: [[pA, vA], [pB, vB]]});
+		return addParamInfo(solution, 7, { marks: [pC], lines: [[pA, vA], [pB, vB]]});
 	};
 	const cuberoot = function(x) {
 		var y = Math.pow(Math.abs(x), 1/3);
@@ -9502,7 +9581,11 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				}
 			}
 		}
-		return lines;
+		let params = {
+			marks: [pointC, pointD],
+			lines: [[pointA, vecA], [pointB, vecB]]
+		};
+		return lines.map(solution => addParamInfo(solution, 6, params));
 	};
 
 	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
