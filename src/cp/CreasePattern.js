@@ -109,9 +109,6 @@ const Prototype = function(proto) {
 	const svg = function(cssRules) {
 		// return Convert.fold_to_svg(_this, cssRules);
 	}
-	const oripa = function() {
-		return Convert.toORIPA(_this);
-	}
 
 	// const wipe = function() {
 	// 	Graph.all_keys.filter(a => _m[a] != null)
@@ -210,8 +207,10 @@ const Prototype = function(proto) {
 	};
 	// fold methods
 	const valleyFold = function() { // point, vector, face_index) {
+		let args = Array.from(arguments);
+		let objects = args.filter(p => typeof p === "object");
 		let line = Args.get_line(arguments);
-		let face_index = Array.from(arguments)
+		let face_index = args
 			.filter(a => a !== null && !isNaN(a))
 			.shift();
 		// console.log("line", line);
@@ -220,6 +219,7 @@ const Prototype = function(proto) {
 			console.warn("valleyFold was not supplied the correct parameters");
 			return;
 		}
+
 
 // if folding on a foldedForm do the below
 // if folding on a creasePattern, add these
@@ -235,9 +235,22 @@ const Prototype = function(proto) {
 			face_index,
 			"V");
 		Object.keys(folded).forEach(key => _this[key] = folded[key]);
+		if ("re:diagram" in _this === true) {
+			if (objects.length > 0 && "axiom" in objects[0] === true) {
+				_this["re:diagram"].axiom = objects[0].axiom;
+				_this["re:diagram"].parameters = objects[0].parameters;
+			}
+		}
 		delete _this["faces_re:matrix"];
 		didModifyGraph();
 	};
+
+	const markFold = function() {
+		let line = Args.get_line(arguments);
+		let c = Crease(this, Origami.crease_line(_this, line.point, line.vector));
+		didModifyGraph();
+		return c;
+	}
 
 	const crease = function() {
 		let o = Array.from(arguments)
@@ -251,32 +264,6 @@ const Prototype = function(proto) {
 			}
 		}
 	}
-
-	const axiom = function(number, params) {
-		let args;
-		switch(number) {
-			case 1: args = Args.get_two_vec2(params); break;
-			case 2: args = Args.get_two_vec2(params); break;
-			case 3: args = Args.get_two_lines(params); break;
-			case 4: args = Args.get_two_lines(params); break;
-			case 5: args = Args.get_two_lines(params); break;
-			case 6: args = Args.get_two_lines(params); break;
-			case 7: args = Args.get_two_lines(params); break;
-		}
-		if (args === undefined) {
-			throw "axiom " + number + " was not provided with the correct inputs";
-		}
-		let crease = Crease(_this, Origami["axiom"+number](_this, ...args));
-		didModifyGraph();
-		return crease;
-	};
-	const axiom1 = function() { return axiom.call(_this, [1, arguments]); };
-	const axiom2 = function() { return axiom.call(_this, [2, arguments]); };
-	const axiom3 = function() { return axiom.call(_this, [3, arguments]); };
-	const axiom4 = function() { return axiom.call(_this, [4, arguments]); };
-	const axiom5 = function() { return axiom.call(_this, [5, arguments]); };
-	const axiom6 = function() { return axiom.call(_this, [6, arguments]); };
-	const axiom7 = function() { return axiom.call(_this, [7, arguments]); };
 
 	const addVertexOnEdge = function(x, y, oldEdgeIndex) {
 		Graph.add_vertex_on_edge(_this, x, y, oldEdgeIndex);
@@ -342,15 +329,7 @@ const Prototype = function(proto) {
 	Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
 	Object.defineProperty(proto, "nearestFace", { value: nearestFace });
 	Object.defineProperty(proto, "svg", { value: svg });
-	Object.defineProperty(proto, "oripa", { value: oripa });
 
-	Object.defineProperty(proto, "axiom1", { value: axiom1 });
-	Object.defineProperty(proto, "axiom2", { value: axiom2 });
-	Object.defineProperty(proto, "axiom3", { value: axiom3 });
-	Object.defineProperty(proto, "axiom4", { value: axiom4 });
-	Object.defineProperty(proto, "axiom5", { value: axiom5 });
-	Object.defineProperty(proto, "axiom6", { value: axiom6 });
-	Object.defineProperty(proto, "axiom7", { value: axiom7 });
 	Object.defineProperty(proto, "valleyFold", { value: valleyFold });
 	Object.defineProperty(proto, "addVertexOnEdge", { value: addVertexOnEdge });
 	Object.defineProperty(proto, "crease", { value: crease });

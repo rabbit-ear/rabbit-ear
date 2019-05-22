@@ -27,7 +27,8 @@ const DEFAULTS = Object.freeze({
 	folding: false,
 	padding: 0,
 	shadows: false,
-	labels: false
+	labels: false,
+	diagram: false
 });
 
 const DISPLAY_NAME = {
@@ -70,6 +71,8 @@ export default function() {
 		groups[key].setAttribute("pointer-events", "none");
 		_this.appendChild(groups[key]);
 	});
+	// additional diagram layer on top. for folding diagram arrows, etc...
+	groups.diagram = _this.group();
 	// by default show these layers
 	let visible = {
 		"boundaries":true,
@@ -162,6 +165,7 @@ export default function() {
 		if (preferences.debug) { drawDebug(graph); }
 		if (preferences.labels) { drawLabels(graph); }
 		if (preferences.autofit) { updateViewBox(); }
+		if (preferences.diagram) { drawDiagram(graph); }
 		if (preferences.shadows) {
 			Array.from(groups.faces.childNodes).forEach(f =>
 				f.setAttribute("filter", "url(#faces_shadow)")
@@ -242,6 +246,73 @@ export default function() {
 			).map(face => Geom.ConvexPolygon(face).scale(0.75).points)
 			.map(points => groupLabels.polygon(points))
 			.forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
+	}
+
+	const drawDiagram = function(graph) {
+		if ("re:diagram" in graph === false) { return; }
+		let info = graph["re:diagram"];
+		let crease = Geom.Edge(info.edge);//prop.cp.boundary.clipLine(info);
+
+		let p = info.parameters;
+		switch (info.axiom){
+			case 2:
+				groups.diagram.arcArrow(p.marks[1], p.marks[0], {side:true});
+				break;
+			// case 2:
+			// 	var intersect = crease.nearestPoint(pts[0]);
+			// 	drawArrowAcross(crease, intersect);
+			// 	break;
+			case 5:
+				var intersect = crease.nearestPoint(p.marks[0]);
+				drawArrowAcross(crease, intersect);
+				break;
+			case 6:
+				let intersect1 = crease.nearestPoint(p.marks[0]);
+				let intersect2 = crease.nearestPoint(p.marks[1]);
+				drawArrowAcross(crease, intersect1);
+				drawArrowAcross(crease, intersect2);
+				break;
+			case 7:
+				var intersect = crease.nearestPoint(p.marks[0]);
+				drawArrowAcross(crease, intersect);
+				break;
+			default:
+				drawArrowAcross(crease);
+				break;
+		}
+	}
+
+	// intersect is a point on the line,
+	// the point which the arrow should be cast perpendicularly across
+	// when left undefined, intersect will be the midpoint of the line.
+	const drawArrowAcross = function(crease, crossing){
+		if (crease == null) {
+			console.warn("drawArrowAcross not provided the correct parameters");
+			return;
+		}
+		if (crossing == null) {
+			crossing = crease.midpoint();
+		}
+
+		let normal = [-crease.vector[1], crease.vector[0]];
+		let perpLine = { point: crossing, vector: normal };
+		let perpClipEdge = prop.cp.boundary.clipLine(perpLine);
+
+		let shortLength = [perpClipEdge[0], perpClipEdge[1]]
+			.map(function(n){ return n.distanceTo(crossing); },this)
+			.sort(function(a,b){ return a-b; })
+			.shift();
+
+		// another place it can fail
+		let pts = [perpClipEdge[0], perpClipEdge[1]]
+			.map(n => n.subtract(crossing).normalize())
+			.filter(v => v !== undefined)
+			.map(v => v.scale(shortLength))
+			.map(v => crossing.add(v))
+		if (pts.length < 2) { return; }
+
+		let arrowStyle = { side: pts[0][0]<pts[1][0] };
+		groups.diagram.arcArrow(pts[0], pts[1], arrowStyle);
 	}
 
 	const updateViewBox = function() {

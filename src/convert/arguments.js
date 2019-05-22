@@ -121,7 +121,7 @@ export const get_line = function() {
 	let objects = params.filter(p => typeof p === "object");
 	let numbers = params.filter((param) => !isNaN(param));
 	let arrays = objects.filter((param) => param.constructor === Array || "0" in param === true);
-	if (params.length == 0) { return {vector: [], point: []}; }
+	if (params.length === 0) { return {vector: [], point: []}; }
 	if (!isNaN(params[0]) && numbers.length >= 4) {
 		return {
 			point: [params[0], params[1]],
@@ -130,7 +130,10 @@ export const get_line = function() {
 	}
 	if (arrays.length > 0) {
 		if (arrays.length === 1) {
-			return get_line(...arrays[0]);
+			if (arrays[0].constructor === Array) { return get_line(...arrays[0]); }
+			else {
+				return get_line(arrays[0][0], arrays[0][1], arrays[0][2]);
+			}
 		}
 		if (arrays.length === 2) {
 			return {

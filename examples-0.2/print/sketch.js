@@ -67,7 +67,7 @@ function printHTML(innerHTML, css) {
 function getInstructions(cpSequence) {
 	let mades = Array.from(Array(cpSequence.length-1))
 		.map((_,i) => cpSequence[i+1])
-		.map(cp => cp["re:madeBy"]);
+		.map(cp => cp["re:diagram"]);
 	console.log(mades);
 	return mades.map(madeBy => {
 		if (madeBy === undefined) { return {}; }

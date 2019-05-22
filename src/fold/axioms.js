@@ -16,6 +16,12 @@ const makeCrease = function(point, vector) {
 	return crease;
 }
 
+const headers = function(crease, axiom, parameters) {
+	crease.axiom = axiom;
+	crease.parameters = parameters
+	return crease;
+}
+
 
 export const axiom = function(number, parameters) {
 	let params = Array(...arguments)
@@ -48,22 +54,28 @@ export const axiom1 = function(pointA, pointB) {
 	let p0 = Args.get_vec(pointA);
 	let p1 = Args.get_vec(pointB);
 	let vec = p0.map((_,i) => p1[i] - p0[i]);
-	return makeCrease(p0, vec);
+	let solution = makeCrease(p0, vec);
+	return headers(solution, 1, {marks:[p0, p1]});
 }
 
 // 2-dimension
 export const axiom2 = function(a, b) {
 	let mid = Geometry.core.midpoint(a, b);
 	let vec = Geometry.core.normalize(a.map((_,i) => b[i] - a[i]));
-	return makeCrease(mid, [vec[1], -vec[0]]);
+	let solution = makeCrease(mid, [vec[1], -vec[0]]);
+	return headers(solution, 2, {marks:[a,b]});
 }
-export const axiom3 = function(pointA, vectorA, pointB, vectorB){
+export const axiom3 = function(pointA, vectorA, pointB, vectorB) {
 	return Geometry.core.bisect_lines2(pointA, vectorA, pointB, vectorB)
-		.map(line => makeCrease(line[0], line[1]));
+		.map(line => makeCrease(line[0], line[1]))
+		.map(solution =>
+			headers(solution, 3, {lines:[[pointA, vectorA], [pointB, vectorB]]})
+		);
 }
 export const axiom4 = function(pointA, vectorA, pointB) {
 	let norm = Geometry.core.normalize(vectorA);
-	return makeCrease([...pointB], [norm[1], -norm[0]]);
+	let solution = makeCrease([...pointB], [norm[1], -norm[0]]);
+	return headers(solution, 4, {marks: [pointB], lines:[[pointA, vectorA]]});
 }
 export const axiom5 = function(pointA, vectorA, pointB, pointC) {
 	let pA = Args.get_vec(pointA);
@@ -76,7 +88,10 @@ export const axiom5 = function(pointA, vectorA, pointB, pointC) {
 	let sect = Geometry.core.intersection.circle_line(pB, radius, pA, pA2);
 	return sect === undefined
 		? []
-		: sect.map(s => axiom2(pC, s));
+		: headers(sect.map(s => axiom2(pC, s)), 5, {
+				marks:[pB, pC],
+				lines:[[pA, vA]]
+			});
 }
 /**
  * make a crease by bringing a point (pointC) onto a line (pointA, vectorA)
@@ -85,7 +100,7 @@ export const axiom5 = function(pointA, vectorA, pointB, pointC) {
  */
 export const axiom7 = function(pointA, vectorA, pointB, vectorB, pointC) {
 	let pA = Args.get_vec(pointA);
-	// let pB = Args.get_vec(pointB);
+	let pB = Args.get_vec(pointB);
 	let pC = Args.get_vec(pointC);
 	let vA = Args.get_vec(vectorA);
 	let vB = Args.get_vec(vectorB);
@@ -94,7 +109,8 @@ export const axiom7 = function(pointA, vectorA, pointB, vectorB, pointC) {
 	// axiom 2
 	let mid = Geometry.core.midpoint(pC, sect);
 	let vec = Geometry.core.normalize(pC.map((_,i) => sect[i] - pC[i]));
-	return makeCrease(mid, [vec[1], -vec[0]]);
+	let solution = makeCrease(mid, [vec[1], -vec[0]]);
+	return headers(solution, 7, { marks: [pC], lines: [[pA, vA], [pB, vB]]});
 };
 
 

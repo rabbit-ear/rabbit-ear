@@ -5414,7 +5414,7 @@
 				core.multiply_vector2_matrix2(p, graph["faces_re:matrix"][i])
 			)).filter(a => a !== undefined)
 			.reduce((a,b) => a.concat(b), []);
-		folded["re:madeBy"] = (split_points.length === 0
+		folded["re:diagram"] = (split_points.length === 0
 			? { type: "flip", direction: fold_direction }
 			: { type: opposite_crease === "M" ? "valley" : "mountain",
 					direction: fold_direction,
@@ -5635,7 +5635,7 @@
 		)
 	};
 
-	var Origami = /*#__PURE__*/Object.freeze({
+	var origami = /*#__PURE__*/Object.freeze({
 		build_folded_frame: build_folded_frame,
 		universal_molecule: universal_molecule,
 		foldLayers: foldLayers,
@@ -7732,27 +7732,12 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		let arrays = params.filter((param) => param.constructor === Array);
 		if (arrays.length >= 1) { return get_vec$1(...arrays[0]); }
 	};
-	const get_two_vec2$1 = function() {
-		let params = Array.from(arguments);
-		let numbers = params.filter((param) => !isNaN(param));
-		if (numbers.length >= 4) {
-			return [
-				[numbers[0], numbers[1]],
-				[numbers[2], numbers[3]]
-			];
-		}
-		let vecs = params.map(a => get_vec$1(a)).filter(a => a != null);
-		if (vecs.length > 1) { return vecs; }
-		let arrays = params.filter((param) => param.constructor === Array);
-		if (arrays.length === 0) { return; }
-		return get_two_vec2$1(...arrays[0]);
-	};
 	const get_line$1 = function() {
 		let params = Array.from(arguments);
 		let objects = params.filter(p => typeof p === "object");
 		let numbers = params.filter((param) => !isNaN(param));
 		let arrays = objects.filter((param) => param.constructor === Array || "0" in param === true);
-		if (params.length == 0) { return {vector: [], point: []}; }
+		if (params.length === 0) { return {vector: [], point: []}; }
 		if (!isNaN(params[0]) && numbers.length >= 4) {
 			return {
 				point: [params[0], params[1]],
@@ -7761,7 +7746,10 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		}
 		if (arrays.length > 0) {
 			if (arrays.length === 1) {
-				return get_line$1(...arrays[0]);
+				if (arrays[0].constructor === Array) { return get_line$1(...arrays[0]); }
+				else {
+					return get_line$1(arrays[0][0], arrays[0][1], arrays[0][2]);
+				}
 			}
 			if (arrays.length === 2) {
 				return {
@@ -7788,26 +7776,6 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			return {point, vector};
 		}
 		return {point: [], vector: []};
-	};
-	const get_two_lines = function() {
-		let params = Array.from(arguments);
-		if (params[0].point) {
-			if (params[0].point.constructor === Array) {
-				return [
-					[[params[0].point[0], params[0].point[1]],
-					 [params[0].vector[0], params[0].vector[1]]],
-					[[params[1].point[0], params[1].point[1]],
-					 [params[1].vector[0], params[1].vector[1]]],
-				];
-			} else {
-				return [
-					[[params[0].point.x, params[0].point.y],
-					 [params[0].vector.x, params[0].vector.y]],
-					[[params[1].point.x, params[1].point.y],
-					 [params[1].vector.x, params[1].vector.y]],
-				];
-			}
-		}
 	};
 
 	const makeUUID = function() {
@@ -8077,9 +8045,6 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		};
 		const svg = function(cssRules) {
 		};
-		const oripa = function() {
-			return toORIPA(_this);
-		};
 		const getVertices = function() {
 			components.vertices
 				.filter(v => v.disable !== undefined)
@@ -8135,8 +8100,10 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			_this.onchange.forEach(f => f());
 		};
 		const valleyFold = function() {
+			let args = Array.from(arguments);
+			let objects = args.filter(p => typeof p === "object");
 			let line = get_line$1(arguments);
-			let face_index = Array.from(arguments)
+			let face_index = args
 				.filter(a => a !== null && !isNaN(a))
 				.shift();
 			if (!is_vector(line.point) || !is_vector(line.vector)) {
@@ -8149,6 +8116,12 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				face_index,
 				"V");
 			Object.keys(folded).forEach(key => _this[key] = folded[key]);
+			if ("re:diagram" in _this === true) {
+				if (objects.length > 0 && "axiom" in objects[0] === true) {
+					_this["re:diagram"].axiom = objects[0].axiom;
+					_this["re:diagram"].parameters = objects[0].parameters;
+				}
+			}
 			delete _this["faces_re:matrix"];
 			didModifyGraph();
 		};
@@ -8164,31 +8137,6 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				}
 			}
 		};
-		const axiom = function(number, params) {
-			let args;
-			switch(number) {
-				case 1: args = get_two_vec2$1(params); break;
-				case 2: args = get_two_vec2$1(params); break;
-				case 3: args = get_two_lines(params); break;
-				case 4: args = get_two_lines(params); break;
-				case 5: args = get_two_lines(params); break;
-				case 6: args = get_two_lines(params); break;
-				case 7: args = get_two_lines(params); break;
-			}
-			if (args === undefined) {
-				throw "axiom " + number + " was not provided with the correct inputs";
-			}
-			let crease = Crease(_this, Origami["axiom"+number](_this, ...args));
-			didModifyGraph();
-			return crease;
-		};
-		const axiom1 = function() { return axiom.call(_this, [1, arguments]); };
-		const axiom2 = function() { return axiom.call(_this, [2, arguments]); };
-		const axiom3 = function() { return axiom.call(_this, [3, arguments]); };
-		const axiom4 = function() { return axiom.call(_this, [4, arguments]); };
-		const axiom5 = function() { return axiom.call(_this, [5, arguments]); };
-		const axiom6 = function() { return axiom.call(_this, [6, arguments]); };
-		const axiom7 = function() { return axiom.call(_this, [7, arguments]); };
 		const addVertexOnEdge = function(x, y, oldEdgeIndex) {
 			add_vertex_on_edge(_this, x, y, oldEdgeIndex);
 			didModifyGraph();
@@ -8249,14 +8197,6 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
 		Object.defineProperty(proto, "nearestFace", { value: nearestFace });
 		Object.defineProperty(proto, "svg", { value: svg });
-		Object.defineProperty(proto, "oripa", { value: oripa });
-		Object.defineProperty(proto, "axiom1", { value: axiom1 });
-		Object.defineProperty(proto, "axiom2", { value: axiom2 });
-		Object.defineProperty(proto, "axiom3", { value: axiom3 });
-		Object.defineProperty(proto, "axiom4", { value: axiom4 });
-		Object.defineProperty(proto, "axiom5", { value: axiom5 });
-		Object.defineProperty(proto, "axiom6", { value: axiom6 });
-		Object.defineProperty(proto, "axiom7", { value: axiom7 });
 		Object.defineProperty(proto, "valleyFold", { value: valleyFold });
 		Object.defineProperty(proto, "addVertexOnEdge", { value: addVertexOnEdge });
 		Object.defineProperty(proto, "crease", { value: crease });
@@ -8308,7 +8248,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		folding: false,
 		padding: 0,
 		shadows: false,
-		labels: false
+		labels: false,
+		diagram: false
 	});
 	const DISPLAY_NAME$1 = {
 		vertices: "vertices",
@@ -8333,7 +8274,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			);
 		return prefs;
 	};
-	function Origami$1() {
+	function Origami() {
 		let _this = image(...arguments);
 		_this.appendChild(shadowFilter$1("faces_shadow"));
 		let groups = {};
@@ -8343,6 +8284,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			groups[key].setAttribute("pointer-events", "none");
 			_this.appendChild(groups[key]);
 		});
+		groups.diagram = _this.group();
 		let visible = {
 			"boundaries":true,
 			"faces":true,
@@ -8393,6 +8335,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			if (preferences.debug) { drawDebug(graph); }
 			if (preferences.labels) { drawLabels(graph); }
 			if (preferences.autofit) { updateViewBox(); }
+			if (preferences.diagram) { drawDiagram(graph); }
 			if (preferences.shadows) {
 				Array.from(groups.faces.childNodes).forEach(f =>
 					f.setAttribute("filter", "url(#faces_shadow)")
@@ -8459,6 +8402,59 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				).map(face => ConvexPolygon(face).scale(0.75).points)
 				.map(points => groupLabels.polygon(points))
 				.forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
+		};
+		const drawDiagram = function(graph) {
+			if ("re:diagram" in graph === false) { return; }
+			let info = graph["re:diagram"];
+			let crease = Edge(info.edge);
+			console.log(crease, info);
+			let p = info.parameters;
+			switch (info.axiom){
+				case 2:
+					groups.diagram.arcArrow(p.marks[1], p.marks[0], {side:true});
+					break;
+				case 5:
+					var intersect = crease.nearestPoint(p.marks[0]);
+					drawArrowAcross(crease, intersect);
+					break;
+				case 6:
+					let intersect1 = crease.nearestPoint(p.marks[0]);
+					let intersect2 = crease.nearestPoint(p.marks[1]);
+					drawArrowAcross(crease, intersect1);
+					drawArrowAcross(crease, intersect2);
+					break;
+				case 7:
+					var intersect = crease.nearestPoint(p.marks[0]);
+					drawArrowAcross(crease, intersect);
+					break;
+				default:
+					drawArrowAcross(crease);
+					break;
+			}
+		};
+		const drawArrowAcross = function(crease, crossing){
+			if (crease == null) {
+				console.warn("drawArrowAcross not provided the correct parameters");
+				return;
+			}
+			if (crossing == null) {
+				crossing = crease.midpoint();
+			}
+			let normal = [-crease.vector[1], crease.vector[0]];
+			let perpLine = { point: crossing, vector: normal };
+			let perpClipEdge = prop.cp.boundary.clipLine(perpLine);
+			let shortLength = [perpClipEdge[0], perpClipEdge[1]]
+				.map(function(n){ return n.distanceTo(crossing); },this)
+				.sort(function(a,b){ return a-b; })
+				.shift();
+			let pts = [perpClipEdge[0], perpClipEdge[1]]
+				.map(n => n.subtract(crossing).normalize())
+				.filter(v => v !== undefined)
+				.map(v => v.scale(shortLength))
+				.map(v => crossing.add(v));
+			if (pts.length < 2) { return; }
+			let arrowStyle = { side: pts[0][0]<pts[1][0] };
+			groups.diagram.arcArrow(pts[0], pts[1], arrowStyle);
 		};
 		const updateViewBox = function() {
 			let graph = prop.frame
@@ -9280,6 +9276,11 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		crease[1] = vector;
 		return crease;
 	};
+	const headers = function(crease, axiom, parameters) {
+		crease.axiom = axiom;
+		crease.parameters = parameters;
+		return crease;
+	};
 	const axiom = function(number, parameters) {
 		let params = Array(...arguments);
 		params.shift();
@@ -9297,20 +9298,26 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		let p0 = get_vec$1(pointA);
 		let p1 = get_vec$1(pointB);
 		let vec = p0.map((_,i) => p1[i] - p0[i]);
-		return makeCrease(p0, vec);
+		let solution = makeCrease(p0, vec);
+		return headers(solution, 1, {marks:[p0, p1]});
 	};
 	const axiom2$1 = function(a, b) {
 		let mid = core.midpoint(a, b);
 		let vec = core.normalize(a.map((_,i) => b[i] - a[i]));
-		return makeCrease(mid, [vec[1], -vec[0]]);
+		let solution = makeCrease(mid, [vec[1], -vec[0]]);
+		return headers(solution, 2, {marks:[a,b]});
 	};
-	const axiom3$1 = function(pointA, vectorA, pointB, vectorB){
+	const axiom3$1 = function(pointA, vectorA, pointB, vectorB) {
 		return core.bisect_lines2(pointA, vectorA, pointB, vectorB)
-			.map(line => makeCrease(line[0], line[1]));
+			.map(line => makeCrease(line[0], line[1]))
+			.map(solution =>
+				headers(solution, 3, {lines:[[pointA, vectorA], [pointB, vectorB]]})
+			);
 	};
 	const axiom4$1 = function(pointA, vectorA, pointB) {
 		let norm = core.normalize(vectorA);
-		return makeCrease([...pointB], [norm[1], -norm[0]]);
+		let solution = makeCrease([...pointB], [norm[1], -norm[0]]);
+		return headers(solution, 4, {marks: [pointB], lines:[[pointA, vectorA]]});
 	};
 	const axiom5$1 = function(pointA, vectorA, pointB, pointC) {
 		let pA = get_vec$1(pointA);
@@ -9322,10 +9329,14 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		let sect = core.intersection.circle_line(pB, radius, pA, pA2);
 		return sect === undefined
 			? []
-			: sect.map(s => axiom2$1(pC, s));
+			: headers(sect.map(s => axiom2$1(pC, s)), 5, {
+					marks:[pB, pC],
+					lines:[[pA, vA]]
+				});
 	};
 	const axiom7$1 = function(pointA, vectorA, pointB, vectorB, pointC) {
 		let pA = get_vec$1(pointA);
+		let pB = get_vec$1(pointB);
 		let pC = get_vec$1(pointC);
 		let vA = get_vec$1(vectorA);
 		let vB = get_vec$1(vectorB);
@@ -9333,7 +9344,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		if(sect === undefined){ return undefined; }
 		let mid = core.midpoint(pC, sect);
 		let vec = core.normalize(pC.map((_,i) => sect[i] - pC[i]));
-		return makeCrease(mid, [vec[1], -vec[0]]);
+		let solution = makeCrease(mid, [vec[1], -vec[0]]);
+		return headers(solution, 7, { marks: [pC], lines: [[pA, vA], [pB, vB]]});
 	};
 	const cuberoot = function(x) {
 		var y = Math.pow(Math.abs(x), 1/3);
@@ -9511,7 +9523,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 
 	let convert$3 = { toFOLD, toSVG, toORIPA, FOLD_SVG: convert$2 };
 	const core$2 = Object.create(null);
-	Object.assign(core$2, file, validate, graph, Origami, planargraph);
+	Object.assign(core$2, file, validate, graph, origami, planargraph);
 	let b = {
 		empty: recursive_freeze(JSON.parse(empty)),
 		square: recursive_freeze(JSON.parse(square$1)),
@@ -9534,7 +9546,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 	Object.defineProperty(bases, "frog", {get:function(){ return clone$2(b.frog); }});
 	let rabbitEar = {
 		CreasePattern,
-		Origami: Origami$1,
+		Origami,
 		Origami3D: View3D,
 		Graph: Graph$1,
 		svg: svg$1,
