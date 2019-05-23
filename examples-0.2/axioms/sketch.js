@@ -1,9 +1,9 @@
 let origami = RabbitEar.Origami("origami-cp", {padding:0.05, diagram:true});
-let folded = RabbitEar.Origami("origami-fold", {padding:0.05});
-// let folded = RabbitEar.Origami("origami-fold", {padding:0.05, shadows:true});
+let folded = RabbitEar.Origami("origami-fold", {padding:0.05});//,shadows:true});
 
 origami.markLayer = RE.svg.group();
-origami.insertBefore(origami.markLayer, origami.querySelectorAll(".boundaries")[0].nextSibling)
+origami.insertBefore(origami.markLayer,
+	origami.querySelectorAll(".boundaries")[0].nextSibling);
 origami.controls = RE.svg.controls(origami, 0);
 origami.axiom = undefined;
 origami.subSelect = 0;  // some axioms have 2 or 3 results
@@ -91,29 +91,22 @@ origami.update = function() {
 							pts[4]);
 			break;
 	}
+	// draw axiom helper lines
+	origami.markLayer.removeChildren();
+	lines.map(l => origami.cp.boundary.clipLine(l))
+		.map(l => origami.markLayer.line(l[0][0], l[0][1], l[1][0], l[1][1]))
+		.forEach(l => l.setAttribute("style", "stroke:#eb3;stroke-width:0.01;"));
+
 	if (creaseInfo === undefined) { return; }
 	// axiom 3, 5, and 6 give us back multiple solutions inside an array
 	if (creaseInfo.constructor === Array) {
 		creaseInfo = creaseInfo[origami.subSelect];
-	}
-	if (creaseInfo === undefined) {
-		// no solution possible with current parameters
-		if (origami.subSelect === 0) { return; }
-		// try one more time with the 0 array result
-		origami.setSubSel(0);
+		if (creaseInfo === undefined) { return; }
 	}
 
 	origami.cp.valleyFold(creaseInfo);
 	folded.cp = origami.cp;
 	folded.fold();
-
-	// draw axiom helper lines
-	origami.markLayer.removeChildren();
-	let auxLineStyle = "stroke:#eb3;stroke-width:0.01;";
-	lines
-		.map(l => origami.cp.boundary.clipLine(l))
-		.map(l => origami.markLayer.line(l[0][0], l[0][1], l[1][0], l[1][1]))
-		.forEach(l => l.setAttribute("style", auxLineStyle));
 }
 
 origami.onMouseMove = function(event){

@@ -46,21 +46,26 @@ function createSteps() {
 			.map(a => a.en) // english
 			.join("\n");
 	});
-	console.log(writtenInstructions);
-	writtenInstructions.push("");
-	let i = 0;
+
 	let innerHTML = svgs
-		.reduce((prev,curr,i) => prev + curr + writtenInstructions[i] + "\n", "");
+		.reduce((prev, curr, i) => prev + "<div>" + curr + "<p>" +
+			(writtenInstructions[i] || "") + "</p></div>\n", "");
 	// let innerHTML = svgs.join("\n");
-	printHTML(innerHTML);
+
+	let grid_style = `html, body { width: 100%; margin: 0; }
+body { display: grid; grid-template-columns: 33% 33% 33%; }
+p { text-align: center; width:100%; }`;
+	printHTML(innerHTML, grid_style);
 }
 
 function printHTML(innerHTML, css) {
 	if (css == null) { css = ""; }
 	let printFrame = document.createElement("iframe");
 	printFrame.setAttribute("id", "print-frame");
-	printFrame.setAttribute("style", "visibility:hidden; height:0; width:0; position:absolute;");
-	printFrame.srcdoc = "<html><head><title>Rabbit Ear</title><style>" + css + "</style></head><body>" + innerHTML + "</body></html>";
+	printFrame.setAttribute("style",
+		"visibility:hidden; height:0; width:0; position:absolute;");
+	printFrame.srcdoc = "<html><head><title>Rabbit Ear</title><style>" + css +
+		"</style></head><body>" + innerHTML + "</body></html>";
 	document.getElementsByTagName("body")[0].appendChild(printFrame);
 	printFrame.onload = function() {
 		try {

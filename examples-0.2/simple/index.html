@@ -8,20 +8,10 @@
 <script>
 let origami = RE.Origami({folding:true, padding:0.15, autofit:false});
 let pattern = RE.Origami({padding:0.15});
-// pattern.preferences.labels = true;
 
-origami.drawLayer = origami.group();
 origami.onMouseMove = function(mouse) {
 	if (mouse.isPressed) {
-		origami.drawLayer.removeChildren();
 		pattern.cp = origami.cp;
-
-		// if ("re:construction" in origami.cp === true && 
-		// 	origami.cp["re:construction"].type === "valley") {
-		// 	let e = origami.cp["re:construction"].edge;
-		// 	let l = origami.drawLayer.line(e[0][0], e[0][1], e[1][0], e[1][1]);
-		// 	l.setAttribute("style", "stroke-width:0.02;stroke:red;stroke-dasharray:0.02 0.04")
-		// }
 	}
 }
 

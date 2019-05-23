@@ -5405,10 +5405,12 @@
 			.map(m => core.multiply_matrices2(face_0_preMatrix, m));
 		folded["faces_re:coloring"] =
 			faces_matrix_coloring(folded_faces_matrix);
-		let fold_direction = core.normalize([
-			graph["faces_re:creases"][0][1][1],
-			-graph["faces_re:creases"][0][1][0]
-		]);
+		let crease_0 = core.multiply_line_matrix2(
+			graph["faces_re:creases"][0][0],
+			graph["faces_re:creases"][0][1],
+			face_0_preMatrix
+		);
+		let fold_direction = core.normalize([crease_0[1][1], -crease_0[1][0]]);
 		let split_points = faces_split
 			.map((el, i) => el === undefined ? undefined : el.edge.map(p =>
 				core.multiply_vector2_matrix2(p, graph["faces_re:matrix"][i])

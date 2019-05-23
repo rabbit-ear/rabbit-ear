@@ -109,6 +109,7 @@ const arrowForConstruction = function(construction, graph) {
 	let perpClipEdge = Geom.core.intersection.clip_line_in_convex_poly(
 		boundary, crossing, arrow_vector);
 	if (perpClipEdge === undefined) {
+		// todo: something is causing this to happen. when you flip over the page, far from where it started, then perform folds. when your fold starts and ends outside the bounds of the piece on one side of it.
 		return [];
 	}
 	let short_length = [perpClipEdge[0], perpClipEdge[1]]

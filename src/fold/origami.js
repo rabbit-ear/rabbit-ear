@@ -253,14 +253,16 @@ export const crease_through_layers = function(
 	// faces coloring is useful for determining if a face is flipped or not
 	folded["faces_re:coloring"] =
 		Graph.faces_matrix_coloring(folded_faces_matrix);
-	// build a "madeBy" section that includes
+	// "construction" section that includes:
 	// - what type of operation occurred: valley / mountain fold, flip over
 	// - the edge that draws the fold-line, useful for diagramming
-	// - the direction of the fold/flip
-	let fold_direction = Geom.core.normalize([
-		graph["faces_re:creases"][0][1][1],
-		-graph["faces_re:creases"][0][1][0]
-	]);
+	// - the direction of the fold or flip
+	let crease_0 = Geom.core.multiply_line_matrix2(
+		graph["faces_re:creases"][0][0],
+		graph["faces_re:creases"][0][1],
+		face_0_preMatrix
+	);
+	let fold_direction = Geom.core.normalize([crease_0[1][1], -crease_0[1][0]]);
 	// faces_split contains the edges that clipped each of the original faces
 	// gather them all together, and reflect them using the original faces'
 	// matrices so the lines lie on top of one another
