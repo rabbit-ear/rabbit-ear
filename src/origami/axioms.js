@@ -1,5 +1,16 @@
+/*
+             _                       _              _                     
+            (_)                     (_)            (_)                    
+   ___  _ __ _  __ _  __ _ _ __ ___  _    __ ___  ___  ___  _ __ ___  ___ 
+  / _ \| '__| |/ _` |/ _` | '_ ` _ \| |  / _` \ \/ / |/ _ \| '_ ` _ \/ __|
+ | (_) | |  | | (_| | (_| | | | | | | | | (_| |>  <| | (_) | | | | | \__ \
+  \___/|_|  |_|\__, |\__,_|_| |_| |_|_|  \__,_/_/\_\_|\___/|_| |_| |_|___/
+                __/ |                                                     
+               |___/                                                      
+*/
+
 import * as Geometry from "../../include/geometry";
-import * as Args from "../convert/arguments";
+import * as Args from "../convert/math_arguments";
 
 /**
  * this object contains the crease information
@@ -47,7 +58,7 @@ export const axiom = function(number, parameters) {
 // 	console.log("d", d);
 // }
 
-// n-dimension
+// works in n-dimensions
 export const axiom1 = function(pointA, pointB) {
 	let a, b;
 	a = pointA; b = pointB;
@@ -58,7 +69,7 @@ export const axiom1 = function(pointA, pointB) {
 	return addParamInfo(solution, 1, {marks:[p0, p1]});
 }
 
-// 2-dimension
+// 2-dimension only
 export const axiom2 = function(a, b) {
 	let mid = Geometry.core.midpoint(a, b);
 	let vec = Geometry.core.normalize(a.map((_,i) => b[i] - a[i]));

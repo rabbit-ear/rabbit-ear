@@ -1,5 +1,5 @@
-import * as Geom from "../../include/geometry";
-import { get_boundary_face } from "./graph";
+import * as REMath from "../../include/geometry";
+import { get_boundary_face } from "../graph/make";
 
 // "re:construction" example
 // { axiom: 2,
@@ -76,6 +76,11 @@ export const build_diagram_frame = function(graph) {
 // the point which the arrow should be cast perpendicularly across
 // when left undefined, intersect will be the midpoint of the line.
 // const drawArrowAcross = function(crease, crossing){
+// "construction" is an object that contains {
+//	axiom: #number#          // which axiom was used
+//	edge: [[x,y], [x,y]]     // the fold line
+//	direction: [x,y]         // the normal to the fold line, direction of fold
+// }
 const arrowForConstruction = function(construction, graph) {
 	let p = construction.parameters;
 	// axiom 2, simplest case
@@ -91,33 +96,33 @@ const arrowForConstruction = function(construction, graph) {
 	let crossing;
 	switch (construction.axiom) {
 		case 4: 
-			crossing = Geom.core.intersection.nearest_point(
+			crossing = REMath.core.intersection.nearest_point(
 				construction.edge[0], crease_vector, p.lines[0][0], ((a)=>a));
 			break;
 		case 7:
-			crossing = Geom.core.intersection.nearest_point(
+			crossing = REMath.core.intersection.nearest_point(
 				construction.edge[0], crease_vector, p.marks[0], ((a)=>a));
 			break;
 		default:
-				crossing = Geom.core.average(construction.edge);
+				crossing = REMath.core.average(construction.edge);
 				break;
 	}
 	let perpLine = { point: crossing, vector: arrow_vector };
 
 	let boundary = get_boundary_face(graph).vertices
 		.map(v => graph.vertices_coords[v]);
-	let perpClipEdge = Geom.core.intersection.clip_line_in_convex_poly(
+	let perpClipEdge = REMath.core.intersection.clip_line_in_convex_poly(
 		boundary, crossing, arrow_vector);
 	if (perpClipEdge === undefined) {
 		// todo: something is causing this to happen. when you flip over the page, far from where it started, then perform folds. when your fold starts and ends outside the bounds of the piece on one side of it.
 		return [];
 	}
 	let short_length = [perpClipEdge[0], perpClipEdge[1]]
-		.map(n => Geom.core.distance2(n, crossing))
+		.map(n => REMath.core.distance2(n, crossing))
 		.sort((a,b) => a-b)
 		.shift();
 	if (construction.axiom === 7) {
-		short_length = Geom.core.distance2(p.marks[0], crossing);
+		short_length = REMath.core.distance2(p.marks[0], crossing);
 	}
 	let short_vector = arrow_vector.map(v => v * short_length);
 	return [

@@ -6,8 +6,9 @@ html, body {
 	height: 100%;
 	width: 100%;
 	margin: 0;
-	background-color: #f8eed9;
+	background-color: white;
 	font-size: 130%;
+	font-family: 'Montserrat', sans-serif;
 }
 
 .grid {
@@ -23,7 +24,8 @@ html, body {
 	align-items: center;
 	/*border: 0.3rem solid #e53;*/
 	border: 0.3rem solid #158;
-	background-color: goldenrod;
+	/*background-color: goldenrod;*/
+	background-color: linen;
 	margin: 1rem;
 	padding: 1rem;
 }
@@ -46,7 +48,7 @@ polygon {
 }
 
 .boundary {
-	fill: white;
+	fill: linen;
 }
 
 .valley{

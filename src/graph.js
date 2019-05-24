@@ -1,7 +1,13 @@
-// Graph.js
-// an undirected graph with edges and nodes
-// MIT open source license, Robby Kraft
+//                              _
+//                             | |
+//         __ _ _ __ __ _ _ __ | |__
+//        / _` | '__/ _` | '_ \| '_ \
+//       | (_| | | | (_| | |_) | | | |
+//        \__, |_|  \__,_| .__/|_| |_|
+//         __/ |         | |
+//        |___/          |_|
 //
+// an undirected graph with edges and nodes
 //  "adjacent": 2 nodes are adjacent when they are connected by an edge
 //              edges are adjacent when they both connect the same node
 //  "similar": edges are similar if they contain the same 2 nodes,
@@ -20,6 +26,8 @@
 //  "isolated": a node is isolated if it is connected to 0 edges, degree 0
 //  "leaf": a node is a leaf if it is connected to only 1 edge, degree 1
 //  "pendant": an edge incident with a leaf node
+//
+//  MIT open source license, Robby Kraft
 
 const CleanPrototype = function() {
 	let proto = Object.create(null);

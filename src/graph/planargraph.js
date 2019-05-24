@@ -1,21 +1,43 @@
-import * as Graph from "./graph";
+/*      _                                                _    
+       | |                                              | |  
+  _ __ | | __ _ _ __   __ _ _ __    __ _ _ __ __ _ _ __ | |__ 
+ | '_ \| |/ _` | '_ \ / _` | '__|  / _` | '__/ _` | '_ \| '_ \
+ | |_) | | (_| | | | | (_| | |    | (_| | | | (_| | |_) | | | |
+ | .__/|_|\__,_|_| |_|\__,_|_|     \__, |_|  \__,_| .__/|_| |_|
+ | |                                __/ |         | |
+ |_|                               |___/          |_|
+*/
+
 import * as Geom from "../../include/geometry";
-import { merge_maps } from "./diff";
-import { default as validate } from "./validate";
+import { merge_maps } from "../origami/diff";
+import { default as convert } from "../../include/fold/convert";
+import { default as filter } from "../../include/fold/filter";
+import { edge_assignment_to_foldAngle } from "../fold_format/spec";
+import { add_vertex_on_edge } from "./add";
+import {
+	remove_vertices,
+	remove_edges,
+	remove_faces,
+} from "./remove";
 
-import {default as convert} from "../official/convert";
-import {default as filter} from "../official/filter";
-
-const angle_from_assignment = function(assignment) {
-	switch (assignment) {
-		case "M":
-		case "m":
-			return -180;
-		case "V":
-		case "v":
-			return 180;
-		default:
-			return 0;
+/**
+ * this is the big rebuild-all-arrays function.
+ * vertices_coords and edges_vertices are the seeds everything else is rebuilt.
+ * todo: specify "keys" parameter to update certain keys only
+ */
+export const clean = function(graph, keys) {
+	if ("vertices_coords" in graph === false ||
+			"edges_vertices" in graph === false) {
+		console.warn("clean requires vertices_coords and edges_vertices");
+		return;
+	}
+	if (keys == null) {
+		convert.edges_vertices_to_faces_vertices_edges(graph);
+		// todo, these are not arranged counter-clockwise
+		let edges_faces = make_edges_faces(graph);
+		graph.edges_faces = edges_faces;
+	} else {
+		console.warn("clean() certain keys only not yet implemented");
 	}
 }
 
@@ -174,7 +196,7 @@ export const fragment = function(graph, epsilon = Geom.core.EPSILON) {
 	let vertices_remove_indices = vertices_remove
 		.map((rm,i) => rm ? i : undefined)
 		.filter(i => i !== undefined);
-	Graph.remove_vertices(flat, vertices_remove_indices);
+	remove_vertices(flat, vertices_remove_indices);
 
 	// console.log(flat);
 
@@ -186,149 +208,16 @@ export const fragment = function(graph, epsilon = Geom.core.EPSILON) {
 }
 
 /**
- * @returns index of nearest vertex in vertices_ arrays or
- *  undefined if there are no vertices_coords
- */
-export const nearest_vertex = function(graph, point) {
-	if (graph.vertices_coords == null || graph.vertices_coords.length === 0) {
-		return undefined;
-	}
-	let p = [...point];
-	if (p[2] == null) { p[2] = 0; }
-	return graph.vertices_coords.map(v => v
-		.map((n,i) => Math.pow(n - p[i], 2))
-		.reduce((a,b) => a + b,0)
-	).map((n,i) => ({d:Math.sqrt(n), i:i}))
-	.sort((a,b) => a.d - b.d)
-	.shift()
-	.i;
-};
-
-/**
- * returns index of nearest edge in edges_ arrays or
- *  undefined if there are no vertices_coords or edges_vertices
- */
-export const nearest_edge = function(graph, point) {
-	if (graph.vertices_coords == null || graph.vertices_coords.length === 0 ||
-		graph.edges_vertices == null || graph.edges_vertices.length === 0) {
-		return undefined;
-	}
-	// todo, z is not included in the calculation
-	return graph.edges_vertices
-		.map(e => e.map(ev => graph.vertices_coords[ev]))
-		.map(e => Geom.Edge(e))
-		.map((e,i) => ({e:e, i:i, d:e.nearestPoint(point).distanceTo(point)}))
-		.sort((a,b) => a.d - b.d)
-		.shift()
-		.i;
-};
-
-/**
- * someday this will implement facesOrders. right now just faces_re:layer
- * leave faces_options empty to search all faces
- */
-export const topmost_face = function(graph, faces_options) {
-	if (faces_options == null) {
-		faces_options = Array.from(Array(graph.faces_vertices.length))
-			.map((_,i) => i);
-	}
-	if (faces_options.length === 0) { return undefined; }
-	if (faces_options.length === 1) { return faces_options[0]; }
-
-	// top to bottom
-	let faces_in_order = graph["faces_re:layer"]
-		.map((layer,i) => ({layer:layer, i:i}))
-		.sort((a,b) => b.layer - a.layer)
-		.map(el => el.i)
-
-	for (var i = 0; i < faces_in_order.length; i++) {
-		if (faces_options.includes(faces_in_order[i])) {
-			return faces_in_order[i];
-		}
-	}
-}
-
-export const face_containing_point = function(graph, point) {
-	if (graph.vertices_coords == null || graph.vertices_coords.length === 0 ||
-		graph.faces_vertices == null || graph.faces_vertices.length === 0) {
-		return undefined;
-	}
-	let face = graph.faces_vertices
-		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
-		.filter(f => Geom.core.intersection.point_in_poly(point, f.face))
-		.shift()
-	return (face == null ? undefined : face.i);
-};
-
-export const folded_faces_containing_point = function(graph, point, faces_matrix) {
-	let transformed_points = faces_matrix
-		.map(m => Geom.core.multiply_vector2_matrix2(point, m));
-	return graph.faces_vertices
-		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
-		.filter((f,i) => Geom.core.intersection.point_in_poly(transformed_points[i], f.face))
-		.map(f => f.i);
-}
-
-export const faces_containing_point = function(graph, point) {
-	if (graph.vertices_coords == null || graph.vertices_coords.length === 0 ||
-		graph.faces_vertices == null || graph.faces_vertices.length === 0) {
-		return undefined;
-	}
-	return graph.faces_vertices
-		.map((fv,i) => ({face: fv.map(v => graph.vertices_coords[v]), i: i}))
-		.filter(f => Geom.core.intersection.point_in_poly(point, f.face))
-		.map(f => f.i);
-};
-
-export const make_faces_matrix = function(graph, root_face) {
-	// if edge_orientations includes marks AND mountains/valleys,
-	// then perform folds only along mountains and valleys
-	// if edge_orientations doesn't exist, or only includes marks/borders,
-	// then perform folds along all marks
-	// let edge_fold = graph.edges_vertices.map(_ => true);
-	let skip_marks = ("edges_assignment" in graph === true)
-	let edge_fold = skip_marks
-		? graph.edges_assignment.map(a => a!=="f"&&a!=="F"&&a!=="u"&&a!=="U")
-		: graph.edges_vertices.map(_ => true);
-
-	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
-	Graph.make_face_walk_tree(graph, root_face).forEach((level) =>
-		level.filter((entry) => entry.parent != null).forEach((entry) => {
-			let verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
-			let vec = [verts[1][0] - verts[0][0], verts[1][1] - verts[0][1]];
-			// let local = Geom.core.make_matrix2_reflection(vec, verts[0]);
-			let local = edge_fold[entry.edge]
-				? Geom.core.make_matrix2_reflection(vec, verts[0])
-				: [1,0,0,1,0,0];
-			faces_matrix[entry.face] =
-				Geom.core.multiply_matrices2(faces_matrix[entry.parent], local);
-		})
-	);
-	return faces_matrix;
-}
-
-export const make_faces_matrix_inv = function(graph, root_face) {
-	let faces_matrix = graph.faces_vertices.map(v => [1,0,0,1,0,0]);
-	Graph.make_face_walk_tree(graph, root_face).forEach((level) =>
-		level.filter((entry) => entry.parent != null).forEach((entry) => {
-			let verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
-			let vec = [verts[1][0] - verts[0][0], verts[1][1] - verts[0][1]];
-			// let local = Geom.core.make_matrix2_reflection(vec, verts[0]);
-			let local = edge_fold[entry.edge]
-				? Geom.core.make_matrix2_reflection(vec, verts[0])
-				: [1,0,0,1,0,0];
-			faces_matrix[entry.face] =
-				Geom.core.multiply_matrices2(local, faces_matrix[entry.parent]);
-		})
-	);
-	return faces_matrix;
-}
-
-/**
  * @returns {}, description of changes. empty object if no intersection.
  *
  */
-export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVector, crease_assignment = "F") {
+export const split_convex_polygon = function(
+	graph,
+	faceIndex,
+	linePoint,
+	lineVector,
+	crease_assignment = "F"
+) {
 	// survey face for any intersections which cross directly over a vertex
 	let vertices_intersections = graph.faces_vertices[faceIndex]
 		.map(fv => graph.vertices_coords[fv])
@@ -346,8 +235,9 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 	let edges_intersections = graph.faces_edges[faceIndex]
 		.map(ei => graph.edges_vertices[ei])
 		.map(edge => edge.map(e => graph.vertices_coords[e]))
-		.map(edge => Geom.core.intersection.line_edge_exclusive(linePoint, lineVector, edge[0], edge[1]))
-		.map((point, i) => ({
+		.map(edge => Geom.core.intersection.line_edge_exclusive(
+			linePoint, lineVector, edge[0], edge[1])
+		).map((point, i) => ({
 			point: point,
 			i_face: i,
 			i_edges: graph.faces_edges[faceIndex][i]
@@ -363,19 +253,22 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 	let edge_map = Array.from(Array(graph.edges_vertices.length)).map(_=>0);
 	if (edges_intersections.length === 2) {
 		new_v_indices = edges_intersections.map((el,i,arr) => {
-			let diff = Graph
-				.add_vertex_on_edge(graph, el.point[0], el.point[1], el.i_edges);
+			let diff = add_vertex_on_edge(
+				graph, el.point[0], el.point[1], el.i_edges
+			);
 			arr.slice(i+1)
 				.filter(el => diff.edges.map[el.i_edges] != null)
 				.forEach(el => el.i_edges += diff.edges.map[el.i_edges]);
 			edge_map = merge_maps(edge_map, diff.edges.map);
 			return diff.vertices.new[0].index;
 		});
-	} else if (edges_intersections.length === 1 && vertices_intersections.length === 1) {
+	} else if (edges_intersections.length === 1
+	        && vertices_intersections.length === 1) {
 		let a = vertices_intersections.map(el => el.i_vertices);
 		let b = edges_intersections.map((el,i,arr) => {
-			let diff = Graph
-				.add_vertex_on_edge(graph, el.point[0], el.point[1], el.i_edges);
+			let diff = add_vertex_on_edge(
+				graph, el.point[0], el.point[1], el.i_edges
+			);
 			arr.slice(i+1)
 				.filter(el => diff.edges.map[el.i_edges] != null)
 				.forEach(el => el.i_edges += diff.edges.map[el.i_edges]);
@@ -431,7 +324,7 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 		index: graph.edges_vertices.length,
 		vertices: [...new_v_indices],
 		assignment: crease_assignment,
-		foldAngle: angle_from_assignment(crease_assignment),
+		foldAngle: edge_assignment_to_foldAngle(crease_assignment),
 		length: Geom.core.distance2(
 			...(new_v_indices.map(v => graph.vertices_coords[v]))
 		),
@@ -499,7 +392,7 @@ export const split_convex_polygon = function(graph, faceIndex, linePoint, lineVe
 
 	// remove faces, adjust all relevant indices
 	// console.log(JSON.parse(JSON.stringify(graph["faces_re:coloring"])));
-	let faces_map = Graph.remove_faces(graph, [faceIndex]);
+	let faces_map = remove_faces(graph, [faceIndex]);
 	// console.log("removing faceIndex", faces_map);
 	// console.log(JSON.parse(JSON.stringify(graph["faces_re:coloring"])));
 
@@ -548,78 +441,61 @@ export const find_collinear_face_edges = function(edge, face_vertices,
 }
 
 
-export function clip_line(fold, linePoint, lineVector) {
-	function len(a,b){
-		return Math.sqrt(Math.pow(a[0]-b[0],2) + Math.pow(a[1]-b[1],2));
-	}
+// export function clip_line(fold, linePoint, lineVector) {
+// 	function len(a,b){
+// 		return Math.sqrt(Math.pow(a[0]-b[0],2) + Math.pow(a[1]-b[1],2));
+// 	}
 
-	let edges = fold.edges_vertices
-		.map(ev => ev.map(e => fold.vertices_coords[e]));
+// 	let edges = fold.edges_vertices
+// 		.map(ev => ev.map(e => fold.vertices_coords[e]));
 
-	return [lineVector, [-lineVector[0], -lineVector[1]]]
-		.map(lv => edges
-			.map(e => Geom.core.intersection.ray_edge(linePoint, lv, e[0], e[1]))
-			.filter(i => i != null)
-			.map(i => ({intersection:i, length:len(i, linePoint)}))
-			.sort((a, b) => a.length - b.length)
-			.map(el => el.intersection)
-			.shift()
-		).filter(p => p != null);
-}
-
-/**
- * quick bounding box approach to find the two furthest points in a collection
- *
- */
-export const two_furthest_points = function(points) {
-	let top = [0, -Infinity];
-	let left = [Infinity, 0];
-	let right = [-Infinity, 0];
-	let bottom = [0, Infinity];
-	points.forEach(p => {
-		if (p[0] < left[0]) { left = p; }
-		if (p[0] > right[0]) { right = p; }
-		if (p[1] < bottom[1]) { bottom = p; }
-		if (p[1] > top[1]) { top = p; }
-	});
-	// handle vertical and horizontal lines cases
-	let t_to_b = Math.abs(top[1] - bottom[1]);
-	let l_to_r = Math.abs(right[0] - left[0]);
-	return t_to_b > l_to_r ? [bottom, top] : [left, right];
-}
+// 	return [lineVector, [-lineVector[0], -lineVector[1]]]
+// 		.map(lv => edges
+// 			.map(e => Geom.core.intersection.ray_edge(linePoint, lv, e[0], e[1]))
+// 			.filter(i => i != null)
+// 			.map(i => ({intersection:i, length:len(i, linePoint)}))
+// 			.sort((a, b) => a.length - b.length)
+// 			.map(el => el.intersection)
+// 			.shift()
+// 		).filter(p => p != null);
+// }
 
 
-export const bounding_rect = function(graph) {
-	if ("vertices_coords" in graph === false ||
-		graph.vertices_coords.length <= 0) {
-		return [0,0,0,0];
-	}
-	let dimension = graph.vertices_coords[0].length;
-	let smallest = Array.from(Array(dimension)).map(_ => Infinity);
-	let largest = Array.from(Array(dimension)).map(_ => -Infinity);
-	graph.vertices_coords.forEach(v => v.forEach((n,i) => {
-		if (n < smallest[i]) { smallest[i] = n; }
-		if (n > largest[i]) { largest[i] = n; }
-	}));
-	let x = smallest[0];
-	let y = smallest[1];
-	let w = largest[0] - smallest[0];
-	let h = largest[1] - smallest[1];
-	return (isNaN(x) || isNaN(y) || isNaN(w) || isNaN(h)
-		? [0,0,0,0]
-		: [x,y,w,h]);
-}
-
-const bounding_cube = function(graph) {
-}
-
-
-export const vertex_is_collinear = function(graph) {
+export const vertex_is_collinear = function(graph, vertices) {
 	// returns n-sized array matching vertices_ length
 	// T/F is a vertex 2-degree between two collinear edges.
-	
+	return vertices.filter(vert => {
+		let edges = graph.edges_vertices
+			.filter(ev => ev[0] === vert || ev[1] === vert);
+		if (edges.length !== 2) { return false; }
+		let a = edges[0][0] === vert ? edges[0][1] : edges[0][0];
+		let b = edges[1][0] === vert ? edges[1][1] : edges[1][0];
+		let av = Geom.core.distance2(graph.vertices_coords[a], graph.vertices_coords[vert]);
+		let bv = Geom.core.distance2(graph.vertices_coords[b], graph.vertices_coords[vert]);
+		let ab = Geom.core.distance2(graph.vertices_coords[a], graph.vertices_coords[b]);
+		return Math.abs(ab - av - bv) < Geom.core.EPSILON;
+	});
 }
 
-export const remove_collinear_vertices = function(graph) {
-	
+export const remove_collinear_vertices = function(graph, vertices) {
+	let new_edges = [];
+	vertices.forEach(vert => {
+		let edges_indices = graph.edges_vertices
+			.map((ev, i) => ev[0] === vert || ev[1] === vert ? i : undefined)
+			.filter(a => a !== undefined);
+		let edges = edges_indices.map(i => graph.edges_vertices[i]);
+		if (edges.length !== 2) { return false; }
+		let a = edges[0][0] === vert ? edges[0][1] : edges[0][0];
+		let b = edges[1][0] === vert ? edges[1][1] : edges[1][0];
+		let assignment = graph.edges_assignment[edges_indices[0]];
+		let foldAngle = graph.edges_assignment[edges_indices[0]];
+		remove_edges(graph, edges_indices);
+		new_edges.push({vertices:[a,b], assignment, foldAngle})
+	});
+	new_edges.forEach(el => {
+		graph.edges_vertices.push(el.vertices);
+		graph.edges_assignment.push(el.assignment);
+		graph.edges_foldAngle.push(el.foldAngle);
+	})
+	remove_vertices(graph, vertices);
 }

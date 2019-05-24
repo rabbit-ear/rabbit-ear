@@ -1,52 +1,12 @@
-import { clean_number } from "../convert/arguments"; 
+import { clean_number } from "../convert/math_arguments"; 
 
-const template = function() {
-	return {
-		file_spec: 1.1,
-		file_creator: "Rabbit Ear",
-		file_author: "",
-		file_title: "",
-		file_description: "",
-		file_classes: [],
-		file_frames: [],
-
-		frame_author: "",
-		frame_title: "",
-		frame_description: "",
-		frame_attributes: [],
-		frame_classes: [],
-		frame_unit: "unit",
-	};
-};
-
-const cp_type = function() {
-	return {
-		file_classes: ["singleModel"],
-		frame_attributes: ["2D"],
-		frame_classes: ["creasePattern"],
-	};
-};
-
-const square_graph = function() {
-	return {
-		vertices_coords: [[0,0], [1,0], [1,1], [0,1]],
-		vertices_vertices: [[1,3], [2,0], [3,1], [0,2]],
-		vertices_faces: [[0], [0], [0], [0]],
-		edges_vertices: [[0,1], [1,2], [2,3], [3,0]],
-		edges_faces: [[0], [0], [0], [0]],
-		edges_assignment: ["B","B","B","B"],
-		edges_foldAngle: [0, 0, 0, 0],
-		edges_length: [1, 1, 1, 1],
-		faces_vertices: [[0,1,2,3]],
-		faces_edges: [[0,1,2,3]]
-	};
-}
-
+const file_spec = 1.1;
+const file_creator = "Rabbit Ear";
 
 export const square = function(width, height) {
 	return Object.assign(
 		Object.create(null),
-		template(),
+		metadata(),
 		cp_type(),
 		square_graph()
 	);
@@ -58,7 +18,7 @@ export const rectangle = function(width, height) {
 	graph.edges_length = [width, height, width, height];
 	return Object.assign(
 		Object.create(null),
-		template(),
+		metadata(),
 		cp_type(),
 		graph
 	);
@@ -92,9 +52,48 @@ export const regular_polygon = function(sides, radius = 1) {
 	}
 	return Object.assign(
 		Object.create(null),
-		template(),
+		metadata(),
 		cp_type(),
 		graph
 	);
 };
 
+const metadata = function() {
+	return {
+		file_spec,
+		file_creator,
+		file_author: "",
+		file_title: "",
+		file_description: "",
+		file_classes: [],
+		file_frames: [],
+		frame_description: "",
+		frame_attributes: [],
+		frame_classes: [],
+		frame_unit: "",
+	};
+};
+
+const cp_type = function() {
+	return {
+		file_classes: ["singleModel"],
+		frame_attributes: ["2D"],
+		frame_classes: ["creasePattern"],
+	};
+};
+
+const square_graph = function() {
+	return {
+		vertices_coords: [[0,0], [1,0], [1,1], [0,1]],
+		vertices_vertices: [[1,3], [2,0], [3,1], [0,2]],
+		vertices_faces: [[0], [0], [0], [0]],
+		edges_vertices: [[0,1], [1,2], [2,3], [3,0]],
+		edges_faces: [[0], [0], [0], [0]],
+		edges_assignment: ["B","B","B","B"],
+		edges_foldAngle: [0, 0, 0, 0],
+		edges_length: [1, 1, 1, 1],
+		faces_vertices: [[0,1,2,3]],
+		faces_edges: [[0,1,2,3]],
+		faces_faces: [[]]
+	};
+}

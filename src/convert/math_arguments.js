@@ -13,6 +13,7 @@ export const is_vector = function(arg) {
 		&& !isNaN(arg[0])
 		&& !isNaN(arg[1]);
 }
+
 export const is_number = function(n) {
 	return n != null && !isNaN(n);
 }

@@ -9,17 +9,18 @@
 
 import * as Geom from "../include/geometry";
 import * as SVG from "../include/svg";
-import * as Graph from "./fold/graph";
-import * as Origami from "./fold/origami";
-import { flatten_frame } from "./fold/file";
-import { load_file } from "./convert/convert";
-import CreasePattern from "./cp/CreasePattern";
 import { default as FOLD_SVG } from "../include/fold-svg";
+
+import * as Fold from "./origami/fold";
+import { flatten_frame } from "./fold_format/frames";
+import { load_file } from "./convert/loader";
+import CreasePattern from "./cp/CreasePattern";
+import { get_boundary_face } from "./graph/make";
 import {
 	faces_containing_point,
 	topmost_face,
 	bounding_rect
-} from "./fold/planargraph";
+} from "./graph/query";
 
 const DEFAULTS = Object.freeze({
 	autofit: true,
@@ -344,7 +345,7 @@ export default function() {
 			? flatten_frame(prop.cp, prop.frame)
 			: prop.cp;
 		return Geom.Polygon(
-			Graph.get_boundary_face(graph)
+			get_boundary_face(graph)
 				.vertices
 				.map(v => graph.vertices_coords[v])
 		);
@@ -375,7 +376,7 @@ export default function() {
 		} else {
 			// for the moment let's assume it's just 1 layer. face = 0
 			if (face == null) { face = 0; }
-			let file_frame = Origami.build_folded_frame(prop.cp, face);
+			let file_frame = Fold.build_folded_frame(prop.cp, face);
 			if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
 			prop.cp.file_frames.unshift(file_frame);
 		}
@@ -384,7 +385,7 @@ export default function() {
 	}
 
 	const foldWithoutLayering = function(face){
-		let folded = Origami.fold_without_layering(prop.cp, face);
+		let folded = Fold.fold_without_layering(prop.cp, face);
 		setCreasePattern( CreasePattern(folded) );
 		Array.from(groups.faces.children).forEach(face => face.setClass("face"))
 	}
@@ -490,7 +491,7 @@ export default function() {
 				if (prop.frame == null
 					|| prop.frame === 0
 					|| prevCP.file_frames == null) {
-					let file_frame = Origami.build_folded_frame(prevCP, 0);
+					let file_frame = Fold.build_folded_frame(prevCP, 0);
 					if (prevCP.file_frames == null) { prevCP.file_frames = []; }
 					prevCP.file_frames.unshift(file_frame);
 				}

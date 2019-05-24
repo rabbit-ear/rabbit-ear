@@ -1,17 +1,35 @@
 // MIT open source license, Robby Kraft
 
-import * as Graph from "../fold/graph";
-import * as PlanarGraph from "../fold/planargraph";
-import * as Origami from "../fold/origami";
+import { default as FOLDConvert } from "../../include/fold/convert";
 import { Polygon } from "../../include/geometry";
-import * as Args from "../convert/arguments";
-import { Vertex, Face, Edge, Crease } from "./components";
-import * as Convert from "../convert/convert";
-import * as Make from "../fold/make";
-import * as File from "../fold/file";
-import * as Diagram from "../fold/diagram";
 
-import { default as FOLDConvert } from "../official/convert";
+import * as Add from "../graph/add";
+import * as Remove from "../graph/remove";
+// import * as Make from "../graph/make";
+import { get_boundary_face } from "../graph/make";
+import * as Query from "../graph/query";
+
+import * as Create from "../fold_format/create";
+import * as Frames from "../fold_format/frames";
+import * as Validate from "../fold_format/validate";
+
+import * as Args from "../convert/math_arguments";
+import { Vertex, Face, Edge, Crease } from "./components";
+
+import * as Diagram from "../origami/diagram";
+import { default as CreaseThrough } from "../origami/creasethrough";
+import * as MakeCrease from "../origami/crease";
+
+import * as Spec from "../fold_format/spec";
+
+import {
+	add_vertex_on_edge
+} from "../graph/add";
+
+import {
+	remove_duplicate_edges,
+	remove_non_boundary_edges
+} from "../graph/remove";
 
 /** 
  * an important thing this class offers: this component array
@@ -60,7 +78,7 @@ const Prototype = function(proto) {
 	const clean = function() {
 		// todo
 		// this needs to chop edges that have line endpoints collear to them
-		Graph.remove_duplicate_edges(_this);
+		remove_duplicate_edges(_this);
 		FOLDConvert.edges_vertices_to_vertices_vertices_sorted(_this);
 		FOLDConvert.vertices_vertices_to_faces_vertices(_this);
 		FOLDConvert.faces_vertices_to_faces_edges(_this);
@@ -72,7 +90,7 @@ const Prototype = function(proto) {
 	 */
 	const load = function(file, prevent_wipe) {
 		if (prevent_wipe == null || prevent_wipe !== true) {
-			Graph.all_keys.forEach(key => delete _this[key])
+			Spec.keys.forEach(key => delete _this[key])
 		}
 		Object.assign(_this, JSON.parse(JSON.stringify(file)));
 		// placeholderFoldedForm(_this);
@@ -88,7 +106,7 @@ const Prototype = function(proto) {
 	 * to its original state (and keeps the boundary edges if present)
 	 */
 	const clear = function() {
-		Graph.remove_non_boundary_edges(_this);
+		remove_non_boundary_edges(_this);
 		_this.onchange.forEach(f => f());
 	}
 	/**
@@ -152,20 +170,20 @@ const Prototype = function(proto) {
 		// todo: test this for another reason anyway
 		// todo: this only works for unfolded flat crease patterns
 		return Polygon(
-			Graph.get_boundary_face(_this).vertices
+			get_boundary_face(_this).vertices
 				.map(v => _this.vertices_coords[v])
 		);
 	};
 	const nearestVertex = function(x, y, z = 0) {
-		let index = PlanarGraph.nearest_vertex(_this, [x, y, z]);
+		let index = Query.nearest_vertex(_this, [x, y, z]);
 		return (index != null) ? Vertex(_this, index) : undefined;
 	};
 	const nearestEdge = function(x, y, z = 0) {
-		let index = PlanarGraph.nearest_edge(_this, [x, y, z]);
+		let index = Query.nearest_edge(_this, [x, y, z]);
 		return (index != null) ? Edge(_this, index) : undefined;
 	};
 	const nearestFace = function(x, y, z = 0) {
-		let index = PlanarGraph.face_containing_point(_this, [x, y, z]);
+		let index = Query.face_containing_point(_this, [x, y, z]);
 		return (index != null) ? Face(_this, index) : undefined;
 	};
 
@@ -192,7 +210,7 @@ const Prototype = function(proto) {
 			.filter(f => f.vertices_coords.length === _this.vertices_coords.length)
 			.shift();
 		return foldedFrame != null
-			? File.merge_frame(_this, foldedFrame)
+			? Frames.merge_frame(_this, foldedFrame)
 			: undefined;
 	}
 	// updates
@@ -230,7 +248,7 @@ const Prototype = function(proto) {
 		// 	.map(mat => Geom.core.make_matrix2_inverse(mat))
 		// 	.map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
 
-		let folded = Origami.crease_through_layers(_this,
+		let folded = CreaseThrough(_this,
 			line.point,
 			line.vector,
 			face_index,
@@ -252,7 +270,7 @@ const Prototype = function(proto) {
 
 	const markFold = function() {
 		let line = Args.get_line(arguments);
-		let c = Crease(this, Origami.crease_line(_this, line.point, line.vector));
+		let c = Crease(this, MakeCrease.crease_line(_this, line.point, line.vector));
 		didModifyGraph();
 		return c;
 	}
@@ -263,7 +281,7 @@ const Prototype = function(proto) {
 			.shift();  // for now don't handle multiple inputs
 		if (o !== undefined) {
 			if ("point" in o && "vector" in o) {
-				let c = Crease(this, Origami.crease_line(_this, o.point, o.vector));
+				let c = Crease(this, MakeCrease.crease_line(_this, o.point, o.vector));
 				didModifyGraph();
 				return c;
 			}
@@ -271,22 +289,22 @@ const Prototype = function(proto) {
 	}
 
 	const addVertexOnEdge = function(x, y, oldEdgeIndex) {
-		Graph.add_vertex_on_edge(_this, x, y, oldEdgeIndex);
+		add_vertex_on_edge(_this, x, y, oldEdgeIndex);
 		didModifyGraph();
 	};
 
 	const creaseLine = function() {
-		let crease = Crease(this, Origami.crease_line(_this, ...arguments));
+		let crease = Crease(this, MakeCrease.crease_line(_this, ...arguments));
 		didModifyGraph();
 		return crease;
 	};
 	const creaseRay = function() {
-		let crease = Crease(this, Origami.creaseRay(_this, ...arguments));
+		let crease = Crease(this, MakeCrease.creaseRay(_this, ...arguments));
 		didModifyGraph();
 		return crease;
 	};
 	const creaseSegment = function() {
-		let diff = Origami.creaseSegment(_this, ...arguments);
+		let diff = MakeCrease.creaseSegment(_this, ...arguments);
 		if (diff === undefined) { return; }
 		if (diff.edges_index_map != null) {
 			Object.keys(diff.edges_index_map)
@@ -313,13 +331,12 @@ const Prototype = function(proto) {
 		didModifyGraph();
 	};
 	const kawasaki = function() {
-		let crease = Crease(this, Origami.kawasaki_collapse(_this, ...arguments));
+		let crease = Crease(this, Kawasaki.kawasaki_collapse(_this, ...arguments));
 		didModifyGraph();
 		return crease;
 	};
 
 	Object.defineProperty(proto, "getFoldedForm", { value: getFoldedForm });
-
 	Object.defineProperty(proto, "boundary", { get: getBoundary });
 	Object.defineProperty(proto, "vertices", { get: getVertices });
 	Object.defineProperty(proto, "edges", { get: getEdges });
@@ -334,7 +351,6 @@ const Prototype = function(proto) {
 	Object.defineProperty(proto, "nearestEdge", { value: nearestEdge });
 	Object.defineProperty(proto, "nearestFace", { value: nearestFace });
 	Object.defineProperty(proto, "svg", { value: svg });
-
 	Object.defineProperty(proto, "valleyFold", { value: valleyFold });
 	Object.defineProperty(proto, "addVertexOnEdge", { value: addVertexOnEdge });
 	Object.defineProperty(proto, "crease", { value: crease });
@@ -355,15 +371,6 @@ const Prototype = function(proto) {
 	return Object.freeze(proto);
 }
 
-const validFoldObject = function(fold) {
-	let keys1_1 = ["file_spec","file_creator","file_author","file_title","file_description","file_classes","file_frames","frame_author","frame_title","frame_description","frame_attributes","frame_classes","frame_unit","vertices_coords","vertices_vertices","vertices_faces","edges_vertices","edges_faces","edges_assignment","edges_foldAngle","edges_length","faces_vertices","faces_edges","edgeOrders","faceOrders"];
-	let argKeys = Object.keys(fold);
-	for(var i = 0; i < argKeys.length; i++) {
-		if (keys1_1.includes(argKeys[i])) { return true; }
-	}
-	return false;
-}
-
 /** A graph is a set of nodes and edges connecting them */
 const CreasePattern = function() {
 
@@ -375,25 +382,25 @@ const CreasePattern = function() {
 	// todo: which key should we check to verify .fold? coords /=/ abstract CPs
 	let foldObjs = Array.from(arguments)
 		.filter(el => typeof el === "object" && el !== null)
-		.filter(el => validFoldObject(el));
+		.filter(el => Validate.possibleFoldObject(el));
 		// .filter(el => el.vertices_coords != null);
 	// unit square is the default base if nothing else is provided
-	graph.load( (foldObjs.shift() || Make.square()) );
+	graph.load( (foldObjs.shift() || Create.square()) );
 
 	return graph;
 }
 
 CreasePattern.square = function() {
-	return CreasePattern(Make.rectangle(1, 1));
+	return CreasePattern(Create.rectangle(1, 1));
 }
 CreasePattern.rectangle = function(width = 1, height = 1) {
-	return CreasePattern(Make.rectangle(width, height));
+	return CreasePattern(Create.rectangle(width, height));
 }
 CreasePattern.regularPolygon = function(sides, radius = 1) {
 	if (sides == null) {
 		console.warn("regularPolygon requires number of sides parameter");
 	}
-	return CreasePattern(Make.regular_polygon(sides, radius));
+	return CreasePattern(Create.regular_polygon(sides, radius));
 }
 
 export default CreasePattern;

@@ -1,13 +1,20 @@
-import * as Graph from "./graph";
-// import {vertices_count, edges_count, faces_count} from "./graph";
-
-// there's little order right now other than adding tests as i think of them
+// there's not much order right now other than adding tests as i think of them
 // this should be thorough at the cost of speed.
-// currently only enforcing graph combinatorics, doesn't check things like illegal
-// planar graph edge crossings.. that will probably be its own validate.
-// currently testing for and requiring that every key in spec 1.1 be present.
+// currently only enforcing graph combinatorics, doesn't check things like
+// illegal planar graph edge crossings.. that will probably be
+// its own validate.
 
-export default function(graph) {
+import { keys } from "./spec";
+
+export const possibleFoldObject = function(fold) {
+	let argKeys = Object.keys(fold);
+	for(var i = 0; i < argKeys.length; i++) {
+		if (keys.includes(argKeys[i])) { return true; }
+	}
+	return false;
+}
+
+export const validate = function(graph) {
 
 	let foldKeys = {
 		"vertices": ["coords", "vertices", "faces"],
@@ -19,12 +26,14 @@ export default function(graph) {
 	["vertices_coords", "vertices_vertices", "vertices_faces",
 	"edges_vertices", "edges_faces",
 	"faces_vertices", "faces_edges"].forEach(key => {
-		if(graph[key].map(a=>a.filter(b=>b==null).length>0).reduce((a,b)=>a||b,false)){
+		if(graph[key]
+				.map(a=>a.filter(b=>b==null).length>0)
+				.reduce((a,b)=>a||b,false)) {
 			throw key + " contains a null";
 		}
 	});
 	["edges_assignment", "edges_foldAngle", "edges_length"].forEach(key => {
-		if(graph[key].filter(a=>a==null).length>0){
+		if(graph[key].filter(a=>a==null).length>0) {
 			throw key + " contains a null";
 		}
 	});
@@ -40,13 +49,13 @@ export default function(graph) {
 		).reduce((a,b) => a && b, true);
 
 	if (!arraysLengthTest) {
-		throw "validate failed, geometry array-lengths don't match";
+		throw "validate failed: arrays with common keys have mismatching lengths";
 	}
 
 	let l = {
-		vertices: Graph.vertices_count(graph),
-		edges: Graph.edges_count(graph),
-		faces: Graph.faces_count(graph)
+		vertices: graph.vertices_coords.length,
+		edges: graph.edges_vertices.length,
+		faces: graph.faces_vertices.length || graph.faces_edges.length
 	}
 	// geometry indices point to arrays longer than that index value
 	let arraysIndexTest = Object.keys(foldKeys)
@@ -108,7 +117,6 @@ export default function(graph) {
 			.filter(el => !el.test)
 	).reduce((a,b) => a.concat(b), []);
 
-
 	"vertices_coords"
 	"vertices_vertices"
 	"vertices_faces"
@@ -122,4 +130,3 @@ export default function(graph) {
 
 	return true;
 }
-

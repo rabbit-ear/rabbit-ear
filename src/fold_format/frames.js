@@ -1,40 +1,4 @@
-export const clone = function(o) {
-	// from https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
-	var newO, i;
-	if (typeof o !== 'object') {
-		return o;
-	}
-	if (!o) {
-		return o;
-	}
-	if ('[object Array]' === Object.prototype.toString.apply(o)) {
-		newO = [];
-		for (i = 0; i < o.length; i += 1) {
-			newO[i] = clone(o[i]);
-		}
-		return newO;
-	}
-	newO = {};
-	for (i in o) {
-		if (o.hasOwnProperty(i)) {
-			newO[i] = clone(o[i]);
-		}
-	}
-	return newO;
-} 
-
-export const recursive_freeze = function(input) {
-	Object.freeze(input);
-		if (input === undefined) {
-		return input;
-	}
-	Object.getOwnPropertyNames(input).filter(prop =>
-		input[prop] !== null
-		&& (typeof input[prop] === "object" || typeof input[prop] === "function")
-		&& !Object.isFrozen(input[prop])
-	).forEach(prop => recursive_freeze(input[prop]));
-	return input;
-}
+import { clone } from "./object";
 
 export const append_frame = function(fold_file) {
 
@@ -66,13 +30,13 @@ export const flatten_frame = function(fold_file, frame_num){
 			// for frame 0 (the key frame) don't copy over file_frames array
 			let swap = fold_file.file_frames;
 			fold_file.file_frames = null;
-			let copy = JSON.parse(JSON.stringify(fold_file));
+			let copy = clone(fold_file);
 			fold_file.file_frames = swap;
 			delete copy.file_frames;
 			dontCopy.forEach(key => delete copy[key]);
 			return copy;
 		}
-		let copy = JSON.parse(JSON.stringify(fold_file.file_frames[frame-1]))
+		let copy = clone(fold_file.file_frames[frame-1]);
 		dontCopy.forEach(key => delete copy[key]);
 		return copy;
 	}).reduce((prev,curr) => Object.assign(prev,curr),{})
@@ -80,12 +44,12 @@ export const flatten_frame = function(fold_file, frame_num){
 
 export const merge_frame = function(fold_file, frame){
 	const dontCopy = ["frame_parent", "frame_inherit"];
-	let copy = JSON.parse(JSON.stringify(frame));
+	let copy = clone(frame);
 	dontCopy.forEach(key => delete copy[key]);
 	// don't deep copy file_frames. stash. bring them back.
 	let swap = fold_file.file_frames;
 	fold_file.file_frames = null;
-	let fold = JSON.parse(JSON.stringify(fold_file));
+	let fold = clone(fold_file);
 	fold_file.file_frames = swap;
 	delete fold.file_frames;
 	// merge 2

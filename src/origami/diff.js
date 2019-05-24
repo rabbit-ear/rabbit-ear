@@ -1,4 +1,8 @@
-import * as Graph from "./graph";
+import {
+	vertices_count,
+	edges_count,
+	faces_count
+} from "../graph/query";
 
 export const apply_diff_map = function(diff_map, array) {
 	// an array whose value is the new index it will end up
@@ -13,7 +17,7 @@ export const apply_diff_map = function(diff_map, array) {
 	let new_array = [];
 	index_map.forEach((newI, oldI) => new_array[newI] = array[oldI]);
 	return new_array;
-}
+};
 
 export const merge_maps = function(a, b) {
 	// "a" came first
@@ -29,10 +33,10 @@ export const merge_maps = function(a, b) {
 	aRemoves.forEach(i => bCopy.splice(i, 0, (i === 0) ? 0 : bCopy[i-1] ));
 
 	return a.map((v,i) => v + bCopy[i]);
-}
+};
 
 export const diff_new_v = function(graph, newVertex) {
-	let i = Graph.vertices_count(graph);
+	let i = vertices_count(graph);
 	Object.keys(newVertex).forEach(suffix => {
 		let key = "vertices_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newVertex[suffix]);
@@ -45,10 +49,10 @@ export const diff_new_v = function(graph, newVertex) {
 		}
 	});
 	return i;
-}
+};
 
 export const diff_new_e = function(graph, newEdge) {
-	let i = Graph.edges_count(graph);
+	let i = edges_count(graph);
 	Object.keys(newEdge).forEach(suffix => {
 		let key = "edges_" + suffix;
 		console.log("setting " + key + " at " + i + " with " + newEdge[suffix]);
@@ -61,10 +65,10 @@ export const diff_new_e = function(graph, newEdge) {
 		}
 	});
 	return i;
-}
+};
 
 export const diff_new_f = function(graph, newFace) {
-	let i = Graph.faces_count(graph);
+	let i = faces_count(graph);
 	Object.keys(newFace).forEach(suffix => {
 		let key = "faces_" + suffix;
 		// console.log("setting " + key + " at " + i + " with " + newFace[suffix]);
@@ -77,7 +81,7 @@ export const diff_new_f = function(graph, newFace) {
 		}
 	});
 	return i;
-}
+};
 
 export const join_diff = function(a, b) {
 	let c = {};
@@ -114,7 +118,7 @@ export const join_diff = function(a, b) {
 		c.faces.replace = a.faces.replace.concat(b.faces.replace);
 	}
 	return c;
-}
+};
 
 export const apply_diff = function(graph, diff) {
 
@@ -211,5 +215,5 @@ export const apply_diff = function(graph, diff) {
 		faces: remove_faces
 	};
 
-}
+};
 

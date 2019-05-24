@@ -1,14 +1,14 @@
-/** .FOLD file viewer
- * this is an THREE.js based front-end for the .fold file format
- *  (.fold file spec: https://github.com/edemaine/fold)
+/** FOLD file viewer
+ * this is an THREE.js based front-end for the FOLD file format
+ *  (FOLD file spec: https://github.com/edemaine/fold)
  *
  *  View constructor arguments:
- *   - fold file
+ *   - FOLD file
  *   - DOM object, or "string" DOM id to attach to
  */
 
-import { flatten_frame } from "./fold/file";
-import { load_file } from "./convert/convert";
+import { flatten_frame } from "./fold_format/frames";
+import { load_file } from "./convert/loader";
 import CreasePattern from "./cp/CreasePattern";
 
 const CREASE_DIR = {
