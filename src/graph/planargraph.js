@@ -14,6 +14,7 @@ import { default as convert } from "../../include/fold/convert";
 import { default as filter } from "../../include/fold/filter";
 import { edge_assignment_to_foldAngle } from "../fold_format/spec";
 import { add_vertex_on_edge } from "./add";
+import { make_edges_faces } from "./make";
 import {
 	remove_vertices,
 	remove_edges,
@@ -459,43 +460,3 @@ export const find_collinear_face_edges = function(edge, face_vertices,
 // 			.shift()
 // 		).filter(p => p != null);
 // }
-
-
-export const vertex_is_collinear = function(graph, vertices) {
-	// returns n-sized array matching vertices_ length
-	// T/F is a vertex 2-degree between two collinear edges.
-	return vertices.filter(vert => {
-		let edges = graph.edges_vertices
-			.filter(ev => ev[0] === vert || ev[1] === vert);
-		if (edges.length !== 2) { return false; }
-		let a = edges[0][0] === vert ? edges[0][1] : edges[0][0];
-		let b = edges[1][0] === vert ? edges[1][1] : edges[1][0];
-		let av = Geom.core.distance2(graph.vertices_coords[a], graph.vertices_coords[vert]);
-		let bv = Geom.core.distance2(graph.vertices_coords[b], graph.vertices_coords[vert]);
-		let ab = Geom.core.distance2(graph.vertices_coords[a], graph.vertices_coords[b]);
-		return Math.abs(ab - av - bv) < Geom.core.EPSILON;
-	});
-}
-
-export const remove_collinear_vertices = function(graph, vertices) {
-	let new_edges = [];
-	vertices.forEach(vert => {
-		let edges_indices = graph.edges_vertices
-			.map((ev, i) => ev[0] === vert || ev[1] === vert ? i : undefined)
-			.filter(a => a !== undefined);
-		let edges = edges_indices.map(i => graph.edges_vertices[i]);
-		if (edges.length !== 2) { return false; }
-		let a = edges[0][0] === vert ? edges[0][1] : edges[0][0];
-		let b = edges[1][0] === vert ? edges[1][1] : edges[1][0];
-		let assignment = graph.edges_assignment[edges_indices[0]];
-		let foldAngle = graph.edges_assignment[edges_indices[0]];
-		remove_edges(graph, edges_indices);
-		new_edges.push({vertices:[a,b], assignment, foldAngle})
-	});
-	new_edges.forEach(el => {
-		graph.edges_vertices.push(el.vertices);
-		graph.edges_assignment.push(el.assignment);
-		graph.edges_foldAngle.push(el.foldAngle);
-	})
-	remove_vertices(graph, vertices);
-}

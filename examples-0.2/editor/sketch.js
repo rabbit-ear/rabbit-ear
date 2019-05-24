@@ -42,7 +42,7 @@ origami.perform = function() {
 			return ;
 		}
 		RE.core.remove_edges(origami.cp, [edgeIndex]);
-		let collinear = RE.core.vertex_is_collinear(origami.cp, edge_vertices);
+		let collinear = RE.core.vertices_collinear(origami.cp, edge_vertices);
 		RE.core.remove_collinear_vertices(origami.cp, collinear);
 		delete origami.cp.edges_length;
 		delete origami.cp.edges_faces;

@@ -16,7 +16,7 @@ const new_vertex = function(graph, x, y) {
 }
 
 const new_edge = function(graph, node1, node2) {
-	if (_m.edges_vertices === undefined) { return; }
+	if (graph.edges_vertices === undefined) { return; }
 	let edges_count = graph.edges_vertices.length;
 	graph.edges_vertices[edges_count] = [node1, node2];
 	return edges_count;

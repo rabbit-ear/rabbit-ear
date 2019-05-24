@@ -213,6 +213,27 @@ export const bounding_rect = function(graph) {
 		: [x,y,w,h]);
 }
 
-const bounding_cube = function(graph) {
+// const bounding_cube = function(graph) {
+// }
 
+export const vertices_collinear = function(graph, vertices) {
+	if (vertices == null) {
+		vertices = Array.from(Array(graph.vertices_coords.length));
+	}
+	// returns n-sized array matching vertices_ length
+	// T/F is a 2-degree vertex stuck between two collinear edges.
+	return vertices.filter(vert => {
+		let edges = graph.edges_vertices
+			.filter(ev => ev[0] === vert || ev[1] === vert);
+		if (edges.length !== 2) { return false; }
+		let a = edges[0][0] === vert ? edges[0][1] : edges[0][0];
+		let b = edges[1][0] === vert ? edges[1][1] : edges[1][0];
+		let av = Geom.core.distance2(
+			graph.vertices_coords[a], graph.vertices_coords[vert]);
+		let bv = Geom.core.distance2(
+			graph.vertices_coords[b], graph.vertices_coords[vert]);
+		let ab = Geom.core.distance2(
+			graph.vertices_coords[a], graph.vertices_coords[b]);
+		return Math.abs(ab - av - bv) < Geom.core.EPSILON;
+	});
 }
