@@ -33,6 +33,10 @@ import {
 	face_center_pt_average
 } from "../graph/make";
 
+import {
+	construction_frame
+} from "./diagram";
+
 
 export default function(
 	graph,
@@ -153,11 +157,14 @@ export default function(
 		)).filter(a => a !== undefined)
 		.reduce((a,b) => a.concat(b), []);
 
+
 	folded["re:construction"] = (split_points.length === 0
-		? { type: "flip", direction: fold_direction }
-		: { type: opposite_crease === "M" ? "valley" : "mountain",
+		? construction_frame("flip", {direction: fold_direction})
+		: construction_frame(opposite_crease === "M" ? "valley":"mountain", {
 				direction: fold_direction,
-				edge: two_furthest_points(split_points) });
+				edge: two_furthest_points(split_points)
+			})
+		);
 
 	let folded_frame = {
 		vertices_coords: fold_vertices_coords(

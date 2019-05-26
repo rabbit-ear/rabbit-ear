@@ -22,14 +22,15 @@ import {
  * @param {vertices} an array of vertex indices
  * @example remove_vertices(fold_file, [2,6,11,15]);
  */
-export function remove_vertices(graph, vertices) {
+export const remove_vertices = function(graph, vertices) {
 	return remove_geometry_key(graph, "vertices", vertices);
 	// todo: do the same with frames in file_frames where inherit=true
-}
+};
 
-export function remove_edges(graph, edges) {
+export const remove_edges = function(graph, edges) {
 	// length of index_map is length of the original vertices_coords
 	let index_map = remove_geometry_key(graph, "edges", edges);
+	// special cases that don't follow _edges or edges_ convention
 	if (graph.edgeOrders !== undefined && graph.edgeOrders.length > 0) {
 		graph.edgeOrders.forEach((order, i) => order.forEach((n, j) =>
 			// index 2 is orientation not an edge index
@@ -37,11 +38,12 @@ export function remove_edges(graph, edges) {
 		));
 	}
 	return index_map;
-}
+};
 
-export function remove_faces(graph, faces) {
+export const remove_faces = function(graph, faces) {
 	// length of index_map is length of the original vertices_coords
 	let index_map = remove_geometry_key(graph, "faces", faces);
+	// special cases that don't follow _faces or faces_ convention
 	if (graph.faceOrders !== undefined && graph.faceOrders.length > 0) {
 		graph.faceOrders.forEach((order, i) => order.forEach((n, j) =>
 			// index 2 is orientation not a face index
@@ -49,7 +51,7 @@ export function remove_faces(graph, faces) {
 		));
 	}
 	return index_map;
-}
+};
 
 const get_geometry_length = {
 	"vertices": vertices_count,
@@ -69,7 +71,7 @@ const remove_geometry_key = function(graph, key, removeIndices) {
 	let s = 0;
 	// index_map length is the original length of the geometry (vertices_faces)
 	let index_map = removes.map(remove => remove ? --s : s);
-	if(removeIndices.length === 0){ return index_map; }
+	if (removeIndices.length === 0) { return index_map; }
 
 	// these comments are written as if "vertices" was provided as the key
 	let prefix = key + "_";

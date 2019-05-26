@@ -2,30 +2,51 @@
 
 html, body {
 	height: 100%;
-	font-size: 150%;
 }
 body {
 	margin: 0px;
 	background-color: #158;
 	color: white;
+	font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	font-size: 4vmin;
 }
 .grid {
 	height: 100%;
 	display: grid;
 	grid-template-columns: 50% 50%;
-	grid-template-rows: calc(100vh - 4.5rem) 4.5rem;
-}
-#origami-cp {
-	grid-column: 1/2;
-	grid-row: 1/2;
+	grid-template-rows: calc(100vh - 10rem) 10rem;
 }
 #origami-fold {
 	grid-column: 2/3;
 	grid-row: 1/2;
 }
+#origami-cp {
+	grid-column: 1/2;
+	grid-row: 1/2;
+}
 #toolbar {
 	grid-column: 1/3;
 	grid-row: 2/3;
+}
+
+@media (orientation: portrait) {
+	.grid {
+		display: grid;
+		grid-template-columns: 100%;
+		grid-template-rows: calc((100% - 14rem) / 2) calc((100% - 14rem) / 2) 14rem;
+	}
+	#origami-fold {
+		grid-column: 1/2;
+		grid-row: 1/2;
+	}
+	#origami-cp {
+		grid-column: 1/2;
+		grid-row: 2/3;
+	}
+	#toolbar {
+		grid-column: 1/2;
+		grid-row: 3/4;
+	}
 }
 
 #toolbar {
@@ -41,12 +62,7 @@ body {
 	align-items: center;
 	justify-content: center;
 }
-/*.btn-outline-light:hover{
-	color:hsl(205, 74%, 30%);
-}
-.btn-outline-light.active{
-	color:hsl(205, 74%, 30%);
-}*/
+
 [id *= "btn-option"] {
   opacity: 0;
 }

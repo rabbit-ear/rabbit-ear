@@ -14,7 +14,7 @@ origami.setAxiom = function(axiom) {
 	// axiom number buttons
 	document.querySelectorAll("[id^=btn-axiom]")
 		.forEach(b => b.className = "button");
-	document.querySelector("#btn-axiom-"+axiom).className = "button button-red";
+	document.querySelector("#btn-axiom-"+axiom).className = "button red";
 	// sub options buttons
 	let optionCount = [null, 0, 0, 2, 0, 2, 3, 0][axiom];
 	document.querySelectorAll("[id^=btn-option")
@@ -34,7 +34,7 @@ origami.setAxiom = function(axiom) {
 origami.setSubSel = function(s) {
 	document.querySelectorAll("[id^=btn-option")
 		.forEach(b => b.className = "button");
-	document.querySelector("#btn-option-"+s).className = "button button-red";
+	document.querySelector("#btn-option-"+s).className = "button red";
 
 	origami.subSelect = s;
 	origami.update();

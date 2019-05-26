@@ -3,9 +3,28 @@ let origami = RabbitEar.Origami("origami", {
 	padding:0.1,
 	autofit:false
 });
+let pattern = RE.Origami("pattern", {padding:0.1});
+
+origami.onMouseMove = function(mouse) {
+	if (mouse.isPressed) {
+		pattern.cp = origami.cp;
+	}
+}
+
+// pattern.onMouseDown = function() {
+// 	pattern.backup = pattern.cp.copy();
+// }
+
+// pattern.onMouseMove = function(mouse) {
+// 	if (mouse.isPressed) {
+// 		pattern.cp = pattern.backup.copy();
+// 		pattern.cp.valleyFold(mouse.pressed, mouse.drag);
+// 		origami.cp = pattern.cp;
+// 		origami.fold();
+// 	}
+// }
 
 let steps = [JSON.parse(JSON.stringify(origami.cp))];
-let instructions = [];
 
 origami.onMouseUp = function(mouse) {
 	steps.push(JSON.parse(JSON.stringify(origami.cp)));
@@ -13,52 +32,57 @@ origami.onMouseUp = function(mouse) {
 
 document.querySelector("#reset-button").onclick = function() {
 	origami.cp = RE.bases.square;
-	steps = [];
+	pattern.cp = RE.bases.square;
+	steps = [JSON.parse(JSON.stringify(origami.cp))];
 }
 document.querySelector("#back-button").onclick = function() {
 	steps.pop();
 	if (steps.length === 0) { return; }
 	origami.cp = steps[steps.length-1];
+	pattern.cp = origami.cp
 	origami.fold();
 }
 document.querySelector("#print-button").onclick = function() {
-	createSteps();
+	printDiagrams();
 }
 
-function createSteps() {
-	let svgOptions = {
-		width:250,
-		height:250,
-		frame: 1,
-		padding: 0.15,
-		diagram: true
-		// shadows:true
-	};
+const printDiagrams = function() {
 	
-	fencepostDiagrams(steps);
+	// convert "re:construction" into "re:diagrams"
+	let diagrams = Array.from(Array(steps.length-1))
+		.map((_,i) => i + 1)
+		.map(i => RE.core.build_diagram_frame(steps[i]));
+	steps.forEach(cp => delete cp["re:diagrams"]); // clear old data if exists
+	Array.from(Array(steps.length-1))
+		.map((_,i) => steps[i])
+		.forEach((cp,i) => cp["re:diagrams"] = [diagrams[i]]);
 
+	// make SVGs of each step, including diagramming fold and arrows
 	let svgs = steps
 		.map(cp => RE.convert.FOLD_SVG.toSVG(cp, svgOptions));
-	let writtenInstructions = svgs.map((svg, i) => {
-		let d = steps[i]["re:diagrams"];
-		return d == null ? "" : d.map(diag => diag["re:instructions"])
+
+	// get the written instructions (in english)
+	let writtenInstructions = svgs
+		.map((svg, i) => steps[i]["re:diagrams"])
+		.filter(a => a != null)
+		.map(seq => seq.map(a => a["re:instructions"])
 			.filter(a => a != null)
-			.map(a => a.en) // english
-			.join("\n");
-	});
+			.map(inst => inst["en"])
+			.join("\n")
+		);
 
+	// create html blob
 	let innerHTML = svgs
-		.reduce((prev, curr, i) => prev + "<div>" + curr + "<p>" +
-			(writtenInstructions[i] || "") + "</p></div>\n", "");
-	// let innerHTML = svgs.join("\n");
+		.reduce((prev, curr, i) => prev + 
+			"<div>" + 
+				curr + "<p>" + (writtenInstructions[i] || "") + "</p>" + 
+			"</div>\n"
+		, "");
 
-	let grid_style = `html, body { width: 100%; margin: 0; }
-body { display: grid; grid-template-columns: 33% 33% 33%; }
-p { text-align: center; width:100%; }`;
-	printHTML(innerHTML, grid_style);
+	printHTML(innerHTML, page_style);
 }
 
-function printHTML(innerHTML, css) {
+const printHTML = function(innerHTML, css) {
 	if (css == null) { css = ""; }
 	let printFrame = document.createElement("iframe");
 	printFrame.setAttribute("id", "print-frame");
@@ -79,17 +103,52 @@ function printHTML(innerHTML, css) {
 	}
 }
 
-function fencepostDiagrams(sequence) {
-	let diagrams = Array.from(Array(sequence.length-1))
-		.map((_,i) => sequence[i+1])
-		.map(cp => cp["re:diagrams"]);
+const svgOptions = {
+	width:250,
+	height:250,
+	frame: 1,
+	padding: 0.15,
+	diagram: true,
+	stylesheet: svg_style
+	// shadows:true
+};
 
-	sequence.forEach(cp => delete cp["re:diagrams"]);
-
-	Array.from(Array(sequence.length-1))
-		.map((_,i) => sequence[i])
-		.forEach((cp,i) => cp["re:diagrams"] = diagrams[i]);
+const svg_style = `
+svg { --crease-width: 0.015; }
+svg * {
+  stroke-width: var(--crease-width);
+  stroke-linecap: round;
+  stroke: black;
 }
+polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
+.boundary { fill: white; stroke: black; }
+.mark { stroke: #AAA; }
+.mountain { stroke: #00F; }
+.valley {
+  stroke: #000;
+  stroke-dasharray:calc(var(--crease-width)*1.333) calc(var(--crease-width)*2);
+}
+.foldedForm .boundary {fill: none;stroke: none;}
+.foldedForm .faces polygon { stroke: #000; }
+.foldedForm .faces .front { fill: #FFF; }
+.foldedForm .faces .back { fill: #DDD; }
+.foldedForm .creases line { stroke: none; }
+`;
 
-
-// let style = ":root{--crease-width: 0.005;}html, body {height: 100%;width: 100%;margin: 0;display: flex;flex-direction: column;}div {display: flex;justify-content: center;align-items: center;}svg {width: 100%;height: 100%;}svg * {stroke-width: var(--crease-width);stroke-linecap: round;stroke: black;}polygon {fill: none;stroke: none;stroke-linejoin: bevel;}.boundary {fill: linen;}.valley{stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);}.mark {stroke-width: calc( var(--crease-width) * 0.25);}.foldedForm .faces polygon {fill: rgba(220, 10, 100, 0.2);stroke: rgba(0, 0, 0, 0.2);}.foldedForm .faces .front {fill: linen;stroke: black;}.foldedForm .faces .back {fill: peru;stroke: black;}.foldedForm .creases line {stroke: none;} *{font-family:sans-serif;}";
+const page_style = `
+html, body {
+	width: 100%;
+	margin: 0;
+}
+body {
+	display: grid;
+	grid-template-columns: 33% 33% 33%;
+	font-family: 'Montserrat', sans-serif;
+	font-size: 130%;
+}
+p {
+	text-align: center;
+	width: 100%;
+	margin-bottom: 3rem;
+}
+`;

@@ -58,21 +58,20 @@ lBis.redraw = function() {
 	})
 
 	let controls = lBis.controls.map(c => RabbitEar.Vector(c.position));
+	let sameDir = (lineB.vector.dot(lineA.vector) < 0);
+
+	let options = {
+		strokeWidth: 7,
+		length: 30,
+		width: 10,
+		highlight: sameDir ? "#e44f2a" : "#ecb233"
+	};
 
 	let arrows = [
-		drawArrow(controls[0], controls[1]),
-		drawArrow(controls[2], controls[3])
-	]
+		RE.svg.straightArrow(controls[0], controls[1], options),
+		RE.svg.straightArrow(controls[2], controls[3], options)
+	];
 	arrows.forEach(a => lBis.arrowLayer.appendChild(a));
-
-	// if (lineB.vector.cross(lineA.vector).reduce((a,b)=>a+b,0) < 0){
-	if (lineB.vector.dot(lineA.vector) < 0){
-		arrows.forEach(a => a.setAttribute("fill", "#e44f2a"))
-		arrows.forEach(a => a.setAttribute("stroke", "#e44f2a"))
-	} else {
-		arrows.forEach(a => a.setAttribute("fill", "#ecb233"))
-		arrows.forEach(a => a.setAttribute("stroke", "#ecb233"))
-	}
 
 }
 

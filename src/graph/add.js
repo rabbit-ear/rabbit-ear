@@ -89,7 +89,7 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 
 	// faces_vertices
 	// because Javascript, this is a pointer and modifies the master graph
-	incident_faces_vertices.forEach(face => 
+	incident_faces_vertices.forEach(face =>
 		face.map((fv,i,arr) => {
 			let nextI = (i+1)%arr.length;
 			return (fv === incident_vertices[0]
@@ -99,7 +99,7 @@ export const add_vertex_on_edge = function(graph, x, y, old_edge_index) {
 				? nextI : undefined;
 		}).filter(el => el !== undefined)
 		.sort((a,b) => b-a)
-		.forEach(i => face.splice(i,0,new_vertex_index))
+		.forEach(i => face.splice(i, 0, new_vertex_index))
 	);
 
 	// faces_edges

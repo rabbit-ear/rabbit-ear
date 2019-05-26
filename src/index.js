@@ -46,7 +46,7 @@ import * as creasethrough from './origami/creasethrough';
 import * as kawasaki from './origami/kawasaki';
 // import { default as valleyfold } from './fold/valleyfold';
 
-import { build_diagram_frame } from './origami/diagram';
+import * as diagram from './origami/diagram';
 
 let convert = { toFOLD, toSVG, toORIPA, FOLD_SVG };
 
@@ -65,7 +65,8 @@ Object.assign(core,
 	fold,
 	crease,
 	creasethrough,
-	kawasaki
+	kawasaki,
+	diagram
 );
 
 // load bases

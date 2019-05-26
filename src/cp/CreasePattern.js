@@ -22,6 +22,8 @@ import * as MakeCrease from "../origami/crease";
 
 import * as Spec from "../fold_format/spec";
 
+import * as Kawasaki from "../origami/kawasaki";
+
 import {
 	add_vertex_on_edge
 } from "../graph/add";
@@ -259,9 +261,9 @@ const Prototype = function(proto) {
 				_this["re:construction"].axiom = objects[0].axiom;
 				_this["re:construction"].parameters = objects[0].parameters;
 			}
-			_this["re:diagrams"] = [
-				Diagram.build_diagram_frame(_this)
-			];
+			// _this["re:diagrams"] = [
+			// 	Diagram.build_diagram_frame(_this)
+			// ];
 		}
 
 		delete _this["faces_re:matrix"];

@@ -1,8 +1,30 @@
 <!DOCTYPE html>
-
 <title>Rabbit Ear</title>
 <meta charset="UTF-8">
-<link rel="stylesheet" type="text/css" href="style.css">
+
+<style>
+:root{ --crease-width: 0.0075; }
+html, body{ height: 100%; }
+body {
+	margin: 0px;
+	background-color: #158;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+@media (orientation: portrait) { body { flex-direction: column; } }
+svg { width: 100%; height: 100%; }
+svg * {stroke-width:var(--crease-width); stroke-linecap: round; stroke: black;}
+polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
+.boundary { fill: linen; }
+.valley {stroke-dasharray: var(--crease-width) calc( var(--crease-width) * 2);}
+.foldedForm .faces polygon { stroke: black; }
+.foldedForm .faces .front { fill: linen; }
+.foldedForm .faces .back { fill: peru; }
+.foldedForm .creases line { stroke: none; }
+</style>
+
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
 
 <script>
@@ -10,15 +32,13 @@ let origami = RE.Origami({folding:true, padding:0.15, autofit:false});
 let pattern = RE.Origami({padding:0.15});
 
 origami.onMouseMove = function(mouse) {
-	if (mouse.isPressed) {
-		pattern.cp = origami.cp;
-	}
+	if (!mouse.isPressed) { return; }
+	pattern.cp = origami.cp;
 }
 
 pattern.onMouseDown = function() {
 	pattern.backup = pattern.cp.copy();
 }
-
 pattern.onMouseMove = function(mouse) {
 	if (mouse.isPressed) {
 		pattern.cp = pattern.backup.copy();
@@ -27,5 +47,4 @@ pattern.onMouseMove = function(mouse) {
 		origami.fold();
 	}
 }
-
 </script>

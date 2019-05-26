@@ -612,7 +612,7 @@
 		console.log(sorted);
 		return poly;
 	}
-	function split_convex_polygon$1(poly, linePoint, lineVector) {
+	function split_convex_polygon(poly, linePoint, lineVector) {
 		let vertices_intersections = poly.map((v,i) => {
 			let intersection = point_on_line(linePoint, lineVector, v);
 			return { point: intersection ? v : null, at_index: i };
@@ -674,7 +674,7 @@
 		enclosing_rectangle: enclosing_rectangle,
 		convex_hull: convex_hull,
 		split_polygon: split_polygon,
-		split_convex_polygon: split_convex_polygon$1
+		split_convex_polygon: split_convex_polygon
 	});
 	function axiom1(a, b) {
 		return [a, a.map((_,i) => b[i] - a[i])];
@@ -1370,7 +1370,7 @@
 		};
 		const split = function() {
 			let line = get_line(...arguments);
-			return split_convex_polygon$1(polygon.points, line.point, line.vector)
+			return split_convex_polygon(polygon.points, line.point, line.vector)
 				.map(poly => ConvexPolygon(poly));
 		};
 		const overlaps = function() {
@@ -1951,7 +1951,6 @@
 		if (includeCenter) { d += " Z"; }
 		shape.setAttributeNS(null, "d", d);
 	};
-	const svgNS$1 = "http://www.w3.org/2000/svg";
 	const regularPolygon = function(cX, cY, radius, sides) {
 		let halfwedge = 2*Math.PI/sides * 0.5;
 		let r = Math.cos(halfwedge) * radius;
@@ -1963,12 +1962,122 @@
 		});
 		return polygon(points);
 	};
+	const svgNS$1 = "http://www.w3.org/2000/svg";
+	const straightArrow = function(start, end, options) {
+		let p = {
+			color: "#000",
+			strokeWidth: 0.5,
+			strokeStyle: "",
+			fillStyle: "",
+			highlight: undefined,
+			highlightStrokeStyle: "",
+			highlightFillStyle: "",
+			width: 0.5,
+			length: 2,
+			start: false,
+			end: true,
+		};
+		if (typeof options === "object" && options !== null) {
+			Object.assign(p, options);
+		}
+		let arrowFill = [
+			"stroke:none",
+			"fill:"+p.color,
+			p.fillStyle
+		].filter(a => a !== "").join(";");
+		let arrowStroke = [
+			"fill:none",
+			"stroke:" + p.color,
+			"stroke-width:" + p.strokeWidth,
+			p.strokeStyle
+		].filter(a => a !== "").join(";");
+		let thinStroke = Math.floor(p.strokeWidth * 3) / 10;
+		let thinSpace = Math.floor(p.strokeWidth * 6) / 10;
+		let highlightStroke = [
+			"fill:none",
+			"stroke:" + p.highlight,
+			"stroke-width:" + p.strokeWidth * 0.5,
+			"stroke-dasharray:" + thinStroke + " " + thinSpace,
+			"stroke-linecap:round",
+			p.strokeStyle
+		].filter(a => a !== "").join(";");
+		let highlightFill = [
+			"stroke:none",
+			"fill:"+p.highlight,
+			p.fillStyle
+		].filter(a => a !== "").join(";");
+		let vec = [end[0]-start[0], end[1]-start[1]];
+		let arrowLength = Math.sqrt(vec[0]*vec[0] + vec[1]*vec[1]);
+		let arrowVector = [vec[0] / arrowLength, vec[1] / arrowLength];
+		let arrow90 = [arrowVector[1], -arrowVector[0]];
+		let endHead = [
+			[end[0] + arrow90[0]*p.width, end[1] + arrow90[1]*p.width],
+			[end[0] - arrow90[0]*p.width, end[1] - arrow90[1]*p.width],
+			[end[0] + arrowVector[0]*p.length, end[1] + arrowVector[1]*p.length]
+		];
+		let startHead = [
+			[start[0] - arrow90[0]*p.width, start[1] - arrow90[1]*p.width],
+			[start[0] + arrow90[0]*p.width, start[1] + arrow90[1]*p.width],
+			[start[0] - arrowVector[0]*p.length, start[1] - arrowVector[1]*p.length]
+		];
+		let arrow = document.createElementNS(svgNS$1, "g");
+		let l = line$1(start[0], start[1], end[0], end[1]);
+		l.setAttribute("style", arrowStroke);
+		arrow.appendChild(l);
+		if (p.end) {
+			let endArrowPoly = polygon(endHead);
+			endArrowPoly.setAttribute("style", arrowFill);
+			arrow.appendChild(endArrowPoly);
+		}
+		if (p.start) {
+			let startArrowPoly = polygon(startHead);
+			startArrowPoly.setAttribute("style", arrowFill);
+			arrow.appendChild(startArrowPoly);
+		}
+		if (p.highlight !== undefined) {
+			let hScale = 0.6;
+			let centering = [
+				arrowVector[0]*p.length*0.09,
+				arrowVector[1]*p.length*0.09
+			];
+			let endHeadHighlight = [
+				[centering[0] + end[0] + arrow90[0]*(p.width * hScale),
+				 centering[1] + end[1] + arrow90[1]*(p.width * hScale)],
+				[centering[0] + end[0] - arrow90[0]*(p.width * hScale),
+				 centering[1] + end[1] - arrow90[1]*(p.width * hScale)],
+				[centering[0] + end[0] + arrowVector[0]*(p.length * hScale),
+				 centering[1] + end[1] + arrowVector[1]*(p.length * hScale)]
+			];
+			let startHeadHighlight = [
+				[-centering[0] + start[0] - arrow90[0]*(p.width * hScale),
+				 -centering[1] + start[1] - arrow90[1]*(p.width * hScale)],
+				[-centering[0] + start[0] + arrow90[0]*(p.width * hScale),
+				 -centering[1] + start[1] + arrow90[1]*(p.width * hScale)],
+				[-centering[0] + start[0] - arrowVector[0]*(p.length * hScale),
+				 -centering[1] + start[1] - arrowVector[1]*(p.length * hScale)]
+			];
+			let highline = line$1(start[0], start[1], end[0], end[1]);
+			highline.setAttribute("style", highlightStroke);
+			arrow.appendChild(highline);
+			if (p.end) {
+				let endArrowHighlight = polygon(endHeadHighlight);
+				endArrowHighlight.setAttribute("style", highlightFill);
+				arrow.appendChild(endArrowHighlight);
+			}
+			if (p.start) {
+				let startArrowHighlight = polygon(startHeadHighlight);
+				startArrowHighlight.setAttribute("style", highlightFill);
+				arrow.appendChild(startArrowHighlight);
+			}
+		}
+		return arrow;
+	};
 	const arcArrow = function(startPoint, endPoint, options) {
 		let p = {
 			color: "#000",
-			strokeWidth: 0.01,
-			width: 0.025,
-			length: 0.075,
+			strokeWidth: 0.5,
+			width: 0.5,
+			length: 2,
 			bend: 0.3,
 			pinch: 0.618,
 			padding: 0.5,
@@ -2085,6 +2194,7 @@
 		"wedge" : wedge,
 		"arc" : arc,
 		"group" : group,
+		"straightArrow": straightArrow,
 		"arcArrow": arcArrow,
 		"regularPolygon": regularPolygon
 	};
@@ -2529,6 +2639,7 @@
 		setPoints: setPoints,
 		setArc: setArc,
 		regularPolygon: regularPolygon,
+		straightArrow: straightArrow,
 		arcArrow: arcArrow,
 		setViewBox: setViewBox,
 		getViewBox: getViewBox,
@@ -4520,10 +4631,10 @@
 		vertices_collinear: vertices_collinear
 	});
 
-	function remove_vertices(graph, vertices) {
+	const remove_vertices = function(graph, vertices) {
 		return remove_geometry_key(graph, "vertices", vertices);
-	}
-	function remove_edges(graph, edges) {
+	};
+	const remove_edges = function(graph, edges) {
 		let index_map = remove_geometry_key(graph, "edges", edges);
 		if (graph.edgeOrders !== undefined && graph.edgeOrders.length > 0) {
 			graph.edgeOrders.forEach((order, i) => order.forEach((n, j) =>
@@ -4531,8 +4642,8 @@
 			));
 		}
 		return index_map;
-	}
-	function remove_faces(graph, faces) {
+	};
+	const remove_faces = function(graph, faces) {
 		let index_map = remove_geometry_key(graph, "faces", faces);
 		if (graph.faceOrders !== undefined && graph.faceOrders.length > 0) {
 			graph.faceOrders.forEach((order, i) => order.forEach((n, j) =>
@@ -4540,7 +4651,7 @@
 			));
 		}
 		return index_map;
-	}
+	};
 	const get_geometry_length = {
 		"vertices": vertices_count$1,
 		"edges": edges_count,
@@ -4552,7 +4663,7 @@
 		removeIndices.forEach(v => removes[v] = true);
 		let s = 0;
 		let index_map = removes.map(remove => remove ? --s : s);
-		if(removeIndices.length === 0){ return index_map; }
+		if (removeIndices.length === 0) { return index_map; }
 		let prefix = key + "_";
 		let suffix = "_" + key;
 		let graph_keys = Object.keys(graph);
@@ -4741,7 +4852,7 @@
 					? nextI : undefined;
 			}).filter(el => el !== undefined)
 			.sort((a,b) => b-a)
-			.forEach(i => face.splice(i,0,new_vertex_index))
+			.forEach(i => face.splice(i, 0, new_vertex_index))
 		);
 		incident_faces_edges.forEach((face,i,arr) => {
 			let edgeIndex = face.indexOf(old_edge_index);
@@ -5344,6 +5455,12 @@
 		};
 	};
 
+	const construction_frame = function(type, parameters) {
+		return {
+			"re:construction_type": type,
+			"re:construction_parameters": parameters
+		};
+	};
 	const instructions_for_axiom = {
 		en:[null,
 			"make a crease that passes through two points",
@@ -5361,7 +5478,7 @@
 			console.warn("couldn't build diagram. construction info doesn't exist");
 			return;
 		}
-		switch (c.type) {
+		switch (c["re:construction_type"]) {
 			case "flip":
 				return {
 					"re:diagram_arrows": [{
@@ -5375,15 +5492,15 @@
 			case "valley":
 				return {
 					"re:diagram_lines": [{
-						"re:diagram_line_classes": [c.type],
-						"re:diagram_line_coords": c.edge,
+						"re:diagram_line_classes": [c["re:construction_type"]],
+						"re:diagram_line_coords": c["re:construction_parameters"].edge,
 					}],
 					"re:diagram_arrows": [{
 						"re:diagram_arrow_classes": [],
 						"re:diagram_arrow_coords": arrowForConstruction(c, graph)
 					}],
 					"re:instructions": {
-						"en": instructions_for_axiom.en[c.axiom] || (c.type + " fold")
+						"en": instructions_for_axiom.en[c.axiom] || (c["re:construction_type"] + " fold")
 					}
 				};
 				break;
@@ -5393,27 +5510,27 @@
 		}
 	};
 	const arrowForConstruction = function(construction, graph) {
-		let p = construction.parameters;
+		let p = construction["re:construction_parameters"];
 		if (construction.axiom === 2) {
 			return [p.marks[1], p.marks[0]];
 		}
 		let crease_vector = [
-			construction.edge[1][0] - construction.edge[0][0],
-			construction.edge[1][1] - construction.edge[0][1]
+			p.edge[1][0] - p.edge[0][0],
+			p.edge[1][1] - p.edge[0][1]
 		];
-		let arrow_vector = construction.direction;
+		let arrow_vector = p.direction;
 		let crossing;
-		switch (construction.axiom) {
+		switch (p.axiom) {
 			case 4:
 				crossing = core.intersection.nearest_point(
-					construction.edge[0], crease_vector, p.lines[0][0], ((a)=>a));
+					p.edge[0], crease_vector, p.lines[0][0], ((a)=>a));
 				break;
 			case 7:
 				crossing = core.intersection.nearest_point(
-					construction.edge[0], crease_vector, p.marks[0], ((a)=>a));
+					p.edge[0], crease_vector, p.marks[0], ((a)=>a));
 				break;
 			default:
-					crossing = core.average(construction.edge);
+					crossing = core.average(p.edge);
 					break;
 		}
 		let boundary = get_boundary_face(graph).vertices
@@ -5427,7 +5544,7 @@
 			.map(n => core.distance2(n, crossing))
 			.sort((a,b) => a-b)
 			.shift();
-		if (construction.axiom === 7) {
+		if (p.axiom === 7) {
 			short_length = core.distance2(p.marks[0], crossing);
 		}
 		let short_vector = arrow_vector.map(v => v * short_length);
@@ -5436,6 +5553,11 @@
 			crossing.map((c, i) => c + short_vector[i])
 		];
 	};
+
+	var diagram = /*#__PURE__*/Object.freeze({
+		construction_frame: construction_frame,
+		build_diagram_frame: build_diagram_frame
+	});
 
 	const merge_maps = function(a, b) {
 		let aRemoves = [];
@@ -5574,7 +5696,7 @@
 		convert$1.faces_vertices_to_faces_edges(flat);
 		return flat;
 	};
-	const split_convex_polygon$2 = function(
+	const split_convex_polygon$1 = function(
 		graph,
 		faceIndex,
 		linePoint,
@@ -5752,7 +5874,7 @@
 		clean: clean$1,
 		fragment2: fragment2,
 		fragment: fragment,
-		split_convex_polygon: split_convex_polygon$2,
+		split_convex_polygon: split_convex_polygon$1,
 		find_collinear_face_edges: find_collinear_face_edges
 	});
 
@@ -5852,7 +5974,7 @@
 			.map((_,i) => i)
 			.reverse()
 			.map(i => {
-				let diff = split_convex_polygon$2(
+				let diff = split_convex_polygon$1(
 					folded, i,
 					folded["faces_re:creases"][i][0],
 					folded["faces_re:creases"][i][1],
@@ -5916,10 +6038,12 @@
 			)).filter(a => a !== undefined)
 			.reduce((a,b) => a.concat(b), []);
 		folded["re:construction"] = (split_points.length === 0
-			? { type: "flip", direction: fold_direction }
-			: { type: opposite_crease === "M" ? "valley" : "mountain",
+			? construction_frame("flip", {direction: fold_direction})
+			: construction_frame(opposite_crease === "M" ? "valley":"mountain", {
 					direction: fold_direction,
-					edge: two_furthest_points(split_points) });
+					edge: two_furthest_points(split_points)
+				})
+			);
 		let folded_frame = {
 			vertices_coords: fold_vertices_coords(
 				folded,
@@ -6001,7 +6125,7 @@
 		let arr = Array.from(Array(graph.faces_vertices.length))
 			.map((_,i)=>i).reverse();
 		arr.forEach(i => {
-			let diff = split_convex_polygon$2(graph, i, point, vector);
+			let diff = split_convex_polygon$1(graph, i, point, vector);
 			if (diff.edges != null && diff.edges.new != null) {
 				let newEdgeIndex = diff.edges.new[0].index;
 				new_edges = new_edges.map(edge =>
@@ -6019,7 +6143,7 @@
 		let arr = Array.from(Array(graph.faces_vertices.length))
 			.map((_,i)=>i).reverse();
 		arr.forEach(i => {
-			let diff = split_convex_polygon$2(graph, i, point, vector);
+			let diff = split_convex_polygon$1(graph, i, point, vector);
 			if (diff.edges != null && diff.edges.new != null) {
 				let newEdgeIndex = diff.edges.new[0].index;
 				new_edges = new_edges.map(edge =>
@@ -6113,6 +6237,49 @@
 		crease_ray: crease_ray,
 		creaseRay: creaseRay,
 		creaseSegment: creaseSegment
+	});
+
+	let vertex_adjacent_vectors = function(graph, vertex) {
+		let adjacent = graph.vertices_vertices[vertex];
+		return adjacent.map(v => [
+			graph.vertices_coords[v][0] - graph.vertices_coords[vertex][0],
+			graph.vertices_coords[v][1] - graph.vertices_coords[vertex][1]
+		]);
+	};
+	function kawasaki_from_even(array) {
+		let even_sum = array.filter((_,i) => i%2 === 0).reduce((a,b) => a+b, 0);
+		let odd_sum = array.filter((_,i) => i%2 === 1).reduce((a,b) => a+b, 0);
+		return [Math.PI - even_sum, Math.PI - odd_sum];
+	}
+	function kawasaki_solutions(graph, vertex) {
+		let vectors = vertex_adjacent_vectors(graph, vertex);
+		let vectors_as_angles = vectors.map(v => Math.atan2(v[1], v[0]));
+		return vectors.map((v,i,arr) => {
+			let nextV = arr[(i+1)%arr.length];
+			return core.counter_clockwise_angle2(v, nextV);
+		}).map((_, i, arr) => {
+			let a = arr.slice();
+			a.splice(i,1);
+			return a;
+		}).map(a => kawasaki_from_even(a))
+		.map((kawasakis, i, arr) =>
+			(kawasakis == null
+				? undefined
+				: vectors_as_angles[i] + kawasakis[1])
+		).map(k => (k === undefined)
+			? undefined
+			: [Math.cos(k), Math.sin(k)]
+		);
+	}
+	function kawasaki_collapse(graph, vertex, face, crease_direction = "F") {
+		let kawasakis = kawasaki_solutions(graph, vertex);
+		let origin = graph.vertices_coords[vertex];
+		split_convex_polygon$1(graph, face, origin, kawasakis[face], crease_direction);
+	}
+
+	var kawasaki = /*#__PURE__*/Object.freeze({
+		kawasaki_solutions: kawasaki_solutions,
+		kawasaki_collapse: kawasaki_collapse
 	});
 
 	const Prototype = function(proto) {
@@ -6228,9 +6395,6 @@
 					_this["re:construction"].axiom = objects[0].axiom;
 					_this["re:construction"].parameters = objects[0].parameters;
 				}
-				_this["re:diagrams"] = [
-					build_diagram_frame(_this)
-				];
 			}
 			delete _this["faces_re:matrix"];
 			didModifyGraph();
@@ -6288,7 +6452,7 @@
 			didModifyGraph();
 		};
 		const kawasaki = function() {
-			let crease = Crease(this, Kawasaki.kawasaki_collapse(_this, ...arguments));
+			let crease = Crease(this, kawasaki_collapse(_this, ...arguments));
 			didModifyGraph();
 			return crease;
 		};
@@ -8324,12 +8488,12 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			let vmin = r[2] > r[3] ? r[3] : r[2];
 			let strokeW = vmin*0.005;
 			let debug_style = {
-				faces_vertices: "fill:none;stroke:#27b;stroke-width:"+strokeW+";",
-				faces_edges: "fill:none;stroke:#e53;stroke-width:"+strokeW+";",
+				faces_vertices: "fill:#555;stroke:none;stroke-width:"+strokeW+";",
+				faces_edges: "fill:#aaa;stroke:none;stroke-width:"+strokeW+";",
 			};
 			graph.faces_vertices
 				.map(fv => fv.map(v => graph.vertices_coords[v]))
-				.map(face => ConvexPolygon(face).scale(0.866).points)
+				.map(face => ConvexPolygon(face).scale(0.666).points)
 				.map(points => groupLabels.polygon(points))
 				.forEach(poly => poly.setAttribute("style", debug_style.faces_vertices));
 			graph.faces_edges
@@ -8339,7 +8503,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 						let next = arr[(i+1)%arr.length];
 						return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
 					}).map(v => graph.vertices_coords[v])
-				).map(face => ConvexPolygon(face).scale(0.75).points)
+				).map(face => ConvexPolygon(face).scale(0.333).points)
 				.map(points => groupLabels.polygon(points))
 				.forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
 		};
@@ -9650,49 +9814,6 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		return oripa.fromFold(fold);
 	};
 
-	let vertex_adjacent_vectors = function(graph, vertex) {
-		let adjacent = graph.vertices_vertices[vertex];
-		return adjacent.map(v => [
-			graph.vertices_coords[v][0] - graph.vertices_coords[vertex][0],
-			graph.vertices_coords[v][1] - graph.vertices_coords[vertex][1]
-		]);
-	};
-	function kawasaki_from_even(array) {
-		let even_sum = array.filter((_,i) => i%2 === 0).reduce((a,b) => a+b, 0);
-		let odd_sum = array.filter((_,i) => i%2 === 1).reduce((a,b) => a+b, 0);
-		return [Math.PI - even_sum, Math.PI - odd_sum];
-	}
-	function kawasaki_solutions(graph, vertex) {
-		let vectors = vertex_adjacent_vectors(graph, vertex);
-		let vectors_as_angles = vectors.map(v => Math.atan2(v[1], v[0]));
-		return vectors.map((v,i,arr) => {
-			let nextV = arr[(i+1)%arr.length];
-			return core.counter_clockwise_angle2(v, nextV);
-		}).map((_, i, arr) => {
-			let a = arr.slice();
-			a.splice(i,1);
-			return a;
-		}).map(a => kawasaki_from_even(a))
-		.map((kawasakis, i, arr) =>
-			(kawasakis == null
-				? undefined
-				: vectors_as_angles[i] + kawasakis[1])
-		).map(k => (k === undefined)
-			? undefined
-			: [Math.cos(k), Math.sin(k)]
-		);
-	}
-	function kawasaki_collapse(graph, vertex, face, crease_direction = "F") {
-		let kawasakis = kawasaki_solutions(graph, vertex);
-		let origin = graph.vertices_coords[vertex];
-		split_convex_polygon(graph, face, origin, kawasakis[face], crease_direction);
-	}
-
-	var kawasaki = /*#__PURE__*/Object.freeze({
-		kawasaki_solutions: kawasaki_solutions,
-		kawasaki_collapse: kawasaki_collapse
-	});
-
 	var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
 
 	var square$1 = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
@@ -9725,7 +9846,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		fold,
 		crease,
 		creasethrough,
-		kawasaki
+		kawasaki,
+		diagram
 	);
 	let b = {
 		empty: JSON.parse(empty),

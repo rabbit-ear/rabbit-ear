@@ -229,12 +229,12 @@ export default function() {
 		let vmin = r[2] > r[3] ? r[3] : r[2];
 		let strokeW = vmin*0.005;
 		let debug_style = {
-			faces_vertices: "fill:none;stroke:#27b;stroke-width:"+strokeW+";",
-			faces_edges: "fill:none;stroke:#e53;stroke-width:"+strokeW+";",
+			faces_vertices: "fill:#555;stroke:none;stroke-width:"+strokeW+";",
+			faces_edges: "fill:#aaa;stroke:none;stroke-width:"+strokeW+";",
 		};
 		graph.faces_vertices
 			.map(fv => fv.map(v => graph.vertices_coords[v]))
-			.map(face => Geom.ConvexPolygon(face).scale(0.866).points)
+			.map(face => Geom.ConvexPolygon(face).scale(0.666).points)
 			.map(points => groupLabels.polygon(points))
 			.forEach(poly => poly.setAttribute("style", debug_style.faces_vertices));
 		graph.faces_edges
@@ -244,7 +244,7 @@ export default function() {
 					let next = arr[(i+1)%arr.length];
 					return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
 				}).map(v => graph.vertices_coords[v])
-			).map(face => Geom.ConvexPolygon(face).scale(0.75).points)
+			).map(face => Geom.ConvexPolygon(face).scale(0.333).points)
 			.map(points => groupLabels.polygon(points))
 			.forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
 	}

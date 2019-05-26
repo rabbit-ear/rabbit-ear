@@ -1,6 +1,21 @@
 import * as REMath from "../../include/geometry";
 import { get_boundary_face } from "../graph/make";
 
+/** 
+ *  generate a graph["re:construction"] section 
+ */
+export const construction_frame = function(type, parameters) {
+	return {
+		"re:construction_type": type,
+		"re:construction_parameters": parameters
+	};
+	// Object.keys(parameters)
+	// 	.filter(key => key !== type)
+	// 	.forEach(key => o["re:construction_parameters"][key] = parameters[key]);
+	// return o;
+}
+
+
 // "re:construction" example
 // { axiom: 2,
 // 	type: "valley",
@@ -39,7 +54,7 @@ export const build_diagram_frame = function(graph) {
 		console.warn("couldn't build diagram. construction info doesn't exist");
 		return;
 	}
-	switch (c.type) {
+	switch (c["re:construction_type"]) {
 		case "flip":
 			return {
 				"re:diagram_arrows": [{
@@ -53,15 +68,15 @@ export const build_diagram_frame = function(graph) {
 		case "valley":
 			return {
 				"re:diagram_lines": [{
-					"re:diagram_line_classes": [c.type],
-					"re:diagram_line_coords": c.edge,
+					"re:diagram_line_classes": [c["re:construction_type"]],
+					"re:diagram_line_coords": c["re:construction_parameters"].edge,
 				}],
 				"re:diagram_arrows": [{
 					"re:diagram_arrow_classes": [],
 					"re:diagram_arrow_coords": arrowForConstruction(c, graph)
 				}],
 				"re:instructions": {
-					"en": instructions_for_axiom.en[c.axiom] || (c.type + " fold")
+					"en": instructions_for_axiom.en[c.axiom] || (c["re:construction_type"] + " fold")
 				}
 			};
 			break;
@@ -70,6 +85,10 @@ export const build_diagram_frame = function(graph) {
 			break;
 	}
 }
+
+// todo: arrowForConstruction is asking for graph to calculate the
+// bounding box, to clip the arrow nicely in frame. this should be
+// pre-calculated
 
 
 // intersect is a point on the line,
@@ -82,29 +101,29 @@ export const build_diagram_frame = function(graph) {
 //	direction: [x,y]         // the normal to the fold line, direction of fold
 // }
 const arrowForConstruction = function(construction, graph) {
-	let p = construction.parameters;
+	let p = construction["re:construction_parameters"];
 	// axiom 2, simplest case
 	if (construction.axiom === 2) {
 		return [p.marks[1], p.marks[0]];
 	}
 
 	let crease_vector = [
-		construction.edge[1][0] - construction.edge[0][0],
-		construction.edge[1][1] - construction.edge[0][1]
+		p.edge[1][0] - p.edge[0][0],
+		p.edge[1][1] - p.edge[0][1]
 	];
-	let arrow_vector = construction.direction;
+	let arrow_vector = p.direction;
 	let crossing;
-	switch (construction.axiom) {
+	switch (p.axiom) {
 		case 4: 
 			crossing = REMath.core.intersection.nearest_point(
-				construction.edge[0], crease_vector, p.lines[0][0], ((a)=>a));
+				p.edge[0], crease_vector, p.lines[0][0], ((a)=>a));
 			break;
 		case 7:
 			crossing = REMath.core.intersection.nearest_point(
-				construction.edge[0], crease_vector, p.marks[0], ((a)=>a));
+				p.edge[0], crease_vector, p.marks[0], ((a)=>a));
 			break;
 		default:
-				crossing = REMath.core.average(construction.edge);
+				crossing = REMath.core.average(p.edge);
 				break;
 	}
 	let perpLine = { point: crossing, vector: arrow_vector };
@@ -121,7 +140,7 @@ const arrowForConstruction = function(construction, graph) {
 		.map(n => REMath.core.distance2(n, crossing))
 		.sort((a,b) => a-b)
 		.shift();
-	if (construction.axiom === 7) {
+	if (p.axiom === 7) {
 		short_length = REMath.core.distance2(p.marks[0], crossing);
 	}
 	let short_vector = arrow_vector.map(v => v * short_length);

@@ -1,4 +1,5 @@
 import * as Geom from "../../include/geometry";
+import { split_convex_polygon } from "../graph/planargraph";
 
 let vertex_adjacent_vectors = function(graph, vertex) {
 	let adjacent = graph.vertices_vertices[vertex];
