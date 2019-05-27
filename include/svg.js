@@ -407,7 +407,7 @@ const regularPolygon = function(cX, cY, radius, sides) {
 };
 
 const svgNS$1 = "http://www.w3.org/2000/svg";
-const straightArrow = function(start, end, options) {
+const straightArrow = function(startPoint, endPoint, options) {
 	let p = {
 		color: "#000",
 		strokeWidth: 0.5,
@@ -418,6 +418,7 @@ const straightArrow = function(start, end, options) {
 		highlightFillStyle: "",
 		width: 0.5,
 		length: 2,
+		padding: 0.0,
 		start: false,
 		end: true,
 	};
@@ -450,10 +451,20 @@ const straightArrow = function(start, end, options) {
 		"fill:"+p.highlight,
 		p.fillStyle
 	].filter(a => a !== "").join(";");
+	let start = startPoint;
+	let end = endPoint;
 	let vec = [end[0]-start[0], end[1]-start[1]];
 	let arrowLength = Math.sqrt(vec[0]*vec[0] + vec[1]*vec[1]);
 	let arrowVector = [vec[0] / arrowLength, vec[1] / arrowLength];
 	let arrow90 = [arrowVector[1], -arrowVector[0]];
+	start = [
+		startPoint[0] + arrowVector[0]*(p.start?1:0)*p.padding,
+		startPoint[1] + arrowVector[1]*(p.start?1:0)*p.padding
+	];
+	end = [
+		endPoint[0] - arrowVector[0]*(p.end?1:0)*p.padding,
+		endPoint[1] - arrowVector[1]*(p.end?1:0)*p.padding
+	];
 	let endHead = [
 		[end[0] + arrow90[0]*p.width, end[1] + arrow90[1]*p.width],
 		[end[0] - arrow90[0]*p.width, end[1] - arrow90[1]*p.width],
@@ -940,9 +951,10 @@ const attachSVGMethods = function(element) {
 const controlPoint = function(parent, options) {
 	if (options == null) { options = {}; }
 	if (options.radius == null) { options.radius = 1; }
-	if (options.fill == null) { options.fill = "#000000"; }
+	if (options.fill == null) { options.fill = "#000"; }
+	if (options.stroke == null) { options.stroke = "none"; }
 	let c = circle(0, 0, options.radius);
-	c.setAttribute("fill", options.fill);
+	c.setAttribute("style", "fill:"+options.fill+";stroke:"+options.stroke);
 	let _position = [0,0];
 	let _selected = false;
 	if (parent != null) {

@@ -21,6 +21,7 @@ import { default as Origami3D } from './View3D';
 import { default as Graph } from './Graph';
 // top level methods
 import { axiom } from './origami/axioms';
+import * as allAxioms from "./origami/axioms";
 
 // to be included in "convert"
 import { toFOLD, toSVG, toORIPA } from './convert/filetype';
@@ -66,7 +67,8 @@ Object.assign(core,
 	crease,
 	creasethrough,
 	kawasaki,
-	diagram
+	diagram,
+	allAxioms
 );
 
 // load bases

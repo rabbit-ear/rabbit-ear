@@ -13,7 +13,7 @@ export const flatten_frame = function(fold_file, frame_num){
 	var memo = {visited_frames:[]};
 	function recurse(fold_file, frame, orderArray) {
 		if (memo.visited_frames.indexOf(frame) !== -1) {
-			throw "FOLD file_frames encountered a cycle. stopping.";
+			throw "encountered a cycle in the file_frames tree. can't flatten frame.";
 			return orderArray;
 		}
 		memo.visited_frames.push(frame);

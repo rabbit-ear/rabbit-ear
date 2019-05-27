@@ -103,16 +103,6 @@ const printHTML = function(innerHTML, css) {
 	}
 }
 
-const svgOptions = {
-	width:250,
-	height:250,
-	frame: 1,
-	padding: 0.15,
-	diagram: true,
-	stylesheet: svg_style
-	// shadows:true
-};
-
 const svg_style = `
 svg { --crease-width: 0.015; }
 svg * {
@@ -134,6 +124,16 @@ polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
 .foldedForm .faces .back { fill: #DDD; }
 .foldedForm .creases line { stroke: none; }
 `;
+
+const svgOptions = {
+	width:250,
+	height:250,
+	frame: 1,
+	padding: 0.15,
+	diagram: true,
+	stylesheet: svg_style
+	// shadows:true
+};
 
 const page_style = `
 html, body {

@@ -59,6 +59,11 @@ import {
 // 	}	
 // }
 
+
+const prepareGraphModify = function(graph) {
+	delete graph["re:construction"];
+}
+
 const Prototype = function(proto) {
 	if(proto == null) {
 		proto = {};

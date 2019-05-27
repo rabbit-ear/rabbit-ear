@@ -8,6 +8,17 @@ origami.controls = RE.svg.controls(origami, 0);
 origami.axiom = undefined;
 origami.subSelect = 0;  // some axioms have 2 or 3 results
 
+// a lookup for expected parameters in axiom() func. is param a point or line?
+const paramIsLine = [null, 
+	[false, false],
+	[false, false],
+	[true, true, true, true],
+	[true, true, false],
+	[true, true, false, false],
+	[true, true, true, true, false, false],
+	[true, true, true, true, false]
+];
+
 // 1: hard reset, axiom has changed
 origami.setAxiom = function(axiom) {
 	if (axiom < 1 || axiom > 7) { return; }
@@ -19,13 +30,18 @@ origami.setAxiom = function(axiom) {
 	let optionCount = [null, 0, 0, 2, 0, 2, 3, 0][axiom];
 	document.querySelectorAll("[id^=btn-option")
 		.forEach((b,i) => b.style.opacity = i < optionCount ? 1 : 0);
-	origami.setSubSel(origami.subSelect);
+	origami.setSubSel(0);
+	// origami.setSubSel(origami.subSelect);
 	
 	origami.controls.removeAll();
 	Array.from(Array([null, 2, 2, 4, 3, 4, 6, 5][axiom]))
 		.map(_ => [Math.random(), Math.random()])
-		.map(p => ({position: p, radius: 0.02, fill:"#e14929"}))
-		.forEach(options => origami.controls.add(options));
+		.map((p,i) => ({
+			position: p,
+			radius: paramIsLine[axiom][i] ? 0.01 : 0.02,
+			stroke: paramIsLine[axiom][i] ? "#eb3" : "black",
+			fill: paramIsLine[axiom][i] ? "#eb3" : "#d42"})
+		).forEach(options => origami.controls.add(options));
 
 	origami.axiom = axiom;
 	origami.update();
@@ -63,29 +79,29 @@ origami.update = function() {
 	}
 
 	// axiom to get a crease line
-	let creaseInfo;
+	let axiomInfo;
 	switch (origami.axiom){
 		case 1:
-		case 2: creaseInfo = RE.axiom(origami.axiom, ...pts);
+		case 2: axiomInfo = RE.axiom(origami.axiom, ...pts);
 			break;
-		case 3: creaseInfo = RE.axiom(origami.axiom,
+		case 3: axiomInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							lines[1].point, lines[1].vector);
 			break;
-		case 4: creaseInfo = RE.axiom(origami.axiom,
+		case 4: axiomInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							pts[2]);
 			break;
-		case 5: creaseInfo = RE.axiom(origami.axiom,
+		case 5: axiomInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							pts[2], pts[3]);
 			break;
-		case 6: creaseInfo = RE.axiom(origami.axiom,
+		case 6: axiomInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							lines[1].point, lines[1].vector,
 							pts[4], pts[5]);
 			break;
-		case 7: creaseInfo = RE.axiom(origami.axiom,
+		case 7: axiomInfo = RE.axiom(origami.axiom,
 							lines[0].point, lines[0].vector,
 							lines[1].point, lines[1].vector,
 							pts[4]);
@@ -97,14 +113,36 @@ origami.update = function() {
 		.map(l => origami.markLayer.line(l[0][0], l[0][1], l[1][0], l[1][1]))
 		.forEach(l => l.setAttribute("style", "stroke:#eb3;stroke-width:0.01;"));
 
-	if (creaseInfo === undefined) { return; }
-	// axiom 3, 5, and 6 give us back multiple solutions inside an array
-	if (creaseInfo.constructor === Array) {
-		creaseInfo = creaseInfo[origami.subSelect];
-		if (creaseInfo === undefined) { return; }
-	}
+	let options = {
+		color: "#eb3",
+		strokeWidth: 0.01, width: 0.025, length: 0.06, padding: 0.013,
+	};
+	lines.map(l => [l.point, l.point.add(l.vector)])
+		.map(pts => origami.markLayer.straightArrow(pts[0], pts[1], options))
 
-	origami.cp.valleyFold(creaseInfo);
+	if (axiomInfo === undefined) { return; }
+	// axiom 3, 5, and 6 give us back multiple solutions inside an array
+	// if (axiomInfo.constructor === Array) {
+	// 	axiomInfo = axiomInfo[origami.subSelect];
+	// 	if (axiomInfo === undefined) { return; }
+	// }
+
+	let valid = RE.core.apply_axiom(axiomInfo, origami.cp.boundary.points);
+
+	// origami.preferences.styleSheet = valid[origami.subSelect] == null
+	// 	? ".valley  { stroke: red; }"
+	// 	: undefined;
+
+	origami.preferences.styleSheet = valid[origami.subSelect] == null
+		? ".valley { stroke: #e53; }"
+		: undefined;
+
+	origami.cp.valleyFold(axiomInfo.solutions[origami.subSelect]);
+	let diagram = RE.core.build_diagram_frame(origami.cp);
+
+	origami.cp["re:diagrams"] = [diagram];
+	origami.draw();
+
 	folded.cp = origami.cp;
 	folded.fold();
 }

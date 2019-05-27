@@ -29,7 +29,8 @@ const DEFAULTS = Object.freeze({
 	padding: 0,
 	shadows: false,
 	labels: false,
-	diagram: false
+	diagram: false,
+	styleSheet: undefined
 });
 
 const DISPLAY_NAME = {
@@ -188,8 +189,12 @@ export default function() {
 		let r = bounding_rect(graph);
 		// --crease-width: 5;
 		let vmin = r[2] > r[3] ? r[3] : r[2];
-		let creaseStyle = "stroke-width:" + vmin*0.005;
-		styleElement.innerHTML = "#creases line {" + creaseStyle + "}";
+		let creaseStyle = "stroke-width:" + vmin*0.01;
+		styleElement.innerHTML = ".creases line {" + creaseStyle + "}";
+
+		if (preferences.styleSheet) {
+			styleElement.innerHTML += preferences.styleSheet;
+		}
 		// groups.creases.setAttribute("style", "stroke-width:"+vmin*0.005);
 	};
 
@@ -250,6 +255,8 @@ export default function() {
 	}
 
 	const drawDiagram = function(graph) {
+		let r = bounding_rect(graph);
+		let vmin = r[2] > r[3] ? r[3] : r[2];
 		let diagrams = graph["re:diagrams"];
 		if (diagrams == null) { return; }
 		diagrams
@@ -273,7 +280,12 @@ export default function() {
 							: p[0][1] < 0.5;
 					}
 					// todo, those parameters aren't generalized beyond a unit square
-					return groups.diagram.arcArrow(p[0], p[1], {side});
+					return groups.diagram.arcArrow(p[0], p[1], {
+						side,
+						length: vmin*0.05,
+						width: vmin*0.025,
+						strokeWidth: vmin*0.01,
+					});
 				})
 			);
 	}

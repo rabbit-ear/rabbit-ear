@@ -104,7 +104,7 @@ window.onload = function() {
 		origami.mode = b.id;
 		document.querySelectorAll("[id^=mode]")
 			.forEach(b => b.className = "button");
-		b.className = "button button-red";
+		b.className = "button red";
 	});
 
 	document.querySelectorAll("[id^=switch-origami]")
@@ -113,6 +113,6 @@ window.onload = function() {
 			origami[path[0]][path[1]] = !origami[path[0]][path[1]];
 			origami.draw();
 			event.target.className = origami[path[0]][path[1]]
-				? "button button-red" : "button";
+				? "button red" : "button";
 		});
 }

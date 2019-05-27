@@ -1963,7 +1963,7 @@
 		return polygon(points);
 	};
 	const svgNS$1 = "http://www.w3.org/2000/svg";
-	const straightArrow = function(start, end, options) {
+	const straightArrow = function(startPoint, endPoint, options) {
 		let p = {
 			color: "#000",
 			strokeWidth: 0.5,
@@ -1974,6 +1974,7 @@
 			highlightFillStyle: "",
 			width: 0.5,
 			length: 2,
+			padding: 0.0,
 			start: false,
 			end: true,
 		};
@@ -2006,10 +2007,20 @@
 			"fill:"+p.highlight,
 			p.fillStyle
 		].filter(a => a !== "").join(";");
+		let start = startPoint;
+		let end = endPoint;
 		let vec = [end[0]-start[0], end[1]-start[1]];
 		let arrowLength = Math.sqrt(vec[0]*vec[0] + vec[1]*vec[1]);
 		let arrowVector = [vec[0] / arrowLength, vec[1] / arrowLength];
 		let arrow90 = [arrowVector[1], -arrowVector[0]];
+		start = [
+			startPoint[0] + arrowVector[0]*(p.start?1:0)*p.padding,
+			startPoint[1] + arrowVector[1]*(p.start?1:0)*p.padding
+		];
+		end = [
+			endPoint[0] - arrowVector[0]*(p.end?1:0)*p.padding,
+			endPoint[1] - arrowVector[1]*(p.end?1:0)*p.padding
+		];
 		let endHead = [
 			[end[0] + arrow90[0]*p.width, end[1] + arrow90[1]*p.width],
 			[end[0] - arrow90[0]*p.width, end[1] - arrow90[1]*p.width],
@@ -2492,9 +2503,10 @@
 	const controlPoint = function(parent, options) {
 		if (options == null) { options = {}; }
 		if (options.radius == null) { options.radius = 1; }
-		if (options.fill == null) { options.fill = "#000000"; }
+		if (options.fill == null) { options.fill = "#000"; }
+		if (options.stroke == null) { options.stroke = "none"; }
 		let c = circle(0, 0, options.radius);
-		c.setAttribute("fill", options.fill);
+		c.setAttribute("style", "fill:"+options.fill+";stroke:"+options.stroke);
 		let _position = [0,0];
 		let _selected = false;
 		if (parent != null) {
@@ -5083,7 +5095,7 @@
 		var memo = {visited_frames:[]};
 		function recurse(fold_file, frame, orderArray) {
 			if (memo.visited_frames.indexOf(frame) !== -1) {
-				throw "FOLD file_frames encountered a cycle. stopping.";
+				throw "encountered a cycle in the file_frames tree. can't flatten frame.";
 				return orderArray;
 			}
 			memo.visited_frames.push(frame);
@@ -5455,6 +5467,10 @@
 		};
 	};
 
+	const axiom_operation = function(axiomNumber, marks, lines) {
+	};
+	const fold_operation = function(isValley, ) {
+	};
 	const construction_frame = function(type, parameters) {
 		return {
 			"re:construction_type": type,
@@ -5555,8 +5571,11 @@
 	};
 
 	var diagram = /*#__PURE__*/Object.freeze({
+		axiom_operation: axiom_operation,
+		fold_operation: fold_operation,
 		construction_frame: construction_frame,
-		build_diagram_frame: build_diagram_frame
+		build_diagram_frame: build_diagram_frame,
+		arrowForConstruction: arrowForConstruction
 	});
 
 	const merge_maps = function(a, b) {
@@ -8353,7 +8372,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		padding: 0,
 		shadows: false,
 		labels: false,
-		diagram: false
+		diagram: false,
+		styleSheet: undefined
 	});
 	const DISPLAY_NAME$1 = {
 		vertices: "vertices",
@@ -8453,8 +8473,11 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			}
 			let r = bounding_rect(graph);
 			let vmin = r[2] > r[3] ? r[3] : r[2];
-			let creaseStyle = "stroke-width:" + vmin*0.005;
-			styleElement.innerHTML = "#creases line {" + creaseStyle + "}";
+			let creaseStyle = "stroke-width:" + vmin*0.01;
+			styleElement.innerHTML = ".creases line {" + creaseStyle + "}";
+			if (preferences.styleSheet) {
+				styleElement.innerHTML += preferences.styleSheet;
+			}
 		};
 		const drawLabels = function(graph) {
 			if ("faces_vertices" in graph === false ||
@@ -8508,6 +8531,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				.forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
 		};
 		const drawDiagram = function(graph) {
+			let r = bounding_rect(graph);
+			let vmin = r[2] > r[3] ? r[3] : r[2];
 			let diagrams = graph["re:diagrams"];
 			if (diagrams == null) { return; }
 			diagrams
@@ -8528,7 +8553,12 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 								? p[0][1] > 0.5
 								: p[0][1] < 0.5;
 						}
-						return groups.diagram.arcArrow(p[0], p[1], {side});
+						return groups.diagram.arcArrow(p[0], p[1], {
+							side,
+							length: vmin*0.05,
+							width: vmin*0.025,
+							strokeWidth: vmin*0.01,
+						});
 					})
 				);
 		};
@@ -9346,17 +9376,6 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		return graph;
 	};
 
-	const makeCrease = function(point, vector) {
-		let crease = {point, vector};
-		crease[0] = point;
-		crease[1] = vector;
-		return crease;
-	};
-	const addParamInfo = function(crease, axiom, parameters) {
-		crease.axiom = axiom;
-		crease.parameters = parameters;
-		return crease;
-	};
 	const axiom = function(number, parameters) {
 		let params = Array(...arguments);
 		params.shift();
@@ -9370,30 +9389,63 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			case 7: return axiom7$1(...params);
 		}
 	};
+	const make_axiom_frame = function(axiomNumber, solutions, parameters) {
+		return {
+			number: axiomNumber,
+			parameters,
+			solutions
+		};
+	};
+	const apply_axiom = function(axiom_frame, poly_points) {
+		let poly = Polygon(poly_points);
+		switch(axiom_frame.number) {
+			case 1: return apply_axiom1_2(axiom_frame, poly);
+			case 2: return apply_axiom1_2(axiom_frame, poly);
+			case 3: return apply_axiom3(axiom_frame, poly);
+			case 4: return apply_axiom4(axiom_frame, poly);
+			case 5: return apply_axiom5(axiom_frame, poly);
+			case 6: return apply_axiom6(axiom_frame, poly);
+			case 7: return apply_axiom7(axiom_frame, poly);
+		}
+	};
+	const apply_axiom1_2 = function(axiom_frame, poly) {
+		let points = axiom_frame.parameters.points;
+		let passes =
+			core.intersection.point_in_convex_poly(points[0], poly.points) &&
+			core.intersection.point_in_convex_poly(points[1], poly.points);
+		return !passes ? [] : axiom_frame.solutions.map(s => poly.clipLine(s))
+	};
+	const apply_axiom3 = function(axiom_frame, poly) {
+		let Xing = core.intersection;
+		let lines = axiom_frame.parameters.lines;
+		let passes =
+			Xing.clip_line_in_convex_poly(poly.points, lines[0][0], lines[0][1]) &&
+			Xing.clip_line_in_convex_poly(poly.points, lines[1][0], lines[1][1]);
+		return !passes ? [] : axiom_frame.solutions.map(s => poly.clipLine(s))
+	};
 	const axiom1$1 = function(pointA, pointB) {
 		let p0 = get_vec$1(pointA);
 		let p1 = get_vec$1(pointB);
 		let vec = p0.map((_,i) => p1[i] - p0[i]);
-		let solution = makeCrease(p0, vec);
-		return addParamInfo(solution, 1, {marks:[p0, p1]});
+		let solution = [p0, vec];
+		return make_axiom_frame(1, [solution], {points:[p0, p1]});
 	};
 	const axiom2$1 = function(a, b) {
 		let mid = core.midpoint(a, b);
 		let vec = core.normalize(a.map((_,i) => b[i] - a[i]));
-		let solution = makeCrease(mid, [vec[1], -vec[0]]);
-		return addParamInfo(solution, 2, {marks:[a,b]});
+		let solution = [mid, [vec[1], -vec[0]]];
+		return make_axiom_frame(2, [solution], {points:[a,b]});
 	};
 	const axiom3$1 = function(pointA, vectorA, pointB, vectorB) {
-		return core.bisect_lines2(pointA, vectorA, pointB, vectorB)
-			.map(line => makeCrease(line[0], line[1]))
-			.map(solution =>
-				addParamInfo(solution, 3, {lines:[[pointA, vectorA], [pointB, vectorB]]})
-			);
+		let parameters = {lines:[[pointA, vectorA], [pointB, vectorB]]};
+		let answers = core.bisect_lines2(pointA, vectorA, pointB, vectorB);
+		return make_axiom_frame(3, answers, parameters)
 	};
 	const axiom4$1 = function(pointA, vectorA, pointB) {
 		let norm = core.normalize(vectorA);
-		let solution = makeCrease([...pointB], [norm[1], -norm[0]]);
-		return addParamInfo(solution, 4, {marks: [pointB], lines:[[pointA, vectorA]]});
+		let solution = [[...pointB], [norm[1], -norm[0]]];
+		let parameters = {points: [pointB], lines:[[pointA, vectorA]]};
+		return make_axiom_frame(4, [solution], parameters)
 	};
 	const axiom5$1 = function(pointA, vectorA, pointB, pointC) {
 		let pA = get_vec$1(pointA);
@@ -9402,13 +9454,14 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		let pC = get_vec$1(pointC);
 		let radius = Math.sqrt(Math.pow(pB[0]-pC[0], 2) + Math.pow(pB[1]-pC[1], 2));
 		let pA2 = [pA[0] + vA[0], pA[1] + vA[1]];
-		let sect = core.intersection.circle_line(pB, radius, pA, pA2);
-		return sect === undefined
-			? []
-			: addParamInfo(sect.map(s => axiom2$1(pC, s)), 5, {
-					marks:[pB, pC],
-					lines:[[pA, vA]]
-				});
+		let sect = core.intersection.circle_line(pB, radius, pA, pA2) || [];
+		let solutions = sect.map(s => {
+			let mid = core.midpoint(pC, s);
+			let vec = core.normalize(s.map((_,i) => s[i] - pC[i]));
+			return [mid, [vec[1], -vec[0]]];
+		});
+		let parameters = {points:[pB, pC], lines:[[pA, vA]]};
+		return make_axiom_frame(5, solutions, parameters)
 	};
 	const axiom7$1 = function(pointA, vectorA, pointB, vectorB, pointC) {
 		let pA = get_vec$1(pointA);
@@ -9420,8 +9473,9 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		if(sect === undefined){ return undefined; }
 		let mid = core.midpoint(pC, sect);
 		let vec = core.normalize(pC.map((_,i) => sect[i] - pC[i]));
-		let solution = makeCrease(mid, [vec[1], -vec[0]]);
-		return addParamInfo(solution, 7, { marks: [pC], lines: [[pA, vA], [pB, vB]]});
+		let solution = [mid, [vec[1], -vec[0]]];
+		let parameters = {points: [pC], lines: [[pA, vA], [pB, vB]]};
+		return make_axiom_frame(7, [solution], parameters)
 	};
 	const cuberoot = function(x) {
 		var y = Math.pow(Math.abs(x), 1/3);
@@ -9570,20 +9624,193 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				if (v2 != q2) {
 					var mF = -1*(u2 - p2)/(v2 - q2);
 					var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
-					lines.push(makeCrease([0, hF], [1, mF]));
+					lines.push([[0, hF], [1, mF]]);
 				}
 				else {
 					var kG = (u2 + p2)/2;
-					lines.push(makeCrease([kG, 0], [0, 1]));
+					lines.push([[kG, 0], [0, 1]]);
 				}
 			}
 		}
-		let params = {
-			marks: [pointC, pointD],
+		let parameters = {
+			points: [pointC, pointD],
 			lines: [[pointA, vecA], [pointB, vecB]]
 		};
-		return lines.map(solution => addParamInfo(solution, 6, params));
+		return make_axiom_frame(6, lines, parameters);
 	};
+	var order, irootMax, q1, q2, S, Sr, Si, U;
+	const CubeRoot = function(x) {
+		return (x >= 0) ? Math.pow(x, 1/3) : -Math.pow(-x, 1/3);
+	};
+	const axiom6RefFinder = function(
+		pointA, vecA, pointB, vecB, pointC, pointD
+	) {
+		order = 0;
+		irootMax = 0;
+		q1 = 0;
+		q2 = 0;
+		S = 0;
+		Sr = 0;
+		Si = 0;
+		U = 0;
+		let results = [
+			axiom6RefFinderFunc(pointA, vecA, pointB, vecB, pointC, pointD, 0),
+			axiom6RefFinderFunc(pointA, vecA, pointB, vecB, pointC, pointD, 1),
+			axiom6RefFinderFunc(pointA, vecA, pointB, vecB, pointC, pointD, 2)
+		];
+		console.log(results);
+		return results.filter(c => c != null);
+	};
+	const axiom6RefFinderFunc = function(
+		pointA, vecA, pointB, vecB, pointC, pointD, iroot
+	) {
+		let pA = get_vec$1(pointA);
+		let pB = get_vec$1(pointB);
+		let pC = get_vec$1(pointC);
+		let pD = get_vec$1(pointD);
+		let vA = get_vec$1(vecA);
+		let vB = get_vec$1(vecB);
+		let p1 = pC;
+		let l1 = Line(pA, vA);
+		let u1 = [-vA[1], vA[0]];
+		let d1 = l1.nearestPoint(0,0).magnitude;
+		let p2 = pD;
+		let l2 = Line(pB, vB);
+		let u2 = [-vB[1], vB[0]];
+		let d2 = l2.nearestPoint(0,0).magnitude;
+		if (core.dot(u1,l1.nearestPoint(0,0)) < 0) {
+			u1 = [vA[1], -vA[0]];
+		}
+		if (core.dot(u2,l2.nearestPoint(0,0)) < 0) {
+			u2 = [vB[1], -vB[0]];
+		}
+		let u1p = [u1[1], -u1[0]];
+		if (Math.abs(p1[0] - p2[0]) < core.EPSILON &&
+				Math.abs(p1[1] - p2[1]) < core.EPSILON) { return; }
+		let rc = 0;
+		switch (iroot) {
+			case 0:
+				let v1 = [
+					p1[0] + d1 * u1[0] - 2 * p2[0],
+					p1[1] + d1 * u1[1] - 2 * p2[1]
+				];
+				let v2 = [
+					d1 * u1[0] - p1[0],
+					d1 * u1[1] - p1[1]
+				];
+				let c1 = core.dot(p2, u2) - d2;
+				let c2 = core.dot(v2, u1p) * 2;
+				let c3 = core.dot(v2, v2);
+				let c4 = core.dot(v1.map((_,i) => v1[i]+v2[i]), u1p);
+				let c5 = core.dot(v1, v2);
+				let c6 = core.dot(u1p, u2);
+				let c7 = core.dot(v2, u2);
+				let a = c6;
+				let b = c1 + c4 * c6 + c7;
+				let c = c1 * c2 + c5 * c6 + c4 * c7;
+				let d = c1 * c3 + c5 * c7;
+				if (Math.abs(a) > core.EPSILON) { order = 3; }
+				else if (Math.abs(b) > core.EPSILON) { order = 2; }
+				else if (Math.abs(c) > core.EPSILON) { order = 1; }
+				else { order = 0; }
+				switch(order) {
+					case 0: return;
+					case 1: rc = -d / c; break;
+					case 2:
+						let disc = Math.pow(c, 2) - 4 * b * d;
+						q1 = -c / (2 * b);
+						if (disc < 0) {
+							irootMax = -1;
+							return;
+						}
+						else if (Math.abs(disc) < core.EPSILON) {
+							irootMax = 0;
+							rc = q1;
+						}
+						else {
+							irootMax = 1;
+							q2 = Math.sqrt(disc) / (2 * b);
+							rc = q1 + q2;
+						}
+						break;
+					case 3:
+							let a2 = b / a;
+							let a1 = c / a;
+							let a0 = d / a;
+							let Q = (3 * a1 - Math.pow(a2, 2)) / 9;
+							let R = (9 * a2 * a1 - 27 * a0 - 2 * Math.pow(a2, 3)) / 54;
+							let D = Math.pow(Q, 3) + Math.pow(R, 2);
+							U = -a2 / 3;
+							if (D > 0) {
+								irootMax = 0;
+								let rD = Math.sqrt(D);
+								S = CubeRoot(R + rD);
+								let T = CubeRoot(R - rD);
+								rc = U + S + T;
+							}
+							else if (Math.abs(D) < core.EPSILON) {
+								irootMax = 1;
+								S = Math.pow(R, 1/3);
+								rc = U + 2 * S;
+							}
+							else {
+								irootMax = 2;
+								let rD = Math.sqrt(-D);
+								let phi = Math.atan2(rD, R) / 3;
+								let rS = Math.pow(Math.pow(R, 2) - D, 1/6);
+								Sr = rS * Math.cos(phi);
+								Si = rS * Math.sin(phi);
+								rc = U + 2 * Sr;
+							}
+						break;
+					}
+				break;
+			case 1:
+				if (irootMax < 1) { return; }
+				switch(order) {
+					case 2:
+						rc = q1 - q2;
+						break;
+					case 3:
+						if (irootMax === 1) { rc = U - S; }
+						else { rc = U - Sr - Math.sqrt(3) * Si; }
+						break;
+				}
+				break;
+			case 2:
+				if (irootMax < 2) return;
+				switch(order) {
+					case 3:
+						rc = U - Sr + Math.sqrt(3) * Si;
+						break;
+				}
+				break;
+		}
+		let p1p = [
+			d1 * u1[0] + rc * u1p[0],
+			d1 * u1[1] + rc * u1p[1]
+		];
+		let l_u = core.normalize([p1p[0]-p1[0], p1p[1]-p1[1]]);
+		let l_d = core.dot(l_u, core.midpoint(p1p, p1));
+		let creasePoint = [l_d * l_u[0], l_d * l_u[1]];
+		let creaseVector = [-l_u[1], l_u[0]];
+		return [creasePoint, creaseVector];
+	};
+
+	var allAxioms = /*#__PURE__*/Object.freeze({
+		axiom: axiom,
+		make_axiom_frame: make_axiom_frame,
+		apply_axiom: apply_axiom,
+		axiom1: axiom1$1,
+		axiom2: axiom2$1,
+		axiom3: axiom3$1,
+		axiom4: axiom4$1,
+		axiom5: axiom5$1,
+		axiom7: axiom7$1,
+		axiom6: axiom6$1,
+		axiom6RefFinder: axiom6RefFinder,
+		axiom6RefFinderFunc: axiom6RefFinderFunc
+	});
 
 	let oripa = {};
 	oripa.type2fold = {
@@ -9847,7 +10074,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		crease,
 		creasethrough,
 		kawasaki,
-		diagram
+		diagram,
+		allAxioms
 	);
 	let b = {
 		empty: JSON.parse(empty),
