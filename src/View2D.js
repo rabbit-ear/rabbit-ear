@@ -30,7 +30,9 @@ const DEFAULTS = Object.freeze({
 	shadows: false,
 	labels: false,
 	diagram: false,
-	styleSheet: undefined
+	// added recently
+	styleSheet: undefined,
+	arrowColor: undefined
 });
 
 const DISPLAY_NAME = {
@@ -279,13 +281,15 @@ export default function() {
 							? p[0][1] > 0.5
 							: p[0][1] < 0.5;
 					}
-					// todo, those parameters aren't generalized beyond a unit square
-					return groups.diagram.arcArrow(p[0], p[1], {
+					let prefs = {
 						side,
-						length: vmin*0.05,
-						width: vmin*0.025,
-						strokeWidth: vmin*0.01,
-					});
+						length: vmin*0.09,
+						width: vmin*0.035,
+						strokeWidth: vmin*0.02,
+					};
+					if (preferences.arrowColor) { prefs.color = preferences.arrowColor;}
+					// todo, those parameters aren't generalized beyond a unit square
+					return groups.diagram.arcArrow(p[0], p[1], prefs);
 				})
 			);
 	}

@@ -134,7 +134,7 @@ export const build_diagram_frame = function(graph) {
 				}],
 				"re:diagram_arrows": [{
 					"re:diagram_arrow_classes": [],
-					"re:diagram_arrow_coords": arrowForConstruction(c, graph)
+					"re:diagram_arrow_coords": make_arrow_coords(c, graph)
 				}],
 				"re:instructions": {
 					"en": instructions_for_axiom.en[c.axiom] || (c["re:construction_type"] + " fold")
@@ -147,7 +147,7 @@ export const build_diagram_frame = function(graph) {
 	}
 }
 
-// todo: arrowForConstruction is asking for graph to calculate the
+// todo: make_arrow_coords is asking for graph to calculate the
 // bounding box, to clip the arrow nicely in frame. this should be
 // pre-calculated
 
@@ -161,7 +161,7 @@ export const build_diagram_frame = function(graph) {
 //	edge: [[x,y], [x,y]]     // the fold line
 //	direction: [x,y]         // the normal to the fold line, direction of fold
 // }
-export const arrowForConstruction = function(construction, graph) {
+export const make_arrow_coords = function(construction, graph) {
 		// console.log(construction);
 	let p = construction["re:construction_parameters"];
 	// axiom 2, simplest case

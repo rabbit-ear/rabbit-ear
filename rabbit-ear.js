@@ -5513,7 +5513,7 @@
 					}],
 					"re:diagram_arrows": [{
 						"re:diagram_arrow_classes": [],
-						"re:diagram_arrow_coords": arrowForConstruction(c, graph)
+						"re:diagram_arrow_coords": make_arrow_coords(c, graph)
 					}],
 					"re:instructions": {
 						"en": instructions_for_axiom.en[c.axiom] || (c["re:construction_type"] + " fold")
@@ -5525,7 +5525,7 @@
 				break;
 		}
 	};
-	const arrowForConstruction = function(construction, graph) {
+	const make_arrow_coords = function(construction, graph) {
 		let p = construction["re:construction_parameters"];
 		if (construction.axiom === 2) {
 			return [p.marks[1], p.marks[0]];
@@ -5575,7 +5575,7 @@
 		fold_operation: fold_operation,
 		construction_frame: construction_frame,
 		build_diagram_frame: build_diagram_frame,
-		arrowForConstruction: arrowForConstruction
+		make_arrow_coords: make_arrow_coords
 	});
 
 	const merge_maps = function(a, b) {
@@ -8373,7 +8373,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		shadows: false,
 		labels: false,
 		diagram: false,
-		styleSheet: undefined
+		styleSheet: undefined,
+		arrowColor: undefined
 	});
 	const DISPLAY_NAME$1 = {
 		vertices: "vertices",
@@ -8553,12 +8554,14 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 								? p[0][1] > 0.5
 								: p[0][1] < 0.5;
 						}
-						return groups.diagram.arcArrow(p[0], p[1], {
+						let prefs = {
 							side,
-							length: vmin*0.05,
-							width: vmin*0.025,
-							strokeWidth: vmin*0.01,
-						});
+							length: vmin*0.09,
+							width: vmin*0.035,
+							strokeWidth: vmin*0.02,
+						};
+						if (preferences.arrowColor) { prefs.color = preferences.arrowColor;}
+						return groups.diagram.arcArrow(p[0], p[1], prefs);
 					})
 				);
 		};
@@ -9389,63 +9392,105 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			case 7: return axiom7$1(...params);
 		}
 	};
-	const make_axiom_frame = function(axiomNumber, solutions, parameters) {
-		return {
-			number: axiomNumber,
-			parameters,
-			solutions
-		};
+	const test_axiom = function(axiom_frame, poly) {
+		let passes = test[axiom_frame.number].call(null, axiom_frame, poly);
+		let polyobject = Polygon(poly);
+		return !passes
+			? []
+			: axiom_frame.solutions.map(s => polyobject.clipLine(s));
 	};
-	const apply_axiom = function(axiom_frame, poly_points) {
-		let poly = Polygon(poly_points);
-		switch(axiom_frame.number) {
-			case 1: return apply_axiom1_2(axiom_frame, poly);
-			case 2: return apply_axiom1_2(axiom_frame, poly);
-			case 3: return apply_axiom3(axiom_frame, poly);
-			case 4: return apply_axiom4(axiom_frame, poly);
-			case 5: return apply_axiom5(axiom_frame, poly);
-			case 6: return apply_axiom6(axiom_frame, poly);
-			case 7: return apply_axiom7(axiom_frame, poly);
-		}
-	};
-	const apply_axiom1_2 = function(axiom_frame, poly) {
+	const test_axiom1_2 = function(axiom_frame, poly) {
 		let points = axiom_frame.parameters.points;
-		let passes =
-			core.intersection.point_in_convex_poly(points[0], poly.points) &&
-			core.intersection.point_in_convex_poly(points[1], poly.points);
-		return !passes ? [] : axiom_frame.solutions.map(s => poly.clipLine(s))
+		return core.intersection.point_in_convex_poly(points[0], poly) &&
+			core.intersection.point_in_convex_poly(points[1], poly);
 	};
-	const apply_axiom3 = function(axiom_frame, poly) {
+	const test_axiom3 = function(axiom_frame, poly) {
 		let Xing = core.intersection;
 		let lines = axiom_frame.parameters.lines;
-		let passes =
-			Xing.clip_line_in_convex_poly(poly.points, lines[0][0], lines[0][1]) &&
-			Xing.clip_line_in_convex_poly(poly.points, lines[1][0], lines[1][1]);
-		return !passes ? [] : axiom_frame.solutions.map(s => poly.clipLine(s))
+		let a = Xing.clip_line_in_convex_poly(poly, lines[0][0], lines[0][1]);
+		let b = Xing.clip_line_in_convex_poly(poly, lines[1][0], lines[1][1]);
+		return a !== undefined && b !== undefined;
 	};
+	const test_axiom4 = function(axiom_frame, poly) {
+		let params = axiom_frame.parameters;
+		let overlap = core.intersection.line_line(
+			params.lines[0][0], params.lines[0][1],
+			params.points[0], [params.lines[0][1][1], -params.lines[0][1][0]]
+		);
+		if (overlap === undefined) { return false; }
+		return core.intersection.point_in_convex_poly(overlap, poly) &&
+			core.intersection.point_in_convex_poly(params.points[0], poly);
+	};
+	const test_axiom5 = function(axiom_frame, poly) {
+		return true;
+	};
+	const test_axiom6 = function(axiom_frame, poly) {
+		return true;
+	};
+	const test_axiom7 = function(axiom_frame, poly) {
+		if (axiom_frame.solutions.length === 0) { return false; }
+		let solution = axiom_frame.solutions[0];
+		let params = axiom_frame.parameters;
+		let m = core.make_matrix2_reflection(solution[1], solution[0]);
+		let reflected = core.multiply_vector2_matrix2(params.points[0], m);
+		let intersect = core.intersection.line_line(
+			params.lines[1][0], params.lines[1][1],
+			solution[0], solution[1]
+		);
+		axiom_frame.test = {
+			points_reflected: [reflected],
+		};
+		return core.intersection.point_in_convex_poly(reflected, poly) &&
+			core.intersection.point_in_convex_poly(intersect, poly);
+	};
+	const test = [null,
+		test_axiom1_2,
+		test_axiom1_2,
+		test_axiom3,
+		test_axiom4,
+		test_axiom5,
+		test_axiom6,
+		test_axiom7
+	];
 	const axiom1$1 = function(pointA, pointB) {
 		let p0 = get_vec$1(pointA);
 		let p1 = get_vec$1(pointB);
 		let vec = p0.map((_,i) => p1[i] - p0[i]);
-		let solution = [p0, vec];
-		return make_axiom_frame(1, [solution], {points:[p0, p1]});
+		let solution = [[p0, vec]];
+		return {
+			number: 1,
+			parameters: {points:[p0, p1]},
+			solutions: [solution]
+		};
 	};
 	const axiom2$1 = function(a, b) {
 		let mid = core.midpoint(a, b);
 		let vec = core.normalize(a.map((_,i) => b[i] - a[i]));
 		let solution = [mid, [vec[1], -vec[0]]];
-		return make_axiom_frame(2, [solution], {points:[a,b]});
+		return {
+			number: 2,
+			parameters: {points:[a,b]},
+			solutions: [solution]
+		};
 	};
 	const axiom3$1 = function(pointA, vectorA, pointB, vectorB) {
 		let parameters = {lines:[[pointA, vectorA], [pointB, vectorB]]};
-		let answers = core.bisect_lines2(pointA, vectorA, pointB, vectorB);
-		return make_axiom_frame(3, answers, parameters)
+		let solutions = core.bisect_lines2(pointA, vectorA, pointB, vectorB);
+		return {
+			number: 3,
+			parameters,
+			solutions
+		};
 	};
 	const axiom4$1 = function(pointA, vectorA, pointB) {
 		let norm = core.normalize(vectorA);
 		let solution = [[...pointB], [norm[1], -norm[0]]];
 		let parameters = {points: [pointB], lines:[[pointA, vectorA]]};
-		return make_axiom_frame(4, [solution], parameters)
+		return {
+			number: 4,
+			parameters,
+			solutions: [solution]
+		};
 	};
 	const axiom5$1 = function(pointA, vectorA, pointB, pointC) {
 		let pA = get_vec$1(pointA);
@@ -9461,7 +9506,11 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			return [mid, [vec[1], -vec[0]]];
 		});
 		let parameters = {points:[pB, pC], lines:[[pA, vA]]};
-		return make_axiom_frame(5, solutions, parameters)
+		return {
+			number: 5,
+			parameters,
+			solutions
+		};
 	};
 	const axiom7$1 = function(pointA, vectorA, pointB, vectorB, pointC) {
 		let pA = get_vec$1(pointA);
@@ -9475,7 +9524,11 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		let vec = core.normalize(pC.map((_,i) => sect[i] - pC[i]));
 		let solution = [mid, [vec[1], -vec[0]]];
 		let parameters = {points: [pC], lines: [[pA, vA], [pB, vB]]};
-		return make_axiom_frame(7, [solution], parameters)
+		return {
+			number: 7,
+			parameters,
+			solutions: [solution]
+		};
 	};
 	const cuberoot = function(x) {
 		var y = Math.pow(Math.abs(x), 1/3);
@@ -9606,7 +9659,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 		var c4 = (b2*d0 + c2*c0) * z - b3;
 		var d4 =  c2*d0*z - c3;
 		var roots = solveCubic(a4,b4,c4,d4);
-		var lines = [];
+		var solutions = [];
 		if (roots != undefined && roots.length > 0) {
 			for (var i = 0; i < roots.length; ++i) {
 				if (m1 !== undefined && m2 !== undefined) {
@@ -9624,11 +9677,11 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 				if (v2 != q2) {
 					var mF = -1*(u2 - p2)/(v2 - q2);
 					var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
-					lines.push([[0, hF], [1, mF]]);
+					solutions.push([[0, hF], [1, mF]]);
 				}
 				else {
 					var kG = (u2 + p2)/2;
-					lines.push([[kG, 0], [0, 1]]);
+					solutions.push([[kG, 0], [0, 1]]);
 				}
 			}
 		}
@@ -9636,7 +9689,11 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			points: [pointC, pointD],
 			lines: [[pointA, vecA], [pointB, vecB]]
 		};
-		return make_axiom_frame(6, lines, parameters);
+		return {
+			number: 6,
+			parameters,
+			solutions
+		};
 	};
 	var order, irootMax, q1, q2, S, Sr, Si, U;
 	const CubeRoot = function(x) {
@@ -9658,7 +9715,6 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 			axiom6RefFinderFunc(pointA, vecA, pointB, vecB, pointC, pointD, 1),
 			axiom6RefFinderFunc(pointA, vecA, pointB, vecB, pointC, pointD, 2)
 		];
-		console.log(results);
 		return results.filter(c => c != null);
 	};
 	const axiom6RefFinderFunc = function(
@@ -9799,8 +9855,7 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 
 	var allAxioms = /*#__PURE__*/Object.freeze({
 		axiom: axiom,
-		make_axiom_frame: make_axiom_frame,
-		apply_axiom: apply_axiom,
+		test_axiom: test_axiom,
 		axiom1: axiom1$1,
 		axiom2: axiom2$1,
 		axiom3: axiom3$1,

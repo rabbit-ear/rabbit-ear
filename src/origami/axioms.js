@@ -56,18 +56,6 @@ export const axiom = function(number, parameters) {
 	}
 };
 
-/**
- * this object contains the crease information
- * pass it along to the crease pattern as the parameter to a crease method
- */
-export const make_axiom_frame = function(axiomNumber, solutions, parameters) {
-	return {
-		number: axiomNumber,
-		parameters,
-		solutions//: solutions.map(s => ({line: s}))
-	};
-}
-
 // const paramTest = function(a, b, c, d) {
 // 	console.log("arguments", arguments);
 // 	console.log("...arguments", ...arguments);
@@ -77,35 +65,71 @@ export const make_axiom_frame = function(axiomNumber, solutions, parameters) {
 // 	console.log("d", d);
 // }
 
-export const apply_axiom = function(axiom_frame, poly_points) {
-	let poly = Geometry.Polygon(poly_points);
-	switch(axiom_frame.number) {
-		case 1: return apply_axiom1_2(axiom_frame, poly);
-		case 2: return apply_axiom1_2(axiom_frame, poly);
-		case 3: return apply_axiom3(axiom_frame, poly);
-		case 4: return apply_axiom4(axiom_frame, poly);
-		case 5: return apply_axiom5(axiom_frame, poly);
-		case 6: return apply_axiom6(axiom_frame, poly);
-		case 7: return apply_axiom7(axiom_frame, poly);
-	}
+export const test_axiom = function(axiom_frame, poly) {
+	let passes = test[axiom_frame.number].call(null, axiom_frame, poly);
+	let polyobject = Geometry.Polygon(poly);
+	return !passes 
+		? []
+		: axiom_frame.solutions.map(s => polyobject.clipLine(s));
 };
 
-const apply_axiom1_2 = function(axiom_frame, poly) {
+// please make sure poly is an array of points
+const test_axiom1_2 = function(axiom_frame, poly) {
 	let points = axiom_frame.parameters.points;
-	let passes = 
-		Geometry.core.intersection.point_in_convex_poly(points[0], poly.points) &&
-		Geometry.core.intersection.point_in_convex_poly(points[1], poly.points);
-	return !passes ? [] : axiom_frame.solutions.map(s => poly.clipLine(s))
+	return Geometry.core.intersection.point_in_convex_poly(points[0], poly) &&
+		Geometry.core.intersection.point_in_convex_poly(points[1], poly);
 };
 
-const apply_axiom3 = function(axiom_frame, poly) {
+const test_axiom3 = function(axiom_frame, poly) {
 	let Xing = Geometry.core.intersection;
 	let lines = axiom_frame.parameters.lines;
-	let passes = 
-		Xing.clip_line_in_convex_poly(poly.points, lines[0][0], lines[0][1]) &&
-		Xing.clip_line_in_convex_poly(poly.points, lines[1][0], lines[1][1]);
-	return !passes ? [] : axiom_frame.solutions.map(s => poly.clipLine(s))
+	let a = Xing.clip_line_in_convex_poly(poly, lines[0][0], lines[0][1]);
+	let b = Xing.clip_line_in_convex_poly(poly, lines[1][0], lines[1][1]);
+	return a !== undefined && b !== undefined;
 };
+
+const test_axiom4 = function(axiom_frame, poly) {
+	let params = axiom_frame.parameters;
+	let overlap = Geometry.core.intersection.line_line(
+		params.lines[0][0], params.lines[0][1],
+		params.points[0], [params.lines[0][1][1], -params.lines[0][1][0]]
+	);
+	if (overlap === undefined) { return false; }
+	return Geometry.core.intersection.point_in_convex_poly(overlap, poly) &&
+		Geometry.core.intersection.point_in_convex_poly(params.points[0], poly);
+};
+const test_axiom5 = function(axiom_frame, poly) {
+	return true;
+}
+const test_axiom6 = function(axiom_frame, poly) {
+	return true;
+}
+const test_axiom7 = function(axiom_frame, poly) {
+	if (axiom_frame.solutions.length === 0) { return false; }
+	let solution = axiom_frame.solutions[0];
+	let params = axiom_frame.parameters;
+	let m = Geometry.core.make_matrix2_reflection(solution[1], solution[0]);
+	let reflected = Geometry.core.multiply_vector2_matrix2(params.points[0], m);
+	let intersect = Geometry.core.intersection.line_line(
+		params.lines[1][0], params.lines[1][1],
+		solution[0], solution[1]
+	);
+	axiom_frame.test = {
+		points_reflected: [reflected], // 1:1 length as paramters.points
+	}
+	return Geometry.core.intersection.point_in_convex_poly(reflected, poly) &&
+		Geometry.core.intersection.point_in_convex_poly(intersect, poly);
+}
+
+const test = [null,
+	test_axiom1_2,
+	test_axiom1_2,
+	test_axiom3,
+	test_axiom4,
+	test_axiom5,
+	test_axiom6,
+	test_axiom7
+];
 
 // works in n-dimensions
 export const axiom1 = function(pointA, pointB) {
@@ -114,8 +138,12 @@ export const axiom1 = function(pointA, pointB) {
 	let p0 = Args.get_vec(pointA);
 	let p1 = Args.get_vec(pointB);
 	let vec = p0.map((_,i) => p1[i] - p0[i]);
-	let solution = [p0, vec];
-	return make_axiom_frame(1, [solution], {points:[p0, p1]});
+	let solution = [[p0, vec]];
+	return {
+		number: 1,
+		parameters: {points:[p0, p1]},
+		solutions: [solution]
+	};
 }
 
 // 2-dimension only
@@ -123,19 +151,30 @@ export const axiom2 = function(a, b) {
 	let mid = Geometry.core.midpoint(a, b);
 	let vec = Geometry.core.normalize(a.map((_,i) => b[i] - a[i]));
 	let solution = [mid, [vec[1], -vec[0]]];
-	return make_axiom_frame(2, [solution], {points:[a,b]});
+	return {
+		number: 2,
+		parameters: {points:[a,b]},
+		solutions: [solution]
+	};
 }
 export const axiom3 = function(pointA, vectorA, pointB, vectorB) {
 	let parameters = {lines:[[pointA, vectorA], [pointB, vectorB]]}
-	let answers = Geometry.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
-	return make_axiom_frame(3, answers, parameters)
+	let solutions = Geometry.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
+	return {
+		number: 3,
+		parameters,
+		solutions
+	};
 }
 export const axiom4 = function(pointA, vectorA, pointB) {
 	let norm = Geometry.core.normalize(vectorA);
 	let solution = [[...pointB], [norm[1], -norm[0]]];
 	let parameters = {points: [pointB], lines:[[pointA, vectorA]]};
-	return make_axiom_frame(4, [solution], parameters)
-
+	return {
+		number: 4,
+		parameters,
+		solutions: [solution]
+	};
 }
 export const axiom5 = function(pointA, vectorA, pointB, pointC) {
 	let pA = Args.get_vec(pointA);
@@ -153,7 +192,11 @@ export const axiom5 = function(pointA, vectorA, pointB, pointC) {
 		return [mid, [vec[1], -vec[0]]];
 	});
 	let parameters = {points:[pB, pC], lines:[[pA, vA]]};
-	return make_axiom_frame(5, solutions, parameters)
+	return {
+		number: 5,
+		parameters,
+		solutions
+	};
 }
 /**
  * make a crease by bringing a point (pointC) onto a line (pointA, vectorA)
@@ -173,7 +216,11 @@ export const axiom7 = function(pointA, vectorA, pointB, vectorB, pointC) {
 	let vec = Geometry.core.normalize(pC.map((_,i) => sect[i] - pC[i]));
 	let solution = [mid, [vec[1], -vec[0]]];
 	let parameters = {points: [pC], lines: [[pA, vA], [pB, vB]]};
-	return make_axiom_frame(7, [solution], parameters)
+	return {
+		number: 7,
+		parameters,
+		solutions: [solution]
+	};	
 };
 
 
@@ -436,7 +483,7 @@ export const axiom6 = function(pointA, vecA, pointB, vecB, pointC, pointD) {
 	//find the roots
 	var roots = solveCubic(a4,b4,c4,d4);
 
-	var lines = [];
+	var solutions = [];
 	if (roots != undefined && roots.length > 0) {
 		for (var i = 0; i < roots.length; ++i) {
 			if (m1 !== undefined && m2 !== undefined) {
@@ -460,7 +507,7 @@ export const axiom6 = function(pointA, vecA, pointB, vecB, pointC, pointD) {
 
 			//The midpoints may be the same point,
 			// so cannot be used to determine the crease
-			//lines.push(this.axiom1(new M.XY((u1 + p1) / 2, (v1 + q1) / 2),
+			//solutions.push(this.axiom1(new M.XY((u1 + p1) / 2, (v1 + q1) / 2),
 			//   new M.XY((u2 + p2) / 2, (v2 + q2) / 2)));
 
 			if (v2 != q2) {
@@ -468,15 +515,15 @@ export const axiom6 = function(pointA, vecA, pointB, vecB, pointC, pointD) {
 				var mF = -1*(u2 - p2)/(v2 - q2);
 				var hF = (v2*v2 - q2*q2 + u2*u2 - p2*p2) / (2 * (v2 - q2));
 
-				// lines.push(this.axiom1(new M.XY(0, hF), new M.XY(1, mF + hF)));
-				lines.push([[0, hF], [1, mF]]);
+				// solutions.push(this.axiom1(new M.XY(0, hF), new M.XY(1, mF + hF)));
+				solutions.push([[0, hF], [1, mF]]);
 			}
 			else {
 				//G(y) = k
 				var kG = (u2 + p2)/2;
 
-				// lines.push(this.axiom1(new M.XY(kG, 0), new M.XY(kG, 1)));
-				lines.push([[kG, 0], [0, 1]]);
+				// solutions.push(this.axiom1(new M.XY(kG, 0), new M.XY(kG, 1)));
+				solutions.push([[kG, 0], [0, 1]]);
 			}
 		}
 	}
@@ -484,7 +531,11 @@ export const axiom6 = function(pointA, vecA, pointB, vecB, pointC, pointD) {
 		points: [pointC, pointD],
 		lines: [[pointA, vecA], [pointB, vecB]]
 	};
-	return make_axiom_frame(6, lines, parameters);
+	return {
+		number: 6,
+		parameters,
+		solutions
+	};
 }
 
 
@@ -514,7 +565,6 @@ export const axiom6RefFinder = function(
 		axiom6RefFinderFunc(pointA, vecA, pointB, vecB, pointC, pointD, 1),
 		axiom6RefFinderFunc(pointA, vecA, pointB, vecB, pointC, pointD, 2)
 	];
-	console.log(results);
 	return results.filter(c => c != null);
 }
 
