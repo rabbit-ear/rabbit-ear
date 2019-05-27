@@ -162,27 +162,36 @@ export const build_diagram_frame = function(graph) {
 //	direction: [x,y]         // the normal to the fold line, direction of fold
 // }
 export const make_arrow_coords = function(construction, graph) {
-		// console.log(construction);
-	let p = construction["re:construction_parameters"];
-	// axiom 2, simplest case
-	if (construction.axiom === 2) {
-		return [p.marks[1], p.marks[0]];
-	}
 
+	let p = construction["re:construction_parameters"];
+	let axiom = "re:axiom" in construction === true
+		? construction["re:axiom"].number
+		: 0;
+	let axiom_frame = construction["re:axiom"];
+	// axiom 2, simplest case
+	if (axiom === 2) {
+		// todo: these are reversed
+		return [axiom_frame.parameters.points[1], axiom_frame.parameters.points[0]];
+	}
+	if (axiom === 7) {
+		// todo: these are reversed
+		// axiom_frame.test.points_reflected[0]
+		return [axiom_frame.test.points_reflected[0], axiom_frame.parameters.points[0]];
+	}
 	let crease_vector = [
 		p.edge[1][0] - p.edge[0][0],
 		p.edge[1][1] - p.edge[0][1]
 	];
 	let arrow_vector = p.direction;
 	let crossing;
-	switch (p.axiom) {
+	switch (axiom) {
 		case 4: 
 			crossing = REMath.core.intersection.nearest_point(
-				p.edge[0], crease_vector, p.lines[0][0], ((a)=>a));
+				p.edge[0], crease_vector, axiom_frame.parameters.lines[0][0], ((a)=>a));
 			break;
 		case 7:
 			crossing = REMath.core.intersection.nearest_point(
-				p.edge[0], crease_vector, p.marks[0], ((a)=>a));
+				p.edge[0], crease_vector, axiom_frame.parameters.points[0], ((a)=>a));
 			break;
 		default:
 				crossing = REMath.core.average(p.edge);

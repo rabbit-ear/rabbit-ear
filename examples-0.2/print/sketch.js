@@ -26,6 +26,56 @@ origami.onMouseMove = function(mouse) {
 
 let steps = [JSON.parse(JSON.stringify(origami.cp))];
 
+
+origami.fitView = function(rect, w, h, pad = 0.15) {
+	let aspect = w/h;
+	let sideAspect = (w/2)/h;
+	let vb = [];
+	vb[0] = sideAspect < 1 ? 0 : -(sideAspect - 1)/2 ;
+	vb[1] = sideAspect < 1 ? -(1/sideAspect - 1)/2 : 0;
+	vb[2] = sideAspect < 1 ? 1 * 2 : sideAspect*2;
+	vb[3] = sideAspect < 1 ? 1/sideAspect : 1;
+	vb[0] -= pad;
+	vb[1] -= pad;
+	vb[2] += pad*2*2; // due to half screen calc
+	vb[3] += pad*2;
+	origami.setAttribute("viewBox", vb.join(" "));
+}
+
+
+origami.fitViewInRect = function(rect, w, h, pad = 0.1) {
+	let aspect = w/h;
+	let rectAspect = rect.width/rect.height;
+	let r = [rect.x/h, rect.y/h, rect.width/h, rect.height/h];
+
+	let vb = [];
+	vb[0] = rectAspect < 1 ? -r[0]*2         : -r[0]*2-(rectAspect - 1)/2;
+	vb[1] = rectAspect < 1 ? -r[1]*2-(1/rectAspect - 1)/2     : -r[1];
+	vb[2] = rectAspect < 1 ? 1 * (w/rect.width) : rectAspect * (w/rect.width);
+	vb[3] = rectAspect < 1 ? 1/rectAspect * (h/rect.height) : 1 * (h/rect.height);
+	// vb[0] = rectAspect < 1 ? 0 : -(rectAspect - 1)/2 ;
+	// vb[1] = rectAspect < 1 ? -(1/rectAspect - 1)/2 : 0;
+	// vb[2] = rectAspect < 1 ? 1 * 2 : rectAspect*2;
+	// vb[3] = rectAspect < 1 ? 1/rectAspect : 1;
+	vb[0] -= pad;
+	vb[1] -= pad;
+	vb[2] += pad*2*(w/rect.width); // due to half screen calc
+	vb[3] += pad*2*(h/rect.height);
+	origami.setAttribute("viewBox", vb.join(" "));
+}
+
+window.onresize = function(e) {
+	origami.fitViewInRect(
+		document.querySelector("#space").getBoundingClientRect(),
+		e.target.innerWidth, e.target.innerHeight
+	);
+}
+
+origami.fitViewInRect(
+	document.querySelector("#space").getBoundingClientRect(),
+	window.innerWidth, window.innerHeight
+);
+
 origami.onMouseUp = function(mouse) {
 	steps.push(JSON.parse(JSON.stringify(origami.cp)));
 }
@@ -34,6 +84,10 @@ document.querySelector("#reset-button").onclick = function() {
 	origami.cp = RE.bases.square;
 	pattern.cp = RE.bases.square;
 	steps = [JSON.parse(JSON.stringify(origami.cp))];
+	origami.fitViewInRect(
+		document.querySelector("#space").getBoundingClientRect(),
+		window.innerWidth, window.innerHeight
+	);
 }
 document.querySelector("#back-button").onclick = function() {
 	steps.pop();

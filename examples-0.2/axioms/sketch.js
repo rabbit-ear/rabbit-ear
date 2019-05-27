@@ -218,6 +218,7 @@ origami.update = function() {
 
 	// valley crease the solution
 	origami.cp.valleyFold(axiomInfo.solutions[origami.subSelect]);
+	origami.cp["re:construction"]["re:axiom"] = axiomInfo;
 
 
 	let diagram = RE.core.build_diagram_frame(origami.cp);

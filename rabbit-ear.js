@@ -5527,8 +5527,15 @@
 	};
 	const make_arrow_coords = function(construction, graph) {
 		let p = construction["re:construction_parameters"];
-		if (construction.axiom === 2) {
-			return [p.marks[1], p.marks[0]];
+		let axiom = "re:axiom" in construction === true
+			? construction["re:axiom"].number
+			: 0;
+		let axiom_frame = construction["re:axiom"];
+		if (axiom === 2) {
+			return [axiom_frame.parameters.points[1], axiom_frame.parameters.points[0]];
+		}
+		if (axiom === 7) {
+			return [axiom_frame.test.points_reflected[0], axiom_frame.parameters.points[0]];
 		}
 		let crease_vector = [
 			p.edge[1][0] - p.edge[0][0],
@@ -5536,14 +5543,14 @@
 		];
 		let arrow_vector = p.direction;
 		let crossing;
-		switch (p.axiom) {
+		switch (axiom) {
 			case 4:
 				crossing = core.intersection.nearest_point(
-					p.edge[0], crease_vector, p.lines[0][0], ((a)=>a));
+					p.edge[0], crease_vector, axiom_frame.parameters.lines[0][0], ((a)=>a));
 				break;
 			case 7:
 				crossing = core.intersection.nearest_point(
-					p.edge[0], crease_vector, p.marks[0], ((a)=>a));
+					p.edge[0], crease_vector, axiom_frame.parameters.points[0], ((a)=>a));
 				break;
 			default:
 					crossing = core.average(p.edge);
