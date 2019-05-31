@@ -36,7 +36,7 @@ circleLine.redraw = function() {
 	RabbitEar.svg.removeChildren(circleLine.bottomLayer);
 
 	circleLine.line = RabbitEar.Line.fromPoints(circleLine.controls.map(p => p.position));
-	let lineOnScreen = RabbitEar.math.intersection.clip_line_in_convex_poly(circleLine.boundary, circleLine.line.point, circleLine.line.vector);
+	let lineOnScreen = RabbitEar.math.intersection.convex_poly_line(circleLine.boundary, circleLine.line.point, circleLine.line.vector);
 	let svgLine = RabbitEar.svg.line(
 		lineOnScreen[0][0], lineOnScreen[0][1],
 		lineOnScreen[1][0], lineOnScreen[1][1]

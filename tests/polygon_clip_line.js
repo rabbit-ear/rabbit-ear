@@ -52,7 +52,7 @@ clipLine.redraw = function(){
 	];
 	RabbitEar.svg.removeChildren(clipLine.backLayer);
 	let backLine = RabbitEar.Line(clipLine.touches[1].position, vec);
-	let backEdge = RabbitEar.math.intersection.clip_line_in_convex_poly(clipLine.boundary, backLine.point, backLine.vector);
+	let backEdge = RabbitEar.math.intersection.convex_poly_line(clipLine.boundary, backLine.point, backLine.vector);
 	let backEdgeSVG = RabbitEar.svg.line(backEdge[0][0], backEdge[0][1], backEdge[1][0], backEdge[1][1]);
 	backEdgeSVG.setAttribute("stroke", "#f1c14f");
 	backEdgeSVG.setAttribute("stroke", "#f1c14f");

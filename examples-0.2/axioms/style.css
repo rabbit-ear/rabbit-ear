@@ -33,7 +33,7 @@ body {
 	.grid {
 		display: grid;
 		grid-template-columns: 100%;
-		grid-template-rows: calc((100% - 14rem) / 2) calc((100% - 14rem) / 2) 14rem;
+		grid-template-rows: calc((100% - 8rem) / 2) calc((100% - 8rem) / 2) 8rem;
 	}
 	#origami-fold {
 		grid-column: 1/2;
