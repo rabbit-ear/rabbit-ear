@@ -56,7 +56,7 @@ clipEdge.redraw = function(){
 		clipEdge.touches[0].position,
 		clipEdge.touches[1].position
 	);
-	let backEdge = RabbitEar.math.intersection.clip_line_in_convex_poly(clipEdge.boundary, backLine.point, backLine.vector);
+	let backEdge = RabbitEar.math.intersection.convex_poly_line(clipEdge.boundary, backLine.point, backLine.vector);
 
 	let edge = clipEdge.hull.clipEdge(
 		clipEdge.touches[0].position,

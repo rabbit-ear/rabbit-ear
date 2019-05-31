@@ -39,7 +39,7 @@ var split_folding_faces = function(fold, linePoint, lineVector, point) {
 	let side = [0,1]
 		.map(s => new_face_map[tap][s] == null ? [] : new_face_map[tap][s]) 
 		.map(points => points.map(f => new_vertices_coords[f]))
-		.map(f => Geom.core.intersection.point_in_poly(point, f))
+		.map(f => Geom.core.point_in_poly(point, f))
 		.indexOf(true)
 	// make face-adjacent faces on only a subset, the side we clicked on
 	let moving_side = new_face_map.map(f => f[side]);
@@ -161,7 +161,7 @@ var clip_line_in_faces = function({vertices_coords, faces_vertices},
 		.map(va => va.map(v => vertices_coords[v]))
 		.map((poly,i) => ({
 			"face":i,
-			"clip":Geom.core.intersection.clip_line_in_convex_poly(poly, linePoint, lineVector)
+			"clip":Geom.core.intersection.convex_poly_line(poly, linePoint, lineVector)
 		}))
 		.filter((obj) => obj.clip != undefined)
 		.reduce((prev, curr) => {
@@ -392,7 +392,7 @@ var top_face_under_point = function(
 	let top_fi = faces_vertices.map(
 		(vertices_index, fi) => {
 			let points = vertices_index.map(i => vertices_coords[i]);
-			return Geom.core.intersection.point_in_poly(point, points) ? fi : -1;
+			return Geom.core.point_in_poly(point, points) ? fi : -1;
 		}).reduce((acc, fi) => {
 			return ((acc === -1) || 
 							((fi !== -1) && (faces_layer[fi] > faces_layer[acc]))

@@ -151,7 +151,7 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 	// 1. find all edge-crossings and vertex-crossings
 	let vertices_length = fold_new.vertices_coords.length;
 	let vertices_intersections = fold_new.vertices_coords
-		.map(v => Geom.core.intersection.point_on_line(linePoint, lineVector, v));
+		.map(v => Geom.core.point_on_line(linePoint, lineVector, v));
 	let edges_intersections = fold_new.edges_vertices
 		.map(ev => ev.map(v => fold_new.vertices_coords[v]))
 		.map((edge, i) => {

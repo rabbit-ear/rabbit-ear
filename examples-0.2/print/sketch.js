@@ -111,6 +111,9 @@ const printDiagrams = function() {
 		.map((_,i) => steps[i])
 		.forEach((cp,i) => cp["re:diagrams"] = [diagrams[i]]);
 
+	console.log(steps);
+	console.log(diagrams);
+
 	// make SVGs of each step, including diagramming fold and arrows
 	let svgs = steps
 		.map(cp => RE.convert.FOLD_SVG.toSVG(cp, svgOptions));

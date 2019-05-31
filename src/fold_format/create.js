@@ -1,99 +1,99 @@
-import { clean_number } from "../convert/math_arguments"; 
+import { clean_number } from "../convert/math_arguments";
 
 const file_spec = 1.1;
 const file_creator = "Rabbit Ear";
 
-export const square = function(width, height) {
-	return Object.assign(
-		Object.create(null),
-		metadata(),
-		cp_type(),
-		square_graph()
-	);
+const metadata = function () {
+  return {
+    file_spec,
+    file_creator,
+    file_author: "",
+    file_title: "",
+    file_description: "",
+    file_classes: [],
+    file_frames: [],
+    frame_description: "",
+    frame_attributes: [],
+    frame_classes: [],
+    frame_unit: "",
+  };
 };
 
-export const rectangle = function(width, height) {
-	let graph = square_graph();
-	graph.vertices_coords = [[0,0], [width,0], [width,height], [0,height]];
-	graph.edges_length = [width, height, width, height];
-	return Object.assign(
-		Object.create(null),
-		metadata(),
-		cp_type(),
-		graph
-	);
+const cp_type = function () {
+  return {
+    file_classes: ["singleModel"],
+    frame_attributes: ["2D"],
+    frame_classes: ["creasePattern"],
+  };
 };
 
-export const regular_polygon = function(sides, radius = 1) {
-	let arr = Array.from(Array(sides));
-	let angle = 2 * Math.PI / sides;
-	let sideLength = clean_number(Math.sqrt(
-		Math.pow(radius - radius*Math.cos(angle), 2) +
-		Math.pow(radius*Math.sin(angle), 2)
-	));
-	let graph = {
-		// vertices_
-		vertices_coords: arr.map((_,i) => angle * i).map(a => [
-			clean_number(radius*Math.cos(a)),
-			clean_number(radius*Math.sin(a))
-		]),
-		vertices_vertices: arr
-			.map((_,i) => [(i+1)%arr.length, (i+arr.length-1)%arr.length]),
-		vertices_faces: arr.map(_ => [0]),
-		// edges_
-		edges_vertices: arr.map((_,i) => [i, (i+1)%arr.length]),
-		edges_faces: arr.map(_ => [0]),
-		edges_assignment: arr.map(_ => "B"),
-		edges_foldAngle: arr.map(_ => 0),
-		edges_length: arr.map(_ => sideLength),
-		// faces_
-		faces_vertices: [arr.map((_,i) => i)],
-		faces_edges: [arr.map((_,i) => i)],
-	}
-	return Object.assign(
-		Object.create(null),
-		metadata(),
-		cp_type(),
-		graph
-	);
+const square_graph = function () {
+  return {
+    vertices_coords: [[0, 0], [1, 0], [1, 1], [0, 1]],
+    vertices_vertices: [[1, 3], [2, 0], [3, 1], [0, 2]],
+    vertices_faces: [[0], [0], [0], [0]],
+    edges_vertices: [[0, 1], [1, 2], [2, 3], [3, 0]],
+    edges_faces: [[0], [0], [0], [0]],
+    edges_assignment: ["B", "B", "B", "B"],
+    edges_foldAngle: [0, 0, 0, 0],
+    edges_length: [1, 1, 1, 1],
+    faces_vertices: [[0, 1, 2, 3]],
+    faces_edges: [[0, 1, 2, 3]],
+    faces_faces: [[]],
+  };
 };
 
-const metadata = function() {
-	return {
-		file_spec,
-		file_creator,
-		file_author: "",
-		file_title: "",
-		file_description: "",
-		file_classes: [],
-		file_frames: [],
-		frame_description: "",
-		frame_attributes: [],
-		frame_classes: [],
-		frame_unit: "",
-	};
+export const square = function () {
+  return Object.assign(
+    Object.create(null),
+    metadata(),
+    cp_type(),
+    square_graph(),
+  );
 };
 
-const cp_type = function() {
-	return {
-		file_classes: ["singleModel"],
-		frame_attributes: ["2D"],
-		frame_classes: ["creasePattern"],
-	};
+export const rectangle = function (width, height) {
+  const graph = square_graph();
+  graph.vertices_coords = [[0, 0], [width, 0], [width, height], [0, height]];
+  graph.edges_length = [width, height, width, height];
+  return Object.assign(
+    Object.create(null),
+    metadata(),
+    cp_type(),
+    graph,
+  );
 };
 
-const square_graph = function() {
-	return {
-		vertices_coords: [[0,0], [1,0], [1,1], [0,1]],
-		vertices_vertices: [[1,3], [2,0], [3,1], [0,2]],
-		vertices_faces: [[0], [0], [0], [0]],
-		edges_vertices: [[0,1], [1,2], [2,3], [3,0]],
-		edges_faces: [[0], [0], [0], [0]],
-		edges_assignment: ["B","B","B","B"],
-		edges_foldAngle: [0, 0, 0, 0],
-		edges_length: [1, 1, 1, 1],
-		faces_vertices: [[0,1,2,3]],
-		faces_edges: [[0,1,2,3]],
-		faces_faces: [[]]
-	};
-}
+export const regular_polygon = function (sides, radius = 1) {
+  const arr = Array.from(Array(sides));
+  const angle = 2 * Math.PI / sides;
+  const sideLength = clean_number(Math.sqrt(
+    ((radius - radius * Math.cos(angle)) ** 2)
+    + ((radius * Math.sin(angle)) ** 2),
+  ));
+  const graph = {
+    // vertices_
+    vertices_coords: arr.map((_, i) => angle * i).map(a => [
+      clean_number(radius * Math.cos(a)),
+      clean_number(radius * Math.sin(a)),
+    ]),
+    vertices_vertices: arr
+      .map((_, i) => [(i + 1) % arr.length, (i + arr.length - 1) % arr.length]),
+    vertices_faces: arr.map(() => [0]),
+    // edges_
+    edges_vertices: arr.map((_, i) => [i, (i + 1) % arr.length]),
+    edges_faces: arr.map(() => [0]),
+    edges_assignment: arr.map(() => "B"),
+    edges_foldAngle: arr.map(() => 0),
+    edges_length: arr.map(() => sideLength),
+    // faces_
+    faces_vertices: [arr.map((_, i) => i)],
+    faces_edges: [arr.map((_, i) => i)],
+  };
+  return Object.assign(
+    Object.create(null),
+    metadata(),
+    cp_type(),
+    graph,
+  );
+};
