@@ -126,7 +126,7 @@ const test = [null,
 
 export const test_axiom = function (axiom_frame, poly) {
   const passes = test[axiom_frame.number].call(null, axiom_frame, poly);
-  const polyobject = math.Polygon(poly);
+  const polyobject = math.polygon(poly);
   return !passes
     ? []
     : axiom_frame.solutions.map(s => polyobject.clipLine(s));

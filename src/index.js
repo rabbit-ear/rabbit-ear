@@ -18,7 +18,7 @@ import * as svg from "../include/svg";
 import CreasePattern from "./cp/CreasePattern";
 import Origami from "./View2D";
 import Origami3D from "./View3D";
-import Graph from "./Graph";
+import Graph from "./graph";
 // top level methods
 // import { axiom } from "./origami/axioms";
 import * as Axioms from "./origami/axioms";

@@ -3,7 +3,7 @@ let basisVec;
 
 let aspect = window.innerHeight / window.innerWidth;
 
-basisVec = RabbitEar.svg.image("canvas-matrix-basis", function(){
+basisVec = RabbitEar.svg.image("canvas-matrix-basis", function (){
 	if (basisVec != null) {
 		basisVec.setViewBox(-0.5*6, -aspect/2*6, 1*6, aspect*6);
 		basisVec.reset();
@@ -20,7 +20,7 @@ basisVec.basisColors = ["#ecb233", "#e44f2a"];
 basisVec.touches = RabbitEar.svg.controls(basisVec, 2, {radius: 0.04, fill: "#e44f2a"});
 basisVec.touches.forEach((t,i) => t.circle.setAttribute("fill", basisVec.basisColors[i]));
 
-basisVec.reset = function() {
+basisVec.reset = function () {
 	for (let i = 0; i < 2; i++) {
 		var angle = Math.random() * Math.PI * 2;
 		basisVec.touches[i].position = [
@@ -32,16 +32,16 @@ basisVec.reset = function() {
 	basisVec.touches[1].position = [0, 1];
 
 }
-basisVec.recalc = function() {
+basisVec.recalc = function () {
 	let center = [0, 0];
 	basisVec.vectors = basisVec.touches
-		.map(t => RabbitEar.Vector(t.position));
+		.map(t => RabbitEar.vector(t.position));
 	basisVec.normalized = basisVec.vectors.map(v => v.normalize());
 	basisVec.cross = basisVec.normalized[0].cross(basisVec.normalized[1]);
 	basisVec.dot0_1 = basisVec.normalized[0].dot(basisVec.normalized[1]);
 	basisVec.dot1_0 = basisVec.normalized[1].dot(basisVec.normalized[0]);
 }
-basisVec.redraw = function() {
+basisVec.redraw = function () {
 
 	basisVec.gridLayer.removeChildren();
 
@@ -177,16 +177,16 @@ basisVec.redraw = function() {
 	}
 }
 
-basisVec.update = function() {
+basisVec.update = function () {
 	basisVec.recalc();
 	basisVec.redraw();
 }
 
-basisVec.onMouseDown = function(mouse) {
+basisVec.onMouseDown = function (mouse) {
 	basisVec.selected = 0;
 };
 
-basisVec.onMouseMove = function(mouse) {
+basisVec.onMouseMove = function (mouse) {
 	// console.log(mouse);
 	// if(mouse.isPressed && basisVec.selected != null){
 	// 	basisVec.touches[basisVec.selected].pos = mouse.position;
