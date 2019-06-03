@@ -355,7 +355,7 @@ export default function (...args) {
    */
 
   const nearest = function (...methodArgs) {
-    const p = math.vector(...methodArgs);
+    const p = math.vector(methodArgs);
     const plural = { vertex: "vertices", edge: "edges", face: "faces" };
     // run these methods, store the results in their place in the same object
     const nears = {

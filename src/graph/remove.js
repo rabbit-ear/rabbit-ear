@@ -47,7 +47,7 @@ const remove_geometry_key = function (graph, key, removeIndices) {
     .filter(str => str !== undefined);
   // keys like faces_vertices, vertices_vertices (that one counts in both)
   const suffixKeys = graph_keys
-    .map(str => (str.substring(s.length - suffix.length, str.length) === suffix
+    .map(str => (str.substring(str.length - suffix.length, str.length) === suffix
       ? str
       : undefined))
     .filter(str => str !== undefined);

@@ -10,7 +10,8 @@ reflect.appendChild(reflect.reflectLayer);
 // 	{pos: [Math.random()*reflect.w, Math.random()*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
 // ];
 reflect.touches = [
-	{pos: [0.25*reflect.w, 0.5*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
+	{pos: [0, 0], svg: RabbitEar.svg.circle(0, 0, 8)},
+	// {pos: [0.25*reflect.w, 0.5*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
 	{pos: [0.75*reflect.w, 0.5*reflect.h], svg: RabbitEar.svg.circle(0, 0, 8)},
 ];
 reflect.touches.forEach(p => {
@@ -42,7 +43,7 @@ reflect.drawReflections = function(){
 		reflect.touches[1].pos[0] - reflect.touches[0].pos[0],
 		reflect.touches[1].pos[1] - reflect.touches[0].pos[1]
 	];
-	let matrix = RabbitEar.Matrix2.makeReflection(vec, reflect.touches[0].pos);
+	let matrix = RabbitEar.matrix2.makeReflection(vec, reflect.touches[0].pos);
 	reflect.points.forEach(p => {
 		let newPos = matrix.transform(p.pos);
 		// console.log(newPos);
