@@ -1,10 +1,10 @@
-const origami = RE.Origami("origami-cp", { padding: 0.05, diagram: true });
-const folded = RE.Origami("origami-fold", { padding: 0.05 }); //,shadows:true});
+const origami = re.Origami("origami-cp", { padding: 0.05, diagram: true });
+const folded = re.Origami("origami-fold", { padding: 0.05 }); //,shadows:true});
 
-origami.markLayer = RE.svg.group();
+origami.markLayer = re.svg.group();
 origami.insertBefore(origami.markLayer,
   origami.querySelectorAll(".boundaries")[0].nextSibling);
-origami.controls = RE.svg.controls(origami, 0);
+origami.controls = re.svg.controls(origami, 0);
 origami.axiom = undefined;
 origami.subSelect = 0; // some axioms have 2 or 3 results
 
@@ -98,7 +98,7 @@ origami.drawAxiomHelperLines = function (lines, color) {
 // 2: soft reset, axiom params updated
 origami.update = function () {
   // clear and re-fold axiom
-  origami.cp = RE.bases.square;
+  origami.cp = re.bases.square;
 
   // convert the input-control-points into marks and lines,
   // the proper arguments for axiom method calls
@@ -107,13 +107,13 @@ origami.update = function () {
   switch (origami.axiom) {
     case 3: case 6: case 7:
       lines = [
-        RE.Line(pts[0], [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]]),
-        RE.Line(pts[1], [pts[3][0] - pts[1][0], pts[3][1] - pts[1][1]])
+        re.line(pts[0], [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]]),
+        re.line(pts[1], [pts[3][0] - pts[1][0], pts[3][1] - pts[1][1]])
       ];
       break;
     case 4: case 5:
       lines = [
-        RE.Line(pts[0], [pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]])
+        re.line(pts[0], [pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]])
       ];
       break;
     default: break;
@@ -123,26 +123,26 @@ origami.update = function () {
   let axiomInfo;
   switch (origami.axiom) {
     case 1:
-    case 2: axiomInfo = RE.axiom(origami.axiom, ...pts);
+    case 2: axiomInfo = re.axiom(origami.axiom, ...pts);
       break;
-    case 3: axiomInfo = RE.axiom(origami.axiom,
+    case 3: axiomInfo = re.axiom(origami.axiom,
       lines[0].point, lines[0].vector,
       lines[1].point, lines[1].vector);
       break;
-    case 4: axiomInfo = RE.axiom(origami.axiom,
+    case 4: axiomInfo = re.axiom(origami.axiom,
       lines[0].point, lines[0].vector,
       pts[2]);
       break;
-    case 5: axiomInfo = RE.axiom(origami.axiom,
+    case 5: axiomInfo = re.axiom(origami.axiom,
       lines[0].point, lines[0].vector,
       pts[2], pts[3]);
       break;
-    case 6: axiomInfo = RE.axiom(origami.axiom,
+    case 6: axiomInfo = re.axiom(origami.axiom,
       lines[0].point, lines[0].vector,
       lines[1].point, lines[1].vector,
       pts[4], pts[5]);
       break;
-    case 7: axiomInfo = RE.axiom(origami.axiom,
+    case 7: axiomInfo = re.axiom(origami.axiom,
       lines[0].point, lines[0].vector,
       lines[1].point, lines[1].vector,
       pts[4]);
@@ -160,7 +160,7 @@ origami.update = function () {
   //  if (axiomInfo === undefined) { return; }
   // }
 
-  const valid = RE.core.test_axiom(axiomInfo, origami.cp.boundary.points);
+  const valid = re.core.test_axiom(axiomInfo, origami.cp.boundary.points);
   const solutionPassed = valid.map(a => a != null);
 
   switch (origami.axiom) {
@@ -222,15 +222,15 @@ origami.update = function () {
     .map(m => origami.cp.creaseLine(m[0], m[1]))
     .forEach(c => c.mark());
 
-  console.log(axiomInfo);
-  console.log(axiomInfo.solutions[origami.subSelect]);
+  // console.log(axiomInfo);
+  // console.log(axiomInfo.solutions[origami.subSelect]);
 
   // valley crease the solution
   origami.cp.valleyFold(axiomInfo.solutions[origami.subSelect]);
   origami.cp["re:construction"]["re:axiom"] = axiomInfo;
 
 
-  const diagram = RE.core.build_diagram_frame(origami.cp);
+  const diagram = re.core.build_diagram_frame(origami.cp);
   origami.cp["re:diagrams"] = [diagram];
   origami.draw();
 

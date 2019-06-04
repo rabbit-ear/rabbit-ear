@@ -1,6 +1,11 @@
 import math from "../../include/math";
-import { vertices_count } from "./query";
-// todo: make_edges_faces c-clockwise
+
+export const make_vertices_edges = function (graph) {
+  const vertices_edges = graph.vertices_coords.map(() => []);
+  graph.edges_vertices.forEach((ev, i) => ev
+    .forEach(v => vertices_edges[v].push(i)));
+  return vertices_edges;
+};
 
 // faces_faces is a set of faces edge-adjacent to a face. for every face.
 export const make_faces_faces = function (graph) {
@@ -26,6 +31,7 @@ export const make_faces_faces = function (graph) {
   return faces_faces;
 };
 
+// todo: make_edges_faces c-clockwise
 export const make_edges_faces = function (graph) {
   const edges_faces = Array
     .from(Array(graph.edges_vertices.length))
@@ -36,18 +42,12 @@ export const make_edges_faces = function (graph) {
   return edges_faces;
 };
 
-// export const make_vertices_faces = function (graph) {
-//  let vertices_faces = Array
-//    .from(Array(graph.faces_vertices.length))
-//    .map(_ => []);
-//  graph.faces_vertices.forEach((face,i) => face
-//    .forEach(vertex => vertices_faces[vertex].push(i))
-//  );
-//  return vertices_faces;
-// }
-
-
-const edge_vertex_map = function (graph) {
+/**
+ * for fast backwards lookup, this builds a dictionary with keys as vertices
+ * that compose an edge "6 11" always sorted smallest to largest, with a space.
+ * the value is the index of the edge.
+ */
+export const make_vertex_pair_to_edge_map = function (graph) {
   const map = {};
   graph.edges_vertices
     .map(ev => ev.sort((a, b) => a - b).join(" "))
@@ -55,9 +55,20 @@ const edge_vertex_map = function (graph) {
   return map;
 };
 
+/**
+ * build vertices_faces from faces_vertices
+ */
+export const make_vertices_faces = function (graph) {
+  const vertices_faces = Array.from(Array(graph.faces_vertices.length))
+    .map(() => []);
+  graph.faces_vertices.forEach((face, i) => face
+    .forEach(vertex => vertices_faces[vertex].push(i)));
+  return vertices_faces;
+};
+
 // root_face will become the root node
 export const make_face_walk_tree = function (graph, root_face = 0) {
-  const edge_map = edge_vertex_map(graph);
+  const edge_map = make_vertex_pair_to_edge_map(graph);
   // console.log("edge_map", edge_map)
   const new_faces_faces = make_faces_faces(graph);
   if (new_faces_faces.length <= 0) {
@@ -82,7 +93,6 @@ export const make_face_walk_tree = function (graph, root_face = 0) {
           .filter(v => graph.faces_vertices[current.face].indexOf(v) !== -1)
           .sort((a, b) => a - b);
         const edge = edge_map[edge_vertices.join(" ")];
-        // console.log(" -- looking up", edge_vertices.join(" "), edge);
         return {
           face: f,
           parent: current.face,
@@ -95,18 +105,6 @@ export const make_face_walk_tree = function (graph, root_face = 0) {
   } while (list[list.length - 1].length > 0);
   if (list.length > 0 && list[list.length - 1].length === 0) { list.pop(); }
   return list;
-};
-
-/**
- * for quickly determining which side of a crease a face lies
- * this uses point average, not centroid, faces must be convex
- * and again it's not precise, only use this for sided-ness calculation
- */
-export const face_center_pt_average = function (graph, face_index) {
-  return graph.faces_vertices[face_index]
-    .map(v => graph.vertices_coords[v])
-    .reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0])
-    .map(el => el / graph.faces_vertices[face_index].length);
 };
 
 // /////////////////////////////////////////////
@@ -163,7 +161,27 @@ export const make_faces_matrix_inv = function (graph, root_face) {
   return faces_matrix;
 };
 
-export const faces_matrix_coloring = function (faces_matrix) {
+export const make_vertices_coords_folded = function (graph, face_stationary, faces_matrix) {
+  if (face_stationary == null) { face_stationary = 0; }
+  if (faces_matrix == null) {
+    faces_matrix = make_faces_matrix(graph, face_stationary);
+  }
+  const vertex_in_face = graph.vertices_coords.map((v, i) => {
+    for (let f = 0; f < graph.faces_vertices.length; f += 1) {
+      if (graph.faces_vertices[f].includes(i)) { return f; }
+    }
+    return undefined;
+  });
+  return graph.vertices_coords.map((point, i) =>
+    math.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
+      .map(n => math.core.clean_number(n)));
+};
+
+/**
+ * this face coloring skips marks joining the two faces separated by it.
+ * it relates directly to if a face is flipped or not (determinant > 0)
+ */
+export const faces_coloring_from_faces_matrix = function (faces_matrix) {
   return faces_matrix
     .map(m => m[0] * m[3] - m[1] * m[2])
     .map(c => c >= 0);
@@ -172,85 +190,46 @@ export const faces_matrix_coloring = function (faces_matrix) {
  * true/false: which face shares color with root face
  * the root face (and any similar-color face) will be marked as true
  */
-export const faces_coloring = function (graph, root_face = 0) {
-  const coloring = [];
-  coloring[root_face] = true;
-  make_face_walk_tree(graph, root_face)
-    .forEach((level, i) => level
-      .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
-  return coloring;
-};
+// export const faces_coloring = function (graph, root_face = 0) {
+//   const coloring = [];
+//   coloring[root_face] = true;
+//   make_face_walk_tree(graph, root_face)
+//     .forEach((level, i) => level
+//       .forEach((entry) => { coloring[entry.face] = (i % 2 === 0); }));
+//   return coloring;
+// };
 
-/**
- * get the boundary face defined in vertices and edges by walking boundary
- * edges, defined by edges_assignment. no planar calculations
- */
-export const get_boundary_face = function (graph) {
-  const edges_vertices_b = graph.edges_assignment
-    .map(a => a === "B" || a === "b");
-  const vertices_edges = graph.vertices_coords.map(() => []);
-  graph.edges_vertices.forEach((ev, i) => ev
-    .forEach(v => vertices_edges[v].push(i)));
-  const edge_walk = [];
-  const vertex_walk = [];
-  let edgeIndex = -1;
-  for (let i = 0; i < edges_vertices_b.length; i += 1) {
-    if (edges_vertices_b[i]) { edgeIndex = i; break; }
-  }
-  edges_vertices_b[edgeIndex] = false;
-  edge_walk.push(edgeIndex);
-  vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
-  let nextVertex = graph.edges_vertices[edgeIndex][1];
-  while (vertex_walk[0] !== nextVertex) {
-    vertex_walk.push(nextVertex);
-    edgeIndex = vertices_edges[nextVertex]
-      .filter(v => edges_vertices_b[v])
-      .shift();
-    if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
-      nextVertex = graph.edges_vertices[edgeIndex][1];
-    } else {
-      nextVertex = graph.edges_vertices[edgeIndex][0];
-    }
-    edges_vertices_b[edgeIndex] = false;
-    edge_walk.push(edgeIndex);
-  }
-  return {
-    vertices: vertex_walk,
-    edges: edge_walk,
-  };
-};
-
-export const get_boundary_vertices = function (graph) {
-  const edges_vertices_b = graph.edges_vertices
-    .filter((ev, i) => graph.edges_assignment[i] === "B"
-      || graph.edges_assignment[i] === "b")
-    .map(arr => arr.slice());
-  if (edges_vertices_b.length === 0) { return []; }
-  // the index of keys[i] is an edge_vertex from edges_vertices_b
-  //  the [] value is the indices in edges_vertices_b this i appears
-  const keys = Array.from(Array(vertices_count(graph))).map(() => []);
-  edges_vertices_b.forEach((ev, i) => ev.forEach(e => keys[e].push(i)));
-  let edgeIndex = 0;
-  const startVertex = edges_vertices_b[edgeIndex].shift();
-  let nextVertex = edges_vertices_b[edgeIndex].shift();
-  const vertices = [startVertex];
-  while (vertices[0] !== nextVertex) {
-    vertices.push(nextVertex);
-    const whichEdges = keys[nextVertex];
-    const thisKeyIndex = keys[nextVertex].indexOf(edgeIndex);
-    if (thisKeyIndex === -1) { return undefined; }
-    keys[nextVertex].splice(thisKeyIndex, 1);
-    const nextEdgeAndIndex = keys[nextVertex]
-      .map((el, i) => ({ key: el, i }))
-      .filter(el => el.key !== edgeIndex)
-      .shift();
-    if (nextEdgeAndIndex == null) { return undefined; }
-    keys[nextVertex].splice(nextEdgeAndIndex.i, 1);
-    edgeIndex = nextEdgeAndIndex.key;
-    const lastEdgeIndex = edges_vertices_b[edgeIndex].indexOf(nextVertex);
-    if (lastEdgeIndex === -1) { return undefined; }
-    edges_vertices_b[edgeIndex].splice(lastEdgeIndex, 1);
-    nextVertex = edges_vertices_b[edgeIndex].shift();
-  }
-  return vertices;
-};
+// export const make_boundary_vertices = function (graph) {
+//   const edges_vertices_b = graph.edges_vertices
+//     .filter((ev, i) => graph.edges_assignment[i] === "B"
+//       || graph.edges_assignment[i] === "b")
+//     .map(arr => arr.slice());
+//   if (edges_vertices_b.length === 0) { return []; }
+//   // the index of keys[i] is an edge_vertex from edges_vertices_b
+//   //  the [] value is the indices in edges_vertices_b this i appears
+//   const keys = Array.from(Array(graph.vertices_coords.length)).map(() => []);
+//   edges_vertices_b.forEach((ev, i) => ev.forEach(e => keys[e].push(i)));
+//   let edgeIndex = 0;
+//   const startVertex = edges_vertices_b[edgeIndex].shift();
+//   let nextVertex = edges_vertices_b[edgeIndex].shift();
+//   const vertices = [startVertex];
+//   while (vertices[0] !== nextVertex) {
+//     vertices.push(nextVertex);
+//     const whichEdges = keys[nextVertex];
+//     const thisKeyIndex = keys[nextVertex].indexOf(edgeIndex);
+//     if (thisKeyIndex === -1) { return undefined; }
+//     keys[nextVertex].splice(thisKeyIndex, 1);
+//     const nextEdgeAndIndex = keys[nextVertex]
+//       .map((el, i) => ({ key: el, i }))
+//       .filter(el => el.key !== edgeIndex)
+//       .shift();
+//     if (nextEdgeAndIndex == null) { return undefined; }
+//     keys[nextVertex].splice(nextEdgeAndIndex.i, 1);
+//     edgeIndex = nextEdgeAndIndex.key;
+//     const lastEdgeIndex = edges_vertices_b[edgeIndex].indexOf(nextVertex);
+//     if (lastEdgeIndex === -1) { return undefined; }
+//     edges_vertices_b[edgeIndex].splice(lastEdgeIndex, 1);
+//     nextVertex = edges_vertices_b[edgeIndex].shift();
+//   }
+//   return vertices;
+// };

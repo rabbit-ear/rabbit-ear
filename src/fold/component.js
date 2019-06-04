@@ -1,4 +1,13 @@
+/**
+ * the goal of this is to condense all the geometry information from a FOLD
+ * object into 3 arrays (vertices, edges, faces), each one coalescing
+ * information from across their relevant geometry.
+ *
+ */
+
 import math from "../../include/math";
+
+// USE STATIC INITIALIZERS
 
 const makeUUID = function () {
   // there is a non-zero chance this generates duplicate strings
@@ -13,51 +22,44 @@ const makeUUID = function () {
  * this is meant to be a prototype
  * a component relates 1:1 to something in the FOLD graph, vertex/edge/face.
  */
-const Component = function (proto, options) {
+const component = function (proto) { //, options) {
   if (proto == null) {
-    proto = {};
+    // proto = {};
+    return undefined;
+    // use the static initializers
   }
-  if (options != null) {
-    proto.graph = options.graph; // pointer back to the graph
-    proto.index = options.index; // index of this crease in the graph
-  }
-  proto.uuid = makeUUID();
-
+  const _this = Object.create(proto);
+  _this.uuid = makeUUID();
   const disable = function () {
-    Object.setPrototypeOf(this, null);
-    Object.getOwnPropertyNames(this)
-      .forEach(key => delete this[key]);
+    Object.setPrototypeOf(_this, null);
+    Object.getOwnPropertyNames(_this)
+      .forEach(key => delete _this[key]);
   };
-  Object.defineProperty(proto, "disable", { value: disable });
-  return Object.freeze(proto);
+  Object.defineProperty(_this, "disable", { value: disable });
+  return Object.freeze(_this);
 };
 
-/**
- * in each of these, properties should be set to configurable so that
- * the object can be disabled, and all property keys erased.
- */
-
-export const Vertex = function (graph, index) {
+const vertexPrototype = function (graph, index) {
   const point = math.vector(graph.vertices_coords[index]);
-  const _this = Object.create(Component(point, { graph, index }))
+  const _this = Object.create(component(point, { graph, index }));
   return _this;
 };
 
-export const Face = function (graph, index) {
+const facePrototype = function (graph, index) {
   const points = graph.faces_vertices[index]
     .map(fv => graph.vertices_coords[fv]);
   const face = math.polygon(points);
-  const _this = Object.create(Component(face, {graph, index}))
+  const _this = Object.create(component(face, {graph, index}));
   return _this;
 };
 
-export const Edge = function (graph, index) {
-
+const edgePrototype = function (graph, index) {
   const points = graph.edges_vertices[index]
     .map(ev => graph.vertices_coords[ev]);
   const edge = math.edge(points);
 
-  const _this = Object.create(Component(edge, {graph, index}))
+  // const _this = Object.create(Component(edge, {graph, index}))
+  const _this = {};
 
   const is_assignment = function (options) {
     return options.map(l => l === this.graph.edges_assignment[index])
@@ -71,13 +73,6 @@ export const Edge = function (graph, index) {
   };
   const is_boundary = function () {
     return is_assignment.call(this, ["B", "b"]);
-  };
-
-  const flip = function () {
-    if (is_mountain.call(this)) { valley.call(this); }
-    else if (is_valley.call(this)) { mountain.call(this); }
-    else { return; } // don't trigger the callback
-    this.graph.onchange.forEach(f => f());
   };
   const mountain = function () {
     this.graph.edges_assignment[index] = "M";
@@ -94,33 +89,64 @@ export const Edge = function (graph, index) {
     this.graph.edges_foldAngle[index] = 0;
     this.graph.onchange.forEach(f => f());
   };
-  const remove = function () { }
+  const flip = function () {
+    if (is_mountain.call(this)) { valley.call(this); }
+    else if (is_valley.call(this)) { mountain.call(this); }
+    else { return; } // don't trigger the callback
+    this.graph.onchange.forEach(f => f());
+  };
+  const remove = function () { };
   const addVertexOnEdge = function (x, y) {
-    let thisEdge = this.index;
+    const thisEdge = this.index;
     this.graph.addVertexOnEdge(x, y, thisEdge);
   };
 
-  Object.defineProperty(_this, "mountain", {configurable: true, value: mountain});
-  Object.defineProperty(_this, "valley", {configurable: true, value: valley});
-  Object.defineProperty(_this, "mark", {configurable: true, value: mark});
-  Object.defineProperty(_this, "flip", {configurable: true, value: flip});
+  Object.defineProperty(_this, "mountain", { configurable: true, value: mountain });
+  Object.defineProperty(_this, "valley", { configurable: true, value: valley });
+  Object.defineProperty(_this, "mark", { configurable: true, value: mark });
+  Object.defineProperty(_this, "flip", { configurable: true, value: flip });
   Object.defineProperty(_this, "isBoundary", {
     configurable: true,
-    get: function (){ return is_boundary.call(this); }
+    get: function () { return is_boundary.call(this); }
   });
   Object.defineProperty(_this, "isMountain", {
     configurable: true,
-    get: function (){ return is_mountain.call(this); }
+    get: function () { return is_mountain.call(this); }
   });
   Object.defineProperty(_this, "isValley", {
     configurable: true,
-    get: function (){ return is_valley.call(this); }
+    get: function () { return is_valley.call(this); }
   });
   // Object.defineProperty(_this, "remove", {value: remove});
-  Object.defineProperty(_this, "addVertexOnEdge", {configurable: true, value: addVertexOnEdge});
+  Object.defineProperty(_this, "addVertexOnEdge", {
+    configurable: true, value: addVertexOnEdge
+  });
   return _this;
 };
 
+
+component.vertex = function (graph, index) {
+  const proto = vertexPrototype.bind(this);
+  return component(proto(graph, index));
+};
+component.edge = function (graph, index) {
+  const proto = edgePrototype.bind(this);
+  return component(proto(graph, index));
+};
+component.face = function (graph, index) {
+  const proto = facePrototype.bind(this);
+  return component(proto(graph, index));
+};
+
+component.crease = function (graph, index) {
+  console.warn("todo");
+};
+
+export default component;
+/**
+ * in each of these, properties should be set to configurable so that
+ * the object can be disabled, and all property keys erased.
+ */
 
 // consider this: a crease can be an ARRAY of edges.
 // this way one crease is one crease. it's more what a person expects.

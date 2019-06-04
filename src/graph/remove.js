@@ -1,21 +1,10 @@
-// graph manipulators for .FOLD file github.com/edemaine/fold
-// MIT open source license, Robby Kraft
-
-// import {
-//   clone,
-// } from "../fold_format/object";
-
-import {
-  // make_edges_faces,
-  get_boundary_face,
-} from "./make";
-
 import {
   vertices_count,
   edges_count,
   faces_count,
+  get_boundary,
+  get_isolated_vertices,
 } from "./query";
-
 
 const get_geometry_length = {
   vertices: vertices_count,
@@ -23,12 +12,19 @@ const get_geometry_length = {
   faces: faces_count,
 };
 
+const remove_degree_two_vertex = function (graph, vertex) {
+
+};
+
 /**
- * specify a key "vertices", and an array of the indices to remove [1,9,25]
- * this method will target the appropriate geometry arrays, looking in both
- * suffix and prefix-based ("..._vertices" and "vertices_...") arrays
+ * the generalized method for removing vertices, edges, faces.
+ * updates both suffix and prefix arrays (vertices_... and ..._vertices).
+ * array indices shift after removal, this updates all relevant arrays.
+ *
+ * @param key is a string, like "vertices"
+ * @param removeIndices, array of numbers, like [1,9,25]
  */
-const remove_geometry_key = function (graph, key, removeIndices) {
+const remove_geometry_key_indices = function (graph, key, removeIndices) {
   const geometry_array_size = get_geometry_length[key](graph);
   const removes = Array(geometry_array_size).fill(false);
   removeIndices.forEach((v) => { removes[v] = true; });
@@ -72,13 +68,13 @@ const remove_geometry_key = function (graph, key, removeIndices) {
  * @example remove_vertices(fold_file, [2,6,11,15]);
  */
 export const remove_vertices = function (graph, vertices) {
-  return remove_geometry_key(graph, "vertices", vertices);
+  return remove_geometry_key_indices(graph, "vertices", vertices);
   // todo: do the same with frames in file_frames where inherit=true
 };
 
 export const remove_edges = function (graph, edges) {
   // length of index_map is length of the original vertices_coords
-  const index_map = remove_geometry_key(graph, "edges", edges);
+  const index_map = remove_geometry_key_indices(graph, "edges", edges);
   // special cases that don't follow _edges or edges_ convention
   if (graph.edgeOrders !== undefined && graph.edgeOrders.length > 0) {
     graph.edgeOrders.forEach((order, i) => order.forEach((n, j) => {
@@ -91,7 +87,7 @@ export const remove_edges = function (graph, edges) {
 
 export const remove_faces = function (graph, faces) {
   // length of index_map is length of the original vertices_coords
-  const index_map = remove_geometry_key(graph, "faces", faces);
+  const index_map = remove_geometry_key_indices(graph, "faces", faces);
   // special cases that don't follow _faces or faces_ convention
   if (graph.faceOrders !== undefined && graph.faceOrders.length > 0) {
     graph.faceOrders.forEach((order, i) => order.forEach((n, j) => {
@@ -111,17 +107,7 @@ export const remove_faces = function (graph, faces) {
 // }
 
 export const remove_isolated_vertices = function (graph) {
-  const isolated = graph.vertices_coords.map(() => true);
-  graph.edges_vertices
-    .forEach(edge => edge
-      .forEach((v) => {
-        isolated[v] = false;
-      }));
-  const vertices = isolated
-    .map((el, i) => (el ? i : undefined))
-    .filter(el => el !== undefined);
-  if (vertices.length === 0) { return []; }
-  return remove_vertices(graph, vertices);
+  return remove_vertices(graph, get_isolated_vertices(graph));
 };
 
 /**
@@ -135,7 +121,7 @@ export const remove_non_boundary_edges = function (graph) {
     .map((a, i) => (a ? i : undefined))
     .filter(a => a !== undefined);
   const edge_map = remove_edges(graph, remove_indices);
-  const face = get_boundary_face(graph);
+  const face = get_boundary(graph);
   graph.faces_edges = [face.edges];
   graph.faces_vertices = [face.vertices];
   remove_isolated_vertices(graph);
@@ -317,19 +303,19 @@ export const reindex_subscript = function (
   return graph;
 };
 
-/** This filters out all non-operational edges
- * removes: "F": flat "U": unassigned
- * retains: "B": border/boundary, "M": mountain, "V": valley
- */
-export const remove_marks = function (fold) {
-  const removeTypes = ["f", "F", "u", "U"];
-  const removeEdges = fold.edges_assignment
-    .map((a, i) => ({ a, i }))
-    .filter(obj => removeTypes.indexOf(obj.a) !== -1)
-    .map(obj => obj.i);
-  remove_edges(fold, removeEdges);
-  clean(fold);
-};
+// /** This filters out all non-operational edges
+//  * removes: "F": flat "U": unassigned
+//  * retains: "B": border/boundary, "M": mountain, "V": valley
+//  */
+// export const remove_marks = function (fold) {
+//   const removeTypes = ["f", "F", "u", "U"];
+//   const removeEdges = fold.edges_assignment
+//     .map((a, i) => ({ a, i }))
+//     .filter(obj => removeTypes.indexOf(obj.a) !== -1)
+//     .map(obj => obj.i);
+//   remove_edges(fold, removeEdges);
+//   clean(fold);
+// };
 
 /**
  * Replace all instances of removed vertices with "vertex".

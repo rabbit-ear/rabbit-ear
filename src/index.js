@@ -15,25 +15,25 @@ import * as svg from "../include/svg";
 // import * as noise from "../include/perlin";
 
 // top level objects
-import CreasePattern from "./cp/CreasePattern";
-import Origami from "./View2D";
-import Origami3D from "./View3D";
-import Graph from "./graph";
+import CreasePattern from "./fold/cp";
+import Origami from "./objects/View2D";
+import Origami3D from "./objects/View3D";
+import Graph from "./objects/graph";
 // top level methods
 // import { axiom } from "./origami/axioms";
 import * as Axioms from "./origami/axioms";
 
 // to be included in "convert"
-import { toFOLD, toSVG, toORIPA } from "./convert/filetype";
+import { toFOLD, toSVG, toORIPA } from "./files/filetype";
 // todo, remove
 import FOLD_SVG from "../include/fold-svg";
 
 // to be included in "core"
-import * as create from "./fold_format/create";
-import * as frames from "./fold_format/frames";
-import * as object from "./fold_format/object";
-import * as spec from "./fold_format/spec";
-import * as validate from "./fold_format/validate";
+import * as create from "./fold/create";
+import * as frames from "./fold/file_frames";
+import * as object from "./fold/object";
+import * as spec from "./fold/spec";
+import * as validate from "./fold/validate";
 
 import * as add from "./graph/add";
 import * as remove from "./graph/remove";
@@ -41,23 +41,22 @@ import * as make from "./graph/make";
 import * as query from "./graph/query";
 import * as planargraph from "./graph/planargraph";
 
+// import * as crease from "./origami/crease";
 import * as fold from "./origami/fold";
-import * as crease from "./origami/crease";
-import * as creasethrough from "./origami/creasethrough";
 import * as kawasaki from "./origami/kawasaki";
 // import { default as valleyfold } from "./fold/valleyfold";
 
-import * as diagram from "./origami/diagram";
+import diagram from "./frames/diagram_frame";
 
 // origami bases
-import empty from "./bases/empty.fold";
-import square from "./bases/square.fold";
-import book from "./bases/book.fold";
-import blintz from "./bases/blintz.fold";
-import kite from "./bases/kite.fold";
-import fish from "./bases/fish.fold";
-import bird from "./bases/bird.fold";
-import frog from "./bases/frog.fold";
+import empty from "./fold/bases/empty.fold";
+import square from "./fold/bases/square.fold";
+import book from "./fold/bases/book.fold";
+import blintz from "./fold/bases/blintz.fold";
+import kite from "./fold/bases/kite.fold";
+import fish from "./fold/bases/fish.fold";
+import bird from "./fold/bases/bird.fold";
+import frog from "./fold/bases/frog.fold";
 
 
 const convert = {
@@ -79,9 +78,8 @@ Object.assign(core,
   planargraph,
   make,
   query,
+  // crease,
   fold,
-  crease,
-  creasethrough,
   kawasaki,
   diagram,
   Axioms);

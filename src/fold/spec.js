@@ -17,7 +17,7 @@ export const keys_types = {
     "frame_attributes",
     "frame_classes",
     "frame_unit",
-    "frame_parent",  // inside file_frames only
+    "frame_parent", // inside file_frames only
     "frame_inherit", // inside file_frames only
   ],
   graph: [
@@ -70,8 +70,7 @@ export const keys = Object.freeze([]
   .concat(keys_types.file)
   .concat(keys_types.frame)
   .concat(keys_types.graph)
-  .concat(keys_types.orders)
-);
+  .concat(keys_types.orders));
 
 // export const CREASE_NAMES = Object.freeze({
 //  "B": "boundary", "b": "boundary",
@@ -82,11 +81,12 @@ export const keys = Object.freeze([]
 // });
 
 const assignment_angles = {
-  "M": -180,  "V": 180,
-  "m": -180,  "v": 180
+  M: -180,
+  m: -180,
+  V: 180,
+  v: 180
 };
 
-export const edge_assignment_to_foldAngle = function(assignment) {
+export const edge_assignment_to_foldAngle = function (assignment) {
   return assignment_angles[assignment] || 0;
-}
-
+};

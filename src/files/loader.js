@@ -1,10 +1,10 @@
 import * as SVG from "../../include/svg";
-// import * as FOLD_SVG from "../../include/fold-svg";
+import FOLD_SVG from "../../include/fold-svg";
 
-let FOLD_SVG = {
-  toFOLD: function(){},
-  toSVG: function(){}
-};
+// let FOLD_SVG = {
+//   toFOLD: function (){},
+//   toSVG: function (){}
+// };
 
 
 /** parser error to check against */
@@ -23,29 +23,29 @@ const pErr = (new window.DOMParser())
  * - raw blob contents of a preloaded file (.fold, .oripa, .svg)
  * - SVG DOM objects (<svg> SVGElement)
  */
-export const load_file = function(input, callback) {
-  let type = typeof input;
+const load_file = function (input, callback) {
+  const type = typeof input;
   if (type === "object") {
     try {
-      let fold = JSON.parse(JSON.stringify(input));
+      const fold = JSON.parse(JSON.stringify(input));
       // todo different way of checking fold format validity
       if (fold.vertices_coords == null) {
-        throw "tried FOLD format, got empty object";
+        throw new Error("tried FOLD format, got empty object");
       }
       if (callback != null) {
         callback(fold);
       }
       return fold; // asynchronous loading was not required
-    } catch(err) {
-      if (input instanceof Element){
-        FOLD_SVG.toFOLD(input, function(fold) {
+    } catch (err) {
+      if (input instanceof Element) {
+        FOLD_SVG.toFOLD(input, (fold) => {
           if (callback != null) { callback(fold); }
         });
         return; // asynchronous loading was not required
       } else {
         // console.warn("could not load file, object is either not valid FOLD or corrupt JSON.", err);
       }
-    } 
+    }
     // finally {
     //  return;  // currently not used. everything previous is already returning
     // }
@@ -57,40 +57,43 @@ export const load_file = function(input, callback) {
       // try .fold file format first
       let fold = JSON.parse(input);
       if (callback != null) { callback(fold); }
-    } catch(err) {
+    } catch (err) {
       // try rendering the XML string
       let xml = (new window.DOMParser()).parseFromString(input, "text/xml");
       if (xml.getElementsByTagNameNS(pErr, "parsererror").length === 0) {
         let parsedSVG = xml.documentElement;
-        FOLD_SVG.toFOLD(parsedSVG, function(fold) {
+        FOLD_SVG.toFOLD(parsedSVG, (fold) => {
           if (callback != null) { callback(fold); }
         });
         return;
       }
 
-      let extension = input.substr((input.lastIndexOf('.') + 1));
+      let extension = input.substr((input.lastIndexOf(".") + 1));
       // filename. we need to upload
-      switch(extension) {
+      switch (extension) {
         case "fold":
           fetch(input)
-            .then((response) => response.json())
+            .then(response => response.json())
             .then((data) => {
               if (callback != null) { callback(data); }
             });
-        break;
+          break;
         case "svg":
-          SVG.load(input, function(svg) {
-            FOLD_SVG.toFOLD(input, function(fold) {
+          SVG.load(input, (svg) => {
+            FOLD_SVG.toFOLD(input, (fold) => {
               if (callback != null) { callback(fold); }
             });
           });
-        break;
+          break;
         case "oripa":
-          // ORIPA.load(input, function(fold) {
+          // ORIPA.load(input, function (fold) {
           //  if (callback != null) { callback(fold); }
           // });
-        break;
+          break;
+        default: break;
       }
     }
   }
-}
+};
+
+export default load_file;

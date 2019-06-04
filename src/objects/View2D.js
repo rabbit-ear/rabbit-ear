@@ -7,20 +7,21 @@
  *   - DOM object, or "string" DOM id to attach to
  */
 
-import math from "../include/math";
-import * as SVG from "../include/svg";
-import FOLD_SVG from "../include/fold-svg";
+import math from "../../include/math";
+import * as SVG from "../../include/svg";
+import FOLD_SVG from "../../include/fold-svg";
 
-import * as Fold from "./origami/fold";
-import { flatten_frame } from "./fold_format/frames";
-import { load_file } from "./convert/loader";
-import CreasePattern from "./cp/CreasePattern";
-import { get_boundary_face } from "./graph/make";
+// import { build_folded_frame } from "../frames/folded_frame";
+// import fold_through from "../origami/fold";
+import { flatten_frame } from "../fold/file_frames";
+import load_file from "../files/loader";
+import CreasePattern from "../fold/cp";
 import {
   faces_containing_point,
   topmost_face,
   bounding_rect,
-} from "./graph/query";
+  get_boundary,
+} from "../graph/query";
 
 const DEFAULTS = Object.freeze({
   autofit: true,
@@ -411,7 +412,7 @@ export default function (...args) {
     const graph = prop.frame
       ? flatten_frame(prop.cp, prop.frame)
       : prop.cp;
-    return math.polygon(get_boundary_face(graph).vertices
+    return math.polygon(get_boundary(graph).vertices
       .map(v => graph.vertices_coords[v]));
     // let boundary = prop.cp.boundary;
     // boundary.forEach((v,i) => v.svg = groups.boundaries.children[i])
@@ -449,7 +450,10 @@ export default function (...args) {
   };
 
   const foldWithoutLayering = function (face) {
-    const folded = Fold.fold_without_layering(prop.cp, face);
+    const folded = {};
+    folded.frame_classes = ["foldedForm"];
+    folded.vertices_coords = make.make_vertices_coords_folded(prop.cp, face);
+
     setCreasePattern(CreasePattern(folded));
     Array.from(groups.faces.children).forEach(f => f.setClass("face"));
   };
