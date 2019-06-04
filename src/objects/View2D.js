@@ -11,7 +11,7 @@ import math from "../../include/math";
 import * as SVG from "../../include/svg";
 import FOLD_SVG from "../../include/fold-svg";
 
-// import { build_folded_frame } from "../frames/folded_frame";
+import { build_folded_frame } from "../frames/folded_frame";
 // import fold_through from "../origami/fold";
 import { flatten_frame } from "../fold/file_frames";
 import load_file from "../files/loader";
@@ -377,6 +377,7 @@ export default function (...args) {
   const getVertices = function () {
     const { vertices } = prop.cp;
     vertices.forEach((v, i) => { v.svg = groups.vertices.childNodes[i]; });
+    console.log("vertices", vertices);
     Object.defineProperty(vertices, "visible", {
       get: () => visible.vertices,
       set: (v) => { visible.vertices = !!v; draw(); },
@@ -441,7 +442,7 @@ export default function (...args) {
     } else {
       // for the moment let's assume it's just 1 layer. face = 0
       if (face == null) { face = 0; }
-      const file_frame = Fold.build_folded_frame(prop.cp, face);
+      const file_frame = build_folded_frame(prop.cp, face);
       if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
       prop.cp.file_frames.unshift(file_frame);
     }
@@ -577,7 +578,7 @@ export default function (...args) {
       let points = [math.vector(mouse.pressed), math.vector(mouse.position)];
       let midpoint = points[0].midpoint(points[1]);
       let vector = points[1].subtract(points[0]);
-      console.log(midpoint, vector.rotateZ90(), touchFaceIndex);
+      // console.log(midpoint, vector.rotateZ90(), touchFaceIndex);
       prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
       fold();
     }

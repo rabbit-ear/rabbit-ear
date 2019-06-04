@@ -39,7 +39,7 @@ import * as add from "./graph/add";
 import * as remove from "./graph/remove";
 import * as make from "./graph/make";
 import * as query from "./graph/query";
-import * as planargraph from "./graph/planargraph";
+import * as rebuild from "./graph/rebuild";
 
 // import * as crease from "./origami/crease";
 import * as fold from "./origami/fold";
@@ -74,7 +74,7 @@ Object.assign(core,
   validate,
   add,
   remove,
-  planargraph,
+  rebuild,
   make,
   query,
   // crease,
