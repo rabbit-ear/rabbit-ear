@@ -10,7 +10,6 @@
 */
 
 import math from "../../include/math";
-import * as Args from "../convert/math_arguments";
 
 /**
  * an axiom_frame is under the key "re:axiom", it contains:
@@ -136,8 +135,8 @@ export const test_axiom = function (axiom_frame, poly) {
 export const axiom1 = function (pointA, pointB) {
   // const a = pointA;
   // const b = pointB;
-  const p0 = Args.get_vector(pointA);
-  const p1 = Args.get_vector(pointB);
+  const p0 = math.core.get_vector(pointA);
+  const p1 = math.core.get_vector(pointB);
   const vec = p0.map((_, i) => p1[i] - p0[i]);
   const solution = [[p0, vec]];
   return {
@@ -149,7 +148,7 @@ export const axiom1 = function (pointA, pointB) {
 
 // 2-dimension only
 export const axiom2 = function (a, b) {
-  const mid = math.core.midpoint(a, b);
+  const mid = math.core.midpoint2(a, b);
   const vec = math.core.normalize(a.map((_, i) => b[i] - a[i]));
   const solution = [mid, [vec[1], -vec[0]]];
   return {
@@ -178,17 +177,17 @@ export const axiom4 = function (pointA, vectorA, pointB) {
   };
 };
 export const axiom5 = function (pointA, vectorA, pointB, pointC) {
-  const pA = Args.get_vector(pointA);
-  const vA = Args.get_vector(vectorA);
-  const pB = Args.get_vector(pointB);
-  const pC = Args.get_vector(pointC);
+  const pA = math.core.get_vector(pointA);
+  const vA = math.core.get_vector(vectorA);
+  const pB = math.core.get_vector(pointB);
+  const pC = math.core.get_vector(pointC);
   const radius = Math.sqrt(((pB[0] - pC[0]) ** 2) + ((pB[1] - pC[1]) ** 2));
   // circle line intersection needs another point, not vector... oops
   const pA2 = [pA[0] + vA[0], pA[1] + vA[1]];
   const sect = math.core.intersection.circle_line(pB, radius, pA, pA2) || [];
   const solutions = sect.map((s) => {
     // axiom 2
-    const mid = math.core.midpoint(pC, s);
+    const mid = math.core.midpoint2(pC, s);
     const vec = math.core.normalize(s.map((_, i) => s[i] - pC[i]));
     return [mid, [vec[1], -vec[0]]];
   });
@@ -206,15 +205,15 @@ export const axiom5 = function (pointA, vectorA, pointB, pointC) {
  * (technically we don't need pointB, but it does go into "parameters")
  */
 export const axiom7 = function (pointA, vectorA, pointB, vectorB, pointC) {
-  const pA = Args.get_vector(pointA);
-  const pB = Args.get_vector(pointB);
-  const pC = Args.get_vector(pointC);
-  const vA = Args.get_vector(vectorA);
-  const vB = Args.get_vector(vectorB);
+  const pA = math.core.get_vector(pointA);
+  const pB = math.core.get_vector(pointB);
+  const pC = math.core.get_vector(pointC);
+  const vA = math.core.get_vector(vectorA);
+  const vB = math.core.get_vector(vectorB);
   const sect = math.core.intersection.line_line(pA, vA, pC, vB);
   if (sect === undefined) { return undefined; }
   // axiom 2
-  const mid = math.core.midpoint(pC, sect);
+  const mid = math.core.midpoint2(pC, sect);
   const vec = math.core.normalize(pC.map((_, i) => sect[i] - pC[i]));
   const solution = [mid, [vec[1], -vec[0]]];
   const parameters = { points: [pC], lines: [[pA, vA], [pB, vB]] };
@@ -574,12 +573,12 @@ export const axiom6RefFinderFunc = function (
   pointA, vecA, pointB, vecB, pointC, pointD, iroot
 ) {
 
-  let pA = Args.get_vector(pointA);
-  let pB = Args.get_vector(pointB);
-  let pC = Args.get_vector(pointC);
-  let pD = Args.get_vector(pointD);
-  let vA = Args.get_vector(vecA);
-  let vB = Args.get_vector(vecB);
+  let pA = math.core.get_vector(pointA);
+  let pB = math.core.get_vector(pointB);
+  let pC = math.core.get_vector(pointC);
+  let pD = math.core.get_vector(pointD);
+  let vA = math.core.get_vector(vecA);
+  let vB = math.core.get_vector(vecB);
 
   let p1 = pC;
   let l1 = math.line(pA, vA);
@@ -733,7 +732,7 @@ export const axiom6RefFinderFunc = function (
   //if (p1p == p1) return;   // we only consider p1 off of the fold line
 
   let l_u = math.core.normalize([p1p[0]-p1[0], p1p[1]-p1[1]]);
-  let l_d = math.core.dot(l_u, math.core.midpoint(p1p, p1));
+  let l_d = math.core.dot(l_u, math.core.midpoint2(p1p, p1));
 
   let creasePoint = [l_d * l_u[0], l_d * l_u[1]];
   let creaseVector = [-l_u[1], l_u[0]];

@@ -1,0 +1,85 @@
+const example = {};
+
+example.transformation_frame = {
+  new: {
+    vertices: [], // 0-indexed array. every array follows this except "update"
+    edges: [],
+    faces: []
+  },
+  update: [ // dimension of array matches graph
+    // empty x 5
+    { edges_vertices: [5, 6], vertices_vertices: [4, 1] },
+    // empty x 2
+    { vertices_vertices: [0, 4] }
+  ],
+  remove: {
+    vertices: [],
+    edges: [4],
+    faces: [],
+  },
+};
+
+example["re:construction"] = {
+  axiom: 2,
+  type: "valley",
+  direction: [0.0435722, -0.999050],
+  edge: [[0, 0.45016], [1, 0.49377]],
+  parameters: { marks: [[0.97319, 0.05149], [0.93478, 0.93204]] }
+};
+
+
+example["re:axiom"] = {
+  number: 2,
+  parameters: { marks: [[0.97319, 0.05149], [0.93478, 0.93204]] }
+};
+
+
+example["re:diagrams"] = [{
+  "re:diagram_lines": [{
+    "re:diagram_line_classes": ["valley"],
+    "re:diagram_line_coords": [[0, 0.2], [1, 0.5]]
+  }],
+  "re:diagram_arrows": [{
+    "re:diagram_arrow_classes": [],
+    "re:diagram_arrow_coords": [[0.6, 0], [0.3, 1]]
+  }]
+}];
+
+export const fold_operation = function (isValley, ) {
+
+};
+
+/**
+ *  generate a graph["re:construction"] section
+ */
+export const construction_frame = function (type, parameters) {
+  return {
+    "re:construction_type": type,
+    "re:construction_parameters": parameters
+  };
+  // Object.keys(parameters)
+  //  .filter(key => key !== type)
+  //  .forEach(key => o["re:construction_parameters"][key] = parameters[key]);
+  // return o;
+};
+
+/*
+
+"re:construction" example
+
+{
+  axiom: 2,
+  type: "valley",
+  direction: [0.0435722, -0.999050],
+  edge: [[0, 0.45016], [1, 0.49377]],
+  parameters: { marks: [[0.97319, 0.05149], [0.93478, 0.93204]] }
+}
+
+
+"re:axiom"
+{
+  number: 2,
+  parameters: { marks: [[0.97319, 0.05149], [0.93478, 0.93204]] }
+}
+
+*/

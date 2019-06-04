@@ -10,7 +10,7 @@ module.exports = {
     file: "rabbit-ear.js",
     format: "umd",
     banner: "/* Rabbit Ear v0.2 (c) Robby Kraft, MIT License */",
-    footer: "const re = RabbitEar;",
+    footer: "window.re = RabbitEar;",
   },
   plugins: [
     cleanup({

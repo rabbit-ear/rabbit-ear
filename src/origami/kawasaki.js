@@ -1,5 +1,5 @@
 import math from "../../include/math";
-import { split_convex_polygon } from "../graph/planargraph";
+import split_convex_polygon from "../graph/split_face";
 
 let vertex_adjacent_vectors = function(graph, vertex) {
   let adjacent = graph.vertices_vertices[vertex];

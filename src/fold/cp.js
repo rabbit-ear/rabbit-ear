@@ -1,33 +1,28 @@
 // MIT open source license, Robby Kraft
 
-import FOLDConvert from "../../include/fold/convert";
 import math from "../../include/math";
 // import * as Make from "../graph/make";
-import { get_boundary_face } from "../graph/make";
-import * as Query from "../graph/query";
-import * as Create from "../fold_format/create";
-import * as Frames from "../fold_format/frames";
-import * as Validate from "../fold_format/validate";
-import * as Args from "../convert/math_arguments";
-import * as Diagram from "../origami/diagram";
-import CreaseThrough from "../origami/creasethrough";
-import * as MakeCrease from "../origami/crease";
-import * as Spec from "../fold_format/spec";
+import {
+  get_boundary,
+  nearest_vertex,
+  nearest_edge,
+  face_containing_point
+} from "../graph/query";
+
+import * as Create from "./create";
+import * as Frames from "./file_frames";
+import * as Validate from "./validate";
+import * as Diagram from "../frames/diagram_frame";
+import CreaseThrough from "../origami/fold";
+import * as Spec from "./spec";
 import * as Kawasaki from "../origami/kawasaki";
+import addEdge from "../graph/add_edge";
+
+import component from "./component";
+
+import add_vertex_on_edge from "../graph/addVertexOld";
 
 import {
-  Vertex,
-  Face,
-  Edge,
-  Crease,
-} from "./components";
-
-import {
-  add_vertex_on_edge,
-} from "../graph/add";
-
-import {
-  remove_duplicate_edges,
   remove_non_boundary_edges,
 } from "../graph/remove";
 
@@ -63,11 +58,11 @@ const prepareGraphModify = function (graph) {
 };
 
 const Prototype = function (proto) {
-  if(proto == null) {
+  if (proto == null) {
     proto = {};
   }
 
-  let components = {
+  const components = {
     vertices: [],
     edges: [],
     faces: [],
@@ -78,16 +73,11 @@ const Prototype = function (proto) {
 
   const bind = function (that) {
     _this = that;
-  }
+  };
 
   const clean = function () {
-    // todo
-    // this needs to chop edges that have line endpoints collear to them
-    remove_duplicate_edges(_this);
-    FOLDConvert.edges_vertices_to_vertices_vertices_sorted(_this);
-    FOLDConvert.vertices_vertices_to_faces_vertices(_this);
-    FOLDConvert.faces_vertices_to_faces_edges(_this);
-  }
+    planarGraph.clean();
+  };
 
   /**
    * @param {file} is a FOLD object.
@@ -99,13 +89,13 @@ const Prototype = function (proto) {
     }
     Object.assign(_this, JSON.parse(JSON.stringify(file)));
     // placeholderFoldedForm(_this);
-  }
+  };
   /**
    * @return {CreasePattern} a deep copy of this object.
    */ 
   const copy = function () {
     return CreasePattern(JSON.parse(JSON.stringify(_this)));
-  }
+  };
   /**
    * this removes all geometry from the crease pattern and returns it
    * to its original state (and keeps the boundary edges if present)
@@ -113,10 +103,10 @@ const Prototype = function (proto) {
   const clear = function () {
     remove_non_boundary_edges(_this);
     _this.onchange.forEach(f => f());
-  }
+  };
   /**
    * @return {Object} a deep copy of this object in the FOLD format.
-   */ 
+   */
   const json = function () {
     // let non_copy_keys = ["__rabbit_ear"];
     // let backup = {};
@@ -128,11 +118,11 @@ const Prototype = function (proto) {
     // non_copy_keys.forEach(key => _this[key] = backup[key]);
     // return json;
     return FOLDConvert.toJSON(_this);
-  }
+  };
 
   const svg = function (cssRules) {
     // return Convert.fold_to_svg(_this, cssRules);
-  }
+  };
 
   // const wipe = function () {
   //  Graph.all_keys.filter(a => _m[a] != null)
@@ -146,7 +136,7 @@ const Prototype = function (proto) {
       .filter(v => v.disable !== undefined)
       .forEach(v => v.disable());
     components.vertices = (_this.vertices_coords || [])
-      .map((_,i) => Vertex(_this, i));
+      .map((_, i) => component.vertex(_this, i));
     return components.vertices;
   };
   const getEdges = function () {
@@ -154,7 +144,7 @@ const Prototype = function (proto) {
       .filter(e => e.disable !== undefined)
       .forEach(e => e.disable());
     components.edges = (_this.edges_vertices || [])
-      .map((_,i) => Edge(_this, i));
+      .map((_, i) => component.edge(_this, i));
     return components.edges;
     // return (this.edges_vertices || [])
     //    .map(e => e.map(ev => this.vertices_coords[ev]))
@@ -165,7 +155,7 @@ const Prototype = function (proto) {
       .filter(f => f.disable !== undefined)
       .forEach(f => f.disable());
     components.faces = (_this.faces_vertices || [])
-      .map((_,i) => Face(_this, i));
+      .map((_, i) => component.face(_this, i));
     return components.faces;
     // return (this.faces_vertices || [])
     //    .map(f => f.map(fv => this.vertices_coords[fv]))
@@ -175,21 +165,21 @@ const Prototype = function (proto) {
     // todo: test this for another reason anyway
     // todo: this only works for unfolded flat crease patterns
     return math.polygon(
-      get_boundary_face(_this).vertices
+      get_boundary(_this).vertices
         .map(v => _this.vertices_coords[v])
     );
   };
   const nearestVertex = function (x, y, z = 0) {
-    let index = Query.nearest_vertex(_this, [x, y, z]);
-    return (index != null) ? Vertex(_this, index) : undefined;
+    let index = nearest_vertex(_this, [x, y, z]);
+    return (index != null) ? component.vertex(_this, index) : undefined;
   };
   const nearestEdge = function (x, y, z = 0) {
-    let index = Query.nearest_edge(_this, [x, y, z]);
-    return (index != null) ? Edge(_this, index) : undefined;
+    let index = nearest_edge(_this, [x, y, z]);
+    return (index != null) ? component.edge(_this, index) : undefined;
   };
   const nearestFace = function (x, y, z = 0) {
-    let index = Query.face_containing_point(_this, [x, y, z]);
-    return (index != null) ? Face(_this, index) : undefined;
+    let index = face_containing_point(_this, [x, y, z]);
+    return (index != null) ? component.face(_this, index) : undefined;
   };
 
   const getFacesAtPoint = function (x, y, z = 0) {
@@ -197,10 +187,10 @@ const Prototype = function (proto) {
   };
 
   const getFoldedFacesAtPoint = function () {
-    let point = Args.get_vector(...arguments);
+    let point = math.core.get_vector(...arguments);
     return getFoldedForm().faces_vertices
-      .map((fv,i) => ({face: fv.map(v => folded.vertices_coords[v]), i: i}))
-      .filter((f,i) => Geom.core.point_in_poly(point, f.face))
+      .map((fv, i) => ({face: fv.map(v => folded.vertices_coords[v]), i}))
+      .filter((f, i) => Geom.core.point_in_poly(point, f.face))
       .map(f => f.i);
   };
 
@@ -234,16 +224,15 @@ const Prototype = function (proto) {
 
     let arr = Array.from(args);
     let objects = arr.filter(p => typeof p === "object");
-    let line = Args.get_line(args);
+    let line = math.core.get_line(args);
 
     let face_index = arr
       .filter(a => a !== null && !isNaN(a))
       .shift();
 
-    console.log("HERE", arr, objects, line, face_index);
     // console.log("line", line);
     // console.log("face_index", face_index);
-    if (!Args.is_vector(line.point) || !Args.is_vector(line.vector)) {
+    if (!math.core.is_vector(line.point) || !math.core.is_vector(line.vector)) {
       console.warn("valleyFold was not supplied the correct parameters");
       return;
     }
@@ -277,61 +266,61 @@ const Prototype = function (proto) {
     didModifyGraph();
   };
 
-  const markFold = function () {
-    let line = Args.get_line(arguments);
-    let c = Crease(this, MakeCrease.crease_line(_this, line.point, line.vector));
-    didModifyGraph();
-    return c;
-  };
+  // const markFold = function () {
+  //   let line = math.core.get_line(arguments);
+  //   let c = component.crease(this, MakeCrease.crease_line(_this, line.point, line.vector));
+  //   didModifyGraph();
+  //   return c;
+  // };
 
-  const crease = function () {
-    let o = Array.from(arguments)
-      .filter(el => typeof el === "object" && el !== null)
-      .shift();  // for now don't handle multiple inputs
-    if (o !== undefined) {
-      if ("point" in o && "vector" in o) {
-        let c = Crease(this, MakeCrease.crease_line(_this, o.point, o.vector));
-        didModifyGraph();
-        return c;
-      }
-    }
-  };
+  // const crease = function () {
+  //   let o = Array.from(arguments)
+  //     .filter(el => typeof el === "object" && el !== null)
+  //     .shift();  // for now don't handle multiple inputs
+  //   if (o !== undefined) {
+  //     if ("point" in o && "vector" in o) {
+  //       let c = component.crease(this, MakeCrease.crease_line(_this, o.point, o.vector));
+  //       didModifyGraph();
+  //       return c;
+  //     }
+  //   }
+  // };
 
   const addVertexOnEdge = function (x, y, oldEdgeIndex) {
     add_vertex_on_edge(_this, x, y, oldEdgeIndex);
     didModifyGraph();
   };
 
-  const creaseLine = function () {
-    let crease = Crease(this, MakeCrease.crease_line(_this, ...arguments));
-    didModifyGraph();
-    return crease;
-  };
-  const creaseRay = function () {
-    let crease = Crease(this, MakeCrease.creaseRay(_this, ...arguments));
-    didModifyGraph();
-    return crease;
-  };
+  // const creaseLine = function () {
+  //   let crease = component.crease(this, MakeCrease.crease_line(_this, ...arguments));
+  //   didModifyGraph();
+  //   return crease;
+  // };
+  // const creaseRay = function () {
+  //   let crease = component.crease(this, MakeCrease.creaseRay(_this, ...arguments));
+  //   didModifyGraph();
+  //   return crease;
+  // };
   const creaseSegment = function () {
-    let diff = MakeCrease.creaseSegment(_this, ...arguments);
+    let diff = addEdge(_this, ...arguments);
     if (diff === undefined) { return; }
     if (diff.edges_index_map != null) {
       Object.keys(diff.edges_index_map)
-        .forEach(i => _this.edges_assignment[i] = 
+        .forEach(i => _this.edges_assignment[i] =
           _this.edges_assignment[ diff.edges_index_map[i] ]);
     }
     let edges_remove_count = (diff.edges_to_remove != null)
       ? diff.edges_to_remove.length : 0;
     if (diff.edges_to_remove != null) {
       diff.edges_to_remove.slice()
-        .sort((a,b) => b-a) // reverse order
+        .sort((a, b) => b - a) // reverse order
         .forEach(i => {
           _this.edges_vertices.splice(i, 1);
           _this.edges_assignment.splice(i, 1);
         });
     }
     // _this.edges_assignment.push("F");
-    let crease = Crease(this, [diff.edges_new[0] - edges_remove_count]);
+    let crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
     didModifyGraph();
     return crease;
   };
@@ -340,7 +329,7 @@ const Prototype = function (proto) {
     didModifyGraph();
   };
   const kawasaki = function () {
-    let crease = Crease(this, Kawasaki.kawasaki_collapse(_this, ...arguments));
+    let crease = component.crease(this, Kawasaki.kawasaki_collapse(_this, ...arguments));
     didModifyGraph();
     return crease;
   };
@@ -382,7 +371,6 @@ const Prototype = function (proto) {
 
 /** A graph is a set of nodes and edges connecting them */
 const CreasePattern = function () {
-
   let proto = Prototype();
   let graph = Object.create(proto);
   proto.bind(graph);

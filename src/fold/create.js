@@ -1,4 +1,4 @@
-import { clean_number } from "../convert/math_arguments";
+import math from "../../include/math"; // only to get { clean_number }
 
 const file_spec = 1.1;
 const file_creator = "Rabbit Ear";
@@ -52,7 +52,7 @@ export const square = function () {
   );
 };
 
-export const rectangle = function (width, height) {
+export const rectangle = function (width = 1, height = 1) {
   const graph = square_graph();
   graph.vertices_coords = [[0, 0], [width, 0], [width, height], [0, height]];
   graph.edges_length = [width, height, width, height];
@@ -67,15 +67,15 @@ export const rectangle = function (width, height) {
 export const regular_polygon = function (sides, radius = 1) {
   const arr = Array.from(Array(sides));
   const angle = 2 * Math.PI / sides;
-  const sideLength = clean_number(Math.sqrt(
+  const sideLength = math.core.clean_number(Math.sqrt(
     ((radius - radius * Math.cos(angle)) ** 2)
     + ((radius * Math.sin(angle)) ** 2),
   ));
   const graph = {
     // vertices_
     vertices_coords: arr.map((_, i) => angle * i).map(a => [
-      clean_number(radius * Math.cos(a)),
-      clean_number(radius * Math.sin(a)),
+      math.core.clean_number(radius * Math.cos(a)),
+      math.core.clean_number(radius * Math.sin(a)),
     ]),
     vertices_vertices: arr
       .map((_, i) => [(i + 1) % arr.length, (i + arr.length - 1) % arr.length]),

@@ -1,31 +1,30 @@
 import math from "../../include/math";
+import { make_vertices_edges } from "./make";
+
+/**
+ * list arrays as arguments, this will filter out undefined
+ */
+const max_array_length = function (...arrays) {
+  return Math.max(...(arrays
+    .filter(el => el !== undefined)
+    .map(el => el.length)));
+};
 
 /* Get the number of vertices, edges, faces in the graph sourcing only their
  * primary key arrays. in the case of abstract graphs, use "implied" functions
  * @returns {number} number of geometry elements
  */
 export const vertices_count = function (graph) {
-  return Math.max(...(
-    [[], graph.vertices_coords, graph.vertices_faces, graph.vertices_vertices]
-      .filter(el => el !== undefined)
-      .map(el => el.length)
-  ));
+  return max_array_length([], graph.vertices_coords,
+    graph.vertices_faces, graph.vertices_vertices);
 };
 
 export const edges_count = function (graph) {
-  return Math.max(...(
-    [[], graph.edges_vertices, graph.edges_faces]
-      .filter(el => el !== undefined)
-      .map(el => el.length)
-  ));
+  return max_array_length([], graph.edges_vertices, graph.edges_faces);
 };
 
 export const faces_count = function (graph) {
-  return Math.max(...(
-    [[], graph.faces_vertices, graph.faces_edges]
-      .filter(el => el !== undefined)
-      .map(el => el.length)
-  ));
+  return max_array_length([], graph.faces_vertices, graph.faces_edges);
 };
 
 /* Get the number of vertices, edges, faces by searching their relative arrays
@@ -114,34 +113,10 @@ export const nearest_edge = function (graph, point) {
   return graph.edges_vertices
     .map(e => e.map(ev => graph.vertices_coords[ev]))
     .map(e => math.edge(e))
-    .map((e, i) => ({ e, i, d: e.nearestPoint(point).distanceTo(point) }))
+    .map((e, i) => ({ i, d: e.nearestPoint(point).distanceTo(point) }))
     .sort((a, b) => a.d - b.d)
     .shift()
     .i;
-};
-
-/**
- * someday this will implement facesOrders. right now just faces_re:layer
- * leave faces_options empty to search all faces
- */
-export const topmost_face = function (graph, faces_options) {
-  if (faces_options == null) {
-    faces_options = Array.from(Array(faces_count(graph)))
-      .map((_, i) => i);
-  }
-  if (faces_options.length === 0) { return undefined; }
-  if (faces_options.length === 1) { return faces_options[0]; }
-  // top to bottom
-  const faces_in_order = graph["faces_re:layer"]
-    .map((layer, i) => ({ layer, i }))
-    .sort((a, b) => b.layer - a.layer)
-    .map(el => el.i);
-  for (let i = 0; i < faces_in_order.length; i += 1) {
-    if (faces_options.includes(faces_in_order[i])) {
-      return faces_in_order[i];
-    }
-  }
-  return undefined;
 };
 
 export const face_containing_point = function (graph, point) {
@@ -178,26 +153,28 @@ export const faces_containing_point = function (graph, point) {
 };
 
 /**
- * quick bounding box approach to find the two furthest points in a collection
- *
+ * someday this will implement facesOrders. right now just faces_re:layer
+ * leave faces_options empty to search all faces
  */
-export const two_furthest_points = function (points) {
-  let top = [0, -Infinity];
-  let left = [Infinity, 0];
-  let right = [-Infinity, 0];
-  let bottom = [0, Infinity];
-  points.forEach((p) => {
-    if (p[0] < left[0]) { left = p; }
-    if (p[0] > right[0]) { right = p; }
-    if (p[1] < bottom[1]) { bottom = p; }
-    if (p[1] > top[1]) { top = p; }
-  });
-  // handle vertical and horizontal lines cases
-  const t_to_b = Math.abs(top[1] - bottom[1]);
-  const l_to_r = Math.abs(right[0] - left[0]);
-  return t_to_b > l_to_r ? [bottom, top] : [left, right];
+export const topmost_face = function (graph, faces_options) {
+  if (faces_options == null) {
+    faces_options = Array.from(Array(faces_count(graph)))
+      .map((_, i) => i);
+  }
+  if (faces_options.length === 0) { return undefined; }
+  if (faces_options.length === 1) { return faces_options[0]; }
+  // top to bottom
+  const faces_in_order = graph["faces_re:layer"]
+    .map((layer, i) => ({ layer, i }))
+    .sort((a, b) => b.layer - a.layer)
+    .map(el => el.i);
+  for (let i = 0; i < faces_in_order.length; i += 1) {
+    if (faces_options.includes(faces_in_order[i])) {
+      return faces_in_order[i];
+    }
+  }
+  return undefined;
 };
-
 
 export const bounding_rect = function (graph) {
   if ("vertices_coords" in graph === false
@@ -205,42 +182,167 @@ export const bounding_rect = function (graph) {
     return [0, 0, 0, 0];
   }
   const dimension = graph.vertices_coords[0].length;
-  const smallest = Array.from(Array(dimension)).map(() => Infinity);
-  const largest = Array.from(Array(dimension)).map(() => -Infinity);
+  const min = Array(dimension).fill(Infinity);
+  const max = Array(dimension).fill(-Infinity);
   graph.vertices_coords.forEach(v => v.forEach((n, i) => {
-    if (n < smallest[i]) { smallest[i] = n; }
-    if (n > largest[i]) { largest[i] = n; }
+    if (n < min[i]) { min[i] = n; }
+    if (n > max[i]) { max[i] = n; }
   }));
-  const x = smallest[0];
-  const y = smallest[1];
-  const w = largest[0] - smallest[0];
-  const h = largest[1] - smallest[1];
-  return (isNaN(x) || isNaN(y) || isNaN(w) || isNaN(h)
+  return (isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1])
     ? [0, 0, 0, 0]
-    : [x, y, w, h]);
+    : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
+};
+
+/**
+ * get the boundary face defined in vertices and edges by walking boundary
+ * edges, defined by edges_assignment. no planar calculations
+ */
+export const get_boundary = function (graph) {
+  const edges_vertices_b = graph.edges_assignment
+    .map(a => a === "B" || a === "b");
+  const vertices_edges = make_vertices_edges(graph);
+  const edge_walk = [];
+  const vertex_walk = [];
+  let edgeIndex = -1;
+  for (let i = 0; i < edges_vertices_b.length; i += 1) {
+    if (edges_vertices_b[i]) { edgeIndex = i; break; }
+  }
+  edges_vertices_b[edgeIndex] = false;
+  edge_walk.push(edgeIndex);
+  vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
+  let nextVertex = graph.edges_vertices[edgeIndex][1];
+  while (vertex_walk[0] !== nextVertex) {
+    vertex_walk.push(nextVertex);
+    edgeIndex = vertices_edges[nextVertex]
+      .filter(v => edges_vertices_b[v])
+      .shift();
+    if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
+      [, nextVertex] = graph.edges_vertices[edgeIndex];
+    } else {
+      [nextVertex] = graph.edges_vertices[edgeIndex];
+    }
+    edges_vertices_b[edgeIndex] = false;
+    edge_walk.push(edgeIndex);
+  }
+  return {
+    vertices: vertex_walk,
+    edges: edge_walk,
+  };
 };
 
 // const bounding_cube = function (graph) {
 // }
 
-export const vertices_collinear = function (graph, vertices) {
-  if (vertices == null) {
-    vertices = Array.from(Array(graph.vertices_coords.length));
+/**
+ * @returns an array of degree-2 vertices which lie between
+ * two parallel edges. typically useful for removing these vertices and
+ * merging the two edges into one.
+ */
+export const get_collinear_vertices = function (graph) {
+  const vertices_edges = make_vertices_edges(graph);
+  return Array.from(Array(vertices_count(graph)))
+    .map((_, i) => i)
+    .filter(() => vertices_edges.length === 2)
+    .map((vert) => {
+      const edges = vertices_edges[vert];
+      const a = edges[0][0] === vert ? edges[0][1] : edges[0][0];
+      const b = edges[1][0] === vert ? edges[1][1] : edges[1][0];
+      const av = math.core.distance2(graph.vertices_coords[a],
+        graph.vertices_coords[vert]);
+      const bv = math.core.distance2(graph.vertices_coords[b],
+        graph.vertices_coords[vert]);
+      const ab = math.core.distance2(graph.vertices_coords[a],
+        graph.vertices_coords[b]);
+      return Math.abs(ab - av - bv) < math.core.EPSILON ? vert : undefined;
+    })
+    .filter(a => a !== undefined);
+};
+
+/**
+ * note: for speed, this determines vertex-degree via. edges_vertices
+ * this is expecting graphs that define faces also define edges
+ */
+export const get_isolated_vertices = function (graph) {
+  // const vertices_size = vertices_count(graph);
+  const vertices_size = graph.vertices_coords.length;
+  const isolated = Array(vertices_size).fill(true);
+  // early exit when all vertices have been set
+  let set_count = vertices_size; // how many vertices we set. counts down
+  for (let i = 0; i < graph.edges_vertices.length && set_count > 0; i += 1) {
+    graph.edges_vertices[i].forEach((v) => {
+      if (isolated[v]) {
+        set_count -= 1;
+        isolated[v] = false;
+      }
+    });
   }
-  // returns n-sized array matching vertices_ length
-  // T/F is a 2-degree vertex stuck between two collinear edges.
-  return vertices.filter((vert) => {
-    const edges = graph.edges_vertices
-      .filter(ev => ev[0] === vert || ev[1] === vert);
-    if (edges.length !== 2) { return false; }
-    const a = edges[0][0] === vert ? edges[0][1] : edges[0][0];
-    const b = edges[1][0] === vert ? edges[1][1] : edges[1][0];
-    const av = math.core.distance2(graph.vertices_coords[a],
-      graph.vertices_coords[vert]);
-    const bv = math.core.distance2(graph.vertices_coords[b],
-      graph.vertices_coords[vert]);
-    const ab = math.core.distance2(graph.vertices_coords[a],
-      graph.vertices_coords[b]);
-    return Math.abs(ab - av - bv) < math.core.EPSILON;
+  if (set_count === 0) { return []; }
+  return isolated
+    .map((el, i) => (el ? i : undefined))
+    .filter(el => el !== undefined);
+};
+
+/**
+ * this does not return an array of edge indices [4,7,12] like you might expect
+ * instead it returns an array whose length matches edges_ array length and is
+ * mostly empty (in cases of few duplicates), [ EMPTYx8, 4, EMPTYx9, 12], if
+ * an index is filled, that index is duplicate, its contents is the index of
+ * its duplicate counterpart, the one which should take its place.
+ */
+export const get_duplicate_edges = function (graph) {
+  const equivalent2 = function (a, b) {
+    return (a[0] === b[0] && a[1] === b[1])
+        || (a[0] === b[1] && a[1] === b[0]);
+  };
+
+  const edges_equivalent = Array.from(Array(edges_count(graph)))
+    .map(() => []);
+  for (let i = 0; i < graph.edges_vertices.length - 1; i += 1) {
+    for (let j = i + 1; j < graph.edges_vertices.length; j += 1) {
+      edges_equivalent[i][j] = equivalent2(
+        graph.edges_vertices[i],
+        graph.edges_vertices[j],
+      );
+    }
+  }
+  // for every duplicate edge, get the index of the other edge, and in the
+  // case of many in common duplicates, go as far back (lowest index)
+  const edges_map = [];
+  edges_equivalent
+    .forEach((row, i) => row
+      .forEach((eq, j) => {
+        if (eq) {
+          edges_map[j] = edges_map[i] === undefined ? i : edges_map[i];
+        }
+      }));
+  return edges_map;
+};
+
+
+/**
+ * when an edge sits inside a face with its endpoints collinear to face edges,
+ *  find those 2 face edges.
+ * @param [[x, y], [x, y]] edge
+ * @param [a, b, c, d, e] face_vertices. just 1 face. not .fold array
+ * @param vertices_coords from .fold
+ * @return [[a,b], [c,d]] vertices indices of the collinear face edges.
+ *         1:1 index relation to edge endpoints.
+ */
+export const find_collinear_face_edges = function (edge, face_vertices,
+  vertices_coords) {
+  const face_edge_geometry = face_vertices
+    .map(v => vertices_coords[v])
+    .map((v, i, arr) => [v, arr[(i + 1) % arr.length]]);
+  return edge.map((endPt) => {
+    // filter collinear edges to each endpoint, return first one
+    // as an edge array index, which == face vertex array between i, i+1
+    const i = face_edge_geometry
+      .map((edgeVerts, edgeI) => ({ index: edgeI, edge: edgeVerts }))
+      .filter(e => math.core.intersection
+        .point_on_edge(e.edge[0], e.edge[1], endPt))
+      .shift()
+      .index;
+    return [face_vertices[i], face_vertices[(i + 1) % face_vertices.length]]
+      .sort((a, b) => a - b);
   });
 };
