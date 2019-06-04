@@ -1,3 +1,5 @@
+import math from "../../include/math";
+
 // used to be called CreaseSegment
 
 /**

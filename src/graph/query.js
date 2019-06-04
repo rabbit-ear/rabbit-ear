@@ -269,12 +269,13 @@ export const get_isolated_vertices = function (graph) {
   // early exit when all vertices have been set
   let set_count = vertices_size; // how many vertices we set. counts down
   for (let i = 0; i < graph.edges_vertices.length && set_count > 0; i += 1) {
-    graph.edges_vertices[i].forEach((v) => {
+    for (let e = 0; e < graph.edges_vertices[i].length; e += 1) { // two vertices in each edge
+      const v = graph.edges_vertices[i][e];
       if (isolated[v]) {
         set_count -= 1;
         isolated[v] = false;
       }
-    });
+    }
   }
   if (set_count === 0) { return []; }
   return isolated

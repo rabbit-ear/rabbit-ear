@@ -46,7 +46,7 @@ import * as fold from "./origami/fold";
 import * as kawasaki from "./origami/kawasaki";
 // import { default as valleyfold } from "./fold/valleyfold";
 
-import diagram from "./frames/diagram_frame";
+import build_diagram_frame from "./frames/diagram_frame";
 
 // origami bases
 import empty from "./fold/bases/empty.fold";
@@ -57,7 +57,6 @@ import kite from "./fold/bases/kite.fold";
 import fish from "./fold/bases/fish.fold";
 import bird from "./fold/bases/bird.fold";
 import frog from "./fold/bases/frog.fold";
-
 
 const convert = {
   toFOLD,
@@ -81,8 +80,9 @@ Object.assign(core,
   // crease,
   fold,
   kawasaki,
-  diagram,
   Axioms);
+
+core.build_diagram_frame = build_diagram_frame;
 
 // load bases
 const b = {

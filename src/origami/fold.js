@@ -123,8 +123,12 @@ const fold_through = function (
   face_index,
   crease_direction = "V"
 ) {
-  let opposite_crease = (crease_direction === "M" || crease_direction === "m"
-    ? "V" : "M");
+  let opposite_crease = crease_direction; // if it's a mark, this will be too.
+  if (crease_direction === "M" || crease_direction === "m") {
+    opposite_crease = "V";
+  } else if (crease_direction === "V" || crease_direction === "v") {
+    opposite_crease = "M";
+  }
   if (face_index == null) {
     // an unset face will be the face under the point. or if none, index 0
     let containing_point = face_containing_point(graph, point);

@@ -163,13 +163,13 @@ origami.update = function () {
   const valid = re.core.test_axiom(axiomInfo, origami.cp.boundary.points);
   const solutionPassed = valid.map(a => a != null);
 
+  const optionButtons = document.querySelectorAll("[id^=btn-option]");
   switch (origami.axiom) {
     case 3:
     case 5:
     case 6:
-      const optionButtons = document.querySelectorAll("[id^=btn-option]");
       solutionPassed
-        .forEach((a, i) => optionButtons[i].style.opacity = a ? 1.0 : 0.0);
+        .forEach((a, i) => { optionButtons[i].style.opacity = a ? 1 : 0; });
       break;
     default: break;
   }
@@ -219,8 +219,7 @@ origami.update = function () {
   const otherValidSolutions = axiomInfo.solutions
     .filter((s, i) => i !== origami.subSelect && solutionPassed[i]);
   otherValidSolutions
-    .map(m => origami.cp.creaseLine(m[0], m[1]))
-    .forEach(c => c.mark());
+    .map(m => origami.cp.markFold(m[0], m[1]));
 
   // console.log(axiomInfo);
   // console.log(axiomInfo.solutions[origami.subSelect]);

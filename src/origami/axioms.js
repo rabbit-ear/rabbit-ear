@@ -40,22 +40,6 @@ import math from "../../include/math";
  * }
 */
 
-export const axiom = function (number, parameters) {
-  const params = Array(...arguments);
-  params.shift(); // remove the first parameter, the axiom number
-  switch (number) {
-    case 1: return axiom1(...params);
-    case 2: return axiom2(...params);
-    case 3: return axiom3(...params);
-    case 4: return axiom4(...params);
-    case 5: return axiom5(...params);
-    case 6: return axiom6(...params);
-    case 7: return axiom7(...params);
-    default: return undefined;
-    // case 0: return paramTest(...params);
-  }
-};
-
 // const paramTest = function (a, b, c, d) {
 //  console.log("arguments", arguments);
 //  console.log("...arguments", ...arguments);
@@ -788,5 +772,21 @@ export const axiom6RefFinderFunc = function (
   // Set the key.
   FinishConstructor();
 */
-}
+};
 
+
+export const axiom = function (number, ...args) {
+  // const params = Array(...arguments);
+  // params.shift(); // remove the first parameter, the axiom number
+  switch (number) {
+    case 1: return axiom1(...args);
+    case 2: return axiom2(...args);
+    case 3: return axiom3(...args);
+    case 4: return axiom4(...args);
+    case 5: return axiom5(...args);
+    case 6: return axiom6(...args);
+    case 7: return axiom7(...args);
+    default: return undefined;
+    // case 0: return paramTest(...params);
+  }
+};

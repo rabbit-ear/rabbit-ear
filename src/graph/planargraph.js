@@ -30,6 +30,8 @@ export const clean = function (graph) {
   FOLDConvert.faces_vertices_to_faces_edges(graph);
 };
 
+export const second_thing = 5;
+
 // export const clean = function (graph, keys) {
 //   if ("vertices_coords" in graph === false
 //     || "edges_vertices" in graph === false) {

@@ -57,7 +57,7 @@ export const validate = function (graph) {
     faces: graph.faces_vertices.length || graph.faces_edges.length
   };
   // geometry indices point to arrays longer than that index value
-  let arraysIndexTest = Object.keys(foldKeys)
+  const arraysIndexTest = Object.keys(foldKeys)
     .map(key => ({ prefix: key, suffixes: foldKeys[key] }))
     .map(el => el.suffixes
       .map(suffix => ({ key: `${el.prefix}_${suffix}`, suffix }))
@@ -80,10 +80,10 @@ export const validate = function (graph) {
   // iterate over every vertices_vertices, check that the pairing of vertices
   // exists somewhere in edges_vertices
   // this assumes that vertices_vertices implies the presence of edges_vertices
-  let vv_edge_test = graph.vertices_vertices
-    .map((vv, i) => vv.map(v2 => [i,v2]))
+  const vv_edge_test = graph.vertices_vertices
+    .map((vv, i) => vv.map(v2 => [i, v2]))
     .reduce((a, b) => a.concat(b), []);
-  let ev_test_fails = vv_edge_test
+  const ev_test_fails = vv_edge_test
     .map(ve => graph.edges_vertices.filter(e => (ve[0] === e[0]
       && ve[1] === e[1]) || (ve[0] === e[1] && ve[1] === e[0])).length > 0)
     .map((b, i) => ({ test: b, i }))
@@ -93,7 +93,7 @@ export const validate = function (graph) {
     throw new Error(`vertices_vertices at index ${ev_test_fails[0].i} declares an edge that doesn't exist in edges_vertices`);
   }
 
-  let v_f_test = graph.vertices_faces
+  const v_f_test = graph.vertices_faces
     .map((vert, i) => vert
       .map(vf => ({
         test: graph.faces_vertices[vf].indexOf(i) !== -1,
@@ -106,7 +106,7 @@ export const validate = function (graph) {
   if (v_f_test.length > 0) {
     throw new Error(`vertex ${v_f_test[0].i} in vertices_faces connects to face ${v_f_test[0].face}, whereas in faces_vertices this same connection in reverse doesn't exist.`);
   }
-  let e_f_test = graph.edges_faces
+  const e_f_test = graph.edges_faces
     .map((edge, i) => edge
       .map(ef => ({
         test: graph.faces_edges[ef].indexOf(i) !== -1,
@@ -120,7 +120,7 @@ export const validate = function (graph) {
     throw new Error(`edges_faces ${e_f_test[0].i} connects to face ${e_f_test[0].face}, whereas in faces_edges this same connection in reverse doesn't exist.`);
   }
 
-  let f_v_test = graph.faces_vertices
+  const f_v_test = graph.faces_vertices
     .map((face, i) => face
       .map(vf => ({
         test: graph.vertices_faces[vf].indexOf(i) !== -1,

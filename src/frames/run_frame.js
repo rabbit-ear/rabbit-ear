@@ -1,14 +1,5 @@
-import {
-  vertices_count,
-  edges_count,
-  faces_count,
-} from "../graph/query";
-
-import {
-  remove_vertices,
-  remove_edges,
-  remove_faces
-} from "../graph/remove";
+import { vertices_count, edges_count, faces_count } from "../graph/query";
+import { remove_vertices, remove_edges, remove_faces } from "../graph/remove";
 
 // ///////////////////////////////////////
 // new diff sketches
@@ -53,9 +44,9 @@ const draft2 = {
 
 export const apply_run_diff = function (graph, diff) {
   const lengths = {
-    vertices: graph.vertices_coords.length,
-    edges: graph.edges_vertices.length,
-    faces: graph.faces_vertices.length
+    vertices: vertices_count(graph),
+    edges: edges_count(graph),
+    faces: faces_count(graph)
   };
   // for each new geometry type, append new element to the end of their arrays
   Object.keys(diff.new)

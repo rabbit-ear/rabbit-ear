@@ -134,7 +134,7 @@ export const remove_collinear_vertices = function (graph, vertices) {
       .map((ev, i) => (ev[0] === vert || ev[1] === vert ? i : undefined))
       .filter(a => a !== undefined);
     const edges = edges_indices.map(i => graph.edges_vertices[i]);
-    if (edges.length !== 2) { return false; }
+    if (edges.length !== 2) { return; }
     const a = edges[0][0] === vert ? edges[0][1] : edges[0][0];
     const b = edges[1][0] === vert ? edges[1][1] : edges[1][0];
     const assignment = graph.edges_assignment[edges_indices[0]];
