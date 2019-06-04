@@ -31,17 +31,17 @@ const component = function (proto) { //, options) {
   const _this = Object.create(proto);
   _this.uuid = makeUUID();
   const disable = function () {
-    Object.setPrototypeOf(_this, null);
-    Object.getOwnPropertyNames(_this)
-      .forEach(key => delete _this[key]);
+    // Object.setPrototypeOf(_this, null);
+    // Object.getOwnPropertyNames(_this)
+    //   .forEach(key => delete _this[key]);
   };
   Object.defineProperty(_this, "disable", { value: disable });
-  return Object.freeze(_this);
+  return _this;
 };
 
 const vertexPrototype = function (graph, index) {
   const point = math.vector(graph.vertices_coords[index]);
-  const _this = Object.create(component(point));
+  const _this = Object.create(point);
   return _this;
 };
 
@@ -49,7 +49,7 @@ const facePrototype = function (graph, index) {
   const points = graph.faces_vertices[index]
     .map(fv => graph.vertices_coords[fv]);
   const face = math.polygon(points);
-  const _this = Object.create(component(face));
+  const _this = Object.create(face);
   return _this;
 };
 
@@ -59,7 +59,7 @@ const edgePrototype = function (graph, index) {
   const edge = math.edge(points);
 
   // const _this = Object.create(Component(edge, {graph, index}))
-  const _this = Object.create(component(edge));
+  const _this = Object.create(edge);
 
   const is_assignment = function (options) {
     return options.map(l => l === this.graph.edges_assignment[index])
@@ -127,7 +127,11 @@ const edgePrototype = function (graph, index) {
 
 component.vertex = function (graph, index) {
   const proto = vertexPrototype.bind(this);
-  return component(proto(graph, index));
+  let v = component(proto(graph, index));
+  Object.defineProperty(v, "robby", { configurable: true, value: "hi" });
+
+  // v.robby = "hi";
+  return v;
 };
 component.edge = function (graph, index) {
   const proto = edgePrototype.bind(this);
@@ -137,7 +141,6 @@ component.face = function (graph, index) {
   const proto = facePrototype.bind(this);
   return component(proto(graph, index));
 };
-
 component.crease = function (graph, index) {
   const proto = creasePrototype.bind(this);
   return component(proto(graph, index));

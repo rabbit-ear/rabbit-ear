@@ -5281,30 +5281,27 @@
     const _this = Object.create(proto);
     _this.uuid = makeUUID();
     const disable = function () {
-      Object.setPrototypeOf(_this, null);
-      Object.getOwnPropertyNames(_this)
-        .forEach(key => delete _this[key]);
     };
     Object.defineProperty(_this, "disable", { value: disable });
-    return Object.freeze(_this);
+    return _this;
   };
   const vertexPrototype = function (graph, index) {
     const point = math.vector(graph.vertices_coords[index]);
-    const _this = Object.create(component(point));
+    const _this = Object.create(point);
     return _this;
   };
   const facePrototype = function (graph, index) {
     const points = graph.faces_vertices[index]
       .map(fv => graph.vertices_coords[fv]);
     const face = math.polygon(points);
-    const _this = Object.create(component(face));
+    const _this = Object.create(face);
     return _this;
   };
   const edgePrototype = function (graph, index) {
     const points = graph.edges_vertices[index]
       .map(ev => graph.vertices_coords[ev]);
     const edge = math.edge(points);
-    const _this = Object.create(component(edge));
+    const _this = Object.create(edge);
     const is_assignment = function (options) {
       return options.map(l => l === this.graph.edges_assignment[index])
         .reduce((a, b) => a || b, false);
@@ -5366,7 +5363,9 @@
   };
   component.vertex = function (graph, index) {
     const proto = vertexPrototype.bind(this);
-    return component(proto(graph, index));
+    let v = component(proto(graph, index));
+    Object.defineProperty(v, "robby", { configurable: true, value: "hi" });
+    return v;
   };
   component.edge = function (graph, index) {
     const proto = edgePrototype.bind(this);
@@ -7796,6 +7795,22 @@
     },
   };
 
+  const build_folded_frame = function (graph, face_stationary) {
+    if (face_stationary == null) {
+      face_stationary = 0;
+      console.warn("build_folded_frame was not supplied a stationary face");
+    }
+    const faces_matrix = make_faces_matrix(graph, face_stationary);
+    const vertices_coords = make_vertices_coords_folded(graph, face_stationary, faces_matrix);
+    return {
+      vertices_coords,
+      frame_classes: ["foldedForm"],
+      frame_inherit: true,
+      frame_parent: 0,
+      "faces_re:matrix": faces_matrix
+    };
+  };
+
   const pErr = (new window.DOMParser())
     .parseFromString("INVALID", "text/xml")
     .getElementsByTagName("parsererror")[0]
@@ -8120,6 +8135,7 @@
     const getVertices = function () {
       const { vertices } = prop.cp;
       vertices.forEach((v, i) => { v.svg = groups.vertices.childNodes[i]; });
+      console.log("vertices", vertices);
       Object.defineProperty(vertices, "visible", {
         get: () => visible.vertices,
         set: (v) => { visible.vertices = !!v; draw(); },
@@ -8166,7 +8182,7 @@
         && prop.cp.file_frames[0]["faces_re:matrix"].length
           === prop.cp.faces_vertices.length) ; else {
         if (face == null) { face = 0; }
-        const file_frame = Fold.build_folded_frame(prop.cp, face);
+        const file_frame = build_folded_frame(prop.cp, face);
         if (prop.cp.file_frames == null) { prop.cp.file_frames = []; }
         prop.cp.file_frames.unshift(file_frame);
       }
@@ -8278,7 +8294,6 @@
         let points = [math.vector(mouse.pressed), math.vector(mouse.position)];
         let midpoint = points[0].midpoint(points[1]);
         let vector = points[1].subtract(points[0]);
-        console.log(midpoint, vector.rotateZ90(), touchFaceIndex);
         prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
         fold();
       }
@@ -11126,11 +11141,11 @@
     convert$2.vertices_vertices_to_faces_vertices(graph);
     convert$2.faces_vertices_to_faces_edges(graph);
   };
-  const second_thing = 5;
+  const second_thing$1 = 5;
 
-  var planargraph = /*#__PURE__*/Object.freeze({
+  var rebuild = /*#__PURE__*/Object.freeze({
     clean: clean,
-    second_thing: second_thing
+    second_thing: second_thing$1
   });
 
   var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
@@ -11164,7 +11179,7 @@
     validate$1,
     add,
     remove,
-    planargraph,
+    rebuild,
     make$1,
     query$1,
     fold,
