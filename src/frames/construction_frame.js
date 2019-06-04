@@ -37,18 +37,18 @@ this is a solution frame. same as definition but includes a "solution"
 
 */
 
-export const axiom_operation = function(axiomNumber, marks, lines) {
+export const axiom_operation = function (axiomNumber, marks, lines) {
 
 };
 
-export const fold_operation = function(isValley, ) {
+export const fold_operation = function (isValley, ) {
 
 };
 
 /**
  *  generate a graph["re:construction"] section
  */
-export const construction_frame = function(type, parameters) {
+export const construction_frame = function (type, parameters) {
   return {
     "re:construction_type": type,
     "re:construction_parameters": parameters

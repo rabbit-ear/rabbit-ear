@@ -23,7 +23,7 @@ module.exports = {
     //  comments: false
     // } ),
     string({
-      include: "**/*.fold", // allows .fold files to be imported as a module
+      include: ["**/*.json", "**/*.fold"], // allows .fold files to be imported as a module
     }),
   ],
 };

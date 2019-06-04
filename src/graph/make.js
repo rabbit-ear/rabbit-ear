@@ -172,9 +172,9 @@ export const make_vertices_coords_folded = function (graph, face_stationary, fac
     }
     return undefined;
   });
-  return graph.vertices_coords.map((point, i) =>
-    math.core.multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
-      .map(n => math.core.clean_number(n)));
+  return graph.vertices_coords.map((point, i) => math.core
+    .multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
+    .map(n => math.core.clean_number(n)));
 };
 
 /**

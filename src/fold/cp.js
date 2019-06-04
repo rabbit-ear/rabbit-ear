@@ -92,7 +92,7 @@ const Prototype = function (proto) {
   };
   /**
    * @return {CreasePattern} a deep copy of this object.
-   */ 
+   */
   const copy = function () {
     return CreasePattern(JSON.parse(JSON.stringify(_this)));
   };
@@ -170,15 +170,15 @@ const Prototype = function (proto) {
     );
   };
   const nearestVertex = function (x, y, z = 0) {
-    let index = nearest_vertex(_this, [x, y, z]);
+    const index = nearest_vertex(_this, [x, y, z]);
     return (index != null) ? component.vertex(_this, index) : undefined;
   };
   const nearestEdge = function (x, y, z = 0) {
-    let index = nearest_edge(_this, [x, y, z]);
+    const index = nearest_edge(_this, [x, y, z]);
     return (index != null) ? component.edge(_this, index) : undefined;
   };
   const nearestFace = function (x, y, z = 0) {
-    let index = face_containing_point(_this, [x, y, z]);
+    const index = face_containing_point(_this, [x, y, z]);
     return (index != null) ? component.face(_this, index) : undefined;
   };
 
@@ -187,7 +187,7 @@ const Prototype = function (proto) {
   };
 
   const getFoldedFacesAtPoint = function () {
-    let point = math.core.get_vector(...arguments);
+    const point = math.core.get_vector(...arguments);
     return getFoldedForm().faces_vertices
       .map((fv, i) => ({face: fv.map(v => folded.vertices_coords[v]), i}))
       .filter((f, i) => Geom.core.point_in_poly(point, f.face))
@@ -195,12 +195,12 @@ const Prototype = function (proto) {
   };
 
   const getTopFoldedFaceAtPoint = function () {
-    let faces = getFoldedFacesAtPoint(...arguments);
+    const faces = getFoldedFacesAtPoint(...arguments);
     return topmost_face(_this, faces);
   };
 
   const getFoldedForm = function () {
-    let foldedFrame = _this.file_frames
+    const foldedFrame = _this.file_frames
       .filter(f => f.frame_classes.includes("foldedForm"))
       .filter(f => f.vertices_coords.length === _this.vertices_coords.length)
       .shift();
@@ -212,32 +212,50 @@ const Prototype = function (proto) {
   const didModifyGraph = function () {
     // remove file_frames which were dependent on this geometry. we can
     // no longer guarantee they match. alternatively we could mark them invalid
-    
+
     // _this.file_frames = _this.file_frames
     //  .filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
-    
+
     // broadcast update to handler if attached
     _this.onchange.forEach(f => f());
   };
+
+  const markFold = function (...args) {
+    const objects = args.filter(p => typeof p === "object");
+    const line = math.core.get_line(args);
+    const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
+    if (!math.core.is_vector(line.point)
+      || !math.core.is_vector(line.vector)) {
+      console.warn("markFold was not supplied the correct parameters");
+      return;
+    }
+    const folded = CreaseThrough(_this,
+      line.point,
+      line.vector,
+      face_index,
+      "F");
+    Object.keys(folded).forEach((key) => { _this[key] = folded[key]; });
+    if ("re:construction" in _this === true) {
+      if (objects.length > 0 && "axiom" in objects[0] === true) {
+        _this["re:construction"].axiom = objects[0].axiom;
+        _this["re:construction"].parameters = objects[0].parameters;
+      }
+    }
+    delete _this["faces_re:matrix"];
+    didModifyGraph();
+  };
+
   // fold methods
   const valleyFold = function (...args) { // point, vector, face_index) {
-
-    let arr = Array.from(args);
-    let objects = arr.filter(p => typeof p === "object");
-    let line = math.core.get_line(args);
-
-    let face_index = arr
-      .filter(a => a !== null && !isNaN(a))
-      .shift();
-
+    const objects = args.filter(p => typeof p === "object");
+    const line = math.core.get_line(args);
+    const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
     // console.log("line", line);
     // console.log("face_index", face_index);
     if (!math.core.is_vector(line.point) || !math.core.is_vector(line.vector)) {
       console.warn("valleyFold was not supplied the correct parameters");
       return;
     }
-
-
     // if folding on a foldedForm do the below
     // if folding on a creasePattern, add these
     // let matrix = pattern.cp["faces_re:matrix"] !== null ? pattern.cp["faces_re:matrix"]
@@ -245,13 +263,12 @@ const Prototype = function (proto) {
     // let mat_inv = matrix
     //  .map(mat => Geom.core.make_matrix2_inverse(mat))
     //  .map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
-
-    let folded = CreaseThrough(_this,
+    const folded = CreaseThrough(_this,
       line.point,
       line.vector,
       face_index,
       "V");
-    Object.keys(folded).forEach(key => _this[key] = folded[key]);
+    Object.keys(folded).forEach((key) => { _this[key] = folded[key]; });
     if ("re:construction" in _this === true) {
       if (objects.length > 0 && "axiom" in objects[0] === true) {
         _this["re:construction"].axiom = objects[0].axiom;
@@ -261,9 +278,13 @@ const Prototype = function (proto) {
       //  Diagram.build_diagram_frame(_this)
       // ];
     }
-
     delete _this["faces_re:matrix"];
     didModifyGraph();
+
+    // todo, need to grab the crease somehow
+    // const crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
+    // didModifyGraph();
+    // return crease;
   };
 
   // const markFold = function () {
@@ -302,25 +323,27 @@ const Prototype = function (proto) {
   //   return crease;
   // };
   const creaseSegment = function () {
-    let diff = addEdge(_this, ...arguments);
-    if (diff === undefined) { return; }
+    const diff = addEdge(_this, ...arguments);
+    if (diff === undefined) { return undefined; }
     if (diff.edges_index_map != null) {
       Object.keys(diff.edges_index_map)
-        .forEach(i => _this.edges_assignment[i] =
-          _this.edges_assignment[ diff.edges_index_map[i] ]);
+        .forEach((i) => {
+          _this.edges_assignment[i] = _this
+            .edges_assignment[diff.edges_index_map[i]];
+        });
     }
-    let edges_remove_count = (diff.edges_to_remove != null)
+    const edges_remove_count = (diff.edges_to_remove != null)
       ? diff.edges_to_remove.length : 0;
     if (diff.edges_to_remove != null) {
       diff.edges_to_remove.slice()
         .sort((a, b) => b - a) // reverse order
-        .forEach(i => {
+        .forEach((i) => {
           _this.edges_vertices.splice(i, 1);
           _this.edges_assignment.splice(i, 1);
         });
     }
     // _this.edges_assignment.push("F");
-    let crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
+    const crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
     didModifyGraph();
     return crease;
   };
@@ -329,7 +352,7 @@ const Prototype = function (proto) {
     didModifyGraph();
   };
   const kawasaki = function () {
-    let crease = component.crease(this, Kawasaki.kawasaki_collapse(_this, ...arguments));
+    const crease = component.crease(this, Kawasaki.kawasaki_collapse(_this, ...arguments));
     didModifyGraph();
     return crease;
   };
@@ -350,10 +373,11 @@ const Prototype = function (proto) {
   Object.defineProperty(proto, "nearestFace", { value: nearestFace });
   Object.defineProperty(proto, "svg", { value: svg });
   Object.defineProperty(proto, "valleyFold", { value: valleyFold });
+  Object.defineProperty(proto, "markFold", { value: markFold });
   Object.defineProperty(proto, "addVertexOnEdge", { value: addVertexOnEdge });
-  Object.defineProperty(proto, "crease", { value: crease });
-  Object.defineProperty(proto, "creaseLine", { value: creaseLine });
-  Object.defineProperty(proto, "creaseRay", { value: creaseRay });
+  // Object.defineProperty(proto, "crease", { value: crease });
+  // Object.defineProperty(proto, "creaseLine", { value: creaseLine });
+  // Object.defineProperty(proto, "creaseRay", { value: creaseRay });
   Object.defineProperty(proto, "creaseSegment", { value: creaseSegment });
   Object.defineProperty(proto, "creaseThroughLayers", {
     value: creaseThroughLayers
@@ -370,19 +394,19 @@ const Prototype = function (proto) {
 };
 
 /** A graph is a set of nodes and edges connecting them */
-const CreasePattern = function () {
-  let proto = Prototype();
-  let graph = Object.create(proto);
+const CreasePattern = function (...args) {
+  const proto = Prototype();
+  const graph = Object.create(proto);
   proto.bind(graph);
 
   // parse arguments, look for an input .fold file
   // todo: which key should we check to verify .fold? coords /=/ abstract CPs
-  let foldObjs = Array.from(arguments)
+  const foldObjs = args
     .filter(el => typeof el === "object" && el !== null)
     .filter(el => Validate.possibleFoldObject(el));
     // .filter(el => el.vertices_coords != null);
   // unit square is the default base if nothing else is provided
-  graph.load( (foldObjs.shift() || Create.square()) );
+  graph.load((foldObjs.shift() || Create.square()));
 
   return graph;
 };

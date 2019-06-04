@@ -7,7 +7,9 @@
  *         __/ |         | |
  *        |___/          |_|
  *
- * an undirected graph with edges and nodes
+ * an undirected graph with edges and nodes, stored as arrays of objects
+ * where comparisons are made to memory pointers instead of array indices
+ *
  *  "adjacent": 2 nodes are adjacent when they are connected by an edge
  *              edges are adjacent when they both connect the same node
  *  "similar": edges are similar if they contain the same 2 nodes,
@@ -114,12 +116,12 @@ const GraphNode = function (graph) {
     adj.edges = adjacentEdges();
     const checked = []; // the last step, to remove duplicate nodes
     adj.nodes = adj.edges.filter(el => !el.isCircular)
-      .map(el => (el.nodes[0] === node)
+      .map(el => (el.nodes[0] === node
         ? el.nodes[1]
-        : el.nodes[0])
-      .filter((el) =>
-        checked.indexOf(el) >= 0 ? false : checked.push(el)
-      );
+        : el.nodes[0]))
+      .filter(el => (checked.indexOf(el) >= 0
+        ? false
+        : checked.push(el)));
     return adj;
   };
   /** Test if a node is connected to another node by an edge
@@ -129,7 +131,7 @@ const GraphNode = function (graph) {
    * var isAdjacent = node.isAdjacentToNode(anotherNode);
    */
   const isAdjacentToNode = function (n) {
-    return adjacentNodes.filter(node => node === n).length > 0;
+    return adjacentNodes.filter(el => el === n).length > 0;
   };
   /** The degree of a node is the number of adjacent edges
    *   circular edges are counted twice
@@ -139,10 +141,12 @@ const GraphNode = function (graph) {
    */
   const degree = function () {
     // circular edges are counted twice
-    return node.graph.edges.map((el) =>
-      el.nodes.map(n => n === node ? 1 : 0).reduce((a,b) => a + b, 0)
-    ).reduce((a, b) => a + b, 0);
-  }
+    return node.graph.edges
+      .map(el => el.nodes
+        .map(n => (n === node ? 1 : 0))
+        .reduce((a, b) => a + b, 0))
+      .reduce((a, b) => a + b, 0);
+  };
   Object.defineProperty(node, "adjacent", {
     get: function () { return adjacent(); }
   });
@@ -152,18 +156,17 @@ const GraphNode = function (graph) {
   // Object.defineProperty(node, "adjacentNodes", {
   //  get:function () { return adjacentNodes(); }
   // });
-  Object.defineProperty(node, "degree", {get:function () { return degree(); }});
-  Object.defineProperty(node, "isAdjacentToNode", {value: isAdjacentToNode });
+  Object.defineProperty(node, "degree", { get: () => degree() });
+  Object.defineProperty(node, "isAdjacentToNode", { value: isAdjacentToNode });
   return node;
 };
 
 /**
- * Edges are 1 of the 2 fundamental components in a graph. 
+ * Edges are 1 of the 2 fundamental components in a graph.
  * 1 edge connect 2 nodes.
  */
 const GraphEdge = function (graph, node1, node2) {
-
-  let edge = Object.create(null);
+  const edge = Object.create(null);
   edge.graph = graph; // pointer to the graph. required for adjacency tests
   edge.nodes = [node1, node2]; // required. every edge must connect 2 nodes
 
@@ -173,28 +176,27 @@ const GraphEdge = function (graph, node1, node2) {
    * var adjacent = edge.adjacentEdges()
    */
   const adjacentEdges = function () {
-    return edge.graph.edges.filter((e) => e !== edge &&
-      (e.nodes[0] === edge.nodes[0] ||
-       e.nodes[0] === edge.nodes[1] ||
-       e.nodes[1] === edge.nodes[0] ||
-       e.nodes[1] === edge.nodes[1])
-    )
-  }
+    return edge.graph.edges.filter(e => e !== edge
+      && (e.nodes[0] === edge.nodes[0]
+      || e.nodes[0] === edge.nodes[1]
+      || e.nodes[1] === edge.nodes[0]
+      || e.nodes[1] === edge.nodes[1]));
+  };
   /** Get the two nodes of this edge
    * @returns {GraphNode[]} the two nodes of this edge
    * @example
    * var adjacent = edge.adjacentNodes()
    */
-  const adjacentNodes = function () { return [...edge.nodes]; }
+  const adjacentNodes = function () { return [...edge.nodes]; };
   /**
    * Get both adjacent edges and nodes. saves on computation time
    */
   const adjacent = function () {
-    let adj = Object.create(null);
+    const adj = Object.create(null);
     adj.nodes = adjacentNodes();
     adj.edges = adjacentEdges();
     return adj;
-  }
+  };
 
   /** Test if an edge is connected to another edge by a common node
    * @param {GraphEdge} edge test adjacency between this and supplied parameter
@@ -203,9 +205,9 @@ const GraphEdge = function (graph, node1, node2) {
    * var isAdjacent = edge.isAdjacentToEdge(anotherEdge)
    */
   const isAdjacentToEdge = function (e) {
-    return( (edge.nodes[0] === e.nodes[0]) || (edge.nodes[1] === e.nodes[1]) ||
-            (edge.nodes[0] === e.nodes[1]) || (edge.nodes[1] === e.nodes[0]) );
-  }
+    return ((edge.nodes[0] === e.nodes[0]) || (edge.nodes[1] === e.nodes[1])
+      || (edge.nodes[0] === e.nodes[1]) || (edge.nodes[1] === e.nodes[0]));
+  };
   /** Test if an edge contains the same nodes as another edge
    * @param {GraphEdge} edge test similarity between this and parameter
    * @returns {boolean} true or false, similar or not
@@ -213,9 +215,9 @@ const GraphEdge = function (graph, node1, node2) {
    * var isSimilar = edge.isSimilarToEdge(anotherEdge)
    */
   const isSimilarToEdge = function (e) {
-    return( (edge.nodes[0] === e.nodes[0] && edge.nodes[1] === e.nodes[1] ) ||
-            (edge.nodes[0] === e.nodes[1] && edge.nodes[1] === e.nodes[0] ) );
-  }
+    return ((edge.nodes[0] === e.nodes[0] && edge.nodes[1] === e.nodes[1])
+      || (edge.nodes[0] === e.nodes[1] && edge.nodes[1] === e.nodes[0]));
+  };
   /** Supply one of the edge's incident nodes and get back the other node
    * @param {GraphNode} node must be one of the edge's 2 nodes
    * @returns {GraphNode} the node that is the other node
@@ -226,7 +228,7 @@ const GraphEdge = function (graph, node1, node2) {
     if (edge.nodes[0] === n) { return edge.nodes[1]; }
     if (edge.nodes[1] === n) { return edge.nodes[0]; }
     return undefined;
-  }
+  };
   /** Test if an edge points both at both ends to the same node
    * @returns {boolean} true or false, circular or not
    * @example
@@ -234,7 +236,7 @@ const GraphEdge = function (graph, node1, node2) {
    */
   const isCircular = function () {
     return edge.nodes[0] === edge.nodes[1];
-  }
+  };
   // do we need to test for invalid edges?
     // && this.nodes[0] !== undefined;
   /** If this is a edge with duplicate edge(s),
@@ -244,8 +246,8 @@ const GraphEdge = function (graph, node1, node2) {
    * var array = edge.duplicateEdges()
    */
   const duplicateEdges = function () {
-    return edge.graph.edges.filter((el) => edge.isSimilarToEdge(el));
-  }
+    return edge.graph.edges.filter(el => edge.isSimilarToEdge(el));
+  };
   /** For adjacent edges, get the node they share in common
    * @param {GraphEdge} otherEdge an adjacent edge
    * @returns {GraphNode} the node in common, undefined if not adjacent
@@ -257,16 +259,16 @@ const GraphEdge = function (graph, node1, node2) {
     if (edge === otherEdge) {
       return undefined;
     }
-    if (edge.nodes[0] === otherEdge.nodes[0] ||
-        edge.nodes[0] === otherEdge.nodes[1] ) {
+    if (edge.nodes[0] === otherEdge.nodes[0]
+      || edge.nodes[0] === otherEdge.nodes[1]) {
       return edge.nodes[0];
     }
-    if (edge.nodes[1] === otherEdge.nodes[0] ||
-        edge.nodes[1] === otherEdge.nodes[1] ) {
+    if (edge.nodes[1] === otherEdge.nodes[0]
+      || edge.nodes[1] === otherEdge.nodes[1]) {
       return edge.nodes[1];
     }
     return undefined;
-  }
+  };
   /** For adjacent edges, get this edge's node that is not
    *   shared in common with the other edge
    * @param {GraphEdge} otherEdge an adjacent edge
@@ -278,21 +280,21 @@ const GraphEdge = function (graph, node1, node2) {
   const uncommonNodeWithEdge = function (otherEdge) {
     // only for adjacent edges
     if (edge === otherEdge) { return undefined; }
-    if (edge.nodes[0] === otherEdge.nodes[0] ||
-        edge.nodes[0] === otherEdge.nodes[1] ) {
+    if (edge.nodes[0] === otherEdge.nodes[0]
+      || edge.nodes[0] === otherEdge.nodes[1]) {
       return edge.nodes[1];
     }
-    if (edge.nodes[1] === otherEdge.nodes[0] ||
-        edge.nodes[1] === otherEdge.nodes[1] ) {
+    if (edge.nodes[1] === otherEdge.nodes[0]
+      || edge.nodes[1] === otherEdge.nodes[1]) {
       return edge.nodes[0];
     }
     return undefined;
     // consider another alternative ending,
     // returning both of its two nodes, as if to say all are uncommon
-  }
+  };
 
   Object.defineProperty(edge, "adjacent", {
-    get:function () { return adjacent(); }
+    get: function () { return adjacent(); }
   });
   // Object.defineProperty(edge, "adjacentEdges", {
   //  get:function () { return adjacentEdges(); }
@@ -300,13 +302,13 @@ const GraphEdge = function (graph, node1, node2) {
   // Object.defineProperty(edge, "adjacentNodes", {
   //  get:function () { return adjacentNodes(); }
   // });
-  Object.defineProperty(edge, "isAdjacentToEdge", {value: isAdjacentToEdge});
-  Object.defineProperty(edge, "isSimilarToEdge", {value: isSimilarToEdge});
-  Object.defineProperty(edge, "otherNode", {value: otherNode});
+  Object.defineProperty(edge, "isAdjacentToEdge", { value: isAdjacentToEdge });
+  Object.defineProperty(edge, "isSimilarToEdge", { value: isSimilarToEdge });
+  Object.defineProperty(edge, "otherNode", { value: otherNode });
   Object.defineProperty(edge, "isCircular", {
-    get:function () { return isCircular(); }
+    get: function () { return isCircular(); }
   });
-  Object.defineProperty(edge, "duplicateEdges", {value: duplicateEdges});
+  Object.defineProperty(edge, "duplicateEdges", { value: duplicateEdges });
   Object.defineProperty(edge, "commonNodeWithEdge", {
     value: commonNodeWithEdge
   });
@@ -315,10 +317,11 @@ const GraphEdge = function (graph, node1, node2) {
   });
 
   return edge;
-}
+};
+
 /** A graph is a set of nodes and edges connecting them */
 const Graph = function () {
-  let graph = Object.create(null);
+  const graph = Object.create(null);
 
   graph.nodes = [];
   graph.edges = [];
@@ -327,7 +330,7 @@ const Graph = function () {
   graph.types = {
     node: GraphNode,
     edge: GraphEdge
-  }
+  };
 
   // todo: callback for when properties of the graph have been altered
   // graph.didChange = undefined;
@@ -341,13 +344,13 @@ const Graph = function () {
    * @example
    * var node = graph.newNode()
    */
-  const newNode = function () {
-    let node = graph.types.node(graph);
-    Object.assign(node, ...arguments)
+  const newNode = function (...args) {
+    const node = graph.types.node(graph);
+    Object.assign(node, ...args);
     node.graph = graph;
     graph.nodes.push(node);
     return node;
-  }
+  };
 
   /** Create an edge and add it to the graph
    * @param {GraphNode} node1 the first node that the edge connects
@@ -359,11 +362,11 @@ const Graph = function () {
    * graph.newEdge(node1, node2)
    */
   const newEdge = function (node1, node2) {
-    let edge = graph.types.edge(graph, node1, node2);
+    const edge = graph.types.edge(graph, node1, node2);
     edge.graph = graph;
     graph.edges.push(edge);
     return edge;
-  }
+  };
 
   /** Shallow copies the contents of an existing node into a new node
   *     and adds it to the graph
@@ -371,7 +374,7 @@ const Graph = function () {
    */
   const copyNode = function (node) {
     return Object.assign(graph.newNode(), node);
-  }
+  };
 
   /** Shallow copies the contents of an existing edge into a new edge
    *    and adds it to the graph
@@ -379,13 +382,13 @@ const Graph = function () {
    */
   const copyEdge = function (edge) {
     return Object.assign(graph.newEdge(edge.nodes[0], edge.nodes[1]), edge);
-  }
+  };
 
   // /////////////////////////////////////////////
   // REMOVE PARTS (TARGETS KNOWN)
   // /////////////////////////////////////////////
 
-  /** Removes all nodes and edges, returning the graph to it's original state 
+  /** Removes all nodes and edges, returning the graph to it's original state
    * @example
    * graph.clear()
    */
@@ -393,7 +396,7 @@ const Graph = function () {
     graph.nodes = [];
     graph.edges = [];
     return graph;
-  }
+  };
 
   /** Remove an edge
    * @returns {GraphClean} number of edges removed
@@ -402,10 +405,10 @@ const Graph = function () {
    * // result.edges should equal 1
    */
   const removeEdge = function (edge) {
-    var edgesLength = graph.edges.length;
-    graph.edges = graph.edges.filter((el) => el !== edge);
+    const edgesLength = graph.edges.length;
+    graph.edges = graph.edges.filter(el => el !== edge);
     return GraphClean(undefined, edgesLength - graph.edges.length);
-  }
+  };
 
   /** Removes any edges which connect the two nodes supplied in the arguments
    * @param {GraphNode} node1 first node
@@ -417,13 +420,12 @@ const Graph = function () {
    * // result.edges should be >= 1
    */
   const removeEdgeBetween = function (node1, node2) {
-    var edgesLength = graph.edges.length;
-    graph.edges = graph.edges.filter((el) => 
-      !((el.nodes[0] === node1 && el.nodes[1] === node2) ||
-        (el.nodes[0] === node2 && el.nodes[1] === node1) )
-    );
+    const edgesLength = graph.edges.length;
+    graph.edges = graph.edges.filter(el => !((el.nodes[0] === node1
+      && el.nodes[1] === node2) || (el.nodes[0] === node2
+      && el.nodes[1] === node1)));
     return GraphClean(undefined, edgesLength - graph.edges.length);
-  }
+  };
 
   /** Remove a node and any edges that connect to it
    * @param {GraphNode} node the node that will be removed
@@ -434,17 +436,17 @@ const Graph = function () {
    * // result.edges will be >= 0
    */
   const removeNode = function (node) {
-    var nodesLength = graph.nodes.length;
-    var edgesLength = graph.edges.length;
-    graph.nodes = graph.nodes.filter((n) => n !== node);
+    const nodesLength = graph.nodes.length;
+    const edgesLength = graph.edges.length;
+    graph.nodes = graph.nodes.filter(n => n !== node);
     graph.edges = graph.edges
-      .filter((e) => e.nodes[0] !== node && e.nodes[1] !== node);
+      .filter(e => e.nodes[0] !== node && e.nodes[1] !== node);
     // todo: a graphDidChange object like graphClean but
     return GraphClean(
-      nodesLength-graph.nodes.length,
-      edgesLength-graph.edges.length
+      nodesLength - graph.nodes.length,
+      edgesLength - graph.edges.length
     );
-  }
+  };
 
   /** Remove the second node, replaces any occurences in edges with the first
    * @param {GraphNode} node1 first node to merge, this node will persist
@@ -463,10 +465,10 @@ const Graph = function () {
       if (edge.nodes[1] === node2) { edge.nodes[1] = node1; }
     });
     // this potentially created circular edges
-    var nodesLength = graph.nodes.length;
-    graph.nodes = graph.nodes.filter((n) => n !== node2);
+    const nodesLength = graph.nodes.length;
+    graph.nodes = graph.nodes.filter(n => n !== node2);
     return GraphClean(nodesLength - graph.nodes.length).join(clean());
-  }
+  };
 
   // /////////////////////////////////////////////
   // REMOVE PARTS (SEARCH REQUIRED TO LOCATE)
@@ -480,18 +482,18 @@ const Graph = function () {
    */
   const removeIsolatedNodes = function () {
     // build an array containing T/F if a node is NOT isolated
-    var nodeDegree = Array(graph.nodes.length).fill(false);
-    graph.nodes.forEach((n,i) => n._memo = i);
-    graph.edges.forEach(e => {
+    const nodeDegree = Array(graph.nodes.length).fill(false);
+    graph.nodes.forEach((n, i) => { n._memo = i; });
+    graph.edges.forEach((e) => {
       nodeDegree[e.nodes[0]._memo] = true;
       nodeDegree[e.nodes[1]._memo] = true;
-    })
-    graph.nodes.forEach((n,i) => delete n._memo);
+    });
+    graph.nodes.forEach(n => delete n._memo);
     // filter out isolated nodes
-    var nodeLength = graph.nodes.length;
-    graph.nodes = graph.nodes.filter((el,i) => nodeDegree[i]);
+    const nodeLength = graph.nodes.length;
+    graph.nodes = graph.nodes.filter((el, i) => nodeDegree[i]);
     return GraphClean().isolatedNodes(nodeLength - graph.nodes.length);
-  }
+  };
 
   /** Remove all edges that contain the same node at both ends
    * @returns {GraphClean} the number of edges removed
@@ -500,10 +502,10 @@ const Graph = function () {
    * // result.edges will be >= 0
    */
   const removeCircularEdges = function () {
-    var edgesLength = graph.edges.length;
-    graph.edges = graph.edges.filter((el) => el.nodes[0] !== el.nodes[1]);
+    const edgesLength = graph.edges.length;
+    graph.edges = graph.edges.filter(el => el.nodes[0] !== el.nodes[1]);
     return GraphClean().circularEdges(edgesLength - graph.edges.length);
-  }
+  };
 
   /** Remove edges that are similar to another edge
    * @returns {GraphClean} the number of edges removed
@@ -512,10 +514,10 @@ const Graph = function () {
    * // result.edges will be >= 0
    */
   const removeDuplicateEdges = function () {
-    var count = 0;
-    var spliceIndex = [];
-    for (var i = 0; i < graph.edges.length-1; i++) {
-      for (var j = graph.edges.length-1; j > i; j--) {
+    let count = 0;
+    const spliceIndex = [];
+    for (let i = 0; i < graph.edges.length - 1; i += 1) {
+      for (let j = graph.edges.length - 1; j > i; j -= 1) {
         if (graph.edges[i].isSimilarToEdge(graph.edges[j])) {
           // console.log("duplicate edge found");
           graph.edges.splice(j, 1);
@@ -525,7 +527,7 @@ const Graph = function () {
       }
     }
     return GraphClean().duplicateEdges(count);
-  }
+  };
 
   /**
    * Removes circular and duplicate edges, only modifies edges array.
@@ -538,13 +540,13 @@ const Graph = function () {
     // should we remove isolated nodes as a part of clean()?
     return removeDuplicateEdges()
       .join(removeCircularEdges());
-      // .join(removeIsolatedNodes());
-  }
+    // .join(removeIsolatedNodes());
+  };
 
   // /////////////////////////////////////////////
   // GET PARTS
   // /////////////////////////////////////////////
-  
+
   /** Searches for an edge that contains the 2 nodes supplied in the
    * function call. Will return first edge found, if graph isn't clean it
    * will miss any subsequent duplicate edges.
@@ -553,17 +555,17 @@ const Graph = function () {
    * var edge = graph.getEdgeConnectingNodes(node1, node2)
    */
   const getEdgeConnectingNodes = function (node1, node2) {
-    let edges = graph.edges;
+    const { edges } = graph;
     // for this to work, graph must be cleaned. no duplicate edges
-    for (var i = 0; i < edges.length; i++) {
-      if ((edges[i].nodes[0] === node1 && edges[i].nodes[1] === node2 ) ||
-          (edges[i].nodes[0] === node2 && edges[i].nodes[1] === node1 ) ) {
+    for (let i = 0; i < edges.length; i += 1) {
+      if ((edges[i].nodes[0] === node1 && edges[i].nodes[1] === node2)
+        || (edges[i].nodes[0] === node2 && edges[i].nodes[1] === node1)) {
         return edges[i];
       }
     }
     // nodes are not adjacent
     return undefined;
-  }
+  };
 
   /**
    * Searches for all edges that contains the 2 nodes supplied in the
@@ -575,11 +577,10 @@ const Graph = function () {
    * var array = graph.getEdgesConnectingNodes(node1, node2)
    */
   const getEdgesConnectingNodes = function (node1, node2) {
-    return graph.edges.filter((e) =>
-      (e.nodes[0] === node1 && e.nodes[1] === node2 ) ||
-      (e.nodes[0] === node2 && e.nodes[1] === node1 )
-    );
-  }
+    return graph.edges.filter(e => (e.nodes[0] === node1
+      && e.nodes[1] === node2) || (e.nodes[0] === node2
+      && e.nodes[1] === node1));
+  };
 
   // /////////////////////////////////////////////
   // COPY
@@ -587,29 +588,29 @@ const Graph = function () {
 
   /**
    * Deep-copy the contents of this graph and return it as a new object
-   * @returns {Graph} 
+   * @returns {Graph}
    * @example
    * var copiedGraph = graph.copy()
    */
   const copy = function () {
-    graph.nodes.forEach((node,i) => node._memo = i);
-    var g = Graph();
-    for (var i = 0; i < graph.nodes.length; i++) {
-      let n = g.newNode();
+    graph.nodes.forEach((node, i) => { node._memo = i; });
+    const g = Graph();
+    for (let i = 0; i < graph.nodes.length; i += 1) {
+      const n = g.newNode();
       Object.assign(n, graph.nodes[i]);
       n.graph = g;
     }
-    for (var i = 0; i < graph.edges.length; i++) {
-      let indices = graph.edges[i].nodes.map(n => n._memo)
-      let e = g.newEdge(g.nodes[indices[0]], g.nodes[indices[1]]);
+    for (let i = 0; i < graph.edges.length; i += 1) {
+      const indices = graph.edges[i].nodes.map(n => n._memo);
+      const e = g.newEdge(g.nodes[indices[0]], g.nodes[indices[1]]);
       Object.assign(e, graph.edges[i]);
       e.graph = g;
       e.nodes = [g.nodes[indices[0]], g.nodes[indices[1]]];
     }
-    graph.nodes.forEach((node,i) => delete node._memo);
-    g.nodes.forEach((node,i) => delete node._memo);
+    graph.nodes.forEach(node => delete node._memo);
+    g.nodes.forEach(node => delete node._memo);
     return g;
-  }
+  };
 
   /**
    * Convert this graph into an array of subgraphs, making
@@ -618,52 +619,52 @@ const Graph = function () {
    * @returns {Graph[]}
    */
   const eulerianPaths = function () {
-    var cp = copy();
+    const cp = copy();
     cp.clean();
     cp.removeIsolatedNodes();
     // _memo every node's adjacent edge #
-    cp.nodes.forEach((node,i) => node._memo = {
-      index: i,
-      adj: node.adjacent.edges.length
+    cp.nodes.forEach((node, i) => {
+      node._memo = {
+        index: i,
+        adj: node.adjacent.edges.length
+      };
     });
-    var graphs = [];
+    const graphs = [];
     while (cp.edges.length > 0) {
-      var subGraph = Graph();
+      const subGraph = Graph();
       // create a duplicate set of nodes in the new emptry graph,
       // remove unused nodes at the end
-      subGraph.nodes = cp.nodes.map((node) =>
-        Object.assign(subGraph.types.node(subGraph), node)
-      );
-      subGraph.nodes.forEach(n => n.graph = subGraph);
+      subGraph.nodes = cp.nodes.map(node => Object
+        .assign(subGraph.types.node(subGraph), node));
+      subGraph.nodes.forEach((n) => { n.graph = subGraph; });
 
       // select the node with most adjacentEdges
-      var node = cp.nodes.slice().sort((a,b) => b._memo.adj - a._memo.adj)[0];
-      var adj = node.adjacent.edges;
+      let node = cp.nodes.slice().sort((a, b) => b._memo.adj - a._memo.adj)[0];
+      let adj = node.adjacent.edges;
       while (adj.length > 0) {
         // approach 1
         // var nextEdge = adj[0];
         // approach 2
         // var nextEdge = adj.sort(function (a,b) {
-        //  return b.otherNode(node)._memo.adj 
+        //  return b.otherNode(node)._memo.adj
         //    - a.otherNode(node)._memo.adj;
         // })[0];
         // approach 3, prioritize nodes with even number of adjacencies
-        var smartList = adj
-          .filter((el) => el.otherNode(node)._memo.adj % 2 == 0)
+        const smartList = adj
+          .filter(el => el.otherNode(node)._memo.adj % 2 === 0);
         if (smartList.length === 0) { smartList = adj; }
-        var nextEdge = smartList.sort((a,b) => 
-          b.otherNode(node)._memo.adj - a.otherNode(node)._memo.adj
-        )[0];
-        var nextNode = nextEdge.otherNode(node);
+        const nextEdge = smartList.sort((a, b) => b.otherNode(node)._memo.adj
+          - a.otherNode(node)._memo.adj)[0];
+        const nextNode = nextEdge.otherNode(node);
         // create new edge on other graph with pointers to its nodes
-        var newEdge = Object
-          .assign(subGraph.types.edge(subGraph,undefined,undefined), nextEdge);
-        newEdge.nodes = [
+        const makeEdge = Object.assign(subGraph.types
+          .edge(subGraph, undefined, undefined), nextEdge);
+        makeEdge.nodes = [
           subGraph.nodes[node._memo.index],
           subGraph.nodes[nextNode._memo.index]
         ];
-        subGraph.edges.push(newEdge);
-        // update this graph with 
+        subGraph.edges.push(makeEdge);
+        // update this graph with
         node._memo.adj -= 1;
         nextNode._memo.adj -= 1;
         cp.edges = cp.edges.filter((el) => el !== nextEdge);
@@ -676,17 +677,19 @@ const Graph = function () {
       graphs.push(subGraph);
     }
     return graphs;
-  }
+  };
 
-  Object.defineProperty(graph, "newNode", {value: newNode});
-  Object.defineProperty(graph, "newEdge", {value: newEdge});
-  Object.defineProperty(graph, "clear", {value: clear});
-  Object.defineProperty(graph, "removeEdge", {value: removeEdge});
+  Object.defineProperty(graph, "newNode", { value: newNode });
+  Object.defineProperty(graph, "newEdge", { value: newEdge });
+  Object.defineProperty(graph, "copyNode", { value: copyNode });
+  Object.defineProperty(graph, "copyEdge", { value: copyEdge });
+  Object.defineProperty(graph, "clear", { value: clear });
+  Object.defineProperty(graph, "removeEdge", { value: removeEdge });
   Object.defineProperty(graph, "removeEdgeBetween", {
     value: removeEdgeBetween
   });
-  Object.defineProperty(graph, "removeNode", {value: removeNode});
-  Object.defineProperty(graph, "mergeNodes", {value: mergeNodes});
+  Object.defineProperty(graph, "removeNode", { value: removeNode });
+  Object.defineProperty(graph, "mergeNodes", { value: mergeNodes });
   Object.defineProperty(graph, "removeIsolatedNodes", {
     value: removeIsolatedNodes
   });
@@ -696,17 +699,17 @@ const Graph = function () {
   Object.defineProperty(graph, "removeDuplicateEdges", {
     value: removeDuplicateEdges
   });
-  Object.defineProperty(graph, "clean", {value: clean});
+  Object.defineProperty(graph, "clean", { value: clean });
   Object.defineProperty(graph, "getEdgeConnectingNodes", {
     value: getEdgeConnectingNodes
   });
   Object.defineProperty(graph, "getEdgesConnectingNodes", {
     value: getEdgesConnectingNodes
   });
-  Object.defineProperty(graph, "copy", {value: copy});
-  Object.defineProperty(graph, "eulerianPaths", {value: connectedGraphs});
+  Object.defineProperty(graph, "copy", { value: copy });
+  Object.defineProperty(graph, "eulerianPaths", { value: eulerianPaths });
 
   return graph;
-}
+};
 
 export default Graph;

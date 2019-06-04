@@ -41,7 +41,7 @@ const component = function (proto) { //, options) {
 
 const vertexPrototype = function (graph, index) {
   const point = math.vector(graph.vertices_coords[index]);
-  const _this = Object.create(component(point, { graph, index }));
+  const _this = Object.create(component(point));
   return _this;
 };
 
@@ -49,7 +49,7 @@ const facePrototype = function (graph, index) {
   const points = graph.faces_vertices[index]
     .map(fv => graph.vertices_coords[fv]);
   const face = math.polygon(points);
-  const _this = Object.create(component(face, {graph, index}));
+  const _this = Object.create(component(face));
   return _this;
 };
 
@@ -59,7 +59,7 @@ const edgePrototype = function (graph, index) {
   const edge = math.edge(points);
 
   // const _this = Object.create(Component(edge, {graph, index}))
-  const _this = {};
+  const _this = Object.create(component(edge));
 
   const is_assignment = function (options) {
     return options.map(l => l === this.graph.edges_assignment[index])
@@ -139,7 +139,8 @@ component.face = function (graph, index) {
 };
 
 component.crease = function (graph, index) {
-  console.warn("todo");
+  const proto = creasePrototype.bind(this);
+  return component(proto(graph, index));
 };
 
 export default component;
@@ -151,18 +152,19 @@ export default component;
 // consider this: a crease can be an ARRAY of edges.
 // this way one crease is one crease. it's more what a person expects.
 // one crease can == many edges.
-export const Crease = function (_graph, _indices) {
-  let graph = _graph; // pointer back to the graph;
-  let indices = _indices; // indices of this crease in the graph
+const creasePrototype = function (graph, indices) {
+  // const _this = Object.create(Component(edge, {graph, index}))
+  const _this = Object.create(component({}));
 
   const is_assignment = function (options) {
-    return indices.map(index => options
-      .map(l => l === graph.edges_assignment[index])
-      .reduce((a, b) => a || b, false))
-    .reduce((a, b) => a || b, false);
+    return indices
+      .map(index => options
+        .map(l => l === graph.edges_assignment[index])
+        .reduce((a, b) => a || b, false))
+      .reduce((a, b) => a || b, false);
   };
-  const is_mountain = function () { return is_assignment(["M", "m"]); }
-  const is_valley = function () { return is_assignment(["V", "v"]); }
+  const is_mountain = function () { return is_assignment(["M", "m"]); };
+  const is_valley = function () { return is_assignment(["V", "v"]); };
 
   const flip = function () {
     if (is_mountain()) { valley(); }
@@ -171,36 +173,50 @@ export const Crease = function (_graph, _indices) {
     graph.onchange.forEach(f => f());
   };
   const mountain = function () {
-    indices.forEach(index => graph.edges_assignment[index] = "M");
-    indices.forEach(index => graph.edges_foldAngle[index] = -180);
+    indices.forEach((index) => { graph.edges_assignment[index] = "M"; });
+    indices.forEach((index) => { graph.edges_foldAngle[index] = -180; });
     graph.onchange.forEach(f => f());
   };
   const valley = function () {
-    indices.forEach(index => graph.edges_assignment[index] = "V");
-    indices.forEach(index => graph.edges_foldAngle[index] = 180);
+    indices.forEach((index) => { graph.edges_assignment[index] = "V"; });
+    indices.forEach((index) => { graph.edges_foldAngle[index] = 180; });
     graph.onchange.forEach(f => f());
   };
   const mark = function () {
-    indices.forEach(index => graph.edges_assignment[index] = "F");
-    indices.forEach(index => graph.edges_foldAngle[index] = 0);
+    indices.forEach((index) => { graph.edges_assignment[index] = "F"; });
+    indices.forEach((index) => { graph.edges_foldAngle[index] = 0; });
     graph.onchange.forEach(f => f());
   };
-  const remove = function () { }
+  const remove = function () { };
   // const addVertexOnEdge = function (x, y) {
   //  let thisEdge = this.index;
   //  graph.addVertexOnEdge(x, y, thisEdge);
   // }
 
   // Object.create(Component())
+  Object.defineProperty(_this, "mountain", {
+    configurable: true, value: mountain
+  });
+  Object.defineProperty(_this, "valley", {
+    configurable: true, value: valley
+  });
+  Object.defineProperty(_this, "mark", {
+    configurable: true, value: mark
+  });
+  Object.defineProperty(_this, "flip", {
+    configurable: true, value: flip
+  });
+  Object.defineProperty(_this, "remove", {
+    configurable: true, value: remove
+  });
 
-  return {
-    mountain,
-    valley,
-    mark,
-    flip,
-    get isMountain(){ return is_mountain(); },
-    get isValley(){ return is_valley(); },
-    remove,
-    // addVertexOnEdge
-  };
+  Object.defineProperty(_this, "isMountain", {
+    configurable: true,
+    get: function () { return is_mountain.call(this); }
+  });
+  Object.defineProperty(_this, "isValley", {
+    configurable: true,
+    get: function () { return is_valley.call(this); }
+  });
+
 };
