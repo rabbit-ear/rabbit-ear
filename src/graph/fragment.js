@@ -8,12 +8,13 @@ import {
 } from "./remove";
 
 
-export const fragment2 = function (graph, epsilon = math.core.EPSILON) {
-  filter.subdivideCrossingEdges_vertices(graph);
+const fragment2 = function (inGraph, epsilon = math.core.EPSILON) {
+  // console.log(graph.vertices_coords.length);
+  // filter.subdivideCrossingEdges_vertices(graph);
+  const graph = split_at_crossings(inGraph, epsilon);
   convert.edges_vertices_to_vertices_vertices_sorted(graph);
   convert.vertices_vertices_to_faces_vertices(graph);
   convert.faces_vertices_to_faces_edges(graph);
-  console.log(graph);
   return graph;
 };
 
@@ -23,7 +24,7 @@ export const fragment2 = function (graph, epsilon = math.core.EPSILON) {
  * and joins new edges at a new shared vertex.
  * this destroys and rebuilds all face data with face walking
  */
-export const fragment = function (graph, epsilon = math.core.EPSILON) {
+const split_at_crossings = function (graph, epsilon = math.core.EPSILON) {
   const horizSort = function (a, b) { return a[0] - b[0]; };
   const vertSort = function (a, b) { return a[1] - b[1]; };
   // const horizSort2 = function (a,b){
@@ -169,9 +170,11 @@ export const fragment = function (graph, epsilon = math.core.EPSILON) {
 
   // console.log(flat);
 
-  convert.edges_vertices_to_vertices_vertices_sorted(flat);
-  convert.vertices_vertices_to_faces_vertices(flat);
-  convert.faces_vertices_to_faces_edges(flat);
+  // convert.edges_vertices_to_vertices_vertices_sorted(flat);
+  // convert.vertices_vertices_to_faces_vertices(flat);
+  // convert.faces_vertices_to_faces_edges(flat);
 
   return flat;
 };
+
+export default fragment2;

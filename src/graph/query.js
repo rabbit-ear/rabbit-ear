@@ -110,13 +110,32 @@ export const nearest_edge = function (graph, point) {
     return undefined;
   }
   // todo, z is not included in the calculation
-  return graph.edges_vertices
+  // return graph.edges_vertices
+  //   .map(e => e.map(ev => graph.vertices_coords[ev]))
+  //   .map(e => math.edge(e))
+  //   .map((e, i) => ({ i, d: e.nearestPoint(point).distanceTo(point) }))
+  //   .sort((a, b) => a.d - b.d)
+  //   .shift()
+  //   .i;
+  const edge_limit = (dist) => {
+    if (dist < -math.core.EPSILON) { return 0; }
+    if (dist > 1 + math.core.EPSILON) { return 1; }
+    return dist;
+  };
+  const nearest_points = graph.edges_vertices
     .map(e => e.map(ev => graph.vertices_coords[ev]))
-    .map(e => math.edge(e))
-    .map((e, i) => ({ i, d: e.nearestPoint(point).distanceTo(point) }))
-    .sort((a, b) => a.d - b.d)
-    .shift()
-    .i;
+    .map(e => [e[0], [e[1][0] - e[0][0], e[1][1] - e[0][1]]])
+    .map(line => math.core.nearest_point_on_line(line[0], line[1], point, edge_limit))
+    .map((p, i) => ({ p, i, d: math.core.distance2(point, p) }));
+  let shortest_index;
+  let shortest_distance = Infinity;
+  for (let i = 0; i < nearest_points.length; i += 1) {
+    if (nearest_points[i].d < shortest_distance) {
+      shortest_index = i;
+      shortest_distance = nearest_points[i].d;
+    }
+  }
+  return shortest_index;
 };
 
 export const face_containing_point = function (graph, point) {

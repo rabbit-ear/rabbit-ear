@@ -48,15 +48,17 @@ import * as kawasaki from "./origami/kawasaki";
 
 import build_diagram_frame from "./frames/diagram_frame";
 
+import add_edge from "./graph/add_edge";
+
 // origami bases
-import empty from "./fold/bases/empty.fold";
-import square from "./fold/bases/square.fold";
-import book from "./fold/bases/book.fold";
-import blintz from "./fold/bases/blintz.fold";
-import kite from "./fold/bases/kite.fold";
-import fish from "./fold/bases/fish.fold";
-import bird from "./fold/bases/bird.fold";
-import frog from "./fold/bases/frog.fold";
+import empty from "./data/bases/empty.fold";
+import square from "./data/bases/square.fold";
+import book from "./data/bases/book.fold";
+import blintz from "./data/bases/blintz.fold";
+import kite from "./data/bases/kite.fold";
+import fish from "./data/bases/fish.fold";
+import bird from "./data/bases/bird.fold";
+import frog from "./data/bases/frog.fold";
 
 const convert = {
   toFOLD,
@@ -83,6 +85,7 @@ Object.assign(core,
   Axioms);
 
 core.build_diagram_frame = build_diagram_frame;
+core.add_edge = add_edge;
 
 // load bases
 const b = {
