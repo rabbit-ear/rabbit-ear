@@ -13,21 +13,30 @@
  */
 
 // import { make_edges_faces } from "./make";
+import math from "../../include/math";
 import FOLDConvert from "../../include/fold/convert";
 import { remove_duplicate_edges } from "./remove";
+import fragment from "./fragment";
 
 /**
  * this is the big rebuild-all-arrays function.
  * vertices_coords and edges_vertices are the seeds everything else is rebuilt.
  * todo: specify "keys" parameter to update certain keys only
  */
-export const clean = function (graph) {
+export const clean = function (graph, epsilon = math.core.EPSILON) {
   // todo
+  ["vertices_vertices", "vertices_edges", "vertices_faces",
+    "edges_faces", "edges_edges",
+    "faces_vertices", "faces_edges", "faces_faces"].filter(a => a in graph)
+    .forEach(key => delete graph[key]);
   // this needs to chop edges that have line endpoints collear to them
-  remove_duplicate_edges(graph);
-  FOLDConvert.edges_vertices_to_vertices_vertices_sorted(graph);
-  FOLDConvert.vertices_vertices_to_faces_vertices(graph);
-  FOLDConvert.faces_vertices_to_faces_edges(graph);
+  const rebuilt = fragment(graph, epsilon);
+  remove_duplicate_edges(rebuilt);
+  FOLDConvert.edges_vertices_to_vertices_vertices_sorted(rebuilt);
+  FOLDConvert.vertices_vertices_to_faces_vertices(rebuilt);
+  FOLDConvert.faces_vertices_to_faces_edges(rebuilt);
+
+  Object.assign(graph, rebuilt);
 };
 
 export const second_thing = 5;

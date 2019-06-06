@@ -122,7 +122,7 @@ export const axiom1 = function (pointA, pointB) {
   const p0 = math.core.get_vector(pointA);
   const p1 = math.core.get_vector(pointB);
   const vec = p0.map((_, i) => p1[i] - p0[i]);
-  const solution = [[p0, vec]];
+  const solution = [p0, vec];
   return {
     number: 1,
     parameters: { points: [p0, p1] },
@@ -221,23 +221,22 @@ const solveCubic = function (a, b, c, d) {
     a = b; b = c; c = d;
     if (Math.abs(a) < 1e-8) { // Linear case, ax+b=0
       a = b; b = c;
-      if (Math.abs(a) < 1e-8){ // Degenerate case
+      if (Math.abs(a) < 1e-8) { // Degenerate case
         return [];
       }
-      return [-b/a];
+      return [-b / a];
     }
-    var D = b*b - 4*a*c;
-    if (Math.abs(D) < 1e-8){
-      return [-b/(2*a)];
-    }
-    else if (D > 0){
-      return [(-b+Math.sqrt(D))/(2*a), (-b-Math.sqrt(D))/(2*a)];
+    var D = b * b - 4 * a * c;
+    if (Math.abs(D) < 1e-8) {
+      return [-b / (2 * a)];
+    } else if (D > 0) {
+      return [(-b + Math.sqrt(D)) / (2 * a), (-b - Math.sqrt(D)) / (2 * a)];
     }
     return [];
   }
   // Convert to depressed cubic t^3+pt+q = 0 (subst x = t - b/3a)
-  var p = (3*a*c - b*b)/(3*a*a);
-  var q = (2*b*b*b - 9*a*b*c + 27*a*a*d)/(27*a*a*a);
+  var p = (3 * a * c - b * b) / (3 * a * a);
+  var q = (2 * b * b * b - 9 * a * b * c + 27 * a * a * d) / (27 * a * a * a);
   var roots;
 
   if (Math.abs(p) < 1e-8) { // p = 0 -> t^3 = -q -> t = -q^1/3
@@ -245,12 +244,12 @@ const solveCubic = function (a, b, c, d) {
   } else if (Math.abs(q) < 1e-8) { // q = 0 -> t^3 + pt = 0 -> t(t^2+p)=0
     roots = [0].concat(p < 0 ? [Math.sqrt(-p), -Math.sqrt(-p)] : []);
   } else {
-    var D = q*q/4 + p*p*p/27;
+    var D = q * q / 4 + p * p * p / 27;
     if (Math.abs(D) < 1e-8) {       // D = 0 -> two roots
-      roots = [-1.5*q/p, 3*q/p];
+      roots = [-1.5 * q / p, 3 * q / p];
     } else if (D > 0) {             // Only one real root
-      var u = cuberoot(-q/2 - Math.sqrt(D));
-      roots = [u - p/(3*u)];
+      var u = cuberoot(-q / 2 - Math.sqrt(D));
+      roots = [u - p / (3 * u)];
     } else {
       // D < 0, three roots, needs complex numbers/trigonometric solution
       var u = 2*Math.sqrt(-p/3);

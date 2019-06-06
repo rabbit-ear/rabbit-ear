@@ -377,7 +377,7 @@ export default function (...args) {
   const getVertices = function () {
     const { vertices } = prop.cp;
     vertices.forEach((v, i) => { v.svg = groups.vertices.childNodes[i]; });
-    console.log("vertices", vertices);
+    // console.log("vertices", vertices);
     Object.defineProperty(vertices, "visible", {
       get: () => visible.vertices,
       set: (v) => { visible.vertices = !!v; draw(); },

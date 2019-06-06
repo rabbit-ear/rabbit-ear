@@ -17,7 +17,7 @@ import CreaseThrough from "../origami/fold";
 import * as Spec from "./spec";
 import * as Kawasaki from "../origami/kawasaki";
 import addEdge from "../graph/add_edge";
-
+import * as Rebuild from "../graph/rebuild";
 import component from "./component";
 
 import add_vertex_on_edge from "../graph/addVertexOld";
@@ -75,8 +75,8 @@ const Prototype = function (proto) {
     _this = that;
   };
 
-  const clean = function () {
-    planarGraph.clean();
+  const clean = function (epsilon = math.core.EPSILON) {
+    Rebuild.clean(_this, epsilon);
   };
 
   /**
@@ -85,7 +85,7 @@ const Prototype = function (proto) {
    */
   const load = function (file, prevent_wipe) {
     if (prevent_wipe == null || prevent_wipe !== true) {
-      Spec.keys.forEach(key => delete _this[key])
+      Spec.keys.forEach(key => delete _this[key]);
     }
     Object.assign(_this, JSON.parse(JSON.stringify(file)));
     // placeholderFoldedForm(_this);
@@ -132,34 +132,37 @@ const Prototype = function (proto) {
 
   // todo: memo these. they're created each time, even if the CP hasn't changed
   const getVertices = function () {
-    components.vertices
-      .filter(v => v.disable !== undefined)
-      .forEach(v => v.disable());
-    components.vertices = (_this.vertices_coords || [])
-      .map((_, i) => component.vertex(_this, i));
-    return components.vertices;
+    return (_this.vertices_coords || []).map((_, i) => ({ index: i }));
+    // components.vertices
+    //   .filter(v => v.disable !== undefined)
+    //   .forEach(v => v.disable());
+    // components.vertices = (_this.vertices_coords || [])
+    //   .map((_, i) => component.vertex(_this, i));
+    // return components.vertices;
   };
   const getEdges = function () {
-    components.edges
-      .filter(e => e.disable !== undefined)
-      .forEach(e => e.disable());
-    components.edges = (_this.edges_vertices || [])
-      .map((_, i) => component.edge(_this, i));
-    return components.edges;
-    // return (this.edges_vertices || [])
-    //    .map(e => e.map(ev => this.vertices_coords[ev]))
-    //    .map(e => Geometry.Edge(e));
+    return (_this.edges_vertices || []).map((_, i) => ({ index: i }));
+    // components.edges
+    //   .filter(e => e.disable !== undefined)
+    //   .forEach(e => e.disable());
+    // components.edges = (_this.edges_vertices || [])
+    //   .map((_, i) => component.edge(_this, i));
+    // return components.edges;
+    // // return (this.edges_vertices || [])
+    // //    .map(e => e.map(ev => this.vertices_coords[ev]))
+    // //    .map(e => Geometry.Edge(e));
   };
   const getFaces = function () {
-    components.faces
-      .filter(f => f.disable !== undefined)
-      .forEach(f => f.disable());
-    components.faces = (_this.faces_vertices || [])
-      .map((_, i) => component.face(_this, i));
-    return components.faces;
-    // return (this.faces_vertices || [])
-    //    .map(f => f.map(fv => this.vertices_coords[fv]))
-    //    .map(f => Polygon(f));
+    return (_this.faces_vertices || []).map((_, i) => ({ index: i }));
+    // components.faces
+    //   .filter(f => f.disable !== undefined)
+    //   .forEach(f => f.disable());
+    // components.faces = (_this.faces_vertices || [])
+    //   .map((_, i) => component.face(_this, i));
+    // return components.faces;
+    // // return (this.faces_vertices || [])
+    // //    .map(f => f.map(fv => this.vertices_coords[fv]))
+    // //    .map(f => Polygon(f));
   };
   const getBoundary = function () {
     // todo: test this for another reason anyway
@@ -171,15 +174,18 @@ const Prototype = function (proto) {
   };
   const nearestVertex = function (x, y, z = 0) {
     const index = nearest_vertex(_this, [x, y, z]);
-    return (index != null) ? component.vertex(_this, index) : undefined;
+    return { index };
+    // return (index != null) ? component.vertex(_this, index) : undefined;
   };
   const nearestEdge = function (x, y, z = 0) {
     const index = nearest_edge(_this, [x, y, z]);
-    return (index != null) ? component.edge(_this, index) : undefined;
+    return { index };
+    // return (index != null) ? component.edge(_this, index) : undefined;
   };
   const nearestFace = function (x, y, z = 0) {
     const index = face_containing_point(_this, [x, y, z]);
-    return (index != null) ? component.face(_this, index) : undefined;
+    return { index };
+    // return (index != null) ? component.face(_this, index) : undefined;
   };
 
   const getFacesAtPoint = function (x, y, z = 0) {

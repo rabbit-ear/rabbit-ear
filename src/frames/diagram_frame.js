@@ -54,12 +54,12 @@ const make_arrow_coords = function (construction, graph) {
   let crossing;
   switch (axiom) {
     case 4:
-      crossing = math.core.nearest_point(
+      crossing = math.core.nearest_point_on_line(
         p.edge[0], crease_vector, axiom_frame.parameters.lines[0][0], (a => a)
       );
       break;
     case 7:
-      crossing = math.core.nearest_point(
+      crossing = math.core.nearest_point_on_line(
         p.edge[0], crease_vector, axiom_frame.parameters.points[0], (a => a)
       );
       break;

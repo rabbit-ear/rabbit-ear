@@ -66,7 +66,7 @@ export const apply_run_diff = function (graph, diff) {
   }
 };
 
-export const apply_run_diff_draft_1 = function (graph, diff) {
+const apply_run_diff_draft_1 = function (graph, diff) {
   const vertices_length = graph.vertices_coords.length;
   const edges_length = graph.edges_vertices.length;
   const faces_length = graph.faces_vertices.length;

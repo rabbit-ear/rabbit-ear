@@ -1,4 +1,5 @@
 import math from "../../include/math";
+import { vertices_count, edges_count } from "./query";
 
 // used to be called CreaseSegment
 
@@ -8,18 +9,23 @@ import math from "../../include/math";
  */
 const add_edge = function (graph, a, b, c, d) {
   // the input parameter
-  const edge = math.edge([a, b]);
+  // console.log(graph, a, b, c, d);
+  const edge = math.edge(a, b);
+  // const edge = math.edge(a, b, c, d);
+  
+  // const vertices_length = vertices_count(graph);
+  // const edges_length = edges_count(graph);
 
   const edges = graph.edges_vertices
     .map(ev => ev.map(v => graph.vertices_coords[v]));
 
   const edge_collinear_a = edges
-    .map(e => math.core.intersection.point_on_edge(e[0], e[1], edge[0]))
+    .map(e => math.core.point_on_edge(e[0], e[1], edge[0]))
     .map((on_edge, i) => (on_edge ? i : undefined))
     .filter(e => e !== undefined)
     .shift();
   const edge_collinear_b = edges
-    .map(e => math.core.intersection.point_on_edge(e[0], e[1], edge[1]))
+    .map(e => math.core.point_on_edge(e[0], e[1], edge[1]))
     .map((on_edge, i) => (on_edge ? i : undefined))
     .filter(e => e !== undefined)
     .shift();
@@ -42,7 +48,6 @@ const add_edge = function (graph, a, b, c, d) {
   const edges_to_remove = [];
   // at each new index, which edge did this edge come from
   const edges_index_map = [];
-
 
   // if (vertex_equivalent_a !== undefined && vertex_equivalent_b !== undefined) {
   //  let edge_already_exists = graph.edges_vertices.filter(ev =>
@@ -109,6 +114,18 @@ const add_edge = function (graph, a, b, c, d) {
     edges_index_map
   };
   return diff;
+
+  // return {
+  //   new: { vertices: [], edges: [], faces: [] },
+  //   remove: { vertices: [], edges: [4], faces: [] },
+  //   update: [ // dimension of array matches graph
+  //     // empty x 5
+  //     { edges_vertices: [5, 6], vertices_vertices: [4, 1] },
+  //     // empty x 2
+  //     { vertices_vertices: [0, 4] }
+  //   ]
+  // };
+
 };
 
 // export function crease_folded(graph, point, vector, face_index) {

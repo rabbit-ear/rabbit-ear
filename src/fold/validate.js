@@ -15,7 +15,7 @@ export const possibleFoldObject = function (fold) {
 };
 
 export const validate = function (graph) {
-  const foldKeys = {
+  const prefix_suffix = {
     vertices: ["coords", "vertices", "faces"],
     edges: ["vertices", "faces", "assignment", "foldAngle", "length"],
     faces: ["vertices", "edges"],
@@ -38,8 +38,8 @@ export const validate = function (graph) {
   });
 
   // all arrays with similar prefixes should be of the same length
-  const arraysLengthTest = Object.keys(foldKeys)
-    .map(key => ({ prefix: key, suffixes: foldKeys[key] }))
+  const arraysLengthTest = Object.keys(prefix_suffix)
+    .map(key => ({ prefix: key, suffixes: prefix_suffix[key] }))
     .map(el => el.suffixes
       .map(suffix => `${el.prefix}_${suffix}`)
       .filter(key => graph[key] != null)
@@ -57,8 +57,8 @@ export const validate = function (graph) {
     faces: graph.faces_vertices.length || graph.faces_edges.length
   };
   // geometry indices point to arrays longer than that index value
-  const arraysIndexTest = Object.keys(foldKeys)
-    .map(key => ({ prefix: key, suffixes: foldKeys[key] }))
+  const arraysIndexTest = Object.keys(prefix_suffix)
+    .map(key => ({ prefix: key, suffixes: prefix_suffix[key] }))
     .map(el => el.suffixes
       .map(suffix => ({ key: `${el.prefix}_${suffix}`, suffix }))
       .filter(ell => graph[ell.key] != null && l[ell.suffix] != null)
