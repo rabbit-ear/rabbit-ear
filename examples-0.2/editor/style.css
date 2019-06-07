@@ -56,7 +56,7 @@ polygon {
 }
 
 .valley{
-	stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);
+	stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 4);
 }
 .mark {
 	stroke-width: calc( var(--crease-width) * 0.25);

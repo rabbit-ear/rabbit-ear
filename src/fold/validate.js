@@ -24,14 +24,14 @@ export const validate = function (graph) {
   // check for nulls
   ["vertices_coords", "vertices_vertices", "vertices_faces",
     "edges_vertices", "edges_faces",
-    "faces_vertices", "faces_edges"].forEach((key) => {
+    "faces_vertices", "faces_edges"].filter(a => a in graph).forEach((key) => {
     if (graph[key]
       .map(a => a.filter(b => b == null).length > 0)
       .reduce((a, b) => a || b, false)) {
       throw new Error(`${key} contains a null`);
     }
   });
-  ["edges_assignment", "edges_foldAngle", "edges_length"].forEach((key) => {
+  ["edges_assignment", "edges_foldAngle", "edges_length"].filter(a => a in graph).forEach((key) => {
     if (graph[key].filter(a => a == null).length > 0) {
       throw new Error(`${key} contains a null`);
     }
@@ -93,42 +93,49 @@ export const validate = function (graph) {
     throw new Error(`vertices_vertices at index ${ev_test_fails[0].i} declares an edge that doesn't exist in edges_vertices`);
   }
 
-  const v_f_test = graph.vertices_faces
-    .map((vert, i) => vert
-      .map(vf => ({
-        test: graph.faces_vertices[vf].indexOf(i) !== -1,
-        face: vf,
-        i
-      }))
-      .filter(el => !el.test))
-    .reduce((a, b) => a.concat(b), []);
+  if ("vertices_faces" in graph) {
+    const v_f_test = graph.vertices_faces
+      .map((vert, i) => vert
+        .map(vf => ({
+          test: graph.faces_vertices[vf].indexOf(i) !== -1,
+          face: vf,
+          i
+        }))
+        .filter(el => !el.test))
+      .reduce((a, b) => a.concat(b), []);
 
-  if (v_f_test.length > 0) {
-    throw new Error(`vertex ${v_f_test[0].i} in vertices_faces connects to face ${v_f_test[0].face}, whereas in faces_vertices this same connection in reverse doesn't exist.`);
+    if (v_f_test.length > 0) {
+      throw new Error(`vertex ${v_f_test[0].i} in vertices_faces connects to face ${v_f_test[0].face}, whereas in faces_vertices this same connection in reverse doesn't exist.`);
+    }
   }
-  const e_f_test = graph.edges_faces
-    .map((edge, i) => edge
-      .map(ef => ({
-        test: graph.faces_edges[ef].indexOf(i) !== -1,
-        face: ef,
-        i
-      }))
-      .filter(el => !el.test))
-    .reduce((a, b) => a.concat(b), []);
+  if ("edges_faces" in graph) {
+    const e_f_test = graph.edges_faces
+      .map((edge, i) => edge
+        .map(ef => ({
+          test: graph.faces_edges[ef].indexOf(i) !== -1,
+          face: ef,
+          i
+        }))
+        .filter(el => !el.test))
+      .reduce((a, b) => a.concat(b), []);
 
-  if (e_f_test.length > 0) {
-    throw new Error(`edges_faces ${e_f_test[0].i} connects to face ${e_f_test[0].face}, whereas in faces_edges this same connection in reverse doesn't exist.`);
+    if (e_f_test.length > 0) {
+      throw new Error(`edges_faces ${e_f_test[0].i} connects to face ${e_f_test[0].face}, whereas in faces_edges this same connection in reverse doesn't exist.`);
+    }
   }
 
-  const f_v_test = graph.faces_vertices
-    .map((face, i) => face
-      .map(vf => ({
-        test: graph.vertices_faces[vf].indexOf(i) !== -1,
-        face: vf,
-        i
-      }))
-      .filter(el => !el.test))
-    .reduce((a, b) => a.concat(b), []);
+  if ("faces_vertices" in graph && "vertices_faces" in graph) {
+    const f_v_test = graph.faces_vertices
+      .map((face, i) => face
+        .map(vf => ({
+          test: graph.vertices_faces[vf].indexOf(i) !== -1,
+          face: vf,
+          i
+        }))
+        .filter(el => !el.test))
+      .reduce((a, b) => a.concat(b), []);
+
+  }
 
   // "vertices_coords"
   // "vertices_vertices"
