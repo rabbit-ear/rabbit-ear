@@ -25,10 +25,12 @@ import fragment from "./fragment";
  */
 export const clean = function (graph, epsilon = math.core.EPSILON) {
   // todo
+
   ["vertices_vertices", "vertices_edges", "vertices_faces",
     "edges_faces", "edges_edges",
     "faces_vertices", "faces_edges", "faces_faces"].filter(a => a in graph)
     .forEach(key => delete graph[key]);
+
   // this needs to chop edges that have line endpoints collear to them
   const rebuilt = fragment(graph, epsilon);
   remove_duplicate_edges(rebuilt);
@@ -37,9 +39,11 @@ export const clean = function (graph, epsilon = math.core.EPSILON) {
   FOLDConvert.faces_vertices_to_faces_edges(rebuilt);
 
   Object.assign(graph, rebuilt);
+  graph.edges_assignment = Array(graph.edges_vertices.length).fill("F");
 };
 
-export const second_thing = 5;
+
+export const stopComplainingLinter = true;
 
 // export const clean = function (graph, keys) {
 //   if ("vertices_coords" in graph === false

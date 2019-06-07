@@ -422,7 +422,9 @@ function get_two_vec2() {
   var numbers = params.filter(function (param) {
     return !isNaN(param);
   });
-  var arrays = params.filter(function (param) {
+  var arrays = params.filter(function (o) {
+    return _typeof(o) === "object";
+  }).filter(function (param) {
     return param.constructor === Array;
   });
 

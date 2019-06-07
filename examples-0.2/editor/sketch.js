@@ -13,6 +13,9 @@ origami.touchGroup = origami.group();
 origami.snapPoints = JSON.parse(JSON.stringify(origami.cp.vertices_coords));
 origami.snapPointGroup = origami.group();
 
+delete origami.cp.edges_foldAngle;
+delete origami.cp.edges_length;
+
 const folding = re.Origami("folding");
 
 origami.update = function () {
@@ -28,26 +31,22 @@ origami.setSnapPoints = function (points) {
 };
 
 const unique_points2 = function (points, epsilon = re.math.EPSILON) {
-  const horizSort = function (a, b) { return a[0] - b[0]; };
-  const vertSort = function (a, b) { return a[1] - b[1]; };
-  const equivalent = function (a, b) {
-    for (let i = 0; i < a.length; i += 1) {
-      if (Math.abs(a[i] - b[i]) > epsilon) {
-        return false;
-      }
-    }
-    return true;
-  };
+  console.log(`unique_points2 ran with ${points.length} points`);
 
+  const equivalent2 = function (a, b) {
+    return Math.abs(a[0] - b[0]) < re.math.EPSILON
+      && Math.abs(a[1] - b[1]) < re.math.EPSILON;
+  };
   const vertices_equivalent = Array
     .from(Array(points.length)).map(() => []);
-
+  
+  // THE MOST TIME SPENT HERE
   for (let i = 0; i < points.length - 1; i += 1) {
     for (let j = i + 1; j < points.length; j += 1) {
-      vertices_equivalent[i][j] = equivalent(points[i], points[j]);
+      vertices_equivalent[i][j] = equivalent2(points[i], points[j]);
     }
   }
-
+  // ALSO BAD, BUT 1/5 the time of the bad part above
   const vertices_map = Array(points.length).fill(undefined);
   vertices_equivalent
     .forEach((row, i) => row
@@ -58,8 +57,21 @@ const unique_points2 = function (points, epsilon = re.math.EPSILON) {
             : vertices_map[i];
         }
       }));
+  // for (let i = 0; i < vertices_equivalent.length; i += 1) {
+  //   for (let j = 0; j < vertices_equivalent[i].length; j += 1) {
+  //     if (vertices_equivalent[i][j]) {
+  //       vertices_map[j] = vertices_map[i] === undefined
+  //         ? i
+  //         : vertices_map[i];
+  //     }
+  //   }
+  // }
 
-  return points.filter((_, i) => vertices_map[i] === undefined);
+  const filtered = points.filter((_, i) => vertices_map[i] === undefined);
+
+  return filtered;
+
+  // return points.filter((_, i) => vertices_map[i] === undefined);
 };
 
 origami.recalculate = function () {
@@ -105,9 +117,11 @@ origami.onMouseUp = function (mouse) {
   //   origami.mouseSnap.up = origami.cp.vertices_coords[near.vertex.index];
   // }
   if (!re.math.equivalent(origami.mouseSnap.up, origami.mouseSnap.down)) {
-    console.log("before", JSON.parse(JSON.stringify(origami.cp)));
-    re.core.add_edge(origami.cp, origami.mouseSnap.up, origami.mouseSnap.down);
-    console.log("after", JSON.parse(JSON.stringify(origami.cp)));
+    let result = re.core.add_edge(origami.cp, origami.mouseSnap.up, origami.mouseSnap.down);
+    console.log(result);
+    result.new.edges[0].edges_assignment = "V";
+    re.core.apply_run(origami.cp, result);
+    console.log(JSON.parse(JSON.stringify(origami.cp)));
     origami.cp.clean();
     origami.draw();
   }

@@ -44,6 +44,8 @@ let e = re.core.replace_edge(re.bases.kite, 6, [0.5, 0.5], [0.6, 0.6], [0.7, 0.7
 console.log(e);
 
 
+re.core.add_edge()
+
 // //////////////////////////
 // let bb = re.bases.frog;
 // bb.vertices_coords.push([12, 12]);
