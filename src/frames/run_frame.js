@@ -42,22 +42,26 @@ const draft2 = {
 };
 
 
-export const apply_run_diff = function (graph, diff) {
+const apply_run_diff = function (graph, diff) {
   const lengths = {
     vertices: vertices_count(graph),
     edges: edges_count(graph),
     faces: faces_count(graph)
   };
   // for each new geometry type, append new element to the end of their arrays
-  Object.keys(diff.new)
-    .forEach(type => diff.new[type]
-      .forEach((newElem, i) => Object.keys(newElem)
-        .forEach((key) => { graph[key][lengths[type] + i] = newElem[key]; })));
+  if (diff.new) {
+    Object.keys(diff.new)
+      .forEach(type => diff.new[type]
+        .forEach((newElem, i) => Object.keys(newElem)
+          .forEach((key) => { graph[key][lengths[type] + i] = newElem[key]; })));
+  }
   // object keys to get the array indices.
   // example: overwrite faces_vertices, index 4, with new array [1,5,7,4]
-  Object.keys(diff.update)
-    .forEach(i => Object.keys(diff.update[i])
-      .forEach((key) => { graph[key][i] = diff.update[i][key]; }));
+  if (diff.update) {
+    Object.keys(diff.update)
+      .forEach(i => Object.keys(diff.update[i])
+        .forEach((key) => { graph[key][i] = diff.update[i][key]; }));
+  }
   // these should be done in a particular order... is that right?
   if (diff.remove) {
     if (diff.remove.faces) { remove_faces(graph, diff.remove.faces); }
@@ -96,3 +100,5 @@ const apply_run_diff_draft_1 = function (graph, diff) {
   remove_edges(graph, diff.edges.remove);
   remove_vertices(graph, diff.vertices.remove);
 };
+
+export default apply_run_diff;

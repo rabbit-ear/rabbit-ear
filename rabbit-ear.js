@@ -5313,73 +5313,72 @@
     kawasaki_collapse: kawasaki_collapse
   });
 
+  const copy_properties = function (graph, geometry_prefix, index) {
+    const prefix = `${geometry_prefix}_`;
+    const prefixKeys = Object.keys(graph)
+      .map(str => (str.substring(0, prefix.length) === prefix ? str : undefined))
+      .filter(str => str !== undefined);
+    const result = {};
+    prefixKeys.forEach((key) => { result[key] = graph[key][index]; });
+    return result;
+  };
   const add_edge = function (graph, a, b, c, d) {
     const edge = math.edge(a, b);
+    let vertices_length = vertices_count(graph);
     const edges = graph.edges_vertices
       .map(ev => ev.map(v => graph.vertices_coords[v]));
-    const edge_collinear_a = edges
-      .map(e => math.core.point_on_edge(e[0], e[1], edge[0]))
+    const endpoints_vertex_equivalent = [0, 1].map(ei => graph.vertices_coords
+      .map(v => Math.sqrt(((edge[ei][0] - v[0]) ** 2)
+                        + ((edge[ei][1] - v[1]) ** 2)))
+      .map((dist, i) => (dist < math.core.EPSILON ? i : undefined))
+      .filter(el => el !== undefined)
+      .shift());
+    const endpoints_edge_collinear = [0, 1].map(ei => edges
+      .map(e => math.core.point_on_edge(e[0], e[1], edge[ei]))
       .map((on_edge, i) => (on_edge ? i : undefined))
       .filter(e => e !== undefined)
-      .shift();
-    const edge_collinear_b = edges
-      .map(e => math.core.point_on_edge(e[0], e[1], edge[1]))
-      .map((on_edge, i) => (on_edge ? i : undefined))
-      .filter(e => e !== undefined)
-      .shift();
-    const vertex_equivalent_a = graph.vertices_coords
-      .map(v => Math.sqrt(((edge[0][0] - v[0]) ** 2)
-                        + ((edge[0][1] - v[1]) ** 2)))
-      .map((dist, i) => (dist < 1e-8 ? i : undefined))
-      .filter(el => el !== undefined)
-      .shift();
-    const vertex_equivalent_b = graph.vertices_coords
-      .map(v => Math.sqrt(((edge[1][0] - v[0]) ** 2)
-                        + ((edge[1][1] - v[1]) ** 2)))
-      .map((dist, i) => (dist < 1e-8 ? i : undefined))
-      .filter(el => el !== undefined)
-      .shift();
-    const edge_vertices = [];
-    const edges_to_remove = [];
-    const edges_index_map = [];
-    if (vertex_equivalent_a !== undefined) {
-      edge_vertices[0] = vertex_equivalent_a;
-    } else {
-      graph.vertices_coords.push([edge[0][0], edge[0][1]]);
-      const vertex_new_index = graph.vertices_coords.length - 1;
-      edge_vertices[0] = vertex_new_index;
-      if (edge_collinear_a !== undefined) {
-        edges_to_remove.push(edge_collinear_a);
-        const edge_vertices_old = graph.edges_vertices[edge_collinear_a];
-        graph.edges_vertices.push([edge_vertices_old[0], vertex_new_index]);
-        graph.edges_vertices.push([vertex_new_index, edge_vertices_old[1]]);
-        edges_index_map[graph.edges_vertices.length - 2] = edge_collinear_a;
-        edges_index_map[graph.edges_vertices.length - 1] = edge_collinear_a;
-      }
-    }
-    if (vertex_equivalent_b !== undefined) {
-      edge_vertices[1] = vertex_equivalent_b;
-    } else {
-      graph.vertices_coords.push([edge[1][0], edge[1][1]]);
-      const vertex_new_index = graph.vertices_coords.length - 1;
-      edge_vertices[1] = vertex_new_index;
-      if (edge_collinear_b !== undefined) {
-        edges_to_remove.push(edge_collinear_b);
-        const edge_vertices_old = graph.edges_vertices[edge_collinear_b];
-        graph.edges_vertices.push([edge_vertices_old[0], vertex_new_index]);
-        graph.edges_vertices.push([vertex_new_index, edge_vertices_old[1]]);
-        edges_index_map[graph.edges_vertices.length - 2] = edge_collinear_b;
-        edges_index_map[graph.edges_vertices.length - 1] = edge_collinear_b;
-      }
-    }
-    graph.edges_vertices.push(edge_vertices);
-    graph.edges_assignment[graph.edges_vertices.length - 1] = "F";
-    const diff = {
-      edges_new: [graph.edges_vertices.length - 1],
-      edges_to_remove,
-      edges_index_map
+      .shift());
+    const vertices_origin = [0, 1].map((i) => {
+      if (endpoints_vertex_equivalent[i] !== undefined) { return "vertex"; }
+      if (endpoints_edge_collinear[i] !== undefined) { return "edge"; }
+      return "new";
+    });
+    const result = {
+      new: { vertices: [], edges: [{ edges_vertices: [] }] },
+      remove: { edges: [] }
     };
-    return diff;
+    [0, 1].forEach((i) => {
+      switch (vertices_origin[i]) {
+        case "vertex":
+          result.new.edges[0].edges_vertices[i] = endpoints_vertex_equivalent[i];
+          break;
+        case "edge":
+          result.new.vertices.push({
+            vertices_coords: [edge[i][0], edge[i][1]]
+          });
+          vertices_length += 1;
+          result.new.edges[0].edges_vertices[i] = vertices_length - 1;
+          let dup = copy_properties(graph, "edges", endpoints_edge_collinear[i]);
+          const new_edges_vertices = [
+            { edges_vertices: [graph.edges_vertices[endpoints_edge_collinear[i]][0], vertices_length - 1] },
+            { edges_vertices: [graph.edges_vertices[endpoints_edge_collinear[i]][1], vertices_length - 1] }
+          ];
+          result.new.edges.push(
+            Object.assign(Object.assign({}, dup), new_edges_vertices[0]),
+            Object.assign(Object.assign({}, dup), new_edges_vertices[1])
+          );
+          result.remove.edges.push(endpoints_edge_collinear[i]);
+          break;
+        default:
+          result.new.vertices.push({
+            vertices_coords: [edge[i][0], edge[i][1]]
+          });
+          vertices_length += 1;
+          result.new.edges[0].edges_vertices[i] = vertices_length - 1;
+          break;
+      }
+    });
+    return result;
   };
 
   var geom = {},
@@ -6979,11 +6978,9 @@
     convert$1.faces_vertices_to_faces_edges(rebuilt);
     Object.assign(graph, rebuilt);
   };
-  const second_thing = 5;
 
   var rebuild = /*#__PURE__*/Object.freeze({
-    clean: clean,
-    second_thing: second_thing
+    clean: clean
   });
 
   const makeUUID = function () {
@@ -11356,6 +11353,30 @@
 
   });
 
+  const apply_run_diff = function (graph, diff) {
+    const lengths = {
+      vertices: vertices_count(graph),
+      edges: edges_count(graph),
+      faces: faces_count(graph)
+    };
+    if (diff.new) {
+      Object.keys(diff.new)
+        .forEach(type => diff.new[type]
+          .forEach((newElem, i) => Object.keys(newElem)
+            .forEach((key) => { graph[key][lengths[type] + i] = newElem[key]; })));
+    }
+    if (diff.update) {
+      Object.keys(diff.update)
+        .forEach(i => Object.keys(diff.update[i])
+          .forEach((key) => { graph[key][i] = diff.update[i][key]; }));
+    }
+    if (diff.remove) {
+      if (diff.remove.faces) { remove_faces(graph, diff.remove.faces); }
+      if (diff.remove.edges) { remove_edges(graph, diff.remove.edges); }
+      if (diff.remove.vertices) { remove_vertices(graph, diff.remove.vertices); }
+    }
+  };
+
   var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
 
   var square$1 = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_attributes\": [\"2D\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"vertices_coords\": [[0,0], [1,0], [1,1], [0,1]],\n\t\"vertices_vertices\": [[1,3], [2,0], [3,1], [0,2]],\n\t\"vertices_faces\": [[0], [0], [0], [0]],\n\t\"edges_vertices\": [[0,1], [1,2], [2,3], [3,0]],\n\t\"edges_faces\": [[0], [0], [0], [0]],\n\t\"edges_assignment\": [\"B\",\"B\",\"B\",\"B\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0],\n\t\"edges_length\": [1, 1, 1, 1],\n\t\"faces_vertices\": [[0,1,2,3]],\n\t\"faces_edges\": [[0,1,2,3]]\n}";
@@ -11395,6 +11416,7 @@
     Axioms);
   core$1.build_diagram_frame = build_diagram_frame;
   core$1.add_edge = add_edge;
+  core$1.apply_run = apply_run_diff;
   const b = {
     empty: JSON.parse(empty),
     square: JSON.parse(square$1),

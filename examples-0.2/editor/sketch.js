@@ -105,9 +105,11 @@ origami.onMouseUp = function (mouse) {
   //   origami.mouseSnap.up = origami.cp.vertices_coords[near.vertex.index];
   // }
   if (!re.math.equivalent(origami.mouseSnap.up, origami.mouseSnap.down)) {
-    console.log("before", JSON.parse(JSON.stringify(origami.cp)));
-    re.core.add_edge(origami.cp, origami.mouseSnap.up, origami.mouseSnap.down);
-    console.log("after", JSON.parse(JSON.stringify(origami.cp)));
+    let result = re.core.add_edge(origami.cp, origami.mouseSnap.up, origami.mouseSnap.down);
+    console.log(result);
+    result.new.edges[0].edges_assignment = "V";
+    re.core.apply_run(origami.cp, result);
+    console.log(JSON.parse(JSON.stringify(origami.cp)));
     origami.cp.clean();
     origami.draw();
   }

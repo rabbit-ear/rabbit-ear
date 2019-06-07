@@ -39,7 +39,7 @@ export const clean = function (graph, epsilon = math.core.EPSILON) {
   Object.assign(graph, rebuilt);
 };
 
-export const second_thing = 5;
+
 
 // export const clean = function (graph, keys) {
 //   if ("vertices_coords" in graph === false
