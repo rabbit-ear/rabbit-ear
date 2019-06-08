@@ -99,7 +99,7 @@ svg{
 	stroke-width: var(--crease-width);
 }
 
-.creasePattern .faces {
+.faces {
 	stroke: none; fill: none;
 }
 

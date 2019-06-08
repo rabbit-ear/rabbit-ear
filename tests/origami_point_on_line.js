@@ -10,7 +10,7 @@ origami.preferences.debug = true;
 origami.onMouseDown = function (mouse) {
   const nearest = origami.nearest(mouse);
 
-  re.core.add_vertex_on_edge_functional(origami.cp, mouse.x, mouse.y, nearest.edge.index);
+  re.core.add_vertex_on_edge(origami.cp, mouse.x, mouse.y, nearest.edge.index);
   // console.log(origami.cp);
   origami.draw();
   // origami.cp.addVertexOnEdge(mouse.x, mouse.y, nearest.edge.index);

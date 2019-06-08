@@ -919,7 +919,31 @@
       case 2:
         return intersections;
       default:
-        throw "clipping edge in a convex polygon resulting in 3 or more points";
+        throw new Error("clipping edge in a convex polygon resulting in 3 or more points");
+    }
+  };
+  var convex_poly_ray_exclusive = function convex_poly_ray_exclusive(poly, linePoint, lineVector) {
+    var intersections = poly.map(function (p, i, arr) {
+      return [p, arr[(i + 1) % arr.length]];
+    }).map(function (el) {
+      return ray_edge_exclusive(linePoint, lineVector, el[0], el[1]);
+    }).filter(function (el) {
+      return el != null;
+    });
+    switch (intersections.length) {
+      case 0:
+        return undefined;
+      case 1:
+        return [linePoint, intersections[0]];
+      case 2:
+        return intersections;
+      default:
+        for (var i = 1; i < intersections.length; i += 1) {
+          if (!quick_equivalent_2(intersections[0], intersections[i])) {
+            return [intersections[0], intersections[i]];
+          }
+        }
+        return undefined;
     }
   };
   var intersection = Object.freeze({
@@ -943,7 +967,8 @@
     circle_edge: circle_edge,
     convex_poly_line: convex_poly_line,
     convex_poly_ray: convex_poly_ray,
-    convex_poly_edge: convex_poly_edge
+    convex_poly_edge: convex_poly_edge,
+    convex_poly_ray_exclusive: convex_poly_ray_exclusive
   });
   var clockwise_angle2_radians = function clockwise_angle2_radians(a, b) {
     while (a < 0) {
@@ -3773,7 +3798,7 @@
     return map;
   };
   const make_vertices_faces = function (graph) {
-    const vertices_faces = Array.from(Array(graph.faces_vertices.length))
+    const vertices_faces = Array.from(Array(graph.vertices_coords.length))
       .map(() => []);
     graph.faces_vertices.forEach((face, i) => face
       .forEach(vertex => vertices_faces[vertex].push(i)));
@@ -4440,6 +4465,18 @@
     .concat(keys_types.frame)
     .concat(keys_types.graph)
     .concat(keys_types.orders));
+  const edges_assignment_names = {
+    en: {
+      B: "boundary", b: "boundary",
+      M: "mountain", m: "mountain",
+      V: "valley",   v: "valley",
+      F: "mark",     f: "mark",
+      U: "mark",     u: "mark"
+    }
+  };
+  const edges_assignment_values = [
+    "B", "b", "M", "m", "V", "v", "F", "f", "U", "u"
+  ];
   const assignment_angles = {
     M: -180,
     m: -180,
@@ -4456,6 +4493,8 @@
     frame_classes: frame_classes,
     frame_attributes: frame_attributes,
     keys: keys,
+    edges_assignment_names: edges_assignment_names,
+    edges_assignment_values: edges_assignment_values,
     edge_assignment_to_foldAngle: edge_assignment_to_foldAngle
   });
 
@@ -4465,6 +4504,17 @@
       if (keys.includes(argKeys[i])) { return true; }
     }
     return false;
+  };
+  const edges_assignment = function (graph) {
+    if ("edges_assignment" in graph === false) {
+      return false;
+    }
+    if (graph.edges_assignment.length !== graph.edges_vertices.length) {
+      return false;
+    }
+    return graph.edges_assignment
+      .filter(v => edges_assignment_values.includes(v))
+      .reduce((a, b) => a && b, true);
   };
   const validate = function (graph) {
     const prefix_suffix = {
@@ -4575,6 +4625,7 @@
 
   var validate$1 = /*#__PURE__*/Object.freeze({
     possibleFoldObject: possibleFoldObject,
+    edges_assignment: edges_assignment,
     validate: validate
   });
 
@@ -5308,7 +5359,7 @@
     ]);
   };
   function kawasaki_solutions$1(graph, vertex) {
-    return math.core.kawasaki_solutions(vertex_adjacent_vectors(graph, vertex));
+    return math.core.kawasaki_solutions(...vertex_adjacent_vectors(graph, vertex));
   }
   function kawasaki_collapse(graph, vertex, face, crease_direction = "F") {
     const kawasakis = kawasaki_solutions$1(graph, vertex);
@@ -6989,8 +7040,19 @@
     convert$1.edges_vertices_to_vertices_vertices_sorted(rebuilt);
     convert$1.vertices_vertices_to_faces_vertices(rebuilt);
     convert$1.faces_vertices_to_faces_edges(rebuilt);
+    rebuilt.edges_faces = make_edges_faces(rebuilt);
+    rebuilt.vertices_faces = make_vertices_faces(rebuilt);
     Object.assign(graph, rebuilt);
-    graph.edges_assignment = Array(graph.edges_vertices.length).fill("F");
+    if (!edges_assignment(graph)) {
+      graph.edges_assignment = Array(graph.edges_vertices.length).fill("F");
+    }
+    if ("file_spec" in graph === false) { graph.file_spec = 1.1; }
+    if ("frame_attributes" in graph === false) {
+      graph.frame_attributes = ["2D"];
+    }
+    if ("frame_classes" in graph === false) {
+      graph.frame_classes = ["creasePattern"];
+    }
   };
   const stopComplainingLinter = true;
 
@@ -7180,11 +7242,21 @@
     const clean$$1 = function (epsilon = math.core.EPSILON) {
       clean(_this, epsilon);
     };
+    const validate_and_clean = function (epsilon = math.core.EPSILON) {
+      const valid = ("vertices_coords" in _this && "vertices_vertices" in _this
+        && "edges_vertices" in _this && "edges_assignment" in _this
+        && "faces_vertices" in _this && "faces_edges" in _this);
+      if (!valid) {
+        console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
+        clean$$1(epsilon);
+      }
+    };
     const load = function (file, prevent_wipe) {
       if (prevent_wipe == null || prevent_wipe !== true) {
         keys.forEach(key => delete _this[key]);
       }
       Object.assign(_this, JSON.parse(JSON.stringify(file)));
+      validate_and_clean();
     };
     const copy = function () {
       return CreasePattern(JSON.parse(JSON.stringify(_this)));
@@ -7194,7 +7266,7 @@
       _this.onchange.forEach(f => f());
     };
     const json = function () {
-      return FOLDConvert.toJSON(_this);
+      return convert$1.toJSON(_this);
     };
     const svg = function (cssRules) {
     };
@@ -7288,8 +7360,22 @@
       add_vertex_on_edge(_this, x, y, oldEdgeIndex);
       didModifyGraph();
     };
-    const creaseSegment = function () {
-      const diff = add_edge(_this, ...arguments);
+    const creaseRay = function (...args) {
+      const ray = math.ray(args);
+      const faces = _this.faces_vertices.map(fv => fv.map(v => _this.vertices_coords[v]));
+      const intersecting = faces
+        .map((face, i) => (math.core.intersection
+          .convex_poly_ray_exclusive(face, ray.point, ray.vector) === undefined
+          ? undefined : i))
+        .filter(a => a !== undefined)
+        .sort((a, b) => b - a);
+      console.log(faces, intersecting);
+      intersecting.forEach(index => split_convex_polygon$1(
+        _this, index, ray.point, ray.vector, "F"
+      ));
+    };
+    const creaseSegment = function (...args) {
+      const diff = add_edge(_this, ...args);
       if (diff === undefined) { return undefined; }
       if (diff.edges_index_map != null) {
         Object.keys(diff.edges_index_map)
@@ -7339,6 +7425,7 @@
     Object.defineProperty(proto, "valleyFold", { value: valleyFold });
     Object.defineProperty(proto, "markFold", { value: markFold });
     Object.defineProperty(proto, "addVertexOnEdge", { value: addVertexOnEdge });
+    Object.defineProperty(proto, "creaseRay", { value: creaseRay });
     Object.defineProperty(proto, "creaseSegment", { value: creaseSegment });
     Object.defineProperty(proto, "creaseThroughLayers", {
       value: creaseThroughLayers
@@ -11369,6 +11456,153 @@
 
   });
 
+  const replace_edge = function (graph, edge_index, ...new_edges) {
+    const prefix = "edges_";
+    const prefixKeys = Object.keys(graph)
+      .map(str => (str.substring(0, prefix.length) === prefix ? str : undefined))
+      .filter(str => str !== undefined);
+    const edges = Array.from(Array(new_edges.length)).map(() => ({}));
+    new_edges.forEach((_, i) => prefixKeys
+      .filter(pKey => graph[pKey][edge_index] !== undefined)
+      .forEach((pKey) => {
+        edges[i][pKey] = graph[pKey][edge_index];
+      }));
+    new_edges.forEach((edge, i) => Object.keys(edge)
+      .forEach((key) => { edges[i][key] = new_edges[i][key]; }));
+    return edges;
+  };
+  const edge_split_rebuild_vertices_vertices = function (
+    graph,
+    edge_vertices,
+    new_vertex_index
+  ) {
+    const update = [];
+    edge_vertices.forEach((vert) => { update[vert] = {}; });
+    const edges_vertices_other_vertex = ([1, 0].map(i => edge_vertices[i]));
+    edge_vertices.forEach((vert, i) => {
+      update[vert].vertices_vertices = graph.vertices_vertices[vert]
+      !== undefined
+        ? [...graph.vertices_vertices[vert]]
+        : [edges_vertices_other_vertex[i]];
+    });
+    const other_index_of = edge_vertices
+      .map((v, i) => update[v].vertices_vertices
+        .indexOf(edges_vertices_other_vertex[i]));
+    edge_vertices.forEach((vert, i) => {
+      update[vert].vertices_vertices[other_index_of[i]] = new_vertex_index;
+    });
+    return update;
+  };
+  const face_insert_vertex_between_edge = function (
+    face_vertices,
+    edge_vertices,
+    new_vertex_index
+  ) {
+    const len = face_vertices.length;
+    const spliceIndices = face_vertices.map((fv, i, arr) => (
+      (fv === edge_vertices[0] && arr[(i + 1) % len] === edge_vertices[1])
+      || (fv === edge_vertices[1] && arr[(i + 1) % len] === edge_vertices[0])
+        ? (i + 1) % len : undefined))
+      .filter(el => el !== undefined);
+    const new_face_vertices = [];
+    let modI = 0;
+    for (let i = 0; i < len + spliceIndices.length; i += 1) {
+      if (spliceIndices.includes(i)) {
+        modI -= 1;
+        new_face_vertices[i] = new_vertex_index;
+      } else {
+        new_face_vertices[i] = face_vertices[i + modI];
+      }
+    }
+    return new_face_vertices;
+  };
+  const edges_common_vertex = function (graph, ...edges) {
+    const v = edges.map(e => graph.edges_vertices[e]);
+    return v[0][0] === v[1][0] || v[0][0] === v[1][1]
+      ? v[0][0]
+      : v[0][1];
+  };
+  const face_replace_edge_with_two_edges = function (
+    graph,
+    face_edges,
+    old_edge_index,
+    new_vertex_index,
+    new_edge_index_0,
+    new_edge_index_1,
+    new_edge_vertices_0,
+    new_edge_vertices_1,
+  ) {
+    const len = face_edges.length;
+    const edge_in_face_edges_index = face_edges.indexOf(old_edge_index);
+    const three_edges = [
+      face_edges[(edge_in_face_edges_index + len - 1) % len],
+      old_edge_index,
+      face_edges[(edge_in_face_edges_index + 1) % len]
+    ];
+    const ordered_verts = ([0, 1]
+      .map(i => edges_common_vertex(graph, three_edges[i], three_edges[i + 1])));
+    const new_edges_indices = (new_edge_vertices_0[0] === ordered_verts[0]
+      || new_edge_vertices_0[1] === ordered_verts[0]
+      ? [new_edge_index_0, new_edge_index_1]
+      : [new_edge_index_1, new_edge_index_0]);
+    const new_face_edges = face_edges.slice();
+    if (edge_in_face_edges_index === len - 1) {
+      new_face_edges.splice(edge_in_face_edges_index, 1, new_edges_indices[0]);
+      new_face_edges.unshift(new_edges_indices[1]);
+    } else {
+      new_face_edges.splice(edge_in_face_edges_index, 1, ...new_edges_indices);
+    }
+    return new_face_edges;
+  };
+  const add_vertex_on_edge$1 = function (
+    graph,
+    x, y,
+    old_edge_index
+  ) {
+    const vertices_length = graph.vertices_coords.length;
+    const edges_length = graph.edges_vertices.length;
+    if (edges_length < old_edge_index) { return undefined; }
+    const result = {
+      remove: {
+        edges: [old_edge_index],
+      },
+      update: edge_split_rebuild_vertices_vertices(graph,
+        graph.edges_vertices[old_edge_index], vertices_length),
+      new: {
+        vertices: [{
+          vertices_coords: [x, y],
+          vertices_vertices: [...graph.edges_vertices[old_edge_index]],
+          vertices_faces: (graph.edges_faces ? graph.edges_faces[old_edge_index] : undefined)
+        }],
+        edges: replace_edge(graph, old_edge_index,
+          ...graph.edges_vertices[old_edge_index]
+            .map(ev => ({ edges_vertices: [ev, vertices_length] }))),
+        faces: []
+      }
+    };
+    if (graph.edges_faces) {
+      graph.edges_faces[old_edge_index].forEach((i) => {
+        if (result.update[i] === undefined) { result.update[i] = {}; }
+        result.update[i].faces_vertices = face_insert_vertex_between_edge(
+          graph.faces_vertices[i],
+          graph.edges_vertices[old_edge_index],
+          vertices_length
+        );
+        result.update[i].faces_edges = face_replace_edge_with_two_edges(
+          graph,
+          graph.faces_edges[i],
+          old_edge_index,
+          vertices_length,
+          edges_length,
+          edges_length + 1,
+          result.new.edges[0].edges_vertices,
+          result.new.edges[1].edges_vertices,
+        );
+      });
+    }
+    return result;
+  };
+
   const apply_run_diff = function (graph, diff) {
     const lengths = {
       vertices: vertices_count(graph),
@@ -11391,6 +11625,113 @@
       if (diff.remove.edges) { remove_edges(graph, diff.remove.edges); }
       if (diff.remove.vertices) { remove_vertices(graph, diff.remove.vertices); }
     }
+  };
+  const merge_run_diffs = function (graph, target, source) {
+    const vertices_length = vertices_count(graph);
+    const edges_length = edges_count(graph);
+    const faces_length = faces_count(graph);
+    let target_new_vertices_length = 0;
+    let target_new_edges_length = 0;
+    let target_new_faces_length = 0;
+    if (target.new !== undefined) {
+      if (target.new.vertices !== undefined) {
+        target_new_vertices_length = target.new.vertices.length;
+      }
+      if (target.new.edges !== undefined) {
+        target_new_edges_length = target.new.edges.length;
+      }
+      if (target.new.faces !== undefined) {
+        target_new_faces_length = target.new.faces.length;
+      }
+    }
+    const augment_map = {
+      vertices: {
+        length: vertices_length,
+        change: target_new_vertices_length
+      },
+      edges: {
+        length: edges_length,
+        change: target_new_edges_length
+      },
+      faces: {
+        length: faces_length,
+        change: target_new_faces_length
+      },
+    };
+    let all_source = [];
+    if (source.new !== undefined) {
+      Object.keys(source.new).forEach((category) => {
+        source.new[category].forEach((newEl, i) => {
+          ["vertices", "edges", "faces"].forEach((key) => {
+            const suffix = `_${key}`;
+            const suffixKeys = Object.keys(newEl)
+              .map(str => (str.substring(str.length - suffix.length, str.length) === suffix
+                ? str
+                : undefined))
+              .filter(str => str !== undefined);
+            suffixKeys.forEach((suffixKey) => {
+              source.new[category][i][suffixKey].forEach((n, j) => {
+                if (source.new[category][i][suffixKey][j] >= augment_map[category].length) {
+                  source.new[category][i][suffixKey][j] += augment_map[category].change;
+                }
+              });
+            });
+          });
+        });
+        all_source = all_source.concat(source.new.vertices);
+      });
+    }
+    const merge = {};
+    if (target.new !== undefined) { merge.new = target.new; }
+    if (target.update !== undefined) { merge.update = target.update; }
+    if (target.remove !== undefined) { merge.remove = target.remove; }
+    if (source.new !== undefined) {
+      if (source.new.vertices !== undefined) {
+        if (merge.new.vertices === undefined) { merge.new.vertices = []; }
+        merge.new.vertices = merge.new.vertices.concat(source.new.vertices);
+      }
+      if (source.new.edges !== undefined) {
+        if (merge.new.edges === undefined) { merge.new.edges = []; }
+        merge.new.edges = merge.new.edges.concat(source.new.edges);
+      }
+      if (source.new.faces !== undefined) {
+        if (merge.new.faces === undefined) { merge.new.faces = []; }
+        merge.new.faces = merge.new.faces.concat(source.new.faces);
+      }
+    }
+    if (source.update !== undefined) {
+      Object.keys(source.update).forEach((i) => {
+        if (merge.update[i] == null) {
+          merge.update[i] = source.update[i];
+        }
+        else {
+          const keys1 = Object.keys(merge.update[i]);
+          const keys2 = Object.keys(source.update[i]);
+          const overlap = keys1.filter(key1key => keys2.includes(key1key));
+          if (overlap.length > 0) {
+            const str = overlap.join(", ");
+            console.warn(`cannot merge. two diffs contain overlap at ${str}`);
+            return;
+          }
+          Object.assign(merge.update[i], source.update[i]);
+        }
+      });
+    }
+    if (source.remove !== undefined) {
+      if (source.remove.vertices !== undefined) {
+        if (merge.remove.vertices === undefined) { merge.remove.vertices = []; }
+        merge.remove.vertices = merge.remove.vertices.concat(source.remove.vertices);
+      }
+      if (source.remove.edges !== undefined) {
+        if (merge.remove.edges === undefined) { merge.remove.edges = []; }
+        merge.remove.edges = merge.remove.edges.concat(source.remove.edges);
+      }
+      if (source.remove.faces !== undefined) {
+        if (merge.remove.faces === undefined) { merge.remove.faces = []; }
+        merge.remove.faces = merge.remove.faces.concat(source.remove.faces);
+      }
+    }
+    Object.assign(target, source);
   };
 
   var empty = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_title\": \"\",\n\t\"file_description\": \"\",\n\t\"file_classes\": [],\n\t\"file_frames\": [],\n\n\t\"frame_author\": \"\",\n\t\"frame_title\": \"\",\n\t\"frame_description\": \"\",\n\t\"frame_attributes\": [],\n\t\"frame_classes\": [],\n\t\"frame_unit\": \"\",\n\n\t\"vertices_coords\": [],\n\t\"vertices_vertices\": [],\n\t\"vertices_faces\": [],\n\n\t\"edges_vertices\": [],\n\t\"edges_faces\": [],\n\t\"edges_assignment\": [],\n\t\"edges_foldAngle\": [],\n\t\"edges_length\": [],\n\n\t\"faces_vertices\": [],\n\t\"faces_edges\": [],\n\n\t\"edgeOrders\": [],\n\t\"faceOrders\": []\n}\n";
@@ -11432,7 +11773,9 @@
     Axioms);
   core$1.build_diagram_frame = build_diagram_frame;
   core$1.add_edge = add_edge;
+  core$1.split_edge_run = add_vertex_on_edge$1;
   core$1.apply_run = apply_run_diff;
+  core$1.merge_run = merge_run_diffs;
   const b = {
     empty: JSON.parse(empty),
     square: JSON.parse(square$1),

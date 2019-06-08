@@ -23,16 +23,10 @@ import { remove_vertices, remove_edges, remove_faces } from "../graph/remove";
 //   }
 // };
 
-const draft1 = {
-  vertices: { new: [], update: [], remove: [] },
-  edges: { new: [], update: [], remove: [4] },
-  faces: { new: [], update: [], remove: [] }
-};
-
 // everything in "new" and "remove" are 0-indexed array. excempt is "update"
-const draft2 = {
+const final_draft = {
   new: { vertices: [], edges: [], faces: [] },
-  remove: { vertices: [], edges: [4], faces: [] },
+  remove: { vertices: [], edges: [4, 7], faces: [] },
   update: [ // dimension of array matches graph
     // empty x 5
     { edges_vertices: [5, 6], vertices_vertices: [4, 1] },
@@ -42,7 +36,14 @@ const draft2 = {
 };
 
 
-const apply_run_diff = function (graph, diff) {
+const rough_draft_1 = {
+  vertices: { new: [], update: [], remove: [] },
+  edges: { new: [], update: [], remove: [] },
+  faces: { new: [], update: [], remove: [] }
+};
+
+
+export const apply_run_diff = function (graph, diff) {
   const lengths = {
     vertices: vertices_count(graph),
     edges: edges_count(graph),
@@ -68,6 +69,133 @@ const apply_run_diff = function (graph, diff) {
     if (diff.remove.edges) { remove_edges(graph, diff.remove.edges); }
     if (diff.remove.vertices) { remove_vertices(graph, diff.remove.vertices); }
   }
+};
+
+
+/**
+ * NEVERMIND - this DOES modify target. Object.assign
+ *
+ * source is merged into target, but not in the memory sense, neither of
+ * the arguments are modified in place, it only returns a copy.
+ */
+export const merge_run_diffs = function (graph, target, source) {
+  const vertices_length = vertices_count(graph);
+  const edges_length = edges_count(graph);
+  const faces_length = faces_count(graph);
+
+  // each diff was built expecting new geometry to be appended right at
+  // the end of the old arrays. this is not the case if target is going to
+  // merge before it.
+  let target_new_vertices_length = 0;
+  let target_new_edges_length = 0;
+  let target_new_faces_length = 0;
+
+  if (target.new !== undefined) {
+    if (target.new.vertices !== undefined) {
+      target_new_vertices_length = target.new.vertices.length;
+    }
+    if (target.new.edges !== undefined) {
+      target_new_edges_length = target.new.edges.length;
+    }
+    if (target.new.faces !== undefined) {
+      target_new_faces_length = target.new.faces.length;
+    }
+  }
+
+  const augment_map = {
+    vertices: {
+      length: vertices_length,
+      change: target_new_vertices_length
+    },
+    edges: {
+      length: edges_length,
+      change: target_new_edges_length
+    },
+    faces: {
+      length: faces_length,
+      change: target_new_faces_length
+    },
+  };
+
+  let all_source = [];
+  if (source.new !== undefined) {
+    Object.keys(source.new).forEach((category) => {
+      // category is either "vertices", "edges", or "faces"
+      source.new[category].forEach((newEl, i) => {
+        // newEl is something like {vertices_coords: [], vertices_vertices: []}
+        // const prefix = `${key}_`;
+        ["vertices", "edges", "faces"].forEach((key) => {
+          const suffix = `_${key}`;
+          // get all keys like vertices_coords
+          const suffixKeys = Object.keys(newEl)
+            .map(str => (str.substring(str.length - suffix.length, str.length) === suffix
+              ? str
+              : undefined))
+            .filter(str => str !== undefined);
+          suffixKeys.forEach((suffixKey) => {
+            source.new[category][i][suffixKey].forEach((n, j) => {
+              if (source.new[category][i][suffixKey][j] >= augment_map[category].length) {
+                source.new[category][i][suffixKey][j] += augment_map[category].change;
+              }
+            });
+          });
+        });
+      });
+      all_source = all_source.concat(source.new.vertices);
+    });
+  }
+  const merge = {};
+  if (target.new !== undefined) { merge.new = target.new; }
+  if (target.update !== undefined) { merge.update = target.update; }
+  if (target.remove !== undefined) { merge.remove = target.remove; }
+  if (source.new !== undefined) {
+    if (source.new.vertices !== undefined) {
+      if (merge.new.vertices === undefined) { merge.new.vertices = []; }
+      merge.new.vertices = merge.new.vertices.concat(source.new.vertices);
+    }
+    if (source.new.edges !== undefined) {
+      if (merge.new.edges === undefined) { merge.new.edges = []; }
+      merge.new.edges = merge.new.edges.concat(source.new.edges);
+    }
+    if (source.new.faces !== undefined) {
+      if (merge.new.faces === undefined) { merge.new.faces = []; }
+      merge.new.faces = merge.new.faces.concat(source.new.faces);
+    }
+  }
+
+  if (source.update !== undefined) {
+    Object.keys(source.update).forEach((i) => {
+      if (merge.update[i] == null) {
+        merge.update[i] = source.update[i];
+      }
+      else {
+        const keys1 = Object.keys(merge.update[i]);
+        const keys2 = Object.keys(source.update[i]);
+        const overlap = keys1.filter(key1key => keys2.includes(key1key));
+        if (overlap.length > 0) {
+          const str = overlap.join(", ");
+          console.warn(`cannot merge. two diffs contain overlap at ${str}`);
+          return;
+        }
+        Object.assign(merge.update[i], source.update[i]);
+      }
+    });
+  }
+  if (source.remove !== undefined) {
+    if (source.remove.vertices !== undefined) {
+      if (merge.remove.vertices === undefined) { merge.remove.vertices = []; }
+      merge.remove.vertices = merge.remove.vertices.concat(source.remove.vertices);
+    }
+    if (source.remove.edges !== undefined) {
+      if (merge.remove.edges === undefined) { merge.remove.edges = []; }
+      merge.remove.edges = merge.remove.edges.concat(source.remove.edges);
+    }
+    if (source.remove.faces !== undefined) {
+      if (merge.remove.faces === undefined) { merge.remove.faces = []; }
+      merge.remove.faces = merge.remove.faces.concat(source.remove.faces);
+    }
+  }
+  Object.assign(target, source);
 };
 
 const apply_run_diff_draft_1 = function (graph, diff) {
@@ -100,5 +228,3 @@ const apply_run_diff_draft_1 = function (graph, diff) {
   remove_edges(graph, diff.edges.remove);
   remove_vertices(graph, diff.vertices.remove);
 };
-
-export default apply_run_diff;

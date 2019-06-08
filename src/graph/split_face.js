@@ -1,5 +1,5 @@
 import math from "../../include/math";
-import add_vertex_on_edge from "./addVertexOld";
+import split_edge from "./split_edge";
 import { merge_maps } from "../frames/diff";
 import { edge_assignment_to_foldAngle } from "../fold/spec";
 import { remove_faces } from "./remove";
@@ -52,7 +52,7 @@ const split_convex_polygon = function (
   let edge_map = Array(graph.edges_vertices.length).fill(0);
   if (edges_intersections.length === 2) {
     new_v_indices = edges_intersections.map((el, i, arr) => {
-      const diff = add_vertex_on_edge(
+      const diff = split_edge(
         graph, el.point[0], el.point[1], el.i_edges
       );
       arr.slice(i + 1)
@@ -65,7 +65,7 @@ const split_convex_polygon = function (
           && vertices_intersections.length === 1) {
     const a = vertices_intersections.map(el => el.i_vertices);
     const b = edges_intersections.map((el, i, arr) => {
-      const diff = add_vertex_on_edge(
+      const diff = split_edge(
         graph, el.point[0], el.point[1], el.i_edges
       );
       arr.slice(i + 1)
@@ -259,7 +259,7 @@ export default split_convex_polygon;
 //   let edge_map = Array.from(Array(graph.edges_vertices.length)).map(() => 0);
 //   if (edges_intersections.length === 2) {
 //     new_v_indices = edges_intersections.map((el, i, arr) => {
-//       const diff = add_vertex_on_edge(
+//       const diff = split_edge(
 //         graph, el.point[0], el.point[1], el.i_edges,
 //       );
 //       arr.slice(i + 1)
@@ -272,7 +272,7 @@ export default split_convex_polygon;
 //           && vertices_intersections.length === 1) {
 //     const a = vertices_intersections.map(el => el.i_vertices);
 //     const b = edges_intersections.map((el, i, arr) => {
-//       const diff = add_vertex_on_edge(
+//       const diff = split_edge(
 //         graph, el.point[0], el.point[1], el.i_edges,
 //       );
 //       arr.slice(i + 1)

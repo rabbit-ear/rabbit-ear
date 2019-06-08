@@ -6,7 +6,7 @@ html, body {
 }
 body{
 	margin: 0;
-	font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 	font-size: calc( (4vmin + 4vmax) / 2);
 	color: white;
 	background-color: #158;
@@ -14,6 +14,11 @@ body{
 	grid-template-columns: 50% 50%;
 	grid-template-rows: 80% 20%;
 }
+
+/* pattern starts invisible */
+/*#pattern {
+	opacity: 0;
+}*/
 
 .controls {
 	grid-column: 1/3;

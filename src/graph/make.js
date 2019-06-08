@@ -59,7 +59,7 @@ export const make_vertex_pair_to_edge_map = function (graph) {
  * build vertices_faces from faces_vertices
  */
 export const make_vertices_faces = function (graph) {
-  const vertices_faces = Array.from(Array(graph.faces_vertices.length))
+  const vertices_faces = Array.from(Array(graph.vertices_coords.length))
     .map(() => []);
   graph.faces_vertices.forEach((face, i) => face
     .forEach(vertex => vertices_faces[vertex].push(i)));

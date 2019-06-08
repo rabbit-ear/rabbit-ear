@@ -49,7 +49,8 @@ import * as kawasaki from "./origami/kawasaki";
 import build_diagram_frame from "./frames/diagram_frame";
 
 import add_edge from "./graph/add_edge";
-import apply_run from "./frames/run_frame";
+import split_edge_run from "./graph/split_edge_run";
+import { merge_run_diffs, apply_run_diff } from "./frames/run_frame";
 
 // origami bases
 import empty from "./data/bases/empty.fold";
@@ -87,7 +88,9 @@ Object.assign(core,
 
 core.build_diagram_frame = build_diagram_frame;
 core.add_edge = add_edge;
-core.apply_run = apply_run;
+core.split_edge_run = split_edge_run;
+core.apply_run = apply_run_diff;
+core.merge_run = merge_run_diffs;
 
 // load bases
 const b = {
