@@ -2,7 +2,8 @@ import math from "../../include/math";
 import { make_vertices_edges } from "./make";
 
 /**
- * list arrays as arguments, this will filter out undefined
+ * provide arrays as arguments, this will filter out anything undefined
+ * @returns {number} length of the longest array
  */
 const max_array_length = function (...arrays) {
   return Math.max(...(arrays

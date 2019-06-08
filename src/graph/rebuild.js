@@ -12,11 +12,15 @@
  * rebuild a graph back up by only using vertices_coords and edges_vertices
  */
 
-// import { make_edges_faces } from "./make";
 import math from "../../include/math";
 import FOLDConvert from "../../include/fold/convert";
 import { remove_duplicate_edges } from "./remove";
 import fragment from "./fragment";
+import * as Validate from "../fold/validate";
+import {
+  make_edges_faces,
+  make_vertices_faces
+} from "./make";
 
 /**
  * this is the big rebuild-all-arrays function.
@@ -24,8 +28,11 @@ import fragment from "./fragment";
  * todo: specify "keys" parameter to update certain keys only
  */
 export const clean = function (graph, epsilon = math.core.EPSILON) {
-  // todo
+  // it's not exactly clear what "clean" should do
+  // it definitely validates the graph and adds geometry arrays if needed
+  // it probably also adds file_spec: 1.1, and frame_attributes and _classes
 
+  // these are the geometry arrays which will be rebuilt
   ["vertices_vertices", "vertices_edges", "vertices_faces",
     "edges_faces", "edges_edges",
     "faces_vertices", "faces_edges", "faces_faces"].filter(a => a in graph)
@@ -38,8 +45,22 @@ export const clean = function (graph, epsilon = math.core.EPSILON) {
   FOLDConvert.vertices_vertices_to_faces_vertices(rebuilt);
   FOLDConvert.faces_vertices_to_faces_edges(rebuilt);
 
+  rebuilt.edges_faces = make_edges_faces(rebuilt);
+  rebuilt.vertices_faces = make_vertices_faces(rebuilt);
+
   Object.assign(graph, rebuilt);
-  graph.edges_assignment = Array(graph.edges_vertices.length).fill("F");
+
+  if (!Validate.edges_assignment(graph)) {
+    graph.edges_assignment = Array(graph.edges_vertices.length).fill("F");
+  }
+
+  if ("file_spec" in graph === false) { graph.file_spec = 1.1; }
+  if ("frame_attributes" in graph === false) {
+    graph.frame_attributes = ["2D"];
+  }
+  if ("frame_classes" in graph === false) {
+    graph.frame_classes = ["creasePattern"];
+  }
 };
 
 

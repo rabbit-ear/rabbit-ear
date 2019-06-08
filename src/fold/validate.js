@@ -4,8 +4,11 @@
 // illegal planar graph edge crossings.. that will probably be
 // its own validate.
 
-import { keys } from "./spec";
+import { keys, edges_assignment_values } from "./spec";
 
+/**
+ * determine if an object is possibly a FOLD format graph.
+ */
 export const possibleFoldObject = function (fold) {
   const argKeys = Object.keys(fold);
   for (let i = 0; i < argKeys.length; i += 1) {
@@ -14,6 +17,26 @@ export const possibleFoldObject = function (fold) {
   return false;
 };
 
+/**
+ * validate edges_assignment only
+ * @returns {boolean} true, if and only if "edges_assignment" is present and
+ * its length matches edges_vertices and it contains only valid entries
+ */
+export const edges_assignment = function (graph) {
+  if ("edges_assignment" in graph === false) {
+    return false;
+  }
+  if (graph.edges_assignment.length !== graph.edges_vertices.length) {
+    return false;
+  }
+  return graph.edges_assignment
+    .filter(v => edges_assignment_values.includes(v))
+    .reduce((a, b) => a && b, true);
+};
+
+/**
+ * validate the entire graph, run every validate operation we have
+ */
 export const validate = function (graph) {
   const prefix_suffix = {
     vertices: ["coords", "vertices", "faces"],

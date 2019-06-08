@@ -72,13 +72,19 @@ export const keys = Object.freeze([]
   .concat(keys_types.graph)
   .concat(keys_types.orders));
 
-// export const CREASE_NAMES = Object.freeze({
-//  "B": "boundary", "b": "boundary",
-//  "M": "mountain", "m": "mountain",
-//  "V": "valley",   "v": "valley",
-//  "F": "mark",     "f": "mark",
-//  "U": "mark",     "u": "mark"
-// });
+export const edges_assignment_names = {
+  en: {
+    B: "boundary", b: "boundary",
+    M: "mountain", m: "mountain",
+    V: "valley",   v: "valley",
+    F: "mark",     f: "mark",
+    U: "mark",     u: "mark"
+  }
+};
+
+export const edges_assignment_values = [
+  "B", "b", "M", "m", "V", "v", "F", "f", "U", "u"
+];
 
 const assignment_angles = {
   M: -180,

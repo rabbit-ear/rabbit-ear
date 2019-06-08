@@ -10,7 +10,7 @@ const vertex_adjacent_vectors = function (graph, vertex) {
 };
 
 export function kawasaki_solutions(graph, vertex) {
-  return math.core.kawasaki_solutions(vertex_adjacent_vectors(graph, vertex));
+  return math.core.kawasaki_solutions(...vertex_adjacent_vectors(graph, vertex));
 }
 
 export function kawasaki_collapse(graph, vertex, face, crease_direction = "F") {

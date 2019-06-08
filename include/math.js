@@ -1070,7 +1070,36 @@ var convex_poly_edge = function convex_poly_edge(poly, edgeA, edgeB) {
       return intersections;
 
     default:
-      throw "clipping edge in a convex polygon resulting in 3 or more points";
+      throw new Error("clipping edge in a convex polygon resulting in 3 or more points");
+  }
+};
+var convex_poly_ray_exclusive = function convex_poly_ray_exclusive(poly, linePoint, lineVector) {
+  var intersections = poly.map(function (p, i, arr) {
+    return [p, arr[(i + 1) % arr.length]];
+  }).map(function (el) {
+    return ray_edge_exclusive(linePoint, lineVector, el[0], el[1]);
+  }).filter(function (el) {
+    return el != null;
+  });
+
+  switch (intersections.length) {
+    case 0:
+      return undefined;
+
+    case 1:
+      return [linePoint, intersections[0]];
+
+    case 2:
+      return intersections;
+
+    default:
+      for (var i = 1; i < intersections.length; i += 1) {
+        if (!quick_equivalent_2(intersections[0], intersections[i])) {
+          return [intersections[0], intersections[i]];
+        }
+      }
+
+      return undefined;
   }
 };
 
@@ -1095,7 +1124,8 @@ var intersection = /*#__PURE__*/Object.freeze({
   circle_edge: circle_edge,
   convex_poly_line: convex_poly_line,
   convex_poly_ray: convex_poly_ray,
-  convex_poly_edge: convex_poly_edge
+  convex_poly_edge: convex_poly_edge,
+  convex_poly_ray_exclusive: convex_poly_ray_exclusive
 });
 
 var clockwise_angle2_radians = function clockwise_angle2_radians(a, b) {

@@ -5,8 +5,11 @@ const origami = re.Origami("origami", {
 });
 const pattern = re.Origami("pattern", { padding: 0.1 });
 
+document.querySelector("#pattern").style.opacity = 0;
+
 origami.onMouseMove = function (mouse) {
   if (mouse.isPressed) {
+    fadeInCreasePattern();
     pattern.cp = origami.cp;
   }
 };
@@ -21,12 +24,12 @@ svg * {
 polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
 .boundary { fill: white; stroke: black; }
 .mark { stroke: #AAA; }
-.mountain { stroke: #00F; }
+.mountain { stroke: #e53; }
 .valley {
-  stroke: #000;
+  stroke: #248;
   stroke-dasharray:calc(var(--crease-width)*1.333) calc(var(--crease-width)*2);
 }
-.foldedForm .boundary {fill: none;stroke: none;}
+.foldedForm .boundary {fill: none; stroke: none;}
 .foldedForm .faces polygon { stroke: #000; }
 .foldedForm .faces .front { fill: #FFF; }
 .foldedForm .faces .back { fill: #DDD; }
@@ -49,6 +52,22 @@ html, body {
   margin: 0;
 }
 body {
+  font-size: 130%;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+.header {
+  background-color: #888;
+  display: grid;
+  grid-template-columns: 50% 50%;
+  border: 4px solid black;
+}
+.description {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.grid {
   display: grid;
   grid-template-columns: 33% 33% 33%;
   font-family: 'Montserrat', sans-serif;
@@ -115,6 +134,24 @@ window.onresize = function (e) {
   );
 };
 
+origami.alreadyFaded = false;
+let intervalId = undefined;
+const fadeInCreasePattern = function () {
+  if (origami.alreadyFaded) { return; }
+  intervalId = setInterval(function() {
+    const div = document.querySelector("#pattern");
+    let opacity = parseFloat(div.style.opacity) + 0.05;
+    if (opacity >= 1.0) {
+      opacity = 1.0;
+      clearInterval(intervalId);
+      intervalId = undefined;
+    }
+    div.style.opacity = opacity;
+  }, 15);
+
+  origami.alreadyFaded = true;
+};
+
 origami.fitViewInRect(
   document.querySelector("#space").getBoundingClientRect(),
   window.innerWidth, window.innerHeight
@@ -128,6 +165,8 @@ document.querySelector("#reset-button").onclick = function () {
   origami.cp = re.bases.square;
   pattern.cp = re.bases.square;
   steps = [JSON.parse(JSON.stringify(origami.cp))];
+  // document.querySelector("#pattern").style.opacity = 0;
+  // origami.alreadyFaded = false;
   origami.fitViewInRect(
     document.querySelector("#space").getBoundingClientRect(),
     window.innerWidth, window.innerHeight
@@ -148,6 +187,7 @@ const printHTML = function (innerHTML, css) {
   printFrame.setAttribute("style",
     "visibility:hidden; height:0; width:0; position:absolute;");
   printFrame.srcdoc = `<html><head><title>Rabbit Ear</title><style>${css}</style></head><body>${innerHTML}</body></html>`;
+  console.log( `<html><head><title>Rabbit Ear</title><style>${css}</style></head><body>${innerHTML}</body></html>`);
   document.getElementsByTagName("body")[0].appendChild(printFrame);
   printFrame.onload = function () {
     try {
@@ -162,6 +202,7 @@ const printHTML = function (innerHTML, css) {
 };
 
 const printDiagrams = function () {
+
   // convert "re:construction" into "re:diagrams"
   const diagrams = Array.from(Array(steps.length - 1))
     .map((_, i) => i + 1)
@@ -186,9 +227,27 @@ const printDiagrams = function () {
       .map(inst => inst.en)
       .join("\n"));
 
+  const cpSVG = re.convert.FOLD_SVG.toSVG(steps[steps.length - 1], {
+    width: 333,
+    height: 333,
+    frame: 0,
+    padding: 0.15,
+    diagram: false,
+    stylesheet: svg_style
+    // shadows:true
+  });
+  let header = "<div class='header'>";
+  header += "<div>" + cpSVG + "</div>";
+  header += "<div class='description'><h1>Origami</h1><p>made with Rabbit Ear</p><p>rabbitear.org</p></div>";
+  header += "</div>";
+
   // create html blob
-  const innerHTML = svgs
+  let innerHTML = "";
+  innerHTML += header;
+  innerHTML += "<div class='grid'>";
+  innerHTML += svgs
     .reduce((prev, curr, i) => `${prev}<div>${curr}<p>${(writtenInstructions[i] || "")}</p></div>\n`, "");
+  innerHTML += "</div>";
 
   printHTML(innerHTML, page_style);
 };

@@ -6,12 +6,12 @@
 :root{ --crease-width: 0.0075; }
 html, body{ height: 100%; }
 body {
-	margin: 0px;
-	background-color: #158;
-	display: grid;
-	grid-template-columns: 50% 50%;
-	align-items: center;
-	justify-content: center;
+  margin: 0px;
+  background-color: #158;
+  display: grid;
+  grid-template-columns: 50% 50%;
+  align-items: center;
+  justify-content: center;
 }
 @media (orientation: portrait) { body { flex-direction: column; } }
 svg { width: 100%; height: 100%; }
@@ -24,12 +24,12 @@ polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
 .foldedForm .faces .back { fill: peru; }
 .foldedForm .creases line { stroke: none; }
 #full-screen-fold {
-	position: absolute;
-	z-index: 4;
-	width: 100vw;
-	height: 100vh;
-	top: 0;
-	left: 0;
+  position: absolute;
+  z-index: 4;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
 }
 </style>
 
@@ -38,49 +38,47 @@ polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
 
 <script>
-let origami = re.Origami({folding:true, padding:0.15, autofit:false});
-let pattern = re.Origami({padding:0.15});
+const origami = re.Origami({ folding: true, padding: 0.15, autofit: false });
+const pattern = re.Origami({ padding: 0.15 });
 origami.setAttribute("id", "full-screen-fold");
 
-origami.onMouseMove = function(mouse) {
-	if (!mouse.isPressed) { return; }
-	pattern.cp = origami.cp;
-}
+origami.onMouseMove = function (mouse) {
+  if (!mouse.isPressed) { return; }
+  pattern.cp = origami.cp;
+};
 
-pattern.onMouseDown = function() {
-	pattern.backup = pattern.cp.copy();
-}
-pattern.onMouseMove = function(mouse) {
-	if (mouse.isPressed) {
-		pattern.cp = pattern.backup.copy();
-		pattern.cp.valleyFold(mouse.pressed, mouse.drag);
-		origami.cp = pattern.cp;
-		origami.fold();
-	}
-}
+pattern.onMouseDown = function () {
+  pattern.backup = pattern.cp.copy();
+};
+pattern.onMouseMove = function (mouse) {
+  if (mouse.isPressed) {
+    pattern.cp = pattern.backup.copy();
+    pattern.cp.valleyFold(mouse.pressed, mouse.drag);
+    origami.cp = pattern.cp;
+    origami.fold();
+  }
+};
 
-origami.fitView = function(w, h, pad = 0.15) {
-	let aspect = w/h;
-	let sideAspect = (w/2)/h;
-	let vb = [];
-	vb[0] = sideAspect < 1 ? 0 : -(sideAspect - 1)/2 ;
-	vb[1] = sideAspect < 1 ? -(1/sideAspect - 1)/2 : 0;
-	vb[2] = sideAspect < 1 ? 1 * 2 : sideAspect*2;
-	vb[3] = sideAspect < 1 ? 1/sideAspect : 1;
-	vb[0] -= pad;
-	vb[1] -= pad;
-	vb[2] += pad*2*2; // due to half screen calc
-	vb[3] += pad*2;
-	origami.setAttribute("viewBox", vb.join(" "));
-}
+origami.fitView = function (w, h, pad = 0.15) {
+  const aspect = w / h;
+  const sideAspect = (w / 2) / h;
+  const vb = [];
+  vb[0] = sideAspect < 1 ? 0 : -(sideAspect - 1) / 2;
+  vb[1] = sideAspect < 1 ? -(1 / sideAspect - 1) / 2 : 0;
+  vb[2] = sideAspect < 1 ? 1 * 2 : sideAspect*2;
+  vb[3] = sideAspect < 1 ? 1 / sideAspect : 1;
+  vb[0] -= pad;
+  vb[1] -= pad;
+  vb[2] += pad * 2 * 2; // due to half screen calc
+  vb[3] += pad * 2;
+  origami.setAttribute("viewBox", vb.join(" "));
+};
 
-window.onresize = function(e) {
-	let container = document.querySelector("#space").getBoundingClientRect();
-	console.log(container);
-	origami.fitView(e.target.innerWidth, e.target.innerHeight);
-}
+window.onresize = function (e) {
+  const container = document.querySelector("#space").getBoundingClientRect();
+  // console.log(container);
+  origami.fitView(e.target.innerWidth, e.target.innerHeight);
+};
 
 origami.fitView(window.innerWidth, window.innerHeight);
-
 </script>
-

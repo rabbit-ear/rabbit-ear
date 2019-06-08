@@ -19,8 +19,9 @@ import * as Kawasaki from "../origami/kawasaki";
 import addEdge from "../graph/add_edge";
 import * as Rebuild from "../graph/rebuild";
 import component from "./component";
-
-import add_vertex_on_edge from "../graph/addVertexOld";
+import FOLDConvert from "../../include/fold/convert";
+import split_edge from "../graph/split_edge";
+import split_face from "../graph/split_face";
 
 import {
   remove_non_boundary_edges,
@@ -80,6 +81,22 @@ const Prototype = function (proto) {
   };
 
   /**
+   * what counts as a valid crease pattern? it contains:
+   * vertices_coords, vertices_vertices
+   * edges_vertices, edges_assignment
+   * faces_vertices, faces_edges
+   */
+  const validate_and_clean = function (epsilon = math.core.EPSILON) {
+    const valid = ("vertices_coords" in _this && "vertices_vertices" in _this
+      && "edges_vertices" in _this && "edges_assignment" in _this
+      && "faces_vertices" in _this && "faces_edges" in _this);
+    if (!valid) {
+      console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
+      clean(epsilon);
+    }
+  };
+
+  /**
    * @param {file} is a FOLD object.
    * @param {prevent_wipe} true and it will import without first clearing
    */
@@ -88,6 +105,7 @@ const Prototype = function (proto) {
       Spec.keys.forEach(key => delete _this[key]);
     }
     Object.assign(_this, JSON.parse(JSON.stringify(file)));
+    validate_and_clean();
     // placeholderFoldedForm(_this);
   };
   /**
@@ -314,7 +332,7 @@ const Prototype = function (proto) {
   // };
 
   const addVertexOnEdge = function (x, y, oldEdgeIndex) {
-    add_vertex_on_edge(_this, x, y, oldEdgeIndex);
+    split_edge(_this, x, y, oldEdgeIndex);
     didModifyGraph();
   };
 
@@ -328,8 +346,25 @@ const Prototype = function (proto) {
   //   didModifyGraph();
   //   return crease;
   // };
-  const creaseSegment = function () {
-    const diff = addEdge(_this, ...arguments);
+  const creaseRay = function (...args) {
+    const ray = math.ray(args);
+    const faces = _this.faces_vertices.map(fv => fv.map(v => _this.vertices_coords[v]));
+    const intersecting = faces
+      .map((face, i) => (math.core.intersection
+        .convex_poly_ray_exclusive(face, ray.point, ray.vector) === undefined
+        ? undefined : i))
+      .filter(a => a !== undefined)
+      .sort((a, b) => b - a);
+
+    console.log(faces, intersecting);
+
+    intersecting.forEach(index => split_face(
+      _this, index, ray.point, ray.vector, "F"
+    ));
+  };
+
+  const creaseSegment = function (...args) {
+    const diff = addEdge(_this, ...args);
     if (diff === undefined) { return undefined; }
     if (diff.edges_index_map != null) {
       Object.keys(diff.edges_index_map)
@@ -383,7 +418,7 @@ const Prototype = function (proto) {
   Object.defineProperty(proto, "addVertexOnEdge", { value: addVertexOnEdge });
   // Object.defineProperty(proto, "crease", { value: crease });
   // Object.defineProperty(proto, "creaseLine", { value: creaseLine });
-  // Object.defineProperty(proto, "creaseRay", { value: creaseRay });
+  Object.defineProperty(proto, "creaseRay", { value: creaseRay });
   Object.defineProperty(proto, "creaseSegment", { value: creaseSegment });
   Object.defineProperty(proto, "creaseThroughLayers", {
     value: creaseThroughLayers
