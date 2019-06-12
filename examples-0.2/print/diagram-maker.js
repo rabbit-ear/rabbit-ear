@@ -80,7 +80,7 @@ const DiagramMaker = function (steps, options = {}) {
 
     writtenInstructions[svgs.length - 1] = "finished";
 
-    const header = `<div class='header'>
+    const header = `<div class="header dashbox">
   <div style="position: relative; padding: 30px;">
     ${cpSVG}
     <div class="floating-finished">
@@ -91,7 +91,7 @@ const DiagramMaker = function (steps, options = {}) {
     <h1>Origami</h1>
     <p>by _____________</p>
     <p>fold time: ${fold_time} ${(fold_time === 1 ? "minute" : "minutes")}</p>
-    <p class="small">made with Rabbit Ear</p>
+    <p class="small">Rabbit Ear</p>
   </div>
 </div>
 `;
@@ -121,31 +121,6 @@ ${innerHTML}
   return makeDiagrams(steps);
 };
 
-DiagramMaker.svgStyle = `
-svg { --crease-width: 0.015; }
-svg * {
-  stroke-width: var(--crease-width);
-  stroke-linecap: round;
-  stroke: black;
-}
-polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
-.boundary { fill: white; stroke: black; }
-.mark { stroke: #AAA; }
-.mountain { stroke: #000; }
-.valley {
-  stroke: #888;
-  stroke-dasharray:calc(var(--crease-width)*1.333) calc(var(--crease-width)*2);
-}
-.foldedForm .boundary {fill: none; stroke: none;}
-.foldedForm .faces polygon { stroke: #000; }
-.foldedForm .faces .front { fill: #FFF; }
-.foldedForm .faces .back { fill: #DDD; }
-.foldedForm .creases line { stroke: none; }
-
-.foldedForm .creases { display: none; opacity: 0; }
-.creasePattern .faces { display: none; opacity: 0; }
-`;
-
 DiagramMaker.pageStyle = `
 @media print {
 /*  @page {
@@ -160,12 +135,18 @@ DiagramMaker.pageStyle = `
     font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
   .header {
-    -webkit-print-color-adjust: exact;
-    background-color: #f4f4f4;
+    /* -webkit-print-color-adjust: exact; */
     display: grid;
     grid-template-columns: 50% 50%;
     height: 340px;
-    border: 4px solid black;
+    margin-bottom: 4rem;
+  }
+  .dashbox {
+    padding:1em;
+    border-width: 5px;
+    border-style: dashed;
+    border-color: black;
+    box-shadow: inset 5px 5px 10px #999;
   }
   .description {
     display: flex;
@@ -176,6 +157,7 @@ DiagramMaker.pageStyle = `
   .grid {
     display: grid;
     grid-template-columns: 33% 33% 33%;
+    grid-template-rows: 270px;
     font-family: 'Montserrat', sans-serif;
   }
   h1 {
@@ -201,4 +183,32 @@ DiagramMaker.pageStyle = `
     page-break-after: always;
   } */
 }
+`;
+
+
+DiagramMaker.svgStyle = `
+svg { --crease-width: 0.015; }
+svg * {
+  stroke-width: var(--crease-width);
+  stroke-linecap: round;
+  stroke: black;
+}
+polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
+.boundary { fill: white; stroke: black; }
+.mark { stroke: #AAA; }
+.mountain { stroke: #000; }
+.valley {
+  stroke: #000;
+  stroke-dasharray:calc(var(--crease-width)*1.333) calc(var(--crease-width)*2);
+}
+.foldedForm .boundary {fill: none; stroke: none;}
+.foldedForm .faces polygon { stroke: #000; }
+.foldedForm .faces .front { fill: linen; }
+.foldedForm .faces .back { fill: peru; }  /* #DDD; */
+.foldedForm .creases line { stroke: none; }
+
+.foldedForm .creases { display: none; opacity: 0; }
+.creasePattern .faces { display: none; opacity: 0; }
+
+.creasePattern .boundary { fill: linen; }
 `;

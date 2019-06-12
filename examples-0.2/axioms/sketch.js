@@ -1,8 +1,9 @@
 const origami = re.Origami("origami-cp", { padding: 0.05, diagram: true });
 const folded = re.Origami("origami-fold", { padding: 0.05 }); //,shadows:true});
 
-const languages = ["ar", "bn", "de", "el", "en", "es", "fa", "fi", "fr", "hi", "in", "is", "it", "iw", "jp", "ko", "ms", "nl", "pa", "pt", "ru", "sw", "th", "tr", "ur", "vi", "zh"];
-let language = 4;
+const languages = ["ar", "de", "en", "es", "fa", "fr", "hi", "in", "it", "jp", "ko", "pt", "ru", "zh"];
+
+let language = languages.indexOf("en");
 
 origami.markLayer = re.svg.group();
 origami.insertBefore(origami.markLayer,

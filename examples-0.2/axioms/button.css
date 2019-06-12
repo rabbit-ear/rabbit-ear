@@ -1,9 +1,10 @@
 .button {
-	margin: 2px;
-	padding: 0.25em 0.5em;
+	font-size: 150%;
+	margin: 0.2rem;
+	padding: 1.5rem 1rem;
 	border: 1px solid transparent;
-	border-radius: 0.2em;
-	line-height: 1.5;
+	border-radius: 0.2rem;
+	line-height: 0;
 	display: inline-block;
 	color: white;
 	text-align: center;
