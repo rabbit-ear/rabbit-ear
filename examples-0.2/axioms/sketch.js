@@ -1,6 +1,9 @@
 const origami = re.Origami("origami-cp", { padding: 0.05, diagram: true });
 const folded = re.Origami("origami-fold", { padding: 0.05 }); //,shadows:true});
 
+const languages = ["ar", "bn", "de", "el", "en", "es", "fa", "fi", "fr", "hi", "in", "is", "it", "iw", "jp", "ko", "ms", "nl", "pa", "pt", "ru", "sw", "th", "tr", "ur", "vi", "zh"];
+let language = 4;
+
 origami.markLayer = re.svg.group();
 origami.insertBefore(origami.markLayer,
   origami.querySelectorAll(".boundaries")[0].nextSibling);
@@ -233,6 +236,12 @@ origami.update = function () {
   origami.cp["re:diagrams"] = [diagram];
   origami.draw();
 
+  // console.log(origami.cp["re:construction"]);
+  // console.log(diagram["re:instructions"]);
+
+  const instruction = diagram["re:instructions"][languages[language]] || "";
+  document.querySelector("#instructions-p").innerHTML = instruction;
+
   folded.cp = origami.cp;
   folded.fold();
 };
@@ -250,5 +259,14 @@ document.querySelectorAll("[id^=btn-option]")
   .forEach(b => b.onclick = function (e) {
     origami.setSubSel(parseInt(e.target.id.substring(11,12)));
   });
+
+document.querySelector("#language-back").onclick = function (event) {
+  language = (language + languages.length - 1) % languages.length;
+  origami.update();
+};
+document.querySelector("#language-next").onclick = function (event) {
+  language = (language + 1) % languages.length;
+  origami.update();
+};
 
 origami.setAxiom(1);

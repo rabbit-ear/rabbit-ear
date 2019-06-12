@@ -1,8 +1,20 @@
 import math from "../../include/math";
 import { get_boundary } from "../graph/query";
-import instructions_for_axiom_data from "../data/instructions_axiom.json";
+import axiom_instructions_data from "../data/instructions_axiom.json";
 
-const instructions_for_axiom = JSON.parse(instructions_for_axiom_data);
+const axiom_instructions = JSON.parse(axiom_instructions_data);
+
+const get_instructions_for_axiom = function (axiom_number) {
+  if (isNaN(axiom_number) || axiom_number == null
+    || axiom_number < 1 || axiom_number > 7) {
+    return undefined;
+  }
+  const instructions = {};
+  Object.keys(axiom_instructions).forEach((key) => {
+    instructions[key] = axiom_instructions[key][axiom_number];
+  });
+  return instructions;
+};
 
 // "re:diagrams" example (these are objects inside arrays):
 // [{
@@ -15,6 +27,18 @@ const instructions_for_axiom = JSON.parse(instructions_for_axiom_data);
 //    "re:diagram_arrow_coords": [[0.6,0], [0.3,1]]
 //  }]
 // }]
+
+const make_instructions = function (construction) {
+  const axiom = "re:axiom" in construction === true
+    ? construction["re:axiom"].number
+    : 0;
+  // const axiom_frame = construction["re:axiom"];
+  // axiom 2, simplest case
+  if (!isNaN(axiom) && axiom != null && axiom > 0 && axiom < 8) {
+    return get_instructions_for_axiom(axiom);
+  }
+  return { en: `${construction["re:construction_type"]} fold` };
+};
 
 // todo: make_arrow_coords is asking for graph to calculate the
 // bounding box, to clip the arrow nicely in frame. this should be
@@ -53,6 +77,9 @@ const make_arrow_coords = function (construction, graph) {
   const arrow_vector = p.direction;
   let crossing;
   switch (axiom) {
+    // case 1:
+    //   crossing = math.core.average(axiom_frame.parameters.points);
+    //   break;
     case 4:
       crossing = math.core.nearest_point_on_line(
         p.edge[0], crease_vector, axiom_frame.parameters.lines[0][0], (a => a)
@@ -64,7 +91,7 @@ const make_arrow_coords = function (construction, graph) {
       );
       break;
     default:
-      crossing = math.core.average(p.edge);
+      crossing = math.core.average(p.edge[0], p.edge[1]);
       break;
   }
   const perpLine = { point: crossing, vector: arrow_vector };
@@ -121,9 +148,7 @@ const build_diagram_frame = function (graph) {
           "re:diagram_arrow_classes": [],
           "re:diagram_arrow_coords": make_arrow_coords(c, graph)
         }],
-        "re:instructions": {
-          en: instructions_for_axiom.en[c.axiom] || `${c["re:construction_type"]} fold`
-        }
+        "re:instructions": make_instructions(c)
       };
     default:
       return { error: "could not determine construction type" };

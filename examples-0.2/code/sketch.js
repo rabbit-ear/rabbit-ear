@@ -55,7 +55,7 @@ const OrigamiAndCode = function (origamiID, codeID, consoleID) {
 const origami = OrigamiAndCode("origami", "editor", "console");
 
 // bind things to the window
-Object.defineProperty(window, "cp", { get: function() { return origami.cp; }});
+Object.defineProperty(window, "cp", { get: function () { return origami.cp; } });
 // inspecting an object and doing something with it
 // function getAllMethods(object) {
 //  return Object.getOwnPropertyNames(object)

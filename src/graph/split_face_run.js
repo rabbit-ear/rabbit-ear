@@ -5,6 +5,13 @@ import { edge_assignment_to_foldAngle } from "../fold/spec";
 import { remove_faces } from "./remove";
 
 /**
+ * modifies target, doesn't modify source. doesn't return anything
+ */
+const join_two_split_edge_diffs = function (target, source) {
+  
+};
+
+/**
  * @returns {}, description of changes. empty object if no intersection.
  */
 const split_convex_polygon = function (

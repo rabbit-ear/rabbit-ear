@@ -557,7 +557,7 @@ export default function (...args) {
         if (prop.frame == null
           || prop.frame === 0
           || prevCP.file_frames == null) {
-          let file_frame = Fold.build_folded_frame(prevCP, 0);
+          let file_frame = build_folded_frame(prevCP, 0);
           if (prevCP.file_frames == null) { prevCP.file_frames = []; }
           prevCP.file_frames.unshift(file_frame);
         }
@@ -578,7 +578,7 @@ export default function (...args) {
       let points = [math.vector(mouse.pressed), math.vector(mouse.position)];
       let midpoint = points[0].midpoint(points[1]);
       let vector = points[1].subtract(points[0]);
-      // console.log(midpoint, vector.rotateZ90(), touchFaceIndex);
+      // console.log("valley", midpoint, vector.rotateZ90(), touchFaceIndex);
       prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
       fold();
     }
