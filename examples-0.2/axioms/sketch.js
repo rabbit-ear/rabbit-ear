@@ -1,5 +1,5 @@
 const origami = re.Origami("origami-cp", { padding: 0.05, diagram: true });
-const folded = re.Origami("origami-fold", { padding: 0.05 }); //,shadows:true});
+const folded = re.Origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
 
 const languages = ["ar", "de", "en", "es", "fa", "fr", "hi", "in", "it", "jp", "ko", "pt", "ru", "zh"];
 
@@ -11,6 +11,7 @@ origami.insertBefore(origami.markLayer,
 origami.controls = re.svg.controls(origami, 0);
 origami.axiom = undefined;
 origami.subSelect = 0; // some axioms have 2 or 3 results
+origami.polygonBoundary = origami.cp.boundary;
 
 // a lookup for expected parameters in axiom() func. is param a point or line?
 origami.paramIsLine = [null,
@@ -31,13 +32,15 @@ origami.setAxiom = function (axiom) {
     .forEach((b) => { b.className = "button"; });
   document.querySelector(`#btn-axiom-${axiom}`).className = "button red";
   // sub options buttons
-  const optionCount = [null, 0, 0, 2, 0, 2, 3, 0][axiom];
-  document.querySelectorAll("[id^=btn-option")
-    .forEach((b, i) => { b.style.opacity = i < optionCount ? 1 : 0; });
+  const optionsCountArray = [null, 0, 0, 2, 0, 2, 3, 0];
+  const optionCount = optionsCountArray[axiom];
+  document.querySelectorAll("[id^=btn-option]")
+    .forEach((b, i) => { b.style.opacity = (i < optionCount ? 1 : 0); });
   origami.setSubSel(0, false);
 
+  const axiomNumControlsArray = [null, 2, 2, 4, 3, 4, 6, 5];
   origami.controls.removeAll();
-  Array.from(Array([null, 2, 2, 4, 3, 4, 6, 5][axiom]))
+  Array.from(Array(axiomNumControlsArray[axiom]))
     .map(() => [Math.random(), Math.random()])
     .map((p, i) => ({
       position: p,
@@ -51,16 +54,16 @@ origami.setAxiom = function (axiom) {
 };
 
 origami.setSubSel = function (s, updateOptional) {
-  document.querySelectorAll("[id^=btn-option")
+  document.querySelectorAll("[id^=btn-option]")
     .forEach((b) => { b.className = "button"; });
-  document.querySelector(`#btn-option-${s}`).className = "button red";
+  document.querySelector(`#btn-option-${s}`).className = "button yellow";
 
   origami.subSelect = s;
   if (updateOptional !== false) { origami.update(); }
 };
 
 origami.cannotFold = function () {
-  document.querySelectorAll("[id^=btn-option")
+  document.querySelectorAll("[id^=btn-option]")
     .forEach((b) => { b.style.opacity = 0; });
   folded.cp = origami.cp;
   folded.fold();
@@ -82,7 +85,7 @@ origami.drawAxiomHelperLines = function (lines, color) {
   if (color == null) { color = "#eb3"; }
   // draw axiom helper lines
   origami.markLayer.removeChildren();
-  lines.map(l => origami.cp.boundary.clipLine(l))
+  lines.map(l => origami.polygonBoundary.clipLine(l))
     .filter(a => a !== undefined)
     .map(l => origami.markLayer.line(l[0][0], l[0][1], l[1][0], l[1][1]))
     .forEach(l => l.setAttribute("style",
@@ -164,7 +167,7 @@ origami.update = function () {
   //  if (axiomInfo === undefined) { return; }
   // }
 
-  const valid = re.core.test_axiom(axiomInfo, origami.cp.boundary.points);
+  const valid = re.core.test_axiom(axiomInfo, origami.polygonBoundary.points);
   const solutionPassed = valid.map(a => a != null);
 
   const optionButtons = document.querySelectorAll("[id^=btn-option]");
@@ -191,6 +194,7 @@ origami.update = function () {
     origami.drawAxiomHelperLines(lines, "#d42");
     return origami.cannotFold();
   }
+
 
   const passFail = solutionPassed[origami.subSelect];
 
@@ -248,26 +252,34 @@ origami.update = function () {
 };
 
 origami.onMouseMove = function (event) {
-  if (!origami.mouse.isPressed){ return; }
+  if (!origami.mouse.isPressed) { return; }
   origami.update();
 };
 
 document.querySelectorAll("[id^=btn-axiom]")
-  .forEach(b => b.onclick = function (e) {
-    origami.setAxiom(parseInt(e.target.id.substring(10,11)));
-  });
+  .forEach((b) => { b.onclick = function (e) {
+    origami.setAxiom(parseInt(e.target.id.substring(10, 11), 10));
+  }});
 document.querySelectorAll("[id^=btn-option]")
-  .forEach(b => b.onclick = function (e) {
-    origami.setSubSel(parseInt(e.target.id.substring(11,12)));
-  });
+  .forEach((b) => { b.onclick = function (e) {
+    origami.setSubSel(parseInt(e.target.id.substring(11, 12), 10));
+  }});
 
 document.querySelector("#language-back").onclick = function (event) {
   language = (language + languages.length - 1) % languages.length;
   origami.update();
+  const prev = (language + languages.length - 1) % languages.length;
+  const next = (language + 1) % languages.length;
+  document.querySelector("#language-back").innerHTML = `← ${languages[prev]}`;
+  document.querySelector("#language-next").innerHTML = `${languages[next]} →`;
 };
 document.querySelector("#language-next").onclick = function (event) {
   language = (language + 1) % languages.length;
   origami.update();
+  const prev = (language + languages.length - 1) % languages.length;
+  const next = (language + 1) % languages.length;
+  document.querySelector("#language-back").innerHTML = `←${languages[prev]}`;
+  document.querySelector("#language-next").innerHTML = `${languages[next]}→`;
 };
 
 origami.setAxiom(1);

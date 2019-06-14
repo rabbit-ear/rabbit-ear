@@ -15,7 +15,7 @@ import * as svg from "../include/svg";
 // import * as noise from "../include/perlin";
 
 // top level objects
-import CreasePattern from "./fold/cp";
+import CreasePattern from "./objects/CreasePattern";
 import Origami from "./objects/View2D";
 import Origami3D from "./objects/View3D";
 import Graph from "./objects/graph";
@@ -61,6 +61,8 @@ import kite from "./data/bases/kite.fold";
 import fish from "./data/bases/fish.fold";
 import bird from "./data/bases/bird.fold";
 import frog from "./data/bases/frog.fold";
+
+import foldPrototype from "./fold/prototype";
 
 const convert = {
   toFOLD,
@@ -151,6 +153,7 @@ const rabbitEar = {
   bases,
   math: math.core,
   axiom: Axioms.axiom,
+  foldPrototype // todo get rid
 };
 
 Object.keys(math)

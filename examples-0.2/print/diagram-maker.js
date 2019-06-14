@@ -90,8 +90,8 @@ const DiagramMaker = function (steps, options = {}) {
   <div class="description">
     <h1>Origami</h1>
     <p>by _____________</p>
-    <p>fold time: ${fold_time} ${(fold_time === 1 ? "minute" : "minutes")}</p>
-    <p class="small">Rabbit Ear</p>
+    <p>fold time<br>${fold_time} ${(fold_time === 1 ? "minute" : "minutes")}</p>
+    <p class="small">RabbitEar.org</p>
   </div>
 </div>
 `;
@@ -101,7 +101,7 @@ const DiagramMaker = function (steps, options = {}) {
     innerHTML += "<div class='grid'>\n";
     innerHTML += svgs
       .reduce((prev, curr, i) => `${prev}
-<div class="step">
+<div class="step"><h3 class="number">${(i + 1)}</h3>
   ${curr}
   <p>${(writtenInstructions[i] || "")}</p>
 </div>\n`, "");
@@ -122,69 +122,86 @@ ${innerHTML}
 };
 
 DiagramMaker.pageStyle = `
-@media print {
-/*  @page {
-    size: 8.5in 11in;
-    margin: 70pt 60pt 70pt;
-  }*/
-  html, body {
-    width: 100%;
-    margin: 0;
-  }
-  body {
-    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  }
-  .header {
-    /* -webkit-print-color-adjust: exact; */
-    display: grid;
-    grid-template-columns: 50% 50%;
-    height: 340px;
-    margin-bottom: 4rem;
-  }
-  .dashbox {
-    padding:1em;
-    border-width: 5px;
-    border-style: dashed;
-    border-color: black;
-    box-shadow: inset 5px 5px 10px #999;
-  }
-  .description {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: 33% 33% 33%;
-    grid-template-rows: 270px;
-    font-family: 'Montserrat', sans-serif;
-  }
-  h1 {
-    font-size: 3.5rem;
-    margin-bottom: 2rem;
-  }
-  p {
-    font-size: 1.5rem;
-    text-align: center;
-    width: 100%;
-    margin: 1rem 0;
-  }
-  .floating-finished {
-    position: absolute;
-    bottom: 0;
-    right: -100px;
-  }
-  .small {
-    font-size: 70%;
-    margin-top: 3rem;
-  }
-/*  .step:nth-child(6n + 3) {
-    page-break-after: always;
-  } */
+/* @page {
+  size: 8.5in 11in;
+  margin: 70pt 60pt 70pt;
+} */
+html, body {
+  width: 100%;
+  margin: 0;
+}
+body {
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+.header {
+  /* -webkit-print-color-adjust: exact; */
+  display: grid;
+  grid-template-columns: 50% 50%;
+  height: 340px;
+  margin-bottom: 4rem;
+}
+.dashbox {
+  padding:1em;
+  border-width: 5px;
+  border-style: dashed;
+  border-color: black;
+  box-shadow: inset 5px 5px 10px #ccc;
+}
+.description {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 33% 33% 33%;
+  grid-template-rows: 290px 290px;
+  grid-auto-rows: 350px;
+  font-family: 'Montserrat', sans-serif;
+}
+h1 {
+  font-size: 3.5rem;
+  margin-bottom: 2rem;
+}
+p {
+  font-size: 1.5rem;
+  text-align: center;
+  width: 100%;
+  margin: 1rem 0;
+}
+.floating-finished {
+  position: absolute;
+  bottom: 0;
+  right: -100px;
+}
+.small {
+  font-size: 70%;
+  margin-top: 2rem;
+}
+.step {
+  position: relative;
+  text-align: center;
+}
+.step .number {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2rem;
+  height: 2rem;
+  background-color: white;
+  border: 3px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.step svg {
+  margin: auto;
+}
+.step:nth-child(15) {
+/*  grid-template-rows: 270px; */
 }
 `;
-
 
 DiagramMaker.svgStyle = `
 svg { --crease-width: 0.015; }

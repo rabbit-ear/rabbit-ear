@@ -96,3 +96,34 @@ const assignment_angles = {
 export const edge_assignment_to_foldAngle = function (assignment) {
   return assignment_angles[assignment] || 0;
 };
+
+export const get_keys_matching_prefix = function (graph, key) {
+  const prefix = `${key}_`;
+  return Object.keys(graph)
+    .map(str => (str.substring(0, prefix.length) === prefix ? str : undefined))
+    .filter(str => str !== undefined);
+};
+
+export const get_keys_matching_suffix = function (graph, key) {
+  const suffix = `_${key}`;
+  return Object.keys(graph)
+    .map(s => (s.substring(s.length - suffix.length, s.length) === suffix
+      ? s : undefined))
+    .filter(str => str !== undefined);
+};
+
+/**
+ * this takes in a geometry_key (vectors, edges, faces), and flattens
+ * across all related arrays, creating 1 array of objects with the keys
+ */
+export const invert_geometry_arrays = function (graph, geometry_key) {
+  const matching_keys = get_keys_matching_prefix(graph, geometry_key);
+  if (matching_keys.length === 0) { return []; }
+  const geometry = Array.from(Array(graph[matching_keys[0]].length))
+    .map(() => ({}));
+  matching_keys
+    .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
+    .forEach(key => geometry
+      .forEach((o, i) => { geometry[i][key.short] = graph[key.long][i]; }));
+  return geometry;
+};

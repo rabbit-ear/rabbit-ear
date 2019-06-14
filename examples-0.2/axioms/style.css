@@ -11,7 +11,7 @@ body {
 	font-size: 4vmin;
 }
 .wide {
-	width: 1.5rem;
+	/*width: 1.5rem;*/
 /*	padding-left: 1.5rem;
 	padding-right: 1.5rem;*/
 }
@@ -19,7 +19,7 @@ body {
 	height: 100%;
 	display: grid;
 	grid-template-columns: 50% 50%;
-	grid-template-rows: calc(100vh - 3rem - 4vmin - 2rem - 2rem) 3rem calc(4vmin + 2rem + 2rem);
+	grid-template-rows: calc(100vh - 5rem - 4vmin - 2rem - 2rem) 5rem calc(4vmin + 2rem + 2rem);
 }
 #origami-fold {
 	grid-column: 2/3;
@@ -78,7 +78,7 @@ body {
 #instructions {
 	text-align: center;
 	display: grid;
-	grid-template-columns: 5rem calc(100vw - 10rem) 5rem;
+	grid-template-columns: 10rem calc(100vw - 20rem) 10rem;
 	align-items: center;
 	justify-content: center;
 }

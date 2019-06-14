@@ -83,6 +83,8 @@ export const implied_faces_count = function (graph) {
 /**
  * @returns index of nearest vertex in vertices_ arrays or
  * this is the only one of the nearest_ functions that works in 3-dimensions
+ *
+ * todo: improve with space partitioning
  */
 export const nearest_vertex = function (graph, point) {
   if (graph.vertices_coords === undefined
