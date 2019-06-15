@@ -6652,17 +6652,21 @@
         .filter(obj => obj.pre === 0)
         .filter(obj => folded["faces_re:sidedness"][obj.new])
         .shift().new);
-    const face_0_preMatrix = (faces_split[0] === undefined
-      && !graph["faces_re:sidedness"][0]
-      ? graph["faces_re:matrix"][0]
-      : math$1.core.multiply_matrices2(
-        graph["faces_re:matrix"][0],
-        math$1.core.make_matrix2_reflection(
-          graph["faces_re:creases"][0][1],
-          graph["faces_re:creases"][0][0]
+    let face_0_preMatrix = graph["faces_re:matrix"][0];
+    if (crease_direction === "M" || crease_direction === "m"
+      || crease_direction === "V" || crease_direction === "v") {
+      face_0_preMatrix = (faces_split[0] === undefined
+        && !graph["faces_re:sidedness"][0]
+        ? graph["faces_re:matrix"][0]
+        : math$1.core.multiply_matrices2(
+          graph["faces_re:matrix"][0],
+          math$1.core.make_matrix2_reflection(
+            graph["faces_re:creases"][0][1],
+            graph["faces_re:creases"][0][0]
+          )
         )
-      )
-    );
+      );
+    }
     const folded_faces_matrix = make_faces_matrix(folded, face_0_newIndex)
       .map(m => math$1.core.multiply_matrices2(face_0_preMatrix, m));
     folded["faces_re:coloring"] = faces_coloring_from_faces_matrix(

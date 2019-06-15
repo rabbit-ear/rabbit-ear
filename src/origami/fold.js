@@ -202,18 +202,24 @@ const fold_through = function (
   // only if face 0 lies on the not-flipped side (sidedness is false),
   // and it wasn't creased-through, can we use its original matrix.
   // if face 0 lies on the flip side (sidedness is true), or it was split,
-  // face 0 needs to be multiplied by its crease's reflection matrix
-  const face_0_preMatrix = (faces_split[0] === undefined
-    && !graph["faces_re:sidedness"][0]
-    ? graph["faces_re:matrix"][0]
-    : math.core.multiply_matrices2(
-      graph["faces_re:matrix"][0],
-      math.core.make_matrix2_reflection(
-        graph["faces_re:creases"][0][1],
-        graph["faces_re:creases"][0][0]
+  // face 0 needs to be multiplied by its crease's reflection matrix, but
+  // only for valley or mountain folds, mark folds need to copy the matrix
+  let face_0_preMatrix = graph["faces_re:matrix"][0];
+  // if mark, skip this. if valley or mountain, do it
+  if (crease_direction === "M" || crease_direction === "m"
+    || crease_direction === "V" || crease_direction === "v") {
+    face_0_preMatrix = (faces_split[0] === undefined
+      && !graph["faces_re:sidedness"][0]
+      ? graph["faces_re:matrix"][0]
+      : math.core.multiply_matrices2(
+        graph["faces_re:matrix"][0],
+        math.core.make_matrix2_reflection(
+          graph["faces_re:creases"][0][1],
+          graph["faces_re:creases"][0][0]
+        )
       )
-    )
-  );
+    );
+  }
   // build our new faces_matrices using face 0 as the starting point,
   // setting face 0 as the identity matrix, then multiply every
   // face's matrix by face 0's actual starting matrix

@@ -68,3 +68,8 @@ a.button { text-decoration: none; }
 	background-color: initial;
 	border-color: initial;
 }
+
+.button.small {
+	font-size: 90%;
+	padding: 1.25rem 0.75rem;
+}

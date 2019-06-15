@@ -11,7 +11,8 @@ origami.insertBefore(origami.markLayer,
 origami.controls = re.svg.controls(origami, 0);
 origami.axiom = undefined;
 origami.subSelect = 0; // some axioms have 2 or 3 results
-origami.polygonBoundary = origami.cp.boundary;
+origami.polygonBoundary = re.polygon(origami.cp.boundaries[0].vertices.map(v => origami.cp.vertices_coords[v]));
+console.log(origami.polygonBoundary);
 
 // a lookup for expected parameters in axiom() func. is param a point or line?
 origami.paramIsLine = [null,
@@ -157,19 +158,17 @@ origami.update = function () {
     default: break;
   }
 
+  // fail 1, axiom is uncalculatable given parameters
   if (axiomInfo === undefined) {
     origami.drawAxiomHelperLines(lines, "#d42");
     return origami.cannotFold();
   }
-  // axiom 3, 5, and 6 give us back multiple solutions inside an array
-  // if (axiomInfo.constructor === Array) {
-  //  axiomInfo = axiomInfo[origami.subSelect];
-  //  if (axiomInfo === undefined) { return; }
-  // }
 
+  // fail 2, axiom is calculatable, but a point/line off the page.
   const valid = re.core.test_axiom(axiomInfo, origami.polygonBoundary.points);
   const solutionPassed = valid.map(a => a != null);
 
+  // for axioms with multiple solutions: update UI, select valid sub-selection
   const optionButtons = document.querySelectorAll("[id^=btn-option]");
   switch (origami.axiom) {
     case 3:
@@ -190,18 +189,13 @@ origami.update = function () {
       }
     }
   }
+  // fail 2b, calculatable but invalid sub-selection.
   if (axiomInfo.solutions[origami.subSelect] == null) {
     origami.drawAxiomHelperLines(lines, "#d42");
     return origami.cannotFold();
   }
 
-
   const passFail = solutionPassed[origami.subSelect];
-
-  // origami.preferences.styleSheet = valid[origami.subSelect] == null
-  //  ? ".valley  { stroke: red; }"
-  //  : undefined;
-
   origami.drawAxiomHelperLines(lines, passFail ? "#eb3" : "#d42");
   origami.preferences.arrowColor = passFail ? "black" : "#d42";
   origami.preferences.styleSheet = solutionPassed[origami.subSelect]
@@ -278,8 +272,8 @@ document.querySelector("#language-next").onclick = function (event) {
   origami.update();
   const prev = (language + languages.length - 1) % languages.length;
   const next = (language + 1) % languages.length;
-  document.querySelector("#language-back").innerHTML = `←${languages[prev]}`;
-  document.querySelector("#language-next").innerHTML = `${languages[next]}→`;
+  document.querySelector("#language-back").innerHTML = `← ${languages[prev]}`;
+  document.querySelector("#language-next").innerHTML = `${languages[next]} →`;
 };
 
 origami.setAxiom(1);
