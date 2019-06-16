@@ -14,7 +14,7 @@ import { kawasaki_collapse } from "../origami/kawasaki";
 import addEdge from "../graph/add_edge";
 import split_edge from "../graph/split_edge";
 import split_face from "../graph/split_face";
-import { clean } from "../graph/rebuild";
+import { rebuild, complete } from "../graph/rebuild";
 import { remove_non_boundary_edges } from "../graph/remove";
 import {
   get_boundary,
@@ -44,8 +44,11 @@ const Prototype = function (proto = {}) {
     return [get_boundary(this)];
   };
 
-  proto.clean = function (epsilon = math.core.EPSILON) {
-    clean(this, epsilon);
+  proto.rebuild = function (epsilon = math.core.EPSILON) {
+    rebuild(this, epsilon);
+  };
+  proto.complete = function () {
+    complete(this);
   };
   /** @return {CreasePattern} a deep copy of this object. */
   proto.copy = function () {

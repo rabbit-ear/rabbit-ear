@@ -18,16 +18,64 @@ import { remove_duplicate_edges } from "./remove";
 import fragment from "./fragment";
 import * as Validate from "../fold/validate";
 import {
+  make_vertices_edges,
+  make_vertices_faces,
   make_edges_faces,
-  make_vertices_faces
+  make_edges_length,
+  make_faces_faces
 } from "./make";
+import {
+  edge_assignment_to_foldAngle
+} from "../fold/spec";
+
+export const complete = function (graph) {
+  if ("vertices_coords" in graph === false
+    || "edges_vertices" in graph === false) { return; }
+  if ("vertices_vertices" in graph === false) {
+    FOLDConvert.edges_vertices_to_vertices_vertices_sorted(graph);
+  }
+  if ("faces_vertices" in graph === false) {
+    FOLDConvert.vertices_vertices_to_faces_vertices(graph);
+  }
+  if ("faces_edges" in graph === false) {
+    FOLDConvert.faces_vertices_to_faces_edges(graph);
+  }
+  if ("edges_faces" in graph === false) {
+    graph.edges_faces = make_edges_faces(graph);
+  }
+  if ("vertices_faces" in graph === false) {
+    graph.vertices_faces = make_vertices_faces(graph);
+  }
+  if ("edges_length" in graph === false) {
+    graph.edges_length = make_edges_length(graph);
+  }
+  if ("edges_foldAngle" in graph === false
+    && "edges_assignment" in graph === true) {
+    graph.edges_foldAngle = graph.edges_assignment.map(a => edge_assignment_to_foldAngle(a));
+  }
+  if ("edges_assignment" in graph === false
+    && "edges_foldAngle" in graph === true) {
+    graph.edges_assignment = graph.edges_foldAngle.map((a) => {
+      if (a === 0) return "F";
+      if (a < 0) return "M";
+      if (a > 0) return "V";
+      return "U";
+    });
+  }
+  if ("faces_faces" in graph === false) {
+    graph.faces_faces = make_faces_faces(graph);
+  }
+  if ("vertices_edges" in graph === false) {
+    graph.vertices_edges = make_vertices_edges(graph);
+  }
+};
 
 /**
  * this is the big rebuild-all-arrays function.
  * vertices_coords and edges_vertices are the seeds everything else is rebuilt.
  * todo: specify "keys" parameter to update certain keys only
  */
-export const clean = function (graph, epsilon = math.core.EPSILON) {
+export const rebuild = function (graph, epsilon = math.core.EPSILON) {
   // it's not exactly clear what "clean" should do
   // it definitely validates the graph and adds geometry arrays if needed
   // it probably also adds file_spec: 1.1, and frame_attributes and _classes

@@ -5660,6 +5660,11 @@
       .forEach(edge => edges_faces[edge].push(i)));
     return edges_faces;
   };
+  const make_edges_length = function (graph) {
+    return graph.edges_vertices
+      .map(ev => ev.map(v => graph.vertices_coords[v]))
+      .map(edge => math$1.core.distance(...edge));
+  };
   const make_vertex_pair_to_edge_map = function (graph) {
     const map = {};
     graph.edges_vertices
@@ -5772,6 +5777,7 @@
     make_vertices_edges: make_vertices_edges,
     make_faces_faces: make_faces_faces,
     make_edges_faces: make_edges_faces,
+    make_edges_length: make_edges_length,
     make_vertex_pair_to_edge_map: make_vertex_pair_to_edge_map,
     make_vertices_faces: make_vertices_faces,
     make_face_walk_tree: make_face_walk_tree,
@@ -7044,7 +7050,48 @@
     validate: validate
   });
 
-  const clean$1 = function (graph, epsilon = math$1.core.EPSILON) {
+  const complete = function (graph) {
+    if ("vertices_coords" in graph === false
+      || "edges_vertices" in graph === false) { return; }
+    if ("vertices_vertices" in graph === false) {
+      convert$1.edges_vertices_to_vertices_vertices_sorted(graph);
+    }
+    if ("faces_vertices" in graph === false) {
+      convert$1.vertices_vertices_to_faces_vertices(graph);
+    }
+    if ("faces_edges" in graph === false) {
+      convert$1.faces_vertices_to_faces_edges(graph);
+    }
+    if ("edges_faces" in graph === false) {
+      graph.edges_faces = make_edges_faces(graph);
+    }
+    if ("vertices_faces" in graph === false) {
+      graph.vertices_faces = make_vertices_faces(graph);
+    }
+    if ("edges_length" in graph === false) {
+      graph.edges_length = make_edges_length(graph);
+    }
+    if ("edges_foldAngle" in graph === false
+      && "edges_assignment" in graph === true) {
+      graph.edges_foldAngle = graph.edges_assignment.map(a => edge_assignment_to_foldAngle(a));
+    }
+    if ("edges_assignment" in graph === false
+      && "edges_foldAngle" in graph === true) {
+      graph.edges_assignment = graph.edges_foldAngle.map((a) => {
+        if (a === 0) return "F";
+        if (a < 0) return "M";
+        if (a > 0) return "V";
+        return "U";
+      });
+    }
+    if ("faces_faces" in graph === false) {
+      graph.faces_faces = make_faces_faces(graph);
+    }
+    if ("vertices_edges" in graph === false) {
+      graph.vertices_edges = make_vertices_edges(graph);
+    }
+  };
+  const rebuild = function (graph, epsilon = math$1.core.EPSILON) {
     ["vertices_vertices", "vertices_edges", "vertices_faces",
       "edges_faces", "edges_edges",
       "faces_vertices", "faces_edges", "faces_faces"].filter(a => a in graph)
@@ -7070,8 +7117,9 @@
   };
   const stopComplainingLinter = true;
 
-  var rebuild = /*#__PURE__*/Object.freeze({
-    clean: clean$1,
+  var rebuild$1 = /*#__PURE__*/Object.freeze({
+    complete: complete,
+    rebuild: rebuild,
     stopComplainingLinter: stopComplainingLinter
   });
 
@@ -7091,8 +7139,11 @@
     const getBoundaries = function () {
       return [get_boundary$1(this)];
     };
-    proto.clean = function (epsilon = math$1.core.EPSILON) {
-      clean$1(this, epsilon);
+    proto.rebuild = function (epsilon = math$1.core.EPSILON) {
+      rebuild(this, epsilon);
+    };
+    proto.complete = function () {
+      complete(this);
     };
     proto.copy = function () {
       return Object.assign(Object.create(Prototype$2()), clone(this));
@@ -11781,7 +11832,7 @@
     validate$1,
     add,
     remove,
-    rebuild,
+    rebuild$1,
     make$1,
     query$1,
     fold,

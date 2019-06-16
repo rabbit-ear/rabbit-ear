@@ -42,6 +42,16 @@ export const make_edges_faces = function (graph) {
   return edges_faces;
 };
 
+export const make_edges_length = function (graph) {
+  return graph.edges_vertices
+    .map(ev => ev.map(v => graph.vertices_coords[v]))
+    .map(edge => math.core.distance(...edge));
+};
+
+// export const make_edges_foldAngle = function (graph) {
+//   return graph.edges_assignment.map(a => edge_assignment_to_foldAngle(a));
+// };
+
 /**
  * for fast backwards lookup, this builds a dictionary with keys as vertices
  * that compose an edge "6 11" always sorted smallest to largest, with a space.
