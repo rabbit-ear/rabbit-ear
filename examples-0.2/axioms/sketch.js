@@ -12,7 +12,6 @@ origami.controls = re.svg.controls(origami, 0);
 origami.axiom = undefined;
 origami.subSelect = 0; // some axioms have 2 or 3 results
 origami.polygonBoundary = re.polygon(origami.cp.boundaries[0].vertices.map(v => origami.cp.vertices_coords[v]));
-console.log(origami.polygonBoundary);
 
 // a lookup for expected parameters in axiom() func. is param a point or line?
 origami.paramIsLine = [null,
@@ -68,8 +67,6 @@ origami.cannotFold = function () {
     .forEach((b) => { b.style.opacity = 0; });
   folded.cp = origami.cp;
   folded.fold();
-  console.log(origami.paramIsLine);
-  console.log(origami.axiom);
   origami.controls.forEach((p, i) => {
     if (origami.paramIsLine[origami.axiom][i]) {
       p.circle.setAttribute("style", "stroke:#d42;fill:#d42");
@@ -82,10 +79,11 @@ origami.drawGhostMark = function (point) {
   circle.setAttribute("style", "stroke: black; fill: #d42; opacity:0.5");
 };
 
-origami.drawAxiomHelperLines = function (lines, color) {
+origami.drawAxiomHelperLines = function (color) {
   if (color == null) { color = "#eb3"; }
   // draw axiom helper lines
   origami.markLayer.removeChildren();
+  const lines = origami.control_points_to_lines();
   lines.map(l => origami.polygonBoundary.clipLine(l))
     .filter(a => a !== undefined)
     .map(l => origami.markLayer.line(l[0][0], l[0][1], l[1][0], l[1][1]))
@@ -103,70 +101,69 @@ origami.drawAxiomHelperLines = function (lines, color) {
     .map(pts => origami.markLayer.straightArrow(pts[0], pts[1], options));
 };
 
+origami.control_points_to_lines = function () {
+  const p = origami.controls.map(control => control.position);
+  switch (origami.axiom) {
+    case 3:
+    case 6:
+    case 7:
+      return [
+        re.line(p[0], [p[2][0] - p[0][0], p[2][1] - p[0][1]]),
+        re.line(p[1], [p[3][0] - p[1][0], p[3][1] - p[1][1]])
+      ];
+    case 4:
+    case 5:
+      return [
+        re.line(p[0], [p[1][0] - p[0][0], p[1][1] - p[0][1]])
+      ];
+    default:
+      return [];
+  }
+};
+
+origami.controls_to_axiom_args = function () {
+  // convert the input-control-points into marks and lines,
+  // the proper arguments for axiom method calls
+  const points = origami.controls.map(control => control.position);
+  const lines = origami.control_points_to_lines();
+  switch (origami.axiom) {
+    case 1:
+    case 2: return [...points];
+    case 3: return [
+      lines[0].point, lines[0].vector,
+      lines[1].point, lines[1].vector
+    ];
+    case 4: return [lines[0].point, lines[0].vector, points[2]];
+    case 5: return [lines[0].point, lines[0].vector, points[2], points[3]];
+    case 6: return [
+      lines[0].point, lines[0].vector,
+      lines[1].point, lines[1].vector,
+      points[4], points[5]
+    ];
+    case 7: return [
+      lines[0].point, lines[0].vector,
+      lines[1].point, lines[1].vector, points[4]
+    ];
+    default: return [];
+  }
+};
+
 // 2: soft reset, axiom params updated
 origami.update = function () {
   // clear and re-fold axiom
   origami.cp = re.bases.square;
 
-  // convert the input-control-points into marks and lines,
-  // the proper arguments for axiom method calls
-  const pts = origami.controls.map(p => p.position);
-  let lines = [];
-  switch (origami.axiom) {
-    case 3: case 6: case 7:
-      lines = [
-        re.line(pts[0], [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1]]),
-        re.line(pts[1], [pts[3][0] - pts[1][0], pts[3][1] - pts[1][1]])
-      ];
-      break;
-    case 4: case 5:
-      lines = [
-        re.line(pts[0], [pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]])
-      ];
-      break;
-    default: break;
-  }
-
-  // axiom to get a crease line
-  let axiomInfo;
-  switch (origami.axiom) {
-    case 1:
-    case 2: axiomInfo = re.axiom(origami.axiom, ...pts);
-      break;
-    case 3: axiomInfo = re.axiom(origami.axiom,
-      lines[0].point, lines[0].vector,
-      lines[1].point, lines[1].vector);
-      break;
-    case 4: axiomInfo = re.axiom(origami.axiom,
-      lines[0].point, lines[0].vector,
-      pts[2]);
-      break;
-    case 5: axiomInfo = re.axiom(origami.axiom,
-      lines[0].point, lines[0].vector,
-      pts[2], pts[3]);
-      break;
-    case 6: axiomInfo = re.axiom(origami.axiom,
-      lines[0].point, lines[0].vector,
-      lines[1].point, lines[1].vector,
-      pts[4], pts[5]);
-      break;
-    case 7: axiomInfo = re.axiom(origami.axiom,
-      lines[0].point, lines[0].vector,
-      lines[1].point, lines[1].vector,
-      pts[4]);
-      break;
-    default: break;
-  }
+  const axiomInfo = re.axiom(origami.axiom, origami.controls_to_axiom_args())
+    .apply(origami.polygonBoundary.points);
 
   // fail 1, axiom is uncalculatable given parameters
-  if (axiomInfo === undefined) {
-    origami.drawAxiomHelperLines(lines, "#d42");
-    return origami.cannotFold();
+  if (axiomInfo.valid === false) {
+    origami.drawAxiomHelperLines("#d42");
+    origami.cannotFold();
   }
 
   // fail 2, axiom is calculatable, but a point/line off the page.
-  const valid = re.core.test_axiom(axiomInfo, origami.polygonBoundary.points);
-  const solutionPassed = valid.map(a => a != null);
+  const solutionPassed = axiomInfo.valid_solutions.map(a => a != null);
 
   // for axioms with multiple solutions: update UI, select valid sub-selection
   const optionButtons = document.querySelectorAll("[id^=btn-option]");
@@ -191,12 +188,12 @@ origami.update = function () {
   }
   // fail 2b, calculatable but invalid sub-selection.
   if (axiomInfo.solutions[origami.subSelect] == null) {
-    origami.drawAxiomHelperLines(lines, "#d42");
+    origami.drawAxiomHelperLines("#d42");
     return origami.cannotFold();
   }
 
   const passFail = solutionPassed[origami.subSelect];
-  origami.drawAxiomHelperLines(lines, passFail ? "#eb3" : "#d42");
+  origami.drawAxiomHelperLines(passFail ? "#eb3" : "#d42");
   origami.preferences.arrowColor = passFail ? "black" : "#d42";
   origami.preferences.styleSheet = solutionPassed[origami.subSelect]
     ? undefined
@@ -228,8 +225,7 @@ origami.update = function () {
 
   // valley crease the solution
   origami.cp.valleyFold(axiomInfo.solutions[origami.subSelect]);
-  origami.cp["re:construction"]["re:axiom"] = axiomInfo;
-
+  Object.assign(origami.cp["re:construction"], axiomInfo);
 
   const diagram = re.core.build_diagram_frame(origami.cp);
   origami.cp["re:diagrams"] = [diagram];

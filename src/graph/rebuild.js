@@ -28,6 +28,7 @@ import {
   edge_assignment_to_foldAngle
 } from "../fold/spec";
 
+
 export const complete = function (graph) {
   if ("vertices_coords" in graph === false
     || "edges_vertices" in graph === false) { return; }
@@ -51,7 +52,8 @@ export const complete = function (graph) {
   }
   if ("edges_foldAngle" in graph === false
     && "edges_assignment" in graph === true) {
-    graph.edges_foldAngle = graph.edges_assignment.map(a => edge_assignment_to_foldAngle(a));
+    graph.edges_foldAngle = graph.edges_assignment
+      .map(a => edge_assignment_to_foldAngle(a));
   }
   if ("edges_assignment" in graph === false
     && "edges_foldAngle" in graph === true) {
@@ -61,6 +63,7 @@ export const complete = function (graph) {
       if (a > 0) return "V";
       return "U";
     });
+    // todo, this does not find borders, we need an algorithm to walk around
   }
   if ("faces_faces" in graph === false) {
     graph.faces_faces = make_faces_faces(graph);
@@ -110,9 +113,6 @@ export const rebuild = function (graph, epsilon = math.core.EPSILON) {
     graph.frame_classes = ["creasePattern"];
   }
 };
-
-
-export const stopComplainingLinter = true;
 
 // export const clean = function (graph, keys) {
 //   if ("vertices_coords" in graph === false

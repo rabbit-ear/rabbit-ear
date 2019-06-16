@@ -1,5 +1,6 @@
 import math from "../../include/math";
 import { get_boundary } from "../graph/query";
+import { edges_assignment_names } from "../fold/spec";
 import axiom_instructions_data from "../data/instructions_axiom.json";
 
 const axiom_instructions = JSON.parse(axiom_instructions_data);
@@ -29,15 +30,16 @@ const get_instructions_for_axiom = function (axiom_number) {
 // }]
 
 const make_instructions = function (construction) {
-  const axiom = "re:axiom" in construction === true
-    ? construction["re:axiom"].number
-    : 0;
+  const axiom = construction.axiom || 0;
   // const axiom_frame = construction["re:axiom"];
   // axiom 2, simplest case
   if (!isNaN(axiom) && axiom != null && axiom > 0 && axiom < 8) {
     return get_instructions_for_axiom(axiom);
   }
-  return { en: `${construction["re:construction_type"]} fold` };
+  if ("assignment" in construction) {
+    return { en: `${edges_assignment_names.en[construction.assignment]} fold` };
+  }
+  return { en: "" };
 };
 
 // todo: make_arrow_coords is asking for graph to calculate the
@@ -55,11 +57,11 @@ const make_instructions = function (construction) {
 //  direction: [x,y]         // the normal to the fold line, direction of fold
 // }
 const make_arrow_coords = function (construction, graph) {
-  const p = construction["re:construction_parameters"];
-  const axiom = "re:axiom" in construction === true
-    ? construction["re:axiom"].number
-    : 0;
-  const axiom_frame = construction["re:axiom"];
+  const axiom = construction.axiom || 0;
+  const crease_edge = construction.edge;
+  const arrow_vector = construction.direction;
+
+  const axiom_frame = construction;
   // axiom 2, simplest case
   if (axiom === 2) {
     // todo: these are reversed
@@ -71,10 +73,9 @@ const make_arrow_coords = function (construction, graph) {
     return [axiom_frame.test.points_reflected[0], axiom_frame.parameters.points[0]];
   }
   const crease_vector = [
-    p.edge[1][0] - p.edge[0][0],
-    p.edge[1][1] - p.edge[0][1]
+    crease_edge[1][0] - crease_edge[0][0],
+    crease_edge[1][1] - crease_edge[0][1]
   ];
-  const arrow_vector = p.direction;
   let crossing;
   switch (axiom) {
     // case 1:
@@ -82,16 +83,16 @@ const make_arrow_coords = function (construction, graph) {
     //   break;
     case 4:
       crossing = math.core.nearest_point_on_line(
-        p.edge[0], crease_vector, axiom_frame.parameters.lines[0][0], (a => a)
+        crease_edge[0], crease_vector, axiom_frame.parameters.lines[0][0], (a => a)
       );
       break;
     case 7:
       crossing = math.core.nearest_point_on_line(
-        p.edge[0], crease_vector, axiom_frame.parameters.points[0], (a => a)
+        crease_edge[0], crease_vector, axiom_frame.parameters.points[0], (a => a)
       );
       break;
     default:
-      crossing = math.core.average(p.edge[0], p.edge[1]);
+      crossing = math.core.average(crease_edge[0], crease_edge[1]);
       break;
   }
   const perpLine = { point: crossing, vector: arrow_vector };
@@ -111,8 +112,8 @@ const make_arrow_coords = function (construction, graph) {
     .map(n => math.core.distance2(n, crossing))
     .sort((a, b) => a - b)
     .shift();
-  if (p.axiom === 7) {
-    short_length = math.core.distance2(p.marks[0], crossing);
+  if (axiom === 7) {
+    short_length = math.core.distance2(construction.parameters.points[0], crossing);
   }
   const short_vector = arrow_vector.map(v => v * short_length);
   return [
@@ -121,14 +122,13 @@ const make_arrow_coords = function (construction, graph) {
   ];
 };
 
-
 const build_diagram_frame = function (graph) {
   const c = graph["re:construction"];
   if (c == null) {
     console.warn("couldn't build diagram. construction info doesn't exist");
     return {};
   }
-  switch (c["re:construction_type"]) {
+  switch (c.type) {
     case "flip":
       return {
         "re:diagram_arrows": [{
@@ -137,12 +137,11 @@ const build_diagram_frame = function (graph) {
         }],
         "re:instructions": { en: "flip over" }
       };
-    case "mountain":
-    case "valley":
+    case "fold":
       return {
         "re:diagram_lines": [{
-          "re:diagram_line_classes": [c["re:construction_type"]],
-          "re:diagram_line_coords": c["re:construction_parameters"].edge,
+          "re:diagram_line_classes": [edges_assignment_names.en[c.assignment]],
+          "re:diagram_line_coords": c.edge,
         }],
         "re:diagram_arrows": [{
           "re:diagram_arrow_classes": [],
@@ -150,8 +149,11 @@ const build_diagram_frame = function (graph) {
         }],
         "re:instructions": make_instructions(c)
       };
+    case "squash":
+    case "sink":
+    case "pleat":
     default:
-      return { error: "could not determine construction type" };
+      return { error: `construction type (${c.type}) not yet defined` };
   }
 };
 

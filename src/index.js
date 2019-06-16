@@ -20,7 +20,7 @@ import Origami from "./objects/View2D";
 import Origami3D from "./objects/View3D";
 import Graph from "./objects/graph";
 // top level methods
-// import { axiom } from "./origami/axioms";
+import { apply_axiom } from "./frames/axiom_frame";
 import * as Axioms from "./origami/axioms";
 
 // to be included in "convert"
@@ -93,6 +93,7 @@ core.add_edge = add_edge;
 core.split_edge_run = split_edge_run;
 core.apply_run = apply_run_diff;
 core.merge_run = merge_run_diffs;
+core.apply_axiom = apply_axiom;
 
 // load bases
 const b = {

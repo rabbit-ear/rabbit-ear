@@ -6526,10 +6526,10 @@
     return new_faces_layer;
   };
 
-  const construction_frame = function (type, parameters) {
+  const construction_flip = function (direction_vector) {
     return {
-      "re:construction_type": type,
-      "re:construction_parameters": parameters
+      type: "flip",
+      direction: direction_vector
     };
   };
 
@@ -6599,12 +6599,12 @@
     point,
     vector,
     face_index,
-    crease_direction = "V"
+    assignment = "V"
   ) {
-    let opposite_crease = crease_direction;
-    if (crease_direction === "M" || crease_direction === "m") {
+    let opposite_crease = assignment;
+    if (assignment === "M" || assignment === "m") {
       opposite_crease = "V";
-    } else if (crease_direction === "V" || crease_direction === "v") {
+    } else if (assignment === "V" || assignment === "v") {
       opposite_crease = "M";
     }
     if (face_index == null) {
@@ -6622,7 +6622,7 @@
           folded, i,
           folded["faces_re:creases"][i][0],
           folded["faces_re:creases"][i][1],
-          folded["faces_re:coloring"][i] ? crease_direction : opposite_crease
+          folded["faces_re:coloring"][i] ? assignment : opposite_crease
         );
         if (diff == null || diff.faces == null) { return undefined; }
         diff.faces.replace.forEach(replace => replace.new
@@ -6659,8 +6659,8 @@
         .filter(obj => folded["faces_re:sidedness"][obj.new])
         .shift().new);
     let face_0_preMatrix = graph["faces_re:matrix"][0];
-    if (crease_direction === "M" || crease_direction === "m"
-      || crease_direction === "V" || crease_direction === "v") {
+    if (assignment === "M" || assignment === "m"
+      || assignment === "V" || assignment === "v") {
       face_0_preMatrix = (faces_split[0] === undefined
         && !graph["faces_re:sidedness"][0]
         ? graph["faces_re:matrix"][0]
@@ -6691,12 +6691,13 @@
       .filter(a => a !== undefined)
       .reduce((a, b) => a.concat(b), []);
     folded["re:construction"] = (split_points.length === 0
-      ? construction_frame("flip", { direction: fold_direction })
-      : construction_frame(opposite_crease === "M" ? "valley" : "mountain", {
+      ? construction_flip(fold_direction)
+      : {
+        type: "fold",
+        assignment,
         direction: fold_direction,
         edge: two_furthest_points(split_points)
-      })
-    );
+      });
     const folded_frame = {
       vertices_coords: make_vertices_coords_folded(
         folded,
@@ -7073,7 +7074,8 @@
     }
     if ("edges_foldAngle" in graph === false
       && "edges_assignment" in graph === true) {
-      graph.edges_foldAngle = graph.edges_assignment.map(a => edge_assignment_to_foldAngle(a));
+      graph.edges_foldAngle = graph.edges_assignment
+        .map(a => edge_assignment_to_foldAngle(a));
     }
     if ("edges_assignment" in graph === false
       && "edges_foldAngle" in graph === true) {
@@ -7115,12 +7117,10 @@
       graph.frame_classes = ["creasePattern"];
     }
   };
-  const stopComplainingLinter = true;
 
   var rebuild$1 = /*#__PURE__*/Object.freeze({
     complete: complete,
-    rebuild: rebuild,
-    stopComplainingLinter: stopComplainingLinter
+    rebuild: rebuild
   });
 
   const Prototype$2 = function (proto = {}) {
@@ -10737,52 +10737,49 @@
     test_axiom6,
     test_axiom7,
   ];
-  const test_axiom = function (axiom_frame, poly) {
-    const passes = test[axiom_frame.number].call(null, axiom_frame, poly);
+  const apply_axiom = function (axiom_frame, poly) {
+    axiom_frame.valid = test[axiom_frame.axiom].call(null, axiom_frame, poly);
     const polyobject = math$1.polygon(poly);
-    return !passes
-      ? []
-      : axiom_frame.solutions.map(s => polyobject.clipLine(s));
+    axiom_frame.valid_solutions = (axiom_frame.valid
+      ? axiom_frame.solutions.map(s => polyobject.clipLine(s))
+      : []);
+    return axiom_frame;
   };
+  const make_axiom_frame = function (axiom, parameters, solutions) {
+    const solution = {
+      axiom,
+      parameters,
+      solutions,
+    };
+    Object.defineProperty(solution, "apply", {
+      value: (...args) => apply_axiom(solution, ...args)
+    });
+    return solution;
+  };
+
   const axiom1 = function (pointA, pointB) {
     const p0 = math$1.core.get_vector(pointA);
     const p1 = math$1.core.get_vector(pointB);
     const vec = p0.map((_, i) => p1[i] - p0[i]);
     const solution = [p0, vec];
-    return {
-      number: 1,
-      parameters: { points: [p0, p1] },
-      solutions: [solution],
-    };
+    return make_axiom_frame(1, { points: [p0, p1] }, [solution]);
   };
   const axiom2 = function (a, b) {
     const mid = math$1.core.midpoint2(a, b);
     const vec = math$1.core.normalize(a.map((_, i) => b[i] - a[i]));
     const solution = [mid, [vec[1], -vec[0]]];
-    return {
-      number: 2,
-      parameters: { points: [a, b] },
-      solutions: [solution],
-    };
+    return make_axiom_frame(2, { points: [a, b] }, [solution]);
   };
   const axiom3 = function (pointA, vectorA, pointB, vectorB) {
     const parameters = { lines: [[pointA, vectorA], [pointB, vectorB]] };
     const solutions = math$1.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
-    return {
-      number: 3,
-      parameters,
-      solutions,
-    };
+    return make_axiom_frame(3, parameters, solutions);
   };
   const axiom4 = function (pointA, vectorA, pointB) {
     const norm = math$1.core.normalize(vectorA);
     const solution = [[...pointB], [norm[1], -norm[0]]];
     const parameters = { points: [pointB], lines: [[pointA, vectorA]] };
-    return {
-      number: 4,
-      parameters,
-      solutions: [solution],
-    };
+    return make_axiom_frame(4, parameters, [solution]);
   };
   const axiom5 = function (pointA, vectorA, pointB, pointC) {
     const pA = math$1.core.get_vector(pointA);
@@ -10798,11 +10795,7 @@
       return [mid, [vec[1], -vec[0]]];
     });
     const parameters = { points: [pB, pC], lines: [[pA, vA]] };
-    return {
-      number: 5,
-      parameters,
-      solutions,
-    };
+    return make_axiom_frame(5, parameters, solutions);
   };
   const axiom7 = function (pointA, vectorA, pointB, vectorB, pointC) {
     const pA = math$1.core.get_vector(pointA);
@@ -10810,17 +10803,15 @@
     const pC = math$1.core.get_vector(pointC);
     const vA = math$1.core.get_vector(vectorA);
     const vB = math$1.core.get_vector(vectorB);
+    const parameters = { points: [pC], lines: [[pA, vA], [pB, vB]] };
     const sect = math$1.core.intersection.line_line(pA, vA, pC, vB);
-    if (sect === undefined) { return undefined; }
+    if (sect === undefined) {
+      return make_axiom_frame(7, parameters, []);
+    }
     const mid = math$1.core.midpoint2(pC, sect);
     const vec = math$1.core.normalize(pC.map((_, i) => sect[i] - pC[i]));
-    const solution = [mid, [vec[1], -vec[0]]];
-    const parameters = { points: [pC], lines: [[pA, vA], [pB, vB]] };
-    return {
-      number: 7,
-      parameters,
-      solutions: [solution],
-    };
+    const solution = [mid, [-vec[1], vec[0]]];
+    return make_axiom_frame(7, parameters, [solution]);
   };
   const cuberoot = function (x) {
     var y = Math.pow(Math.abs(x), 1 / 3);
@@ -10976,15 +10967,11 @@
         }
       }
     }
-    let parameters = {
+    const parameters = {
       points: [pointC, pointD],
       lines: [[pointA, vecA], [pointB, vecB]]
     };
-    return {
-      number: 6,
-      parameters,
-      solutions
-    };
+    return make_axiom_frame(6, parameters, solutions);
   };
   var order, irootMax, q1, q2, S, Sr, Si, U;
   const CubeRoot = function (x) {
@@ -11157,7 +11144,6 @@
   };
 
   var Axioms = /*#__PURE__*/Object.freeze({
-    test_axiom: test_axiom,
     axiom1: axiom1,
     axiom2: axiom2,
     axiom3: axiom3,
@@ -11428,20 +11414,20 @@
     return instructions;
   };
   const make_instructions = function (construction) {
-    const axiom = "re:axiom" in construction === true
-      ? construction["re:axiom"].number
-      : 0;
+    const axiom = construction.axiom || 0;
     if (!isNaN(axiom) && axiom != null && axiom > 0 && axiom < 8) {
       return get_instructions_for_axiom(axiom);
     }
-    return { en: `${construction["re:construction_type"]} fold` };
+    if ("assignment" in construction) {
+      return { en: `${edges_assignment_names.en[construction.assignment]} fold` };
+    }
+    return { en: "" };
   };
   const make_arrow_coords = function (construction, graph) {
-    const p = construction["re:construction_parameters"];
-    const axiom = "re:axiom" in construction === true
-      ? construction["re:axiom"].number
-      : 0;
-    const axiom_frame = construction["re:axiom"];
+    const axiom = construction.axiom || 0;
+    const crease_edge = construction.edge;
+    const arrow_vector = construction.direction;
+    const axiom_frame = construction;
     if (axiom === 2) {
       return [axiom_frame.parameters.points[1], axiom_frame.parameters.points[0]];
     }
@@ -11449,24 +11435,23 @@
       return [axiom_frame.test.points_reflected[0], axiom_frame.parameters.points[0]];
     }
     const crease_vector = [
-      p.edge[1][0] - p.edge[0][0],
-      p.edge[1][1] - p.edge[0][1]
+      crease_edge[1][0] - crease_edge[0][0],
+      crease_edge[1][1] - crease_edge[0][1]
     ];
-    const arrow_vector = p.direction;
     let crossing;
     switch (axiom) {
       case 4:
         crossing = math$1.core.nearest_point_on_line(
-          p.edge[0], crease_vector, axiom_frame.parameters.lines[0][0], (a => a)
+          crease_edge[0], crease_vector, axiom_frame.parameters.lines[0][0], (a => a)
         );
         break;
       case 7:
         crossing = math$1.core.nearest_point_on_line(
-          p.edge[0], crease_vector, axiom_frame.parameters.points[0], (a => a)
+          crease_edge[0], crease_vector, axiom_frame.parameters.points[0], (a => a)
         );
         break;
       default:
-        crossing = math$1.core.average(p.edge[0], p.edge[1]);
+        crossing = math$1.core.average(crease_edge[0], crease_edge[1]);
         break;
     }
     const boundary = get_boundary$1(graph).vertices
@@ -11481,8 +11466,8 @@
       .map(n => math$1.core.distance2(n, crossing))
       .sort((a, b) => a - b)
       .shift();
-    if (p.axiom === 7) {
-      short_length = math$1.core.distance2(p.marks[0], crossing);
+    if (axiom === 7) {
+      short_length = math$1.core.distance2(construction.parameters.points[0], crossing);
     }
     const short_vector = arrow_vector.map(v => v * short_length);
     return [
@@ -11496,7 +11481,7 @@
       console.warn("couldn't build diagram. construction info doesn't exist");
       return {};
     }
-    switch (c["re:construction_type"]) {
+    switch (c.type) {
       case "flip":
         return {
           "re:diagram_arrows": [{
@@ -11505,12 +11490,11 @@
           }],
           "re:instructions": { en: "flip over" }
         };
-      case "mountain":
-      case "valley":
+      case "fold":
         return {
           "re:diagram_lines": [{
-            "re:diagram_line_classes": [c["re:construction_type"]],
-            "re:diagram_line_coords": c["re:construction_parameters"].edge,
+            "re:diagram_line_classes": [edges_assignment_names.en[c.assignment]],
+            "re:diagram_line_coords": c.edge,
           }],
           "re:diagram_arrows": [{
             "re:diagram_arrow_classes": [],
@@ -11518,8 +11502,11 @@
           }],
           "re:instructions": make_instructions(c)
         };
+      case "squash":
+      case "sink":
+      case "pleat":
       default:
-        return { error: "could not determine construction type" };
+        return { error: `construction type (${c.type}) not yet defined` };
     }
   };
 
@@ -11811,7 +11798,7 @@
 
   var kite = "{\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"kite base\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [\n\t\t[0,0],\n\t\t[0.414213562373095,0],\n\t\t[1,0],\n\t\t[1,0.585786437626905],\n\t\t[1,1],\n\t\t[0,1]\n\t],\n\t\"vertices_vertices\": [ [1,5], [2,5,0], [3,5,1], [4,5,2], [5,3], [0,1,2,3,4] ],\n\t\"vertices_faces\": [ [0], [1,0], [2,1], [3,2], [3], [0,1,2,3] ],\n\t\"edges_vertices\": [\n\t\t[0,1],\n\t\t[1,2],\n\t\t[2,3],\n\t\t[3,4],\n\t\t[4,5],\n\t\t[5,0],\n\t\t[5,1],\n\t\t[3,5],\n\t\t[5,2]\n\t],\n\t\"edges_faces\": [[0], [1], [2], [3], [3], [0], [0,1], [3,2], [1,2]],\n\t\"edges_assignment\": [\"B\", \"B\", \"B\", \"B\", \"B\", \"B\", \"V\", \"V\", \"F\"],\n\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 0, 0, 0],\n\t\"edges_length\": [0.414213562373095, 0.585786437626905, 0.585786437626905, 0.414213562373095, 1, 1, 1.082392200292394, 1.082392200292394, 1.414213562373095],\n\t\"faces_vertices\": [\n\t\t[0,1,5],\n\t\t[1,2,5],\n\t\t[2,3,5],\n\t\t[3,4,5]\n\t],\n\t\"faces_edges\": [\n\t\t[0,6,5],\n\t\t[1,8,6],\n\t\t[2,7,8],\n\t\t[3,4,7]\n\t],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[1,0],\n\t\t\t[0.707106781186548,0.292893218813452],\n\t\t\t[0,1],\n\t\t\t[0.414213562373095,0],\n\t\t\t[1,0.585786437626905]\n\t\t],\n\t\t\"edges_foldAngle\": [0, 0, 0, 0, 0, 0, 180, 180, 0],\n\t\t\"faceOrders\": [[0,1,1], [3,2,1]]\n\t}]\n}";
 
-  var fish = "{\n\t\"this base is broken\": true,\n\t\"file_spec\": 1.1,\n\t\"file_creator\": \"\",\n\t\"file_author\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_title\": \"\",\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.292893218813452,0],[1,0.707106781186548]],\n\t\"vertices_vertices\": [[6,4,3],[7,5,3,4,6],[3,5,7],[0,4,1,5,2],[0,6,2,3],[1,7,2,3],[1,4,0],[2,5,1]],\n\t\"vertices_faces\":[[1,4],[2,3,5,6],[0,7],[0,1,2,3],[1,3,4,5],[0,2,6,7],[4,5],[6,7]],\n\t\"edges_vertices\": [[2,3],[3,0],[3,1],[0,4],[1,4],[3,4],[1,5],[2,5],[3,5],[4,6],[0,6],[6,1],[5,7],[1,7],[7,2]],\n\t\"edges_faces\":[[0],[0,2],[0,7],[1],[1,4],[1,3],[2,3],[2,6],[3,5],[4],[4,5],[5],[6],[6,7],[7]],\n\t\"edges_length\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_foldAngle\": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\n\t\"edges_assignment\": [\"B\",\"B\",\"F\",\"M\",\"M\",\"M\",\"M\",\"M\",\"M\",\"V\",\"B\",\"B\",\"V\",\"B\",\"B\"],\n\t\"faces_vertices\": [[2,3,5],[3,0,4],[3,1,5],[1,3,4],[4,0,6],[1,4,6],[5,1,7],[2,5,7]],\n\t\"faces_edges\": [[0,8,7],[1,3,5],[2,6,8],[2,5,4],[3,10,9],[4,9,11],[6,13,12],[7,12,14]],\n\t\"file_frames\": [{\n\t\t\"frame_classes\": [\"foldedForm\"],\n\t\t\"frame_parent\": 0,\n\t\t\"frame_inherit\": true,\n\t\t\"vertices_coords\": [[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n\t}]\n}";
+  var fish = "{\n  \"file_spec\": 1.1,\n  \"file_creator\": \"\",\n  \"file_author\": \"\",\n  \"file_classes\": [\"singleModel\"],\n  \"frame_title\": \"\",\n  \"frame_classes\": [\"creasePattern\"],\n  \"frame_attributes\": [\"2D\"],\n  \"vertices_coords\": [\n    [0,0],\n    [1,0],\n    [1,1],\n    [0,1],\n    [0.292893218813452,0.292893218813452],\n    [0.707106781186548,0.707106781186548],\n    [0.292893218813452,0],\n    [1,0.707106781186548]\n  ],\n  \"edges_vertices\": [\n  \t[2,3], [3,0], [3,1], [0,4], [1,4], [3,4], [1,5], [2,5], [3,5], [4,6], [0,6], [6,1], [5,7], [1,7], [7,2]\n  ],\n  \"edges_assignment\": [\n  \t\"B\", \"B\", \"F\", \"M\", \"M\", \"M\", \"M\", \"M\", \"M\", \"V\", \"B\", \"B\", \"V\", \"B\", \"B\"\n  ],\n  \"file_frames\": [{\n    \"frame_classes\": [\"foldedForm\"],\n    \"frame_parent\": 0,\n    \"frame_inherit\": true,\n    \"vertices_coords\":[[0.707106781186548,0.292893218813452],[1,0],[0.707106781186548,0.292893218813452],[0,1],[0.292893218813452,0.292893218813452],[0.707106781186548,0.707106781186548],[0.5,0.5],[0.5,0.5]]\n  }],\n  \"vertices_vertices\": [\n    [6,4,3],\n    [7,5,3,4,6],\n    [5,7,3],\n    [0,4,1,5,2],\n    [0,6,1,3],\n    [1,7,2,3],\n    [1,4,0],\n    [1,2,5]\n  ],\n  \"faces_vertices\": [\n    [4,0,6],\n    [3,0,4],\n    [5,1,7],\n    [3,1,5],\n    [4,1,3],\n    [6,1,4],\n    [5,2,3],\n    [7,2,5]\n  ],\n  \"faces_edges\": [\n    [3,10,9],\n    [1,3,5],\n    [6,13,12],\n    [2,6,8],\n    [4,2,5],\n    [11,4,9],\n    [7,0,8],\n    [14,7,12]\n  ],\n  \"edges_faces\": [[6], [1], [3,4], [0,1], [4,5], [1,4], [2,3], [6,7], [3,6], [0,5], [0], [5], [2,7], [2], [7]],\n  \"vertices_faces\": [[0,1], [2,3,4,5], [6,7], [1,3,4,6], [0,1,4,5], [2,3,6,7], [0,5], [2,7]],\n  \"edges_length\": [1, 1, 1.4142135623730951, 0.41421356237309437, 0.7653668647301798, 0.7653668647301798, 0.7653668647301798, 0.41421356237309437, 0.7653668647301798, 0.292893218813452, 0.292893218813452, 0.707106781186548, 0.292893218813452, 0.707106781186548, 0.292893218813452],\n  \"edges_foldAngle\": [0, 0, 0, -180, -180, -180, -180, -180, -180, 180, 0, 0, 180, 0, 0],\n  \"faces_faces\": [\n  \t[1,5], [0,4], [3,7], [2,4,6], [3,1,5], [4,0], [3,7], [6,2]\n  ],\n  \"vertices_edges\": [\n    [1,3,10],\n    [2,4,6,11,13],\n    [0,7,14],\n    [0,1,2,5,8],\n    [3,4,5,9],\n    [6,7,8,12],\n    [9,10,11],\n    [12,13,14]\n  ]\n}\n";
 
   var bird = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0.207106781186548,0.5],[0.5,0.207106781186548],[0.792893218813452,0.5],[0.5,0.792893218813452],[0.353553390593274,0.646446609406726],[0.646446609406726,0.646446609406726],[0.646446609406726,0.353553390593274],[0.353553390593274,0.353553390593274],[0,0.5],[0.5,0],[1,0.5],[0.5,1]],\n\t\"edges_vertices\": [[3,5],[5,9],[3,9],[3,13],[5,13],[0,5],[0,13],[0,12],[5,12],[4,5],[4,12],[4,9],[0,6],[6,12],[0,14],[6,14],[1,6],[1,14],[1,11],[6,11],[4,6],[4,11],[1,7],[7,11],[1,15],[7,15],[2,7],[2,15],[2,10],[7,10],[4,7],[4,10],[2,8],[8,10],[2,16],[8,16],[3,8],[3,16],[8,9],[4,8]],\n\t\"edges_faces\": [[0,1],[0,5],[21,0],[1],[2,1],[2,3],[2],[3,6],[4,3],[4,5],[11,4],[5,22],[6,7],[6,11],[7],[8,7],[8,9],[8],[9,12],[10,9],[10,11],[17,10],[12,13],[12,17],[13],[14,13],[14,15],[14],[15,18],[16,15],[16,17],[23,16],[18,19],[18,23],[19],[20,19],[20,21],[20],[22,21],[22,23]],\n\t\"edges_assignment\": [\"M\",\"F\",\"V\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"V\",\"F\",\"M\",\"V\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"F\",\"M\",\"F\",\"M\",\"F\",\"B\",\"V\",\"M\",\"B\",\"F\",\"M\"],\n\t\"faces_vertices\": [[3,5,9],[5,3,13],[0,5,13],[5,0,12],[4,5,12],[5,4,9],[0,6,12],[6,0,14],[1,6,14],[6,1,11],[4,6,11],[6,4,12],[1,7,11],[7,1,15],[2,7,15],[7,2,10],[4,7,10],[7,4,11],[2,8,10],[8,2,16],[3,8,16],[8,3,9],[4,8,9],[8,4,10]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,4,6],[5,7,8],[9,8,10],[9,11,1],[12,13,7],[12,14,15],[16,15,17],[16,18,19],[20,19,21],[20,10,13],[22,23,18],[22,24,25],[26,25,27],[26,28,29],[30,29,31],[30,21,23],[32,33,28],[32,34,35],[36,35,37],[36,2,38],[39,38,11],[39,31,33]]\n}";
 
@@ -11843,6 +11830,7 @@
   core$1.split_edge_run = add_vertex_on_edge$1;
   core$1.apply_run = apply_run_diff;
   core$1.merge_run = merge_run_diffs;
+  core$1.apply_axiom = apply_axiom;
   const b = {
     empty: JSON.parse(empty),
     square: JSON.parse(square$1),

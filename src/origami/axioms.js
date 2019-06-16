@@ -10,124 +10,15 @@
 */
 
 import math from "../../include/math";
-
-/**
- * an axiom_frame is under the key "re:axiom", it contains:
- * - "number", the axiom number,
- * - "parameters", the inputs for the axiom. varying set of points and/or lines
- *   - "points": an array of entries. each entry is a point in array form
- *   - "lines": an array of entries. each entry is a line (point, vector) array
- * - "solutions", array of entries. each entry is a line (point, vector) array
- *
- * example: "re:axiom" =
- * {
- *  number: 6,
- *  parameters: {
- *    points: [
- *      [0.97319, 0.05149],
- *      [0.93478, 0.93204]
- *    ],
- *    lines: [
- *      [[0.36585, 0.01538], [0.707, 0.707]],
- *      [[0.16846, 0.64646], [1, 0]]
- *    ]
- *  },
- *  solutions: [
- *   [[0.5, 0.625], [0.6, -0.8]],
- *   [[0.25, 0.25], [0.4, -1.0]],
- *   [[0.15, 0.5], [0.2, -0.8]]
- *  ]
- * }
-*/
-
-// const paramTest = function (a, b, c, d) {
-//  console.log("arguments", arguments);
-//  console.log("...arguments", ...arguments);
-//  console.log("a", a);
-//  console.log("b", b);
-//  console.log("c", c);
-//  console.log("d", d);
-// }
-
-// please make sure poly is an array of points
-const test_axiom1_2 = function (axiom_frame, poly) {
-  const { points } = axiom_frame.parameters;
-  return math.core.point_in_convex_poly(points[0], poly)
-    && math.core.point_in_convex_poly(points[1], poly);
-};
-
-const test_axiom3 = function (axiom_frame, poly) {
-  const Xing = math.core.intersection;
-  const { lines } = axiom_frame.parameters;
-  const a = Xing.convex_poly_line(poly, lines[0][0], lines[0][1]);
-  const b = Xing.convex_poly_line(poly, lines[1][0], lines[1][1]);
-  return a !== undefined && b !== undefined;
-};
-
-const test_axiom4 = function (axiom_frame, poly) {
-  const params = axiom_frame.parameters;
-  const overlap = math.core.intersection.line_line(
-    params.lines[0][0], params.lines[0][1],
-    params.points[0], [params.lines[0][1][1], -params.lines[0][1][0]],
-  );
-  if (overlap === undefined) { return false; }
-  return math.core.point_in_convex_poly(overlap, poly)
-    && math.core.point_in_convex_poly(params.points[0], poly);
-};
-const test_axiom5 = function (axiom_frame, poly) {
-  return true;
-};
-const test_axiom6 = function (axiom_frame, poly) {
-  return true;
-};
-const test_axiom7 = function (axiom_frame, poly) {
-  if (axiom_frame.solutions.length === 0) { return false; }
-  const solution = axiom_frame.solutions[0];
-  const params = axiom_frame.parameters;
-  const m = math.core.make_matrix2_reflection(solution[1], solution[0]);
-  const reflected = math.core.multiply_vector2_matrix2(params.points[0], m);
-  const intersect = math.core.intersection.line_line(
-    params.lines[1][0], params.lines[1][1],
-    solution[0], solution[1],
-  );
-  axiom_frame.test = {
-    points_reflected: [reflected], // 1:1 length as paramters.points
-  };
-  return math.core.point_in_convex_poly(reflected, poly)
-    && math.core.point_in_convex_poly(intersect, poly);
-};
-
-const test = [null,
-  test_axiom1_2,
-  test_axiom1_2,
-  test_axiom3,
-  test_axiom4,
-  test_axiom5,
-  test_axiom6,
-  test_axiom7,
-];
-
-export const test_axiom = function (axiom_frame, poly) {
-  const passes = test[axiom_frame.number].call(null, axiom_frame, poly);
-  const polyobject = math.polygon(poly);
-  return !passes
-    ? []
-    : axiom_frame.solutions.map(s => polyobject.clipLine(s));
-};
+import { make_axiom_frame } from "../frames/axiom_frame";
 
 // works in n-dimensions
 export const axiom1 = function (pointA, pointB) {
-  // const a = pointA;
-  // const b = pointB;
   const p0 = math.core.get_vector(pointA);
   const p1 = math.core.get_vector(pointB);
   const vec = p0.map((_, i) => p1[i] - p0[i]);
   const solution = [p0, vec];
-  return {
-    number: 1,
-    parameters: { points: [p0, p1] },
-    solutions: [solution],
-  };
+  return make_axiom_frame(1, { points: [p0, p1] }, [solution]);
 };
 
 // 2-dimension only
@@ -135,30 +26,18 @@ export const axiom2 = function (a, b) {
   const mid = math.core.midpoint2(a, b);
   const vec = math.core.normalize(a.map((_, i) => b[i] - a[i]));
   const solution = [mid, [vec[1], -vec[0]]];
-  return {
-    number: 2,
-    parameters: { points: [a, b] },
-    solutions: [solution],
-  };
+  return make_axiom_frame(2, { points: [a, b] }, [solution]);
 };
 export const axiom3 = function (pointA, vectorA, pointB, vectorB) {
   const parameters = { lines: [[pointA, vectorA], [pointB, vectorB]] };
   const solutions = math.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
-  return {
-    number: 3,
-    parameters,
-    solutions,
-  };
+  return make_axiom_frame(3, parameters, solutions);
 };
 export const axiom4 = function (pointA, vectorA, pointB) {
   const norm = math.core.normalize(vectorA);
   const solution = [[...pointB], [norm[1], -norm[0]]];
   const parameters = { points: [pointB], lines: [[pointA, vectorA]] };
-  return {
-    number: 4,
-    parameters,
-    solutions: [solution],
-  };
+  return make_axiom_frame(4, parameters, [solution]);
 };
 export const axiom5 = function (pointA, vectorA, pointB, pointC) {
   const pA = math.core.get_vector(pointA);
@@ -176,11 +55,7 @@ export const axiom5 = function (pointA, vectorA, pointB, pointC) {
     return [mid, [vec[1], -vec[0]]];
   });
   const parameters = { points: [pB, pC], lines: [[pA, vA]] };
-  return {
-    number: 5,
-    parameters,
-    solutions,
-  };
+  return make_axiom_frame(5, parameters, solutions);
 };
 
 /**
@@ -194,18 +69,16 @@ export const axiom7 = function (pointA, vectorA, pointB, vectorB, pointC) {
   const pC = math.core.get_vector(pointC);
   const vA = math.core.get_vector(vectorA);
   const vB = math.core.get_vector(vectorB);
+  const parameters = { points: [pC], lines: [[pA, vA], [pB, vB]] };
   const sect = math.core.intersection.line_line(pA, vA, pC, vB);
-  if (sect === undefined) { return undefined; }
+  if (sect === undefined) {
+    return make_axiom_frame(7, parameters, []);
+  }
   // axiom 2
   const mid = math.core.midpoint2(pC, sect);
   const vec = math.core.normalize(pC.map((_, i) => sect[i] - pC[i]));
-  const solution = [mid, [vec[1], -vec[0]]];
-  const parameters = { points: [pC], lines: [[pA, vA], [pB, vB]] };
-  return {
-    number: 7,
-    parameters,
-    solutions: [solution],
-  };
+  const solution = [mid, [-vec[1], vec[0]]];
+  return make_axiom_frame(7, parameters, [solution]);
 };
 
 
@@ -511,16 +384,12 @@ export const axiom6 = function (pointA, vecA, pointB, vecB, pointC, pointD) {
       }
     }
   }
-  let parameters = {
+  const parameters = {
     points: [pointC, pointD],
     lines: [[pointA, vecA], [pointB, vecB]]
   };
-  return {
-    number: 6,
-    parameters,
-    solutions
-  };
-}
+  return make_axiom_frame(6, parameters, solutions);
+};
 
 
 

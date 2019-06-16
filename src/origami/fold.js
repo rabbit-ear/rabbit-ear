@@ -22,7 +22,8 @@ import {
 } from "../graph/make";
 
 import {
-  construction_frame,
+  construction_flip,
+  // construction_fold,
 } from "../frames/construction_frame";
 
 
@@ -121,12 +122,12 @@ const fold_through = function (
   point,
   vector,
   face_index,
-  crease_direction = "V"
+  assignment = "V"
 ) {
-  let opposite_crease = crease_direction; // if it's a mark, this will be too.
-  if (crease_direction === "M" || crease_direction === "m") {
+  let opposite_crease = assignment; // if it's a mark, this will be too.
+  if (assignment === "M" || assignment === "m") {
     opposite_crease = "V";
-  } else if (crease_direction === "V" || crease_direction === "v") {
+  } else if (assignment === "V" || assignment === "v") {
     opposite_crease = "M";
   }
   if (face_index == null) {
@@ -154,7 +155,7 @@ const fold_through = function (
         folded, i,
         folded["faces_re:creases"][i][0],
         folded["faces_re:creases"][i][1],
-        folded["faces_re:coloring"][i] ? crease_direction : opposite_crease
+        folded["faces_re:coloring"][i] ? assignment : opposite_crease
       );
       if (diff == null || diff.faces == null) { return undefined; }
       // console.log("diff", diff);
@@ -206,8 +207,8 @@ const fold_through = function (
   // only for valley or mountain folds, mark folds need to copy the matrix
   let face_0_preMatrix = graph["faces_re:matrix"][0];
   // if mark, skip this. if valley or mountain, do it
-  if (crease_direction === "M" || crease_direction === "m"
-    || crease_direction === "V" || crease_direction === "v") {
+  if (assignment === "M" || assignment === "m"
+    || assignment === "V" || assignment === "v") {
     face_0_preMatrix = (faces_split[0] === undefined
       && !graph["faces_re:sidedness"][0]
       ? graph["faces_re:matrix"][0]
@@ -251,12 +252,13 @@ const fold_through = function (
     .reduce((a, b) => a.concat(b), []);
 
   folded["re:construction"] = (split_points.length === 0
-    ? construction_frame("flip", { direction: fold_direction })
-    : construction_frame(opposite_crease === "M" ? "valley" : "mountain", {
+    ? construction_flip(fold_direction)
+    : {
+      type: "fold",
+      assignment,
       direction: fold_direction,
       edge: two_furthest_points(split_points)
-    })
-  );
+    });
 
   const folded_frame = {
     vertices_coords: make_vertices_coords_folded(
