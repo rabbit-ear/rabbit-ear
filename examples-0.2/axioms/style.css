@@ -69,6 +69,7 @@ body {
 	flex-direction: row;
 	align-items: center;
 	justify-content: center;
+	margin: 0 1rem;
 }
 #instructions {
 	text-align: center;
@@ -132,10 +133,12 @@ polygon {
 
 .foldedForm .faces .front {
 	fill: linen;
+	opacity: 0.75;
 }
 
 .foldedForm .faces .back {
 	fill: peru;
+	opacity: 0.75;
 }
 
 .foldedForm .creases line {

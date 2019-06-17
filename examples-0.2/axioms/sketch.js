@@ -1,7 +1,7 @@
 const origami = re.Origami("origami-cp", { padding: 0.05, diagram: true });
 const folded = re.Origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
 
-const languages = ["ar", "de", "en", "es", "fa", "fr", "hi", "in", "it", "jp", "ko", "pt", "ru", "zh"];
+const languages = ["ar", "de", "en", "es", "fr", "hi", "jp", "ko", "ms", "pt", "ru", "tr", "vi", "zh"];
 let language = languages.indexOf("en");
 
 origami.markLayer = re.svg.group();
@@ -141,23 +141,10 @@ origami.controls_to_axiom_args = function () {
   }
 };
 
-origami.updateSubSel = function (axiomFrame) {
-  // for axioms with multiple solutions: update UI, select valid sub-selection
-  const optionButtons = document.querySelectorAll("[id^=btn-option]");
-  switch (origami.axiom) {
-    case 3:
-    case 5:
-    case 6:
-      axiomFrame.valid_solutions.forEach((a, i) => {
-        optionButtons[i].style.opacity = a != null ? 1 : 0;
-      });
-      break;
-    default: break;
-  }
-  if (axiomFrame.valid_solutions[origami.subSelect] != null) { return; }
+origami.findNewSubSelection = function (axiomFrame) {
   // if the current sub selection is now invalid, search for a new valid one
   const anyValidSubSel = axiomFrame.valid_solutions
-    .map((a, i) => (a != null ? i : undefined))
+    .map((a, i) => (a === true ? i : undefined))
     .filter(a => a !== undefined)
     .shift();
   if (anyValidSubSel === undefined) { return; }
@@ -173,7 +160,13 @@ origami.update = function () {
     .axiom(origami.axiom, ...origami.controls_to_axiom_args())
     .apply(origami.polygonBoundary.points);
 
-  origami.updateSubSel(axiomFrame);
+  axiomFrame.valid_solutions.forEach((a, i) => {
+    document.querySelectorAll("[id^=btn-option]")[i].style.opacity = a ? 1 : 0;
+  });
+
+  if (axiomFrame.valid_solutions[origami.subSelect] === false) {
+    origami.findNewSubSelection(axiomFrame);
+  }
 
   origami.drawAxiomHelperLines(axiomFrame.valid ? "#eb3" : "#d42");
   origami.preferences.arrowColor = axiomFrame.valid ? "black" : "#d42";
@@ -198,8 +191,6 @@ origami.update = function () {
   origami.controls
     .filter((_, i) => origami.paramIsLine[origami.axiom][i])
     .forEach(c => c.circle.setAttribute("style", `stroke:${passFailColor};fill:${passFailColor}`));
-
-  console.log("axiomFrame", axiomFrame);
 
   // if a valid solution exists, valley fold the solution
   // if (axiomFrame.valid) {

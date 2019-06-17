@@ -203,6 +203,83 @@ p {
 }
 `;
 
+
+// DiagramMaker.pageStyle = `
+// html, body {
+//   width: 100%;
+//   margin: 0;
+// }
+// body {
+//   font-family: 'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+// }
+// .header {
+//   display: grid;
+//   grid-template-columns: 50% 50%;
+//   height: 340px;
+//   margin-bottom: 4rem;
+// }
+// .dashbox {
+//   padding: 0em;
+//   border-style: none;
+//   border-color: black;
+//   border-bottom: solid;
+//   border-width: 1px;
+// }
+// .description {
+//   display: flex;
+//   flex-direction: column;
+//   justify-content: center;
+//   align-items: center;
+// }
+// .grid {
+//   display: grid;
+//   grid-template-columns: 33% 33% 33%;
+//   grid-template-rows: 290px 290px;
+//   grid-auto-rows: 350px;
+// }
+// h1 {
+//   font-size: 3.5rem;
+//   margin-bottom: 2rem;
+// }
+// p {
+//   font-size: 1.5rem;
+//   text-align: center;
+//   width: 100%;
+//   margin: 1rem 0;
+// }
+// .floating-finished {
+//   position: absolute;
+//   bottom: 0;
+//   right: -100px;
+// }
+// .small {
+//   font-size: 70%;
+//   margin-top: 2rem;
+// }
+// .step {
+//   position: relative;
+//   text-align: center;
+// }
+// .step .number {
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   width: 2rem;
+//   height: 2rem;
+//   background-color: white;
+//   border: 3px solid black;
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+// }
+// .step svg {
+//   margin: auto;
+// }
+// .step:nth-child(15) {
+// /*  grid-template-rows: 270px; */
+// }
+// `;
+
 DiagramMaker.svgStyle = `
 svg { --crease-width: 0.015; }
 svg * {

@@ -42,7 +42,7 @@ import * as query from "./graph/query";
 import * as rebuild from "./graph/rebuild";
 
 // import * as crease from "./origami/crease";
-import * as fold from "./origami/fold";
+import fold from "./origami/fold";
 import * as kawasaki from "./origami/kawasaki";
 // import { default as valleyfold } from "./fold/valleyfold";
 
