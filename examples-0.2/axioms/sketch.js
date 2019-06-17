@@ -2,7 +2,6 @@ const origami = re.Origami("origami-cp", { padding: 0.05, diagram: true });
 const folded = re.Origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
 
 const languages = ["ar", "de", "en", "es", "fa", "fr", "hi", "in", "it", "jp", "ko", "pt", "ru", "zh"];
-
 let language = languages.indexOf("en");
 
 origami.markLayer = re.svg.group();
@@ -11,7 +10,8 @@ origami.insertBefore(origami.markLayer,
 origami.controls = re.svg.controls(origami, 0);
 origami.axiom = undefined;
 origami.subSelect = 0; // some axioms have 2 or 3 results
-origami.polygonBoundary = re.polygon(origami.cp.boundaries[0].vertices.map(v => origami.cp.vertices_coords[v]));
+origami.polygonBoundary = re.polygon(origami.cp.boundaries[0].vertices
+  .map(v => origami.cp.vertices_coords[v]));
 
 // a lookup for expected parameters in axiom() func. is param a point or line?
 origami.paramIsLine = [null,
@@ -65,13 +65,6 @@ origami.setSubSel = function (s, updateOptional) {
 origami.cannotFold = function () {
   document.querySelectorAll("[id^=btn-option]")
     .forEach((b) => { b.style.opacity = 0; });
-  folded.cp = origami.cp;
-  folded.fold();
-  origami.controls.forEach((p, i) => {
-    if (origami.paramIsLine[origami.axiom][i]) {
-      p.circle.setAttribute("style", "stroke:#d42;fill:#d42");
-    }
-  });
 };
 
 origami.drawGhostMark = function (point) {
@@ -97,7 +90,7 @@ origami.drawAxiomHelperLines = function (color) {
     length: 0.06,
     padding: 0.013,
   };
-  lines.map(l => [l.point, l.point.add(l.vector)])
+  lines.map(l => [l[0], [l[0][0] + l[1][0], l[0][1] + l[1][1]]])
     .map(pts => origami.markLayer.straightArrow(pts[0], pts[1], options));
 };
 
@@ -108,13 +101,13 @@ origami.control_points_to_lines = function () {
     case 6:
     case 7:
       return [
-        re.line(p[0], [p[2][0] - p[0][0], p[2][1] - p[0][1]]),
-        re.line(p[1], [p[3][0] - p[1][0], p[3][1] - p[1][1]])
+        [p[0], [p[2][0] - p[0][0], p[2][1] - p[0][1]]],
+        [p[1], [p[3][0] - p[1][0], p[3][1] - p[1][1]]]
       ];
     case 4:
     case 5:
       return [
-        re.line(p[0], [p[1][0] - p[0][0], p[1][1] - p[0][1]])
+        [p[0], [p[1][0] - p[0][0], p[1][1] - p[0][1]]]
       ];
     default:
       return [];
@@ -130,22 +123,45 @@ origami.controls_to_axiom_args = function () {
     case 1:
     case 2: return [...points];
     case 3: return [
-      lines[0].point, lines[0].vector,
-      lines[1].point, lines[1].vector
+      lines[0][0], lines[0][1],
+      lines[1][0], lines[1][1]
     ];
-    case 4: return [lines[0].point, lines[0].vector, points[2]];
-    case 5: return [lines[0].point, lines[0].vector, points[2], points[3]];
+    case 4: return [lines[0][0], lines[0][1], points[2]];
+    case 5: return [lines[0][0], lines[0][1], points[2], points[3]];
     case 6: return [
-      lines[0].point, lines[0].vector,
-      lines[1].point, lines[1].vector,
+      lines[0][0], lines[0][1],
+      lines[1][0], lines[1][1],
       points[4], points[5]
     ];
     case 7: return [
-      lines[0].point, lines[0].vector,
-      lines[1].point, lines[1].vector, points[4]
+      lines[0][0], lines[0][1],
+      lines[1][0], lines[1][1], points[4]
     ];
     default: return [];
   }
+};
+
+origami.updateSubSel = function (axiomFrame) {
+  // for axioms with multiple solutions: update UI, select valid sub-selection
+  const optionButtons = document.querySelectorAll("[id^=btn-option]");
+  switch (origami.axiom) {
+    case 3:
+    case 5:
+    case 6:
+      axiomFrame.valid_solutions.forEach((a, i) => {
+        optionButtons[i].style.opacity = a != null ? 1 : 0;
+      });
+      break;
+    default: break;
+  }
+  if (axiomFrame.valid_solutions[origami.subSelect] != null) { return; }
+  // if the current sub selection is now invalid, search for a new valid one
+  const anyValidSubSel = axiomFrame.valid_solutions
+    .map((a, i) => (a != null ? i : undefined))
+    .filter(a => a !== undefined)
+    .shift();
+  if (anyValidSubSel === undefined) { return; }
+  origami.setSubSel(anyValidSubSel, false);
 };
 
 // 2: soft reset, axiom params updated
@@ -153,109 +169,79 @@ origami.update = function () {
   // clear and re-fold axiom
   origami.cp = re.bases.square;
 
-  const axiomInfo = re.axiom(origami.axiom, origami.controls_to_axiom_args())
+  const axiomFrame = re
+    .axiom(origami.axiom, ...origami.controls_to_axiom_args())
     .apply(origami.polygonBoundary.points);
 
-  // fail 1, axiom is uncalculatable given parameters
-  if (axiomInfo.valid === false) {
-    origami.drawAxiomHelperLines("#d42");
+  origami.updateSubSel(axiomFrame);
+
+  origami.drawAxiomHelperLines(axiomFrame.valid ? "#eb3" : "#d42");
+  origami.preferences.arrowColor = axiomFrame.valid ? "black" : "#d42";
+  if (axiomFrame.valid === false) {
     origami.cannotFold();
-  }
+  } // else { }
 
-  // fail 2, axiom is calculatable, but a point/line off the page.
-  const solutionPassed = axiomInfo.valid_solutions.map(a => a != null);
-
-  // for axioms with multiple solutions: update UI, select valid sub-selection
-  const optionButtons = document.querySelectorAll("[id^=btn-option]");
-  switch (origami.axiom) {
-    case 3:
-    case 5:
-    case 6:
-      solutionPassed
-        .forEach((a, i) => { optionButtons[i].style.opacity = a ? 1 : 0; });
-      break;
-    default: break;
-  }
-
-  if (!solutionPassed[origami.subSelect]) {
-    // try to find a state that passed
-    for (let i = 0; i < solutionPassed.length; i += 1) {
-      if (solutionPassed[i]) {
-        origami.setSubSel(i, false);
-        break;
-      }
-    }
-  }
-  // fail 2b, calculatable but invalid sub-selection.
-  if (axiomInfo.solutions[origami.subSelect] == null) {
-    origami.drawAxiomHelperLines("#d42");
-    return origami.cannotFold();
-  }
-
-  const passFail = solutionPassed[origami.subSelect];
-  origami.drawAxiomHelperLines(passFail ? "#eb3" : "#d42");
-  origami.preferences.arrowColor = passFail ? "black" : "#d42";
-  origami.preferences.styleSheet = solutionPassed[origami.subSelect]
+  origami.preferences.styleSheet = (axiomFrame.valid
     ? undefined
-    : ".valley { stroke: #d42; }";
-  if (axiomInfo.test !== undefined) {
-    const refPts = axiomInfo.test.points_reflected;
+    : `.valley { stroke: ${"#d42"}; }`);
+
+  // helper indicators for passing / failing a test
+  if (axiomFrame.test !== undefined) {
+    const refPts = axiomFrame.test.points_reflected;
     if (refPts !== undefined) {
+      // console.log(refPts);
       refPts.forEach(p => origami.drawGhostMark(p));
     }
   }
 
-  origami.controls.forEach((p, i) => {
-    if (origami.paramIsLine[origami.axiom][i]) {
-      // p.circle.setAttribute("stroke", passFail ? "black" : "#eb3");
-      // p.circle.setAttribute("fill", passFail ? "#d42" : "#eb3");
-      const color = (passFail ? "#eb3" : "#d42");
-      p.circle.setAttribute("style", `stroke:${color};fill:${color}`);
-    }
-  });
+  const passFailColor = axiomFrame.valid ? "#eb3" : "#d42";
+  origami.controls
+    .filter((_, i) => origami.paramIsLine[origami.axiom][i])
+    .forEach(c => c.circle.setAttribute("style", `stroke:${passFailColor};fill:${passFailColor}`));
 
-  // put marks in for the rest of the solutions
-  const otherValidSolutions = axiomInfo.solutions
-    .filter((s, i) => i !== origami.subSelect && solutionPassed[i]);
-  otherValidSolutions
-    .map(m => origami.cp.markFold(m[0], m[1]));
+  console.log("axiomFrame", axiomFrame);
 
-  // console.log(axiomInfo);
-  // console.log(axiomInfo.solutions[origami.subSelect]);
+  // if a valid solution exists, valley fold the solution
+  // if (axiomFrame.valid) {
+  if (axiomFrame.solutions[origami.subSelect] != null) {
+    // first put mark creases in for all the other valid solutions
+    axiomFrame.solutions
+      .filter((s, i) => i !== origami.subSelect
+        && axiomFrame.valid_solutions[i] != null)
+      .map(m => origami.cp.markFold(m[0], m[1]));
 
-  // valley crease the solution
-  origami.cp.valleyFold(axiomInfo.solutions[origami.subSelect]);
-  Object.assign(origami.cp["re:construction"], axiomInfo);
+    origami.cp.valleyFold(axiomFrame.solutions[origami.subSelect]);
+    Object.assign(origami.cp["re:construction"], axiomFrame);
+    const diagram = re.core.build_diagram_frame(origami.cp);
+    origami.cp["re:diagrams"] = [diagram];
+    const instruction = diagram["re:instructions"][languages[language]] || "";
+    document.querySelector("#instructions-p").innerHTML = instruction;
+  }
 
-  const diagram = re.core.build_diagram_frame(origami.cp);
-  origami.cp["re:diagrams"] = [diagram];
   origami.draw();
-
-  // console.log(origami.cp["re:construction"]);
-  // console.log(diagram["re:instructions"]);
-
-  const instruction = diagram["re:instructions"][languages[language]] || "";
-  document.querySelector("#instructions-p").innerHTML = instruction;
-
   folded.cp = origami.cp;
   folded.fold();
 };
 
-origami.onMouseMove = function (event) {
+origami.onMouseMove = function () {
   if (!origami.mouse.isPressed) { return; }
   origami.update();
 };
 
 document.querySelectorAll("[id^=btn-axiom]")
-  .forEach((b) => { b.onclick = function (e) {
-    origami.setAxiom(parseInt(e.target.id.substring(10, 11), 10));
-  }});
+  .forEach((b) => {
+    b.onclick = function (e) {
+      origami.setAxiom(parseInt(e.target.id.substring(10, 11), 10));
+    };
+  });
 document.querySelectorAll("[id^=btn-option]")
-  .forEach((b) => { b.onclick = function (e) {
-    origami.setSubSel(parseInt(e.target.id.substring(11, 12), 10));
-  }});
+  .forEach((b) => {
+    b.onclick = function (e) {
+      origami.setSubSel(parseInt(e.target.id.substring(11, 12), 10));
+    };
+  });
 
-document.querySelector("#language-back").onclick = function (event) {
+document.querySelector("#language-back").onclick = function () {
   language = (language + languages.length - 1) % languages.length;
   origami.update();
   const prev = (language + languages.length - 1) % languages.length;
@@ -263,7 +249,8 @@ document.querySelector("#language-back").onclick = function (event) {
   document.querySelector("#language-back").innerHTML = `← ${languages[prev]}`;
   document.querySelector("#language-next").innerHTML = `${languages[next]} →`;
 };
-document.querySelector("#language-next").onclick = function (event) {
+
+document.querySelector("#language-next").onclick = function () {
   language = (language + 1) % languages.length;
   origami.update();
   const prev = (language + languages.length - 1) % languages.length;

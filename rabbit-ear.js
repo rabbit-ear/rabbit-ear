@@ -10686,15 +10686,20 @@
 
   const test_axiom1_2 = function (axiom_frame, poly) {
     const { points } = axiom_frame.parameters;
-    return math$1.core.point_in_convex_poly(points[0], poly)
+    axiom_frame.valid = math$1.core.point_in_convex_poly(points[0], poly)
       && math$1.core.point_in_convex_poly(points[1], poly);
+    axiom_frame.valid_solutions = [axiom_frame.valid];
   };
   const test_axiom3 = function (axiom_frame, poly) {
     const Xing = math$1.core.intersection;
     const { lines } = axiom_frame.parameters;
     const a = Xing.convex_poly_line(poly, lines[0][0], lines[0][1]);
     const b = Xing.convex_poly_line(poly, lines[1][0], lines[1][1]);
-    return a !== undefined && b !== undefined;
+    axiom_frame.valid = (a !== undefined && b !== undefined);
+    axiom_frame.valid_solutions = axiom_frame.solutions
+      .map(s => (s === undefined
+        ? false
+        : Xing.convex_poly_line(poly, s[0], s[1]) !== undefined));
   };
   const test_axiom4 = function (axiom_frame, poly) {
     const params = axiom_frame.parameters;
@@ -10702,18 +10707,38 @@
       params.lines[0][0], params.lines[0][1],
       params.points[0], [params.lines[0][1][1], -params.lines[0][1][0]],
     );
-    if (overlap === undefined) { return false; }
-    return math$1.core.point_in_convex_poly(overlap, poly)
+    if (overlap === undefined) {
+      axiom_frame.valid = false;
+      axiom_frame.valid_solutions = [false];
+    }
+    axiom_frame.valid = math$1.core.point_in_convex_poly(overlap, poly)
       && math$1.core.point_in_convex_poly(params.points[0], poly);
+    axiom_frame.valid_solutions = [axiom_frame.valid];
   };
   const test_axiom5 = function (axiom_frame, poly) {
-    return true;
+    if (axiom_frame.solutions.length === 0) {
+      axiom_frame.valid = false;
+      axiom_frame.valid_solutions = [false, false];
+    }
+    const params = axiom_frame.parameters;
+    axiom_frame.test = {};
+    axiom_frame.test.points_reflected = axiom_frame.solutions
+      .map(s => math$1.core.make_matrix2_reflection(s[1], s[0]))
+      .map(m => math$1.core.multiply_vector2_matrix2(params.points[1], m));
+    axiom_frame.valid = math$1.core.point_in_convex_poly(params.points[0], poly)
+      && math$1.core.point_in_convex_poly(params.points[1], poly);
+    axiom_frame.valid_solutions = axiom_frame.test.points_reflected
+      .map(p => math$1.core.point_in_convex_poly(p, poly));
   };
   const test_axiom6 = function (axiom_frame, poly) {
-    return true;
+    axiom_frame.valid = true;
+    axiom_frame.valid_solutions = [true, true, true];
   };
   const test_axiom7 = function (axiom_frame, poly) {
-    if (axiom_frame.solutions.length === 0) { return false; }
+    if (axiom_frame.solutions.length === 0) {
+      axiom_frame.valid = false;
+      axiom_frame.valid_solutions = [false];
+    }
     const solution = axiom_frame.solutions[0];
     const params = axiom_frame.parameters;
     const m = math$1.core.make_matrix2_reflection(solution[1], solution[0]);
@@ -10725,8 +10750,9 @@
     axiom_frame.test = {
       points_reflected: [reflected],
     };
-    return math$1.core.point_in_convex_poly(reflected, poly)
+    axiom_frame.valid = math$1.core.point_in_convex_poly(reflected, poly)
       && math$1.core.point_in_convex_poly(intersect, poly);
+    axiom_frame.valid_solutions = [axiom_frame.valid];
   };
   const test = [null,
     test_axiom1_2,
@@ -10738,11 +10764,7 @@
     test_axiom7,
   ];
   const apply_axiom = function (axiom_frame, poly) {
-    axiom_frame.valid = test[axiom_frame.axiom].call(null, axiom_frame, poly);
-    const polyobject = math$1.polygon(poly);
-    axiom_frame.valid_solutions = (axiom_frame.valid
-      ? axiom_frame.solutions.map(s => polyobject.clipLine(s))
-      : []);
+    test[axiom_frame.axiom].call(null, axiom_frame, poly);
     return axiom_frame;
   };
   const make_axiom_frame = function (axiom, parameters, solutions) {
