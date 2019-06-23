@@ -7,13 +7,53 @@ html, body {
 body{
 	margin: 0;
 	font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-	font-size: calc( (4vmin + 4vmax) / 2);
+	font-size: 6.5vmin;
 	color: white;
 	background-color: #158;
 	display: grid;
 	grid-template-columns: 50% 50%;
 	grid-template-rows: 80% 20%;
 }
+
+.button {
+	/*height: 13vmin;*/
+	/*width: 13vmin;*/
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	/*padding: 0.5rem;*/
+}
+a svg {
+	/*margin: 0 2em;*/
+	/*margin: 2px 4px;*/
+	width: 8vmin;
+	height: 8vmin;
+	cursor: pointer;
+}
+.button.blue, .button.red  {
+	margin: 0 8vmin;
+}
+.button.blue {
+	color: white;
+	background-color: #1e6e9e;
+	border-color: #1e6e9e;
+}
+/*
+.button.yellow {
+	border: 6px solid black;
+}
+.button.yellow:hover {
+	border: 6px solid #ec4;
+	background-color: white;
+}
+
+.button.red {
+	border: 6px solid black;
+}
+.button.red:hover {
+	border: 6px solid #d42;
+	background-color: white
+}*/
 
 /* pattern starts invisible */
 /*#pattern {
@@ -41,16 +81,29 @@ div {
 	body {
 		grid-template-rows: 50% 50%;
 		grid-template-columns: 30% 70%;
+		font-size: 4vmin;
+	}
+	a svg {
+		width: 4vmin;
+		height: 4vmin;
+		cursor: pointer;
 	}
 	.controls {
 		grid-column: 1/2;
 		grid-row: 1/3;
 	}
-	.controls a {
+	/*.controls a {
 		margin-top: 0.25rem;
 		margin-bottom: 0.25rem;
 		padding-top: 1.0rem;
 		padding-bottom: 1.0rem;
+	}*/
+	.button {
+		/*padding: 0.5rem;*/
+		/*margin: 10vmin 0;*/
+	}
+	.button.blue, .button.red  {
+		margin: 6vmin 0;
 	}
 	div {
 		flex-direction: column;
@@ -61,6 +114,12 @@ div {
 	body {
 		grid-template-rows: 40% 40% 20%;
 		grid-template-columns: 100%;
+		font-size: 8vmin;
+	}
+	a svg {
+		width: 8vmin;
+		height: 8vmin;
+		cursor: pointer;
 	}
 	.controls {
 		grid-column: auto;
@@ -69,6 +128,9 @@ div {
 	.controls a {
 		padding-top: 0.5rem;
 		padding-bottom: 0.5rem;
+	}
+	.button.blue, .button.red  {
+		margin: 0 5vmin;
 	}
 	div {
 		flex-direction: initial;
@@ -83,7 +145,7 @@ div {
 	top: 0;
 	left: 0;
 }
-.button {
+.button, img {
 	z-index: 4;
 }
 
@@ -132,4 +194,30 @@ polygon {
 
 .foldedForm .creases line {
 	stroke: none;
+}
+
+.creasePattern .boundary {
+	fill: none;
+	stroke: none;
+}
+
+.creasePattern .faces polygon {
+	fill: none;
+	stroke: none;
+}
+
+.creasePattern .faces .front {
+	fill: none;
+	stroke: none;
+}
+
+.creasePattern .faces .back {
+	fill: none;
+	stroke: none;
+}
+
+.creasePattern .creases line {
+	stroke: #fff;
+	stroke-width: calc(var(--crease-width) * 0.666 );
+
 }

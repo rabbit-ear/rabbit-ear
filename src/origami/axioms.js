@@ -10,7 +10,7 @@
 */
 
 import math from "../../include/math";
-import { make_axiom_frame } from "../frames/axiom_frame";
+import make_axiom_frame from "../frames/axiom_frame";
 
 // works in n-dimensions
 export const axiom1 = function (pointA, pointB) {

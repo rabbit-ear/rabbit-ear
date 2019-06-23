@@ -122,6 +122,7 @@ export default function (...args) {
   });
   // additional diagram layer on top. for folding diagram arrows, etc...
   groups.diagram = _this.group();
+  groups.diagram.setAttribute("pointer-events", "none");
   // by default show these layers
   const visible = {
     boundaries: true,

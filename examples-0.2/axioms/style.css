@@ -133,12 +133,12 @@ polygon {
 
 .foldedForm .faces .front {
 	fill: linen;
-	opacity: 0.75;
+	/*opacity: 0.75;*/
 }
 
 .foldedForm .faces .back {
 	fill: peru;
-	opacity: 0.75;
+	/*opacity: 0.75;*/
 }
 
 .foldedForm .creases line {

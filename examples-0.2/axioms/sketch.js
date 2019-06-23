@@ -1,10 +1,11 @@
 const origami = re.Origami("origami-cp", { padding: 0.05, diagram: true });
 const folded = re.Origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
 
-const languages = ["ar", "de", "en", "es", "fr", "hi", "jp", "ko", "ms", "pt", "ru", "tr", "vi", "zh"];
+const languages = ["ar", "de", "en", "es", "fr", "hi", "jp", "ko", "ms", "pt", "ru", "tr", "zh"];
 let language = languages.indexOf("en");
 
 origami.markLayer = re.svg.group();
+origami.markLayer.setAttribute("pointer-events", "none");
 origami.insertBefore(origami.markLayer,
   origami.querySelectorAll(".boundaries")[0].nextSibling);
 origami.controls = re.svg.controls(origami, 0);
@@ -46,7 +47,7 @@ origami.setAxiom = function (axiom) {
       position: p,
       radius: origami.paramIsLine[axiom][i] ? 0.01 : 0.02,
       stroke: origami.paramIsLine[axiom][i] ? "#eb3" : "black",
-      fill: origami.paramIsLine[axiom][i] ? "#eb3" : "#d42"
+      fill: origami.paramIsLine[axiom][i] ? "#eb3" : "#eb3"
     })).forEach(options => origami.controls.add(options));
 
   origami.axiom = axiom;
@@ -69,7 +70,7 @@ origami.cannotFold = function () {
 
 origami.drawGhostMark = function (point) {
   const circle = origami.markLayer.circle(point[0], point[1], 0.02);
-  circle.setAttribute("style", "stroke: black; fill: #d42; opacity:0.5");
+  circle.setAttribute("style", "stroke: black; fill: none; opacity:0.5");
 };
 
 origami.drawAxiomHelperLines = function (color) {
@@ -190,7 +191,10 @@ origami.update = function () {
   const passFailColor = axiomFrame.valid ? "#eb3" : "#d42";
   origami.controls
     .filter((_, i) => origami.paramIsLine[origami.axiom][i])
-    .forEach(c => c.circle.setAttribute("style", `stroke:${passFailColor};fill:${passFailColor}`));
+    .forEach(c => c.circle.setAttribute("style", `stroke:${passFailColor};fill:${passFailColor};pointer-events:none;`));
+  origami.controls
+    .filter((_, i) => !origami.paramIsLine[origami.axiom][i])
+    .forEach(c => c.circle.setAttribute("style", `fill:${passFailColor};pointer-events:none;`));
 
   // if a valid solution exists, valley fold the solution
   // if (axiomFrame.valid) {
@@ -205,7 +209,7 @@ origami.update = function () {
     Object.assign(origami.cp["re:construction"], axiomFrame);
     const diagram = re.core.build_diagram_frame(origami.cp);
     origami.cp["re:diagrams"] = [diagram];
-    const instruction = diagram["re:instructions"][languages[language]] || "";
+    const instruction = diagram["re:diagram_instructions"][languages[language]] || "";
     document.querySelector("#instructions-p").innerHTML = instruction;
   }
 
@@ -225,6 +229,7 @@ document.querySelectorAll("[id^=btn-axiom]")
       origami.setAxiom(parseInt(e.target.id.substring(10, 11), 10));
     };
   });
+
 document.querySelectorAll("[id^=btn-option]")
   .forEach((b) => {
     b.onclick = function (e) {

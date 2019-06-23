@@ -286,6 +286,9 @@ const fold_through = function (
   //  "faces_re:to_move"
   // ];
 
+  delete folded["faces_re:to_move"];
+  // delete folded["faces_re:preindex"];
+
   return folded;
 };
 

@@ -20,7 +20,7 @@ import Origami from "./objects/View2D";
 import Origami3D from "./objects/View3D";
 import Graph from "./objects/graph";
 // top level methods
-import { apply_axiom } from "./frames/axiom_frame";
+import apply_axiom from "./frames/axiom_frame";
 import * as Axioms from "./origami/axioms";
 
 // to be included in "convert"

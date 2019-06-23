@@ -67,10 +67,15 @@ const make_arrow_coords = function (construction, graph) {
     // todo: these are reversed
     return [axiom_frame.parameters.points[1], axiom_frame.parameters.points[0]];
   }
+  if (axiom === 5) {
+    // todo: these are reversed
+    // axiom_frame.test.points_reflected[0]
+    return [axiom_frame.parameters.points[1], axiom_frame.test.points_reflected[0]];
+  }
   if (axiom === 7) {
     // todo: these are reversed
     // axiom_frame.test.points_reflected[0]
-    return [axiom_frame.test.points_reflected[0], axiom_frame.parameters.points[0]];
+    return [axiom_frame.parameters.points[0], axiom_frame.test.points_reflected[0]];
   }
   const crease_vector = [
     crease_edge[1][0] - crease_edge[0][0],
@@ -135,7 +140,7 @@ const build_diagram_frame = function (graph) {
           "re:diagram_arrow_classes": ["flip"],
           "re:diagram_arrow_coords": []
         }],
-        "re:instructions": { en: "flip over" }
+        "re:diagram_instructions": { en: "flip over" }
       };
     case "fold":
       return {
@@ -147,7 +152,7 @@ const build_diagram_frame = function (graph) {
           "re:diagram_arrow_classes": [],
           "re:diagram_arrow_coords": make_arrow_coords(c, graph)
         }],
-        "re:instructions": make_instructions(c)
+        "re:diagram_instructions": make_instructions(c)
       };
     case "squash":
     case "sink":

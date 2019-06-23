@@ -444,6 +444,7 @@ const straightArrow = function (startPoint, endPoint, options) {
     "stroke:none",
     `fill:${p.color}`,
     p.fillStyle,
+    "pointer-events:none",
   ].filter(a => a !== "").join(";");
   const arrowStroke = [
     "fill:none",
@@ -465,6 +466,7 @@ const straightArrow = function (startPoint, endPoint, options) {
     "stroke:none",
     `fill:${p.highlight}`,
     p.fillStyle,
+    "pointer-events:none",
   ].filter(a => a !== "").join(";");
   let start = startPoint;
   let end = endPoint;
