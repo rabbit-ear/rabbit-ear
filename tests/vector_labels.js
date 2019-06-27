@@ -35,7 +35,7 @@ vecText.reset = function(){
 vecText.recalc = function(){
 	let center = [0, 0];
 	let vecpts = vecText.touches[0].pos.map((v,i) => v - center[i]);
-	vecText.v = RabbitEar.Vector(vecpts);
+	vecText.v = re.vector(vecpts);
 	vecText.normalized = vecText.v.normalize().scale(200);
 	vecText.cross = vecText.v.cross([0,0,1]);
 	vecText.rot90 = vecText.v.rotateZ90();

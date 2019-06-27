@@ -9,7 +9,7 @@
 
 import { flatten_frame } from "../fold/file_frames";
 import load_file from "../files/loader";
-import CreasePattern from "./CreasePattern";
+import CreasePattern from "../objects/CreasePattern";
 
 const CREASE_DIR = {
   "B": "boundary",

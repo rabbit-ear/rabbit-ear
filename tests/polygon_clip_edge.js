@@ -52,7 +52,7 @@ clipEdge.rebuildHull();
 clipEdge.redraw = function(){
 
 	RabbitEar.svg.removeChildren(clipEdge.backLayer);
-	let backLine = RabbitEar.Edge(
+	let backLine = re.edge(
 		clipEdge.touches[0].position,
 		clipEdge.touches[1].position
 	);

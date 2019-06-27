@@ -1,7 +1,9 @@
+import math from "../../include/math";
 import Prototype from "../fold/prototype";
 import * as Create from "../fold/create";
 import { possibleFoldObject } from "../fold/validate";
-import { keys as foldKeys, invert_geometry_arrays } from "../fold/spec";
+import { keys as foldKeys } from "../fold/spec";
+import { rebuild as clean } from "../graph/rebuild";
 // import * as Diagram from "../frames/diagram_frame";
 
 const prepareGraphModify = function (graph) {
@@ -37,13 +39,6 @@ const CreasePattern = function (...args) {
     foldObjs.shift() || Create.square()
   );
 
-  const components = {
-    vertices: [],
-    edges: [],
-    faces: [],
-    // boundary: {},
-  };
-
   /**
    * what counts as a valid crease pattern? it contains:
    * vertices_coords, vertices_vertices
@@ -75,59 +70,6 @@ const CreasePattern = function (...args) {
     Object.assign(this, JSON.parse(JSON.stringify(file)));
     validate_and_clean();
     // placeholderFoldedForm(_this);
-  };
-
-
-  const getVertices = function () {
-    return invert_geometry_arrays(this, "vertices");
-    // components.vertices
-    //   .filter(v => v.disable !== undefined)
-    //   .forEach(v => v.disable());
-    // components.vertices = (_this.vertices_coords || [])
-    //   .map((_, i) => component.vertex(_this, i));
-    // return components.vertices;
-  };
-  const getEdges = function () {
-    return invert_geometry_arrays(this, "edges");
-    // components.edges
-    //   .filter(e => e.disable !== undefined)
-    //   .forEach(e => e.disable());
-    // components.edges = (_this.edges_vertices || [])
-    //   .map((_, i) => component.edge(_this, i));
-    // return components.edges;
-    // // return (this.edges_vertices || [])
-    // //    .map(e => e.map(ev => this.vertices_coords[ev]))
-    // //    .map(e => Geometry.Edge(e));
-  };
-  const getFaces = function () {
-    return invert_geometry_arrays(this, "faces");
-    // components.faces
-    //   .filter(f => f.disable !== undefined)
-    //   .forEach(f => f.disable());
-    // components.faces = (_this.faces_vertices || [])
-    //   .map((_, i) => component.face(_this, i));
-    // return components.faces;
-    // // return (this.faces_vertices || [])
-    // //    .map(f => f.map(fv => this.vertices_coords[fv]))
-    // //    .map(f => Polygon(f));
-  };
-  const getBoundaries = function () {
-    // todo: this only works for unfolded flat crease patterns
-    // todo: this doesn't get multiple boundaries yet
-    return [get_boundary(this)];
-  };
-
-  const getFoldedFacesAtPoint = function () {
-    const point = math.core.get_vector(...arguments);
-    return getFoldedForm().faces_vertices
-      .map((fv, i) => ({face: fv.map(v => folded.vertices_coords[v]), i}))
-      .filter((f, i) => Geom.core.point_in_poly(point, f.face))
-      .map(f => f.i);
-  };
-
-  const getTopFoldedFaceAtPoint = function () {
-    const faces = getFoldedFacesAtPoint(...arguments);
-    return topmost_face(_this, faces);
   };
 
   Object.defineProperty(graph, "load", { value: load });

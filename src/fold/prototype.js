@@ -3,7 +3,7 @@
 import math from "../../include/math";
 import FOLDConvert from "../../include/fold/convert";
 
-import { invert_geometry_arrays } from "./spec";
+import { transpose_geometry_arrays } from "./spec";
 import component from "./component";
 import { clone } from "./object";
 import { merge_frame } from "./file_frames";
@@ -30,13 +30,13 @@ const Prototype = function (proto = {}) {
   };
   // todo: memo these. they're created each time, even if the CP hasn't changed
   const getVertices = function () {
-    return invert_geometry_arrays(this, "vertices");
+    return transpose_geometry_arrays(this, "vertices");
   };
   const getEdges = function () {
-    return invert_geometry_arrays(this, "edges");
+    return transpose_geometry_arrays(this, "edges");
   };
   const getFaces = function () {
-    return invert_geometry_arrays(this, "faces");
+    return transpose_geometry_arrays(this, "faces");
   };
   const getBoundaries = function () {
     // todo: this only works for unfolded flat crease patterns

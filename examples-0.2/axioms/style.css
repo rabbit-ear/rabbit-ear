@@ -123,6 +123,7 @@ polygon {
 .mark {
 	stroke-width: calc( var(--crease-width) * 0.5);
 	stroke: rgba(0, 0, 0, 0.1);
+	stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);
 }
 
 .foldedForm .faces polygon {

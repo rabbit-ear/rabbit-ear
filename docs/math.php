@@ -16,7 +16,7 @@
 
 <section>
 	<div id="canvas-junction-bisect"></div>
-	<p>The mathematics of ancient Greece, linear algebra, and graph data structures come together in origami math.</p>
+	<p>Origami math includes the mathematics of ancient Greece, linear algebra, data structures and algorithms.</p>
 	<div class="centered code">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
@@ -172,7 +172,7 @@
 
 	<div id="canvas-line-bisect"></div>
 
-	<p class="quote">This operation is analogous to origami axiom #3.</p>
+	<p class="quote">origami axiom #3</p>
 
 	<div class="centered code">
 		<pre><code>lineA.<f>bisect</f>(lineB)</code></pre>

@@ -46,7 +46,7 @@ lBis.redraw = function() {
 	}));
 	let bisects = RabbitEar.math.bisect_lines2(lineA.point, lineA.vector, lineB.point, lineB.vector);
 
-	let linelines = bisects.map(b => RabbitEar.Line(b[0][0], b[0][1], b[1][0], b[1][1]));
+	let linelines = bisects.map(b => re.line(b[0][0], b[0][1], b[1][0], b[1][1]));
 	let bColors = ["#ecb233", "#e44f2a"];
 	let lineSegs = linelines.map((l,i) => ({l:lBis.boundary.clipLine(l), c:bColors[i%2]})).filter(el => el.l !== undefined)
 	lineSegs.map(el => {
@@ -57,7 +57,7 @@ lBis.redraw = function() {
 		return l;
 	})
 
-	let controls = lBis.controls.map(c => RabbitEar.Vector(c.position));
+	let controls = lBis.controls.map(c => re.vector(c.position));
 	let sameDir = (lineB.vector.dot(lineA.vector) < 0);
 
 	let options = {

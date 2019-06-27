@@ -15,13 +15,14 @@ import { build_folded_frame } from "../frames/folded_frame";
 // import fold_through from "../origami/fold";
 import { flatten_frame } from "../fold/file_frames";
 import load_file from "../files/loader";
-import CreasePattern from "./CreasePattern";
+import CreasePattern from "../objects/CreasePattern";
 import {
   faces_containing_point,
   topmost_face,
   bounding_rect,
   get_boundary,
 } from "../graph/query";
+import { transpose_geometry_array_at_index } from "../fold/spec";
 
 const DEFAULTS = Object.freeze({
   autofit: true,
@@ -367,32 +368,42 @@ export default function (...args) {
     };
     Object.keys(nears)
       .forEach((key) => { nears[key] = nears[key].apply(prop.cp, p); });
-    Object.keys(nears)
-      .filter(key => nears[key] !== undefined)
-      .forEach((key) => {
-        nears[key].svg = groups[plural[key]].childNodes[nears[key].index];
-      });
+    Object.keys(nears).filter(key => nears[key] == null).forEach(key => delete nears[key]);
+    Object.keys(nears).forEach((key) => {
+      const index = nears[key];
+      nears[key] = transpose_geometry_array_at_index(prop.cp, plural[key], index);
+      nears[key].svg = groups[plural[key]].childNodes[index];
+    });
     return nears;
+  };
+
+  const visibleVerticesGetterSetter = {
+    get: () => visible.vertices,
+    set: (v) => { visible.vertices = !!v; draw(); },
+  };
+  const visibleEdgesGetterSetter = {
+    get: () => visible.creases,
+    set: (v) => { visible.creases = !!v; draw(); },
+  };
+  const visibleFacesGetterSetter = {
+    get: () => visible.faces,
+    set: (v) => { visible.faces = !!v; draw(); },
+  };
+  const visibleBoundaryGetterSetter = {
   };
 
   const getVertices = function () {
     const { vertices } = prop.cp;
     vertices.forEach((v, i) => { v.svg = groups.vertices.childNodes[i]; });
     // console.log("vertices", vertices);
-    Object.defineProperty(vertices, "visible", {
-      get: () => visible.vertices,
-      set: (v) => { visible.vertices = !!v; draw(); },
-    });
+    Object.defineProperty(vertices, "visible", visibleVerticesGetterSetter);
     return vertices;
   };
 
   const getEdges = function () {
     const { edges } = prop.cp;
     edges.forEach((v, i) => { v.svg = groups.edges.childNodes[i]; });
-    Object.defineProperty(edges, "visible", {
-      get: () => visible.creases,
-      set: (v) => { visible.creases = !!v; draw(); },
-    });
+    Object.defineProperty(edges, "visible", visibleEdgesGetterSetter);
     return edges;
   };
 
@@ -401,10 +412,7 @@ export default function (...args) {
     const sortedFaces = Array.from(groups.faces.childNodes).slice()
       .sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10));
     faces.forEach((v, i) => { v.svg = sortedFaces[i]; });
-    Object.defineProperty(faces, "visible", {
-      get: () => visible.faces,
-      set: (v) => { visible.faces = !!v; draw(); },
-    });
+    Object.defineProperty(faces, "visible", visibleFacesGetterSetter);
     return faces;
     // return prop.cp.faces
     //  .map((v,i) => Object.assign(groups.face.children[i], v));

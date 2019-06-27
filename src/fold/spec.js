@@ -116,7 +116,7 @@ export const get_keys_matching_suffix = function (graph, key) {
  * this takes in a geometry_key (vectors, edges, faces), and flattens
  * across all related arrays, creating 1 array of objects with the keys
  */
-export const invert_geometry_arrays = function (graph, geometry_key) {
+export const transpose_geometry_arrays = function (graph, geometry_key) {
   const matching_keys = get_keys_matching_prefix(graph, geometry_key);
   if (matching_keys.length === 0) { return []; }
   const geometry = Array.from(Array(graph[matching_keys[0]].length))
@@ -125,5 +125,24 @@ export const invert_geometry_arrays = function (graph, geometry_key) {
     .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
     .forEach(key => geometry
       .forEach((o, i) => { geometry[i][key.short] = graph[key.long][i]; }));
+  return geometry;
+};
+
+
+/**
+ * this takes in a geometry_key (vectors, edges, faces), and flattens
+ * across all related arrays, creating 1 array of objects with the keys
+ */
+export const transpose_geometry_array_at_index = function (
+  graph,
+  geometry_key,
+  index
+) {
+  const matching_keys = get_keys_matching_prefix(graph, geometry_key);
+  if (matching_keys.length === 0) { return []; }
+  const geometry = {};
+  matching_keys
+    .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
+    .forEach((key) => { geometry[key.short] = graph[key.long][index]; });
   return geometry;
 };

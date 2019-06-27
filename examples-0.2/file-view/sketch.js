@@ -63,7 +63,7 @@ document.getElementById("download-cp-svg")
 	.addEventListener("click", function(e){
 	e.preventDefault();
 	var svg = origami.cp.svg();
-	var svgBlob = (new XMLSerializer()).serializeToString(svg);
+	var svgBlob = (new document.XMLSerializer()).serializeToString(svg);
 	makeDownloadBlob(svgBlob, "origami", "image/svg+xml");
 });
 document.getElementById("download-cp-fold")

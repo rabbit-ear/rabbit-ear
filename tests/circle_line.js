@@ -8,7 +8,7 @@ circleLine.setup = function() {
 
 	circleLine.topLayer = RabbitEar.svg.group();
 	circleLine.bottomLayer = RabbitEar.svg.group();
-	circleLine.circle = RabbitEar.Circle(250, 250, 150);
+	circleLine.circle = re.circle(250, 250, 150);
 	let circleSVG = RabbitEar.svg.circle(250, 250, 150);
 	circleSVG.setAttribute("stroke", "#f1c14f");
 	circleSVG.setAttribute("stroke-width", circleLine.strokeW);

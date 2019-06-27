@@ -16,8 +16,8 @@ import * as svg from "../include/svg";
 
 // top level objects
 import CreasePattern from "./objects/CreasePattern";
-import Origami from "./objects/View2D";
-import Origami3D from "./objects/View3D";
+import Origami from "./view-svg/View2D";
+import Origami3D from "./view-webgl/View3D";
 import Graph from "./objects/graph";
 // top level methods
 import apply_axiom from "./frames/axiom_frame";

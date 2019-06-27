@@ -35,6 +35,25 @@ const final_draft = {
   ]
 };
 
+// everything in "new" and "remove" are 0-indexed array. excempt is "update"
+const final_draft_2 = {
+  new: { vertices: [], edges: [], faces: [] },
+  remove: { vertices: [], edges: [4, 7], faces: [] },
+  update: { // dimension of array matches graph
+    vertices_vertices: {
+      5: [4, 1],
+      8: [0, 4]
+    },
+    edges_vertices: {
+      5: [5, 6]
+    }
+  }
+};
+
+// delete the middle of arrays using "delete"... compress at the end
+
+
+
 
 const rough_draft_1 = {
   vertices: { new: [], update: [], remove: [] },

@@ -2589,7 +2589,7 @@
   core.get_array_of_vec2 = get_array_of_vec2;
   core.intersection = intersection;
   Object.freeze(core);
-  var math$1 = {
+  var math = {
     vector: Vector,
     matrix2: Matrix2,
     line: Line,
@@ -5333,7 +5333,7 @@
         ? s : undefined))
       .filter(str => str !== undefined);
   };
-  const invert_geometry_arrays = function (graph, geometry_key) {
+  const transpose_geometry_arrays = function (graph, geometry_key) {
     const matching_keys = get_keys_matching_prefix(graph, geometry_key);
     if (matching_keys.length === 0) { return []; }
     const geometry = Array.from(Array(graph[matching_keys[0]].length))
@@ -5342,6 +5342,19 @@
       .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
       .forEach(key => geometry
         .forEach((o, i) => { geometry[i][key.short] = graph[key.long][i]; }));
+    return geometry;
+  };
+  const transpose_geometry_array_at_index = function (
+    graph,
+    geometry_key,
+    index
+  ) {
+    const matching_keys = get_keys_matching_prefix(graph, geometry_key);
+    if (matching_keys.length === 0) { return []; }
+    const geometry = {};
+    matching_keys
+      .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
+      .forEach((key) => { geometry[key.short] = graph[key.long][index]; });
     return geometry;
   };
 
@@ -5356,7 +5369,8 @@
     edge_assignment_to_foldAngle: edge_assignment_to_foldAngle,
     get_keys_matching_prefix: get_keys_matching_prefix,
     get_keys_matching_suffix: get_keys_matching_suffix,
-    invert_geometry_arrays: invert_geometry_arrays
+    transpose_geometry_arrays: transpose_geometry_arrays,
+    transpose_geometry_array_at_index: transpose_geometry_array_at_index
   });
 
   const makeUUID = function () {
@@ -5378,21 +5392,21 @@
     return _this;
   };
   const vertexPrototype = function (graph, index) {
-    const point = math$1.vector(graph.vertices_coords[index]);
+    const point = math.vector(graph.vertices_coords[index]);
     const _this = Object.create(point);
     return _this;
   };
   const facePrototype = function (graph, index) {
     const points = graph.faces_vertices[index]
       .map(fv => graph.vertices_coords[fv]);
-    const face = math$1.polygon(points);
+    const face = math.polygon(points);
     const _this = Object.create(face);
     return _this;
   };
   const edgePrototype = function (graph, index) {
     const points = graph.edges_vertices[index]
       .map(ev => graph.vertices_coords[ev]);
-    const edge = math$1.edge(points);
+    const edge = math.edge(points);
     const _this = Object.create(edge);
     const is_assignment = function (options) {
       return options.map(l => l === this.graph.edges_assignment[index])
@@ -5665,7 +5679,7 @@
   const make_edges_length = function (graph) {
     return graph.edges_vertices
       .map(ev => ev.map(v => graph.vertices_coords[v]))
-      .map(edge => math$1.core.distance(...edge));
+      .map(edge => math.core.distance(...edge));
   };
   const make_vertex_pair_to_edge_map = function (graph) {
     const map = {};
@@ -5728,9 +5742,9 @@
         const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
         const vec = [verts[1][0] - verts[0][0], verts[1][1] - verts[0][1]];
         const local = edge_fold[entry.edge]
-          ? math$1.core.make_matrix2_reflection(vec, verts[0])
+          ? math.core.make_matrix2_reflection(vec, verts[0])
           : [1, 0, 0, 1, 0, 0];
-        faces_matrix[entry.face] = math$1.core
+        faces_matrix[entry.face] = math.core
           .multiply_matrices2(faces_matrix[entry.parent], local);
       });
     });
@@ -5746,9 +5760,9 @@
         const verts = entry.edge_vertices.map(v => graph.vertices_coords[v]);
         const vec = [verts[1][0] - verts[0][0], verts[1][1] - verts[0][1]];
         const local = edge_fold[entry.edge]
-          ? math$1.core.make_matrix2_reflection(vec, verts[0])
+          ? math.core.make_matrix2_reflection(vec, verts[0])
           : [1, 0, 0, 1, 0, 0];
-        faces_matrix[entry.face] = math$1.core
+        faces_matrix[entry.face] = math.core
           .multiply_matrices2(local, faces_matrix[entry.parent]);
       });
     });
@@ -5765,9 +5779,9 @@
       }
       return undefined;
     });
-    return graph.vertices_coords.map((point, i) => math$1.core
+    return graph.vertices_coords.map((point, i) => math.core
       .multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
-      .map(n => math$1.core.clean_number(n)));
+      .map(n => math.core.clean_number(n)));
   };
   const faces_coloring_from_faces_matrix = function (faces_matrix) {
     return faces_matrix
@@ -5869,15 +5883,15 @@
       return undefined;
     }
     const edge_limit = (dist) => {
-      if (dist < -math$1.core.EPSILON) { return 0; }
-      if (dist > 1 + math$1.core.EPSILON) { return 1; }
+      if (dist < -math.core.EPSILON) { return 0; }
+      if (dist > 1 + math.core.EPSILON) { return 1; }
       return dist;
     };
     const nearest_points = graph.edges_vertices
       .map(e => e.map(ev => graph.vertices_coords[ev]))
       .map(e => [e[0], [e[1][0] - e[0][0], e[1][1] - e[0][1]]])
-      .map(line => math$1.core.nearest_point_on_line(line[0], line[1], point, edge_limit))
-      .map((p, i) => ({ p, i, d: math$1.core.distance2(point, p) }));
+      .map(line => math.core.nearest_point_on_line(line[0], line[1], point, edge_limit))
+      .map((p, i) => ({ p, i, d: math.core.distance2(point, p) }));
     let shortest_index;
     let shortest_distance = Infinity;
     for (let i = 0; i < nearest_points.length; i += 1) {
@@ -5895,16 +5909,16 @@
     }
     const face = graph.faces_vertices
       .map((fv, i) => ({ face: fv.map(v => graph.vertices_coords[v]), i }))
-      .filter(f => math$1.core.point_in_poly(point, f.face))
+      .filter(f => math.core.point_in_poly(point, f.face))
       .shift();
     return (face == null ? undefined : face.i);
   };
   const folded_faces_containing_point = function (graph, point, faces_matrix) {
     const transformed_points = faces_matrix
-      .map(m => math$1.core.multiply_vector2_matrix2(point, m));
+      .map(m => math.core.multiply_vector2_matrix2(point, m));
     return graph.faces_vertices
       .map((fv, i) => ({ face: fv.map(v => graph.vertices_coords[v]), i }))
-      .filter((f, i) => math$1.core.intersection
+      .filter((f, i) => math.core.intersection
         .point_in_poly(transformed_points[i], f.face))
       .map(f => f.i);
   };
@@ -5915,10 +5929,10 @@
     }
     return graph.faces_vertices
       .map((fv, i) => ({ face: fv.map(v => graph.vertices_coords[v]), i }))
-      .filter(f => math$1.core.point_in_poly(point, f.face))
+      .filter(f => math.core.point_in_poly(point, f.face))
       .map(f => f.i);
   };
-  const topmost_face$1 = function (graph, faces_options) {
+  const topmost_face = function (graph, faces_options) {
     if (faces_options == null) {
       faces_options = Array.from(Array(faces_count(graph)))
         .map((_, i) => i);
@@ -5952,7 +5966,7 @@
       ? [0, 0, 0, 0]
       : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
   };
-  const get_boundary$1 = function (graph) {
+  const get_boundary = function (graph) {
     const edges_vertices_b = graph.edges_assignment
       .map(a => a === "B" || a === "b");
     const vertices_edges = make_vertices_edges(graph);
@@ -5993,13 +6007,13 @@
         const edges = vertices_edges[vert];
         const a = edges[0][0] === vert ? edges[0][1] : edges[0][0];
         const b = edges[1][0] === vert ? edges[1][1] : edges[1][0];
-        const av = math$1.core.distance2(graph.vertices_coords[a],
+        const av = math.core.distance2(graph.vertices_coords[a],
           graph.vertices_coords[vert]);
-        const bv = math$1.core.distance2(graph.vertices_coords[b],
+        const bv = math.core.distance2(graph.vertices_coords[b],
           graph.vertices_coords[vert]);
-        const ab = math$1.core.distance2(graph.vertices_coords[a],
+        const ab = math.core.distance2(graph.vertices_coords[a],
           graph.vertices_coords[b]);
-        return Math.abs(ab - av - bv) < math$1.core.EPSILON ? vert : undefined;
+        return Math.abs(ab - av - bv) < math.core.EPSILON ? vert : undefined;
       })
       .filter(a => a !== undefined);
   };
@@ -6054,7 +6068,7 @@
     return edge.map((endPt) => {
       const i = face_edge_geometry
         .map((edgeVerts, edgeI) => ({ index: edgeI, edge: edgeVerts }))
-        .filter(e => math$1.core.intersection
+        .filter(e => math.core.intersection
           .point_on_edge(e.edge[0], e.edge[1], endPt))
         .shift()
         .index;
@@ -6075,9 +6089,9 @@
     face_containing_point: face_containing_point,
     folded_faces_containing_point: folded_faces_containing_point,
     faces_containing_point: faces_containing_point,
-    topmost_face: topmost_face$1,
+    topmost_face: topmost_face,
     bounding_rect: bounding_rect,
-    get_boundary: get_boundary$1,
+    get_boundary: get_boundary,
     get_collinear_vertices: get_collinear_vertices,
     get_isolated_vertices: get_isolated_vertices,
     get_duplicate_edges: get_duplicate_edges,
@@ -6147,7 +6161,7 @@
       .map((a, i) => (a ? i : undefined))
       .filter(a => a !== undefined);
     const edge_map = remove_edges(graph, remove_indices);
-    const face = get_boundary$1(graph);
+    const face = get_boundary(graph);
     graph.faces_edges = [face.edges];
     graph.faces_vertices = [face.vertices];
     remove_isolated_vertices(graph);
@@ -6270,7 +6284,7 @@
       });
     new_edges.forEach((el, i) => {
       const verts = el.edges_vertices.map(v => graph.vertices_coords[v]);
-      new_edges[i].edges_length = math$1.core.distance2(...verts);
+      new_edges[i].edges_length = math.core.distance2(...verts);
     });
     new_edges.forEach((edge, i) => Object.keys(edge)
       .filter(key => key !== "i")
@@ -6360,7 +6374,7 @@
   ) {
     const vertices_intersections = graph.faces_vertices[faceIndex]
       .map(fv => graph.vertices_coords[fv])
-      .map(v => (math$1.core.point_on_line(linePoint, lineVector, v)
+      .map(v => (math.core.point_on_line(linePoint, lineVector, v)
         ? v
         : undefined))
       .map((point, i) => ({
@@ -6372,7 +6386,7 @@
     const edges_intersections = graph.faces_edges[faceIndex]
       .map(ei => graph.edges_vertices[ei])
       .map(edge => edge.map(e => graph.vertices_coords[e]))
-      .map(edge => math$1.core.intersection.line_edge_exclusive(
+      .map(edge => math.core.intersection.line_edge_exclusive(
         linePoint, lineVector, edge[0], edge[1]
       ))
       .map((point, i) => ({
@@ -6441,7 +6455,7 @@
       vertices: [...new_v_indices],
       assignment: crease_assignment,
       foldAngle: edge_assignment_to_foldAngle(crease_assignment),
-      length: math$1.core.distance2(
+      length: math.core.distance2(
         ...(new_v_indices.map(v => graph.vertices_coords[v]))
       ),
       faces: [graph.faces_vertices.length, graph.faces_vertices.length + 1]
@@ -6560,8 +6574,8 @@
       graph["faces_re:matrix"]
     );
     graph["faces_re:creases"] = graph["faces_re:matrix"]
-      .map(mat => math$1.core.make_matrix2_inverse(mat))
-      .map(mat => math$1.core.multiply_line_matrix2(point, vector, mat));
+      .map(mat => math.core.make_matrix2_inverse(mat))
+      .map(mat => math.core.multiply_line_matrix2(point, vector, mat));
     graph["faces_re:center"] = Array.from(Array(faceCount))
       .map((_, i) => make_face_center_fast(graph, i));
     graph["faces_re:sidedness"] = Array.from(Array(faceCount))
@@ -6666,9 +6680,9 @@
       face_0_preMatrix = (faces_split[0] === undefined
         && !graph["faces_re:sidedness"][0]
         ? graph["faces_re:matrix"][0]
-        : math$1.core.multiply_matrices2(
+        : math.core.multiply_matrices2(
           graph["faces_re:matrix"][0],
-          math$1.core.make_matrix2_reflection(
+          math.core.make_matrix2_reflection(
             graph["faces_re:creases"][0][1],
             graph["faces_re:creases"][0][0]
           )
@@ -6676,19 +6690,19 @@
       );
     }
     const folded_faces_matrix = make_faces_matrix(folded, face_0_newIndex)
-      .map(m => math$1.core.multiply_matrices2(face_0_preMatrix, m));
+      .map(m => math.core.multiply_matrices2(face_0_preMatrix, m));
     folded["faces_re:coloring"] = faces_coloring_from_faces_matrix(
       folded_faces_matrix
     );
-    const crease_0 = math$1.core.multiply_line_matrix2(
+    const crease_0 = math.core.multiply_line_matrix2(
       graph["faces_re:creases"][0][0],
       graph["faces_re:creases"][0][1],
       face_0_preMatrix
     );
-    const fold_direction = math$1.core
+    const fold_direction = math.core
       .normalize([crease_0[1][1], -crease_0[1][0]]);
     const split_points = faces_split
-      .map((el, i) => (el === undefined ? undefined : el.edge.map(p => math$1.core
+      .map((el, i) => (el === undefined ? undefined : el.edge.map(p => math.core
         .multiply_vector2_matrix2(p, graph["faces_re:matrix"][i]))))
       .filter(a => a !== undefined)
       .reduce((a, b) => a.concat(b), []);
@@ -6724,7 +6738,7 @@
     ]);
   };
   function kawasaki_solutions$1(graph, vertex) {
-    return math$1.core.kawasaki_solutions(...vertex_adjacent_vectors(graph, vertex));
+    return math.core.kawasaki_solutions(...vertex_adjacent_vectors(graph, vertex));
   }
   function kawasaki_collapse(graph, vertex, face, crease_direction = "F") {
     const kawasakis = kawasaki_solutions$1(graph, vertex);
@@ -6747,18 +6761,18 @@
     return result;
   };
   const add_edge = function (graph, a, b, c, d) {
-    const edge = math$1.edge(a, b, c, d);
+    const edge = math.edge(a, b, c, d);
     let vertices_length = vertices_count(graph);
     const edges = graph.edges_vertices
       .map(ev => ev.map(v => graph.vertices_coords[v]));
     const endpoints_vertex_equivalent = [0, 1].map(ei => graph.vertices_coords
       .map(v => Math.sqrt(((edge[ei][0] - v[0]) ** 2)
                         + ((edge[ei][1] - v[1]) ** 2)))
-      .map((dist, i) => (dist < math$1.core.EPSILON ? i : undefined))
+      .map((dist, i) => (dist < math.core.EPSILON ? i : undefined))
       .filter(el => el !== undefined)
       .shift());
     const endpoints_edge_collinear = [0, 1].map(ei => edges
-      .map(e => math$1.core.point_on_edge(e[0], e[1], edge[ei]))
+      .map(e => math.core.point_on_edge(e[0], e[1], edge[ei]))
       .map((on_edge, i) => (on_edge ? i : undefined))
       .filter(e => e !== undefined)
       .shift());
@@ -6810,14 +6824,14 @@
     return result;
   };
 
-  const fragment2 = function (inGraph, epsilon = math$1.core.EPSILON) {
+  const fragment2 = function (inGraph, epsilon = math.core.EPSILON) {
     const graph = split_at_crossings(inGraph, epsilon);
     convert$1.edges_vertices_to_vertices_vertices_sorted(graph);
     convert$1.vertices_vertices_to_faces_vertices(graph);
     convert$1.faces_vertices_to_faces_edges(graph);
     return graph;
   };
-  const split_at_crossings = function (graph, epsilon = math$1.core.EPSILON) {
+  const split_at_crossings = function (graph, epsilon = math.core.EPSILON) {
     const horizSort = function (a, b) { return a[0] - b[0]; };
     const vertSort = function (a, b) { return a[1] - b[1]; };
     const equivalent = function (a, b) {
@@ -6842,7 +6856,7 @@
     const crossings = Array.from(Array(edge_count - 1)).map(() => []);
     for (let i = 0; i < edges.length - 1; i += 1) {
       for (let j = i + 1; j < edges.length; j += 1) {
-        crossings[i][j] = math$1.core.intersection.edge_edge_exclusive(
+        crossings[i][j] = math.core.intersection.edge_edge_exclusive(
           edges[i][0], edges[i][1],
           edges[j][0], edges[j][1],
         );
@@ -7092,7 +7106,7 @@
       graph.vertices_edges = make_vertices_edges(graph);
     }
   };
-  const rebuild = function (graph, epsilon = math$1.core.EPSILON) {
+  const rebuild = function (graph, epsilon = math.core.EPSILON) {
     ["vertices_vertices", "vertices_edges", "vertices_faces",
       "edges_faces", "edges_edges",
       "faces_vertices", "faces_edges", "faces_faces"].filter(a => a in graph)
@@ -7127,18 +7141,18 @@
       return convert$1.toJSON(this);
     };
     const getVertices = function () {
-      return invert_geometry_arrays(this, "vertices");
+      return transpose_geometry_arrays(this, "vertices");
     };
     const getEdges = function () {
-      return invert_geometry_arrays(this, "edges");
+      return transpose_geometry_arrays(this, "edges");
     };
     const getFaces = function () {
-      return invert_geometry_arrays(this, "faces");
+      return transpose_geometry_arrays(this, "faces");
     };
     const getBoundaries = function () {
-      return [get_boundary$1(this)];
+      return [get_boundary(this)];
     };
-    proto.rebuild = function (epsilon = math$1.core.EPSILON) {
+    proto.rebuild = function (epsilon = math.core.EPSILON) {
       rebuild(this, epsilon);
     };
     proto.complete = function () {
@@ -7152,13 +7166,13 @@
       this.onchange.forEach(f => f());
     };
     proto.nearestVertex = function (...args) {
-      return nearest_vertex(this, math$1.core.get_vector(...args));
+      return nearest_vertex(this, math.core.get_vector(...args));
     };
     proto.nearestEdge = function (...args) {
-      return nearest_edge(this, math$1.core.get_vector(...args));
+      return nearest_edge(this, math.core.get_vector(...args));
     };
     proto.nearestFace = function (...args) {
-      return face_containing_point(this, math$1.core.get_vector(...args));
+      return face_containing_point(this, math.core.get_vector(...args));
     };
     proto.foldedForm = function () {
       const foldedFrame = this.file_frames
@@ -7178,10 +7192,10 @@
     };
     proto.markFold = function (...args) {
       const objects = args.filter(p => typeof p === "object");
-      const line = math$1.core.get_line(args);
+      const line = math.core.get_line(args);
       const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
-      if (!math$1.core.is_vector(line.point)
-        || !math$1.core.is_vector(line.vector)) {
+      if (!math.core.is_vector(line.point)
+        || !math.core.is_vector(line.vector)) {
         console.warn("markFold was not supplied the correct parameters");
         return;
       }
@@ -7202,9 +7216,9 @@
     };
     proto.valleyFold = function (...args) {
       const objects = args.filter(p => typeof p === "object");
-      const line = math$1.core.get_line(args);
+      const line = math.core.get_line(args);
       const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
-      if (!math$1.core.is_vector(line.point) || !math$1.core.is_vector(line.vector)) {
+      if (!math.core.is_vector(line.point) || !math.core.is_vector(line.vector)) {
         console.warn("valleyFold was not supplied the correct parameters");
         return;
       }
@@ -7224,10 +7238,10 @@
       didModifyGraph.call(this);
     };
     proto.creaseRay = function (...args) {
-      const ray = math$1.ray(args);
+      const ray = math.ray(args);
       const faces = this.faces_vertices.map(fv => fv.map(v => this.vertices_coords[v]));
       const intersecting = faces
-        .map((face, i) => (math$1.core.intersection
+        .map((face, i) => (math.core.intersection
           .convex_poly_ray_exclusive(face, ray.point, ray.vector) === undefined
           ? undefined : i))
         .filter(a => a !== undefined)
@@ -7337,14 +7351,14 @@
   const regular_polygon = function (sides, radius = 1) {
     const arr = Array.from(Array(sides));
     const angle = 2 * Math.PI / sides;
-    const sideLength = math$1.core.clean_number(Math.sqrt(
+    const sideLength = math.core.clean_number(Math.sqrt(
       ((radius - radius * Math.cos(angle)) ** 2)
       + ((radius * Math.sin(angle)) ** 2),
     ));
     const graph = {
       vertices_coords: arr.map((_, i) => angle * i).map(a => [
-        math$1.core.clean_number(radius * Math.cos(a)),
-        math$1.core.clean_number(radius * Math.sin(a)),
+        math.core.clean_number(radius * Math.cos(a)),
+        math.core.clean_number(radius * Math.sin(a)),
       ]),
       vertices_vertices: arr
         .map((_, i) => [(i + 1) % arr.length, (i + arr.length - 1) % arr.length]),
@@ -7385,7 +7399,7 @@
         && "faces_vertices" in this && "faces_edges" in this);
       if (!valid) {
         console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
-        clean(epsilon);
+        rebuild(epsilon);
       }
     };
     const svg = function (cssRules) {
@@ -9689,12 +9703,12 @@
     return defs;
   };
   const parsePreferences = function (...args) {
-    const keys = Object.keys(DEFAULTS);
+    const keys$$1 = Object.keys(DEFAULTS);
     const prefs = {};
     Array(...args)
       .filter(obj => typeof obj === "object")
       .forEach(obj => Object.keys(obj)
-        .filter(key => keys.includes(key))
+        .filter(key => keys$$1.includes(key))
         .forEach((key) => { prefs[key] = obj[key]; }));
     return prefs;
   };
@@ -9742,11 +9756,11 @@
       const graph = prop.frame
         ? flatten_frame(prop.cp, prop.frame)
         : prop.cp;
-      const file_classes = (graph.file_classes != null
+      const file_classes$$1 = (graph.file_classes != null
         ? graph.file_classes : []).join(" ");
-      const frame_classes = graph.frame_classes != null
+      const frame_classes$$1 = graph.frame_classes != null
         ? graph.frame_classes : [].join(" ");
-      const top_level_classes = [file_classes, frame_classes]
+      const top_level_classes = [file_classes$$1, frame_classes$$1]
         .filter(s => s !== "")
         .join(" ");
       _this.setAttribute("class", top_level_classes);
@@ -9796,12 +9810,12 @@
         .forEach(t => t.setAttribute("style", labels_style.vertices));
       graph.edges_vertices
         .map(ev => ev.map(v => graph.vertices_coords[v]))
-        .map(verts => math$1.core.average(verts))
+        .map(verts => math.core.average(verts))
         .map((c, i) => groupLabels.text(`${i}`, c[0] - m[0], c[1] + m[1]))
         .forEach(t => t.setAttribute("style", labels_style.edges));
       graph.faces_vertices
         .map(fv => fv.map(v => graph.vertices_coords[v]))
-        .map(verts => math$1.core.average(verts))
+        .map(verts => math.core.average(verts))
         .map((c, i) => groupLabels.text(`${i}`, c[0] - m[0], c[1] + m[1]))
         .forEach(t => t.setAttribute("style", labels_style.faces));
     };
@@ -9815,7 +9829,7 @@
       };
       graph.faces_vertices
         .map(fv => fv.map(v => graph.vertices_coords[v]))
-        .map(face => math$1.convexPolygon(face).scale(0.666).points)
+        .map(face => math.convexPolygon(face).scale(0.666).points)
         .map(points => groupLabels.polygon(points))
         .forEach(poly => poly.setAttribute("style", debug_style.faces_vertices));
       graph.faces_edges
@@ -9825,7 +9839,7 @@
             const next = arr[(i + 1) % arr.length];
             return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
           }).map(v => graph.vertices_coords[v]))
-        .map(face => math$1.convexPolygon(face).scale(0.333).points)
+        .map(face => math.convexPolygon(face).scale(0.333).points)
         .map(points => groupLabels.polygon(points))
         .forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
     };
@@ -9872,7 +9886,7 @@
       setViewBox(_this, r[0], r[1], r[2], r[3], preferences.padding * vmin);
     };
     const nearest = function (...methodArgs) {
-      const p = math$1.vector(methodArgs);
+      const p = math.vector(methodArgs);
       const plural = { vertex: "vertices", edge: "edges", face: "faces" };
       const nears = {
         vertex: prop.cp.nearestVertex,
@@ -9881,29 +9895,36 @@
       };
       Object.keys(nears)
         .forEach((key) => { nears[key] = nears[key].apply(prop.cp, p); });
-      Object.keys(nears)
-        .filter(key => nears[key] !== undefined)
-        .forEach((key) => {
-          nears[key].svg = groups[plural[key]].childNodes[nears[key].index];
-        });
+      Object.keys(nears).filter(key => nears[key] == null).forEach(key => delete nears[key]);
+      Object.keys(nears).forEach((key) => {
+        const index = nears[key];
+        nears[key] = transpose_geometry_array_at_index(prop.cp, plural[key], index);
+        nears[key].svg = groups[plural[key]].childNodes[index];
+      });
       return nears;
+    };
+    const visibleVerticesGetterSetter = {
+      get: () => visible.vertices,
+      set: (v) => { visible.vertices = !!v; draw(); },
+    };
+    const visibleEdgesGetterSetter = {
+      get: () => visible.creases,
+      set: (v) => { visible.creases = !!v; draw(); },
+    };
+    const visibleFacesGetterSetter = {
+      get: () => visible.faces,
+      set: (v) => { visible.faces = !!v; draw(); },
     };
     const getVertices = function () {
       const { vertices } = prop.cp;
       vertices.forEach((v, i) => { v.svg = groups.vertices.childNodes[i]; });
-      Object.defineProperty(vertices, "visible", {
-        get: () => visible.vertices,
-        set: (v) => { visible.vertices = !!v; draw(); },
-      });
+      Object.defineProperty(vertices, "visible", visibleVerticesGetterSetter);
       return vertices;
     };
     const getEdges = function () {
       const { edges } = prop.cp;
       edges.forEach((v, i) => { v.svg = groups.edges.childNodes[i]; });
-      Object.defineProperty(edges, "visible", {
-        get: () => visible.creases,
-        set: (v) => { visible.creases = !!v; draw(); },
-      });
+      Object.defineProperty(edges, "visible", visibleEdgesGetterSetter);
       return edges;
     };
     const getFaces = function () {
@@ -9911,17 +9932,14 @@
       const sortedFaces = Array.from(groups.faces.childNodes).slice()
         .sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10));
       faces.forEach((v, i) => { v.svg = sortedFaces[i]; });
-      Object.defineProperty(faces, "visible", {
-        get: () => visible.faces,
-        set: (v) => { visible.faces = !!v; draw(); },
-      });
+      Object.defineProperty(faces, "visible", visibleFacesGetterSetter);
       return faces;
     };
     const getBoundary = function () {
       const graph = prop.frame
         ? flatten_frame(prop.cp, prop.frame)
         : prop.cp;
-      return math$1.polygon(get_boundary$1(graph).vertices
+      return math.polygon(get_boundary(graph).vertices
         .map(v => graph.vertices_coords[v]));
     };
     const load$$1 = function (input, callback) {
@@ -10034,7 +10052,7 @@
           }
           prevCPFolded = flatten_frame(prevCP, 1);
           let faces_containing = faces_containing_point(prevCPFolded, mouse);
-          let top_face = topmost_face$1(prevCPFolded, faces_containing);
+          let top_face = topmost_face(prevCPFolded, faces_containing);
           touchFaceIndex = (top_face == null)
             ? 0
             : top_face;
@@ -10046,7 +10064,7 @@
     _this.events.addEventListener("onMouseMove", function (mouse) {
       if (preferences.folding && mouse.isPressed) {
         prop.cp = CreasePattern(prevCP);
-        let points = [math$1.vector(mouse.pressed), math$1.vector(mouse.position)];
+        let points = [math.vector(mouse.pressed), math.vector(mouse.position)];
         let midpoint = points[0].midpoint(points[1]);
         let vector = points[1].subtract(points[0]);
         prop.cp.valleyFold(midpoint, vector.rotateZ90(), touchFaceIndex);
@@ -10686,12 +10704,12 @@
 
   const test_axiom1_2 = function (axiom_frame, poly) {
     const { points } = axiom_frame.parameters;
-    axiom_frame.valid = math$1.core.point_in_convex_poly(points[0], poly)
-      && math$1.core.point_in_convex_poly(points[1], poly);
+    axiom_frame.valid = math.core.point_in_convex_poly(points[0], poly)
+      && math.core.point_in_convex_poly(points[1], poly);
     axiom_frame.valid_solutions = [axiom_frame.valid];
   };
   const test_axiom3 = function (axiom_frame, poly) {
-    const Xing = math$1.core.intersection;
+    const Xing = math.core.intersection;
     const { lines } = axiom_frame.parameters;
     const a = Xing.convex_poly_line(poly, lines[0][0], lines[0][1]);
     const b = Xing.convex_poly_line(poly, lines[1][0], lines[1][1]);
@@ -10703,7 +10721,7 @@
   };
   const test_axiom4 = function (axiom_frame, poly) {
     const params = axiom_frame.parameters;
-    const overlap = math$1.core.intersection.line_line(
+    const overlap = math.core.intersection.line_line(
       params.lines[0][0], params.lines[0][1],
       params.points[0], [params.lines[0][1][1], -params.lines[0][1][0]],
     );
@@ -10711,8 +10729,8 @@
       axiom_frame.valid = false;
       axiom_frame.valid_solutions = [false];
     }
-    axiom_frame.valid = math$1.core.point_in_convex_poly(overlap, poly)
-      && math$1.core.point_in_convex_poly(params.points[0], poly);
+    axiom_frame.valid = math.core.point_in_convex_poly(overlap, poly)
+      && math.core.point_in_convex_poly(params.points[0], poly);
     axiom_frame.valid_solutions = [axiom_frame.valid];
   };
   const test_axiom5 = function (axiom_frame, poly) {
@@ -10724,15 +10742,15 @@
     const params = axiom_frame.parameters;
     axiom_frame.test = {};
     axiom_frame.test.points_reflected = axiom_frame.solutions
-      .map(s => math$1.core.make_matrix2_reflection(s[1], s[0]))
-      .map(m => math$1.core.multiply_vector2_matrix2(params.points[1], m));
-    axiom_frame.valid = math$1.core.point_in_convex_poly(params.points[0], poly)
-      && math$1.core.point_in_convex_poly(params.points[1], poly);
+      .map(s => math.core.make_matrix2_reflection(s[1], s[0]))
+      .map(m => math.core.multiply_vector2_matrix2(params.points[1], m));
+    axiom_frame.valid = math.core.point_in_convex_poly(params.points[0], poly)
+      && math.core.point_in_convex_poly(params.points[1], poly);
     axiom_frame.valid_solutions = axiom_frame.test.points_reflected
-      .map(p => math$1.core.point_in_convex_poly(p, poly));
+      .map(p => math.core.point_in_convex_poly(p, poly));
   };
   const test_axiom6 = function (axiom_frame, poly) {
-    const Xing = math$1.core.intersection;
+    const Xing = math.core.intersection;
     const solutions_inside = axiom_frame.solutions.map(s => Xing.convex_poly_line(poly, s[0], s[1])).filter(a => a !== undefined);
     if (solutions_inside.length === 0) {
       axiom_frame.valid = false;
@@ -10745,13 +10763,13 @@
     const params = axiom_frame.parameters;
     axiom_frame.test = {};
     axiom_frame.test.points_reflected = axiom_frame.solutions
-      .map(s => math$1.core.make_matrix2_reflection(s[1], s[0]))
-      .map(m => math$1.core.multiply_vector2_matrix2(params.points[1], m));
+      .map(s => math.core.make_matrix2_reflection(s[1], s[0]))
+      .map(m => math.core.multiply_vector2_matrix2(params.points[1], m));
     axiom_frame.valid = a !== undefined && b !== undefined
-      && math$1.core.point_in_convex_poly(params.points[0], poly)
-      && math$1.core.point_in_convex_poly(params.points[1], poly);
+      && math.core.point_in_convex_poly(params.points[0], poly)
+      && math.core.point_in_convex_poly(params.points[1], poly);
     axiom_frame.valid_solutions = axiom_frame.test.points_reflected
-      .map(p => math$1.core.point_in_convex_poly(p, poly));
+      .map(p => math.core.point_in_convex_poly(p, poly));
     while (axiom_frame.valid_solutions.length < 3) {
       axiom_frame.valid_solutions.push(false);
     }
@@ -10763,18 +10781,18 @@
     }
     const solution = axiom_frame.solutions[0];
     const params = axiom_frame.parameters;
-    const m = math$1.core.make_matrix2_reflection(solution[1], solution[0]);
-    const reflected = math$1.core.multiply_vector2_matrix2(params.points[0], m);
-    const intersect = math$1.core.intersection.line_line(
+    const m = math.core.make_matrix2_reflection(solution[1], solution[0]);
+    const reflected = math.core.multiply_vector2_matrix2(params.points[0], m);
+    const intersect = math.core.intersection.line_line(
       params.lines[1][0], params.lines[1][1],
       solution[0], solution[1],
     );
     axiom_frame.test = {
       points_reflected: [reflected],
     };
-    axiom_frame.valid = math$1.core.point_in_convex_poly(params.points[0], poly)
-      && math$1.core.point_in_convex_poly(reflected, poly)
-      && math$1.core.point_in_convex_poly(intersect, poly);
+    axiom_frame.valid = math.core.point_in_convex_poly(params.points[0], poly)
+      && math.core.point_in_convex_poly(reflected, poly)
+      && math.core.point_in_convex_poly(intersect, poly);
     axiom_frame.valid_solutions = [axiom_frame.valid];
   };
   const test = [null,
@@ -10804,58 +10822,58 @@
   };
 
   const axiom1 = function (pointA, pointB) {
-    const p0 = math$1.core.get_vector(pointA);
-    const p1 = math$1.core.get_vector(pointB);
+    const p0 = math.core.get_vector(pointA);
+    const p1 = math.core.get_vector(pointB);
     const vec = p0.map((_, i) => p1[i] - p0[i]);
     const solution = [p0, vec];
     return make_axiom_frame(1, { points: [p0, p1] }, [solution]);
   };
   const axiom2 = function (a, b) {
-    const mid = math$1.core.midpoint2(a, b);
-    const vec = math$1.core.normalize(a.map((_, i) => b[i] - a[i]));
+    const mid = math.core.midpoint2(a, b);
+    const vec = math.core.normalize(a.map((_, i) => b[i] - a[i]));
     const solution = [mid, [vec[1], -vec[0]]];
     return make_axiom_frame(2, { points: [a, b] }, [solution]);
   };
   const axiom3 = function (pointA, vectorA, pointB, vectorB) {
     const parameters = { lines: [[pointA, vectorA], [pointB, vectorB]] };
-    const solutions = math$1.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
+    const solutions = math.core.bisect_lines2(pointA, vectorA, pointB, vectorB);
     return make_axiom_frame(3, parameters, solutions);
   };
   const axiom4 = function (pointA, vectorA, pointB) {
-    const norm = math$1.core.normalize(vectorA);
+    const norm = math.core.normalize(vectorA);
     const solution = [[...pointB], [norm[1], -norm[0]]];
     const parameters = { points: [pointB], lines: [[pointA, vectorA]] };
     return make_axiom_frame(4, parameters, [solution]);
   };
   const axiom5 = function (pointA, vectorA, pointB, pointC) {
-    const pA = math$1.core.get_vector(pointA);
-    const vA = math$1.core.get_vector(vectorA);
-    const pB = math$1.core.get_vector(pointB);
-    const pC = math$1.core.get_vector(pointC);
+    const pA = math.core.get_vector(pointA);
+    const vA = math.core.get_vector(vectorA);
+    const pB = math.core.get_vector(pointB);
+    const pC = math.core.get_vector(pointC);
     const radius = Math.sqrt(((pB[0] - pC[0]) ** 2) + ((pB[1] - pC[1]) ** 2));
     const pA2 = [pA[0] + vA[0], pA[1] + vA[1]];
-    const sect = math$1.core.intersection.circle_line(pB, radius, pA, pA2) || [];
+    const sect = math.core.intersection.circle_line(pB, radius, pA, pA2) || [];
     const solutions = sect.map((s) => {
-      const mid = math$1.core.midpoint2(pC, s);
-      const vec = math$1.core.normalize(s.map((_, i) => s[i] - pC[i]));
+      const mid = math.core.midpoint2(pC, s);
+      const vec = math.core.normalize(s.map((_, i) => s[i] - pC[i]));
       return [mid, [vec[1], -vec[0]]];
     });
     const parameters = { points: [pB, pC], lines: [[pA, vA]] };
     return make_axiom_frame(5, parameters, solutions);
   };
   const axiom7 = function (pointA, vectorA, pointB, vectorB, pointC) {
-    const pA = math$1.core.get_vector(pointA);
-    const pB = math$1.core.get_vector(pointB);
-    const pC = math$1.core.get_vector(pointC);
-    const vA = math$1.core.get_vector(vectorA);
-    const vB = math$1.core.get_vector(vectorB);
+    const pA = math.core.get_vector(pointA);
+    const pB = math.core.get_vector(pointB);
+    const pC = math.core.get_vector(pointC);
+    const vA = math.core.get_vector(vectorA);
+    const vB = math.core.get_vector(vectorB);
     const parameters = { points: [pC], lines: [[pA, vA], [pB, vB]] };
-    const sect = math$1.core.intersection.line_line(pA, vA, pC, vB);
+    const sect = math.core.intersection.line_line(pA, vA, pC, vB);
     if (sect === undefined) {
       return make_axiom_frame(7, parameters, []);
     }
-    const mid = math$1.core.midpoint2(pC, sect);
-    const vec = math$1.core.normalize(pC.map((_, i) => sect[i] - pC[i]));
+    const mid = math.core.midpoint2(pC, sect);
+    const vec = math.core.normalize(pC.map((_, i) => sect[i] - pC[i]));
     const solution = [mid, [-vec[1], vec[0]]];
     return make_axiom_frame(7, parameters, [solution]);
   };
@@ -10910,7 +10928,7 @@
   const axiom6 = function (pointA, vecA, pointB, vecB, pointC, pointD) {
     var p1 = pointC[0];
     var q1 = pointC[1];
-    if (Math.abs(vecA[0]) > math$1.core.EPSILON) {
+    if (Math.abs(vecA[0]) > math.core.EPSILON) {
       var m1 = vecA[1] / vecA[0];
       var h1 = pointA[1] - m1 * pointA[0];
     }
@@ -10919,7 +10937,7 @@
     }
     var p2 = pointD[0];
     var q2 = pointD[1];
-    if (Math.abs(vecB[0]) > math$1.core.EPSILON) {
+    if (Math.abs(vecB[0]) > math.core.EPSILON) {
       var m2 = vecB[1] / vecB[0];
       var h2 = pointB[1] - m2 * pointB[0];
     }
@@ -11044,29 +11062,29 @@
   const axiom6RefFinderFunc = function (
     pointA, vecA, pointB, vecB, pointC, pointD, iroot
   ) {
-    let pA = math$1.core.get_vector(pointA);
-    let pB = math$1.core.get_vector(pointB);
-    let pC = math$1.core.get_vector(pointC);
-    let pD = math$1.core.get_vector(pointD);
-    let vA = math$1.core.get_vector(vecA);
-    let vB = math$1.core.get_vector(vecB);
+    let pA = math.core.get_vector(pointA);
+    let pB = math.core.get_vector(pointB);
+    let pC = math.core.get_vector(pointC);
+    let pD = math.core.get_vector(pointD);
+    let vA = math.core.get_vector(vecA);
+    let vB = math.core.get_vector(vecB);
     let p1 = pC;
-    let l1 = math$1.line(pA, vA);
+    let l1 = math.line(pA, vA);
     let u1 = [-vA[1], vA[0]];
     let d1 = l1.nearestPoint(0,0).magnitude;
     let p2 = pD;
-    let l2 = math$1.line(pB, vB);
+    let l2 = math.line(pB, vB);
     let u2 = [-vB[1], vB[0]];
     let d2 = l2.nearestPoint(0,0).magnitude;
-    if (math$1.core.dot(u1,l1.nearestPoint(0,0)) < 0) {
+    if (math.core.dot(u1,l1.nearestPoint(0,0)) < 0) {
       u1 = [vA[1], -vA[0]];
     }
-    if (math$1.core.dot(u2,l2.nearestPoint(0,0)) < 0) {
+    if (math.core.dot(u2,l2.nearestPoint(0,0)) < 0) {
       u2 = [vB[1], -vB[0]];
     }
     let u1p = [u1[1], -u1[0]];
-    if (Math.abs(p1[0] - p2[0]) < math$1.core.EPSILON &&
-        Math.abs(p1[1] - p2[1]) < math$1.core.EPSILON) { return; }
+    if (Math.abs(p1[0] - p2[0]) < math.core.EPSILON &&
+        Math.abs(p1[1] - p2[1]) < math.core.EPSILON) { return; }
     let rc = 0;
     switch (iroot) {
       case 0:
@@ -11078,20 +11096,20 @@
           d1 * u1[0] - p1[0],
           d1 * u1[1] - p1[1]
         ];
-        let c1 = math$1.core.dot(p2, u2) - d2;
-        let c2 = math$1.core.dot(v2, u1p) * 2;
-        let c3 = math$1.core.dot(v2, v2);
-        let c4 = math$1.core.dot(v1.map((_,i) => v1[i]+v2[i]), u1p);
-        let c5 = math$1.core.dot(v1, v2);
-        let c6 = math$1.core.dot(u1p, u2);
-        let c7 = math$1.core.dot(v2, u2);
+        let c1 = math.core.dot(p2, u2) - d2;
+        let c2 = math.core.dot(v2, u1p) * 2;
+        let c3 = math.core.dot(v2, v2);
+        let c4 = math.core.dot(v1.map((_,i) => v1[i]+v2[i]), u1p);
+        let c5 = math.core.dot(v1, v2);
+        let c6 = math.core.dot(u1p, u2);
+        let c7 = math.core.dot(v2, u2);
         let a = c6;
         let b = c1 + c4 * c6 + c7;
         let c = c1 * c2 + c5 * c6 + c4 * c7;
         let d = c1 * c3 + c5 * c7;
-        if (Math.abs(a) > math$1.core.EPSILON) { order = 3; }
-        else if (Math.abs(b) > math$1.core.EPSILON) { order = 2; }
-        else if (Math.abs(c) > math$1.core.EPSILON) { order = 1; }
+        if (Math.abs(a) > math.core.EPSILON) { order = 3; }
+        else if (Math.abs(b) > math.core.EPSILON) { order = 2; }
+        else if (Math.abs(c) > math.core.EPSILON) { order = 1; }
         else { order = 0; }
         switch(order) {
           case 0: return;
@@ -11103,7 +11121,7 @@
               irootMax = -1;
               return;
             }
-            else if (Math.abs(disc) < math$1.core.EPSILON) {
+            else if (Math.abs(disc) < math.core.EPSILON) {
               irootMax = 0;
               rc = q1;
             }
@@ -11128,7 +11146,7 @@
                 let T = CubeRoot(R - rD);
                 rc = U + S + T;
               }
-              else if (Math.abs(D) < math$1.core.EPSILON) {
+              else if (Math.abs(D) < math.core.EPSILON) {
                 irootMax = 1;
                 S = Math.pow(R, 1/3);
                 rc = U + 2 * S;
@@ -11170,8 +11188,8 @@
       d1 * u1[0] + rc * u1p[0],
       d1 * u1[1] + rc * u1p[1]
     ];
-    let l_u = math$1.core.normalize([p1p[0]-p1[0], p1p[1]-p1[1]]);
-    let l_d = math$1.core.dot(l_u, math$1.core.midpoint2(p1p, p1));
+    let l_u = math.core.normalize([p1p[0]-p1[0], p1p[1]-p1[1]]);
+    let l_d = math.core.dot(l_u, math.core.midpoint2(p1p, p1));
     let creasePoint = [l_d * l_u[0], l_d * l_u[1]];
     let creaseVector = [-l_u[1], l_u[0]];
     return [creasePoint, creaseVector];
@@ -11477,9 +11495,6 @@
     if (axiom === 2) {
       return [axiom_frame.parameters.points[1], axiom_frame.parameters.points[0]];
     }
-    if (axiom === 5) {
-      return [axiom_frame.parameters.points[1], axiom_frame.test.points_reflected[0]];
-    }
     if (axiom === 7) {
       return [axiom_frame.parameters.points[0], axiom_frame.test.points_reflected[0]];
     }
@@ -11490,33 +11505,33 @@
     let crossing;
     switch (axiom) {
       case 4:
-        crossing = math$1.core.nearest_point_on_line(
+        crossing = math.core.nearest_point_on_line(
           crease_edge[0], crease_vector, axiom_frame.parameters.lines[0][0], (a => a)
         );
         break;
       case 7:
-        crossing = math$1.core.nearest_point_on_line(
+        crossing = math.core.nearest_point_on_line(
           crease_edge[0], crease_vector, axiom_frame.parameters.points[0], (a => a)
         );
         break;
       default:
-        crossing = math$1.core.average(crease_edge[0], crease_edge[1]);
+        crossing = math.core.average(crease_edge[0], crease_edge[1]);
         break;
     }
-    const boundary = get_boundary$1(graph).vertices
+    const boundary = get_boundary(graph).vertices
       .map(v => graph.vertices_coords[v]);
-    const perpClipEdge = math$1.core.intersection.convex_poly_line(
+    const perpClipEdge = math.core.intersection.convex_poly_line(
       boundary, crossing, arrow_vector
     );
     if (perpClipEdge === undefined) {
       return [];
     }
     let short_length = [perpClipEdge[0], perpClipEdge[1]]
-      .map(n => math$1.core.distance2(n, crossing))
+      .map(n => math.core.distance2(n, crossing))
       .sort((a, b) => a - b)
       .shift();
     if (axiom === 7) {
-      short_length = math$1.core.distance2(construction.parameters.points[0], crossing);
+      short_length = math.core.distance2(construction.parameters.points[0], crossing);
     }
     const short_vector = arrow_vector.map(v => v * short_length);
     return [
@@ -11546,7 +11561,7 @@
             "re:diagram_line_coords": c.edge,
           }],
           "re:diagram_arrows": [{
-            "re:diagram_arrow_classes": [],
+            "re:diagram_arrowClasses": [],
             "re:diagram_arrow_coords": make_arrow_coords(c, graph)
           }],
           "re:diagram_instructions": make_instructions(c)
@@ -11908,13 +11923,13 @@
     convert: convert$3,
     core: core$1,
     bases,
-    math: math$1.core,
+    math: math.core,
     axiom: axiom,
     foldPrototype: Prototype$2
   };
-  Object.keys(math$1)
+  Object.keys(math)
     .filter(key => key !== "core")
-    .forEach((key) => { rabbitEar[key] = math$1[key]; });
+    .forEach((key) => { rabbitEar[key] = math[key]; });
 
   return rabbitEar;
 

@@ -34,7 +34,7 @@ lrex.redraw = function(){
 	]);
 	let line = RabbitEar.Line.fromPoints(lrex.controls[0].position, lrex.controls[1].position);
 	let ray = RabbitEar.Ray.fromPoints(lrex.controls[2].position, lrex.controls[3].position);
-	let edge = RabbitEar.Edge(lrex.controls[4].position, lrex.controls[5].position);
+	let edge = re.edge(lrex.controls[4].position, lrex.controls[5].position);
 
 	segments[0] = lrex.boundary.clipLine(line);
 	segments[1] = lrex.boundary.clipRay(ray);

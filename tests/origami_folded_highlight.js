@@ -101,7 +101,7 @@ origami.onMouseMove = function(mouse) {
 	let faces_containing = RabbitEar.core.folded_faces_containing_point(origami.cp, mouse, fold.file_frames[0]["faces_re:matrix"]);
 	let top_face = RabbitEar.core.topmost_face(origami.cp, faces_containing);
 
-	let mouseVec = RabbitEar.Vector(mouse.x, mouse.y);
+	let mouseVec = re.vector(mouse.x, mouse.y);
 	let circles = fold.file_frames[0]["faces_re:matrix"]
 		.map(m => mouseVec.transform(m))
 		.map(p => cpView.drawLayer.circle(p[0], p[1], 0.01));
