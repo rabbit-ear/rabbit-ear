@@ -610,13 +610,13 @@ export const axiom6RefFinderFunc = function (
   // of each moves.
 
   bool sameSide = ((p1.Dot(l.u) - l.d) * (p2.Dot(l.u) - l.d) >= 0);
-  
+
   // Note which points and lines are on the edge of the paper
   bool p1edge = rm1->IsOnEdge();
   bool p2edge = rm2->IsOnEdge();
   bool l1edge = rl1->IsOnEdge();
   bool l2edge = rl2->IsOnEdge();
-  
+
   // Now, check the visibility of this alignment and use it to specify which
   // parts move
   if (ReferenceFinder::sVisibilityMatters) {
@@ -633,10 +633,10 @@ export const axiom6RefFinderFunc = function (
     if (sameSide) mWhoMoves = WHOMOVES_P1P2;
     else mWhoMoves = WHOMOVES_P1L2;
   };
-  
+
   // If this line creates a skinny flap, we won't use it.
   if (ReferenceFinder::sPaper.MakesSkinnyFlap(l)) return;
-  
+
   // Set the key.
   FinishConstructor();
 */

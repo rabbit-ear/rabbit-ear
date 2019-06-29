@@ -15,8 +15,6 @@ origami.onMouseMove = function (event) {
   // get all the nearest components to the cursor
   const nearest = origami.nearest(event);
 
-  // console.log(nearest);
-
   if (nearest.vertex) { nearest.vertex.svg.style = "fill:#357;stroke:#357"; }
   if (nearest.edge) { nearest.edge.svg.style = "stroke:#ec3"; }
   if (nearest.face) { nearest.face.svg.style = "fill:#e53"; }

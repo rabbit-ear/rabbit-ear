@@ -68,12 +68,20 @@ const test_axiom6 = function (axiom_frame, poly) {
   axiom_frame.test = {};
   axiom_frame.test.points_reflected = axiom_frame.solutions
     .map(s => math.core.make_matrix2_reflection(s[1], s[0]))
-    .map(m => math.core.multiply_vector2_matrix2(params.points[1], m));
+    .map(m => params.points
+      .map(p => math.core.multiply_vector2_matrix2(p, m)))
+    .reduce((prev, curr) => prev.concat(curr), []);
+
   axiom_frame.valid = a !== undefined && b !== undefined
     && math.core.point_in_convex_poly(params.points[0], poly)
     && math.core.point_in_convex_poly(params.points[1], poly);
-  axiom_frame.valid_solutions = axiom_frame.test.points_reflected
-    .map(p => math.core.point_in_convex_poly(p, poly));
+  axiom_frame.valid_solutions = axiom_frame.solutions
+    .map((solution, i) => [
+      axiom_frame.test.points_reflected[(i * 2)],
+      axiom_frame.test.points_reflected[(i * 2) + 1]
+    ])
+    .map(p => math.core.point_in_convex_poly(p[0], poly)
+      && math.core.point_in_convex_poly(p[1], poly));
   while (axiom_frame.valid_solutions.length < 3) {
     axiom_frame.valid_solutions.push(false);
   }

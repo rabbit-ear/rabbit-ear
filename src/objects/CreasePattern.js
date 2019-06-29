@@ -59,6 +59,11 @@ const CreasePattern = function (...args) {
     // return Convert.fold_to_svg(_this, cssRules);
   };
 
+  /** saves the top level as a diagram step */
+  const saveStep = function () {
+
+  }
+
   /**
    * @param {file} is a FOLD object.
    * @param {prevent_wipe} if true import will skip clearing

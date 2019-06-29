@@ -179,7 +179,7 @@ export default function (...args) {
   };
 
   /**
-   * This converts the FOLD object into an SVG
+   * This converts the FOLD object into an SVG, showing only one file_frame at a time
    * (1) flattens the frame if one is selected (recursively if needed)
    * (2) identifies whether the frame is creasePattern or folded form
    */
@@ -488,14 +488,18 @@ export default function (...args) {
     },
   });
 
-  Object.defineProperty(_this, "export", { value: () => {
-    let svg = _this.cloneNode(true);
-    svg.setAttribute("x", "0px");
-    svg.setAttribute("y", "0px");
-    svg.setAttribute("width", "600px");
-    svg.setAttribute("height", "600px");
-    return SVG.save(svg, ...arguments);
-  }});
+  const prepareSVGForExport = function (svgElement) {
+    svgElement.setAttribute("x", "0px");
+    svgElement.setAttribute("y", "0px");
+    svgElement.setAttribute("width", "600px");
+    svgElement.setAttribute("height", "600px");
+    return svgElement;
+  };
+
+  Object.defineProperty(_this, "export", {
+    value: (...exportArgs) => SVG
+      .save(prepareSVGForExport(_this.cloneNode(true)), ...exportArgs)
+  });
 
   Object.defineProperty(_this, "cp", {
     get: () => prop.cp,
