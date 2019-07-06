@@ -1,4 +1,4 @@
-import apply_axiom from "../origami/axioms_test";
+import { apply_axiom_in_polygon } from "../origami/axioms_test";
 
 /**
  * @param {number} axiom is the axiom number, 1-7
@@ -15,7 +15,7 @@ const make_axiom_frame = function (axiom, parameters, solutions) {
     solutions,
   };
   Object.defineProperty(solution, "apply", {
-    value: (...args) => apply_axiom(solution, ...args)
+    value: (...args) => apply_axiom_in_polygon(solution, ...args)
   });
   return solution;
 };

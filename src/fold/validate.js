@@ -4,7 +4,7 @@
 // illegal planar graph edge crossings.. that will probably be
 // its own validate.
 
-import { keys, edges_assignment_values } from "./spec";
+import { keys, edges_assignment_values } from "./keys";
 
 /**
  * determine if an object is possibly a FOLD format graph.

@@ -2,6 +2,12 @@ import FOLD_SVG from "../../include/fold-svg";
 import ORIPA from "../../include/fold/oripa";
 import loader from "./loader";
 
+export const convert = async function (file) {
+  loader(file, (fold) => {
+    return { };
+  });
+};
+
 // let FOLD_SVG = {
 //   toFOLD: function (){},
 //   toSVG: function (){}

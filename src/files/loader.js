@@ -1,4 +1,4 @@
-import * as SVG from "../../include/svg";
+import { load } from "../../include/svg/src/DOM";
 import FOLD_SVG from "../../include/fold-svg";
 
 // let FOLD_SVG = {
@@ -23,7 +23,7 @@ const pErr = (new window.DOMParser())
  * - raw blob contents of a preloaded file (.fold, .oripa, .svg)
  * - SVG DOM objects (<svg> SVGElement)
  */
-const load_file = function (input, callback) {
+const load_file = async function (input) {
   const type = typeof input;
   if (type === "object") {
     try {
@@ -32,16 +32,11 @@ const load_file = function (input, callback) {
       if (fold.vertices_coords == null) {
         throw new Error("tried FOLD format, got empty object");
       }
-      if (callback != null) {
-        callback(fold);
-      }
       return fold; // asynchronous loading was not required
     } catch (err) {
       if (input instanceof Element) {
-        FOLD_SVG.toFOLD(input, (fold) => {
-          if (callback != null) { callback(fold); }
-        });
-        return; // asynchronous loading was not required
+        FOLD_SVG.toFOLD(input, (fold) => { return fold; });
+        return undefined; // asynchronous loading was not required
       } else {
         // console.warn("could not load file, object is either not valid FOLD or corrupt JSON.", err);
       }
@@ -56,16 +51,14 @@ const load_file = function (input, callback) {
     try {
       // try .fold file format first
       let fold = JSON.parse(input);
-      if (callback != null) { callback(fold); }
+      return fold;
     } catch (err) {
       // try rendering the XML string
       let xml = (new window.DOMParser()).parseFromString(input, "text/xml");
       if (xml.getElementsByTagNameNS(pErr, "parsererror").length === 0) {
         let parsedSVG = xml.documentElement;
-        FOLD_SVG.toFOLD(parsedSVG, (fold) => {
-          if (callback != null) { callback(fold); }
-        });
-        return;
+        FOLD_SVG.toFOLD(parsedSVG, (fold) => { return fold; });
+        return undefined;
       }
 
       let extension = input.substr((input.lastIndexOf(".") + 1));
@@ -75,25 +68,23 @@ const load_file = function (input, callback) {
           fetch(input)
             .then(response => response.json())
             .then((data) => {
-              if (callback != null) { callback(data); }
-            });
+              return data; });
           break;
         case "svg":
-          SVG.load(input, (svg) => {
+          load(input, (svg) => {
             FOLD_SVG.toFOLD(input, (fold) => {
-              if (callback != null) { callback(fold); }
-            });
+              return fold; });
           });
           break;
         case "oripa":
           // ORIPA.load(input, function (fold) {
-          //  if (callback != null) { callback(fold); }
-          // });
+          // return fold; });
           break;
         default: break;
       }
     }
   }
+  return undefined;
 };
 
 export default load_file;

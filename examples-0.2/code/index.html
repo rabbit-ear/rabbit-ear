@@ -1,18 +1,41 @@
 <!DOCTYPE html>
 <title>Rabbit Ear</title>
 <meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="button.css">
 <link rel="stylesheet" type="text/css" href="style.css">
+<link href="https://fonts.googleapis.com/css?family=Montserrat:600&display=swap" rel="stylesheet">
 
 <div class="grid">
-	<div id="origami"></div>
-	<div id="editor">let diagonal = RE.axiom(1, [0,0], [1,1]);
-origami.cp.crease(diagonal).valley();
+	<div id="origami-container"></div>
+	<div id="editor-container">
+		<div id="editor">
+let first = origami.cp.axiom(1, touches[0].position, [1,1]);
+origami.cp.valleyFold(first.solutions[0]);
 </div>
+	</div>
+	<div id="button-container">
+		<a class="button gray">line</a>
+		<a class="button gray">segment</a>
+		<a class="button gray">axiom</a>
+		<a class="button gray">1</a>
+		<a class="button gray">2</a>
+		<a class="button gray">3</a>
+		<a class="button gray">4</a>
+		<a class="button gray">5</a>
+		<a class="button gray">6</a>
+		<a class="button gray">7</a><br>
+		<a class="button yellow">fold</a>
+		<a class="button red">save SVG</a>
+		<a class="button red">save FOLD</a>
+	</div>
 </div>
-
 <div id="console"></div>
 
+<!-- ace editor -->
 <script type="text/javascript" src="https://ace.c9.io/build/src/ace.js" charset="utf-8"></script>
 <script type="text/javascript" src="https://ace.c9.io/build/src/keybinding-sublime.js"></script>
+
+<!-- this project's files -->
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
+<script type="text/javascript" src="ace.rabbit-ear.js"></script>
 <script type="text/javascript" src="sketch.js"></script>

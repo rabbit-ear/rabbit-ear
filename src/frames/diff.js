@@ -2,13 +2,13 @@ import {
   vertices_count,
   edges_count,
   faces_count,
-} from "../graph/query";
+} from "../fold/query";
 
 import {
   remove_vertices,
   remove_edges,
   remove_faces
-} from "../graph/remove";
+} from "../fold/remove";
 
 
 const diff_template = {

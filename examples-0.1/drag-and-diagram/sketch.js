@@ -27,8 +27,8 @@ folded.onMouseMove = function(mouse) {
 		origami.cp = RabbitEar.CreasePattern(lastStep);
 
 		let points = [
-			RabbitEar.Vector(mouse.pressed),
-			RabbitEar.Vector(mouse.position)
+			RabbitEar.vector(mouse.pressed),
+			RabbitEar.vector(mouse.position)
 		];
 		let midpoint = points[0].midpoint(points[1]);
 		let vector = points[1].subtract(points[0]);

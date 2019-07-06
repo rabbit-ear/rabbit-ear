@@ -1,5 +1,5 @@
 import math from "../../include/math";
-import split_convex_polygon from "../graph/split_face";
+import split_convex_polygon from "../fold/split_face";
 
 const vertex_adjacent_vectors = function (graph, vertex) {
   const adjacent = graph.vertices_vertices[vertex];

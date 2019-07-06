@@ -1,5 +1,5 @@
-import { vertices_count, edges_count, faces_count } from "../graph/query";
-import { remove_vertices, remove_edges, remove_faces } from "../graph/remove";
+import { vertices_count, edges_count, faces_count } from "../fold/query";
+import { remove_vertices, remove_edges, remove_faces } from "../fold/remove";
 
 // ///////////////////////////////////////
 // new diff sketches

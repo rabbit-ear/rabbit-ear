@@ -1,4 +1,5 @@
 import math from "../../include/math";
+import { get_boundary } from "../fold/query";
 
 // please make sure poly is an array of points
 const test_axiom1_2 = function (axiom_frame, poly) {
@@ -123,7 +124,7 @@ const test = [null,
  * this modifies the input argument axiom_frame
  *
  */
-const apply_axiom = function (axiom_frame, poly) {
+const apply_axiom_in_polygon = function (axiom_frame, poly) {
   // re.math.intersection.convex_poly_line
   test[axiom_frame.axiom].call(null, axiom_frame, poly);
   // const polyobject = math.polygon(poly);
@@ -133,4 +134,18 @@ const apply_axiom = function (axiom_frame, poly) {
   return axiom_frame;
 };
 
-export default apply_axiom;
+/**
+ * this modifies the input argument axiom_frame
+ *
+ */
+const apply_axiom_in_fold = function (axiom_frame, fold_object) {
+  const boundary = get_boundary(fold_object);
+  const polygon = boundary.vertices.map(v => fold_object.vertices_coords[v]);
+  test[axiom_frame.axiom].call(null, axiom_frame, polygon);
+  return axiom_frame;
+};
+
+export {
+  apply_axiom_in_polygon,
+  apply_axiom_in_fold
+};

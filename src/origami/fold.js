@@ -6,20 +6,20 @@
 // for now, this uses "faces_re:layer", todo: use faceOrders
 
 import math from "../../include/math";
-import split_convex_polygon from "../graph/split_face";
+import split_convex_polygon from "../fold/split_face";
 import { foldLayers } from "./faces_layer";
 import { clone } from "../fold/object";
 
 import {
   faces_count,
   face_containing_point,
-} from "../graph/query";
+} from "../fold/query";
 
 import {
   make_faces_matrix,
   faces_coloring_from_faces_matrix,
   make_vertices_coords_folded,
-} from "../graph/make";
+} from "../fold/make";
 
 import {
   construction_flip,
@@ -260,34 +260,37 @@ const fold_through = function (
       edge: two_furthest_points(split_points)
     });
 
-  const folded_frame = {
-    vertices_coords: make_vertices_coords_folded(
-      folded,
-      face_0_newIndex,
-      folded_faces_matrix
-    ),
-    frame_classes: ["foldedForm"],
-    frame_inherit: true,
-    frame_parent: 0, // this is not always the case. maybe shouldn't imply
-    // "face_re:stationary": new_face_stationary,
-    "faces_re:matrix": folded_faces_matrix
-  };
+  // const folded_frame = {
+  //   vertices_coords: make_vertices_coords_folded(
+  //     folded,
+  //     face_0_newIndex,
+  //     folded_faces_matrix
+  //   ),
+  //   frame_classes: ["foldedForm"],
+  //   frame_inherit: true,
+  //   frame_parent: 0, // this is not always the case. maybe shouldn't imply
+  // };
 
-  folded.file_frames = [folded_frame];
+  folded["vertices_re:foldedCoords"] = make_vertices_coords_folded(
+    folded,
+    face_0_newIndex,
+    folded_faces_matrix
+  );
+  // folded.file_frames = [folded_frame];
+  folded["faces_re:matrix"] = folded_faces_matrix.map(m => m.map(n => math.core.clean_number(n, 14)));
 
-  // let need_to_remove = [
-  //  "faces_re:center",
-  //  "faces_re:coloring",
-  //  "faces_re:creases",
-  //  "faces_re:layer",
-  //  "faces_re:matrix",
-  //  "faces_re:preindex",
-  //  "faces_re:sidedness",
-  //  "faces_re:to_move"
-  // ];
-
+  delete graph["faces_re:to_move"];
   delete folded["faces_re:to_move"];
-  // delete folded["faces_re:preindex"];
+  delete graph["faces_re:creases"];
+  delete folded["faces_re:creases"];
+  delete graph["faces_re:sidedness"];
+  delete folded["faces_re:sidedness"];
+  delete graph["faces_re:preindex"];
+  delete folded["faces_re:preindex"];
+  delete graph["faces_re:coloring"];
+  delete folded["faces_re:coloring"];
+  delete graph["faces_re:center"];
+  delete folded["faces_re:center"];
 
   return folded;
 };

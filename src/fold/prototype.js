@@ -3,25 +3,28 @@
 import math from "../../include/math";
 import FOLDConvert from "../../include/fold/convert";
 
-import { transpose_geometry_arrays } from "./spec";
 import component from "./component";
+import { transpose_geometry_arrays } from "./keys";
 import { clone } from "./object";
 import { merge_frame } from "./file_frames";
-
-import MakeFold from "../origami/fold";
-import { kawasaki_collapse } from "../origami/kawasaki";
-
-import addEdge from "../graph/add_edge";
-import split_edge from "../graph/split_edge";
-import split_face from "../graph/split_face";
-import { rebuild, complete } from "../graph/rebuild";
-import { remove_non_boundary_edges } from "../graph/remove";
+import addEdge from "./add_edge";
+import split_edge from "./split_edge";
+import split_face from "./split_face";
+import { rebuild, complete } from "./rebuild";
+import fragment from "./fragment";
+import { remove_non_boundary_edges } from "./remove";
 import {
   get_boundary,
   nearest_vertex,
   nearest_edge,
   face_containing_point
-} from "../graph/query";
+} from "./query";
+import { scale } from "./affine";
+
+import MakeFold from "../origami/fold";
+import { kawasaki_collapse } from "../origami/kawasaki";
+import { axiom } from "../origami/axioms";
+import { apply_axiom_in_polygon, apply_axiom_in_fold } from "../origami/axioms_test";
 
 const Prototype = function (proto = {}) {
   /** @return {string} a stringified-json representation of the FOLD object. */
@@ -50,6 +53,9 @@ const Prototype = function (proto = {}) {
   proto.complete = function () {
     complete(this);
   };
+  proto.fragment = function (epsilon = math.core.EPSILON) {
+    fragment(this, epsilon);
+  };
   /** @return {CreasePattern} a deep copy of this object. */
   proto.copy = function () {
     return Object.assign(Object.create(Prototype()), clone(this));
@@ -70,6 +76,10 @@ const Prototype = function (proto = {}) {
   };
   proto.nearestFace = function (...args) {
     return face_containing_point(this, math.core.get_vector(...args));
+  };
+
+  proto.scale = function (...args) {
+    scale(this, ...args);
   };
 
   proto.foldedForm = function () {
@@ -100,6 +110,14 @@ const Prototype = function (proto = {}) {
     didModifyGraph.call(this);
   };
 
+  proto.axiom = function (...args) {
+    const solutions = axiom(...args);
+    apply_axiom_in_fold(solutions, this);
+    return solutions;
+    console.log("axiom");
+    console.log("solutions", solutions);
+  };
+
   proto.markFold = function (...args) {
     const objects = args.filter(p => typeof p === "object");
     const line = math.core.get_line(args);
@@ -121,7 +139,6 @@ const Prototype = function (proto = {}) {
         this["re:construction"].parameters = objects[0].parameters;
       }
     }
-    delete this["faces_re:matrix"];
     didModifyGraph.call(this);
   };
 
@@ -156,7 +173,6 @@ const Prototype = function (proto = {}) {
       //  Diagram.build_diagram_frame(this)
       // ];
     }
-    delete this["faces_re:matrix"];
     didModifyGraph.call(this);
 
     // todo, need to grab the crease somehow
@@ -228,7 +244,7 @@ const Prototype = function (proto = {}) {
   // callbacks for when the crease pattern has been altered
   proto.onchange = [];
 
-  proto.__rabbit_ear = RabbitEar;
+  // proto.__rabbit_ear = RabbitEar;
 
   return Object.freeze(proto);
 };
