@@ -16,7 +16,7 @@ import { build_folded_frame } from "../frames/folded_frame";
 // import fold_through from "../origami/fold";
 import { flatten_frame } from "../fold/file_frames";
 import load_file from "../files/loader";
-import CreasePattern from "../fold/CreasePattern";
+import Prototype from "../fold/prototype";
 import {
   faces_containing_point,
   topmost_face,

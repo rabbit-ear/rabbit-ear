@@ -1,6 +1,6 @@
 import FOLD_SVG from "../../include/fold-svg";
 import ORIPA from "../../include/fold/oripa";
-import loader from "./loader";
+import loader from "./load_async";
 
 export const convert = async function (file) {
   loader(file, (fold) => {

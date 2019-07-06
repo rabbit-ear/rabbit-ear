@@ -363,5 +363,4 @@ export default function View3D(){
     return new THREE.Mesh(geometry, material);
   }
 
-
 }

@@ -11,15 +11,13 @@
 */
 
 import { isBrowser, isWebWorker, isNode } from "../include/svg/src/environment/detect";
-console.log("RabbitEar v0.2", "browser", isBrowser,
-  "webWorker", isWebWorker, "node", isNode, "environment");
 
 import math from "../include/math";
 import * as svg from "../include/svg/src/index";
 // import * as noise from "../include/perlin";
 
 // top level objects
-import CreasePattern from "./fold/CreasePattern";
+// import CreasePattern from "./fold/CreasePattern";
 import Graph from "./graph/graph";
 
 // top level methods
@@ -65,8 +63,14 @@ import fish from "./data/bases/fish.fold";
 import bird from "./data/bases/bird.fold";
 import frog from "./data/bases/frog.fold";
 
-import foldPrototype from "./fold/prototype";
+import prototype from "./fold/prototype";
 import Origami from "./origami";
+
+// todo get rid of
+import nodeOrigami from "./node/nodeOrigami";
+
+console.log("RabbitEar v0.2", "browser", isBrowser,
+  "webWorker", isWebWorker, "node", isNode, "environment");
 
 const convert = {
   toFOLD,
@@ -96,13 +100,15 @@ Object.assign(core,
   kawasaki,
   Axioms);
 
+core.nodeOrigami = nodeOrigami;
+
 core.build_diagram_frame = build_diagram_frame;
 core.add_edge = add_edge;
 core.split_edge_run = split_edge_run;
 core.apply_run = apply_run_diff;
 core.merge_run = merge_run_diffs;
 core.apply_axiom = apply_axiom;
-core.prototype = foldPrototype;
+core.prototype = prototype;
 
 // load bases
 const b = {
@@ -153,7 +159,7 @@ Object.defineProperty(bases, "frog", { get: () => core.clone(b.frog) });
 // };
 
 const rabbitEar = {
-  CreasePattern,
+  // CreasePattern,
   Origami,
   Graph,
   draw,

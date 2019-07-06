@@ -13,9 +13,6 @@ test("array lengths", () => {
   expect(re.core.faces_count(re.bases.kite)).toBe(4);
 });
 
-let origami = re.Origami();
-console.log("origami", origami);
-
 // let aa = re.core.add_vertex_on_edge_functional(re.bases.kite, 0.44, 0.44, 6);
 // console.log(aa);
 

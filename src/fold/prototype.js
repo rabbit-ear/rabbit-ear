@@ -3,8 +3,13 @@
 import math from "../../include/math";
 import FOLDConvert from "../../include/fold/convert";
 
+import * as Create from "./create";
 import component from "./component";
-import { transpose_geometry_arrays } from "./keys";
+import {
+  transpose_geometry_arrays,
+  transpose_geometry_array_at_index,
+  keys as foldKeys
+} from "./keys";
 import { clone } from "./object";
 import { merge_frame } from "./file_frames";
 import addEdge from "./add_edge";
@@ -27,10 +32,23 @@ import { axiom } from "../origami/axioms";
 import { apply_axiom_in_polygon, apply_axiom_in_fold } from "../origami/axioms_test";
 
 const Prototype = function (proto = {}) {
+  /**
+   * export
+   */
+  /** @return {this} a deep copy of this object. */
+  proto.copy = function () {
+    return Object.assign(Object.create(Prototype()), clone(this));
+  };
   /** @return {string} a stringified-json representation of the FOLD object. */
   const json = function () {
     return FOLDConvert.toJSON(this);
   };
+  const svg = function (cssRules) {
+    // return Convert.fold_to_svg(_this, cssRules);
+  };
+  /**
+   * getters, setters
+   */
   // todo: memo these. they're created each time, even if the CP hasn't changed
   const getVertices = function () {
     return transpose_geometry_arrays(this, "vertices");
@@ -56,9 +74,26 @@ const Prototype = function (proto = {}) {
   proto.fragment = function (epsilon = math.core.EPSILON) {
     fragment(this, epsilon);
   };
-  /** @return {CreasePattern} a deep copy of this object. */
-  proto.copy = function () {
-    return Object.assign(Object.create(Prototype()), clone(this));
+  const clean = function (epsilon = math.core.EPSILON) {
+    const valid = ("vertices_coords" in this && "vertices_vertices" in this
+      && "edges_vertices" in this && "edges_assignment" in this
+      && "faces_vertices" in this && "faces_edges" in this);
+    if (!valid) {
+      console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
+      clean(epsilon);
+    }
+  };
+  /**
+   * @param {file} is a FOLD object.
+   * @param {prevent_wipe} if true import will skip clearing
+   */
+  const load = function (file, prevent_wipe) {
+    if (prevent_wipe == null || prevent_wipe !== true) {
+      foldKeys.forEach(key => delete this[key]);
+    }
+    Object.assign(this, JSON.parse(JSON.stringify(file)));
+    clean();
+    // placeholderFoldedForm(_this);
   };
   /**
    * this removes all geometry from the crease pattern and returns it
@@ -69,15 +104,38 @@ const Prototype = function (proto = {}) {
     this.onchange.forEach(f => f());
   };
   proto.nearestVertex = function (...args) {
-    return nearest_vertex(this, math.core.get_vector(...args));
+    const index = nearest_vertex(this, math.core.get_vector(...args));
+    const result = transpose_geometry_array_at_index(this, "vertices", index);
+    result.index = index;
+    return result;
   };
   proto.nearestEdge = function (...args) {
-    return nearest_edge(this, math.core.get_vector(...args));
+    const index = nearest_edge(this, math.core.get_vector(...args));
+    const result = transpose_geometry_array_at_index(this, "edges", index);
+    result.index = index;
+    return result;
   };
   proto.nearestFace = function (...args) {
-    return face_containing_point(this, math.core.get_vector(...args));
+    const index = face_containing_point(this, math.core.get_vector(...args));
+    const result = transpose_geometry_array_at_index(this, "faces", index);
+    result.index = index;
+    return result;
   };
-
+  proto.nearest = function (...args) {
+    const target = math.core.get_vector(...args);
+    const nears = {
+      vertex: this.nearestVertex(this, target),
+      edge: this.nearestEdge(this, target),
+      face: this.nearestFace(this, target)
+    };
+    Object.keys(nears)
+      .filter(key => nears[key] == null)
+      .forEach(key => delete nears[key]);
+    return nears;
+  };
+  /**
+   * transformations
+   */
   proto.scale = function (...args) {
     scale(this, ...args);
   };
@@ -114,8 +172,8 @@ const Prototype = function (proto = {}) {
     const solutions = axiom(...args);
     apply_axiom_in_fold(solutions, this);
     return solutions;
-    console.log("axiom");
-    console.log("solutions", solutions);
+    // console.log("axiom");
+    // console.log("solutions", solutions);
   };
 
   proto.markFold = function (...args) {
@@ -235,6 +293,8 @@ const Prototype = function (proto = {}) {
     return crease;
   };
 
+  Object.defineProperty(proto, "load", { value: load });
+  Object.defineProperty(proto, "svg", { value: svg });
   Object.defineProperty(proto, "boundaries", { get: getBoundaries });
   Object.defineProperty(proto, "vertices", { get: getVertices });
   Object.defineProperty(proto, "edges", { get: getEdges });
@@ -247,6 +307,25 @@ const Prototype = function (proto = {}) {
   // proto.__rabbit_ear = RabbitEar;
 
   return Object.freeze(proto);
+};
+
+Prototype.empty = function () {
+  return Prototype(Create.empty());
+};
+
+Prototype.square = function () {
+  return Prototype(Create.rectangle(1, 1));
+};
+
+Prototype.rectangle = function (width = 1, height = 1) {
+  return Prototype(Create.rectangle(width, height));
+};
+
+Prototype.regularPolygon = function (sides, radius = 1) {
+  if (sides == null) {
+    console.warn("regularPolygon requires number of sides parameter");
+  }
+  return Prototype(Create.regular_polygon(sides, radius));
 };
 
 export default Prototype;

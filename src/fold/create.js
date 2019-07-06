@@ -36,7 +36,7 @@ const square_graph = function () {
     edges_faces: [[0], [0], [0], [0]],
     edges_assignment: ["B", "B", "B", "B"],
     edges_foldAngle: [0, 0, 0, 0],
-    // edges_length: [1, 1, 1, 1],
+    edges_length: [1, 1, 1, 1],
     faces_vertices: [[0, 1, 2, 3]],
     faces_edges: [[0, 1, 2, 3]],
     // faces_faces: [[]],
