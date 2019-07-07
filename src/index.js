@@ -13,12 +13,9 @@
 import { isBrowser, isWebWorker, isNode } from "../include/svg/src/environment/detect";
 
 import math from "../include/math";
+import graph from "./graph/graph";
 import * as svg from "../include/svg/src/index";
 // import * as noise from "../include/perlin";
-
-// top level objects
-// import CreasePattern from "./fold/CreasePattern";
-import Graph from "./graph/graph";
 
 // top level methods
 import apply_axiom from "./frames/axiom_frame";
@@ -66,9 +63,6 @@ import frog from "./data/bases/frog.fold";
 import prototype from "./fold/prototype";
 import Origami from "./origami";
 
-// todo get rid of
-import nodeOrigami from "./node/nodeOrigami";
-
 console.log("RabbitEar v0.2", "browser", isBrowser,
   "webWorker", isWebWorker, "node", isNode, "environment");
 
@@ -99,8 +93,6 @@ Object.assign(core,
   fold,
   kawasaki,
   Axioms);
-
-core.nodeOrigami = nodeOrigami;
 
 core.build_diagram_frame = build_diagram_frame;
 core.add_edge = add_edge;
@@ -161,7 +153,7 @@ Object.defineProperty(bases, "frog", { get: () => core.clone(b.frog) });
 const rabbitEar = {
   // CreasePattern,
   Origami,
-  Graph,
+  graph,
   draw,
   convert,
   core,

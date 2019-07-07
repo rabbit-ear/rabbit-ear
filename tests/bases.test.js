@@ -1,8 +1,10 @@
 // isomorphic
-var window;
-const re = (window !== undefined && window.re)
-  ? window.re
-  : require("../rabbit-ear");
+// var window;
+// const re = (window !== undefined && window.re)
+//   ? window.re
+//   :
+
+const re = require("../rabbit-ear");
 
 /**
  * bases

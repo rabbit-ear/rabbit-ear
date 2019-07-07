@@ -10,12 +10,13 @@
 import math from "../../include/math";
 import { setViewBox } from "../../include/svg/src/viewBox";
 import SVGImage from "../../include/svg/src/image";
+import { save } from "../../include/svg/src/DOM";
 import FOLD_SVG from "../../include/fold-svg";
 
 import { build_folded_frame } from "../frames/folded_frame";
 // import fold_through from "../origami/fold";
 import { flatten_frame } from "../fold/file_frames";
-import load_file from "../files/loader";
+import load_file from "../files/load_async";
 import Prototype from "../fold/prototype";
 import {
   faces_containing_point,
@@ -23,6 +24,7 @@ import {
   bounding_rect,
   get_boundary,
 } from "../fold/query";
+import { make_vertices_coords_folded } from "../fold/make";
 import { transpose_geometry_array_at_index } from "../fold/keys";
 
 const DEFAULTS = Object.freeze({
@@ -109,7 +111,7 @@ const parsePreferences = function (...args) {
   return prefs;
 };
 
-export default function (...args) {
+const View = function (...args) {
   const _this = SVGImage(...args);
   _this.appendChild(shadowFilter("faces_shadow"));
 
@@ -158,7 +160,7 @@ export default function (...args) {
     // key indicates the object is already a CreasePattern type
     prop.cp = (cp.__rabbit_ear != null)
       ? cp
-      : CreasePattern(cp);
+      : Object.assign(Object.create(Prototype()), cp);
     prop.frame = frame;
     draw();
     // two levels of autofit going on here
@@ -186,9 +188,10 @@ export default function (...args) {
    */
   const draw = function () {
     // flatten if necessary
-    const graph = prop.frame
-      ? flatten_frame(prop.cp, prop.frame)
-      : prop.cp;
+    // const graph = prop.frame
+    //   ? flatten_frame(prop.cp, prop.frame)
+    //   : prop.cp;
+    const graph = this;
 
     // copy file/frame classes to top level
     const file_classes = (graph.file_classes != null
@@ -432,7 +435,8 @@ export default function (...args) {
 
   const load = function (input, callback) { // epsilon
     load_file(input, (fold) => {
-      setCreasePattern(CreasePattern(fold));
+      // Object.assign(Object.create(Prototype()), fold);
+      setCreasePattern(fold);
       if (callback != null) { callback(); }
     });
   };
@@ -463,9 +467,9 @@ export default function (...args) {
   const foldWithoutLayering = function (face) {
     const folded = {};
     folded.frame_classes = ["foldedForm"];
-    folded.vertices_coords = make.make_vertices_coords_folded(prop.cp, face);
+    folded.vertices_coords = make_vertices_coords_folded(prop.cp, face);
 
-    setCreasePattern(CreasePattern(folded));
+    setCreasePattern(folded);
     Array.from(groups.faces.children).forEach(f => f.setClass("face"));
   };
 
@@ -498,8 +502,7 @@ export default function (...args) {
   };
 
   Object.defineProperty(_this, "export", {
-    value: (...exportArgs) => SVG
-      .save(prepareSVGForExport(_this.cloneNode(true)), ...exportArgs)
+    value: (...exportArgs) => save(prepareSVGForExport(_this.cloneNode(true)), ...exportArgs)
   });
 
   Object.defineProperty(_this, "cp", {
@@ -564,7 +567,7 @@ export default function (...args) {
   // _this.groups = groups;
 
   // boot
-  setCreasePattern(CreasePattern(...arguments), 1);
+  // setCreasePattern(...args, 1);
 
   let prevCP, prevCPFolded, touchFaceIndex;
   _this.events.addEventListener("onMouseDown", function (mouse) {
@@ -603,3 +606,5 @@ export default function (...args) {
 
   return _this;
 };
+
+export default View;

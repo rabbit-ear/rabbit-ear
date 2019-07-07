@@ -8,8 +8,8 @@
  */
 
 import { flatten_frame } from "../fold/file_frames";
-import load_file from "../files/loader";
-import CreasePattern from "../fold/CreasePattern";
+import load_file from "../files/load_async";
+import Prototype from "../fold/prototype";
 
 const CREASE_DIR = {
   "B": "boundary",

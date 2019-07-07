@@ -29,7 +29,7 @@ import { scale } from "./affine";
 import MakeFold from "../origami/fold";
 import { kawasaki_collapse } from "../origami/kawasaki";
 import { axiom } from "../origami/axioms";
-import { apply_axiom_in_polygon, apply_axiom_in_fold } from "../origami/axioms_test";
+import { apply_axiom_in_fold } from "../origami/axioms_test";
 
 const Prototype = function (proto = {}) {
   /**
@@ -43,9 +43,9 @@ const Prototype = function (proto = {}) {
   const json = function () {
     return FOLDConvert.toJSON(this);
   };
-  const svg = function (cssRules) {
+  // const svg = function (cssRules) {
     // return Convert.fold_to_svg(_this, cssRules);
-  };
+  // };
   /**
    * getters, setters
    */
@@ -294,7 +294,7 @@ const Prototype = function (proto = {}) {
   };
 
   Object.defineProperty(proto, "load", { value: load });
-  Object.defineProperty(proto, "svg", { value: svg });
+  // Object.defineProperty(proto, "svg", { value: svg });
   Object.defineProperty(proto, "boundaries", { get: getBoundaries });
   Object.defineProperty(proto, "vertices", { get: getVertices });
   Object.defineProperty(proto, "edges", { get: getEdges });
