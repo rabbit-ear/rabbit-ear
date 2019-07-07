@@ -1,7 +1,7 @@
 import {
   make_faces_matrix,
   make_vertices_coords_folded
-} from "../graph/make";
+} from "../fold/make";
 
 export const build_folded_frame = function (graph, face_stationary) {
   if (face_stationary == null) {

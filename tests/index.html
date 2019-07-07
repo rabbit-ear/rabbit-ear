@@ -1,24 +1,4 @@
 <!DOCTYPE html>
-<title></title>
-<link rel="stylesheet" type="text/css" href="style.css">
+<title> </title>
 <body></body>
 <script type="text/javascript" src="../rabbit-ear.js"></script>
-<script>
-
-let script = document.createElement('script');
-document.head.appendChild(script);
-
-// append the url with a # followed by the filename (it assumes .js)
-// example: url/#axiom1 or url/#axiom1.js
-let loadOnBoot = "";
-if(window.location.hash != null && window.location.hash != ""){
-	loadOnBoot = window.location.hash.substr(1);
-	if(loadOnBoot.length > 3 && loadOnBoot.substr(loadOnBoot.length-3) != '.js'){
-		loadOnBoot += ".js";
-	}
-}
-
-// script.onload = function() { };
-script.src = loadOnBoot;
-
-</script>

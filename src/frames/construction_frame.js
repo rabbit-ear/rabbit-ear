@@ -1,4 +1,27 @@
 /**
+construction frame is what you pass into a fold or crease operation.
+
+origami.cp.fold( {construction_frame} );
+
+this makes it consistent when describing WHAT it is you're doing.
+
+*/
+export const line_construction = function (point, vector) {
+  return {
+    line: [point, vector]
+  };
+};
+
+export const line_segment_construction = function (point, vector) {
+  return {
+    edge: [
+      point,
+      point.map((p, i) => point[i] + vector[i])
+    ]
+  };
+};
+
+/**
  * "re:construction".type examples: "flip", "fold", "squash", "sink", "pleat"...
  *
  * "re:construction" : {

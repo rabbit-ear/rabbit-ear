@@ -1,6 +1,6 @@
 import math from "../../include/math";
-import { get_boundary } from "../graph/query";
-import { edges_assignment_names } from "../fold/spec";
+import { get_boundary } from "../fold/query";
+import { edges_assignment_names } from "../fold/keys";
 import axiom_instructions_data from "../data/instructions_axiom.json";
 
 const axiom_instructions = JSON.parse(axiom_instructions_data);

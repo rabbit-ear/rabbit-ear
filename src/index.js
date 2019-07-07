@@ -10,15 +10,13 @@
 █▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇
 */
 
+import { isBrowser, isWebWorker, isNode } from "../include/svg/src/environment/detect";
+
 import math from "../include/math";
-import * as svg from "../include/svg";
+import graph from "./graph/graph";
+import * as svg from "../include/svg/src/index";
 // import * as noise from "../include/perlin";
 
-// top level objects
-import CreasePattern from "./objects/CreasePattern";
-import Origami from "./view-svg/View2D";
-import Origami3D from "./view-webgl/View3D";
-import Graph from "./objects/graph";
 // top level methods
 import apply_axiom from "./frames/axiom_frame";
 import * as Axioms from "./origami/axioms";
@@ -32,14 +30,14 @@ import FOLD_SVG from "../include/fold-svg";
 import * as create from "./fold/create";
 import * as frames from "./fold/file_frames";
 import * as object from "./fold/object";
-import * as spec from "./fold/spec";
+import * as keys from "./fold/keys";
 import * as validate from "./fold/validate";
 
-import * as add from "./graph/add";
-import * as remove from "./graph/remove";
-import * as make from "./graph/make";
-import * as query from "./graph/query";
-import * as rebuild from "./graph/rebuild";
+import * as add from "./fold/add";
+import * as remove from "./fold/remove";
+import * as make from "./fold/make";
+import * as query from "./fold/query";
+import * as rebuild from "./fold/rebuild";
 
 // import * as crease from "./origami/crease";
 import fold from "./origami/fold";
@@ -48,8 +46,8 @@ import * as kawasaki from "./origami/kawasaki";
 
 import build_diagram_frame from "./frames/diagram_frame";
 
-import add_edge from "./graph/add_edge";
-import split_edge_run from "./graph/split_edge_run";
+import add_edge from "./fold/add_edge";
+import split_edge_run from "./fold/split_edge_run";
 import { merge_run_diffs, apply_run_diff } from "./frames/run_frame";
 
 // origami bases
@@ -62,7 +60,11 @@ import fish from "./data/bases/fish.fold";
 import bird from "./data/bases/bird.fold";
 import frog from "./data/bases/frog.fold";
 
-import foldPrototype from "./fold/prototype";
+import prototype from "./fold/prototype";
+import Origami from "./origami";
+
+console.log("RabbitEar v0.2", "browser", isBrowser,
+  "webWorker", isWebWorker, "node", isNode, "environment");
 
 const convert = {
   toFOLD,
@@ -71,12 +73,16 @@ const convert = {
   FOLD_SVG,
 };
 
+const draw = Object.create(null);
+draw.svg = svg;
+draw.gl = {};
+
 const core = Object.create(null);
 Object.assign(core,
   frames,
   create,
   object,
-  spec,
+  keys,
   validate,
   add,
   remove,
@@ -94,6 +100,7 @@ core.split_edge_run = split_edge_run;
 core.apply_run = apply_run_diff;
 core.merge_run = merge_run_diffs;
 core.apply_axiom = apply_axiom;
+core.prototype = prototype;
 
 // load bases
 const b = {
@@ -144,17 +151,15 @@ Object.defineProperty(bases, "frog", { get: () => core.clone(b.frog) });
 // };
 
 const rabbitEar = {
-  CreasePattern,
+  // CreasePattern,
   Origami,
-  Origami3D,
-  Graph,
-  svg,
+  graph,
+  draw,
   convert,
   core,
   bases,
   math: math.core,
   axiom: Axioms.axiom,
-  foldPrototype // todo get rid
 };
 
 Object.keys(math)

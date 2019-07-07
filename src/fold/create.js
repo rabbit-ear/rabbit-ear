@@ -7,15 +7,15 @@ const metadata = function () {
   return {
     file_spec,
     file_creator,
-    file_author: "",
-    file_title: "",
-    file_description: "",
-    file_classes: [],
-    file_frames: [],
-    frame_description: "",
-    frame_attributes: [],
-    frame_classes: [],
-    frame_unit: "",
+    // file_author: "",
+    // file_title: "",
+    // file_description: "",
+    // file_classes: [],
+    // file_frames: [],
+    // frame_description: "",
+    // frame_attributes: [],
+    // frame_classes: [],
+    // frame_unit: "",
   };
 };
 
@@ -39,8 +39,15 @@ const square_graph = function () {
     edges_length: [1, 1, 1, 1],
     faces_vertices: [[0, 1, 2, 3]],
     faces_edges: [[0, 1, 2, 3]],
-    faces_faces: [[]],
+    // faces_faces: [[]],
   };
+};
+
+export const empty = function () {
+  return Object.assign(
+    Object.create(null),
+    metadata()
+  );
 };
 
 export const square = function () {

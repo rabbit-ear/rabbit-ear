@@ -43,7 +43,7 @@ function didTouchNode02(index, circles, links){
 		for(var i = 0; i < adjacent.length; i++){
 			var nameString = 'link' + adjacent[i].index;
 			highlighted_id.push(nameString);
-			highlighted_indices.push('<arg>edge' + adjacent[i].index + "</arg>");
+			highlighted_indices.push('<arg>' + adjacent[i].index + "</arg>");
 		}
 	}
 	updateSelection('node' + index, circles, links, highlighted_id);
@@ -62,7 +62,7 @@ function didTouchEdge02(index, circles, links){
 		for(var i = 0; i < adjacent.length; i++){
 			var nameString = 'link' + adjacent[i].index;
 			highlighted_id.push(nameString);
-			highlighted_indices.push('<arg>edge' + adjacent[i].index + "</arg>");
+			highlighted_indices.push('<arg>' + adjacent[i].index + "</arg>");
 		}
 	}
 	updateSelection('link' + index, circles, links, highlighted_id);
