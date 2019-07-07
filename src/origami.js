@@ -8,8 +8,7 @@ import glView from "./views/glView";
 
 import {
   isBrowser,
-  isNode,
-  // isWebWorker,
+  isNode
 } from "../include/svg/src/environment/detect";
 
 import Prototype from "./fold/prototype";

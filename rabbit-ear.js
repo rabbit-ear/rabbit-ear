@@ -7,12 +7,12 @@
 
   const isBrowser = typeof window !== "undefined"
     && typeof window.document !== "undefined";
-  const isWebWorker = typeof self === "object"
-    && self.constructor
-    && self.constructor.name === "DedicatedWorkerGlobalScope";
   const isNode = typeof process !== "undefined"
     && process.versions != null
     && process.versions.node != null;
+  const isWebWorker = typeof self === "object"
+    && self.constructor
+    && self.constructor.name === "DedicatedWorkerGlobalScope";
 
   var magnitude = function magnitude(v) {
     var sum = v.map(function (component) {
@@ -11989,6 +11989,24 @@
         .forEach((key) => { prefs[key] = obj[key]; }));
     return prefs;
   };
+  const getView = function (...args) {
+    const typeOptions = args.filter(a => "type" in a === true).shift();
+    if (typeOptions !== undefined) {
+      switch (typeOptions.type) {
+        case "gl":
+        case "GL":
+        case "webGL":
+        case "WebGL":
+          return { canvas: View3D(...args) };
+        case "svg":
+        case "SVG":
+          return { svg: View(...args) };
+        default:
+          break;
+      }
+    }
+    return {};
+  };
   const Origami = function (...args) {
     const foldObjs = args
       .filter(el => typeof el === "object" && el !== null)
@@ -12031,24 +12049,6 @@
     Object.defineProperty(origami, "fold", { value: fold });
     Object.defineProperty(origami, "load", { value: load });
     return origami;
-  };
-  const getView = function (...args) {
-    const typeOptions = args.filter(a => "type" in a === true).shift();
-    if (typeOptions !== undefined) {
-      switch (typeOptions.type) {
-        case "gl":
-        case "GL":
-        case "webGL":
-        case "WebGL":
-          return { canvas: View3D(...args) };
-        case "svg":
-        case "SVG":
-          return { svg: View(...args) };
-        default:
-          break;
-      }
-    }
-    return {};
   };
   const init = function (...args) {
     const origami = Origami(...args);
