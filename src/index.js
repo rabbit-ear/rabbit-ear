@@ -63,8 +63,7 @@ import frog from "./data/bases/frog.fold";
 import prototype from "./fold/prototype";
 import Origami from "./origami";
 
-console.log("RabbitEar v0.2", "browser", isBrowser,
-  "webWorker", isWebWorker, "node", isNode, "environment");
+console.log(`RabbitEar v0.2 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
 
 const convert = {
   toFOLD,

@@ -32,7 +32,7 @@ const parsePreferences = function (...args) {
   return prefs;
 };
 
-const getView = function (...args) {
+const getView = function (that, ...args) {
   const typeOptions = args.filter(a => "type" in a === true).shift();
   if (typeOptions !== undefined) {
     switch (typeOptions.type) {
@@ -40,10 +40,12 @@ const getView = function (...args) {
       case "GL":
       case "webGL":
       case "WebGL":
-        return { canvas: glView(...args) };
+        return { canvas: glView(that, ...args) };
       case "svg":
       case "SVG":
-        return { svg: svgView(...args) };
+        const view = svgView(that, ...args);
+        that.didChange.push(view.draw);
+        return { svg: view };
       default:
         break;
     }
@@ -72,15 +74,24 @@ const Origami = function (...args) {
   Object.keys(userDefaults)
     .forEach((key) => { preferences[key] = userDefaults[key]; });
 
-  const setFoldedForm = function (isFolded = true) {
+  const setFoldedForm = function (isFolded) {
     const remove = isFolded ? "creasePattern" : "foldedForm";
     const add = isFolded ? "foldedForm" : "creasePattern";
+    const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
+    const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
     while (this.frame_classes.indexOf(remove) !== -1) {
       this.frame_classes.splice(this.frame_classes.indexOf(remove), 1);
     }
     if (this.frame_classes.indexOf(add) === -1) {
       this.frame_classes.push(add);
     }
+    // unsure if it works
+    if (to in this === true) {
+      this[from] = this.vertices_coords;
+      this.vertices_coords = this[to];
+      delete this[to];
+    }
+    this.didChange.forEach(f => f());
   };
 
   const fold = function (options = {}) {
@@ -90,7 +101,11 @@ const Origami = function (...args) {
     if ("vertices_re:foldedCoords" in this === false) {
       this["vertices_re:foldedCoords"] = make_vertices_coords_folded(this, null, this["faces_re:matrix"]);
     }
-    setFoldedForm(true);
+    setFoldedForm.call(this, true);
+  };
+
+  const unfold = function () {
+    setFoldedForm.call(this, false);
   };
 
   /**
@@ -103,9 +118,11 @@ const Origami = function (...args) {
       foldKeys.forEach(key => delete this[key]);
     }
     Object.assign(this, clone(loaded_file));
+    this.didChange.forEach(f => f());
   };
 
   Object.defineProperty(origami, "fold", { value: fold });
+  Object.defineProperty(origami, "unfold", { value: unfold });
   Object.defineProperty(origami, "load", { value: load });
 
   return origami;
@@ -124,7 +141,7 @@ const init = function (...args) {
       args.push({ type: "svg" });
     }
   }
-  Object.assign(origami, getView(...args));
+  Object.assign(origami, getView(origami, ...args));
   return origami;
 };
 

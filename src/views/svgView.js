@@ -111,7 +111,7 @@ const parsePreferences = function (...args) {
   return prefs;
 };
 
-const View = function (...args) {
+const View = function (fold_file, ...args) {
   const _this = SVGImage(...args);
   _this.appendChild(shadowFilter("faces_shadow"));
 
@@ -139,7 +139,7 @@ const View = function (...args) {
 
   const isClean = true;
   const prop = {
-    cp: undefined,
+    cp: fold_file,
     frame: undefined,
     style: {
       vertex_radius: 0.01, // percent of page
@@ -156,17 +156,17 @@ const View = function (...args) {
    * if the user passes in an already initialized CreasePattern object
    * (this class), no deep copy will occur.
    */
-  const setCreasePattern = function (cp, frame = undefined) {
-    // key indicates the object is already a CreasePattern type
-    prop.cp = (cp.__rabbit_ear != null)
-      ? cp
-      : Object.assign(Object.create(Prototype()), cp);
-    prop.frame = frame;
-    draw();
-    // two levels of autofit going on here
-    if (!preferences.autofit) { updateViewBox(); }
-    prop.cp.onchange.push(draw);
-  };
+  // const setCreasePattern = function (cp, frame = undefined) {
+  //   // key indicates the object is already a CreasePattern type
+  //   prop.cp = (cp.__rabbit_ear != null)
+  //     ? cp
+  //     : Object.assign(Object.create(Prototype()), cp);
+  //   prop.frame = frame;
+  //   draw();
+  //   // two levels of autofit going on here
+  //   if (!preferences.autofit) { updateViewBox(); }
+  //   prop.cp.onchange.push(draw);
+  // };
 
   const updateFromCPOnChange = function () {
     // get last update time
@@ -191,7 +191,7 @@ const View = function (...args) {
     // const graph = prop.frame
     //   ? flatten_frame(prop.cp, prop.frame)
     //   : prop.cp;
-    const graph = this;
+    const graph = prop.cp;
 
     // copy file/frame classes to top level
     const file_classes = (graph.file_classes != null
@@ -436,7 +436,7 @@ const View = function (...args) {
   const load = function (input, callback) { // epsilon
     load_file(input, (fold) => {
       // Object.assign(Object.create(Prototype()), fold);
-      setCreasePattern(fold);
+      // setCreasePattern(fold);
       if (callback != null) { callback(); }
     });
   };
@@ -469,7 +469,7 @@ const View = function (...args) {
     folded.frame_classes = ["foldedForm"];
     folded.vertices_coords = make_vertices_coords_folded(prop.cp, face);
 
-    setCreasePattern(folded);
+    // setCreasePattern(folded);
     Array.from(groups.faces.children).forEach(f => f.setClass("face"));
   };
 
@@ -505,10 +505,10 @@ const View = function (...args) {
     value: (...exportArgs) => save(prepareSVGForExport(_this.cloneNode(true)), ...exportArgs)
   });
 
-  Object.defineProperty(_this, "cp", {
-    get: () => prop.cp,
-    set: (cp) => { setCreasePattern(cp); },
-  });
+  // Object.defineProperty(_this, "cp", {
+  //   get: () => prop.cp,
+  //   set: (cp) => { setCreasePattern(cp); },
+  // });
   Object.defineProperty(_this, "frameCount", {
     get: () => (prop.cp.file_frames ? prop.cp.file_frames.length : 0),
   });

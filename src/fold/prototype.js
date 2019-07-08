@@ -101,7 +101,7 @@ const Prototype = function (proto = {}) {
    */
   proto.clear = function () {
     remove_non_boundary_edges(this);
-    this.onchange.forEach(f => f());
+    this.didChange.forEach(f => f());
   };
   proto.nearestVertex = function (...args) {
     const index = nearest_vertex(this, math.core.get_vector(...args));
@@ -159,7 +159,7 @@ const Prototype = function (proto = {}) {
     //  .filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
 
     // broadcast update to handler if attached
-    this.onchange.forEach(f => f());
+    this.didChange.forEach(f => f());
   };
 
   // geometry modifiers, fold operations
@@ -302,7 +302,7 @@ const Prototype = function (proto = {}) {
   Object.defineProperty(proto, "json", { get: json });
 
   // callbacks for when the crease pattern has been altered
-  proto.onchange = [];
+  proto.didChange = [];
 
   // proto.__rabbit_ear = RabbitEar;
 

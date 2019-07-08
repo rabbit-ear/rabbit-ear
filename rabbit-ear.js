@@ -11067,7 +11067,7 @@
     };
     proto.clear = function () {
       remove_non_boundary_edges(this);
-      this.onchange.forEach(f => f());
+      this.didChange.forEach(f => f());
     };
     proto.nearestVertex = function (...args) {
       const index = nearest_vertex(this, math.core.get_vector(...args));
@@ -11112,7 +11112,7 @@
         : undefined;
     };
     const didModifyGraph = function () {
-      this.onchange.forEach(f => f());
+      this.didChange.forEach(f => f());
     };
     proto.addVertexOnEdge = function (x, y, oldEdgeIndex) {
       add_vertex_on_edge(this, x, y, oldEdgeIndex);
@@ -11217,7 +11217,7 @@
     Object.defineProperty(proto, "edges", { get: getEdges });
     Object.defineProperty(proto, "faces", { get: getFaces });
     Object.defineProperty(proto, "json", { get: json });
-    proto.onchange = [];
+    proto.didChange = [];
     return Object.freeze(proto);
   };
   Prototype$2.empty = function () {
@@ -11322,7 +11322,7 @@
         .forEach((key) => { prefs[key] = obj[key]; }));
     return prefs;
   };
-  const View = function (...args) {
+  const View = function (fold_file, ...args) {
     const _this = svgImage(...args);
     _this.appendChild(shadowFilter$1("faces_shadow"));
     const groups = {};
@@ -11342,7 +11342,7 @@
     };
     const groupLabels = _this.group();
     const prop = {
-      cp: undefined,
+      cp: fold_file,
       frame: undefined,
       style: {
         vertex_radius: 0.01,
@@ -11353,17 +11353,8 @@
     const userDefaults = parsePreferences(...args);
     Object.keys(userDefaults)
       .forEach((key) => { preferences[key] = userDefaults[key]; });
-    const setCreasePattern = function (cp, frame = undefined) {
-      prop.cp = (cp.__rabbit_ear != null)
-        ? cp
-        : Object.assign(Object.create(Prototype$2()), cp);
-      prop.frame = frame;
-      draw();
-      if (!preferences.autofit) { updateViewBox(); }
-      prop.cp.onchange.push(draw);
-    };
     const draw = function () {
-      const graph = this;
+      const graph = prop.cp;
       const file_classes$$1 = (graph.file_classes != null
         ? graph.file_classes : []).join(" ");
       const frame_classes$$1 = graph.frame_classes != null
@@ -11552,7 +11543,6 @@
     };
     const load$$1 = function (input, callback) {
       load_file(input, (fold) => {
-        setCreasePattern(fold);
         if (callback != null) { callback(); }
       });
     };
@@ -11574,7 +11564,6 @@
       const folded = {};
       folded.frame_classes = ["foldedForm"];
       folded.vertices_coords = make_vertices_coords_folded(prop.cp, face);
-      setCreasePattern(folded);
       Array.from(groups.faces.children).forEach(f => f.setClass("face"));
     };
     Object.defineProperty(_this, "frames", {
@@ -11604,10 +11593,6 @@
     };
     Object.defineProperty(_this, "export", {
       value: (...exportArgs) => save(prepareSVGForExport(_this.cloneNode(true)), ...exportArgs)
-    });
-    Object.defineProperty(_this, "cp", {
-      get: () => prop.cp,
-      set: (cp) => { setCreasePattern(cp); },
     });
     Object.defineProperty(_this, "frameCount", {
       get: () => (prop.cp.file_frames ? prop.cp.file_frames.length : 0),
@@ -11989,7 +11974,7 @@
         .forEach((key) => { prefs[key] = obj[key]; }));
     return prefs;
   };
-  const getView = function (...args) {
+  const getView = function (that, ...args) {
     const typeOptions = args.filter(a => "type" in a === true).shift();
     if (typeOptions !== undefined) {
       switch (typeOptions.type) {
@@ -11997,10 +11982,12 @@
         case "GL":
         case "webGL":
         case "WebGL":
-          return { canvas: View3D(...args) };
+          return { canvas: View3D(that, ...args) };
         case "svg":
         case "SVG":
-          return { svg: View(...args) };
+          const view = View(that, ...args);
+          that.didChange.push(view.draw);
+          return { svg: view };
         default:
           break;
       }
@@ -12020,15 +12007,23 @@
     const userDefaults = parsePreferences$1(...args);
     Object.keys(userDefaults)
       .forEach((key) => { preferences[key] = userDefaults[key]; });
-    const setFoldedForm = function (isFolded = true) {
+    const setFoldedForm = function (isFolded) {
       const remove = isFolded ? "creasePattern" : "foldedForm";
       const add = isFolded ? "foldedForm" : "creasePattern";
+      const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
+      const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
       while (this.frame_classes.indexOf(remove) !== -1) {
         this.frame_classes.splice(this.frame_classes.indexOf(remove), 1);
       }
       if (this.frame_classes.indexOf(add) === -1) {
         this.frame_classes.push(add);
       }
+      if (to in this === true) {
+        this[from] = this.vertices_coords;
+        this.vertices_coords = this[to];
+        delete this[to];
+      }
+      this.didChange.forEach(f => f());
     };
     const fold = function (options = {}) {
       if ("faces_re:matrix" in this === false) {
@@ -12037,7 +12032,10 @@
       if ("vertices_re:foldedCoords" in this === false) {
         this["vertices_re:foldedCoords"] = make_vertices_coords_folded(this, null, this["faces_re:matrix"]);
       }
-      setFoldedForm(true);
+      setFoldedForm.call(this, true);
+    };
+    const unfold = function () {
+      setFoldedForm.call(this, false);
     };
     const load = function (input, prevent_wipe) {
       const loaded_file = load_file$1(input);
@@ -12045,8 +12043,10 @@
         keys.forEach(key => delete this[key]);
       }
       Object.assign(this, clone(loaded_file));
+      this.didChange.forEach(f => f());
     };
     Object.defineProperty(origami, "fold", { value: fold });
+    Object.defineProperty(origami, "unfold", { value: unfold });
     Object.defineProperty(origami, "load", { value: load });
     return origami;
   };
@@ -12060,12 +12060,11 @@
         args.push({ type: "svg" });
       }
     }
-    Object.assign(origami, getView(...args));
+    Object.assign(origami, getView(origami, ...args));
     return origami;
   };
 
-  console.log("RabbitEar v0.2", "browser", isBrowser,
-    "webWorker", isWebWorker, "node", isNode, "environment");
+  console.log(`RabbitEar v0.2 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
   const convert$4 = {
     toFOLD,
     toSVG,

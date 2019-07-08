@@ -1,8 +1,5 @@
 const re = require("../rabbit-ear");
 
-/**
- * valley fold
- */
 test("valley fold", () => {
   const origami = re.Origami();
   origami.valleyFold([0.5, 0.5], [1, 0.1]);
