@@ -11,13 +11,13 @@ import math from "../../include/math";
 import { setViewBox } from "../../include/svg/src/viewBox";
 import SVGImage from "../../include/svg/src/image";
 import { save } from "../../include/svg/src/DOM";
-import FOLD_SVG from "../../include/fold-svg";
+import drawFOLD from "../../include/fold-draw";
 
 import { build_folded_frame } from "../frames/folded_frame";
-// import fold_through from "../origami/fold";
 import { flatten_frame } from "../fold/file_frames";
 import load_file from "../files/load_async";
-import Prototype from "../fold/prototype";
+// import fold_through from "../origami/fold";
+// import Prototype from "../fold/prototype";
 import {
   faces_containing_point,
   topmost_face,
@@ -26,6 +26,9 @@ import {
 } from "../fold/query";
 import { make_vertices_coords_folded } from "../fold/make";
 import { transpose_geometry_array_at_index } from "../fold/keys";
+import { shadowFilter } from "./svgFilters";
+
+const SVG_NS = "http://www.w3.org/2000/svg";
 
 const DEFAULTS = Object.freeze({
   autofit: true,
@@ -40,66 +43,6 @@ const DEFAULTS = Object.freeze({
   arrowColor: undefined,
 });
 
-const DISPLAY_NAME = {
-  vertices: "vertices",
-  edges: "creases",
-  faces: "faces",
-  boundaries: "boundaries",
-};
-
-const drawComponent = {
-  vertices: FOLD_SVG.components.vertices,
-  edges: FOLD_SVG.components.edges,
-  faces: FOLD_SVG.components.faces,
-  boundaries: FOLD_SVG.components.boundaries,
-};
-
-const shadowFilter = function (id_name = "shadow") {
-  const svgNS = "http://www.w3.org/2000/svg";
-  const defs = document.createElementNS(svgNS, "defs");
-
-  const filter = document.createElementNS(svgNS, "filter");
-  filter.setAttribute("width", "200%");
-  filter.setAttribute("height", "200%");
-  filter.setAttribute("id", id_name);
-
-  const blur = document.createElementNS(svgNS, "feGaussianBlur");
-  blur.setAttribute("in", "SourceAlpha");
-  blur.setAttribute("stdDeviation", "0.01");
-  blur.setAttribute("result", "blur");
-
-  const offset = document.createElementNS(svgNS, "feOffset");
-  offset.setAttribute("in", "blur");
-  offset.setAttribute("result", "offsetBlur");
-
-  const flood = document.createElementNS(svgNS, "feFlood");
-  flood.setAttribute("flood-color", "#000");
-  flood.setAttribute("flood-opacity", "0.4");
-  flood.setAttribute("result", "offsetColor");
-
-  const composite = document.createElementNS(svgNS, "feComposite");
-  composite.setAttribute("in", "offsetColor");
-  composite.setAttribute("in2", "offsetBlur");
-  composite.setAttribute("operator", "in");
-  composite.setAttribute("result", "offsetBlur");
-
-  const merge = document.createElementNS(svgNS, "feMerge");
-  const mergeNode1 = document.createElementNS(svgNS, "feMergeNode");
-  const mergeNode2 = document.createElementNS(svgNS, "feMergeNode");
-  mergeNode2.setAttribute("in", "SourceGraphic");
-  merge.appendChild(mergeNode1);
-  merge.appendChild(mergeNode2);
-
-  defs.appendChild(filter);
-
-  filter.appendChild(blur);
-  filter.appendChild(offset);
-  filter.appendChild(flood);
-  filter.appendChild(composite);
-  filter.appendChild(merge);
-  return defs;
-};
-
 const parsePreferences = function (...args) {
   const keys = Object.keys(DEFAULTS);
   const prefs = {};
@@ -112,32 +55,47 @@ const parsePreferences = function (...args) {
 };
 
 const View = function (fold_file, ...args) {
-  const _this = SVGImage(...args);
-  _this.appendChild(shadowFilter("faces_shadow"));
+  const svg = SVGImage(...args);
+  const svgStyle = document.createElementNS(SVG_NS, "style");
+  const defs = document.createElementNS(SVG_NS, "defs");
+  svg.appendChild(svgStyle);
+  svg.appendChild(defs);
+  defs.appendChild(shadowFilter("faces_shadow"));
+  svgStyle.innerHTML = `
+.foldedForm polygon { fill: rgba(0, 0, 0, 0.1); }
+.foldedForm polygon.front { fill: white; }
+.foldedForm polygon.back { fill: lightgray; }
+.foldedForm line { stroke: none; }
+`;
 
   // make SVG groups, containers for the crease pattern parts
   const groups = {};
-  ["boundaries", "faces", "edges", "vertices"].forEach((key) => {
-    groups[key] = _this.group();
-    groups[key].setAttribute("class", DISPLAY_NAME[key]);
-    // the SVG should get touches. faces/creases otherwise intercept events
-    groups[key].setAttribute("pointer-events", "none");
-    _this.appendChild(groups[key]);
-  });
   // additional diagram layer on top. for folding diagram arrows, etc...
-  groups.diagram = _this.group();
-  groups.diagram.setAttribute("pointer-events", "none");
-  // by default show these layers
+  ["boundaries", "faces", "edges", "vertices", "diagram", "labels"
+  ].forEach((key) => {
+    groups[key] = svg.group();
+    groups[key].setAttribute("class", key);
+    // svg.appendChild(groups[key]);
+  });
+  // default styles
+  groups.edges.setAttribute("stroke-width", 1);
+  groups.edges.setAttribute("stroke", "black");
+  groups.faces.setAttribute("stroke", "none");
+  groups.faces.setAttribute("fill", "none");
+  Object.keys(groups).forEach((key) => {
+    // pass touches through. faces/edges will not intercept events
+    groups[key].setAttribute("pointer-events", "none");
+  });
+
   const visible = {
     boundaries: true,
     faces: true,
     edges: true,
     vertices: false,
+    diagram: false,
+    labels: false
   };
-  // container for labels and any top-level detail
-  const groupLabels = _this.group();
 
-  const isClean = true;
   const prop = {
     cp: fold_file,
     frame: undefined,
@@ -181,74 +139,6 @@ const View = function (fold_file, ...args) {
     return graph.frame_classes.includes("foldedForm");
   };
 
-  /**
-   * This converts the FOLD object into an SVG, showing only one file_frame at a time
-   * (1) flattens the frame if one is selected (recursively if needed)
-   * (2) identifies whether the frame is creasePattern or folded form
-   */
-  const draw = function () {
-    // flatten if necessary
-    // const graph = prop.frame
-    //   ? flatten_frame(prop.cp, prop.frame)
-    //   : prop.cp;
-    const graph = prop.cp;
-
-    // copy file/frame classes to top level
-    const file_classes = (graph.file_classes != null
-      ? graph.file_classes : []).join(" ");
-    const frame_classes = graph.frame_classes != null
-      ? graph.frame_classes : [].join(" ");
-    const top_level_classes = [file_classes, frame_classes]
-      .filter(s => s !== "")
-      .join(" ");
-    _this.setAttribute("class", top_level_classes);
-
-    // visible = isFolded(graph)
-    //  ? ["faces", "edges"]
-    //  : ["boundaries", "faces", "edges"];
-
-    Object.keys(groups).forEach(key => groups[key].removeChildren());
-    groupLabels.removeChildren();
-
-    // draw geometry into groups
-    Object.keys(groups)
-      .filter(key => visible[key])
-      .forEach(key => drawComponent[key](graph)
-        .forEach(o => groups[key].appendChild(o)));
-
-    if (preferences.debug) { drawDebug(graph); }
-    if (preferences.labels) { drawLabels(graph); }
-    if (preferences.autofit) { updateViewBox(); }
-    if (preferences.diagram) { drawDiagram(graph); }
-    if (preferences.shadows) {
-      Array.from(groups.faces.childNodes).forEach(f =>
-        f.setAttribute("filter", "url(#faces_shadow)"));
-    }
-    // let r = bounding_rect(graph);
-    // let vmin = r[2] > r[3] ? r[3] : r[2];
-    // _this.style = "--crease-width: " + vmin*0.005 + ";"
-    // styleElement.innerHTML = "#creases line {" + creaseStyle + "}";
-
-    // stroke width
-    let styleElement = _this.querySelector("style");
-
-    if (styleElement == null) {
-      const svgNS = "http://www.w3.org/2000/svg";
-      styleElement = document.createElementNS(svgNS, "style");
-      _this.appendChild(styleElement);
-    }
-    const r = bounding_rect(graph);
-    // --crease-width: 5;
-    const vmin = r[2] > r[3] ? r[3] : r[2];
-    const creaseStyle = `stroke-width:${vmin * 0.01}`;
-    styleElement.innerHTML = `.creases line {${creaseStyle}}`;
-
-    if (preferences.styleSheet) {
-      styleElement.innerHTML += preferences.styleSheet;
-    }
-    // groups.creases.setAttribute("style", "stroke-width:"+vmin*0.005);
-  };
-
   const drawLabels = function (graph) {
     if ("faces_vertices" in graph === false
     || "edges_vertices" in graph === false
@@ -264,19 +154,19 @@ const View = function (fold_file, ...args) {
     const m = [fSize * 0.33, fSize * 0.4];
     // vertices
     graph.vertices_coords
-      .map((c, i) => groupLabels.text(`${i}`, c[0] - m[0], c[1] + m[1]))
+      .map((c, i) => groups.labels.text(`${i}`, c[0] - m[0], c[1] + m[1]))
       .forEach(t => t.setAttribute("style", labels_style.vertices));
     // edges
     graph.edges_vertices
       .map(ev => ev.map(v => graph.vertices_coords[v]))
       .map(verts => math.core.average(verts))
-      .map((c, i) => groupLabels.text(`${i}`, c[0] - m[0], c[1] + m[1]))
+      .map((c, i) => groups.labels.text(`${i}`, c[0] - m[0], c[1] + m[1]))
       .forEach(t => t.setAttribute("style", labels_style.edges));
     // faces
     graph.faces_vertices
       .map(fv => fv.map(v => graph.vertices_coords[v]))
       .map(verts => math.core.average(verts))
-      .map((c, i) => groupLabels.text(`${i}`, c[0] - m[0], c[1] + m[1]))
+      .map((c, i) => groups.labels.text(`${i}`, c[0] - m[0], c[1] + m[1]))
       .forEach(t => t.setAttribute("style", labels_style.faces));
   };
 
@@ -291,7 +181,7 @@ const View = function (fold_file, ...args) {
     graph.faces_vertices
       .map(fv => fv.map(v => graph.vertices_coords[v]))
       .map(face => math.convexPolygon(face).scale(0.666).points)
-      .map(points => groupLabels.polygon(points))
+      .map(points => groups.labels.polygon(points))
       .forEach(poly => poly.setAttribute("style", debug_style.faces_vertices));
     graph.faces_edges
       .map(face_edges => face_edges
@@ -301,7 +191,7 @@ const View = function (fold_file, ...args) {
           return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
         }).map(v => graph.vertices_coords[v]))
       .map(face => math.convexPolygon(face).scale(0.333).points)
-      .map(points => groupLabels.polygon(points))
+      .map(points => groups.labels.polygon(points))
       .forEach(poly => poly.setAttribute("style", debug_style.faces_edges));
   };
 
@@ -353,7 +243,54 @@ const View = function (fold_file, ...args) {
       : prop.cp;
     const r = bounding_rect(graph);
     const vmin = r[2] > r[3] ? r[3] : r[2];
-    setViewBox(_this, r[0], r[1], r[2], r[3], preferences.padding * vmin);
+    setViewBox(svg, r[0], r[1], r[2], r[3], preferences.padding * vmin);
+  };
+
+  /**
+   * This converts the FOLD object into an SVG, showing only one file_frame at a time
+   * (1) flattens the frame if one is selected (recursively if needed)
+   * (2) identifies whether the frame is creasePattern or folded form
+   */
+  const draw = function () {
+    // flatten if necessary
+    // const graph = prop.frame
+    //   ? flatten_frame(prop.cp, prop.frame)
+    //   : prop.cp;
+    const graph = prop.cp;
+
+    // copy file/frame classes to top level
+    const file_classes = (graph.file_classes != null
+      ? graph.file_classes : []).join(" ");
+    const frame_classes = graph.frame_classes != null
+      ? graph.frame_classes : [].join(" ");
+    const top_level_classes = [file_classes, frame_classes]
+      .filter(s => s !== "")
+      .join(" ");
+    svg.setAttribute("class", top_level_classes);
+
+    // clear last draw
+    Object.keys(groups).forEach(key => groups[key].removeChildren());
+
+    // draw geometry into groups
+    Object.keys(groups)
+      .filter(key => visible[key])
+      .forEach(key => drawFOLD.components.svg[key](graph)
+        .forEach(o => groups[key].appendChild(o)));
+
+    if (preferences.autofit) { updateViewBox(); }
+    if (preferences.debug) { drawDebug(graph); }
+    if (preferences.labels) { drawLabels(graph); }
+    if (preferences.diagram) { drawDiagram(graph); }
+    if (preferences.shadows) {
+      Array.from(groups.faces.childNodes)
+        .forEach(f => f.setAttribute("filter", "url(#faces_shadow)"));
+    }
+
+    const r = bounding_rect(graph);
+    const vmin = r[2] > r[3] ? r[3] : r[2];
+    const vmax = r[2] > r[3] ? r[2] : r[3];
+    const vavg = (vmin + vmax) / 2;
+    groups.edges.setAttribute("stroke-width", vavg / 100);
   };
 
   /**
@@ -386,8 +323,8 @@ const View = function (fold_file, ...args) {
     set: (v) => { visible.vertices = !!v; draw(); },
   };
   const visibleEdgesGetterSetter = {
-    get: () => visible.creases,
-    set: (v) => { visible.creases = !!v; draw(); },
+    get: () => visible.edges,
+    set: (v) => { visible.edges = !!v; draw(); },
   };
   const visibleFacesGetterSetter = {
     get: () => visible.faces,
@@ -473,7 +410,7 @@ const View = function (fold_file, ...args) {
     Array.from(groups.faces.children).forEach(f => f.setClass("face"));
   };
 
-  Object.defineProperty(_this, "frames", {
+  Object.defineProperty(svg, "frames", {
     get: () => {
       if (prop.cp.file_frames === undefined) {
         return [JSON.parse(JSON.stringify(prop.cp))];
@@ -484,7 +421,7 @@ const View = function (fold_file, ...args) {
       return [frameZero].concat(frames);
     },
   });
-  Object.defineProperty(_this, "frame", {
+  Object.defineProperty(svg, "frame", {
     get: () => prop.frame,
     set: (newValue) => {
       // check bounds of frames
@@ -501,18 +438,18 @@ const View = function (fold_file, ...args) {
     return svgElement;
   };
 
-  Object.defineProperty(_this, "export", {
-    value: (...exportArgs) => save(prepareSVGForExport(_this.cloneNode(true)), ...exportArgs)
+  Object.defineProperty(svg, "export", {
+    value: (...exportArgs) => save(prepareSVGForExport(svg.cloneNode(true)), ...exportArgs)
   });
 
-  // Object.defineProperty(_this, "cp", {
+  // Object.defineProperty(svg, "cp", {
   //   get: () => prop.cp,
   //   set: (cp) => { setCreasePattern(cp); },
   // });
-  Object.defineProperty(_this, "frameCount", {
+  Object.defineProperty(svg, "frameCount", {
     get: () => (prop.cp.file_frames ? prop.cp.file_frames.length : 0),
   });
-  // Object.defineProperty(_this, "frame", {
+  // Object.defineProperty(svg, "frame", {
   //  set: function (f) { prop.frame = f; draw(); },
   //  get: function () { return prop.frame; }
   // });
@@ -520,36 +457,36 @@ const View = function (fold_file, ...args) {
   // attach CreasePattern methods
   // "axiom", "axiom1", "axiom2", "axiom3", "axiom4", "axiom5", "axiom6", "axiom7",
   let cpSharedMethods = ["crease"];
-  cpSharedMethods.forEach(method => Object.defineProperty(_this, method, {
+  cpSharedMethods.forEach(method => Object.defineProperty(svg, method, {
     value: () => prop.cp[method](...arguments),
   }));
   // attach CreasePattern getters
   // ["boundary", "vertices", "edges", "faces",
   // ["isFolded"]
-  //  .forEach(method => Object.defineProperty(_this, method, {
+  //  .forEach(method => Object.defineProperty(svg, method, {
   //    get: function (){ return prop.cp[method]; }
   //  }));
 
-  Object.defineProperty(_this, "nearest", { value: nearest });
-  Object.defineProperty(_this, "vertices", {
+  Object.defineProperty(svg, "nearest", { value: nearest });
+  Object.defineProperty(svg, "vertices", {
     get: () => getVertices(),
   });
-  Object.defineProperty(_this, "edges", {
+  Object.defineProperty(svg, "edges", {
     get: () => getEdges(),
   });
-  Object.defineProperty(_this, "faces", {
+  Object.defineProperty(svg, "faces", {
     get: () => getFaces(),
   });
-  Object.defineProperty(_this, "boundary", {
+  Object.defineProperty(svg, "boundary", {
     get: () => getBoundary(),
   });
-  Object.defineProperty(_this, "draw", { value: draw });
-  Object.defineProperty(_this, "fold", { value: fold });
-  Object.defineProperty(_this, "foldWithoutLayering", {
+  Object.defineProperty(svg, "draw", { value: draw });
+  Object.defineProperty(svg, "fold", { value: fold });
+  Object.defineProperty(svg, "foldWithoutLayering", {
     value: foldWithoutLayering,
   });
-  Object.defineProperty(_this, "load", { value: load });
-  Object.defineProperty(_this, "folded", {
+  Object.defineProperty(svg, "load", { value: load });
+  Object.defineProperty(svg, "folded", {
     set: (f) => {
       prop.cp.frame_classes = prop.cp.frame_classes
         .filter(a => a !== "creasePattern");
@@ -559,18 +496,18 @@ const View = function (fold_file, ...args) {
       draw();
     },
   });
-  Object.defineProperty(_this, "updateViewBox", { value: updateViewBox });
-  Object.defineProperty(_this, "setViewBox", {
-    value: (x, y, w, h, padding) => setViewBox(_this, x, y, w, h, padding)
+  Object.defineProperty(svg, "updateViewBox", { value: updateViewBox });
+  Object.defineProperty(svg, "setViewBox", {
+    value: (x, y, w, h, padding) => setViewBox(svg, x, y, w, h, padding)
   });
-  _this.preferences = preferences;
-  // _this.groups = groups;
+  svg.preferences = preferences;
+  // svg.groups = groups;
 
   // boot
   // setCreasePattern(...args, 1);
 
   let prevCP, prevCPFolded, touchFaceIndex;
-  _this.events.addEventListener("onMouseDown", function (mouse) {
+  svg.events.addEventListener("onMouseDown", function (mouse) {
     if (preferences.folding) {
       try {
         prevCP = JSON.parse(JSON.stringify(prop.cp));
@@ -592,7 +529,7 @@ const View = function (fold_file, ...args) {
       }
     }
   });
-  _this.events.addEventListener("onMouseMove", function (mouse) {
+  svg.events.addEventListener("onMouseMove", function (mouse) {
     if (preferences.folding && mouse.isPressed) {
       prop.cp = CreasePattern(prevCP);
       let points = [math.vector(mouse.pressed), math.vector(mouse.position)];
@@ -604,7 +541,7 @@ const View = function (fold_file, ...args) {
     }
   });
 
-  return _this;
+  return svg;
 };
 
 export default View;

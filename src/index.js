@@ -24,7 +24,7 @@ import * as Axioms from "./origami/axioms";
 // to be included in "convert"
 import { toFOLD, toSVG, toORIPA } from "./files/filetype";
 // todo, remove
-import FOLD_SVG from "../include/fold-svg";
+import drawFOLD from "../include/fold-draw";
 
 // to be included in "core"
 import * as create from "./fold/create";
@@ -69,7 +69,7 @@ const convert = {
   toFOLD,
   toSVG,
   toORIPA,
-  FOLD_SVG,
+  drawFOLD,
 };
 
 const draw = Object.create(null);

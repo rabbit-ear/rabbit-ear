@@ -58,22 +58,6 @@ const Origami = function (...args) {
    *
    *
    */
-  const foldObjs = args
-    .filter(el => typeof el === "object" && el !== null)
-    .filter(el => possibleFoldObject(el));
-    // .filter(el => el.vertices_coords != null);
-  // unit square is the default base if nothing else is provided
-  const origami = Object.assign(
-    Object.create(Prototype()),
-    foldObjs.shift() || Create.square()
-  );
-
-  const preferences = {};
-  Object.assign(preferences, DEFAULTS);
-  const userDefaults = parsePreferences(...args);
-  Object.keys(userDefaults)
-    .forEach((key) => { preferences[key] = userDefaults[key]; });
-
   const setFoldedForm = function (isFolded) {
     const remove = isFolded ? "creasePattern" : "foldedForm";
     const add = isFolded ? "foldedForm" : "creasePattern";
@@ -102,10 +86,12 @@ const Origami = function (...args) {
       this["vertices_re:foldedCoords"] = make_vertices_coords_folded(this, null, this["faces_re:matrix"]);
     }
     setFoldedForm.call(this, true);
+    return this;
   };
 
   const unfold = function () {
     setFoldedForm.call(this, false);
+    return this;
   };
 
   /**
@@ -119,12 +105,26 @@ const Origami = function (...args) {
     }
     Object.assign(this, clone(loaded_file));
     this.didChange.forEach(f => f());
+    return this;
   };
-
+  /**
+   * create the object. process initialization arguments
+   * by default this will load a unit square graph.
+   */
+  const origami = Object.assign(
+    Object.create(Prototype()),
+    args.filter(el => possibleFoldObject(el)).shift() || Create.square()
+  );
+  // apply preferences
+  const preferences = {};
+  Object.assign(preferences, DEFAULTS);
+  const userDefaults = parsePreferences(...args);
+  Object.keys(userDefaults)
+    .forEach((key) => { preferences[key] = userDefaults[key]; });
+  // attach methods
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
   Object.defineProperty(origami, "load", { value: load });
-
   return origami;
 };
 
@@ -142,6 +142,9 @@ const init = function (...args) {
     }
   }
   Object.assign(origami, getView(origami, ...args));
+  // origami.prototype.svg = getView(origami, ...args).svg;
+  // if view exists, call first draw
+  if (origami.svg) { origami.svg.draw(); }
   return origami;
 };
 

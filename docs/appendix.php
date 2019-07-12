@@ -2,6 +2,19 @@
 
 <h1>APPENDIX</h1>
 
+<h2 id="svg">SVG</h2>
+
+insert cool svg interactive thing
+
+<p>attributes are the lowest precident level.</p>
+
+<pre><code>
+1. attributes
+2. css stylesheet <b>&lt;style&gt;</b>
+2. inline style <b>style="stroke:black;"</b>
+</code></pre>
+
+
 <h2 id="library">Library Structure</h2>
 
 <section>

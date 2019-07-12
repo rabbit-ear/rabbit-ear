@@ -10,6 +10,7 @@ import { keys, edges_assignment_values } from "./keys";
  * determine if an object is possibly a FOLD format graph.
  */
 export const possibleFoldObject = function (fold) {
+  if (typeof fold !== "object" || fold === null) { return false; }
   const argKeys = Object.keys(fold);
   for (let i = 0; i < argKeys.length; i += 1) {
     if (keys.includes(argKeys[i])) { return true; }

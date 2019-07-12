@@ -229,6 +229,9 @@ export const get_boundary = function (graph) {
   for (let i = 0; i < edges_vertices_b.length; i += 1) {
     if (edges_vertices_b[i]) { edgeIndex = i; break; }
   }
+  if (edgeIndex === -1) {
+    return { vertices: [], edges: [] };
+  }
   edges_vertices_b[edgeIndex] = false;
   edge_walk.push(edgeIndex);
   vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
@@ -251,6 +254,7 @@ export const get_boundary = function (graph) {
     edges: edge_walk,
   };
 };
+
 
 // const bounding_cube = function (graph) {
 // }
