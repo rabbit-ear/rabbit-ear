@@ -1,4 +1,9 @@
 /**
+ * FOLD THROUGH ALL LAYERS
+ * the basic valley / mountain fold operation
+ *
+ * provide a FOLD object with unfolded vertices_coords. a creasePattern state.
+ *
  * this returns a copy of the graph with new crease lines.
  * does not modify input graph's geometry, but does append "re:" data
  * any additional non-standard-FOLD data will be copied over as well.
@@ -57,13 +62,16 @@ const prepare_to_fold = function (graph, point, vector, face_index) {
   graph["faces_re:preindex"] = Array.from(Array(faceCount)).map((_, i) => i);
   // graph["faces_re:coloring"] = faces_coloring(graph, face_index);
   // do we need to rebuild faces matrices? can we grab it from the frame?
-  const frame0ContainsMatrices = (graph.file_frames != null
-    && graph.file_frames.length > 0
-    && graph.file_frames[0]["faces_re:matrix"] != null
-    && graph.file_frames[0]["faces_re:matrix"].length === faceCount);
-  graph["faces_re:matrix"] = frame0ContainsMatrices
-    ? clone(graph.file_frames[0]["faces_re:matrix"])
-    : make_faces_matrix(graph, face_index);
+  // const frame0ContainsMatrices = (graph.file_frames != null
+  //   && graph.file_frames.length > 0
+  //   && graph.file_frames[0]["faces_re:matrix"] != null
+  //   && graph.file_frames[0]["faces_re:matrix"].length === faceCount);
+  // graph["faces_re:matrix"] = frame0ContainsMatrices
+  //   ? clone(graph.file_frames[0]["faces_re:matrix"])
+  //   : make_faces_matrix(graph, face_index);
+  if ("faces_re:matrix" in graph === false) {
+    graph["faces_re:matrix"] = make_faces_matrix(graph, face_index);
+  }
   graph["faces_re:coloring"] = faces_coloring_from_faces_matrix(
     graph["faces_re:matrix"]
   );
@@ -91,9 +99,9 @@ const prepare_extensions = function (graph) {
   // if (graph["face_re:stationary"] == null) {
   //  graph["face_re:stationary"] = 0;
   // }
-  if (graph["faces_re:to_move"] == null) {
-    graph["faces_re:to_move"] = Array(facesCount).fill(false);
-  }
+  // if (graph["faces_re:to_move"] == null) {
+  //   graph["faces_re:to_move"] = Array(facesCount).fill(false);
+  // }
 };
 
 /**
@@ -270,17 +278,18 @@ const fold_through = function (
   //   frame_inherit: true,
   //   frame_parent: 0, // this is not always the case. maybe shouldn't imply
   // };
+  // folded.file_frames = [folded_frame];
 
   folded["vertices_re:foldedCoords"] = make_vertices_coords_folded(
     folded,
     face_0_newIndex,
     folded_faces_matrix
   );
-  // folded.file_frames = [folded_frame];
+
   folded["faces_re:matrix"] = folded_faces_matrix.map(m => m.map(n => math.core.clean_number(n, 14)));
 
-  delete graph["faces_re:to_move"];
-  delete folded["faces_re:to_move"];
+  // delete graph["faces_re:to_move"];
+  // delete folded["faces_re:to_move"];
   delete graph["faces_re:creases"];
   delete folded["faces_re:creases"];
   delete graph["faces_re:sidedness"];

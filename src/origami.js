@@ -16,7 +16,7 @@ import load_file from "./files/load_sync";
 import { make_vertices_coords_folded, make_faces_matrix } from "./fold/make";
 import { possibleFoldObject } from "./fold/validate";
 import * as Create from "./fold/create";
-import { keys as foldKeys } from "./fold/keys";
+import { transpose_geometry_arrays, keys as foldKeys } from "./fold/keys";
 import { clone } from "./fold/object";
 
 import touchAndFold from "./origami_touch_fold";
@@ -59,6 +59,14 @@ const getView = function (that, ...args) {
 
 const Origami = function (...args) {
   /**
+   * create the object. process initialization arguments
+   * by default this will load a unit square graph.
+   */
+  const origami = Object.assign(
+    Object.create(Prototype()),
+    args.filter(el => possibleFoldObject(el)).shift() || Create.square()
+  );
+  /**
    *
    *
    */
@@ -67,35 +75,39 @@ const Origami = function (...args) {
     const add = isFolded ? "foldedForm" : "creasePattern";
     const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
     const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
-    while (this.frame_classes.indexOf(remove) !== -1) {
-      this.frame_classes.splice(this.frame_classes.indexOf(remove), 1);
+    if (origami.frame_classes == null) {
+      origami.frame_classes = [];
+    } else {
+      while (origami.frame_classes.indexOf(remove) !== -1) {
+        origami.frame_classes.splice(origami.frame_classes.indexOf(remove), 1);
+      }
     }
-    if (this.frame_classes.indexOf(add) === -1) {
-      this.frame_classes.push(add);
+    if (origami.frame_classes.indexOf(add) === -1) {
+      origami.frame_classes.push(add);
     }
     // unsure if it works
-    if (to in this === true) {
-      this[from] = this.vertices_coords;
-      this.vertices_coords = this[to];
-      delete this[to];
+    if (to in origami === true) {
+      origami[from] = origami.vertices_coords;
+      origami.vertices_coords = origami[to];
+      delete origami[to];
     }
-    this.didChange.forEach(f => f());
+    origami.didChange.forEach(f => f());
   };
 
   const fold = function (options = {}) {
-    if ("faces_re:matrix" in this === false) {
-      this["faces_re:matrix"] = make_faces_matrix(this, options.face);
+    if ("faces_re:matrix" in origami === false) {
+      origami["faces_re:matrix"] = make_faces_matrix(origami, options.face);
     }
-    if ("vertices_re:foldedCoords" in this === false) {
-      this["vertices_re:foldedCoords"] = make_vertices_coords_folded(this, null, this["faces_re:matrix"]);
+    if ("vertices_re:foldedCoords" in origami === false) {
+      origami["vertices_re:foldedCoords"] = make_vertices_coords_folded(origami, null, origami["faces_re:matrix"]);
     }
-    setFoldedForm.call(this, true);
-    return this;
+    setFoldedForm.call(origami, true);
+    return origami;
   };
 
   const unfold = function () {
-    setFoldedForm.call(this, false);
-    return this;
+    setFoldedForm.call(origami, false);
+    return origami;
   };
 
   /**
@@ -105,11 +117,11 @@ const Origami = function (...args) {
   const load = function (input, prevent_wipe) { // epsilon
     const loaded_file = load_file(input);
     if (prevent_wipe == null || prevent_wipe !== true) {
-      foldKeys.forEach(key => delete this[key]);
+      foldKeys.forEach(key => delete origami[key]);
     }
-    Object.assign(this, clone(loaded_file));
-    this.didChange.forEach(f => f());
-    return this;
+    Object.assign(origami, clone(loaded_file));
+    origami.didChange.forEach(f => f());
+    return origami;
   };
 
   // const prepareSVGForExport = function (svgElement) {
@@ -136,38 +148,19 @@ const Origami = function (...args) {
   //   },
   // });
 
+  const get = function (component) {
+    const a = transpose_geometry_arrays(origami, component);
+    const view = origami.svg || origami.gl;
+    Object.defineProperty(a, "visible", {
+      get: () => view.options[component],
+      set: (v) => {
+        view.options[component] = !!v;
+        origami.didChange.forEach(f => f());
+      },
+    });
+    return a;
+  };
 
-  // const visibleVerticesGetterSetter = {
-  //   get: () => visible.vertices,
-  //   set: (v) => { visible.vertices = !!v; draw(); },
-  // };
-  // const visibleEdgesGetterSetter = {
-  //   get: () => visible.edges,
-  //   set: (v) => { visible.edges = !!v; draw(); },
-  // };
-  // const visibleFacesGetterSetter = {
-  //   get: () => visible.faces,
-  //   set: (v) => { visible.faces = !!v; draw(); },
-  // };
-  // const visibleBoundaryGetterSetter = {
-  // };
-
-  // const getVertices = function () {
-  //   const { vertices } = prop.cp;
-  //   vertices.forEach((v, i) => { v.svg = groups.vertices.childNodes[i]; });
-  //   // console.log("vertices", vertices);
-  //   Object.defineProperty(vertices, "visible", visibleVerticesGetterSetter);
-  //   return vertices;
-  // };
-
-  /**
-   * create the object. process initialization arguments
-   * by default this will load a unit square graph.
-   */
-  const origami = Object.assign(
-    Object.create(Prototype()),
-    args.filter(el => possibleFoldObject(el)).shift() || Create.square()
-  );
   // apply preferences
   const options = {};
   Object.assign(options, DEFAULTS);
@@ -179,6 +172,11 @@ const Origami = function (...args) {
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
   Object.defineProperty(origami, "load", { value: load });
+
+  // overwriting prototype methods
+  Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
+  Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
+  Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });
 
   return origami;
 };

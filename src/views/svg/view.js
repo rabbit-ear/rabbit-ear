@@ -68,6 +68,7 @@ line.mark { stroke: lightgray; }
 .foldedForm polygon.front { fill: white; }
 .foldedForm polygon.back { fill: lightgray; }
 .foldedForm line { stroke: none; }
+.foldedForm polygon { stroke: black; }
 `;
 
   // make SVG groups, containers for the crease pattern parts
@@ -81,6 +82,8 @@ line.mark { stroke: lightgray; }
   });
   // default styles. no-fill faces, edges have a stroke..
   groups.edges.setAttribute("stroke-width", 1);
+  groups.faces.setAttribute("stroke-width", 1);
+  groups.boundaries.setAttribute("stroke-width", 1);
   groups.edges.setAttribute("stroke", "black");
   groups.faces.setAttribute("stroke", "none");
   groups.faces.setAttribute("fill", "none");
@@ -139,6 +142,8 @@ line.mark { stroke: lightgray; }
     const vmax = r[2] > r[3] ? r[2] : r[3];
     const vavg = (vmin + vmax) / 2;
     groups.edges.setAttribute("stroke-width", vavg * options.strokeWidth);
+    groups.faces.setAttribute("stroke-width", vavg * options.strokeWidth);
+    groups.boundaries.setAttribute("stroke-width", vavg * options.strokeWidth);
   };
 
   Object.defineProperty(svg, "draw", { value: draw });

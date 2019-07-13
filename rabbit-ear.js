@@ -6523,11 +6523,16 @@
     .concat(keys_types.orders));
   const edges_assignment_names = {
     en: {
-      B: "boundary", b: "boundary",
-      M: "mountain", m: "mountain",
-      V: "valley",   v: "valley",
-      F: "mark",     f: "mark",
-      U: "mark",     u: "mark"
+      B: "boundary",
+      b: "boundary",
+      M: "mountain",
+      m: "mountain",
+      V: "valley",
+      v: "valley",
+      F: "mark",
+      f: "mark",
+      U: "mark",
+      u: "mark"
     }
   };
   const edges_assignment_values = [
@@ -8862,13 +8867,9 @@
   const prepare_to_fold = function (graph, point, vector, face_index) {
     const faceCount = faces_count(graph);
     graph["faces_re:preindex"] = Array.from(Array(faceCount)).map((_, i) => i);
-    const frame0ContainsMatrices = (graph.file_frames != null
-      && graph.file_frames.length > 0
-      && graph.file_frames[0]["faces_re:matrix"] != null
-      && graph.file_frames[0]["faces_re:matrix"].length === faceCount);
-    graph["faces_re:matrix"] = frame0ContainsMatrices
-      ? clone$1(graph.file_frames[0]["faces_re:matrix"])
-      : make_faces_matrix(graph, face_index);
+    if ("faces_re:matrix" in graph === false) {
+      graph["faces_re:matrix"] = make_faces_matrix(graph, face_index);
+    }
     graph["faces_re:coloring"] = faces_coloring_from_faces_matrix(
       graph["faces_re:matrix"]
     );
@@ -8889,9 +8890,6 @@
     const facesCount = faces_count(graph);
     if (graph["faces_re:layer"] == null) {
       graph["faces_re:layer"] = Array(facesCount).fill(0);
-    }
-    if (graph["faces_re:to_move"] == null) {
-      graph["faces_re:to_move"] = Array(facesCount).fill(false);
     }
   };
   const two_furthest_points = function (points) {
@@ -9019,8 +9017,6 @@
       folded_faces_matrix
     );
     folded["faces_re:matrix"] = folded_faces_matrix.map(m => m.map(n => math.core.clean_number(n, 14)));
-    delete graph["faces_re:to_move"];
-    delete folded["faces_re:to_move"];
     delete graph["faces_re:creases"];
     delete folded["faces_re:creases"];
     delete graph["faces_re:sidedness"];
@@ -9851,21 +9847,19 @@
         console.warn("valleyFold was not supplied the correct parameters");
         return;
       }
-      const was_folded = "vertices_re:unfoldedCoords" in this;
-      if (was_folded) { this.unfold(); }
       const folded = fold_through(this,
         line.point,
         line.vector,
         face_index,
         "V");
-      Object.keys(folded).forEach((key) => { this[key] = folded[key]; });
+      const ObjectKeys = Object.keys(folded).filter(key => key !== "svg");
+      ObjectKeys.forEach((key) => { this[key] = folded[key]; });
       if ("re:construction" in this === true) {
         if (objects.length > 0 && "axiom" in objects[0] === true) {
           this["re:construction"].axiom = objects[0].axiom;
           this["re:construction"].parameters = objects[0].parameters;
         }
       }
-      if (was_folded) { this.fold(); }
       didModifyGraph.call(this);
     };
     proto.creaseRay = function (...args) {
@@ -10099,6 +10093,7 @@ line.mark { stroke: lightgray; }
 .foldedForm polygon.front { fill: white; }
 .foldedForm polygon.back { fill: lightgray; }
 .foldedForm line { stroke: none; }
+.foldedForm polygon { stroke: black; }
 `;
     const groups = {};
     ["boundaries", "faces", "edges", "vertices", "diagram", "labels"
@@ -10107,6 +10102,8 @@ line.mark { stroke: lightgray; }
       groups[key].setAttribute("class", key);
     });
     groups.edges.setAttribute("stroke-width", 1);
+    groups.faces.setAttribute("stroke-width", 1);
+    groups.boundaries.setAttribute("stroke-width", 1);
     groups.edges.setAttribute("stroke", "black");
     groups.faces.setAttribute("stroke", "none");
     groups.faces.setAttribute("fill", "none");
@@ -10152,6 +10149,8 @@ line.mark { stroke: lightgray; }
       const vmax = r[2] > r[3] ? r[2] : r[3];
       const vavg = (vmin + vmax) / 2;
       groups.edges.setAttribute("stroke-width", vavg * options.strokeWidth);
+      groups.faces.setAttribute("stroke-width", vavg * options.strokeWidth);
+      groups.boundaries.setAttribute("stroke-width", vavg * options.strokeWidth);
     };
     Object.defineProperty(svg, "draw", { value: draw });
     Object.defineProperty(svg, "fit", { value: fit });
@@ -10452,12 +10451,33 @@ line.mark { stroke: lightgray; }
     return undefined;
   };
 
+  const cache = function (graph) {
+    const cached = {};
+    keys_types.graph.forEach((key) => { cached[key] = graph[key]; });
+    if ("faces_re:matrix" in graph === true) {
+      cached["faces_re:matrix"] = graph["faces_re:matrix"];
+    }
+    if ("faces_re:layer" in graph === true) {
+      cached["faces_re:layer"] = graph["faces_re:layer"];
+    }
+    return clone$1(cached);
+  };
+  const prepareGraph = function (graph) {
+    if ("faces_re:matrix" in graph === false) {
+      graph["faces_re:matrix"] = make_faces_matrix(graph, 0);
+    }
+  };
   const setup = function (origami, svg) {
-    let cachedGraph = origami.copy();
+    prepareGraph(origami);
     let touchFaceIndex = 0;
+    let cachedGraph = cache(origami);
+    let was_folded = false;
     svg.events.addEventListener("onMouseDown", (mouse) => {
-      cachedGraph = origami.copy();
-      cachedGraph.fold();
+      cachedGraph = cache(origami);
+      if ("vertices_re:unfoldedCoords" in origami === true) {
+        was_folded = true;
+        cachedGraph.vertices_coords = origami["vertices_re:unfoldedCoords"].slice();
+      }
       const faces_containing = faces_containing_point(cachedGraph, mouse);
       const top_face = topmost_face(origami, faces_containing);
       touchFaceIndex = (top_face == null)
@@ -10469,6 +10489,7 @@ line.mark { stroke: lightgray; }
         origami.load(cachedGraph);
         const instruction = axiom2(mouse.pressed, mouse.position);
         origami.valleyFold(instruction.solutions[0], touchFaceIndex);
+        if (was_folded) { origami.fold(); }
       }
     });
   };
@@ -10507,51 +10528,67 @@ line.mark { stroke: lightgray; }
     return {};
   };
   const Origami = function (...args) {
+    const origami = Object.assign(
+      Object.create(Prototype$2()),
+      args.filter(el => possibleFoldObject(el)).shift() || square()
+    );
     const setFoldedForm = function (isFolded) {
       const remove = isFolded ? "creasePattern" : "foldedForm";
       const add = isFolded ? "foldedForm" : "creasePattern";
       const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
       const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
-      while (this.frame_classes.indexOf(remove) !== -1) {
-        this.frame_classes.splice(this.frame_classes.indexOf(remove), 1);
+      if (origami.frame_classes == null) {
+        origami.frame_classes = [];
+      } else {
+        while (origami.frame_classes.indexOf(remove) !== -1) {
+          origami.frame_classes.splice(origami.frame_classes.indexOf(remove), 1);
+        }
       }
-      if (this.frame_classes.indexOf(add) === -1) {
-        this.frame_classes.push(add);
+      if (origami.frame_classes.indexOf(add) === -1) {
+        origami.frame_classes.push(add);
       }
-      if (to in this === true) {
-        this[from] = this.vertices_coords;
-        this.vertices_coords = this[to];
-        delete this[to];
+      if (to in origami === true) {
+        origami[from] = origami.vertices_coords;
+        origami.vertices_coords = origami[to];
+        delete origami[to];
       }
-      this.didChange.forEach(f => f());
+      origami.didChange.forEach(f => f());
     };
     const fold = function (options = {}) {
-      if ("faces_re:matrix" in this === false) {
-        this["faces_re:matrix"] = make_faces_matrix(this, options.face);
+      if ("faces_re:matrix" in origami === false) {
+        origami["faces_re:matrix"] = make_faces_matrix(origami, options.face);
       }
-      if ("vertices_re:foldedCoords" in this === false) {
-        this["vertices_re:foldedCoords"] = make_vertices_coords_folded(this, null, this["faces_re:matrix"]);
+      if ("vertices_re:foldedCoords" in origami === false) {
+        origami["vertices_re:foldedCoords"] = make_vertices_coords_folded(origami, null, origami["faces_re:matrix"]);
       }
-      setFoldedForm.call(this, true);
-      return this;
+      setFoldedForm.call(origami, true);
+      return origami;
     };
     const unfold = function () {
-      setFoldedForm.call(this, false);
-      return this;
+      setFoldedForm.call(origami, false);
+      return origami;
     };
     const load = function (input, prevent_wipe) {
       const loaded_file = load_file$1(input);
       if (prevent_wipe == null || prevent_wipe !== true) {
-        keys.forEach(key => delete this[key]);
+        keys.forEach(key => delete origami[key]);
       }
-      Object.assign(this, clone$1(loaded_file));
-      this.didChange.forEach(f => f());
-      return this;
+      Object.assign(origami, clone$1(loaded_file));
+      origami.didChange.forEach(f => f());
+      return origami;
     };
-    const origami = Object.assign(
-      Object.create(Prototype$2()),
-      args.filter(el => possibleFoldObject(el)).shift() || square()
-    );
+    const get = function (component) {
+      const a = transpose_geometry_arrays(origami, component);
+      const view = origami.svg || origami.gl;
+      Object.defineProperty(a, "visible", {
+        get: () => view.options[component],
+        set: (v) => {
+          view.options[component] = !!v;
+          origami.didChange.forEach(f => f());
+        },
+      });
+      return a;
+    };
     const options = {};
     Object.assign(options, DEFAULTS$1);
     const userDefaults = parseOptions$1(...args);
@@ -10560,6 +10597,9 @@ line.mark { stroke: lightgray; }
     Object.defineProperty(origami, "fold", { value: fold });
     Object.defineProperty(origami, "unfold", { value: unfold });
     Object.defineProperty(origami, "load", { value: load });
+    Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
+    Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
+    Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });
     return origami;
   };
   const init = function (...args) {

@@ -220,14 +220,16 @@ const Prototype = function (proto = {}) {
     // let mat_inv = matrix
     //  .map(mat => Geom.core.make_matrix2_inverse(mat))
     //  .map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
-    const was_folded = "vertices_re:unfoldedCoords" in this;
-    if (was_folded) { this.unfold(); }
+
     const folded = MakeFold(this,
       line.point,
       line.vector,
       face_index,
       "V");
-    Object.keys(folded).forEach((key) => { this[key] = folded[key]; });
+
+    const ObjectKeys = Object.keys(folded).filter(key => key !== "svg");
+    ObjectKeys.forEach((key) => { this[key] = folded[key]; });
+
     if ("re:construction" in this === true) {
       if (objects.length > 0 && "axiom" in objects[0] === true) {
         this["re:construction"].axiom = objects[0].axiom;
@@ -237,7 +239,7 @@ const Prototype = function (proto = {}) {
       //  Diagram.build_diagram_frame(this)
       // ];
     }
-    if (was_folded) { this.fold(); }
+
     didModifyGraph.call(this);
 
     // todo, need to grab the crease somehow

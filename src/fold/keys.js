@@ -74,11 +74,16 @@ export const keys = Object.freeze([]
 
 export const edges_assignment_names = {
   en: {
-    B: "boundary", b: "boundary",
-    M: "mountain", m: "mountain",
-    V: "valley",   v: "valley",
-    F: "mark",     f: "mark",
-    U: "mark",     u: "mark"
+    B: "boundary",
+    b: "boundary",
+    M: "mountain",
+    m: "mountain",
+    V: "valley",
+    v: "valley",
+    F: "mark",
+    f: "mark",
+    U: "mark",
+    u: "mark"
   }
 };
 
