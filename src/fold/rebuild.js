@@ -26,7 +26,7 @@ import {
 } from "./make";
 import {
   edge_assignment_to_foldAngle
-} from "../fold/keys";
+} from "./keys";
 
 
 export const complete = function (graph) {

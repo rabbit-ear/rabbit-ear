@@ -163,13 +163,20 @@ export const folded_faces_containing_point = function (graph, point, faces_matri
     .map(f => f.i);
 };
 
-export const faces_containing_point = function (graph, point) {
-  if (graph.vertices_coords == null || graph.vertices_coords.length === 0
-    || graph.faces_vertices == null || graph.faces_vertices.length === 0) {
-    return undefined;
-  }
-  return graph.faces_vertices
-    .map((fv, i) => ({ face: fv.map(v => graph.vertices_coords[v]), i }))
+// export const faces_containing_point = function (graph, point) {
+//   if (graph.vertices_coords == null || graph.vertices_coords.length === 0
+//     || graph.faces_vertices == null || graph.faces_vertices.length === 0) {
+//     return undefined;
+//   }
+//   return graph.faces_vertices
+//     .map((fv, i) => ({ face: fv.map(v => graph.vertices_coords[v]), i }))
+//     .filter(f => math.core.point_in_poly(point, f.face))
+//     .map(f => f.i);
+// };
+
+export const faces_containing_point = function ({ vertices_coords, faces_vertices }, point) {
+  return faces_vertices
+    .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
     .filter(f => math.core.point_in_poly(point, f.face))
     .map(f => f.i);
 };
@@ -177,21 +184,23 @@ export const faces_containing_point = function (graph, point) {
 /**
  * someday this will implement facesOrders. right now just faces_re:layer
  * leave faces_options empty to search all faces
+ *
+ * faces is an array of indices: [1, 6, 9, 15]
  */
-export const topmost_face = function (graph, faces_options) {
-  if (faces_options == null) {
-    faces_options = Array.from(Array(faces_count(graph)))
+export const topmost_face = function (graph, faces) {
+  if (faces == null) {
+    faces = Array.from(Array(faces_count(graph)))
       .map((_, i) => i);
   }
-  if (faces_options.length === 0) { return undefined; }
-  if (faces_options.length === 1) { return faces_options[0]; }
+  if (faces.length === 0) { return undefined; }
+  if (faces.length === 1) { return faces[0]; }
   // top to bottom
   const faces_in_order = graph["faces_re:layer"]
     .map((layer, i) => ({ layer, i }))
     .sort((a, b) => b.layer - a.layer)
     .map(el => el.i);
   for (let i = 0; i < faces_in_order.length; i += 1) {
-    if (faces_options.includes(faces_in_order[i])) {
+    if (faces.includes(faces_in_order[i])) {
       return faces_in_order[i];
     }
   }

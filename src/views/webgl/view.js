@@ -7,9 +7,9 @@
  *   - DOM object, or "string" DOM id to attach to
  */
 
-import { flatten_frame } from "../fold/file_frames";
-import load_file from "../files/load_async";
-import Prototype from "../fold/prototype";
+import { flatten_frame } from "../../fold/file_frames";
+import load_file from "../../files/load_async";
+import Prototype from "../../fold/prototype";
 
 const CREASE_DIR = {
   "B": "boundary",
@@ -22,18 +22,15 @@ const CREASE_DIR = {
 // import { unitSquare } from "./OrigamiBases"
 const unitSquare = {"file_spec":1.1,"file_creator":"","file_author":"","file_classes":["singleModel"],"frame_title":"","frame_attributes":["2D"],"frame_classes":["creasePattern"],"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"vertices_vertices":[[1,3],[2,0],[3,1],[0,2]],"vertices_faces":[[0],[0],[0],[0]],"edges_vertices":[[0,1],[1,2],[2,3],[3,0]],"edges_faces":[[0],[0],[0],[0]],"edges_assignment":["B","B","B","B"],"edges_foldAngle":[0,0,0,0],"edges_length":[1,1,1,1],"faces_vertices":[[0,1,2,3]],"faces_edges":[[0,1,2,3]]};
 
-export default function View3D(){
-
+export default function View3D(...args) {
   //  from arguments, get a fold file, if it exists
-  let args = Array.from(arguments);
-
   let allMeshes = [];
   let scene = new THREE.Scene();
 
   // view properties
-  let frame = 0; // which frame (0 ..< Inf) to display 
+  let frame = 0; // which frame (0 ..< Inf) to display
   let style = {
-    vertex:{ radius: 0.01 },  // radius, percent of page
+    vertex: { radius: 0.01 }, // radius, percent of page
   };
   let _parent;
 
@@ -45,13 +42,13 @@ export default function View3D(){
     },
   };
 
-  prop.cp = args.filter(arg =>
-    typeof arg == "object" && arg.vertices_coords != undefined
-  ).shift();
-  if(prop.cp == undefined){ prop.cp = CreasePattern(unitSquare); }
+  prop.cp = args
+    .filter(arg => typeof arg === "object" && arg.vertices_coords != null)
+    .shift();
+  if (prop.cp == null) { prop.cp = CreasePattern(unitSquare); }
 
 
-  function bootThreeJS(domParent){
+  function bootThreeJS(domParent) {
     var camera = new THREE.PerspectiveCamera(45, domParent.clientWidth/domParent.clientHeight, 0.1, 1000);
     var controls = new THREE.OrbitControls(camera, domParent);
     controls.enableZoom = false;
@@ -86,7 +83,7 @@ export default function View3D(){
     scene.add(ambientLight);
 
 
-    var render = function(){
+    var render = function() {
       requestAnimationFrame(render);
       renderer.render(scene, camera);
       controls.update();
@@ -97,7 +94,7 @@ export default function View3D(){
   }
 
   // after page load, find a parent element for the canvas in the arguments
-  const attachToDOM = function(){
+  const attachToDOM = function() {
     let functions = args.filter((arg) => typeof arg === "function");
     let numbers = args.filter((arg) => !isNaN(arg));
     let element = args.filter((arg) =>
@@ -113,17 +110,17 @@ export default function View3D(){
         ? idElement
         : document.body));
     bootThreeJS(_parent);
-    if(numbers.length >= 2){
+    if (numbers.length >= 2) {
       // _svg.setAttributeNS(null, "width", numbers[0]);
       // _svg.setAttributeNS(null, "height", numbers[1]);
     } 
-    if(functions.length >= 1){
+    if (functions.length >= 1) {
       functions[0]();
     }
   };
 
 
-  if(document.readyState === 'loading') {
+  if (document.readyState === 'loading') {
     // wait until after the <body> has rendered
     document.addEventListener('DOMContentLoaded', attachToDOM);
   } else {
@@ -131,7 +128,7 @@ export default function View3D(){
   }
 
 
-  function draw(){
+  function draw() {
     var material = new THREE.MeshPhongMaterial({
       color: 0xffffff,
       side: THREE.DoubleSide,
@@ -167,19 +164,19 @@ export default function View3D(){
     });
   }
 
-  const isFoldedState = function(){
-    if(prop.cp == undefined || prop.cp.frame_classes == undefined){ return false; }
+  const isFoldedState = function() {
+    if (prop.cp == undefined || prop.cp.frame_classes == undefined) { return false; }
     let frame_classes = prop.cp.frame_classes;
-    if(frame > 0 &&
+    if (frame > 0 &&
        prop.cp.file_frames[frame - 1] != undefined &&
-       prop.cp.file_frames[frame - 1].frame_classes != undefined){
+       prop.cp.file_frames[frame - 1].frame_classes != undefined) {
       frame_classes = prop.cp.file_frames[frame - 1].frame_classes;
     }
     // try to discern folded state
-    if(frame_classes.includes("foldedForm")){
+    if (frame_classes.includes("foldedForm")) {
       return true;
     }
-    if(frame_classes.includes("creasePattern")){
+    if (frame_classes.includes("creasePattern")) {
       return false;
     }
     // inconclusive
@@ -188,11 +185,11 @@ export default function View3D(){
 
   // return Object.freeze({
   return {
-    set cp(c){
+    set cp(c) {
       setCreasePattern(c);
       draw();
     },
-    get cp(){
+    get cp() {
       return prop.cp;
     },
     draw,
@@ -213,7 +210,7 @@ export default function View3D(){
 
 
 
-  function foldFileToThreeJSFaces(foldFile, material){
+  function foldFileToThreeJSFaces(foldFile, material) {
     
     var geometry = new THREE.BufferGeometry();
     let vertices = foldFile.vertices_coords
@@ -236,36 +233,36 @@ export default function View3D(){
     geometry.addAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     geometry.setIndex(faces);
 
-    if(material == undefined){ material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide}); }
+    if (material == undefined) { material = new THREE.MeshNormalMaterial({side: THREE.DoubleSide}); }
     return new THREE.Mesh(geometry, material);
   }
 
-  function crossVec3(a,b){
+  function crossVec3(a,b) {
     return [
       a[1]*b[2] - a[2]*b[1],
       a[2]*b[0] - a[0]*b[2],
       a[0]*b[1] - a[1]*b[0]
     ];
   }
-  function magVec3(v){
+  function magVec3(v) {
     return Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
   }
-  function normalizeVec3(v){
+  function normalizeVec3(v) {
     let mag = Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2) + Math.pow(v[2],2));
     return [v[0] / mag, v[1] / mag, v[2] / mag];
   }
-  function scaleVec3(v, scale){
+  function scaleVec3(v, scale) {
     return [v[0]*scale, v[1]*scale, v[2]*scale];
   }
-  function dotVec3(a,b){
+  function dotVec3(a,b) {
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
   }
 
-  function cylinderEdgeVertices(edge, radius){
+  function cylinderEdgeVertices(edge, radius) {
     // normalized edge vector
     let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
     let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-    if(mag < 1e-10){ throw "degenerate edge"; }
+    if (mag < 1e-10) { throw "degenerate edge"; }
     let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
     let perp = [
       normalizeVec3(crossVec3(normalized, [1,0,0])),
@@ -276,7 +273,7 @@ export default function View3D(){
      .map(obj => obj.v)
      .shift()
     let rotated = [perp];
-    for(var i = 1; i < 4; i++){
+    for(var i = 1; i < 4; i++) {
       rotated.push(normalizeVec3(crossVec3(rotated[i-1], normalized)));
     }
     let dirs = rotated.map(v => scaleVec3(v, radius));
@@ -285,12 +282,12 @@ export default function View3D(){
       .reduce((prev,curr) => prev.concat(curr), []);
   }
 
-  function foldFileToThreeJSLines(foldFile, scale=0.002){
+  function foldFileToThreeJSLines(foldFile, scale=0.002) {
     let edges = foldFile.edges_vertices.map(ev => ev.map(v => foldFile.vertices_coords[v]));
     // make sure they all have a z component. when z is implied it's 0
     edges.forEach(edge => {
-      if(edge[0][2] == undefined){ edge[0][2] = 0; }
-      if(edge[1][2] == undefined){ edge[1][2] = 0; }
+      if (edge[0][2] == undefined) { edge[0][2] = 0; }
+      if (edge[1][2] == undefined) { edge[1][2] = 0; }
     })
 
     let colorAssignments = {
@@ -317,7 +314,7 @@ export default function View3D(){
       // normalized edge vector
       let vec = [edge[1][0] - edge[0][0], edge[1][1] - edge[0][1], edge[1][2] - edge[0][2]];
       let mag = Math.sqrt(Math.pow(vec[0],2) + Math.pow(vec[1],2) + Math.pow(vec[2],2));
-      if(mag < 1e-10){ throw "degenerate edge"; }
+      if (mag < 1e-10) { throw "degenerate edge"; }
       let normalized = [vec[0] / mag, vec[1] / mag, vec[2] / mag];
       // scale to line width
       let scaled = [normalized[0]*scale, normalized[1]*scale, normalized[2]*scale];

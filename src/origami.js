@@ -3,8 +3,8 @@
  * forms: webGL, svg, no-frontend node.
  */
 
-import svgView from "./views/svgView";
-import glView from "./views/glView";
+import svgView from "./views/svg/view";
+import glView from "./views/webgl/view";
 
 import {
   isBrowser,
@@ -19,9 +19,13 @@ import * as Create from "./fold/create";
 import { keys as foldKeys } from "./fold/keys";
 import { clone } from "./fold/object";
 
-const DEFAULTS = Object.freeze({ });
+import touchAndFold from "./origami_touch_fold";
 
-const parsePreferences = function (...args) {
+const DEFAULTS = Object.freeze({
+  folding: false,
+});
+
+const parseOptions = function (...args) {
   const keys = Object.keys(DEFAULTS);
   const prefs = {};
   Array(...args)
@@ -33,9 +37,9 @@ const parsePreferences = function (...args) {
 };
 
 const getView = function (that, ...args) {
-  const typeOptions = args.filter(a => "type" in a === true).shift();
-  if (typeOptions !== undefined) {
-    switch (typeOptions.type) {
+  const viewOptions = args.filter(a => "view" in a === true).shift();
+  if (viewOptions !== undefined) {
+    switch (viewOptions.view) {
       case "gl":
       case "GL":
       case "webGL":
@@ -107,6 +111,55 @@ const Origami = function (...args) {
     this.didChange.forEach(f => f());
     return this;
   };
+
+  // const prepareSVGForExport = function (svgElement) {
+  //   svgElement.setAttribute("x", "0px");
+  //   svgElement.setAttribute("y", "0px");
+  //   svgElement.setAttribute("width", "600px");
+  //   svgElement.setAttribute("height", "600px");
+  //   return svgElement;
+  // };
+
+  // Object.defineProperty(svg, "export", {
+  //   value: (...exportArgs) => save(prepareSVGForExport(svg.cloneNode(true)), ...exportArgs)
+  // });
+
+  // Object.defineProperty(svg, "frames", {
+  //   get: () => {
+  //     if (prop.cp.file_frames === undefined) {
+  //       return [JSON.parse(JSON.stringify(prop.cp))];
+  //     }
+  //     const frameZero = JSON.parse(JSON.stringify(prop.cp));
+  //     delete frameZero.file_frames;
+  //     const frames = JSON.parse(JSON.stringify(prop.cp.file_frames));
+  //     return [frameZero].concat(frames);
+  //   },
+  // });
+
+
+  // const visibleVerticesGetterSetter = {
+  //   get: () => visible.vertices,
+  //   set: (v) => { visible.vertices = !!v; draw(); },
+  // };
+  // const visibleEdgesGetterSetter = {
+  //   get: () => visible.edges,
+  //   set: (v) => { visible.edges = !!v; draw(); },
+  // };
+  // const visibleFacesGetterSetter = {
+  //   get: () => visible.faces,
+  //   set: (v) => { visible.faces = !!v; draw(); },
+  // };
+  // const visibleBoundaryGetterSetter = {
+  // };
+
+  // const getVertices = function () {
+  //   const { vertices } = prop.cp;
+  //   vertices.forEach((v, i) => { v.svg = groups.vertices.childNodes[i]; });
+  //   // console.log("vertices", vertices);
+  //   Object.defineProperty(vertices, "visible", visibleVerticesGetterSetter);
+  //   return vertices;
+  // };
+
   /**
    * create the object. process initialization arguments
    * by default this will load a unit square graph.
@@ -116,15 +169,17 @@ const Origami = function (...args) {
     args.filter(el => possibleFoldObject(el)).shift() || Create.square()
   );
   // apply preferences
-  const preferences = {};
-  Object.assign(preferences, DEFAULTS);
-  const userDefaults = parsePreferences(...args);
+  const options = {};
+  Object.assign(options, DEFAULTS);
+  const userDefaults = parseOptions(...args);
   Object.keys(userDefaults)
-    .forEach((key) => { preferences[key] = userDefaults[key]; });
+    .forEach((key) => { options[key] = userDefaults[key]; });
+
   // attach methods
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
   Object.defineProperty(origami, "load", { value: load });
+
   return origami;
 };
 
@@ -134,17 +189,24 @@ const init = function (...args) {
     // do nothing
   } else if (isBrowser) {
     // hack. encourage them to have a view
-    const typeOptions = args.filter(a => "type" in a === true).shift();
-    if (typeOptions !== undefined && typeOptions.type === undefined) {
-      typeOptions.type = "svg";
-    } else if (typeOptions === undefined) {
-      args.push({ type: "svg" });
+    const viewOptions = args.filter(a => "view" in a === true).shift();
+    if (viewOptions !== undefined && viewOptions.view === undefined) {
+      viewOptions.view = "svg";
+    } else if (viewOptions === undefined) {
+      args.push({ view: "svg" });
     }
   }
   Object.assign(origami, getView(origami, ...args));
   // origami.prototype.svg = getView(origami, ...args).svg;
   // if view exists, call first draw
-  if (origami.svg) { origami.svg.draw(); }
+
+  // attach additional methods
+  touchAndFold(origami, origami.svg);
+
+  if (origami.svg) {
+    origami.svg.fit();
+    origami.svg.draw();
+  }
   return origami;
 };
 

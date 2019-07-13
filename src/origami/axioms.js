@@ -25,7 +25,9 @@ export const axiom1 = function (pointA, pointB) {
 export const axiom2 = function (a, b) {
   const mid = math.core.midpoint2(a, b);
   const vec = math.core.normalize(a.map((_, i) => b[i] - a[i]));
-  const solution = [mid, [vec[1], -vec[0]]];
+  // const solution = [mid, [vec[1], -vec[0]]];
+  // changed to match valleyFold. todo establish standard for direction
+  const solution = [mid, [-vec[1], vec[0]]];
   return make_axiom_frame(2, { points: [a, b] }, [solution]);
 };
 export const axiom3 = function (pointA, vectorA, pointB, vectorB) {

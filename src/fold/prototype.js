@@ -121,6 +121,10 @@ const Prototype = function (proto = {}) {
     result.index = index;
     return result;
   };
+  /**
+   * How does this view process a request for nearest components to a target?
+   * (2D), furthermore, attach view objects (SVG) to the nearest value data.
+   */
   proto.nearest = function (...args) {
     const target = math.core.get_vector(...args);
     const nears = {
@@ -216,6 +220,8 @@ const Prototype = function (proto = {}) {
     // let mat_inv = matrix
     //  .map(mat => Geom.core.make_matrix2_inverse(mat))
     //  .map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
+    const was_folded = "vertices_re:unfoldedCoords" in this;
+    if (was_folded) { this.unfold(); }
     const folded = MakeFold(this,
       line.point,
       line.vector,
@@ -231,6 +237,7 @@ const Prototype = function (proto = {}) {
       //  Diagram.build_diagram_frame(this)
       // ];
     }
+    if (was_folded) { this.fold(); }
     didModifyGraph.call(this);
 
     // todo, need to grab the crease somehow
