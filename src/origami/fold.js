@@ -8,6 +8,7 @@
  * does not modify input graph's geometry, but does append "re:" data
  * any additional non-standard-FOLD data will be copied over as well.
  */
+
 // for now, this uses "faces_re:layer", todo: use faceOrders
 
 import math from "../../include/math";
@@ -30,7 +31,6 @@ import {
   construction_flip,
   // construction_fold,
 } from "../frames/construction_frame";
-
 
 /**
  * this establishes which side a point (face_center) is from the

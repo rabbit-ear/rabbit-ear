@@ -63,7 +63,7 @@ const add_vertex_on_edge = function (graph, x, y, old_edge_index) {
     new_edges[i].edges_length = math.core.distance2(...verts);
   });
   // todo: copy over edgeOrders. don't need to do this with faceOrders
-  new_edges.forEach((edge, i) => Object.keys(edge)
+  new_edges.forEach(edge => Object.keys(edge)
     .filter(key => key !== "i")
     // .filter(key => key !== i)
     .forEach((key) => { graph[key][edge.i] = edge[key]; }));
@@ -113,7 +113,7 @@ const add_vertex_on_edge = function (graph, x, y, old_edge_index) {
         .reduce((a, b) => a && b, true);
       if (in0) { return new_edges[0].i; }
       if (in1) { return new_edges[1].i; }
-      throw "something wrong with input graph's faces_edges construction";
+      throw new Error("something wrong with input graph's faces_edges construction");
     });
     if (edgeIndex === face.length - 1) {
       // replacing the edge at the end of the array, we have to be careful

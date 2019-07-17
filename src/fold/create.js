@@ -3,19 +3,31 @@ import math from "../../include/math"; // only to get { clean_number }
 const file_spec = 1.1;
 const file_creator = "Rabbit Ear";
 
-const metadata = function () {
+const metadata = function (complete = false) {
+  return !complete
+    ? {
+      file_spec,
+      file_creator
+    }
+    : {
+      file_spec,
+      file_creator,
+      file_author: "",
+      file_title: "",
+      file_description: "",
+      file_classes: [],
+      file_frames: [],
+      frame_description: "",
+      frame_attributes: [],
+      frame_classes: [],
+      frame_unit: "",
+    };
+};
+
+const default_re_extensions = function (number_faces = 1) {
   return {
-    file_spec,
-    file_creator,
-    // file_author: "",
-    // file_title: "",
-    // file_description: "",
-    // file_classes: [],
-    // file_frames: [],
-    // frame_description: "",
-    // frame_attributes: [],
-    // frame_classes: [],
-    // frame_unit: "",
+    "faces_re:layer": Array.from(Array(number_faces)).map((_, i) => i),
+    "faces_re:matrix": Array.from(Array(number_faces)).map(() => [1, 0, 0, 1, 0, 0])
   };
 };
 
@@ -56,6 +68,7 @@ export const square = function () {
     metadata(),
     cp_type(),
     square_graph(),
+    default_re_extensions(1)
   );
 };
 
@@ -68,6 +81,7 @@ export const rectangle = function (width = 1, height = 1) {
     metadata(),
     cp_type(),
     graph,
+    default_re_extensions(1)
   );
 };
 
@@ -102,5 +116,6 @@ export const regular_polygon = function (sides, radius = 1) {
     metadata(),
     cp_type(),
     graph,
+    default_re_extensions(1)
   );
 };

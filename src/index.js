@@ -33,7 +33,6 @@ import * as object from "./fold/object";
 import * as keys from "./fold/keys";
 import * as validate from "./fold/validate";
 
-import * as add from "./fold/add";
 import * as remove from "./fold/remove";
 import * as make from "./fold/make";
 import * as query from "./fold/query";
@@ -83,7 +82,6 @@ Object.assign(core,
   object,
   keys,
   validate,
-  add,
   remove,
   rebuild,
   make,

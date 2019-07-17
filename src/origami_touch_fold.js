@@ -9,7 +9,6 @@ import {
 import {
   axiom2
 } from "./origami/axioms";
-import { keys_types } from "./fold/keys";
 import { clone } from "./fold/object";
 
 const build_folded_frame = function (graph, face_stationary = 0) {
@@ -19,18 +18,6 @@ const build_folded_frame = function (graph, face_stationary = 0) {
     vertices_coords,
     "faces_re:matrix": faces_matrix
   };
-};
-
-const cache = function (graph) {
-  const cached = {};
-  keys_types.graph.forEach((key) => { cached[key] = graph[key]; });
-  if ("faces_re:matrix" in graph === true) {
-    cached["faces_re:matrix"] = graph["faces_re:matrix"];
-  }
-  if ("faces_re:layer" in graph === true) {
-    cached["faces_re:layer"] = graph["faces_re:layer"];
-  }
-  return clone(cached);
 };
 
 const prepareGraph = function (graph) {
@@ -43,26 +30,32 @@ const setup = function (origami, svg) {
   prepareGraph(origami);
 
   let touchFaceIndex = 0; // which faces the user touched, to begin folding
-  let cachedGraph = cache(origami);
-  let was_folded = false;
+  let cachedGraph = clone(origami);
+  let was_folded = ("vertices_re:unfoldedCoords" in origami === true);
   svg.events.addEventListener("onMouseDown", (mouse) => {
-    cachedGraph = cache(origami);
+    was_folded = ("vertices_re:unfoldedCoords" in origami === true);
+    cachedGraph = clone(origami);
+    const param = {
+      faces_vertices: origami.faces_vertices,
+      "faces_re:layer": origami["faces_re:layer"]
+    };
+    param.vertices_coords = was_folded
+      ? (origami["vertices_re:foldedCoords"] || origami.vertices_coords)
+      : (origami["vertices_re:unfoldedCoords"] || origami.vertices_coords);
+    const faces_containing = faces_containing_point(param, mouse);
+    const top_face = topmost_face(param, faces_containing);
+    touchFaceIndex = (top_face == null)
+      ? 0 // get bottom most face
+      : top_face;
     // this shifts the folded coords into the vertices_coords position
-    if ("vertices_re:unfoldedCoords" in origami === true) {
-      was_folded = true;
+    if (was_folded) {
       cachedGraph.vertices_coords = origami["vertices_re:unfoldedCoords"].slice();
-      // delete origami["vertices_re:unfoldedCoords"];
     }
     // cachedGraph.fold();
     // vertices_coords: graph.vertices_coords,
     // vertices_coords: graph["vertices_re:foldedCoords"],
     // vertices_coords: graph["vertices_re:unfoldedCoords"],
     // build_folded_frame(prevCP, 0);
-    const faces_containing = faces_containing_point(cachedGraph, mouse);
-    const top_face = topmost_face(origami, faces_containing);
-    touchFaceIndex = (top_face == null)
-      ? 0 // get bottom most face
-      : top_face;
   });
   svg.events.addEventListener("onMouseMove", (mouse) => {
     if (mouse.isPressed) {

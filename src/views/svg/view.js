@@ -17,8 +17,21 @@ import {
   drawLabels,
   drawDebug
 } from "./draw";
+import window from "../../../include/svg/src/environment/window";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
+
+const DEFAULT_STYLE = `
+line.mountain { stroke: red; }
+line.valley { stroke: blue; }
+line.mark { stroke: lightgray; }
+polygon { stroke-linejoin: bevel; }
+.foldedForm polygon { fill: rgba(0, 0, 0, 0.1); }
+.foldedForm polygon.front { fill: white; }
+.foldedForm polygon.back { fill: lightgray; }
+.foldedForm line { stroke: none; }
+.foldedForm polygon { stroke: black; }
+`;
 
 const DEFAULTS = Object.freeze({
   // are layers visible
@@ -37,7 +50,7 @@ const DEFAULTS = Object.freeze({
   // style
   strokeWidth: 0.01, // as a percent of the page.
   // added recently
-  styleSheet: undefined,
+  style: undefined,
   arrowColor: undefined,
 });
 
@@ -55,21 +68,12 @@ const parseOptions = function (...args) {
 const View = function (fold_file, ...args) {
   const graph = fold_file;
   const svg = SVGImage(...args);
-  const svgStyle = document.createElementNS(SVG_NS, "style");
-  const defs = document.createElementNS(SVG_NS, "defs");
+  const svgStyle = window.document.createElementNS(SVG_NS, "style");
+  const defs = window.document.createElementNS(SVG_NS, "defs");
   svg.appendChild(svgStyle);
   svg.appendChild(defs);
   defs.appendChild(shadowFilter("faces_shadow"));
-  svgStyle.innerHTML = `
-line.mountain { stroke: red; }
-line.valley { stroke: blue; }
-line.mark { stroke: lightgray; }
-.foldedForm polygon { fill: rgba(0, 0, 0, 0.1); }
-.foldedForm polygon.front { fill: white; }
-.foldedForm polygon.back { fill: lightgray; }
-.foldedForm line { stroke: none; }
-.foldedForm polygon { stroke: black; }
-`;
+  svgStyle.innerHTML = DEFAULT_STYLE;
 
   // make SVG groups, containers for the crease pattern parts
   // the order of this list causes the layer order
@@ -141,9 +145,12 @@ line.mark { stroke: lightgray; }
     const vmin = r[2] > r[3] ? r[3] : r[2];
     const vmax = r[2] > r[3] ? r[2] : r[3];
     const vavg = (vmin + vmax) / 2;
-    groups.edges.setAttribute("stroke-width", vavg * options.strokeWidth);
-    groups.faces.setAttribute("stroke-width", vavg * options.strokeWidth);
-    groups.boundaries.setAttribute("stroke-width", vavg * options.strokeWidth);
+    const strokeWidth = vavg * options.strokeWidth;
+    ["boundaries", "faces", "edges", "vertices"]
+      .forEach(key => groups[key].setAttribute("stroke-width", strokeWidth));
+    if (options.style) {
+      svgStyle.innerHTML = DEFAULT_STYLE + options.style;
+    }
   };
 
   Object.defineProperty(svg, "draw", { value: draw });

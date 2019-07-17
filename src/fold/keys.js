@@ -140,7 +140,6 @@ export const transpose_geometry_arrays = function (graph, geometry_key) {
   return geometry;
 };
 
-
 /**
  * this takes in a geometry_key (vectors, edges, faces), and flattens
  * across all related arrays, creating 1 array of objects with the keys

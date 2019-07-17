@@ -104,17 +104,19 @@ export const validate = function (graph) {
   // iterate over every vertices_vertices, check that the pairing of vertices
   // exists somewhere in edges_vertices
   // this assumes that vertices_vertices implies the presence of edges_vertices
-  const vv_edge_test = graph.vertices_vertices
-    .map((vv, i) => vv.map(v2 => [i, v2]))
-    .reduce((a, b) => a.concat(b), []);
-  const ev_test_fails = vv_edge_test
-    .map(ve => graph.edges_vertices.filter(e => (ve[0] === e[0]
-      && ve[1] === e[1]) || (ve[0] === e[1] && ve[1] === e[0])).length > 0)
-    .map((b, i) => ({ test: b, i }))
-    .filter(el => !el.test);
+  if ("vertices_vertices" in graph) {
+    const vv_edge_test = graph.vertices_vertices
+      .map((vv, i) => vv.map(v2 => [i, v2]))
+      .reduce((a, b) => a.concat(b), []);
+    const ev_test_fails = vv_edge_test
+      .map(ve => graph.edges_vertices.filter(e => (ve[0] === e[0]
+        && ve[1] === e[1]) || (ve[0] === e[1] && ve[1] === e[0])).length > 0)
+      .map((b, i) => ({ test: b, i }))
+      .filter(el => !el.test);
 
-  if (ev_test_fails.length > 0) {
-    throw new Error(`vertices_vertices at index ${ev_test_fails[0].i} declares an edge that doesn't exist in edges_vertices`);
+    if (ev_test_fails.length > 0) {
+      throw new Error(`vertices_vertices at index ${ev_test_fails[0].i} declares an edge that doesn't exist in edges_vertices`);
+    }
   }
 
   if ("vertices_faces" in graph) {

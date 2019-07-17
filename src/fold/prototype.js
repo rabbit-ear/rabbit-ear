@@ -4,14 +4,12 @@ import math from "../../include/math";
 import FOLDConvert from "../../include/fold/convert";
 
 import * as Create from "./create";
-import component from "./component";
 import {
   transpose_geometry_arrays,
   transpose_geometry_array_at_index,
   keys as foldKeys
 } from "./keys";
 import { clone } from "./object";
-import { merge_frame } from "./file_frames";
 import addEdge from "./add_edge";
 import split_edge from "./split_edge";
 import split_face from "./split_face";
@@ -64,7 +62,22 @@ const Prototype = function (proto = {}) {
     // todo: this doesn't get multiple boundaries yet
     return [get_boundary(this)];
   };
+  /**
+   * queries
+   */
+  /**  get the folded state by checking the top level classes */
+  const isFolded = function () {
+    if ("frame_classes" in this === false) { return undefined; }
+    const cpIndex = this.frame_classes.indexOf("creasePattern");
+    const foldedIndex = this.frame_classes.indexOf("foldedForm");
+    if (cpIndex === -1 && foldedIndex === -1) { return undefined; }
+    if (cpIndex !== -1 && foldedIndex !== -1) { return undefined; }
+    return (foldedIndex !== -1);
+  };
 
+  /**
+   * modifiers
+   */
   proto.rebuild = function (epsilon = math.core.EPSILON) {
     rebuild(this, epsilon);
   };
@@ -80,7 +93,7 @@ const Prototype = function (proto = {}) {
       && "faces_vertices" in this && "faces_edges" in this);
     if (!valid) {
       console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
-      clean(epsilon);
+      // clean(epsilon);
     }
   };
   /**
@@ -144,15 +157,15 @@ const Prototype = function (proto = {}) {
     scale(this, ...args);
   };
 
-  proto.foldedForm = function () {
-    const foldedFrame = this.file_frames
-      .filter(f => f.frame_classes.includes("foldedForm"))
-      .filter(f => f.vertices_coords.length === this.vertices_coords.length)
-      .shift();
-    return foldedFrame != null
-      ? merge_frame(this, foldedFrame)
-      : undefined;
-  };
+  // proto.foldedForm = function () {
+  //   const foldedFrame = this.file_frames
+  //     .filter(f => f.frame_classes.includes("foldedForm"))
+  //     .filter(f => f.vertices_coords.length === this.vertices_coords.length)
+  //     .shift();
+  //   return foldedFrame != null
+  //     ? merge_frame(this, foldedFrame)
+  //     : undefined;
+  // };
 
   // updates
   const didModifyGraph = function () {
@@ -286,7 +299,8 @@ const Prototype = function (proto = {}) {
         });
     }
     // this.edges_assignment.push("F");
-    const crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
+    // const crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
+    const crease = [diff.edges_new[0] - edges_remove_count];
     didModifyGraph.call(this);
     return crease;
   };
@@ -297,18 +311,19 @@ const Prototype = function (proto = {}) {
   // };
 
   proto.kawasaki = function (...args) {
-    const crease = component.crease(this, kawasaki_collapse(this, ...args));
+    const crease = kawasaki_collapse(this, ...args);
     didModifyGraph.call(this);
     return crease;
   };
 
   Object.defineProperty(proto, "load", { value: load });
-  // Object.defineProperty(proto, "svg", { value: svg });
   Object.defineProperty(proto, "boundaries", { get: getBoundaries });
   Object.defineProperty(proto, "vertices", { get: getVertices });
   Object.defineProperty(proto, "edges", { get: getEdges });
   Object.defineProperty(proto, "faces", { get: getFaces });
-  Object.defineProperty(proto, "json", { get: json });
+  Object.defineProperty(proto, "isFolded", { value: isFolded });
+  Object.defineProperty(proto, "json", { value: json });
+  // Object.defineProperty(proto, "svg", { value: svg });
 
   // callbacks for when the crease pattern has been altered
   proto.didChange = [];

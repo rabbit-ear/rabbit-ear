@@ -8,8 +8,8 @@ test("fold and unfold, valley fold", () => {
 });
 
 test("fold and unfold base", () => {
-  const origami = re.Origami();
-  origami.load(re.bases.frog);
+  const origami = re.Origami(re.bases.frog);
+  // origami.load();
   origami.fold();
   origami.unfold();
 });

@@ -1,18 +1,23 @@
 import math from "../../include/math";
 
-export const make_vertices_edges = function (graph) {
-  const vertices_edges = graph.vertices_coords.map(() => []);
-  graph.edges_vertices.forEach((ev, i) => ev
-    .forEach(v => vertices_edges[v].push(i)));
+export const make_vertices_edges = function ({ edges_vertices }) {
+  const vertices_edges = [];
+  edges_vertices.forEach((ev, i) => ev
+    .forEach((v) => {
+      if (vertices_edges[v] === undefined) {
+        vertices_edges[v] = [];
+      }
+      vertices_edges[v].push(i);
+    }));
   return vertices_edges;
 };
 
 // faces_faces is a set of faces edge-adjacent to a face. for every face.
-export const make_faces_faces = function (graph) {
-  const nf = graph.faces_vertices.length;
+export const make_faces_faces = function ({ faces_vertices }) {
+  const nf = faces_vertices.length;
   const faces_faces = Array.from(Array(nf)).map(() => []);
   const edgeMap = {};
-  graph.faces_vertices.forEach((vertices_index, idx1) => {
+  faces_vertices.forEach((vertices_index, idx1) => {
     if (vertices_index === undefined) { return; } // todo: necessary?
     const n = vertices_index.length;
     vertices_index.forEach((v1, i, vs) => {
@@ -32,12 +37,14 @@ export const make_faces_faces = function (graph) {
 };
 
 // todo: make_edges_faces c-clockwise
-export const make_edges_faces = function (graph) {
+export const make_edges_faces = function ({
+  edges_vertices, faces_edges
+}) {
   const edges_faces = Array
-    .from(Array(graph.edges_vertices.length))
+    .from(Array(edges_vertices.length))
     .map(() => []);
   // todo: does not arrange counter-clockwise
-  graph.faces_edges.forEach((face, i) => face
+  faces_edges.forEach((face, i) => face
     .forEach(edge => edges_faces[edge].push(i)));
   return edges_faces;
 };
@@ -57,9 +64,9 @@ export const make_edges_length = function (graph) {
  * that compose an edge "6 11" always sorted smallest to largest, with a space.
  * the value is the index of the edge.
  */
-export const make_vertex_pair_to_edge_map = function (graph) {
+export const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
   const map = {};
-  graph.edges_vertices
+  edges_vertices
     .map(ev => ev.sort((a, b) => a - b).join(" "))
     .forEach((key, i) => { map[key] = i; });
   return map;
@@ -68,10 +75,12 @@ export const make_vertex_pair_to_edge_map = function (graph) {
 /**
  * build vertices_faces from faces_vertices
  */
-export const make_vertices_faces = function (graph) {
-  const vertices_faces = Array.from(Array(graph.vertices_coords.length))
+export const make_vertices_faces = function ({
+  vertices_coords, faces_vertices
+}) {
+  const vertices_faces = Array.from(Array(vertices_coords.length))
     .map(() => []);
-  graph.faces_vertices.forEach((face, i) => face
+  faces_vertices.forEach((face, i) => face
     .forEach(vertex => vertices_faces[vertex].push(i)));
   return vertices_faces;
 };

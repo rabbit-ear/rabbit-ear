@@ -3878,7 +3878,7 @@
       }
     };
     const setup = function (node) {
-      if (_node != null) {
+      if (_node != null && typeof node.removeEventListener === "function") {
         removeHandlers(_node);
       }
       _node = node;
@@ -3893,7 +3893,9 @@
       });
       Object.defineProperty(_node, "mouse", {get: function (){ return _pointer.getPointer(); }});
       Object.defineProperty(_node, "pointer", {get: function (){ return _pointer.getPointer(); }});
-      attachHandlers(_node);
+      if (typeof _node.addEventListener === "function") {
+        attachHandlers(_node);
+      }
     };
     setup(node);
     return {
@@ -3907,12 +3909,12 @@
     const element = params.filter(arg => arg instanceof HTMLElement).shift();
     const idElement = params
       .filter(a => typeof a === "string" || a instanceof String)
-      .map(str => document.getElementById(str))
+      .map(str => win.document.getElementById(str))
       .shift();
     if (element != null) { return element; }
     return (idElement != null
       ? idElement
-      : document.body);
+      : win.document.body);
   };
   const initSize = function (svgElement, params) {
     const numbers = params.filter(arg => !isNaN(arg));
@@ -3959,18 +3961,19 @@
     };
   };
   const svgImage = function (...params) {
-    let image = svg();
+    const image = svg();
     initSize(image, params);
     attachSVGMethods(image);
     image.events = Events(image);
     const setup = function () {
       initSize(image, params);
-      getElement(params).appendChild(image);
-      params.filter((arg) => typeof arg === "function")
-        .forEach((func) => func());
+      const parent = getElement(params);
+      if (parent != null) { parent.appendChild(image); }
+      params.filter(arg => typeof arg === "function")
+        .forEach(func => func());
     };
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", setup);
+    if (win.document.readyState === "loading") {
+      win.document.addEventListener("DOMContentLoaded", setup);
     } else {
       setup();
     }
@@ -4153,17 +4156,22 @@
     controlPoint: controlPoint
   });
 
-  const make_vertices_edges = function (graph) {
-    const vertices_edges = graph.vertices_coords.map(() => []);
-    graph.edges_vertices.forEach((ev, i) => ev
-      .forEach(v => vertices_edges[v].push(i)));
+  const make_vertices_edges = function ({ edges_vertices }) {
+    const vertices_edges = [];
+    edges_vertices.forEach((ev, i) => ev
+      .forEach((v) => {
+        if (vertices_edges[v] === undefined) {
+          vertices_edges[v] = [];
+        }
+        vertices_edges[v].push(i);
+      }));
     return vertices_edges;
   };
-  const make_faces_faces = function (graph) {
-    const nf = graph.faces_vertices.length;
+  const make_faces_faces = function ({ faces_vertices }) {
+    const nf = faces_vertices.length;
     const faces_faces = Array.from(Array(nf)).map(() => []);
     const edgeMap = {};
-    graph.faces_vertices.forEach((vertices_index, idx1) => {
+    faces_vertices.forEach((vertices_index, idx1) => {
       if (vertices_index === undefined) { return; }
       const n = vertices_index.length;
       vertices_index.forEach((v1, i, vs) => {
@@ -4181,11 +4189,13 @@
     });
     return faces_faces;
   };
-  const make_edges_faces = function (graph) {
+  const make_edges_faces = function ({
+    edges_vertices, faces_edges
+  }) {
     const edges_faces = Array
-      .from(Array(graph.edges_vertices.length))
+      .from(Array(edges_vertices.length))
       .map(() => []);
-    graph.faces_edges.forEach((face, i) => face
+    faces_edges.forEach((face, i) => face
       .forEach(edge => edges_faces[edge].push(i)));
     return edges_faces;
   };
@@ -4194,17 +4204,19 @@
       .map(ev => ev.map(v => graph.vertices_coords[v]))
       .map(edge => math.core.distance(...edge));
   };
-  const make_vertex_pair_to_edge_map$1 = function (graph) {
+  const make_vertex_pair_to_edge_map$1 = function ({ edges_vertices }) {
     const map = {};
-    graph.edges_vertices
+    edges_vertices
       .map(ev => ev.sort((a, b) => a - b).join(" "))
       .forEach((key, i) => { map[key] = i; });
     return map;
   };
-  const make_vertices_faces = function (graph) {
-    const vertices_faces = Array.from(Array(graph.vertices_coords.length))
+  const make_vertices_faces = function ({
+    vertices_coords, faces_vertices
+  }) {
+    const vertices_faces = Array.from(Array(vertices_coords.length))
       .map(() => []);
-    graph.faces_vertices.forEach((face, i) => face
+    faces_vertices.forEach((face, i) => face
       .forEach(vertex => vertices_faces[vertex].push(i)));
     return vertices_faces;
   };
@@ -4321,19 +4333,27 @@
       .filter(el => el !== undefined)
       .map(el => el.length)));
   };
-  const vertices_count = function (graph) {
-    return max_array_length([], graph.vertices_coords,
-      graph.vertices_faces, graph.vertices_vertices);
+  const vertices_count = function ({
+    vertices_coords, vertices_faces, vertices_vertices
+  }) {
+    return max_array_length([], vertices_coords,
+      vertices_faces, vertices_vertices);
   };
-  const edges_count = function (graph) {
-    return max_array_length([], graph.edges_vertices, graph.edges_faces);
+  const edges_count = function ({
+    edges_vertices, edges_faces
+  }) {
+    return max_array_length([], edges_vertices, edges_faces);
   };
-  const faces_count = function (graph) {
-    return max_array_length([], graph.faces_vertices, graph.faces_edges);
+  const faces_count = function ({
+    faces_vertices, faces_edges
+  }) {
+    return max_array_length([], faces_vertices, faces_edges);
   };
-  const implied_vertices_count = function (graph) {
+  const implied_vertices_count = function ({
+    faces_vertices, edges_vertices
+  }) {
     let max = 0;
-    [graph.faces_vertices, graph.edges_vertices]
+    [faces_vertices, edges_vertices]
       .filter(a => a !== undefined)
       .forEach(arr => arr
         .forEach(el => el
@@ -4342,46 +4362,50 @@
           })));
     return max;
   };
-  const implied_edges_count = function (graph) {
+  const implied_edges_count = function ({
+    faces_edges, vertices_edges, edgeOrders
+  }) {
     let max = 0;
-    [graph.faces_edges, graph.vertices_edges]
+    [faces_edges, vertices_edges]
       .filter(a => a !== undefined)
       .forEach(arr => arr
         .forEach(el => el
           .forEach((e) => {
             if (e > max) { max = e; }
           })));
-    if (graph.edgeOrders !== undefined) {
-      graph.edgeOrders.forEach(eo => eo.forEach((e, i) => {
+    if (edgeOrders !== undefined) {
+      edgeOrders.forEach(eo => eo.forEach((e, i) => {
         if (i !== 2 && e > max) { max = e; }
       }));
     }
     return max;
   };
-  const implied_faces_count = function (graph) {
+  const implied_faces_count = function ({
+    vertices_faces, edges_faces, facesOrders
+  }) {
     let max = 0;
-    [graph.vertices_faces, graph.edges_faces]
+    [vertices_faces, edges_faces]
       .filter(a => a !== undefined)
       .forEach(arr => arr
         .forEach(el => el
           .forEach((f) => {
             if (f > max) { max = f; }
           })));
-    if (graph.facesOrders !== undefined) {
-      graph.facesOrders.forEach(fo => fo.forEach((f, i) => {
+    if (facesOrders !== undefined) {
+      facesOrders.forEach(fo => fo.forEach((f, i) => {
         if (i !== 2 && f > max) { max = f; }
       }));
     }
     return max;
   };
-  const nearest_vertex = function (graph, point) {
-    if (graph.vertices_coords === undefined
-      || graph.vertices_coords.length === 0) {
+  const nearest_vertex = function ({ vertices_coords }, point) {
+    if (vertices_coords === undefined
+      || vertices_coords.length === 0) {
       return undefined;
     }
     const p = [...point];
     if (p[2] == null) { p[2] = 0; }
-    return graph.vertices_coords
+    return vertices_coords
       .map(v => v
         .map((n, i) => (n - p[i]) ** 2)
         .reduce((a, b) => a + b, 0))
@@ -4390,9 +4414,11 @@
       .shift()
       .i;
   };
-  const nearest_edge = function (graph, point) {
-    if (graph.vertices_coords == null || graph.vertices_coords.length === 0
-      || graph.edges_vertices == null || graph.edges_vertices.length === 0) {
+  const nearest_edge = function ({
+    vertices_coords, edges_vertices
+  }, point) {
+    if (vertices_coords == null || vertices_coords.length === 0
+      || edges_vertices == null || edges_vertices.length === 0) {
       return undefined;
     }
     const edge_limit = (dist) => {
@@ -4400,8 +4426,8 @@
       if (dist > 1 + math.core.EPSILON) { return 1; }
       return dist;
     };
-    const nearest_points = graph.edges_vertices
-      .map(e => e.map(ev => graph.vertices_coords[ev]))
+    const nearest_points = edges_vertices
+      .map(e => e.map(ev => vertices_coords[ev]))
       .map(e => [e[0], [e[1][0] - e[0][0], e[1][1] - e[0][1]]])
       .map(line => math.core.nearest_point_on_line(line[0], line[1], point, edge_limit))
       .map((p, i) => ({ p, i, d: math.core.distance2(point, p) }));
@@ -4415,27 +4441,33 @@
     }
     return shortest_index;
   };
-  const face_containing_point = function (graph, point) {
-    if (graph.vertices_coords == null || graph.vertices_coords.length === 0
-      || graph.faces_vertices == null || graph.faces_vertices.length === 0) {
+  const face_containing_point = function ({
+    vertices_coords, faces_vertices
+  }, point) {
+    if (vertices_coords == null || vertices_coords.length === 0
+      || faces_vertices == null || faces_vertices.length === 0) {
       return undefined;
     }
-    const face = graph.faces_vertices
-      .map((fv, i) => ({ face: fv.map(v => graph.vertices_coords[v]), i }))
+    const face = faces_vertices
+      .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
       .filter(f => math.core.point_in_poly(point, f.face))
       .shift();
     return (face == null ? undefined : face.i);
   };
-  const folded_faces_containing_point = function (graph, point, faces_matrix) {
+  const folded_faces_containing_point = function ({
+    vertices_coords, faces_vertices
+  }, point, faces_matrix) {
     const transformed_points = faces_matrix
       .map(m => math.core.multiply_vector2_matrix2(point, m));
-    return graph.faces_vertices
-      .map((fv, i) => ({ face: fv.map(v => graph.vertices_coords[v]), i }))
+    return faces_vertices
+      .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
       .filter((f, i) => math.core.intersection
         .point_in_poly(transformed_points[i], f.face))
       .map(f => f.i);
   };
-  const faces_containing_point = function ({ vertices_coords, faces_vertices }, point) {
+  const faces_containing_point = function ({
+    vertices_coords, faces_vertices
+  }, point) {
     return faces_vertices
       .map((fv, i) => ({ face: fv.map(v => vertices_coords[v]), i }))
       .filter(f => math.core.point_in_poly(point, f.face))
@@ -4459,15 +4491,15 @@
     }
     return undefined;
   };
-  const bounding_rect = function (graph) {
-    if ("vertices_coords" in graph === false
-      || graph.vertices_coords.length <= 0) {
+  const bounding_rect = function ({ vertices_coords }) {
+    if (vertices_coords == null
+      || vertices_coords.length <= 0) {
       return [0, 0, 0, 0];
     }
-    const dimension = graph.vertices_coords[0].length;
+    const dimension = vertices_coords[0].length;
     const min = Array(dimension).fill(Infinity);
     const max = Array(dimension).fill(-Infinity);
-    graph.vertices_coords.forEach(v => v.forEach((n, i) => {
+    vertices_coords.forEach(v => v.forEach((n, i) => {
       if (n < min[i]) { min[i] = n; }
       if (n > max[i]) { max[i] = n; }
     }));
@@ -4475,10 +4507,12 @@
       ? [0, 0, 0, 0]
       : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
   };
-  const get_boundary = function (graph) {
-    const edges_vertices_b = graph.edges_assignment
+  const get_boundary = function ({
+    edges_vertices, edges_assignment
+  }) {
+    const edges_vertices_b = edges_assignment
       .map(a => a === "B" || a === "b");
-    const vertices_edges = make_vertices_edges(graph);
+    const vertices_edges = make_vertices_edges({ edges_vertices });
     const edge_walk = [];
     const vertex_walk = [];
     let edgeIndex = -1;
@@ -4490,17 +4524,17 @@
     }
     edges_vertices_b[edgeIndex] = false;
     edge_walk.push(edgeIndex);
-    vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
-    let nextVertex = graph.edges_vertices[edgeIndex][1];
+    vertex_walk.push(edges_vertices[edgeIndex][0]);
+    let nextVertex = edges_vertices[edgeIndex][1];
     while (vertex_walk[0] !== nextVertex) {
       vertex_walk.push(nextVertex);
       edgeIndex = vertices_edges[nextVertex]
         .filter(v => edges_vertices_b[v])
         .shift();
-      if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
-        [, nextVertex] = graph.edges_vertices[edgeIndex];
+      if (edges_vertices[edgeIndex][0] === nextVertex) {
+        [, nextVertex] = edges_vertices[edgeIndex];
       } else {
-        [nextVertex] = graph.edges_vertices[edgeIndex];
+        [nextVertex] = edges_vertices[edgeIndex];
       }
       edges_vertices_b[edgeIndex] = false;
       edge_walk.push(edgeIndex);
@@ -4510,32 +4544,33 @@
       edges: edge_walk,
     };
   };
-  const get_collinear_vertices = function (graph) {
-    const vertices_edges = make_vertices_edges(graph);
-    return Array.from(Array(vertices_count(graph)))
+  const get_collinear_vertices = function ({
+    edges_vertices, vertices_coords
+  }) {
+    const vertices_edges = make_vertices_edges({ edges_vertices });
+    return Array.from(Array(vertices_coords.length))
       .map((_, i) => i)
       .filter(() => vertices_edges.length === 2)
-      .map((vert) => {
-        const edges = vertices_edges[vert];
-        const a = edges[0][0] === vert ? edges[0][1] : edges[0][0];
-        const b = edges[1][0] === vert ? edges[1][1] : edges[1][0];
-        const av = math.core.distance2(graph.vertices_coords[a],
-          graph.vertices_coords[vert]);
-        const bv = math.core.distance2(graph.vertices_coords[b],
-          graph.vertices_coords[vert]);
-        const ab = math.core.distance2(graph.vertices_coords[a],
-          graph.vertices_coords[b]);
-        return Math.abs(ab - av - bv) < math.core.EPSILON ? vert : undefined;
+      .map((v) => {
+        const edges = vertices_edges[v];
+        const a = edges[0][0] === v ? edges[0][1] : edges[0][0];
+        const b = edges[1][0] === v ? edges[1][1] : edges[1][0];
+        const av = math.core.distance2(vertices_coords[a], vertices_coords[v]);
+        const bv = math.core.distance2(vertices_coords[b], vertices_coords[v]);
+        const ab = math.core.distance2(vertices_coords[a], vertices_coords[b]);
+        return Math.abs(ab - av - bv) < math.core.EPSILON ? v : undefined;
       })
       .filter(a => a !== undefined);
   };
-  const get_isolated_vertices = function (graph) {
-    const vertices_size = graph.vertices_coords.length;
+  const get_isolated_vertices = function ({
+    edges_vertices, vertices_coords
+  }) {
+    const vertices_size = vertices_coords.length;
     const isolated = Array(vertices_size).fill(true);
     let set_count = vertices_size;
-    for (let i = 0; i < graph.edges_vertices.length && set_count > 0; i += 1) {
-      for (let e = 0; e < graph.edges_vertices[i].length; e += 1) {
-        const v = graph.edges_vertices[i][e];
+    for (let i = 0; i < edges_vertices.length && set_count > 0; i += 1) {
+      for (let e = 0; e < edges_vertices[i].length; e += 1) {
+        const v = edges_vertices[i][e];
         if (isolated[v]) {
           set_count -= 1;
           isolated[v] = false;
@@ -4547,19 +4582,16 @@
       .map((el, i) => (el ? i : undefined))
       .filter(el => el !== undefined);
   };
-  const get_duplicate_edges = function (graph) {
+  const get_duplicate_edges = function ({ edges_vertices }) {
     const equivalent2 = function (a, b) {
       return (a[0] === b[0] && a[1] === b[1])
           || (a[0] === b[1] && a[1] === b[0]);
     };
-    const edges_equivalent = Array.from(Array(edges_count(graph)))
+    const edges_equivalent = Array.from(Array(edges_vertices.length))
       .map(() => []);
-    for (let i = 0; i < graph.edges_vertices.length - 1; i += 1) {
-      for (let j = i + 1; j < graph.edges_vertices.length; j += 1) {
-        edges_equivalent[i][j] = equivalent2(
-          graph.edges_vertices[i],
-          graph.edges_vertices[j],
-        );
+    for (let i = 0; i < edges_vertices.length - 1; i += 1) {
+      for (let j = i + 1; j < edges_vertices.length; j += 1) {
+        edges_equivalent[i][j] = equivalent2(edges_vertices[i], edges_vertices[j]);
       }
     }
     const edges_map = [];
@@ -6267,10 +6299,30 @@
 
   const file_spec = 1.1;
   const file_creator = "Rabbit Ear";
-  const metadata = function () {
+  const metadata = function (complete = false) {
+    return !complete
+      ? {
+        file_spec,
+        file_creator
+      }
+      : {
+        file_spec,
+        file_creator,
+        file_author: "",
+        file_title: "",
+        file_description: "",
+        file_classes: [],
+        file_frames: [],
+        frame_description: "",
+        frame_attributes: [],
+        frame_classes: [],
+        frame_unit: "",
+      };
+  };
+  const default_re_extensions = function (number_faces = 1) {
     return {
-      file_spec,
-      file_creator,
+      "faces_re:layer": Array.from(Array(number_faces)).map((_, i) => i),
+      "faces_re:matrix": Array.from(Array(number_faces)).map(() => [1, 0, 0, 1, 0, 0])
     };
   };
   const cp_type = function () {
@@ -6306,6 +6358,7 @@
       metadata(),
       cp_type(),
       square_graph(),
+      default_re_extensions(1)
     );
   };
   const rectangle = function (width = 1, height = 1) {
@@ -6317,6 +6370,7 @@
       metadata(),
       cp_type(),
       graph,
+      default_re_extensions(1)
     );
   };
   const regular_polygon = function (sides, radius = 1) {
@@ -6347,6 +6401,7 @@
       metadata(),
       cp_type(),
       graph,
+      default_re_extensions(1)
     );
   };
 
@@ -6398,8 +6453,6 @@
     recursive_freeze: recursive_freeze
   });
 
-  const append_frame = function (fold_file) {
-  };
   const flatten_frame$1 = function (fold_file, frame_num) {
     if ("file_frames" in fold_file === false
       || fold_file.file_frames.length < frame_num) {
@@ -6449,7 +6502,6 @@
   };
 
   var frames = /*#__PURE__*/Object.freeze({
-    append_frame: append_frame,
     flatten_frame: flatten_frame$1,
     merge_frame: merge_frame
   });
@@ -6680,16 +6732,18 @@
         console.log(graph);
         throw new Error(`${el.key} contains a index too large, larger than the reference array to which it points`);
       });
-    const vv_edge_test = graph.vertices_vertices
-      .map((vv, i) => vv.map(v2 => [i, v2]))
-      .reduce((a, b) => a.concat(b), []);
-    const ev_test_fails = vv_edge_test
-      .map(ve => graph.edges_vertices.filter(e => (ve[0] === e[0]
-        && ve[1] === e[1]) || (ve[0] === e[1] && ve[1] === e[0])).length > 0)
-      .map((b, i) => ({ test: b, i }))
-      .filter(el => !el.test);
-    if (ev_test_fails.length > 0) {
-      throw new Error(`vertices_vertices at index ${ev_test_fails[0].i} declares an edge that doesn't exist in edges_vertices`);
+    if ("vertices_vertices" in graph) {
+      const vv_edge_test = graph.vertices_vertices
+        .map((vv, i) => vv.map(v2 => [i, v2]))
+        .reduce((a, b) => a.concat(b), []);
+      const ev_test_fails = vv_edge_test
+        .map(ve => graph.edges_vertices.filter(e => (ve[0] === e[0]
+          && ve[1] === e[1]) || (ve[0] === e[1] && ve[1] === e[0])).length > 0)
+        .map((b, i) => ({ test: b, i }))
+        .filter(el => !el.test);
+      if (ev_test_fails.length > 0) {
+        throw new Error(`vertices_vertices at index ${ev_test_fails[0].i} declares an edge that doesn't exist in edges_vertices`);
+      }
     }
     if ("vertices_faces" in graph) {
       const v_f_test = graph.vertices_faces
@@ -6737,12 +6791,6 @@
     possibleFoldObject: possibleFoldObject,
     edges_assignment: edges_assignment,
     validate: validate
-  });
-
-
-
-  var add = /*#__PURE__*/Object.freeze({
-
   });
 
   const get_geometry_length = {
@@ -8590,7 +8638,7 @@
       const verts = el.edges_vertices.map(v => graph.vertices_coords[v]);
       new_edges[i].edges_length = math.core.distance2(...verts);
     });
-    new_edges.forEach((edge, i) => Object.keys(edge)
+    new_edges.forEach(edge => Object.keys(edge)
       .filter(key => key !== "i")
       .forEach((key) => { graph[key][edge.i] = edge[key]; }));
     const incident_faces_indices = graph.edges_faces[old_edge_index];
@@ -8631,7 +8679,7 @@
           .reduce((a, b) => a && b, true);
         if (in0) { return new_edges[0].i; }
         if (in1) { return new_edges[1].i; }
-        throw "something wrong with input graph's faces_edges construction";
+        throw new Error("something wrong with input graph's faces_edges construction");
       });
       if (edgeIndex === face.length - 1) {
         face.splice(edgeIndex, 1, edges[0]);
@@ -9529,176 +9577,6 @@
 
   var frog = "{\n\t\"file_spec\": 1.1,\n\t\"frame_title\": \"\",\n\t\"file_classes\": [\"singleModel\"],\n\t\"frame_classes\": [\"creasePattern\"],\n\t\"frame_attributes\": [\"2D\"],\n\t\"vertices_coords\": [[0,0],[1,0],[1,1],[0,1],[0.5,0.5],[0,0.5],[0.5,0],[1,0.5],[0.5,1],[0.146446609406726,0.353553390593274],[0.353553390593274,0.146446609406726],[0.646446609406726,0.146446609406726],[0.853553390593274,0.353553390593274],[0.853553390593274,0.646446609406726],[0.646446609406726,0.853553390593274],[0.353553390593274,0.853553390593274],[0.146446609406726,0.646446609406726],[0,0.353553390593274],[0,0.646446609406726],[0.353553390593274,0],[0.646446609406726,0],[1,0.353553390593274],[1,0.646446609406726],[0.646446609406726,1],[0.353553390593274,1]],\n\t\"edges_vertices\": [[0,4],[4,9],[0,9],[0,10],[4,10],[2,4],[2,14],[4,14],[4,13],[2,13],[3,4],[4,15],[3,15],[3,16],[4,16],[1,4],[1,12],[4,12],[4,11],[1,11],[4,5],[5,9],[5,16],[4,6],[6,11],[6,10],[4,7],[7,13],[7,12],[4,8],[8,15],[8,14],[9,17],[0,17],[5,17],[0,19],[10,19],[6,19],[11,20],[1,20],[6,20],[1,21],[12,21],[7,21],[13,22],[2,22],[7,22],[2,23],[14,23],[8,23],[15,24],[3,24],[8,24],[3,18],[16,18],[5,18]],\n\t\"edges_faces\": [[0,1],[0,8],[16,0],[1,18],[11,1],[3,2],[2,26],[15,2],[3,12],[24,3],[4,5],[4,14],[28,4],[5,30],[9,5],[7,6],[6,22],[13,6],[7,10],[20,7],[8,9],[8,17],[31,9],[10,11],[10,21],[19,11],[12,13],[12,25],[23,13],[14,15],[14,29],[27,15],[16,17],[16],[17],[18],[19,18],[19],[20,21],[20],[21],[22],[23,22],[23],[24,25],[24],[25],[26],[27,26],[27],[28,29],[28],[29],[30],[31,30],[31]],\n\t\"edges_assignment\": [\"F\",\"M\",\"M\",\"M\",\"M\",\"F\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"M\",\"M\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\",\"V\",\"B\",\"B\",\"B\",\"V\",\"B\"],\n\t\"faces_vertices\": [[0,4,9],[4,0,10],[4,2,14],[2,4,13],[3,4,15],[4,3,16],[4,1,12],[1,4,11],[4,5,9],[5,4,16],[4,6,11],[6,4,10],[4,7,13],[7,4,12],[4,8,15],[8,4,14],[0,9,17],[9,5,17],[10,0,19],[6,10,19],[1,11,20],[11,6,20],[12,1,21],[7,12,21],[2,13,22],[13,7,22],[14,2,23],[8,14,23],[3,15,24],[15,8,24],[16,3,18],[5,16,18]],\n\t\"faces_edges\": [[0,1,2],[0,3,4],[5,6,7],[5,8,9],[10,11,12],[10,13,14],[15,16,17],[15,18,19],[20,21,1],[20,14,22],[23,24,18],[23,4,25],[26,27,8],[26,17,28],[29,30,11],[29,7,31],[2,32,33],[21,34,32],[3,35,36],[25,36,37],[19,38,39],[24,40,38],[16,41,42],[28,42,43],[9,44,45],[27,46,44],[6,47,48],[31,48,49],[12,50,51],[30,52,50],[13,53,54],[22,54,55]]\n}";
 
-  const makeUUID = function () {
-    const digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    return Array.from(Array(24))
-      .map(() => Math.floor(Math.random() * digits.length))
-      .map(i => digits[i])
-      .join("");
-  };
-  const component = function (proto) {
-    if (proto == null) {
-      return undefined;
-    }
-    const _this = Object.create(proto);
-    _this.uuid = makeUUID();
-    const disable = function () {
-    };
-    Object.defineProperty(_this, "disable", { value: disable });
-    return _this;
-  };
-  const vertexPrototype = function (graph, index) {
-    const point = math.vector(graph.vertices_coords[index]);
-    const _this = Object.create(point);
-    return _this;
-  };
-  const facePrototype = function (graph, index) {
-    const points = graph.faces_vertices[index]
-      .map(fv => graph.vertices_coords[fv]);
-    const face = math.polygon(points);
-    const _this = Object.create(face);
-    return _this;
-  };
-  const edgePrototype = function (graph, index) {
-    const points = graph.edges_vertices[index]
-      .map(ev => graph.vertices_coords[ev]);
-    const edge = math.edge(points);
-    const _this = Object.create(edge);
-    const is_assignment = function (options) {
-      return options.map(l => l === this.graph.edges_assignment[index])
-        .reduce((a, b) => a || b, false);
-    };
-    const is_mountain = function () {
-      return is_assignment.call(this, ["M", "m"]);
-    };
-    const is_valley = function () {
-      return is_assignment.call(this, ["V", "v"]);
-    };
-    const is_boundary = function () {
-      return is_assignment.call(this, ["B", "b"]);
-    };
-    const mountain = function () {
-      this.graph.edges_assignment[index] = "M";
-      this.graph.edges_foldAngle[index] = -180;
-      this.graph.onchange.forEach(f => f());
-    };
-    const valley = function () {
-      this.graph.edges_assignment[index] = "V";
-      this.graph.edges_foldAngle[index] = 180;
-      this.graph.onchange.forEach(f => f());
-    };
-    const mark = function () {
-      this.graph.edges_assignment[index] = "F";
-      this.graph.edges_foldAngle[index] = 0;
-      this.graph.onchange.forEach(f => f());
-    };
-    const flip = function () {
-      if (is_mountain.call(this)) { valley.call(this); }
-      else if (is_valley.call(this)) { mountain.call(this); }
-      else { return; }
-      this.graph.onchange.forEach(f => f());
-    };
-    const addVertexOnEdge = function (x, y) {
-      const thisEdge = this.index;
-      this.graph.addVertexOnEdge(x, y, thisEdge);
-    };
-    Object.defineProperty(_this, "mountain", { configurable: true, value: mountain });
-    Object.defineProperty(_this, "valley", { configurable: true, value: valley });
-    Object.defineProperty(_this, "mark", { configurable: true, value: mark });
-    Object.defineProperty(_this, "flip", { configurable: true, value: flip });
-    Object.defineProperty(_this, "isBoundary", {
-      configurable: true,
-      get: function () { return is_boundary.call(this); }
-    });
-    Object.defineProperty(_this, "isMountain", {
-      configurable: true,
-      get: function () { return is_mountain.call(this); }
-    });
-    Object.defineProperty(_this, "isValley", {
-      configurable: true,
-      get: function () { return is_valley.call(this); }
-    });
-    Object.defineProperty(_this, "addVertexOnEdge", {
-      configurable: true, value: addVertexOnEdge
-    });
-    return _this;
-  };
-  component.vertex = function (graph, index) {
-    const proto = vertexPrototype.bind(this);
-    let v = component(proto(graph, index));
-    Object.defineProperty(v, "robby", { configurable: true, value: "hi" });
-    return v;
-  };
-  component.edge = function (graph, index) {
-    const proto = edgePrototype.bind(this);
-    return component(proto(graph, index));
-  };
-  component.face = function (graph, index) {
-    const proto = facePrototype.bind(this);
-    return component(proto(graph, index));
-  };
-  component.crease = function (graph, index) {
-    const proto = creasePrototype.bind(this);
-    return component(proto(graph, index));
-  };
-  const creasePrototype = function (graph, indices) {
-    const _this = Object.create(component({}));
-    const is_assignment = function (options) {
-      return indices
-        .map(index => options
-          .map(l => l === graph.edges_assignment[index])
-          .reduce((a, b) => a || b, false))
-        .reduce((a, b) => a || b, false);
-    };
-    const is_mountain = function () { return is_assignment(["M", "m"]); };
-    const is_valley = function () { return is_assignment(["V", "v"]); };
-    const flip = function () {
-      if (is_mountain()) { valley(); }
-      else if (is_valley()) { mountain(); }
-      else { return; }
-      graph.onchange.forEach(f => f());
-    };
-    const mountain = function () {
-      indices.forEach((index) => { graph.edges_assignment[index] = "M"; });
-      indices.forEach((index) => { graph.edges_foldAngle[index] = -180; });
-      graph.onchange.forEach(f => f());
-    };
-    const valley = function () {
-      indices.forEach((index) => { graph.edges_assignment[index] = "V"; });
-      indices.forEach((index) => { graph.edges_foldAngle[index] = 180; });
-      graph.onchange.forEach(f => f());
-    };
-    const mark = function () {
-      indices.forEach((index) => { graph.edges_assignment[index] = "F"; });
-      indices.forEach((index) => { graph.edges_foldAngle[index] = 0; });
-      graph.onchange.forEach(f => f());
-    };
-    const remove = function () { };
-    Object.defineProperty(_this, "mountain", {
-      configurable: true, value: mountain
-    });
-    Object.defineProperty(_this, "valley", {
-      configurable: true, value: valley
-    });
-    Object.defineProperty(_this, "mark", {
-      configurable: true, value: mark
-    });
-    Object.defineProperty(_this, "flip", {
-      configurable: true, value: flip
-    });
-    Object.defineProperty(_this, "remove", {
-      configurable: true, value: remove
-    });
-    Object.defineProperty(_this, "isMountain", {
-      configurable: true,
-      get: function () { return is_mountain.call(this); }
-    });
-    Object.defineProperty(_this, "isValley", {
-      configurable: true,
-      get: function () { return is_valley.call(this); }
-    });
-  };
-
   const apply_matrix_to_fold = function (fold, matrix) {
     get_keys_with_ending("coords").forEach((key) => {
       fold[key] = fold[key]
@@ -9733,6 +9611,14 @@
     const getBoundaries = function () {
       return [get_boundary(this)];
     };
+    const isFolded = function () {
+      if ("frame_classes" in this === false) { return undefined; }
+      const cpIndex = this.frame_classes.indexOf("creasePattern");
+      const foldedIndex = this.frame_classes.indexOf("foldedForm");
+      if (cpIndex === -1 && foldedIndex === -1) { return undefined; }
+      if (cpIndex !== -1 && foldedIndex !== -1) { return undefined; }
+      return (foldedIndex !== -1);
+    };
     proto.rebuild = function (epsilon = math.core.EPSILON) {
       rebuild(this, epsilon);
     };
@@ -9748,7 +9634,6 @@
         && "faces_vertices" in this && "faces_edges" in this);
       if (!valid) {
         console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
-        clean(epsilon);
       }
     };
     const load = function (file, prevent_wipe) {
@@ -9794,15 +9679,6 @@
     };
     proto.scale = function (...args) {
       scale(this, ...args);
-    };
-    proto.foldedForm = function () {
-      const foldedFrame = this.file_frames
-        .filter(f => f.frame_classes.includes("foldedForm"))
-        .filter(f => f.vertices_coords.length === this.vertices_coords.length)
-        .shift();
-      return foldedFrame != null
-        ? merge_frame(this, foldedFrame)
-        : undefined;
     };
     const didModifyGraph = function () {
       this.didChange.forEach(f => f());
@@ -9896,12 +9772,12 @@
             this.edges_assignment.splice(i, 1);
           });
       }
-      const crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
+      const crease = [diff.edges_new[0] - edges_remove_count];
       didModifyGraph.call(this);
       return crease;
     };
     proto.kawasaki = function (...args) {
-      const crease = component.crease(this, kawasaki_collapse(this, ...args));
+      const crease = kawasaki_collapse(this, ...args);
       didModifyGraph.call(this);
       return crease;
     };
@@ -9910,7 +9786,8 @@
     Object.defineProperty(proto, "vertices", { get: getVertices });
     Object.defineProperty(proto, "edges", { get: getEdges });
     Object.defineProperty(proto, "faces", { get: getFaces });
-    Object.defineProperty(proto, "json", { get: json });
+    Object.defineProperty(proto, "isFolded", { value: isFolded });
+    Object.defineProperty(proto, "json", { value: json });
     proto.didChange = [];
     return Object.freeze(proto);
   };
@@ -10052,6 +9929,17 @@
   };
 
   const SVG_NS$1 = "http://www.w3.org/2000/svg";
+  const DEFAULT_STYLE = `
+line.mountain { stroke: red; }
+line.valley { stroke: blue; }
+line.mark { stroke: lightgray; }
+polygon { stroke-linejoin: bevel; }
+.foldedForm polygon { fill: rgba(0, 0, 0, 0.1); }
+.foldedForm polygon.front { fill: white; }
+.foldedForm polygon.back { fill: lightgray; }
+.foldedForm line { stroke: none; }
+.foldedForm polygon { stroke: black; }
+`;
   const DEFAULTS = Object.freeze({
     boundaries: true,
     faces: true,
@@ -10064,7 +9952,7 @@
     padding: 0,
     shadows: false,
     strokeWidth: 0.01,
-    styleSheet: undefined,
+    style: undefined,
     arrowColor: undefined,
   });
   const parseOptions = function (...args) {
@@ -10080,21 +9968,12 @@
   const View = function (fold_file, ...args) {
     const graph = fold_file;
     const svg = svgImage(...args);
-    const svgStyle = document.createElementNS(SVG_NS$1, "style");
-    const defs = document.createElementNS(SVG_NS$1, "defs");
+    const svgStyle = win.document.createElementNS(SVG_NS$1, "style");
+    const defs = win.document.createElementNS(SVG_NS$1, "defs");
     svg.appendChild(svgStyle);
     svg.appendChild(defs);
     defs.appendChild(shadowFilter$1("faces_shadow"));
-    svgStyle.innerHTML = `
-line.mountain { stroke: red; }
-line.valley { stroke: blue; }
-line.mark { stroke: lightgray; }
-.foldedForm polygon { fill: rgba(0, 0, 0, 0.1); }
-.foldedForm polygon.front { fill: white; }
-.foldedForm polygon.back { fill: lightgray; }
-.foldedForm line { stroke: none; }
-.foldedForm polygon { stroke: black; }
-`;
+    svgStyle.innerHTML = DEFAULT_STYLE;
     const groups = {};
     ["boundaries", "faces", "edges", "vertices", "diagram", "labels"
     ].forEach((key) => {
@@ -10148,9 +10027,12 @@ line.mark { stroke: lightgray; }
       const vmin = r[2] > r[3] ? r[3] : r[2];
       const vmax = r[2] > r[3] ? r[2] : r[3];
       const vavg = (vmin + vmax) / 2;
-      groups.edges.setAttribute("stroke-width", vavg * options.strokeWidth);
-      groups.faces.setAttribute("stroke-width", vavg * options.strokeWidth);
-      groups.boundaries.setAttribute("stroke-width", vavg * options.strokeWidth);
+      const strokeWidth = vavg * options.strokeWidth;
+      ["boundaries", "faces", "edges", "vertices"]
+        .forEach(key => groups[key].setAttribute("stroke-width", strokeWidth));
+      if (options.style) {
+        svgStyle.innerHTML = DEFAULT_STYLE + options.style;
+      }
     };
     Object.defineProperty(svg, "draw", { value: draw });
     Object.defineProperty(svg, "fit", { value: fit });
@@ -10451,17 +10333,18 @@ line.mark { stroke: lightgray; }
     return undefined;
   };
 
-  const cache = function (graph) {
-    const cached = {};
-    keys_types.graph.forEach((key) => { cached[key] = graph[key]; });
-    if ("faces_re:matrix" in graph === true) {
-      cached["faces_re:matrix"] = graph["faces_re:matrix"];
+  const clean = function (fold) {
+    const facesCount = faces_count(fold);
+    if (facesCount > 0) {
+      if (fold["faces_re:matrix"] == null) {
+        fold["faces_re:matrix"] = make_faces_matrix(fold);
+      } else if (fold["faces_re:matrix"].length !== facesCount) {
+        fold["faces_re:matrix"] = make_faces_matrix(fold);
+      }
+      if (fold["faces_re:layer:"] == null) ;
     }
-    if ("faces_re:layer" in graph === true) {
-      cached["faces_re:layer"] = graph["faces_re:layer"];
-    }
-    return clone$1(cached);
   };
+
   const prepareGraph = function (graph) {
     if ("faces_re:matrix" in graph === false) {
       graph["faces_re:matrix"] = make_faces_matrix(graph, 0);
@@ -10470,19 +10353,26 @@ line.mark { stroke: lightgray; }
   const setup = function (origami, svg) {
     prepareGraph(origami);
     let touchFaceIndex = 0;
-    let cachedGraph = cache(origami);
-    let was_folded = false;
+    let cachedGraph = clone$1(origami);
+    let was_folded = ("vertices_re:unfoldedCoords" in origami === true);
     svg.events.addEventListener("onMouseDown", (mouse) => {
-      cachedGraph = cache(origami);
-      if ("vertices_re:unfoldedCoords" in origami === true) {
-        was_folded = true;
-        cachedGraph.vertices_coords = origami["vertices_re:unfoldedCoords"].slice();
-      }
-      const faces_containing = faces_containing_point(cachedGraph, mouse);
-      const top_face = topmost_face(origami, faces_containing);
+      was_folded = ("vertices_re:unfoldedCoords" in origami === true);
+      cachedGraph = clone$1(origami);
+      const param = {
+        faces_vertices: origami.faces_vertices,
+        "faces_re:layer": origami["faces_re:layer"]
+      };
+      param.vertices_coords = was_folded
+        ? (origami["vertices_re:foldedCoords"] || origami.vertices_coords)
+        : (origami["vertices_re:unfoldedCoords"] || origami.vertices_coords);
+      const faces_containing = faces_containing_point(param, mouse);
+      const top_face = topmost_face(param, faces_containing);
       touchFaceIndex = (top_face == null)
         ? 0
         : top_face;
+      if (was_folded) {
+        cachedGraph.vertices_coords = origami["vertices_re:unfoldedCoords"].slice();
+      }
     });
     svg.events.addEventListener("onMouseMove", (mouse) => {
       if (mouse.isPressed) {
@@ -10507,46 +10397,48 @@ line.mark { stroke: lightgray; }
         .forEach((key) => { prefs[key] = obj[key]; }));
     return prefs;
   };
-  const getView = function (that, ...args) {
+  const interpreter = {
+    gl: "webgl",
+    GL: "webgl",
+    webGL: "webgl",
+    WebGL: "webgl",
+    webgl: "webgl",
+    Webgl: "webgl",
+    svg: "svg",
+    SVG: "svg",
+    "2d": "svg",
+    "2D": "svg",
+    "3d": "webgl",
+    "3D": "webgl",
+  };
+  const parseOptionsForView = function (...args) {
     const viewOptions = args.filter(a => "view" in a === true).shift();
-    if (viewOptions !== undefined) {
-      switch (viewOptions.view) {
-        case "gl":
-        case "GL":
-        case "webGL":
-        case "WebGL":
-          return { canvas: View3D(that, ...args) };
-        case "svg":
-        case "SVG":
-          const view = View(that, ...args);
-          that.didChange.push(view.draw);
-          return { svg: view };
-        default:
-          break;
-      }
+    if (viewOptions === undefined) {
+      if (isNode) { return undefined; }
+      if (isBrowser) { return "svg"; }
     }
-    return {};
+    return interpreter[viewOptions.view];
   };
   const Origami = function (...args) {
     const origami = Object.assign(
       Object.create(Prototype$2()),
       args.filter(el => possibleFoldObject(el)).shift() || square()
     );
+    validate(origami);
+    clean(origami);
     const setFoldedForm = function (isFolded) {
+      const wasFolded = origami.isFolded();
       const remove = isFolded ? "creasePattern" : "foldedForm";
       const add = isFolded ? "foldedForm" : "creasePattern";
-      const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
-      const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
-      if (origami.frame_classes == null) {
-        origami.frame_classes = [];
-      } else {
-        while (origami.frame_classes.indexOf(remove) !== -1) {
-          origami.frame_classes.splice(origami.frame_classes.indexOf(remove), 1);
-        }
+      if (origami.frame_classes == null) { origami.frame_classes = []; }
+      while (origami.frame_classes.indexOf(remove) !== -1) {
+        origami.frame_classes.splice(origami.frame_classes.indexOf(remove), 1);
       }
       if (origami.frame_classes.indexOf(add) === -1) {
         origami.frame_classes.push(add);
       }
+      const to = isFolded ? "vertices_re:foldedCoords" : "vertices_re:unfoldedCoords";
+      const from = isFolded ? "vertices_re:unfoldedCoords" : "vertices_re:foldedCoords";
       if (to in origami === true) {
         origami[from] = origami.vertices_coords;
         origami.vertices_coords = origami[to];
@@ -10561,11 +10453,11 @@ line.mark { stroke: lightgray; }
       if ("vertices_re:foldedCoords" in origami === false) {
         origami["vertices_re:foldedCoords"] = make_vertices_coords_folded(origami, null, origami["faces_re:matrix"]);
       }
-      setFoldedForm.call(origami, true);
+      setFoldedForm(true);
       return origami;
     };
     const unfold = function () {
-      setFoldedForm.call(origami, false);
+      setFoldedForm(false);
       return origami;
     };
     const load = function (input, prevent_wipe) {
@@ -10575,6 +10467,7 @@ line.mark { stroke: lightgray; }
       }
       Object.assign(origami, clone$1(loaded_file));
       origami.didChange.forEach(f => f());
+      clean(origami);
       return origami;
     };
     const get = function (component) {
@@ -10600,23 +10493,42 @@ line.mark { stroke: lightgray; }
     Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
     Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
     Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });
+    Object.defineProperty(origami, "export", {
+      value: (...exportArgs) => {
+        if (exportArgs.length <= 0) {
+          return origami.json();
+        }
+        switch (exportArgs[0]) {
+          case "svg":
+            if (origami.svg != null) {
+              return (new window.XMLSerializer()).serializeToString(origami.svg);
+            }
+            return drawFOLD.svg(origami);
+          case "fold":
+          case "json":
+          default: return origami.json();
+        }
+      }
+    });
     return origami;
   };
   const init = function (...args) {
     const origami = Origami(...args);
-    if (isNode) ; else if (isBrowser) {
-      const viewOptions = args.filter(a => "view" in a === true).shift();
-      if (viewOptions !== undefined && viewOptions.view === undefined) {
-        viewOptions.view = "svg";
-      } else if (viewOptions === undefined) {
-        args.push({ view: "svg" });
-      }
-    }
-    Object.assign(origami, getView(origami, ...args));
-    setup(origami, origami.svg);
-    if (origami.svg) {
-      origami.svg.fit();
-      origami.svg.draw();
+    let view;
+    switch (parseOptionsForView(...args)) {
+      case "svg":
+        view = View(origami, ...args);
+        origami.didChange.push(view.draw);
+        Object.defineProperty(origami, "svg", { get: () => view });
+        setup(origami, origami.svg);
+        origami.svg.fit();
+        origami.svg.draw();
+        break;
+      case "webgl":
+        view = View3D(origami, ...args);
+        Object.defineProperty(origami, "canvas", { get: () => view });
+        break;
+      default: break;
     }
     return origami;
   };
@@ -10638,7 +10550,6 @@ line.mark { stroke: lightgray; }
     object,
     keys$1,
     validate$1,
-    add,
     remove,
     rebuild$1,
     make,
