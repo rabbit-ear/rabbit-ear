@@ -11,17 +11,18 @@ import * as DOM from "./DOM";
 import * as ViewBox from "./viewBox";
 import { svg, setupSVG } from "./elements/main";
 import Events from "./events";
+import window from "./environment/window";
 
 const getElement = function (...params) {
   const element = params.filter(arg => arg instanceof HTMLElement).shift();
   const idElement = params
     .filter(a => typeof a === "string" || a instanceof String)
-    .map(str => document.getElementById(str))
+    .map(str => window.document.getElementById(str))
     .shift();
   if (element != null) { return element; }
   return (idElement != null
     ? idElement
-    : document.body);
+    : window.document.body);
 };
 
 const initSize = function (svgElement, params) {
@@ -69,12 +70,12 @@ const attachSVGMethods = function (element) {
       // if (parent != null) { parent.appendChild(element); }
       if (callback != null) { callback(element, error); }
     });
-  }
-}
+  };
+};
 
 const svgImage = function (...params) {
   // create a new SVG
-  let image = svg();
+  const image = svg();
 
   // setup that can occur immediately
   initSize(image, params);
@@ -84,14 +85,15 @@ const svgImage = function (...params) {
   const setup = function () {
     // setup that requires a loaded DOM. append to parent, run callback
     initSize(image, params);
-    getElement(params).appendChild(image);
-    params.filter((arg) => typeof arg === "function")
-      .forEach((func) => func());
+    const parent = getElement(params);
+    if (parent != null) { parent.appendChild(image); }
+    params.filter(arg => typeof arg === "function")
+      .forEach(func => func());
   };
 
-  if (document.readyState === "loading") {
+  if (window.document.readyState === "loading") {
     // wait until after the <body> has rendered
-    document.addEventListener("DOMContentLoaded", setup);
+    window.document.addEventListener("DOMContentLoaded", setup);
   } else {
     setup();
   }

@@ -74,11 +74,16 @@ export const keys = Object.freeze([]
 
 export const edges_assignment_names = {
   en: {
-    B: "boundary", b: "boundary",
-    M: "mountain", m: "mountain",
-    V: "valley",   v: "valley",
-    F: "mark",     f: "mark",
-    U: "mark",     u: "mark"
+    B: "boundary",
+    b: "boundary",
+    M: "mountain",
+    m: "mountain",
+    V: "valley",
+    v: "valley",
+    F: "mark",
+    f: "mark",
+    U: "mark",
+    u: "mark"
   }
 };
 
@@ -134,7 +139,6 @@ export const transpose_geometry_arrays = function (graph, geometry_key) {
       .forEach((o, i) => { geometry[i][key.short] = graph[key.long][i]; }));
   return geometry;
 };
-
 
 /**
  * this takes in a geometry_key (vectors, edges, faces), and flattens

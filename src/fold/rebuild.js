@@ -1,13 +1,3 @@
-/*      _                                                _
-       | |                                              | |
-  _ __ | | __ _ _ __   __ _ _ __    __ _ _ __ __ _ _ __ | |__
- | '_ \| |/ _` | '_ \ / _` | '__|  / _` | '__/ _` | '_ \| '_ \
- | |_) | | (_| | | | | (_| | |    | (_| | | | (_| | |_) | | | |
- | .__/|_|\__,_|_| |_|\__,_|_|     \__, |_|  \__,_| .__/|_| |_|
- | |                                __/ |         | |
- |_|                               |___/          |_|
-*/
-
 /**
  * rebuild a graph back up by only using vertices_coords and edges_vertices
  */
@@ -26,7 +16,7 @@ import {
 } from "./make";
 import {
   edge_assignment_to_foldAngle
-} from "../fold/keys";
+} from "./keys";
 
 
 export const complete = function (graph) {

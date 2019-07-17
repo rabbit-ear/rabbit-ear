@@ -1,4 +1,8 @@
-import FOLD_SVG from "../../include/fold-svg";
+// import foldify from "../../include/foldify";
+
+const foldify = {
+  toFOLD: () => { },
+};
 
 /** parser error to check against */
 const pErr = (new window.DOMParser())
@@ -26,7 +30,7 @@ const load_file = function (input) {
       return fold;
     } catch (err) {
       if (input instanceof Element) {
-        FOLD_SVG.toFOLD(input, fold => fold);
+        foldify.toFOLD(input, fold => fold);
         return undefined;
       }
       console.warn("could not load file, object is either not valid FOLD or corrupt JSON.", err);
@@ -48,7 +52,7 @@ const load_file = function (input) {
       const xml = (new window.DOMParser()).parseFromString(input, "text/xml");
       if (xml.getElementsByTagNameNS(pErr, "parsererror").length === 0) {
         const parsedSVG = xml.documentElement;
-        FOLD_SVG.toFOLD(parsedSVG, fold => fold);
+        foldify.toFOLD(parsedSVG, fold => fold);
         return undefined;
       }
       // let extension = input.substr((input.lastIndexOf(".") + 1));

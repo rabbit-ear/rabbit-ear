@@ -24,7 +24,7 @@ import * as Axioms from "./origami/axioms";
 // to be included in "convert"
 import { toFOLD, toSVG, toORIPA } from "./files/filetype";
 // todo, remove
-import FOLD_SVG from "../include/fold-svg";
+import drawFOLD from "../include/fold-draw";
 
 // to be included in "core"
 import * as create from "./fold/create";
@@ -33,7 +33,6 @@ import * as object from "./fold/object";
 import * as keys from "./fold/keys";
 import * as validate from "./fold/validate";
 
-import * as add from "./fold/add";
 import * as remove from "./fold/remove";
 import * as make from "./fold/make";
 import * as query from "./fold/query";
@@ -63,14 +62,13 @@ import frog from "./data/bases/frog.fold";
 import prototype from "./fold/prototype";
 import Origami from "./origami";
 
-console.log("RabbitEar v0.2", "browser", isBrowser,
-  "webWorker", isWebWorker, "node", isNode, "environment");
+console.log(`RabbitEar v0.2 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
 
 const convert = {
   toFOLD,
   toSVG,
   toORIPA,
-  FOLD_SVG,
+  drawFOLD,
 };
 
 const draw = Object.create(null);
@@ -84,7 +82,6 @@ Object.assign(core,
   object,
   keys,
   validate,
-  add,
   remove,
   rebuild,
   make,

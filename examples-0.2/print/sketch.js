@@ -63,6 +63,8 @@ const fadeInCreasePattern = function () {
       origami.intervalId = undefined;
     }
     div.style.opacity = opacity;
+    const div2 = document.querySelector("#save-button");
+    div2.style.opacity = opacity;
   }, 15);
 
   origami.alreadyFaded = true;
@@ -83,6 +85,7 @@ origami.reset = function () {
   origami.frame = 1;
   steps = [JSON.parse(JSON.stringify(STARTER))];
   document.querySelector("#pattern").style.opacity = 0;
+  document.querySelector("#save-button").style.opacity = 0;
   origami.fitViewInRect(
     document.querySelector("#space").getBoundingClientRect(),
     window.innerWidth, window.innerHeight
@@ -125,7 +128,7 @@ const buildDiagramStepFold = function (steps_array) {
     file_spec: 1.1,
     file_author: "Robby",
     file_title: "Origami",
-    file_description: "",
+    file_description: "2019",
     file_classes: ["diagrams"],
     file_creator: "Rabbit Ear",
     file_frames: steps_array
@@ -153,7 +156,7 @@ const printHTML = function (htmlContents) {
 };
 
 const downloadInBrowser = function (filename, contentsAsString) {
-  const blob = new window.Blob([contentsAsString], {type: "text/plain"});
+  const blob = new window.Blob([contentsAsString], { type: "text/plain" });
   const a = document.createElement("a");
   a.setAttribute("href", window.URL.createObjectURL(blob));
   a.setAttribute("download", filename);
@@ -162,10 +165,13 @@ const downloadInBrowser = function (filename, contentsAsString) {
   a.remove();
 };
 
-document.querySelector("#save-button").onclick = function () {
-  const fold_file = buildDiagramStepFold(steps);
-  downloadInBrowser("origami.fold", JSON.stringify(fold_file));
-};
+const saveButton = document.querySelector("#save-button");
+if (saveButton != null) {
+  saveButton.onclick = function () {
+    const fold_file = buildDiagramStepFold(steps);
+    downloadInBrowser("origami.fold", JSON.stringify(fold_file));
+  };
+}
 
 document.querySelector("#reset-button").onclick = function () {
   origami.reset();

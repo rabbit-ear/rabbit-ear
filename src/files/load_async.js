@@ -1,11 +1,9 @@
 import { load } from "../../include/svg/src/DOM";
-import FOLD_SVG from "../../include/fold-svg";
+// import foldify from "../../include/foldify";
 
-// let FOLD_SVG = {
-//   toFOLD: function (){},
-//   toSVG: function (){}
-// };
-
+const foldify = {
+  toFOLD: () => { },
+};
 
 /** parser error to check against */
 const pErr = (new window.DOMParser())
@@ -35,7 +33,7 @@ const load_file = async function (input) {
       return fold; // asynchronous loading was not required
     } catch (err) {
       if (input instanceof Element) {
-        FOLD_SVG.toFOLD(input, (fold) => { return fold; });
+        foldify.toFOLD(input, (fold) => { return fold; });
         return undefined; // asynchronous loading was not required
       } else {
         // console.warn("could not load file, object is either not valid FOLD or corrupt JSON.", err);
@@ -57,7 +55,7 @@ const load_file = async function (input) {
       let xml = (new window.DOMParser()).parseFromString(input, "text/xml");
       if (xml.getElementsByTagNameNS(pErr, "parsererror").length === 0) {
         let parsedSVG = xml.documentElement;
-        FOLD_SVG.toFOLD(parsedSVG, (fold) => { return fold; });
+        foldify.toFOLD(parsedSVG, (fold) => { return fold; });
         return undefined;
       }
 
@@ -72,7 +70,7 @@ const load_file = async function (input) {
           break;
         case "svg":
           load(input, (svg) => {
-            FOLD_SVG.toFOLD(input, (fold) => {
+            foldify.toFOLD(input, (fold) => {
               return fold; });
           });
           break;

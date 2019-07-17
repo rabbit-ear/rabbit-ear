@@ -227,7 +227,7 @@ export default function (node) {
   };
 
   const setup = function (node) {
-    if (_node != null) {
+    if (_node != null && typeof node.removeEventListener === "function") {
       removeHandlers(_node);
     }
     _node = node;
@@ -244,7 +244,9 @@ export default function (node) {
     Object.defineProperty(_node, "mouse", {get: function (){ return _pointer.getPointer(); }});
     Object.defineProperty(_node, "pointer", {get: function (){ return _pointer.getPointer(); }});
 
-    attachHandlers(_node);
+    if (typeof _node.addEventListener === "function") {
+      attachHandlers(_node);
+    }
   };
 
   setup(node);

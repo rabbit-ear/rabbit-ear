@@ -30,14 +30,36 @@ a svg {
 	height: 8vmin;
 	cursor: pointer;
 }
-.button.blue, .button.red  {
-	margin: 0 8vmin;
-}
+
 .button.blue {
 	color: white;
 	background-color: #1e6e9e;
 	border-color: #1e6e9e;
 }
+#reset-button, #print-button, #save-button {
+	line-height: 1.5;
+	margin: 0;
+	padding: 0;
+	line-height: 1;
+	width: 2em;
+	height: 2em;
+	border-radius: 1em;
+}
+#reset-button {
+	position: absolute;
+	right: 2rem;
+	bottom: 2rem;
+}
+#print-button {
+	position: absolute;
+	left: 2rem;
+	bottom: 2rem;
+}
+#save-button {
+}
+/*.button.blue, .button.red {
+	margin: 0 8vmin;
+}*/
 /*
 .button.yellow {
 	border: 6px solid black;

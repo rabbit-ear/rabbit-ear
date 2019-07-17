@@ -1,3 +1,13 @@
+/*      _                                                _
+       | |                                              | |
+  _ __ | | __ _ _ __   __ _ _ __    __ _ _ __ __ _ _ __ | |__
+ | '_ \| |/ _` | '_ \ / _` | '__|  / _` | '__/ _` | '_ \| '_ \
+ | |_) | | (_| | | | | (_| | |    | (_| | | | (_| | |_) | | | |
+ | .__/|_|\__,_|_| |_|\__,_|_|     \__, |_|  \__,_| .__/|_| |_|
+ | |                                __/ |         | |
+ |_|                               |___/          |_|
+*/
+
 // PlanarGraph.js
 // a planar graph data structure containing edges and vertices in 2D space
 // MIT open source license, Robby Kraft

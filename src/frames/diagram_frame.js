@@ -3,6 +3,8 @@ import { get_boundary } from "../fold/query";
 import { edges_assignment_names } from "../fold/keys";
 import axiom_instructions_data from "../data/instructions_axiom.json";
 
+// the diagram frame IS little fold files. each arrow has vertices_coords. the arrow path is an edges_vertices: [0, 1]
+
 const axiom_instructions = JSON.parse(axiom_instructions_data);
 
 const get_instructions_for_axiom = function (axiom_number) {

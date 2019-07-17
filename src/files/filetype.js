@@ -1,4 +1,4 @@
-import FOLD_SVG from "../../include/fold-svg";
+import drawFOLD from "../../include/fold-draw";
 import ORIPA from "../../include/fold/oripa";
 import loader from "./load_async";
 
@@ -7,11 +7,6 @@ export const convert = async function (file) {
     return { };
   });
 };
-
-// let FOLD_SVG = {
-//   toFOLD: function (){},
-//   toSVG: function (){}
-// };
 
 export const toFOLD = function (input, callback) {
   return loader(input, (fold) => {
@@ -26,7 +21,7 @@ export const toSVG = function (input, callback) {
   // call is in progress
   const syncFold = loader(input, () => {
     if (async) {
-      FOLD_SVG.toSVG(input, (loadedSVG) => {
+      drawFOLD.svg(input, (loadedSVG) => {
         if (callback != null) { callback(loadedSVG); }
       });
     }
@@ -35,7 +30,7 @@ export const toSVG = function (input, callback) {
   // if the load was synchronous, syncFold will contain data. if not,
   // let the callback above finish off the conversion.
   if (syncFold !== undefined) {
-    FOLD_SVG.toSVG(syncFold, (loadedSVG) => {
+    drawFOLD.svg(syncFold, (loadedSVG) => {
       if (callback != null) { callback(loadedSVG); }
     });
     // return svg;

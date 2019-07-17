@@ -4,14 +4,12 @@ import math from "../../include/math";
 import FOLDConvert from "../../include/fold/convert";
 
 import * as Create from "./create";
-import component from "./component";
 import {
   transpose_geometry_arrays,
   transpose_geometry_array_at_index,
   keys as foldKeys
 } from "./keys";
 import { clone } from "./object";
-import { merge_frame } from "./file_frames";
 import addEdge from "./add_edge";
 import split_edge from "./split_edge";
 import split_face from "./split_face";
@@ -64,7 +62,22 @@ const Prototype = function (proto = {}) {
     // todo: this doesn't get multiple boundaries yet
     return [get_boundary(this)];
   };
+  /**
+   * queries
+   */
+  /**  get the folded state by checking the top level classes */
+  const isFolded = function () {
+    if ("frame_classes" in this === false) { return undefined; }
+    const cpIndex = this.frame_classes.indexOf("creasePattern");
+    const foldedIndex = this.frame_classes.indexOf("foldedForm");
+    if (cpIndex === -1 && foldedIndex === -1) { return undefined; }
+    if (cpIndex !== -1 && foldedIndex !== -1) { return undefined; }
+    return (foldedIndex !== -1);
+  };
 
+  /**
+   * modifiers
+   */
   proto.rebuild = function (epsilon = math.core.EPSILON) {
     rebuild(this, epsilon);
   };
@@ -80,7 +93,7 @@ const Prototype = function (proto = {}) {
       && "faces_vertices" in this && "faces_edges" in this);
     if (!valid) {
       console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
-      clean(epsilon);
+      // clean(epsilon);
     }
   };
   /**
@@ -101,7 +114,7 @@ const Prototype = function (proto = {}) {
    */
   proto.clear = function () {
     remove_non_boundary_edges(this);
-    this.onchange.forEach(f => f());
+    this.didChange.forEach(f => f());
   };
   proto.nearestVertex = function (...args) {
     const index = nearest_vertex(this, math.core.get_vector(...args));
@@ -121,6 +134,10 @@ const Prototype = function (proto = {}) {
     result.index = index;
     return result;
   };
+  /**
+   * How does this view process a request for nearest components to a target?
+   * (2D), furthermore, attach view objects (SVG) to the nearest value data.
+   */
   proto.nearest = function (...args) {
     const target = math.core.get_vector(...args);
     const nears = {
@@ -140,15 +157,15 @@ const Prototype = function (proto = {}) {
     scale(this, ...args);
   };
 
-  proto.foldedForm = function () {
-    const foldedFrame = this.file_frames
-      .filter(f => f.frame_classes.includes("foldedForm"))
-      .filter(f => f.vertices_coords.length === this.vertices_coords.length)
-      .shift();
-    return foldedFrame != null
-      ? merge_frame(this, foldedFrame)
-      : undefined;
-  };
+  // proto.foldedForm = function () {
+  //   const foldedFrame = this.file_frames
+  //     .filter(f => f.frame_classes.includes("foldedForm"))
+  //     .filter(f => f.vertices_coords.length === this.vertices_coords.length)
+  //     .shift();
+  //   return foldedFrame != null
+  //     ? merge_frame(this, foldedFrame)
+  //     : undefined;
+  // };
 
   // updates
   const didModifyGraph = function () {
@@ -159,7 +176,7 @@ const Prototype = function (proto = {}) {
     //  .filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
 
     // broadcast update to handler if attached
-    this.onchange.forEach(f => f());
+    this.didChange.forEach(f => f());
   };
 
   // geometry modifiers, fold operations
@@ -216,12 +233,16 @@ const Prototype = function (proto = {}) {
     // let mat_inv = matrix
     //  .map(mat => Geom.core.make_matrix2_inverse(mat))
     //  .map(mat => Geom.core.multiply_line_matrix2(point, vector, mat));
+
     const folded = MakeFold(this,
       line.point,
       line.vector,
       face_index,
       "V");
-    Object.keys(folded).forEach((key) => { this[key] = folded[key]; });
+
+    const ObjectKeys = Object.keys(folded).filter(key => key !== "svg");
+    ObjectKeys.forEach((key) => { this[key] = folded[key]; });
+
     if ("re:construction" in this === true) {
       if (objects.length > 0 && "axiom" in objects[0] === true) {
         this["re:construction"].axiom = objects[0].axiom;
@@ -231,6 +252,7 @@ const Prototype = function (proto = {}) {
       //  Diagram.build_diagram_frame(this)
       // ];
     }
+
     didModifyGraph.call(this);
 
     // todo, need to grab the crease somehow
@@ -277,7 +299,8 @@ const Prototype = function (proto = {}) {
         });
     }
     // this.edges_assignment.push("F");
-    const crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
+    // const crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
+    const crease = [diff.edges_new[0] - edges_remove_count];
     didModifyGraph.call(this);
     return crease;
   };
@@ -288,21 +311,22 @@ const Prototype = function (proto = {}) {
   // };
 
   proto.kawasaki = function (...args) {
-    const crease = component.crease(this, kawasaki_collapse(this, ...args));
+    const crease = kawasaki_collapse(this, ...args);
     didModifyGraph.call(this);
     return crease;
   };
 
   Object.defineProperty(proto, "load", { value: load });
-  // Object.defineProperty(proto, "svg", { value: svg });
   Object.defineProperty(proto, "boundaries", { get: getBoundaries });
   Object.defineProperty(proto, "vertices", { get: getVertices });
   Object.defineProperty(proto, "edges", { get: getEdges });
   Object.defineProperty(proto, "faces", { get: getFaces });
-  Object.defineProperty(proto, "json", { get: json });
+  Object.defineProperty(proto, "isFolded", { value: isFolded });
+  Object.defineProperty(proto, "json", { value: json });
+  // Object.defineProperty(proto, "svg", { value: svg });
 
   // callbacks for when the crease pattern has been altered
-  proto.onchange = [];
+  proto.didChange = [];
 
   // proto.__rabbit_ear = RabbitEar;
 
