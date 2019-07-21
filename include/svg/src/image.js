@@ -85,7 +85,7 @@ const svgImage = function (...params) {
   const setup = function () {
     // setup that requires a loaded DOM. append to parent, run callback
     initSize(image, params);
-    const parent = getElement(params);
+    const parent = getElement(...params);
     if (parent != null) { parent.appendChild(image); }
     params.filter(arg => typeof arg === "function")
       .forEach(func => func());

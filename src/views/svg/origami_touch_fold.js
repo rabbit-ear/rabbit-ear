@@ -1,15 +1,20 @@
+/**
+ * this gets applied to the parent of the SVG. the Origami() object.
+ *
+ */
+
 import {
   make_faces_matrix,
   make_vertices_coords_folded,
-} from "./fold/make";
+} from "../../fold/make";
 import {
   faces_containing_point,
   topmost_face,
-} from "./fold/query";
+} from "../../fold/query";
 import {
   axiom2
-} from "./origami/axioms";
-import { clone } from "./fold/object";
+} from "../../origami/axioms";
+import { clone } from "../../fold/object";
 
 const build_folded_frame = function (graph, face_stationary = 0) {
   const faces_matrix = make_faces_matrix(graph, face_stationary);

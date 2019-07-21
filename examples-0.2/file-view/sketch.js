@@ -1,7 +1,7 @@
 const origamiDiv = document.querySelectorAll(".origami")[0];
 const foldedDiv = document.querySelectorAll(".folded")[0];
-const origami = re.Origami(origamiDiv, { padding: 0.05 });
-const folded = re.Origami(foldedDiv, { frame: 1, padding: 0.05 });
+const origami = RabbitEar.Origami(origamiDiv, { padding: 0.05 });
+const folded = RabbitEar.Origami(foldedDiv, { frame: 1, padding: 0.05 });
 const slider = document.querySelector("#frame-slider");
 const frameInfo = document.querySelector("#frame-span");
 
@@ -92,6 +92,7 @@ document.getElementById("download-cp-fold")
 // origami.load("https://raw.githubusercontent.com/robbykraft/Origami/master/files/fold/crane.fold", function () {
 //  origami.update();
 // });
+
 origami.load("../../files/fold/crawfish.fold", function () {
   origami.update();
 });

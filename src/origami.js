@@ -34,7 +34,7 @@ import { transpose_geometry_arrays, keys as foldKeys } from "./fold/keys";
 import { clone } from "./fold/object";
 import { clean } from "./fold/clean";
 
-import touchAndFold from "./origami_touch_fold";
+import touchAndFold from "./views/svg/origami_touch_fold";
 
 const DEFAULTS = Object.freeze({
   folding: false,

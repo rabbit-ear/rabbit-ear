@@ -3967,7 +3967,7 @@
     image.events = Events(image);
     const setup = function () {
       initSize(image, params);
-      const parent = getElement(params);
+      const parent = getElement(...params);
       if (parent != null) { parent.appendChild(image); }
       params.filter(arg => typeof arg === "function")
         .forEach(func => func());
