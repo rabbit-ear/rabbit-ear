@@ -1,0 +1,78 @@
+.button {
+	margin: 2px;
+	padding: 0.25em 0.5em;
+	border: 1px solid transparent;
+	border-radius: 0.2em;
+	line-height: 1.5;
+	display: inline-block;
+	color: white;
+	text-align: center;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+	cursor: pointer;
+}
+
+.button {
+	background-color: #37a;
+	border-color: #37a;
+}
+/*.button:hover {
+	background-color: #49d;
+	border-color: #49d;
+}*/
+
+.button.red {
+	background-color: #d42;
+	border-color: #d42;
+}
+/*.button.red:hover {
+	background-color: #e64;
+	border-color: #e64;
+}*/
+
+.button.blue {
+	background-color: #49d;
+	border-color: #49d;
+}
+/*.button.blue:hover {
+	background-color: #5ae;
+	border-color: #5ae;
+}
+*/
+.button.yellow {
+	color: #333;
+	background-color: #eb4;
+	border-color: #eb4;
+}
+/*.button.yellow:hover {
+	color: black;
+	background-color: white;
+	border-color: white;
+}*/
+
+.button.outline {
+	background-color: unset;
+	border-color: white;
+}
+
+/*.button.outline:hover {
+	background-color: #37a;
+	border-color: #37a;
+}*/
+
+a.button { text-decoration: none; }
+
+.button.disabled {
+	pointer-events: none;
+	opacity: 0.5;
+}
+.button.nolink {
+	pointer-events: none;
+}
+/*.button.nolink:hover {
+	background-color: initial;
+	border-color: initial;
+}*/

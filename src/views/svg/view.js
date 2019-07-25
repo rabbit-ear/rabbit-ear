@@ -7,9 +7,9 @@
  *   - DOM object, or "string" DOM id to attach to
  */
 
-import SVGImage from "../../../include/svg/src/image";
+import SVGImage from "../../../../SVG/src/image";
 import drawFOLD from "../../../include/fold-draw";
-import { setViewBox } from "../../../include/svg/src/viewBox";
+import { setViewBox } from "../../../../SVG/src/viewBox";
 import { bounding_rect } from "../../fold/query";
 import { shadowFilter } from "./filters";
 import {

@@ -1,0 +1,24 @@
+svg {
+	stroke-linecap: round;
+}
+
+.foldedForm .faces .front {
+	fill: white;
+}
+.foldedForm .faces .back {
+	fill: #e64e1e;
+}
+
+.creasePattern .boundary {
+	fill: white;
+}
+.creasePattern .mountain{
+	stroke: #e14929;
+}
+.creasePattern .valley{
+	stroke: #314f69;
+	stroke-dasharray: 0.01 0.02;
+}
+.creasePattern .mark {
+	stroke: #aaa;
+}

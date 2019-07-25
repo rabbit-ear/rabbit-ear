@@ -1,4 +1,5 @@
 1. we have a new storage: "re:construction"
+
 2. i have the limit of the edge now.
   a. reflect the edge across each face, check for intersections.
   b. even better, limit the fold line to be on the one side of the edge

@@ -1,5 +1,5 @@
 const CodeOrigamiSimulator = function (origamiID, codeID, consoleID) {
-  const creasePattern = re.svg.image(origamiID, 1, 1, { padding: 0.05 });
+  const creasePattern = RabbitEar.draw.svg.image(origamiID, 1, 1, { padding: 0.05 });
   const consoleDiv = document.querySelector(`#${consoleID}`);
   const container = document.querySelector("#simulator-container");
   const simulator = OrigamiSimulator({
@@ -127,7 +127,7 @@ const CodeOrigamiSimulator = function (origamiID, codeID, consoleID) {
     "polygon", "polyline", "rect", "regularPolygon", "straightArrow",
     "text", "wedge", "group"].forEach((name) => {
     window[name] = function (...args) {
-      const element = re.svg[name](...args);
+      const element = RabbitEar.draw.svg[name](...args);
       creasePattern.appendChild(element);
       return element;
     };
@@ -136,7 +136,7 @@ const CodeOrigamiSimulator = function (origamiID, codeID, consoleID) {
   // bind other methods
   ["controls"].forEach((name) => {
     window[name] = function (...args) {
-      const returnValue = re.svg[name](creasePattern, ...args);
+      const returnValue = RabbitEar.draw.svg[name](creasePattern, ...args);
       return returnValue;
     };
   });

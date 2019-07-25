@@ -3030,7 +3030,7 @@ var math = {
   matrix2: Matrix2,
   line: Line,
   ray: Ray,
-  edge: Edge,
+  segment: Edge,
   circle: Circle,
   polygon: Polygon,
   convexPolygon: ConvexPolygon,
