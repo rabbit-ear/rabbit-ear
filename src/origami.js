@@ -23,7 +23,7 @@ import {
 } from "../include/svg/src/environment/detect";
 
 import Prototype from "./fold/prototype";
-import load_file from "./files/load_sync";
+import load_file from "./convert/load_sync";
 import { make_vertices_coords_folded, make_faces_matrix } from "./fold/make";
 import {
   possibleFoldObject,

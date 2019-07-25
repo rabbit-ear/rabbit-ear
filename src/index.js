@@ -21,27 +21,20 @@ import * as svg from "../include/svg/src/index";
 import apply_axiom from "./frames/axiom_frame";
 import * as Axioms from "./origami/axioms";
 
-// to be included in "convert"
-import { toFOLD, toSVG, toORIPA } from "./files/filetype";
-// todo, remove
-import drawFOLD from "../include/fold-draw";
-
 // to be included in "core"
-import * as create from "./fold/create";
 import * as frames from "./fold/file_frames";
 import * as object from "./fold/object";
 import * as keys from "./fold/keys";
 import * as validate from "./fold/validate";
+import convert from "./convert/convert";
 
 import * as remove from "./fold/remove";
 import * as make from "./fold/make";
 import * as query from "./fold/query";
 import * as rebuild from "./fold/rebuild";
 
-// import * as crease from "./origami/crease";
 import fold from "./origami/fold";
 import * as kawasaki from "./origami/kawasaki";
-// import { default as valleyfold } from "./fold/valleyfold";
 
 import build_diagram_frame from "./frames/diagram_frame";
 
@@ -64,13 +57,6 @@ import Origami from "./origami";
 
 console.log(`RabbitEar v0.2 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
 
-const convert = {
-  toFOLD,
-  toSVG,
-  toORIPA,
-  drawFOLD,
-};
-
 const draw = Object.create(null);
 draw.svg = svg;
 draw.gl = {};
@@ -78,7 +64,6 @@ draw.gl = {};
 const core = Object.create(null);
 Object.assign(core,
   frames,
-  create,
   object,
   keys,
   validate,
@@ -86,8 +71,6 @@ Object.assign(core,
   rebuild,
   make,
   query,
-  // crease,
-  fold,
   kawasaki,
   Axioms);
 
@@ -110,7 +93,6 @@ const b = {
   bird: JSON.parse(bird),
   frog: JSON.parse(frog),
 };
-
 
 const bases = Object.create(null);
 Object.defineProperty(bases, "empty", { get: () => core.clone(b.empty) });
@@ -148,10 +130,10 @@ Object.defineProperty(bases, "frog", { get: () => core.clone(b.frog) });
 // };
 
 const rabbitEar = {
-  // CreasePattern,
   Origami,
   graph,
   draw,
+  fold,
   convert,
   core,
   bases,

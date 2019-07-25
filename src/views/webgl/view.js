@@ -8,7 +8,7 @@
  */
 
 import { flatten_frame } from "../../fold/file_frames";
-import load_file from "../../files/load_async";
+import load_file from "../../convert/load_async";
 import Prototype from "../../fold/prototype";
 
 const CREASE_DIR = {
