@@ -4,7 +4,8 @@
 	"description": "origami design library",
 	"main": "./rabbit-ear.js",
 	"scripts": {
-		"test": "jest"
+		"test": "jest",
+		"convert": "node tests/convert.js"
 	},
 	"license": "MIT",
 	"author": {

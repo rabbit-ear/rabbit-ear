@@ -20,7 +20,7 @@ const convert = function (...file) {
   const c = {};
   ["fold", "svg", "oripa"].forEach(filetype => permute(filetype)
     .forEach(key => Object.defineProperty(c, key, {
-      value: (...o) => fromTo(loaded.data, loaded.type, key, ...o)
+      value: (...o) => fromTo(loaded.data, loaded.type, filetype, ...o)
     })));
   return c;
 };
