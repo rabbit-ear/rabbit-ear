@@ -11,10 +11,9 @@ const possibleSVG = function (xml) {
 };
 
 const possibleORIPA = function (xml) {
-  // unsure what constitutes an ORIPA file, but they appear to include:
-  //  <java version="1.5.0_07" class="java.beans.XMLDecoder">
+  // unsure what should constitulte an ORIPA file
+  // it appears to include:
   //  <object class="oripa.DataSet">
-  // const javas = xml.getElementsByTagName("java");
   const objects = xml.getElementsByTagName("object");
   if (objects.length > 0) {
     return Array.from(objects)

@@ -11349,12 +11349,12 @@
         console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
       }
     };
-    const load = function (file, prevent_wipe) {
+    proto.load = function (file, prevent_wipe) {
       if (prevent_wipe == null || prevent_wipe !== true) {
         keys.forEach(key => delete this[key]);
       }
       Object.assign(this, JSON.parse(JSON.stringify(file)));
-      clean();
+      clean.call(this);
     };
     proto.clear = function () {
       remove_non_boundary_edges(this);
@@ -11494,7 +11494,6 @@
       didModifyGraph.call(this);
       return crease;
     };
-    Object.defineProperty(proto, "load", { value: load });
     Object.defineProperty(proto, "boundaries", { get: getBoundaries });
     Object.defineProperty(proto, "vertices", { get: getVertices });
     Object.defineProperty(proto, "edges", { get: getEdges });
