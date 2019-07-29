@@ -1,8 +1,11 @@
 // this code is from the official FOLD library
 // https://github.com/edemaine/fold
 // by Erik Demaine, Jason Ku, Robert Lang
-// 
+//
 // this file was modified slightly, it's its own module. not inside convert
+
+import filter from "./filter";
+import convert from "./convert";
 
 let oripa = {};
 
@@ -36,7 +39,7 @@ oripa.prop_xml2fold = {
 
 oripa.POINT_EPS = 1.0;
 
-oripa.toFold = function(oripaStr) {
+oripa.toFold = function(oripaStr, isDOMObject) { // vs. string. default false
   var children, fold, j, k, l, len, len1, len2, len3, len4, line, lines, m, n, nodeSpec, object, oneChildSpec, oneChildText, prop, property, ref1, ref2, ref3, ref4, ref5, subproperty, top, type, vertex, x0, x1, xml, y0, y1;
   fold = {
     vertices_coords: [],
@@ -103,8 +106,12 @@ oripa.toFold = function(oripaStr) {
       }
     }
   };
-  xml = new DOMParser().parseFromString(oripaStr, 'text/xml');
-  ref1 = children(xml.documentElement);
+  xml = (isDOMObject === true)
+    ? oripaStr
+    : new DOMParser().parseFromString(oripaStr, 'text/xml').documentElement;
+  // xml = new DOMParser().parseFromString(oripaStr, 'text/xml');
+  // ref1 = children(xml.documentElement);
+  ref1 = children(xml);
   for (j = 0, len = ref1.length; j < len; j++) {
     top = ref1[j];
     if (nodeSpec(top, 'object', 'class', 'oripa.DataSet')) {

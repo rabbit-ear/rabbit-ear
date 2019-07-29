@@ -8,7 +8,7 @@
  */
 
 import { flatten_frame } from "../../fold/file_frames";
-import load_file from "../../files/load_async";
+// import load_file from "../../convert/load_async";
 import Prototype from "../../fold/prototype";
 
 const CREASE_DIR = {
@@ -157,12 +157,12 @@ export default function View3D(...args) {
     prop.cp.onchange = draw;
   }
 
-  const load = function(input, callback) { // epsilon
-    load_file(input, function(fold) {
-      setCreasePattern( CreasePattern(fold) );
-      if (callback != null) { callback(); }
-    });
-  }
+  // const load = function(input, callback) { // epsilon
+  //   load_file(input, function(fold) {
+  //     setCreasePattern( CreasePattern(fold) );
+  //     if (callback != null) { callback(); }
+  //   });
+  // }
 
   const isFoldedState = function() {
     if (prop.cp == undefined || prop.cp.frame_classes == undefined) { return false; }
@@ -193,7 +193,7 @@ export default function View3D(...args) {
       return prop.cp;
     },
     draw,
-    load,
+    // load,
     get frame() { return prop.frame; },
     set frame(newValue) {
       prop.frame = newValue;

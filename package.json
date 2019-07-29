@@ -1,10 +1,12 @@
 {
 	"name": "rabbit-ear",
 	"version": "0.1.0",
-	"description": "Javascript origami design library",
+	"description": "origami design library",
 	"main": "./rabbit-ear.js",
 	"scripts": {
-		"test": "jest"
+		"test": "jest",
+		"clean": "node tests/clean.js",
+		"convert": "node tests/convert.js"
 	},
 	"license": "MIT",
 	"author": {
@@ -44,6 +46,7 @@
 		"rollup-plugin-string": "^3.0.0"
 	},
 	"dependencies": {
+		"tofold": "0.0.32",
 		"xmldom": "^0.1.27"
 	}
 }

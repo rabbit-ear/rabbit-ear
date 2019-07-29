@@ -50,6 +50,7 @@ convert.sort_vertices_vertices = function(fold) {
    */
   var neighbors, ref, ref1, ref2, v;
   if (((ref = fold.vertices_coords) != null ? (ref1 = ref[0]) != null ? ref1.length : void 0 : void 0) !== 2) {
+    console.log("fold.vertices_coords", fold.vertices_coords);
     throw new Error("sort_vertices_vertices: Vertex coordinates missing or not two dimensional");
   }
   if (fold.vertices_vertices == null) {

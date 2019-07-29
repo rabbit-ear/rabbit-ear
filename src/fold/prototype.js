@@ -100,13 +100,14 @@ const Prototype = function (proto = {}) {
    * @param {file} is a FOLD object.
    * @param {prevent_wipe} if true import will skip clearing
    */
-  const load = function (file, prevent_wipe) {
+  proto.load = function (file, prevent_wipe) {
     if (prevent_wipe == null || prevent_wipe !== true) {
       foldKeys.forEach(key => delete this[key]);
     }
     Object.assign(this, JSON.parse(JSON.stringify(file)));
-    clean();
+    clean.call(this);
     // placeholderFoldedForm(_this);
+    this.didChange.forEach(f => f());
   };
   /**
    * this removes all geometry from the crease pattern and returns it
@@ -316,7 +317,7 @@ const Prototype = function (proto = {}) {
     return crease;
   };
 
-  Object.defineProperty(proto, "load", { value: load });
+  // Object.defineProperty(proto, "load", { value: load });
   Object.defineProperty(proto, "boundaries", { get: getBoundaries });
   Object.defineProperty(proto, "vertices", { get: getVertices });
   Object.defineProperty(proto, "edges", { get: getEdges });

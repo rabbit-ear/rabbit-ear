@@ -23,7 +23,7 @@ import {
 } from "../include/svg/src/environment/detect";
 
 import Prototype from "./fold/prototype";
-import load_file from "./files/load_sync";
+// import load_file from "./convert/load_sync";
 import { make_vertices_coords_folded, make_faces_matrix } from "./fold/make";
 import {
   possibleFoldObject,
@@ -68,7 +68,10 @@ const interpreter = {
 
 const parseOptionsForView = function (...args) {
   // ignores other objects, only ends up with one.
-  const viewOptions = args.filter(a => "view" in a === true).shift();
+  const viewOptions = args
+    .filter(a => typeof a === "object")
+    .filter(a => "view" in a === true)
+    .shift();
   if (viewOptions === undefined) {
     // do nothing
     if (isNode) { return undefined; }
@@ -136,16 +139,16 @@ const Origami = function (...args) {
    * @param {file} is a FOLD object.
    * @param {prevent_wipe} if true import will skip clearing
    */
-  const load = function (input, prevent_wipe) { // epsilon
-    const loaded_file = load_file(input);
-    if (prevent_wipe == null || prevent_wipe !== true) {
-      foldKeys.forEach(key => delete origami[key]);
-    }
-    Object.assign(origami, clone(loaded_file));
-    origami.didChange.forEach(f => f());
-    clean(origami);
-    return origami;
-  };
+  // const load = function (input, prevent_wipe) { // epsilon
+  //   const loaded_file = load_file(input);
+  //   if (prevent_wipe == null || prevent_wipe !== true) {
+  //     foldKeys.forEach(key => delete origami[key]);
+  //   }
+  //   Object.assign(origami, clone(loaded_file));
+  //   origami.didChange.forEach(f => f());
+  //   clean(origami);
+  //   return origami;
+  // };
 
   // Object.defineProperty(svg, "frames", {
   //   get: () => {
@@ -182,7 +185,7 @@ const Origami = function (...args) {
   // attach methods
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
-  Object.defineProperty(origami, "load", { value: load });
+  // Object.defineProperty(origami, "load", { value: load });
 
   // overwriting prototype methods
   Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
