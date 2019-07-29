@@ -1,6 +1,8 @@
 const fs = require("fs");
 const RabbitEar = require("../rabbit-ear");
 
+jest.setTimeout(30000);
+
 const outputDir = "./tests/output";
 fs.existsSync(outputDir) || fs.mkdirSync(outputDir);
 
