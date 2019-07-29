@@ -1,9 +1,0 @@
-.DS_Store
-.git
-.gitignore
-.travis.yml
-.eslintrc.json
-rollup.config.js
-src/
-include/
-tests/output/

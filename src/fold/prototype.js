@@ -107,6 +107,7 @@ const Prototype = function (proto = {}) {
     Object.assign(this, JSON.parse(JSON.stringify(file)));
     clean.call(this);
     // placeholderFoldedForm(_this);
+    this.didChange.forEach(f => f());
   };
   /**
    * this removes all geometry from the crease pattern and returns it

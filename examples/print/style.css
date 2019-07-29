@@ -185,7 +185,6 @@ svg * {
 polygon {
 	fill: none;
 	stroke: none;
-	stroke-linejoin: bevel;
 }
 
 .boundary {
@@ -197,11 +196,6 @@ polygon {
 }
 .mark {
 	stroke-width: calc( var(--crease-width) * 0.25);
-}
-
-.foldedForm .faces polygon {
-	fill: rgba(220, 10, 100, 0.2);
-	stroke: rgba(0, 0, 0, 0.2);
 }
 
 .foldedForm .faces .front {
@@ -216,30 +210,4 @@ polygon {
 
 .foldedForm .creases line {
 	stroke: none;
-}
-
-.creasePattern .boundary {
-	fill: none;
-	stroke: none;
-}
-
-.creasePattern .faces polygon {
-	fill: none;
-	stroke: none;
-}
-
-.creasePattern .faces .front {
-	fill: none;
-	stroke: none;
-}
-
-.creasePattern .faces .back {
-	fill: none;
-	stroke: none;
-}
-
-.creasePattern .creases line {
-	stroke: #fff;
-	stroke-width: calc(var(--crease-width) * 0.666 );
-
 }

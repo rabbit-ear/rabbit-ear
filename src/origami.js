@@ -68,7 +68,10 @@ const interpreter = {
 
 const parseOptionsForView = function (...args) {
   // ignores other objects, only ends up with one.
-  const viewOptions = args.filter(a => "view" in a === true).shift();
+  const viewOptions = args
+    .filter(a => typeof a === "object")
+    .filter(a => "view" in a === true)
+    .shift();
   if (viewOptions === undefined) {
     // do nothing
     if (isNode) { return undefined; }

@@ -1,17 +1,28 @@
 
-const origami = re.Origami("origami", {
+const origami = RabbitEar.Origami("origami", {
   folding: true,
   padding: 0.1,
   autofit: false
 });
-const pattern = re.Origami("pattern", { padding: 0.1 });
+origami.fold();
 
-const folded_frame = `{"vertices_coords":[[0,0],[1,0],[1,1],[0,1]],"frame_classes":["foldedForm"],"frame_inherit":true,"frame_parent":0,"faces_re:layer":[0],"faces_re:matrix":[[1,0,0,1,0,0]]}`;
-origami.cp.file_frames = [JSON.parse(folded_frame)];
+// const patternStyle = `.boundary{fill:white;}`;
+const patternStyle = `
+.creasePattern .mountain,
+.creasePattern .valley {
+  stroke: white;
+}
+.boundary {
+  fill: none;
+  stroke: white;
+}`;
+
+const pattern = RabbitEar.Origami("pattern", { padding: 0.1, style: patternStyle });
+
+const STARTER = JSON.parse(JSON.stringify(origami));
+
 origami.alreadyFaded = false;
 origami.intervalId = undefined;
-
-const STARTER = JSON.parse(JSON.stringify(origami.cp));
 
 let steps = [JSON.parse(JSON.stringify(STARTER))];
 
@@ -26,7 +37,7 @@ origami.fitView = function (rect, w, h, pad = 0.15) {
   vb[1] -= pad;
   vb[2] += pad * 2 * 2; // due to half screen calc
   vb[3] += pad * 2;
-  origami.setAttribute("viewBox", vb.join(" "));
+  origami.svg.setAttribute("viewBox", vb.join(" "));
 };
 
 origami.fitViewInRect = function (rect, w, h, pad = 0.1) {
@@ -42,7 +53,7 @@ origami.fitViewInRect = function (rect, w, h, pad = 0.1) {
   vb[1] -= pad;
   vb[2] += pad * 2 * (w / rect.width); // due to half screen calc
   vb[3] += pad * 2 * (h / rect.height);
-  origami.setAttribute("viewBox", vb.join(" "));
+  origami.svg.setAttribute("viewBox", vb.join(" "));
 };
 
 window.onresize = function (e) {
@@ -70,18 +81,23 @@ const fadeInCreasePattern = function () {
   origami.alreadyFaded = true;
 };
 
-origami.onMouseMove = function (mouse) {
+origami.svg.onMouseMove = function (mouse) {
   if (mouse.isPressed) {
     fadeInCreasePattern();
-    pattern.cp = origami.cp;
+    pattern.load(JSON.parse(JSON.stringify(origami)));
+    pattern.unfold();
+    // pattern.cp = origami.cp;
   }
 };
 
 origami.reset = function () {
   origami.alreadyFaded = false;
   origami.intervalId = undefined;
-  origami.cp = JSON.parse(JSON.stringify(STARTER));
-  pattern.cp = JSON.parse(JSON.stringify(STARTER));
+  // origami.cp = JSON.parse(JSON.stringify(STARTER));
+  // pattern.cp = JSON.parse(JSON.stringify(STARTER));
+  origami.load(JSON.parse(JSON.stringify(STARTER)));
+  pattern.load(JSON.parse(JSON.stringify(STARTER)));
+  pattern.unfold();
   origami.frame = 1;
   steps = [JSON.parse(JSON.stringify(STARTER))];
   document.querySelector("#pattern").style.opacity = 0;
@@ -98,7 +114,8 @@ origami.fitViewInRect(
 );
 
 origami.onMouseUp = function () {
-  steps.push(JSON.parse(JSON.stringify(origami.cp)));
+  // steps.push(JSON.parse(JSON.stringify(origami.cp)));
+  steps.push(JSON.parse(JSON.stringify(origami)));
 };
 
 const buildDiagramStepFold = function (steps_array) {
@@ -106,7 +123,7 @@ const buildDiagramStepFold = function (steps_array) {
   // transfer construction info into diagram info on previous step
   const diagrams = Array.from(Array(steps_array.length - 1))
     .map((_, i) => i + 1)
-    .map(i => re.core.build_diagram_frame(steps_array[i]));
+    .map(i => RabbitEar.core.build_diagram_frame(steps_array[i]));
   steps_array.forEach(cp => delete cp["re:diagrams"]); // clear old data if exists
   Array.from(Array(steps_array.length - 1))
     .map((_, i) => steps_array[i])

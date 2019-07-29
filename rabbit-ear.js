@@ -11355,6 +11355,7 @@
       }
       Object.assign(this, JSON.parse(JSON.stringify(file)));
       clean.call(this);
+      this.didChange.forEach(f => f());
     };
     proto.clear = function () {
       remove_non_boundary_edges(this);
@@ -13058,7 +13059,10 @@ polygon { stroke-linejoin: bevel; }
     "3D": "webgl",
   };
   const parseOptionsForView = function (...args) {
-    const viewOptions = args.filter(a => "view" in a === true).shift();
+    const viewOptions = args
+      .filter(a => typeof a === "object")
+      .filter(a => "view" in a === true)
+      .shift();
     if (viewOptions === undefined) {
       if (isNode) { return undefined; }
       if (isBrowser) { return "svg"; }

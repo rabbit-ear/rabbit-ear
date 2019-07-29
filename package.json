@@ -5,6 +5,7 @@
 	"main": "./rabbit-ear.js",
 	"scripts": {
 		"test": "jest",
+		"clean": "node tests/clean.js",
 		"convert": "node tests/convert.js"
 	},
 	"license": "MIT",
