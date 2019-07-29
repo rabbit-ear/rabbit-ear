@@ -16,6 +16,7 @@
 import svgView from "./views/svg/view";
 import glView from "./views/webgl/view";
 import drawFOLD from "../include/fold-draw";
+import math from "../include/math";
 
 import {
   isBrowser,
@@ -172,7 +173,39 @@ const Origami = function (...args) {
         origami.didChange.forEach(f => f());
       },
     });
+    if (origami.svg != null) {
+      a.forEach((el, i) => {
+        el.svg = origami.svg.groups[component].childNodes[i];
+      });
+    }
     return a;
+  };
+
+  /**
+   * How does this view process a request for nearest components to a target?
+   * (2D), furthermore, attach view objects (SVG) to the nearest value data.
+   */
+  const nearest = function (...args2) {
+    const plural = {
+      vertex: "vertices",
+      edge: "edges",
+      face: "faces",
+    };
+    const target = math.core.get_vector(...args2);
+    const nears = {
+      vertex: origami.nearestVertex(origami, target),
+      edge: origami.nearestEdge(origami, target),
+      face: origami.nearestFace(origami, target)
+    };
+    Object.keys(nears)
+      .filter(key => nears[key] == null)
+      .forEach(key => delete nears[key]);
+    if (origami.svg != null) {
+      Object.keys(nears).forEach((key) => {
+        nears[key].svg = origami.svg.groups[plural[key]].childNodes[nears[key].index];
+      });
+    }
+    return nears;
   };
 
   // apply preferences
@@ -188,6 +221,7 @@ const Origami = function (...args) {
   // Object.defineProperty(origami, "load", { value: load });
 
   // overwriting prototype methods
+  Object.defineProperty(origami, "nearest", { value: nearest });
   Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
   Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
   Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });

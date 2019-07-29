@@ -26,7 +26,7 @@ import { remove_vertices, remove_edges, remove_faces } from "../fold/remove";
 // everything in "new" and "remove" are 0-indexed array. excempt is "update"
 const final_draft = {
   new: { vertices: [], edges: [], faces: [] },
-  remove: { vertices: [], edges: [4, 7], faces: [] },
+  remove: { vertices: [], edges: [4, 7], faces: [] }, // indices, not elements
   update: [ // dimension of array matches graph
     // empty x 5
     { edges_vertices: [5, 6], vertices_vertices: [4, 1] },
@@ -39,9 +39,9 @@ const final_draft = {
 const final_draft_2 = {
   new: { vertices: [], edges: [], faces: [] },
   remove: { vertices: [], edges: [4, 7], faces: [] },
-  update: { // dimension of array matches graph
+  update: {
     vertices_vertices: {
-      5: [4, 1],
+      5: [4, 1], // keys in object indicates array indices
       8: [0, 4]
     },
     edges_vertices: {
@@ -51,9 +51,6 @@ const final_draft_2 = {
 };
 
 // delete the middle of arrays using "delete"... compress at the end
-
-
-
 
 const rough_draft_1 = {
   vertices: { new: [], update: [], remove: [] },

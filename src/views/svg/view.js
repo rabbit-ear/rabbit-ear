@@ -127,6 +127,7 @@ const View = function (fold_file, ...args) {
     // draw geometry into groups
     Object.keys(groups)
       .filter(key => options[key])
+      .filter(key => drawFOLD.components.svg[key] !== undefined)
       .forEach(key => drawFOLD.components.svg[key](graph)
         .forEach(o => groups[key].appendChild(o)));
 

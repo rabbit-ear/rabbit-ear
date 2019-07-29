@@ -131,6 +131,8 @@ const Prototype = function (proto = {}) {
   };
   proto.nearestFace = function (...args) {
     const index = face_containing_point(this, math.core.get_vector(...args));
+    if (index === undefined) { return undefined; }
+    // todo, if point isn't inside a face, there can still exist a nearest face
     const result = transpose_geometry_array_at_index(this, "faces", index);
     result.index = index;
     return result;

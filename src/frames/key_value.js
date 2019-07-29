@@ -1,6 +1,6 @@
 
 // "re:axiom"
-const re_axiom1 = {
+const re_axiom_pre = {
   number: 6,
   parameters: {
     marks: [
@@ -15,7 +15,7 @@ const re_axiom1 = {
 };
 
 // "re:axiom"
-const re_axiom2 = {
+const re_axiom_post = {
   number: 2,
   parameters: {
     marks: [[0, 0.25], [1, 1]]

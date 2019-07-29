@@ -1,17 +1,20 @@
-const origami = re.Origami("origami-cp", { padding: 0.05, diagram: true });
-const folded = re.Origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
+const { RabbitEar } = window;
+const origami = RabbitEar.Origami("origami-cp", { padding: 0.05, diagram: true });
+const folded = RabbitEar.Origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
+
+console.log(RabbitEar);
 
 const languages = ["ar", "de", "en", "es", "fr", "hi", "jp", "ko", "ms", "pt", "ru", "tr", "zh"];
 let language = languages.indexOf("en");
 
-origami.markLayer = re.svg.group();
+origami.markLayer = RabbitEar.draw.svg.group();
 origami.markLayer.setAttribute("pointer-events", "none");
-origami.insertBefore(origami.markLayer,
-  origami.querySelectorAll(".boundaries")[0].nextSibling);
-origami.controls = re.svg.controls(origami, 0);
+origami.svg.insertBefore(origami.markLayer,
+  origami.svg.querySelectorAll(".boundaries")[0].nextSibling);
+origami.controls = RabbitEar.draw.svg.controls(origami.svg, 0);
 origami.axiom = undefined;
 origami.subSelect = 0; // some axioms have 2 or 3 results
-origami.polygonBoundary = re.polygon(origami.cp.boundaries[0].vertices
+origami.polygonBoundary = RabbitEar.polygon(origami.cp.boundaries[0].vertices
   .map(v => origami.cp.vertices_coords[v]));
 
 // a lookup for expected parameters in axiom() func. is param a point or line?
@@ -155,9 +158,9 @@ origami.findNewSubSelection = function (axiomFrame) {
 // 2: soft reset, axiom params updated
 origami.update = function () {
   // clear and re-fold axiom
-  origami.cp = re.bases.square;
+  origami.cp = RabbitEar.bases.square;
 
-  const axiomFrame = re
+  const axiomFrame = RabbitEar
     .axiom(origami.axiom, ...origami.controls_to_axiom_args())
     .apply(origami.polygonBoundary.points);
 
@@ -207,7 +210,7 @@ origami.update = function () {
 
     origami.cp.valleyFold(axiomFrame.solutions[origami.subSelect]);
     Object.assign(origami.cp["re:construction"], axiomFrame);
-    const diagram = re.core.build_diagram_frame(origami.cp);
+    const diagram = RabbitEar.core.build_diagram_frame(origami.cp);
     origami.cp["re:diagrams"] = [diagram];
     const instruction = diagram["re:diagram_instructions"][languages[language]] || "";
     document.querySelector("#instructions-p").innerHTML = instruction;

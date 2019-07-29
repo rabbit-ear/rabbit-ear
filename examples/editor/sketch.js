@@ -1,5 +1,5 @@
 
-const origami = re.Origami("origami", { padding: 0.1, autofit: false });
+const origami = RabbitEar.Origami("origami", { padding: 0.1, autofit: false });
 origami.arrowLayer = origami.group();
 origami.vertices.visible = true;
 origami.touchHistory = [];
@@ -16,7 +16,7 @@ origami.snapPointGroup = origami.group();
 delete origami.cp.edges_foldAngle;
 delete origami.cp.edges_length;
 
-const folding = re.Origami("folding");
+const folding = RabbitEar.Origami("folding");
 
 origami.update = function () {
   folding.cp = origami.cp.copy();
@@ -30,12 +30,12 @@ origami.setSnapPoints = function (points) {
   origami.snapPoints.forEach(point => origami.snapPointGroup.circle(point[0], point[1], 0.01));
 };
 
-const unique_points2 = function (points, epsilon = re.math.EPSILON) {
+const unique_points2 = function (points, epsilon = RabbitEar.math.EPSILON) {
   console.log(`unique_points2 ran with ${points.length} points`);
 
   const equivalent2 = function (a, b) {
-    return Math.abs(a[0] - b[0]) < re.math.EPSILON
-      && Math.abs(a[1] - b[1]) < re.math.EPSILON;
+    return Math.abs(a[0] - b[0]) < RabbitEar.math.EPSILON
+      && Math.abs(a[1] - b[1]) < RabbitEar.math.EPSILON;
   };
   const vertices_equivalent = Array
     .from(Array(points.length)).map(() => []);
@@ -83,21 +83,21 @@ origami.recalculate = function () {
   const solutions = [];
   for (let i = 0; i < graph.vertices_coords.length - 1; i += 1) {
     for (let j = i + 1; j < graph.vertices_coords.length; j += 1) {
-      let solution1 = re.axiom(1, graph.vertices_coords[i], graph.vertices_coords[j]).solutions[0];
+      let solution1 = RabbitEar.axiom(1, graph.vertices_coords[i], graph.vertices_coords[j]).solutions[0];
       solutions.push(solution1);
-      let solution2 = re.axiom(2, graph.vertices_coords[i], graph.vertices_coords[j]).solutions[0];
+      let solution2 = RabbitEar.axiom(2, graph.vertices_coords[i], graph.vertices_coords[j]).solutions[0];
       solutions.push(solution2);
     }
   }
   for (let i = 0; i < p_v_edges.length - 1; i += 1) {
     for (let j = 0; j < p_v_edges.length; j += 1) {
-      let solution3 = re.axiom(3, p_v_edges[i][0], p_v_edges[i][1], p_v_edges[j][0], p_v_edges[j][1]).solutions;
+      let solution3 = RabbitEar.axiom(3, p_v_edges[i][0], p_v_edges[i][1], p_v_edges[j][0], p_v_edges[j][1]).solutions;
       solutions.push(...solution3);
     }
   }
   let all_points = solutions
     .map(line => edges
-      .map(edge => re.math.intersection
+      .map(edge => RabbitEar.math.intersection
         .line_edge_exclusive(line[0], line[1], edge[0], edge[1]))
       .filter(a => a !== undefined))
     .reduce((a, b) => a.concat(b), []);
@@ -107,7 +107,7 @@ origami.recalculate = function () {
 };
 
 origami.onMouseUp = function (mouse) {
-  const nearestPt = re.math.nearest_point2(mouse.position, origami.snapPoints);
+  const nearestPt = RabbitEar.math.nearest_point2(mouse.position, origami.snapPoints);
   if (nearestPt !== undefined) {
     origami.mouseSnap.up = nearestPt;
   }
@@ -116,11 +116,11 @@ origami.onMouseUp = function (mouse) {
   // if (near.vertex && near.vertex.index) {
   //   origami.mouseSnap.up = origami.cp.vertices_coords[near.vertex.index];
   // }
-  if (!re.math.equivalent(origami.mouseSnap.up, origami.mouseSnap.down)) {
-    let result = re.core.add_edge(origami.cp, origami.mouseSnap.up, origami.mouseSnap.down);
+  if (!RabbitEar.math.equivalent(origami.mouseSnap.up, origami.mouseSnap.down)) {
+    let result = RabbitEar.core.add_edge(origami.cp, origami.mouseSnap.up, origami.mouseSnap.down);
     console.log(result);
     result.new.edges[0].edges_assignment = "V";
-    re.core.apply_run(origami.cp, result);
+    RabbitEar.core.apply_run(origami.cp, result);
     console.log(JSON.parse(JSON.stringify(origami.cp)));
     origami.cp.clean();
     origami.draw();
@@ -130,7 +130,7 @@ origami.onMouseUp = function (mouse) {
 };
 
 origami.onMouseDown = function (mouse) {
-  const nearestPt = re.math.nearest_point2(mouse.position, origami.snapPoints);
+  const nearestPt = RabbitEar.math.nearest_point2(mouse.position, origami.snapPoints);
   // const near = origami.nearest(mouse);
   // if (near.vertex !== undefined && near.vertex.index !== undefined) {
   //   origami.mouseSnap.down = origami.cp.vertices_coords[near.vertex.index];
@@ -145,7 +145,7 @@ origami.onMouseDown = function (mouse) {
 };
 
 origami.onMouseMove = function (mouse) {
-  const nearestPt = re.math.nearest_point2(mouse.position, origami.snapPoints);
+  const nearestPt = RabbitEar.math.nearest_point2(mouse.position, origami.snapPoints);
   if (nearestPt !== undefined) {
     origami.mouseSnap.position = nearestPt;
   }
@@ -206,9 +206,9 @@ origami.perform = function () {
     if (edge_assignment === "B" || edge_assignment === "b") {
       return;
     }
-    re.core.remove_edges(origami.cp, [edgeIndex]);
-    const collinear = re.core.vertices_collinear(origami.cp, edge_vertices);
-    re.core.remove_collinear_vertices(origami.cp, collinear);
+    RabbitEar.core.remove_edges(origami.cp, [edgeIndex]);
+    const collinear = RabbitEar.core.vertices_collinear(origami.cp, edge_vertices);
+    RabbitEar.core.remove_collinear_vertices(origami.cp, collinear);
     delete origami.cp.edges_length;
     delete origami.cp.edges_faces;
     delete origami.cp.faces_vertices;

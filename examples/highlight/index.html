@@ -11,11 +11,12 @@
 
 // todo: bring back sectors
 
-const origami = re.Origami({ padding: 0.05 });
+const origami = RabbitEar.Origami({ padding: 0.05 });
 origami.vertices.visible = true;
-origami.load("https://raw.githubusercontent.com/robbykraft/Origami/master/files/fold/crane.fold");
 
-origami.onMouseMove = function (event) {
+fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => origami.load(json));
+
+origami.svg.onMouseMove = function (event) {
   /** highlight */
   origami.vertices.forEach(function (v) { v.svg.style = ""; });
   origami.edges.forEach(function (e) { e.svg.style = ""; });
@@ -23,6 +24,7 @@ origami.onMouseMove = function (event) {
 
   // get all the nearest components to the cursor
   const nearest = origami.nearest(event);
+  // console.log(nearest);
 
   if (nearest.vertex) { nearest.vertex.svg.style = "fill:#357;stroke:#357"; }
   if (nearest.edge) { nearest.edge.svg.style = "stroke:#ec3"; }

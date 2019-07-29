@@ -5378,7 +5378,8 @@
   const transpose_geometry_arrays = function (graph, geometry_key) {
     const matching_keys = get_geometry_keys_with_prefix(graph, geometry_key);
     if (matching_keys.length === 0) { return []; }
-    const geometry = Array.from(Array(graph[matching_keys[0]].length))
+    const len = Math.max(...matching_keys.map(arr => graph[arr].length));
+    const geometry = Array.from(Array(len))
       .map(() => ({}));
     matching_keys
       .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
@@ -11375,6 +11376,7 @@
     };
     proto.nearestFace = function (...args) {
       const index = face_containing_point(this, math.core.get_vector(...args));
+      if (index === undefined) { return undefined; }
       const result = transpose_geometry_array_at_index(this, "faces", index);
       result.index = index;
       return result;
@@ -12703,6 +12705,7 @@ polygon { stroke-linejoin: bevel; }
       Object.keys(groups).forEach(key => groups[key].removeChildren());
       Object.keys(groups)
         .filter(key => options[key])
+        .filter(key => drawFOLD.components.svg[key] !== undefined)
         .forEach(key => drawFOLD.components.svg[key](graph)
           .forEach(o => groups[key].appendChild(o)));
       if (options.autofit) { fit(); }
@@ -13120,7 +13123,34 @@ polygon { stroke-linejoin: bevel; }
           origami.didChange.forEach(f => f());
         },
       });
+      if (origami.svg != null) {
+        a.forEach((el, i) => {
+          el.svg = origami.svg.groups[component].childNodes[i];
+        });
+      }
       return a;
+    };
+    const nearest = function (...args2) {
+      const plural = {
+        vertex: "vertices",
+        edge: "edges",
+        face: "faces",
+      };
+      const target = math.core.get_vector(...args2);
+      const nears = {
+        vertex: origami.nearestVertex(origami, target),
+        edge: origami.nearestEdge(origami, target),
+        face: origami.nearestFace(origami, target)
+      };
+      Object.keys(nears)
+        .filter(key => nears[key] == null)
+        .forEach(key => delete nears[key]);
+      if (origami.svg != null) {
+        Object.keys(nears).forEach((key) => {
+          nears[key].svg = origami.svg.groups[plural[key]].childNodes[nears[key].index];
+        });
+      }
+      return nears;
     };
     const options = {};
     Object.assign(options, DEFAULTS$2);
@@ -13129,6 +13159,7 @@ polygon { stroke-linejoin: bevel; }
       .forEach((key) => { options[key] = userDefaults[key]; });
     Object.defineProperty(origami, "fold", { value: fold });
     Object.defineProperty(origami, "unfold", { value: unfold });
+    Object.defineProperty(origami, "nearest", { value: nearest });
     Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
     Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
     Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });
