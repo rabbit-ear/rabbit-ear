@@ -1,6 +1,6 @@
 function Ball() {
   const _this = {};
-  _this.position = re.vector(Math.random(), Math.random());
+  _this.position = RabbitEar.vector(Math.random(), Math.random());
   const vMag = 0.02;
   _this.velocity = {
     x: Math.random() * vMag - vMag / 2,
@@ -15,15 +15,17 @@ function Ball() {
   return _this;
 }
 
-const origami = re.Origami({ folding: true, padding: 0.1, autofit: false });
-origami.drawLayer = origami.group();
+const origami = RabbitEar.Origami({ folding: true, padding: 0.1, autofit: false });
+origami.fold();
+origami.drawLayer = origami.svg.group();
 const ball = Ball();
 
-origami.ballCircle = re.svg.circle(0, 0, 0.02);
-origami.appendChild(origami.ballCircle);
+origami.ballCircle = RabbitEar.draw.svg.circle(0, 0, 0.02);
+origami.drawLayer.appendChild(origami.ballCircle);
 
-origami.animate = function (event) {
-  const boundary = origami.boundary;
+origami.svg.animate = function (event) {
+  const boundPts = origami.boundaries[0].vertices.map(v => origami.vertices_coords[v]);
+  const boundary = RabbitEar.convexPolygon(boundPts);
   ball.update();
 
   // origami.drawLayer.removeChildren();
@@ -31,8 +33,10 @@ origami.animate = function (event) {
   //  .map(edge => edge.nearestPoint(ball.position.x, ball.position.y));
   // edgePoints.forEach(p => origami.drawLayer.circle(p[0], p[1], 0.02));
 
-  origami.ballCircle.setAttribute("cx", ball.position.x);
-  origami.ballCircle.setAttribute("cy", ball.position.y);
+  if (origami.ballCircle.setAttribute != null) {
+    origami.ballCircle.setAttribute("cx", ball.position.x);
+    origami.ballCircle.setAttribute("cy", ball.position.y);
+  }
   const inside = boundary.contains(ball.position.x, ball.position.y);
 
   if (!inside) {
@@ -45,8 +49,8 @@ origami.animate = function (event) {
     ball.position = nearest.point;
     ball.velocity.x += beyondVec.x * 2;
     ball.velocity.y += beyondVec.y * 2;
-    ball.position.x += ball.velocity.x;
-    ball.position.y += ball.velocity.y;
+    ball.position.x += ball.velocity.x * 2;
+    ball.position.y += ball.velocity.y * 2;
     // let dampen = beyondVec.scale(0.5);
     // console.log(beyondVec);
     // let mag1 = ball.velocity.magnitude;

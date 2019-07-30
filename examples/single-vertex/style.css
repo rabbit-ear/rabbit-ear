@@ -36,7 +36,7 @@ polygon {
 	stroke: none;
 	stroke-linejoin: bevel;
 }
-
+/*
 .boundary {
 	fill: linen;
 }
@@ -63,3 +63,4 @@ polygon {
 .foldedForm .creases line {
 	stroke: none;
 }
+*/

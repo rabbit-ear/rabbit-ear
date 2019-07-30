@@ -56,7 +56,7 @@ const facePrototype = function (graph, index) {
 const edgePrototype = function (graph, index) {
   const points = graph.edges_vertices[index]
     .map(ev => graph.vertices_coords[ev]);
-  const edge = math.edge(points);
+  const edge = math.segment(points);
 
   // const _this = Object.create(Component(edge, {graph, index}))
   const _this = Object.create(edge);

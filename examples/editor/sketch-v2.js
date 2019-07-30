@@ -150,7 +150,7 @@ origami.perform = function () {
     if (edge_assignment === "B" || edge_assignment === "b") {
       return;
     }
-    re.core.remove_edges(origami.cp, [edgeIndex]);
+    re.core.remove(origami.cp, "edges", [edgeIndex]);
     const collinear = re.core.vertices_collinear(origami.cp, edge_vertices);
     re.core.remove_collinear_vertices(origami.cp, collinear);
     delete origami.cp.edges_length;

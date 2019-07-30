@@ -38,9 +38,9 @@ polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
 
 <script>
-const origami = re.Origami({ folding: true, padding: 0.15, autofit: false });
-const pattern = re.Origami({ padding: 0.15 });
-origami.setAttribute("id", "full-screen-fold");
+const origami = RabbitEar.Origami({ folding: true, padding: 0.15, autofit: false });
+const pattern = RabbitEar.Origami({ padding: 0.15 });
+origami.svg.setAttribute("id", "full-screen-fold");
 
 origami.onMouseMove = function (mouse) {
   if (!mouse.isPressed) { return; }
@@ -71,7 +71,7 @@ origami.fitView = function (w, h, pad = 0.15) {
   vb[1] -= pad;
   vb[2] += pad * 2 * 2; // due to half screen calc
   vb[3] += pad * 2;
-  origami.setAttribute("viewBox", vb.join(" "));
+  origami.svg.setAttribute("viewBox", vb.join(" "));
 };
 
 window.onresize = function (e) {

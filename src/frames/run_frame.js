@@ -1,5 +1,5 @@
 import { vertices_count, edges_count, faces_count } from "../fold/query";
-import { remove_vertices, remove_edges, remove_faces } from "../fold/remove";
+import remove from "../fold/remove";
 
 // ///////////////////////////////////////
 // new diff sketches
@@ -26,7 +26,7 @@ import { remove_vertices, remove_edges, remove_faces } from "../fold/remove";
 // everything in "new" and "remove" are 0-indexed array. excempt is "update"
 const final_draft = {
   new: { vertices: [], edges: [], faces: [] },
-  remove: { vertices: [], edges: [4, 7], faces: [] },
+  remove: { vertices: [], edges: [4, 7], faces: [] }, // indices, not elements
   update: [ // dimension of array matches graph
     // empty x 5
     { edges_vertices: [5, 6], vertices_vertices: [4, 1] },
@@ -39,9 +39,9 @@ const final_draft = {
 const final_draft_2 = {
   new: { vertices: [], edges: [], faces: [] },
   remove: { vertices: [], edges: [4, 7], faces: [] },
-  update: { // dimension of array matches graph
+  update: {
     vertices_vertices: {
-      5: [4, 1],
+      5: [4, 1], // keys in object indicates array indices
       8: [0, 4]
     },
     edges_vertices: {
@@ -51,9 +51,6 @@ const final_draft_2 = {
 };
 
 // delete the middle of arrays using "delete"... compress at the end
-
-
-
 
 const rough_draft_1 = {
   vertices: { new: [], update: [], remove: [] },
@@ -84,10 +81,11 @@ export const apply_run_diff = function (graph, diff) {
   }
   // these should be done in a particular order... is that right?
   if (diff.remove) {
-    if (diff.remove.faces) { remove_faces(graph, diff.remove.faces); }
-    if (diff.remove.edges) { remove_edges(graph, diff.remove.edges); }
-    if (diff.remove.vertices) { remove_vertices(graph, diff.remove.vertices); }
+    if (diff.remove.faces) { remove(graph, "faces", diff.remove.faces); }
+    if (diff.remove.edges) { remove(graph, "edges", diff.remove.edges); }
+    if (diff.remove.vertices) { remove(graph, "vertices", diff.remove.vertices); }
   }
+  return diff;
 };
 
 
@@ -243,7 +241,7 @@ const apply_run_diff_draft_1 = function (graph, diff) {
     .forEach(i => Object.keys(diff.faces.update[i])
       .forEach((key) => { graph[key][i] = diff.faces.update[i][key]; }));
 
-  remove_faces(graph, diff.faces.remove);
-  remove_edges(graph, diff.edges.remove);
-  remove_vertices(graph, diff.vertices.remove);
+  remove(graph, "faces", diff.faces.remove);
+  remove(graph, "edges", diff.edges.remove);
+  remove(graph, "vertices", diff.vertices.remove);
 };

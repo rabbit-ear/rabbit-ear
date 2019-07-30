@@ -1,12 +1,12 @@
 const OrigamiCodeEditor = function (origamiID, codeID, consoleID) {
-  const origami = re.Origami(origamiID, { padding: 0.05 });
+  const origami = RabbitEar.Origami(origamiID, { padding: 0.05 });
   const consoleDiv = document.querySelector(`#${consoleID}`);
 
   const compile = function (delta) {
     try {
       origami.reset();
       eval(origami.editor.getValue());
-      origami.draw();
+      origami.svg.draw();
       consoleDiv.innerHTML = "";
     } catch (err) {
       consoleDiv.innerHTML = `<p>${err}</p>`;
@@ -17,7 +17,7 @@ const OrigamiCodeEditor = function (origamiID, codeID, consoleID) {
     if (origami.codeDidUpdate !== undefined) { origami.codeDidUpdate(); }
   };
   const reset = function () {
-    origami.cp = re.bases.square;
+    origami.cp = RabbitEar.bases.square;
   };
   const injectCode = function (text) {
     origami.editor.session.insert({

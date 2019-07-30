@@ -19,6 +19,7 @@ body.appendChild(toolbar);
 
 // origami code
 const origami2d = RabbitEar.Origami(div2d, {
+  touchFold: true,
   autofit: false,
   padding: 0.15,
 });
@@ -27,7 +28,7 @@ origami2d.fold();
 const origami3d = OrigamiSimulator({
   backgroundColor: "158",
   color1: "e64e1e",
-  append: div3d
+  parent: div3d
 });
 
 origami2d.svg.onMouseUp = function () {
@@ -45,7 +46,7 @@ foldUnfold.onclick = function () {
   } else {
     origami2d.fold();
   }
-  foldUnfold.innerHTML = origami2d.isFolded() ? "unfold" : "fold"
+  foldUnfold.innerHTML = origami2d.isFolded() ? "unfold" : "fold";
 };
 
 slider.oninput = function (e) {

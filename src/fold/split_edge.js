@@ -1,6 +1,6 @@
 import math from "../../include/math";
 import { clone } from "./object";
-import { remove_edges } from "./remove";
+import remove from "./remove";
 
 /**
  * these should trigger a re-build on the other arrays
@@ -66,6 +66,7 @@ const add_vertex_on_edge = function (graph, x, y, old_edge_index) {
   new_edges.forEach(edge => Object.keys(edge)
     .filter(key => key !== "i")
     // .filter(key => key !== i)
+    .filter(key => graph[key] !== undefined) // just added this. can we remove it?
     .forEach((key) => { graph[key][edge.i] = edge[key]; }));
   const incident_faces_indices = graph.edges_faces[old_edge_index];
   const incident_faces_vertices = incident_faces_indices
@@ -126,7 +127,7 @@ const add_vertex_on_edge = function (graph, x, y, old_edge_index) {
     return edges;
   });
   // remove old data
-  const edge_map = remove_edges(graph, [old_edge_index]);
+  const edge_map = remove(graph, "edges", [old_edge_index]);
   return {
     vertices: {
       new: [{ index: new_vertex_index }],

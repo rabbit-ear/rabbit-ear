@@ -1,6 +1,6 @@
 const origami = OrigamiCodeEditor("origami-container", "editor", "console");
 
-var touches = re.svg.controls(origami, 1, { radius: 0.02 });
+var touches = RabbitEar.draw.svg.controls(origami.svg, 1, { radius: 0.02 });
 touches[0].onMouseMove = function (e) {
 
   if (touches[0]) {
