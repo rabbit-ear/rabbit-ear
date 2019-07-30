@@ -5,8 +5,12 @@ import {
 import {
   // vertices_count,
   // edges_count,
-  faces_count
+  faces_count,
+  get_boundary,
+  get_isolated_vertices
 } from "./query";
+
+import remove from "./remove";
 
 export const clean = function (fold) {
   // const verticesCount = vertices_count(fold);
@@ -25,6 +29,19 @@ export const clean = function (fold) {
   }
 };
 
-export const check = function () {
-  return 5;
+/**
+ * this removes all edges except for "B", boundary creases.
+ * rebuilds the face, and
+ * todo: removes a collinear vertex and merges the 2 boundary edges
+ */
+export const remove_non_boundary_edges = function (graph) {
+  const remove_indices = graph.edges_assignment
+    .map(a => !(a === "b" || a === "B"))
+    .map((a, i) => (a ? i : undefined))
+    .filter(a => a !== undefined);
+  const edge_map = remove(graph, "edges", remove_indices);
+  const face = get_boundary(graph);
+  graph.faces_edges = [face.edges];
+  graph.faces_vertices = [face.vertices];
+  remove(graph, "vertices", get_isolated_vertices(graph));
 };

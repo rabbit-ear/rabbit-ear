@@ -38,7 +38,7 @@ import { clean } from "./fold/clean";
 import touchAndFold from "./views/svg/origami_touch_fold";
 
 const DEFAULTS = Object.freeze({
-  folding: false,
+  touchFold: false,
 });
 
 const parseOptions = function (...args) {
@@ -243,6 +243,7 @@ const Origami = function (...args) {
       }
     }
   });
+  Object.defineProperty(origami, "options", { get: () => options });
 
   return origami;
 };
@@ -258,7 +259,9 @@ const init = function (...args) {
       origami.didChange.push(view.draw);
       Object.defineProperty(origami, "svg", { get: () => view });
       // attach additional methods
-      touchAndFold(origami, origami.svg);
+      if (origami.options.touchFold === true) {
+        touchAndFold(origami, origami.svg);
+      }
       // view specific initializers
       origami.svg.fit();
       origami.svg.draw();

@@ -1,5 +1,6 @@
 import math from "../../include/math";
 import { make_vertices_edges } from "./make";
+import remove from "./remove";
 
 /**
  * provide arrays as arguments, this will filter out anything undefined
@@ -342,6 +343,37 @@ export const get_isolated_vertices = function ({
     .filter(el => el !== undefined);
 };
 
+export const get_duplicate_vertices = function ({ vertices_coords }) {
+  const vertices_equivalent = Array.from(Array(vertices_coords.length))
+    .map(() => []);
+  for (let i = 0; i < vertices_coords.length - 1; i += 1) {
+    for (let j = i + 1; j < vertices_coords.length; j += 1) {
+      vertices_equivalent[i][j] = math.core.equivalent_vectors(
+        vertices_coords[i],
+        vertices_coords[j]
+      );
+    }
+  }
+  // for every duplicate edge, get the index of the other edge, and in the
+  // case of many in common duplicates, go as far back (lowest index)
+  const vertices_map = vertices_coords.map(() => undefined);
+  vertices_equivalent
+    .forEach((row, i) => row
+      .forEach((eq, j) => {
+        if (eq) {
+          vertices_map[j] = vertices_map[i] === undefined ? i : vertices_map[i];
+        }
+      }));
+  const vertices_remove = vertices_map.map(m => m !== undefined);
+  vertices_map.forEach((map, i) => {
+    if (map === undefined) { vertices_map[i] = i; }
+  });
+
+  return vertices_remove
+    .map((rm, i) => (rm ? i : undefined))
+    .filter(i => i !== undefined);
+};
+
 /**
  * this does not return an array of edge indices [4,7,12] like you might expect
  * instead it returns an array whose length matches edges_ array length and is
@@ -358,7 +390,10 @@ export const get_duplicate_edges = function ({ edges_vertices }) {
     .map(() => []);
   for (let i = 0; i < edges_vertices.length - 1; i += 1) {
     for (let j = i + 1; j < edges_vertices.length; j += 1) {
-      edges_equivalent[i][j] = equivalent2(edges_vertices[i], edges_vertices[j]);
+      edges_equivalent[i][j] = equivalent2(
+        edges_vertices[i],
+        edges_vertices[j]
+      );
     }
   }
   // for every duplicate edge, get the index of the other edge, and in the
@@ -373,6 +408,43 @@ export const get_duplicate_edges = function ({ edges_vertices }) {
       }));
   return edges_map;
 };
+
+// this one does work the way you'd expect
+export const get_duplicate_edges_old = function (graph) {
+  const equivalent2 = function (a, b) {
+    return (a[0] === b[0] && a[1] === b[1])
+        || (a[0] === b[1] && a[1] === b[0]);
+  };
+  const edges_equivalent = Array
+    .from(Array(graph.edges_vertices.length)).map(() => []);
+  for (let i = 0; i < graph.edges_vertices.length - 1; i += 1) {
+    for (let j = i + 1; j < graph.edges_vertices.length; j += 1) {
+      edges_equivalent[i][j] = equivalent2(
+        graph.edges_vertices[i],
+        graph.edges_vertices[j],
+      );
+    }
+  }
+  // for every duplicate edge, get the index of the other edge, and in the
+  // case of many in common duplicates, go as far back (lowest index)
+  const edges_map = graph.edges_vertices.map(() => undefined);
+  edges_equivalent
+    .forEach((row, i) => row
+      .forEach((eq, j) => {
+        if (eq) {
+          edges_map[j] = edges_map[i] === undefined ? i : edges_map[i];
+        }
+      }));
+  const edges_remove = edges_map.map(m => m !== undefined);
+  edges_map.forEach((map, i) => {
+    if (map === undefined) { edges_map[i] = i; }
+  });
+
+  return edges_remove
+    .map((rm, i) => (rm ? i : undefined))
+    .filter(i => i !== undefined);
+};
+
 
 /**
  * when an edge sits inside a face with its endpoints collinear to face edges,

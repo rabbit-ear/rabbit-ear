@@ -4,7 +4,12 @@
 
 import math from "../../include/math";
 import FOLDConvert from "../../include/fold/convert";
-import { remove_duplicate_edges } from "./remove";
+import remove from "./remove";
+import {
+  get_duplicate_vertices,
+  get_duplicate_edges,
+  get_duplicate_edges_old
+} from "./query";
 import fragment from "./fragment";
 import * as Validate from "./validate";
 import {
@@ -81,7 +86,8 @@ export const rebuild = function (graph, epsilon = math.core.EPSILON) {
 
   // this needs to chop edges that have line endpoints collear to them
   const rebuilt = fragment(graph, epsilon);
-  remove_duplicate_edges(rebuilt);
+  // remove(rebuilt, "edges", Object.keys(get_duplicate_edges(rebuilt)));
+  remove(rebuilt, "edges", get_duplicate_edges_old(rebuilt));
   FOLDConvert.edges_vertices_to_vertices_vertices_sorted(rebuilt);
   FOLDConvert.vertices_vertices_to_faces_vertices(rebuilt);
   FOLDConvert.faces_vertices_to_faces_edges(rebuilt);

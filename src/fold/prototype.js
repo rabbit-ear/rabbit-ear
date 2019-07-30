@@ -15,19 +15,24 @@ import split_edge from "./split_edge";
 import split_face from "./split_face";
 import { rebuild, complete } from "./rebuild";
 import fragment from "./fragment";
-import { remove_non_boundary_edges } from "./remove";
+import {
+  clean as protoClean,
+  remove_non_boundary_edges
+} from "./clean";
 import {
   get_boundary,
   nearest_vertex,
   nearest_edge,
   face_containing_point
 } from "./query";
+
 import { scale } from "./affine";
 
 import MakeFold from "../origami/fold";
 import { kawasaki_collapse } from "../origami/kawasaki";
 import { axiom } from "../origami/axioms";
 import { apply_axiom_in_fold } from "../origami/axioms_test";
+import madeBy from "../frames/madeBy";
 
 const Prototype = function (proto = {}) {
   /**
@@ -93,7 +98,7 @@ const Prototype = function (proto = {}) {
       && "faces_vertices" in this && "faces_edges" in this);
     if (!valid) {
       console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
-      // clean(epsilon);
+      protoClean(this);
     }
   };
   /**
@@ -196,6 +201,14 @@ const Prototype = function (proto = {}) {
     // console.log("solutions", solutions);
   };
 
+  proto.mark = function (...args) {
+    const s = math.core.get_edge(...args);
+    addEdge(this, s[0][0], s[0][1], s[1][0], s[1][1]).apply();
+    rebuild(this);
+    madeBy().axiom1();
+    this.didChange.forEach(f => f());
+  };
+
   proto.markFold = function (...args) {
     const objects = args.filter(p => typeof p === "object");
     const line = math.core.get_line(args);
@@ -273,8 +286,6 @@ const Prototype = function (proto = {}) {
         ? undefined : i))
       .filter(a => a !== undefined)
       .sort((a, b) => b - a);
-
-    console.log(faces, intersecting);
 
     intersecting.forEach(index => split_face(
       this, index, ray.point, ray.vector, "F"

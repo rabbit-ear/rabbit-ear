@@ -184,7 +184,16 @@ export const make_vertices_coords_folded = function (graph, face_stationary, fac
   if (face_stationary == null) { face_stationary = 0; }
   if (faces_matrix == null) {
     faces_matrix = make_faces_matrix(graph, face_stationary);
+  } else {
+    // if faces_matrix is old and doesn't match the array lengths
+    const face_array = graph.faces_vertices != null
+      ? graph.faces_vertices : graph.faces_edges;
+    const facesCount = face_array != null ? face_array.length : 0;
+    if (faces_matrix.length !== facesCount) {
+      faces_matrix = make_faces_matrix(graph, face_stationary);
+    }
   }
+
   const vertex_in_face = graph.vertices_coords.map((v, i) => {
     for (let f = 0; f < graph.faces_vertices.length; f += 1) {
       if (graph.faces_vertices[f].includes(i)) { return f; }

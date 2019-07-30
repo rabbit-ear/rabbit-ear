@@ -1,5 +1,5 @@
 import { vertices_count, edges_count, faces_count } from "../fold/query";
-import { remove_vertices, remove_edges, remove_faces } from "../fold/remove";
+import remove from "../fold/remove";
 
 // ///////////////////////////////////////
 // new diff sketches
@@ -81,10 +81,11 @@ export const apply_run_diff = function (graph, diff) {
   }
   // these should be done in a particular order... is that right?
   if (diff.remove) {
-    if (diff.remove.faces) { remove_faces(graph, diff.remove.faces); }
-    if (diff.remove.edges) { remove_edges(graph, diff.remove.edges); }
-    if (diff.remove.vertices) { remove_vertices(graph, diff.remove.vertices); }
+    if (diff.remove.faces) { remove(graph, "faces", diff.remove.faces); }
+    if (diff.remove.edges) { remove(graph, "edges", diff.remove.edges); }
+    if (diff.remove.vertices) { remove(graph, "vertices", diff.remove.vertices); }
   }
+  return diff;
 };
 
 
@@ -240,7 +241,7 @@ const apply_run_diff_draft_1 = function (graph, diff) {
     .forEach(i => Object.keys(diff.faces.update[i])
       .forEach((key) => { graph[key][i] = diff.faces.update[i][key]; }));
 
-  remove_faces(graph, diff.faces.remove);
-  remove_edges(graph, diff.edges.remove);
-  remove_vertices(graph, diff.vertices.remove);
+  remove(graph, "faces", diff.faces.remove);
+  remove(graph, "edges", diff.edges.remove);
+  remove(graph, "vertices", diff.vertices.remove);
 };

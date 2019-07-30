@@ -139,6 +139,7 @@ const rabbitEar = {
   bases,
   math: math.core,
   axiom: Axioms.axiom,
+  equivalent: math.core.equivalent
 };
 
 Object.keys(math)

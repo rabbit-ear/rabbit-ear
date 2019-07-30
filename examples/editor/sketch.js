@@ -206,7 +206,7 @@ origami.perform = function () {
     if (edge_assignment === "B" || edge_assignment === "b") {
       return;
     }
-    RabbitEar.core.remove_edges(origami.cp, [edgeIndex]);
+    RabbitEar.core.remove(origami.cp, "edges", [edgeIndex]);
     const collinear = RabbitEar.core.vertices_collinear(origami.cp, edge_vertices);
     RabbitEar.core.remove_collinear_vertices(origami.cp, collinear);
     delete origami.cp.edges_length;

@@ -11,14 +11,16 @@
 <body>
 </body>
 
-<!-- origami simulator -->
+<!-- dependencies required before including origami-simulator.js -->
 <script src="https://threejs.org/build/three.min.js"></script>
+<!-- <script src="https://threejs.org/examples/js/controls/TrackballControls.js"></script> -->
 <script src="https://robbykraft.github.io/OrigamiSimulator/tests/js/trackballcontrols.js"></script>
 <script src="https://edemaine.github.io/fold/dist/fold.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/earcut@2.1.5/dist/earcut.min.js"></script>
-<script src="https://robbykraft.github.io/svg-segmentize/svg-segmentize.min.js"></script>
-<script src="../../include/origami-simulator.js"></script>
+<script src="https://unpkg.com/earcut@2.1.5/dist/earcut.min.js"></script>
+<script src="https://threejs.org/examples/js/loaders/SVGLoader.js"></script>
+<!-- end, origami simulator dependencies -->
 
+<script type="text/javascript" src="../../lib/origami-simulator.js"></script>
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
 <script type="text/javascript" src="sketch.js"></script>
 
