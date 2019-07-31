@@ -3,7 +3,7 @@ const markSegment = RabbitEar.Origami();
 markSegment.vertices.visible = true;
 
 markSegment.svg.onMouseUp = function (mouse) {
-  markSegment.mark(mouse.pressed, mouse.position);
+  markSegment.mark(mouse.pressed, mouse.position, "V");
 };
 
 const highlightStyle = {

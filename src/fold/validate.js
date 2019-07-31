@@ -160,7 +160,6 @@ export const validate = function (graph) {
         }))
         .filter(el => !el.test))
       .reduce((a, b) => a.concat(b), []);
-
   }
 
   // "vertices_coords"

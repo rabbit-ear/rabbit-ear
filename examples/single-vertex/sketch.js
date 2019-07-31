@@ -27,6 +27,7 @@ origami.updateCenter = function (point) {
   // reset back to the 3 crease CP
   origami.load(origami.threeCorners);
   origami.vertices_coords[origami.midVertex] = [point.x, point.y];
+  origami.complete();
 
   const a = { x: 0, y: 0 };
   const b = { x: 1, y: 1 };
@@ -37,9 +38,11 @@ origami.updateCenter = function (point) {
 
   origami.edges_assignment[4] = poke_through ? "V" : "M";
   const { index } = origami.nearest(0.5, 0.5).vertex;
-  let solutions = RabbitEar.core.kawasaki_solutions(origami, index);
-  let solution = solutions[1];
-  origami.creaseRay(origami.vertices_coords[index], solution);
+  const solutions = RabbitEar.core.kawasaki_solutions(origami, index);
+  const solution = solutions[1];
+
+  const segment = origami.boundaries.clipRay(origami.vertices_coords[index], solution);
+  origami.mark(segment[0], segment[1], "V");
 
   // origami.kawasaki(origami.midVertex, 1, poke_through ? "V" : "M");
   // origami.vertex[4].kawasaki

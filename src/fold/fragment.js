@@ -10,7 +10,6 @@
 import math from "../../include/math";
 import remove from "./remove";
 
-
 const equivalent_vertices = function (a, b, epsilon = math.core.EPSILON) {
   for (let i = 0; i < a.length; i += 1) {
     if (Math.abs(a[i] - b[i]) > epsilon) {
@@ -20,8 +19,7 @@ const equivalent_vertices = function (a, b, epsilon = math.core.EPSILON) {
   return true;
 };
 
-
-const point_on_edge_exclusive = function (point, edge0, edge1, epsilon = EPSILON) {
+const point_on_edge_exclusive = function (point, edge0, edge1, epsilon = math.core.EPSILON) {
   const edge0_1 = [edge0[0] - edge1[0], edge0[1] - edge1[1]];
   const edge0_p = [edge0[0] - point[0], edge0[1] - point[1]];
   const edge1_p = [edge1[0] - point[0], edge1[1] - point[1]];

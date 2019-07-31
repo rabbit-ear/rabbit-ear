@@ -256,7 +256,7 @@ var flatten_input = function flatten_input() {
       return args;
 
     case 1:
-      return is_iterable(args[0]) ? flatten_input.apply(void 0, _toConsumableArray(args[0])) : [args[0]];
+      return is_iterable(args[0]) && typeof args[0] !== "string" ? flatten_input.apply(void 0, _toConsumableArray(args[0])) : [args[0]];
 
     default:
       return Array.from(args).map(function (a) {

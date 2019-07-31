@@ -1,4 +1,4 @@
-const origami = RabbitEar.Origami({ folding: true, padding: 0.1, autofit: false });
+const origami = RabbitEar.Origami({ touchFold: true, padding: 0.1, autofit: false });
 
 origami.onMouseDown = function (mouse) { };
 origami.onMouseUp = function (mouse) { };
