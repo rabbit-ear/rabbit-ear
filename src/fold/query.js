@@ -1,6 +1,5 @@
 import math from "../../include/math";
 import { make_vertices_edges } from "./make";
-import remove from "./remove";
 
 /**
  * provide arrays as arguments, this will filter out anything undefined
@@ -249,7 +248,6 @@ export const bounding_rect = function ({ vertices_coords }) {
  * get the boundary face defined in vertices and edges by walking boundary
  * edges, defined by edges_assignment. no planar calculations
  */
-
 export const get_boundary = function ({
   edges_vertices, edges_assignment
 }) {
@@ -287,9 +285,6 @@ export const get_boundary = function ({
     edges: edge_walk,
   };
 };
-
-// const bounding_cube = function (graph) {
-// }
 
 /**
  * @returns an array of degree-2 vertices which lie between

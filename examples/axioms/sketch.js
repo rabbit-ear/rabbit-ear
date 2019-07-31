@@ -2,7 +2,7 @@ const { RabbitEar } = window;
 const origami = RabbitEar.Origami("origami-cp", { padding: 0.05, diagram: true });
 const folded = RabbitEar.Origami("origami-fold", { padding: 0.05 }); // ,shadows:true});
 
-console.log(RabbitEar);
+folded.fold();
 
 const languages = ["ar", "de", "en", "es", "fr", "hi", "jp", "ko", "ms", "pt", "ru", "tr", "zh"];
 let language = languages.indexOf("en");
@@ -11,11 +11,11 @@ origami.markLayer = RabbitEar.draw.svg.group();
 origami.markLayer.setAttribute("pointer-events", "none");
 origami.svg.insertBefore(origami.markLayer,
   origami.svg.querySelectorAll(".boundaries")[0].nextSibling);
-origami.controls = RabbitEar.draw.svg.controls(origami.svg, 0);
+origami.svg.controls = RabbitEar.draw.svg.controls(origami.svg, 0);
 origami.axiom = undefined;
 origami.subSelect = 0; // some axioms have 2 or 3 results
-origami.polygonBoundary = RabbitEar.polygon(origami.cp.boundaries[0].vertices
-  .map(v => origami.cp.vertices_coords[v]));
+origami.polygonBoundary = RabbitEar.polygon(origami.boundaries[0].vertices
+  .map(v => origami.vertices_coords[v]));
 
 // a lookup for expected parameters in axiom() func. is param a point or line?
 origami.paramIsLine = [null,
@@ -43,7 +43,7 @@ origami.setAxiom = function (axiom) {
   origami.setSubSel(0, false);
 
   const axiomNumControlsArray = [null, 2, 2, 4, 3, 4, 6, 5];
-  origami.controls.removeAll();
+  origami.svg.controls.removeAll();
   Array.from(Array(axiomNumControlsArray[axiom]))
     .map(() => [Math.random(), Math.random()])
     .map((p, i) => ({
@@ -51,7 +51,7 @@ origami.setAxiom = function (axiom) {
       radius: origami.paramIsLine[axiom][i] ? 0.01 : 0.02,
       stroke: origami.paramIsLine[axiom][i] ? "#eb3" : "black",
       fill: origami.paramIsLine[axiom][i] ? "#eb3" : "#eb3"
-    })).forEach(options => origami.controls.add(options));
+    })).forEach(options => origami.svg.controls.add(options));
 
   origami.axiom = axiom;
   origami.update();
@@ -99,7 +99,7 @@ origami.drawAxiomHelperLines = function (color) {
 };
 
 origami.control_points_to_lines = function () {
-  const p = origami.controls.map(control => control.position);
+  const p = origami.svg.controls.map(control => control.position);
   switch (origami.axiom) {
     case 3:
     case 6:
@@ -121,7 +121,7 @@ origami.control_points_to_lines = function () {
 origami.controls_to_axiom_args = function () {
   // convert the input-control-points into marks and lines,
   // the proper arguments for axiom method calls
-  const points = origami.controls.map(control => control.position);
+  const points = origami.svg.controls.map(control => control.position);
   const lines = origami.control_points_to_lines();
   switch (origami.axiom) {
     case 1:
@@ -158,7 +158,7 @@ origami.findNewSubSelection = function (axiomFrame) {
 // 2: soft reset, axiom params updated
 origami.update = function () {
   // clear and re-fold axiom
-  origami.cp = RabbitEar.bases.square;
+  origami.load(RabbitEar.bases.square);
 
   const axiomFrame = RabbitEar
     .axiom(origami.axiom, ...origami.controls_to_axiom_args())
@@ -173,12 +173,12 @@ origami.update = function () {
   }
 
   origami.drawAxiomHelperLines(axiomFrame.valid ? "#eb3" : "#d42");
-  origami.preferences.arrowColor = axiomFrame.valid ? "black" : "#d42";
+  origami.options.arrowColor = axiomFrame.valid ? "black" : "#d42";
   if (axiomFrame.valid === false) {
     origami.cannotFold();
   } // else { }
 
-  origami.preferences.styleSheet = (axiomFrame.valid
+  origami.options.styleSheet = (axiomFrame.valid
     ? undefined
     : `.valley { stroke: ${"#d42"}; }`);
 
@@ -192,10 +192,10 @@ origami.update = function () {
   }
 
   const passFailColor = axiomFrame.valid ? "#eb3" : "#d42";
-  origami.controls
+  origami.svg.controls
     .filter((_, i) => origami.paramIsLine[origami.axiom][i])
     .forEach(c => c.circle.setAttribute("style", `stroke:${passFailColor};fill:${passFailColor};pointer-events:none;`));
-  origami.controls
+  origami.svg.controls
     .filter((_, i) => !origami.paramIsLine[origami.axiom][i])
     .forEach(c => c.circle.setAttribute("style", `fill:${passFailColor};pointer-events:none;`));
 
@@ -206,18 +206,18 @@ origami.update = function () {
     axiomFrame.solutions
       .filter((s, i) => i !== origami.subSelect
         && axiomFrame.valid_solutions[i] != null)
-      .map(m => origami.cp.markFold(m[0], m[1]));
+      .map(m => origami.mark(m[0], m[1]));
 
-    origami.cp.valleyFold(axiomFrame.solutions[origami.subSelect]);
-    Object.assign(origami.cp["re:construction"], axiomFrame);
-    const diagram = RabbitEar.core.build_diagram_frame(origami.cp);
-    origami.cp["re:diagrams"] = [diagram];
+    origami.crease(axiomFrame.solutions[origami.subSelect]);
+    Object.assign(origami["re:construction"], axiomFrame);
+    const diagram = RabbitEar.core.build_diagram_frame(origami);
+    origami["re:diagrams"] = [diagram];
     const instruction = diagram["re:diagram_instructions"][languages[language]] || "";
     document.querySelector("#instructions-p").innerHTML = instruction;
   }
 
-  origami.draw();
-  folded.cp = origami.cp;
+  origami.svg.draw();
+  folded.load(origami.copy());
   folded.fold();
 };
 

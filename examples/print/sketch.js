@@ -1,6 +1,6 @@
 
 const origami = RabbitEar.Origami("origami", {
-  folding: true,
+  touchFold: true,
   padding: 0.1,
   autofit: false
 });

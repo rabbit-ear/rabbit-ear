@@ -15,7 +15,7 @@ function Ball() {
   return _this;
 }
 
-const origami = RabbitEar.Origami({ folding: true, padding: 0.1, autofit: false });
+const origami = RabbitEar.Origami({ touchFold: true, padding: 0.1, autofit: false });
 origami.fold();
 origami.drawLayer = origami.svg.group();
 const ball = Ball();

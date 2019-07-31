@@ -68,7 +68,7 @@ const setup = function (origami, svg) {
 
       origami.load(cachedGraph);
       const instruction = axiom2(mouse.pressed, mouse.position);
-      origami.valleyFold(instruction.solutions[0], touchFaceIndex);
+      origami.crease(instruction.solutions[0], touchFaceIndex);
 
       if (was_folded) { origami.fold(); }
     }

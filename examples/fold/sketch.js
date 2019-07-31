@@ -1,6 +1,6 @@
 
 const origami = RabbitEar.Origami("crease-pattern", { padding: 0.1 });
-const folded = RabbitEar.Origami("folded", { padding: 0.1, folding: true, autofit: false });
+const folded = RabbitEar.Origami("folded", { padding: 0.1, touchFold: true, autofit: false });
 folded.fold();
 
 function fileDidLoad(blob, mimeType, fileExtension) {

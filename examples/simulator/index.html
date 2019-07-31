@@ -1,194 +1,27 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
-	<meta charset="utf-8">
-	<title>Rabbit Ear and Origami Simulator</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
-	<link rel="stylesheet" type="text/css" href="button.css">
-	<link rel="stylesheet" type="text/css" href="slider.css">
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css" href="button.css">
+<link rel="stylesheet" type="text/css" href="slider.css">
+<link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="style.origami.css">
 </head>
+
 <body>
-
-<div class="grid">
-
-	<div id="origami"></div>
-
-	<div id="simulator-container">
-		<div id="simulator-controls">
-			<a id="button-pause" class="button">on</a>
-			<a id="button-material-strain" class="button">strain</a>
-			<!-- <a id="button-control-grab" class="button">grab</a> -->
-			<input type="range" id="fold-percent-slider" min="0" max="100">
-			<span>Fold: <span id="fold-percent-label">50</span>%</span>
-		</div>
-	</div>
-
-	<!-- <div id="code-container"></div> -->
-	<div id="editor">// rect(0, 0, 1.0, 1.0).setAttribute("class", "boundary");
-// line(0, 0, 1, 1).setAttribute("class", "valley");
-const boundary = rect(0, 0, 1.0, 1.0);
-boundary.setAttribute("fill", "white");
-boundary.setAttribute("stroke", "black");
-
-line(0, 0, 1, 1).setAttribute("stroke", "red");
-line(0, 1, 0.5, 0.5).setAttribute("stroke", "red");
-line(1, 0, 0.5, 0.5).setAttribute("stroke", "blue");
-line(0.414, 0.414, 0, 1).setAttribute("stroke", "blue");
-line(0.414, 0.414, 1, 0).setAttribute("stroke", "red");
-</div>
-
-</div>
-
-<!-- circle boundary -->
-
-<!-- const boundary = circle(0.5, 0.5, 0.5);
-boundary.setAttribute("fill", "white");
-boundary.setAttribute("stroke", "black");
-
-line(0.145, 0.145, 0.855, 0.855).setAttribute("stroke", "red");
-line(0.145, 0.855, 0.5, 0.5).setAttribute("stroke", "red");
-line(0.855, 0.145, 0.5, 0.5).setAttribute("stroke", "blue");
- -->
-
-<!-- <div id="console-container"></div> -->
-<div id="console"></div>
-
-	<!-- origami simulator dependencies -->
-	<script src="https://threejs.org/build/three.min.js"></script>
-	<script src="https://robbykraft.github.io/OrigamiSimulator/tests/js/trackballcontrols.js"></script>
-	<!-- <script src="js/trackballcontrols.js"></script> -->
-	<script src="https://edemaine.github.io/fold/dist/fold.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/earcut@2.1.5/dist/earcut.min.js"></script>
-	<script src="https://robbykraft.github.io/svg-segmentize/svg-segmentize.min.js"></script>
-	<script type="text/javascript" src="../../include/origami-simulator.js"></script>
-
-
-	<script type="text/javascript" src="https://ace.c9.io/build/src/ace.js" charset="utf-8"></script>
-	<script type="text/javascript" src="https://ace.c9.io/build/src/keybinding-sublime.js"></script>
-	<script type="text/javascript" src="../../rabbit-ear.js"></script>
-	<script type="text/javascript" src="sketch.js"></script>
-
 </body>
 
+<!-- dependencies required before including origami-simulator.js -->
+<script src="https://threejs.org/build/three.min.js"></script>
+<!-- <script src="https://threejs.org/examples/js/controls/TrackballControls.js"></script> -->
+<script src="https://robbykraft.github.io/OrigamiSimulator/tests/js/trackballcontrols.js"></script>
+<script src="https://edemaine.github.io/fold/dist/fold.js"></script>
+<script src="https://unpkg.com/earcut@2.1.5/dist/earcut.min.js"></script>
+<script src="https://threejs.org/examples/js/loaders/SVGLoader.js"></script>
+<!-- end, origami simulator dependencies -->
 
-<svg id="load-this" display="none" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="600px" height="600px" viewBox="0 0 600 600">
-<g id="valley">
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="399.54640862421" y1="300" x2="430.063650794843" y2="345.672280493228"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="430.063650794843" y1="345.672280493228" x2="475.735931288071" y2="300"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="300" y1="200.45359137579" x2="254.327719506772" y2="169.936349205156"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="300" y1="399.54640862421" x2="345.672280493228" y2="430.063650794844"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="200.45359137579" y1="300" x2="169.936349205156" y2="254.327719506772"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="313.972351930026" y1="56.894436613634" x2="600" y2="0"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="345.672280493228" y1="430.063650794844" x2="430.063650794843" y2="345.672280493228"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="242.482531498407" y1="437.978352384171" x2="212.132034355964" y2="387.867965644036"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="212.132034355964" y1="387.867965644036" x2="162.021647615829" y2="357.517468501593"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="212.132034355964" y1="387.867965644036" x2="300" y2="300"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="313.972351930026" y1="56.894436613634" x2="322.836140246614" y2="114.805029709527"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="357.517468501593" y1="162.021647615829" x2="387.867965644036" y2="212.132034355964"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="387.867965644036" y1="212.132034355964" x2="437.978352384171" y2="242.482531498407"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="485.194970290473" y1="277.163859753386" x2="543.105563386366" y2="286.027648069974"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="519.371669380593" y1="405.345990707126" x2="543.105563386366" y2="286.027648069974"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="543.105563386366" y1="286.027648069974" x2="600" y2="0"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="300" y1="300" x2="387.867965644036" y2="212.132034355964"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="254.327719506772" y1="169.936349205156" x2="300" y2="124.264068711928"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="169.936349205156" y1="254.327719506772" x2="254.327719506772" y2="169.936349205156"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="124.264068711929" y1="300" x2="169.936349205156" y2="254.327719506772"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="124.264068711926" y1="223.810477336137" x2="108.484701912876" y2="261.905238668067"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="56.894436613634" y1="313.972351930026" x2="70.389940580947" y2="246.125871869014"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="70.389940580947" y1="246.125871869014" x2="80.628330619408" y2="194.654009292875"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="70.389940580947" y1="246.125871869014" x2="0" y2="246.125871869017"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="223.810477336139" y1="124.264068711929" x2="261.905238668069" y2="108.484701912877"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="246.125871869019" y1="70.389940580946" x2="246.125871869016" y2="0"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="194.654009292874" y1="80.628330619407" x2="246.125871869019" y2="70.389940580946"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="246.125871869019" y1="70.389940580946" x2="313.972351930026" y2="56.894436613634"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="286.027648069974" y1="543.105563386366" x2="277.163859753386" y2="485.194970290473"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="405.345990707125" y1="519.371669380593" x2="286.027648069974" y2="543.105563386366"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="345.672280493228" y1="430.063650794844" x2="300" y2="475.735931288071"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="56.894436613634" y1="313.972351930026" x2="114.805029709527" y2="322.836140246614"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="286.027648069974" y1="543.105563386366" x2="90.485931136051" y2="582.001229223175"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="100.226795687894" y1="558.484701912877" x2="76.710268377596" y2="548.743837361034"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="51.256162638966" y1="523.289731622404" x2="41.515298087123" y2="499.773204312106"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="17.998770776825" y1="509.514068863949" x2="0" y2="491.515298087124"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="0" y1="600" x2="17.998770776825" y2="509.514068863949"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="17.998770776825" y1="509.514068863949" x2="56.894436613634" y2="313.972351930026"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="0" y1="600" x2="76.710268377596" y2="523.289731622404"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="108.484701912876" y1="600" x2="90.485931136051" y2="582.001229223175"/>
-	<line stroke="blue" stroke-linecap="round" stroke-dasharray="5,8" stroke-width="4" x1="0" y1="600" x2="90.485931136051" y2="582.001229223175"/>
-</g>
-<g id="mountain">
-	<line stroke="red" stroke-width="4" x1="475.735931288071" y1="300" x2="519.371669380593" y2="405.345990707126"/>
-	<line stroke="red" stroke-width="4" x1="399.54640862421" y1="300" x2="475.735931288071" y2="300"/>
-	<line stroke="red" stroke-width="4" x1="430.063650794843" y1="345.672280493228" x2="519.371669380593" y2="405.345990707126"/>
-	<line stroke="red" stroke-width="4" x1="300" y1="124.264068711928" x2="300" y2="200.45359137579"/>
-	<line stroke="red" stroke-width="4" x1="300" y1="200.45359137579" x2="300" y2="300"/>
-	<line stroke="red" stroke-width="4" x1="300" y1="475.735931288071" x2="405.345990707125" y2="519.371669380593"/>
-	<line stroke="red" stroke-width="4" x1="300" y1="300" x2="300" y2="399.54640862421"/>
-	<line stroke="red" stroke-width="4" x1="0" y1="0" x2="80.628330619408" y2="194.654009292875"/>
-	<line stroke="red" stroke-width="4" x1="124.264068711929" y1="300" x2="200.45359137579" y2="300"/>
-	<line stroke="red" stroke-width="4" x1="0" y1="0" x2="194.654009292874" y2="80.628330619407"/>
-	<line stroke="red" stroke-width="4" x1="300" y1="600" x2="286.027648069974" y2="543.105563386366"/>
-	<line stroke="red" stroke-width="4" x1="200.45359137579" y1="300" x2="300" y2="300"/>
-	<line stroke="red" stroke-width="4" x1="300" y1="0" x2="313.972351930026" y2="56.894436613634"/>
-	<line stroke="red" stroke-width="4" x1="300" y1="300" x2="399.54640862421" y2="300"/>
-	<line stroke="red" stroke-width="4" x1="162.021647615829" y1="357.517468501593" x2="114.805029709527" y2="322.836140246614"/>
-	<line stroke="red" stroke-width="4" x1="56.894436613634" y1="313.972351930026" x2="0" y2="300"/>
-	<line stroke="red" stroke-width="4" x1="114.805029709527" y1="322.836140246614" x2="124.264068711929" y2="300"/>
-	<line stroke="red" stroke-width="4" x1="162.021647615829" y1="357.517468501593" x2="200.45359137579" y2="300"/>
-	<line stroke="red" stroke-width="4" x1="242.482531498407" y1="437.978352384171" x2="300" y2="399.54640862421"/>
-	<line stroke="red" stroke-width="4" x1="277.163859753386" y1="485.194970290473" x2="300" y2="475.735931288071"/>
-	<line stroke="red" stroke-width="4" x1="322.836140246614" y1="114.805029709527" x2="357.517468501593" y2="162.021647615829"/>
-	<line stroke="red" stroke-width="4" x1="437.978352384171" y1="242.482531498407" x2="485.194970290473" y2="277.163859753386"/>
-	<line stroke="red" stroke-width="4" x1="543.105563386366" y1="286.027648069974" x2="600" y2="300"/>
-	<line stroke="red" stroke-width="4" x1="475.735931288071" y1="300" x2="485.194970290473" y2="277.163859753386"/>
-	<line stroke="red" stroke-width="4" x1="485.194970290473" y1="277.163859753386" x2="600" y2="0"/>
-	<line stroke="red" stroke-width="4" x1="399.54640862421" y1="300" x2="437.978352384171" y2="242.482531498407"/>
-	<line stroke="red" stroke-width="4" x1="437.978352384171" y1="242.482531498407" x2="600" y2="0"/>
-	<line stroke="red" stroke-width="4" x1="300" y1="124.264068711928" x2="322.836140246614" y2="114.805029709527"/>
-	<line stroke="red" stroke-width="4" x1="322.836140246614" y1="114.805029709527" x2="600" y2="0"/>
-	<line stroke="red" stroke-width="4" x1="300" y1="200.45359137579" x2="357.517468501593" y2="162.021647615829"/>
-	<line stroke="red" stroke-width="4" x1="357.517468501593" y1="162.021647615829" x2="600" y2="0"/>
-	<line stroke="red" stroke-width="4" x1="387.867965644036" y1="212.132034355964" x2="600" y2="0"/>
-	<line stroke="red" stroke-width="4" x1="194.654009292874" y1="80.628330619407" x2="223.810477336139" y2="124.264068711929"/>
-	<line stroke="red" stroke-width="4" x1="223.810477336139" y1="124.264068711929" x2="254.327719506772" y2="169.936349205156"/>
-	<line stroke="red" stroke-width="4" x1="80.628330619408" y1="194.654009292875" x2="124.264068711926" y2="223.810477336137"/>
-	<line stroke="red" stroke-width="4" x1="124.264068711926" y1="223.810477336137" x2="169.936349205156" y2="254.327719506772"/>
-	<line stroke="red" stroke-width="4" x1="124.264068711926" y1="223.810477336137" x2="223.810477336139" y2="124.264068711929"/>
-	<line stroke="red" stroke-width="4" x1="108.484701912876" y1="261.905238668067" x2="70.389940580947" y2="246.125871869014"/>
-	<line stroke="red" stroke-width="4" x1="80.628330619408" y1="194.654009292875" x2="108.484701912876" y2="261.905238668067"/>
-	<line stroke="red" stroke-width="4" x1="108.484701912876" y1="261.905238668067" x2="124.264068711929" y2="300"/>
-	<line stroke="red" stroke-width="4" x1="194.654009292874" y1="80.628330619407" x2="261.905238668069" y2="108.484701912877"/>
-	<line stroke="red" stroke-width="4" x1="261.905238668069" y1="108.484701912877" x2="300" y2="124.264068711928"/>
-	<line stroke="red" stroke-width="4" x1="261.905238668069" y1="108.484701912877" x2="246.125871869019" y2="70.389940580946"/>
-	<line stroke="red" stroke-width="4" x1="600" y1="600" x2="405.345990707125" y2="519.371669380593"/>
-	<line stroke="red" stroke-width="4" x1="600" y1="600" x2="519.371669380593" y2="405.345990707126"/>
-	<line stroke="red" stroke-width="4" x1="277.163859753386" y1="485.194970290473" x2="242.482531498407" y2="437.978352384171"/>
-	<line stroke="red" stroke-width="4" x1="300" y1="475.735931288071" x2="300" y2="399.54640862421"/>
-	<line stroke="red" stroke-width="4" x1="405.345990707125" y1="519.371669380593" x2="345.672280493228" y2="430.063650794844"/>
-	<line stroke="red" stroke-width="4" x1="76.710268377596" y1="548.743837361034" x2="76.710268377596" y2="523.289731622404"/>
-	<line stroke="red" stroke-width="4" x1="76.710268377596" y1="523.289731622404" x2="51.256162638966" y2="523.289731622404"/>
-	<line stroke="red" stroke-width="4" x1="41.515298087123" y1="499.773204312106" x2="17.998770776825" y2="509.514068863949"/>
-	<line stroke="red" stroke-width="4" x1="0" y1="600" x2="100.226795687894" y2="558.484701912877"/>
-	<line stroke="red" stroke-width="4" x1="100.226795687894" y1="558.484701912877" x2="277.163859753386" y2="485.194970290473"/>
-	<line stroke="red" stroke-width="4" x1="0" y1="600" x2="41.515298087123" y2="499.773204312106"/>
-	<line stroke="red" stroke-width="4" x1="41.515298087123" y1="499.773204312106" x2="114.805029709527" y2="322.836140246614"/>
-	<line stroke="red" stroke-width="4" x1="0" y1="600" x2="51.256162638966" y2="523.289731622404"/>
-	<line stroke="red" stroke-width="4" x1="51.256162638966" y1="523.289731622404" x2="162.021647615829" y2="357.517468501593"/>
-	<line stroke="red" stroke-width="4" x1="76.710268377596" y1="523.289731622404" x2="212.132034355964" y2="387.867965644036"/>
-	<line stroke="red" stroke-width="4" x1="0" y1="600" x2="76.710268377596" y2="548.743837361034"/>
-	<line stroke="red" stroke-width="4" x1="76.710268377596" y1="548.743837361034" x2="242.482531498407" y2="437.978352384171"/>
-	<line stroke="red" stroke-width="4" x1="90.485931136051" y1="582.001229223175" x2="100.226795687894" y2="558.484701912877"/>
-</g>
-<g id="boundary">
-	<line stroke="#000000" stroke-width="4" x1="300" y1="0" x2="600" y2="0"/>
-	<line stroke="#000000" stroke-width="4" x1="300" y1="600" x2="600" y2="600"/>
-	<line stroke="#000000" stroke-width="4" x1="600" y1="0" x2="600" y2="300"/>
-	<line stroke="#000000" stroke-width="4" x1="0" y1="0" x2="0" y2="246.125871869017"/>
-	<line stroke="#000000" stroke-width="4" x1="0" y1="246.125871869017" x2="0" y2="300"/>
-	<line stroke="#000000" stroke-width="4" x1="0" y1="0" x2="246.125871869016" y2="0"/>
-	<line stroke="#000000" stroke-width="4" x1="246.125871869016" y1="0" x2="300" y2="0"/>
-	<line stroke="#000000" stroke-width="4" x1="600" y1="300" x2="600" y2="600"/>
-	<line stroke="#000000" stroke-width="4" x1="0" y1="600" x2="108.484701912876" y2="600"/>
-	<line stroke="#000000" stroke-width="4" x1="108.484701912876" y1="600" x2="300" y2="600"/>
-	<line stroke="#000000" stroke-width="4" x1="0" y1="300" x2="0" y2="491.515298087124"/>
-	<line stroke="#000000" stroke-width="4" x1="0" y1="491.515298087124" x2="0" y2="600"/>
-</g>
-</svg>
+<script type="text/javascript" src="../../lib/origami-simulator.js"></script>
+<script type="text/javascript" src="../../rabbit-ear.js"></script>
+<script type="text/javascript" src="sketch.js"></script>
+
+</html>

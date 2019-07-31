@@ -8,6 +8,7 @@ import split_convex_polygon from "../fold/split_face";
 // /////////////////////////////
 
 const vertex_adjacent_vectors = function (graph, vertex) {
+  console.log("vertex_adjacent_vectors", vertex, JSON.parse(JSON.stringify(graph)));
   const adjacent = graph.vertices_vertices[vertex];
   return adjacent.map(v => [
     graph.vertices_coords[v][0] - graph.vertices_coords[vertex][0],

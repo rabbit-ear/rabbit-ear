@@ -3,7 +3,6 @@
 <meta charset="UTF-8">
 
 <style>
-:root{ --crease-width: 0.0075; }
 html, body{ height: 100%; }
 body {
   margin: 0px;
@@ -15,14 +14,11 @@ body {
 }
 @media (orientation: portrait) { body { flex-direction: column; } }
 svg { width: 100%; height: 100%; }
-svg * {stroke-width:var(--crease-width); stroke-linecap: round; stroke: black;}
-polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
+svg * { stroke-linecap: round; }
 .boundary { fill: linen; }
-.valley {stroke-dasharray: var(--crease-width) calc( var(--crease-width) * 2);}
-.foldedForm .faces polygon { stroke: black; }
+.valley { stroke-dasharray: 0.01 0.02; }
 .foldedForm .faces .front { fill: linen; }
 .foldedForm .faces .back { fill: peru; }
-.foldedForm .creases line { stroke: none; }
 #full-screen-fold {
   position: absolute;
   z-index: 4;
@@ -38,23 +34,25 @@ polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
 <script type="text/javascript" src="../../rabbit-ear.js"></script>
 
 <script>
-const origami = RabbitEar.Origami({ folding: true, padding: 0.15, autofit: false });
+const origami = RabbitEar.Origami({ touchFold: true, padding: 0.15, autofit: false });
 const pattern = RabbitEar.Origami({ padding: 0.15 });
 origami.svg.setAttribute("id", "full-screen-fold");
+origami.fold();
 
-origami.onMouseMove = function (mouse) {
+origami.svg.onMouseMove = function (mouse) {
   if (!mouse.isPressed) { return; }
-  pattern.cp = origami.cp;
+  pattern.load(origami);
+  pattern.unfold();
 };
 
 pattern.onMouseDown = function () {
-  pattern.backup = pattern.cp.copy();
+  pattern.backup = pattern.copy();
 };
 pattern.onMouseMove = function (mouse) {
   if (mouse.isPressed) {
-    pattern.cp = pattern.backup.copy();
-    pattern.cp.valleyFold(mouse.pressed, mouse.drag);
-    origami.cp = pattern.cp;
+    pattern.load(pattern.backup.copy());
+    pattern.crease(mouse.pressed, mouse.drag);
+    origami.load(pattern);
     origami.fold();
   }
 };
@@ -65,7 +63,7 @@ origami.fitView = function (w, h, pad = 0.15) {
   const vb = [];
   vb[0] = sideAspect < 1 ? 0 : -(sideAspect - 1) / 2;
   vb[1] = sideAspect < 1 ? -(1 / sideAspect - 1) / 2 : 0;
-  vb[2] = sideAspect < 1 ? 1 * 2 : sideAspect*2;
+  vb[2] = sideAspect < 1 ? 1 * 2 : sideAspect * 2;
   vb[3] = sideAspect < 1 ? 1 / sideAspect : 1;
   vb[0] -= pad;
   vb[1] -= pad;

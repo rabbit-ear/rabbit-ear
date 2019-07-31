@@ -1,6 +1,7 @@
 input[type=range] {
-	-webkit-appearance: none;
-	background: transparent;
+	-webkit-appearance: none; 
+	width: 100%; 
+	background: transparent; 
 }
 
 input[type=range]::-webkit-slider-thumb {
@@ -14,7 +15,7 @@ input[type=range]:focus {
 input[type=range]::-ms-track {
 	width: 100%;
 	cursor: pointer;
-	background: transparent;
+	background: transparent; 
 	border-color: transparent;
 	color: transparent;
 }
@@ -65,7 +66,7 @@ input[type=range]::-moz-range-track {
 	height: 8.4px;
 	cursor: pointer;
 	background: #3071a9;
-	border-radius: 1.3px;
+	border-radius: 1.3px; 
 }
 
 input[type=range]::-ms-track {
