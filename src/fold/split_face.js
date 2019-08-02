@@ -2,7 +2,7 @@ import math from "../../include/math";
 import split_edge from "./split_edge";
 import { merge_maps } from "../frames/diff";
 import { edge_assignment_to_foldAngle } from "./keys";
-import { remove_faces } from "./remove";
+import remove from "./remove";
 
 /**
  * @returns {}, description of changes. empty object if no intersection.
@@ -139,6 +139,7 @@ const split_convex_polygon = function (
     .forEach((suffix) => { graph[`faces_${suffix}`][faces_count + i] = face[suffix]; }));
   new_edges.forEach((edge, i) => Object.keys(edge)
     .filter(suffix => suffix !== "index")
+    .filter(suffix => graph[`edges_${suffix}`] !== undefined)
     .forEach((suffix) => { graph[`edges_${suffix}`][edges_count + i] = edge[suffix]; }));
   // update data that has been changed by edges
   new_edges.forEach((edge) => {
@@ -188,7 +189,7 @@ const split_convex_polygon = function (
     });
 
   // remove faces, adjust all relevant indices
-  const faces_map = remove_faces(graph, [faceIndex]);
+  const faces_map = remove(graph, "faces", [faceIndex]);
 
   // return a diff of the geometry
   return {

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+<title>Rabbit Ear</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="style.css">
+
+<script type="text/javascript" src="../../rabbit-ear.js"></script>
+<script type="text/javascript">
+// example
+// mouse hover over vertices, edges, faces to highlight them
+
+// todo: bring back sectors
+
+const origami = RabbitEar.Origami({ padding: 0.05 });
+origami.vertices.visible = true;
+
+fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => origami.load(json));
+
+origami.svg.onMouseMove = function (event) {
+  /** highlight */
+  origami.vertices.forEach(function (v) { v.svg.style = ""; });
+  origami.edges.forEach(function (e) { e.svg.style = ""; });
+  origami.faces.forEach(function (f) { f.svg.style = ""; });
+
+  // get all the nearest components to the cursor
+  const nearest = origami.nearest(event);
+  // console.log(nearest);
+
+  if (nearest.vertex) { nearest.vertex.svg.style = "fill:#357;stroke:#357"; }
+  if (nearest.edge) { nearest.edge.svg.style = "stroke:#ec3"; }
+  if (nearest.face) { nearest.face.svg.style = "fill:#e53"; }
+  /** highlight end */
+};
+</script>

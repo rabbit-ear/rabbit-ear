@@ -1,33 +1,66 @@
 // MIT open source license, Robby Kraft
 
 import math from "../../include/math";
-import FOLDConvert from "../../include/fold/convert";
 
+import MakeFold from "../origami/fold";
 import * as Create from "./create";
+import addEdge from "./add_edge";
+import split_face from "./split_face";
+import fragment from "./fragment";
+import madeBy from "../frames/madeBy";
 import {
   transpose_geometry_arrays,
   transpose_geometry_array_at_index,
   keys as foldKeys
 } from "./keys";
-import { clone } from "./object";
-import addEdge from "./add_edge";
-import split_edge from "./split_edge";
-import split_face from "./split_face";
-import { rebuild, complete } from "./rebuild";
-import fragment from "./fragment";
-import { remove_non_boundary_edges } from "./remove";
+import {
+  rebuild,
+  complete
+} from "./rebuild";
+import {
+  clean as protoClean,
+  remove_non_boundary_edges
+} from "./clean";
 import {
   get_boundary,
   nearest_vertex,
   nearest_edge,
   face_containing_point
 } from "./query";
+import { clone } from "./object";
 import { scale } from "./affine";
-
-import MakeFold from "../origami/fold";
 import { kawasaki_collapse } from "../origami/kawasaki";
 import { axiom } from "../origami/axioms";
 import { apply_axiom_in_fold } from "../origami/axioms_test";
+import { get_assignment } from "./args";
+
+const boundary_methods = function (boundaries) {
+  const that = this;
+  const clip = function (type, ...args) {
+    let p;
+    let l;
+    switch (type) {
+      case "edge": p = math.core.get_vector_of_vectors(...args); break;
+      default: // ray and line use the same
+        l = math.core.get_line(...args);
+        p = [l.point, l.vector];
+        break;
+    }
+    const func = {
+      line: math.core.intersection.convex_poly_line,
+      ray: math.core.intersection.convex_poly_ray,
+      edge: math.core.intersection.convex_poly_edge
+    };
+    return boundaries
+      .map(b => b.vertices.map(v => that.vertices_coords[v]))
+      .map(b => func[type](b, ...p))
+      .filter(segment => segment !== undefined);
+  };
+  boundaries.clipLine = function (...args) { return clip("line", ...args); };
+  boundaries.clipRay = function (...args) { return clip("ray", ...args); };
+  boundaries.clipEdge = function (...args) { return clip("edge", ...args); };
+  return boundaries;
+};
 
 const Prototype = function (proto = {}) {
   /**
@@ -37,13 +70,6 @@ const Prototype = function (proto = {}) {
   proto.copy = function () {
     return Object.assign(Object.create(Prototype()), clone(this));
   };
-  /** @return {string} a stringified-json representation of the FOLD object. */
-  const json = function () {
-    return FOLDConvert.toJSON(this);
-  };
-  // const svg = function (cssRules) {
-    // return Convert.fold_to_svg(_this, cssRules);
-  // };
   /**
    * getters, setters
    */
@@ -60,7 +86,7 @@ const Prototype = function (proto = {}) {
   const getBoundaries = function () {
     // todo: this only works for unfolded flat crease patterns
     // todo: this doesn't get multiple boundaries yet
-    return [get_boundary(this)];
+    return boundary_methods.call(this, [get_boundary(this)]);
   };
   /**
    * queries
@@ -74,7 +100,6 @@ const Prototype = function (proto = {}) {
     if (cpIndex !== -1 && foldedIndex !== -1) { return undefined; }
     return (foldedIndex !== -1);
   };
-
   /**
    * modifiers
    */
@@ -93,20 +118,21 @@ const Prototype = function (proto = {}) {
       && "faces_vertices" in this && "faces_edges" in this);
     if (!valid) {
       console.log("load() crease pattern missing geometry arrays. rebuilding. geometry indices will change");
-      // clean(epsilon);
+      protoClean(this);
     }
   };
   /**
    * @param {file} is a FOLD object.
-   * @param {prevent_wipe} if true import will skip clearing
+   * @param {prevent_clear} if true import will skip clearing
    */
-  const load = function (file, prevent_wipe) {
-    if (prevent_wipe == null || prevent_wipe !== true) {
+  proto.load = function (file, prevent_clear) {
+    if (prevent_clear == null || prevent_clear !== true) {
       foldKeys.forEach(key => delete this[key]);
     }
-    Object.assign(this, JSON.parse(JSON.stringify(file)));
-    clean();
+    Object.assign(this, clone(file));
+    clean.call(this);
     // placeholderFoldedForm(_this);
+    this.didChange.forEach(f => f());
   };
   /**
    * this removes all geometry from the crease pattern and returns it
@@ -130,6 +156,8 @@ const Prototype = function (proto = {}) {
   };
   proto.nearestFace = function (...args) {
     const index = face_containing_point(this, math.core.get_vector(...args));
+    if (index === undefined) { return undefined; }
+    // todo, if point isn't inside a face, there can still exist a nearest face
     const result = transpose_geometry_array_at_index(this, "faces", index);
     result.index = index;
     return result;
@@ -157,21 +185,10 @@ const Prototype = function (proto = {}) {
     scale(this, ...args);
   };
 
-  // proto.foldedForm = function () {
-  //   const foldedFrame = this.file_frames
-  //     .filter(f => f.frame_classes.includes("foldedForm"))
-  //     .filter(f => f.vertices_coords.length === this.vertices_coords.length)
-  //     .shift();
-  //   return foldedFrame != null
-  //     ? merge_frame(this, foldedFrame)
-  //     : undefined;
-  // };
-
   // updates
   const didModifyGraph = function () {
     // remove file_frames which were dependent on this geometry. we can
     // no longer guarantee they match. alternatively we could mark them invalid
-
     // this.file_frames = this.file_frames
     //  .filter(ff => !(ff.frame_inherit === true && ff.frame_parent === 0));
 
@@ -180,50 +197,39 @@ const Prototype = function (proto = {}) {
   };
 
   // geometry modifiers, fold operations
-  proto.addVertexOnEdge = function (x, y, oldEdgeIndex) {
-    split_edge(this, x, y, oldEdgeIndex);
-    didModifyGraph.call(this);
-  };
-
-  proto.axiom = function (...args) {
-    const solutions = axiom(...args);
-    apply_axiom_in_fold(solutions, this);
-    return solutions;
-    // console.log("axiom");
-    // console.log("solutions", solutions);
-  };
-
-  proto.markFold = function (...args) {
-    const objects = args.filter(p => typeof p === "object");
-    const line = math.core.get_line(args);
-    const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
-    if (!math.core.is_vector(line.point)
-      || !math.core.is_vector(line.vector)) {
-      console.warn("markFold was not supplied the correct parameters");
-      return;
-    }
-    const folded = MakeFold(this,
-      line.point,
-      line.vector,
-      face_index,
-      "F");
-    Object.keys(folded).forEach((key) => { this[key] = folded[key]; });
-    if ("re:construction" in this === true) {
-      if (objects.length > 0 && "axiom" in objects[0] === true) {
-        this["re:construction"].axiom = objects[0].axiom;
-        this["re:construction"].parameters = objects[0].parameters;
-      }
-    }
-    didModifyGraph.call(this);
+  // proto.axiom = function (...args) {
+  //   const solutions = axiom(...args);
+  //   apply_axiom_in_fold(solutions, this);
+  //   return solutions;
+  // };
+  /**
+   * add a line segment to the graph.
+   * if endpoints lie on an existing vertex this will reuse vertices.
+   * this triggers a rebuild on all arrays
+   *
+   * @param {number[]} segment defined by two points [x, y]
+   * @param {string} optional "M" "V" "F" "U" crease assignment. default is "F"
+   */
+  proto.mark = function (...args) {
+    // get arguments. 2 endpoints. optional crease assignment
+    const s = math.core.get_vector_of_vectors(...args);
+    const assignment = get_assignment(...args) || "F";
+    // add segment, rebuild all arrays
+    addEdge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
+    rebuild(this);
+    // make a record documenting how we got here
+    madeBy().axiom1(s[0], s[1]);
+    this.didChange.forEach(f => f());
   };
 
   // fold methods
-  proto.valleyFold = function (...args) { // point, vector, face_index) {
+  proto.crease = function (...args) { // point, vector, face_index) {
     const objects = args.filter(p => typeof p === "object");
     const line = math.core.get_line(args);
+    const assignment = get_assignment(...args) || "V";
     const face_index = args.filter(a => a !== null && !isNaN(a)).shift();
     if (!math.core.is_vector(line.point) || !math.core.is_vector(line.vector)) {
-      console.warn("valleyFold was not supplied the correct parameters");
+      console.warn("fold was not supplied the correct parameters");
       return;
     }
     // if folding on a foldedForm do the below
@@ -238,10 +244,9 @@ const Prototype = function (proto = {}) {
       line.point,
       line.vector,
       face_index,
-      "V");
+      assignment);
 
-    const ObjectKeys = Object.keys(folded).filter(key => key !== "svg");
-    ObjectKeys.forEach((key) => { this[key] = folded[key]; });
+    Object.keys(folded).forEach((key) => { this[key] = folded[key]; });
 
     if ("re:construction" in this === true) {
       if (objects.length > 0 && "axiom" in objects[0] === true) {
@@ -252,9 +257,7 @@ const Prototype = function (proto = {}) {
       //  Diagram.build_diagram_frame(this)
       // ];
     }
-
     didModifyGraph.call(this);
-
     // todo, need to grab the crease somehow
     // const crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
     // didModifyGraph();
@@ -271,44 +274,10 @@ const Prototype = function (proto = {}) {
       .filter(a => a !== undefined)
       .sort((a, b) => b - a);
 
-    console.log(faces, intersecting);
-
     intersecting.forEach(index => split_face(
       this, index, ray.point, ray.vector, "F"
     ));
   };
-
-  proto.creaseSegment = function (...args) {
-    const diff = addEdge(this, ...args);
-    if (diff === undefined) { return undefined; }
-    if (diff.edges_index_map != null) {
-      Object.keys(diff.edges_index_map)
-        .forEach((i) => {
-          this.edges_assignment[i] = this
-            .edges_assignment[diff.edges_index_map[i]];
-        });
-    }
-    const edges_remove_count = (diff.edges_to_remove != null)
-      ? diff.edges_to_remove.length : 0;
-    if (diff.edges_to_remove != null) {
-      diff.edges_to_remove.slice()
-        .sort((a, b) => b - a) // reverse order
-        .forEach((i) => {
-          this.edges_vertices.splice(i, 1);
-          this.edges_assignment.splice(i, 1);
-        });
-    }
-    // this.edges_assignment.push("F");
-    // const crease = component.crease(this, [diff.edges_new[0] - edges_remove_count]);
-    const crease = [diff.edges_new[0] - edges_remove_count];
-    didModifyGraph.call(this);
-    return crease;
-  };
-
-  // proto.creaseThroughLayers = function (point, vector, face) {
-  //   RabbitEar.fold.origami.crease_folded(this, point, vector, face);
-  //   didModifyGraph();
-  // };
 
   proto.kawasaki = function (...args) {
     const crease = kawasaki_collapse(this, ...args);
@@ -316,19 +285,14 @@ const Prototype = function (proto = {}) {
     return crease;
   };
 
-  Object.defineProperty(proto, "load", { value: load });
   Object.defineProperty(proto, "boundaries", { get: getBoundaries });
   Object.defineProperty(proto, "vertices", { get: getVertices });
   Object.defineProperty(proto, "edges", { get: getEdges });
   Object.defineProperty(proto, "faces", { get: getFaces });
   Object.defineProperty(proto, "isFolded", { value: isFolded });
-  Object.defineProperty(proto, "json", { value: json });
-  // Object.defineProperty(proto, "svg", { value: svg });
 
   // callbacks for when the crease pattern has been altered
   proto.didChange = [];
-
-  // proto.__rabbit_ear = RabbitEar;
 
   return Object.freeze(proto);
 };

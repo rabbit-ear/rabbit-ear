@@ -1,5 +1,6 @@
 import math from "../../include/math";
 import { vertices_count } from "./query";
+import { apply_run_diff } from "../frames/run_frame";
 
 // used to be called CreaseSegment
 
@@ -28,8 +29,8 @@ const copy_properties = function (graph, geometry_prefix, index) {
  * this modifies vertices_coords, edges_vertices, with no regard to
  * the other arrays - re-build all other edges_, faces_, vertices_
  */
-const add_edge = function (graph, a, b, c, d) {
-  const edge = math.edge(a, b, c, d);
+const add_edge = function (graph, a, b, c, d, assignment = "U") {
+  const edge = math.segment(a, b, c, d);
 
   // this changes when parts are removed / added
   let vertices_length = vertices_count(graph);
@@ -105,6 +106,11 @@ const add_edge = function (graph, a, b, c, d) {
         break;
     }
   });
+  // set all new edges to unassigned.
+  result.new.edges
+    .filter(e => e.edges_assignment === undefined)
+    .forEach((e) => { e.edges_assignment = assignment; });
+  result.apply = () => apply_run_diff(graph, result);
   return result;
 };
 

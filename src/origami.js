@@ -16,28 +16,35 @@
 import svgView from "./views/svg/view";
 import glView from "./views/webgl/view";
 import drawFOLD from "../include/fold-draw";
+import math from "../include/math";
+import FOLDConvert from "../include/fold/convert";
 
+import convert from "./convert/convert";
+import window from "./environment/window";
+import Prototype from "./fold/prototype";
+import touchAndFold from "./views/svg/origami_touch_fold";
 import {
   isBrowser,
   isNode
-} from "../include/svg/src/environment/detect";
-
-import Prototype from "./fold/prototype";
-// import load_file from "./convert/load_sync";
-import { make_vertices_coords_folded, make_faces_matrix } from "./fold/make";
+} from "./environment/detect";
+import {
+  make_vertices_coords_folded,
+  make_faces_matrix
+} from "./fold/make";
 import {
   possibleFoldObject,
   validate
 } from "./fold/validate";
-import * as Create from "./fold/create";
-import { transpose_geometry_arrays, keys as foldKeys } from "./fold/keys";
-import { clone } from "./fold/object";
+import {
+  transpose_geometry_arrays,
+  keys as foldKeys
+} from "./fold/keys";
+import { square } from "./fold/create";
 import { clean } from "./fold/clean";
 
-import touchAndFold from "./views/svg/origami_touch_fold";
 
 const DEFAULTS = Object.freeze({
-  folding: false,
+  touchFold: false,
 });
 
 const parseOptions = function (...args) {
@@ -68,7 +75,10 @@ const interpreter = {
 
 const parseOptionsForView = function (...args) {
   // ignores other objects, only ends up with one.
-  const viewOptions = args.filter(a => "view" in a === true).shift();
+  const viewOptions = args
+    .filter(a => typeof a === "object")
+    .filter(a => "view" in a === true)
+    .shift();
   if (viewOptions === undefined) {
     // do nothing
     if (isNode) { return undefined; }
@@ -84,7 +94,7 @@ const Origami = function (...args) {
    */
   const origami = Object.assign(
     Object.create(Prototype()),
-    args.filter(el => possibleFoldObject(el)).shift() || Create.square()
+    args.filter(el => possibleFoldObject(el)).shift() || square()
   );
   // validate and add anything missing.
   validate(origami);
@@ -115,6 +125,20 @@ const Origami = function (...args) {
     }
     origami.didChange.forEach(f => f());
   };
+  /**
+   * @param {file} is a FOLD object.
+   * @param {prevent_clear} if true import will skip clearing
+   */
+  const load = function (data, prevent_clear) {
+    if (prevent_clear == null || prevent_clear !== true) {
+      foldKeys.forEach(key => delete origami[key]);
+    }
+    const fold_file = convert(data).fold();
+    Object.assign(origami, fold_file);
+    clean(origami);
+    // placeholderFoldedForm(_origami);
+    origami.didChange.forEach(f => f());
+  };
 
   const fold = function (options = {}) {
     if ("faces_re:matrix" in origami === false) {
@@ -132,33 +156,6 @@ const Origami = function (...args) {
     return origami;
   };
 
-  /**
-   * @param {file} is a FOLD object.
-   * @param {prevent_wipe} if true import will skip clearing
-   */
-  // const load = function (input, prevent_wipe) { // epsilon
-  //   const loaded_file = load_file(input);
-  //   if (prevent_wipe == null || prevent_wipe !== true) {
-  //     foldKeys.forEach(key => delete origami[key]);
-  //   }
-  //   Object.assign(origami, clone(loaded_file));
-  //   origami.didChange.forEach(f => f());
-  //   clean(origami);
-  //   return origami;
-  // };
-
-  // Object.defineProperty(svg, "frames", {
-  //   get: () => {
-  //     if (prop.cp.file_frames === undefined) {
-  //       return [JSON.parse(JSON.stringify(prop.cp))];
-  //     }
-  //     const frameZero = JSON.parse(JSON.stringify(prop.cp));
-  //     delete frameZero.file_frames;
-  //     const frames = JSON.parse(JSON.stringify(prop.cp.file_frames));
-  //     return [frameZero].concat(frames);
-  //   },
-  // });
-
   const get = function (component) {
     const a = transpose_geometry_arrays(origami, component);
     const view = origami.svg || origami.gl;
@@ -169,7 +166,39 @@ const Origami = function (...args) {
         origami.didChange.forEach(f => f());
       },
     });
+    if (origami.svg != null) {
+      a.forEach((el, i) => {
+        el.svg = origami.svg.groups[component].childNodes[i];
+      });
+    }
     return a;
+  };
+
+  /**
+   * How does this view process a request for nearest components to a target?
+   * (2D), furthermore, attach view objects (SVG) to the nearest value data.
+   */
+  const nearest = function (...args2) {
+    const plural = {
+      vertex: "vertices",
+      edge: "edges",
+      face: "faces",
+    };
+    const target = math.core.get_vector(...args2);
+    const nears = {
+      vertex: origami.nearestVertex(origami, target),
+      edge: origami.nearestEdge(origami, target),
+      face: origami.nearestFace(origami, target)
+    };
+    Object.keys(nears)
+      .filter(key => nears[key] == null)
+      .forEach(key => delete nears[key]);
+    if (origami.svg != null) {
+      Object.keys(nears).forEach((key) => {
+        nears[key].svg = origami.svg.groups[plural[key]].childNodes[nears[key].index];
+      });
+    }
+    return nears;
   };
 
   // apply preferences
@@ -182,16 +211,17 @@ const Origami = function (...args) {
   // attach methods
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
-  // Object.defineProperty(origami, "load", { value: load });
+  Object.defineProperty(origami, "load", { value: load });
 
   // overwriting prototype methods
+  Object.defineProperty(origami, "nearest", { value: nearest });
   Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
   Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
   Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });
   Object.defineProperty(origami, "export", {
     value: (...exportArgs) => {
       if (exportArgs.length <= 0) {
-        return origami.json();
+        return JSON.stringify(origami);
       }
       switch (exportArgs[0]) {
         case "svg":
@@ -202,10 +232,25 @@ const Origami = function (...args) {
           return drawFOLD.svg(origami);
         case "fold":
         case "json":
-        default: return origami.json();
+        default: return JSON.stringify(origami);
       }
     }
   });
+  Object.defineProperty(origami, "snapshot", {
+    get: () => {
+      const obj = function () { return JSON.stringify(origami); };
+      obj.json = function () { return JSON.stringify(origami); };
+      obj.fold = function () { return FOLDConvert.toJSON(origami); };
+      obj.svg = function () {
+        if (origami.svg != null) {
+          return (new window.XMLSerializer()).serializeToString(origami.svg);
+        }
+        return drawFOLD.svg(origami);
+      };
+      return obj;
+    }
+  });
+  Object.defineProperty(origami, "options", { get: () => options });
 
   return origami;
 };
@@ -221,7 +266,9 @@ const init = function (...args) {
       origami.didChange.push(view.draw);
       Object.defineProperty(origami, "svg", { get: () => view });
       // attach additional methods
-      touchAndFold(origami, origami.svg);
+      if (origami.options.touchFold === true) {
+        touchAndFold(origami, origami.svg);
+      }
       // view specific initializers
       origami.svg.fit();
       origami.svg.draw();

@@ -6,7 +6,7 @@ import {
 } from "./detect";
 
 const htmlString = "<!DOCTYPE html><title> </title>";
-const win = !isNode && isBrowser ? window : {};
+const win = isNode ? {} : window;
 
 if (isNode) {
   const { DOMParser, XMLSerializer } = require("xmldom");

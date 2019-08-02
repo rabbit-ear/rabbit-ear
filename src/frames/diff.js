@@ -4,12 +4,6 @@ import {
   faces_count,
 } from "../fold/query";
 
-import {
-  remove_vertices,
-  remove_edges,
-  remove_faces
-} from "../fold/remove";
-
 
 const diff_template = {
   vertices: {

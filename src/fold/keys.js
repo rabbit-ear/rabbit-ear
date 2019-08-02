@@ -131,7 +131,8 @@ export const get_keys_with_ending = function (graph, string) {
 export const transpose_geometry_arrays = function (graph, geometry_key) {
   const matching_keys = get_geometry_keys_with_prefix(graph, geometry_key);
   if (matching_keys.length === 0) { return []; }
-  const geometry = Array.from(Array(graph[matching_keys[0]].length))
+  const len = Math.max(...matching_keys.map(arr => graph[arr].length));
+  const geometry = Array.from(Array(len))
     .map(() => ({}));
   matching_keys
     .map(k => ({ long: k, short: k.substring(geometry_key.length + 1) }))
