@@ -218,38 +218,36 @@ const Origami = function (...args) {
   Object.defineProperty(origami, "vertices", { get: () => get.call(origami, "vertices") });
   Object.defineProperty(origami, "edges", { get: () => get.call(origami, "edges") });
   Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });
-  Object.defineProperty(origami, "export", {
-    value: (...exportArgs) => {
-      if (exportArgs.length <= 0) {
-        return JSON.stringify(origami);
-      }
-      switch (exportArgs[0]) {
-        case "svg":
-          // should we prepare the svg for export? set "width", "height"
-          if (origami.svg != null) {
-            return (new window.XMLSerializer()).serializeToString(origami.svg);
-          }
-          return drawFOLD.svg(origami);
-        case "fold":
-        case "json":
-        default: return JSON.stringify(origami);
-      }
+  // Object.defineProperty(origami, "export", {
+  //   value: (...exportArgs) => {
+  //     if (exportArgs.length <= 0) {
+  //       return JSON.stringify(origami);
+  //     }
+  //     switch (exportArgs[0]) {
+  //       case "svg":
+  //         // should we prepare the svg for export? set "width", "height"
+  //         if (origami.svg != null) {
+  //           return (new window.XMLSerializer()).serializeToString(origami.svg);
+  //         }
+  //         return drawFOLD.svg(origami);
+  //       case "fold":
+  //       case "json":
+  //       default: return JSON.stringify(origami);
+  //     }
+  //   }
+  // });
+  const exportObject = function () { return JSON.stringify(origami); };
+  exportObject.json = function () { return JSON.stringify(origami); };
+  exportObject.fold = function () { return FOLDConvert.toJSON(origami); };
+  exportObject.svg = function () {
+    if (origami.svg != null) {
+      return (new window.XMLSerializer()).serializeToString(origami.svg);
     }
-  });
-  Object.defineProperty(origami, "snapshot", {
-    get: () => {
-      const obj = function () { return JSON.stringify(origami); };
-      obj.json = function () { return JSON.stringify(origami); };
-      obj.fold = function () { return FOLDConvert.toJSON(origami); };
-      obj.svg = function () {
-        if (origami.svg != null) {
-          return (new window.XMLSerializer()).serializeToString(origami.svg);
-        }
-        return drawFOLD.svg(origami);
-      };
-      return obj;
-    }
-  });
+    return drawFOLD.svg(origami);
+  };
+
+  Object.defineProperty(origami, "snapshot", { get: () => exportObject });
+  Object.defineProperty(origami, "export", { get: () => exportObject });
   Object.defineProperty(origami, "options", { get: () => options });
 
   return origami;
