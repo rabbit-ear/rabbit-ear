@@ -8,13 +8,39 @@ body.appendChild(div2d);
 body.appendChild(div3d);
 const toolbar = document.createElement("div");
 toolbar.setAttribute("class", "toolbar");
+const toolbarLeft = document.createElement("div");
+toolbarLeft.setAttribute("class", "toolbar-left");
+const toolbarRight = document.createElement("div");
+toolbarRight.setAttribute("class", "toolbar-right");
+toolbar.appendChild(toolbarLeft);
+toolbar.appendChild(toolbarRight);
 const foldUnfold = document.createElement("a");
 foldUnfold.setAttribute("class", "button");
 foldUnfold.innerHTML = "unfold";
-toolbar.appendChild(foldUnfold);
+toolbarLeft.appendChild(foldUnfold);
+const pause = document.createElement("a");
+pause.setAttribute("id", "button-pause");
+pause.setAttribute("class", "button");
+pause.innerHTML = "on";
+toolbarRight.appendChild(pause);
+const strain = document.createElement("a");
+strain.setAttribute("id", "button-material-strain");
+strain.setAttribute("class", "button");
+strain.innerHTML = "strain";
+toolbarRight.appendChild(strain);
+// const grab = document.createElement("a");
+// grab.setAttribute("id", "button-control-grab");
+// grab.setAttribute("class", "button");
+// toolbarRight.appendChild(grab);
 const slider = document.createElement("input");
 slider.setAttribute("type", "range");
-toolbar.appendChild(slider);
+slider.setAttribute("id", "fold-percent-slider");
+slider.setAttribute("min", "0");
+slider.setAttribute("max", "100");
+toolbarRight.appendChild(slider);
+const sliderPercentLabel = document.createElement("span");
+sliderPercentLabel.setAttribute("id", "fold-percent-label");
+toolbarRight.appendChild(sliderPercentLabel);
 body.appendChild(toolbar);
 
 // origami code
@@ -51,10 +77,22 @@ foldUnfold.onclick = function () {
 };
 
 slider.oninput = function (e) {
-  origami3d.foldPercent = parseInt(e.target.value, 10) / 100.0;
-  // document.querySelector("#fold-percent-label").innerHTML = e.target.value;
+  origami3d.foldPercent = 1.0 - parseInt(e.target.value, 10) / 100.0;
+  document.querySelector("#fold-percent-label").innerHTML = `Fold: ${e.target.value}%`;
+};
+
+document.querySelector("#button-pause").onclick = function (e) {
+  origami3d.simulationRunning = !origami3d.simulationRunning;
+  e.target.setAttribute("class", origami3d.simulationRunning ? "button" : "button red");
+  e.target.innerHTML = origami3d.simulationRunning ? "on" : "paused";
+};
+
+document.querySelector("#button-material-strain").onclick = function (e) {
+  origami3d.strain = !origami3d.strain;
+  e.target.setAttribute("class", origami3d.strain ? "button red" : "button");
 };
 
 window.onload = function () {
   origami3d.pattern.setFoldData(JSON.parse(origami2d.snapshot.json()));
+  slider.oninput({ target: { value: 50 } });
 };

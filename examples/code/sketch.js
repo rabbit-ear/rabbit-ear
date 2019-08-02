@@ -1,26 +1,17 @@
-let origami;
-
-// var touches = RabbitEar.draw.svg.controls(origami.svg, 1, { radius: 0.02 });
-// touches[0].onMouseMove = function (e) {
-
-//   if (touches[0]) {
-//     touches[0].position = e;
-//     // touches[0].circle.setAttribute("x", e[0]);
-//     // touches[0].circle.setAttribute("y", e[1]);
-//     console.log(touches[0]);
-//     // console.log(touches[0], e);
-//     origami.compile();
-//   }
-// };
-
-// inspecting an object and doing something with it
-// function getAllMethods(object) {
-//  return Object.getOwnPropertyNames(object)
-//    .filter(property => typeof object[property] == 'function');
-// }
-// console.log(getAllMethods(RabbitEar));
 
 window.onload = function () {
-  origami = OrigamiCodeEditor("origami-container", "editor", "console");
-  // eval(origami.editor.getValue());
+  const origami = OrigamiCodeEditor("origami-container", "editor", "console");
+
+  // todo, bring these back into the work flow.
+  // make an origami method that "draws" these into the crease pattern as marks.
+
+  ["arc", "arcArrow", "bezier", "circle", "ellipse", "line",
+    "polygon", "polyline", "rect", "regularPolygon", "straightArrow",
+    "text", "wedge", "group"].forEach((name) => {
+    window[name] = function (...args) {
+      const element = RabbitEar.draw.svg[name](...args);
+      origami.svg.appendChild(element);
+      return element;
+    };
+  });
 };

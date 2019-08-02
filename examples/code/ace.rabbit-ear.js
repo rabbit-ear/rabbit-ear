@@ -1,4 +1,3 @@
-const { RabbitEar, ace } = window;
 
 const OrigamiCodeEditor = function (origamiID, codeID, consoleID) {
   const origami = RabbitEar.Origami(origamiID, { padding: 0.05 });
@@ -53,11 +52,8 @@ const OrigamiCodeEditor = function (origamiID, codeID, consoleID) {
   };
 
   Object.defineProperty(origami, "injectCode", { value: injectCode });
-  Object.defineProperty(origami, "reset", { value: reset });
   origami.didUpdate = [];
-  // origami.reset = reset; // allow it to be overwritten
-  // origami.codeDidUpdate = undefined; // to be called on non-error text change
-
+  origami.reset = reset; // allow it to be overwritten
 
   const downloadInBrowser = function (filename, contentsAsString) {
     const blob = new window.Blob([contentsAsString], { type: "text/plain" });
