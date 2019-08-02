@@ -148,8 +148,58 @@ var make_matrix2_inverse = function make_matrix2_inverse(m) {
 
   return [m[3] / det, -m[1] / det, -m[2] / det, m[0] / det, (m[2] * m[5] - m[3] * m[4]) / det, (m[1] * m[4] - m[0] * m[5]) / det];
 };
+var multiply_vector4_matrix4 = function multiply_vector4_matrix4(v, m) {
+  var result = [];
+  result[0] = m[0] * v[0] + m[1] * v[1] + m[2] * v[2] + m[3] * v[3];
+  result[1] = m[4] * v[0] + m[5] * v[1] + m[6] * v[2] + m[7] * v[3];
+  result[2] = m[8] * v[0] + m[9] * v[1] + m[10] * v[2] + m[11] * v[3];
+  result[3] = m[12] * v[0] + m[13] * v[1] + m[14] * v[2] + m[15] * v[3];
+  return result;
+};
+var make_matrix4_scale = function make_matrix4_scale(ratio) {
+  var origin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [0, 0, 0];
+  var tx = ratio * -origin[0] + origin[0];
+  var ty = ratio * -origin[1] + origin[1];
+  var tz = ratio * -origin[2] + origin[2];
+  return [ratio, 0, 0, 0, 0, ratio, 0, 0, 0, 0, ratio, 0, tx, ty, tz, 1];
+};
+var make_matrix4_inverse = function make_matrix4_inverse(m) {
+  var inv = [];
+  inv[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15] + m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
+  inv[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15] - m[8] * m[7] * m[14] - m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
+  inv[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15] + m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
+  inv[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14] - m[8] * m[6] * m[13] - m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
+  inv[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15] - m[9] * m[3] * m[14] - m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
+  inv[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15] + m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
+  inv[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15] - m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
+  inv[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14] + m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
+  inv[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15] + m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
+  inv[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15] - m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
+  inv[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] + m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
+  inv[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] - m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
+  inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] - m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
+  inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] + m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
+  inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] - m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
+  inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] + m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
+  var det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
 
-var matrix = /*#__PURE__*/Object.freeze({
+  if (det < 1e-6 && det > -1e-6) {
+    return undefined;
+  }
+
+  var inverseDeterminant = 1.0 / det;
+  return inv.map(function (n) {
+    return n * inverseDeterminant;
+  });
+};
+var transpose_matrix4 = function transpose_matrix4(m) {
+  return [m[0], m[4], m[8], m[12], m[1], m[5], m[9], m[13], m[2], m[6], m[10], m[14], m[3], m[7], m[11], m[15]];
+};
+var multiply_matrices4 = function multiply_matrices4(a, b) {
+  return [a[0] * b[0] + a[1] * b[4] + a[2] * b[8] + a[3] * b[12], a[0] * b[1] + a[1] * b[5] + a[2] * b[9] + a[3] * b[13], a[0] * b[2] + a[1] * b[6] + a[2] * b[10] + a[3] * b[14], a[0] * b[3] + a[1] * b[7] + a[2] * b[11] + a[3] * b[15], a[4] * b[0] + a[5] * b[4] + a[6] * b[8] + a[7] * b[12], a[4] * b[1] + a[5] * b[5] + a[6] * b[9] + a[7] * b[13], a[4] * b[2] + a[5] * b[6] + a[6] * b[10] + a[7] * b[14], a[4] * b[3] + a[5] * b[7] + a[6] * b[11] + a[7] * b[15], a[8] * b[0] + a[9] * b[4] + a[10] * b[8] + a[11] * b[12], a[8] * b[1] + a[9] * b[5] + a[10] * b[9] + a[11] * b[13], a[8] * b[2] + a[9] * b[6] + a[10] * b[10] + a[11] * b[14], a[8] * b[3] + a[9] * b[7] + a[10] * b[11] + a[11] * b[15], a[12] * b[0] + a[13] * b[4] + a[14] * b[8] + a[15] * b[12], a[12] * b[1] + a[13] * b[5] + a[14] * b[9] + a[15] * b[13], a[12] * b[2] + a[13] * b[6] + a[14] * b[10] + a[15] * b[14], a[12] * b[3] + a[13] * b[7] + a[14] * b[11] + a[15] * b[15]];
+};
+
+var matrixCore = /*#__PURE__*/Object.freeze({
   multiply_vector2_matrix2: multiply_vector2_matrix2,
   multiply_line_matrix2: multiply_line_matrix2,
   multiply_matrices2: multiply_matrices2,
@@ -157,7 +207,12 @@ var matrix = /*#__PURE__*/Object.freeze({
   make_matrix2_scale: make_matrix2_scale,
   make_matrix2_rotation: make_matrix2_rotation,
   make_matrix2_reflection: make_matrix2_reflection,
-  make_matrix2_inverse: make_matrix2_inverse
+  make_matrix2_inverse: make_matrix2_inverse,
+  multiply_vector4_matrix4: multiply_vector4_matrix4,
+  make_matrix4_scale: make_matrix4_scale,
+  make_matrix4_inverse: make_matrix4_inverse,
+  transpose_matrix4: transpose_matrix4,
+  multiply_matrices4: multiply_matrices4
 });
 
 function _typeof(obj) {
@@ -292,6 +347,10 @@ var get_vector = function get_vector() {
     return a !== undefined;
   });
 
+  if (list === undefined) {
+    return undefined;
+  }
+
   if (list.length === 0) {
     return undefined;
   }
@@ -317,7 +376,8 @@ var get_vector_of_vectors = function get_vector_of_vectors() {
     return get_vector(el);
   });
 };
-var identity = [1, 0, 0, 1, 0, 0];
+var identity2 = [1, 0, 0, 1, 0, 0];
+var identity4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 var get_matrix2 = function get_matrix2() {
   for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
     args[_key5] = arguments[_key5];
@@ -325,16 +385,59 @@ var get_matrix2 = function get_matrix2() {
 
   var m = get_vector(args);
 
+  if (m === undefined) {
+    return undefined;
+  }
+
   if (m.length === 6) {
     return m;
   }
 
   if (m.length > 6) {
-    return [m[0], m[1], m[3], m[4], m[5], m[6]];
+    return [m[0], m[1], m[2], m[3], m[4], m[5]];
   }
 
   if (m.length < 6) {
-    return identity.map(function (n, i) {
+    return identity2.map(function (n, i) {
+      return m[i] || n;
+    });
+  }
+
+  return undefined;
+};
+var get_matrix4 = function get_matrix4() {
+  for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+    args[_key6] = arguments[_key6];
+  }
+
+  var m = get_vector(args);
+
+  if (m === undefined) {
+    return undefined;
+  }
+
+  if (m.length === 16) {
+    return m;
+  }
+
+  if (m.length === 9) {
+    return [m[0], m[1], m[2], 0, m[3], m[4], m[5], 0, m[6], m[7], m[8], 0, 0, 0, 0, 1];
+  }
+
+  if (m.length === 6) {
+    return [m[0], m[1], 0, 0, m[2], m[3], 0, 0, 0, 0, 1, 0, m[4], m[5], 0, 1];
+  }
+
+  if (m.length === 4) {
+    return [m[0], m[1], 0, 0, m[2], m[3], 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  }
+
+  if (m.length > 16) {
+    return [m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15]];
+  }
+
+  if (m.length < 16) {
+    return identity4.map(function (n, i) {
       return m[i] || n;
     });
   }
@@ -342,8 +445,8 @@ var get_matrix2 = function get_matrix2() {
   return undefined;
 };
 function get_edge() {
-  for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-    args[_key6] = arguments[_key6];
+  for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+    args[_key7] = arguments[_key7];
   }
 
   return get_vector_of_vectors(args);
@@ -422,8 +525,8 @@ function get_ray() {
   return get_line.apply(void 0, arguments);
 }
 function get_two_vec2() {
-  for (var _len7 = arguments.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-    args[_key7] = arguments[_key7];
+  for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+    args[_key8] = arguments[_key8];
   }
 
   if (args.length === 0) {
@@ -459,8 +562,8 @@ function get_two_vec2() {
   return undefined;
 }
 function get_array_of_vec() {
-  for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-    args[_key8] = arguments[_key8];
+  for (var _len9 = arguments.length, args = new Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
+    args[_key9] = arguments[_key9];
   }
 
   if (args.length === 0) {
@@ -1903,15 +2006,19 @@ var Vector = function Vector() {
 };
 
 var Matrix2 = function Matrix2() {
-  var matrix = [];
+  var matrix = [1, 0, 0, 1, 0, 0];
 
   for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
     args[_key] = arguments[_key];
   }
 
-  get_matrix2(args).forEach(function (n) {
-    return matrix.push(n);
-  });
+  var argsMatrix = get_matrix2(args);
+
+  if (argsMatrix !== undefined) {
+    argsMatrix.forEach(function (n, i) {
+      matrix[i] = n;
+    });
+  }
 
   var inverse = function inverse() {
     return Matrix2(make_matrix2_inverse(matrix).map(function (n) {
@@ -1975,6 +2082,73 @@ Matrix2.makeReflection = function (vector, origin) {
   return Matrix2(make_matrix2_reflection(vector, origin).map(function (n) {
     return clean_number(n, 13);
   }));
+};
+
+var Matrix = function Matrix() {
+  var matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+
+  for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+    args[_key4] = arguments[_key4];
+  }
+
+  var argsMatrix = get_matrix4(args);
+
+  if (argsMatrix !== undefined) {
+    argsMatrix.forEach(function (n, i) {
+      matrix[i] = n;
+    });
+  }
+
+  var inverse = function inverse() {
+    return Matrix(make_matrix4_inverse(matrix).map(function (n) {
+      return clean_number(n, 13);
+    }));
+  };
+
+  var multiply = function multiply() {
+    for (var _len5 = arguments.length, innerArgs = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+      innerArgs[_key5] = arguments[_key5];
+    }
+
+    var m2 = get_matrix4(innerArgs);
+    return Matrix(multiply_matrices4(matrix, m2).map(function (n) {
+      return clean_number(n, 13);
+    }));
+  };
+
+  var transform = function transform() {
+    for (var _len6 = arguments.length, innerArgs = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+      innerArgs[_key6] = arguments[_key6];
+    }
+
+    var v = get_vector(innerArgs);
+    return Vector(multiply_vector4_matrix4(v, matrix).map(function (n) {
+      return clean_number(n, 13);
+    }));
+  };
+
+  Object.defineProperty(matrix, "inverse", {
+    value: inverse
+  });
+  Object.defineProperty(matrix, "multiply", {
+    value: multiply
+  });
+  Object.defineProperty(matrix, "transform", {
+    value: transform
+  });
+  return Object.freeze(matrix);
+};
+
+Matrix.makeIdentity = function () {
+  return Matrix(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+};
+
+Matrix.makeTranslation = function (tx, ty, tz) {
+  return Matrix(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, tx, ty, tz, 1);
+};
+
+Matrix.makeScale = function () {
+  return Matrix.apply(void 0, _toConsumableArray(make_matrix4_scale.apply(void 0, arguments)));
 };
 
 function Prototype (subtype, prototype) {
@@ -3007,7 +3181,7 @@ Junction.fromPoints = function (center, edge_adjacent_points) {
 };
 
 var core = Object.create(null);
-Object.assign(core, algebra, matrix, geometry, query, equal, origami);
+Object.assign(core, algebra, matrixCore, geometry, query, equal, origami);
 core.clean_number = clean_number;
 core.is_number = is_number;
 core.is_vector = is_vector;
@@ -3028,6 +3202,7 @@ Object.freeze(core);
 var math = {
   vector: Vector,
   matrix2: Matrix2,
+  matrix: Matrix,
   line: Line,
   ray: Ray,
   segment: Edge,

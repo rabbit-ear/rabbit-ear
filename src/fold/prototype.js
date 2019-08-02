@@ -246,9 +246,7 @@ const Prototype = function (proto = {}) {
       face_index,
       assignment);
 
-    console.log("============== bug here");
-    Object.keys(folded).forEach((key) => { console.log(key); this[key] = folded[key]; });
-    console.log(this, "+++++++++++++++++ end bug");
+    Object.keys(folded).forEach((key) => { this[key] = folded[key]; });
 
     if ("re:construction" in this === true) {
       if (objects.length > 0 && "axiom" in objects[0] === true) {

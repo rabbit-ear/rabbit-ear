@@ -19,6 +19,7 @@ import drawFOLD from "../include/fold-draw";
 import math from "../include/math";
 import FOLDConvert from "../include/fold/convert";
 
+import convert from "./convert/convert";
 import window from "./environment/window";
 import Prototype from "./fold/prototype";
 import touchAndFold from "./views/svg/origami_touch_fold";
@@ -34,8 +35,11 @@ import {
   possibleFoldObject,
   validate
 } from "./fold/validate";
+import {
+  transpose_geometry_arrays,
+  keys as foldKeys
+} from "./fold/keys";
 import { square } from "./fold/create";
-import { transpose_geometry_arrays } from "./fold/keys";
 import { clean } from "./fold/clean";
 
 
@@ -121,6 +125,20 @@ const Origami = function (...args) {
     }
     origami.didChange.forEach(f => f());
   };
+  /**
+   * @param {file} is a FOLD object.
+   * @param {prevent_clear} if true import will skip clearing
+   */
+  const load = function (data, prevent_clear) {
+    if (prevent_clear == null || prevent_clear !== true) {
+      foldKeys.forEach(key => delete origami[key]);
+    }
+    const fold_file = convert(data).fold();
+    Object.assign(origami, fold_file);
+    clean(origami);
+    // placeholderFoldedForm(_origami);
+    origami.didChange.forEach(f => f());
+  };
 
   const fold = function (options = {}) {
     if ("faces_re:matrix" in origami === false) {
@@ -193,7 +211,7 @@ const Origami = function (...args) {
   // attach methods
   Object.defineProperty(origami, "fold", { value: fold });
   Object.defineProperty(origami, "unfold", { value: unfold });
-  // Object.defineProperty(origami, "load", { value: load });
+  Object.defineProperty(origami, "load", { value: load });
 
   // overwriting prototype methods
   Object.defineProperty(origami, "nearest", { value: nearest });
