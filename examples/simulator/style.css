@@ -2,20 +2,23 @@ html,body{
 	height: 100%;
 	width: 100%;
 }
+
 body {
 	margin: 0px;
 	background-color: #158;
 	font-family: sans-serif;
-	font-size: 133%;
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 50% 50%;
 	grid-template-rows: 1fr;
+	color: white;
+	font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	overflow: hidden;
 }
 
 @media (orientation: portrait) {
 	body {
 		grid-template-columns: 1fr;
-		grid-template-rows: 1fr 1fr;
+		grid-template-rows: 50% 50%;
 	}
 }
 
@@ -24,18 +27,34 @@ body {
 	bottom: 0;
 	left: 0;
 	width: calc( 100% - 2rem);
-	height: 20vh;
+	/*height: 20vh;*/
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 50% 50%;
 	margin: 1rem;
 	text-align: center;
+	font-size: 150%;
+}
+
+.toolbar-right a,
+.toolbar-right input,
+.toolbar-right span {
+	margin: 0.333rem;
+}
+
+.toolbar-right {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+	align-items: center;
 }
 
 .button {
 	margin: auto;
 }
-
+#fold-percent-label {
+	width: 30rem;
+}
 input[type=range] {
-	max-width: 300px;
+	/*max-width: 300px;*/
 	margin: auto;
 }
