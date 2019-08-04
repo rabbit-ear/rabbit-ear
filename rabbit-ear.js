@@ -1460,58 +1460,6 @@
     split_convex_polygon: split_convex_polygon,
     convex_hull: convex_hull
   });
-  var alternating_sum = function alternating_sum() {
-    for (var _len = arguments.length, angles = new Array(_len), _key = 0; _key < _len; _key++) {
-      angles[_key] = arguments[_key];
-    }
-    return [0, 1].map(function (even_odd) {
-      return angles.filter(function (_, i) {
-        return i % 2 === even_odd;
-      }).reduce(function (a, b) {
-        return a + b;
-      }, 0);
-    });
-  };
-  var kawasaki_sector_score = function kawasaki_sector_score() {
-    return alternating_sum.apply(void 0, arguments).map(function (a) {
-      return a < 0 ? a + Math.PI * 2 : a;
-    }).map(function (s) {
-      return Math.PI - s;
-    });
-  };
-  var kawasaki_solutions_radians = function kawasaki_solutions_radians() {
-    for (var _len2 = arguments.length, vectors_radians = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      vectors_radians[_key2] = arguments[_key2];
-    }
-    return vectors_radians.map(function (v, i, ar) {
-      return counter_clockwise_angle2_radians(v, ar[(i + 1) % ar.length]);
-    }).map(function (_, i, arr) {
-      return arr.slice(i + 1, arr.length).concat(arr.slice(0, i));
-    }).map(function (opposite_sectors) {
-      return kawasaki_sector_score.apply(void 0, _toConsumableArray(opposite_sectors));
-    }).map(function (kawasakis, i) {
-      return vectors_radians[i] + kawasakis[0];
-    }).map(function (angle, i) {
-      return is_counter_clockwise_between(angle, vectors_radians[i], vectors_radians[(i + 1) % vectors_radians.length]) ? angle : undefined;
-    });
-  };
-  var kawasaki_solutions = function kawasaki_solutions() {
-    for (var _len3 = arguments.length, vectors = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-      vectors[_key3] = arguments[_key3];
-    }
-    var vectors_radians = vectors.map(function (v) {
-      return Math.atan2(v[1], v[0]);
-    });
-    return kawasaki_solutions_radians.apply(void 0, _toConsumableArray(vectors_radians)).map(function (a) {
-      return a === undefined ? undefined : [clean_number(Math.cos(a), 14), clean_number(Math.sin(a), 14)];
-    });
-  };
-  var origami = Object.freeze({
-    alternating_sum: alternating_sum,
-    kawasaki_sector_score: kawasaki_sector_score,
-    kawasaki_solutions_radians: kawasaki_solutions_radians,
-    kawasaki_solutions: kawasaki_solutions
-  });
   var VectorPrototype = function VectorPrototype(subtype) {
     var proto = [];
     var Type = subtype;
@@ -2709,21 +2657,9 @@
         return counter_clockwise_angle2(pair[0], pair[1]);
       });
     };
-    var alternatingAngleSum = function alternatingAngleSum() {
-      return alternating_sum.apply(void 0, _toConsumableArray(angles()));
-    };
-    var kawasaki_score = function kawasaki_score() {
-      return kawasaki_sector_score.apply(void 0, _toConsumableArray(angles()));
-    };
-    var kawasaki_solutions$$1 = function kawasaki_solutions$$1() {
-      return kawasaki_solutions_radians.apply(void 0, _toConsumableArray(angles()));
-    };
     return {
       sectors: sectors,
       angles: angles,
-      kawasaki_score: kawasaki_score,
-      kawasaki_solutions: kawasaki_solutions$$1,
-      alternatingAngleSum: alternatingAngleSum,
       get vectors() {
         return vectors;
       },
@@ -2744,7 +2680,7 @@
     return Junction.fromVectors(vectors);
   };
   var core = Object.create(null);
-  Object.assign(core, algebra, matrixCore, geometry, query, equal, origami);
+  Object.assign(core, algebra, matrixCore, geometry, query, equal);
   core.clean_number = clean_number;
   core.is_number = is_number;
   core.is_vector = is_vector;
@@ -4459,6 +4395,14 @@
       .multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
       .map(n => math.core.clean_number(n)));
   };
+  const make_vertices_isBoundary = function (graph) {
+    const vertices_edges = make_vertices_edges(graph);
+    const edges_isBoundary = graph.edges_assignment
+      .map(a => a === "b" || a === "B");
+    return vertices_edges
+      .map(edges => edges
+        .reduce((a, b) => edges_isBoundary[a] || edges_isBoundary[b], false));
+  };
   const faces_coloring_from_faces_matrix = function (faces_matrix) {
     return faces_matrix
       .map(m => m[0] * m[3] - m[1] * m[2])
@@ -4476,6 +4420,7 @@
     make_faces_matrix: make_faces_matrix,
     make_faces_matrix_inv: make_faces_matrix_inv,
     make_vertices_coords_folded: make_vertices_coords_folded,
+    make_vertices_isBoundary: make_vertices_isBoundary,
     faces_coloring_from_faces_matrix: faces_coloring_from_faces_matrix
   });
 
@@ -10864,31 +10809,86 @@
     return folded;
   };
 
+  const alternating_sum = function (...numbers) {
+    return [0, 1].map(even_odd => numbers
+      .filter((_, i) => i % 2 === even_odd)
+      .reduce((a, b) => a + b, 0));
+  };
+  const kawasaki_flatness = function (...sectorAngles) {
+    return alternating_sum(...sectorAngles)
+      .map(a => (a < 0 ? a + Math.PI * 2 : a))
+      .map(a => Math.PI - a)
+      .map(n => math.core.clean_number(n, 14));
+  };
   const vertex_adjacent_vectors = function (graph, vertex) {
-    console.log("vertex_adjacent_vectors", vertex, JSON.parse(JSON.stringify(graph)));
-    const adjacent = graph.vertices_vertices[vertex];
-    return adjacent.map(v => [
+    return graph.vertices_vertices[vertex].map(v => [
       graph.vertices_coords[v][0] - graph.vertices_coords[vertex][0],
       graph.vertices_coords[v][1] - graph.vertices_coords[vertex][1]
     ]);
   };
-  function kawasaki_solutions$1(graph, vertex) {
-    return math.core.kawasaki_solutions(...vertex_adjacent_vectors(graph, vertex));
-  }
+  const vertex_sectorAngles = function (graph, vertex) {
+    return vertex_adjacent_vectors(graph, vertex)
+      .map((v, i, arr) => math.core.counter_clockwise_angle2(arr[i], arr[(i + 1) % arr.length]));
+  };
+  const vertex_kawasaki_flatness = function (graph, vertex) {
+    return kawasaki_flatness(...vertex_sectorAngles(graph, vertex));
+  };
+  const make_vertices_sectorAngles = function (graph) {
+    return Array.from(Array(graph.vertices_coords.length))
+      .map((_, i) => vertex_sectorAngles(graph, i));
+  };
+  const make_vertices_kawasaki_flatness = function (graph) {
+    return Array.from(Array(graph.vertices_coords.length))
+      .map((_, i) => vertex_kawasaki_flatness(graph, i));
+  };
+  const make_vertices_kawasaki = function (graph) {
+    const vertices_isBoundary = make_vertices_isBoundary(graph);
+    return Array.from(Array(graph.vertices_coords.length))
+      .map((v, i) => vertices_isBoundary[i]
+        ? [0, 0]
+        : vertex_kawasaki_flatness(graph, i));
+  };
+  const make_vertices_nudge_matrix = function (graph) {
+  };
+  const kawasaki_solutions_radians = function (...vectors_radians) {
+    return vectors_radians
+      .map((v, i, ar) => math.core.counter_clockwise_angle2_radians(
+        v, ar[(i + 1) % ar.length]
+      ))
+      .map((_, i, arr) => arr.slice(i + 1, arr.length).concat(arr.slice(0, i)))
+      .map(opposite_sectors => kawasaki_flatness(...opposite_sectors))
+      .map((kawasakis, i) => vectors_radians[i] + kawasakis[0])
+      .map((angle, i) => (math.core.is_counter_clockwise_between(angle,
+        vectors_radians[i], vectors_radians[(i + 1) % vectors_radians.length])
+        ? angle
+        : undefined));
+  };
+  const kawasaki_solutions = function (...vectors) {
+    const vectors_radians = vectors.map(v => Math.atan2(v[1], v[0]));
+    return kawasaki_solutions_radians(...vectors_radians)
+      .map(a => (a === undefined
+        ? undefined
+        : [math.core.clean_number(Math.cos(a), 14), math.core.clean_number(Math.sin(a), 14)]));
+  };
   function kawasaki_collapse(graph, vertex, face, crease_direction = "F") {
-    const kawasakis = kawasaki_solutions$1(graph, vertex);
+    const kawasakis = kawasaki_solutions(graph, vertex);
     const origin = graph.vertices_coords[vertex];
     split_convex_polygon$1(graph, face, origin, kawasakis[face], crease_direction);
   }
-  const kawasaki = function (graph, vertex) {
-    const kawasakis = kawasaki_solutions$1(graph, vertex);
-    return kawasakis;
-  };
 
-  var kawasaki$1 = /*#__PURE__*/Object.freeze({
-    kawasaki_solutions: kawasaki_solutions$1,
-    kawasaki_collapse: kawasaki_collapse,
-    default: kawasaki
+  var kawasaki = /*#__PURE__*/Object.freeze({
+    alternating_sum: alternating_sum,
+    kawasaki_flatness: kawasaki_flatness,
+    vertex_adjacent_vectors: vertex_adjacent_vectors,
+    vertex_sectorAngles: vertex_sectorAngles,
+    vertex_kawasaki_flatness: vertex_kawasaki_flatness,
+    make_vertices_sectorAngles: make_vertices_sectorAngles,
+    make_vertices_kawasaki_flatness: make_vertices_kawasaki_flatness,
+    make_vertices_kawasaki: make_vertices_kawasaki,
+    make_vertices_nudge_matrix: make_vertices_nudge_matrix,
+    kawasaki_solutions_radians: kawasaki_solutions_radians,
+    kawasaki_solutions: kawasaki_solutions,
+    kawasaki_collapse: kawasaki_collapse
   });
 
   var axiom_instructions_data = "{\n  \"ar\": [null,\n    \"اصنع خطاً يمر بنقطتين\",\n    \"اصنع خطاً عن طريق طي نقطة واحدة إلى أخرى\",\n    \"اصنع خطاً عن طريق طي خط واحد على آخر\",\n    \"اصنع خطاً يمر عبر نقطة واحدة ويجعل خطاً واحداً فوق نفسه\",\n    \"اصنع خطاً يمر بالنقطة الأولى ويجعل النقطة الثانية على الخط\",\n    \"اصنع خطاً يجلب النقطة الأولى إلى الخط الأول والنقطة الثانية إلى الخط الثاني\",\n    \"اصنع خطاً يجلب نقطة إلى خط ويجعل خط ثاني فوق نفسه\"\n  ],\n  \"de\": [null,\n    \"Falte eine Linie durch zwei Punkte\",\n    \"Falte zwei Punkte aufeinander\",\n    \"Falte zwei Linien aufeinander\",\n    \"Falte eine Linie auf sich selbst, falte dabei durch einen Punkt\",\n    \"Falte einen Punkt auf eine Linie, falte dabei durch einen anderen Punkt\",\n    \"Falte einen Punkt auf eine Linie und einen weiteren Punkt auf eine weitere Linie\",\n    \"Falte einen Punkt auf eine Linie und eine weitere Linie in sich selbst zusammen\"\n  ],\n  \"en\": [null,\n    \"fold a line through two points\",\n    \"fold two points together\",\n    \"fold two lines together\",\n    \"fold a line on top of itself, creasing through a point\",\n    \"fold a point to a line, creasing through another point\",\n    \"fold a point to a line and another point to another line\",\n    \"fold a point to a line and another line onto itself\"\n  ],\n  \"es\": [null,\n    \"dobla una línea entre dos puntos\",\n    \"dobla dos puntos juntos\",\n    \"dobla y une dos líneas\",\n    \"dobla una línea sobre sí misma, doblándola hacia un punto\",\n    \"dobla un punto hasta una línea, doblándola a través de otro punto\",\n    \"dobla un punto hacia una línea y otro punto hacia otra línea\",\n    \"dobla un punto hacia una línea y otra línea sobre sí misma\"\n  ],\n  \"fr\":[null,\n    \"créez un pli passant par deux points\",\n    \"pliez pour superposer deux points\",\n    \"pliez pour superposer deux lignes\",\n    \"rabattez une ligne sur elle-même à l'aide d'un pli qui passe par un point\",\n    \"rabattez un point sur une ligne à l'aide d'un pli qui passe par un autre point\",\n    \"rabattez un point sur une ligne et un autre point sur une autre ligne\",\n    \"rabattez un point sur une ligne et une autre ligne sur elle-même\"\n  ],\n  \"hi\": [null,\n    \"एक क्रीज़ बनाएँ जो दो स्थानों से गुजरता है\",\n    \"एक स्थान को दूसरे स्थान पर मोड़कर एक क्रीज़ बनाएँ\",\n    \"एक रेखा पर दूसरी रेखा को मोड़कर क्रीज़ बनाएँ\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान से गुजरता है और एक रेखा को स्वयं के ऊपर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान से गुजरता है और दूसरे स्थान को रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो पहले स्थान को पहली रेखा पर और दूसरे स्थान को दूसरी रेखा पर ले आता है\",\n    \"एक क्रीज़ बनाएँ जो एक स्थान को एक रेखा पर ले आता है और दूसरी रेखा को स्वयं के ऊपर ले आता है\"\n  ],\n  \"jp\": [null,\n    \"2点に沿って折り目を付けます\",\n    \"2点を合わせて折ります\",\n    \"2つの線を合わせて折ります\",\n    \"点を通過させ、既にある線に沿って折ります\",\n    \"点を線沿いに合わせ別の点を通過させ折ります\",\n    \"線に向かって点を折り、同時にもう一方の線に向かってもう一方の点を折ります\",\n    \"線に向かって点を折り、同時に別の線をその上に折ります\"\n  ],\n  \"ko\": [null,\n    \"두 점을 통과하는 선으로 접으세요\",\n    \"두 점을 함께 접으세요\",\n    \"두 선을 함께 접으세요\",\n    \"그 위에 선을 접으면서 점을 통과하게 접으세요\",\n    \"점을 선으로 접으면서, 다른 점을 지나게 접으세요\",\n    \"점을 선으로 접고 다른 점을 다른 선으로 접으세요\",\n    \"점을 선으로 접고 다른 선을 그 위에 접으세요\"\n  ],\n  \"ms\": [null,\n    \"lipat garisan melalui dua titik\",\n    \"lipat dua titik bersama\",\n    \"lipat dua garisan bersama\",\n    \"lipat satu garisan di atasnya sendiri, melipat melalui satu titik\",\n    \"lipat satu titik ke garisan, melipat melalui titik lain\",\n    \"lipat satu titik ke garisan dan satu lagi titik ke garisan lain\",\n    \"lipat satu titik ke garisan dan satu lagi garisan di atasnya sendiri\"\n  ],\n  \"pt\": [null,\n    \"dobre uma linha entre dois pontos\",\n    \"dobre os dois pontos para uni-los\",\n    \"dobre as duas linhas para uni-las\",\n    \"dobre uma linha sobre si mesma, criando uma dobra ao longo de um ponto\",\n    \"dobre um ponto até uma linha, criando uma dobra ao longo de outro ponto\",\n    \"dobre um ponto até uma linha e outro ponto até outra linha\",\n    \"dobre um ponto até uma linha e outra linha sobre si mesma\"\n  ],\n  \"ru\": [null,\n    \"сложите линию через две точки\",\n    \"сложите две точки вместе\",\n    \"сложите две линии вместе\",\n    \"сверните линию сверху себя, сгибая через точку\",\n    \"сложите точку в линию, сгибая через другую точку\",\n    \"сложите точку в линию и другую точку в другую линию\",\n    \"сложите точку в линию и другую линию на себя\"\n  ],\n  \"tr\": [null,\n    \"iki noktadan geçen bir çizgi boyunca katla\",\n    \"iki noktayı birbirine katla\",\n    \"iki çizgiyi birbirine katla\",\n    \"bir noktadan kıvırarak kendi üzerindeki bir çizgi boyunca katla\",\n    \"başka bir noktadan kıvırarak bir noktayı bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir noktayı başka bir çizgiye katla\",\n    \"bir noktayı bir çizgiye ve başka bir çizgiyi kendi üzerine katla\"\n  ],\n  \"vi\": [null,\n    \"tạo một nếp gấp đi qua hai điểm\",\n    \"tạo nếp gấp bằng cách gấp một điểm này sang điểm khác\",\n    \"tạo nếp gấp bằng cách gấp một đường lên một đường khác\",\n    \"tạo một nếp gấp đi qua một điểm và đưa một đường lên trên chính nó\",\n    \"tạo một nếp gấp đi qua điểm đầu tiên và đưa điểm thứ hai lên đường thẳng\",\n    \"tạo một nếp gấp mang điểm đầu tiên đến đường đầu tiên và điểm thứ hai cho đường thứ hai\",\n    \"tạo một nếp gấp mang lại một điểm cho một đường và đưa một đường thứ hai lên trên chính nó\"\n  ],\n  \"zh\": [null,\n    \"通過兩點折一條線\",\n    \"將兩點折疊起來\",\n    \"將兩條線折疊在一起\",\n    \"通過一個點折疊一條線在自身上面\",\n    \"將一個點，通過另一個點折疊成一條線，\",\n    \"將一個點折疊為一條線，再將另一個點折疊到另一條線\",\n    \"將一個點折疊成一條線，另一條線折疊到它自身上\"\n  ]\n}\n";
@@ -13426,7 +13426,7 @@ polygon { stroke-linejoin: bevel; }
     rebuild$1,
     make,
     query$1,
-    kawasaki$1,
+    kawasaki,
     Axioms);
   core$1.build_diagram_frame = build_diagram_frame;
   core$1.add_edge = add_edge;

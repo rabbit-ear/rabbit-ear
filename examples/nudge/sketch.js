@@ -41,3 +41,9 @@ origami.svg.onMouseDown = function (event) {
 origami.svg.onMouseUp = function () {
   origami.selected = undefined;
 };
+
+document.querySelectorAll(".button-wiggle").forEach(b => {
+  b.onclick = function (e) {
+    // origami.wiggle();
+  };
+});

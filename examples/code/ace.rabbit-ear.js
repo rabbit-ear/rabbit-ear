@@ -71,8 +71,9 @@ const OrigamiCodeEditor = function (origamiID, codeID, consoleID) {
   document.querySelector("#button-axiom").onclick = function () {
     injectCode("RabbitEar.axiom( axiom_number , parameters )");
   };
-  document.querySelector("#button-fold").onclick = function () {
-    injectCode("origami.fold();");
+  document.querySelector("#button-fold").onclick = function (e) {
+    injectCode(`origami.${e.target.innerHTML}();`);
+    e.target.innerHTML = e.target.innerHTML === "fold" ? "unfold" : "fold";
   };
   document.querySelector("#button-save-SVG").onclick = function () {
     downloadInBrowser("origami.svg", origami.export.svg());

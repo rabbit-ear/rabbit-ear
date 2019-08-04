@@ -23,12 +23,12 @@ const buildPage = function (container) {
   filenameInfo.setAttribute("class", "filename");
   panels[0].appendChild(filenameInfo);
   // info paragraphs
-  const infoParagraph = document.createElement("p");
-  infoParagraph.setAttribute("class", "info");
-  panels[0].appendChild(infoParagraph);
   const inspectorParagraph = document.createElement("p");
   inspectorParagraph.setAttribute("class", "inspector");
   panels[0].appendChild(inspectorParagraph);
+  const infoParagraph = document.createElement("p");
+  infoParagraph.setAttribute("class", "info");
+  panels[0].appendChild(infoParagraph);
 
   const exportSection = document.createElement("div");
   exportSection.setAttribute("class", "export");
@@ -127,34 +127,19 @@ const App = function () {
     a.remove();
   };
 
-  const updateFileInfo = function () {
-    // v e f count
-    const vCount = RabbitEar.core.vertices_count(origami);
-    const eCount = RabbitEar.core.edges_count(origami);
-    const fCount = RabbitEar.core.faces_count(origami);
-    const innerCount = `vertices / edges / faces:<br><b>${vCount} / ${eCount} / ${fCount}</b>`;
-    // merge info
-    const mergeCount = 0;
-    const innerEpsilon = "";
-    // mountain valley mark border count
-    const assignmentCounts = [
-      ["M", "m"],
-      ["V", "v"],
-      ["B", "b"],
-      ["F", "f"],
-      ["U", "u"]
-    ].map(options => origami.edges_assignment.filter(e => options.includes(e)));
-    const assignmentInfo = `
-      mountain: <b>${assignmentCounts[0].length}</b><br>
-      valley: <b>${assignmentCounts[1].length}</b><br>
-      boundary: <b>${assignmentCounts[2].length}</b><br>
-      mark: <b>${assignmentCounts[3].length}</b><br>
-      unassigned: <b>${assignmentCounts[4].length}</b><br>`;
+  const updateFileInfo = function (blob, fileExtension) {
+    let fileTypeInfo;
+    switch (extension) {
+      case "svg": fileTypeInfo = svgTest(); break;
+      case "fold": break;
+      case "oripa": fileTypeInfo = oripaTest(); break;
+      default: break;
+    }
     const innerHTML = [
-      innerCount,
-      assignmentInfo,
-      innerEpsilon,
-    ].join("<br><br>");
+      getFileInformation(origami),
+      foldTest(),
+      fileTypeInfo,
+    ].filter(a => a !== undefined).join("<br><br>");
     document.querySelectorAll(".info")[0].innerHTML = innerHTML;
   };
 
@@ -189,18 +174,21 @@ const App = function () {
     /** highlight end */
   };
 
-  const load = function (blob, filename) {
+  const load = function (blob, filename, fileExtension) {
     origami.load(blob);
     folded.load(origami);
     folded.fold();
     // sliderUpdate({ target: { value: 0 } });
     // slider.value = 0;
-    const data = origami.export();
+    // make the display JSON nice
+    const data = JSON.parse(origami.export.json());
+    delete data["faces_re:matrix"];
+    delete data["faces_re:layer"];
     const codeWindow = document.querySelectorAll(".root")[0];
     while (codeWindow.children.length > 0) {
       codeWindow.removeChild(codeWindow.children[0]);
     }
-    jsonView.format(data, ".root");
+    jsonView.format(JSON.stringify(data), ".root");
     const first = document.querySelectorAll(".root")[0].childNodes[0];
     if (first) {
       first.querySelectorAll(".json-type")[0].innerHTML = "FOLD representation";
@@ -210,7 +198,7 @@ const App = function () {
     // folded.cp = origami.cp.copy();
     // folded.fold();
     infoPanel.querySelectorAll(".filename")[0].innerHTML = filename;
-    updateFileInfo();
+    updateFileInfo(blob, fileExtension);
     sliderUpdate({ target: { value: 0 } });
     const sliderHidden = (origami.file_frames == null) ? "none" : "initial";
     slider.setAttribute("style", `display: ${sliderHidden}`);
@@ -226,7 +214,7 @@ const App = function () {
 const app = App();
 
 function fileDidLoad(blob, mimeType, filename, fileExtension) {
-  app.load(blob, filename);
+  app.load(blob, filename, fileExtension);
 }
 
 window.onload = function () {
