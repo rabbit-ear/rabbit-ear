@@ -102,3 +102,12 @@ input[type="range"] {
 	/* hidden by default */
 	display: none;
 }
+
+.pass {
+	color: #7b4;
+	font-weight: 800;
+}
+.fail {
+	color: #d42;
+	font-weight: 800;
+}

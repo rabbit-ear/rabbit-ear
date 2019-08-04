@@ -205,6 +205,15 @@ export const make_vertices_coords_folded = function (graph, face_stationary, fac
     .map(n => math.core.clean_number(n)));
 };
 
+export const make_vertices_isBoundary = function (graph) {
+  const vertices_edges = make_vertices_edges(graph);
+  const edges_isBoundary = graph.edges_assignment
+    .map(a => a === "b" || a === "B");
+  return vertices_edges
+    .map(edges => edges.map(e => edges_isBoundary[e])
+      .reduce((a, b) => a || b, false));
+};
+
 /**
  * this face coloring skips marks joining the two faces separated by it.
  * it relates directly to if a face is flipped or not (determinant > 0)
