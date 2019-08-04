@@ -1,5 +1,9 @@
 (function() {
 'use strict';
+
+// var TAB_SIZE = 24; // default
+var TAB_SIZE = 12;
+
 /**
  * Create html element
  * @param {String} type html element 
@@ -93,7 +97,7 @@ function createExpandedElement(node) {
   });
 
   if (node.depth > 0) {
-    lineElem.style = 'margin-left: ' + node.depth * 24 + 'px;';
+    lineElem.style = 'margin-left: ' + node.depth * TAB_SIZE + 'px;';
   }
 
   return lineElem;
@@ -132,7 +136,7 @@ function createNotExpandedElement(node) {
   });
 
   if (node.depth > 0) {
-    lineElem.style = 'margin-left: ' + node.depth * 24 + 'px;';
+    lineElem.style = 'margin-left: ' + node.depth * TAB_SIZE + 'px;';
   }
 
   return lineElem;

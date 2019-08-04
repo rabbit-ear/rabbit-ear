@@ -1665,63 +1665,6 @@ var geometry = /*#__PURE__*/Object.freeze({
   convex_hull: convex_hull
 });
 
-var alternating_sum = function alternating_sum() {
-  for (var _len = arguments.length, angles = new Array(_len), _key = 0; _key < _len; _key++) {
-    angles[_key] = arguments[_key];
-  }
-
-  return [0, 1].map(function (even_odd) {
-    return angles.filter(function (_, i) {
-      return i % 2 === even_odd;
-    }).reduce(function (a, b) {
-      return a + b;
-    }, 0);
-  });
-};
-var kawasaki_sector_score = function kawasaki_sector_score() {
-  return alternating_sum.apply(void 0, arguments).map(function (a) {
-    return a < 0 ? a + Math.PI * 2 : a;
-  }).map(function (s) {
-    return Math.PI - s;
-  });
-};
-var kawasaki_solutions_radians = function kawasaki_solutions_radians() {
-  for (var _len2 = arguments.length, vectors_radians = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    vectors_radians[_key2] = arguments[_key2];
-  }
-
-  return vectors_radians.map(function (v, i, ar) {
-    return counter_clockwise_angle2_radians(v, ar[(i + 1) % ar.length]);
-  }).map(function (_, i, arr) {
-    return arr.slice(i + 1, arr.length).concat(arr.slice(0, i));
-  }).map(function (opposite_sectors) {
-    return kawasaki_sector_score.apply(void 0, _toConsumableArray(opposite_sectors));
-  }).map(function (kawasakis, i) {
-    return vectors_radians[i] + kawasakis[0];
-  }).map(function (angle, i) {
-    return is_counter_clockwise_between(angle, vectors_radians[i], vectors_radians[(i + 1) % vectors_radians.length]) ? angle : undefined;
-  });
-};
-var kawasaki_solutions = function kawasaki_solutions() {
-  for (var _len3 = arguments.length, vectors = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-    vectors[_key3] = arguments[_key3];
-  }
-
-  var vectors_radians = vectors.map(function (v) {
-    return Math.atan2(v[1], v[0]);
-  });
-  return kawasaki_solutions_radians.apply(void 0, _toConsumableArray(vectors_radians)).map(function (a) {
-    return a === undefined ? undefined : [clean_number(Math.cos(a), 14), clean_number(Math.sin(a), 14)];
-  });
-};
-
-var origami = /*#__PURE__*/Object.freeze({
-  alternating_sum: alternating_sum,
-  kawasaki_sector_score: kawasaki_sector_score,
-  kawasaki_solutions_radians: kawasaki_solutions_radians,
-  kawasaki_solutions: kawasaki_solutions
-});
-
 var VectorPrototype = function VectorPrototype(subtype) {
   var proto = [];
   var Type = subtype;
@@ -3137,24 +3080,9 @@ var Junction = function Junction() {
     });
   };
 
-  var alternatingAngleSum = function alternatingAngleSum() {
-    return alternating_sum.apply(void 0, _toConsumableArray(angles()));
-  };
-
-  var kawasaki_score = function kawasaki_score() {
-    return kawasaki_sector_score.apply(void 0, _toConsumableArray(angles()));
-  };
-
-  var kawasaki_solutions$$1 = function kawasaki_solutions$$1() {
-    return kawasaki_solutions_radians.apply(void 0, _toConsumableArray(angles()));
-  };
-
   return {
     sectors: sectors,
     angles: angles,
-    kawasaki_score: kawasaki_score,
-    kawasaki_solutions: kawasaki_solutions$$1,
-    alternatingAngleSum: alternatingAngleSum,
 
     get vectors() {
       return vectors;
@@ -3181,7 +3109,7 @@ Junction.fromPoints = function (center, edge_adjacent_points) {
 };
 
 var core = Object.create(null);
-Object.assign(core, algebra, matrixCore, geometry, query, equal, origami);
+Object.assign(core, algebra, matrixCore, geometry, query, equal);
 core.clean_number = clean_number;
 core.is_number = is_number;
 core.is_vector = is_vector;

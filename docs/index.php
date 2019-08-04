@@ -139,6 +139,13 @@ creaseLines.<f>forEach</f>((<arg>a</arg>,<arg>i</arg>) <f>=></f> i<op>%</op>2 <o
 
 <h2>CREASE PATTERN</h2>
 
+the library is made in the spirit of the FOLD format. often, methods will return data structured similarly to the format like, 
+
+RabbitEar.kawasaki(origami);
+
+RabbitEar.kawasaki is the function. origami is the graph operated on.
+
+
 	<div class="diptych">
 		<img src="/images/one-fold-cp.svg">
 	</div>
