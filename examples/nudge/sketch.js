@@ -12,7 +12,7 @@ line.valley {
 `;
 
 const div = document.querySelectorAll(".row")[0];
-const origami = RabbitEar.Origami(div, RabbitEar.bases.frog, { style, padding: 0.05 });
+const origami = RabbitEar.Origami(div, RabbitEar.bases.fish, { style, padding: 0.05 });
 const folded = RabbitEar.Origami(div, origami.copy(), { style, padding: 0.05 });
 folded.fold();
 origami.vertices.visible = true;

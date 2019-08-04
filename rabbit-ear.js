@@ -10330,6 +10330,39 @@
     rebuild: rebuild
   });
 
+  const copy_without_marks = function (graph) {
+    const edges_vertices = graph.edges_vertices
+      .filter((_, i) => graph.edges_assignment[i] !== "F"
+        && graph.edges_assignment[i] !== "f");
+    const edges_assignment = graph.edges_assignment
+      .filter(ea => ea !== "F" && ea !== "f");
+    const copy = clone(graph);
+    Object.keys(copy).filter(key => key.substring(0, 9) === "vertices_")
+      .forEach(key => delete copy[key]);
+    Object.keys(copy).filter(key => key.substring(0, 6) === "edges_")
+      .forEach(key => delete copy[key]);
+    Object.keys(copy).filter(key => key.substring(0, 6) === "faces_")
+      .forEach(key => delete copy[key]);
+    console.log("copied clone", JSON.parse(JSON.stringify(copy)));
+    const rebuilt = Object.assign(copy, {
+      vertices_coords: graph.vertices_coords,
+      edges_vertices,
+      edges_assignment
+    });
+    convert.edges_vertices_to_vertices_vertices_sorted(rebuilt);
+    convert.vertices_vertices_to_faces_vertices(rebuilt);
+    convert.faces_vertices_to_faces_edges(rebuilt);
+    rebuilt.edges_faces = make_edges_faces(rebuilt);
+    rebuilt.vertices_faces = make_vertices_faces(rebuilt);
+    return rebuilt;
+  };
+  const silence = 5;
+
+  var marks = /*#__PURE__*/Object.freeze({
+    copy_without_marks: copy_without_marks,
+    silence: silence
+  });
+
   const new_vertex = function (graph, x, y) {
     if (graph.vertices_coords === undefined) { return undefined; }
     const vertices_count = graph.vertices_coords.length;
@@ -10828,7 +10861,8 @@
   };
   const vertex_sectorAngles = function (graph, vertex) {
     return vertex_adjacent_vectors(graph, vertex)
-      .map((v, i, arr) => math.core.counter_clockwise_angle2(arr[i], arr[(i + 1) % arr.length]));
+      .map((v, i, arr) => math.core
+        .counter_clockwise_angle2(arr[i], arr[(i + 1) % arr.length]));
   };
   const vertex_kawasaki_flatness = function (graph, vertex) {
     return kawasaki_flatness(...vertex_sectorAngles(graph, vertex));
@@ -10843,12 +10877,29 @@
   };
   const make_vertices_kawasaki = function (graph) {
     const vertices_isBoundary = make_vertices_isBoundary(graph);
-    return Array.from(Array(graph.vertices_coords.length))
-      .map((v, i) => vertices_isBoundary[i]
+    const vertices_flatness = Array.from(Array(graph.vertices_coords.length))
+      .map((v, i) => (vertices_isBoundary[i]
         ? [0, 0]
-        : vertex_kawasaki_flatness(graph, i));
+        : vertex_kawasaki_flatness(graph, i)));
+    return vertices_flatness;
   };
   const make_vertices_nudge_matrix = function (graph) {
+    const arrayVerticesLength = Array.from(Array(graph.vertices_coords.length));
+    const vertices_flatness = make_vertices_kawasaki(graph);
+    const { vertices_vertices } = graph;
+    const vertices_adjVecs = arrayVerticesLength
+      .map((_, i) => vertex_adjacent_vectors(graph, i));
+    const vertices_nudge_matrix = arrayVerticesLength.map(() => []);
+    vertices_flatness.forEach((flatness, i) => {
+      if (flatness[0] === 0) { return; }
+      const dir = (flatness[0] < 0);
+      vertices_vertices[i].forEach((vv, vvi) => {
+        vertices_nudge_matrix[i][vvi] = dir
+          ? [vertices_adjVecs[i][vvi][1], -vertices_adjVecs[i][vvi][0]]
+          : [-vertices_adjVecs[i][vvi][1], vertices_adjVecs[i][vvi][0]];
+      });
+    });
+    return vertices_nudge_matrix;
   };
   const kawasaki_solutions_radians = function (...vectors_radians) {
     return vectors_radians
@@ -13425,6 +13476,7 @@ polygon { stroke-linejoin: bevel; }
     remove,
     rebuild$1,
     make,
+    marks,
     query$1,
     kawasaki,
     Axioms);

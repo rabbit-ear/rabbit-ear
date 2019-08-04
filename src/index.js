@@ -32,6 +32,7 @@ import * as remove from "./fold/remove";
 import * as make from "./fold/make";
 import * as query from "./fold/query";
 import * as rebuild from "./fold/rebuild";
+import * as marks from "./fold/marks";
 
 import fold from "./origami/fold";
 import * as kawasaki from "./origami/kawasaki";
@@ -70,6 +71,7 @@ Object.assign(core,
   remove,
   rebuild,
   make,
+  marks,
   query,
   kawasaki,
   Axioms);

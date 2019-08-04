@@ -43,7 +43,8 @@ export const vertex_adjacent_vectors = function (graph, vertex) {
 
 export const vertex_sectorAngles = function (graph, vertex) {
   return vertex_adjacent_vectors(graph, vertex)
-    .map((v, i, arr) => math.core.counter_clockwise_angle2(arr[i], arr[(i + 1) % arr.length]));
+    .map((v, i, arr) => math.core
+      .counter_clockwise_angle2(arr[i], arr[(i + 1) % arr.length]));
 };
 
 export const vertex_kawasaki_flatness = function (graph, vertex) {
@@ -63,14 +64,30 @@ export const make_vertices_kawasaki_flatness = function (graph) {
 export const make_vertices_kawasaki = function (graph) {
   const vertices_isBoundary = make_vertices_isBoundary(graph);
   const vertices_flatness = Array.from(Array(graph.vertices_coords.length))
-    .map((v, i) => vertices_isBoundary[i]
+    .map((v, i) => (vertices_isBoundary[i]
       ? [0, 0]
-      : vertex_kawasaki_flatness(graph, i));
-  
+      : vertex_kawasaki_flatness(graph, i)));
+  return vertices_flatness;
 };
 
 export const make_vertices_nudge_matrix = function (graph) {
-
+  const arrayVerticesLength = Array.from(Array(graph.vertices_coords.length));
+  const vertices_flatness = make_vertices_kawasaki(graph);
+  const { vertices_vertices } = graph;
+  const vertices_adjVecs = arrayVerticesLength
+    .map((_, i) => vertex_adjacent_vectors(graph, i));
+  const vertices_nudge_matrix = arrayVerticesLength.map(() => []);
+  vertices_flatness.forEach((flatness, i) => {
+    if (flatness[0] === 0) { return; }
+    const dir = (flatness[0] < 0);
+    vertices_vertices[i].forEach((vv, vvi) => {
+      // todo: i guessed at these 90 degree turn directions. check it
+      vertices_nudge_matrix[i][vvi] = dir
+        ? [vertices_adjVecs[i][vvi][1], -vertices_adjVecs[i][vvi][0]]
+        : [-vertices_adjVecs[i][vvi][1], vertices_adjVecs[i][vvi][0]];
+    });
+  });
+  return vertices_nudge_matrix;
 };
 
 
