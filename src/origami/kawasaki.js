@@ -64,7 +64,7 @@ export const make_vertices_kawasaki_flatness = function (graph) {
 export const make_vertices_kawasaki = function (graph) {
   const vertices_isBoundary = make_vertices_isBoundary(graph);
   const vertices_flatness = Array.from(Array(graph.vertices_coords.length))
-    .map((v, i) => (vertices_isBoundary[i]
+    .map((_, i) => (vertices_isBoundary[i]
       ? [0, 0]
       : vertex_kawasaki_flatness(graph, i)));
   return vertices_flatness;
@@ -79,15 +79,48 @@ export const make_vertices_nudge_matrix = function (graph) {
   const vertices_nudge_matrix = arrayVerticesLength.map(() => []);
   vertices_flatness.forEach((flatness, i) => {
     if (flatness[0] === 0) { return; }
-    const dir = (flatness[0] < 0);
     vertices_vertices[i].forEach((vv, vvi) => {
+      // const vec = math.core.normalize(vertices_adjVecs[i][vvi]);
+      // now side lengths no longer factor in equation
       // todo: i guessed at these 90 degree turn directions. check it
-      vertices_nudge_matrix[i][vvi] = dir
-        ? [vertices_adjVecs[i][vvi][1], -vertices_adjVecs[i][vvi][0]]
-        : [-vertices_adjVecs[i][vvi][1], vertices_adjVecs[i][vvi][0]];
+      vertices_nudge_matrix[i][vv] = [
+        -vertices_adjVecs[i][vvi][1] * flatness[vvi % 2],
+        vertices_adjVecs[i][vvi][0] * flatness[vvi % 2]
+      ];
     });
   });
   return vertices_nudge_matrix;
+};
+
+
+export const make_vertices_nudge = function (graph) {
+  const matrix = make_vertices_nudge_matrix(graph);
+  // const matrix_normalized = matrix
+  //   .map(list => list.map(b => math.core.normalize(b)));
+  // const vectorSum = matrix
+  //   .map(list => list.reduce((a, b) => [a[0] + b[0], a[1] + b[1]]));
+  const largestMagnitude = matrix
+    .map(list => list.reduce((prev, b) => {
+      const magnitude = b.length === 0 ? 0 : math.core.magnitude(b);
+      return prev > magnitude ? prev : magnitude;
+    }, 0));
+  // todo, these are normalized to the largest of the vertices_vertices.
+  // consider making each of these normalized globally.
+  // each row is normalized
+  const matrix_row_normalized = matrix
+    .map((list, i) => list
+      .map(el => math.core.magnitude(el) / largestMagnitude[i]));
+  // values are inverted around 1
+  const matrix_inverted = matrix_row_normalized.map(a => a.map(b => 1 / b));
+
+  const matrix_weighted = matrix
+    .map((row, i) => row
+      .map((vec, j) => vec.map(n => n * matrix_inverted[i][j])));
+
+  const vertices_nudge = matrix_weighted
+    .map(row => row.reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0]));
+
+  return vertices_nudge;
 };
 
 

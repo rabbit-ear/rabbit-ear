@@ -19,7 +19,6 @@ export const copy_without_marks = function (graph) {
     .forEach(key => delete copy[key]);
   Object.keys(copy).filter(key => key.substring(0, 6) === "faces_")
     .forEach(key => delete copy[key]);
-  console.log("copied clone", JSON.parse(JSON.stringify(copy)));
   const rebuilt = Object.assign(copy, {
     vertices_coords: graph.vertices_coords,
     edges_vertices,

@@ -129,7 +129,7 @@ const App = function () {
 
   const updateFileInfo = function (blob, fileExtension) {
     let fileTypeInfo;
-    switch (extension) {
+    switch (fileExtension) {
       case "svg": fileTypeInfo = svgTest(); break;
       case "fold": break;
       case "oripa": fileTypeInfo = oripaTest(); break;

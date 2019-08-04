@@ -4400,8 +4400,8 @@
     const edges_isBoundary = graph.edges_assignment
       .map(a => a === "b" || a === "B");
     return vertices_edges
-      .map(edges => edges
-        .reduce((a, b) => edges_isBoundary[a] || edges_isBoundary[b], false));
+      .map(edges => edges.map(e => edges_isBoundary[e])
+        .reduce((a, b) => a || b, false));
   };
   const faces_coloring_from_faces_matrix = function (faces_matrix) {
     return faces_matrix
@@ -10343,7 +10343,6 @@
       .forEach(key => delete copy[key]);
     Object.keys(copy).filter(key => key.substring(0, 6) === "faces_")
       .forEach(key => delete copy[key]);
-    console.log("copied clone", JSON.parse(JSON.stringify(copy)));
     const rebuilt = Object.assign(copy, {
       vertices_coords: graph.vertices_coords,
       edges_vertices,
@@ -10878,7 +10877,7 @@
   const make_vertices_kawasaki = function (graph) {
     const vertices_isBoundary = make_vertices_isBoundary(graph);
     const vertices_flatness = Array.from(Array(graph.vertices_coords.length))
-      .map((v, i) => (vertices_isBoundary[i]
+      .map((_, i) => (vertices_isBoundary[i]
         ? [0, 0]
         : vertex_kawasaki_flatness(graph, i)));
     return vertices_flatness;
@@ -10892,14 +10891,32 @@
     const vertices_nudge_matrix = arrayVerticesLength.map(() => []);
     vertices_flatness.forEach((flatness, i) => {
       if (flatness[0] === 0) { return; }
-      const dir = (flatness[0] < 0);
       vertices_vertices[i].forEach((vv, vvi) => {
-        vertices_nudge_matrix[i][vvi] = dir
-          ? [vertices_adjVecs[i][vvi][1], -vertices_adjVecs[i][vvi][0]]
-          : [-vertices_adjVecs[i][vvi][1], vertices_adjVecs[i][vvi][0]];
+        vertices_nudge_matrix[i][vv] = [
+          -vertices_adjVecs[i][vvi][1] * flatness[vvi % 2],
+          vertices_adjVecs[i][vvi][0] * flatness[vvi % 2]
+        ];
       });
     });
     return vertices_nudge_matrix;
+  };
+  const make_vertices_nudge = function (graph) {
+    const matrix = make_vertices_nudge_matrix(graph);
+    const largestMagnitude = matrix
+      .map(list => list.reduce((prev, b) => {
+        const magnitude = b.length === 0 ? 0 : math.core.magnitude(b);
+        return prev > magnitude ? prev : magnitude;
+      }, 0));
+    const matrix_row_normalized = matrix
+      .map((list, i) => list
+        .map(el => math.core.magnitude(el) / largestMagnitude[i]));
+    const matrix_inverted = matrix_row_normalized.map(a => a.map(b => 1 / b));
+    const matrix_weighted = matrix
+      .map((row, i) => row
+        .map((vec, j) => vec.map(n => n * matrix_inverted[i][j])));
+    const vertices_nudge = matrix_weighted
+      .map(row => row.reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0]));
+    return vertices_nudge;
   };
   const kawasaki_solutions_radians = function (...vectors_radians) {
     return vectors_radians
@@ -10937,6 +10954,7 @@
     make_vertices_kawasaki_flatness: make_vertices_kawasaki_flatness,
     make_vertices_kawasaki: make_vertices_kawasaki,
     make_vertices_nudge_matrix: make_vertices_nudge_matrix,
+    make_vertices_nudge: make_vertices_nudge,
     kawasaki_solutions_radians: kawasaki_solutions_radians,
     kawasaki_solutions: kawasaki_solutions,
     kawasaki_collapse: kawasaki_collapse

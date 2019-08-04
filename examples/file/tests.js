@@ -30,7 +30,7 @@ const getFileInformation = function (fold_file) {
   return [
     innerCount,
     assignmentInfo,
-    innerEpsilon,
+    // innerEpsilon,
     flatFoldabilityTest
   ].join("<br><br>");
 };

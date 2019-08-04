@@ -210,8 +210,8 @@ export const make_vertices_isBoundary = function (graph) {
   const edges_isBoundary = graph.edges_assignment
     .map(a => a === "b" || a === "B");
   return vertices_edges
-    .map(edges => edges
-      .reduce((a, b) => edges_isBoundary[a] || edges_isBoundary[b], false));
+    .map(edges => edges.map(e => edges_isBoundary[e])
+      .reduce((a, b) => a || b, false));
 };
 
 /**
