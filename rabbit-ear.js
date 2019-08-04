@@ -4797,6 +4797,7 @@
       edgeIndex = vertices_edges[nextVertex]
         .filter(v => edges_vertices_b[v])
         .shift();
+      if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
       if (edges_vertices[edgeIndex][0] === nextVertex) {
         [, nextVertex] = edges_vertices[edgeIndex];
       } else {
@@ -6090,6 +6091,7 @@
       edgeIndex = vertices_edges[nextVertex].filter(function (v) {
         return edges_vertices_b[v];
       }).shift();
+      if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
       if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
         var _graph$edges_vertices = _slicedToArray$2(graph.edges_vertices[edgeIndex], 2);
         nextVertex = _graph$edges_vertices[1];

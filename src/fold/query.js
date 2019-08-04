@@ -272,6 +272,7 @@ export const get_boundary = function ({
     edgeIndex = vertices_edges[nextVertex]
       .filter(v => edges_vertices_b[v])
       .shift();
+    if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
     if (edges_vertices[edgeIndex][0] === nextVertex) {
       [, nextVertex] = edges_vertices[edgeIndex];
     } else {

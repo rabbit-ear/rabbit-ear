@@ -20,7 +20,7 @@
     let row = [];
     for(let c = 0; c < COLUMNS+1; c++){
       let point = [
-        c/COLUMNS,
+        c/COLUMNS * 1.02 - 0.01,
         r/ROWS + (c%2)*(1/ROWS*SLIDER)
       ];
       row.push(point);

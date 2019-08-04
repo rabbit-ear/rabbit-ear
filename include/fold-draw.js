@@ -116,6 +116,7 @@ var get_boundary = function get_boundary(graph) {
     edgeIndex = vertices_edges[nextVertex].filter(function (v) {
       return edges_vertices_b[v];
     }).shift();
+    if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
 
     if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
       var _graph$edges_vertices = _slicedToArray(graph.edges_vertices[edgeIndex], 2);

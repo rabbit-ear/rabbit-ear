@@ -1,3 +1,9 @@
+
+/**
+ * this clone function is good except for one thing- it doesn't have protection
+ * against a self-similar reference cycle, when the object itself
+ * is referenced inside the value of a child key.
+ */
 export const clone = function (o) {
   // from https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
   let newO;
@@ -18,6 +24,7 @@ export const clone = function (o) {
   newO = {};
   for (i in o) {
     if (o.hasOwnProperty(i)) {
+      // this is where a self-similar reference causes an infinite loop
       newO[i] = clone(o[i]);
     }
   }
