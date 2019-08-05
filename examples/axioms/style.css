@@ -122,8 +122,8 @@ polygon {
 }
 .mark {
 	stroke-width: calc( var(--crease-width) * 0.5);
-	stroke: rgba(0, 0, 0, 0.1);
-	stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);
+	stroke: rgba(0, 0, 0, 0.2);
+	/*stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);*/
 }
 
 .foldedForm .faces polygon {
@@ -142,10 +142,18 @@ polygon {
 	/*opacity: 0.75;*/
 }
 
-.foldedForm .creases line {
+.foldedForm .edges line {
 	stroke: none;
 }
 
-.foldedForm .creases .mark {
+.foldedForm polygon.boundary {
 	stroke: none;
+}
+
+.foldedForm .faces polygon {
+	stroke: none;
+}
+
+/*.foldedForm line.mark {*/
+	/*stroke: rgba(0, 0, 0, 0.1);*/
 }

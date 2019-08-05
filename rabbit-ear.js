@@ -12661,7 +12661,7 @@ polygon { stroke: none; stroke-linejoin: bevel; }
     Object.defineProperty(origami, "faces", { get: () => get.call(origami, "faces") });
     const exportObject = function () { return JSON.stringify(origami); };
     exportObject.json = function () { return JSON.stringify(origami); };
-    exportObject.fold = function () { return convert.toJSON(origami); };
+    exportObject.fold = function () { return JSON.stringify(origami); };
     exportObject.svg = function () {
       if (origami.svg != null) {
         return (new win$1.XMLSerializer()).serializeToString(origami.svg);
