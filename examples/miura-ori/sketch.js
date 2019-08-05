@@ -1,5 +1,6 @@
 const OrigamiAndCode = function (origamiID, codeID, consoleID) {
   const origami = RabbitEar.Origami(origamiID, { padding: 0.05 });
+  origami.vertices.visible = true;
   const consoleDiv = document.querySelector(`#${consoleID}`);
   let editor;
 
@@ -7,7 +8,7 @@ const OrigamiAndCode = function (origamiID, codeID, consoleID) {
     try {
       origami.reset();
       eval(editor.getValue());
-      origami.draw();
+      origami.svg.draw();
       consoleDiv.innerHTML = "";
       if (origami.codeDidUpdate !== undefined) { origami.codeDidUpdate(); }
     } catch (err) {
@@ -37,7 +38,7 @@ const OrigamiAndCode = function (origamiID, codeID, consoleID) {
 
   origami.svg.onMouseMove = function (event) {
     /** highlight */
-    // origami.vertices.forEach(function (v) { v.svg.style = ""; });
+    origami.vertices.forEach(function (v) { v.svg.style = ""; });
     origami.edges.forEach(function (e) { e.svg.style = ""; });
     origami.faces.forEach(function (f) { f.svg.style = ""; });
 
@@ -45,7 +46,7 @@ const OrigamiAndCode = function (origamiID, codeID, consoleID) {
     const nearest = origami.nearest(event);
     // console.log(nearest);
 
-    // if (nearest.vertex) { nearest.vertex.svg.style = "fill:#357;stroke:#357"; }
+    if (nearest.vertex) { nearest.vertex.svg.style = "fill:#357;stroke:#357"; }
     if (nearest.edge) { nearest.edge.svg.style = "stroke:#ec3"; }
     if (nearest.face) { nearest.face.svg.style = "fill:#e53"; }
     /** highlight end */
@@ -73,6 +74,10 @@ document.querySelector("#interp-slider").oninput = function (event) {
 
 origami.miuraOri = function (points) {
   const boundary = RabbitEar.convexPolygon([[0, 0], [1, 0], [1, 1], [0, 1]]);
+  const creaseOptions = {
+    rebuild: false,
+    change: false
+  };
   points.forEach((row, j) => {
     row.forEach((point, i) => {
       // crease zig zag rows
@@ -81,7 +86,7 @@ origami.miuraOri = function (points) {
         const clip = boundary.clipEdge(point, nextHorizPoint);
         if (clip !== undefined) {
           const assignment = j % 2 === 0 ? "V" : "M";
-          origami.mark(clip[0], clip[1], assignment);
+          origami.mark(clip[0], clip[1], assignment, creaseOptions);
         }
       }
       // crease lines connecting between zig zag rows
@@ -91,7 +96,7 @@ origami.miuraOri = function (points) {
         const clip = boundary.clipEdge(point, nextVertPoint);
         if (clip !== undefined) {
           const assignment = (i + j) % 2 === 0 ? "M" : "V";
-          origami.mark(clip[0], clip[1], assignment);
+          origami.mark(clip[0], clip[1], assignment, creaseOptions);
         }
       }
     });
@@ -110,11 +115,9 @@ origami.reset = function () {
   const points = eval(origami.editor.getValue());
   if (points === undefined || points.constructor !== Array) { return; }
 
-  // delete origami.cp.onchange[0];
-  while (origami.didChange.length > 0) { origami.didChange.shift(); }
+  // while (origami.didChange.length > 0) { origami.didChange.shift(); }
   origami.miuraOri(points);
-  // origami.cp.onchange[0] = function () { origami.draw(); };
-  origami.didChange.push(() => { origami.svg.draw(); });
+  // origami.didChange.push(() => { origami.svg.draw(); });
   origami.svg.draw();
 
   folded.load(origami.copy());
@@ -139,11 +142,9 @@ document.querySelector("#download-code").onclick = function (event) {
 };
 
 document.querySelector("#download-svg").onclick = function (event) {
-  const svg = origami.cp.svg();
-  const svgBlob = (new XMLSerializer()).serializeToString(svg);
-  download(svgBlob, "origami.svg", "image/svg+xml");
+  download(origami.export.svg(), "origami.svg", "image/svg+xml");
 };
 
 document.querySelector("#download-fold").onclick = function (event) {
-  download(origami.cp.json, "origami.fold", "application/json");
+  download(origami.export.fold(), "origami.fold", "application/json");
 };

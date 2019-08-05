@@ -1,5 +1,3 @@
-:root{ --crease-width: 0.01; }
-
 html, body{
 	height: 100%;
 }
@@ -95,15 +93,7 @@ svg {
 }
 
 svg * {
-	stroke-width: var(--crease-width);
 	stroke-linecap: round;
-	stroke: black;
-}
-
-polygon {
-	fill: none;
-	stroke: none;
-	stroke-linejoin: bevel;
 }
 
 .boundary {
@@ -111,10 +101,7 @@ polygon {
 }
 
 .valley{
-	stroke-dasharray: calc( var(--crease-width) * 1) calc( var(--crease-width) * 2);
-}
-.mark {
-	stroke-width: calc( var(--crease-width) * 0.25);
+	stroke-dasharray: 0.01 0.02;
 }
 
 .foldedForm .faces polygon {
@@ -128,8 +115,4 @@ polygon {
 
 .foldedForm .faces .back {
 	fill: linen;
-}
-
-.foldedForm .creases line {
-	stroke: none;
 }

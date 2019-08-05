@@ -25,7 +25,7 @@ const DEFAULT_STYLE = `
 line.mountain { stroke: red; }
 line.valley { stroke: blue; }
 line.mark { stroke: lightgray; }
-polygon { stroke-linejoin: bevel; }
+polygon { stroke: none; stroke-linejoin: bevel; }
 .foldedForm polygon { fill: rgba(0, 0, 0, 0.1); }
 .foldedForm polygon.front { fill: white; }
 .foldedForm polygon.back { fill: lightgray; }

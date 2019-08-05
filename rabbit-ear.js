@@ -5626,6 +5626,12 @@
     orders: [
       "edgeOrders",
       "faceOrders"
+    ],
+    rabbitEar: [
+      "vertices_re:foldedCoords",
+      "vertices_re:unfoldedCoords",
+      "faces_re:matrix",
+      "faces_re:layer",
     ]
   };
   const file_classes = [
@@ -5657,7 +5663,8 @@
     .concat(keys_types.file)
     .concat(keys_types.frame)
     .concat(keys_types.graph)
-    .concat(keys_types.orders));
+    .concat(keys_types.orders)
+    .concat(keys_types.rabbitEar));
   const edges_assignment_names = {
     en: {
       B: "boundary",
@@ -5668,8 +5675,8 @@
       v: "valley",
       F: "mark",
       f: "mark",
-      U: "mark",
-      u: "mark"
+      U: "unassigned",
+      u: "unassigned"
     }
   };
   const edges_assignment_values = [
@@ -11777,6 +11784,27 @@
       .shift();
   };
 
+  const MARK_DEFAULTS = {
+    rebuild: true,
+    change: true,
+  };
+  const possible_mark_object = function (o) {
+    if (typeof o !== "object" || o === null) { return false; }
+    const argKeys = Object.keys(o);
+    const defaultKeys = Object.keys(MARK_DEFAULTS);
+    for (let i = 0; i < argKeys.length; i += 1) {
+      if (defaultKeys.includes(argKeys[i])) { return true; }
+    }
+    return false;
+  };
+  const get_mark_options = function (...args) {
+    const options = args.filter(o => typeof o === "object")
+      .filter(o => possible_mark_object(o))
+      .shift();
+    return options === undefined
+      ? clone(MARK_DEFAULTS)
+      : Object.assign(clone(MARK_DEFAULTS), options);
+  };
   const boundary_methods = function (boundaries) {
     const that = this;
     const clip = function (type, ...args) {
@@ -11897,11 +11925,12 @@
     };
     proto.mark = function (...args) {
       const s = math.core.get_vector_of_vectors(...args);
+      const options = get_mark_options(...args);
       const assignment = get_assignment(...args) || "F";
       add_edge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
-      rebuild(this);
+      if (options.rebuild) { rebuild(this); }
       madeBy().axiom1(s[0], s[1]);
-      this.didChange.forEach(f => f());
+      if (options.change) { this.didChange.forEach(f => f()); }
     };
     proto.crease = function (...args) {
       const objects = args.filter(p => typeof p === "object");
@@ -12094,7 +12123,7 @@
 line.mountain { stroke: red; }
 line.valley { stroke: blue; }
 line.mark { stroke: lightgray; }
-polygon { stroke-linejoin: bevel; }
+polygon { stroke: none; stroke-linejoin: bevel; }
 .foldedForm polygon { fill: rgba(0, 0, 0, 0.1); }
 .foldedForm polygon.front { fill: white; }
 .foldedForm polygon.back { fill: lightgray; }
