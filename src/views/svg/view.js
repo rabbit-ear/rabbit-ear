@@ -21,16 +21,30 @@ import window from "../../environment/window";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+// const DEFAULT_STYLE = `
+// line.mountain { stroke: red; }
+// line.valley { stroke: blue; }
+// line.mark { stroke: lightgray; }
+// polygon { stroke: none; stroke-linejoin: bevel; }
+// .foldedForm polygon { fill: rgba(0, 0, 0, 0.1); }
+// .foldedForm polygon.front { fill: white; }
+// .foldedForm polygon.back { fill: lightgray; }
+// .foldedForm line { stroke: none; }
+// .foldedForm polygon { stroke: black; }
+// `;
 const DEFAULT_STYLE = `
 line.mountain { stroke: red; }
-line.valley { stroke: blue; }
 line.mark { stroke: lightgray; }
+line.valley { stroke: blue;
+  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);
+}
 polygon { stroke: none; stroke-linejoin: bevel; }
-.foldedForm polygon { fill: rgba(0, 0, 0, 0.1); }
+.foldedForm polygon { stroke: black; fill: #8881; }
 .foldedForm polygon.front { fill: white; }
 .foldedForm polygon.back { fill: lightgray; }
+.creasePattern .boundaries polygon { fill: white; stroke: black; }
+.foldedForm .boundaries polygon { fill: none; stroke: none; }
 .foldedForm line { stroke: none; }
-.foldedForm polygon { stroke: black; }
 `;
 
 const DEFAULTS = Object.freeze({

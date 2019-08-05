@@ -320,7 +320,8 @@ const Prototype = function (proto = {}) {
   // callbacks for when the crease pattern has been altered
   proto.didChange = [];
 
-  return Object.freeze(proto);
+  // return Object.freeze(proto);
+  return proto;
 };
 
 Prototype.empty = function () {
