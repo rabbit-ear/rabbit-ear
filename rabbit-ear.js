@@ -15167,7 +15167,7 @@
       value: isFolded
     });
     proto.didChange = [];
-    return Object.freeze(proto);
+    return proto;
   };
 
   Prototype$2.empty = function () {
