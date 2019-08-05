@@ -6,6 +6,13 @@ jest.setTimeout(30000);
 const outputDir = "./tests/output";
 fs.existsSync(outputDir) || fs.mkdirSync(outputDir);
 
+
+const foldedFrog = RabbitEar.Origami();
+foldedFrog.load(RabbitEar.bases.frog);
+foldedFrog.fold();
+fs.writeFile(`./tests/output/folded-frog-base.svg`, foldedFrog.export.svg(), (err) => {});
+
+
 // convert all .oripa files to .svgs
 // from: tests/files/ to: tests/output/
 test("convert all .oripa files to .svgs", (done) => {
@@ -30,7 +37,6 @@ test("convert all .oripa files to .svgs", (done) => {
   // expect(f.faces_vertices.length).toBe(4);
 
 });
-
 
 // RabbitEar.convert('{"vertices_coords":[[0.5,0.4],[0.3,0.2]],"edges_vertices":[[0,1]]}').svg()
 

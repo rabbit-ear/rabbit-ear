@@ -116,7 +116,13 @@ var get_boundary = function get_boundary(graph) {
     edgeIndex = vertices_edges[nextVertex].filter(function (v) {
       return edges_vertices_b[v];
     }).shift();
-    if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
+
+    if (edgeIndex === undefined) {
+      return {
+        vertices: [],
+        edges: []
+      };
+    }
 
     if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
       var _graph$edges_vertices = _slicedToArray(graph.edges_vertices[edgeIndex], 2);
@@ -347,7 +353,7 @@ var isNode = typeof process !== "undefined" && process.versions != null && proce
 var isWebWorker = (typeof self === "undefined" ? "undefined" : _typeof(self)) === "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
 
 var htmlString = "<!DOCTYPE html><title>a</title>";
-var win = {};
+var win = !isNode && isBrowser ? window : {};
 
 if (isNode) {
   var _require = require("xmldom"),
@@ -357,10 +363,6 @@ if (isNode) {
   win.DOMParser = DOMParser;
   win.XMLSerializer = XMLSerializer;
   win.document = new DOMParser().parseFromString(htmlString, "text/html");
-} else if (isBrowser) {
-  win.DOMParser = window.DOMParser;
-  win.XMLSerializer = window.XMLSerializer;
-  win.document = window.document;
 }
 
 var svgNS = "http://www.w3.org/2000/svg";
@@ -648,7 +650,7 @@ var svgFacesEdges = function svgFacesEdges(graph) {
   return finalize_faces(graph, svg_faces);
 };
 
-var defaultStyle = "svg * {\n  stroke-width: var(--crease-width);\n  stroke-linecap: round;\n  stroke: black;\n}\npolygon { fill: none; stroke: none; stroke-linejoin: bevel; }\n.boundary { fill: white; stroke: black;}\n.mark { stroke: #aaa;}\n.mountain { stroke: #f00;}\n.valley {\n  stroke: #00f;\n  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);\n}\n.foldedForm .boundary { fill: none;stroke: none; }\n.foldedForm .faces polygon { stroke: black; }\n.foldedForm .faces .front { fill: #fff; }\n.foldedForm .faces .back { fill: #ddd; }\n.foldedForm .creases line { stroke: none; }\n";
+var defaultStyle = "svg * {\n  stroke-width: var(--crease-width);\n  stroke-linecap: round;\n  stroke: black;\n}\nline.mountain { stroke: red; }\nline.mark { stroke: lightgray; }\nline.valley { stroke: blue;\n  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);\n}\npolygon { stroke: none; stroke-linejoin: bevel; }\n.foldedForm polygon { stroke: black; fill: #8881; }\n.foldedForm polygon.front { fill: white; }\n.foldedForm polygon.back { fill: lightgray; }\n.creasePattern .boundaries polygon { fill: white; stroke: black; }\n.foldedForm .boundaries polygon { fill: none; stroke: none; }\n.foldedForm line { stroke: none; }\n";
 
 function vkXML (text, step) {
   var ar = text.replace(/>\s{0,}</g, "><").replace(/</g, "~::~<").replace(/\s*xmlns\:/g, "~::~xmlns:").split("~::~");
@@ -828,9 +830,24 @@ var all_classes = function all_classes(graph) {
   }).join(" ");
 };
 
+var clean_number = function clean_number(num) {
+  var places = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 14;
+  return parseFloat(num.toFixed(places));
+};
+
 var fold_to_svg = function fold_to_svg(fold) {
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   var graph = fold;
+
+  if (graph.vertices_coords != null) {
+    graph.vertices_coordsPreClean = graph.vertices_coords;
+    graph.vertices_coords = JSON.parse(JSON.stringify(graph.vertices_coords)).map(function (v) {
+      return v.map(function (n) {
+        return clean_number(n);
+      });
+    });
+  }
+
   var o = {
     defaults: true,
     width: "500px",
@@ -840,6 +857,7 @@ var fold_to_svg = function fold_to_svg(fold) {
     shadows: false,
     padding: 0,
     viewBox: null,
+    diagram: true,
     boundaries: true,
     faces: true,
     edges: true,
@@ -874,7 +892,7 @@ var fold_to_svg = function fold_to_svg(fold) {
     });
   });
 
-  if ("re:diagrams" in graph) {
+  if ("re:diagrams" in graph && o.diagram) {
     var instructionLayer = group();
     o.svg.appendChild(instructionLayer);
     renderDiagrams(graph, instructionLayer);
@@ -895,6 +913,11 @@ var fold_to_svg = function fold_to_svg(fold) {
     setViewBox.apply(void 0, [o.svg].concat(_toConsumableArray(o.viewBox), [o.padding]));
   } else {
     setViewBox.apply(void 0, [o.svg].concat(_toConsumableArray(rect), [o.padding]));
+  }
+
+  if (graph.vertices_coordsPreClean != null) {
+    graph.vertices_coords = graph.vertices_coordsPreClean;
+    delete graph.vertices_coordsPreClean;
   }
 
   if (o.inlineStyle) {

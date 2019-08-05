@@ -1,7 +1,9 @@
 import cleanup from "rollup-plugin-cleanup";
-// import babel from "rollup-plugin-babel";
-// import minify from "rollup-plugin-babel-minify";
+import babel from "rollup-plugin-babel";
+import minify from "rollup-plugin-babel-minify";
 import { string } from "rollup-plugin-string";
+
+const version = 0.19;
 
 module.exports = [{
   input: "src/index.js",
@@ -9,7 +11,7 @@ module.exports = [{
     name: "RabbitEar",
     file: "rabbit-ear.js",
     format: "umd",
-    banner: "/* Rabbit Ear v0.2 (c) Robby Kraft, MIT License */",
+    banner: `/* Rabbit Ear v${version} (c) Robby Kraft, MIT License */`,
     // footer: "window.re = RabbitEar;",
   },
   plugins: [
@@ -20,32 +22,32 @@ module.exports = [{
     string({
       include: ["**/*.json", "**/*.fold"], // allows .fold files to be imported as a module
     }),
-    // babel({
-    //   babelrc: false,
-    //   presets: [["@babel/env", { modules: false }]],
-    // }),
+    babel({
+      babelrc: false,
+      presets: [["@babel/env", { modules: false }]],
+    }),
   ],
-// },
-// {
-//   input: "src/index.js",
-//   output: {
-//     name: "RabbitEar",
-//     file: "rabbit-ear.min.js",
-//     format: "umd",
-//     banner: "/* Rabbit Ear v0.2 (c) Robby Kraft, MIT License */",
-//   },
-//   plugins: [
-//     cleanup({
-//       comments: "none",
-//       maxEmptyLines: 0,
-//     }),
-//     babel({
-//       babelrc: false,
-//       presets: [["@babel/env", { modules: false }]],
-//     }),
-//     minify({ mangle: { names: false } }),
-//     string({
-//       include: ["**/*.json", "**/*.fold"], // allows .fold files to be imported as a module
-//     }),
-//   ]
+},
+{
+  input: "src/index.js",
+  output: {
+    name: "RabbitEar",
+    file: "rabbit-ear.min.js",
+    format: "umd",
+    banner: `/* Rabbit Ear v${version} (c) Robby Kraft, MIT License */`,
+  },
+  plugins: [
+    cleanup({
+      comments: "none",
+      maxEmptyLines: 0,
+    }),
+    babel({
+      babelrc: false,
+      presets: [["@babel/env", { modules: false }]],
+    }),
+    minify({ mangle: { names: false } }),
+    string({
+      include: ["**/*.json", "**/*.fold"], // allows .fold files to be imported as a module
+    }),
+  ]
 }];

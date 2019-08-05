@@ -4,13 +4,17 @@
 .travis.yml
 .eslintrc.json
 rollup.config.js
+index.php
 docs/
 examples/
 extensions/
 files/
 include/
+lib/
 rabbitear-site/
 rebuild/
 src/
 tests/
 ui-tests/
+docs-first-round/
+byrne-colors.txt
