@@ -22,7 +22,7 @@ const pattern = RabbitEar.Origami("pattern", { padding: 0.1, style: patternStyle
 const STARTER = JSON.parse(JSON.stringify(origami));
 
 origami.alreadyFaded = false;
-origami.intervalId = undefined;
+let intervalId = undefined;
 
 let steps = [JSON.parse(JSON.stringify(STARTER))];
 
@@ -58,20 +58,21 @@ origami.fitViewInRect = function (rect, w, h, pad = 0.1) {
 
 window.onresize = function (e) {
   origami.fitViewInRect(
-    document.querySelector("#space").getBoundingClientRect(),
+    document.querySelectorAll(".placeholder")[0].getBoundingClientRect(),
     e.target.innerWidth, e.target.innerHeight
   );
 };
 
 const fadeInCreasePattern = function () {
   if (origami.alreadyFaded) { return; }
-  origami.intervalId = setInterval(function () {
+  if (intervalId !== undefined) { clearInterval(intervalId); }
+  intervalId = setInterval(function () {
     const div = document.querySelector("#pattern");
     let opacity = parseFloat(div.style.opacity) + 0.05;
     if (opacity >= 1.0) {
       opacity = 1.0;
-      clearInterval(origami.intervalId);
-      origami.intervalId = undefined;
+      clearInterval(intervalId);
+      intervalId = undefined;
     }
     div.style.opacity = opacity;
     const div2 = document.querySelector("#save-button");
@@ -92,33 +93,33 @@ origami.svg.onMouseMove = function (mouse) {
 
 origami.reset = function () {
   origami.alreadyFaded = false;
-  origami.intervalId = undefined;
+  intervalId = undefined;
   // origami.cp = JSON.parse(JSON.stringify(STARTER));
   // pattern.cp = JSON.parse(JSON.stringify(STARTER));
   origami.load(JSON.parse(JSON.stringify(STARTER)));
   pattern.load(JSON.parse(JSON.stringify(STARTER)));
   pattern.unfold();
-  origami.frame = 1;
   steps = [JSON.parse(JSON.stringify(STARTER))];
   document.querySelector("#pattern").style.opacity = 0;
   document.querySelector("#save-button").style.opacity = 0;
   origami.fitViewInRect(
-    document.querySelector("#space").getBoundingClientRect(),
+    document.querySelectorAll(".placeholder")[0].getBoundingClientRect(),
     window.innerWidth, window.innerHeight
   );
 };
 
 origami.fitViewInRect(
-  document.querySelector("#space").getBoundingClientRect(),
+  document.querySelectorAll(".placeholder")[0].getBoundingClientRect(),
   window.innerWidth, window.innerHeight
 );
 
-origami.onMouseUp = function () {
+origami.svg.onMouseUp = function () {
   // steps.push(JSON.parse(JSON.stringify(origami.cp)));
-  steps.push(JSON.parse(JSON.stringify(origami)));
+  steps.push(JSON.parse(origami.export.fold()));
 };
 
 const buildDiagramStepFold = function (steps_array) {
+  console.log("steps_array", steps_array);
   // steps = steps.slice(1);
   // transfer construction info into diagram info on previous step
   const diagrams = Array.from(Array(steps_array.length - 1))
@@ -141,9 +142,15 @@ const buildDiagramStepFold = function (steps_array) {
     steps_array[i].frame_classes.push("diagrams");
   });
 
+  // append a final step, just the crease pattern not to be included in steps.
+  const final = JSON.parse(JSON.stringify(steps_array[steps_array.length - 1]));
+  final.frame_classes = ["singleModel", "creasePattern"];
+  final.vertices_coords = final["vertices_re:unfoldedCoords"];
+  steps_array.push(final);
+
   return {
     file_spec: 1.1,
-    file_author: "Robby",
+    file_author: "",
     file_title: "Origami",
     file_description: "2019",
     file_classes: ["diagrams"],
@@ -196,19 +203,8 @@ document.querySelector("#reset-button").onclick = function () {
 document.querySelector("#print-button").onclick = function () {
   const fold_file = buildDiagramStepFold(steps);
   const diagramHTML = OrigamiDiagrams(fold_file);
+  // downloadInBrowser("origami.html", diagramHTML);
   printHTML(diagramHTML);
 };
-// document.querySelector("#back-button").onclick = function () {
-//   steps.pop();
-//   if (steps.length === 0) { return; }
-//   origami.cp = steps[steps.length - 1];
-//   pattern.cp = origami.cp;
-//   origami.fold();
-// };
 
 origami.reset();
-origami.frame = 1;
-
-// fetch("many-steps.json")
-//   .then(res => res.json())
-//   .then((json) => { steps = json; });
