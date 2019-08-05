@@ -238,7 +238,9 @@ const Origami = function (...args) {
   // });
   const exportObject = function () { return JSON.stringify(origami); };
   exportObject.json = function () { return JSON.stringify(origami); };
-  exportObject.fold = function () { return FOLDConvert.toJSON(origami); };
+  exportObject.fold = function () { return JSON.stringify(origami); };
+  // this is not ready yet. bug when value is undefined
+  // exportObject.fold = function () { return FOLDConvert.toJSON(origami); };
   exportObject.svg = function () {
     if (origami.svg != null) {
       return (new window.XMLSerializer()).serializeToString(origami.svg);

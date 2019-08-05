@@ -5,6 +5,7 @@ body {
 	margin: 0px;
 	background-color: hsl(205, 74%, 30%);
 	color: white;
+	font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 .grid {
 	height: 100%;
