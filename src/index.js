@@ -10,11 +10,12 @@
 █▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇██▇▆▅▄▃▂▁▁▂▃▄▅▆▇
 */
 
-import { isBrowser, isWebWorker, isNode } from "../include/svg/src/environment/detect";
+import { isBrowser, isWebWorker, isNode } from "./environment/detect";
 
 import math from "../include/math";
 import graph from "./graph/graph";
-import * as svg from "../include/svg/src/index";
+// import * as svg from "../include/svg/src/index";
+import * as svg from "../include/svg";
 // import * as noise from "../include/perlin";
 
 // top level methods

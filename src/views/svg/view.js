@@ -7,9 +7,9 @@
  *   - DOM object, or "string" DOM id to attach to
  */
 
-import SVGImage from "../../../../SVG/src/image";
+// import SVGImage from "../../../../SVG/src/image";
 import drawFOLD from "../../../include/fold-draw";
-import { setViewBox } from "../../../../SVG/src/viewBox";
+import * as SVG from "../../../include/svg";
 import { bounding_rect } from "../../fold/query";
 import { shadowFilter } from "./filters";
 import {
@@ -17,7 +17,7 @@ import {
   drawLabels,
   drawDebug
 } from "./draw";
-import window from "../../../include/svg/src/environment/window";
+import window from "../../environment/window";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -25,7 +25,7 @@ const DEFAULT_STYLE = `
 line.mountain { stroke: red; }
 line.valley { stroke: blue; }
 line.mark { stroke: lightgray; }
-polygon { stroke-linejoin: bevel; }
+polygon { stroke: none; stroke-linejoin: bevel; }
 .foldedForm polygon { fill: rgba(0, 0, 0, 0.1); }
 .foldedForm polygon.front { fill: white; }
 .foldedForm polygon.back { fill: lightgray; }
@@ -67,7 +67,7 @@ const parseOptions = function (...args) {
 
 const View = function (fold_file, ...args) {
   const graph = fold_file;
-  const svg = SVGImage(...args);
+  const svg = SVG.image(...args);
   const svgStyle = window.document.createElementNS(SVG_NS, "style");
   const defs = window.document.createElementNS(SVG_NS, "defs");
   svg.appendChild(svgStyle);
@@ -107,7 +107,7 @@ const View = function (fold_file, ...args) {
   const fit = function () {
     const r = bounding_rect(graph);
     const vmin = r[2] > r[3] ? r[3] : r[2];
-    setViewBox(svg, r[0], r[1], r[2], r[3], options.padding * vmin);
+    SVG.setViewBox(svg, r[0], r[1], r[2], r[3], options.padding * vmin);
   };
 
   const draw = function () {
@@ -157,7 +157,7 @@ const View = function (fold_file, ...args) {
   Object.defineProperty(svg, "draw", { value: draw });
   Object.defineProperty(svg, "fit", { value: fit });
   Object.defineProperty(svg, "setViewBox", {
-    value: (x, y, w, h, padding) => setViewBox(svg, x, y, w, h, padding)
+    value: (x, y, w, h, padding) => SVG.setViewBox(svg, x, y, w, h, padding)
   });
   Object.defineProperty(svg, "options", { get: () => options });
   Object.defineProperty(svg, "groups", { get: () => groups });

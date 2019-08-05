@@ -35,6 +35,12 @@ export const keys_types = {
   orders: [
     "edgeOrders",
     "faceOrders"
+  ],
+  rabbitEar: [
+    "vertices_re:foldedCoords",
+    "vertices_re:unfoldedCoords",
+    "faces_re:matrix",
+    "faces_re:layer",
   ]
 };
 
@@ -70,7 +76,8 @@ export const keys = Object.freeze([]
   .concat(keys_types.file)
   .concat(keys_types.frame)
   .concat(keys_types.graph)
-  .concat(keys_types.orders));
+  .concat(keys_types.orders)
+  .concat(keys_types.rabbitEar));
 
 export const edges_assignment_names = {
   en: {
@@ -82,8 +89,8 @@ export const edges_assignment_names = {
     v: "valley",
     F: "mark",
     f: "mark",
-    U: "mark",
-    u: "mark"
+    U: "unassigned",
+    u: "unassigned"
   }
 };
 

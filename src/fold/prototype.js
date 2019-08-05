@@ -34,6 +34,31 @@ import { axiom } from "../origami/axioms";
 import { apply_axiom_in_fold } from "../origami/axioms_test";
 import { get_assignment } from "./args";
 
+const MARK_DEFAULTS = {
+  rebuild: true,
+  change: true,
+};
+
+export const possible_mark_object = function (o) {
+  if (typeof o !== "object" || o === null) { return false; }
+  const argKeys = Object.keys(o);
+  const defaultKeys = Object.keys(MARK_DEFAULTS);
+  for (let i = 0; i < argKeys.length; i += 1) {
+    if (defaultKeys.includes(argKeys[i])) { return true; }
+  }
+  return false;
+};
+
+
+const get_mark_options = function (...args) {
+  const options = args.filter(o => typeof o === "object")
+    .filter(o => possible_mark_object(o))
+    .shift();
+  return options === undefined
+    ? clone(MARK_DEFAULTS)
+    : Object.assign(clone(MARK_DEFAULTS), options);
+};
+
 const boundary_methods = function (boundaries) {
   const that = this;
   const clip = function (type, ...args) {
@@ -213,13 +238,14 @@ const Prototype = function (proto = {}) {
   proto.mark = function (...args) {
     // get arguments. 2 endpoints. optional crease assignment
     const s = math.core.get_vector_of_vectors(...args);
+    const options = get_mark_options(...args);
     const assignment = get_assignment(...args) || "F";
     // add segment, rebuild all arrays
     addEdge(this, s[0][0], s[0][1], s[1][0], s[1][1], assignment).apply();
-    rebuild(this);
+    if (options.rebuild) { rebuild(this); }
     // make a record documenting how we got here
     madeBy().axiom1(s[0], s[1]);
-    this.didChange.forEach(f => f());
+    if (options.change) { this.didChange.forEach(f => f()); }
   };
 
   // fold methods

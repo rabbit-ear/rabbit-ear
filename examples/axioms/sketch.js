@@ -12,6 +12,7 @@ origami.markLayer.setAttribute("pointer-events", "none");
 origami.svg.insertBefore(origami.markLayer,
   origami.svg.querySelectorAll(".boundaries")[0].nextSibling);
 origami.svg.controls = RabbitEar.draw.svg.controls(origami.svg, 0);
+
 origami.axiom = undefined;
 origami.subSelect = 0; // some axioms have 2 or 3 results
 origami.polygonBoundary = RabbitEar.polygon(origami.boundaries[0].vertices
@@ -81,11 +82,12 @@ origami.drawAxiomHelperLines = function (color) {
   // draw axiom helper lines
   origami.markLayer.removeChildren();
   const lines = origami.control_points_to_lines();
-  lines.map(l => origami.polygonBoundary.clipLine(l))
+  lines.map(l => origami.boundaries.clipLine(l))
     .filter(a => a !== undefined)
-    .map(l => origami.markLayer.line(l[0][0], l[0][1], l[1][0], l[1][1]))
-    .forEach(l => l.setAttribute("style",
-      `stroke:${color};stroke-width:0.01;`));
+    .map(clipLines => clipLines
+      .map(l => origami.markLayer.line(l[0][0], l[0][1], l[1][0], l[1][1]))
+      .forEach(l => l.setAttribute("style",
+        `stroke:${color};stroke-width:0.01;`)));
 
   const options = {
     color,
@@ -162,7 +164,7 @@ origami.update = function () {
 
   const axiomFrame = RabbitEar
     .axiom(origami.axiom, ...origami.controls_to_axiom_args())
-    .apply(origami.polygonBoundary.points);
+    .apply(origami.boundaries[0].vertices.map(p => origami.vertices_coords[p]));
 
   axiomFrame.valid_solutions.forEach((a, i) => {
     document.querySelectorAll("[id^=btn-option]")[i].style.opacity = a ? 1 : 0;
@@ -206,7 +208,7 @@ origami.update = function () {
     axiomFrame.solutions
       .filter((s, i) => i !== origami.subSelect
         && axiomFrame.valid_solutions[i] != null)
-      .map(m => origami.mark(m[0], m[1]));
+      .map(m => origami.crease(m[0], m[1], "F"));
 
     origami.crease(axiomFrame.solutions[origami.subSelect]);
     Object.assign(origami["re:construction"], axiomFrame);
@@ -221,8 +223,8 @@ origami.update = function () {
   folded.fold();
 };
 
-origami.onMouseMove = function () {
-  if (!origami.mouse.isPressed) { return; }
+origami.svg.onMouseMove = function () {
+  if (!origami.svg.mouse.isPressed) { return; }
   origami.update();
 };
 
