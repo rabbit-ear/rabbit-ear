@@ -56,7 +56,7 @@ RabbitEar.polygon
 RabbitEar.convexPolygon
 ```
 
-all of the "internal" methods are made available. the origami related methods are in "core":
+all of the internal methods are made available. the origami related methods are in core:
 
 ```javascript
 RabbitEar.core

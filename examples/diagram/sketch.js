@@ -68,7 +68,7 @@ const fadeInCreasePattern = function () {
   if (intervalId !== undefined) { clearInterval(intervalId); }
   intervalId = setInterval(function () {
     const div = document.querySelector("#pattern");
-    let opacity = parseFloat(div.style.opacity) + 0.05;
+    let opacity = parseFloat(div.style.opacity) + 0.1;
     if (opacity >= 1.0) {
       opacity = 1.0;
       clearInterval(intervalId);
@@ -77,7 +77,7 @@ const fadeInCreasePattern = function () {
     div.style.opacity = opacity;
     const div2 = document.querySelector("#save-button");
     div2.style.opacity = opacity;
-  }, 15);
+  }, 16);
 
   origami.alreadyFaded = true;
 };

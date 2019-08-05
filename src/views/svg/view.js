@@ -42,7 +42,7 @@ polygon { stroke: none; stroke-linejoin: bevel; }
 .foldedForm polygon { stroke: black; fill: #8881; }
 .foldedForm polygon.front { fill: white; }
 .foldedForm polygon.back { fill: lightgray; }
-.creasePattern .boundaries polygon { fill: white; stroke: black; }
+.creasePattern polygon { fill: white; stroke: none; }
 .foldedForm .boundaries polygon { fill: none; stroke: none; }
 .foldedForm line { stroke: none; }
 `;

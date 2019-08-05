@@ -3,7 +3,7 @@ import babel from "rollup-plugin-babel";
 import minify from "rollup-plugin-babel-minify";
 import { string } from "rollup-plugin-string";
 
-const version = 0.19;
+const version = "0.1.91";
 
 module.exports = [{
   input: "src/index.js",

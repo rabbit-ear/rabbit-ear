@@ -1,4 +1,4 @@
-/* Rabbit Ear v0.19 (c) Robby Kraft, MIT License */
+/* Rabbit Ear v0.1.91 (c) Robby Kraft, MIT License */
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -8211,7 +8211,7 @@
     return finalize_faces(graph, svg_faces);
   };
 
-  var defaultStyle = "svg * {\n  stroke-width: var(--crease-width);\n  stroke-linecap: round;\n  stroke: black;\n}\nline.mountain { stroke: red; }\nline.mark { stroke: lightgray; }\nline.valley { stroke: blue;\n  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);\n}\npolygon { stroke: none; stroke-linejoin: bevel; }\n.foldedForm polygon { stroke: black; fill: #8881; }\n.foldedForm polygon.front { fill: white; }\n.foldedForm polygon.back { fill: lightgray; }\n.creasePattern .boundaries polygon { fill: white; stroke: black; }\n.foldedForm .boundaries polygon { fill: none; stroke: none; }\n.foldedForm line { stroke: none; }\n";
+  var defaultStyle = "svg * {\n  stroke-width: var(--crease-width);\n  stroke-linecap: round;\n  stroke: black;\n}\nline.mountain { stroke: red; }\nline.mark { stroke: lightgray; }\nline.valley { stroke: blue;\n  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);\n}\npolygon { stroke: none; stroke-linejoin: bevel; }\n.foldedForm polygon { stroke: black; fill: #8881; }\n.foldedForm polygon.front { fill: white; }\n.foldedForm polygon.back { fill: lightgray; }\n.creasePattern polygon { fill: white; stroke: none; }\n.foldedForm .boundaries polygon { fill: none; stroke: none; }\n.foldedForm line { stroke: none; }\n";
 
   function vkXML$1(text, step) {
     var ar = text.replace(/>\s{0,}</g, "><").replace(/</g, "~::~<").replace(/\s*xmlns\:/g, "~::~xmlns:").split("~::~");
@@ -15359,7 +15359,7 @@
   };
 
   var SVG_NS$1 = "http://www.w3.org/2000/svg";
-  var DEFAULT_STYLE = "\nline.mountain { stroke: red; }\nline.mark { stroke: lightgray; }\nline.valley { stroke: blue;\n  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);\n}\npolygon { stroke: none; stroke-linejoin: bevel; }\n.foldedForm polygon { stroke: black; fill: #8881; }\n.foldedForm polygon.front { fill: white; }\n.foldedForm polygon.back { fill: lightgray; }\n.creasePattern .boundaries polygon { fill: white; stroke: black; }\n.foldedForm .boundaries polygon { fill: none; stroke: none; }\n.foldedForm line { stroke: none; }\n";
+  var DEFAULT_STYLE = "\nline.mountain { stroke: red; }\nline.mark { stroke: lightgray; }\nline.valley { stroke: blue;\n  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);\n}\npolygon { stroke: none; stroke-linejoin: bevel; }\n.foldedForm polygon { stroke: black; fill: #8881; }\n.foldedForm polygon.front { fill: white; }\n.foldedForm polygon.back { fill: lightgray; }\n.creasePattern polygon { fill: white; stroke: none; }\n.foldedForm .boundaries polygon { fill: none; stroke: none; }\n.foldedForm line { stroke: none; }\n";
   var DEFAULTS$1 = Object.freeze({
     boundaries: true,
     faces: true,

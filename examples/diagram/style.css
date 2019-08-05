@@ -198,6 +198,11 @@ polygon {
 	stroke-width: calc( var(--crease-width) * 0.25);
 }
 
+.creasePattern .boundaries polygon,
+.creasePattern .faces polygon {
+	fill: none;
+}
+
 .foldedForm .faces .front {
 	fill: linen;
 	stroke: black;
