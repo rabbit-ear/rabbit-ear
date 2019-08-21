@@ -57,7 +57,7 @@ import frog from "./data/bases/frog.fold";
 import prototype from "./fold/prototype";
 import Origami from "./origami";
 
-console.log(`RabbitEar v0.2 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
+console.log(`RabbitEar v0.1.91 [ ${isBrowser ? "browser " : ""}${isWebWorker ? "webWorker " : ""}${isNode ? "node " : ""}]`);
 
 const draw = Object.create(null);
 draw.svg = svg;

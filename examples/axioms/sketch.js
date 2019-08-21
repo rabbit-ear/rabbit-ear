@@ -8,9 +8,10 @@ const languages = ["ar", "de", "en", "es", "fr", "hi", "jp", "ko", "ms", "pt", "
 let language = languages.indexOf("en");
 
 origami.markLayer = RabbitEar.draw.svg.group();
+origami.svg.appendChild(origami.markLayer);
 origami.markLayer.setAttribute("pointer-events", "none");
-origami.svg.insertBefore(origami.markLayer,
-  origami.svg.querySelectorAll(".boundaries")[0].nextSibling);
+// origami.svg.insertBefore(origami.markLayer,
+//   origami.svg.querySelectorAll(".boundaries")[0].nextSibling);
 origami.svg.controls = RabbitEar.draw.svg.controls(origami.svg, 0);
 
 origami.axiom = undefined;

@@ -217,6 +217,11 @@ function fileDidLoad(blob, mimeType, filename, fileExtension) {
   app.load(blob, filename, fileExtension);
 }
 
+// window.onload = function () {
+//   fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => app.load(json, "crane.fold"));
+// };
+
+
 window.onload = function () {
-  fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => app.load(json, "crane.fold"));
+  fetch("../../files/fold/crane.fold").then(blob => blob.json()).then(json => app.load(json, "crane.fold"));
 };

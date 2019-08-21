@@ -9,10 +9,10 @@
 
 
 const example2 = {
-  edges_vector: [[1, 0], [-.707, -.707], [.707, -.707]]
+  edges_vector: [[1, 0], [-0.707, -0.707], [0.707, -0.707]],
   is_flat: false,
   solutions: [
-    
+    []
   ]
 };
 

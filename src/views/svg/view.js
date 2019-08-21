@@ -33,12 +33,13 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 // .foldedForm polygon { stroke: black; }
 // `;
 const DEFAULT_STYLE = `
-line.mountain { stroke: red; }
+line.boundary { stroke: black; }
 line.mark { stroke: lightgray; }
+line.mountain { stroke: red; }
 line.valley { stroke: blue;
   stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);
 }
-polygon { stroke: none; stroke-linejoin: bevel; }
+polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
 .foldedForm polygon { stroke: black; fill: #8881; }
 .foldedForm polygon.front { fill: white; }
 .foldedForm polygon.back { fill: lightgray; }
@@ -102,10 +103,10 @@ const View = function (fold_file, ...args) {
   groups.edges.setAttribute("stroke-width", 1);
   groups.faces.setAttribute("stroke-width", 1);
   groups.boundaries.setAttribute("stroke-width", 1);
-  groups.edges.setAttribute("stroke", "black");
-  groups.faces.setAttribute("stroke", "none");
-  groups.faces.setAttribute("fill", "none");
-  groups.boundaries.setAttribute("fill", "none");
+  // groups.edges.setAttribute("stroke", "black");
+  // groups.faces.setAttribute("stroke", "none");
+  // groups.faces.setAttribute("fill", "none");
+  // groups.boundaries.setAttribute("fill", "none");
   Object.keys(groups).forEach((key) => {
     // pass touches through. faces/edges will not intercept events
     groups[key].setAttribute("pointer-events", "none");
@@ -161,7 +162,8 @@ const View = function (fold_file, ...args) {
     const vmax = r[2] > r[3] ? r[2] : r[3];
     const vavg = (vmin + vmax) / 2;
     const strokeWidth = vavg * options.strokeWidth;
-    ["boundaries", "faces", "edges", "vertices"]
+    ["boundaries", "faces", "edges"]
+    // ["boundaries", "faces", "edges", "vertices"]
       .forEach(key => groups[key].setAttribute("stroke-width", strokeWidth));
     if (options.style) {
       svgStyle.innerHTML = DEFAULT_STYLE + options.style;

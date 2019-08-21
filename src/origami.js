@@ -13,16 +13,15 @@
  * this is the difference between using Origami() vs. adding Prototype
  */
 
-import svgView from "./views/svg/view";
-import glView from "./views/webgl/view";
 import drawFOLD from "../include/fold-draw";
 import math from "../include/math";
-import FOLDConvert from "../include/fold/convert";
 
+import svgView from "./views/svg/view";
+import glView from "./views/webgl/view";
+import touchAndFold from "./views/svg/origami_touch_fold";
 import convert from "./convert/convert";
 import window from "./environment/window";
 import Prototype from "./fold/prototype";
-import touchAndFold from "./views/svg/origami_touch_fold";
 import {
   isBrowser,
   isNode
@@ -236,6 +235,7 @@ const Origami = function (...args) {
   //     }
   //   }
   // });
+
   const exportObject = function () { return JSON.stringify(origami); };
   exportObject.json = function () { return JSON.stringify(origami); };
   exportObject.fold = function () { return JSON.stringify(origami); };

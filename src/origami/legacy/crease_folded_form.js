@@ -155,7 +155,7 @@ export function clip_edges_with_line(fold, linePoint, lineVector){
 	let edges_intersections = fold_new.edges_vertices
 		.map(ev => ev.map(v => fold_new.vertices_coords[v]))
 		.map((edge, i) => {
-			let intersection = Geom.core.intersection.line_edge_exclusive(linePoint, lineVector, edge[0], edge[1]);
+			let intersection = Geom.core.intersection.line_segment_exclusive(linePoint, lineVector, edge[0], edge[1]);
 			let new_index = (intersection == null ? vertices_length : vertices_length++);
 			return {
 				point: intersection,
