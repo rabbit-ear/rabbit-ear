@@ -128,11 +128,12 @@ const Origami = function (...args) {
    * @param {file} is a FOLD object.
    * @param {prevent_clear} if true import will skip clearing
    */
-  const load = function (data, prevent_clear) {
-    if (prevent_clear == null || prevent_clear !== true) {
-      foldKeys.forEach(key => delete origami[key]);
-    }
-    const fold_file = convert(data).fold();
+  const load = function (data, options) {
+  // const load = function (data, prevent_clear) {
+    // if (prevent_clear == null || prevent_clear !== true) {
+    //   foldKeys.forEach(key => delete origami[key]);
+    // }
+    const fold_file = convert(data).fold(options);
     Object.assign(origami, fold_file);
     clean(origami);
     // placeholderFoldedForm(_origami);

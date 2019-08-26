@@ -3732,7 +3732,7 @@
       for (let f = 0; f < graph.faces_vertices.length; f += 1) {
         if (graph.faces_vertices[f].includes(i)) { return f; }
       }
-      return undefined;
+      return face_stationary;
     });
     return graph.vertices_coords.map((point, i) => math.core
       .multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])
@@ -7932,6 +7932,16 @@
   };
 
   const EPSILON$1 = 1e-6;
+  const magnitude$1 = function (v) {
+    const sum = v
+      .map(component => component * component)
+      .reduce((prev, curr) => prev + curr, 0);
+    return Math.sqrt(sum);
+  };
+  const normalize$1 = function (v) {
+    const m = magnitude$1(v);
+    return m === 0 ? v : v.map(c => c / m);
+  };
   const equivalent$1 = function (a, b, epsilon = EPSILON$1) {
     for (let i = 0; i < a.length; i += 1) {
       if (Math.abs(a[i] - b[i]) > epsilon) {
@@ -7973,6 +7983,8 @@
   var math$1 = {
     core: {
       EPSILON: EPSILON$1,
+      magnitude: magnitude$1,
+      normalize: normalize$1,
       equivalent: equivalent$1,
       point_on_edge_exclusive,
       intersection: {
@@ -8186,6 +8198,62 @@
       .filter(i => i !== undefined);
     remove_geometry_key_indices(flat, "vertices", vertices_remove_indices);
     return flat;
+  };
+
+  const make_vertex_pair_to_edge_map$2 = function ({ edges_vertices }) {
+    const map = {};
+    edges_vertices
+      .map(ev => ev.sort((a, b) => a - b).join(" "))
+      .forEach((key, i) => { map[key] = i; });
+    return map;
+  };
+
+  const boundary_vertex_walk = function ({ vertices_vertices }, startIndex, neighbor_index) {
+    const walk = [startIndex, neighbor_index];
+    while (walk[0] !== walk[walk.length - 1]) {
+      const next_v_v = vertices_vertices[walk[walk.length - 1]];
+      const next_i_v_v = next_v_v.indexOf(walk[walk.length - 2]);
+      const next_v = next_v_v[(next_i_v_v + 1) % next_v_v.length];
+      walk.push(next_v);
+    }
+    walk.pop();
+    return walk;
+  };
+  const search_boundary = function (graph) {
+    if (graph.vertices_coords == null || graph.vertices_coords.length < 1) {
+      return [];
+    }
+    let startIndex = 0;
+    for (let i = 1; i < graph.vertices_coords.length; i += 1) {
+      if (graph.vertices_coords[i][1] < graph.vertices_coords[startIndex][1]) {
+        startIndex = i;
+      }
+    }
+    if (startIndex === -1) { return []; }
+    const adjacent = graph.vertices_vertices[startIndex];
+    const adjacent_vectors = adjacent.map(a => [
+      graph.vertices_coords[a][0] - graph.vertices_coords[startIndex][0],
+      graph.vertices_coords[a][1] - graph.vertices_coords[startIndex][1]
+    ]);
+    const adjacent_dot_products = adjacent_vectors
+      .map(v => math$1.core.normalize(v))
+      .map(v => v[0]);
+    let neighbor_index = -1;
+    let counter_max = -Infinity;
+    for (let i = 0; i < adjacent_dot_products.length; i += 1) {
+      if (adjacent_dot_products[i] > counter_max) {
+        neighbor_index = i;
+        counter_max = adjacent_dot_products[i];
+      }
+    }
+    const vertices = boundary_vertex_walk(graph, startIndex, adjacent[neighbor_index]);
+    const edgeMap = make_vertex_pair_to_edge_map$2(graph);
+    const vertices_pairs = vertices
+      .map((_, i, arr) => [arr[i], arr[(i + 1) % arr.length]]
+        .sort((a, b) => a - b)
+        .join(" "));
+    const edges = vertices_pairs.map(p => edgeMap[p]);
+    return edges;
   };
 
   function _toConsumableArray$2(arr) {
@@ -9324,6 +9392,11 @@
     FOLD.convert.vertices_vertices_to_faces_vertices(graph);
     FOLD.convert.faces_vertices_to_faces_edges(graph);
     graph.edges_foldAngle = graph.edges_assignment.map(a => assignment_to_foldAngle(a));
+    if (options.boundary !== false) {
+      search_boundary(graph).forEach((edgeIndex) => {
+        graph.edges_assignment[edgeIndex] = "B";
+      });
+    }
     return graph;
   };
 
@@ -9341,6 +9414,7 @@
   };
 
   const from_to = function (data, from, to, ...args) {
+    console.log("From to", ...args);
     switch (from) {
       case "fold":
         switch (to) {
@@ -9360,8 +9434,8 @@
         break;
       case "svg":
         switch (to) {
-          case "fold": return SVGtoFOLD(data);
-          case "oripa": return oripa.fromFold(SVGtoFOLD(data));
+          case "fold": return SVGtoFOLD(data, ...args);
+          case "oripa": return oripa.fromFold(SVGtoFOLD(data, ...args));
           case "svg": return data;
           default: break;
         }
@@ -11776,11 +11850,8 @@ polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
       }
       origami.didChange.forEach(f => f());
     };
-    const load = function (data, prevent_clear) {
-      if (prevent_clear == null || prevent_clear !== true) {
-        keys.forEach(key => delete origami[key]);
-      }
-      const fold_file = convert$1(data).fold();
+    const load = function (data, options) {
+      const fold_file = convert$1(data).fold(options);
       Object.assign(origami, fold_file);
       clean(origami);
       origami.didChange.forEach(f => f());

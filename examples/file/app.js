@@ -22,6 +22,53 @@ const buildPage = function (container) {
   const filenameInfo = document.createElement("span");
   filenameInfo.setAttribute("class", "filename");
   panels[0].appendChild(filenameInfo);
+
+  // conversion info
+  const conversionInfo = document.createElement("p");
+  conversionInfo.setAttribute("class", "conversion");
+  panels[0].appendChild(conversionInfo);
+  conversionInfo.innerHTML = "";
+
+  const epsilonSlider = document.createElement("input");
+  epsilonSlider.setAttribute("class", "epsilon-slider");
+  epsilonSlider.setAttribute("type", "range");
+  epsilonSlider.setAttribute("min", "0");
+  epsilonSlider.setAttribute("max", "1000");
+  epsilonSlider.setAttribute("value", "0");
+  panels[0].appendChild(epsilonSlider);
+
+  const epsilonContainer = document.createElement("div");
+  epsilonContainer.setAttribute("class", "epsilon-container");
+  panels[0].appendChild(epsilonContainer);
+  const epsilonParagraph = document.createElement("p");
+  epsilonParagraph.setAttribute("class", "epsilon-info");
+  epsilonContainer.appendChild(epsilonParagraph);
+
+  const importButton = document.createElement("a");
+  importButton.setAttribute("class", "button outline");
+  importButton.setAttribute("id", "re-import-button");
+  importButton.innerHTML = "re-import";
+  epsilonContainer.appendChild(importButton);
+
+  // export info
+  const exportSection = document.createElement("div");
+  exportSection.setAttribute("class", "export");
+  panels[0].appendChild(exportSection);
+  const exportSVG = document.createElement("a");
+  const exportFOLD = document.createElement("a");
+  const explainP = document.createElement("span");
+  exportSVG.setAttribute("class", "button");
+  exportSVG.setAttribute("id", "export-svg");
+  exportFOLD.setAttribute("class", "button");
+  exportFOLD.setAttribute("id", "export-fold");
+  exportSVG.innerHTML = "SVG";
+  exportFOLD.innerHTML = "FOLD";
+  explainP.innerHTML = "download&nbsp;&nbsp;";
+  exportSection.appendChild(explainP);
+  exportSection.appendChild(exportSVG);
+  exportSection.appendChild(exportFOLD);
+
+  panels[0].appendChild(document.createElement("hr"));
   // info paragraphs
   const inspectorParagraph = document.createElement("p");
   inspectorParagraph.setAttribute("class", "inspector");
@@ -29,26 +76,6 @@ const buildPage = function (container) {
   const infoParagraph = document.createElement("p");
   infoParagraph.setAttribute("class", "info");
   panels[0].appendChild(infoParagraph);
-
-  const exportSection = document.createElement("div");
-  exportSection.setAttribute("class", "export");
-  panels[0].appendChild(exportSection);
-  const explainP = document.createElement("span");
-  explainP.innerHTML = "save as&nbsp;&nbsp;";
-  exportSection.appendChild(explainP);
-  const exportSVG = document.createElement("a");
-  exportSVG.setAttribute("class", "button");
-  exportSVG.setAttribute("id", "export-svg");
-  exportSVG.innerHTML = "SVG";
-  const exportFOLD = document.createElement("a");
-  exportFOLD.setAttribute("class", "button");
-  exportFOLD.setAttribute("id", "export-fold");
-  exportFOLD.innerHTML = "FOLD";
-  exportSection.appendChild(exportSVG);
-  exportSection.appendChild(exportFOLD);
-
-  // <input id="frame-slider" type="range" min="0" max="1000" value="0">
-  // <span id="frame-span">FOLD frame 0/0</span>
 
   // json code section
   const pre = document.createElement("pre");
@@ -65,14 +92,7 @@ const buildPage = function (container) {
   const newHTML = code.innerHTML.replace(/\>\s+\</g, "");
   code.innerHTML = newHTML;
 
-  const slider = document.createElement("input");
-  slider.setAttribute("id", "frame-slider");
-  slider.setAttribute("type", "range");
-  slider.setAttribute("min", "0");
-  slider.setAttribute("max", "1000");
-  slider.setAttribute("value", "0");
-
-  panels.push(slider);
+  panels.push(epsilonSlider);
   return panels;
 };
 
@@ -85,6 +105,8 @@ const App = function () {
     simulatorPanel,
     slider
   ] = buildPage(document.querySelectorAll(".app")[0]);
+
+  let epsilon = 0.000001;
 
   const origami = RabbitEar.Origami(cpPanel, {
     padding: 0.02,
@@ -104,16 +126,17 @@ const App = function () {
     const contents = origami.snapshot.fold();
     downloadInBrowser("origami.fold", contents);
   };
-  document.querySelectorAll(".app")[0].appendChild(slider);
+  document.querySelector("#re-import-button").onclick = function () {
+    reload();
+  };
+  // document.querySelectorAll(".app")[0].appendChild(slider);
 
   const sliderUpdate = function (event) {
     const { value } = event.target;
-    const fraction = parseFloat(value / 1000);
-    if (origami.file_frames == null) { return; }
-    // const frameCount = origami.file_frames.length - 1;
-    // const frame = parseInt(fraction * frameCount, 10);
-    // origami.frame = frame;
-    // frameInfo.innerHTML = `frame ${frame}/${frameCount}`;
+    const places = parseFloat(value / 100) - 6;
+    epsilon = Math.pow(10, places);
+    const epsilonString = epsilon.toFixed(places < 0 ? -places + 1 : 0);
+    document.querySelectorAll(".epsilon-info")[0].innerHTML = `epsilon: ${epsilonString}`;
   };
   slider.oninput = sliderUpdate;
 
@@ -174,8 +197,15 @@ const App = function () {
     /** highlight end */
   };
 
+  let lastFileLoaded = {
+    blob: undefined,
+    filename: undefined,
+    fileExtension: undefined
+  };
+
   const load = function (blob, filename, fileExtension) {
-    origami.load(blob);
+    lastFileLoaded = { blob, filename, fileExtension };
+    origami.load(blob, { epsilon });
     folded.load(origami);
     folded.fold();
     // sliderUpdate({ target: { value: 0 } });
@@ -198,11 +228,18 @@ const App = function () {
     // folded.cp = origami.cp.copy();
     // folded.fold();
     infoPanel.querySelectorAll(".filename")[0].innerHTML = filename;
+    infoPanel.querySelectorAll(".conversion")[0].innerHTML = fileExtension === "fold" ? "showing raw .fold contents" : "conversion from .svg";
     updateFileInfo(blob, fileExtension);
-    sliderUpdate({ target: { value: 0 } });
-    const sliderHidden = (origami.file_frames == null) ? "none" : "initial";
-    slider.setAttribute("style", `display: ${sliderHidden}`);
+    // sliderUpdate({ target: { value: 0 } });
+    // const sliderHidden = (origami.file_frames == null) ? "none" : "initial";
+    // slider.setAttribute("style", `display: ${sliderHidden}`);
   };
+
+  const reload = function () {
+    load(lastFileLoaded.blob, lastFileLoaded.filename, lastFileLoaded.fileExtension);
+  };
+
+  sliderUpdate({ target: { value: 0 } });
 
   return {
     origami,
@@ -221,7 +258,6 @@ function fileDidLoad(blob, mimeType, filename, fileExtension) {
 //   fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => app.load(json, "crane.fold"));
 // };
 
-
 window.onload = function () {
-  fetch("../../files/fold/crane.fold").then(blob => blob.json()).then(json => app.load(json, "crane.fold"));
+  fetch("../../files/fold/crane.fold").then(blob => blob.json()).then(json => app.load(json, "crane.fold", "fold"));
 };

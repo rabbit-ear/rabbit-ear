@@ -48,12 +48,12 @@ svg {
 }
 
 .panel {
-  padding: 0.666rem;
-  overflow: auto;
-  border-radius: 0.666rem;
-  display: inline-block;
-  border: 4px solid black;
-  background-color: white;
+	padding: 0.666rem;
+	overflow: auto;
+	border-radius: 0.666rem;
+	display: inline-block;
+	border: 4px solid black;
+	background-color: white;
 }
 
 .inspector {
@@ -86,22 +86,30 @@ pre {
 }
 
 .export {
+	text-align: right;
+}
+
+.conversion {
+	font-style: italic;
+	color: #888;
+}
+.epsilon-container {
+	text-align: right;
+}
+.epsilon-slider {
+
+}
+.epsilon-info {
+	float: left;
+}
+
+/*.export {
 	bottom: 0;
 	right: 0;
 	position: absolute;
 	padding: 0.666rem;
 	background-color: white;
-}
-
-input[type="range"] {
-	position: absolute;
-	width: calc(33vw - 3rem);
-	top: calc(50vh + 5px);
-	left: 50vw;
-	margin-left: calc(-16vw + 2.25rem);
-	/* hidden by default */
-	display: none;
-}
+}*/
 
 .pass {
 	color: #7b4;

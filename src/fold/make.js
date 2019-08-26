@@ -193,12 +193,12 @@ export const make_vertices_coords_folded = function (graph, face_stationary, fac
       faces_matrix = make_faces_matrix(graph, face_stationary);
     }
   }
-
   const vertex_in_face = graph.vertices_coords.map((v, i) => {
     for (let f = 0; f < graph.faces_vertices.length; f += 1) {
       if (graph.faces_vertices[f].includes(i)) { return f; }
     }
-    return undefined;
+    // return undefined;
+    return face_stationary;
   });
   return graph.vertices_coords.map((point, i) => math.core
     .multiply_vector2_matrix2(point, faces_matrix[vertex_in_face[i]])

@@ -1,17 +1,18 @@
 // import Segmentize from "../include/svg-segmentize";
 import color_to_assignment from "./color_to_assignment";
+import get_fold_angle from "./get_fold_angle";
 import fragment from "./graph/fragment";
 // import convert from "../include/fold/convert";
 // import remove_collinear_vertices from "./graph/collinear";
 // import window from "./environment/window";
+import findBoundary from "./graph/boundary";
 
+// const Segmentize = window.Segmentize || require("svg-segmentize");
+// const FOLD = window.FOLD || require("fold");
 import Segmentize from "../../svg-segmentize";
 import convert from "../../fold/convert";
 
 const FOLD = { convert };
-
-// const Segmentize = window.Segmentize || require("svg-segmentize");
-// const FOLD = window.FOLD || require("fold");
 
 const assignment_foldAngle = {
   V: 180, v: 180, M: -180, m: -180
@@ -55,12 +56,22 @@ const svg_to_fold = function (svg, options) {
     .map(a => a[4])
     .map(attrs => (attrs != null ? color_to_assignment(attrs.stroke) : "U"));
 
+  // here
+  // console.log("look for opacity here", segments.map(a => a[4]));
+  // here
+
   const graph = fragment(pre_frag, options.epsilon);
   // remove_collinear_vertices(graph);
   FOLD.convert.edges_vertices_to_vertices_vertices_sorted(graph);
   FOLD.convert.vertices_vertices_to_faces_vertices(graph);
   FOLD.convert.faces_vertices_to_faces_edges(graph);
   graph.edges_foldAngle = graph.edges_assignment.map(a => assignment_to_foldAngle(a));
+  // graph.edges_assignment = walkBoundary(graph);
+  if (options.boundary !== false) {
+    findBoundary(graph).forEach((edgeIndex) => {
+      graph.edges_assignment[edgeIndex] = "B";
+    });
+  }
 
   return graph;
 };
