@@ -16,7 +16,7 @@
 
 <section>
 	<div id="canvas-junction-bisect"></div>
-	<p>Origami math includes the mathematics of ancient Greece, linear algebra, data structures and algorithms.</p>
+	<p>The mathematics of ancient Greece, linear algebra, and graph theory come together in origami math.</p>
 	<div class="centered code">
 		<pre><code><f>RabbitEar</f>.math</code></pre>
 	</div>
@@ -29,7 +29,7 @@
 		<pre class="compact"><code><f>RabbitEar</f>
 ┃
 ┣━ <v>Vector</v>
-┣━ <v>Matrix2</v>
+┣━ <v>Matrix</v>
 ┣━ <v>Line</v>
 ┣━ <v>Ray</v>
 ┣━ <v>Edge</v>
@@ -46,9 +46,9 @@
 <section id="vector">
 <h2>Point / Vector</h2>
 
-	<p>Consider this object from two perspectives:</p>
+	<p>Consider these two ideas:</p>
 	<ul>
-		<li>a point in space, as measured from the origin (0,0)</li>
+		<li>a point in space, measured as a distance from the origin (0,0)</li>
 		<li>a translation away from another point in space</li>
 	</ul>
 	<p>We call this object a <b>vector</b>.</p>
@@ -57,7 +57,7 @@
 	<div class="centered code">
 		<pre><code><f>let</f> point <key>=</key> <f>Vector</f>(<span id="vec-sketch-vector"><n>0.5</n>, <n>0.666</n></span>)<br><span id="vec-sketch-normal"></span>point.<f>normalize</f>()</code></pre>
 	</div>
-	<p>Notice the y axis is positive in the downwards direction. <b>I didn't make this decision</b>, it's a computer graphics standard. The SVG is simply drawing in its coordinate frame. If you want to flip the +Y axis is not difficult, but it's on you.</p>
+	<p>Notice the y axis is positive in the downwards direction. <b>This is not standard in math</b>, it's a computer graphics standard. This library prioritizes data-first. If you want to flip the +Y axis it's easy but it's up to you.</p>
 	<p class="explain">This vector object works in N-dimensions, not limited to 2D.</p>
 	<!-- <h4>Linear Interpolation</h4> -->
 	<div id="canvas-lerp"></div>

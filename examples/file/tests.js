@@ -1,5 +1,7 @@
 
 const getFileInformation = function (fold_file) {
+  const { RabbitEar } = window;
+
   // v e f count
   const vCount = RabbitEar.core.vertices_count(fold_file);
   const eCount = RabbitEar.core.edges_count(fold_file);
