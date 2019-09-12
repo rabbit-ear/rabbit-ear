@@ -104,9 +104,10 @@ const load = function (...args) {
   if (datatype === "object") {
     try {
       const fold = JSON.parse(JSON.stringify(data));
-      if (possibleFoldObject(fold)) {
-        return { data: fold, type: "fold" };
-      }
+      // silencing this, because it doesn't catch "{}". allowing empty obj.
+      // if (possibleFoldObject(fold)) {
+      return { data: fold, type: "fold" };
+      // }
       // else, we need to do something with this JSON object that got parsed
     } catch (err) {
       // valid xml! now to figure out what kind

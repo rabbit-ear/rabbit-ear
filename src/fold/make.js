@@ -133,6 +133,9 @@ export const make_face_walk_tree = function (graph, root_face = 0) {
 const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
 
 export const make_faces_matrix = function (graph, root_face) {
+  if (graph.faces_vertices == null || graph.edges_vertices == null) {
+    return undefined;
+  }
   // if edge_orientations includes marks AND mountains/valleys,
   // then perform folds only along mountains and valleys
   // if edge_orientations doesn't exist, or only includes marks/borders,
@@ -181,6 +184,7 @@ export const make_faces_matrix_inv = function (graph, root_face) {
 };
 
 export const make_vertices_coords_folded = function (graph, face_stationary, faces_matrix) {
+  if (graph.vertices_coords == null) { return undefined; }
   if (face_stationary == null) { face_stationary = 0; }
   if (faces_matrix == null) {
     faces_matrix = make_faces_matrix(graph, face_stationary);

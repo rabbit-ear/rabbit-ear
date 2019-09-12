@@ -103,6 +103,10 @@ pre {
 	float: left;
 }
 
+[id^="export"] {
+	display: inline;
+}
+
 /*.export {
 	bottom: 0;
 	right: 0;

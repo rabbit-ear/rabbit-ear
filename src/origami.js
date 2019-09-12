@@ -131,7 +131,7 @@ const Origami = function (...args) {
   const load = function (data, options) {
   // const load = function (data, prevent_clear) {
     // if (prevent_clear == null || prevent_clear !== true) {
-    //   foldKeys.forEach(key => delete origami[key]);
+    foldKeys.forEach(key => delete origami[key]);
     // }
     const fold_file = convert(data).fold(options);
     Object.assign(origami, fold_file);
@@ -248,6 +248,8 @@ const Origami = function (...args) {
     }
     return drawFOLD.svg(origami);
   };
+
+  Object.defineProperty(origami, "clean", { value: () => clean(origami) });
 
   Object.defineProperty(origami, "snapshot", { get: () => exportObject });
   Object.defineProperty(origami, "export", { get: () => exportObject });

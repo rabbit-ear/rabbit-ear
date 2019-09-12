@@ -1,6 +1,7 @@
 const App = function () {
   const { RabbitEar } = window;
 
+  // DOM elements
   ["grid-folded", "grid-cp",
     // "grid-simulator"
   ].forEach((c) => {
@@ -10,9 +11,6 @@ const App = function () {
   });
   const filePanel = FilePanel(document.querySelectorAll(".app")[0]);
   const jsonPanel = JSONPanel(document.querySelectorAll(".app")[0]);
-
-  let epsilon = 0.000001;
-
   const origami = RabbitEar.Origami(document.querySelectorAll(".grid-cp")[0], {
     padding: 0.02,
     style: ".boundary { fill: white; } .foldedForm polygon { fill: rgba(255, 255, 255, 0.1); }"
@@ -23,6 +21,10 @@ const App = function () {
   });
   folded.fold();
 
+  // environment variables
+  let epsilon = 0.000001;
+
+  // event handlers
   document.querySelector("#export-svg").onclick = function () {
     const contents = origami.snapshot.svg();
     downloadInBrowser("origami.svg", contents);
@@ -95,6 +97,14 @@ const App = function () {
 
   sliderUpdate({ target: { value: 0 } });
 
+  // origami.load({
+  //   vertices_coords: [],
+  //   edges_vertices: [],
+  //   faces_edges: [],
+  //   faces_vertices: []
+  // });
+  // origami.load({});
+
   return {
     origami,
     folded,
@@ -110,5 +120,6 @@ function fileDidLoad(blob, mimeType, filename, fileExtension) {
 
 window.onload = function () {
 //   fetch("https://robbykraft.github.io/Origami/files/fold/crane.fold").then(blob => blob.json()).then(json => app.load(json, "crane.fold"));
-  fetch("../../files/fold/crane.fold").then(blob => blob.json()).then(json => app.load(json, "crane.fold", "fold"));
+  // fetch("../../files/fold/crane.fold").then(blob => blob.json()).then(json => app.load(json, "crane.fold", "fold"));
+  app.load({}, "empty", "fold");
 };

@@ -3,7 +3,9 @@ import { make_vertex_pair_to_edge_map } from "./graph";
 
 const boundary_vertex_walk = function ({ vertices_vertices }, startIndex, neighbor_index) {
   const walk = [startIndex, neighbor_index];
-  while (walk[0] !== walk[walk.length - 1]) { // not good enough we need to
+  while (walk[0] !== walk[walk.length - 1]
+    && walk[walk.length - 1] !== walk[walk.length - 2]
+  ) { // not good enough we need to
     // check if it starts on a cycle point, but eventually leads to an available branch
     const next_v_v = vertices_vertices[walk[walk.length - 1]];
     const next_i_v_v = next_v_v.indexOf(walk[walk.length - 2]);

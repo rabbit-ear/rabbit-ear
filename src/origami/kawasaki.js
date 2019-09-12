@@ -92,6 +92,19 @@ export const make_vertices_nudge_matrix = function (graph) {
   return vertices_nudge_matrix;
 };
 
+export const kawasaki_test = function (graph, EPSILON = math.core.EPSILON) {
+  if (graph.vertices_coords == null) { return false; } // false ? true ?
+  if (graph.vertices_vertices == null) {
+    // build vertices_vertices
+
+  }
+  return make_vertices_kawasaki(graph)
+    .map(k => k
+      .map(n => Math.abs(n) < EPSILON)
+      .reduce((a, b) => a && b, true))
+    .reduce((a, b) => a && b, true);
+};
+
 
 export const make_vertices_nudge = function (graph) {
   const matrix = make_vertices_nudge_matrix(graph);

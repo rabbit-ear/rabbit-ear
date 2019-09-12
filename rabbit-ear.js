@@ -3680,6 +3680,9 @@
   };
   const is_mark = (a => a === "f" || a === "F" || a === "u" || a === "U");
   const make_faces_matrix = function (graph, root_face) {
+    if (graph.faces_vertices == null || graph.edges_vertices == null) {
+      return undefined;
+    }
     const skip_marks = ("edges_assignment" in graph === true);
     const edge_fold = skip_marks
       ? graph.edges_assignment.map(a => !is_mark(a))
@@ -3717,6 +3720,7 @@
     return faces_matrix;
   };
   const make_vertices_coords_folded = function (graph, face_stationary, faces_matrix) {
+    if (graph.vertices_coords == null) { return undefined; }
     if (face_stationary == null) { face_stationary = 0; }
     if (faces_matrix == null) {
       faces_matrix = make_faces_matrix(graph, face_stationary);
@@ -5158,9 +5162,7 @@
     if (datatype === "object") {
       try {
         const fold = JSON.parse(JSON.stringify(data));
-        if (possibleFoldObject(fold)) {
-          return { data: fold, type: "fold" };
-        }
+        return { data: fold, type: "fold" };
       } catch (err) {
         if (typeof data.getElementsByTagName === "function") {
           if (possibleSVG(data)) { return { data, type: "svg" }; }
@@ -8210,7 +8212,9 @@
 
   const boundary_vertex_walk = function ({ vertices_vertices }, startIndex, neighbor_index) {
     const walk = [startIndex, neighbor_index];
-    while (walk[0] !== walk[walk.length - 1]) {
+    while (walk[0] !== walk[walk.length - 1]
+      && walk[walk.length - 1] !== walk[walk.length - 2]
+    ) {
       const next_v_v = vertices_vertices[walk[walk.length - 1]];
       const next_i_v_v = next_v_v.indexOf(walk[walk.length - 2]);
       const next_v = next_v_v[(next_i_v_v + 1) % next_v_v.length];
@@ -9457,6 +9461,7 @@
   };
   const convert$1 = function (...file) {
     const loaded = load$1(...file);
+    console.log("loaded", loaded);
     const c = {};
     ["fold", "svg", "oripa"].forEach(filetype => permute(filetype)
       .forEach(key => Object.defineProperty(c, key, {
@@ -10335,6 +10340,15 @@
     });
     return vertices_nudge_matrix;
   };
+  const kawasaki_test = function (graph, EPSILON = math.core.EPSILON) {
+    if (graph.vertices_coords == null) { return false; }
+    if (graph.vertices_vertices == null) ;
+    return make_vertices_kawasaki(graph)
+      .map(k => k
+        .map(n => Math.abs(n) < EPSILON)
+        .reduce((a, b) => a && b, true))
+      .reduce((a, b) => a && b, true);
+  };
   const make_vertices_nudge = function (graph) {
     const matrix = make_vertices_nudge_matrix(graph);
     const largestMagnitude = matrix
@@ -10389,6 +10403,7 @@
     make_vertices_kawasaki_flatness: make_vertices_kawasaki_flatness,
     make_vertices_kawasaki: make_vertices_kawasaki,
     make_vertices_nudge_matrix: make_vertices_nudge_matrix,
+    kawasaki_test: kawasaki_test,
     make_vertices_nudge: make_vertices_nudge,
     kawasaki_solutions_radians: kawasaki_solutions_radians,
     kawasaki_solutions: kawasaki_solutions,
@@ -11006,6 +11021,9 @@
   };
 
   const clean = function (fold) {
+    if (fold.vertices_coords != null && fold.vertices_vertices != null) {
+      convert.sort_vertices_vertices(fold);
+    }
     const facesCount = faces_count(fold);
     if (facesCount > 0) {
       if (fold["faces_re:matrix"] == null) {
@@ -11851,6 +11869,7 @@ polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
       origami.didChange.forEach(f => f());
     };
     const load = function (data, options) {
+      keys.forEach(key => delete origami[key]);
       const fold_file = convert$1(data).fold(options);
       Object.assign(origami, fold_file);
       clean(origami);
@@ -11930,6 +11949,7 @@ polygon { fill: none; stroke: none; stroke-linejoin: bevel; }
       }
       return drawFOLD.svg(origami);
     };
+    Object.defineProperty(origami, "clean", { value: () => clean(origami) });
     Object.defineProperty(origami, "snapshot", { get: () => exportObject });
     Object.defineProperty(origami, "export", { get: () => exportObject });
     Object.defineProperty(origami, "options", { get: () => options });

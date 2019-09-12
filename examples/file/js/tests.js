@@ -8,13 +8,15 @@ const getFileInformation = function (fold_file) {
   const fCount = RabbitEar.core.faces_count(fold_file);
   const innerCount = `vertices / edges / faces:<br><b>${vCount} / ${eCount} / ${fCount}</b>`;
   // mountain valley mark border count
-  const assignmentCounts = [
-    ["M", "m"],
-    ["V", "v"],
-    ["B", "b"],
-    ["F", "f"],
-    ["U", "u"]
-  ].map(options => fold_file.edges_assignment.filter(e => options.includes(e)));
+  const assignmentCounts = fold_file.edges_assignment == null
+    ? Array.from(Array(5)).map(() => [])
+    : [
+      ["M", "m"],
+      ["V", "v"],
+      ["B", "b"],
+      ["F", "f"],
+      ["U", "u"]
+    ].map(options => fold_file.edges_assignment.filter(e => options.includes(e)));
   const assignmentInfo = `
     mountain: <b>${assignmentCounts[0].length}</b><br>
     valley: <b>${assignmentCounts[1].length}</b><br>
@@ -24,7 +26,7 @@ const getFileInformation = function (fold_file) {
 
   // test 1: flat foldability
   // RabbitEar.kawasaki(fold_file);
-  const isFlatFoldable = true; // fold_file.flatFoldable();
+  const isFlatFoldable = RabbitEar.core.kawasaki_test(fold_file);
   const flatFoldabilityTest = `${isFlatFoldable
     ? "<span class='pass'>[yes]</span>"
     : "<span class='fail'>[no]</span>"} flat foldable`;
